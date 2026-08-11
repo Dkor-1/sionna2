@@ -1,0 +1,134 @@
+{
+ "_meta": {
+  "generator": "adversarial verification of outputs/elevation_sweep_md.json (sionna arm, el=0)",
+  "date": "2026-08-11",
+  "question_ko": "sionna 팔의 el=0 칸이 레벨 +65~75 dB, 박자 376.73 Hz 로 튄다. 물리인가 아티팩트인가",
+  "verdict_ko": "아티팩트. Sionna PathSolver 의 무한평면 정반사(면 크기 무시) + 동일 경로 3중 중복.",
+  "units_warning_ko": "ours 열은 산란 면적분 E [m^2], sionna 열은 채널 h [무차원]. 팔 사이 절대 레벨 비교 금지 — 아래는 전부 sionna 팔 **안에서**의 비교다.",
+  "compute_ko": "GPU 미사용. Sionna 를 llvm_ad_mono_polarized(CPU) 변종으로 돌려 재현했다.",
+  "wrote_nothing_else": "원장(elevation_sweep_md.json/.npz)은 읽기만 했다"
+ },
+
+ "A_ledger_reread": {
+  "note_ko": "npz 에서 내가 직접 다시 잰 값 — 원장 숫자와 일치",
+  "sionna_level_db": {"el+0": -59.65, "el-15": -124.80, "el-30": -135.45,
+                      "el-45": -125.92, "el-60": -127.86, "el-75": -127.60, "el-90": -130.29},
+  "sionna_el0_abs_E": {"mean": 1.0406e-03, "median": 1.0406e-03, "max": 1.0407e-03,
+                       "relative_span_over_4096_poses": 2.456e-04},
+  "dc_vs_residual_db": {"comment_ko": "20log10(|mean(E)| / mean|E-mean(E)|) — 정지 성분이 얼마나 지배하나",
+                        "sionna/el+0": 85.30, "sionna/el-15": 21.97, "sionna/el-30": -0.95,
+                        "sionna/el-45": 11.45, "sionna/el-60": 5.45, "sionna/el-75": 4.22,
+                        "sionna/el-90": 1.28,
+                        "ours/el+0": 17.46, "ours/el-15": 21.48, "ours/el-30": 6.91},
+  "sionna_el0_residual_mean_abs": 5.6505e-08,
+  "finding_ko": "el=0 의 |E| 는 4,096 자세에서 상대편차 2.5e-4 로 **거의 상수**다. 즉 로터와 무관한 정지 성분이 85.3 dB 지배한다. 회전 성분(잔차 5.65e-8)은 이웃 앙각(4.6e-8 ~ 2.3e-7)과 같은 크기다 — 즉 «로터 신호가 커진 것이 아니라 상수 받침대가 얹힌 것»이다."
+ },
+
+ "B_mechanism_pathdump": {
+  "how_ko": "PathSolver 를 CPU(LLVM)로 같은 설정(baseline 0, max_depth 1, los=True, spec+diff, seed 1)으로 다시 돌려 경로표를 통째로 덤프했다. pose index 0.",
+  "el0_spp11111111": {
+   "n_paths": 9, "n_hit": 9, "abs_E": 1.04069e-03, "level_db": -59.65,
+   "ledger_level_db": -59.65,
+   "dominant": {"count": 3, "object": "matrice4e_camera", "abs_a_each": 3.467880e-04,
+                "tau_ns_each": 65.5500, "two_way_range_m": 19.6519,
+                "identical_ko": "|a| 와 tau 가 소수 4자리까지 **완전히 같다** — 같은 평면의 같은 경로가 3벌"},
+   "others_ko": "나머지 6 벌은 canopy/body/gear/prop 의 확산 경로, |a| ~ 1e-7 (지배 경로의 1/2400)"
+  },
+  "duplicate_multiplicity_vs_rays": {
+   "300000": {"copies": 2, "abs_E": 6.93575e-04},
+   "1000000": {"copies": 3, "abs_E": 1.04036e-03},
+   "4000000": {"copies": 3, "abs_E": 1.04014e-03},
+   "11111111": {"copies": 3, "abs_E": 1.04069e-03},
+   "finding_ko": "같은 정반사 경로가 광선 수에 따라 2~3 벌 중복 반환된다. 코히런트로 더해져 진폭이 배로 뛴다(+9.5 dB at 3벌)."
+  },
+  "amplitude_law": {
+   "lambda_m": 0.0856550,
+   "lambda_over_4pi_d": 3.468472e-04,
+   "observed_abs_a": 3.467880e-04,
+   "implied_gamma": 0.99983,
+   "finding_ko": "지배 경로의 진폭은 λ/(4πd)·Γ 와 소수 4자리까지 같다. 이것은 **무한 평면** 이미지법 정반사식이다 — 면의 **크기가 식에 없다**. camera_assembly 재질이 수직입사에서 사실상 완전도체(|Γ|=0.9998)라 감쇠도 없다."
+  },
+  "which_plane": {
+   "source_ko": "카메라(짐벌) 앞 렌즈판. 메쉬에서 직접 확인",
+   "plane_depth_x_m": 0.17430, "n_triangles": 42, "area_m2": 1.5615e-03,
+   "extent_y_m": [-0.0295, 0.0295], "extent_z_m": [-0.0195, 0.0184],
+   "contains_specular_foot_y0_z0": true,
+   "finding_ko": "az=0·el=0 은 tx 가 기체 전방축 위 z=0 에 정확히 놓이는 각이다. 그 시선의 수선의 발 (y=0,z=0) 을 **포함하는** 평면은 이 렌즈판뿐이고, 그 법선이 시선과 정확히 평행(|n·û|=1.000000000)이라 이미지법이 정반사를 인정한다."
+  },
+  "how_wrong_ko": "면 크기를 반영한 물리광학 평판값과 비교",
+  "sigma_equivalent_m2": {
+   "from_one_copy": 325.3, "from_one_copy_dBsm": 25.12,
+   "from_three_copies": 2927.0, "from_three_copies_dBsm": 34.66,
+   "true_PO_plate_4piA2_over_lambda2": 4.176e-03, "true_PO_plate_dBsm": -23.79,
+   "overestimate_db_one_copy": 48.9, "overestimate_db_three_copies": 58.4,
+   "conversion_ko": "|h| = λ√σ / ((4π)^1.5 R1 R2), R1=R2=10 m"
+  },
+  "los_hypothesis_ko": "⛔기각. baseline 0 이라 tx≡rx 인데도 PathSolver 는 어느 앙각에서도 LOS 경로를 반환하지 않았다 — 모든 실행에서 n_paths == n_hit 이고 objects 에 INVALID_SHAPE 인 경로가 하나도 없다. report15_probe.unpack 의 O 인덱싱([:,0,0,:])과 NO_OBJ(=INVALID_SHAPE=0xFFFFFFFF) 마스크도 규격과 맞다. 즉 직접파는 원인이 아니다.",
+  "ground_plane_hypothesis_ko": "⛔기각. scene_build.build_scene 은 rt.load_scene() 으로 **빈 씬**을 만든다. el=0 에서 tx 가 z=0 에 앉지만 z=0 에 바닥면이 없다."
+ },
+
+ "C_knife_edge": {
+  "how_ko": "같은 CPU 경로덤프를 앙각만 조금 틀어 다시 돌렸다(spp 11,111,111, 같은 자세)",
+  "el+0.00": {"level_db": -59.65, "specular_copies": 3},
+  "el-0.25": {"level_db": -126.98, "specular_copies": 0},
+  "el-1.00": {"level_db": -125.15, "specular_copies": 0},
+  "el-45.00": {"level_db": -130.17, "specular_copies": 0},
+  "el-90.00": {"level_db": -128.65, "specular_copies": 0},
+  "finding_ko": "⭐0.25° 만 틀어도 받침대가 통째로 사라진다. 즉 el=0 은 **측도 0 의 정렬**을 표본으로 집은 칸이다. 표적의 성질이 아니라 격자점을 정확히 대칭축 위에 놓은 결과다.",
+  "geometry_screen_ko": "메쉬 법선 스크린(|n·û| ≥ cos0.05°, 가림 제거)도 같은 말을 한다 — el=0 에서 84 면(카메라, 4 평면)이 시선에 정확히 수직이고, −15/−30/−60/−75 에서는 0 면이다. −90 에서는 18 면이 남지만 수선의 발이 (x=0,y=0) 이라 카메라 판 위에 없어 솔버가 경로를 못 만든다(위 경로덤프로 확인: 정반사 0 벌)."
+ },
+
+ "D_beat_376Hz": {
+  "stft_ko": "flash_spec: nperseg 70 표본(3.553 ms), Δf = 281.4 Hz, hop 2, zero-pad 8",
+  "track_band_hz": [445.5, 1272.9],
+  "band_lower_edge_in_bins_from_dc": 1.58,
+  "as_is":      {"beat_hz": 376.73, "band_power_db": -73.68,
+                 "harmonic_ladder_db": {"127": -11.77, "253": -10.96, "380": -7.62, "507": -2.16}},
+  "dc_removed": {"beat_hz": 127.45, "band_power_db": -134.41,
+                 "harmonic_ladder_db": {"127": 0.00, "253": -1.88, "380": -12.62, "507": -27.90}},
+  "leakage_db": 60.73,
+  "finding_ko": [
+   "대역의 아래끝(445 Hz)이 DC 에서 겨우 1.6 빈이다. 85 dB 짜리 상수(0 도플러) 받침대가 hann 창 자락을 타고 대역 전체에 샌다 — 대역 에너지의 60.7 dB 가 누설이다(받침대를 빼면 −73.68 → −134.41 dB).",
+   "받침대가 있으면 |A+r|² ≈ |A|² + 2Re(A*r) 이라 검출되는 항이 장(field)에 **선형**이 된다. 플래시 포락(장의 제곱)이 아니라 장 자체의 도플러 선 구조를 읽게 되고, 사다리가 고차로 갈수록 커진다(위 as_is 표: 127 < 253 < 380 < 507).",
+   "실제 최대는 507 Hz(4×f_flash)인데 분석기의 탐색창이 40~400 Hz 라 잘린다. 그래서 나온 376.73 은 «3 배 조화» 라기보다 **탐색창 안의 잔여 최댓값**이다 — 3×126.667 = 380.0 과도 3.3 Hz 어긋난다.",
+   "⭐받침대(자세평균)를 빼면 박자가 127.45 Hz 로 돌아오고 대역 전력도 이웃 앙각과 같은 −134 dB 대가 된다. 즉 376.73 은 신호가 아니라 받침대의 산물이다."
+  ],
+  "side_finding_el-30_ko": "덤으로: sionna el=−30 의 252.32 Hz(2배 조화)는 **다른 문제**다. 거기는 DC/잔차가 −0.95 dB 라 받침대가 없고, 사다리가 127 과 253 이 거의 동률(−1.44 vs 0.00)인 약신호의 조화 모호성이다. 받침대를 빼면 126.63 Hz 로 간다. el=0 과 같은 원인으로 묶지 마라."
+ },
+
+ "E_ours_arm_is_clean": {
+  "ours_level_db_el0": -54.37, "ours_level_db_el-15": -51.16,
+  "delta_db": -3.21,
+  "ours_beat_hz": {"el+0": 126.40, "el-15": 126.16, "el-30": 126.73, "el-45": 126.59,
+                   "el-60": 126.55, "el-75": 126.67, "el-90": null},
+  "finding_ko": "우리 팔은 el=0 에서 이웃보다 3.2 dB **낮고** 박자도 126.40 Hz 로 정상이다. 같은 기하·같은 메쉬·같은 로터인데 우리 커널에는 받침대가 없다 — 우리는 면적분을 하므로 판의 크기가 진폭에 들어가고, 1.6e-3 m² 짜리 판이 판을 지배하지 못한다. ⇒ 이상은 **엔진의 성질**이지 표적의 성질이 아니다."
+ },
+
+ "F_gate_impact": {
+  "G1_f_flash_invariant_126.67pm2": {
+   "ours": "PASS — 잴 수 있는 6 앙각 전부 126.16~126.73 (최대 편차 0.51 Hz)",
+   "sionna_as_is": "FAIL 2/6 — el=0 (376.73, 이 아티팩트) · el=−30 (252.32, 별건의 조화 모호성)",
+   "sionna_excluding_el0": "FAIL 1/6 — el=−30 만 남는다"
+  },
+  "G5_npaths_median": "el=0 의 9 는 부풀려진 값이다. 9 경로 중 3 벌이 같은 정반사의 중복이므로 서로 다른 기하는 6 벌 — 이웃 앙각(6~7)과 같다. 표에 9 를 그대로 쓰면 «밑에서 볼수록 경로가 는다» 곡선의 왼쪽 끝이 거짓이 된다.",
+  "G6_both_engines_break_alike": "el=0 의 sionna 칸은 **측정 규약의 붕괴가 아니라 엔진 아티팩트**다. G6 의 증거로 쓰면 안 된다."
+ },
+
+ "G_recommendation_ko": {
+  "verdict": "아티팩트",
+  "chapter1_ko": [
+   "⭐sionna 팔의 el=0 칸을 **정량 곡선(레벨·대역에너지·박자)에서 빼라**. 빼는 이유를 «Sionna 정반사가 면 크기를 안 보고, 같은 경로를 3 벌 낸다» 로 한 줄 적고 이 JSON 을 근거로 걸어라.",
+   "다만 **그림에서 지우지는 마라** — 이건 우리가 이미 주장해 온 한계(스톡 Sionna 에 산란적분이 없다)의 가장 깨끗한 재현 사례다. 별도 박스에 «el=0 = +58 dB 과대, 0.25° 만 틀면 사라짐» 으로 보여 주면 Chapter 1 의 논거가 오히려 세진다.",
+   "ours 팔의 el=0 은 멀쩡하므로 **그대로 둔다**. 앙각 축 자체를 버릴 이유는 없다.",
+   "정 칸을 채우고 싶으면 el = −0.25° 같은 미세 오프셋으로 sionna 만 다시 돌리는 것이 가장 싸다(CPU 로도 자세당 수 초). 다만 «축을 하나만 바꾼다» 규약이 흐려지므로 각주가 필요하다.",
+   "⚠받침대 제거(자세평균 빼기)를 **el=0 에만** 적용하지 마라. 그건 칸마다 다른 처리다. 전 칸에 균일하게 적용하면 el=0(376.73→127.45)과 el=−30(252.32→126.63)이 둘 다 낫지만, md_mapstyle 의 상시 규약 «0 도플러는 지우지 않는다(동체 선이 읽기의 기준)» 와 정면으로 부딪친다. 이건 내가 단독으로 정할 일이 아니라 규약 결정 사항이다."
+  ]
+ },
+
+ "H_unknown_ko": [
+  "중복 3 벌이 어느 단계에서 생기는지는 **모른다**. 같은 primitive 를 여러 후보로 잡고 중복 제거가 안 되는 것으로 보이지만 PathSolver 내부를 읽어 확인하지는 않았다. 확인한 것은 «|a|·tau 가 완전히 같은 경로가 광선 수에 따라 2~3 벌 나온다» 는 관측뿐이다.",
+  "el=−30 의 252.32 Hz 조화 모호성이 왜 거기서만 나오는지는 이번 조사 범위 밖이라 **모른다**.",
+  "다른 앙각들의 절대 레벨(−125~−135 dB)이 물리적으로 옳은지는 검증하지 않았다. 이번에 판정한 것은 el=0 칸 하나다.",
+  "이 조사는 자세 index 0 한 벌의 경로덤프에 기댄다. 4,096 자세 전부를 덤프하지는 않았다 — 다만 |E| 가 4,096 자세에서 상대편차 2.5e-4 로 상수라 3 벌 중복이 전 자세에 있다고 본다."
+ ]
+}

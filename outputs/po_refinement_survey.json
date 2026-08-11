@@ -1,0 +1,783 @@
+{
+ "generated": "2026-08-11 08:08:49",
+ "purpose": "PO 를 정밀화하는 선행 방법들의 조사 원장. 산문은 prior_work/po_refinement_survey.md.",
+ "provenance_legend": {
+  "원문": "PDF 본문을 읽었다 (해당 절/표/축자를 옮겼다)",
+  "서지": "저자/제목/게재처/연도까지 1차 확인, 본문 미확보 - 주장은 2차 인용으로만 안다",
+  "미확보": "존재는 알지만 서지가 특정되지 않았다"
+ },
+ "our_kernel_baseline": {
+  "entry_point": "benchmark/elevation_sweep_md.py:132 -> rcs_sbr.sbr_field()",
+  "bounces": 1,
+  "polarization": "scalar (|Gamma| weighted)",
+  "ptd": false,
+  "ray_grid": "lambda/12 (DEFAULT_DIV=12)",
+  "ray_divergence": "none (parallel grid, no 1/r spreading)",
+  "illumination": "spherical-wave phase via range_m, parallel rays",
+  "source": "src/rcs_sbr.py:96,218,1013 + src/ptd_edges.py NOT_IMPLEMENTED/APPROXIMATIONS"
+ },
+ "our_mesh_discretization_check": {
+  "method": "인접면 꺾임각 th 에서 곡률을 직접 읽는다. 매끈한 테셀레이션은 th = E/R 이므로 E^2/(R lam) = E*th/lam 로 가정 없이 계산된다. th < 30 deg 이음매만 셌다.",
+  "measured": {
+   "drone": "matrice4e",
+   "fc_hz": 3500000000.0,
+   "lambda_m": 0.085654988,
+   "n_tri": 30662,
+   "per_group": {
+    "accent": {
+     "n_smooth_seams": 64,
+     "E_median_lam": 0.062437475746900055,
+     "turn_median_deg": 0.0,
+     "R_median_lam": 74115913471.52327,
+     "E2_over_Rlam_median": 0.0,
+     "E2_over_Rlam_p90": 0.022920403358364618
+    },
+    "battery": {
+     "n_smooth_seams": 12,
+     "E_median_lam": 0.8419311924259893,
+     "turn_median_deg": 0.0,
+     "R_median_lam": 1721067371718.726,
+     "E2_over_Rlam_median": 0.0,
+     "E2_over_Rlam_p90": 0.0
+    },
+    "body": {
+     "n_smooth_seams": 11119,
+     "E_median_lam": 0.09761841358580176,
+     "turn_median_deg": 1.0281866203813932,
+     "R_median_lam": 2.309044954966941,
+     "E2_over_Rlam_median": 0.001252881141361508,
+     "E2_over_Rlam_p90": 0.022320006879190588
+    },
+    "camera": {
+     "n_smooth_seams": 3421,
+     "E_median_lam": 0.02999505512356573,
+     "turn_median_deg": 10.357976496119678,
+     "R_median_lam": 0.16300126186818628,
+     "E2_over_Rlam_median": 0.005302933826595561,
+     "E2_over_Rlam_p90": 0.006171030464398721
+    },
+    "canopy": {
+     "n_smooth_seams": 3608,
+     "E_median_lam": 0.08428633884992648,
+     "turn_median_deg": 2.266457467608006,
+     "R_median_lam": 1.4750986270944557,
+     "E2_over_Rlam_median": 0.0023192504266412815,
+     "E2_over_Rlam_p90": 0.014603153441083974
+    },
+    "gear": {
+     "n_smooth_seams": 4072,
+     "E_median_lam": 0.017627229811375534,
+     "turn_median_deg": 6.853446810119387,
+     "R_median_lam": 0.2977739514946546,
+     "E2_over_Rlam_median": 0.00011585869660599018,
+     "E2_over_Rlam_p90": 0.02770435065728901
+    },
+    "motor": {
+     "n_smooth_seams": 2448,
+     "E_median_lam": 0.04151659022017071,
+     "turn_median_deg": 1.5727244970515435,
+     "R_median_lam": 2.20925900474197,
+     "E2_over_Rlam_median": 0.0006967651604682334,
+     "E2_over_Rlam_p90": 0.00896670879017288
+    },
+    "pcb": {
+     "n_smooth_seams": 6,
+     "E_median_lam": 0.628482313670724,
+     "turn_median_deg": 0.0,
+     "R_median_lam": 1087318786852.9999,
+     "E2_over_Rlam_median": 0.0,
+     "E2_over_Rlam_p90": 0.0
+    },
+    "prop": {
+     "n_smooth_seams": 17616,
+     "E_median_lam": 0.07793876940049685,
+     "turn_median_deg": 0.6767438713789757,
+     "R_median_lam": 3.575908523436442,
+     "E2_over_Rlam_median": 0.0007035560520815621,
+     "E2_over_Rlam_p90": 0.004168107174022008
+    }
+   },
+   "curved_groups": [
+    "body",
+    "camera",
+    "canopy",
+    "gear",
+    "motor",
+    "prop"
+   ],
+   "excluded_flat_groups": [
+    "accent",
+    "battery",
+    "pcb"
+   ]
+  },
+  "verdict": {
+   "E2_over_Rlam_max_median": 0.005302933826595561,
+   "E2_over_Rlam_max_p90": 0.02770435065728901,
+   "ziganshin_knee": 0.5,
+   "ziganshin_practical_band": [
+    0.6,
+    0.9
+   ],
+   "ratio_to_knee_p90": 18.047706881317936,
+   "phase_error_rad_p90": 0.17407156899482942,
+   "phase_error_deg_p90": 9.973566236624043,
+   "conclusion": "곡면 이산화는 우리 위상 이상의 원인이 아니다. 후보 하나가 수치로 지워졌다."
+  },
+  "our_arithmetic_out_of_scope": {
+   "claim": "Ziganshin 의 두 조건(E > 1.5 lam AND E^2/(R lam) < 0.5)을 동시에 만족하려면 R > 4.5 lam 이어야 한다 ((1.5 lam)^2/(R lam) < 0.5).",
+   "R_threshold_lam": 4.5,
+   "R_threshold_m_at_3p5GHz": 0.385447446,
+   "our_facet_E_median_lam_range": [
+    0.017627229811375534,
+    0.09761841358580176
+   ],
+   "violation_factor_vs_1p5lam": [
+    15.36595346001576,
+    85.09561718154896
+   ],
+   "conclusion": "우리 표적은 그 방법의 적용범위 밖이다. vertex diffraction 은 우리 다음 행동이 될 수 없다.",
+   "label": "OUR ARITHMETIC (이 문서의 산술이지 인용이 아니다)"
+  }
+ },
+ "low_kr_alignment": {
+  "our_ledger": "outputs/sbr_kr_sweep.json (2026-07-31, 3.5 GHz, kr 1..100, 48 incidences)",
+  "our_max_abs_db_vs_mie": {
+   "div12": 6.599392922195663,
+   "div16": 6.729111994408728
+  },
+  "our_std_pct_vs_mie_kr_ge30": {
+   "div12": 1.5472844408048723,
+   "div16": 1.834374210222452
+  },
+  "our_max_abs_db_vs_analytic_PO": {
+   "div12": 0.2543675111444717,
+   "div16": 0.2005726178588444
+  },
+  "sagitta_optical_region_start_kr": 30,
+  "sagitta_optical_region_std_pct": 2.5,
+  "reading": "우리 6.73 dB 는 전부 kr < 30 에서 나오고, kr >= 30 에서는 1.5-1.8 % 로 Sagitta 의 2.5 % 보다 좋다. 해석 PO 대비 0.2 dB 는 수치구현이 PO 를 제대로 푼다는 뜻이고, 남은 6.5 dB 는 'PO 라는 근사를 쓴 대가' 이지 코드 버그가 아니다.",
+  "kr30_radius_m_at_3p5GHz": 0.4089724422203094,
+  "caveat": "완전한 사과-대-사과는 아니다 - 메쉬(uv_sphere)와 구현이 다르다 (원장 axis_note)."
+ },
+ "attitude_sampling_alignment": {
+  "literature_practice": 512,
+  "literature_deg_per_step": 0.703125,
+  "ours": 4096,
+  "ours_deg_per_step": 0.087890625,
+  "ratio": 8.0,
+  "sources": [
+   "schroder2016",
+   "speirs2018"
+  ],
+  "conclusion": "자세 표본은 우리 문제가 아니다."
+ },
+ "papers": [
+  {
+   "id": "ziganshin2026",
+   "axis": [
+    "curved",
+    "edge"
+   ],
+   "prov": "원문",
+   "cite": "A. Ziganshin, E. M. Vitucci, W. Kotterman, R. Thoma, C. Schneider, V. Degli-Esposti, 'Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications', arXiv:2604.05991",
+   "venue": "arXiv preprint, submitted to IEEE Open Journal of Antennas and Propagation",
+   "version": "v1 2026-04-07, v2 2026-07-02; arXiv journal-ref NONE as of 2026-08-11",
+   "status_note": "투고 상태이지 게재 확정 아님. 보관함 두 사본 md5 동일(cb5c0f0ccf9085a03204dd4aa9b25def).",
+   "fixes": "평면 facet 으로 자른 곡면의 기하 위상오차 + 전기적으로 짧은 모서리에서 UTD 가 깨지는 것",
+   "method": "Sionna-RT v0.19 + UTD edge + vertex diffraction + 2nd order (EE/EV/VE). PO 를 쓰지 않는다.",
+   "code": "github.com/AinurZiga/sionna-RT-reflectivity",
+   "gain": {
+    "cylinder_shadow_MAE_dB": {
+     "StandardRT": 2.3,
+     "plus_EE": 0.8,
+     "E2_over_Rlam": 1.39
+    },
+    "sphere_shadow_MAE_dB": {
+     "V_EE": 3.5,
+     "V_EE_EV_VE": 2.2,
+     "E2_over_Rlam": 1.34
+    },
+    "sphere_shadow_avg_MAE_dB_E2gt0p6": {
+     "HH": {
+      "V": 7.3,
+      "V+EE": 4.0,
+      "V+EE+EV+VE": 3.0
+     },
+     "VV": {
+      "V": 8.3,
+      "V+EE": 3.2,
+      "V+EE+EV+VE": 2.7
+     }
+    },
+    "vehicle_shadow_MAE_dB": {
+     "V+EE": 2.6,
+     "V+EE+EV+VE": 1.6
+    }
+   },
+   "cost_s": {
+    "sphere_156f": [
+     0.3,
+     1.1,
+     1.8,
+     4.6
+    ],
+    "sphere_346f": [
+     0.4,
+     1.8,
+     3.1,
+     6.8
+    ],
+    "vehicle_220f": [
+     0.4,
+     0.9,
+     2.4,
+     5.0
+    ],
+    "vehicle_1496f": [
+     0.7,
+     3.6,
+     10.2,
+     19.0
+    ],
+    "columns": [
+     "RT",
+     "+V",
+     "+EE",
+     "+EV/VE"
+    ],
+    "hw": "2x AMD EPYC 7343, 32 physical cores, CPU only, mean of 5 runs"
+   },
+   "criteria": {
+    "E2_over_Rlam_backscatter_knee": 0.5,
+    "E2_over_Rlam_practical_band": [
+     0.6,
+     0.9
+    ],
+    "facet_min_for_UTD_lam": 1.5
+   },
+   "reference_solver": "FEKO MLFMM; analytical (Balanis) for sphere/cylinder r=7lam, 2 GHz, PEC; BIRA bistatic measurement of Mitsubishi i-MiEV at 3 GHz",
+   "quote_against_us": "This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.",
+   "open_challenge_for_us": "Open challenge #4: 'Modeling of time-varying substructures (micro-Doppler)'"
+  },
+  {
+   "id": "ziganshin2025_eucap",
+   "axis": [
+    "curved"
+   ],
+   "prov": "원문",
+   "cite": "A. Ziganshin, E. M. Vitucci, S. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thoma, 'Ray-based simulation of multistatic scattering from target objects in ISAC'",
+   "venue": "EuCAP 2025, pp. 1-5",
+   "fixes": "같은 문제의 선행판(회의판)",
+   "detail": "sphere r=12.8lam @2GHz; under-discretized 80 facets (7.5 lam), over-discretized 4500 facets (1.0 lam); FEKO MLFMM ground truth, FEKO PO for the car"
+  },
+  {
+   "id": "domingo1995",
+   "axis": [
+    "curved"
+   ],
+   "prov": "서지",
+   "cite": "M. Domingo, F. Rivas, J. Perez, R. Torres, M. Catedra, 'Computation of the RCS of complex bodies modeled using NURBS surfaces'",
+   "venue": "IEEE Antennas Propag. Mag. 37(6):36-47, 1995"
+  },
+  {
+   "id": "dellagiovampaola2013",
+   "axis": [
+    "curved"
+   ],
+   "prov": "서지",
+   "cite": "C. Della Giovampaola, G. Carluccio, F. Puggelli, A. Toccafondi, M. Albani, 'Efficient algorithm for the evaluation of the physical optics scattering by NURBS surfaces with relatively general boundary condition'",
+   "venue": "IEEE TAP 61(8):4194-4203, 2013",
+   "note": "PO 를 NURBS 곡면 위에서 직접 적분. 우리 노선의 '곡면 정공법'. 지금은 열지 않는다."
+  },
+  {
+   "id": "ozturk2002",
+   "axis": [
+    "edge",
+    "low_kr",
+    "pol"
+   ],
+   "prov": "원문",
+   "cite": "A. Ozturk, 'Implementation of Physical Theory of Diffraction for Radar Cross Section Computations', MS thesis",
+   "venue": "Bilkent University, 2002",
+   "fixes": "PO 면적분에 모서리 프린지(PTD-EEC) 항을 더한다. 우리 채택식의 2차 출처.",
+   "limit_quote": "only the first order diffractions are calculated in this work ... diffraction caused by the same current at another edge is neglected (second-order diffraction). This effect can also be reduced by using a larger plate.",
+   "scaling_quote": "the agreement ... improves with increasing disc radius. The edge interaction effects decrease as the disc size becomes larger. When the disc size is small, the FW surface current possess sufficient strength to cause diffraction at the edge point of interest after traversing the disc.",
+   "pol_quote": "Although PO is polarization independent, PTDEEC is not, therefore, results for the fuel tank for horizontal and vertical polarizations differ.",
+   "cases": {
+    "disc_ka": [
+     5,
+     10,
+     15
+    ],
+    "square_plate_area_lam2": 36,
+    "cylinder": {
+     "ka": 2.16,
+     "kl": 12.45,
+     "n_tri": 950,
+     "meas_f_GHz": 2.6,
+     "meas_src": "Shaeffer"
+    }
+   },
+   "takeaway": "2차 회절의 크기는 표적이 작을수록 커진다 -> few-lam 부품에서 1차 PTD 만으로는 부족."
+  },
+  {
+   "id": "gao2012",
+   "axis": [
+    "edge",
+    "multibounce"
+   ],
+   "prov": "원문",
+   "cite": "Gao, Wang, Guo, Yang, 'A Hybrid Heterogeneous CPU-GPU Architecture for Fast Computation of Complex Targets' RCS with SBR and TW-ILDCs'",
+   "venue": "Progress In Electromagnetics Research (PIER) 122:137-154, 2012",
+   "fixes": "SBR 다중반사 + TW-ILDC 절단쐐기 모서리항",
+   "key_quote": "the edge-diffraction effect, as the secondary dominant scattering mechanism, can not be ignored in the case of weak scattering ... especially in the incident angles after 180 deg",
+   "multibounce_quote": "there is a good agreement between the GPU-based SBR result and the MLFMM result when the values of RCS are relatively large, as multiple bounces dominate at those angles",
+   "precision_quote": "The edge-diffraction effect is more sensitive to round off than multiple bounces ... TW-ILDCs are suitable to be implemented on the CPU with double precision, while single precision should be used ... in the GPU-based SBR.",
+   "ray_density": "be greater than ten rays per wavelength to ensure the accuracy",
+   "cost_s": {
+    "aircraftA": {
+     "SBR_alone": 1311.0,
+     "TWILDC_cpu": 913.9,
+     "total": 1371.4,
+     "penalty_pct": 4.6,
+     "serial": 2230.8
+    },
+    "aircraftB": {
+     "SBR_alone": 2302.7,
+     "TWILDC_cpu": 2428.2,
+     "total": 2699.9,
+     "penalty_pct": 17.2,
+     "serial": 4712.2
+    },
+    "hw": "Intel Core i5 2.8 GHz + NVIDIA GTX 470, CUDA 3.2"
+   },
+   "caveat": "+4.6% 는 월클럭이지 연산량이 아니다. 모서리항 자체가 SBR 의 70-105 % 산술을 요구하고 놀던 CPU 로 밀어 GPU 와 겹쳐 숨긴 값이다. 단일 GPU 인 우리에게 그대로 못 옮긴다."
+  },
+  {
+   "id": "kirik2019",
+   "axis": [
+    "edge"
+   ],
+   "prov": "원문",
+   "cite": "O. Kirik, C. Ozdemir, 'An Accurate and Effective Implementation of Physical Theory of Diffraction to the Shooting and Bouncing Ray Method via Predics Tool'",
+   "venue": "Sigma Journal of Engineering and Natural Sciences, 2019 (Yildiz Technical Univ.)",
+   "fixes": "SBR 에 PTD 를 ray/field tracing 으로 부착",
+   "case": "cone-sphere: sphere radius 74 mm, cone height 605 mm, 9 GHz monostatic azimuth sweep; measured (Griesser) vs Predics(PO+PTD) vs FEKO vs CST",
+   "key_quote": "For angles from -100 to -180 deg ... only the diffraction fields are generated ... RCS levels that are almost 45 dB less than the peak RCS value ... Predics's RCS simulation produces RCS values that fluctuate between -35 dBsm and -45 dBsm ... CST seems to estimate RCS values somewhat lower",
+   "takeaway": "회절만 남는 -45 dB 구간에서 PO+PTD 는 실측과 정렬하고, PTD 없는 도구는 더 낮게 낸다."
+  },
+  {
+   "id": "weinmann2006",
+   "axis": [
+    "edge",
+    "multibounce"
+   ],
+   "prov": "서지",
+   "cite": "F. Weinmann, 'Ray tracing with PO/PTD for RCS modeling of large complex objects'",
+   "venue": "IEEE TAP 54(6):1797-1806, 2006",
+   "key_technique": "ray-density normalization (RDN) + PO + PTD; MoM 및 실측 대조",
+   "note": "RDN 은 다중반사 뒤 광선관 발산/수렴의 밀도 왜곡을 정규화해 PO 적분을 유효하게 유지한다. 우리 커널에 없다. 본문 미확보."
+  },
+  {
+   "id": "albani2009_vertex",
+   "axis": [
+    "edge",
+    "curved"
+   ],
+   "prov": "서지",
+   "cite": "M. Albani, F. Capolino, G. Carluccio, S. Maci, 'UTD vertex diffraction coefficient for the scattering by perfectly conducting faceted structures'",
+   "venue": "IEEE TAP 57(12):3911-3925, 2009"
+  },
+  {
+   "id": "albani2005_double",
+   "axis": [
+    "edge"
+   ],
+   "prov": "서지",
+   "cite": "M. Albani, 'A uniform double diffraction coefficient for a pair of wedges in arbitrary configuration'",
+   "venue": "IEEE TAP 53(2):702-710, 2005"
+  },
+  {
+   "id": "carluccio2012_triple",
+   "axis": [
+    "edge"
+   ],
+   "prov": "서지",
+   "cite": "G. Carluccio, F. Puggelli, M. Albani, 'A UTD triple diffraction coefficient for straight wedges in arbitrary configuration'",
+   "venue": "IEEE TAP 60(12):5809-5817, 2012"
+  },
+  {
+   "id": "kouyoumjian1974",
+   "axis": [
+    "edge"
+   ],
+   "prov": "서지",
+   "cite": "R. G. Kouyoumjian, P. H. Pathak, 'A uniform geometrical theory of diffraction for an edge in a perfectly conducting surface'",
+   "venue": "Proc. IEEE 62(11):1448-1461, 1974"
+  },
+  {
+   "id": "mukherjee_remcom",
+   "axis": [
+    "edge",
+    "multibounce"
+   ],
+   "prov": "원문",
+   "cite": "Mukherjee et al. (Remcom), 'Blockage Prediction Using Knife-Edge Diffraction, Uniform Theory of Diffraction, and Physical Optics Against 60 GHz Measurements'",
+   "venue": "(Remcom / IEEE Access-class article; 보관함 사본)",
+   "key_quote": "We found that the PO method is the most accurate, but it requires the most computational resources ... While the UTD method with the hexagon shape (approximately 42 faces) is slightly less accurate than the PO method, it provides the best compromise.",
+   "takeaway": "PO 가 UTD 보다 정확하다는 것을 60 GHz 실측으로 못 박은 게재물."
+  },
+  {
+   "id": "ling1989",
+   "axis": [
+    "multibounce"
+   ],
+   "prov": "서지",
+   "cite": "H. Ling, R.-C. Chou, S.-W. Lee, 'Shooting and bouncing rays: calculating the RCS of an arbitrarily shaped cavity'",
+   "venue": "IEEE TAP 37(2):194-205, 1989",
+   "note": "SBR 원전. 모두가 인용한다. 본문 미확보."
+  },
+  {
+   "id": "audia2025_mcsbr",
+   "axis": [
+    "multibounce"
+   ],
+   "prov": "원문",
+   "cite": "S. Audia, D. Manocha, M. Zwicker (Univ. of Maryland), 'Accelerated, Memory-Efficient Far-Field Scattering Computation with Monte Carlo SBR', arXiv:2511.07586",
+   "venue": "arXiv preprint, submitted to IEEE",
+   "fixes": "SBR 적분방정식을 몬테카를로로 재정식화 + 렌더링의 분산감소 이식",
+   "gain": {
+    "memory_reduction_x": [
+     10,
+     15
+    ],
+    "speedup_x": 4,
+    "avg_error_vs_deterministic_SBR_dB": [
+     1,
+     2
+    ],
+    "converged_agreement_dBsm2": 0.01
+   },
+   "bounce_practice": {
+    "PEC": 3,
+    "dielectric_plane_max": 5
+   },
+   "limitation": "edge diffraction 등 추가 현상은 future work 로 명시"
+  },
+  {
+   "id": "pasquale2026_sagitta",
+   "axis": [
+    "multibounce",
+    "low_kr"
+   ],
+   "prov": "원문",
+   "cite": "M. Pasquale, A. Hu, L. Pennati, I. Peng, S. Markidis (KTH), 'BVH-Accelerated Ray Tracing for High-Frequency Electromagnetic Backscattering' (SagittaSBR), arXiv:2604.09243",
+   "venue": "arXiv; extended version of a paper accepted at ICCS 2026",
+   "code": "github.com/marco-pas/SagittaSBR",
+   "fixes": "SBR+PO 를 BVH trace-integrate 파이프라인으로. 광선표본 규칙으로 위상 aliasing 통제.",
+   "sampling_rule": "we enforce a conservative sampling rule ds <= lambda/5 ... at least five samples per wavelength",
+   "mie_validity": {
+    "optical_region_start_kr": 30,
+    "aliasing_onset_kr": 8000,
+    "optical_region_std_pct": 2.5,
+    "optical_region_band_pct": 2.0
+   },
+   "key_quote": "At kr = 1, Mie resonances dominate and ray tracing methods fail ... good agreement typically expected for kr >~ 30 ... excellent agreement with Mie theory beginning at an electrical size around kr ~= 30",
+   "cost": {
+    "case": "A380 @10 GHz",
+    "rays": "30000x30000 per angle",
+    "ms_per_angle_fp32": 616.12,
+    "total_sweep_min": 27,
+    "hw": "8 LUMI nodes",
+    "total_rays": 112500000000000.0
+   }
+  },
+  {
+   "id": "kasdorf2021",
+   "axis": [
+    "multibounce"
+   ],
+   "prov": "원문",
+   "cite": "S. Kasdorf, B. Troksa, C. Key, J. Harmon, B. M. Notaros, 'Advancing Accuracy of Shooting and Bouncing Rays Method for Ray-Tracing Propagation Modeling Based on Novel Approaches to Ray Cone Angle Calculation'",
+   "venue": "IEEE TAP, 2021, DOI 10.1109/TAP.2021.3060051",
+   "applicable_to_us": false,
+   "why_not": "per-ray cone / reception-sphere / double-count 기계는 수신구를 가진 전파 예측(터널)용. RCS SBR+PO 는 수신구 없이 개구면 적분으로 받으므로 문제 구조가 다르다.",
+   "still_useful_quote": "many segments can lead to many non-physical images produced in the model (평면 조각으로 곡률을 근사할 때)"
+  },
+  {
+   "id": "gorji_aces",
+   "axis": [
+    "low_kr"
+   ],
+   "prov": "원문",
+   "cite": "A. B. Gorji, B. Zakeri, R. C. Janalizadeh, 'Physical Optics Analysis for RCS Computation of a Relatively Small Complex Structure'",
+   "venue": "ACES Journal (River Publishers)",
+   "case": "scaled vessel 58.75 x 8.25 x 6.27 cm, 100 MHz - 10 GHz, CST IE(MoM) vs asymptotic(PO), 8.5 GHz measurement",
+   "criteria": {
+    "D_over_lambda_min": 1.0,
+    "cited_lens_antenna_min_lam": 5.0,
+    "cited_impedance_surface_range_lam": [
+     1.5,
+     8.0
+    ]
+   },
+   "key_quote": "While MoM accounts for the effect of the scatterers set on the infrastructure of the vessel, PO requirements are not met because these scatterers are generally small compared to the wavelength",
+   "error_character": "mean 은 작지만 std 가 크다 - 'RCS error is high for specific observations, it is negligible in other view angles in each single frequency'",
+   "takeaway": "PO 는 파장 이하 부착물에서 sigma 를 낮게 낸다. 드론 안테나/다리/센서 돌기가 그것."
+  },
+  {
+   "id": "diva1595877",
+   "axis": [
+    "low_kr"
+   ],
+   "prov": "원문",
+   "cite": "'Evaluation of CST Studio for RCS simulation' (MS thesis, DiVA 1595877)",
+   "venue": "Swedish university thesis (DiVA record 1595877)",
+   "finding": "OPTISCAT(PO + edge diffraction correction) vs CST A-solver(SBR) 의 sigma 비가 [+15, -15] dB (=32배) 구간에 퍼진다. 전기적으로 작은 구조에서 A-solver 는 느리고 부정확.",
+   "takeaway": "상용 asymptotic 솔버끼리도 +-15 dB 로 벌어진다. 문맥이지 우리 면죄부가 아니다."
+  },
+  {
+   "id": "austin_rcs_benchmark",
+   "axis": [
+    "validation"
+   ],
+   "prov": "원문",
+   "cite": "UT Austin CEM Group, 'Austin RCS Benchmark Suite' (ACES2020 / ACES2024 presentations, Problem Descriptions IA-IVC in archive)",
+   "venue": "ACES Symposium 2020 / 2024; github.com/UTAustinCEMGroup/AustinCEMBenchmarks",
+   "note": "공개 기준 기하 + 참조 RCS. 우리 PO 를 붙일 수 있는 검증 표적 후보. 이번 라운드 미사용."
+  },
+  {
+   "id": "lee2021_jees",
+   "axis": [
+    "pol",
+    "microdoppler"
+   ],
+   "prov": "원문",
+   "cite": "Lee et al., 'Dynamic RCS Estimation according to Drone Movement Using the MoM and Far-Field Approximation'",
+   "venue": "Journal of Electromagnetic Engineering and Science (JEES) 21(4):321-327, Sep. 2021",
+   "case": "DJI Mavic 2 propellers, 20.32 cm = 6.5 lambda @ 9.65 GHz, carbon fiber ~ PEC, PRF 20 kHz, FEKO MoM/MLFMM reference",
+   "pol_relation": "[S_tt, S_tp; S_pt, S_pp]_CW = [S_tt, -S_tp; -S_pt, S_pp]_CCW",
+   "pol_quote": "the co-polarized components of the electric fields scattered from CW and CCW propellers are the same, and the cross-polarized components have a phase difference of 180 deg",
+   "speedup": {
+    "conventional_hhmmss": "20:01:12",
+    "proposed_hhmmss": "00:07:40",
+    "factor": 157
+   },
+   "tricks": [
+    "mesh 고정 + 입사각 역회전 -> 임피던스 행렬 1회",
+    "CW 계산 후 CCW 는 거울대칭으로",
+    "4 로터 = 단일 로터 장 x exp(-j2k.r_n) 병진 위상",
+    "방위각 변경 = 회전 시작각만 이동 (CW +phi_obs, CCW -phi_obs)"
+   ],
+   "cost_of_trick": "로터 상호 그림자와 동체 가림을 통째로 버린다. 우리는 가림을 넣고 있으므로 채택 시 후퇴.",
+   "verification": "1차 피크 313.2 Hz = 회전주파수 156.6 Hz x 2 (블레이드 양 끝 2 산란점)"
+  },
+  {
+   "id": "pouliguen2002",
+   "axis": [
+    "microdoppler",
+    "edge"
+   ],
+   "prov": "서지",
+   "cite": "P. Pouliguen, L. Lucas, F. Muller, S. Quete, C. Terret, 'Calculation and analysis of electromagnetic scattering by helicopter rotating blades'",
+   "venue": "IEEE TAP 50(10):1396-1408, Oct. 2002, doi:10.1109/TAP.2002.800693",
+   "method": "Physical Optics + Method of Equivalent Currents (MEC), quasi-stationary approach, triangular meshing (I-DEAS)",
+   "why_it_matters": "우리가 하는 '자세를 얼려 스냅샷마다 PO' 에 2002 년에 붙은 이름이 quasi-stationary approach 다. 그리고 회전 블레이드 PO 의 원조가 모서리항(MEC)을 함께 넣었다.",
+   "status": "본문 미확보. 서지는 Costa 2025 참고문헌 [12] + 출판사 메타데이터로 확인. 다음 라운드 1순위 확보 대상."
+  },
+  {
+   "id": "schroder2016",
+   "axis": [
+    "microdoppler"
+   ],
+   "prov": "서지",
+   "cite": "A. Schroder, U. Aulenbacher, M. Renker, U. Boniger, R. Oechslin, A. Murk, P. Wellig, 'Numerical RCS and micro-Doppler investigations of a consumer UAV'",
+   "venue": "SPIE Target and Background Signatures II, vol. 9997, pp. 35-44, 2016",
+   "attitude_samples": 512,
+   "method": "MoM + PO",
+   "status": "본문 미확보. '512 자세' 는 Costa 2025 의 요약으로만 안다."
+  },
+  {
+   "id": "speirs2018",
+   "axis": [
+    "microdoppler"
+   ],
+   "prov": "서지",
+   "cite": "P. J. Speirs, A. Schroder, M. Renker, P. Wellig, A. Murk, 'Comparisons Between Simulated and Measured X-band Signatures of Quad-, Hexa- and Octocopters'",
+   "venue": "EuRAD 2018, pp. 325-328, doi:10.23919/EuRAD.2018.8546612",
+   "attitude_samples": 512,
+   "method": "FEM + MoM"
+  },
+  {
+   "id": "petrovic2021",
+   "axis": [
+    "microdoppler"
+   ],
+   "prov": "서지",
+   "cite": "P. Z. Petrovic, S. V. Savic, M. M. Ilic, 'Electromagnetic Modelling of Micro-Doppler Signatures of Commercial Airborne Drones'",
+   "venue": "TELFOR 2021, doi:10.1109/TELFOR52709.2021.9653308",
+   "attitude_samples": "half rotation",
+   "method": "multiple full-wave EM"
+  },
+  {
+   "id": "costa2025_jsteap",
+   "axis": [
+    "microdoppler"
+   ],
+   "prov": "원문",
+   "cite": "H. C. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thoma, 'Modeling micro-Doppler signature of multi-propeller drones in distributed ISAC', arXiv:2504.05168",
+   "venue": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation (JSTEAP), 2025",
+   "method": "thin-wire (infinite point scatterers) OFDM bistatic model. PO 를 쓰지 않는다.",
+   "pitfall_wideband": "for broadband systems ... the same target point scatterer can produce different Doppler",
+   "pitfall_cost": "[full-wave methods] are extremely time-consuming and hard to implement. As a consequence, using these methods to generate a large amount of data to train machine learning algorithms becomes unfeasible.",
+   "value_to_us": "관련연구 절이 회전 프로펠러 EM 시뮬 문헌의 지도다 (PO/MEC/MoM/FEM/point-scatterer/thin-wire)"
+  },
+  {
+   "id": "li_md_rt",
+   "axis": [
+    "microdoppler"
+   ],
+   "prov": "원문",
+   "cite": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao, S. Xu, 'Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing'",
+   "venue": "(conference paper; Shanghai Univ. / XJTLU; 보관함 사본)",
+   "method": "Sionna RT 로 시간 스텝마다 기하를 옮겨 재시뮬. 구면 샘플링 -> 원뿔 샘플링으로 경로밀도 상향.",
+   "caveat": "PO 를 쓰지 않는다 (산란점/CSI 수준). 메모리의 'md-rt 헤드라인 반증' 항목이 이 논문이다."
+  }
+ ],
+ "next_actions": [
+  {
+   "rank": 1,
+   "name": "PO 면적분을 벡터(편파)로 올린다",
+   "axis": "pol",
+   "cost": "낮음",
+   "benefit": "높고 확실",
+   "fixes": "J = 2 n_hat x H^i 를 실제로 써서 스칼라 |Gamma| 를 벗는다. grazing 근방 각도 의존이 구조적으로 틀린 것을 고친다. el=-90 에서는 도플러가 0 이라 남는 변동이 진폭뿐인데 그 진폭의 앙각 의존을 스칼라가 못 낸다.",
+   "literature_gain": "정반사 지배 구간은 작다(Ozturk: PO 는 편파 무감; Ziganshin: VV~HH). 약한 산란 구간에서 0.3-1.0 dB (Ziganshin Table I). 그리고 cross-pol 이라는 새 관측량 -> CW/CCW 판별 (Lee 2021 식 (3)).",
+   "cost_detail": "면적분 루프에 벡터 한 줄 + Gamma_par/Gamma_perp 분리. 재계산은 스윕 1회.",
+   "gate": "정반사 로브 안에서 |sigma_vec - sigma_scalar| < 0.5 dB"
+  },
+  {
+   "rank": 2,
+   "name": "'kr < 30 은 유효범위 밖' 을 못 박고 부품별 kr 표를 만든다",
+   "axis": "low_kr",
+   "cost": "거의 0",
+   "benefit": "주장 범위의 정직성",
+   "fixes": "6.73 dB 를 '우리 커널의 오차' 에서 '문헌이 선언한 경계 밖' 으로 재분류한다.",
+   "evidence": "Sagitta kr>~30 (독립) + 우리 sbr_kr_sweep.json 이 kr>=30 에서 Mie 대비 1.55-1.83 % (Sagitta 2.5 % 보다 좋다) + 해석 PO 대비 0.20-0.25 dB (수치구현은 정상)",
+   "new_output": "부품별 kr = 2 pi r / lambda 표. 3.5 GHz 에서 kr=30 <=> r=41 cm. 기체 전체가 겨우 그 언저리이고 부품은 전부 아래다."
+  },
+  {
+   "rank": 3,
+   "name": "1 bounce vs 2 bounce 를 자세 몇 개에서만 잰다",
+   "axis": "multibounce",
+   "cost": "중간",
+   "benefit": "모른다 - 그게 실험의 목적",
+   "fixes": "sbr_field 는 1 bounce. 드론은 로터가 동체 위라 로터->동체상면->레이더 경로가 실재한다.",
+   "literature_baseline": "Monte Carlo SBR: PEC 3 bounce; Gao: 큰 sigma 구간은 다중반사 지배",
+   "plan": "rcs_sbr(max_bounce>=2) 는 있으나 배치가 안 된다 -> 전 스윕 말고 앙각 7 x 자세 8 = 56 회만. 차이 < 0.5 dB 면 강등하고 닫는다.",
+   "gpu": "카드 2 는 광선 사다리 중 -> 3 -> 0,1 순, 각 95 % (23,335 MiB) 상한"
+  },
+  {
+   "rank": 4,
+   "name": "1차 PTD 를 약한 산란 구간에서만 켜 본다",
+   "axis": "edge",
+   "cost": "중간~높음",
+   "benefit": "불확실하지만 문헌 지지 강함",
+   "fixes": "Gao/Kirik 두 원문이 '회절만 남는 -45 dB 구간' 에서 PTD 의 값어치를 못 박았고, 사용자가 물은 -60(변조깊이 0.390 깊은 널)/-90 이 정확히 그 성격의 자리다.",
+   "literature_gain": "Kirik cone-sphere: PO+PTD 가 -35~-45 dBsm 로 실측/FEKO 와 정렬, PTD 없는 도구는 더 낮음. 상한: Ozturk - few-lam 에서는 1차만으로 부족.",
+   "cost_detail": [
+    "ptd_edges 는 ptd=True 일 때 PO 점구름 lambda/20 강제. 현재 lambda/12 -> 표본 (20/12)^2 = 2.8배",
+    "SBR 부착 경로가 end-to-end 미검증 (NOT_IMPLEMENTED 마지막 항) -> 배선 검증부터",
+    "자체 기록 경고: 재진입 모서리를 열면 6.5 % 길이가 99.99 % 에지장을 만들어 +13.9 dB 거짓 효과"
+   ],
+   "gate": "정반사 로브 +-(첫 널) 안에서 PO 단독과 PO+PTD 가 0.5 dB 이내 (우리 doc 8 의 R2 기준)"
+  },
+  {
+   "rank": 5,
+   "name": "'로터 독립 + 병진위상' 근사를 대조군으로 구현해 상호 가림의 값을 잰다",
+   "axis": "microdoppler",
+   "cost": "낮음",
+   "benefit": "모르는 것 하나를 숫자로",
+   "fixes": "아무것도 안 고친다. '로터끼리/로터-동체 상호 가림이 마이크로도플러에 얼마짜리인가' 를 잰다.",
+   "how": "Lee 2021 식 (4) 를 우리 커널로: 로터 하나만 PO, 나머지는 exp(-j2k.r_n) + CW/CCW 거울대칭. 가림 있는 현재 판과 스펙트로그램/f_tip/변조깊이 차이를 잰다.",
+   "why": "(a) 상호 가림은 우리가 '넣었다' 고 주장하는 것 중 값이 안 매겨진 항목. (b) 문헌 다수가 이 근사 위에 서 있으므로 차이가 크면 우리 결과가 왜 다른지의 근거, 작으면 157배 가속을 정당하게 쓸 수 있다."
+  }
+ ],
+ "do_not": [
+  {
+   "name": "vertex diffraction 이식",
+   "why": "Ziganshin 의 처방은 E > 1.5 lambda facet 을 전제. 우리는 0.018-0.098 lambda 로 15-80 배 위반. 애초에 UTD 를 안 쓴다 - PO 면적분은 연속이라 그 불연속 병이 없다."
+  },
+  {
+   "name": "메쉬를 더 곱게 하기",
+   "why": "E^2/(R lambda) 가 이미 Ziganshin 기준(0.5 / 0.6-0.9)의 1/18-1/32. 얻을 게 없다."
+  },
+  {
+   "name": "NURBS 곡면 PO",
+   "why": "위와 같은 이유. 기하 정확도는 이미 포화."
+  },
+  {
+   "name": "Notaros ray-cone / 이중계수 제거 이식",
+   "why": "수신구 기반 전파 예측용 기계. 개구면 적분 방식 RCS SBR 과 문제가 다르다."
+  },
+  {
+   "name": "광선 밀도 올리기",
+   "why": "두 문헌 기준(Gao >=10/lambda, Sagitta <=lambda/5) 을 lambda/12 로 이미 만족."
+  }
+ ],
+ "gaps": {
+  "full_text_missing": [
+   "Pouliguen TAP 2002 - PO+MEC 회전 블레이드. (6) 의 원전인데 못 읽었다. 다음 라운드 1순위.",
+   "Weinmann TAP 2006 - PO/PTD + RDN. (2) 의 핵심 기법.",
+   "Ling/Chou/Lee TAP 1989 - SBR 원전.",
+   "Albani TAP 2009 (vertex) / 2005 (double) / Carluccio TAP 2012 (triple).",
+   "Della Giovampaola TAP 2013 - NURBS 위의 PO.",
+   "Schroder SPIE 2016 / Speirs EuRAD 2018 / Petrovic TELFOR 2021 - '512 자세' 의 원전 3편. 512 라는 숫자를 Costa 의 요약으로만 안다.",
+   "Michaeli TAP 1984/1986, Mitzner AFAL-TR-73-296 (1974), Knott TAP 1985 - 우리 doc 10 이 이미 기록. 변동 없음."
+  ],
+  "bibliography_not_pinned": [
+   "저-kr 용 MoM-PO 혼성 / 임피던스 경계 보정: 웹 검색으로 취지의 2차 서술은 봤으나 인용 가능한 1차 서지를 확정하지 못했다. 이 조사의 가장 큰 구멍이다.",
+   "PO 의 저-kr 오차를 '보정계수' 로 다루는 문헌: 못 찾았다. 찾은 것은 전부 유효범위를 선언하고 그 밖에서는 다른 솔버를 쓴다는 처방(Sagitta, Gorji, DiVA)."
+  ],
+  "not_found_in_literature": [
+   "가림 판정의 시간 일관성: 회전 블레이드가 프레임마다 가림 판정을 뒤집을 때 생기는 위상/진폭 점프를 명시적으로 다룬 문헌을 못 찾았다. (주의: '없다' 가 아니라 '내가 못 찾았다')",
+   "자세 보간: 512 든 4096 이든 표본 사이를 어떻게 잇는가를 논한 문헌을 못 찾았다."
+  ],
+  "extracted_not_read": [
+   "2607.13417 parametric diffraction sensing",
+   "pier2008 GPU EM (GPUECO)",
+   "plosone2021 OptiX SBR acceleration",
+   "schuler2008 virtual scattering centers",
+   "gbppr PO code notes",
+   "1910.13706 polarimetric pedestrian RCS",
+   "2605.31267 polarimetric effective roughness",
+   "kit_vru_rcs_TMTT2022",
+   "2507.12235 frequency-responsive RCS scaling",
+   "Multiband AAV RCS characterization",
+   "iet-rsn-2019-0471 pedestrian RCS raytracing",
+   "2505.20673 DJI M350 unified RCS",
+   "Modeling Micro-Doppler ... Distributed ISAC",
+   "white2023 urban bird/drone microdoppler"
+  ]
+ },
+ "limits": [
+  "우리 커널이 맞다는 것을 세우지 않는다. 커널 판정은 outputs/verify_po_elev_*.json 라운드가 한다.",
+  "사용자의 비단조 위상 변동폭을 설명하지 않는다. 후보 두 개를 제거했을 뿐이다 - 곡면 이산화(E^2/(R lam) <= 0.028)와 자세 표본 부족(4096 vs 문헌 512). 남은 후보: (a) 잣대 자체(널 근방 np.unwrap 붕괴) (b) 가림 판정의 시간 불연속 (c) 1 bounce (d) 스칼라 편파 (e) 모서리항 부재. (a) 를 먼저 봐야 한다.",
+  "(4) 의 해법을 제시하지 못한다. 저-kr 보정의 1차 서지를 확보하지 못했다.",
+  "비용 수치는 전부 남의 하드웨어다 (Ziganshin CPU 32 core, Gao GTX 470, Sagitta 8 LUMI nodes). 우리 4x4090 에 그대로 옮기면 안 된다.",
+  "E^2/(R lam) 는 기하 편차만 잰다. PO 적분 오차/광선 표본/널 근방 unwrap 붕괴는 별개의 축이고 이 계산이 무죄를 증명하지 않는다."
+ ],
+ "counts": {
+  "papers_catalogued": 27,
+  "full_text_read": 15,
+  "bibliography_only": 12,
+  "pdfs_extracted_total": 30,
+  "read_cover_to_cover": 2,
+  "read_cover_to_cover_which": [
+   "ziganshin2026",
+   "kasdorf2021"
+  ],
+  "note": "full_text_read=15 는 본문을 읽고 이 원장에 절/표/축자를 옮긴 편수다. read_cover_to_cover=2 는 추출 전문을 처음부터 끝까지 읽은 편수. pdfs_extracted_total=30 은 텍스트를 뽑았으나 정독하지 않은 것(gaps.extracted_not_read)을 포함한다."
+ }
+}

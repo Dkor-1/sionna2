@@ -1,0 +1,2725 @@
+{
+ "meta": {
+  "script": "benchmark/verify_po_elev_unit.py",
+  "purpose_ko": "해석해가 있는 최소 표적으로 PO/SBR 커널의 **운동학**을 재는 단위시험. 커널 판정 전에 잣대부터 세운다.",
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085654988,
+  "range_m": 10.0,
+  "az_deg": 0.0,
+  "elevations_deg": [
+   0.0,
+   -30.0,
+   -60.0,
+   -75.0,
+   -90.0
+  ],
+  "n_pose": 512,
+  "prf_hz": 16213.333333333334,
+  "revolutions": 2.0,
+  "rpm": 3800.0,
+  "f_rev_hz": 63.333333333333336,
+  "orbit_radius_m": 0.137,
+  "sphere_radius_m": 0.02,
+  "sphere_ka": 1.4670915153661772,
+  "beta_rad": 20.09915376051663,
+  "f_tip_el0_hz": 1272.9464048327197,
+  "illumination": "spherical-wave phase (range_m), parallel ray grid, frozen grid",
+  "material": "float 1.0 (|Γ|=1, PEC boundary) — angle-Γ and shell penetration off",
+  "phase_convention_ko": "커널은 exp(+j2k·range) 를 쓴다 → 순시주파수 = +(2/λ)dR/dt. 표준 도플러(−(2/λ)dR/dt)와 **부호가 반대**다. Sionna 경로(exp(−j2πfτ))와도 반대 — 크기 비교만 유효.",
+  "gpu": "2",
+  "stamp": "2026-08-11 07:11:03",
+  "seconds_total": 475.48864817619324
+ },
+ "cases": [
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": 0.0,
+   "cos_el": 1.0,
+   "f_tip_pred_hz": 1272.9464048327197,
+   "f_tip_outer_hz": 1458.777996779102,
+   "f_rms_pred_hz": 900.1090349442522,
+   "phase_excursion_pred_deg": 2303.1933645242,
+   "seconds": 4.9,
+   "sigma_dbsm": -27.95543111807322,
+   "kernel": {
+    "inst_f_absmax_hz": 1657.5640920716787,
+    "inst_f_p99_hz": 1585.4973688764478,
+    "inst_f_p95_hz": 1509.251254854687,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 974.1183650870888,
+    "phase_step_std_deg": 21.62924691539,
+    "f_rms_hz": 1030.2675404356205,
+    "f_edge99_hz": 1456.6666666666665,
+    "beyond_ftip_pct": 2.22280656398108,
+    "f_mean_hz": -0.03359439470776886,
+    "dc_power_pct": 2.520422503279892,
+    "min_over_max": 0.9215818514814389,
+    "mod_depth": 0.040809163792895335,
+    "legacy": {
+     "unwrap_ptp_deg": 2319.632521947883,
+     "edge20_hz": 1456.6666666666665
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1272.9131574870275,
+    "inst_f_p99_hz": 1272.5742671453243,
+    "inst_f_p95_hz": 1269.3341435429747,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 900.966447405833,
+    "phase_step_std_deg": 20.005011567075826,
+    "f_rms_hz": 900.1090349442534,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 1.4623002907334182,
+    "f_mean_hz": -5.684341886080803e-14,
+    "dc_power_pct": 2.5473288279353037,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 2303.1933645242075,
+     "edge20_hz": 1456.6666666666665
+    }
+   },
+   "match": {
+    "rho": 0.9956385248384296,
+    "nrmse": 0.09329484368149875,
+    "const_phase_deg": -114.30003909846549,
+    "resid_phase_std_deg": 5.183806574690341,
+    "resid_phase_ptp_deg": 16.98442211106302
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 30.218159999541932,
+    "inst_f_p95_hz": 18.90102086453405,
+    "inst_f_p99_hz": 24.58977128565406,
+    "f_rms_hz": 14.460304300737107,
+    "f_edge99_hz": 4.54545454545454,
+    "inst_f_p95_vs_ftip": 18.56361345024738
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -30.0,
+   "cos_el": 0.8660254037844387,
+   "f_tip_pred_hz": 1102.4039242412057,
+   "f_tip_outer_hz": 1263.3388036924766,
+   "f_rms_pred_hz": 779.5172904376175,
+   "phase_excursion_pred_deg": 1994.6239635057107,
+   "seconds": 4.5,
+   "sigma_dbsm": -28.006314743910362,
+   "kernel": {
+    "inst_f_absmax_hz": 1539.1068062134232,
+    "inst_f_p99_hz": 1537.2400323314534,
+    "inst_f_p95_hz": 1437.4788595511293,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 836.390668968287,
+    "phase_step_std_deg": 18.571171887999775,
+    "f_rms_hz": 875.697317475498,
+    "f_edge99_hz": 1266.6666666666665,
+    "beyond_ftip_pct": 2.7050839484623035,
+    "f_mean_hz": -2.0111144451642597,
+    "dc_power_pct": 1.4017135292732277,
+    "min_over_max": 0.900045681119196,
+    "mod_depth": 0.05260627145655109,
+    "legacy": {
+     "unwrap_ptp_deg": 1998.9496319013856,
+     "edge20_hz": 1298.3333333333333
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1102.3502966217386,
+    "inst_f_p99_hz": 1102.0294315571175,
+    "inst_f_p95_hz": 1099.3276529032523,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 780.2415251724331,
+    "phase_step_std_deg": 17.32444174937278,
+    "f_rms_hz": 779.4990000566871,
+    "f_edge99_hz": 1203.3333333333333,
+    "beyond_ftip_pct": 2.011861325922011,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 1.393369291603514,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 1994.5771621934682,
+     "edge20_hz": 1298.3333333333333
+    }
+   },
+   "match": {
+    "rho": 0.9965340280068543,
+    "nrmse": 0.08318612278760189,
+    "const_phase_deg": -110.93809697750608,
+    "resid_phase_std_deg": 4.607026928905666,
+    "resid_phase_ptp_deg": 18.18784122988624
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 39.62048279300763,
+    "inst_f_p95_hz": 30.759819945840693,
+    "inst_f_p99_hz": 39.49174026680968,
+    "f_rms_hz": 12.341044364625887,
+    "f_edge99_hz": 5.263157894736836,
+    "inst_f_p95_vs_ftip": 30.394933104085116
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -60.0,
+   "cos_el": 0.5000000000000001,
+   "f_tip_pred_hz": 636.47320241636,
+   "f_tip_outer_hz": 729.3889983895513,
+   "f_rms_pred_hz": 450.0545174721262,
+   "phase_excursion_pred_deg": 1151.5966822621003,
+   "seconds": 4.4,
+   "sigma_dbsm": -28.012394678751768,
+   "kernel": {
+    "inst_f_absmax_hz": 1167.772634372552,
+    "inst_f_p99_hz": 1119.8934923656439,
+    "inst_f_p95_hz": 999.1281977532219,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 525.2474900343321,
+    "phase_step_std_deg": 11.662567492117978,
+    "f_rms_hz": 573.5932621424552,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 4.743929408562406,
+    "f_mean_hz": -1.0105965799824865,
+    "dc_power_pct": 6.095819670463863,
+    "min_over_max": 0.9042341064120785,
+    "mod_depth": 0.050291029482904204,
+    "legacy": {
+     "unwrap_ptp_deg": 1152.9950026852484,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 636.4030742603248,
+    "inst_f_p99_hz": 636.296119246406,
+    "inst_f_p95_hz": 634.4237348556073,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 450.4515219302831,
+    "phase_step_std_deg": 10.001801879128644,
+    "f_rms_hz": 450.0228428054702,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 4.2915876495207765,
+    "f_mean_hz": -2.842170943040401e-14,
+    "dc_power_pct": 6.138483647745025,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 1151.5156333233272,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "match": {
+    "rho": 0.9973565973082025,
+    "nrmse": 0.07266235480497542,
+    "const_phase_deg": -112.72023089336763,
+    "resid_phase_std_deg": 4.001226951600068,
+    "resid_phase_ptp_deg": 16.079011693416827
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 83.49575632233149,
+    "inst_f_p95_hz": 57.485942416801294,
+    "inst_f_p99_hz": 76.00193659706488,
+    "f_rms_hz": 27.458699333269248,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 56.978831781141494
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -75.0,
+   "cos_el": 0.25881904510252074,
+   "f_tip_pred_hz": 329.4627729654913,
+   "f_tip_outer_hz": 377.5595281429353,
+   "f_rms_pred_hz": 232.96536091242282,
+   "phase_excursion_pred_deg": 596.1103072926156,
+   "seconds": 4.1,
+   "sigma_dbsm": -28.00194089351221,
+   "kernel": {
+    "inst_f_absmax_hz": 934.0907834320345,
+    "inst_f_p99_hz": 865.1658359442921,
+    "inst_f_p95_hz": 686.5238459521579,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 353.0492744620112,
+    "phase_step_std_deg": 7.8390828895387195,
+    "f_rms_hz": 427.81738438401675,
+    "f_edge99_hz": 443.3333333333333,
+    "beyond_ftip_pct": 6.2128952806121935,
+    "f_mean_hz": -0.02770405369551353,
+    "dc_power_pct": 1.1878798595237288,
+    "min_over_max": 0.9051294963880856,
+    "mod_depth": 0.04979740421413785,
+    "legacy": {
+     "unwrap_ptp_deg": 602.264769679414,
+     "edge20_hz": 443.3333333333333
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 329.413115814989,
+    "inst_f_p99_hz": 329.3844573058125,
+    "inst_f_p95_hz": 328.3087457183808,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 233.16686266368265,
+    "phase_step_std_deg": 5.177224743643112,
+    "f_rms_hz": 232.94496521922923,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 5.646990181540499,
+    "f_mean_hz": -2.8421709430404014e-14,
+    "dc_power_pct": 1.2044392261140593,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 596.0581189205291,
+     "edge20_hz": 443.3333333333333
+    }
+   },
+   "match": {
+    "rho": 0.997448289550298,
+    "nrmse": 0.07139264439131328,
+    "const_phase_deg": -112.14802793313984,
+    "resid_phase_std_deg": 3.918119485584657,
+    "resid_phase_ptp_deg": 15.530720309352787
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 183.56211048884148,
+    "inst_f_p95_hz": 109.10921652420724,
+    "inst_f_p99_hz": 162.66140273311098,
+    "f_rms_hz": 83.65599101117688,
+    "f_edge99_hz": 16.666666666666664,
+    "inst_f_p95_vs_ftip": 108.37675825185447
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -90.0,
+   "cos_el": 6.123233995736766e-17,
+   "f_tip_pred_hz": 7.794548700822605e-14,
+   "f_tip_outer_hz": 8.932439022110577e-14,
+   "f_rms_pred_hz": 5.5115782426404574e-14,
+   "phase_excursion_pred_deg": 1.4102991908409924e-13,
+   "seconds": 11.4,
+   "sigma_dbsm": -28.07607719394248,
+   "kernel": {
+    "inst_f_absmax_hz": 689.2790585937552,
+    "inst_f_p99_hz": 689.2790585937549,
+    "inst_f_p95_hz": 610.6339497899894,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 299.90502654362666,
+    "phase_step_std_deg": 6.65905681162632,
+    "f_rms_hz": 414.3162419760826,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": -0.531029485424412,
+    "dc_power_pct": 99.336621572608,
+    "min_over_max": 0.8976959491830537,
+    "mod_depth": 0.05390961121089369,
+    "legacy": {
+     "unwrap_ptp_deg": 16.02885753436361,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1.202561577490852e-14,
+    "inst_f_p99_hz": 1.202561577490852e-14,
+    "inst_f_p95_hz": 1.202561577490852e-14,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 1.2025615774908519e-14,
+    "phase_step_std_deg": 4.4139062980501586e-32,
+    "f_rms_hz": 0.0,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 100.0,
+    "min_over_max": 1.0,
+    "mod_depth": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 0.0,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "match": {
+    "rho": 0.9966775886544672,
+    "nrmse": 0.08144804647086344,
+    "const_phase_deg": -112.76175305707575,
+    "resid_phase_std_deg": 4.463865108876064,
+    "resid_phase_ptp_deg": 16.02885753436361
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": null,
+    "inst_f_p95_hz": null,
+    "inst_f_p99_hz": null,
+    "f_rms_hz": null,
+    "f_edge99_hz": null,
+    "inst_f_p95_vs_ftip": null
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 24,
+   "spacing_m": 0.0035689578333333335,
+   "n_rays": 11664,
+   "el_deg": 0.0,
+   "cos_el": 1.0,
+   "f_tip_pred_hz": 1272.9464048327197,
+   "f_tip_outer_hz": 1458.777996779102,
+   "f_rms_pred_hz": 900.1090349442522,
+   "phase_excursion_pred_deg": 2303.1933645242,
+   "seconds": 27.6,
+   "sigma_dbsm": -28.07108837656372,
+   "kernel": {
+    "inst_f_absmax_hz": 1403.4581663143058,
+    "inst_f_p99_hz": 1394.7311390400473,
+    "inst_f_p95_hz": 1302.553297890236,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 905.2746240745747,
+    "phase_step_std_deg": 20.100670012710037,
+    "f_rms_hz": 908.0438157927186,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 1.5550386639748508,
+    "f_mean_hz": -0.012279560263770667,
+    "dc_power_pct": 2.553375807683531,
+    "min_over_max": 0.9588372061325341,
+    "mod_depth": 0.021013892190018382,
+    "legacy": {
+     "unwrap_ptp_deg": 2304.1858144594003,
+     "edge20_hz": 1456.6666666666665
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1272.9131574870275,
+    "inst_f_p99_hz": 1272.5742671453243,
+    "inst_f_p95_hz": 1269.3341435429747,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 900.966447405833,
+    "phase_step_std_deg": 20.005011567075826,
+    "f_rms_hz": 900.1090349442534,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 1.4623002907334182,
+    "f_mean_hz": -5.684341886080803e-14,
+    "dc_power_pct": 2.5473288279353037,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 2303.1933645242075,
+     "edge20_hz": 1456.6666666666665
+    }
+   },
+   "match": {
+    "rho": 0.9996449267509158,
+    "nrmse": 0.026646208382360866,
+    "const_phase_deg": -111.99611491753092,
+    "resid_phase_std_deg": 1.3604092672437618,
+    "resid_phase_ptp_deg": 3.4646810462083697
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 10.255609980888163,
+    "inst_f_p95_hz": 2.6170535564843305,
+    "inst_f_p99_hz": 9.599193936928248,
+    "f_rms_hz": 0.8815355185226745,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 2.325855428407219
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 24,
+   "spacing_m": 0.0035689578333333335,
+   "n_rays": 11664,
+   "el_deg": -30.0,
+   "cos_el": 0.8660254037844387,
+   "f_tip_pred_hz": 1102.4039242412057,
+   "f_tip_outer_hz": 1263.3388036924766,
+   "f_rms_pred_hz": 779.5172904376175,
+   "phase_excursion_pred_deg": 1994.6239635057107,
+   "seconds": 44.4,
+   "sigma_dbsm": -28.02146143055875,
+   "kernel": {
+    "inst_f_absmax_hz": 1232.6904659245388,
+    "inst_f_p99_hz": 1219.1182702836925,
+    "inst_f_p95_hz": 1127.3389362318135,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 783.3795824246931,
+    "phase_step_std_deg": 17.394118673075063,
+    "f_rms_hz": 785.9734575919441,
+    "f_edge99_hz": 1203.3333333333333,
+    "beyond_ftip_pct": 2.0476985413477555,
+    "f_mean_hz": -0.11590222359011956,
+    "dc_power_pct": 1.4145171961766172,
+    "min_over_max": 0.9553941528271165,
+    "mod_depth": 0.022811690987411506,
+    "legacy": {
+     "unwrap_ptp_deg": 1995.6852255746364,
+     "edge20_hz": 1298.3333333333333
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1102.3502966217386,
+    "inst_f_p99_hz": 1102.0294315571175,
+    "inst_f_p95_hz": 1099.3276529032523,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 780.2415251724331,
+    "phase_step_std_deg": 17.32444174937278,
+    "f_rms_hz": 779.4990000566871,
+    "f_edge99_hz": 1203.3333333333333,
+    "beyond_ftip_pct": 2.011861325922011,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 1.393369291603514,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 1994.5771621934682,
+     "edge20_hz": 1298.3333333333333
+    }
+   },
+   "match": {
+    "rho": 0.9997368217415945,
+    "nrmse": 0.02294095146271908,
+    "const_phase_deg": -111.70097211267334,
+    "resid_phase_std_deg": 1.2000324950300694,
+    "resid_phase_ptp_deg": 6.216110455844855
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 11.82384308347723,
+    "inst_f_p95_hz": 2.5480377260214624,
+    "inst_f_p99_hz": 10.624837719727118,
+    "f_rms_hz": 0.8305921540356241,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 2.261876200029928
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 24,
+   "spacing_m": 0.0035689578333333335,
+   "n_rays": 11664,
+   "el_deg": -60.0,
+   "cos_el": 0.5000000000000001,
+   "f_tip_pred_hz": 636.47320241636,
+   "f_tip_outer_hz": 729.3889983895513,
+   "f_rms_pred_hz": 450.0545174721262,
+   "phase_excursion_pred_deg": 1151.5966822621003,
+   "seconds": 52.9,
+   "sigma_dbsm": -28.067190490546817,
+   "kernel": {
+    "inst_f_absmax_hz": 804.1835914745955,
+    "inst_f_p99_hz": 789.7820254501194,
+    "inst_f_p95_hz": 704.9988741134073,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 455.50973993425873,
+    "phase_step_std_deg": 10.114114009031361,
+    "f_rms_hz": 461.3185866314949,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 4.333608883695755,
+    "f_mean_hz": -0.02860562281729695,
+    "dc_power_pct": 6.114676919421234,
+    "min_over_max": 0.9534587728706019,
+    "mod_depth": 0.023825036788980153,
+    "legacy": {
+     "unwrap_ptp_deg": 1152.7542930982272,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 636.4030742603248,
+    "inst_f_p99_hz": 636.296119246406,
+    "inst_f_p95_hz": 634.4237348556073,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 450.4515219302831,
+    "phase_step_std_deg": 10.001801879128644,
+    "f_rms_hz": 450.0228428054702,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 4.2915876495207765,
+    "f_mean_hz": -2.842170943040401e-14,
+    "dc_power_pct": 6.138483647745025,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 1151.5156333233272,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "match": {
+    "rho": 0.9997337620299606,
+    "nrmse": 0.02307390425181138,
+    "const_phase_deg": -112.35322172662593,
+    "resid_phase_std_deg": 1.1305158481118633,
+    "resid_phase_ptp_deg": 5.335313267598258
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 26.363875977387075,
+    "inst_f_p95_hz": 11.12429049866216,
+    "inst_f_p99_hz": 24.12177311178538,
+    "f_rms_hz": 2.5100378806565327,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 10.766466119373247
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 24,
+   "spacing_m": 0.0035689578333333335,
+   "n_rays": 11664,
+   "el_deg": -75.0,
+   "cos_el": 0.25881904510252074,
+   "f_tip_pred_hz": 329.4627729654913,
+   "f_tip_outer_hz": 377.5595281429353,
+   "f_rms_pred_hz": 232.96536091242282,
+   "phase_excursion_pred_deg": 596.1103072926156,
+   "seconds": 23.9,
+   "sigma_dbsm": -28.090196412676573,
+   "kernel": {
+    "inst_f_absmax_hz": 480.7636935315295,
+    "inst_f_p99_hz": 450.51825921887166,
+    "inst_f_p95_hz": 396.289914662701,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 243.28042725147208,
+    "phase_step_std_deg": 5.40178523370154,
+    "f_rms_hz": 252.75999940655672,
+    "f_edge99_hz": 443.3333333333333,
+    "beyond_ftip_pct": 5.692146333658216,
+    "f_mean_hz": -0.0426286021503642,
+    "dc_power_pct": 1.2073068365778847,
+    "min_over_max": 0.9481353034313827,
+    "mod_depth": 0.0266227384090132,
+    "legacy": {
+     "unwrap_ptp_deg": 598.4032586758484,
+     "edge20_hz": 443.3333333333333
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 329.413115814989,
+    "inst_f_p99_hz": 329.3844573058125,
+    "inst_f_p95_hz": 328.3087457183808,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 233.16686266368265,
+    "phase_step_std_deg": 5.177224743643112,
+    "f_rms_hz": 232.94496521922923,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 5.646990181540499,
+    "f_mean_hz": -2.8421709430404014e-14,
+    "dc_power_pct": 1.2044392261140593,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 596.0581189205291,
+     "edge20_hz": 443.3333333333333
+    }
+   },
+   "match": {
+    "rho": 0.9997171869427175,
+    "nrmse": 0.023781213832346174,
+    "const_phase_deg": -112.51534627256703,
+    "resid_phase_std_deg": 1.2172262591707137,
+    "resid_phase_ptp_deg": 5.421570516078304
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 45.945522643228564,
+    "inst_f_p95_hz": 20.706475179504842,
+    "inst_f_p99_hz": 36.77580991643275,
+    "f_rms_hz": 8.50631571653809,
+    "f_edge99_hz": 16.666666666666664,
+    "inst_f_p95_vs_ftip": 20.283670017009577
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 24,
+   "spacing_m": 0.0035689578333333335,
+   "n_rays": 11664,
+   "el_deg": -90.0,
+   "cos_el": 6.123233995736766e-17,
+   "f_tip_pred_hz": 7.794548700822605e-14,
+   "f_tip_outer_hz": 8.932439022110577e-14,
+   "f_rms_pred_hz": 5.5115782426404574e-14,
+   "phase_excursion_pred_deg": 1.4102991908409924e-13,
+   "seconds": 25.1,
+   "sigma_dbsm": -28.133295856403574,
+   "kernel": {
+    "inst_f_absmax_hz": 137.3198407079832,
+    "inst_f_p99_hz": 137.3198407079746,
+    "inst_f_p95_hz": 136.75905945412563,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 63.73897465464968,
+    "phase_step_std_deg": 1.4152561854888965,
+    "f_rms_hz": 96.3694672335431,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": -0.0768554679064492,
+    "dc_power_pct": 99.94982910362506,
+    "min_over_max": 0.9614167503965723,
+    "mod_depth": 0.019671112523958364,
+    "legacy": {
+     "unwrap_ptp_deg": 5.467230262262806,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1.202561577490852e-14,
+    "inst_f_p99_hz": 1.202561577490852e-14,
+    "inst_f_p95_hz": 1.202561577490852e-14,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 1.2025615774908519e-14,
+    "phase_step_std_deg": 4.4139062980501586e-32,
+    "f_rms_hz": 0.0,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 100.0,
+    "min_over_max": 1.0,
+    "mod_depth": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 0.0,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "match": {
+    "rho": 0.9997491140462458,
+    "nrmse": 0.022398860769001407,
+    "const_phase_deg": -111.73993930736896,
+    "resid_phase_std_deg": 1.104350780301566,
+    "resid_phase_ptp_deg": 5.467230262262799
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": null,
+    "inst_f_p95_hz": null,
+    "inst_f_p99_hz": null,
+    "f_rms_hz": null,
+    "f_edge99_hz": null,
+    "inst_f_p95_vs_ftip": null
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": 0.0,
+   "cos_el": 1.0,
+   "f_tip_pred_hz": 1272.9464048327197,
+   "f_tip_outer_hz": 1458.777996779102,
+   "f_rms_pred_hz": 900.1090349442522,
+   "phase_excursion_pred_deg": 2303.1933645242,
+   "seconds": 10.8,
+   "sigma_dbsm": -28.027715946660447,
+   "kernel": {
+    "inst_f_absmax_hz": 1345.8737616341416,
+    "inst_f_p99_hz": 1306.968617237937,
+    "inst_f_p95_hz": 1288.853376467769,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 901.8038119249745,
+    "phase_step_std_deg": 20.02360436068088,
+    "f_rms_hz": 901.6820576938088,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 1.4740017467247009,
+    "f_mean_hz": -0.0006540885228922419,
+    "dc_power_pct": 2.546040545577093,
+    "min_over_max": 0.9855809762542435,
+    "mod_depth": 0.00726186638479873,
+    "legacy": {
+     "unwrap_ptp_deg": 2303.239754857881,
+     "edge20_hz": 1456.6666666666665
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1272.9131574870275,
+    "inst_f_p99_hz": 1272.5742671453243,
+    "inst_f_p95_hz": 1269.3341435429747,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 900.966447405833,
+    "phase_step_std_deg": 20.005011567075826,
+    "f_rms_hz": 900.1090349442534,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 1.4623002907334182,
+    "f_mean_hz": -5.684341886080803e-14,
+    "dc_power_pct": 2.5473288279353037,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 2303.1933645242075,
+     "edge20_hz": 1456.6666666666665
+    }
+   },
+   "match": {
+    "rho": 0.9999451085537813,
+    "nrmse": 0.010477589387190756,
+    "const_phase_deg": -111.50006540497533,
+    "resid_phase_std_deg": 0.5630042413030774,
+    "resid_phase_ptp_deg": 2.0497378956900594
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 5.7317817573000935,
+    "inst_f_p95_hz": 1.537753713164297,
+    "inst_f_p99_hz": 2.7027381411512548,
+    "f_rms_hz": 0.17475913344796687,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 1.249618332292607
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -30.0,
+   "cos_el": 0.8660254037844387,
+   "f_tip_pred_hz": 1102.4039242412057,
+   "f_tip_outer_hz": 1263.3388036924766,
+   "f_rms_pred_hz": 779.5172904376175,
+   "phase_excursion_pred_deg": 1994.6239635057107,
+   "seconds": 5.6,
+   "sigma_dbsm": -28.022306116836248,
+   "kernel": {
+    "inst_f_absmax_hz": 1126.2019455058796,
+    "inst_f_p99_hz": 1115.5838642735641,
+    "inst_f_p95_hz": 1103.9136674489396,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 780.4426567452226,
+    "phase_step_std_deg": 17.328907582128412,
+    "f_rms_hz": 779.9465505075239,
+    "f_edge99_hz": 1203.3333333333333,
+    "beyond_ftip_pct": 2.0151919422067834,
+    "f_mean_hz": -1.3981514066134547e-05,
+    "dc_power_pct": 1.3966347150701213,
+    "min_over_max": 0.9777213887199051,
+    "mod_depth": 0.011264787551554403,
+    "legacy": {
+     "unwrap_ptp_deg": 1994.8110795137984,
+     "edge20_hz": 1298.3333333333333
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1102.3502966217386,
+    "inst_f_p99_hz": 1102.0294315571175,
+    "inst_f_p95_hz": 1099.3276529032523,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 780.2415251724331,
+    "phase_step_std_deg": 17.32444174937278,
+    "f_rms_hz": 779.4990000566871,
+    "f_edge99_hz": 1203.3333333333333,
+    "beyond_ftip_pct": 2.011861325922011,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 1.393369291603514,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 1994.5771621934682,
+     "edge20_hz": 1298.3333333333333
+    }
+   },
+   "match": {
+    "rho": 0.9999848615666836,
+    "nrmse": 0.005502421054452693,
+    "const_phase_deg": -111.64331619900321,
+    "resid_phase_std_deg": 0.26320370372216306,
+    "resid_phase_ptp_deg": 1.1724752777274243
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 2.1637086647716925,
+    "inst_f_p95_hz": 0.4171653950099304,
+    "inst_f_p99_hz": 1.2299519711823694,
+    "f_rms_hz": 0.05741514111040327,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 0.13695009374835637
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -60.0,
+   "cos_el": 0.5000000000000001,
+   "f_tip_pred_hz": 636.47320241636,
+   "f_tip_outer_hz": 729.3889983895513,
+   "f_rms_pred_hz": 450.0545174721262,
+   "phase_excursion_pred_deg": 1151.5966822621003,
+   "seconds": 7.5,
+   "sigma_dbsm": -28.061394318097065,
+   "kernel": {
+    "inst_f_absmax_hz": 661.7290104629249,
+    "inst_f_p99_hz": 659.7270515923384,
+    "inst_f_p95_hz": 646.1710808501806,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 450.7299975854975,
+    "phase_step_std_deg": 10.00798514134032,
+    "f_rms_hz": 450.76727922667436,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 4.27956781450062,
+    "f_mean_hz": -0.003572407891047266,
+    "dc_power_pct": 6.14296474476595,
+    "min_over_max": 0.9755746415516603,
+    "mod_depth": 0.012363672794036024,
+    "legacy": {
+     "unwrap_ptp_deg": 1151.8600751540437,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 636.4030742603248,
+    "inst_f_p99_hz": 636.296119246406,
+    "inst_f_p95_hz": 634.4237348556073,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 450.4515219302831,
+    "phase_step_std_deg": 10.001801879128644,
+    "f_rms_hz": 450.0228428054702,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 4.2915876495207765,
+    "f_mean_hz": -2.842170943040401e-14,
+    "dc_power_pct": 6.138483647745025,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 1151.5156333233272,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "match": {
+    "rho": 0.9999852033663735,
+    "nrmse": 0.005439949293177238,
+    "const_phase_deg": -112.3195198604068,
+    "resid_phase_std_deg": 0.23373469880973194,
+    "resid_phase_ptp_deg": 1.3201174329526215
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 3.9795433471209596,
+    "inst_f_p95_hz": 1.851656132828467,
+    "inst_f_p99_hz": 3.682394350241007,
+    "f_rms_hz": 0.165421918710461,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 1.5236899836478244
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -75.0,
+   "cos_el": 0.25881904510252074,
+   "f_tip_pred_hz": 329.4627729654913,
+   "f_tip_outer_hz": 377.5595281429353,
+   "f_rms_pred_hz": 232.96536091242282,
+   "phase_excursion_pred_deg": 596.1103072926156,
+   "seconds": 6.2,
+   "sigma_dbsm": -28.090919858706464,
+   "kernel": {
+    "inst_f_absmax_hz": 369.13401416567797,
+    "inst_f_p99_hz": 362.75167037746024,
+    "inst_f_p95_hz": 346.25597871307895,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 233.96035764661244,
+    "phase_step_std_deg": 5.194843463943762,
+    "f_rms_hz": 234.71019164203662,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 5.644417002016592,
+    "f_mean_hz": -0.0015190378050736102,
+    "dc_power_pct": 1.1993453702620807,
+    "min_over_max": 0.9828247908049581,
+    "mod_depth": 0.008661990345636816,
+    "legacy": {
+     "unwrap_ptp_deg": 596.4350394516039,
+     "edge20_hz": 443.3333333333333
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 329.413115814989,
+    "inst_f_p99_hz": 329.3844573058125,
+    "inst_f_p95_hz": 328.3087457183808,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 233.16686266368265,
+    "phase_step_std_deg": 5.177224743643112,
+    "f_rms_hz": 232.94496521922923,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 5.646990181540499,
+    "f_mean_hz": -2.8421709430404014e-14,
+    "dc_power_pct": 1.2044392261140593,
+    "min_over_max": 0.9999999999999996,
+    "mod_depth": 2.220446049250313e-16,
+    "legacy": {
+     "unwrap_ptp_deg": 596.0581189205291,
+     "edge20_hz": 443.3333333333333
+    }
+   },
+   "match": {
+    "rho": 0.9999771452986855,
+    "nrmse": 0.006760834289631386,
+    "const_phase_deg": -112.32356755951375,
+    "resid_phase_std_deg": 0.31970404546642167,
+    "resid_phase_ptp_deg": 1.7680811661605553
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": 12.058080399263076,
+    "inst_f_p95_hz": 5.466571703847651,
+    "inst_f_p99_hz": 10.130172305206386,
+    "f_rms_hz": 0.7577868966371937,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 5.097148183520755
+   }
+  },
+  {
+   "target": "one_sphere",
+   "n_scatterers": 1,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -90.0,
+   "cos_el": 6.123233995736766e-17,
+   "f_tip_pred_hz": 7.794548700822605e-14,
+   "f_tip_outer_hz": 8.932439022110577e-14,
+   "f_rms_pred_hz": 5.5115782426404574e-14,
+   "phase_excursion_pred_deg": 1.4102991908409924e-13,
+   "seconds": 5.8,
+   "sigma_dbsm": -28.13136401058901,
+   "kernel": {
+    "inst_f_absmax_hz": 48.758048423734344,
+    "inst_f_p99_hz": 48.758048423731985,
+    "inst_f_p95_hz": 42.73706001165397,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 22.813011293505376,
+    "phase_step_std_deg": 0.5065357762918292,
+    "f_rms_hz": 32.10208622906671,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": -0.00139856348699587,
+    "dc_power_pct": 99.99500876124273,
+    "min_over_max": 0.9870833982080638,
+    "mod_depth": 0.006500281670907348,
+    "legacy": {
+     "unwrap_ptp_deg": 1.5638876710345135,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1.202561577490852e-14,
+    "inst_f_p99_hz": 1.202561577490852e-14,
+    "inst_f_p95_hz": 1.202561577490852e-14,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 1.2025615774908519e-14,
+    "phase_step_std_deg": 4.4139062980501586e-32,
+    "f_rms_hz": 0.0,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 100.0,
+    "min_over_max": 1.0,
+    "mod_depth": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 0.0,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "match": {
+    "rho": 0.999975043494802,
+    "nrmse": 0.007064869961459614,
+    "const_phase_deg": -111.8603370845651,
+    "resid_phase_std_deg": 0.3607210206370907,
+    "resid_phase_ptp_deg": 1.5638876710345073
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": null,
+    "inst_f_p95_hz": null,
+    "inst_f_p99_hz": null,
+    "f_rms_hz": null,
+    "f_edge99_hz": null,
+    "inst_f_p95_vs_ftip": null
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": 0.0,
+   "cos_el": 1.0,
+   "f_tip_pred_hz": 1272.9464048327197,
+   "f_tip_outer_hz": 1458.777996779102,
+   "f_rms_pred_hz": 900.1090349442522,
+   "phase_excursion_pred_deg": 2303.1933645242,
+   "seconds": 4.4,
+   "sigma_dbsm": -25.008611818267333,
+   "kernel": {
+    "inst_f_absmax_hz": 8103.885797037378,
+    "inst_f_p99_hz": 1177.013973785917,
+    "inst_f_p95_hz": 756.8272373645692,
+    "inst_f_gate_kept_pct": 81.2133072407045,
+    "inst_f_rms_hz": 2427.0799125184108,
+    "phase_step_std_deg": 53.89074973023409,
+    "f_rms_hz": 1027.6190801758798,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 3.4882977887193967,
+    "f_mean_hz": -0.2696603636801384,
+    "dc_power_pct": 4.660434962502765,
+    "min_over_max": 0.03765347954931318,
+    "mod_depth": 0.9274257152480859,
+    "legacy": {
+     "unwrap_ptp_deg": 629.8164546012206,
+     "edge20_hz": 1425.0
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8105.176497180881,
+    "inst_f_p99_hz": 8.694925324984899,
+    "inst_f_p95_hz": 8.653080201181327,
+    "inst_f_gate_kept_pct": 79.6477495107632,
+    "inst_f_rms_hz": 2482.7454895074684,
+    "phase_step_std_deg": 55.1267501782078,
+    "f_rms_hz": 905.2960281558385,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 2.2626415794411754,
+    "f_mean_hz": 1.5621800124898803e-12,
+    "dc_power_pct": 5.185637187063476,
+    "min_over_max": 0.039557697637329546,
+    "mod_depth": 0.9238951378509632,
+    "legacy": {
+     "unwrap_ptp_deg": 1074.0713465864933,
+     "edge20_hz": 1425.0
+    }
+   },
+   "match": {
+    "rho": 0.9885959073460564,
+    "nrmse": 0.15059260266901314,
+    "const_phase_deg": -115.5185212886175,
+    "resid_phase_std_deg": 14.192176943585135,
+    "resid_phase_ptp_deg": 88.57855391299663
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -0.01592439281181959,
+    "inst_f_p95_hz": 8646.333326036276,
+    "inst_f_p99_hz": 13436.792206872244,
+    "f_rms_hz": 13.511939544153678,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -40.54523941532124
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -30.0,
+   "cos_el": 0.8660254037844387,
+   "f_tip_pred_hz": 1102.4039242412057,
+   "f_tip_outer_hz": 1263.3388036924766,
+   "f_rms_pred_hz": 779.5172904376175,
+   "phase_excursion_pred_deg": 1994.6239635057107,
+   "seconds": 5.0,
+   "sigma_dbsm": -25.518254901992066,
+   "kernel": {
+    "inst_f_absmax_hz": 7938.7709791674415,
+    "inst_f_p99_hz": 755.4806260647158,
+    "inst_f_p95_hz": 626.8954165728436,
+    "inst_f_gate_kept_pct": 70.45009784735812,
+    "inst_f_rms_hz": 2340.055689046227,
+    "phase_step_std_deg": 51.95847281916204,
+    "f_rms_hz": 932.8297646249233,
+    "f_edge99_hz": 1266.6666666666665,
+    "beyond_ftip_pct": 1.8039280507381905,
+    "f_mean_hz": -4.536164707062311,
+    "dc_power_pct": 3.1616462257789886,
+    "min_over_max": 0.003292200405657484,
+    "mod_depth": 0.9934372052243078,
+    "legacy": {
+     "unwrap_ptp_deg": 548.2935122559612,
+     "edge20_hz": 1266.6666666666665
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8105.549040536588,
+    "inst_f_p99_hz": 6.536474117623158,
+    "inst_f_p95_hz": 6.520783405232571,
+    "inst_f_gate_kept_pct": 70.45009784735812,
+    "inst_f_rms_hz": 2483.3561653244587,
+    "phase_step_std_deg": 55.14030959190778,
+    "f_rms_hz": 827.6280612625609,
+    "f_edge99_hz": 1266.6666666666665,
+    "beyond_ftip_pct": 1.0735242326448264,
+    "f_mean_hz": -5.789519668239271e-13,
+    "dc_power_pct": 3.153668672655778,
+    "min_over_max": 0.0037094637471471003,
+    "mod_depth": 0.9926084910402289,
+    "legacy": {
+     "unwrap_ptp_deg": 1074.1731495224308,
+     "edge20_hz": 1266.6666666666665
+    }
+   },
+   "match": {
+    "rho": 0.9961698608817595,
+    "nrmse": 0.08743916897372167,
+    "const_phase_deg": -111.45151037861835,
+    "resid_phase_std_deg": 6.831839090959166,
+    "resid_phase_ptp_deg": 40.7122144269769
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -2.0575788331558336,
+    "inst_f_p95_hz": 9513.805238030056,
+    "inst_f_p99_hz": 11457.922703737857,
+    "f_rms_hz": 12.71122963156607,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -43.133782201987245
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -60.0,
+   "cos_el": 0.5000000000000001,
+   "f_tip_pred_hz": 636.47320241636,
+   "f_tip_outer_hz": 729.3889983895513,
+   "f_rms_pred_hz": 450.0545174721262,
+   "phase_excursion_pred_deg": 1151.5966822621003,
+   "seconds": 29.3,
+   "sigma_dbsm": -24.36008886654717,
+   "kernel": {
+    "inst_f_absmax_hz": 8074.030125476719,
+    "inst_f_p99_hz": 637.5791177094346,
+    "inst_f_p95_hz": 533.6763589167031,
+    "inst_f_gate_kept_pct": 84.34442270058709,
+    "inst_f_rms_hz": 1719.0540415358064,
+    "phase_step_std_deg": 38.16978545639917,
+    "f_rms_hz": 561.6943125642252,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 2.038906687070589,
+    "f_mean_hz": -1.7407799414583398,
+    "dc_power_pct": 10.518795713320443,
+    "min_over_max": 0.02185830032788119,
+    "mod_depth": 0.9572185295732929,
+    "legacy": {
+     "unwrap_ptp_deg": 195.2828134394758,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8105.983124407879,
+    "inst_f_p99_hz": 2.178562911468672,
+    "inst_f_p95_hz": 2.1733208079703075,
+    "inst_f_gate_kept_pct": 84.34442270058709,
+    "inst_f_rms_hz": 1756.5303028860087,
+    "phase_step_std_deg": 39.00190639631755,
+    "f_rms_hz": 416.1684445767317,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 1.544187657433523,
+    "f_mean_hz": -5.146554780769743e-13,
+    "dc_power_pct": 10.586154034098872,
+    "min_over_max": 0.02452648160537846,
+    "mod_depth": 0.9521213320578169,
+    "legacy": {
+     "unwrap_ptp_deg": 538.8171012178877,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "match": {
+    "rho": 0.99721487016348,
+    "nrmse": 0.07458218771820871,
+    "const_phase_deg": -112.32810458952015,
+    "resid_phase_std_deg": 4.281142893633757,
+    "resid_phase_ptp_deg": 20.671227510565192
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -0.39419029673212663,
+    "inst_f_p95_hz": 24455.802206445092,
+    "inst_f_p99_hz": 29166.041129820413,
+    "f_rms_hz": 34.96802073388868,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -16.151008889202313
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -75.0,
+   "cos_el": 0.25881904510252074,
+   "f_tip_pred_hz": 329.4627729654913,
+   "f_tip_outer_hz": 377.5595281429353,
+   "f_rms_pred_hz": 232.96536091242282,
+   "phase_excursion_pred_deg": 596.1103072926156,
+   "seconds": 33.6,
+   "sigma_dbsm": -26.19919306085956,
+   "kernel": {
+    "inst_f_absmax_hz": 7791.894955881153,
+    "inst_f_p99_hz": 577.4003183674558,
+    "inst_f_p95_hz": 490.5920625269542,
+    "inst_f_gate_kept_pct": 81.2133072407045,
+    "inst_f_rms_hz": 1273.209322375681,
+    "phase_step_std_deg": 28.270271483245622,
+    "f_rms_hz": 462.0783384037237,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 13.19371880129794,
+    "f_mean_hz": -0.07128627516414716,
+    "dc_power_pct": 3.137017085684236,
+    "min_over_max": 0.013814455963310324,
+    "mod_depth": 0.9727475656279055,
+    "legacy": {
+     "unwrap_ptp_deg": 193.62116014906837,
+     "edge20_hz": 411.66666666666663
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8106.330459957942,
+    "inst_f_p99_hz": 0.5837185024904634,
+    "inst_f_p95_hz": 0.5823127214817999,
+    "inst_f_gate_kept_pct": 79.6477495107632,
+    "inst_f_rms_hz": 1434.402473062943,
+    "phase_step_std_deg": 31.849397017022575,
+    "f_rms_hz": 269.2126387391013,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 12.622649950222117,
+    "f_mean_hz": 2.2532855410095355e-13,
+    "dc_power_pct": 3.1829489354175378,
+    "min_over_max": 0.010214025144036958,
+    "mod_depth": 0.9797784926959796,
+    "legacy": {
+     "unwrap_ptp_deg": 359.60298702830676,
+     "edge20_hz": 411.66666666666663
+    }
+   },
+   "match": {
+    "rho": 0.9976565974664757,
+    "nrmse": 0.06842012519437897,
+    "const_phase_deg": -112.17257966761129,
+    "resid_phase_std_deg": 7.632640917685482,
+    "resid_phase_ptp_deg": 61.638509165318126
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -3.8788883037766135,
+    "inst_f_p95_hz": 84148.90002034543,
+    "inst_f_p99_hz": 98817.59742135109,
+    "f_rms_hz": 71.64065571658838,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": 48.90667558921443
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 12,
+   "spacing_m": 0.007137915666666667,
+   "n_rays": 3249,
+   "el_deg": -90.0,
+   "cos_el": 6.123233995736766e-17,
+   "f_tip_pred_hz": 7.794548700822605e-14,
+   "f_tip_outer_hz": 8.932439022110577e-14,
+   "f_rms_pred_hz": 5.5115782426404574e-14,
+   "phase_excursion_pred_deg": 1.4102991908409924e-13,
+   "seconds": 43.8,
+   "sigma_dbsm": -22.055216156502937,
+   "kernel": {
+    "inst_f_absmax_hz": 689.2790585937552,
+    "inst_f_p99_hz": 689.279058593755,
+    "inst_f_p95_hz": 610.6339497899894,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 299.8541092854954,
+    "phase_step_std_deg": 6.6579284569880315,
+    "f_rms_hz": 414.0640257823467,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": -0.5267756046513175,
+    "dc_power_pct": 99.33704061425996,
+    "min_over_max": 0.8976959491830537,
+    "mod_depth": 0.05390961121089369,
+    "legacy": {
+     "unwrap_ptp_deg": 16.02885753436361,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1.202561577490852e-14,
+    "inst_f_p99_hz": 1.202561577490852e-14,
+    "inst_f_p95_hz": 1.202561577490852e-14,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 1.2025615774908519e-14,
+    "phase_step_std_deg": 4.4139062980501586e-32,
+    "f_rms_hz": 0.0,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 100.0,
+    "min_over_max": 1.0,
+    "mod_depth": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 0.0,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "match": {
+    "rho": 0.9966796908448586,
+    "nrmse": 0.08142231793188089,
+    "const_phase_deg": -112.76095390717354,
+    "resid_phase_std_deg": 4.462890713390293,
+    "resid_phase_ptp_deg": 16.02885753436361
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": null,
+    "inst_f_p95_hz": null,
+    "inst_f_p99_hz": null,
+    "f_rms_hz": null,
+    "f_edge99_hz": null,
+    "inst_f_p95_vs_ftip": null
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": 0.0,
+   "cos_el": 1.0,
+   "f_tip_pred_hz": 1272.9464048327197,
+   "f_tip_outer_hz": 1458.777996779102,
+   "f_rms_pred_hz": 900.1090349442522,
+   "phase_excursion_pred_deg": 2303.1933645242,
+   "seconds": 41.1,
+   "sigma_dbsm": -25.08660843694036,
+   "kernel": {
+    "inst_f_absmax_hz": 8102.919111349068,
+    "inst_f_p99_hz": 1028.4594670952927,
+    "inst_f_p95_hz": 713.5428905089445,
+    "inst_f_gate_kept_pct": 79.6477495107632,
+    "inst_f_rms_hz": 2485.5079946158075,
+    "phase_step_std_deg": 55.18808869039941,
+    "f_rms_hz": 914.6441527367112,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 2.735026280900839,
+    "f_mean_hz": -0.0005792630983450093,
+    "dc_power_pct": 4.7093275758099375,
+    "min_over_max": 0.03931456939963679,
+    "mod_depth": 0.9243451971959808,
+    "legacy": {
+     "unwrap_ptp_deg": 536.6292531442695,
+     "edge20_hz": 1425.0
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8105.176497180881,
+    "inst_f_p99_hz": 8.694925324984899,
+    "inst_f_p95_hz": 8.653080201181327,
+    "inst_f_gate_kept_pct": 79.6477495107632,
+    "inst_f_rms_hz": 2482.7454895074684,
+    "phase_step_std_deg": 55.1267501782078,
+    "f_rms_hz": 905.2960281558385,
+    "f_edge99_hz": 1393.3333333333333,
+    "beyond_ftip_pct": 2.2626415794411754,
+    "f_mean_hz": 1.5621800124898803e-12,
+    "dc_power_pct": 5.185637187063476,
+    "min_over_max": 0.039557697637329546,
+    "mod_depth": 0.9238951378509632,
+    "legacy": {
+     "unwrap_ptp_deg": 1074.0713465864933,
+     "edge20_hz": 1425.0
+    }
+   },
+   "match": {
+    "rho": 0.9930802718311879,
+    "nrmse": 0.11743753105244628,
+    "const_phase_deg": -112.18718279151395,
+    "resid_phase_std_deg": 13.282457019672146,
+    "resid_phase_ptp_deg": 73.76228298659163
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -0.027851161940742233,
+    "inst_f_p95_hz": 8146.114376838099,
+    "inst_f_p99_hz": 11728.272568828288,
+    "f_rms_hz": 1.0326041747819938,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -43.9455669303915
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -30.0,
+   "cos_el": 0.8660254037844387,
+   "f_tip_pred_hz": 1102.4039242412057,
+   "f_tip_outer_hz": 1263.3388036924766,
+   "f_rms_pred_hz": 779.5172904376175,
+   "phase_excursion_pred_deg": 1994.6239635057107,
+   "seconds": 32.1,
+   "sigma_dbsm": -25.549702683472656,
+   "kernel": {
+    "inst_f_absmax_hz": 8091.484360627389,
+    "inst_f_p99_hz": 37.83647760166582,
+    "inst_f_p95_hz": 35.44152845430419,
+    "inst_f_gate_kept_pct": 70.45009784735812,
+    "inst_f_rms_hz": 2419.0329693738295,
+    "phase_step_std_deg": 53.71208033555764,
+    "f_rms_hz": 827.7538400720459,
+    "f_edge99_hz": 1266.6666666666665,
+    "beyond_ftip_pct": 1.0659876584654608,
+    "f_mean_hz": -4.5168878261417455e-05,
+    "dc_power_pct": 3.1615752671958743,
+    "min_over_max": 0.004110240018066117,
+    "mod_depth": 0.9918131698009729,
+    "legacy": {
+     "unwrap_ptp_deg": 717.0009789076333,
+     "edge20_hz": 1266.6666666666665
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8105.549040536588,
+    "inst_f_p99_hz": 6.536474117623158,
+    "inst_f_p95_hz": 6.520783405232571,
+    "inst_f_gate_kept_pct": 70.45009784735812,
+    "inst_f_rms_hz": 2483.3561653244587,
+    "phase_step_std_deg": 55.14030959190778,
+    "f_rms_hz": 827.6280612625609,
+    "f_edge99_hz": 1266.6666666666665,
+    "beyond_ftip_pct": 1.0735242326448264,
+    "f_mean_hz": -5.789519668239271e-13,
+    "dc_power_pct": 3.153668672655778,
+    "min_over_max": 0.0037094637471471003,
+    "mod_depth": 0.9926084910402289,
+    "legacy": {
+     "unwrap_ptp_deg": 1074.1731495224308,
+     "edge20_hz": 1266.6666666666665
+    }
+   },
+   "match": {
+    "rho": 0.9999813063664709,
+    "nrmse": 0.006114484246970247,
+    "const_phase_deg": -111.64399292188985,
+    "resid_phase_std_deg": 3.601042864111838,
+    "resid_phase_ptp_deg": 31.52889583068356
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -0.17351915137223206,
+    "inst_f_p95_hz": 443.51641899137934,
+    "inst_f_p99_hz": 478.8514866088723,
+    "f_rms_hz": 0.015197504213808728,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -96.78506873252479
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -60.0,
+   "cos_el": 0.5000000000000001,
+   "f_tip_pred_hz": 636.47320241636,
+   "f_tip_outer_hz": 729.3889983895513,
+   "f_rms_pred_hz": 450.0545174721262,
+   "phase_excursion_pred_deg": 1151.5966822621003,
+   "seconds": 12.5,
+   "sigma_dbsm": -24.408478992827636,
+   "kernel": {
+    "inst_f_absmax_hz": 8090.182188132575,
+    "inst_f_p99_hz": 41.43817195653621,
+    "inst_f_p95_hz": 35.83715620475375,
+    "inst_f_gate_kept_pct": 84.34442270058709,
+    "inst_f_rms_hz": 1749.2101182914848,
+    "phase_step_std_deg": 38.83936938363903,
+    "f_rms_hz": 417.0899675302598,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 1.5552864022956145,
+    "f_mean_hz": -0.006329876256647632,
+    "dc_power_pct": 10.59702671126839,
+    "min_over_max": 0.02483492774789726,
+    "mod_depth": 0.9515337991017291,
+    "legacy": {
+     "unwrap_ptp_deg": 359.58344746087397,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8105.983124407879,
+    "inst_f_p99_hz": 2.178562911468672,
+    "inst_f_p95_hz": 2.1733208079703075,
+    "inst_f_gate_kept_pct": 84.34442270058709,
+    "inst_f_rms_hz": 1756.5303028860087,
+    "phase_step_std_deg": 39.00190639631755,
+    "f_rms_hz": 416.1684445767317,
+    "f_edge99_hz": 760.0,
+    "beyond_ftip_pct": 1.544187657433523,
+    "f_mean_hz": -5.146554780769743e-13,
+    "dc_power_pct": 10.586154034098872,
+    "min_over_max": 0.02452648160537846,
+    "mod_depth": 0.9521213320578169,
+    "legacy": {
+     "unwrap_ptp_deg": 538.8171012178877,
+     "edge20_hz": 791.6666666666666
+    }
+   },
+   "match": {
+    "rho": 0.9999853990790097,
+    "nrmse": 0.005403853143251087,
+    "const_phase_deg": -112.32321072914294,
+    "resid_phase_std_deg": 0.29895429918383926,
+    "resid_phase_ptp_deg": 1.8958552345526716
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -0.19492930139128437,
+    "inst_f_p95_hz": 1548.9584084101477,
+    "inst_f_p99_hz": 1802.087460425955,
+    "f_rms_hz": 0.22143028034365772,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -94.36941632912452
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -75.0,
+   "cos_el": 0.25881904510252074,
+   "f_tip_pred_hz": 329.4627729654913,
+   "f_tip_outer_hz": 377.5595281429353,
+   "f_rms_pred_hz": 232.96536091242282,
+   "phase_excursion_pred_deg": 596.1103072926156,
+   "seconds": 15.7,
+   "sigma_dbsm": -26.28992076629615,
+   "kernel": {
+    "inst_f_absmax_hz": 8083.553116164132,
+    "inst_f_p99_hz": 35.43496960803036,
+    "inst_f_p95_hz": 34.08912291059157,
+    "inst_f_gate_kept_pct": 79.6477495107632,
+    "inst_f_rms_hz": 1422.9355547661696,
+    "phase_step_std_deg": 31.594786166622352,
+    "f_rms_hz": 270.4810960613839,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 12.627830539908578,
+    "f_mean_hz": -0.00396986774167533,
+    "dc_power_pct": 3.168837803320411,
+    "min_over_max": 0.009856918129547957,
+    "mod_depth": 0.9804785847329642,
+    "legacy": {
+     "unwrap_ptp_deg": 181.77484535222825,
+     "edge20_hz": 411.66666666666663
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 8106.330459957942,
+    "inst_f_p99_hz": 0.5837185024904634,
+    "inst_f_p95_hz": 0.5823127214817999,
+    "inst_f_gate_kept_pct": 79.6477495107632,
+    "inst_f_rms_hz": 1434.402473062943,
+    "phase_step_std_deg": 31.849397017022575,
+    "f_rms_hz": 269.2126387391013,
+    "f_edge99_hz": 380.0,
+    "beyond_ftip_pct": 12.622649950222117,
+    "f_mean_hz": 2.2532855410095355e-13,
+    "dc_power_pct": 3.1829489354175378,
+    "min_over_max": 0.010214025144036958,
+    "mod_depth": 0.9797784926959796,
+    "legacy": {
+     "unwrap_ptp_deg": 359.60298702830676,
+     "edge20_hz": 411.66666666666663
+    }
+   },
+   "match": {
+    "rho": 0.9999810387715381,
+    "nrmse": 0.006158092025549688,
+    "const_phase_deg": -112.34526666947154,
+    "resid_phase_std_deg": 0.38190067638907177,
+    "resid_phase_ptp_deg": 2.4168933886827784
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": -0.2809821769087925,
+    "inst_f_p95_hz": 5754.092080256402,
+    "inst_f_p99_hz": 5970.5578899495795,
+    "f_rms_hz": 0.47117302078520557,
+    "f_edge99_hz": 0.0,
+    "inst_f_p95_vs_ftip": -89.6531184377052
+   }
+  },
+  {
+   "target": "two_spheres",
+   "n_scatterers": 2,
+   "div": 48,
+   "spacing_m": 0.0017844789166666668,
+   "n_rays": 43681,
+   "el_deg": -90.0,
+   "cos_el": 6.123233995736766e-17,
+   "f_tip_pred_hz": 7.794548700822605e-14,
+   "f_tip_outer_hz": 8.932439022110577e-14,
+   "f_rms_pred_hz": 5.5115782426404574e-14,
+   "phase_excursion_pred_deg": 1.4102991908409924e-13,
+   "seconds": 17.3,
+   "sigma_dbsm": -22.110706524889565,
+   "kernel": {
+    "inst_f_absmax_hz": 48.75804842373375,
+    "inst_f_p99_hz": 48.758048423730614,
+    "inst_f_p95_hz": 42.73706001165395,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 22.800506958015397,
+    "phase_step_std_deg": 0.5062586724619349,
+    "f_rms_hz": 32.071617274590196,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": -0.0014406225223572986,
+    "dc_power_pct": 99.99502146803034,
+    "min_over_max": 0.9881302750883123,
+    "mod_depth": 0.005970295337492614,
+    "legacy": {
+     "unwrap_ptp_deg": 1.56388767103445,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "analytic": {
+    "inst_f_absmax_hz": 1.202561577490852e-14,
+    "inst_f_p99_hz": 1.202561577490852e-14,
+    "inst_f_p95_hz": 1.202561577490852e-14,
+    "inst_f_gate_kept_pct": 100.0,
+    "inst_f_rms_hz": 1.2025615774908519e-14,
+    "phase_step_std_deg": 4.4139062980501586e-32,
+    "f_rms_hz": 0.0,
+    "f_edge99_hz": 0.0,
+    "beyond_ftip_pct": null,
+    "f_mean_hz": 0.0,
+    "dc_power_pct": 100.0,
+    "min_over_max": 1.0,
+    "mod_depth": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 0.0,
+     "edge20_hz": 31.666666666666664
+    }
+   },
+   "match": {
+    "rho": 0.9999751070303237,
+    "nrmse": 0.007055871292508377,
+    "const_phase_deg": -111.86018015802468,
+    "resid_phase_std_deg": 0.3604588573761408,
+    "resid_phase_ptp_deg": 1.5638876710344516
+   },
+   "rel_err_pct": {
+    "inst_f_absmax_hz": null,
+    "inst_f_p95_hz": null,
+    "inst_f_p99_hz": null,
+    "f_rms_hz": null,
+    "f_edge99_hz": null,
+    "inst_f_p95_vs_ftip": null
+   }
+  }
+ ],
+ "gates": [
+  {
+   "name": "G1_waveform_match_prod_div12",
+   "pass_": true,
+   "detail": {
+    "rho_min": 0.9956,
+    "per_el": {
+     "+0": 0.9956,
+     "-30": 0.9965,
+     "-60": 0.9974,
+     "-75": 0.9974,
+     "-90": 0.9967
+    }
+   },
+   "why_ko": "커널 파형이 해석 점산란체 파형과 코히어런트로 맞나 (ρ≥0.98). 미분·언랩을 안 거치는 가장 강한 기준이다."
+  },
+  {
+   "name": "G2_fdmax_vs_analytic_prod_div12",
+   "pass_": false,
+   "detail": {
+    "metric": "inst_f_p95_hz (⭐max 는 표본 하나에 물려 못 쓴다)",
+    "max_abs_err_pct": 109.11,
+    "per_el": {
+     "+0": 18.9,
+     "-30": 30.76,
+     "-60": 57.49,
+     "-75": 109.11
+    },
+    "raw_absmax_err_pct": {
+     "+0": 30.2,
+     "-30": 39.6,
+     "-60": 83.5,
+     "-75": 183.6
+    }
+   },
+   "why_ko": "순시 도플러(p95)가 같은 잣대로 잰 해석값과 5% 안에 드나. raw_absmax 를 함께 적는 이유는 **최대치 잣대가 왜 못 쓰는지** 보이려는 것이다."
+  },
+  {
+   "name": "G3_nadir_null_prod_div12",
+   "pass_": true,
+   "detail": {
+    "ac_power_pct": 0.66338,
+    "ac_below_dc_db": -21.75,
+    "resid_phase_ptp_deg": 16.029,
+    "phase_step_std_deg": 6.6591,
+    "amp_mod_depth": 0.05391,
+    "inst_f_rms_hz": 299.91,
+    "inst_f_rms_hz_note_ko": "⚠이 Hz 값은 PRF 에 비례한다 — 잡음을 Hz 로 읽으면 안 된다. 판정은 AC 전력비로 한다."
+   },
+   "why_ko": "⭐직하방에서는 |p−p_tx| = √(r²+R²) 가 아예 안 변한다 → 해석 도플러 **정확히 0**, 장도 상수. 커널이 내는 변동은 전부 **광선 격자 표본화 잡음**이고, 이 칸이 그 바닥값이다."
+  },
+  {
+   "name": "G4_support_matches_analytic_prod_div12",
+   "pass_": false,
+   "detail": {
+    "max_abs_diff_pp": 0.7605,
+    "per_el": {
+     "+0": [
+      2.223,
+      1.462
+     ],
+     "-30": [
+      2.705,
+      2.012
+     ],
+     "-60": [
+      4.744,
+      4.292
+     ],
+     "-75": [
+      6.213,
+      5.647
+     ]
+    },
+    "legend": "[커널, 해석] % of energy beyond ±1.05·f_tip"
+   },
+   "why_ko": "±1.05·f_tip 밖 에너지 비율이 **해석 파형과 같은가**(차이 ≤0.5 pp). ⚠절대 문턱으로 재면 안 된다 — 유한 CPI 위상변조 톤은 해석적으로도 베셀 꼬리를 갖는다(이것도 내 잣대가 틀렸던 자리다)."
+  },
+  {
+   "name": "G2b_fd_within_finite_size_bracket_prod_div12",
+   "pass_": false,
+   "detail": {
+    "per_el": {
+     "+0": {
+      "p95": 1509.3,
+      "lo": 1209.3,
+      "hi": 1531.7
+     },
+     "-30": {
+      "p95": 1437.5,
+      "lo": 1047.3,
+      "hi": 1326.5
+     },
+     "-60": {
+      "p95": 999.1,
+      "lo": 604.6,
+      "hi": 765.9
+     },
+     "-75": {
+      "p95": 686.5,
+      "lo": 313.0,
+      "hi": 396.4
+     }
+    }
+   },
+   "why_ko": "구 반지름 a 때문에 바깥 가장자리는 r+a 로 돈다 → 커널의 p95 가 [0.95·f_tip(r), 1.05·f_tip(r+a)] 안이면 물리적으로 정당하다."
+  },
+  {
+   "name": "G6_rms_bandwidth_law_prod_div12",
+   "pass_": false,
+   "detail": {
+    "max_err_pct": 83.64,
+    "per_el": {
+     "+0": 1.1446,
+     "-30": 1.1234,
+     "-60": 1.2745,
+     "-75": 1.8364
+    }
+   },
+   "why_ko": "⭐일정진폭 위상변조라면 스펙트럼 rms 대역폭이 **정확히** f_tip/√2 다 (<(dφ/dt)²> = (β ω)²/2). 이게 −20 dB 폭을 대신할 잣대다."
+  },
+  {
+   "name": "G1_waveform_match_fine_div48",
+   "pass_": true,
+   "detail": {
+    "rho_min": 0.9999,
+    "per_el": {
+     "+0": 0.9999,
+     "-30": 1.0,
+     "-60": 1.0,
+     "-75": 1.0,
+     "-90": 1.0
+    }
+   },
+   "why_ko": "커널 파형이 해석 점산란체 파형과 코히어런트로 맞나 (ρ≥0.98). 미분·언랩을 안 거치는 가장 강한 기준이다."
+  },
+  {
+   "name": "G2_fdmax_vs_analytic_fine_div48",
+   "pass_": false,
+   "detail": {
+    "metric": "inst_f_p95_hz (⭐max 는 표본 하나에 물려 못 쓴다)",
+    "max_abs_err_pct": 5.47,
+    "per_el": {
+     "+0": 1.54,
+     "-30": 0.42,
+     "-60": 1.85,
+     "-75": 5.47
+    },
+    "raw_absmax_err_pct": {
+     "+0": 5.7,
+     "-30": 2.2,
+     "-60": 4.0,
+     "-75": 12.1
+    }
+   },
+   "why_ko": "순시 도플러(p95)가 같은 잣대로 잰 해석값과 5% 안에 드나. raw_absmax 를 함께 적는 이유는 **최대치 잣대가 왜 못 쓰는지** 보이려는 것이다."
+  },
+  {
+   "name": "G3_nadir_null_fine_div48",
+   "pass_": true,
+   "detail": {
+    "ac_power_pct": 0.00499,
+    "ac_below_dc_db": -43.02,
+    "resid_phase_ptp_deg": 1.564,
+    "phase_step_std_deg": 0.5065,
+    "amp_mod_depth": 0.0065,
+    "inst_f_rms_hz": 22.81,
+    "inst_f_rms_hz_note_ko": "⚠이 Hz 값은 PRF 에 비례한다 — 잡음을 Hz 로 읽으면 안 된다. 판정은 AC 전력비로 한다."
+   },
+   "why_ko": "⭐직하방에서는 |p−p_tx| = √(r²+R²) 가 아예 안 변한다 → 해석 도플러 **정확히 0**, 장도 상수. 커널이 내는 변동은 전부 **광선 격자 표본화 잡음**이고, 이 칸이 그 바닥값이다."
+  },
+  {
+   "name": "G4_support_matches_analytic_fine_div48",
+   "pass_": true,
+   "detail": {
+    "max_abs_diff_pp": 0.012,
+    "per_el": {
+     "+0": [
+      1.474,
+      1.462
+     ],
+     "-30": [
+      2.015,
+      2.012
+     ],
+     "-60": [
+      4.28,
+      4.292
+     ],
+     "-75": [
+      5.644,
+      5.647
+     ]
+    },
+    "legend": "[커널, 해석] % of energy beyond ±1.05·f_tip"
+   },
+   "why_ko": "±1.05·f_tip 밖 에너지 비율이 **해석 파형과 같은가**(차이 ≤0.5 pp). ⚠절대 문턱으로 재면 안 된다 — 유한 CPI 위상변조 톤은 해석적으로도 베셀 꼬리를 갖는다(이것도 내 잣대가 틀렸던 자리다)."
+  },
+  {
+   "name": "G2b_fd_within_finite_size_bracket_fine_div48",
+   "pass_": true,
+   "detail": {
+    "per_el": {
+     "+0": {
+      "p95": 1288.9,
+      "lo": 1209.3,
+      "hi": 1531.7
+     },
+     "-30": {
+      "p95": 1103.9,
+      "lo": 1047.3,
+      "hi": 1326.5
+     },
+     "-60": {
+      "p95": 646.2,
+      "lo": 604.6,
+      "hi": 765.9
+     },
+     "-75": {
+      "p95": 346.3,
+      "lo": 313.0,
+      "hi": 396.4
+     }
+    }
+   },
+   "why_ko": "구 반지름 a 때문에 바깥 가장자리는 r+a 로 돈다 → 커널의 p95 가 [0.95·f_tip(r), 1.05·f_tip(r+a)] 안이면 물리적으로 정당하다."
+  },
+  {
+   "name": "G6_rms_bandwidth_law_fine_div48",
+   "pass_": true,
+   "detail": {
+    "max_err_pct": 0.75,
+    "per_el": {
+     "+0": 1.0017,
+     "-30": 1.0006,
+     "-60": 1.0016,
+     "-75": 1.0075
+    }
+   },
+   "why_ko": "⭐일정진폭 위상변조라면 스펙트럼 rms 대역폭이 **정확히** f_tip/√2 다 (<(dφ/dt)²> = (β ω)²/2). 이게 −20 dB 폭을 대신할 잣대다."
+  },
+  {
+   "name": "G5_cos_law_prod_div12",
+   "pass_": false,
+   "detail": {
+    "metric": "inst_f_p95_hz",
+    "cos_el": [
+     1.0,
+     0.866,
+     0.5,
+     0.2588
+    ],
+    "ratio_to_costimes_ftip0": [
+     1.1856,
+     1.3039,
+     1.5698,
+     2.0838
+    ],
+    "spread_pct": 58.48
+   },
+   "why_ko": "f_d(p95) ÷ (f_tip(0)·cos el) 가 앙각마다 같은 값인가 = ⭐cos 법칙 검증. 이게 사용자 질문(«계속 줄어야 하는 거 아니야?»)에 곧바로 답하는 칸이다."
+  },
+  {
+   "name": "G5_cos_law_fine_div48",
+   "pass_": true,
+   "detail": {
+    "metric": "inst_f_p95_hz",
+    "cos_el": [
+     1.0,
+     0.866,
+     0.5,
+     0.2588
+    ],
+    "ratio_to_costimes_ftip0": [
+     1.0125,
+     1.0014,
+     1.0152,
+     1.051
+    ],
+    "spread_pct": 4.86
+   },
+   "why_ko": "f_d(p95) ÷ (f_tip(0)·cos el) 가 앙각마다 같은 값인가 = ⭐cos 법칙 검증. 이게 사용자 질문(«계속 줄어야 하는 거 아니야?»)에 곧바로 답하는 칸이다."
+  },
+  {
+   "name": "M0_legacy_unwrap_ok_when_no_nulls",
+   "pass_": true,
+   "detail": {
+    "unwrap_over_physical": {
+     "+0": 1.007,
+     "-30": 1.002,
+     "-60": 1.001,
+     "-75": 1.01
+    },
+    "max_fold": 1.01
+   },
+   "why_ko": "널이 없는 산란체 1개에서는 np.unwrap ptp 가 물리적 위상진폭 4k·r·cos(el) 을 제대로 잰다 — 즉 그 잣대가 «항상» 틀린 게 아니라 **널에서만** 무너진다."
+  },
+  {
+   "name": "M1_legacy_unwrap_broken_by_nulls",
+   "pass_": true,
+   "detail": {
+    "max_fold_error": 2.13,
+    "per_el": {
+     "+0": {
+      "kernel": {
+       "unwrap_ptp_deg": 536.6,
+       "unwrap_over_physical": 0.23,
+       "edge20_over_ftip": 1.119,
+       "f_rms_over_pred": 1.016,
+       "beyond_ftip_pct": 2.735,
+       "amp_min_over_max": 0.03931
+      },
+      "analytic": {
+       "unwrap_ptp_deg": 1074.1,
+       "unwrap_over_physical": 0.47,
+       "edge20_over_ftip": 1.119,
+       "f_rms_over_pred": 1.006,
+       "beyond_ftip_pct": 2.263,
+       "amp_min_over_max": 0.03956
+      },
+      "rho": 0.9931
+     },
+     "-30": {
+      "kernel": {
+       "unwrap_ptp_deg": 717.0,
+       "unwrap_over_physical": 0.36,
+       "edge20_over_ftip": 1.149,
+       "f_rms_over_pred": 1.062,
+       "beyond_ftip_pct": 1.066,
+       "amp_min_over_max": 0.00411
+      },
+      "analytic": {
+       "unwrap_ptp_deg": 1074.2,
+       "unwrap_over_physical": 0.54,
+       "edge20_over_ftip": 1.149,
+       "f_rms_over_pred": 1.062,
+       "beyond_ftip_pct": 1.074,
+       "amp_min_over_max": 0.00371
+      },
+      "rho": 1.0
+     },
+     "-60": {
+      "kernel": {
+       "unwrap_ptp_deg": 359.6,
+       "unwrap_over_physical": 0.31,
+       "edge20_over_ftip": 1.244,
+       "f_rms_over_pred": 0.927,
+       "beyond_ftip_pct": 1.555,
+       "amp_min_over_max": 0.02483
+      },
+      "analytic": {
+       "unwrap_ptp_deg": 538.8,
+       "unwrap_over_physical": 0.47,
+       "edge20_over_ftip": 1.244,
+       "f_rms_over_pred": 0.925,
+       "beyond_ftip_pct": 1.544,
+       "amp_min_over_max": 0.02453
+      },
+      "rho": 1.0
+     },
+     "-75": {
+      "kernel": {
+       "unwrap_ptp_deg": 181.8,
+       "unwrap_over_physical": 0.3,
+       "edge20_over_ftip": 1.25,
+       "f_rms_over_pred": 1.161,
+       "beyond_ftip_pct": 12.628,
+       "amp_min_over_max": 0.00986
+      },
+      "analytic": {
+       "unwrap_ptp_deg": 359.6,
+       "unwrap_over_physical": 0.6,
+       "edge20_over_ftip": 1.25,
+       "f_rms_over_pred": 1.156,
+       "beyond_ftip_pct": 12.623,
+       "amp_min_over_max": 0.01021
+      },
+      "rho": 1.0
+     },
+     "-90": {
+      "kernel": {
+       "unwrap_ptp_deg": 1.6,
+       "unwrap_over_physical": null,
+       "edge20_over_ftip": null,
+       "f_rms_over_pred": null,
+       "beyond_ftip_pct": null,
+       "amp_min_over_max": 0.98813
+      },
+      "analytic": {
+       "unwrap_ptp_deg": 0.0,
+       "unwrap_over_physical": null,
+       "edge20_over_ftip": null,
+       "f_rms_over_pred": null,
+       "beyond_ftip_pct": null,
+       "amp_min_over_max": 1.0
+      },
+      "rho": 1.0
+     }
+    }
+   },
+   "why_ko": "⭐**해석적으로 완벽한** 2엽 파형에 np.unwrap ptp 를 대면 물리적 위상진폭(4k·r·cos el)의 몇 «배» 가 나오나. 2 배 넘게 벗어나면 그 잣대는 커널이 아니라 **널(|E|→0)의 π 점프**를 잰 것이다 — 커널 무죄의 직접 증거."
+  },
+  {
+   "name": "M2_spectral_metric_survives_nulls_div12",
+   "pass_": false,
+   "detail": {
+    "max_frms_err_pct": 71.64,
+    "per_el": {
+     "+0": 1.135,
+     "-30": 1.127,
+     "-60": 1.35,
+     "-75": 1.716
+    },
+    "inst_f_p95_kernel_over_analytic": {
+     "+0": 87.5,
+     "-30": 96.1,
+     "-60": 245.6,
+     "-75": 842.5
+    }
+   },
+   "why_ko": "널이 깊은 2엽 신호에서 **스펙트럼 rms 대역폭**이 해석값과 붙어 있나. ⭐같은 칸의 inst_f_p95 비율도 보라 — 순시주파수 잣대는 여기서 **해석값 자체가 ~0 Hz** 라 아예 못 쓴다(다성분 신호의 순시주파수는 도플러 지지집합이 아니다). 이것이 −20 dB 폭 대신 무엇을 써야 하는가의 답이다."
+  },
+  {
+   "name": "M2_spectral_metric_survives_nulls_div48",
+   "pass_": true,
+   "detail": {
+    "max_frms_err_pct": 1.03,
+    "per_el": {
+     "+0": 1.01,
+     "-30": 1.0,
+     "-60": 1.002,
+     "-75": 1.005
+    },
+    "inst_f_p95_kernel_over_analytic": {
+     "+0": 82.5,
+     "-30": 5.4,
+     "-60": 16.5,
+     "-75": 58.5
+    }
+   },
+   "why_ko": "널이 깊은 2엽 신호에서 **스펙트럼 rms 대역폭**이 해석값과 붙어 있나. ⭐같은 칸의 inst_f_p95 비율도 보라 — 순시주파수 잣대는 여기서 **해석값 자체가 ~0 Hz** 라 아예 못 쓴다(다성분 신호의 순시주파수는 도플러 지지집합이 아니다). 이것이 −20 dB 폭 대신 무엇을 써야 하는가의 답이다."
+  }
+ ],
+ "real_sweep_recheck": {
+  "available": true,
+  "source": "/home/yunjung/workspace/sionna2/outputs/elevation_sweep_md.npz",
+  "note_ko": "단위시험에서 세운 **고친 잣대**를 실제 스윕 데이터에 그대로 적용. 위상 변동폭(unwrap)·−20 dB 폭은 참고로만 남기고, 판정은 스펙트럼 rms 대역폭·f_tip 밖 에너지·널 게이트한 순시주파수로 한다.",
+  "prf_hz": 19700.0,
+  "rows": [
+   {
+    "series": "ours/el+0",
+    "el_deg": 0.0,
+    "f_tip_pred_hz": 1272.9,
+    "n": 4096,
+    "amp_min_over_max": 0.53481,
+    "amp_mod_depth": 0.3031,
+    "phase_excursion_pred_deg": 2303.2,
+    "legacy": {
+     "unwrap_ptp_deg": 40.59,
+     "edge20_hz": 759.91
+    },
+    "dc_power_pct": 97.1472,
+    "ac_power_pct": 2.8528,
+    "fixed": {
+     "inst_f_absmax_hz": 400.91,
+     "inst_f_p99_hz": 316.87,
+     "inst_f_p95_hz": 252.35,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 129.26,
+     "phase_step_std_deg": 2.36,
+     "f_rms_hz": 177.68,
+     "f_edge99_hz": 759.91,
+     "beyond_ftip_pct": 0.072,
+     "f_rms_over_pred": 0.197
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1051.96,
+     "f_edge99_hz": 4535.42,
+     "beyond_ftip_pct": 2.519,
+     "f_rms_over_pred": 1.169
+    }
+   },
+   {
+    "series": "ours/el-15",
+    "el_deg": -15.0,
+    "f_tip_pred_hz": 1229.6,
+    "n": 4096,
+    "amp_min_over_max": 0.56221,
+    "amp_mod_depth": 0.2802,
+    "phase_excursion_pred_deg": 2224.7,
+    "legacy": {
+     "unwrap_ptp_deg": 26.64,
+     "edge20_hz": 4.81
+    },
+    "dc_power_pct": 98.9227,
+    "ac_power_pct": 1.0773,
+    "fixed": {
+     "inst_f_absmax_hz": 508.6,
+     "inst_f_p99_hz": 317.39,
+     "inst_f_p95_hz": 229.03,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 113.4,
+     "phase_step_std_deg": 2.07,
+     "f_rms_hz": 198.82,
+     "f_edge99_hz": 125.05,
+     "beyond_ftip_pct": 0.202,
+     "f_rms_over_pred": 0.229
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1915.53,
+     "f_edge99_hz": 8349.41,
+     "beyond_ftip_pct": 18.741,
+     "f_rms_over_pred": 2.203
+    }
+   },
+   {
+    "series": "ours/el-30",
+    "el_deg": -30.0,
+    "f_tip_pred_hz": 1102.4,
+    "n": 4096,
+    "amp_min_over_max": 0.05508,
+    "amp_mod_depth": 0.8956,
+    "phase_excursion_pred_deg": 1994.6,
+    "legacy": {
+     "unwrap_ptp_deg": 166.93,
+     "edge20_hz": 1014.82
+    },
+    "dc_power_pct": 72.4171,
+    "ac_power_pct": 27.5829,
+    "fixed": {
+     "inst_f_absmax_hz": 3886.38,
+     "inst_f_p99_hz": 1668.09,
+     "inst_f_p95_hz": 995.1,
+     "inst_f_gate_kept_pct": 99.56,
+     "inst_f_rms_hz": 531.23,
+     "phase_step_std_deg": 9.71,
+     "f_rms_hz": 679.39,
+     "f_edge99_hz": 2409.59,
+     "beyond_ftip_pct": 2.889,
+     "f_rms_over_pred": 0.872
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1293.6,
+     "f_edge99_hz": 6213.96,
+     "beyond_ftip_pct": 10.474,
+     "f_rms_over_pred": 1.659
+    }
+   },
+   {
+    "series": "ours/el-45",
+    "el_deg": -45.0,
+    "f_tip_pred_hz": 900.1,
+    "n": 4096,
+    "amp_min_over_max": 0.27817,
+    "amp_mod_depth": 0.5647,
+    "phase_excursion_pred_deg": 1628.6,
+    "legacy": {
+     "unwrap_ptp_deg": 89.1,
+     "edge20_hz": 759.91
+    },
+    "dc_power_pct": 86.4075,
+    "ac_power_pct": 13.5925,
+    "fixed": {
+     "inst_f_absmax_hz": 910.69,
+     "inst_f_p99_hz": 633.58,
+     "inst_f_p95_hz": 471.32,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 230.32,
+     "phase_step_std_deg": 4.21,
+     "f_rms_hz": 342.66,
+     "f_edge99_hz": 759.91,
+     "beyond_ftip_pct": 0.339,
+     "f_rms_over_pred": 0.538
+    },
+    "fixed_ac": {
+     "f_rms_hz": 929.41,
+     "f_edge99_hz": 4670.09,
+     "beyond_ftip_pct": 2.495,
+     "f_rms_over_pred": 1.46
+    }
+   },
+   {
+    "series": "ours/el-60",
+    "el_deg": -60.0,
+    "f_tip_pred_hz": 636.5,
+    "n": 4096,
+    "amp_min_over_max": 0.00489,
+    "amp_mod_depth": 0.9903,
+    "phase_excursion_pred_deg": 1151.6,
+    "legacy": {
+     "unwrap_ptp_deg": 4217.1,
+     "edge20_hz": 634.86
+    },
+    "dc_power_pct": 5.0888,
+    "ac_power_pct": 94.9112,
+    "fixed": {
+     "inst_f_absmax_hz": 9654.81,
+     "inst_f_p99_hz": 1393.83,
+     "inst_f_p95_hz": 845.85,
+     "inst_f_gate_kept_pct": 94.51,
+     "inst_f_rms_hz": 810.33,
+     "phase_step_std_deg": 14.78,
+     "f_rms_hz": 585.33,
+     "f_edge99_hz": 1139.87,
+     "beyond_ftip_pct": 1.17,
+     "f_rms_over_pred": 1.301
+    },
+    "fixed_ac": {
+     "f_rms_hz": 600.81,
+     "f_edge99_hz": 1769.92,
+     "beyond_ftip_pct": 1.232,
+     "f_rms_over_pred": 1.335
+    }
+   },
+   {
+    "series": "ours/el-75",
+    "el_deg": -75.0,
+    "f_tip_pred_hz": 329.5,
+    "n": 4096,
+    "amp_min_over_max": 0.48772,
+    "amp_mod_depth": 0.3443,
+    "phase_excursion_pred_deg": 596.1,
+    "legacy": {
+     "unwrap_ptp_deg": 42.17,
+     "edge20_hz": 129.86
+    },
+    "dc_power_pct": 91.7671,
+    "ac_power_pct": 8.2329,
+    "fixed": {
+     "inst_f_absmax_hz": 209.23,
+     "inst_f_p99_hz": 147.54,
+     "inst_f_p95_hz": 112.38,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 55.41,
+     "phase_step_std_deg": 1.01,
+     "f_rms_hz": 88.92,
+     "f_edge99_hz": 134.67,
+     "beyond_ftip_pct": 0.051,
+     "f_rms_over_pred": 0.382
+    },
+    "fixed_ac": {
+     "f_rms_hz": 309.9,
+     "f_edge99_hz": 269.34,
+     "beyond_ftip_pct": 0.614,
+     "f_rms_over_pred": 1.33
+    }
+   },
+   {
+    "series": "ours/el-90",
+    "el_deg": -90.0,
+    "f_tip_pred_hz": 0.0,
+    "n": 4096,
+    "amp_min_over_max": 0.96675,
+    "amp_mod_depth": 0.0169,
+    "phase_excursion_pred_deg": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 3.67,
+     "edge20_hz": 4.81
+    },
+    "dc_power_pct": 99.9852,
+    "ac_power_pct": 0.0148,
+    "fixed": {
+     "inst_f_absmax_hz": 140.12,
+     "inst_f_p99_hz": 83.28,
+     "inst_f_p95_hz": 61.72,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 31.68,
+     "phase_step_std_deg": 0.58,
+     "f_rms_hz": 43.94,
+     "f_edge99_hz": null,
+     "beyond_ftip_pct": null,
+     "f_rms_over_pred": null
+    },
+    "fixed_ac": {
+     "f_rms_hz": 3616.18,
+     "f_edge99_hz": 9590.28,
+     "beyond_ftip_pct": null,
+     "f_rms_over_pred": null
+    }
+   },
+   {
+    "series": "sionna/el+0",
+    "el_deg": 0.0,
+    "f_tip_pred_hz": 1272.9,
+    "n": 4096,
+    "amp_min_over_max": 0.99975,
+    "amp_mod_depth": 0.0001,
+    "phase_excursion_pred_deg": 2303.2,
+    "legacy": {
+     "unwrap_ptp_deg": 0.02,
+     "edge20_hz": 4.81
+    },
+    "dc_power_pct": 100.0,
+    "ac_power_pct": 0.0,
+    "fixed": {
+     "inst_f_absmax_hz": 0.49,
+     "inst_f_p99_hz": 0.2,
+     "inst_f_p95_hz": 0.13,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 0.07,
+     "phase_step_std_deg": 0.0,
+     "f_rms_hz": 0.1,
+     "f_edge99_hz": null,
+     "beyond_ftip_pct": 0.0,
+     "f_rms_over_pred": 0.0
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1529.9,
+     "f_edge99_hz": 5834.01,
+     "beyond_ftip_pct": 28.384,
+     "f_rms_over_pred": 1.7
+    }
+   },
+   {
+    "series": "sionna/el-15",
+    "el_deg": -15.0,
+    "f_tip_pred_hz": 1229.6,
+    "n": 4096,
+    "amp_min_over_max": 0.55942,
+    "amp_mod_depth": 0.2825,
+    "phase_excursion_pred_deg": 2224.7,
+    "legacy": {
+     "unwrap_ptp_deg": 31.7,
+     "edge20_hz": 4.81
+    },
+    "dc_power_pct": 99.0067,
+    "ac_power_pct": 0.9933,
+    "fixed": {
+     "inst_f_absmax_hz": 935.17,
+     "inst_f_p99_hz": 516.73,
+     "inst_f_p95_hz": 313.87,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 148.15,
+     "phase_step_std_deg": 2.71,
+     "f_rms_hz": 241.09,
+     "f_edge99_hz": null,
+     "beyond_ftip_pct": 0.312,
+     "f_rms_over_pred": 0.277
+    },
+    "fixed_ac": {
+     "f_rms_hz": 2419.1,
+     "f_edge99_hz": 9037.18,
+     "beyond_ftip_pct": 31.399,
+     "f_rms_over_pred": 2.782
+    }
+   },
+   {
+    "series": "sionna/el-30",
+    "el_deg": -30.0,
+    "f_tip_pred_hz": 1102.4,
+    "n": 4096,
+    "amp_min_over_max": 0.00603,
+    "amp_mod_depth": 0.988,
+    "phase_excursion_pred_deg": 1994.6,
+    "legacy": {
+     "unwrap_ptp_deg": 20741.64,
+     "edge20_hz": 1394.78
+    },
+    "dc_power_pct": 40.0195,
+    "ac_power_pct": 59.9805,
+    "fixed": {
+     "inst_f_absmax_hz": 9848.96,
+     "inst_f_p99_hz": 2206.89,
+     "inst_f_p95_hz": 1489.1,
+     "inst_f_gate_kept_pct": 88.28,
+     "inst_f_rms_hz": 1211.07,
+     "phase_step_std_deg": 21.56,
+     "f_rms_hz": 881.31,
+     "f_edge99_hz": 4174.71,
+     "beyond_ftip_pct": 5.06,
+     "f_rms_over_pred": 1.131
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1137.95,
+     "f_edge99_hz": 5915.77,
+     "beyond_ftip_pct": 8.435,
+     "f_rms_over_pred": 1.46
+    }
+   },
+   {
+    "series": "sionna/el-45",
+    "el_deg": -45.0,
+    "f_tip_pred_hz": 900.1,
+    "n": 4096,
+    "amp_min_over_max": 0.26935,
+    "amp_mod_depth": 0.5756,
+    "phase_excursion_pred_deg": 1628.6,
+    "legacy": {
+     "unwrap_ptp_deg": 77.4,
+     "edge20_hz": 634.86
+    },
+    "dc_power_pct": 91.5411,
+    "ac_power_pct": 8.4589,
+    "fixed": {
+     "inst_f_absmax_hz": 2291.4,
+     "inst_f_p99_hz": 1108.33,
+     "inst_f_p95_hz": 700.21,
+     "inst_f_gate_kept_pct": 100.0,
+     "inst_f_rms_hz": 319.46,
+     "phase_step_std_deg": 5.84,
+     "f_rms_hz": 485.31,
+     "f_edge99_hz": 1769.92,
+     "beyond_ftip_pct": 2.175,
+     "f_rms_over_pred": 0.763
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1668.64,
+     "f_edge99_hz": 7906.93,
+     "beyond_ftip_pct": 25.718,
+     "f_rms_over_pred": 2.622
+    }
+   },
+   {
+    "series": "sionna/el-60",
+    "el_deg": -60.0,
+    "f_tip_pred_hz": 636.5,
+    "n": 4096,
+    "amp_min_over_max": 0.02148,
+    "amp_mod_depth": 0.9579,
+    "phase_excursion_pred_deg": 1151.6,
+    "legacy": {
+     "unwrap_ptp_deg": 309.55,
+     "edge20_hz": 634.86
+    },
+    "dc_power_pct": 72.4897,
+    "ac_power_pct": 27.5103,
+    "fixed": {
+     "inst_f_absmax_hz": 7821.32,
+     "inst_f_p99_hz": 2461.94,
+     "inst_f_p95_hz": 1390.59,
+     "inst_f_gate_kept_pct": 92.41,
+     "inst_f_rms_hz": 850.2,
+     "phase_step_std_deg": 15.54,
+     "f_rms_hz": 882.35,
+     "f_edge99_hz": 4617.19,
+     "beyond_ftip_pct": 8.327,
+     "f_rms_over_pred": 1.961
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1682.26,
+     "f_edge99_hz": 7993.51,
+     "beyond_ftip_pct": 30.27,
+     "f_rms_over_pred": 3.738
+    }
+   },
+   {
+    "series": "sionna/el-75",
+    "el_deg": -75.0,
+    "f_tip_pred_hz": 329.5,
+    "n": 4096,
+    "amp_min_over_max": 0.05382,
+    "amp_mod_depth": 0.8979,
+    "phase_excursion_pred_deg": 596.1,
+    "legacy": {
+     "unwrap_ptp_deg": 221.23,
+     "edge20_hz": 884.96
+    },
+    "dc_power_pct": 67.5566,
+    "ac_power_pct": 32.4434,
+    "fixed": {
+     "inst_f_absmax_hz": 5000.79,
+     "inst_f_p99_hz": 2499.36,
+     "inst_f_p95_hz": 1615.99,
+     "inst_f_gate_kept_pct": 94.87,
+     "inst_f_rms_hz": 790.55,
+     "phase_step_std_deg": 14.45,
+     "f_rms_hz": 824.07,
+     "f_edge99_hz": 4309.38,
+     "beyond_ftip_pct": 15.524,
+     "f_rms_over_pred": 3.537
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1446.77,
+     "f_edge99_hz": 7334.59,
+     "beyond_ftip_pct": 47.851,
+     "f_rms_over_pred": 6.21
+    }
+   },
+   {
+    "series": "sionna/el-90",
+    "el_deg": -90.0,
+    "f_tip_pred_hz": 0.0,
+    "n": 4096,
+    "amp_min_over_max": 0.00466,
+    "amp_mod_depth": 0.9907,
+    "phase_excursion_pred_deg": 0.0,
+    "legacy": {
+     "unwrap_ptp_deg": 4429.41,
+     "edge20_hz": 889.77
+    },
+    "dc_power_pct": 50.6345,
+    "ac_power_pct": 49.3655,
+    "fixed": {
+     "inst_f_absmax_hz": 9713.65,
+     "inst_f_p99_hz": 2986.43,
+     "inst_f_p95_hz": 1806.02,
+     "inst_f_gate_kept_pct": 86.76,
+     "inst_f_rms_hz": 1406.55,
+     "phase_step_std_deg": 25.68,
+     "f_rms_hz": 1064.6,
+     "f_edge99_hz": 5704.15,
+     "beyond_ftip_pct": null,
+     "f_rms_over_pred": null
+    },
+    "fixed_ac": {
+     "f_rms_hz": 1515.22,
+     "f_edge99_hz": 7358.64,
+     "beyond_ftip_pct": null,
+     "f_rms_over_pred": null
+    }
+   }
+  ],
+  "monotonic_check": {
+   "el_deg": [
+    0.0,
+    -15.0,
+    -30.0,
+    -45.0,
+    -60.0,
+    -75.0,
+    -90.0
+   ],
+   "legacy_unwrap_ptp_deg": [
+    40.59,
+    26.64,
+    166.93,
+    89.1,
+    4217.1,
+    42.17,
+    3.67
+   ],
+   "legacy_edge20_over_ftip": [
+    0.597,
+    0.004,
+    0.921,
+    0.844,
+    0.997,
+    0.394,
+    null
+   ],
+   "amp_min_over_max": [
+    0.53481,
+    0.56221,
+    0.05508,
+    0.27817,
+    0.00489,
+    0.48772,
+    0.96675
+   ],
+   "ac_power_pct": [
+    2.8528,
+    1.0773,
+    27.5829,
+    13.5925,
+    94.9112,
+    8.2329,
+    0.0148
+   ],
+   "ac_f_rms_hz": [
+    1051.96,
+    1915.53,
+    1293.6,
+    929.41,
+    600.81,
+    309.9,
+    3616.18
+   ],
+   "ac_f_rms_over_pred": [
+    1.169,
+    2.203,
+    1.659,
+    1.46,
+    1.335,
+    1.33,
+    null
+   ],
+   "ac_beyond_ftip_pct": [
+    2.519,
+    18.741,
+    10.474,
+    2.495,
+    1.232,
+    0.614,
+    null
+   ],
+   "nadir_ac_floor_pct": 0.0148,
+   "finding_ko": "① 옛 «위상 변동폭» 이 튄 앙각(−30·−60)은 |E| 최소/최대 가 각각 0.055·0.005 로 **널이 가장 깊은** 두 자리와 정확히 겹친다 → 커널이 아니라 널이 만든 값이다. ② 실제 기체 신호는 정지한 동체가 0 Hz 에 전력의 5~99.99% 를 몰아넣는다 — 그 비중이 앙각마다 크게 달라지므로 **어떤 단일 스칼라도 cos(el) 을 곧바로 따라가지 않는다**. 운동학 검증은 이 스윕이 아니라 단위시험이 해야 한다. ③ 직하방의 AC 비중이 이 데이터의 **격자 표본화 잡음 바닥**이다.",
+   "open_item_ko": "el −15° 의 AC 대역 밖 에너지 비율이 이웃보다 눈에 띄게 크다 — 이 라운드에서 원인을 규명하지 못했다. 미해결로 남긴다."
+  }
+ }
+}

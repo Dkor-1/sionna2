@@ -1,0 +1,224 @@
+{
+ "_meta": {
+  "role": "렌즈 A — «앙각 로브» 판정의 숫자가 그 파일 그 키에 실제로 있는지 다시 재서 대조",
+  "target": "outputs/verify_elevation_lobe.json (+ elevation_sweep_md.json/.npz)",
+  "gpu_used": false,
+  "cpu_workers": 12,
+  "writes": [
+   "outputs/verify_elevation_lensA_lobe.json"
+  ],
+  "touched_ledger": false,
+  "units_ko": "ours=E [m²], sionna=h [무차원] — 팔 사이 절대레벨 비교 없음"
+ },
+ "R1_levels_reproduce": {
+  "recipe": "level_db = 20*log10(mean|E|) over 4096 poses",
+  "ours": {
+   "0": -54.3703,
+   "-15": -51.164,
+   "-30": -63.3726,
+   "-45": -58.6694,
+   "-60": -65.7591,
+   "-75": -47.2774,
+   "-90": -41.6561
+  },
+  "sionna": {
+   "0": -59.6543,
+   "-15": -124.8048,
+   "-30": -135.4465,
+   "-45": -125.9156,
+   "-60": -127.8621,
+   "-75": -127.5978,
+   "-90": -130.2947
+  },
+  "max_abs_diff_vs_ledger_db": 0.0048,
+  "ptp_ours_db": 24.103,
+  "ptp_sionna_db": 75.792,
+  "ptp_sionna_wo_el0_db": 10.642,
+  "note_ko": "ptp_sionna_wo_el0 은 10.642 dB — 보고서의 10.65 는 2자리 반올림 입력에서 온 값이다(무해)"
+ },
+ "R2_dc_ac": {
+  "ours": {
+   "0": {
+    "ac_pct": 2.8528,
+    "dc_db": -54.447,
+    "ac_db": -69.769
+   },
+   "-15": {
+    "ac_pct": 1.0773,
+    "dc_db": -51.18,
+    "ac_db": -70.81
+   },
+   "-30": {
+    "ac_pct": 27.5829,
+    "dc_db": -64.308,
+    "ac_db": -68.5
+   },
+   "-45": {
+    "ac_pct": 13.5925,
+    "dc_db": -59.05,
+    "ac_db": -67.083
+   },
+   "-60": {
+    "ac_pct": 94.9112,
+    "dc_db": -78.079,
+    "ac_db": -65.372
+   },
+   "-75": {
+    "ac_pct": 8.2329,
+    "dc_db": -47.532,
+    "ac_db": -58.003
+   },
+   "-90": {
+    "ac_pct": 0.0148,
+    "dc_db": -41.657,
+    "ac_db": -79.963
+   }
+  },
+  "verdict_ko": "보고서의 2.85/1.08/27.6/13.6/94.9/8.23/0.01 % 전부 재현. −60° DC −78.08 · AC −65.37 (12.71 dB 아래) 재현."
+ },
+ "R3_cpu_reimpl_rerun_live": {
+  "what_ko": "스크래치패드 run_fine.py 를 내가 직접 다시 돌렸다(7 앙각 × 32 자세 = 224 잡, CPU 12 워커)",
+  "my_rerun_db": {
+   "0": -54.368,
+   "-15": -51.145,
+   "-30": -63.299,
+   "-45": -58.85,
+   "-60": -66.049,
+   "-75": -47.329,
+   "-90": -41.662
+  },
+  "identical_to_seven_json": true,
+  "max_abs_diff_vs_ledger_db": 0.289,
+  "grid_check_ko": "CPU 판이 쓰는 격자 recipe(grid_ref_from)·basis(_grid_basis)가 커널과 **같다** — 따라서 이 leg 가 배제하는 것은 Mitsuba/OptiX 교차엔진이지 «표본 격자» 가 아니다. 격자 쪽은 leg ②(판 실험)가 담당한다.",
+  "verdict": "PASS — leg ① 성립"
+ },
+ "R4_plate_stats": {
+  "pooled_within_std_db": 2.031,
+  "plate_mean_ptp_db": 22.643,
+  "between_std_platemean_db": 8.304,
+  "between_std_ledger_db": 8.671,
+  "corr_ledger_vs_platemean": 0.9771,
+  "all_reproduce": true,
+  "DEFECT_n_effective_plates": {
+   "0": 4,
+   "-15": 6,
+   "-30": 6,
+   "-45": 5,
+   "-60": 6,
+   "-75": 6,
+   "-90": 4
+  },
+  "defect_ko": "⭐판 이동을 **월드 축**으로 줬는데 광선격자는 û 에 수직인 평면만 표본한다 — û 성분은 무효다. el 0 과 el −90 에서 6 장이 **4 장**으로 겹친다(원장에 −54.466·−57.708 이 각 2회, −41.640/−41.641 과 −40.831/−40.832 쌍으로 남아 있다). 대각 이동은 0.61~0.71 칸이지 «반 칸» 이 아니다.",
+  "impact_ko": "헤드라인 두 끝점(el 0·−90)에서 √6 이 아니라 √4. F 는 n_eff 로 6→4 이면 ≈67 (여전히 ≫1). 결론 안 바뀜.",
+  "margin_bookkeeping_ko": "«12.6 dB» 는 추정기를 섞었다 — 8.669 는 4096 자세 원장의 σ, 2.031 은 16 자세 판 실험의 σ. 같은 실험끼리면 8.304/2.031 → 12.2 dB. 그리고 dB 값의 표준편차 비에 20log10 을 씌우는 것은 단위 오용이다 — «앙각 흩어짐이 판 흩어짐의 4.1 배» 로 적어라."
+ },
+ "R5_fine_sweep": {
+  "ptp_db": 31.82,
+  "std_db": 6.568,
+  "min_at_el": -31.25,
+  "max_at_el": -90.0,
+  "autocorr_biased_estimator": {
+   "0.25": 0.956,
+   "1": 0.845,
+   "2.5": 0.689,
+   "5": 0.395,
+   "10": 0.092
+  },
+  "autocorr_note_ko": "파일 값(0.956/0.845/0.689/0.395/0.092)은 **에너지 정규화(biased)** 추정기다 — 그대로 재현된다. Pearson 으로 재면 0.962/0.863/0.727/0.443/0.132 로 조금 높다.",
+  "residual_after_2p25deg_smoothing_db": 1.526,
+  "null_spacing_vs_prominence_deg": {
+   "0": 1.0,
+   "1": 1.5,
+   "2": 2.25,
+   "2.1": 2.875,
+   "3": 3.375,
+   "4": 3.625
+  },
+  "dominant_period_deg_my_reproduction": [
+   15.28,
+   15.28,
+   15.36
+  ],
+  "dominant_period_note_ko": "raw-mean / 선형 detrend / 2차 detrend 셋 다 15.3° 부근 — **재현된다**(파일 15.04).",
+  "DEFECT_null_spacing_ko": "⭐2.88° ⇒ d=0.852 m 은 **물리적으로 불가능**하다. 방위 0° 스윕은 x–z 면 안에서만 돈다 — 시선에 수직인 **면내** 폭만 무늬를 만든다. 그 폭은 0.1495~0.4762 m 이라 가능한 **최소 무늬 주기가 5.15°** 다. 그리고 «bbox 대각 0.775 m» 와 견준 것은 무효다 — 그 대각의 0.595 m 가 y 폭이고 방위 0° 에서는 안 보인다.",
+  "DEFECT_null_threshold_ko": "게다가 2.88 은 문턱값에 딸린 값이다: 국소최소 전부면 1.00° · prominence 2.1~2.3 dB 면 2.875° · 3.0 dB 면 3.375° · 4.0 dB 면 3.625°. 2 dB 근방은 조사자 본인이 잰 잔차(2.25° 평활 후 1.53 dB)·판 잡음(2.03 dB)과 같은 크기다 ⇒ 이 미세 널은 격자 잡음을 읽고 있다.",
+  "SURVIVES_ko": "⭐거친 무늬 쪽은 살고 오히려 더 강해진다: 15.3° ⇒ d=0.160 m 이고 기체의 **z 폭 0.1495 m**(el 0 근방의 면내 수직 개구)와 맞는다 — 그 개구의 회절 한계 주기가 λ/(2·0.1495)=16.4° 다. 각 상관길이(r(5°)=0.395)도 천정 쪽 회절 한계 5.15° 와 겹친다. 이 둘이 «무늬가 표적 치수를 읽는다» 의 방어 가능한 근거다.",
+  "DEFECT_label_ko": "0.16 m 를 «동체/모터 간격» 이라 부른 것은 틀렸다 — 모터 간격은 x 0.306 m · y 0.390 m 다. 0.16 m 는 기체 **높이(z 폭)** 다.",
+  "inplane_perp_extent_m": [
+   0.1495,
+   0.4762
+  ],
+  "finest_possible_fringe_deg": 5.153,
+  "endpoint_ko": "미세 스윕 최대는 스윕 **끝점** −90.0 이고 마지막 3 점이 단조 상승이다 — −90° 너머는 안 봤다."
+ },
+ "R6_nadir_decomposition_OVERTURNED": {
+  "claim_ko": "보고서: «+12.7 dB = 면적 7.5 dB + 정합 이득 5.2 dB», «지배 항은 면적이 아니라 위상정합»",
+  "eta_el0": 0.2087,
+  "eta_el_minus90": 0.2072,
+  "eta_term_db": -0.06,
+  "incoh_term_db": 6.05,
+  "pose0_opaque_field_change_db": 5.99,
+  "shellonly_16pose_change_db": 5.452,
+  "penetration_delta_swing_db": 7.254,
+  "sum_check_db": 12.706,
+  "ledger_change_db": 12.71,
+  "verdict_ko": "⭐**뒤집힌다.** 파일 자신의 η 표가 반증한다 — η(el 0)=0.2087, η(el −90)=0.2072 이라 두 끝점 사이 정합 항은 **−0.06 dB** 이지 +5.2 dB 가 아니다. 정직한 분해는 불투명 셸 +5.45 dB (그 중 Σ|Γ|d² +6.05 · η −0.06) + **내부 금속 투과 항 +7.26 dB**(el 0 −2.366 → el −90 +4.888) 이고 합이 정확히 +12.71 dB 다. 즉 가장 큰 단일 항은 면적도 위상정합도 아니라 **배터리/PCB 투과 기여가 상쇄에서 보강으로 뒤집힌 것**이다.",
+  "what_survives_ko": "«투과를 꺼도 −90° 가 최고(−46.55)» 는 그대로 참(불투명 p-p 20.176 dB). «−90° 최강은 물리다» 라는 결론 자체는 안 흔들린다 — 무너지는 것은 그 **기전 서술**이다.",
+  "also_ko": "η(el 0)=0.2087 은 중간 앙각(0.014~0.039)보다 이미 높고 el −90 과 사실상 같다 — «중간 앙각에는 거울이 없다» 는 −15~−60 에 대해서만 참이고, el 0 도 법선 1° 안 면적 0.00377 m² 를 가진다(그런데 el 0 은 최강이 아니다)."
+ },
+ "R7_group_area_mislabel": {
+  "quoted_breakdown_ko": "보고서가 «법선 1° 안» 총량 옆에 붙인 내역(−90: battery 0.0061·camera 0.0031·body 0.0004·prop 0.0014 / el 0: body 0.0024·camera 0.0037)은 파일의 `by_group_5deg_m2` — **5° 표**다.",
+  "sums_m2": {
+   "-90_5deg_sum": 0.010955,
+   "-90_1deg_total": 0.009171,
+   "0_5deg_sum": 0.006216,
+   "0_1deg_total": 0.00377
+  },
+  "impact_ko": "내역이 총량과 안 맞는다(0.011 vs 0.0092 · 0.0062 vs 0.0038). 숫자는 전부 파일에 있고 조작은 없다 — 라벨만 섞였다.",
+  "also_ko": "run_fine.py 의 `near_normal_area_m2` 키 자체가 5° 문턱이다(`cos_i > cos(5°)`). 1° 값은 별도 블록 `near_normal_area.A_within_1deg_m2` 에 있고 보고서가 인용한 1° 숫자는 그쪽과 정확히 맞는다."
+ },
+ "R8_beat_G1": {
+  "reproduced_ko": "원장의 추정기(md_mapstyle.flash_spec + 40~400 Hz argmax)를 그대로 다시 돌려 beat_hz·n_bins·band_power_db 14 행 전부 재현.",
+  "sionna_el0_ladder_dBc": {
+   "1x_123.34": -11.77,
+   "2x_250.73": -10.96,
+   "3x_376.74": -7.62,
+   "4x_505.12": -2.16,
+   "5x_634.19": 0.0,
+   "7x_886.76": -4.46,
+   "8x_1014.68": -6.87
+  },
+  "sionna_el0_global_max_hz": 634.19,
+  "correction_ko": "⭐엔벨로프 스펙트럼의 **전역 최대는 634.19 Hz = 5×f_flash** 로 추정기 창(40~400) **밖**이다. 모든 선이 126.67 Hz 의 조화이므로 «조화 오선택» 이라는 결론은 맞지만, 기본파는 8 개 사다리 중 **가장 약한** 선이고 인용된 −11.77 dB 는 5 배음 기준이지 뽑힌 376.74 기준(그 경우 −4.15 dB)이 아니다.",
+  "resolution_caveat_ko": "G1 의 ±2 Hz 는 이 추정기의 **원시 분해능(2014 프레임 × 100 µs → 4.97 Hz/bin)보다 좁다**. ours 의 ±0.51 Hz 는 제로패딩+포물선 보간 정밀도이고, 선이 단독 우세할 때만 유효하다.",
+  "verdict_ko": "G1 판정(ours PASS · sionna 는 추정기 결함)은 유지. 권고(창을 f_flash±15 % 로 좁힐 것)도 유효하다."
+ },
+ "R9_misc_checks": {
+  "pathsolver_corr": {
+   "pearson_all7": 0.0409,
+   "pearson_wo_el0": 0.2174,
+   "spearman": 0.1429
+  },
+  "sionna_el0_p95_over_median": 1.000067,
+  "prior_anchors_verified": {
+   "report2_waveform_rcs.sbr_validation.dither[div=12].spread": 1.3734745,
+   "freeze_plate_sensitivity.verdict.abs_level_plate_ptp_db": 3.452
+  },
+  "mesh_bbox_diag_m": 0.7764,
+  "farfield_2D2_over_lambda_m": 14.07,
+  "sigma_offset_db": 32.337,
+  "sigma_offset_note_ko": "10log10(4π/λ²)=32.34 dB — 산술은 맞다. 다만 이 상수는 src/benchmark 어디에도 없고 verify 파일 _meta 에만 적혀 있다(레시피는 검증됨, 공유 코드 경로는 없음)."
+ },
+ "VERDICT": {
+  "headline_ko": "⭐**헤드라인은 안 뒤집힌다.** «로브가 맞다, 격자 잡음이 아니다» 는 살아남는다 — leg ① 을 내가 직접 다시 돌려 재현했고, leg ② 통계는 저장된 판 데이터에서 전부 재계산되며, leg ③ 의 거친 무늬(15.3° ⇒ 0.16 m ≈ z 폭 0.1495 m)와 상관길이(≈5°≈회절 한계 5.15°)가 오히려 더 튼튼한 근거다.",
+  "must_fix_ko": [
+   "§D 기전 분해(면적 7.5 + 정합 5.2)는 파일의 η 표가 반증한다 — 참값은 불투명 +5.45 + 투과 +7.26",
+   "§C 널 간격 2.88° ⇒ 0.85 m 는 회절 한계(5.15°)를 뚫는 값이라 철회해야 한다 — 대신 15.3°/상관길이를 써라",
+   "0.16 m 를 «동체/모터 간격» 이라 부르지 말 것 — 기체 높이(z 폭)다",
+   "판 6 장은 두 끝점에서 실효 4 장 — √6 이 아니라 √4",
+   "«12.6 dB» 는 추정기 혼합 + dB 의 dB — «4.1 배» 로 적어라",
+   "«법선 1° 안» 내역은 5° 표다"
+  ],
+  "chapter1_ko": "Chapter 1 서사(«우리는 각도 로브를 내고 PathSolver 는 거울 경로의 유무만 낸다»)는 그대로 쓸 수 있다 — 위 여섯은 전부 **보조 서술**이지 헤드라인 근거가 아니다."
+ }
+}

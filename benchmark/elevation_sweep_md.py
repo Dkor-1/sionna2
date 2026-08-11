@@ -145,10 +145,11 @@ def run(a) -> None:
     # ── Sionna PathSolver ───────────────────────────────────────────────────
     import report15_probe as RP
     from drones import drone_colors
-    spp = rule_spp(RANGE_M)
+    spp = int(a.spp) if a.spp else rule_spp(RANGE_M)
     cols = drone_colors(spec)
     for el in ELS:
-        f = f"{SHD}/sionna_el{el:+.0f}_{a.shard:02d}.npz"
+        tagp = "" if not a.spp else f"_p{a.spp}"
+        f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
         if os.path.exists(f) and not a.overwrite:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
         E = np.zeros(idx.size, complex); npaths = np.zeros(idx.size, int)
@@ -302,6 +303,10 @@ def main() -> None:
                          "가림을 없앤 대조군(정점은 그대로라 bbox·광선격자 동일) · sionna")
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--nshards", type=int, default=1)
+    ap.add_argument("--spp", type=int, default=0,
+                    help="0 이면 규칙값 (R/3)^2 x 1M. ⭐경로 수를 100 개 이상으로 "
+                         "올리려면 직접 준다 — 규칙값은 10 m 에서 경로 6~13 개뿐이라 "
+                         "«계단 잡음이 가장 심한 구간» 이다(2026-08-11 실측).")
     ap.add_argument("--merge", action="store_true")
     ap.add_argument("--overwrite", action="store_true")
     a = ap.parse_args()

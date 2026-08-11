@@ -1,0 +1,162 @@
+{
+ "_meta": {
+  "generator": "Lens A adversarial re-measurement of outputs/verify_elevation_sionna_el0.json",
+  "date": "2026-08-11",
+  "task_ko": "렌즈 A — 다른 조사자가 적은 숫자가 실제로 그 파일 그 키에 있나. 다시 재서 대조한다. 재현이 안 되면 판정이 무너진다.",
+  "verdict_ko": "⭐뒤집지 못했다. 재현된다. 판정(아티팩트)은 유지된다.",
+  "units_warning_ko": "ours 열은 산란 면적분 E [m^2], sionna 열은 채널 h [무차원]. 아래 dB 비교는 전부 sionna 팔 안에서의 것이다.",
+  "compute_ko": "GPU 미사용(nvidia-smi 로 GPU2 점유 확인 후 CUDA_VISIBLE_DEVICES='' 로 강제). Sionna 는 llvm_ad_mono_polarized(CPU) 변종.",
+  "wrote_nothing_else": "원장(elevation_sweep_md.json/.npz)·샤드·앞선 검증 JSON 은 읽기만 했다. git 조작 없음."
+ },
+ "A1_ledger_keys_exist": {
+  "npz_keys": ["ours/el+0", "ours/el-15", "ours/el-30", "ours/el-45", "ours/el-60", "ours/el-75", "ours/el-90",
+               "sionna/el+0", "sionna/el-15", "sionna/el-30", "sionna/el-45", "sionna/el-60", "sionna/el-75", "sionna/el-90"],
+  "each_shape": "(4096,) complex128",
+  "key_sionna_el+0_exists": true,
+  "level_db_definition_recovered": "20*log10(mean(|E|)) — benchmark/elevation_sweep_md.py:257 과 일치, 14 키 전부 원장 값과 소수 2자리까지 같다"
+ },
+ "A2_recomputed_from_npz": {
+  "note_ko": "내가 직접 재계산한 값. 앞선 조사자의 A_ledger_reread 와 대조.",
+  "sionna/el+0": {
+   "mean_abs_E": 1.0406034e-3, "median_abs_E": 1.0406029e-3, "max_abs_E": 1.0407249e-3,
+   "min_abs_E": 1.0404693e-3,
+   "span_over_mean": 2.4562e-4, "std_over_mean": 3.9964e-5,
+   "level_db": -59.654, "ledger_level_db": -59.65,
+   "dc_over_residual_db": 85.30, "residual_mean_abs": 5.6505e-8,
+   "phase_spread_rad_over_4096": 3.705e-4
+  },
+  "dc_over_residual_db_all": {
+   "sionna/el+0": 85.30, "sionna/el-15": 21.97, "sionna/el-30": -0.95, "sionna/el-45": 11.45,
+   "sionna/el-60": 5.45, "sionna/el-75": 4.22, "sionna/el-90": 1.28,
+   "ours/el+0": 17.46, "ours/el-15": 21.48, "ours/el-30": 6.91, "ours/el-45": 10.28,
+   "ours/el-60": -11.69, "ours/el-75": 10.71, "ours/el-90": 39.42
+  },
+  "residual_mean_abs_neighbours": {"sionna/el-15": 4.570e-8, "sionna/el-30": 1.319e-7,
+                                   "sionna/el-45": 1.324e-7, "sionna/el-60": 2.009e-7,
+                                   "sionna/el-75": 2.318e-7, "sionna/el-90": 2.142e-7},
+  "match_ko": "⭐앞선 조사자의 숫자와 전부 일치한다(1.0406e-3 / 1.0406e-3 / 1.0407e-3, 2.456e-4, 85.30, 5.65e-8, 이웃 21.97 / −0.95 / 1.28, 잔차 4.6e-8~2.3e-7).",
+  "nit_ko": "«상대편차 2.456e-4» 는 표준편차/평균이 아니라 (max−min)/평균 이다(그쪽 JSON 은 relative_span 이라고 정확히 이름 붙였다). 표준편차/평균은 4.00e-5 로 더 작다 — 결론은 같은 방향(더 상수답다)."
+ },
+ "A3_shards_recomputed": {
+  "sionna_el+0_shards_concat_equals_ledger_bitwise": true,
+  "idx_complete_0_4095": true,
+  "npaths_counts": {"6": 758, "7": 671, "8": 448, "9": 2219},
+  "npaths_median": 9,
+  "mean_abs_E_by_npaths": {"6": 1.040603e-3, "7": 1.040602e-3, "8": 1.040609e-3, "9": 1.040603e-3},
+  "match_ko": "⭐일치. npaths 6/7/8/9 어느 값이든 mean|E| 가 1.0406e-3 — 경로 수가 레벨에 영향이 없다. 다른 앙각(−15/−30/−90)은 npaths 가 커질수록 mean|E| 가 실제로 따라 움직인다(대조군으로 확인)."
+ },
+ "A4_cpu_path_dump_reproduced": {
+  "how_ko": "benchmark/elevation_sweep_md.py:run(engine='sionna') 과 같은 호출(baseline 0·max_depth 1·los=True·spec+diff·refraction False·seed 1·max_num_paths 2e6). CPU llvm 변종. 자세당 0.2 초.",
+  "el+0_spp11111111_pose0": {
+   "n_paths": 9, "n_hit": 9, "n_paths_with_INVALID_SHAPE": 0,
+   "abs_E": 1.0406916e-3, "level_db": -59.65,
+   "ledger_abs_E_at_pose0": 1.0406916e-3,
+   "identical_to_ledger_to_7_sig_figs": true,
+   "dominant": {"count": 3, "object": "matrice4e_camera", "abs_a_each": 3.467876e-4,
+                "tau_ns_each": 65.5500, "path_length_m": 19.6514},
+   "others": [{"obj": "canopy", "abs_a": 1.429872e-7}, {"obj": "body", "abs_a": 1.318134e-7},
+              {"obj": "gear", "abs_a": 1.079670e-7}, {"obj": "prop", "abs_a": 5.388127e-8},
+              {"obj": "prop", "abs_a": 3.921505e-8}, {"obj": "prop", "abs_a": 2.590664e-8}]
+  },
+  "duplicate_multiplicity_vs_rays": {
+   "300000": {"copies": 2, "abs_E": 6.935752e-4, "theirs": 6.93575e-4},
+   "1000000": {"copies": 3, "abs_E": 1.0403628e-3, "theirs": 1.04036e-3},
+   "4000000": {"copies": 3, "abs_E": 1.0401364e-3, "theirs": 1.04014e-3},
+   "11111111": {"copies": 3, "abs_E": 1.0406916e-3, "theirs": 1.04069e-3}
+  },
+  "amplitude_law": {"lambda_m": 0.0856550, "lambda_over_4pi_L": 3.468561e-4,
+                    "observed_abs_a": 3.467876e-4, "implied_gamma": 0.99980,
+                    "theirs_gamma": 0.99983,
+                    "diff_cause_ko": "c 를 2.998e8 로 쓰면 경로장 19.6519 m·Γ 0.99983, 299792458 로 쓰면 19.6514 m·Γ 0.99980. 5째자리 차이일 뿐 결론 동일."},
+  "sigma_equivalent_m2": {"one_copy": 325.3, "one_copy_dBsm": 25.12,
+                          "three_copies": 2927.5, "three_copies_dBsm": 34.66,
+                          "PO_plate_4piA2_over_lambda2": 4.1765e-3, "PO_plate_dBsm": -23.79,
+                          "over_one_copy_db": 48.91, "over_three_copies_db": 58.45},
+  "knife_edge_reproduced": {
+   "el+0.00": {"level_db": -59.65, "specular_copies": 3, "theirs": -59.65},
+   "el-0.25": {"level_db": -126.98, "specular_copies": 0, "theirs": -126.98},
+   "el-1.00": {"level_db": -125.15, "specular_copies": 0, "theirs": -125.15},
+   "el-15.00": {"level_db": -124.51, "specular_copies": 0},
+   "el-30.00": {"level_db": -136.15, "specular_copies": 0},
+   "el-45.00": {"level_db": -130.17, "specular_copies": 0, "theirs": -130.17},
+   "el-60.00": {"level_db": -127.80, "specular_copies": 0},
+   "el-75.00": {"level_db": -126.79, "specular_copies": 0},
+   "el-90.00": {"level_db": -128.65, "specular_copies": 0, "theirs": -128.65}
+  },
+  "los_rejection_reconfirmed_ko": "9 앙각 전부 n_paths == n_hit 이고 INVALID_SHAPE 경로 0 개. LOS 가설 기각 유지.",
+  "gpu_vs_cpu_caveat_closed_ko": "⭐그쪽이 «변종 차이는 없다고 본다» 고 남긴 단서를 닫았다 — 원장(GPU)과 내 CPU 재현이 |E| 7 유효숫자까지 같다(1.0406916e-3)."
+ },
+ "A5_pose_generality_caveat_closed": {
+  "their_caveat_ko": "경로덤프는 자세 index 0 한 벌이고 4,096 자세를 전부 덤프하지는 않았다(간접 근거).",
+  "my_check_ko": "자세 0·1·1000·2048·3000 을 독립 덤프했다.",
+  "result": [
+   {"pose": 0, "copies": 3, "abs_a": 3.467876e-4, "tau_ns": 65.55, "abs_E": 1.040692e-3, "ledger_abs_E": 1.040692e-3},
+   {"pose": 1, "copies": 3, "abs_a": 3.467876e-4, "tau_ns": 65.55, "abs_E": 1.040690e-3, "ledger_abs_E": 1.040690e-3},
+   {"pose": 1000, "copies": 3, "abs_a": 3.467876e-4, "tau_ns": 65.55, "abs_E": 1.040526e-3, "ledger_abs_E": 1.040526e-3},
+   {"pose": 2048, "copies": 3, "abs_a": 3.467876e-4, "tau_ns": 65.55, "abs_E": 1.040579e-3, "ledger_abs_E": 1.040579e-3},
+   {"pose": 3000, "copies": 3, "abs_a": 3.467876e-4, "tau_ns": 65.55, "abs_E": 1.040539e-3, "ledger_abs_E": 1.040539e-3}
+  ],
+  "ledger_phase_ko": "원장 el=0 의 위상도 4,096 자세에서 0.47104 rad 로 붙박이(전체 퍼짐 3.7e-4 rad).",
+  "upgrade_ko": "⭐간접 근거였던 «3벌 중복이 전 자세에 있다» 가 직접 확인으로 승격된다."
+ },
+ "A6_stft_beat_reproduced": {
+  "how_ko": "benchmark/elevation_sweep_md.py:band_metrics 를 글자 그대로 복사해 원장 시계열에 다시 돌렸다.",
+  "stft_settings_confirmed": {"periods": 0.45, "nperseg": 70, "dt_ms": 3.5533, "df_hz": 281.43,
+                              "hop": 2, "zero_pad": 8, "n_time_slots": 2014,
+                              "track_band_hz_at_el0": [445.52, 1272.91],
+                              "band_lower_edge_bins_from_dc": 1.583},
+  "all_14_cells_match_ledger": true,
+  "sionna/el+0": {"as_is": {"beat_hz": 376.73, "band_power_db": -73.68,
+                            "ladder_db": {"127": -11.77, "253": -10.96, "380": -7.62, "507": -2.16}},
+                  "dc_removed": {"beat_hz": 127.45, "band_power_db": -134.41,
+                                 "ladder_db": {"127": 0.00, "253": -1.88, "380": -12.62, "507": -27.90}},
+                  "leakage_db": 60.73},
+  "sionna/el-30": {"as_is": {"beat_hz": 252.32, "ladder_db": {"127": -1.44, "253": 0.00}},
+                   "dc_removed": {"beat_hz": 126.63}},
+  "match_ko": "⭐앞선 조사자의 D 절 숫자와 소수 2자리까지 전부 일치."
+ },
+ "A7_geometry_recomputed": {
+  "how_ko": "FastPoser(matrice4e).pose(ph[0]) 의 30,662 삼각형을 직접 스크린(az=0, |n·û| ≥ cos 0.05°).",
+  "el0_perpendicular_faces": 106,
+  "el0_perpendicular_faces_by_group": {"camera": 94, "battery": 8, "pcb": 4},
+  "lens_plate": {"plane_x_m": 0.17430, "n_triangles": 42, "area_m2": 1.561497e-3,
+                 "vertex_extent_y_m": [-0.0295, 0.0295], "vertex_extent_z_m": [-0.0195, 0.0184],
+                 "contains_foot_y0_z0": true, "is_frontmost_along_+x": true},
+  "perp_faces_at": {"el-0.25": 0, "el-1": 0, "el-15": 0, "el-30": 0, "el-45": 8, "el-60": 0, "el-75": 0, "el-90": 688},
+  "match_ko": "⭐렌즈판 수치(x=0.17430 · 42 삼각형 · 1.5615e-3 m² · y·z 범위)와 106 면은 완전 일치."
+ },
+ "A8_corrections_to_their_write_up": [
+  {"claim_ko": "«진짜 최댓값은 507 Hz(4×f_flash)인데 탐색창 40~400 Hz 라 잘렸다»",
+   "measured_ko": "as-is 박자 스펙트럼의 전역 최댓값은 634.19 Hz(5×f_flash)다. 507 Hz 는 그보다 2.16 dB 아래. 사다리는 127 −11.77 → 253 −10.96 → 380 −7.62 → 507 −2.16 → 633 0.00 → 760 −23.67 로 5차까지 오르고 꺾인다.",
+   "impact_ko": "기전의 방향(사다리가 고차로 갈수록 커진다 · 참 첨두가 탐색창 40~400 Hz 밖이다 · 376.73 은 창 안 잔여 최댓값)은 그대로이고 오히려 더 세진다. 인용 숫자만 507 → 634 로 고쳐야 한다."},
+  {"claim_ko": "«수선의 발 (y=0,z=0) 을 포함하는 유일한 평면 = 렌즈판»",
+   "measured_ko": "발을 품는 수직 평면은 4 개다 — battery x=−0.07563, battery x=+0.06983, camera x=+0.12230, camera 렌즈판 x=+0.17430. 렌즈판은 그중 **시선에서 가장 앞** 이라 가림 없이 맞는 유일한 면이다.",
+   "impact_ko": "«유일한 평면» → «가림 없는 맨 앞 평면» 으로 정정. 나머지 셋은 렌즈판 뒤라 그림자에 든다. 기전 결론 불변."},
+  {"claim_ko": "«el=0 에서 |n·û|=1 인 면 106 개 … 전부 camera»",
+   "measured_ko": "106 면의 구성은 camera 94 · battery 8 · pcb 4 다. 그쪽이 «전부 camera» 라 한 것은 **가림 제거 후 84 면**을 가리킨 말로 읽힌다.",
+   "impact_ko": "가림 필터가 코드로 남아 있지 않아 84 라는 수는 재현하지 못했다 — «모른다». 106 은 정확히 일치하고, 판정에 쓰이는 것은 렌즈판 하나라 영향 없음."},
+  {"claim_ko": "«el −15/−30/−60/−75 는 그런 면이 아예 0 개»",
+   "measured_ko": "그 넷은 실제로 0 개다. 다만 목록에서 빠진 **el −45 는 8 면(camera)** 이 수직이다. 그래도 정반사 경로는 0 벌(내 덤프로 재확인, −130.17 dB).",
+   "impact_ko": "문장이 불완전할 뿐 틀리지는 않았다. «수직 면이 있어도 발을 품고 가림이 없어야 터진다» 로 조건을 두 개로 적는 편이 정확하다."},
+  {"claim_ko": "«el −90 은 수선의 발이 (x=0,y=0) 이라 카메라 판 위에 없어 경로가 안 생긴다»",
+   "measured_ko": "−90 에서 수직 면은 688 개이고, 그중 **6 면이 발 (x=0,y=0) 을 품는다**(battery 4 · pcb 2, z −0.0255~+0.0401). 다만 이들은 기체 **안쪽**에 묻혀 있다(메쉬 바닥 z=−0.0598) — 즉 막혀서 안 터지는 것이지 «발 위에 면이 없어서» 가 아니다.",
+   "impact_ko": "이유가 부정확했다. 결과(정반사 0 벌 · −128.65 dB)는 내 덤프로도 같다. 기전을 «수직 + 발 포함 + 가림 없음» 세 조건으로 적으면 0°와 −90°가 한 규칙으로 설명된다."},
+  {"claim_ko": "G5 «중복을 빼면 서로 다른 기하는 6 벌 — 이웃(6~7)과 같다»",
+   "measured_ko": "자세별로는 npaths 가 6/7/8/9 로 흩어지고(중앙값 9), 중복 2 벌을 빼면 서로 다른 기하의 **중앙값은 7** 이다(자세 0 한 벌만 보면 6). 이웃은 el−15 가 7, el−30 이 6.",
+   "impact_ko": "«el=0 의 9 는 부풀려졌고 정정하면 이웃과 같은 수준» 이라는 요지는 유지. 표에 적을 정정값은 6 이 아니라 **7** 이다."},
+  {"claim_ko": "2way 19.6519 m · Γ 0.99983",
+   "measured_ko": "c=299792458 로 재면 19.6514 m · Γ 0.99980. c=2.998e8 을 쓰면 그쪽 값이 나온다.",
+   "impact_ko": "무시 가능. 다만 이 리포지토리는 두 상수를 섞어 쓴다(스윕 스크립트는 2.998e8, Sionna 는 299792458)."}
+ ],
+ "A9_verdict": {
+  "overturned": false,
+  "ko": "⭐뒤집지 못했다. 렌즈 A 가 요구한 «그 파일 그 키에 그 숫자가 있나 · 다시 재면 같은가» 는 전부 통과다. 원장 통계(85.30 dB · 2.456e-4 · 5.65e-8), 샤드 대조(npaths 무관하게 1.0406e-3), CPU 덤프(9 경로 중 카메라 3 벌 · |a| 3.467876e-4 · τ 65.55 ns · −59.65 dB), 광선 수 대 중복(2→3벌), 진폭법칙(Γ≈1), 칼날 정렬(−0.25° 에서 −126.98), STFT 박자(376.73 ↔ 받침대 제거 127.45)가 모두 독립 재현됐다. 게다가 그쪽이 단서로 남긴 두 구멍(자세 0 한 벌만 덤프 · CPU/GPU 변종 차이)을 내가 닫았다 — 자세 5 벌에서 3 벌 중복이 같고, CPU 재현이 원장과 7 유효숫자까지 같다.",
+  "corrections_ko": "정정할 곳은 서술 세부 6 건뿐이고(위 A8) 그중 어느 것도 «아티팩트다» 를 흔들지 않는다. 가장 실질적인 것은 (a) 참 첨두는 507 이 아니라 634 Hz, (b) G5 정정값은 6 이 아니라 7, (c) −90° 의 이유는 «발 위에 면이 없다» 가 아니라 «묻혀서 가려진다» 다.",
+  "still_unknown_ko": [
+   "중복 3 벌이 PathSolver 어느 단계에서 생기는지 — 나도 내부를 읽지 않았다. 관측은 «광선 수가 늘면 2 → 3 벌» 뿐이다.",
+   "그쪽의 «가림 제거 후 84 면» 은 필터가 남아 있지 않아 재현 못 했다.",
+   "el=−30 의 252.32 Hz 조화 모호성의 원인은 이번에도 범위 밖 — 다만 받침대가 없다(DC/잔차 −0.95 dB)는 것은 재확인했다.",
+   "el=0 을 뺀 나머지 앙각의 절대 레벨(−125~−136 dB)이 물리적으로 옳은지는 여전히 검증하지 않았다."
+  ]
+ }
+}

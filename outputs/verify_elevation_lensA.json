@@ -1,0 +1,145 @@
+{
+ "_meta": {
+  "generator": "Lens-A independent re-measurement (read-only, CPU)",
+  "date": "2026-08-11",
+  "audits": "outputs/verify_elevation_gates.json",
+  "ledger": "outputs/elevation_sweep_md.json + .npz",
+  "ruler_ko": "⭐이전 감사가 안 적은 규약을 내가 역설계했다 — 콤/f1 은 도플러 ± 두 측대역의 max(|X(+kf)|,|X(-kf)|) 이다. 한쪽(양의 측대역)만 쓰면 세 헤드라인 수가 다 바뀐다.",
+  "ledger_cells_checked": 126,
+  "ledger_mismatches": 0
+ },
+ "two_sided_their_ruler": {
+  "ours": {
+   "f1_hz": [
+    126.78,
+    126.74,
+    126.78,
+    126.68,
+    126.66,
+    126.67,
+    126.64
+   ],
+   "f1_spread_hz": 0.14,
+   "f_edge_hz": [
+    1013.3,
+    1140.0,
+    1140.0,
+    886.7,
+    633.3,
+    253.3,
+    253.3
+   ],
+   "r_7pt": 0.9601,
+   "monotone_nonincreasing": false
+  },
+  "sionna": {
+   "f1_hz": [
+    122.67,
+    126.68,
+    126.74,
+    126.76,
+    126.63,
+    126.63,
+    126.83
+   ],
+   "f1_spread_hz": 4.16,
+   "f_edge_hz": [
+    2153.3,
+    2280.0,
+    1140.0,
+    1773.3,
+    2026.7,
+    1773.3,
+    1646.7
+   ],
+   "r_7pt": 0.2487,
+   "monotone_nonincreasing": false
+  }
+ },
+ "one_sided_alt_ruler": {
+  "ours": {
+   "f1_hz": [
+    127.5,
+    126.78,
+    127.51,
+    125.0,
+    126.68,
+    126.93,
+    126.6
+   ],
+   "f1_spread_hz": 2.51,
+   "f_edge_hz": [
+    1013.3,
+    1266.7,
+    1013.3,
+    1013.3,
+    633.3,
+    253.3,
+    253.3
+   ],
+   "r_7pt": 0.9477,
+   "monotone_nonincreasing": false
+  },
+  "sionna": {
+   "f1_hz": [
+    122.58,
+    126.68,
+    126.74,
+    127.04,
+    126.9,
+    126.63,
+    126.83
+   ],
+   "f1_spread_hz": 4.46,
+   "f_edge_hz": [
+    2026.7,
+    2280.0,
+    1140.0,
+    1520.0,
+    1646.7,
+    1773.3,
+    1646.7
+   ],
+   "r_7pt": 0.2233,
+   "monotone_nonincreasing": false
+  }
+ },
+ "discrepancies_found": [
+  {
+   "claim": "ours f_edge 가 단조 축소한다",
+   "status": "FALSE in their own vector",
+   "detail": "el 0 -> -15 에서 1013.3 -> 1140.0 으로 오히려 오른다(예측 f_tip 은 1272.9 -> 1229.5 로 내린다). 두 자 모두에서 단조가 아니다."
+  },
+  {
+   "claim": "sionna 문턱 민감도 r(-15dB)=-0.3047, r(-25dB)=+0.1277",
+   "status": "NOT REPRODUCED",
+   "detail": "같은 자로 재면 +0.4403 / -0.1408. ours 쪽(+0.9626/+0.9496)은 정확히 재현된다. 판정(<<0.99)은 불변."
+  },
+  {
+   "claim": "sionna el=-15 sigma ~ 0.0011 m^2",
+   "status": "0.9 dB off",
+   "detail": "역산하면 0.000895 m^2. «자릿수 정상» 결론은 유지."
+  },
+  {
+   "claim": "126.67 Hz 배수가 없는 100 Hz 칸은 400~500 과 900~1000 «두 칸만»",
+   "status": "only below ~1400 Hz",
+   "detail": "빈 칸은 [0,400,900,1400,1800,2300,2800] Hz 다. 1400 Hz 위까지 프로파일하면 두 칸이 아니다."
+  },
+  {
+   "claim": "원장 42 칸 재현",
+   "status": "undercount, conclusion holds",
+   "detail": "실제로는 14행 x (2대역 x 4지표) + 행지표 = 126 칸. 내가 126 칸 전부 재계산해 불일치 0 건."
+  },
+  {
+   "claim": "f_flash = 126.67 Hz 가 0.14 Hz 안으로 안정",
+   "status": "true but over-precise",
+   "detail": "로터 4개의 블레이드율이 [126.945, 126.388, 126.513, 126.82] Hz 로 0.557 Hz 벌어져 있고 주기도 분해능은 ~9.6 Hz 라 넷이 분해되지 않는다. 0.14 Hz 는 «섞인 하나»의 중심 추정치의 안정도이지 플래시 주파수의 안정도가 아니다."
+  }
+ ],
+ "new_defect_unflagged": {
+  "where": "outputs/elevation_sweep_md.json._meta.ours_illumination",
+  "value": "spherical wave at 15 m",
+  "truth": "10 m",
+  "detail": "benchmark/elevation_sweep_md.py:275 의 하드코딩 문자열. 실제 조명은 RANGE_M=10.0(line 74)이 sbr_field(range_m=RANGE_M) line 133 과 RP.place(rng=RANGE_M) line 165 로 들어간다. 계산은 10 m 가 맞고 원장 메타만 틀렸다. 덱이 이 칸을 읽으면 거리를 틀리게 적는다."
+ }
+}

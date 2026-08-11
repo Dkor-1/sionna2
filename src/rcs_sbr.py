@@ -1024,7 +1024,11 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     떨어진 점에 레이더가 있다고 보고 **실제 왕복 거리**로 위상을 준다.
 
         평면파(기본)  exp(j2k (p−ctr)·û)      ← 파면이 평평하다는 가정
-        구면파        exp(j2k (|p−p_tx| − R)) ← p_tx = ctr + R·û, 중심 감산은 그대로
+        구면파        exp(j2k (R − |p−p_tx|)) ← p_tx = ctr + R·û, 중심 감산은 그대로
+
+    ⭐부호는 두 갈래가 **같아야** 한다 — 원거리장 극한에서 (R − |p−p_tx|) → (p−ctr)·û 다.
+      2026-08-11 이전에는 구면파가 (|p−p_tx| − R) 이라 평면파와 정확히 반대였다.
+      아래 «위상 부호 규약» 주석에 판정 근거를 적었다.
 
     ⚠ **왜 필요한가** — 평면파는 원거리장 근사다. 이 기체의 경계는 2D²/λ ≈ 8 m 인데
       우리 주력 거리가 3 m 라 **경계 안쪽**이다. 거기서는 파면이 휘어 기체 앞뒤가 다른
@@ -1087,8 +1091,10 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
             ph = np.exp(1j * 2.0 * k * ((P - ctr) @ u))
         else:                                             # ⭐구면파 — 실제 왕복 거리
             p_tx = ctr + float(range_m) * np.asarray(u, float)
+            # ⭐부호 정정(2026-08-11) — 아래 «위상 부호 규약» 주석 참조.
+            #   전에는 (|P−p_tx| − R) 이었고, 그건 평면파 갈래와 **정확히 반대**였다.
             ph = np.exp(1j * 2.0 * k *
-                        (np.linalg.norm(P - p_tx, axis=1) - float(range_m)))
+                        (float(range_m) - np.linalg.norm(P - p_tx, axis=1)))
         return valid, lit, g, ph, si
 
     valid, lit, g, phase, si = _field(scene, shape_ptrs, gammas, matk)
@@ -1106,6 +1112,34 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
         Etot = Etot + complex(_ptd_edge_A(mesh, group_mat, fc, [(u, u)], ctr, scene,
                                           pol=ptd_pol, cache_key=cache_key, opts=ptd_opts)[0][0])
     return Etot
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ⭐⭐ 위상 부호 규약 (2026-08-11 확정 · 결함 하나를 고쳤다)
+#
+# **표준(레이다·Sionna PathSolver)** 은 수신 신호를 exp(−j2πf τ), τ = 2R/c 로 적는다.
+# 표적 중심에서 잰 산란점 P 와 «표적에서 레이다를 보는» 단위벡터 û 에 대해
+#     R = R₀ − P·û   ⇒   exp(−j2πf τ) = exp(−j2kR₀) · **exp(+j2k P·û)**
+# 이므로 **투영에 대한 +j 는 옳다.** 우리 평면파 갈래가 바로 그 꼴이다.
+#
+# ⛔그런데 구면파 갈래는 **거리**에 +j 를 걸고 있었다: exp(+j2k(|P−p_tx| − R)).
+#   거리와 투영은 부호가 반대이므로(원거리장에서 정확히 −1 배, 잔차 8.9e−16 m)
+#   `range_m` 을 주는 순간 도플러 부호가 뒤집혔다.
+#
+# 답을 아는 문제로 판정했다 — 5 m/s 로 **다가오는** 산란체(참값 f_d = +116.75 Hz):
+#     평면파  exp(+j2k P·û)          →  +117.19 Hz   ✓
+#     구면파  exp(+j2k(|P−p_tx|−R))  →  −117.19 Hz   ✗  ← 결함
+#     수정판  exp(+j2k(R−|P−p_tx|))  →  +117.19 Hz   ✓  (표준과 |ρ| = 1.000000)
+#
+# ⭐**σ 는 영향이 없다** — σ = 4π/λ²·|E|² 이고 |conj(E)| = |E| 이므로 **비트 단위로 동일**하다.
+#   기존 σ 원장·검증(das_fleet · sbr_kr_sweep · box_control)은 하나도 무효가 아니다.
+# ⭐**재계산도 필요 없다** — 이미 계산된 구면파 복소 시계열은 `np.conj` 한 번으로 정정된다.
+# ⚠**영향 범위**: `range_m` 을 준 실행의 **도플러 부호**뿐이다(평면파 실행은 무관).
+#   · 영향 없음 — f_tip 크기 · 대역 에너지 · 플래시 박자 · 조화비 · 분류 정확도
+#     (전부 크기 대칭이거나 거울에 불변인 양이다)
+#   · 영향 있음 — ⊕/⊖ 스펙트럼 비대칭 · 접근 대 후퇴 · **ours ↔ PathSolver 의 부호 비교**
+#     (앙각 스윕에서 우리 팔은 주로 ⊖, Sionna 팔은 주로 ⊕ 로 기울어 있었다 — 이 결함의 지문)
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,

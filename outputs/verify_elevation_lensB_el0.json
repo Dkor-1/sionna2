@@ -1,0 +1,404 @@
+{
+ "_meta": {
+  "generator": "Lens-B adversarial re-examination of outputs/verify_elevation_sionna_el0.json",
+  "date": "2026-08-11",
+  "compute": "CPU only (numpy); no GPU, no Sionna re-run, no ray tracing",
+  "reads_only": [
+   "outputs/elevation_sweep_md.npz",
+   "outputs/elevation_sweep_md.json",
+   "outputs/verify_elevation_sionna_el0.json",
+   "mesh via articulated_fast (numpy)"
+  ],
+  "units_warning_ko": "sionna 열 h[무차원] · ours 열 E[m^2]. 아래 dB 비교는 전부 같은 팔 안에서만.",
+  "verdict_ko": "원 판정 유지 — 아티팩트다. 기전은 오히려 더 굳어졌다(위상까지 맞음). 다만 부수 주장 4 건이 틀렸고, 권고 1 건이 불충분하다."
+ },
+ "A_mechanism_CONFIRMED_harder": {
+  "how_ko": "경로덤프(자세 0)에 기대지 않고 4,096 자세 전부의 복소 평균으로 검증했다",
+  "observed_mean_E": {
+   "abs": 0.001040603,
+   "arg_rad": 0.470986
+  },
+  "predicted_three_copies": {
+   "formula": "3*lambda/(4*pi*L), L = 2*(10 - 0.17430) m",
+   "L_m": 19.6514,
+   "abs": 0.001040568,
+   "arg_rad_with_PEC_pi_flip": 0.470505
+  },
+  "match": {
+   "abs_rel_err": 3.4e-05,
+   "phase_err_rad": 0.00048
+  },
+  "finding_ko": "진폭뿐 아니라 **위상까지** 3벌 정반사식과 맞는다. 위상이 맞는다는 것은 지연이 정확히 카메라 렌즈판 왕복(19.6514 m)이라는 뜻이고, Γ=−1(PEC)까지 확정된다. 원 조사가 «자세 0 한 벌만 덤프했다» 고 남긴 구멍이 이걸로 메워진다.",
+  "excluded_LOS_ko": "직접파 가설은 위상만으로도 죽는다 — LOS 면 τ=0 이라 위상이 0 이어야 한다.",
+  "excluded_scene_cache_ko": "«i%2 로 스크래치 디렉터리를 두 개만 돌려 써서 메쉬가 갱신 안 됐다» 라는 대안도 죽는다 — 잔차(5.65e-8)가 이웃 앙각과 같은 크기이고 그 잔차의 박자가 127.45 Hz 로 로터를 정확히 따라간다. 메쉬는 자세마다 갱신되고 있다."
+ },
+ "B_pedestal_is_necessary_and_sufficient": {
+  "sufficiency_graft_ko": "el=0 의 상수를 **이웃 앙각의 깨끗한 잔차**에 얹어 봤다",
+  "graft": {
+   "el-15": {
+    "alone": {
+     "beat_hz": 127.13,
+     "band_power_db": -137.62,
+     "argmax_all_hz": 127.16,
+     "res_hz": 4.891
+    },
+    "plus_el0_pedestal": {
+     "beat_hz": 381.37,
+     "band_power_db": -73.68,
+     "argmax_all_hz": 507.03,
+     "res_hz": 4.891
+    }
+   },
+   "el-45": {
+    "alone": {
+     "beat_hz": 125.96,
+     "band_power_db": -129.48,
+     "argmax_all_hz": 125.94,
+     "res_hz": 4.891
+    },
+    "plus_el0_pedestal": {
+     "beat_hz": 126.85,
+     "band_power_db": -73.68,
+     "argmax_all_hz": 126.85,
+     "res_hz": 4.891
+    }
+   },
+   "el-60": {
+    "alone": {
+     "beat_hz": 126.53,
+     "band_power_db": -127.65,
+     "argmax_all_hz": 126.55,
+     "res_hz": 4.891
+    },
+    "plus_el0_pedestal": {
+     "beat_hz": 379.93,
+     "band_power_db": -73.68,
+     "argmax_all_hz": 379.95,
+     "res_hz": 4.891
+    }
+   },
+   "el-75": {
+    "alone": {
+     "beat_hz": 252.88,
+     "band_power_db": -126.12,
+     "argmax_all_hz": 252.87,
+     "res_hz": 4.891
+    },
+    "plus_el0_pedestal": {
+     "beat_hz": 126.42,
+     "band_power_db": -73.68,
+     "argmax_all_hz": 126.4,
+     "res_hz": 4.891
+    }
+   }
+  },
+  "dose_response": {
+   "1.0": {
+    "dc_over_residual_db": 85.3,
+    "beat_hz": 376.73,
+    "band_power_db": -73.68
+   },
+   "0.3": {
+    "dc_over_residual_db": 74.85,
+    "beat_hz": 376.73,
+    "band_power_db": -84.14
+   },
+   "0.1": {
+    "dc_over_residual_db": 65.3,
+    "beat_hz": 376.75,
+    "band_power_db": -93.68
+   },
+   "0.056": {
+    "dc_over_residual_db": 60.27,
+    "beat_hz": 125.55,
+    "band_power_db": -98.72
+   },
+   "0.032": {
+    "dc_over_residual_db": 55.41,
+    "beat_hz": 126.22,
+    "band_power_db": -103.58
+   },
+   "0.018": {
+    "dc_over_residual_db": 50.41,
+    "beat_hz": 126.71,
+    "band_power_db": -108.57
+   },
+   "0.01": {
+    "dc_over_residual_db": 45.3,
+    "beat_hz": 127.02,
+    "band_power_db": -113.65
+   },
+   "0.0": {
+    "dc_over_residual_db": null,
+    "beat_hz": 127.45,
+    "band_power_db": -134.41
+   }
+  },
+  "finding_ko": [
+   "상수를 얹으면 대역전력이 어느 도너를 쓰든 정확히 −73.68 dB 로 고정된다 — 대역 에너지는 전적으로 받침대가 정한다(신호가 아니다).",
+   "⚠그러나 박자가 ~380 으로 가느냐는 도너에 따라 다르다 — 도너 4 개 중 2 개만 뒤집힌다(el−15 127.13→381.37 · el−60 126.53→379.93 뒤집힘 / el−45 125.96→126.85 · el−75 252.88→126.42 안 뒤집힘). 즉 받침대는 **필요조건**이지만 376.73 이라는 특정 값은 받침대 × 그 앙각 잔차의 도플러 선 구조의 곱이다. 원 조사의 «받침대가 있으면 사다리가 고차로 커진다» 는 보편 법칙이 아니라 이 칸의 관측이다.",
+   "용량반응: 받침대를 0.1 배(DC/잔차 65.3 dB)까지 줄여도 376.75 가 유지되고, 0.056 배(60.3 dB)에서 125.55 로 되돌아온다 → 뒤집히는 문턱은 DC/잔차 ≈ **60~65 dB**. el=0 은 85.3 dB 로 문턱보다 20 dB 위다."
+  ]
+ },
+ "C_four_side_claims_that_are_WRONG": {
+  "C1_true_max_is_not_507": {
+   "claimed_ko": "«실제 최대는 507 Hz(4×f_flash)인데 탐색창 40~400 이 잘랐다»",
+   "measured_argmax_all_hz": 634.19,
+   "five_x_f_flash": 633.33,
+   "verdict_ko": "틀렸다. 포락 스펙트럼의 전역 최댓값은 634.19 Hz = 5×f_flash(633.33) 다. 사다리는 4 차가 아니라 최소 5 차까지 계속 오른다. 결론은 안 바뀌지만 숫자가 틀렸다."
+  },
+  "C2_376_73_IS_a_clean_harmonic": {
+   "claimed_ko": "«3×126.667 = 380.0 과 3.3 Hz 어긋난다 — 깨끗한 조화조차 아니다»",
+   "estimator_intrinsic_resolution_hz": 4.891,
+   "hann_mainlobe_half_width_hz": 9.78,
+   "zero_pad_grid_hz": 0.0764,
+   "graft_control_hz": [
+    381.37,
+    379.93
+   ],
+   "verdict_ko": "틀렸다. 64 배 제로패딩은 **격자**만 촘촘하게 하지 **분해능**은 4.89 Hz 그대로다(Hann 주엽 반폭 9.78 Hz). 3.3 Hz 어긋남은 한 분해능 칸의 0.67 배 — 이웃 성분 간섭으로 생기는 지터다. 실제로 같은 받침대에 다른 앙각 잔차를 얹으면 381.37 · 379.93 으로 380 의 **양쪽**에 떨어진다. ⇒ 376.73 은 3×f_flash 가 맞다. «조화도 아니다» 는 근거 없는 강화 주장이고, 이걸 슬라이드에 쓰면 반박당한다(계산 한 줄이면 드러난다)."
+  },
+  "C3_other_elevations_do_have_normal_facets": {
+   "claimed_ko": "«−15/−30/−60/−75 는 시선에 수직인 면이 0 개»",
+   "measured_facets_normal_to_los_within_0p05deg": {
+    "el+0": 106,
+    "el-15": 0,
+    "el-30": 0,
+    "el-45": 8,
+    "el-60": 0,
+    "el-75": 0,
+    "el-90": 688
+   },
+   "verdict_ko": "−45 에 카메라 면 8 개가 시선에 **정확히** 수직이다(원 조사는 −45 를 문장에서 통째로 빠뜨렸다). 결과는 다행히 같다 — 수선의 발이 그 8 면 안에 안 들어간다."
+  },
+  "C4_the_el_minus_90_reason_is_wrong": {
+   "claimed_ko": "«−90 은 수선의 발이 (x=0,y=0) 이라 카메라 판 위에 없어 솔버가 경로를 못 만든다»",
+   "measured_ko": "−90 에서 수선의 발은 **battery 면 6 개 안에 들어간다**(면적 4.41e-3 · 4.80e-3 m², 렌즈판 1.56e-3 의 약 3 배). 즉 기하 조건은 el=0 보다 **더 나쁘다**.",
+   "foot_inside_facets": {
+    "el+0": 4,
+    "el-15": 0,
+    "el-30": 0,
+    "el-45": 0,
+    "el-60": 0,
+    "el-75": 0,
+    "el-90": 6
+   },
+   "why_it_did_not_fire_ko": "가림 때문이다 — 배터리는 셸 안이고 max_depth=1·refraction=False 라 플라스틱 셸이 **불투명**하게 막는다. 기하가 막은 게 아니라 «셸을 못 뚫는다» 는 또 다른 근사가 막았다.",
+   "why_it_matters_ko": "⭐«측도 0 의 우연이라 0.25° 만 틀면 사라진다» 는 안심은 절반만 맞다. 7 칸 중 **2 칸**이 정확한 법선 정렬 + 발 내부 조건을 만족했다(el=0 은 터졌고 el=−90 은 가림이 막았다). 이 정렬이 걸리는 각도가 바로 표적의 대칭축 — 즉 **누구나 고를 각도**(정면·직하방)다. 우연이 아니라 설계상 반복된다."
+  }
+ },
+ "D_headline_magnitude_is_soft": {
+  "single_lens_plate": {
+   "A_m2": 0.0015615,
+   "sigma_m2": 0.004176,
+   "dBsm": -23.79
+  },
+  "front_barrel_stack_coherent": {
+   "planes_x_m": [
+    0.17274,
+    0.1743,
+    0.17846
+   ],
+   "sigma_m2": 0.016588,
+   "dBsm": -17.8
+  },
+  "all_camera_normal_planes_coherent": {
+   "sigma_m2": 0.04094,
+   "dBsm": -13.88
+  },
+  "sionna_sigma_eff_m2": {
+   "one_copy": 325.3,
+   "three_copies": 2927.0
+  },
+  "overestimate_db": {
+   "vs_single_plate": {
+    "one": 48.9,
+    "three": 58.5
+   },
+   "vs_front_barrel": {
+    "one": 42.9,
+    "three": 52.5
+   },
+   "vs_all_camera_planes": {
+    "one": 39.0,
+    "three": 48.5
+   }
+  },
+  "finding_ko": "«+58.4 dB 과대» 는 «렌즈판 한 장만이 옳은 개구» 라는 선택에 기댄다. 렌즈 배럴의 앞 세 평면은 왕복 위상차가 60° 이내라 물리광학에서 코히런트로 더해진다 — 그러면 −17.8 dBsm 이 되어 과대는 +52.5 dB 로 준다. 카메라의 수직 평면을 전부 세면 +48.5 dB. ⇒ 인용해야 하면 **«+49~58 dB(3벌 기준), 개구 정의에 따라»** 로 폭을 밝혀 적어라. 한 숫자로 못 박으면 반박당한다. 판정(아티팩트)은 어느 쪽이든 안 흔들린다."
+ },
+ "E_our_material_choice_is_not_the_cause": {
+  "camera_assembly_ko": "DRONE_GROUP_MAT['camera'] = camera_assembly = ITU metal (Sionna) / gamma_po 0.85 (PO). 2026-07-14 에 두 엔진을 맞추려고 **의도적으로** 금속으로 통일한 항목이다.",
+  "counterfactual_plastic_ko": "카메라를 plastic(|Γ|=0.244)으로 되돌리면 받침대는 12.25 dB 내려가 DC/잔차 73.05 dB 가 된다 — 여전히 뒤집힘 문턱(55~65 dB) **위**다.",
+  "finding_ko": "«우리가 카메라를 PEC 로 칠해서 생긴 일» 이라는 대안은 기각된다. 재질은 85 dB 중 12 dB 어치일 뿐이고, 나머지 73 dB 는 면적이 진폭식에 없다는 엔진의 성질이다."
+ },
+ "F_mesh_side_alternatives_excluded": {
+  "duplicate_triangles_in_mesh": {
+   "whole_mesh": 0,
+   "n_tris": 30662,
+   "camera_group": 0
+  },
+  "foot_topology_at_el0_ko": "수선의 발 (y=0,z=0) 은 x=0.17430 평면의 **삼각형 하나 내부**에 있다(공유 정점·모서리 아님, 부채꼴 중심 아님).",
+  "finding_ko": "«메쉬에 삼각형이 3 벌 겹쳐 있어서 3 경로가 나온다» 와 «발이 여러 삼각형이 만나는 꼭짓점에 얹혀 인접 삼각형마다 경로가 하나씩 나온다» 두 대안이 **둘 다 기각**된다. ⇒ 3 벌 중복은 확실히 솔버 쪽이다. 원 조사가 «어느 단계인지 모른다» 고 한 것은 옳다."
+ },
+ "G_recommendation_gap_THE_REAL_ONE": {
+  "leak_audit_all_cells": {
+   "ours/el+0": {
+    "band_lo_hz": 445.5,
+    "band_lo_in_res_cells": 1.583,
+    "dc_over_residual_db": 17.46,
+    "beat_as_is": 126.4,
+    "beat_dc_removed": 126.4,
+    "band_power_as_is": -59.2,
+    "band_power_dc_removed": -59.74,
+    "leak_db": 0.54
+   },
+   "ours/el-15": {
+    "band_lo_hz": 430.3,
+    "band_lo_in_res_cells": 1.529,
+    "dc_over_residual_db": 21.48,
+    "beat_as_is": 126.16,
+    "beat_dc_removed": 126.15,
+    "band_power_as_is": -60.51,
+    "band_power_dc_removed": -62.3,
+    "leak_db": 1.79
+   },
+   "ours/el-30": {
+    "band_lo_hz": 385.8,
+    "band_lo_in_res_cells": 1.371,
+    "dc_over_residual_db": 6.91,
+    "beat_as_is": 126.73,
+    "beat_dc_removed": 126.74,
+    "band_power_as_is": -58.99,
+    "band_power_dc_removed": -59.27,
+    "leak_db": 0.28
+   },
+   "ours/el-45": {
+    "band_lo_hz": 315.0,
+    "band_lo_in_res_cells": 1.119,
+    "dc_over_residual_db": 10.28,
+    "beat_as_is": 126.59,
+    "beat_dc_removed": 126.6,
+    "band_power_as_is": -56.2,
+    "band_power_dc_removed": -58.32,
+    "leak_db": 2.12
+   },
+   "ours/el-60": {
+    "band_lo_hz": 222.8,
+    "band_lo_in_res_cells": 0.792,
+    "dc_over_residual_db": -11.69,
+    "beat_as_is": 126.55,
+    "beat_dc_removed": 126.67,
+    "band_power_as_is": -58.82,
+    "band_power_dc_removed": -58.94,
+    "leak_db": 0.12
+   },
+   "ours/el-75": {
+    "band_lo_hz": 115.3,
+    "band_lo_in_res_cells": 0.41,
+    "dc_over_residual_db": 10.71,
+    "beat_as_is": 126.67,
+    "beat_dc_removed": 126.66,
+    "band_power_as_is": -40.05,
+    "band_power_dc_removed": -50.57,
+    "leak_db": 10.52
+   },
+   "ours/el-90": {
+    "band_lo_hz": 0.0,
+    "band_lo_in_res_cells": 0.0,
+    "dc_over_residual_db": 39.42,
+    "beat_as_is": null,
+    "beat_dc_removed": null,
+    "band_power_as_is": null,
+    "band_power_dc_removed": null,
+    "leak_db": null
+   },
+   "sionna/el+0": {
+    "band_lo_hz": 445.5,
+    "band_lo_in_res_cells": 1.583,
+    "dc_over_residual_db": 85.3,
+    "beat_as_is": 376.73,
+    "beat_dc_removed": 127.45,
+    "band_power_as_is": -73.68,
+    "band_power_dc_removed": -134.41,
+    "leak_db": 60.73
+   },
+   "sionna/el-15": {
+    "band_lo_hz": 430.3,
+    "band_lo_in_res_cells": 1.529,
+    "dc_over_residual_db": 21.97,
+    "beat_as_is": 126.77,
+    "beat_dc_removed": 126.95,
+    "band_power_as_is": -135.38,
+    "band_power_dc_removed": -137.97,
+    "leak_db": 2.59
+   },
+   "sionna/el-30": {
+    "band_lo_hz": 385.8,
+    "band_lo_in_res_cells": 1.371,
+    "dc_over_residual_db": -0.95,
+    "beat_as_is": 252.32,
+    "beat_dc_removed": 126.63,
+    "band_power_as_is": -129.61,
+    "band_power_dc_removed": -129.73,
+    "leak_db": 0.12
+   },
+   "sionna/el-45": {
+    "band_lo_hz": 315.0,
+    "band_lo_in_res_cells": 1.119,
+    "dc_over_residual_db": 11.45,
+    "beat_as_is": 126.79,
+    "beat_dc_removed": 126.55,
+    "band_power_as_is": -125.27,
+    "band_power_dc_removed": -129.45,
+    "leak_db": 4.18
+   },
+   "sionna/el-60": {
+    "band_lo_hz": 222.8,
+    "band_lo_in_res_cells": 0.792,
+    "dc_over_residual_db": 5.45,
+    "beat_as_is": 126.85,
+    "beat_dc_removed": 126.4,
+    "band_power_as_is": -122.93,
+    "band_power_dc_removed": -126.31,
+    "leak_db": 3.38
+   },
+   "sionna/el-75": {
+    "band_lo_hz": 115.3,
+    "band_lo_in_res_cells": 0.41,
+    "dc_over_residual_db": 4.22,
+    "beat_as_is": 126.45,
+    "beat_dc_removed": 126.13,
+    "band_power_as_is": -120.26,
+    "band_power_dc_removed": -126.38,
+    "leak_db": 6.12
+   },
+   "sionna/el-90": {
+    "band_lo_hz": 0.0,
+    "band_lo_in_res_cells": 0.0,
+    "dc_over_residual_db": 1.28,
+    "beat_as_is": null,
+    "beat_dc_removed": null,
+    "band_power_as_is": null,
+    "band_power_dc_removed": null,
+    "leak_db": null
+   }
+  },
+  "stft_resolution_hz": 281.43,
+  "finding_ko": [
+   "⭐el=0 한 칸을 빼도 헤드라인 곡선은 안 깨끗해진다. **ours 팔의 el=−75 에서 대역 에너지의 10.52 dB 가 DC 누설**이다(as-is −40.05 → 자세평균 제거 −50.57).",
+   "구조적 원인: 추적대역 아래끝 0.35·f_tip 이 STFT 분해능 281.4 Hz 로 잰 DC 로부터 el 0 → 1.58 칸, −45 → 1.12 칸, −60 → 0.79 칸, −75 → **0.41 칸**이다. −60 아래로는 «프로펠러 대역» 이 DC 분해능 칸 **안**에 들어간다 — 동체 0 도플러 선과 분리 자체가 안 된다.",
+   "⇒ 이건 sionna 엔진 문제가 아니라 **두 팔 공통의 측정 규약 문제**이고, 하필 Chapter 1 이 주장을 세우는 구간(−63.8° 한계)에 정확히 걸린다. 원 조사의 «el=0 만 빼라» 권고는 필요하지만 불충분하다.",
+   "⭐G6(두 엔진이 같은 방향으로 무너진다)은 오히려 여기서 **진짜 증거**를 얻는다 — 누설은 엔진과 무관하게 두 팔 모두에서 저앙각에서 커진다(sionna −75 는 6.12 dB, ours −75 는 10.52 dB). 원 조사는 el=0 칸을 G6 에서 빼라고만 했지 이 공통 붕괴는 못 봤다."
+  ],
+  "what_to_do_ko": [
+   "칸마다 «as-is / 자세평균 제거» 두 벌을 **전 칸 균일하게** 내고 차이(leak_db)를 표에 같이 실어라. 그러면 md_mapstyle 의 «0 도플러는 지우지 않는다» 규약을 어기지 않으면서(정본은 as-is 유지) 누설 크기를 드러낼 수 있다. 규약 충돌이 아니라 **진단 열 추가**다.",
+   "band_lo_in_res_cells 를 표에 한 열로 넣어라. 1.0 미만인 칸(−60, −75)은 «대역이 DC 와 안 갈린다» 로 각주를 달아야 한다. 이건 계획서 §4.5 가 예고한 실패 모드의 정확한 실체다."
+  ]
+ },
+ "H_what_I_did_not_check_ko": [
+  "Sionna 를 다시 돌리지 않았다(GPU 금지 준수). 경로덤프·중복 2~3 벌·llvm 재현은 원 조사의 관측을 그대로 **가정**했고, 내가 검증한 것은 그 관측이 원장 4,096 자세와 정합하는가다(정합한다).",
+  "el=−45 의 8 개 수직면이 가림 후에도 남는지는 **모른다**(가림 스크린을 안 돌렸다). 다만 발이 그 안에 없으므로 결론은 안 바뀐다.",
+  "el=−30 의 252.32 Hz 는 이번에도 별건으로 확인했다(DC/잔차 −0.95 dB, 자세평균 제거해도 고정대역에서는 252.19 로 **남는다**) — 즉 받침대와 무관하고 대역 선택에 걸린다. 왜 −30 에서만인지는 여전히 모른다.",
+  "다른 앙각의 절대 레벨(−125~−135 dB)이 옳은지는 나도 검증하지 않았다."
+ ]
+}

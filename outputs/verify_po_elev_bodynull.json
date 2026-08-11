@@ -1,0 +1,409 @@
+{
+ "_meta": {
+  "generator": "benchmark/verify_po_elev_verdict.py",
+  "inputs": [
+   "outputs/verify_po_elev_nulls.json",
+   "outputs/verify_po_elev_gridladder.json",
+   "outputs/elevation_sweep_md.npz"
+  ],
+  "question_ko": "−30°·−60° 만 왜 튀는가 — 물리인가 아티팩트인가"
+ },
+ "A_격자는_원인이_아니다": {
+  "frozen_across_elevations": true,
+  "why_ko": "얼린 격자의 (ctr, Rout, n, spacing) 은 자세 합집합의 정점만으로 정해져 앙각과 무관하다. grid_ref 는 앙각 루프 **밖에서 한 번** 만들어진다(benchmark/elevation_sweep_md.py L114). 앙각에 걸리는 것은 격자의 방향뿐이고 그건 광선이 레이더 쪽에서 와야 하므로 물리적 필연이다.",
+  "basis_switch_ko": "다만 _grid_basis 는 |u_z| ≥ 0.9 (|el| ≥ 64.16°) 에서 보조축을 z→x 로 바꾼다 → −75°·−90° 만 다른 in-plane 회전이다. −30°·−60° 는 0/−15/−45 와 **같은** 규약이므로 이 전환은 이번 이상의 원인이 아니다."
+ },
+ "B_기제_동체붕괴이지_블레이드증가가_아니다": {
+  "el-60_vs_el-15": {
+   "dP_dc_db": -26.9,
+   "dP_ac_db": 5.44,
+   "note_ko": "동체(P_dc) -26.9 dB · 블레이드(P_ac) +5.4 dB — 동체 붕괴가 4.9 배 크다"
+  },
+  "el-30_vs_el-15": {
+   "dP_dc_db": -13.13,
+   "dP_ac_db": 2.31,
+   "note_ko": "동체(P_dc) -13.1 dB · 블레이드(P_ac) +2.3 dB — 동체 붕괴가 5.7 배 크다"
+  }
+ },
+ "B_표": [
+  {
+   "el_deg": 0,
+   "P_dc_db": -54.45,
+   "P_ac_db": -69.77,
+   "ac_over_dc_db": -15.32,
+   "min_abs_over_mean": 0.6968,
+   "winding_turns": 0.012,
+   "frozen_pose_body_db": -54.16,
+   "frozen_pose_prop_db": -73.5
+  },
+  {
+   "el_deg": -15,
+   "P_dc_db": -51.18,
+   "P_ac_db": -70.81,
+   "ac_over_dc_db": -19.63,
+   "min_abs_over_mean": 0.7376,
+   "winding_turns": 0.02,
+   "frozen_pose_body_db": -51.66,
+   "frozen_pose_prop_db": -73.58
+  },
+  {
+   "el_deg": -30,
+   "P_dc_db": -64.31,
+   "P_ac_db": -68.5,
+   "ac_over_dc_db": -4.19,
+   "min_abs_over_mean": 0.1356,
+   "winding_turns": -0.07,
+   "frozen_pose_body_db": -63.47,
+   "frozen_pose_prop_db": -90.0
+  },
+  {
+   "el_deg": -45,
+   "P_dc_db": -59.05,
+   "P_ac_db": -67.08,
+   "ac_over_dc_db": -8.03,
+   "min_abs_over_mean": 0.5057,
+   "winding_turns": -0.13,
+   "frozen_pose_body_db": -59.23,
+   "frozen_pose_prop_db": -71.26
+  },
+  {
+   "el_deg": -60,
+   "P_dc_db": -78.08,
+   "P_ac_db": -65.37,
+   "ac_over_dc_db": 12.71,
+   "min_abs_over_mean": 0.0119,
+   "winding_turns": 10.037,
+   "frozen_pose_body_db": -71.81,
+   "frozen_pose_prop_db": -67.33
+  },
+  {
+   "el_deg": -75,
+   "P_dc_db": -47.53,
+   "P_ac_db": -58.0,
+   "ac_over_dc_db": -10.47,
+   "min_abs_over_mean": 0.6414,
+   "winding_turns": -0.018,
+   "frozen_pose_body_db": -47.41,
+   "frozen_pose_prop_db": -56.98
+  },
+  {
+   "el_deg": -90,
+   "P_dc_db": -41.66,
+   "P_ac_db": -79.96,
+   "ac_over_dc_db": -38.31,
+   "min_abs_over_mean": 0.9844,
+   "winding_turns": 0.003,
+   "frozen_pose_body_db": -40.6,
+   "frozen_pose_prop_db": -45.49
+  }
+ ],
+ "C_널은_얇다": {
+  "body_nulls_from_fine_sweep": {
+   "tag": "body",
+   "median_db": -53.75,
+   "nulls": [
+    {
+     "el_deg": -63.5,
+     "depth_below_median_db": 22.91,
+     "width_3db_deg": 1.0
+    },
+    {
+     "el_deg": -62.5,
+     "depth_below_median_db": 16.31,
+     "width_3db_deg": 2.5
+    },
+    {
+     "el_deg": -60.0,
+     "depth_below_median_db": 18.07,
+     "width_3db_deg": 1.5
+    },
+    {
+     "el_deg": -46.0,
+     "depth_below_median_db": 11.13,
+     "width_3db_deg": 2.0
+    },
+    {
+     "el_deg": -31.0,
+     "depth_below_median_db": 20.72,
+     "width_3db_deg": 1.0
+    },
+    {
+     "el_deg": -6.0,
+     "depth_below_median_db": 13.4,
+     "width_3db_deg": 1.5
+    },
+    {
+     "el_deg": -4.0,
+     "depth_below_median_db": 12.67,
+     "width_3db_deg": 1.0
+    }
+   ]
+  },
+  "note_ko": "동체 전용 패턴의 깊은 널은 3 dB 폭이 1.0~2.5° 다. 스윕은 15° 간격이라 널이 «어디 있나» 를 못 본다 — 7 점 중 2 점(−30, −60)이 널 위에 앉은 것이다. −30°·−60° 는 물리적으로 특별한 각이 아니라 **표본이 널을 밟은 각**이다."
+ },
+ "D_아티팩트_시험_격자사다리": {
+  "verdict": {
+   "null60_el_spread_deg": 1.8,
+   "null31_el_spread_deg": 1.4,
+   "null60_depth_spread_db": 31.89,
+   "null31_depth_spread_db": 22.44,
+   "null60_persists_all": true,
+   "null31_persists_all": false
+  },
+  "lattice_scatter_db": {
+   "el-30": {
+    "el_deg": -30.0,
+    "median_db": -63.85,
+    "spread_db": 12.27,
+    "per_lattice_db": [
+     -63.47,
+     -65.0,
+     -64.22,
+     -60.38,
+     -58.78,
+     -71.05
+    ]
+   },
+   "el-35": {
+    "el_deg": -35.0,
+    "median_db": -51.77,
+    "spread_db": 2.69,
+    "per_lattice_db": [
+     -53.15,
+     -53.27,
+     -50.58,
+     -51.03,
+     -51.09,
+     -52.45
+    ]
+   },
+   "el-45": {
+    "el_deg": -45.0,
+    "median_db": -58.09,
+    "spread_db": 3.3,
+    "per_lattice_db": [
+     -59.23,
+     -55.94,
+     -58.01,
+     -58.17,
+     -58.18,
+     -57.98
+    ]
+   },
+   "el-55": {
+    "el_deg": -55.0,
+    "median_db": -56.19,
+    "spread_db": 5.99,
+    "per_lattice_db": [
+     -56.03,
+     -57.9,
+     -51.91,
+     -56.35,
+     -57.34,
+     -54.84
+    ]
+   },
+   "el-60": {
+    "el_deg": -60.0,
+    "median_db": -64.17,
+    "spread_db": 12.72,
+    "per_lattice_db": [
+     -71.81,
+     -71.82,
+     -61.23,
+     -61.24,
+     -67.11,
+     -59.1
+    ]
+   }
+  },
+  "conclusion_ko": {
+   "el-60": "⭐**물리다(위치는).** 격자 6 판(λ/12·λ/16·λ/20 + 부분셀 3 종) 전부에서 널이 −59.9°~−61.7° 에 남는다. 광선을 아예 안 쏘는 **기하 PO**(면적분만)도 −58.5° 에 동체 널을 낸다 — 독립 경로 2 개가 같은 각을 가리킨다. 다만 **깊이는 못 믿는다**: 9.4~41.3 dB 로 32 dB 흔들린다.",
+   "el-30": "⚠**못 가른다 — 깊이는 격자가 지배한다.** 깊이가 3.3 dB(λ/16)~25.8 dB(λ/12) 로 22 dB 흔들리므로 생산판(λ/12)이 인용한 −64.3 dB 는 그대로 못 쓴다. 다만 6 판 **중앙값**으로도 −63.8 dB 라 이웃(−35°: −51.8 · −45°: −58.1)보다 6~12 dB 낮다 ⇒ 완전한 아티팩트라고도 못 한다. 광선을 안 쏘는 기하 PO 에는 이 널이 **없으므로**(−36°~−25° 가 −44.1~−45.2 dB 로 1.1 dB 밖에 안 변한다) 원인은 (a) 가림·투과처럼 기하 PO 에 없는 물리이거나 (b) 모든 광선격자가 공유하는 공통 편향이다 — **이번 라운드로는 둘을 못 가른다.** 가르려면 가림·투과를 끈 커널 대조군이 필요하다(다음 라운드).",
+   "floor_ko": "널 밖에서도 동체 복소장의 격자 산포는 max−min 2.7~3.3 dB (±1.6 dB) 다. 널 바닥에서는 ±6 dB 로 벌어진다. ⇒ **우리 PO 의 단일 앙각 절대 DC 는 널 근방에서 ±6 dB 이내로만 유효하다.**"
+  }
+ },
+ "E_왜_AC는_안_흔들리나": {
+  "note_ko": "생산 스윕은 4096 자세 전부에 **같은 격자 한 판**을 쓴다. 그래서 격자 오차가 슬로타임에 **공통 모드**로 들어간다 — 차이를 보는 P_ac 에서는 거의 상쇄되고, 절대값인 P_dc 에는 그대로 남는다. 실제로 P_ac 는 0°→−60° 에서 −69.8→−65.4 dB 로 매끈하고(4.4 dB), P_dc 는 −54.5→−78.1 dB 로 들쭉날쭉하다. ⇒ 마이크로도플러(변조)는 이 결함에 강하고, 비율 잣대만 취약하다.",
+  "P_ac_by_el_db": {
+   "0": -69.77,
+   "-15": -70.81,
+   "-30": -68.5,
+   "-45": -67.08,
+   "-60": -65.37,
+   "-75": -58.0,
+   "-90": -79.96
+  },
+  "P_dc_by_el_db": {
+   "0": -54.45,
+   "-15": -51.18,
+   "-30": -64.31,
+   "-45": -59.05,
+   "-60": -78.08,
+   "-75": -47.53,
+   "-90": -41.66
+  }
+ },
+ "F_el-90_은_예측대로다": {
+  "P_ac_db": -79.96,
+  "ac_over_dc_db": -38.31,
+  "note_ko": "−90° 에서 P_ac 는 −80.0 dB 로 이웃(−58~−70 dB)보다 10~22 dB 낮고 AC/DC = −38.3 dB 다. 기하 PO 로는 **정확히 0** 이다 — 수직축 회전은 면의 z 좌표도 n̂·û 도 안 바꾸므로 E 가 위상에 불변이다. 남은 −80 dB 는 블레이드가 동체를 가리는 그림자의 회전 + 격자 이산화다. ⭐사용자 물리(직하방 도플러 0)와 커널이 맞는다."
+ },
+ "F2_물리상한으로_잰_수치바닥": {
+  "numerical_floor_db": -86.5,
+  "how_ko": "|f| > 1.15·f_tip 의 슬로타임 전력은 물리적으로 불가능하다(팁보다 빠른 산란체가 없고 sbr_field 는 단일 반사라 2× 도플러 경로가 없다). 그 전력이 앙각 7 각 전부에서 −83~−88.5 dB (중앙값 −86.5) 로 **평평하다** ⇒ 이것이 AC 채널의 수치 바닥이다.",
+  "rows": [
+   {
+    "el_deg": 0,
+    "f_tip_hz": 1272.9,
+    "P_ac_db": -69.4,
+    "P_in_band_db": -69.49,
+    "P_out_of_band_db": -85.92,
+    "out_of_band_frac_pct": 2.22,
+    "white_floor_db": -88.51,
+    "snr_over_floor_db": 17.1
+   },
+   {
+    "el_deg": -15,
+    "f_tip_hz": 1229.5,
+    "P_ac_db": -70.89,
+    "P_in_band_db": -71.62,
+    "P_out_of_band_db": -79.01,
+    "out_of_band_frac_pct": 15.42,
+    "white_floor_db": -83.32,
+    "snr_over_floor_db": 15.61
+   },
+   {
+    "el_deg": -30,
+    "f_tip_hz": 1102.4,
+    "P_ac_db": -67.98,
+    "P_in_band_db": -68.47,
+    "P_out_of_band_db": -77.65,
+    "out_of_band_frac_pct": 10.78,
+    "white_floor_db": -86.05,
+    "snr_over_floor_db": 18.52
+   },
+   {
+    "el_deg": -45,
+    "f_tip_hz": 900.1,
+    "P_ac_db": -66.88,
+    "P_in_band_db": -66.96,
+    "P_out_of_band_db": -83.85,
+    "out_of_band_frac_pct": 2.0,
+    "white_floor_db": -86.55,
+    "snr_over_floor_db": 19.62
+   },
+   {
+    "el_deg": -60,
+    "f_tip_hz": 636.5,
+    "P_ac_db": -65.55,
+    "P_in_band_db": -65.61,
+    "P_out_of_band_db": -84.56,
+    "out_of_band_frac_pct": 1.26,
+    "white_floor_db": -86.84,
+    "snr_over_floor_db": 20.95
+   },
+   {
+    "el_deg": -75,
+    "f_tip_hz": 329.5,
+    "P_ac_db": -58.03,
+    "P_in_band_db": -58.04,
+    "P_out_of_band_db": -84.07,
+    "out_of_band_frac_pct": 0.25,
+    "white_floor_db": -86.5,
+    "snr_over_floor_db": 28.47
+   },
+   {
+    "el_deg": -90,
+    "f_tip_hz": 0.0,
+    "P_ac_db": -79.95,
+    "P_in_band_db": -130.43,
+    "P_out_of_band_db": -79.95,
+    "out_of_band_frac_pct": 100.0,
+    "white_floor_db": -85.43,
+    "snr_over_floor_db": 6.55
+   }
+  ],
+  "conclusion_ko": {
+   "blade_is_real": "−60° 의 P_ac = −65.5 dB 는 바닥보다 **+20.9 dB** 위다 → 그 앙각의 블레이드 변조는 진짜다(아티팩트가 아니다).",
+   "body_is_the_fragile_one": "반면 −60° 의 P_dc = −78.1 dB 는 바닥에서 8 dB 위일 뿐이고 격자 산포가 ±6 dB 다 → **분모가 못 믿을 양**이다. 그 분모로 나눈 변조깊이 0.390 · 0 Hz 몫 5.91 % 는 그래서 커진 것이다.",
+   "el-90_validates": "−90° 는 P_ac 가 바닥에서 +6.5 dB 이고 그 전력의 100 % 가 대역 밖(f_tip = 0 이므로 전부)이다 → 사실상 **바닥 그 자체**. 사용자 물리(직하방 도플러 0)와 커널이 맞는다."
+  }
+ },
+ "F3_동체_면법선_투영": {
+  "rows_at_7els": [
+   {
+    "el_deg": -90.0,
+    "A_proj_cm2": 717.1,
+    "A_spec10_cm2": 337.482,
+    "spec_frac_pct": 47.0614,
+    "E_coh_db": -69.38,
+    "E_incoh_db": -27.39,
+    "coh_loss_db": 41.99
+   },
+   {
+    "el_deg": -75.0,
+    "A_proj_cm2": 729.7,
+    "A_spec10_cm2": 49.086,
+    "spec_frac_pct": 6.7272,
+    "E_coh_db": -49.74,
+    "E_incoh_db": -27.14,
+    "coh_loss_db": 22.6
+   },
+   {
+    "el_deg": -60.0,
+    "A_proj_cm2": 710.2,
+    "A_spec10_cm2": 32.561,
+    "spec_frac_pct": 4.5848,
+    "E_coh_db": -54.64,
+    "E_incoh_db": -27.34,
+    "coh_loss_db": 27.3
+   },
+   {
+    "el_deg": -45.0,
+    "A_proj_cm2": 649.0,
+    "A_spec10_cm2": 1.762,
+    "spec_frac_pct": 0.2714,
+    "E_coh_db": -43.61,
+    "E_incoh_db": -28.08,
+    "coh_loss_db": 15.53
+   },
+   {
+    "el_deg": -30.0,
+    "A_proj_cm2": 554.9,
+    "A_spec10_cm2": 1.748,
+    "spec_frac_pct": 0.3151,
+    "E_coh_db": -44.19,
+    "E_incoh_db": -29.39,
+    "coh_loss_db": 14.81
+   },
+   {
+    "el_deg": -15.0,
+    "A_proj_cm2": 446.3,
+    "A_spec10_cm2": 6.26,
+    "spec_frac_pct": 1.4025,
+    "E_coh_db": -43.61,
+    "E_incoh_db": -31.47,
+    "coh_loss_db": 12.14
+   },
+   {
+    "el_deg": 0.0,
+    "A_proj_cm2": 356.8,
+    "A_spec10_cm2": 128.819,
+    "spec_frac_pct": 36.0998,
+    "E_coh_db": -51.77,
+    "E_incoh_db": -34.03,
+    "coh_loss_db": 17.74
+   }
+  ],
+  "mechanism_ko": "정반사(법선이 시선 10° 안) 면적은 el 0° 에서 투영면적의 36.1 % (정면 판) → −25°~−45° 에서 **0.27~0.32 %** 로 사라짐 → −60° 4.6 % → −90° 47.1 % (평평한 배면) 로 되돌아온다. ⭐즉 −25°~−45° 는 **동체에 정반사면이 아예 없는 어깨 구간**이라 장이 «작은 기여들의 무작위 위상 합» 이 된다 — 깊은 널이 잘 생기고 격자에 가장 민감하다. −60° 는 배면 판이 켜지기 시작하지만 정반사에서 30° 벗어나 판 위에서 위상이 감겨 **상쇄가 27.3 dB 로 최대**다(−90° 42.0 dB 제외). ⇒ −60° 널은 «큰 판의 사이드로브 널» 이라 구조적이고, −30° 널은 «정반사 없는 구간의 스페클» 이라 격자마다 달라진다. 격자 사다리 결과와 정확히 맞물린다."
+ },
+ "G_남은_결함": [
+  "널 근방의 절대 DC 는 격자 의존이 ±6 dB 라 신뢰구간을 붙이지 않고 인용하면 안 된다.",
+  "15° 간격 앙각 스윕은 3 dB 폭 1~2.5° 의 널 구조를 근본적으로 못 푼다 — 앙각을 결론에 쓰려면 2° 이하 간격이거나 널을 평균해 없애야 한다.",
+  "elevation_sweep_md.json 의 _meta.ours_illumination 이 'spherical wave at 15 m' 인데 실제 RANGE_M 은 10.0 m 다 — 문서 오기(계산은 10 m 로 돌았다).",
+  "이번 판정은 az 고정 단면이다. 널의 방위각 의존은 안 쟀다.",
+  "−30° 널의 «가림·투과 물리» vs «광선격자 공통 편향» 을 못 갈랐다 — 가림·투과를 끈 커널 대조군이 있어야 갈린다.",
+  "고정 자세(ph[0]) 한 장으로 미세 스윕을 했다. 생산 계열의 P_dc 는 4096 자세 평균이라 블레이드 DC 가 더 상쇄에 끼어든다(그래서 −60° 에서 −78.1 dB 로 고정자세 −71.8 dB 보다 더 깊다) — 두 수를 같은 것처럼 나란히 쓰면 안 된다."
+ ]
+}
