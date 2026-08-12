@@ -57,7 +57,11 @@ ARMS = [
     ("ours/el-15",        "Ours (SBR+PO)",        "transmission on, edge diffraction off"),
     ("ours_ptd/el-15",    "Ours + PTD",           "transmission on, edge diffraction ON"),
     ("sionna/el-15",      "PathSolver (as run)",  "refraction off, diffraction off, 1 bounce"),
-    ("sionna_phys/el-15", "PathSolver + physics", "refraction ON, diffraction ON, 3 bounces"),
+    ("sionna_phys/el-15", "PathSolver + physics 11.1M",
+     "refraction ON, diffraction ON, 3 bounces"),
+    # ⭐공정 예산 — 물리를 켜면 경로가 굶으므로 같은 11.1M 비교는 성립하지 않는다
+    ("sionna_p250000000_phys/el-15", "PathSolver + physics 250M",
+     "physics ON at the budget that gives 127-352 paths"),
 ]
 # ⚠덱 npz 에 실제로 있는 거리만 넣는다 — 없는 키를 적으면 조용히 빠진다
 DECK_KEYS = [("R3/E", "Deck 3 m (ours)"), ("R15/E", "Deck 15 m (ours)"),

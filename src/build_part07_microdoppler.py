@@ -37,8 +37,10 @@ for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from report_style import (ContractError, build_notebook, caption,   # noqa: E402
-                          fetch, header, md, next_steps, num, table, table_from)
+from md_mapstyle import ARM_PO, ARM_SBR, ARM_SIONNA          # noqa: E402
+from report_style import (BREAK, ContractError, build_notebook,    # noqa: E402
+                          caption, fetch, header, md, next_steps, num, table,
+                          table_from)
 
 # --------------------------------------------------------------------------- #
 #  앵커 해결기 — 번호는 실행 계획이 정본이다
@@ -161,11 +163,11 @@ def blocks_34() -> list:
                 f"{_n(B + '.max_dof', VRD, '{:.0f}', '개')} 다 — 평행이동 세 성분이고, "
                 f"회전 자유도는 그 밖이다.",
 
-                f"정지 장면에서 도플러가 0 이 아닌 경로는 "
+                f"정지 장면(**Mini 2**)에서 도플러가 0 이 아닌 경로는 "
                 f"{_n(B + '.doppler_nonzero_paths_static_scene', VRD, '{:.0f}', '개')} "
                 f"(전체 {_n(B + '.n_paths', VRD, '{:.0f}', '개')}) — 배선 자체는 정상이다.",
 
-                f"프롭 그룹에 강체속도를 주면 프롭 경유 경로 "
+                f"**Matrice 4E** 의 프롭 그룹에 강체속도를 주면 **표적 경유 경로** "
                 f"{_n(P + '.rigid_prop_velocity.n_target_paths', PRB, '{:.0f}', '개')} 가 "
                 f"모두 같은 부호로 몰린다 — 크기는 강체 투영에 따라 0 ~ "
                 f"{_n(P + '.rigid_prop_velocity.doppler_max_hz', PRB, '{:.1f}', 'Hz')} 로 퍼지고, "
@@ -203,17 +205,30 @@ def blocks_34() -> list:
            "놓고 광선을 다시 쏘는 길로 간다. 두 길의 비용 차이가 커서 먼저 확인했다."),
 
         md("## 자유도를 세면 답이 정해진다", "",
-           table(["무엇을", "값"], [
-               ["객체당 속도 자유도", _n(B + ".max_dof", VRD, "{:.0f}", "개")],
-               ["정지 장면의 0 아닌 도플러", _n(B + ".doppler_nonzero_paths_static_scene", VRD, "{:.0f}", "개")],
-               ["강체속도 주입 시 프롭 경로", _n(P + ".rigid_prop_velocity.n_target_paths", PRB, "{:.0f}", "개")],
-               ["그 경로의 도플러 최대", _n(P + ".rigid_prop_velocity.doppler_max_hz", PRB, "{:.1f}", "Hz")],
-               ["강체 운동학이 예측하는 값", _n(P + ".rigid_prop_velocity.predicted_rigid_hz", PRB, "{:.1f}", "Hz")],
+           table(["무엇을", "기체", "값"], [
+               ["객체당 속도 자유도", "Mini 2", _n(B + ".max_dof", VRD, "{:.0f}", "개")],
+               ["정지 장면의 0 아닌 도플러", "Mini 2",
+                _n(B + ".doppler_nonzero_paths_static_scene", VRD, "{:.0f}", "개")],
+               ["강체속도 주입 시 표적 경유 경로", "Matrice 4E",
+                _n(P + ".rigid_prop_velocity.n_target_paths", PRB, "{:.0f}", "개")],
+               ["그 경로의 도플러 최대", "Matrice 4E",
+                _n(P + ".rigid_prop_velocity.doppler_max_hz", PRB, "{:.1f}", "Hz")],
+               ["강체 운동학이 예측하는 값", "Matrice 4E",
+                _n(P + ".rigid_prop_velocity.predicted_rigid_hz", PRB, "{:.1f}", "Hz")],
            ]), "",
-           f"프롭 전체에 강체속도 하나를 주면 프롭 경유 경로가 전부 같은 부호로 몰리고, 크기는 "
+           f"프롭 전체에 강체속도 하나를 주면 표적 경유 경로가 전부 같은 부호로 몰리고, 크기는 "
            f"각 경로의 강체 투영에 따라 0 부터 표의 최대값까지 퍼진다 — 그 최대값이 강체 예측과 "
            f"같은 자리에 선다. 블레이드 전진/후퇴가 갈라지려면 부호가 반대인 두 값이 나와야 "
            f"하는데, 이 표의 도플러는 한 부호로 몰린다."),
+
+        md("## 표의 두 줄은 잣대가 다르다", "",
+           f"«표적 경유 경로» 는 `{PRB} : {P}.rigid_prop_velocity.n_target_paths` 이고, 그 키는 "
+           "표적의 어느 부품이든 스친 경로를 전부 센다 — 프롭만 센 수는 따로 세야 한다. "
+           "판정은 그대로 선다: 경로 집합이 넓을수록 부호가 갈릴 기회가 많은데도 도플러가 "
+           "한 부호로 몰린다.", "",
+           "위 두 줄은 **Mini 2**, 아래 세 줄은 **Matrice 4E** 다. 자유도 세기는 두 기체에서 "
+           f"같은 답을 낸다 — `{PRB} : airframes.*.A_doppler.velocity_dof_per_object` 의 모든 "
+           "부품이 평행이동 세 성분뿐이라, 판정이 기체 선택에 안 걸린다."),
 
         md("## 이것은 구현 문제가 아니라 자료구조 문제다", "",
            "속도가 객체당 벡터 하나라는 것은 «그 객체가 강체로 평행이동한다» 는 뜻이다. "
@@ -352,23 +367,27 @@ def blocks_36() -> list:
             did="같은 로터 위상 스텝 절차를 스톡 Sionna 엔진과 우리 PO 커널 두 곳에 태워 "
                 "같은 칸에서 나온 무늬를 맞댔다.",
             results=[
-                f"운동학이 예측한 날개끝 주파수 **아래**에서 두 빗살이 겹친다 — 같은 자세·같은 "
-                f"거리에서 변조 깊이가 Sionna "
-                f"{_n('rows[1].ptp_sionna_db', MDP, '{:.2f}', 'dB')} · PO 커널 "
-                f"{_n('rows[1].ptp_po_db', MDP, '{:.2f}', 'dB')} 다.",
+                f"운동학이 예측한 날개끝 주파수 **아래**에서 두 빗살이 겹친다 — 변조 깊이가 "
+                f"Sionna {_n('rows[1].ptp_sionna_db', MDP, '{:.2f}', 'dB')} · 순수 PO "
+                f"{_n('rows[1].ptp_po_db', MDP, '{:.2f}', 'dB')} 다"
+                f"(**nose · {_n('_meta.range_m', MDP, '{:.0f}', 'm')} 한 칸**).",
 
-                f"그 위에서 갈린다 — 기하 절벽 너머 꼬리의 최대값(중앙값)이 Mini 2 에서 Sionna "
-                f"{_n(T + '.mini2.sionna_tail_max_db_median', VRD, '{:.2f}', 'dB')} 대 PO "
-                f"{_n(T + '.mini2.po_tail_max_db_median', VRD, '{:.2f}', 'dB')} 다.",
+                f"그 위에서 갈린다 — 기하 절벽 너머 꼬리의 최대값이 Mini 2 에서 Sionna "
+                f"{_n(T + '.mini2.sionna_tail_max_db_median', VRD, '{:.2f}', 'dB')} 대 순수 PO "
+                f"{_n(T + '.mini2.po_tail_max_db_median', VRD, '{:.2f}', 'dB')} 다"
+                f"(**자세 5 × 거리 1·3·10 m = "
+                f"{_n(T + '.mini2.n_cells', VRD, '{:.0f}', '칸')} 의 중앙값**).",
 
                 f"Sionna 의 빗이 **기하에서 온다** — 산란 물리를 전부 빼고 왕복 위상만 더한 "
-                f"기준과 겹치면 근거리에서 Mini 2 "
+                f"기준과 겹치면 Mini 2 "
                 f"{_n(G + '.mini2.n_near_within_1_bin', VRD, '{:.0f}')}/"
-                f"{_n(G + '.mini2.n_near_cells', VRD, '{:.0f}')} 칸이 ±1 조화 안에서 일치한다.",
+                f"{_n(G + '.mini2.n_near_cells', VRD, '{:.0f}')} 칸이 ±1 조화 안에서 일치한다"
+                f"(**근거리 1·3 m 칸**).",
 
                 f"빗 모양 코사인 중앙값은 Mini 2 "
                 f"{_n(G + '.mini2.comb_shape_cosine_median', VRD, '{:.4f}')} · Matrice 4E "
-                f"{_n(G + '.matrice4e.comb_shape_cosine_median', VRD, '{:.4f}')} 다.",
+                f"{_n(G + '.matrice4e.comb_shape_cosine_median', VRD, '{:.4f}')} 다"
+                f"(**같은 15 칸의 중앙값**).",
 
                 f"⭐ 아래쪽에서 겹친다는 것이 «위상은 광선 엔진이 맞게 낸다» 의 근거이고, "
                 f"위쪽에서 갈린다는 것이 «세기는 PO 커널이 맡는다» 의 근거다.",
@@ -376,11 +395,21 @@ def blocks_36() -> list:
             method=[
                 ("같은 격자",
                  "로터 위상 스텝·거리·자세·재질·주파수를 전부 같게 두고 엔진 하나만 바꿨다"),
-                ("Sionna 팔",
+                ("팔 셋 · 이 편의 낱말",
+                 f"**S** = {ARM_SIONNA} · **B** = {ARM_SBR} · **P** = {ARM_PO}. "
+                 "절마다 어느 팔이 재었는지를 이 세 이름으로 적는다"),
+                ("Sionna 팔 (S)",
                  "스톡 `sionna.rt.PathSolver` — h = Σ a_p·exp(−j2πf_c τ_p). "
                  "`Paths.cir()` 은 절대위상을 지우므로 쓰지 않는다"),
-                ("PO 팔",
-                 "`src/microdoppler_nearfield.py` — 평면파/구면파 PO 표면적분, 가림 없음"),
+                ("순수 PO 팔 (P)",
+                 "`src/microdoppler_nearfield.py` — 평면파/구면파 PO 표면적분. 광선 격자를 "
+                 "안 쓰고 가림도 안 푼다"),
+                ("SBR 팔 (B)",
+                 "`src/rcs_sbr.py::sbr_field` — 광선 격자로 보이는 면을 골라 PO. 그림 2 의 "
+                 "가운데 칸이 이 팔이고, 결과 1~4 의 두 열은 S 와 P 다"),
+                ("통계 단위",
+                 "결과 1 은 nose · 3 m **한 칸**, 결과 2~4 는 자세 5 × 거리 1·3·10 m = "
+                 "**15 칸의 중앙값**, 그림 2 는 belly · 앙각 −15° · 3 m **한 칸**이다"),
                 ("비교 가능한 양만",
                  "절대 스케일과 기준위상이 다르므로 상수 복소배에 불변인 양(AC 상관 · dB ptp · "
                  "하모닉 스펙트럼)만 맞댔다"),
@@ -399,13 +428,18 @@ def blocks_36() -> list:
 
         md("## 같은 로터를 두 엔진이 돌린다", "",
            *_fig(1, "report07_f2",
-                 "Sionna 자체 엔진과 우리 PO 커널이 같은 로터에서 같은 무늬를 내는가?"),
-           "로터 위상을 스텝하고 매번 다시 추적하는 같은 절차를 **서로 다른 두 엔진**에 태웠다 — "
-           "하나는 Sionna 의 PathSolver 이고 하나는 우리 PO 커널이다.", "",
-           "운동학이 예측한 날개끝 주파수 **아래**에서 두 빗살이 겹친다."),
+                 "Sionna 자체 엔진과 우리 순수 PO 대조팔이 같은 로터에서 같은 무늬를 내는가?"),
+           "로터 위상을 스텝하고 매번 다시 추적하는 같은 절차를 **두 팔**에 태웠다 — "
+           f"**S** = {ARM_SIONNA} 와 **P** = {ARM_PO} 다. 이 그림은 **nose · 3 m 한 칸**이고 "
+           "기선은 0.2 m 다(준-모노스태틱).", "",
+           "운동학이 예측한 날개끝 주파수 **아래**에서 두 빗살이 겹친다. 가림을 푸는 SBR 팔(B)은 "
+           "이 그림 밖에 있고, 아래 «세 엔진을 같은 격자에» 절이 그 팔을 세운다."),
 
         md("## 그 위에서 갈린다", "",
-           table(["기체", "Sionna 꼬리 최대(중앙값)", "PO 꼬리", "기하 기준 꼬리"], [
+           "잰 팔은 **S** 와 **P** 둘이고, 셋째 열은 산란 물리를 뺀 기하 기준이다 — "
+           f"**자세 5 × 거리 1·3·10 m = {_n(T + '.mini2.n_cells', VRD, '{:.0f}', '칸')} 의 "
+           "중앙값**이다.", "",
+           table(["기체", "S 꼬리 최대", "P 꼬리", "기하 기준 꼬리"], [
                ["Mini 2",
                 _n(T + ".mini2.sionna_tail_max_db_median", VRD, "{:.2f}", "dB"),
                 _n(T + ".mini2.po_tail_max_db_median", VRD, "{:.2f}", "dB"),
@@ -423,19 +457,21 @@ def blocks_36() -> list:
         md("## 세 엔진을 같은 격자에 태우면", "",
            *_fig(2, "report07_f5",
                  "Sionna·SBR·PO 를 같은 슬로타임 격자에 태우면 같은 무늬가 나오는가?"),
-           f"같은 기체·자세·주파수·PRF·로터별 회전수로 세 엔진을 돌렸다 — "
+           f"같은 기체·자세·주파수·PRF·로터별 회전수로 세 팔을 돌렸다 — "
            f"{_n('_meta.n', TRI, '{:.0f}', '표본')} @ PRF "
            f"{_n('_meta.prf_hz', TRI, '{:.0f}', 'Hz')} = "
-           f"{_n('_meta.blade_periods', TRI, '{:.0f}')} 블레이드 주기.", "",
-           table(["엔진", "변조 p-p", "전체 전력 중 날개끝 밖", "무늬"], [
-               ["Sionna PathSolver", _n("ptp_db.sionna", TRI, "{:.1f}", "dB"),
+           f"{_n('_meta.blade_periods', TRI, '{:.0f}')} 블레이드 주기. 이 그림과 표는 "
+           f"**belly · 앙각 {_n('_meta.el_deg', TRI, '{:.0f}', '°')} · "
+           f"{_n('_meta.range_m', TRI, '{:.0f}', 'm')} 한 칸**이다.", "",
+           table(["팔", "무엇으로 쟀나", "변조 p-p", "전체 전력 중 날개끝 밖", "무늬"], [
+               ["S", ARM_SIONNA, _n("ptp_db.sionna", TRI, "{:.1f}", "dB"),
                 _oob_pct("sionna"),
                 "얼룩이 대역을 채우고 날개끝 주파수 밖에도 남는다"],
-               ["우리 SBR", _n("ptp_db.sbr", TRI, "{:.1f}", "dB"), _oob_pct("sbr"),
+               ["B", ARM_SBR, _n("ptp_db.sbr", TRI, "{:.1f}", "dB"), _oob_pct("sbr"),
                 "빗살이 또렷하다 — ⚠순수 PO 보다는 여전히 "
                 + _n("three_engines_ranking.new_P_out_absolute.sbr_over_po_db", OOB,
                      "{:.0f}", "dB") + " 위다"],
-               ["우리 순수 PO", _n("ptp_db.po", TRI, "{:.1f}", "dB"), _oob_pct("po"),
+               ["P", ARM_PO, _n("ptp_db.po", TRI, "{:.1f}", "dB"), _oob_pct("po"),
                 "빗살이 가장 좁고 날개끝에서 절벽처럼 잘린다"],
            ]), "",
            f"⭐ 셋 다 (a) 0 도플러 동체 선, (b) 블레이드 통과율 간격 능선, "
@@ -448,14 +484,15 @@ def blocks_36() -> list:
         md("## 그 코사인은 «닮았다» 까지를 말한다", "",
            "위 코사인이 말하는 것은 «대역 안에서 무늬의 모양이 닮았다» 까지다. 세 엔진은 능선의 "
            "**세기와 밀도**에서 크게 갈리고, 갈리는 방향에 각각 이유가 있다.", "",
-           table(["엔진", "무엇이 그렇게 만드나"], [
-               ["우리 순수 PO", "가림을 빼고 계산하므로 모든 면이 항상 기여한다 → 변조가 씻긴다"],
-               ["우리 SBR", "가림이 켜져 있어 능선이 굵다. 격자를 얼린 뒤 날개끝 밖에 남는 몫은 "
-                            + _oob_pct("sbr") + " 이고, 그래도 순수 PO 보다 "
-                            + _n("three_engines_ranking.new_P_out_absolute.sbr_over_po_db",
-                                 OOB, "{:.0f}", "dB") + " 위다"],
-               ["Sionna", "경로가 열 개 남짓이라 표본이 성기고, 날개끝 밖에 "
-                          + _oob_pct("sionna") + " 이 남는다"],
+           table(["팔", "무엇이 그렇게 만드나"], [
+               ["P " + ARM_PO,
+                "가림을 빼고 계산하므로 모든 면이 항상 기여한다 → 변조가 씻긴다"],
+               ["B " + ARM_SBR, "가림이 켜져 있어 능선이 굵다. 격자를 얼린 뒤 날개끝 밖에 남는 "
+                                "몫은 " + _oob_pct("sbr") + " 이고, 그래도 순수 PO 보다 "
+                + _n("three_engines_ranking.new_P_out_absolute.sbr_over_po_db",
+                     OOB, "{:.0f}", "dB") + " 위다"],
+               ["S " + ARM_SIONNA, "경로가 열 개 남짓이라 표본이 성기고, 날개끝 밖에 "
+                                   + _oob_pct("sionna") + " 이 남는다"],
            ]), "",
            "⭐ **날개끝 밖에 남던 능선의 원인은 광선 격자의 이산화가 아니라 자세마다 격자를 다시 "
            "정의하는 것이었다.** 격자를 촘촘히 해도 λ/12 → λ/32 에서 대역밖 절대 전력이 "
@@ -467,11 +504,33 @@ def blocks_36() -> list:
            + _n("freeze_verdict.gains_db.12", OOB, "{:.1f}", "dB")
            + " 내려가면서 기울기가 "
            + _n("convergence.froz.slope_ge12", OOB, "{:.2f}")
-           + " 로 예측에 붙는다. 얼린 팔은 광선을 안 쓰는 독립 엔진(순수 PO)과의 대역 안 일치도 "
+           + " 로 예측에 붙는다. **순수 PO 팔(P)을 잣대로 놓으면** 얼린 팔의 대역 안 일치도가 "
            + _n("in_band_fidelity.rows[1].cos_prod_vs_po", SGC, "{:.3f}")
            + " 에서 "
            + _n("in_band_fidelity.rows[1].cos_froz_vs_po", SGC, "{:.3f}")
            + " 으로 오른다. 기전과 대가는 " + ref("kernel-what", "커널이 하는 일") + " 이 잰다.", "",
+           BREAK,
+           "## 얼리기의 판정은 잣대로 삼은 팔이 정한다", "",
+           "⭐ **Sionna 팔(S)을 잣대로 놓으면 같은 원장이 반대로 움직인다** — 같은 격자(λ/12)에서 "
+           + _n("in_band_fidelity.rows[1].cos_prod_vs_sionna", SGC, "{:.3f}")
+           + " 에서 "
+           + _n("in_band_fidelity.rows[1].cos_froz_vs_sionna", SGC, "{:.3f}")
+           + " 로 내려가고, 사다리의 다섯 격자(λ/8 · λ/12 · λ/16 · λ/24 · λ/32) 전부에서 같은 "
+           "방향이다.", "",
+
+           table(["격자", "P 잣대 (prod → froz)", "S 잣대 (prod → froz)"],
+                 [[f"λ/{r['div']}",
+                   _n(f"in_band_fidelity.rows[{i}].cos_prod_vs_po", SGC, "{:.3f}") + " → "
+                   + _n(f"in_band_fidelity.rows[{i}].cos_froz_vs_po", SGC, "{:.3f}"),
+                   _n(f"in_band_fidelity.rows[{i}].cos_prod_vs_sionna", SGC, "{:.3f}") + " → "
+                   + _n(f"in_band_fidelity.rows[{i}].cos_froz_vs_sionna", SGC, "{:.3f}")]
+                  for i, r in enumerate(fetch((SGC, "in_band_fidelity.rows")))]), "",
+
+           "두 잣대가 재는 것이 다르다 — P 는 광선을 아예 안 쓰는 팔이라 격자를 얼리면 가까워지고, "
+           "S 는 경로가 성긴 팔이라 그 성김이 얼리기와 함께 움직인다. 그래서 이 절의 판정은 "
+           "**순수 PO 를 잣대로 놓았을 때** 성립한다고 적는다.", "",
+           BREAK,
+           "## 얼리기가 블레이드 대역에 한 일", "",
            "⭐ 같은 재계산에서 **블레이드 대역 안**의 전력도 중앙값 "
            + _n("summary.P_in_delta_db_median", FSL, "{:+.1f}", "dB")
            + " 내려갔다. 그것이 표적의 운동이었다면 얼리기가 물리를 지운 것이므로, 판정을 "
@@ -502,7 +561,9 @@ def blocks_36() -> list:
            _grid_state_line()),
 
         md("## Sionna 의 빗은 기하에서 온다", "",
-           table(["기체", "±1 조화 안 일치(근거리)", "빗 모양 코사인 중앙값"], [
+           "잰 팔은 **S** 하나이고, 맞대는 상대는 산란 물리를 뺀 기하 기준이다.", "",
+           table(["기체", "±1 조화 안 일치 (근거리 1·3 m 칸)",
+                  "빗 모양 코사인 중앙값 (15 칸)"], [
                ["Mini 2",
                 _n(G + ".mini2.n_near_within_1_bin", VRD, "{:.0f}") + " / "
                 + _n(G + ".mini2.n_near_cells", VRD, "{:.0f}"),
@@ -517,10 +578,13 @@ def blocks_36() -> list:
            "기하의 왕복 위상을 제대로 따라간다** — 그 빗은 몬테카를로 잡음의 산물이 아니다."),
 
         md("## 프롭 정반사가 잡히느냐는 예산이 아니라 앙각이 정한다", "",
+           f"⭐ **이 소절의 숫자는 전부 스톡 팔(S) 하나에서 나온다** — 광선 예산 사다리와 "
+           f"경로 인구조사, 그 둘뿐이다.", "",
            f"자세×로터위상 {_n('specular_census.total.n_cells', MDP, '{:,.0f}', '칸')} 전수에서 "
            f"프로펠러에 떨어진 정반사 경로는 "
            f"{_n('specular_census.total.n_with_prop_specular', MDP, '{:.0f}', '칸')} 이다"
-           f"(앙각 0~{_n('_meta.el_base[-1]', BFL, '{:.0f}', '°')} 격자).", "",
+           f"(**이 인구조사의** 자세 격자 = 앙각 0~"
+           f"{_n('_meta.el_base[-1]', BFL, '{:.0f}', '°')}).", "",
            "그 «0» 이 표적의 물리인지 격자의 성질인지 가르려고 축을 **두 개** 따로 열었다 — "
            "광선을 사다리로 올리는 **예산 축**과, 프롭 법선이 향하는 가파른 쪽까지 여는 "
            "**앙각 축**이다.", "",
@@ -543,19 +607,25 @@ def blocks_36() -> list:
            "가파른 앙각을 열면 프롭 정반사가 나온다 — 그 «0» 은 격자가 프롭 법선 근처를 안 "
            "본 결과다. Mini 2 는 예산 꼭대기에서도 앙각 끝에서도 0 칸이라, 이 기체에 대해서만 "
            "«스톡 RT 가 프롭 정반사를 못 낸다» 에 가까워진다.", "",
-           "⇒ 그래서 이 편이 쓰는 자세 격자(앙각 0~"
+           "⇒ 그래서 **이 인구조사의** 자세 격자(앙각 0~"
            + _n("_meta.el_base[-1]", BFL, "{:.0f}", "°")
-           + ")에서 보이는 무늬는 전부 흩어져 되돌아오는 반사에서 나오고, 그 값은 광선을 다시 "
-           "쏠 때마다 흔들린다. **위상은 광선 엔진이, 세기는 PO 커널이 맡는** 분업의 근거가 "
-           "여기 있다."),
+           + ")에서 스톡 팔이 내는 무늬는 전부 흩어져 되돌아오는 반사에서 나오고, 그 값은 광선을 "
+           "다시 쏠 때마다 흔들린다.", "",
+           "⚠ **이 편의 맵은 다른 격자에 산다** — 앙각 "
+           + _n("_meta.el_deg", TRI, "{:.0f}", "°")
+           + " 한 칸이다. 두 격자는 따로 읽는다.", "",
+           "**위상은 광선 엔진이, 세기는 PO 커널이 맡는** 분업의 근거는 이 절 그림 1·2 의 두 팔 "
+           "대조이고, 이 인구조사는 거기에 **스톡 팔 쪽 한계**를 보탠다."),
 
         next_steps([
             ("가장자리 판정을 꼬리 초과분과 함께 다시 낸다",
              "«가장자리» 가 물리적 절벽인지 꼬리인지가 칸마다 갈린다",
              ref("md-ray-budget", "광선예산")),
-            ("두 엔진 일치도를 가림 있는 SBR 팔로 한 번 더 잰다",
-             "PO 팔의 «가림 없음» 이 일치도에 넣는 몫이 확정된다",
-             "`src/rcs_sbr.py` 팔을 같은 격자에"),
+            ("SBR 팔의 일치도를 15 칸 격자 전체로 넓힌다",
+             "한 칸에서는 그림 2 가 이미 쟀다(SBR↔PO "
+             + _n_pending("verdict.cosine_in_ftip.sbr_vs_po", TRI, "{:.3f}")
+             + ") — 남은 것은 그 값이 자세·거리에 얼마나 걸리는지다",
+             "`src/rcs_sbr.py` 팔을 15 칸 격자에"),
         ]),
     ]
 
@@ -570,10 +640,10 @@ def blocks_37() -> list:
         header(
             num=37,
             title="네 로터가 같은 회전수로 돌면 무늬는 시간에 못 변한다",
-            did="네 로터의 회전수를 잠근 팔과 흩뜨린 팔을 같은 격자에서 돌려 창 반쪽 스펙트럼의 "
-                "상관을 쟀다.",
+            did="네 로터의 회전수를 잠근 판과 흩뜨린 판을 **두 엔진 팔**(SBR · 순수 PO)에서 "
+                "각각 돌려 창 반쪽 스펙트럼의 상관을 쟀다.",
             results=[
-                f"잠근 팔의 반창 스펙트럼 상관은 "
+                f"SBR 팔(B): 잠근 판의 반창 스펙트럼 상관은 "
                 f"{_n(R + '.locked_half_corr', MDB, '{:.4f}')} 다 — 신호가 완전한 주기함수라 "
                 f"스펙트로그램이 창 내내 같은 모습으로 선다.",
 
@@ -582,12 +652,16 @@ def blocks_37() -> list:
                 f"{_n(R + '.spread_half_corr', MDB, '{:.4f}')} 로 내려간다 — 낙차 "
                 f"{_n(R + '.drop', MDB, '{:.4f}')}.",
 
-                f"그때 변조 깊이도 함께 커진다 — 잠근 팔 "
-                f"{_L('arms.A_sbr_locked.modulation_ptp_db', '{:.2f}', 'dB')} 에서 흩뜨린 팔 "
-                f"{_L('arms.B_sbr_spread.modulation_ptp_db', '{:.2f}', 'dB')} 로.",
+                f"⭐ 순수 PO 팔(P)이 같은 낙차를 **독립으로** 낸다 — "
+                f"{_L('arms.C_po_locked.half_window_spectrum_corr', '{:.4f}')} 에서 "
+                f"{_L('arms.D_po_spread.half_window_spectrum_corr', '{:.4f}')} 로 내려간다"
+                f"(B 팔은 {_L('arms.B_sbr_spread.half_window_spectrum_corr', '{:.4f}')}). "
+                f"P 는 광선 격자를 안 쓰고 가림도 안 푸는 팔이라, 이 축은 가림에 안 걸린다.",
 
-                f"동체:날개 비도 잠근 팔 "
-                f"{_L('arms.A_sbr_locked.dc_over_ac', '{:.2f}')} 에서 흩뜨린 팔 "
+                f"그때 B 팔의 변조 깊이가 "
+                f"{_L('arms.A_sbr_locked.modulation_ptp_db', '{:.2f}', 'dB')} 에서 "
+                f"{_L('arms.B_sbr_spread.modulation_ptp_db', '{:.2f}', 'dB')} 로 커지고, "
+                f"동체:날개 비는 {_L('arms.A_sbr_locked.dc_over_ac', '{:.2f}')} 에서 "
                 f"{_L('arms.B_sbr_spread.dc_over_ac', '{:.2f}')} 로 내려간다.",
 
                 f"흩어짐 폭 ±{_n('_meta.rpm_spread_frac', MDB, '{:.2%}')} 는 PX4 **SITL**"
@@ -597,8 +671,12 @@ def blocks_37() -> list:
             ],
             method=[
                 ("단일축",
-                 "잠근 팔과 흩뜨린 팔은 광선 엔진·재질·기하·창 길이가 전부 같고 로터별 회전수만 "
+                 "잠근 판과 흩뜨린 판은 광선 엔진·재질·기하·창 길이가 전부 같고 로터별 회전수만 "
                  "다르다"),
+                ("두 엔진 팔",
+                 "**B** = " + ARM_SBR + " 의 A·B 열 과 **P** = " + ARM_PO
+                 + " 의 C·D 열 이 같은 rpm 축을 각각 돈다. P 열은 광선 격자를 안 쓴다 — "
+                 "`_meta.po_arms_not_recomputed_ko` 가 그렇게 적는다"),
                 ("흩뜨림 규약",
                  "네 로터에 ±" + _n('_meta.rpm_spread_frac', MDB, '{:.2%}')
                  + " 를 패턴 [1, −1, −0.55, 0.55] 로 준다 — 무게중심 치우침과 요 "
@@ -623,21 +701,36 @@ def blocks_37() -> list:
            "주기함수가 되고, 주기함수의 스펙트로그램은 창 내내 자기 모습을 지킨다."),
 
         md("## 흩뜨리면 줄이 숨쉰다", "",
-           table(["무엇을", "잠근 팔", "흩뜨린 팔"], [
-               ["반창 스펙트럼 상관",
+           table(["무엇을", "어느 팔", "잠근 판", "흩뜨린 판"], [
+               ["반창 스펙트럼 상관", "B (SBR · 가림 O)",
                 _n(R + ".locked_half_corr", MDB, "{:.4f}"),
                 _n(R + ".spread_half_corr", MDB, "{:.4f}")],
-               ["변조 깊이",
+               ["반창 스펙트럼 상관", "P (순수 PO · 가림 X)",
+                _L("arms.C_po_locked.half_window_spectrum_corr", "{:.4f}"),
+                _L("arms.D_po_spread.half_window_spectrum_corr", "{:.4f}")],
+               ["변조 깊이", "B",
                 _L("arms.A_sbr_locked.modulation_ptp_db", "{:.2f}", "dB"),
                 _L("arms.B_sbr_spread.modulation_ptp_db", "{:.2f}", "dB")],
-               ["동체:날개 비",
+               ["변조 깊이", "P",
+                _L("arms.C_po_locked.modulation_ptp_db", "{:.2f}", "dB"),
+                _L("arms.D_po_spread.modulation_ptp_db", "{:.2f}", "dB")],
+               ["동체:날개 비", "B",
                 _L("arms.A_sbr_locked.dc_over_ac", "{:.2f}"),
                 _L("arms.B_sbr_spread.dc_over_ac", "{:.2f}")],
-               ["날개끝 안쪽 에너지 비",
+               ["날개끝 안쪽 에너지 비", "B",
                 _L("arms.A_sbr_locked.energy_inside_ftip_frac", "{:.4f}"),
                 _L("arms.B_sbr_spread.energy_inside_ftip_frac", "{:.4f}")],
            ]), "",
            "오른쪽 열이 «시간에 따라 변한다» 의 정량이다. 상관이 내려간 만큼 줄이 숨쉰다."),
+
+        md("## 두 팔이 같은 방향으로 내려간다", "",
+           f"이 칸({_L('name')} · 배 쪽)에서 두 팔의 낙차가 소수 둘째 자리까지 붙는다 — "
+           "가림을 켠 팔과 아예 안 켠 팔이 같은 답을 낸다. 이 축의 원인이 **rpm 산포** 하나임을 "
+           "그 일치가 보인다.", "",
+           "⚠ 절대 레벨은 두 팔이 서로 다른 잣대라 나란히 놓지 않는다 — 여기서 맞대는 것은 "
+           "**같은 팔 안의 잠근 판 → 흩뜨린 판 낙차**뿐이다.", "",
+           f"원장: `{MDB} : {LEAD}.arms.{{A_sbr_locked, B_sbr_spread, C_po_locked, "
+           "D_po_spread}`."),
 
         md("## 흩어짐 폭은 실측에서 온다", "",
            "실제 기체는 무게중심 치우침과 요 토크 균형 때문에 네 모터가 서로 다른 추력을 내고 "
@@ -669,19 +762,22 @@ def blocks_38() -> list:
             num=38,
             title="동체가 날개를 가리면 변조 깊이와 레벨이 함께 바뀐다",
             did="광선 엔진·재질·기하·운동학·광선 격자를 전부 같게 두고 «동체가 막느냐» 만 다르게 "
-                "한 두 팔을 돌렸다.",
+                "한 두 열을 **SBR 팔(B)** 에서 돌렸다.",
             results=[
+                f"⭐ 이 축은 **SBR 팔(B)에서만 선다** — 순수 PO 팔(P)은 모든 면이 항상 "
+                f"기여하는 설계라 «막느냐» 라는 스위치가 그 팔의 밖에 있다.",
+
                 f"변조 깊이가 {_L('findings.occlusion_ptp_db', '{:+.2f}', 'dB')}, 레벨이 "
-                f"{_L('findings.occlusion_level_db', '{:+.2f}', 'dB')} 바뀐다.",
+                f"{_L('findings.occlusion_level_db', '{:+.2f}', 'dB')} 바뀐다"
+                f"({_L('name')} · 배 쪽 한 칸).",
 
-                f"막는 팔의 변조 깊이는 "
-                f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')}, 안 막는 팔은 "
-                f"{_L('arms.G_blade_free.modulation_ptp_db', '{:.2f}', 'dB')} 다.",
-
-                f"레벨은 각각 {_L('arms.F_blade_occ.level_db', '{:.2f}', 'dB')} 와 "
+                f"막는 열(F)의 변조 깊이는 "
+                f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')} · 레벨 "
+                f"{_L('arms.F_blade_occ.level_db', '{:.2f}', 'dB')}, 안 막는 열(G)은 "
+                f"{_L('arms.G_blade_free.modulation_ptp_db', '{:.2f}', 'dB')} · "
                 f"{_L('arms.G_blade_free.level_db', '{:.2f}', 'dB')} 다.",
 
-                f"두 팔의 광선 격자를 같게 유지했다 — 막는 쪽은 동체를 완전흡수로 두고, "
+                f"두 열의 광선 격자를 같게 유지했다 — 막는 쪽은 동체를 완전흡수로 두고, "
                 f"안 막는 쪽은 동체 면만 빼되 정점은 남겼다.",
 
                 f"⚠ 부호를 물리로 단정하지 않는다 — 합이 코히런트라 항이 줄어도 레벨이 "
@@ -711,8 +807,10 @@ def blocks_38() -> list:
            "정점을 남기면 경계상자가 같아서 두 팔의 광선 수와 간격이 같아진다. 정점을 빼면 "
            "«가림» 과 «표본화» 가 섞여 축이 둘이 된다."),
 
-        md("## 두 팔의 값", "",
-           table(["무엇을", "막는 팔", "안 막는 팔", "차이"], [
+        md("## 두 열의 값 — 둘 다 SBR 팔이다", "",
+           f"둘 다 **B** = {ARM_SBR} 이고, 여기서 «두 팔» 은 엔진이 아니라 **동체를 막는 열과 "
+           "막지 않는 열**을 가리킨다.", "",
+           table(["무엇을", "막는 열 (F)", "안 막는 열 (G)", "차이"], [
                ["변조 깊이",
                 _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB"),
                 _L("arms.G_blade_free.modulation_ptp_db", "{:.2f}", "dB"),
@@ -728,6 +826,19 @@ def blocks_38() -> list:
                 _L("arms.F_blade_occ.energy_inside_ftip_frac", "{:.4f}"),
                 _L("arms.G_blade_free.energy_inside_ftip_frac", "{:.4f}"), "—"],
            ])),
+
+        md("## 여섯 칸의 부호는 갈린다", "",
+           "위 표는 한 칸이다. 같은 원장의 여섯 칸을 전부 늘어놓으면 레벨 차의 **부호가 칸마다 "
+           "갈린다** — 크기를 물리로 읽는 대신 «두 양이 함께 움직인다» 까지만 읽는 이유가 여기 "
+           "있다.", "",
+           table(["칸", "레벨 차 (F−G)", "변조 깊이 차 (F−G)"],
+                 [[k,
+                   _n(f"cells.{k}.findings.occlusion_level_db", MDB, "{:+.3f}", "dB"),
+                   _n(f"cells.{k}.findings.occlusion_ptp_db", MDB, "{:+.2f}", "dB")]
+                  for k in fetch((MDB, "cells"))]), "",
+           "⭐ `mini5pro/nose` 는 F 열과 G 열의 변조 깊이가 배정밀도 자릿수까지 같은 값이고 "
+           "레벨 차도 그 자릿수 안에서 0 이다 — 그 자세에서 동체가 블레이드를 덮는 몫이 0 이다. "
+           "이 축이 자세에 얼마나 걸리는지가 그 칸에 있다."),
 
         md("## ⭐이 표의 dB 는 «판 한 장» 에도 걸린다", "",
            "두 팔은 같은 얼린 광선 격자를 쓴다. 그러면 격자를 어디에 놓았느냐는 두 팔에 똑같이 "
@@ -787,20 +898,20 @@ def blocks_39() -> list:
         header(
             num=39,
             title="블레이드 신호는 약하지 않다 — 동체 정적 반사가 덮고 있을 뿐이다",
-            did="같은 자세·같은 주파수에서 전체 드론 채널과 프로펠러 채널을 따로 재어 변조 깊이를 "
-                "맞댔다.",
+            did="같은 얼린 판·같은 자세·같은 로터 회전수에서 전체 드론 채널과 프로펠러 채널을 "
+                "따로 재어 변조 깊이를 맞댔다.",
             results=[
                 f"전체 드론 채널의 변조 깊이는 "
-                f"{_L('arms.A_sbr_locked.modulation_ptp_db', '{:.2f}', 'dB')} 인데, 같은 칸의 "
+                f"{_L('arms.B_sbr_spread.modulation_ptp_db', '{:.2f}', 'dB')} 인데, 같은 칸의 "
                 f"프로펠러 채널은 "
                 f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')} 다.",
 
                 f"두 채널의 레벨은 "
-                f"{_L('arms.A_sbr_locked.level_db', '{:.2f}', 'dB')} 와 "
+                f"{_L('arms.B_sbr_spread.level_db', '{:.2f}', 'dB')} 와 "
                 f"{_L('arms.F_blade_occ.level_db', '{:.2f}', 'dB')} 로, 동체가 훨씬 밝다.",
 
                 f"동체:날개 비가 전체 채널에서 "
-                f"{_L('arms.A_sbr_locked.dc_over_ac', '{:.2f}')}, 프로펠러 채널에서 "
+                f"{_L('arms.B_sbr_spread.dc_over_ac', '{:.2f}')}, 프로펠러 채널에서 "
                 f"{_L('arms.F_blade_occ.dc_over_ac', '{:.3f}')} 다.",
 
                 f"⭐ 블레이드 신호가 약한 것이 아니라 **동체 정적 반사가 덮고 있다** — "
@@ -810,8 +921,11 @@ def blocks_39() -> list:
             ],
             method=[
                 ("채널 분리",
-                 "같은 추적에서 프로펠러 부품을 지난 경로만 따로 모아 프로펠러 채널을 만든다 — "
-                 "기하·재질·광선 격자는 전체 채널과 같다"),
+                 "같은 얼린 판·같은 자세·같은 로터 회전수의 **두 실행**이다 — 한쪽은 동체를 "
+                 "완전흡수(Γ=0)로 두어 프로펠러 채널만 남긴다"),
+                ("어느 팔인가",
+                 "두 열 다 **B** = " + ARM_SBR + " 이다. «동체를 막느냐» 라는 스위치는 이 팔 "
+                 "쪽에만 있고, 순수 PO 팔은 이 축의 밖에 선다"),
                 ("변조 깊이",
                  "슬로타임 |h| 의 최대−최소 [dB]. 동체 정적 반사가 크면 이 값이 눌린다"),
                 ("동체:날개 비",
@@ -825,30 +939,34 @@ def blocks_39() -> list:
 
         md("## 같은 칸을 두 채널로 읽는다", "",
            *_fig(1, "report07_f3", "블레이드 신호는 약한가, 아니면 동체가 덮고 있는가?"),
-           "같은 자세·같은 주파수에서 전체 드론과 프로펠러 채널을 따로 쟀다. 두 채널은 같은 "
-           "추적에서 나오므로 기하·재질·광선 격자가 같다."),
+           "⚠ **이 그림의 밴드별 dB 는 그림 빌더에 박힌 값이다**"
+           "(`benchmark/build_report07_figs.py:221-222`) — 아래 표의 원장 값과 다른 판이므로 "
+           "**절대 dB 는 표에서만 인용한다**. 그림이 보이는 것은 두 채널의 **순서**다.", "",
+           "두 채널은 **같은 얼린 판·같은 자세·같은 로터 회전수**의 두 실행에서 나온다 — "
+           "한쪽은 동체를 완전흡수로 두어 프로펠러 채널만 남긴다."),
 
         md("## 두 채널의 값", "",
-           table(["무엇을", "전체 드론 채널", "프로펠러 채널"], [
+           f"둘 다 **B** = {ARM_SBR} 이고, 로터 회전수는 두 열이 같다(흩뜨린 판).", "",
+           table(["무엇을", "전체 드론 채널 (B_sbr_spread)", "프로펠러 채널 (F_blade_occ)"], [
                ["변조 깊이",
-                _L("arms.A_sbr_locked.modulation_ptp_db", "{:.2f}", "dB"),
+                _L("arms.B_sbr_spread.modulation_ptp_db", "{:.2f}", "dB"),
                 _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB")],
                ["레벨",
-                _L("arms.A_sbr_locked.level_db", "{:.2f}", "dB"),
+                _L("arms.B_sbr_spread.level_db", "{:.2f}", "dB"),
                 _L("arms.F_blade_occ.level_db", "{:.2f}", "dB")],
                ["동체:날개 비",
-                _L("arms.A_sbr_locked.dc_over_ac", "{:.2f}"),
+                _L("arms.B_sbr_spread.dc_over_ac", "{:.2f}"),
                 _L("arms.F_blade_occ.dc_over_ac", "{:.3f}")],
                ["반창 스펙트럼 상관",
-                _L("arms.A_sbr_locked.half_window_spectrum_corr", "{:.4f}"),
+                _L("arms.B_sbr_spread.half_window_spectrum_corr", "{:.4f}"),
                 _L("arms.F_blade_occ.half_window_spectrum_corr", "{:.4f}")],
            ]), "",
-           "⭐ 프로펠러 채널의 변조는 전체 채널보다 열 배 넘게 깊다. 레벨은 반대로 훨씬 낮다. "
-           "두 줄을 같이 읽으면 **동체가 밝아서 변조를 눌렀다** 가 나온다."),
+           "⭐ 프로펠러 채널의 변조는 전체 채널보다 **아홉 배 넘게** 깊다. 레벨은 반대로 훨씬 "
+           "낮다. 두 줄을 같이 읽으면 **동체가 밝아서 변조를 눌렀다** 가 나온다."),
 
         md("## 그래서 무엇이 어려운가", "",
            "전기적으로 보면 블레이드 폭은 우리 대역에서 파장의 한 자릿수 분율이다. 그런데도 "
-           "프로펠러 채널의 변조 자체는 "
+           "SBR 팔이 낸 프로펠러 채널의 변조 자체는 "
            + _L("arms.F_blade_occ.modulation_ptp_db", "{:.1f}", "dB") + " 로 깊다.", "",
            "어려운 것은 «블레이드가 약하다» 가 아니라 **«동체와 블레이드를 가르는 일»** 이다. "
            "검출 축에서 정적 성분을 지우는 이유가 여기 있고, 그 노치가 호버 표적의 동체까지 "

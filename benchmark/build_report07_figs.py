@@ -44,6 +44,8 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from microdoppler_proc import (process, clutter_suppress, mti_sos,   # noqa: E402
                               notch_edges_hz, settle_samples)
+#  ⭐ 팔 이름의 정본은 `src/md_mapstyle.py` 다 — 그림 범례와 8-2 본문이 같은 문자열을 쓴다.
+from md_mapstyle import ARM_PO, ARM_SIONNA                          # noqa: E402
 
 MDB = json.load(open(f"{ROOT}/outputs/report15b_microdoppler.json"))
 NPZ = np.load(f"{ROOT}/outputs/report15b_series.npz")
@@ -150,7 +152,13 @@ def fig1_prop_spectrogram():
 
 # ──────────────────────────────────────────── 그림 2 — 세 엔진 나란히
 def fig2_three_engines():
-    """⭐ Sionna PathSolver · 우리 SBR · 우리 PO — 같은 로터, 같은 자세."""
+    """⭐ 두 팔 — 스톡 Sionna PathSolver ↔ 우리 순수 PO **대조군**(가림 없음). 같은 로터·자세.
+
+    ⚠ 이 그림의 원장 `report15_verdict.json` 은 팔이 둘이다 — 최상위 키가 `sionna`·`po` 뿐이라
+      **가림을 켠 SBR 팔은 여기 없다.** 범례·suptitle 이 그 사실을 그대로 적는다.
+    ⚠ 기하는 준-모노스태틱 **기선 0.2 m** 다(`benchmark/report15_verdict_po_grid.py:45
+      BASELINE_M = 0.20`) — 8-2 절 2 의 기선 0 과 다른 판이다.
+    """
     fig = plt.figure(figsize=(9.8, 5.0))
     gs = fig.add_gridspec(2, 2, width_ratios=[1.0, 1.25], wspace=0.235, hspace=0.46,
                           left=0.072, right=0.985, bottom=0.105, top=0.885)
@@ -163,7 +171,7 @@ def fig2_three_engines():
 
         # (a) 한 블레이드 주기의 변조 파형
         ax = fig.add_subplot(gs[row, 0])
-        for w, col, lab in ((s, C_SIO, "Sionna PathSolver"), (p, C_PO, "Our PO kernel")):
+        for w, col, lab in ((s, C_SIO, ARM_SIONNA), (p, C_PO, ARM_PO)):
             a = np.asarray(w["wave_amp_db"], float)
             x = np.linspace(0, 180, len(a), endpoint=False)
             ax.plot(x, a - a.mean(), "-", color=col, lw=1.7,
@@ -174,13 +182,15 @@ def fig2_three_engines():
         ax.set_ylabel("Echo, mean removed [dB]")
         ax.grid(alpha=0.22, lw=0.5)
         ax.set_title(f"{phy['name']} — one blade period", fontsize=FS)
+        _lo, _hi = ax.get_ylim()                 # 팔 이름이 길어 범례가 두 줄이다 — 여유를 준다
+        ax.set_ylim(_lo, _hi + 0.45 * (_hi - _lo))
         ax.legend(loc="upper right", framealpha=0.92, handlelength=1.6)
         if row == 1:
             ax.set_xlabel("Rotor phase [deg]   (2 blades, period = 180)")
 
         # (b) 조화 스펙트럼
         ax = fig.add_subplot(gs[row, 1])
-        for w, col, lab in ((s, C_SIO, "Sionna PathSolver"), (p, C_PO, "Our PO kernel")):
+        for w, col, lab in ((s, C_SIO, ARM_SIONNA), (p, C_PO, ARM_PO)):
             f = np.asarray(w["harm_freq_hz"], float)
             h = np.asarray(w["harm_abs"], float)
             ax.plot(f, 20 * np.log10(np.maximum(h, 1e-18) / h.max()), "-o",
@@ -198,8 +208,9 @@ def fig2_three_engines():
         if row == 1:
             ax.set_xlabel(f"Doppler [Hz]   (harmonics of $f_{{flash}}$)")
 
-    fig.suptitle("Rotor stepped and re-traced by two independent engines — "
-                 "3.5 GHz, range 3 m, nose aspect", fontsize=FS + 0.5, y=0.955)
+    fig.suptitle("Stock path solver vs our unoccluded PO control (no SBR arm) — "
+                 "3.5 GHz, range 3 m, nose aspect, 0.2 m baseline",
+                 fontsize=FS + 0.5, y=0.955)
     _save(fig, "report07_f2")
 
 

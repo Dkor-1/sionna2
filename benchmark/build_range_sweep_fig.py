@@ -21,12 +21,17 @@ build_range_sweep_fig.py — ⭐**거리와 광선 예산** — 무엇이 진짜
       ⇒ 40 m 붕괴는 «PathSolver 의 구조» 가 아니라 **예산 부족**이었다.
   (b) 거리별로 규칙값 (R/3)²·1M 이 얼마인가 vs 우리가 실제로 쓴 값.
       ⇒ 부족분이 거리와 함께 벌어진다. 이것이 옛 판이 무너져 보인 이유다.
-  (c) ⭐그럼에도 남는 것 — **비용**. 같은 경로 수를 유지하려면 광선이 R² 로 늘고,
-      자세 수천 개를 쌓는 마이크로도플러에서는 그 곱이 감당 밖으로 간다.
-      반면 우리 SBR+PO 는 표적 앵커 평면파라 **거리에 불변**이다(수평선).
+  (c) ⭐그럼에도 남는 것 — **비용**. ⭐이 판은 **측정만** 싣는다. 두 팔이 같은 자세 4096 개·
+      같은 기하·같은 슬로타임 격자로 돈 자세당 벽시계 초다. PathSolver 는 (b) 의 (R/3)² 규칙
+      예산(1M / 25M / 178M 발)을, 우리 SBR+PO 는 거리마다 다시 돌린 얼린 격자를 쓴다.
+      정본 서술(RETRACTION_LOG R26) — 가까운 거리에서 최소 예산이면 PathSolver 가 싸고,
+      멀어지거나 예산을 올리면 우리 커널이 싸다.
 
-읽는 것: outputs/report07_ray_budget_test.json (결판 시험)
-         outputs/report07_sionna_ranges.json   (거리 스윕 — 예산 부족 판이라고 표시)
+읽는 것: outputs/report07_ray_budget_test.json      (결판 시험 — 40 m 광선 사다리)
+         outputs/report07_sionna_ranges.json        (거리 스윕 — 예산 부족 판이라고 표시)
+         outputs/report07_three_engine_ranges.json  (PathSolver 실측 자세당 초 · 3 / 15 m)
+         outputs/report07_range40_raybudget.json    (PathSolver 실측 자세당 초 · 40 m 두 예산)
+         outputs/deck_ours_by_range.json            (우리 SBR+PO 실측 자세당 초 · 3 / 15 / 40 m)
 쓰는 것: outputs/figures/report07_f9.{png,pdf}
 """
 from __future__ import annotations
@@ -48,6 +53,32 @@ RB = json.load(open(f"{ROOT}/outputs/report07_ray_budget_test.json"))
 RBM, LAD = RB["_meta"], RB["ladder"]
 SW = json.load(open(f"{ROOT}/outputs/report07_sionna_ranges.json"))
 SWM, SWR = SW["_meta"], SW["ranges"]
+
+# ── (c) 판이 읽는 원장 셋 — 전부 자세 4096 개의 **실측** 벽시계 초다 ─────────
+#  ⭐두 팔을 같은 자세 수로 나눈다. 정규화를 안 하고 절대 초를 그대로 그린다.
+DK = json.load(open(f"{ROOT}/outputs/deck_ours_by_range.json"))
+DKM, DKR = DK["_meta"], DK["ranges"]
+TER = json.load(open(f"{ROOT}/outputs/report07_three_engine_ranges.json"))
+R40 = json.load(open(f"{ROOT}/outputs/report07_range40_raybudget.json"))
+
+#: 우리 SBR+PO — 거리마다 다시 돌린 얼린 격자(위상만 구면파)
+OUR_R = [DKR[k]["range_m"] for k in ("3", "15", "40")]
+OUR_S = [DKR[k]["cpu_seconds"] / DKM["n"] for k in ("3", "15", "40")]
+#: PathSolver — 규칙 예산 판. 3 / 15 m 는 세 엔진 거리 원장, 40 m 는 예산 원장의 178 M 판
+_R40_RULE = [r for r in R40["rows"] if r["spp"] < 1e9]
+_R40_BIG = [r for r in R40["rows"] if r["spp"] >= 1e9]
+PS_R = [TER["ranges"]["R3"]["range_m"], TER["ranges"]["R15"]["range_m"],
+        R40["_meta"]["range_m"]]
+PS_S = [TER["ranges"]["R3"]["seconds"] / TER["_meta"]["n"],
+        TER["ranges"]["R15"]["seconds"] / TER["_meta"]["n"],
+        _R40_RULE[0]["seconds"] / _R40_RULE[0]["n_poses"]]
+PS_RAYS = [TER["ranges"]["R3"]["spp"], TER["ranges"]["R15"]["spp"],
+           _R40_RULE[0]["spp"]]
+#: 같은 40 m 에서 예산만 22.5 배 올린 판 — 시드 두 개의 평균
+BIG_S = sum(r["seconds"] / r["n_poses"] for r in _R40_BIG) / len(_R40_BIG)
+BIG_RAYS = _R40_BIG[0]["spp"]
+#: (b) 스윕의 PathSolver 실측 초 — 캡션이 «평평하다» 고 적는 근거
+SW_S = [SWR[k]["seconds"] / SWM["n"] for k in SWR]
 
 FS = 10.0
 plt.rcParams.update({
@@ -110,25 +141,36 @@ ax.set_ylabel("Rays per pose [millions]")
 ax.set_xlabel("Range")
 ax.grid(axis="y", alpha=0.25, lw=0.5)
 ax.legend(loc="upper left", framealpha=0.92)
-ax.set_title("(b) The old sweep under-launched, and the\ngap widens with range", fontsize=FS)
+ax.set_title("(b) This sweep under-launched, and the\ngap widens with range", fontsize=FS)
 
-# ── (c) 비용 — 무엇이 진짜 남는 한계인가 ────────────────────────────────────
+# ── (c) 비용 — 실측만 싣는다(규칙 곡선은 (b) 에 있다) ───────────────────────
 ax = axes[2]
-rr = np.linspace(3, 120, 300)
-ax.plot(rr, (rr / 3.0) ** 2, "-", color=C_BAD, lw=2.2,
-        label="PathSolver, rays $\\propto R^2$")
-ax.axhline(1.0, color=C_OURS, lw=2.2, ls="-",
-           label="Ours (SBR+PO), range invariant")
+ax.plot(PS_R, PS_S, "-s", color=C_BAD, lw=2.0, ms=6.5,
+        label="PathSolver, rule-sized budget, measured")
+ax.plot([R40["_meta"]["range_m"]], [BIG_S], "^", color=C_BAD, ms=10,
+        mfc="none", mew=1.9,
+        label=f"PathSolver at {R40['_meta']['range_m']:.0f} m, "
+              f"{BIG_RAYS/1e6:,.0f} M rays")
+ax.plot(OUR_R, OUR_S, "-o", color=C_OURS, lw=2.2, ms=7,
+        label="Ours (SBR+PO), measured")
+for r, s, ray in zip(PS_R, PS_S, PS_RAYS):
+    ax.annotate(f"{ray/1e6:,.0f} M", (r, s), textcoords="offset points",
+                xytext=(0, -15), ha="center", fontsize=FS - 2.5, color=C_BAD)
+ax.annotate(f"{BIG_RAYS/1e6:,.0f} M", (R40["_meta"]["range_m"], BIG_S),
+            textcoords="offset points", xytext=(0, 10), ha="center",
+            fontsize=FS - 2.5, color=C_BAD)
 ax.set_yscale("log")
-ax.set_xlabel("Range [m]")
-ax.set_ylabel("Relative cost per pose (3 m = 1)")
+ax.set_xlim(0, 47)
+ax.set_xticks(OUR_R)
+ax.set_xticklabels([f"{r:.0f} m" for r in OUR_R])
+ax.set_ylim(0.13, 45.0)                          # 범례가 앉을 자리를 위에 비운다
+ax.set_xlabel("Range")
+ax.set_ylabel(f"Measured wall time per pose [s], {DKM['n']:,} poses")
 ax.grid(alpha=0.25, lw=0.5)
 ax.legend(loc="upper left", framealpha=0.92)
-for r in (40.0, 100.0):
-    ax.plot([r], [(r / 3.0) ** 2], "o", color=C_BAD, ms=6)
-    ax.annotate(f"{(r/3.0)**2:.0f}x", (r, (r / 3.0) ** 2),
-                textcoords="offset points", xytext=(6, -12), fontsize=FS - 2, color=C_BAD)
-ax.set_title("(c) What actually remains is cost, and it\ngrows while ours does not", fontsize=FS)
+ax.set_title(f"(c) Measured cost, {DKM['n']:,} poses on both arms.\n"
+             f"Budget moves it {BIG_S/PS_S[2]:.1f}x, range {PS_S[2]/PS_S[0]:.1f}x",
+             fontsize=FS)
 
 fig.suptitle(f"{SWM['name']} hovering, belly view, {SWM['fc_hz']/1e9:.1f} GHz. "
              "Is range a wall for the path solver, or a budget?",
@@ -136,18 +178,36 @@ fig.suptitle(f"{SWM['name']} hovering, belly view, {SWM['fc_hz']/1e9:.1f} GHz. "
 
 cap = ("(a) Range, geometry, poses and rotor speeds are all held fixed at "
        f"{RBM['range_m']:.0f} m. Only the ray count changes, and the empty poses vanish, so the "
-       "earlier collapse was a budget shortfall on our side rather than a property of the solver. "
-       "(b) The dashed rule is rays scaled as (R/3) squared from the 3 m case. "
-       "(c) Cost is the honest limit. Holding the path count needs rays growing as R squared, and "
-       "a micro-Doppler run stacks thousands of poses on top of that, while our target-anchored "
-       "plane-wave grid is computed once and does not depend on range.")
+       "collapse at that range is a budget shortfall rather than a property of the solver. "
+       "(b) The grey bars are the rule, rays scaled as (R/3) squared from the 3 m case; the red "
+       "bars are what this sweep launched. Its wall time is flat across range "
+       f"({SW_S[0]:.3f} s per pose at {SWR['R3']['range_m']:.0f} m down to {SW_S[-1]:.3f} s at "
+       f"{SWR['R40']['range_m']:.0f} m, {SWM['n']} poses) because the budget stayed near the 3 m "
+       "value. "
+       "(c) Measurement only, at rule-sized budgets; the rule itself is panel (b). Both arms run "
+       f"the same {DKM['n']:,} poses, same airframe, azimuth 0 and elevation "
+       f"{DKM['el_deg']:.0f} deg, {DKM['fc_hz']/1e9:.1f} GHz, {DKM['prf_hz']/1e3:.1f} kHz "
+       "slow time. PathSolver budgets follow the panel (b) rule ("
+       + ", ".join(f"{r/1e6:,.0f} M at {x:.0f} m" for r, x in zip(PS_RAYS, PS_R))
+       + "), while ours is one frozen ray grid re-solved per range with spherical-wave phase. "
+       "At short range on the minimum budget PathSolver costs less per pose, and cost crosses "
+       "over as range or budget grows. Ledgers: report07_ray_budget_test.json, "
+       "report07_sionna_ranges.json, report07_three_engine_ranges.json, "
+       "report07_range40_raybudget.json, deck_ours_by_range.json.")
 fig.text(0.055, 0.045, "\n".join(textwrap.fill(p, 170) for p in cap.split("\n")),
          fontsize=FS - 2.2, color="0.3", va="top")
 
 for ext in ("png", "pdf"):
     fig.savefig(f"{FIGDIR}/report07_f9.{ext}", bbox_inches="tight", facecolor="white")
 plt.close(fig)
-print("  ✅ outputs/figures/report07_f9.png — 광선 예산 판으로 재작성")
+print("  ✅ outputs/figures/report07_f9.png — 광선 예산 판")
 for k in LAD:
     v = LAD[k]
     print(f"     {k:>6s}  경로중앙 {v['paths_median']:.0f} · 빈자세 {v['zero_frac']:.1%}")
+print(f"  (c) 실측 자세당 초 · 자세 {DKM['n']:,} 개")
+for r, s, ray in zip(PS_R, PS_S, PS_RAYS):
+    print(f"     PathSolver {r:5.0f} m  {ray/1e6:7,.0f} M 발  {s:.3f} s")
+print(f"     PathSolver {R40['_meta']['range_m']:5.0f} m  {BIG_RAYS/1e6:7,.0f} M 발  "
+      f"{BIG_S:.3f} s (시드 {len(_R40_BIG)} 판 평균)")
+for r, s in zip(OUR_R, OUR_S):
+    print(f"     Ours       {r:5.0f} m  {'얼린 격자':>12s}  {s:.3f} s")
