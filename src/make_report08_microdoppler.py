@@ -1105,6 +1105,19 @@ def build_08_3():
     _fsl = _opt(f"{_ROOT}/outputs/freeze_signal_loss.json") or {}
     _FSL_OPEN = ((_fsl.get("verdict") or {}).get("open_ko")
                  or "⛔ 원장 없음 — `outputs/freeze_signal_loss.json : verdict.open_ko`")
+    # ⛔ 상설 규칙 — 얼린 팔의 **절대 레벨**과 가림 축의 **dB 크기**는 격자 판 한 장의
+    #    서브셀 오프셋에 걸린다. 판 셋으로 잰 흩어짐이 그 값을 덮으므로 본문은 크기를 뺀다.
+    _fps = (_opt(f"{_ROOT}/outputs/freeze_plate_sensitivity.json") or {}).get("verdict") or {}
+
+    def _pl(key: str) -> str:
+        v = _fps.get(key)
+        return f"{v:.2f} dB" if isinstance(v, (int, float)) else "«원장 없음»"
+
+    _PL_ABS, _PL_OCC, _PL_PTP = (_pl("abs_level_plate_ptp_db"),
+                                 _pl("occlusion_level_plate_ptp_db"),
+                                 _pl("occlusion_ptp_plate_ptp_db"))
+    #: 두 채널의 레벨 **차** — 절대 두 수는 본문 밖이고, 차는 위 흩어짐을 한 자릿수 넘는다.
+    _LVL_GAP = ARM["B_sbr_spread"]["level_db"] - ARM["F_blade_occ"]["level_db"]
     c = [
         md("# 리포트 8-3 — 마이크로도플러: 무엇이 무늬를 정하나", "", NAV, "",
            "> **회전수·가림·산포 세 가지가 무늬를 정한다.** 각각을 갈라서 얼마나 바꾸는지 잰다.", "",
@@ -1142,9 +1155,12 @@ def build_08_3():
         md("## 동체가 막으면 무엇이 달라지나", "",
            embed("report07_f4"), "",
            f"가림 단일축(F↔G)의 실측이다 — 둘 다 **B 팔**(SBR)이고, 광선 엔진·재질·기하·"
-           "운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. "
-           f"레벨은 {FND['occlusion_level_db']:+.2f} dB, 변조 깊이는 "
-           f"{FND['occlusion_ptp_db']:+.2f} dB 움직인다.", "",
+           "운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 막으면 **레벨과 변조 "
+           "깊이가 함께 움직인다**.", "",
+           f"⛔ 그 움직임의 **dB 크기는 본문 밖**이다 — 격자 판을 반 칸 옮기면 레벨 차가 "
+           f"{_PL_OCC}, 깊이 차가 {_PL_PTP} 흔들려 원장 값을 덮는다"
+           "(`outputs/freeze_plate_sensitivity.json : verdict`). 크기가 필요한 자리에서는 판 "
+           "앙상블 평균이 먼저이고, 그 실측 표는 절 5 가 낸다.", "",
            "⭐ **이 축은 B 팔에서만 선다** — P 팔(순수 PO)은 모든 면이 항상 기여하는 설계라 "
            "«막느냐» 라는 스위치가 그 팔의 밖에 있다. 그래서 이 그림에는 P 대조가 없고, "
            "그 사실이 이 축의 한계다.", "",
@@ -1163,13 +1179,16 @@ def build_08_3():
            f"앙각 {LEAD['el_deg']:.0f}°) — "
            f"{ARM['F_blade_occ']['modulation_ptp_db']/ARM['B_sbr_spread']['modulation_ptp_db']:.0f} "
            "배 차이다.", "",
-           f"레벨은 반대다 — 전체 채널 {ARM['B_sbr_spread']['level_db']:.1f} dB 대 프로펠러 채널 "
-           f"{ARM['F_blade_occ']['level_db']:.1f} dB 로 동체 쪽이 훨씬 밝다. 두 줄을 같이 읽으면 "
-           "**동체가 밝아서 변조를 눌렀다** 가 나온다 — 검출 축에서 정적 성분을 지우는 이유가 "
-           "여기 있다.", "",
-           "⚠ **이 그림의 밴드별 dB 는 그림 빌더에 박힌 값이다**"
-           "(`benchmark/build_report07_figs.py:221-222`) — 위 문단의 원장 값과 다른 판이므로 "
-           "**절대 dB 는 본문에서만 인용한다**. 그림이 보이는 것은 두 채널의 **순서**다.", "",
+           f"레벨은 반대다 — 프로펠러 채널이 전체 채널보다 **{_LVL_GAP:.2f} dB** 아래라 동체 "
+           "쪽이 그만큼 밝다(위 두 원장 값의 차). 두 줄을 같이 읽으면 **동체가 밝아서 변조를 "
+           "눌렀다** 가 나온다 — 검출 축에서 정적 성분을 지우는 이유가 여기 있다.", "",
+           f"⛔ 절대 레벨 두 수는 본문 밖에 둔다 — 얼린 팔의 절대 레벨은 격자 판 한 장의 서브셀 "
+           f"오프셋에 {_PL_ABS} p-p 로 걸리고, 절대 σ 는 디더를 켠 정적 경로가 낸다. 위 **차**는 "
+           "그 흩어짐의 여섯 배라 그대로 선다.", "",
+           "⛔ **이 그림의 밴드별 dB 는 원장 밖이다** — 값이 그림 빌더에 박혀 있고"
+           "(`benchmark/build_report07_figs.py:221-222`, 2026-08-07 실행) 그 실행의 원장이 "
+           "`outputs/` 에 없다. 위 문단이 선 원장은 **3.5 GHz 한 밴드**뿐이라 나머지 다섯 "
+           "밴드는 «원장 없음» 이다. 그림에서 읽는 것은 두 채널의 **순서**다.", "",
            f"원장: `outputs/report15b_microdoppler.json : "
            f"cells.{LEAD['drone']}/{LEAD['aspect']}.arms"
            ".{B_sbr_spread, F_blade_occ}`."),
@@ -1287,8 +1306,62 @@ def build_08_4():
     _big_hours = _NOL if _bigh is None else f"{_bigh:.1f} 시간"
     _big_poses = _NOL if _bignp is None else f"{_bignp:,} 개"
     _minus = (lambda v, f="{:.0f}": f.format(v).replace("-", "−"))
+
+    # ⭐ 편 끝의 «## 출처» — 08_3·08_5 와 같은 규약. 파일이 디스크에 있는지까지 확인해 적고,
+    #    «팔» 칸으로 어느 엔진이 그 값을 냈는지를 못 박는다.
+    _src_08_4 = [
+        ("report07_sionna_ranges.json",
+         "`_meta.{spp_scaling_ko,n,prf_hz,farfield_boundary_m}` · "
+         "`ranges.*.{range_m,spp,paths_zero_frac}`", "S", "§1 예산비 · 40 m 빈 자세"),
+        ("report07_ray_budget_test.json",
+         "`_meta.{range_m,n_poses,rule_value_spp,verdict_ko}` · `ladder.*`", "S",
+         "§1 결판 시험 표 · 판정"),
+        ("report07_three_engine_ranges.json",
+         "`_meta.{n,grid_note_ko}` · `ranges.{R3,R15}.{spp,seconds}`", "S",
+         "§1 비용표 3 · 15 m"),
+        ("report07_range40_raybudget.json",
+         "`_meta.range_m` · `rows[*].{spp,seconds,n_poses}`", "S",
+         "§1 비용표 40 m 두 예산"),
+        ("deck_ours_by_range.json",
+         "`_meta.{drone,az_deg,el_deg,fc_hz,prf_hz,n}` · `ranges.{3,15,40}.cpu_seconds`",
+         "B", "§1 비용표 우리 팔 · 그림 f9 (c)"),
+        ("report00_microdoppler.json", "`rows[matrice4e].farfield_m`", "해",
+         "§1 원거리장 경계"),
+        ("report15_probe.json",
+         "`airframes.matrice4e.physics.{D_horizontal_m,D_diag3d_m,farfield_diag3d_m}`",
+         "해", "§1 D 정의 둘"),
+        ("report07_5g_waveform.json",
+         "`_meta.*` · `arms.*.{label,fs_hz,n,nyquist_hz,ftip_folds,fflash_folds}`", "B",
+         "§2 전부(채널열은 얼기 전 판)"),
+        ("report07_three_engines.json",
+         "`_meta.{prf_hz,f_flash_hz}` · `engines.sbr.grid_ref`", "B",
+         "부록 표시 규약 · f12 · f8 행"),
+        ("report15_verdict.json", "`meta.stamp`", "S·P", "부록 f2 행"),
+        ("report15b_microdoppler.json", "`_meta` · `cells[matrice4e/belly].physics`", "B",
+         "부록 f1 · f4 행"),
+        ("report07_hover_long.json", "`_meta.{generated,regenerated,prf_hz,grid_ref}`", "B",
+         "부록 f7 행 · §2 채널의 현재 판"),
+        ("report07_hover_long_outdoor.json", "`_meta.{generated,prf_hz}`", "B",
+         "부록 f11 행"),
+        ("rotor_log_traces.json", "`sources.*`(공개 비행로그)", "측정", "부록 f13 행"),
+    ]
+
+    def _src_rows_08_4() -> str:
+        out = []
+        for f, keys, arm, where in _src_08_4:
+            mark = "" if os.path.exists(f"{_ROOT}/outputs/{f}") else " ⚠**없음**"
+            out.append(f"| `outputs/{f}`{mark} | {keys} | **{arm}** | {where} |")
+        return "\n".join(out)
+
     _our_span = (_NOL if None in _our else
                  f"{min(_our):.3f}~{max(_our):.3f} s")
+    # ⭐ §2 표의 표본율은 «라벨» 이다 — 파형 스크립트가 보간 비를 5 kHz 로 못 박아 두어
+    #    실제 시간축은 채널 PRF 만큼 늘어난다. 배율과 실제 축을 **같은 원장 두 키**로 다시
+    #    잰다(표본 수 ÷ 기록 길이). 새 계산 없이 산술만 한다.
+    _T5 = WA["cw_5k"]["n"] / WA["cw_5k"]["fs_hz"]
+    _fs_true = {k: WA[k]["n"] / _T5 for k in WA}
+    _mult5 = _fs_true["nr_full_28k"] / WA["nr_full_28k"]["fs_hz"]
+    _nyq_crs, _nyq_ssb = _fs_true["nr_crs_1k"] / 2.0, _fs_true["nr_ssb_50"] / 2.0
     _cost_setup = ("" if not _DK else
                    f"{_DK['_meta']['drone']} · 방위 {_DK['_meta']['az_deg']:.0f} · 앙각 "
                    f"{_minus(_DK['_meta']['el_deg'])} · {_DK['_meta']['fc_hz']/1e9:.1f} GHz · "
@@ -1305,6 +1378,11 @@ def build_08_4():
            f"{RGM['fc_hz']/1e9:.1f} GHz CW. 표적을 3 → 10 → 20 → 40 m 로 물리며 자세당 "
            "발견 경로 수를 셌다.", "",
            embed("report07_f9"), "",
+           "⭐ **판마다 선 팔이 다르다** — (a)(b) 는 **S 팔**(광선 예산 축) 하나로 서고, "
+           "(c) 만 두 팔의 실측을 나란히 놓는다. 이 절의 거리 스윕 원장 둘"
+           "(`report07_sionna_ranges` · `report07_ray_budget_test`)은 S 팔 키(`spp` · "
+           "`paths_*`)만 담는다 — **B 팔의 거리 비용은 `deck_ours_by_range.json` 이 따로 "
+           "잰 것**이고 아래 표 셋째 행이 그 값이다.", "",
            "⚠ **이 스윕이 쓴 광선 예산은 규칙값보다 적다 — 그것을 먼저 적는다.** 표적이 "
            "멀어지면 그만큼 작게 보이므로 광선을 (R/3)² 로 늘리는 것이 이 프로젝트의 규칙인데"
            "(원장 `_meta.spp_scaling_ko`), 이 스윕이 실제로 준 것은 규칙값의 "
@@ -1364,9 +1442,12 @@ def build_08_4():
            f"팔의 {_r_ours40} 배가 된다."),
 
         md("## 같은 채널에 5G 파형을 실제로 태우면", "",
-           "**시나리오** — 채널은 08_3 의 2 초 호버링 h(t) 이고, 이 절이 쓰는 열은 그 원장의 "
+           "**시나리오** — 채널은 **B 팔**(우리 SBR+PO · `rcs_sbr.sbr_field`)이 낸 08_3 의 "
+           "2 초 호버링 h(t) 이고, 이 절이 쓰는 열은 그 원장의 "
            "**얼기 전 판**이다 — `outputs/prefreeze/report07_hover_long.npz::E` 와 바이트 "
-           f"동일하다(5G 원장 {WM['generated'][:16]}). 바꾼 것은 "
+           f"동일하다(5G 원장 {WM['generated'][:16]} · 채널 원장의 현재 판은 "
+           f"{HOV.get('regenerated', HOV['generated'])[:16]} 의 얼린 격자다). "
+           "**이 절이 쓰는 팔은 B 하나다.** 바꾼 것은 "
            f"파형뿐이다: 5G NR 형 OFDM — SCS {WM['scs_hz']/1e3:.0f} kHz(n78) · "
            f"유효 부반송파 {WM['n_sc']:,}개 · 심볼마다 무작위 QPSK · "
            f"심볼율 {WM['sym_rate_hz']/1e3:.0f}k sym/s. 수신은 기지 심볼 나눗셈으로 심볼마다 "
@@ -1389,7 +1470,8 @@ def build_08_4():
            f"±{WA['nr_ssb_50']['nyquist_hz']:.0f} Hz, 속도로는 "
            f"±{WA['nr_ssb_50']['nyquist_hz']*LAM5G/2:.2f} m/s 뿐인데 날개끝은 초당 "
            f"{WM['f_tip_hz']*LAM5G/2:.1f} m 로 움직인다(모노스태틱 환산 v = f·λ/2, "
-           f"λ = {LAM5G*1e3:.1f} mm).", "",
+           f"λ = {LAM5G*1e3:.1f} mm). ⚠ 이 두 칸 가운데 CRS 쪽은 **라벨 축**에서 선다 — "
+           "아래 ⏳ 가 실제 축의 값을 적는다.", "",
            "⭐ **네 패널은 축이 완전히 같다.** 그래서 낮은 반복률의 대가가 **빈 자리**로 보인다 — "
            "회색으로 덮은 영역은 «조용함» 이 아니라 **그 표본율로는 측정 자체가 불가능한 영역**이다.", "",
            f"⚠ **이 수치가 무엇을 재는지 정확히 적는다.** «풀캡처 ≡ CW» 의 "
@@ -1406,14 +1488,27 @@ def build_08_4():
            "어긋난다**(네 갈래의 나이퀴스트도 그 라벨에서 나온 값이다). 이 절의 논지 — "
            "«쓸 수 있는 것을 정하는 것은 파형이 아니라 반복률이다» — 는 그대로지만, 숫자는 "
            "`benchmark/report07_5g_waveform.py` 의 보간 비를 채널 PRF 에서 읽게 고쳐 다시 "
-           "계산한 뒤에 인용한다."),
+           "계산한 뒤에 인용한다.", "",
+           "⏳ **그 어긋남의 크기를 같은 원장 안에서 잰다.** 갈래마다 표본 수를 기록 길이 "
+           f"{_T5:.1f} 초로 나누면 실제 표본율이 나온다 — 라벨의 **{_mult5:.2f} 배**다"
+           f"(풀캡처 {_fs_true['nr_full_28k']/1e3:.1f}k Hz · CRS 급 "
+           f"{_fs_true['nr_crs_1k']:.0f} Hz · SSB 급 {_fs_true['nr_ssb_50']:.0f} Hz). "
+           f"그 축에서 CRS 급의 나이퀴스트는 {_nyq_crs:.0f} Hz 라 날개끝 "
+           f"{WM['f_tip_hz']:.0f} Hz 가 **보이고**, 위 표의 그 칸이 뒤집힌다. SSB 급은 실제 "
+           f"축에서도 나이퀴스트가 {_nyq_ssb:.1f} Hz 뿐이라 날개끝과 플래시 "
+           f"{WM['f_flash_hz']:.0f} Hz 가 둘 다 접힌다. ⇒ **지금 서는 것은 SSB 쪽 접힘이고, "
+           "CRS 쪽 접힘은 라벨 축에서만 선다.**"),
 
         md("## 부록 — 그림별 데이터 이력", "",
            "그림마다 딛고 선 원장과 그 시점이 다르다. ⭐**원장의 PRF 가 다르면 시간 분해능도 "
            "다르다** — 그래서 그림마다 선명도가 갈릴 수 있다. 마지막 칸은 그 원장의 우리 팔이 "
            "어떤 **광선 격자**로 풀렸는가다(**절 [«광선 격자를 어디에 매나»](08_2_engines.ipynb)**).", "",
            "| 그림 | 편 | 원장 | 생성 | PRF | 광선 격자 |", "|---|---|---|---|---|---|",
-           f"| 애니메이션 · f0 · f0c | 08_1 | 렌더(수치 없음) | 2026-08-10 | — | — |",
+           "| 애니메이션 · f0 | 08_1 | 렌더 — 애니메이션 계수는 `report07_anim.json` | "
+           + ((ANIM["_meta"]["generated"][:10]) if ANIM else "2026-08-10")
+           + " | — | 렌더(Mitsuba path tracer) · 팔 무관 |",
+           "| f0c | 08_1 | 렌더 실행 — 그림 속 **경로 수는 원장 없음** | 2026-08-10 | — | "
+           "**S** 팔(경로해 · 광선 격자 무관) |",
            f"| f12 · f8 | 08_2 | `report07_three_engines.json` | "
            f"{_stamp(TM)} | {TM['prf_hz']:.0f} Hz | {_PLATE_TRI} |",
            f"| f2 | 08_2 | `report15_verdict.json` | {VERD['meta']['stamp'][:10]} | — | "
@@ -1487,6 +1582,19 @@ def build_08_4():
            "# 이 빌더가 내는 네 편(08_1~08_4) — 08_5 는 src/make_report07b_bistatic.py",
            "PYTHONPATH=src python src/make_report08_microdoppler.py",
            "```"),
+
+        md("## 출처", "",
+           "이 편의 숫자가 온 자리다. «팔» 칸은 그 값을 낸 계산 팔이다 — **S** = "
+           + ARM_SIONNA + " · **B** = " + ARM_SBR + " · **P** = " + ARM_PO
+           + " · **해** = 닫힌 식·규약. 팔 이름의 정본은 `src/md_mapstyle.py` 다.", "",
+           "| 원장 | 키 | 팔 | 이 편의 어디에 |", "|---|---|---|---|",
+           _src_rows_08_4(), "",
+           "**원장 없음 두 자리** — 부록 표의 f0c 경로 수(렌더가 stdout 으로만 적는다) · "
+           "얼린 판 위의 5G 채널(§2 의 열은 얼기 전 판이다). 둘 다 본문에 «원장 없음»·«얼기 전 "
+           "판» 으로 적었고 그 자리의 수치는 인용에서 뺐다.", "",
+           "⚠ **두 절은 다른 축을 잰다** — §1 은 광선 비용(**S**·**B** 두 팔의 자세당 벽시계 "
+           "초 · 같은 자세 수), §2 는 조명원 반복률(**B** 팔 채널 하나)이다. 두 절의 절대 "
+           "수치를 섞어 읽으면 어긋난다."),
     ]
     write("08_4", "sampling", c)
 

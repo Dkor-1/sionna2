@@ -117,7 +117,7 @@ axr.tick_params(axis="y", labelcolor=C_OK)
 axr.set_ylim(-0.3, max(med) * 1.35)
 rule = RBM["rule_value_spp"] / 1e6
 ax.axvline(rule, color="0.45", ls=":", lw=1.2)
-ax.set_title(f"(a) At {RBM['range_m']:.0f} m, rays alone fix it\n"
+ax.set_title(f"(a) PathSolver at {RBM['range_m']:.0f} m, rays alone fix it\n"
              f"{zero[0]:.0f}% empty at {spp[0]:.0f}M, {zero[1]:.0f}% at {spp[1]:.0f}M",
              fontsize=FS)
 h1, l1 = ax.get_legend_handles_labels()
@@ -141,7 +141,8 @@ ax.set_ylabel("Rays per pose [millions]")
 ax.set_xlabel("Range")
 ax.grid(axis="y", alpha=0.25, lw=0.5)
 ax.legend(loc="upper left", framealpha=0.92)
-ax.set_title("(b) This sweep under-launched, and the\ngap widens with range", fontsize=FS)
+ax.set_title("(b) PathSolver budget: this sweep under-launched,\nand the gap widens with range",
+             fontsize=FS)
 
 # ── (c) 비용 — 실측만 싣는다(규칙 곡선은 (b) 에 있다) ───────────────────────
 ax = axes[2]
@@ -176,7 +177,10 @@ fig.suptitle(f"{SWM['name']} hovering, belly view, {SWM['fc_hz']/1e9:.1f} GHz. "
              "Is range a wall for the path solver, or a budget?",
              fontsize=FS + 1.5, y=0.955)
 
-cap = ("(a) Range, geometry, poses and rotor speeds are all held fixed at "
+cap = ("Panels (a) and (b) carry the path-solver arm alone: the two ledgers behind them hold only "
+       "path-solver keys, so the SBR+PO arm has no range point there. Its cost comes from its own "
+       "ledger and appears in panel (c). "
+       "(a) Range, geometry, poses and rotor speeds are all held fixed at "
        f"{RBM['range_m']:.0f} m. Only the ray count changes, and the empty poses vanish, so the "
        "collapse at that range is a budget shortfall rather than a property of the solver. "
        "(b) The grey bars are the rule, rays scaled as (R/3) squared from the 3 m case; the red "

@@ -767,15 +767,17 @@ def blocks_38() -> list:
                 f"⭐ 이 축은 **SBR 팔(B)에서만 선다** — 순수 PO 팔(P)은 모든 면이 항상 "
                 f"기여하는 설계라 «막느냐» 라는 스위치가 그 팔의 밖에 있다.",
 
-                f"변조 깊이가 {_L('findings.occlusion_ptp_db', '{:+.2f}', 'dB')}, 레벨이 "
-                f"{_L('findings.occlusion_level_db', '{:+.2f}', 'dB')} 바뀐다"
+                f"동체가 막으면 변조 깊이와 레벨이 **함께 움직인다** — 막는 열(F)의 깊이는 "
+                f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')}, 안 막는 열(G)은 "
+                f"{_L('arms.G_blade_free.modulation_ptp_db', '{:.2f}', 'dB')} 다"
                 f"({_L('name')} · 배 쪽 한 칸).",
 
-                f"막는 열(F)의 변조 깊이는 "
-                f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')} · 레벨 "
-                f"{_L('arms.F_blade_occ.level_db', '{:.2f}', 'dB')}, 안 막는 열(G)은 "
-                f"{_L('arms.G_blade_free.modulation_ptp_db', '{:.2f}', 'dB')} · "
-                f"{_L('arms.G_blade_free.level_db', '{:.2f}', 'dB')} 다.",
+                f"⛔ 그 움직임의 **dB 크기는 판 선택 위에 있다** — 격자 판을 반 칸 옮기면 레벨 "
+                f"차가 {_n('verdict.occlusion_level_plate_ptp_db', FPS, '{:.2f}', 'dB')}, 깊이 "
+                f"차가 {_n('verdict.occlusion_ptp_plate_ptp_db', FPS, '{:.2f}', 'dB')} 흔들려 "
+                f"원장 값을 넘는다. 두 열의 절대 레벨도 판 셋 사이 "
+                f"{_n('verdict.abs_level_plate_ptp_db', FPS, '{:.2f}', 'dB')} p-p 라 같은 규칙 "
+                f"아래 둔다 — 이 편은 크기 대신 **존재**를 세운다.",
 
                 f"두 열의 광선 격자를 같게 유지했다 — 막는 쪽은 동체를 완전흡수로 두고, "
                 f"안 막는 쪽은 동체 면만 빼되 정점은 남겼다.",
@@ -809,23 +811,33 @@ def blocks_38() -> list:
 
         md("## 두 열의 값 — 둘 다 SBR 팔이다", "",
            f"둘 다 **B** = {ARM_SBR} 이고, 여기서 «두 팔» 은 엔진이 아니라 **동체를 막는 열과 "
-           "막지 않는 열**을 가리킨다.", "",
-           table(["무엇을", "막는 열 (F)", "안 막는 열 (G)", "차이"], [
+           "막지 않는 열**을 가리킨다. 오른쪽 두 열이 이 표를 읽는 법을 정한다 — 판 셋 "
+           "흩어짐보다 작은 칸은 본문 밖에 둔다.", "",
+           table(["무엇을", "막는 열 (F)", "안 막는 열 (G)", "차이 (F−G)", "판 셋 p-p"], [
                ["변조 깊이",
                 _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB"),
                 _L("arms.G_blade_free.modulation_ptp_db", "{:.2f}", "dB"),
-                _L("findings.occlusion_ptp_db", "{:+.2f}", "dB")],
+                "⛔ 본문 밖",
+                _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")],
                ["레벨",
-                _L("arms.F_blade_occ.level_db", "{:.2f}", "dB"),
-                _L("arms.G_blade_free.level_db", "{:.2f}", "dB"),
-                _L("findings.occlusion_level_db", "{:+.2f}", "dB")],
+                "⛔ 본문 밖", "⛔ 본문 밖", "⛔ 본문 밖",
+                _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+                + " (팔별 절대 "
+                + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB") + ")"],
                ["동체:날개 비",
                 _L("arms.F_blade_occ.dc_over_ac", "{:.3f}"),
-                _L("arms.G_blade_free.dc_over_ac", "{:.3f}"), "—"],
+                _L("arms.G_blade_free.dc_over_ac", "{:.3f}"), "—", "—"],
                ["날개끝 안쪽 에너지 비",
                 _L("arms.F_blade_occ.energy_inside_ftip_frac", "{:.4f}"),
-                _L("arms.G_blade_free.energy_inside_ftip_frac", "{:.4f}"), "—"],
-           ])),
+                _L("arms.G_blade_free.energy_inside_ftip_frac", "{:.4f}"), "—", "—"],
+           ]), "",
+           f"⛔ «본문 밖» 칸의 값은 원장 `{MDB}` 에 그대로 있다. 크기를 뺀 이유가 둘이다 — "
+           "레벨 차(F−G)는 판 셋 흩어짐 "
+           + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " 안에 들고, 팔별 절대 레벨은 판 한 장의 서브셀 오프셋에 "
+           + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " p-p 로 걸린다. 얼린 복소장은 **무늬의 모양**을 내고, 절대 σ 는 디더를 켠 정적 "
+           "경로가 낸다."),
 
         md("## 여섯 칸의 부호는 갈린다", "",
            "위 표는 한 칸이다. 같은 원장의 여섯 칸을 전부 늘어놓으면 레벨 차의 **부호가 칸마다 "
@@ -838,26 +850,32 @@ def blocks_38() -> list:
                   for k in fetch((MDB, "cells"))]), "",
            "⭐ `mini5pro/nose` 는 F 열과 G 열의 변조 깊이가 배정밀도 자릿수까지 같은 값이고 "
            "레벨 차도 그 자릿수 안에서 0 이다 — 그 자세에서 동체가 블레이드를 덮는 몫이 0 이다. "
-           "이 축이 자세에 얼마나 걸리는지가 그 칸에 있다."),
+           "이 축이 자세에 얼마나 걸리는지가 그 칸에 있다.", "",
+           "⚠ 여섯 칸의 레벨 차는 전부 판 셋 흩어짐 "
+           + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " 안에 든다. 그래서 이 표가 세우는 것은 **«칸마다 다르다»** 까지이고, 칸 하나의 dB 는 "
+           "판 선택 위에 있다."),
 
         md("## ⭐이 표의 dB 는 «판 한 장» 에도 걸린다", "",
            "두 팔은 같은 얼린 광선 격자를 쓴다. 그러면 격자를 어디에 놓았느냐는 두 팔에 똑같이 "
            "실리므로 차이에서 빠질 것 같다 — 그것이 «단일축» 이라는 말의 뒷받침이었다. "
            "그 가정을 재 봤다: 판의 중심만 **반 칸** 옮긴 같은 크기의 판으로 같은 자세열을 다시 "
            "태우면 (광선 수·간격이 같고 서브셀 오프셋만 다르다) 이렇게 움직인다.", "",
-           table(["무엇이", "판 셋 사이 p-p", "이 편이 인용하는 값", "읽는 법"],
+           table(["무엇이", "판 셋 사이 p-p", "원장에 있는 값", "이 편이 쓰는 자리"],
                  [["전체 팔의 절대 레벨",
                    _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB"),
-                   _L("arms.A_sbr_locked.level_db", "{:.2f}", "dB"),
-                   "절대 σ 를 얼린 복소장에서 읽으면 안 되는 이유 — σ 는 정적 경로가 낸다"],
+                   "`arms.*.level_db`",
+                   "⛔ 본문 밖 — 절대 σ 는 디더를 켠 정적 경로가 낸다"],
                   ["가림 · 레벨 (F−G)",
                    _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB"),
-                   _L("findings.occlusion_level_db", "{:+.2f}", "dB"),
-                   "판 흩어짐이 인용값보다 크다 — 이 칸은 **크기를 인용하지 않는다**"],
+                   "`findings.occlusion_level_db`",
+                   "⛔ 본문 밖 — 판 흩어짐이 그 값을 덮는다"],
                   ["가림 · 변조 깊이 (F−G)",
                    _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB"),
-                   _L("findings.occlusion_ptp_db", "{:+.2f}", "dB"),
-                   "같은 이유. 깊이 차의 **부호도** 판에 따라 바뀐다"]]), "",
+                   "`findings.occlusion_ptp_db`",
+                   "⛔ 본문 밖 — 깊이 차의 **부호도** 판에 따라 바뀐다"]]), "",
+           "⭐ 셋째 열은 **키 이름**이다. 값은 원장에 그대로 있고, 이 편의 본문·표는 그 크기를 "
+           "빼고 «두 양이 함께 움직인다» 만 세운다 — 규칙과 본문이 한 자리에서 맞는다.", "",
            "⭐ 그러니 이 편이 서는 자리를 좁힌다. **«동체가 막으면 두 양이 함께 움직인다» 는 "
            "그대로 서고, 그 움직임의 dB 크기는 판 선택 위에 있다.** 크기가 필요한 자리에서는 "
            "판 앙상블 평균(오프셋 여러 판의 평균)이 먼저다"
@@ -894,6 +912,13 @@ def blocks_38() -> list:
 #  편 39 — 블레이드 대 동체
 # =========================================================================== #
 def blocks_39() -> list:
+    #: 두 채널의 레벨 **차**. 절대 레벨 두 수는 판 한 장의 서브셀 오프셋에 걸려 본문 밖이고
+    #  (상설 규칙 — `freeze_plate_sensitivity.json : verdict`), 차는 그 흩어짐을 크게 넘는다.
+    _gap = (fetch((MDB, f"{LEAD}.arms.B_sbr_spread.level_db"))
+            - fetch((MDB, f"{LEAD}.arms.F_blade_occ.level_db")))
+    _GAP = f"{_gap:.2f} dB"
+    _GAP_SRC = (f"`{MDB} : {LEAD}.arms." + "{B_sbr_spread, F_blade_occ}.level_db` 의 차")
+
     return [
         header(
             num=39,
@@ -906,9 +931,9 @@ def blocks_39() -> list:
                 f"프로펠러 채널은 "
                 f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')} 다.",
 
-                f"두 채널의 레벨은 "
-                f"{_L('arms.B_sbr_spread.level_db', '{:.2f}', 'dB')} 와 "
-                f"{_L('arms.F_blade_occ.level_db', '{:.2f}', 'dB')} 로, 동체가 훨씬 밝다.",
+                f"프로펠러 채널의 레벨은 전체 채널보다 **{_GAP}** 아래다({_GAP_SRC}) — 동체가 "
+                f"그만큼 밝다. ⛔ 절대 레벨 두 수는 판 선택 위에 있어 본문 밖이고, 차는 판 셋 "
+                f"흩어짐 {_n('verdict.abs_level_plate_ptp_db', FPS, '{:.2f}', 'dB')} 를 넘는다.",
 
                 f"동체:날개 비가 전체 채널에서 "
                 f"{_L('arms.B_sbr_spread.dc_over_ac', '{:.2f}')}, 프로펠러 채널에서 "
@@ -930,8 +955,10 @@ def blocks_39() -> list:
                  "슬로타임 |h| 의 최대−최소 [dB]. 동체 정적 반사가 크면 이 값이 눌린다"),
                 ("동체:날개 비",
                  "DC(정적 성분) 대 AC(변조 성분) 의 비. 이 값이 클수록 동체가 덮는다"),
-                ("무엇을 안 주장하나",
-                 "절대 레벨은 이 축의 산출이 아니다 — 두 채널의 **비**만 읽는다"),
+                ("절대 레벨을 어디에 두나",
+                 "얼린 팔의 절대 레벨은 격자 판 한 장의 서브셀 오프셋에 걸린다(판 셋 p-p "
+                 + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+                 + ") — 이 편은 두 채널의 **차와 비**만 읽는다"),
             ],
             prereq=[("앞 편", ref("md-occlusion", "가림 축") + " — 두 팔의 정의")],
             repro=REPRO_15B,
@@ -939,9 +966,11 @@ def blocks_39() -> list:
 
         md("## 같은 칸을 두 채널로 읽는다", "",
            *_fig(1, "report07_f3", "블레이드 신호는 약한가, 아니면 동체가 덮고 있는가?"),
-           "⚠ **이 그림의 밴드별 dB 는 그림 빌더에 박힌 값이다**"
-           "(`benchmark/build_report07_figs.py:221-222`) — 아래 표의 원장 값과 다른 판이므로 "
-           "**절대 dB 는 표에서만 인용한다**. 그림이 보이는 것은 두 채널의 **순서**다.", "",
+           "⛔ **이 그림의 밴드별 dB 는 원장 밖이다** — 값이 그림 빌더에 박혀 있고"
+           "(`benchmark/build_report07_figs.py:221-222`, 2026-08-07 실행) 그 실행의 원장이 "
+           f"`outputs/` 에 없다. 지금 서 있는 원장 `{MDB}` 은 **한 밴드**"
+           f"(`_meta.fc_hz` = 3.5 GHz)뿐이라, 나머지 다섯 밴드는 «원장 없음» 이다.", "",
+           "⇒ 그림에서 읽는 것은 **두 채널의 순서**이고, dB 는 아래 표(원장)에서만 읽는다.", "",
            "두 채널은 **같은 얼린 판·같은 자세·같은 로터 회전수**의 두 실행에서 나온다 — "
            "한쪽은 동체를 완전흡수로 두어 프로펠러 채널만 남긴다."),
 
@@ -951,9 +980,10 @@ def blocks_39() -> list:
                ["변조 깊이",
                 _L("arms.B_sbr_spread.modulation_ptp_db", "{:.2f}", "dB"),
                 _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB")],
-               ["레벨",
-                _L("arms.B_sbr_spread.level_db", "{:.2f}", "dB"),
-                _L("arms.F_blade_occ.level_db", "{:.2f}", "dB")],
+               ["레벨 (절대)", "⛔ 본문 밖 — 판 셋 p-p "
+                + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB"),
+                "⛔ 본문 밖 — 같은 이유"],
+               ["레벨 차 (전체 − 프로펠러)", _GAP + " — 흩어짐을 넘는 양이라 이 편이 쓴다", "—"],
                ["동체:날개 비",
                 _L("arms.B_sbr_spread.dc_over_ac", "{:.2f}"),
                 _L("arms.F_blade_occ.dc_over_ac", "{:.3f}")],
@@ -961,8 +991,12 @@ def blocks_39() -> list:
                 _L("arms.B_sbr_spread.half_window_spectrum_corr", "{:.4f}"),
                 _L("arms.F_blade_occ.half_window_spectrum_corr", "{:.4f}")],
            ]), "",
-           "⭐ 프로펠러 채널의 변조는 전체 채널보다 **아홉 배 넘게** 깊다. 레벨은 반대로 훨씬 "
-           "낮다. 두 줄을 같이 읽으면 **동체가 밝아서 변조를 눌렀다** 가 나온다."),
+           f"⭐ 프로펠러 채널의 변조는 전체 채널보다 **아홉 배 넘게** 깊고, 레벨은 반대로 "
+           f"**{_GAP}** 아래다({_GAP_SRC}). 두 줄을 같이 읽으면 **동체가 밝아서 변조를 눌렀다** "
+           "가 나온다.", "",
+           "⛔ 절대 레벨 두 수는 원장에 있고 본문 밖이다 — 얼린 팔의 절대 레벨은 격자 판 한 "
+           "장의 서브셀 오프셋에 걸리고, 절대 σ 는 디더를 켠 정적 경로가 낸다. 이 편이 쓰는 "
+           f"것은 **차**이고, 그 차 {_GAP} 는 판 흩어짐의 여섯 배다."),
 
         md("## 그래서 무엇이 어려운가", "",
            "전기적으로 보면 블레이드 폭은 우리 대역에서 파장의 한 자릿수 분율이다. 그런데도 "
