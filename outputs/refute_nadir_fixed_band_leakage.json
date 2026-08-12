@@ -1,0 +1,273 @@
+{
+ "_meta": {
+  "generator": "ad-hoc refutation round (subagent), CPU only, no GPU, no sbr_field call",
+  "reads": [
+   "outputs/elevation_sweep_md.npz",
+   "outputs/elevation_sweep_md.json",
+   "outputs/verify_nadir_flash.json",
+   "outputs/report07_three_engines.json"
+  ],
+  "writes_nothing_else": true,
+  "target_claim_ko": "«el −90 에서 fixed 대역 전력은 100% 누설이다 — 그 대역에 실제 도플러 에너지가 측정 가능한 만큼 없다»",
+  "verdict_ko": "숫자는 전부 원장과 일치한다(소수점까지 재현). 그러나 주장은 두 갈래로 갈라야 한다. (A) 「70-샘플 STFT 잣대가 읽는 대역 전력」은 참말로 거의 전부 누설이다 — 참값 기여는 누설보다 27.0 dB 아래. (B) 그러나 「그 대역에 실제 도플러 에너지가 없다」는 거짓이다 — 4096점 정밀 FFT 로 보면 el−90 의 430~1229 Hz 안에 k=4~9 × 126.67 Hz 빗살선이 실재하고, 가장 센 7x(886.7 Hz)는 수치바닥 위 26.50 dB, 300 Hz 이하 누설보다 105.06 dB 위다. 대역 전체로는 누설보다 82.90 dB 위. 대역이 빈 게 아니라 잣대가 눈이 먼 것이다. (C) 「126.78 Hz 는 몸통선 누설이 흔들린 것」도 거짓이다 — 누설만 남긴 신호는 253.33 Hz(2x) 를 보고한다. 다만 el−90 은 h1/h2 = 1.45 dB 로 1x·2x 가 거의 동률이라 argmax 자체가 불안정하다.",
+  "caveat_ko": "「측정 가능」의 뜻: 여기서 바닥은 시뮬레이션의 수치 잡초(median off-DC off-comb)이지 열잡음이 아니다. 반송파 기준으로는 el−90 최강 대역내 선이 −57.61 dB(el−15 는 −27.0 dB, verify_nadir_flash.json B_decomposition[ours/el-15].band_430_1229.peak_line_db_rel_carrier) — 실수신기 탐지 가능성은 이 원장으로 판정 못 한다.",
+  "band_geometry_ko": "고정 대역 430.1~1228.7 Hz 는 덱의 el−15 기준(0.35·f_tip ~ f_tip). 1차 팁 도플러는 cos(el)·f_tip 이라 |el| > 69.51° 에서 대역 아래로 완전히 내려간다. el−75 는 318.02 Hz, el−90 은 0 Hz. 그래서 「el−75 부터 고정 대역에 1차 팁 도플러가 없다」는 기하로 예측되는 참말이다. 남아 있는 대역내 성분은 팁 도플러가 아니라 플래시 변조의 고차 배음이다.",
+  "scope_gap_ko": "verify_nadir_flash.json B_decomposition 은 ours 의 el 0/−15/−45/−75/−90 다섯 개만 분해했다. el−30·el−60 은 누설 검사를 한 적이 없다. 게다가 elevation_sweep_md.json 의 fixed.band_power_db 는 el−60 에서 −65.31 로 스윕 전체 최저다 — 「앙각이 커질수록 단조로 비어 간다」는 서술은 원장이 지지하지 않는다.",
+  "instrument": {
+   "nperseg": 70,
+   "stft_bin_hz": 281.4,
+   "hann_mainlobe_halfwidth_hz": 562.9,
+   "fine_fft_n": 4096,
+   "fine_fft_bin_hz": 4.81,
+   "band_lo_hz": 430.05,
+   "band_hi_hz": 1228.72
+  }
+ },
+ "rows": {
+  "ours/el+0": {
+   "stft_metric": {
+    "band_power_db": -59.22,
+    "leakage_only_band_power_db": -68.22,
+    "diff_db": 9.0,
+    "beat_hz": 126.4,
+    "leakage_only_beat_hz": 254.17
+   },
+   "fine_fft": {
+    "inband_sum_db": -1.91,
+    "inband_sum_leakage_only_db": -120.71,
+    "true_over_leakage_db": 118.8,
+    "inband_peak_over_floor_db": 55.97,
+    "on_comb_share_db": -0.0
+   },
+   "inband_comb_lines": {
+    "4x_506.7Hz": {
+     "over_numerical_floor_db": 33.89,
+     "over_lowpass_leakage_db": 110.56,
+     "rel_carrier_db": -41.36
+    },
+    "5x_633.3Hz": {
+     "over_numerical_floor_db": 51.59,
+     "over_lowpass_leakage_db": 132.68,
+     "rel_carrier_db": -23.65
+    },
+    "6x_760.0Hz": {
+     "over_numerical_floor_db": 55.97,
+     "over_lowpass_leakage_db": 140.38,
+     "rel_carrier_db": -19.27
+    },
+    "7x_886.7Hz": {
+     "over_numerical_floor_db": 50.97,
+     "over_lowpass_leakage_db": 138.14,
+     "rel_carrier_db": -24.28
+    },
+    "8x_1013.3Hz": {
+     "over_numerical_floor_db": 40.93,
+     "over_lowpass_leakage_db": 130.56,
+     "rel_carrier_db": -34.32
+    },
+    "9x_1140.0Hz": {
+     "over_numerical_floor_db": 29.82,
+     "over_lowpass_leakage_db": 121.53,
+     "rel_carrier_db": -45.42
+    }
+   },
+   "first_order_tip_doppler_hz": 1228.72
+  },
+  "ours/el-15": {
+   "stft_metric": {
+    "band_power_db": -60.51,
+    "leakage_only_band_power_db": -65.11,
+    "diff_db": 4.6,
+    "beat_hz": 126.16,
+    "leakage_only_beat_hz": 126.93
+   },
+   "fine_fft": {
+    "inband_sum_db": -4.61,
+    "inband_sum_leakage_only_db": -117.8,
+    "true_over_leakage_db": 113.19,
+    "inband_peak_over_floor_db": 43.9,
+    "on_comb_share_db": -0.01
+   },
+   "inband_comb_lines": {
+    "4x_506.7Hz": {
+     "over_numerical_floor_db": 28.96,
+     "over_lowpass_leakage_db": 110.54,
+     "rel_carrier_db": -41.92
+    },
+    "5x_633.3Hz": {
+     "over_numerical_floor_db": 38.07,
+     "over_lowpass_leakage_db": 123.82,
+     "rel_carrier_db": -32.81
+    },
+    "6x_760.0Hz": {
+     "over_numerical_floor_db": 43.27,
+     "over_lowpass_leakage_db": 132.24,
+     "rel_carrier_db": -27.61
+    },
+    "7x_886.7Hz": {
+     "over_numerical_floor_db": 43.9,
+     "over_lowpass_leakage_db": 135.58,
+     "rel_carrier_db": -26.97
+    },
+    "8x_1013.3Hz": {
+     "over_numerical_floor_db": 38.44,
+     "over_lowpass_leakage_db": 132.54,
+     "rel_carrier_db": -32.44
+    },
+    "9x_1140.0Hz": {
+     "over_numerical_floor_db": 33.46,
+     "over_lowpass_leakage_db": 129.62,
+     "rel_carrier_db": -37.42
+    }
+   },
+   "first_order_tip_doppler_hz": 1186.85
+  },
+  "ours/el-45": {
+   "stft_metric": {
+    "band_power_db": -58.82,
+    "leakage_only_band_power_db": -68.46,
+    "diff_db": 9.64,
+    "beat_hz": 126.61,
+    "leakage_only_beat_hz": 126.62
+   },
+   "fine_fft": {
+    "inband_sum_db": -1.24,
+    "inband_sum_leakage_only_db": -124.64,
+    "true_over_leakage_db": 123.4,
+    "inband_peak_over_floor_db": 51.02,
+    "on_comb_share_db": -0.0
+   },
+   "inband_comb_lines": {
+    "4x_506.7Hz": {
+     "over_numerical_floor_db": 43.91,
+     "over_lowpass_leakage_db": 128.32,
+     "rel_carrier_db": -21.72
+    },
+    "5x_633.3Hz": {
+     "over_numerical_floor_db": 51.02,
+     "over_lowpass_leakage_db": 139.89,
+     "rel_carrier_db": -14.61
+    },
+    "6x_760.0Hz": {
+     "over_numerical_floor_db": 47.89,
+     "over_lowpass_leakage_db": 140.12,
+     "rel_carrier_db": -17.74
+    },
+    "7x_886.7Hz": {
+     "over_numerical_floor_db": 38.15,
+     "over_lowpass_leakage_db": 133.17,
+     "rel_carrier_db": -27.48
+    },
+    "8x_1013.3Hz": {
+     "over_numerical_floor_db": 28.17,
+     "over_lowpass_leakage_db": 125.67,
+     "rel_carrier_db": -37.47
+    },
+    "9x_1140.0Hz": {
+     "over_numerical_floor_db": 20.35,
+     "over_lowpass_leakage_db": 119.95,
+     "rel_carrier_db": -45.29
+    }
+   },
+   "first_order_tip_doppler_hz": 868.84
+  },
+  "ours/el-75": {
+   "stft_metric": {
+    "band_power_db": -58.71,
+    "leakage_only_band_power_db": -58.7,
+    "diff_db": -0.01,
+    "beat_hz": 126.49,
+    "leakage_only_beat_hz": 126.5
+   },
+   "fine_fft": {
+    "inband_sum_db": -28.78,
+    "inband_sum_leakage_only_db": -113.03,
+    "true_over_leakage_db": 84.26,
+    "inband_peak_over_floor_db": 21.32,
+    "on_comb_share_db": -1.69
+   },
+   "inband_comb_lines": {
+    "4x_506.7Hz": {
+     "over_numerical_floor_db": 16.2,
+     "over_lowpass_leakage_db": 89.02,
+     "rel_carrier_db": -62.05
+    },
+    "5x_633.3Hz": {
+     "over_numerical_floor_db": 11.84,
+     "over_lowpass_leakage_db": 89.03,
+     "rel_carrier_db": -66.4
+    },
+    "6x_760.0Hz": {
+     "over_numerical_floor_db": 16.61,
+     "over_lowpass_leakage_db": 97.12,
+     "rel_carrier_db": -61.64
+    },
+    "7x_886.7Hz": {
+     "over_numerical_floor_db": 21.32,
+     "over_lowpass_leakage_db": 104.6,
+     "rel_carrier_db": -56.93
+    },
+    "8x_1013.3Hz": {
+     "over_numerical_floor_db": 13.13,
+     "over_lowpass_leakage_db": 98.88,
+     "rel_carrier_db": -65.12
+    },
+    "9x_1140.0Hz": {
+     "over_numerical_floor_db": 14.59,
+     "over_lowpass_leakage_db": 102.42,
+     "rel_carrier_db": -63.66
+    }
+   },
+   "first_order_tip_doppler_hz": 318.02
+  },
+  "ours/el-90": {
+   "stft_metric": {
+    "band_power_db": -55.68,
+    "leakage_only_band_power_db": -55.69,
+    "diff_db": 0.01,
+    "beat_hz": 126.78,
+    "leakage_only_beat_hz": 253.33
+   },
+   "fine_fft": {
+    "inband_sum_db": -25.31,
+    "inband_sum_leakage_only_db": -108.21,
+    "true_over_leakage_db": 82.9,
+    "inband_peak_over_floor_db": 26.5,
+    "on_comb_share_db": -0.57
+   },
+   "inband_comb_lines": {
+    "4x_506.7Hz": {
+     "over_numerical_floor_db": 6.71,
+     "over_lowpass_leakage_db": 75.33,
+     "rel_carrier_db": -77.4
+    },
+    "5x_633.3Hz": {
+     "over_numerical_floor_db": 14.02,
+     "over_lowpass_leakage_db": 86.71,
+     "rel_carrier_db": -70.09
+    },
+    "6x_760.0Hz": {
+     "over_numerical_floor_db": 23.89,
+     "over_lowpass_leakage_db": 99.76,
+     "rel_carrier_db": -60.22
+    },
+    "7x_886.7Hz": {
+     "over_numerical_floor_db": 26.5,
+     "over_lowpass_leakage_db": 105.06,
+     "rel_carrier_db": -57.61
+    },
+    "8x_1013.3Hz": {
+     "over_numerical_floor_db": 24.59,
+     "over_lowpass_leakage_db": 105.57,
+     "rel_carrier_db": -59.51
+    },
+    "9x_1140.0Hz": {
+     "over_numerical_floor_db": 14.51,
+     "over_lowpass_leakage_db": 97.53,
+     "rel_carrier_db": -69.6
+    }
+   },
+   "first_order_tip_doppler_hz": 0.0
+  }
+ }
+}

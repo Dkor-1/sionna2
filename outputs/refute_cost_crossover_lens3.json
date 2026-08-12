@@ -1,0 +1,221 @@
+{
+ "_meta": {
+  "generator": "ad-hoc falsifier #3 (read-only, CPU only, no GPU, no git, no overwrite)",
+  "lens_ko": "반례가 되는 다른 원장·앙각·예산을 찾는다",
+  "claim_ko": "교차점은 64M~712M 사이다. 4000M 에서 PathSolver 는 우리 커널의 5.1 배 비싸다.",
+  "note_ko": "outputs/refute_cost_crossover.json 은 다른 반증자의 파일이다. 안 건드렸다. 겹치는 항은 내가 파일에서 다시 계산해 확인했고, 아래 1~4 는 그 파일에 없는 새 반례다.",
+  "sources": [
+   "outputs/verify_raybudget_meaning.json",
+   "outputs/deck_ours_by_range.json",
+   "outputs/report07_range40_raybudget.json",
+   "outputs/report07_three_engines.json",
+   "outputs/elev_sweep_shards/*.npz",
+   "outputs/raybudget_ladder/*.npz",
+   "outputs/ours_range_shards/*.npz"
+  ]
+ },
+ "transcription_ok": {
+  "ladder_medians_match": true,
+  "ours_match": true,
+  "ratio_recomputed": 5.1358,
+  "note_ko": "옮겨적기 자체는 소수점까지 맞다. 문제는 그 숫자가 재는 것이다."
+ },
+ "C1_other_elevations_10m": {
+  "source": "verify_raybudget_meaning.json elevation_10m.rows (range 10 m, 4096 자세)",
+  "table": [
+   {
+    "el_deg": 0.0,
+    "ours": 0.4117,
+    "ps_11M": 0.3784,
+    "ps_250M": 0.2982,
+    "ps250_over_ours": 0.724,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -21.2
+   },
+   {
+    "el_deg": -15.0,
+    "ours": 0.5201,
+    "ps_11M": 0.4444,
+    "ps_250M": 0.386,
+    "ps250_over_ours": 0.742,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -13.1
+   },
+   {
+    "el_deg": -30.0,
+    "ours": 0.5033,
+    "ps_11M": 0.4746,
+    "ps_250M": 0.3361,
+    "ps250_over_ours": 0.668,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -29.2
+   },
+   {
+    "el_deg": -45.0,
+    "ours": 0.5,
+    "ps_11M": 0.4299,
+    "ps_250M": 0.3254,
+    "ps250_over_ours": 0.651,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -24.3
+   },
+   {
+    "el_deg": -60.0,
+    "ours": 0.5332,
+    "ps_11M": 0.3917,
+    "ps_250M": 0.26,
+    "ps250_over_ours": 0.488,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -33.6
+   },
+   {
+    "el_deg": -75.0,
+    "ours": 0.4941,
+    "ps_11M": 0.386,
+    "ps_250M": 0.2611,
+    "ps250_over_ours": 0.528,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -32.4
+   },
+   {
+    "el_deg": -90.0,
+    "ours": 0.3789,
+    "ps_11M": 0.4438,
+    "ps_250M": 0.2608,
+    "ps250_over_ours": 0.688,
+    "ps250_cheaper": true,
+    "cost_change_11M_to_250M_pct": -41.2
+   }
+  ],
+  "finding_ko": "250 M 발 PathSolver 가 7 개 앙각 **전부**에서 우리 커널보다 싸다(0.260~0.386 vs 0.379~0.533). 250 M 은 주장이 «교차 구간» 이라 부른 64~712 M 안에 있다."
+ },
+ "C2_cost_not_monotone_in_rays": {
+  "source": "같은 표. sionna(11 M) → sionna_p250000000(250 M)",
+  "changes_pct": [
+   -21.2,
+   -13.1,
+   -29.2,
+   -24.3,
+   -33.6,
+   -32.4,
+   -41.2
+  ],
+  "finding_ko": "광선을 22.7 배 늘렸는데 7/7 앙각에서 벽시계가 13~41 % **줄었다**. 40 m 사다리 안에서도 178 M(0.4187) 이 64 M(0.597)·16 M(0.4704) 보다 싸다. 예산에 대해 단조가 아닌 양에서 «교차점» 을 읽을 수 없다."
+ },
+ "C3_bracket_moves_with_geometry": {
+  "el0_10m": {
+   "el0_10m_4000M": {
+    "n_shards": 6,
+    "poses": 3072,
+    "seconds": 6492.9,
+    "sec_per_pose": 2.1136
+   },
+   "el0_10m_1000M": {
+    "n_shards": 2,
+    "poses": 1024,
+    "seconds": 1112.1,
+    "sec_per_pose": 1.086
+   },
+   "el0_10m_250M": {
+    "n_shards": 8,
+    "poses": 4096,
+    "seconds": 1221.3,
+    "sec_per_pose": 0.2982
+   },
+   "el0_10m_ours": {
+    "n_shards": 8,
+    "poses": 4096,
+    "seconds": 1686.2,
+    "sec_per_pose": 0.4117
+   }
+  },
+  "finding_ko": "10 m·el 0 에서는 250 M 이 0.2982 로 우리(0.4117)보다 싸고 1,000 M 이 1.0860 으로 비싸다 → 그 자리의 교차 구간은 **250 M~1,000 M** 이다(1,000 M 실행은 8 샤드 중 2 샤드뿐 — 속도만 유효). 40 m·el −15 의 178 M~712 M 과 다르다. 구간은 기하마다 움직인다.",
+  "caveat_ko": "⚠ 1,000 M 은 미완 실행이라 원장 본문에서 제외돼 있다. 여기서도 «자세당 초» 만 쓴다."
+ },
+ "C4_4000M_has_four_different_values": {
+  "ladder_40m_median": 3.2597,
+  "ladder_40m_seeds": [
+   1.8625,
+   1.9191,
+   1.9496,
+   2.3239,
+   4.1954,
+   4.6931,
+   4.8153,
+   4.8359
+  ],
+  "report07_4096pose": [
+   {
+    "label": "4,000 M rays",
+    "seed": 1,
+    "n_poses": 4096,
+    "seconds": 16867.3,
+    "sec_per_pose": 4.118
+   },
+   {
+    "label": "4,000 M rays",
+    "seed": 2,
+    "n_poses": 4096,
+    "seconds": 17014.4,
+    "sec_per_pose": 4.1539
+   }
+  ],
+  "elev_10m_el0": {
+   "n_shards": 6,
+   "poses": 3072,
+   "seconds": 6492.9,
+   "sec_per_pose": 2.1136
+  },
+  "finding_ko": "같은 4,000 M 발이 원장마다 2.1136(10 m el 0, 6 샤드 3,072 자세) · 3.2597(40 m 사다리 중앙값) · 4.1180·4.1539(report07, 4,096 자세) 이다. 최대/최소 1.97 배."
+ },
+ "C5_denominator_is_not_one_number": {
+  "ours_by_range_40m_ladder_ledger": {
+   "3": 0.6006,
+   "15": 0.5115,
+   "40": 0.6347
+  },
+  "ours_by_elevation_10m": {
+   "0.0": 0.4117,
+   "-15.0": 0.5201,
+   "-30.0": 0.5033,
+   "-45.0": 0.5,
+   "-60.0": 0.5332,
+   "-75.0": 0.4941,
+   "-90.0": 0.3789
+  },
+  "ours_in_report07_three_engines": 0.4613,
+  "span": [
+   0.3789,
+   0.6347
+  ],
+  "finding_ko": "우리 커널의 «자세당 초» 는 원장 안에서 0.3789~0.6347 로 1.67 배 흔들린다. 거리는 위상항 하나만 바꾸므로 이 차이는 계산량이 아니다. 분모를 0.3789 로 잡으면 1 M(0.3828) 부터 이미 PathSolver 가 더 비싸서 교차점이 1 M 아래로 내려간다."
+ },
+ "C6_load_was_not_matched": {
+  "mean_concurrent_shards_ladder_by_spp": {
+   "spp1000000": 14.2,
+   "spp16000000": 17.7,
+   "spp178000000": 11.1,
+   "spp2848000000": 14.0,
+   "spp4000000000": 21.8,
+   "spp4000000": 14.6,
+   "spp64000000": 17.4,
+   "spp712000000": 17.7
+  },
+  "mean_concurrent_shards_ours_by_range": {
+   "R15": 4.0,
+   "R3": 4.2,
+   "R40": 3.6
+  },
+  "def_ko": "각 샤드가 도는 동안 같은 샤드묶음 안에서 겹쳐 돌던 샤드 수의 평균(끝시각 − 기록된 초 = 시작시각).",
+  "finding_ko": "4,000 M 계단은 평균 22 개가 겹쳐 돌았고 178 M 은 11 개, 우리 커널 40 m 는 3~5 개다. 기계 전체 부하는 모른다 — 다른 스크립트는 못 센다.",
+  "unknown_ko": "⚠ 배수의 얼마가 부하 탓인지 이 원장으로는 모른다."
+ },
+ "C7_1M_budget_also_disagrees": {
+  "ladder_1M_median": 0.3828,
+  "report07_three_engines_1M": 0.2344,
+  "ratio": 1.633,
+  "finding_ko": "1 M 발도 원장 둘이 0.3828 과 0.2344 로 1.63 배 다르다. 그 판(report07_three_engines)에서는 PathSolver 1 M 이 우리 커널의 0.51 배로 **더 싸다**."
+ },
+ "verdict_ko": "반증. 옮겨적기는 맞지만 주장은 (a) 원장이 지지하는 구간(40 m·el −15 에서 178~712 M)보다 넓게·다른 계단을 집었고 (b) 5.1 배는 4,000 M 여덟 판이 두 덩이로 갈린 사이의 빈 값이며 (c) 다른 앙각·다른 거리·다른 원장이 2.1~4.15 s/자세, 배수 2.9~7.6 을 준다. 벽시계는 예산에 단조도 아니다.",
+ "corrected_ko": "40 m·matrice4e·el −15°·az 0° 한 자리에서, 두 실행의 **부하가 안 맞춰진 벽시계**로 보면 PathSolver 는 178 M 발까지 우리 커널보다 싸고 712 M 발부터 비싸다(교차 구간 178~712 M). 4,000 M 배수는 한 수가 아니라 원장 전체에서 2.9~7.6 배다(4,096 자세 판 6.5 배, 10 m·el 0 판 5.1 배). 10 m 에서는 교차 구간이 250 M~1,000 M 로 옮겨가고, 250 M 발은 7 개 앙각 전부에서 우리 커널보다 싸다. 이 비교는 시간 벤치마크로 설계된 적이 없다."
+}

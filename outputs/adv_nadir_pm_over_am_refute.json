@@ -1,0 +1,373 @@
+{
+ "_meta": {
+  "generator": "adversarial recheck of verify_nadir_flash.json (nadir PM-vs-AM claim)",
+  "gpu_ko": "GPU 미사용. npz 읽기 + numpy FFT 만.",
+  "source_ledger": "outputs/verify_nadir_flash.json",
+  "source_series": "outputs/elevation_sweep_md.npz (phase_sign_v2=1)",
+  "scope_ko": "matrice4e 1기 · fc 3.5 GHz · range 10 m(원거리장 경계 2D²/λ≈14.08 m 안쪽) · az 고정 · rpm 4개 결정론 패턴. 전부 이 한 판에서만 잰 값이다.",
+  "findings_ko": [
+   "1) ours/el-90 의 am_rms·pm_rms_deg·p95·pm_over_am_db 는 원장과 소수점까지 일치(재계산 확인).",
+   "2) «1x 에서 +15.1 dB» 는 재현된다(+15.09 dB) — 그러나 인용된 키 harmonics_over_floor_db 에서 나오지 않는다. 그 키의 1x 는 E 39.9 / absE 30.4 (차 9.5 dB) 이고 두 값은 서로 다른 잡음바닥(flE, flA)으로 정규화돼 있어 애초에 PM/AM 비가 아니다. 15.1 은 원장 안에 _meta.verdict_ko 문장으로만 있고 저장된 키가 아니다.",
+   "3) 나딧 일반 명제로는 실패한다 — 같은 원장의 sionna/el-90 은 pm_over_am_db=-1.16(진폭 우세), sionna_p250000000/el-90 은 +1.35(사실상 동률). 3개 엔진 중 «위상 압도» 는 ours 하나뿐이다.",
+   "4) 고조파 의존 — ours/el-90 은 1x +15.1, 2x +6.5, 3x +3.9, 4x -2.1 dB. 4x 에서는 진폭이 이긴다.",
+   "5) 선형/극좌표 분해 차이는 ours/el-90 에서 0.01 dB 이하 — 이 판정만은 분해 방식에 강건하다."
+  ]
+ },
+ "rows": {
+  "ours/el+0": {
+   "recomputed": {
+    "am_rms": 0.11248,
+    "pm_rms_deg": 7.41,
+    "phase_dev_p95_deg": 16.1,
+    "pm_over_am_db": 1.21,
+    "pm_over_am_db_polar": 2.23
+   },
+   "ledger": {
+    "am_rms": 0.11248,
+    "pm_rms_deg": 7.41,
+    "phase_dev_p95_deg": 16.1,
+    "pm_over_am_db": 1.21
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": -3.89,
+     "pm_minus_am_db_polar": 2.5
+    },
+    "2x": {
+     "pm_minus_am_db_linear": 0.71,
+     "pm_minus_am_db_polar": 3.09
+    },
+    "3x": {
+     "pm_minus_am_db_linear": -0.5,
+     "pm_minus_am_db_polar": -1.45
+    },
+    "4x": {
+     "pm_minus_am_db_linear": -8.49,
+     "pm_minus_am_db_polar": -2.76
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 44.0,
+    "absE": 40.3
+   },
+   "ledger_1x_E_minus_absE_db": 3.7
+  },
+  "ours/el-15": {
+   "recomputed": {
+    "am_rms": 0.08377,
+    "pm_rms_deg": 3.57,
+    "phase_dev_p95_deg": 8.11,
+    "pm_over_am_db": -2.58,
+    "pm_over_am_db_polar": -3.02
+   },
+   "ledger": {
+    "am_rms": 0.08377,
+    "pm_rms_deg": 3.57,
+    "phase_dev_p95_deg": 8.11,
+    "pm_over_am_db": -2.58
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": -7.29,
+     "pm_minus_am_db_polar": -7.73
+    },
+    "2x": {
+     "pm_minus_am_db_linear": 0.44,
+     "pm_minus_am_db_polar": 0.69
+    },
+    "3x": {
+     "pm_minus_am_db_linear": -1.67,
+     "pm_minus_am_db_polar": -0.18
+    },
+    "4x": {
+     "pm_minus_am_db_linear": -12.7,
+     "pm_minus_am_db_polar": -11.24
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 39.4,
+    "absE": 41.2
+   },
+   "ledger_1x_E_minus_absE_db": -1.8
+  },
+  "ours/el-45": {
+   "recomputed": {
+    "am_rms": 0.23399,
+    "pm_rms_deg": 18.35,
+    "phase_dev_p95_deg": 43.03,
+    "pm_over_am_db": 2.73,
+    "pm_over_am_db_polar": 1.13
+   },
+   "ledger": {
+    "am_rms": 0.23399,
+    "pm_rms_deg": 18.35,
+    "phase_dev_p95_deg": 43.03,
+    "pm_over_am_db": 2.73
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": -1.97,
+     "pm_minus_am_db_polar": -5.98
+    },
+    "2x": {
+     "pm_minus_am_db_linear": 1.09,
+     "pm_minus_am_db_polar": 0.64
+    },
+    "3x": {
+     "pm_minus_am_db_linear": 1.39,
+     "pm_minus_am_db_polar": 12.98
+    },
+    "4x": {
+     "pm_minus_am_db_linear": 3.18,
+     "pm_minus_am_db_polar": -0.84
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 47.1,
+    "absE": 48.4
+   },
+   "ledger_1x_E_minus_absE_db": -1.3
+  },
+  "ours/el-75": {
+   "recomputed": {
+    "am_rms": 0.17267,
+    "pm_rms_deg": 14.02,
+    "phase_dev_p95_deg": 22.98,
+    "pm_over_am_db": 3.03,
+    "pm_over_am_db_polar": 3.29
+   },
+   "ledger": {
+    "am_rms": 0.17267,
+    "pm_rms_deg": 14.02,
+    "phase_dev_p95_deg": 22.98,
+    "pm_over_am_db": 3.03
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": 3.69,
+     "pm_minus_am_db_polar": 3.88
+    },
+    "2x": {
+     "pm_minus_am_db_linear": -2.03,
+     "pm_minus_am_db_polar": -0.98
+    },
+    "3x": {
+     "pm_minus_am_db_linear": -6.92,
+     "pm_minus_am_db_polar": 6.18
+    },
+    "4x": {
+     "pm_minus_am_db_linear": -9.02,
+     "pm_minus_am_db_polar": 6.19
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 66.5,
+    "absE": 61.3
+   },
+   "ledger_1x_E_minus_absE_db": 5.2
+  },
+  "ours/el-90": {
+   "recomputed": {
+    "am_rms": 0.00478,
+    "pm_rms_deg": 0.64,
+    "phase_dev_p95_deg": 1.18,
+    "pm_over_am_db": 7.37,
+    "pm_over_am_db_polar": 7.38
+   },
+   "ledger": {
+    "am_rms": 0.00478,
+    "pm_rms_deg": 0.64,
+    "phase_dev_p95_deg": 1.18,
+    "pm_over_am_db": 7.37
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": 15.09,
+     "pm_minus_am_db_polar": 15.09
+    },
+    "2x": {
+     "pm_minus_am_db_linear": 6.47,
+     "pm_minus_am_db_polar": 6.64
+    },
+    "3x": {
+     "pm_minus_am_db_linear": 3.93,
+     "pm_minus_am_db_polar": 4.37
+    },
+    "4x": {
+     "pm_minus_am_db_linear": -2.13,
+     "pm_minus_am_db_polar": -2.06
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 39.9,
+    "absE": 30.4
+   },
+   "ledger_1x_E_minus_absE_db": 9.5
+  },
+  "sionna/el-15": {
+   "recomputed": {
+    "am_rms": 0.06651,
+    "pm_rms_deg": 4.29,
+    "phase_dev_p95_deg": 9.18,
+    "pm_over_am_db": 1.03,
+    "pm_over_am_db_polar": 1.16
+   },
+   "ledger": {
+    "am_rms": 0.06651,
+    "pm_rms_deg": 4.29,
+    "phase_dev_p95_deg": 9.18,
+    "pm_over_am_db": 1.03
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": -2.76,
+     "pm_minus_am_db_polar": -2.35
+    },
+    "2x": {
+     "pm_minus_am_db_linear": -0.74,
+     "pm_minus_am_db_polar": -0.07
+    },
+    "3x": {
+     "pm_minus_am_db_linear": 9.58,
+     "pm_minus_am_db_polar": 10.36
+    },
+    "4x": {
+     "pm_minus_am_db_linear": 7.46,
+     "pm_minus_am_db_polar": 7.54
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 36.4,
+    "absE": 36.4
+   },
+   "ledger_1x_E_minus_absE_db": 0.0
+  },
+  "sionna/el-90": {
+   "recomputed": {
+    "am_rms": 0.74322,
+    "pm_rms_deg": 37.25,
+    "phase_dev_p95_deg": 73.73,
+    "pm_over_am_db": -1.16,
+    "pm_over_am_db_polar": 3.06
+   },
+   "ledger": {
+    "am_rms": 0.74322,
+    "pm_rms_deg": 37.25,
+    "phase_dev_p95_deg": 73.73,
+    "pm_over_am_db": -1.16
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": -4.98,
+     "pm_minus_am_db_polar": 1.32
+    },
+    "2x": {
+     "pm_minus_am_db_linear": -0.9,
+     "pm_minus_am_db_polar": -0.62
+    },
+    "3x": {
+     "pm_minus_am_db_linear": -0.9,
+     "pm_minus_am_db_polar": 2.07
+    },
+    "4x": {
+     "pm_minus_am_db_linear": -0.21,
+     "pm_minus_am_db_polar": 4.64
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 44.3,
+    "absE": 43.2
+   },
+   "ledger_1x_E_minus_absE_db": 1.1
+  },
+  "sionna_p250000000/el-15": {
+   "recomputed": {
+    "am_rms": 0.03296,
+    "pm_rms_deg": 1.84,
+    "phase_dev_p95_deg": 3.54,
+    "pm_over_am_db": -0.21,
+    "pm_over_am_db_polar": -0.19
+   },
+   "ledger": {
+    "am_rms": 0.03296,
+    "pm_rms_deg": 1.84,
+    "phase_dev_p95_deg": 3.54,
+    "pm_over_am_db": -0.21
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": -9.04,
+     "pm_minus_am_db_polar": -8.79
+    },
+    "2x": {
+     "pm_minus_am_db_linear": -0.57,
+     "pm_minus_am_db_polar": -0.61
+    },
+    "3x": {
+     "pm_minus_am_db_linear": 1.11,
+     "pm_minus_am_db_polar": 1.4
+    },
+    "4x": {
+     "pm_minus_am_db_linear": 3.41,
+     "pm_minus_am_db_polar": 3.2
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 38.9,
+    "absE": 40.1
+   },
+   "ledger_1x_E_minus_absE_db": -1.2
+  },
+  "sionna_p250000000/el-90": {
+   "recomputed": {
+    "am_rms": 0.17614,
+    "pm_rms_deg": 11.78,
+    "phase_dev_p95_deg": 21.68,
+    "pm_over_am_db": 1.35,
+    "pm_over_am_db_polar": 1.96
+   },
+   "ledger": {
+    "am_rms": 0.17614,
+    "pm_rms_deg": 11.78,
+    "phase_dev_p95_deg": 21.68,
+    "pm_over_am_db": 1.35
+   },
+   "harmonic_pm_minus_am_db": {
+    "1x": {
+     "pm_minus_am_db_linear": 0.93,
+     "pm_minus_am_db_polar": 1.56
+    },
+    "2x": {
+     "pm_minus_am_db_linear": 2.97,
+     "pm_minus_am_db_polar": 3.37
+    },
+    "3x": {
+     "pm_minus_am_db_linear": -0.36,
+     "pm_minus_am_db_polar": 1.82
+    },
+    "4x": {
+     "pm_minus_am_db_linear": -1.68,
+     "pm_minus_am_db_polar": -1.75
+    }
+   },
+   "ledger_harmonics_1x": {
+    "E": 41.8,
+    "absE": 39.7
+   },
+   "ledger_1x_E_minus_absE_db": 2.1
+  }
+ },
+ "cross_check_C_D": {
+  "nadir_plane_wave_ac_over_dc_db": -305.01,
+  "nadir_spherical_10m_ac_over_dc_db": -38.55,
+  "measured_ours_el90_ac_over_dc_db": -38.31,
+  "range_sweep_nadir": {
+   "10m": -38.55,
+   "20m": -51.07,
+   "50m": -67.23,
+   "100m": -79.35,
+   "300m": -98.48,
+   "1000m": -119.41
+  }
+ }
+}

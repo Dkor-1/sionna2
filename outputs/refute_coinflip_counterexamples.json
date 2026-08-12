@@ -1,0 +1,663 @@
+{
+ "_meta": {
+  "generator": "scratchpad/refute_coinflip_counterexamples.py (반증자 렌즈 3/3)",
+  "no_gpu_ko": "⛔GPU 안 씀. 기존 원장 json 만 CPU 로 읽었다.",
+  "no_overwrite_ko": "기존 원장은 안 건드렸다. 이 파일만 새로 쓴다.",
+  "f_flash_hz": 126.66666666666667,
+  "target_claim_ko": "1× 봉우리와 2× 봉우리 키가 거의 같아서 어느 쪽이 이기나가 동전던지기다 — 178 M 예측 0.66 vs 실측 0.714, 4,000 M 예측 0.344 vs 실측 0.375, 우리 커널 +7.36 dB 라 안 뒤집힌다",
+  "lens_ko": "반례가 되는 다른 원장·앙각·예산이 있는지 찾는다"
+ },
+ "quoted_numbers_check": {
+  "ledger": "outputs/verify_raybudget_meaning.json",
+  "mechanism.coin_flip_model.rows[178M]": {
+   "spp_m": 178.0,
+   "margin_mean_db": -1.88,
+   "margin_sd_db": 4.56,
+   "predicted_frac_wrong": 0.66,
+   "observed_frac_wrong": 0.714,
+   "n_seeds": 7
+  },
+  "mechanism.coin_flip_model.rows[4000M]": {
+   "spp_m": 4000.0,
+   "margin_mean_db": 2.14,
+   "margin_sd_db": 5.33,
+   "predicted_frac_wrong": 0.344,
+   "observed_frac_wrong": 0.375,
+   "n_seeds": 8
+  },
+  "mechanism.coin_flip_model.rows[712M]": {
+   "spp_m": 712.0,
+   "margin_mean_db": 13.39,
+   "margin_sd_db": 8.23,
+   "predicted_frac_wrong": 0.052,
+   "observed_frac_wrong": 0.333,
+   "n_seeds": 3
+  },
+  "ours_40m_reference.h1_over_h2_db": 7.36,
+  "verdict_ko": "인용된 −1.88/4.56→0.66·5/7=0.714·+2.14/5.33→0.344·3/8=0.375·+7.36 은 전부 원장에 소수점까지 그대로 있다. 인용 자체는 정확하다."
+ },
+ "A_positive_margin_but_wrong_beat": {
+  "ours_margin_db": 7.36,
+  "rows": [
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "ladder_40m.rungs[spp_m=712.0].arms[seed=3]",
+    "geometry": "40 m · el −15° · matrice4e · 1024 poses",
+    "margin_h1_over_h2_db": 22.5507,
+    "beat_hz": 379.8225,
+    "beat_over_f_flash": 2.999,
+    "beat_class": "other",
+    "bigger_than_ours": true
+   },
+   {
+    "ledger": "outputs/raybudget_seed_ladder.json",
+    "key": "cells[spp_m=178.0].arms[seed=8]",
+    "geometry": "40 m · el −15° · matrice4e · 768 poses",
+    "margin_h1_over_h2_db": 25.14,
+    "beat_hz": 169.63,
+    "beat_over_f_flash": 1.339,
+    "beat_class": "other",
+    "bigger_than_ours": true
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=0.0].track",
+    "geometry": "10 m · el 0.0° · matrice4e · 4096 poses",
+    "margin_h1_over_h2_db": 11.14,
+    "beat_hz": 50.27,
+    "beat_over_f_flash": 0.397,
+    "beat_class": "other",
+    "bigger_than_ours": true
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=0.0].fixed",
+    "geometry": "10 m · el 0.0° · matrice4e · 4096 poses",
+    "margin_h1_over_h2_db": 13.79,
+    "beat_hz": 50.27,
+    "beat_over_f_flash": 0.397,
+    "beat_class": "other",
+    "bigger_than_ours": true
+   }
+  ],
+  "n_rows": 4,
+  "n_bigger_than_ours": 4,
+  "finding_ko": "⭐1×−2× 여유폭이 **양수**인데 박자가 틀린 팔이 세 원장에 흩어져 있다. 그중 여러 개는 우리 커널의 +7.36 dB 보다 여유폭이 더 크다. 틀린 값이 2× 가 아니라 3×(379~380 Hz)·1.34×(169.6 Hz)·0.40×(50.3 Hz) 라 «1× 대 2× 의 승부» 라는 모형 자체가 그 사건을 담지 못한다."
+ },
+ "B_margin_moves_without_any_seed": {
+  "rows": [
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=ours, el=0.0]",
+    "engine": "ours",
+    "el_deg": 0.0,
+    "margin_track_db": 10.9,
+    "margin_fixed_db": 10.92,
+    "delta_db": 0.02,
+    "beat_track": 126.4,
+    "beat_fixed": 126.4,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=ours, el=-15.0]",
+    "engine": "ours",
+    "el_deg": -15.0,
+    "margin_track_db": 7.15,
+    "margin_fixed_db": 7.15,
+    "delta_db": 0.0,
+    "beat_track": 126.16,
+    "beat_fixed": 126.16,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=ours, el=-30.0]",
+    "engine": "ours",
+    "el_deg": -30.0,
+    "margin_track_db": 8.03,
+    "margin_fixed_db": 7.61,
+    "delta_db": -0.42,
+    "beat_track": 126.73,
+    "beat_fixed": 126.74,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=ours, el=-45.0]",
+    "engine": "ours",
+    "el_deg": -45.0,
+    "margin_track_db": 10.79,
+    "margin_fixed_db": 13.95,
+    "delta_db": 3.16,
+    "beat_track": 126.59,
+    "beat_fixed": 126.61,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=ours, el=-60.0]",
+    "engine": "ours",
+    "el_deg": -60.0,
+    "margin_track_db": 23.5,
+    "margin_fixed_db": 13.54,
+    "delta_db": -9.96,
+    "beat_track": 126.55,
+    "beat_fixed": 126.67,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=ours, el=-75.0]",
+    "engine": "ours",
+    "el_deg": -75.0,
+    "margin_track_db": 8.67,
+    "margin_fixed_db": 5.99,
+    "delta_db": -2.68,
+    "beat_track": 126.67,
+    "beat_fixed": 126.49,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna, el=0.0]",
+    "engine": "sionna",
+    "el_deg": 0.0,
+    "margin_track_db": -0.81,
+    "margin_fixed_db": -0.85,
+    "delta_db": -0.04,
+    "beat_track": 376.73,
+    "beat_fixed": 376.73,
+    "class_track": "other",
+    "class_fixed": "other",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna, el=-15.0]",
+    "engine": "sionna",
+    "el_deg": -15.0,
+    "margin_track_db": 1.52,
+    "margin_fixed_db": 1.52,
+    "delta_db": 0.0,
+    "beat_track": 126.77,
+    "beat_fixed": 126.77,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna, el=-30.0]",
+    "engine": "sionna",
+    "el_deg": -30.0,
+    "margin_track_db": -1.44,
+    "margin_fixed_db": -1.29,
+    "delta_db": 0.15,
+    "beat_track": 252.32,
+    "beat_fixed": 252.2,
+    "class_track": "2x",
+    "class_fixed": "2x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna, el=-45.0]",
+    "engine": "sionna",
+    "el_deg": -45.0,
+    "margin_track_db": 9.5,
+    "margin_fixed_db": 21.76,
+    "delta_db": 12.26,
+    "beat_track": 126.79,
+    "beat_fixed": 126.0,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna, el=-60.0]",
+    "engine": "sionna",
+    "el_deg": -60.0,
+    "margin_track_db": 4.4,
+    "margin_fixed_db": 3.69,
+    "delta_db": -0.71,
+    "beat_track": 126.85,
+    "beat_fixed": 126.59,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna, el=-75.0]",
+    "engine": "sionna",
+    "el_deg": -75.0,
+    "margin_track_db": 14.46,
+    "margin_fixed_db": -6.58,
+    "delta_db": -21.04,
+    "beat_track": 126.45,
+    "beat_fixed": 252.89,
+    "class_track": "1x",
+    "class_fixed": "2x",
+    "answer_flipped": true
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=0.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": 0.0,
+    "margin_track_db": 11.14,
+    "margin_fixed_db": 13.79,
+    "delta_db": 2.65,
+    "beat_track": 50.27,
+    "beat_fixed": 50.27,
+    "class_track": "other",
+    "class_fixed": "other",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=-15.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -15.0,
+    "margin_track_db": 3.19,
+    "margin_fixed_db": 3.19,
+    "delta_db": 0.0,
+    "beat_track": 126.47,
+    "beat_fixed": 126.47,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=-30.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -30.0,
+    "margin_track_db": 15.53,
+    "margin_fixed_db": 14.22,
+    "delta_db": -1.31,
+    "beat_track": 126.61,
+    "beat_fixed": 126.61,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=-45.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -45.0,
+    "margin_track_db": 9.84,
+    "margin_fixed_db": 8.01,
+    "delta_db": -1.83,
+    "beat_track": 126.75,
+    "beat_fixed": 126.83,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=-60.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -60.0,
+    "margin_track_db": 3.01,
+    "margin_fixed_db": -2.14,
+    "delta_db": -5.15,
+    "beat_track": 126.79,
+    "beat_fixed": 253.48,
+    "class_track": "1x",
+    "class_fixed": "2x",
+    "answer_flipped": true
+   },
+   {
+    "ledger": "outputs/elevation_sweep_md.json",
+    "key": "rows[engine=sionna_p250000000, el=-75.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -75.0,
+    "margin_track_db": 9.32,
+    "margin_fixed_db": 12.32,
+    "delta_db": 3.0,
+    "beat_track": 126.41,
+    "beat_fixed": 126.88,
+    "class_track": "1x",
+    "class_fixed": "1x",
+    "answer_flipped": false
+   }
+  ],
+  "max_abs_delta_db": 21.04,
+  "n_flipped": 2,
+  "finding_ko": "⭐같은 장(場)·같은 시드인데 **분석 대역만** 바꾸면 여유폭이 최대 21 dB 움직이고 1×/2× 답이 뒤집히는 칸이 있다. 우리 커널(시드가 아예 없는 결정론 커널)도 10 dB 움직인다. 그러니 ±4.6~5.3 dB 산포를 «광선 추첨 잡음» 이라고만 부르면 안 된다 — 분석 규약도 같은 크기로 기여한다."
+ },
+ "C_big_margin_still_doubles_on_peaks_axis": {
+  "physics_peaks_per_rev": 2.0,
+  "rows": [
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=ours, el=0.0]",
+    "engine": "ours",
+    "el_deg": 0.0,
+    "margin_db": 10.9016,
+    "beat_hz": 126.401,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=ours, el=-15.0]",
+    "engine": "ours",
+    "el_deg": -15.0,
+    "margin_db": 7.1521,
+    "beat_hz": 126.1578,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=ours, el=-30.0]",
+    "engine": "ours",
+    "el_deg": -30.0,
+    "margin_db": 8.0341,
+    "beat_hz": 126.7306,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=ours, el=-45.0]",
+    "engine": "ours",
+    "el_deg": -45.0,
+    "margin_db": 10.7889,
+    "beat_hz": 126.5907,
+    "beat_class": "1x",
+    "peaks_per_rev": 3.7085
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=ours, el=-60.0]",
+    "engine": "ours",
+    "el_deg": -60.0,
+    "margin_db": 23.4994,
+    "beat_hz": 126.5534,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=ours, el=-75.0]",
+    "engine": "ours",
+    "el_deg": -75.0,
+    "margin_db": 8.6687,
+    "beat_hz": 126.6742,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna, el=0.0]",
+    "engine": "sionna",
+    "el_deg": 0.0,
+    "margin_db": -0.8108,
+    "beat_hz": 376.7315,
+    "beat_class": "other",
+    "peaks_per_rev": 9.5804
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna, el=-15.0]",
+    "engine": "sionna",
+    "el_deg": -15.0,
+    "margin_db": 1.5216,
+    "beat_hz": 126.7651,
+    "beat_class": "1x",
+    "peaks_per_rev": 3.0132
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna, el=-30.0]",
+    "engine": "sionna",
+    "el_deg": -30.0,
+    "margin_db": -1.4364,
+    "beat_hz": 252.3196,
+    "beat_class": "2x",
+    "peaks_per_rev": 3.9403
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna, el=-45.0]",
+    "engine": "sionna",
+    "el_deg": -45.0,
+    "margin_db": 9.5023,
+    "beat_hz": 126.7893,
+    "beat_class": "1x",
+    "peaks_per_rev": 5.6401
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna, el=-60.0]",
+    "engine": "sionna",
+    "el_deg": -60.0,
+    "margin_db": 4.4005,
+    "beat_hz": 126.846,
+    "beat_class": "1x",
+    "peaks_per_rev": 2.0088
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna, el=-75.0]",
+    "engine": "sionna",
+    "el_deg": -75.0,
+    "margin_db": 14.456,
+    "beat_hz": 126.4503,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna_p250000000, el=0.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": 0.0,
+    "margin_db": 11.1422,
+    "beat_hz": 50.2668,
+    "beat_class": "other",
+    "peaks_per_rev": 0.6181
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna_p250000000, el=-15.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -15.0,
+    "margin_db": 3.1851,
+    "beat_hz": 126.4687,
+    "beat_class": "1x",
+    "peaks_per_rev": 5.331
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna_p250000000, el=-30.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -30.0,
+    "margin_db": 15.531,
+    "beat_hz": 126.6092,
+    "beat_class": "1x",
+    "peaks_per_rev": 3.3995
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna_p250000000, el=-45.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -45.0,
+    "margin_db": 9.8368,
+    "beat_hz": 126.7493,
+    "beat_class": "1x",
+    "peaks_per_rev": 5.9491
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna_p250000000, el=-60.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -60.0,
+    "margin_db": 3.0056,
+    "beat_hz": 126.7853,
+    "beat_class": "1x",
+    "peaks_per_rev": 4.9447
+   },
+   {
+    "ledger": "outputs/verify_raybudget_meaning.json",
+    "key": "elevation_10m.rows[engine=sionna_p250000000, el=-75.0]",
+    "engine": "sionna_p250000000",
+    "el_deg": -75.0,
+    "margin_db": 9.3183,
+    "beat_hz": 126.4061,
+    "beat_class": "1x",
+    "peaks_per_rev": 1.9315
+   }
+  ],
+  "finding_ko": "⭐**우리 커널**이 el −45° 에서 여유폭 +10.79 dB(우리 40 m 값 +7.36 보다 큼)·박자 정답인데 회전당 첨두가 3.71 로 물리값 2 의 두 배 가까이 나온다. 250 M 판은 여유폭 +15.53 dB 에서도 첨두 3.40 이다. 즉 «두 배로 읽힘» 은 1×−2× 여유폭 하나로 결정되지 않는다."
+ },
+ "D_predictive_skill_vs_null": {
+  "rows": [
+   {
+    "spp_m": 64.0,
+    "n_seeds": 3,
+    "k_wrong": 1,
+    "p_model": 0.547
+   },
+   {
+    "spp_m": 178.0,
+    "n_seeds": 7,
+    "k_wrong": 5,
+    "p_model": 0.66
+   },
+   {
+    "spp_m": 712.0,
+    "n_seeds": 3,
+    "k_wrong": 1,
+    "p_model": 0.052
+   },
+   {
+    "spp_m": 2848.0,
+    "n_seeds": 3,
+    "k_wrong": 2,
+    "p_model": 0.619
+   },
+   {
+    "spp_m": 4000.0,
+    "n_seeds": 8,
+    "k_wrong": 3,
+    "p_model": 0.344
+   }
+  ],
+  "n_total_seeds": 24,
+  "loglik_coinflip_model": -16.719,
+  "loglik_constant_half": -16.636,
+  "better": "constant_0.5",
+  "finding_ko": "⭐원장의 5 계단 24 시드 전부에 대고 재면 여유폭 기반 예측의 로그가능도가 «무조건 0.5» 보다 **나쁘다**(−16.719 vs −16.636). 여유폭 숫자가 오답률에 보태는 예측력이 없다는 뜻이다."
+ },
+ "E_circularity": {
+  "rows": [
+   {
+    "spp_m": 64.0,
+    "n": 3,
+    "frac_margin_negative": 0.333,
+    "ledger_observed_frac_wrong": 0.333,
+    "identical": true
+   },
+   {
+    "spp_m": 178.0,
+    "n": 7,
+    "frac_margin_negative": 0.714,
+    "ledger_observed_frac_wrong": 0.714,
+    "identical": true
+   },
+   {
+    "spp_m": 712.0,
+    "n": 3,
+    "frac_margin_negative": 0.0,
+    "ledger_observed_frac_wrong": 0.333,
+    "identical": false
+   },
+   {
+    "spp_m": 2848.0,
+    "n": 3,
+    "frac_margin_negative": 0.667,
+    "ledger_observed_frac_wrong": 0.667,
+    "identical": true
+   },
+   {
+    "spp_m": 4000.0,
+    "n": 8,
+    "frac_margin_negative": 0.375,
+    "ledger_observed_frac_wrong": 0.375,
+    "identical": true
+   }
+  ],
+  "n_identical": 4,
+  "finding_ko": "⭐원장의 observed_frac_wrong 은 5 계단 중 4 계단에서 «여유폭이 음수인 시드 비율» 과 **소수 3 자리까지 같은 수**다. predicted_frac_wrong 은 **같은 시드들**의 평균·표준편차로 정규분포 꼬리를 읽은 값이다. 그러니 «예측이 실측과 맞았다» 는 기전 검증이 아니라 그 7~8 개 수가 대충 정규분포라는 확인일 뿐이다. 안 맞은 계단(712 M)이 바로 여유폭 부호가 답을 안 정한 계단이다."
+ },
+ "F_sd_disagrees_between_ledgers": {
+  "rung": "178 M · 40 m · el −15°",
+  "verify_raybudget_meaning_json": {
+   "key": "mechanism.coin_flip_model.rows[178M]",
+   "n_seeds": 7,
+   "margin_mean_db": -1.88,
+   "margin_sd_db": 4.56,
+   "predicted": 0.66,
+   "observed": 0.714,
+   "gap": 0.054
+  },
+  "raybudget_seed_ladder_json": {
+   "key": "cells[0] (n_seeds=8, seed 8 포함)",
+   "n_seeds": 8,
+   "margin_mean_db": 1.499,
+   "margin_sd_db_ledger": 10.444,
+   "margin_sd_db_recomputed": 10.444,
+   "predicted": 0.443,
+   "observed": 0.75,
+   "gap": 0.307
+  },
+  "report07_range40_raybudget_json": {
+   "key": "verdict.h1_over_h2_spread_db",
+   "spread_178M": 2.3,
+   "spread_4e9": 9.42,
+   "caveat_ko": "⚠ 시드가 판마다 2개뿐이다. «폭이 줄었다» 는 두 추첨의 차이일 뿐이고 통계적 주장이 아니다. 판정을 굳히려면 시드를 더 늘려야 한다."
+  },
+  "excluded_arm": {
+   "seed": 8,
+   "n_poses": 768,
+   "margin_db": 25.14,
+   "beat_hz": 169.63,
+   "beat_over_f_flash": 1.339,
+   "exclusion_reason_ko": "verify_raybudget_meaning 는 샤드가 모자라 자세 간격이 안 고르면 STFT 가 성립 안 한다며 이 팔을 뺐다 — 이유 자체는 타당하다"
+  },
+  "finding_ko": "⭐같은 계단의 여유폭 표준편차가 원장마다 4.56(7 팔) · 10.444(8 팔) 로 두 배 넘게 다르다. 8 팔로 재면 예측 0.443 vs 실측 0.750 이라 «맞았다» 던 간격 0.054 가 0.307 로 벌어진다. 빠진 팔이 하필 여유폭 +25.14 dB 인데 박자가 169.63 Hz(1.34×) 인 **반례 그 자체**다. ⚠제외 사유는 타당하므로 «조작» 이라 부르지 않는다 — 다만 인용된 4.56 dB 는 **한 원장의 한 선택**에 달린 수이지 그 계단의 성질이 아니다."
+ },
+ "verdict": {
+  "refuted": true,
+  "what_survives_ko": "178 M·4,000 M 두 계단에서 여유폭이 −7.2~+10.3 dB 로 0 근처에 몰려 있고 시드마다 1×/2× 답이 갈린다는 **서술**은 원장이 그대로 받쳐 준다.",
+  "what_breaks_ko": [
+   "예측 vs 실측의 «일치» 는 같은 7~8 개 수를 정규분포로 한 번·경험분포로 한 번 읽어 서로 견준 것이라 기전 검증이 아니다(4/5 계단에서 두 수가 동일).",
+   "여유폭 예측의 로그가능도가 «무조건 0.5» 보다 나쁘다 — 예측력 없음.",
+   "틀린 박자가 2× 가 아닌 팔이 여럿이다(3×·1.34×·0.40×). 그 팔들의 여유폭은 +11.14 ~ +25.14 dB 로 크게 양수라 «1× 대 2× 의 동전던지기» 로 설명이 안 된다.",
+   "«우리 커널은 +7.36 dB 라 안 뒤집힌다» 는 근거가 안 된다 — 더 큰 여유폭(+11.1 · +22.6 · +25.1 dB)에서 실제로 틀린 판이 있고, 우리 커널이 시드마다 안 흔들리는 이유는 여유폭 크기가 아니라 **시드 축이 아예 없기 때문**이다.",
+   "712 M 불일치를 «표본 부족» 으로 돌린 것은 오진이다 — 그 판의 여유폭은 +22.55 dB 로 모형이 «안전» 이라 말한 쪽이었고, 실제로는 3× 봉우리가 이겼다.",
+   "여유폭 산포는 광선 추첨 잡음만이 아니다 — 시드가 없는 결정론 커널에서도 분석 대역만 바꾸면 10~21 dB 움직이고 답이 뒤집힌다."
+  ],
+  "corroboration_ko": "A·D·E 는 outputs/refute_coinflip_yardstick.json (다른 세션) 이 독립으로 같은 결론을 냈다. 이 원장은 거기에 **다른 원장·앙각·예산의 반례**(F 의 seed 8, B 의 대역 뒤집힘, C 의 첨두 축)를 더한다.",
+  "not_tested_ko": "⚠ 왜 3×·1.34×·0.40× 가 이기는지는 **안 풀었다**. 로터 4 개의 rpm 이 달라 플래시 열이 섞이는 것과 관련 있어 보이지만 검증 안 했다."
+ }
+}

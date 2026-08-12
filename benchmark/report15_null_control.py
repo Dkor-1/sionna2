@@ -82,7 +82,8 @@ from scene_build import Part, build_scene                              # noqa: E
 import fast_simplification as fsimp                                    # noqa: E402
 from scipy.spatial import cKDTree                                      # noqa: E402
 
-SCRATCH = os.path.join(ROOT, "outputs", "meshes", "report15_null")
+from proc_scratch import proc_scratch                                  # noqa: E402
+SCRATCH = proc_scratch(os.path.join(ROOT, "outputs", "meshes", "report15_null"))
 OUT_JSON = os.path.join(ROOT, "outputs", "report15_null_control.json")
 PROBE_JSON = os.path.join(ROOT, "outputs", "report15_probe.json")
 

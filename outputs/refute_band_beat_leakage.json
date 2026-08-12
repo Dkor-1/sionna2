@@ -1,0 +1,204 @@
+{
+ "_meta": {
+  "generator": "scratchpad refute_beat (adversarial subagent, 2026-08-11)",
+  "gpu_ko": "GPU 미사용. sbr_field 호출 없음. 기존 원장 읽기만 했다.",
+  "instrument": "outputs/verify_nadir_flash.py::band_metrics 와 동일(= benchmark/elevation_sweep_md.py 원본과 h1_over_h2 빼고 동일)",
+  "params": {
+   "prf_hz": 19700.0,
+   "f_flash_hz": 126.66666666666667,
+   "f_tip_hz": 1228.7211819358865,
+   "n": 4096,
+   "periods": 0.45,
+   "nperseg": 70,
+   "bin_hz": 281.43,
+   "band_lo_hz": 430.05,
+   "band_hi_hz": 1228.72,
+   "band_lo_in_bins": 1.528,
+   "search_hz": [
+    40,
+    400
+   ]
+  },
+  "question_ko": "«fixed 대역 beat_hz 는 도플러가 아니라 창 누설을 재는 잣대다» 가 참인가",
+  "verdict_ko": "거짓. 이 잣대는 «누설» 이 아니라 **신호의 포락선 변조율**을 잰다 — 대역만 안 가릴 뿐이다. (1) 변조율을 60/90/200/250/311/380 Hz 로 바꾸면 판독도 60.00/90.00/200.00/250.00/311.00/380.00 Hz 로 1:1 따라온다(전부 대역 안 참에너지 ≤ −103 dB). 누설 계측기라면 입력과 무관하게 같은 수가 나와야 한다. (2) 대역을 DC 에서 17.8 빈(5000~5800 Hz, 주 로브 밖 먼 사이드로브)까지 밀어도 판독은 여전히 126.67 Hz — 따라서 원장이 적은 원인(«430 Hz 가 주 로브 2.00 빈 안»)은 **전력**의 원인이지 **박자 수치**의 원인이 아니다. (3) 상수 신호의 41.42 Hz 는 포락선 변동이 −315 dB(부동소수 먼지)인 argmax 쓰레기이며, 126.67 이 아니고 다른 대역에서는 None 이 나오기도 한다 — 즉 잣대가 플래시 주파수를 지어내지 않는다. (4) 진짜 대역 안 빗살(200 Hz)을 넣고 겨루게 하면 진폭 0.05 부터 판독이 200.00 Hz 로 넘어간다 — 누설에 영구히 붙잡히지 않는다. (5) 순수 위상변조(=도플러, |E| 일정)도 253.33 Hz(2×f_flash)로 또렷이 잡힌다 — «도플러가 아니라» 는 서술도 틀렸다. ⭐살아남는 좁은 참: **ours/el−90 의 126.78 Hz 는 대역 안 에너지의 증거가 못 된다** (verify_nadir_flash.json B_decomposition['ours/el-90'].fixed_band_true_over_leakage_db = 0.01 dB).",
+  "scope_counterexamples_from_same_ledger": {
+   "note_ko": "같은 원장 B_decomposition 9행 중 누설이 지배하는 것은 2행뿐이다.",
+   "fixed_band_true_over_leakage_db": {
+    "ours/el+0": 9.0,
+    "ours/el-15": 4.6,
+    "ours/el-45": 9.64,
+    "ours/el-75": -0.01,
+    "ours/el-90": 0.01,
+    "sionna/el-15": 3.35,
+    "sionna/el-90": 12.75,
+    "sionna_p250000000/el-15": 0.7,
+    "sionna_p250000000/el-90": 5.51
+   },
+   "nadir_not_all_leakage_ko": "같은 −90° 라도 Sionna PathSolver 팔은 대역 안 참내용이 누설보다 12.75 dB 크고 fixed.beat_hz = 127.68 Hz (elevation_sweep_md.json rows[engine=sionna, el_deg=-90].fixed.beat_hz), p=2.5e8 팔은 5.51 dB 에 252.02 Hz(=2×f_flash) 다."
+  },
+  "unsupported_number_in_source_ledger_ko": "verify_nadir_flash.json _meta.verdict_ko 의 «1x 에서 +15.1 dB» 는 그 파일 어느 키로도 재현되지 않는다. B_decomposition['ours/el-90'].harmonics_over_floor_db.1x 는 E 39.9 / absE 30.4 (차 9.5 dB)이고 pm_over_am_db 는 7.37 dB 다. verdict_ko 는 코드가 계산한 값이 아니라 손으로 쓴 문자열이다(benchmark/verify_nadir_flash.py L401-408)."
+ },
+ "T1_modulation_rate_tracking": {
+  "AM at 60.00 Hz, depth 0.3": {
+   "beat_hz": 60.0,
+   "band_power_db": -13.61,
+   "env_ac_over_dc_db": -7.33,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -122.9
+  },
+  "AM at 90.00 Hz, depth 0.3": {
+   "beat_hz": 90.0,
+   "band_power_db": -13.34,
+   "env_ac_over_dc_db": -6.74,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -126.5
+  },
+  "AM at 126.67 Hz, depth 0.3": {
+   "beat_hz": 126.67,
+   "band_power_db": -12.76,
+   "env_ac_over_dc_db": -6.35,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -121.5
+  },
+  "AM at 200.00 Hz, depth 0.3": {
+   "beat_hz": 200.0,
+   "band_power_db": -11.08,
+   "env_ac_over_dc_db": -6.75,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -116.3
+  },
+  "AM at 250.00 Hz, depth 0.3": {
+   "beat_hz": 250.0,
+   "band_power_db": -9.7,
+   "env_ac_over_dc_db": -7.93,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -135.8
+  },
+  "AM at 311.00 Hz, depth 0.3": {
+   "beat_hz": 311.0,
+   "band_power_db": -8.0,
+   "env_ac_over_dc_db": -10.06,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -103.4
+  },
+  "AM at 380.00 Hz, depth 0.3": {
+   "beat_hz": 380.0,
+   "band_power_db": -6.3,
+   "env_ac_over_dc_db": -12.88,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -111.2
+  },
+  "constant (no modulation)": {
+   "beat_hz": 41.42,
+   "band_power_db": -14.04,
+   "env_ac_over_dc_db": -315.1,
+   "peak_rel_global_db": -65.53,
+   "true_energy_in_band_db": -134.5
+  }
+ },
+ "T2_band_position_sweep": {
+  "band 430-1229 Hz  (1.53 bins from DC)": {
+   "AM_at_f_flash": {
+    "beat_hz": 126.67,
+    "band_power_db": -12.76,
+    "env_ac_over_dc_db": -6.35,
+    "peak_rel_global_db": 0.0
+   },
+   "constant": {
+    "beat_hz": 41.42,
+    "band_power_db": -14.04,
+    "env_ac_over_dc_db": -315.1,
+    "peak_rel_global_db": -65.53
+   }
+  },
+  "band 1500-2300 Hz  (5.33 bins from DC)": {
+   "AM_at_f_flash": {
+    "beat_hz": 126.67,
+    "band_power_db": -43.67,
+    "env_ac_over_dc_db": -22.74,
+    "peak_rel_global_db": 0.0
+   },
+   "constant": {
+    "beat_hz": null,
+    "band_power_db": -43.83,
+    "env_ac_over_dc_db": null
+   }
+  },
+  "band 3000-3800 Hz  (10.66 bins from DC)": {
+   "AM_at_f_flash": {
+    "beat_hz": 126.67,
+    "band_power_db": -61.08,
+    "env_ac_over_dc_db": -22.64,
+    "peak_rel_global_db": 0.0
+   },
+   "constant": {
+    "beat_hz": 41.42,
+    "band_power_db": -61.31,
+    "env_ac_over_dc_db": -316.88,
+    "peak_rel_global_db": -65.53
+   }
+  },
+  "band 5000-5800 Hz  (17.77 bins from DC)": {
+   "AM_at_f_flash": {
+    "beat_hz": 126.67,
+    "band_power_db": -73.83,
+    "env_ac_over_dc_db": -23.14,
+    "peak_rel_global_db": 0.0
+   },
+   "constant": {
+    "beat_hz": 41.42,
+    "band_power_db": -74.06,
+    "env_ac_over_dc_db": -315.47,
+    "peak_rel_global_db": -65.53
+   }
+  }
+ },
+ "T3_leaked_vs_genuine_competition": {
+  "leaked AM@126.67 + genuine in-band comb@200 (amp 0.0)": {
+   "beat_hz": 126.67,
+   "band_power_db": -12.76,
+   "env_ac_over_dc_db": -6.35,
+   "peak_rel_global_db": 0.0
+  },
+  "leaked AM@126.67 + genuine in-band comb@200 (amp 0.002)": {
+   "beat_hz": 126.67,
+   "band_power_db": -12.73,
+   "env_ac_over_dc_db": -6.39,
+   "peak_rel_global_db": 0.0
+  },
+  "leaked AM@126.67 + genuine in-band comb@200 (amp 0.01)": {
+   "beat_hz": 126.67,
+   "band_power_db": -12.16,
+   "env_ac_over_dc_db": -6.97,
+   "peak_rel_global_db": 0.0
+  },
+  "leaked AM@126.67 + genuine in-band comb@200 (amp 0.05)": {
+   "beat_hz": 200.0,
+   "band_power_db": -6.05,
+   "env_ac_over_dc_db": -1.68,
+   "peak_rel_global_db": 0.0
+  },
+  "leaked AM@126.67 + genuine in-band comb@200 (amp 0.2)": {
+   "beat_hz": 200.0,
+   "band_power_db": 5.03,
+   "env_ac_over_dc_db": 0.11,
+   "peak_rel_global_db": 0.0
+  }
+ },
+ "T4_doppler_and_no_flash_controls": {
+  "pure PM (Doppler) at f_flash, 0.3 rad, |E| exactly constant": {
+   "beat_hz": 253.33,
+   "band_power_db": -12.89,
+   "env_ac_over_dc_db": -20.53,
+   "peak_rel_global_db": 0.0,
+   "true_energy_in_band_db": -90.5
+  },
+  "carrier + real 900 Hz line (in-band energy, no periodic flash)": {
+   "beat_hz": 398.44,
+   "band_power_db": 0.38,
+   "env_ac_over_dc_db": -43.83,
+   "peak_rel_global_db": -130.9,
+   "true_energy_in_band_db": -10.8
+  }
+ }
+}

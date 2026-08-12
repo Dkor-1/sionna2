@@ -1,0 +1,123 @@
+{
+  "_meta": {
+    "generator": "ad-hoc refuter session (CPU only, no GPU, read-only on existing ledgers)",
+    "date": "2026-08-11",
+    "claim_ko": "«경로가 몇 개뿐이라 어느 면이 잡히나가 홱 바뀌어 주기를 반으로 쪼갠다» 는 가설은 178 M 이상에서 틀렸다. 경로 «개수» 는 조용하다",
+    "verdict": "REFUTED as stated (threshold wrong at 178M + over-broad beyond 40m/el-15)",
+    "no_overwrite_ko": "기존 원장은 하나도 안 건드렸다. 이 파일만 새로 만들었다.",
+    "metric_defs": {
+      "npaths_beat_hz": "benchmark/verify_raybudget_meaning.py:153 npaths_spectrum — (npaths(t)-mean)*hann, rfft zero-pad ×8, 40~400 Hz 안의 **격자 argmax**(보간 없음). 격자 간격 = PRF/(8N) = 2.4048 Hz (N=1024) / 0.6012 Hz (N=4096).",
+      "npaths_2x_over_1x_db": "20*log10( max|A| in 253.33±15 / max|A| in 126.67±15 ). **음수 = 2× 가 1× 보다 작다**.",
+      "grid_check_ko": "126.67 Hz 의 최근접 칸: N=1024 → 127.45 (오차 0.78, 옆칸 125.05 는 1.62) ✔ / N=4096 → 126.85 ✔. 2× 253.33 → 252.50 (N=1024), 253.10·253.70 (N=4096). 3× 380 → 379.96. 주장의 격자 설명은 **맞다**."
+    }
+  },
+
+  "A_178M_is_not_all_seeds": {
+    "source": "outputs/verify_raybudget_meaning.json ladder_40m.rungs[spp_m=178].arms[*].{npaths_beat_hz, npaths_2x_over_1x_db, beat_hz}",
+    "reproduced_from_raw_ko": "outputs/raybudget_ladder/spp178000000_s*_0*.npz 를 직접 읽어 npaths_spectrum 을 다시 돌려 동일 숫자를 얻었다.",
+    "claim_says": "178M·712M·2848M·4000M 의 **모든 시드**에서 npaths(t) 최강선이 127.45 Hz",
+    "actual_178M": [
+      {"seed": 1, "npaths_beat_hz": 127.45, "npaths_2x_over_1x_db": -12.14, "field_beat_hz": 127.5762, "field_class": "1x"},
+      {"seed": 2, "npaths_beat_hz": 127.45, "npaths_2x_over_1x_db": -8.58, "field_beat_hz": 254.3299, "field_class": "2x"},
+      {"seed": 3, "npaths_beat_hz": 127.45, "npaths_2x_over_1x_db": -7.12, "field_beat_hz": 126.2706, "field_class": "1x"},
+      {"seed": 4, "npaths_beat_hz": 252.50, "npaths_2x_over_1x_db": 3.18, "field_beat_hz": 254.1926, "field_class": "2x", "flag": "2x line WINS"},
+      {"seed": 5, "npaths_beat_hz": 127.45, "npaths_2x_over_1x_db": -7.99, "field_beat_hz": 253.7840, "field_class": "2x"},
+      {"seed": 6, "npaths_beat_hz": 127.45, "npaths_2x_over_1x_db": -19.67, "field_beat_hz": 254.9295, "field_class": "2x"},
+      {"seed": 7, "npaths_beat_hz": 252.50, "npaths_2x_over_1x_db": 4.02, "field_beat_hz": 253.6265, "field_class": "2x", "flag": "2x line WINS"}
+    ],
+    "excluded_seed8_ko": "샤드가 3/4 뿐이라 원장이 뺀 seed 8(768 자세)도 직접 재보면 peak 169.94 Hz(2x/1x −26.83 dB) — 1× 도 2× 도 아니다.",
+    "count": "127.45 Hz 는 7 판 중 **5 판**이다. 7/7 이 아니다.",
+    "note_ko": "⭐252.5 Hz 로 간 두 판(4·7)은 2× 가 1× 보다 +3.18 / +4.02 dB **더 크다**. 이건 가설이 예측한 바로 그 신호다."
+  },
+
+  "B_the_real_threshold_is_712M": {
+    "all_seeds_at_1x_from_712M_up": {
+      "712M": {"n_seeds": 3, "npaths_beat_hz": [127.45, 127.45, 127.45], "npaths_2x_over_1x_db": [-8.39, -18.64, -15.29]},
+      "2848M": {"n_seeds": 3, "npaths_beat_hz": [127.45, 127.45, 127.45], "npaths_2x_over_1x_db": [-17.35, -11.03, -17.02]},
+      "4000M": {"n_seeds": 8, "npaths_beat_hz": [127.45, 127.45, 127.45, 127.45, 127.45, 127.45, 127.45, 127.45],
+                 "npaths_2x_over_1x_db": [-12.83, -10.92, -26.40, -7.04, -8.03, -19.90, -20.31, -11.55]},
+      "summary_ko": "712 M 이상 14/14 판이 127.45 Hz 이고 2× 는 7.04~26.40 dB 작다. 여기서는 주장이 성립한다."
+    },
+    "crosstab_field2x_vs_npaths2x": {
+      "def_ko": "장(場) 대역 에너지 박자가 2× 인 판만 골라, 그 판의 경로수 박자도 2× 인지 센다. 가설이 참이면 «장이 2× 일 때 경로수도 2×» 여야 한다.",
+      "178M": {"field_2x_seeds": 5, "of_which_npaths_2x": 2, "field_1x_seeds": 2, "of_which_npaths_2x": 0},
+      "712M": {"field_2x_seeds": 0, "of_which_npaths_2x": 0},
+      "2848M": {"field_2x_seeds": 2, "of_which_npaths_2x": 0},
+      "4000M": {"field_2x_seeds": 3, "of_which_npaths_2x": 0},
+      "conclusion_ko": "⭐가설을 실제로 깨는 증거는 178 M 이 아니라 2848 M·4000 M 의 **5 판**이다 — 장이 2× 로 갈라졌는데 경로수는 127.45 Hz 에 머물렀다. 178 M 에서는 갈라진 5 판 중 2 판이 경로수도 같이 갈라졌다(가설 편).",
+      "power_caveat_ko": "⚠178 M 의 2/5 vs 0/2 는 Fisher 정확검정 p = 1.0 이다. 178 M 에서 «가설이 맞다» 고도 «틀렸다» 고도 통계로 못 말한다 — 표본이 7 판뿐이다."
+    }
+  },
+
+  "C_counterexample_other_elevations_at_higher_budget": {
+    "why_ko": "178 M 보다 **높은** 250 M 예산인데도 경로수가 2× 로 우는 앙각이 있다. 주장의 문턱(«178 M 이상») 자체가 기하에 의존한다.",
+    "source": "outputs/verify_raybudget_meaning.json elevation_10m.rows[engine='sionna_p250000000']",
+    "reproduced_from_raw_ko": "outputs/elev_sweep_shards/sionna_p250000000_el*_0*.npz 8 샤드씩 직접 읽어 재계산 — 원장과 소수 둘째 자리까지 일치.",
+    "geometry": "matrice4e · 10 m · az 0 · 4,096 자세 · Sionna PathSolver 250 M rays/pose",
+    "rows": [
+      {"el_deg": 0,   "npaths_median": 127, "npaths_beat_hz": 126.85, "npaths_2x_over_1x_db": -10.63, "corr_absE_npaths": -0.0071},
+      {"el_deg": -15, "npaths_median": 159, "npaths_beat_hz": 126.85, "npaths_2x_over_1x_db": -17.28, "corr_absE_npaths": 0.4325},
+      {"el_deg": -30, "npaths_median": 211, "npaths_beat_hz": 126.85, "npaths_2x_over_1x_db": -0.47, "corr_absE_npaths": 0.3960, "flag": "tie"},
+      {"el_deg": -45, "npaths_median": 268, "npaths_beat_hz": 126.85, "npaths_2x_over_1x_db": -2.81, "corr_absE_npaths": -0.2565},
+      {"el_deg": -60, "npaths_median": 287, "npaths_beat_hz": 126.25, "npaths_2x_over_1x_db": -10.74, "corr_absE_npaths": 0.2891},
+      {"el_deg": -75, "npaths_median": 323, "npaths_beat_hz": 253.10, "npaths_2x_over_1x_db": 0.67, "corr_absE_npaths": 0.4965, "flag": "2x line WINS"},
+      {"el_deg": -90, "npaths_median": 352, "npaths_beat_hz": 253.70, "npaths_2x_over_1x_db": 3.35, "corr_absE_npaths": 0.8068, "flag": "2x line WINS"}
+    ],
+    "summary_ko": "250 M 에서 7 앙각 중 2 곳(−75°·−90°)은 최강선이 2× 이고, 1 곳(−30°)은 −0.47 dB 로 사실상 동점이다. 3 곳이 «조용하다» 와 거리가 멀다.",
+    "el_minus75_is_a_live_signal_ko": "⭐−75° 는 죽은 자리가 아니다 — band_frac 15.85 %, 장 박자 126.41 Hz 로 플래시가 멀쩡히 보이는데도 경로수는 253.10 Hz 에 최강선을 놓는다.",
+    "el_minus90_caveat_ko": "⚠−90° 는 band_frac 0 %, 장 박자 None 이라 장 쪽에 비교 대상이 없다. 경로수만의 반례로 읽어야 한다."
+  },
+
+  "D_correlation_does_not_vanish": {
+    "claim_says": "|E| 와 경로수의 상관도 0.30(64M) → 0.09(178M) → −0.03(4000M) 으로 사라진다",
+    "cited_numbers_are_real": "corr_absE_npaths.median = 0.299 / 0.09 / -0.032 — 원장에 그대로 있다 (ladder_40m.rungs[*].corr_absE_npaths.median)",
+    "problem_1_skipped_rungs_ko": "712 M 의 median 은 0.159 로 178 M 의 0.09 보다 **크다**. 5 계단 중 3 개만 인용해 단조로 보이게 했다. 전체: 0.299 → 0.090 → 0.159 → −0.009 → −0.032.",
+    "problem_2_sign_cancellation_ko": "⭐부호 있는 중앙값은 상쇄된다. 판별 |상관| 의 평균을 보면 64M 0.268 → 178M 0.148 → 712M 0.191 → 2848M 0.153 → 4000M **0.211** 로 사라지지 않고 0.15~0.21 에 눌러앉는다.",
+    "mean_abs_corr_by_rung": {"64M": 0.268, "178M": 0.148, "712M": 0.191, "2848M": 0.153, "4000M": 0.211},
+    "max_abs_corr_by_rung": {"64M": 0.322, "178M": 0.275, "712M": 0.278, "2848M": 0.322, "4000M": 0.490},
+    "note_ko": "4000 M 의 개별 판 상관은 −0.4473 … +0.4902 로 흩어진다. 최대 |상관| 0.490 은 64 M 어느 판보다 크다.",
+    "counterexample_ko": "같은 250 M 예산의 10 m·el −90° 는 corr = 0.8068, el −75° 는 0.4965 다. 예산을 올려도 상관이 사라지지 않는 자리가 있다."
+  },
+
+  "E_starved_regime_statement_also_loose": {
+    "claim_says": "64M 이하에서는 npaths(t) 최강선이 252.5/379.96 Hz 라 굶은 구간에서만 가설이 맞는다",
+    "actual": {
+      "1M": "3 판 전부 경로 0 개 — 잴 수 없음(npaths_beat_hz = null)",
+      "4M": "3 판 전부 npaths_beat_hz = null",
+      "16M": "잴 수 있는 유일한 판(seed 3)이 **127.45 Hz**(2x/1x = −0.42 dB)",
+      "64M": "252.50(2×) · 379.96(3×) · 379.96(3×)"
+    },
+    "note_ko": "16 M 은 유일한 측정판이 1× 다. 그리고 64 M 은 3 판 중 **2 판이 3× 선**이다 — 3× 는 «주기를 반으로 쪼갠다» 가 아니라 셋으로 쪼갠다. 굶은 구간에서 가설이 «맞는다» 고 말하려면 2× 여야 하는데 다수는 3× 다.",
+    "n_ko": "16 M 이하는 유효 표본이 0~1 판이라 이 구간에 대해서는 **모른다** 고 적는 것이 맞다."
+  },
+
+  "F_numeric_audit_of_cited_values": {
+    "cited_means_all_check_out": {
+      "178M": {"claim": -6.9, "ledger_mean": -6.9, "ledger_sd": 8.32, "ledger_median": -7.99},
+      "712M": {"claim": -14.1, "ledger_mean": -14.11, "ledger_sd": 5.23, "ledger_median": -15.29},
+      "2848M": {"claim": -15.1, "ledger_mean": -15.13, "ledger_sd": 3.56, "ledger_median": -17.02},
+      "4000M": {"claim": -14.6, "ledger_mean": -14.62, "ledger_sd": 6.83, "ledger_median": -12.19}
+    },
+    "range_wording_wrong_ko": "«7~17 dB 작다» 라 했는데 178 M 의 인용값 −6.9 는 7 에 못 미친다. 그리고 178 M 산포 sd = 8.32 dB 는 평균 −6.9 안에 **양수 판(+3.18·+4.02)** 이 숨어 있다는 뜻이다. 평균만 적으면 부호가 뒤집히는 판이 안 보인다.",
+    "field_253Hz_framing_ko": "«같은 판의 장 대역 에너지는 253 Hz 로 읽힌다» 는 178 M(5/7)·2848 M(2/3) 에서만 다수다. 712 M 은 0/3, 4000 M 은 3/8 로 **다수가 126~127 Hz** 다. 4000 M 을 «장은 253» 이라 부르면 안 된다."
+  },
+
+  "G_scope": {
+    "what_was_measured": "matrice4e 한 기체 · 40 m · el −15° · 기선 0 · az 스윕 1,024 자세 · Sionna PathSolver",
+    "ledger_own_caveat": "outputs/raybudget_seed_ladder.json verdict.caveat_ko — «이 판정은 40 m·matrice4e·el −15°·기선 0 한 자리에서만 잰 것이다. 다른 거리·기체·앙각에서 같은지는 안 재봤다.»",
+    "claim_written_as": "«경로 개수는 조용하다» (조건 없음)",
+    "verdict_ko": "주장이 원장보다 넓다. 그리고 §C 가 실제 반례를 찾았다."
+  },
+
+  "H_what_survives": {
+    "survives_ko": "40 m · el −15° · matrice4e 에서 **712 M 이상**이면 경로수 최강선은 14/14 판 모두 127.45 Hz 이고 2× 는 7.0~26.4 dB 작다. 그중 2848 M·4000 M 의 5 판은 장 박자가 2× 인데도 경로수가 1× 에 머물렀다 — 이 5 판이 «경로 개수 뒤집힘» 기전을 실제로 배제하는 증거다.",
+    "dies_ko": [
+      "«178 M 이상» 이라는 문턱 (178 M 은 7 판 중 2 판이 반대 방향)",
+      "«모든 시드» (178 M 5/7)",
+      "«경로 개수는 조용하다» 의 무조건 서술 (10 m · 250 M 의 el −75°·−90° 가 반례)",
+      "«상관이 사라진다» (|상관| 평균은 0.15~0.21 에서 정체, el −90° 는 0.81)"
+    ],
+    "unknown_ko": "다른 기체·다른 거리(40 m 외)·기선 0 이 아닌 바이스태틱에서 같은지는 **모른다**. 이 원장들에 없다.",
+    "would_need_gpu_ko": "⚠40 m 에서 178 M 판을 시드 30 판쯤으로 늘려 2× 비율의 신뢰구간을 재려면 GPU 재계산이 **필요하다**. 이번 세션에서는 안 돌렸다."
+  }
+}

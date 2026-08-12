@@ -1,0 +1,76 @@
+{
+ "_meta": {
+  "role_ko": "반증 라운드 — 「상대 비교는 축을 골라야 한다: AC 는 1.4 dB 안, DC·가림은 못 쓴다」 의 숫자·범위 재검",
+  "generated": "2026-08-11",
+  "compute_ko": "CPU 만. GPU 재계산 0 건. 기존 원장 덮어쓰기 0 건 — 이 파일만 새로 쓴다.",
+  "reads": [
+   "outputs/verify_po_elev_tsladder.json",
+   "outputs/freeze_plate_sensitivity.json",
+   "outputs/elevation_sweep_md.json",
+   "outputs/elevation_sweep_md.npz",
+   "outputs/report07_three_engines.json (_meta: prf 19700 · n 4096 · az 0 · drone matrice4e)",
+   "outputs/adv_grid_freeze_audit.json",
+   "benchmark/verify_po_elev_tsladder.py",
+   "benchmark/adv_freeze_plate_sensitivity.py"
+  ]
+ },
+ "number_check": {
+  "verdict": "인용된 숫자는 전부 원장과 소수점까지 일치한다",
+  "P_ac_spread_db": {"el-60": 0.07, "el-30": 0.87, "el-15": 1.36,
+                     "key": "verify_po_elev_tsladder.json :: lattice_spread.el{X}.P_ac_db.spread"},
+  "P_dc_spread_db": {"el-60": 15.05, "el-30": 5.34, "el-15": 2.55,
+                     "key": "verify_po_elev_tsladder.json :: lattice_spread.el{X}.P_dc_db.spread"},
+  "winding_el-60": {"div12": 7.024, "div12_dith0.5": 0.023, "div16": 0.007,
+                    "key": "verify_po_elev_tsladder.json :: per_elevation.el-60.{plate}.winding_turns"},
+  "freeze_verdict": {"abs_level_plate_ptp_db": 3.452, "occlusion_level_plate_ptp_db": 4.163,
+                     "occlusion_ptp_plate_ptp_db": 26.525,
+                     "occlusion_level_survives_plate_choice": false,
+                     "belly_occlusion_level_values_db": [1.533, 2.122, -2.041],
+                     "key": "freeze_plate_sensitivity.json :: verdict · cells.matrice4e.belly.findings"},
+  "reproduced_on_cpu_ko": "elevation_sweep_md.npz 를 DEC=8 로 솎아 사다리와 같은 stats 로 다시 재니 el-60/-30/-15 의 P_dc·P_ac 가 원장과 동일(-78.00/-65.40, -64.31/-68.54, -51.17/-70.85)"
+ },
+ "scope_holes": {
+  "S1_no_difference_was_ever_taken_ko": "사다리 판 3 장은 같은 기체·같은 자세열·같은 엔진을 다시 잰 것이다. 두 설정의 dB '차' 를 잰 적이 없다 — 1.4 dB 는 자기일관성 산포이지 차이의 오차막대가 아니다.",
+  "S2_one_aircraft_one_azimuth_one_engine": {
+   "tsladder": {"drone": "matrice4e", "az_deg": 0.0, "engine": "ours(SBR+PO)", "fc_hz": 3.5e9,
+                "range_m": 10.0, "decimation": 8, "elevations_deg": [-60, -30, -15]},
+   "freeze": {"drone": "matrice4e", "cells": ["belly az0 el-15", "nose az0 el+15"], "stride": 40}
+  },
+  "S3_elevations_tested_vs_swept": {
+   "production_sweep_deg": [0, -15, -30, -45, -60, -75, -90],
+   "ladder_deg": [-60, -30, -15],
+   "untested_deg": [0, -45, -75, -90]
+  },
+  "S4_ac_over_dc_is_the_predictor_ko": "사다리 안에서 P_ac 산포는 AC-DC 비와 단조로 같이 움직인다(+12.60→0.07, -4.23→0.87, -19.68→1.36 dB). 즉 AC 는 자기가 총전력을 지배할 때만 안정하고, 큰 코히어런트 평균 위의 작은 잔차일수록 흔들린다.",
+  "ac_over_dc_db_all_elevations_cpu_measured": {
+   "note_ko": "DEC=8·PRF_eff 2462.5 Hz 로 사다리와 같은 방식. el 0 은 f_tip 1272.9 Hz > 나이퀴스트 1231.25 Hz 라 에일리어싱.",
+   "el+0": {"ac_over_dc_db": -15.32, "f_tip_hz": 1272.9, "aliased_at_dec8": true, "on_ladder": false},
+   "el-15": {"ac_over_dc_db": -19.68, "f_tip_hz": 1229.5, "aliased_at_dec8": false, "on_ladder": true},
+   "el-30": {"ac_over_dc_db": -4.23, "f_tip_hz": 1102.4, "aliased_at_dec8": false, "on_ladder": true},
+   "el-45": {"ac_over_dc_db": -8.15, "f_tip_hz": 900.1, "aliased_at_dec8": false, "on_ladder": false},
+   "el-60": {"ac_over_dc_db": 12.60, "f_tip_hz": 636.5, "aliased_at_dec8": false, "on_ladder": true},
+   "el-75": {"ac_over_dc_db": -10.46, "f_tip_hz": 329.5, "aliased_at_dec8": false, "on_ladder": false},
+   "el-90": {"ac_over_dc_db": -38.27, "f_tip_hz": 0.0, "aliased_at_dec8": false, "on_ladder": false}
+  },
+  "S5_occlusion_axis_is_cell_dependent": {
+   "belly_el-15": {"occlusion_level_ptp_db": 4.163, "A_arm_level_ptp_db": 1.549,
+                   "common_mode_test_ko": "실패 (4.163 > 1.549)"},
+   "nose_el+15": {"occlusion_level_ptp_db": 0.403, "A_arm_level_ptp_db": 3.452,
+                  "common_mode_test_ko": "통과 (0.403 < 3.452)"},
+   "verdict_is_max_over_cells_ko": "adv_freeze_plate_sensitivity.py 213-222 행: lvl·occl·occp 는 셀별 값의 max. 인용된 4.163 은 belly 값이다."
+  },
+  "S6_abs_level_is_A_arm_only": {
+   "verdict_key": "abs_level_plate_ptp_db = max over cells of arms.A_sbr_locked.level_db.ptp",
+   "A_arm_ptp_db": {"belly": 1.549, "nose": 3.452},
+   "blade_arm_level_ptp_db": {"belly_F": 2.924, "belly_G": 2.487, "nose_F": 0.379, "nose_G": 0.120}
+  },
+  "S7_plates_are_not_a_pure_offset_family_ko": "verify_po_elev_tsladder.py 는 dither 판을 n = g0.n + 2 로 만든다 — 반 칸 이동 + 격자 2 칸 확대(광선 +3.3 %)이고, div16 은 간격 자체가 다르다. 순수 서브셀 오프셋 3 장은 freeze 쪽(P0/P_e1/P_e1e2)뿐이다."
+ },
+ "bonus_finding_winding_is_sampling_fragile": {
+  "full_rate_4096_prf19700": {"el-60": -10.037, "el-30": 0.070, "el-15": -0.020},
+  "decimated_dec8_ledger": {"el-60": 7.024, "el-30": -0.280, "el-15": -0.003},
+  "note_ko": "같은(비트 동일) 계열인데 8 배 솎으면 el-60 의 감김이 -10.04 → +7.02 바퀴로 부호까지 바뀐다. 감김은 판뿐 아니라 표본율에도 깨진다. 문서의 '10 바퀴' 는 전율(full rate) 값이고 사다리의 7.024 는 데시메이션 값이라 서로 다른 표본이다.",
+  "how_measured_ko": "outputs/elevation_sweep_md.npz 의 ours/el* 계열에 sum(diff(unwrap(angle)))/2pi — CPU"
+ },
+ "conclusion_ko": "숫자는 반증되지 않는다(전부 정확). 반증되는 것은 범위다 — 한 기체·한 방위·한 엔진·7 앙각 중 3 개에서 잰 자기일관성 산포를 '상대 비교의 축 선택' 이라는 일반 명제로 적었다."
+}

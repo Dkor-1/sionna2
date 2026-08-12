@@ -90,7 +90,8 @@ SPP_MIN, SPP_MAX = 4_000_000, 3_072_000_000
 SEEDS = (1, 2, 3, 4)
 SPP_LADDER = (16_000_000, 64_000_000, 256_000_000, 1_024_000_000, 3_072_000_000)
 
-SCRATCH = os.path.join(ROOT, "outputs", "meshes", "report15_sweep_mini2")
+from proc_scratch import proc_scratch                                  # noqa: E402
+SCRATCH = proc_scratch(os.path.join(ROOT, "outputs", "meshes", "report15_sweep_mini2"))
 OUT_JSON = os.path.join(ROOT, "outputs", "report15_sionna_sweep_mini2.json")
 
 

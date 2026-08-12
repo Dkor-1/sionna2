@@ -1,0 +1,206 @@
+{
+ "_meta": {
+  "generator": "ad-hoc falsifier agent (CPU only, no GPU, no recompute of any kernel)",
+  "stamp": "2026-08-11 09:25:16",
+  "role_ko": "반증 — audit_po_trust.json :: layers.B_relative_comparison 의 «AC 축은 격자에 1.4 dB 안» 이 다른 앙각·다른 격자 사다리에서 깨지는가",
+  "inputs": [
+   "outputs/verify_po_elev_gridscale.json (el −90, div 8/12/16, 512 자세)",
+   "outputs/verify_po_elev_gridscale_el-15.json (el −15, div 8/16, 512 자세)",
+   "outputs/elevation_sweep_md.npz (생산 λ/12 계열, 앞 512 자세)",
+   "outputs/verify_po_elev_geomref.json :: ruler[*].R3_carson_hz (대역 자)"
+  ],
+  "method_ko": "저장된 복소 시계열만 읽어 P_dc·P_ac 와 AC 의 대역 안/밖 분리를 numpy 로 계산했다. sbr_field 재호출 0 건.",
+  "note_ko": "gridscale 원장은 부호정정 이전 계열이라 켤레만 다르다 — P_dc·P_ac·대역전력은 켤레에 불변이므로 비교에 지장 없다(el −90 div12 vs 생산 첫 512: P_dc·P_ac 0.01 dB 안)."
+ },
+ "per_elevation": {
+  "el-15": {
+   "carson_cut_hz": 1357.5,
+   "plates": {
+    "production_div12_first512": {
+     "P_dc_db": -51.15,
+     "P_ac_db": -71.98,
+     "AC_inband_db": -74.04,
+     "AC_outband_db": -77.14
+    },
+    "div8": {
+     "P_dc_db": -49.77,
+     "P_ac_db": -71.98,
+     "AC_inband_db": -74.75,
+     "AC_outband_db": -75.36
+    },
+    "div16": {
+     "P_dc_db": -49.74,
+     "P_ac_db": -72.87,
+     "AC_inband_db": -73.84,
+     "AC_outband_db": -83.29
+    }
+   },
+   "lattice_spread_all_plates": {
+    "P_dc_db": {
+     "vals": [
+      -51.15,
+      -49.77,
+      -49.74
+     ],
+     "spread": 1.41
+    },
+    "P_ac_db": {
+     "vals": [
+      -71.98,
+      -71.98,
+      -72.87
+     ],
+     "spread": 0.89
+    },
+    "AC_inband_db": {
+     "vals": [
+      -74.04,
+      -74.75,
+      -73.84
+     ],
+     "spread": 0.91
+    },
+    "AC_outband_db": {
+     "vals": [
+      -77.14,
+      -75.36,
+      -83.29
+     ],
+     "spread": 7.93
+    }
+   },
+   "lattice_spread_fine_only_lam12_vs_lam16": {
+    "P_dc_db": {
+     "vals": [
+      -51.15,
+      -49.74
+     ],
+     "spread": 1.41
+    },
+    "P_ac_db": {
+     "vals": [
+      -71.98,
+      -72.87
+     ],
+     "spread": 0.89
+    },
+    "AC_inband_db": {
+     "vals": [
+      -74.04,
+      -73.84
+     ],
+     "spread": 0.2
+    },
+    "AC_outband_db": {
+     "vals": [
+      -77.14,
+      -83.29
+     ],
+     "spread": 6.15
+    }
+   }
+  },
+  "el-90": {
+   "carson_cut_hz": 155.8,
+   "plates": {
+    "production_div12_first512": {
+     "P_dc_db": -41.66,
+     "P_ac_db": -79.76,
+     "AC_inband_db": -82.39,
+     "AC_outband_db": -82.93
+    },
+    "div8": {
+     "P_dc_db": -39.66,
+     "P_ac_db": -76.78,
+     "AC_inband_db": -83.54,
+     "AC_outband_db": -78.08
+    },
+    "div12": {
+     "P_dc_db": -41.66,
+     "P_ac_db": -79.76,
+     "AC_inband_db": -82.38,
+     "AC_outband_db": -82.91
+    },
+    "div16": {
+     "P_dc_db": -41.28,
+     "P_ac_db": -82.03,
+     "AC_inband_db": -83.56,
+     "AC_outband_db": -86.93
+    }
+   },
+   "lattice_spread_all_plates": {
+    "P_dc_db": {
+     "vals": [
+      -41.66,
+      -39.66,
+      -41.28
+     ],
+     "spread": 2.0
+    },
+    "P_ac_db": {
+     "vals": [
+      -79.76,
+      -76.78,
+      -82.03
+     ],
+     "spread": 5.25
+    },
+    "AC_inband_db": {
+     "vals": [
+      -82.39,
+      -83.54,
+      -83.56
+     ],
+     "spread": 1.17
+    },
+    "AC_outband_db": {
+     "vals": [
+      -82.93,
+      -78.08,
+      -86.93
+     ],
+     "spread": 8.85
+    }
+   },
+   "lattice_spread_fine_only_lam12_vs_lam16": {
+    "P_dc_db": {
+     "vals": [
+      -41.66,
+      -41.28
+     ],
+     "spread": 0.38
+    },
+    "P_ac_db": {
+     "vals": [
+      -79.76,
+      -82.03
+     ],
+     "spread": 2.27
+    },
+    "AC_inband_db": {
+     "vals": [
+      -82.39,
+      -83.56
+     ],
+     "spread": 1.17
+    },
+    "AC_outband_db": {
+     "vals": [
+      -82.93,
+      -86.93
+     ],
+     "spread": 4.0
+    }
+   }
+  }
+ },
+ "verdict": {
+  "claim": "audit_po_trust.json :: layers.B_relative_comparison — «블레이드(AC) 축은 격자에 1.4 dB 안으로 강건»",
+  "refuted": true,
+  "counterexample_ko": "el −90°: 전체 AC(P_ac) 가 λ/8·λ/12·λ/16 에서 5.25 dB 흔들린다. 고운 판 둘(λ/12 vs λ/16)만 봐도 2.28 dB 로 1.4 dB 를 넘는다.",
+  "why_ko": "P_ac 는 대역을 안 자른 전체 요동이라 격자 표본화 잡음(Carson 밖)이 섞인다. 그 잡음은 간격에 정비례한다(geomref :: grid_scale_probe 바닥 ∝ d^1.03~1.19, 초과전력 ∝ d^1.38~1.42). el −90 은 요동의 절반이 그 잡음이라(gates G4 = 52.9 %) 축째로 격자에 끌려간다.",
+  "what_survives_ko": "대역을 f_dop(el)+f_flash(Carson) 로 자른 in-band AC 는 두 앙각 모두 1.2 dB 안(el −15 0.91 · el −90 1.18). 강건한 것은 «AC 축» 이 아니라 «대역을 자른 AC» 다.",
+  "dc_side_ko": "«동체 DC 는 못 쓴다» 도 넓다. 같은 512 자세 예산의 el −15 에서 P_dc 산포는 1.41 dB(생산 λ/12 −51.15 · λ/8 −49.77 · λ/16 −49.74) 로 AC 최악값과 같은 급이다. DC 가 폭발하는 곳은 상쇄(널) 근처다 — dcsplit 원장에서 el −60 은 동체 DC−프롭 DC = −1.97 dB·위상차 153.6° 로 거의 상쇄, el −15 는 +23.01 dB 로 동체 지배.",
+  "untested_ko": "격자 사다리가 아예 없는 앙각: 0 · −45 · −75. 다른 기체·다른 az·다른 거리도 사다리 없음. 이 셋을 채우려면 GPU 재계산이 필요하다(이 세션에서는 안 돌렸다)."
+ }
+}

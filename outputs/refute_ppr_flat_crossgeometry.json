@@ -1,0 +1,264 @@
+{
+ "_meta": {
+  "generator": "adversarial refuter subagent (CPU only, no GPU, read-only)",
+  "date": "2026-08-11",
+  "lens_ko": "3/3 — 반례가 되는 다른 원장·앙각·예산이 있는지 찾는다",
+  "claim_ko": "회전당 첨두 개수는 178M 부터 4000M 까지 3.91 개로 평평하다(물리는 2) — 광선으로 안 고쳐지는 것",
+  "claim_lives_at": [
+   "outputs/verify_raybudget_meaning.json :: verdicts.q_40억발이_더_나은가.does_not_improve_ko[0]",
+   "outputs/verify_raybudget_meaning.json :: verdicts.q_수렴하는가.evidence_ko[2] («예산으로 안 줄어드는 바닥»)"
+  ],
+  "verdict": "REFUTED as stated",
+  "one_line_ko": "인용 숫자는 원장과 소수점까지 맞다. 그러나 «평평»도 «바닥»도 아니다 — 인용문 안의 712M 이 이미 2.282 이고, 다른 앙각·다른 예산에서는 같은 광선 엔진이 물리값 2 를 그대로 낸다.",
+  "no_overwrite_ko": "기존 원장은 하나도 안 건드렸다. 이 파일은 새로 만든 것이다.",
+  "prior_refuter_ko": "40 m 한 자리의 양자화·문턱 문제는 outputs/refute_peaks_per_rev_flatness.json (09:34) 이 이미 다뤘다. 이 파일은 **다른 앙각·다른 예산의 반례**를 더한다. 두 파일의 40 m 재계산 값은 시드 단위로 서로 완전히 일치한다."
+ },
+ "A_인용값_검증": {
+  "method_ko": "outputs/raybudget_ladder/spp*_s*_*.npz 를 CPU 로 직접 다시 읽어 md_mapstyle.flash_spec 규약으로 peaks_per_rev 를 재계산했다.",
+  "ladder_40m_median_ppr": {
+   "178M": 3.913,
+   "712M": 2.282,
+   "2848M": 3.913,
+   "4000M": 3.913
+  },
+  "ledger_key": "verify_raybudget_meaning.json :: ladder_40m.rungs[*].peaks_per_rev.median",
+  "recompute_matches_ledger": true,
+  "ours_40m": {
+   "ledger": 1.932,
+   "recomputed_full_4096": 1.9315,
+   "ledger_key": "ours_40m_reference.peaks_per_rev"
+  },
+  "note_ko": "숫자는 전부 실재하고 재현된다. 반증되는 것은 숫자가 아니라 그 위에 얹은 **서술**이다."
+ },
+ "B_인용문_자체가_평평하지_않다": {
+  "cited_series": [
+   [
+    178,
+    3.913
+   ],
+   [
+    712,
+    2.282
+   ],
+   [
+    2848,
+    3.913
+   ],
+   [
+    4000,
+    3.913
+   ]
+  ],
+  "ledger_steps_key": "convergence_40m.peaks_per_rev.steps",
+  "steps_d": [
+   {
+    "178->712": -1.631
+   },
+   {
+    "712->2848": 1.631
+   },
+   {
+    "2848->4000": 0.0
+   }
+  ],
+  "monotonic_flag_in_ledger": false,
+  "per_seed_spread_ppr": {
+   "178M": [
+    1.956,
+    3.913,
+    1.956,
+    3.913,
+    3.913,
+    3.913,
+    3.913
+   ],
+   "712M": [
+    1.956,
+    2.282,
+    5.869
+   ],
+   "2848M": [
+    5.869,
+    3.913,
+    3.913
+   ],
+   "4000M": [
+    3.913,
+    1.956,
+    3.913,
+    3.913,
+    3.913,
+    3.913,
+    3.913,
+    3.913
+   ]
+  },
+  "fed_rungs_pooled": {
+   "n_seeds": 21,
+   "per_seed_ppr_range": [
+    1.957,
+    5.87
+   ],
+   "frac_seeds_at_12peaks_or_more": 0.762
+  },
+  "mannwhitney_178M_vs_4000M_p": 0.505,
+  "mannwhitney_712M_vs_4000M_p": 0.635,
+  "note_ko": "⭐«평평» 을 통계로 세울 수도, 무너뜨릴 수도 없다(판이 3~8 개뿐이라 p 가 0.5~0.6 이다). 그런데 서술은 «평평하다» 고 단정했다. 게다가 인용 목록 안의 712M = 2.282 가 이미 예외다."
+ },
+ "C_양자화_때문에_2는_애초에_못_나온다": {
+  "n_poses_per_arm": 1024,
+  "n_rev_in_record": 3.067,
+  "quantum_ppr": 0.3261,
+  "attainable_values_ko": "1.956=첨두 6개 · 2.282=7 · 3.913=12 · 5.543=17 · 5.869=18. 물리값 2 는 이 격자에 없고 가장 가까운 도달값이 1.956 이다.",
+  "so_ko": "«3.91 vs 물리 2» 는 실은 «3.07 회전 동안 12 개 vs 6 개» 다. 두 배 읽기이지 연속적인 편차가 아니다."
+ },
+ "D_문턱을_바꾸면_사라진다": {
+  "metric_own_docstring": "benchmark/verify_raybudget_meaning.py:105-106 — «prominence 문턱은 임의값이다. 문턱을 바꾸면 절대값이 바뀌므로 예산 사이의 비교로만 읽어라»",
+  "median_ppr_vs_prominence_recomputed": {
+   "prominence": [
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.3
+   ],
+   "178M": [
+    3.913,
+    3.913,
+    3.913,
+    3.913,
+    3.913
+   ],
+   "712M": [
+    3.913,
+    3.587,
+    2.282,
+    2.282,
+    1.956
+   ],
+   "2848M": [
+    5.543,
+    4.239,
+    3.913,
+    3.913,
+    3.913
+   ],
+   "4000M": [
+    4.239,
+    3.913,
+    3.913,
+    3.587,
+    2.119
+   ]
+  },
+  "note_ko": "문턱 0.30 에서 4000M 중앙값은 2.119, 712M 은 1.956 — 물리값이다. «3.91 vs 2» 라는 절대 비교는 원장이 스스로 금지한 읽기다."
+ },
+ "E_반례_다른_앙각": {
+  "source": "outputs/verify_raybudget_meaning.json :: elevation_10m.rows (같은 원장의 다른 절). 값은 outputs/elev_sweep_shards/*.npz 에서 CPU 로 재계산해 전부 재현했다.",
+  "geometry": "matrice4e · 10 m · 4,096 자세 · prominence 0.15 · 앙각마다 그 앙각의 f_tip",
+  "rows": [
+   {
+    "engine": "sionna",
+    "spp": 11111111,
+    "el_deg": -60.0,
+    "npaths_median": 13.0,
+    "peaks_per_rev": 2.0088,
+    "why_ko": "⭐광선 엔진이 물리값 2 를 낸다(26 첨두 / 12.94 회전)"
+   },
+   {
+    "engine": "sionna",
+    "spp": 11111111,
+    "el_deg": -75.0,
+    "npaths_median": 13.0,
+    "peaks_per_rev": 1.9315,
+    "why_ko": "⭐광선 엔진이 우리 커널과 **같은 값**을 낸다"
+   },
+   {
+    "engine": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": -75.0,
+    "npaths_median": 323.0,
+    "peaks_per_rev": 1.9315,
+    "why_ko": "⭐큰 예산에서도 물리값. 문턱 0.05~0.30 전부 1.932 로 안 흔들린다"
+   },
+   {
+    "engine": "sionna",
+    "spp": 11111111,
+    "el_deg": 0.0,
+    "npaths_median": 9.0,
+    "peaks_per_rev": 9.5804,
+    "why_ko": "반대쪽 반례 — 3.91 이 아니라 9.58 이다"
+   },
+   {
+    "engine": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": 0.0,
+    "npaths_median": 127.0,
+    "peaks_per_rev": 0.6181,
+    "why_ko": "또 반대쪽 — 2 보다 **작다**"
+   },
+   {
+    "engine": "ours",
+    "spp": null,
+    "el_deg": -45.0,
+    "npaths_median": null,
+    "peaks_per_rev": 3.7085,
+    "why_ko": "⭐⭐**우리 커널**이 3.71 을 낸다(48 첨두 / 12.94 회전). 3.9 근처 값은 광선 엔진의 지문이 아니다"
+   }
+  ],
+  "verdict_ko": "같은 광선 엔진이 앙각에 따라 0.62 · 1.93 · 2.01 · 3.01 · 3.94 · 5.64 · 9.58 을 낸다. «3.91 로 굳는 바닥» 은 없다."
+ },
+ "F_반례_같은_자리_다른_예산": {
+  "geometry": "matrice4e · 10 m · el 0° · prominence 0.15",
+  "source_ko": "outputs/elev_sweep_shards 를 CPU 로 직접 읽어 계산했다. 아래 1000M·4000M 두 줄은 **어느 원장 rows 에도 안 실려 있다**(내가 새로 잰 값이다).",
+  "rows": [
+   {
+    "spp": 11111111,
+    "n_poses": 4096,
+    "npaths_median": 9.0,
+    "peaks_per_rev": 9.5804
+   },
+   {
+    "spp": 250000000,
+    "n_poses": 4096,
+    "npaths_median": 127.0,
+    "peaks_per_rev": 0.6181
+   },
+   {
+    "spp": 1000000000,
+    "n_poses": 1024,
+    "npaths_median": 471.0,
+    "peaks_per_rev": 0.6521
+   },
+   {
+    "spp": 4000000000,
+    "n_poses": 3072,
+    "npaths_median": 2008.5,
+    "peaks_per_rev": 4.5591
+   }
+  ],
+  "caveat_ko": "⚠ 기록 길이가 다르다(4,096 / 4,096 / 1,024 / 3,072 자세)라 양자 칸이 서로 다르다. 그래도 9.58 → 0.62 → 0.65 → 4.56 은 칸 크기로 설명 안 되는 15 배 흔들림이다. ⚠ 4000M 은 완료 샤드 6/8 만 있다(진행 중 작업).",
+  "verdict_ko": "같은 자리에서 광선을 360 배 늘리면 회전당 첨두가 **크게** 움직인다. «예산으로 안 줄어든다» 는 이 자리에서 성립하지 않는다."
+ },
+ "G_살아남는_것": {
+  "survives_ko": "⭐**40 m · el −15° · matrice4e · 1,024 자세 · prominence 0.15 라는 한 자리에서**, 광선 엔진은 178M~4000M 의 시드 21 판 중 16 판(76 %)이 첨두 12 개를 읽고, 우리 커널은 같은 길이 조각 4 개 모두 6 개를 읽는다. 광선을 22 배 부어도(178M→4000M) 이 두 배 읽기가 안 사라졌다.",
+  "fisher_exact_p": 0.01,
+  "mannwhitney_p": 0.0026,
+  "ours_1024_chunks_all_thresholds": [
+   1.956,
+   1.956,
+   1.956,
+   1.956
+  ],
+  "but_ko": "그 한 자리를 벗어나면 무너진다 — 10 m el −60°/−75° 에서는 같은 엔진이 물리값을 내고(E), 10 m el 0° 에서는 예산에 따라 0.62~9.58 로 뛴다(F). 그리고 우리 커널도 10 m el −45° 에서 3.71 을 낸다."
+ },
+ "H_정직성_메모": {
+  "not_tested_ko": [
+   "40 m 에서 앙각을 바꿔가며 회전당 첨두를 잰 자료는 **없다**. 40 m 는 el −15° 한 각도뿐이다.",
+   "10 m 에는 시드가 예산·앙각마다 1 판씩뿐이라 시드 간 산포를 못 잰다. 40 m 의 시드 산포를 그대로 옮겨 쓸 수 없다.",
+   "«왜 12 개로 읽히나» 는 안 풀렸다. 원장 자신도 q_기전_가설검사.not_tested_ko 에 «검증 안 했다» 고 적어 뒀다.",
+   "10 m 는 원거리장 경계 2D²/λ ≈ 14.08 m 의 **안쪽**이다(elevation_sweep_md.json _meta.range_why_ko). 40 m 와 직접 비교하면 안 되고, 여기서는 «40 m 결과를 일반 명제로 쓰면 안 된다» 는 반례로만 썼다."
+  ],
+  "gpu_ko": "⛔ GPU 를 한 번도 안 썼다. 전부 기존 npz/json 을 CPU 로 다시 읽은 것이다."
+ }
+}

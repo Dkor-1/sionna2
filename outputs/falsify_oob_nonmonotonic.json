@@ -1,0 +1,335 @@
+{
+ "_meta": {
+  "generator": "adversarial subagent (falsifier) — CPU only, no GPU, no writes to existing ledgers",
+  "question_ko": "«대역밖 비율이 비단조다» 가 사실인가. 메인 세션 수치가 0.03 pp 안에서 재현되는가.",
+  "method_ko": "outputs/raybudget_ladder/*.npz 샤드를 직접 다시 읽어 대역밖을 처음부터 다시 쟀다. verify_raybudget_meaning.py 의 함수를 import 하지 않고 정의만 보고 다시 짰다.",
+  "definition_ko": "Hann 창 주기도, 대역밖 = |f_D| > f_tip, f_tip = 1228.7211819358865 Hz, PRF = 19700 Hz",
+  "scope_ko": "40 m · el −15° · matrice4e · 자세 1,024 · 시드 2~8 판. 이 한 자리 밖은 안 잰다.",
+  "reads_only": [
+   "/home/yunjung/workspace/sionna2/outputs/raybudget_ladder/spp*_s*_*.npz",
+   "outputs/verify_raybudget_meaning.json",
+   "outputs/outofband_power.json"
+  ],
+  "writes_only": "outputs/falsify_oob_nonmonotonic.json"
+ },
+ "A_numbers_reproduce": {
+  "verdict": "재현된다 — 원장의 여덟 계단 값이 원 npz 에서 소수 넷째 자리까지 같다",
+  "rungs": [
+   {
+    "spp_m": 4.0,
+    "n_seeds_used": 3,
+    "oob_pct_mean": 0.3331,
+    "oob_pct_seeds": [
+     0.9992,
+     0.0,
+     0.0
+    ],
+    "P_out_db_mean": -228.08,
+    "P_out_db_sd": 58.16,
+    "P_out_db_seeds": [
+     -160.92,
+     -261.66,
+     -261.66
+    ],
+    "P_tot_db_mean": -142.77
+   },
+   {
+    "spp_m": 16.0,
+    "n_seeds_used": 2,
+    "oob_pct_mean": 7.9731,
+    "oob_pct_seeds": [
+     0.0,
+     15.9462
+    ],
+    "P_out_db_mean": -225.69,
+    "P_out_db_sd": 64.72,
+    "P_out_db_seeds": [
+     -271.46,
+     -179.92
+    ],
+    "P_tot_db_mean": -162.73
+   },
+   {
+    "spp_m": 64.0,
+    "n_seeds_used": 3,
+    "oob_pct_mean": 1.5573,
+    "oob_pct_seeds": [
+     1.9587,
+     0.8864,
+     1.8269
+    ],
+    "P_out_db_mean": -174.48,
+    "P_out_db_sd": 2.62,
+    "P_out_db_seeds": [
+     -172.83,
+     -173.11,
+     -177.51
+    ],
+    "P_tot_db_mean": -156.16
+   },
+   {
+    "spp_m": 178.0,
+    "n_seeds_used": 7,
+    "oob_pct_mean": 2.5175,
+    "oob_pct_seeds": [
+     3.3215,
+     1.1668,
+     3.3794,
+     1.7753,
+     2.8778,
+     4.2351,
+     0.8665
+    ],
+    "P_out_db_mean": -173.99,
+    "P_out_db_sd": 0.76,
+    "P_out_db_seeds": [
+     -174.52,
+     -174.03,
+     -175.38,
+     -173.62,
+     -173.07,
+     -173.64,
+     -173.65
+    ],
+    "P_tot_db_mean": -157.4
+   },
+   {
+    "spp_m": 712.0,
+    "n_seeds_used": 3,
+    "oob_pct_mean": 2.7983,
+    "oob_pct_seeds": [
+     3.0666,
+     4.8625,
+     0.4657
+    ],
+    "P_out_db_mean": -174.1,
+    "P_out_db_sd": 0.87,
+    "P_out_db_seeds": [
+     -174.85,
+     -173.15,
+     -174.3
+    ],
+    "P_tot_db_mean": -156.9
+   },
+   {
+    "spp_m": 2848.0,
+    "n_seeds_used": 3,
+    "oob_pct_mean": 0.2549,
+    "oob_pct_seeds": [
+     0.1497,
+     0.4535,
+     0.1615
+    ],
+    "P_out_db_mean": -174.75,
+    "P_out_db_sd": 0.34,
+    "P_out_db_seeds": [
+     -174.83,
+     -174.37,
+     -175.04
+    ],
+    "P_tot_db_mean": -148.21
+   },
+   {
+    "spp_m": 4000.0,
+    "n_seeds_used": 8,
+    "oob_pct_mean": 0.1275,
+    "oob_pct_seeds": [
+     0.0871,
+     0.1164,
+     0.0819,
+     0.2233,
+     0.2911,
+     0.1011,
+     0.0605,
+     0.059
+    ],
+    "P_out_db_mean": -174.23,
+    "P_out_db_sd": 1.06,
+    "P_out_db_seeds": [
+     -173.4,
+     -173.36,
+     -174.82,
+     -173.63,
+     -172.92,
+     -174.77,
+     -174.92,
+     -176.0
+    ],
+    "P_tot_db_mean": -144.59
+   }
+  ],
+  "note_ko": "이건 원장을 읽은 게 아니라 샤드를 다시 적분한 결과다. 값 자체는 건전하다."
+ },
+ "B_tolerance_claim_fails": {
+  "verdict": "⛔거짓 — «0.03 pp 안» 은 주장 자신이 제시한 숫자로 이미 깨진다",
+  "rows": [
+   {
+    "spp_m": 4.0,
+    "ledger_mean": 0.3331,
+    "main_session": 0.32,
+    "abs_pp": 0.0131,
+    "within_0p03pp": true
+   },
+   {
+    "spp_m": 64.0,
+    "ledger_mean": 1.5573,
+    "main_session": 1.53,
+    "abs_pp": 0.0273,
+    "within_0p03pp": true
+   },
+   {
+    "spp_m": 178.0,
+    "ledger_mean": 2.5175,
+    "main_session": 2.57,
+    "abs_pp": 0.0525,
+    "within_0p03pp": false
+   },
+   {
+    "spp_m": 712.0,
+    "ledger_mean": 2.7983,
+    "main_session": 2.74,
+    "abs_pp": 0.0583,
+    "within_0p03pp": false
+   },
+   {
+    "spp_m": 2848.0,
+    "ledger_mean": 0.2549,
+    "main_session": 0.25,
+    "abs_pp": 0.0049,
+    "within_0p03pp": true
+   },
+   {
+    "spp_m": 4000.0,
+    "ledger_mean": 0.1275,
+    "main_session": 0.1,
+    "abs_pp": 0.0275,
+    "within_0p03pp": true
+   }
+  ],
+  "max_abs_pp": 0.0583,
+  "n_over_0p03pp": 2,
+  "note_ko": "178 M 0.0525 pp · 712 M 0.0583 pp 로 여섯 중 둘이 한계를 넘는다. 최대는 한계의 1.94 배다."
+ },
+ "C_provenance_key_wrong": {
+  "verdict": "⛔절반 틀림 — convergence_40m.oob_frac_pct 는 **중앙값** 열이지 인용된 평균 열이 아니다",
+  "convergence_series_is_median": [
+   [
+    4.0,
+    0.0
+   ],
+   [
+    16.0,
+    7.9731
+   ],
+   [
+    64.0,
+    1.8269
+   ],
+   [
+    178.0,
+    2.8778
+   ],
+   [
+    712.0,
+    3.0666
+   ],
+   [
+    2848.0,
+    0.1615
+   ],
+   [
+    4000.0,
+    0.0941
+   ]
+  ],
+  "proof_ko": "4 M 은 평균 0.3331 · 중앙값 0.0 인데 convergence 열은 0.0 이다."
+ },
+ "D_nonmonotonicity_not_significant": {
+  "verdict": "⛔ «사실이다» 는 과하다 — 오르는 계단이 하나도 유의하지 않다",
+  "rising_steps": [
+   {
+    "pair": "64M->178M",
+    "mean_from": 1.5573,
+    "mean_to": 2.5175,
+    "welch_t": -1.64,
+    "p": 0.141
+   },
+   {
+    "pair": "64M->712M",
+    "mean_from": 1.5573,
+    "mean_to": 2.7983,
+    "welch_t": -0.94,
+    "p": 0.436
+   },
+   {
+    "pair": "178M->712M",
+    "mean_from": 2.5175,
+    "mean_to": 2.7983,
+    "welch_t": -0.21,
+    "p": 0.852
+   }
+  ],
+  "falling_steps": [
+   {
+    "pair": "712M->2848M",
+    "mean_from": 2.7983,
+    "mean_to": 0.2549,
+    "welch_t": 1.99,
+    "p": 0.184
+   },
+   {
+    "pair": "178M->4000M",
+    "mean_from": 2.5175,
+    "mean_to": 0.1275,
+    "welch_t": 5.0,
+    "p": 0.002
+   }
+  ],
+  "spearman_collection_regime_per_seed": {
+   "metric": "oob_pct",
+   "rho": -0.78,
+   "p": 6.94e-06,
+   "n": 24,
+   "reading_ko": "64 M~4,000 M 을 시드 단위로 보면 **단조 감소**와 모순이 없다"
+  },
+  "peak_rung_is_thin_ko": "가장 큰 봉우리인 16 M 은 시드 세 판 중 한 판이 정의 불가(경로 100 % 0), 남은 두 판이 0.0 % 와 15.9462 % 다. 15.9 % 짜리 판은 자세의 90.5 % 가 경로 0 개이고 레벨이 −182 dB 다 — 신호가 아니라 빈 열이다.",
+  "excluded_arm_ko": "178 M 시드 8 은 샤드 미완(768/1024)이라 제외됐다. 제외는 옳지만, 넣으면 178 M 평균이 2.5175 → 4.5245 % 로 뛴다 — 헤드라인이 제외 한 판에 걸려 있다."
+ },
+ "E_ratio_is_the_denominator": {
+  "verdict": "⭐⭐결정타 — 이 프로젝트가 이미 폐기한 «비율 함정» 에 그대로 걸렸다",
+  "project_own_rule": "outputs/outofband_power.json new_definition · freeze_verdict: «분모를 어떻게 고쳐도 비율인 한 이 함정이 남는다 — 그래서 절대량으로 간다»",
+  "absolute_P_out_db": {
+   "64": -174.48,
+   "178": -173.99,
+   "712": -174.1,
+   "2848": -174.75,
+   "4000": -174.23
+  },
+  "absolute_P_out_flat_ko": "64 M~4,000 M 에서 −173.99 ~ −174.75 dB, 폭 0.76 dB. 시드 내 산포가 0.34~2.62 dB 다.",
+  "spearman_P_out_db_vs_budget": {
+   "rho": -0.148,
+   "p": 0.491,
+   "n": 24
+  },
+  "spearman_P_tot_db_vs_budget": {
+   "rho": 0.818,
+   "p": 1.02e-06,
+   "n": 24
+  },
+  "headline_decomposition_178M_to_4000M": {
+   "d_ratio_db": -12.95,
+   "d_P_out_db": -0.24,
+   "d_P_tot_db": 12.81,
+   "share_from_denominator_pct": 98.1,
+   "reading_ko": "원장이 «대역밖 2.52 % → 0.13 %, 약 20 배 개선» 이라고 쓴 것의 98 % 는 **분모(총전력)가 12.8 dB 오른 것**이다. 물리가 금지하는 자리의 절대 전력은 0.24 dB 밖에 안 줄었다 — 광선을 22.5 배 부어도 대역밖은 안 지워진다."
+  },
+  "corollary_ko": "비율 열의 «비단조» 모양도 분자가 아니라 분모의 모양이다. 64→178→712 M 에서 절대 대역밖은 −174.48 / −173.99 / −174.10 dB 로 0.5 dB 안에 붙어 있다."
+ },
+ "F_scope": {
+  "measured_at_ko": "40 m · el −15° · matrice4e · 1,024 자세 · Sionna PathSolver 한 엔진",
+  "other_budget_axis_in_same_ledger_ko": "el0_probe.rows 는 10 m 에서 11.1 M ↔ 250 M 두 예산을 7 앙각에서 잰다. 대역밖은 6/7 앙각에서 예산과 함께 **줄고**(−15 0.38→0.06 · −30 5.22→3.74 · −45 2.20→1.56 · −60 7.71→1.40 · −75 15.17→0.98 · −90 65.57→37.85), el 0 만 0.0→0.0036 으로 는다(둘 다 사실상 0). 두 점뿐이라 비단조를 볼 수도 없다.",
+  "elevation_dominates_ko": "같은 예산에서 앙각만 바꾸면 대역밖이 0.0 %(el 0) ~ 65.6 %(el −90) 로 움직인다. 예산이 만드는 차이보다 훨씬 크다.",
+  "metric_degenerate_at_nadir_ko": "el −90 은 f_tip = 0 Hz 라 «|f| > f_tip» 이 DC 빼고 전 대역이다 — 지표가 성립 안 한다."
+ },
+ "verdict_ko": "숫자 여덟 개는 재현된다. 그러나 (1) «0.03 pp 안» 은 주장 자신의 숫자로 거짓이고 (2) 인용된 두 번째 키는 중앙값 열이며 (3) 오르는 계단이 하나도 유의하지 않고 (4) 이 프로젝트가 이미 폐기한 비율 지표라 그 모양의 98 % 는 분모다. ⇒ «비단조는 사실이다» 는 지지되지 않는다."
+}

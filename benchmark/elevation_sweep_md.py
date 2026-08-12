@@ -104,6 +104,7 @@ def run(a) -> None:
     # ⭐덱과 **같은** 로터 설정 — 축 하나만 바꾼다
     rpms = np.asarray(TJ["rpm_per_rotor"], float)
     ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)
+    els = tuple(float(x) for x in a.els.split(',') if x.strip()) or ELS
     idx = np.arange(a.shard, n, a.nshards)
     os.makedirs(SHD, exist_ok=True)
 
@@ -119,7 +120,7 @@ def run(a) -> None:
         if prop_only:
             keep = np.asarray(fp.g) == "prop"
             f_keep, g_keep = fp.f[keep], fp.g[keep]
-        for el in ELS:
+        for el in els:
             f = f"{SHD}/{a.engine}_el{el:+.0f}_{a.shard:02d}.npz"
             if os.path.exists(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
@@ -147,7 +148,7 @@ def run(a) -> None:
     from drones import drone_colors
     spp = int(a.spp) if a.spp else rule_spp(RANGE_M)
     cols = drone_colors(spec)
-    for el in ELS:
+    for el in els:
         tagp = "" if not a.spp else f"_p{a.spp}"
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
         if os.path.exists(f) and not a.overwrite:
@@ -157,7 +158,14 @@ def run(a) -> None:
         for j, i in enumerate(idx):
             i = int(i)
             m = fp.pose(ph[i]).to_mesh()
-            dd = os.path.join(RP.SCRATCH, f"elev_{spec.key}_e{el:+.0f}s{a.shard}_{i%2}")
+            # ⭐프로세스마다 다른 폴더를 쓴다 (2026-08-11 결함 정정).
+            #   전에는 이름에 앙각·샤드만 들어 있어서, **광선 예산이 다른 두 실행**을
+            #   동시에 띄우면 같은 폴더를 썼다. 자세마다 drop_scratch 로 지우므로
+            #   한쪽이 읽는 중에 다른 쪽이 지워 «OBJ file not found» 로 터졌다
+            #   (el 0 사다리에서 샤드 7 개 손실). PID 를 넣으면 어떤 동시 실행과도 안 겹친다.
+            dd = os.path.join(RP.SCRATCH,
+                              f"elev_{spec.key}_e{el:+.0f}s{a.shard}"
+                              f"_p{spp}_pid{os.getpid()}_{i%2}")
             paths_obj = m.write_obj_per_group(dd, spec.key)
             parts = [RP.Part(name=f"{spec.key}_{g}_{i%2}", obj=p,
                              mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
@@ -235,7 +243,12 @@ def analyse() -> None:
                     band_power_db=round(pw, 2))
 
     rows, series = [], {}
-    for eng in ("ours", "ours_free", "sionna"):
+    # ⭐샤드 폴더에 실제로 있는 팔을 전부 집는다 — --spp 로 낸 것은
+    #   sionna_p250000000_... 처럼 예산 꼬리표가 붙어 이름이 고정되지 않는다.
+    engines = sorted({os.path.basename(f).rsplit("_el", 1)[0]
+                      for f in glob.glob(f"{SHD}/*_el*.npz")},
+                     key=lambda e: (not e.startswith("ours"), e))
+    for eng in engines:
         for el in ELS:
             fs = sorted(glob.glob(f"{SHD}/{eng}_el{el:+.0f}_*.npz"))
             if not fs:
@@ -263,17 +276,22 @@ def analyse() -> None:
 
     if not rows:
         raise SystemExit(f"⛔ {SHD} 에 샤드가 없다")
-    np.savez_compressed(OUTN, **series)
+    # ⭐부호 표식 — 샤드가 이미 정정본(R28)이므로 정정기가 다시 손대면 안 된다.
+    np.savez_compressed(OUTN, phase_sign_v2=np.array([1], np.int8), **series)
     json.dump({"_meta": {
         "generator": "benchmark/elevation_sweep_md.py",
         "question_ko": "거리 대신 앙각을 바꾸면 마이크로도플러가 어떻게 변하나",
-        "range_m": RANGE_M, "range_why_ko": "원거리장 경계 2D²/λ = 14.08 m 바로 위로 고정",
+        "range_m": RANGE_M,
+        "range_why_ko": ("⭐사용자 지시로 10 m 고정. ⚠원거리장 경계 2D²/λ ≈ 14.08 m 의 "
+                         "**안쪽**이라 근거리장 판이다 — 우리 커널은 range_m 구면파로 "
+                         "처리하고 PathSolver 는 실제 기하라 둘 다 다룰 수 있지만, "
+                         "평면파 원거리장 값과 직접 비교하면 안 된다."),
         "fc_hz": FC, "prf_hz": prf, "f_flash_hz": ffl,
         "elevations_deg": list(ELS), "drone": TJ.get("drone"),
         "rotor_ko": "덱과 같은 결정론 패턴(OU 프리셋 아님) — 축을 하나만 바꾼다",
         "rpm_per_rotor": TJ.get("rpm_per_rotor"),
         "grid_ko": "얼린 격자(자세 합집합 bbox), λ/12",
-        "ours_illumination": "spherical wave at 15 m",
+        "ours_illumination": f"spherical wave at {RANGE_M:.0f} m",
         "sionna_spp": rule_spp(RANGE_M),
         "band_track_ko": "⭐정본 — 앙각마다 그 앙각의 f_tip 으로 0.35~1.0 배",
         "band_fixed_ko": "덱의 −15° 대역(430~1229 Hz) 고정 — 앙각이 내려가면 비어 간다",
@@ -303,6 +321,8 @@ def main() -> None:
                          "가림을 없앤 대조군(정점은 그대로라 bbox·광선격자 동일) · sionna")
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--nshards", type=int, default=1)
+    ap.add_argument("--els", default="",
+                    help="쉼표로 앙각을 골라 돈다. 비면 7 점 전부. 예: --els 0")
     ap.add_argument("--spp", type=int, default=0,
                     help="0 이면 규칙값 (R/3)^2 x 1M. ⭐경로 수를 100 개 이상으로 "
                          "올리려면 직접 준다 — 규칙값은 10 m 에서 경로 6~13 개뿐이라 "

@@ -1,0 +1,523 @@
+{
+ "_meta": {
+  "generator": "benchmark/falsify_fixed_band_beat_meter.py",
+  "claim_under_test_ko": "«fixed 대역 beat_hz 는 도플러가 아니라 창 누설을 재는 잣대다 — 대역 안 에너지가 원리적으로 0 인 신호에도 126.67 Hz 를 낸다»",
+  "no_gpu_ko": "GPU 안 씀 · numpy/scipy CPU · 기존 원장 안 덮음",
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "n": 4096,
+  "nperseg": 70,
+  "bin_hz": 281.4,
+  "band_lo_hz": 430.1,
+  "band_hi_hz": 1228.7,
+  "verdict_ko": "**반증된다(일반 명제로서).** beat_hz 는 «창 누설을 재는 잣대» 가 아니라 **대역 선택성이 없는 변조율계** 다 — 입력 변조율을 60·90·126.67·180·200·253.33·300·350 Hz 에서 오차 0.00 Hz 로 그대로 낸다(대역 내 참에너지 −97~−127 dB). 126.67 이라는 값은 인공물이 아니라 그 합성신호에 실재하는 변조율이었다. 살아남는 참인 부분은 둘: (1) 대역 귀속이 실패한다(430 Hz = 1.53 빈 < Hann 주로브 2.00 빈), (2) 유의성 관문이 없다(변조 깊이 1.8e-16 인 상수에도 41.42 Hz). «누설 지배» 자체는 ours/el−75·el−90 두 행만의 성질이고, 나머지 7 행은 진짜 에너지가 +3.35~+12.75 dB 우세하다."
+ },
+ "R1_change_the_modulation_rate": {
+  "why_ko": "대역 안 참에너지는 여덟 판 모두 −110 dB 언저리(사실상 0)다. 그런데 reported_beat_hz 는 **입력 변조율을 그대로 따라간다**.",
+  "rows": {
+   "pure AM at 60.00 Hz, depth 0.3": {
+    "input_modulation_hz": 60.0,
+    "reported_beat_hz": 60.0,
+    "error_hz": 0.0,
+    "reported_band_power_db": -13.61,
+    "true_energy_in_band_db": -122.9,
+    "g_modulation_depth": 0.43
+   },
+   "pure AM at 90.00 Hz, depth 0.3": {
+    "input_modulation_hz": 90.0,
+    "reported_beat_hz": 90.0,
+    "error_hz": 0.0,
+    "reported_band_power_db": -13.34,
+    "true_energy_in_band_db": -126.5,
+    "g_modulation_depth": 0.4601
+   },
+   "pure AM at 126.67 Hz, depth 0.3": {
+    "input_modulation_hz": 126.67,
+    "reported_beat_hz": 126.67,
+    "error_hz": 0.0,
+    "reported_band_power_db": -12.76,
+    "true_energy_in_band_db": -121.5,
+    "g_modulation_depth": 0.4813
+   },
+   "pure AM at 180.00 Hz, depth 0.3": {
+    "input_modulation_hz": 180.0,
+    "reported_beat_hz": 180.0,
+    "error_hz": 0.0,
+    "reported_band_power_db": -11.6,
+    "true_energy_in_band_db": -117.3,
+    "g_modulation_depth": 0.4762
+   },
+   "pure AM at 200.00 Hz, depth 0.3": {
+    "input_modulation_hz": 200.0,
+    "reported_beat_hz": 200.0,
+    "error_hz": 0.0,
+    "reported_band_power_db": -11.08,
+    "true_energy_in_band_db": -116.3,
+    "g_modulation_depth": 0.4599
+   },
+   "pure AM at 253.33 Hz, depth 0.3": {
+    "input_modulation_hz": 253.33,
+    "reported_beat_hz": 253.33,
+    "error_hz": -0.0,
+    "reported_band_power_db": -9.6,
+    "true_energy_in_band_db": -112.3,
+    "g_modulation_depth": 0.3954
+   },
+   "pure AM at 300.00 Hz, depth 0.3": {
+    "input_modulation_hz": 300.0,
+    "reported_beat_hz": 300.0,
+    "error_hz": 0.0,
+    "reported_band_power_db": -8.3,
+    "true_energy_in_band_db": -104.5,
+    "g_modulation_depth": 0.3296
+   },
+   "pure AM at 350.00 Hz, depth 0.3": {
+    "input_modulation_hz": 350.0,
+    "reported_beat_hz": 350.0,
+    "error_hz": 0.0,
+    "reported_band_power_db": -7.0,
+    "true_energy_in_band_db": -97.4,
+    "g_modulation_depth": 0.2626
+   }
+  }
+ },
+ "R2_no_modulation_cases": {
+  "why_ko": "변조가 없으면 g(t) 가 평평해 argmax 가 잡음을 집는다 — 그 결과는 126.67 이 **아니다**. 즉 잣대는 «126.67 을 만들어 내는» 기계가 아니다.",
+  "rows": {
+   "constant (no modulation at all)": {
+    "reported_beat_hz": 41.42,
+    "reported_band_power_db": -14.04,
+    "true_energy_in_band_db": -134.5,
+    "g_modulation_depth": 1.758e-16,
+    "g_modulation_depth_db": -315.1
+   },
+   "constant + real 900 Hz line, NO flash AM": {
+    "reported_beat_hz": 398.44,
+    "reported_band_power_db": -2.95,
+    "true_energy_in_band_db": -14.1,
+    "g_modulation_depth": 0.009237,
+    "g_modulation_depth_db": -40.7
+   },
+   "constant + real +-900 Hz pair, NO flash AM": {
+    "reported_beat_hz": 398.44,
+    "reported_band_power_db": -5.63,
+    "true_energy_in_band_db": -17.1,
+    "g_modulation_depth": 0.01714,
+    "g_modulation_depth_db": -35.3
+   },
+   "white noise only (seed 0)": {
+    "reported_beat_hz": 225.97,
+    "reported_band_power_db": 2.75,
+    "true_energy_in_band_db": -10.9,
+    "g_modulation_depth": 0.5051,
+    "g_modulation_depth_db": -5.9
+   }
+  }
+ },
+ "R3_real_signals_split": {
+  "why_ko": "대역만 남긴 신호(bandpass_only)가 스스로 126~127 Hz 를 내면, 그 대역 안에는 진짜 플래시 빗살이 있다는 뜻이다 — 누설 없이도.",
+  "rows": {
+   "ours/el+0": {
+    "full_beat_hz": 126.4,
+    "full_band_power_db": -59.22,
+    "bandpass_only_beat_hz": 126.41,
+    "bandpass_only_power_db": -59.83,
+    "lowpass300_only_beat_hz": 254.17,
+    "lowpass300_only_power_db": -68.22,
+    "band_notched_out_beat_hz": 254.12,
+    "band_notched_out_power_db": -68.02,
+    "true_over_leakage_db": 9.0,
+    "g_depth_full": 0.8929,
+    "g_depth_bandpass": 1.038
+   },
+   "ours/el-15": {
+    "full_beat_hz": 126.16,
+    "full_band_power_db": -60.51,
+    "bandpass_only_beat_hz": 126.16,
+    "bandpass_only_power_db": -62.38,
+    "lowpass300_only_beat_hz": 126.93,
+    "lowpass300_only_power_db": -65.11,
+    "band_notched_out_beat_hz": 126.96,
+    "band_notched_out_power_db": -65.06,
+    "true_over_leakage_db": 4.6,
+    "g_depth_full": 0.8993,
+    "g_depth_bandpass": 1.363
+   },
+   "ours/el-30": {
+    "full_beat_hz": 126.74,
+    "full_band_power_db": -59.27,
+    "bandpass_only_beat_hz": 126.75,
+    "bandpass_only_power_db": -59.47,
+    "lowpass300_only_beat_hz": 126.7,
+    "lowpass300_only_power_db": -73.96,
+    "band_notched_out_beat_hz": 126.67,
+    "band_notched_out_power_db": -72.93,
+    "true_over_leakage_db": 14.69,
+    "g_depth_full": 1.216,
+    "g_depth_bandpass": 1.287
+   },
+   "ours/el-45": {
+    "full_beat_hz": 126.61,
+    "full_band_power_db": -58.82,
+    "bandpass_only_beat_hz": 126.63,
+    "bandpass_only_power_db": -59.4,
+    "lowpass300_only_beat_hz": 126.62,
+    "lowpass300_only_power_db": -68.46,
+    "band_notched_out_beat_hz": 126.63,
+    "band_notched_out_power_db": -67.97,
+    "true_over_leakage_db": 9.64,
+    "g_depth_full": 0.9976,
+    "g_depth_bandpass": 1.11
+   },
+   "ours/el-60": {
+    "full_beat_hz": 126.67,
+    "full_band_power_db": -65.31,
+    "bandpass_only_beat_hz": 126.56,
+    "bandpass_only_power_db": -70.5,
+    "lowpass300_only_beat_hz": 126.55,
+    "lowpass300_only_power_db": -67.67,
+    "band_notched_out_beat_hz": 126.72,
+    "band_notched_out_power_db": -66.86,
+    "true_over_leakage_db": 2.36,
+    "g_depth_full": 0.6974,
+    "g_depth_bandpass": 1.03
+   },
+   "ours/el-75": {
+    "full_beat_hz": 126.49,
+    "full_band_power_db": -58.71,
+    "bandpass_only_beat_hz": 123.17,
+    "bandpass_only_power_db": -83.47,
+    "lowpass300_only_beat_hz": 126.5,
+    "lowpass300_only_power_db": -58.7,
+    "band_notched_out_beat_hz": 126.49,
+    "band_notched_out_power_db": -58.7,
+    "true_over_leakage_db": -0.01,
+    "g_depth_full": 0.4317,
+    "g_depth_bandpass": 2.348
+   },
+   "ours/el-90": {
+    "full_beat_hz": 126.78,
+    "full_band_power_db": -55.68,
+    "bandpass_only_beat_hz": 127.72,
+    "bandpass_only_power_db": -82.77,
+    "lowpass300_only_beat_hz": 253.33,
+    "lowpass300_only_power_db": -55.69,
+    "band_notched_out_beat_hz": 253.34,
+    "band_notched_out_power_db": -55.69,
+    "true_over_leakage_db": 0.01,
+    "g_depth_full": 0.00718,
+    "g_depth_bandpass": 0.5936
+   },
+   "sionna/el+0": {
+    "full_beat_hz": 376.73,
+    "full_band_power_db": -73.69,
+    "bandpass_only_beat_hz": 127.16,
+    "bandpass_only_power_db": -135.25,
+    "lowpass300_only_beat_hz": 250.97,
+    "lowpass300_only_power_db": -73.69,
+    "band_notched_out_beat_hz": 376.73,
+    "band_notched_out_power_db": -73.69,
+    "true_over_leakage_db": 0.0,
+    "g_depth_full": 4.495e-05,
+    "g_depth_bandpass": 0.7982
+   },
+   "sionna/el-15": {
+    "full_beat_hz": 126.77,
+    "full_band_power_db": -135.38,
+    "bandpass_only_beat_hz": 252.83,
+    "bandpass_only_power_db": -138.68,
+    "lowpass300_only_beat_hz": 253.2,
+    "lowpass300_only_power_db": -138.73,
+    "band_notched_out_beat_hz": 252.81,
+    "band_notched_out_power_db": -138.13,
+    "true_over_leakage_db": 3.35,
+    "g_depth_full": 0.3377,
+    "g_depth_bandpass": 0.5503
+   },
+   "sionna/el-30": {
+    "full_beat_hz": 252.2,
+    "full_band_power_db": -130.53,
+    "bandpass_only_beat_hz": 126.51,
+    "bandpass_only_power_db": -132.5,
+    "lowpass300_only_beat_hz": 126.65,
+    "lowpass300_only_power_db": -141.82,
+    "band_notched_out_beat_hz": 126.28,
+    "band_notched_out_power_db": -134.88,
+    "true_over_leakage_db": 11.29,
+    "g_depth_full": 0.6158,
+    "g_depth_bandpass": 0.6593
+   },
+   "sionna/el-45": {
+    "full_beat_hz": 126.0,
+    "full_band_power_db": -129.27,
+    "bandpass_only_beat_hz": 125.71,
+    "bandpass_only_power_db": -130.3,
+    "lowpass300_only_beat_hz": 254.1,
+    "lowpass300_only_power_db": -138.41,
+    "band_notched_out_beat_hz": 379.91,
+    "band_notched_out_power_db": -136.01,
+    "true_over_leakage_db": 9.14,
+    "g_depth_full": 0.4947,
+    "g_depth_bandpass": 0.489
+   },
+   "sionna/el-60": {
+    "full_beat_hz": 126.59,
+    "full_band_power_db": -127.7,
+    "bandpass_only_beat_hz": 127.14,
+    "bandpass_only_power_db": -130.25,
+    "lowpass300_only_beat_hz": 126.76,
+    "lowpass300_only_power_db": -137.35,
+    "band_notched_out_beat_hz": 127.26,
+    "band_notched_out_power_db": -131.23,
+    "true_over_leakage_db": 9.65,
+    "g_depth_full": 0.5496,
+    "g_depth_bandpass": 0.5331
+   },
+   "sionna/el-75": {
+    "full_beat_hz": 252.89,
+    "full_band_power_db": -126.17,
+    "bandpass_only_beat_hz": 251.79,
+    "bandpass_only_power_db": -127.32,
+    "lowpass300_only_beat_hz": 126.35,
+    "lowpass300_only_power_db": -135.03,
+    "band_notched_out_beat_hz": 251.87,
+    "band_notched_out_power_db": -132.51,
+    "true_over_leakage_db": 8.86,
+    "g_depth_full": 0.7084,
+    "g_depth_bandpass": 0.5425
+   },
+   "sionna/el-90": {
+    "full_beat_hz": 127.68,
+    "full_band_power_db": -125.52,
+    "bandpass_only_beat_hz": 127.09,
+    "bandpass_only_power_db": -126.43,
+    "lowpass300_only_beat_hz": 126.82,
+    "lowpass300_only_power_db": -138.27,
+    "band_notched_out_beat_hz": 126.54,
+    "band_notched_out_power_db": -132.59,
+    "true_over_leakage_db": 12.75,
+    "g_depth_full": 0.6354,
+    "g_depth_bandpass": 0.5198
+   },
+   "sionna_p250000000/el+0": {
+    "full_beat_hz": 50.27,
+    "full_band_power_db": -73.68,
+    "bandpass_only_beat_hz": 50.26,
+    "bandpass_only_power_db": -100.2,
+    "lowpass300_only_beat_hz": 270.75,
+    "lowpass300_only_power_db": -73.69,
+    "band_notched_out_beat_hz": 380.83,
+    "band_notched_out_power_db": -73.69,
+    "true_over_leakage_db": 0.01,
+    "g_depth_full": 0.009044,
+    "g_depth_bandpass": 4.425
+   },
+   "sionna_p250000000/el-15": {
+    "full_beat_hz": 126.47,
+    "full_band_power_db": -132.18,
+    "bandpass_only_beat_hz": 130.13,
+    "bandpass_only_power_db": -140.82,
+    "lowpass300_only_beat_hz": 254.01,
+    "lowpass300_only_power_db": -132.88,
+    "band_notched_out_beat_hz": 253.93,
+    "band_notched_out_power_db": -132.81,
+    "true_over_leakage_db": 0.7,
+    "g_depth_full": 0.1254,
+    "g_depth_bandpass": 0.5996
+   },
+   "sionna_p250000000/el-30": {
+    "full_beat_hz": 126.61,
+    "full_band_power_db": -126.53,
+    "bandpass_only_beat_hz": 126.65,
+    "bandpass_only_power_db": -127.2,
+    "lowpass300_only_beat_hz": 126.74,
+    "lowpass300_only_power_db": -137.18,
+    "band_notched_out_beat_hz": 126.75,
+    "band_notched_out_power_db": -135.08,
+    "true_over_leakage_db": 10.65,
+    "g_depth_full": 0.8385,
+    "g_depth_bandpass": 0.997
+   },
+   "sionna_p250000000/el-45": {
+    "full_beat_hz": 126.83,
+    "full_band_power_db": -122.69,
+    "bandpass_only_beat_hz": 126.83,
+    "bandpass_only_power_db": -123.23,
+    "lowpass300_only_beat_hz": 253.54,
+    "lowpass300_only_power_db": -132.93,
+    "band_notched_out_beat_hz": 127.04,
+    "band_notched_out_power_db": -132.11,
+    "true_over_leakage_db": 10.24,
+    "g_depth_full": 0.7705,
+    "g_depth_bandpass": 0.9091
+   },
+   "sionna_p250000000/el-60": {
+    "full_beat_hz": 253.48,
+    "full_band_power_db": -125.17,
+    "bandpass_only_beat_hz": 126.67,
+    "bandpass_only_power_db": -127.38,
+    "lowpass300_only_beat_hz": 125.76,
+    "lowpass300_only_power_db": -131.73,
+    "band_notched_out_beat_hz": 127.53,
+    "band_notched_out_power_db": -129.19,
+    "true_over_leakage_db": 6.56,
+    "g_depth_full": 0.3294,
+    "g_depth_bandpass": 0.4425
+   },
+   "sionna_p250000000/el-75": {
+    "full_beat_hz": 126.88,
+    "full_band_power_db": -121.97,
+    "bandpass_only_beat_hz": 126.31,
+    "bandpass_only_power_db": -126.46,
+    "lowpass300_only_beat_hz": 126.55,
+    "lowpass300_only_power_db": -124.06,
+    "band_notched_out_beat_hz": 126.2,
+    "band_notched_out_power_db": -123.85,
+    "true_over_leakage_db": 2.09,
+    "g_depth_full": 0.4331,
+    "g_depth_bandpass": 0.7207
+   },
+   "sionna_p250000000/el-90": {
+    "full_beat_hz": 252.02,
+    "full_band_power_db": -123.22,
+    "bandpass_only_beat_hz": 128.98,
+    "bandpass_only_power_db": -125.2,
+    "lowpass300_only_beat_hz": 253.51,
+    "lowpass300_only_power_db": -128.73,
+    "band_notched_out_beat_hz": 127.23,
+    "band_notched_out_power_db": -127.55,
+    "true_over_leakage_db": 5.51,
+    "g_depth_full": 0.3694,
+    "g_depth_bandpass": 0.3911
+   }
+  }
+ },
+ "R4_ledger_spread": {
+  "why_ko": "잣대가 «항상 126.67 을 뱉는 기계» 라면 21 행이 모두 126.67 이어야 한다. 실제로는 6 행이 2×·3× 또는 전혀 다른 값이다.",
+  "n_rows": 21,
+  "n_near_1x": 15,
+  "n_not_1x": 6,
+  "not_1x_rows": {
+   "sionna/el+0": 376.73,
+   "sionna/el-30": 252.2,
+   "sionna/el-75": 252.89,
+   "sionna_p250000000/el+0": 50.27,
+   "sionna_p250000000/el-60": 253.48,
+   "sionna_p250000000/el-90": 252.02
+  },
+  "all_rows": {
+   "ours/el+0": 126.4,
+   "ours/el-15": 126.16,
+   "ours/el-30": 126.74,
+   "ours/el-45": 126.61,
+   "ours/el-60": 126.67,
+   "ours/el-75": 126.49,
+   "ours/el-90": 126.78,
+   "sionna/el+0": 376.73,
+   "sionna/el-15": 126.77,
+   "sionna/el-30": 252.2,
+   "sionna/el-45": 126.0,
+   "sionna/el-60": 126.59,
+   "sionna/el-75": 252.89,
+   "sionna/el-90": 127.68,
+   "sionna_p250000000/el+0": 50.27,
+   "sionna_p250000000/el-15": 126.47,
+   "sionna_p250000000/el-30": 126.61,
+   "sionna_p250000000/el-45": 126.83,
+   "sionna_p250000000/el-60": 253.48,
+   "sionna_p250000000/el-75": 126.88,
+   "sionna_p250000000/el-90": 252.02
+  }
+ },
+ "R5_significance": {
+  "why_ko": "원장이 버린 유의성. peak_over_median_db 는 40~400 Hz 창 안 최대선이 그 창의 중앙값보다 몇 dB 위인가. 대역만 남긴 신호도 el−90 에서 24.0 dB 로 선다 — 대역 안 빗살은 실재한다(다만 −51.6 dB 로 약하다).",
+  "rows": {
+   "ours/el+0": {
+    "full_beat_hz": 126.4,
+    "full_peak_over_median_db": 57.6,
+    "bandpass_only_beat_hz": 126.41,
+    "bandpass_only_peak_over_median_db": 57.1,
+    "bandpass_only_g_depth": 1.0377
+   },
+   "ours/el-15": {
+    "full_beat_hz": 126.16,
+    "full_peak_over_median_db": 45.8,
+    "bandpass_only_beat_hz": 126.16,
+    "bandpass_only_peak_over_median_db": 45.5,
+    "bandpass_only_g_depth": 1.3629
+   },
+   "ours/el-45": {
+    "full_beat_hz": 126.61,
+    "full_peak_over_median_db": 49.4,
+    "bandpass_only_beat_hz": 126.63,
+    "bandpass_only_peak_over_median_db": 50.4,
+    "bandpass_only_g_depth": 1.1099
+   },
+   "ours/el-75": {
+    "full_beat_hz": 126.49,
+    "full_peak_over_median_db": 51.2,
+    "bandpass_only_beat_hz": 123.17,
+    "bandpass_only_peak_over_median_db": 12.2,
+    "bandpass_only_g_depth": 2.3481
+   },
+   "ours/el-90": {
+    "full_beat_hz": 126.78,
+    "full_peak_over_median_db": 28.6,
+    "bandpass_only_beat_hz": 127.72,
+    "bandpass_only_peak_over_median_db": 24.0,
+    "bandpass_only_g_depth": 0.5936
+   },
+   "sionna/el-90": {
+    "full_beat_hz": 127.68,
+    "full_peak_over_median_db": 36.8,
+    "bandpass_only_beat_hz": 127.09,
+    "bandpass_only_peak_over_median_db": 37.7,
+    "bandpass_only_g_depth": 0.5198
+   },
+   "sionna_p250000000/el-90": {
+    "full_beat_hz": 252.02,
+    "full_peak_over_median_db": 37.6,
+    "bandpass_only_beat_hz": 128.98,
+    "bandpass_only_peak_over_median_db": 31.3,
+    "bandpass_only_g_depth": 0.3911
+   }
+  }
+ },
+ "R6_other_ledger_same_metric": {
+  "why_ko": "같은 잣대 정의(metric_ko 문자열이 한 글자도 다르지 않다)를 다른 원장·다른 시계열에 쓴 판. 여기서는 96/96 변형이 기본파에 앉는다 — 누설계라면 불가능하다.",
+  "source": "outputs/deck0811_beat_check.json / deck0811_beat_check_frozen.json",
+  "metric_ko": "flash_spec(0.45 주기·70 표본) → |f|/f_tip 0.35~1.0 대역 전력 합 g(t) → 평균제거·Hann·64배 제로패딩 rFFT → 40~400 Hz 최대선 · 포물선 보간",
+  "production": {
+   "sionna": {
+    "peak_hz": 126.261,
+    "dev_pct": -0.32,
+    "is_band_max": true
+   },
+   "ours": {
+    "peak_hz": 126.727,
+    "dev_pct": 0.047,
+    "is_band_max": true
+   }
+  },
+  "production_robustness": {
+   "n_variants": 96,
+   "swept_ko": "대역 6종 · 패딩 2종 · 전력/진폭 · 조각 0.45|0.60 주기 · 창 유무",
+   "ours_abs_dev_max_pct": 0.127,
+   "sionna_abs_dev_max_pct": 0.583,
+   "sionna_off_fundamental_variants": 2,
+   "note_ko": "⚠ Sionna 팔은 좁은 대역(0.5~1.0 f_tip)을 고르면 2/96 변형에서 최대선이 2·f_flash 로 넘어간다. 우리 팔은 96/96 이 기본파다."
+  },
+  "frozen": {
+   "sionna": {
+    "peak_hz": 126.261,
+    "dev_pct": -0.32,
+    "is_band_max": true
+   },
+   "ours": {
+    "peak_hz": 126.015,
+    "dev_pct": -0.514,
+    "is_band_max": true
+   }
+  }
+ }
+}

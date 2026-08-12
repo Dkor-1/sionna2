@@ -1,0 +1,515 @@
+{
+  "_meta": {
+    "title": "PO(SBR+PO) 결과 신뢰도 감사 — 층을 갈라 선을 긋는다",
+    "generated": "2026-08-11",
+    "author_role": "감사 에이전트(읽기 전용)",
+    "gpu_used": false,
+    "recomputation": "원장 재계산 0 건. 새 계산은 CPU 에서 기존 npz 하나를 sinc 보간한 것 하나뿐(pi_ambiguity.own_computation).",
+    "wrote_only": [
+      "outputs/audit_po_trust.json",
+      "docs/AUDIT_PO_TRUST.md"
+    ],
+    "read_only": [
+      "outputs/verify_po_elev_unit.json",
+      "outputs/verify_po_elev_rebuttal.json",
+      "outputs/verify_po_elev_metric.json",
+      "outputs/verify_po_elev_gridladder.json",
+      "outputs/verify_po_elev_tsladder.json",
+      "outputs/verify_po_elev_nearfield.json",
+      "outputs/verify_phase_sign.json",
+      "outputs/verify_rotor_dynamics.json",
+      "outputs/verify_matched_filter_gain.json",
+      "outputs/verify_snr_convention.json",
+      "outputs/verify_md_nearfield.json",
+      "outputs/nearfield_sphere_vs_plane.json",
+      "outputs/das_fleet_validation.json",
+      "outputs/sbr_kr_sweep.json",
+      "outputs/freeze_plate_sensitivity.json",
+      "outputs/sigma_robust_summary.json",
+      "outputs/md_classify.json",
+      "outputs/md_classify_verify.json",
+      "outputs/elevation_sweep_md.json",
+      "outputs/elevation_sweep_md.npz",
+      "outputs/report07_three_engines.json",
+      "outputs/report07_three_engine_ranges.json",
+      "outputs/adv_grid_freeze_audit.json",
+      "outputs/probe_prf_effect.json",
+      "outputs/po_refinement_survey.json",
+      "outputs/md_range_sweep_mf.json",
+      "docs/RETRACTION_LOG.md",
+      "docs/RESUME.md",
+      "src/rcs_sbr.py"
+    ],
+    "rule": "«검증됨» 은 게이트가 있는 것만. 게이트 없는 것은 «측정됨» 또는 «미검증» 으로 적는다."
+  },
+
+  "kernel_baseline": {
+    "source": "outputs/po_refinement_survey.json :: our_kernel_baseline (+ src/rcs_sbr.py::sbr_field 직접 확인)",
+    "bounces": 1,
+    "polarization": "scalar (|Gamma| 가중)",
+    "ptd": false,
+    "ray_grid": "lambda/12 (DEFAULT_DIV=12), 평행 격자",
+    "ray_divergence": "없음 (1/r 확산 없음)",
+    "illumination": "range_m 를 주면 구면파 **위상**만. 입사방향·가림·cos_i 는 단일 방향 û (평면파 기하)",
+    "code_evidence": "src/rcs_sbr.py:1055 `ray=_ray_grid(ctr,Rout,n,d,u)` · :1069 `cos_i = Nn @ u` · :1088-1093 위상 분기"
+  },
+
+  "layers": {
+    "A_kinematics_and_phase": {
+      "what_ko": "마이크로도플러의 «모양» — 플래시 박자, 빗살 간격, f_tip 의 cos(el) 법칙, 파형 자체",
+      "verdict": "VERIFIED (수렴 격자에서) · 생산 격자 lambda/12 는 파형은 통과, 파생 잣대는 통과 못 함",
+      "evidence": [
+        {
+          "ledger": "outputs/verify_po_elev_unit.json :: gates[G1_waveform_match_fine_div48]",
+          "value": "rho_min = 0.9999 (per_el: +0 0.9999 · -30 1.0 · -60 1.0 · -75 1.0 · -90 1.0)",
+          "means_ko": "해석 점산란체와 코히어런트 파형 일치. 미분·언랩을 안 거치는 가장 강한 기준."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_unit.json :: gates[G1_waveform_match_prod_div12]",
+          "value": "rho_min = 0.9956",
+          "means_ko": "⭐생산 격자 lambda/12 에서도 파형 자체는 rho >= 0.9956 로 통과한다."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_unit.json :: gates[G5_cos_law_fine_div48]",
+          "value": "spread_pct = 4.86 (ratio 1.0125 / 1.0014 / 1.0152 / 1.051)",
+          "means_ko": "cos 법칙 성립 — «앙각이 내려가면 f_tip 이 cos(el) 로 준다» 가 재현된다."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_unit.json :: gates[G6_rms_bandwidth_law_fine_div48]",
+          "value": "max_err_pct = 0.75",
+          "means_ko": "스펙트럼 rms 대역폭 = f_tip/sqrt(2) 라는 해석 법칙과 0.75 % 안."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_unit.json :: gates[G3_nadir_null_fine_div48]",
+          "value": "ac_power_pct = 0.00499 (ac_below_dc_db = -43.02)",
+          "means_ko": "직하방 해석 도플러 = 정확히 0 인 자리에서 커널 잔여가 -43 dB. 격자 표본화 잡음의 바닥값."
+        },
+        {
+          "ledger": "outputs/verify_phase_sign.json :: G1/G2/G3",
+          "value": "PASS 3/3 · G2 rho_real = +0.99999974 @ range_m=5000 · G3 f_ours = +117.19 Hz = f_standard",
+          "means_ko": "구면파 위상 부호가 표준(exp(-j2πfτ))과 맞다. 2026-08-11 이전에는 -1 배였다."
+        },
+        {
+          "ledger": "outputs/elevation_sweep_md.json :: rows[engine=ours].track.beat_hz",
+          "value": "el 0/-15/-30/-45/-60/-75 에서 126.40 / 126.16 / 126.73 / 126.59 / 126.55 / 126.67 Hz (예측 126.667)",
+          "means_ko": "⭐플래시 박자를 앙각 전 구간에서 0.5 Hz 안으로 되돌려준다. Sionna 팔은 같은 자리에서 376.73 / 252.32 Hz 등으로 못 낸다."
+        },
+        {
+          "ledger": "outputs/md_classify_verify.json :: grid_pinning[*].pinned.additivity_residual_max",
+          "value": "6 기체 1.36e-15 ~ 3.35e-14 (얼린 격자) vs moving 0.089 ~ 6.15",
+          "means_ko": "격자를 자세에 못 박으면 로터 기여의 덧셈이 기계정밀도로 성립한다."
+        },
+        {
+          "ledger": "outputs/verify_rotor_dynamics.json :: gates",
+          "value": "G4/G4b/G5/G6a/G6b bit-identical(0.0) · G17 OU std rel_err 0.0125 · G19 PSD 기울기 -19.32 dB/decade(규격 -20+-2) · G20 rel_err -0.013/-0.024",
+          "means_ko": "로터 운동학(회전수 요동 모형) 자체는 게이트가 있다."
+        }
+      ],
+      "ruler_ko": "잣대는 **스펙트럼**이어야 한다. np.unwrap 기반 위상 변동폭·순시주파수 최대치는 널 근처에서 무너진다.",
+      "residual_error": [
+        {
+          "what_ko": "생산 격자 lambda/12 의 **파생 잣대** 오차",
+          "ledger": "outputs/verify_po_elev_unit.json :: gates[*_prod_div12]",
+          "value": "G2 순시주파수 p95 오차 최대 109.11 % (el -75) · G5 cos 법칙 산포 58.48 % · G6 rms 대역폭 최대 오차 83.64 % · G4 대역밖 몫 차이 0.76 pp · M2 rms 대역폭 오차 71.64 %",
+          "means_ko": "⛔lambda/48 에서는 전부 통과하지만 **생산 lambda/12 에서는 통과하지 못한다.** 즉 «운동학 검증됨» 은 lambda/48 에서 성립하고, 생산 격자는 파형(rho 0.9956)까지만 검증됐다."
+        },
+        {
+          "what_ko": "대역 밖 아티팩트 몫",
+          "ledger": "outputs/verify_po_elev_rebuttal.json :: 깨진_것.4_수치_바닥이_자기_전제와_다른_구간 :: out_of_band_frac_pct_by_el",
+          "value": "el 0 2.22 % · -15 15.42 % · -30 10.78 % · -45 2.00 % · -60 1.26 % · -75 0.25 %",
+          "means_ko": "el -15 · -30 에서 AC 전력의 10~15 %가 이산화·그림자 경계 아티팩트다. 순수 물리 대조군은 0.01~0.06 % 밖에 안 낸다(같은 파일 가설A)."
+        },
+        {
+          "what_ko": "격자를 얼려도 남는 이산화 바닥",
+          "ledger": "outputs/adv_grid_freeze_audit.json :: audit_4_slope.div_needed_frozen_to_reach_po_floor",
+          "value": "179.7 (= lambda/180 이 필요)",
+          "means_ko": "지금 lambda/12 다. 대역밖 바닥을 순수 PO 수준까지 내리려면 격자를 15 배 더 곱게 해야 한다."
+        },
+        {
+          "what_ko": "el -15 의 대역밖 몫이 이웃보다 큰 이유",
+          "ledger": "outputs/verify_po_elev_unit.json :: real_sweep_recheck.monotonic_check.open_item_ko",
+          "value": "미해결 선언",
+          "means_ko": "원인 규명 못 했다."
+        }
+      ]
+    },
+
+    "B_relative_comparison": {
+      "what_ko": "두 기체 · 두 앙각 · 두 엔진 사이의 dB 차이 (같은 배선 안에서의 비교)",
+      "verdict": "PARTIAL — 축마다 다르다. 블레이드(AC) 축은 격자에 1.4 dB 안으로 강건, 동체(DC) 축과 가림 축은 아니다.",
+      "evidence": [
+        {
+          "ledger": "outputs/verify_po_elev_tsladder.json :: lattice_spread[*].P_ac_db.spread",
+          "value": "el -60 0.07 dB · el -30 0.87 dB · el -15 1.36 dB (판 3 개: lambda/12 · lambda/12 반셀이동 · lambda/16)",
+          "means_ko": "⭐블레이드선 전력은 격자 판을 바꿔도 1.4 dB 안에 있다. 상대 비교의 **안전한 축**이다."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_tsladder.json :: lattice_spread[*].P_dc_db.spread",
+          "value": "el -60 15.05 dB · el -30 5.34 dB · el -15 2.55 dB",
+          "means_ko": "⛔동체 DC 는 널 근처에서 격자 반 칸에 15 dB 움직인다. 상대 비교에 못 쓴다."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_tsladder.json :: per_elevation.el-60.*.winding_turns",
+          "value": "lambda/12 7.024 → 반셀이동 0.023 → lambda/16 0.007",
+          "means_ko": "«el -60 에서 AC 가 DC 를 12.7 dB 이긴다 / 궤적이 원점을 10 바퀴 감는다» 는 **격자 한 판의 성질**이다. 인용 금지."
+        },
+        {
+          "ledger": "outputs/freeze_plate_sensitivity.json :: verdict",
+          "value": "abs_level_plate_ptp_db = 3.452 · occlusion_level_plate_ptp_db = 4.163 · occlusion_ptp_plate_ptp_db = 26.525 · occlusion_level_survives_plate_choice = false (판별 +1.533 / +2.122 / -2.041 dB)",
+          "means_ko": "⛔얼린 팔의 절대 레벨과 **가림 축의 부호까지** 판 선택에 뒤집힌다. 상설 규칙 I1."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_gridladder.json :: verdict",
+          "value": "null60_el_spread_deg = 1.8 · null60_depth_spread_db = 31.89 · null31_depth_spread_db = 22.44 · null31_persists_all = false",
+          "means_ko": "널 **깊이**는 격자 6 판에서 22~32 dB 흔들린다. 널 **있음**만 살아남는다(-31 은 그것도 아니다)."
+        },
+        {
+          "ledger": "outputs/verify_po_elev_rebuttal.json :: 깨진_것.2 :: actual_deepest_-66..-56",
+          "value": "-63.5 / -60.8 / -65.0 / -61.6 / -63.0 / -65.0 (산포 4.2°, 3 dB 폭 1~2.5°)",
+          "means_ko": "«널이 -60+-1° 에 고정» 은 탐침 창이 만든 수다. 판마다 **다른 널**로 옮겨 다닌다."
+        },
+        {
+          "ledger": "outputs/report07_three_engines.json :: verdict.cosine_in_ftip",
+          "value": "sbr_vs_po 0.9550 · sionna_vs_sbr 0.7450 · sionna_vs_po 0.7602",
+          "means_ko": "우리 두 팔(가림 있는 SBR ↔ 순수 PO)은 무늬가 0.955 로 붙는다. Sionna 팔은 0.745~0.760."
+        },
+        {
+          "ledger": "outputs/report07_three_engines.json :: levels_db",
+          "value": "sbr -51.55 · po -52.24 · sionna -117.08 dB",
+          "means_ko": "Sionna PathSolver 는 65 dB 낮다 — σ 를 안 재기 때문이다(rt_no_rcs_verify.json). 엔진 «레벨» 비교는 성립하지 않는다."
+        },
+        {
+          "ledger": "outputs/sigma_robust_summary.json :: common_mode.order_invariance",
+          "value": "verified_invariant_interval_db = [-18.0, +11.5] · 5 기체 중 4 기체 순위 불변, s1000plus 는 -18.25 dB 이하에서 뒤집힘",
+          "means_ko": "공통모드 σ 오프셋에는 순위(파형 벤치마크)가 강건하다. 다만 이것은 항등식에 가깝다 — 세 모드가 같은 σ/R^4 사슬을 쓴다."
+        }
+      ],
+      "residual_error": [
+        "널 깊이·가림 축·동체 DC: 격자 판 선택에 4~32 dB. 인용 금지.",
+        "블레이드 AC 축: 격자 1.4 dB. 사용 가능.",
+        "차분(주파수 기울기) σ 오차는 상쇄되지 않는다 — sigma_robust_summary :: fragility_declaration.realistic_span_db = 5.013 dB (앵커 전), 0.471 dB (앵커 후).",
+        "W1-G1(WiFi vs 5G) 쌍은 최악 문턱 0.0886 dB — 순위 주장 금지(같은 파일 must_be_declared)."
+      ]
+    },
+
+    "C_absolute_sigma": {
+      "what_ko": "dBsm 값 자체",
+      "verdict": "NOT_VALIDATED — 사전등록 게이트가 떨어졌고, 부피등가 PEC 구/정육면체가 4 기체 중 3 에서 우리를 이긴다",
+      "evidence": [
+        {
+          "ledger": "outputs/das_fleet_validation.json :: prereg_judgement",
+          "value": "verdict = 'NOT_VALIDATED (P3 산포)' · P3_spread_db = 16.268 (문턱 6.0) · P1_all_within_6db = false · P2_count_within_4db = 2/4 · slope_gate_pass = false · bistatic_gate_pass = true",
+          "means_ko": "기체별 DL(0): phantom3 -1.47 · phantom2 -7.19 · mini2 -0.51 · m350rtk +9.08 dB."
+        },
+        {
+          "ledger": "outputs/das_fleet_validation.json :: prereg_judgement.alternative_convention_v2_ruler",
+          "value": "linear_mean_all 16.27 · db_domain_all 15.01 · db_domain_drop_gradeC 6.75 · any_within_6db = false",
+          "means_ko": "규약을 바꿔도 안 산다. 네 조합 중 가장 좋은 것도 6.75 dB 로 문턱을 넘는다."
+        },
+        {
+          "ledger": "outputs/das_fleet_validation.json :: box_control._summary",
+          "value": "beats_best_control = {phantom3 true, phantom2 false, mini2 false, m350rtk false}",
+          "means_ko": "⛔부피등가 PEC 구/정육면체 대조군이 **4 기체 중 3 에서 우리를 이긴다**. margin: mini2 -0.48 · m350rtk -8.35 · phantom2 -4.71 dB."
+        },
+        {
+          "ledger": "outputs/das_fleet_validation.json :: box_control._summary.beats_all_controls_by_score",
+          "value": "{phantom3 true, phantom2 false, mini2 true, m350rtk false}",
+          "means_ko": "레벨+기울기+산포를 합친 점수로는 2/4 승. 어느 잣대로 읽어도 «이겼다» 가 아니다."
+        },
+        {
+          "ledger": "outputs/das_fleet_validation.json :: degrees_of_freedom.evidence_split",
+          "value": "형상 증거 있는 둘(phantom3 · mini2) |DL| <= 1.47 dB / 없는 둘(phantom2 대리메쉬 · m350rtk 사진1장 IoU 0.503) |DL| >= 7.19 dB · gap_db = 5.72 · exact_partition_p = 0.167 (n=4)",
+          "means_ko": "⭐실패가 무작위가 아니라 **메쉬 증거 축**을 따라 갈린다. 가설 생성이지 유의성은 아니다(n=4)."
+        },
+        {
+          "ledger": "outputs/sbr_kr_sweep.json :: summary_div12 / summary_div16",
+          "value": "해석 PO 대비 max_abs_db = 0.254 (div12) / 0.201 (div16) · 정확 Mie 대비 max_abs_db = 6.599 / 6.729 (전부 kr=1) · kr>=30 에서 Mie 대비 표준편차 1.55 / 1.83 %",
+          "means_ko": "⭐**수치 구현은 PO 를 제대로 푼다(0.2~0.25 dB).** 남은 6.7 dB 는 «PO 라는 근사를 쓴 대가» 이고 전부 저 kr 에서 나온다."
+        },
+        {
+          "ledger": "이 감사의 산술 (fc=3.5 GHz, k=73.35 rad/m)",
+          "value": "kr=30 <=> r=0.409 m. matrice4e 기체 반경 0.388 m -> kr 28.5 · 프롭 반경 0.137 m -> kr 10.05 · 모터 0.025 m -> kr 1.83 · 블레이드 시위 0.02 m -> kr 1.47",
+          "means_ko": "⛔기체 전체가 겨우 경계에 있고 **부품은 전부 PO 유효범위 아래**다. 저 kr 오차 6.7 dB 가 걸리는 자리다."
+        },
+        {
+          "ledger": "docs/RETRACTION_LOG.md :: R9 (살아남는 문장)",
+          "value": "정확 Mie 대비 0.375~0.851 dB (r=0.178 m, ka 6.88~19.44 세 점, 같은 부호의 결손)",
+          "means_ko": "외부 참값 대비 «검증» 이라 부를 수 있는 것은 Mie 하나뿐이고 그 범위도 좁다."
+        },
+        {
+          "ledger": "outputs/md_range_sweep_mf.json :: meta.sigma_eq_note",
+          "value": "'diagnostic only, converges to plane-wave sigma as R->inf. NOT an absolute RCS anchor.'",
+          "means_ko": "거리 스윕 팔의 σ_eq 는 원장 스스로 절대 앵커가 아니라고 적었다."
+        }
+      ],
+      "residual_error": [
+        "함대 잔차 |DL(0)| = 0.51 ~ 9.08 dB, 산포 16.27 dB.",
+        "저 kr(부품 전부)에서 PO 근사 자체가 최대 6.73 dB.",
+        "얼린 팔에서 읽으면 판 선택이 3.45 dB 더 얹힌다(freeze_plate_sensitivity).",
+        "앵커는 기울기만 옮기고 레벨은 안 옮긴다(RETRACTION_LOG R4: slope_only 가 평균을 4.74e-15 dB 움직인다)."
+      ]
+    }
+  },
+
+  "claim_map": {
+    "microdoppler_classification_87_85": {
+      "claim_ko": "마이크로도플러만으로 6 기종 분류 87.85 %",
+      "ledger": "outputs/md_classify.json :: arms.all.best_accuracy = 0.8785 (RF100, LOAO CV, chance 0.1667, n_trials_headline 864)",
+      "depends_on_layer": ["A"],
+      "why_ko": "특징 27 개가 전부 **모양**이다(플래시 박자·빗살 조화·대역 가장자리·DC/AC 비·포락 첨도). 절대 dBsm 이 안 들어간다. 데이터셋은 sbr_field 를 **평면파**(range_m 없음)로 부르므로 근거리장·부호 결함 둘 다 안 걸린다.",
+      "code_evidence": "benchmark/md_classify_dataset.py::_look 이 단위벡터만 돌려주고 range_m 인자가 파일에 0 회",
+      "supporting": [
+        "outputs/md_classify_verify.json :: _meta.headline_ko — 위상표 합성 vs 정확 SBR 핵심 특징 5개x기체 6종 상대차 중앙값 0.008",
+        "outputs/md_classify_verify.json :: grid_pinning[*].pinned.additivity_residual_max <= 3.35e-14"
+      ],
+      "verdict": "STANDS (층 A 에 기댄다) — 다만 배지 두 개가 빠졌다",
+      "caveats": [
+        "⛔ SNR 눈금이 안 적혀 있다 — md_classify_features.npz 에 dc_ac_db 열이 없고 md_classify.json _meta 에 snr_convention 이 없다(RETRACTION_LOG R20). 87.85 % 는 잡음 없는 팔이라 이 결함이 안 걸리지만, 같은 파일의 noise 사다리(10/0/-10/... dB)는 **어느 눈금인지 알 수 없다**.",
+        "잡음 사다리 자체: RF100 이 +10 dB 0.8785 → 0 dB 0.8403 → -10 dB 0.4340 → -15 dB 0.2859 → -20 dB 0.2419(우연 0.1667 근방). 절벽이 -10~-15 dB 사이다.",
+        "6 기종 중 typhoonh480 F1 = 0.6464, mini5pro 0.8239 — 헤드라인 하나로 뭉치면 안 된다."
+      ]
+    },
+    "elevation_coverage": {
+      "claim_ko": "앙각이 내려가면 마이크로도플러가 어떻게 되나 / 어느 각도까지 유효한가 (8/18 덱 Chapter 1)",
+      "ledger": "outputs/elevation_sweep_md.json :: rows · docs/PLAN_0818_CH1_ELEVATION.md §2",
+      "depends_on_layer": ["A", "B"],
+      "verdict_by_sub_claim": {
+        "f_flash 는 앙각과 무관 (126.67 Hz)": {
+          "verdict": "STANDS",
+          "evidence": "ours 팔 beat_hz 126.16~126.78 Hz (7 앙각), fixed 대역으로 재면 -90° 에서도 126.78",
+          "layer": "A"
+        },
+        "f_tip 이 cos(el) 로 준다": {
+          "verdict": "STANDS",
+          "evidence": "verify_po_elev_unit G5_cos_law_fine_div48 산포 4.86 % (단, 생산 lambda/12 에서는 58.48 %)",
+          "layer": "A"
+        },
+        "-63.8°/-70.2°/-90° 의 세 한계": {
+          "verdict": "STANDS (산술과 정의의 결과이지 커널 판정이 아니다)",
+          "evidence": "f_tip(el) 과 창/대역 정의만으로 나온다",
+          "layer": "정의"
+        },
+        "앙각별 절대 레벨 / 널 깊이 (예: el -60 에서 동체가 무너진다)": {
+          "verdict": "CANNOT STAND",
+          "evidence": "verify_po_elev_tsladder P_dc 격자 산포 15.05 dB · gridladder null60_depth_spread_db 31.89 · rebuttal 깨진_것.0(주역은 동체가 아니라 프로펠러) · 깨진_것.3(널 위치는 창이 만든 수)",
+          "layer": "B"
+        },
+        "우리 vs PathSolver 사과-대-사과": {
+          "verdict": "NOT YET",
+          "evidence": "sionna 팔 level_db 가 -59.65 ~ -148.28 dB 로 앙각마다 90 dB 흔들리고(elevation_sweep_md rows), RESUME 미해결 2 가 'Sionna el=0 이 물리 상한을 27 dB 초과' 라고 적었다. 250M 스윕이 도는 중.",
+          "layer": "B"
+        }
+      }
+    },
+    "range_vs_detection": {
+      "claim_ko": "거리 대 탐지 — R90 = mavic4pro 72.5 · s1000plus 51.2 · matrice4e 22.1 · mini5pro 15.7 · phantom4 15.4 m",
+      "ledger": "docs/RESUME.md §7 (원장은 outputs/md_range_sweep_mf.json 이지만 R90 문자열이 그 파일에 0 회)",
+      "depends_on_layer": ["C", "A"],
+      "verdict": "CANNOT STAND AS AN ABSOLUTE NUMBER",
+      "why_ko": [
+        "층 C 에 직접 기댄다 — R90 은 σ 를 링크버짓에 넣어 푼 값이다. 그 σ 는 NOT_VALIDATED 이고, 이 팔이 쓰는 σ_eq 는 원장 스스로 'NOT an absolute RCS anchor' 라고 적었다.",
+        "σ 공통모드 오차 X dB 는 거리를 X/4 dB 옮긴다(sigma_robust_summary :: common_mode.quarter_law, measured_slope_mean 0.2469). 함대 최악 잔차 9.08 dB 를 그대로 대면 거리가 **+/-2.3 dB, 즉 -24 % ~ +30 %** 움직인다.",
+        "정본 R90 표가 **원장에 없다** — RETRACTION_LOG R19 가 '재현 가능한 인용이 아니다' 라고 선언했다.",
+        "이 팔의 엔진은 '가림 없는 순수 PO 점구름'(md_range_sweep_mf meta.engine)이라 층 A 의 가림 물리가 빠져 있다."
+      ],
+      "what_does_stand": "**기체 사이 순서**(mavic4pro > s1000plus > matrice4e > mini5pro ~ phantom4)와 **공통모드 오차에 대한 강건성**은 선다. 절대 미터 값은 오차막대 없이 인용하면 안 된다."
+    },
+    "engine_comparison": {
+      "claim_ko": "엔진 비교 — 우리 SBR+PO vs 순수 PO vs Sionna PathSolver",
+      "ledger": "outputs/report07_three_engines.json · outputs/report07_three_engine_ranges.json",
+      "depends_on_layer": ["B"],
+      "verdict_by_sub_claim": {
+        "«세 엔진이 같은 무늬를 낸다»": {
+          "verdict": "PARTIAL",
+          "evidence": "cosine_in_ftip: sbr_vs_po 0.9550 (우리 두 팔끼리) · sionna_vs_sbr 0.7450 · sionna_vs_po 0.7602. 0.745 를 «같다» 고 부르면 과장이다."
+        },
+        "«PathSolver 는 σ 를 안 잰다»": {
+          "verdict": "VERIFIED",
+          "evidence": "outputs/rt_no_rcs_verify.json (RETRACTION_LOG 인용): 평판 변 0.2->4.0 m 로 σ 를 +52.04 dBsm 바꿔도 ratio_db p-p 1.9e-06 dB · PEC 구는 6/6 조합에서 표적 경로 0 개"
+        },
+        "레벨 비교(-51.55 vs -117.08 dB)": {
+          "verdict": "MEANINGLESS AS A COMPARISON",
+          "evidence": "위 항목 때문에 Sionna 레벨은 σ 가 아니다. 65 dB 격차를 «우리가 더 세다» 로 읽으면 안 된다."
+        },
+        "비용 비교": {
+          "verdict": "RETRACTED AND RESTATED",
+          "evidence": "RETRACTION_LOG R26 — «PathSolver 가 더 싸다» 는 예산에 따라 다르다(3 m·1M 0.21 s ↔ 40 m·4G 4.13 s, 우리 커널은 거리 무관 0.51~0.64 s)"
+        }
+      }
+    }
+  },
+
+  "nearfield_verdict": {
+    "question_ko": "앙각 실험이 R=10 m 인데 원거리장 경계가 2D^2/lambda = 14.076 m 다. range_m 구면파로 충분한가?",
+    "answer_ko": "**지배항은 들어가 있고, 두 개의 부차항이 빠져 있다. 레벨·박자·맵 모양에는 충분하고, 널 깊이에는 충분하지 않다.**",
+    "what_is_modelled": {
+      "quadratic_phase": {
+        "formula": "k D^2 / (4R)",
+        "at_R10_rad": 1.1055,
+        "at_R10_deg": 63.3,
+        "ledger_check": "outputs/nearfield_sphere_vs_plane.json :: ranges.3.quadratic_phase_rad = 3.6851 · ranges.8 = 1.3819 · ranges.15 = 0.7370 — 같은 식이다(3 m 에서 3.6851 재현)",
+        "verdict": "커널이 정확히 이것을 넣는다(src/rcs_sbr.py:1090-1093)."
+      }
+    },
+    "what_is_NOT_modelled": {
+      "amplitude_taper": {
+        "what_ko": "1/r 확산이 없어 표적 앞뒤의 조명 세기 차이가 0 으로 취급된다",
+        "computed": "20log10((R+D/2)/(R-D/2)) = 0.675 dB 편도 · 1.349 dB 왕복 @ R=10 m, D=0.7764 m",
+        "source": "outputs/po_refinement_survey.json :: our_kernel_baseline.ray_divergence = 'none'"
+      },
+      "incidence_direction_spread": {
+        "what_ko": "⭐가림 판정과 국소 입사각 cos_i 가 **단일 방향 û** 로만 계산된다",
+        "computed": "표적이 송신점을 향해 벌리는 반각 atan((D/2)/R) = 2.223° (전각 4.446°) @ R=10 m",
+        "code_evidence": "src/rcs_sbr.py:1055 평행 광선격자 · :1069 `cos_i = Nn @ u`",
+        "why_it_matters_ko": "널의 3 dB 폭이 1~2.5° 다(verify_po_elev_rebuttal 깨진_것.2). 안 넣은 각도 산포 ±2.22° 가 그 폭보다 **넓다** ⇒ 실제 조명이라면 널이 메워질 자리를 우리는 뾰족하게 남긴다."
+      }
+    },
+    "how_sensitive_measured": {
+      "ledger": "outputs/nearfield_sphere_vs_plane.json :: ranges (matrice4e, 얼린 격자, 위상만 바꾼 A/B)",
+      "R3": "map_cosine 0.99805 · level_diff 1.041 dB · beat_diff -0.447 %",
+      "R8": "map_cosine 0.99757 · level_diff 0.515 dB · beat_diff -0.338 %",
+      "R15": "map_cosine 0.99737 · level_diff 0.294 dB · beat_diff -0.178 %",
+      "R10_interpolated": "level_diff ~0.4 dB · beat_diff ~-0.27 % (감사의 보간, 원장 값 아님)",
+      "⚠caveat_ko": "이 표는 **위상 모형 두 개의 차이**를 잰 것이지 참값 대비 오차가 아니다. 위에 적은 두 미모형 항에는 게이트가 없다."
+    },
+    "cross_check": {
+      "ledger": "outputs/verify_po_elev_nearfield.json :: nulls (동체 전용, 조명 3 판: 10 m 구면 / 평면파 / 30 m 구면)",
+      "value": "널 **위치**는 세 판에서 정확히 같다(-63.50° / -31.00°, 산포 0.0°). 널 **깊이**는 10.26 dB / 3.80 dB 흔들린다.",
+      "means_ko": "널의 «있음» 은 조명 모형에 강건하다. 널의 «깊이» 는 아니다 — 격자(31.89 dB)와 조명(10.26 dB) 두 축 모두에서."
+    },
+    "independent_gate": {
+      "ledger": "outputs/verify_md_nearfield.json :: summary (9/9 pass, 점산란체 근거리장 모듈 — PO 커널이 아니라 src/microdoppler_nearfield.py)",
+      "value": "CONVERGE d_sigma_db 0.00064 @ 10 km · ROT_EXACT 5.68e-14 m · FRESNEL_RATE R=10 m 에서 d_sigma_db 0.674 / ac_corr 0.883 (R=3 m 에서 ac_corr 0.256)",
+      "means_ko": "⚠**단일 자세의 복소 시계열 상관은 근거리장에서 크게 무너진다**(3 m 에서 0.256). 맵 코사인 0.998 과 모순이 아니라 다른 양이다 — 맵 모양은 살아남고 한 자세의 파형은 안 살아남는다."
+    },
+    "verdict_ko": "① 레벨(0.4 dB)·플래시 박자(0.27 %)·맵 모양(코사인 0.9976)에는 **충분하다**. ② 널 깊이·한 자세의 복소 파형에는 **불충분하다**. ③ 부족분을 재는 게이트가 **없다** — 있는 것은 위상 모형 A/B 뿐이다. 광선 발산과 1/r 을 넣은 팔이 필요하다."
+  },
+
+  "pi_ambiguity": {
+    "question_ko": "el -60 의 최대 위상 스텝 176.4°, 4 표본이 150° 초과. 얼마나 심각한가? PRF 를 얼마로 올려야 사라지나?",
+    "ledger_facts": {
+      "source": "outputs/verify_po_elev_metric.json :: old_metric_autopsy['-60']",
+      "max_dphi_deg": 176.4330688904107,
+      "n_jumps_over_90deg": 27,
+      "n_null_events_25pct": 49,
+      "winding_turns": 11.714155612958281,
+      "amp_min_over_median": 0.012442223621594946,
+      "amp_min_db": -38.10203994870805,
+      "phase_ptp_deg": 4217.096020664982
+    },
+    "own_computation": {
+      "what_ko": "감사 자체 계산 — outputs/elevation_sweep_md.npz 의 ours/el-* 를 CPU 에서 읽어 위상 스텝을 셌다(재계산 아님, 읽기).",
+      "per_elevation_max_step_deg": {
+        "+0": 7.33, "-15": 9.29, "-30": 71.02, "-45": 16.64,
+        "-60": 176.43, "-75": 3.82, "-90": 2.56
+      },
+      "el-60_counts": {"n_over_150deg": 4, "n_over_90deg": 27, "n_over_170deg": 2, "n_total": 4096},
+      "note_ko": "n>90 = 27 이 원장 n_jumps_over_90deg = 27 과 일치한다 ⇒ 같은 양을 재고 있다."
+    },
+    "is_it_a_doppler_nyquist_problem": {
+      "answer_ko": "**아니다.**",
+      "numbers": {
+        "f_tip_at_el-60_hz": 636.5,
+        "prf_hz": 19700.0,
+        "unambiguous_doppler_hz": 9850.0,
+        "oversampling_factor": 15.5
+      },
+      "means_ko": "도플러는 이미 15.5 배 과표본이다. 176° 스텝은 도플러가 커서가 아니라 **합성 페이저가 원점 가까이 지나가서**(|E|min/median = 0.0124 = -38.1 dB) 난다. 원점 통과의 각속도는 |v|/d 이고 d(최근접거리)가 0 으로 갈수록 발산한다."
+    },
+    "prf_needed": {
+      "method_ko": "밴드제한 sinc 보간(FFT 제로패딩)으로 유효 PRF 를 M 배 올리며 최대 위상 스텝을 다시 쟀다. CPU, 새 전자기 계산 0.",
+      "ladder": [
+        {"M": 1, "prf_eff_hz": 19700, "max_step_deg": 176.43, "n_over_150": 4, "n_over_90": 27},
+        {"M": 2, "prf_eff_hz": 39400, "max_step_deg": 179.27, "n_over_150": 4, "n_over_90": 18},
+        {"M": 4, "prf_eff_hz": 78800, "max_step_deg": 162.11, "n_over_150": 4, "n_over_90": 14},
+        {"M": 8, "prf_eff_hz": 157600, "max_step_deg": 160.27, "n_over_150": 1, "n_over_90": 7},
+        {"M": 16, "prf_eff_hz": 315200, "max_step_deg": 142.46, "n_over_150": 0, "n_over_90": 3},
+        {"M": 32, "prf_eff_hz": 630400, "max_step_deg": 121.34, "n_over_150": 0, "n_over_90": 1},
+        {"M": 64, "prf_eff_hz": 1260800, "max_step_deg": 72.29, "n_over_150": 0, "n_over_90": 0},
+        {"M": 128, "prf_eff_hz": 2521600, "max_step_deg": 47.92, "n_over_150": 0, "n_over_90": 0}
+      ],
+      "answer_ko": "150° 밑으로 내리려면 **PRF ~315 kHz (현재의 16 배)**, 90° 밑으로 내려 언랩을 안전하게 하려면 **PRF ~1.26 MHz (64 배)** 가 필요하다. 도플러 나이퀴스트(1.27 kHz)의 **250~1,000 배**다.",
+      "⚠caveat_ko": "이 계열은 완전한 밴드제한이 아니다 — |f| > 4 kHz 에 에너지의 0.639 % 가 있다(감사 계산). 따라서 sinc 보간은 근사이고 위 사다리는 자릿수 추정이다."
+    },
+    "severity_verdict": {
+      "how_bad_ko": "⭐**잣대에 따라 갈린다. 우리가 쓰는 잣대에는 안 걸린다.**",
+      "affected": [
+        "np.unwrap 기반 위상 변동폭(4217°) — 못 쓴다. 이미 폐기됐다.",
+        "순시주파수 p95/최대 — 널 근처에서 해석값 대비 최대 842.5 % 틀린다(verify_po_elev_unit :: M2_spectral_metric_survives_nulls_div12.inst_f_p95_kernel_over_analytic['-75'])"
+      ],
+      "not_affected": [
+        "스펙트럼 rms 대역폭 — 널이 깊은 2엽 신호에서도 해석값과 1.03 % 안(M2_spectral_metric_survives_nulls_div48)",
+        "블레이드선 전력 P_ac — el -60 격자 판 산포 0.07 dB(tsladder)",
+        "플래시 박자 beat_hz — el -60 에서 126.55 Hz (예측 126.667, 오차 0.09 %)"
+      ],
+      "and_the_deeper_point_ko": "⛔**PRF 를 올려도 물리를 사는 게 아니다.** 원점 최근접 거리 자체가 격자 판의 성질이다 — 같은 lambda/12 를 반 셀 옮기면 winding 이 7.024 → 0.023 바퀴로 사라진다(tsladder). 즉 64 배 표본율을 들여 더 곱게 보게 되는 대상이 **격자 아티팩트**다.",
+      "and_the_practical_point_ko": "outputs/probe_prf_effect.json 이 이미 쟀다 — PRF 19.7 → 35 kHz 에서 Δf 281.4 → 282.3 Hz, beat 이동 0.013 Hz, 1x/2x 여유 이동 0.051 dB, 비용 1.78 배. **분해능은 창의 시간 길이가 정하지 PRF 가 정하지 않는다.**"
+    }
+  },
+
+  "weakest_links": [
+    {
+      "rank": 1,
+      "name_ko": "절대 σ 가 검증되지 않았다 — 그리고 실패가 «메쉬 증거» 축을 따라 갈린다",
+      "evidence": "das_fleet_validation :: prereg_judgement.verdict = NOT_VALIDATED · P3_spread_db 16.268 · box_control._summary.beats_best_control 1/4 · degrees_of_freedom.evidence_split.gap_db 5.72",
+      "what_it_blocks_ko": [
+        "R90 절대 미터값(15.4~72.5 m)",
+        "파형 벤치마크의 절대 거리(수 km 급 R90)",
+        "«우리 σ 가 맞다» 는 문장 전부",
+        "실측 필드테스트의 예측치"
+      ],
+      "what_fixing_opens_ko": "⭐원장이 이미 고칠 방향을 가리킨다 — 자기 형상 증거가 있는 두 기체는 |DL| <= 1.47 dB 이고 없는 둘은 >= 7.19 dB 다. **커널을 고치는 문제가 아니라 메쉬 증거를 사 오는 문제일 가능성**이 높다. phantom2 는 자기 증거가 0(phantom3 메쉬 대리), m350rtk 는 사진 1 장(IoU 0.503). 이 둘에 증거를 붙이고 사전등록을 다시 걸면 P3 산포가 16.27 → (증거 있는 둘만의 범위인) 1 dB 대로 내려갈 수 있다. 그러면 R90 과 벤치마크가 절대값으로 풀린다.",
+      "cost_ko": "GPU 재계산 2 기체 x 21 주파수 x 360 방위 x 7 각도. 메쉬 작업이 상류.",
+      "⚠honest_note": "이 예측은 n=4 의 2:2 분할에서 나온 것이고 exact_partition_p = 0.167 이다. **가설이지 결론이 아니다.**"
+    },
+    {
+      "rank": 2,
+      "name_ko": "«블레이드선의 절대 레벨» 을 낼 수 있는 팔이 없다 (얼린 격자 ↔ 디더 격자의 갈라짐)",
+      "evidence": "freeze_plate_sensitivity :: verdict.abs_level_plate_ptp_db 3.452 · occlusion_level_survives_plate_choice false · docs/RESUME.md U-1",
+      "mechanism_ko": "위상을 쓰려면 격자를 얼려야 하고(디더 끄기), 그러면 절대 레벨이 판 한 장의 서브셀 오프셋에 걸린다. 절대 σ 를 내는 정적 디더 팔은 위상이 없어 블레이드선을 못 낸다. 두 팔이 만나지 않는다.",
+      "what_it_blocks_ko": [
+        "호버 표적 탐지거리 — ECA 0-도플러 노치가 동체를 지우면 탐지가 블레이드선 절대 레벨에 걸린다",
+        "패시브 사슬 전체의 끝단 숫자",
+        "리포트 08_3 의 -51.56 / -72.27 dB 인용(현재 자기모순 상태)"
+      ],
+      "what_fixing_opens_ko": "⭐호버 패시브 탐지거리를 **처음으로** 낼 수 있게 된다. 고치는 법은 이미 데이터가 가리킨다 — tsladder 가 P_ac 격자 산포를 0.07~1.36 dB 로 쟀다. 즉 **판을 여러 장 돌려 P_ac 만 평균**하면 블레이드선 절대 레벨을 1.4 dB 오차막대와 함께 낼 수 있다. 판 3~5 장이면 된다(이미 3 장 돌렸다).",
+      "cost_ko": "판 N 장 x 자세 계열. 지금 배선으로 판 1 장이 ~105~128 s (freeze_plate_sensitivity cells[*].plates[*].seconds)."
+    },
+    {
+      "rank": 3,
+      "name_ko": "근거리장에서 광선이 발산하지 않는다 — 8/18 앙각 챕터의 널 주장에 직격",
+      "evidence": "po_refinement_survey :: our_kernel_baseline.ray_divergence='none' · src/rcs_sbr.py:1055,1069 · 감사 산술 입사각 산포 ±2.223° @ 10 m vs 널 3 dB 폭 1~2.5°",
+      "what_it_blocks_ko": [
+        "el -30 · -60 널 깊이 주장",
+        "PathSolver 와의 사과-대-사과 (PathSolver 는 실제 기하라 발산이 들어 있다)",
+        "10 m 근거리장 실험의 «절대» 앙각 패턴"
+      ],
+      "what_fixing_opens_ko": "발산 광선(또는 송신점에서 쏘는 격자) + 1/r 를 넣으면 ① 널 깊이가 물리가 되고 ② PathSolver 비교가 같은 기하 위에 서고 ③ 10 m 라는 실험 설정 자체가 방어된다. 지금은 «위상만 구면» 이라 원장에 그렇게 적어야 한다.",
+      "cost_ko": "sbr_field 의 _ray_grid 를 점광원 발산으로 바꾸는 것 + cos_i 를 점별 방향으로. 재계산은 앙각 스윕 1 회.",
+      "⚠honest_note": "고치면 널이 얕아질 것이라는 것은 **예측이지 측정이 아니다.** 반대 방향(널이 더 깊어짐)도 배제 못 한다."
+    }
+  ],
+
+  "one_line_verdict": {
+    "ko": "지금 PO 결과는 **마이크로도플러의 모양(플래시 박자·빗살·f_tip 의 cos 법칙·파형)** 은 믿을 만하고, **절대 σ(dBsm)와 그것에서 나온 절대 탐지거리, 그리고 널 깊이·가림 축의 dB** 는 아니다.",
+    "en": "The kernel's micro-Doppler morphology is trustworthy; its absolute RCS, the detection ranges derived from it, and any dB read off a null or an occlusion channel are not."
+  },
+
+  "layer_summary_table": [
+    {"layer": "A 운동학·위상", "gate": "verify_po_elev_unit (lambda/48) · verify_phase_sign 3/3", "residual": "lambda/48 rho 0.9999 / 생산 lambda/12 는 파형만 통과, 파생 잣대 최대 109 % 오차", "verdict": "VERIFIED (수렴격자) · PARTIAL (생산격자)"},
+    {"layer": "B 상대 비교", "gate": "verify_po_elev_tsladder · gridladder · freeze_plate_sensitivity", "residual": "블레이드 AC 축 <=1.36 dB / 동체 DC 축 15.05 dB / 가림 축 부호까지 뒤집힘", "verdict": "PARTIAL — 축을 골라야 한다"},
+    {"layer": "C 절대 σ", "gate": "das_fleet_validation 사전등록 (떨어짐) · sbr_kr_sweep (Mie)", "residual": "함대 |DL| 0.51~9.08 dB, 산포 16.27 dB / 저 kr PO 근사 최대 6.73 dB", "verdict": "NOT_VALIDATED"}
+  ],
+
+  "unknowns": [
+    "el -15 의 대역 밖 몫 15.42 % 가 어디서 오는가 (그림자 경계 불연속인지 면 이산화인지) — verify_po_elev_rebuttal 남은_미해결",
+    "el -30 널의 기원 (광선 전용 물리인지 공통 편향인지) — 같은 파일",
+    "P_dc 의 격자 수렴 — lambda/12 · lambda/16 두 점과 이동 한 번뿐, 단조 수렴 증거 없음",
+    "방위각 의존 — az 고정 단면 하나뿐",
+    "mavic4pro dc_ac 가 원장 두 판에서 37.18 ↔ 5.33 dB 로 갈리는 이유 (RESUME 미해결 3)",
+    "Sionna el=0 의 σ = 2,931 m^2 (물리 상한 5.8 m^2 를 27 dB 초과) 의 기전 (RESUME 미해결 2)",
+    "docs/RESUME.md 끝낸것 #4 의 «관심 대역 안에서 조화선당 <= 0.14 dB» — 이 감사가 그 숫자의 원장 키를 **찾지 못했다**. verify_po_elev_unit.json · verify_po_elev_rebuttal.json 어디에도 없다. 문서에만 사는 수일 가능성.",
+    "층 A 의 게이트가 전부 **matrice4e 한 기체 · az 0° 한 단면**에서 나왔다. 다른 기체·다른 방위로 옮겨가는지는 안 쟀다.",
+    "다중 반사(1 bounce 만) · 스칼라 편파 · PTD 부재가 각각 몇 dB 인지 — po_refinement_survey next_actions 1·3·4 가 아직 미실행"
+  ]
+}

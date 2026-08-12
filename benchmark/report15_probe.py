@@ -89,7 +89,13 @@ RANGE_M = 3.0                          # ⭐ 근거리 — Sionna 에게 가장 
 BASELINE_M = 0.20                       # 준-모노스태틱 송수신 간격 (facet_count 와 동일 규약)
 MAX_PATHS = 2_000_000
 
-SCRATCH = os.path.join(ROOT, "outputs", "meshes", "report15_probe")
+from proc_scratch import proc_scratch                                  # noqa: E402
+# ⭐프로세스마다 자기 폴더 (2026-08-11 결함 정정 — 같은 스크립트를 병렬로 띄우면
+#   여덟이 같은 OBJ 파일을 서로 쓰고 지워 «file not found» 로 터졌다).
+#   이 상수 하나가 elevation_sweep_md · raybudget_seed_ladder · report07_range40 ·
+#   report07_ray_budget_test · three_engine_maps/ranges · sionna_range_sweep ·
+#   probe_ray_ceiling · render_md_anim 을 전부 먹이므로 여기서 고치면 다 해결된다.
+SCRATCH = proc_scratch(os.path.join(ROOT, "outputs", "meshes", "report15_probe"))
 OUT_JSON = os.path.join(ROOT, "outputs", "report15_probe.json")
 
 _TWOPI_FC_OVER = 2.0 * math.pi * FC     # exp(-j·2πf·τ) 의 계수

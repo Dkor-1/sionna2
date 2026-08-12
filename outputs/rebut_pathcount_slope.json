@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "role": "adversarial rebuttal (읽기 전용 재측정)",
+    "target_claim_ko": "40억 발은 «수렴»이 아니다 — 경로 수가 광선에 정확히 비례해 계속 늘고 있어 포화의 조짐이 하나도 없다",
+    "target_ledger": "outputs/verify_raybudget_meaning.json :: path_yield.loglog_slope_collection_regime_64M_to_4000M · path_yield.step_ratios",
+    "no_gpu_ko": "⛔ GPU 미사용. 기존 npz/json 을 CPU 로 읽어 다시 쟀다. 새 파일만 만든다.",
+    "written_by": "rebuttal subagent, 2026-08-11"
+  },
+
+  "A_숫자검증_원장이_맞는가": {
+    "verdict": "PASS — 인용된 숫자는 전부 원장에 실재하고 원자료에서 재현된다",
+    "keys_exist": true,
+    "ledger_from_mean": 0.998,
+    "ledger_from_median": 1.034,
+    "my_refit_from_ledger_rounded_rows": 0.9979,
+    "my_refit_R2": 0.99798,
+    "my_refit_from_raw_npz_unrounded_mean": 0.9994,
+    "my_refit_from_raw_npz_unrounded_median": 1.0338,
+    "npaths_definition_ko": "path_yield.rows 의 'npaths_mean' 은 자세 1,024 개에 대한 **중앙값**을 시드마다 구한 뒤, 그 값을 **시드에 대해 평균**한 것이다. 이름이 헷갈리지만 ladder_40m.rungs[].npaths_median.mean 과 소수 첫째자리까지 같다.",
+    "raw_reproduction_per_seed_medians": {
+      "64M": [2.0, 5.0, 1.0],
+      "178M": [4.0, 7.0, 8.0, 6.0, 8.0, 8.0, 9.0],
+      "712M": [21.0, 27.0, 26.0],
+      "2848M": [108.0, 111.0, 128.0],
+      "4000M": [193.0, 165.5, 179.0, 159.0, 153.0, 160.0, 166.0, 165.0]
+    },
+    "reproduced_rung_means": [2.6667, 7.1429, 24.6667, 115.6667, 167.5625],
+    "ledger_rung_means": [2.7, 7.1, 24.7, 115.7, 167.6],
+    "note_178M_ko": "원장은 178 M 을 n_seeds=7 로 센다. 디렉터리에는 s8 도 있으나 샤드 00 이 없어(768/1024 자세) 제외됐다 — 타당하다.",
+    "step_ratio_rounding_ko": "원장 step_ratios 는 **반올림된 rows 값**으로 계산됐다. 첫 계단만 2.63(반올림) vs 2.679(원자료)로 어긋난다. 나머지는 0.01 안. 결론에 영향 없다.",
+    "no_truncation_ko": "max_num_paths_per_src 는 200만~800만인데 실측 최대 npaths 는 210 이다. 버퍼 절단 없음."
+  },
+
+  "B_강건성": {
+    "slope_se_5pts_mean": 0.0255,
+    "slope_95CI_mean": [0.939, 1.059],
+    "slope_drop_64M": 1.021,
+    "slope_drop_4000M": 0.984,
+    "slope_pose_mean_instead_of_median": 0.9917,
+    "verdict_ko": "기울기 ≈1 은 어느 축약을 써도, 어느 점을 빼도 유지된다. **숫자 자체는 못 깬다.**",
+    "seed_scatter_caveat_ko": "다만 «백만 발당 상수» 는 계단마다 시드 3~8 판의 평균이다. 64 M 은 시드 3 판의 백만발당 수율이 0.0156 / 0.0313 / 0.0781 로 **5 배** 벌어진다. 계단 간 변동(0.0347~0.0422, ±10 %)은 시드 산포 안에 있다. '사실상 상수' 는 이 뜻으로만 참이다."
+  },
+
+  "C_반증_기울기1은_증거가_아니다": {
+    "verdict": "REFUTED — 인용된 숫자는 맞지만, 그 숫자에서 «수렴이 아니다» 가 따라 나오지 않는다",
+    "C1_mechanism_ko": "이 사다리는 diffuse_reflection=True 로 돌았다(benchmark/raybudget_seed_ladder.py:102). Sionna 2.0.1 의 SBR 후보 생성기는 **정반사 사슬만 해시로 중복 제거**하고(sb_candidate_generator.py 클래스 독스트링 42~45행), **확산으로 끝나는 경로는 광선 표본마다 하나씩 그대로 유효 경로가 된다**(같은 파일 464행 `valid = los_visible & diffuse & target_incident_side`). 즉 확산 갈래의 기대 경로 수는 정의상 E[n] = N·p 로 **광선 수에 정확히 비례**한다. 기울기 1 은 관측이 아니라 **귀무값**이고, 예산을 아무리 올려도 절대 포화하지 않는다.",
+    "C2_paths_are_a_sampling_quantity_ko": "outputs/rt_ray_budget.json 의 B_S_sweep: 광선을 **10 만발로 고정**한 채 산란계수 S 만 0.1→0.8 로 바꾸면 경로 수가 6.2 → 32.4 → 130.8 → 507.2 (×82) 로 는다. 기하는 하나도 안 바뀌었다. 유한한 기하 경로 목록을 '발견' 하는 양이라면 이럴 수 없다. 적합하면 n ∝ S^2.108 이고, 같은 100 M 의 기본 재질 판(n=24.6)을 이 곡선에 얹으면 유효 S ≈ 0.185 로 plastic 의 S=0.20 과 맞는다 ⇒ **세는 경로는 사실상 전부 확산 표본**이다.",
+    "C2_caveat_ko": "⚠ B_S_sweep 은 mavic4pro · 3 m · el 15 판이고 40 m 사다리(matrice4e · el −15)와 같은 판이 아니다. 40 m 사다리의 정반사/확산 분해는 **재측정 안 했다** — npz 에 상호작용 종류가 안 들어 있어 diffuse_reflection=False 로 GPU 재실행이 필요하다(지시대로 안 돌렸다).",
+    "C3_material_S_ko": "확산이 실제로 켜져 있다는 근거: 비금속 그룹이 커스텀 RadioMaterial 로 S 를 받는다 — plastic/prop_plastic S=0.20, carbon S=0.30, absorber S=0.35 (src/materials.py MATERIALS). 금속 계열은 ITU 재질이라 S=0.0 이다(outputs/report3_rt.json /C_metal/itu_metal_S). matrice4e 의 셸·캐노피·착륙장치·프롭(plastic 계열)과 암(carbon)이 전부 산란체다.",
+    "C4_counterexample_ko": "⭐결정적 반례가 이미 원장에 있다. outputs/rt_ray_budget.json A_ray_sweep (mavic4pro · el 15 · 시드 5 판 · 25 M→400 M): 경로수 log-log 기울기 **1.059** — 여기도 '포화의 조짐이 없다'. 그런데 같은 판에서 비간섭 레벨은 +1.327 → +0.975 → +0.566 → **+0.090 dB** 로 잦아들고 시드 sd 는 2.528 → 1.437 → 0.855 → 0.492 → **0.262 dB** 로 준다. 마지막 계단의 변화(0.090 dB)가 그 계단의 시드 산포(0.262 dB)보다 **작다** — 원장이 스스로 정한 수렴 판정(«이웃 계단의 차이가 시드 산포보다 작은가»)을 **통과**한다. 즉 «경로 수 선형» 과 «수렴» 이 같은 판에서 동시에 성립한다. 그러므로 선형성은 비수렴의 증거가 될 수 없다.",
+    "C4_caveat_ko": "⚠ 같은 판의 **간섭(coherent)** 레벨은 여전히 배증마다 +3.2 dB 로 안 수렴한다. 그래서 A_ray_sweep 은 '400 M 이면 다 됐다' 는 뜻이 아니라 '경로 수 기울기는 수렴 여부와 무관하다' 는 뜻으로만 쓴다.",
+    "C5_criterion_is_unsatisfiable_ko": "원장 verdicts.q_수렴하는가.what_would_convergence_look_like_ko 의 조건 (a) «경로 수 증가율이 1 보다 확실히 작아진다» 는 확산 표집이 켜져 있는 한 **어떤 예산에서도 절대 만족될 수 없다**. 만족 불가능한 조건은 판정 기준으로 못 쓴다. 이 항목은 빼야 한다."
+  },
+
+  "D_사소한_반증_포화의_조짐이_하나도_없다": {
+    "verdict": "문자 그대로는 거짓",
+    "why_ko": "원장 자신의 step_ratios 에서 4 계단 중 **2 계단이 선형 이하**다 — 광선 ×2.78 → 경로 ×2.63, 광선 ×4.0 → 경로 ×3.48(14 % 부족). 다음 계단이 초선형(×4.0 → ×4.68)이라 잡음으로 읽는 게 맞지만, 그렇다면 반대로 «하나도 없다» 라는 절대 표현도 자료가 벌어준 게 아니다."
+  },
+
+  "E_그래도_남는_것": {
+    "ko": "«40 억 발이 수렴점이 아니다» 라는 **결론 자체는 다른 근거로 살아 있다** — 같은 원장에서 레벨이 2,848 → 4,000 M 에 +3.63 dB 오르는데 4,000 M 의 시드 sd 는 1.83 dB 다(원장도 t=2.38 이라 «단정 못 한다» 고 적어 뒀다), 그리고 회전당 첨두가 178 M 부터 3.91 로 굳어 물리값 2 로 안 간다. 무너지는 것은 **결론이 아니라 근거 하나**다.",
+    "provenance": [
+      "outputs/verify_raybudget_meaning.json :: convergence_40m.level_db.steps[-1].d = 3.122 (시드 중앙값 기준) · verdicts.q_수렴하는가.evidence_ko[0] = +3.63 dB (시드 평균 기준)",
+      "outputs/verify_raybudget_meaning.json :: ladder_40m.rungs[7].level_db.sd = 1.832",
+      "outputs/verify_raybudget_meaning.json :: convergence_40m.peaks_per_rev.values"
+    ]
+  },
+
+  "F_scope_경고": {
+    "ko": "인용된 기울기는 **matrice4e 한 기체 · 40 m · el −15° · 3.5 GHz · max_depth=1 · 자세 1,024 · 시드 3~8 판** 한 조건에서만 잰 값이다. 원장 키 이름부터 ladder_40m 이다. '광선을 더 부어도 끝이 안 보인다' 를 일반 명제로 쓰면 원장이 지지하는 범위보다 넓다."
+  }
+}
