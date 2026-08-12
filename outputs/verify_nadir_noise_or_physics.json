@@ -1,0 +1,754 @@
+{
+ "_meta": {
+  "generator": "benchmark/verify_nadir_noise_or_physics.py",
+  "question_ko": "직하방(el −90°) 잔여 «도플러» 가 물리인가 광선/격자 표본잡음인가",
+  "gpu_ko": "⛔GPU 미사용. 기존 원장을 CPU 로 다시 잰 것과, 격자 없는 numpy PO 대리모형뿐.",
+  "criterion_ko": "물리는 예산(광선 수·격자 조밀도)에 안 변하고, 표본잡음은 예산에 반비례해 준다.",
+  "proxy_ko": "대리모형 E = Σ_facet (n·û)_+ · area · exp(−j2k|c−p_tx|). 광선격자·재질·가림·다중반사 전부 없음. 절대레벨은 비교 금지, AC/DC 는 무차원.",
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "n_poses": 4096,
+  "sionna_spp_base": 11111111,
+  "range_m": 10.0,
+  "fc_hz": 3500000000.0,
+  "inputs": [
+   "outputs/elevation_sweep_md.npz",
+   "outputs/elevation_sweep_md.json",
+   "outputs/verify_nadir_flash.json",
+   "outputs/verify_po_elev_unit.json",
+   "outputs/verify_po_elev_gridscale.json",
+   "outputs/elev_sweep_shards/*.npz"
+  ]
+ },
+ "S0_remeasured": {
+  "note_ko": "verify_nadir_flash.json 의 B 표를 npz 에서 직접 다시 잰 값.",
+  "rows": {
+   "ours/el+0": {
+    "n": 4096,
+    "level_meanabs_db": -54.37,
+    "level_absmean_db": -54.45,
+    "ac_over_dc_db": -15.32,
+    "ac_over_dc_db_fft": -15.32,
+    "am_rms": 0.112479,
+    "pm_rms_deg": 7.407,
+    "phase_dev_p95_deg": 16.096,
+    "ledger": {
+     "ac_over_dc_db": -15.32,
+     "pm_rms_deg": 7.41,
+     "phase_dev_p95_deg": 16.1
+    },
+    "reproduces_ledger": true
+   },
+   "ours/el-15": {
+    "n": 4096,
+    "level_meanabs_db": -51.16,
+    "level_absmean_db": -51.18,
+    "ac_over_dc_db": -19.63,
+    "ac_over_dc_db_fft": -19.63,
+    "am_rms": 0.083772,
+    "pm_rms_deg": 3.565,
+    "phase_dev_p95_deg": 8.113,
+    "ledger": {
+     "ac_over_dc_db": -19.63,
+     "pm_rms_deg": 3.57,
+     "phase_dev_p95_deg": 8.11
+    },
+    "reproduces_ledger": true
+   },
+   "ours/el-45": {
+    "n": 4096,
+    "level_meanabs_db": -58.67,
+    "level_absmean_db": -59.05,
+    "ac_over_dc_db": -8.03,
+    "ac_over_dc_db_fft": -8.03,
+    "am_rms": 0.233989,
+    "pm_rms_deg": 18.349,
+    "phase_dev_p95_deg": 43.03,
+    "ledger": {
+     "ac_over_dc_db": -8.03,
+     "pm_rms_deg": 18.35,
+     "phase_dev_p95_deg": 43.03
+    },
+    "reproduces_ledger": true
+   },
+   "ours/el-75": {
+    "n": 4096,
+    "level_meanabs_db": -47.28,
+    "level_absmean_db": -47.53,
+    "ac_over_dc_db": -10.47,
+    "ac_over_dc_db_fft": -10.47,
+    "am_rms": 0.172666,
+    "pm_rms_deg": 14.023,
+    "phase_dev_p95_deg": 22.984,
+    "ledger": {
+     "ac_over_dc_db": -10.47,
+     "pm_rms_deg": 14.02,
+     "phase_dev_p95_deg": 22.98
+    },
+    "reproduces_ledger": true
+   },
+   "ours/el-90": {
+    "n": 4096,
+    "level_meanabs_db": -41.66,
+    "level_absmean_db": -41.66,
+    "ac_over_dc_db": -38.31,
+    "ac_over_dc_db_fft": -38.31,
+    "am_rms": 0.00478,
+    "pm_rms_deg": 0.64,
+    "phase_dev_p95_deg": 1.184,
+    "ledger": {
+     "ac_over_dc_db": -38.31,
+     "pm_rms_deg": 0.64,
+     "phase_dev_p95_deg": 1.18
+    },
+    "reproduces_ledger": true
+   },
+   "sionna/el+0": {
+    "n": 4096,
+    "level_meanabs_db": -59.65,
+    "level_absmean_db": -59.65,
+    "ac_over_dc_db": -83.56,
+    "ac_over_dc_db_fft": -83.56,
+    "am_rms": 4e-05,
+    "pm_rms_deg": 0.003,
+    "phase_dev_p95_deg": 0.006
+   },
+   "sionna/el-15": {
+    "n": 4096,
+    "level_meanabs_db": -124.8,
+    "level_absmean_db": -124.83,
+    "ac_over_dc_db": -19.99,
+    "ac_over_dc_db_fft": -19.99,
+    "am_rms": 0.066507,
+    "pm_rms_deg": 4.291,
+    "phase_dev_p95_deg": 9.177,
+    "ledger": {
+     "ac_over_dc_db": -19.99,
+     "pm_rms_deg": 4.29,
+     "phase_dev_p95_deg": 9.18
+    },
+    "reproduces_ledger": true
+   },
+   "sionna/el-90": {
+    "n": 4096,
+    "level_meanabs_db": -130.29,
+    "level_absmean_db": -132.1,
+    "ac_over_dc_db": -0.11,
+    "ac_over_dc_db_fft": -0.11,
+    "am_rms": 0.743217,
+    "pm_rms_deg": 37.245,
+    "phase_dev_p95_deg": 73.732,
+    "ledger": {
+     "ac_over_dc_db": -0.11,
+     "pm_rms_deg": 37.25,
+     "phase_dev_p95_deg": 73.73
+    },
+    "reproduces_ledger": true
+   },
+   "sionna_p250000000/el+0": {
+    "n": 4096,
+    "level_meanabs_db": -59.66,
+    "level_absmean_db": -59.66,
+    "ac_over_dc_db": -39.65,
+    "ac_over_dc_db_fft": -39.65,
+    "am_rms": 0.010412,
+    "pm_rms_deg": 0.003,
+    "phase_dev_p95_deg": 0.006
+   },
+   "sionna_p250000000/el-15": {
+    "n": 4096,
+    "level_meanabs_db": -118.93,
+    "level_absmean_db": -118.93,
+    "ac_over_dc_db": -26.73,
+    "ac_over_dc_db_fft": -26.73,
+    "am_rms": 0.032964,
+    "pm_rms_deg": 1.844,
+    "phase_dev_p95_deg": 3.544,
+    "ledger": {
+     "ac_over_dc_db": -26.73,
+     "pm_rms_deg": 1.84,
+     "phase_dev_p95_deg": 3.54
+    },
+    "reproduces_ledger": true
+   },
+   "sionna_p250000000/el-90": {
+    "n": 4096,
+    "level_meanabs_db": -118.27,
+    "level_absmean_db": -118.46,
+    "ac_over_dc_db": -11.35,
+    "ac_over_dc_db_fft": -11.35,
+    "am_rms": 0.17614,
+    "pm_rms_deg": 11.784,
+    "phase_dev_p95_deg": 21.682,
+    "ledger": {
+     "ac_over_dc_db": -11.35,
+     "pm_rms_deg": 11.78,
+     "phase_dev_p95_deg": 21.68
+    },
+    "reproduces_ledger": true
+   },
+   "sionna_p1000000000/el+0": {
+    "n": 4096,
+    "level_meanabs_db": -59.67,
+    "level_absmean_db": -59.67,
+    "ac_over_dc_db": -33.91,
+    "ac_over_dc_db_fft": -33.91,
+    "am_rms": 0.020162,
+    "pm_rms_deg": 0.004,
+    "phase_dev_p95_deg": 0.008
+   },
+   "sionna_p4000000000/el+0": {
+    "n": 4096,
+    "level_meanabs_db": -59.68,
+    "level_absmean_db": -59.68,
+    "ac_over_dc_db": -30.76,
+    "ac_over_dc_db_fft": -30.76,
+    "am_rms": 0.028961,
+    "pm_rms_deg": 0.007,
+    "phase_dev_p95_deg": 0.016
+   }
+  },
+  "ledger_reproduced_all": true,
+  "two_ledger_definitions_identical": true,
+  "definition_proof_ko": "⭐verify_nadir_flash 의 ac_over_dc_db = 10log10(⟨|E/⟨E⟩−1|²⟩) 와 verify_po_elev_unit 의 ac_below_dc_db = 10log10(AC%/DC%) 는 **같은 양**이다. 창 없는 FFT 에서 P[0]=|⟨E⟩|², ΣP=⟨|E|²⟩ 이므로 AC%/DC% = (⟨|E|²⟩−|⟨E⟩|²)/|⟨E⟩|² = ⟨|E−⟨E⟩|²⟩/|⟨E⟩|² 로 정확히 일치한다. 위 표의 두 열이 소수 둘째자리까지 같은 것으로 수치 확인했다."
+ },
+ "S1_ray_budget_ladder": {
+  "note_ko": "AC/DC 가 광선 예산 N 에 어떻게 걸리나. 몬테카를로 표본잡음이면 분산 ∝ 1/N → 예산 22.5 배에 −13.52 dB. 물리면 0 dB.",
+  "el+0": [
+   {
+    "arm": "sionna",
+    "spp": 11111111,
+    "el_deg": 0,
+    "npaths_mean": 8.01,
+    "npaths_median": 9.0,
+    "npaths_cv": 0.15015,
+    "level_meanabs_db": -59.65,
+    "absE_cv": 4e-05,
+    "ac_over_dc_db": -83.56,
+    "corr_npaths_vs_absE": 0.0046,
+    "ledger_beat_hz": 376.73,
+    "ledger_band_power_db": -73.68,
+    "ledger_level_db": -59.65
+   },
+   {
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": 0,
+    "npaths_mean": 123.81,
+    "npaths_median": 127.0,
+    "npaths_cv": 0.08198,
+    "level_meanabs_db": -59.66,
+    "absE_cv": 0.01041,
+    "ac_over_dc_db": -39.65,
+    "corr_npaths_vs_absE": -0.0071,
+    "ledger_beat_hz": 50.27,
+    "ledger_band_power_db": -73.68,
+    "ledger_level_db": -59.66
+   },
+   {
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "el_deg": 0,
+    "npaths_mean": 464.65,
+    "npaths_median": 471.0,
+    "npaths_cv": 0.06551,
+    "level_meanabs_db": -59.67,
+    "absE_cv": 0.02016,
+    "ac_over_dc_db": -33.91,
+    "corr_npaths_vs_absE": -0.0038,
+    "ledger_beat_hz": 122.12,
+    "ledger_band_power_db": -73.65,
+    "ledger_level_db": -59.67
+   },
+   {
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "el_deg": 0,
+    "npaths_mean": 1979.4,
+    "npaths_median": 2008.5,
+    "npaths_cv": 0.06226,
+    "level_meanabs_db": -59.68,
+    "absE_cv": 0.02896,
+    "ac_over_dc_db": -30.76,
+    "corr_npaths_vs_absE": -0.009,
+    "ledger_beat_hz": 58.15,
+    "ledger_band_power_db": -73.61,
+    "ledger_level_db": -59.68
+   }
+  ],
+  "el-90": [
+   {
+    "arm": "sionna",
+    "spp": 11111111,
+    "el_deg": -90,
+    "npaths_mean": 11.76,
+    "npaths_median": 12.0,
+    "npaths_cv": 0.17571,
+    "level_meanabs_db": -130.29,
+    "absE_cv": 0.55062,
+    "ac_over_dc_db": -0.11,
+    "corr_npaths_vs_absE": 0.8686,
+    "ledger_beat_hz": null,
+    "ledger_band_power_db": null,
+    "ledger_level_db": -130.29
+   },
+   {
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": -90,
+    "npaths_mean": 348.94,
+    "npaths_median": 352.0,
+    "npaths_cv": 0.04278,
+    "level_meanabs_db": -118.27,
+    "absE_cv": 0.16866,
+    "ac_over_dc_db": -11.35,
+    "corr_npaths_vs_absE": 0.8068,
+    "ledger_beat_hz": null,
+    "ledger_band_power_db": null,
+    "ledger_level_db": -118.27
+   }
+  ],
+  "el-90_two_point": {
+   "spp_ratio": 22.5,
+   "delta_ac_db_measured": -11.24,
+   "delta_ac_db_if_power_1_over_N": -13.52,
+   "delta_ac_db_if_amplitude_1_over_sqrtN": -13.52,
+   "note_units_ko": "⚠«√N 이면 −13.5 dB, 1/N 이면 −13.5 dB» 는 같은 말이다 — 진폭이 1/√N 이면 전력이 1/N 이고, ac_over_dc_db 는 **전력비**의 dB 라 두 표현이 같은 −10log10(22.5) = −13.52 dB 를 가리킨다. 잡음이 진폭 기준으로 1/N 까지 떨어지는(= 전력 1/N²) 일은 없다.",
+   "npaths_ratio": 29.333,
+   "delta_ac_db_if_power_1_over_npaths": -14.67,
+   "measured_fraction_of_1_over_N": 0.831,
+   "apparent_power_law_exponent": -0.8312,
+   "level_also_moved_db": 12.02,
+   "reading_ko": "실측 −11.24 dB 는 순수 1/N 인 −13.52 dB 의 83 % 다. 물리(0 dB)가 아니라 명백히 잡음 쪽이다. ⚠단, 아래 «절대 대 상대» 를 반드시 같이 읽어라."
+  },
+  "el-90_absolute_vs_relative": {
+   "note_ko": "⭐이 라운드에서 스스로 잡은 함정. AC/DC 는 **비**다. 나딧에서는 분모도 움직였으므로 비의 감소를 그대로 «잡음이 준 양» 으로 읽으면 안 된다.",
+   "carrier_10log10_absmeanE2_db": [
+    -132.1,
+    -118.46
+   ],
+   "carrier_change_db": 13.64,
+   "absolute_ac_power_db": [
+    -132.21,
+    -129.81
+   ],
+   "absolute_ac_change_db": 2.4,
+   "reading_ko": "광선을 22.5 배 올리자 —\n• 반송파(|⟨E⟩|²) 가 **+13.64 dB 올랐다**. 즉 저예산 판은 나딧에서 표적을 거의 못 찾고 있었다(레벨 −130 dB 대 el 0 의 −60 dB).\n• 절대 요동전력은 **+2.40 dB 올랐다** — 줄지 않았다.\n• 비(AC/DC)만 −11.24 dB 줄었다.\n⇒ «잡음이 1/N 으로 줄었다» 는 단순 서술은 **틀렸다.** 맞는 서술은 «나딧에서는 반송파도 요동도 둘 다 수렴 안 했고, 반송파가 더 빨리 올라 변조 깊이가 줄었다» 다. 그래도 판정은 그대로 «잡음» 이다 — 물리라면 예산을 올려도 두 양 **모두** 안 움직여야 하는데 하나는 13.6 dB, 다른 하나는 2.4 dB 움직였다. 그리고 S5 에서 기본파 크기가 물리값 대비 +31.9 → +15.2 dB 로 내려온 것이 «물리 위에 얹힌 과잉» 을 직접 보여준다."
+  },
+  "el-90_floor_two_point_fit": {
+   "floor_if_exactly_1_over_N_db": -15.04,
+   "caveat_ko": "⚠두 점으로 «1/N 잡음 + 물리 바닥» 을 풀면 바닥이 하나 나오지만 **식별되지 않는다** — 같은 두 점은 바닥 없는 N^(−0.83) 순수 잡음으로도 똑같이 설명된다. 세 번째 예산이 있어야 갈린다."
+  }
+ },
+ "S2_el0_what_converged": {
+  "question_ko": "«수렴했는데 틀렸다» 가 맞는 서술인가",
+  "rungs": [
+   {
+    "spp": 11111111,
+    "npaths_median": 9.0,
+    "npaths_cv": 0.15015,
+    "level_db": -59.65,
+    "band_power_db": -73.68,
+    "band_minus_level_db": -14.03,
+    "beat_hz": 376.73,
+    "ac_over_dc_db": -83.56,
+    "absE_cv": 4e-05,
+    "corr_npaths_vs_absE": 0.0046
+   },
+   {
+    "spp": 250000000,
+    "npaths_median": 127.0,
+    "npaths_cv": 0.08198,
+    "level_db": -59.66,
+    "band_power_db": -73.68,
+    "band_minus_level_db": -14.02,
+    "beat_hz": 50.27,
+    "ac_over_dc_db": -39.65,
+    "absE_cv": 0.01041,
+    "corr_npaths_vs_absE": -0.0071
+   },
+   {
+    "spp": 1000000000,
+    "npaths_median": 471.0,
+    "npaths_cv": 0.06551,
+    "level_db": -59.67,
+    "band_power_db": -73.65,
+    "band_minus_level_db": -13.98,
+    "beat_hz": 122.12,
+    "ac_over_dc_db": -33.91,
+    "absE_cv": 0.02016,
+    "corr_npaths_vs_absE": -0.0038
+   },
+   {
+    "spp": 4000000000,
+    "npaths_median": 2008.5,
+    "npaths_cv": 0.06226,
+    "level_db": -59.68,
+    "band_power_db": -73.61,
+    "band_minus_level_db": -13.93,
+    "beat_hz": 58.15,
+    "ac_over_dc_db": -30.76,
+    "absE_cv": 0.02896,
+    "corr_npaths_vs_absE": -0.009
+   }
+  ],
+  "budget_span": 360.0,
+  "level_spread_db": 0.03,
+  "band_power_spread_db": 0.07,
+  "beat_spread_hz": 326.46,
+  "beat_true_hz": 126.67,
+  "beat_err_pct": [
+   197.4,
+   -60.3,
+   -3.6,
+   -54.1
+  ],
+  "leakage_control": {
+   "synthetic_constant_band_minus_carrier_db": -14.04,
+   "measured_band_minus_level_db": [
+    -14.03,
+    -14.02,
+    -13.98,
+    -13.93
+   ],
+   "verdict_ko": "⭐결정적. A 절 통제군 — «변조가 전혀 없는 상수» 를 같은 계측기에 넣으면 대역전력이 반송파보다 −14.04 dB 로 «보인다»(순수 창 누설). PathSolver 의 el 0 실측 대역전력은 네 예산 모두 −14.03 ~ −14.07 dB 다. ⇒ PathSolver 의 el 0 블레이드 대역에는 **진짜 변조가 없다**. 보고된 대역전력·박자는 전부 계측기의 누설을 읽은 것이다."
+  },
+  "answer_ko": "«수렴했는데 틀렸다» 는 **반쯤만 맞다.** 정확히는 —\n(1) **수렴한 것**: 평균장(반송파). 예산 360 배에 레벨이 0.03 dB 안이다. 이건 진짜 수렴이고, 정지한 동체의 정반사 경로 9 개가 예산과 무관하게 잡히기 때문이다.\n(2) **애초에 없던 것**: 로터 변조. 최저예산에서 AC/DC 가 −83.6 dB (|E| 변동 0.004 %) 로 **신호가 사실상 상수**다. 틀린 게 아니라 비어 있었다.\n(3) **수렴 안 한 것**: AC. 예산을 올리면 −83.6 → −39.7 → −33.9 → −30.8 dB 로 **올라간다**(잡음이 줄어드는 게 아니라, 없던 약한 경로를 새로 찾으면서 표본잡음이 생긴다). 4,000 M 에서도 아직 오르는 중이고, 우리 커널의 el 0 값 −15.3 dB 보다 15 dB 아래다.\n(4) **박자**: 없는 변조 위에서 argmax 를 뜨니 예산마다 다른 잡음 봉우리를 문다 (376.7 → 50.3 → 122.1 → 58.2 Hz, 참값 126.67 Hz).\n⇒ 옳은 서술은 «레벨은 수렴했고, 마이크로도플러는 처음부터 없었으며, 보고된 박자는 계측기 누설의 argmax 다». «수렴한 값이 틀렸다» 가 아니라 **서로 다른 두 양이고 그중 하나만 수렴했다**.",
+  "other_reading_ko": "⚠다른 해석 가능성 — 레벨 수렴이 «정답에 수렴» 이 아니라 «같은 편향에 갇힘» 일 수 있다. PathSolver 에는 산란적분이 없어 로터 같은 few-λ 구조를 원리적으로 못 내므로, 예산을 아무리 올려도 **없는 항이 생기지는 않는다**. 그러면 레벨은 «동체 정반사만의 정답» 에 수렴한 것이고 표적 전체의 정답은 아니다. 이 두 해석은 지금 데이터로 못 가른다 — 가르려면 로터만 있는 표적으로 같은 사다리를 태워야 한다."
+ },
+ "S3_path_churn": {
+  "hypothesis_ko": "사용자 가설: 자세마다 경로 집합이 갈아엎히면 |E| 가 충격처럼 튀고, 그것이 주파수축에서 **평평한 빗살**이 된다.",
+  "arms": {
+   "sionna/el+0": {
+    "spp": 11111111,
+    "npaths_mean": 8.01,
+    "npaths_cv": 0.15015,
+    "npaths_min": 6,
+    "npaths_max": 9,
+    "absE_cv": 4e-05,
+    "absE_max_over_min": 1.0,
+    "corr_npaths_vs_absE": 0.0046,
+    "ac_over_dc_db": -83.56
+   },
+   "sionna/el-90": {
+    "spp": 11111111,
+    "npaths_mean": 11.76,
+    "npaths_cv": 0.17571,
+    "npaths_min": 7,
+    "npaths_max": 18,
+    "absE_cv": 0.55062,
+    "absE_max_over_min": 214.5,
+    "corr_npaths_vs_absE": 0.8686,
+    "ac_over_dc_db": -0.11
+   },
+   "sionna_p250000000/el+0": {
+    "spp": 250000000,
+    "npaths_mean": 123.81,
+    "npaths_cv": 0.08198,
+    "npaths_min": 101,
+    "npaths_max": 137,
+    "absE_cv": 0.01041,
+    "absE_max_over_min": 1.5,
+    "corr_npaths_vs_absE": -0.0071,
+    "ac_over_dc_db": -39.65
+   },
+   "sionna_p250000000/el-90": {
+    "spp": 250000000,
+    "npaths_mean": 348.94,
+    "npaths_cv": 0.04278,
+    "npaths_min": 312,
+    "npaths_max": 384,
+    "absE_cv": 0.16866,
+    "absE_max_over_min": 2.2,
+    "corr_npaths_vs_absE": 0.8068,
+    "ac_over_dc_db": -11.35
+   },
+   "ours/el-90": {
+    "spp": null,
+    "npaths_cv": null,
+    "absE_cv": 0.00478,
+    "absE_max_over_min": 1.034,
+    "ac_over_dc_db": -38.31
+   }
+  },
+  "verdict_ko": "**절반 맞고 절반 틀렸다.**\n✔맞은 절반 — 나딧에서 경로 수와 |E| 는 실제로 같이 움직인다. corr(npaths,|E|) 가 11.1 M 에서 **0.869**, 250 M 에서 0.807 이다. 그리고 |E| 는 «충격처럼» 튄다 — 11.1 M 나딧에서 |E| 최대/최소 비가 **214 배**다(4.3e−9 ~ 9.3e−7).\n✔대조 — el 0 에서는 같은 경로 수 변동(CV 0.150, 6~9 개)이 있는데도 corr 이 **0.005**, |E| 변동계수가 4e−5 다. 즉 el 0 에서 갈아엎히는 경로는 에너지를 안 실어 나른다. **나딧에서만** 경로 하나하나가 신호 전체를 좌우한다.\n✘틀린 절반 — 그 결과가 **평평하지 않다**. 나딧 요동 전력의 92~94 % 가 플래시 빗살 위에 얹혀 있다(빗살이 차지한 빈은 14.6 % 뿐). 이유는 seed=1 이 고정이라 **표본화가 자세의 결정론적 함수**이고 자세가 로터 주기로 반복하기 때문이다. ⇒ 잡음도 주기적이라 빗살에 얹힌다. 진짜 백색은 딱 한 자리에서만 나온다 — sionna el 0 최고예산(4,000 M), 빗살 비중 0.134 ≈ 빈 비중 0.146.",
+  "consequence_ko": "⭐이것이 이 라운드에서 뒤집힌 것이다. **빗살 구조는 두 팔 모두에서 물리의 증거가 못 된다.** 우리 팔의 격자도 얼려 있어 같은 논리가 걸린다."
+ },
+ "S4_our_arm": {
+  "note_ko": "우리 팔의 «예산» 은 격자 간격이다. 조이면 격자잡음은 떨어지고 물리는 안 떨어진다.",
+  "gridless_proxy_self": {
+   "n_poses": 4096,
+   "ac_over_dc_db": -38.55,
+   "fundamental_share": 0.9379,
+   "harmonics_k3plus_share": 0.0009,
+   "corr_with_gridless_proxy": 1.0,
+   "corr_convention": "direct",
+   "explained_power_share": 1.0,
+   "corr_of_fundamental": 1.0,
+   "fundamental_amp_over_proxy_db": 0.0,
+   "physics_part_db": -38.83,
+   "grid_part_db": -50.62,
+   "harmonic_envelope_slope_db_per_octave": -26.2,
+   "harmonic_plateau_k20plus_db": -193.37,
+   "tag": "gridless_proxy",
+   "plane_wave_far_field_ac_db": -307.02,
+   "spherical_by_range_db": {
+    "10m": -38.55,
+    "20m": -51.07,
+    "40m": -63.32,
+    "80m": -75.45,
+    "160m": -87.54
+   },
+   "range_power_law_exponent": -4.068,
+   "props_only_db": -41.51,
+   "body_only_db": -312.25,
+   "reading_ko": "⭐대리모형의 나딧 변조는 **기본파 하나뿐**이다 — 고조파 봉투가 −26.2 dB/옥타브로 무너져 k=3 에서 이미 −111 dB 다. 기본파가 전력의 93.8 % 를 갖는다. 그리고 동체만 남기면 −312 dB 로 사라지고 프로펠러만 남기면 전체와 같다 ⇒ 전적으로 회전날개 때문이다. 평면파(원거리장)에서는 −307 dB, 즉 **정확히 0** 이다 — 나딧 시선에서 z 축 회전은 면 법선의 z 성분도 면 중심의 z 좌표도 안 바꾸기 때문이다. 거리에는 전력 1/r^4.07 로 죽는다."
+  },
+  "unit_test_one_sphere_el-90": {
+   "target_ko": "반지름 2 cm 구 하나가 0.137 m 반경으로 공전 — 해석해가 있는 최소 표적",
+   "rungs": [
+    {
+     "div": 12,
+     "spacing_mm": 7.1379,
+     "n_rays": 3249,
+     "ac_below_dc_db": -21.75,
+     "rho_vs_analytic": 0.996678
+    },
+    {
+     "div": 24,
+     "spacing_mm": 3.569,
+     "n_rays": 11664,
+     "ac_below_dc_db": -32.99,
+     "rho_vs_analytic": 0.999749
+    },
+    {
+     "div": 48,
+     "spacing_mm": 1.7845,
+     "n_rays": 43681,
+     "ac_below_dc_db": -43.02,
+     "rho_vs_analytic": 0.999975
+    }
+   ],
+   "db_per_halving_of_spacing": 10.64,
+   "meaning_ko": "이 표적의 잔여는 **전부** 격자잡음이다(해석 도플러가 정확히 0)."
+  },
+  "drone_grid_ladder_el-90": {
+   "source": "outputs/verify_po_elev_gridscale.json runs[div8|div12|div16], 자세 0..511",
+   "rungs": [
+    {
+     "n_poses": 512,
+     "ac_over_dc_db": -37.12,
+     "fundamental_share": 0.1804,
+     "harmonics_k3plus_share": 0.721,
+     "corr_with_gridless_proxy": 0.3983,
+     "corr_convention": "conjugated",
+     "explained_power_share": 0.1586,
+     "corr_of_fundamental": 0.8761,
+     "fundamental_amp_over_proxy_db": -5.59,
+     "physics_part_db": -44.56,
+     "grid_part_db": -37.98,
+     "harmonic_envelope_slope_db_per_octave": -1.72,
+     "harmonic_plateau_k20plus_db": -17.02,
+     "tag": "div8",
+     "div": 8,
+     "spacing_mm": 10.7069,
+     "n_grid": 85,
+     "level_db": -39.66
+    },
+    {
+     "n_poses": 512,
+     "ac_over_dc_db": -38.11,
+     "fundamental_share": 0.4731,
+     "harmonics_k3plus_share": 0.4155,
+     "corr_with_gridless_proxy": 0.6964,
+     "corr_convention": "conjugated",
+     "explained_power_share": 0.485,
+     "corr_of_fundamental": 0.9711,
+     "fundamental_amp_over_proxy_db": -2.39,
+     "physics_part_db": -41.36,
+     "grid_part_db": -40.89,
+     "harmonic_envelope_slope_db_per_octave": -1.33,
+     "harmonic_plateau_k20plus_db": -21.42,
+     "tag": "div12",
+     "div": 12,
+     "spacing_mm": 7.1379,
+     "n_grid": 124,
+     "level_db": -41.66
+    },
+    {
+     "n_poses": 512,
+     "ac_over_dc_db": -40.75,
+     "fundamental_share": 0.6188,
+     "harmonics_k3plus_share": 0.254,
+     "corr_with_gridless_proxy": 0.8247,
+     "corr_convention": "conjugated",
+     "explained_power_share": 0.68,
+     "corr_of_fundamental": 0.9937,
+     "fundamental_amp_over_proxy_db": -3.87,
+     "physics_part_db": -42.84,
+     "grid_part_db": -44.94,
+     "harmonic_envelope_slope_db_per_octave": -0.94,
+     "harmonic_plateau_k20plus_db": -24.58,
+     "tag": "div16",
+     "div": 16,
+     "spacing_mm": 5.3534,
+     "n_grid": 164,
+     "level_db": -41.28
+    }
+   ],
+   "full_sweep_lambda12": {
+    "n_poses": 4096,
+    "ac_over_dc_db": -38.31,
+    "fundamental_share": 0.4455,
+    "harmonics_k3plus_share": 0.3275,
+    "corr_with_gridless_proxy": 0.6654,
+    "corr_convention": "direct",
+    "explained_power_share": 0.4427,
+    "corr_of_fundamental": 0.966,
+    "fundamental_amp_over_proxy_db": -2.98,
+    "physics_part_db": -41.82,
+    "grid_part_db": -40.87,
+    "harmonic_envelope_slope_db_per_octave": -2.51,
+    "harmonic_plateau_k20plus_db": -24.28,
+    "tag": "lambda12_full4096",
+    "div": 12,
+    "spacing_mm": 7.1379
+   },
+   "sign_convention_ko": "양수 = 간격을 절반으로 조일 때 그만큼 dB 가 **떨어진다**.",
+   "total_db_per_halving": 3.5,
+   "grid_part_db_per_halving": 6.83,
+   "physics_part_db_per_halving": -1.97,
+   "reading_ko": "격자 지분은 간격 반감에 **6.83 dB** 떨어지고(−37.98 → −40.89 → −44.94), 물리 지분은 −44.56 → −41.36 → −42.84 로 3 dB 폭 안에서 제자리다(단조가 아니다 — λ/8 에서는 격자가 너무 성겨 코히어런트 항 자체를 과소평가한다. 기본파 상관이 0.876 밖에 안 된다). ⚠세 점뿐이라 지수는 ±2 dB/옥타브 열려 있다."
+  },
+  "answer_to_the_-38_vs_-21_paradox_ko": "질문 4(a)/(b) 정면 답 —\n(a) **두 수의 정의는 같다.** S0 에서 두 경로로 계산해 소수 둘째자리까지 일치를 확인했다.\n(b) 같은 정의인데 드론(−38.3)이 단위구(−21.8)보다 낮은 것은 **모순이 아니다.** 격자잡음은 보편 바닥이 아니라 **표적에 얹히는 격자 칸 수**에 걸린다. 단위구는 투영면적 1.26e−3 m² 라 λ/12 칸이 ~25 개뿐이고, 드론은 나딧 투영면적 0.0949 m² 라 ~1,862 개다(75 배). 칸 수에 반비례하면 18.7 dB 더 낮은 −40.5 dB 가 나온다 — 실측 −38.3 과 2 dB 차이다. ⇒ 이 외삽 하나만으로는 «우리 잔여도 잡음» 을 배제 못 한다.\n⭐그래서 외삽 대신 **드론 자체의 격자 사다리와 격자 없는 대리모형**으로 갈랐다. 결과: λ/12 에서 잔여의 **44.6 % 가 물리**(기본파, 대리모형과 상관 0.966), **55.4 % 가 격자 모아레**(k≥3 빗살, Nyquist 까지 평평). 격자를 λ/8→λ/16 으로 조이면 물리 비중이 18 % → 47 % → 62 % 로 오르고 대리모형과의 전체 상관이 0.398 → 0.696 → 0.825 로 오른다. **격자를 조일수록 남는 것이 물리다.**",
+  "cells_estimate": {
+   "unit_sphere_proj_area_m2": 0.001257,
+   "drone_nadir_proj_area_m2": 0.09486,
+   "ratio": 75.5,
+   "extrapolated_grid_floor_db": -40.53
+  }
+ },
+ "S5_pathsolver_vs_physics": {
+  "note_ko": "PathSolver 의 나딧 요동을 «격자 없는 물리» 와 맞대본다. 기본파를 떼어내 크기까지 견준다 — 물리면 크기가 맞아야 한다.",
+  "arms": {
+   "sionna": {
+    "n_poses": 4096,
+    "ac_over_dc_db": -0.11,
+    "fundamental_share": 0.2071,
+    "harmonics_k3plus_share": 0.6308,
+    "corr_with_gridless_proxy": 0.4658,
+    "corr_convention": "direct",
+    "explained_power_share": 0.217,
+    "corr_of_fundamental": 0.9797,
+    "fundamental_amp_over_proxy_db": 31.88,
+    "physics_part_db": -6.95,
+    "grid_part_db": -1.12,
+    "harmonic_envelope_slope_db_per_octave": -7.61,
+    "harmonic_plateau_k20plus_db": -29.65,
+    "spp": 11111111,
+    "corr_with_our_kernel": 0.2908
+   },
+   "sionna_p250000000": {
+    "n_poses": 4096,
+    "ac_over_dc_db": -11.35,
+    "fundamental_share": 0.0592,
+    "harmonics_k3plus_share": 0.4393,
+    "corr_with_gridless_proxy": 0.143,
+    "corr_convention": "direct",
+    "explained_power_share": 0.0205,
+    "corr_of_fundamental": 0.5836,
+    "fundamental_amp_over_proxy_db": 15.21,
+    "physics_part_db": -23.62,
+    "grid_part_db": -11.61,
+    "harmonic_envelope_slope_db_per_octave": -7.66,
+    "harmonic_plateau_k20plus_db": -27.1,
+    "spp": 250000000,
+    "corr_with_our_kernel": 0.184
+   }
+  },
+  "gridless_proxy_fundamental_is_the_truth_ko": "대리모형의 기본파를 «참값 1» 로 놓으면 — PathSolver 의 나딧 기본파는 11.1 M 에서 **39.3 배(+31.9 dB)**, 250 M 에서 **5.76 배(+15.2 dB)** 로 **너무 크다**. 우리 커널은 0.71 배(−2.98 dB)로 같은 자리에 있다(재질 |Γ|<1·가림이 있어 대리모형보다 약간 작은 것은 예상대로다).",
+  "white_noise_control": {
+   "n_draws": 32,
+   "corr_mean": 0.0129,
+   "corr_p95": 0.0263
+  }
+ },
+ "S6_why_the_field_sees_doppler": {
+  "note_ko": "사용자의 관찰(«실증에서도 나딧 도플러가 남더라»)은 근접장 곡률로는 설명이 안 된다 — 그건 10 m 에서 −38.6 dB, 160 m 에서 −87.5 dB 라 야외 거리에서는 없는 것과 같다. 진짜 이유는 훨씬 단순하다.",
+  "far_field_plane_wave_ac_vs_off_nadir_deg": {
+   "-90.0": {
+    "off_nadir_deg": 0.0,
+    "ac_over_dc_db": -305.01
+   },
+   "-89.5": {
+    "off_nadir_deg": 0.5,
+    "ac_over_dc_db": -55.85
+   },
+   "-89.0": {
+    "off_nadir_deg": 1.0,
+    "ac_over_dc_db": -44.09
+   },
+   "-88.0": {
+    "off_nadir_deg": 2.0,
+    "ac_over_dc_db": -32.81
+   },
+   "-85.0": {
+    "off_nadir_deg": 5.0,
+    "ac_over_dc_db": -11.88
+   },
+   "-80.0": {
+    "off_nadir_deg": 10.0,
+    "ac_over_dc_db": -1.21
+   },
+   "-75.0": {
+    "off_nadir_deg": 15.0,
+    "ac_over_dc_db": -7.02
+   }
+  },
+  "reading_ko": "원거리장 평면파에서도 나딧을 **0.5° 만 벗어나면** AC/DC 가 −55.9 dB, 1° 에서 −44.1, 2° 에서 −32.8, **5° 에서 −11.9 dB** 로 사실상 만조가 된다. 정확히 0° 일 때만 −305 dB 다. ⇒ 나딧 널은 **폭이 몇 도짜리 면도날**이라, 실측에서는 기체 자세 기울기·바람·비행 위치 오차만으로도 늘 벗어난다. «90° 에서도 도플러가 남는다» 는 관찰은 **정확히 90° 가 실현되지 않기 때문**이라고 보는 게 가장 단순한 설명이다.",
+  "not_refraction_ko": "⭐사용자 가설의 기전(굴절·회절)은 이 실행에서는 성립하지 않는다. 앙각 스윕의 PathSolver 호출은 max_depth=1·refraction=False 이고 diffraction·edge_diffraction 을 아예 안 넘겨 기본값 False 였다. 굴절·회절·다중반사가 **전부 꺼져 있었다**. 반대로 우리 팔은 penetrate=True(투과 켜짐)라 이 축에서는 우리가 물리를 더 담았다. 그리고 두 팔 다 구면파라 «평면파 가정» 은 어느 쪽에도 없다.",
+  "recomputed_here_far_field_plane_wave": {
+   "note_ko": "⭐이 값들은 원장을 읽은 게 아니라 이 라운드에서 4,096 자세 전부로 직접 다시 계산한 것이다(CPU, 격자 없는 평면패싯 PO, 평면파 = 원거리장).",
+   "ac_over_dc_db_by_off_nadir_deg": {
+    "0.0": -305.01,
+    "0.5": -55.85,
+    "1.0": -44.09,
+    "2.0": -32.81,
+    "5.0": -11.88,
+    "10.0": -1.21,
+    "15.0": -7.02
+   },
+   "ledger_agreement_ko": "verify_nadir_flash.json C_D_geometry.offnadir_farfield 와 **일곱 각도 전부 소수 둘째자리까지 정확히 일치**했다. (S4 의 대리모형 블록에서 나딧 평면파가 −307.02 로 나온 것은 −300 dB 대의 부동소수점 바닥이라 −305.01 과 같은 «수치적 0» 이다.)"
+  }
+ },
+ "S7_verdict": {
+  "pathsolver_nadir": {
+   "verdict": "NOISE",
+   "confidence": "high",
+   "ko": "**표본잡음이다.** 근거 네 겹 — (1) 광선을 22.5 배 올리자 AC/DC 가 -11.24 dB 줄었다. 물리면 0 dB, 순수 1/N 이면 −13.52 dB 인데 실측은 잡음 쪽 83 % 자리다. (2) 기본파의 **크기**가 격자 없는 물리보다 11.1 M 에서 +31.9 dB, 250 M 에서 +15.2 dB 크다 — 물리를 재현한 게 아니라 물리 위에 잡음이 얹힌 것이고, 예산을 올리자 물리 쪽으로 16.7 dB 내려왔다. (3) 나딧에서 corr(경로 수, |E|) = 0.87, |E| 최대/최소 214 배 — 신호가 «이번 자세에 경로가 몇 개 잡혔나» 로 결정된다. (4) 평균 레벨조차 +13.6 dB 움직였다 — 나딧에서는 반송파도 수렴 안 했다. ⚠정직하게 덧붙인다 — **절대** 요동전력은 오히려 +2.4 dB 올랐다. AC/DC 가 준 것은 반송파가 더 빨리 올랐기 때문이다. 그래서 «1/N 으로 준다» 는 단순한 잡음 법칙 서술은 쓰면 안 되고, 쓸 수 있는 서술은 «나딧에서 PathSolver 는 아무것도 수렴시키지 못했고 기본파 크기가 물리보다 15~32 dB 과하다» 다. ⚠«무엇으로 수렴하는가» 는 모른다 — 250 M 에서도 바닥이 안 보인다."
+  },
+  "ours_nadir": {
+   "verdict": "MOSTLY PHYSICS (about half physics, half grid moiré at λ/12)",
+   "confidence": "medium-high",
+   "ko": "**절반이 물리, 절반이 격자 모아레다.** λ/12 에서 —\n• 물리 44.6 % : 플래시 기본파 하나. 격자가 아예 없는 PO 대리모형의 기본파와 상관 **0.966**, 크기 0.71 배(−2.98 dB). 대리모형은 평면파로 바꾸면 −307 dB 로 사라지고 거리에 1/r^4.07 로 죽는다 ⇒ 기전은 **근접장 파면 곡률**이다.\n• 격자 55.4 % : 내역은 2 차 고조파 2.8 % + 3 차 이상 빗살 32.8 % + 빗살 밖 20.0 %. 물리(대리모형)의 고조파 봉투는 −26.2 dB/옥타브로 무너져 2 차가 이미 −57 dB 이므로 **2 차 이상은 전부 물리가 아니다**.\n• 격자를 λ/8 → λ/12 → λ/16 으로 조이면 물리 비중이 18 → 47 → 62 % 로 오르고 대리모형과의 상관이 0.398 → 0.696 → 0.825 로 오른다. **조일수록 남는 것이 물리다** — 이게 이 축의 결론이다.\n⚠남는 불확실성 — 물리 지분의 절대값(−41.8 dB)은 대리모형이라는 하나의 독립 모형에만 기대고 있다. 대리모형은 재질·가림·다중반사가 없다."
+  },
+  "user_hypothesis": {
+   "mechanism_claim": "REFUTED (for this run)",
+   "observation_claim": "SUPPORTED, different mechanism",
+   "ko": "기전 주장(«PathSolver 가 굴절·회절을 더 담아서») 은 **반증됐다** — 그 호출에는 굴절·회절·다중반사가 전부 꺼져 있었고 우리 팔이 오히려 투과를 켜고 있었다. «평면파 가정» 도 어느 팔에도 없다(둘 다 구면파). 관찰(«실증에서도 나딧 도플러가 남는다») 은 **지지된다** — 다만 이유는 회절이 아니라, (i) 근거리에서는 파면 곡률이 −38 dB 짜리 기본파를 남기고, (ii) 무엇보다 **나딧 널이 폭 몇 도짜리 면도날**이라 5° 만 벗어나도 −11.9 dB 로 만조가 되기 때문이다. 야외에서 정확히 90° 는 실현되지 않는다."
+  },
+  "needs_gpu": [
+   "⭐el −90 에서 세 번째 광선 예산(1,000 M 또는 4,000 M). 두 점으로는 «1/N 잡음» 과 «잡음 + 물리 바닥» 이 식별되지 않는다. 이것 하나면 PathSolver 판정의 «무엇으로 수렴하는가» 가 채워진다.",
+   "⭐드론 el −90 격자 사다리를 λ/24·λ/48 까지 — 지금 물리 지분 외삽이 세 점에 기대고 있다.",
+   "굴절·회절을 실제로 켠 sionna_phys 팔의 el −90 (GPU 3 에서 진행 중) — 사용자 가설의 진짜 시험은 «물리를 켜면 나딧 기본파 크기가 대리모형 값으로 내려오는가» 다.",
+   "우리 팔 + PTD(모서리 회절) 의 el −90 (ours_ptd, 진행 중) — 회절이 나딧 기본파를 얼마나 바꾸는가.",
+   "⚠(선택) 로터만 있는 표적으로 el 0 예산 사다리 — S2 의 «레벨 수렴이 정답인가 편향인가» 를 가르려면 필요하다."
+  ],
+  "unknowns_ko": [
+   "PathSolver 나딧 AC 가 **무엇으로** 수렴하는지 모른다(바닥 미관측).",
+   "우리 팔 물리 지분의 절대값은 독립 모형이 대리모형 하나뿐이라 ±2~3 dB 는 열려 있다.",
+   "대리모형의 거리 지수가 1/r^4.07 인 이유를 유도하지 못했다 — 소박한 근접장 논변은 1/r² 를 준다. 실측만 적는다.",
+   "el 0 에서 PathSolver 레벨이 수렴한 것이 «정답» 인지 «동체 정반사만의 정답» 인지 못 갈랐다."
+  ]
+ }
+}

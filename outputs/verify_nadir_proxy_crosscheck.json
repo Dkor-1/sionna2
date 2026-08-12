@@ -1,0 +1,130 @@
+{
+ "_meta": {
+  "generator": "benchmark/verify_nadir_proxy_crosscheck.py",
+  "gpu_ko": "⛔미사용. numpy 평면패싯 PO 대리모형만 CPU 로 돌렸다.",
+  "question_ko": "빗살 구조가 두 팔 모두에서 나타나므로(씨앗·격자가 자세의 결정론적 함수라 표본오차도 로터 주기로 반복) 빗살은 물리의 증거가 못 된다. 대신 **격자가 아예 없는 독립 모형과의 상관**으로 가른다.",
+  "proxy_ko": "E = Σ (n·û)_+ · area · exp(−j2k·|c−p_tx|). 격자·재질·가림·다중반사 없음.",
+  "n_poses": 4096,
+  "prf_hz": 19700.0,
+  "fc_hz": 3500000000.0,
+  "f_flash_hz": 126.66666666666667,
+  "n_facets": 30662
+ },
+ "P1_proxy_self": {
+  "plane_wave_far_field_ac_db": -307.02,
+  "plane_wave_ledger_db": -305.01,
+  "why_exactly_zero_ko": "나딧에서 시선 û = −ẑ 다. 로터는 z 축 둘레로 돈다 → 면 법선의 z 성분도, 면 중심의 z 좌표도 **안 변한다**. 평면파 위상은 c·û 뿐이라 합이 자세와 무관하게 상수다. ⇒ 원거리장 나딧 마이크로도플러는 **정확히 0** 이다. 수치로 −300 dB 대.",
+  "spherical_by_range_db": {
+   "10m": -38.55,
+   "20m": -51.07,
+   "40m": -63.32,
+   "80m": -75.45,
+   "160m": -87.54
+  },
+  "spherical_10m_ledger_db": -38.55,
+  "db_per_octave_of_range": -48.98,
+  "octaves": 4,
+  "power_law_exponent_vs_range": -4.068,
+  "props_only_db": -41.51,
+  "body_only_db": -312.25,
+  "reading_ko": "동체만 남기면 나딧 변조가 사라지고(−300 dB 대) 프로펠러만 남기면 전체와 같다 ⇒ 대리모형의 나딧 변조는 **전적으로 회전날개** 때문이다."
+ },
+ "P2_ours_vs_proxy": {
+  "note_ko": "⭐격자를 조이면 대리모형(=격자 없는 물리)과의 상관이 **오르는가**. 오르면 남는 것이 물리라는 뜻이다.",
+  "grid_ladder": [
+   {
+    "div": 8,
+    "spacing_mm": 10.7069,
+    "n_poses": 512,
+    "ac_over_dc_db": -37.12,
+    "proxy_ac_over_dc_db": -38.53,
+    "corr_with_proxy": 0.3983,
+    "corr_convention": "conjugated",
+    "corr_on_comb": 0.4707,
+    "corr_off_comb": 0.2972,
+    "comb_share_of_ac": 0.5281,
+    "explained_power_share": 0.1586
+   },
+   {
+    "div": 12,
+    "spacing_mm": 7.1379,
+    "n_poses": 512,
+    "ac_over_dc_db": -38.11,
+    "proxy_ac_over_dc_db": -38.53,
+    "corr_with_proxy": 0.6964,
+    "corr_convention": "conjugated",
+    "corr_on_comb": 0.797,
+    "corr_off_comb": 0.5374,
+    "comb_share_of_ac": 0.5667,
+    "explained_power_share": 0.485
+   },
+   {
+    "div": 16,
+    "spacing_mm": 5.3534,
+    "n_poses": 512,
+    "ac_over_dc_db": -40.75,
+    "proxy_ac_over_dc_db": -38.53,
+    "corr_with_proxy": 0.8247,
+    "corr_convention": "conjugated",
+    "corr_on_comb": 0.9075,
+    "corr_off_comb": 0.6736,
+    "comb_share_of_ac": 0.6121,
+    "explained_power_share": 0.68
+   }
+  ],
+  "full_sweep_lambda12_4096poses": {
+   "ac_over_dc_db": -38.31,
+   "proxy_ac_over_dc_db": -38.55,
+   "corr_with_proxy": 0.6654,
+   "corr_convention": "direct",
+   "corr_on_comb": 0.7254,
+   "corr_off_comb": 0.359,
+   "ledger_comb_corr": 0.7258,
+   "ledger_comb_share_db": -1.03
+  }
+ },
+ "P3_pathsolver_vs_proxy": {
+  "note_ko": "PathSolver 의 나딧 요동이 «격자 없는 물리» 와 상관이 있나. 빗살에 몰려 있어도 물리와 상관이 없으면 그것은 자세동기 **표본오차**다.",
+  "arms": {
+   "sionna": {
+    "spp": 11111111,
+    "ac_over_dc_db": -0.11,
+    "corr_with_proxy": 0.4658,
+    "corr_convention": "direct",
+    "corr_on_comb_with_proxy": 0.4685,
+    "explained_power_share": 0.217,
+    "corr_with_our_kernel": 0.2908,
+    "corr_conv_vs_ours": "direct",
+    "comb_share_of_ac": 0.922
+   },
+   "sionna_p250000000": {
+    "spp": 250000000,
+    "ac_over_dc_db": -11.35,
+    "corr_with_proxy": 0.143,
+    "corr_convention": "direct",
+    "corr_on_comb_with_proxy": 0.1459,
+    "explained_power_share": 0.0205,
+    "corr_with_our_kernel": 0.184,
+    "corr_conv_vs_ours": "direct",
+    "comb_share_of_ac": 0.9381
+   }
+  },
+  "white_noise_control": {
+   "n_draws": 24,
+   "corr_mean": 0.0114,
+   "corr_p95": 0.0226,
+   "meaning_ko": "같은 길이의 무작위 복소 잡음이 대리모형과 내는 상관 — 우연 수준의 눈금."
+  }
+ },
+ "P4_why_comb_is_not_evidence": {
+  "mechanism_ko": "PathSolver 는 seed=1 고정이고 우리 팔은 격자가 얼려 있다. 둘 다 표본화가 **자세의 결정론적 함수**다. 자세는 로터 회전으로 (거의) 주기적이므로 표본오차도 같은 주기를 갖고, 주파수축에서 **플래시 빗살에 정확히 얹힌다**. ⇒ 빗살 구조는 두 팔 모두에서 물리의 증거가 못 된다.",
+  "comb_power_share": {
+   "ours/el-90": 0.7901,
+   "sionna/el-90": 0.922,
+   "sionna_p250000000/el-90": 0.9381,
+   "ours/el+0": 0.9733
+  },
+  "comb_bin_fraction": 0.146,
+  "counter_example_ko": "반례가 하나 있다 — sionna el+0 최고예산(4,000 M)에서는 빗살 비중이 빈 비중과 같아 **백색**이다. 거기서는 확산반사 표본이 자세와 무관하게 새로 뽑혀 자세동기가 깨진다."
+ }
+}

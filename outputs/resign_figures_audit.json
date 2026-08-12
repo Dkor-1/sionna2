@@ -1,0 +1,738 @@
+{
+ "_meta": {
+  "script": "benchmark/resign_figures_audit.py (그림 재생성은 benchmark/redraw_resign_figures.py)",
+  "date": "2026-08-12",
+  "purpose_ko": "R28 구면파 위상 부호 정정(2026-08-11) 이전에 그려져 **도플러 축이 좌우로 뒤집힌 채** 나간 그림을 찾아, 다시 그리고, 뒤집힘이 눈에 보이는지 숫자로 잰다.",
+  "gpu_ko": "⛔GPU 를 쓰지 않았다 — 저장된 npz 만 읽어 그렸다(sbr_field 호출 0 회).",
+  "ledgers_untouched_ko": "기존 outputs/*.json · *.npz 는 하나도 안 고쳤다. 이 파일만 새로 쓴다.",
+  "correction_ref": {
+   "kernel": "src/rcs_sbr.py :1090-1097 (구면파 갈래) · 위상 부호 규약 주석 :1127-1147",
+   "gate": "outputs/verify_phase_sign.json (G1·G2·G3 = PASS)",
+   "legacy_fixer": "benchmark/fix_phase_sign_legacy.py (np.conj + 표식 phase_sign_v2)",
+   "kernel_fixed_at": "2026-08-11 08:23:31",
+   "gate_at": "2026-08-11 08:26:42"
+  },
+  "criterion_ko": "판정 기준은 «그 그림의 자료가 sbr_field(range_m=…) 구면파 갈래에서 나왔는가» 다. 평면파(range_m=None)와 Sionna PathSolver 자료는 처음부터 옳았다.",
+  "stft_ko": "flash_spec · periods=0.4500 · PRF=19700.0 Hz · 확대창 60 ms @ n0=500",
+  "bands_hz": {
+   "blade": [
+    430.05241367756025,
+    1228.7211819358865
+   ],
+   "tail": [
+    1228.7211819358865,
+    2500.0
+   ]
+  }
+ },
+ "scripts_audited": [
+  {
+   "script": "benchmark/deck_ours_by_range.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "113",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/elevation_sweep_md.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "134",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/nearfield_sphere_vs_plane.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "120",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_unit.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "264",
+   "produces_figure": true,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_nearfield.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "57",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_gridscale.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "80",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_gridladder.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "89",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_tsladder.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "91",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_nulls.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "104",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_po_elev_dcsplit.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "66",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/verify_phase_sign.py",
+   "calls_sbr_field_with_range_m": true,
+   "callsite_line": "34",
+   "produces_figure": false,
+   "verdict": "자료가 영향받음"
+  },
+  {
+   "script": "benchmark/build_deck0811_range_figs.py",
+   "calls_sbr_field_with_range_m": false,
+   "produces_figure": true,
+   "verdict": "영향 없음",
+   "why_ko": "sbr_field 를 부르지 않는다 — deck_ours_by_range.npz(구면파)를 **읽어서** 그린다 → 그림은 영향받음"
+  },
+  {
+   "script": "benchmark/report15_po_control.py",
+   "calls_sbr_field_with_range_m": false,
+   "produces_figure": false,
+   "verdict": "영향 없음",
+   "why_ko": "sbr_field 호출에 range_m 이 없다(평면파). 구면파는 microdoppler_nearfield.phase_table 인데 그 커널의 위상은 exp(−jk(r−R)) 라 처음부터 평면파와 같은 부호다 → 영향 없음"
+  },
+  {
+   "script": "benchmark/report15_sweep_mini2.py",
+   "calls_sbr_field_with_range_m": false,
+   "produces_figure": false,
+   "verdict": "영향 없음",
+   "why_ko": "sbr_field(mesh, gmat, FC, u, grid_ref=gref) — range_m 없음(평면파) → 영향 없음"
+  },
+  {
+   "script": "benchmark/report07_three_engine_maps.py",
+   "calls_sbr_field_with_range_m": false,
+   "produces_figure": false,
+   "verdict": "영향 없음",
+   "why_ko": "sbr_field 에 range_m 없음(평면파) → report07_three_engines.npz 의 sbr/po 계열은 옳다"
+  },
+  {
+   "script": "benchmark/report07_three_engine_ranges.py",
+   "calls_sbr_field_with_range_m": false,
+   "produces_figure": false,
+   "verdict": "영향 없음",
+   "why_ko": "Sionna PathSolver — 우리 커널이 아니다 → 영향 없음"
+  }
+ ],
+ "analytic_po_kernel_check": {
+  "what_ko": "microdoppler_nearfield 의 구면파↔평면파가 원거리장에서 같은 부호로 수렴하나",
+  "range_m": 5000.0,
+  "phase_diff_deg": -0.0343,
+  "abs_ratio": 1.00034,
+  "same_sign": true,
+  "verdict_ko": "옳다 — report15_po_control · experiment_md_range 등 해석 PO 계열은 이 결함과 무관"
+ },
+ "data_files": {
+  "corrected": [
+   {
+    "path": "outputs/deck_ours_by_range.npz",
+    "mtime": "2026-08-11 08:28:46",
+    "phase_sign_v2": true,
+    "keys": [
+     "R3/E",
+     "R15/E",
+     "R40/E"
+    ]
+   },
+   {
+    "path": "outputs/elevation_sweep_md.npz",
+    "mtime": "2026-08-11 08:37:12",
+    "phase_sign_v2": true,
+    "keys": [
+     "ours/el+0",
+     "ours/el-15",
+     "ours/el-30",
+     "ours/el-45",
+     "ours/el-60",
+     "ours/el-75",
+     "ours/el-90",
+     "sionna/el+0"
+    ]
+   },
+   {
+    "path": "outputs/nearfield_sphere_vs_plane.npz",
+    "mtime": "2026-08-11 08:28:46",
+    "phase_sign_v2": true,
+    "keys": [
+     "plane/E",
+     "sphere3/E",
+     "sphere8/E",
+     "sphere15/E",
+     "sphere40/E"
+    ]
+   }
+  ],
+  "elev_sweep_shards": {
+   "total": 182,
+   "marked_phase_sign_v2": 56,
+   "unmarked_ko": "표식 없는 것은 전부 sionna_* (PathSolver) 라 무관"
+  },
+  "not_affected": [
+   {
+    "path": "outputs/report07_three_engines.npz",
+    "mtime": "2026-08-10 23:34:22",
+    "phase_sign_v2": false,
+    "keys": [
+     "sbr",
+     "po",
+     "sionna"
+    ]
+   },
+   {
+    "path": "outputs/report07_three_engine_ranges.npz",
+    "mtime": "2026-08-10 20:04:28",
+    "phase_sign_v2": false,
+    "keys": [
+     "R3/E",
+     "R3/npaths",
+     "R8/E",
+     "R8/npaths",
+     "R15/E",
+     "R15/npaths"
+    ]
+   },
+   {
+    "path": "outputs/report07_range40.npz",
+    "mtime": "2026-08-10 22:58:35",
+    "phase_sign_v2": false,
+    "keys": [
+     "S1/E",
+     "S1/npaths",
+     "S2/E",
+     "S2/npaths",
+     "S3/E",
+     "S3/npaths"
+    ]
+   }
+  ]
+ },
+ "series_before_after": {
+  "note_ko": "«before» 는 디스크 자료의 np.conj(= 옛 부호), «after» 는 현재 디스크 값. ⊕/⊖ 비대칭은 그림이 실제로 그리는 STFT 맵(60 ms 확대창) 위에서 쟀다. 블레이드 대역은 430~1229 Hz, 꼬리 대역은 1229~2500 Hz.",
+  "rows": [
+   {
+    "series": "ours_R3",
+    "affected": true,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": -3.913,
+     "after": 3.913
+    },
+    "map_asym_tail_db": {
+     "before": 0.931,
+     "after": -0.931
+    },
+    "map_asym_all_db": {
+     "before": -0.036,
+     "after": 0.036
+    },
+    "band_peak_hz": {
+     "before": 126.5117,
+     "after": 126.5117
+    },
+    "band_curve_max_abs_diff": 3.7470027081099033e-16,
+    "abs_series_identical": true
+   },
+   {
+    "series": "ours_R15",
+    "affected": true,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": -0.026,
+     "after": 0.026
+    },
+    "map_asym_tail_db": {
+     "before": 4.974,
+     "after": -4.974
+    },
+    "map_asym_all_db": {
+     "before": 0.009,
+     "after": -0.009
+    },
+    "band_peak_hz": {
+     "before": 126.1122,
+     "after": 126.1122
+    },
+    "band_curve_max_abs_diff": 4.440892098500626e-16,
+    "abs_series_identical": true
+   },
+   {
+    "series": "ours_R40",
+    "affected": true,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": 0.713,
+     "after": -0.713
+    },
+    "map_asym_tail_db": {
+     "before": 5.507,
+     "after": -5.507
+    },
+    "map_asym_all_db": {
+     "before": 0.016,
+     "after": -0.016
+    },
+    "band_peak_hz": {
+     "before": 126.053,
+     "after": 126.053
+    },
+    "band_curve_max_abs_diff": 3.3306690738754696e-16,
+    "abs_series_identical": true
+   },
+   {
+    "series": "sionna_R3",
+    "affected": false,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": 7.791,
+     "after": 7.791
+    },
+    "map_asym_tail_db": {
+     "before": 1.878,
+     "after": 1.878
+    },
+    "map_asym_all_db": {
+     "before": 0.52,
+     "after": 0.52
+    },
+    "band_peak_hz": {
+     "before": 126.2611,
+     "after": 126.2611
+    },
+    "band_curve_max_abs_diff": 0.0,
+    "abs_series_identical": true
+   },
+   {
+    "series": "sionna_R15",
+    "affected": false,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": 8.732,
+     "after": 8.732
+    },
+    "map_asym_tail_db": {
+     "before": 1.997,
+     "after": 1.997
+    },
+    "map_asym_all_db": {
+     "before": 2.704,
+     "after": 2.704
+    },
+    "band_peak_hz": {
+     "before": 126.7428,
+     "after": 126.7428
+    },
+    "band_curve_max_abs_diff": 0.0,
+    "abs_series_identical": true
+   },
+   {
+    "series": "sionna_R40_S1",
+    "affected": false,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": 5.42,
+     "after": 5.42
+    },
+    "map_asym_tail_db": {
+     "before": 2.266,
+     "after": 2.266
+    },
+    "map_asym_all_db": {
+     "before": 0.293,
+     "after": 0.293
+    },
+    "band_peak_hz": {
+     "before": 253.2729,
+     "after": 253.2729
+    },
+    "band_curve_max_abs_diff": 0.0,
+    "abs_series_identical": true
+   },
+   {
+    "series": "sionna_R40_S2",
+    "affected": false,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": 3.983,
+     "after": 3.983
+    },
+    "map_asym_tail_db": {
+     "before": 0.708,
+     "after": 0.708
+    },
+    "map_asym_all_db": {
+     "before": 0.113,
+     "after": 0.113
+    },
+    "band_peak_hz": {
+     "before": 126.5142,
+     "after": 126.5142
+    },
+    "band_curve_max_abs_diff": 0.0,
+    "abs_series_identical": true
+   },
+   {
+    "series": "sionna_R40_S3",
+    "affected": false,
+    "n_poses": 4096,
+    "map_asym_blade_db": {
+     "before": 4.772,
+     "after": 4.772
+    },
+    "map_asym_tail_db": {
+     "before": 4.748,
+     "after": 4.748
+    },
+    "map_asym_all_db": {
+     "before": 0.088,
+     "after": 0.088
+    },
+    "band_peak_hz": {
+     "before": 128.1342,
+     "after": 128.1342
+    },
+    "band_curve_max_abs_diff": 0.0,
+    "abs_series_identical": true
+   }
+  ]
+ },
+ "within_ours_map_correlation": {
+  "note_ko": "덱 슬라이드 6 의 주장 «우리 커널은 거리마다 거의 같은 맵» 이 쓰는 양. 두 맵이 **같이** 뒤집히므로 상관은 원리적으로 정확히 불변이다 — 숫자로도 그렇다. (측정 규약이 달라 덱 문서의 0.983/0.999/0.983 과 값 자체는 다르다.)",
+  "rows": {
+   "ours_3_vs_15": {
+    "before": 0.99991,
+    "after": 0.99991
+   },
+   "ours_15_vs_40": {
+    "before": 1.0,
+    "after": 1.0
+   },
+   "ours_3_vs_40": {
+    "before": 0.99988,
+    "after": 0.99988
+   }
+  }
+ },
+ "cross_engine_sign_agreement": {
+  "note_ko": "커널 주석이 «정정 전에는 우리 팔이 주로 ⊖, Sionna 팔이 ⊕ 로 기울었다» 고 적었다. 앙각 스윕 7 자리에서 블레이드 대역(430~1229 Hz) ⊕/⊖ 비대칭의 **부호**가 Sionna 와 맞는 자리 수를 세어 그 주장을 검사했다.",
+  "n_agree_before": 2,
+  "n_agree_after": 5,
+  "n_total": 7,
+  "caveat_ko": "정정을 **정당화하는 것은 닫힌 형태의 게이트**(verify_phase_sign, 접근=양의 도플러, 평면파와 ρ=+0.99999974)이지 이 일치 수가 아니다. 실제로 40 m 덱 칸은 반대로 움직인다 — 아래 deck_0811 참조. 섞어 읽지 말 것.",
+  "rows": [
+   {
+    "el_deg": 0.0,
+    "ours_blade_asym_db": {
+     "before": 5.56,
+     "after": -5.56
+    },
+    "sionna_blade_asym_db": 3.37,
+    "sign_agrees_before": true,
+    "sign_agrees_after": false
+   },
+   {
+    "el_deg": -15.0,
+    "ours_blade_asym_db": {
+     "before": -6.96,
+     "after": 6.96
+    },
+    "sionna_blade_asym_db": 1.49,
+    "sign_agrees_before": false,
+    "sign_agrees_after": true
+   },
+   {
+    "el_deg": -30.0,
+    "ours_blade_asym_db": {
+     "before": -3.69,
+     "after": 3.69
+    },
+    "sionna_blade_asym_db": 12.08,
+    "sign_agrees_before": false,
+    "sign_agrees_after": true
+   },
+   {
+    "el_deg": -45.0,
+    "ours_blade_asym_db": {
+     "before": -3.92,
+     "after": 3.92
+    },
+    "sionna_blade_asym_db": 4.09,
+    "sign_agrees_before": false,
+    "sign_agrees_after": true
+   },
+   {
+    "el_deg": -60.0,
+    "ours_blade_asym_db": {
+     "before": 2.21,
+     "after": -2.21
+    },
+    "sionna_blade_asym_db": -1.03,
+    "sign_agrees_before": false,
+    "sign_agrees_after": true
+   },
+   {
+    "el_deg": -75.0,
+    "ours_blade_asym_db": {
+     "before": 1.27,
+     "after": -1.27
+    },
+    "sionna_blade_asym_db": 2.79,
+    "sign_agrees_before": true,
+    "sign_agrees_after": false
+   },
+   {
+    "el_deg": -90.0,
+    "ours_blade_asym_db": {
+     "before": -0.49,
+     "after": 0.49
+    },
+    "sionna_blade_asym_db": 6.49,
+    "sign_agrees_before": false,
+    "sign_agrees_after": true
+   }
+  ]
+ },
+ "figures": [
+  {
+   "figure": "outputs/figures/deck0811_maps_ranges.{png,pdf}",
+   "generator": "benchmark/build_deck0811_range_figs.py :build_maps",
+   "affected_panels_ko": "오른쪽 열 3 칸(Ours, 구면파). 왼쪽 열(Sionna)·컬러바는 무관.",
+   "was_stale": true,
+   "redrawn": true,
+   "redrawn_at": "2026-08-12 01:52:36",
+   "pixel_diff": {
+    "whole": {
+     "max_abs_diff": 255.0,
+     "pct_pixels_changed": 18.23
+    },
+    "left_col_sionna": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    },
+    "right_col_ours": {
+     "max_abs_diff": 255.0,
+     "pct_pixels_changed": 39.34
+    },
+    "colorbar": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    }
+   },
+   "visible_ko": "⭐보인다 — 플래시 덩어리의 꼬리가 DC 선을 기준으로 위/아래가 통째로 바뀐다."
+  },
+  {
+   "figure": "outputs/figures/deck0811_band_ranges.{png,pdf}",
+   "generator": "benchmark/build_deck0811_range_figs.py :build_band",
+   "affected_panels_ko": "없음 — 대역 선택이 |f| 대칭이라 켤레에 불변.",
+   "was_stale": false,
+   "redrawn": true,
+   "pixel_diff": {
+    "whole": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    }
+   },
+   "visible_ko": "안 보인다 — 정정 전 그림과 **픽셀 단위로 동일**하다."
+  },
+  {
+   "figure": "outputs/figures/deck0811_seed40.{png,pdf}",
+   "generator": "benchmark/build_deck0811_range_figs.py :build_seed40",
+   "affected_panels_ko": "없음 — Sionna PathSolver 자료만 쓴다.",
+   "was_stale": false,
+   "redrawn": true,
+   "pixel_diff": {
+    "whole": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    }
+   },
+   "visible_ko": "안 보인다 — 픽셀 단위로 동일."
+  },
+  {
+   "figure": "outputs/figures/raybudget_40m_vs_ours.png",
+   "generator": "benchmark/build_raybudget_40m_fig.py :main (나란히판)",
+   "affected_panels_ko": "세 번째 칸(Ours, R40 구면파). 앞 두 칸(Sionna 40 억 발)·컬러바는 무관.",
+   "was_stale": true,
+   "redrawn": true,
+   "redrawn_at": "2026-08-12 01:53:04",
+   "pixel_diff": {
+    "whole": {
+     "max_abs_diff": 255.0,
+     "pct_pixels_changed": 16.14
+    },
+    "panel1_sionna_s1": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    },
+    "panel2_sionna_s2": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    },
+    "panel3_ours": {
+     "max_abs_diff": 255.0,
+     "pct_pixels_changed": 51.07
+    },
+    "colorbar": {
+     "max_abs_diff": 0.0,
+     "pct_pixels_changed": 0.0
+    }
+   },
+   "note_ko": "원장 outputs/report07_range40_raybudget.json 을 덮어쓰지 않으려고 스크립트의 main() 대신 merge()·_map() 만 빌려 이 칸만 다시 그렸다. 앞 두 칸이 픽셀 동일한 것이 그 증거다.",
+   "visible_ko": "⭐보인다 — 우리 칸의 꼬리 방향이 통째로 뒤집힌다."
+  },
+  {
+   "figure": "outputs/figures/raybudget_40m.{png,pdf} · raybudget_40m_deck.png",
+   "generator": "benchmark/build_raybudget_40m_fig.py",
+   "affected_panels_ko": "없음 — Sionna 샤드만 쓴다.",
+   "was_stale": false,
+   "redrawn": false,
+   "visible_ko": "해당 없음"
+  },
+  {
+   "figure": "outputs/verify_po_elev_unit.png",
+   "generator": "benchmark/verify_po_elev_unit.py",
+   "affected_panels_ko": "우리 팔 전부 — sbr_field(range_m=10 m) 를 **직접 계산**한다.",
+   "was_stale": true,
+   "redrawn": false,
+   "needs_gpu": true,
+   "figure_mtime": "2026-08-11 07:18:57",
+   "note_ko": "그림 07:18 · 커널 정정 08:23 → 이 그림은 옛 부호 커널로 계산됐다. 저장된 복소 시계열이 없어 다시 그리려면 GPU 재계산이 필요하다(⛔이번 라운드에서는 안 돌렸다). ⚠같은 이유로 outputs/verify_po_elev_unit.json 의 meta.phase_convention_ko «커널은 exp(+j2k·range) 를 쓴다 → 표준과 부호가 반대다» 는 이제 **낡은 서술**이다. 원장이므로 손대지 않았다 — 다음 재계산 때 같이 고칠 것.",
+   "verdict_ko": "⚠미정정 · GPU 필요"
+  },
+  {
+   "figure": "outputs/verify_nadir_flash.png · outputs/verify_raybudget_meaning.png",
+   "generator": "benchmark/verify_nadir_flash.py · benchmark/verify_raybudget_meaning.py",
+   "affected_panels_ko": "자료는 구면파 계열을 읽지만 그림 생성 시각이 정정 **이후**다.",
+   "was_stale": false,
+   "redrawn": false,
+   "figure_mtime": [
+    "2026-08-11 09:19:11",
+    "2026-08-11 09:15:05"
+   ],
+   "note_ko": "정정(08:28·08:37) 뒤인 09:19·09:15 에 그려졌다 → 이미 옳다.",
+   "verdict_ko": "이미 정정본"
+  }
+ ],
+ "deck_0811": {
+  "deck_file": "/home/yunjung/workspace/team_meeting/teammeeting_0811_v21.pptx",
+  "touched_ko": "⛔덱 파일은 열어서 **읽기만** 했다. 한 바이트도 안 고쳤다.",
+  "slide_map_ko": "덱 안에 박힌 이미지의 픽셀 폭으로 디스크 그림과 맞춰 확정했다.",
+  "slides": [
+   {
+    "slide": 4,
+    "tag": "THE TWO ENGINES",
+    "figure": "deck0811_concept_v3.png",
+    "affected": false,
+    "why_ko": "개념도 — 자료 없음"
+   },
+   {
+    "slide": 5,
+    "tag": "RESULT ONE",
+    "figure": "deck0811_r1(_frozen).png (자름) + report07_f0.png",
+    "affected": false,
+    "why_ko": "report07_three_engines.npz 의 sbr/po 계열은 **평면파**(report07_three_engine_maps.py 가 range_m 없이 부른다) → 처음부터 옳았다"
+   },
+   {
+    "slide": 6,
+    "tag": "RANGE",
+    "figure": "deck0811_maps_ranges.png (자름)",
+    "affected": true,
+    "affected_part_ko": "오른쪽 열 3 칸(Ours)의 도플러 축이 좌우 반전",
+    "claim_ko": "«우리 커널은 거리마다 거의 같은 맵을 준다»",
+    "claim_survives": true,
+    "why_ko": "세 맵이 **같이** 뒤집히므로 서로의 닮음은 정확히 불변(상관 before=after)"
+   },
+   {
+    "slide": 7,
+    "tag": "BAND ENERGY",
+    "figure": "deck0811_band_ranges.png (자름)",
+    "affected": false,
+    "why_ko": "대역이 |f| 대칭이라 켤레에 불변 — 정정 전 그림과 픽셀 단위 동일",
+    "claim_ko": "«우리 팔은 고조파가 단조 감소, PathSolver 는 2 배선이 1 배선만큼 세다»",
+    "claim_survives": true
+   },
+   {
+    "slide": 8,
+    "tag": "TWICE",
+    "figure": "deck0811_seed40.png (자름)",
+    "affected": false,
+    "why_ko": "Sionna 자료만"
+   },
+   {
+    "slide": 9,
+    "tag": "RAY BUDGET",
+    "figure": "raybudget_40m_deck.png",
+    "affected": false,
+    "why_ko": "Sionna 샤드만"
+   },
+   {
+    "slide": 10,
+    "tag": "SIDE BY SIDE",
+    "figure": "raybudget_40m_vs_ours.png",
+    "affected": true,
+    "affected_part_ko": "세 번째 칸(Ours)의 도플러 축이 좌우 반전",
+    "claim_ko": "«같은 거리·같은 기체. 우리 것은 똑같이 재현되고 PathSolver 는 아니다»",
+    "claim_survives": true,
+    "why_ko": "재현성 주장은 부호와 무관(크기·시드 반복성)"
+   }
+  ],
+  "quoted_numbers_check": {
+   "ours_3m_beat_hz": {
+    "before": 126.51,
+    "after": 126.51,
+    "changed": false
+   },
+   "ours_15m_beat_hz": {
+    "before": 126.11,
+    "after": 126.11,
+    "changed": false
+   },
+   "ours_40m_beat_hz": {
+    "before": 126.05,
+    "after": 126.05,
+    "changed": false
+   },
+   "ledger_deck0811_range_figs_json": {
+    "3/Sionna PathSolver": 126.2611,
+    "3/Ours (SBR + PO)": 126.5117,
+    "15/Sionna PathSolver": 126.7428,
+    "15/Ours (SBR + PO)": 126.1122,
+    "40/Sionna PathSolver": 253.2729,
+    "40/Ours (SBR + PO)": 126.053
+   },
+   "ledger_reproduced_after_fix": true
+  },
+  "verdict_ko": "⭐**덱의 주장은 그대로 선다.** 덱이 인용한 숫자(밴드 박자 126.51 / 126.11 / 126.05 Hz 와 Sionna 126.26 / 126.74 / 253.27 Hz)는 켤레에 불변이라 정정 전후가 1e-13 Hz 이내로 같다. 바뀐 것은 **슬라이드 6 과 10 의 그림에서 우리 칸의 도플러 축 방향**뿐이고, 두 슬라이드의 결론 문장은 부호를 쓰지 않는다.",
+  "honest_caveat_ko": "⚠단 «눈에 안 보인다» 는 거짓이다 — 뒤집힘은 명확히 보인다. 정정 전 그림을 본 사람은 우리 커널의 접근/후퇴가 반대로 그려진 것을 본 것이다. 40 m 나란히판에서는 정정 **후에** 우리 칸의 꼬리가 Sionna 와 반대 방향이 된다(우리 −5.5 dB ↔ Sionna +2.3 dB, 꼬리 대역). 이건 덱의 문장이 주장하지 않는 것이지만, 그림을 보고 «두 엔진이 반대로 간다» 는 질문이 나올 수 있다."
+ },
+ "open_items_ko": [
+  "verify_po_elev_unit.png · verify_po_elev_unit.json 은 옛 부호 커널 산출물이다 — GPU 재계산 필요.",
+  "outputs/refute_gridmetric_vs_kinematics.png(08-11 09:18)은 생성 스크립트를 저장소에서 못 찾았다. 시각만 보면 정정 이후라 입력은 정정본이지만, 확인하지 못했다 — 모른다.",
+  "elev_sweep_shards 에 지금도 새 샤드가 쌓이고 있다(sionna_p4000000000_*). 새 파일에는 phase_sign_v2 표식이 없다 — 정정된 커널로 계산되어 **이미 옳기** 때문이다. ⚠fix_phase_sign_legacy.py 를 다시 돌리면 ours_* 는 표식 덕에 안전하지만, 정정 뒤 새로 만든 구면파 파일이 TARGETS 글롭에 걸리면 **두 번 뒤집힌다**.",
+  "꼬리 대역(>f_tip) 에서 정정 후 우리 팔이 Sionna 와 부호가 어긋나는 자리가 있다. 정정 자체는 닫힌 게이트로 확정됐으므로 이는 커널 간 물리 차이거나 다른 결함이다 — 미해결."
+ ]
+}

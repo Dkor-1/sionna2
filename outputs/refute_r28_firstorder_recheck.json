@@ -1,0 +1,122 @@
+{
+ "_meta": {
+  "generator": "scratchpad/run_fo (refuter re-run, CPU only, no GPU/mitsuba/sionna)",
+  "target": "outputs/refute_nadir_mechanism_final.json R4a…first_order_test",
+  "target_ko": "주장 «위상을 −kρ²/R 까지만 편 계열의 AC 가 −319 dB» 를 직접 재계산한다",
+  "target_mesh": "DRONES['matrice4e']",
+  "elevation": "nadir (el −90°)",
+  "fc_hz": 3500000000.0,
+  "range_m": 10.0,
+  "poses": 512
+ },
+ "findings_ko": [
+  "«위상을 1차까지 절단한 계열»의 AC 는 −38.54 dB 이고 정확 구면파와 상관 1.0000 이다 — −319 dB 가 아니다.",
+  "−319/−320 dB 인 것은 지수함수 테일러 전개의 **1차항** w·pl·(−jKρ²/R) 이다. 절단된 위상 계열이 아니다.",
+  "그 1차항의 소멸은 2엽 전용이 아니다 — 날개 3·4·5 장도 −320 dB 대다(1장만 −16.95 dB).",
+  "2엽이 필요한 곳은 **2차항이 살아남는 단계**다 — 3·4·5 장은 2차항도 −333 dB 로 죽는다.",
+  "2차항만으로 만든 계열은 전 거리에서 정확 계열과 상관 1.0000, 지수 정확히 4.00 이다(−39.47→−119.47 dB, 10→1000 m)."
+ ],
+ "A_expansion_terms": {
+  "plane_ac_db": -310.72,
+  "exact10_ac_db": -38.56,
+  "trunc_phase_only_ac_db": -38.54,
+  "corr_trunc_vs_exact": 1.0,
+  "sum012_ac_db": -38.48,
+  "corr_sum012_vs_exact": 0.999983,
+  "T1_ac_db": -320.28,
+  "corr_T1_vs_full": 0.0302,
+  "T2_ac_db": -39.47,
+  "corr_T2_vs_full": 1.0,
+  "T3_ac_db": -46.68,
+  "corr_T3_vs_full": 0.9999,
+  "T2_range_sweep_ac_db": {
+   "10m": -39.47,
+   "20m": -51.52,
+   "50m": -67.43,
+   "100m": -79.47,
+   "300m": -98.56,
+   "1000m": -119.47
+  },
+  "T1_range_sweep_ac_db": {
+   "10m": -320.28,
+   "20m": -326.3,
+   "50m": -338.11,
+   "100m": -344.13,
+   "300m": -349.53,
+   "1000m": -360.96
+  },
+  "exact_range_sweep_ac_db": {
+   "10m": -38.56,
+   "20m": -51.11,
+   "50m": -67.28,
+   "100m": -79.4,
+   "300m": -98.54,
+   "1000m": -119.47
+  },
+  "corr_T2_vs_exact_per_range": {
+   "10m": 1.0,
+   "20m": 1.0,
+   "50m": 1.0,
+   "100m": 1.0,
+   "300m": 1.0,
+   "1000m": 1.0
+  },
+  "_stdout_head": [
+   "poses 512 faces 30662 sec 10.7"
+  ]
+ },
+ "B_first_order_vs_blade_count": {
+  "blades=1": {
+   "first_order_ac_db": -16.95,
+   "first_order_ac_over_its_own_mean_db": -8.86
+  },
+  "blades=2": {
+   "first_order_ac_db": -320.77,
+   "first_order_ac_over_its_own_mean_db": -316.1
+  },
+  "blades=3": {
+   "first_order_ac_db": -322.85,
+   "first_order_ac_over_its_own_mean_db": -313.18
+  },
+  "blades=4": {
+   "first_order_ac_db": -320.55,
+   "first_order_ac_over_its_own_mean_db": -315.72
+  },
+  "blades=5": {
+   "first_order_ac_db": -324.79,
+   "first_order_ac_over_its_own_mean_db": -309.48
+  },
+  "_stdout_head": [
+   "rotor faces 3188",
+   "hub offset |h| = 0.2202 m",
+   "blade A faces 1594  blade B faces 1594"
+  ]
+ },
+ "C_second_order_vs_blade_count": {
+  "blades=1": {
+   "first_order_ac_db": -24.51,
+   "first_order_ac_over_its_own_mean_db": -3.76
+  },
+  "blades=2": {
+   "first_order_ac_db": -40.52,
+   "first_order_ac_over_its_own_mean_db": -19.77
+  },
+  "blades=3": {
+   "first_order_ac_db": -334.04,
+   "first_order_ac_over_its_own_mean_db": -314.54
+  },
+  "blades=4": {
+   "first_order_ac_db": -333.43,
+   "first_order_ac_over_its_own_mean_db": -310.11
+  },
+  "blades=5": {
+   "first_order_ac_db": -335.22,
+   "first_order_ac_over_its_own_mean_db": -317.91
+  },
+  "_stdout_head": [
+   "rotor faces 3188",
+   "hub offset |h| = 0.2202 m",
+   "blade A faces 1594  blade B faces 1594"
+  ]
+ }
+}

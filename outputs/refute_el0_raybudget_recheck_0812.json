@@ -1,0 +1,102 @@
+{
+ "_meta": {
+  "generator": "adversarial refuter session 2026-08-12 (CPU only, read-only, no GPU, no git)",
+  "claim_tested_ko": "el 0 의 σ 과대는 광선을 아무리 늘려도 안 고쳐진다 (면적이 Sionna 정반사 진폭식에 안 들어간다)",
+  "verdict": "NOT REFUTED — 완결 데이터로 재측정해 확인, 다만 인용 숫자 2 개가 미완 샤드 기반(정정) + 범위 한정 필요",
+  "what_is_new_ko": "(1) 4,000 M el+0 이 08-12 02:06 에 8/8 샤드로 완결돼 6 샤드 잠정값을 대체 (2) 1,000 M el+0 도 8/8 완결돼 사다리에 네 번째 점이 생김 (3) 레벨뿐 아니라 DC 받침대 |mean E| 자체를 직접 재서 불변임을 확인",
+  "level_def": "20*log10(mean(|E|)) — benchmark/elevation_sweep_md.py:270 과 동일",
+  "geometry": "matrice4e · 10 m · el +0° · az 0 · fc 3.5 GHz · 4,096 로터 자세 · max_depth=1 · 예산당 시드 1 판",
+  "no_overwrite_ko": "기존 원장 하나도 안 건드렸다. 새 파일이다."
+ },
+ "ladder_el0_complete": [
+  {
+   "engine": "sionna",
+   "rays_per_src": 11111111,
+   "n_shards": 8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 9.0,
+   "level_db_cohmean": -59.6543,
+   "level_db_rms": -59.6543,
+   "dc_abs": 0.0010406034035841372,
+   "resid_rms": 6.910349857350354e-08,
+   "dc_over_resid_db": 83.56,
+   "beat_hz": 376.73,
+   "band_power_db": -73.68
+  },
+  {
+   "engine": "sionna_p250000000",
+   "rays_per_src": 250000000,
+   "n_shards": 8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 127.0,
+   "level_db_cohmean": -59.657,
+   "level_db_rms": -59.6565,
+   "dc_abs": 0.0010402775654830762,
+   "resid_rms": 1.0831397425789549e-05,
+   "dc_over_resid_db": 39.65,
+   "beat_hz": 50.27,
+   "band_power_db": -73.68
+  },
+  {
+   "engine": "sionna_p1000000000",
+   "rays_per_src": 1000000000,
+   "n_shards": 8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 471.0,
+   "level_db_cohmean": -59.6677,
+   "level_db_rms": -59.666,
+   "dc_abs": 0.0010389939226668643,
+   "resid_rms": 2.094780380806805e-05,
+   "dc_over_resid_db": 33.91,
+   "beat_hz": 122.12,
+   "band_power_db": -73.65
+  },
+  {
+   "engine": "sionna_p4000000000",
+   "rays_per_src": 4000000000,
+   "n_shards": 8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 2008.5,
+   "level_db_cohmean": -59.6784,
+   "level_db_rms": -59.6748,
+   "dc_abs": 0.001037716127225612,
+   "resid_rms": 3.005357642208353e-05,
+   "dc_over_resid_db": 30.76,
+   "beat_hz": 58.15,
+   "band_power_db": -73.61
+  }
+ ],
+ "ours_reference": {
+  "engine": "ours",
+  "n_poses": 4096,
+  "level_db_cohmean": -54.3703,
+  "beat_hz": 126.4,
+  "band_power_db": -59.2,
+  "units_ko": "⚠ours 는 E[m^2], sionna 는 h[무차원] — 팔 사이 절대 dB 비교 금지"
+ },
+ "deltas": {
+  "rays_ratio_11p1M_to_4000M": 360.0,
+  "level_db_delta_cohmean": -0.0241,
+  "level_db_delta_rms": -0.0205,
+  "dc_pedestal_delta_db": -0.0241,
+  "npaths_ratio": 223.2,
+  "claim_cited_4000M_db": -59.681,
+  "claim_cited_delta_db": -0.027,
+  "correction_ko": "인용값 −59.681 / −0.027 dB 는 6/8 샤드 잠정치다. 8/8 완결값은 −59.6784 / −0.0241 dB — 방향·결론 동일."
+ },
+ "why_it_matters_ko": [
+  "DC 받침대 |mean E| 가 0.001040603 → 0.001037716 (−0.0241 dB). σ_eff 2,927 m² 를 만드는 바로 그 항이 광선 ×360 에 안 움직인다.",
+  "코히런트평균·RMS·최대 세 잣대 모두 0.024 dB 안이다 ⇒ 추정기 선택 탓이 아니다.",
+  "대역전력이 −73.68 → −73.61 dB 로 고정 ⇒ 대역 에너지는 여전히 받침대가 정한다(verify_elevation_lensB_el0.json B 와 일치).",
+  "⚠단, DC/잔차는 83.56 → 39.65 → 33.91 → 30.76 dB 로 크게 무너진다. 광선은 잔차(로터)를 실제로 사 온다. 그런데도 박자는 376.73 → 50.27 → 122.12 → 58.15 Hz 로 헤매고 ours 의 126.40 으로 안 모인다 ⇒ 받침대를 못 없애면 관측량도 안 돌아온다."
+ ],
+ "scope_limits_ko": [
+  "한 기체(matrice4e)·한 거리(10 m)·한 방위(az 0)·한 주파수(3.5 GHz)에서만 쟀다. 다른 기체의 el 0 에서 같은 받침대가 생기는지는 이 원장이 안 잰다(기전이 카메라 렌즈판 106 면 정렬이라 메쉬 의존).",
+  "«아무리 늘려도» 는 4,000 M 까지만 쟀다 — outputs/probe_ray_ceiling.json 이 4,294,967,295 에서 실패라 이 카드에서 그 위는 확인 자체가 불가능하다.",
+  "면적은 «진폭식» 에는 안 들어가지만 «경로 존재» 에는 들어간다(수선의 발이 면 안에 있어야 한다 — lensB C3/C4)."
+ ]
+}

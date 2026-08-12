@@ -121,7 +121,8 @@ def run(a) -> None:
             keep = np.asarray(fp.g) == "prop"
             f_keep, g_keep = fp.f[keep], fp.g[keep]
         for el in els:
-            f = f"{SHD}/{a.engine}_el{el:+.0f}_{a.shard:02d}.npz"
+            tagd = "_ptd" if a.ptd else ""
+            f = f"{SHD}/{a.engine}{tagd}_el{el:+.0f}_{a.shard:02d}.npz"
             if os.path.exists(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
             u = los(az, el)
@@ -130,8 +131,8 @@ def run(a) -> None:
                 mv = fp.pose(ph[int(i)])
                 if prop_only:
                     mv.f, mv.g = f_keep, g_keep          # 정점은 그대로 — bbox 보존
-                E[j] = sbr_field(mv, gm, FC, u,
-                                 spacing=d, grid_ref=gref, range_m=RANGE_M)
+                E[j] = sbr_field(mv, gm, FC, u, spacing=d, grid_ref=gref,
+                                 range_m=RANGE_M, ptd=bool(a.ptd))
                 if j and j % 128 == 0:
                     e = time.time() - t0
                     print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
@@ -149,7 +150,7 @@ def run(a) -> None:
     spp = int(a.spp) if a.spp else rule_spp(RANGE_M)
     cols = drone_colors(spec)
     for el in els:
-        tagp = "" if not a.spp else f"_p{a.spp}"
+        tagp = ("" if not a.spp else f"_p{a.spp}") + ("_phys" if a.physics else "")
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
         if os.path.exists(f) and not a.overwrite:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
@@ -172,10 +173,14 @@ def run(a) -> None:
                      for g, p in paths_obj.items()]
             sc = RP.build_scene(parts, fc=FC)
             RP.place(sc, az=az, el=el, rng=RANGE_M, baseline=0.0)
-            p = RP.rt.PathSolver()(sc, max_depth=1, los=True,
-                                   specular_reflection=True, diffuse_reflection=True,
-                                   refraction=False, samples_per_src=spp,
-                                   max_num_paths_per_src=RP.MAX_PATHS, seed=1)
+            p = RP.rt.PathSolver()(
+                sc, los=True, specular_reflection=True, diffuse_reflection=True,
+                # ⭐--physics 면 굴절·회절·모서리회절·다중반사를 전부 켠다
+                max_depth=(3 if a.physics else 1),
+                refraction=bool(a.physics),
+                diffraction=bool(a.physics),
+                edge_diffraction=bool(a.physics),
+                samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS, seed=1)
             try:
                 aa, tau, _, O = RP.unpack(p)
             except ValueError:
@@ -315,6 +320,14 @@ def analyse() -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--physics", action="store_true",
+                    help="⭐PathSolver 의 물리를 **전부 켠다** — 굴절·회절·모서리회절·다중반사. "
+                         "기본 실행은 refraction=False·diffraction=False·max_depth=1 이라 "
+                         "«PathSolver 가 굴절/회절을 더 잘 담는다» 를 시험한 적이 없었다. "
+                         "같은 광선 예산에서 물리만 켜고 끄는 단일축 대조가 된다.")
+    ap.add_argument("--ptd", action="store_true",
+                    help="⭐우리 팔의 **모서리 회절(PTD 프린지)** 을 켠다. 기본은 ptd=False 라 "
+                         "두 팔 다 모서리 회절이 없었다.")
     ap.add_argument("--engine", default="ours",
                     choices=("ours", "ours_free", "sionna"),
                     help="ours=동체 포함(가림 있음) · ours_free=⭐동체 **면만** 빼서 "

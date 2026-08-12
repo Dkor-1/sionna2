@@ -1,0 +1,663 @@
+{
+  "_meta": {
+    "title": "수확 라운드 — AUDIT_PO_TRUST 와 verify_raybudget_meaning 의 주장을 반증 결과와 대조해 살아남음/죽음/좁힘으로 가른 원장",
+    "generated": "2026-08-12",
+    "author_role": "수확 에이전트 (읽기 전용)",
+    "gpu_used": false,
+    "recomputation": "전자기 재계산 0 건. 새로 한 것은 (1) 기존 json 키 대조 (2) 'harmonic/조화' 문자열 전수 검색 (3) 파일 mtime 확인 뿐이다.",
+    "wrote_only": [
+      "outputs/harvest_survived_claims.json",
+      "docs/HARVEST_AUDIT_AND_RAYBUDGET.md"
+    ],
+    "read_only": [
+      "docs/AUDIT_PO_TRUST.md",
+      "outputs/audit_po_trust.json",
+      "outputs/verify_raybudget_meaning.json",
+      "outputs/refute_ac_axis_spectral_concentration.json",
+      "outputs/refute_axis_choice_scope.json",
+      "outputs/refute_band_beat_leakage.json",
+      "outputs/refute_coinflip_counterexamples.json",
+      "outputs/refute_coinflip_numbers_audit.json",
+      "outputs/refute_coinflip_yardstick.json",
+      "outputs/refute_comb_ruler.json",
+      "outputs/refute_cost_crossover.json",
+      "outputs/refute_cost_crossover_lens3.json",
+      "outputs/refute_el90_fixedband_leakage.json",
+      "outputs/refute_gridmetric_vs_kinematics.json",
+      "outputs/refute_nadir_fixed_band_leakage.json",
+      "outputs/refute_npaths_quiet_178M.json",
+      "outputs/refute_peaks_per_rev_flatness.json",
+      "outputs/refute_peaks_per_rev_ruler.json",
+      "outputs/refute_ppr_flat_crossgeometry.json",
+      "outputs/refute_raybudget_level_convergence.json",
+      "outputs/das_fleet_validation.json",
+      "outputs/verify_po_elev_unit.json",
+      "outputs/probe_ray_ceiling.json",
+      "docs/RESUME.md"
+    ],
+    "rule_ko": "«살아남음» 은 어떤 반증자도 못 깨뜨린 것. «죽음» 은 반례 또는 검정력 결여로 무너진 것. «좁힘» 은 숫자는 맞는데 서술 범위가 원장보다 넓은 것 — 참이 되는 문장을 다시 써 뒀다.",
+    "counts": {
+      "survived": 23,
+      "dead": 9,
+      "narrowed": 15
+    }
+  },
+
+  "survived": [
+    {
+      "id": "RB1",
+      "source": "verify_raybudget_meaning.json :: verdicts.headline_ko",
+      "claim_ko": "예산을 올려 산 것은 «물리» 가 아니라 «표본» 이다 — 자세당 표적을 맞히는 경로가 0 개에서 168 개가 됐다",
+      "ledger_keys": [
+        "path_yield.rows[*].npaths_mean = 0.0 (1 M) · 1.7 (4 M) · 0.3 (16 M) · 2.7 (64 M) · 7.1 (178 M) · 24.7 (712 M) · 115.7 (2,848 M) · 167.6 (4,000 M)"
+      ],
+      "scope_ko": "matrice4e · 40 m · el −15° · az 0° · 자세 1,024",
+      "status_ko": "살아남음 — 어떤 반증자도 이 수를 건드리지 않았다"
+    },
+    {
+      "id": "RB3",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_40억발이_더_나은가.improves_ko[2]",
+      "claim_ko": "대역밖(|f_D| > f_tip) 몫이 178 M 2.52 % 에서 4,000 M 0.13 % 로 약 20 배 줄었다",
+      "ledger_keys": [
+        "ladder_40m.rungs[spp_m=178].oob_frac_pct.mean = 2.5175",
+        "ladder_40m.rungs[spp_m=4000].oob_frac_pct.mean = 0.1275"
+      ],
+      "attached_caveat_ko": "원장 스스로 붙인 단서를 떼면 과장이 된다 — 같은 판의 «대역안» 몫도 0.19 % 로 우리 커널 0.66 % 의 3.5 분의 1 이다. 잡음이 줄면서 신호도 얇아졌다.",
+      "status_ko": "살아남음 (측정값). 단서 동반 필수"
+    },
+    {
+      "id": "RB6b",
+      "source": "verify_raybudget_meaning.json :: path_yield.loglog_slope_collection_regime_64M_to_4000M",
+      "claim_ko": "경로 수가 광선에 대해 아직 선형이다 — log-log 기울기 0.998(시드 평균) · 1.034(중앙값). 포화의 조짐이 하나도 없다",
+      "ledger_keys": [
+        "path_yield.loglog_slope_collection_regime_64M_to_4000M.from_mean = 0.998",
+        "path_yield.loglog_slope_collection_regime_64M_to_4000M.from_median = 1.034"
+      ],
+      "independent_support_ko": "다른 기하에서도 같다 — refute_raybudget_level_convergence.json :: D_counterexample_el0_10m.path_slope_11p1M_to_250M = 0.8502 · path_slope_250M_to_4000M = 0.9958 (10 m · el 0)",
+      "status_ko": "살아남음 — «4,000 M 을 수렴이라 부르지 마라» 를 떠받치는 **유일하게 성한 다리**"
+    },
+    {
+      "id": "RB6",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_수렴하는가.answer",
+      "claim_ko": "4,000 M 은 수렴점이 아니다",
+      "ledger_keys": [
+        "path_yield.loglog_slope_collection_regime_64M_to_4000M.from_mean = 0.998",
+        "probe_ray_ceiling.json :: verdict.max_ok_spp = 4,000,000,000 · first_fail_spp = 4,294,967,295 (RuntimeError: [Sampler] wavefront_size should be specified)"
+      ],
+      "why_it_still_stands_ko": "결론은 살아남되 근거 3 개 중 2 개가 죽었다. 남은 근거는 (a) 경로 수 선형 (b) 이 카드에서 4,000 M 위 계단을 아예 못 돌아 «수렴했다» 를 확인할 방법 자체가 없다는 것이다.",
+      "refuter": "refute_raybudget_level_convergence.json :: F_what_survives.conclusion_ko",
+      "status_ko": "살아남음 (근거 교체됨)"
+    },
+    {
+      "id": "RB15",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_el0",
+      "claim_ko": "el 0 의 σ 과대는 광선으로 절대 못 고친다 — 카메라 렌즈판 정반사 3 벌이고, 면적이 Sionna 정반사 진폭식에 안 들어간다",
+      "ledger_keys": [
+        "verify_elevation_lensB_el0.json (진폭 상대오차 3.4e-5 · 위상오차 0.00048 rad 로 3·λ/(4πL) 과 일치)",
+        "rt_no_rcs_verify.json :: A_plate — 판 한 변 0.2 → 4 m (면적 400 배) 에 ratio_db 가 −7.913447 ~ −7.913449",
+        "verify_raybudget_meaning.json :: el0_probe (11.1 M −59.6543 vs 250 M −59.6570 = 0.003 dB)"
+      ],
+      "independent_support_ko": "반증자가 새로 잰 4,000 M 이 같은 방향으로 굳혔다 — refute_raybudget_level_convergence.json :: D_counterexample_el0_10m : 11.1 M → 4,000 M 은 광선 ×360 인데 레벨이 −0.0267 dB 움직였다. 같은 구간에서 자세당 경로는 9 → 2,008 개로 늘었다.",
+      "status_ko": "살아남음 — **이 라운드에서 가장 단단한 결론**. 반증자가 깨려다 오히려 보강했다"
+    },
+    {
+      "id": "RB17",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_비단조_이유",
+      "claim_ko": "대역밖 비율이 예산에 비단조인 것은 사실이고, 그 값이 «품질» 이 아니라 «계단짐 ÷ 총전력» 이기 때문이다",
+      "ledger_keys": [
+        "verdicts.q_비단조_이유.reproduces_main_session_ko — 시드 평균 4 M 0.333 / 64 M 1.557 / 178 M 2.518 / 712 M 2.798 / 2,848 M 0.255 / 4,000 M 0.128 %, 메인 세션 값과 0.03 pp 안"
+      ],
+      "split_ko": "**사실**(비단조·재현됨)은 살아남음. **기전 설명**(왼쪽은 신호가 없어서·오른쪽은 매끄러워서)은 e_step_rel 과 0-경로 비율이 뒷받침하지만 게이트가 없다 ⇒ 그럴듯함",
+      "status_ko": "살아남음 (사실) + 그럴듯함 (기전)"
+    },
+    {
+      "id": "AU4",
+      "source": "AUDIT_PO_TRUST.md §1-B",
+      "claim_ko": "동체 성분(P_dc)은 격자 판을 바꾸면 el −60 에서 15.05 dB 움직인다 — 상대 비교에 못 쓴다",
+      "ledger_keys": [
+        "verify_po_elev_tsladder.json :: lattice_spread.el-60.P_dc_db.spread = 15.05",
+        "동 el-30 = 5.34 · el-15 = 2.55"
+      ],
+      "refuter_note_ko": "refute_axis_choice_scope.json 이 숫자를 소수점까지 확인했고 CPU 로 재현했다(−78.00/−65.40 등). 반증 없음",
+      "status_ko": "살아남음"
+    },
+    {
+      "id": "AU6",
+      "source": "AUDIT_PO_TRUST.md §1-B",
+      "claim_ko": "«el −60 에서 궤적이 원점을 여러 바퀴 감는다» 는 물리가 아니라 격자 판 한 장의 성질이다",
+      "ledger_keys": [
+        "verify_po_elev_tsladder.json :: per_elevation.el-60.{plate}.winding_turns = 7.024 (λ/12) → 0.023 (반셀 이동) → 0.007 (λ/16)"
+      ],
+      "strengthened_by_ko": "refute_axis_choice_scope.json :: bonus_finding_winding_is_sampling_fragile — 같은 비트열을 8 배 솎으면 el −60 의 감김이 −10.037 → +7.024 바퀴로 **부호까지** 바뀐다. 즉 판뿐 아니라 표본율에도 깨진다",
+      "status_ko": "살아남음 — 반증 시도가 오히려 결론을 넓혔다"
+    },
+    {
+      "id": "AU7",
+      "source": "AUDIT_PO_TRUST.md §1-C",
+      "claim_ko": "절대 σ 는 NOT_VALIDATED 다 — 사전등록 함대 검증이 떨어졌고 잔차 산포가 16.27 dB(문턱 6.0)다",
+      "ledger_keys": [
+        "das_fleet_validation.json :: prereg_judgement.P3_spread_db = 16.267746641892465",
+        "prereg_judgement.P1_all_within_6db = false · P2_count_within_4db = 2 · P4_sign_agreement = true",
+        "prereg_judgement.DL0_db = {phantom3 −1.4695, phantom2 −7.1918, mini2 −0.5077, m350rtk +9.0760}"
+      ],
+      "verified_by_me_ko": "이 수확 라운드에서 원장을 직접 열어 소수점까지 확인했다",
+      "status_ko": "살아남음 (게이트 있음)"
+    },
+    {
+      "id": "AU8",
+      "source": "AUDIT_PO_TRUST.md §1-C",
+      "claim_ko": "부피등가 PEC 통제군이 4 기체 중 3 에서 우리를 이긴다",
+      "ledger_keys": [
+        "das_fleet_validation.json :: box_control._summary.beats_best_control = {phantom3 true, phantom2 false, mini2 false, m350rtk false}",
+        "box_control._summary.beats_all_controls_by_score = 2/4"
+      ],
+      "status_ko": "살아남음"
+    },
+    {
+      "id": "AU10",
+      "source": "AUDIT_PO_TRUST.md §1-C",
+      "claim_ko": "수치 구현은 PO 를 제대로 푼다(해석 PO 대비 0.254 dB). 남은 6.6 dB 는 «PO 라는 근사를 쓴 대가» 이고 전부 저 kr 에서 난다",
+      "ledger_keys": [
+        "sbr_kr_sweep.json :: summary_div12.max_abs_db = 0.254 (해석 PO 대비) · 6.599 (정확 Mie 대비, kr=1)",
+        "summary_div16 = 0.201 / 6.729",
+        "kr ≥ 30 에서 Mie 대비 표준편차 1.55 % / 1.83 %"
+      ],
+      "status_ko": "살아남음"
+    },
+    {
+      "id": "AU11",
+      "source": "AUDIT_PO_TRUST.md §1-C",
+      "claim_ko": "3.5 GHz 에서 우리 표적의 부품은 전부 PO 유효범위(kr ≥ 30) 아래다 — 기체 반경 0.388 m 는 kr 28.5, 프로펠러 10.05, 모터 1.83, 블레이드 시위 1.47",
+      "ledger_keys": [
+        "audit_po_trust.json :: layers.C_absolute_sigma.evidence — «이 감사의 산술 (fc=3.5 GHz, k=73.35 rad/m)»"
+      ],
+      "kind_ko": "산술이지 측정이 아니다. 다만 산술은 맞다",
+      "status_ko": "살아남음 (산술)"
+    },
+    {
+      "id": "AU12",
+      "source": "AUDIT_PO_TRUST.md §2",
+      "claim_ko": "마이크로도플러 분류 87.85 % 는 선다 — 특징 27 개가 전부 모양이고 절대 dBsm 이 안 들어간다. 데이터셋이 sbr_field 를 평면파로 부르므로 근거리장·부호 결함 둘 다 안 걸린다",
+      "ledger_keys": [
+        "md_classify.json :: arms.all.best_accuracy = 0.8785 (RF100, LOAO CV, chance 0.1667)",
+        "benchmark/md_classify_dataset.py::_look 이 단위벡터만 반환 · range_m 인자 파일에 0 회"
+      ],
+      "attached_caveats_ko": [
+        "잡음 사다리에 SNR 눈금이 안 적혀 있다(RETRACTION_LOG R20) — 무잡음 헤드라인은 안 걸리지만 잡음 곡선은 인용 금지",
+        "기종별로 갈린다 — typhoonh480 F1 0.6464 ↔ mini2 1.0"
+      ],
+      "status_ko": "살아남음 (단서 2 개 동반)"
+    },
+    {
+      "id": "AU15",
+      "source": "AUDIT_PO_TRUST.md §2",
+      "claim_ko": "앙각별 절대 레벨과 널 깊이는 못 선다",
+      "ledger_keys": [
+        "verify_po_elev_tsladder.json :: lattice_spread.el-60.P_dc_db.spread = 15.05",
+        "verify_po_elev_gridladder.json :: verdict.null60_depth_spread_db = 31.89 · null31_depth_spread_db = 22.44"
+      ],
+      "strengthened_by_ko": "refute_ac_axis_spectral_concentration.json — 격자에 가장 강하다는 AC 축 위에서도 널 깊이 산포가 el −60 21.77 dB · el −30 7.45 dB 다",
+      "status_ko": "살아남음 — 반증 라운드가 오히려 못 박았다"
+    },
+    {
+      "id": "AU16",
+      "source": "AUDIT_PO_TRUST.md §2",
+      "claim_ko": "탐지거리 R90(15.4~72.5 m)은 절대값으로 못 선다",
+      "ledger_keys": [
+        "das_fleet_validation.json :: prereg_judgement.verdict = NOT_VALIDATED",
+        "md_range_sweep_mf.json :: meta.sigma_eq_note = 'diagnostic only … NOT an absolute RCS anchor'",
+        "RETRACTION_LOG R19 — 정본 R90 표가 원장에 없다"
+      ],
+      "status_ko": "살아남음"
+    },
+    {
+      "id": "AU18",
+      "source": "AUDIT_PO_TRUST.md §2",
+      "claim_ko": "Sionna PathSolver 는 σ 를 안 잰다",
+      "ledger_keys": [
+        "rt_no_rcs_verify.json — 평판 변 0.2 → 4.0 m 로 σ 를 +52.04 dBsm 바꿔도 ratio_db p-p 가 1.9e−06 dB"
+      ],
+      "independent_support_ko": "RB15 의 el 0 기전과 같은 사실의 두 얼굴이다 — 면적이 정반사 진폭식에 안 들어간다",
+      "status_ko": "살아남음 (게이트 있음)"
+    },
+    {
+      "id": "AU19",
+      "source": "AUDIT_PO_TRUST.md §2",
+      "claim_ko": "엔진 «레벨» 비교(−51.5 vs −117.1 dB)는 비교 자체가 성립하지 않는다",
+      "ledger_keys": [
+        "report07_three_engines.json :: levels_db — sbr −51.55 · po −52.24 · sionna −117.08",
+        "AU18 때문에 sionna 레벨은 σ 가 아니다"
+      ],
+      "status_ko": "살아남음"
+    },
+    {
+      "id": "AU20",
+      "source": "AUDIT_PO_TRUST.md §2",
+      "claim_ko": "sionna↔sbr 무늬 상관 0.745 를 «같다» 로 부르면 과장이다",
+      "ledger_keys": [
+        "report07_three_engines.json :: verdict.cosine_in_ftip — sbr_vs_po 0.9550 · sionna_vs_sbr 0.7450 · sionna_vs_po 0.7602"
+      ],
+      "status_ko": "살아남음"
+    },
+    {
+      "id": "AU21",
+      "source": "AUDIT_PO_TRUST.md §4",
+      "claim_ko": "근거리장(R=10 m, 경계 14.076 m): 지배 2 차 위상항은 들어가 있고 1/r 진폭 기울기(왕복 1.349 dB)와 입사방향 산포(±2.223°) 둘이 빠졌다. 레벨·박자·맵 모양엔 충분하고 널 깊이·단일 자세 복소 파형엔 불충분하다. **부족분을 재는 게이트가 없다**",
+      "ledger_keys": [
+        "src/rcs_sbr.py:1090-1093 (2 차 위상) · :1055 평행 격자 · :1069 cos_i = Nn @ u",
+        "po_refinement_survey.json :: our_kernel_baseline.ray_divergence = 'none'",
+        "nearfield_sphere_vs_plane.json :: ranges (3/8/15 m 에서 level_diff 1.041 / 0.515 / 0.294 dB · map_cosine 0.998)",
+        "verify_po_elev_nearfield.json :: nulls — 널 위치 산포 0.0° / 깊이 산포 10.26 dB",
+        "verify_md_nearfield.json :: checks.FRESNEL_RATE — R=10 m 에서 ac_corr 0.883, R=3 m 에서 0.256"
+      ],
+      "status_ko": "살아남음 — 스스로 «게이트 없음» 을 선언해서 과장이 없다"
+    },
+    {
+      "id": "AU22",
+      "source": "AUDIT_PO_TRUST.md §5",
+      "claim_ko": "el −60 의 176.4° 위상 스텝은 도플러 나이퀴스트 문제가 아니라 합성 페이저의 원점 근접 통과다(도플러는 이미 15.5 배 과표본). PRF 를 올려도 물리를 사는 게 아니고, 우리가 쓰는 잣대(스펙트럼 rms 대역폭·P_ac·플래시 박자)에는 안 걸린다",
+      "ledger_keys": [
+        "verify_po_elev_metric.json :: old_metric_autopsy['-60'].max_dphi_deg = 176.433 · amp_min_over_median = 0.012442",
+        "verify_po_elev_unit.json :: gates[M2_spectral_metric_survives_nulls_div48].max_frms_err_pct = 1.03",
+        "verify_po_elev_tsladder.json :: lattice_spread.el-60.P_ac_db.spread = 0.07",
+        "probe_prf_effect.json — PRF 19.7 → 35 kHz 에 박자 이동 0.013 Hz, 비용 1.78 배"
+      ],
+      "attached_caveat_ko": "PRF 사다리(315 kHz / 1.26 MHz)는 sinc 보간이고 계열이 완전 밴드제한이 아니다(|f| > 4 kHz 에 0.639 %) ⇒ 자릿수 추정",
+      "strengthened_by_ko": "AU6 의 표본율 발견 — 감김이 표본율에도 깨지므로 «PRF 를 올려도 물리가 아니다» 가 더 강해진다",
+      "status_ko": "살아남음 (조건: 언랩 기반 잣대를 절대 쓰지 않는다)"
+    },
+    {
+      "id": "AU23",
+      "source": "AUDIT_PO_TRUST.md §7-7",
+      "claim_ko": "docs/RESUME.md 의 «생산 격자 λ/12 사면 — 조화선당 ≤ 0.14 dB» 는 원장 키를 찾을 수 없다",
+      "verified_by_me_ko": "이 수확 라운드가 outputs/*.json 전수에서 'harmonic|조화' 문자열 주변의 0.13~0.14 값을 다시 훑었다. RESUME 이 가리키는 verify_po_elev_unit.json · verify_po_elev_rebuttal.json · adv_grid_freeze_audit.json 셋 다 'harmonic' 0 회(rebuttal 의 '조화' 1 회는 −90° 블레이드 통과선 이야기이지 dB 수치가 아니다)",
+      "status_ko": "살아남음 — 인용 출처 구멍은 여전히 열려 있다 (RESUME.md:10)"
+    },
+    {
+      "id": "AU25",
+      "source": "AUDIT_PO_TRUST.md §3 1위",
+      "claim_ko": "함대 검증 실패가 «자기 메쉬 증거» 축을 따라 갈린다는 것은 **가설**이다 (증거 있는 둘 |DL| ≤ 1.47 dB · 없는 둘 ≥ 7.19 dB · 빈 구간 5.72 dB · exact_partition_p = 0.167, n=4)",
+      "ledger_keys": [
+        "das_fleet_validation.json :: degrees_of_freedom.evidence_split"
+      ],
+      "status_ko": "살아남음 — 감사가 스스로 «가설이지 결론이 아니다» 라고 적어 뒀기 때문에 과장이 없다"
+    },
+    {
+      "id": "RB18",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_기전_가설검사.not_tested_ko",
+      "claim_ko": "«왜 2× 봉우리가 그렇게 큰가» 는 안 풀었다 — 로터 4 개 rpm 이 조금씩 달라 플래시 열 4 개가 섞인다는 설명은 그럴듯하지만 검증 안 했고, 1,024 자세(52 ms)로는 로터 간 0.56 Hz 를 분해 못 한다(분해능 ≈ 20 Hz)",
+      "status_ko": "살아남음 — 정직한 미해결 선언"
+    }
+  ],
+
+  "dead": [
+    {
+      "id": "RB6a",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_수렴하는가.evidence_ko[0]",
+      "claim_ko": "레벨이 마지막 계단에서도 여전히 오르는 중이라(+3.63 dB > 시드 sd 1.83) 수렴이 아니다",
+      "killed_by": "outputs/refute_raybudget_level_convergence.json",
+      "how_ko": [
+        "Welch t = 2.3782 · p = 0.0996 · 95 % 신뢰구간 [−1.283, +8.532] dB — 0 을 포함한다. 2,848 M 은 시드 3 판뿐",
+        "잣대가 자기모순 — 같은 «이웃 차이 < 시드 산포» 규칙이 64→178 M(1.993 < 2.992)과 178→712 M(2.305 < 5.421)을 «수렴» 이라 부른다. 그런데 같은 원장이 178 M 은 7 판 중 5 판이 박자를 틀린다고 적었다",
+        "반례 — 10 m · el 0 에서는 광선 ×360 에 레벨이 −0.0267 dB 다",
+        "인용 키 뒤섞임 — 3.63 은 rungs[*].level_db.mean 에 있고 인용한 convergence_40m.level_db.steps[-1].d 는 3.122(중앙값)다"
+      ],
+      "status_ko": "죽음 (근거로서). 결론 RB6 자체는 다른 다리로 살아 있다"
+    },
+    {
+      "id": "RB7",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_40억발이_더_나은가.does_not_improve_ko[0] · q_수렴하는가.evidence_ko[2]",
+      "claim_ko": "회전당 첨두가 178 M 부터 4,000 M 까지 3.91 로 평평하고, 예산으로 안 줄어드는 바닥이다(물리는 2)",
+      "killed_by": [
+        "outputs/refute_ppr_flat_crossgeometry.json",
+        "outputs/refute_peaks_per_rev_flatness.json",
+        "outputs/refute_peaks_per_rev_ruler.json"
+      ],
+      "how_ko": [
+        "인용문 안에 이미 예외가 있다 — 712 M 중앙값이 2.282 다",
+        "양자화 — 1,024 자세는 3.067 회전뿐이라 눈금이 0.3261 이고 «2» 는 도달 불가능한 값이다. 실제 비교는 «12 개 vs 6 개» 다",
+        "문턱 의존 — prominence 0.30 에서 4,000 M 중앙값 2.119 · 712 M 1.956(=물리값). 잣대 docstring 이 스스로 «예산 사이 비교로만 읽어라» 라고 금지한 절대 비교다",
+        "다른 앙각 반례 — 같은 광선 엔진이 10 m 에서 0.62 · 1.93 · 2.01 · 3.01 · 3.94 · 5.64 · 9.58 을 낸다. el −60/−75 에서는 물리값 2 를 그대로 낸다",
+        "우리 커널도 3.9 근처를 낸다 — 10 m · el −45 에서 3.71. 즉 3.9 는 광선 엔진의 지문이 아니다",
+        "같은 자리 다른 예산 반례 — 10 m · el 0 에서 광선 ×360 에 9.58 → 0.62 → 0.65 → 4.56 으로 흔들린다",
+        "통계로 «평평» 을 세울 수도 없다 — Mann-Whitney p = 0.505 (178 M vs 4,000 M)"
+      ],
+      "status_ko": "죽음"
+    },
+    {
+      "id": "RB8",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_기전_가설검사.why_ko[0]",
+      "claim_ko": "178 M·712 M·2,848 M·4,000 M 의 **모든 시드**에서 npaths(t) 최강선이 127.45 Hz 다 — 경로 개수는 조용하다",
+      "killed_by": "outputs/refute_npaths_quiet_178M.json",
+      "how_ko": [
+        "178 M 은 7 판 중 5 판이다 — 시드 4·7 은 최강선이 252.5 Hz 이고 2× 가 1× 보다 +3.18 / +4.02 dB **크다**(가설이 예측한 바로 그 신호)",
+        "«조용하다» 의 무조건 서술에 반례 — 10 m · 250 M(178 M 보다 큰 예산)에서 el −75° 는 253.10 Hz, el −90° 는 253.70 Hz 로 2× 가 이긴다. el −75° 는 band_frac 15.85 % 로 살아 있는 신호다",
+        "«7~17 dB 작다» 도 틀림 — 178 M 인용값이 −6.9 dB 이고 sd 8.32 dB 안에 양수 판이 숨어 있다"
+      ],
+      "status_ko": "죽음 (문턱이 틀렸고 범위가 넓다). 좁힌 판은 아래 N-RB8 참조"
+    },
+    {
+      "id": "RB9",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_기전_가설검사.why_ko[3]",
+      "claim_ko": "|E| 와 경로 수의 상관이 0.30 → 0.09 → −0.03 으로 사라진다",
+      "killed_by": "outputs/refute_npaths_quiet_178M.json :: D_correlation_does_not_vanish",
+      "how_ko": [
+        "5 계단 중 3 개만 인용했다 — 712 M 의 중앙값 0.159 는 178 M 의 0.090 보다 크다",
+        "부호가 상쇄된 중앙값이다. |상관| 평균은 0.268 → 0.148 → 0.191 → 0.153 → 0.211 로 안 사라진다",
+        "4,000 M 개별 판 최대 |상관| 0.490 이 64 M 어느 판보다 크다",
+        "10 m · 250 M 의 el −90° 는 0.8068, el −75° 는 0.4965"
+      ],
+      "status_ko": "죽음"
+    },
+    {
+      "id": "RB10",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_기전_가설검사.replacement_ko",
+      "claim_ko": "박자가 갈리는 진짜 기전은 «1× 봉우리와 2× 봉우리 키가 거의 같아서 어느 쪽이 이기나가 동전던지기» 다 — 예측 오답률 0.66 / 0.344 가 실측 0.714 / 0.375 와 맞는다",
+      "killed_by": [
+        "outputs/refute_coinflip_yardstick.json",
+        "outputs/refute_coinflip_counterexamples.json",
+        "outputs/refute_coinflip_numbers_audit.json"
+      ],
+      "how_ko": [
+        "잣대가 회로다 — observed_frac_wrong 은 frac(margin<0) 와 같은 수이고(4 계단에서 소수 3 자리까지 일치) predicted 는 같은 표본의 평균·sd 로 만든 정규 CDF 다. 같은 것을 두 번 재서 견줬다",
+        "검정력이 없다 — 동전던지기가 **아닌** 결정적 두 상태 기전이 예측−실측 간격 ≤ 0.06 을 20,000 판 전부 통과한다. 진짜 정규 동전던지기는 47~49 % 만 통과한다",
+        "결과변수 자체가 안 맞는다 — 틀린 박자가 2× 가 아닌 판이 여럿(3× · 1.34× · 0.40×)이고 그 판들의 여유폭은 +11.14 ~ +25.14 dB 로 크게 양수다",
+        "712 M 반례 — 세 시드 여유폭이 전부 양수(+6.61/+11.00/+22.55 dB)인데 시드 3 의 박자가 379.82 Hz = 3× 로 읽혔다",
+        "여유폭 산포가 광선 추첨 잡음만이 아니다 — 시드 축이 없는 결정론 커널에서도 분석 대역만 바꾸면 10~21 dB 움직이고 답이 뒤집힌다"
+      ],
+      "survives_ko": "여유폭이 0 을 사이에 두고 −7.2 ~ +10.3 dB 로 연속 분포하고 시드마다 답이 갈린다는 **서술**은 원장이 그대로 받쳐 준다. 기전은 «그럴듯함» 으로 강등",
+      "status_ko": "죽음 (기전 검정으로서). 서술은 살아 있음"
+    },
+    {
+      "id": "RB11",
+      "source": "verify_raybudget_meaning.json :: mechanism.coin_flip_model.ours_margin_db 해석",
+      "claim_ko": "우리 커널은 여유폭이 +7.36 dB 라 안 뒤집힌다",
+      "killed_by": "outputs/refute_coinflip_yardstick.json :: verdicts.what_breaks_ko[4]",
+      "how_ko": [
+        "4,000 M 8 시드 중 2 판(+7.89 · +10.34 dB)이 우리와 같거나 큰 여유폭이고 둘 다 1× 로 맞았다 — 그러니 «크기» 가 두 엔진을 가르는 축이 아니다",
+        "더 큰 여유폭(+11.1 · +22.6 · +25.1 dB)에서 실제로 틀린 판이 있다",
+        "우리 커널이 안 흔들리는 진짜 이유는 여유폭 크기가 아니라 **시드 축이 아예 없기 때문**이다"
+      ],
+      "survives_ko": "+7.36 dB 자체는 기록 길이에 강건하다 — 1,024 자세 토막 4 개로 재도 7.04~7.56 dB, 박자 전부 1×",
+      "status_ko": "죽음 (설명으로서)"
+    },
+    {
+      "id": "RB12",
+      "source": "verify_raybudget_meaning.json :: verdicts.q_비용.crossover_ko",
+      "claim_ko": "비용 교차점은 64~712 M 사이이고, 4,000 M 에서 PathSolver 가 우리 커널의 5.1 배 비싸다",
+      "killed_by": [
+        "outputs/refute_cost_crossover.json",
+        "outputs/refute_cost_crossover_lens3.json"
+      ],
+      "how_ko": [
+        "178 M 은 시드 7 판 전부(0.256~0.548 s)가 우리 0.6347 s 보다 싸다. 교차 구간에 넣으면 안 된다 ⇒ 원장이 지지하는 구간은 178~712 M",
+        "5.1 은 실제로 존재하지 않는 값이다 — 4,000 M 여덟 판이 1.86~2.32 와 4.20~4.84 두 덩이로 갈리고 중앙값 3.2597 은 그 사이 빈 골짜기다. 관측 배수는 2.9~3.7 또는 6.6~7.6",
+        "같은 4,000 M 이 원장마다 2.1136 · 3.2597 · 4.1180 · 4.1539 s/자세(최대/최소 1.97 배)",
+        "벽시계가 예산에 단조가 아니다 — 광선을 22.7 배 늘렸는데 7/7 앙각에서 13~41 % **줄었다**",
+        "10 m 에서는 250 M 발이 7 앙각 전부에서 우리보다 싸고 교차 구간이 250 M~1,000 M 로 옮겨간다",
+        "부하가 안 맞다 — 4,000 M 계단은 평균 21~22 개 샤드가 겹쳐 돌았고 우리 커널은 1.5~4 개",
+        "계측 범위가 다르다 — PathSolver 초에는 자세별 OBJ 디스크 기록·씬 재조립이 들어 있고 우리 쪽에는 없다"
+      ],
+      "status_ko": "죽음 (서술로서). 좁힌 판은 아래 N-RB12"
+    },
+    {
+      "id": "AU24",
+      "source": "AUDIT_PO_TRUST.md §3 2위 처방",
+      "claim_ko": "격자 판을 3~5 장 돌려 P_ac 만 평균하면 블레이드선 **절대 레벨**을 1.4 dB 오차막대와 함께 낼 수 있다",
+      "killed_by": [
+        "outputs/refute_axis_choice_scope.json",
+        "outputs/refute_ac_axis_spectral_concentration.json"
+      ],
+      "how_ko": [
+        "1.4 dB 는 «두 설정의 차이» 의 오차막대가 아니다 — 판 3 장은 같은 기체·같은 자세열·같은 엔진을 다시 잰 것이라 자기일관성 산포다(S1)",
+        "절대 레벨의 축은 층 C 이고 층 C 는 NOT_VALIDATED 다. 판을 평균해도 격자 자기일관성만 사지 절대 정확도는 못 산다",
+        "P_ac 가 안정한 것은 AC 가 총전력을 지배할 때뿐이다 — 산포가 AC−DC 비와 단조로 움직인다(+12.60 dB → 0.07 · −4.23 → 0.87 · −19.68 → 1.36). 사다리에 없는 4 앙각은 AC−DC 가 −15.32(el 0) · −8.15(−45) · −10.46(−75) · −38.27(−90) dB 로 **전부 불안정 구간**이다",
+        "같은 세 판에서 스칼라 P_ac 는 0.07 dB 인데 스펙트럼 집중도는 4.16 dB, 널 깊이는 21.77 dB 흔들린다(el −60) — «안정» 한 것은 총 AC 전력 한 수뿐이지 블레이드선의 모양이 아니다"
+      ],
+      "status_ko": "죽음 (처방으로서). 좁힌 판은 아래 N-AU3"
+    },
+    {
+      "id": "RB5b",
+      "source": "verify_raybudget_meaning.json :: seed_vs_budget.beat_ko",
+      "claim_ko": "박자는 예산이 이긴다 — 4,000 M 은 다수가 정답이다",
+      "killed_by": "산술 (이 수확 라운드)",
+      "how_ko": [
+        "4,000 M 은 8 판 중 5 판이 1× 다. 공정한 동전이라도 8 판 중 5 판 이상이 나올 확률은 0.363 이다 — 통계적으로 «다수가 정답» 을 세울 수 없다",
+        "178 M 의 7 판 중 5 판 오답도 같은 이유로 단정 못 한다(양측 p ≈ 0.45)"
+      ],
+      "status_ko": "죽음 (추론으로서). 판별 개수 자체(2/5 · 5/3)는 사실이므로 그대로 인용 가능"
+    }
+  ],
+
+  "narrowed": [
+    {
+      "id": "N-RB2",
+      "claim_as_written_ko": "광선을 더 쏘면 레벨이 오른다 (178 M −157.62 → 4,000 M −144.61, +13.0 dB)",
+      "why_too_broad_ko": "이 자리에서만 오른다. 10 m · el 0 에서는 광선 ×360 에 레벨이 −0.0267 dB 다. 그리고 인용한 키가 평균인데 문장은 중앙값 키를 가리켰다.",
+      "rewrite_ko": "**40 m · el −15° · matrice4e · az 0° 에서**, 시드 평균 레벨이 178 M −157.62 dB 에서 4,000 M −144.61 dB 로 13.0 dB 올랐다(키: ladder_40m.rungs[*].level_db.mean). 중앙값으로 읽으면 −157.87 → −144.00 = 13.88 dB 다. 이 상승은 기하에 딸린 것이고, 정반사가 지배하는 자리(10 m · el 0)에서는 같은 예산 증가에 레벨이 안 움직인다.",
+      "ledger_keys": [
+        "verify_raybudget_meaning.json :: ladder_40m.rungs[*].level_db.{mean,median}",
+        "refute_raybudget_level_convergence.json :: D_counterexample_el0_10m.level_delta_11p1M_to_4000M_db = −0.0267"
+      ]
+    },
+    {
+      "id": "N-RB4",
+      "claim_as_written_ko": "시드 간 레벨 표준편차가 4.156 → 1.833 dB 로 줄었다",
+      "why_too_broad_ko": "같은 원장 안에 178 M 의 시드 sd 가 두 개 있다 — ladder_40m 은 2.992 dB(n=7), seed_vs_budget 은 4.156 dB(n=8, 출처 raybudget_seed_ladder.json). 어느 쪽을 쓰느냐로 «시드 대 예산» 산술의 결론이 흔들린다.",
+      "rewrite_ko": "raybudget_seed_ladder.json 규약으로는 178 M 4.156 dB(8 판) → 4,000 M 1.833 dB(8 판)이고, raybudget_ladder 샤드 규약으로는 178 M 2.992 dB(완전 7 판)다. **어느 규약인지 밝히지 않고 4.156 을 인용하면 안 된다.** 그리고 4,000 M 에서도 시드 산포는 순수 몬테카를로 예측의 2.73 배다(mc_scaling.observed_over_sqrtN) — √N 으로 안 지워지는 몫이 남아 있다.",
+      "ledger_keys": [
+        "verify_raybudget_meaning.json :: ladder_40m.rungs[spp_m=178].level_db.sd = 2.992 (n=7)",
+        "verify_raybudget_meaning.json :: seed_vs_budget.rows[spp_m=178].sd_level_db = 4.156 (n=8)",
+        "verify_raybudget_meaning.json :: mc_scaling.rows[spp_m=4000].observed_over_sqrtN = 2.73"
+      ]
+    },
+    {
+      "id": "N-RB8",
+      "claim_as_written_ko": "178 M 이상이면 경로 개수는 조용하다",
+      "why_too_broad_ko": "문턱이 178 M 이 아니라 712 M 이고, 40 m·el −15° 밖에서는 더 큰 예산에서도 시끄러운 자리가 있다.",
+      "rewrite_ko": "**40 m · el −15° · matrice4e · az 0° 에서 712 M 이상이면**, 경로수 시계열의 최강선이 14/14 판 모두 127.45 Hz(= 126.67 Hz 의 최근접 칸)이고 2× 성분은 7.0~26.4 dB 작다. 그중 2,848 M·4,000 M 의 **5 판은 장(場) 박자가 2× 인데도 경로수가 1× 에 머물렀다** — 「경로 개수 깜빡임이 주기를 반으로 쪼갠다」 는 기전을 실제로 배제하는 증거는 이 5 판이다. 다른 기하(10 m · 250 M 의 el −75°·−90°)에서는 경로수 최강선이 2× 이므로 이 문장을 조건 없이 쓰면 안 된다.",
+      "ledger_keys": [
+        "refute_npaths_quiet_178M.json :: B_the_real_threshold_is_712M · H_what_survives.survives_ko",
+        "refute_npaths_quiet_178M.json :: C_counterexample_other_elevations_at_higher_budget.rows"
+      ]
+    },
+    {
+      "id": "N-RB7",
+      "claim_as_written_ko": "회전당 첨두가 3.91 로 굳어 광선으로 안 고쳐진다",
+      "why_too_broad_ko": "잣대의 문턱·양자화·기하에 전부 딸려 있다.",
+      "rewrite_ko": "**40 m · el −15° · matrice4e · 1,024 자세 · prominence 0.15 라는 한 자리에서**, 광선 엔진은 178 M~4,000 M 시드 21 판 중 16 판(76 %)이 3.067 회전 동안 첨두 12 개를 읽고, 우리 커널은 같은 길이 조각 4 개 모두 6 개를 읽는다(Fisher p = 0.01, Mann-Whitney p = 0.0026). 광선을 22 배 부어도(178 M → 4,000 M) 이 두 배 읽기가 안 사라졌다. **다만 이 두 배 읽기는 이 한 자리의 성질이다** — 10 m 의 el −60°·−75° 에서는 같은 엔진이 물리값 1.93~2.01 을 내고, 10 m · el 0 에서는 예산에 따라 0.62~9.58 로 뛰며, 우리 커널도 10 m · el −45° 에서 3.71 을 낸다.",
+      "ledger_keys": [
+        "refute_ppr_flat_crossgeometry.json :: G_살아남는_것 · E_반례_다른_앙각 · F_반례_같은_자리_다른_예산",
+        "refute_peaks_per_rev_flatness.json :: ladder_recompute"
+      ]
+    },
+    {
+      "id": "N-RB12",
+      "claim_as_written_ko": "교차점은 64~712 M 사이고 4,000 M 에서 5.1 배다",
+      "why_too_broad_ko": "구간이 틀렸고 배수는 존재하지 않는 값이며, 두 초는 애초에 시간 벤치마크로 설계된 적이 없다.",
+      "rewrite_ko": "**40 m · matrice4e · el −15° · az 0° 한 자리에서, 부하도 계측 범위도 안 맞춘 벽시계로 보면** PathSolver 는 178 M 발까지 우리 커널보다 싸고 712 M 발부터 비싸다(교차 구간 **178~712 M**). 4,000 M 배수는 한 수가 아니라 원장 전체에서 **2.9~7.6 배**다(자세 4,096 판은 6.5 배, 10 m·el 0 판은 5.1 배). **10 m 에서는 교차 구간이 250 M~1,000 M 로 옮겨가고 250 M 발은 7 앙각 전부에서 우리 커널보다 싸다.** 이 표는 «우리 워크플로에서 실제로 기다린 시간» 이지 알고리즘 비용 비교가 아니다.",
+      "ledger_keys": [
+        "refute_cost_crossover.json :: corrected_ko",
+        "refute_cost_crossover_lens3.json :: corrected_ko · C1_other_elevations_10m · C6_load_was_not_matched"
+      ]
+    },
+    {
+      "id": "N-RB13",
+      "claim_as_written_ko": "레벨은 시드가 이긴다 — 같은 벽시계면 178 M 7.79 판 평균(1.489 dB)이 4,000 M 한 판(1.833 dB)보다 낫다",
+      "why_too_broad_ko": "산술은 맞지만 입력 sd 가 규약에 따라 다르고(N-RB4), 벽시계 자체가 부하 미통제라 «같은 벽시계» 의 환산 계수 7.79 가 흔들린다.",
+      "rewrite_ko": "**40 m · el −15° · matrice4e 에서, raybudget_seed_ladder 규약의 시드 sd(178 M 4.156 dB · 4,000 M 1.833 dB)와 그 판들의 벽시계(0.4187 vs 3.2597 s/자세)를 그대로 받으면**, 178 M 7.79 판의 평균 레벨 산포는 1.489 dB 로 4,000 M 한 판의 1.833 dB 보다 작다. 이 계산은 «시드끼리는 독립 추첨» 이라는 가정 하나에 걸려 있고, 벽시계 환산 계수 7.79 는 부하가 안 맞춰진 두 실행을 나눈 값이다.",
+      "ledger_keys": [
+        "verify_raybudget_meaning.json :: seed_vs_budget.equal_wallclock",
+        "refute_cost_crossover.json :: D_load_not_controlled"
+      ]
+    },
+    {
+      "id": "N-RB16",
+      "claim_as_written_ko": "el 0 에서 Sionna 는 로터를 아예 못 본다 — 4,096 자세 내내 |E| 최대/최소 비가 0.00 dB, 위상 폭 0.02°",
+      "why_too_broad_ko": "그 수는 11.1 M 발 판의 것이다. 예산을 올리면 |E| 변조는 생긴다 — 레벨만 안 움직인다.",
+      "rewrite_ko": "**11.1 M 발에서** el 0 의 |E| 는 상대 표준편차 4e−5 · p-p 0.002 dB 로 사실상 상수다. **250 M·4,000 M 에서는 |E| p-p 가 3.52 dB 로 살아난다** — 그런데도 4,096 자세 평균 레벨은 −59.654 / −59.658 / −59.681 dB 로 0.027 dB 안에 머문다. 즉 광선이 사 오는 것은 «변조의 겉모양» 이고 «레벨(σ)» 은 아니다. 그리고 회전당 첨두는 같은 자리에서 9.58 → 0.62 → 0.65 → 4.56 으로 뛰므로 그 변조를 물리로 읽으면 안 된다.",
+      "ledger_keys": [
+        "refute_raybudget_level_convergence.json :: D_counterexample_el0_10m.rows (absE_rel_sd 4e−5 → 0.012022 → 0.030622 · absE_ptp_db 0.002 → 3.524 → 3.525)",
+        "refute_ppr_flat_crossgeometry.json :: F_반례_같은_자리_다른_예산.rows"
+      ]
+    },
+    {
+      "id": "N-AU1",
+      "claim_as_written_ko": "층 A(운동학·위상)는 λ/48 수렴 격자에서 검증됐다",
+      "why_too_broad_ko": "λ/48 에서도 게이트 하나가 떨어진다.",
+      "rewrite_ko": "**λ/48 수렴 격자에서 운동학 게이트 7 개 중 6 개가 통과한다** — G1 파형 ρ 0.9999 · G3 직하방 널 −43.02 dB · G4 대역밖 몫 0.012 pp · G2b 유한크기 괄호 · G5 cos 법칙 4.86 % · G6 rms 대역폭 0.75 % · M2 널 위 rms 대역폭 1.03 %. **떨어지는 하나는 G2(순시주파수 p95) 로 5.47 % 이고 문턱 5.0 을 아슬하게 넘는다**(el −75 에서). 「λ/48 에서 전부 통과」 라고 쓰면 안 된다.",
+      "ledger_keys": [
+        "verify_po_elev_unit.json :: gates[G2_fdmax_vs_analytic_fine_div48].max_abs_err_pct = 5.47 · pass_ = false",
+        "refute_gridmetric_vs_kinematics.json :: fact_check_of_claim.G2_fine_div48"
+      ]
+    },
+    {
+      "id": "N-AU2",
+      "claim_as_written_ko": "생산 격자 λ/12 에서 «운동학이 검증됐다» 는 말은 파형(ρ 0.9956)까지만 참이고 파생 잣대는 아니다",
+      "why_too_broad_ko": "«파생 잣대는 다 못 쓴다» 로 읽히는데, 잡음에 강한 파생 잣대는 λ/12 에서도 해석값과 맞는다. 실패하는 것은 잣대의 잡음 취약성이지 운동학이 아니라는 증거가 있다.",
+      "rewrite_ko": "생산 격자 λ/12 에서 통과하는 것은 파형(G1 ρ ≥ 0.9956)과 직하방 널(G3)이고, **미분·최대치를 쓰는 잣대(G2 순시주파수 p95 109.11 % · G5 cos 산포 58.48 % · G6 rms 대역폭 83.64 % · M2 71.64 %)는 떨어진다.** 그런데 그 실패는 잣대가 잡음에 약해서라는 증거가 있다 — (i) 해석 도플러가 정확히 0 인 직하방에서 커널이 내는 rms 대역폭이 λ/12 414.3 Hz → λ/24 96.4 → λ/48 32.1 Hz 로, 그 잣대가 격자 잡음 바닥을 읽고 있다. (ii) 잔차가 대역에 평탄하다는 모형으로 계산한 바닥(334~437 Hz)이 관측된 바닥(356~501 Hz)과 같은 자릿수다. (iii) **잡음에 강한 잣대인 99 % 에너지 가장자리 f_edge99 는 λ/12 에서 해석값과 정확히 일치한다**(두 산란체 판, 5 앙각 전부). 단 (ii)는 게이트가 아니라 모형이고, 한 산란체 판에서는 5 중 2 개가 어긋난다(+0 : 1456.7 vs 1393.3 Hz, −75 : 443.3 vs 380.0 Hz).",
+      "ledger_keys": [
+        "verify_po_elev_unit.json :: gates[*_prod_div12]",
+        "refute_gridmetric_vs_kinematics.json :: nadir_floor · flat_floor_model.rows · noise_robust_support"
+      ]
+    },
+    {
+      "id": "N-AU3",
+      "claim_as_written_ko": "블레이드선 전력 P_ac 는 격자에 1.4 dB 안으로 강건하다 — 상대 비교의 안전한 축이다",
+      "why_too_broad_ko": "숫자는 정확하지만 (a) 차이의 오차막대가 아니라 자기일관성 산포이고 (b) 한 기체·한 방위·한 엔진·7 앙각 중 3 개이며 (c) AC 가 지배할 때만 안정하고 (d) 안정한 것은 스칼라 총 AC 전력뿐이다.",
+      "rewrite_ko": "**matrice4e · az 0° · 10 m · SBR+PO · el −60/−30/−15 세 앙각에서**, 격자 판 3 장(λ/12 · λ/12 반셀+2칸 · λ/16)을 태워 잰 **스칼라 총 AC 전력 P_ac 의 자기일관성 산포가 0.07 / 0.87 / 1.36 dB** 다. 이 수는 «두 설정의 dB 차» 의 오차막대가 아니다 — 판 3 장은 같은 물리를 다시 잰 것이다. 그리고 이 안정성은 AC 가 총전력을 지배할 때 커진다(AC−DC 가 +12.60 → 0.07 dB, −4.23 → 0.87, −19.68 → 1.36). 사다리에 없는 4 앙각은 AC−DC 가 −38.27 ~ −8.15 dB 로 전부 불안정 쪽이므로 **el 0 · −45 · −75 · −90 에 이 1.4 dB 를 옮겨 쓰면 안 된다.** 마지막으로 같은 세 판에서 **스펙트럼 집중도는 2.53~5.82 dB, 널 깊이는 0.74~21.77 dB 흔들린다** — 안정한 것은 한 수의 총 AC 전력이지 블레이드선의 모양이 아니다.",
+      "ledger_keys": [
+        "verify_po_elev_tsladder.json :: lattice_spread.el{X}.P_ac_db.spread",
+        "refute_axis_choice_scope.json :: scope_holes.S1 · S2 · S3 · S4",
+        "refute_ac_axis_spectral_concentration.json :: per_elevation"
+      ]
+    },
+    {
+      "id": "N-AU5",
+      "claim_as_written_ko": "가림 축은 격자 판 선택에 부호가 뒤집힌다 — 못 쓴다",
+      "why_too_broad_ko": "원장 verdict 가 셀별 값의 max 라서, 실제로 뒤집히는 것은 한 셀이다.",
+      "rewrite_ko": "**matrice4e 의 belly(az 0° · el −15°) 셀에서** 가림 판별값이 판마다 +1.533 / +2.122 / **−2.041** dB 로 부호가 뒤집히고, 그 셀의 가림 레벨 산포 4.163 dB 가 같은 셀 A 팔의 절대 레벨 산포 1.549 dB 보다 커서 공통모드 상쇄 검사에 떨어진다. **nose(az 0° · el +15°) 셀은 같은 검사를 통과한다**(가림 0.403 dB < A 팔 3.452 dB). 원장 verdict 의 4.163 · false 는 두 셀의 max 이므로, 「가림 축은 어디서나 못 쓴다」 가 아니라 「가림 축은 셀에 따라 무너지고, 무너지는 셀이 실재한다」 가 맞다.",
+      "ledger_keys": [
+        "freeze_plate_sensitivity.json :: verdict · cells.matrice4e.{belly,nose}.findings",
+        "refute_axis_choice_scope.json :: scope_holes.S5_occlusion_axis_is_cell_dependent"
+      ]
+    },
+    {
+      "id": "N-AU13",
+      "claim_as_written_ko": "플래시 박자는 앙각과 무관하다 — 7 앙각에서 126.16~126.78 Hz",
+      "why_too_broad_ko": "el −90 의 126.78 Hz 를 읽은 잣대가 그 앙각에서는 눈이 멀어 있다.",
+      "rewrite_ko": "**el 0 ~ −75 에서** 플래시 박자가 126.16~126.78 Hz 로 예측 126.667 Hz 와 0.5 Hz 안에 든다. 이 잣대는 «누설 계측기» 가 아니라는 검사를 통과했다 — 변조율을 60/90/200/250/311/380 Hz 로 바꾸면 판독이 1:1 로 따라온다. **el −90 은 따로 적어야 한다** — 그 앙각에서 70-샘플 STFT 가 읽는 고정 대역(430~1229 Hz) 전력은 사실상 전부 반송파 창 스커트이고(참값 기여가 누설보다 27.0 dB 아래), 1× 대 2× 여유가 1.45 dB 뿐이라 argmax 자체가 불안정하다. **다만 빗살 자체는 실재한다** — 4,096 점 FFT 로 보면 5×~9× 블레이드 통과 배음이 국소 바닥 위 15~29 dB(비-빗살 널분포 p99 = 13.8 dB)로 서 있고, 로터별 blade-pass 주파수의 k 배에 0.05~0.44 Hz 로 붙는다. 그리고 **「앙각이 커질수록 고정 대역이 단조로 비어 간다」 는 원장이 지지하지 않는다** — fixed.band_power_db 최저는 el −60(−65.31 dB)이고 el −30·−60 은 누설 검사를 한 적이 없다.",
+      "ledger_keys": [
+        "elevation_sweep_md.json :: rows[engine=ours].track.beat_hz",
+        "refute_band_beat_leakage.json :: _meta.verdict_ko",
+        "refute_nadir_fixed_band_leakage.json :: _meta.verdict_ko · scope_gap_ko",
+        "refute_el90_fixedband_leakage.json :: verdict_ko · fine_peak_identification"
+      ]
+    },
+    {
+      "id": "N-AU14",
+      "claim_as_written_ko": "f_tip 이 cos(el) 로 준다 — 게이트 있음",
+      "why_too_broad_ko": "게이트는 λ/48 짜리다. 생산 격자에서는 같은 게이트가 산포 58.48 % 로 떨어진다.",
+      "rewrite_ko": "**λ/48 수렴 격자에서** f_d(p95) ÷ (f_tip(0)·cos el) 의 앙각 간 산포가 4.86 % 로 문턱 6 % 를 통과한다 — 즉 cos 법칙은 «커널이 물리를 제대로 담는다» 는 확인이다. **생산 격자 λ/12 에서 같은 게이트는 산포 58.48 % 로 떨어진다**(비 1.1856 / 1.3039 / 1.5698 / 2.0838). 그래서 이 법칙은 **물리 확인**으로는 쓸 수 있어도 «우리 생산 자료가 cos 법칙을 재현한다» 로는 쓸 수 없다.",
+      "ledger_keys": [
+        "verify_po_elev_unit.json :: gates[G5_cos_law_fine_div48].spread_pct = 4.86 (pass)",
+        "verify_po_elev_unit.json :: gates[G5_cos_law_prod_div12].spread_pct = 58.48 (fail)"
+      ]
+    },
+    {
+      "id": "N-AU17",
+      "claim_as_written_ko": "탐지거리의 절대값은 못 서도 «기체 사이 순서» 는 선다",
+      "why_too_broad_ko": "순서 불변에는 검증된 구간이 있고 그 밖에서는 한 기체가 뒤집힌다. 그리고 주파수 기울기 오차는 공통모드가 아니라 안 상쇄된다.",
+      "rewrite_ko": "**공통모드 σ 오프셋이 −18.0 ~ +11.5 dB 안이면** 5 기체 중 4 기체의 순서가 불변이다 — s1000plus 는 −18.25 dB 이하에서 뒤집힌다. ⚠ 구간의 위쪽 끝 +11.5 dB 는 뒤집힘을 관측한 값이 아니라 R90 이 20 km 격자 천장에 닿아 검정을 못 한 지점이다(upper_limit_cause). 강건성 자체는 세 모드가 같은 σ/R⁴ 사슬을 쓰기 때문이라 항등식에 가깝다. **차분(주파수 기울기) 오차는 상쇄되지 않는다** — 앵커 전 5.013 dB, 앵커 후 0.471 dB. 그리고 aspect_avg 설정의 W1-G1(WiFi vs 5G) 쌍은 최악 문턱이 0.0886 dB 라 순위 주장을 하면 안 된다.",
+      "ledger_keys": [
+        "sigma_robust_summary.json :: common_mode.order_invariance.verified_invariant_interval_db = [−18.0, +11.5]",
+        "sigma_robust_summary.json :: fragility_declaration.realistic_span_db · must_be_declared"
+      ]
+    },
+    {
+      "id": "N-AU6b",
+      "claim_as_written_ko": "«el −60 에서 궤적이 원점을 10 바퀴 감는다» 는 격자 반 칸에 7.024 → 0.023 바퀴로 사라진다",
+      "why_too_broad_ko": "두 수가 서로 다른 표본에서 왔다. 결론은 옳지만 인용 위생이 나쁘다.",
+      "rewrite_ko": "감김 수는 **격자 판**과 **표본율** 두 축에 다 깨진다. 전율(4,096 자세, PRF 19.7 kHz)로 재면 el −60 이 −10.037 바퀴이고, 8 배 솎은 사다리에서는 같은 계열이 +7.024 바퀴로 **부호까지** 바뀐다. 그 사다리 안에서 판을 반 칸 옮기면 7.024 → 0.023 → 0.007 바퀴가 된다. 「10 바퀴」 와 「7.024 → 0.023」 을 한 문장에 나란히 쓰면 서로 다른 표본을 같은 것처럼 보이게 한다.",
+      "ledger_keys": [
+        "verify_po_elev_tsladder.json :: per_elevation.el-60.{plate}.winding_turns",
+        "refute_axis_choice_scope.json :: bonus_finding_winding_is_sampling_fragile"
+      ]
+    }
+  ],
+
+  "final_answers": {
+    "a_광선을_더_쏘면": {
+      "improves_ko": [
+        "자세당 표적 경로 수 — 0 개(1 M) → 167.6 개 평균(4,000 M). 이건 표본이지 물리가 아니다",
+        "시드 간 레벨 산포 — 4.156 → 1.833 dB (raybudget_seed_ladder 규약)",
+        "대역밖 몫 — 2.52 → 0.13 % (단, 대역안 몫도 같이 얇아진다)",
+        "판별 박자 개수 — 178 M 은 7 판 중 2 판만 1×, 4,000 M 은 8 판 중 5 판이 1×. **개수는 사실이지만 통계적으로 «다수가 정답» 을 세울 수는 없다**(공정 동전도 8 판 중 5+ 를 0.363 확률로 낸다)"
+      ],
+      "does_not_improve_ko": [
+        "⭐el 0 의 σ 과대 — 광선 ×360(11.1 M → 4,000 M)에 레벨이 −0.027 dB. 면적이 Sionna 정반사 진폭식에 안 들어가는 **식의 성질**이라 광선으로는 절대 안 고쳐진다",
+        "레벨 자체 — 40 m·el −15 에서는 13 dB 오르지만 10 m·el 0 에서는 안 오른다. «오른다» 는 자리에 딸린 말이다"
+      ],
+      "answer_40억_ko": "**아니다 — 40 억 발은 수렴점이 아니다.** 다만 그 근거는 «레벨이 아직 오른다» 가 아니다(그건 p = 0.0996 으로 죽었다). 살아남은 근거는 **경로 수가 아직 광선에 선형**(log-log 기울기 0.998, 포화 조짐 0)이고, **그 위 계단을 이 카드에서 아예 못 돌아** 확인 자체가 불가능하다는 것이다(4,294,967,295 에서 wavefront_size 오류)."
+    },
+    "b_PO_결과_신뢰도": {
+      "one_line_ko": "감사의 한 문장 판정 — «마이크로도플러의 모양은 믿을 만하고 절대 σ·거기서 나온 절대 탐지거리·널 깊이·가림 축의 dB 는 아니다» — 는 **살아남는다.** 반증 라운드가 바꾼 것은 판정이 아니라 그 아래 문장 세 개의 범위다.",
+      "layer_A_ko": "λ/48 수렴 격자에서 게이트 7 중 6 통과(G2 순시주파수 p95 는 5.47 % 로 문턱 5.0 을 아슬하게 초과). 생산 격자 λ/12 에서는 파형·직하방 널이 통과하고 미분·최대치 잣대는 떨어지는데, **떨어지는 이유가 잣대의 잡음 취약성이라는 증거**가 있다(직하방에서 잣대가 414 → 96 → 32 Hz 로 격자를 따라 내려가고, 잡음에 강한 f_edge99 는 λ/12 에서도 해석값과 일치). 이건 모형 근거이지 게이트가 아니다.",
+      "layer_B_ko": "AC(블레이드) 축이 «안전» 하다는 건 조건부다 — matrice4e · az 0° · el −60/−30/−15 · 격자 판 3 장의 **자기일관성** 산포가 0.07~1.36 dB 이고, AC 가 총전력을 지배하는 앙각에서만 그렇다. 나머지 4 앙각은 전부 AC 가 지배하지 않는 쪽이다. 그리고 안정한 것은 스칼라 총 AC 전력 한 수뿐이며 같은 판에서 스펙트럼 집중도는 2.5~5.8 dB, 널 깊이는 최대 21.8 dB 흔들린다. DC(동체) 축 15.05 dB · 널 깊이 22~32 dB 는 그대로 «못 쓴다».",
+      "layer_C_ko": "그대로 NOT_VALIDATED. 사전등록 잔차 산포 16.27 dB(문턱 6.0), 부피등가 PEC 통제군이 4 중 3 에서 우리를 이긴다. 커널의 수치 구현은 해석 PO 를 0.254 dB 로 풀지만 우리 표적 부품은 전부 PO 유효범위(kr ≥ 30) 아래다. 어떤 반증자도 이 층을 건드리지 않았다.",
+      "can_stand_ko": [
+        "마이크로도플러 분류 87.85 % (무잡음 팔, 기종별 F1 을 함께)",
+        "el 0 ~ −75 의 플래시 박자 126.16~126.78 Hz",
+        "λ/48 게이트로 확인한 물리 법칙(cos 법칙 · rms 대역폭 = f_tip/√2)",
+        "PathSolver 가 σ 를 안 잰다는 사실과 el 0 의 기전"
+      ],
+      "cannot_stand_ko": [
+        "절대 dBsm 과 절대 탐지거리 R90",
+        "널 깊이 dB · 가림 판별 dB(무너지는 셀이 실재)",
+        "앙각별 절대 레벨",
+        "「생산 자료가 cos 법칙을 재현한다」 (게이트는 λ/48 짜리다)",
+        "「엔진 레벨 −51.5 vs −117.1」 비교",
+        "「블레이드선의 절대 레벨을 1.4 dB 오차막대로 낼 수 있다」"
+      ]
+    },
+    "c_얼마를_쏴야_하나": {
+      "headline_ko": "⭐**모른다. 그리고 이 하드웨어에서는 알 수 없다.**",
+      "why_ko": [
+        "«수렴했다» 를 확인하려면 4,000 M 위 계단을 돌아 그 사이 차이를 재야 한다. 이 카드에서는 4,294,967,295 발에서 [Sampler] wavefront_size 오류로 실행 자체가 안 된다 — 알고리즘 상한이 아니라 GPU 메모리·API 상한이다(probe_ray_ceiling.json)",
+        "지금 있는 사다리 안에서 «수렴» 을 판정하려던 잣대(이웃 차이 < 시드 산포)는 자기모순이라 못 쓴다 — 같은 잣대가 178 M 을 «수렴» 이라 부르는데 그 계단은 박자를 다수결로 틀린다"
+      ],
+      "partial_answers_by_purpose_ko": [
+        "**목적이 경로 수 포화라면** — 아직 안 왔다. 64 M~4,000 M 에서 log-log 기울기가 0.998 이다. 어디서 꺾이는지는 측정된 적이 없다",
+        "**목적이 레벨의 시드 산포를 줄이는 것이라면** — 예산을 올리는 것보다 시드를 여러 판 도는 편이 같은 벽시계에서 낫다(40 m·el −15 에서 178 M 7.79 판 평균 1.489 dB vs 4,000 M 한 판 1.833 dB). 단 4,000 M 에서도 시드 산포는 순수 몬테카를로의 2.73 배라 √N 으로 안 지워지는 몫이 남는다",
+        "**목적이 «경로 수 시계열이 1× 로 안정» 이라면** — 40 m·el −15°·matrice4e 에서 712 M 이상이면 14/14 판이 만족한다. 이 문턱은 다른 앙각으로 안 옮겨간다",
+        "**목적이 el 0 처럼 정반사가 지배하는 자리를 고치는 것이라면** — 어떤 예산도 못 고친다. 광선을 늘리는 대신 조명 모형/솔버를 바꿔야 한다"
+      ],
+      "if_someone_must_pick_a_number_ko": "굳이 하나를 골라야 한다면 **4,000 M 은 «충분» 이 아니라 «이 카드의 천장»** 이라고 부르는 것이 정직하다. 그리고 그 천장에서도 경로 수가 선형이라는 사실은 «천장보다 더 필요할 수 있다» 를 뜻하지 «천장이면 된다» 를 뜻하지 않는다."
+    }
+  },
+
+  "unknowns": [
+    "4,000 M 위에서 경로 수 기울기가 언제 1 밑으로 꺾이는지 — 측정 불가(카드 상한)",
+    "왜 2× 봉우리가 그렇게 큰가 — 로터 4 개의 rpm 산포 가설은 검증 안 됨. 1,024 자세(52 ms)로는 0.56 Hz 를 분해 못 함(분해능 ≈ 20 Hz)",
+    "40 m 에서 앙각을 바꿔가며 잰 회전당 첨두 자료가 아예 없다 — 40 m 는 el −15° 한 각도뿐",
+    "10 m 에는 예산·앙각마다 시드가 1 판씩뿐이라 시드 간 산포를 못 잰다",
+    "다른 기체·바이스태틱(기선 ≠ 0)에서 같은 문턱이 성립하는지 — 원장에 없다",
+    "층 A 의 게이트가 전부 matrice4e 한 기체·az 0° 한 단면에서 나왔다. 다른 기체로 옮겨가는지 안 쟀다",
+    "λ/12 에서 파생 잣대가 떨어지는 이유가 «잣대의 잡음 취약성» 이라는 설명에는 게이트가 없다 — 평탄 잔차 모형이지 검증이 아니다",
+    "근거리장에서 빠진 두 항(1/r 확산 · 입사방향 산포 ±2.223°)이 실제로 몇 dB 인지 — 재는 게이트가 없다",
+    "el −30 · el −60 의 고정 대역은 누설 검사를 한 적이 없다",
+    "docs/RESUME.md:10 의 «조화선당 ≤ 0.14 dB» 는 여전히 출처 불명 — 전수 검색으로도 못 찾았다",
+    "P_dc 의 격자 수렴 — λ/12·λ/16 두 점과 이동 한 번뿐, 단조 수렴 증거 없음",
+    "mavic4pro dc_ac 가 원장 두 판에서 37.18 ↔ 5.33 dB 로 갈리는 이유"
+  ],
+
+  "needs_gpu": [
+    "4,000 M 위 예산 계단 — 경로 수 포화점을 찾으려면 필요. 지금 카드에서는 4,294,967,295 발이 wavefront_size 로 실패하므로 더 큰 메모리 카드 또는 광선 청킹 구현이 선행 조건이다",
+    "40 m · 178 M 의 시드를 30 판쯤으로 늘려 2× 읽기 비율의 신뢰구간을 재는 일 (refute_npaths_quiet_178M 이 필요하다고 적어 뒀다)",
+    "40 m 에서 앙각 스윕(회전당 첨두·박자를 앙각축으로 재기) — 지금은 el −15° 한 각도뿐",
+    "phantom2 · m350rtk 에 자기 형상 증거(메쉬)를 붙여 사전등록 함대 검증을 다시 거는 일 — 2 기체 × 21 주파수 × 360 방위 × 7 각도. 메쉬 작업이 상류",
+    "1/r 광선 확산과 입사방향 산포(±2.223°)를 넣은 근거리장 팔 — 널 깊이 주장의 전제",
+    "λ/48 이상 격자로 생산 앙각 스윕을 다시 도는 일(대역밖 바닥을 순수 PO 수준까지 내리려면 λ/180 이 필요하다고 adv_grid_freeze_audit 이 적었다 — 사실상 불가능한 규모)",
+    "10 m · el 0 의 4,000 M 실행 완결 — 8 샤드 중 6 개만 있고 2026-08-11 09:04 이후 갱신이 없다(1,000 M 은 8 중 2)"
+  ]
+}

@@ -1,0 +1,872 @@
+{
+ "R1_range_law_ledger": {
+  "table_db": {
+   "10m": -38.55,
+   "20m": -51.07,
+   "50m": -67.23,
+   "100m": -79.35,
+   "300m": -98.48,
+   "1000m": -119.41
+  },
+  "global_fit_exponent": 4.037,
+  "max_resid_db": 0.28,
+  "per_segment": {
+   "10->20m": {
+    "ratio": 2.0,
+    "measured_drop_db": 12.52,
+    "drop_if_r4_db": 12.04,
+    "implied_exponent": 4.159
+   },
+   "10->50m": {
+    "ratio": 5.0,
+    "measured_drop_db": 28.68,
+    "drop_if_r4_db": 27.96,
+    "implied_exponent": 4.103
+   },
+   "10->100m": {
+    "ratio": 10.0,
+    "measured_drop_db": 40.8,
+    "drop_if_r4_db": 40.0,
+    "implied_exponent": 4.08
+   },
+   "10->300m": {
+    "ratio": 30.0,
+    "measured_drop_db": 59.93,
+    "drop_if_r4_db": 59.08,
+    "implied_exponent": 4.057
+   },
+   "10->1000m": {
+    "ratio": 100.0,
+    "measured_drop_db": 80.86,
+    "drop_if_r4_db": 80.0,
+    "implied_exponent": 4.043
+   }
+  },
+  "orchestrator_arithmetic_check_ko": "지시문은 «1/r⁴ 이면 2.5배 거리에 −7.96 dB» 라고 했다. 이것은 틀렸다 — 7.96 dB = 20·log10(2.5) 로 **1/r² 의 값**이다. 1/r⁴ 은 40·log10(2.5) = 15.92 dB 다. 20→50 m 의 실측 낙폭 16.16 dB 는 15.92 dB 와 0.24 dB 차이다.",
+  "verdict_ko": "표는 1/r⁴ 을 **지지한다**. 전 구간 적합 지수 4.037 (잔차 ≤0.28 dB), 구간별 4.04~4.16, 거리가 멀수록 4.00 에 수렴."
+ },
+ "R2_analytic": {
+  "geometry_from_mesh": {
+   "hub_radius_m": 0.2196,
+   "hub_radii_m": [
+    0.2288,
+    0.2288,
+    0.2104,
+    0.2104
+   ],
+   "blade_tip_radius_m": 0.137,
+   "blades": 2,
+   "rpm_mean": 3800.0,
+   "omega_rad_s": 397.94,
+   "range_m": 10.0,
+   "lambda_m": 0.085655
+  },
+  "per_element": {
+   "two_way_phase_swing_pp_deg": 50.55,
+   "two_way_phase_amplitude_deg": 25.29,
+   "approx_2kLr_over_R_rad": 0.4413,
+   "max_doppler_hz": 27.94,
+   "note_ko": "나딧이라도 **허브가 축 밖에 있으면** 블레이드 끝의 왕복거리가 변한다. 이 값이 «도플러가 0 이 아니다» 의 크기다. 허브가 축 위에 있으면(단위시험의 궤도 구) 정확히 0 이다 — 그래서 그 시험의 나딧 잔여는 전부 격자 잡음이다."
+  },
+  "two_blade_cancellation": {
+   "weighted_mean_r2_m2": 0.00508,
+   "a_eff_rad": 0.2296,
+   "predicted_rotor_relative_mod_amplitude": 0.01318,
+   "predicted_ac_over_dc_db": -40.61,
+   "formula_ko": "2엽 로터: exp(+ja·cosψ)+exp(−ja·cosψ)=2cos(a·cosψ)≈2−a²(1+cos2ψ)/2 → 상대변조 진폭 m=a²/4, rms 전력비 = m²/2. a=2kL√⟨r²⟩/R.",
+   "comb_frequency_ko": "1차가 상쇄되고 2ψ 가 남는다 → 2엽 로터의 f_flash(126.67 Hz) 와 그 배음.",
+   "scaling_ko": "a ∝ 1/R 이고 남는 항이 a² 이므로 진폭 ∝ 1/R², 전력 ∝ 1/R⁴.",
+   "observed": {
+    "am_rms": 0.00478,
+    "pm_rms_deg": 0.64,
+    "p95_deg": 1.18,
+    "ac_over_dc_db": -38.31
+   },
+   "comparison_ko": "해석 예측 -40.6 dB 대 관측 -38.31 dB — **2 dB 안**이다. 다만 이것은 «로터 기여만이 전부» 라고 놓은 값이라, 정확한 예측이 아니라 **크기의 눈금**으로 읽어야 한다."
+  },
+  "pm_vs_am_ko": "⭐원장의 «위상이 진폭보다 크다(+7.37 dB) → 작은 도플러가 남았다» 는 **추론이 틀렸다**. 2엽 상쇄가 남기는 인자 2cos(a·cosψ) 는 **실수**다 — 즉 로터 페이저의 크기만 흔든다. 그것이 총합에서 AM 으로 보이나 PM 으로 보이나는 «로터 페이저와 총 페이저의 사잇각 θ» 하나로 정해진다(PM/AM = |tanθ|). 관측 +7.37 dB 는 θ = 66.8° 를 뜻할 뿐이다. (도플러가 남는다는 결론 자체는 참이지만 근거는 위 per_element 다.)"
+ },
+ "R3_window_robustness": {
+  "ours/el-90": {
+   "per_window": {
+    "35": {
+     "bin_hz": 562.9,
+     "n_band_bins": 22,
+     "band_lo_in_bins": 0.76,
+     "mainlobe_halfwidth_hz": 1125.7,
+     "beat_hz": 126.63,
+     "band_power_db": -38.76,
+     "leakage_only_db": -38.76,
+     "true_over_leakage_db": 0.0
+    },
+    "48": {
+     "bin_hz": 410.4,
+     "n_band_bins": 30,
+     "band_lo_in_bins": 1.05,
+     "mainlobe_halfwidth_hz": 820.8,
+     "beat_hz": 126.62,
+     "band_power_db": -42.91,
+     "leakage_only_db": -42.91,
+     "true_over_leakage_db": 0.0
+    },
+    "70": {
+     "bin_hz": 281.4,
+     "n_band_bins": 44,
+     "band_lo_in_bins": 1.53,
+     "mainlobe_halfwidth_hz": 562.9,
+     "beat_hz": 126.78,
+     "band_power_db": -55.68,
+     "leakage_only_db": -55.69,
+     "true_over_leakage_db": 0.01
+    },
+    "96": {
+     "bin_hz": 205.2,
+     "n_band_bins": 62,
+     "band_lo_in_bins": 2.1,
+     "mainlobe_halfwidth_hz": 410.4,
+     "beat_hz": 253.13,
+     "band_power_db": -63.71,
+     "leakage_only_db": -63.76,
+     "true_over_leakage_db": 0.06
+    },
+    "128": {
+     "bin_hz": 153.9,
+     "n_band_bins": 82,
+     "band_lo_in_bins": 2.79,
+     "mainlobe_halfwidth_hz": 307.8,
+     "beat_hz": 127.93,
+     "band_power_db": -72.26,
+     "leakage_only_db": -72.7,
+     "true_over_leakage_db": 0.43
+    },
+    "192": {
+     "bin_hz": 102.6,
+     "n_band_bins": 124,
+     "band_lo_in_bins": 4.19,
+     "mainlobe_halfwidth_hz": 205.2,
+     "beat_hz": 127.59,
+     "band_power_db": -77.83,
+     "leakage_only_db": -79.67,
+     "true_over_leakage_db": 1.84
+    },
+    "256": {
+     "bin_hz": 77.0,
+     "n_band_bins": 166,
+     "band_lo_in_bins": 5.59,
+     "mainlobe_halfwidth_hz": 153.9,
+     "beat_hz": 127.39,
+     "band_power_db": -81.08,
+     "leakage_only_db": -86.79,
+     "true_over_leakage_db": 5.71
+    },
+    "384": {
+     "bin_hz": 51.3,
+     "n_band_bins": 248,
+     "band_lo_in_bins": 8.38,
+     "mainlobe_halfwidth_hz": 102.6,
+     "beat_hz": 48.73,
+     "band_power_db": -82.24,
+     "leakage_only_db": -95.61,
+     "true_over_leakage_db": 13.37
+    },
+    "512": {
+     "bin_hz": 38.5,
+     "n_band_bins": 332,
+     "band_lo_in_bins": 11.18,
+     "mainlobe_halfwidth_hz": 77.0,
+     "beat_hz": 48.84,
+     "band_power_db": -82.39,
+     "leakage_only_db": -101.69,
+     "true_over_leakage_db": 19.31
+    }
+   },
+   "fullrecord_band_share_db": -51.64,
+   "fullrecord_band_share_lowpassed_db": -134.54
+  },
+  "ours/el-15": {
+   "per_window": {
+    "35": {
+     "bin_hz": 562.9,
+     "n_band_bins": 22,
+     "band_lo_in_bins": 0.76,
+     "mainlobe_halfwidth_hz": 1125.7,
+     "beat_hz": 126.47,
+     "band_power_db": -48.14,
+     "leakage_only_db": -48.27,
+     "true_over_leakage_db": 0.13
+    },
+    "48": {
+     "bin_hz": 410.4,
+     "n_band_bins": 30,
+     "band_lo_in_bins": 1.05,
+     "mainlobe_halfwidth_hz": 820.8,
+     "beat_hz": 126.32,
+     "band_power_db": -52.04,
+     "leakage_only_db": -52.42,
+     "true_over_leakage_db": 0.38
+    },
+    "70": {
+     "bin_hz": 281.4,
+     "n_band_bins": 44,
+     "band_lo_in_bins": 1.53,
+     "mainlobe_halfwidth_hz": 562.9,
+     "beat_hz": 126.17,
+     "band_power_db": -60.51,
+     "leakage_only_db": -65.11,
+     "true_over_leakage_db": 4.6
+    },
+    "96": {
+     "bin_hz": 205.2,
+     "n_band_bins": 62,
+     "band_lo_in_bins": 2.1,
+     "mainlobe_halfwidth_hz": 410.4,
+     "beat_hz": 126.14,
+     "band_power_db": -61.84,
+     "leakage_only_db": -73.01,
+     "true_over_leakage_db": 11.17
+    },
+    "128": {
+     "bin_hz": 153.9,
+     "n_band_bins": 82,
+     "band_lo_in_bins": 2.79,
+     "mainlobe_halfwidth_hz": 307.8,
+     "beat_hz": 126.15,
+     "band_power_db": -62.07,
+     "leakage_only_db": -81.75,
+     "true_over_leakage_db": 19.67
+    },
+    "192": {
+     "bin_hz": 102.6,
+     "n_band_bins": 124,
+     "band_lo_in_bins": 4.19,
+     "mainlobe_halfwidth_hz": 205.2,
+     "beat_hz": 126.09,
+     "band_power_db": -62.02,
+     "leakage_only_db": -89.11,
+     "true_over_leakage_db": 27.09
+    },
+    "256": {
+     "bin_hz": 77.0,
+     "n_band_bins": 166,
+     "band_lo_in_bins": 5.59,
+     "mainlobe_halfwidth_hz": 153.9,
+     "beat_hz": 126.11,
+     "band_power_db": -61.98,
+     "leakage_only_db": -96.18,
+     "true_over_leakage_db": 34.2
+    },
+    "384": {
+     "bin_hz": 51.3,
+     "n_band_bins": 248,
+     "band_lo_in_bins": 8.38,
+     "mainlobe_halfwidth_hz": 102.6,
+     "beat_hz": 125.98,
+     "band_power_db": -61.99,
+     "leakage_only_db": -105.05,
+     "true_over_leakage_db": 43.06
+    },
+    "512": {
+     "bin_hz": 38.5,
+     "n_band_bins": 332,
+     "band_lo_in_bins": 11.18,
+     "mainlobe_halfwidth_hz": 77.0,
+     "beat_hz": 42.23,
+     "band_power_db": -61.98,
+     "leakage_only_db": -111.14,
+     "true_over_leakage_db": 49.16
+    }
+   },
+   "fullrecord_band_share_db": -21.46,
+   "fullrecord_band_share_lowpassed_db": -134.61
+  }
+ },
+ "R4a_facet_proxy_no_grid_no_occlusion": {
+  "note_ko": "원장 C_D 의 독립 재구현(코드를 새로 썼다). w = max(n̂·û,0)·A, 위상만 구면파. 512 자세(원장은 4096).",
+  "plane_wave_nadir_ac_over_dc_db": -310.72,
+  "exact_invariance_ko": "⭐나딧 원거리장에서는 회전이 z 를 바꾸지 않고 투영면적도 바꾸지 않으므로 ∫exp(j2kz)dA_proj 가 **정확히 불변**이다 — 날개 모양·피치·개수와 무관하다. 위 −300 dB 대는 float64 반올림이다.",
+  "range_sweep_ac_over_dc_db": {
+   "10m": -38.56,
+   "14.08m": -44.81,
+   "20m": -51.11,
+   "30m": -58.3,
+   "50m": -67.28,
+   "70m": -73.17,
+   "100m": -79.4,
+   "200m": -91.48,
+   "500m": -107.42,
+   "1000m": -119.47
+  },
+  "fit_exponent": 4.038,
+  "fit_max_resid_db": 0.34,
+  "with_material_gamma": {
+   "10m": -45.9,
+   "20m": -57.33,
+   "50m": -72.86,
+   "100m": -84.78,
+   "note_ko": "|Γ| 를 재질표로 넣어도 거리 기울기는 같다(레벨만 달라진다)."
+  },
+  "first_order_test": {
+   "first_order_ac_db": -319.07,
+   "full_ac_db": -38.56,
+   "corr_first_order_vs_full": 0.0301,
+   "why_ko": "근접장 위상을 1차(−kρ²/R)까지만 펴면 2엽 상쇄로 그 항이 거의 죽는다. 남는 것이 2차항이고 그래서 전력이 1/R⁴ 이다."
+  },
+  "seconds": 22.2
+ },
+ "R4b_cpu_kernel_replica": {
+  "meta": {
+   "n_rays": 15376,
+   "grid_n": 124,
+   "spacing_m": 0.007137915666666667,
+   "ctr": [
+    -3.006828288654173e-05,
+    -3.115743870329979e-05,
+    0.01493864451752398
+   ],
+   "Rout": 0.44219288241223925,
+   "hits_first": 1016,
+   "hits_penetration": 750
+  },
+  "measured": {
+   "level_db": -41.66,
+   "ac_over_dc_db": -38.27
+  },
+  "emulated": {
+   "level_db": -40.83,
+   "ac_over_dc_db": -48.46
+  },
+  "corr_ac_sph10_vs_measured": 0.998,
+  "corr_ac_plane_vs_measured": 0.8728,
+  "corr_ac_facetproxy_vs_measured": 0.6645,
+  "ac_amplitude_ratio_meas_over_emul": 3.231,
+  "range_sweep_ac_over_dc_db": {
+   "plane": -50.31,
+   "10": -48.46,
+   "14.08": -49.57,
+   "20": -50.02,
+   "50": -50.29,
+   "100": -50.31,
+   "300": -50.31,
+   "1000": -50.31
+  },
+  "range_sweep_no_occlusion_db": {
+   "plane": -48.31,
+   "10": -47.43,
+   "14.08": -48.33,
+   "20": -48.54,
+   "50": -48.47,
+   "100": -48.4,
+   "300": -48.34,
+   "1000": -48.32
+  },
+  "nearfield_only_vs_range_db": {
+   "10": -53.81,
+   "14.08": -58.64,
+   "20": -63.09,
+   "50": -72.63,
+   "100": -78.9,
+   "300": -88.49,
+   "1000": -98.95
+  },
+  "nearfield_only_fit_exponent": 2.222,
+  "nearfield_only_fit_resid_db": 1.83,
+  "pm_am": {
+   "measured_pm_over_am_db": 7.43,
+   "replica_pm_over_am_db": 7.25,
+   "facet_proxy_pm_over_am_db": -12.12,
+   "note_ko": "재현기는 관측의 PM/AM 비까지 되살린다(7.25 대 7.43 dB). 반면 원장이 기전 근거로 쓴 패싯 대리모형은 같은 AC/DC 를 내면서 PM/AM 이 **−12.1 dB**(진폭 우세)다 → PM/AM 은 기전을 가르는 잣대가 못 된다."
+  },
+  "shift_null": {
+   "observed": 0.998,
+   "null_max": 0.6138,
+   "null_p99": 0.4618,
+   "null_median": 0.2258
+  }
+ },
+ "R4c_grid_ladder": {
+  "rows": {
+   "lambda/8": {
+    "n_rays": 7225,
+    "spacing_mm": 10.707,
+    "hits_first": 456,
+    "plane_ac_over_dc_db": -46.9,
+    "plane_no_occlusion_ac_db": -44.19,
+    "sph10_ac_over_dc_db": -46.37,
+    "sph10_no_occlusion_ac_db": -44.47,
+    "sph100_ac_over_dc_db": -46.91,
+    "nearfield_only_ac_db": -52.71,
+    "nearfield_only_vs_range_db": {
+     "10m": -52.71,
+     "20m": -60.42,
+     "50m": -69.05,
+     "100m": -75.18
+    },
+    "nearfield_only_fit_exponent": 2.236,
+    "nearfield_only_fit_resid_db": 0.53,
+    "seconds": 1.1
+   },
+   "lambda/12": {
+    "n_rays": 15376,
+    "spacing_mm": 7.138,
+    "hits_first": 1016,
+    "plane_ac_over_dc_db": -51.18,
+    "plane_no_occlusion_ac_db": -48.95,
+    "sph10_ac_over_dc_db": -49.18,
+    "sph10_no_occlusion_ac_db": -48.11,
+    "sph100_ac_over_dc_db": -51.18,
+    "nearfield_only_ac_db": -54.25,
+    "nearfield_only_vs_range_db": {
+     "10m": -54.25,
+     "20m": -64.01,
+     "50m": -73.95,
+     "100m": -80.29
+    },
+    "nearfield_only_fit_exponent": 2.589,
+    "nearfield_only_fit_resid_db": 1.03,
+    "seconds": 1.4
+   },
+   "lambda/24": {
+    "n_rays": 58564,
+    "spacing_mm": 3.569,
+    "hits_first": 4059,
+    "plane_ac_over_dc_db": -58.92,
+    "plane_no_occlusion_ac_db": -58.98,
+    "sph10_ac_over_dc_db": -51.52,
+    "sph10_no_occlusion_ac_db": -51.96,
+    "sph100_ac_over_dc_db": -58.83,
+    "nearfield_only_ac_db": -54.62,
+    "nearfield_only_vs_range_db": {
+     "10m": -54.62,
+     "20m": -66.18,
+     "50m": -79.85,
+     "100m": -87.97
+    },
+    "nearfield_only_fit_exponent": 3.349,
+    "nearfield_only_fit_resid_db": 1.03,
+    "seconds": 2.4
+   },
+   "lambda/48": {
+    "n_rays": 228484,
+    "spacing_mm": 1.784,
+    "hits_first": 16289,
+    "plane_ac_over_dc_db": -62.02,
+    "plane_no_occlusion_ac_db": -68.6,
+    "sph10_ac_over_dc_db": -52.18,
+    "sph10_no_occlusion_ac_db": -52.72,
+    "sph100_ac_over_dc_db": -61.86,
+    "nearfield_only_ac_db": -54.85,
+    "nearfield_only_vs_range_db": {
+     "10m": -54.85,
+     "20m": -66.73,
+     "50m": -81.96,
+     "100m": -92.11
+    },
+    "nearfield_only_fit_exponent": 3.74,
+    "nearfield_only_fit_resid_db": 0.61,
+    "seconds": 8.0
+   }
+  },
+  "measured_ac_over_dc_db": -38.95,
+  "unit_test_reference": {
+   "source": "outputs/verify_po_elev_unit.json gates G3_nadir_null_*",
+   "div12_ac_below_dc_db": -21.75,
+   "div12_ac_power_pct": 0.66338,
+   "div48_ac_below_dc_db": -43.02,
+   "div48_ac_power_pct": 0.00499,
+   "target": "one_sphere, 2 cm sphere orbiting r=0.137 m about the LINE OF SIGHT",
+   "why_not_comparable_ko": "단위시험의 궤도 구는 **회전축이 시선 위**라 왕복거리가 아예 안 변한다 → 해석 도플러가 정확히 0 이고 그 칸의 AC 는 전부 격자 잡음이다. 기체는 로터 허브가 시선에서 L=0.219 m 밀려 있어 사정이 다르다. 게다가 표적이 다르면(2 cm 구 vs 30,662 면 기체) 격자 잡음의 상대 크기도 다르다 — 두 숫자를 바로 비교하면 안 된다.",
+   "normalization_note_ko": "지시문은 이 값을 «AC 전력의 0.663 %» 라고 옮겼는데 원장 키는 ac_power_pct=0.66338 **총전력 대비 %** 이고 같은 칸의 ac_below_dc_db 가 −21.75 dB 다. 즉 −38.31 dB 와 **같은 정규화**이므로 비교 자체는 성립한다 — 다만 표적이 달라서 결론이 안 따라온다."
+  }
+ },
+ "R4d_null_width": {
+  "cpu_replica": {
+   "-90.0": {
+    "off_nadir_deg": 0.0,
+    "plane_ac_over_dc_db": -51.18,
+    "sph10_ac_over_dc_db": -49.18
+   },
+   "-89.0": {
+    "off_nadir_deg": 1.0,
+    "plane_ac_over_dc_db": -49.14,
+    "sph10_ac_over_dc_db": -46.96
+   },
+   "-88.0": {
+    "off_nadir_deg": 2.0,
+    "plane_ac_over_dc_db": -46.1,
+    "sph10_ac_over_dc_db": -44.1
+   },
+   "-85.0": {
+    "off_nadir_deg": 5.0,
+    "plane_ac_over_dc_db": -38.28,
+    "sph10_ac_over_dc_db": -32.52
+   },
+   "-80.0": {
+    "off_nadir_deg": 10.0,
+    "plane_ac_over_dc_db": -23.75,
+    "sph10_ac_over_dc_db": -23.73
+   },
+   "-75.0": {
+    "off_nadir_deg": 15.0,
+    "plane_ac_over_dc_db": -18.77,
+    "sph10_ac_over_dc_db": -18.85
+   }
+  },
+  "measured_sweep_same_metric": {
+   "el+0": -15.3,
+   "el-15": -19.5,
+   "el-30": -4.08,
+   "el-45": -8.22,
+   "el-60": 12.36,
+   "el-75": -10.48,
+   "el-90": -38.95
+  },
+  "farfield_facet_proxy": {
+   "-90.0": {
+    "off_nadir_deg": 0.0,
+    "ac_over_dc_db": -305.01
+   },
+   "-89.5": {
+    "off_nadir_deg": 0.5,
+    "ac_over_dc_db": -55.85
+   },
+   "-89.0": {
+    "off_nadir_deg": 1.0,
+    "ac_over_dc_db": -44.09
+   },
+   "-88.0": {
+    "off_nadir_deg": 2.0,
+    "ac_over_dc_db": -32.81
+   },
+   "-85.0": {
+    "off_nadir_deg": 5.0,
+    "ac_over_dc_db": -11.88
+   },
+   "-80.0": {
+    "off_nadir_deg": 10.0,
+    "ac_over_dc_db": -1.21
+   },
+   "-75.0": {
+    "off_nadir_deg": 15.0,
+    "ac_over_dc_db": -7.02
+   }
+  }
+ },
+ "R4f_comb_attribution": {
+  "note_ko": "«126.67 Hz 빗살이 보인다» 가 물리의 증거인지 본다. 격자 잡음만 있는 계열(원거리장·가림 없음)의 빗살 몫을 백색 기준선과 비교한다.",
+  "effective_prf_hz": 2462.5,
+  "n_samples": 512,
+  "white_noise_baseline_db": -7.55,
+  "rows": [
+   {
+    "series": "replica far field, no occlusion = pure grid noise",
+    "ac_over_dc_db": -48.31,
+    "on_comb_share_db": -5.87,
+    "on_comb_ac_over_dc_db": -54.19
+   },
+   {
+    "series": "replica far field (grid noise + occlusion)",
+    "ac_over_dc_db": -50.31,
+    "on_comb_share_db": -4.21,
+    "on_comb_ac_over_dc_db": -54.52
+   },
+   {
+    "series": "replica spherical 10 m (all three)",
+    "ac_over_dc_db": -48.46,
+    "on_comb_share_db": -2.11,
+    "on_comb_ac_over_dc_db": -50.57
+   },
+   {
+    "series": "measured SBR kernel",
+    "ac_over_dc_db": -38.27,
+    "on_comb_share_db": -1.93,
+    "on_comb_ac_over_dc_db": -40.2
+   }
+  ],
+  "grid_noise_share_of_comb_power": 0.435,
+  "verdict_ko": "백색 기준선은 −7.55 dB 다(빗살 마스크가 빈의 17.6 % 를 덮는다). 격자 잡음만 있는 계열은 −5.87 dB 로 기준선보다 **1.7 dB** 만 몰려 있고, 실측은 −1.93 dB 로 **5.6 dB** 몰려 있다. ⇒ 격자 잡음은 빗살을 거의 안 만들고 넓게 퍼진다. 빗살 **위**의 전력만 세면 격자 잡음 몫이 약 43 % 로 떨어진다(전체 AC 에서는 64 %). 빗살 자체는 주로 물리다."
+ },
+ "R4e_attribution": {
+  "prop_share_of_dc_power_db": -14.45,
+  "rest_share_of_dc_power_db": 0.46,
+  "ac_of_props_only_db": -34.0,
+  "ac_of_everything_else_db": -319.09,
+  "phasor_angle_prop_vs_total_deg": -101.7,
+  "two_phasor_pm_over_am_db": 13.69,
+  "observed_pm_over_am_db": 7.37,
+  "pm_am_note_ko": "로터 페이저를 **하나**로 뭉뚱그린 이 2-페이저 어림은 13.7 dB 를 주고 관측은 7.4 dB 다 — 어림이 거칠다. 그러나 **면 단위로 다 더하는 재현기는 7.25 dB 로 맞춘다** (R4b.pm_am). 요지는 그대로다: PM/AM 비는 페이저 사잇각의 문제이지 «도플러가 남았나» 의 잣대가 아니다.",
+  "gamma_prop_scale_matching_measured_ac": 3.24,
+  "gamma_prop_implied": 0.2851,
+  "level_db_at_that_scale": -40.8,
+  "measured_level_db": -41.66,
+  "unexplained_ac_power_fraction": 0.004,
+  "note_ko": "① AC 는 **전부 로터**에서 온다 — 로터를 뺀 나머지의 AC 는 −319 dB(=0)다. ② 재현기가 측정보다 AC 가 10.2 dB 작은 것은 «다른 잡음» 이 아니라 **곱셈 상수**다(파형이 99.6 % 같다). |Γ_prop| 을 3.24 배 하면 정확히 맞는다. ③ ⚠그러나 그때 함의되는 |Γ_prop| = 0.285 는 **벌크 플라스틱 0.244 보다 크다** — 박판 블레이드에서 그럴 수 없다. 그러니 «Γ 값 하나가 틀렸다» 는 설명은 **미해결**이다. 가장 유력한 후보는 커널의 각도의존 Γ(SIONNA2_ANGLE_GAMMA=1, 비스듬한 면에서 |Γ| 가 커진다)인데, materials.py 가 sionna.rt 를 끌어와 GPU 를 잡으므로 이 라운드에서 확인하지 못했다. **GPU 가 필요한 남은 일**로 남긴다."
+ },
+ "R5_detection": {
+  "convention": {
+   "source": "outputs/md_range_sweep.json meta.snr / link_budget",
+   "eirp_dbm": 12.0,
+   "rx_gain_dbi": 10.0,
+   "nf_db": 5.0,
+   "b_hz": 100000000.0,
+   "prf_hz": 19700.0,
+   "g_mf_db": 37.06,
+   "rung": "snr_slow_db(③) / snr_slow_ac_db(③′) · monostatic-equivalent R⁴",
+   "caveat_ko": "σ 절대값은 NOT_VALIDATED(das_fleet_validation) — 상대비교로만 읽어라."
+  },
+  "sigma_dbsm": {
+   "nadir_total": -9.32,
+   "nadir_dc": -9.32,
+   "nadir_ac_at_10m": -47.63,
+   "el15_dc": -18.84,
+   "el15_ac": -38.47
+  },
+  "nadir_ac_split": {
+   "nearfield_fraction": 0.3112,
+   "occlusion_fraction": 0.052,
+   "grid_sampling_noise_fraction": 0.6368,
+   "basis": "R4c: λ/12 총합 − 근접장고유(coherent diff) − 가림바닥(λ/48 plane, 상한). 측정 AC 는 재현기 AC 의 3.2배 스칼라이므로(ρ=0.998) 같은 비율로 나뉜다고 본다.",
+   "exponent_used": {
+    "physical": 4.0,
+    "as_measured": 2.589,
+    "why_ko": "물리는 1/r⁴ 이지만 **생산 격자 λ/12 에서 실제로 재면** 근접장 고유항이 r^−2.59 로만 떨어진다 — 격자가 두 날개를 다르게 표본화해서 1차항 상쇄가 깨지기 때문이다. 격자를 조이면 지수가 2.24→2.59→3.35→3.74 로 4 에 수렴한다."
+   },
+   "caveat_ko": "① 격자 잡음 몫은 **수치 인공물**이다 — 실물 표적에는 없다. ② 세 갈래가 직교하지 않으므로 이 나눗셈은 어림이다. ③ 가림 몫은 λ/48 판 값이라 아직 격자 잡음이 섞여 있다 → **상한**이고, 따라서 격자 잡음 몫 64 % 는 **하한**이다."
+  },
+  "rows": {
+   "10m": {
+    "nadir_snr_total_db": 44.39,
+    "nadir_snr_blade_physical_db": 1.68,
+    "nadir_snr_blade_as_measured_db": 6.08,
+    "el15_snr_total_db": 34.91,
+    "el15_snr_blade_db": 15.24
+   },
+   "20m": {
+    "nadir_snr_total_db": 32.35,
+    "nadir_snr_blade_physical_db": -17.42,
+    "nadir_snr_blade_as_measured_db": -7.26,
+    "el15_snr_total_db": 22.87,
+    "el15_snr_blade_db": 3.2
+   },
+   "40m": {
+    "nadir_snr_total_db": 20.31,
+    "nadir_snr_blade_physical_db": -30.74,
+    "nadir_snr_blade_as_measured_db": -19.56,
+    "el15_snr_total_db": 10.83,
+    "el15_snr_blade_db": -8.85
+   },
+   "100m": {
+    "nadir_snr_total_db": 4.39,
+    "nadir_snr_blade_physical_db": -46.75,
+    "nadir_snr_blade_as_measured_db": -35.53,
+    "el15_snr_total_db": -5.09,
+    "el15_snr_blade_db": -24.76
+   },
+   "200m": {
+    "nadir_snr_total_db": -7.65,
+    "nadir_snr_blade_physical_db": -58.8,
+    "nadir_snr_blade_as_measured_db": -47.58,
+    "el15_snr_total_db": -17.13,
+    "el15_snr_blade_db": -36.8
+   }
+  }
+ },
+ "VERDICTS": {
+  "claim1_fixed_band_beat_is_leakage": {
+   "verdict": "살아남음 (SURVIVES) — 단, 반쪽만 참이다",
+   "evidence": {
+    "true_over_leakage_at_deck_window_db": 0.01,
+    "at_192_samples_db": 1.84,
+    "at_512_samples_db": 19.31,
+    "fullrecord_band_share_db": -51.64,
+    "lowpass_control_db": -134.54
+   },
+   "corrected_statement_ko": "덱이 쓴 70-표본 창에서는 고정대역 값이 **전부 누설**이다(0.01 dB). 그러나 창을 192 표본 이상으로 늘리면 진짜 대역 에너지가 누설 위로 올라온다(+1.8 → +19.3 dB). 전체 기록 FFT 로는 대역 몫이 −51.6 dB 이고 저역통과 대조군은 −134.5 dB 다 — **대역 안에 진짜 에너지가 있다.** 즉 «인용된 숫자는 인공물» 은 맞고 «대역이 비어 있다» 는 틀렸다."
+  },
+  "claim2_comb_is_real": {
+   "verdict": "살아남음 (SURVIVES) — 빗살은 물리다. 단 전체 AC 의 64 % 는 격자 잡음이고 그것은 빗살 밖에 있다",
+   "evidence": {
+    "split": {
+     "nearfield_fraction": 0.3112,
+     "occlusion_fraction": 0.052,
+     "grid_sampling_noise_fraction": 0.6368,
+     "basis": "R4c: λ/12 총합 − 근접장고유(coherent diff) − 가림바닥(λ/48 plane, 상한). 측정 AC 는 재현기 AC 의 3.2배 스칼라이므로(ρ=0.998) 같은 비율로 나뉜다고 본다.",
+     "exponent_used": {
+      "physical": 4.0,
+      "as_measured": 2.589,
+      "why_ko": "물리는 1/r⁴ 이지만 **생산 격자 λ/12 에서 실제로 재면** 근접장 고유항이 r^−2.59 로만 떨어진다 — 격자가 두 날개를 다르게 표본화해서 1차항 상쇄가 깨지기 때문이다. 격자를 조이면 지수가 2.24→2.59→3.35→3.74 로 4 에 수렴한다."
+     },
+     "caveat_ko": "① 격자 잡음 몫은 **수치 인공물**이다 — 실물 표적에는 없다. ② 세 갈래가 직교하지 않으므로 이 나눗셈은 어림이다. ③ 가림 몫은 λ/48 판 값이라 아직 격자 잡음이 섞여 있다 → **상한**이고, 따라서 격자 잡음 몫 64 % 는 **하한**이다."
+    },
+    "comb": {
+     "note_ko": "«126.67 Hz 빗살이 보인다» 가 물리의 증거인지 본다. 격자 잡음만 있는 계열(원거리장·가림 없음)의 빗살 몫을 백색 기준선과 비교한다.",
+     "effective_prf_hz": 2462.5,
+     "n_samples": 512,
+     "white_noise_baseline_db": -7.55,
+     "rows": [
+      {
+       "series": "replica far field, no occlusion = pure grid noise",
+       "ac_over_dc_db": -48.31,
+       "on_comb_share_db": -5.87,
+       "on_comb_ac_over_dc_db": -54.19
+      },
+      {
+       "series": "replica far field (grid noise + occlusion)",
+       "ac_over_dc_db": -50.31,
+       "on_comb_share_db": -4.21,
+       "on_comb_ac_over_dc_db": -54.52
+      },
+      {
+       "series": "replica spherical 10 m (all three)",
+       "ac_over_dc_db": -48.46,
+       "on_comb_share_db": -2.11,
+       "on_comb_ac_over_dc_db": -50.57
+      },
+      {
+       "series": "measured SBR kernel",
+       "ac_over_dc_db": -38.27,
+       "on_comb_share_db": -1.93,
+       "on_comb_ac_over_dc_db": -40.2
+      }
+     ],
+     "grid_noise_share_of_comb_power": 0.435,
+     "verdict_ko": "백색 기준선은 −7.55 dB 다(빗살 마스크가 빈의 17.6 % 를 덮는다). 격자 잡음만 있는 계열은 −5.87 dB 로 기준선보다 **1.7 dB** 만 몰려 있고, 실측은 −1.93 dB 로 **5.6 dB** 몰려 있다. ⇒ 격자 잡음은 빗살을 거의 안 만들고 넓게 퍼진다. 빗살 **위**의 전력만 세면 격자 잡음 몫이 약 43 % 로 떨어진다(전체 AC 에서는 64 %). 빗살 자체는 주로 물리다."
+    }
+   },
+   "corrected_statement_ko": "126.67 Hz 빗살은 실재한다. ⭐이번 라운드가 정면으로 답한 것: 생산 격자 λ/12 에서 나딧 AC **전력의 약 64 % 는 광선 격자 표본화 잡음**이다(격자를 λ/48 로 조이면 원거리장 잔여가 −49 → −62 dB 로 무너진다). 그러나 그 잡음은 **빗살을 거의 안 만든다** — 격자 잡음만 있는 계열의 on-comb 몫은 백색 기준선보다 1.7 dB 위인데 실측은 5.6 dB 위다. 빗살 위 전력만 세면 격자 잡음 몫이 64 % → 43 % 로 내려간다. 즉 **관측된 빗살이 격자 잡음에 묻혀 있지 않다** — 다만 «AC/DC = −38.3 dB» 라는 **숫자**는 절반 이상이 인공물이라 그대로 인용하면 안 된다."
+  },
+  "claim3_phase_beats_amplitude": {
+   "verdict": "반증됨 (REFUTED) — 결론은 우연히 맞고 근거는 틀렸다",
+   "evidence": {
+    "measured": {
+     "measured_pm_over_am_db": 7.43,
+     "replica_pm_over_am_db": 7.25,
+     "facet_proxy_pm_over_am_db": -12.12,
+     "note_ko": "재현기는 관측의 PM/AM 비까지 되살린다(7.25 대 7.43 dB). 반면 원장이 기전 근거로 쓴 패싯 대리모형은 같은 AC/DC 를 내면서 PM/AM 이 **−12.1 dB**(진폭 우세)다 → PM/AM 은 기전을 가르는 잣대가 못 된다."
+    },
+    "per_element_doppler_hz": 27.94
+   },
+   "corrected_statement_ko": "2엽 상쇄가 남기는 인자 2cos(a·cosψ) 는 **실수**다 — 로터 페이저의 크기만 흔든다. 그것이 AM 으로 보이나 PM 으로 보이나는 로터 페이저와 총 페이저의 사잇각이 정한다. 증거: 같은 AC/DC(−38.6 dB)를 내는 패싯 대리모형은 PM/AM 이 **−12.1 dB**(진폭 우세)이고 커널 재현기는 **+7.25 dB**(위상 우세)다. 같은 기전, 반대 부호. «작은 도플러가 남는다» 는 결론 자체는 참이지만(허브 오프셋이 만드는 ±27.9 Hz), pm_over_am 은 그 근거가 아니다."
+  },
+  "claim4_mechanism_is_nearfield_curvature": {
+   "verdict": "부분 반증 (PARTLY REFUTED) — 기전은 실재하고 1/r⁴ 도 맞으나, 인용된 수치 일치는 우연이다",
+   "evidence": {
+    "ledger_fit_exponent": 4.037,
+    "independent_facet_fit_exponent": 4.038,
+    "replica_nearfield_only_fit_exponent": 2.222,
+    "exponent_vs_grid": {
+     "lambda/8": 2.236,
+     "lambda/12": 2.589,
+     "lambda/24": 3.349,
+     "lambda/48": 3.74
+    },
+    "first_order_term_db": -319.07,
+    "proxy_10m_db": -38.56,
+    "proxy_10m_with_material_gamma_db": -45.9,
+    "replica_nearfield_only_10m_db": -54.25,
+    "measured_db": -38.95
+   },
+   "corrected_statement_ko": "① 1/r⁴ 는 **맞다** — 원장 표를 적합하면 지수 4.04, 내가 새로 짠 대리모형도 4.04, 가림·격자까지 넣은 재현기의 근접장 고유항도 같은 기울기다. 이유도 확인했다: 2엽 로터에서 1차항(∝1/R)이 **정확히 상쇄**되어(−319 dB) 2차항만 남는다 → 전력 ∝1/R⁴. ⚠단 그것은 **격자가 없을 때**다. 생산 격자 λ/12 에서 실제로 재면 근접장 고유항이 r^−2.59 로만 떨어진다 — 격자가 두 날개를 다르게 표본화해 1차 상쇄를 깨기 때문이고, 격자를 조이면 지수가 2.24→2.59→3.35→3.74 로 4 에 수렴한다. ② 그러나 «구면파 10 m = −38.55 dB 가 실측 −38.31 dB 와 맞는다» 는 **우연이다**. 그 대리모형은 |Γ|=1(프롭 과대평가)과 가림 없음의 두 오차가 서로를 가려 준 값이다. 재질 |Γ| 를 넣으면 −45.9 dB 이고, 커널을 그대로 재현하면 근접장 고유항은 −54.3 dB 다. ③ 실측 −38.3 dB 를 만드는 것은 [근접장 31 % + 격자잡음 64 % + 가림 5 %] 에 |Γ_prop| 눈금(×3.2) 이다."
+  },
+  "claim5_blind_cone_is_very_narrow": {
+   "verdict": "반증됨 (REFUTED)",
+   "evidence": {
+    "replica": {
+     "-90.0": {
+      "off_nadir_deg": 0.0,
+      "plane_ac_over_dc_db": -51.18,
+      "sph10_ac_over_dc_db": -49.18
+     },
+     "-89.0": {
+      "off_nadir_deg": 1.0,
+      "plane_ac_over_dc_db": -49.14,
+      "sph10_ac_over_dc_db": -46.96
+     },
+     "-88.0": {
+      "off_nadir_deg": 2.0,
+      "plane_ac_over_dc_db": -46.1,
+      "sph10_ac_over_dc_db": -44.1
+     },
+     "-85.0": {
+      "off_nadir_deg": 5.0,
+      "plane_ac_over_dc_db": -38.28,
+      "sph10_ac_over_dc_db": -32.52
+     },
+     "-80.0": {
+      "off_nadir_deg": 10.0,
+      "plane_ac_over_dc_db": -23.75,
+      "sph10_ac_over_dc_db": -23.73
+     },
+     "-75.0": {
+      "off_nadir_deg": 15.0,
+      "plane_ac_over_dc_db": -18.77,
+      "sph10_ac_over_dc_db": -18.85
+     }
+    },
+    "old_proxy": {
+     "-90.0": {
+      "off_nadir_deg": 0.0,
+      "ac_over_dc_db": -305.01
+     },
+     "-89.5": {
+      "off_nadir_deg": 0.5,
+      "ac_over_dc_db": -55.85
+     },
+     "-89.0": {
+      "off_nadir_deg": 1.0,
+      "ac_over_dc_db": -44.09
+     },
+     "-88.0": {
+      "off_nadir_deg": 2.0,
+      "ac_over_dc_db": -32.81
+     },
+     "-85.0": {
+      "off_nadir_deg": 5.0,
+      "ac_over_dc_db": -11.88
+     },
+     "-80.0": {
+      "off_nadir_deg": 10.0,
+      "ac_over_dc_db": -1.21
+     },
+     "-75.0": {
+      "off_nadir_deg": 15.0,
+      "ac_over_dc_db": -7.02
+     }
+    }
+   },
+   "corrected_statement_ko": "«0.5° 만 벗어나도 −55.9 dB, 1° 에서 −44.1 dB» 는 가림도 격자도 없는 원거리장 모형의 성질이다. 그 모형은 나딧에서 **정확히 0**(−305 dB)에서 출발하므로 어떤 각도든 «급격한 회복» 으로 보인다. 커널을 그대로 재현하면 나딧이 −49.2 dB 에서 출발해 1° −47.0, 2° −44.1, 5° −32.5, 10° −23.7 dB 로 **완만하게** 찬다. 즉 널의 **깊이**가 −305 dB 가 아니라 −49 dB(실측 눈금으로는 −38 dB)이고, «아주 좁은 원뿔» 이 아니라 «10° 규모로 회복되는 얕은 웅덩이» 다."
+  }
+ },
+ "_meta": {
+  "generator": "benchmark/refute_nadir_mechanism_final.py",
+  "question_ko": "verify_nadir_flash.json 의 주장 (1)~(5) 를 끝까지 반증한다",
+  "gpu_ko": "⭐GPU 를 쓰지 않았다. mitsuba·sionna 를 import 조차 하지 않는다. 광선은 CPU z-버퍼.",
+  "inputs": {
+   "series": "outputs/elevation_sweep_md.npz (phase_sign_v2=1)",
+   "source_ledger": "outputs/verify_nadir_flash.json",
+   "unit_test": "outputs/verify_po_elev_unit.json",
+   "link_budget": "outputs/md_range_sweep.json",
+   "kinematics": "outputs/report07_three_engines.json _meta"
+  },
+  "gamma_table": {
+   "prop": 0.0881,
+   "body": 0.2437,
+   "canopy": 0.2437,
+   "gear": 0.2437,
+   "accent": 0.2437,
+   "arm": 0.9938,
+   "motor": 1.0,
+   "battery": 1.0,
+   "camera": 0.85,
+   "pcb": 0.9
+  },
+  "gamma_source": "outputs/material_sources.json (근거는 GAM 주석)",
+  "replica_limits_ko": [
+   "각도의존 Γ(SIONNA2_ANGLE_GAMMA=1)를 못 넣었다 — materials.py 가 sionna.rt 를 끌어와 GPU 를 잡는다.",
+   "|Γ| 표를 손으로 옮겨 적었다(원장 material_sources.json 기준). camera 0.85·pcb 0.9 는 추정.",
+   "float64 로 계산했다(커널은 mitsuba float32). PTD 모서리항은 커널 기본값대로 끔.",
+   "나딧(그리고 회전시킨 앙각)만 다룬다 — 방위 스윕·바이스태틱은 안 했다.",
+   "⭐그럼에도 파형 상관 0.998·레벨 0.83 dB·PM/AM 0.18 dB 안으로 맞는다. AC 크기만 10.2 dB 낮다."
+  ],
+  "seconds": 62.7
+ }
+}
