@@ -1,0 +1,294 @@
+{
+  "_meta": {
+    "title": "8 권 감사 — reports/08_4_sampling.ipynb 이 실제로 어느 엔진 팔을 돌렸나",
+    "generated": "2026-08-12",
+    "author_role": "감사 에이전트(읽기 전용)",
+    "gpu_used": false,
+    "wrote_only": ["outputs/audit_vol8_08_4.json"],
+    "question_ko": "8-4 의 각 절이 PathSolver 팔과 우리 SBR+PO 팔을 둘 다 돌렸나, 아니면 한 팔만 돌리고 두 팔인 것처럼 서술했나",
+    "three_arms_ko": {
+      "PathSolver": "Sionna 레이트레이싱 — 원장 키 spp · paths_median · paths_zero_frac · seconds. σ 를 안 잰다",
+      "ours_SBR_PO": "우리 SBR+PO(가림 있음) — src/rcs_sbr.py::sbr_field. 원장 키 grid_ref(n · spacing) · grid_frozen",
+      "pure_PO": "우리 순수 PO(가림 없음) — 셋째 팔. 8-4 본문에서는 한 번도 안 쓰였고 부록의 f2 행 라벨로만 나온다"
+    },
+    "notebook": {
+      "path": "reports/08_4_sampling.ipynb",
+      "mtime": "2026-08-11 00:54:46",
+      "cells": 4,
+      "numbered_sections": 0,
+      "note_ko": "«## 절 N.» 번호가 없다. 무번호 ## 표제 세 개 + 표제부 셀 하나로 갈랐다."
+    },
+    "verification_method_ko": [
+      "노트북을 JSON 으로 읽어 base64 를 버리고 마크다운만 뽑았다(6,562 자).",
+      "인용된 원장을 전부 열어 키 구조로 팔을 판정했다(낱말 세기 아님).",
+      "빌더 src/make_report08_microdoppler.py 의 주입 지점(줄 969~1124)을 읽어 각 수의 출처 키를 확인했다.",
+      "그림 빌더 benchmark/build_range_sweep_fig.py · build_5g_fig.py 를 읽어 그림 안의 두 팔 주장을 확인했다.",
+      "노트북에 박힌 base64 PNG 의 md5 가 outputs/figures 의 현재 파일과 같은지 확인했다(둘 다 일치).",
+      "npz 를 CPU 로 열어 바이트 동일성 비교를 했다(GPU 미사용)."
+    ]
+  },
+
+  "sections": [
+    {
+      "id": "cell0",
+      "section": "«절 없음» · 셀 0(표제부)",
+      "title": "리포트 8-4 — 마이크로도플러: 무엇을 잴 수 있나",
+      "arms_used": ["none"],
+      "ledger_checked": [],
+      "verdict": "엔진_무관",
+      "evidence_ko": "제목 · 8 권 항해줄 · «두 가지가 잴 수 있는 것을 제한한다 — 광선 비용과 조명원 반복률» 한 줄 · 원장 주입 안내. 수치 0 개.",
+      "note_ko": "«광선 비용» 은 PathSolver 쪽 한계이고 «반복률» 은 조명원 쪽 한계다. 표제부만 보면 두 축이 서로 다른 팔의 문제라는 것이 안 드러난다."
+    },
+
+    {
+      "id": "cell1",
+      "section": "«절 없음» · 셀 1",
+      "title": "거리 — 벽인가 예산인가",
+      "arms_used": ["PathSolver", "analytic"],
+      "ledger_checked": [
+        {
+          "file": "outputs/report07_sionna_ranges.json",
+          "keys": ["_meta.spp_scaling_ko", "_meta.baseline_m=0.0", "_meta.prf_hz=5000", "_meta.n=512", "ranges.R3/R10/R20/R40.{range_m,spp,seconds,paths_median,paths_zero_frac,level_db,ptp_db}"],
+          "arm": "PathSolver 만",
+          "proof_ko": "ranges 아래 키가 spp · paths_* 뿐이다. ours · sbr · po · grid_ref · spacing · div 키가 하나도 없다."
+        },
+        {
+          "file": "outputs/report07_ray_budget_test.json",
+          "keys": ["_meta.range_m=40.0", "_meta.n_poses=128", "_meta.rule_value_spp=177777777.78", "_meta.verdict_ko", "ladder.{32M,64M,128M,178M}.{spp,seconds,paths_median,paths_mean,zero_frac,level_db_nonzero}"],
+          "arm": "PathSolver 만",
+          "proof_ko": "사다리 전체가 spp 축이다. 우리 팔 키 없음."
+        },
+        {
+          "file": "outputs/report15_probe.json",
+          "keys": ["airframes.matrice4e.physics.farfield_m=8.2591", "airframes.matrice4e.physics.farfield_diag3d_m=14.0760"],
+          "arm": "해석(엔진 아님)",
+          "proof_ko": "본문의 «8.3 m · 3D 대각 14.1 m» 는 이 두 키다(빌더 줄 137~139 · 1012~1013). 2D²/λ 기하값이라 어느 엔진도 안 돌렸다."
+        }
+      ],
+      "numbers_recomputed_ok": {
+        "예산비_1.00_0.72_0.36_0.18": "spp / (1e6·(R/3)²) = 1.00 / 0.72 / 0.36 / 0.18 ✅",
+        "40m_빈자세_78.3%": "ranges.R40.paths_zero_frac = 0.783203125 ✅",
+        "사다리표_전체": "32M(0 · 0.34 · 77.3%) · 64M(2 · 1.66 · 0.0%) · 128M(4 · 3.69 · 0.0%) · 178M(5 · 5.38 · 0.0%) 모두 원장과 일치 ✅",
+        "100m_6.2배": "(100/40)² = 6.25 → 6.2 ✅",
+        "내부_교차검증": "같은 spp(32M)에서 스윕 78.3%(자세 512) ↔ 사다리 77.3%(자세 128) — 두 판이 서로 맞는다. 다만 본문은 자세 수가 다르다는 것을 안 적었다."
+      },
+      "verdict": "한_팔인데_두_팔처럼_서술",
+      "why_ko": [
+        "잰 것은 PathSolver 뿐이다 — 거리 스윕도 광선 사다리도 Sionna 원장이고, 우리 팔의 값은 이 절 어디에도 없다.",
+        "그런데 마지막 두 문단이 두 팔을 나란히 놓은 것처럼 끝난다: «반면 우리 SBR+PO 는 … 한 번 계산하면 거리에 무관하다» · «SBR+PO 가 맡는 이유는 …». 이 주장은 원장 값이 아니라 평면파 조명 구조에서 나온 해석 진술이다.",
+        "그림 f9 의 (c) 판이 더 세다 — benchmark/build_range_sweep_fig.py:120-122 가 `ax.axhline(1.0, color=C_OURS, label=\"Ours (SBR+PO), range invariant\")` 로 우리 팔 선을 **손으로 그린다**. 데이터 원점이 없다. PathSolver 곡선도 측정 seconds 가 아니라 해석식 (R/3)² 다.",
+        "부록이 그 사실을 자인한다 — f9 행의 광선 격자 칸이 «Sionna 팔(광선 격자 무관)» 이다. 즉 노트북 스스로 f9 를 한 팔 그림으로 분류해 놓고, 그 그림 안에는 Ours 범례가 있다."
+      ],
+      "supporting_ledger_exists_but_not_cited": {
+        "file": "outputs/deck_ours_by_range.json",
+        "keys": ["ranges.3.cpu_seconds=2460.2", "ranges.15.cpu_seconds=2095.2", "ranges.40.cpu_seconds=2599.9", "_meta.n=4096", "ranges.*.level_db"],
+        "means_ko": "우리 커널을 구면파 조명으로 3/15/40 m 에서 실제로 다시 돌린 유일한 원장이다. 자세당 0.601 / 0.512 / 0.635 s — 비용이 거리에 안 걸린다는 것을 **측정으로** 보여준다.",
+        "so_ko": "«거리 무관» 주장은 근거가 아예 없는 것이 아니라, **근거가 있는데 이 절이 그것을 안 들고 왔다.** 고치는 값이 크다 — 손으로 그린 axhline 을 실제 세 점으로 바꾸면 이 절은 진짜 두 팔이 된다."
+      },
+      "adjacent_flags": [
+        {
+          "what_ko": "원거리장 경계가 원장마다 다르다",
+          "detail_ko": "본문이 쓰는 8.3 m 는 report15_probe.json(=report00_microdoppler.json rows.matrice4e.farfield_m 8.2591)인데, 이 절이 인용하는 report07_sionna_ranges.json 의 _meta.farfield_boundary_m 은 8.0399 다. 같은 절 안에서 두 값이 공존한다.",
+          "severity": "낮음(0.2 m · 서술은 D 정의를 밝혀 놓았다)"
+        },
+        {
+          "what_ko": "비용 서술이 R26 정본 문구와 어긋날 소지",
+          "detail_ko": "docs/RETRACTION_LOG.md R26 정본은 «가까운 거리에서 최소 예산이면 PathSolver 가 싸고, 멀어지거나 예산을 올리면 우리 커널이 싸다 · ⛔무조건문 금지» 다. 이 절 본문에 «싸다» 라는 낱말은 없어 R26 의 grep 게이트는 통과하지만, f9(c) 는 두 팔을 각자 3 m=1 로 정규화해 놓아 «가까운 거리에서는 PathSolver 가 절대비용으로 싸다» 는 R26 의 절반이 화면에서 지워진다.",
+          "severity": "중간(그림 안 · 본문 아님)"
+        },
+        {
+          "what_ko": "원장 하나가 «우리 팔은 안 돌렸다» 고 스스로 적어 놓았다",
+          "detail_ko": "outputs/report07_three_engine_ranges.json _meta.grid_note_ko = «그림3(report07_three_engines) 격자·회전수 재사용 — sbr·po 열은 거리 무관이라 그 원장을 그대로 쓴다». 즉 8 권의 거리 축에서 우리 두 팔은 재계산된 적이 없고 거리 무관이 **가정으로 파이프라인에 들어가 있다.** 그 가정을 8-4 §1 이 결론으로 다시 쓰면 순환이 된다.",
+          "severity": "높음(8-2 f12 와 공유되는 구조 문제)"
+        }
+      ]
+    },
+
+    {
+      "id": "cell2",
+      "section": "«절 없음» · 셀 2",
+      "title": "같은 채널에 5G 파형을 실제로 태우면",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger_checked": [
+        {
+          "file": "outputs/report07_5g_waveform.json",
+          "keys": ["_meta.channel_source", "_meta.scs_hz=30000", "_meta.n_sc=1024", "_meta.sym_rate_hz=28000", "_meta.full_capture_max_rel_err=2.6367e-14", "_meta.ici_floor_db_first_order=-17.810", "_meta.bandlimit_guard_energy=1.1893e-03", "arms.cw_5k{fs_hz=19700,n=39400,ptp_db=8.5915}", "arms.nr_full_28k{fs_hz=28000,n=220640}", "arms.nr_crs_1k{fs_hz=1000,n=7880}", "arms.nr_ssb_50{fs_hz=50,n=394}", "arms.*.ftip_folds", "arms.*.fflash_folds"],
+          "arm": "엔진 팔 없음 — 이 원장은 이미 만들어진 채널열을 솎기만 한다",
+          "proof_ko": "benchmark/report07_5g_waveform.py:44-46 이 report07_hover_long.{json,npz} 만 읽는다. Sionna 도 rcs_sbr 도 import 하지 않는다."
+        },
+        {
+          "file": "outputs/report07_hover_long.json",
+          "keys": ["_meta.prf_hz=19700", "_meta.grid_frozen=true", "_meta.grid_ref.n=124", "_meta.grid_ref.spacing=0.00713792(=λ/12)", "_meta.generated=2026-08-10 12:50:56", "_meta.regenerated=2026-08-10 23:34:23", "_meta.compute_seconds=13496"],
+          "arm": "ours_SBR_PO(가림 있음)",
+          "proof_ko": "benchmark/report07_hover_long.py:62 `from rcs_sbr import sbr_field, grid_ref_for_slowtime` · :197 `Es[j] = sbr_field(fp.pose(...), GM, FC, u, grid_ref=gref)`. 순수 PO 도 PathSolver 도 아니다."
+        }
+      ],
+      "verdict": "한_팔만",
+      "why_ko": [
+        "채널을 낸 것은 우리 SBR 팔 하나뿐이다. PathSolver 는 이 절에 없다.",
+        "본문의 «네 팔» 은 엔진 팔이 아니라 **표본율 네 가지**다(본문이 그렇게 밝혀 적어 놓았다). 그래서 «두 팔처럼 서술» 에는 해당하지 않는다.",
+        "다만 8 권 전체가 «팔» 을 엔진 뜻으로 써 왔고(부록도 «우리 팔»), 이 절만 «팔» 을 표본율 뜻으로 쓴다 — 낱말이 겹친다."
+      ],
+      "already_declared_by_the_notebook": {
+        "what_ko": "본문 마지막 ⏳ 가 «이 절의 원장은 재계산 대기다 — 표의 수치를 지금 인용하지 마라» 라고 스스로 적었다.",
+        "verified_ko": "맞다. benchmark/report07_5g_waveform.py:66 `h28k = resample_poly(h5k, 28, 5)` 가 5 kHz 로 못 박혀 있는데 PRF0 = 19700 이다(같은 파일 47 줄 주석은 아직 `# 5000` 이다). 실제 시간축은 19700·28/5 = 110320 Hz 이고, 표의 28000 · 1000 · 50 Hz 라벨과 그 나이퀴스트는 전부 어긋난다.",
+        "extra_ko": "라벨이 어긋난 결과 표의 «접힘» 판정도 지금 데이터에서는 뒤집힌다 — nr_crs_1k 는 h_hat[::28] 이라 실제 3940 Hz(나이퀴스트 1970 Hz)여서 날개끝 1229 Hz 가 **안 접힌다**. 표는 «⚠접힘» 이라고 적혀 있다. nr_ssb_50 은 실제 197 Hz(나이퀴스트 98.5 Hz)라 플래시 127 Hz 는 여전히 접힌다."
+      },
+      "new_defect_found_by_this_audit": {
+        "what_ko": "⭐«채널은 08_3 의 h(t) 그대로다(같은 원장)» 가 지금은 사실이 아니다 — 이 절은 **얼기 전 판** 채널 위에 서 있다.",
+        "proof_ko": [
+          "outputs/report07_5g_waveform.npz::cw_5k 는 outputs/prefreeze/report07_hover_long.npz::E 와 **바이트 동일**(np.array_equal True)하고, 현재 outputs/report07_hover_long.npz::E 와는 다르다(False).",
+          "두 판의 차이는 작지 않다 — 최대 상대차 2.11, ptp 8.5915 dB(얼기 전) ↔ 5.6101 dB(현재 얼린 판). 5G 원장의 arms.cw_5k.ptp_db = 8.5915 가 얼기 전 값과 정확히 같다.",
+          "시각도 맞아떨어진다 — 5G 원장/npz 는 2026-08-10 15:11:32, 호버 채널 npz 는 2026-08-10 23:34:23 에 다시 쓰였다."
+        ],
+        "so_ko": "08_3 의 f7 은 얼린 채널을, 08_4 §2 는 얼기 전 채널을 보고 있다. 원장 **이름** 은 같고 **판** 이 다르다. 부록의 ⚠ «f3 만 옛 판이다» 도 그래서 틀렸다.",
+        "severity": "높음"
+      },
+      "figure_staleness": {
+        "what_ko": "그림 f10 이 자기 원장보다 오래됐다",
+        "proof_ko": "outputs/figures/report07_f10.png mtime 2026-08-10 09:54:14 < outputs/report07_5g_waveform.{json,npz} mtime 2026-08-10 15:11:32. 노트북에 박힌 base64 의 md5(071c0fa10934eb077e92e64459a354da)는 현재 png 파일과 같으므로, 노트북이 보여주는 그림과 표의 숫자는 **서로 다른 실행에서 났다.**",
+        "severity": "중간"
+      },
+      "numbers_recomputed_ok": {
+        "속도_환산": "±25 Hz × 0.0857/2 = ±1.07 m/s ✅ · 1228.7 × 0.0857/2 = 52.6 m/s ✅ · λ = c/3.5 GHz = 85.7 mm ✅",
+        "표_전체": "네 팔의 fs · 나이퀴스트 · 접힘 표시가 원장 arms 키와 글자 그대로 일치 ✅ (원장 자체가 틀린 라벨이라는 것은 위 항목)"
+      }
+    },
+
+    {
+      "id": "cell3",
+      "section": "«절 없음» · 셀 3",
+      "title": "부록 — 그림별 데이터 이력",
+      "arms_used": ["none"],
+      "ledger_checked": [
+        {"file": "outputs/report07_three_engines.json", "keys": ["engines.sbr", "engines.po", "engines.sionna", "levels_db", "ptp_db", "verdict.cosine_in_ftip"], "note_ko": "f12·f8 행의 격자 라벨 «얼림(한 변 124 칸)» 은 engines.sbr.grid_ref.n=124 에서 나온다 ✅"},
+        {"file": "outputs/report15_verdict.json", "keys": ["top-level 'sionna'", "top-level 'po'", "meta.stamp=2026-08-04 12:33:01"], "note_ko": "f2 행 «광선 안 씀(순수 PO ↔ Sionna)» 는 정확하다 — 이 원장에 실제로 sionna 팔과 순수 PO 팔이 둘 다 있다. 8-4 에서 셋째 팔이 이름으로라도 등장하는 유일한 자리다 ✅"},
+        {"file": "outputs/report07_sionna_ranges.json", "keys": ["_meta.generated=2026-08-10 04:31:54", "_meta.prf_hz=5000"], "note_ko": "f9 행의 시각·PRF 출처"},
+        {"file": "outputs/report07_ray_budget_test.json", "keys": ["_meta.generated=2026-08-10 09:19:55"], "note_ko": "f9 행이 같이 인용하는 둘째 원장 — 시각이 표에 안 나온다"}
+      ],
+      "verdict": "엔진_무관",
+      "why_ko": "측정을 하지 않는 이력표다. 다만 8 권에서 **팔 라벨을 붙이는 유일한 표** 라서 틀리면 파급이 크다.",
+      "defects": [
+        {
+          "row": "f10",
+          "what_ko": "광선 격자 칸이 «얼림 (한 변 124 칸)» 인데 실제 5G 채널은 얼기 전 판이다",
+          "proof_ko": "빌더 줄 1084-1085 가 _PLATE_HOV(현재 hover 원장 기준)를 그대로 갖다 쓴다. 위 §2 의 바이트 동일성 증명으로 반증된다.",
+          "severity": "높음"
+        },
+        {
+          "row": "⚠ 문단",
+          "what_ko": "«f3 만 옛 판이다» 가 틀렸다 — f10 도 옛 판이다",
+          "severity": "높음"
+        },
+        {
+          "row": "f9",
+          "what_ko": "원장 두 개를 인용하는데 시각은 하나(04:31)만 적힌다. 결판 시험 원장은 09:19 다",
+          "proof_ko": "빌더 줄 1082-1083 이 RGM['generated'] 하나만 찍는다",
+          "severity": "낮음"
+        }
+      ],
+      "checks_that_passed": {
+        "조각_0.45주기": "round(0.45×19700/126.667) = 70 표본 ✅ · Δt = 0.45/126.667 = 3.55 ms ✅ · Δf = 126.667/0.45 = 281 Hz ✅",
+        "f9_PRF_5000": "이 편의 다른 그림(19700 Hz)과 다른 것을 표가 정직하게 밝힌다 ✅",
+        "f9_팔_라벨": "«Sionna 팔(광선 격자 무관)» — §1 의 실측 팔과 일치한다 ✅ (그림 안 Ours 범례와는 어긋난다)"
+      }
+    }
+  ],
+
+  "citation_gap": {
+    "question_ko": "이 편에 출처(선행연구) 인용이 없는 것이 문제인가",
+    "answer_ko": "부분적으로 문제다 — 개관 편이 아니라 수치를 내는 편이기 때문이다.",
+    "detail_ko": [
+      "§1 의 (R/3)² 규칙은 프로젝트 내부 규약이고 본문이 원장 키(`_meta.spp_scaling_ko`)를 밝혀 인용했다 — 여기는 문제 없다.",
+      "§2 는 3GPP 규격에서 온 수를 근거 없이 쓴다 — SSB 20 ms 주기(→50 Hz) · CRS 급 1 kHz · SCS 30 kHz(n78) · 0.5 ms 슬롯 ×14 (→28k sym/s). 원장 report07_5g_waveform.json 에도 규격 출처 키가 없다(라벨이 «LTE-CRS-like» · «5G SSB rate» 로 «-like» 다).",
+      "«선행연구 방법론 차용·결과비교 상시규칙» 기준으로 보면, 반복률 한계는 패시브 레이다 문헌에 대응 논의가 있는 주제인데 이 편은 우리 수만 놓았다."
+    ]
+  },
+
+  "fix_list": [
+    {
+      "rank": 1,
+      "where": "reports/08_4_sampling.ipynb §2 + 부록 f10 행 · 근본은 outputs/report07_5g_waveform.{json,npz}",
+      "what_ko": "5G 절이 서 있는 채널이 얼기 전 판이다. «08_3 의 h(t) 그대로» 도, 부록의 «얼림(한 변 124 칸)» 도, «f3 만 옛 판» 도 전부 틀렸다.",
+      "how_ko": "benchmark/report07_5g_waveform.py 를 현재 hover npz 로 다시 돌린다(같은 실행에서 보간 비도 고친다). 그 전까지는 부록 f10 행 격자 칸을 «⚠얼기 전 판(2026-08-10 15:11 · prefreeze 채널)» 으로 바꾸고 ⚠문단을 «f3·f10 이 옛 판» 으로 고친다.",
+      "gpu": "필요(채널 재계산은 불필요 — 기존 npz 를 읽어 CPU 로 재파형화하면 된다)"
+    },
+    {
+      "rank": 2,
+      "where": "benchmark/report07_5g_waveform.py:47,66",
+      "what_ko": "`resample_poly(h5k, 28, 5)` 가 5 kHz 로 못 박혀 있고 주석도 `# 5000` 이다. PRF 는 19700 이다.",
+      "how_ko": "보간 비를 PRF0 에서 계산하게 바꾸고(Fraction 으로 28000/PRF0), _meta.channel_source 의 «PRF 5 kHz» 문구도 원장 값에서 찍게 한다. 표의 접힘 판정이 뒤집힌다(CRS 팔은 지금 데이터로는 안 접힌다).",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 3,
+      "where": "benchmark/build_range_sweep_fig.py:120-122 (그림 f9 (c) 판)",
+      "what_ko": "«Ours (SBR+PO), range invariant» 선이 데이터 없는 axhline 이다. 한 팔로 재고 두 팔처럼 보이는 자리의 핵심.",
+      "how_ko": "outputs/deck_ours_by_range.json 의 ranges.{3,15,40}.cpu_seconds ÷ _meta.n(4096) = 0.601/0.512/0.635 s 를 실제 점으로 찍는다. 그러면 이 그림이 진짜 두 팔이 된다. 범례도 «measured, 3 points» 로 바꾼다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 4,
+      "where": "reports/08_4_sampling.ipynb §1 마지막 두 문단 (빌더 줄 1011-1016)",
+      "what_ko": "우리 팔의 «거리 무관» 이 이 절 안에서는 근거 없는 진술이다(근거 원장이 따로 있는데 안 들고 왔다).",
+      "how_ko": "deck_ours_by_range.json 을 인용해 자세당 초를 본문 표로 넣거나, 최소한 «이 절은 PathSolver 만 쟀다 · 우리 팔의 거리 무관은 원장 X 에서 따로 쟀다» 를 한 줄로 밝힌다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 5,
+      "where": "reports/08_4_sampling.ipynb §1 · f9 (c) 캡션",
+      "what_ko": "R26 정본의 앞 절반(«가까운 거리·최소 예산이면 PathSolver 가 싸다»)이 정규화 때문에 안 보인다.",
+      "how_ko": "(c) 판에 절대 자세당 초 축을 병기하거나 캡션에 R26 정본 한 줄을 넣는다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 6,
+      "where": "outputs/figures/report07_f10.png",
+      "what_ko": "그림(09:54)이 자기 원장(15:11)보다 오래됐다 — 표와 그림이 다른 실행이다.",
+      "how_ko": "1·2 번을 고친 뒤 build_5g_fig.py 를 다시 돌리고 노트북을 다시 짠다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 7,
+      "where": "8 권 전체 구조 (outputs/report07_three_engine_ranges.json _meta.grid_note_ko)",
+      "what_ko": "거리 축에서 우리 두 팔은 재계산된 적이 없고 «거리 무관» 이 가정으로 파이프라인에 들어가 있다. 8-4 §1 이 그것을 결론으로 다시 쓰면 순환이다.",
+      "how_ko": "deck_ours_by_range.json 이 그 가정을 깨는 유일한 측정이므로 8 권 안으로 승격시키거나, 원장 note 를 «가정» 이라고 명시하고 리포트에서 결론으로 안 쓴다.",
+      "gpu": "이미 계산됨(승격만)"
+    },
+    {
+      "rank": 8,
+      "where": "reports/08_4_sampling.ipynb §2 낱말",
+      "what_ko": "«팔» 이 이 절에서만 표본율 뜻이다(8 권의 다른 곳은 엔진 뜻).",
+      "how_ko": "«네 갈래» · «네 표본율» 로 바꾼다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 9,
+      "where": "reports/08_4_sampling.ipynb §1 · 부록 f9 행",
+      "what_ko": "원거리장 경계가 8.3 m(report15_probe) ↔ 8.04 m(report07_sionna_ranges)로 두 값이다. f9 행 시각도 두 원장 중 하나만 찍힌다.",
+      "how_ko": "경계는 한 원장으로 통일하고, f9 행에 두 시각을 다 적는다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 10,
+      "where": "reports/08_4_sampling.ipynb §2 · §1",
+      "what_ko": "규격 출처 인용이 없다(SSB 50 Hz · CRS 1 kHz · SCS 30 kHz n78) · 선행연구 비교도 없다.",
+      "how_ko": "3GPP 절 번호를 한 줄로 달고, 반복률 한계에 대응하는 선행 논의가 있으면 prior_work 에서 한 편이라도 나란히 놓는다.",
+      "gpu": "불필요"
+    },
+    {
+      "rank": 11,
+      "where": "reports/08_4_sampling.ipynb §1 사다리 표",
+      "what_ko": "«자세 128 개» 사다리와 «78.3%» 스윕(자세 512)의 자세 수가 다른데 본문에 안 적혀 있다. 두 수(77.3% ↔ 78.3%)가 서로 맞는다는 좋은 교차검증인데 그 사실도 안 적혀 있다.",
+      "how_ko": "«같은 32M 에서 자세 128 판 77.3% ↔ 자세 512 판 78.3% — 두 판이 맞는다» 를 한 줄 넣는다.",
+      "gpu": "불필요"
+    }
+  ],
+
+  "bottom_line_ko": {
+    "두_팔_나란히_놓은_절": "0 개",
+    "한_팔인데_두_팔처럼_서술": "§1 «거리 — 벽인가 예산인가» — 잰 것은 PathSolver 뿐인데 결론과 그림 범례가 우리 SBR+PO 를 나란히 세운다. 우리 팔 선은 손으로 그은 axhline 이다.",
+    "정직하게_한_팔": "§2 «5G 파형» — 우리 SBR 팔 하나다. 엔진을 둘로 부풀리지 않았다. 대신 이 절은 **얼기 전 판 채널** 위에 서 있다는 것이 이번 감사에서 새로 드러났다.",
+    "셋째_팔(순수 PO)": "8-4 본문에서 한 번도 안 쓰였다. 부록 f2 행의 라벨로만 나오고 그 라벨은 정확하다."
+  }
+}

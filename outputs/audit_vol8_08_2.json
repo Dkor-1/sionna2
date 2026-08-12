@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "generated": "2026-08-12",
+    "what_ko": "reports/08_2_engines.ipynb 절 단위 엔진-팔 감사 — 각 절이 실제로 어느 팔(PathSolver / 우리 SBR+PO / 순수 PO)의 값을 나란히 놓았는가",
+    "method_ko": "노트북을 JSON 으로 읽어 마크다운만 뽑고(그림 base64 제거), 빌더 src/make_report08_microdoppler.py 로 각 숫자의 주입 경로를 역추적한 뒤, 인용된 outputs/*.json 을 직접 열어 키 구조로 판정했다",
+    "read_only": true,
+    "no_gpu": true,
+    "notebook": "reports/08_2_engines.ipynb",
+    "builder": "src/make_report08_microdoppler.py :: build_08_2() (660~852행) + _grid_anchor_cell()(293~434행) + _flash_census_para()(437~473행) + _seed_para()(476~509행)",
+    "cells": 7,
+    "section_numbering_ko": "이 노트북은 «## 절 N.» 형식을 안 쓴다 — 제목 없는 ## 헤더 여섯 개다. 아래 번호는 감사가 등장 순서로 매긴 것이다",
+    "arm_definitions_ko": {
+      "PathSolver": "Sionna 레이트레이싱. 원장 키: engines.sionna · spp · paths_median · sionna_tail",
+      "ours_SBR_PO": "우리 SBR + 물리광학(src/rcs_sbr.py). 원장 키: engines.sbr · sbr · froz/prod · grid_ref",
+      "pure_PO": "가림 없는 순수 PO 점구름 적분(src/microdoppler_nearfield.py). 원장 키: engines.po · po_tail · pure_po_ladder. ⚠SBR 팔과 다른 셋째 팔이다"
+    }
+  },
+  "sections": [
+    {
+      "section": "«절 없음» · 셀 0",
+      "title": "머리말 — 리포트 8-2 마이크로도플러: 세 엔진과 거리",
+      "arms_used": ["none"],
+      "ledger": "없음 — 내비게이션과 «숫자는 전부 계산 결과 JSON(원장)에서 주입된다» 선언뿐",
+      "verdict": "엔진_무관",
+      "note": "표지·목차 셀이라 팔 판정 대상이 아니다. 다만 이 편이 이름을 대는 원장은 7 개뿐인데(freeze_before_after · prefreeze/ · probe_8m_anomaly · report07_depth_robust · report15_blade_flash_ladder · report15_verdict · sbr_grid_convergence), 헤드라인 숫자를 내는 report07_three_engines.json · outofband_power.json · report07_three_engine_ranges.json · verify_frozen_grid.json 은 본문에 한 번도 안 나온다"
+    },
+    {
+      "section": "1 · 셀 1",
+      "title": "세 엔진이 각각 무엇을 하나",
+      "arms_used": ["PathSolver", "ours_SBR_PO", "pure_PO"],
+      "ledger": "outputs/sbr_grid_convergence.json : rows[div=12].spacing_mm = 7.137916 → «7.1 mm» / outputs/report07_three_engines.json : engines.sbr.grid_ref.n = 124 → 124² = 15,376 발(outputs/verify_frozen_grid.json : gate2_frozen_grid_invariant.frozen.n_rays = 15376 과 일치) / outputs/report15b_microdoppler.json : cells[\"matrice4e/belly\"].findings.occlusion_level_db = 1.315 · occlusion_ptp_db = -4.792",
+      "verdict": "두_팔_나란히",
+      "note": "세 팔의 정의를 나란히 놓은 표다 — 측정치가 아니라 «무엇을 하는 엔진인가» 의 서술이라 팔 사용 여부를 따질 자리는 아니다. 이 셀의 유일한 실측인 가림축(+1.31 dB · -4.79 dB)은 report15b 의 F(동체 Γ=0) ↔ G(동체 면 제거) 로, 둘 다 **우리 SBR 팔 내부의 변형**이고 PathSolver 가 안 들어간다 — 본문이 그렇게 적어 놓았다. 셋째 열(순수 PO)을 «물리적으로 불가능한 대조군» 이라고 못 박은 것과 «둘째와 셋째는 가림 말고 이산화 방식도 다르다» 는 경고가 다 붙어 있다"
+    },
+    {
+      "section": "2 · 셀 2",
+      "title": "세 엔진을 같은 격자에, 거리 3 / 8 / 15 m",
+      "arms_used": ["PathSolver", "ours_SBR_PO", "pure_PO"],
+      "ledger": "outputs/report07_depth_robust.json : engines.sionna(ptp 32.646 · p5p95 7.506 · 비 4.35) · engines.sbr(5.327 · 2.452 · 2.17) · engines.po(2.765 · 1.203 · 2.30) — ⭐**세 팔이 다 있다** / 같은 파일 sionna_by_range.{R3,R8,R15}.ptp_db = 32.65 / 2.48 / 50.11 · p5p95 = 7.51 / 1.15 / 20.19 · ptp_db_drop1 = 27.10 / — / 45.07 (Sionna 단독) / outputs/outofband_power.json : three_engines[label=sbr|po|sionna].frac_of_total = 0.0017817 / 7.32e-7 / 0.050577 · new_floor_rel_db_raw_mean = -62.25 / -127.16 / -47.61 · three_engines_ranking.new_P_out_absolute.sbr_over_po_db = 34.569 → «35 dB» · sbr_over_sionna_db.new_frac_of_total = -14.531 · secondary_out_over_in.values_pct = {sionna 77.07, sbr 26.23} / outputs/report07_three_engines.json : verdict.cosine_in_ftip.{sionna_vs_sbr 0.74503, sionna_vs_po 0.76020, sbr_vs_po 0.95501} / outputs/sbr_grid_convergence.json : in_band_fidelity.rows[*].cos_froz_vs_po = 0.9549/0.9535/0.9682/0.9763/0.9832 · cos_prod_vs_po = 0.4261~0.5142 / outputs/report07_three_engine_ranges.json : ranges.{R3,R8,R15}.{spp,paths_median,paths_zero_frac,level_db} — ⚠**Sionna 열만**, _meta.grid_note_ko = «sbr·po 열은 거리 무관이라 그 원장을 그대로 쓴다» / outputs/probe_8m_anomaly.json : runs_512pose.{A,B,C}.db_of_mean_abs = -117.96 / -135.96 / -121.43 · beat_over_f_flash = 3.018 / 1.006 / 0.999 · A.prop_over_static_db = -27.553 · A.static_unique_values = 1 · prior_probe_reanalysis.ctrl_same_spp_25M.*.beat_over_fflash = 0.976 / 0.998 / 0.991 · spp_scaling.slope_absE(3 m) = 0.516~0.687 · slope_incoh = -0.035~-0.011 (Sionna 단독) / outputs/report07_three_engines.npz : sbr·po·sionna 각 4096 복소 (그림 f12 = benchmark/build_three_engine_ranges_fig.py, 3행×3열)",
+      "verdict": "두_팔_나란히",
+      "note": "⭐**사용자 실마리의 «report07_depth_robust.json = PathSolver 만» 은 틀렸다** — engines 아래 sionna·sbr·po 세 칸이 다 있고 본문 깊이 표의 세 줄이 곧 그 세 칸이다. 대역밖 표·코사인 세 자리·그림 f12 도 세 팔이 실제로 나란하다. **다만 거리축(3/8/15 m)만은 PathSolver 단독이다** — 원장이 Sionna 열만 갖고 있고, 가운데·오른쪽 열은 같은 맵의 복사다. 본문이 바로 아래 ⭐줄과 그림 캡션에서 그것을 밝힌다(«왼쪽 열만 거리마다 다시 풀었다»). 이 절의 경고 문장들(깊이를 물리량으로 인용 금지 · 코사인을 절대 척도로 인용 금지 · 표에서 인용해도 되는 것은 «빈 자세 0 %» 뿐)은 전부 원장 값과 일치했다"
+    },
+    {
+      "section": "3 · 셀 3",
+      "title": "광선 격자를 어디에 매나 (### 이 편의 숫자가 얼마나 옮겼나 / 이 판을 믿을 근거 두 가지 / 대가 / 이 편의 모든 맵은 얼린 격자로 계산됐다)",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "outputs/freeze_before_after.json : ledgers[\"report07_three_engines/sbr\"].{level_db_before -50.343, level_db_after -51.546, level_db_delta -1.203, mod_depth 0.1270→0.0845 (×0.665), ptp_db 7.857→5.327, P_out_db -65.908→-79.012 (Δ -13.104), amp_corr 0.4642, complex_coherence 0.4828, plate_choice_check.amp_corr 0.9930 · level_db_delta -0.0061} · additivity.cells[\"matrice4e/az0_el-15\"].{frozen.additivity_residual_median 2.26e-15, moving 0.16668, spurious_modulation_db +26.717, moving.modulation_rms 5.00e-3, frozen 2.31e-4} · summary.{n_series 27, level_db_delta.median -0.1208 (-2.515~+0.824), amp_corr.median 0.4106, mod_depth_ratio.median 0.6653 (0.271~1.376), outofband_P_out_db_delta.n_decreased 27 · median -10.949 · min -22.098} · off_switch_gate.rows 6/6 bit_identical / outputs/verify_frozen_grid.json : gate2.prod.{n_min 101, n_max 129, n_changes 61, ctr_dot_u_ptp_mm 9.789, Rout_ptp_mm 98.21} · gate2.frozen.{n 124, n_changes 0} · gate2.extra_ray_cost 1.10838 · gate1_bit_identity.n_bit_identical 36/36 · gate3_coverage.margin_min_mm 120.54 · field_level.froz_vs_prod_level_db_ptp 3.351 / outputs/report07_three_engines.json : engines.sbr.grid_ref{n 124, spacing 7.137916 mm, Rout 0.44207 m, n_mesh 24} · engines.sbr.grid_frozen true / outputs/sbr_grid_convergence.json : in_band_fidelity.rows[div=12].{cos_prod_vs_po 0.44016, cos_froz_vs_po 0.95347}",
+      "verdict": "한_팔만",
+      "note": "**우리 SBR 팔 단독 절이다.** PathSolver 는 이 절에 값이 하나도 없다 — 그리고 절 스스로 마지막 문단에서 «세 엔진 원장의 Sionna 열과 대조군(순수 PO) 열은 다시 안 돌렸다 … 두 열은 비트 그대로 옮겼다» 고 밝힌다(정직함). 순수 PO 는 «격자 사다리의 예측» 한 줄에서 기준선으로만 등장한다(0.440 → 0.953 은 SBR↔순수 PO 코사인). ⚠**한 자리가 두 팔처럼 읽힌다** — «27 열 전부(세 엔진 · report15b 여섯 자세 · 호버 두 프리셋)» 의 «세 엔진» 은 **원장 이름**이지 세 팔이 아니다. freeze_before_after.json:ledgers 의 키 27 개는 전부 SBR 계열이고 세 엔진 원장에서 온 것은 sbr 한 줄뿐이다(27 = 1 + 24 + 2). ⚠자 흔들림 실측(101~129 칸 · 61 번 · 9.8 mm · 98 mm)은 verify_frozen_grid gate2 의 **검증판(n_mesh=16)** 에서 나오고 바로 다음 문단의 «이 편이 쓴 판» 은 **생산판(n_mesh=24)** 이다 — 둘 다 한 변 124 칸이라 결론은 같지만 문단이 붙어 있어 같은 판으로 읽힌다"
+    },
+    {
+      "section": "4 · 셀 4",
+      "title": "블레이드 플래시를 세 엔진으로 나란히 (60 ms 확대)",
+      "arms_used": ["PathSolver", "ours_SBR_PO", "pure_PO"],
+      "ledger": "outputs/report07_three_engines.npz : sionna·sbr·po 세 열 — benchmark/build_flash_zoom.py:50-52 ARMS = [(sionna,…),(sbr,…),(po,…)] 로 세 패널이 실제로 세 열이다 / outputs/report07_three_engines.json : _meta.f_flash_hz 126.667 → «7.9 ms» · verdict.cosine_in_ftip.sbr_vs_po 0.95501 · levels_db.{sionna -117.076, sbr -51.546} → 격차 -65.53 dB, 환산 -20log10(4πR²)|R=3 = -41.07 dB, 잔여 -24.46 dB / outputs/report00_microdoppler.json : specular_census.total.{n_cells 1152, n_with_specular 16, n_with_prop_specular 0} — ⚠**PathSolver 단독** / outputs/report15_blade_flash_ladder.json : budget_axis.{matrice4e,mini2}[4.096e9].n_cells_with_prop_specular = 0/576 · elevation_axis.matrice4e.deep = 2/960 · mini2.deep = 0/960 · verdict.*.verdict_ko — ⚠**PathSolver 단독**(PO·SBR 키가 파일에 아예 없다)",
+      "verdict": "두_팔_나란히",
+      "note": "그림 f8 은 세 팔이 진짜로 나란하다(같은 npz · 같은 슬로타임 격자 · 같은 회전수). ⭐사용자 실마리의 «report15_blade_flash_ladder.json = PathSolver 만» 은 **맞다** — 그러나 그것은 결함이 아니다. 그 사다리는 «Sionna 가 왜 얼룩인가» 를 Sionna 팔 안에서 진단하는 인구조사이고, 본문이 «그 격자가 무엇인지» 와 «이 편의 자세(앙각 -15°)는 그 격자에 들어 있지 않다» 를 스스로 밝힌다. 사다리의 기체(matrice4e·mini2)와 앙각 격자(0~85°)가 이 편의 장면과 다르다는 것도 적혀 있다. 마지막 ⚠⚠문단이 두 팔의 **단위가 다르다**(수신 전력장 ↔ 산란 진폭 [m²])는 것을 못 박고 환산항을 빼서 남는 -24.5 dB 만 설명 대상으로 남긴다 — 두 팔의 값을 나란히 놓되 차를 물리량으로 안 읽는 모범 사례다"
+    },
+    {
+      "section": "5 · 셀 5",
+      "title": "두 엔진이 날개끝 아래에서 겹치고 위에서 갈린다",
+      "arms_used": ["PathSolver", "pure_PO"],
+      "ledger": "outputs/report15_verdict.json : tail_excess.by_cell[\"matrice4e/3/nose\"].{sionna_tail.mean_db -29.5612, po_tail.mean_db -44.2524} → 14.69 dB · [\"mini2/3/nose\"].{-34.3515, -61.7575} → 27.41 dB · meta.stamp 2026-08-04 / 그림 report07_f2 = benchmark/build_report07_figs.py:152-203 fig2_three_engines() — 실제로 그리는 곡선은 **둘뿐**이다: VER[\"sionna\"][d][\"3/nose/prod/all\"] 과 VER[\"po\"][d][\"matched/3/nose/all\"](범례 «Our PO kernel») / 그 PO 열의 정본 benchmark/report15_verdict_po_grid.py — 헤더 17행 «⚠ PO 커널은 **가림이 없다**(설계). SBR 이 가림 있는 팔이지만 …» · 46행 BASELINE_M = 0.20",
+      "verdict": "두_팔_나란히",
+      "note": "⭐**이 편에서 우리 SBR 팔이 빠진 유일한 절이다.** 두 팔이 나란한 것은 맞지만 그 둘은 PathSolver ↔ **순수 PO(가림 없는 대조군)** 이고, 이 편의 주력인 SBR 팔은 안 들어간다. 본문 한 줄이 «순수 PO 대비» 라고 적어 최소한의 정직성은 지키지만, 제목 «두 엔진» 은 어느 둘인지 안 밝히고 그림 범례 «Our PO kernel» · suptitle «two independent engines» 는 이 편의 용어(ARM_PO = «Ours, nothing blocked (control)»)와 이름이 어긋난다 — 대조군이 우리 주력 커널로 읽힌다. ⚠기하도 다르다: 이 원장은 **준-모노스태틱 기선 0.2 m** 인데 절 2 는 «진짜 모노스태틱(TX=RX, 기선 0)» 이다. 본문은 자세 차이(nose el +15° ↔ belly el -15°)만 밝히고 기선 차이는 안 밝힌다. ⚠원장에는 셋째 기준 geometry_tail(matrice4e/3/nose -177.38 dB)도 있는데 안 쓴다. ⚠mini2 는 이 편에서 여기서만 나오는 기체다. 얼리기와 무관하다는 사실(두 팔 다 광선 격자를 안 쓴다)은 08_2 안에는 없고 08_4 부록 «그림별 데이터 이력» 의 «광선 안 씀(순수 PO ↔ Sionna)» 칸에만 있다"
+    },
+    {
+      "section": "6 · 셀 6",
+      "title": "이 편이 서 있는 자리 (맺음)",
+      "arms_used": ["PathSolver", "ours_SBR_PO", "pure_PO"],
+      "ledger": "outputs/report07_three_engines.json : verdict.cosine_in_ftip.{sbr_vs_po 0.95501, sionna_vs_sbr 0.74503, sionna_vs_po 0.76020} 를 재인용",
+      "verdict": "두_팔_나란히",
+      "note": "세 팔의 코사인을 그대로 다시 놓고 «Sionna 는 둘 모두에서 떨어져 있다» 로 맺는다 — 절 2 의 원장과 일치한다. «그 원인은 경로 수 — 프롭 정반사가 이 격자에서 0 칸» 은 PathSolver 단독 인구조사(report00_microdoppler.json · report15_blade_flash_ladder.json)에 기대는 문장이고, 절 4 가 붙여 둔 단서(이 편의 자세는 그 인구조사 격자에 없다 · 기체마다 답이 갈린다)가 맺음말에는 안 따라온다"
+    }
+  ],
+  "problems": [
+    "절 5 «두 엔진이 …» — 제목·그림 범례가 어느 팔인지 안 밝힌다. 실체는 PathSolver ↔ 순수 PO(가림 없는 대조군)이고 이 편의 주력 SBR 팔은 안 들어간다. 그림 범례 «Our PO kernel» 과 suptitle «two independent engines» 는 이 편 용어(ARM_PO = «Ours, nothing blocked (control)»)와 어긋나 대조군이 주력 커널로 읽힌다. 자리: reports/08_2_engines.ipynb 셀 5 · src/make_report08_microdoppler.py 828~838행 · benchmark/build_report07_figs.py 152~203행(166·183행 라벨, 201행 suptitle)",
+    "절 5 기하 미공개 — report15_verdict 계열은 준-모노스태틱 기선 0.2 m 다(benchmark/report15_verdict_po_grid.py:46 BASELINE_M = 0.20). 절 2 는 «진짜 모노스태틱(TX=RX, 기선 0)» 이라고 못 박았다. 지금 본문은 «이 그림만 자세가 다르다» 만 적는다 — «기선도 다르다» 를 같은 줄에 넣어야 한다",
+    "절 3 «같은 잣대를 … 27 열 전부에 먹이면(세 엔진 · report15b 여섯 자세 · 호버 두 프리셋)» — «세 엔진» 은 원장 이름이지 세 팔이 아니다. freeze_before_after.json:ledgers 의 27 키는 전부 SBR 계열이고 세 엔진 원장에서 온 것은 sbr 한 줄뿐이다(27 = 1 + 24 + 2). «세 엔진 원장의 sbr 열» 로 고쳐라. 자리: src/make_report08_microdoppler.py 368~374행",
+    "절 3 «독립 구현의 예측을 생산 경로가 재현했다» — 두 값(0.953 · 0.955)은 둘 다 우리 SBR ↔ 우리 순수 PO 코사인이고 PathSolver 는 심판이 아니다. 같은 사다리에 있는 cos_froz_vs_sionna(0.602~0.695)는 생산 팔의 cos_prod_vs_sionna(0.721~0.743)보다 **낮은데** 인용되지 않는다 — 얼리기가 Sionna 와는 덜 닮게 만들었다는 사실을 같이 적든지, «PathSolver 기준으로는 판정하지 않는다» 고 못 박아라. 자리: outputs/sbr_grid_convergence.json:in_band_fidelity.rows[*].cos_froz_vs_sionna · src/make_report08_microdoppler.py 396~399행",
+    "절 2 제목 «세 엔진을 같은 격자에, 거리 3 / 8 / 15 m» — 거리축은 PathSolver 팔만 다시 푼 것이다(outputs/report07_three_engine_ranges.json 은 Sionna 열만 있고 _meta.grid_note_ko 가 «sbr·po 열은 거리 무관이라 그 원장을 그대로 쓴다» 라고 적는다). 바로 아래 ⭐줄이 밝히지만 제목만 읽으면 세 팔이 세 거리를 다 돈 것으로 읽힌다 — 제목에 «Sionna 열만 거리별» 을 넣어라",
+    "본문에 이름이 없는 원장 — 이 편이 이름을 대는 원장은 7 개인데(freeze_before_after · prefreeze/ · probe_8m_anomaly · report07_depth_robust · report15_blade_flash_ladder · report15_verdict · sbr_grid_convergence), 헤드라인 숫자를 내는 outputs/report07_three_engines.json(코사인 0.745·0.760·0.955, 레벨 차 -65.5 dB) · outputs/outofband_power.json(대역밖 표 전부) · outputs/report07_three_engine_ranges.json(거리 표) · outputs/verify_frozen_grid.json(자 흔들림 실측과 «대가» 표 세 줄)은 한 번도 안 나온다. 이 편 머리말이 «숫자는 전부 원장에서 주입된다» 고 선언한 것과 어긋난다",
+    "절 2 대역밖 표에 Sionna 행이 우리 두 팔과 같은 열에 들어 있다 — outputs/outofband_power.json 의 그 행은 units_comparable_to_po = false 이고 three_engines_ranking.new_P_out_absolute.excluded 로 절대 순위에서 빠져 있다. 인용된 두 칸(frac_of_total · 봉우리 대비 바닥)은 무차원이라 표 자체는 성립하지만, 단위 경고가 절 4 에만 있고 표 옆에는 없다",
+    "절 3 판 출처 혼선 — 자 흔들림 실측(한 변 101~129 칸 · 61 번 튐 · 9.8 mm · 98 mm)은 verify_frozen_grid.json:gate2 의 **검증판(grid_ref.n_mesh = 16)** 에서 나오고, 바로 다음 문단의 «이 편이 쓴 판» 은 report07_three_engines.json:engines.sbr.grid_ref 의 **생산판(n_mesh = 24)** 이다. 둘 다 한 변 124 칸이라 결론은 안 바뀌지만 문단이 붙어 있어 같은 판으로 읽힌다",
+    "절 6 맺음말이 절 4 의 단서를 안 데려온다 — «그 원인은 경로 수 — 프롭 정반사가 이 격자에서 0 칸» 은 PathSolver 단독 인구조사에 기댄 문장인데, 절 4 가 붙여 둔 두 단서(① 이 편의 자세 -15° 는 그 인구조사 격자에 없다 ② 앙각을 85° 까지 열면 matrice4e 는 2/960 칸이 나오고 mini2 만 0 이다)가 맺음말에는 없다"
+  ]
+}

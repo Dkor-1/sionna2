@@ -1,0 +1,2614 @@
+{
+ "_meta": {
+  "generated": "2026-08-12T04:34:09",
+  "snapshot_warning": "⚠ GPU 3 에서 앙각 스윕이 도는 중이다. 아래 elevation_sweep_rows 와 인덱스는 2026-08-12 04:30 병합판의 스냅샷이고, --merge 한 번이면 행이 늘고 인덱스가 밀린다. 빌더는 인덱스를 하드코딩하지 말고 (engine, el_deg, n_missing==0) 으로 찾는다.",
+  "ledger_mtime": {
+   "outputs/elevation_sweep_md.json": "2026-08-12T03:50:10",
+   "outputs/ch1_elevation_figdata.json": "2026-08-12T02:09:38",
+   "outputs/wideband_energy.json": "2026-08-12T04:00:57",
+   "outputs/diag_physics_paths_el-90.json": "2026-08-12T03:57:56",
+   "outputs/physics_vs_deck.json": "2026-08-12T02:32:54",
+   "outputs/verify_nadir_flash.json": "2026-08-11T09:19:10",
+   "outputs/refute_nadir_mechanism_final.json": "2026-08-12T02:29:07",
+   "outputs/verify_phase_sign.json": "2026-08-11T08:26:42",
+   "outputs/verify_po_elev_unit.json": "2026-08-11T07:18:57",
+   "outputs/verify_po_elev_rebuttal.json": "2026-08-11T07:40:35",
+   "outputs/rt_no_rcs_verify.json": "2026-07-29T04:56:54",
+   "outputs/raybudget_seed_ladder.json": "2026-08-11T02:51:03",
+   "outputs/report07_range40_raybudget.json": "2026-08-11T01:46:09"
+  },
+  "generator": "scratchpad/mkplan_16_17.py — 계획만 쓴다(원장·조각·권 무수정)",
+  "prose": "docs/PLAN_VOLUMES_16_17.md",
+  "gpu": "쓰지 않았다 — 원장 JSON 만 읽었다",
+  "scope": "권 16·17 과 새 조각 78~87 의 편성·원장 지도·소유권",
+  "next_free_part_no": "88"
+ },
+ "volumes": [
+  {
+   "no": "16",
+   "slug": "elevation-coverage",
+   "file": "reports/16_elevation-coverage.ipynb",
+   "title": "앙각 커버리지 — 어느 각도까지 유효한가",
+   "thesis": "관측 앙각을 0° 에서 −90° 까지 내리며 같은 표적을 재면, 커버리지를 정하는 것은 표적이 아니라 우리가 고른 분석 대역이다. 대역을 날개끝 주파수를 따라 옮기면 −75° 까지 프로펠러 대역이 살아 있고, 고정하면 −60° 아래에서 바닥에 닿는다.",
+   "parts": [
+    "78",
+    "79",
+    "80",
+    "81",
+    "82"
+   ],
+   "headline_part": "79",
+   "n_sections": 5,
+   "figures": [
+    "ch1_f1_maps.png",
+    "ch1_f4_bandenergy.png",
+    "ch1_f3_prediction.png",
+    "ch1_f2_spectra.png"
+   ],
+   "volumes_tuple": [
+    "16",
+    "elevation-coverage",
+    "앙각 커버리지 — 어느 각도까지 유효한가",
+    "<thesis>",
+    [
+     "78",
+     "79",
+     "80",
+     "81",
+     "82"
+    ],
+    "79"
+   ]
+  },
+  {
+   "no": "17",
+   "slug": "physics-switches",
+   "file": "reports/17_physics-switches.ipynb",
+   "title": "엔진의 물리 스위치 — 켜면 무엇이 달라지나",
+   "thesis": "스톡 PathSolver 의 굴절·회절·모서리회절·다중반사를 하나씩 켜서 무엇이 결과를 만들었는지 귀속한다. 나딧에서 66.55 dB 를 올리는 것은 회절 하나이고, 그 상승은 분자가 아니라 분모를 키운다.",
+   "parts": [
+    "83",
+    "84",
+    "85",
+    "86",
+    "87"
+   ],
+   "headline_part": "83",
+   "n_sections": 5,
+   "figures": [
+    "wideband_energy.png",
+    "physics_vs_deck_el-15.png",
+    "ch1_f5_raybudget.png"
+   ],
+   "volumes_tuple": [
+    "17",
+    "physics-switches",
+    "엔진의 물리 스위치 — 켜면 무엇이 달라지나",
+    "<thesis>",
+    [
+     "83",
+     "84",
+     "85",
+     "86",
+     "87"
+    ],
+    "83"
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "no": "78",
+   "anchor": "el-sweep-design",
+   "volume": "16",
+   "section": 1,
+   "title": "앙각 7 점을 10 m 한 자리에서 재고, 28 행 중 26 행만 판정에 쓴다",
+   "question": "이 스윕이 무엇을 어떤 잣대로 쟀고, 어느 행을 인용해도 되나?",
+   "figure": "ch1_f1_maps.png",
+   "links": [
+    "el-band-tracking",
+    "el-beat-vs-tip",
+    "md-two-engines"
+   ]
+  },
+  {
+   "no": "79",
+   "anchor": "el-band-tracking",
+   "volume": "16",
+   "section": 2,
+   "title": "대역을 f_tip 따라 옮기면 −75° 에서도 프로펠러 대역이 대역외 띠보다 44.6 dB 높고, 고정 대역은 같은 자리에서 0.95 dB 다",
+   "question": "앙각이 내려가면 프로펠러 대역 에너지가 정말 주나?",
+   "figure": "ch1_f4_bandenergy.png",
+   "links": [
+    "el-prediction-gap",
+    "el-nadir-floor"
+   ],
+   "headline": true
+  },
+  {
+   "no": "80",
+   "anchor": "el-prediction-gap",
+   "volume": "16",
+   "section": 3,
+   "title": "기하 겹침 예측은 채점된 5 점에서 최대 15.6 dB 빗나가고 그중 −15° 는 기준점 자신이다",
+   "question": "«대역이 겹치는 만큼 에너지가 준다» 는 예측이 맞나?",
+   "figure": "ch1_f3_prediction.png",
+   "links": [
+    "el-band-tracking"
+   ]
+  },
+  {
+   "no": "81",
+   "anchor": "el-beat-vs-tip",
+   "volume": "16",
+   "section": 4,
+   "title": "126.67 Hz 박자는 세 팔이 다 맞추고, 팔을 가르는 것은 f_tip 위 굴러떨어짐 24.0 dB 대 9.9 dB 다",
+   "question": "무엇이 엔진을 가르는 잣대인가?",
+   "figure": "ch1_f2_spectra.png",
+   "links": [
+    "physics-above-limit",
+    "budget-not-physics",
+    "md-two-engines"
+   ]
+  },
+  {
+   "no": "82",
+   "anchor": "el-nadir-floor",
+   "volume": "16",
+   "section": 5,
+   "title": "−90° 의 변조는 −38.31 dB 로 남지만 그 전력의 64 % 는 광선 격자 표본화 잡음이다",
+   "question": "머리 위 드론은 정말 안 보이나?",
+   "figure": null,
+   "links": [
+    "physics-denominator",
+    "po-knee"
+   ]
+  },
+  {
+   "no": "83",
+   "anchor": "physics-single-axis",
+   "volume": "17",
+   "section": 1,
+   "title": "나딧에서 레벨을 −130.78 dB 에서 −64.23 dB 로 올리는 스위치는 회절 하나다",
+   "question": "--physics 가 켜는 넷 중 무엇이 결과를 만들었나?",
+   "figure": null,
+   "links": [
+    "physics-denominator",
+    "physics-above-limit"
+   ],
+   "headline": true
+  },
+  {
+   "no": "84",
+   "anchor": "physics-denominator",
+   "volume": "17",
+   "section": 2,
+   "title": "AC/DC 가 +0.89 dB 에서 −68.13 dB 로 내려간 것은 분모가 66.55 dB 커진 결과다",
+   "question": "물리를 켜니 나딧 도플러가 이론대로 0 이 된 것인가?",
+   "figure": null,
+   "links": [
+    "el-nadir-floor"
+   ]
+  },
+  {
+   "no": "85",
+   "anchor": "physics-above-limit",
+   "volume": "17",
+   "section": 3,
+   "title": "물리를 켜면 날개끝 상한 위 에너지 몫이 0.290 에서 0.831 로 커진다",
+   "question": "물리를 켜면 운동학 상한을 지키게 되나?",
+   "figure": "wideband_energy.png",
+   "links": [
+    "el-beat-vs-tip"
+   ]
+  },
+  {
+   "no": "86",
+   "anchor": "physics-deck-match",
+   "volume": "17",
+   "section": 4,
+   "title": "우리 팔은 8/11 덱 15 m 판과 0.9877 로 겹치고 물리 팔의 같은 칸은 아직 미완결이다",
+   "question": "물리를 켠 PathSolver 가 덱 무늬에 더 가까워지나?",
+   "figure": "physics_vs_deck_el-15.png",
+   "links": [
+    "physics-single-axis"
+   ]
+  },
+  {
+   "no": "87",
+   "anchor": "budget-not-physics",
+   "volume": "17",
+   "section": 5,
+   "title": "광선을 360 배 늘려도 레벨은 0.03 dB 안에 모이고 박자는 58.15 Hz 로 헤맨다",
+   "question": "광선을 더 쏘면 고쳐지는 것과 안 고쳐지는 것은 무엇인가?",
+   "figure": "ch1_f5_raybudget.png",
+   "links": [
+    "el-beat-vs-tip",
+    "md-ray-budget"
+   ]
+  }
+ ],
+ "part_shard_schema": {
+  "path": "outputs/reports_index/<anchor>.json",
+  "required": [
+   "no",
+   "part",
+   "anchor",
+   "title",
+   "file"
+  ],
+  "optional": [
+   "evidence",
+   "from_cells",
+   "builder",
+   "figures",
+   "md_cells"
+  ],
+  "part_value": 12,
+  "why_part_12": "계획에 없는 부 번호라 _bu_to_vol() 의 옛 부 0~11 집계를 흔들지 않는다. ref_part(12) 는 부르면 예외다.",
+  "title_rule": "노트북 H1 과 글자 하나까지 같아야 한다 — check_report_links 의 title-mismatch 검사가 본다"
+ },
+ "builders": {
+  "src/build_part12_elevation.py": [
+   "78",
+   "79",
+   "80",
+   "81",
+   "82"
+  ],
+  "src/build_part13_physics.py": [
+   "83",
+   "84",
+   "85",
+   "86",
+   "87"
+  ],
+  "note": "빌더는 원장 JSON 만 읽는다 — GPU·Sionna 불필요. 그림은 이미 그려져 있다."
+ },
+ "build_volumes_edits": {
+  "add_tuples": 2,
+  "literal_fixes": [
+   {
+    "where": "src/build_volumes.py:3",
+    "from": "조각 78 편을 15 권으로 묶는다",
+    "to": "조각 88 편을 17 권으로 묶는다"
+   },
+   {
+    "where": ":32",
+    "from": "15 권",
+    "to": "17 권"
+   },
+   {
+    "where": ":46",
+    "from": "열다섯 권의 목차",
+    "to": "열일곱 권의 목차"
+   },
+   {
+    "where": ":88",
+    "from": "나머지 열네 권의 지도",
+    "to": "나머지 열여섯 권의 지도"
+   },
+   {
+    "where": ":184",
+    "from": "MAP_SECTION_TITLE = '열다섯 권의 지도 — …'",
+    "to": "열일곱 권의 지도 — …"
+   },
+   {
+    "where": ":457",
+    "from": "열다섯 권의 지도는",
+    "to": "열일곱 권의 지도는"
+   },
+   {
+    "where": ":476",
+    "from": "열다섯 권에 배치하고",
+    "to": "열일곱 권에 배치하고"
+   },
+   {
+    "where": ":537,:555",
+    "from": "주석의 열다섯 권",
+    "to": "열일곱 권"
+   },
+   {
+    "where": ":569,:570",
+    "from": "'## 열다섯 권 (앞/뒤 절반)' + nos[:8]/nos[8:]",
+    "to": "'## 열일곱 권 (앞/뒤 절반)' + nos[:9]/nos[9:]"
+   },
+   {
+    "where": ":682",
+    "from": "15 권 편성",
+    "to": "17 권 편성"
+   },
+   {
+    "where": ":793,:799,:802",
+    "from": "reports/README.md 의 '열다섯 권' ×3",
+    "to": "열일곱 권"
+   }
+  ],
+  "warning": "build_volumes.py 를 돌리면 기존 15 권이 전부 재조립된다. 조각을 안 건드렸으므로 본문은 같지만 01_map.ipynb 와 reports/README.md 는 위 문자열 때문에 실제로 달라진다. 돌리기 전에 cp -a reports reports.bak_0812."
+ },
+ "ledgers": [
+  {
+   "file": "outputs/elevation_sweep_md.json",
+   "exists": true,
+   "keys": [
+    "_meta.range_m",
+    "_meta.prf_hz",
+    "_meta.f_flash_hz",
+    "_meta.drone",
+    "_meta.elevations_deg[]",
+    "_meta.rpm_per_rotor[]",
+    "_meta.grid_ko",
+    "_meta.range_why_ko",
+    "_meta.band_track_ko",
+    "_meta.band_fixed_ko",
+    "rows[].engine",
+    "rows[].el_deg",
+    "rows[].f_tip_hz",
+    "rows[].n_poses",
+    "rows[].n_missing",
+    "rows[].seconds",
+    "rows[].npaths_median",
+    "rows[].level_db",
+    "rows[].track.{n_bins,beat_hz,h1_over_h2_db,band_power_db}",
+    "rows[].fixed.{n_bins,beat_hz,h1_over_h2_db,band_power_db}"
+   ],
+   "completeness": "28 행 중 26 행 완결 · 미완결 행 인덱스 [25, 26]",
+   "hazard": "rows[25]·rows[26](sionna_phys el−15·el−45)은 부분 병합 — 인용 금지"
+  },
+  {
+   "file": "outputs/elevation_sweep_md.npz",
+   "exists": true,
+   "keys": [
+    "<engine>/el±NN 시계열"
+   ],
+   "completeness": "그림 빌더 입력",
+   "hazard": "조각은 직접 열지 않는다 — 그림은 이미 그려져 있다"
+  },
+  {
+   "file": "outputs/ch1_elevation_figdata.json",
+   "exists": true,
+   "keys": [
+    "cells.<arm>/el±NN.{share_track_db,share_track_oob_db,share_fixed_db,share_fixed_oob_db,carrier_share_db,share_track_rel_carrier_db,share_fixed_rel_carrier_db,ac_over_dc_db,comb_snr_db[30],beat_track_hz,beat_fixed_hz,npaths_median,ledger_level_db}",
+    "prediction.fixed_band_overlap_frac.<el>",
+    "prediction.f_tip_hz.<el>",
+    "gates.G1_*",
+    "gates.G2_*",
+    "gates.G3_*",
+    "gates.G4_*",
+    "gates.G5_*",
+    "gates.G6_ours_track_share_span_db"
+   ],
+   "completeness": "cells 21 칸 (ours·sionna·sionna_p250000000 × 7) · gates 20 개",
+   "hazard": "sionna_phys 없음 · el−90 의 share_track_db·beat_track_hz 는 null · G3 는 5 칸만 채점"
+  },
+  {
+   "file": "outputs/wideband_energy.json",
+   "exists": true,
+   "keys": [
+    "cells.<arm>/el±NN.{'0-500 Hz','500-f_tip','f_tip-2f_tip','2-4 f_tip','4f_tip-Nyquist',above_f_tip_frac,above_f_tip_db,f_tip_hz}",
+    "_meta.{prf_hz,nyquist_hz,f_tip_el0_hz,physical_limit_ko,normalisation_ko,incomplete_excluded_ko}"
+   ],
+   "completeness": "cells 23 칸 — 세 팔 각 7 + sionna_phys 2(el+0·el−90)",
+   "hazard": "el−75·el−90 의 '500-f_tip' 은 null · el−90 의 'f_tip-2f_tip' 은 −3000(빈 대역 표식)"
+  },
+  {
+   "file": "outputs/diag_physics_paths_el-90.json",
+   "exists": true,
+   "keys": [
+    "_meta.{el_deg,n_poses,spp,range_m,fc_hz,question_ko}",
+    "cases.<케이스>.{npaths_median,npaths_mean,level_db,ac_over_dc_db,sec_per_pose,max_depth,refraction,diffraction,edge_diffraction}"
+   ],
+   "completeness": "6 케이스 완결(기준·굴절만·회절만·모서리회절만·다중반사만·전부)",
+   "hazard": "n_poses = 20 — 레벨 귀속용이지 스펙트럼 주장에는 못 쓴다"
+  },
+  {
+   "file": "outputs/physics_vs_deck.json",
+   "exists": true,
+   "keys": [
+    "cells.<arm>.{comb_spacing_hz,comb_spacing_err_hz,line_snr_db.1x~8x,ac_over_dc_db,corr_with_ours_db_map}",
+    "_meta.{geometry_ko,prf_hz,f_flash_hz,stft_ko,normalisation_ko,missing_arms[]}"
+   ],
+   "completeness": "5 칸(ours·sionna·deck R3/R15/R40)",
+   "hazard": "missing_arms = ['ours_ptd/el-15','sionna_phys/el-15'] — 물리 팔의 덱 대조는 없다"
+  },
+  {
+   "file": "outputs/verify_nadir_flash.json",
+   "exists": true,
+   "keys": [
+    "A_instrument_audit.{nperseg,bin_hz,hann_mainlobe_halfwidth_hz,band_lo_hz,band_hi_hz,synthetic_tests.*}",
+    "B_decomposition.<arm>/el±NN.{level_db,ac_over_dc_db,am_rms,pm_rms_deg,pm_over_am_db,harmonics_over_floor_db.*,band_430_1229.*,fixed_band_power_db,fixed_band_leakage_only_db,fixed_band_true_over_leakage_db}",
+    "C_D_geometry.*",
+    "E_blade_line_power.rows.*"
+   ],
+   "completeness": "B_decomposition 은 9 칸(ours 5 · sionna 2 · p250M 2)",
+   "hazard": "C_D_geometry 의 1/r⁴·나딧 기전은 refute_nadir_mechanism_final 이 정정했다 — 인용 금지"
+  },
+  {
+   "file": "outputs/refute_nadir_mechanism_final.json",
+   "exists": true,
+   "keys": [
+    "R1_range_law_ledger.*",
+    "R2_analytic.*",
+    "R3_window_robustness.*",
+    "R4a_facet_proxy_no_grid_no_occlusion.*",
+    "R4b_cpu_kernel_replica.*",
+    "R4c_grid_ladder.rows.lambda/{8,12,24,48}.*",
+    "R4d_null_width.*",
+    "R4e_attribution.*",
+    "R4f_comb_attribution.*",
+    "R5_detection.{convention,sigma_dbsm,nadir_ac_split,rows}",
+    "VERDICTS.claim1~claim5.{verdict,evidence,corrected_statement_ko}"
+   ],
+   "completeness": "완결 — 5 개 주장에 판정이 붙어 있다",
+   "hazard": "verify_nadir_flash 와 어긋나면 이 파일이 정본이다"
+  },
+  {
+   "file": "outputs/verify_phase_sign.json",
+   "exists": true,
+   "keys": [
+    "G1_abs_invariant.{max_rel_diff,pass,note}",
+    "G2_farfield_converges.{range_m,rho_real,rho_abs,pass}",
+    "G3_approach_positive.{f_true_hz,f_ours_hz,f_standard_hz,pass}",
+    "asymmetry_db.{plane,spherical_10m,spherical_5000m}",
+    "verdict"
+   ],
+   "completeness": "게이트 3/3 PASS",
+   "hazard": "없음"
+  },
+  {
+   "file": "outputs/verify_po_elev_unit.json",
+   "exists": true,
+   "keys": [
+    "meta.*(23)",
+    "cases[](25)",
+    "gates[](18).{name,pass_,detail,why_ko}",
+    "real_sweep_recheck.{available,source,prf_hz,rows[14],monotonic_check}"
+   ],
+   "completeness": "완결 — 게이트 18 개 중 11 개 합격",
+   "hazard": "불합격 7 개는 전부 생산 격자 λ/12 이고 λ/48 에서는 합격한다 — 섞어 쓰지 마라"
+  },
+  {
+   "file": "outputs/verify_po_elev_unit_rebuttal.json",
+   "exists": false,
+   "keys": [],
+   "completeness": "없음",
+   "hazard": "지시문의 이름이다. 실재 파일은 outputs/verify_po_elev_rebuttal.json"
+  },
+  {
+   "file": "outputs/verify_po_elev_rebuttal.json",
+   "exists": true,
+   "keys": [
+    "_meta.*",
+    "재현된_것.표.<el>.{P_dc_db,P_ac_db,unwrap_ptp_deg,dc_snr_from_pose_averaging,dc_2sigma_ci_db,sionna_P_dc_db}",
+    "깨진_것.0~9.*",
+    "확증된_것_판정이_옳았던_곳.*",
+    "내가_시도했다가_반증당한_내_가설.*"
+   ],
+   "completeness": "완결",
+   "hazard": "키가 한글이다 — 문자열 그대로 써야 _walk 가 푼다"
+  },
+  {
+   "file": "outputs/rt_no_rcs_verify.json",
+   "exists": true,
+   "keys": [
+    "geometry.{L,R1,R2,beta}",
+    "tau_echo_ns",
+    "image_source_db",
+    "A_plate[].{side,sigma_dbsm,ratio_db,n}",
+    "B_sphere_S[].*",
+    "C_pec_sphere[].{r,spp,n_paths}",
+    "D_chamber_paths.{tau_expect_ns,tau_los_ns,rows[],n_near,n_true}"
+   ],
+   "completeness": "완결",
+   "hazard": "σ 주장은 권 02 소유 — 여기서는 «경로 수 ≠ 산란 세기» 근거로만 쓴다"
+  },
+  {
+   "file": "outputs/raybudget_seed_ladder.json",
+   "exists": true,
+   "keys": [
+    "_meta.{generator,range_m,drone,fc_hz,prf_hz,f_flash_hz,f_tip_hz,band_hz[],shard_dir}",
+    "cells[].{spp,spp_m,n_seeds,n_poses,npaths_median,level_db_mean,sd_level_db,ptp_level_db,sd_h1_over_h2_db,sd_beat_hz,beats_hz[]}",
+    "verdict.{question_ko,method_ko,structure_ko,caveat_ko}"
+   ],
+   "completeness": "2 계단(178 M · 4,000 M)",
+   "hazard": "40 m · matrice4e · el −15° · 기선 0 한 자리에서만 잰 값이다"
+  },
+  {
+   "file": "outputs/report07_range40_raybudget.json",
+   "exists": true,
+   "keys": [
+    "_meta.*",
+    "rows[].{arm,spp,label,seed,n_poses,gaps,shards[]}",
+    "verdict.{beat_spread_hz,level_spread_db,h1_over_h2_spread_db,path_scaling_ko,caveat_ko}"
+   ],
+   "completeness": "4 행(팔 2 × 시드 2)",
+   "hazard": "시드가 판마다 2 개뿐 — «폭이 줄었다» 는 통계적 주장이 아니다"
+  },
+  {
+   "file": "docs/CH1_ELEVATION_FINDINGS.md",
+   "exists": true,
+   "keys": [
+    "서술 294 줄"
+   ],
+   "completeness": "완결",
+   "hazard": "§2-2 의 «오차 0.00 Hz» 와 §4-③ 의 «1/r⁴ 라 실전 거리에서 사라진다» 는 반증됐다"
+  },
+  {
+   "file": "docs/RESUME.md",
+   "exists": true,
+   "keys": [
+    "서술 160 줄"
+   ],
+   "completeness": "완결",
+   "hazard": "§2 가 반증 목록의 정본이다"
+  }
+ ],
+ "elevation_sweep_rows": [
+  {
+   "i": 0,
+   "engine": "ours",
+   "el_deg": 0.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -54.37,
+   "citable": true
+  },
+  {
+   "i": 1,
+   "engine": "ours",
+   "el_deg": -15.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -51.16,
+   "citable": true
+  },
+  {
+   "i": 2,
+   "engine": "ours",
+   "el_deg": -30.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -63.37,
+   "citable": true
+  },
+  {
+   "i": 3,
+   "engine": "ours",
+   "el_deg": -45.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -58.67,
+   "citable": true
+  },
+  {
+   "i": 4,
+   "engine": "ours",
+   "el_deg": -60.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -65.76,
+   "citable": true
+  },
+  {
+   "i": 5,
+   "engine": "ours",
+   "el_deg": -75.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -47.28,
+   "citable": true
+  },
+  {
+   "i": 6,
+   "engine": "ours",
+   "el_deg": -90.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -41.66,
+   "citable": true
+  },
+  {
+   "i": 7,
+   "engine": "sionna",
+   "el_deg": 0.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 9,
+   "level_db": -59.65,
+   "citable": true
+  },
+  {
+   "i": 8,
+   "engine": "sionna",
+   "el_deg": -15.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 7,
+   "level_db": -124.8,
+   "citable": true
+  },
+  {
+   "i": 9,
+   "engine": "sionna",
+   "el_deg": -30.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 6,
+   "level_db": -135.45,
+   "citable": true
+  },
+  {
+   "i": 10,
+   "engine": "sionna",
+   "el_deg": -45.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 12,
+   "level_db": -125.92,
+   "citable": true
+  },
+  {
+   "i": 11,
+   "engine": "sionna",
+   "el_deg": -60.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 13,
+   "level_db": -127.86,
+   "citable": true
+  },
+  {
+   "i": 12,
+   "engine": "sionna",
+   "el_deg": -75.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 13,
+   "level_db": -127.6,
+   "citable": true
+  },
+  {
+   "i": 13,
+   "engine": "sionna",
+   "el_deg": -90.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 12,
+   "level_db": -130.29,
+   "citable": true
+  },
+  {
+   "i": 14,
+   "engine": "sionna_p1000000000",
+   "el_deg": 0.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 471,
+   "level_db": -59.67,
+   "citable": true
+  },
+  {
+   "i": 15,
+   "engine": "sionna_p1000000000",
+   "el_deg": -30.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 809,
+   "level_db": -131.2,
+   "citable": true
+  },
+  {
+   "i": 16,
+   "engine": "sionna_p250000000",
+   "el_deg": 0.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 127,
+   "level_db": -59.66,
+   "citable": true
+  },
+  {
+   "i": 17,
+   "engine": "sionna_p250000000",
+   "el_deg": -15.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 159,
+   "level_db": -118.93,
+   "citable": true
+  },
+  {
+   "i": 18,
+   "engine": "sionna_p250000000",
+   "el_deg": -30.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 211,
+   "level_db": -133.82,
+   "citable": true
+  },
+  {
+   "i": 19,
+   "engine": "sionna_p250000000",
+   "el_deg": -45.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 268,
+   "level_db": -124.43,
+   "citable": true
+  },
+  {
+   "i": 20,
+   "engine": "sionna_p250000000",
+   "el_deg": -60.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 287,
+   "level_db": -119.79,
+   "citable": true
+  },
+  {
+   "i": 21,
+   "engine": "sionna_p250000000",
+   "el_deg": -75.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 323,
+   "level_db": -115.05,
+   "citable": true
+  },
+  {
+   "i": 22,
+   "engine": "sionna_p250000000",
+   "el_deg": -90.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 352,
+   "level_db": -118.27,
+   "citable": true
+  },
+  {
+   "i": 23,
+   "engine": "sionna_p4000000000",
+   "el_deg": 0.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 2008,
+   "level_db": -59.68,
+   "citable": true
+  },
+  {
+   "i": 24,
+   "engine": "sionna_phys",
+   "el_deg": 0.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 5,
+   "level_db": -59.66,
+   "citable": true
+  },
+  {
+   "i": 25,
+   "engine": "sionna_phys",
+   "el_deg": -15.0,
+   "n_poses": 4096,
+   "n_missing": 1536,
+   "npaths_median": 2,
+   "level_db": -111.27,
+   "citable": false
+  },
+  {
+   "i": 26,
+   "engine": "sionna_phys",
+   "el_deg": -45.0,
+   "n_poses": 4096,
+   "n_missing": 3072,
+   "npaths_median": 8,
+   "level_db": -108.92,
+   "citable": false
+  },
+  {
+   "i": 27,
+   "engine": "sionna_phys",
+   "el_deg": -90.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 6,
+   "level_db": -64.23,
+   "citable": true
+  }
+ ],
+ "elevation_sweep_incomplete_rows": [
+  25,
+  26
+ ],
+ "shard_status": [
+  {
+   "arm": "ours",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "ours",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "ours",
+   "el": "el-30",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "ours",
+   "el": "el-45",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "ours",
+   "el": "el-60",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "ours",
+   "el": "el-75",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "ours",
+   "el": "el-90",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:28",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:03",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:07",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el-30",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:11",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el-45",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:15",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el-60",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:18",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el-75",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:21",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna",
+   "el": "el-90",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T05:25",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p1000000000",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T01:59",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p1000000000",
+   "el": "el-30",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T02:29",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:14",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:17",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el-30",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:20",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el-45",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:23",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el-60",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:25",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el-75",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:27",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000",
+   "el": "el-90",
+   "n_shards": 8,
+   "last_shard": "2026-08-11T08:29",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_p250000000_phys",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:18",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_p250000000_phys",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:10",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_p250000000_phys",
+   "el": "el-90",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:03",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_p4000000000",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T02:06",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T03:29",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T03:53",
+   "merged_n_missing": 1536,
+   "in_merge": "부분 병합"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-30",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:32",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-45",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:23",
+   "merged_n_missing": 3072,
+   "in_merge": "부분 병합"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-60",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:34",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-75",
+   "n_shards": 4,
+   "last_shard": "2026-08-12T04:28",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-90",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T03:07",
+   "merged_n_missing": 0,
+   "in_merge": "완결"
+  }
+ ],
+ "shards_ahead_of_merge": [
+  {
+   "arm": "sionna_p250000000_phys",
+   "el": "el+0",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:18",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_p250000000_phys",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:10",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_p250000000_phys",
+   "el": "el-90",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:03",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-15",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T03:53",
+   "merged_n_missing": 1536,
+   "in_merge": "부분 병합"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-30",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:32",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-45",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:23",
+   "merged_n_missing": 3072,
+   "in_merge": "부분 병합"
+  },
+  {
+   "arm": "sionna_phys",
+   "el": "el-60",
+   "n_shards": 8,
+   "last_shard": "2026-08-12T04:34",
+   "merged_n_missing": null,
+   "in_merge": "병합판에 행이 없다"
+  }
+ ],
+ "row_index_rule": {
+  "rule": "rows[] 의 인덱스를 하드코딩하지 마라 — 병합할 때마다 밀린다.",
+  "how": "hits = [i for i, r in enumerate(rows) if r['engine']==engine and r['el_deg']==el and r['n_missing']==0]; key = f'rows[{hits[0]}]'",
+  "why": "각주에 그때의 실제 인덱스가 찍히고, 미완결 행은 애초에 못 고른다.",
+  "stable_alternative": "가능하면 ch1_elevation_figdata.json 의 cells.<arm>/el±NN.* 를 쓴다 — 키가 팔·앙각이라 안 밀린다."
+ },
+ "figures_available": [
+  "outputs/figures/ch1_f1_maps.png",
+  "outputs/figures/ch1_f2_spectra.png",
+  "outputs/figures/ch1_f3_prediction.png",
+  "outputs/figures/ch1_f4_bandenergy.png",
+  "outputs/figures/ch1_f5_raybudget.png",
+  "outputs/figures/wideband_energy.png",
+  "outputs/figures/physics_vs_deck_el-15.png"
+ ],
+ "keymap": {
+  "78": [
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.range_m",
+    "why": "기하 — 10 m 구면",
+    "resolves": "확인됨",
+    "value": 10.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.prf_hz",
+    "why": "PRF",
+    "resolves": "확인됨",
+    "value": 19700.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.f_flash_hz",
+    "why": "예측 박자(입력값)",
+    "resolves": "확인됨",
+    "value": 126.66666666666667,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.drone",
+    "why": "표적",
+    "resolves": "확인됨",
+    "value": "matrice4e",
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[0].n_poses",
+    "why": "자세 수",
+    "resolves": "확인됨",
+    "value": 4096,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[0].seconds",
+    "why": "한 행의 계산 시간",
+    "resolves": "확인됨",
+    "value": 1686.2,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.range_why_ko",
+    "why": "10 m 가 원거리장 안쪽이라는 경고",
+    "resolves": "확인됨",
+    "value": "⭐사용자 지시로 10 m 고정. ⚠원거리장 경계 2D²/λ ≈ 14.08 m 의 **안쪽**이라 근거리장 판이다 — 우리 커널은 range_m 구면파로 처리하고 PathSolver 는 실제 기하라 둘 다 다룰 수 있지만, 평면파 원거리장 값과 직접 비교하면 안 된다.",
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.grid_ko",
+    "why": "얼린 격자 λ/12",
+    "resolves": "확인됨",
+    "value": "얼린 격자(자세 합집합 bbox), λ/12",
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.band_track_ko",
+    "why": "추적 대역의 정의",
+    "resolves": "확인됨",
+    "value": "⭐정본 — 앙각마다 그 앙각의 f_tip 으로 0.35~1.0 배",
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "_meta.band_fixed_ko",
+    "why": "고정 대역의 정의",
+    "resolves": "확인됨",
+    "value": "덱의 −15° 대역(430~1229 Hz) 고정 — 앙각이 내려가면 비어 간다",
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[*].{engine,el_deg,n_missing,npaths_median}",
+    "why": "완결성 표 — table_from",
+    "resolves": "표(table_from) — 축을 훑는다",
+    "value": null
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G5_sionna_npaths_min_max[0]",
+    "why": "경로 수 교란 축(하한)",
+    "resolves": "확인됨",
+    "value": 6,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G5_sionna_npaths_min_max[1]",
+    "why": "경로 수 교란 축(상한)",
+    "resolves": "확인됨",
+    "value": 13,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G5_sionna_p250000000_npaths_min_max[0]",
+    "why": "250 M 하한",
+    "resolves": "확인됨",
+    "value": 127,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G5_sionna_p250000000_npaths_min_max[1]",
+    "why": "250 M 상한",
+    "resolves": "확인됨",
+    "value": 352,
+    "is_null": false
+   }
+  ],
+  "79": [
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-15.share_track_db",
+    "why": "추적 대역이 바닥에 가장 가까운 자리",
+    "resolves": "확인됨",
+    "value": -21.46120739006472,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-15.share_track_oob_db",
+    "why": "같은 폭 대역외 기준띠",
+    "resolves": "확인됨",
+    "value": -36.42374651971035,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-75.share_track_db",
+    "why": "제목의 44.6 dB 분자",
+    "resolves": "확인됨",
+    "value": -10.883547669089344,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-75.share_track_oob_db",
+    "why": "제목의 44.6 dB 분모",
+    "resolves": "확인됨",
+    "value": -55.47899347449551,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-75.share_fixed_db",
+    "why": "고정 대역은 바닥에 닿는다",
+    "resolves": "확인됨",
+    "value": -49.60355793686393,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-75.share_fixed_oob_db",
+    "why": "그 자리의 바닥",
+    "resolves": "확인됨",
+    "value": -50.55322649858155,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-90.share_fixed_db",
+    "why": "−90° 고정 대역",
+    "resolves": "확인됨",
+    "value": -51.639662045727974,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-90.share_fixed_oob_db",
+    "why": "−90° 바닥",
+    "resolves": "확인됨",
+    "value": -51.469073369879354,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-90.share_track_db",
+    "why": "null — if_null='측정 불가'",
+    "resolves": "확인됨",
+    "value": null,
+    "is_null": true
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G6_ours_track_share_span_db",
+    "why": "추적 대역 몫의 앙각 산포",
+    "resolves": "확인됨",
+    "value": 15.9,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-60.carrier_share_db",
+    "why": "분모(반송파)가 널이 되는 자리",
+    "resolves": "확인됨",
+    "value": -14.05,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-60.share_track_rel_carrier_db",
+    "why": "반송파 기준 정규화",
+    "resolves": "확인됨",
+    "value": 8.46,
+    "is_null": false
+   }
+  ],
+  "80": [
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G3_ours_fixed_minus_prediction_db.+0",
+    "why": "채점 1",
+    "resolves": "확인됨",
+    "value": 6.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G3_ours_fixed_minus_prediction_db.-15",
+    "why": "채점 2 — 기준점 자신",
+    "resolves": "확인됨",
+    "value": 0.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G3_ours_fixed_minus_prediction_db.-30",
+    "why": "채점 3 — 최악",
+    "resolves": "확인됨",
+    "value": 15.6,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G3_ours_fixed_minus_prediction_db.-45",
+    "why": "채점 4",
+    "resolves": "확인됨",
+    "value": 12.9,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G3_ours_fixed_minus_prediction_db.-60",
+    "why": "채점 5",
+    "resolves": "확인됨",
+    "value": 12.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G3_worst_db",
+    "why": "최악 어긋남",
+    "resolves": "확인됨",
+    "value": 15.6,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "prediction.fixed_band_overlap_frac.-45",
+    "why": "예측 겹침 몫",
+    "resolves": "확인됨",
+    "value": 0.5885,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "prediction.f_tip_hz.-75",
+    "why": "예측 f_tip",
+    "resolves": "확인됨",
+    "value": 329.5,
+    "is_null": false
+   }
+  ],
+  "81": [
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G1_ours_worst_dev_hz",
+    "why": "우리 팔 최악 편차",
+    "resolves": "확인됨",
+    "value": 0.51,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G1_ours_n_within_2hz",
+    "why": "우리 팔 합격 점 수",
+    "resolves": "확인됨",
+    "value": 6,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G1_sionna_worst_dev_hz",
+    "why": "11.1 M 최악 편차",
+    "resolves": "확인됨",
+    "value": 250.06,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G1_sionna_n_within_2hz",
+    "why": "11.1 M 합격 점 수",
+    "resolves": "확인됨",
+    "value": 4,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G1_sionna_p250000000_worst_dev_hz",
+    "why": "250 M 최악 편차",
+    "resolves": "확인됨",
+    "value": 76.4,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G1_sionna_p250000000_n_within_2hz",
+    "why": "250 M 합격 점 수",
+    "resolves": "확인됨",
+    "value": 5,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-75.beat_track_hz",
+    "why": "⛔ 반증 3 — 우리 팔",
+    "resolves": "확인됨",
+    "value": 126.67,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.sionna/el-75.beat_track_hz",
+    "why": "⛔ 반증 3 — PathSolver 도 맞춘다",
+    "resolves": "확인됨",
+    "value": 126.45,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.sionna_p250000000/el-75.beat_track_hz",
+    "why": "⛔ 반증 3 — 250 M 도 맞춘다",
+    "resolves": "확인됨",
+    "value": 126.41,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G2_ours_rolloff_db_mean",
+    "why": "굴러떨어짐 — 우리 팔",
+    "resolves": "확인됨",
+    "value": 24.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G2_ours_rolloff_db_min",
+    "why": "우리 팔 최소",
+    "resolves": "확인됨",
+    "value": 12.3,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G2_sionna_rolloff_db_mean",
+    "why": "굴러떨어짐 — 11.1 M",
+    "resolves": "확인됨",
+    "value": 9.9,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G2_sionna_rolloff_db_min",
+    "why": "11.1 M 최소",
+    "resolves": "확인됨",
+    "value": 5.2,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G2_sionna_p250000000_rolloff_db_mean",
+    "why": "굴러떨어짐 — 250 M",
+    "resolves": "확인됨",
+    "value": 12.3,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "gates.G2_sionna_p250000000_rolloff_db_min",
+    "why": "250 M 최소",
+    "resolves": "확인됨",
+    "value": -0.1,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.ours/el+0.above_f_tip_frac",
+    "why": "상한 위 누설 — 우리 팔",
+    "resolves": "확인됨",
+    "value": 0.02285,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.sionna/el-75.above_f_tip_frac",
+    "why": "상한 위 누설 — 11.1 M 최대",
+    "resolves": "확인됨",
+    "value": 0.47084,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.ours/el-75.above_f_tip_db",
+    "why": "우리 팔 최소",
+    "resolves": "확인됨",
+    "value": -25.93,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "_meta.physical_limit_ko",
+    "why": "상한의 정의",
+    "resolves": "확인됨",
+    "value": "f_tip = 1272.9·cos(el) 가 날개끝 속도가 정하는 상한이다. 그 위의 에너지는 블레이드 도플러일 수 없다 — 인공물이다.",
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "_meta.nyquist_hz",
+    "why": "관측 상한",
+    "resolves": "확인됨",
+    "value": 9850.0,
+    "is_null": false
+   }
+  ],
+  "82": [
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-90.ac_over_dc_db",
+    "why": "모든 앙각 중 최저 변조",
+    "resolves": "확인됨",
+    "value": -38.31,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R5_detection.nadir_ac_split.grid_sampling_noise_fraction",
+    "why": "격자 잡음 몫",
+    "resolves": "확인됨",
+    "value": 0.6368,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R5_detection.nadir_ac_split.nearfield_fraction",
+    "why": "근접장 곡률 몫",
+    "resolves": "확인됨",
+    "value": 0.3112,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R5_detection.nadir_ac_split.occlusion_fraction",
+    "why": "가림 몫",
+    "resolves": "확인됨",
+    "value": 0.052,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R5_detection.nadir_ac_split.caveat_ko",
+    "why": "삼분할이 어림이라는 경고",
+    "resolves": "확인됨",
+    "value": "① 격자 잡음 몫은 **수치 인공물**이다 — 실물 표적에는 없다. ② 세 갈래가 직교하지 않으므로 이 나눗셈은 어림이다. ③ 가림 몫은 λ/48 판 값이라 아직 격자 잡음이 섞여 있다 → **상한**이고, 따라서 격자 잡음 몫 64 % 는 **하한**이다.",
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4c_grid_ladder.rows.lambda/12.nearfield_only_fit_exponent",
+    "why": "생산 격자의 거리 지수",
+    "resolves": "확인됨",
+    "value": 2.589,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4c_grid_ladder.rows.lambda/48.nearfield_only_fit_exponent",
+    "why": "격자를 조이면 4 로 간다",
+    "resolves": "확인됨",
+    "value": 3.74,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4b_cpu_kernel_replica.range_sweep_ac_over_dc_db.10",
+    "why": "10 m",
+    "resolves": "확인됨",
+    "value": -48.46,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4b_cpu_kernel_replica.range_sweep_ac_over_dc_db.1000",
+    "why": "1 km — 거의 평평",
+    "resolves": "확인됨",
+    "value": -50.31,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4b_cpu_kernel_replica.corr_ac_sph10_vs_measured",
+    "why": "재현기와 측정의 상관",
+    "resolves": "확인됨",
+    "value": 0.998,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4b_cpu_kernel_replica.shift_null.observed",
+    "why": "널 대조 — 관측",
+    "resolves": "확인됨",
+    "value": 0.998,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4b_cpu_kernel_replica.shift_null.null_p99",
+    "why": "널 대조 — 널 분포 p99",
+    "resolves": "확인됨",
+    "value": 0.4618,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4f_comb_attribution.white_noise_baseline_db",
+    "why": "빗살 백색 기준선",
+    "resolves": "확인됨",
+    "value": -7.55,
+    "is_null": false
+   },
+   {
+    "file": "outputs/refute_nadir_mechanism_final.json",
+    "key": "R4f_comb_attribution.grid_noise_share_of_comb_power",
+    "why": "빗살 위 격자 잡음 몫",
+    "resolves": "확인됨",
+    "value": 0.435,
+    "is_null": false
+   },
+   {
+    "file": "outputs/verify_nadir_flash.json",
+    "key": "B_decomposition.ours/el-90.fixed_band_true_over_leakage_db",
+    "why": "고정 대역 값은 누설이다",
+    "resolves": "확인됨",
+    "value": 0.01,
+    "is_null": false
+   },
+   {
+    "file": "outputs/verify_nadir_flash.json",
+    "key": "A_instrument_audit.hann_mainlobe_halfwidth_hz",
+    "why": "70 표본 창의 주엽 반폭",
+    "resolves": "확인됨",
+    "value": 562.9,
+    "is_null": false
+   }
+  ],
+  "83": [
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.기준(지금까지의 실행).level_db",
+    "why": "기준",
+    "resolves": "확인됨",
+    "value": -130.78,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.기준(지금까지의 실행).npaths_median",
+    "why": "기준 경로 수",
+    "resolves": "확인됨",
+    "value": 11,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.굴절만 켬.level_db",
+    "why": "굴절만",
+    "resolves": "확인됨",
+    "value": -132.48,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.굴절만 켬.npaths_median",
+    "why": "굴절만 — 경로가 오히려 준다",
+    "resolves": "확인됨",
+    "value": 2,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.회절만 켬.level_db",
+    "why": "회절만 — 이것이 전부다",
+    "resolves": "확인됨",
+    "value": -64.23,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.회절만 켬.npaths_median",
+    "why": "회절만 경로 수",
+    "resolves": "확인됨",
+    "value": 14,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.모서리회절만 켬.level_db",
+    "why": "모서리회절만 — 기준과 같다",
+    "resolves": "확인됨",
+    "value": -130.78,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.모서리회절만 켬.npaths_median",
+    "why": "기준과 같은 경로 수",
+    "resolves": "확인됨",
+    "value": 11,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.다중반사만 (depth 3).level_db",
+    "why": "다중반사만",
+    "resolves": "확인됨",
+    "value": -130.76,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.전부 켬 (--physics).level_db",
+    "why": "전부 켬 = 회절만과 같다",
+    "resolves": "확인됨",
+    "value": -64.23,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "_meta.n_poses",
+    "why": "⚠ 20 자세 판",
+    "resolves": "확인됨",
+    "value": 20,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "_meta.spp",
+    "why": "광선 수",
+    "resolves": "확인됨",
+    "value": 11111111,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "_meta.range_m",
+    "why": "거리",
+    "resolves": "확인됨",
+    "value": 10.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/rt_no_rcs_verify.json",
+    "key": "D_chamber_paths.n_near",
+    "why": "경로 수를 산란으로 읽지 마라 — 근처 경로",
+    "resolves": "확인됨",
+    "value": 12,
+    "is_null": false
+   },
+   {
+    "file": "outputs/rt_no_rcs_verify.json",
+    "key": "D_chamber_paths.n_true",
+    "why": "그중 진짜 에코",
+    "resolves": "확인됨",
+    "value": 1,
+    "is_null": false
+   },
+   {
+    "file": "outputs/rt_no_rcs_verify.json",
+    "key": "C_pec_sphere[0].n_paths",
+    "why": "PEC 구는 경로가 0 이다",
+    "resolves": "확인됨",
+    "value": 0,
+    "is_null": false
+   }
+  ],
+  "84": [
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.기준(지금까지의 실행).ac_over_dc_db",
+    "why": "분자/분모 — 켜기 전",
+    "resolves": "확인됨",
+    "value": 0.89,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.회절만 켬.ac_over_dc_db",
+    "why": "켠 뒤",
+    "resolves": "확인됨",
+    "value": -68.13,
+    "is_null": false
+   },
+   {
+    "file": "outputs/diag_physics_paths_el-90.json",
+    "key": "cases.전부 켬 (--physics).ac_over_dc_db",
+    "why": "전부 켠 판",
+    "resolves": "확인됨",
+    "value": -68.11,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[27].level_db",
+    "why": "4,096 자세 판의 같은 값",
+    "resolves": "확인됨",
+    "value": -64.23,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[27].n_missing",
+    "why": "그 행이 완결이라는 확인",
+    "resolves": "확인됨",
+    "value": 0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[24].level_db",
+    "why": "물리 팔 el 0",
+    "resolves": "확인됨",
+    "value": -59.66,
+    "is_null": false
+   },
+   {
+    "file": "outputs/ch1_elevation_figdata.json",
+    "key": "cells.ours/el-90.ac_over_dc_db",
+    "why": "⚠ 권 16 절 5 소유 — 링크만",
+    "resolves": "확인됨",
+    "value": -38.31,
+    "is_null": false
+   }
+  ],
+  "85": [
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.sionna_phys/el+0.above_f_tip_frac",
+    "why": "물리 팔 상한 위 몫",
+    "resolves": "확인됨",
+    "value": 0.83078,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.sionna_phys/el+0.above_f_tip_db",
+    "why": "같은 값 dB",
+    "resolves": "확인됨",
+    "value": -0.81,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.sionna/el+0.above_f_tip_frac",
+    "why": "물리 끈 팔",
+    "resolves": "확인됨",
+    "value": 0.29027,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.ours/el+0.above_f_tip_frac",
+    "why": "우리 팔",
+    "resolves": "확인됨",
+    "value": 0.02285,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.sionna_phys/el-90.0-500 Hz",
+    "why": "f_tip = 0 자리의 저역 몫",
+    "resolves": "확인됨",
+    "value": -11.8,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "cells.sionna_phys/el-90.4f_tip-Nyquist",
+    "why": "그 자리의 고역 몫",
+    "resolves": "확인됨",
+    "value": -0.0,
+    "is_null": false
+   },
+   {
+    "file": "outputs/wideband_energy.json",
+    "key": "_meta.incomplete_excluded_ko",
+    "why": "미완결 행을 뺐다는 원장 자신의 선언",
+    "resolves": "확인됨",
+    "value": "n_missing > 0 인 행은 제외했다(부분 병합은 시계열에 0 이 박힌다).",
+    "is_null": false
+   }
+  ],
+  "86": [
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "cells.sionna/el-15.corr_with_ours_db_map",
+    "why": "PathSolver 대 우리 팔",
+    "resolves": "확인됨",
+    "value": 0.6961,
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "cells.deck:R3/E.corr_with_ours_db_map",
+    "why": "덱 3 m",
+    "resolves": "확인됨",
+    "value": 0.9141,
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "cells.deck:R15/E.corr_with_ours_db_map",
+    "why": "덱 15 m — 최고",
+    "resolves": "확인됨",
+    "value": 0.9877,
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "cells.deck:R40/E.corr_with_ours_db_map",
+    "why": "덱 40 m",
+    "resolves": "확인됨",
+    "value": 0.9774,
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "cells.ours/el-15.comb_spacing_hz",
+    "why": "빗살 간격은 다섯 칸 모두 같다",
+    "resolves": "확인됨",
+    "value": 125.05,
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "cells.ours/el-15.comb_spacing_err_hz",
+    "why": "예측 대비 오차",
+    "resolves": "확인됨",
+    "value": -1.62,
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "_meta.missing_arms[0]",
+    "why": "미완결 팔 1",
+    "resolves": "확인됨",
+    "value": "ours_ptd/el-15",
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "_meta.missing_arms[1]",
+    "why": "미완결 팔 2 — 물리 팔",
+    "resolves": "확인됨",
+    "value": "sionna_phys/el-15",
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "_meta.geometry_ko",
+    "why": "덱과 다른 것은 거리뿐",
+    "resolves": "확인됨",
+    "value": "덱과 앙각 스윕은 matrice4e·az 0°·el −15°·3.5 GHz·PRF 19,700·4,096 자세로 **같다**. 다른 것은 거리뿐 — 덱 3/8/15/40 m, 스윕 10 m.",
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "_meta.stft_ko",
+    "why": "STFT 만",
+    "resolves": "확인됨",
+    "value": "md_mapstyle.flash_spec (STFT 만. ⛔재할당·WVD 안 씀)",
+    "is_null": false
+   },
+   {
+    "file": "outputs/physics_vs_deck.json",
+    "key": "_meta.normalisation_ko",
+    "why": "패널별 정규화",
+    "resolves": "확인됨",
+    "value": "패널마다 자기 최대값 — 팔 사이 정규화가 달라 밝기 비교는 거짓이 된다",
+    "is_null": false
+   }
+  ],
+  "87": [
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[7].level_db",
+    "why": "11.1 M",
+    "resolves": "확인됨",
+    "value": -59.65,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[7].track.beat_hz",
+    "why": "11.1 M 박자",
+    "resolves": "확인됨",
+    "value": 376.73,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[7].npaths_median",
+    "why": "11.1 M 경로 수",
+    "resolves": "확인됨",
+    "value": 9,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[16].level_db",
+    "why": "250 M",
+    "resolves": "확인됨",
+    "value": -59.66,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[16].track.beat_hz",
+    "why": "250 M 박자",
+    "resolves": "확인됨",
+    "value": 50.27,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[16].npaths_median",
+    "why": "250 M 경로 수",
+    "resolves": "확인됨",
+    "value": 127,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[14].level_db",
+    "why": "1,000 M",
+    "resolves": "확인됨",
+    "value": -59.67,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[14].track.beat_hz",
+    "why": "1,000 M 박자",
+    "resolves": "확인됨",
+    "value": 122.12,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[23].level_db",
+    "why": "4,000 M",
+    "resolves": "확인됨",
+    "value": -59.68,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[23].track.beat_hz",
+    "why": "4,000 M 박자 — 제목의 58.15",
+    "resolves": "확인됨",
+    "value": 58.15,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[23].npaths_median",
+    "why": "4,000 M 경로 수",
+    "resolves": "확인됨",
+    "value": 2008,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[9].track.beat_hz",
+    "why": "대조군 — −30° 는 예산으로 고쳐졌다(전)",
+    "resolves": "확인됨",
+    "value": 252.32,
+    "is_null": false
+   },
+   {
+    "file": "outputs/elevation_sweep_md.json",
+    "key": "rows[18].track.beat_hz",
+    "why": "대조군 — 고쳐진 뒤",
+    "resolves": "확인됨",
+    "value": 126.61,
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "cells[0].spp",
+    "why": "시드 사다리 1 계단",
+    "resolves": "확인됨",
+    "value": 178000000,
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "cells[0].n_seeds",
+    "why": "시드 수",
+    "resolves": "확인됨",
+    "value": 8,
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "cells[0].sd_level_db",
+    "why": "시드 간 레벨 표준편차",
+    "resolves": "확인됨",
+    "value": 4.156,
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "cells[1].spp",
+    "why": "2 계단",
+    "resolves": "확인됨",
+    "value": 4000000000,
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "cells[1].sd_level_db",
+    "why": "표준편차가 줄어든다",
+    "resolves": "확인됨",
+    "value": 1.833,
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "verdict.structure_ko",
+    "why": "시드가 무엇인지",
+    "resolves": "확인됨",
+    "value": "⭐시드는 자세마다 다시 뽑는 잡음이 아니라 **광선 방향 집합 하나**를 고르는 것이다(모든 자세에 같은 seed 를 넘긴다). 그래서 관측된 시드 간 표준편차가 i.i.d. 예측(자세 안 산포 ÷ √N)보다 훨씬 크면, 그것은 평균으로 안 지워지는 **계통 편향**이라는 뜻이다. ra",
+    "is_null": false
+   },
+   {
+    "file": "outputs/raybudget_seed_ladder.json",
+    "key": "verdict.caveat_ko",
+    "why": "한 자리에서만 잰 값이라는 경고",
+    "resolves": "확인됨",
+    "value": "⚠ 이 판정은 40 m·matrice4e·el −15°·기선 0 한 자리에서만 잰 것이다. 다른 거리·기체·앙각에서 같은지는 안 재봤다.",
+    "is_null": false
+   },
+   {
+    "file": "outputs/report07_range40_raybudget.json",
+    "key": "verdict.level_spread_db.1.78e8",
+    "why": "40 m 판 레벨 폭",
+    "resolves": "확인됨",
+    "value": 2.61,
+    "is_null": false
+   },
+   {
+    "file": "outputs/report07_range40_raybudget.json",
+    "key": "verdict.beat_spread_hz.4.0e9",
+    "why": "40 m 판 박자",
+    "resolves": "확인됨",
+    "value": 126.81,
+    "is_null": false
+   },
+   {
+    "file": "outputs/report07_range40_raybudget.json",
+    "key": "verdict.path_scaling_ko",
+    "why": "경로 수 배율",
+    "resolves": "확인됨",
+    "value": "경로 수 중앙값 [9, 9] → [193, 165] (광선 22.5 배)",
+    "is_null": false
+   },
+   {
+    "file": "outputs/report07_range40_raybudget.json",
+    "key": "verdict.caveat_ko",
+    "why": "시드 2 개뿐이라는 원장의 경고",
+    "resolves": "확인됨",
+    "value": "⚠ 시드가 판마다 2개뿐이다. «폭이 줄었다» 는 두 추첨의 차이일 뿐이고 통계적 주장이 아니다. 판정을 굳히려면 시드를 더 늘려야 한다.",
+    "is_null": false
+   }
+  ]
+ },
+ "keymap_shared_repro": [
+  {
+   "file": "outputs/verify_phase_sign.json",
+   "key": "verdict",
+   "why": "시계열이 부호 정정본이다",
+   "resolves": "확인됨",
+   "value": "PASS",
+   "is_null": false
+  },
+  {
+   "file": "outputs/verify_phase_sign.json",
+   "key": "G2_farfield_converges.rho_real",
+   "why": "원거리장 수렴",
+   "resolves": "확인됨",
+   "value": 0.999999739764613,
+   "is_null": false
+  },
+  {
+   "file": "outputs/verify_po_elev_unit.json",
+   "key": "gates[0].detail.rho_min",
+   "why": "PO 운동학이 해석해와 맞는다",
+   "resolves": "확인됨",
+   "value": 0.9956,
+   "is_null": false
+  },
+  {
+   "file": "outputs/verify_po_elev_unit.json",
+   "key": "gates[2].detail.ac_below_dc_db",
+   "why": "단위시험의 나딧 바닥",
+   "resolves": "확인됨",
+   "value": -21.75,
+   "is_null": false
+  },
+  {
+   "file": "outputs/verify_po_elev_unit.json",
+   "key": "real_sweep_recheck.monotonic_check.open_item_ko",
+   "why": "미해결 — el −15° 대역 밖 에너지",
+   "resolves": "확인됨",
+   "value": "el −15° 의 AC 대역 밖 에너지 비율이 이웃보다 눈에 띄게 크다 — 이 라운드에서 원인을 규명하지 못했다. 미해결로 남긴다.",
+   "is_null": false
+  },
+  {
+   "file": "outputs/verify_po_elev_rebuttal.json",
+   "key": "깨진_것.1_AC가_DC를_이긴다는_기제는_격자_한_판에서만_참이다.el-60_시계열_사다리.P_dc_db.spread",
+   "why": "−60° P_dc 는 격자 오프셋만으로 15.05 dB 움직인다",
+   "resolves": "확인됨",
+   "value": 15.05,
+   "is_null": false
+  },
+  {
+   "file": "outputs/verify_po_elev_rebuttal.json",
+   "key": "확증된_것_판정이_옳았던_곳.AC는_정말_격자에_안_흔들린다.P_ac_db_by_lattice_el-60.spread",
+   "why": "반대로 P_ac 는 0.07 dB 안이다",
+   "resolves": "확인됨",
+   "value": 0.07,
+   "is_null": false
+  }
+ ],
+ "derived_numbers_in_titles": {
+  "권16절2_track_over_oob_el-75_db": {
+   "value": 44.6,
+   "from_keys": [
+    "cells.ours/el-75.share_track_db",
+    "cells.ours/el-75.share_track_oob_db"
+   ],
+   "file": "outputs/ch1_elevation_figdata.json"
+  },
+  "권16절2_fixed_over_oob_el-75_db": {
+   "value": 0.95,
+   "from_keys": [
+    "cells.ours/el-75.share_fixed_db",
+    "cells.ours/el-75.share_fixed_oob_db"
+   ],
+   "file": "outputs/ch1_elevation_figdata.json"
+  },
+  "권16절2_fixed_over_oob_el-90_db": {
+   "value": -0.17,
+   "from_keys": [
+    "cells.ours/el-90.share_fixed_db",
+    "cells.ours/el-90.share_fixed_oob_db"
+   ],
+   "file": "outputs/ch1_elevation_figdata.json"
+  },
+  "권16절2_track_over_oob_el-15_db": {
+   "value": 14.96,
+   "from_keys": [
+    "cells.ours/el-15.share_track_db",
+    "cells.ours/el-15.share_track_oob_db"
+   ],
+   "file": "outputs/ch1_elevation_figdata.json"
+  },
+  "권17절1_level_rise_diffraction_db": {
+   "value": 66.55,
+   "from_keys": [
+    "cases.회절만 켬.level_db",
+    "cases.기준(지금까지의 실행).level_db"
+   ],
+   "file": "outputs/diag_physics_paths_el-90.json"
+  },
+  "권17절2_acdc_drop_db": {
+   "value": -69.02,
+   "from_keys": [
+    "cases.회절만 켬.ac_over_dc_db",
+    "cases.기준(지금까지의 실행).ac_over_dc_db"
+   ],
+   "file": "outputs/diag_physics_paths_el-90.json"
+  },
+  "권17절5_el0_level_span_db": {
+   "value": 0.03,
+   "from_keys": [
+    "rows[7].level_db",
+    "rows[16].level_db",
+    "rows[14].level_db",
+    "rows[23].level_db"
+   ],
+   "file": "outputs/elevation_sweep_md.json"
+  },
+  "권17절5_budget_ratio": {
+   "value": 360.0,
+   "from_keys": [
+    "rows[23] spp = 4.0e9",
+    "rows[7] spp = 11111111 (_meta.sionna_spp)"
+   ],
+   "file": "outputs/elevation_sweep_md.json"
+  }
+ },
+ "ownership": [
+  {
+   "quantity": "우리 팔 el −90 의 AC/DC (−38.31 dB)",
+   "owner": "권 16 절 5(조각 82)",
+   "others": "권 17 절 2 는 인용하지 않고 링크만 한다"
+  },
+  {
+   "quantity": "나딧 잔여 삼분할 · 격자 지수 2.589",
+   "owner": "권 16 절 5(조각 82)",
+   "others": "권 17 은 «분해는 권 16 절 5» 로만 적는다"
+  },
+  {
+   "quantity": "above_f_tip_frac — ours·sionna·p250M 21 칸",
+   "owner": "권 16 절 4(조각 81)",
+   "others": "권 17 절 3 은 대조용 sionna/el+0 한 칸만 빌린다"
+  },
+  {
+   "quantity": "above_f_tip_frac — sionna_phys 2 칸",
+   "owner": "권 17 절 3(조각 85)",
+   "others": "권 16 은 물리 팔을 들지 않는다"
+  },
+  {
+   "quantity": "박자(beat) — 앙각축 7 점",
+   "owner": "권 16 절 4(조각 81)",
+   "others": "—"
+  },
+  {
+   "quantity": "박자(beat) — el 0 예산 사다리 4 계단",
+   "owner": "권 17 절 5(조각 87)",
+   "others": "권 16 은 예산 사다리 박자를 쓰지 않는다"
+  },
+  {
+   "quantity": "level_db 절대값",
+   "owner": "권 17 절 5(같은 엔진 안에서만)",
+   "others": "권 16 은 level_db 를 쓰지 않는다 — 팔 사이 정규화가 다르다"
+  },
+  {
+   "quantity": "npaths_median — 앙각축",
+   "owner": "권 16 절 1(조각 78)",
+   "others": "교란 축임을 밝히는 용도"
+  },
+  {
+   "quantity": "npaths_median — 스위치축",
+   "owner": "권 17 절 1(조각 83)",
+   "others": "—"
+  },
+  {
+   "quantity": "npaths_median — 예산축",
+   "owner": "권 17 절 5(조각 87)",
+   "others": "세 곳 모두 어느 축인지 이름을 함께 적는다"
+  },
+  {
+   "quantity": "elevation_sweep rows[27] (sionna_phys/el−90)",
+   "owner": "권 17 절 2(조각 84)",
+   "others": "권 16 절 5 는 우리 팔만 다룬다"
+  },
+  {
+   "quantity": "«f_flash 는 입력값» 정정",
+   "owner": "권 16 절 4(조각 81)",
+   "others": "권 17 절 5 는 링크만 한다"
+  }
+ ],
+ "ownership_vs_existing_volumes": [
+  {
+   "claim": "두 엔진이 f_tip 아래에서 겹치고 위에서 갈린다(대역 밖 5.06 % 대 0.18 %)",
+   "existing": "조각 36 = 권 08",
+   "new": "권 16 절 4 는 같은 주장을 앙각 7 점으로 확장한다. 36 의 숫자를 다시 쓰지 않고 링크만 한다"
+  },
+  {
+   "claim": "광선예산이 교란이다",
+   "existing": "조각 42 = 권 09",
+   "new": "권 17 절 5 는 앙각·거리 사다리 축이고 42 는 기체 크기 대비 예산 축이다"
+  },
+  {
+   "claim": "자세(attitude)와 가림",
+   "existing": "조각 40 = 권 09",
+   "new": "권 16 은 관측 앙각(수신 기하)이고 40 은 기체 자세다 — 첫 절에서 낱말을 가른다"
+  },
+  {
+   "claim": "스톡 엔진이 σ 를 안 낸다",
+   "existing": "권 02",
+   "new": "권 17 절 1 은 rt_no_rcs_verify 를 경로 수 해석 주의로만 쓴다"
+  },
+  {
+   "claim": "이 라운드 원장 15 개의 기존 인용",
+   "existing": "없음(전수 grep 0 건)",
+   "new": "권 16·17 이 첫 소비자다"
+  }
+ ],
+ "refuted_do_not_revive": [
+  {
+   "n": 1,
+   "banned": "나딧 잔여는 1/r⁴ 로 죽으니 실전 거리에서 사라진다",
+   "replacement": "생산 격자 λ/12 의 거리 지수는 2.589 이고 총 AC/DC 는 10 m~1 km 에서 −48.46 → −50.31 dB 로 거의 평평하다",
+   "keys": [
+    "outputs/refute_nadir_mechanism_final.json:R4c_grid_ladder.rows.lambda/12.nearfield_only_fit_exponent",
+    "outputs/refute_nadir_mechanism_final.json:R4b_cpu_kernel_replica.range_sweep_ac_over_dc_db.10",
+    "outputs/refute_nadir_mechanism_final.json:R4b_cpu_kernel_replica.range_sweep_ac_over_dc_db.1000"
+   ]
+  },
+  {
+   "n": 2,
+   "banned": "나딧에 남는 것은 진짜 신호",
+   "replacement": "AC 전력의 63.68 % 가 광선 격자 표본화 잡음, 31.12 % 근접장 곡률, 5.2 % 가림이다",
+   "keys": [
+    "outputs/refute_nadir_mechanism_final.json:R5_detection.nadir_ac_split.grid_sampling_noise_fraction",
+    "outputs/refute_nadir_mechanism_final.json:R5_detection.nadir_ac_split.nearfield_fraction",
+    "outputs/refute_nadir_mechanism_final.json:R5_detection.nadir_ac_split.occlusion_fraction"
+   ]
+  },
+  {
+   "n": 3,
+   "banned": "우리 커널만 −75° 에서 박자를 맞춘다 · 오차 0.00 Hz",
+   "replacement": "−75° 에서 우리 팔 126.67 · PathSolver 126.45 · 250 M 126.41 Hz 다. f_flash 는 입력값이라 이 잣대는 산란 커널을 재지 않는다",
+   "keys": [
+    "outputs/ch1_elevation_figdata.json:cells.sionna/el-75.beat_track_hz",
+    "outputs/ch1_elevation_figdata.json:cells.sionna_p250000000/el-75.beat_track_hz"
+   ]
+  },
+  {
+   "n": 4,
+   "banned": "물리를 켜니 나딧 도플러가 이론대로 0 이 됐다",
+   "replacement": "분모가 커졌다 — 레벨이 −130.78 → −64.23 dB 로 오르고 AC/DC 가 +0.89 → −68.13 dB 로 내려갔다. 올린 것은 회절이다",
+   "keys": [
+    "outputs/diag_physics_paths_el-90.json:cases.기준(지금까지의 실행).level_db",
+    "outputs/diag_physics_paths_el-90.json:cases.회절만 켬.level_db",
+    "outputs/diag_physics_paths_el-90.json:cases.회절만 켬.ac_over_dc_db"
+   ]
+  },
+  {
+   "n": 5,
+   "banned": "계획서 G3 가 7 점에서 판정됐다",
+   "replacement": "채점된 점은 5 이고 −15° 는 기준점 자신(0.0)이다. −75·−90 은 채점에서 빠진 점이다",
+   "keys": [
+    "outputs/ch1_elevation_figdata.json:gates.G3_ours_fixed_minus_prediction_db"
+   ]
+  },
+  {
+   "n": 6,
+   "banned": "1/r⁴ 이면 2.5 배 거리에 −7.96 dB",
+   "replacement": "40·log10(2.5) = 15.92 dB 다",
+   "keys": [
+    "outputs/refute_nadir_mechanism_final.json:R1_range_law_ledger.orchestrator_arithmetic_check_ko"
+   ]
+  }
+ ],
+ "verified_vs_plausible": {
+  "검증됨(게이트 있음)": [
+   "부호 규약 3/3 (verify_phase_sign.json:verdict)",
+   "PO 운동학 파형 일치 ρ ≥ 0.9956 (verify_po_elev_unit.json:gates[0])",
+   "나딧 잔여 삼분할 (refute_nadir_mechanism_final.json:R5_detection.nadir_ac_split)",
+   "재현기-측정 상관 0.998 대 널 p99 0.4618 (…:R4b_cpu_kernel_replica.shift_null)"
+  ],
+  "그럴듯함(게이트 없음)": [
+   "PathSolver 빗살은 경로 집합 깜빡임이다",
+   "우리 팔 el −90 패널의 ±600 Hz 띠는 70 표본 창 치맛자락이다",
+   "우리 팔 대역 몫이 앙각마다 ±15 dB 흔들리는 것은 «어느 면이 번쩍이나» 때문이다"
+  ]
+ },
+ "needs_new_computation": [
+  {
+   "what": "⭐샤드 병합 한 번(GPU 아님, CPU) — sionna_phys el−15·−30·−45 와 새 팔 sionna_p250000000_phys 는 이미 8/8 로 디스크에 있다",
+   "decides": "권 17 절 3·4 가 물리 팔 두 점이 아니라 다섯 점 이상에서 서고 덱 대조의 빈칸이 닫힌다",
+   "where": "benchmark/elevation_sweep_md.py --merge",
+   "blocker": "⛔ 기존 원장(elevation_sweep_md.json/npz)을 덮어쓴다 — 상위 판단 필요"
+  },
+  {
+   "what": "sionna_phys el−60(2/8)·el−75(4/8) 의 남은 샤드",
+   "decides": "물리 팔의 앙각 곡선이 우리 팔과 같은 7 점에서 비교된다",
+   "where": "지금 GPU 3 에서 도는 중"
+  },
+  {
+   "what": "ours --els -90 평면파 한 판",
+   "decides": "나딧 잔여의 근접장 몫과 격자 몫이 직접 갈린다",
+   "where": "권 16 절 5"
+  },
+  {
+   "what": "앙각 −60 ~ −75° 사이 5 점",
+   "decides": "고정 대역이 바닥에 닿는 앙각이 특정된다",
+   "where": "권 16 절 2"
+  },
+  {
+   "what": "ours_free(동체 가림 없는 대조군)",
+   "decides": "커버리지 감소가 cos(el) 때문인지 가림 때문인지 갈린다",
+   "where": "권 16 절 1"
+  },
+  {
+   "what": "시드를 판마다 8 개 이상",
+   "decides": "40 m 예산 사다리의 «폭이 줄었다» 가 통계적 주장이 된다",
+   "where": "권 17 절 5"
+  }
+ ],
+ "build_order": [
+  "① PYTHONPATH=src python src/build_part12_elevation.py   → reports/_parts/78~82",
+  "② PYTHONPATH=src python src/build_part13_physics.py     → reports/_parts/83~87",
+  "③ 두 빌더가 outputs/reports_index/<anchor>.json 10 개를 쓴다",
+  "④ src/build_volumes.py 의 VOLUMES 에 튜플 둘 + 문자열 12 자리 수정",
+  "⑤ PYTHONPATH=src python src/build_volumes.py            → reports/16_*, 17_*",
+  "⑥ PYTHONPATH=src python benchmark/check_report_links.py → 위반 0"
+ ]
+}

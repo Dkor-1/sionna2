@@ -1,0 +1,259 @@
+{
+  "_meta": {
+    "title": "씬을 직접 만든다면 — 경로 조사 원장",
+    "question": "공개 씬이 없거나 못 쓸 때, 우리가 Sionna 무대(환경 씬)를 직접 지으려면 어떤 길이 있나",
+    "date": "2026-08-12",
+    "scope": "무대(환경) 전용. 표적(드론) 메쉬는 이 조사 밖이다.",
+    "constraints_observed": ["GPU 미사용(읽기·CPU 계측만)", "git 미사용", "설치 없음", "기존 원장 미수정(신규 파일만)"],
+    "sionna_version": "2.0.1 (sionna 2.0.1 + sionna_rt 2.0.1, Apache-2.0)",
+    "python": "/home/yunjung/.venvs/py312/bin/python",
+    "companion_doc": "docs/SCENE_BUILD_OPTIONS.md",
+    "measure_script": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/measure_grid.py",
+    "honesty": "verified=true 는 소스 파일을 직접 읽었거나 파일을 직접 계측했다는 뜻. 웹은 원문 페이지를 fetch 한 것만 true."
+  },
+
+  "q1_how_sionna_reads_a_scene": {
+    "verified": true,
+    "evidence_files": [
+      "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene.py:1080 load_scene",
+      "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene.py:1127 load_scene_from_string",
+      "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene.py:915 _load_scene_objects",
+      "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene_utils.py:24 process_xml",
+      "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/utils/meshes.py:60 load_mesh",
+      "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene_object.py:22 SceneObject"
+    ],
+    "pipeline": [
+      "load_scene(filename) : 파일을 문자열로 읽고, 파일이 있는 디렉터리를 mitsuba FileResolver 검색경로에 넣는다(상대경로 meshes/*.ply 가 이래서 풀린다)",
+      "process_xml(xml) : (a) id 가 itu_ / mat-itu_ 로 시작하는 bsdf 를 itu-radio-material 로 바꿔 끼운다 (b) merge_shapes=True 면 모든 <shape> 를 <shape type=\"merge\" id=\"merged-shapes\"> 로 감싼다",
+      "mi.load_string(processed, optimize=False) : Mitsuba 가 실제 로드",
+      "Scene._load_scene_objects : shape 마다 mi.Mesh 인지, bsdf 가 RadioMaterialBase 인지 검사하고 SceneObject 로 감싼다"
+    ],
+    "file_formats": {
+      "scene_container": "Mitsuba 3 XML (docstring 원문: 'Sionna uses the simple XML-based format from Mitsuba 3')",
+      "mesh_via_python_api": "ply, obj 만 — meshes.py:74-76 과 scene_object.py:77-81 이 확장자를 검사하고 그 외는 ValueError",
+      "mesh_via_xml": "XML 의 <shape type=...> 은 Mitsuba 가 해석한다. 스톡 씬 15개는 전부 type=\"ply\". type=\"serialized\"/\"obj\" 도 mi.Mesh 를 내므로 원리상 통과할 것으로 보이나 **실행으로 확인하지 않았다(GPU 금지)**",
+      "verified": true
+    },
+    "xml_minimum_contract": {
+      "root": "<scene version=\"2.1.0\">  (스톡 씬 실측값)",
+      "bsdf": "<bsdf type=\"itu-radio-material\" id=\"concrete\"><string name=\"type\" value=\"concrete\"/><float name=\"thickness\" value=\"0.1\"/></bsdf>",
+      "shape": "<shape type=\"ply\" id=\"mesh-building_1\"><string name=\"filename\" value=\"meshes/building_1.ply\"/><boolean name=\"face_normals\" value=\"true\"/><ref id=\"concrete\" name=\"bsdf\"/></shape>",
+      "id_required_on_bsdf": "필수. process_xml 이 id/name 없는 bsdf 를 만나면 ValueError 를 던진다(scene_utils.py:68-74)",
+      "transform": "스톡 씬 15개 중 <transform> 을 쓰는 것은 없다 — 좌표를 메쉬에 구워 넣는다. Mitsuba XML 문법상 <transform> 은 가능하나 우리 스톡 표본에는 없다",
+      "camera_integrator_not_required": "스톡 씬 XML 에 sensor/integrator 블록 없음 — Sionna 가 Camera 를 따로 만든다",
+      "smallest_real_example": "simple_street_canyon.xml = 2101 바이트, 5 재질 + 7 shape. 손으로 쓸 수 있는 분량이다",
+      "verified": true
+    },
+    "material_attachment_two_routes": {
+      "route_a_naming": "bsdf id 를 itu_xxx 또는 mat-itu_xxx 로 지으면 process_xml 이 itu-radio-material 로 자동 변환. thickness 기본 0.1 m (rt/constants.py:80 DEFAULT_THICKNESS), <rgb name=\"color|reflectance|base_color\"> 가 있으면 표시색으로 보존",
+      "route_b_plugin": "<bsdf type=\"radio-material\" ...> 로 직접 지정",
+      "hard_gate": "그 외 일반 BSDF(diffuse 등)는 로드 시점에 ValueError — scene.py:937-945 'Found shape ... with associated material ..., which is not a radio material.' ⭐Blender 경로의 최대 함정: Blender 안에서 머티리얼 이름을 mat-itu_* 로 지어야 한다",
+      "guard": "process_xml:115-121 — ITU 이름(concrete/brick/...)을 itu_ 접두어 없이 쓰면 즉시 ValueError",
+      "verified": true
+    },
+    "no_export_api": {
+      "claim": "Sionna 2.0.1 Scene 에는 씬을 XML 로 저장/내보내는 메서드가 없다",
+      "evidence": "scene.py 의 public 메서드 전수: get/add/remove/edit/preview/render/render_to_file/sources/targets/... — save/export/to_xml 없음. 저장되는 것은 render_to_file 의 PNG 뿐(scene.py:808 image.write)",
+      "consequence": "우리가 만든 무대를 파일로 남기려면 XML 을 우리가 직접 써야 한다(어렵지 않다 — 위 2101 바이트 예 참조)",
+      "verified": true
+    },
+    "comparison_with_our_scene_build_py": {
+      "our_file": "/home/yunjung/workspace/sionna2/src/scene_build.py (175줄)",
+      "our_route": "rt.load_scene() 로 **빈 씬** → Part(name, obj, mat_key, color, position, orientation, scaling) 목록 → rt.SceneObject(fname=OBJ, radio_material=make_material(...)) → scene.edit(add=[...])",
+      "axis_table": [
+        {"axis": "씬 컨테이너", "xml_route": "디스크의 .xml 파일", "our_route": "메모리 — 파일 없음"},
+        {"axis": "메쉬", "xml_route": "meshes/*.ply 상대경로", "our_route": "assets/meshes/**/**.obj 절대경로"},
+        {"axis": "재질 정의처", "xml_route": "XML 의 <bsdf> 노드", "our_route": "src/materials.py 의 MATERIALS dict (파이썬 단일 진리원)"},
+        {"axis": "재질 부착 단위", "xml_route": "shape 1개 = bsdf 1개(<ref>)", "our_route": "OBJ 1개 = SceneObject 1개 = RadioMaterial 1개 (부위별)"},
+        {"axis": "재질 표현", "xml_route": "itu-radio-material 만 편하게 됨", "our_route": "ITURadioMaterial + 커스텀 RadioMaterial(eps_r/sigma/S) 둘 다 자유"},
+        {"axis": "배치", "xml_route": "메쉬에 구워 넣음", "our_route": "Part.position/orientation/scaling (⚠ position 세터는 AABB 중심 재배치라 평행이동으로 감싸 씀 — scene_build.py:65-74)"},
+        {"axis": "merge_shapes 최적화", "xml_route": "기본 True", "our_route": "빈 씬 경로라 미적용 — 부위 수만큼 shape 가 산다"},
+        {"axis": "재사용·공유", "xml_route": "폴더째 복사하면 끝", "our_route": "파이썬 코드를 돌려야 재현됨"}
+      ],
+      "verdict": "두 경로는 같은 곳에 도착한다. 우리 경로가 부위별 재질에 강하고, XML 경로가 보존·공유·병합최적화에 강하다.",
+      "verified": true
+    }
+  },
+
+  "q2_what_we_already_have": {
+    "verified": true,
+    "measured_2026_08_12": true,
+    "code": {
+      "src/scene_build.py": {"lines": 175, "role": "Part 목록 → Sionna 씬 조립 + 카메라 렌더. chamber_parts/drone_parts/ground_part 제공"},
+      "src/chamber.py": {"lines": 225, "role": "30×20×11 m 반무향실 절차적 생성 — 바닥타일·피라미드 흡수체·금속 백킹·트림·외골격·문"},
+      "src/geom.py": {"role": "순수 numpy Mesh + 프리미티브: box, quad, cylinder, pyramid, uv_sphere, pyramid_field. 그룹별 OBJ 저장(write_obj_per_group)"},
+      "src/cadkit.py": {"role": "trimesh + manifold3d 기반 CAD: loft, sweep, revolve, superellipse, rounded_rect, boolean union/subtract, smooth"},
+      "src/materials.py": {"lines": 289, "role": "재질 단일 진리원 — Sionna 와 PO 커널이 같은 표를 읽는다"},
+      "src/report14_scene.py": {"role": "⭐스톡 실외 씬(street_canyon/munich/etoile/florence) 로드 + 재질별 확산산란 + PathSolver 클러터 경로 추출. **표적은 씬에 안 넣는다**"}
+    },
+    "assets_measured": {
+      "chamber": {"obj_files": 19, "triangles": 38440, "edge_median_m": 0.5875, "edge_median_over_lam": 6.86,
+                  "edge_max_m": 36.06, "edge_max_note": "30×20 m 금속 백킹 판 한 장의 대각선 — 평면이라 크기가 커도 무해",
+                  "bbox_m": [31.0, 21.0, 11.85]},
+      "drones_excluding_studio_ground": {
+        "mavic4pro":  {"obj_files": 7,  "triangles": 28052, "edge_median_mm": 6.12, "edge_median_over_lam": 0.071, "edge_p95_over_lam": 0.148, "bbox_m": [0.556, 0.537, 0.152]},
+        "mini5pro":   {"obj_files": 8,  "triangles": 26502, "edge_median_mm": 3.55, "edge_median_over_lam": 0.041, "edge_p95_over_lam": 0.092, "bbox_m": [0.275, 0.378, 0.106]},
+        "matrice4e":  {"obj_files": 9,  "triangles": 31216, "edge_median_mm": 5.32, "edge_median_over_lam": 0.062, "edge_p95_over_lam": 0.145, "bbox_m": [0.513, 0.587, 0.150]},
+        "phantom4":   {"obj_files": 8,  "triangles": 27664, "edge_median_mm": 5.51, "edge_median_over_lam": 0.064, "edge_p95_over_lam": 0.121, "bbox_m": [0.471, 0.471, 0.196]},
+        "s1000plus":  {"obj_files": 10, "triangles": 39238, "edge_median_mm": 8.68, "edge_median_over_lam": 0.101, "edge_p95_over_lam": 0.328, "bbox_m": [1.348, 1.348, 0.380]}
+      },
+      "cross_check": "이 p95/λ 값들을 5.2 GHz(λ=57.54 mm)로 환산하면 0.137~0.487 이고, 기존 원장 docs/PRIOR_WORK_COMPARISON.md 의 'p95/λ 0.133–0.487' 과 일치한다 — 계측이 기존 기록과 어긋나지 않는다"
+    },
+    "gaps_for_an_outdoor_stage": [
+      {"gap": "야외 재질 키가 없다", "detail": "MATERIALS 10키는 전부 실내·기체용(metal, camera_assembly, pcb, concrete_light/dark, plastic, plastic_blue, prop_plastic, carbon, absorber). 지면·아스팔트·벽돌·유리·초목이 없다", "cost": "낮음", "note": "ITU 표에 very_dry_ground/medium_dry_ground/wet_ground(1–10 GHz)·brick·glass·wood·marble 이 이미 있어 키만 추가하면 된다. ⚠**아스팔트와 초목은 ITU 표에 없다** — 커스텀 RadioMaterial 이 필요하고 근거 문헌을 붙여야 한다"},
+      {"gap": "지형(terrain)이 없다", "detail": "geom.py 에 높이맵/불규칙 삼각망이 없다. quad 한 장이 전부다", "cost": "낮음(평지) / 중간(경사·둑)", "note": "실증지가 평평하면 quad 한 장 + 재질로 충분하다"},
+      {"gap": "건물 매스 압출기가 없다", "detail": "발자국 폴리곤 → 벽+지붕 압출 함수가 없다", "cost": "낮음", "note": "shapely 가 이미 설치돼 있고 cadkit.loft/sweep 이 있어 폴리곤 압출은 수십 줄"},
+      {"gap": "씬을 파일로 남기는 길이 없다", "detail": "우리는 메모리에서만 씬을 만든다. Sionna 에도 export 가 없다", "cost": "낮음", "note": "Part 목록 → Mitsuba XML 라이터를 우리가 쓰면 된다(스톡 XML 이 2 KB 규모)"},
+      {"gap": "좌표 원점 규약이 없다", "detail": "챔버는 x∈[0,W] 로컬좌표다. 야외 사이트는 위경도 → 로컬 ENU 변환 원점을 선언해야 한다(실측 RTK GT 와 맞물린다)", "cost": "낮음이지만 **틀리면 전부 틀린다**", "note": "pyproj 는 미설치. 원점 하나 잡고 손으로 ENU 변환해도 된다"},
+      {"gap": "규모 검사가 없다", "detail": "챔버는 31×21 m 라 삼각형 3.8만 개로 족했다. 사이트가 수백 m 면 삼각형 예산·PathSolver 시간을 재본 적이 없다", "cost": "중간", "note": "스톡 munich 는 2367 메쉬 파일이고 우리는 그런 규모를 돌려본 적이 없다"}
+    ]
+  },
+
+  "q3_osm_to_scene": {
+    "verified": "부분 — 각 항목의 verified 필드 참조. ⛔설치·clone 하지 않았다(지시)",
+    "official_path_confirmed": {
+      "claim": "Sionna 내장 씬들은 OSM + Blender + Blender-OSM + Mitsuba-Blender 로 만들어졌다",
+      "quote": "\"The scene was created with data downloaded from OpenStreetMap and the help of Blender and the Blender-OSM and Mitsuba Blender add-ons.\"",
+      "source": "https://nvlabs.github.io/sionna/rt/api/scene.html (WebFetch 2026-08-12)",
+      "verified": true,
+      "why_it_matters": "이 경로는 NVIDIA 가 자기 씬을 만든 바로 그 경로다 — 검증된 워크플로라는 뜻이다"
+    },
+    "tools": [
+      {
+        "name": "Blender", "role": "3D 편집·중간 허브", "license": "GPL-2.0-or-later",
+        "install": "미설치(로컬 확인). 데스크톱 앱이지만 --background CLI 로 헤드리스 실행 가능",
+        "verified": false, "verified_note": "라이선스는 널리 알려진 사실이며 원문 페이지를 이번에 fetch 하지 않았다 — 형식상 미확인으로 둔다"
+      },
+      {
+        "name": "blosm (구 blender-osm)", "repo": "https://github.com/vvoovv/blosm",
+        "role": "OSM + 지형 + Google 3D 도시를 Blender 로 한 번에 임포트. 건물 높이는 building:levels 태그 사용",
+        "license": "GPL (저장소 설명 원문: \"The addon source code is available under GPL license!\"). 기본 텍스처·머티리얼은 CC0",
+        "distribution_caveat": "⚠소스가 GitHub main 에 그냥 있는 게 아니라 'release' 브랜치이고, 배포는 gumroad(base=무료 또는 자율기부, pro=유료)를 거친다. 라이선스는 GPL 이지만 **입수 경로가 스토어**다",
+        "install": "Blender 애드온 zip", "verified": true,
+        "verified_note": "github.com/vvoovv/blosm 페이지 fetch 로 GPL 문구 확인. LICENSE 파일 존재 여부는 확인 못 함"
+      },
+      {
+        "name": "mitsuba-blender", "repo": "https://github.com/mitsuba-renderer/mitsuba-blender",
+        "role": "Blender 씬 → Mitsuba 3 XML + 메쉬 내보내기", "license": "BSD-3-Clause",
+        "install": "Blender ≥ 2.93 (LTS 3.6·4.2 권장·테스트됨)", "verified": true,
+        "verified_note": "GitHub 저장소 페이지 fetch 로 라이선스·Blender 버전 확인. 내보내는 메쉬 형식(ply/obj/serialized)은 페이지에서 확인 못 함 — 미확인",
+        "gotcha": "⭐내보내기 뒤 XML 의 bsdf id 가 mat-itu_* 가 아니면 Sionna 가 로드 시점에 ValueError. Blender 안에서 머티리얼 이름을 그렇게 지어야 한다(우리 소스 실측)"
+      },
+      {
+        "name": "sionna_osm_scene", "repo": "https://github.com/manoj-kumar-joshi/sionna_osm_scene",
+        "role": "⭐Blender 없이 순수 파이썬으로 OSM → Mitsuba XML + PLY. 지도에서 영역 선택 → 건물 발자국 압출 + 지면 + 도로",
+        "license": "MIT", "verified": true,
+        "verified_note": "저장소 페이지 + OSM_to_Sionna.ipynb 원본 fetch",
+        "deps": ["osmnx", "shapely", "pyproj", "pyvista", "open3d", "ipyleaflet", "ipyvolume", "xml.etree.ElementTree"],
+        "deps_present_locally": {"shapely": true, "osmnx": false, "pyproj": false, "pyvista": false, "open3d": false},
+        "how_it_works": "건물 높이 = building:levels × 3.5 m (태그 없으면 3.5 m 기본) · 발자국 delaunay_2d 삼각화 후 압출 · building_{idx}.ply / ground.ply 저장 · XML 에 mat-itu_concrete / mat-itu_marble / mat-itu_metal / mat-itu_wood / mat-itu_wet_ground bsdf 생성",
+        "limitation": "삼각형 밀도·해상도를 조절하는 파라미터가 노출돼 있지 않다(노트북 원문 확인)",
+        "fit_for_us": "우리에게 가장 잘 맞는 참조 구현 — 라이선스 MIT, Blender 불필요, 우리가 이미 하는 '코드로 메쉬를 만든다' 와 같은 철학"
+      },
+      {
+        "name": "Geo2SigMap", "repo": "https://github.com/functions-lab/geo2sigmap", "paper": "arXiv:2312.14303 (DySPAN)",
+        "role": "OSM → Blender → PLY/Mitsuba XML → Sionna 자동 파이프라인 + U-Net 커버리지 예측",
+        "license": "⛔**CC BY-NC 4.0 (비상업)**", "verified": true,
+        "verified_note": "GitHub 저장소 페이지 fetch 로 라이선스 확인",
+        "warning": "⚠비상업 조항이 있다. 논문·연구용은 무리 없으나 코드를 우리 저장소에 흡수하면 우리 결과물에 NC 가 전염될 소지가 있다. **아이디어는 참고하되 코드는 복사하지 않는 편이 안전하다**",
+        "already_in_our_ledger": "docs/PRIOR_WORK_COMPARISON.md:137 에 '[P] OSM → Blender → .ply/Mitsuba XML(객체별 재질 ref) → Sionna 자동 파이프라인' 으로 이미 등재돼 있고, 워크플로 패턴을 adopt 하기로 기록돼 있다"
+      }
+    ],
+    "data_license": {
+      "source": "OpenStreetMap",
+      "license": "Open Data Commons Open Database License (ODbL) v1.0",
+      "obligation": "\"If you alter or build upon our data, you may distribute the result only under the same license.\" — 파생 데이터베이스에 share-alike 가 걸린다",
+      "verified": true,
+      "verified_note": "https://www.openstreetmap.org/copyright fetch",
+      "our_reading": "OSM 발자국으로 만든 건물 메쉬를 **배포**하면 ODbL 파생물로 볼 여지가 크다. 내부 계산용으로만 쓰면 배포가 아니므로 문제되지 않는다. 논문 부록에 씬을 공개할 계획이면 이 조항을 먼저 정리해야 한다. ⚠법률 판단이 아니라 라이선스 원문을 읽은 우리 해석이다"
+    },
+    "verdict": "OSM → 씬 경로는 **실재하고 검증됐다**(NVIDIA 가 자기 씬을 그렇게 만들었다). 두 갈래가 있다: (A) Blender GUI 경로 = 공식·손이 많이 감·애드온 2개 필요, (B) 순수 파이썬 경로(sionna_osm_scene, MIT) = 우리 철학에 맞음·의존성 4개 추가 설치 필요"
+  },
+
+  "q4_grid_resolution": {
+    "verified": true,
+    "headline": "⭐무대와 표적의 격자는 **이미 따로다**. 나눌 수 있냐가 아니라, 애초에 두 엔진이라 나뉘어 있다.",
+    "why": {
+      "stage_engine": "Sionna PathSolver — 면을 '국소 무한 거울'로 보는 기하광학(GO). 표면적분이 없다. 삼각형이 커도 반사·회절 경로 자체는 나온다",
+      "target_engine": "우리 SBR+PO 커널(src/rcs_sbr.py) — Mitsuba 광선으로 조명면을 찾고 그 위에서 PO 표면적분을 한다. σ 는 여기서만 나온다",
+      "interface": "σ 를 스칼라(또는 자세별 격자)로 무대 계산에 **주입**한다"
+    },
+    "kernel_facts": {
+      "sbr_field_signature": "sbr_field(mesh, group_mat, fc, u, spacing=None, pad=1.15, ..., grid_ref=None, range_m=None)",
+      "sbr_field_sees_only_the_target": "인자에 무대가 없다 — Mesh 하나만 받는다. 무대 삼각형은 이 커널에 **들어올 방법이 없다**",
+      "grid_spacing": "d = spacing 또는 λ/DEFAULT_DIV, DEFAULT_DIV=12 (rcs_sbr.py:96) → 3.5 GHz 에서 d = 7.14 mm",
+      "grid_extent": "_grid_for(mesh, d, pad, grid_ref, u) — 표적 메쉬 bbox 를 pad=1.15 로 부풀린 구를 덮는 평행 광선 격자",
+      "grid_ref_meaning": "⚠grid_ref/spacing 은 '무대 대 표적' 노브가 **아니다**. 자세(로터 위상)마다 격자가 다시 만들어져 위상 원점이 흔들리는 것을 막으려고 격자를 **얼리는** 장치다(rcs_sbr.py:732-911). 무대와는 무관하다",
+      "verified": true
+    },
+    "measured_edge_lengths_at_3p5GHz": {
+      "lambda_m": 0.085655,
+      "note": "median = 삼각형 변길이 중앙값. over_lam = /λ. 도시 씬은 메쉬 파일 200개 무작위 표본(seed 0)",
+      "stock_stage": [
+        {"scene": "simple_street_canyon", "mesh_files": 7, "tris": 74, "edge_median_m": 31.12, "over_lam": 363.3, "p95_over_lam": 697.3},
+        {"scene": "simple_street_canyon_with_cars", "mesh_files": 23, "tris": 394, "edge_median_m": 1.95, "over_lam": 22.8, "p95_over_lam": 487.9},
+        {"scene": "etoile", "mesh_files": 565, "sampled": 200, "tris": 5066, "edge_median_m": 13.40, "over_lam": 156.5, "p95_over_lam": 350.2},
+        {"scene": "munich", "mesh_files": 2367, "sampled": 200, "tris": 16472, "edge_median_m": 0.354, "over_lam": 4.14, "p95_over_lam": 202.8},
+        {"scene": "florence", "mesh_files": 2639, "sampled": 200, "tris": 5042, "edge_median_m": 2.22, "over_lam": 25.9, "p95_over_lam": 246.1},
+        {"scene": "san_francisco", "mesh_files": 4735, "sampled": 200, "tris": 2883, "edge_median_m": 9.04, "over_lam": 105.5, "p95_over_lam": 255.7},
+        {"scene": "low_poly_car.ply", "tris": 20, "edge_median_m": 1.80, "over_lam": 21.0},
+        {"scene": "sphere.ply", "tris": 15872, "edge_median_m": 0.0485, "over_lam": 0.567, "note": "⭐검증용 구는 예외 — 이것만 λ 이하다. 스톡에서 유일하게 산란체 노릇을 할 수 있는 메쉬다"}
+      ],
+      "our_chamber_stage": {"tris": 38440, "edge_median_m": 0.5875, "over_lam": 6.86, "note": "흡수체 피라미드 pitch 0.6 m 가 격자를 정한다 — 무대치고는 촘촘하지만 여전히 λ 의 7배"},
+      "our_targets": {"edge_median_over_lam_range": [0.041, 0.101], "edge_p95_over_lam_range": [0.092, 0.328], "tris_range": [26502, 39238]},
+      "ratio": "무대 대 표적 격자비 = 대략 40배(munich 최선) ~ 8800배(street_canyon). 같은 격자에 둘 다 태울 수 있는 문제가 아니다"
+    },
+    "existing_precedent_in_our_repo": {
+      "file": "src/report14_scene.py",
+      "docstring_quote": "\"⚠ 표적 밝기 σ 는 report13 SBR+PO 격자로 주입한다(few-λ 드론은 스톡 Sionna 부정확 — 우리 메모). 여기서는 **환경만** RT 로 짓는다.\"",
+      "what_it_does": "스톡 실외 씬 로드 → 재질별 확산산란 S 설정 → PathSolver(max_depth=3) 로 TX→RX 다중경로 추출 → AoA×도플러 클러터 공분산. 표적 메쉬는 씬에 넣지 않는다",
+      "verified": true,
+      "verdict": "질문에 대한 답이 이미 코드로 존재한다. 새로 설계할 것이 아니라 **이미 서 있는 규약을 야외 사이트로 확장**하는 일이다"
+    },
+    "what_this_split_does_not_give_you": [
+      "⭐무대×표적 결합항이 자동으로 안 나온다. '표적을 경유한 바닥 유령'(TX→바닥→표적→RX 등)은 두 엔진 어디에도 없다 — 표적이 무대 씬에 없으니 PathSolver 가 못 만들고, 무대가 SBR 커널에 없으니 PO 도 못 만든다. 이건 우리 메모가 '진짜 위협'이라고 적어둔 바로 그 항이다. 명시적으로 배선해야 한다(우리 저장소에 src/experiment_ghost.py 가 있다 — 이번 조사에서 내용은 안 읽었다)",
+      "표적이 무대에 그림자를 드리우거나 무대가 표적을 가리는 효과",
+      "근거리 결합(표적이 지면에 아주 가까울 때)"
+    ],
+    "practical_rules": [
+      "무대 삼각형 크기는 λ 로 재지 말고 **무대가 낳아야 할 경로의 각도 정밀도**로 재라 — GO 에는 λ 기준 격자 요건이 없다",
+      "다만 λ 보다 작은 무대 디테일(난간·창틀)은 GO 로 의미가 없다 — 넣어도 물리가 아니라 잡음이다. 넣지 말고 삼각형 예산을 아껴라",
+      "표적 격자(λ/12)는 절대 무대 기준으로 낮추지 마라 — σ 가 그 격자에서 나온다",
+      "⚠표적 메쉬를 편의상 무대 씬에 넣지 마라. 스톡 Sionna 는 표면적분이 없어 σ 가 창발하지 않는다(rcs_sbr.py 머리말의 실측: 평판 변을 0.2→4 m 로 키워 σ 가 52 dB 변해도 RT 진폭은 −7.91 dB 불변)"
+    ]
+  },
+
+  "q5_cost_estimate_outdoor_site_twin": {
+    "basis": "우리 저장소 실적(챔버 = chamber.py 225줄로 31×21×11.85 m 무대 완성)과 위 계측을 근거로 한 **추정**이다. 실측 소요시간이 아니다",
+    "assumption": "실증지가 평지에 가깝고, 무대 반경 100~300 m, 건물 수십 채 이하",
+    "steps": [
+      {"n": 1, "step": "사이트 확정·원점 선언", "work": "실증지 좌표 하나를 원점으로 못박고 로컬 ENU 축(x=동, y=북, z=상)을 선언. RTK GT·X410 배치와 같은 좌표계를 쓴다", "effort": "0.5일", "risk": "⭐틀리면 하류 전부 틀린다. 되돌리기 비쌈", "blocker": "docs/MEASUREMENT_PLAN.md Q1 이 '1층 레인지가 어디인지 정해지지 않았다'고 적고 있다 — **이 단계가 지금 막혀 있다**"},
+      {"n": 2, "step": "무대 기하 확보", "work": "(A) OSM → sionna_osm_scene 방식으로 발자국 압출 (B) 직접 실측/도면으로 박스 몇 개 (C) 둘 다 — OSM 으로 초안, 현장 사진으로 교정", "effort": "OSM 경로 1~2일(의존성 설치 포함) / 손 모델 0.5~1일", "risk": "낮음", "note": "건물이 몇 채뿐이면 (B)가 더 빠르고 더 정확하다. 우리 geom.box + cadkit 로 충분"},
+      {"n": 3, "step": "야외 재질 키 추가", "work": "materials.py 에 ground(ITU very_dry/medium_dry/wet), brick, glass, wood, marble 추가. ⚠아스팔트·초목은 ITU 에 없어 커스텀 + 문헌 근거 필요", "effort": "0.5일 + 문헌조사 0.5일", "risk": "낮음", "note": "MATERIALS 표는 이미 Sionna·PO 양쪽이 읽는 단일 진리원이라 확장 지점이 명확하다"},
+      {"n": 4, "step": "무대 조립 배선", "work": "chamber_parts() 와 같은 모양의 site_parts() 를 만들어 scene_build.build_scene 에 태운다", "effort": "0.5일", "risk": "낮음", "note": "⚠Part.position 세터 함정(AABB 중심 재배치)을 그대로 승계 — scene_build.py:65-74 주석대로 하면 된다"},
+      {"n": 5, "step": "규모·비용 계측", "work": "삼각형 수, PathSolver max_depth 별 경로 수·소요시간, 확산산란 켠 경우의 폭발을 잰다. 예산 초과면 무대 단순화", "effort": "0.5~1일 (GPU 필요)", "risk": "⭐중간 — 우리가 이 규모를 돌려본 적이 없다"},
+      {"n": 6, "step": "⭐σ 주입 인터페이스 고정", "work": "표적 σ 격자(자세×밴드×바이스태틱각)를 무대 계산에 넣는 규약을 못박는다. report14_scene.py 가 이미 하는 일을 야외판으로", "effort": "1일", "risk": "중간 — 두 엔진의 경계라 규약이 어긋나면 조용히 틀린다"},
+      {"n": 7, "step": "⭐무대×표적 결합항 배선", "work": "표적경유 바닥/건물 유령을 명시적으로 만든다(무대 → 표적 방향 조명, 표적 → 무대 → RX). 자동으로 안 나오는 항", "effort": "2~4일", "risk": "⭐⭐높음 — 이 항이 5G 100% 오검출의 원인이라고 우리 메모가 적고 있다. 물리와 검증 둘 다 필요"},
+      {"n": 8, "step": "검증", "work": "무대만: 스톡 씬(street_canyon)과 나란히 돌려 경로 수·지연분포가 말이 되는지. 결합: 챔버 유령 결과(experiment_ghost)와 정성 일치하는지", "effort": "1~2일", "risk": "중간", "note": "⭐우리 방침(2026-08-03)이 '입장료는 검증' 이다 — 이 단계를 빼면 안 된다"}
+    ],
+    "totals": {
+      "stage_geometry_only": "2~4일 — 무대를 세우고 렌더가 나오는 데까지",
+      "stage_plus_sigma_injection": "4~7일 — report14 규약의 야외판까지",
+      "full_with_coupling_and_verification": "8~14일 — 결합항과 검증까지",
+      "honest_note": "⭐1단계(사이트 확정)가 막혀 있어 지금은 **2·3·4단계를 사이트 무관하게 미리 지어두는 것**이 가장 값싸다. 원점만 파라미터로 빼두면 사이트가 정해질 때 갈아끼우면 된다"
+    },
+    "cheapest_first_move": "materials.py 에 야외 재질 키를 추가하고, geom 에 '발자국 폴리곤 → 압출' 함수 하나를 더하는 것. 반나절이고 사이트가 어디로 정해지든 버려지지 않는다"
+  },
+
+  "unknowns": [
+    "XML 의 <shape type=\"serialized\"> 나 type=\"obj\" 가 Sionna 2.0.1 에서 실제로 로드되는지 — 실행 확인 안 함(GPU 금지). 스톡 씬 15개는 전부 ply 다",
+    "손으로 쓴 최소 XML 이 실제로 로드되는지 — 소스상 통과해야 하지만 실행으로 확인 안 함",
+    "mitsuba-blender 가 내보내는 메쉬 파일 형식(ply/obj/serialized) — 저장소 페이지에서 확인 못 함",
+    "Blender 라이선스(GPL-2.0-or-later) — 이번에 원문 fetch 안 함",
+    "blosm 저장소에 LICENSE 파일이 실제로 있는지 — 설명 문구만 확인",
+    "스톡 씬 15개의 **데이터** 라이선스 — 코드는 Apache-2.0 이지만 OSM 유래 지오메트리에 ODbL 이 걸리는지는 확인 못 함. 이 조사의 범위 밖(형제 조사 담당)",
+    "src/experiment_ghost.py 의 내용 — 무대×표적 결합을 이미 어디까지 다루는지 이번에 안 읽었다",
+    "우리 규모(반경 100~300 m, 확산산란 ON)에서 PathSolver 의 실제 소요시간·메모리 — 잰 적 없다",
+    "야외 아스팔트·초목의 3.5 GHz εr·σ 근거 문헌 — 아직 없다"
+  ]
+}

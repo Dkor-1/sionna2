@@ -1,0 +1,129 @@
+{
+ "_meta": {
+  "generator": "benchmark/verify_el0_acdc_lens3.py",
+  "date": "2026-08-12",
+  "question_ko": "el 0 에서 AC/DC 가 예산을 따라 오른다 — 오르는 것이 움직이는 성분인가 표본화 잡음인가",
+  "verdict_ko": "표본화 잡음이다. 250 M 이상에서 변동 스펙트럼은 백색이고, AC 전력은 경로 수에 비례한다. 11.1 M 이 갖고 있던 빗살 구조는 예산을 올리면 사라진다.",
+  "compute_ko": "GPU 미사용. 원장 npz 를 읽어 numpy FFT 만 했다.",
+  "reads_only": [
+   "outputs/elevation_sweep_md.npz",
+   "outputs/elevation_sweep_md.json"
+  ],
+  "spectrum_ko": "4096 점 한나 창 FFT, Δf = 4.81 Hz — build_ch1_elevation_figs.py 와 같은 규약",
+  "ac_spectrum_ko": "DC 로 나누고 1 을 뺀 변동 d = E/mean(E) − 1 의 스펙트럼. ac_over_dc_db = 10log10 mean|d|² 와 같은 물건이다",
+  "band_ko": "추적 대역 445.5~1272.9 Hz · 대역외 기준띠 2600~3427.4 Hz (같은 폭 344 빈)",
+  "comb_ko": "빗살 30 차, 각 ±12 Hz — 300 빈 / 4096. 변동이 백색이면 몫은 -11.35 dB 다",
+  "units_warning_ko": "ours 는 E [m²], sionna 는 h [무차원]. AC/DC 는 비율이라 눈금 무관이지만, 두 팔의 AC 가 같은 물건인지는 빗살 몫으로 따로 봐야 한다"
+ },
+ "white_noise_neutral_comb_share_db": -11.35,
+ "cells": {
+  "ours": {
+   "engine": "ours",
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -54.37,
+   "ac_over_dc_db": -15.32,
+   "ac_inband_share_db": -0.5,
+   "ac_oob_share_db": -25.09,
+   "ac_inband_minus_oob_db": 24.6,
+   "comb_share_of_ac_db": -0.06,
+   "comb_excess_over_white_db": 11.29
+  },
+  "sionna": {
+   "engine": "sionna",
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 9,
+   "level_db": -59.65,
+   "ac_over_dc_db": -83.56,
+   "ac_inband_share_db": -1.59,
+   "ac_oob_share_db": -20.5,
+   "ac_inband_minus_oob_db": 18.91,
+   "comb_share_of_ac_db": -0.1,
+   "comb_excess_over_white_db": 11.25
+  },
+  "sionna_p250000000": {
+   "engine": "sionna_p250000000",
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 127,
+   "level_db": -59.66,
+   "ac_over_dc_db": -39.65,
+   "ac_inband_share_db": -10.77,
+   "ac_oob_share_db": -10.79,
+   "ac_inband_minus_oob_db": 0.02,
+   "comb_share_of_ac_db": -11.33,
+   "comb_excess_over_white_db": 0.02
+  },
+  "sionna_p1000000000": {
+   "engine": "sionna_p1000000000",
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 471,
+   "level_db": -59.67,
+   "ac_over_dc_db": -33.91,
+   "ac_inband_share_db": -10.81,
+   "ac_oob_share_db": -10.78,
+   "ac_inband_minus_oob_db": -0.03,
+   "comb_share_of_ac_db": -11.51,
+   "comb_excess_over_white_db": -0.16
+  },
+  "sionna_p4000000000": {
+   "engine": "sionna_p4000000000",
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 2008,
+   "level_db": -59.68,
+   "ac_over_dc_db": -30.76,
+   "ac_inband_share_db": -10.25,
+   "ac_oob_share_db": -10.83,
+   "ac_inband_minus_oob_db": 0.58,
+   "comb_share_of_ac_db": -11.41,
+   "comb_excess_over_white_db": -0.06
+  }
+ },
+ "budget_ladder": [
+  {
+   "from": "sionna",
+   "to": "sionna_p250000000",
+   "npaths_median": [
+    9,
+    127
+   ],
+   "ac_rise_db": 43.91,
+   "ten_log10_path_ratio_db": 11.5,
+   "level_change_db": -0.01
+  },
+  {
+   "from": "sionna_p250000000",
+   "to": "sionna_p1000000000",
+   "npaths_median": [
+    127,
+    471
+   ],
+   "ac_rise_db": 5.74,
+   "ten_log10_path_ratio_db": 5.69,
+   "level_change_db": -0.01
+  },
+  {
+   "from": "sionna_p1000000000",
+   "to": "sionna_p4000000000",
+   "npaths_median": [
+    471,
+    2008
+   ],
+   "ac_rise_db": 3.15,
+   "ten_log10_path_ratio_db": 6.3,
+   "level_change_db": -0.01
+  }
+ ],
+ "findings_ko": [
+  "받침대(정지 성분)는 예산을 11.1 M → 4 G 로 360 배 늘려도 레벨이 -59.65 → -59.68 dB 로 0.03 dB 안에 머문다.",
+  "AC/DC 는 예산을 따라 단조 상승한다 — -83.56 → -39.65 → -33.91 → -30.76 dB.",
+  "250 M 이상에서 그 AC 는 백색이다 — 블레이드 대역과 대역외 기준띠의 차이가 0.02 dB 이고, 빗살 30 차의 몫이 -11.33 dB 로 백색 중립값 -11.35 dB 와 같다.",
+  "11.1 M 은 반대다 — 빗살이 AC 의 -0.1 dB(중립 대비 +11.25 dB)를 담고 대역 초과가 18.91 dB 다. 예산을 올리면 이 구조가 묻힌다.",
+  "AC 전력은 경로 수를 따라간다 — 127 → 471 벌에서 AC 가 5.74 dB 오르고 10log10(471/127) = 5.69 dB 다.",
+  "우리 팔의 AC 는 같은 자리에서 빗살이 -0.06 dB(중립 대비 +11.29 dB)를 담고 대역 초과가 24.6 dB 다 — 변조 깊이를 재고 있다."
+ ]
+}

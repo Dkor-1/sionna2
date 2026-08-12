@@ -1,0 +1,227 @@
+{
+  "_meta": {
+    "what": "8 권 08_3_pattern.ipynb 절 단위 엔진-팔 감사 — 각 절이 실제로 몇 개의 엔진 팔을 돌렸나",
+    "question_ko": "8-1~8-5 후반부 내용도 PathSolver 와 PO 를 둘 다 쓴 것이 맞나 (2026-08-11 사용자)",
+    "target": "reports/08_3_pattern.ipynb",
+    "generated": "2026-08-12 (2 회차 — 1 회차 판을 원장으로 전부 재검증하고 P12 를 보탬)",
+    "notebook_size": {"cells": 63, "markdown_chars_without_base64": 58537, "numbered_sections": 6},
+    "audit_mode_ko": "읽기 전용. 노트북·원장·빌더를 하나도 안 고쳤다. GPU 0 초 — 디스크의 JSON 과 빌더 소스만 열었다.",
+    "arm_taxonomy_ko": {
+      "PathSolver": "스톡 sionna.rt.PathSolver — h = Σ a_p·exp(−j2πf_c τ_p). σ 를 안 낸다",
+      "ours_SBR_PO": "우리 SBR+PO (src/rcs_sbr.py:sbr_field) — 광선 격자로 보이는 면만 골라 PO. 가림 있음",
+      "pure_PO": "⭐셋째 팔. src/microdoppler_nearfield.py — 점구름 전면 PO, **가림 없음**. 광선 격자를 안 쓴다",
+      "analytic": "산란 물리를 뺀 기준 — 강체 운동학 예측·왕복 위상만 더한 기하 빗"
+    },
+    "how_arms_were_identified_ko": [
+      "원장 키 이름이 아니라 그 원장을 만든 스크립트의 import·인자로 확정했다.",
+      "benchmark/report15b_microdoppler_recompute.py:311-316 — arms = [(A_sbr_locked,'sbr',r_lock,'full'), (B_sbr_spread,'sbr',r_sprd,'full'), (F_blade_occ,'sbr',r_sprd,'blade_occ'), (G_blade_free,'sbr',r_sprd,'blade_free'), (C_po_locked,'po',r_lock), (D_po_spread,'po',r_sprd)] → 이 원장에 PathSolver 팔은 **없다**",
+      "benchmark/report15b_microdoppler_recompute.py:139-184 — mode 별 정의(full=penetrate True / blade_occ=동체 Γ=0·penetrate False / blade_free=동체 면 제거)",
+      "benchmark/report07_hover_long.py:62,197 → rcs_sbr.sbr_field 만 부른다(SBR 전용, f7·f11 의 원장)",
+      "benchmark/report15_verdict_po_grid.py meta.engine = 'src/microdoppler_nearfield.py — 구면파 PO, 실제 TX/RX 좌표, **가림 없음**' → 이 PO 는 pure_PO",
+      "outputs/report07_three_engines.json engines.{sbr,po,sionna}.engine 문자열 — 세 팔이 라벨로 박혀 있다",
+      "outputs/report15_blade_flash_ladder.json _meta.spp_ladder·verdict.*.budget_top_spp → 스톡 RT 예산 축뿐(PathSolver 전용)",
+      "benchmark/build_report07_figs.py:151-203(f2, VER['sionna']/VER['po'] 두 열) · 204-212(f3, 숫자가 소스에 박혀 있음)"
+    ]
+  },
+
+  "sections": [
+    {
+      "section": "«절 없음» 앞머리 ① (셀 1)",
+      "title": "회전수가 같으면 무늬가 시간에 안 변한다  [그림 f1]",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.findings.rpm_spread_makes_it_time_varying.{locked_half_corr=1.0, spread_half_corr=0.7691, drop=0.2308} · _meta.rpm_spread_frac=0.0022 — 값의 출처 팔은 arms.A_sbr_locked·B_sbr_spread(둘 다 'sbr')",
+      "verdict": "한_팔만",
+      "note": "SBR 한 팔. 두 팔인 것처럼 쓰진 않았다(엔진을 아예 안 언급한다). ⭐같은 원장 같은 칸에 순수 PO 쌍둥이가 이미 있다 — C_po_locked 1.0000 → D_po_spread 0.7669 로 SBR(1.0000→0.7691)과 사실상 같은 낙차다. 계산 없이 인용만 하면 이 그림이 두 팔이 된다."
+    },
+    {
+      "section": "«절 없음» 앞머리 ② (셀 2)",
+      "title": "동체가 막으면 무엇이 달라지나  [그림 f4]",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.findings.{occlusion_level_db=1.315, occlusion_ptp_db=-4.792} = arms.F_blade_occ − arms.G_blade_free (recompute:311-316 둘 다 'sbr')",
+      "verdict": "한_팔만",
+      "note": "가림 축은 원리적으로 SBR 팔에서만 선다 — 순수 PO 는 정의상 아무것도 안 막는다. 그래서 한 팔이 불가피한데 **본문에 그 이유가 없다.** 이 dB 는 6 칸 중 한 칸이고 6 칸의 부호가 갈린다(occlusion_level_db: matrice4e nose -0.042 / belly +1.315 / belly_side -0.847, mini5pro nose -0.000 / belly -1.136 / belly_side -1.057)."
+    },
+    {
+      "section": "«절 없음» 앞머리 ③ (셀 3)",
+      "title": "블레이드는 강하고 동체가 덮는다  [그림 f3]",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.arms.A_sbr_locked.{modulation_ptp_db=3.265, level_db=-51.56} vs arms.F_blade_occ.{50.32, -72.27}",
+      "verdict": "한_팔만",
+      "note": "⚠두 겹의 문제. (1) A 는 **잠근 rpm**(mode full·penetrate True), F 는 **흩뜨린 rpm**(동체 Γ=0·penetrate False) — «같은 칸을 두 채널로» 가 아니라 채널·rpm·동체재질이 함께 바뀐 실행 둘이다. (2) 그림 f3 자체가 원장을 안 읽는다 — build_report07_figs.py:208-209 에 whole={3.5:2.84}, prop={3.5:32.32} 가 박혀 있다(주석 «2026-08-07 실측»). 본문 3.26/50.32 와 그림 2.84/32.32 가 다른 판이다."
+    },
+    {
+      "section": "«절 없음» 앞머리 ④ (셀 4·5)",
+      "title": "2 초 호버링 — 능선과 로터 회전수 / 로터 산포 프리셋 비교  [그림 f7 · f11]",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report07_hover_long.json : _meta.{seconds=2.0, n=39400, blade_periods=253.3, static_spread=0.0022, wobble_amp=0.0015, wobble_hz=2.7, preset='sitl', grid_frozen=true} · outputs/report07_hover_long_outdoor.json : _meta.{static_spread=0.02, wobble_amp=0.025, wobble_hz=1.0, preset='outdoor'} — 두 파일 다 엔진별 결과 칸이 없다(`_meta` 뿐). 계산은 benchmark/report07_hover_long.py:62,197 sbr_field",
+      "verdict": "한_팔만",
+      "note": "⭐⭐가장 무거운 자리. outputs/freeze_signal_loss.json : verdict.open_ko 가 스스로 «⚠ `report07_hover_long*` 두 열에는 **순수 PO 대조 팔이 없다**. 2 초 창의 능선이 이 감사에서 심판을 못 받는 유일한 자리다» 라고 적어 뒀는데 그 문장이 08_3 본문에 한 줄도 없다. 셀 5 는 «SBR 팔» 이라고 정직하게 밝히지만 셀 4 는 엔진을 안 밝힌다."
+    },
+    {
+      "section": "«절 없음» 앞머리 ⑤ (셀 6)",
+      "title": "그 «야외 앵커» 를 눈으로: 공개 비행로그 세 종의 실측  [그림 f13]",
+      "arms_used": ["none"],
+      "ledger": "outputs/rotor_log_traces.json : sources.neurobem.{fs_hz=400, static_std_pct.median=0.54, wobble_amp_pct.median=0.83, wobble_peak_hz.median=1.48} · sources.px4.{4 Hz, 2.35, 2.43, 0.71} · sources.dji.{50 Hz, 5.67, 5.90, 0.67} — 본문 표와 한 자리까지 일치",
+      "verdict": "엔진_무관",
+      "note": "전자기 계산이 아니라 공개 비행로그 실측이다. 엔진 팔이 없는 것이 맞다. 한계(둘은 DJI 아님·PX4 fs 4 Hz 앨리어싱·DJI 는 PWM 명령)를 본문이 이미 적어 뒀다."
+    },
+
+    {
+      "section": "절 1",
+      "title": "스톡 Paths.doppler 로는 블레이드 변조가 안 나온다 — SceneObject.velocity 가 객체당 강체 1벡터다",
+      "arms_used": ["PathSolver", "analytic"],
+      "ledger": "outputs/report15_verdict.json : branch1_paths_doppler.evidence.{max_dof=3, doppler_nonzero_paths_static_scene=0, n_paths=98(mini2)} · outputs/report15_probe.json : airframes.matrice4e.A_doppler.rigid_prop_velocity.{n_target_paths=296, doppler_max_hz=187.52, predicted_rigid_hz=181.30}",
+      "verdict": "한_팔만",
+      "note": "⭐한 팔이 **맞다** — 물음이 «스톡 엔진이 이걸 하나» 라서 PO 팔이 낄 자리가 없고, 방법 표가 «Sionna 가 회전 기하 위상을 따라가는지는 이 시험 밖 — 절 3 이 잰다» 고 스스로 선을 긋는다. 다만 원장 대조에서 둘이 어긋난다: (1) 98 은 mini2, 296 은 matrice4e 인데 한 서술에 섞였다(probe: mini2 static n_paths=98, matrice4e static n_paths=296). (2) «프롭 경유 경로 296 개» 의 키 `n_target_paths` 는 report15_probe.py:384 에서 hit2=(O2!=NO_OBJ).any() 로 **표적 경유 전체** 경로 수다 — 프롭만 센 값이 아니고 정지 장면 경로 수와 같은 값이다."
+    },
+    {
+      "section": "절 2",
+      "title": "시간표본마다 자세를 새로 놓고 다시 쏘아 슬로타임 복소열을 만든다",
+      "arms_used": ["ours_SBR_PO", "analytic"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.physics.{rpm=3800, v_tip=54.52, f_tip=1229.6, f_flash=126.67, prf=19700, n_t=6000, duration_s=0.5053, doppler_resolution_hz=1.979, bins_to_ftip=621.3} + name/az_deg/el_deg",
+      "verdict": "엔진_무관",
+      "note": "인용한 12 개 각주가 **전부 운동학과 창 규약**이다 — 엔진이 낸 값(레벨·변조 깊이)은 하나도 안 든다. 그러니 «한 팔로 재고 두 팔인 척» 이 아니다. 절차를 실제로 돌린 팔은 SBR 이고, 두 엔진 대조는 «다음 단계 → 절 3» 으로 명시해 넘긴다. 정직한 절."
+    },
+    {
+      "section": "절 3",
+      "title": "두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다",
+      "arms_used": ["PathSolver", "ours_SBR_PO", "pure_PO", "analytic"],
+      "ledger": "outputs/report00_microdoppler.json : rows[1].{ptp_sionna_db=10.9113, ptp_po_db=17.6954} (_meta.aspect='nose', range_m=3.0) · outputs/report15_verdict.json : tail_excess.by_airframe.{mini2,matrice4e}.{sionna_,po_,geometry_}tail_max_db_median (세 열 나란히, n_cells=15) + geometric_phase_reference.by_airframe.* · outputs/report07_three_engines.json : ptp_db.{sionna=32.65, sbr=5.327, po=2.765} + verdict.cosine_in_ftip.{sionna_vs_sbr=0.745, sionna_vs_po=0.760, sbr_vs_po=0.955} + engines.{sbr,po,sionna}.engine · outputs/outofband_power.json : three_engines[0]=sbr 0.001782 / [1]=po 7.32e-7 / [2]=sionna 0.05058 · outputs/sbr_grid_convergence.json : in_band_fidelity.rows[1].{cos_prod_vs_po=0.4402, cos_froz_vs_po=0.9535} · outputs/freeze_signal_loss.json : summary.* (SBR 을 순수 PO 가 심판) · outputs/report15_blade_flash_ladder.json : verdict.* (PathSolver 전용)",
+      "verdict": "두_팔_나란히",
+      "note": "⭐실제로는 **세 팔**이다. 다만 층이 갈린다: 절 제목·«한 일»·«결과 1~4»·그림 1 의 «두 엔진» 은 PathSolver ↔ **순수 PO**(가림 없음)이고 우리 SBR 은 거기 없다. SBR 이 나란히 서는 곳은 그림 2(세 엔진 표)와 그 뒤 얼리기 문단뿐이다. 칸도 층마다 다르다 — 결과 1 은 nose·3 m 한 칸, 결과 2~4 는 15 칸 중앙값(1/3/10 m 섞임), 그림 2 는 belly·el −15°·3 m 한 칸이다. 절 끝 «다음 단계 — 두 엔진 일치도를 가림 있는 SBR 팔로 한 번 더 잰다» 는 그림 2 가 한 칸에서 이미 한 일이다."
+    },
+    {
+      "section": "절 3 소절 (셀 35)",
+      "title": "프롭 정반사가 잡히느냐는 예산이 아니라 앙각이 정한다",
+      "arms_used": ["PathSolver"],
+      "ledger": "outputs/report00_microdoppler.json : specular_census.total.{n_cells=1152, n_with_prop_specular=0} · outputs/report15_blade_flash_ladder.json : _meta.{el_base[-1]=60, el_deep[-1]=85, spp_ladder=[2.56e8,1.024e9,4.096e9]} + verdict.matrice4e.{budget_top_spp=4096000000, budget_top_prop_cells=0, deep_elevation_prop_cells=2} + verdict.mini2.{…, deep_elevation_prop_cells=0} + elevation_axis.*.deep.n_cells=960",
+      "verdict": "한_팔인데_두_팔처럼_서술",
+      "note": "⭐이 소절의 숫자는 **전부 스톡 PathSolver 인구조사**다 — 두 원장 어디에도 PO 팔 값이 없다(spp·경로·정반사 칸뿐). 그런데 소절이 «⇒ … **위상은 광선 엔진이, 세기는 PO 커널이 맡는** 분업의 근거가 여기 있다» 로 맺는다. 두 엔진 결론을 한 팔 증거 위에 세운 자리다. 게다가 «이 편이 쓰는 자세 격자(앙각 0~60°)» 라고 쓰지만 이 편의 맵은 전부 el −15°(배 쪽)의 report15b 원장이고, 0~60° 는 PathSolver 인구조사 격자다. 분업 주장 자체는 그림 1·2 가 두 팔로 받치므로 고칠 것은 귀속과 격자 이름이다."
+    },
+    {
+      "section": "절 4",
+      "title": "네 로터가 같은 회전수로 돌면 무늬는 시간에 못 변한다",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.arms.A_sbr_locked.{half_window_spectrum_corr=1.0, modulation_ptp_db=3.265, dc_over_ac=11.68, energy_inside_ftip_frac=0.646} vs arms.B_sbr_spread.{0.7691, 5.364, 9.419, 0.8289} · findings.rpm_spread_makes_it_time_varying.drop=0.2308 · _meta.rpm_spread_frac=0.0022",
+      "verdict": "한_팔만",
+      "note": "⚠«두 팔» 이 이 절에서는 엔진이 아니라 **잠근 rpm / 흩뜨린 rpm** 이다. 방법 표가 «광선 엔진·재질·기하·창 길이가 전부 같고 로터별 회전수만 다르다» 라고 못 박아 오독 위험은 낮다(A·B 둘 다 mode full·같은 얼린 판이라 실제로 단일축이 맞다). ⭐그러나 같은 원장에 순수 PO 쌍둥이 C·D 가 6 칸 전부 있고 같은 결론을 낸다(PO 1.0000→ belly 0.7669 / nose 0.7979 / belly_side 0.9213 / mini5pro 0.9635·0.9585·0.8573, SBR 은 0.7691·0.7864·0.9018·0.9105·0.9170·0.8556). 계산 0 초로 두 팔짜리 절이 될 수 있는데 안 썼다."
+    },
+    {
+      "section": "절 5",
+      "title": "동체가 날개를 가리면 변조 깊이와 레벨이 함께 바뀐다",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.arms.F_blade_occ.{modulation_ptp_db=50.32, level_db=-72.27, dc_over_ac=0.7613, energy_inside_ftip_frac=0.8859} vs arms.G_blade_free.{55.12, -73.59, 0.6444, 0.8066} · findings.{occlusion_ptp_db=-4.792, occlusion_level_db=1.315} · outputs/freeze_plate_sensitivity.json : verdict.{abs_level_plate_ptp_db=3.452, occlusion_level_plate_ptp_db=4.163, occlusion_ptp_plate_ptp_db=26.525, p0_vs_production_max_abs_db=0.526} (이 파일의 cells.*.arms 도 A_sbr_locked·F_blade_occ·G_blade_free 뿐 — 전부 SBR)",
+      "verdict": "한_팔만",
+      "note": "소제목이 «두 팔의 값» 인데 그 두 팔은 F/G 둘 다 SBR 이다 — 엔진 팔로 세면 하나다(F·G 는 rpm 도 둘 다 흩뜨린 값이라 가림 단일축은 성립한다). 가림 축은 순수 PO 로 못 태우므로 한 팔이 정당한데 **본문이 엔진 이름을 한 번도 안 쓴다**(«광선 엔진» 이라고만 한다). 6 칸 중 mini5pro/nose 는 F 와 G 가 소수 7 자리까지 같아(level −79.2098759 대 −79.2098757, ptp 53.24745557735696 동일) 가림 효과가 0 인데 그 칸이 안 보인다. 반대로 판 민감도 절(셀 51)은 자기 dB 를 스스로 깎아 두어 정직하다 — 다만 그 경고가 절 머리 «결과 1» 에는 안 붙는다."
+    },
+    {
+      "section": "절 6",
+      "title": "블레이드 신호는 약하지 않다 — 동체 정적 반사가 덮고 있을 뿐이다",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "outputs/report15b_microdoppler.json : cells.matrice4e/belly.arms.A_sbr_locked.{modulation_ptp_db=3.265, level_db=-51.56, dc_over_ac=11.68, half_window_spectrum_corr=1.0, seconds=2833.0} vs arms.F_blade_occ.{50.32, -72.27, 0.7613, 0.8034, seconds=1634.3}",
+      "verdict": "한_팔만",
+      "note": "⚠«두 채널» 이라 불러 엔진 오독은 없다. 그러나 서술이 원장과 어긋난다 — 방법 표와 그림 5 설명이 «같은 추적에서 프로펠러 부품을 지난 경로만 따로 모아 … 기하·재질·광선 격자는 전체 채널과 같다» 라고 두 번 말하는데, 스크립트로는 A(잠근 rpm·동체 재질 그대로·penetrate True)와 F(흩뜨린 rpm·동체 Γ=0·penetrate False)의 **서로 다른 실행**이다(seconds 2833 대 1634). 특히 표의 «반창 스펙트럼 상관 1.0000 대 0.8034» 는 채널 차이가 아니라 대부분 rpm 프리셋 차이다 — 같은 rpm 짝은 B_sbr_spread 0.7691 ↔ F 0.8034 로 방향이 뒤집힌다. 변조 깊이 헤드라인은 짝을 B 로 바꿔도 5.36 대 50.32 로 살아남는다."
+    }
+  ],
+
+  "problems": [
+    {
+      "id": "P1",
+      "where": "앞머리 셀 4·5 (2 초 호버 f7 · 프리셋 비교 f11)",
+      "severity": "높음",
+      "what_ko": "두 그림의 원장(report07_hover_long{,_outdoor}.json)은 SBR 한 팔뿐이고, outputs/freeze_signal_loss.json:verdict.open_ko 가 «이 두 열에는 순수 PO 대조 팔이 없다 — 2 초 창의 능선이 심판을 못 받는 유일한 자리» 라고 스스로 선언했는데 그 경고가 본문에 없다.",
+      "fix_ko": "셀 4 에 «SBR 팔 · PO 대조 없음» 을 한 줄로 적고 open_ko 를 인용한다. 닫으려면 같은 자세·같은 rpm 궤적으로 PO 팔을 한 번 돌린다(순수 PO 는 4096 자세에 8.4 초였다).",
+      "engine_arm_related": true
+    },
+    {
+      "id": "P2",
+      "where": "절 3 소절 «프롭 정반사가 잡히느냐…» (셀 35)",
+      "severity": "높음",
+      "what_ko": "PathSolver 인구조사 숫자만으로 «위상은 광선 엔진이, 세기는 PO 커널이 맡는 분업의 근거가 여기 있다» 를 맺는다. 이 소절에 PO 팔 값이 하나도 없다. 덤으로 «이 편이 쓰는 자세 격자(앙각 0~60°)» 도 틀렸다 — 이 편의 맵은 el −15° 다.",
+      "fix_ko": "«근거가 여기 있다» → «이 절 그림 1·2 의 두 팔 대조가 그 근거이고, 이 인구조사는 스톡 팔 쪽 한계를 보탠다» 로 귀속을 옮기고, 격자를 «이 인구조사의 자세 격자» 로 고쳐 적는다.",
+      "engine_arm_related": true
+    },
+    {
+      "id": "P3",
+      "where": "절 6 방법 표 · 그림 5 설명 · 앞머리 셀 3 (빌더 src/build_part07_microdoppler.py blocks_39)",
+      "severity": "높음",
+      "what_ko": "«두 채널은 같은 추적에서 나오므로 기하·재질·광선 격자가 같다» 가 사실이 아니다. A_sbr_locked 는 잠근 rpm·동체 재질 그대로·penetrate True, F_blade_occ 는 흩뜨린 rpm·동체 Γ=0·penetrate False 로 각각 따로 돈 실행이다(benchmark/report15b_microdoppler_recompute.py:139-184, 311-316 · seconds 2833 대 1634). 반창 상관 행(1.0000 대 0.8034)은 사실상 rpm 축을 채널 차이로 읽은 것이다.",
+      "fix_ko": "짝을 B_sbr_spread ↔ F_blade_occ 로 바꾸고(같은 rpm), 문장을 «같은 얼린 판·같은 자세의 두 실행 — 한쪽은 동체를 완전흡수로 둔다» 로 낮춘다. 변조 깊이는 3.26 → 5.36 dB, 반창 상관은 1.0000 → 0.7691 로 바뀌고 헤드라인(동체가 덮는다)은 유지된다.",
+      "engine_arm_related": false
+    },
+    {
+      "id": "P4",
+      "where": "절 4 · 앞머리 셀 1",
+      "severity": "중간",
+      "what_ko": "순수 PO 쌍둥이 팔(C_po_locked·D_po_spread)이 6 칸 전부 이미 계산돼 원장에 있는데 한 번도 인용하지 않는다. 그 팔이 같은 결론을 독립적으로 낸다(belly 1.0000→0.7669 대 SBR 1.0000→0.7691, 6 칸 모두 같은 방향).",
+      "fix_ko": "«잠근/흩뜨린» 표에 PO 열을 한 줄 더한다. 계산 0 초이고 이 절이 진짜 두 팔이 된다.",
+      "engine_arm_related": true
+    },
+    {
+      "id": "P5",
+      "where": "절 5 · 앞머리 셀 2",
+      "severity": "중간",
+      "what_ko": "가림 축을 왜 한 팔로만 재는지(순수 PO 는 정의상 아무것도 안 막는다)가 본문에 없고 절 어디에도 엔진 이름이 안 적힌다. 또 6 칸 중 mini5pro/nose 는 F 와 G 가 소수 7 자리까지 같아 가림 효과가 0 인데 그 칸이 안 보이고, occlusion_level_db 의 부호가 칸마다 갈린다(+1.315 / −0.042 / −0.847 / −0.000 / −1.136 / −1.057).",
+      "fix_ko": "«이 축은 SBR 팔에서만 선다 — 순수 PO 는 가림이 없다» 한 줄 + 6 칸 부호표를 붙인다. 그리고 셀 51 의 판 경고를 절 머리 «결과 1» 옆에도 건다.",
+      "engine_arm_related": true
+    },
+    {
+      "id": "P6",
+      "where": "앞머리 셀 0 ↔ 절 3",
+      "severity": "중간",
+      "what_ko": "머리말이 «엔진 비교는 08_2 가 했다. 이 편은 표적 쪽 요인만 다룬다» 인데, 이어 붙인 절 3 이 바로 엔진 비교이고 8 권에서 가장 긴 절이다.",
+      "fix_ko": "머리말을 «엔진 비교의 결론은 08_2 가 요약하고, 그 근거 절은 이 편 절 3 에 있다» 로 고치거나 절 3 을 08_2 로 옮긴다.",
+      "engine_arm_related": true
+    },
+    {
+      "id": "P7",
+      "where": "절 6 그림 5 · 앞머리 셀 3 그림 f3",
+      "severity": "중간",
+      "what_ko": "report07_f3 는 원장을 안 읽는다 — benchmark/build_report07_figs.py:208-209 에 whole={3.5:2.84}, prop={3.5:32.32} 가 박혀 있다. 본문 숫자(3.26 / 50.32)와 그림 숫자가 다르다. 머리말 셀 0 에 f3 경고가 있지만 절 6 에는 없다.",
+      "fix_ko": "절 6 그림 설명에 «⚠ 이 그림의 밴드별 dB 는 2026-08-07 옛 판이다 — 절대값 인용 금지» 를 되풀이하거나, 그림을 현재 원장으로 다시 낸다.",
+      "engine_arm_related": false
+    },
+    {
+      "id": "P8",
+      "where": "절 1 결과 2·3, 셀 13 표",
+      "severity": "중간",
+      "what_ko": "98 개(mini2)와 296 개(matrice4e)가 한 서술에 섞였고, «프롭 경유 경로 296 개» 의 실제 키 `n_target_paths` 는 report15_probe.py:384 의 hit2=(O2!=NO_OBJ).any() 로 표적 경유 **전체** 경로 수다(같은 기체 정지 장면 n_paths 도 296).",
+      "fix_ko": "기체를 밝히고 296 을 «표적 경유 경로» 로 고쳐 적는다. 프롭만 센 수가 필요하면 새로 세야 한다.",
+      "engine_arm_related": false
+    },
+    {
+      "id": "P9",
+      "where": "절 3 «다음 단계» 둘째 줄",
+      "severity": "낮음",
+      "what_ko": "«두 엔진 일치도를 가림 있는 SBR 팔로 한 번 더 잰다» 를 앞으로 할 일로 적었는데, 같은 절 그림 2 가 한 칸(belly·3 m)에서 이미 했다(cosine_in_ftip sbr_vs_po 0.955 · sionna_vs_sbr 0.745).",
+      "fix_ko": "«한 칸에서는 했다(그림 2) — 남은 것은 15 칸 격자 전체로 넓히는 것» 으로 고쳐 적는다.",
+      "engine_arm_related": true
+    },
+    {
+      "id": "P10",
+      "where": "절 3 결과 1 ↔ 결과 2~4 ↔ 그림 2 의 칸·통계 단위",
+      "severity": "낮음",
+      "what_ko": "결과 1(10.91 / 17.70 dB)은 report00 의 nose·3 m **한 칸**, 결과 2~4 는 report15_verdict 의 기체별 **15 칸 중앙값**(1/3/10 m 섞임), 그림 2 는 belly·el −15°·3 m 한 칸이다. 한 절에 단위가 셋인데 본문에 안 적혀 있다(그림 f2 의 제목에만 nose·3 m 가 있다).",
+      "fix_ko": "각 줄에 «(nose · 3 m 한 칸)» / «(15 칸 중앙값)» / «(belly · −15° 한 칸)» 을 병기한다.",
+      "engine_arm_related": false
+    },
+    {
+      "id": "P11",
+      "where": "08_3 절 3 ↔ 08_2 (권 간 정합) — 8-2 감사와 합쳐 판단할 것",
+      "severity": "낮음",
+      "what_ko": "같은 원장(report15_verdict.json)의 같은 주장을 두 편이 다른 통계로 낼 가능성이 있다(08_3 은 꼬리 최대의 중앙값). 이 감사는 08_3 만 열었으므로 08_2 쪽 수치는 확인하지 않았다.",
+      "fix_ko": "두 편이 같은 정의를 쓰는지 8-2 감사 결과와 대조한다.",
+      "engine_arm_related": false
+    },
+    {
+      "id": "P12",
+      "where": "절 3 «그 코사인은 닮았다까지를 말한다» (셀 33)",
+      "severity": "중간",
+      "what_ko": "⭐선택 인용. 얼리기의 효과를 outputs/sbr_grid_convergence.json 의 **PO 열만** 들어 «0.440 → 0.953 으로 올랐다» 고 쓰는데, 같은 행의 Sionna 열은 반대로 내려간다 — cos_prod_vs_sionna → cos_froz_vs_sionna 가 5 개 격자 전부에서 0.743→0.695(div8) · 0.727→0.662(12) · 0.722→0.603(16) · 0.722→0.633(24) · 0.721→0.623(32) 이다. 두 팔이 있는 원장에서 한 팔만 인용해 «두 엔진» 절의 결론을 세운 자리다.",
+      "fix_ko": "그 문장에 Sionna 열을 함께 적고, 왜 두 팔이 반대로 움직이는지(순수 PO 는 광선을 안 쓰고 Sionna 는 경로가 성기다)를 한 줄로 해석하거나, 판정을 «PO 기준으로는 올랐다» 로 범위를 좁힌다.",
+      "engine_arm_related": true
+    }
+  ],
+
+  "answer_to_user_question_ko": "08_3 은 «절마다 두 팔» 이 아니다. 6 개 절 중 두 엔진이 실제로 나란히 선 절은 절 3 하나뿐이고(거기서는 세 팔 — PathSolver·SBR·순수 PO), 절 1 은 PathSolver 만, 절 4·5·6 과 앞머리 그림 다섯 개는 전부 우리 SBR 한 팔이다. 절 2 는 엔진이 낸 값을 아예 안 인용한다(운동학·창 규약뿐). 절 4·5·6 의 «두 팔» 은 엔진이 아니라 잠근/흩뜨린 · 막는/안 막는 · 전체/프로펠러 를 가리키고 본문이 그 뜻을 대체로 밝혀 두었다 — 엔진을 두 팔처럼 말한 자리는 절 3 소절(셀 35)과 셀 33 의 선택 인용 둘이다."
+}

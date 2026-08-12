@@ -1,0 +1,1298 @@
+{
+  "_meta": {
+    "title": "Sionna 2.0.1 내장 씬 15개 실측 조사 (환경 «무대» 재고 조사)",
+    "question": "선행연구/오픈소스에 Sionna 용 «환경 씬»이 이미 만들어져 있는가 — 그 중 NVIDIA 가 기본 제공하는 15개를 실제로 열어 잰 결과",
+    "generated": "2026-08-12",
+    "scenes_dir": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scenes",
+    "sionna_version": "sionna 2.0.1 + sionna-rt 2.0.1 (venv /home/yunjung/.venvs/py312)",
+    "method": "Mitsuba XML 을 xml.etree.ElementTree 로, PLY 를 자체 바이너리 파서로 직접 읽어 실측. Sionna/Mitsuba/Dr.Jit 을 전혀 로드하지 않았고 GPU 를 쓰지 않았다.",
+    "measurement_script": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/measure_scenes.py (스크래치패드, 휘발성)",
+    "verified": "아래 «측정값» 은 전부 파일을 직접 열어 계산한 값이다. «documented_description» 은 패키지 docstring 원문 및 https://nvlabs.github.io/sionna/rt/api/scene.html 에서 확인한 것이다. «measured_or_inferred» 안의 용도 추정은 우리 추론임을 표시했다.",
+    "provenance_warning": "⚠2026-08-12 05:45 UTC 기록: 이 경로에 «이미 파일이 존재»했고 이 조사 결과가 그것을 덮어썼다. 같은 시각대에 형제 에이전트들이 survey_scene_build_paths.json(05:27) · survey_sionna_scenes_papers.json(05:38) · survey_sionna_scenes_github.json(05:40) 을 쓰고 있었으므로, 덮인 것은 같은 과제의 이전/병렬 실행본으로 보인다. 백업은 없고 복구 불가. 이전 내용이 무엇이었는지 나는 모른다."
+  },
+  "inventory_summary": {
+    "n_scene_xml": 15,
+    "n_standalone_meshes": 2,
+    "disk_usage_du": "50 MB (du -sh; 파일 4천~5천 개 x 4 KB 블록 오버헤드 포함)",
+    "actual_content_bytes": 13637000,
+    "actual_content_note": "⭐실제 내용은 13.6 MB 다. 흔히 인용되는 «50 MB» 는 블록 단위 디스크 점유량(du)이고, 순수 바이트 합은 13.6 MB.",
+    "total_triangles_all_scenes": 355838,
+    "all_mesh_files_are": "PLY (binary_little_endian). OBJ·serialized·instance 는 하나도 없다.",
+    "transforms_in_xml": "15개 XML 전부 <transform> 0개 — PLY 정점 좌표가 곧 월드 좌표다(스케일·회전 없음).",
+    "shape_types_in_xml": "전부 shape type=\"ply\". 해석적 프리미티브(rectangle/sphere/cube)나 인스턴싱은 안 쓴다.",
+    "emitters_sensors_integrators": "15개 XML 어디에도 emitter/sensor/integrator/film 이 없다 — 순수 지오메트리+무선재질뿐이다(카메라는 코드에서 만든다).",
+    "materials": "bsdf 는 전부 type=\"itu-radio-material\", thickness 0.1 m(box 계열만 1.0 m). 실제로 쓰이는 ITU 종류는 marble·metal·concrete·brick·wood·glass 6종뿐이다.",
+    "itu_types_available_but_unused": [
+      "plasterboard",
+      "ceiling_board",
+      "chipboard",
+      "plywood",
+      "floorboard",
+      "very_dry_ground",
+      "medium_dry_ground",
+      "wet_ground"
+    ],
+    "itu_types_note": "⭐Sionna 에는 very_dry_ground/medium_dry_ground/wet_ground 가 있는데(1~10 GHz 유효) 내장 씬은 지면을 전부 concrete 로 깔았다. 야외 잔디밭 사이트를 흉내내려면 지면 재질부터 바꿔야 한다.",
+    "no_vegetation_material": "ITU 목록에 초목(vegetation) 재질 자체가 없다."
+  },
+  "scenes": [
+    {
+      "scene": "box",
+      "kind": "validation_shape",
+      "n_shapes": 1,
+      "n_triangles": 12,
+      "n_vertices": 8,
+      "n_bsdf": 1,
+      "bsdf_itu_types": [
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "box-mat": 12
+      },
+      "bbox_min_m": [
+        -5.0,
+        -5.0,
+        0.0
+      ],
+      "bbox_max_m": [
+        5.0,
+        5.0,
+        5.0
+      ],
+      "bbox_extent_m": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 1
+      },
+      "xml_bytes": 398,
+      "content_bytes": 918,
+      "edge_len_m": {
+        "min": 5.0,
+        "p05": 5.0,
+        "p25": 10.0,
+        "median": 10.0,
+        "mean": 9.6114,
+        "p75": 11.1803,
+        "p95": 14.1421,
+        "max": 14.1421
+      },
+      "tri_area_m2": {
+        "min": 25.0,
+        "median": 25.0,
+        "mean": 33.3333,
+        "p95": 50.0,
+        "max": 50.0,
+        "total": 400.0
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 10.0,
+        "median_edge_in_lambda": 116.7,
+        "area_weighted_median_facet_m": 7.071,
+        "area_weighted_median_facet_in_lambda": 82.6,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a metallic box\" (sionna/rt/scene.py:1158, 공식 API 문서 동일)",
+      "measured_or_inferred": "10x10x5 m 닫힌 금속 상자 1개(12삼각형). 투과 없는 완전 차폐체 안팎의 경로 단위시험용으로 보인다. 공식 문서에 \"무엇을 위한 씬\"이라는 문장은 없다 — 용도는 우리 추론.",
+      "usable_for_our_outdoor_drone_site_twin": "못씀",
+      "verdict_reason": "10x10x5 m 금속 상자. 야외 무대가 아니다. 다만 Sionna 경로솔버 단위시험으로는 그대로 쓸 수 있다."
+    },
+    {
+      "scene": "box_knife",
+      "kind": "validation_shape",
+      "n_shapes": 2,
+      "n_triangles": 20,
+      "n_vertices": 17,
+      "n_bsdf": 2,
+      "bsdf_itu_types": [
+        "glass",
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "box-mat": 12,
+        "knife-mat": 8
+      },
+      "bbox_min_m": [
+        -5.0,
+        -5.0,
+        0.0
+      ],
+      "bbox_max_m": [
+        5.0,
+        5.0,
+        5.0
+      ],
+      "bbox_extent_m": [
+        10.0,
+        10.0,
+        5.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 2
+      },
+      "xml_bytes": 773,
+      "content_bytes": 1780,
+      "edge_len_m": {
+        "min": 2.0619,
+        "p05": 2.0619,
+        "p25": 5.0,
+        "median": 5.4085,
+        "mean": 7.4296,
+        "p75": 10.0,
+        "p95": 14.1421,
+        "max": 14.1421
+      },
+      "tri_area_m2": {
+        "min": 5.1547,
+        "median": 25.0,
+        "mean": 22.0619,
+        "p95": 50.0,
+        "max": 50.0,
+        "total": 441.2378
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 5.4085,
+        "median_edge_in_lambda": 63.1,
+        "area_weighted_median_facet_m": 7.071,
+        "area_weighted_median_facet_in_lambda": 82.6,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a metallic box and a knife made of glass\"",
+      "measured_or_inferred": "금속 상자 + 2x10x1.8 m 유리 \"칼\". knife-edge(칼날) 회절 단위시험으로 추정. 용도 문장 없음.",
+      "usable_for_our_outdoor_drone_site_twin": "못씀",
+      "verdict_reason": "동일."
+    },
+    {
+      "scene": "box_one_screen",
+      "kind": "validation_shape",
+      "n_shapes": 2,
+      "n_triangles": 14,
+      "n_vertices": 12,
+      "n_bsdf": 2,
+      "bsdf_itu_types": [
+        "glass",
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "box-mat": 12,
+        "screen-mat": 2
+      },
+      "bbox_min_m": [
+        -5.0,
+        -5.0,
+        -0.01
+      ],
+      "bbox_max_m": [
+        5.0,
+        5.0,
+        5.01
+      ],
+      "bbox_extent_m": [
+        10.0,
+        10.0,
+        5.02
+      ],
+      "mesh_file_formats": {
+        ".ply": 2
+      },
+      "xml_bytes": 739,
+      "content_bytes": 1568,
+      "edge_len_m": {
+        "min": 5.0,
+        "p05": 5.0,
+        "p25": 6.0,
+        "median": 10.0,
+        "mean": 9.1357,
+        "p75": 11.1803,
+        "p95": 14.1421,
+        "max": 14.1421
+      },
+      "tri_area_m2": {
+        "min": 15.06,
+        "median": 25.0,
+        "mean": 30.7229,
+        "p95": 50.0,
+        "max": 50.0,
+        "total": 430.12
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 10.0,
+        "median_edge_in_lambda": 116.7,
+        "area_weighted_median_facet_m": 7.071,
+        "area_weighted_median_facet_in_lambda": 82.6,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a metallic box and a screen made of glass\" + \"In the actual scene, the box is closed on all sides.\"",
+      "measured_or_inferred": "금속 상자 + 6x5 m 유리판 1장(x=0 평면). 판 투과/회절 단위시험. 용도 문장은 문서에 없음.",
+      "usable_for_our_outdoor_drone_site_twin": "못씀",
+      "verdict_reason": "동일. 투과/회절 단위시험 전용."
+    },
+    {
+      "scene": "box_two_screens",
+      "kind": "validation_shape",
+      "n_shapes": 3,
+      "n_triangles": 16,
+      "n_vertices": 16,
+      "n_bsdf": 2,
+      "bsdf_itu_types": [
+        "glass",
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "box-mat": 12,
+        "screen-mat": 4
+      },
+      "bbox_min_m": [
+        -5.0,
+        -5.0,
+        -0.01
+      ],
+      "bbox_max_m": [
+        5.0,
+        5.0,
+        5.01
+      ],
+      "bbox_extent_m": [
+        10.0,
+        10.0,
+        5.02
+      ],
+      "mesh_file_formats": {
+        ".ply": 3
+      },
+      "xml_bytes": 933,
+      "content_bytes": 2071,
+      "edge_len_m": {
+        "min": 5.0,
+        "p05": 5.0,
+        "p25": 5.755,
+        "median": 10.0,
+        "mean": 8.7788,
+        "p75": 10.2951,
+        "p95": 14.1421,
+        "max": 14.1421
+      },
+      "tri_area_m2": {
+        "min": 15.06,
+        "median": 25.0,
+        "mean": 28.765,
+        "p95": 50.0,
+        "max": 50.0,
+        "total": 460.24
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 10.0,
+        "median_edge_in_lambda": 116.7,
+        "area_weighted_median_facet_m": 7.071,
+        "area_weighted_median_facet_in_lambda": 82.6,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a metallic box and two screens made of glass\"",
+      "measured_or_inferred": "금속 상자 + 유리판 2장(x=-2, x=+2). 다중 투과(연속 판 통과) 단위시험. 용도 문장 없음.",
+      "usable_for_our_outdoor_drone_site_twin": "못씀",
+      "verdict_reason": "동일."
+    },
+    {
+      "scene": "double_reflector",
+      "kind": "validation_shape",
+      "n_shapes": 2,
+      "n_triangles": 4,
+      "n_vertices": 8,
+      "n_bsdf": 1,
+      "bsdf_itu_types": [
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "metal": 4
+      },
+      "bbox_min_m": [
+        -20.0,
+        -10.0,
+        0.0
+      ],
+      "bbox_max_m": [
+        0.5,
+        10.0,
+        10.0
+      ],
+      "bbox_extent_m": [
+        20.5,
+        20.0,
+        10.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 2
+      },
+      "xml_bytes": 616,
+      "content_bytes": 1234,
+      "edge_len_m": {
+        "min": 1.0,
+        "p05": 1.0,
+        "p25": 1.0,
+        "median": 10.7071,
+        "mean": 11.9497,
+        "p75": 20.0,
+        "p95": 28.2843,
+        "max": 28.2843
+      },
+      "tri_area_m2": {
+        "min": 0.5,
+        "median": 100.25,
+        "mean": 100.25,
+        "p95": 200.0,
+        "max": 200.0,
+        "total": 401.0
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 10.7071,
+        "median_edge_in_lambda": 125.0,
+        "area_weighted_median_facet_m": 20.0,
+        "area_weighted_median_facet_in_lambda": 233.5,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing two metallic squares\"",
+      "measured_or_inferred": "20x20 m 대형 평판(z=0) + 1x1 m 소형 평판(z=10). 2회 반사 경로 검증. 용도 문장 없음.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "무대로는 못 씀. 2회 반사 경로 검증용. 20x20 m 판은 84.4 dBsm 로 너무 커서 교정표적으론 부적합."
+    },
+    {
+      "scene": "floor_wall",
+      "kind": "validation_shape",
+      "n_shapes": 2,
+      "n_triangles": 4,
+      "n_vertices": 8,
+      "n_bsdf": 2,
+      "bsdf_itu_types": [
+        "brick",
+        "concrete"
+      ],
+      "triangles_per_bsdf": {
+        "concrete": 2,
+        "brick": 2
+      },
+      "bbox_min_m": [
+        -2.0,
+        -2.0,
+        0.0
+      ],
+      "bbox_max_m": [
+        2.0,
+        2.0,
+        2.9
+      ],
+      "bbox_extent_m": [
+        4.0,
+        4.0,
+        2.9
+      ],
+      "mesh_file_formats": {
+        ".ply": 2
+      },
+      "xml_bytes": 722,
+      "content_bytes": 1340,
+      "edge_len_m": {
+        "min": 2.0,
+        "p05": 2.0,
+        "p25": 3.5,
+        "median": 4.0,
+        "mean": 3.8647,
+        "p75": 4.0311,
+        "p95": 5.6569,
+        "max": 5.6569
+      },
+      "tri_area_m2": {
+        "min": 3.5,
+        "median": 5.75,
+        "mean": 5.75,
+        "p95": 8.0,
+        "max": 8.0,
+        "total": 23.0
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 4.0,
+        "median_edge_in_lambda": 46.7,
+        "area_weighted_median_facet_m": 4.0,
+        "area_weighted_median_facet_in_lambda": 46.7,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a ground plane and a vertical wall\"",
+      "measured_or_inferred": "4x4 m 콘크리트 바닥 + 3.5x2 m 벽돌 벽(z=0.9~2.9). 실내 규모. 바닥반사+벽반사 단위시험.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "바닥 4x4 m·벽 3.5x2 m 로 실내 규모다. 우리 «바닥 유령»(report09) 단위시험의 최소 재현 무대로는 쓸 수 있으나 야외 거리(수십~수백 m)에서는 바닥을 키워야 한다. 바닥 재질도 concrete 라 잔디밭이면 medium_dry_ground 로 바꿔야 한다."
+    },
+    {
+      "scene": "simple_reflector",
+      "kind": "validation_shape",
+      "n_shapes": 1,
+      "n_triangles": 2,
+      "n_vertices": 4,
+      "n_bsdf": 1,
+      "bsdf_itu_types": [
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "reflector-mat": 2
+      },
+      "bbox_min_m": [
+        -0.5,
+        -0.5,
+        0.0
+      ],
+      "bbox_max_m": [
+        0.5,
+        0.5,
+        0.0
+      ],
+      "bbox_extent_m": [
+        1.0,
+        1.0,
+        0.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 1
+      },
+      "xml_bytes": 460,
+      "content_bytes": 769,
+      "edge_len_m": {
+        "min": 1.0,
+        "p05": 1.0,
+        "p25": 1.0,
+        "median": 1.0,
+        "mean": 1.1381,
+        "p75": 1.3107,
+        "p95": 1.4142,
+        "max": 1.4142
+      },
+      "tri_area_m2": {
+        "min": 0.5,
+        "median": 0.5,
+        "mean": 0.5,
+        "p95": 0.5,
+        "max": 0.5,
+        "total": 1.0
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 1.0,
+        "median_edge_in_lambda": 11.7,
+        "area_weighted_median_facet_m": 1.0,
+        "area_weighted_median_facet_in_lambda": 11.7,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a metallic reflector\"",
+      "measured_or_inferred": "1x1 m 금속 평판 1장(삼각형 2개), z=0. 단일 반사(GO) 검증. 용도 문장 없음.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "무대로는 못 쓴다. ⭐다만 1x1 m PEC 평판은 해석해가 있는 RCS 교정표적이다 — 3.5 GHz 정면 sigma_max=4*pi*A^2/lambda^2=32.3 dBsm. 평면이라 삼각형 2개로도 PO 적분이 «정확»하다(곡면과 달리 성긴 격자가 결함이 아니다). 우리 PO/SBR 커널 교차검증에 바로 투입 가능."
+    },
+    {
+      "scene": "simple_wedge",
+      "kind": "validation_shape",
+      "n_shapes": 1,
+      "n_triangles": 4,
+      "n_vertices": 6,
+      "n_bsdf": 1,
+      "bsdf_itu_types": [
+        "concrete"
+      ],
+      "triangles_per_bsdf": {
+        "concrete": 4
+      },
+      "bbox_min_m": [
+        0.0,
+        -30.0,
+        -15.0
+      ],
+      "bbox_max_m": [
+        30.0,
+        0.0,
+        15.0
+      ],
+      "bbox_extent_m": [
+        30.0,
+        30.0,
+        30.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 1
+      },
+      "xml_bytes": 402,
+      "content_bytes": 777,
+      "edge_len_m": {
+        "min": 30.0,
+        "p05": 30.0,
+        "p25": 30.0,
+        "median": 30.0,
+        "mean": 34.1421,
+        "p75": 42.4264,
+        "p95": 42.4264,
+        "max": 42.4264
+      },
+      "tri_area_m2": {
+        "min": 450.0,
+        "median": 450.0,
+        "mean": 450.0,
+        "p95": 450.0,
+        "max": 450.0,
+        "total": 1800.0
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 30.0,
+        "median_edge_in_lambda": 350.2,
+        "area_weighted_median_facet_m": 30.0,
+        "area_weighted_median_facet_in_lambda": 350.2,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a wedge with a 90 deg opening angle\" (docstring). 공식 Diffraction 튜토리얼은 같은 쐐기를 \"opening angle 270 deg (n=1.5), 0-face는 x축, n-face는 -y축\" 으로 설명한다.",
+      "measured_or_inferred": "⚠용어 충돌 아님 — 두 면이 이루는 «물체 쪽» 각이 90도, «자유공간 쪽» 개구각이 270도=n·pi(n=1.5). 실측 면 법선은 (-1,0,0)과 (0,1,0)이라 물체는 x>0,y<0 사분면을 차지한다. UTD 쐐기 회절 검증용.",
+      "usable_for_our_outdoor_drone_site_twin": "못씀",
+      "verdict_reason": "무대 아님. UTD 회절 단위시험 전용."
+    },
+    {
+      "scene": "triple_reflector",
+      "kind": "validation_shape",
+      "n_shapes": 3,
+      "n_triangles": 6,
+      "n_vertices": 12,
+      "n_bsdf": 1,
+      "bsdf_itu_types": [
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "metal": 6
+      },
+      "bbox_min_m": [
+        -20.0,
+        -10.0,
+        0.0
+      ],
+      "bbox_max_m": [
+        20.5,
+        10.0,
+        10.0
+      ],
+      "bbox_extent_m": [
+        40.5,
+        20.0,
+        10.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 3
+      },
+      "xml_bytes": 787,
+      "content_bytes": 1714,
+      "edge_len_m": {
+        "min": 1.0,
+        "p05": 1.0,
+        "p25": 1.4142,
+        "median": 5.0,
+        "mean": 13.9118,
+        "p75": 20.0,
+        "p95": 44.7214,
+        "max": 44.7214
+      },
+      "tri_area_m2": {
+        "min": 0.5,
+        "median": 12.5,
+        "mean": 137.6667,
+        "p95": 400.0,
+        "max": 400.0,
+        "total": 826.0
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 5.0,
+        "median_edge_in_lambda": 58.4,
+        "area_weighted_median_facet_m": 28.284,
+        "area_weighted_median_facet_in_lambda": 330.2,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing three metallic rectangles\"",
+      "measured_or_inferred": "40x20 m 바닥 + 5x5 m 판(z=10) + 1x1 m 판(z=10, x=20). 3회 반사 경로 검증. 용도 문장 없음.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "동일. 3회 반사 경로 검증용."
+    },
+    {
+      "scene": "simple_street_canyon",
+      "kind": "synthetic_street",
+      "n_shapes": 7,
+      "n_triangles": 74,
+      "n_vertices": 52,
+      "n_bsdf": 5,
+      "bsdf_itu_types": [
+        "brick",
+        "concrete",
+        "glass",
+        "marble",
+        "wood"
+      ],
+      "triangles_per_bsdf": {
+        "glass": 24,
+        "marble": 24,
+        "wood": 12,
+        "brick": 12,
+        "concrete": 2
+      },
+      "bbox_min_m": [
+        -93.966,
+        -60.331,
+        -0.031
+      ],
+      "bbox_max_m": [
+        92.427,
+        60.808,
+        50.944
+      ],
+      "bbox_extent_m": [
+        186.393,
+        121.138,
+        50.975
+      ],
+      "mesh_file_formats": {
+        ".ply": 7
+      },
+      "xml_bytes": 2101,
+      "content_bytes": 5530,
+      "edge_len_m": {
+        "min": 21.8463,
+        "p05": 21.8463,
+        "p25": 27.8863,
+        "median": 31.1215,
+        "mean": 39.279,
+        "p75": 41.7875,
+        "p95": 59.724,
+        "max": 222.2988
+      },
+      "tri_area_m2": {
+        "min": 304.6057,
+        "median": 433.932,
+        "mean": 771.0386,
+        "p95": 793.2033,
+        "max": 11289.6458,
+        "total": 57056.8569
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 31.1215,
+        "median_edge_in_lambda": 363.3,
+        "area_weighted_median_facet_m": 39.83,
+        "area_weighted_median_facet_in_lambda": 465.0,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.0,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"Example scene containing a few rectangular building blocks and a ground plane\"",
+      "measured_or_inferred": "186x121 m 평평한 바닥 1장(삼각형 2개) + 직육면체 건물 6동(각 12삼각형, 31x28 m, 높이 21.8/29.1/50.9 m). 건물은 완전 닫힌 박스(모든 모서리 valence 2). 도심 협곡 교과서 예제.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "⭐15개 중 우리 «통제 야외 무대»에 가장 가깝다. 186x121 m 평평한 바닥 + 지울 수 있는 건물 6동, 전체 74삼각형이라 거의 공짜다. floor.ply 만 떼어 쓰면 «평지 + 우리 드론» 바이스태틱 실험 무대가 바로 된다. 손봐야 할 것: (1) 바닥 재질 concrete -> 야외 지면(medium_dry_ground 등), (2) 바닥이 삼각형 2개뿐이라 지면 거칠기·기복이 전혀 없음(정반사만 남음), (3) 건물 배치가 우리 실측 사이트와 무관."
+    },
+    {
+      "scene": "simple_street_canyon_with_cars",
+      "kind": "synthetic_street",
+      "n_shapes": 15,
+      "n_triangles": 234,
+      "n_vertices": 148,
+      "n_bsdf": 6,
+      "bsdf_itu_types": [
+        "brick",
+        "concrete",
+        "glass",
+        "marble",
+        "metal",
+        "wood"
+      ],
+      "triangles_per_bsdf": {
+        "metal": 160,
+        "glass": 24,
+        "marble": 24,
+        "wood": 12,
+        "brick": 12,
+        "concrete": 2
+      },
+      "bbox_min_m": [
+        -93.966,
+        -60.331,
+        -0.031
+      ],
+      "bbox_max_m": [
+        92.427,
+        60.808,
+        50.944
+      ],
+      "bbox_extent_m": [
+        186.393,
+        121.138,
+        50.975
+      ],
+      "mesh_file_formats": {
+        ".ply": 15
+      },
+      "xml_bytes": 3962,
+      "content_bytes": 18671,
+      "edge_len_m": {
+        "min": 0.75,
+        "p05": 0.75,
+        "p25": 1.8,
+        "median": 2.4848,
+        "mean": 13.9605,
+        "p75": 27.8863,
+        "p95": 50.9746,
+        "max": 222.2988
+      },
+      "tri_area_m2": {
+        "min": 0.4125,
+        "median": 1.65,
+        "mean": 244.875,
+        "p95": 710.7467,
+        "max": 11289.6458,
+        "total": 57300.7585
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 2.4848,
+        "median_edge_in_lambda": 29.0,
+        "area_weighted_median_facet_m": 39.83,
+        "area_weighted_median_facet_in_lambda": 465.0,
+        "frac_edges_below_1_lambda": 0.0,
+        "frac_edges_below_10_lambda": 0.09117,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 1.0
+      },
+      "documented_description": "\"...as well as some cars\"",
+      "measured_or_inferred": "위와 동일한 무대 + 저폴리 차량 8대(각 20삼각형). 차량은 metal 재질. 이동 산란체 예제.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "위와 같음 + 차량 8대. ⚠차량은 삼각형 20개·중앙 변길이 1.8 m = 21 lambda(3.5 GHz) 라 «산란체»로는 못 쓴다(가림/차폐용으로만). 지상 이동 클러터를 넣고 싶을 때 자리표시자."
+    },
+    {
+      "scene": "etoile",
+      "kind": "osm_city",
+      "n_shapes": 565,
+      "n_triangles": 13098,
+      "n_vertices": 13251,
+      "n_bsdf": 4,
+      "bsdf_itu_types": [
+        "concrete",
+        "marble",
+        "metal",
+        "wood"
+      ],
+      "triangles_per_bsdf": {
+        "marble": 8780,
+        "metal": 4172,
+        "wood": 86,
+        "concrete": 60
+      },
+      "bbox_min_m": [
+        -426.831,
+        -338.06,
+        0.0
+      ],
+      "bbox_max_m": [
+        426.831,
+        338.06,
+        50.0
+      ],
+      "bbox_extent_m": [
+        853.663,
+        676.121,
+        50.0
+      ],
+      "mesh_file_formats": {
+        ".ply": 565
+      },
+      "xml_bytes": 119825,
+      "content_bytes": 565870,
+      "edge_len_m": {
+        "min": 0.0529,
+        "p05": 0.5084,
+        "p25": 3.358,
+        "median": 13.8449,
+        "mean": 13.5935,
+        "p75": 21.3727,
+        "p95": 29.7863,
+        "max": 1088.9808
+      },
+      "tri_area_m2": {
+        "min": 0.0,
+        "median": 19.2651,
+        "mean": 95.0627,
+        "p95": 202.2307,
+        "max": 288589.4927,
+        "total": 1245130.6806
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 13.8449,
+        "median_edge_in_lambda": 161.6,
+        "area_weighted_median_facet_m": 27.567,
+        "area_weighted_median_facet_in_lambda": 321.8,
+        "frac_edges_below_1_lambda": 0.00043,
+        "frac_edges_below_10_lambda": 0.10121,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 0.99987
+      },
+      "documented_description": "\"Example scene containing the area around the Arc de Triomphe in Paris.\" OpenStreetMap + Blender + Blender-OSM + Mitsuba-Blender 로 제작. 데이터는 ODbL.",
+      "measured_or_inferred": "854x676 m. 바닥은 삼각형 2개짜리 완전 평면(z=0, concrete). 건물 564동, 지붕높이 중앙값 18.0 m.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "유럽 구시가 통제군으로만. 우리 실측지가 아니고, 바닥이 완전 평면(삼각형 2개)이라 야외 지형이 없다. ODbL 표시의무."
+    },
+    {
+      "scene": "florence",
+      "kind": "osm_city",
+      "n_shapes": 2639,
+      "n_triangles": 35373,
+      "n_vertices": 36190,
+      "n_bsdf": 3,
+      "bsdf_itu_types": [
+        "concrete",
+        "marble",
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "marble": 23222,
+        "metal": 12149,
+        "concrete": 2
+      },
+      "bbox_min_m": [
+        -478.709,
+        -550.0,
+        0.0
+      ],
+      "bbox_max_m": [
+        521.291,
+        550.0,
+        114.5
+      ],
+      "bbox_extent_m": [
+        1000.0,
+        1100.0,
+        114.5
+      ],
+      "mesh_file_formats": {
+        ".ply": 2639
+      },
+      "xml_bytes": 534149,
+      "content_bytes": 1912093,
+      "edge_len_m": {
+        "min": 0.0223,
+        "p05": 1.2385,
+        "p25": 5.0001,
+        "median": 11.4332,
+        "mean": 12.3121,
+        "p75": 17.0419,
+        "p95": 26.5199,
+        "max": 1486.6069
+      },
+      "tri_area_m2": {
+        "min": 0.0186,
+        "median": 30.2884,
+        "mean": 86.3699,
+        "p95": 187.5255,
+        "max": 550000.0,
+        "total": 3055164.0729
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 11.4332,
+        "median_edge_in_lambda": 133.5,
+        "area_weighted_median_facet_m": 20.708,
+        "area_weighted_median_facet_in_lambda": 241.8,
+        "frac_edges_below_1_lambda": 0.00226,
+        "frac_edges_below_10_lambda": 0.01319,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 0.99995
+      },
+      "documented_description": "\"Example scene containing the area around the Florence Cathedral in Florence.\" OSM+Blender, ODbL.",
+      "measured_or_inferred": "1000x1100 m. 바닥은 삼각형 2개 완전 평면(z=0, concrete). 건물 2638동, 지붕높이 중앙값 12.2 m, 최고 114.5 m.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "동일. munich 대비 추가 이득이 뚜렷하지 않다. ODbL."
+    },
+    {
+      "scene": "munich",
+      "kind": "osm_city",
+      "n_shapes": 2367,
+      "n_triangles": 38936,
+      "n_vertices": 34044,
+      "n_bsdf": 5,
+      "bsdf_itu_types": [
+        "brick",
+        "concrete",
+        "marble",
+        "metal",
+        "wood"
+      ],
+      "triangles_per_bsdf": {
+        "metal": 20932,
+        "marble": 17524,
+        "brick": 314,
+        "wood": 164,
+        "concrete": 2
+      },
+      "bbox_min_m": [
+        -805.584,
+        -688.601,
+        0.0
+      ],
+      "bbox_max_m": [
+        669.883,
+        517.035,
+        98.57
+      ],
+      "bbox_extent_m": [
+        1475.466,
+        1205.636,
+        98.57
+      ],
+      "mesh_file_formats": {
+        ".ply": 2367
+      },
+      "xml_bytes": 502555,
+      "content_bytes": 1980081,
+      "edge_len_m": {
+        "min": 0.0074,
+        "p05": 0.1519,
+        "p25": 0.4213,
+        "median": 7.52,
+        "mean": 10.6423,
+        "p75": 17.422,
+        "p95": 29.4755,
+        "max": 1905.4025
+      },
+      "tri_area_m2": {
+        "min": 0.0012,
+        "median": 21.2043,
+        "mean": 104.8547,
+        "p95": 227.3715,
+        "max": 889437.5326,
+        "total": 4082622.7846
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 7.52,
+        "median_edge_in_lambda": 87.8,
+        "area_weighted_median_facet_m": 30.363,
+        "area_weighted_median_facet_in_lambda": 354.5,
+        "frac_edges_below_1_lambda": 0.01962,
+        "frac_edges_below_10_lambda": 0.33171,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 0.99984
+      },
+      "documented_description": "\"Example scene containing the area around the Frauenkirche in Munich.\" OSM+Blender, ODbL.",
+      "measured_or_inferred": "1476x1206 m. 바닥은 삼각형 2개 완전 평면(z=0, concrete). 건물 2366동, 지붕높이 중앙값 16.4 m, 최고 98.6 m.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "동일. Sionna 문헌에서 가장 많이 쓰여 «비교 기준 씬»으로서의 값은 크다(선행연구 수치와 나란히 놓기 좋음). ODbL."
+    },
+    {
+      "scene": "san_francisco",
+      "kind": "osm_city",
+      "n_shapes": 4735,
+      "n_triangles": 268041,
+      "n_vertices": 177359,
+      "n_bsdf": 3,
+      "bsdf_itu_types": [
+        "concrete",
+        "marble",
+        "metal"
+      ],
+      "triangles_per_bsdf": {
+        "mat-terrain": 192000,
+        "marble": 53826,
+        "metal": 22215
+      },
+      "bbox_min_m": [
+        -508.155,
+        -468.032,
+        0.0
+      ],
+      "bbox_max_m": [
+        713.548,
+        459.661,
+        170.628
+      ],
+      "bbox_extent_m": [
+        1221.703,
+        927.693,
+        170.628
+      ],
+      "mesh_file_formats": {
+        ".ply": 4735
+      },
+      "xml_bytes": 1092731,
+      "content_bytes": 8671168,
+      "edge_len_m": {
+        "min": 0.0563,
+        "p05": 2.4797,
+        "p25": 3.0947,
+        "median": 3.9155,
+        "mean": 5.5888,
+        "p75": 4.9515,
+        "p95": 14.1819,
+        "max": 102.6553
+      },
+      "tri_area_m2": {
+        "min": 0.0,
+        "median": 5.9592,
+        "mean": 12.3424,
+        "p95": 46.6531,
+        "max": 1686.8234,
+        "total": 3308261.9895
+      },
+      "grid_vs_wavelength_3p5GHz": {
+        "lambda_m": 0.08565,
+        "median_edge_m": 3.9155,
+        "median_edge_in_lambda": 45.7,
+        "area_weighted_median_facet_m": 7.327,
+        "area_weighted_median_facet_in_lambda": 85.5,
+        "frac_edges_below_1_lambda": 6e-05,
+        "frac_edges_below_10_lambda": 0.01085,
+        "frac_surface_area_on_facets_larger_than_10_lambda": 0.99995
+      },
+      "documented_description": "\"Example scene containing a portion of San Francisco.\" OSM+Blender, ODbL.",
+      "measured_or_inferred": "1222x928 m. ⭐15개 중 유일하게 «진짜 지형»이 있다 — Terrain.ply 가 192,000 삼각형 격자(셀 약 3.1x3.9 m), 표고 0~104 m. 건물 4734동, 상단높이 중앙값 42.7 m(지형고도 포함), 최고 170.6 m.",
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "⭐지형 기복이 필요한 시나리오라면 15개 중 유일한 선택지(Terrain 192k 삼각형, 표고 0~104 m). 대신 가장 무겁고(268k 삼각형), 우리 실측지와 무관하며, 지형 격자 3~4 m 는 지면 거칠기를 표현하지 못한다. ODbL."
+    }
+  ],
+  "standalone_meshes": [
+    {
+      "mesh": "sphere.ply",
+      "bytes": 470620,
+      "n_vertices": 8249,
+      "n_triangles": 15872,
+      "bbox_extent_m": [
+        1.9745,
+        1.9745,
+        1.9952
+      ],
+      "edge_len_m": {
+        "min": 0.008,
+        "median": 0.0485,
+        "max": 0.0757
+      },
+      "median_edge_in_lambda_3p5GHz": 0.57,
+      "surface_area_m2": 12.295,
+      "usable_for_our_outdoor_drone_site_twin": "손봐서",
+      "verdict_reason": "⭐우리 프로젝트에 가장 직접적으로 쓸모 있는 내장 자산. 반지름 0.991 m 구, 15,872 삼각형. 광학영역 해석해 sigma=pi*a^2=3.08 m^2=4.89 dBsm (ka=72.7 @3.5 GHz) 로 우리 PO/SBR 커널을 교정할 수 있다. ⚠단 중앙 변길이 4.85 cm = 0.57 lambda(3.5 GHz) 로 곡면 PO 의 통상 기준 lambda/10 보다 5.7배 성기다 — 재세분(subdivide) 후 써야 한다.",
+      "analytic_rcs_reference": {
+        "radius_m_measured": 0.9906,
+        "radius_spread_m": [
+          0.9824,
+          0.9976
+        ],
+        "ka_at_3p5GHz": 72.7,
+        "optical_region_sigma_m2": 3.083,
+        "optical_region_sigma_dBsm": 4.89,
+        "note": "sigma=pi*a^2 (ka>>1). 2.4/3.5/5.9 GHz 모두 광학영역이라 같은 값.",
+        "mesh_fineness_vs_PO_rule": "중앙 변 4.85 cm = 0.57 lambda(3.5 GHz); lambda/10 기준의 5.7배로 성김 -> 재세분 필요"
+      }
+    },
+    {
+      "mesh": "low_poly_car.ply",
+      "bytes": 705,
+      "n_vertices": 12,
+      "n_triangles": 20,
+      "bbox_extent_m": [
+        4.4,
+        1.8,
+        1.5
+      ],
+      "edge_len_m": {
+        "min": 0.75,
+        "median": 1.8,
+        "max": 4.7539
+      },
+      "median_edge_in_lambda_3p5GHz": 21.01,
+      "surface_area_m2": 30.488,
+      "usable_for_our_outdoor_drone_site_twin": "못씀",
+      "verdict_reason": "삼각형 20개, 중앙 변길이 1.8 m = 21 lambda. 3.5 GHz 산란표적으로 쓸 수 없다. 가림체로만."
+    }
+  ],
+  "license": {
+    "package": "sionna 2.0.1 / sionna-rt 2.0.1 = Apache-2.0 (dist-info METADATA 의 License: Apache-2.0, licenses/LICENSE 헤더 \"SPDX-License-Identifier: Apache-2.0\", Copyright (c) 2021-2026 NVIDIA CORPORATION).",
+    "osm_derived_scenes": {
+      "scenes": [
+        "etoile",
+        "munich",
+        "florence",
+        "san_francisco"
+      ],
+      "license": "ODbL (Open Data Commons Open Database License) — OpenStreetMap 데이터 파생",
+      "source_quote": "\"The data is licensed under the Open Data Commons Open Database License (ODbL)\" (sionna/rt/scene.py 1222/1235/1248/1261 및 공식 API 문서)",
+      "toolchain_quote": "\"created with data downloaded from OpenStreetMap and the help of Blender and the Blender-OSM and Mitsuba Blender add-ons\"",
+      "obligation": "⭐표시의무 + share-alike. 논문·발표에 그림을 쓰면 OpenStreetMap contributors / ODbL 출처를 반드시 밝혀야 하고, 이 씬을 고쳐 만든 «파생 데이터베이스» 를 배포하면 같은 ODbL 로 공개해야 한다. 내부 시뮬만 하면 배포 조항은 안 걸린다."
+    },
+    "other_scenes": {
+      "scenes": [
+        "box",
+        "box_knife",
+        "box_one_screen",
+        "box_two_screens",
+        "double_reflector",
+        "floor_wall",
+        "simple_reflector",
+        "simple_street_canyon",
+        "simple_street_canyon_with_cars",
+        "simple_wedge",
+        "triple_reflector",
+        "sphere.ply",
+        "low_poly_car.ply"
+      ],
+      "license": "Apache-2.0 (추론 — 패키지 전체 라이선스가 Apache-2.0 이고, 이들에는 ODbL 표시가 없다)",
+      "caveat": "⚠파일별 라이선스 매니페스트는 없다. «ODbL 표시가 없다 = Apache-2.0» 은 우리 추론이다. 재배포한다면 NVIDIA 에 확인하는 편이 안전하다."
+    }
+  },
+  "grid_vs_wavelength_verdict": {
+    "lambda_m": {
+      "2.4GHz": 0.12491,
+      "3.5GHz": 0.08565,
+      "5.9GHz": 0.05081
+    },
+    "headline": "⭐도시 씬의 전형 삼각형은 3.5 GHz 파장의 46~360배다(면적가중 85~465 lambda). 표면적의 99.98% 이상이 10 lambda 보다 큰 면에 실려 있다.",
+    "per_scene_median_edge_in_lambda_3p5GHz": {
+      "box": 116.7,
+      "box_knife": 63.1,
+      "box_one_screen": 116.7,
+      "box_two_screens": 116.7,
+      "double_reflector": 125.0,
+      "floor_wall": 46.7,
+      "simple_reflector": 11.7,
+      "simple_wedge": 350.2,
+      "triple_reflector": 58.4,
+      "simple_street_canyon": 363.3,
+      "simple_street_canyon_with_cars": 29.0,
+      "etoile": 161.6,
+      "florence": 133.5,
+      "munich": 87.8,
+      "san_francisco": 45.7
+    },
+    "per_scene_area_weighted_facet_in_lambda_3p5GHz": {
+      "box": 82.6,
+      "box_knife": 82.6,
+      "box_one_screen": 82.6,
+      "box_two_screens": 82.6,
+      "double_reflector": 233.5,
+      "floor_wall": 46.7,
+      "simple_reflector": 11.7,
+      "simple_wedge": 350.2,
+      "triple_reflector": 330.2,
+      "simple_street_canyon": 465.0,
+      "simple_street_canyon_with_cars": 465.0,
+      "etoile": 321.8,
+      "florence": 241.8,
+      "munich": 354.5,
+      "san_francisco": 85.5
+    },
+    "is_that_a_defect": {
+      "for_environment": "아니다. 광학광선(GO)+UTD 계열 솔버는 면이 파장보다 «훨씬 커야» 정반사 근사가 성립한다. 큰 평면 벽은 오히려 정답 영역이다. 성긴 격자는 «환경»에 대해서는 결함이 아니다.",
+      "for_small_targets": "⭐그렇다. 드론(0.3~1 m, 3.5 GHz 에서 3.5~12 lambda)을 이 격자 위에 올려도, 드론 자체를 같은 수준으로 성기게 만들면 산란이 나오지 않는다. 표적은 별도의 고해상 메쉬여야 한다.",
+      "why_you_cannot_just_remesh": "환경을 lambda/10 로 재세분하는 것은 물리적으로 불가능하다 — 실측 표면적 기준으로 munich 4.08e6 m^2 -> 1.1e11 삼각형(현재의 290만 배), san_francisco 3.31e6 m^2 -> 9.0e10 삼각형(34만 배). ⭐즉 «환경은 성기게, 표적만 곱게» 라는 우리 구조(sigma 는 자체 PO/SBR 커널, 환경은 Sionna)가 유일하게 성립하는 배치다."
+    },
+    "smallest_detail_present": {
+      "city_scenes": "munich 이 가장 잘게 쪼개져 있다 — 변의 33%가 10 lambda 미만, 2.0%가 1 lambda 미만(첨탑·박공 등). 그래도 창틀·난간·가로등·나무·전선·울타리는 아예 없다(shape 이름 전수검색 결과 0건).",
+      "only_sub_lambda_asset": "sphere.ply 만이 파장 이하 격자(0.57 lambda @3.5 GHz)를 가진 유일한 내장 메쉬다."
+    }
+  },
+  "terrain_and_ground": {
+    "flat_2_triangle_ground": {
+      "scenes": [
+        "etoile (Plane.ply, 854x676 m)",
+        "munich (ground.ply, 1476x1206 m)",
+        "florence (ground.ply, 1000x1100 m)",
+        "simple_street_canyon (floor.ply, 186x121 m)",
+        "floor_wall (floor.ply, 4x4 m)"
+      ],
+      "note": "z=0 완전 평면, 삼각형 2개, 재질 concrete. 기복도 거칠기도 없다."
+    },
+    "real_terrain": {
+      "scene": "san_francisco",
+      "mesh": "Terrain.ply — 96,641 정점 / 192,000 삼각형, 셀 약 3.1x3.9 m, 표고 0~104 m, 재질 mat-terrain(=ITU concrete)",
+      "note": "⭐15개 중 유일한 «진짜 지형». 다만 3~4 m 격자라 지면 거칠기(파장 규모)는 여전히 없다."
+    },
+    "implication_for_us": "우리 «바닥 유령»(report09) 서사는 지면 정반사가 핵심인데, 내장 씬의 지면은 모두 «완벽한 거울 평면 + 콘크리트» 다. 야외 잔디/흙 사이트를 흉내내려면 (1) 재질을 medium_dry_ground 계열로 바꾸고 (2) 거칠기(산란)를 따로 넣어야 한다 — 내장 씬에는 둘 다 없다."
+  },
+  "mesh_topology_findings": {
+    "osm_buildings_are_open_shells": "munich/florence/san_francisco/etoile 의 건물은 wall(또는 itu_marble)과 roof(또는 itu_metal) 두 메쉬로 쪼개져 있고, 각 메쉬는 열린 껍질이다(경계 모서리 다수). 바닥면이 없어 지면 평면이 대신 닫아준다. 실측 예: munich Altes_Rathaus-itu_marble 은 모서리 valence 1 이 26개, valence 2 가 29개.",
+    "synthetic_buildings_are_closed": "simple_street_canyon 의 건물 6동은 완전히 닫힌 직육면체다(모든 모서리 valence 2).",
+    "why_it_matters": "⭐SBR/가림 계산에서 열린 껍질은 «안팎» 판정이 애매해진다. 우리 SBR 커널(report07)에 이 씬을 먹일 계획이면 watertight 가정을 쓰지 않는지 먼저 확인해야 한다.",
+    "duplicate_assets": "box/meshes/box.ply 와 box_knife/meshes/Box.ply 는 바이트 동일(md5 6011929f...). simple_street_canyon_with_cars 의 car-0.ply 와 car_1.ply 도 동일. ⚠반면 최상위 low_poly_car.ply 는 그 차량들과 다른 파일이다(md5 1d5ab60d... vs b7c2a26f...)."
+  },
+  "answer_to_our_question": {
+    "question": "야외 드론 탐지 사이트 트윈에 이 15개 중 쓸 수 있는 것이 있나",
+    "short_answer": "⭐«우리 사이트» 로 쓸 수 있는 것은 없다. 하지만 (a) 통제 무대와 (b) 커널 교정표적으로는 세 개가 실제로 쓸모 있다.",
+    "directly_useful": [
+      {
+        "asset": "simple_street_canyon/meshes/floor.ply",
+        "use": "186x121 m 평지 한 장(삼각형 2개). 우리 바이스태틱 «평지» 무대의 바닥으로 그대로 투입 가능. 재질만 바꾼다.",
+        "change_needed": "concrete -> medium_dry_ground(1~10 GHz 유효). 필요하면 거칠기 산란 별도 지정."
+      },
+      {
+        "asset": "simple_street_canyon (전체)",
+        "use": "건물이 있는/없는 통제 대조군. 74삼각형이라 비용이 사실상 0.",
+        "change_needed": "건물 위치·높이를 우리 사이트에 맞게 옮기거나 지운다."
+      },
+      {
+        "asset": "sphere.ply",
+        "use": "⭐우리 PO/SBR 커널의 절대 교정표적. 반지름 0.991 m 구, 광학영역 해석해 4.89 dBsm.",
+        "change_needed": "변길이 0.57 lambda -> lambda/10 수준으로 재세분(1~2회 subdivide) 후 사용."
+      },
+      {
+        "asset": "simple_reflector/meshes/reflector.ply",
+        "use": "1x1 m PEC 평판. 정면 sigma_max = 4*pi*A^2/lambda^2 = 32.3 dBsm @3.5 GHz. 평면이라 성긴 격자로도 PO 가 정확하다.",
+        "change_needed": "없음(재질을 metal 로). 각도 스윕으로 sinc^2 패턴 검증 가능."
+      }
+    ],
+    "usable_as_control_only": [
+      "munich",
+      "etoile",
+      "florence",
+      "san_francisco"
+    ],
+    "control_reason": "도심 통제군·선행연구 비교 기준으로는 값이 크다(특히 munich 은 Sionna 문헌 표준 씬). 하지만 우리 실측지가 아니고, 지면이 평면·콘크리트이며, 창틀·나무·기둥 같은 파장 규모 클러터가 전무하다.",
+    "not_usable": [
+      "box",
+      "box_knife",
+      "box_one_screen",
+      "box_two_screens",
+      "simple_wedge",
+      "floor_wall(야외 규모로는)"
+    ],
+    "what_is_missing_for_us": [
+      "우리 실측지(야외 필드)의 실제 지오메트리 — 내장 씬에는 당연히 없다. OSM+Blender-OSM 경로로 직접 만들어야 한다(NVIDIA 가 쓴 것과 같은 경로).",
+      "자연 지면: 잔디/흙 재질과 파장 규모 거칠기. 내장 씬 지면은 전부 매끈한 concrete.",
+      "초목: ITU 재질 목록에 vegetation 자체가 없고, 씬에도 나무가 한 그루도 없다.",
+      "파장 규모 클러터: 가로등·울타리·전선·난간. 도심 씬에도 없다.",
+      "드론 규모 표적: 유일한 소형 메쉬 sphere.ply 조차 0.57 lambda 격자로 PO 기준엔 성기다. low_poly_car 는 21 lambda 로 논외.",
+      "지오레퍼런스: 15개 XML 어디에도 위경도·CRS 메타데이터가 없다. 좌표는 원점 중심 로컬 미터계다."
+    ]
+  },
+  "unknowns": [
+    "검증용 도형 10개의 «용도» 는 공식 문서에 한 줄 설명뿐이고 «무엇을 검증하는 씬» 이라는 문장은 없다. simple_wedge 만 Diffraction 튜토리얼에서 회절 검증용으로 쓰이는 것이 확인된다. 나머지 9개의 용도는 지오메트리로부터의 우리 추론이다.",
+    "sionna-rt GitHub 저장소의 테스트 코드(어느 테스트가 어느 씬을 쓰는지)는 확인하지 못했다 — git 사용 금지 지시 때문.",
+    "이 조사는 «NVIDIA 가 기본 제공하는 15개» 만 다룬다. 제3자가 만들어 공개한 Sionna 씬(GitHub 등)은 이 파일의 범위 밖이다.",
+    "ODbL 의 share-alike 가 «시뮬레이션 결과» 에까지 미치는지(파생 데이터베이스 vs 생산물 구분)는 법적 판단이라 모른다. 그림 출처표시는 확실히 필요하다.",
+    "Apache-2.0 이 비-OSM 씬에 적용된다는 것은 파일별 명시가 없어 추론이다.",
+    "⚠이 파일이 기존 동명 파일을 덮어썼다(위 _meta.provenance_warning). 덮인 내용은 확인하지 못했다."
+  ]
+}

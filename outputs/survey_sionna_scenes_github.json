@@ -1,0 +1,293 @@
+{
+  "_meta": {
+    "title": "공개 저장소의 Sionna 환경 씬 조사 원장",
+    "question": "GitHub 등 공개 저장소에 Sionna 에서 쓸 수 있는 «환경 씬»(무대) 이 이미 만들어져 올라와 있는가",
+    "date": "2026-08-12",
+    "scope": "무대(환경) 전용. 표적(드론) 메쉬는 이 조사 밖.",
+    "constraints_observed": [
+      "GPU 미사용 (읽기·CPU 계측만)",
+      "git 미사용 (clone 안 함, GitHub REST API 메타데이터·트리 목록과 raw 단일 파일만 조회)",
+      "대용량 내려받기 없음",
+      "기존 원장 미수정 (신규 파일만)"
+    ],
+    "sibling_ledgers": [
+      "outputs/survey_sionna_builtin_scenes.json — 내장 15 씬 전수 계측(다른 에이전트)",
+      "outputs/survey_scene_build_paths.json — 직접 짓는 경로(다른 에이전트)",
+      "OPENSOURCE.md — 오픈소스 대체 지도 (씬 항목은 없음, 확인함)"
+    ],
+    "honesty_rule": "verified=true 는 저장소 파일 트리·raw 파일·공식 문서 페이지를 실제로 열어본 경우만. GitHub API 메타데이터(라이선스·별·최근 푸시)만 본 경우는 verified=false 로 두고 무엇을 봤는지 적었다.",
+    "search_status": "웹 검색·웹 페치 모두 가능했음. GitHub REST API 는 비인증이라 조사 후반 rate limit 에 걸림(일부 트리 미조회 → unknowns 에 기록)."
+  },
+
+  "headline": {
+    "one_line": "«Sionna 씬 은행» 같은 것은 공개되어 있지 않다. 공개된 것은 (a) Sionna 자체 내장 15 씬, (b) OSM→씬 «생성기» 여러 개, (c) 논문 부속으로 딸려 나온 일회성 캠퍼스 씬 두어 개 뿐이다.",
+    "largest_curated_set": "Sionna 2.0.1 내장 15 씬 (50 MB) — 지금도 이게 가장 큰 정리된 씬 묶음이다.",
+    "for_us": "야외 사이트 트윈은 «남의 캠퍼스 씬을 가져다 쓰는» 것보다 «생성기로 우리 실측 좌표를 구워내는» 쪽이 빠르고 정직하다. 공개 캠퍼스 씬은 우리 실증 부지가 아니다."
+  },
+
+  "findings": [
+    {
+      "id": "F01",
+      "what": "Sionna 2.0.1 내장 씬 15개 (munich·florence·san_francisco·etoile·simple_street_canyon(+cars)·검증도형 10)",
+      "where": "https://github.com/NVlabs/sionna-rt (src/sionna/rt/scenes) / 로컬 /home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scenes",
+      "kind": "실제 씬 파일 배포",
+      "license": "코드는 Apache-2.0 (sionna_rt-2.0.1.dist-info/licenses/LICENSE 직접 확인, SPDX-License-Identifier: Apache-2.0). ⭐도시 씬 지오메트리는 OSM 유래라 공식 문서가 «Open Data Commons Open Database License (ODbL)» 로 명시 — 배포·파생 시 ODbL 조건이 따라붙는다.",
+      "license_source": "https://nvlabs.github.io/sionna/rt/api/scene.html (원문 페치)",
+      "n_scenes": 15,
+      "size": "50 MB (로컬 du 측정: san_francisco 25M, florence 12M, munich 11M, etoile 2.5M, 나머지 ≤104K)",
+      "measured_complexity": {
+        "munich": "2367 메쉬 / 34,044 정점 / 38,936 삼각형 → 건물당 ≈16 삼각형",
+        "florence": "2639 메쉬 / 35,373 삼각형",
+        "san_francisco": "4735 메쉬 / 268,041 삼각형",
+        "etoile": "565 메쉬 / 13,098 삼각형",
+        "simple_street_canyon": "7 메쉬 / 74 삼각형",
+        "note": "건물당 16 삼각형 = 사실상 «바닥 다각형을 위로 뽑은 상자»(LOD1). 창·발코니·난간 같은 파사드 디테일 없음."
+      },
+      "material_set": "munich 은 bsdf 5종(marble·metal·brick·wood·concrete), itu-radio-material 플러그인 형식",
+      "last_update": "Sionna RT 저장소 자체는 2026-08-11 푸시(활발). 씬 자산 자체의 개별 갱신일은 미확인",
+      "sionna_compat": "2.0.1 네이티브 (Mitsuba scene version 2.1.0)",
+      "usable_for_us": "그대로",
+      "why": "무대(지면 반사·건물 다중경로)로는 그대로 쓸 수 있다. 우리 σ 는 자체 SBR+PO 커널이 내므로 격자가 거칠어도 표적 산란과는 분리된다. 다만 파사드 디테일·식생·지형 기복이 없어 «클러터가 실제보다 얌전하게» 나온다는 점은 리포트에 적어야 한다. 그리고 우리 실증 부지가 뮌헨·피렌체가 아니다.",
+      "verified": true
+    },
+    {
+      "id": "F02",
+      "what": "USC 캠퍼스 실제 씬 (USC.xml + 건물 메쉬 165개) — PMNet 경로손실 예측 논문 부속",
+      "where": "https://github.com/abman23/pmnet-sionna-rt (Data/USC_3D/)",
+      "kind": "실제 씬 파일 배포 (생성기 아님)",
+      "license": "MIT (GitHub API license.spdx_id=MIT)",
+      "n_scenes": 1,
+      "size": "저장소 약 1.9 MB. PLY 165개(개당 수백 B~4 KB) + USC.xml 39,793 B",
+      "measured_complexity": "USC.xml 안에 <shape> 165개(raw 파일 직접 grep). 건물 메쉬는 munich 과 같은 상자 수준(개당 수백 B PLY)",
+      "last_update": "2024-07-22 (2년 가까이 정지)",
+      "sionna_compat": "⚠ Sionna 0.x 시절 Blender-Mitsuba 내보내기. Mitsuba scene version=2.1.0, 재질은 `mat-itu_very_dry_ground` / `mat-itu_concrete` / `mat-itu_concrete.002` 처럼 diffuse BSDF 에 이름만 붙인 방식.",
+      "compat_detail": "Sionna 2.0.1 은 scene_utils.py(53~121행, 직접 읽음)에서 `mat-` 접두사를 떼고 `itu_` 로 시작하면 자동으로 itu-radio-material 로 바꿔준다 — 즉 0.x 씬 하위호환이 있다. ⭐그러나 Blender 중복 접미사 `.002` 가 붙은 `mat-itu_concrete.002` 는 itu_type 이 \"concrete.002\" 로 잡히는데 ITU_MATERIALS_PROPERTIES(itu.py 18~48행, 키 13개: concrete·brick·plasterboard·wood·glass·ceiling_board·chipboard·plywood·marble·floorboard·metal·very_dry_ground·medium_dry_ground·wet_ground)에 그 키가 없다 → 그대로 로드하면 실패할 것으로 보인다. XML 에서 `.002` 접미사만 떼면 되는 한 줄짜리 손질.",
+      "usable_for_us": "손봐서",
+      "why": "라이선스가 깨끗하고(MIT) 실제 씬 파일을 통째로 준다 — 공개 저장소 중 «완성된 야외 캠퍼스 무대» 를 실제로 배포하는 드문 사례. 다만 (1) 재질 이름 접미사 손질 필요, (2) LA 의 USC 캠퍼스라 우리 실증 부지가 아니고, (3) ITU very_dry_ground 등 지면 재질 모델은 문서상 1~10 GHz 범위(itu.py 값 직접 확인)라 우리 대역(sub-6)은 괜찮다.",
+      "verified": true
+    },
+    {
+      "id": "F03",
+      "what": "SceneBaker — Blender/Blosm/Mitsuba-Blender 없이 OSM 좌표만으로 Sionna RT 용 Mitsuba XML+PLY 씬을 굽는 순수 파이썬 생성기 (지형 포함)",
+      "where": "https://github.com/hslyu/sionna-scene-baker · 논문 arXiv:2608.04546 (Lyu·Kim·Park·Yang, 2026-08-05 제출)",
+      "kind": "생성기 (+ 논문 비교용 자산)",
+      "license": "MIT (GitHub API)",
+      "n_scenes": "논문은 «4개 캠퍼스 씬» 이라고 함. 저장소 트리에 XML 27개·PLY 429개·.osm 10개·.blend 8개가 있으나 ⚠ data/ 전체가 Git LFS(.gitattributes 직접 확인: `data/** filter=lfs`)라 PLY 파일들이 128~131 B 짜리 포인터로 보인다 — 실제 메쉬는 LFS 로 따로 받아야 한다(내려받지 않음).",
+      "size": "저장소 메타 2,116 KB (LFS 실체 제외)",
+      "last_update": "2026-08-06 (가장 최신, 논문 제출 다음날)",
+      "sionna_compat": "`scenebaker.load_scene(...)` 이 `sionna.rt.load_scene(...)` 와 같은 객체를 돌려준다고 README 에 명시. 정확한 Sionna 버전 핀은 README 에 없음.",
+      "usable_for_us": "손봐서",
+      "why": "⭐우리 목적(«우리 실증 부지 좌표로 무대를 굽는다»)에 가장 잘 맞는 도구다. 지형(terrain)·높이 질의(height)·장애물 질의(occupied) API 가 있어 드론 궤적을 지면 위에 앉히기 편하다. 다만 별 3개·석 달 된 신생 저장소라 검증 없이 신뢰하면 안 된다. 우리 쪽 검증(Blender 경로와 교차 대조)이 입장료.",
+      "verified": true
+    },
+    {
+      "id": "F04",
+      "what": "sionna_osm_scene — OSM → Mitsuba XML 생성 노트북 (osmnx + PyVista + Open3D)",
+      "where": "https://github.com/manoj-kumar-joshi/sionna_osm_scene",
+      "kind": "생성기만 (씬 파일 배포 아님)",
+      "license": "MIT (GitHub API)",
+      "n_scenes": "0 (트리 직접 조회: 총 blob 9개 = ipynb 2, md 1, png 1 등. 메쉬·XML 없음)",
+      "size": "3,360 KB",
+      "last_update": "2024-01-11 (첫 커밋 다음날이 마지막 — 사실상 방치)",
+      "sionna_compat": "미확인. 2024-01 이면 Sionna 0.x 시절 산출물이고, 그 시절 XML 은 F02 와 같은 `mat-itu_*` 관례라 2.0.1 하위호환 경로를 탈 것으로 보이나 실증 안 함.",
+      "usable_for_us": "손봐서",
+      "why": "Sionna 공식 «Made with Sionna» 페이지가 지목하는 가장 유명한 커뮤니티 생성기(별 50개)지만 2년 넘게 멈춰 있다. SceneBaker(F03)나 Geo2SigMap(F06)이 같은 일을 더 최근 코드로 한다.",
+      "verified": true
+    },
+    {
+      "id": "F05",
+      "what": "BostonTwin — 보스턴 시 디지털 트윈 데이터셋 + Sionna 연동 API",
+      "where": "https://github.com/wineslab/boston_twin · 데이터 본체 http://hdl.handle.net/2047/D20623157 (→ repository.library.northeastern.edu) · 논문 arXiv:2403.12289",
+      "kind": "데이터셋(외부 호스팅) + API 코드",
+      "license": "⚠ 코드는 MIT(GitHub API). ⭐3D 모델 본체의 라이선스는 «미확인» — README 에 명시 없고(README raw 페치함), 노스이스턴 저장소 페이지는 403 으로 막혀 확인 실패. 원 출처는 Boston Planning & Development Agency 3D Smart Model.",
+      "n_scenes": "타일 수 미확인 (README 에 숫자 없음)",
+      "size": "저장소 메타 42,898 KB. 3D 모델은 저장소에 없고 외부에서 받아야 함",
+      "last_update": "2025-07-10",
+      "sionna_compat": "«Sionna 기반» 이라고만 하고 버전 명시 없음. Mitsuba XML 내보내기 여부도 README 에 명시 없음(PLY + CityGML LOD 로 구성).",
+      "usable_for_us": "판정불가",
+      "why": "실제 도시 규모 트윈이라 매력적이지만 (1) 3D 모델 라이선스를 확인하지 못했고 (2) 우리 실증 부지가 보스턴이 아니다. 라이선스 미확인 자산은 «쓸 수 있다» 고 적으면 안 된다.",
+      "verified": false,
+      "verified_detail": "GitHub API 메타데이터 + README raw 는 확인. 데이터 본체 페이지·모델 라이선스·타일 수는 확인 실패(403)."
+    },
+    {
+      "id": "F06",
+      "what": "Geo2SigMap — OSM + USGS LiDAR/DEM 지형까지 넣어 3D 씬과 경로이득 맵을 자동 생성하는 프레임워크 (Duke, DySPAN'24)",
+      "where": "https://github.com/functions-lab/geo2sigmap · 논문 arXiv:2312.14303",
+      "kind": "생성기 + ML 모델 (+ 실측 데이터 일부)",
+      "license": "⚠ 충돌. README 배지는 «Code License: Apache-2.0» 인데 README 하단 «## License» 절은 «CC BY-NC 4.0» 이라고 적혀 있고, 배지가 가리키는 LICENSE 파일은 404(raw 조회로 확인). GitHub API 도 license=null. → ⭐비상업 조건이 걸릴 수 있어 그대로 쓰면 위험.",
+      "n_scenes": "정리된 씬 묶음 아님 (임의 영역 생성 방식). 별도 씬 뱅크 없음",
+      "size": "81,328 KB",
+      "last_update": "2026-05-11 (활발)",
+      "sionna_compat": "미확인 (버전 핀 없음)",
+      "usable_for_us": "판정불가",
+      "why": "지형(DEM)을 넣는 몇 안 되는 파이프라인이고 Duke 캠퍼스 LTE 실측과 대조까지 한 점이 강하다. 그러나 라이선스가 서로 어긋나 있어 «쓸 수 있다» 고 판정할 수 없다. 쓰려면 저자에게 확인해야 한다.",
+      "verified": true,
+      "verified_detail": "README raw 전문·LICENSE 404·API 메타데이터 직접 확인."
+    },
+    {
+      "id": "F07",
+      "what": "NYCU 캠퍼스 Sionna 씬 + UAV 이동 제어 실험 (Blender .blend 원본까지 포함)",
+      "where": "https://github.com/vivian921207/sionna-uav-blender",
+      "kind": "실제 씬 파일 배포 (+ Blender 원본)",
+      "license": "⛔ 없음 (GitHub API license=null, 트리에 LICENSE 파일 없음)",
+      "n_scenes": "XML 9개 (NYCU_scene/NYCU.xml, blender_xml/nycu·nycu_left·nycu_right, test_scene, uav_ctrl/building_1 등) + PLY 146개 + .blend 13개",
+      "size": "36,372 KB (exhibit.blend 44.8 MB, air.glb 18.6 MB 포함)",
+      "last_update": "2025-10-28",
+      "sionna_compat": "미확인",
+      "usable_for_us": "못씀",
+      "why": "⭐«Sionna 씬 + UAV» 조합으로는 우리가 찾은 것 중 가장 근접하지만 라이선스가 아예 없다 — 저작권 기본값(무단 사용 불가)이므로 그대로 가져다 쓰면 안 된다. 참고 관찰용으로만.",
+      "verified": true,
+      "verified_detail": "파일 트리 전수 조회로 XML/PLY/blend 개수와 LICENSE 부재 확인."
+    },
+    {
+      "id": "F08",
+      "what": "gazebo-sionna-pipeline — Gazebo 월드(SDF)를 Mitsuba/Sionna XML 로 변환하는 파이프라인 (정적·동적 «actor-aware» 씬 매니페스트)",
+      "where": "https://github.com/Teleinfrastructure-Research-Lab/gazebo-sionna-pipeline",
+      "kind": "변환 파이프라인 (+ Gazebo 모델 자산 다수 번들)",
+      "license": "MIT (GitHub API). ⚠ 단, 번들된 Gazebo 모델(dae/stl/obj 다수)의 원 라이선스는 각기 다를 수 있고 확인하지 않았다.",
+      "n_scenes": "완성된 Sionna 씬은 없음 (실행 시 rt_out/ 로 생성). 대신 Gazebo 자산 다수: .dae 111 · .obj 37 · .stl 26 · .sdf 38 (로봇 실험실 월드, x500 UAV 메쉬 22 MB, 사람 액터 등)",
+      "size": "280,404 KB",
+      "last_update": "2026-07-31 (활발)",
+      "sionna_compat": "미확인 (README 에 버전 명시 없음)",
+      "usable_for_us": "손봐서",
+      "why": "⭐우리는 PX4/Gazebo 를 이미 쓴다. Gazebo 월드를 그대로 Sionna 무대로 넘길 수 있으면 «시뮬 무대와 비행 시뮬 무대가 같은 기하» 라는 강한 정합성이 생긴다. 동적 객체(actor) 처리를 이미 다룬다는 점도 우리 드론 궤적과 맞는다. 실내 로봇 실험실 월드라 우리 야외 부지는 아니고, 변환 코드의 검증은 우리 몫.",
+      "verified": true,
+      "verified_detail": "파일 트리 전수 조회 + README 페치."
+    },
+    {
+      "id": "F09",
+      "what": "SionnaRTStudio — 브라우저에서 지도 영역을 골라 OSM 건물을 끌어와 Sionna RT 로 커버리지·다중경로를 도는 웹 도구",
+      "where": "https://github.com/puloktarafder/SionnaRTStudio",
+      "kind": "생성기 + GUI (씬 배포 아님)",
+      "license": "Apache-2.0 (GitHub API + README)",
+      "n_scenes": 0,
+      "size": "960 KB",
+      "last_update": "2026-08-07 (가장 최신 축)",
+      "sionna_compat": "«NVIDIA Sionna RT» 라고만 하고 버전 핀 없음",
+      "usable_for_us": "못씀",
+      "why": "씬을 «가지고» 있지 않고 즉석 생성만 한다. 우리가 필요한 것은 무대 자산이지 GUI 가 아니다. UAV·센싱 기능도 없다(README 확인).",
+      "verified": true
+    },
+    {
+      "id": "F10",
+      "what": "DeepMIMO v4 — 레이트레이싱 데이터셋 툴체인·데이터베이스 (Wireless InSite / Sionna RT / AODT 변환기 포함)",
+      "where": "https://github.com/DeepMIMO/DeepMIMO · https://deepmimo.net",
+      "kind": "채널 데이터셋 + 변환기",
+      "license": "Apache-2.0 (GitHub API)",
+      "n_scenes": "⭐미확인 — 시나리오 개수와, 3D 기하(Mitsuba XML/메쉬)가 실제로 내려받아지는지 아니면 채널 행렬만 주는지 확인 실패(deepmimo.net/scenarios 페이지가 본문 없이 반환됨).",
+      "size": "저장소 54,568 KB",
+      "last_update": "2026-06-16",
+      "sionna_compat": "Sionna RT 변환기가 있다고 서술됨(검색 결과 수준). 원문 미확인.",
+      "usable_for_us": "판정불가",
+      "why": "만약 3D 기하까지 공개한다면 가장 큰 씬 공급원이 될 수 있다. 그러나 원문 확인을 못 했으므로 «있다» 고 적지 않는다. ⭐다음 라운드 1순위 확인 대상.",
+      "verified": false,
+      "verified_detail": "GitHub API 메타데이터만. 시나리오 목록 페이지 페치 실패."
+    },
+    {
+      "id": "F11",
+      "what": "NVIDIA Aerial Omniverse Digital Twin (AODT) — CityGML/OSM → OpenUSD 도시 씬 파이프라인",
+      "where": "https://github.com/NVIDIA/aerial-omniverse-digital-twin",
+      "kind": "플랫폼 (씬 임포터 포함)",
+      "license": "⚠ GitHub API 상 NOASSERTION (표준 SPDX 아님). 뉴스는 Apache-2.0 공개라고 하나 저장소 라이선스 파일은 확인 안 함.",
+      "n_scenes": "미확인",
+      "size": "742 KB (본체는 NGC 컨테이너)",
+      "last_update": "2026-08-06",
+      "sionna_compat": "⭐포맷이 OpenUSD 라 Sionna 가 바로 못 읽는다 (Sionna 는 Mitsuba XML + 삼각 메쉬만; scene.py 915행 «Only triangle meshes are supported» 직접 확인). 변환 단계가 반드시 필요.",
+      "usable_for_us": "판정불가",
+      "why": "NVIDIA 계열이라 장기적으로는 Sionna 와 맞물릴 가능성이 높지만, 지금은 포맷도 다르고 라이선스 표기도 비표준이며 씬 자산 유무도 확인 못 했다.",
+      "verified": false,
+      "verified_detail": "GitHub API 메타데이터 + 웹 검색 요약만. 저장소 내용·NGC 자산 미확인."
+    },
+    {
+      "id": "F12",
+      "what": "Mitsuba 3 씬 갤러리 / Benedikt Bitterli 렌더링 리소스 — 실내 위주 3D 씬 32개 (Mitsuba 3 포맷)",
+      "where": "https://mitsuba.readthedocs.io/en/stable/src/gallery.html · https://benedikt-bitterli.me/resources/",
+      "kind": "실제 씬 파일 배포 (그래픽스용)",
+      "license": "원문 문구: «All scenes come with explicit licenses attached and have few restrictions: The majority allow commercial use, and many don't even require attribution.» → 씬마다 다름. 쓰려면 개별 확인 필요.",
+      "n_scenes": 32,
+      "size": "미확인 (내려받지 않음)",
+      "last_update": "미확인",
+      "sionna_compat": "⭐포맷은 Mitsuba 3 XML 이라 뼈대는 맞지만, BSDF 가 «광학» 재질(diffuse/rough conductor 등)이다. Sionna 2.0.1 은 radio material 이 아닌 BSDF 를 만나면 로드를 거부한다(scene.py 936~945행 직접 확인) — 모든 재질을 itu-radio-material 로 다시 붙여야 한다.",
+      "usable_for_us": "손봐서",
+      "why": "실내 무대(사무실·주방·강의실)를 통째로 얻을 수 있는 유일한 대형 공급원. 다만 우리 통제군은 무향실이고, 무향실은 상자 하나면 되므로(Sionna 내장 box 가 이미 그것) 실익이 크지 않다. 우선순위 낮음.",
+      "verified": true,
+      "verified_detail": "Bitterli 페이지 원문 페치로 라이선스 문구·씬 수·실내 씬 이름 확인. Sionna 거부 로직은 로컬 소스 직접 확인."
+    },
+    {
+      "id": "F13",
+      "what": "씬 제작 «공식» 도구 사슬 — Blender + mitsuba-blender + blosm(Blender-OSM)",
+      "where": "https://github.com/mitsuba-renderer/mitsuba-blender · https://github.com/vvoovv/blosm",
+      "kind": "도구 (씬 배포 아님)",
+      "license": "mitsuba-blender = BSD-3-Clause. blosm = GPL (무료 기본판; Pro 는 유료 Gumroad).",
+      "n_scenes": 0,
+      "last_update": "mitsuba-blender 305 커밋·나이틀리 릴리스로 유지보수 중. blosm 갱신일 미확인.",
+      "sionna_compat": "Sionna 공식 문서가 내장 도시 씬 4개를 «OpenStreetMap 데이터 + Blender + Blender-OSM + Mitsuba Blender 애드온» 으로 만들었다고 명시.",
+      "usable_for_us": "그대로",
+      "why": "⭐사용자 질문 중 «NVIDIA 가 만든 Blender 애드온이 있는가» 에 대한 답: **없다**. NVIDIA 공식 애드온은 찾지 못했고, Sionna 공식 문서가 가리키는 것은 이 두 개의 제3자 애드온이다. blosm 이 GPL 이라는 점(우리 파이프라인에 코드로 섞지 말 것)만 유의.",
+      "verified": true,
+      "verified_detail": "Sionna 공식 scene.html 원문 + 두 저장소 페이지 페치."
+    },
+    {
+      "id": "F14",
+      "what": "씬을 배포하지 않는 것으로 확인된 «후보» 저장소들 (검색에 걸렸으나 무대 자산 없음)",
+      "where": "https://github.com/NVlabs/diff-rt · https://github.com/guchuanv-alt/SimART · https://github.com/jaewoo4200/SEAM · https://github.com/Tangtangtang-Luo/SkySense-ISAC-Dataset-Generator-for-UAV-Localization-with-Sionna · https://github.com/Michele-Zhu/Digital-Twin-Dataset · https://github.com/anilgurses/SIONNA-Scene-Builder",
+      "kind": "무대 자산 없음",
+      "license": "diff-rt = NVIDIA License / SimART = 없음 / SEAM = Apache-2.0 / SkySense = MIT / Digital-Twin-Dataset = Apache-2.0 / SIONNA-Scene-Builder = 없음",
+      "n_scenes": 0,
+      "last_update": "diff-rt 2024-05-28 · SimART 2026-07-30(★168) · SEAM 2026-08-11 · SkySense 2026-02-19 · Digital-Twin-Dataset 2026-01-02 · SIONNA-Scene-Builder 2026-04-15",
+      "sionna_compat": "해당 없음",
+      "usable_for_us": "못씀",
+      "why": "트리를 직접 열어 확인한 결과: diff-rt 는 노트북 2개뿐, SimART 은 ROS/AirSim 코드만(메쉬 0), SEAM 은 glb 3개 + 64 B 짜리 빈 XML, SkySense 는 obj 1개 + 노트북, Digital-Twin-Dataset 은 py 4개(데이터는 외부), SIONNA-Scene-Builder 는 py 15 + json 9. «Sionna 씬» 이름표를 달았다고 씬을 주는 것은 아니다.",
+      "verified": true,
+      "verified_detail": "SimART·SEAM·SkySense·Digital-Twin-Dataset·SIONNA-Scene-Builder 는 파일 트리 전수 조회. diff-rt 는 저장소 페이지 페치."
+    }
+  ],
+
+  "search_coverage": {
+    "queries_run": [
+      "Sionna RT scene github mitsuba XML blender OpenStreetMap",
+      "NVIDIA Sionna Blender add-on official plugin",
+      "github sionna scene dataset digital twin city ray tracing XML download",
+      "Sionna RT UAV drone scene github ISAC simulation environment mesh",
+      "DeepMIMO Sionna RT scenario adapter DeepVerse",
+      "Sionna scene zenodo huggingface released paper campus measurement site",
+      "mitsuba 3 example scenes gallery Bitterli",
+      "NVIDIA AODT scenes license",
+      "Sionna anechoic chamber / RCS validation scene"
+    ],
+    "github_api_searches": [
+      "q=sionna+scene", "q=sionna+ray+tracing+scene", "q=sionna+blender", "q=sionna+osm",
+      "q=sionna+digital+twin", "q=sionna+isac", "q=sionna+uav", "topic:sionna (총 30개 전수)"
+    ],
+    "note": "topic:sionna 전체 30개를 눈으로 훑었고, 그중 무대 자산 가능성이 있는 것만 트리로 열었다."
+  },
+
+  "practical_conclusion_for_us": {
+    "no_scene_bank": "«Sionna 씬 저장소» 는 존재하지 않는다. 커뮤니티는 씬을 «모아 두지» 않고 «그때그때 굽는다».",
+    "only_two_real_outdoor_scenes_with_clean_license": [
+      "F01 Sionna 내장 도시 4종 (ODbL, 무대로 그대로 가능)",
+      "F02 USC 캠퍼스 (MIT, 재질 이름 한 줄 손질 필요)"
+    ],
+    "the_uav_one_is_unusable": "F07 (NYCU + UAV) 가 우리와 가장 가깝지만 라이선스가 없어 못 쓴다.",
+    "recommended_path": [
+      "1) 무대 뼈대는 생성기로 우리 실증 부지 좌표를 직접 구워낸다 (F03 SceneBaker 우선, 대조군으로 F13 Blender+blosm 경로).",
+      "2) F01 내장 씬은 «통제된 기준 무대» 로 남긴다 — 재현성과 대조를 위해.",
+      "3) F08 Gazebo 파이프라인은 비행 시뮬(PX4/Gazebo)과 전파 시뮬의 기하를 하나로 묶는 수단으로 별도 검토.",
+      "4) F02 USC 씬은 «남이 만든 캠퍼스 무대에서 우리 결과가 재현되는가» 를 보는 제3자 교차검증용으로 쓸 수 있다."
+    ],
+    "grid_caveat_answered": "도시 씬 격자가 거칠어 표적 산란이 안 나온다는 우려는 우리 구조에서는 문제가 아니다 — σ 는 자체 SBR+PO 커널이 내고 Sionna 는 환경만 맡는다(sionna2-frame-correction-0803 방침). 진짜 영향은 «클러터·다중경로가 실제보다 단순하게 나온다» 쪽이며, 이건 바닥유령·CFAR 교정 리포트의 보수성 논거로 다뤄야 한다."
+  },
+
+  "unknowns": [
+    "DeepMIMO v4 가 3D 기하(Mitsuba XML/메쉬)를 실제로 배포하는지 — deepmimo.net 시나리오 페이지 확인 실패. 다음 라운드 1순위.",
+    "BostonTwin 3D 모델(노스이스턴 저장소 handle 2047/D20623157)의 라이선스와 타일 수 — 페이지 403.",
+    "Geo2SigMap 의 실제 라이선스 (README 배지 Apache-2.0 ↔ 본문 CC BY-NC 4.0 ↔ LICENSE 파일 404). 저자 확인 필요.",
+    "SceneBaker 의 LFS 자산이 완성된 씬인지, 4개 캠퍼스가 어디인지 (README 이미지 경로에 snu 가 보이고 예제 좌표는 UT Austin 부근이나 전체 목록 미확인). LFS 내려받기는 이번 조사 범위 밖.",
+    "AODT 저장소의 실제 LICENSE 파일 내용과 배포 씬 자산 유무.",
+    "무향실/RCS 검증용 공개 Sionna 씬 — 검색으로 찾지 못했다. «없다» 가 아니라 «찾지 못했다».",
+    "한국 내 야외 실증 부지에 해당하는 공개 씬 — 없다고 볼 근거는 있으나(생성기 방식이 표준) 전수 확인은 아님.",
+    "pietroguidetti02/NetMonster2Sionna 는 검색 결과에 나왔으나 API 조회 시 404 (이름 변경·삭제·비공개 추정) — 미확인.",
+    "F02·F03·F08 을 실제로 Sionna 2.0.1 에 로드해 보지 않았다 (GPU 금지 라운드). 호환성 판정은 전부 소스 코드 독해에 기반한 추론이다.",
+    "GitHub REST API 가 비인증이라 조사 후반 rate limit 에 걸려 NVlabs/sionna 본체 트리와 sionna-rk(Research Kit) 트리는 확인하지 못했다."
+  ]
+}

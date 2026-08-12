@@ -1,0 +1,167 @@
+{
+  "_meta": {
+    "generated": "2026-08-12",
+    "purpose": "8 권 08_5_bistatic.ipynb 을 절 단위로 감사 — 각 절이 실제로 어느 엔진 팔로 쟀는가",
+    "audited_notebook": "reports/08_5_bistatic.ipynb",
+    "cells": 14,
+    "sections": 6,
+    "read_only": true,
+    "wrote_nothing_but": "outputs/audit_vol8_08_5.json",
+    "arms_defined": {
+      "PathSolver": "Sionna 레이트레이싱 (a, τ) — 이 편의 β 스윕에서는 한 번도 안 돌았다",
+      "ours_SBR_PO": "rcs_sbr.sbr_field_bistatic (가림 + 각도의존 Γ(θ), 광선 격자 λ/12) — npz key 'E'",
+      "pure_PO": "microdoppler.microdoppler_series (가림 없음, 점구름 λ/11, Γ(θ) 꺼짐) — npz key 'E_po'",
+      "analytic": "예측 A cos(β/2) · 예측 B 이등분선 수평투영 — 엔진 무관 운동학"
+    },
+    "ledgers_opened": [
+      "outputs/report07b_bistatic_md.json",
+      "outputs/report07b_bistatic_md.npz",
+      "outputs/report07_three_engines.json",
+      "outputs/report07_three_engines.npz",
+      "outputs/prefreeze/report07_three_engines.npz",
+      "outputs/outofband_power.json",
+      "outputs/verify_bistatic_field.json"
+    ],
+    "code_opened": [
+      "benchmark/report07b_bistatic_md.py",
+      "benchmark/report07_three_engine_maps.py",
+      "benchmark/build_bistatic_md_fig.py",
+      "src/make_report07b_bistatic.py",
+      "src/microdoppler.py",
+      "src/rcs_sbr.py"
+    ],
+    "independent_recheck": {
+      "bistatic_beta0_SBR_vs_prefreeze_mono_sbr": {"n_bit_identical": 4096, "max_rel_err": 0.0, "amp_corr": 1.0},
+      "bistatic_beta0_SBR_vs_live_mono_sbr": {"n_bit_identical": 0, "max_rel_err": 2.574, "amp_corr": 0.4642},
+      "bistatic_beta0_PO_vs_live_mono_po": {"n_bit_identical": 4096, "max_rel_err": 0.0},
+      "sionna_key_in_bistatic_npz": false
+    }
+  },
+  "headline": "이 편은 두 팔(ours_SBR_PO · pure_PO)을 실제로 다 돌렸다. 문제는 반대다 — 두 팔을 절마다 갈아타면서 그 사실을 본문 표에 안 적는다. PathSolver 는 β 스윕에서 한 번도 안 돌았고, 나오는 자리는 절 2 의 모노 원장 표 하나뿐이며 그것은 정직하게 «모노 원장의 팔» 이라고 적혀 있다.",
+  "sections": [
+    {
+      "section": "«절 없음» (셀 0)",
+      "title": "표지 · 설정표 · 한 줄 요약 셋",
+      "arms_used": ["pure_PO", "ours_SBR_PO", "analytic"],
+      "ledger": "report07b_bistatic_md.json : verdict.doppler_scaling.po_rms_rel_err_vs_pred_A=0.1261 / _B=0.0611 (요약1, pure_PO) · rows[*].sbr_ratio, rows[*].f_flash_meas_hz, rows[*].flash_lag_corr (요약2, ours_SBR_PO) · rows[*].level_db_rel_mono, census[*].A_eff_rel_mono=0.2849@β120 (요약3, ours_SBR_PO)",
+      "verdict": "두_팔_나란히",
+      "note": "⚠ 세 숫자 다 원장과 일치한다(0.061/0.126 · 28.5 % · -17.5~-10.4 dB · ±0.8 Hz · 상관 0.98). 그런데 설정표의 «커널» 칸에는 rcs_sbr.sbr_field_bistatic 하나만 적혀 있다. 요약 1(도플러 판정)은 그 커널이 아니라 microdoppler_series 순수 PO 대조팔에서 나온 값이다 — 이 편이 실제로 돌린 팔 둘 중 하나가 표지에 없다."
+    },
+    {
+      "section": "절 0",
+      "title": "시나리오 — 무엇을 바꿨고 무엇을 안 바꿨나 (회귀 3건)",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "report07b_bistatic_md.json : regression.kernel_identity(n=64, max_rel_err=0.0) · regression.mono_ledger(n=4096, checked_now.vs_prefreeze_three_engines.n_bit_identical=4096 / vs_live_three_engines.amp_corr=0.46418) · regression.po_control_ledger(n=4096, source=report07_three_engines.npz['po'])",
+      "verdict": "두_팔_나란히",
+      "note": "이 편에서 두 팔이 가장 정직하게 나란히 선 자리다. 세 회귀를 npz 로 직접 다시 계산해 전부 재현했다 — β=0 SBR 열은 prefreeze 모노와 4096/4096 비트동일이고 live 모노와는 상관 0.464, β=0 PO 열은 live 모노 po 와 4096/4096 비트동일. 노트북 본문의 «0.464 · 옛 판» 경고도 사실이다(빌더 _mono_lineage 가 빌드 때 다시 잰다)."
+    },
+    {
+      "section": "«절 없음» (셀 2, 그림 1)",
+      "title": "그림 1 — 바이스태틱이 되면 기하가 무엇을 바꾸는가",
+      "arms_used": ["analytic", "none"],
+      "ledger": "report07b_bistatic_md.json : geometry[*].{beta_deg, phi_deg, bisector_az_deg, bisector_el_deg} 만 읽는다(부록 이력표가 «수치 없음» 이라고 자백). 예측 A/B 갈림 11 %/27 % 는 rows[*].pred_cos_half_beta 대 pred_bisector_horiz 로 확인(az120 0.500↔0.4429=11.4 % · el120 0.500↔0.366=26.8 %)",
+      "verdict": "엔진_무관",
+      "note": "엔진 값이 안 들어간다 — 기하와 운동학뿐이라 팔 문제가 없다. 출처 인용 없음이 결함이 아니다(부록 이력표에 «수치 없음» 이라고 명시)."
+    },
+    {
+      "section": "«절 없음» (셀 3, 그림 2 머리말)",
+      "title": "그림 2 — β 를 열었을 때 실제로 무엇이 나오나",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "build_bistatic_md_fig.py : 맵 10칸 전부 flash_spec(E[:,j]) = npz['E'] = ours_SBR_PO · (k) 칸만 ROWS[k]['po_ratio'] = pure_PO",
+      "verdict": "두_팔_나란히",
+      "note": "⭐이 편에서 가장 오해를 부르는 문장. 본문은 «판정은 (k) 칸의 별도 추정기가 한다» 라고 쓴다 — 맵과 (k) 의 차이는 «추정기» 가 아니라 «엔진 팔» 이다. 맵 열 칸은 전부 SBR 팔이고 (k) 는 순수 PO 팔이다. 정작 그림 캡션(영문)에는 «Panels (k) and (l) apply the same yardstick … to two [arms]» 라고 제대로 적혀 있어, 그림이 본문보다 정직하다."
+    },
+    {
+      "section": "절 1",
+      "title": "도플러 축척 — 이등분선이 이긴다",
+      "arms_used": ["pure_PO", "analytic"],
+      "ledger": "report07b_bistatic_md.json : rows[*].po_ratio / po_over_predA / po_over_predB (표 9행 전부 일치) · verdict.doppler_scaling.{po_rms_rel_err_vs_pred_A=0.12613, _B=0.06108, po_threshold_spread=0.08320, sharpest_case='el120'} · rows[0].po_fmax_hz=1159.40 대 _meta.f_tip_mono_hz=1228.72 (=5.64 % 낮음)",
+      "verdict": "한_팔만",
+      "note": "한 팔(pure_PO)만 쓰고 그것을 본문이 명시한다 — «판정은 순수 PO 팔에서 한다». 정직하다. ⚠ 다만 그 팔을 고른 근거로 든 «순수 PO 바닥 -127 dB / SBR 바닥 -62 dB» 는 이 스윕의 값이 아니라 outofband_power.json 의 **모노·얼린격자** 값이다(빌더 280~281행이 OOBE 에서 읽는다). 이 스윕의 SBR 팔 자기 바닥은 rows[*].sbr_floor_rel_db = -13.4 ~ -33.5 dB 다 — 절 2 가 «두 표를 이어 붙여 읽지 마라» 라고 경고한 바로 그 이어붙임을 절 1 이 근거로 쓴다."
+    },
+    {
+      "section": "절 2",
+      "title": "광선 팔로는 이 축척을 못 잰다 — 그리고 그것은 바이스태틱 탓이 아니다",
+      "arms_used": ["ours_SBR_PO", "PathSolver", "pure_PO"],
+      "ledger": "바이스태틱 부분: report07b_bistatic_md.json : verdict.sbr_edge_unusable.sbr_ratio_range=[1.0, 2.7775], rows[*].sbr_ratio 최소 β>0 = 1.477(el30) → «1.48 배 위» 확인. 세 팔 표: outofband_power.json : three_engines[*].frac_of_total (po 7.32e-7=0.00007 % · sionna 0.050577=5.06 % · sbr 0.0017817=0.18 %) 와 new_floor_rel_db_raw_mean (-127.156 / -47.614 / -62.247). 부속 수치도 전부 일치 — three_engines_ranking.new_P_out_absolute.sbr_over_po_db=34.569(«34.6 dB»), secondary_out_over_in 77.07 %/26.23 %(«4.7 dB»), sbr_over_sionna_db.new_frac_of_total=-14.531(«14.5 dB»), freeze_gain[div=12].prod_P_in_db_over_pure_po=19.095(«19.1 dB»), freeze_verdict.gains_db['12']=13.094(«13.1 dB»), convergence.froz.slope_ge12=-2.1907/r2=0.99806 및 prod.slope_ge12=-0.5604(«-2.19 · R² 0.998 · 생산 -0.56»)",
+      "verdict": "두_팔_나란히",
+      "note": "세 팔이 실제로 한 표에 나란히 있고, 그 표가 **모노 원장**에서 왔다는 것을 열 제목(«모노 원장의 팔»)과 ⚠ 문단이 명시한다 — 여기까지는 정직하다. ⚠ 두 가지: ① β 스윕 자체에는 PathSolver 팔이 아예 없다(npz 에 sionna 키 없음) — 이 편이 «Sionna 를 바이스태틱으로 검증했다» 로 읽히면 안 된다. ② 표의 근거 원장이 report07b_bistatic_md.json 이 아니라 outofband_power.json 인데, 정작 report07b_bistatic_md.json 의 verdict.sbr_edge_unusable.mono_ledger_engine_floors_db 에는 **폐기된 옛 값**(sbr -33.54 · po -118.82 · sionna -41.40 dB, frac 6.05/0.02/2.12 %)이 superseded 표시 없이 그대로 남아 있다. 그 옛 값으로는 SBR↔Sionna 바닥 순서가 뒤집힌다(옛: sionna -41.4 가 sbr -33.5 보다 낮다 / 새: sbr -62.2 가 sionna -47.6 보다 낮다)."
+    },
+    {
+      "section": "절 3",
+      "title": "레벨 — 게이트 두 개가 겹치는 만큼만 돌아온다",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "report07b_bistatic_md.json : census[*].{A_eff_m2, A_eff_rel_mono} (288 cm² 100 % → az 85.0/66.1/39.5/28.5/19.2 %, el 64.6/50.1/38.5/8.7/3.7 % — 표와 전부 일치) · rows[*].{level_db_rel_mono, ptp_db} (-10.39/-17.51/-14.06/-10.38, el -5.38/-0.026/-2.01/-19.89 — 표와 일치). 코드 확인: benchmark/report07b_bistatic_md.py:518 lvl = 10log10 mean|E|² → E = 'E' = ours_SBR_PO. census 는 gate_census() 가 커널 광선 격자를 다시 쏘아 세는 기하 계수(장 계산 없음)",
+      "verdict": "한_팔만",
+      "note": "SBR 팔 하나로만 잰다. 두 팔인 척하지는 않는다 — 다만 절 안에서 «어느 팔인지» 를 한 번도 안 적는다. 그 귀속은 절 2 의 마지막 ⚠ 한 줄(«레벨(절 3)·플래시(절 4)·가림은 광선 팔이 맡는다»)에만 있다. 절만 떼어 읽으면 절 1 과 같은 팔로 잰 값으로 읽힌다. A_eff 가 σ 가 아니라는 경고는 본문에 있다(정직)."
+    },
+    {
+      "section": "절 4",
+      "title": "플래시 — 주기는 로터가, 시각은 방위가 정한다",
+      "arms_used": ["ours_SBR_PO", "pure_PO", "analytic"],
+      "ledger": "report07b_bistatic_md.json : rows[*].f_flash_meas_hz(126.85×5, 126.25×2, 252.50@az120) · verdict.flash_rate.{harmonic_index=[1,1,1,1,2,1,1,1,1], max_abs_dev_from_harmonic_hz=0.8309, n_at_fundamental=8} · rows[*].flash_lag_corr(0.964/0.494/0.509/0.657 · el 0.989/0.986/0.979/0.746) · rows[*].flash_lag_frac_period. 코드: :513 flash_envelope(E[:,j]) → ours_SBR_PO. 그런데 같은 표의 «도플러 축척» 열은 rows[*].po_ratio → pure_PO. 플래시 대역 lo,hi 는 pred_B(analytic)로 따라간다(:512)",
+      "verdict": "두_팔_나란히",
+      "note": "⭐⭐이 감사의 핵심 발견. 이 절의 전체 논지(«도플러와 플래시는 같이 안 움직인다», «표를 가로로 읽지 말고 두 세로줄을 비교하라»)는 **서로 다른 엔진 팔의 두 열을 맞대는 것**이다 — 도플러 축척 열 = 순수 PO(가림 없음, λ/11, Γ(θ) 꺼짐), 플래시 열 = SBR(가림 있음, λ/12, Γ(θ) 켜짐). 절 4 는 그 사실을 한 글자도 안 적는다. az60(도플러 0.983 / 상관 0.494) 대 el60(도플러 0.891 / 상관 0.986) 이라는 결정적 대비도 두 엔진에 걸쳐 있다. 결론이 틀렸다는 뜻이 아니라(두 양이 물리적으로 갈리는 것은 사실일 수 있다), **한 엔진 안에서 확인된 것이 아니라는 사실이 서술에서 빠져 있다**. 덧붙여 플래시 측정 대역이 pred_B 로 조향되므로 절 1 의 판정이 절 4 의 관측량에 이미 들어가 있다."
+    },
+    {
+      "section": "절 5",
+      "title": "정직 — 이 편이 딛고 선 근사와, 안 한 일",
+      "arms_used": ["ours_SBR_PO"],
+      "ledger": "report07b_bistatic_md.json : _meta.scope_limits(6줄) · census[*] 앙각면 165°=1.3 %, 180°=0.0 % · verdict.forward_scatter.{A_eff_rel_at_beta120_azimuth=0.28491, A_eff_rel_at_beta150_azimuth=0.19188, A_eff_at_beta180_elevation=0.0} · rows[az120].level_db_rel_mono=-10.38. 커널 계약은 outputs/verify_bistatic_field.json (부록에서 파일명만 인용, 수치 인용 없음)",
+      "verdict": "한_팔만",
+      "note": "SBR 커널의 적용범위 한계만 다룬다 — 순수 PO 대조팔의 한계(가림 없음 · Γ(θ) 없음 · 진폭 게이트를 n̂·û_b 하나로 근사, 스크립트 446~448행에 적혀 있음)는 «안 한 일» 목록에 없다. 절 1 의 판정이 그 팔에서 나왔는데 그 팔의 근사가 정직 절에 없다. 또 verify_bistatic_field.json 에는 인용할 만한 숫자가 있다 — reciprocity.max_abs_d_db = 6.487 dB(상반성 위반 크기). 본문은 «상반성 부분성립» 이라고 말만 하고 그 6.5 dB 를 안 적는다. verify_bistatic_field.json 자체는 Sionna 를 한 번도 안 부른다(sionna/PathSolver/spp/npaths 키 0회) — 우리 커널 전용 계약 검사다."
+    },
+    {
+      "section": "«절 없음» (셀 9)",
+      "title": "⭐ 모노 ↔ 바이스태틱 대조표",
+      "arms_used": ["pure_PO", "ours_SBR_PO", "analytic"],
+      "ledger": "report07b_bistatic_md.json : f_tip 행 = rows[*].f_tip_pred_B_hz(analytic) · 도플러 축척 행 = rows[*].po_ratio(pure_PO) · 플래시율/플래시열 상관/에코 레벨 행 = rows[*].{f_flash_meas_hz, flash_lag_corr, level_db_rel_mono}(ours_SBR_PO) · A_eff 행 = census[*](ours_SBR_PO 격자 기하)",
+      "verdict": "두_팔_나란히",
+      "note": "⚠ 한 표 안에서 세 출처(순수 PO · SBR · 운동학)를 행마다 갈아타는데 팔 표시가 한 칸도 없다. 게다가 «8 권 모노 편» 열의 기준값은 이 스윕의 β=0 칸(= prefreeze 판)이고 현재 모노 원장과는 진폭 상관 0.464 로 다른 시계열인데, 절 0·절 2 에 있던 그 경고가 이 대조표에는 안 붙어 있다. 이 표만 떼어 인용하면(덱·요약본) 두 시대와 두 엔진을 한꺼번에 이어 붙이게 된다 — 노트북이 두 번이나 하지 말라고 적은 바로 그 일이다."
+    },
+    {
+      "section": "«절 없음» (셀 10)",
+      "title": "부록 — 그림별 데이터 이력",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "report07b_bistatic_md.json _meta.generated=2026-08-10T10:31 ✔ · report07_three_engines.json _meta.regenerated=2026-08-10 23:34 (본문 «2026-08-10 19:18» 은 prefreeze 판의 시각과 일치) · Γ(θ) 칸 대조: benchmark/report07b_bistatic_md.py:465 microdoppler_series(...) 는 angle_gamma 를 안 넘긴다 → src/microdoppler.py:39 기본값 False → 순수 PO 팔은 Γ(θ) **없음**",
+      "verdict": "한_팔인데_두_팔처럼_서술",
+      "note": "⭐그림 2 행의 «Γ(θ) ✅ 후 (커널 기본값)» 은 그림 2 의 데이터 전체를 덮는 것처럼 적혀 있지만, 그림 2 의 (k) 칸(=절 1 판정)을 낸 순수 PO 대조팔은 각도의존 Γ 를 안 켰다. 모노 원장 쪽도 같다 — report07_three_engines.json engines.sbr.engine='우리 SBR (가림 + 각도의존 Γ)' 대 engines.po.engine='우리 순수 PO (가림 없음)'. 두 팔의 재질 규약이 다른데 한 줄로 «✅» 라고 적었다. 또 이 이력표에는 절 2 표의 실제 출처인 outputs/outofband_power.json 이 빠져 있다."
+    },
+    {
+      "section": "«절 없음» (셀 11)",
+      "title": "부록 — 그림을 만든 설정 전부",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "«광선 간격 λ/12 · rcs_sbr.DEFAULT_DIV» ← src/rcs_sbr.py:96 DEFAULT_DIV=12 ✔(SBR 팔). 순수 PO 팔은 benchmark/report07b_bistatic_md.py:449 SPACING_PO = C0/FC/11.0 = λ/11 — 이 값이 노트북에도 _meta 에도 없다. «계산 시간 891 s» ← _meta.seconds_field=891.296 ✔(SBR 팔만; PO 팔 시간은 원장에 없다). 추정기 표의 «순수 PO 대조팔» 표기 ✔. 대역밖 전력 행의 ⟨outputs/outofband_power.json : …⟩ 포인터 ✔(키 실재 확인)",
+      "verdict": "한_팔인데_두_팔처럼_서술",
+      "note": "«계산» 표가 한 벌뿐이라 두 팔이 한 설정으로 돈 것처럼 읽힌다. 실제로는 격자(λ/12 대 λ/11)·재질(Γ(θ) 켜짐 대 꺼짐)·가림(있음 대 없음)이 다르다. 추정기 표에서만 «순수 PO 대조팔» 이라는 말이 한 번 나온다. ⚠ 반대로 잘 된 것 — 노트북의 «f_tip 5 % 이동에 광선 두 팔 0.6~0.0 dB» 는 원장 robustness.band_edge_sensitivity_db(sionna -0.639 · sbr -0.028)와 맞고, 정작 원장 자기 산문의 «0.7~0.9 dB» 가 틀렸다. 노트북이 원장보다 정확한 자리다."
+    },
+    {
+      "section": "«절 없음» (셀 12)",
+      "title": "부록 — 코드 발췌",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "발췌 3토막이 benchmark/report07b_bistatic_md.py 의 실제 코드와 일치 — us_azimuth(등부각 원뿔), E[i]=sbr_field_bistatic(...)(:여기서 ours_SBR_PO), microdoppler_series(fc=fcb,...)(pure_PO), gate_census 의 lit = lit_i & ((Nn@us)>1e-6) + _exit_visible",
+      "verdict": "두_팔_나란히",
+      "note": "이 편에서 두 팔이 «각각 어떤 코드로 났는지» 를 실제로 보여주는 유일한 자리다. 본문 표들이 놓친 귀속이 여기 묻혀 있다 — 부록까지 읽는 사람만 안다. 단 발췌에도 SPACING_PO=λ/11 줄은 잘려 있다."
+    },
+    {
+      "section": "«절 없음» (셀 13)",
+      "title": "부록 — 재현 · 딸린 파일 · 남긴 문제",
+      "arms_used": ["ours_SBR_PO", "pure_PO"],
+      "ledger": "딸린 파일 표의 5개 경로 전부 실재 확인 — src/rcs_sbr.py::sbr_field_bistatic ✔ · benchmark/verify_bistatic_field.py→outputs/verify_bistatic_field.json ✔(우리 커널 전용, Sionna 0회) · benchmark/report07b_bistatic_md.py ✔ · outputs/report07b_bistatic_md.{json,npz} ✔ · outputs/report07_three_engines.{json,npz} ✔",
+      "verdict": "두_팔_나란히",
+      "note": "재현 명령 ①이 두 팔을 다 낸다(--analyze-only 는 npz 의 E_po 를 재활용). «남긴 문제» 5줄 중 첫 줄(«이 편의 스윕에 얼린 격자를 배선한다»)은 이 편의 SBR 팔 결과 전체(절 2·3·4·대조표)가 옛 격자 판이라는 뜻이고, 그것이 명시돼 있다 — 정직하다. 다만 순수 PO 팔은 격자와 무관하므로(절 1 은 재계산해도 안 변한다) 그 구분은 안 적혀 있다."
+    }
+  ],
+  "problems": [
+    "절 4 — 표의 «도플러 축척» 열(순수 PO 팔)과 «플래시열 상관» 열(SBR 팔)이 서로 다른 엔진인데 열 이름에도 본문에도 표시가 없다. 이 절의 헤드라인 주장(«도플러와 플래시는 같이 안 움직인다»)이 통째로 교차-엔진 비교다. 각 열에 팔 이름을 박고, 한 엔진 안에서도 같은 갈림이 보이는지(SBR 팔의 도플러 축척은 못 쓰므로 순수 PO 팔의 플래시열 상관을 같이 내는 쪽) 확인 문장을 넣어야 한다.",
+    "셀 3(그림 2 머리말) — «판정은 (k) 칸의 별도 추정기가 한다» 는 오도. 맵과 (k) 의 차이는 추정기가 아니라 엔진 팔이다. 그림 캡션(영문)은 이미 «two arms» 라고 맞게 적혀 있으니 본문을 캡션에 맞춰라.",
+    "셀 9(모노↔바이스태틱 대조표) — 행마다 출처 팔이 갈리는데(도플러=순수 PO · 플래시/레벨/A_eff=SBR · f_tip=운동학) 표시가 없고, «8 권 모노 편» 열이 prefreeze 판이라는 절 0·절 2 의 경고도 안 붙어 있다. 이 표는 덱으로 떼어 나갈 확률이 가장 높은 표다 — 팔 열을 추가하고 prefreeze 각주를 붙여라.",
+    "부록 «그림별 데이터 이력»(셀 10) — 그림 2 행의 «Γ(θ) ✅ 후 (커널 기본값)» 이 순수 PO 팔에는 거짓이다(microdoppler_series 의 angle_gamma 기본값 False, 스윕이 안 넘긴다). 행을 팔별로 쪼개라. 같은 표에 절 2 표의 실제 출처 outputs/outofband_power.json 이 빠져 있다.",
+    "부록 «계산» 표(셀 11) — 설정이 한 벌뿐이라 두 팔이 같은 판으로 돈 것처럼 읽힌다. 순수 PO 팔의 점구름 간격 λ/11(SPACING_PO)·Γ(θ) 꺼짐·가림 없음이 노트북에도 원장 _meta 에도 없다. 팔별 설정 열을 만들고 SPACING_PO 를 _meta 에 남겨라.",
+    "절 1 — 팔 선택 근거로 인용한 «순수 PO 바닥 -127 dB · SBR 바닥 -62 dB» 는 이 스윕이 아니라 모노·얼린격자 원장의 값이다. 이 스윕의 SBR 팔 자기 바닥은 rows[*].sbr_floor_rel_db = -13.4 ~ -33.5 dB 다. 절 2 가 금지한 이어붙임을 절 1 이 근거로 쓴다 — 근거 문장에 «모노 원장 기준» 을 박거나 이 스윕의 자기 바닥으로 바꿔라.",
+    "원장 정합 — outputs/report07b_bistatic_md.json 의 verdict.sbr_edge_unusable.mono_ledger_engine_floors_db 에 폐기된 옛 값(sbr -33.54 · po -118.82 · sionna -41.40 dB, frac 6.05/0.02/2.12 %)이 superseded 표시 없이 남아 있다. 같은 파일의 regression.mono_ledger 에는 superseded_on/superseded_by 가 붙어 있으니 같은 방식으로 표시해야 한다. 그 옛 값으로 읽으면 SBR↔Sionna 바닥 순서가 새 잣대와 반대로 나온다.",
+    "절 5(정직 절) — 한계 목록이 SBR 커널 것뿐이다. 절 1 의 판정을 낸 순수 PO 대조팔의 근사(가림 없음 · Γ(θ) 없음 · 진폭 게이트를 n̂·û_b 하나로 — 스크립트 446~448행)가 빠졌다. 또 verify_bistatic_field.json 의 reciprocity.max_abs_d_db = 6.487 dB 라는 숫자가 있는데 본문은 «상반성 부분성립» 이라고 말만 한다.",
+    "절 3 — 어느 팔로 쟀는지가 절 안에 없다(귀속이 절 2 의 ⚠ 한 줄에만 있다). 표 제목이나 첫 문장에 «SBR 팔» 을 박아라.",
+    "범위 — β 스윕에 PathSolver 팔이 아예 없다(npz 에 sionna 키 없음). 절 2 의 세 팔 표가 모노 원장이라는 표시는 있지만, 편 전체 요약(표지·대조표)에는 «Sionna 는 바이스태틱으로 안 돌렸다» 가 한 줄도 없다. 표지 경계 문단에 넣어라."
+  ]
+}

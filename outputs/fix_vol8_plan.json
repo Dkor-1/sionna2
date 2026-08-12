@@ -1,0 +1,594 @@
+{
+ "_meta": {
+  "generated": "2026-08-12",
+  "what_ko": "8 권(08_1~08_5) 엔진-팔 감사의 «고칠 자리» 확정 목록 — 편·절·파일·줄·무엇이 틀렸나·어떻게 고치나·필요한 원장",
+  "source_audit": [
+   "docs/AUDIT_VOL8_ENGINES.md",
+   "outputs/audit_vol8_08_1.json",
+   "outputs/audit_vol8_08_2.json",
+   "outputs/audit_vol8_08_3.json",
+   "outputs/audit_vol8_08_4.json",
+   "outputs/audit_vol8_08_5.json"
+  ],
+  "companion_doc": "docs/PLAN_FIX_VOL8.md",
+  "round_scope_ko": "계획만 했다. 노트북·원장·빌더·그림을 하나도 안 고쳤다.",
+  "gpu_used": false,
+  "git_used": false,
+  "ledgers_are_read_only_ko": "outputs/*.json 은 한 줄도 안 고친다. 고치는 것은 빌더 소스뿐이다.",
+  "arms": {
+   "S": "Sionna PathSolver — (a, τ) 를 낸다. σ 를 안 잰다. 표식 spp · paths_median · paths_zero_frac · seconds",
+   "B": "우리 SBR + PO — 광선 격자로 가림을 풀고 보이는 면만 면적분(rcs_sbr.sbr_field). 표식 grid_ref · n_lit · spacing · grid_frozen",
+   "P": "순수 PO 대조군 — 점구름 전면 면적분, 가림 없음, 광선 격자 안 씀(microdoppler_series). 표식 engines.po · SPACING_PO · angle_gamma=False",
+   "analytic": "닫힌 식·규약 — 엔진 값이 안 들어감"
+  },
+  "severity_legend": {
+   "A": "데이터가 아닌 것을 데이터로 그림",
+   "B": "한 팔로 재고 두 팔로 읽히게 씀",
+   "C": "귀속·라벨",
+   "D": "판(版)·정의 표시"
+  }
+ },
+
+ "builder_map": {
+  "note_ko": "코드로 확인했다. build_volumes.py 는 8 권에서 후처리만 한다 — 이번 라운드에 고칠 자리 0 개.",
+  "08_1": {"builder": "src/make_report08_microdoppler.py", "entry": "build_08_1()", "lines": "555-654"},
+  "08_2": {"builder": "src/make_report08_microdoppler.py", "entry": "build_08_2()", "lines": "660-852",
+           "helpers": "_ray_count_phrase 265-271 · _freeze_para 274-282 · _grid_anchor_cell 293-434 · _flash_census_para 437-513"},
+  "08_3_front": {"builder": "src/make_report08_microdoppler.py", "entry": "build_08_3()", "lines": "858-963"},
+  "08_3_sections_1_6": {"builder": "src/build_part07_microdoppler.py",
+                        "entry": "blocks_34 149 · blocks_35 240 · blocks_36 344 · blocks_37 566 · blocks_38 666 · blocks_39 785",
+                        "route_ko": "reports/_parts/3N_*.ipynb → build_volumes.py 가 08_3_pattern.ipynb 뒤에 절로 덧붙인다"},
+  "08_4": {"builder": "src/make_report08_microdoppler.py", "entry": "build_08_4()", "lines": "969-1126"},
+  "08_5": {"builder": "src/make_report07b_bistatic.py", "entry": "모듈 최상단 cells = [...]", "lines": "145-695"},
+  "figures": {
+   "report07_f9": "benchmark/build_range_sweep_fig.py (08_4 §1)",
+   "report07_f1_f2_f3_f4": "benchmark/build_report07_figs.py (f2 → 08_2 절 5 · f1/f3/f4 → 08_3 앞머리)"
+  },
+  "build_volumes": {
+   "file": "src/build_volumes.py",
+   "role_ko": "8 권 후처리만 — ①앞선 실행이 붙인 셀 걷어내기 ②상호참조 주소 재배선 ③조각 34~39 를 08_3_pattern.ipynb 뒤에 절로 덧붙이기",
+   "verified_at": "EXTERNAL 150-167 · _postprocess_external 923-1005",
+   "fixes_here": 0,
+   "must_run_last": true
+  }
+ },
+
+ "fixes": [
+  {
+   "id": "F4-1", "vol": "08_4", "section": "§1 그림 f9 (c)", "severity": "A", "priority": 1,
+   "file": "benchmark/build_range_sweep_fig.py", "lines": "120-121",
+   "wrong_ko": "ax.axhline(1.0, color=C_OURS, label=\"Ours (SBR+PO), range invariant\") — 데이터 원점이 없는 손그림 선이다. 이 절이 인용한 두 원장에 ours·sbr·po·grid_ref 키가 하나도 없다.",
+   "fix_ko": "그 두 줄을 지우고 실측 세 점을 찍는다. 자세당 0.601 / 0.512 / 0.635 s → 자기 3 m 로 정규화하면 1.000 / 0.852 / 1.057. 범례를 'Ours (SBR+PO), measured, 3 ranges' 로.",
+   "ledger": "outputs/deck_ours_by_range.json : ranges.{3,15,40}.cpu_seconds(2460.2/2095.2/2599.9) ÷ _meta.n(4096)",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F4-1b", "vol": "08_4", "section": "§1 그림 f9 (c)", "severity": "A", "priority": 1,
+   "file": "benchmark/build_range_sweep_fig.py", "lines": "117-119, 137-143",
+   "wrong_ko": "빨간 곡선이 측정 seconds 가 아니라 해석식 (R/3)² 인데 축 이름은 'Relative cost' 다.",
+   "fix_ko": "범례를 'PathSolver, rays needed to hold path count — analytic rule' 로 바꾸고, 캡션에 «두 곡선은 다른 질문에 답한다 — 규칙 대 측정, 절대 비용은 견주지 않는다» 를 넣는다.",
+   "ledger": "outputs/report07_sionna_ranges.json : _meta.spp_scaling_ko",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F4-1c", "vol": "08_4", "section": "§1 그림 f9 (c) 캡션", "severity": "A", "priority": 1,
+   "file": "benchmark/build_range_sweep_fig.py", "lines": "137-143",
+   "wrong_ko": "같은 원장에 PathSolver 의 측정 자세당 초가 있고 그 값은 0.167 → 0.147 s 로 거의 평평하다(그 스윕이 규칙값보다 적게 쏜 탓). 캡션이 그 사실을 안 적어 (b) 와 (c) 가 어긋나 보인다.",
+   "fix_ko": "캡션에 한 줄 — 'measured wall time in the same ledger is flat because that sweep under-launched (panel b)'.",
+   "ledger": "outputs/report07_sionna_ranges.json : ranges.{R3,R10,R20,R40}.seconds = 85.6 / 79.1 / 77.6 / 75.5 (자세 512)",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F4-2", "vol": "08_4", "section": "§1 맺음 두 문단", "severity": "B", "priority": 1,
+   "file": "src/make_report08_microdoppler.py", "lines": "1011-1016",
+   "wrong_ko": "잰 팔은 S 하나인데 «반면 우리 SBR+PO 는 … 한 번 계산하면 거리에 무관하다» 로 맺는다. 이 절에 B 값이 0 개다.",
+   "fix_ko": "문장을 지우지 말고 근거를 데려온다 — 3/15/40 m 자세당 0.601/0.512/0.635 s 를 본문 표로 넣고 «거리 무관» 을 그 측정에 매단다.",
+   "ledger": "outputs/deck_ours_by_range.json",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F4-3", "vol": "08_4", "section": "§1 · 8 권 구조", "severity": "B", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "1011-1016 (+ 08_2 절 2 694-)",
+   "wrong_ko": "outputs/report07_three_engine_ranges.json:_meta.grid_note_ko 가 «sbr·po 열은 거리 무관이라 그 원장을 그대로 쓴다» 고 적는다 — 거리 무관이 가정으로 파이프라인에 박혀 있다. 08_4 §1 이 그것을 결론으로 다시 쓰면 순환이다.",
+   "fix_ko": "원장은 안 고친다. 08_4 §1 과 08_2 절 2 에 «세 거리를 다시 푼 팔은 S 하나이고, 우리 두 팔의 거리 무관은 deck_ours_by_range.json 이 따로 잰 것이다» 를 박는다.",
+   "ledger": "outputs/report07_three_engine_ranges.json:_meta.grid_note_ko · outputs/deck_ours_by_range.json",
+   "ledger_status": "있음",
+   "cross_vol": "08_2"
+  },
+  {
+   "id": "F4-4", "vol": "08_4", "section": "부록 f9 행", "severity": "C", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "1082-1083",
+   "wrong_ko": "행의 팔 칸이 «Sionna 팔(광선 격자 무관)» 인데 그림 안에는 Ours 범례가 있다. 원장 두 개를 인용하는데 시각은 하나(04:31)만 적힌다.",
+   "fix_ko": "F4-1 뒤에 «S 팔(측정) + 우리 팔 3 점(deck_ours_by_range)» 로 고치고, 두 원장의 시각을 둘 다 적는다(04:31 · 09:19).",
+   "ledger": "report07_sionna_ranges.json:_meta.generated=2026-08-10 04:31:54 · report07_ray_budget_test.json:_meta.generated=2026-08-10 09:19:55",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F4-5", "vol": "08_4", "section": "§2 + 부록 f10 행 + ⚠문단", "severity": "D", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "1019, 1084-1085, 1087-1090",
+   "wrong_ko": "«채널은 08_3 의 h(t) 그대로다(같은 원장)» 가 거짓 — 이 절의 채널열은 얼기 전 판이다(report07_5g_waveform.npz::cw_5k 가 prefreeze/report07_hover_long.npz::E 와 바이트 동일). 부록의 «얼림(한 변 124 칸)» 과 «f3 만 옛 판이다» 도 같이 틀렸다.",
+   "fix_ko": "세 자리를 문장으로 고친다 — §2 에 «⚠ 이 절의 채널열은 얼기 전 판이다», f10 행 격자 칸을 _PLATE_HOV 대신 «⚠얼기 전 판(2026-08-10 15:11)», ⚠문단을 «f3·f10 이 옛 판이다» 로. 재계산은 이번 라운드 밖.",
+   "ledger": "AUDIT_VOL8_ENGINES.md §7 의 바이트 동일성 재현 · outputs/report07_5g_waveform.json:_meta.generated=2026-08-10 15:11:32",
+   "ledger_status": "있음(문장 정정만)"
+  },
+  {
+   "id": "F4-6", "vol": "08_4", "section": "§2 표 머리", "severity": "C", "priority": 4,
+   "file": "src/make_report08_microdoppler.py", "lines": "1023, 1025",
+   "wrong_ko": "이 절만 «팔» 을 표본율 뜻으로 쓴다. 8 권의 다른 곳은 전부 엔진 뜻이다.",
+   "fix_ko": "«네 갈래» · «표본율 넷» 으로 바꾼다.",
+   "ledger": null, "ledger_status": "불필요"
+  },
+  {
+   "id": "F4-7", "vol": "08_4", "section": "§1", "severity": "D", "priority": 4,
+   "file": "src/make_report08_microdoppler.py", "lines": "1012",
+   "wrong_ko": "원거리장 경계가 8.3 m(report15_probe) ↔ 8.04 m(report07_sionna_ranges:_meta.farfield_boundary_m=8.0399) 로 한 절 안에 둘이다.",
+   "fix_ko": "한 원장으로 통일하고 다른 값은 각주로 밝힌다.",
+   "ledger": "두 원장", "ledger_status": "있음"
+  },
+  {
+   "id": "F4-8", "vol": "08_4", "section": "§1 사다리 표", "severity": "D", "priority": 4,
+   "file": "src/make_report08_microdoppler.py", "lines": "994-1002",
+   "wrong_ko": "사다리는 자세 128, 스윕은 자세 512 인데 안 적혀 있다. 두 판이 77.3 % ↔ 78.3 % 로 맞는 좋은 교차검증인데 그 사실도 없다.",
+   "fix_ko": "«같은 32M 에서 자세 128 판 77.3 % ↔ 자세 512 판 78.3 % — 두 판이 맞는다» 한 줄.",
+   "ledger": "report07_ray_budget_test.json:_meta.n_poses=128 · report07_sionna_ranges.json:_meta.n=512",
+   "ledger_status": "있음"
+  },
+
+  {
+   "id": "F5-1", "vol": "08_5", "section": "절 4 «플래시»", "severity": "B", "priority": 1,
+   "file": "src/make_report07b_bistatic.py", "lines": "451-464",
+   "wrong_ko": "편의 헤드라인이 교차-팔 비교다 — «도플러 축척» 열은 P(fc·cos(β/2) · λ/11 · 가림 없음 · Γ(θ) 꺼짐), «플래시열 상관» 열은 B(3.5 GHz · λ/12 · 가림 있음 · Γ(θ) 켜짐). 표에도 본문에도 팔 표시가 0 칸.",
+   "fix_ko": "열 제목에 팔을 박는다 — «도플러 축척 (순수 PO 팔)» · «플래시열 상관 (SBR 팔)». 표 아래 한 줄로 두 팔의 조건 차이를 적고, 결론 문장을 «두 팔에 걸친 관측» 으로 낮춘다.",
+   "ledger": "outputs/report07b_bistatic_md.json : rows[*].{po_ratio, flash_lag_corr}",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F5-1b", "vol": "08_5", "section": "절 4", "severity": "B", "priority": 1,
+   "file": "src/make_report07b_bistatic.py", "lines": "442-478",
+   "wrong_ko": "«한 엔진 안에서도 같은 갈림이 보이는가» 를 확인할 값이 없다 — rows[*] 에 po_flash* 키가 0 개다.",
+   "fix_ko": "숫자를 지어내지 말고 «순수 PO 팔의 플래시 관측량은 이 원장에 없다» 를 적고 «남긴 문제» 표에 한 줄 더한다.",
+   "ledger": null, "ledger_status": "원장 없음"
+  },
+  {
+   "id": "F5-2", "vol": "08_5", "section": "절 1 팔 선택 근거", "severity": "C", "priority": 2,
+   "file": "src/make_report07b_bistatic.py", "lines": "280-282",
+   "wrong_ko": "«순수 PO 바닥 −127 dB · SBR 바닥 −62 dB» 는 이 스윕이 아니라 모노·얼린격자 원장의 값이다. 절 2 가 금지한 이어붙임을 절 1 이 근거로 쓴다.",
+   "fix_ko": "그 문장에 «(모노 원장 기준)» 을 박고, 이 스윕의 자기 바닥 −13.4 ~ −33.5 dB 를 나란히 적는다.",
+   "ledger": "outputs/report07b_bistatic_md.json : rows[*].sbr_floor_rel_db · outputs/outofband_power.json",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F5-3", "vol": "08_5", "section": "셀 3 그림 2 머리말", "severity": "C", "priority": 2,
+   "file": "src/make_report07b_bistatic.py", "lines": "269",
+   "wrong_ko": "«판정은 (k) 칸의 별도 추정기가 한다» — 오도. 맵과 (k) 의 차이는 추정기가 아니라 팔이다(맵 10 칸 = B, (k) = P). 영문 캡션은 이미 «two arms» 로 맞다.",
+   "fix_ko": "«맵 열 칸은 SBR 팔이고 (k) 칸은 순수 PO 대조팔이다» 로 교체한다.",
+   "ledger": "benchmark/build_bistatic_md_fig.py", "ledger_status": "있음"
+  },
+  {
+   "id": "F5-4", "vol": "08_5", "section": "셀 9 모노↔바이 대조표", "severity": "B", "priority": 1,
+   "file": "src/make_report07b_bistatic.py", "lines": "524-553",
+   "wrong_ko": "6 행이 전부 단일 팔인데 팔 표시가 한 칸도 없다(f_tip=해석 · 도플러 축척=P · 플래시율·상관·레벨=B · A_eff=B 격자 기하). «8 권 모노 편» 열도 모노 원장이 아니라 이 스윕 β=0 prefreeze 판이다. 덱으로 떼어 갈 확률이 가장 높은 표다.",
+   "fix_ko": "① 팔 열을 하나 더 박는다 ② 1 행에 «예측» 표시(1 행 예측 ↔ 2 행 실측이 β60 에서 14.9 % 어긋난다) ③ «8 권 모노 편» 열에 각주 — «이 스윕의 β=0 칸 · 현재 모노 원장과 진폭 상관 0.464».",
+   "ledger": "outputs/report07b_bistatic_md.json : regression.mono_ledger.checked_now.*",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F5-5", "vol": "08_5", "section": "셀 0 표지·설정표·요약 셋", "severity": "C", "priority": 2,
+   "file": "src/make_report07b_bistatic.py", "lines": "157-184",
+   "wrong_ko": "요약 셋이 각각 한 팔(1=P · 2=B · 3=B+기하)인데 셀 0 원문에 «PO»·«SBR»·«대조팔»·«Sionna» 가 0 회다. 설정표 «커널» 칸에 sbr_field_bistatic 하나뿐이라 P 대조팔이 표지에 없다.",
+   "fix_ko": "요약마다 팔을 한 낱말로 붙이고, 설정표 커널 칸에 순수 PO 대조팔(src/microdoppler.py::microdoppler_series)을 한 줄 더한다. 경계 문단에 «PathSolver 는 이 편의 β 스윕에서 한 번도 안 돌았다».",
+   "ledger": "outputs/audit_vol8_08_5.json : independent_recheck.sionna_key_in_bistatic_npz = false",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F5-6", "vol": "08_5", "section": "셀 10 부록 이력", "severity": "C", "priority": 3,
+   "file": "src/make_report07b_bistatic.py", "lines": "555-568",
+   "wrong_ko": "«그림 2 · Γ(θ) ✅ 후(커널 기본값)» 한 줄이 그림 2 전체를 덮는데 (k) 칸의 P 팔은 Γ(θ) 를 안 켰다. 이력표에 절 2 표의 실제 출처 outofband_power.json 도 빠졌다.",
+   "fix_ko": "그림 2 행을 팔별 두 줄로 쪼개고 outofband_power.json 행을 더한다.",
+   "ledger": "src/microdoppler.py:39 angle_gamma 기본값 False · benchmark/report07b_bistatic_md.py:465",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F5-7", "vol": "08_5", "section": "셀 11 부록 설정", "severity": "C", "priority": 3,
+   "file": "src/make_report07b_bistatic.py", "lines": "570-614",
+   "wrong_ko": "계산 설정이 한 벌이라 두 팔이 같은 판으로 돈 것처럼 읽힌다. 실제로는 격자 λ/12 ↔ λ/11 · Γ(θ) 켜짐 ↔ 꺼짐 · 가림 있음 ↔ 없음이다. SPACING_PO 가 노트북에도 _meta 에도 없다.",
+   "fix_ko": "팔별 열을 만든다. SPACING_PO = λ/11 을 적고 출처를 benchmark/report07b_bistatic_md.py:449 로 단다. PO 팔의 계산 시간 칸은 «원장 없음» — _meta.seconds_field 는 SBR 팔만이다.",
+   "ledger": "코드 449행 / PO 시간은 원장 없음",
+   "ledger_status": "부분"
+  },
+  {
+   "id": "F5-8", "vol": "08_5", "section": "절 3 «레벨»", "severity": "C", "priority": 3,
+   "file": "src/make_report07b_bistatic.py", "lines": "405-440",
+   "wrong_ko": "어느 팔로 쟀는지가 절 안에 없다 — 귀속이 절 2 끝줄 한 곳에만 있다. 절만 떼어 읽으면 절 1 과 같은 팔로 읽힌다.",
+   "fix_ko": "표 제목이나 첫 문장에 «SBR 팔» 을 박는다.",
+   "ledger": "benchmark/report07b_bistatic_md.py:518", "ledger_status": "있음"
+  },
+  {
+   "id": "F5-9", "vol": "08_5", "section": "절 5 «정직»", "severity": "C", "priority": 3,
+   "file": "src/make_report07b_bistatic.py", "lines": "480-522",
+   "wrong_ko": "한계 목록이 SBR 커널 것뿐이다. 절 1 의 판정을 낸 P 대조팔의 근사(가림 없음 · Γ(θ) 없음 · 진폭 게이트를 n̂·û_b 하나로)가 빠졌다. «상반성 부분성립» 이라고 말만 하고 6.5 dB 를 안 적는다.",
+   "fix_ko": "P 팔 근사 세 줄을 목록에 더하고 reciprocity.max_abs_d_db = 6.487 dB 를 숫자로 적는다.",
+   "ledger": "outputs/verify_bistatic_field.json : reciprocity.max_abs_d_db = 6.487 · benchmark/report07b_bistatic_md.py:446-448",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F5-10", "vol": "08_5", "section": "절 2", "severity": "D", "priority": 4,
+   "file": "src/make_report07b_bistatic.py", "lines": "329-342",
+   "wrong_ko": "원장 verdict.sbr_edge_unusable.mono_ledger_engine_floors_db 에 폐기된 옛 값(sbr −33.54 · po −118.82 · sionna −41.40 dB)이 superseded 표시 없이 남아 있고, 그 값으로 읽으면 바닥 순서가 뒤집힌다.",
+   "fix_ko": "원장은 안 고친다. 절 2 에 «이 편이 쓰는 바닥 값의 출처는 outofband_power.json 이다» 를 한 줄 박아 오독을 막는다(현재 코드는 이미 OOBE 를 읽는다).",
+   "ledger": "outputs/outofband_power.json", "ledger_status": "있음"
+  },
+
+  {
+   "id": "F1-1", "vol": "08_1", "section": "셀 3", "severity": "D", "priority": 1,
+   "file": "src/make_report08_microdoppler.py", "lines": "635-639",
+   "wrong_ko": "우리 팔 숫자가 폐기된 안 얼린 판의 값이다 — SG12['rays_per_pose']=14,122. 8 권 생산 팔은 얼린 판이다.",
+   "fix_ko": "광선 수를 15,376(얼린 판 한 변 124 칸)으로 바꾼다. 같은 파일의 _ray_count_phrase()(265-271)가 이미 얼린 판을 읽으므로 그것을 쓰면 08_2 와 자동으로 맞는다.",
+   "ledger": "outputs/report07_three_engines.json : engines.sbr.grid_ref.n = 124 (124²=15376) · outputs/verify_frozen_grid.json : gate2_frozen_grid_invariant.frozen.n_rays = 15376",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F1-1b", "vol": "08_1", "section": "셀 3", "severity": "D", "priority": 1,
+   "file": "src/make_report08_microdoppler.py", "lines": "637-638",
+   "wrong_ko": "조명점 «611 점» 도 안 얼린 판 값이다(SG12['n_lit_mean']=610.523, n_lit_ptp=102).",
+   "fix_ko": "⭐감사가 «원장 없음» 이라 한 자리에 준-원장이 있다 — adv_grid_freeze_audit.json 의 얼린 팔 n_lit_froz_mean = 605.32(자세 산포 상대표준편차 3.6 % · n0_frozen = 124). ⚠그 얼린 판은 격자 사다리의 봉투이고 생산 판은 n_mesh=24 봉투다(한 변 칸수·간격은 같고 Rout 0.4422 ↔ 0.44207). 그래서 «같은 칸수·같은 간격의 얼린 판에서 자세 평균 605 점(±3.6 %)» 으로 출처와 차이를 밝혀 쓰거나, 숫자를 빼고 «생산 판의 조명점 수를 내는 원장이 없다» 로 적는다. ⛔610.5 를 얼린 판 값으로 적는 것만은 금지.",
+   "ledger": "outputs/adv_grid_freeze_audit.json : audit_2_signal_loss.rows[div=12].{n0_frozen=124, n_lit_froz_mean=605.32, n_lit_froz_relstd=0.0364} · 교차확인 audit_5_recompute.arms.froz.n_lit_mean=607.29",
+   "ledger_status": "준-원장(판 봉투가 생산판과 다름)"
+  },
+  {
+   "id": "F1-1c", "vol": "08_1", "section": "셀 3 «61 배»", "severity": "B", "priority": 1,
+   "file": "src/make_report08_microdoppler.py", "lines": "623, 638-639",
+   "wrong_ko": "분자는 표적 표면 조명점, 분모 10 은 직행 1 + 표적 경유 9 — 잣대가 다르다. 9 는 원장 밖(빌더 문자열 623행)이고 10 은 하드코딩(SG12['n_lit_mean']/10, 639행)이다.",
+   "fix_ko": "분모를 원장의 표적 경유 중앙값 5 로 통일해 다시 재고(≈120 배) 잣대를 문장에 박는다. 렌더의 «9 가닥» 은 «이 렌더 실행의 기록값 · 원장 없음» 으로 남기고 비율에 안 쓴다.",
+   "ledger": "outputs/report07_three_engine_ranges.json : ranges.R3.paths_median = 5 (표적 경유만 셈)",
+   "ledger_status": "있음(분모) / 없음(9 가닥)"
+  },
+  {
+   "id": "F1-2", "vol": "08_1", "section": "셀 0 LEDGER_NOTE", "severity": "C", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "548-549",
+   "wrong_ko": "«숫자는 전부 원장에서 주입된다» 가 이 편에서 거짓이다.",
+   "fix_ko": "F1-1c 뒤에도 «9 가닥» 이 원장 밖이므로 «전부» 를 뺀다. ⚠LEDGER_NOTE 는 08_1·08_2·08_4 가 함께 쓰는 모듈 상수 — 소유자는 08_1 담당.",
+   "ledger": null, "ledger_status": "불필요",
+   "shared_symbol": "LEDGER_NOTE (08_1·08_2·08_4 공용)"
+  },
+  {
+   "id": "F1-3", "vol": "08_1", "section": "편 전체", "severity": "C", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "641-652 뒤",
+   "wrong_ko": "원장 7 개에서 숫자를 끌어오면서 출처 블록이 없다. 08_3·08_5 에는 «## 출처» 가 있다.",
+   "fix_ko": "편 끝에 «## 출처» 를 붙이고 7 개 파일명·키를 적는다.",
+   "ledger": "report07_anim · report15b_microdoppler · report07_three_engines · report00_microdoppler · report15_probe · report07_three_engine_ranges · sbr_grid_convergence",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F1-4", "vol": "08_1", "section": "셀 3", "severity": "B", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "635",
+   "wrong_ko": "셋째 팔(P)이 이 편에 이름조차 없다. «SBR+PO» 한 덩어리로 적혔는데 그 숫자는 B 팔만의 것이다 — P 는 광선 격자를 아예 안 쓴다.",
+   "fix_ko": "장면 편에서 세 팔을 한 줄씩 세운다 — S / B(가림 O) / P(가림 X · 광선 격자 안 씀).",
+   "ledger": "outputs/report07_three_engines.json : engines.{sionna,sbr,po}.engine",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F1-5", "vol": "08_1", "section": "셀 3", "severity": "C", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "637-638",
+   "wrong_ko": "조명점은 자세 평균이고 흔들리는데 확정 수처럼 적혔다. S 쪽 흔들림만 «추첨 한 장» 으로 경고한 비대칭이다.",
+   "fix_ko": "«자세 평균 605 점(자세마다 ±3.6 %)» 처럼 적는다.",
+   "ledger": "F1-1b 와 같음", "ledger_status": "준-원장"
+  },
+  {
+   "id": "F1-6", "vol": "08_1", "section": "셀 3", "severity": "B", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "631-632",
+   "wrong_ko": "«시드만 바꾸면 그 수가 배로 움직인다» 가 «같은 3 m 조건» 뒤에 붙어 있는데 3 m 시드 사다리 원장이 없다(8 m·40 m 만).",
+   "fix_ko": "«8 m 에서 잰 것» 이라고 거리·예산을 밝힌다(자세당 중앙값 13/6/9 · spp 7.1M). 밝히기 싫으면 문장을 뺀다.",
+   "ledger": "outputs/probe_8m_anomaly.json (8 m) · outputs/raybudget_seed_ladder.json (40 m)",
+   "ledger_status": "3 m 는 원장 없음"
+  },
+  {
+   "id": "F1-7", "vol": "08_1", "section": "셀 2 표", "severity": "D", "priority": 4,
+   "file": "src/make_report08_microdoppler.py", "lines": "601",
+   "wrong_ko": "«날개끝 도플러 1230 Hz» 가 어느 정의인지 안 밝힌다(앙각 −15° 사영). 바로 아래 문단이 «정의를 안 밝힌 경계는 비교하지 않는다» 고 못 박는데 일관성이 없다.",
+   "fix_ko": "«1230 Hz (앙각 −15° 사영 · 브로드사이드는 1273 Hz)» 로 적는다.",
+   "ledger": "report15b:physics.f_tip=1229.57 · report00_microdoppler.json:rows[matrice4e].f_tip_hz=1272.95",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F1-8", "vol": "08_1", "section": "셀 2(뒤) 측정 모형", "severity": "B", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "613-617",
+   "wrong_ko": "h = Σ a_p·exp(−j2πf_cτ_p) 를 권 전체의 신호로 선언하는데 원장에서 그 식이 붙은 팔은 engines.sionna 하나다. B·P 는 경로 (a_p, τ_p) 를 안 내고 면적분을 한다.",
+   "fix_ko": "팔마다 a_p·τ_p 가 무엇인지 한 줄씩 붙이거나 «세 팔 모두 같은 슬로타임 격자 위의 복소 코히어런트 합» 이라는 공통 규약으로 다시 쓴다.",
+   "ledger": "report07_three_engines.json:engines.*.engine · report15b:_meta.po_arms_not_recomputed_ko",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F1-9", "vol": "08_1", "section": "곁가지(문서화)", "severity": "D", "priority": 4,
+   "file": "benchmark/render_md_scene.py", "lines": "3-18 (코드 48행과 대조)",
+   "wrong_ko": "docstring 이 아직 «TX/RX 기선 0.2 m · 바이스태틱각 3.8°(준-모노스태틱)» 인데 코드는 BASE = 0.0 이다.",
+   "fix_ko": "docstring 을 BASE=0.0 에 맞춘다.",
+   "ledger": "코드 48행", "ledger_status": "있음"
+  },
+
+  {
+   "id": "F2-1", "vol": "08_2", "section": "절 5 «두 엔진…»", "severity": "B", "priority": 1,
+   "file": "src/make_report08_microdoppler.py + benchmark/build_report07_figs.py",
+   "lines": "828-838 · 166, 183, 201",
+   "wrong_ko": "제목 «두 엔진» 이 어느 둘인지 안 밝힌다. 실체는 S ↔ P(가림 없는 대조군)이고 이 편의 주력 B 가 빠진다. 범례 «Our PO kernel» · suptitle «two independent engines» 가 대조군을 주력 커널로 읽히게 한다.",
+   "fix_ko": "범례를 정본 낱말 ARM_PO = 'Ours, nothing blocked (control)'(src/md_mapstyle.py:62) 로 통일하고 suptitle 을 'stock path solver vs our unoccluded PO control' 로 바꾼다. 절 제목·본문에 «이 절에는 SBR 팔이 없다» 를 한 줄.",
+   "ledger": "outputs/report15_verdict.json 최상위에 sbr 키가 0 개",
+   "ledger_status": "SBR 은 원장 없음(구조상)"
+  },
+  {
+   "id": "F2-2", "vol": "08_2", "section": "절 5", "severity": "D", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "835-838",
+   "wrong_ko": "이 원장은 준-모노스태틱 기선 0.2 m 인데 절 2 는 «진짜 모노스태틱(기선 0)» 이다. 본문은 자세 차이만 밝힌다.",
+   "fix_ko": "«이 그림만 자세가 다르다» 줄에 «기선도 다르다 — 0.2 m» 를 같이 넣는다.",
+   "ledger": "benchmark/report15_verdict_po_grid.py:46 BASELINE_M = 0.20",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F2-3", "vol": "08_2", "section": "절 3", "severity": "C", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "368-374",
+   "wrong_ko": "«27 열 전부(세 엔진 · report15b 여섯 자세 · 호버 두 프리셋)» 의 «세 엔진» 은 원장 이름이지 세 팔이 아니다. 27 키는 전부 SBR 계열이고 세 엔진 원장에서 온 것은 sbr 한 줄이다(27 = 1 + 24 + 2).",
+   "fix_ko": "«세 엔진 원장의 sbr 열» 로 고친다.",
+   "ledger": "outputs/freeze_before_after.json : ledgers 키 27 개",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F2-4", "vol": "08_2", "section": "절 3", "severity": "B", "priority": 1,
+   "file": "src/make_report08_microdoppler.py", "lines": "396-399",
+   "wrong_ko": "얼리기 판정을 P 열만 들어 «0.440 → 0.953 으로 올랐다» 고 쓴다. 같은 원장의 S 열은 5 개 격자 전부에서 내려간다(0.743→0.695 · 0.727→0.662 · 0.722→0.603 · 0.722→0.633 · 0.721→0.622).",
+   "fix_ko": "S 열을 같이 적거나 판정을 «순수 PO 기준으로는» 으로 좁힌다. 왜 두 팔이 반대로 움직이는지 한 줄(«P 는 광선을 안 쓰고 S 는 경로가 성기다»).",
+   "ledger": "outputs/sbr_grid_convergence.json : in_band_fidelity.rows[*].cos_{prod,froz}_vs_sionna",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F2-5", "vol": "08_2", "section": "절 2 제목", "severity": "C", "priority": 2,
+   "file": "src/make_report08_microdoppler.py", "lines": "694",
+   "wrong_ko": "제목 «세 엔진을 같은 격자에, 거리 3 / 8 / 15 m» — 거리축은 S 팔만 다시 푼 것이다. 제목만 읽으면 세 팔이 세 거리를 돈 것으로 읽힌다.",
+   "fix_ko": "제목에 «(거리축은 Sionna 열만)» 을 넣는다.",
+   "ledger": "outputs/report07_three_engine_ranges.json : _meta.grid_note_ko · ranges 에 Sionna 열만",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F2-6", "vol": "08_2", "section": "편 전체", "severity": "C", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "663-668 뒤",
+   "wrong_ko": "헤드라인 숫자를 내는 원장 넷이 본문에 한 번도 안 나온다 — report07_three_engines · outofband_power · report07_three_engine_ranges · verify_frozen_grid.",
+   "fix_ko": "«## 출처» 블록을 붙이거나 각 표 밑에 원장 포인터를 단다.",
+   "ledger": "네 원장", "ledger_status": "있음"
+  },
+  {
+   "id": "F2-7", "vol": "08_2", "section": "절 2 대역밖 표", "severity": "D", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "735 부근(_oob 인용부)",
+   "wrong_ko": "Sionna 행이 우리 두 팔과 같은 열에 있다. 그 행은 units_comparable_to_po = false 이고 절대 순위에서 빠져 있는데 단위 경고가 절 4 에만 있다.",
+   "fix_ko": "표 바로 밑에 단위 경고를 되풀이한다 — 인용해도 되는 것은 무차원 두 칸뿐이다.",
+   "ledger": "outputs/outofband_power.json : three_engines[*].units_comparable_to_po",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F2-8", "vol": "08_2", "section": "절 3", "severity": "D", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "313-323",
+   "wrong_ko": "자 흔들림 실측(101~129 칸 · 61 번 · 9.8 mm · 98 mm)은 검증판(n_mesh=16)에서 나오고 바로 다음 문단의 «이 편이 쓴 판» 은 생산판(n_mesh=24)이다. 문단이 붙어 있어 같은 판으로 읽힌다.",
+   "fix_ko": "두 문단에 판 이름을 박는다 — «검증판 n_mesh=16» · «생산판 n_mesh=24» · 둘 다 한 변 124 칸이라 결론은 같다.",
+   "ledger": "verify_frozen_grid:gate2.grid_ref.n_mesh=16 ↔ report07_three_engines:engines.sbr.grid_ref.n_mesh=24",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F2-9", "vol": "08_2", "section": "절 6 맺음", "severity": "C", "priority": 4,
+   "file": "src/make_report08_microdoppler.py", "lines": "840-846",
+   "wrong_ko": "«그 원인은 경로 수 — 프롭 정반사가 이 격자에서 0 칸» 은 S 단독 인구조사에 기댄 문장인데 절 4 가 붙여 둔 단서 둘이 맺음말에 없다.",
+   "fix_ko": "두 단서를 데려온다 — ① 이 편의 자세 −15° 는 그 인구조사 격자에 없다 ② 앙각을 85° 까지 열면 matrice4e 는 2/960 칸이 나온다.",
+   "ledger": "outputs/report15_blade_flash_ladder.json : elevation_axis.*",
+   "ledger_status": "있음"
+  },
+
+  {
+   "id": "F3-1", "vol": "08_3", "section": "절 3 소절(셀 35)", "severity": "B", "priority": 1,
+   "file": "src/build_part07_microdoppler.py", "lines": "546-551",
+   "wrong_ko": "숫자가 전부 S 인구조사인데 «위상은 광선 엔진이, 세기는 PO 커널이 맡는 분업의 근거가 여기 있다» 로 맺는다. 이 소절에 PO 값이 0 개다. 덤으로 «이 편이 쓰는 자세 격자(앙각 0~60°)» 도 틀렸다 — 이 편 맵은 el −15° 다.",
+   "fix_ko": "귀속을 옮긴다 — «그 근거는 이 절 그림 1·2 의 두 팔 대조이고, 이 인구조사는 스톡 팔 쪽 한계를 보탠다». 격자를 «이 인구조사의 자세 격자(앙각 0~60°)» 로 고쳐 적는다.",
+   "ledger": "report00_microdoppler.json:specular_census · report15_blade_flash_ladder.json:_meta.el_base",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F3-2", "vol": "08_3", "section": "절 3 (셀 33)", "severity": "B", "priority": 1,
+   "file": "src/build_part07_microdoppler.py", "lines": "468-474",
+   "wrong_ko": "F2-4 와 같은 병 — 얼리기 효과를 P 열만 들어 «0.440 → 0.953» 이라 쓰고 S 열이 5 격자 전부에서 내려가는 것을 안 적는다.",
+   "fix_ko": "S 열을 같이 적거나 «순수 PO 기준으로는» 으로 좁힌다.",
+   "ledger": "outputs/sbr_grid_convergence.json : in_band_fidelity.rows[*].cos_{prod,froz}_vs_sionna",
+   "ledger_status": "있음",
+   "twin_of": "F2-4"
+  },
+  {
+   "id": "F3-3", "vol": "08_3", "section": "앞머리 셀 4·5 (f7·f11)", "severity": "B", "priority": 1,
+   "file": "src/make_report08_microdoppler.py", "lines": "908-915",
+   "wrong_ko": "원장이 스스로 «이 두 열에는 순수 PO 대조 팔이 없다 — 2 초 창의 능선이 심판을 못 받는 유일한 자리다» 라고 선언했는데 본문에 한 줄도 없다. 셀 5 는 «SBR 팔» 이라 밝히지만 셀 4 는 엔진을 안 밝힌다.",
+   "fix_ko": "셀 4 에 «SBR 팔 · 순수 PO 대조 없음» 한 줄 + verdict.open_ko 인용.",
+   "ledger": "outputs/freeze_signal_loss.json : verdict.open_ko",
+   "ledger_status": "있음(경고문) / PO 팔 계산은 GPU"
+  },
+  {
+   "id": "F3-4", "vol": "08_3", "section": "절 4 · 앞머리 셀 1", "severity": "B", "priority": 2,
+   "file": "src/build_part07_microdoppler.py (627-643) · src/make_report08_microdoppler.py (867-880)",
+   "lines": "627-643 · 867-880",
+   "wrong_ko": "순수 PO 쌍둥이(C_po_locked·D_po_spread)가 6 칸 전부 이미 원장에 있는데 한 번도 인용하지 않는다. 그 팔이 같은 결론을 독립으로 낸다.",
+   "fix_ko": "표에 PO 열을 한 줄 더한다 — 반창 상관 1.0000 → 0.7669(P) 대 1.0000 → 0.7691(B). 계산 0 초이고 이 절이 진짜 두 팔이 된다.",
+   "ledger": "outputs/report15b_microdoppler.json : cells[matrice4e/belly].arms.{C_po_locked,D_po_spread}",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F3-5", "vol": "08_3", "section": "절 5 · 앞머리 셀 2", "severity": "C", "priority": 2,
+   "file": "src/build_part07_microdoppler.py (666-784) · src/make_report08_microdoppler.py (882-889)",
+   "lines": "666-784 · 882-889",
+   "wrong_ko": "가림 축을 왜 한 팔로만 재는지가 본문에 없고 절 어디에도 엔진 이름이 없다. 6 칸 중 mini5pro/nose 는 F 와 G 가 소수 7 자리까지 같아 가림 효과 0 인데 그 칸이 안 보이고, 부호가 칸마다 갈린다.",
+   "fix_ko": "«이 축은 SBR 팔에서만 선다 — 순수 PO 는 정의상 아무것도 안 막는다» 한 줄 + 6 칸 부호표(+1.315 / −0.042 / −0.847 / −0.000 / −1.136 / −1.057).",
+   "ledger": "outputs/report15b_microdoppler.json : cells[*].findings.occlusion_level_db",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F3-6", "vol": "08_3", "section": "절 6 방법 표 · 그림 5 설명 · 앞머리 셀 3", "severity": "D", "priority": 2,
+   "file": "src/build_part07_microdoppler.py (813-815, 830-831) · src/make_report08_microdoppler.py (891-906)",
+   "lines": "813-815, 830-831 · 891-906",
+   "wrong_ko": "«두 채널은 같은 추적에서 나오므로 기하·재질·광선 격자가 같다» 가 사실이 아니다. A_sbr_locked(잠근 rpm · 동체 재질 그대로 · penetrate True)와 F_blade_occ(흩뜨린 rpm · 동체 Γ=0 · penetrate False)는 따로 돈 실행이다(seconds 2833 대 1634). 반창 상관 행(1.0000 대 0.8034)은 사실상 rpm 축을 채널 차이로 읽은 것이다.",
+   "fix_ko": "짝을 B_sbr_spread ↔ F_blade_occ 로 바꾸고(같은 rpm) 문장을 «같은 얼린 판·같은 자세의 두 실행 — 한쪽은 동체를 완전흡수로 둔다» 로 낮춘다. 변조 깊이 3.26 → 5.36 dB · 반창 상관 1.0000 → 0.7691 로 바뀌고 헤드라인은 유지된다.",
+   "ledger": "outputs/report15b_microdoppler.json : arms.B_sbr_spread · benchmark/report15b_microdoppler_recompute.py:139-184, 311-316",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F3-7", "vol": "08_3", "section": "절 6 그림 5 · 앞머리 셀 3(f3)", "severity": "D", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "891-906",
+   "wrong_ko": "report07_f3 는 원장을 안 읽는다 — benchmark/build_report07_figs.py:208-209 에 whole={3.5:2.84}, prop={3.5:32.32} 가 박혀 있다. 본문(3.26/50.32)과 그림이 다른 판이다. 머리말에 경고가 있지만 절 6 에는 없다.",
+   "fix_ko": "절 6 그림 설명에 «⚠ 이 그림의 밴드별 dB 는 그림 빌더에 박힌 2026-08-07 값 — 절대값 인용 금지» 를 되풀이한다.",
+   "ledger": "benchmark/build_report07_figs.py:208-209",
+   "ledger_status": "그림 재생산은 계산 필요"
+  },
+  {
+   "id": "F3-8", "vol": "08_3", "section": "앞머리 셀 0 ↔ 절 3", "severity": "C", "priority": 3,
+   "file": "src/make_report08_microdoppler.py", "lines": "863",
+   "wrong_ko": "머리말이 «엔진 비교는 08_2 가 했다. 이 편은 표적 쪽 요인만 다룬다» 인데 이어 붙인 절 3 이 바로 엔진 비교이고 8 권에서 가장 긴 절이다.",
+   "fix_ko": "«엔진 비교의 결론은 08_2 가 요약하고, 그 근거 절은 이 편 절 3 에 있다» 로 고친다.",
+   "ledger": null, "ledger_status": "불필요"
+  },
+  {
+   "id": "F3-9", "vol": "08_3", "section": "절 1", "severity": "D", "priority": 4,
+   "file": "src/build_part07_microdoppler.py", "lines": "149-239",
+   "wrong_ko": "98 개(mini2)와 296 개(matrice4e)가 한 서술에 섞였고, «프롭 경유 경로 296 개» 의 키 n_target_paths 는 표적 경유 전체 경로 수다(정지 장면 n_paths 와 같은 값).",
+   "fix_ko": "기체를 밝히고 296 을 «표적 경유 경로» 로 고쳐 적는다. 프롭만 센 수가 필요하면 새로 세야 한다.",
+   "ledger": "outputs/report15_probe.json · benchmark/report15_probe.py:384",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F3-10", "vol": "08_3", "section": "절 3 «다음 단계»", "severity": "C", "priority": 4,
+   "file": "src/build_part07_microdoppler.py", "lines": "556-559",
+   "wrong_ko": "«두 엔진 일치도를 가림 있는 SBR 팔로 한 번 더 잰다» 를 앞으로 할 일로 적었는데 같은 절 그림 2 가 한 칸에서 이미 했다.",
+   "fix_ko": "«한 칸에서는 했다(그림 2 · sbr_vs_po 0.955) — 남은 것은 15 칸 격자 전체로 넓히는 것» 으로 고친다.",
+   "ledger": "outputs/report07_three_engines.json : verdict.cosine_in_ftip",
+   "ledger_status": "있음"
+  },
+  {
+   "id": "F3-11", "vol": "08_3", "section": "절 3 결과 1~4 · 그림 2", "severity": "D", "priority": 4,
+   "file": "src/build_part07_microdoppler.py", "lines": "352-370, 422-447",
+   "wrong_ko": "한 절에 통계 단위가 셋인데 안 적혀 있다 — 결과 1 은 nose·3 m 한 칸, 결과 2~4 는 15 칸 중앙값(1/3/10 m 섞임), 그림 2 는 belly·el −15°·3 m 한 칸이다.",
+   "fix_ko": "각 줄에 «(nose · 3 m 한 칸)» / «(15 칸 중앙값)» / «(belly · −15° 한 칸)» 을 병기한다.",
+   "ledger": "report00_microdoppler.json:_meta · report15_verdict.json:tail_excess",
+   "ledger_status": "있음"
+  }
+ ],
+
+ "no_ledger": [
+  {
+   "id": "NL-1", "where": "08_1 셀 3",
+   "missing_ko": "렌더가 찾은 «표적 경유 9 가닥» — benchmark/render_md_scene.py:101 이 stdout 으로만 찍고 json.dump 가 없다",
+   "answer_this_round_ko": "«이 렌더 실행의 기록값 · 원장 없음» 으로 남기고 비율에서 뺀다. 비율은 원장 중앙값 5 로 다시 잰다",
+   "to_close_ko": "그 스크립트에 json.dump 를 붙인다(GPU)"
+  },
+  {
+   "id": "NL-2", "where": "08_1 셀 3",
+   "missing_ko": "3 m 시드 사다리 — outputs/ 에 8 m(probe_8m_anomaly)·40 m(raybudget_seed_ladder)만 있다",
+   "answer_this_round_ko": "거리·예산을 «8 m» 로 밝히거나 문장을 뺀다",
+   "to_close_ko": "3 m 시드 사다리 실행(GPU)"
+  },
+  {
+   "id": "NL-3", "where": "08_5 절 4",
+   "missing_ko": "순수 PO 팔의 플래시 관측량 — rows[*] 에 po_flash* 키가 0 개",
+   "answer_this_round_ko": "«순수 PO 팔의 플래시는 이 원장에 없다» 를 적고 «남긴 문제» 로 넘긴다",
+   "to_close_ko": "Epo 로 flash_envelope 를 한 번 돌린다"
+  },
+  {
+   "id": "NL-4", "where": "08_5 부록 설정표",
+   "missing_ko": "순수 PO 팔의 계산 시간 — _meta.seconds_field 는 SBR 팔만이다",
+   "answer_this_round_ko": "설정표 PO 열의 시간 칸을 «원장 없음» 으로",
+   "to_close_ko": "스윕이 PO 시간을 _meta 에 남기게 한다"
+  },
+  {
+   "id": "NL-5", "where": "08_3 앞머리 f7·f11",
+   "missing_ko": "2 초 호버 두 열의 순수 PO 대조 — 원장이 스스로 «없다» 고 선언했다",
+   "answer_this_round_ko": "그 경고를 본문에 적는다(F3-3)",
+   "to_close_ko": "같은 자세·rpm 궤적으로 PO 팔 1 회(모노 PO 는 4096 자세 8.4 초)"
+  },
+  {
+   "id": "NL-6", "where": "08_4 §2",
+   "missing_ko": "얼린 판 위의 5G 채널 — 지금 원장은 prefreeze 채널이다",
+   "answer_this_round_ko": "문장·부록만 «얼기 전 판» 으로 고친다(F4-5)",
+   "to_close_ko": "report07_5g_waveform.py 를 현재 hover npz 로 다시 돌리고, 같은 실행에서 resample_poly(h5k, 28, 5)(66행)의 5 kHz 하드코딩을 PRF 에서 읽게 고친다 — 표의 «접힘» 판정이 뒤집힌다"
+  },
+  {
+   "id": "NL-7", "where": "08_1 셀 3", "status": "⚠준-원장 있음 — 감사의 «원장 없음» 을 정정",
+   "missing_ko": "생산 판(n_mesh=24)의 얼린 팔 조명점 수",
+   "answer_this_round_ko": "adv_grid_freeze_audit.json 의 605.3(n0_frozen=124 · relstd 3.6 %)을 출처와 판 차이를 밝혀 쓰거나 뺀다(F1-1b). ⛔610.5(안 얼린 판)를 얼린 판 값으로 쓰는 것만은 금지",
+   "to_close_ko": "생산 판에서 n_lit 를 내는 원장을 뽑는다"
+  }
+ ],
+
+ "work_packages": [
+  {"id": "W1", "vol": "08_4", "fixes": ["F4-1", "F4-1b", "F4-1c", "F4-2", "F4-3", "F4-4", "F4-5", "F4-6", "F4-7", "F4-8"],
+   "own_files": ["benchmark/build_range_sweep_fig.py"],
+   "shared_file_lines": {"src/make_report08_microdoppler.py": "969-1126"},
+   "needs_new_ledger_load": "outputs/deck_ours_by_range.json (자기 함수 안에서 _opt() 로)"},
+  {"id": "W2", "vol": "08_5", "fixes": ["F5-1", "F5-1b", "F5-2", "F5-3", "F5-4", "F5-5", "F5-6", "F5-7", "F5-8", "F5-9", "F5-10"],
+   "own_files": ["src/make_report07b_bistatic.py"],
+   "shared_file_lines": {},
+   "note_ko": "완전 독립 — 언제든 병렬로 돈다"},
+  {"id": "W3", "vol": "08_1", "fixes": ["F1-1", "F1-1b", "F1-1c", "F1-2", "F1-3", "F1-4", "F1-5", "F1-6", "F1-7", "F1-8", "F1-9"],
+   "own_files": ["benchmark/render_md_scene.py"],
+   "shared_file_lines": {"src/make_report08_microdoppler.py": "543-655"},
+   "owns_module_symbols": ["LEDGER_NOTE (548)", "NAV (543)"],
+   "needs_new_ledger_load": "outputs/adv_grid_freeze_audit.json (자기 함수 안에서 _opt() 로)"},
+  {"id": "W4", "vol": "08_2", "fixes": ["F2-1", "F2-2", "F2-3", "F2-4", "F2-5", "F2-6", "F2-7", "F2-8", "F2-9"],
+   "own_files": ["benchmark/build_report07_figs.py"],
+   "shared_file_lines": {"src/make_report08_microdoppler.py": "265-434, 660-852"},
+   "owns_module_symbols": ["_ray_count_phrase", "_freeze_para", "_grid_anchor_cell", "_flash_census_para"]},
+  {"id": "W5", "vol": "08_3", "fixes": ["F3-1", "F3-2", "F3-3", "F3-4", "F3-5", "F3-6", "F3-7", "F3-8", "F3-9", "F3-10", "F3-11"],
+   "own_files": ["src/build_part07_microdoppler.py"],
+   "shared_file_lines": {"src/make_report08_microdoppler.py": "858-963"}}
+ ],
+
+ "file_conflicts": [
+  {
+   "file": "src/make_report08_microdoppler.py",
+   "shared_by": ["W1", "W3", "W4", "W5"],
+   "why_ko": "이 파일 하나가 08_1·08_2·08_3 앞머리·08_4 를 다 낸다. 줄 범위는 안 겹치지만 파일이 하나라 동시 편집은 서로의 파일 상태를 깨뜨린다.",
+   "mitigation_ko": [
+    "한 번에 한 묶음씩 이 파일을 고친다. 권장 순서 W3 → W4 → W5 → W1",
+    "1-262 줄(원장 적재 블록)은 아무도 안 고친다 — 새 원장은 자기 함수 안에서 _opt() 로 읽는다",
+    "모듈 상수 소유자: LEDGER_NOTE·NAV → W3 · _ray_count_phrase/_freeze_para/_grid_anchor_cell/_flash_census_para → W4. 다른 묶음은 읽기만"
+   ]
+  },
+  {
+   "file": "benchmark/build_report07_figs.py",
+   "shared_by": ["W4"],
+   "why_ko": "fig2(f2)는 08_2, fig1/fig3/fig4(f1·f3·f4)는 08_3 이 쓴다.",
+   "mitigation_ko": [
+    "이번 라운드에 코드를 고치는 것은 fig2 뿐이다(F2-1) — 소유자는 W4",
+    "08_3 의 f3 결함(F3-7)은 노트북 문장으로 처리하므로 W5 는 이 파일을 안 건드린다"
+   ]
+  }
+ ],
+
+ "rebuild_order": [
+  "PYTHONPATH=src python benchmark/build_range_sweep_fig.py",
+  "PYTHONPATH=src python benchmark/build_report07_figs.py",
+  "PYTHONPATH=src python src/build_part07_microdoppler.py",
+  "PYTHONPATH=src python src/make_report08_microdoppler.py",
+  "PYTHONPATH=src python src/make_report07b_bistatic.py",
+  "PYTHONPATH=src python src/build_volumes.py"
+ ],
+ "rebuild_notes_ko": [
+  "⭐build_volumes.py 를 맨 마지막에 안 돌리면 08_3 의 절 1~6 이 사라진다",
+  "여섯 줄 전부 GPU 를 안 쓴다 — 디스크의 원장·그림을 읽어 문서를 다시 짜는 일이다"
+ ],
+
+ "not_covered_ko": [
+  "원장 재계산 여섯 가지(no_ledger) — GPU 가 필요하거나 이번 라운드 밖",
+  "outputs/report07b_bistatic_md.json 의 폐기값에 superseded 표시 달기 — 원장 편집이라 이번 라운드 밖(F5-10 은 노트북 쪽 방어만)",
+  "08_3 ↔ 08_2 가 같은 원장(report15_verdict.json)을 다른 통계로 내는지의 정합 — 감사가 대조하지 않았다. 근거 없음",
+  "08_2 절 5 를 «반증» 으로 판정한 1 차 감사의 원래 근거 — 모른다. 2 차 감사가 새로 세운 근거(F2-1)만 쓴다"
+ ],
+
+ "counts": {
+  "fixes_total": 52,
+  "by_vol": {"08_1": 11, "08_2": 9, "08_3": 11, "08_4": 10, "08_5": 11},
+  "by_severity": {"A": 3, "B": 15, "C": 19, "D": 15},
+  "no_ledger_items": 7,
+  "files_to_edit": 5,
+  "ledgers_edited": 0,
+  "notebooks_edited_directly": 0
+ }
+}

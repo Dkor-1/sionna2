@@ -1,0 +1,756 @@
+{
+ "_meta": {
+  "generator": "benchmark/wideband_energy_fairbudget.py",
+  "question_ko": "광선 예산을 맞춘 뒤에도 물리 스위치가 상한 위 누설을 만드나",
+  "snapshot_local": "2026-08-12T04:47",
+  "snapshot_ko": "샤드 폴더는 계산이 도는 동안 계속 자란다 — 이 파일은 그 시각의 사진이다. 다시 돌리면 늦게 내려앉은 샤드가 더 들어온다.",
+  "n_shard_files": 295,
+  "reads_ko": "outputs/elev_sweep_shards/*.npz (읽기 전용) + outputs/wideband_energy.json",
+  "writes_ko": "이 파일 하나. 기존 원장과 그림은 손대지 않는다.",
+  "gpu_ko": "GPU 를 쓰지 않는다 — 샤드를 읽어 CPU 로 FFT 만 한다.",
+  "prf_hz": 19700.0,
+  "nyquist_hz": 9850.0,
+  "f_tip_el0_hz": 1272.9,
+  "assembly_ko": "샤드의 idx 로 제자리에 꽂는다 — elevation_sweep_md.py:analyse() 와 같은 조립 규칙이라 자세 순서가 결정된다.",
+  "band_rule_ko": "build_wideband_energy_fig.py 와 같은 규약 — 한나 창 · 평균 제거 · 양쪽 FFT · |f| ≥ f_tip 을 상한 위로 센다.",
+  "incomplete_excluded_ko": "n_missing > 0 인 칸은 값을 내지 않는다.",
+  "new_arm_ko": "sionna_p250000000_phys = 광선 250M + 물리 전부(굴절·회절·모서리회절·depth 3). 병합판 원장에는 아직 행이 없는 팔이다.",
+  "skipped_incomplete": [
+   "sionna_p250000000_phys/el-60"
+  ]
+ },
+ "selftest": {
+  "n_cells_compared": 19,
+  "max_abs_diff_frac": 0.0,
+  "tol": 1e-05,
+  "n_rows_compared": 23,
+  "row_mismatches": [],
+  "n_row_mismatches": 0,
+  "stale_merge_rows": [
+   {
+    "cell": "sionna_phys/el-15",
+    "n_missing_now": 0,
+    "n_missing_in_merge": 1536
+   },
+   {
+    "cell": "sionna_phys/el-45",
+    "n_missing_now": 0,
+    "n_missing_in_merge": 3072
+   }
+  ],
+  "verdict": "PASS",
+  "what_ko": "이미 병합된 칸을 이 스크립트로 다시 내고 outputs/wideband_energy.json · outputs/elevation_sweep_md.json 과 대조한다. 통과해야 새 팔의 값이 같은 자격을 얻는다.",
+  "pairs": [
+   {
+    "cell": "ours/el+0",
+    "mine": 0.02285,
+    "ledger": 0.02285,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "ours/el-15",
+    "mine": 0.15652,
+    "ledger": 0.15652,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "ours/el-30",
+    "mine": 0.11166,
+    "ledger": 0.11166,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "ours/el-45",
+    "mine": 0.02181,
+    "ledger": 0.02181,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "ours/el-60",
+    "mine": 0.0134,
+    "ledger": 0.0134,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "ours/el-75",
+    "mine": 0.00255,
+    "ledger": 0.00255,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna/el+0",
+    "mine": 0.29027,
+    "ledger": 0.29027,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna/el-15",
+    "mine": 0.40039,
+    "ledger": 0.40039,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna/el-30",
+    "mine": 0.08809,
+    "ledger": 0.08809,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna/el-45",
+    "mine": 0.25297,
+    "ledger": 0.25297,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna/el-60",
+    "mine": 0.28456,
+    "ledger": 0.28456,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna/el-75",
+    "mine": 0.47084,
+    "ledger": 0.47084,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_p250000000/el+0",
+    "mine": 0.87023,
+    "ledger": 0.87023,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_p250000000/el-15",
+    "mine": 0.30871,
+    "ledger": 0.30871,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_p250000000/el-30",
+    "mine": 0.05121,
+    "ledger": 0.05121,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_p250000000/el-45",
+    "mine": 0.07388,
+    "ledger": 0.07388,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_p250000000/el-60",
+    "mine": 0.18531,
+    "ledger": 0.18531,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_p250000000/el-75",
+    "mine": 0.05831,
+    "ledger": 0.05831,
+    "abs_diff": 0.0
+   },
+   {
+    "cell": "sionna_phys/el+0",
+    "mine": 0.83078,
+    "ledger": 0.83078,
+    "abs_diff": 0.0
+   }
+  ]
+ },
+ "rows": {
+  "ours/el+0": {
+   "n_shards": 8,
+   "seconds": 1686.2,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -54.37
+  },
+  "ours/el-15": {
+   "n_shards": 8,
+   "seconds": 2130.4,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -51.16
+  },
+  "ours/el-30": {
+   "n_shards": 8,
+   "seconds": 2061.5,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -63.37
+  },
+  "ours/el-45": {
+   "n_shards": 8,
+   "seconds": 2048.2,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -58.67
+  },
+  "ours/el-60": {
+   "n_shards": 8,
+   "seconds": 2184.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -65.76
+  },
+  "ours/el-75": {
+   "n_shards": 8,
+   "seconds": 2024.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -47.28
+  },
+  "ours/el-90": {
+   "n_shards": 8,
+   "seconds": 1551.8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": null,
+   "level_db": -41.66
+  },
+  "sionna/el+0": {
+   "n_shards": 8,
+   "seconds": 1549.9,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 9,
+   "level_db": -59.65
+  },
+  "sionna/el-15": {
+   "n_shards": 8,
+   "seconds": 1820.3,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 7,
+   "level_db": -124.8
+  },
+  "sionna/el-30": {
+   "n_shards": 8,
+   "seconds": 1944.1,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 6,
+   "level_db": -135.45
+  },
+  "sionna/el-45": {
+   "n_shards": 8,
+   "seconds": 1761.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 12,
+   "level_db": -125.92
+  },
+  "sionna/el-60": {
+   "n_shards": 8,
+   "seconds": 1604.4,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 13,
+   "level_db": -127.86
+  },
+  "sionna/el-75": {
+   "n_shards": 8,
+   "seconds": 1581.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 13,
+   "level_db": -127.6
+  },
+  "sionna/el-90": {
+   "n_shards": 8,
+   "seconds": 1818.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 12,
+   "level_db": -130.29
+  },
+  "sionna_p250000000/el+0": {
+   "n_shards": 8,
+   "seconds": 1221.3,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 127,
+   "level_db": -59.66
+  },
+  "sionna_p250000000/el-15": {
+   "n_shards": 8,
+   "seconds": 1581.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 159,
+   "level_db": -118.93
+  },
+  "sionna_p250000000/el-30": {
+   "n_shards": 8,
+   "seconds": 1376.8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 211,
+   "level_db": -133.82
+  },
+  "sionna_p250000000/el-45": {
+   "n_shards": 8,
+   "seconds": 1332.9,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 268,
+   "level_db": -124.43
+  },
+  "sionna_p250000000/el-60": {
+   "n_shards": 8,
+   "seconds": 1064.8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 287,
+   "level_db": -119.79
+  },
+  "sionna_p250000000/el-75": {
+   "n_shards": 8,
+   "seconds": 1069.5,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 323,
+   "level_db": -115.05
+  },
+  "sionna_p250000000/el-90": {
+   "n_shards": 8,
+   "seconds": 1068.2,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 352,
+   "level_db": -118.27
+  },
+  "sionna_phys/el+0": {
+   "n_shards": 8,
+   "seconds": 3361.5,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 5,
+   "level_db": -59.66
+  },
+  "sionna_phys/el-15": {
+   "n_shards": 8,
+   "seconds": 2690.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 2,
+   "level_db": -107.19
+  },
+  "sionna_phys/el-30": {
+   "n_shards": 8,
+   "seconds": 1153.7,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 7,
+   "level_db": -97.18
+  },
+  "sionna_phys/el-45": {
+   "n_shards": 8,
+   "seconds": 1687.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 8,
+   "level_db": -96.89
+  },
+  "sionna_phys/el-60": {
+   "n_shards": 8,
+   "seconds": 1223.6,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 4,
+   "level_db": -132.81
+  },
+  "sionna_phys/el-75": {
+   "n_shards": 8,
+   "seconds": 1339.8,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 3,
+   "level_db": -97.69
+  },
+  "sionna_phys/el-90": {
+   "n_shards": 8,
+   "seconds": 3621.6,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 6,
+   "level_db": -64.23
+  },
+  "sionna_p250000000_phys/el+0": {
+   "n_shards": 8,
+   "seconds": 1530.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 33,
+   "level_db": -57.38
+  },
+  "sionna_p250000000_phys/el-15": {
+   "n_shards": 8,
+   "seconds": 1522.0,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 48,
+   "level_db": -97.0
+  },
+  "sionna_p250000000_phys/el-30": {
+   "n_shards": 8,
+   "seconds": 2451.7,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 52,
+   "level_db": -99.2
+  },
+  "sionna_p250000000_phys/el-45": {
+   "n_shards": 8,
+   "seconds": 2771.9,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 64,
+   "level_db": -91.89
+  },
+  "sionna_p250000000_phys/el-60": {
+   "n_shards": 7,
+   "seconds": 2457.9,
+   "n_poses": 4096,
+   "n_missing": 512,
+   "npaths_median": 66,
+   "level_db": -103.97
+  },
+  "sionna_p250000000_phys/el-90": {
+   "n_shards": 8,
+   "seconds": 1491.1,
+   "n_poses": 4096,
+   "n_missing": 0,
+   "npaths_median": 64,
+   "level_db": -61.54
+  }
+ },
+ "cells": {
+  "ours/el+0": {
+   "0-500 Hz": -10.71,
+   "500-f_tip": -0.5,
+   "f_tip-2f_tip": -22.89,
+   "2-4 f_tip": -19.59,
+   "4f_tip-Nyquist": -21.72,
+   "above_f_tip_frac": 0.02285,
+   "above_f_tip_db": -16.41,
+   "f_tip_hz": 1272.9
+  },
+  "ours/el-15": {
+   "0-500 Hz": -7.72,
+   "500-f_tip": -1.71,
+   "f_tip-2f_tip": -12.05,
+   "2-4 f_tip": -13.06,
+   "4f_tip-Nyquist": -13.5,
+   "above_f_tip_frac": 0.15652,
+   "above_f_tip_db": -8.05,
+   "f_tip_hz": 1229.5
+  },
+  "ours/el-30": {
+   "0-500 Hz": -8.01,
+   "500-f_tip": -1.37,
+   "f_tip-2f_tip": -11.12,
+   "2-4 f_tip": -16.87,
+   "4f_tip-Nyquist": -18.61,
+   "above_f_tip_frac": 0.11166,
+   "above_f_tip_db": -9.52,
+   "f_tip_hz": 1102.4
+  },
+  "ours/el-45": {
+   "0-500 Hz": -3.99,
+   "500-f_tip": -2.37,
+   "f_tip-2f_tip": -22.9,
+   "2-4 f_tip": -22.99,
+   "4f_tip-Nyquist": -19.33,
+   "above_f_tip_frac": 0.02181,
+   "above_f_tip_db": -16.61,
+   "f_tip_hz": 900.1
+  },
+  "ours/el-60": {
+   "0-500 Hz": -0.19,
+   "500-f_tip": -15.4,
+   "f_tip-2f_tip": -26.15,
+   "2-4 f_tip": -28.45,
+   "4f_tip-Nyquist": -20.21,
+   "above_f_tip_frac": 0.0134,
+   "above_f_tip_db": -18.73,
+   "f_tip_hz": 636.5
+  },
+  "ours/el-75": {
+   "0-500 Hz": -0.01,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -34.31,
+   "2-4 f_tip": -39.75,
+   "4f_tip-Nyquist": -26.83,
+   "above_f_tip_frac": 0.00255,
+   "above_f_tip_db": -25.93,
+   "f_tip_hz": 329.5
+  },
+  "ours/el-90": {
+   "0-500 Hz": -2.96,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -3000.0,
+   "2-4 f_tip": -3000.0,
+   "4f_tip-Nyquist": -0.0,
+   "f_tip_hz": 0.0
+  },
+  "sionna/el+0": {
+   "0-500 Hz": -17.75,
+   "500-f_tip": -1.59,
+   "f_tip-2f_tip": -5.83,
+   "2-4 f_tip": -17.75,
+   "4f_tip-Nyquist": -19.19,
+   "above_f_tip_frac": 0.29027,
+   "above_f_tip_db": -5.37,
+   "f_tip_hz": 1272.9
+  },
+  "sionna/el-15": {
+   "0-500 Hz": -7.43,
+   "500-f_tip": -3.78,
+   "f_tip-2f_tip": -6.52,
+   "2-4 f_tip": -10.09,
+   "4f_tip-Nyquist": -11.0,
+   "above_f_tip_frac": 0.40039,
+   "above_f_tip_db": -3.98,
+   "f_tip_hz": 1229.5
+  },
+  "sionna/el-30": {
+   "0-500 Hz": -1.72,
+   "500-f_tip": -6.21,
+   "f_tip-2f_tip": -13.32,
+   "2-4 f_tip": -15.86,
+   "4f_tip-Nyquist": -18.09,
+   "above_f_tip_frac": 0.08809,
+   "above_f_tip_db": -10.55,
+   "f_tip_hz": 1102.4
+  },
+  "sionna/el-45": {
+   "0-500 Hz": -4.34,
+   "500-f_tip": -4.22,
+   "f_tip-2f_tip": -8.29,
+   "2-4 f_tip": -12.11,
+   "4f_tip-Nyquist": -13.65,
+   "above_f_tip_frac": 0.25297,
+   "above_f_tip_db": -5.97,
+   "f_tip_hz": 900.1
+  },
+  "sionna/el-60": {
+   "0-500 Hz": -1.95,
+   "500-f_tip": -11.14,
+   "f_tip-2f_tip": -9.37,
+   "2-4 f_tip": -10.46,
+   "4f_tip-Nyquist": -11.03,
+   "above_f_tip_frac": 0.28456,
+   "above_f_tip_db": -5.46,
+   "f_tip_hz": 636.5
+  },
+  "sionna/el-75": {
+   "0-500 Hz": -2.32,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -6.57,
+   "2-4 f_tip": -9.2,
+   "4f_tip-Nyquist": -8.84,
+   "above_f_tip_frac": 0.47084,
+   "above_f_tip_db": -3.27,
+   "f_tip_hz": 329.5
+  },
+  "sionna/el-90": {
+   "0-500 Hz": -3.26,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -3000.0,
+   "2-4 f_tip": -3000.0,
+   "4f_tip-Nyquist": -0.0,
+   "f_tip_hz": 0.0
+  },
+  "sionna_p250000000/el+0": {
+   "0-500 Hz": -12.92,
+   "500-f_tip": -11.04,
+   "f_tip-2f_tip": -8.88,
+   "2-4 f_tip": -5.89,
+   "4f_tip-Nyquist": -3.16,
+   "above_f_tip_frac": 0.87023,
+   "above_f_tip_db": -0.6,
+   "f_tip_hz": 1272.9
+  },
+  "sionna_p250000000/el-15": {
+   "0-500 Hz": -3.98,
+   "500-f_tip": -5.36,
+   "f_tip-2f_tip": -7.84,
+   "2-4 f_tip": -10.52,
+   "4f_tip-Nyquist": -12.58,
+   "above_f_tip_frac": 0.30871,
+   "above_f_tip_db": -5.1,
+   "f_tip_hz": 1229.5
+  },
+  "sionna_p250000000/el-30": {
+   "0-500 Hz": -3.49,
+   "500-f_tip": -3.0,
+   "f_tip-2f_tip": -14.46,
+   "2-4 f_tip": -20.94,
+   "4f_tip-Nyquist": -21.35,
+   "above_f_tip_frac": 0.05121,
+   "above_f_tip_db": -12.91,
+   "f_tip_hz": 1102.4
+  },
+  "sionna_p250000000/el-45": {
+   "0-500 Hz": -4.46,
+   "500-f_tip": -2.46,
+   "f_tip-2f_tip": -13.71,
+   "2-4 f_tip": -17.21,
+   "4f_tip-Nyquist": -19.1,
+   "above_f_tip_frac": 0.07388,
+   "above_f_tip_db": -11.31,
+   "f_tip_hz": 900.1
+  },
+  "sionna_p250000000/el-60": {
+   "0-500 Hz": -1.76,
+   "500-f_tip": -8.29,
+   "f_tip-2f_tip": -10.26,
+   "2-4 f_tip": -13.53,
+   "4f_tip-Nyquist": -13.31,
+   "above_f_tip_frac": 0.18531,
+   "above_f_tip_db": -7.32,
+   "f_tip_hz": 636.5
+  },
+  "sionna_p250000000/el-75": {
+   "0-500 Hz": -0.24,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -17.51,
+   "2-4 f_tip": -15.87,
+   "4f_tip-Nyquist": -18.32,
+   "above_f_tip_frac": 0.05831,
+   "above_f_tip_db": -12.34,
+   "f_tip_hz": 329.5
+  },
+  "sionna_p250000000/el-90": {
+   "0-500 Hz": -2.06,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -3000.0,
+   "2-4 f_tip": -3000.0,
+   "4f_tip-Nyquist": -0.0,
+   "f_tip_hz": 0.0
+  },
+  "sionna_phys/el+0": {
+   "0-500 Hz": -12.29,
+   "500-f_tip": -9.58,
+   "f_tip-2f_tip": -8.25,
+   "2-4 f_tip": -5.89,
+   "4f_tip-Nyquist": -3.73,
+   "above_f_tip_frac": 0.83078,
+   "above_f_tip_db": -0.81,
+   "f_tip_hz": 1272.9
+  },
+  "sionna_phys/el-15": {
+   "0-500 Hz": -11.71,
+   "500-f_tip": -9.94,
+   "f_tip-2f_tip": -8.53,
+   "2-4 f_tip": -6.33,
+   "4f_tip-Nyquist": -3.39,
+   "above_f_tip_frac": 0.83123,
+   "above_f_tip_db": -0.8,
+   "f_tip_hz": 1229.5
+  },
+  "sionna_phys/el-30": {
+   "0-500 Hz": -8.16,
+   "500-f_tip": -8.29,
+   "f_tip-2f_tip": -5.52,
+   "2-4 f_tip": -7.58,
+   "4f_tip-Nyquist": -6.13,
+   "above_f_tip_frac": 0.6991,
+   "above_f_tip_db": -1.55,
+   "f_tip_hz": 1102.4
+  },
+  "sionna_phys/el-45": {
+   "0-500 Hz": -4.83,
+   "500-f_tip": -6.77,
+   "f_tip-2f_tip": -11.08,
+   "2-4 f_tip": -9.44,
+   "4f_tip-Nyquist": -5.7,
+   "above_f_tip_frac": 0.46086,
+   "above_f_tip_db": -3.36,
+   "f_tip_hz": 900.1
+  },
+  "sionna_phys/el-60": {
+   "0-500 Hz": -11.38,
+   "500-f_tip": -13.26,
+   "f_tip-2f_tip": -6.17,
+   "2-4 f_tip": -7.27,
+   "4f_tip-Nyquist": -3.46,
+   "above_f_tip_frac": 0.88006,
+   "above_f_tip_db": -0.55,
+   "f_tip_hz": 636.5
+  },
+  "sionna_phys/el-75": {
+   "0-500 Hz": -6.83,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -11.79,
+   "2-4 f_tip": -9.07,
+   "4f_tip-Nyquist": -1.99,
+   "above_f_tip_frac": 0.82278,
+   "above_f_tip_db": -0.85,
+   "f_tip_hz": 329.5
+  },
+  "sionna_phys/el-90": {
+   "0-500 Hz": -11.8,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -3000.0,
+   "2-4 f_tip": -3000.0,
+   "4f_tip-Nyquist": -0.0,
+   "f_tip_hz": 0.0
+  },
+  "sionna_p250000000_phys/el+0": {
+   "0-500 Hz": -12.94,
+   "500-f_tip": -11.08,
+   "f_tip-2f_tip": -8.96,
+   "2-4 f_tip": -5.85,
+   "4f_tip-Nyquist": -3.15,
+   "above_f_tip_frac": 0.87107,
+   "above_f_tip_db": -0.6,
+   "f_tip_hz": 1272.9
+  },
+  "sionna_p250000000_phys/el-15": {
+   "0-500 Hz": -11.88,
+   "500-f_tip": -10.93,
+   "f_tip-2f_tip": -8.87,
+   "2-4 f_tip": -6.11,
+   "4f_tip-Nyquist": -3.19,
+   "above_f_tip_frac": 0.85437,
+   "above_f_tip_db": -0.68,
+   "f_tip_hz": 1229.5
+  },
+  "sionna_p250000000_phys/el-30": {
+   "0-500 Hz": -9.9,
+   "500-f_tip": -11.08,
+   "f_tip-2f_tip": -9.45,
+   "2-4 f_tip": -7.07,
+   "4f_tip-Nyquist": -2.93,
+   "above_f_tip_frac": 0.81964,
+   "above_f_tip_db": -0.86,
+   "f_tip_hz": 1102.4
+  },
+  "sionna_p250000000_phys/el-45": {
+   "0-500 Hz": -9.27,
+   "500-f_tip": -10.61,
+   "f_tip-2f_tip": -10.43,
+   "2-4 f_tip": -7.63,
+   "4f_tip-Nyquist": -2.74,
+   "above_f_tip_frac": 0.79482,
+   "above_f_tip_db": -1.0,
+   "f_tip_hz": 900.1
+  },
+  "sionna_p250000000_phys/el-90": {
+   "0-500 Hz": -13.1,
+   "500-f_tip": null,
+   "f_tip-2f_tip": -3000.0,
+   "2-4 f_tip": -3000.0,
+   "4f_tip-Nyquist": -0.0,
+   "f_tip_hz": 0.0
+  }
+ }
+}

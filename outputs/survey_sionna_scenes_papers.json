@@ -1,0 +1,274 @@
+{
+ "meta": {
+  "생성일": "2026-08-12",
+  "작성": "조사 에이전트 (논문이 자기 씬·메쉬를 공개했는지)",
+  "질문": "Sionna 에서 쓸 수 있는 «환경 씬»(무대) 이 공개된 것이 있는가 — 표적(드론)이 아니라 무대",
+  "말뭉치": {
+   "PDF_수": 374,
+   "경로": [
+    "/data/public/sionna_jeong",
+    "/home/yunjung/workspace/sionna2/prior_work"
+   ],
+   "Sionna_언급_논문": 197,
+   "센싱계(ISAC/RCS/드론/레이다) Sionna 논문": 82
+  },
+  "추출_방법": "PyMuPDF(fitz) 본문 → NFKC + 합자표 2차치환 + 줄바꿈하이픈 접합 + URL 재접합",
+  "정규화_검증": {
+   "1차_시도": "실패 — 스크래치패드 txt/ 가 이전 세션 파일로 오염되어 있었고 캐시 스킵 로직이 남의 비정규화 텍스트 372개를 그대로 재사용함",
+   "발견_단서": "출력에 deﬁne · Scientiﬁc 합자가 살아남음",
+   "조치": "전용 디렉터리 txt2/ 로 캐시 없이 전량 재추출",
+   "재추출_후_합자_잔존": 0,
+   "효과": "URL 검출 88 → 94 건 (6건은 정규화 안 하면 미탐이었음)"
+  },
+  "제약_준수": "GPU 미사용 · git clone 없음 · 대용량 내려받기 없음(목록/메타데이터만) · 기존 파일 미변경"
+ },
+ "핵심결론": [
+  "논문이 «완성된 Sionna 환경 씬 파일» 을 실제로 푼 사례는 드물다. 확인된 것은 BostonTwin(도심 야외)과 WiSegRT(실내 6개) 둘뿐이다.",
+  "대다수는 씬이 아니라 «씬 만드는 파이프라인»(OSM→Blender→Mitsuba XML)을 공개한다. 무대는 각자 만들어 쓰는 것이 이 분야의 사실상 표준이다.",
+  "우리와 가장 가까운 논문(드론 마이크로도플러 RT 시뮬)은 무대를 아예 안 썼다 — 자유공간에 표적만 놓았다. 드론 RCS/마이크로도플러 문헌 전반이 자유공간 아니면 무향실이다.",
+  "거친 격자는 우리에게 결격 사유가 아니다. 우리 구조는 σ=자체 커널, 환경=Sionna 로 이미 분리돼 있어서(0803 프레임) 공개 씬은 «무대» 로만 쓰면 된다."
+ ],
+ "선행연구가_무대를_어떻게_잡았나": {
+  "설명": "센싱/ISAC/RCS/드론 + Sionna 논문의 무대 처리 방식. 원문 문장으로 확인한 것만.",
+  "유형별_집계_경향": "자체제작(OSM→Blender)이 압도적 > 자유공간/무대없음 > 내장씬 재사용",
+  "표": [
+   {
+    "논문": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing (ICCT 2025)",
+    "무대": "무대 없음 — 자유공간",
+    "근거원문": "The target consists of either Sionna's built-in reflector model or a physical model of a propeller modeled using Blender. / According to the freespace path loss formula...",
+    "메모": "⭐우리와 가장 가까움. Tx/Rx 를 좌표로 직접 놓고 표적만 둠. 건물·지면 없음. 작은 표적에 레이가 안 맞아서 구면샘플링→원뿔샘플링을 자체 고안 — 우리가 겪은 문제와 동일",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "확인": true
+   },
+   {
+    "논문": "Clutter-Aware ISAC: Models, Methods and Future Directions (Proc. IEEE 게재확정)",
+    "무대": "자체제작 — 공개 3D 모델을 Blender 로 단순화 후 Sionna XML 로 내보냄",
+    "근거원문": "These meshes are obtained by simplifying publicly available 3-D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment.",
+    "메모": "씬 자체는 미공개. «UAVs are readily detectable in isolation» 라며 클러터가 본질 문제라고 봄 — 우리 바닥유령 서사와 같은 방향",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "확인": true
+   },
+   {
+    "논문": "드론 RCS 실측 계열 4편 (3GPP ISAC 통합 RCS · Multiband Mono/Bistatic AAV RCS · Mono-static 3D UAV RCS · Multi-Propeller 마이크로도플러)",
+    "무대": "무향실(anechoic chamber) 실측 — 시뮬 무대 아님",
+    "근거원문": "monostatic RCS measurements were conducted in a large anechoic chamber / background subtraction ... to eliminate the reflection from the anechoic chamber",
+    "메모": "이 계열은 무대를 «없애는» 쪽으로 실험을 설계한다. 우리 챔버=통제군 방침과 일치",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723",
+    "확인": true
+   },
+   {
+    "논문": "LAMBDA UAV dataset (2607.03826)",
+    "무대": "자체제작 — Unreal Engine 5 → Blender → Sionna RT",
+    "근거원문": "UE5 scene assets are exported through Blender, assigned customized electromagnetic material properties, and then imported into Sionna RT. / The Urban region is based on San Francisco-style geometry",
+    "메모": "저고도 UAV 다중모달. 무대는 UE5 자산 기반",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.03826__lambda-uav-dataset.pdf",
+    "확인": true
+   },
+   {
+    "논문": "Low-altitude cooperative UAV detection with CSI (2605.07623)",
+    "무대": "자체제작 — OSM(동남대 Sipailou 캠퍼스 200m×200m) → Blender → Sionna RT",
+    "근거원문": "A 200 m x 200 m area of Southeast University Sipailou Campus is first extracted from OSM and imported into Blender, where building materials such as concrete, marble, and brick are assigned.",
+    "메모": "UAV 탐지 + 실제 캠퍼스 무대. 우리 야외 사이트 트윈과 가장 비슷한 «무대 만드는 법»",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "확인": true
+   },
+   {
+    "논문": "TITAN (2603.00795)",
+    "무대": "내장씬 재사용 — Sionna 의 San Francisco 메쉬",
+    "근거원문": "The San Francisco mesh includes detailed building models and ground elevation variations to capture realistic urban topography.",
+    "메모": "내장씬을 그대로 쓴 드문 사례. SF 는 실제 지형(Terrain.ply)이 있어서 선택된 것으로 보임",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "확인": true
+   },
+   {
+    "논문": "DT-RaDaR (2411.12284)",
+    "무대": "자체제작 — Blender + OSM 애드온, 실내/실외 모두",
+    "근거원문": "we digitally recreate an accurate indoor environment from the real world ... This digital twin is exported from Blender in Mitsuba 3 format",
+    "경로": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "확인": true
+   },
+   {
+    "논문": "CellSense (2606.07900)",
+    "무대": "자체제작 — Blender (실내 창고 + NCSU 캠퍼스 야외 Oval)",
+    "근거원문": "Site-specific Sionna ray-tracing environments generated in Blender: indoor warehouse (top) and NCSU Centennial Campus outdoor Oval (bottom).",
+    "확인": true
+   },
+   {
+    "논문": "RadarTwin (2606.28396)",
+    "무대": "자체제작 — 실측 기하를 맞춘 실내 재구성; «표적만» 대조군을 명시적으로 둠",
+    "근거원문": "the reconstructed environment, not the object in isolation, must be simulated, because an indoor radar return is shaped as much by the room as by the target. / no environment (void) | uniform materials | VLM materials",
+    "메모": "⭐«무대 없음(void) vs 무대 있음» 을 실험 조건으로 비교한 논문. 우리가 챔버=통제군을 정당화할 때 인용 가치",
+    "경로": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2606.28396__radartwin.pdf",
+    "확인": true
+   },
+   {
+    "논문": "Open Wireless DT with OAI + Sionna RT (2503.12177)",
+    "무대": "공공 지오데이터 — 일본 PLATEAU (LOD1/LOD2) + OSM",
+    "근거원문": "3D model of the Shibuya station area is provided at LOD2, which allows for more detailed structures than LOD1 ... walls, roofs, and floors with different materials",
+    "메모": "⭐국가 공개 3D 도시모델을 무대로 쓴 사례. 라이선스가 깨끗한 경로",
+    "확인": true
+   },
+   {
+    "논문": "Fingerprint positioning (2509.01197)",
+    "무대": "내장씬 재사용 — etoile",
+    "근거원문": "we adopted the 'etoile' scene for this simulation",
+    "확인": true
+   },
+   {
+    "논문": "SimART (2605.13309)",
+    "무대": "자체제작 2경로 — OSM(파리 루브르) 재구성 + 사용자정의 레이아웃",
+    "근거원문": "it is ultimately exported as two spatially aligned assets: a high fidelity scene asset for the physics and sensing module and a simplified mesh with material annotations for the ray tracing module.",
+    "메모": "⭐«시각용 고정밀 메쉬 / RT용 단순화 메쉬» 를 쌍으로 관리하는 설계 — 우리에게 참고할 패턴",
+    "확인": true
+   }
+  ]
+ },
+ "Sionna_내장씬_실측": {
+  "설명": "설치본을 직접 읽어 삼각형 수·모서리 길이·지면을 측정했다. 공개 씬을 쓸 수 있는지 판단의 기준선.",
+  "경로": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scenes",
+  "라이선스": "sionna-rt 패키지 Apache-2.0 (dist-info METADATA 확인). ⚠단 도시씬 지오메트리는 OSM 에서 Blosm 으로 받은 것이라(기술보고서 원문) 원데이터는 ODbL 1.0 계열 — 재배포 시 귀속·동일조건 의무가 따라붙을 수 있음. 엔비디아가 씬에 별도 라이선스를 붙였는지는 미확인",
+  "측정": [
+   {
+    "씬": "munich",
+    "메쉬수": 2367,
+    "삼각형": 38936,
+    "모서리_중앙값_m": 7.52,
+    "지면": "ground.ply = 삼각형 2개 완전평면 1475×1206 m",
+    "재질": "itu_marble 2284 · itu_metal 2284 · wood 72 · brick 72"
+   },
+   {
+    "씬": "san_francisco",
+    "메쉬수": 4735,
+    "삼각형": 268041,
+    "모서리_중앙값_m": 3.92,
+    "지면": "Terrain.ply = 삼각형 192,000개, 고도차 104 m (진짜 지형)",
+    "재질": "-"
+   },
+   {
+    "씬": "etoile",
+    "메쉬수": 565,
+    "삼각형": 13098,
+    "모서리_중앙값_m": 13.84,
+    "지면": "없음",
+    "재질": "-"
+   },
+   {
+    "씬": "florence",
+    "메쉬수": 2639,
+    "삼각형": 35373,
+    "모서리_중앙값_m": 11.43,
+    "지면": "ground.ply = 삼각형 2개 완전평면 1000×1100 m",
+    "재질": "-"
+   },
+   {
+    "씬": "simple_street_canyon",
+    "메쉬수": 7,
+    "삼각형": 74,
+    "모서리_중앙값_m": 31.12,
+    "지면": "-",
+    "재질": "-"
+   }
+  ],
+  "우리에게_의미": [
+   "3.5 GHz 에서 λ≈8.6 cm 이므로 munich 삼각형(중앙값 7.5 m)은 약 87λ. 무대(건물 벽)로서는 GO/PO 가 성립하는 크기라 문제 없다.",
+   "⭐거친 격자가 문제가 되는 건 드론을 씬 안에 넣고 Sionna 솔버로 산란시키려 할 때뿐인데, 스톡 솔버엔 애초에 산란적분이 없다. 우리는 σ를 자체 커널로 계산하므로 이 결격은 우리에게 적용되지 않는다.",
+   "⭐munich/florence 의 지면이 «삼각형 2개짜리 완전평면» 이라는 점은 우리 바닥유령 연구에 직접 쓰인다 — 이상적 경면이라 바닥 반사가 가장 세게 나오는 최악조건이다.",
+   "etoile 은 지면이 아예 없어 바닥유령 대조군(지면 제거)으로 그대로 쓸 수 있다.",
+   "san_francisco 만 실제 지형 기복(104 m)을 가진다 — 평면지면 가정을 깨는 검증에 쓸 수 있다.",
+   "⚠munich 재질이 사실상 marble/metal 2종뿐이다. 재질 다양성이 필요한 실험에는 재할당이 필요하다."
+  ],
+  "확인": true
+ },
+ "미확인_경계": [
+  "Geo2SigMap 라이선스 표기 충돌: 저장소 사이드바 «CC BY-NC 4.0» vs README 배지 «Code License Apache_2.0». LICENSE 파일 직접 열람은 404. 코드/데이터 이중 라이선스로 추정되나 확정 못 함 — 쓰기 전 반드시 확인",
+  "BostonTwin 데이터 라이선스: 코드는 MIT 확인했으나 데이터(Northeastern 리포지터리·BPDA 원본)의 조건은 README 에 명시가 없음. 재배포 가능 여부 미확인",
+  "CKMImageNet(MIT) 과 Great-MCD(Apache-2.0) 는 라이선스는 확인했으나 «3D 지오메트리가 배포물에 포함되는가» 를 확인 못 함 — 채널 데이터만일 가능성",
+  "LAETwin-XL 라이선스 미표기",
+  "DeepTelecom 은 «partially available online» 이라고만 하고 무엇이 공개인지 불명. 게다가 무대를 Google 3D Tiles 에서 가져와 재배포 제약이 걸릴 가능성이 높음",
+  "DeepMIMO 는 시나리오 100+ 를 배포하나 원 레이트레이싱이 Wireless InSite 이고, 배포물에 3D 지오메트리가 포함되는지 직접 확인 못 함",
+  "한국 지역의 공개 3D 도시모델(국토지리정보원 등)은 이번 조사 범위 밖 — 우리 실증이 국내 야외라면 여기가 다음 조사 지점",
+  "Sionna 내장 도시씬에 엔비디아가 OSM 귀속 표기를 어디에 두었는지 확인 못 함(설치본에 씬별 LICENSE/NOTICE 파일 없음)"
+ ],
+ "공개된_것_목록": [
+  {
+   "이름": "Sionna 내장 15개 씬",
+   "종류": "완성 씬",
+   "주소": "sionna-rt 패키지 동봉",
+   "라이선스": "Apache-2.0 (코드) / 지오메트리는 OSM 유래 ODbL 가능성",
+   "쓸수있나": "그대로(무대로)",
+   "확인": true
+  },
+  {
+   "이름": "BostonTwin",
+   "종류": "완성 씬(Mitsuba XML + PLY)",
+   "주소": "github.com/wineslab/boston_twin",
+   "라이선스": "코드 MIT / 데이터 미확인",
+   "쓸수있나": "손봐서",
+   "확인": true
+  },
+  {
+   "이름": "WiSegRT",
+   "종류": "완성 씬(실내 6개)",
+   "주소": "github.com/SunLab-UGA/WiSegRT",
+   "라이선스": "MIT",
+   "쓸수있나": "손봐서(실내)",
+   "확인": true
+  },
+  {
+   "이름": "OpenGERT",
+   "종류": "생성기",
+   "주소": "github.com/serhatadik/OpenGERT",
+   "라이선스": "MIT",
+   "쓸수있나": "그대로(도구)",
+   "확인": true
+  },
+  {
+   "이름": "SceneBaker",
+   "종류": "생성기(GUI 없이 OSM+지형→Mitsuba XML)",
+   "주소": "github.com/hslyu/sionna-scene-baker",
+   "라이선스": "MIT (Copyright 2026 Hyeonsu Lyu)",
+   "쓸수있나": "그대로(도구)",
+   "확인": true
+  },
+  {
+   "이름": "sionna_osm_scene",
+   "종류": "생성기(순수 파이썬·Blender 불필요)",
+   "주소": "github.com/manoj-kumar-joshi/sionna_osm_scene",
+   "라이선스": "MIT",
+   "쓸수있나": "그대로(도구)",
+   "확인": true
+  },
+  {
+   "이름": "Geo2SigMap",
+   "종류": "생성기",
+   "주소": "github.com/functions-lab/geo2sigmap",
+   "라이선스": "표기 충돌(CC BY-NC 4.0 vs Apache-2.0)",
+   "쓸수있나": "판정불가",
+   "확인": true
+  },
+  {
+   "이름": "VaN3Twin",
+   "종류": "생성기 + 예제씬 1개",
+   "주소": "github.com/DriveX-devs/VaN3Twin",
+   "라이선스": "GPL-2.0",
+   "쓸수있나": "손봐서(전염성 주의)",
+   "확인": true
+  },
+  {
+   "이름": "PLATEAU (일본 국토교통성)",
+   "종류": "지오데이터(250여 도시, CityGML/OBJ/FBX)",
+   "주소": "mlit.go.jp/plateau",
+   "라이선스": "CC BY 4.0 / ODbL / ODC-BY (데이터셋별 상이)",
+   "쓸수있나": "손봐서(일본 한정)",
+   "확인": true
+  },
+  {
+   "이름": "OpenStreetMap",
+   "종류": "지오데이터 원천",
+   "주소": "openstreetmap.org",
+   "라이선스": "ODbL 1.0 (귀속 + 파생DB 동일조건)",
+   "쓸수있나": "손봐서",
+   "확인": true
+  }
+ ]
+}

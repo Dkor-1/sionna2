@@ -1,0 +1,390 @@
+{
+ "_meta": {
+  "generator": "adversarial subagent (CPU numpy) — outputs/elevation_sweep_md.npz 재분석",
+  "gpu_ko": "GPU 미사용 · 기존 원장 읽기만 · 새 파일만 만든다",
+  "instrument": "benchmark/elevation_sweep_md.py:221-248 band_metrics 와 동일 사슬(flash_spec → 날개끝 대역에너지 g(t) → Hann·64× 제로패딩 rfft)",
+  "claim_under_test_ko": "v16-s5 «같은 네 계단에서 박자는 376.73 → 50.27 → 122.12 → 58.15 Hz 로 옮겨 다닌다» 와 그 근거 «376.73 은 창의 위 가장자리, 50.27 은 아래 가장자리 — 창이 값을 눌러 담은 자리다»",
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "periods": 0.45,
+  "el_deg": 0.0,
+  "n_poses": 4096,
+  "band_ko": "0.35~1.0 × f_tip(el 0) = 445.5~1272.9 Hz",
+  "search_hz": [
+   40,
+   400
+  ],
+  "stft": {
+   "nperseg_samples": 70,
+   "frame_step_ms": 0.1015,
+   "n_frames": 2014,
+   "record_ms": 204.5,
+   "modspec_raw_cell_hz": 4.891,
+   "zero_pad": 64,
+   "modspec_padded_bin_hz": 0.0764
+  },
+  "verdict_ko": "부분 반증. 네 수치 자체는 원장과 일치하지만 «옮겨 다닌다»·«창 가장자리» 는 두 계단에서 틀렸다. (1) 11.1 M 의 376.73 Hz 는 3×f_flash(380.00 Hz)에서 0.67 분해능칸 떨어진 빗살선이고, 그 팔의 변조 스펙트럼은 1~5·7 차가 모두 n·f_flash 의 0.68 칸 안에 있는 빗이다. 가장 센 선은 창 밖 5 차 634.19 Hz 이고 400 Hz 가장자리는 첨두보다 16.6 dB 낮다 — 창이 누른 값이 아니다. (2) 1,000 M 의 122.12 Hz 는 f_flash 자신이다(0.93 칸, 칸 크기 4.891 Hz). (3) 250 M 의 50.27 Hz 와 4,000 M 의 58.15 Hz 만 빗살 밖이고, 두 팔의 변조 스펙트럼 최대는 7.18 · 6.72 Hz 로 40 Hz 문턱 아래다 — 창 안 최강선은 그 느린 마루의 자락이다. (4) 분해능칸 4.891 Hz 에 대해 0.01 Hz 자리를 적는 것은 500 배 과잉 정밀이다."
+ },
+ "cells": {
+  "sionna": {
+   "ledger_row": "rows[7]",
+   "rays_per_pose": 11111111,
+   "ledger_track_beat_hz": 376.73,
+   "recomputed_window_argmax_hz": 376.73,
+   "window_argmax_level_db": -7.62,
+   "global_argmax_hz": 634.19,
+   "level_at_40hz_edge_db": -35.14,
+   "level_at_400hz_edge_db": -24.25,
+   "ac_over_dc_db": -86.84,
+   "harmonics_of_f_flash": {
+    "1x": {
+     "nearest_peak_hz": 123.34,
+     "level_db": -11.77,
+     "offset_hz": -3.33,
+     "offset_cells": -0.68
+    },
+    "2x": {
+     "nearest_peak_hz": 250.73,
+     "level_db": -10.96,
+     "offset_hz": -2.6,
+     "offset_cells": -0.53
+    },
+    "3x": {
+     "nearest_peak_hz": 376.74,
+     "level_db": -7.62,
+     "offset_hz": -3.26,
+     "offset_cells": -0.67
+    },
+    "4x": {
+     "nearest_peak_hz": 505.12,
+     "level_db": -2.16,
+     "offset_hz": -1.55,
+     "offset_cells": -0.32
+    },
+    "5x": {
+     "nearest_peak_hz": 634.19,
+     "level_db": 0.0,
+     "offset_hz": 0.86,
+     "offset_cells": 0.18
+    }
+   },
+   "top_peaks": [
+    {
+     "hz": 634.19,
+     "level_db": 0.0,
+     "over_f_flash": 5.007,
+     "offset_cells_from_nearest_harmonic": 0.18
+    },
+    {
+     "hz": 505.12,
+     "level_db": -2.16,
+     "over_f_flash": 3.988,
+     "offset_cells_from_nearest_harmonic": -0.32
+    },
+    {
+     "hz": 886.76,
+     "level_db": -4.46,
+     "over_f_flash": 7.001,
+     "offset_cells_from_nearest_harmonic": 0.02
+    },
+    {
+     "hz": 376.74,
+     "level_db": -7.62,
+     "over_f_flash": 2.974,
+     "offset_cells_from_nearest_harmonic": -0.67
+    },
+    {
+     "hz": 250.73,
+     "level_db": -10.96,
+     "over_f_flash": 1.979,
+     "offset_cells_from_nearest_harmonic": -0.53
+    },
+    {
+     "hz": 123.34,
+     "level_db": -11.77,
+     "over_f_flash": 0.974,
+     "offset_cells_from_nearest_harmonic": -0.68
+    }
+   ]
+  },
+  "sionna_p250000000": {
+   "ledger_row": "rows[16]",
+   "rays_per_pose": 250000000,
+   "ledger_track_beat_hz": 50.27,
+   "recomputed_window_argmax_hz": 50.27,
+   "window_argmax_level_db": -0.3,
+   "global_argmax_hz": 7.18,
+   "level_at_40hz_edge_db": -1.04,
+   "level_at_400hz_edge_db": -8.82,
+   "ac_over_dc_db": -40.34,
+   "harmonics_of_f_flash": {
+    "1x": {
+     "nearest_peak_hz": 110.27,
+     "level_db": -1.78,
+     "offset_hz": -16.4,
+     "offset_cells": -3.35
+    },
+    "2x": {
+     "nearest_peak_hz": 240.87,
+     "level_db": -12.92,
+     "offset_hz": -12.46,
+     "offset_cells": -2.55
+    },
+    "3x": {
+     "nearest_peak_hz": 380.79,
+     "level_db": -8.37,
+     "offset_hz": 0.79,
+     "offset_cells": 0.16
+    },
+    "4x": {
+     "nearest_peak_hz": 511.31,
+     "level_db": -5.94,
+     "offset_hz": 4.64,
+     "offset_cells": 0.95
+    },
+    "5x": {
+     "nearest_peak_hz": 621.74,
+     "level_db": -9.79,
+     "offset_hz": -11.59,
+     "offset_cells": -2.37
+    }
+   },
+   "top_peaks": [
+    {
+     "hz": 7.18,
+     "level_db": 0.0,
+     "over_f_flash": 0.057,
+     "offset_cells_from_nearest_harmonic": 1.47
+    },
+    {
+     "hz": 29.8,
+     "level_db": -0.09,
+     "over_f_flash": 0.235,
+     "offset_cells_from_nearest_harmonic": 6.09
+    },
+    {
+     "hz": 20.48,
+     "level_db": -0.18,
+     "over_f_flash": 0.162,
+     "offset_cells_from_nearest_harmonic": 4.19
+    },
+    {
+     "hz": 50.28,
+     "level_db": -0.3,
+     "over_f_flash": 0.397,
+     "offset_cells_from_nearest_harmonic": 10.28
+    },
+    {
+     "hz": 59.91,
+     "level_db": -0.84,
+     "over_f_flash": 0.473,
+     "offset_cells_from_nearest_harmonic": 12.25
+    },
+    {
+     "hz": 80.24,
+     "level_db": -0.97,
+     "over_f_flash": 0.633,
+     "offset_cells_from_nearest_harmonic": -9.49
+    },
+    {
+     "hz": 40.2,
+     "level_db": -1.04,
+     "over_f_flash": 0.317,
+     "offset_cells_from_nearest_harmonic": 8.22
+    },
+    {
+     "hz": 70.38,
+     "level_db": -1.28,
+     "over_f_flash": 0.556,
+     "offset_cells_from_nearest_harmonic": -11.51
+    }
+   ]
+  },
+  "sionna_p1000000000": {
+   "ledger_row": "rows[14]",
+   "rays_per_pose": 1000000000,
+   "ledger_track_beat_hz": 122.12,
+   "recomputed_window_argmax_hz": 122.12,
+   "window_argmax_level_db": -0.85,
+   "global_argmax_hz": 26.36,
+   "level_at_40hz_edge_db": -9.75,
+   "level_at_400hz_edge_db": -11.41,
+   "ac_over_dc_db": -35.32,
+   "harmonics_of_f_flash": {
+    "1x": {
+     "nearest_peak_hz": 122.12,
+     "level_db": -0.85,
+     "offset_hz": -4.55,
+     "offset_cells": -0.93
+    },
+    "2x": {
+     "nearest_peak_hz": 245.3,
+     "level_db": -15.98,
+     "offset_hz": -8.03,
+     "offset_cells": -1.64
+    },
+    "3x": {
+     "nearest_peak_hz": 397.99,
+     "level_db": -11.27,
+     "offset_hz": 17.99,
+     "offset_cells": 3.68
+    },
+    "4x": {
+     "nearest_peak_hz": 518.19,
+     "level_db": -8.67,
+     "offset_hz": 11.52,
+     "offset_cells": 2.36
+    },
+    "5x": {
+     "nearest_peak_hz": 627.16,
+     "level_db": -13.2,
+     "offset_hz": -6.17,
+     "offset_cells": -1.26
+    }
+   },
+   "top_peaks": [
+    {
+     "hz": 26.36,
+     "level_db": 0.0,
+     "over_f_flash": 0.208,
+     "offset_cells_from_nearest_harmonic": 5.39
+    },
+    {
+     "hz": 122.12,
+     "level_db": -0.85,
+     "over_f_flash": 0.964,
+     "offset_cells_from_nearest_harmonic": -0.93
+    },
+    {
+     "hz": 149.02,
+     "level_db": -0.92,
+     "over_f_flash": 1.176,
+     "offset_cells_from_nearest_harmonic": 4.57
+    },
+    {
+     "hz": 99.34,
+     "level_db": -2.57,
+     "over_f_flash": 0.784,
+     "offset_cells_from_nearest_harmonic": -5.59
+    },
+    {
+     "hz": 1.83,
+     "level_db": -3.12,
+     "over_f_flash": 0.014,
+     "offset_cells_from_nearest_harmonic": 0.38
+    },
+    {
+     "hz": 48.45,
+     "level_db": -3.22,
+     "over_f_flash": 0.382,
+     "offset_cells_from_nearest_harmonic": 9.91
+    },
+    {
+     "hz": 450.87,
+     "level_db": -5.3,
+     "over_f_flash": 3.559,
+     "offset_cells_from_nearest_harmonic": -11.41
+    },
+    {
+     "hz": 177.9,
+     "level_db": -6.71,
+     "over_f_flash": 1.404,
+     "offset_cells_from_nearest_harmonic": 10.48
+    }
+   ]
+  },
+  "sionna_p4000000000": {
+   "ledger_row": "rows[23]",
+   "rays_per_pose": 4000000000,
+   "ledger_track_beat_hz": 58.15,
+   "recomputed_window_argmax_hz": 58.15,
+   "window_argmax_level_db": -2.0,
+   "global_argmax_hz": 6.72,
+   "level_at_40hz_edge_db": -10.22,
+   "level_at_400hz_edge_db": -18.66,
+   "ac_over_dc_db": -30.36,
+   "harmonics_of_f_flash": {
+    "1x": {
+     "nearest_peak_hz": 124.41,
+     "level_db": -6.18,
+     "offset_hz": -2.26,
+     "offset_cells": -0.46
+    },
+    "2x": {
+     "nearest_peak_hz": 253.02,
+     "level_db": -13.95,
+     "offset_hz": -0.31,
+     "offset_cells": -0.06
+    },
+    "3x": {
+     "nearest_peak_hz": 393.25,
+     "level_db": -15.84,
+     "offset_hz": 13.25,
+     "offset_cells": 2.71
+    },
+    "4x": {
+     "nearest_peak_hz": 518.8,
+     "level_db": -7.27,
+     "offset_hz": 12.13,
+     "offset_cells": 2.48
+    },
+    "5x": {
+     "nearest_peak_hz": 623.57,
+     "level_db": -17.0,
+     "offset_hz": -9.76,
+     "offset_cells": -2.0
+    }
+   },
+   "top_peaks": [
+    {
+     "hz": 6.72,
+     "level_db": 0.0,
+     "over_f_flash": 0.053,
+     "offset_cells_from_nearest_harmonic": 1.38
+    },
+    {
+     "hz": 58.15,
+     "level_db": -2.0,
+     "over_f_flash": 0.459,
+     "offset_cells_from_nearest_harmonic": 11.89
+    },
+    {
+     "hz": 78.41,
+     "level_db": -3.62,
+     "over_f_flash": 0.619,
+     "offset_cells_from_nearest_harmonic": -9.87
+    },
+    {
+     "hz": 99.11,
+     "level_db": -4.66,
+     "over_f_flash": 0.782,
+     "offset_cells_from_nearest_harmonic": -5.63
+    },
+    {
+     "hz": 124.41,
+     "level_db": -6.18,
+     "over_f_flash": 0.982,
+     "offset_cells_from_nearest_harmonic": -0.46
+    },
+    {
+     "hz": 518.8,
+     "level_db": -7.27,
+     "over_f_flash": 4.096,
+     "offset_cells_from_nearest_harmonic": 2.48
+    },
+    {
+     "hz": 19.49,
+     "level_db": -7.4,
+     "over_f_flash": 0.154,
+     "offset_cells_from_nearest_harmonic": 3.98
+    },
+    {
+     "hz": 202.2,
+     "level_db": -7.51,
+     "over_f_flash": 1.596,
+     "offset_cells_from_nearest_harmonic": -10.45
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,2005 @@
+{
+ "_meta": {
+  "질문": "Sionna(및 RT 기반 무선 시뮬레이터)를 쓴 논문들이 회절·굴절·반사·max_depth 같은 «솔버 스위치» 를 어떻게 설정했다고 밝혔는가",
+  "작성일": "2026-08-12",
+  "방법": [
+   "보관함 PDF 373편(/data/public/sionna_jeong + prior_work/pdfs)을 PyMuPDF(fitz)로 전문 추출",
+   "'sionna' 언급 197편 → 내용 해시 중복제거 144편",
+   "'sionna rt / ray tracer / ray tracing 모듈' 강한 신호 92개 파일을 조사 모집단으로",
+   "92 중 논문 아닌 것 1건(한국어 AI 조사보고서)·같은 논문의 중복판 2건 제외 → 89편",
+   "각 편을 3축(깊이값 / 메커니즘 on-off / 광선·샘플 수)으로 채점하고, 원문 문맥을 사람이 읽어 오탐·미탐을 덮어씀"
+  ],
+  "축_정의": {
+   "states_depth": "자기 실행의 max_depth(=반사 차수/상호작용 깊이) 값을 숫자로 밝혔나",
+   "states_mechanisms": "회절·굴절·확산반사·정반사 중 무엇을 켜고 껐는지 자기 실행에 대해 밝혔나 (도구 일반 소개는 제외)",
+   "states_ray_count": "num_samples / samples_per_src / 발사 광선 수를 숫자로 밝혔나"
+  },
+  "등급": {
+   "A": "3축 모두 (재현 가능)",
+   "B": "1~2축만 (부분)",
+   "C": "하나도 안 밝힘"
+  },
+  "한계": [
+   "PDF 텍스트 추출 기반이라 그림 안에만 있는 설정은 놓칠 수 있다",
+   "보관함은 이 프로젝트가 모은 것이라 무작위 표본이 아니다 (ISAC·센싱·디지털트윈에 치우쳐 있다)",
+   "부록·코드 저장소에만 설정을 적어둔 논문은 «안 밝힘» 으로 잡힐 수 있다"
+  ]
+ },
+ "집계": {
+  "PDF_전체": 373,
+  "sionna_언급_중복제거": 144,
+  "RT_사용_파일": 92,
+  "조사대상_논문": 89,
+  "A_재현가능": 17,
+  "B_부분": 36,
+  "C_없음": 36,
+  "A_비율_pct": 19.1,
+  "C_비율_pct": 40.4,
+  "축별": {
+   "깊이_밝힘": 41,
+   "메커니즘_밝힘": 41,
+   "광선수_밝힘": 22
+  }
+ },
+ "sionna_기본값_설치본_실측": {
+  "출처": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py (sionna 2.0.1) + 공식 문서 확인",
+  "PathSolver.__call__": {
+   "max_depth": 3,
+   "max_num_paths_per_src": 1000000,
+   "samples_per_src": 1000000,
+   "synthetic_array": true,
+   "los": true,
+   "specular_reflection": true,
+   "diffuse_reflection": false,
+   "refraction": true,
+   "diffraction": false,
+   "edge_diffraction": false,
+   "diffraction_lit_region": true,
+   "seed": 42
+  },
+  "공식_튜토리얼_Introduction_이_쓰는_값": {
+   "max_depth": 5,
+   "los": true,
+   "specular_reflection": true,
+   "diffuse_reflection": false,
+   "refraction": true,
+   "synthetic_array": false,
+   "seed": 41,
+   "diffraction": "인자를 아예 안 넘긴다 → False",
+   "비고": "왜 이 값인지, 바꾸면 무엇이 달라지는지 튜토리얼은 설명하지 않는다"
+  },
+  "버전사": {
+   "0.14": "Sionna RT 최초 공개",
+   "0.15": "회절·확산반사 추가",
+   "0.17": "이동성",
+   "0.18": "RIS",
+   "1.0.0~1.1.x": "전면 재작성. 회절 기능이 «통째로 사라짐»(기본값 off 가 아니라 부재)",
+   "1.2.0": "회절 재도입",
+   "2.0.1": "우리가 쓰는 버전",
+   "근거": "Sionna RT 기술보고서(arXiv 2504.21719) + NVlabs/sionna Discussion #838 (관리자 faycalaa/merlinND 답변)"
+  }
+ },
+ "우리_설정과의_차이": {
+  "우리": {
+   "max_depth": 1,
+   "refraction": false,
+   "diffraction": "미전달(False)",
+   "edge_diffraction": "미전달(False)"
+  },
+  "기본값과_다른_점": [
+   "max_depth 3 → 1",
+   "refraction True → False"
+  ],
+  "기본값과_같은_점": [
+   "diffraction False",
+   "edge_diffraction False",
+   "diffuse_reflection False",
+   "los True",
+   "specular_reflection True"
+  ],
+  "측정된_민감도_outputs/diag_physics_paths_el-90.json": {
+   "기준": {
+    "경로": 11,
+    "레벨_dB": -130.78,
+    "AC_over_DC_dB": 0.89
+   },
+   "굴절만_켬": {
+    "경로": 2,
+    "레벨_dB": -132.48,
+    "메모": "플라스틱 껍데기를 통과해 버려 되돌아오는 경로가 사라진다"
+   },
+   "회절만_켬": {
+    "경로": 14,
+    "레벨_dB": -64.23,
+    "메모": "66 dB 상승, AC/DC 부호가 뒤집힘"
+   },
+   "모서리회절만_켬": {
+    "레벨_dB": -130.78,
+    "메모": "기준과 소수점까지 동일"
+   },
+   "다중반사_depth3": {
+    "레벨_dB": -130.76,
+    "메모": "사실상 영향 0"
+   }
+  }
+ },
+ "스위치_어블레이션을_수치로_보고한_논문": [
+  {
+   "논문": "Manukyan et al., On the Limitations of Ray-Tracing for Learning-Based RF Tasks in Urban Environments (arXiv 2507.19653)",
+   "sionna": "v1.0.2",
+   "관측량": "도시 RSSI 지문 ↔ 실측 Spearman 상관, kNN 측위 오차",
+   "결과": "max_depth 에 «절대적으로 무감»(insensitive). synthetic_array·specular_reflection·diffuse_reflection·refraction 네 불리언을 둘 다 넣어봐도 «결과가 동일». samples_per_src 만 민감(1e3 vs 1e6 이 유의하게 다름)",
+   "원문확인": true,
+   "우리에게_주는_뜻": "환경 채널(경로손실·RSSI) 관측량에서는 스위치가 안 먹힌다는 반례. 우리 관측량(소형 표적 후방산란)과 정반대이므로, 두 결과는 모순이 아니라 «관측량이 다르면 민감도가 다르다» 는 증거"
+  },
+  {
+   "논문": "S-ICDF 간섭 데이터셋 (arXiv 2607.03411)",
+   "sionna": "버전 무기재",
+   "관측량": "MUSIC/ESPRIT/CAPON 방위·앙각 방향탐지 오차(도, MSE)",
+   "결과": "Reflection depth 5→2 로 낮추면 방위오차 0.84°→2.35° 악화. Refraction False→True 면 0.84°→0.75°, 앙각 2.26°→1.98° 소폭 개선",
+   "원문확인": true,
+   "주의": "표II는 Refraction 기본값을 True 로, 표III는 «Default parameter setting ... Refraction = False» 로 적어 논문 내부가 서로 어긋난다"
+  },
+  {
+   "논문": "AirMap: AI radio maps digital twin (arXiv 2511.05522)",
+   "sionna": "v1.2.1",
+   "관측량": "라디오맵 경로이득 RMSE(실측 대비) 및 실행시간",
+   "결과": "회절 켬/끔 + 최대깊이 2~20 을 쓸어감. «회절 켜고 깊이 20» 을 기준진리로 삼음. 회절을 켜면 깊이 14 넘어서 RMSE 가 평평해짐",
+   "원문확인": true
+  },
+  {
+   "논문": "Saribekyan et al., sim2real positioning (arXiv 2607.04400)",
+   "sionna": "v1.2",
+   "관측량": "측위 정확도",
+   "결과": "생성용은 깊이5·정반사 켬, 보정용은 깊이3·정반사 끔 이라고 두 설정을 «구별해서» 적고 그 불일치를 스스로 한계로 언급",
+   "원문확인": true
+  },
+  {
+   "논문": "Makvandi et al., AdaPTwin 다중충실도 DT (arXiv 2605.21897)",
+   "sionna": "v2.0.1",
+   "관측량": "충실도-비용 절충",
+   "결과": "max_depth(3/6/10)·광선수(1e3/1e4/1e10)·회절 불리언·확산반사 불리언을 «충실도 손잡이» 로 명시적으로 다룸",
+   "원문확인": true
+  }
+ ],
+ "표적산란_드론_ISAC_에서의_상태": {
+  "요지": "표적 산란·RCS·마이크로도플러를 다루는 논문일수록 솔버 스위치를 덜 밝힌다",
+  "사례": [
+   {
+    "논문": "Li et al., Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing (IEEE, Sionna RT)",
+    "등급": "C",
+    "원문확인": true,
+    "메모": "우리 과제와 가장 가까운 논문. 전문에 diffraction·refraction·depth 낱말이 0회. 표I «RT Parameters» 는 파형·OFDM 심볼수·프로펠러 반경·재질만 적는다. 다만 «표적을 향한 원뿔 방향 샘플링» 이라는 광선 발사 개조는 서술한다(값은 없음) — 소형 표적에 광선이 안 맞는 문제를 우리와 똑같이 겪었다는 방증"
+   },
+   {
+    "논문": "LAMBDA 저고도 UAV 멀티모달 데이터셋 (arXiv 2607.03826)",
+    "등급": "C",
+    "원문확인": true
+   },
+   {
+    "논문": "저고도 협력 큐브 CSI (arXiv 2605.07623)",
+    "등급": "C",
+    "원문확인": true,
+    "메모": "PathSolver 를 쓴다고만 적음"
+   },
+   {
+    "논문": "RadarTwin (arXiv 2606.28396)",
+    "등급": "B",
+    "원문확인": true,
+    "메모": "«up to four bounces» 만. 회절·굴절 무언급"
+   },
+   {
+    "논문": "Clutter-Aware ISAC (Proc. IEEE, arXiv 2602.10537)",
+    "등급": "B",
+    "원문확인": true,
+    "메모": "«maximum interaction depth 3» 만"
+   },
+   {
+    "논문": "Ziganshin et al., 이산화 곡면체 산란 (arXiv 2604.05991)",
+    "등급": "B",
+    "원문확인": true,
+    "메모": "회절을 «상술» 하지만 그건 자기들이 UTD·정점회절·이중에지회절을 새로 구현했기 때문. 스톡 스위치를 어떻게 뒀는지가 아니라 커널을 고쳤다는 이야기"
+   },
+   {
+    "논문": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+    "등급": "B",
+    "원문확인": true,
+    "메모": "«RT 도구는 특정 회절 기법 없이는 전방산란 영역을 못 다룬다» 고 명시 — 우리가 본 회절 66 dB 와 같은 쪽 이야기"
+   },
+   {
+    "논문": "Great-X Unreal ISAC (arXiv 2507.08716)",
+    "등급": "C",
+    "원문확인": true
+   },
+   {
+    "논문": "SimART (arXiv 2605.13309)",
+    "등급": "C",
+    "원문확인": true
+   },
+   {
+    "논문": "DMSNet 교차대역 ISAC (arXiv 2607.17655)",
+    "등급": "C",
+    "원문확인": true
+   },
+   {
+    "논문": "Wang et al., Neural ISAC MIMO-OFDM (arXiv 2509.21118)",
+    "등급": "A",
+    "원문확인": true,
+    "메모": "드물게 다 밝힘: 경로샘플 1e5, 최대깊이 5, 반사·산란·회절 모두 고려"
+   }
+  ]
+ },
+ "papers": [
+  {
+   "file": "2303.11103__sionna-rt-founding.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "Compute propagation paths 60 scene.synthetic_array = True 61 paths = scene.compute_paths(max_depth=3, 62 diffraction=True) 63 64 # Compute coverage map 65 cm = scene.coverage_map(max_depth=3",
+     "max_depth=3, 62 diffraction=True) 63 64 # Compute coverage map 65 cm = scene.coverage_map(max_depth=3, 66 diffraction=True) 67 68 # Visualize paths in the 3D preview 69 scene.preview(paths=pa"
+    ],
+    "mech": [
+     "tion paths 60 scene.synthetic_array = True 61 paths = scene.compute_paths(max_depth=3, 62 diffraction=True) 63 64 # Compute coverage map 65 cm = scene.coverage_map(max_depth=3, 66 diffraction=True",
+     "diffraction=True) 63 64 # Compute coverage map 65 cm = scene.coverage_map(max_depth=3, 66 diffraction=True) 67 68 # Visualize paths in the 3D preview 69 scene.preview(paths=paths, coverage_map=cm)"
+    ],
+    "rays": [
+     "high reflection orders, or by a heuristic method. The heuristic method shoots a selected number of rays from the transmitter, whose directions are defined by a Fibonacci lattice on a sphere, which t"
+    ]
+   }
+  },
+  {
+   "file": "2312.11245__wisegrt-indoor-propagation-dataset.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ver Antenna Pattern Isotropic Receiver Antenna Polarization Cross Radio Frequency 2.4 GHz Maximum Interaction 4 Num. of Ray Launched 100,000 Fig. 2. Flow of WiSegRT dataset generation A. Radio Propagat",
+     "ured Sionna to emit 100,000 rays omnidirectionally from the Tx. We set a maximum limit of 4 bounces, meaning that a ray is discarded if it does not reach the Rx after interacting with objec"
+    ],
+    "mech": [
+     "y and conductivity), the incidence angle and the wave polarization. Surface roughness is another critical factor for scattering. By the Rayleigh criterion, if the height of surface irregularities is less than oneeight",
+     "ularities is less than oneeighth of the wavelength, the surface can be considered smooth enough to neglect the scattering effects. In our scenarios, with a carrier frequency of 2.4 GHz corresponding to a wavelen"
+    ],
+    "rays": [
+     "otropic Receiver Antenna Polarization Cross Radio Frequency 2.4 GHz Maximum Interaction 4 Num. of Ray Launched 100,000 Fig. 2. Flow of WiSegRT dataset generation A. Radio Propagation and Ray Tracing S",
+     "g methodologies that can efficiently identify main paths instead of emitting an excessive number of rays and subsequently discarding most of them. Neural networks have demonstrated the ability to mi"
+    ]
+   }
+  },
+  {
+   "file": "2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ution, r 4 m Reflection Enabled Diffraction Enabled Maximum # of reflections/diffractions 8 bounces Total # of rays 7,000,000 BS antenna height (area-specific) max(B) + 5(m) BS antenna type"
+    ],
+    "mech": [
+     "/Value Carrier frequency, f 3.66 GHz Area dimension 512 m×512 m Spatial resolution, r 4 m Reflection Enabled Diffraction Enabled Maximum # of reflections/diffractions 8 bounces Total # of rays 7,000",
+     "uency, f 3.66 GHz Area dimension 512 m×512 m Spatial resolution, r 4 m Reflection Enabled Diffraction Enabled Maximum # of reflections/diffractions 8 bounces Total # of rays 7,000,000 BS antenna heig"
+    ],
+    "rays": [
+     "m Reflection Enabled Diffraction Enabled Maximum # of reflections/diffractions 8 bounces Total # of rays 7,000,000 BS antenna height (area-specific) max(B) + 5(m) BS antenna type Isotropic, Direct"
+    ]
+   }
+  },
+  {
+   "file": "2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+   "sionna_version_stated": [
+    "0.18.0"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "enabled by setting True, and the maximum number of reflections is set to five by defining max_depth = 5. When diffraction is set to True, the model considers up to one diffraction per path with",
+     "nna height 22.0 m (Shin-nakano) 10.5 m (Shibuya) Reflection True Diffuse scattering False Max depth 5 Diffraction True Number of rays 107 Coverage map resolution 1 m × 1 m Coverage map height"
+    ],
+    "mech": [
+     "y data from the OSM or PLATEAU. At arbitrary time intervals, the CIR can be calculated by considering reflections, diffractions, and diffuse scatterings between the gNB, which is fixed at a specific location, and the UE, VOLUME 11",
+     "eflections is set to five by defining max_depth = 5. When diffraction is set to True, the model considers up to one diffraction per path without any reflection. In other words, the combination of reflections and diffr"
+    ],
+    "rays": [
+     "o) 10.5 m (Shibuya) Reflection True Diffuse scattering False Max depth 5 Diffraction True Number of rays 107 Coverage map resolution 1 m × 1 m Coverage map height 1.5 m Scenario interval tint 100"
+    ]
+   }
+  },
+  {
+   "file": "2504.21719__sionna-rt-technical-report-v1.pdf",
+   "sionna_version_stated": [
+    "0.19.2"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "reflection, specular reflection, refraction, and diffraction are enabled, and the maximum depth 𝐿is set to 5. As shown in Figure 15b, using importance sampling leads to better sample efficiency when",
+     "ly at random on a plane parallel to the ground at an elevation of 1.5 meters. The maximum depth 𝐿was set to 5, diffuse reflections were disabled, and the number of samples 𝑁𝑆was set to 106. As observ"
+    ],
+    "mech": [
+     ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31 4.2 Computation of Radio Map without Diffraction . . . . . . . . . . . . . . . . . . . . . . . . . . 33 4.3 Computation of Radio Map due t",
+     "cy of ℓ𝑑on 𝜒(𝐿) is omitted for brevity. The case where ℓ𝑑= 0 corresponds to paths that do not contain any diffuse reflection, known as specular chains. If ℓ𝑑> 0, then the suffix 𝑝(ℓ𝑑:) is referred to as the specula"
+    ],
+    "rays": [
+     "6 elements. In the interface of the Sionna RT built-in path solver, 𝑁𝐵 corresponds to the samples_per_src parameter, and 𝑁𝐻corresponds to max_num_paths_per_src. Practical Consideration: Quantization Functio",
+     "ilt-in path solver, 𝑁𝐵 corresponds to the samples_per_src parameter, and 𝑁𝐻corresponds to max_num_paths_per_src. Practical Consideration: Quantization Function An important practical consideration is th"
+    ]
+   }
+  },
+  {
+   "file": "2507.08611__beyraghi-reconfig-intelligent-base-stations.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "pproach Activated ray types LOS, specular-reflection, diffraction Number of rays 16 × 106 Maxbouncesperray 4, covering both specular-reflection and diffraction Carrier frequency 1.9 GHz baseband equ"
+    ],
+    "mech": [
+     "he TABLE I RAY TRACING PARAMETERS Ray tracing method Fibonacci, shoot-and-bounce approach Activated ray types LOS, specular-reflection, diffraction Number of rays 16 × 106 Maxbouncesperray 4, covering both specular-reflectio"
+    ],
+    "rays": [
+     "acci, shoot-and-bounce approach Activated ray types LOS, specular-reflection, diffraction Number of rays 16 × 106 Maxbouncesperray 4, covering both specular-reflection and diffraction Carrier freq"
+    ]
+   }
+  },
+  {
+   "file": "2507.19653__manukyan-rt-limitations-urban.pdf",
+   "sionna_version_stated": [
+    "1.0.2"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ce max_num_paths_per_src 106 104 Samples per source samples_per_src 106 106 Maximum depth max_depth 3 3 Synthetic array synthetic_array True False Specular reflection specular_reflection True"
+    ],
+    "mech": [
+     "sites. Using these fixed positions we systematically vary the main simulation parameters, including path depth, diffuse/specular/refraction flags, carrier frequency, as well as antenna’s properties like its al",
+     "oom with angle-resolved measurements [11]. They show that default scattering and material models underestimate diffuse energy and angular spread, whereas incorporating Rayleigh-Rice scattering, accurate diele"
+    ],
+    "rays": [
+     "easiest, typical, and the hardest cases of the kNN algorithm. Fig. 2: Sensitivity to the samples_per_src parameter of the PathSolver class of Sionna simulator. x-axis corresponds to base stations. y-axis",
+     "quality of the simulation. Three of these parameters, maximum number of paths per source (max_num_paths_per_src), samples per source (samples_per_src), maximum depth (max_depth), are numeric, and larger"
+    ]
+   }
+  },
+  {
+   "file": "2510.09478__beyraghi-site-specific-ris-deployment.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ency, the ray tracing employs a Fibonacci shoot-and-bounce method with 107 rays per cell, up to four bounces per ray, and it includes specular reflection, diffraction, and scattering. To compute the",
+     "the ray tracing employs a Fibonacci shoot-and-bounce method with 107 rays per cell, up to four bounces per ray, and it includes specular reflection, diffraction, and scattering. To compute the"
+    ],
+    "mech": [
+     "onacci shoot-and-bounce method with 107 rays per cell, up to four bounces per ray, and it includes specular reflection, diffraction, and scattering. To compute the large-scale channel gain between each BS and UE, the set"
+    ],
+    "rays": [
+     "realism and efficiency, the ray tracing employs a Fibonacci shoot-and-bounce method with 107 rays per cell, up to four bounces per ray, and it includes specular reflection, diffraction, and scatte"
+    ]
+   }
+  },
+  {
+   "file": "2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "y types Specular reflection, diffraction, scattering Number of shooting rays 107 per cell Maximum bounces 4 per ray Grid resolution 2 m × 2 m Number of BSs 36 (12 sites, 3 sectors per site) where U",
+     "the first and second bounces of a ray as it propagates through the environment, with the maximum number of bounces limited to four in our ray-tracing configuration. Higher-order reflections (third and fourth) are exclude"
+    ],
+    "mech": [
+     "he Sionna RT engine. When no RIS is present, h only captures the BS-UE propagation paths (including LoS, reflections, diffractions, and scattering). When a RIS is deployed, h also includes the Tx-RIS-Rx paths, in which",
+     "LE II: Ray-tracing parameters Parameter Value Method Fibonacci, shoot-and-bounce approach Ray types Specular reflection, diffraction, scattering Number of shooting rays 107 per cell Maximum bounces 4 per ray Grid resolutio"
+    ],
+    "rays": [
+     "bonacci, shoot-and-bounce approach Ray types Specular reflection, diffraction, scattering Number of shooting rays 107 per cell Maximum bounces 4 per ray Grid resolution 2 m × 2 m Number of BSs 36 (12 sites"
+    ]
+   }
+  },
+  {
+   "file": "2603.15093__mao-beam-prediction-mllm.pdf",
+   "sionna_version_stated": [
+    "0.19.2"
+   ],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": true,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "표: Ray Samples Launched 1e6, Maximum Reflection Order 1. 회절·산란 언급 없음",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "racing Carrier Frequency 28 GHz / 4.9 GHz Antenna Pattern Dipole Ray Samples Launched 106 Maximum Reflection Order 1 Polarization Vertical Frame Duration 10 ms Communication Subcarrier Spacing 120 kHz Numbe",
+     "arrier Frequency 28 GHz / 4.9 GHz Antenna Pattern Dipole Ray Samples Launched 106 Maximum Reflection Order 1 Polarization Vertical Frame Duration 10 ms Communication Subcarrier Spacing 120 kHz Numbe"
+    ],
+    "mech": [
+     "nfall rate r (mm/h): distance perturbation, intensity attenuation, and point dropping. To model the refraction and scattering variance, Gaussian noise is added to the radial distance of each point. Th"
+    ],
+    "rays": [
+     "SS. Parameter Value Ray-tracing Carrier Frequency 28 GHz / 4.9 GHz Antenna Pattern Dipole Ray Samples Launched 106 Maximum Reflection Order 1 Polarization Vertical Frame Duration 10 ms Communication Subca"
+    ]
+   }
+  },
+  {
+   "file": "2606.20098__beyraghi-sitespecific-mimo-diffusion-flow.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "uding their delays, angles, and complex path coefficients. This entails 5 × 106 rays with up to three bounces, and it accounts for LoS propagation, specular reflections, and diffraction. The channel",
+     "their delays, angles, and complex path coefficients. This entails 5 × 106 rays with up to three bounces, and it accounts for LoS propagation, specular reflections, and diffraction. The channel"
+    ],
+    "mech": [
+     "and complex path coefficients. This entails 5 × 106 rays with up to three bounces, and it accounts for LoS propagation, specular reflections, and diffraction. The channel matrix H is then constructed as per (1). Three dataset variants are assemble"
+    ],
+    "rays": [
+     "from the BS, including their delays, angles, and complex path coefficients. This entails 5 × 106 rays with up to three bounces, and it accounts for LoS propagation, specular reflections, and"
+    ]
+   }
+  },
+  {
+   "file": "2607.04400__saribekyan_sim2real-positioning.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "acing and metrics: Propagation is computed with Sionna RT [13] at a carrier of 1.2 GHz, a maximum path depth of 5, and specular plus diffuse reflection, refraction, and lineof-sight all enabled, using 10",
+     "ique to this stage: to save compute, the optimizer uses a lighter solver than generation: path depth 3 with specular reflection disabled, versus depth 5 with specular reflection enabled for Da"
+    ],
+    "mech": [
+     "compute, the optimizer uses a lighter solver than generation: path depth 3 with specular reflection disabled, versus depth 5 with specular reflection enabled for Datasets B and C, so antennas are ca",
+     "generation: path depth 3 with specular reflection disabled, versus depth 5 with specular reflection enabled for Datasets B and C, so antennas are calibrated under somewhat lighter propagation than"
+    ],
+    "rays": [
+     "5, and specular plus diffuse reflection, refraction, and lineof-sight all enabled, using 106 rays per source and at most 104 paths per source with the 3GPP TR 38.901 transmit pattern. Base stations"
+    ]
+   }
+  },
+  {
+   "file": "2403.12289__bostontwin.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": true,
+   "note": "표: Reflection ✓ / Refl. Order 3 / Diffraction ✓ / Scattering ✗ / Launch Rays 1e6 / Sampling Fibonacci",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "Station Height 10 m Ant. Array 4 × 4 Ant. Pattern tr38901 [1, 20] Ray Tracer Reflection ✓ Refl. Order 3 Diffraction ✓ Scattering ✗ Launch Rays 106 Sampling Fibonacci Req. XR 30 Mbps[3, 17] Vehi"
+    ],
+    "mech": [],
+    "rays": [
+     "Pattern tr38901 [1, 20] Ray Tracer Reflection ✓ Refl. Order 3 Diffraction ✓ Scattering ✗ Launch Rays 106 Sampling Fibonacci Req. XR 30 Mbps[3, 17] Vehicle-to-Everything (V2X) 700 Mbps [2] incons"
+    ]
+   }
+  },
+  {
+   "file": "2501.06945__tadik-opengert-geometry-extraction.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": true,
+   "note": "«LOS, up to 5 reflections, diffraction and edge diffraction, no scattering, 1 million samples» — 한 줄에 전부",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "aterials 10 % of the Initial Value Coverage Map & Path Configuration Line-of-sight (LOS), up to 5 reflections, diffraction and edge diffraction, no scattering, 1 million samples TABLE I: Scene & Pert"
+    ],
+    "mech": [
+     "Configuration Line-of-sight (LOS), up to 5 reflections, diffraction and edge diffraction, no scattering, 1 million samples TABLE I: Scene & Perturbation Configuration Parameters III. RESULTS &",
+     "es 6c and 6f however do not follow the same monotonically increasing trend with distance. Without scattering, and with a cap of five reflections per ray, the complexity of multipath propagation is i"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2502.10324__lee-coverage-channelrank-prediction.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "GHz aBS Height of base stations 10 m TLW Target area of Lake Wheeler 1080 m × 2130 m Nref Maximum number of reflections 2 Nele Number of antenna elements 4 (TX and RX) ∆tx Element spacing for TX antennas 0.5λ ∆r"
+    ],
+    "mech": [
+     "Height of base stations 10 m TLW Target area of Lake Wheeler 1080 m × 2130 m Nref Maximum number of reflections 2 Nele Number of antenna elements 4 (TX and RX) ∆tx Element spacing for TX antennas 0.5λ ∆r"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ial itu_concrete is used to model the permittivity and conductivity of all buildings. The maximum number of reflections and diffractions are set to 5 and 1, respectively. The total large-scale channel gain Gb,k is then obtained from the om"
+    ],
+    "mech": [
+     "ial itu_concrete is used to model the permittivity and conductivity of all buildings. The maximum number of reflections and diffractions are set to 5 and 1, respectively. The total large-scale channel gain Gb,k is then obtained from the"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+   "sionna_version_stated": [
+    "1.2.0"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "표: Reflections Specular+Diffused / Refractions Yes / Maximum Interactions 5 (v1.2.0)",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "aterial Wood [27] Cars Material Metal [27] Reflections Specular, Diffused Refractions Yes Maximum Interactions 5 Type of Antennas Isotropic Polarization Vertical Tx and Rx Height [m] 1.8 black box. The"
+    ],
+    "mech": [
+     "ldings and Roads Material Concrete [27] Trees Material Wood [27] Cars Material Metal [27] Reflections Specular, Diffused Refractions Yes Maximum Interactions 5 Type of Antennas Isotropic Polarization",
+     "ete [27] Trees Material Wood [27] Cars Material Metal [27] Reflections Specular, Diffused Refractions Yes Maximum Interactions 5 Type of Antennas Isotropic Polarization Vertical Tx and Rx Height"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ial itu_concrete is used to model the permittivity and conductivity of all buildings. The maximum number of reflections and diffractions is set to 5 and 1, respectively. SINR formulation: We compute the downlink wideband SINR in dB experi"
+    ],
+    "mech": [
+     "ial itu_concrete is used to model the permittivity and conductivity of all buildings. The maximum number of reflections and diffractions is set to 5 and 1, respectively. SINR formulation: We compute the downlink wideband SINR in dB expe"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2507.11064__ryu-dmrs-allocation-temporal-channel-prediction.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": true,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "e subframe corresponds to a single slot. The maximum number of rays was set to 20, with a maximum ray depth of 4 and a bandwidth of 100 MHz. To emulate practical estimation errors, we added Gaussian noi"
+    ],
+    "mech": [],
+    "rays": [
+     "erology is fixed to N=1, such that one subframe corresponds to a single slot. The maximum number of rays was set to 20, with a maximum ray depth of 4 and a bandwidth of 100 MHz. To emulate practical"
+    ]
+   }
+  },
+  {
+   "file": "2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+   "sionna_version_stated": [
+    "0.18.0"
+   ],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "rs required for our comparisons. In our experiments, we employed Sionna RT v0.18.0, which accounts for specular reflection, diffraction and diffuse scattering interaction types with the environment. Sionna RT relies on the Mitsuba 3 [34]",
+     "types: for grid-based simulations, 16 Table 1: Ray tracing simulation parameters. For the interaction types, R stands for reflection, D for diffraction and DS for diffuse scattering. Simulation parameter Value Carrier frequency 28 GHz BS hei"
+    ],
+    "rays": [
+     "as been used for ray tracing to list the initial candidate path directions (i.e., a fixed number of rays is propagated towards a discrete set of directions at the Tx), this is consistent with the l"
+    ]
+   }
+  },
+  {
+   "file": "2511.03220__multimodal-wireless.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": true,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "racing Carrier Frequency 28 GHz / 4.9 GHz Antenna Pattern Dipole Ray Samples Launched 106 Maximum Reflection Order 1 Polarization Vertical Communication Subcarrier Spacing 120 kHz Number of Subcarriers 1024",
+     "arrier Frequency 28 GHz / 4.9 GHz Antenna Pattern Dipole Ray Samples Launched 106 Maximum Reflection Order 1 Polarization Vertical Communication Subcarrier Spacing 120 kHz Number of Subcarriers 1024"
+    ],
+    "mech": [],
+    "rays": [
+     "SS. Parameter Value Ray-tracing Carrier Frequency 28 GHz / 4.9 GHz Antenna Pattern Dipole Ray Samples Launched 106 Maximum Reflection Order 1 Polarization Vertical Communication Subcarrier Spacing 120 kHz"
+    ]
+   }
+  },
+  {
+   "file": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+   "sionna_version_stated": [
+    "1.2.1"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "Fig. 2: Evaluation of ray tracing performance by comparing with actual measurement data. maximum interaction depth of 20. Three sources of misconfiguration were evaluated independently: (i) material properties,",
+     "evaluate accuracy using the RMSE metric. The configuration with diffraction enabled and a maximum depth of 20 is used as the ground truth (maximum configuration). All other configurations are compare"
+    ],
+    "mech": [
+     "itivity analysis using Sionna RT. A total of 100 randomized scenarios were simulated with diffraction enabled and a TABLE I: Measurement Setup and Equipment TX RU Ettus USRP X410 Amplifier Minicircui",
+     "ion, native 0.10 0.15 0.20 0.25 0.30 Elapsed Time (s) 0.0 2.5 5.0 7.5 10.0 12.5 15.0 RMSE Diffraction Enabled Diffraction Disabled Fig. 6: Root Mean Squared Error (RMSE) versus runtime for varying ra"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«maximum interaction depth 3» 만. 나머지 상용구",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "he external source and the receiver through environmental interactions (as before, with a maximum interaction depth of three). Despite this stronger 26 -0.2 -0.15 -0.1 -0.05 0 0.05 0.1 0.15 0.2 Normalized Doppler -",
+     "l source. The maximum interaction depth for Sionna is set to three, so each ray undergoes at most three interactions with scene objects. In Fig. 6, colored line segments show rays arriving at the BS, with t"
+    ],
+    "mech": [
+     "practical limitation lies in requiring accurate SNR information, which depends on the unknown scattering coefficients. Remark 2 (Pilot-only probing). In pilot-only operation, sensing is confined",
+     "deling, typically employing log-normal or Weibull distributions, can complement geometric models for residual diffuse scattering, particularly in environments with diverse materials. 3) UAV and Aerial Platfo"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2604.14869__schepens-subthz-radiostripe-simulator.pdf",
+   "sionna_version_stated": [
+    "1.2.1"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«PathSolver with LoS enabled, depth 5, specular reflections and refraction, disabling diffuse scattering» (v1.2.1)",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ns Sionna’s PathSolver with line-of-sight enabled and a finite interaction depth (default maximum depth 5), including specular reflections and refraction while disabling diffuse scattering. The r"
+    ],
+    "mech": [
+     "tion depth (default maximum depth 5), including specular reflections and refraction while disabling diffuse scattering. The resulting set of multipath components is converted to a channel frequency response (",
+     "lver with line-of-sight enabled and a finite interaction depth (default maximum depth 5), including specular reflections and refraction while disabling diffuse scattering. The resulting set of multipath components is converted to a channel frequency"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.08772__zhou-fidelity-site-specific-dt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": true,
+   "note": "표: Samples per Tx 1e6 / Maximum interaction depth 3 / Enabled propagation effects: LoS, specular reflection",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "n TR 38.901 Polarization Vertical Rx height offset 1.5 m above terrain Samples per Tx 106 Maximum interaction depth 3 Enabled propagation effects LoS, specular reflection Coverage threshold -80 dB component,",
+     "901 Polarization Vertical Rx height offset 1.5 m above terrain Samples per Tx 106 Maximum interaction depth 3 Enabled propagation effects LoS, specular reflection Coverage threshold -80 dB component,"
+    ],
+    "mech": [],
+    "rays": [
+     "ngth Antenna pattern TR 38.901 Polarization Vertical Rx height offset 1.5 m above terrain Samples per Tx 106 Maximum interaction depth 3 Enabled propagation effects LoS, specular reflection Coverage"
+    ]
+   }
+  },
+  {
+   "file": "2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+   "sionna_version_stated": [
+    "2.0.1"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": true,
+   "note": "표: Max Depth 1-10, Sample Rays/Source 1e2-1e6; 본문에 저·중·고 충실도 = 깊이 3/6/10, 광선 1e3/1e4/1e10; 회절·확산반사 불리언",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "of Channel Prediction and RRM Engines Parameter Value Prediction Horizon 1 s Ray Tracing Max Depth 1 - 10 No. of Sample Rays per Source 102 - 106 Max No. of Paths per Source 103 - 107 No. of"
+    ],
+    "mech": [
+     "ity ground-truth data using AdaPTwin with the maximum realism settings (high-poly meshes, diffraction enabled, dense ray sampling). The cloud also executes the RRM optimization solver (described in P",
+     "for channel reconstruction (sparsity control). 4) Diffuse Reflection (𝐷𝑅): A boolean flag enabling scattering from rough surfaces based on the Lambertian model. 5) Diffraction (𝐷): A boolean flag ena"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«depth 8, edge diffraction and scattering enabled, path types LOS/specular/diffuse/refraction»",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ion result after LiDARguided regularization. The carrier frequency is 28 GHz, the maximum depth is set to 8, edge diffraction and scattering are enabled, and the path types include LOS, specular re"
+    ],
+    "mech": [
+     "ion. The carrier frequency is 28 GHz, the maximum depth is set to 8, edge diffraction and scattering are enabled, and the path types include LOS, specular reflection, diffuse reflection, and refractio",
+     "GHz, the maximum depth is set to 8, edge diffraction and scattering are enabled, and the path types include LOS, specular reflection, diffuse reflection, and refraction. In the experiments, the transmitter and receiver positions ar"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.03411__s-icdf.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "N Parameter ϵa ϵe ϵa ϵe ϵa ϵe Default parameter setting: Array layout: 2×2, Gain: dipole, Reflection depth = 5, Refraction = False, Spacing: 0.09 m 0.84 2.26 0.78 2.27 0.82 2.23 Array layout: 8×1 13.1",
+     "in: hw dipole 0.85 2.27 0.79 2.27 0.83 2.23 Gain: TR 38.901 1.86 3.51 1.46 3.51 1.62 3.46 Reflection depth = 2 2.35 3.53 1.70 3.61 2.08 3.43 Refraction = True 0.75 1.98 0.67 1.98 0.74 1.96 Antenna dis"
+    ],
+    "mech": [
+     "e ϵa ϵe Default parameter setting: Array layout: 2×2, Gain: dipole, Reflection depth = 5, Refraction = False, Spacing: 0.09 m 0.84 2.26 0.78 2.27 0.82 2.23 Array layout: 8×1 13.19 - 13.19 - 2.60 - G",
+     "R 38.901 1.86 3.51 1.46 3.51 1.62 3.46 Reflection depth = 2 2.35 3.53 1.70 3.61 2.08 3.43 Refraction = True 0.75 1.98 0.67 1.98 0.74 1.96 Antenna distance: 0.05 m 1.22 47.95 1.16 5.41 1.20 5.33 Ant"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "위 논문의 게재판(중복)",
+   "excluded": "duplicate_of:2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "evidence": {
+    "depth": [
+     "he external source and the receiver through environmental interactions (as before, with a maximum interaction depth of three). Despite this stronger and more diffuse interference footprint, STAP in Fig. 11(b) still",
+     "l source. The maximum interaction depth for Sionna is set to three, so each ray undergoes at most three interactions with scene objects. In Fig. 6, colored line segments show rays arriving at the BS, with t"
+    ],
+    "mech": [
+     "practical limitation lies in requiring accurate SNR information, which depends on the unknown scattering coefficients. Remark 2 (Pilot-Only Probing): In a pilot-only operation, sensing is confin",
+     "deling, typically employing log-normal or Weibull distributions, can complement geometric models for residual diffuse scattering, particularly in environments with diverse materials. 3) UAV and Aerial Platfo"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2311.18558__hoydis_learning-radio-env.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "measurements as well as modelling errors in the RT process. For example, we have entirely ignored refraction in Section IV-C, which certainly plays an important role in our indoor scenario. • The ad",
+     "t for an ultra-wideband (UWB) system in an indoor scenario. The idea has been extended to account for diffuse reflections in [26] and used in [27] for the calibration of a high-speed railway scenario"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2409.17738__shabanpour-physically-consistent-ris.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": true,
+   "note": "«maximum of six ray bounces and trace 1e7 random rays, accounting for LoS, reflection, scattering, and diffraction»",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": [
+     "R P.2040-2 recommendation [11]. Our simulations consider a maximum of six ray bounces and trace 107 random rays, accounting for line-of-sight propagation, reflection, scattering, and diffraction. The R"
+    ]
+   }
+  },
+  {
+   "file": "2411.12284__amatare-dt-radar-robot-navigation.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ths function in Sionna to generate ray-traced data and produce propagation map by setting max-depth = 5 and num-samples = 200. Overall, our Sionna based implementation ensures improved computat"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2412.20524__ns3-meets-sionna.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "Sionna RT 일반 소개(«장차 굴절 추가 예정»)뿐",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "onmental structures. [9] Future developments of Sionna RT plan to integrate additional phenomena such as refraction to further increase the physical accuracy [9]. In summary, Sionna RT provides a tool for",
+     "acing with Markov chains: ray tracing is employed to compute the mean propagation loss by accounting for signal reflections and diffractions caused by objects in the environment, while Markov chains model the time-varying effects"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+   "sionna_version_stated": [
+    "0.19.1"
+   ],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«accounting for reflection, diffraction, diffuse scattering» (약한 선언)",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "testing purposes, every vehicle was supposed to be Connected and Autonoums Vehicle (CAV). accounting for key propagation interactions such as reflection, diffraction, and diffuse scattering within the environment. It employs techniques from differentiable"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2503.04860__hieu-human-pose-6g-xr.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "5.0 dB to 16.0 dB [19] Number of CIRs 11,796 Number of 3D Maps 2 (Munich and Detoile) Ray Tracing Depth 5 (maximum reflections/refractions) Ray Tracing Paths 75 paths (max) Path Gain Range -130 d",
+     "ge -5.0 dB to 16.0 dB [19] Number of CIRs 11,796 Number of 3D Maps 2 (Munich and Detoile) Ray Tracing Depth 5 (maximum reflections/refractions) Ray Tracing Paths 75 paths (max) Path Gain Range -130 d"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2504.05035__chege-position-aided-beam-selection.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "«a number of rays» 정성 서술뿐",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": [
+     "resulting in a rich and complex propagation environment. The ray tracing tool simulates a number of rays, each corresponding to the various propagation paths between the BS and each UE position."
+    ]
+   }
+  },
+  {
+   "file": "2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "표: Number of reflections 6, Number of diffractions 1",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "e are generated using ray-tracing tools such as Wireless Insite2 and Sionna3. These tools model electromagnetic wave interactions, such as reflections, diffractions, and scattering, with real-world 3D geometries. The simulations account for material pro",
+     "mum interval units ∆y = 2m tracing models the interactions of waves with the environment, including reflections and diffractions. This high level of fidelity ensures that the generated channel data is reliable, provid"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2507.08716__great-x_unreal-isac.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "반사·굴절 «수식» 해설이지 설정 선언 아님",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "\u0014Et,⊥ Et,∥ \u0015 = \u0014t⊥ 0 0 t∥ \u0015 W \u0000ˆei,⊥, ˆei,∥, ˆei,s, ˆei,p \u0001 \u0014Ei,s Ei,p \u0015 . (7b) In the phenomenon of scattering, when an electromagnetic wave is incident on a surface, some of the energy is reflected."
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«include diffraction and up to four orders of specular reflection»",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "erage behavior across many statistical realizations, but cannot reproduce sitespecific phenomena such as corner diffraction, street-canyon blockage, or deterministic line-of-sight conditions and angle-ofdeparture/",
+     "-level wireless simulation. Sionna RT extends it with GPU-accelerated 3D ray tracing that models reflection, diffraction and scattering under both LOS and NLOS conditions. To feed ns-3, we built a lightweight p"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2508.14507__deeptelecom-digital-twin-dataset.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«maximum interaction depth Nmax» 기호만, 값 없음",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "d on interaction depth and power thresholds). It accurately models key physical phenomena-including reflection, transmission, and diffraction-and records all significant path interactions to produce physically-grounded channel data",
+     "arest intersection (greedy strategy) for the next interaction. The corresponding physical model of reflection, transmission, or diffraction is then applied at that point, and the precise coordinates and phase of the interaction a"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2509.01197__xu-fingerprint-positioning-imperfections.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "도구 소개 상용구",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "sical-layer modeling for wireless channel simulations through differentiable ray tracing, accounting for phenomena such as reflection, diffraction, and scattering. Mitsuba 3 handles scene rendering and processing, calculating intersecti"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": true,
+   "tier": "A",
+   "hand_checked": true,
+   "note": "«path samples 1e5, maximal depth 5. reflection, scattering, and diffraction effects are considered»",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "o 75. The number of path samples for the Sionna ray tracer is set to 105, and the maximal depth is set to 5. The reflection, scattering, and diffraction effects are considered in CIR generation. Th"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2511.07789__zhu-invehicular-channel-dt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "측정 클러스터링 서술",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "elay is illustrated in Fig. 6. The CDF curves are used to construct a statistical channel model, in which MPCs generated by diffuse scattering are grouped into clusters that correspond one-to-one with deterministic paths."
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+   "sionna_version_stated": [
+    "0.19.2"
+   ],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "all propagation phenomena, except penetrations. The high-density scenario in Task 2 does not include scattering events, only diffraction and reflections. B. Preprocessing and normalization Common setti",
+     "propagation phenomena, except penetrations. The high-density scenario in Task 2 does not include scattering events, only diffraction and reflections. B. Preprocessing and normalization Common settings: For all experiments,"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+   "sionna_version_stated": [
+    "0.18.0"
+   ],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "sses 18 dB 2, considering both line-of-sight (LoS) and non-line-of-sight (NLOS) paths. We enable reflection and disable diffraction and scattering during the ray tracing, to trade off accuracy and computation complexity."
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2601.18242__kang_vlm-material-estimation.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": true,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«launches Uray = 5000 rays ... ray-tracing depth D = 4», 깊이 어블레이션 표 있음",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": [
+     "s), indicating that the computational cost of each optimization step scales well with the number of rays. Similar to the trend observed for RT depth, a larger number of rays leads to faster conve",
+     "scales well with the number of rays. Similar to the trend observed for RT depth, a larger number of rays leads to faster convergence in terms of iterations and yields significantly lower MRE, demonstr"
+    ]
+   }
+  },
+  {
+   "file": "2603.00795__sari-titan-twin-topology-lawn.pdf",
+   "sionna_version_stated": [
+    "1.2"
+   ],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "eB Antenna Array 4 × 4 Planar Array UE Antenna Array Single-element isotropic Ray-Tracing Max Depth 8 Samples per Antenna 106 Scheduler Proportional Fair (PF) Precoding Regularized Zero-Forci"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2603.16126__luo-wireless-dt-calibration-dft.pdf",
+   "sionna_version_stated": [
+    "0.19.2"
+   ],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«반사 6 / 회절 1, 확산산란 켬»",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "a building at the top right corner, and the user grid is highlighted by the red box. and enabled diffuse scattering. Second, the baseline scenario serves a low-fidelity digital twin, utilizing Sionna RT [8"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2603.28736__deterministic-modeling-isac-dt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«interaction order captures dominant specular plus first-order diffuse» (약한 선언)",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "close agreement to measurements. These findings confirm that accurate geometry, material modeling, antenna patterns, and diffuse scattering are essential for realistic high-frequency ISAC simulation. By bridging the ga",
+     ", no. 6, pp. 3389-3398, 2021. [6] Y. Yaman and P. Spasojevic, “A ray-tracing intracluster model with diffuse scattering for mmwave communications,” IEEE Antennas and Wireless Propagation Letters, vo"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+   "sionna_version_stated": [
+    "0.19"
+   ],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "finitely long in the analytical solution, while in the simulations, they are chosen long enough so that diffraction over the top and bottom parts does not significantly affect the results. The setup follow",
+     "nts placed behind the object. The results are in Fig. 1b. When only vertex and doubleedge diffraction are considered (V+EE), the predicted field exhibits noticeable discrepancies with respect to the full-"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.10352__sionna-rt-kpi-deviations-oai-testbed.pdf",
+   "sionna_version_stated": [
+    "1.2.1"
+   ],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "defined ITU material in Sionna, which is plasterboard. The ray tracer has been set with a maximum depth of 6, allowing at most rays that have been reflected six times. This is to limit both the comp"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.13309__simart.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "메쉬 단순화 정당화 문장이지 솔버 설정 아님",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "ch fine details would significantly increase computational cost while contributing only minor diffuse scattering, with limited impact on the dominant specular and edge-diffraction paths. To preserve ele"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.17988__reciprocal-effective-roughness-diffuse-scattering.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "확산산란(ER) 모델 논문. Sionna 스위치 자체는 무언급",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "advantage of the ER family is that DS is controlled by only a few parameters such as the normalized scattering coefficient S ∈[0, 1] that takes into account scattering intensity, and the exponential f",
+     "to its maximum at ϑi = 0◦) (9) as a function of ϑi, highlighting the p cos(ϑi) trend; b) Normalized scattering function (8) for different exponential values αR (ϑi = 75◦); c) Ratio between the closed"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "동상",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "ose net effect is a redistribution of the incident power in non-specular directions, a phenomenon known as Diffuse Scattering (DS). G. Melloni, J. Chuang, S. Berweger, C. Gentile and N. Golmie are with the Communica",
+     "mework, we provide the first measurementdriven validation of the Effective Roughness (ER) model with independent characterization of diffuse scattering across ten common building materials, each measured over 266 angular configura"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.04770__qiao-wiser-wireless-scene-encoder.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "상용구. 단 «켠 전파 메커니즘은 데이터셋 메타데이터에 저장» 이라 적고 본문엔 값을 안 씀",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "e [1]- [3]. In contrast, deterministic ray-tracing and digital-twin simulators explicitly model geometry, materials, blockage, reflection, diffraction, scattering, and transmitter and receiver placement, and can therefore generate physicall"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.25714__jiang-csi-clip-channel-foundation-model.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "base-station-to-user distance of 200 m. The carrier frequency is set to 3.5 GHz, and the maximum number of ray interactions is set to 4. The etoile scenario consists of one base station with three directional sectors, denoted"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.28396__radartwin.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "ng aspect, and surface roughness, which broadens otherwise specular reflections. We trace up to four bounces, so each simulated frame contains both direct object reflections and room-specific multip",
+     "position and Fresnel reflection is evaluated at every ray-surface intersection, recursing up to four bounces. The four-bounce limit is validated empirically rather than by a fixed per-bounce budget."
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.08141__ali-genai-dt-interference-mgmt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "«SBR tracer models LoS, reflections (up to 5 bounces), diffraction, and diffuse scattering»",
+   "excluded": null,
+   "evidence": {
+    "depth": [
+     "UEs (≈10 per zone) under CoMP WC-ZF beamforming. The SBR tracer models LoS, reflections (up to 5 bounces), diffraction, and diffuse scattering. Two rare-event classes are injected: (i) mobility",
+     "≈10 per zone) under CoMP WC-ZF beamforming. The SBR tracer models LoS, reflections (up to 5 bounces), diffraction, and diffuse scattering. Two rare-event classes are injected: (i) mobility"
+    ],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.09334__delmoro-site-geometry-calibration-dt-ce.pdf",
+   "sionna_version_stated": [
+    "0.18.0"
+   ],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "도구 소개 상용구",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "t relevant parameters of the dominant multipath components for given BS and UE positions, accounting for reflection, diffraction, and diffuse scattering. Compared to purely data-driven approaches, RT leverages a priori knowledge gr"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": "duplicate_of:2311.18558__hoydis_learning-radio-env.pdf",
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "measurements as well as modelling errors in the RT process. For example, we have entirely ignored refraction in Section IV-C, which certainly plays an important role in our indoor scenario. • The ad",
+     "t for an ultra-wideband (UWB) system in an indoor scenario. The idea has been extended to account for diffuse reflections in [26] and used in [27] for the calibration of a high-speed railway scenario"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": true,
+   "note": "표I은 파형·프로펠러 형상·재질만. diffract/refract/depth 낱말 0회. 광선 언급은 «표적에 맞는 광선이 줄어든다» 는 정성 서술",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": [
+     "n. III. RAY TRACING STRATEGY Fig. 2. Ray tracing strategy. Under the condition of a fixed number of rays, as the distance between the target and the transmitter gradually increases, the number of",
+     "of rays, as the distance between the target and the transmitter gradually increases, the number of rays that collide with the target gradually decreases until it approaches zero. At this point, Dopp"
+    ]
+   }
+  },
+  {
+   "file": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [
+     "the overestimated field before the LOS/NLOS transition at 150165 degrees. The RT tool cannot address the forward scattering region without specific diffraction methods, as we have seen in the previous examples. Th",
+     "OS transition at 150165 degrees. The RT tool cannot address the forward scattering region without specific diffraction methods, as we have seen in the previous examples. The results for the second case are pr"
+    ],
+    "rays": []
+   }
+  },
+  {
+   "file": "Sionna RT 드론 ISAC 연구.pdf",
+   "sionna_version_stated": [
+    "0.19"
+   ],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": true,
+   "tier": "B",
+   "hand_checked": false,
+   "note": "",
+   "excluded": "not_a_paper: 사람이 쓴 논문이 아니라 한국어 AI 조사보고서(각주 번호만 있고 서지 없음)",
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": [
+     "기체 표면을 빗나가는 광선 탐색 유실 현상(Ray-tracing Path Missing)을 보인다21. 이는 레이트레이싱 론칭 시 발사되는 기본 광선 다발 수(num_samples)가 미세한 표적에 충분히 도달하지 못해 발생하는 물리적 샘플링 단절 문제이다21. 이 현상은 다음 세 가지 엔지니어링 절차를 통해 최적화될 수 있다21. 1.​ 지"
+    ]
+   }
+  },
+  {
+   "file": "2203.11854__sionna-library-founding.pdf",
+   "sionna_version_stated": [
+    "0.8.0"
+   ],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2212.07816__duidd-mimo-detection-decoding.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2312.02239__yassine-mbdl-beam-prediction-cc.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2407.15473__pyjama-differentiable-jamming.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2409.02912__wiesmayr-realtime-neural-receiver-5gnr.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2501.17881__rayloc.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2503.20500__karakoca-neural-ofdm-llr.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2505.15478__zhu-realtime-los-identification-dt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2505.16132__wang-codebook-aware-ckm.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2510.17342__ceresoli-aoa-services-5g.pdf",
+   "sionna_version_stated": [],
+   "states_depth": true,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "반사 차수 1/3/5 를 쓸어가며 비교(값 명시)",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2601.15557__jia-distributed-uplink-antijamming-leo.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2601.20795__iudice-stacked-intelligent-metasurfaces-sdr.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2603.13094__amorosa-goaloriented-edge-gnn.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2603.14661__barker-atlasran-timing-5g-eval.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2604.12888__stenhammar-network-dt-framework.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2604.13500__aboushehada-autoencoder-csi-compression-wifi8.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2604.17929__karakelle-rt-digital-twin-ris-phase.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.02149__marl-prb-power-allocation-5g.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2605.29772__ariadne-airan-link-adaptation-dt.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.07900__cellsense.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.12293__mefgouda-llm-dt-network-intelligence.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": true,
+   "states_ray_count": false,
+   "tier": "B",
+   "hand_checked": true,
+   "note": "synthetic_array=False(근거리)/True(원거리) 명시. 회절·굴절은 무언급",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.03826__lambda-uav-dataset.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.11064__kim_wifi-jepa-csi-pose.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.11429__tarazonalevano-setgan-multipath.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.13692__giovannini-proactive-urllc-vehicles.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  },
+  {
+   "file": "2607.17655__dmsnet-crossband-multiband-isac.pdf",
+   "sionna_version_stated": [],
+   "states_depth": false,
+   "states_mechanisms": false,
+   "states_ray_count": false,
+   "tier": "C",
+   "hand_checked": false,
+   "note": "",
+   "excluded": null,
+   "evidence": {
+    "depth": [],
+    "mech": [],
+    "rays": []
+   }
+  }
+ ]
+}

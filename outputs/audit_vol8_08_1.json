@@ -1,0 +1,192 @@
+{
+ "_meta": {
+  "generated": "2026-08-12 04:55:44",
+  "auditor": "Claude subagent (읽기 전용 · GPU 안 씀 · git 안 씀)",
+  "question_ko": "8 권의 각 절이 실제로 두 엔진 팔(Sionna PathSolver / 우리 SBR+PO)을 다 돌렸는가, 아니면 한 팔만 돌리고 두 팔인 것처럼 서술했는가",
+  "unit": "reports/08_1_scene.ipynb",
+  "notebook_shape": {
+   "cells": 5,
+   "cell_types": [
+    "markdown",
+    "markdown",
+    "markdown",
+    "markdown",
+    "markdown"
+   ],
+   "markdown_chars_excl_base64": 3363,
+   "numbered_sections": 0,
+   "headings": [
+    "표적이 실제로 무엇을 하고 있나",
+    "배치 — 무엇이 어디에 있나",
+    "경로 렌더 — Sionna 가 실제로 찾은 것",
+    "이 편이 서 있는 자리"
+   ],
+   "outputs_json_citations_in_text": 0,
+   "has_source_block": false,
+   "has_reproduce_block": false,
+   "has_figure_provenance_appendix": false
+  },
+  "builder": "src/make_report08_microdoppler.py :: build_08_1() (555–655 행)",
+  "arms_definition_ko": {
+   "PathSolver": "Sionna 레이트레이싱. (a,τ) 를 낸다. 원장 표식: spp / samples_per_src / npaths / paths_median. 원장 자기서술: report07_three_engines.json:engines.sionna.engine = 'Sionna PathSolver, h = Σ a·exp(−j2πf·τ)'",
+   "ours_SBR_PO": "SBR(가림) + 물리광학. 원장 표식: 격자 div/spacing/rays_per_pose/n_lit_mean. 자기서술: engines.sbr.engine = '우리 SBR (가림 + 각도의존 Γ)'",
+   "pure_PO": "⭐셋째 팔. 가림 없음 · 광선 격자를 안 쓴다(점구름 면적분). 자기서술: engines.po.engine = '우리 순수 PO (가림 없음)' · engines.po.recomputed_ko = '이 열은 광선 격자와 무관하다'"
+  }
+ },
+ "verdict_summary_ko": "08_1 은 **결과 편이 아니다** — σ·스펙트럼·검출 수치가 하나도 없다. 팔이 실제로 등장하는 자리는 셀 3(경로 렌더) 하나뿐이고, 거기서는 PathSolver 의 경로 수와 우리 SBR 팔의 광선·조명점 수가 **나란히** 놓여 있다. 그러나 그 비교의 PathSolver 쪽 숫자(9 가닥·분모 10)는 **원장이 없다** — 빌더에 손으로 박혀 있고, 노트북 자신이 «원장 파일이 아직 없다» 고 자백한다. 또한 셋째 팔(순수 PO · 가림 없음)은 이 편에 이름조차 없어 «우리 SBR+PO» 한 덩어리로 지워져 있다. 즉 «한 팔로 재고 두 팔처럼 서술» 한 자리는 없지만, «두 팔을 나란히 놓았는데 한쪽이 원장 밖» 인 자리와 «세 팔 중 하나를 안 세운» 자리가 있다.",
+ "sections": [
+  {
+   "section": "«절 없음» · 셀 0",
+   "title": "표제 — 리포트 8-1 마이크로도플러: 무엇을 보고 있나 (+ LEDGER_NOTE)",
+   "arms_used": [
+    "none"
+   ],
+   "ledger": "없음 — 인용 0 건. 문장 «⭐ 숫자는 전부 계산 결과 JSON(원장)에서 주입된다» 는 src/make_report08_microdoppler.py:548 의 LEDGER_NOTE 상수",
+   "verdict": "엔진_무관",
+   "note": "안내·표제만. 팔 없음. 단 «숫자는 전부 원장에서 주입된다» 는 셀 3 에서 거짓이 된다(아래 셀 3 항목 참조)."
+  },
+  {
+   "section": "«절 없음» · 셀 1",
+   "title": "표적이 실제로 무엇을 하고 있나 (호버 애니메이션 GIF)",
+   "arms_used": [
+    "none"
+   ],
+   "ledger": "outputs/report07_anim.json — _meta.{name, range_m=3.0, az_deg=0.0, el_deg=-15.0}, rotors.rpm_mean=3800.0, loop.{n_frames=96, n_periods=8, blade_deg_per_frame=15.0, frame_delay_ms=30, loop_real_ms=63.1579, slowmotion_factor=45.6, seam_mismatch_deg=3.168}. render.engine='Sionna RT scene.render_to_file (Mitsuba path tracer)'",
+   "verdict": "엔진_무관",
+   "note": "이 원장은 **렌더 원장**이다 — 경로해도 산란적분도 없다. spp(992/1024)가 있지만 그건 path tracer 의 화소 표본이지 PathSolver 의 광선 예산이 아니다. 본문 숫자 전부가 원장과 일치했다(46 배 ← 45.6, 3.2° ← 3.168, 63 바퀴 ← 3800/60)."
+  },
+  {
+   "section": "«절 없음» · 셀 2 (앞)",
+   "title": "배치 — 무엇이 어디에 있나 (기하·운동학 표)",
+   "arms_used": [
+    "analytic"
+   ],
+   "ledger": "표의 7 칸 전부 확인: 기체·자세 ← report15b_microdoppler.json:cells.'matrice4e/belly'.{name, az_deg=0.0, el_deg=-15.0} / 반송파 3.50 GHz ← report07_three_engines.json:_meta.fc_hz=3.5e9 / 3800 rpm·1230 Hz·126.7 Hz ← 같은 셀 .physics.{rpm=3800.0, f_tip=1229.5718, f_flash=126.6667} (플래시 7.9 ms = 1000/f_flash) / 원거리장 8.3 m ← report00_microdoppler.json:rows[drone='matrice4e'].farfield_m=8.2591 / D 0.59·0.78 m·14.1 m ← report15_probe.json:airframes.matrice4e.physics.{D_horizontal_m=0.59474, D_diag3d_m=0.77643, farfield_diag3d_m=14.076}",
+   "verdict": "엔진_무관",
+   "note": "값은 전부 닫힌 식(회전수→날개끝 도플러·블레이드 통과율, 2D²/λ)이라 팔과 무관하다. 출처 원장 둘(report15b·report07_three_engines)은 팔 결과를 담고 있지만 이 편은 그 팔 값을 **안 쓴다** — 라벨과 운동학 칸만 빌린다. 다만 본문에 파일명이 하나도 없다."
+  },
+  {
+   "section": "«절 없음» · 셀 2 (뒤) — «⭐ 측정 모형 — 파형이 아니다» 문단",
+   "title": "측정 모형 선언: h(t) = Σ a_p·exp(−j2πf_c·τ_p), 3.50 GHz 단일 톤(CW)",
+   "arms_used": [
+    "PathSolver"
+   ],
+   "ledger": "report07_three_engines.json:engines.sionna.engine = 'Sionna PathSolver, h = Σ a·exp(−j2πf·τ)' ← 원장에서 이 식이 붙어 있는 팔은 **하나뿐**이다. 같은 원장 engines.sbr.engine='우리 SBR (가림 + 각도의존 Γ)', engines.po.engine='우리 순수 PO (가림 없음)' 에는 이 식이 없다. report15b_microdoppler.json:_meta.po_arms_not_recomputed_ko = 'C·D(PO) 열은 광선 격자를 안 쓴다(점구름 면적분)'",
+   "verdict": "한_팔인데_두_팔처럼_서술",
+   "note": "⚠단정은 못 한다 — «코히어런트 합» 이라는 뜻으로 읽으면 세 팔에 다 통한다. 그러나 «이 편들의 신호는 h(t)=Σ a_p exp(...)» 라고 권 전체를 한 식으로 선언하면서 a_p·τ_p 가 팔마다 무엇인지(PathSolver=경로 진폭·지연, SBR/PO=조명점 면적분 항) 안 밝혔다. 원장이 그 식을 Sionna 팔에만 붙여 놓은 이상, 이 문단은 한 팔의 추정식을 세 팔의 모형으로 일반화한 자리다."
+  },
+  {
+   "section": "«절 없음» · 셀 3",
+   "title": "경로 렌더 — Sionna 가 실제로 찾은 것 (⭐이 편에서 팔이 등장하는 유일한 자리)",
+   "arms_used": [
+    "PathSolver",
+    "ours_SBR_PO"
+   ],
+   "ledger": "① PathSolver 쪽 — 확인됨: report07_three_engine_ranges.json:ranges.R3.{range_m=3.0, spp=1000000, paths_median=5.0}. 이 median 은 **표적 경유**만 센다(benchmark/report07_three_engine_ranges.py:88-90 hit=(O!=NO_OBJ).any → npaths). ② PathSolver 쪽 — ⛔원장 없음: 본문의 «TX→RX 직행 1 + 표적 경유 9 가닥» 은 빌더 문자열(src/make_report08_microdoppler.py:623)이고 분모 10 도 하드코딩(같은 파일 638 행 `SG12['n_lit_mean']/10`). 생산 스크립트 benchmark/render_md_scene.py 는 그 수를 stdout 으로만 print 하고 json.dump 가 없다(파일 전체 확인). 노트북 자신이 «원장 파일이 아직 없다» 고 적었다. ③ 우리 팔 — 확인됨: sbr_grid_convergence.json:rows[div=12].{spacing_mm=7.13792, rays_per_pose=14122, n_lit_mean=610.523}. 이 격자가 생산 격자와 같음도 확인: report07_three_engines.json:engines.sbr.grid_ref.spacing=0.007137915666666667 = report15b:cells['matrice4e/belly'].grid_ref.spacing",
+   "verdict": "두_팔_나란히",
+   "note": "두 팔의 수치가 실제로 나란히 있다 — 단 **비교되는 것은 결과가 아니라 재료 수**(경로 가닥 수 ↔ 면적분 조명점 수)다. 세 가지 흠: (a) 헤드라인 «61 배» 의 분모 10 은 원장 밖 숫자이고 직행 경로를 포함해 분자(표적 표면 조명점)와 잣대가 다르다 — 같은 잣대면 611/9=67.8 배, 원장 중앙값이면 611/5=122 배. (b) 분자 611 은 원장의 **자세 평균**(n_lit_mean, n_lit_ptp=102 만큼 흔들림)인데 확정 수처럼 적혔다 — PathSolver 쪽 흔들림만 «추첨 한 장» 으로 경고한 비대칭. (c) «시드만 바꾸면 그 수가 배로 움직인다» 는 3 m 문장에 붙어 있으나 outputs/ 의 시드 사다리는 8 m(probe_8m_anomaly.json: paths_median seed1/2/3 = 13/6/9, spp 7.1M)와 40 m(raybudget_seed_ladder.json:_meta.range_m=40.0)뿐 — **3 m 시드 원장은 없다**."
+  },
+  {
+   "section": "«절 없음» · 셀 4",
+   "title": "이 편이 서 있는 자리 (다음 편 안내 · 8 권 범위 경고)",
+   "arms_used": [
+    "none"
+   ],
+   "ledger": "없음 — 항해표뿐. 인용 0 건.",
+   "verdict": "엔진_무관",
+   "note": "«08_2 … 같은 장면을 세 가지로 계산하면» 이라며 팔이 셋임을 처음이자 마지막으로 암시하지만 셋을 세지 않는다. 08_5 는 표에서 빠지고 아래 ⚠ 줄에만 나온다."
+  },
+  {
+   "section": "«절 없음» · 편 전체",
+   "title": "08_1_scene 편 한 단위 판정",
+   "arms_used": [
+    "analytic",
+    "PathSolver",
+    "ours_SBR_PO"
+   ],
+   "ledger": "실제로 끌어 쓴 원장 7 개(본문에는 0 개 인용): report07_anim.json · report15b_microdoppler.json · report07_three_engines.json · report00_microdoppler.json · report15_probe.json · report07_three_engine_ranges.json · sbr_grid_convergence.json",
+   "verdict": "엔진_무관",
+   "note": "개관·장면 설정 편이라 팔 결과를 안 낸다는 점 자체는 정당하다. 그러나 «출처 인용 0» 은 개관이라서가 **아니다** — 이 편은 일곱 원장에서 열두 개 넘는 숫자를 끌어오고 표제에서 «숫자는 전부 원장에서 주입된다» 고 선언한다. 같은 권의 08_3·08_5 는 «## 출처» 절을, 08_4·08_5 는 «부록 — 그림별 데이터 이력» 을 두는데 08_1 만 없다. ⭐그리고 이 편이 파는 유일한 팔 비교(셀 3)의 절반이 원장 밖이라, 인용이 없다는 것은 «인용할 게 없어서» 가 아니라 «인용하면 한쪽이 비는 게 드러나서» 에 가깝다."
+  }
+ ],
+ "problems": [
+  {
+   "id": "P1",
+   "where": "reports/08_1_scene.ipynb 셀 0 (빌더 src/make_report08_microdoppler.py:548 LEDGER_NOTE)",
+   "what_ko": "«⭐ 숫자는 전부 계산 결과 JSON(원장)에서 주입된다» 가 이 편에서 거짓이다. 셀 3 의 «표적 경유 9 가닥» 과 «61 배» 의 분모 10 은 빌더에 손으로 박힌 상수다(623 행 문자열 · 638 행 `SG12['n_lit_mean']/10`).",
+   "severity": "높음",
+   "fix_hint_ko": "«전부» 를 빼거나, render_md_scene.py 가 경로 수를 json 으로 떨구게 해서 그 숫자도 주입으로 바꾼다."
+  },
+  {
+   "id": "P2",
+   "where": "reports/08_1_scene.ipynb 편 전체",
+   "what_ko": "출처/재현 블록이 없고 outputs/*.json 인용이 0 건인데, 실제로는 원장 7 개에서 숫자를 끌어온다. 같은 권 08_3·08_5 에는 «## 출처» 가 있다.",
+   "severity": "높음",
+   "fix_hint_ko": "편 끝에 «## 출처» 를 붙이고 7 개 파일명·키를 적는다(이 감사 파일의 sections[].ledger 를 그대로 쓰면 된다)."
+  },
+  {
+   "id": "P3",
+   "where": "셀 3 — «적분점이 61 배다»",
+   "what_ko": "분자 611 은 **표적 표면 조명점**, 분모 10 은 **직행 1 + 표적 경유 9**. 직행 경로는 표적을 안 맞으므로 잣대가 다르다. 게다가 원장 값(paths_median=5, 표적 경유만)이 따로 있는데 비율에는 안 쓰였다. 같은 잣대: 611/9 = 67.8 배, 원장 중앙값: 122 배.",
+   "severity": "중간(보수적 방향이라 부풀림은 아님)",
+   "fix_hint_ko": "분모를 «표적 경유» 로 통일하고, 원장에 있는 중앙값 5 로 재는 판을 함께 적는다."
+  },
+  {
+   "id": "P4",
+   "where": "셀 3 — «표면을 실제로 맞은 611 점»",
+   "what_ko": "원장의 n_lit_mean=610.523 은 **자세 평균**이고 n_lit_ptp=102 만큼 흔들린다. 본문은 확정 수처럼 적었다 — PathSolver 쪽 흔들림만 «추첨 한 장» 으로 경고한 비대칭한 서술이다.",
+   "severity": "중간",
+   "fix_hint_ko": "«자세 평균 611 점(자세마다 ±약 50 점)» 처럼 적는다."
+  },
+  {
+   "id": "P5",
+   "where": "셀 3 — «시드만 바꾸면 그 수가 배로 움직인다»",
+   "what_ko": "이 문장은 «같은 3 m 조건» 뒤에 붙어 있는데, outputs/ 의 시드 사다리는 8 m(probe_8m_anomaly.json · spp 7.1M · paths_median 13/6/9)와 40 m(raybudget_seed_ladder.json · range_m=40.0)뿐이다. 3 m·spp 1.0M 의 시드 비교 원장은 outputs/ 에 없다(전수 grep 확인).",
+   "severity": "중간",
+   "fix_hint_ko": "«8 m 에서 잰 것» 이라고 거리·예산을 밝히거나, 3 m 시드 사다리를 돌린다."
+  },
+  {
+   "id": "P6",
+   "where": "셀 2 — «⭐ 측정 모형» 문단",
+   "what_ko": "h(t)=Σ a_p·exp(−j2πf_c·τ_p) 를 «이 편들의 신호» 로 선언하지만, 원장에서 그 식이 붙은 팔은 report07_three_engines.json:engines.sionna 하나다. sbr·po 팔은 경로 (a_p, τ_p) 를 안 내고 면적분을 한다(report15b _meta: «점구름 면적분»).",
+   "severity": "중간",
+   "fix_hint_ko": "팔마다 a_p·τ_p 가 무엇인지 한 줄씩 붙이거나, «세 팔 모두 같은 슬로타임 격자 위의 복소 코히어런트 합» 이라는 공통 규약으로 고쳐 쓴다."
+  },
+  {
+   "id": "P7",
+   "where": "셀 3 — «우리 SBR+PO 는 … 광선 14,122 발»",
+   "what_ko": "셋째 팔(순수 PO · 가림 없음)이 이 편에 이름조차 없다. «SBR+PO» 한 덩어리로 적혀 있는데 그 숫자(광선·조명점)는 SBR 팔만의 것이다 — 순수 PO 팔은 광선 격자를 아예 안 쓴다(engines.po.recomputed_ko «이 열은 광선 격자와 무관하다», sbr_grid_convergence.json:po_rows 에 rays_per_pose·n_lit_mean 필드 없음).",
+   "severity": "중간",
+   "fix_hint_ko": "장면 편에서 세 팔을 한 줄씩 세운다 — PathSolver / SBR(가림 O) / 순수 PO(가림 X)."
+  },
+  {
+   "id": "P8",
+   "where": "08_4 부록 «그림별 데이터 이력» 의 08_1 행 (빌더 1065 행)",
+   "what_ko": "«| 애니메이션 · f0 · f0c | 08_1 | 렌더(수치 없음) | … |» 이라고 등재해 놨는데, 08_1 본문은 그 렌더에서 «9 가닥» 이라는 수치를 읽어 «61 배» 의 분모로 쓴다. 부록의 «수치 없음» 과 본문이 어긋난다.",
+   "severity": "중간",
+   "fix_hint_ko": "부록 행을 «렌더 + 경로수(원장 없음)» 로 고치거나, P1 을 고쳐 수치를 원장화한다."
+  },
+  {
+   "id": "P9",
+   "where": "셀 2 — «날개끝 도플러 1230 Hz»",
+   "what_ko": "이 값은 앙각 −15° 로 사영한 f_tip 이다(report15_probe: f_tip_at_el_hz=1229.57 = report15b physics.f_tip). 같은 문서군의 report00_microdoppler.json 은 같은 기체를 f_tip_hz=1272.95(브로드사이드)로, report07_three_engines._meta 는 1228.72 로 적는다. 08_1 은 어느 정의인지 안 밝힌다 — 바로 아래에서 «정의를 밝히지 않은 원거리장 경계는 비교하지 않는다» 고 못박는 문단과 일관성이 없다.",
+   "severity": "낮음",
+   "fix_hint_ko": "«날개끝 도플러 1230 Hz (앙각 −15° 사영 · 브로드사이드는 1273 Hz)» 로 적는다."
+  },
+  {
+   "id": "P10",
+   "where": "benchmark/render_md_scene.py docstring (3–18 행) ↔ 코드 48 행",
+   "what_ko": "docstring 은 아직 «TX (+2.898, −0.100, −0.776) · RX (+2.898, +0.100, −0.776) · 기선 0.2 m · 바이스태틱각 3.8° (준-모노스태틱)» 이라고 적혀 있는데 코드는 BASE=0.0 이다. 그림 자체는 기선 0 이 맞아 08_1 본문의 «진짜 모노스태틱» 과 어긋나지 않지만, 이 파일만 읽는 감사자는 08_1 을 반증으로 오독한다.",
+   "severity": "낮음(문서화)",
+   "fix_hint_ko": "docstring 을 BASE=0.0 으로 맞춘다(코드 옆 주석에는 이미 정정 이력이 있다)."
+  }
+ ],
+ "checked_but_clean": [
+  "셀 1 애니메이션 수치 8 개 전부 report07_anim.json 과 일치(46 배 ← 45.6, 15°/프레임, 96 프레임 = 8 주기, 3.2° ← 3.168, 63 바퀴/s ← 3800/60).",
+  "셀 2 배치표 7 칸 전부 원장과 일치(3.50 GHz · 3800 rpm · 126.7 Hz · 7.9 ms · 8.3 m · D 0.59/0.78 m · 14.1 m).",
+  "λ/12 = 7.1 mm 검산 통과(0.085654988/12 = 7.13792 mm), rays_per_pose 14122 원장 일치.",
+  "셀 3 의 «자세당 중앙값 5 가닥(광선 1.0M)» 은 report07_three_engine_ranges.json:ranges.R3 와 정확히 일치하고, 그 median 이 표적 경유만 센다는 것도 생산 스크립트에서 확인.",
+  "우리 팔의 λ/12 격자가 08_2·08_3 생산 격자와 같은 얼린 격자임을 grid_ref.spacing 로 확인.",
+  "08_1 은 σ·변조깊이·검출 수치를 하나도 적지 않는다 — 한 팔의 **물리 결과**를 두 팔인 척한 자리는 없다."
+ ]
+}
