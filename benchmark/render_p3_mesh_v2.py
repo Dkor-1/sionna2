@@ -18,7 +18,7 @@ render_p3_mesh_v2.py — Phantom 3 **재제작 메쉬** 온전성 렌더 (2026-0
   benchmark/render_mini2_mesh.py · render_m350rtk_mesh.py 와 같은 형식이다.
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/render_p3_mesh_v2.py
 """
 from __future__ import annotations
@@ -39,7 +39,7 @@ from drones import (DRONES, MATERIAL_COLOR, DRONE_GROUP_MAT, build_drone, build_
 KEY = "phantom3"
 OUTDIR = os.path.join(G.ROOT, "outputs", "figs")
 OUTPNG = os.path.join(OUTDIR, "p3_mesh_v2.png")
-OLD_NPZ = ("/tmp/claude-1015/-home-yunjung-workspace/"
+OLD_NPZ = ("/tmp/claude-1015/-workspace/"
            "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/p3/p3_old_mesh.npz")
 
 #  (라벨, elev, azim) — 정면·측면·상면·아이소

@@ -47,7 +47,7 @@
 
 ## 2. Sionna 의 기본값 — 설치본에서 직접 확인
 
-`/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py`
+`/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py`
 (sionna 2.0.1) 의 `PathSolver.__call__` 서명을 그대로 읽었다. 공식 문서와도 대조해 일치를 확인했다.
 
 ```python

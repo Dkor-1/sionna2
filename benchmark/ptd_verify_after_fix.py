@@ -23,7 +23,7 @@
         σ 아티팩트만 교차항 부호가 바뀐다. 예측을 먼저 적고 숫자로 확인한다.
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PART=gpu SIONNA2_GPU=3 PYTHONPATH=src:benchmark python benchmark/ptd_verify_after_fix.py
   PART=cpu                PYTHONPATH=src:benchmark python benchmark/ptd_verify_after_fix.py
   PART=merge              PYTHONPATH=src:benchmark python benchmark/ptd_verify_after_fix.py
@@ -47,7 +47,7 @@ for _p in (os.path.join(_ROOT, "src"), _HERE):
 
 SCRATCH = os.environ.get(
     "PTD_AF_SCRATCH",
-    "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad")
+    "/tmp/claude-1015/-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad")
 BASE_SNAP = os.environ.get("PTD_REG_BASELINE_DIR", os.path.join(SCRATCH, "baseline"))
 #  verify_ptd_regression 이 **import 시점**에 이 환경변수를 읽는다 → import 전에 세운다.
 os.environ["PTD_REG_BASELINE_DIR"] = BASE_SNAP

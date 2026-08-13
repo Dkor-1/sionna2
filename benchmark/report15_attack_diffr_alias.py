@@ -28,7 +28,7 @@ for _p in (os.path.join(ROOT, "src"), _HERE):
         sys.path.insert(0, _p)
 
 os.environ.setdefault("REPORT15_SCRATCH",
-                      "/tmp/claude-1015/-home-yunjung-workspace/"
+                      "/tmp/claude-1015/-workspace/"
                       "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/r15diffralias")
 
 import report15_verdict as VD                                          # noqa: E402

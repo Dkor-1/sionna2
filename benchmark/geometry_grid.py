@@ -20,7 +20,7 @@ geometry_grid.py — 2×3 벤치마크 격자의 정의와 **공정성 감사**
   통제   → PRF 가 설계변수인가 주어진 값인가        (기하 무관)
 
 실행:
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/geometry_grid.py
 
 집안 규약: 산문·print 는 한국어, 그림 텍스트는 영어(이 스크립트는 그림 없음),

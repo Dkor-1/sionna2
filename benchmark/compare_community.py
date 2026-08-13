@@ -50,7 +50,7 @@ from drones import DroneSpec                          # noqa: E402
 import drone_cad                                      # noqa: E402
 from drones import rotor_layout                       # noqa: E402
 
-COMM = "/tmp/claude-1015/-home-yunjung-workspace/ffa746a7-b94b-40cf-b506-e335cf593125/scratchpad/community/dji_ros_simulator/dji_drone_description/meshes"
+COMM = "/tmp/claude-1015/-workspace/ffa746a7-b94b-40cf-b506-e335cf593125/scratchpad/community/dji_ros_simulator/dji_drone_description/meshes"
 OUT = os.path.abspath(os.path.join(_HERE, "..", "outputs", "community_compare.json"))
 
 #  공식 스펙 → DroneSpec (구형 실물)

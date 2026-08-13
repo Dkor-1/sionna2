@@ -32,7 +32,7 @@ report5(트래킹 벤치마크)의 **전제조건 검증**. 탐지(Pd)는 "저�
         같은지 코사인유사도로 확인한다. 그리고 챔버 벽이 그 모호성을 얼마나 잘라내는지 잰다.
       → 처방: RX 2대(대칭 파괴) 또는 AoA 를 더하면 랭크 6 이 되는지 측정.
 
-실행:  /home/yunjung/.venvs/py312/bin/python benchmark/verify_observability.py
+실행:  /workspace/.venvs/py312/bin/python benchmark/verify_observability.py
        (--fast 로 격자 성기게)
 출력:  outputs/verify_observability.json, outputs/figures/report4_obs_*.png
 """

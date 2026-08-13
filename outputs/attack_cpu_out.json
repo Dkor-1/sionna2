@@ -1,0 +1,462 @@
+{
+ "q1a_farfield_constant_of_our_A_convention": {
+  "claim": "E^s.e = -(jk/2pi) A_PO e^{-jkr}/r  (module (A))",
+  "method": "direct vector PO radiation integral over our own point cloud vs the A convention",
+  "rows": [
+   {
+    "theta_deg": 0.0,
+    "pol": "H",
+    "ratio_abs": 0.999999999995878,
+    "ratio_phase_deg": -0.0
+   },
+   {
+    "theta_deg": 0.0,
+    "pol": "V",
+    "ratio_abs": 0.999999999995878,
+    "ratio_phase_deg": -0.0
+   },
+   {
+    "theta_deg": 20.0,
+    "pol": "H",
+    "ratio_abs": 0.9999999999994941,
+    "ratio_phase_deg": 1.740120342554199e-11
+   },
+   {
+    "theta_deg": 20.0,
+    "pol": "V",
+    "ratio_abs": 1.0000000000001352,
+    "ratio_phase_deg": 1.3614554606826714e-12
+   },
+   {
+    "theta_deg": 45.0,
+    "pol": "H",
+    "ratio_abs": 1.000000000000789,
+    "ratio_phase_deg": 7.351214455500589e-12
+   },
+   {
+    "theta_deg": 45.0,
+    "pol": "V",
+    "ratio_abs": 0.9999999999993284,
+    "ratio_phase_deg": -1.4178918688265956e-11
+   },
+   {
+    "theta_deg": 70.0,
+    "pol": "H",
+    "ratio_abs": 1.0000000000012867,
+    "ratio_phase_deg": -6.51775924985074e-13
+   },
+   {
+    "theta_deg": 70.0,
+    "pol": "V",
+    "ratio_abs": 1.0000000000002254,
+    "ratio_phase_deg": -1.9507516473257532e-11
+   }
+  ],
+  "max_abs_ratio_dev": 4.122036045828281e-12,
+  "max_abs_phase_deg": 1.9507516473257532e-11,
+  "verdict": "REPRODUCED: the minus sign is real and independent of the PTD code"
+ },
+ "q1b_po_endpoint_equals_ufimtsev_f0": {
+  "claim": "the (j/k) L sum f e^{jphi} constant used by the analytic reference is anchored to OUR OWN PO surface integral: its exact endpoint decomposition IS (j/k) sum f0 e^{jphi}",
+  "rows": [
+   {
+    "theta_deg": 5.0,
+    "ratio_abs": 1.000000000000001,
+    "ratio_phase_deg": -2.7903128493598124e-13
+   },
+   {
+    "theta_deg": 15.0,
+    "ratio_abs": 1.0000000000000002,
+    "ratio_phase_deg": -4.1778534313039286e-14
+   },
+   {
+    "theta_deg": 30.0,
+    "ratio_abs": 1.0037977041224528,
+    "ratio_phase_deg": 4.985538941186555
+   },
+   {
+    "theta_deg": 45.0,
+    "ratio_abs": 1.0,
+    "ratio_phase_deg": -3.979947417864503e-16
+   },
+   {
+    "theta_deg": 60.0,
+    "ratio_abs": 1.0000000000000004,
+    "ratio_phase_deg": -7.299945208095139e-15
+   },
+   {
+    "theta_deg": 75.0,
+    "ratio_abs": 0.9999999999999997,
+    "ratio_phase_deg": -4.640026177611785e-15
+   }
+  ],
+  "max_abs_ratio_dev": 0.0037977041224528385,
+  "max_abs_phase_deg": 4.985538941186555,
+  "why_it_matters": "this breaks the circularity worry: the sign of the reference is not a literature convention we chose, it is forced by our own PO term. It also shows the PO half subtracted inside the fringe is exactly what the surface integral already contains (no double counting at N=2)."
+ },
+ "q1c_sign_gate_reproduced": {
+  "shipped_const": {
+   "max_abs_ratio_dev": 3.774758283725532e-15,
+   "max_abs_phase_deg": 5.8120912592106e-13
+  },
+  "flipped_control": {
+   "max_abs_ratio_dev": 3.774758283725532e-15,
+   "min_abs_phase_deg": 179.9999999999994,
+   "max_abs_phase_deg": 180.0
+  },
+  "n_probe": 10
+ },
+ "q2b_double_counting_control": {
+  "band": "oblique off-null (theta > first PO null, 0.3 deg null guard)",
+  "reference": "2-D MoM strip curve shipped in ptd_plate_validation.json",
+  "rms_db_by_pol": {
+   "H": {
+    "po_only": 11.093191821900787,
+    "coherent_ptd": 0.03223569404336556,
+    "sign_flipped": 4.84413150806433,
+    "incoherent_ptd": 1.2884565502708134,
+    "no_po_subtraction": 3.7784262960941226,
+    "edge_only": 9.919731581427197
+   },
+   "V": {
+    "po_only": 10.6839664538054,
+    "coherent_ptd": 3.111065270042128,
+    "sign_flipped": 5.936976596980098,
+    "incoherent_ptd": 3.5225045888285207,
+    "no_po_subtraction": 4.772247105489638,
+    "edge_only": 10.471667602443064
+   }
+  },
+  "rms_db_pooled": {
+   "po_only": 10.890501457314205,
+   "coherent_ptd": 2.1999734378433704,
+   "sign_flipped": 5.418177792418359,
+   "incoherent_ptd": 2.6521838982481727,
+   "no_po_subtraction": 4.3041170819849786,
+   "edge_only": 10.199433734860476
+  },
+  "reading": "no_po_subtraction = what you would get if the wiring added the TOTAL current EEC instead of the fringe (i.e. genuine double counting). Compare with coherent_ptd."
+ },
+ "q5_coherent_vs_incoherent": {
+  "n_draws": 400,
+  "metric": "oblique off-null RMS |dB error| vs the MoM reference",
+  "by_pol": {
+   "H": {
+    "global_random_phase": {
+     "median": 4.336718197109887,
+     "p05": 0.3339112580923982,
+     "p95": 5.465698425196909,
+     "best": 0.016894580681540577
+    },
+    "per_angle_random_phase": {
+     "median": 3.943189131982326,
+     "p05": 3.2551386373158504,
+     "p95": 4.61556426788599,
+     "best": 2.9955612381063883
+    },
+    "coherent": 0.03223569404336556,
+    "incoherent": 1.2884565502708134,
+    "po_only": 11.093191821900787,
+    "frac_random_draws_better_than_coherent": 0.0075
+   },
+   "V": {
+    "global_random_phase": {
+     "median": 5.820947163888132,
+     "p05": 3.138558394017604,
+     "p95": 6.468522639187996,
+     "best": 3.110937651898983
+    },
+    "per_angle_random_phase": {
+     "median": 5.149995886834463,
+     "p05": 4.6133093558576945,
+     "p95": 5.661198963337577,
+     "best": 4.1758221340788335
+    },
+    "coherent": 3.111065270042128,
+    "incoherent": 3.5225045888285207,
+    "po_only": 10.6839664538054,
+    "frac_random_draws_better_than_coherent": 0.005
+   }
+  }
+ },
+ "q4_phase_origin": {
+  "cpu_path": "rcs_po_ptd: surface uses exp(j2k P.u) with NO centre subtraction, edge origin defaults to (0,0,0) -> identical origins",
+  "translation_max_abs_db": 1.6768808563938364e-12,
+  "wrong_origin_control_max_abs_db": 6.127588145835453,
+  "sbr_path": "rcs_sbr uses ctr = 0.5*(V.max+V.min) for BOTH and _ptd_edge_A raises if they differ by more than lam/1000 (guard read in source)"
+ },
+ "q_extra_sinc_line_integral": {
+  "test": "A(n_seg=1) vs A(n_seg=64) at skew incidence: the analytic L*sinc(kL q.t/2) must equal the sum of 64 sub-segment integrals exactly for a straight edge",
+  "rows": [
+   {
+    "az": 25.0,
+    "el": 40.0,
+    "abs1": 0.0001442624319073341,
+    "abs64": 0.0001442624319073535,
+    "rel_dev": 1.4562095777496306e-13,
+    "phase_dev_deg": 3.1918250025445595e-12
+   },
+   {
+    "az": 55.0,
+    "el": 15.0,
+    "abs1": 5.681731192055345e-05,
+    "abs64": 5.6817311920553414e-05,
+    "rel_dev": 6.808766560886606e-15,
+    "phase_dev_deg": -3.879604651453772e-13
+   },
+   {
+    "az": 80.0,
+    "el": 60.0,
+    "abs1": 0.00021281711200727806,
+    "abs64": 0.00021281711200724651,
+    "rel_dev": 1.6814992028762347e-13,
+    "phase_dev_deg": -4.5545041556522184e-12
+   }
+  ],
+  "max_rel_dev": 1.6814992028762347e-13
+ },
+ "q_extra_oblique_beta_scaling": {
+  "test": "soft (E-pol) EEC on the Keller cone should scale as the 2-D Ufimtsev f1 / sin(beta')",
+  "rows": [
+   {
+    "beta_p_deg": 90.0,
+    "phi_p_deg": 40.0,
+    "f1_2d": -0.2668461709225007,
+    "eec_over_f1": 1.0,
+    "imag_frac": 2.025039356210161e-18,
+    "sin_bp": 1.0
+   },
+   {
+    "beta_p_deg": 90.0,
+    "phi_p_deg": 110.0,
+    "f1_2d": -0.5881634903542323,
+    "eec_over_f1": 1.0000000000000007,
+    "imag_frac": 1.1131878660231179e-16,
+    "sin_bp": 1.0
+   },
+   {
+    "beta_p_deg": 90.0,
+    "phi_p_deg": 160.0,
+    "f1_2d": -0.850103769104855,
+    "eec_over_f1": 1.0,
+    "imag_frac": 2.4794794692618832e-18,
+    "sin_bp": 1.0
+   },
+   {
+    "beta_p_deg": 70.0,
+    "phi_p_deg": 40.0,
+    "f1_2d": -0.2668461709225007,
+    "eec_over_f1": 1.0085900867353348,
+    "imag_frac": 1.0068415900558031e-16,
+    "sin_bp": 0.9396926207859083
+   },
+   {
+    "beta_p_deg": 70.0,
+    "phi_p_deg": 110.0,
+    "f1_2d": -0.5881634903542323,
+    "eec_over_f1": 1.0729820407215367,
+    "imag_frac": 5.522867494673146e-18,
+    "sin_bp": 0.9396926207859083
+   },
+   {
+    "beta_p_deg": 70.0,
+    "phi_p_deg": 160.0,
+    "f1_2d": -0.850103769104855,
+    "eec_over_f1": 1.0722143910713602,
+    "imag_frac": 0.0,
+    "sin_bp": 0.9396926207859083
+   },
+   {
+    "beta_p_deg": 50.0,
+    "phi_p_deg": 40.0,
+    "f1_2d": -0.2668461709225007,
+    "eec_over_f1": 1.1832963917257175,
+    "imag_frac": 1.5373671643787769e-15,
+    "sin_bp": 0.766044443118978
+   },
+   {
+    "beta_p_deg": 50.0,
+    "phi_p_deg": 110.0,
+    "f1_2d": -0.5881634903542323,
+    "eec_over_f1": 1.3591237445988618,
+    "imag_frac": 0.0,
+    "sin_bp": 0.766044443118978
+   },
+   {
+    "beta_p_deg": 50.0,
+    "phi_p_deg": 160.0,
+    "f1_2d": -0.850103769104855,
+    "eec_over_f1": 1.3452623072000964,
+    "imag_frac": 0.0,
+    "sin_bp": 0.766044443118978
+   },
+   {
+    "beta_p_deg": 30.0,
+    "phi_p_deg": 40.0,
+    "f1_2d": -0.2668461709225007,
+    "eec_over_f1": 1.895191385231472,
+    "imag_frac": 0.0,
+    "sin_bp": 0.49999999999999994
+   },
+   {
+    "beta_p_deg": 30.0,
+    "phi_p_deg": 110.0,
+    "f1_2d": -0.5881634903542323,
+    "eec_over_f1": 2.237706246440791,
+    "imag_frac": 0.0,
+    "sin_bp": 0.49999999999999994
+   },
+   {
+    "beta_p_deg": 30.0,
+    "phi_p_deg": 160.0,
+    "f1_2d": -0.850103769104855,
+    "eec_over_f1": 2.139251817134666,
+    "imag_frac": 0.0,
+    "sin_bp": 0.49999999999999994
+   }
+  ],
+  "max_dev_from_1_over_sin": 0.11885312322039532
+ },
+ "q_extra_flat_limit": {
+  "rows": [
+   {
+    "dihedral_dev_deg": 0.0,
+    "absZI": 1.0211971819830465e-17,
+    "absM": 2.0817013422680764e-17
+   },
+   {
+    "dihedral_dev_deg": 0.05,
+    "absZI": 1.1892233348481746e-05,
+    "absM": 1.188760752530299e-05
+   },
+   {
+    "dihedral_dev_deg": 0.2,
+    "absZI": 4.751755419540518e-05,
+    "absM": 4.744360907297379e-05
+   },
+   {
+    "dihedral_dev_deg": 1.0,
+    "absZI": 0.00023623445714721292,
+    "absM": 0.00023439479467624036
+   },
+   {
+    "dihedral_dev_deg": 5.0,
+    "absZI": 0.0011493613744682748,
+    "absM": 0.0011044249335709737
+   },
+   {
+    "dihedral_dev_deg": 15.0,
+    "absZI": 0.0032481887060232827,
+    "absM": 0.0028635952961479673
+   },
+   {
+    "dihedral_dev_deg": 90.0,
+    "absZI": 0.012323387040092932,
+    "absM": 0.008665088480532355
+   }
+  ],
+  "vanishes_at_N1": true,
+  "amp_db_rel_to_90deg": [
+   {
+    "dev": 0.05,
+    "db": -60.30933332508865
+   },
+   {
+    "dev": 0.2,
+    "db": -48.27752019695101
+   },
+   {
+    "dev": 1.0,
+    "db": -34.34773688984803
+   },
+   {
+    "dev": 5.0,
+    "db": -20.60546980912715
+   },
+   {
+    "dev": 15.0,
+    "db": -11.581776731786517
+   },
+   {
+    "dev": 90.0,
+    "db": 0.0
+   }
+  ]
+ },
+ "q_extra_bistatic_scalar_po": {
+  "test": "co-pol PO current factor  -( (u_i.e_r)(n.e_i) - (n.u_i)(e_i.e_r) )  vs the scalar (n.u_i) that the SBR surface integral actually uses, flat facet with n = u_i",
+  "rows": [
+   {
+    "bistatic_deg": 0.0,
+    "pol": "H",
+    "exact_copol_factor": 1.0,
+    "scalar_used": 1.0,
+    "err_db": 0.0
+   },
+   {
+    "bistatic_deg": 0.0,
+    "pol": "V",
+    "exact_copol_factor": 1.0,
+    "scalar_used": 1.0,
+    "err_db": 0.0
+   },
+   {
+    "bistatic_deg": 30.0,
+    "pol": "H",
+    "exact_copol_factor": 1.0,
+    "scalar_used": 1.0,
+    "err_db": 0.0
+   },
+   {
+    "bistatic_deg": 30.0,
+    "pol": "V",
+    "exact_copol_factor": 0.8660254037844387,
+    "scalar_used": 1.0,
+    "err_db": -1.2493873660829988
+   },
+   {
+    "bistatic_deg": 60.0,
+    "pol": "H",
+    "exact_copol_factor": 1.0,
+    "scalar_used": 1.0,
+    "err_db": 0.0
+   },
+   {
+    "bistatic_deg": 60.0,
+    "pol": "V",
+    "exact_copol_factor": 0.5000000000000001,
+    "scalar_used": 1.0,
+    "err_db": -6.0205999132796215
+   },
+   {
+    "bistatic_deg": 90.0,
+    "pol": "H",
+    "exact_copol_factor": 1.0,
+    "scalar_used": 1.0,
+    "err_db": 0.0
+   },
+   {
+    "bistatic_deg": 90.0,
+    "pol": "V",
+    "exact_copol_factor": 6.123233995736766e-17,
+    "scalar_used": 1.0,
+    "err_db": -240.0
+   },
+   {
+    "bistatic_deg": 120.0,
+    "pol": "H",
+    "exact_copol_factor": 1.0,
+    "scalar_used": 1.0,
+    "err_db": 0.0
+   },
+   {
+    "bistatic_deg": 120.0,
+    "pol": "V",
+    "exact_copol_factor": -0.49999999999999983,
+    "scalar_used": 1.0,
+    "err_db": -6.020599913279627
+   }
+  ],
+  "note": "monostatic (0 deg) the two agree exactly -> the 'PO is scalar' approximation is EXACT for monostatic co-pol; bistatically it is not, so the polarised fringe is added to a surface term that is not the co-pol PO it subtracts."
+ }
+}

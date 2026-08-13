@@ -778,7 +778,7 @@ def build_blocks(D: dict):
                 ("03 §2", "조명원의 dB 원장 — 점유 · λ² · 듀티 · PRF"),
                 ("04", "CFAR 문턱, 경험 Pfa 교정, ECA 잔차")],
         repro=dict(
-            cmd=["cd /home/yunjung/workspace/sionna2",
+            cmd=["cd /workspace/sionna",
                  "# ① σ 격자(자세 × 밴드)",
                  "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
                  "# ② 검지거리 4단계 — 기종마다 1회(결과는 add-only 로 쌓인다)",

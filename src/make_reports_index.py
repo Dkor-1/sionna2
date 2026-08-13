@@ -15,7 +15,7 @@ make_reports_index.py — 편 78개의 색인·재현·논문 목차를 짓는�
    여는 블록은 `report_style.header()` 가 강제하므로 78편 전부에 같은 모양으로 있다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/make_reports_index.py
 
 ⚠ 근거 JSON(`outputs/*.json`)은 한 줄도 고치지 않는다. GPU 도 쓰지 않는다.
@@ -104,7 +104,7 @@ def write_reproduce(rows: list[dict]) -> None:
          "", "# 다시 돌리기 — 편 → 명령 → 출력 → 소요", "",
          "읽기 경로 ③ 이다. **리포트를 읽지 않는다** — 어느 숫자를 재생산하려는지만 알면 된다.",
          "그 숫자가 사는 편을 아래 표에서 찾아 명령을 그대로 돌린다.", "",
-         "```bash", "cd /home/yunjung/workspace/sionna2",
+         "```bash", "cd /workspace/sionna",
          "PY=~/.venvs/py312/bin/python", "```", "",
          "노트북만 다시 조립하려면(계산 없음 · 수 초):", "",
          "```bash",

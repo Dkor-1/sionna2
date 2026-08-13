@@ -24,7 +24,7 @@ OUT_JSON = os.path.join(_ROOT, "outputs", "engine_validation_verdict.json")
 OUT_MD = os.path.join(_ROOT, "docs", "ENGINE_VALIDATION.md")
 SCRATCH = os.environ.get(
     "SIONNA2_SCRATCH",
-    "/tmp/claude-1015/-home-yunjung-workspace/"
+    "/tmp/claude-1015/-workspace/"
     "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad")
 
 B = ["LTE 1.843 GHz", "5G 3.5 GHz", "WiFi 5.21 GHz"]

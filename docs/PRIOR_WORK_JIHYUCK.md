@@ -1,6 +1,6 @@
 # 선배(홍지혁) 선행 연구 정독 — `po_mdoppler` 도입 계획
 
-작성 2026-08-07 · 대상 `/home/yunjung/workspace/sionna2/jihyuck/po_mdoppler/` (1,034줄)
+작성 2026-08-07 · 대상 `/workspace/sionna/jihyuck/po_mdoppler/` (1,034줄)
 생성물 `/data/jihyuckhong/po_ablation/` (23개 런, 실재 확인)
 ⛔ 이 라운드에서 `jihyuck/` 안의 파일은 한 바이트도 고치지 않았다. 읽고 재기만 했다.
 
@@ -602,7 +602,7 @@ seed 42 로 셔플해 **타임라인과 탈상관**시키고, `blade_angles × (
 
 ### 7-A. ⭐ 8/11 팀미팅 덱 3부 — «설계 제안» 에서 «이미 있는 구현» 으로
 
-현재 원고: `/home/yunjung/workspace/teammeeting_0811/teammeeting_slides_0811_v1.json`
+현재 원고: `/workspace/teammeeting_0811/teammeeting_slides_0811_v1.json`
 
 **슬라이드 10 (PART 3 divider) 노트** — 현재 *"이건 결과가 아니라 설계 요청입니다"*.
 → 고칠 문구:

@@ -2,7 +2,7 @@
 # das_fleet_diag.sh — 진단 실행기 (상반성 위반 · exit_vis 몫)
 #   사용: bash benchmark/das_fleet_diag.sh <airframe> <n_az> <freqs> <nshard> <gpus>
 set -u
-cd /home/yunjung/workspace/sionna2
+cd /workspace/sionna
 export PYTHONPATH=src:benchmark
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 PY=~/.venvs/py312/bin/python

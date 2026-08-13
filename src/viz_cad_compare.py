@@ -46,7 +46,7 @@ d = λ/12 (3.5 GHz 에서 7.14 mm) 격자로 쏘고 **맞은 지점**에서 적�
 
 실행
 ----
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/viz_cad_compare.py
   ... --only measure     # JSON 만
   ... --only figs        # 그림만 (JSON 을 디스크에서 다시 읽는다)

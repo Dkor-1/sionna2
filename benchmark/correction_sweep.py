@@ -16,7 +16,7 @@ import os
 import re
 import sys
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 SKIP_DIRS = {".git", "__pycache__", ".ipynb_checkpoints", "node_modules"}
 # 이 파일 자신과 정본 기록은 "생존 인스턴스" 가 아니라 "정정 그 자체" 다.
 CANONICAL = {

@@ -25,7 +25,7 @@ import time
 
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 OUT = os.path.join(ROOT, "outputs", "tm_envs.json")
 
 sys.path.insert(0, os.path.join(ROOT, "src"))

@@ -23,7 +23,7 @@
    그림 4장을 `src/viz_report2.py` 에서 빌려 쓰던 것을 끊고 **이 편이 직접 그린다** — 그
    4장은 다른 편이 인용하지 않는다(`report02` 는 `report2_{gallery,occlusion,rcs_polar}` 만 쓴다).
 
-실행:  cd /home/yunjung/workspace/sionna2 && \
+실행:  cd /workspace/sionna && \
        PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report03_illuminators.py
 """
 from __future__ import annotations
@@ -798,7 +798,7 @@ def build_blocks(led, caps):
         ],
         prereq=[("02편", "표적 σ 를 어떤 방법으로 냈는지 — 이 편의 수치는 σ 를 곱하기 앞 단계다")],
         repro=dict(
-            cmd=["cd /home/yunjung/workspace/sionna2",
+            cmd=["cd /workspace/sionna",
                  "# ① 파형 제원 · 자원격자 · Sionna 교차대조 수치",
                  "~/.venvs/py312/bin/python src/viz_report2.py",
                  "# ② 모호함수 — 검출기와 같은 커널",

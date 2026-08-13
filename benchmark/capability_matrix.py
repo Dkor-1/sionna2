@@ -26,7 +26,7 @@ capability_matrix.py — 선행연구 능력 매트릭스 (사용자 추적표 �
 ⚠ 우리 행은 만점이 아니다. 회절(PTD/UTD) 부재는 실제 약점이고 매트릭스에 그렇게 찍힌다.
 
 실행:
-  cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark \\
+  cd /workspace/sionna && PYTHONPATH=src:benchmark \\
     ~/.venvs/py312/bin/python benchmark/capability_matrix.py
 
 산출:
@@ -1343,7 +1343,7 @@ def main():
         "meta": {
             "script": "benchmark/capability_matrix.py",
             "generated": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark "
+            "run": "cd /workspace/sionna && PYTHONPATH=src:benchmark "
                    "~/.venvs/py312/bin/python benchmark/capability_matrix.py",
             "purpose_ko": "사용자 추적표(Sionna RT | drone Mesh | material | Aspect/RCS | Rotor | "
                           "diffraction)를 우리 포지셔닝에 필요한 3열(진폭검증·기하·무모호속도)로 확장한 "

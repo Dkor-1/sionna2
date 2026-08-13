@@ -8,7 +8,7 @@ from __future__ import annotations
 import json, os, sys, time
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 for p in (ROOT + "/src", ROOT + "/benchmark"):
     if p not in sys.path:
         sys.path.insert(0, p)

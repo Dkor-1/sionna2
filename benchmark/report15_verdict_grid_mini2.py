@@ -37,7 +37,7 @@ for _p in (os.path.join(ROOT, "src"), _HERE):
 #  ⚠ SW 를 import 하는 순간 gpu.pick() 이 돌고 mitsuba 가 올라간다. 그 전에 스크래치를 갈라둔다.
 os.environ.setdefault(
     "REPORT15_SCRATCH",
-    "/tmp/claude-1015/-home-yunjung-workspace/"
+    "/tmp/claude-1015/-workspace/"
     "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/r15verdict_mini2")
 
 import report15_sweep_matrice4e as SW                                  # noqa: E402

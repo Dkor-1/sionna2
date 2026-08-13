@@ -11,7 +11,7 @@
   4. 분포      — ε(dB) ↔ Das ε, ε(선형진폭) ↔ Yuan ε, d_AD ↔ Das Table II.
 
 실행 (GPU 불필요):
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python benchmark/p3_validation.py
 """
 from __future__ import annotations

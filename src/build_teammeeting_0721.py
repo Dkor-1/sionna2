@@ -403,7 +403,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("content")
     ap.add_argument("out")
-    ap.add_argument("--src", default="/home/yunjung/workspace/team_meeting/teammeeting_0714_v14.pptx")
+    ap.add_argument("--src", default="/workspace/team_meeting/teammeeting_0714_v14.pptx")
     a = ap.parse_args()
     build(a.content, a.out, a.src)
 

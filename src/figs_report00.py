@@ -31,7 +31,7 @@ figs_report00.py — 리포트 00(가르치는 편)의 그림 4장을 **게재 �
 그림 안의 글자는 전부 영어다(하우스 규약). 본문·주석·print 는 한국어다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report00.py
 """
 from __future__ import annotations

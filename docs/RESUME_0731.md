@@ -100,7 +100,7 @@ Workflow({scriptPath: '<...>/workflows/scripts/venue-sensys-wf_12a2f5c7-93b.js',
 Workflow({scriptPath: '<...>/workflows/scripts/monostatic-gap-wf_3318b7f6-a15.js',
           resumeFromRunId: 'wf_3318b7f6-a15'})      # 패시브↔모노 경계 + 모노 검출시나리오
 ```
-경로 앞부분: `/home/yunjung/.claude/projects/-home-yunjung-workspace-sionna2/a78e7d06-306f-4e2d-b124-5fe972bc4462/`
+경로 앞부분: `/root/.claude/projects/-workspace-sionna2/a78e7d06-306f-4e2d-b124-5fe972bc4462/`
 완료된 에이전트는 캐시에서 즉시 반환되므로 **남은 단계만** 돈다.
 
 ### 중단 시점에 끝나 있던 것 / 안 끝난 것

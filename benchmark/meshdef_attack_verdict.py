@@ -7,7 +7,7 @@
 from __future__ import annotations
 import json, os, subprocess, time
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 J = lambda p: json.load(open(os.path.join(ROOT, p)))          # noqa: E731
 R1, R2, R3, R4 = (J(f"outputs/meshdef_attack_raw{s}.json") for s in ("", "2", "3", "4"))
 P = J("outputs/meshdef_attack_parts.json")

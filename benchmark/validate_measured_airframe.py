@@ -40,7 +40,7 @@ import numpy as np                                              # noqa: E402
 OUT = os.path.join(_ROOT, "outputs", "validate_measured_airframe.json")
 CACHE = os.path.join(os.environ.get(
     "SIONNA2_SCRATCH",
-    "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad"),
+    "/tmp/claude-1015/-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad"),
     "valair")
 os.makedirs(CACHE, exist_ok=True)
 

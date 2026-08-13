@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
+build_volumes.py — ⭐**조각을 권으로 묶는다**
+
+권 수와 조각 수는 이 파일이 손으로 적지 않는다 — 편성(`VOLUMES` + `EXTERNAL`)과 디스크에서
+세어 `outputs/volumes_index.json` 의 `_meta` 에 적고, 본문은 그 값을 주입해 쓴다.
 
 사용자:
 > *"레포트를 지금 너무 심하게 잘게 쪼갠 거 같은데... 그래도 적당히 **하나의 메시지를 담아서**
@@ -9,13 +12,14 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
 
 ⭐ 실행 순서 — 이 스크립트는 **맨 마지막**이다
 ------------------------------------------------
-    ① 조각 빌더 12 개        src/build_part00_map.py … src/build_part11_measurement.py
+    ① 조각 빌더 전부         src/build_part00_map.py … src/build_part13_engine_physics.py
+                             (개수는 `src/build_part*.py` 를 세어 본문에 주입한다)
                              → reports/_parts/NN_slug.ipynb
     ② 8 권 빌더              src/make_report08_microdoppler.py
                              → reports/08_1_scene.ipynb … 08_4_sampling.ipynb
     ②' 8-5 바이스태틱 빌더  src/make_report07b_bistatic.py → reports/08_5_bistatic.ipynb
     ③ **이 스크립트**        src/build_volumes.py
-                             → reports/NN_slug.ipynb 14 권 + 8 권 후처리 + 색인 + README
+                             → reports/NN_slug.ipynb 권 파일 + 8 권 후처리 + 색인 + README
     ④ 검사                   benchmark/check_report_links.py
 
 ②가 아직 없으면 8 권 후처리를 **조용히 건너뛰고 경고만** 찍는다 — 빌드는 죽지 않는다.
@@ -29,7 +33,8 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
    ⇒ 재계산 → 조각 빌더 재실행 → 이 스크립트 재실행이면 권의 숫자도 함께 갱신된다.
 
    조각:  reports/_parts/NN_slug.ipynb   (빌더 산출 · **사람이 직접 읽는 문서가 아니다**)
-   권  :  reports/NN_slug.ipynb          (사람이 읽는 문서 · 15 권 · 8 권만 다섯 편으로 나뉜다 · 별편은 COMPANIONS)
+   권  :  reports/NN_slug.ipynb          (사람이 읽는 문서 · 편성은 VOLUMES + EXTERNAL 이 정본 ·
+                                          8 권만 그림이 무거워 여러 편 · 별편은 COMPANIONS)
 
 이 스크립트가 손대는 다섯 가지
 ------------------------------
@@ -43,7 +48,7 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
    (`` `reports/37_md-rpm.ipynb` ``)에도 한다.
 3. **지도 권 생성** — 1 권의 첫 절은 조각이 아니라 이 스크립트가 짓는다. 옛 조각 `00_map`
    은 «78 편 · 12 부» 라는 폐지된 구조 자체를 설명하는 글이라 재배선으로 살릴 수 없다.
-   대신 여기서 열다섯 권의 목차·조각 배치·읽는 경로를 **편성과 디스크에서 다시 만든다.**
+   대신 여기서 전 권의 목차·조각 배치·읽는 경로를 **편성과 디스크에서 다시 만든다.**
 4. **8 권 후처리** — 8 권은 그림이 무거워 다섯 편으로 나뉘고, 다른 빌더가 낸다(위 ②·②').
    이 스크립트는 그 다섯 편의 **주소만 고치고**, 옛 부 7 조각(34~39)을 `08_3_pattern.ipynb`
    뒤에 절로 **덧붙인다**. 덧붙인 셀에는 표식을 달아 두므로 다시 돌려도 겹쳐 쌓이지 않는다.
@@ -54,6 +59,7 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
 from __future__ import annotations
 
 import datetime as _dt
+import glob as _glob
 import json
 import os
 import re
@@ -74,6 +80,23 @@ INDEX_REL = "outputs/volumes_index.json"
 #: 덧붙인 절에 다는 표식 — 다시 돌릴 때 이 표식이 붙은 셀부터 걷어낸다(겹쳐 쌓이지 않게).
 APPEND_TAG = "from_parts"
 
+#: 편 수를 한글로 — 본문이 «네 편/열일곱 권» 을 손으로 적지 않게 한다.
+#:  ⭐ 권이 늘면 여기까지 함께 늘려야 한다. 표에 없는 수는 아라비아 숫자로 떨어진다.
+_KOR_COUNT = {1: "한", 2: "두", 3: "세", 4: "네", 5: "다섯", 6: "여섯", 7: "일곱",
+              8: "여덟", 9: "아홉", 10: "열", 11: "열한", 12: "열두", 13: "열세",
+              14: "열네", 15: "열다섯", 16: "열여섯", 17: "열일곱", 18: "열여덟",
+              19: "열아홉", 20: "스무"}
+
+
+def _kor(n: int) -> str:
+    return _KOR_COUNT.get(n, str(n))
+
+
+def _part_builders() -> list[str]:
+    """조각 빌더 파일 이름 — 디스크에서 센다. 조각이 늘면 재현 절차의 개수도 따라 는다."""
+    return sorted(os.path.basename(p)
+                  for p in _glob.glob(os.path.join(_HERE, "build_part*.py")))
+
 # --------------------------------------------------------------------------- #
 #  이 스크립트가 조립하는 권 — 한 권 = 하나의 메시지
 #    (번호, 슬러그, 제목, 한 줄 논지, [조각 번호…], 결론 조각)
@@ -85,7 +108,7 @@ APPEND_TAG = "from_parts"
 VOLUMES = [
     ("01", "map", "이 연구가 묻는 것과 답한 방식",
      "패시브 바이스태틱으로 드론을 **탐지하고 마이크로도플러로 분류**하는 것이 태스크이고, "
-     "RCS 는 그 인프라다. 이 권은 나머지 열네 권의 지도다.",
+     "RCS 는 그 인프라다. 이 권은 나머지 ⟦권수-1⟧ 권의 지도다.",
      ["13", "75"], "75"),
     ("02", "stock-engine", "스톡 Sionna 로는 왜 부족한가",
      "스톡 레이 트레이서는 경로를 풀지 **산란적분을 하지 않는다**. "
@@ -199,17 +222,19 @@ COMPANIONS = {
                 builder="src/make_report11_2_two_channel.py")],
 }
 
+# --------------------------------------------------------------------------- #
+#  권 수는 편성에서 센다 — VOLUMES 나 EXTERNAL 에 권을 더하면 본문의 «몇 권» 이 함께 바뀐다.
+#  VOLUMES 의 논지에 박아 둔 ⟦권수⟧·⟦권수-1⟧ 자리를 여기서 채운다.
+# --------------------------------------------------------------------------- #
+N_VOLUMES = len(VOLUMES) + len(EXTERNAL)
+
+VOLUMES = [v[:3] + (v[3].replace("⟦권수-1⟧", _kor(N_VOLUMES - 1))
+                        .replace("⟦권수⟧", _kor(N_VOLUMES)),) + v[4:]
+           for v in VOLUMES]
+
 #: 1 권 첫 절(지도)은 조각이 아니라 이 스크립트가 짓는다.
 MAP_VOL = "01"
-MAP_SECTION_TITLE = "열다섯 권의 지도 — 무엇이 어디에 있나"
-
-#: 편 수를 한글로 — 지도 본문이 «네 편/다섯 편» 을 손으로 적지 않게 한다.
-_KOR_COUNT = {1: "한", 2: "두", 3: "세", 4: "네", 5: "다섯", 6: "여섯", 7: "일곱",
-              8: "여덟", 9: "아홉", 10: "열"}
-
-
-def _kor(n: int) -> str:
-    return _KOR_COUNT.get(n, str(n))
+MAP_SECTION_TITLE = f"{_kor(N_VOLUMES)} 권의 지도 — 무엇이 어디에 있나"
 
 
 def _n_companions() -> int:
@@ -474,7 +499,7 @@ def _vol_intro(no: str, title: str, thesis: str,
                   f"({c['file']}) 다. {c['what']}.", ""]
     lines.append("전체 목차는 [reports/README.md](README.md) 다."
                  if no == MAP_VOL else
-                 "전체 목차는 [reports/README.md](README.md) 이고, 열다섯 권의 지도는 "
+                 f"전체 목차는 [reports/README.md](README.md) 이고, {_kor(N_VOLUMES)} 권의 지도는 "
                  f"[리포트 {int(VOLUMES[0][0])} «{VOLUMES[0][2]}»]"
                  f"({VOLUMES[0][0]}_{VOLUMES[0][1]}.ipynb) 다.")
     return _cell("\n".join(lines))
@@ -489,12 +514,13 @@ def _section_rule(idx: int, title: str, meta: dict | None = None) -> dict:
 # --------------------------------------------------------------------------- #
 def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
     n_vol = len(_ordered_nos())
+    bld = _part_builders()                     # 재현 절차의 «조각 빌더 N 개» 는 디스크에서 센다
     cells: list[dict] = []
 
     cells.append(_cell(
         "> ### 한 일\n"
-        "> **조각 빌더가 낸 편들을 «하나의 메시지 = 한 권» 기준으로 열다섯 권에 배치하고, "
-        "권 안에서 각주와 상호참조를 다시 매겼다.**\n"
+        f"> **조각 빌더가 낸 편들을 «하나의 메시지 = 한 권» 기준으로 {_kor(n_vol)} 권에 "
+        "배치하고, 권 안에서 각주와 상호참조를 다시 매겼다.**\n"
         "\n"
         "### 결과\n"
         f"1. 사람이 읽는 문서는 ⟨{INDEX_REL} : _meta.n_volumes⟩ 권이고, 그 안에 들어간 조각은 "
@@ -536,7 +562,8 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "### 재현\n"
         "\n"
         "```bash\n"
-        "PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개\n"
+        f"PYTHONPATH=src python src/{bld[0]:<33s}# ① 조각 빌더 {len(bld)} 개\n"
+        f"#  … {bld[1]} … {bld[-1]}\n"
         "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편\n"
         "PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 8 권 5 편\n"
         "PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②\" 11-2 별편\n"
@@ -554,7 +581,7 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
 
     # ── 처음 여는 사람을 위한 말 풀이 ────────────────────────────────────────
     #   ⭐이 권을 처음 여는 사람은 편성이 아니라 **무엇을 하는 연구인가**를 먼저 묻는다.
-    #     열다섯 권 표 앞에 그 한 화면을 둔다 — 뒤 권들이 이 낱말을 설명 없이 쓴다.
+    #     권 표 앞에 그 한 화면을 둔다 — 뒤 권들이 이 낱말을 설명 없이 쓴다.
     cells.append(_cell(
         "## 처음 여는 사람에게 — 이 연구의 말 다섯\n"
         "\n"
@@ -572,7 +599,7 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "이것이다 |\n"
         "| 탐지 · 분류 | 있나 없나를 정하는 것이 탐지, 어느 기종인가를 정하는 것이 분류다 |\n"))
 
-    # ── 열다섯 권 표 (두 셀로 나눠 화면에서 읽히게) ──────────────────────────
+    # ── 권 표 (두 셀로 나눠 화면에서 읽히게 · 나누는 자리도 권 수에서 센다) ──
     def _vol_rows(nos) -> str:
         out = ["| 권 | 이 권이 답하는 물음 | 절 | 한 절만 읽는다면 |", "|---|---|---|---|"]
         for no in nos:
@@ -586,8 +613,9 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         return "\n".join(out)
 
     nos = _ordered_nos()
-    cells.append(_cell("## 열다섯 권 (앞 절반)\n\n" + _vol_rows(nos[:8])))
-    cells.append(_cell("## 열다섯 권 (뒤 절반)\n\n" + _vol_rows(nos[8:])))
+    cut = (len(nos) + 1) // 2
+    cells.append(_cell(f"## {_kor(n_vol)} 권 (앞 절반)\n\n" + _vol_rows(nos[:cut])))
+    cells.append(_cell(f"## {_kor(n_vol)} 권 (뒤 절반)\n\n" + _vol_rows(nos[cut:])))
 
     for ex in EXTERNAL:
         rows = "\n".join(f"| [{f}]({f}) | {t} |" for f, t in ex["files"])
@@ -699,7 +727,7 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "실제 디스크와 같아진다 | `src/build_volumes.py` |\n"
         "| 권 사이 참조를 매번 검사한다 | 끊긴 링크·없는 앵커·안 열리는 출처가 0 인 채로 "
         "유지된다 | `benchmark/check_report_links.py` |\n"
-        "| 저장소 최상단 목차를 15 권 편성으로 다시 낸다 | 바깥에서 들어오는 독자가 폐지된 "
+        f"| 저장소 최상단 목차를 {n_vol} 권 편성으로 다시 낸다 | 바깥에서 들어오는 독자가 폐지된 "
         "78 편 주소로 새지 않는다 | `src/make_readme.py` |\n",
         meta={"tags": ["next_steps"]}))
 
@@ -797,9 +825,10 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
                        f"({', '.join(c['file'] for v in COMPANIONS.values() for c in v)})."
                        if COMPANIONS else ".")),
         "companions": {no: [c["file"] for c in cs] for no, cs in sorted(COMPANIONS.items())},
-        "rebuild": "① 조각 빌더 12 개 → ② src/make_report08_microdoppler.py + "
-                   "src/make_report07b_bistatic.py + src/make_report11_2_two_channel.py → "
-                   "③ src/build_volumes.py → ④ benchmark/check_report_links.py",
+        "rebuild": (f"① 조각 빌더 {len(_part_builders())} 개 → "
+                    "② src/make_report08_microdoppler.py + "
+                    "src/make_report07b_bistatic.py + src/make_report11_2_two_channel.py → "
+                    "③ src/build_volumes.py → ④ benchmark/check_report_links.py"),
     }
     with open(INDEX, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
@@ -808,18 +837,21 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
 def _write_readme(place: dict[str, dict], titles: dict[str, str],
                   built: list[dict]) -> None:
     by_no = {b["no"]: b for b in built}
+    n_vol = len(_ordered_nos())
+    bld = _part_builders()
     L = ["<!-- 생성물 — `src/build_volumes.py` 가 낸다. 손으로 고치지 말고 그 파일을 고쳐라. -->",
          "",
-         "# 리포트 — 열다섯 권",
+         f"# 리포트 — {_kor(n_vol)} 권",
          "",
          "패시브 바이스태틱 드론 탐지 시뮬레이터의 본문이다. **한 권이 물음 하나를 들고, 권 "
          "제목이 그 물음이다.** 권 안의 절은 각각 «한 일 · 결과 · 방법 · 재현» 을 앞에 달고 "
          "있어 필요한 절만 따로 읽어도 된다.",
          "",
-         "처음이면 [리포트 1 «이 연구가 묻는 것과 답한 방식»](01_map.ipynb) 부터다 — 열다섯 "
+         f"처음이면 [리포트 {int(VOLUMES[0][0])} «{VOLUMES[0][2]}»]"
+         f"({VOLUMES[0][0]}_{VOLUMES[0][1]}.ipynb) 부터다 — {_kor(n_vol)} "
          "권의 지도와 읽는 경로 셋이 거기 있다.",
          "",
-         "## 열다섯 권",
+         f"## {_kor(n_vol)} 권",
          "",
          "| 권 | 이 권이 답하는 물음 | 절 | 한 절만 읽는다면 |",
          "|---|---|---|---|"]
@@ -869,8 +901,8 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
           "순서가 중요하다 — ③ 이 ② 의 산출물 뒤에 절을 덧붙이기 때문이다.",
           "",
           "```bash",
-          "PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개",
-          "#  … build_part01_stock_engine.py … build_part11_measurement.py",
+          f"PYTHONPATH=src python src/{bld[0]:<33s}# ① 조각 빌더 {len(bld)} 개",
+          f"#  … {bld[1]} … {bld[-1]}",
           "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편",
           "PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 8 권 5 편",
           "PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②\" 11-2 별편",

@@ -58,7 +58,7 @@ C0 = 299792458.0
 FC = 3.5e9
 LAM = C0 / FC
 
-SCRATCH = "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/facet"
+SCRATCH = "/tmp/claude-1015/-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/facet"
 os.makedirs(SCRATCH, exist_ok=True)
 OUT = os.path.join(ROOT, "outputs", "facet_mechanism.json")
 

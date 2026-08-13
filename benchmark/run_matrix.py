@@ -23,7 +23,7 @@ run_min_cell 의 '최소 셀 1개'를 4개 축으로 확장한 **공정 벤치�
 전력 기준** 정규화(희소 파일럿의 에너지 핸디캡 유지), CPI 시간 T_CPI 고정(도플러분해능
 1/T_CPI 균일 — 프레임률이 다른 파형끼리 공정), CFAR Pfa=1e-4, 히트=참셀 ±1.
 
-실행:  /home/yunjung/.venvs/py312/bin/python run_matrix.py            (전체, ~수 분)
+실행:  /workspace/.venvs/py312/bin/python run_matrix.py            (전체, ~수 분)
        ... run_matrix.py --quick                                      (빠른 점검)
        ... run_matrix.py --only a,b                                   (섹션 선택)
 산출:  outputs/figures/report5_{occupancy_pd,matrix,scenarios,rt_clutter}.png

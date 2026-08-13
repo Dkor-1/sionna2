@@ -41,7 +41,7 @@ for _p in (os.path.join(ROOT, "src"), _HERE):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-SCRATCH_BASE = ("/tmp/claude-1015/-home-yunjung-workspace/"
+SCRATCH_BASE = ("/tmp/claude-1015/-workspace/"
                 "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad")
 os.environ.setdefault("REPORT15_SCRATCH", os.path.join(SCRATCH_BASE, "r15attack"))
 

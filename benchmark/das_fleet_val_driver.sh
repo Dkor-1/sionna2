@@ -5,7 +5,7 @@
 #  ⚠ nohup 이라 워크플로가 끝나도 살아남는다 → PID 를 worker_val.pids 에 남긴다.
 #  ⚠ 스레드 고정 — BLAS 가 프로세스당 수십 코어를 잡으면 서로를 밀어낸다.
 set -u
-cd /home/yunjung/workspace/sionna2
+cd /workspace/sionna
 
 PY=~/.venvs/py312/bin/python
 export PYTHONPATH=src:benchmark

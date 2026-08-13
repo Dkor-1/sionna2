@@ -37,7 +37,7 @@ source_not_pdf 등). "확인됨"과 "확인 못 함"을 절대 섞지 않는다.
 
 사용법
 ------
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_quotes_tool.py
   ... --only deepread_w4.json prior_settled_h8.json   # 파일 일부만
   ... --summary-only                                  # 콘솔 요약만
@@ -61,7 +61,7 @@ import unicodedata
 from collections import Counter, defaultdict
 
 # ----------------------------------------------------------------------------- 설정
-REPO = "/home/yunjung/workspace/sionna2"
+REPO = "/workspace/sionna"
 OUTPUTS = os.path.join(REPO, "outputs")
 OUT_PATH = os.path.join(OUTPUTS, "quote_audit.json")
 SELF_NAME = "quote_audit.json"          # 자기 출력은 다시 훑지 않는다
@@ -72,7 +72,7 @@ PDF_ROOTS = [
     "/data/public/sionna_jeong/reference_library",
     "/data/public/jeong/papers",
     "/data/public/OpenISAC",
-    "/home/yunjung/workspace/sionna2",
+    "/workspace/sionna",
 ]
 CACHE_DIR = os.environ.get("QUOTE_CACHE_DIR", "/tmp/sionna2_quote_cache")
 

@@ -5,7 +5,7 @@
 GPU 여유를 보고 줄였으면) 그 작업은 아무도 하고 있지 않다 → 잠금을 지워 다시 잡히게 한다.
 결과 파일이 이미 있는 잠금도 지운다."""
 import os, sys, glob
-P = "/home/yunjung/workspace/sionna2/outputs/partial/das_fleet_0803"
+P = "/workspace/sionna/outputs/partial/das_fleet_0803"
 alive = lambda pid: os.path.exists(f"/proc/{pid}")
 n = 0
 for lk in glob.glob(os.path.join(P, "*", "*.lock")):

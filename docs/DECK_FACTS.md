@@ -408,10 +408,10 @@
 
 - **등급** `computed-by-us (한 줄로 재현)`
 - **EN** The installed Sionna 2.0.1 rt package contains zero occurrences of 'rcs' or 'radar_cross_section' - there is no scattering integral and no sigma output.
-- **command** `grep -rio '\brcs\b' /home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt --include=*.py | wc -l`
+- **command** `grep -rio '\brcs\b' /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt --include=*.py | wc -l`
 - **json** `outputs/deck_facts.json : recomputed.sionna_installed`
 - **corroborating** `benchmark/verify_rt_no_rcs.py · outputs/psolve_diffraction.json : sionna_stock_D`
-- **수치** `{"version": "2.0.1", "rt_dir": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt", "rcs_word_hits": 0, "radar_cross_section_hits": 0, "diffract_hits": 550}`
+- **수치** `{"version": "2.0.1", "rt_dir": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt", "rcs_word_hits": 0, "radar_cross_section_hits": 0, "diffract_hits": 550}`
 - **⭐ 예상 공격** — 'Sionna 는 RCS 를 못 낸다' 는 말은 예전에 우리가 틀렸다고 정정한 주장 아닌가.
 - **우리 답** — 맞다 — 그래서 문장을 좁혔다. 틀린 문장은 '광선추적은 RCS 를 못 낸다' 였다(SBR 은 낸다). 참인 문장은 '**Sionna 기본 solver 에 산란적분 단계가 없다**' 뿐이고, 그것이 위 grep 이 보여주는 것이다. Sionna 는 경로 계수를 내지 σ 를 내지 않는다.
 
@@ -519,7 +519,7 @@
 
 - **등급** `computed-by-us (설치본 소스 직접 확인)`
 - **EN** Sionna's PathSolver defaults are diffraction=False and edge_diffraction=False - the capability exists and ships off by default.
-- **code** `/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:154-155`
+- **code** `/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:154-155`
 - **verbatim** `diffraction: bool = False,  /  edge_diffraction: bool = False,`
 - **command** `grep -n 'diffraction' <sionna.rt>/path_solvers/path_solver.py`
 - **⭐ 예상 공격** — 그러면 켜고 다시 돌리면 되는 것 아닌가.

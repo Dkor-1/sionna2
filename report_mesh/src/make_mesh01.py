@@ -469,7 +469,7 @@ md(
 "",
 "```bash",
 "PY=~/.venvs/py312/bin/python",
-"cd ~/workspace/sionna2",
+"cd /workspace/sionna",
 "$PY report_mesh/src/verify_mesh_suite.py     # 증거 JSON 재생성 (검사 I 는 GPU 필요; --skip-sbr 로 생략 가능)",
 "$PY report_mesh/src/viz_mesh_reports.py      # 그림 재생성 (outputs/figures/*.png)",
 "$PY report_mesh/src/make_mesh01.py           # 이 노트북 재생성",

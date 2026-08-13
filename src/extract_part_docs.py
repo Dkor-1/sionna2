@@ -15,7 +15,7 @@ extract_part_docs.py — 부 6·7·11 의 **논문 조각**과 **재현 절차**
 ⚠ `docs/REPRODUCE.md` 전체 병합은 다른 단계가 한다 — 여기서는 이 묶음의 조각만 낸다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     ~/.venvs/py312/bin/python src/extract_part_docs.py
 """
 from __future__ import annotations

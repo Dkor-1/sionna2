@@ -89,7 +89,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 import report16_base as RB              # noqa: E402  ⭐ 규약·커널·지표를 그대로 물려받는다
 
 SCRATCH = os.environ.get("REPORT16_SCRATCH",
-                         "/tmp/claude-1015/-home-yunjung-workspace/"
+                         "/tmp/claude-1015/-workspace/"
                          "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/report16")
 OUT_JSON = os.path.join(ROOT, "outputs", "report16_rung_mesh_no_rotor.json")
 OUT_PREREG = os.path.join(ROOT, "outputs", "report16_rung_mesh_no_rotor.prereg.json")

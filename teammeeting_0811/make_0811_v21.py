@@ -70,7 +70,7 @@ make_0811_v21.py — **v20 에서 대본 세 군데만 고친다.** 슬라이드
 ■ 손대지 않은 것
   슬라이드 11 장·그림 11 개·본문 글자·쪽번호 — 전부 v20 그대로. 대본 세 개만 다르다.
 
-    /home/yunjung/.venvs/py312/bin/python teammeeting_0811/make_0811_v21.py
+    /workspace/.venvs/py312/bin/python teammeeting_0811/make_0811_v21.py
 """
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ import zipfile
 
 from pptx import Presentation
 
-TM = "/home/yunjung/workspace/team_meeting"
+TM = "/workspace/team_meeting"
 SRC = f"{TM}/teammeeting_0811_v20.pptx"
 DST = f"{TM}/teammeeting_0811_v21.pptx"
 

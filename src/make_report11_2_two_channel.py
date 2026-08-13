@@ -172,6 +172,83 @@ REQ_WL_HI = max(SUM[m]["ref_snr_needed_for_3db_loss"] for m in ("W1", "L1"))
 GAIN_WL_LO = min(SUM[m]["ref_antenna_gain_needed_db"] for m in ("W1", "L1"))
 GAIN_WL_HI = max(SUM[m]["ref_antenna_gain_needed_db"] for m in ("W1", "L1"))
 
+
+# ── «필요한 ρ_ref» 는 손실 오름차순 보간이다 — 사다리가 비단조면 격자 한 칸을 건너뛴다 ─
+def loss_monotone(mode: str) -> bool:
+    """ρ_ref 를 내릴수록 손실이 커지는가 — 원장의 사다리가 스스로 답한다."""
+    ys = [SUM[mode]["loss_db_by_refsnr"][k] for k in RHO]          # RHO 는 +40…+0
+    return all(a <= b for a, b in zip(ys, ys[1:]))
+
+
+def req_bracket(mode: str):
+    """3 dB 교차점이 앉는 두 격자 칸(손실 오름차순)과 그 사이에서 건너뛴 칸들."""
+    pts = sorted((SUM[mode]["loss_db_by_refsnr"][k], float(k)) for k in RHO)
+    for (y0, x0), (y1, x1) in zip(pts, pts[1:]):
+        if y0 <= 3.0 <= y1:
+            skip = [(float(k), SUM[mode]["loss_db_by_refsnr"][k]) for k in RHO
+                    if min(x0, x1) < float(k) < max(x0, x1)]
+            return (x0, y0), (x1, y1), skip
+    return None, None, []
+
+
+NONMONO = [m for m in MODES if not loss_monotone(m)]
+NM_MARK = {m: (" ⚠ 비단조 보간" if m in NONMONO else "") for m in MODES}
+
+
+def req_note(m: str) -> str:
+    lo, hi, skip = req_bracket(m)
+    if lo is None:
+        return (f"{SH[m]} 의 손실 사다리는 3 dB 를 격자 안에서 가로지르지 않아 "
+                f"{SUM[m]['ref_snr_needed_for_3db_loss']:.2f} dB 는 격자 밖 값이다.")
+    sk = " · ".join(f"ρ_ref {x:.0f} dB 칸(손실 {y:+.2f} dB)" for x, y in skip)
+    return (f"{SH[m]} 의 3 dB 교차점은 손실을 오름차순으로 세운 뒤 보간해 얻으므로 "
+            f"ρ_ref {lo[0]:.0f} dB(손실 {lo[1]:+.2f} dB)와 {hi[0]:.0f} dB({hi[1]:+.2f} dB) "
+            f"사이에서 **{SUM[m]['ref_snr_needed_for_3db_loss']:.2f} dB** 가 나오고, 그 사이의 "
+            f"{sk}은 건너뛴다.")
+
+
+REQ_NOTE = (("⚠ **" + "·".join(SH[m] for m in NONMONO) + " 행은 비단조 곡선의 보간값이다.** "
+             + " ".join(req_note(m) for m in NONMONO)
+             + " 절 2 사다리의 그 칸과 이 값은 같은 곡선을 두 방향으로 읽은 결과이고, "
+             "한 점에서 만나지 않는다.") if NONMONO else "")
+
+# ── CFAR 명목 Pfa 를 준 교정표의 «형상» — 그 원장이 직접 말하게 한다 ──────────────
+try:
+    CAL = json.load(open(os.path.join(_ROOT, CFG["pfa_calibration_source"])))
+except OSError:
+    CAL = {}
+CALM = CAL.get("meta", {})
+CAL_M, CAL_MASK = CALM.get("M_cpi"), CALM.get("zd_mask_operational")
+CAL_NR = {m: next((v.get("n_range_op") for k, v in CAL.get("chain", {}).items()
+                   if k.lower().startswith(E1[m]["std"].lower())), None) for m in MODES}
+CAL_OK = CAL_M is not None and CAL_MASK is not None and all(CAL_NR[m] is not None
+                                                            for m in MODES)
+SHAPE_ORDER = "·".join(SH[m] for m in MODES)
+SHAPE_GAP = ((f"교정표는 0-도플러 마스크 **{CAL_MASK} 빈** · CPI 프레임 M **{CAL_M}** · "
+              f"거리빈 **{'/'.join(str(CAL_NR[m]) for m in MODES)}**({SHAPE_ORDER} 순)에서 "
+              f"쟀고, 이 편은 가드 폭 **{CFG['guard_width']}** · M "
+              f"**{'/'.join(str(E1[m]['M']) for m in MODES)}** · 거리빈 "
+              f"**{CFG['n_range']}** 다")
+             if CAL_OK else "교정표의 형상은 **원장 없음** 이다")
+# 두 형상이 실제로 다른가 — 원장 대 이 편의 설정이 스스로 답한다. 같아지면(또는 대조할
+# 원장이 없으면) 아래 세 경고문은 «다르다» 를 주장하지 않는 문장으로 저절로 바뀐다.
+SHAPE_DIFFERS = CAL_OK and (CAL_MASK != CFG["guard_width"]
+                            or any(CAL_M != E1[m]["M"] or CAL_NR[m] != CFG["n_range"]
+                                   for m in MODES))
+SHAPE_W_CHAIN = ((f"⚠ **그 교정표는 이 편과 다른 형상에서 쟀다** — {SHAPE_GAP}. 명목 Pfa 는 "
+                  "형상의 함수이므로, 빌려 온 문턱이 이 편의 맵 위에서 목표 경험 Pfa 를 "
+                  "그대로 내지는 않는다. 그 어긋남의 크기는 절 2 끝에서 팔마다 잰다.")
+                 if SHAPE_DIFFERS else
+                 (f"{SHAPE_GAP} — 빌려 온 문턱이 이 편의 맵 위에서 목표 경험 Pfa 를 내는지는 "
+                  "절 2 끝에서 팔마다 잰다."))
+SHAPE_W_FORM = (f"⚠ 11 권의 CFAR 교정 형상은 이것과 다르다({SHAPE_GAP}) — 그 권에서 빌려 오는 "
+                "것은 명목 Pfa 값 하나뿐이다."
+                if SHAPE_DIFFERS else
+                f"11 권에서 빌려 오는 것은 명목 Pfa 값 하나뿐이다({SHAPE_GAP}).")
+SHAPE_W_PFA = (f"**오염 이전에 형상부터 다르다** — {SHAPE_GAP}(절 1). " if SHAPE_DIFFERS
+               else f"형상 대조는 절 1 에 있다({SHAPE_GAP}). ")
+PFA_IDEAL_R = {m: SUM[m]["pfa_emp_by_arm"]["ideal"] / CFG["pfa_target_emp"] for m in MODES}
+
 cells = [
     md("# 리포트 11-2 — 기준채널이 현실이면 **얼마를 잃는가**", "",
        "> **절벽은 기준채널 잡음 축에 있고, 다중경로 축은 평지다. 그리고 그 대가는 전부 "
@@ -267,6 +344,7 @@ cells = [
        "**읽기만 한다.** CFAR 명목 Pfa 는 같은 파일의 교정표"
        f"(`{CFG['pfa_calibration_source']}`, 11 권 절 3)를 그대로 부르고, 0-도플러 가드는 "
        f"폭 {CFG['guard_width']} 다.", "",
+       SHAPE_W_CHAIN, "",
        "**새로 한 것 하나.** 기준채널을 «측정된 신호» 로 만드는 팔이다.", "",
        "| 팔 | 무엇을 넣나 |",
        "|---|---|",
@@ -289,7 +367,8 @@ cells = [
        "",
        f"⚠ **DTR {GEO['dtr_db']:.1f} dB 는 최악 가정이다.** 원장이 그 자리에 적어 둔 문장 그대로 — "
        f"«{GEO['note']}»", "",
-       "**사슬의 형상** — 파형이 정한다. 전부 11 권·13 권 헤드라인 규약 그대로다.", "",
+       "**사슬의 형상** — 파형이 정한다. 전부 13 권 «결과» 의 헤드라인 규약 그대로다. "
+       + SHAPE_W_FORM, "",
        "| 무엇 | " + " | ".join(LBL[m] for m in MODES) + " |",
        "|---|---|---|---|",
        "| 기준신호 대역 | " + " | ".join(f"{E1[m]['ref_bw_mhz']:.2f} MHz" for m in MODES) + " |",
@@ -388,8 +467,16 @@ cells = [
                  f"{E1R[m][JOINT]['loss_db'] - SUM[m]['loss_db_by_refsnr'][JOINT_RHO]:+.2f} dB |"
                  for m in MODES), "",
        "**왜 한쪽만 절벽인가 — 표적이 내려간 것이 아니라 바닥이 올라온 것이다.**", "",
-       "같은 팔에서 RD 맵의 **표적 피크**와 **바닥**을 따로 재면 갈린다.", "",
-       "| 파형 | 팔 | 피크 변화 | 바닥 변화 | 손실 |",
+       "같은 팔 안에서 RD 맵의 **표적 피크**와 **바닥**을 따로 재면 갈린다.", "",
+       f"⚠ **이 표는 E1c 묶음이다 — 절 4 의 분해와 같은 팔이고, 위 사다리(E1)와는 다른 "
+       f"실험이다.** 팔 이름은 같지만 트라이얼이 팔당 "
+       f"{E1R['W1']['ideal']['K']} → {E1CR['W1']['ideal']['K']} 으로 적고, σ² 도 따로 "
+       f"재교정했다({E1['W1']['noise_var']:.0f} → {E1C['W1']['noise_var']:.0f}, "
+       f"{SH['W1']} 기준). 그래서 같은 `refSNR{JOINT_RHO}dB` 라벨의 손실이 위 사다리에서 "
+       f"{SUM['W1']['loss_db_by_refsnr'][JOINT_RHO]:.2f} dB, 이 표에서 "
+       f"{MECH['W1']['rows']['refSNR' + JOINT_RHO + 'dB']['loss_db']:.2f} dB 다. 두 값이 "
+       f"어디서 갈리는지는 절 5 첫 표가 한 자리에 놓는다.", "",
+       "| 파형 | 팔 (E1c) | 피크 변화 | 바닥 변화 | 손실 (E1c) |",
        "|---|---|---|---|---|",
        "\n".join(f"| {LBL[m]} | `{a}` | {MECH[m]['rows'][a]['d_peak_db']:+.2f} dB | "
                  f"**{MECH[m]['rows'][a]['d_floor_db']:+.2f} dB** | "
@@ -400,8 +487,9 @@ cells = [
        "기준신호에 섞인 잡음은 ECA 가 푸는 최소제곱 가중치에 실려 나오고, 그 가중치로 뺀 "
        "직접파는 **덜 지워진다**. 남은 직접파가 맵 전체의 바닥을 들어 올린다. 그래서 "
        "표적 신호는 그대로인데 SINR 만 무너진다.", "",
-       "**ECA 소거깊이가 그 사슬을 그대로 보여준다.**", "",
-       "| ρ_ref | " + " | ".join(LBL[m] for m in MODES) + " |",
+       "**ECA 소거깊이가 그 사슬을 그대로 보여준다** — 이 표는 다시 **E1 사다리**다"
+       "(위 피크·바닥 표만 E1c 다).", "",
+       "| ρ_ref (E1) | " + " | ".join(LBL[m] for m in MODES) + " |",
        "|---|---|---|---|",
        "\n".join(f"| `{('ideal' if k is None else 'refSNR' + k + 'dB')}` | " + " | ".join(
            f"{SUM[m]['eca_depth_db_by_arm']['ideal' if k is None else 'refSNR' + k + 'dB']:.1f} dB"
@@ -412,10 +500,14 @@ cells = [
        f"{E1R['W1']['ideal']['pd']:.2f}), 손실이 ρ 를 내려도 W1·L1 만큼 안 오른다. "
        f"이유는 G1 의 팔 A 바닥이 이미 열잡음이 아니라 직접파 잔류이기 때문이다"
        f"(천장 {G1_CEIL:.1f} dB). 절 3 의 경험식이 G1 에서 깨지는 것도 같은 이유다.", "",
-       f"⚠ **팔 간 Pd 비교는 «같은 경험적 Pfa» 가 아니다.** 명목 Pfa 는 이상적 기준신호 "
-       f"형상에서 교정된 값이고, 기준채널이 오염되면 RD 맵의 통계가 달라져 그 교정이 더는 "
-       f"성립하지 않는다. 그래서 팔마다 경험 Pfa 를 같이 쟀다"
-       f"(목표 {CFG['pfa_target_emp']:.0e} · 절 6 의 {OP_PFA}번 항목).", "",
+       f"⚠ **팔 간 Pd 비교는 «같은 경험적 Pfa» 가 아니다 — 어긋남은 오염 이전부터 있다.** "
+       f"명목 Pfa 는 별도 교정표(`{CFG['pfa_calibration_source']}`)에서 빌려 온 값이고, "
+       + SHAPE_W_PFA
+       + f"그래서 오염이 0 인 `ideal` "
+       f"팔에서도 경험 Pfa 가 목표({CFG['pfa_target_emp']:.0e})의 "
+       + " · ".join(f"{SH[m]} {PFA_IDEAL_R[m]:.2f}" for m in MODES)
+       + " 배다. 기준채널이 오염되면 RD 맵의 통계가 거기서 더 움직여 교정이 더는 성립하지 "
+       f"않는다. 그래서 팔마다 경험 Pfa 를 같이 쟀다(절 6 의 {OP_PFA}번 항목).", "",
        f"· {SH['W1']}·{SH['L1']} 은 **이 사다리의** 팔 전체가 "
        f"**{min(PFA_WL):.1e} ~ {max(PFA_WL):.1e}**, 즉 목표의 "
        f"{min(PFA_WL_RATIO):.2f}~{max(PFA_WL_RATIO):.2f} 배다. 같은 자릿수 안이라 "
@@ -486,10 +578,12 @@ cells = [
        "**그래서 뒤집어 읽는다 — 3 dB 손실을 지키려면 기준채널 SNR 이 얼마여야 하나.**", "",
        "| 파형 | 필요한 ρ_ref (손실 3 dB) | 지금 서 있는 자리 | ⇒ **기준안테나 이득 요구치** |",
        "|---|---|---|---|",
-       "\n".join(f"| {LBL[m]} | {SUM[m]['ref_snr_needed_for_3db_loss']:.2f} dB | "
+       "\n".join(f"| {LBL[m]} | {SUM[m]['ref_snr_needed_for_3db_loss']:.2f} dB"
+                 f"{NM_MARK[m]} | "
                  f"{SUM[m]['rho_ref_selfconsistent_db']:.2f} dB | "
                  f"**{SUM[m]['ref_antenna_gain_needed_db']:.2f} dB** |" for m in MODES),
        "",
+       REQ_NOTE, "",
        f"⭐ **이것이 이 편에서 실측 설계로 넘어가는 다리다.** {SH['W1']}·{SH['L1']} 의 요구치가 "
        f"{GAIN_WL_LO:.1f}~{GAIN_WL_HI:.1f} dB 이므로, 기준안테나는 조명원 방향으로 그만큼의 "
        "이득을 **감시안테나보다 더** 가져야 한다. «패시브 수신기를 두 개 만든다» 는 설계 "
@@ -500,7 +594,8 @@ cells = [
        "한다» 다. 실제 프론트엔드가 그것을 내는지는 15 권이 닫는다.", "",
        f"⚠ 세 요구치 중 **{SH['G1']} 의 값은 다른 뜻이다** — {SH['G1']} 은 손실 곡선 자체가 "
        f"천장에 눌려 있어 «3 dB 손실» 이라는 기준이 {SH['W1']}·{SH['L1']} 과 같은 물건이 "
-       f"아니다. 설계 근거로는 {SH['W1']}·{SH['L1']} 의 "
+       f"아니고, 그 눌림이 곡선을 비단조로 만들어 교차점이 위 ⚠ 의 보간으로 잡힌다. "
+       f"설계 근거로는 {SH['W1']}·{SH['L1']} 의 "
        f"{GAIN_WL_LO:.1f}~{GAIN_WL_HI:.1f} dB 를 쓴다.", "",
        "**⭐ 스윕에서 읽어낸 경험식**", "",
        f"$$\\text{{loss}}[\\mathrm{{dB}}] \\;=\\; 10\\log_{{10}}\\!\\left(1 + "
@@ -526,6 +621,9 @@ cells = [
     md("## 절 4. 손실은 전부 ECA 단에서 나온다 — 그리고 노치 자체는 싸다", "",
        "오염된 기준신호를 **정합필터에만** 준 팔, **ECA 에만** 준 팔, 둘 다 준 팔을 나란히 "
        "돌린다.", "",
+       f"⚠ 이 분해는 **E1c 묶음**이다 — 절 2 의 피크·바닥 표와 같은 팔이고, 절 2 사다리(E1)와는 "
+       f"트라이얼(팔당 {E1CR['W1']['ideal']['K']} 대 {E1R['W1']['ideal']['K']})도 σ² 교정도 "
+       f"다른 실험이다(절 5 첫 표).", "",
        "| 파형 | 오염 수준 | 정합필터만 | ECA 만 | 둘 다 |",
        "|---|---|---|---|---|",
        "\n".join(f"| {LBL[m]} | ρ_ref {r} dB | "
@@ -591,23 +689,42 @@ cells = [
        "`플래시 대비` 는 같은 띠 전력의 시간축 p95−p5 이고 **잡음 변동만으로도 커진다** — "
        "판정값은 선 세기 쪽이다.", "",
        "⚠ **여기에는 사다리가 둘이고, 둘 다 절 2 의 사다리와 같은 물건이 아니다.** 팔 이름만 "
-       "같다 — 맵은 생존 사다리에서, Pd 는 그것과 또 다른 검출 사다리에서 나온다.", "",
-       "| 무엇 | 절 2 의 검출 사다리 (E1) | 절 5 의 Pd 를 낸 사다리 (E1b) | 절 5 의 맵 (E2) |",
-       "|---|---|---|---|",
+       "같다 — 맵은 생존 사다리에서, Pd 는 그것과 또 다른 검출 사다리에서 나온다. 아래 표는 "
+       "이 편이 돌린 네 묶음을 한 자리에 놓는다. 절 2 끝의 피크·바닥 표와 절 4 의 분해가 쓰는 "
+       f"**E1c** 도 여기 들어 있다 — 같은 `refSNR{JOINT_RHO}dB` 라벨의 손실이 "
+       f"{SUM['W1']['loss_db_by_refsnr'][JOINT_RHO]:.2f} dB(E1) 와 "
+       f"{E1CR['W1']['refSNR' + JOINT_RHO + 'dB']['loss_db']:.2f} dB(E1c) 로 갈리는 자리가 "
+       "이 표의 마지막 두 줄이다.", "",
+       "| 무엇 | 절 2 의 검출 사다리 (E1) | 절 2 끝·절 4 의 피크·바닥과 분해 (E1c) | "
+       "절 5 의 Pd 를 낸 사다리 (E1b) | 절 5 의 맵 (E2) |",
+       "|---|---|---|---|---|",
        f"| 표적 모형 | {E1['W1']['target_model']} (단일 도플러 톤) | "
+       f"{E1C['W1']['target_model']} (같은 톤) | "
        f"{DET['target_model']} (마이크로도플러 원장) | {DET['target_model']} (같은 원장) |",
        f"| 슬로타임 사슬 | 블록 b={E1['W1']['b']} · PRF {E1['W1']['prf_hz']:.0f} Hz · "
-       f"T_CPI {E1['W1']['T_cpi_ms']:.0f} ms | b={DET['b']} · PRF {DET['prf_hz']:.0f} Hz · "
+       f"T_CPI {E1['W1']['T_cpi_ms']:.0f} ms | b={E1C['W1']['b']} · PRF "
+       f"{E1C['W1']['prf_hz']:.0f} Hz · T_CPI {E1C['W1']['T_cpi_ms']:.0f} ms | "
+       f"b={DET['b']} · PRF {DET['prf_hz']:.0f} Hz · "
        f"T_CPI {DET['T_cpi_ms']:.0f} ms | b={SURVCFG['b']} · PRF {SURVCFG['prf_hz']:.0f} Hz · "
        f"관측 {SURVCFG['seconds']*1e3:.0f} ms |",
        f"| 날개끝이 접히나 | **접힌다** (f_tip {ALIAS['f_tip_hz']:.0f} Hz > "
-       f"±{E1['W1']['prf_hz']/2:.0f} Hz) | **접힌다** (±{DET['prf_hz']/2:.0f} Hz) | "
+       f"±{E1['W1']['prf_hz']/2:.0f} Hz) | **접힌다** (±{E1C['W1']['prf_hz']/2:.0f} Hz) | "
+       f"**접힌다** (±{DET['prf_hz']/2:.0f} Hz) | "
        f"안 접힌다 (±{SURVCFG['f_unamb_hz']:.0f} Hz) |",
        f"| σ² | {E1['W1']['noise_var']:.0f} (목표 SINR "
-       f"{CFG['target_sinr_ideal_db']:.0f} dB) | {DET['noise_var']:.0f} — 표적이 "
+       f"{CFG['target_sinr_ideal_db']:.0f} dB) | {E1C['W1']['noise_var']:.0f} — 같은 목표 "
+       f"{E1C['W1']['sinr_target_db']:.0f} dB 를 이 묶음에서 **따로 재교정**했다 | "
+       f"{DET['noise_var']:.0f} — 표적이 "
        f"마이크로도플러라 같은 출력 SINR 을 맞추려고 톤 실험보다 **{NV_GAP_DB:.1f} dB 낮게** "
        f"잡혔다 | {SURVCFG['noise_var']:.0f} (목표 SINR "
        f"{SURVCFG['sinr_target_db']:.0f} dB) |",
+       f"| 트라이얼 (Pd · Pfa) | {E1R['W1']['ideal']['K']} · {E1R['W1']['ideal']['Kpfa']} | "
+       f"{E1CR['W1']['ideal']['K']} · {E1CR['W1']['ideal']['Kpfa']} | "
+       f"{E1BR['W1']['ideal']['K']} · {E1BR['W1']['ideal']['Kpfa']} | — |",
+       f"| `refSNR{JOINT_RHO}dB` 팔의 손실 | "
+       f"**{SUM['W1']['loss_db_by_refsnr'][JOINT_RHO]:.2f} dB** | "
+       f"**{E1CR['W1']['refSNR' + JOINT_RHO + 'dB']['loss_db']:.2f} dB** | "
+       f"{E1BR['W1']['refSNR' + JOINT_RHO + 'dB']['loss_db']:.2f} dB | — |",
        "",
        f"그래서 같은 `refSNR{JOINT_RHO}dB` 라벨인데도 Pd 가 절 2 표에서는 "
        f"{SUM['W1']['pd_by_refsnr'][JOINT_RHO]:.2f}, 여기서는 "

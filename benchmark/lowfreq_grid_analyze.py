@@ -15,11 +15,11 @@ import time
 
 import numpy as np
 
-sys.path[:0] = ["/home/yunjung/workspace/sionna2/src",
-                "/home/yunjung/workspace/sionna2/benchmark"]
+sys.path[:0] = ["/workspace/sionna/src",
+                "/workspace/sionna/benchmark"]
 
-ROOT = "/home/yunjung/workspace/sionna2"
-SCRATCH = "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/lfg"
+ROOT = "/workspace/sionna"
+SCRATCH = "/tmp/claude-1015/-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/lfg"
 OUT_JSON = os.path.join(ROOT, "outputs", "lowfreq_grid.json")
 FIG_PATH = os.path.join(ROOT, "outputs", "figs", "lowfreq_grid_convergence.png")
 

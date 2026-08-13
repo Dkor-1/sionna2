@@ -19,7 +19,7 @@ import os
 import subprocess
 import time
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 RAW = os.path.join(ROOT, "outputs", "correction_sweep_raw.json")
 DEST = os.path.join(ROOT, "outputs", "correction_sweep.json")
 
@@ -481,7 +481,7 @@ def main():
             "gpu_note": "GPU 미사용. GPU2/rcs_anchor.py 및 outputs/rcs_anchor.json 미접근.",
             "not_touched": ["outputs/r2_*.json", "outputs/quote_audit.json",
                             "outputs/rcs_anchor.json", "src/make_report*.py", "*.ipynb",
-                            "/home/yunjung/workspace/team_meeting"],
+                            "/workspace/team_meeting"],
             "counts": {"patterns": len(TRIAGE), "raw_hits": n_raw,
                        "surviving_after_triage": n_surv,
                        "edits_applied": len(EDITS_APPLIED), "patch_items": len(PATCH_LIST)},

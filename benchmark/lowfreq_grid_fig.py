@@ -17,7 +17,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 JSON_PATH = os.path.join(ROOT, "outputs", "lowfreq_grid.json")
 FIG_PATH = os.path.join(ROOT, "outputs", "figs", "lowfreq_grid_convergence.png")
 

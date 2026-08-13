@@ -71,7 +71,7 @@ sys.path.insert(0, _HERE)
 import report16_base as R                                              # noqa: E402
 
 SCRATCH = os.environ.get("REPORT16_METRIC_SCRATCH",
-                         "/tmp/claude-1015/-home-yunjung-workspace/"
+                         "/tmp/claude-1015/-workspace/"
                          "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/r16metric")
 
 RUNG_JSON = os.path.join(ROOT, "outputs", "report16_rung_mesh_full.json")

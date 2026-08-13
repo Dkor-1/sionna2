@@ -2,7 +2,7 @@
 """viz_report04_detector.py — 리포트 04(검출기) 의 **게재 품질** 그림을 만든다
 
 재현:
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py
 
 입력(전부 이미 측정된 JSON — 무거운 계산 없음, 수 초):

@@ -37,7 +37,7 @@ viz_mesh_gallery.py — **현재 메쉬 소스에서 7종 전 기체를 새로 �
 
 실행
 ----
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/viz_mesh_gallery.py
   ... --only measure          # JSON 만
   ... --only gallery          # 갤러리 한 장만

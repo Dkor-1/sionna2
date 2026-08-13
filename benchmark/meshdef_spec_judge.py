@@ -6,7 +6,7 @@
 from __future__ import annotations
 import json, os, re, subprocess, time
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 SPEC = os.path.join(ROOT, "outputs", "meshdef_spec.json")
 D = json.load(open(SPEC, encoding="utf-8"))
 rounds = {k: json.load(open(os.path.join(ROOT, "outputs", f"meshdef_{k}.json"), encoding="utf-8"))

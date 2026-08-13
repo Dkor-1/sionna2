@@ -24,7 +24,7 @@ build_report00_decision_map.py — 00편 F4「할 수 있는 것 / 없는 것」
     왼쪽 두 칸은 '엔진이 부실하다' 가 아니라 '표적 산란은 레이다식의 다른 항' 이라는 뜻이다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_decision_map.py
 """
 from __future__ import annotations

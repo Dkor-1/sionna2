@@ -51,7 +51,7 @@ viz_mesh_photo.py — **사진 vs 현재 메쉬**, 실루엣 겹침을 숫자로
 
 실행
 ----
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/viz_mesh_photo.py
   ... --keys mini5pro,mavic4pro     # 일부만
   ... --quick                       # 점 수·격자 줄여 빠르게(수치는 거칠어진다)

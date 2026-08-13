@@ -1692,7 +1692,7 @@ def _selftest() -> int:
 
     # ── check_budget 이 톤 위반을 **위반**으로 올리는가 ──────────────────────
     tmp = os.environ.get("RS_SELFTEST_OUT", os.path.join(
-        "/tmp/claude-1015/-home-yunjung-workspace/"
+        "/tmp/claude-1015/-workspace/"
         "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad", "rs_tone_probe.ipynb"))
     build_notebook(tmp, [md("### 한 일", "무엇을 했다."),
                          md("이것은 없다. 저것도 아니다. 그것은 못한다. 나머지는 않는다."),
@@ -1734,7 +1734,7 @@ if __name__ == "__main__":
 
     out = os.environ.get(
         "RS_DEMO_OUT",
-        "/tmp/claude-1015/-home-yunjung-workspace/"
+        "/tmp/claude-1015/-workspace/"
         "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/report_style_demo.ipynb")
     rep = build_notebook(out, blocks)
     print("\n── 예산·톤 검사 ──")

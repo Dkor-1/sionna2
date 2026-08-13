@@ -26,7 +26,7 @@ make_report07_microdoppler.py — 리포트 07 「마이크로도플러」 → r
     outputs/figures/report15b_f1b.png  같은 그림, DJI Mini 5 Pro (⚠메쉬에 겹침 잔존)
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report07_microdoppler.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.

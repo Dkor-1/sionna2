@@ -16,7 +16,7 @@ fix_wire.py — 결함 **D-C(듀티 미적용)** · **D-B(앵커 미적용)** �
   stage_solve **의 핵심 경로만** 복제하고, 복제본이 원본과 **비트단위로 같은 R** 를 내는지
   매 실행마다 대조한다(`replica_check`). 같지 않으면 어떤 숫자도 쓰지 않는다.
 
-실행: cd /home/yunjung/workspace/sionna2
+실행: cd /workspace/sionna
       SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/fix_wire.py
 출력: outputs/fix_wire.json   (증분 저장)
 """

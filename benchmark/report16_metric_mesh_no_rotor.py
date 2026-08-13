@@ -523,7 +523,7 @@ def spin_metric_tables(J):
 #  9. §5 가림 감사 — 우리 커널이 «있지도 않은 반사면» 을 얼마나 세고 있나
 # =========================================================================== #
 OCC_CACHE = os.path.join(os.environ.get(
-    "REPORT16_SCRATCH", "/tmp/claude-1015/-home-yunjung-workspace/"
+    "REPORT16_SCRATCH", "/tmp/claude-1015/-workspace/"
                         "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/report16"),
     "occlusion_audit.json")
 

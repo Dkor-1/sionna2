@@ -16,7 +16,7 @@
     (관찰 상한·PRF 는 리포트 본문의 세팅 블록이 말한다).
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_above_tip_fig.py
 """
 from __future__ import annotations

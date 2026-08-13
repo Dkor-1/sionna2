@@ -27,7 +27,7 @@ build_report00_po_case.py — 리포트 00 「왜 PO 인가」의 근거 JSON �
   틀린 것은 "Sionna 가 부실하다" 가 아니라 "전파용 도구에 표적 산란을 시켰다" 이다.
 
 실행:
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py
 """
 from __future__ import annotations
@@ -1011,7 +1011,7 @@ def main() -> None:
             "title": "리포트 00 「왜 PO 인가 · 우리 PO 는 납득 가능한가 · 선행에서 무엇을 빌릴 수 있나」의 근거",
             "generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "generator": "benchmark/build_report00_po_case.py",
-            "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src "
+            "run": "cd /workspace/sionna && PYTHONPATH=src "
                    "~/.venvs/py312/bin/python benchmark/build_report00_po_case.py",
             "reads_only": True,
             "value_rule": "모든 스칼라 옆에 <이름>_src 가 붙는다. outputs/…:키 = 다른 산출물에서 "

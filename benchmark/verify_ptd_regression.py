@@ -26,7 +26,7 @@ verify_ptd_regression.py — PTD 모듈(src/ptd_edges.py) 도입 **회귀 검증
         C5 해석해 8πa²b²/λ² 대비 — PTD 는 **빠진 2-bounce 를 대신하지 못한다**(그래야 정상)
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PTD_REG_PART=cpu PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
   PTD_REG_PART=gpu SIONNA2_GPU=0 SIONNA2_GPU_MEM=3000 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
   PTD_REG_PART=merge ~/.venvs/py312/bin/python benchmark/verify_ptd_regression.py

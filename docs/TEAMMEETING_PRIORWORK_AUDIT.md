@@ -232,7 +232,7 @@
 ### 6.1 논문 자체가 디스크에 없음 — 20건 (0714 덱 전부)
 
 **PWC-Diff / "From Denoising to De-Channeling"** (Liu 외, ICML 2026 Spotlight, BUPT & Pengcheng Lab, `github.com/BUPT-GAMMA/FoundWSR`).
-`/data/public/sionna_jeong`(371 PDF) · `/data/public/jeong` · `/data/public/OpenISAC` · `/home/yunjung/workspace` 전체를 훑어도 없다.
+`/data/public/sionna_jeong`(371 PDF) · `/data/public/jeong` · `/data/public/OpenISAC` · `/workspace` 전체를 훑어도 없다.
 
 **따라서 다음 20건은 지금 아무 등급도 못 준다** — 0714 s14 서지 3건, s15 배경 2건, s16 방법 3건, s17 구조 4건, s18 수치 8건. 여기엔 **인용하면 곧바로 검증 대상이 되는 구체 숫자들**이 포함된다: RML2016 63.60 vs IQFormer 63.54 · TechRec 91.0 vs 88.8 · FusedFormer 무사전학습 57.77 · Gaussian-only 62.86 · RML2022 +5.7점 · TechRec 89.21 vs 90.25 · CFO 제거 시 63.6→61.5.
 

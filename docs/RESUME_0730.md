@@ -113,7 +113,7 @@ RuntimeError: jit_malloc(): out of memory! Could not allocate 1073741824 bytes
 ### GPU 방침 3단 기준 구현 (사용자 지시)
 **0순위 GPU 2·3 선호 → 1순위 메모리 여유 → 2순위 util+temp 낮은 것.**
 `pick()` · `all_usable()` 양쪽 적용, 4가지 상황으로 시험 통과. 자세한 함정은
-[`memory/sionna2-gpu-policy.md`](../../.claude/projects/-home-yunjung-workspace/memory/sionna2-gpu-policy.md).
+[`memory/sionna2-gpu-policy.md`](../../.claude/projects/-workspace/memory/sionna2-gpu-policy.md).
 - ⚠ `SIONNA2_GPU` 핀을 `all_usable()` 이 무시해 `BrokenProcessPool` 이 났다 → 핀 존중 추가
 - ⚠ σ격자는 **`--backend direct`** 필수(파일 자신이 prefill 을 GPU 제한 상황에서 쓰지 말라고 적어놨다)
 - ⛔ **`pkill -f` 금지** — 오늘 2회 내 셸이 죽었다(exit 144). PID 수집 후 `kill`.

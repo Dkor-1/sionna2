@@ -24,7 +24,7 @@ build_part11_measurement.py — 부 11 「실측 설계」 → reports/67~77_*.i
 그 두 파일은 `src/extract_part11_docs.py` 가 만든다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part11_measurement.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
@@ -90,7 +90,7 @@ MFX = from_json("outputs/meshfix_applied.json")     # 형상 정정 — 설계�
 S2A = from_json("outputs/s2r_attack.json")          # sim-to-real 설계 적대검증
 AGI = from_json("outputs/angle_gamma_impact.json")  # Γ(θ) 각도 모양 — 커널 세대의 셋째 축
 from_json("outputs/lowfreq_attack.json")            # 결정표가 경로로 가리킨다 — 존재 검사
-from_json("outputs/measurement_layers.json")        # 3층 설계 원본
+ML = from_json("outputs/measurement_layers.json")   # 3층 설계 원본
 from_json("outputs/meshfix_attack.json")            # 형상 정정 파급
 
 OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
@@ -110,6 +110,22 @@ REPRO = dict(
 
 def _fig(no: int, stem: str, question: str) -> list[str]:
     return [f"![{stem}]({FIG}/{stem}.png)", "", caption(no, question)]
+
+
+# --------------------------------------------------------------------------- #
+#  2·3층 ISM 반송파의 원거리장 — 채택 정의(env)로 계산한다
+#
+#  ⚠ 원장은 이 반송파의 원거리장을 외접상자(bbox) 정의로만 싣는다
+#    (`report06_derived.json : layers.farfield_ism_bbox_max_m`). 편 69 가 채택한 정의는
+#    env(로터 디스크를 포함한 외접상자의 3D 대각)이므로, 같은 반송파의 env 값을 원장의
+#    두 값 — D_env 와 λ_ISM — 에서 2D²/λ 로 낸다. 원장은 읽기만 한다.
+# --------------------------------------------------------------------------- #
+_FF_ROWS = D.get("farfield")
+_FF_AF = D.get("farfield_adopted.airframe")            # 요구가 가장 큰 기체
+_FF_I = next(i for i, r in enumerate(_FF_ROWS) if r["airframe"] == _FF_AF)
+_LAM_ISM = ML.get("layer1_at_ism.lambda_m")
+_FF_ISM_ENV_M = 2.0 * _FF_ROWS[_FF_I]["D_env_m"] ** 2 / _LAM_ISM
+_FF_ISM_ENV = f"{_FF_ISM_ENV_M:.2f} m"
 
 
 # =========================================================================== #
@@ -181,7 +197,9 @@ def blocks_67() -> list:
                ["ADC 동적범위", M.num("hw.dynamic_range_db", fmt="{:.2f}", unit="dB"),
                 "직접파 제거의 천장"],
                ["감시배열 AoA 빔폭", M.num("hw.aoa_beamwidth_deg", fmt="{:.1f}", unit="°"),
-                "네 RX 를 전부 감시로 쓸 때 열리는 각도축"],
+                "RX0 을 기준으로 두고 감시 ULA "
+                + M.num("hw.n_surveillance_ch", fmt="{:.0f}", unit="소자")
+                + "(RX1~3)를 쓸 때 열리는 각도축"],
                ["최대대역 바이스태틱 ΔR",
                 M.num("hw.range_res_bistatic_m_at_max_bw", fmt="{:.3f}", unit="m"),
                 "표적이 퍼지는 폭"],
@@ -428,7 +446,7 @@ def blocks_70() -> list:
                 f"예산 {D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} "
                 f"안에 든 세션만 자료로 쓴다.",
 
-                f"⭐ 이 구가 캠페인에서 값어치가 가장 크다 — 지금 우리 PO 출력인 **절대 레벨을 "
+                f"⭐ 이 구가 캠페인에서 값어치가 가장 크다 — 지금 우리 SBR+PO 커널 출력인 **절대 레벨을 "
                 f"측정에 앵커한다**(생산 모드의 평균 레벨이동 "
                 f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}).",
 
@@ -514,7 +532,7 @@ def blocks_70() -> list:
 
         next_steps([
             ("교정구를 표적과 같은 자리·같은 높이에서 세션 시작과 끝에 잰다",
-             f"지금 우리 PO 출력인 절대 레벨이 처음으로 측정에 앵커된다 — 생산 모드의 평균 "
+             f"지금 우리 SBR+PO 커널 출력인 절대 레벨이 처음으로 측정에 앵커된다 — 생산 모드의 평균 "
              f"레벨이동 "
              f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')} 가 "
              f"측정값으로 대체된다",
@@ -718,10 +736,13 @@ def blocks_73() -> list:
                 f"({D.num('layers.validation_points')})의 실제 배치신호와 v_max 의 λ 비 "
                 f"이전으로 갚는다.",
 
-                f"2·3층의 ISM 원거리장은 외접상자 정의로 최대 "
-                f"{D.num('layers.farfield_ism_bbox_max_m', fmt='{:.2f}', unit='m')} 이고, "
-                f"세션 거리 "
-                f"{D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')} 안에 든다.",
+                f"2·3층 ISM {D.num('layers.carrier_ism_ghz', fmt='{:.1f}', unit='GHz')} 의 "
+                f"원거리장은 채택 정의 env(로터 디스크를 포함한 외접상자 3D 대각)로 "
+                f"{_FF_ISM_ENV}, bbox(프로펠러를 포함한 수평 최대치수) 정의로 "
+                f"{D.num('layers.farfield_ism_bbox_max_m', fmt='{:.2f}', unit='m')} 다 — "
+                f"2·3층 세션 거리는 그 env 값 이상으로 따로 잡고, σ(f) 레인지 세 밴드의 세션 "
+                f"거리 {D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')} 는 그 "
+                f"아래에 있다.",
             ],
             method=[
                 ("층 나누기",
@@ -738,6 +759,9 @@ def blocks_73() -> list:
                  "검증 3점은 수신전용이고 기준 1 + 감시 1 = "
                  + D.num("layers.n_channels", fmt="{:.0f}", unit="채널")
                  + " 을 같은 클럭에서 쓴다"),
+                ("2·3층 원거리장",
+                 "원장은 이 반송파의 원거리장을 bbox 정의로만 싣는다 — 채택 정의 env 값은 "
+                 "원장의 D_env 와 λ_ISM 에서 2D²/λ 로 낸다"),
             ],
             repro=REPRO,
         ),
@@ -770,12 +794,32 @@ def blocks_73() -> list:
            f"함수이므로, 그 분포를 Swerling 틀(표적 밝기가 얼마나 요동하는지를 몇 가지 표준 "
            f"분포로 나눈 레이다 관례 분류)에 넣어 3층의 `{D.get('layers.layer3_headline')}` 를 "
            f"예측하고 3층이 그 예측을 검사한다"
-           f"⟨outputs/measurement_layers.json : layer3_flight.ties_back_to⟩.", "",
-           f"2층·3층의 ISM 원거리장은 외접상자(bbox — 프로펠러까지 감싸는 수평 최대치수) "
-           f"정의로 최대 "
-           f"{D.num('layers.farfield_ism_bbox_max_m', fmt='{:.2f}', unit='m')} 이고, "
-           + ref("site-geometry", "부지 기하") + " 가 채택한 세션 거리 "
-           f"{D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')}(env 정의) 안에 든다."),
+           f"⟨outputs/measurement_layers.json : layer3_flight.ties_back_to⟩."),
+
+        md("## 2·3층의 원거리장 — 채택한 D 정의로 잰다", "",
+           f"2·3층은 ISM "
+           f"{D.num('layers.carrier_ism_ghz', fmt='{:.1f}', unit='GHz')} 한 반송파에서 돈다. "
+           f"그 반송파의 원거리장을 두 D 정의로 나란히 싣는다 — 기준 기체는 요구가 가장 큰 "
+           f"`{D.get('farfield_adopted.airframe')}` 다.", "",
+           table(["D 정의", "D", "2D²/λ"], [
+               ["env — 로터 디스크를 포함한 외접상자의 3D 대각 ("
+                + ref("site-geometry", "부지 기하") + " 채택)",
+                D.num(f"farfield[{_FF_I}].D_env_m", fmt="{:.3f}", unit="m"), _FF_ISM_ENV],
+               ["bbox — 프로펠러를 포함한 수평 최대치수",
+                ML.num(f"layer1_at_ism.airframes.{_FF_AF}.D_bbox_m", fmt="{:.3f}", unit="m"),
+                D.num("layers.farfield_ism_bbox_max_m", fmt="{:.2f}", unit="m")],
+           ]), "",
+           f"채택 정의로 2·3층 세션 거리는 {_FF_ISM_ENV} 이상이다 — "
+           + ref("site-geometry", "부지 기하") + f" 가 σ(f) 레인지 세 밴드에서 잡은 "
+           f"{D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')} 는 그 아래에 있고, "
+           f"2·3층은 자기 거리를 그 위에서 따로 잡는다.", "",
+           f"⚠ 원장은 이 반송파의 원거리장을 bbox 정의로만 싣는다"
+           f"(⟨outputs/report06_derived.json : layers.farfield_ism_bbox_max_m⟩). 위 env 값은 "
+           f"원장의 D_env 와 λ_ISM "
+           f"{ML.num('layer1_at_ism.lambda_m', fmt='{:.4f}', unit='m')} 에서 2D²/λ 로 낸 것이다.", "",
+           f"⚠ 위 두 D 는 Matrice 4E 메쉬의 외접상자에서 나오고, 그 형상은 "
+           f"{MFX.num('_meta.date')} 에 공식 CAD 실측으로 정정됐다 — 표의 값은 **정정 전** 메쉬 "
+           f"기준이라 " + ref("site-geometry", "부지 기하") + " 의 표와 같은 계열이다."),
 
         next_steps([
             ("자세축과 로터위상축을 σ 생산자에 배선한 뒤 sim-to-sim ablation 을 돌린다",
@@ -896,7 +940,7 @@ def blocks_74() -> list:
 
         md("## 재보정 모드 — 어느 숫자가 어느 모드에서 오나", "",
            f"생산 σ 원장은 `{D.num('modes.production_mode')}` 다 — 주파수 기울기만 측정에서 "
-           f"받고 **절대 레벨은 우리 PO 출력 그대로**다(평균 레벨이동 "
+           f"받고 **절대 레벨은 우리 SBR+PO 커널 출력 그대로**다(평균 레벨이동 "
            f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}). "
            f"레벨을 앵커에 맞추는 두 모드는 설계 계산에만 쓴다.", "",
            D.table("modes.rows",
@@ -995,7 +1039,7 @@ def blocks_75() -> list:
                 "턴테이블 방위컷, 로터 정지",
                 "Δφ ≤ " + D.num("aspect_finest_deg", fmt="{:.2f}", unit="°")
                 + " 로 재고 로브 위치 대조", "결판"],
-               ["절대 레벨은 우리 PO 출력이다 (앵커는 기울기만 옮긴다)",
+               ["절대 레벨은 우리 SBR+PO 커널 출력이다 (앵커는 기울기만 옮긴다)",
                 "표적과 같은 자리에서 교정구 + 배경 코히런트 차감",
                 "교정구 여유 ≥ "
                 + D.num("calibration_margin_min_db", fmt="{:+.2f}", unit="dB")

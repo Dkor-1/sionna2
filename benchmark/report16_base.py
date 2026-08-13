@@ -78,7 +78,7 @@ import numpy as np
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 SCRATCH = os.environ.get("REPORT16_SCRATCH",
-                         "/tmp/claude-1015/-home-yunjung-workspace/"
+                         "/tmp/claude-1015/-workspace/"
                          "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/report16")
 
 OUT_JSON = os.path.join(ROOT, "outputs", "report16_base.json")

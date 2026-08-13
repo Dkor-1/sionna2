@@ -64,7 +64,7 @@ viz_mesh_material.py — **σ 를 굴리는 입력을 그린다: 재질 · 내�
 
 실행
 ----
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/viz_mesh_material.py
   ... --only measure        # JSON 만
   ... --only area|internal|shadow

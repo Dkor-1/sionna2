@@ -26,7 +26,7 @@ build_part12_elevation.py — 권 16 「앙각 커버리지」의 조각들 → 
   `REPORTS` 목록에 자기 행 하나를 더하고 `blocks_8N()` 을 새로 쓴다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_part12_elevation.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — 원장 JSON 을 읽어 노트북을 조립할 뿐이다.
@@ -417,9 +417,15 @@ REPRO_78 = dict(
          "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
          "benchmark/elevation_sweep_md.py --merge",
          "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
-         "src/make_fig_el_geometry.py"],
+         "src/make_fig_el_geometry.py",
+         # ⭐시나리오 렌더 — 씬을 Sionna RT 로 그리고(GPU) 도식과 합친다(CPU)
+         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "benchmark/render_el15_scene.py",
+         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "benchmark/build_el15_scenario_fig.py"],
     out=["outputs/elevation_sweep_md.json", "outputs/elevation_sweep_md.npz",
-         "outputs/figures/ch1_f0_geometry.png"],
+         "outputs/figures/ch1_f0_geometry.png",
+         "outputs/figures/el15_scenario.png"],
     runtime="한 행마다 GPU 누적 14 분 ~ 2 시간 21 분 · 샤드 8 개 병렬. "
             "병합과 그림은 CPU 로 수 초",
     note="`--merge` 는 샤드 폴더 `outputs/elev_sweep_shards/` 를 읽어 원장 두 개를 다시 쓴다")
@@ -569,8 +575,17 @@ def blocks_78() -> list:
            f"- 표면 격자는 «{S.num('_meta.grid_ko')}» 다 — 자세마다 다시 잡지 않으므로 앙각 "
            f"사이의 차이는 격자가 아니라 자세와 시선에서 온다."),
 
-        md(f"![elevation sweep geometry]({FIG}/ch1_f0_geometry.png)", "",
-           caption(1, "이 판은 표적을 어느 자리에서 보고, 그 자리에서 무엇이 한 축에 묶이나?")),
+        # ⭐사용자 지시(2026-08-13) — 시나리오를 **Sionna 렌더**로 보인다.
+        #   위 칸이 기하 도식, 아래 칸이 앙각 7 점에서 «레이더가 실제로 보는 드론» 이다.
+        #   ⚠아래 «메쉬를 통째로 넣은 대가» 절의 두 몫(cos(el) 감소 · 동체 가림)이
+        #     이 그림의 왼쪽 끝과 오른쪽 끝에 그대로 보인다.
+        md(f"![experiment scenario rendered with Sionna RT]({FIG}/el15_scenario.png)", "",
+           caption(1, "이 판은 표적을 어느 자리에서 보고, 그 자리에서 무엇이 보이나?"), "",
+           "위 칸은 기하다 — 15 m 구면 위 앙각 일곱 점과, 그 안쪽을 지나는 원거리장 "
+           "경계선. 아래 칸은 그 일곱 자리에서 **레이더가 실제로 보는 표적**이고 "
+           "`benchmark/render_el15_scene.py` 가 Sionna RT 로 낸 렌더다. 왼쪽 끝(앙각 0°)은 "
+           "로터를 옆에서 봐 블레이드가 선으로 보이고, 오른쪽 끝(−90°)은 로터 원반이 "
+           "열리는 대신 **동체가 가운데를 덮는다** — 아래 절이 가르는 두 몫이 이것이다."),
 
         md("## 메쉬를 통째로 넣은 대가는 두 몫이 겹쳐 있다", "",
            "메쉬는 통째로 넣었다 — 동체·팔·로터·짐벌이 다 들어 있고 첫 충돌 가림이 켜져 "

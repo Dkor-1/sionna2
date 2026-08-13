@@ -29,7 +29,7 @@ make_report06_measurement.py — 리포트 06 「실측」 빌더  →  report06
      인용 3편을 포함한다.
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py
 
 읽는 것 (전부 저장소에 이미 있는 산출물)

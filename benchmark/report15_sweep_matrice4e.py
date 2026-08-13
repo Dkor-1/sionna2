@@ -122,7 +122,7 @@ MODES = (("spec", False), ("prod", True))
 
 OUT_JSON = os.path.join(ROOT, "outputs", "report15_sionna_sweep_matrice4e.json")
 SCRATCH = os.environ.get("REPORT15_SCRATCH",
-                         "/tmp/claude-1015/-home-yunjung-workspace/"
+                         "/tmp/claude-1015/-workspace/"
                          "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/r15sweep")
 
 

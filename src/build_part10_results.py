@@ -2,7 +2,7 @@
 """
 build_part10_results.py — 부 10 「검출 결과」 11편(56~66)을 짓는다
 ==========================================================================================
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py
 
 산출
@@ -11,7 +11,7 @@ build_part10_results.py — 부 10 「검출 결과」 11편(56~66)을 짓는다
     reports/58_shared-threshold.ipynb    자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다
     reports/59_slope-anchor.ipynb        레벨을 맞추려면 크기전이 법칙을 골라야 하므로 기울기만 받는다
     reports/60_r90.ipynb                 앵커 σ 위의 R90 과 기체별 밴드 순서
-    reports/61_rank-durability.ipynb     그 순위는 자세평균이면 σ 오차 아래에서 하나로 모인다
+    reports/61_rank-durability.ipynb     그 순위는 자세평균이면 하나로 모이고, 문턱은 봉투 안이다
     reports/62_cpi-sweep.ipynb           CPI 를 늘리면 세 파형 모두 블라인드율이 내려간다
     reports/63_cpi-residual.ipynb        모호속도는 표본화율의 성질이라 CPI 와 무관한 상한이다
     reports/64_sigma-free-axis.ipynb     σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다
@@ -43,6 +43,7 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import make_report05_results as R5                                    # noqa: E402
+from freespace_scene import BETA_VALID_MAX_DEG as _BETA_MAX           # noqa: E402
 from report_registry import index_shard, nb_path, ref                 # noqa: E402
 from report_style import (build_notebook, caption, fetch, from_json,   # noqa: E402
                           header, md, next_steps, num, table, table_from)
@@ -92,7 +93,7 @@ SRC_R = f"출처 ⟨{KEY_R}⟩"
 SRC_A = f"출처 ⟨{KEY_A}⟩"
 SRC_B = f"출처 ⟨{J_FS} : " + CELL.format(d="mavic4pro", m="*") + ".budget_terms_db⟩"
 
-CMD = ["cd /home/yunjung/workspace/sionna2",
+CMD = ["cd /workspace/sionna",
        "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
        "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
        "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
@@ -155,18 +156,91 @@ GAMMA_WARN = "" if (_FS_GEN >= _GAMMA_ON and not _STALE) else (
     + AGI.num("propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db", None, "{:+.2f}", "dB")
     + " 다. σ 격자를 Γ(θ) 켠 커널로 재생성한 뒤 이 편을 다시 짓는다.")
 
-# ── H1 정정(조건형) — 헤드라인이 어느 억압 가정에서 풀렸는지를 원장에서 직접 판정한다.
-#    solve.W1.R_m 이 완전 억압(inf) 행과 같으면 헤드라인 동작점의 DPI 잔류는 0 이다.
+# ── M3(우리 SBR+PO 격자) 팔이 선 판 — 형상 정정 시각과 Γ(θ) 도입 시각을 함께 찍는다. ── #
+M3_STAMP = ("⚠ 판: " + MFX.num("_meta.date", None) + " 형상 정정 전 메쉬 · "
+            + AGI.num("_meta.generated", None) + " Γ(θ) 이전 커널")
+M3_STAMP_PLAIN = "⚠ 판: 형상 정정 전 메쉬 · Γ(θ) 이전 커널"
+
+# ── solve 축의 신원 — `solve.*` 는 재현 루프의 마지막 기체 하나가 남긴 판이다.
+#    편 60 의 헤드라인 폭(앵커 비교가능 12칸)과 **다른 대상**이라 이름을 함께 찍는다. ──── #
+SOLVE_ARM = ("기체 " + FS.num("solve.W1.drone", None) + " · 모드 "
+             + FS.num("solve.W1.mode", None))
+SOLVE_ARM_PLAIN = (f"기체 {fetch((J_FS, 'solve.W1.drone'))} · "
+                   f"모드 {fetch((J_FS, 'solve.W1.mode'))}")     # 제목·표 라벨용(태그 없이)
+SOLVE_R90 = "solve 판 R90(" + SOLVE_ARM + ")"
+
+# ── 팔 표시 — S=Sionna PathSolver · B=우리 SBR+PO(광선 격자로 가림을 켠다) ·
+#    P=순수 PO 대조군. σ 레벨을 낸 팔의 이름은 σ 격자 원장의 엔진 문자열이 든다. ───────── #
+_J_SG_CUR = "outputs/report13_sigma_grid.json"
+
+
+def arm_b(src: str = _J_SG_CUR) -> str:
+    return "우리 SBR+PO 커널(팔 B — " + num(None, (src, "meta.engine")) + ")"
+
+
+# ── 푸는 게이트와 상반성 창은 서로 다른 각이다 — 게이트 상수는 기하 모듈이 든다. ──────── #
+BETA_GATE_DEG = f"{_BETA_MAX:.0f}"
+BETA_GATE = (f"β ≤ {BETA_GATE_DEG}° (`src/freespace_scene.py:81` `BETA_VALID_MAX_DEG` 를 "
+             f"`beta_gate()` 가 그대로 쓴다 — `:398`)")
+
+# ── 앵커가 통제하지 못한 항 — 개수와 이름을 원장의 status 에서 센다.
+#    RESOLVED_EMPIRICALLY 행(규약 불확도)은 해결된 항으로 따로 든다. ──────────────────── #
+_UNC_KO = {"polarisation": "편파", "statistic convention (Das mu)": "규약 불확도",
+           "size transfer law": "크기전이", "single platform / single lab": "단일 실험실",
+           "elevation matching": "앙각 정합", "near-field": "근거리장"}
+_UNC = fetch((J_AN, "uncontrolled"))
+_UNC_IDX = {u["term"]: i for i, u in enumerate(_UNC)}      # 인덱스는 원장 순서에서 읽는다
+
+
+def unc(term: str, fmt: str = "{:.2f}") -> str:
+    return num(None, (J_AN, f"uncontrolled[{_UNC_IDX[term]}].size_db"), fmt, "dB")
+
+
+# ── CPI 스윕의 5G/WiFi 배수 — 인용 폭은 스윕의 전 칸에서 센다. ──────────────────────── #
+_CPI_ROWS = fetch((J_CG, "equal_cpi_penalty"))
+CPI_N_ROWS = len(_CPI_ROWS)
+CPI_RATIO_MIN = min(float(r["ratio_G1_over_W1"]) for r in _CPI_ROWS)
+CPI_RATIO_MAX = max(float(r["ratio_G1_over_W1"]) for r in _CPI_ROWS)
+CPI_T_MIN = min(float(r["T_cpi_s"]) for r in _CPI_ROWS)
+CPI_T_MAX = max(float(r["T_cpi_s"]) for r in _CPI_ROWS)
+# 칸 수를 말로 쓸 때도 센 값을 쓴다 — 스윕이 칸을 더하면 문장이 같이 따라간다.
+CPI_SPAN_KO = f"{CPI_N_ROWS}칸"
+CPI_NOTE_MIN, CPI_NOTE_MAX = f"{CPI_SPAN_KO} 최소", f"{CPI_SPAN_KO} 최대"
+
+# ── 자세평균 판의 뒤집힘 문턱 — 기체별 최댓값은 원장의 by_drone 에서 센다. ──────────── #
+ASP_FLIP = {k: float(v["smallest_flip_span_db"])
+            for k, v in fetch((J_SS, "aspect_averaged.by_drone")).items()}
+ASP_FLIP_MAX = max(ASP_FLIP.values())
+ASP_FLIP_MIN_DRONE = min(ASP_FLIP, key=ASP_FLIP.get)
+ASP_N = len(ASP_FLIP)
+_ASP_REAL = float(fetch((J_SS, "differential.realistic_span_db")))
+ASP_N_INSIDE = sum(1 for v in ASP_FLIP.values() if v <= _ASP_REAL)
+# 봉투 안/밖 판정도 원장이 한다 — 값이 바뀌면 문장이 «몇/몇» 으로 갈라진다.
+ASP_ENVELOPE = (f"{ASP_N}기체가 모두 현실 봉투 안에 든다" if ASP_N_INSIDE == ASP_N
+                else f"{ASP_N_INSIDE}/{ASP_N}기체가 현실 봉투 안에 든다")
+ASP_NOTE_MAX = f"{ASP_N}기체 smallest_flip_span_db 최대"
+
+_UNC_OPEN = [u for u in _UNC if str(u.get("status", "")) in ("UNRESOLVED", "PARTIAL")]
+_UNC_RESOLVED = [u for u in _UNC if str(u.get("status", "")) == "RESOLVED_EMPIRICALLY"]
+UNC_N = dnum(len(_UNC_OPEN), "{:.0f}", "개", f"{J_AN} : uncontrolled",
+             "status 가 UNRESOLVED·PARTIAL 인 행 세기")
+UNC_LIST = " · ".join(f"{_UNC_KO.get(u['term'], u['term'])}({u['status']})" for u in _UNC_OPEN)
+UNC_RESOLVED_LIST = " · ".join(f"{_UNC_KO.get(u['term'], u['term'])}({u['status']})"
+                               for u in _UNC_RESOLVED)
+UNC_RESOLVED_STATUS = " · ".join(str(u["status"]) for u in _UNC_RESOLVED)
+
+# ── H1 정정(조건형) — solve 판이 어느 억압 가정에서 풀렸는지를 원장에서 직접 판정한다.
+#    solve.W1.R_m 이 완전 억압(inf) 행과 같으면 그 동작점의 DPI 잔류는 0 이다.
 #    limit 라벨(solve.*.limit)은 고정 60 dB 깊이에서 계산된 별도 축이라 인용하지 않는다. ── #
 _ECA_IDEAL = abs(float(fetch((J_FS, "solve.W1.R_m")))
                  - float(fetch((J_FS, "solve.W1.sensitivity_eca_depth.inf.R_m")))) < 1e-6
-ECA_HEADLINE = ("헤드라인 R90 은 완전 억압(ECA ∞) 행과 같은 값이다"
+ECA_HEADLINE = (SOLVE_R90 + " 은 완전 억압(ECA ∞) 행과 같은 값이다"
                 if _ECA_IDEAL else
-                "헤드라인 R90 은 유한 ECA 깊이 팔에서 풀렸다")
+                SOLVE_R90 + " 은 유한 ECA 깊이 팔에서 풀렸다")
 ECA_HEADLINE_LONG = (
-    "헤드라인 R90 은 완전 억압(ECA ∞) 행과 같은 값이라, 헤드라인 동작점의 직접파 잔차 항은 "
+    SOLVE_R90 + " 은 완전 억압(ECA ∞) 행과 같은 값이라, 그 동작점의 직접파 잔차 항은 "
     "0 이다" if _ECA_IDEAL else
-    "헤드라인 R90 은 유한 ECA 깊이 팔에서 풀렸다 — 벽의 정체는 원장에서 다시 읽는다")
+    SOLVE_R90 + " 은 유한 ECA 깊이 팔에서 풀렸다 — 벽의 정체는 원장에서 다시 읽는다")
 
 
 def B(m, k, f="{:+.2f}"):
@@ -191,13 +265,13 @@ def r56():
                 f"베이스라인 {FS.num('solve.W1.L_m', 500.0, '{:.0f}', 'm')} · 표적 고도 "
                 f"{FS.num('solve.W1.alt_m', 60.0, '{:.0f}', 'm')} · 장면 방위 "
                 f"{FS.num('solve.W1.phi_deg', 90.0, '{:.0f}', '°')} 에서 푼다.",
-                f"헤드라인 거리의 바이스태틱 각은 "
+                f"{SOLVE_R90} 의 바이스태틱 각은 "
                 f"{dnum(D['beta_at_R'], '{:.2f}', '°', f'{J_FS} : solve.W1.beta_deg', 'R90 에서 보간')}"
                 f" 라 준모노스태틱이고, σ 는 이등분선 방향의 모노스태틱 값을 쓴다.",
-                f"바이스태틱 창은 β ≤ 45° 다 — 상반성 rms 잔차가 그 안에서 "
+                f"푸는 게이트는 {BETA_GATE} 이고, 상반성 rms 잔차가 β ≤ 45° 안에서 "
                 + dnum(D["recip_in"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
                        "β≤45 행 최대")
-                + ", 밖에서 "
+                + ", β 60~90° 에서 "
                 + dnum(D["recip_out"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
                        "β>45 행 최대") + " 다.",
                 f"장면 방위 {PH.num('meta.n_phi', None, '{:.0f}')}방위 전수 스윕에서 σ 를 고정한 "
@@ -219,9 +293,14 @@ def r56():
                 ("좌표",
                  "조명원(TX)과 패시브 수신기(RX)를 지상에 고정하고, 표적을 두 점의 중점에서 "
                  "수평거리 `d` 만큼 떨어진 공중에 둔다 — `src/freespace_scene.py:72`, 기하 함수 `:117`"),
-                ("바이스태틱 창",
-                 "β ≤ 45° 에서 푼다. 창 안과 밖의 상반성 rms 잔차를 나란히 실어 그 선택의 크기를 "
-                 "숫자로 둔다"),
+                ("바이스태틱 게이트와 상반성 창",
+                 f"푸는 게이트는 {BETA_GATE} 다. 상반성 rms 잔차는 β ≤ 45° 행에서 최대 "
+                 + dnum(D["recip_in"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
+                        "β≤45 행 최대")
+                 + " 이고 β 60~90° 행에서 최대 "
+                 + dnum(D["recip_out"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
+                        "β>45 행 최대")
+                 + " 라, 두 각을 나란히 실어 그 차이의 크기를 숫자로 둔다"),
                 ("σ 조회",
                  "이등분선 방향의 모노스태틱 값을 격자에서 조회한다 — "
                  "`src/experiment_freespace_sigma.py:227`"),
@@ -254,13 +333,15 @@ def r56():
                    "상관에 쓸 수 있는 에너지"]])),
 
         md("## 유효창 — β 와 앙각이 어디까지 열려 있나", "",
-           f"헤드라인 거리에서 β = "
+           f"{SOLVE_R90} 에서 β = "
            f"{dnum(D['beta_at_R'], '{:.2f}', '°', f'{J_FS} : solve.W1.beta_deg', 'R90 에서 보간')} "
            "라 준모노스태틱이고, σ 는 이등분선 방향의 모노스태틱 값을 쓴다"
-           "(`src/experiment_freespace_sigma.py:227`). 아래 창이 이 부의 **방법 조건**이다."),
+           "(`src/experiment_freespace_sigma.py:227`). 그 거리축은 재현 루프의 마지막 기체가 "
+           "남긴 판이고, 편 60 의 헤드라인 폭은 앵커 비교가능 기체 쪽에서 읽는다"
+           f"({ref('r90', short=True)}). 아래 표가 게이트와 창을 가른다."),
 
         md(table(["창", "성립 범위", "크기"],
-                 [["바이스태틱 각", "β ≤ 45°",
+                 [["바이스태틱 각", f"푸는 게이트 β ≤ {BETA_GATE_DEG}° · 상반성 창 β ≤ 45°",
                    "상반성 rms 잔차 β≤45° "
                    + dnum(D["recip_in"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
                           "β≤45 행 최대")
@@ -275,12 +356,13 @@ def r56():
                           "el=−20° 보간") + ")",
                    "격자 앙각 행 "
                    + dnum(D["n_el"], "{:.0f}", "개", f"{J_SG_USED} : meta.el_deg", "길이")
-                   + ", 헤드라인 거리의 el = "
-                   + num(None, (J_FS, "meta.ranges_el_look_deg"), "{:.2f}", "°")],
-                  ["β = 45° 지점",
+                   + ", solve 판 R90 의 el = "
+                   + num(None, (J_FS, "meta.ranges_el_look_deg"), "{:.2f}", "°")
+                   + " (⚠ 이 키는 마지막으로 푼 모드 G1 이 덮어쓴 값이다)"],
+                  ["β = 45° 지점 (기하만의 함수)",
                    "`d` = " + dnum(D["d_beta45"], "{:.0f}", "m", f"{J_FS} : solve.W1.beta_deg",
                                    "β=45° 보간"),
-                   "그 지점의 SNR = "
+                   f"그 지점의 SNR({SOLVE_ARM_PLAIN}) = "
                    + dnum(D["snr_at_beta45"], "{:.0f}", "dB", f"{J_FS} : solve.W1.snr_d_db",
                           "d=β45 에서 보간")],
                   ["장면 방위 φ",
@@ -298,7 +380,10 @@ def r56():
            f"{PH.num('geometry.rows[0].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=0°) 가 "
            f"경계 행으로 클램프됐다 — 격자 밖 값을 가장자리 값으로 눌러 붙였다는 뜻이다.", "",
            "근거리 SNR 천장이 그 조회 위에 서므로, 확장된 앙각 격자 위에서 다시 푸는 일을 "
-           "다음 단계에 건다."),
+           "다음 단계에 건다.", "",
+           f"그 천장 {FS.num('solve.W1.snr_ceiling_db', None, '{:.2f}', 'dB')} 은 `d` = "
+           f"{FS.num('solve.W1.snr_peak_d_m', None, '{:.0f}', 'm')} 에서 서고, 그 자리는 위 표의 "
+           f"β = 45° 지점보다 안쪽이라 게이트 안 · 상반성 창 밖이다."),
 
         next_steps([
             ("앙각을 확장한 σ 격자 위에서 R90 과 SNR 천장을 다시 푼다",
@@ -333,10 +418,12 @@ def r57():
                 f"σ {DV.num('gap_1km.by_pair.W1-L1.d_sigma', None, '{:+.2f}', 'dB')} 의 합이다.",
                 f"5기체 × 3쌍 15칸에서 σ 항이 더 큰 칸이 "
                 f"{SS.num('gap_decomposition.n_pairs_sigma_dominates', None, '{:.0f}')}칸이다 — "
+                f"그 셈은 `d` = "
+                f"{SS.num('gap_decomposition.d_ref_m', None, '{:.0f}', 'm')} · 앵커 전 σ 판이고, "
                 f"σ-무관 축의 격차는 $\\lambda^2$ 스프레드로 고정이다.",
-                f"유한 ECA 깊이에서는 직접파 잔차가 벽이 된다 — 40 dB 에서 R90 "
+                f"유한 ECA 깊이에서는 직접파 잔차가 벽이 된다 — {SOLVE_ARM} 판에서 40 dB 의 R90 이 "
                 f"{num(None, (J_FS, 'solve.W1.sensitivity_eca_depth.40.R_m'), '{:.0f}')}, 완전 "
-                f"억압에서 "
+                f"억압이 "
                 f"{num(None, (J_FS, 'solve.W1.sensitivity_eca_depth.inf.R_m'), '{:.0f}', 'm')} "
                 f"이고, {ECA_HEADLINE}.",
                 f"듀티 항은 이 사슬에서 꺼져 있다 — 그 크기는 5G 가 LTE 대비 "
@@ -348,8 +435,13 @@ def r57():
                  + FS.num("meta.link_budget.power_normalization.canonical_occupancy", None)
                  + "(자원요소 RE 하나당 같은 전력)"),
                 ("σ 항",
-                 "기울기 앵커의 밴드별 Δσ 를 더한 값이다 — 레벨은 우리 PO 출력이고 기울기만 "
-                 "측정에서 받는다"),
+                 "기울기 앵커의 밴드별 Δσ 를 더한 값이다 — 레벨은 " + arm_b(J_SG_USED)
+                 + " 이 낸 것이고 기울기만 측정에서 받는다"),
+                ("σ 우세 칸의 셈",
+                 "15칸 판정은 `d` = "
+                 + SS.num("gap_decomposition.d_ref_m", None, "{:.0f}", "m")
+                 + " 의 **앵커 전** σ(원 sigma_dbsm)로 센다 — 표의 σ 행(1 km · 앵커 적용)과 "
+                   "규약이 다르므로 두 수를 각각의 규약과 함께 읽는다"),
                 ("항등식 검사",
                  "파형 3종 × 기체 2종 "
                  + dnum(D["lb_rows"], "{:.0f}", "행", f"{J_LB} : A_radar_equation.rows", "길이")
@@ -390,7 +482,11 @@ def r57():
                    DV.num(f"gap_1km.by_pair.{p}.d_sigma", None, "{:+.2f}", "dB")]
                   for p in ("W1-L1", "W1-G1", "L1-G1")]),
            "",
-           f"5기체 × 3쌍 15칸에서 σ 항이 더 큰 칸은 "
+           f"위 표의 σ 행은 `d` = "
+           f"{DV.num('gap_1km.d_ref_m', None, '{:.0f}', 'm')} · 앵커 적용 판이다. 15칸을 세는 "
+           f"아래 문장은 다른 규약 위에 선다 — `d` = "
+           f"{SS.num('gap_decomposition.d_ref_m', None, '{:.0f}', 'm')} · 앵커 전 σ 다.", "",
+           f"그 판에서 5기체 × 3쌍 15칸 중 σ 항이 더 큰 칸은 "
            f"{SS.num('gap_decomposition.n_pairs_sigma_dominates', None, '{:.0f}')}칸이고, "
            f"σ-무관 축의 격차는 $\\lambda^2$ 스프레드 "
            f"{SS.num('gap_decomposition.axes_pair_gaps_db.W1-L1', None, '{:+.2f}')} / "
@@ -399,13 +495,15 @@ def r57():
 
         md(*fig(1, PF["gap"], "밴드 격차를 만드는 항은 $\\lambda^2$ 와 σ 중 무엇인가?")),
 
-        md("## 어느 벽이 거리를 정하나", "",
+        md(f"## 어느 벽이 거리를 정하나 — solve 판({SOLVE_ARM_PLAIN})", "",
            f"{ECA_HEADLINE_LONG}. 유한 ECA 깊이에서는 직접파 잔차가 벽이 되고, 깊이에 따라 "
-           f"거리가 이렇게 움직인다.", "",
+           f"거리가 이렇게 움직인다. 이 감도는 solve 축 한 판의 값이고, 편 60 의 헤드라인 폭은 "
+           f"앵커 비교가능 기체 쪽에서 읽는다({ref('r90', short=True)}).", "",
            table(["ECA 깊이"] + [f"{k} dB" if k != "inf" else "완전 억압"
                                 for k in ("40", "60", "90", "inf")],
-                 [["R90"] + [num(None, (J_FS, f"solve.W1.sensitivity_eca_depth.{k}.R_m"),
-                                 "{:.0f}", "m") for k in ("40", "60", "90", "inf")]]),
+                 [[f"R90 ({SOLVE_ARM_PLAIN})"]
+                  + [num(None, (J_FS, f"solve.W1.sensitivity_eca_depth.{k}.R_m"),
+                         "{:.0f}", "m") for k in ("40", "60", "90", "inf")]]),
            "",
            f"레이더 방정식 항등식 검사는 "
            + dnum(D["lb_rows"], "{:.0f}", "행", f"{J_LB} : A_radar_equation.rows", "길이")
@@ -433,7 +531,7 @@ def r57():
              "위 표의 " + SS.num("unapplied_duty_axis.duty_db.G1", None, "{:.2f}", "dB")
              + " 가 순위에 주는 영향이 확정된다",
              "`src/freespace_link.py` 의 duty_db_from_cpi → " + ref("r90", short=True)),
-            ("ECA 억압 깊이를 실측 채널 값으로 바꿔 헤드라인 벽을 다시 잰다",
+            ("ECA 억압 깊이를 실측 채널 값으로 바꿔 solve 판의 벽을 다시 잰다",
              "거리를 구속하는 벽이 직접파 잔차인지 열잡음인지가 실측에서 갈린다",
              ref("eca", short=True)),
         ]),
@@ -552,13 +650,13 @@ def r59():
                 f"안에서 그대로 남는다.",
                 f"생산 모드 `slope_only` 의 세 밴드 평균 레벨이동은 "
                 f"{DV.num('anchor_scope.level_shift_abs_max_db', None, '{:.2f}', 'dB')} 다 — "
-                f"절대 레벨은 우리 PO 출력이다.",
+                f"절대 레벨은 {arm_b()} 이 낸 값이다.",
                 f"레벨까지 맞추려면 크기전이 법칙을 골라야 하고 L² 와 L⁴ 가 최대 "
                 f"{DV.num('anchor_scope.size_law_spread_max_db', None, '{:.2f}', 'dB')} 갈린다 — "
                 f"측정이 그 대가 없이 제약하는 것은 기울기뿐이다.",
-                f"앵커가 통제한 것 밖의 항은 셋이다 — 규약 불확도 "
-                f"{num(None, (J_AN, 'uncontrolled[1].size_db'), '{:.2f}', 'dB')}, 크기전이 항, "
-                f"PO 유효성 항.",
+                f"앵커가 통제한 것 밖의 항은 {UNC_N} 다 — {UNC_LIST}. 규약 불확도 "
+                f"{unc('statistic convention (Das mu)')} 는 원장에서 {UNC_RESOLVED_STATUS} 이고, "
+                f"채택 변환과 탈락 변환의 차로 앵커에 딸린다.",
                 f"PO 오차가 1 dB 아래로 내려가려면 부품 폭이 파장의 "
                 f"{num(None, (J_LFN, 'thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam'), '{:.3f}')}"
                 f"배 이상이어야 하는데, 우리 세 밴드는 전부 그 문턱 아래에 부품을 남긴다.",
@@ -566,7 +664,10 @@ def r59():
             method=[
                 ("무엇을 받나",
                  "σ = A(f)·B₁(φ,θ) 에서 **A(f) 의 기울기**를 Das 측정(IEEE WCL 2026 15:3731)에 "
-                 "맞춘다. 절대 레벨과 각패턴은 우리 PO 출력이다"),
+                 "맞춘다. 절대 레벨과 각패턴은 " + arm_b() + " 의 출력이다"),
+                ("통제 밖 항을 세는 법",
+                 f"원장 `uncontrolled` 의 status 로 센다 — UNRESOLVED·PARTIAL 인 {UNC_N} 를 "
+                 f"통제 밖으로 두고, RESOLVED_EMPIRICALLY 행은 잔차 크기로 따로 든다"),
                 ("재보정의 형태",
                  "밴드별 스칼라(방향 구분 없이 값 하나) Δσ 하나씩이다 — 그래서 정규화 각도 패턴이 "
                  "그대로 남는다"),
@@ -584,7 +685,8 @@ def r59():
 
         md("## 밴드 비교의 바닥 — 기울기 앵커 σ", "",
            "σ = A(f)·B₁(φ,θ) 에서 **A(f) 의 기울기**를 Das 측정(IEEE WCL 2026 15:3731)에 맞춘다. "
-           "**절대 레벨은 우리 PO 출력**이고, 생산 모드 `slope_only` 의 세 밴드 평균 레벨이동은 "
+           "**절대 레벨은 " + arm_b() + " 이 낸 값**이고, 생산 모드 `slope_only` 의 세 밴드 평균 "
+           "레벨이동은 "
            + DV.num("anchor_scope.level_shift_abs_max_db", None, "{:.2f}", "dB") + " 다.", "",
            "레벨까지 맞추려면 크기전이 법칙을 골라야 하고 L² 와 L⁴ 가 최대 "
            + DV.num("anchor_scope.size_law_spread_max_db", None, "{:.2f}", "dB")
@@ -594,9 +696,14 @@ def r59():
            f"그래서 정규화 각도 패턴은 "
            f"{AN.num('drones.phantom4.shape_invariance_max_abs_db', None, '{:.1e}', 'dB')} "
            f"안에서 그대로 남는다 — 앵커가 옮기는 것은 레벨이지 모양이 아니다.", "",
-           f"앵커가 통제한 것 밖의 항은 **셋**이다 — 규약 불확도 "
-           f"{num(None, (J_AN, 'uncontrolled[1].size_db'), '{:.2f}', 'dB')}, 크기전이 항, "
-           f"그리고 **PO 유효성 항**이다(⟨{J_AN} : uncontrolled⟩)."),
+           f"앵커가 통제한 것 밖의 항은 **{UNC_N}** 다 — {UNC_LIST}. 개수는 원장 "
+           f"`uncontrolled`⟨{J_AN} : uncontrolled⟩ 의 status 로 센다.", "",
+           f"규약 불확도 "
+           f"{unc('statistic convention (Das mu)')} 는 같은 원장에서 {UNC_RESOLVED_STATUS} "
+           f"이고, 채택 변환과 탈락 변환의 차로 앵커에 딸려 다닌다. "
+           f"앙각 정합 항의 크기는 "
+           f"{unc('elevation matching')}, 크기전이 항은 "
+           f"{unc('size transfer law')} 다."),
 
         md("## PO 유효성 항이 이번에 크기를 얻었다", "",
            f"PO 오차가 1 dB 아래로 내려가려면 부품의 폭이 파장의 "
@@ -633,7 +740,7 @@ def r59():
 
         next_steps([
             ("기준 구를 함께 재서 자체 앵커를 세운다",
-             "지금 우리 PO 출력인 σ 절대 레벨이 측정에 앵커되고, 크기전이 항 "
+             "지금 팔 B(우리 SBR+PO 커널)가 낸 σ 절대 레벨이 측정에 앵커되고, 크기전이 항 "
              + DV.num("anchor_scope.size_law_spread_max_db", None, "{:.2f}", "dB") + " 가 닫힌다",
              ref("calibration-sphere", short=True)),
             ("VV/HH 2편파를 잰다", "앵커의 편파 항 크기가 수치로 확정된다",
@@ -659,10 +766,11 @@ def r60():
                        f"{J_FS} : " + CELL.format(d="*", m="*") + ".n_local_at_R90", "15칸 평균")
                 + " 로 옮긴다 — `d` 축에서 국소적으로 $R \\propto \\sigma^{1/n}$ 이다.",
                 f"앵커 비교가능 기체 {D['n_cells_comp']}칸의 R90 은 "
-                + dnum(D["A_min"], "{:.2f}", "km", KEY_R, "비교가능 기체 최소")
+                + DV.num("r90.span_comparable_min_km", None, "{:.2f}")
                 + " ~ "
-                + dnum(D["A_max"], "{:.2f}", "km", KEY_R, "비교가능 기체 최대")
-                + " 다.",
+                + DV.num("r90.span_comparable_max_km", None, "{:.2f}", "km")
+                + f" 다 — 원키 `R90_C50_m`⟨{KEY_R}⟩ 에 앵커 Δσ⟨{KEY_A}⟩ 를 R90 근방 국소 지수로 "
+                + f"옮긴 값이다.",
                 "밴드 순서는 기체마다 바뀐다 — 그 순서를 만드는 것은 자세별 로브 구조이고, 앵커는 "
                 "밴드별 스칼라를 옮기면서 밴드 평균 레벨은 그대로 둔다.",
                 f"자세를 평균하면 다섯 기체가 한 순위 "
@@ -799,9 +907,10 @@ def r61():
     return [
         header(
             num=61,
-            title="그 순위는 자세평균이면 σ 오차 아래에서 하나로 모인다",
+            title="그 순위는 자세평균이면 하나로 모이고, 자세평균 뒤집힘 문턱은 현실 봉투 안이다",
             did="σ 오차를 공통모드와 차분 두 종류로 나눠 넣고, 각각에서 밴드 순위가 어디까지 "
-                "버티는지를 뒤집힘 문턱과 몬테카를로 보존확률로 재었다.",
+                "버티는지를 단일 자세·자세평균 두 인용 방식의 뒤집힘 문턱과 몬테카를로 "
+                "보존확률로 재었다.",
             results=[
                 f"σ 는 SNR 에 선형이라 σ 오프셋 Δ dB 가 곧 SNR 오프셋 Δ dB 다 — 선형성 잔차 "
                 f"{SS.num('_meta.sigma_linearity_check', None, '{:.1e}')}.",
@@ -809,10 +918,15 @@ def r61():
                 f"{SS.num('common_mode.abs_range_shift_at_10db_pct.minus10', None, '{:+.1f}', '%')} ~ "
                 f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} "
                 f"움직인다.",
-                f"뒤집는 것은 차분 오차다 — 뒤집힘 문턱은 "
+                f"뒤집는 것은 차분 오차다 — 단일 자세 뒤집힘 문턱은 "
                 f"{SS.num('differential.smallest_flip_span_db_overall', None, '{:.2f}')} ~ "
-                f"{SS.num('differential.largest_flip_span_db_overall', None, '{:.2f}', 'dB')} 이고, "
-                f"현실 봉투는 {SS.num('differential.realistic_span_db', None, '{:.2f}', 'dB')} 다.",
+                f"{SS.num('differential.largest_flip_span_db_overall', None, '{:.2f}', 'dB')}, "
+                f"자세평균 문턱은 "
+                f"{SS.num('aspect_averaged.smallest_flip_span_db_overall', None, '{:.2f}')} ~ "
+                + dnum(ASP_FLIP_MAX, "{:.2f}", "dB", f"{J_SS} : aspect_averaged.by_drone",
+                       ASP_NOTE_MAX)
+                + f" 이고, 현실 봉투는 "
+                f"{SS.num('differential.realistic_span_db', None, '{:.2f}', 'dB')} 다.",
                 f"취약성을 정하는 것은 기체 크기가 아니라 밴드 간 σ 로브 산포다 — 크기와 뒤집힘 "
                 f"문턱의 상관은 "
                 f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')} 다.",
@@ -850,13 +964,22 @@ def r61():
                    + SS.num("common_mode.abs_range_shift_at_10db_pct.minus10", None, "{:+.1f}", "%")
                    + " ~ "
                    + SS.num("common_mode.abs_range_shift_at_10db_pct.plus10", None, "{:+.1f}", "%")],
-                  ["차분(밴드별)", "순위가 뒤집힐 수 있는 축",
+                  ["차분(밴드별) — 단일 자세 ψ=0", "순위가 뒤집힐 수 있는 축",
                    "뒤집힘 문턱 "
                    + SS.num("differential.smallest_flip_span_db_overall", None, "{:.2f}")
                    + " ~ "
                    + SS.num("differential.largest_flip_span_db_overall", None, "{:.2f}", "dB")
                    + " (현실 봉투 "
-                   + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB") + ")"],
+                   + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB") + ") · 봉투 안에서 "
+                   + SS.num("differential.n_drones_flipping_inside_realistic", None, "{:.0f}")
+                   + "/" + SS.num("differential.n_drones", None, "{:.0f}") + "기체가 뒤집힌다"],
+                  ["차분(밴드별) — 자세평균 σ", "합의 순위가 뒤집히는 축",
+                   "뒤집힘 문턱 "
+                   + SS.num("aspect_averaged.smallest_flip_span_db_overall", None, "{:.2f}")
+                   + " ~ "
+                   + dnum(ASP_FLIP_MAX, "{:.2f}", "dB", f"{J_SS} : aspect_averaged.by_drone",
+                          ASP_NOTE_MAX)
+                   + f" — {ASP_ENVELOPE}"],
                   ["밴드별 독립 오차 2 dB (몬테카를로)", "순위 보존 확률",
                    dnum(D["mc_p2db_min"], "{:.2f}", "", f"{J_SS} : monte_carlo_per_band_error",
                         "5기체 최소") + " ~ "
@@ -888,7 +1011,10 @@ def r61():
            f"**자세평균**으로 읽으면 "
            f"{SS.num('aspect_averaged.by_drone.matrice4e.smallest_flip_span_db', None, '{:.2f}', 'dB')}"
            f" 다 — 실측 캠페인이 판정 문턱으로 드는 수가 그것이다"
-           f"({ref('session-drift', short=True)})."),
+           f"({ref('session-drift', short=True)}).", "",
+           f"자세평균 판에서 문턱이 가장 얇은 기체는 {ASP_FLIP_MIN_DRONE} 이고 그 값은 "
+           f"{SS.num(f'aspect_averaged.by_drone.{ASP_FLIP_MIN_DRONE}.smallest_flip_span_db', None, '{:.2f}', 'dB')}"
+           f" 다 — 합의 순위의 아래 두 밴드가 그만큼 붙어 있다."),
 
         next_steps([
             ("형상 정정 후 메쉬로 σ 민감도를 다시 돌린다",
@@ -920,10 +1046,17 @@ def r62():
                 f"{CG.num('verdict.artifact.blind_hard_same_cpi', None, '{:.3f}')}, CPI "
                 f"{CG.num('equal_cpi_penalty[1].T_cpi_s', None, '{:.1f}', 's')} 에서 "
                 f"{CG.num('verdict.artifact.blind_hard_at_200ms', None, '{:.3f}')} 로 내려간다.",
-                f"WiFi 대비 배수는 CPI 전 구간에서 "
-                f"{CG.num('equal_cpi_penalty[0].ratio_G1_over_W1', None, '{:.1f}')}~"
-                f"{CG.num('equal_cpi_penalty[3].ratio_G1_over_W1', None, '{:.1f}')}배 로 남는다 "
-                f"— 이것이 이 대가를 구조로 만드는 첫 번째 사실이다.",
+                f"WiFi 대비 배수는 CPI "
+                + dnum(CPI_T_MIN, "{:.1f}", "", f"{J_CG} : equal_cpi_penalty[*].T_cpi_s", "최소")
+                + " ~ "
+                + dnum(CPI_T_MAX, "{:.1f}", "s", f"{J_CG} : equal_cpi_penalty[*].T_cpi_s", "최대")
+                + f" {CPI_SPAN_KO}에서 "
+                + dnum(CPI_RATIO_MIN, "{:.1f}", "",
+                       f"{J_CG} : equal_cpi_penalty[*].ratio_G1_over_W1", CPI_NOTE_MIN)
+                + " ~ "
+                + dnum(CPI_RATIO_MAX, "{:.1f}", "",
+                       f"{J_CG} : equal_cpi_penalty[*].ratio_G1_over_W1", CPI_NOTE_MAX)
+                + "배 로 남는다 — 이것이 이 대가를 구조로 만드는 첫 번째 사실이다.",
                 f"1.5빈 규약에서 LTE 도 CPI ≤ "
                 f"{CG.num('structural.two_mechanisms.observed.L1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
                 f" 에서 전 헤딩 블라인드가 된다 — 5G 만의 성질이 아니라 CPI 가 짧을 때의 성질이다.",
@@ -981,8 +1114,13 @@ def r62():
            f" 가 그 관측 잣대의 수다."),
 
         md("## CPI 를 늘리면 — 촘촘한 격자", "",
-           "세 파형 모두 블라인드율이 내려간다. 5G 가 치르는 **배수**는 그대로 남는다 — "
-           "이것이 이 대가를 구조로 만드는 첫 번째 사실이다.", "",
+           f"세 파형 모두 블라인드율이 내려간다. 5G 가 치르는 **배수**는 {CPI_SPAN_KO} 전부에서 "
+           + dnum(CPI_RATIO_MIN, "{:.1f}", "",
+                  f"{J_CG} : equal_cpi_penalty[*].ratio_G1_over_W1", CPI_NOTE_MIN)
+           + " ~ "
+           + dnum(CPI_RATIO_MAX, "{:.1f}", "",
+                  f"{J_CG} : equal_cpi_penalty[*].ratio_G1_over_W1", CPI_NOTE_MAX)
+           + "배 로 남는다 — 이것이 이 대가를 구조로 만드는 첫 번째 사실이다.", "",
            f"아래 표는 헤딩 격자 "
            f"{CG.num('meta.psi_n_fine', None, '{:.0f}', '점')} 위의 값이라, 같은 CPI 라도 앞의 "
            f"앵커 재현 표와 값이 갈린다 — 격자가 촘촘하면 가드에 걸리는 헤딩 구간의 경계가 "
@@ -994,7 +1132,7 @@ def r62():
                    CG.num(f"equal_cpi_penalty[{i}].blind_hard_G1", None, "{:.3f}"),
                    CG.num(f"equal_cpi_penalty[{i}].ratio_G1_over_W1", None, "{:.1f}") + "배",
                    CG.num(f"equal_cpi_penalty[{i}].ratio_G1_over_L1", None, "{:.1f}") + "배"]
-                  for i in range(5)])),
+                  for i in range(CPI_N_ROWS)])),
 
         md("## 두 번째 사실 — 접힘 비율은 CPI 와 무관하다", "",
            f"5G 의 alias 비율 "
@@ -1054,7 +1192,7 @@ def r63():
                  "표적이 움직이는 동안 위상이 유지되는 시간이다. 패리티 CPI 가 그 한계를 넘으면 "
                  "코히어런트 적분이 성립하지 않는다"),
                 ("대가 열",
-                 "필요 CPI · SSB 버스트 수 · 헤드라인 대비 경과 · 거리워크 · 코히어런트 이득을 "
+                 "필요 CPI · SSB 버스트 수 · 헤드라인 CPI 대비 경과 · 거리워크 · 코히어런트 이득을 "
                  "같은 표에 실어 대가의 형태를 갈라 놓는다"),
             ],
             prereq=[(ref("cpi-sweep", short=True), "CPI 를 늘렸을 때 회복되는 몫")],
@@ -1072,7 +1210,7 @@ def r63():
            f"이고 그 대가는 재방문 시간이다."),
 
         md("## 패리티의 대가", "",
-           table(["패리티 목표 (5 m/s)", "필요 CPI", "SSB 버스트", "헤드라인 대비 경과", "거리워크",
+           table(["패리티 목표 (5 m/s)", "필요 CPI", "SSB 버스트", "헤드라인 CPI 대비 경과", "거리워크",
                   "코히어런트 이득"],
                  [[nm,
                    CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.T_required_s", None, "{:.2f}", "s"),
@@ -1194,7 +1332,7 @@ def r65():
             results=[
                 f"세 모형은 자세무관 평판 σ "
                 f"{TM.num('protocol.operating_point.sigma_reference_dbsm', None, '{:.2f}', 'dBsm')}"
-                f"(3GPP, M1) · 정육면체(M2) · 우리 SBR+PO 격자(M3) 다.",
+                f"(3GPP, M1) · 정육면체(M2) · 우리 SBR+PO 격자(M3, {M3_STAMP}) 다.",
                 f"자세 앙상블은 셀당 "
                 f"{TM.num('statistics.n_aspect_realisations_per_cell', None, '{:.0f}')}자세 전수, "
                 f"(기체×밴드) 셀은 "
@@ -1236,13 +1374,17 @@ def r65():
            f"같은 기하·같은 검출기·같은 동작점에서 표적만 셋으로 갈아끼운다 — 자세무관 평판 σ "
            f"{TM.num('protocol.operating_point.sigma_reference_dbsm', None, '{:.2f}', 'dBsm')}"
            f"(3GPP, M1) · 정육면체(M2) · 우리 SBR+PO 격자(M3).", "",
+           f"M3 팔이 선 판을 함께 찍는다 — {M3_STAMP}. σ 격자의 신원은 "
+           f"「{TM.num('staleness.what_is_stale', None)}」 다. M1 은 3GPP 표값 상수이고 M2 는 "
+           f"현재 메쉬 bbox 로 잡은 모서리라, 이 판 표시는 M3 열에만 붙는다.", "",
            f"자세 앙상블은 셀당 "
            f"{TM.num('statistics.n_aspect_realisations_per_cell', None, '{:.0f}')}자세 전수, "
            f"(기체×밴드) 셀은 {TM.num('statistics.n_drone_band_cells', None, '{:.0f}')}개이고, "
            f"자세평균을 맞춘 뒤 남는 **요구 추가이득**을 추정량별로 적는다(재현편차 "
            f"{TA.num('meta.reproduction.E0_extra_gain_max_abs_dev_db', None, '{:.2f}', 'dB')})."),
 
-        md(table(["무엇을 맞추나", "M1 평판 [dB]", "M2 정육면체 [dB]", "M3 우리 격자 [dB]"],
+        md(table(["무엇을 맞추나", "M1 평판 [dB]", "M2 정육면체 [dB]",
+                  f"M3 우리 SBR+PO 격자 [dB] ({M3_STAMP_PLAIN})"],
                  [[nm,
                    TA.num(f"{TAE}.{k}.per_model_extra_gain_db.M1", None, "{:+.2f}"),
                    TA.num(f"{TAE}.{k}.per_model_extra_gain_db.M2", None, "{:+.2f}"),

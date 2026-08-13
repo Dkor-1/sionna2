@@ -29,7 +29,7 @@ P1 규칙을 좁힌다 (인용 감사 P03)
     이 좁힘은 H8 판정을 바꾸지 않는다(Sagitta 는 P2·P3 에서, FWA cube 는 P2 에서 걸린다).
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/report01_paper_facts.py
 """
 from __future__ import annotations

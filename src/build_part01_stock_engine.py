@@ -25,7 +25,7 @@ build_part01_stock_engine.py — 부 1 「스톡 엔진이 하는 일과 안 하
     JSON 에서 직접 읽어 출처 태그를 달고 넣는다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part01_stock_engine.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다.
@@ -55,6 +55,9 @@ EVD = "outputs/report00_evidence.json"
 POC = "outputs/report00_po_case.json"
 DEC = "outputs/report00_decision_map.json"
 SURVEY = "outputs/prior_work_survey.json"
+#: 평판 스윕의 원자료(`EVD : A_plate_size_sweep.source_path` 가 가리키는 그 파일).
+#: 격자 축(변 · 예산 · 시드 · 깊이)은 여기서 읽는다.
+FCT = "outputs/facet_mechanism.json"
 
 #: 편은 `reports/` 아래 산다 — 그림 경로도 거기 기준이다.
 FIG = "../outputs/figures"
@@ -72,6 +75,16 @@ MD_ITEM = 7
 #: 들고 있으므로 여기서 손으로 세지 않는다 — 판이 바뀌면 이 인덱스도 따라 바뀐다.
 _SHAPE_OK = fetch((EVD, "B_facet_count_sweep.numbers.shape_ok_per_level"))
 LAST_SHAPE_OK = max(i for i, ok in enumerate(_SHAPE_OK) if ok)
+
+#: 평판 스윕의 격자 축. **변 수와 예산 수는 원장 배열 길이가 정한다** — 손으로 세지 않는다.
+N_SIDE = len(fetch((EVD, "A_plate_size_sweep.numbers.side_m")))
+N_BUDGET = len(fetch((EVD, "A_plate_size_sweep.numbers.spp_list")))
+
+#: `prior_work_survey.json:papers` 는 리스트다. 게재/프리프린트 판정을 손으로 적는 대신
+#: 키로 자리를 찾아 그 자리의 `status_ko` 를 그대로 주입한다.
+_PAPER_IX = {p["key"]: i for i, p in enumerate(fetch((SURVEY, "papers")))}
+ZIG_J = _PAPER_IX["zig_j"]
+SAGITTA = _PAPER_IX["sagitta"]
 
 
 def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
@@ -547,17 +560,19 @@ def report_05_size_sweep():
             ],
             method=[
                 ("스윕 설계",
-                 f"빈 씬에서 평판 변만 바꾸며 예산 "
-                 f"{len(fetch((EVD, '_meta.solver.budgets')))}단 · 시드 "
-                 f"{len(fetch((EVD, '_meta.solver.seeds')))}개 · 깊이 "
-                 f"{len(fetch((EVD, '_meta.solver.depths')))}단으로 "
-                 f"{_n('A_plate_size_sweep.numbers.n_cells', EVD, '{:.0f}')}셀 반복"),
+                 f"빈 씬에서 평판 변만 바꾼다 — 변 {N_SIDE}단 × 예산 {N_BUDGET}단 = "
+                 f"{_n('A_plate_size_sweep.numbers.n_cells', EVD, '{:.0f}')}셀이고, 셀마다 시드 "
+                 f"{_n('A_plate_size_sweep.numbers.n_seeds', EVD, '{:.0f}')}개를 평균하며 깊이는 "
+                 f"{_n('A_plate_size[0].budget[0].max_depth', FCT, '{:.0f}')} 다"),
+                ("깊이 확인", f"깊이 {_n('A_depth_check[1].max_depth', FCT, '{:.0f}')} 는 별도 블록 "
+                            f"`A_depth_check` 가 변 하나 · spp "
+                            f"{_n('A_depth_check[1].spp', FCT, '{:,.0f}')} 에서 따로 잰다"),
                 ("PO 쪽 눈금", "같은 형상의 PO 단면적을 닫힌형으로 계산해 같은 축에 올린다"),
                 ("정직성 검사", "RT 진폭을 이미지-소스 해석해와 대조해 «엔진이 틀렸다» 를 "
                               "먼저 배제한다"),
             ],
             repro=_repro(["PYTHONPATH=src python src/figs_report00.py"],
-                         [EVD], "약 1분 (GPU 0장 — JSON 읽기와 그림 그리기다)"),
+                         [EVD, FCT], "약 1분 (GPU 0장 — JSON 읽기와 그림 그리기다)"),
         ),
 
         md("## 평판 하나를 키워 보면", "",
@@ -571,10 +586,15 @@ def report_05_size_sweep():
            f"같은 구간에서 path solver 의 표적 경로 진폭은 "
            f"{_n('A_plate_size_sweep.numbers.rt_span_db', EVD, '{:.1e}', 'dB')} 움직이고 경로 수는 "
            f"내내 {_n('A_plate_size_sweep.numbers.n_paths_target_set_union[0]', EVD, '{:.0f}')}개다 — "
-           f"예산 {len(fetch((EVD, '_meta.solver.budgets')))}단 · 시드 "
-           f"{len(fetch((EVD, '_meta.solver.seeds')))}개 · 깊이 "
-           f"{len(fetch((EVD, '_meta.solver.depths')))}단 "
-           f"{_n('A_plate_size_sweep.numbers.n_cells', EVD, '{:.0f}')}셀 전부에서."),
+           f"변 {N_SIDE}단 × 예산 {N_BUDGET}단 = "
+           f"{_n('A_plate_size_sweep.numbers.n_cells', EVD, '{:.0f}')}셀 전부에서, 셀마다 시드 "
+           f"{_n('A_plate_size_sweep.numbers.n_seeds', EVD, '{:.0f}')}개를 평균해 깊이 "
+           f"{_n('A_plate_size[0].budget[0].max_depth', FCT, '{:.0f}')} 로 잰 값이다.", "",
+           f"깊이 {_n('A_depth_check[1].max_depth', FCT, '{:.0f}')} 는 격자 밖의 별도 확인이다 — "
+           f"블록 `A_depth_check` 가 변 하나 · spp "
+           f"{_n('A_depth_check[1].spp', FCT, '{:,.0f}')} 에서 깊이 "
+           f"{_n('A_depth_check[0].max_depth', FCT, '{:.0f}')} 와 "
+           f"{_n('A_depth_check[1].max_depth', FCT, '{:.0f}')} 두 항을 잰다."),
 
         md("## 그 진폭이 무엇인지도 같이 확인된다", "",
            *_fig(1, "report00_f2", "표적을 키우면 무엇이 움직이고 무엇이 그대로인가?"), "",
@@ -689,7 +709,7 @@ def report_06_decision_table():
             ],
             repro=_repro(["PYTHONPATH=src python benchmark/build_report00_decision_map.py",
                           "PYTHONPATH=src python src/figs_report00.py"],
-                         [DEC, POC], "약 1분 (GPU 0장)"),
+                         [DEC, POC, EVD], "약 1분 (GPU 0장)"),
         ),
 
         md("## 판별 기준은 두 문장이다", "",
@@ -708,7 +728,17 @@ def report_06_decision_table():
            table_from(f"{DEC}:items", ITEM_COLS, order=RIGHT_HALF)),
 
         md("## 왼쪽 절반 — 표적 항이 답에 남는 칸", "",
-           table_from(f"{DEC}:items", ITEM_COLS, order=LEFT_HALF)),
+           table_from(f"{DEC}:items", ITEM_COLS, order=LEFT_HALF), "",
+           f"⚠ Z4 행의 "
+           f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 는 두 몫으로 "
+           f"갈린다. 실루엣이 유지되는 구간(`shape_ok` = "
+           f"{_n(f'B_facet_count_sweep.numbers.shape_ok_per_level[{LAST_SHAPE_OK}]', EVD)})의 몫은 면 "
+           f"2→1 계단 "
+           f"{_n('B_facet_count_sweep.numbers.step_2to1_facet_db', EVD, '{:+.2f}', 'dB')} 이고, "
+           f"{_n('B_facet_count_sweep.numbers.step_1to0_facet_db', EVD, '{:+.2f}', 'dB')} 는 형상 "
+           f"판정에서 떨어지는 마지막 단(`shape_ok` = "
+           f"{_n('B_facet_count_sweep.numbers.shape_ok_per_level[-1]', EVD)})의 몫이다. "
+           f"그 분해가 {ref('size-sweep')} 다."),
 
         md("## ⚠ 단서 하나 — 조명 방향이 둘이면 칸이 바뀐다", "",
            "소거 논증은 표적이 **한 방향에서** 조명될 때의 것이다. 다중경로에서는 직접파와 바닥 "
@@ -745,8 +775,8 @@ def report_07_why_po():
             num=7,
             title="완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 비용대에서 가장 "
                   "정확하다",
-            did="σ 를 조달하는 다섯 갈래를 비용과 정확도로 지도에 놓고, 게재된 반론 하나를 "
-                "그대로 실어 우리 선택의 값을 적었다.",
+            did="σ 를 조달하는 다섯 갈래를 비용과 정확도로 지도에 놓고, 프리프린트 반론"
+                "(IEEE OJAP 투고) 하나를 그대로 실어 우리 선택의 값을 적었다.",
             results=[
                 f"갈래는 {len(fetch((POC, 's1_alternatives.alternatives')))}개다. 완전파는 정확도의 "
                 f"과녁이고 — 우리 2D EFIE MoM 자체검사가 정확 원기둥 고유함수해 대비 "
@@ -755,28 +785,37 @@ def report_07_why_po():
 
                 f"우리 커널은 자세 하나(방위·고도 한 점 × 반송파 하나 → σ 한 값)에 중앙값 "
                 f"{_n('s1_alternatives.ours_runtime.ours_per_pose_ms_median', POC, '{:.1f}', 'ms')} "
-                f"다(측정은 Γ(θ) 배선 전 batch 커널 경로). 같은 카드·같은 씬에서 스톡 "
+                f"다(측정은 Γ(θ) 배선 전 batch 커널 경로). 같은 `RTX 4090` 에서 스톡 "
                 f"`sionna.rt.PathSolver` 전파 해가 "
                 f"{_n('s1_alternatives.stock_sionna_same_card.stock_sionna_ms_median', POC, '{:.1f}', 'ms')} "
-                f"이므로 하드웨어 변수가 제거된다.",
+                f"라서 카드는 같다 — 씬 내용과 재는 양은 서로 다르고, 카드 점유는 통제 밖이다.",
 
                 f"⚠ 반론도 그대로 싣는다 — "
-                f"{_n('s1_alternatives.cascade_cost_objection._the_objection', POC)}",
+                f"{_n('s1_alternatives.cascade_cost_objection._the_objection', POC)} "
+                f"⚠ 인용문 속 «게재된» 은 원장 표기이고, 판정으로는 두 편 다 프리프린트다 — "
+                f"Ziganshin "
+                f"{_n(f'papers[{ZIG_J}].status_ko', SURVEY)} · SagittaSBR "
+                f"{_n(f'papers[{SAGITTA}].status_ko', SURVEY)}",
 
                 f"우리 구현에서 PO 적분은 광선캐스팅의 "
                 f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배다. "
-                f"게재된 유일한 GPU 커널 분해는 같은 캐스케이드를 광선발사의 "
+                f"프리프린트로 공개된 유일한 GPU 커널 분해는 같은 캐스케이드를 광선발사의 "
                 f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_A100_fp32', POC, '{:.1%}')} "
                 f"로 적는다 — 절반은 우리 몫이다.",
             ],
             method=[
-                ("갈래 지도", "방법마다 «무엇을 푸는가» 를 그 방법의 게재 문헌 표현으로 적는다"),
-                ("비용 인용", "완전파 쪽 비용은 게재본 문장을 축자로 싣는다 — 우리 추정이 아니다"),
-                ("런타임 대조", "같은 `RTX 4090`, 같은 챔버 씬에서 우리 커널과 스톡 솔버를 "
-                              "나란히 잰다 (⚠ 재는 양은 서로 다르다 — 전파 경로 대 σ)"),
+                ("갈래 지도", "방법마다 «무엇을 푸는가» 를 그 방법의 문헌 표현으로 적고, 그 문헌의 "
+                            "게재 상태를 `prior_work_survey.json` 의 판정으로 붙인다"),
+                ("비용 인용", f"완전파 쪽 비용은 Ziganshin 저널판"
+                            f"({_n(f'papers[{ZIG_J}].status_ko', SURVEY)}) 본문 문장을 축자로 "
+                            f"싣는다 — 우리 추정이 아니다"),
+                ("런타임 대조", f"같은 `RTX 4090` 에서 우리 커널과 스톡 솔버를 나란히 잰다 — "
+                              f"통제되는 것은 카드 하나이고 씬 내용과 재는 양은 서로 다르다"
+                              f"(원장 caveat: "
+                              f"{_n('s1_alternatives.stock_sionna_same_card.caveat', POC)})"),
             ],
             repro=_repro(["PYTHONPATH=src python benchmark/build_report00_po_case.py"],
-                         [POC], "약 1분 (GPU 0장 — JSON 읽기다)"),
+                         [POC, SURVEY], "약 1분 (GPU 0장 — JSON 읽기다)"),
         ),
 
         md("## 다섯 갈래의 지도", "",
@@ -788,22 +827,34 @@ def report_07_why_po():
            f"우리 2D EFIE MoM 자체검사는 정확 원기둥 고유함수해 대비 "
            f"{_n('s3_validation.layer3_thin_plate_2d_mom.mom_selftest_worst_db', POC, '{:.5f}', 'dB')} "
            f"다. 그 눈금이 «완전파가 참값이다» 를 이 저장소 안에서 실제로 붙잡아 준다.", "",
-           f"그 대신 비용이 표를 못 만들게 한다. 게재본 문장 그대로 — "
+           f"그 대신 비용이 표를 못 만들게 한다. 그 비용 문장은 반론과 같은 Ziganshin 저널판"
+           f"({_n(f'papers[{ZIG_J}].locator', SURVEY)}) 본문의 것이고, 축자로 싣는다 — "
            f"{_n('s1_alternatives.alternatives[0].cost_quote_mlfmm', POC)}", "",
            f"우리 커널은 자세 하나에 중앙값 "
            f"{_n('s1_alternatives.ours_runtime.ours_per_pose_ms_median', POC, '{:.1f}', 'ms')} 다 — "
            f"측정은 Γ(θ) 배선 전 batch 커널 경로의 값이다. "
-           f"같은 `RTX 4090`, 같은 챔버 씬에서 스톡 `sionna.rt.PathSolver` 전파 해가 "
+           f"같은 `RTX 4090` 에서 스톡 `sionna.rt.PathSolver` 전파 해가 "
            f"{_n('s1_alternatives.stock_sionna_same_card.stock_sionna_ms_median', POC, '{:.1f}', 'ms')} "
-           f"이므로 하드웨어 변수는 여기서 제거된다(⚠ 재는 양은 서로 다르다 — 전파 경로 대 σ)."),
+           f"라서 두 값은 같은 카드에서 나온다.", "",
+           f"⚠ 이 대조가 통제하는 것은 카드 하나다. 원장 caveat 그대로 — "
+           f"{_n('s1_alternatives.stock_sionna_same_card.caveat', POC)} "
+           f"우리 팔(B)이 도는 씬은 자유공간 σ 경로이고, 스톡 팔(S)이 도는 씬은 전파 경로다.", "",
+           f"⚠ 카드 점유도 통제 밖이다 — 측정 하드웨어는 "
+           f"{_n('s1_alternatives.ours_runtime.hardware', POC)} 이고, 괄호 안 `SHARED` 가 그 뜻이다."),
 
-        md("## 게재된 반론 하나 — 캐스케이드 비용", "",
+        md("## 프리프린트 반론 하나 — 캐스케이드 비용", "",
            f"⚠ 반론을 그대로 싣는다 — "
            f"{_n('s1_alternatives.cascade_cost_objection._the_objection', POC)}", "",
+           f"⚠ 출처 두 편의 게재 상태는 원장 판정이 정한다 — Ziganshin 저널판"
+           f"({_n(f'papers[{ZIG_J}].locator', SURVEY)})은 "
+           f"{_n(f'papers[{ZIG_J}].status_ko', SURVEY)}, 투고처는 "
+           f"{_n(f'papers[{ZIG_J}].venue_ko', SURVEY)} 이고, SagittaSBR"
+           f"({_n(f'papers[{SAGITTA}].locator', SURVEY)})은 "
+           f"{_n(f'papers[{SAGITTA}].status_ko', SURVEY)} 다.", "",
            f"우리 구현에서 PO 적분은 광선캐스팅의 "
            f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배다 — "
            f"적분이 아직 호스트 numpy 라서이고, 측정은 Γ(θ) 배선 전 batch 커널 경로다. "
-           f"게재된 유일한 GPU 커널 분해(SagittaSBR)는 같은 "
+           f"프리프린트로 공개된 유일한 GPU 커널 분해(SagittaSBR)는 같은 "
            f"캐스케이드를 광선발사의 "
            f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_A100_fp32', POC, '{:.1%}')} "
            f"로 적는다. 절반은 우리 몫이다.", "",
@@ -815,7 +866,7 @@ def report_07_why_po():
             ("PO 적분을 디바이스 커널로 내린다",
              f"캐스케이드 반론의 비율 "
              f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배가 "
-             f"게재된 GPU 분해 수준으로 내려가는지가 확정된다",
+             f"프리프린트 GPU 분해 수준으로 내려가는지가 확정된다",
              "`src/rcs_sbr.py`"),
             ("Γ(θ) 를 batch 경로에 배선한 뒤 runtime_benchmark 를 같은 카드에서 다시 돌린다",
              "각도 모양이 붙은 커널의 자세당 비용이 확정된다",

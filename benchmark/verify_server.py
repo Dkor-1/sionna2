@@ -15,7 +15,7 @@ OptiX 미해결 환경에선 RT 부분이 명확한 가드와 함께 실패하�
 
 실행
   cd sionna2/benchmark
-  CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python verify_server.py
+  CUDA_VISIBLE_DEVICES=2 /workspace/.venvs/py312/bin/python verify_server.py
   # (GPU 는 #2 사용이 sionna2 정책.) OptiX 미해결이면 3)에서 명확한 안내와 함께 멈춘다.
   #   해결: libnvoptix.so.1 경로 찾아 DRJIT_LIBOPTIX_PATH 지정,
   #        또는 관리자에게 NVIDIA_DRIVER_CAPABILITIES=all 로 컨테이너 재기동 요청.
@@ -124,5 +124,5 @@ if __name__ == "__main__":
     except (RuntimeError, NotImplementedError) as e:
         print("\n⚠️  RT 백엔드 실행 실패 (OptiX 미해결 등):")
         print(e)
-        print("\n→ CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python verify_server.py 로 재실행")
+        print("\n→ CUDA_VISIBLE_DEVICES=2 /workspace/.venvs/py312/bin/python verify_server.py 로 재실행")
         sys.exit(1)

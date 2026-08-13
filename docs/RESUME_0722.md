@@ -108,8 +108,8 @@ report13 은 **설계 스펙까지 확정**됐다(`docs/REPORT13_SPEC.md` 63 KB)
 
 | 워크플로 | Run ID | 스크립트 |
 |---|---|---|
-| ~~report13 설계~~ **✅ 완료**(18에이전트·2.36M토큰) → `docs/REPORT13_SPEC.md`·`REPORT13_DESIGN.md` | `wf_ad438803-855` | `~/.claude/projects/-home-yunjung-workspace-sionna2/ffa746a7-*/workflows/scripts/report13-freespace-detection-range-wf_ad438803-855.js` |
-| 선행연구 방법론 차용+결과 정량비교(13편 병렬) | `wf_24618712-c19` | `~/.claude/projects/-home-yunjung-workspace/ffa746a7-*/workflows/scripts/priorwork-methodology-and-comparison-wf_24618712-c19.js` |
+| ~~report13 설계~~ **✅ 완료**(18에이전트·2.36M토큰) → `docs/REPORT13_SPEC.md`·`REPORT13_DESIGN.md` | `wf_ad438803-855` | `~/.claude/projects/-workspace-sionna2/ffa746a7-*/workflows/scripts/report13-freespace-detection-range-wf_ad438803-855.js` |
+| 선행연구 방법론 차용+결과 정량비교(13편 병렬) | `wf_24618712-c19` | `~/.claude/projects/-workspace/ffa746a7-*/workflows/scripts/priorwork-methodology-and-comparison-wf_24618712-c19.js` |
 
 두 번째 워크플로의 산출물은 **`docs/PRIOR_WORK_COMPARISON.md`** 와 리포트별 삽입 지시서다.
 이건 2026-07-22 사용자 지시(선행 방법론 최대한 차용 + 우리 결과와 선행 결과 정량 비교)를 이행하는 작업이다.

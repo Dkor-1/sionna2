@@ -27,7 +27,7 @@ import time
 
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 for _p in (f"{ROOT}/src", f"{ROOT}/benchmark"):
     if _p not in sys.path:
         sys.path.insert(0, _p)

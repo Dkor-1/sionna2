@@ -8,7 +8,7 @@ build_part05_anchor.py — 부 5 「앵커와 검증」 → 편 24~29
 편 하나 = 중심 메시지 하나 (제목이 곧 그 편의 결론 문장이다)
 
     24 anchor-mode         σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고,
-                           레벨과 각패턴은 우리 PO 출력이다
+                           레벨과 각패턴은 우리 SBR+PO 커널(B) 출력이다
     25 anchor-ledger       앵커가 통제한 항목과 남은 항목의 크기를 기체별 원장으로 적었다
     26 blind-p3            Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다
     27 box-sphere-control  메쉬가 사는 축은 절대 크기가 아니라 각도 구조다
@@ -20,7 +20,7 @@ build_part05_anchor.py — 부 5 「앵커와 검증」 → 편 24~29
     계획: `outputs/restruct_exec_plan.json : reports[no in 24..29]`
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part05_anchor.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다 — 서술 재배치다.
@@ -37,7 +37,7 @@ for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
         sys.path.insert(0, _p)
 
 from report_registry import index_shard, nb_path, ref, ref_part           # noqa: E402
-from report_style import (build_notebook, caption, header, md,            # noqa: E402
+from report_style import (build_notebook, caption, fetch, header, md,     # noqa: E402
                           next_steps, num, table, table_from)
 
 # --------------------------------------------------------------------------- #
@@ -49,6 +49,7 @@ SIG = "outputs/sigma_anchor.json"            # 재보정 모드 · 비교가능�
 P3V1 = "outputs/p3_validation.json"          # 눈감기 대조 (v1 메쉬)
 P3V2 = "outputs/p3_validation_v2.json"       # 상자·구 대조군 (v2 메쉬)
 P3O = "outputs/p3_ours.json"                 # 눈감기 산출 원본
+P3O2 = "outputs/p3_ours_v2.json"             # B 팔 커널 신원(엔진·호출자·투과 설정)
 DFV = "outputs/das_fleet_validation.json"    # 함대 사전등록 채점
 DFP = "outputs/das_fleet_prereg.json"        # 봉인한 합격규칙
 DFA = "outputs/das_fleet_attack.json"        # 함대 적대검증
@@ -80,6 +81,18 @@ def _repro(cmd: list[str], out: list[str], runtime: str, note: str = "") -> dict
     return d
 
 
+#: 팔 표기 — 저장소 공통 규약(S/B/P). `build_part10_results` · `make_report08_microdoppler`
+#  가 쓰는 세 글자와 같다. 이 부의 σ 는 전부 B 팔이다.
+_ARMS = ("**S** = Sionna PathSolver · **B** = 우리 SBR+PO 커널(광선 가림 + 셸 투과 + PO 면적분) · "
+         "**P** = 순수 PO 대조군(PEC |Γ|=1)")
+
+#: 끝점 두 개를 뺀 기울기가 Das 공표 기울기의 몇 배인가 — 두 원장 값의 몫이다(파생).
+_P3_DROP_RATIO = (fetch((P3V1, "slope.ours_slope_robustness.drop_both_endpoints"))
+                  / fetch((P3V1, "slope.das_published.a")))
+_P3_DROP_RATIO_TXT = (f"{_P3_DROP_RATIO:.1f} 배 ⟨{P3V1} : "
+                      f"slope.ours_slope_robustness.drop_both_endpoints → "
+                      f"Das 공표 기울기로 나눈 배수⟩")
+
 _DERIVE = "PYTHONPATH=src python src/make_report02_target.py --derive-only"
 _MESHFIX = f"{_n('_meta.date', MFX)} 형상 정정"
 _GAMMA_AXIS = (f"{_n('_meta.generated', AGI)} Γ(θ) 각도 모양(기본 켬) 이전 커널의 산출"
@@ -95,12 +108,13 @@ def report_24_anchor_mode():
     return [
         header(
             num=24,
-            title="σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 PO "
-                  "출력이다",
+            title="σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 "
+                  "SBR+PO 커널(B) 출력이다",
             did="게재된 표준트랙 논문의 분해를 그대로 쓰고, 세 인자 중 주파수 기울기 하나만 공개 "
                 "측정에 정렬했다.",
             results=[
-                f"기하에서 나온 우리 밴드 기울기는 "
+                f"기하에서 나온 우리 밴드 기울기는 기체 "
+                f"{_n('anchor.n_slope_crosschecked', DER, '{:.0f}', '종')} 범위로 "
                 f"{_n('band_slope.ours_min', DER, '{:.3f}')}"
                 f"({_n('band_slope.ours_min_drone', DER)})~"
                 f"{_n('band_slope.ours_max', DER, '{:.3f}', 'dB/GHz')}"
@@ -136,7 +150,8 @@ def report_24_anchor_mode():
                 ("분해", "σ = A(f)·B₁(φ,θ)·B₂ — 게재된 표준트랙 논문의 분해를 그대로 쓴다"
                       "(Zhang, IEEE JSAC 44:702, 2026 — 측정 적합 모델)"),
                 ("무엇을 받나", "A(f) 의 **기울기만** 측정에서 받는다. A(f) 의 레벨과 B₁ 은 우리 "
-                          "PO 출력이다"),
+                          "SBR+PO 커널(B) 출력이다"),
+                ("팔 표기", _ARMS + " — 이 편의 σ 는 전부 B 팔이다"),
                 ("왜 기울기만", "레벨까지 맞추려면 크기전이 법칙을 하나 골라야 하고, 측정이 그 "
                            "대가 없이 제약하는 양은 기울기뿐이다"),
                 ("모드 구현", "`src/sigma_anchor.py` 가 재보정 모드 셋을 제공한다 — 생산은 "
@@ -152,11 +167,16 @@ def report_24_anchor_mode():
            "게재된 표준트랙 논문의 분해를 그대로 쓴다(Zhang, IEEE JSAC 44:702, 2026 — 측정 적합 "
            "모델): **σ = A(f)·B₁(φ,θ)·B₂**. A(f) 는 주파수 의존성, B₁ 은 자세에 따른 모양, "
            "B₂ 는 자세 요동의 분포족이다.", "",
-           "**A(f) 의 기울기는 측정에서, A(f) 의 레벨과 B₁ 은 우리 계산에서 온다.** PO 면적분은 "
-           "f² 로 커지는 정반사항을 담으므로 기울기가 기하에서 나오고, 그 하나를 측정에 맞춘다."),
+           "**A(f) 의 기울기는 측정에서, A(f) 의 레벨과 B₁ 은 우리 SBR+PO 커널(B)에서 온다.** PO "
+           "면적분은 f² 로 커지는 정반사항을 담으므로 기울기가 기하에서 나오고, 그 하나를 측정에 "
+           "맞춘다.", "",
+           f"팔 표기는 {_ARMS} 다. B 팔의 신원은 원장이 적어 둔다 — 엔진 "
+           f"«{_n('meta.engine', P3O2)}», 호출자 «{_n('meta.caller', P3O2)}» 로 앵커 사슬의 σ 는 "
+           f"전부 이 경로를 지난다."),
 
         md("## 우리 기울기와 측정 기울기", "",
-           f"기하에서 나온 우리 밴드 기울기는 "
+           f"기하에서 나온 우리 밴드 기울기는 기체 "
+           f"{_n('anchor.n_slope_crosschecked', DER, '{:.0f}', '종')} 범위로 "
            f"{_n('band_slope.ours_min', DER, '{:.3f}')}"
            f"({_n('band_slope.ours_min_drone', DER)})~"
            f"{_n('band_slope.ours_max', DER, '{:.3f}', 'dB/GHz')}"
@@ -171,7 +191,13 @@ def report_24_anchor_mode():
            f"{_n('slope.das_published.band[1]', P3V2, '{:.1f}', 'GHz')} 전대역 적합이다. 같은 "
            f"기체를 같은 커널로 돌려도 창을 바꾸면 기울기가 달라진다 — 우리 Phantom 3 v2 메쉬에서 "
            f"저대역 창 {_n('slope.subband.ours.1.8-6.0 GHz.a', P3V2, '{:.3f}')} 대 전대역 "
-           f"{_n('slope.ours_el0_full_band.a', P3V2, '{:.3f}', 'dB/GHz')} 다."),
+           f"{_n('slope.ours_el0_full_band.a', P3V2, '{:.3f}', 'dB/GHz')} 다.", "",
+           f"⚠ **이 범위의 모집단은 기체 "
+           f"{_n('anchor.n_slope_crosschecked', DER, '{:.0f}', '종')}** 이다 — 모드 표와 정렬 후 "
+           f"산포가 드는 {_n('anchor_modes.n_airframes', DER, '{:.0f}', '기종')} 중 "
+           f"{_n('anchor.n_in_sigma_anchor_only', DER, '{:.0f}', '대')}"
+           f"({_n('anchor.in_sigma_anchor_only', DER)})는 σ 앵커 원장에만 있고 밴드 기울기 원장 "
+           f"밖이다. 두 수를 나란히 읽을 때 이 차이를 함께 읽는다."),
 
         md("## 앵커는 각 기체의 기울기를 어디로 옮기나", "",
            *_fig(1, "report02_f6_band_slope",
@@ -202,13 +228,13 @@ def report_24_anchor_mode():
            table(["인자", "무엇", "어디서", "이 편의 근거"],
                  [["A(f) 기울기", "주파수 의존성", "**측정**(Das)",
                    "μ 기울기 " + _n('literature.mu_eps.das_phantom3_mono.mu_a', ANC, '{:.2f}', 'dB/GHz')],
-                  ["A(f) 레벨", "절대 레벨", "**우리 PO 출력**",
+                  ["A(f) 레벨", "절대 레벨", "**우리 SBR+PO 커널(B) 출력**",
                    "`" + _n('anchor_modes.production_mode', DER) + "` 의 레벨이동 절대 최대 "
                    + _n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')],
-                  ["B₁(φ,θ)", "자세에 따른 모양", "**기하**(광선 가림 + PO)",
+                  ["B₁(φ,θ)", "자세에 따른 모양", "**기하**(B — 광선 가림 + 셸 투과 + PO)",
                    "재보정 후 정규화 패턴 변화 "
                    + _n('anchor.shape_invariance_max_abs_db', DER, '{:.1e}', 'dB')],
-                  ["B₂", "자세 요동의 분포족", "기하",
+                  ["B₂", "자세 요동의 분포족", "기하(B)",
                    "문헌 적합 RMSE " + _n('literature.fit_rmse_db.AAV', ANC, '{:.2f}', 'dB')
                    + " 가 기준선"]])),
 
@@ -365,9 +391,12 @@ def report_26_blind_p3():
                 f"우리 el=0 전대역 기울기는 "
                 f"{_n('slope.ours_el0_full_band.a', P3V1, '{:.3f}')} ± "
                 f"{_n('slope.ours_el0_full_band.se_a', P3V1, '{:.3f}', 'dB/GHz')} 이고, Das 공표 "
-                f"{_n('slope.das_published.a', P3V1, '{:.2f}', 'dB/GHz')} 대비 "
-                f"{_n('slope.ratios.ours_over_das', P3V1, '{:.2f}', '배')} · "
-                f"{_n('slope.significance.z_vs_das_0p21', P3V1, '{:.1f}', 'σ')} 다.",
+                f"{_n('slope.das_published.a', P3V1, '{:.2f}', 'dB/GHz')} 대비 약 "
+                f"{_n('slope.ratios.ours_over_das', P3V1, '{:.0f}', '배')} · "
+                f"{_n('slope.significance.z_vs_das_0p21', P3V1, '{:.1f}', 'σ')} 다 — 끝점이 "
+                f"기울기를 끌고 가서 양 끝점 두 개를 빼면 "
+                f"{_n('slope.ours_slope_robustness.drop_both_endpoints', P3V1, '{:.3f}', 'dB/GHz')}"
+                f" · {_P3_DROP_RATIO_TXT} 다.",
 
                 f"Yuan θ=90° 실측곡선 대비는 "
                 f"{_n('slope.ratios.ours_over_yuan_theta90', P3V1, '{:.2f}', '배')} · "
@@ -424,7 +453,8 @@ def report_26_blind_p3():
                    "—"],
                   ["Das 공표 (IEEE WCL 2026)", "고도풀링 · 같은 창",
                    _n('slope.das_published.a', P3V1, '{:.2f}'),
-                   _n('slope.ratios.ours_over_das', P3V1, '{:.2f}', '배') + " · "
+                   "약 " + _n('slope.ratios.ours_over_das', P3V1, '{:.0f}', '배')
+                   + "(양 끝점 제외 " + _P3_DROP_RATIO_TXT + ") · "
                    + _n('slope.significance.z_vs_das_0p21', P3V1, '{:.1f}', 'σ')],
                   ["Yuan θ=90° 실측곡선 (EuCAP 2025)", "고도정합 · 같은 창",
                    _n('slope.yuan_theta90_published.a', P3V1, '{:.3f}'),
@@ -522,6 +552,11 @@ def report_27_box_sphere_control():
                                "구로 바꿔 넣고 다시 채점한다"),
                 ("레벨의 잣대", "Yuan θ90 복원 실측곡선 기준 밴드평균 잔차 "
                            f"⟨{P3V2} : controls.scoring⟩"),
+                ("두 팔의 규약", "우리 행은 **B 팔**(SBR+PO · 부품 재질 Γ · 셸 투과 켬), 대조군 "
+                            f"세 형상은 **P 팔**"
+                            f"(⟨{P3V2} : controls.protocol⟩ — 순수 PO 면적분 · PEC |Γ|=1)이고, "
+                            "볼록체라 두 팔이 같은 물리를 낸다 — 같은 정육면체를 두 팔로 낸 차이가 "
+                            + _n('controls.kernel_crosscheck.delta_db', P3V2, '{:.3f}', 'dB')),
                 ("각도의 잣대", "⚠ ε(방위 산포)만은 잣대가 다르다 — 비교 상대가 Das Table III 가 "
                            "준 값이다. 레벨은 Yuan 잣대, ε 는 Das 잣대다"),
                 ("메쉬 세대", "이 편의 «우리» 는 v2 메쉬(사진 실측으로 다시 지은 판)이고, 눈감기 "
@@ -547,7 +582,13 @@ def report_27_box_sphere_control():
            f"⭐ 다만 **그 구의 부피를 무엇으로 잡는가가 자유 매개변수**(결과를 보고 골라 넣을 수 "
            f"있는 값)다 — 메쉬 부피와 같은 구는 "
            f"{_n('controls.table.sphere_vol_v2.level_err_db', P3V2, '{:+.2f}', 'dB')} 로 우리보다 "
-           f"나쁘다."),
+           f"나쁘다.", "",
+           f"⚠ **두 행은 팔과 재질 규약이 다르다** — 우리 행은 B 팔(SBR+PO · 부품 재질 Γ · 셸 투과 "
+           f"켬)이고 상자·정육면체·구 세 행은 P 팔"
+           f"(⟨{P3V2} : controls.protocol⟩ — 순수 PO 면적분 · PEC |Γ|=1)이다. 대조군이 볼록체라 두 "
+           f"팔은 같은 물리를 내고, 같은 정육면체를 두 팔로 낸 차이가 "
+           f"{_n('controls.kernel_crosscheck.delta_db', P3V2, '{:.3f}', 'dB')} 다 — 위 레벨오차가 "
+           f"갈리는 폭은 그보다 두 자릿수 크다."),
 
         md("## v1 과 v2 는 다른 메쉬다", "",
            f"⭐ **이 편의 «우리» 는 v2 메쉬**(사진 실측으로 다시 지은 판)이고, "
@@ -583,15 +624,17 @@ def report_27_box_sphere_control():
            f"같은 Phantom 3 에서 우리"
            f"({_n('box_control.phantom3.ours_DL_db', DFV, '{:+.2f}')})가 구"
            f"({_n('box_control.phantom3.controls.sphere_eqvol.DL_db', DFV, '{:+.2f}', 'dB')})를 "
-           f"이긴다. 그쪽 표는 구의 σ 를 단면적 πa² 로 굳힌 근사로, 이 표는 정확해(Mie)로 낸다 — "
-           f"반지름은 같다.", "",
+           f"이긴다. **두 표를 이름으로 부른다** — 함대 원장 표(`{DFV}`)는 구의 σ 를 단면적 πa² 로 "
+           f"굳힌 근사로 내고(⟨{DFV} : box_control.phantom3.controls.sphere_eqvol.desc⟩), 이 편 "
+           f"위쪽의 대조군 표(`{P3V2}`)는 정확해(Mie)로 낸다"
+           f"(⟨{P3V2} : controls.table.sphere_vol_v2.what⟩) — 반지름은 같다.", "",
            f"즉 **두 잣대 모두에서 지는 것은 메쉬 부피로 잡은 구**이고, 레벨에서 우리를 앞선 것은 "
            f"반지름을 그보다 키운 논문표기 상자부피 구 하나다. 두 결과는 «어느 부피를 골랐나» 와 "
            f"함께 읽는다.", "",
-           f"⚠ 이 마지막 두 수는 함대 원장(`{DFV}`)에서 왔고, 그 σ 는 다중정적 경로"
+           f"⚠ 이 마지막 두 수는 함대 원장 표(`{DFV}`)에서 왔고, 그 σ 는 다중정적 경로"
            f"(`rcs_sbr_multistatic`)로 낸 값이다. 그 경로에 Γ(θ) 각도 모양이 들어온 것은 "
-           f"{_n('generated', VBF)} 이고 이 표는 그 이전 판이다 — **재계산 대기**이고, 두 수의 "
-           f"순위는 재계산 뒤 다시 읽는다."),
+           f"{_n('generated', VBF)} 이고 **함대 원장 표가 그 이전 판**이다 — **재계산 대기**이고, "
+           f"두 수의 순위는 재계산 뒤 다시 읽는다."),
 
         next_steps([
             ("Phantom 3 구 대조군을 방위 산포 ε 축까지 포함해 다섯 기체로 넓힌다",
@@ -767,7 +810,8 @@ def report_29_sigma_robustness():
                 f"그 기울기가 σ 1 dB 당 "
                 f"{_n('sigma_sens.slope_mean_db_per_db', DER, '{:.3f}', 'dB')}"
                 f"({_n('sigma_sens.slope_min_db_per_db', DER, '{:.3f}')}~"
-                f"{_n('sigma_sens.slope_max_db_per_db', DER, '{:.3f}')}), 즉 σ ±10 dB 에서 거리 "
+                f"{_n('sigma_sens.slope_max_db_per_db', DER, '{:.3f}')}) 다 — 거리의 dB 는 10log10 "
+                f"규약이라 R90 ∝ σ^(1/4) 이고, σ ±10 dB 에서 거리 "
                 f"{_n('sigma_sens.range_at_minus10_pct', DER, '{:.0f}')} %~"
                 f"{_n('sigma_sens.range_at_plus10_pct', DER, '{:+.0f}', '%')} 다.",
 
@@ -815,6 +859,9 @@ def report_29_sigma_robustness():
            f"{_n('sigma_sens.slope_max_db_per_db', DER, '{:.3f}')}), 즉 σ ±10 dB 에서 거리 "
            f"{_n('sigma_sens.range_at_minus10_pct', DER, '{:.0f}')} %~"
            f"{_n('sigma_sens.range_at_plus10_pct', DER, '{:+.0f}', '%')} 다.", "",
+           "⚠ **거리의 dB 는 10log10 규약이다** — `benchmark/sigma_sensitivity.py` 가 "
+           "10·log10(R90) 을 σ 오프셋에 적합해 이 기울기를 낸다. 그래서 σ 1 dB 당 약 1/4 dB 는 "
+           "R90 ∝ σ^(1/4) 와 같은 말이고, 위 ±10 dB 의 거리 변화율이 그 지수와 맞는다.", "",
            "**논문이 절대 σ 에 기대는 곳은 여기서 끝난다.**"),
 
         md("## 차분 — 순위를 정하는 축", "",
@@ -843,13 +890,21 @@ def report_29_sigma_robustness():
                            "flip_single_db": "{:.2f}", "flip_aspect_avg_db": "{:.2f}",
                            "band_sigma_spread_db": "{:.1f}", "p_order_1db": "{:.3f}"})),
 
-        md("## 이 표가 사는 주장", "",
-           f"뒤집힘 문턱은 기체 크기가 아니라 **로브 산포**가 정한다 — 표에서 최대 치수 열과 "
-           f"뒤집힘 문턱 열이 같은 방향으로 가지 않는다. 밴드간 σ 산포 열이 그 순서를 만든다.", "",
+        md("## 뒤집힘 문턱은 어느 열을 따라가나", "",
+           f"뒤집힘 문턱은 최대 치수 열과 밴드간 σ 산포 열 **둘 다에 약하게** 걸린다 — 단일자세 "
+           f"문턱과의 상관이 크기 쪽 "
+           f"{_n('size_vs_fragility.corr_extent_vs_flip_single', SS, '{:.2f}')} · 산포 쪽 "
+           f"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 크기 쪽이 "
+           f"더 강하다. 두 열 사이의 상관은 "
+           f"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 "
+           f"열은 이 표에서 서로 다른 축이다.", "",
+           f"⚠ 기체가 {_n('sigma_sens.n_airframes', DER, '{:.0f}', '대')} 뿐이라 이 세 수는 "
+           f"유의수준이 아니라 **서술용**이다. 원장의 같은 칸에 붙은 산문은 산포 쪽을 단독 원인으로 "
+           f"든다 ⟨{SS} : size_vs_fragility.finding⟩ — 본문은 위 세 상관계수를 그대로 읽는다.", "",
            f"⚠ Matrice 4E 행은 {_MESHFIX} 전 값이고, 표 전체가 {_GAMMA_AXIS} 다 — 이 표를 낸 "
            f"`outputs/sigma_sensitivity.json` 가 그 기체의 형상을 먹는다 "
            f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩. 재생성 시 0.1 dB 급 문턱 값은 그 "
-           f"이동만으로도 움직인다 — 한 기체 값이 움직여도 이 표가 사는 주장은 그대로 선다."),
+           f"이동만으로도 움직이고, 위 상관 세 수도 함께 다시 읽는다."),
 
         next_steps([
             ("Matrice 4E 를 정정된 메쉬로 다시 넣어 표를 갱신한다",

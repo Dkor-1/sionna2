@@ -10,14 +10,14 @@
 import json, sys, time
 import numpy as np
 
-sys.path.insert(0, "/home/yunjung/workspace/sionna2")
-sys.path.insert(0, "/home/yunjung/workspace/sionna2/src")
+sys.path.insert(0, "/workspace/sionna")
+sys.path.insert(0, "/workspace/sionna/src")
 
 from src import geom
 from src.rcs_po import mesh_to_points, C0
 from src.drones import DRONES, build_drone
 
-OUT = "/home/yunjung/workspace/sionna2/outputs/p3_control.json"
+OUT = "/workspace/sionna/outputs/p3_control.json"
 
 FREQS = np.linspace(1.8, 18.2, 21)          # GHz, p3_ours 와 동일 격자
 AZ = np.linspace(0, 360, 360, endpoint=False)
@@ -102,7 +102,7 @@ for key, c in controls.items():
                     a=a, b=b, R2=r2, n_points=npts)
 
 # 등가부피 PEC 구 — 정확 Mie
-sys.path.insert(0, "/home/yunjung/workspace/sionna2/benchmark")
+sys.path.insert(0, "/workspace/sionna/benchmark")
 from mie_pec_sphere import mie_pec_sigma_m2
 r_eq = (3 * LIT_L * LIT_W * LIT_H / (4 * np.pi)) ** (1 / 3)
 mu_sph = np.array([10 * np.log10(float(mie_pec_sigma_m2(r_eq, f * 1e9))) for f in FREQS])

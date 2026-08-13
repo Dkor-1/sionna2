@@ -409,7 +409,7 @@ class SionnaRTChannel:
       → RT 절대전력 보정에 의존하지 않는다(모두 직접파 대비 '비율'로 참조).
 
     [실행]  radar_scene.py 의 검증된 solve_paths/paths_arrays 를 재사용한다.
-        CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python -c "from channel import SionnaRTChannel; ..."
+        CUDA_VISIBLE_DEVICES=2 /workspace/.venvs/py312/bin/python -c "from channel import SionnaRTChannel; ..."
       (scene_build 가 mitsuba import 전에 GPU 2번을 setdefault 로 지정한다)
     """
     kind = "sionna_rt"

@@ -94,7 +94,7 @@
 
 ## 1. Sionna 2.0.1 이 잡음을 넣는 곳 — 설치본 소스 직독
 
-설치 경로: `/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna` (버전 2.0.1).
+설치 경로: `/workspace/.venvs/py312/lib/python3.12/site-packages/sionna` (버전 2.0.1).
 
 ### 1.1 `sionna.phy` — AWGN 블록 하나가 전부
 

@@ -58,6 +58,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import time
 
@@ -99,7 +100,9 @@ def run(a) -> None:
 
     spec = DRONES[TJ.get("drone", "matrice4e")]
     fp = FastPoser(spec)
-    prf, n = float(TJ["prf_hz"]), int(TJ["n"])
+    prf = float(TJ["prf_hz"])
+    # ⭐자세 수는 인자로 덮어쓸 수 있다. 기본은 원장값이라 기존 동작과 같다.
+    n = int(getattr(a, "n_poses", 0) or TJ["n"])
     az = float(TJ.get("az_deg", 0.0))
     # ⭐덱과 **같은** 로터 설정 — 축 하나만 바꾼다
     rpms = np.asarray(TJ["rpm_per_rotor"], float)
@@ -107,6 +110,10 @@ def run(a) -> None:
     els = tuple(float(x) for x in a.els.split(',') if x.strip()) or ELS
     idx = np.arange(a.shard, n, a.nshards)
     os.makedirs(SHD, exist_ok=True)
+    # ⭐거리·깊이는 인자로 받는다. 기본값이면 꼬리표가 안 붙어 기존 샤드 이름과 같다.
+    rng_m = float(getattr(a, "range_m", RANGE_M) or RANGE_M)
+    tagr = ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
+        + ("" if not getattr(a, "n_poses", 0) else f"_n{n}")
 
     if a.engine in ("ours", "ours_free"):
         from rcs_sbr import sbr_field, grid_ref_from
@@ -121,7 +128,7 @@ def run(a) -> None:
             keep = np.asarray(fp.g) == "prop"
             f_keep, g_keep = fp.f[keep], fp.g[keep]
         for el in els:
-            tagd = "_ptd" if a.ptd else ""
+            tagd = ("_ptd" if a.ptd else "") + tagr
             f = f"{SHD}/{a.engine}{tagd}_el{el:+.0f}_{a.shard:02d}.npz"
             if os.path.exists(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
@@ -132,7 +139,7 @@ def run(a) -> None:
                 if prop_only:
                     mv.f, mv.g = f_keep, g_keep          # 정점은 그대로 — bbox 보존
                 E[j] = sbr_field(mv, gm, FC, u, spacing=d, grid_ref=gref,
-                                 range_m=RANGE_M, ptd=bool(a.ptd))
+                                 range_m=rng_m, ptd=bool(a.ptd))
                 if j and j % 128 == 0:
                     e = time.time() - t0
                     print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
@@ -147,10 +154,13 @@ def run(a) -> None:
     # ── Sionna PathSolver ───────────────────────────────────────────────────
     import report15_probe as RP
     from drones import drone_colors
-    spp = int(a.spp) if a.spp else rule_spp(RANGE_M)
+    spp = int(a.spp) if a.spp else rule_spp(rng_m)
+    # ⭐깊이는 물리 스위치와 분리한다. --max-depth 를 안 주면 옛 규칙 그대로다.
+    mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else (3 if a.physics else 1)
     cols = drone_colors(spec)
     for el in els:
-        tagp = ("" if not a.spp else f"_p{a.spp}") + ("_phys" if a.physics else "")
+        tagp = (("" if not a.spp else f"_p{a.spp}") + ("_phys" if a.physics else "")
+                + tagr + ("" if not getattr(a, "max_depth", 0) else f"_d{mdep}"))
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
         if os.path.exists(f) and not a.overwrite:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
@@ -172,11 +182,12 @@ def run(a) -> None:
                              mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
                      for g, p in paths_obj.items()]
             sc = RP.build_scene(parts, fc=FC)
-            RP.place(sc, az=az, el=el, rng=RANGE_M, baseline=0.0)
+            RP.place(sc, az=az, el=el, rng=rng_m, baseline=0.0)
             p = RP.rt.PathSolver()(
                 sc, los=True, specular_reflection=True, diffuse_reflection=True,
-                # ⭐--physics 면 굴절·회절·모서리회절·다중반사를 전부 켠다
-                max_depth=(3 if a.physics else 1),
+                # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
+                #   깊이는 --max-depth 로 따로 준다(안 주면 옛 규칙 3/1).
+                max_depth=mdep,
                 refraction=bool(a.physics),
                 diffraction=bool(a.physics),
                 edge_diffraction=bool(a.physics),
@@ -196,7 +207,10 @@ def run(a) -> None:
                       f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
         np.savez_compressed(f, idx=idx, E=E, npaths=npaths,
                             meta=np.array([el, a.shard, a.nshards, n, prf,
-                                           time.time() - t0, spp]))
+                                           time.time() - t0, spp]),
+                            # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
+                            cfg=np.array([rng_m, mdep, spp,
+                                          float(bool(a.physics))]))
         print(f"  ✅ sionna el{el:+.0f} sh{a.shard} · {idx.size} 자세 · "
               f"{(time.time()-t0)/60:.1f}분", flush=True)
 
@@ -258,20 +272,36 @@ def analyse() -> None:
             fs = sorted(glob.glob(f"{SHD}/{eng}_el{el:+.0f}_*.npz"))
             if not fs:
                 continue
-            E = None; secs = 0.0; npa = []
+            E = None; secs = 0.0; npa = []; cfg = None
             for f in fs:
                 z = np.load(f); ii = z["idx"].astype(int)
                 if E is None:
                     E = np.zeros(int(np.asarray(z["meta"], float)[3]), complex)
                 E[ii] = z["E"]; secs += float(np.asarray(z["meta"], float)[5])
                 if "npaths" in z: npa.append(z["npaths"])
+                # ⭐행마다 자기 판을 싣는다 — 한 원장에 10 m 와 15 m 가 함께 살기 때문.
+                #   옛 샤드에는 cfg 가 없으므로 모듈 기본값으로 채운다.
+                if cfg is None and "cfg" in z:
+                    cfg = np.asarray(z["cfg"], float)
             miss = int((E == 0).sum())
             ft = f_tip_at(el)
             series[f"{eng}/el{el:+.0f}"] = E
+            if cfg is not None:
+                prov = dict(range_m=float(cfg[0]), max_depth=int(cfg[1]),
+                            spp=int(cfg[2]), physics=bool(cfg[3]))
+            else:
+                # 옛 판(2026-08-12 이전 샤드) — 이름에서 읽을 수 있는 것만 채운다
+                m_spp = re.search(r"_p(\d+)", eng)
+                prov = dict(range_m=RANGE_M,
+                            max_depth=(3 if eng.endswith("_phys") else 1),
+                            spp=(int(m_spp.group(1)) if m_spp else rule_spp(RANGE_M)),
+                            physics=eng.endswith("_phys"))
+                if eng.startswith("ours"):
+                    prov.update(max_depth=None, spp=None, physics=None)
             rows.append(dict(
                 engine=eng, el_deg=el, cos_el=round(float(np.cos(np.radians(el))), 4),
                 f_tip_hz=round(ft, 1), n_poses=len(E), n_missing=miss,
-                seconds=round(secs, 1),
+                seconds=round(secs, 1), **prov,
                 npaths_median=int(np.median(np.concatenate(npa))) if npa else None,
                 level_db=round(float(20 * np.log10(np.mean(np.abs(E)) + 1e-300)), 2),
                 # ⭐(a) 앙각마다 대역을 다시 잡는다 — 정본
@@ -286,18 +316,23 @@ def analyse() -> None:
     json.dump({"_meta": {
         "generator": "benchmark/elevation_sweep_md.py",
         "question_ko": "거리 대신 앙각을 바꾸면 마이크로도플러가 어떻게 변하나",
-        "range_m": RANGE_M,
-        "range_why_ko": ("⭐사용자 지시로 10 m 고정. ⚠원거리장 경계 2D²/λ ≈ 14.08 m 의 "
-                         "**안쪽**이라 근거리장 판이다 — 우리 커널은 range_m 구면파로 "
-                         "처리하고 PathSolver 는 실제 기하라 둘 다 다룰 수 있지만, "
-                         "평면파 원거리장 값과 직접 비교하면 안 된다."),
+        # ⛔이 원장은 **거리가 하나가 아니다.** 행마다 range_m 을 실어 두었으니
+        #   그 열을 읽어라. 아래 두 키는 옛 판(10 m)의 기본값일 뿐이다.
+        "range_m_legacy_default": RANGE_M,
+        "range_note_ko": ("⭐이 원장에는 **여러 거리·설정의 팔이 함께** 산다. 거리·깊이·"
+                          "광선수·물리 여부는 **행마다** `range_m · max_depth · spp · "
+                          "physics` 열에 실려 있다 — 그 열을 읽어라. "
+                          "10 m 는 원거리장 경계 2D²/λ ≈ 14.08 m 의 **안쪽**(근거리장)이고, "
+                          "15 m 는 **밖**이다. 두 거리의 값을 나란히 놓을 때는 그 사실을 "
+                          "반드시 적는다."),
+        "ranges_present_m": sorted({r["range_m"] for r in rows}),
         "fc_hz": FC, "prf_hz": prf, "f_flash_hz": ffl,
         "elevations_deg": list(ELS), "drone": TJ.get("drone"),
         "rotor_ko": "덱과 같은 결정론 패턴(OU 프리셋 아님) — 축을 하나만 바꾼다",
         "rpm_per_rotor": TJ.get("rpm_per_rotor"),
         "grid_ko": "얼린 격자(자세 합집합 bbox), λ/12",
-        "ours_illumination": f"spherical wave at {RANGE_M:.0f} m",
-        "sionna_spp": rule_spp(RANGE_M),
+        "ours_illumination_ko": "우리 팔은 행의 range_m 으로 구면파 조명 — 행마다 다르다",
+        "spp_note_ko": "광선 수는 행의 spp 열에 있다 — 규칙값 (R/3)²×1M 을 --spp 로 덮은 팔이 많다",
         "band_track_ko": "⭐정본 — 앙각마다 그 앙각의 f_tip 으로 0.35~1.0 배",
         "band_fixed_ko": "덱의 −15° 대역(430~1229 Hz) 고정 — 앙각이 내려가면 비어 간다",
         "prediction_ko": "f_flash 는 앙각과 무관(126.67 Hz), f_tip 만 cos(el) 로 줄어든다. "
@@ -340,6 +375,22 @@ def main() -> None:
                     help="0 이면 규칙값 (R/3)^2 x 1M. ⭐경로 수를 100 개 이상으로 "
                          "올리려면 직접 준다 — 규칙값은 10 m 에서 경로 6~13 개뿐이라 "
                          "«계단 잡음이 가장 심한 구간» 이다(2026-08-11 실측).")
+    ap.add_argument("--range-m", type=float, default=RANGE_M,
+                    help="⭐구면 반경 [m]. 기본 10 m 는 2D²/λ = 14.076 m 경계 **안쪽**이라 "
+                         "근거리장이다(audit_po_trust.json:nearfield_verdict). 15 를 주면 "
+                         "경계 밖이라 원거리장 가정이 선다. 10 이 아니면 파일명에 _r<R> 이 "
+                         "붙어 기존 샤드와 섞이지 않는다.")
+    ap.add_argument("--n-poses", type=int, default=0,
+                    help="⭐슬로타임 자세 수. 0 이면 원장값(report07_three_engines:_meta.n = 4096). "
+                         "박자 FFT 분해능 = prf/n 이라 4096 은 4.89 Hz 이고, h1/h2 판별창(±18 Hz)에 "
+                         "3.7 빈이 들어간다. 원래 리포트 16 은 8192 를 썼다(2.45 Hz). "
+                         "⛔줄이면 안 된다 — 2048 이면 판별창이 1.8 빈이라 고조파비가 안 나온다. "
+                         "0 이 아니면 파일명에 _n<N> 이 붙는다.")
+    ap.add_argument("--max-depth", type=int, default=0,
+                    help="⭐PathSolver 의 반사 깊이를 직접 준다. 0 이면 기존 규칙 "
+                         "(--physics 면 3, 아니면 1). 물리 스위치와 깊이를 **가르는** 인자다 — "
+                         "전에는 --physics 하나에 묶여 있어 귀속이 불가능했다. "
+                         "0 이 아니면 파일명에 _d<N> 이 붙는다.")
     ap.add_argument("--merge", action="store_true")
     ap.add_argument("--overwrite", action="store_true")
     a = ap.parse_args()

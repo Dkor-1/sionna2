@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 sys.path.insert(0, f"{ROOT}/src")
 sys.path.insert(0, f"{ROOT}/benchmark")
 

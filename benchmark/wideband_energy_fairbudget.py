@@ -23,7 +23,7 @@
     복원한 시계열에 0 이 남으면(`n_missing > 0`) **그 행은 값을 내지 않는다.**
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/wideband_energy_fairbudget.py
 """
 from __future__ import annotations

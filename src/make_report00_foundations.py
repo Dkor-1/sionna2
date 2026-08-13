@@ -39,7 +39,7 @@ make_report00_foundations.py — 리포트 00 「기초」 빌더  →  report00
     JSON 에서 직접 읽어 출처 태그를 달고 넣는다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py       # ① PO 근거
     PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_decision_map.py  # ② 결정표 근거
     PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report00.py                      # ③ 그림 4장

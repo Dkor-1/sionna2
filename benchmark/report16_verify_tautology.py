@@ -14,7 +14,7 @@ import sys, os, json, math, time, hashlib, subprocess
 import numpy as np
 from scipy.stats import ncx2, chi2
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 sys.path.insert(0, os.path.join(ROOT, "benchmark"))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 import report16_base as B

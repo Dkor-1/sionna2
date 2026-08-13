@@ -16,7 +16,7 @@ build_part06_ladder.py — 부 6 「표적 사다리」 → reports/30~33_*.ipyn
    그 사실을 세 편 모두의 여는 블록과 마지막 절이 적는다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part06_ladder.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
@@ -68,6 +68,7 @@ VD = "outputs/report16_verify_detector.json"
 VT = "outputs/report16_verify_tautology.json"
 RMF = "outputs/report16_rung_mesh_full.json"    # 사다리 기준선 — 엔진 계약이 여기 적혀 있다
 P3V2 = "outputs/p3_validation_v2.json"          # 구 대조군 — 어느 부피를 골랐나가 갈리는 곳
+P3O = "outputs/p3_ours_v2.json"                 # ①② 축의 상류 — 팔(B)과 기체(Phantom 3)가 여기 적혀 있다
 
 OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
@@ -121,12 +122,16 @@ def blocks_30() -> list:
                 f"여섯 단이 같은 운동학을 쓰지 않았다 — 구·정육면체·상자 단은 기체 전체를 "
                 f"덩어리로 바꿔 통째로 돌리고, 진짜 드론 단은 몸통이 서고 프로펠러만 돈다.",
 
-                f"그래서 가장 인용하기 좋은 «정육면체 대 메쉬» 차이 "
+                f"그래서 가장 인용하기 좋은 «정육면체 대 메쉬» 차이는 **Mini 2** 에서 "
                 f"{_n(K + '.mini2.ac_power_db_LENS_CONVENTION.cube_eqvol.total_db', '{:+.2f}', 'dB')} "
-                f"안에서 운동학 몫이 "
+                f"이고, 그 안에서 운동학 몫이 "
                 f"{_n(K + '.mini2.ac_power_db_LENS_CONVENTION.cube_eqvol.kinematics_part_db', '{:+.2f}', 'dB')}, "
                 f"형상 몫이 "
-                f"{_n(K + '.mini2.ac_power_db_LENS_CONVENTION.cube_eqvol.shape_part_db', '{:+.2f}', 'dB')} 다.",
+                f"{_n(K + '.mini2.ac_power_db_LENS_CONVENTION.cube_eqvol.shape_part_db', '{:+.2f}', 'dB')} 다 — "
+                f"**Matrice 4E** 는 같은 규약에서 총 "
+                f"{_n(K + '.matrice4e.ac_power_db_LENS_CONVENTION.cube_eqvol.total_db', '{:+.2f}', 'dB')} · "
+                f"형상 몫 "
+                f"{_n(K + '.matrice4e.ac_power_db_LENS_CONVENTION.cube_eqvol.shape_part_db', '{:+.2f}', 'dB')} 다.",
 
                 f"운동학 비중은 Mini 2 "
                 f"{_n(K + '.mini2.ac_power_db_LENS_CONVENTION.cube_eqvol.kinematics_share', '{:.0%}')} · "
@@ -143,7 +148,8 @@ def blocks_30() -> list:
             ],
             method=[
                 ("사다리 규약",
-                 "기체 matrice4e · 반송파 "
+                 "기체 mini2 · matrice4e — 있는 그대로의 사다리 표는 matrice4e 이고 "
+                 "몫 분해 표는 두 기체를 함께 싣는다 · 반송파 "
                  + _n("protocol.fc_main_hz", "{:.3g}", "Hz") + " · 앙각 "
                  + _n("protocol.el_deg", "{:.0f}", "°") + " · 구면파 · 방위 "
                  + _n("protocol.n_az", "{:.0f}", "점") + " 평균"),
@@ -369,6 +375,7 @@ def blocks_32() -> list:
     P = "professor_answer.axis4_what_simplification_actually_costs.rows"
     A3 = "professor_answer.axis3_time_modulation"
     FB = "frame_blindness_audit"
+    LC = "ladder_C_matched_flight.matrice4e"   # 아랫줄 패널 A~F 의 원장(교정 사다리)
 
     def cost_rows(dk: str):
         rows = []
@@ -449,8 +456,14 @@ def blocks_32() -> list:
            f"{_n('professor_answer.hover_penalty_db.mean_max', '{:.1f}', 'dB')} 다.",
            f"2. 회전대칭 표적(구·원판)은 0 Hz 한 줄만 있고 위아래가 비어 있다. 돌려도 모양이 "
            f"안 바뀌니 변조를 만들 방법이 막힌다 — 이것은 계산 결과가 아니라 기하학이다.",
-           f"3. 아랫줄 A → F 로 갈수록 배음 사다리가 촘촘해지지만, D(평판)와 F(진짜 CAD) 사이의 "
-           f"차이는 눈으로 잘 안 보인다. 그 «잘 안 보임» 이 이 편의 핵심 숫자다."),
+           f"3. 아랫줄에서 배음 풍부도가 가장 높은 칸은 C(감싸는 상자)·D(평판)이고 "
+           f"E·F(진짜 CAD 쪽)에서 내려간다 — Matrice 4E 의 n_eff 는 "
+           f"C {_n(LC + '.prop_bbox.n_eff_orders.mean', '{:.2f}')} · "
+           f"D {_n(LC + '.slab.n_eff_orders.mean', '{:.2f}')} · "
+           f"F {_n(LC + '.mesh_full.n_eff_orders.mean', '{:.2f}')} 다. "
+           f"평판이 진짜 CAD 보다 배음이 풍부한 이 역전이 이 편의 핵심 대조이고, "
+           f"가림을 켜면 그 부호가 뒤집힌다"
+           f"({ref('ladder-premature', '이르다고 부르는 이유')} P2)."),
 
         md("## 얼마나 단순화해도 되나 — Matrice 4E", "",
            table(["프로펠러를 무엇으로", "검출 단면적 오차", "템플릿 손실", "파형 상관"],
@@ -491,23 +504,24 @@ def blocks_32() -> list:
            "겨눈 것이고, 뒤쪽에서는 지적이 맞는다."),
 
         md("## 지도교수 지적에 답한다 — 네 축", "",
-           table(["축", "무엇을 쟀나", "결과"], [
-               ["① 절대 세기", "실측 앵커 대비 rms",
+           table(["축", "팔", "기체", "무엇을 쟀나", "결과"], [
+               ["① 절대 세기", "B — SBR+PO (가림 O)", "Phantom 3", "실측 앵커 대비 rms",
                 "자유 모수 "
                 + _n("professor_answer.axis1_absolute_level.equal_volume_sphere.n_free_params",
                      "{:.0f}", "개")
-                + " 짜리 등가부피 구가 우리 메쉬를 rms "
+                + " 짜리 등가부피 구가 우리 Phantom 3 메쉬를 rms "
                 + _n("professor_answer.axis1_absolute_level.sphere_beats_mesh_by_rms_db",
                      "{:.2f}", "dB") + " 이긴다"],
-               ["② 방위 산포", "실측 대비 오차",
-                "우리 메쉬 "
+               ["② 방위 산포", "B — SBR+PO (가림 O)", "Phantom 3", "실측 대비 오차",
+                "우리 Phantom 3 메쉬 "
                 + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.our_mesh",
                      "{:+.2f}", "dB") + " · 구 "
                 + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.equal_volume_sphere",
                      "{:+.2f}", "dB") + " · 상자 "
                 + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.bounding_box",
                      "{:+.2f}", "dB")],
-               ["③ 시간 변조", "메쉬 − 구 간격",
+               ["③ 시간 변조", "P — 순수 PO (가림 X)", "Mini 2 · Matrice 4E",
+                "메쉬 − 구 간격",
                 _n(A3 + ".modulation_gap_mesh_minus_sphere_db.min", "{:.1f}") + "~"
                 + _n(A3 + ".modulation_gap_mesh_minus_sphere_db.max", "{:.1f}", "dB")
                 + " 중 CAD 정밀도 단독 몫은 "
@@ -515,8 +529,14 @@ def blocks_32() -> list:
                      "{:.2f}") + "~"
                 + _n(A3 + ".but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.matrice4e",
                      "{:.2f}", "dB")],
-               ["④ 단순화의 값", "교정 사다리", "위 두 표가 그 답이다"],
+               ["④ 단순화의 값", "P — 순수 PO (가림 X)", "Mini 2 · Matrice 4E",
+                "교정 사다리", "위 두 표가 그 답이다"],
            ]), "",
+           "①② 는 Phantom 3 를 B 팔로 잰 축이고 그 엔진은 "
+           + num(None, (P3O, "meta.engine")) + " 이며 실측 앵커는 "
+           + _n("professor_answer.axis1_absolute_level.measured_anchor")
+           + " 다. ③④ 는 Mini 2 · Matrice 4E 를 P 팔로 잰 축이고 그 엔진은 "
+           + _n("kinematics_contract.shared.engine", src=RMF) + " 다.", "",
            "① 에서는 지적이 맞는다. ② 는 구가 원리적으로 못 내는 축이다 — 구의 방위 산포는 "
            "«작다» 가 아니라 정확히 0 이고, 회전대칭이라 만들 방법이 막혀 있다. ③ 의 큰 간격은 "
            "«메쉬가 정밀해서» 가 아니라 «회전대칭이 아니라서» 번 것이다.", "",
@@ -526,7 +546,7 @@ def blocks_32() -> list:
                  "{:+.2f}", "dB")
            + " 이고, 같은 기체에서 **메쉬 부피**로 잡은 구는 "
            + num(None, (P3V2, "controls.table.sphere_vol_v2.level_err_db"), "{:+.2f}", "dB")
-           + " 로 우리 메쉬 "
+           + " 로 우리 Phantom 3 메쉬 "
            + num(None, (P3V2, "controls.table.ours_phantom3_mesh_v2.level_err_db"),
                  "{:+.2f}", "dB")
            + " 보다 멀다. 즉 이 축의 자유 매개변수는 구의 모수가 아니라 **어느 부피에 맞출지의 "

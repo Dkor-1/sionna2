@@ -18,7 +18,7 @@ from datetime import datetime
 
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 OUT = os.path.join(ROOT, "outputs", "das_fleet_prereg.json")
 C0 = 299792458.0
 

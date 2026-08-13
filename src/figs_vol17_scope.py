@@ -18,7 +18,7 @@
     · 하이퍼파라미터(spp·PRF·자세 수)는 그림에 안 적는다. 본문 표가 적는다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_vol17_scope.py
 
 ⚠ GPU 안 쓴다. 원장 JSON 을 읽어 격자를 칠할 뿐이다.

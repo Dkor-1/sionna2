@@ -7,7 +7,7 @@
 
 ## 환경·백엔드 분업  ← 중요
 
-환경은 리눅스 단일 env: `/home/yunjung/.venvs/py312/bin/python` (Sionna RT 2.0.1 설치됨 — 이 서버에서 Analytic/RT 모두 실행).
+환경은 리눅스 단일 env: `/workspace/.venvs/py312/bin/python` (Sionna RT 2.0.1 설치됨 — 이 서버에서 Analytic/RT 모두 실행).
 GPU 는 `src/gpu.py` 가 여유 큰 카드를 자동 선택한다(고정하려면 `SIONNA2_GPU=N`).
 
 | | Analytic (개발·sanity) | Sionna RT (검증) |
@@ -41,13 +41,13 @@ res = run_cell(wf, drone, pos, vel, lb, channel=SionnaRTChannel())
 ### 개발·sanity (Analytic)
 ```bash
 cd sionna2/benchmark
-/home/yunjung/.venvs/py312/bin/python run_min_cell.py   # 최소셀 → outputs/figures/report5_min_cell.png
+/workspace/.venvs/py312/bin/python run_min_cell.py   # 최소셀 → outputs/figures/report5_min_cell.png
 ```
 
 ### RT 검증
 ```bash
 cd sionna2/benchmark
-CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python verify_server.py    # → outputs/figures/bench_rt_cell.png
+CUDA_VISIBLE_DEVICES=2 /workspace/.venvs/py312/bin/python verify_server.py    # → outputs/figures/bench_rt_cell.png
 ```
 - **OptiX**: `libnvoptix.so.1` 미로딩 → `rt.load_scene` 실패 시,
   `libnvoptix.so.1` 경로 찾아 `DRJIT_LIBOPTIX_PATH` 지정, 또는 관리자에게

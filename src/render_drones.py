@@ -9,7 +9,7 @@ render_drones.py — 드론 & 전체 장면의 Sionna RT 사진풍 렌더(PNG)
   flight_scene.png : 여러 드론이 시설 안 여러 높이에서 비행하는 모습 (사진 같은 시점)
 
 실행:
-  PY=/home/yunjung/.venvs/py312/bin/python
+  PY=/workspace/.venvs/py312/bin/python
   CUDA_VISIBLE_DEVICES=2 $PY render_drones.py --spp 128   # GPU 2번 사용
 """
 from __future__ import annotations

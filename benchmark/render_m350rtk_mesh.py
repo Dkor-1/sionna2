@@ -14,7 +14,7 @@ render_m350rtk_mesh.py — m350rtk 메쉬 온전성 렌더 (2026-08-03)
   낸다. 렌더러 자체는 그 모듈 것을 그대로 재사용한다(음영·직교카메라 규약 동일).
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/render_m350rtk_mesh.py
 """
 from __future__ import annotations

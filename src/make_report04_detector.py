@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """make_report04_detector.py — 리포트 04(검출기) 노트북을 만든다
 
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report04_detector.py
     → report04_detector.ipynb
 
@@ -367,7 +367,7 @@ def blocks():
                 ("리포트 01", "게재 선행 census — 각 논문이 표적 산란을 어떻게 다뤘는가"),
             ],
             repro=dict(
-                cmd=["cd /home/yunjung/workspace/sionna2",
+                cmd=["cd /workspace/sionna",
                      "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
                      "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
                      "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_observability.py",

@@ -8,7 +8,7 @@ import json
 
 import numpy as np
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 Z = np.load(f"{ROOT}/outputs/elevation_sweep_md.npz", allow_pickle=True)
 J = json.load(open(f"{ROOT}/outputs/elevation_sweep_md.json"))
 PRF = float(J["_meta"]["prf_hz"])

@@ -40,7 +40,7 @@ FC = 3.5e9
 DRONE = "mavic4pro"
 VEL = (-3.0, 1.8, 0.6)
 SPHERE_R = 0.30                      # 교정 금속구 반지름 [m] → σ = πr² = 0.2827 m² = −5.49 dBsm
-SCRATCH = "/tmp/claude-1015/-home-yunjung-workspace/rt_verify"
+SCRATCH = "/tmp/claude-1015/-workspace/rt_verify"
 
 
 def analytic_ratio(sigma_m2, p):

@@ -23,7 +23,7 @@ build_report00_microdoppler.py — 리포트 00 §4a 의 근거와 그림을 만
    을 읽어 요약과 그림만 새로 쓴다. 계산을 다시 하지 않는다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_report00_microdoppler.py
 """
 from __future__ import annotations

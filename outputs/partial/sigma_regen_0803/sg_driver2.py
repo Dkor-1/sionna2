@@ -14,8 +14,8 @@ import threading
 import time
 
 SCRATCH = os.path.dirname(os.path.abspath(__file__))
-PY = "/home/yunjung/.venvs/py312/bin/python"
-ROOT = "/home/yunjung/workspace/sionna2"
+PY = "/workspace/.venvs/py312/bin/python"
+ROOT = "/workspace/sionna"
 WORKER = os.path.join(SCRATCH, "sg_worker.py")
 
 DRONES = ["s1000plus", "typhoonh480", "matrice4e", "mavic4pro", "phantom4", "mini5pro", "x500v2"]

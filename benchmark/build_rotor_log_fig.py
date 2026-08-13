@@ -43,7 +43,7 @@ import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = os.environ.get(
     "SIONNA2_ROTORLOG_DIR",
-    "/tmp/claude-1015/-home-yunjung-workspace/"
+    "/tmp/claude-1015/-workspace/"
     "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad",
 )
 if os.environ.get("SIONNA2_PYLIBS"):

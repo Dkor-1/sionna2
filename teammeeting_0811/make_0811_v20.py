@@ -37,7 +37,7 @@ make_0811_v20.py — **v19 에서 v20 을 짓는다.** 두 가지만 한다.
     실측이 아니다» 까지만 말한다. [4] 는 "isotropically" 표현을 유지한다.
     [5] 는 CW 를 쓴 이유(초기 실험·다루기 쉬움·목적이 마이크로도플러 자체)를 넣는다.
 
-    /home/yunjung/.venvs/py312/bin/python teammeeting_0811/make_0811_v20.py
+    /workspace/.venvs/py312/bin/python teammeeting_0811/make_0811_v20.py
 """
 from __future__ import annotations
 
@@ -49,8 +49,8 @@ from PIL import Image
 from pptx import Presentation
 from pptx.util import Emu, Inches
 
-TM = "/home/yunjung/workspace/team_meeting"
-SIONNA2 = "/home/yunjung/workspace/sionna2"
+TM = "/workspace/team_meeting"
+SIONNA2 = "/workspace/sionna"
 SRC = f"{TM}/teammeeting_0811_v19.pptx"
 DST = f"{TM}/teammeeting_0811_v20.pptx"
 

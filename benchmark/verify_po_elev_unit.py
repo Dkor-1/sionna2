@@ -39,7 +39,7 @@ verify_po_elev_unit.py — ⭐⭐ **해석 단위시험: 답을 아는 문제로
    틀리면 verdict 에 FAIL 로 적힌다.
 
     SIONNA2_GPU=2 PYTHONPATH=src:benchmark \
-        /home/yunjung/.venvs/py312/bin/python benchmark/verify_po_elev_unit.py
+        /workspace/.venvs/py312/bin/python benchmark/verify_po_elev_unit.py
 """
 from __future__ import annotations
 

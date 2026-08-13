@@ -22,7 +22,7 @@ build_part02_prior_work.py — 부 2 「선행연구」 → 편 08~14
     계획: `outputs/restruct_exec_plan.json : reports[no in 08..14]`
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part02_prior_work.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다.
@@ -30,6 +30,7 @@ build_part02_prior_work.py — 부 2 「선행연구」 → 편 08~14
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -85,6 +86,23 @@ def _fig(no: int, stem: str, question: str) -> list[str]:
     return [f"![{stem}]({FIG}/{stem}.png)", "", caption(no, question)]
 
 
+#: 원장에 남아 있는 **옛 권 이름 → 현행 주소**. 원장(`outputs/*.json`)은 읽기 전용이라
+#  치환은 렌더 단계에서만 한다. 열쇠는 낱말 경계로 잡으므로
+#  `outputs/report13_sigma_grid.json` 같은 파일 이름은 그대로 남는다.
+#  절대 σ 판정과 앵커를 드는 자리는 지금 부 5 «앵커와 검증» 이다.
+_RELABEL: list[tuple[str, str]] = [
+    (r"report08(?![_0-9A-Za-z])", ref_part(5)),
+]
+
+
+def _relabel(rendered: str) -> str:
+    """`table_from()` 이 낸 표에서 옛 권 이름을 현행 주소로 바꾼다."""
+    out = rendered
+    for pat, new in _RELABEL:
+        out = re.sub(pat, lambda _m, _s=new: _s, out)
+    return out
+
+
 def _repro(cmd_extra: list[str], out: list[str], runtime: str, note: str = "") -> dict:
     d = dict(cmd=cmd_extra + ["PYTHONPATH=src python src/build_part02_prior_work.py"],
              out=out, runtime=runtime)
@@ -116,10 +134,17 @@ def report_08_census_published():
                 f"{_n('counts.quotes_verified', SURVEY, '{:.0f}', '건')} 은 PDF 안 그 쪽에서 "
                 f"기계가 다시 찾는다.",
 
+                f"게재본 {_n('funnel.published.in_survey', SURVEY, '{:.0f}', '편')} 중 "
                 f"광선엔진을 직접 돌리는 편은 "
-                f"{_n('counts.runs_engine', SURVEY, '{:.0f}', '편')}, 그 엔진 안 표적이 드론 "
-                f"메쉬인 편은 {_n('counts.drone_mesh_in_engine', SURVEY, '{:.0f}', '편')}, "
-                f"그 메쉬에서 산란 진폭을 계산한 편은 "
+                f"{_n('funnel.published.g1_engine', SURVEY, '{:.0f}', '편')}, 그 엔진 안 표적이 "
+                f"드론 메쉬인 편은 "
+                f"{_n('funnel.published.g2_drone_mesh', SURVEY, '{:.0f}', '편')}, 그 메쉬에서 "
+                f"산란 진폭을 계산한 편은 "
+                f"{_n('funnel.published.g3_mesh_scattering', SURVEY, '{:.0f}', '편')} 이다 — "
+                f"프리프린트까지 합친 문서 "
+                f"{_n('funnel.all.in_survey', SURVEY, '{:.0f}', '건')} 기준으로는 "
+                f"{_n('counts.runs_engine', SURVEY, '{:.0f}', '편')} → "
+                f"{_n('counts.drone_mesh_in_engine', SURVEY, '{:.0f}', '편')} → "
                 f"{_n('counts.mesh_scattering_in_engine', SURVEY, '{:.0f}', '편')} 이다.",
 
                 f"1차 사료 정산이 "
@@ -162,10 +187,16 @@ def report_08_census_published():
 
         md("## 관문을 하나씩 걸면 몇 건이 남는가", "",
            *_fig(1, "report01_p1_funnel", "관문을 하나씩 걸면 몇 건이 남는가?"), "",
-           f"G1 을 통과하는 편이 "
-           f"{_n('counts.runs_engine', SURVEY, '{:.0f}', '편')}, G2 까지가 "
-           f"{_n('counts.drone_mesh_in_engine', SURVEY, '{:.0f}', '편')}, G3 까지가 "
-           f"{_n('counts.mesh_scattering_in_engine', SURVEY, '{:.0f}', '편')} 이다. "
+           f"게재본 열은 G1 {_n('funnel.published.g1_engine', SURVEY, '{:.0f}', '편')} → G2 "
+           f"{_n('funnel.published.g2_drone_mesh', SURVEY, '{:.0f}', '편')} → G3 "
+           f"{_n('funnel.published.g3_mesh_scattering', SURVEY, '{:.0f}', '편')} 이고, 이 편의 "
+           f"아래 두 표가 그 열이다. 그림의 깔때기는 프리프린트를 합친 문서 "
+           f"{_n('funnel.all.in_survey', SURVEY, '{:.0f}', '건')} 기준이라 G1 "
+           f"{_n('counts.runs_engine', SURVEY, '{:.0f}', '편')} → G2 "
+           f"{_n('counts.drone_mesh_in_engine', SURVEY, '{:.0f}', '편')} → G3 "
+           f"{_n('counts.mesh_scattering_in_engine', SURVEY, '{:.0f}', '편')} 로 읽는다 — "
+           f"막대는 게재본과 프리프린트를 쌓고, 괄호 안 숫자가 게재본 몫이다.", "",
+           f"프리프린트 열은 {ref('census-preprint')} 가 따로 든다. "
            f"⭐ 이 깔때기가 이 편의 제목이고, 그 마지막 칸이 우리가 서는 자리다."),
 
         md("## 게재본 — 표적 서명을 광선엔진 밖에서 얻은 쪽", "",
@@ -201,7 +232,11 @@ def report_09_census_preprint():
                 "다르다는 것을 판별해 판 단위로 셌다.",
             results=[
                 f"프리프린트는 {_n('counts.preprint', SURVEY, '{:.0f}', '편')} 이고 게재본은 "
-                f"{_n('counts.published', SURVEY, '{:.0f}', '편')} 이다 — 같은 표에 섞지 않는다.",
+                f"{_n('counts.published', SURVEY, '{:.0f}', '편')} 이다 — 같은 표에 섞지 않는다. "
+                f"프리프린트 열만 관문에 걸면 G1 "
+                f"{_n('funnel.preprint.g1_engine', SURVEY, '{:.0f}', '편')} → G2 "
+                f"{_n('funnel.preprint.g2_drone_mesh', SURVEY, '{:.0f}', '편')} → G3 "
+                f"{_n('funnel.preprint.g3_mesh_scattering', SURVEY, '{:.0f}', '편')} 이다.",
 
                 f"문서 {_n('corpus.documents', PAPER, '{:.0f}', '건')} 은 저작 "
                 f"{_n('corpus.distinct_works', PAPER, '{:.0f}', '편')} 이다. 차이는 Costa 와 "
@@ -228,7 +263,15 @@ def report_09_census_preprint():
            f"«게재» 라는 낱말이 {ref('census-published')} 의 주장을 떠받친다. 그러니 그 낱말이 "
            f"무엇을 세는지가 흔들리면 주장의 크기도 같이 흔들린다. 프리프린트를 같은 표에 넣으면 "
            f"간극이 이음매로 좁아지고, 그 사실을 감추지 않기 위해 표를 따로 둔다.", "",
-           f"프리프린트 {_n('counts.preprint', SURVEY, '{:.0f}', '편')} 을 두 표로 나눠 싣는다."),
+           f"프리프린트 {_n('counts.preprint', SURVEY, '{:.0f}', '편')} 을 두 표로 나눠 싣는다. "
+           f"이 열의 관문 통과는 G1 "
+           f"{_n('funnel.preprint.g1_engine', SURVEY, '{:.0f}', '편')} → G2 "
+           f"{_n('funnel.preprint.g2_drone_mesh', SURVEY, '{:.0f}', '편')} → G3 "
+           f"{_n('funnel.preprint.g3_mesh_scattering', SURVEY, '{:.0f}', '편')} 이다. 게재본 열"
+           f"(G1 {_n('funnel.published.g1_engine', SURVEY, '{:.0f}', '편')} → G2 "
+           f"{_n('funnel.published.g2_drone_mesh', SURVEY, '{:.0f}', '편')} → G3 "
+           f"{_n('funnel.published.g3_mesh_scattering', SURVEY, '{:.0f}', '편')})은 "
+           f"{ref('census-published')} 가 들고, 두 열을 합친 것이 그 편 그림 1 의 깔때기다."),
 
         md("## 프리프린트 (1/2)", "",
            table_from((SURVEY, "papers"), CENSUS_COLS, order=PRE_A)),
@@ -419,18 +462,23 @@ def report_12_injection():
         header(
             num=12,
             title="외부 σ 주입은 게재돼 있고, 그 값의 대가는 검증이 치른다",
-            did="주입을 아카이브 고유문서 전수 위에서 좁은 정의와 넓은 정의로 갈라 다시 세고, "
-                "게재된 사례가 무엇을 인쇄했는지 판독했다.",
+            did="주입을 아카이브 고유문서 인구조사와 거기에 베뉴 탐색을 더한 마스터 표 두 "
+                "모집단에서 좁은 정의와 넓은 정의로 갈라 세고, 게재된 사례가 무엇을 인쇄했는지 "
+                "판독했다.",
             results=[
-                f"모집단은 아카이브 고유문서 "
+                f"모집단은 셋이다 — 아카이브 고유문서 "
                 f"{_n('method.unique_documents_after_text_hash_dedup', INJ_ARCHIVE, '{:.0f}', '편')}"
-                f"(텍스트 해시 중복 제거 후)이고, 판정 문서 "
-                f"{_n('corpus.documents', PAPER, '{:.0f}', '건')} 과 다르다.",
+                f"(텍스트 해시 중복 제거 후) 인구조사, 거기에 웹·Crossref 베뉴 탐색을 더한 마스터 "
+                f"표, 그리고 전문 판정 문서 "
+                f"{_n('corpus.documents', PAPER, '{:.0f}', '건')} 이다.",
 
-                f"넓은 정의(외부 서명표 → 시뮬 경로·링크)로 "
-                f"{_n('counts.injection_instances_in_the_master_table', INJ_VERDICT, '{:.0f}', '건')} "
-                f"이고 그중 게재는 "
-                f"{_n('counts.peer_reviewed', INJ_VERDICT, '{:.0f}', '편')} 이다.",
+                f"인구조사가 읽어 판정한 주입 사례는 "
+                f"{_n('headline_answer.counts.injection_instances_found_and_read', INJ_ARCHIVE, '{:.0f}', '건')}"
+                f"(게재 "
+                f"{_n('headline_answer.counts.of_which_published_in_a_peer_reviewed_venue_per_the_pdf', INJ_ARCHIVE, '{:.0f}', '편')}"
+                f")이고, 넓은 정의(외부 서명표 → 시뮬 경로·링크)로 마스터 표까지 넓히면 "
+                f"{_n('counts.injection_instances_in_the_master_table', INJ_VERDICT, '{:.0f}', '건')}"
+                f"(게재 {_n('counts.peer_reviewed', INJ_VERDICT, '{:.0f}', '편')})이다.",
 
                 f"인구조사를 PDF 로 다시 열어 판정하면 확정 게재 주입은 "
                 f"{_n('corrected_tally.peer_reviewed_confirmed_injections', INJ_AUDIT, '{:.0f}', '편')} "
@@ -443,8 +491,9 @@ def report_12_injection():
             method=[
                 ("두 정의", "좁은 정의는 `외부 상용 솔버 → 광선추적 경로계수`, 넓은 정의는 "
                           "`외부 서명표 → 시뮬 경로·링크` 다. 한 문장에 섞지 않는다"),
-                ("모집단 명시", "이 절의 계수는 아카이브 전수이고 전문 판정 표와 모집단이 다르다 — "
-                              "부재 진술은 모집단을 문장 안에 적는다"),
+                ("모집단 명시", "행마다 모집단을 칸 안에 적는다 — 아카이브 전수 인구조사와, "
+                              "웹·Crossref 베뉴 탐색을 더한 마스터 표와, 전문 판정 표는 셋 다 "
+                              "다른 모집단이다"),
                 ("재판독 감사", "인구조사가 주장한 건을 PDF 로 다시 열어 확정 주입 · 예산수준 · "
                               "주입 아님 셋으로 가른다"),
             ],
@@ -454,24 +503,34 @@ def report_12_injection():
         ),
 
         md("## 주입을 두 정의로 갈라 다시 세면", "",
-           f"주입(엔진 밖에서 만든 σ 표를 자세로 조회해 시뮬 경로에 곱하는 구조)을 아카이브 고유문서 "
+           f"주입(엔진 밖에서 만든 σ 표를 자세로 조회해 시뮬 경로에 곱하는 구조)을 두 모집단에서 "
+           f"센다. ① 아카이브 고유문서 "
            f"{_n('method.unique_documents_after_text_hash_dedup', INJ_ARCHIVE, '{:.0f}', '편')} "
-           f"위에서 다시 셌다. 정의를 둘로 갈라 적는다 — 좁은 정의는 `외부 상용 솔버 → 광선추적 "
-           f"경로계수`, 넓은 정의는 `외부 서명표 → 시뮬 경로·링크` 다.", "",
-           table(["갈래 · 정의", "이 조사가 센 것", "게재", "인쇄된 검증"],
+           f"인구조사가 읽어 판정한 사례가 "
+           f"{_n('headline_answer.counts.injection_instances_found_and_read', INJ_ARCHIVE, '{:.0f}', '건')}"
+           f", ② 거기에 베뉴 탐색을 더한 마스터 표가 "
+           f"{_n('counts.injection_instances_in_the_master_table', INJ_VERDICT, '{:.0f}', '건')} "
+           f"이다. 정의를 둘로 갈라 적는다 — 좁은 정의는 `외부 상용 솔버 → 광선추적 경로계수`, "
+           f"넓은 정의는 `외부 서명표 → 시뮬 경로·링크` 다.", "",
+           f"② 를 어디서 찾았는지와 그 사각지대는 원장이 이렇게 적는다 — "
+           f"{_n('search_coverage.how_they_were_queried', INJ_VERDICT)}", "",
+           table(["갈래 · 정의", "모집단", "이 조사가 센 것", "게재", "인쇄된 검증"],
                  [["좁은 정의 — 외부 상용 솔버 → 광선추적 경로계수",
+                   "② 마스터 표",
                    _n("headline_answer.the_single_paper_that_does_that", INJ_VERDICT),
                    _n("headline_answer.of_the_peer_reviewed_set_how_many_computed_the_table_in"
                       "_a_commercial_full_wave_solver_and_multiplied_it_onto_ray_traced_paths",
                       INJ_VERDICT, "{:.0f}", "편"),
                    _n("answer.strict_verdict", INJ_HUNT)],
                   ["넓은 정의 — 외부 서명표 → 시뮬 경로·링크",
+                   "② 마스터 표 (아카이브 + 웹·Crossref 탐색)",
                    _n("counts.injection_instances_in_the_master_table",
                       INJ_VERDICT, "{:.0f}", "건"),
                    _n("counts.peer_reviewed", INJ_VERDICT, "{:.0f}", "편") + " (프리프린트 "
                    + _n("counts.preprint_only", INJ_VERDICT, "{:.0f}", "편") + ")",
                    _n("answer.broad_verdict", INJ_HUNT)],
                   ["재판독 감사 — 인구조사를 PDF 로 다시 열어 판정",
+                   "① 아카이브 인구조사",
                    "인구조사 " + _n("corrected_tally.census_claimed.instances",
                                  INJ_AUDIT, "{:.0f}", "건") + " 재판독",
                    _n("corrected_tally.peer_reviewed_confirmed_injections",
@@ -549,7 +608,8 @@ def report_13_where_we_stand():
                 f"실측 전이까지 보는 축으로 좁히면 모집단이 달라진다 — "
                 f"{_n('combo_verdict.statement', S2R)}",
 
-                f"레벨 규약은 출처 논문 안에서 갈린다 — 잔차 최소화 변환을 쓰면 "
+                f"레벨 규약은 우리 앵커 파일 둘(`src/sigma_anchor.py` · "
+                f"`outputs/rcs_anchor.json`) 사이에서 갈린다 — 잔차 최소화 변환을 쓰는 쪽이 "
                 f"{_n('anchors.level_convention_split.pipeline_offset_db', SURVEY, '{:.2f}', 'dB')} "
                 f"만큼 밝다.",
             ],
@@ -559,8 +619,10 @@ def report_13_where_we_stand():
                 ("P1 규칙", "지면 기록이 있는 프로시딩을 P1 통과로 정의했다. 이 정의는 우리 "
                           "신규성을 좁히는 쪽이다"),
                 ("우리 축의 값", "축마다 그 값이 나온 편과 근거 JSON 을 같은 행에 붙였다"),
-                ("앵커 규약", "Das 정의를 그대로 쓰면 인쇄값이고, 잔차 최소화 변환은 오프셋을 "
-                            "만든다. 생산 경로는 기울기만 쓴다"),
+                ("앵커 규약", "우리 앵커 파일 둘이 같은 인쇄값을 다른 통계로 읽는다 — "
+                            "`outputs/rcs_anchor.json` 은 인쇄값을 그대로 싣고, "
+                            "`src/sigma_anchor.py` 는 그것을 dB 방위평균으로 읽어 선형평균으로 "
+                            "옮긴다. 생산 경로는 기울기만 쓴다"),
             ],
             repro=_repro([_SURVEY_CMD, _PAPER_CMD, _FIGS_CMD],
                          [SURVEY, PAPER, KR, CFAR, S2R],
@@ -636,10 +698,16 @@ def report_13_where_we_stand():
            f"{_n('anchors.das.platform', SURVEY)} 한 대의 구간이다.", "",
            f"Das 의 Phantom 3 자료는 Das 자신의 참고문헌 [7](Wang 외, China Communications)에서 "
            f"왔고 ⟨{SURVEY} : anchors.das.provenance_ko⟩, 우리가 쓰는 것은 그 기울기 하나다. "
-           f"레벨 규약은 출처 논문 안에서 갈린다 — 정의를 그대로 쓰면 인쇄값이고, 잔차 최소화 "
-           f"변환을 쓰면 "
+           f"우리가 앵커로 받는 통계 정의를 원장은 이렇게 적는다: "
+           f"{_n('anchors.das.statistic_ko', SURVEY)}.", "",
+           f"레벨 규약이 갈리는 자리는 우리 앵커 파일 둘이다 — `outputs/rcs_anchor.json` 은 "
+           f"인쇄값을 그대로 들고, `src/sigma_anchor.py` 는 같은 인쇄값을 "
+           f"{_n('anchors.level_convention_split.sigma_anchor_statistic', SURVEY)} 으로 읽어 "
+           f"선형평균으로 옮기므로 "
            f"{_n('anchors.level_convention_split.pipeline_offset_db', SURVEY, '{:.2f}', 'dB')} "
-           f"만큼 밝다. 규약을 하나로 맞추는 자리가 {ref('anchor-mode')} 다."),
+           f"만큼 밝다. 원장은 그 갈림을 "
+           f"{_n('anchors.level_convention_split.status', SURVEY)} 로 적고, 규약을 하나로 맞추는 "
+           f"자리가 {ref('anchor-mode')} 다."),
 
         next_steps([
             ("`src/sigma_anchor.py` 와 `outputs/rcs_anchor.json` 의 통계 규약을 하나로 맞춘다",
@@ -703,13 +771,16 @@ def report_14_borrowed():
         ),
 
         md("## 선행에서 무엇을 빌렸나", "",
-           table_from(f"{POC}:s5_prior_work.already_borrowed",
-                      [("빌린 것", "what"), ("어디서", "from"),
-                       ("그것이 사 준 것", "what_it_bought")])),
+           f"⚠ 원장이 든 옛 권 이름은 현행 주소({ref_part(5)})로 바꿔 싣는다 — 원장은 읽기 "
+           f"전용이므로 치환은 렌더 단계에서만 한다.", "",
+           _relabel(table_from(f"{POC}:s5_prior_work.already_borrowed",
+                               [("빌린 것", "what"), ("어디서", "from"),
+                                ("그것이 사 준 것", "what_it_bought")]))),
 
         md("## 아직 안 빌린 것 — 순위와 값", "",
-           table_from(f"{POC}:s5_prior_work.not_yet_borrowed",
-                      [("순위", "rank"), ("무엇을", "what"), ("어디서", "from"), ("비용", "cost")])),
+           _relabel(table_from(f"{POC}:s5_prior_work.not_yet_borrowed",
+                               [("순위", "rank"), ("무엇을", "what"),
+                                ("어디서", "from"), ("비용", "cost")]))),
 
         md("## 의도적으로 안 빌린 것", "",
            f"맨 위 두 줄이 이 편의 다음 단계와 같다 — 유효성 바닥을 기체 × 밴드 표로 인쇄하는 "

@@ -8,11 +8,11 @@ import glob, hashlib, io, json, os, sys, subprocess
 import numpy as np
 from PIL import Image
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 # ⚠ 정정 **전** 그림의 사본이 있는 곳. 세션 임시 폴더라 나중에는 사라진다 —
 #   없으면 픽셀 비교만 «사본 없음» 으로 비고, 나머지 숫자는 그대로 나온다.
 SP = os.environ.get("RESIGN_BEFORE_DIR",
-                    "/tmp/claude-1015/-home-yunjung-workspace/"
+                    "/tmp/claude-1015/-workspace/"
                     "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad")
 sys.path.insert(0, f"{ROOT}/src"); sys.path.insert(0, f"{ROOT}/benchmark")
 from md_mapstyle import auto_periods, flash_spec                        # noqa: E402
@@ -333,7 +333,7 @@ deck_num_check["ledger_reproduced_after_fix"] = bool(
     abs(led["3/Ours (SBR + PO)"] - band_peak_hz(np.asarray(OZ["R3/E"], complex))[0]) < 1e-9)
 
 OUT["deck_0811"] = {
-    "deck_file": "/home/yunjung/workspace/team_meeting/teammeeting_0811_v21.pptx",
+    "deck_file": "/workspace/team_meeting/teammeeting_0811_v21.pptx",
     "touched_ko": "⛔덱 파일은 열어서 **읽기만** 했다. 한 바이트도 안 고쳤다.",
     "slide_map_ko": "덱 안에 박힌 이미지의 픽셀 폭으로 디스크 그림과 맞춰 확정했다.",
     "slides": [

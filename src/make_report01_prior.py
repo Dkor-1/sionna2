@@ -40,7 +40,7 @@ make_report01_prior.py — 리포트 01 「선행연구」 빌더  →  report01
     근거와 서술을 한 파일에 섞지 않기 위해서다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     ~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py       # ① 근거
     PYTHONPATH=src ~/.venvs/py312/bin/python src/report01_paper_facts.py # ② 논문 원장
     PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report01.py        # ③ 그림 4장

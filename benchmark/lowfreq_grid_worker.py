@@ -20,8 +20,8 @@ import time
 
 import numpy as np
 
-sys.path[:0] = ["/home/yunjung/workspace/sionna2/src",
-                "/home/yunjung/workspace/sionna2/benchmark"]
+sys.path[:0] = ["/workspace/sionna/src",
+                "/workspace/sionna/benchmark"]
 
 # rcs_sbr 는 import 시점에 gpu.pick() 을 부른다 → SIONNA2_GPU 는 부모가 이미 넣어 두었다.
 from rcs_sbr import rcs_sbr_batch                       # noqa: E402

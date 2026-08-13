@@ -20,7 +20,7 @@ build_part07_microdoppler.py — 부 7 「마이크로도플러」 → reports/3
 옛 빌더 `src/make_report07_microdoppler.py` 는 Verify 가 대조할 때까지 그대로 둔다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part07_microdoppler.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
@@ -96,8 +96,9 @@ REPRO_15B = dict(
          "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"],
     out=[MDB, "outputs/report15b_series.npz"],
     runtime="약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
-    note="산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — "
-         "계산 도중 메쉬가 바뀌면 스스로 경고한다")
+    note="메쉬 지문(`mesh_provenance`)은 도장 스크립트 "
+         "`benchmark/report15b_stamp_provenance.py` 가 찍는다 — ⚠ 지금 원장의 최상위 키는 "
+         "`_meta` 와 `cells` 둘이고, 지문은 그 스크립트를 돌린 다음 세대부터 실린다")
 
 
 def _n(key: str, src: str = MDB, fmt: str | None = None, unit: str = "") -> str:
@@ -1042,11 +1043,16 @@ def blocks_40() -> list:
 
                 f"배 쪽(앙각 {_L('el_deg', '{:.0f}', '도')})에서는 "
                 f"{_L('findings.occlusion_ptp_db', '{:+.2f}', 'dB')} · "
-                f"{_L('findings.occlusion_level_db', '{:+.2f}', 'dB')} 로 바뀐다.",
-
-                f"배 옆(방위 {_n(SIDE + '.az_deg', MDB, '{:.0f}', '도')})에서는 "
+                f"{_L('findings.occlusion_level_db', '{:+.2f}', 'dB')}, 배 옆(방위 "
+                f"{_n(SIDE + '.az_deg', MDB, '{:.0f}', '도')})에서는 "
                 f"{_n(SIDE + '.findings.occlusion_ptp_db', MDB, '{:+.2f}', 'dB')} · "
                 f"{_n(SIDE + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 다.",
+
+                f"⚠ 세 자세의 dB 는 판 선택 위에 있다 — 판을 반 칸 옮기면 변조 깊이가 판 셋에서 "
+                f"{_n('verdict.occlusion_ptp_plate_ptp_db', FPS, '{:.2f}', 'dB')} p-p 로 "
+                f"흩어지고, 원장은 «레벨 차가 판 선택을 견디는가» 에 "
+                f"{_n('verdict.occlusion_level_survives_plate_choice', FPS)} 라고 적는다. "
+                f"이 편이 세우는 것은 **가림이 자세에 따라 다르게 문다**는 존재다.",
 
                 f"자유공간 바이스태틱의 이등분선 앙각은 전 구간 음수라 우리는 드론 배를 본다 — "
                 f"자세 스윕이 그 문장에 독립적인 근거를 붙였다.",
@@ -1066,21 +1072,27 @@ def blocks_40() -> list:
                 ("⭐얼린 광선 격자",
                  "세 칸의 여섯 팔이 모두 로터 한 바퀴의 합집합 경계상자로 만든 판 한 장을 "
                  "쓴다. 그래야 프레임 사이 위상차가 표적의 운동만 담는다"),
-                ("⚠ 크기를 인용하는 범위",
-                 "판을 반 칸 옮기면 가림 dB 가 인용값보다 크게 움직인다 — 이 절은 자세에 따라 "
-                 "**부호와 크기가 갈린다**는 사실을 쓰고, dB 크기 자체는 판 앙상블 평균이 "
-                 "설 때까지 남겨 둔다"),
+                ("⚠ 부호와 크기를 인용하는 범위",
+                 "자세를 고정한 채 판만 반 칸 옮겨도 가림 dB 의 부호가 갈린다(변조 깊이 판 셋 "
+                 "p-p " + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
+                 + " · 레벨 차가 판 선택을 견디는가 = "
+                 + _n("verdict.occlusion_level_survives_plate_choice", FPS)
+                 + "). 이 절은 **가림이 자세에 따라 다르게 문다**는 존재를 쓰고, 부호와 크기는 "
+                 "판 앙상블 평균 뒤로 미룬다"),
             ],
             prereq=[("앞 편", ref("md-occlusion", "가림 축") + " — 칸마다 도는 단일축")],
             repro=REPRO_15B,
         ),
 
         md("## 자세가 답을 바꾼다", "",
-           *_fig(1, "report07_f3", "자세에 따라 가림과 변조가 얼마나 달라지는가?"),
            "프로펠러는 동체 **위**에 있다. 그래서 위에서 내려다보면 날개가 통째로 드러나고, "
            "그 자세에서 가림은 0 에 가깝다.", "",
            "지상 레이더는 비행 중인 기체를 **아래에서** 보므로 기체 좌표계로 앙각이 음수이고, "
-           "거기서 가림이 문다."),
+           "거기서 가림이 문다.", "",
+           "⛔ 이 편의 자세 축은 **아래 표(원장)** 로 읽는다. 자세·기체별 요약 그림 "
+           f"`{FIG}/report15b_f3.png` 의 dB 라벨은 지금 서 있는 원장 `{MDB}` 의 값과 다르다 — "
+           "그림 빌더(`benchmark/build_report15b_figs.py::fig3_summary`)를 다시 돌리면 그 "
+           "라벨이 아래 표와 같은 세대가 되고, 그때 이 자리에 들어온다."),
 
         md("## 세 자세의 값", "",
            table(["자세", "방위", "앙각", "가림 · 변조 깊이", "가림 · 레벨"], [
@@ -1099,22 +1111,34 @@ def blocks_40() -> list:
                 _n(SIDE + ".findings.occlusion_ptp_db", MDB, "{:+.2f}", "dB"),
                 _n(SIDE + ".findings.occlusion_level_db", MDB, "{:+.2f}", "dB")],
            ]), "",
-           "세 줄의 부호와 크기가 다르다는 것이 이 편의 내용이다 — 가림은 자세의 함수다.", "",
+           "세 줄이 서로 다른 값을 낸다 — **가림이 자세에 따라 다르게 문다**는 것이 이 편의 "
+           "내용이고, 그 dB 의 부호와 크기는 아래 절이 판 앙상블 평균 뒤로 미룬다.", "",
            "마이크로도플러는 프레임 사이 위상차로 재는 양이라, 광선 격자가 프레임마다 "
            "움직이면 그 움직임이 표적 운동과 같은 자리에 실린다. 그래서 커널은 자세 전체에 "
            "한 격자를 고정하고(`grid_ref`), **이 표는 그 얼린 판으로 다시 난 원장에서 나왔다** "
            f"⟨{MDB} : _meta.grid_frozen⟩. 옛 판의 값은 `outputs/prefreeze/` 에 사본으로 있다.", "",
-           "⭐ 그 위에 한 겹이 더 있다. 판을 **반 칸** 옮긴 같은 크기의 판으로 다시 태우면 "
-           "가림 · 레벨이 " + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
-           + " p-p, 가림 · 변조 깊이가 "
+           "⚠ 메쉬 지문(`mesh_provenance`)은 도장 스크립트를 돌린 다음 세대부터 이 원장에 "
+           "실린다. 지문이 찍히면 표가 어떤 메쉬 세대에서 났는지까지 자기가 말한다."),
+
+        md("## 판 한 장이 그 dB 의 부호를 정한다", "",
+           "판의 중심만 **반 칸** 옮긴 같은 크기의 판으로 같은 자세를 다시 태우면 가림 dB 가 "
+           "판마다 이렇게 갈린다 — 세 판(P0 · 반 칸 둘)의 값이다.", "",
+           table(["칸", "가림 · 변조 깊이 (판 셋)", "가림 · 레벨 (판 셋)"],
+                 [[f"`{k}`",
+                   " / ".join(_n(f"cells.{k}.findings.occlusion_ptp_db.values[{i}]",
+                                 FPS, "{:+.2f}") for i in range(3)),
+                   " / ".join(_n(f"cells.{k}.findings.occlusion_level_db.values[{i}]",
+                                 FPS, "{:+.2f}") for i in range(3))]
+                  for k in fetch((FPS, "cells"))]), "",
+           "⭐ 한 자세 안에서 부호가 갈린다. 변조 깊이의 판 셋 흩어짐 "
            + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
-           + " p-p 움직인다 — 위 세 줄의 크기보다 크다"
+           + " p-p 가 위 세 자세의 크기를 삼키고, 원장은 «레벨 차가 판 선택을 견디는가» 에 "
+           + _n("verdict.occlusion_level_survives_plate_choice", FPS)
+           + " 라고 적는다"
            + f" ⟨{FPS} : verdict.how_to_read_ko⟩.", "",
-           "**자세가 답을 바꾼다는 이 편의 논지는 자세축 자체가 근거이므로 그대로 선다.** "
-           "위 세 줄의 dB 크기는 판 앙상블 평균이 설 때까지 남겨 둔다. 기전은 "
-           + ref("kernel-what", "커널이 하는 일") + " 이 잰다.", "",
-           "⚠ 남은 자리 하나 — 이 원장에는 아직 메쉬 지문(`mesh_provenance`)이 찍혀 있지 "
-           "않다. 지문 도장을 찍으면 표가 어떤 메쉬 세대에서 났는지까지 자기가 말한다."),
+           "⇒ 이 편이 세우는 것은 **가림이 자세에 따라 다르게 문다**는 존재이고, 그 dB 의 "
+           "부호와 크기는 판 앙상블 평균(오프셋 여러 판의 평균)이 낸다. 기전은 "
+           + ref("kernel-what", "커널이 하는 일") + " 이 잰다."),
 
         md("## 이 결론은 우리 기하 명세와 같은 방향이다", "",
            "자유공간 바이스태틱의 이등분선 앙각은 전 구간 음수라 우리는 드론 배를 본다. "
@@ -1158,7 +1182,9 @@ def blocks_41() -> list:
 
                 f"신호 팔은 {_n(CA + '.n_signal_cells', VRD, '{:.0f}', '칸')} 중 "
                 f"{_n(CA + '.n_signal_firing', VRD, '{:.0f}', '칸')} 이 켜진다 — 문턱이 "
-                f"양쪽에서 작동한다.",
+                f"양쪽에서 작동한다. 그 신호 칸은 **S** 팔({ARM_SIONNA} · 스톡 그대로)로 낸 "
+                f"**Mini 2** 한 기체이고, 거리 1·3·10 m × 채널 둘이다 — 칸 이름이 원장에 "
+                f"그대로 있다(`{CA}.rows`).",
 
                 f"⚠ 두 번째 잣대인 **가장자리 시험은 아직 안 섰다** — 반드시 통과해야 하는 "
                 f"이상 점산란자가 {_n(IR + '.n', VRD, '{:.0f}')} 칸 중 "
@@ -1167,8 +1193,9 @@ def blocks_41() -> list:
                 f"이 편이 세운 것은 문턱(기준 a)이고, 가장자리(기준 b)는 아니다.",
 
                 f"널 팔 전용 재계산에서도 같은 결론이다 — 신호 대 인공물 여유 "
-                f"{_n(NV + '.margin_rescaled_db', NUL, '{:.2f}', 'dB')}, 비 "
-                f"{_n(NV + '.signal_over_floor_ratio', NUL, '{:.1f}', '배')}.",
+                f"{_n(NV + '.margin_rescaled_db', NUL, '{:.2f}', 'dB')} 이고, 신호 변조 깊이를 "
+                f"인공물 바닥으로 **dB 값끼리 나눈 비**(분자·분모가 둘 다 dB 값이다)가 "
+                f"{_n(NV + '.signal_over_floor_ratio', NUL, '{:.1f}')} 다.",
 
                 f"⚠ 적대검증이 널 셈을 정정했다 — 실제로 시험된 널은 "
                 f"{_n(NS + '.n_null_cells_with_a_value', ATK, '{:.0f}', '칸')} 이고 나머지 "
@@ -1214,9 +1241,12 @@ def blocks_41() -> list:
         md("## 널과 신호가 같은 문턱 아래에서 갈린다", "",
            *_fig(1, "report15_f1",
                  "변조가 나오면 안 되는 물체에서도 무늬가 보이는가?"),
-           "위 네 줄이 신호 팔(프로펠러가 도는 두 기체 × 두 엔진)이고, 맨 아래 한 줄이 "
-           "**널 팔 넷 중 가장 시끄러운 것**이다 — 대표는 자료가 고른다(세 거리 최대 측대역의 "
-           "최댓값).", "",
+           f"위 네 줄이 신호 팔이다 — 두 기체(Mini 2 · Matrice 4E) 각각을 **S** = {ARM_SIONNA}"
+           "(그림의 `Sionna` 줄 · 스톡 그대로) 와 **P** = 가림 없는 순수 PO 커널(그림의 "
+           "`PO kernel` 줄) 로 낸 프로펠러 채널 네 줄이다. 맨 아래 한 줄이 **널 팔 넷 중 가장 "
+           "시끄러운 것**이다 — 대표는 자료가 고른다(세 거리 최대 측대역의 최댓값).", "",
+           "⚠ 이 그림의 네 줄과 위 교정 격자는 범위가 다르다 — 교정 격자의 신호 칸 "
+           + _n(CA + ".n_signal_cells", VRD, "{:.0f}", "개") + " 는 **S** 팔의 Mini 2 뿐이다.", "",
            "가장 시끄러운 널이 조용하면 나머지도 조용하므로, 나머지 세 줄은 그리지 않고 "
            "수치로 접었다. 접는 규칙과 접힌 값은 그림 빌더가 `null_rows_folded` 로 함께 "
            "낸다(`benchmark/report15_verdict_build.py::fig1_spectrograms`). "
@@ -1250,6 +1280,8 @@ def blocks_41() -> list:
                ["신호 변조 깊이", _n(NV + ".signal_ptp_db", NUL, "{:.2f}", "dB")],
                ["인공물 바닥(정규화)", _n(NV + ".artifact_floor_rescaled_db", NUL, "{:.3f}", "dB")],
                ["여유", _n(NV + ".margin_rescaled_db", NUL, "{:.2f}", "dB")],
+               ["위 두 dB 값끼리의 비 (깊이 ÷ 바닥)",
+                _n(NV + ".signal_over_floor_ratio", NUL, "{:.1f}")],
                ["해상도 사다리 최소 상관",
                 _n(NV + ".resolution_min_pearson_r", NUL, "{:.4f}")],
            ])),

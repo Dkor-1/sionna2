@@ -19,7 +19,7 @@ make_fig_el_geometry.py — 권 16 절 1 의 **기하 한 장** → outputs/figu
 ⛔ GPU 를 쓰지 않는다. 원장 JSON 하나를 읽고 CPU 로 그린다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/make_fig_el_geometry.py
 """
 from __future__ import annotations

@@ -8,7 +8,7 @@ import os
 import sys
 import time
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 for p in (os.path.join(ROOT, "src"), os.path.join(ROOT, "benchmark")):
     if p not in sys.path:
         sys.path.insert(0, p)

@@ -2,7 +2,7 @@
 """
 build_part08_illuminators.py — 부 8 「조명원」 7편(44~50)을 짓는다
 ==========================================================================================
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py
 
 산출
@@ -55,7 +55,7 @@ J_MTX = "outputs/report5_results.json"           # 점유 × EIRP 몬테카를�
 FIG = "../outputs/figures"
 STDS = ("wifi", "lte", "nr")
 
-CMD_ALL = ["cd /home/yunjung/workspace/sionna2",
+CMD_ALL = ["cd /workspace/sionna",
            "~/.venvs/py312/bin/python src/viz_report2.py",
            "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
            "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/report4_fixups.py",
@@ -123,8 +123,13 @@ def r44():
                 f"칸, `src/waveforms.py:178`)은 상시 체제에서 "
                 f"{W1('wifi.occ_pct', '{:.2f}', '%')}(WiFi) · "
                 f"{W1('lte.occ_pct', '{:.2f}', '%')}(LTE) · "
-                f"{W1('nr.occ_pct', '{:.2f}', '%')}(5G) 다 — 이 체제에서는 켜진 칸이 "
-                f"기준신호뿐이라 그 값이 곧 기준신호의 몫이다.",
+                f"{W1('nr.occ_pct', '{:.2f}', '%')}(5G) 다 — LTE·5G 는 켜진 칸이 전부 "
+                f"기준신호(LTE 는 CRS 와 동기신호 · 5G 는 SSB)라 그 값이 곧 기준신호의 몫이다.",
+                f"WiFi 의 상시 체제는 다르다 — 프리앰블의 L-STF 가 VHT-LTF 와 함께 켜지고 "
+                f"그 칸은 정합필터 기준 집합에서 빠진다(`src/waveforms.py:96` 의 `REF_CH`). "
+                f"상관에 쓰는 에너지는 총 송신 에너지의 "
+                f"{L('grids.G1.wifi.e_ref_over_tx_db', '{:.2f}', 'dB')} 이고, LTE·5G 는 "
+                f"{L('grids.G1.lte.e_ref_over_tx_db', '{:.2f}', 'dB')} 다.",
             ],
             method=[
                 ("자원격자",
@@ -138,7 +143,10 @@ def r44():
                  "모노스태틱 교과서 값의 두 배다"),
                 ("점유율의 정의",
                  "격자에서 **비어 있지 않은 자원요소의 비율**이다(`src/waveforms.py:178`). "
-                 "상시 체제(G1)는 기준신호만 켠 격자라 그 비율이 기준신호의 몫과 같다"),
+                 "LTE·5G 의 상시 체제(G1)는 기준신호만 켠 격자라 그 비율이 기준신호의 몫과 "
+                 "같고, **WiFi G1 은 L-STF 가 함께 켜져 두 양이 갈린다** — 그 격차가 "
+                 f"{L('grids.G1.wifi.e_ref_over_tx_db', '{:.2f}', 'dB')}"
+                 "(기준신호 에너지 ÷ 총 송신 에너지)다"),
                 ("반복률의 출처가 갈린다",
                  "LTE CRS · 5G SSB 는 규격이 고정한 주기이고, **WiFi 는 트래픽 가정에서 온 "
                  "선언값**이다(`src/waveforms.py:112` 의 `PILOT_RATE_HZ`)"),
@@ -186,7 +194,11 @@ def r44():
            "아래 그림과 뒤 편들의 가로축에 붙는 이름이다. 셀이 무엇을 켜고 있느냐로 셋을 가른다.", "",
            regime_table(), "",
            "이 편의 제원표는 전부 **G1** 에서 잰 값이다 — 남의 셀을 빌리는 수신기가 "
-           "언제나 기대할 수 있는 것이 그 체제뿐이기 때문이다."),
+           "언제나 기대할 수 있는 것이 그 체제뿐이기 때문이다.", "",
+           "WiFi 의 G1 은 프리앰블 전체(L-STF + VHT-LTF)를 켜는 격자다. 상관에 거는 것은 "
+           "VHT-LTF 하나이므로 WiFi 에서만 점유율과 기준신호의 몫이 갈리고, 그 격차는 "
+           f"{L('grids.G1.wifi.e_ref_over_tx_db', '{:.2f}', 'dB')} 다 — LTE·CRS 와 5G·SSB 는 "
+           f"{L('grids.G1.nr.e_ref_over_tx_db', '{:.2f}', 'dB')} 로 두 양이 같다."),
 
         md(*fig(1, "report03_f1_grid",
                 "유휴 셀이 실제로 켜는 칸은 어디이고, 그중 패시브가 상관에 쓰는 것은 무엇인가?")),
@@ -298,7 +310,8 @@ def r46():
                 f"{F('wifi_pilot_fraction.packet_duty_db', '{:.2f}', 'dB')} · CPI 규약 "
                 f"{F('cpi_asymmetry.span_db', '{:.2f}', 'dB')}.",
                 f"여섯 항목은 자원격자 · 반송파 · 관측시간에서 **닫힌형**으로 나온다.",
-                f"점유 대가만 검출 몬테카를로의 EIRP 격자에서 **읽은** 값이다 — 격자점 차 "
+                f"점유 대가만 검출 몬테카를로의 EIRP 격자에서 **읽은** 값이다 — 상시 SSB 체제와 "
+                f"측위 세션이 열린 풀로드 체제({L('grids.G3.nr.ref_name')})의 격자점 차 "
                 f"{L('occupancy_cost.value_db', '{:.0f}', 'dB')}, 참값 구간 "
                 f"{L('occupancy_cost.bracket_lo_db', '{:.0f}')}~"
                 f"{L('occupancy_cost.bracket_hi_db', '{:.0f}', 'dB')}, $P_d$ 선형보간 "
@@ -319,10 +332,12 @@ def r46():
                  "표의 부호는 원본 JSON 그대로이고, 그림은 **음수 = 손해**로 부호를 맞춰 "
                  "다시 그린 것이다"),
                 ("점유 대가 안에 든 것",
-                 "G1→G3 은 점유율과 함께 기준신호 대역도 "
+                 "G1→G3 은 점유율과 함께 **기준신호 자체가 바뀐** 값이다 — 상시 SSB 가 "
+                 f"{L('grids.G3.nr.ref_name')}(측위 기준신호)로 바뀌면서 기준신호 대역이 "
                  f"{L('occupancy_cost.ref_bw_G1_mhz', '{:.1f}', 'MHz')} → "
-                 f"{L('occupancy_cost.ref_bw_G3_mhz', '{:.2f}', 'MHz')} 로 넓어진 값이다 — "
-                 "두 항을 가르는 대역고정 스윕은 다음 단계에 있다"),
+                 f"{L('occupancy_cost.ref_bw_G3_mhz', '{:.2f}', 'MHz')} 로 넓어진다. PRS 는 "
+                 "측위 세션이 열릴 때만 켜지므로 G3 쪽은 낙관적 상한이다 — 두 항을 가르는 "
+                 "대역고정 스윕은 다음 단계에 있다"),
             ],
             prereq=[(ref("5g-double-cost", short=True), "5G 가 거리·속도 두 축에서 무는 대가")],
             repro=dict(cmd=CMD_ALL, out=[J_WAVE, J_FIX, J_MTX, J_LED],
@@ -336,7 +351,8 @@ def r46():
            "조명원 선택이 만드는 dB 격차를 한 표에 모은다. 오른쪽 열이 그 항목을 **닫는 방식**이다."),
 
         md(table(["항목", "값", "무엇의 비인가", "닫는 방식"],
-                 [["점유 대가 (5G · 상시 vs 풀로드)", L("occupancy_cost.value_db", "{:.0f}", "dB"),
+                 [["점유 대가 (5G · 상시 SSB vs 측위세션+풀로드 NR-PRS)",
+                   L("occupancy_cost.value_db", "{:.0f}", "dB"),
                    f"같은 표적·같은 기하에서 $P_d$ "
                    f"{L('occupancy_cost.pd_threshold', '{:.1f}')} 를 넘기는 EIRP 차",
                    "몬테카를로 격자 읽기"],
@@ -370,6 +386,11 @@ def r46():
            f"이 항목만 닫힌형이 없다. 같은 표적·같은 기하에서 $P_d$ "
            f"{L('occupancy_cost.pd_threshold', '{:.1f}')} 를 넘기는 EIRP 를 상시 체제와 풀로드 "
            f"체제에서 각각 찾아 그 차를 읽는다. 격자 눈금이 유효숫자를 정한다.", "",
+           f"두 체제의 기준 집합이 다르다 — G1 은 상시 SSB 하나뿐이고, G3 에서는 측위 세션이 "
+           f"켜는 {L('grids.G3.nr.ref_name')} 와 데이터에 딸려 오는 PDSCH-DMRS 가 함께 들어온다"
+           f"(`src/waveforms.py:86` 의 G3 채널 집합 · `:96` 의 `REF_CH`). 데이터 심볼 자체는 "
+           f"수신기가 내용을 몰라 정합필터 템플릿이 못 된다. 그중 PRS 는 측위 세션이 열릴 때만 "
+           f"켜지므로 G3 쪽 값은 낙관적 상한이다.", "",
            table(["무엇", "값"],
                  [["격자점 차", L("occupancy_cost.value_db", "{:.0f}", "dB")],
                   ["참값 구간", L("occupancy_cost.bracket_lo_db", "{:.0f}") + "~"
@@ -377,12 +398,13 @@ def r46():
                   ["$P_d$ 선형보간", L("occupancy_cost.interp_db", "{:.1f}", "dB")],
                   ["격자 눈금 · 시행", L("occupancy_cost.eirp_grid_step_db", "{:.0f}", "dB")
                    + " · " + L("occupancy_cost.n_trials", "{:.0f}") + "회"],
-                  ["기준신호 대역 (G1 → G3)",
+                  ["기준신호 대역 (G1 SSB → G3 "
+                   + str(fetch((J_LED, "grids.G3.nr.ref_name"))) + ")",
                    L("occupancy_cost.ref_bw_G1_mhz", "{:.1f}", "MHz") + " → "
                    + L("occupancy_cost.ref_bw_G3_mhz", "{:.2f}", "MHz")]])),
 
         md(*fig(1, "report03_f3_occupancy",
-                "셀이 데이터로 바빠지면 패시브의 거리분해능도 같이 좋아지는가?")),
+                "G1→G3 의 격차를 만드는 것은 데이터 부하인가, 측위 세션이 켜는 NR-PRS 인가?")),
 
         md(*fig(2, "report03_f4_ledger",
                 "조명원 선택이 무는 대가는 항목별로 몇 dB 인가?")),
@@ -699,14 +721,18 @@ def r50():
                 f"같은 조건에서 WiFi 는 무모호 속도 "
                 f"{A('wifi_G1.physical.v_unamb_phys_ms', '{:.1f}', 'm/s')}, LTE 는 "
                 f"{A('lte_G1.physical.v_unamb_phys_ms', '{:.1f}', 'm/s')} 로 참 도플러를 그대로 "
-                f"유지한다.",
+                f"유지한다 — LTE 값은 규격 주기에서 오고, WiFi 값은 혼잡 AP 트래픽 가정에서 온 "
+                f"선언값이다(`src/waveforms.py:112`).",
                 f"접힘을 정하는 것은 물리 반복률 하나다 — CPI 는 도플러 가드 폭을 정하고, "
                 f"모호속도는 표본화율의 성질이라 CPI 로 안 움직인다.",
             ],
             method=[
                 ("물리 반복률",
-                 "`TS 38.213` 의 기본 SSB 주기가 반복률을 고정한다. 검출기 프레임률과 다른 양이라 "
-                 "이름을 갈라 싣는다"),
+                 "**출처가 갈린다** — LTE CRS 는 `TS 36.211` 의 매 서브프레임 송신이, 5G SSB 는 "
+                 "`TS 38.213` 의 기본 버스트 주기가 고정한 규격값이다. **WiFi 는 트래픽 가정에서 "
+                 "온 선언값**이다 — `src/waveforms.py:112` 의 `PILOT_RATE_HZ` 가 혼잡 AP 대표값 "
+                 f"{A('wifi_G1.physical.prf_physical_hz', '{:.0f}', 'Hz')} 를 든다. 셋 다 검출기 "
+                 "프레임률과 다른 양이라 이름을 갈라 싣는다"),
                 ("접힘 계산",
                  "무모호 도플러 ±PRF/2 를 넘는 참 도플러를 그 구간으로 되접어 아래 표에 적는다"),
                 ("기준 표적 속도",
@@ -719,16 +745,22 @@ def r50():
         ),
 
         md("## 물리 반복률이 무모호 속도를 정한다", "",
-           table(["기준신호", "물리 PRF", "무모호 속도", "접히는가"],
+           table(["기준신호", "물리 PRF", "그 값의 판", "무모호 속도", "접히는가"],
                  [["WiFi VHT-LTF", A("wifi_G1.physical.prf_physical_hz", "{:.0f}", "Hz"),
+                   "**선언값** — 혼잡 AP 트래픽 가정(`src/waveforms.py:112`)",
                    A("wifi_G1.physical.v_unamb_phys_ms", "{:.1f}", "m/s"),
                    A("wifi_G1.physical.aliased")],
                   ["LTE CRS", A("lte_G1.physical.prf_physical_hz", "{:.0f}", "Hz"),
+                   "규격값 — `TS 36.211`, 매 서브프레임",
                    A("lte_G1.physical.v_unamb_phys_ms", "{:.1f}", "m/s"),
                    A("lte_G1.physical.aliased")],
                   ["5G SSB", A("nr_G1.physical.prf_physical_hz", "{:.0f}", "Hz"),
+                   "규격값 — `TS 38.213`, 기본 버스트 주기",
                    A("nr_G1.physical.v_unamb_phys_ms", "{:.2f}", "m/s"),
-                   A("nr_G1.physical.aliased")]])),
+                   A("nr_G1.physical.aliased")]]), "",
+           "WiFi 행의 값은 트래픽 시나리오가 정한다 — 비콘만 뜨는 유휴 AP 에서는 그 반복률이 "
+           "SSB 아래로 내려간다(`src/waveforms.py:105`). 이 편의 WiFi 결론은 혼잡 AP 가정 "
+           "위에 선다."),
 
         md("## 접힌 자리는 어디인가", "",
            f"기준 표적 속도에서 5G 의 참 도플러 "

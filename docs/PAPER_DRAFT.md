@@ -21,7 +21,7 @@
 │ `check_figure(placed_width_in=…)` 로 두 조판폭에서 다시 재고, 수치는 전부      │
 │ JSON 키로 되짚었다. 이 문서의 숫자 중 손으로 친 것은 없다.                     │
 ├─ 재현 ──────────────────────────────────────────────────────────────────────┤
-│ cd /home/yunjung/workspace/sionna2                                          │
+│ cd /workspace/sionna                                          │
 │ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \                     │
 │   "import paper_kit as pk; d=pk.extract_paper_kit(); print(pk.coverage_report(d))"
 │ → outputs/paper_kit.json (0.9 MB · 3 s)                                     │

@@ -392,7 +392,7 @@ Costa 등이 실측에서 같은 것을 보고 모형에 넣었다(§2.2).
 ## 7. 재현
 
 ```bash
-cd /home/yunjung/workspace/sionna2
+cd /workspace/sionna
 PYTHONPATH=src:benchmark python benchmark/nadir_realworld_mechanisms.py
 # → outputs/nadir_realworld_mechanisms.json  (CPU 4 분, GPU 미사용)
 # G0 게이트: 기존 verify_nadir_flash.json 의 offnadir_farfield 7 점을 max|Δ| = 0.000 dB 로 재현

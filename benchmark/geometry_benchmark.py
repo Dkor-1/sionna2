@@ -25,7 +25,7 @@ geometry_benchmark.py — **설계공간 지도**와 주장 사다리 **재판�
   ⑷ LaSen 실측 108 m 를 우리 A-nr 칸에 EIRP 로 환산해 맞대보기
 
 실행:
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/geometry_benchmark.py
 
 집안 규약: 산문·print 는 한국어, **그림 텍스트는 전부 영어**, 수치는 저장소 JSON/함수에서만

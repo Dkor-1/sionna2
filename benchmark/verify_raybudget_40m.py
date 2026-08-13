@@ -17,7 +17,7 @@ verify_raybudget_40m.py — **광선을 22.5 배 부으면 40 m 의 약점 넷�
 · ④ 는 원장 스크립트가 없다(RESUME.md 산문 한 줄뿐). 그래서 여기서 **정의를 코드로 못 박는다**:
   창 1,024 표본(52.0 ms) · hop 512 표본 → 4,096 자세에서 정확히 **7 창**.
 
-    PYTHONPATH=src:benchmark /home/yunjung/.venvs/py312/bin/python \
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/verify_raybudget_40m.py
 """
 from __future__ import annotations

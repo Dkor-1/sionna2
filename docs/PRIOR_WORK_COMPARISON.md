@@ -1120,7 +1120,7 @@ WiFi·LTE 는 점유율을 9%→89%, 3%→59% 로 올려도 0.1~0.3 dB 밖에 �
 
 | 파일 | mtime | 이 문서에서 쓴 키 |
 |---|---|---|
-| `/home/yunjung/workspace/sionna2/outputs/report1.json` | 07-22 06:12 | `chamber.dims/materials/groups`, `meshes.drones.*`, `microdoppler.drones.*` |
+| `/workspace/sionna/outputs/report1.json` | 07-22 06:12 | `chamber.dims/materials/groups`, `meshes.drones.*`, `microdoppler.drones.*` |
 | `.../outputs/report2_waveform_rcs.json` | 07-22 06:39 | `rcs.drones.*.bands`, `reference.G{1,2,3}.*`, `crosscheck`, `numerology`, `sbr_validation`, `occlusion`, `materials` |
 | `.../outputs/report3_rt.json` | 07-22 06:24 | `S1_depth`, `S2_floor`, `D_plate`, `E_sphere` |
 | `.../outputs/report6_sbr.json` | 07-23 05:52 | `kernel`, `camera`, `prop_normals` (`compare` 는 빈 블록) |

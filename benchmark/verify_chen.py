@@ -6,7 +6,7 @@
 규칙: 여기 들어가는 모든 문장은 (a) 내가 직접 연 PDF 에서 그대로 따온 인용이거나,
       (b) 그 인용 안의 숫자로 우리가 계산한 재현값이다. 그 밖은 전부 UNVERIFIED 로 표시한다.
 
-실행: cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_chen.py
+실행: cd /workspace/sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_chen.py
 """
 from __future__ import annotations
 

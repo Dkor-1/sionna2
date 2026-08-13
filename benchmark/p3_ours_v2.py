@@ -13,7 +13,7 @@ el=0(=Yuan θ90 방위면) 하나뿐이므로 여기서는 그것만 돌린다. 
   달라진 것은 **메쉬(사진 실측 재구축)** 와 주파수 밀도뿐이다.
 
 실행:
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/p3_ours_v2.py
 """
 from __future__ import annotations

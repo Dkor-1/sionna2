@@ -81,7 +81,7 @@ ls outputs/elev_sweep_shards/ | sed 's/_[0-9][0-9]\.npz//' | sort | uniq -c
 드라이버가 죽었으면 같은 스크립트를 그냥 다시 띄우면 된다.
 
 ```bash
-SP=/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad
+SP=/tmp/claude-1015/-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad
 setsid nohup bash $SP/run_physics.sh      > $SP/physics_driver.log 2>&1 < /dev/null &
 setsid nohup bash $SP/run_nadir_budget.sh > $SP/nadir_driver.log   2>&1 < /dev/null &
 ```
@@ -147,7 +147,7 @@ setsid nohup bash $SP/run_nadir_budget.sh > $SP/nadir_driver.log   2>&1 < /dev/n
 
 ```bash
 export CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=3 SIONNA2_GPU=3
-PY=~/.venvs/py312/bin/python;  cd ~/workspace/sionna2
+PY=~/.venvs/py312/bin/python;  cd /workspace/sionna
 # 물리 켠 PathSolver (11.1M 광선, 앙각 7 점 × 샤드 8)
 PYTHONPATH=src:benchmark $PY -W ignore benchmark/elevation_sweep_md.py \
   --engine sionna --physics --els <EL> --shard <SH> --nshards 8

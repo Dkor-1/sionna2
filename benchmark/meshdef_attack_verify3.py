@@ -6,7 +6,7 @@
 from __future__ import annotations
 import hashlib, json, os, re, subprocess, sys, time
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 sys.path.insert(0, os.path.join(ROOT, "src")); sys.path.insert(0, os.path.join(ROOT, "benchmark"))
 sys.path.insert(0, ROOT)
 os.environ.setdefault("SIONNA2_NO_GPU", "1"); os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")

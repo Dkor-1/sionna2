@@ -12,7 +12,7 @@ import os
 import sys
 from datetime import datetime
 
-OUT = "/home/yunjung/workspace/sionna2/outputs/r2_read_w4.json"
+OUT = "/workspace/sionna/outputs/r2_read_w4.json"
 
 META = {
     "file": "outputs/r2_read_w4.json",

@@ -15,7 +15,7 @@ from mesh_compare import compare
 from drones import DRONES, build_drone
 from geom import Mesh as GMesh
 
-STL = ("/tmp/claude-1015/-home-yunjung-workspace/b16ec570-b204-4255-9c8a-da23fd2adf6d/"
+STL = ("/tmp/claude-1015/-workspace/b16ec570-b204-4255-9c8a-da23fd2adf6d/"
        "scratchpad/cad/phantom4_scan/files/DJIPHANTOM4_.3MM.stl")
 SCALE = 1.0125/1000.0   # mm→m + 휠베이스 보정(345.7→350mm)
 

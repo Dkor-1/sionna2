@@ -28,7 +28,7 @@ make_report02_target.py — 리포트 02 「표적 모델」 빌더  →  report
   ③ **노트북** `report02_target.ipynb`.
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report02_target.py
 
 읽는 것 (전부 저장소에 이미 있는 실험 산출물)

@@ -13,8 +13,8 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage as ndi
 
-ROOT = "/home/yunjung/workspace/sionna2"
-SCRATCH = "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad"
+ROOT = "/workspace/sionna"
+SCRATCH = "/tmp/claude-1015/-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad"
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
 # --------------------------------------------------------------------------- #

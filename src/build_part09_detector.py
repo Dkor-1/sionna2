@@ -2,7 +2,7 @@
 """
 build_part09_detector.py — 부 9 「검출기」 5편(51~55)을 짓는다
 ==========================================================================================
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py
 
 산출
@@ -54,7 +54,7 @@ GT = fetch(f"{CFAR}:meta.gt_default")               # guard 2x2 / train 6x6
 ZD = fetch(f"{CFAR}:meta.zd_mask_operational")      # 운용 0-도플러 마스크 폭
 PFA_OP = 1e-4                                       # 운용 명목 Pfa
 
-CMD = ["cd /home/yunjung/workspace/sionna2",
+CMD = ["cd /workspace/sionna",
        "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
        "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
        "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_observability.py",
@@ -100,6 +100,10 @@ def _s1_deepest(name: str) -> str:
     rows = fetch(f"{ECA}:S1_depth_vs_taps[{i}].rows")
     j = max(range(len(rows)), key=lambda k: rows[k]["n_taps"])
     return f"S1_depth_vs_taps[{i}].rows[{j}]"
+
+
+def _s3(name: str, occ: str = "G3") -> str:
+    return f"S3_pilot_vs_tx[{_find(fetch(f'{ECA}:S3_pilot_vs_tx'), occ=occ, name=name)}]"
 
 
 def _s4(name: str, M: int) -> str:
@@ -162,6 +166,16 @@ DEEP_DPI = {e: num(None, f"{ECA}:{_s1_deepest(e)}.depth_dpi_db", "{:.1f}", "dB")
             for _b, e, _l in WFS}
 DEEP_FULL = {e: num(None, f"{ECA}:{_s1_deepest(e)}.depth_full_db", "{:.1f}", "dB")
              for _b, e, _l in WFS}
+#: 이 부의 ECA 값이 선 점유 격자 — `benchmark/verify_eca.py:505` 가 G3(풀로드)로 셋업을 짓는다.
+#  그 격자에서 LTE·5G 의 기준신호는 상시 CRS·SSB 자리에 PRS·NR-PRS 가 선다(`src/waveforms.py:181`).
+OCC = "G3"
+REF_NAME = {e: num(None, f"{ECA}:{_s3(e)}.ref_name") for _b, e, _l in WFS}
+#: 직접파를 송신 파형 전체(파일럿+데이터)로 합성했을 때의 같은 소거기 깊이와, 그 잔류가
+#  RD 맵의 비-0도플러 칸에 남긴 첨두(잡음 플로어 대비).
+TX_DEPTH = {e: num(None, f"{ECA}:{_s3(e)}.depth_tx_dpi_db", "{:.2f}", "dB")
+            for _b, e, _l in WFS}
+RD_OFF = {e: num(None, f"{ECA}:{_s3(e)}.rd_offzero_peak_over_nfloor_db", "{:.1f}", "dB")
+          for _b, e, _l in WFS}
 #: 다중경로의 출처 — 실측이 아니라 레이 트레이싱이라는 것을 원장에서 직접 읽는다.
 CLUTTER_SRC = num(None, f"{ECA}:meta.setups[{_setup('5G NR 100MHz')}].clutter_src")
 FD3DB = num(None, f"{ECA}:{_s4('5G NR 100MHz', 48)}.fd_3db_over_dfd", "{:.3f}")
@@ -173,6 +187,12 @@ RMS2 = num(None, f"{OBS}:summary.fix_2rx_pos_rms_m", "{:.2f}", "m")
 #: 그램행렬·CRLB 를 푼 기준 셀과 관측창 — 랭크 표의 절대값이 어디에 매달려 있는지가 이 둘이다.
 REF_CFG = num(None, f"{OBS}:gramian.ref_cfg")
 T_OBS = num(None, f"{OBS}:gramian.t_obs_s", "{:.0f}", "s")
+#: 랭크 표의 허용오차 두 판. 열 이름에 넣을 값은 원장에서 읽어 끼운다(제목·열 이름에는
+#: 출처 태그를 달 수 없으므로 값만 주입한다). 표 밑 한 줄이 다른 판의 값을 병기한다.
+PTOL_F = float(fetch(f"{OBS}:gramian.practical_tol"))
+PTOL = num(None, f"{OBS}:gramian.practical_tol", "{:.0e}")
+RTOL = num(None, f"{OBS}:gramian.rank_tol", "{:.0e}")
+RANK_1RX_TIGHT = num(None, f"{OBS}:fixes.1RX (baseline).rank", "{:.0f}")
 OI = _paper("openisac")
 N_PAPERS = num(None, f"{CENSUS}:meta.n_papers", "{:.0f}")
 TOT_PAGES = num(None, f"{CENSUS}:counts.total_pages", "{:.0f}")
@@ -193,7 +213,7 @@ def r51():
             results=[
                 "사슬은 네 단계다 — 2채널 수신 → ECA 로 직접파 제거 → 거리-도플러 상관 → "
                 "CA-CFAR 판정. 각 단계는 앞 단계의 잔류물을 물려받는다.",
-                f"직접파 세기 DNR 은 WiFi {DNR['WiFi 80MHz']} · LTE {DNR['LTE 20MHz']} · "
+                f"직접파-에코 비 DNR 은 WiFi {DNR['WiFi 80MHz']} · LTE {DNR['LTE 20MHz']} · "
                 f"5G {DNR['5G NR 100MHz']} 다 — 수신단에서 가장 큰 신호이고 2단계가 지울 대상이다.",
                 f"ECA 탭 수는 파형이 정한다 — WiFi {TAPS['WiFi 80MHz']} · LTE {TAPS['LTE 20MHz']} · "
                 f"5G {TAPS['5G NR 100MHz']}.",
@@ -210,7 +230,9 @@ def r51():
                 ("세 파형 동일 사슬",
                  "코드 경로가 하나다 — 파형이 바꾸는 것은 형상 파라미터뿐이다"),
             ],
-            prereq=[(ref("illuminators", short=True), "세 표준의 상시 기준신호와 대역"),
+            prereq=[(ref("illuminators", short=True),
+                     "세 표준의 상시 기준신호와 대역 — 이 편의 형상 표는 그 중 "
+                     "G3(풀로드) 격자에서 뽑은 셋업이다"),
                     (ref("range-convention", short=True), "거리 규약 $\\Delta R_b = c/B_{ref}$")],
             repro=dict(cmd=CMD[:1] + CMD[2:3] + CMD[-2:], out=[ECA],
                        runtime="ECA 검증 · 그림은 각각 수 분 (GPU 1장)"),
@@ -230,7 +252,8 @@ def r51():
         md(*fig(1, "f1_chain", "수신 신호는 어떤 단계를 거쳐 검출 판정이 되는가?")),
 
         md("## 사슬의 형상 — 파형이 정하는 것", "",
-           f"직접파는 수신단에서 가장 큰 신호다. 그 크기가 DNR 이고, 2단계가 지울 대상이다. "
+           f"직접파는 수신단에서 가장 큰 신호이고, 2단계가 지울 대상이다. 그것이 표적 에코보다 "
+           f"몇 dB 큰지가 DNR 이다. "
            f"거리 빈 수와 ECA 탭 수는 파형이 정하고, 도플러 빈은 세 파형 모두 {M_CPI}개다.", "",
            table_from(f"{ECA}:meta.setups",
                       [("파형", "name"), ("DNR", "dnr_db"), ("ECA 탭", "n_taps"),
@@ -239,6 +262,12 @@ def r51():
                            "prf_hz": "{:.0f} Hz", "dfd_hz": "{:.2f} Hz"},
                       order=[_setup("WiFi 80MHz"), _setup("LTE 20MHz"),
                              _setup("5G NR 100MHz")]), "",
+           f"이 표는 {OCC}(풀로드) 점유 격자의 셋업이다(`benchmark/verify_eca.py:505`). "
+           f"숫자 열 다섯은 점유 체제에 불변이다 — DNR 은 직접파/에코 비라 기하와 반송파별 "
+           f"표적 σ 가 정하고(`benchmark/link_budget.py:86`), 거리 빈·ECA 탭은 표본율이"
+           f"(`benchmark/geometry.py:146`), PRF·Δf_d 는 표본율·프레임 길이·CPI 프레임 수가 "
+           f"정한다(`benchmark/verify_eca.py:107` · `benchmark/run_min_cell.py:74`). "
+           f"점유가 바꾸는 것은 기준신호의 이름이다.", "",
            f"이 표의 PRF 는 **검출기 프레임률**이다 — 사슬이 한 프레임으로 끊어 읽는 속도이지 "
            f"조명원의 물리 반복률이 아니다. 5G 상시 SSB 에서 두 양이 얼마나 벌어지고 그것이 "
            f"도플러를 어디서 접는지는 {ref('doppler-fold', short=True)} 가 잰다."),
@@ -275,10 +304,12 @@ def r52():
             did="ECA 탭 수를 1~96 으로 스윕하며 소거 깊이를 재고, 같은 소거기가 표적의 느린 "
                 "도플러를 얼마나 함께 지우는지를 속도 문턱으로 환산했다.",
             results=[
-                f"직접파만 든 신호에 같은 소거기를 걸면 float64 한계까지 내려간다 — "
-                f"5G {DEEP_DPI['5G NR 100MHz']}. 레이 트레이싱으로 푼 챔버 다중경로를 넣으면 "
-                f"{DEEP_FULL['5G NR 100MHz']} 에서 멈춘다.",
-                f"바닥을 정하는 것은 탭 수가 아니라 환경이다 — 탭 1~96 스윕에서 깊이가 포화한다.",
+                f"{OCC}(풀로드) 격자에서 직접파를 기준신호로 합성해 같은 소거기를 걸면 float64 "
+                f"한계까지 내려간다 — 5G {DEEP_DPI['5G NR 100MHz']}. 레이 트레이싱으로 푼 챔버 "
+                f"다중경로를 넣으면 {DEEP_FULL['5G NR 100MHz']} 에서 멈춘다.",
+                f"그 합성에서 바닥을 정하는 것은 탭 수가 아니라 환경이다 — 탭 1~96 스윕에서 깊이가 "
+                f"포화한다. 직접파를 송신 파형 전체로 합성하면 같은 격자의 깊이가 5G "
+                f"{TX_DEPTH['5G NR 100MHz']} 다.",
                 f"대가는 0-도플러 노치다. 3 dB 손실 지점은 $f_d/\\Delta f_d$ = {FD3DB} 이고 "
                 f"세 파형이 같다.",
                 f"프레임 {M48}개에서 속도 문턱은 WiFi {V3['WiFi 80MHz']} · LTE {V3['LTE 20MHz']} · "
@@ -291,6 +322,11 @@ def r52():
                 ("소거기",
                  "CPI 1회 최소제곱 사영의 standard ECA — 레퍼런스의 지연 사본이 치는 부분공간에 "
                  "서베일런스를 통째로 사영한다(`src/passive_process.py:13`)"),
+                ("점유 격자",
+                 f"{OCC}(풀로드) 한 판이다(`benchmark/verify_eca.py:505`) — 그 격자의 기준신호는 "
+                 f"WiFi {REF_NAME['WiFi 80MHz']} · LTE {REF_NAME['LTE 20MHz']} · "
+                 f"5G {REF_NAME['5G NR 100MHz']} 라, LTE·5G 는 상시 CRS·SSB 자리에 측위 세션 "
+                 f"신호가 선다"),
                 ("깊이 스윕",
                  f"탭 수 1~96 × (직접파만 / 다중경로 포함) 두 조건. 다중경로는 챔버 장면을 "
                  f"레이 트레이싱으로 푼 것이고 실측이 아니다(출처 {CLUTTER_SRC}). 두 조건의 차이가 "
@@ -307,14 +343,21 @@ def r52():
         ),
 
         md("## 직접파를 얼마나 지울 수 있는가", "",
-           "탭을 늘리면 소거가 깊어지다가 멈춘다. 멈추는 자리를 정하는 것이 탭 수인지 환경인지를 "
-           "가르려고 두 조건을 나란히 돌렸다.", "",
-           table(["파형", "직접파만", "직접파 + 다중경로(포화)"],
+           f"탭을 늘리면 소거가 깊어지다가 멈춘다. 멈추는 자리를 정하는 것이 탭 수인지 환경인지를 "
+           f"가르려고 {OCC}(풀로드) 격자에서 두 조건을 나란히 돌렸다.", "",
+           table(["파형", "직접파(=기준신호로 합성)", "직접파(=기준신호) + 다중경로(포화)"],
                  [[label, DEEP_DPI[ename], DEEP_FULL[ename]] for _b, ename, label in WFS]),
            "",
            "왼쪽은 float64 산술의 한계이고, 오른쪽이 이 장면의 다중경로가 정하는 바닥이다"
            "(실측 채널이 아니라 레이 트레이싱으로 푼 챔버 장면이다). 두 열의 간격이 곧 "
-           "**환경이 정하는 몫**이다."),
+           "**환경이 정하는 몫**이다.", "",
+           f"두 열 모두 직접파를 기준신호로 합성한 판이다(`benchmark/verify_eca.py:146,147`). "
+           f"헤드라인 사슬은 직접파를 송신 파형 전체(파일럿+데이터)로 합성하고"
+           f"(`benchmark/run_min_cell.py:164`), 그 판의 깊이는 WiFi {TX_DEPTH['WiFi 80MHz']} · "
+           f"LTE {TX_DEPTH['LTE 20MHz']} · 5G {TX_DEPTH['5G NR 100MHz']} 다 — 데이터 잔류가 "
+           f"0-도플러 행에 앉으므로 RD 맵의 비-0도플러 첨두는 잡음 플로어 대비 WiFi "
+           f"{RD_OFF['WiFi 80MHz']} · LTE {RD_OFF['LTE 20MHz']} · "
+           f"5G {RD_OFF['5G NR 100MHz']} 다."),
 
         md(*fig(1, "f2_eca_depth", "ECA 소거 깊이의 바닥을 정하는 것은 무엇인가?")),
 
@@ -628,11 +671,15 @@ def r55():
            f"정보량은 SNR 과 관측시간에 무관하게 0 이다. 더 오래 보거나 더 세게 쏘아도 그 축은 "
            f"풀리지 않는다.", "",
            table_from(f"{OBS}:fixes",
-                      [("형상", None), ("유효 랭크 (/6)", "rank_practical"),
+                      [("형상", None),
+                       (f"유효 랭크(정규화 고윳값 ≥ {PTOL_F:.0e}, /6)", "rank_practical"),
                        ("위치 RMS 오차", "pos_rms_m")],
                       fmt={"rank_practical": "{:.0f}", "pos_rms_m": "{:.2f} m"},
                       order=["1RX (baseline)", "2RX",
                              "1RX + AoA(1deg)", "1RX + AoA(5deg)"]), "",
+           f"랭크 열의 허용오차는 {PTOL} 다 — {RTOL} 판에서는 1RX 행이 "
+           f"{RANK_1RX_TIGHT} 이고, 원장 요약이 그 판의 값을 싣는다"
+           f"(`summary.gramian_rank_radial`). 2RX 부터 6 이 되는 결론은 두 판에서 같다.", "",
            f"표의 랭크는 위치 3 + 속도 3 = **6 차원 상태**에 대한 값이고, 관측창 {T_OBS} 를 "
            f"누적한 그램행렬에서 센다 — 머리줄의 «랭크 {RANK1}» 는 **한 순간 · 위치 3차원**에 "
            f"대한 값이라 다른 양이다."),

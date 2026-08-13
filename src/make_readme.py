@@ -304,7 +304,7 @@ def build() -> str:
     A("순서가 중요하다 — 뒤 단계가 앞 단계의 산출물을 읽는다.")
     A("")
     A("```bash")
-    A("cd /home/yunjung/workspace/sionna2")
+    A("cd /workspace/sionna")
     A("PY=~/.venvs/py312/bin/python")
     _CIRCLED = "①②③④⑤⑥⑦⑧⑨"
     for i, step in enumerate(idx["_meta"]["order"], 1):

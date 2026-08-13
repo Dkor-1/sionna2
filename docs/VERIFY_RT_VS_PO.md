@@ -175,18 +175,18 @@ mavic4pro, PO 예측 −64.87 dB. 순수 1-bounce + 지연게이트:
 ## 8. 재현
 
 ```bash
-cd /home/yunjung/workspace/sionna2
-SIONNA2_GPU=0 /home/yunjung/.venvs/py312/bin/python benchmark/verify_rt_no_rcs.py   # GPU 는 gpu.pick 자동선택, 고정하려면 SIONNA2_GPU
+cd /workspace/sionna
+SIONNA2_GPU=0 /workspace/.venvs/py312/bin/python benchmark/verify_rt_no_rcs.py   # GPU 는 gpu.pick 자동선택, 고정하려면 SIONNA2_GPU
 #  → outputs/rt_no_rcs_verify.json
 #  [A] 평판 변 0.2~4 m: RT 진폭비 전부 -7.91 dB (σ 는 52 dB 변화)
 #  [B] 구 S 0.2~1.0   : -56.56 → -40.80 dB (S² 법칙)
 #  [C] PEC 구         : 전 조건 표적경로 0개
 
-CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python benchmark/verify_target_rt.py
+CUDA_VISIBLE_DEVICES=2 /workspace/.venvs/py312/bin/python benchmark/verify_target_rt.py
 #  → outputs/rt_target_verify.json  (드론 RT 에코의 시드별 요동)
 ```
 
-환경: `/home/yunjung/.venvs/py312` (conda activate 는 깨져 있으니 env python 직접 호출) · sionna-rt 2.0.1 / mitsuba 3.8.0 · **GPU #2**.
+환경: `/workspace/.venvs/py312` (conda activate 는 깨져 있으니 env python 직접 호출) · sionna-rt 2.0.1 / mitsuba 3.8.0 · **GPU #2**.
 
 ---
 

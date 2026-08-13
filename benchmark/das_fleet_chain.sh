@@ -4,7 +4,7 @@
 #   ⚠ 새 워커는 m350rtk 전용 사다리(0→1→6→2→3)를 쓴다 — 6=(41 주파수 x 90 방위) 를
 #     2 단계(21f x 360az) 앞에 끼워 **방위보다 주파수를 먼저** 채우는 순서다.
 set -u
-cd /home/yunjung/workspace/sionna2
+cd /workspace/sionna
 DIR=outputs/partial/das_fleet_0803
 while true; do
   a=$(ls $DIR/mini2/*.json 2>/dev/null | wc -l)

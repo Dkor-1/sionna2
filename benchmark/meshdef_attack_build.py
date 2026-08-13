@@ -10,8 +10,8 @@ meshdef_spec.json / 다섯 라운드 파일 (검증 대상이 적은 값) 에서
 from __future__ import annotations
 import hashlib, json, os, re, subprocess, sys, time
 
-ROOT = "/home/yunjung/workspace/sionna2"
-SCRATCH = ("/tmp/claude-1015/-home-yunjung-workspace/"
+ROOT = "/workspace/sionna"
+SCRATCH = ("/tmp/claude-1015/-workspace/"
            "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad")
 J = lambda p: json.load(open(os.path.join(ROOT, p)))            # noqa: E731
 

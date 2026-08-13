@@ -15,7 +15,7 @@ render_mini2_mesh.py — mini2 메쉬 온전성 렌더 (2026-08-03)
   benchmark/render_m350rtk_mesh.py 와 같은 형식이다.
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/render_mini2_mesh.py
 """
 from __future__ import annotations

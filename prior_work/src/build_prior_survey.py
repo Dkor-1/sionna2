@@ -22,7 +22,7 @@ build_prior_survey.py — 리포트 01 의 근거 JSON `outputs/prior_work_surve
     UNVERIFIED 로 적는다. 숫자는 PDF 나 저장소 JSON 에서만 오고, 기억에서 오지 않는다.
 
 실행
-    cd /home/yunjung/workspace/sionna2
+    cd /workspace/sionna
     ~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py
     → outputs/prior_work_survey.json + outputs/figures/report01_survey_*.png  (CPU, 수 초)
 """

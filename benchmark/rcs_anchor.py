@@ -15,7 +15,7 @@ report08 이 "보류(defer)" 로 남긴 절대 σ 판정을, 문헌이 실제로
      우리 값은 전부 계산으로.
 
 실행:
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_GPU=3 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rcs_anchor.py
 
 ■ PTD 스위치 (`--ptd`, 기본 **꺼짐**)

@@ -12,7 +12,7 @@
 #    (실측: 같은 계산이 3.0 s → 1.4 s). 병렬은 프로세스로만 낸다.
 #  ■ ⚠ GPU 는 다른 워크플로와 공유한다. 카드를 독점하지 않는다.
 set -u
-cd /home/yunjung/workspace/sionna2
+cd /workspace/sionna
 
 PY=~/.venvs/py312/bin/python
 export PYTHONPATH=src:benchmark

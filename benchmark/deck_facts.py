@@ -14,7 +14,7 @@ deck_facts.py — 0804 팀미팅 덱이 인용해도 되는 **검증된 사실 �
   4. outputs/deck_facts.json · docs/DECK_FACTS.md 를 쓴다.
 
 실행:
-  cd /home/yunjung/workspace/sionna2 && \
+  cd /workspace/sionna && \
   PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/deck_facts.py
 """
 from __future__ import annotations
@@ -28,7 +28,7 @@ import sys
 import time
 from datetime import datetime
 
-ROOT = "/home/yunjung/workspace/sionna2"
+ROOT = "/workspace/sionna"
 OUT_JSON = os.path.join(ROOT, "outputs", "deck_facts.json")
 OUT_MD = os.path.join(ROOT, "docs", "DECK_FACTS.md")
 
@@ -2046,7 +2046,7 @@ def main() -> int:
         "meta": {
             "script": "benchmark/deck_facts.py",
             "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark "
+            "run": "cd /workspace/sionna && PYTHONPATH=src:benchmark "
             "~/.venvs/py312/bin/python benchmark/deck_facts.py",
             "purpose_ko": "0804 팀미팅 덱이 인용해도 되는 검증된 사실 기반. "
             "덱은 이 파일 밖의 수를 인용하지 않는다.",

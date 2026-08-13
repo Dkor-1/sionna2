@@ -9,7 +9,7 @@
 > 판정 원장: `outputs/prior_work_survey.json` · `outputs/prior_settled_*.json` 4개. 규칙: 사실 한 줄 = (PDF 경로 · 어느 판 · 축자 문장).
 
 
-*2026-07-23 작성 · 대상 폴더 `/home/yunjung/workspace/paper_sionna_Ray/`*
+*2026-07-23 작성 · 대상 폴더 `/workspace/paper_sionna_Ray/`*
 *우리 수치는 전부 `outputs/*.json` 에서 직접 읽었다. 재실행한 값은 그렇다고 표시했다.*
 *인용은 영어 원문 그대로 옮기고 절·쪽을 밝힌다. 확인 못 한 것은 "논문에 없음" 이라 적는다.*
 
@@ -566,7 +566,7 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 
 ### 8-1. PDF 경로
 
-전부 `/home/yunjung/workspace/paper_sionna_Ray/` 아래.
+전부 `/workspace/paper_sionna_Ray/` 아래.
 
 | 약칭 | 파일명 |
 |---|---|

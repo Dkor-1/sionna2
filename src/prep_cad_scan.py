@@ -25,7 +25,7 @@ import sys
 
 import numpy as np
 
-STL = ("/tmp/claude-1015/-home-yunjung-workspace/b16ec570-b204-4255-9c8a-da23fd2adf6d/"
+STL = ("/tmp/claude-1015/-workspace/b16ec570-b204-4255-9c8a-da23fd2adf6d/"
        "scratchpad/cad/phantom4_scan/files/DJIPHANTOM4_.3MM.stl")
 OUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "meshes", "cad"))
 OUT = os.path.join(OUT_DIR, "phantom4_scan_points.npz")

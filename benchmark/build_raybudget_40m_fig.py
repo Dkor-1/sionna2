@@ -26,7 +26,7 @@ build_raybudget_40m_fig.py — **40 m 에서 광선을 22배 늘리면 시드 �
   ⚠ outputs/range40_shards/ 에 남은 s*_06·s*_07 은 옛 8-샤드 실행의 잔재다. 섞으면 안 된다 —
     이 스크립트는 meta 의 spp 로 걸러낸다.
 
-    PYTHONPATH=src:benchmark /home/yunjung/.venvs/py312/bin/python \
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/build_raybudget_40m_fig.py
 """
 from __future__ import annotations

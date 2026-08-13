@@ -18,7 +18,7 @@ audit_m350rtk_mesh.py — m350rtk 메쉬의 **자유도 감사 + 온전성 + 실
   ⚠ 목록이 곧 주장이다. 항목 하나라도 근거가 없으면 그건 여기 constrained 에 있으면 안 된다.
 
 실행
-  cd /home/yunjung/workspace/sionna2
+  cd /workspace/sionna
   SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/audit_m350rtk_mesh.py
   ... --no-iou      # IoU 정합(약 2.5 분)을 건너뛴다
 """

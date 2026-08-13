@@ -359,7 +359,7 @@ R90 과 순위가 이 연구의 정량 결론이다. 적분시간·잔류·σ �
 순서가 중요하다 — 뒤 단계가 앞 단계의 산출물을 읽는다.
 
 ```bash
-cd /home/yunjung/workspace/sionna2
+cd /workspace/sionna
 PY=~/.venvs/py312/bin/python
 
 # ① 조각 빌더 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장 · 수 초)
