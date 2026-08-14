@@ -8,7 +8,7 @@
       (b) 팔마다 그 위에 얼마가 놓이나 (참값이 0 인 자리다)
 
 ■ 원장
-    outputs/wideband_energy.json  — 값을 여기서만 읽는다. 새로 계산하지 않는다.
+    outputs/wideband_energy{TAG}.json  — 값을 여기서만 읽는다. 새로 계산하지 않는다.
     ⛔GPU 를 쓰지 않는다. JSON 을 읽어 matplotlib 로 그릴 뿐이다.
 
 ■ 하우스 규약
@@ -31,13 +31,19 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt                                      # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = f"{ROOT}/outputs/wideband_energy.json"
-OUT = f"{ROOT}/outputs/figures/ch1_f6_above_tip.png"
+#: 꼬리·팔은 wideband 생성기와 같은 환경변수를 쓴다(WB_TAG · WB_ARMS).
+TAG = os.environ.get("WB_TAG", "")
+SRC = f"{ROOT}/outputs/wideband_energy{TAG}.json"
+OUT = f"{ROOT}/outputs/figures/ch1_f6_above_tip{TAG}.png"
 
 ELS = [0.0, -15.0, -30.0, -45.0, -60.0, -75.0]
-ARMS = [("ours", "Ours (SBR+PO)", "tab:blue"),
-        ("sionna", "PathSolver 11.1M", "tab:orange"),
-        ("sionna_p250000000", "PathSolver 250M", "tab:green")]
+if os.environ.get("WB_ARMS"):
+    ARMS = [tuple(x.strip() for x in spec.split("|"))
+            for spec in os.environ["WB_ARMS"].split(";")]
+else:
+    ARMS = [("ours", "Ours (SBR+PO)", "tab:blue"),
+            ("sionna", "PathSolver 11.1M", "tab:orange"),
+            ("sionna_p250000000", "PathSolver 250M", "tab:green")]
 
 
 def main() -> None:
@@ -72,7 +78,7 @@ def main() -> None:
     x, w = np.arange(len(ELS)), 0.26
     for i, (arm, label, col) in enumerate(ARMS):
         v = [100.0 * cells[f"{arm}/el{e:+.0f}"]["above_f_tip_frac"] for e in ELS]
-        b = ax[1].bar(x + (i - 1) * w, v, w, color=col, label=label)
+        b = ax[1].bar(x + (i - (len(ARMS) - 1) / 2) * w, v, w, color=col, label=label)
         ax[1].bar_label(b, fmt="%.1f", fontsize=8, padding=1)
     ax[1].set_xticks(x)
     ax[1].set_xticklabels([f"{e:+.0f}" for e in ELS])
@@ -81,7 +87,8 @@ def main() -> None:
     ax[1].set_ylim(0, 100)
     ax[1].set_title("(b) Leakage above the limit, where the true value is 0 for every bar "
                     "- lower is better")
-    ax[1].annotate("ours leaks most here", xy=(2 - w, 11.2), xytext=(2.05, 34),
+    if not TAG:
+        ax[1].annotate("ours leaks most here", xy=(2 - w, 11.2), xytext=(2.05, 34),
                    fontsize=10, color="tab:blue",
                    arrowprops=dict(arrowstyle="->", color="tab:blue", lw=1.1))
     ax[1].grid(alpha=0.3, axis="y")

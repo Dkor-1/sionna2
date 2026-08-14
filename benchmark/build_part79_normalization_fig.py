@@ -5,7 +5,7 @@ build_part79_normalization_fig.py — 권 16 절 2 의 **정규화 그림 한 �
 읽는 것 (계산 없음 — 원장만 읽는다, GPU 안 씀)
     outputs/ch1_elevation_figdata.json   앙각별 대역 몫 · 반송파 몫
 쓰는 것
-    outputs/figures/part79_normalization.png
+    outputs/figures/part79_normalization.png   (CH1_TAG 를 주면 그 꼬리가 붙는다)
 
 ⭐ 왜 이 그림이 필요한가
   대역 몫의 분모는 **전체 전력**이다. 동체선(반송파)이 널이 되는 앙각에서는 분자가 그대로여도
@@ -34,7 +34,10 @@ from report_style import assert_fig_text                               # noqa: E
 FIG = os.path.join(ROOT, "outputs", "figures")
 os.makedirs(FIG, exist_ok=True)
 
-D = json.load(open(f"{ROOT}/outputs/ch1_elevation_figdata.json", encoding="utf-8"))
+#: 꼬리는 build_ch1_elevation_figs.py 와 같은 환경변수를 쓴다(CH1_TAG). 팔은 역할 별칭
+#  `ours` 로 잡으므로 판이 바뀌어도 이 파일은 그대로다.
+TAG = os.environ.get("CH1_TAG", "")
+D = json.load(open(f"{ROOT}/outputs/ch1_elevation_figdata{TAG}.json", encoding="utf-8"))
 C = D["cells"]
 
 ELS = [0, -15, -30, -45, -60, -75]          # f_tip > 0 인 6 점 — 추적 대역이 정의되는 자리
@@ -95,7 +98,7 @@ def main() -> None:
 
     fig.suptitle(TXT["title"], fontsize=13.5)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
-    out = os.path.join(FIG, "part79_normalization.png")
+    out = os.path.join(FIG, f"part79_normalization{TAG}.png")
     fig.savefig(out, dpi=150)
     plt.close(fig)
     print(f"✅ {os.path.relpath(out, ROOT)}")

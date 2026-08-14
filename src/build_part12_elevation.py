@@ -59,8 +59,8 @@ SHARD_PART_NAME = "앙각·물리 스위치"
 
 #: 이 라운드가 계획 밖에서 이름을 새로 붙인 조각(위 ⚠ 참조).
 #  제목은 노트북 H1 과 **글자 하나까지 같아야** 한다(색인의 title-mismatch 검사).
-TITLE_80 = ("물리 상한 위 누설은 우리 팔 0.26~15.65 %, 스톡 PathSolver 두 예산 "
-            "5.12~87.02 % 이고, 그 위 끝은 평평한 스펙트럼이 받는 점수다")
+TITLE_80 = ("물리 상한 위 누설은 우리 팔 0.22~17.18 %, 스톡 PathSolver 0.81~96.17 % "
+            "이고, 물리를 켜면 여섯 앙각이 전부 78 % 위다")
 EXTRA = {"el-above-tip-limit": ("80", TITLE_80)}
 
 
@@ -94,7 +94,10 @@ def ref(anchor: str, short: str | None = None) -> str:
 # --------------------------------------------------------------------------- #
 #  원장 — 전부 읽기 전용
 # --------------------------------------------------------------------------- #
-W = from_json("outputs/wideband_energy.json")        # ⭐물리 상한 위 누설(이 절의 본체)
+#: ⭐2026-08-13 재설계 — 이 권이 서술하는 판은 **15 m**(원거리장 밖)다. 파생 원장도
+#  같은 판으로 다시 구웠다. 10 m 옛 판은 꼬리 없는 파일로 그대로 남아 있다.
+WJ = "outputs/wideband_energy_r15.json"
+W = from_json(WJ)                                    # ⭐물리 상한 위 누설(이 절의 본체)
 S = from_json("outputs/elevation_sweep_md.json")     # 앙각 스윕 원장(규약·완결성)
 
 
@@ -113,8 +116,12 @@ def row(engine: str, el_deg: float, *, complete: bool = True) -> str:
 #  조각 80 — 권 16 절 3 「물리 상한 위 누설이 엔진을 가른다」
 # =========================================================================== #
 ELS = (0.0, -15.0, -30.0, -45.0, -60.0, -75.0)
-ARMS = (("ours", "우리 커널"), ("sionna", "PathSolver 11.1M"),
-        ("sionna_p250000000", "PathSolver 250M"))
+#: ⭐세 팔은 **같은 광선 예산(40 억 발)** 을 쓴다. 갈리는 축은 «엔진» 과 «물리 스위치» 뿐이다.
+K_OURS = "ours_r15_n8192"                              # 우리 커널 (SBR + PO)
+K_OFF = "sionna_p4000000000_r15_n8192_d1"              # PathSolver, 물리 스위치 끔
+K_ON = "sionna_p4000000000_phys_r15_n8192_d1"          # PathSolver, 물리 스위치 켬, 깊이 1
+K_ON2 = "sionna_p4000000000_phys_r15_n8192_d2"         # 같은 팔, 깊이 2
+ARMS = ((K_OURS, "우리 커널"), (K_OFF, "PathSolver 물리 끔"), (K_ON, "PathSolver 물리 켬"))
 
 
 def leak(arm: str, el: float) -> str:
@@ -127,8 +134,6 @@ def inband(arm: str, el: float) -> str:
     return W.num(f"cells.{arm}/el{el:+.0f}.500-f_tip", fmt="{:.2f}", unit="dB")
 
 
-#: 물리 스위치를 켠 팔의 같은 잣대(공정 예산 원장) — 이 절은 «범위» 를 적는 데만 쓴다.
-WF = from_json("outputs/wideband_energy_fairbudget.json")
 #: 격자 축 — 같은 표적·같은 앙각에서 격자 간격만 바꾼 사다리.
 WG = from_json("outputs/sbr_grid_convergence.json")
 
@@ -136,14 +141,17 @@ WG = from_json("outputs/sbr_grid_convergence.json")
 def sat(el: float) -> str:
     """평평한 스펙트럼이 받는 점수 — 상한 위 대역이 관찰 대역에서 차지하는 폭의 몫."""
     nyq = float(W.get("_meta.nyquist_hz"))
-    ftip = float(W.get(f"cells.ours/el{el:+.0f}.f_tip_hz"))
-    return (f"{(nyq - ftip) / nyq:.2%} ⟨outputs/wideband_energy.json : "
-            f"_meta.nyquist_hz → cells.ours/el{el:+.0f}.f_tip_hz 를 빼고 나눈 값⟩")
+    ftip = float(W.get(f"cells.{K_OURS}/el{el:+.0f}.f_tip_hz"))
+    return (f"{(nyq - ftip) / nyq:.2%} ⟨{WJ} : "
+            f"_meta.nyquist_hz → cells.{K_OURS}/el{el:+.0f}.f_tip_hz 를 빼고 나눈 값⟩")
 
 
 def leak_phys(arm: str, el: float) -> str:
-    """물리 스위치를 켠 팔의 상한 위 누설 한 칸(공정 예산 원장)."""
-    return WF.num(f"cells.{arm}/el{el:+.0f}.above_f_tip_frac", fmt="{:.2%}")
+    """물리 스위치를 켠 팔의 상한 위 누설 한 칸.
+
+    ⭐새 판에서는 물리를 켠 팔도 **같은 원장·같은 예산**에 있어 `leak` 과 한 곳에서 읽는다.
+    """
+    return leak(arm, el)
 
 
 def _assert_title_numbers() -> None:
@@ -154,8 +162,8 @@ def _assert_title_numbers() -> None:
     def f(arm: str, el: float) -> float:
         return float(W.get(f"cells.{arm}/el{el:+.0f}.above_f_tip_frac"))
 
-    ours = [f("ours", e) for e in ELS]
-    path = [f(a, e) for a in ("sionna", "sionna_p250000000") for e in ELS]
+    ours = [f(K_OURS, e) for e in ELS]
+    path = [f(a, e) for a in (K_OFF, K_ON) for e in ELS]
     want = [format(min(ours), ".2%"), format(max(ours), ".2%"),
             format(min(path), ".2%"), format(max(path), ".2%")]
     missing = [w for w in want if w.rstrip("%") not in TITLE_80]
@@ -169,17 +177,19 @@ _assert_title_numbers()
 
 
 REPRO_80 = dict(
-    cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
-         "benchmark/build_wideband_energy_fig.py",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+    cmd=['WB_TAG=_r15 WB_ARMS="ours_r15_n8192|Ours (SBR+PO)|tab:blue;'
+         'sionna_p4000000000_r15_n8192_d1|PathSolver physics off|tab:orange;'
+         'sionna_p4000000000_phys_r15_n8192_d1|PathSolver physics on|tab:red" '
+         "PYTHONPATH=src:benchmark python benchmark/build_wideband_energy_fig.py",
+         "(같은 환경변수) PYTHONPATH=src:benchmark python "
          "benchmark/build_above_tip_fig.py"],
-    out=["outputs/wideband_energy.json",
-         "outputs/figures/ch1_f6_above_tip.png"],
+    out=["outputs/wideband_energy_r15.json",
+         "outputs/figures/ch1_f6_above_tip_r15.png"],
     runtime="그림 0.95 초 (CPU 전용) · 원장 재생성은 미측정",
     note="시계열은 `outputs/elevation_sweep_md.npz` 에서 읽는다. 팔의 완결성은 "
          "`outputs/elevation_sweep_md.json` 의 `n_missing` 이 정한다")
 
-_R_OURS0 = row("ours", 0.0)
+_R_OURS0 = row(K_OURS, 0.0)
 
 
 def blocks_80() -> list:
@@ -187,34 +197,36 @@ def blocks_80() -> list:
         header(
             num=80,
             title=TITLE_80,
-            did="날개끝 속도가 정하는 상한 위 대역의 에너지 몫을 세 팔 여섯 앙각에서 재고 "
-                "엔진을 가르는 잣대로 삼았다.",
+            did="광선 예산이 같은 세 팔 여섯 앙각에서 날개끝 속도가 정하는 상한 위 대역의 "
+                "에너지 몫을 재고, 엔진과 물리 스위치를 가르는 잣대로 삼았다.",
             results=[
                 f"상한은 f_tip = {W.num('_meta.f_tip_el0_hz', fmt='{:.1f}', unit='Hz')} × "
                 f"cos(el) 이고 관찰 상한은 나이퀴스트 "
                 f"{W.num('_meta.nyquist_hz', fmt='{:.0f}', unit='Hz')} 다 — el 0° 에서 "
                 f"순시 도플러가 닿는 폭은 관찰 대역의 {sat(0.0)} 를 남긴다.",
 
-                f"우리 팔의 누설은 el −75° 의 {leak('ours', -75.0)} 에서 el −15° 의 "
-                f"{leak('ours', -15.0)} 사이다 — f_tip 이 0 보다 큰 여섯 앙각의 값이다.",
+                f"우리 팔의 누설은 el −75° 의 {leak(K_OURS, -75.0)} 에서 el −15° 의 "
+                f"{leak(K_OURS, -15.0)} 사이다 — f_tip 이 0 보다 큰 여섯 앙각의 값이다.",
 
-                f"PathSolver 두 예산은 {leak('sionna_p250000000', -30.0)} ~ "
-                f"{leak('sionna_p250000000', 0.0)} 로, 양 끝이 모두 250M 팔에서 나온다.",
+                f"물리를 끈 PathSolver 는 el −45° 의 {leak(K_OFF, -45.0)} 에서 el 0° 의 "
+                f"{leak(K_OFF, 0.0)} 사이로, 큰 값이 el 0° 한 자리에 몰린다.",
 
-                f"여섯 앙각 중 다섯에서 우리 팔이 두 예산 모두보다 낮고, el −30° 에서는 우리 "
-                f"{leak('ours', -30.0)} 가 250M 의 "
-                f"{leak('sionna_p250000000', -30.0)} 보다 높다.",
+                f"⭐물리를 켠 PathSolver 는 여섯 앙각이 **전부** el −45° 의 "
+                f"{leak(K_ON, -45.0)} 위이고, el −75° 에서 {leak(K_ON, -75.0)} 다 — "
+                f"움직이는 에너지의 대부분이 날개가 낼 수 없는 자리에 있다.",
 
                 f"이 잣대의 위 끝은 포화점이다 — el 0° 에서 평평한 스펙트럼이 받는 점수가 "
-                f"{sat(0.0)} 이고 250M 팔의 {leak('sionna_p250000000', 0.0)} 가 그 값이다.",
+                f"{sat(0.0)} 이고 물리를 켠 팔의 {leak(K_ON, 0.0)} 가 그 근처다.",
             ],
             method=[
                 ("상한의 정의",
                  "f_tip = 2·(2π f_rev R)/λ · cos(el) — `benchmark/elevation_sweep_md.py:205` "
                  "의 `f_tip_at()` 한 곳에 있다"),
                 ("표적의 운동",
-                 "기체는 10 m 한 자리에 고정하고 회전자 위상만 시간에 따라 돌린다 — "
+                 "기체는 15 m 한 자리에 고정하고 회전자 위상만 시간에 따라 돌린다 — "
                  "`benchmark/elevation_sweep_md.py:105` 의 `rotor_phases()`"),
+                ("팔 사이 공정성",
+                 "세 팔이 **광선 40 억 발**로 같다. 갈리는 축은 엔진과 물리 스위치뿐이다"),
                 ("누설 몫",
                  "자세 시계열의 슬로타임 FFT(한나 창)에서 |f| ≥ f_tip 전력 ÷ 전체 전력 — "
                  "`benchmark/build_wideband_energy_fig.py:133`"),
@@ -236,14 +248,14 @@ def blocks_80() -> list:
            "회전자 날개끝이 시선 방향으로 내는 속도가 **순시 도플러**의 상한을 정한다. 그 "
            "상한이 f_tip 이고, 앙각이 내려가면 날개 속도가 시선에 수직해지면서 cos(el) 로 "
            "줄어든다 — el 0° 에서 "
-           f"{W.num('cells.ours/el+0.f_tip_hz', fmt='{:.1f}', unit='Hz')}, 직하방에서 "
-           f"{W.num('cells.ours/el-90.f_tip_hz', fmt='{:.1f}', unit='Hz')} 다.", "",
+           f"{W.num(f'cells.{K_OURS}/el+0.f_tip_hz', fmt='{:.1f}', unit='Hz')}, 직하방에서 "
+           f"{W.num(f'cells.{K_OURS}/el-90.f_tip_hz', fmt='{:.1f}', unit='Hz')} 다.", "",
            "관찰 상한은 그와 무관하게 표본율이 정한다 — PRF "
            f"{W.num('_meta.prf_hz', fmt='{:.0f}', unit='Hz')} 의 절반인 나이퀴스트 "
            f"{W.num('_meta.nyquist_hz', fmt='{:.0f}', unit='Hz')} 다.", "",
            f"⇒ el 0° 에서 순시 도플러가 닿는 폭 밖에 남는 자리는 관찰 대역의 {sat(0.0)} 이고, "
            f"직하방에서는 {sat(-90.0)} 다. 원장은 그 자리를 인공물로 적는다"
-           f"⟨outputs/wideband_energy.json : _meta.physical_limit_ko⟩."),
+           f"⟨{WJ} : _meta.physical_limit_ko⟩."),
 
         md("그 «인공물» 을 0 이 참값인 자리로 읽는 것은 이 잣대가 서는 범위 **밖**이다. "
            "f_tip 은 순시 주파수의 상한이지 스펙트럼이 끊기는 자리가 아니다 — 회전 날개의 "
@@ -259,30 +271,29 @@ def blocks_80() -> list:
         md("### 이 절의 세팅", "",
            table(["설정", "값"], [
                ["표적", S.num("_meta.drone")],
-               ["거리", S.num("_meta.range_m", fmt="{:.1f}", unit="m")],
+               ["거리", S.num("_meta.range_m_primary", fmt="{:.1f}", unit="m")],
                ["PRF", W.num("_meta.prf_hz", fmt="{:.0f}", unit="Hz")],
                ["자세 표본", S.num(f"{_R_OURS0}.n_poses", fmt="{:.0f}", unit="개")],
                ["격자", S.num("_meta.grid_ko")],
                ["빠진 행", W.num("_meta.incomplete_excluded_ko")],
            ])),
 
-        md(f"![above tip limit]({FIG}/ch1_f6_above_tip.png)", "",
+        md(f"![above tip limit]({FIG}/ch1_f6_above_tip_r15.png)", "",
            caption(1, "물리적으로 블레이드가 닿을 수 없는 대역에 어느 팔이 얼마를 "
                       "남기는가?"), "",
            "(a) 는 상한이 앙각을 따라 어디에 그어지는지, (b) 는 그 위에 팔마다 얼마가 "
            "놓이는지다. (b) 의 모든 막대는 참값이 0 이다."),
 
         md("## 세 팔이 상한 위에 남기는 몫", "",
-           table(["앙각", "f_tip", "우리 커널", "PathSolver 11.1M", "PathSolver 250M"],
+           table(["앙각", "f_tip", "우리 커널", "PathSolver 물리 끔", "PathSolver 물리 켬"],
                  [[f"{el:+.0f}°",
-                   W.num(f"cells.ours/el{el:+.0f}.f_tip_hz", fmt="{:.1f}", unit="Hz"),
-                   leak("ours", el), leak("sionna", el),
-                   leak("sionna_p250000000", el)] for el in ELS])),
+                   W.num(f"cells.{K_OURS}/el{el:+.0f}.f_tip_hz", fmt="{:.1f}", unit="Hz"),
+                   leak(K_OURS, el), leak(K_OFF, el), leak(K_ON, el)] for el in ELS])),
 
         md("## 이 잣대가 대역 안 에너지와 다른 점", "",
-           f"대역 안(`500 Hz` 부터 f_tip 까지) 몫은 el 0° 에서 우리 {inband('ours', 0.0)}, "
-           f"11.1M {inband('sionna', 0.0)}, 250M "
-           f"{inband('sionna_p250000000', 0.0)} 로 갈린다. 셋 중 무엇이 참인지는 표적의 "
+           f"대역 안(`500 Hz` 부터 f_tip 까지) 몫은 el 0° 에서 우리 {inband(K_OURS, 0.0)}, "
+           f"물리 끔 {inband(K_OFF, 0.0)}, 물리 켬 "
+           f"{inband(K_ON, 0.0)} 로 갈린다. 셋 중 무엇이 참인지는 표적의 "
            "산란과 조명 기하가 정하고, 그 참값은 이 원장 밖에 있다.", "",
            "상한 위의 참값도 같은 것이 정한다 — 날개 위 진폭 분포가 위상변조 꼬리의 크기를 "
            "정하기 때문이다. 두 잣대의 참값은 같은 이유로 원장 밖에 있다.", "",
@@ -315,43 +326,44 @@ def blocks_80() -> list:
            ])),
 
         md("## 우리 팔도 −15°·−30° 두 자리에서 샌다", "",
-           f"우리 팔의 누설은 네 앙각에서 {leak('ours', -75.0)} ~ {leak('ours', 0.0)} 이고, "
-           f"el −15° 에서 {leak('ours', -15.0)}, el −30° 에서 {leak('ours', -30.0)} 로 "
+           f"우리 팔의 누설은 네 앙각에서 {leak(K_OURS, -75.0)} ~ {leak(K_OURS, 0.0)} 이고, "
+           f"el −15° 에서 {leak(K_OURS, -15.0)}, el −30° 에서 {leak(K_OURS, -30.0)} 로 "
            "올라간다.", "",
-           f"el −30° 는 이 표의 세 팔 중 우리 팔이 가장 높은 유일한 자리다 — 250M 의 "
-           f"{leak('sionna_p250000000', -30.0)} 와 11.1M 의 {leak('sionna', -30.0)} 위다. "
-           "같은 잣대가 우리 팔에도 인공물을 두 자리에서 드러낸다.", "",
+           f"el −15°·−30° 는 이 표에서 우리 팔이 물리를 끈 PathSolver 보다 높은 두 자리다 — "
+           f"각각 {leak(K_OFF, -15.0)} · {leak(K_OFF, -30.0)} 위다. 같은 잣대가 우리 팔에도 "
+           "인공물을 드러낸다.", "",
            f"그 순위는 엔진의 순위라기보다 **표본화 밀도의 순위**다. 우리 팔의 판은 앙각마다 "
            f"λ/12 하나뿐인데, 같은 표적·같은 el −15° 에서 격자만 λ/8 → λ/32 로 바꾸면 같은 "
            f"종류의 대역밖 몫이 "
            f"{WG.num('rows[0].froz_frac_power_beyond_ftip', fmt='{:.2%}')} 에서 "
            f"{WG.num('rows[4].froz_frac_power_beyond_ftip', fmt='{:.3%}')} 로 16 배 내려간다"
-           f"(얼린 격자 팔, 블레이드 대역을 분모로 쓰는 다른 추정기). PathSolver 쪽에서는 "
-           f"광선 예산이 같은 일을 한다 — el −30° 에서 "
-           f"{leak('sionna', -30.0)} → {leak('sionna_p250000000', -30.0)} 다.", "",
-           "원인 후보는 셋이다 — λ/12 격자의 표본화, 10 m 근접장 곡률, 자세 시계열 창의 "
-           "누설. 셋을 가르는 실험은 다음 단계 표에 있고, 나딧에서 같은 삼분할을 실제로 "
-           "수행한 선례가 " + ref("el-nadir-floor", "나딧 잔여") + " 다. "
+           f"(얼린 격자 팔, 블레이드 대역을 분모로 쓰는 다른 추정기).", "",
+           "이 판에서 남는 원인 후보는 둘이다 — λ/12 격자의 표본화와 자세 시계열 창의 누설. "
+           "거리 곡률은 후보에서 빠진다: 이 스윕은 원거리장 경계 밖에서 쟀다"
+           + f"(" + ref("el-sweep-design", "스윕 규약") + "). "
            "이 절이 확정한 것은 두 자리의 크기까지다."),
 
-        md("## 광선을 늘리면 다섯 자리에서 줄고 한 자리에서 는다", "",
-           "11.1M 과 250M 은 광선 수만 다른 두 판이다 — 스윕이 `--spp` 하나로 가른다"
-           "(`benchmark/elevation_sweep_md.py:339`).", "",
-           f"el 0° 에서 누설은 {leak('sionna', 0.0)} → "
-           f"{leak('sionna_p250000000', 0.0)} 로 늘고, 나머지 다섯 앙각에서는 줄어든다 "
-           f"— el −75° 는 {leak('sionna', -75.0)} → "
-           f"{leak('sionna_p250000000', -75.0)} 다.", "",
-           "⇒ 광선 예산은 이 누설을 앙각마다 다른 방향으로 옮긴다. 예산 축 자체는 "
-           + ref("budget-not-physics", "광선 예산") + " 가 잰다."),
+        md("## ⭐물리 스위치를 켜면 여섯 앙각이 전부 상한 위로 간다", "",
+           "굴절·회절·모서리회절을 켠 팔은 같은 광선 예산·같은 자리에서 잰다. 갈리는 축은 "
+           "스위치 하나뿐이다.", "",
+           table(["앙각", "물리 끔", "물리 켬 (깊이 1)", "물리 켬 (깊이 2)"],
+                 [[f"{el:+.0f}°", leak(K_OFF, el), leak(K_ON, el), leak(K_ON2, el)]
+                  for el in ELS]), "",
+           f"물리를 끈 팔은 el 0° 한 자리에서만 {leak(K_OFF, 0.0)} 로 뛰고 나머지 다섯 "
+           f"자리는 {leak(K_OFF, -45.0)} ~ {leak(K_OFF, -60.0)} 사이다. 물리를 켠 팔은 "
+           f"여섯 자리가 전부 {leak(K_ON, -45.0)} 위이고 el −75° 에서 "
+           f"{leak(K_ON, -75.0)} 다.", "",
+           "⇒ 물리를 켜면 **움직이는 에너지의 대부분이 날개가 낼 수 없는 대역**에 놓인다. "
+           "그 자리의 참값은 0 에 가깝다고 알려져 있으므로, 그 몫은 표적의 운동이 아니라 "
+           "엔진이 만든 것으로 읽는다."),
 
-        md(f"이 표의 범위는 **물리 스위치를 끈 두 팔**이다. 굴절·회절·모서리회절과 다중반사를 "
-           f"켠 팔은 같은 잣대에서 더 샌다 — 11.1M + 물리는 el −45° 의 "
-           f"{leak_phys('sionna_phys', -45.0)} 에서 el −60° 의 "
-           f"{leak_phys('sionna_phys', -60.0)} 사이이고, 250M + 물리는 el −45° 의 "
-           f"{leak_phys('sionna_p250000000_phys', -45.0)} 에서 el 0° 의 "
-           f"{leak_phys('sionna_p250000000_phys', 0.0)} 사이다"
-           f"⟨outputs/wideband_energy_fairbudget.json : selftest.verdict⟩. 물리 팔의 판정은 "
-           + ref("physics-above-limit", "물리 팔의 상한 위 누설") + " 가 맡는다."),
+        md(f"반사 깊이는 이 잣대를 움직이지 않는다 — 여섯 자리 모두 깊이 1 과 깊이 2 의 차이가 "
+           f"소수점 아래다(el 0° 에서 {leak(K_ON, 0.0)} 대 {leak(K_ON2, 0.0)}). 깊이를 "
+           "1 에서 2 로 올리는 것은 이 표적·이 자리에서 사실상 같은 계산이다."),
+
+        md("이 몫이 무엇에서 오는지는 이 절이 갈라 두지 않는다. 스위치를 하나씩만 켜서 축을 "
+           "가른 실험은 " + ref("engine-paths", "경로가 무엇을 세나") + " 에 있고, 이 절이 "
+           "확정한 것은 «켜면 여섯 자리가 전부 상한 위로 간다» 까지다."),
 
         md("### 검증된 것과 열어 둔 것", "",
            table(["무엇", "상태"], [
@@ -374,9 +386,9 @@ def blocks_80() -> list:
              "그 두 자리의 누설이 격자 표본화에서 오는지가 수치로 갈린다",
              "`benchmark/elevation_sweep_md.py:76` 의 `DIV = 12` → 48 · **새 계산이 필요하다**"),
 
-            ("디스크에 있는 물리 팔 샤드를 병합해 앙각 칸을 채운다",
-             "물리 축이 이 누설을 어느 쪽으로 옮기는지가 두 점에서 네 점으로 는다",
-             "`benchmark/elevation_sweep_md.py --merge` — 기존 원장을 덮어쓴다"),
+            ("우리 팔 −15°·−30° 두 자리의 남은 후보(격자 표본화 대 창 누설)를 가른다",
+             "우리 팔이 이 잣대에서 유일하게 지는 두 자리의 원인이 특정된다",
+             "같은 시계열에 창 길이 축을 하나 더 태운다 (CPU)"),
 
             ("PRF 를 올려 나이퀴스트 위에서 접혀 들어오는 몫을 잰다",
              "관찰 상한이 이 잣대에 넣는 몫이 갈린다",
@@ -392,20 +404,36 @@ def blocks_80() -> list:
 from report_style import table_from                                   # noqa: E402
 
 J78 = "outputs/elevation_sweep_md.json"
-G78 = from_json("outputs/ch1_elevation_figdata.json")   # 경로 수 교란 축(G5 게이트)
+G78 = from_json("outputs/ch1_elevation_figdata_r15.json")  # 15 m 판의 파생량·게이트
 T78 = from_json("outputs/report07_three_engines.json")  # 방위·자세 수의 원본(덱과 같은 판)
 P78 = from_json("outputs/report15_probe.json")          # 두 가지 D 정의의 원거리장 경계
 NF78 = from_json("outputs/nearfield_sphere_vs_plane.json")  # 구면파↔평면파 환산 몫
 
-_ROWS78 = S.get("rows")
-N78_ALL = len(_ROWS78)                                   # 원장 전체 행
-N78_OK = sum(1 for r in _ROWS78 if not r.get("n_missing"))   # 인용 가능한 행
+_ROWS78 = S.get("rows")          # ⚠각주 색인이 이 순서를 쓰므로 **거르지 않는다**
+#: ⭐2026-08-13 재설계 — 이 권이 서술하는 판은 **15 m** 다. 같은 원장에 10 m 옛 팔이
+#  함께 살지만, 표와 세는 수는 15 m 행만 본다(행 색인은 위 전체 배열 기준을 유지).
+R78_PRIMARY = float(S.get("_meta.range_m_primary"))
+#: 다른 기체(mini 5 Pro · S1000+)는 **이 권의 대상이 아니다** — 기체 축 실험으로 따로 산다.
+OTHER_AIRFRAMES = ("ours_mini5pro_r15_n8192", "ours_s1000plus_r15_n8192")
+_R15 = [r for r in _ROWS78
+        if r.get("range_m") == R78_PRIMARY and r.get("engine") not in OTHER_AIRFRAMES]
+N78_ALL = len(_R15)                                      # 이 권이 서술하는 행
+N78_OK = sum(1 for r in _R15 if not r.get("n_missing"))  # 인용 가능한 행
 N78_EL = len(S.get("_meta.elevations_deg"))
-ARMS78 = ("ours", "sionna", "sionna_p250000000")         # 앙각 7 점을 다 덮은 세 팔
+#: 앙각 7 점을 다 덮은 세 팔 — 재설계판의 주력이다.
+#  A_OURS  우리 커널(SBR+PO)   A_OFF  PathSolver 물리 끔   A_ON  PathSolver 물리 켬
+A_OURS = "ours_r15_n8192"
+A_OFF = "sionna_p4000000000_r15_n8192_d1"
+A_ON = "sionna_p4000000000_phys_r15_n8192_d1"
+A_ON2 = "sionna_p4000000000_phys_r15_n8192_d2"      # 같은 팔의 깊이 2
+ARMS78 = (A_OURS, A_OFF, A_ON)
 
 #: ⭐제목의 숫자는 손으로 치지 않고 **원장에서 세어** 만든다 — 병합으로 행이 늘면 제목도 같이
 #  바뀌고, 색인 샤드(title-mismatch 검사)도 같은 문자열을 받는다.
-TITLE_78 = (f"앙각 {N78_EL} 점을 {float(S.get('_meta.range_m')):.0f} m 한 자리에서 재고, "
+TITLE_78 = (f"앙각 {N78_EL} 점을 {R78_PRIMARY:.0f} m 한 자리에서 광선 40 억 발로 재고, "
+            f"{N78_ALL} 행이 모두 완결이다"
+            if N78_ALL == N78_OK else
+            f"앙각 {N78_EL} 점을 {R78_PRIMARY:.0f} m 한 자리에서 광선 40 억 발로 재고, "
             f"{N78_ALL} 행 중 {N78_OK} 행만 판정에 쓴다")
 REG["el-sweep-design"] = ("78", TITLE_78)
 
@@ -437,8 +465,21 @@ def _idx78(engine: str) -> list[int]:
 
 
 def _idx78_rest() -> list[int]:
-    """앙각 7 점을 다 덮은 세 팔 **밖의** 행 — 예산 사다리와 물리 스위치 실험."""
-    return [i for i, r in enumerate(_ROWS78) if r.get("engine") not in ARMS78]
+    """주력 세 팔 밖의 15 m 팔을 **팔당 한 줄**로 — 깊이 2 · 가림 · 평면파 · 단일축 스위치.
+
+    ⚠행마다 한 줄로 뽑으면 표가 40 줄이 넘는다(규약 위반). 설정은 팔 안에서 같으니
+      팔의 **첫 행**을 대표로 세운다. 완결성은 표가 아니라 본문이 적는다.
+    ⚠10 m 옛 팔과 다른 기체 팔은 이 권의 대상이 아니라 뺀다(원장에는 그대로 남는다).
+    """
+    seen, out = set(), []
+    for i, r in enumerate(_ROWS78):
+        e = r.get("engine")
+        if (e in ARMS78 or e in OTHER_AIRFRAMES or e in seen
+                or r.get("range_m") != R78_PRIMARY):
+            continue
+        seen.add(e)
+        out.append(i)
+    return out
 
 
 def _ref78(anchor: str, short: str) -> str:
@@ -462,9 +503,8 @@ def _tab78(order: list[int], columns: list, fmt: dict, null: str = "미상") -> 
 
 
 def blocks_78() -> list:
-    r_ours0, r_ours90 = row("ours", 0.0), row("ours", -90.0)
-    phys15 = row("sionna_phys", -15.0, complete=False)
-    phys45 = row("sionna_phys", -45.0, complete=False)
+    r_ours0, r_ours90 = row(A_OURS, 0.0), row(A_OURS, -90.0)
+    r_off0, r_on0 = row(A_OFF, 0.0), row(A_ON, 0.0)
     el_lo = S.num("_meta.elevations_deg[0]", fmt="{:+.0f}", unit="°")
     el_hi = S.num(f"_meta.elevations_deg[{N78_EL - 1}]", fmt="{:+.0f}", unit="°")
 
@@ -472,10 +512,10 @@ def blocks_78() -> list:
         header(
             num=78,
             title=TITLE_78,
-            did=f"관측 앙각 {N78_EL} 점을 10 m 구면 한 자리에 고정해 세 팔로 같은 표적을 "
-                f"재고, 완결된 {N78_OK} 행만 인용 대상으로 갈랐다.",
+            did=f"관측 앙각 {N78_EL} 점을 15 m 구면 한 자리에 고정해 광선 예산이 같은 세 "
+                f"팔로 같은 표적을 재고, 규약과 완결성을 이 조각에 못 박았다.",
             results=[
-                f"잰 자리는 하나다 — 반경 {S.num('_meta.range_m', fmt='{:.0f}', unit='m')} "
+                f"잰 자리는 하나다 — 반경 {S.num('_meta.range_m_primary', fmt='{:.0f}', unit='m')} "
                 f"구면, 방위 {T78.num('_meta.az_deg', fmt='{:.0f}', unit='°')}, "
                 f"앙각 {el_lo} 에서 {el_hi} 까지 {N78_EL} 점.",
 
@@ -483,31 +523,28 @@ def blocks_78() -> list:
                 f"PRF {S.num('_meta.prf_hz', fmt='{:,.0f}', unit='Hz')} 로 태웠고, 표적은 "
                 f"{S.num('_meta.drone')} 하나다.",
 
-                f"그 자리는 원거리장 경계의 안쪽이라 근접장 판이고, 우리 커널의 조명 규약은 "
+                f"그 자리는 **원거리장 경계 밖**이다 — 두 가지 D 정의 모두에서 밖이라 이 "
+                f"판은 원거리장 판으로 읽는다. 우리 커널의 조명 규약은 "
                 f"«{S.num('_meta.ours_illumination')}» 다.",
 
-                f"원장 {N78_ALL} 행 중 {N78_OK} 행이 `n_missing = 0` 이고, 물리 스위치 팔의 "
-                f"−15°({S.num(f'{phys15}.n_missing', fmt='{:,.0f}', unit='개')} 빠짐) 와 "
-                f"−45°({S.num(f'{phys45}.n_missing', fmt='{:,.0f}', unit='개')} 빠짐) 두 행은 "
-                f"판정에서 뺀다.",
+                f"광선은 세 팔이 다 같다 — PathSolver 두 팔 모두 "
+                f"{S.num('_meta.sionna_spp_primary', fmt='{:,.0f}', unit='발')} 이고, 이 판의 "
+                f"{N78_ALL} 행은 빠진 자세 없이 전부 완결이다.",
 
-                f"경로 수는 팔 사이에서 예산 축이고 한 팔 안에서 기하 축이다 — 같은 "
-                f"{N78_EL} 점에서 규칙값 팔은 "
-                f"{G78.num('gates.G5_sionna_npaths_min_max[0]', fmt='{:.0f}')}~"
-                f"{G78.num('gates.G5_sionna_npaths_min_max[1]', fmt='{:.0f}')} 개, `--spp` 로 "
-                f"광선을 22.5 배 올린 팔은 "
-                f"{G78.num('gates.G5_sionna_p250000000_npaths_min_max[0]', fmt='{:.0f}')}~"
-                f"{G78.num('gates.G5_sionna_p250000000_npaths_min_max[1]', fmt='{:.0f}')} "
-                f"개를 센다.",
+                f"경로 수는 물리 스위치가 가른다 — 같은 예산에서 물리를 끄면 "
+                f"{G78.num(f'gates.G5_{A_OFF}_npaths_min_max[0]', fmt='{:.0f}')}~"
+                f"{G78.num(f'gates.G5_{A_OFF}_npaths_min_max[1]', fmt='{:.0f}')} 개, 켜면 "
+                f"{G78.num(f'gates.G5_{A_ON}_npaths_min_max[0]', fmt='{:.0f}')}~"
+                f"{G78.num(f'gates.G5_{A_ON}_npaths_min_max[1]', fmt='{:.0f}')} 개를 센다.",
             ],
             method=[
-                ("기하", "반경 10 m 구면 위에서 방위 하나·앙각 일곱. 송신과 수신은 같은 "
+                ("기하", "반경 15 m 구면 위에서 방위 하나·앙각 일곱. 송신과 수신은 같은 "
                          "자리다(baseline 0) — `benchmark/elevation_sweep_md.py:83,175`"),
                 ("표적·회전", "matrice4e 메쉬 전체(동체·팔·로터·짐벌)에 첫 충돌 가림. 로터 "
                               "넷은 덱과 같은 결정론 RPM 이라 바뀌는 축은 앙각 하나다"),
                 ("조명", "우리 커널은 구면파로 조명하고, PathSolver 는 송수신 위치를 실제 "
-                         "기하로 놓는다. 광선 수의 기본값을 거리만 보는 규칙 `(R/3)²×1M` 이 "
-                         "정하고, p250M·p1G·p4G 팔은 `--spp` 로 그 값을 덮어쓴다"),
+                         "기하로 놓는다. 광선 수는 두 PathSolver 팔이 40 억 발로 같다 — "
+                         "거리만 보는 기본 규칙 `(R/3)²×1M` 을 `--spp` 로 덮어썼다"),
                 ("분석 대역", "추적 대역은 앙각마다 그 앙각의 날개끝 주파수로 다시 잡고, "
                               "고정 대역은 덱의 −15° 대역을 그대로 쓴다 — 두 정의는 "
                               "«대역은 두 가지로 잰다» 절에 원장 문장 그대로 싣는다"),
@@ -532,7 +569,7 @@ def blocks_78() -> list:
         md(table(["설정", "값"], [
             ["표적", S.num("_meta.drone")],
             ["반송파", S.num("_meta.fc_hz", fmt="{:.2e}", unit="Hz")],
-            ["거리 — 구면 반경", S.num("_meta.range_m", fmt="{:.0f}", unit="m")],
+            ["거리 — 구면 반경", S.num("_meta.range_m_primary", fmt="{:.0f}", unit="m")],
             ["방위", T78.num("_meta.az_deg", fmt="{:.0f}", unit="°")],
             ["앙각", f"{el_lo} 에서 {el_hi} 까지 {N78_EL} 점"],
             ["자세", S.num(f"{r_ours0}.n_poses", fmt="{:,.0f}", unit="개")],
@@ -542,7 +579,10 @@ def blocks_78() -> list:
         ])),
 
         md("## 그 자리는 어느 원거리장 정의를 쓰느냐로 갈린다", "",
-           f"> {S.num('_meta.range_why_ko')}", "",
+           f"이 스윕이 잰 자리는 반경 "
+           f"{S.num('_meta.range_m_primary', fmt='{:.0f}', unit='m')} 구면 위다. 그 거리를 "
+           f"고른 이유는 하나다 — **원거리장 경계 밖**에 두면 이 권의 어느 문장에도 "
+           f"«근거리장» 단서를 달 필요가 없기 때문이다.", "",
            f"matrice4e·3.5 GHz 에서 2D²/λ 는 **D 를 무엇으로 잡느냐에 따라 두 값**이다 — "
            f"수평 최대치수 {P78.num('airframes.matrice4e.physics.D_horizontal_m', fmt='{:.2f}', unit='m')} "
            f"로 잡으면 "
@@ -551,27 +591,25 @@ def blocks_78() -> list:
            f"{P78.num('airframes.matrice4e.physics.D_diag3d_m', fmt='{:.2f}', unit='m')} 로 "
            f"잡으면 "
            f"{P78.num('airframes.matrice4e.physics.farfield_diag3d_m', fmt='{:.2f}', unit='m')} "
-           f"다. 10 m 는 그 **사이**에 있다. 곧 이 판은 보수적 정의(3D 대각)에서 경계 안쪽이고, "
-           f"수평 최대치수 정의에서는 경계 밖이다. 이 권은 «경계» 를 쓸 때 **정의를 값과 함께** "
-           f"적는다."),
+           f"다. 이 판의 15 m 는 **두 값 모두의 밖**이다 — 보수적 정의(3D 대각)로 재도 경계를 "
+           f"넘는다. 옛 판이 10 m 여서 두 값 사이에 놓였던 것과 갈리는 지점이 여기다. 이 권은 "
+           f"«경계» 를 쓸 때 **정의를 값과 함께** 적는다."),
 
-        md("그것이 이 판에서 실제로 바꾸는 것은 **둘**이다.", "",
-           f"1. 우리 커널은 표적을 구면파로 조명한다 — 원장의 조명 규약은 "
-           f"«{S.num('_meta.ours_illumination')}» 다.",
-           f"2. 평면파 원거리장에서 잰 레벨과 이 판의 레벨을 같은 줄에 놓으려면 **환산 몫을 "
-           f"적는다.** 그 몫의 크기는 이미 재어 뒀다 — 같은 기체·같은 반송파·같은 얼린 격자·"
-           f"앙각 −15° 한 점에서 구면파와 평면파의 차이는 8 m 에서 레벨 "
-           f"{NF78.num('ranges.8.level_diff_db', fmt='{:.2f}', unit='dB')} · 맵 코사인 "
-           f"{NF78.num('ranges.8.map_cosine', fmt='{:.3f}')}, 경계 밖 15 m 에서 "
-           f"{NF78.num('ranges.15.level_diff_db', fmt='{:.2f}', unit='dB')} · "
-           f"{NF78.num('ranges.15.map_cosine', fmt='{:.3f}')} 다. 차이는 거리와 함께 매끄럽게 "
+        md("우리 커널은 이 자리에서도 표적을 **구면파**로 조명한다 — 원장의 조명 규약은 "
+           f"«{S.num('_meta.ours_illumination')}» 다. 평면파로 바꾸면 얼마나 달라지는지는 "
+           f"재어 뒀다: 같은 기체·같은 반송파·같은 얼린 격자·앙각 −15° 한 점에서 두 조명의 "
+           f"차이는 이 판의 15 m 에서 레벨 "
+           f"{NF78.num('ranges.15.level_diff_db', fmt='{:.2f}', unit='dB')} · 맵 코사인 "
+           f"{NF78.num('ranges.15.map_cosine', fmt='{:.3f}')} 이고, 경계 안쪽 8 m 에서도 "
+           f"{NF78.num('ranges.8.level_diff_db', fmt='{:.2f}', unit='dB')} · "
+           f"{NF78.num('ranges.8.map_cosine', fmt='{:.3f}')} 다. 차이는 거리와 함께 매끄럽게 "
            f"줄고 **경계를 그대로 지나간다.**"),
 
         md("다음 셋은 경계와 무관한 **판 조건**이다 — 어느 거리에서도 같다.", "",
            "- PathSolver 는 송수신 위치를 실제 기하로 놓는다. 그 계산이 받는 것은 두 자리의 "
            "좌표뿐이다.",
-           f"- 광선 수 {S.num('_meta.sionna_spp', fmt='{:,.0f}', unit='개')} 는 `(R/3)²×1M` "
-           f"이라는 **거리만 보는** 규칙이 정한다.",
+           f"- 광선 수 {S.num('_meta.sionna_spp_primary', fmt='{:,.0f}', unit='발')} 는 두 "
+           f"PathSolver 팔에 **같은 값으로 손수 지정**했다 — 거리만 보는 기본 규칙을 덮어썼다.",
            f"- 표면 격자는 «{S.num('_meta.grid_ko')}» 다 — 자세마다 다시 잡지 않으므로 앙각 "
            f"사이의 차이는 격자가 아니라 자세와 시선에서 온다."),
 
@@ -602,7 +640,7 @@ def blocks_78() -> list:
            f"값을 싣는다 — 이 열은 앙각 하나의 함수다. 이 표에서 이 판이 잰 열은 "
            f"`빠진 자세` 하나이고, 일곱 행 모두 0 이라 우리 커널의 일곱 점을 그대로 인용한다."),
 
-        md(_tab78(_idx78("ours"),
+        md(_tab78(_idx78(A_OURS),
                   [("앙각 [°]", "el_deg"), ("cos(el)", "cos_el"),
                    ("날개끝 주파수 [Hz]", "f_tip_hz"), ("빠진 자세", "n_missing")],
                   fmt={"el_deg": "{:+.0f}", "cos_el": "{:.4f}",
@@ -610,20 +648,22 @@ def blocks_78() -> list:
 
         md("2 번 몫은 대조군이 가른다. 동체의 «면만» 빼고 정점을 남겨 bbox 와 광선 격자를 "
            "보존하는 `ours_free`(`benchmark/elevation_sweep_md.py:117-122, 132-133`) 가 "
-           "그것이고, 축은 «동체가 막느냐» 하나다. 그 팔은 스크립트에 배선돼 있고 원장에도 "
-           "샤드에도 행이 없어 «다음 단계» 첫 줄이다.", "",
+           "그것이고, 축은 «동체가 막느냐» 하나다. 이 판에서는 그 대조군을 같은 일곱 점에서 "
+           "다 돌려 원장에 실었다.", "",
            "지금 배선은 `keep = np.asarray(fp.g) == \"prop\"` 이라 prop 아닌 면을 **전부** "
            "뺀다 — `DRONE_GROUP_MAT` 기준으로 body·canopy·arm·motor·gear·camera·accent·"
            "battery·pcb 가 함께 빠지므로 가림과 정적 산란체(DC 분모)가 한 축에 묶인다. "
            "가림만 가르려면 `keep` 을 «body·canopy 만 뺀다» 로 좁혀 돌린다."),
 
         md("## 세 팔이 같은 자리에서 낸 것", "",
-           f"![micro-Doppler maps versus elevation]({FIG}/ch1_f1_maps.png)", "",
+           f"![micro-Doppler maps versus elevation]({FIG}/ch1_f1_maps_r15.png)", "",
            caption(2, "세 팔은 같은 자리에서 앙각을 내릴 때 무엇을 냈나?"), "",
-           "위 줄이 우리 커널(SBR + PO), 가운데가 PathSolver, 아래가 광선 예산을 올린 "
-           "PathSolver(`sionna_p250000000`) 다. 판마다 자기 최댓값으로 정규화했으므로 판 "
-           f"사이 레벨 비교는 이 그림 밖이다. 그림은 {N78_EL} 점 중 네 점을 싣고, 일곱 점 "
-           "전부의 완결성은 아래 표에 있다."),
+           "위 줄이 우리 커널(SBR + PO), 가운데가 물리 스위치를 끈 PathSolver, 아래가 켠 "
+           "PathSolver 다. 세 판의 광선 예산은 같다. 판마다 자기 최댓값으로 정규화했으므로 "
+           f"판 사이 레벨 비교는 이 그림 밖이다. 그림은 {N78_EL} 점 중 네 점을 싣고, 일곱 "
+           "점 전부의 완결성은 아래 표에 있다.", "",
+           "맨 오른쪽 칸(−90°, 직하방)에서는 세 판 모두 가로줄만 남는다 — 그 자리는 날개 "
+           "속도의 시선 성분이 0 이라, 남는 것은 정지 성분뿐이다."),
 
         md("## 대역은 두 가지로 잰다", "",
            f"- 추적 대역 — {S.num('_meta.band_track_ko')}",
@@ -631,20 +671,18 @@ def blocks_78() -> list:
            "둘을 함께 내는 이유는 «고정 대역을 쓰면 어디서 무너지나» 가 그 자체로 결과이기 "
            f"때문이다. 그 판정은 {_ref78('el-band-tracking', '대역 추적')} 에 있다."),
 
-        md(f"## 어느 행을 인용해도 되나 — {N78_ALL} 행 중 {N78_OK} 행", "",
-           f"원장은 {N78_ALL} 행이고 그중 {N78_OK} 행이 `n_missing = 0` 이다. 나머지 두 행은 "
-           f"물리 스위치 팔의 −15° 와 −45° 이고 빠진 자세가 각각 "
-           f"{S.num(f'{phys15}.n_missing', fmt='{:,.0f}', unit='개')} · "
-           f"{S.num(f'{phys45}.n_missing', fmt='{:,.0f}', unit='개')} 다 — 그 자리에 0 이 "
-           "박혀 있어 스펙트럼과 레벨이 그만큼 눌린다. 이 권은 그 두 행을 판정에서 뺀다.", "",
-           "아래 표가 세 팔 밖의 행 전부다. 예산 사다리(광선 1 G · 4 G)와 물리 스위치 팔이 "
-           "여기 산다."),
+        md(f"## 어느 행을 인용해도 되나 — {N78_ALL} 행이 모두 완결이다", "",
+           f"이 판의 {N78_ALL} 행은 전부 `n_missing = 0` 이다. `n_missing` 은 시계열에 0 이 "
+           "박힌 자세의 수이고, 0 이 박히면 스펙트럼과 레벨이 그만큼 눌린다. 이 권은 그런 "
+           "행을 인용하지 않는데, 이 판에는 그런 행이 없다.", "",
+           "아래 표는 주력 세 팔 **밖의** 팔들이다 — 반사 깊이를 2 로 올린 판, 동체를 뺀 "
+           "대조군, 평면파 조명 판, 그리고 물리 스위치를 하나씩만 켠 넉 장이다. 설정은 팔 "
+           "안에서 같으므로 팔당 한 줄로 싣는다."),
 
         md(_tab78(_idx78_rest(),
-                  [("팔", "engine"), ("앙각 [°]", "el_deg"), ("빠진 자세", "n_missing"),
-                   ("경로 수 중앙값", "npaths_median")],
-                  fmt={"el_deg": "{:+.0f}", "n_missing": "{:,.0f}",
-                       "npaths_median": "{:.0f}"})),
+                  [("팔", "engine"), ("반사 깊이", "max_depth"), ("광선 [발]", "spp"),
+                   ("물리 스위치", "physics")],
+                  fmt={"max_depth": "{:.0f}", "spp": "{:,.0f}"}, null="해당 없음")),
 
         md("이 권이 이 원장을 읽는 규칙은 셋이다.", "",
            f"1. 판정은 대역 몫으로 하고 `level_db` 는 "
@@ -656,34 +694,33 @@ def blocks_78() -> list:
            "3. 행 번호는 병합할 때마다 밀린다. 이 조각의 표는 `(engine, el_deg, "
            "n_missing == 0)` 으로 행을 찾아 만들었다."),
 
-        md("## 경로 수는 팔 사이에서만 예산 축이다", "",
-           f"10 m 한 자리에서 규칙 `(R/3)²×1M` 은 "
-           f"{S.num('_meta.sionna_spp', fmt='{:,.0f}', unit='개')} 로 고정이고, 일곱 점의 "
-           f"예산이 모두 같은 값 하나다. 그래서 규칙값 팔의 "
-           f"{G78.num('gates.G5_sionna_npaths_min_max[0]', fmt='{:.0f}')}~"
-           f"{G78.num('gates.G5_sionna_npaths_min_max[1]', fmt='{:.0f}')} 개와 250M 팔의 "
-           f"{G78.num('gates.G5_sionna_p250000000_npaths_min_max[0]', fmt='{:.0f}')}~"
-           f"{G78.num('gates.G5_sionna_p250000000_npaths_min_max[1]', fmt='{:.0f}')} 개를 "
-           f"가른 것은 `--spp` 로 규칙값의 22.5 배를 쏜 설정 하나다"
-           f"(`benchmark/elevation_sweep_md.py:88,150`).", "",
-           "예산이 고정된 한 팔 **안에서** 경로 수가 앙각을 따라 움직이는 몫은 시선 기하가 "
-           "정한다. 250M 팔은 앙각 0° 에서 −90° 로 가는 동안 단조로 늘고, 규칙값 팔은 6~13 "
-           "사이에서 흔들려 그 추이를 내지 않는다 — 아래 두 표가 같은 열을 앙각별로 싣는다.", "",
-           f"⇒ 팔 사이에서 경로 수가 다르면 예산 설정을 먼저 보고, 한 팔 안에서 달라지면 시선 "
-           f"기하를 본다. 인용한 네 수는 자세 4,096 개 중앙값의 최소·최대이고, 자세 하나하나의 "
-           f"경로 수는 그보다 넓게 흩어진다. 경로 수를 산란 세기로 읽는 해석은 "
-           f"{_ref78('engine-paths', '경로가 무엇을 세나')} 와 "
-           f"{_ref78('physics-single-axis', '물리 스위치')} 가 다룬다."),
+        md("## 경로 수를 가르는 것은 예산이 아니라 물리 스위치다", "",
+           f"이 판은 두 PathSolver 팔에 광선을 "
+           f"{S.num('_meta.sionna_spp_primary', fmt='{:,.0f}', unit='발')} 로 **똑같이** 줬다. "
+           f"그런데도 한 자세가 찾아 오는 경로 수가 갈린다 — 물리를 끈 팔이 "
+           f"{G78.num(f'gates.G5_{A_OFF}_npaths_min_max[0]', fmt='{:.0f}')}~"
+           f"{G78.num(f'gates.G5_{A_OFF}_npaths_min_max[1]', fmt='{:.0f}')} 개, 켠 팔이 "
+           f"{G78.num(f'gates.G5_{A_ON}_npaths_min_max[0]', fmt='{:.0f}')}~"
+           f"{G78.num(f'gates.G5_{A_ON}_npaths_min_max[1]', fmt='{:.0f}')} 개다.", "",
+           "예산이 같은데 갈렸으므로 이 차이를 만든 것은 물리 스위치다. 스위치를 하나씩만 켜서 "
+           f"어느 스위치가 그 일을 하는지 가른 실험은 "
+           f"{_ref78('physics-single-axis', '물리 스위치')} 에 있다.", "",
+           f"한 팔 **안에서** 경로 수가 앙각을 따라 움직이는 몫은 시선 기하가 정한다 — 두 팔 "
+           f"다 앙각 0° 에서 −90° 로 가며 늘어난다. 아래 두 표가 같은 열을 앙각별로 싣는다.", "",
+           f"⇒ 인용한 네 수는 자세 "
+           f"{S.num(f'{r_ours0}.n_poses', fmt='{:,.0f}', unit='개')} 중앙값의 최소·최대이고, "
+           f"자세 하나하나의 경로 수는 그보다 넓게 흩어진다. 경로 수를 산란 세기로 읽는 "
+           f"해석은 {_ref78('engine-paths', '경로가 무엇을 세나')} 가 다룬다."),
 
-        md("**PathSolver(`sionna`)**", "",
-           _tab78(_idx78("sionna"),
+        md("**PathSolver — 물리 스위치 끔**", "",
+           _tab78(_idx78(A_OFF),
                   [("앙각 [°]", "el_deg"), ("빠진 자세", "n_missing"),
                    ("경로 수 중앙값", "npaths_median")],
                   fmt={"el_deg": "{:+.0f}", "n_missing": "{:.0f}",
                        "npaths_median": "{:.0f}"})),
 
-        md("**PathSolver(`sionna_p250000000`) — 광선 예산을 올린 팔**", "",
-           _tab78(_idx78("sionna_p250000000"),
+        md("**PathSolver — 물리 스위치 켬(같은 광선 예산)**", "",
+           _tab78(_idx78(A_ON),
                   [("앙각 [°]", "el_deg"), ("빠진 자세", "n_missing"),
                    ("경로 수 중앙값", "npaths_median")],
                   fmt={"el_deg": "{:+.0f}", "n_missing": "{:.0f}",
@@ -693,21 +730,22 @@ def blocks_78() -> list:
             ("가림만 끄고 산란체는 남기는 팔을 배선해 같은 일곱 점에서 돌린다 — 지금의 "
              "`ours_free` 는 프로펠러만 남기는 팔이라 분모까지 바뀐다",
              "가림이 대역 몫을 얼마나 지우는지가 정적 성분 변화와 분리돼 나온다",
-             "`benchmark/elevation_sweep_md.py` 가림 축 · **새 계산이 필요하다**"),
+             "`benchmark/elevation_sweep_md.py:117-122` 의 `keep` 을 body·canopy 로 좁힌다 · "
+             "**새 계산이 필요하다**"),
 
             ("−60° 와 −75° 사이를 다섯 점 더 잰다",
              "고정 대역이 대역외 바닥에 닿는 앙각이 15° 격자 안에서 특정된다",
              "`benchmark/elevation_sweep_md.py --els` · "
              + _ref78("el-band-tracking", "대역 추적")),
 
-            ("디스크에 8/8 로 차 있는 물리 팔 샤드를 병합한다",
-             f"완결 행이 {N78_OK} 행에서 늘고 물리 팔이 두 점 아닌 다섯 점 이상에서 선다",
-             "`benchmark/elevation_sweep_md.py --merge` (CPU) — 기존 원장을 다시 쓴다"),
+            ("나딧 삼분할과 CPU 재현기를 이 판의 15 m 에서 다시 만든다",
+             "옛 10 m 판에서 낸 나딧 진단이 이 권의 주력 거리에서 그대로 서는지 갈린다",
+             "`benchmark/verify_nadir_flash.py` · `refute_nadir_mechanism_final.py` 를 거리 "
+             "축으로 열어야 한다 · **새 계산이 필요하다**"),
 
-            ("평면파 조명으로 −90° 한 판을 더 돌린다",
-             "나딧 잔여에서 근접장 몫과 격자 몫이 직접 갈린다",
-             "`benchmark/elevation_sweep_md.py` 조명 축 · "
-             + _ref78("el-nadir-floor", "나딧 잔여")),
+            ("다른 기체(mini 5 Pro · S1000+)의 일곱 점을 같은 규약으로 마저 채운다",
+             "이 권이 본 것이 matrice4e 한 기체의 성질인지 기체 공통인지 갈린다",
+             "`benchmark/elevation_sweep_md.py --drone` (진행 중)"),
         ]),
     ]
 
@@ -964,9 +1002,12 @@ def blocks_82() -> list:
                  "읽고 절대 레벨은 SBR 원장 쪽을 쓴다"),
                 ("판",
                  f"matrice4e 1기 · 3.5 GHz · 거리 "
-                 f"{S.num('_meta.range_m', fmt='{:.0f}', unit='m')} · 방위 고정 · el −90 행의 "
-                 f"자세 {S.num(f'{_R_OURS90}.n_poses', fmt='{:.0f}', unit='개')}"
-                 f"(결측 {S.num(f'{_R_OURS90}.n_missing', fmt='{:.0f}', unit='개')})"),
+                 f"{S.num(f'{_R_OURS90}.range_m', fmt='{:.0f}', unit='m')} · 방위 고정 · el −90 "
+                 f"행의 자세 {S.num(f'{_R_OURS90}.n_poses', fmt='{:.0f}', unit='개')}"
+                 f"(결측 {S.num(f'{_R_OURS90}.n_missing', fmt='{:.0f}', unit='개')}). "
+                 f"⭐이 절의 삼분할·재현기는 **그 거리에 맞춰 만든 것**이라, 이 권의 주력 "
+                 f"거리 {S.num('_meta.range_m_primary', fmt='{:.0f}', unit='m')} 판과 "
+                 f"구분해 읽는다"),
             ],
             prereq=[
                 (xref("el-sweep-design", "스윕 규약"),
@@ -987,8 +1028,11 @@ def blocks_82() -> list:
            f"`{RN.get('R4a_facet_proxy_no_grid_no_occlusion.exact_invariance_ko')}`"),
 
         md("## 10 m 판에서는 굽은 파면이 두 날개를 다르게 본다", "",
-           "이 스윕의 거리 10 m 는 원거리장 경계 안쪽이다 — 원장이 판 조건에 그 사실을 적어 "
-           f"뒀다: `{S.get('_meta.range_why_ko')}`", "",
+           f"이 절이 쓰는 행의 거리는 "
+           f"{S.num(f'{_R_OURS90}.range_m', fmt='{:.0f}', unit='m')} 이고, 보수적 정의(메쉬 3D "
+           f"대각)로 잡은 원거리장 경계 "
+           f"{P78.num('airframes.matrice4e.physics.farfield_diag3d_m', fmt='{:.2f}', unit='m')} "
+           f"의 안쪽이다. 그래서 이 자리에서는 파면이 굽어 있다.", "",
            "굽은 파면에서는 허브가 회전축에서 "
            f"{RN.num('R2_analytic.geometry_from_mesh.hub_radius_m', fmt='{:.4f}', unit='m')} "
            "밀려 있는 만큼 날개끝 왕복거리가 흔들리고, 그 흔들림은 왕복 위상 "
@@ -1054,7 +1098,7 @@ def blocks_82() -> list:
            "이고, 저역통과로 대역 안 내용물만 남기면 "
            f"{RN.num('R3_window_robustness.ours/el-90.fullrecord_band_share_lowpassed_db', fmt='{:.2f}', unit='dB')} "
            "다. 나딧에서 날개끝 상한은 "
-           f"{W.num('cells.ours/el-90.f_tip_hz', fmt='{:.1f}', unit='Hz')} "
+           f"{S.num(f'{_R_OURS90}.f_tip_hz', fmt='{:.1f}', unit='Hz')} "
            "라 이 대역에 블레이드 도플러가 들어올 자리의 폭이 0 이다."),
 
         md("## 엔진마다 나딧 잔여의 크기가 다르다", "",
@@ -1065,14 +1109,12 @@ def blocks_82() -> list:
            "250M "
            f"{NF.num('B_decomposition.sionna_p250000000/el-90.phase_dev_p95_deg', fmt='{:.2f}', unit='°')} "
            "다. 광선을 늘린 팔에서 흔들림이 함께 줄어드는 축이 곧 표본화 축이다.", "",
-           "진폭 쪽도 같은 순서다 — AC/DC 는 우리 팔 "
-           f"{FD.num('cells.ours/el-90.ac_over_dc_db', fmt='{:.2f}', unit='dB')}, "
-           "11.1M "
-           f"{FD.num('cells.sionna/el-90.ac_over_dc_db', fmt='{:.2f}', unit='dB')}, "
-           "250M "
-           f"{FD.num('cells.sionna_p250000000/el-90.ac_over_dc_db', fmt='{:.2f}', unit='dB')} "
-           "다. 도플러가 원리적으로 0 인 자리에서 남는 이 크기는 산란 물리가 아니라 각 "
-           "엔진의 표본화가 정한다."),
+           "위상 흔들림은 **각도**라 팔 사이에서 그대로 견줄 수 있다. 진폭 쪽에는 그런 잣대가 "
+           "이 절에 없다 — 팔마다 정규화가 달라 «흔들리는 전력 ÷ 반송파 전력» 을 dB 로 빼면 "
+           "분모가 다른 두 수를 빼는 것이 된다. 그래서 이 절은 **위상 축만으로** 판정하고, "
+           "진폭 축의 팔 사이 비교는 열어 둔다.", "",
+           "도플러가 원리적으로 0 인 자리에서 남는 이 크기는 산란 물리가 아니라 각 엔진의 "
+           "표본화가 정한다."),
 
         md("## 사각지대는 반각 몇 도짜리 원뿔이다", "",
            *_fig82(2, "ch1_nadir_cone",
@@ -1156,7 +1198,7 @@ def write_shard(no: str, anchor: str, rep: dict, evidence: list | None = None) -
 #    2600 Hz 한 자리에 놓아 얻은 값이라 자리를 옮기면 함께 움직인다 — 그래서 헤드라인은
 #    같은 시계열 안에서 분모가 약분되는 «추적 몫 − 고정 몫» 으로 잡는다.
 # =========================================================================== #
-_F79 = from_json("outputs/ch1_elevation_figdata.json")
+_F79 = from_json("outputs/ch1_elevation_figdata_r15.json")
 TITLE_79 = (
     f"−75° 에서 추적 대역 몫은 고정 대역보다 "
     f"{float(_F79.get('cells.ours/el-75.share_track_db')) - float(_F79.get('cells.ours/el-75.share_fixed_db')):.2f}"
@@ -1165,7 +1207,7 @@ REG["el-band-tracking"] = ("79", TITLE_79)
 
 
 def blocks_79() -> list:
-    FJ79 = "outputs/ch1_elevation_figdata.json"
+    FJ79 = "outputs/ch1_elevation_figdata_r15.json"
     F79 = from_json(FJ79)                                    # 앙각별 대역 몫 · 반송파 몫
     R79 = from_json("outputs/report07_three_engines.json")   # 고정 대역 상단의 출처
 
@@ -1194,13 +1236,15 @@ def blocks_79() -> list:
     ours = [f"ours/el{e}" for e in ("+0", "-15", "-30", "-45", "-60", "-75", "-90")]
 
     repro79 = dict(
-        cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
-             "benchmark/build_ch1_elevation_figs.py",
-             "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+        cmd=['CH1_TAG=_r15 CH1_N=8192 CH1_ARMS="ours_r15_n8192|Ours|#c62828;'
+             'sionna_p4000000000_r15_n8192_d1|PathSolver physics off|#8e9aab;'
+             'sionna_p4000000000_phys_r15_n8192_d1|PathSolver physics on|#1565c0" '
+             "PYTHONPATH=src:benchmark python benchmark/build_ch1_elevation_figs.py",
+             "CH1_TAG=_r15 PYTHONPATH=src:benchmark python "
              "benchmark/build_part79_normalization_fig.py"],
-        out=["outputs/ch1_elevation_figdata.json",
-             "outputs/figures/ch1_f4_bandenergy.png",
-             "outputs/figures/part79_normalization.png"],
+        out=["outputs/ch1_elevation_figdata_r15.json",
+             "outputs/figures/ch1_f4_bandenergy_r15.png",
+             "outputs/figures/part79_normalization_r15.png"],
         runtime="정규화 그림 약 1 초 (CPU). 앙각 그림 다섯 장의 시간은 미측정",
         note=f"두 스크립트 모두 원장을 읽어 CPU 로 FFT 한다⟨{FJ79} : _meta.gpu_ko⟩")
 
@@ -1333,7 +1377,7 @@ def blocks_79() -> list:
            f"있다. 이 잣대가 −90° 에서 재는 것은 «대역이 비었나» 라기보다 «블레이드만의 "
            f"초과분이 있나» 이고, 그 초과분은 0.17 dB 안에서 0 이다."),
 
-        md(*fig79(1, "ch1_f4_bandenergy",
+        md(*fig79(1, "ch1_f4_bandenergy_r15",
                   "앙각을 내리면 프로펠러 대역 에너지가 정말 주는가?"), "",
            "점선이 각 팔의 대역외 기준띠다. **자기 점선 위에 앉은 표식은 바닥에 앉은 것**이고, "
            "오른쪽 패널의 −75°·−90° 에서 붉은 선이 정확히 그렇게 된다."),
@@ -1375,7 +1419,7 @@ def blocks_79() -> list:
            f"통째로 놓인다."),
 
         md("## 분모를 바꿔도 같은 결론이 서는가", "",
-           *fig79(2, "part79_normalization",
+           *fig79(2, "part79_normalization_r15",
                   "전체 전력으로 나눈 몫과 반송파로 나눈 몫이 어디서 갈라지는가?")),
 
         md(table_from(
@@ -1400,9 +1444,9 @@ def blocks_79() -> list:
            f"여섯 점 중 가장 커진다."),
 
         md(f"이 내려앉음은 **우리 팔 한 칸의 성질이다.** 같은 "
-           f"−60° 에서 PathSolver 11.1M 은 "
-           f"{F79.num('cells.sionna/el-60.carrier_share_db', fmt='{:+.2f}', unit='dB')}, 250M 은 "
-           f"{F79.num('cells.sionna_p250000000/el-60.carrier_share_db', fmt='{:+.2f}', unit='dB')} "
+           f"−60° 에서 물리를 끈 PathSolver 는 "
+           f"{F79.num('cells.sionna_off/el-60.carrier_share_db', fmt='{:+.2f}', unit='dB')}, 켠 판은 "
+           f"{F79.num('cells.sionna_on/el-60.carrier_share_db', fmt='{:+.2f}', unit='dB')} "
            f"로 다른 앙각과 같다.", "",
            f"정규화를 반송파로 바꾸는 것은 이 칸을 되돌려 놓지 못한다 — 전체 전력의 대부분이 "
            f"반송파라 두 분모가 함께 내려앉기 때문이다. 반송파 기준으로 재면 −60° 는 "
@@ -1430,27 +1474,27 @@ def blocks_79() -> list:
                 ("f_tip [Hz]", "f_tip_hz")],
                fmt={"share_fixed_db": "{:+.2f}", "share_fixed_oob_db": "{:+.2f}",
                     "f_tip_hz": "{:.1f}"},
-               order=["ours/el-75", "sionna/el-75", "sionna_p250000000/el-75",
-                      "ours/el-90", "sionna/el-90", "sionna_p250000000/el-90"])),
+               order=["ours/el-75", "sionna_off/el-75", "sionna_on/el-75",
+                      "ours/el-90", "sionna_off/el-90", "sionna_on/el-90"])),
 
         md(f"−75° 에서 고정 대역은 f_tip = "
            f"{F79.num('cells.ours/el-75.f_tip_hz', fmt='{:.1f}', unit='Hz')} 위에 통째로 "
            f"놓인다 — 겹치는 폭이 "
            f"{F79.num('prediction.fixed_band_overlap_frac.-75', fmt='{:.4f}')} 다. 우리 팔은 그 "
-           f"자리를 기준띠 높이로 비워 두고, PathSolver 팔들은 "
-           f"{gapdb('cells.sionna/el-75.share_fixed_db', 'cells.sionna/el-75.share_fixed_oob_db')} "
-           f"와 "
-           f"{gapdb('cells.sionna_p250000000/el-75.share_fixed_db', 'cells.sionna_p250000000/el-75.share_fixed_oob_db')} "
-           f"를 채워 넣는다."),
+           f"자리를 기준띠 높이로 비워 둔다. PathSolver 두 팔은 갈린다 — 물리를 끈 팔은 "
+           f"{gapdb('cells.sionna_off/el-75.share_fixed_db', 'cells.sionna_off/el-75.share_fixed_oob_db')} "
+           f"를 채워 넣고, 켠 팔은 "
+           f"{gapdb('cells.sionna_on/el-75.share_fixed_db', 'cells.sionna_on/el-75.share_fixed_oob_db')} "
+           f"로 우리 팔과 마찬가지로 띠 높이에 앉는다."),
 
         md(f"⭐그 세 숫자가 재는 범위는 여기까지다. 기준띠에도 빗살 21~26 차가 들어 있어서, "
            f"이 여유는 «빗살 든 칸 대 빈 칸» 이 아니라 **빗살 대 빗살**의 대비다 — 같은 "
-           f"−75° 에서 11.1M 팔의 고정 대역 차수 4~9 는 국소 바닥 위 "
-           f"{F79.num('cells.sionna/el-75.comb_snr_db[7]', fmt='{:.1f}', unit='dB')} ~ "
-           f"{F79.num('cells.sionna/el-75.comb_snr_db[3]', fmt='{:.1f}', unit='dB')} 이고, "
+           f"−75° 에서 물리를 끈 팔의 고정 대역 차수 4~9 는 국소 바닥 위 "
+           f"{F79.num('cells.sionna_off/el-75.comb_snr_db[7]', fmt='{:.1f}', unit='dB')} ~ "
+           f"{F79.num('cells.sionna_off/el-75.comb_snr_db[3]', fmt='{:.1f}', unit='dB')} 이고, "
            f"기준띠 차수 21~26 은 "
-           f"{F79.num('cells.sionna/el-75.comb_snr_db[24]', fmt='{:.1f}', unit='dB')} ~ "
-           f"{F79.num('cells.sionna/el-75.comb_snr_db[21]', fmt='{:.1f}', unit='dB')} 다. "
+           f"{F79.num('cells.sionna_off/el-75.comb_snr_db[24]', fmt='{:.1f}', unit='dB')} ~ "
+           f"{F79.num('cells.sionna_off/el-75.comb_snr_db[21]', fmt='{:.1f}', unit='dB')} 다. "
            f"빗살의 간격은 회전 입력 f_flash 가 정하므로, 빗살이 섰다는 사실은 산란 커널의 "
            f"점수와 다른 물건이다.", "",
            f"가르는 것은 대역을 f_tip 따라 옮겼을 때다 — 같은 −75° 에서 우리 팔의 추적 대역은 "
@@ -1470,7 +1514,8 @@ def blocks_79() -> list:
              "`benchmark/elevation_sweep_md.py --els -82.5`"),
             ("기하 겹침 예측을 이 두 대역 위에서 다시 채점한다",
              "«대역이 겹치는 만큼 에너지가 준다» 는 예측의 성립 범위가 확정된다",
-             "`outputs/ch1_elevation_figdata.json` 의 `prediction.fixed_band_overlap_frac`"),
+             "`outputs/ch1_elevation_figdata_r15.json` 의 "
+             "`prediction.fixed_band_overlap_frac`"),
         ]),
     ]
 
@@ -1479,18 +1524,18 @@ def blocks_79() -> list:
 #: 이 파일이 짓는 조각들. ⚠다른 절을 맡은 사람은 **자기 행만** 더한다.
 REPORTS = [
     ("78", "el-sweep-design", blocks_78,
-     ["outputs/elevation_sweep_md.json", "outputs/ch1_elevation_figdata.json",
+     ["outputs/elevation_sweep_md.json", "outputs/ch1_elevation_figdata_r15.json",
       "outputs/report07_three_engines.json"]),
     ("79", "el-band-tracking", blocks_79,
-     ["outputs/ch1_elevation_figdata.json",
+     ["outputs/ch1_elevation_figdata_r15.json",
       "outputs/report07_three_engines.json"]),
     ("80", "el-above-tip-limit", blocks_80,
-     ["outputs/wideband_energy.json", "outputs/elevation_sweep_md.json"]),
+     ["outputs/wideband_energy_r15.json", "outputs/elevation_sweep_md.json"]),
+    #: ⚠조각 82 만 옛 10 m 판의 진단 원장을 쓴다 — 그 사실은 조각 안에 적혀 있다.
     ("82", "el-nadir-floor", blocks_82,
      ["outputs/verify_nadir_flash.json",
       "outputs/refute_nadir_mechanism_final.json",
       "outputs/ch1_elevation_figdata.json",
-      "outputs/wideband_energy.json",
       "outputs/elevation_sweep_md.json"]),
 ]
 

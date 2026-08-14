@@ -39,14 +39,22 @@ import matplotlib.pyplot as plt                                      # noqa: E40
 
 NPZ = f"{ROOT}/outputs/elevation_sweep_md.npz"
 JSN = f"{ROOT}/outputs/elevation_sweep_md.json"
-OUTP = f"{ROOT}/outputs/figures/wideband_energy.png"
-OUTJ = f"{ROOT}/outputs/wideband_energy.json"
+#: ⭐2026-08-14 — 같은 코드로 여러 거리 판을 굽는다(옛 10 m 는 기본값 그대로).
+#      WB_ARMS = "키|표시이름|색 ; ..."   (구분자는 세미콜론 — 이름에 쉼표가 들어간다)
+#      WB_TAG  = "_r15"                   출력 파일 뒤에 붙는 꼬리
+TAG = os.environ.get("WB_TAG", "")
+OUTP = f"{ROOT}/outputs/figures/wideband_energy{TAG}.png"
+OUTJ = f"{ROOT}/outputs/wideband_energy{TAG}.json"
 
 ELS = [0.0, -15.0, -30.0, -45.0, -60.0, -75.0, -90.0]
-ARMS = [("ours", "Ours (SBR+PO)", "tab:blue"),
-        ("sionna", "PathSolver 11.1M", "tab:orange"),
-        ("sionna_p250000000", "PathSolver 250M", "tab:green"),
-        ("sionna_phys", "PathSolver + physics", "tab:red")]
+if os.environ.get("WB_ARMS"):
+    ARMS = [tuple(x.strip() for x in spec.split("|"))
+            for spec in os.environ["WB_ARMS"].split(";")]
+else:
+    ARMS = [("ours", "Ours (SBR+PO)", "tab:blue"),
+            ("sionna", "PathSolver 11.1M", "tab:orange"),
+            ("sionna_p250000000", "PathSolver 250M", "tab:green"),
+            ("sionna_phys", "PathSolver + physics", "tab:red")]
 FTIP0 = 1272.9
 
 
