@@ -121,7 +121,7 @@ def pair(els=(0.0, -60.0), stem="deck_maps_pair"):
                              if el else "looking level\nDoppler [Hz]")
             if r == len(els) - 1:
                 a.set_xlabel("time [ms]")
-    fig.suptitle("Same target, same rays, same place — only the engine differs",
+    fig.suptitle("Same target, same rays, same place, and only the engine differs",
                  y=0.985, fontsize=20)
     cb = fig.colorbar(ax[0, 0].collections[0], ax=ax, fraction=0.016, pad=0.010)
     cb.set_label("dB below the brightest point in that panel")

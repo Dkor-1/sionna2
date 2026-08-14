@@ -490,7 +490,7 @@ def blocks_86() -> list:
                ["플래시 예측",
                 PVD.num("_meta.f_flash_hz", fmt="{:.2f}", unit="Hz"), "같음"],
                ["거리", "3 · 15 · 40 m",
-                SWP.num("_meta.range_m", fmt="{:.0f}", unit="m")],
+                SWP.num("_meta.range_m_legacy_default", fmt="{:.0f}", unit="m")],
            ])),
 
         md("## 닮음을 눈이 아니라 수로 잰다", "",
@@ -1071,6 +1071,11 @@ def blocks_87() -> list:
                 f"가 0.02 dB 차다.",
             ],
             method=[
+                ("판",
+                 "⭐이 사다리는 **10 m 자리**에서 돌렸다 — 같은 권의 앞 절들이 서술하는 "
+                 "재설계판(15 m · 광선 40 억 발 고정)과 다른 자리다. 그래서 여기서 읽는 "
+                 "것은 «예산을 올리면 무엇이 어디로 가나» 라는 축 하나이고, 레벨은 "
+                 "**이 사다리 안에서만** 견준다"),
                 ("사다리",
                  "표적·기하·자세 격자·시드를 고정하고 자세당 광선 수만 11.1 M → 250 M → "
                  "1,000 M → 4,000 M 으로 올렸다 — 네 계단 모두 자세 4,096 개가 완결"
@@ -1099,7 +1104,7 @@ def blocks_87() -> list:
 
         md("## 네 계단은 자세당 광선 수 하나만 흔든다", "",
            "팔 이름이 곧 예산이다. `sionna` 는 광선 규칙 (R/3)² × 1M 을 그대로 쓴 팔이고 "
-           "10 m 에서 " + _n("_meta.sionna_spp", "{:,.0f}", "발")
+           "10 m 에서 " + _n("_meta.sionna_spp_primary", "{:,.0f}", "발")
            + " 이다(`benchmark/elevation_sweep_md.py:89`). 꼬리에 숫자가 붙은 팔"
            "(`sionna_p250000000` 등)은 그 수를 직접 준 것이다.", "",
            "네 계단 모두 자세 " + _n(f"{_L0[0]}.n_poses", "{:,.0f}", "개")
@@ -1710,7 +1715,7 @@ def blocks_85() -> list:
                  "(`benchmark/elevation_sweep_md.py:179`)"),
                 ("두 축",
                  "광선 예산(규칙값 "
-                 + num(None, ("outputs/elevation_sweep_md.json", "_meta.sionna_spp"),
+                 + num(None, ("outputs/elevation_sweep_md.json", "_meta.sionna_spp_primary"),
                        "{:,.0f}", "광선/자세")
                  + " · 250M)과 물리 스위치(끔 · 켬) 두 축만 움직이고 앙각 0° · "
                  + FB.num("rows.sionna/el+0.n_poses", 4096, "{:.0f}", "자세")
