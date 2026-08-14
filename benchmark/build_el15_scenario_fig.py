@@ -57,7 +57,7 @@ def from_ledger():
     except Exception:
         return FF_BOUND_FB, FTIP0_FB, "ledger pending — values from part 78"
     m = d.get("_meta", {})
-    if abs(float(m.get("range_m", 0)) - RNG) > 1e-6:
+    if abs(float(m.get("range_m_primary", m.get("range_m", 0))) - RNG) > 1e-6:
         return FF_BOUND_FB, FTIP0_FB, "ledger pending — values from part 78"
     ff = float(m.get("farfield_boundary_m", FF_BOUND_FB))
     ft = FTIP0_FB
@@ -83,7 +83,7 @@ def crop_white(a, pad=6):
 def main():
     FF_BOUND, FTIP0, SRC = from_ledger()
     print(f"  · 원장 출처: {SRC}  (경계 {FF_BOUND:.3f} m · f_tip@0° {FTIP0:.1f} Hz)")
-    fig = plt.figure(figsize=(15.0, 7.4), dpi=170)
+    fig = plt.figure(figsize=(22.0, 8.2), dpi=170)
     gs = fig.add_gridspec(2, 7, height_ratios=[1.02, 1.0],
                           hspace=0.13, wspace=0.030,
                           left=0.030, right=0.988, top=0.905, bottom=0.055)
@@ -157,16 +157,13 @@ def main():
             s.set_edgecolor("#d7dde3")
         ft = FTIP0 * np.cos(np.radians(el))
         lab = "0°" if el == 0 else f"−{abs(el):.0f}°"
-        axi.set_title(f"el {lab}", fontsize=10.4, color=C_PT, pad=3)
-        axi.set_xlabel(f"$f_{{tip}}$ = {ft:.0f} Hz", fontsize=8.8, labelpad=2)
+        axi.set_title(f"el {lab}", fontsize=15.0, color=C_PT, pad=4)
+        axi.set_xlabel(f"$f_{{tip}}$ = {ft:.0f} Hz", fontsize=13.0, labelpad=3)
 
-    fig.text(0.035, 0.955,
-             "Experiment scenario — what the radar sees at each elevation",
-             fontsize=13.4, fontweight="bold", va="bottom")
-    fig.text(0.985, 0.955,
-             "Sionna RT render · 8,192 poses · 4,000M rays · all physics on · "
-             f"max_depth 1 & 2   |   source: {SRC}",
-             fontsize=8.8, color="#5a6570", ha="right", va="bottom")
+    # ⚠제목과 같은 y 에 우측 주석을 두면 긴 제목이 밀고 들어간다 — 주석은 그림 아래로.
+    fig.text(0.5, 0.012,
+             f"lower row rendered with Sionna RT from the radar position   |   {SRC}",
+             fontsize=11.0, color="#5a6570", ha="center", va="bottom")
 
     out = os.path.join(FIGDIR, "el15_scenario.png")
     fig.savefig(out, dpi=170, facecolor="white")

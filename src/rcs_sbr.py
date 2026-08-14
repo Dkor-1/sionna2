@@ -382,13 +382,21 @@ def _exit_visible(sc, P_abs, Nn, u_s, clearance=EXIT_CLEARANCE, cosmin=EXIT_COSM
 #      σ = (4π/λ²) |E_면적분 + A_FW|²          (ptd=True 일 때만)
 #
 #  ■ 위상 규약 일치 — 이게 배선의 전부다
-#      면적분 : e^{+j k (û_i+û_s)·(P − ctr)},   ctr = 0.5·(V.max+V.min)   [이 파일 전역 규약]
-#      모서리 : e^{+j k q·(R_c − org)},         q = û_i + û_s            [ptd_edges.edge_field]
-#    → org 를 ctr 로 맞추면 **원점·부호·계수(모노에서 2k)가 전부 같다**. 모노스태틱 특수화도
+#      면적분 : e^{+j k (û_i+û_s)·(P − ctr)},   ctr = 면적분이 실제로 쓴 격자 중심
+#               (grid_ref 없으면 0.5·(V.max+V.min), 얼린 격자면 grid_ref.ctr)
+#      모서리 : e^{+j k q·(R_c − ctr)},         q = û_i + û_s            [ptd_edges.edge_field]
+#    → 모서리항 원점은 **면적분이 실제로 쓴 ctr 그 자체**를 넘긴다(2026-08-14 수리) —
+#      코히어런트 합의 물리 요건은 「두 항의 원점이 같다」 하나뿐이고, 같은 변수를 넘기므로
+#      구성으로 보장된다. 원점·부호·계수(모노에서 2k)가 전부 같다. 모노스태틱 특수화도
 #      정확히 겹친다: q=2û → e^{+j2k û·(R_c−ctr)} ↔ 면적분 e^{+j2k û·(P−ctr)}.
-#    → `ptd_edges.sbr_phase_origin(mesh)` 이 같은 식으로 원점을 **메쉬에서 다시** 만들고,
-#      아래 `_ptd_edge_A()` 가 면적분이 실제로 쓴 ctr 와 대조해 어긋나면 예외를 던진다.
-#      (원점이 어긋나면 두 항의 상대위상이 무의미해져 코히어런트 합이 조용히 잡음이 된다.)
+#    → 배선검사(D-10): `ptd_edges.sbr_phase_origin(mesh)` 이 원점을 **메쉬에서 독립 유도**하고,
+#      `_ptd_edge_A()` 가 얼리지 않은 경로(frozen=False)에서 ctr 와 대조해 어긋나면 예외를
+#      던진다(같은 식이라 정상이면 비트 0). **얼린 경로(frozen=True)** 는 ctr 가 자세 합집합
+#      bbox 의 얼린 중심이라 현재 자세 bbox 중심과 로터 흔들림만큼(cm 단위) 정당하게 다르다
+#      → 대조 대신 편차를 진단 메타로 기록하고, 격자가 자세를 덮는지는 상류 GRID_REF_CHECK
+#      가 검사한다. ⚠2026-08-14 이전에는 모서리항이 org(자세 bbox 중심)를 원점으로 쓰고
+#      frozen 구분 없이 대조했다 — 얼린 격자 + 로터 자세에서 편차 0.004~0.026 m 로 λ/1000 을
+#      306 배 초과해 ptd=True 가 아예 돌지 않았다(elevation_sweep_md --ptd 재현).
 #    → 단위도 같다: 면적분 Σ|Γ|e^{jφ}·d² [m²], 모서리항도 [m²].
 #
 #  ■ 게이트 일치
@@ -481,10 +489,19 @@ def _ptd_edges_for(mesh: Mesh, group_mat: dict, fc: float, cache_key=None, extra
 
 
 def _ptd_edge_A(mesh: Mesh, group_mat: dict, fc: float, pairs, ctr, scene,
-                pol="V", cache_key=None, opts=None, exit_vis=True):
+                pol="V", cache_key=None, opts=None, exit_vis=True, frozen=False):
     """(û_i, û_s) 쌍 목록에 대한 모서리 프린지 장 A_FW [m²] 배열.
 
-    ctr : 면적분이 실제로 쓴 위상원점. 모서리항 원점과 **대조**한다(어긋나면 예외).
+    ctr : 면적분이 **실제로 쓴** 위상원점. 모서리항도 **바로 이 값**을 원점으로 쓴다 —
+      코히어런트 합의 물리 요건은 두 항의 원점이 *같다* 는 것 하나뿐이고, 여기서 그 요건은
+      구성으로 보장된다(같은 변수를 edge_field 에 그대로 넘긴다).
+    frozen : 호출자가 얼린 격자(grid_ref)를 쓰는가. **False**(생산 기본: rcs_sbr_batch·
+      rcs_sbr_multistatic·grid_ref 없는 sbr_field)면 ctr 는 이 메쉬의 bbox 중심이어야
+      하므로 메쉬에서 **독립 유도**한 원점과 대조해 어긋나면 예외를 던진다(D-10 배선검사).
+      **True**(grid_ref 경로)면 ctr 는 자세 합집합 bbox 의 얼린 중심이라 현재 자세의 bbox
+      중심과 **정당하게** 다르다(로터가 자세 bbox 를 cm 단위로 흔든다 — 실측 매트리스4E
+      0.004~0.026 m). 그때 대조 상대가 없으므로 편차는 진단 메타로만 기록한다. 얼린 격자가
+      이 자세를 덮는지는 상류 `_grid_for`(GRID_REF_CHECK)가 이미 검사했다.
     scene : 가림 판정에 쓸 Mitsuba 씬 — 면적분이 조명 추적에 쓴 **그 씬**.
     exit_vis : 면적분의 같은 이름 스위치를 **그대로 물려받는다**. 면적분에서 입사쪽 가림은
       first-hit 이라 끌 수 없고 출사쪽만 선택인데, 모서리항도 정확히 그 대응을 따른다
@@ -501,15 +518,20 @@ def _ptd_edge_A(mesh: Mesh, group_mat: dict, fc: float, pairs, ctr, scene,
         edges = _ptd_edges_for(mesh, group_mat, fc, cache_key, ek)
     t_ext = time.perf_counter() - t0
 
-    #  ⭐ 위상원점 대조 (D-10) — 면적분과 모서리항이 다른 원점을 쓰면 코히어런트 합이 무의미해진다.
-    org = pe.sbr_phase_origin(mesh)
+    #  ⭐ 위상원점 (D-10) — 면적분과 모서리항이 다른 원점을 쓰면 코히어런트 합이 무의미해진다.
+    #    모서리항 원점은 아래에서 **면적분이 실제로 쓴 ctr 그 자체**를 쓰므로 동일성은 구성으로
+    #    보장된다. 남는 검사는 배선검사다: 얼리지 않은 경로(frozen=False)에서는 ctr 가 메쉬
+    #    bbox 중심과 같아야 하고(같은 식이라 실제 편차는 비트 0), 어긋나면 호출자가 엉뚱한
+    #    ctr 를 넘긴 것이니 막는다. 얼린 경로(frozen=True)는 ctr≠자세 bbox 중심이 정상이다.
+    org = pe.sbr_phase_origin(mesh)                     # 현재 자세 bbox 중심(독립 유도, 진단·대조용)
     ctr = np.asarray(ctr, float)
     dev = float(np.max(np.abs(org - ctr)))
     tol = (C0 / float(fc)) / 1000.0                     # λ/1000 = 위상 0.36°
-    if dev > tol:
+    if not frozen and dev > tol:
         raise ValueError(
             "rcs_sbr PTD: 모서리 위상원점이 면적분 원점(bbox 중심)과 %.4g m 어긋난다 "
-            "(허용 %.4g m). 두 항이 다른 원점을 쓰면 상대위상이 무의미해진다." % (dev, tol))
+            "(허용 %.4g m). 두 항이 다른 원점을 쓰면 상대위상이 무의미해진다. "
+            "얼린 격자(grid_ref)를 쓰고 있다면 frozen=True 를 물려줘야 한다." % (dev, tol))
 
     t0 = time.perf_counter()
     A = np.zeros(len(pairs), complex)
@@ -522,7 +544,9 @@ def _ptd_edge_A(mesh: Mesh, group_mat: dict, fc: float, pairs, ctr, scene,
                 if _ev and not np.array_equal(np.asarray(us, float), np.asarray(ui, float)):
                     v = v & _ray_clear(_sc, pts, us)        # 출사 가시성(바이스태틱만 추가 1발)
                 return v
-        a, m = pe.edge_field(edges, fc, u_i, u_s=u_s, pol=pol, origin=org, visible_fn=vf, **o)
+        #  ⭐원점은 면적분이 실제로 쓴 ctr **그 자체** — org(자세 bbox 중심)가 아니다.
+        #    frozen=False 면 둘이 비트 동일하고, frozen=True 면 ctr(얼린 원점)만이 옳다.
+        a, m = pe.edge_field(edges, fc, u_i, u_s=u_s, pol=pol, origin=ctr, visible_fn=vf, **o)
         A[i] = a
         for kk, vv in m.items():
             if vv is None:
@@ -535,7 +559,10 @@ def _ptd_edge_A(mesh: Mesh, group_mat: dict, fc: float, pairs, ctr, scene,
 
     _LAST_PTD.clear()
     _LAST_PTD.update(pol=str(pol), n_dirs=len(pairs), occlusion=bool(occl),
-                     origin=[float(x) for x in org], origin_dev_from_surface_m=dev,
+                     origin=[float(x) for x in ctr],            # 실제 사용 원점(=면적분 ctr)
+                     origin_frozen=bool(frozen),
+                     mesh_bbox_center=[float(x) for x in org],
+                     origin_dev_from_surface_m=dev,
                      t_extract_s=t_ext, t_edge_s=t_edge, edge_meta=agg,
                      edges_stats=dict(edges.stats),
                      A_abs=[float(abs(x)) for x in A])
@@ -1110,7 +1137,8 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     if ptd:
         _ptd_spacing_warn(d, lam, "sbr_field")
         Etot = Etot + complex(_ptd_edge_A(mesh, group_mat, fc, [(u, u)], ctr, scene,
-                                          pol=ptd_pol, cache_key=cache_key, opts=ptd_opts)[0][0])
+                                          pol=ptd_pol, cache_key=cache_key, opts=ptd_opts,
+                                          frozen=(grid_ref is not None))[0][0])
     return Etot
 
 
@@ -1272,7 +1300,7 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
         _ptd_spacing_warn(d, lam, "sbr_field_bistatic")
         A_ptd = _ptd_edge_A(mesh, group_mat, fc, [(u_i, us) for us in U_s], ctr, scene,
                             pol=ptd_pol, cache_key=cache_key, opts=ptd_opts,
-                            exit_vis=exit_vis)[0]
+                            exit_vis=exit_vis, frozen=(grid_ref is not None))[0]
 
     out = np.zeros(len(U_s), complex)
     for j, us in enumerate(U_s):

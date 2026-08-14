@@ -1,0 +1,21 @@
+PO ablation — decomposed clean signals (per window_XXXXX.npz)
+grade=3  windows=70  N_PULSES=5000  PRF=35000
+
+keys per npz (each complex128 (n_pulses,)):
+  body_none
+  body_occ
+  blade_none_nylon
+  blade_none_cf
+  blade_none_metal
+  blade_occ_nylon
+  blade_occ_cf
+  blade_occ_metal
+
+reconstruct (occlusion x blade-material), body=metal fixed:
+  occ=none, mat=X :  body_none + blade_none_X
+  occ=body, mat=X :  body_occ  + blade_none_X
+  occ=full, mat=X :  body_occ  + blade_occ_X
+  X in {nylon, cf, metal}
+
+post-hoc (NOT baked in): noise, global scale, body-blade ratio,
+  bulk-Doppler, jitter, PRF/time-scale, DC removal, spectrogram params.

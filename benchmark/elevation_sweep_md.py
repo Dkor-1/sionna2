@@ -104,14 +104,17 @@ def run(a) -> None:
     prf = float(TJ["prf_hz"])
     # ⭐자세 수는 인자로 덮어쓸 수 있다. 기본은 원장값이라 기존 동작과 같다.
     n = int(getattr(a, "n_poses", 0) or TJ["n"])
-    az = float(TJ.get("az_deg", 0.0))
+    #: ⭐방위는 인자로 덮어쓸 수 있다. 안 주면 원장값이라 기존 동작과 같다.
+    _az_arg = float(getattr(a, "az_deg", float("nan")))
+    az = float(TJ.get("az_deg", 0.0)) if np.isnan(_az_arg) else _az_arg
     # ⭐덱과 **같은** 로터 설정 — 축 하나만 바꾼다
     rpms = np.asarray(TJ["rpm_per_rotor"], float)
     # ⚠기체를 바꾸면 로터 수가 달라진다(s1000plus 는 8 개, 원장 배열은 4 개다).
     #   그때는 그 기체의 호버 회전수에 원장과 **같은 상대 산포**를 얹어 만든다 —
     #   산포를 버리면 네 로터가 완전 동기라 빗살이 인위로 깨끗해진다.
     n_rot = len(fp.dirs)
-    if rpms.size != n_rot:
+    if (getattr(a, "drone", "") and drone_key != TJ.get("drone", "matrice4e")) \
+            or rpms.size != n_rot:
         base = float(getattr(spec, "hover_rpm", float(np.mean(rpms))))
         rel = rpms / np.mean(rpms)                       # 원장의 상대 산포
         rel = np.resize(rel, n_rot)                      # 로터 수에 맞춰 되풀이
@@ -130,12 +133,15 @@ def run(a) -> None:
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
-        + ("_pw" if plane else "")
+        + ("_pw" if plane else "") \
+        + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}")
 
     if a.engine in ("ours", "ours_free"):
         from rcs_sbr import sbr_field, grid_ref_from
         gm = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
-        d = (2.998e8 / FC) / DIV
+        #: ⭐격자 간격 λ/div. div 를 안 주면 규약값 12 라 기존 샤드와 비트동일하다.
+        div = int(getattr(a, "div", 0) or DIV)
+        d = (2.998e8 / FC) / div
         gref = grid_ref_from([fp.pose(ph[i]) for i in range(0, n, max(1, n // 64))],
                              FC, spacing=d)
         # ⭐가림 대조군 — 동체의 **면만** 뺀다. 정점(mv.v)은 그대로 둬서 bbox·광선격자가
@@ -145,7 +151,8 @@ def run(a) -> None:
             keep = np.asarray(fp.g) == "prop"
             f_keep, g_keep = fp.f[keep], fp.g[keep]
         for el in els:
-            tagd = ("_ptd" if a.ptd else "") + tagr
+            tagd = ("_ptd" if a.ptd else "") + tagr \
+                + ("" if not getattr(a, "div", 0) else f"_div{div}")
             f = f"{SHD}/{a.engine}{tagd}_el{el:+.0f}_{a.shard:02d}.npz"
             if os.path.exists(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
@@ -180,7 +187,23 @@ def run(a) -> None:
     mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else (3 if a.physics else 1)
     # ⭐--only 는 스위치 하나만 켠다(단일축 귀속). --physics 와 배타적이다.
     only = str(getattr(a, "only", "") or "")
-    if only:
+    #: 확산 반사 — 스윕의 상수였다(켬). 순정 기본값·--sw 팔만 바꾼다.
+    diffuse = True
+    swbits = str(getattr(a, "sw", "") or "").upper()
+    if swbits:
+        import re as _re
+        m = _re.fullmatch(r"R([01])D([01])E([01])F([01])", swbits)
+        if not m:
+            raise SystemExit(f"⛔ --sw 형식: R<0|1>D<0|1>E<0|1>F<0|1> (받은 값 {swbits!r})")
+        r_, d_, e_, f_ = (bool(int(x)) for x in m.groups())
+        sw = dict(refraction=r_, diffraction=d_, edge_diffraction=e_)
+        diffuse = f_
+        mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1
+    elif getattr(a, "stock", False):
+        sw = dict(refraction=True, diffraction=False, edge_diffraction=False)
+        mdep = 3
+        diffuse = False
+    elif only:
         sw = dict(refraction=(only == "refr"), diffraction=(only == "diffr"),
                   edge_diffraction=(only == "edge"))
         mdep = 3 if only == "depth3" else 1
@@ -190,6 +213,8 @@ def run(a) -> None:
     cols = drone_colors(spec)
     for el in els:
         tagp = (("" if not a.spp else f"_p{a.spp}") + ("_phys" if a.physics else "")
+                + (f"_sw{swbits}" if swbits else "")
+                + ("_stockdef" if getattr(a, "stock", False) else "")
                 + (f"_only{only}" if only else "")
                 + tagr + ("" if not getattr(a, "max_depth", 0) else f"_d{mdep}"))
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
@@ -215,7 +240,7 @@ def run(a) -> None:
             sc = RP.build_scene(parts, fc=FC)
             RP.place(sc, az=az, el=el, rng=rng_m, baseline=0.0)
             p = RP.rt.PathSolver()(
-                sc, los=True, specular_reflection=True, diffuse_reflection=True,
+                sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
                 # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
                 #   깊이는 --max-depth 로 따로 준다(안 주면 옛 규칙 3/1).
                 max_depth=mdep, **sw,
@@ -247,11 +272,17 @@ def run(a) -> None:
 
 
 # ═══ 병합·분석 ══════════════════════════════════════════════════════════════
-def f_tip_at(el_deg: float) -> float:
+def f_tip_at(el_deg: float, arm: str = "") -> float:
     import sys as _s; _s.path.insert(0, f"{ROOT}/src")
     from drones import DRONES
-    # ⚠여기는 병합·분석 경로다 — 인자 a 가 없다. 원장의 기본 기체를 쓴다.
-    spec = DRONES[TJ.get("drone", "matrice4e")]
+    # ⚠병합·분석 경로 — 팔 이름에 기체 태그(_mini5pro 등)가 있으면 **그 기체**의 제원을
+    #   쓴다. 전에는 원장 기본 기체(matrice4e)로 일괄 계산해 기체 팔의 f_tip 이 틀렸다.
+    key = TJ.get("drone", "matrice4e")
+    for k in DRONES:
+        if f"_{k}_" in arm or arm.endswith(f"_{k}"):
+            key = k
+            break
+    spec = DRONES[key]
     lam = 2.998e8 / FC
     R = spec.prop_dia_mm / 2000.0
     f_rev = float(getattr(spec, "hover_rpm", 6000.0)) / 60.0
@@ -316,7 +347,7 @@ def analyse() -> None:
                 if cfg is None and "cfg" in z:
                     cfg = np.asarray(z["cfg"], float)
             miss = int((E == 0).sum())
-            ft = f_tip_at(el)
+            ft = f_tip_at(el, eng)
             series[f"{eng}/el{el:+.0f}"] = E
             if cfg is not None:
                 # ⚠우리 팔은 깊이·광선 예산 개념이 없어 NaN 으로 적는다 → None 으로 읽는다.
@@ -346,6 +377,17 @@ def analyse() -> None:
                 if eng.startswith("ours"):
                     # 우리 커널은 광선 예산·반사 깊이 개념이 없다 — 격자로 푼다
                     prov.update(max_depth=None, spp=None, physics=None)
+            #: ⭐방위·격자 축은 cfg 에 자리가 없다(옛 샤드와 호환을 지킨다) — 이름에서 읽는다.
+            m_sw = re.search(r"_sw(R[01]D[01]E[01]F[01])", eng)
+            if m_sw:
+                b = m_sw.group(1)
+                prov["switches"] = dict(refraction=b[1] == "1", diffraction=b[3] == "1",
+                                        edge_diffraction=b[5] == "1", diffuse=b[7] == "1")
+            m_az = re.search(r"_az(-?\d+(?:\.\d+)?)", eng)
+            m_div = re.search(r"_div(\d+)", eng)
+            prov["az_deg"] = float(m_az.group(1)) if m_az else float(TJ.get("az_deg", 0.0))
+            prov["grid_div"] = int(m_div.group(1)) if m_div else (
+                DIV if eng.startswith("ours") else None)
             rows.append(dict(
                 engine=eng, el_deg=el, cos_el=round(float(np.cos(np.radians(el))), 4),
                 f_tip_hz=round(ft, 1), n_poses=len(E), n_missing=miss,
@@ -446,6 +488,17 @@ def main() -> None:
                     help="⭐표적 기체를 바꾼다(기본은 원장의 matrice4e). 프롭 지름이 다르면 "
                          "f_flash·f_tip 이 함께 바뀐다 — 분류 축의 첫 재료다. "
                          "파일명에 _<기체> 가 붙는다.")
+    ap.add_argument("--sw", default="",
+                    help="⭐스위치를 **비트로 직접** 준다: R<0|1>D<0|1>E<0|1>F<0|1> — "
+                         "굴절·회절·모서리회절·확산반사. 예: --sw R1D0E0F1. "
+                         "--physics·--only·--stock 과 배타적이고, 깊이는 --max-depth 로. "
+                         "⚠소스 실측: E 는 D=1 일 때만 뜻이 있다(sb_candidate_generator:338). "
+                         "파일명에 _sw<비트> 가 붙는다.")
+    ap.add_argument("--stock", action="store_true",
+                    help="⭐PathSolver 를 **순정 기본값 그대로** 돌린다 — refraction=True · "
+                         "diffraction=False · edge=False · max_depth=3 · diffuse=False. "
+                         "우리 «물리 끔» 판(셋 다 끔·깊이 1·확산 켬)과도, «켬» 판과도 다른 "
+                         "제3의 조합이다. 파일명에 _stockdef 가 붙는다.")
     ap.add_argument("--only", default="",
                     help="⭐물리 스위치를 **하나씩** 켠다 — refr | diffr | edge | depth3. "
                          "--physics 는 넷을 한꺼번에 켜서 귀속이 불가능하다. "
@@ -466,6 +519,15 @@ def main() -> None:
                          "(--physics 면 3, 아니면 1). 물리 스위치와 깊이를 **가르는** 인자다 — "
                          "전에는 --physics 하나에 묶여 있어 귀속이 불가능했다. "
                          "0 이 아니면 파일명에 _d<N> 이 붙는다.")
+    ap.add_argument("--az-deg", type=float, default=float("nan"),
+                    help="⭐방위각 [°]. 비우면 원장값(report07_three_engines:_meta.az_deg). "
+                         "지금까지 모든 판이 방위 한 자리에서만 잰 것이라 «다른 방위에서도 "
+                         "같은 결론이 서는가» 를 시험한 적이 없다. 파일명에 _az<N> 이 붙는다.")
+    ap.add_argument("--div", type=int, default=0,
+                    help="⭐우리 커널의 표면 격자 간격을 λ/DIV 로 정한다. 0 이면 규약값 12. "
+                         "상한 위 누설이 격자 표본화에서 오는지 가르는 축이다 — 촘촘하게 "
+                         "하면 내려가야 한다. 계산량은 대략 DIV² 로 는다. "
+                         "0 이 아니면 파일명에 _div<N> 이 붙는다. (PathSolver 에는 없는 축)")
     ap.add_argument("--merge", action="store_true")
     ap.add_argument("--overwrite", action="store_true")
     a = ap.parse_args()

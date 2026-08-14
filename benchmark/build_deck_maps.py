@@ -55,12 +55,18 @@ ARMS = [
     ("sionna_p4000000000_r15_n8192_d1", "Sionna, physics off"),
     ("sionna_p4000000000_phys_r15_n8192_d1", "Sionna, physics on"),
 ]
+#: ⚠일곱 열 격자에서는 행 이름이 길면 **위아래 행 이름끼리 겹친다**. 짧은 이름을 따로 둔다.
+SHORT = {"Our kernel": "Ours", "Sionna, physics off": "Physics off",
+         "Sionna, physics on": "Physics on"}
 
 #: 잘라 볼 구간 — 앞쪽 20 ms 를 건너뛰고 60 ms. 플래시가 여러 번 지나가는 길이다.
 T0, TSPAN = 0.020, 0.060
 
+#: ⭐발표장에서 읽히는 크기. 슬라이드가 그림에 주는 폭이 약 25 in 이고 그림을 그 폭에
+#  맞춰 축소하므로, 그림 안 글자는 «슬라이드에서 몇 pt 로 보이나» 로 정해야 한다.
 plt.rcParams.update({
-    "font.size": 15, "axes.titlesize": 17, "axes.labelsize": 15,
+    "font.size": 19, "axes.titlesize": 22, "axes.labelsize": 19,
+    "xtick.labelsize": 17, "ytick.labelsize": 17,
     "figure.facecolor": "white", "savefig.facecolor": "white",
 })
 
@@ -74,40 +80,45 @@ def panel(ax, arm, el, *, show_ftip=True):
     ax.set_ylim(-2000, 2000)
     if show_ftip:
         ax.text(0.035, 0.945, r"$f_{\rm tip}$ = " + f"{ft:.0f} Hz",
-                transform=ax.transAxes, color="w", fontsize=12.5, va="top",
+                transform=ax.transAxes, color="w", fontsize=15.5, va="top",
                 bbox=dict(fc="k", alpha=0.5, ec="none", pad=2.2))
     return m
 
 
 def full_grid():
     """팔 3 × 앙각 7 — 덱의 본판."""
-    fig, ax = plt.subplots(3, 7, figsize=(25.0, 10.4), sharex=True, sharey=True)
+    #: ⚠슬라이드의 그림 상자는 가로세로비 약 3.4 다. 그림이 그보다 «세로로 길면»
+#  높이에 맞춰 축소돼 폭을 절반만 쓴다 — 발표장에서 안 읽힌다.
+    fig, ax = plt.subplots(3, 7, figsize=(26.0, 9.0), sharex=True, sharey=True)
     for i, (arm, nm) in enumerate(ARMS):
         for j, el in enumerate(ELS):
             a = ax[i, j]
             m = panel(a, arm, el)
             if i == 0:
-                a.set_title(f"{el:+.0f}°" + ("\n(straight below)" if el == -90 else ""),
-                            pad=8)
+                a.set_title(f"{el:+.0f}" + chr(176), pad=8)
             if j == 0:
-                a.set_ylabel(f"{nm}\nDoppler [Hz]")
+                a.set_ylabel(f"{SHORT.get(nm, nm)}\nDoppler [Hz]")
             if i == 2:
                 a.set_xlabel("time [ms]")
-    fig.suptitle("What the radar sees as it moves under the drone", y=0.985, fontsize=22)
-    fig.text(0.5, 0.945, "each panel is scaled to its own brightest point, "
-                         "so compare shapes and not brightness",
-             ha="center", fontsize=14, color="0.35")
-    cb = fig.colorbar(ax[0, 0].collections[0], ax=ax, fraction=0.013, pad=0.008)
-    cb.set_label("dB below the brightest point in that panel")
+    # ⚠제목·부제·컬러바의 자리를 **직접** 잡는다. 기본 배치에 맡기면 그림을 눕힐 때마다
+    #   제목이 열 제목 위로 내려앉는다(2026-08-14 에 두 번 겪었다).
+    fig.subplots_adjust(top=0.905, bottom=0.098, left=0.078, right=0.952,
+                        hspace=0.20, wspace=0.10)
+    fig.text(0.5, 0.962, "each panel scaled to its own peak",
+             ha="center", fontsize=19, color="0.35")
+    cax = fig.add_axes([0.960, 0.088, 0.008, 0.817])
+    cb = fig.colorbar(ax[0, 0].collections[0], cax=cax)
+    cb.set_label("dB below the brightest point in that panel", fontsize=17)
     out = f"{FIG}/deck_maps_full.png"
-    fig.savefig(out, dpi=150, bbox_inches="tight")
+    fig.savefig(out, dpi=150)          # ⚠tight 로 자르면 계산해 둔 가로세로비가 틀어진다
     plt.close(fig)
     print(f"  ✅ {out}")
 
 
-def pair(els=(0.0, -60.0), stem="deck_maps_pair"):
-    """앙각 두 점만 크게 — 한 슬라이드에서 «무엇이 다른가» 를 묻는 판."""
-    fig, ax = plt.subplots(len(els), 3, figsize=(17.0, 4.7 * len(els)),
+def pair(els=(0.0, -60.0), stem="deck_maps_pair", title=None):
+    """앙각 한두 점만 크게 — 한 슬라이드에서 «무엇이 다른가» 를 묻는 판."""
+    nr = len(els)
+    fig, ax = plt.subplots(nr, 3, figsize=(27.5, 4.1 * nr + 0.6),
                            sharex=True, sharey=True)
     ax = np.atleast_2d(ax)
     for r, el in enumerate(els):
@@ -117,12 +128,13 @@ def pair(els=(0.0, -60.0), stem="deck_maps_pair"):
             if r == 0:
                 a.set_title(nm, pad=8)
             if c == 0:
-                a.set_ylabel(f"looking {abs(el):.0f}° below level\nDoppler [Hz]"
-                             if el else "looking level\nDoppler [Hz]")
+                a.set_ylabel(f"{el:+.0f}" + chr(176) + "\nDoppler [Hz]")
             if r == len(els) - 1:
                 a.set_xlabel("time [ms]")
-    fig.suptitle("Same target, same rays, same place, and only the engine differs",
-                 y=0.985, fontsize=20)
+    #: ⚠한 줄짜리 판에서 y 를 0.985 로 두면 제목이 **열 제목과 겹친다**. 줄 수로 띄운다.
+    if title:
+        fig.suptitle(title, y=1.0 - 0.012 / nr, fontsize=25)
+        fig.subplots_adjust(top=0.86 if nr == 1 else 0.92)
     cb = fig.colorbar(ax[0, 0].collections[0], ax=ax, fraction=0.016, pad=0.010)
     cb.set_label("dB below the brightest point in that panel")
     out = f"{FIG}/{stem}.png"
@@ -131,8 +143,209 @@ def pair(els=(0.0, -60.0), stem="deck_maps_pair"):
     print(f"  ✅ {out}")
 
 
+def leakage_bars():
+    """상한 위 누설 막대 — 덱 전용 **가로 판**.
+
+    리포트 그림(`ch1_f6_above_tip_r15.png`)은 위아래 두 칸이라 슬라이드에서 폭 30 % 밖에
+    못 쓴다. 발표장에서 읽히려면 폭을 채워야 하므로 막대만 넓게 다시 그린다.
+    """
+    WB = json.load(open(f"{ROOT}/outputs/wideband_energy_r15.json"))["cells"]
+    els = [0, -15, -30, -45, -60, -75]
+    bars = [(nm, [100.0 * WB[f"{arm}/el{e:+.0f}"]["above_f_tip_frac"] for e in els], c)
+            for (arm, nm), c in zip(ARMS, ("#c62828", "#8e9aab", "#1565c0"))]
+    fig, ax = plt.subplots(figsize=(24.0, 7.0))
+    x = np.arange(len(els))
+    w = 0.26
+    for i, (nm, v, c) in enumerate(bars):
+        b = ax.bar(x + (i - 1) * w, v, w, color=c, label=nm)
+        ax.bar_label(b, fmt="%.1f", fontsize=17, padding=2)
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{e:+.0f}" + chr(176) for e in els], fontsize=19)
+    ax.set_xlabel("angle the radar looks down from level", fontsize=19, labelpad=10)
+    ax.set_ylabel("share of the motion that lands\nabove the blade ceiling  [%]",
+                  fontsize=19)
+    ax.set_ylim(0, 108)
+    ax.tick_params(axis="y", labelsize=17)
+    ax.grid(alpha=0.25, axis="y")
+    ax.set_axisbelow(True)
+    # ⚠범례를 축 **안**에 두면 +0 도 막대와 −75 도 막대 둘 다에 걸린다(양 끝이 다 높다).
+    #   축 밖 위쪽에 가로로 눕혀 데이터와 겹칠 여지를 없앤다.
+    ax.legend(fontsize=18, ncol=3, loc="lower center", bbox_to_anchor=(0.5, 1.005),
+              frameon=False, handlelength=1.6, columnspacing=2.4)
+    out = f"{FIG}/deck_leakage.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
+def structure_bars():
+    """⭐**구조 검사** — 상한 위 에너지 중 «날개 박자의 정수배» 에 붙은 몫 [%].
+
+    왜 이 잣대인가 (2026-08-14 적대검증 2 차의 결론)
+    ----------------------------------------------
+    「상한 위 누설 %」는 분모가 **정지 성분을 뺀 AC 전력**이라, 평평한 표본화 잡음만 남은
+    팔이 자동으로 높은 점수를 받는다 — AC/DC 가 무너진 것과 같은 병이다. 실제로 물리를 켠
+    팔의 96 % 는 그 팔의 AC 전력이 총 수신전력의 0.1 % 뿐이라는 사실을 감춘다.
+
+    이 잣대는 **세기가 아니라 구조**를 잰다. 상한 위 에너지가 f_flash 의 정수배에 몰려 있나,
+    아니면 고르게 퍼져 있나. 눈금·정규화에 무관하고, **널과 천장이 둘 다 있다** —
+    백색잡음이 13 %, 이상적인 로터가 100 % 다.
+    """
+    ELS6 = [0, -15, -30, -45, -60, -75]
+    FT0 = float(ROW[(ARMS[0][0], 0.0)]["f_tip_hz"])
+
+    def share(E, el, hw=8.0):
+        n = E.size
+        P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
+        fr = np.fft.fftfreq(n, 1.0 / PRF)
+        above = np.abs(fr) >= FT0 * np.cos(np.radians(el))
+        k = np.round(np.abs(fr) / FFL)
+        return 100.0 * P[above & (np.abs(np.abs(fr) - k * FFL) <= hw)].sum() / P[above].sum()
+
+    rng = np.random.default_rng(0)
+    white = rng.normal(size=8192) + 1j * rng.normal(size=8192)
+    t = np.arange(8192) / PRF
+    ideal = np.sum([np.exp(1j * 2 * np.pi * k * FFL * t) for k in range(1, 40)], axis=0)
+
+    fig, ax = plt.subplots(figsize=(24.0, 7.0))
+    x = np.arange(len(ELS6))
+    w = 0.26
+    for i, ((arm, nm), c) in enumerate(zip(ARMS, ("#c62828", "#8e9aab", "#1565c0"))):
+        v = [share(np.asarray(Z[f"{arm}/el{e:+.0f}"], complex), e) for e in ELS6]
+        b = ax.bar(x + (i - 1) * w, v, w, color=c, label=nm)
+        ax.bar_label(b, fmt="%.0f", fontsize=18, padding=2)
+    # ⚠두 기준선의 이름을 그림 안에 직접 쓰면 −75° 막대 라벨과 겹친다 — 범례로 뺀다.
+    wn = float(np.mean([share(white, e) for e in ELS6]))
+    ax.axhline(100.0, color="#2e7d32", lw=2.0, ls="-", label="a perfect rotor")
+    ax.axhline(wn, color="0.35", lw=1.8, ls="--", label="pure noise")
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{e:+.0f}" + chr(176) for e in ELS6], fontsize=19)
+    ax.set_xlabel("angle the radar looks down from level", fontsize=19, labelpad=10)
+    ax.set_ylabel("share of the leftover energy that\nlands on the blade rhythm  [%]",
+                  fontsize=19)
+    ax.set_ylim(0, 118)
+    ax.tick_params(axis="y", labelsize=17)
+    ax.grid(alpha=0.25, axis="y")
+    ax.set_axisbelow(True)
+    ax.legend(fontsize=17, ncol=5, loc="lower center", bbox_to_anchor=(0.5, 1.005),
+              frameon=False, handlelength=1.8, columnspacing=2.0)
+    out = f"{FIG}/deck_structure.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
+def band_energy_spectrum():
+    """⭐**블레이드 대역 전력의 변조 스펙트럼** — 두 각도씩, 넓은/확대 × 3팔/2팔 = 8 장.
+
+    사용자 지시(2026-08-15): −90° 를 추가하되 잘 보이게 «0°·−30° 한 장, −60°·−90° 한 장».
+    ⚠−90° 는 날개 천장이 0 Hz 라 **블레이드 대역이 정의되지 않는다** — 0° 의 대역
+    (0.35~1.0 × 1272.9 Hz)을 빌려 쓰고 패널에 명시한다. 참값이 «선 없음» 인 자리라,
+    여기서 빗살이 서면 그것이 곧 인공물이다.
+    """
+    FT0 = float(ROW[(ARMS[0][0], 0.0)]["f_tip_hz"])
+
+    def modspec(arm, el):
+        """대역 전력 g(t) 의 변조 스펙트럼 — el=−90 만 0° 대역을 빌린다."""
+        E = np.asarray(Z[f"{arm}/el{el:+.0f}"], complex)
+        ft = FT0 * np.cos(np.radians(el))
+        borrowed = ft <= 1e-6
+        if borrowed:
+            ft = FT0
+        nper = max(8, int(round(0.45 * PRF / FFL)))
+        nfft = 8 * nper
+        w = np.hanning(nper + 1)[:-1]
+        from numpy.lib.stride_tricks import sliding_window_view
+        frm = sliding_window_view(E, nper)[::2]
+        S = np.abs(np.fft.fft(frm * w, n=nfft, axis=1)).T / w.sum()
+        f = np.fft.fftshift(np.fft.fftfreq(nfft, 1.0 / PRF))
+        S = np.fft.fftshift(S, axes=0)
+        m = (np.abs(f) >= 0.35 * ft) & (np.abs(f) <= ft)
+        g = (S ** 2)[m, :].sum(axis=0)
+        fs = PRF / 2.0
+        n = g.size
+        Y = np.abs(np.fft.rfft((g - g.mean()) * np.hanning(n))) ** 2
+        fr = np.fft.rfftfreq(n, 1.0 / fs)
+        return fr, Y, borrowed
+
+    cols = ("#c62828", "#8e9aab", "#1565c0")
+    for narm, atag in ((3, ""), (2, "2")):
+        for lo, hi, vtag in ((100.0, 1000.0, "wide"), (0.0, 420.0, "zoom")):
+            for pair, ptag in (((0.0, -30.0), "a"), ((-60.0, -90.0), "b")):
+                fig, ax = plt.subplots(1, 2, figsize=(26.0, 9.4), sharey=True)
+                for j, el in enumerate(pair):
+                    a = ax[j]
+                    borrowed = False
+                    for arm, nm in ARMS[:narm]:
+                        fr, Y, borrowed = modspec(arm, el)
+                        m = (fr >= lo) & (fr <= hi)
+                        a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()), lw=2.0,
+                               color=cols[[x[0] for x in ARMS].index(arm)],
+                               label=SHORT[nm])
+                    for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
+                        a.axvline(k * FFL, color="0.35", ls="--", lw=1.2, zorder=1)
+                    a.set_xlim(lo, hi)
+                    if hi > 500:
+                        a.set_xticks(np.arange(200, hi + 1, 200))
+                    a.set_ylim(-52, 4)
+                    a.set_title(f"{el:+.0f}" + chr(176)
+                                + ("   (band borrowed from 0" + chr(176) + ")"
+                                   if borrowed else ""), pad=8)
+                    a.set_xlabel("modulation rate [Hz]")
+                    a.grid(alpha=0.25)
+                    a.set_axisbelow(True)
+                    if j == 0:
+                        a.set_ylabel("line level [dB]")
+                        a.legend(fontsize=17, loc="lower right", framealpha=0.95)
+                fig.subplots_adjust(top=0.845, bottom=0.115, left=0.055, right=0.985,
+                                    wspace=0.05)
+                fig.text(0.5, 0.935, f"dashed lines mark {FFL:.1f} Hz and its "
+                                     f"multiples, the rate the blades should make",
+                         ha="center", fontsize=19, color="0.35")
+                out = f"{FIG}/deck_be{atag}_{vtag}_{ptag}.png"
+                fig.savefig(out, dpi=150)
+                plt.close(fig)
+                print(f"  ✅ {out}")
+
+
+def maps_dc_removed(els=(0.0, -30.0, -60.0)):
+    """⭐**정지 성분을 뺀** 맵 — 가만히 있는 동체가 맵 에너지의 32~66 % 를 먹는다.
+
+    빼기 전에는 세 판 모두 가운데 가로띠가 화면을 지배해 색눈금을 가져간다. 자세 시계열의
+    평균(= 정지 성분)을 빼면 **움직이는 것만** 남아 판 사이 차이가 드러난다.
+    """
+    fig, ax = plt.subplots(len(els), 3, figsize=(27.5, 3.1 * len(els) + 0.5),
+                           sharex=True, sharey=True)
+    ax = np.atleast_2d(ax)
+    n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    for r, el in enumerate(els):
+        for c, (arm, nm) in enumerate(ARMS):
+            a = ax[r, c]
+            E = np.asarray(Z[f"{arm}/el{el:+.0f}"], complex)[n0:n0 + nz]
+            E = E - E.mean()                      # ⭐정지 성분 제거
+            f, t, S, _ = flash_spec(E, PRF, FFL, PERIODS)
+            draw(a, t, f, S, float(ROW[(arm, el)]["f_tip_hz"]))
+            a.set_ylim(-2000, 2000)
+            if r == 0:
+                a.set_title(nm, pad=8)
+            if c == 0:
+                a.set_ylabel(f"{el:+.0f}" + chr(176) + "\nDoppler [Hz]")
+            if r == len(els) - 1:
+                a.set_xlabel("time [ms]")
+    cb = fig.colorbar(ax[0, 0].collections[0], ax=ax, fraction=0.014, pad=0.008)
+    cb.set_label("dB below the brightest point in that panel", fontsize=17)
+    out = f"{FIG}/deck_maps_dc.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
 if __name__ == "__main__":
     print("═══ 덱 맵 ═══")
+    band_energy_spectrum()
+    maps_dc_removed()
+    structure_bars()
+    leakage_bars()
     full_grid()
     pair((0.0, -60.0), "deck_maps_pair")
     pair((-90.0,), "deck_maps_nadir")

@@ -1,0 +1,231 @@
+# -*- coding: utf-8 -*-
+"""
+build_switch_grid_figs.py — **물리 스위치 7 조합**의 STFT 맵·대역 에너지 그림과 원장.
+
+사용자 지시(2026-08-15): 「물리 스위치 7 조합 결과 STFT 마이크로도플러 맵을 토대로 다음
+작업을 정한다 — 맵 결과물들과 blade band energy 를 다 실어서 읽기 편하게, 팀미팅 때
+보이는 분석 방식으로」.
+
+판: matrice4e · 3.5 GHz · 15 m · 앙각 −30° · 자세 8,192 · 광선 40 억 발 · 깊이 1 ·
+확산반사 켬 — 전부 같고, 갈리는 축은 굴절 R · 회절 D · 모서리회절 E 세 비트뿐이다.
+(⚠101(굴절+모서리)은 소스 구조상 100 과 동일해 계산하지 않았다 — 모서리회절 후보 생성이
+`if diffraction_enabled:` 안에 있다. sb_candidate_generator:338)
+
+굽는 것
+    outputs/switch_grid.json                   조합별 수치(보고서가 인용)
+    outputs/figures/swgrid_maps.png            STFT 맵 — 우리 커널 + 7 조합 (2×4)
+    outputs/figures/swgrid_maps_dc.png         같은 판, 정지 성분 제거
+    outputs/figures/swgrid_be_wide.png         대역 에너지 100~1,000 Hz (조합당 패널)
+    outputs/figures/swgrid_be_zoom.png         대역 에너지 0~420 Hz
+
+    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_switch_grid_figs.py
+"""
+from __future__ import annotations
+
+import glob
+import json
+import os
+import sys
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt                                       # noqa: E402
+import numpy as np                                                    # noqa: E402
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+sys.path.insert(0, os.path.join(ROOT, "src"))
+from md_mapstyle import auto_periods, flash_spec, draw                 # noqa: E402
+
+FIG = os.path.join(ROOT, "outputs", "figures")
+SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
+EL = -30.0
+
+TJ = json.load(open(f"{ROOT}/outputs/report07_three_engines.json"))["_meta"]
+PRF = float(TJ["prf_hz"])
+FFL = float(TJ["f_flash_hz"])
+FT30 = float(TJ["f_tip_hz"]) / np.cos(np.radians(-15.0)) * np.cos(np.radians(EL))
+PERIODS = auto_periods(PRF, FFL)
+
+#: 표시 순서 — 왼쪽 위가 기준(우리 커널), 그 다음 «끈 것부터 켠 것 순».
+#  이름은 청중용(스위치 이니셜이 아니라 말로).
+ARMS = [
+    ("ours_r15_n8192",                              "Our kernel"),
+    ("sionna_p4000000000_r15_n8192_d1",             "all off"),
+    ("sionna_p4000000000_onlyrefr_r15_n8192",       "refraction only"),
+    ("sionna_p4000000000_onlyedge_r15_n8192",       "edge only"),
+    ("sionna_p4000000000_onlydiffr_r15_n8192",      "diffraction only"),
+    ("sionna_p4000000000_swR0D1E1F1_r15_n8192_d1",  "diffraction + edge"),
+    ("sionna_p4000000000_swR1D1E0F1_r15_n8192_d1",  "refraction + diffraction"),
+    ("sionna_p4000000000_phys_r15_n8192_d1",        "all on"),
+]
+T0, TSPAN = 0.020, 0.060
+
+plt.rcParams.update({
+    "font.size": 19, "axes.titlesize": 21, "axes.labelsize": 19,
+    "xtick.labelsize": 16, "ytick.labelsize": 16,
+    "figure.facecolor": "white", "savefig.facecolor": "white",
+})
+
+
+def load(arm):
+    """샤드 16 장 → 자세 8,192 시계열. 빠진 자세가 있으면 그 수를 함께 돌려준다."""
+    fs = sorted(glob.glob(f"{SHD}/{arm}_el{EL:+.0f}_*.npz"))
+    E = seen = None
+    for f in fs:
+        d = np.load(f)
+        n = int(np.asarray(d["meta"], float)[3])
+        if E is None:
+            E = np.zeros(n, complex)
+            seen = np.zeros(n, bool)
+        ii = d["idx"].astype(int)
+        E[ii] = d["E"]
+        seen[ii] = True
+    if E is None:
+        raise SystemExit(f"⛔ 샤드가 없다: {arm}")
+    return E, int((~seen).sum())
+
+
+def modspec(E):
+    """블레이드 대역(0.35~1.0 × f_tip(−30°)) 전력의 변조 스펙트럼 — 덱과 같은 규약."""
+    nper = max(8, int(round(0.45 * PRF / FFL)))
+    nfft = 8 * nper
+    w = np.hanning(nper + 1)[:-1]
+    from numpy.lib.stride_tricks import sliding_window_view
+    frm = sliding_window_view(E, nper)[::2]
+    S = np.abs(np.fft.fft(frm * w, n=nfft, axis=1)).T / w.sum()
+    f = np.fft.fftshift(np.fft.fftfreq(nfft, 1.0 / PRF))
+    S = np.fft.fftshift(S, axes=0)
+    m = (np.abs(f) >= 0.35 * FT30) & (np.abs(f) <= FT30)
+    g = (S ** 2)[m, :].sum(axis=0)
+    n = g.size
+    Y = np.abs(np.fft.rfft((g - g.mean()) * np.hanning(n))) ** 2
+    fr = np.fft.rfftfreq(n, 1.0 / (PRF / 2.0))
+    return fr, Y
+
+
+def rhythm_share(E, hw=8.0):
+    """상한 위 에너지 중 날개 박자 정수배에 붙은 몫 [%] — 살아남은 구조 잣대."""
+    n = E.size
+    P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
+    fr = np.fft.fftfreq(n, 1.0 / PRF)
+    above = np.abs(fr) >= FT30
+    k = np.round(np.abs(fr) / FFL)
+    on = np.abs(np.abs(fr) - k * FFL) <= hw
+    return float(100.0 * P[above & on].sum() / P[above].sum())
+
+
+def maps(data, drop_dc, stem):
+    n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    fig, ax = plt.subplots(2, 4, figsize=(27.0, 9.6), sharex=True, sharey=True)
+    for i, (arm, nm) in enumerate(ARMS):
+        a = ax[i // 4, i % 4]
+        E = data[arm][n0:n0 + nz]
+        if drop_dc:
+            E = E - E.mean()
+        f, t, S, _ = flash_spec(E, PRF, FFL, PERIODS)
+        draw(a, t, f, S, FT30)
+        a.set_ylim(-2000, 2000)
+        a.set_title(nm, pad=7)
+        if i % 4 == 0:
+            a.set_ylabel("Doppler [Hz]")
+        if i // 4 == 1:
+            a.set_xlabel("time [ms]")
+    fig.subplots_adjust(top=0.865, bottom=0.10, left=0.055, right=0.945,
+                        hspace=0.22, wspace=0.08)
+    fig.text(0.5, 0.945, ("body echo removed, " if drop_dc else "")
+             + "every run at 30" + chr(176) + " below level, "
+             "each panel scaled to its own peak",
+             ha="center", fontsize=19, color="0.35")
+    cax = fig.add_axes([0.953, 0.10, 0.008, 0.765])
+    cb = fig.colorbar(ax[0, 0].collections[0], cax=cax)
+    cb.set_label("dB below the brightest point in that panel", fontsize=16)
+    out = f"{FIG}/{stem}.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
+def band(data, lo, hi, stem):
+    """조합당 패널 — 7 곡선을 한 축에 겹치면 안 읽힌다(덱에서 실측). 우리 커널을 옅게 깔아
+    기준으로 삼고, 각 패널에 그 조합 하나만 진하게 얹는다."""
+    fr0, Y0 = modspec(data[ARMS[0][0]])
+    m0 = (fr0 >= lo) & (fr0 <= hi)
+    ref_db = 10 * np.log10(Y0[m0] / Y0[m0].max())
+    fig, ax = plt.subplots(2, 4, figsize=(27.0, 9.6), sharex=True, sharey=True)
+    for i, (arm, nm) in enumerate(ARMS):
+        a = ax[i // 4, i % 4]
+        if i:
+            a.plot(fr0[m0], ref_db, color="#c62828", lw=1.2, alpha=0.35,
+                   label="Our kernel")
+        fr, Y = modspec(data[arm])
+        m = (fr >= lo) & (fr <= hi)
+        a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()),
+               color="#c62828" if not i else "#1565c0", lw=1.8, label=nm)
+        for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
+            a.axvline(k * FFL, color="0.35", ls="--", lw=1.0, zorder=1)
+        a.set_xlim(lo, hi)
+        if hi > 500:
+            a.set_xticks(np.arange(200, hi + 1, 200))
+        a.set_ylim(-52, 4)
+        a.set_title(nm, pad=7)
+        a.grid(alpha=0.25)
+        a.set_axisbelow(True)
+        if i % 4 == 0:
+            a.set_ylabel("line level [dB]")
+        if i // 4 == 1:
+            a.set_xlabel("modulation rate [Hz]")
+        if i == 1:
+            a.legend(fontsize=13, loc="lower right", framealpha=0.95)
+    fig.subplots_adjust(top=0.865, bottom=0.10, left=0.055, right=0.985,
+                        hspace=0.22, wspace=0.06)
+    fig.text(0.5, 0.945, "blade band power over time turned into a spectrum, "
+                         f"dashed lines mark {FFL:.1f} Hz and its multiples, "
+                         "the faint red curve repeats our kernel for reference",
+             ha="center", fontsize=18, color="0.35")
+    out = f"{FIG}/{stem}.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
+if __name__ == "__main__":
+    print("═══ 스위치 격자 그림 ═══")
+    data, doc = {}, {}
+    for arm, nm in ARMS:
+        E, miss = load(arm)
+        data[arm] = E
+        fr, Y = modspec(E)
+        df = fr[1] - fr[0]
+        floor = float(np.median(Y[(fr > 20) & (fr < 500)]))
+        b = int(round(FFL / df))
+        seg = Y[max(0, b - 3):b + 4]
+        pk = max(0, b - 6) + int(np.argmax(Y[max(0, b - 6):b + 7]))
+        doc[nm] = dict(
+            arm=arm, n_missing=miss,
+            rhythm_share_pct=round(rhythm_share(E), 1),
+            h1_over_floor_db=round(float(10 * np.log10(seg.max() / floor)), 2),
+            h1_peak_hz=round(float(fr[pk]), 2))
+        print(f"  {nm:26s} 결측 {miss:4d} · 리듬 {doc[nm]['rhythm_share_pct']:5.1f} % · "
+              f"1차선 {doc[nm]['h1_over_floor_db']:6.1f} dB @ {doc[nm]['h1_peak_hz']:.1f} Hz")
+
+    maps(data, False, "swgrid_maps")
+    maps(data, True, "swgrid_maps_dc")
+    band(data, 100.0, 1000.0, "swgrid_be_wide")
+    band(data, 0.0, 420.0, "swgrid_be_zoom")
+
+    out = {"_meta": {
+        "generator": "benchmark/build_switch_grid_figs.py",
+        "purpose_ko": "물리 스위치 7 조합 + 우리 커널, 앙각 −30° 한 자리 비교",
+        "setup_ko": "matrice4e · 3.5 GHz · 15 m · 자세 8192 · 광선 4e9 · 깊이 1 · 확산 켬",
+        "excluded_ko": "101(굴절+모서리)은 소스 구조상 100 과 동일해 계산하지 않았다 — "
+                       "모서리회절 후보 생성이 회절 스위치 안에 있다"
+                       "(sb_candidate_generator.py:338)",
+        "rhythm_ko": "상한 위 에너지 중 f_flash 정수배 ±8 Hz 에 붙은 몫[%] — "
+                     "백색잡음 13, 이상 로터 100",
+        "h1_ko": "블레이드 대역 전력 변조 스펙트럼의 1 차 선 — 국소 바닥 위 dB 와 봉우리 위치",
+        "el_deg": EL, "f_tip_hz": round(FT30, 1), "f_flash_hz": FFL,
+    }, "cells": doc}
+    p = f"{ROOT}/outputs/switch_grid.json"
+    json.dump(out, open(p, "w"), ensure_ascii=False, indent=1)
+    print(f"  ✅ {p}")
