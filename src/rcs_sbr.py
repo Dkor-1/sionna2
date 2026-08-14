@@ -1070,8 +1070,17 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
       메쉬에서 다시 만든다(옛 동작, 비트 동일). `grid_ref_from(자세들, fc, spacing)` 이 준
       판을 넣으면 모든 자세가 **같은 ctr·Rout·n** 을 쓴다 — 위상 원점이 안 흔들리고 표본
       집합이 안 갈아엎어진다(왜 필요한지는 위 「얼린 광선 격자」 절). ptd=True 면 모서리
-      프린지의 위상 원점도 같이 얼어붙는다(둘이 같은 ctr 을 쓴다).
-      ⚠ 커널이 자세마다 덮개를 검사해 삐져나오면 예외를 던진다(GRID_REF_CHECK)."""
+      프린지의 위상 원점도 같이 얼어붙는다(둘이 같은 ctr 을 쓴다 — `_ptd_edge_A` 에
+      frozen=True 로 물려주고, 그때 D-10 배선검사는 대조 상대가 없어 진단 기록으로 바뀐다).
+      ⚠ 커널이 자세마다 덮개를 검사해 삐져나오면 예외를 던진다(GRID_REF_CHECK).
+
+    ⚠ ptd=True + range_m 동시 사용의 **정직 표기** — 면적분은 구면파 위상(실제 왕복거리)을
+      쓰지만 모서리 프린지 항은 **평면파 위상뿐**이다(ptd_edges.edge_field 에 구면 갈래가
+      없다). 두 항이 원점(ctr)을 공유하므로 1차(경사) 위상까지는 정합하고, 남는 것은 파면
+      곡률(2차) 누락 ≈ k·ρ⊥²/R — 3.5 GHz·R=15 m·반폭 ρ⊥≈0.3 m 에서 최대 ≈0.4 rad 다.
+      프린지가 수 % 보정이라 전체 오차는 그 일부에 그치지만, 「정확 결합」 주장은
+      평면파(range_m=None)로 한정할 것. 어느 갈래였는지 `_LAST_PTD["fringe_wavefront"]`
+      에 실린다."""
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
@@ -1139,6 +1148,11 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
         Etot = Etot + complex(_ptd_edge_A(mesh, group_mat, fc, [(u, u)], ctr, scene,
                                           pol=ptd_pol, cache_key=cache_key, opts=ptd_opts,
                                           frozen=(grid_ref is not None))[0][0])
+        #  ⭐정직 표기 — 프린지 항은 **평면파 위상뿐**이다(edge_field 에 구면 갈래가 없다).
+        #    range_m 구면파와 섞이면 원점 공유로 1차(경사) 위상까지는 정합하고, 파면 곡률
+        #    (2차) ≈ k·ρ⊥²/R 만 프린지에 빠진다(docstring 참조). 갈래를 진단 메타에 남긴다.
+        _LAST_PTD["fringe_wavefront"] = ("planar_vs_spherical_po" if range_m is not None
+                                         else "planar")
     return Etot
 
 
