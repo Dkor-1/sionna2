@@ -1,91 +1,325 @@
-# 리포트 재편 계획 (2026-08-16 심사 완료, 실행 대기)
+# 리포트 재편 계획 v2 — 본편·별편 위계 (2026-08-16 판정 반영, 실행 대기)
 
 ⚠실행 게이트: 큐 소진 + 재병합 완료 후(원장 안정). 실행은 세션 안에서 단계 검증하며.
-심사: 18/18 KEEP (각 권 수정 목록은 워크플로 기록 wf_39e96f63 참조).
+v1(평면 재번호안)을 **대체**한다. 심사 18/18 KEEP(wf_39e96f63)은 유효하되, 사용자 지시
+(«순서·번호 매칭 — 독립 서사가 아닌 권은 부모의 별편으로») 에 따라 편성이 위계형으로 바뀌었다.
+판정 근거: 23권 노트북 머리 전수 판독 + 권 간 참조 전수 계수(02→05 22회, 11→10 8회,
+12→10 10회, 03→01 8회, 07→06 4회/역방향 0회, 17→16 11회/17→02 2회).
 
-# /workspace/sionna 리포트 재편 계획 (심사 18/18 KEEP 반영)
-
-전제 사실 (디스크 실측): 권 층은 `src/build_volumes.py`의 `VOLUMES`(16개) + `EXTERNAL`(8권 5편) + `COMPANIONS`(11-2)가 정본이고, 18권(스위치 격자)은 자기 빌더 docstring이 "17권 체계 밖 작업 보고서"라 선언한 채 색인·README 밖에 있다(volumes_index n_volumes=17, README에 18 없음, reports/*.ipynb 23개=색인 22+18권 1). 조각(00~88)·REG(`report_registry.py`+`outputs/restruct_exec_plan.json`)·색인 샤드(`outputs/reports_index/`)·`docs/REPRODUCE.md`는 전부 **조각 번호 층**이라 권 번호와 무관하다. 조각 안의 권 참조는 대부분 `ref()`→`build_volumes._relink()`가 배치표에서 자동 재유도하므로, 손으로 고칠 것은 빌더에 하드코딩된 문자열뿐이다(전수 목록 아래 2-B).
+전제 사실 (디스크 실측): 권 층의 정본은 `src/build_volumes.py` 의 `VOLUMES`(16개 튜플, 조각 조립)
++ `EXTERNAL`(8권 5편 분권) + `COMPANIONS`(11-2 별편 1건)이고, 18권은 자기 빌더 docstring이
+"17권 체계 밖 작업 보고서"라 선언한 채 색인 밖이다(reports/*.ipynb 23개 = 색인 22 + 18권 1).
+조각(00~88)·REG(`report_registry.py`)·색인 샤드·`docs/REPRODUCE.md`는 전부 **조각 번호 층**이라
+권 번호와 무관하다(REPRODUCE 의 참조는 `13_where-we-stand` 류 조각 파일명 — 실측 확인, diff 0 대상).
+조각 안의 권 참조는 `build_volumes._relink()` 가 배치표에서 자동 재유도하므로, 손으로 고칠 것은
+빌더의 하드코딩 문자열뿐이다(전수 2-B). 위계 파일명(`01_2_prior-work.ipynb`)은 `_XREF`/`_CODEREF`/
+`_is_part_name` 정규식에 **걸리지 않음을 확인했다**(슬러그 문자클래스에 `_` 없음 + 두 자리 머리 필수)
+— 재배선기가 별편 파일명을 조각 주소로 오인할 위험은 없다.
 
 ---
 
-## 1. 최종 편성표
+## 1. 최종 편성표 — 본편 11권(파일 15) + 별편 8편 = 23파일 불변
 
-DEMOTE 권 없음(18/18 KEEP) → 파츠 강등·각주 이관 대상 없음. 재편 = 순번 재배열 + 18권의 체계 편입 + 색인·목차 재생성. 슬러그는 전부 유지, 번호만 바꾼다. **01~07은 번호 불변**(편집 반경 절반).
+본편 = 전개방향의 독립 서사 박자 하나(장면→커널→검증→앙각→물리 스위치→마이크로도플러→디텍션→실측).
+별편 = «이 권의 결론이 부모 권의 질문에 대한 답인가» 를 통과한 권 — 부모번호_K 로 내린다.
+슬러그는 전부 유지, 번호만 바꾼다. **01_map 만 파일명 불변**(v1의 «01~07 불변» 전제는 소멸).
 
-| 새 | 서사 박자 | 권 | 옛 | 파일 (새 이름) |
-|---|---|---|---|---|
-| 01 | 장면 | map | 01 | 01_map.ipynb (불변) |
-| 02 | 장면 | stock-engine | 02 | 불변 |
-| 03 | 장면 | prior-work | 03 | 불변 |
-| 04 | 장면 | target-mesh | 04 | 불변 |
-| 05 | 커널 | kernel | 05 | 불변 |
-| 06 | 검증 | anchor | 06 | 불변 |
-| 07 | 검증 | size-law | 07 | 불변 |
-| 08 | 앙각 | elevation-coverage | 16 | 08_elevation-coverage.ipynb |
-| 09 | 스위치 | engine-physics | 17 | 09_engine-physics.ipynb |
-| 10 | 스위치 | switch-grid | 18 | 10_switch-grid.ipynb (체계 신규 편입) |
-| 11 | 기동/잡음 | 마이크로도플러 5편 | 08 | 11_1_scene … 11_5_bistatic.ipynb |
-| 12 | 기동/잡음 | microdoppler-limits | 09 | 12_microdoppler-limits.ipynb |
-| 13 | 기동/잡음 | illuminators | 10 | 13_illuminators.ipynb |
-| 14 | 기동/잡음 | detector (+별편 14-2) | 11, 11-2 | 14_detector.ipynb, 14_2_two_channel.ipynb |
-| 15 | 기동/잡음 | observability | 12 | 15_observability.ipynb |
-| 16 | 결과 | results | 13 | 16_results.ipynb |
-| 17 | 결과 | robustness | 14 | 17_robustness.ipynb |
-| 18 | 실측 | measurement | 15 | 18_measurement.ipynb |
+| 새 | 구분 | 권 | 옛 | 새 파일 | 배속 근거 (요지) |
+|---|---|---|---|---|---|
+| 01 | 본편·장면 | map | 01 | 01_map.ipynb (불변) | 3안 일치 |
+| 01_2 | 별편(01) | prior-work | 03 | 01_2_prior-work.ipynb | 네-관문 판정 자체가 01 §2에 있고 03은 그 전수 근거. 03→01 참조 8회 |
+| 02 | 본편·커널 | kernel | 05 | 02_kernel.ipynb | 3안 일치 |
+| 02_2 | 별편(02) | stock-engine | 02 | 02_2_stock-engine.ipynb | 02→05 전방참조 22회, §7이 커널 선택 논거로 끝남. 8박자에 «스톡» 박자 없음 |
+| 02_3 | 별편(02) | target-mesh | 04 | 02_3_target-mesh.ipynb | «커널은 무엇 위에서 적분하나»의 답(입력 QC). 커널 §5가 직접 소비 |
+| 03 | 본편·검증 | anchor | 06 | 03_anchor.ipynb | 3안 일치 |
+| 03_2 | 별편(03) | size-law | 07 | 03_2_size-law.ipynb | 06 §4의 질문에 07 ⭐절3이 답함. 07→06 4회 / 06→07 0회 |
+| 04 | 본편·앙각 | elevation-coverage | 16 | 04_elevation-coverage.ipynb | 3안 일치 |
+| (04_2) | 예약 슬롯 | el 15 m 재설계판 | — | (미건축) | EXPERIMENT_MAP D.4 «리포트 16-2» 승계 |
+| 05 | 본편·물리 스위치 | engine-physics | 17 | 05_engine-physics.ipynb | 3안 일치 |
+| 05_2 | 별편(05) | switch-grid | 18 | 05_2_switch-grid.ipynb | 17 ⭐절1의 단일축 귀속을 7조합 전수 격자로 완결. 사용자 지시문 명문(«회절 잡음화는 엔진 검증의 심화») |
+| 06_1~06_5 | 본편·마이크로도플러 **분권** | scene·engines·pattern·sampling·bistatic | 08_1~08_5 | 06_1_scene … 06_5_bistatic.ipynb | 분권=한 권의 장(그림 무게 사정), 위계 아님 |
+| 06_6 | 별편(06) | microdoppler-limits | 09 | 06_6_microdoppler-limits.ipynb | 08_3(무엇이 정하나)↔09(무엇이 흐리나) 쌍대. 09→08_x 8회. 표기만 분권 꼬리, 지위는 별편 |
+| 07 | 본편·디텍션(조명원) | illuminators | 10 | 07_illuminators.ipynb | 별편 검사 실패 — 뒤 본편 두 권이 소비하는 자원 선언(11→10 8회, 12→10 10회) |
+| 08 | 본편·디텍션(사슬) | detector | 11 | 08_detector.ipynb | 자체 헤드라인(경험 Pfa 1.52~2.66배) + 별편 11-2를 거느림(강등 시 별편의 별편 발생) |
+| 08_2 | 별편(08) | two_channel | 11_2 | 08_2_two_channel.ipynb | 11↔11-2 머리 상호 명시 선언 — 부모=detector 유지 |
+| 09 | 본편·디텍션(기하) | observability | 12 | 09_observability.ipynb | 13 머리가 12 §3·§4를 전제로 명시 링크 — 전제는 별편이 될 수 없음 |
+| 10 | 본편·디텍션(결과) | results | 13 | 10_results.ipynb | 3안 일치 |
+| 10_2 | 별편(10) | robustness | 14 | 10_2_robustness.ipynb | 권 제목부터 «결론이 무엇에 기대나» — 13의 R90 없이는 안 섬 |
+| 11 | 본편·실측 | measurement | 15 | 11_measurement.ipynb | 3안 일치 |
 
-- 치환은 **11-순환**이다: 08→11→14→17→09→12→15→18→10→13→16→08 (01~07 고정). 순차 sed 가 불가능한 구조 — 반드시 자리표시자 2단 치환(아래 2-C).
-- 파일 23개 중 16개 개명, 이름 충돌 0건(슬러그가 달라 old/new 동명 없음). 재조립 후 옛 이름 16개 git rm. 파일 수 23 불변이 검증 불변량.
-- 앞당김의 대가: 새 08~10이 마이크로도플러 낱말을 11권보다 먼저 쓴다. 완화 — (a) 새 08·09 머리말 논지에 "무늬 축의 정의는 리포트 11" 한 줄(VOLUMES thesis 문자열 수정으로 충분), (b) 05권이 이미 격자얼림·무늬 개념을 도입함. 대안(앙각·스위치를 md 뒤에 두는 안)은 지시된 서사와 어긋나고 편집 반경도 같아서 기각.
-- 예약 슬롯: EXPERIMENT_MAP D.4의 "리포트 16-2 본문"(15 m 재설계판) → 새 체계에서 **08의 별편 08_2**(COMPANIONS)로 예약. 조각 81(el-beat-vs-tip) 미건축·조각 00 superseded는 현행 유지.
+- 서사 8박자 = 장면(01) → 커널(02) → 검증(03) → 앙각(04) → 스위치(05) → 마이크로도플러(06) →
+  디텍션(07~10) → 실측(11). 디텍션 막만 본편 4권 — 메인 태스크라 박자를 뭉개지 않는다.
+- **분권 ≠ 별편** (README·지도에 명기할 지위 구별): 06_1~06_5 는 그림 무게 때문에 나눈 **한 권의
+  장**이고, N_2 류는 **부모 질문의 답**이다. 06_6 은 파일명만 분권 꼬리를 잇고 지위는 별편이다.
+- 번호 문법: 별편은 부모번호_K (K≥2, 06 만 분권 _1~_5 와의 충돌 회피로 _6). **별편의 별편은 없다**
+  — 빌더에 assert 로 박는다(2-B-1). 표기는 파일 `NN_K_slug.ipynb`, 산문 «리포트 N-K».
+- 예약 슬롯 04_2: EXPERIMENT_MAP D.4 의 15 m 재설계판. 조각 81 미건축·조각 00 superseded 는 현행 유지.
+- 앞당김의 대가: 새 04·05 가 마이크로도플러 낱말을 06 보다 먼저 쓴다. 완화 — 두 권 thesis 에
+  «무늬 축의 정의는 리포트 6» 한 줄(VOLUMES 문자열 수정으로 충분. 02 커널이 격자얼림·무늬 개념을
+  이미 도입하는 것은 v1 과 동일).
+
+### 1-b. 치환 지도 (v1 의 11-순환은 소멸 — 사슬 숲 7개, 그러나 자리표시자 2단은 여전히 필수)
+
+번호 층 옛→새 (산문 «리포트 N»·«N 권»·«N-K» 공통):
+
+```
+사슬 A: 15→11→8→6→3→1-2        (A 가지: 8-K→6-K · 9→6-6 · 11-2→8-2 가 8·6·11 마디에 걸림)
+사슬 B: 17→5→2→2-2
+사슬 C: 13→10→7→3-2
+사슬 D: 16→4→2-3
+사슬 E: 12→9→6-6
+단독:   18→5-2  ·  14→10-2  ·  1→1 (불변)
+```
+
+순환이 없으므로 이론상 꼬리부터(1-2 부터) 순차 치환이 가능하지만 **하지 마라** — 옛 이름과 새 이름의
+공간이 겹치고(옛 «리포트 8-2»=분권 engines ↔ 새 «리포트 8-2»=two_channel: v1 함정이 v2 에선 표적까지
+일치한다), 부분문자열 함정(리포트 1⊂11⊂11-2, 8⊂8-2)이 있다. 반드시 **자리표시자 2단**: 1단에서 옛
+표기 전부를 ⟪V새주소⟫ 토큰으로 찍되 **긴 패턴부터**(전체 파일명 → 하이픈 번호 11-2·8-1~8-5 →
+맨 번호 큰 수부터), 2단에서 일괄 해소.
+
+파일 층: 23개 중 **22개 개명**(01_map 만 불변), 옛/새 전체 파일명 충돌 0건(번호 접두는 겹쳐도 —
+옛 08_2_engines ↔ 새 08_2_two_channel, 옛 05_kernel ↔ 새 05_engine-physics — 슬러그가 갈라 전체
+이름은 전부 유일). 따라서 검사·치환은 **항상 슬러그 포함 전체 이름**으로 한다. 재조립 후 옛 이름
+22개 git rm. 파일 수 23 불변이 검증 불변량.
+
+sed 오폭 금지 목록(행 단위 판독): (a) 새 04 thesis 의 "8/11 덱" = 날짜 표기. (b) `report0N_*` 층
+(옛 8편 시대: 루트 스텁·빌더 docstring «리포트 07»·PAPER_DRAFT) = 역사, 불변. (c) 조각 층 `NN_slug`
+(`08_census-published`·`16_mesh-vs-real` 등 — 번호가 권과 겹치나 슬러그가 다름) = 맨-번호 치환 절대
+금지. (d) «편 N»·«부 N» = 조각·부 층, 불변. (e) make_report07b:30 «15 권 구조에 자리를 잡는다» 류
+날짜 박힌 역사 주석 = 두거나 «(당시 편성)» 첨기.
 
 ## 2. 실행 절차
 
 ### 2-A. 게이트 (실행 전)
-1. `ps -eo pid,etimes,cmd | grep -E '[b]uild_|[m]ake_report|[e]levation_sweep'` — 좀비 세션·병행 빌더 확인(감시만, kill은 수동).
-2. **원장 안정 게이트**: EXPERIMENT_MAP D.1(elevation_sweep_md.json 재병합)·D.2(mini5pro RPM 재실행)가 도는 동안 조각 재빌드 금지 — 반쯤 병합된 원장이 조각에 주입된다. 재편은 원장을 안 읽지만 재조립이 조각 빌더 재실행을 포함하므로 같은 게이트에 걸린다.
-3. 심사 KEEP-수정 중 같은 빌더 파일을 고치는 건(16권 "광선 40억발" 4곳=build_part12_elevation.py, 17권 [^65] 4e9 오기=build_part13, 18권 "같은 광선 예산"·"45~62%"=build_report18)은 **재편과 같은 라운드에 태우는 것을 권장** — 상류(내용) 정정 후 한 번의 재조립으로 둘 다 반영.
+1. `ps -eo pid,etimes,cmd | grep -E '[b]uild_|[m]ake_report|[e]levation_sweep'` — 좀비 세션·병행 빌더 확인(감시만, kill 은 수동).
+2. **원장 안정 게이트**: EXPERIMENT_MAP D.1(재병합)·D.2(mini5pro RPM 재실행)가 도는 동안 조각 재빌드 금지. 재편은 원장을 안 읽지만 재조립이 조각 빌더 재실행을 포함하므로 같은 게이트에 걸린다.
+3. 심사 KEEP-수정 중 같은 빌더를 고치는 건(옛 16권 "광선 40억발" 4곳=build_part12_elevation.py, 옛 17권 [^65] 4e9 오기=build_part13, 옛 18권 "같은 광선 예산"·"45~62%"=build_report18)은 **재편과 같은 라운드에 태우는 것을 권장** — 상류 정정 후 한 번의 재조립으로 둘 다 반영. 새 번호로는 각각 04·05·05_2 의 수정이다.
 
-### 2-B. 상호참조가 끊기는 지점 — 전수 (여기 없는 것은 재조립이 자동 복구)
-자동 복구(손대지 않음): 조각 간 "편 NN" 링크(placement 재배선), 01_map 지도·배치표·읽기 경로, reports/README.md, 루트 README.md(make_readme, 지금도 "열다섯 권"으로 낡음—이번에 자동 회복), volumes_index.json. **불변 확인 대상**: report_registry.py, restruct_exec_plan.json, outputs/reports_index{,.json}, docs/REPRODUCE.md, docs/paper/ — 전부 조각 층, diff 0이어야 정상.
+### 2-B. 수동 편집 전수 (여기 없는 것은 재조립이 자동 복구)
 
-수동 편집 필요(하드코딩, 파일:행은 2026-08-14 스냅샷 — 실행 시 아래 grep으로 재채굴):
-1. `src/build_volumes.py` — VOLUMES 16개 튜플 번호, EXTERNAL no="08"→"11"+files 08_K→11_K+append_to→11_3_pattern.ipynb, COMPANIONS 키 "11"→"14"·label "11-2"→"14-2"·file→14_2_two_channel.ipynb. **코드 확장 1건**: 10권(switch-grid)용 STANDALONE 목록(단일파일·조각 없음·headline 수동) 추가, N_VOLUMES·_ordered_nos·_vol_entry·_write_readme·_map_cells에 반영(약 20줄). 재현 블록의 스크립트명 문자열은 스크립트 개명 안 하면 불변.
-2. `src/make_report08_microdoppler.py` — H1 "리포트 8-1~8-4"(654,880,1122,1371), NAV·파일명 08_K(601~604,649,766~772,1089~1090,1124,1250,1505), "8 권" 산문(601,716,772,1455,1603), 리포트 15/15_measurement(132,707)→18, 09_microdoppler-limits(1091,1251)→12, 10_illuminators(1252)→13, 리포트 11-2(774)→14-2. 리포트 5/05_kernel(226,287,290)은 **불변**.
-3. `src/make_report07b_bistatic.py` — OUT(32)→11_5_bistatic, H1 8-5(196), "8 권" 약 30곳, 08_2_engines(104,409)→11_2_engines, 리포트 11-2(628,839)→14-2, 15 권(30)→18. 05_kernel(473) 불변.
-4. `src/make_report11_2_two_channel.py` — OUT(29)→14_2_two_channel, H1 11-2(253), "11 권" 약 10곳→14, "13 권"(295,320,322,357,370,832)→16, "15 권"(594,877)→18, "8 권"(314,815,869)→11, "10 권"(783)→13.
-5. `src/build_report18_switch_grid.py` — out(153)→10_switch-grid, H1(65)·docstring(3) 18→10, 리포트 16(13)→8, 리포트 17(150)→9, "17 권 체계"(12)→"18권 체계" 문구 갱신.
-6. 조각 빌더 6+2개 — build_part04_kernel.py(리포트 8: 115,122,130,137→11; 8 권 121; 리포트 8-2+08_2_engines 139,524→11-2/11_2_engines), build_part07_microdoppler.py(8 권 118; 리포트 11-2 1572,1583→14-2), build_part08_illuminators.py(648,774), build_part09_detector.py(283,474), build_part10_results.py(608,839), build_part11_measurement.py(184) — 전부 리포트 11-2→14-2. docstring만: build_part12_elevation.py(22), build_part13_engine_physics.py(18, 슬러그도 이미 오기).
-7. 옛 권 파일 16개 잔존 — 재조립은 새 이름으로 쓰므로 옛 파일을 지우지 않으면 이중 문서가 남는다(git rm 필수).
-8. 위험한 함정 둘: (a) 순환 치환 — "리포트 8-2"→11-2와 기존 "리포트 11-2"→14-2가 겹친다. 반드시 자리표시자(예: 리포트 8-2→⟪V11-2⟫, 리포트 11-2→⟪V14-2⟫ 전부 찍은 뒤 일괄 해소) 2단으로. (b) sed 오폭 — 16권 본문의 "8/11 덱"은 날짜 표기, "리포트 07"(make_report08 docstring)은 legacy 이력 — 자동 일괄치환 금지, 행 단위 확인.
+자동 복구(손대지 않음): 조각 간 «편 NN» 링크(placement 재배선), 01_map 지도·배치표·읽기 경로,
+reports/README.md, 루트 README.md(make_readme), volumes_index.json. **불변 확인 대상**(diff 0):
+report_registry.py, restruct_exec_plan.json, outputs/reports_index{,.json}, docs/REPRODUCE.md,
+docs/paper/. `benchmark/check_report_links.py` 는 조각 층+상대링크 실재만 검사해 위계 번호와
+무관함을 확인했다(:59 `_H1_TITLE` 의 `\d{2}` 가 위계 H1 제목 추출에 실패해도 검사 대상이 registry
+조각뿐이라 무해 — `\d+(?:-\d+)?` 확장은 권고 사항).
 
-인벤토리 재채굴 명령: `cd src && grep -nE "리포트 ?[0-9]+(-[0-9])?|[0-9]{2}(_[0-9])?_[a-z0-9-]+\.ipynb|[0-9]+ ?권" build_part*.py make_report08_microdoppler.py make_report07b_bistatic.py make_report11_2_two_channel.py build_report18_switch_grid.py` (조각 파일명 NN_slug 매치는 제외하고 판독).
+수동 편집(파일:행은 2026-08-14 스냅샷 — v1 census 를 오늘 재검증해 일치 확인. 실행 시 아래 grep 재채굴):
 
-### 2-C. 재조립 순서 (기존 ①→④ 규약 유지)
-1. 조각 빌더 14개 전부 재실행 → `_parts/` 갱신 (조각 번호·REG·샤드 불변 확인: `git diff --stat outputs/reports_index* outputs/restruct_exec_plan.json` = 0).
-2. make_report08_microdoppler.py → 11_1~11_4 / make_report07b_bistatic.py → 11_5 / make_report11_2_two_channel.py → 14_2 / build_report18_switch_grid.py → 10.
-3. build_volumes.py (반드시 2 다음 — 11_3 뒤에 조각 34~39 덧붙임) → 권 조립+색인+reports/README.md.
-4. 옛 파일 16개 git rm → `ls reports/*.ipynb | wc -l` = 23 확인.
+**1. `src/build_volumes.py` — 이번 재편의 코드 본체 (diff ~120줄, v1 의 «STANDALONE ~20줄» 은 폐기)**
+   - **편성 데이터**: VOLUMES 16개 튜플 번호·순서 갱신(형식 불변) — 본편 10개(01 map, 02 kernel,
+     03 anchor, 04 elevation-coverage, 05 engine-physics, 07 illuminators, 08 detector,
+     09 observability, 10 results, 11 measurement) + 조립 별편 6개(01_2 prior-work, 02_2 stock-engine,
+     02_3 target-mesh, 03_2 size-law, 06_6 microdoppler-limits, 10_2 robustness). ⭐조립 별편은
+     VOLUMES 에 남는다 — `_placement()`·`_assemble()` 조립 경로가 그대로 살아 diff 가 최소가 된다.
+     VOLUMES[0] 은 map 유지(:502 머리말 꼬리가 VOLUMES[0] 을 직참조). 04·05 thesis 에 «무늬 축의
+     정의는 리포트 6» 한 줄 추가(§1 완화).
+   - EXTERNAL: no="08"→"06", files 08_K→06_K, append_to→06_3_pattern.ipynb. builder 문자열은 스크립트
+     개명 안 하면 불변.
+   - **COMPANIONS 일반형** — {부모: [별편…]} 8편, 두 종의 판별 합집합:
+     ```python
+     COMPANIONS = {
+       "01": [dict(vol="01_2")],                      # 조립 별편 — VOLUMES 튜플을 가리키는 포인터.
+       "02": [dict(vol="02_2"), dict(vol="02_3")],    #   file·label·title 은 튜플에서 자동 유도
+       "03": [dict(vol="03_2")],                      #   (file=f"{no}_{slug}.ipynb", label=_disp(no)).
+       "05": [dict(file="05_2_switch-grid.ipynb", label="5-2", title=…, what=…,
+                   builder="src/build_report18_switch_grid.py")],   # 외부 별편 — 기존 11-2 스키마 그대로
+       "06": [dict(vol="06_6")],
+       "08": [dict(file="08_2_two_channel.ipynb", label="8-2", …)], # 기존 항목의 키 "11"→"08"·개명
+       "10": [dict(vol="10_2")],
+     }
+     ```
+     import 시 assert: ① `_` 든 번호는 전부 COMPANIONS 에 정확히 1회 등재 ② 그 접두 = 부모 키
+     ③ 부모 키에 `_` 없음(**별편의 별편 금지**) ④ 별편 합계 8. — 번호 문법을 코드가 강제한다.
+   - **표기 함수** 신설, `int()` 표시 전 지점을 치환(위계 번호 `int("01_2")` 는 ValueError):
+     ```python
+     def _disp(no: str) -> str:            # "01"→"1", "01_2"→"1-2", "10_2"→"10-2"
+         h, _, t = no.partition("_")
+         return str(int(h)) + (f"-{t}" if t else "")
+     ```
+     치환 지점(실측): `_relink`:429, `_vol_link`:451, `_bp`:468, `_map_cells`:535·611·640~641·657·685,
+     `_vol_intro`:486·498·503, `_write_readme`:863·879·882·887. `_ordered_nos()`/`built.sort` 의 문자열
+     정렬은 위계 번호에서도 옳음을 확인했다("01"<"01_2"<"02"<…<"06"<"06_6"<…<"10"<"10_2"<"11").
+   - **본편/별편 분리 집계**: `_trunk_nos()`(=`_` 없는 번호, 11개) 신설. `_meta` 를
+     n_volumes=**11**(본편) · n_companions=**8** · n_notebooks=**23** 의미로 고정하고, 지도 제목
+     (`MAP_SECTION_TITLE` «열한 권의 지도»)·권 표(본편 11행, 앞/뒤 절반 분할 6/5)·README 머리가
+     본편 수만 세게 한다. 별편은 기존 «권에 딸린 별편» 표를 8행으로(조립 별편의 빌더 칸은
+     `src/build_volumes.py (조각 조립)`), 그 앞 문단을 «심화·지원·변주» 정의 + **분권≠별편 지위
+     구별**로 다시 쓴다.
+   - `_vol_intro`: (a) 부모 권의 별편 문장 복수화 — «별편이 {_kor(n)} 편 딸려 있다»(02 는 2편이라
+     현행 «하나» 문장이 두 번 찍히는 결함이 생긴다) (b) 별편 권 자신에게는 부모 선언 신설 —
+     «이 편은 [리포트 P «제목»](P_slug.ipynb) 의 **별편**이다» (H1 은 _disp 로 «리포트 1-2 — …»).
+   - volumes_index: 권 항목마다 `kind`("trunk"|"companion")·`parent`·`no_disp` 추가,
+     `_meta.order` 에 `src/build_report18_switch_grid.py` 추가(별편도 권 파일을 내므로 — :801 주석의
+     자기 규칙), companions 8편 등재. 재현 블록 주석(:567~569·:906~908) «8 권 1~4 편/8 권 5 편/11-2
+     별편»→«6 권…/8-2·5-2 별편».
+
+**2. `src/make_readme.py` — 색인 소비자 (diff ~30줄, v1 에 없던 신규 대상)**
+   `int(v['no'])`·`int(p['volume'])` 표시 14곳(:99·104·170·172·183·208·222·248·281·310·368·374·378·381)
+   → 색인의 `no_disp` 소비로 전환. :281~282 «별편 하나가 딸려 있다» 복수화. :295 «3권의 census» →
+   «별편 1-2 의 census». 본편 표 11행 + 별편 표. 주석 :86(«8 권·9 권 구별» 예시)·:103 은 새 번호로
+   갱신(선택). STEP_LEAD 키는 스크립트명이라 불변.
+
+**3. `src/make_report08_microdoppler.py`** — H1 «리포트 8-1~8-4»(654·880·1122·1371)→6-1~6-4,
+   NAV·파일명 08_K→06_K(225·601~604·649·766~772·806·883·909·929·1089~1090·1124·1250·1505),
+   «8 권» 산문(601·716·772·1455·1603)→«6 권», 리포트 15/15_measurement(132·707)→«11 권»/11_measurement,
+   09_microdoppler-limits(1091·1251)→06_6_microdoppler-limits, 10_illuminators(1252)→07_illuminators,
+   리포트 11-2+파일(774)→8-2/08_2_two_channel. ⭐**v1 에서 «불변»이던 리포트 5/05_kernel(226·287·290)이
+   v2 에선 편집 대상이다** → «리포트 2»/02_kernel. docstring «리포트 07»·report07_microdoppler(3·11·21)
+   = 역사, 불변.
+
+**4. `src/make_report07b_bistatic.py`** — OUT(32)→06_5_bistatic, H1 8-5(196)→6-5,
+   «8 권/8-1~8-4/8-2» 산문·주석 약 30곳(5·25·30·103·156·160·198·200·210·251·252·271·286·321·323·357·
+   399·409·415·633·635·667·681·692·693·705·707·710·712·731)→6 계열, 08_2_engines(104·409)→06_2_engines,
+   리포트 11-2+파일(628·839)→8-2/08_2_two_channel. ⭐리포트 5/05_kernel(473)도 편집 대상 →
+   «리포트 2»/02_kernel. :30 «15 권 구조» 는 날짜 박힌 역사 주석 — 행 단위 판독(§1-b-e).
+
+**5. `src/make_report11_2_two_channel.py`** — OUT(29)→08_2_two_channel, H1(253)·docstring(3) 11-2→8-2,
+   «11 권»+11_detector(5·244·247·258·317·345·357·407·867)→«8 권»/08_detector,
+   «13 권»+13_results(295·320·322·357·370·832)→«10 권»/10_results,
+   «15 권»+15_measurement(322·594·877)→«11 권»/11_measurement,
+   «8 권 5 편»+08_5_bistatic(8·314·815·869)→«6 권 5 편»/06_5_bistatic, «10 권 절 7»(783)→«7 권 절 7».
+
+**6. `src/build_report18_switch_grid.py` — 체계 편입 선언까지 겸한다** — out(153)→05_2_switch-grid,
+   H1(65) «리포트 18»→«리포트 5-2», docstring(3)·«17 권 체계 밖 작업 보고서»(12)·«리포트 16/17 에
+   절로 편입한다»(13) → «리포트 5 «엔진의 물리 스위치» 의 별편이다» 로 개정(잠정 지위 문구 삭제),
+   «권고를 리포트 17 에 편입»(150)→«리포트 5». 머리에 부모 링크(05_engine-physics.ipynb) 한 줄 추가
+   — 별편 머리 규약(11-2 전례)과 맞춘다.
+
+**7. 조각 빌더 6+2개** — build_part04_kernel.py(«리포트 8 계열/8 권» 115·121·122·130·137→6 계열;
+   리포트 8-2+08_2_engines 139·524→6-2/06_2_engines), build_part07_microdoppler.py(«8 권» 118→6 권;
+   리포트 11-2+파일 1572·1583→8-2/08_2_two_channel), build_part08_illuminators.py(648·774),
+   build_part09_detector.py(283·474), build_part10_results.py(608·839), build_part11_measurement.py(184)
+   — 이상 리포트 11-2→8-2(+파일명). docstring만: build_part12_elevation.py(22 →
+   reports/04_elevation-coverage), build_part13_engine_physics.py(18 → reports/05_engine-physics,
+   기존 슬러그 오기 «17_physics-switches» 동시 정정).
+
+**8. 옛 권 파일 22개 잔존** — 재조립은 새 이름으로 쓰므로 git rm 필수(안 지우면 이중 문서).
+
+인벤토리 재채굴 명령(⚠v1 패턴은 `two_channel` 류 **언더스코어 슬러그를 놓친다** — 실측 확인, 클래스에 `_` 추가):
+```
+cd src && grep -nE "리포트 ?[0-9]+(-[0-9])?|[0-9]{2}(_[0-9])?_[a-z0-9_-]+\.ipynb|[0-9]+ ?권" \
+  build_part*.py make_report08_microdoppler.py make_report07b_bistatic.py \
+  make_report11_2_two_channel.py build_report18_switch_grid.py build_volumes.py make_readme.py
+```
+(조각 파일명 `NN_slug` 매치와 `report0N_*` 역사 층은 제외하고 판독.)
+
+### 2-C. 재조립 순서 (① 조각 → ② 외부 빌더 → ③ 묶기 규약 유지)
+1. 조각 빌더 14개 전부 재실행 → `_parts/` 갱신. 조각 층 불변 확인:
+   `git diff --stat outputs/reports_index* outputs/restruct_exec_plan.json docs/REPRODUCE.md` = 0.
+2. 외부 빌더 4개: make_report08_microdoppler.py → 06_1~06_4 / make_report07b_bistatic.py → 06_5 /
+   make_report11_2_two_channel.py → 08_2_two_channel / build_report18_switch_grid.py → 05_2_switch-grid.
+3. build_volumes.py (반드시 2 다음 — 06_3 뒤에 조각 34~39 덧붙임) → 본편 10 + 조립 별편 6 조립,
+   06 후처리, 색인, reports/README.md. import assert(별편 8/8·문법) 통과 확인.
+4. 옛 파일 22개 git rm → `ls reports/*.ipynb | wc -l` = **23** 확인(01_map 은 그대로).
 5. make_readme.py → 루트 README.md.
-6. 검증: `benchmark/check_report_links.py` 위반 0 + 옛 파일명 16종 전수 grep(`grep -rlE "08_[1-5]_(scene|engines|pattern|sampling|bistatic)|11_2_two_channel|16_elevation|17_engine-physics|18_switch-grid|09_microdoppler-limits|10_illuminators|11_detector|12_observability|13_results|14_robustness|15_measurement" reports/*.ipynb src/`) = 0건 + volumes_index n_volumes=18·n_parts_placed=87 확인.
+6. 검증: `benchmark/check_report_links.py` 위반 0 + `outputs/volumes_index.json` `_meta` 가
+   n_volumes=**11** · n_companions=**8** · n_notebooks=**23** · n_parts_placed=**87** + 옛 전체 파일명
+   22종 전수 grep = 0건 (⭐`.ipynb` 접미 필수 — 스크립트 파일명 `make_report11_2_two_channel.py` 류
+   자기 언급을 오폭하지 않게):
+   ```
+   grep -rlE "(02_stock-engine|03_prior-work|04_target-mesh|05_kernel|06_anchor|07_size-law|08_[1-5]_(scene|engines|pattern|sampling|bistatic)|09_microdoppler-limits|10_illuminators|11_detector|11_2_two_channel|12_observability|13_results|14_robustness|15_measurement|16_elevation-coverage|17_engine-physics|18_switch-grid)\.ipynb" reports/*.ipynb src/*.py
+   ```
 7. docs 갱신(아래 3) 후 경로 지정 커밋·푸시 1회.
 
-## 3. 위험 목록 — 옛 번호를 가리키는 바깥 문서
+## 3. 위험 목록 — 옛 번호를 가리키는 바깥 문서 (옛→새 환산은 §1 표가 정본)
 
 | 위험도 | 위치 | 내용 → 조치 |
 |---|---|---|
-| 상 | `/workspace/teammeeting_0818/ROADMAP.md` :14,106,109,176,192 | reports/08_1~08_5·08_2_engines·08_3_pattern·08_5 — 다음 덱 작업이 옛 주소로 진행될 위험 최상 → 11_K로 갱신 |
-| 상 | 메모리 `acdc-metric-artifact.md`(:3,:41) + MEMORY.md 색인줄 | "리포트 17 헤드라인 재검토" — 안 고치면 다음 세션이 새 17(robustness)을 때린다 → "리포트 9"로 갱신 + **옛↔새 환산표 메모리 노트 신설** |
-| 상 | `docs/EXPERIMENT_MAP.md` :31 | "리포트 16 정정, 리포트 16-2 본문" → "리포트 8 정정, 별편 8-2" |
-| 중 | `docs/RESUME.md` :196 등 | "리포트 08_3 자기모순" 및 0812 판정표 문맥 → 재편 라운드 기록과 함께 갱신(work-log 규율) |
-| 중 | `docs/REPORTS_VOLUMES.md` | 수기 구조 문서, 이미 "열다섯 권·78조각"으로 낡음 → 18권 체계로 재작성 |
-| 중 | 루트 legacy 스텁(report00~07*.ipynb)+`src/make_legacy_stubs.py`(:101 reports/00_map, 조각 링크가 reports/NN로) | 이미 죽은 링크(재편 무관 기존 결함) → 같은 라운드에 01_map·_parts/ 경로로 수리 권장 |
-| 하 | 역사 문서: PLAN_VOLUMES_16_17.md, outputs/volumes_16_17_plan.json, AUDIT_VOL8_ENGINES.md, PLAN_FIX_VOL8.md, RESUME_07xx, REPORTS_ADVERSARIAL_0810.md 등 | 옛 번호 기준 기록 — 고치지 말고 머리에 "2026-08-1x 재편 전 번호" 배너 1줄 |
-| 하 | 메모리 sionna2-* 다수의 reportNN | 더 옛날 12편 체계의 역사 기록 — 액션 없음(환산표 노트가 방어) |
-| 없음 | decks/*.pptx·teammeeting_0811 빌더·figs 스크립트 | 리포트 번호 참조 0건 실측(그림 캡션에도 "report 17" 없음) — 동결 |
+| 상 | `/workspace/teammeeting_0818/ROADMAP.md` :14,106,109,176,192 | reports/08_1~08_5·08_2_engines·08_3_pattern·08_5 — 다음 덱 작업이 옛 주소로 진행될 위험 최상 → 06_K 로 갱신 |
+| 상 | `docs/STANDARD_FRAME.md` :1,:하단 (v1 에 없던 신규 — 2026-08-15 사용자 확정 상시 문서) | «리포트 18 이후 방향»·«리포트 18 판정(잡음화)» → «별편 5-2». 표준 프레임 문서라 다음 실험 세션이 그대로 읽는다 |
+| 상 | 메모리 `acdc-metric-artifact.md`(:3,:41) + MEMORY.md 색인줄 | «리포트 17 헤드라인 재검토» — 안 고치면 다음 세션이 헤드라인 아닌 권을 때린다 → **«리포트 5»** 로 갱신 + **옛↔새 환산표 메모리 노트 신설**(v1 안 유지, 번호만 이 표로) |
+| 상 | `docs/EXPERIMENT_MAP.md` :31 | «리포트 16 정정, 리포트 16-2 본문» → «리포트 4 정정, 별편 4-2 본문» |
+| 중 | `docs/RESUME.md` :196 등 | «리포트 08_3 자기모순» → «리포트 6-3» — 재편 라운드 기록과 함께 갱신(work-log 규율) |
+| 중 | `docs/REPORTS_VOLUMES.md` | 수기 구조 문서, 이미 낡음 → **«본편 11권 + 별편 8편»** 체계로 재작성(분권≠별편 지위 구별 포함) |
+| 중 | 루트 legacy 스텁(report00~07*.ipynb)+`src/make_legacy_stubs.py`(:101 reports/00_map) | 이미 죽은 링크(기존 결함) → 같은 라운드에 01_map·`_parts/` 경로로 수리 권장 |
+| 하 | 역사 문서: PLAN_VOLUMES_16_17.md, outputs/volumes_16_17_plan.json, AUDIT_VOL8_ENGINES.md, PLAN_FIX_VOL8.md, RESUME_07xx, REPORTS_ADVERSARIAL_0810.md, REPORT13/14_SPEC.md, PAPER_DRAFT.md(옛 8편 시대 report0N 층 — 실측 확인) 등 | 옛 번호 기준 기록 — 고치지 말고 머리에 «2026-08-1x 재편 전 번호» 배너 1줄 |
+| 하 | 메모리 sionna2-* 다수의 reportNN | 더 옛날 체계의 역사 — 액션 없음(환산표 노트가 방어) |
+| 없음 | decks/*.pptx·teammeeting_0811 빌더·figs 스크립트·docs/DECK_FACTS.md | 권 번호 참조 0건 실측 — 동결 |
 
 ## 4. 본체가 정할 결정점
-1. **10권 처리**: 기본안=STANDALONE 편입(위 계획). 대안=원설계대로 새 09에 절로 흡수(18 빌더 docstring이 예고) — 24조합 격자 병합 후 규약화 시점에 하는 것이 자연스러워 이번 라운드에서는 비권장.
-2. **스크립트 개명 여부**: 기본안=유지(make_report07b가 8-5를 내는 기존 선례; docstring에 "산출은 11권" 주석만). git mv 하면 build_volumes 3곳+make_readme STEP_LEAD+docs 추가 편집 필요.
-3. KEEP-수정(내용 정정) 동승 범위 — 2-A-3 참조.
-4. 커밋 단위: 빌더 편집+재조립+옛 파일 삭제를 한 커밋으로(중간 상태가 이중 문서라 쪼개면 위험), docs·메모리는 후속 커밋 가능.
+1. **스크립트 개명 여부**: 기본안=유지(make_report07b 가 8-5를 내던 기존 선례의 연장 — 이제 6-5).
+   docstring 에 «산출은 6 권 5 편 / 별편 8-2 / 별편 5-2» 주석만. git mv 하면 build_volumes
+   `_meta.order`·builder 문자열·make_readme STEP_LEAD·docs 추가 편집이 따라온다.
+2. KEEP-수정(내용 정정) 동승 범위 — 2-A-3 참조.
+3. 커밋 단위: 빌더 편집+재조립+옛 파일 22개 삭제를 **한 커밋**으로(중간 상태가 이중 문서라 쪼개면
+   위험), docs·메모리는 후속 커밋 가능.
+4. 별편 정의문·머리말 문구의 어휘(«심화·지원·변주» / 부모 선언 문장) — 지위 구별만 지키면 표현은
+   본체 재량. 현행 «가정 하나만 풀어 본 곁가지» 문구는 two_channel 에만 맞고 stock-engine·prior-work
+   류(지원·전사)에는 안 맞으므로 일반화가 필수라는 것까지가 이 계획의 요구다.
+5. (v1 결정점 1 «STANDALONE 신설» 은 **해소** — 18권은 COMPANIONS 로 흡수, 별도 목록 불필요.)
+
+검증 불변량 요약: 파일 23(본편 15+별편 8) · n_volumes 11 · n_companions 8 · n_parts_placed 87 ·
+별편 8편 전부 COMPANIONS 등재(assert) · check_report_links 위반 0 · 옛 파일명 grep 0.
+
+
+---
+
+## 부록: 판정 전문 (편성 심판)
+
+모든 판정 근거 확보 완료. 최종 결과를 정리한다.
+
+# 최종 편성표 — 본편 11권(파일 15) + 별편 8편 = 23파일 불변
+
+세 안이 일치한 배속(01·05·06·07·08_x·09·13·14·15·16·17·18)은 그대로 채택했고, 갈린 배속(02·04·10·11·12 + 03/11_2의 부모)은 노트북 머리 실물과 상호참조 전수 계수로 판정했다. 결과는 [서사 우선] 안과 동일 구조다.
+
+| 새 번호 | 구분 | 권 (슬러그) | 옛 번호 | 배속 근거 (판정 완료) |
+|---|---|---|---|---|
+| 01 | 본편 · 장면 | map | 01 | 3안 일치 |
+| 01_2 | 별편(01) | prior-work | 03 | 별편 3안 일치, 부모=map 판정 (아래 1) |
+| 02 | 본편 · 커널 | kernel | 05 | 3안 일치 |
+| 02_2 | 별편(02) | stock-engine | 02 | 2:1 판정 (아래 8) |
+| 02_3 | 별편(02) | target-mesh | 04 | 2:1 판정 (아래 9) |
+| 03 | 본편 · 검증 | anchor | 06 | 3안 일치 |
+| 03_2 | 별편(03) | size-law | 07 | 3안 일치, 실물 확인 (아래 2) |
+| 04 | 본편 · 앙각 | elevation-coverage | 16 | 3안 일치 |
+| (04_2) | 예약 슬롯 | el 15 m 재설계판 | — | EXPERIMENT_MAP D.4의 «16-2» 승계 |
+| 05 | 본편 · 물리 스위치 | engine-physics | 17 | 3안 일치 |
+| 05_2 | 별편(05) | switch-grid | 18 | 3안 일치, 실물 확인 (아래 7) |
+| 06_1~06_5 | 본편 · 마이크로도플러 분권 | scene·engines·pattern·sampling·bistatic | 08_1~08_5 | 3안 일치 (분권=한 권의 장, 위계 아님) |
+| 06_6 | 별편(06) | microdoppler-limits | 09 | 3안 일치, 실물 확인 (아래 3) |
+| 07 | 본편 · 디텍션(조명원) | illuminators | 10 | 2:1 판정 (아래 4) |
+| 08 | 본편 · 디텍션(사슬) | detector | 11 | 2:1 판정 (아래 10) |
+| 08_2 | 별편(08) | two_channel | 11_2 | 별편 3안 일치, 부모=detector 유지 (아래 11) |
+| 09 | 본편 · 디텍션(기하) | observability | 12 | 2:1 판정 (아래 5) |
+| 10 | 본편 · 디텍션(결과) | results | 13 | 3안 일치 |
+| 10_2 | 별편(10) | robustness | 14 | 3안 일치, 실물 확인 (아래 6) |
+| 11 | 본편 · 실측 | measurement | 15 | 3안 일치 |
+
+서사 8박자 = 장면(01) → 커널(02) → 검증(03) → 앙각(04) → 스위치(05) → 마이크로도플러(06) → 디텍션(07~10) → 실측(11). 디텍션 막만 본편 4권 — 메인 태스크라 박자를 뭉개지 않는다.
+
+# 갈렸던 항목 판정 근거 (실물 판독 + 참조 전수 계수)
+
+**1. 03_prior-work → 별편 01_2 (부모=map).** 01_map §2 자체가 네-관문 where-we-stand 판정이다 — 관문 정의 표, 후보 12편, «동시 통과 0편»이 전부 01 안에 있다(`_parts/13_where-we-stand`). 03은 그 판정의 전수 근거(센서스·조달 R1~R7·주입 선례)다. 참조 방향도 03→01이 8회, 03→02는 2회. [의존 우선]이 주장한 부모=stock-engine은 관문 정의가 01에 있다는 실물과 어긋나고, 02 자신이 별편으로 내려가므로 부모 자격이 구조적으로 없다(별편의 별편은 번호 문법에 없음).
+
+**2. 07_size-law → 별편 03_2 (3안 일치 확정).** 부모 질문이 06_anchor §4에 실물로 있다: «메쉬가 사는 축은 절대 크기가 아니라 각도 구조다» → 07 ⭐절3이 답한다: «모양의 유무는 수십 dB를 가르고, 정밀도는 한 자릿수 dB 안에서 논다». 06 §6(차분 오차가 순위를 뒤집는다) → 07 §5(차등신호·크기전이)로 이어진다. 참조 방향: 07→06 4회, 06→07 0회 — 부모는 자식 없이 서고 자식은 부모 질문을 인용한다. 전형적 별편.
+
+**3. 09_microdoppler-limits → 별편 06_6 (3안 일치 확정).** 제목이 08_3과 쌍대다: «무엇이 무늬를 정하나»(08_3) ↔ «무엇이 그 무늬를 흐리나»(09). 네 축(자세·보정·광선예산·표본율)은 06이 정의한 무늬 없이는 측정 대상 자체가 없다. 09→08_x 참조 8회. 번호는 분권 _1~_5와의 충돌을 피하는 _6만 가능.
+
+**4. 10_illuminators → 본편 07 ([태스크 우선]의 강등 기각).** 별편 검사 실패 — 10의 결론(표준마다 상시신호 하나·5G 이중고·c/B·√(B/fs) 규약·모호함수)은 13이 던진 질문의 답이 아니라 뒤 세 권이 소비하는 자원 선언이다. 결정적 실측: 11→10 참조 8회, 12→10 참조 10회 — results만이 아니라 **본편 두 권(사슬·기하)이 앞에서 소비**하므로, 13의 별편으로 내리면 본편이 자기 뒤에 읽히는 별편에 기대는 역순 붕괴가 생긴다. 시나리오-범위 원칙은 «태스크를 패시브에 종속시키지 말라»는 것이지 패시브 디텍션 아크의 자원 선언 박자를 지우라는 뜻이 아니다 — 디텍션이 메인 태스크인 이상 이 박자를 뭉개는 쪽이 오히려 원칙 위반이다.
+
+**5. 12_observability → 본편 09 ([태스크 우선]의 강등 기각).** 13 머리가 12 §3(«세 밴드에서 다른 항은 λ²와 σ 둘뿐»)·§4(«세 밴드가 SNR90 하나를 공유»)를 명시 링크로 소비한다 — 결과의 **전제**다. 별편은 심화이지 전제가 아니고, 전제를 별편으로 내리면 결론 뒤에 읽히는 역순이 된다. 자체 독립 주장(한 순간의 (R_b, f_d)는 랭크 2, 수신기 추가로 위치가 풀림)도 보유.
+
+**6. 14_robustness → 별편 10_2 (3안 일치 확정).** 권 제목부터 «결론이 무엇에 기대고 있나» — 13의 R90·순위 없이는 서지 않는다. §2 표적모형 스왑·§3 배열이득·§4 X410 ADC 천장 전부 결론의 감도분석이고, §1(σ-무관 파형축)도 결론 내구성 진술이다. 별편 검사를 가장 깨끗이 통과.
+
+**7. 18_switch-grid → 별편 05_2 (3안 일치 확정).** 17 ⭐절1 «나딧을 −130.78→−64.23 dB로 올리는 스위치는 회절 하나» → 18 헤드라인 «회절이 든 네 조합은 리듬 몫 11.7~13.2%(백색잡음 수준), 없는 세 조합은 62.1~80.5%» — 부모의 단일축 귀속을 7조합 전수 격자로 완결한 답이다. 사용자 지시문 명문(«회절 잡음화는 엔진 검증의 심화») + 자기 빌더 docstring이 «체계 밖» 자인 → 별편으로 정식 편입.
+
+**8. 02_stock-engine → 별편 02_2 ([의존 우선]의 본편 기각, 최대 변경).** 결정적 실측: 02→05 전방 참조 **22회** — 권 전체가 커널을 향해 서술되고, 마지막 절(§7 why-PO)이 커널 선택 논거로 끝난다. 커널(05) §1~§2가 대(對)스톡 대면을 이미 요약해(«가림은 Sionna, 면적분은 우리 커널»·«스톡 솔버와 맞대면 … 반증») 본편→별편 심화 독서가 성립한다. «16·17이 인용하는 트렁크» 반론은 실측상 약하다: 17→02는 2회뿐(17→16은 11회)이고, 피인용은 별편 지위를 막지 않는다(전례: 07_size-law도 13이 소비하지만 3안 전부 별편). 전개방향 8박자에 «스톡» 박자는 없다.
+
+**9. 04_target-mesh → 별편 02_3 ([의존 우선]의 본편 기각).** «커널은 무엇 위에서 적분하나»의 답 — 7대 실물 IoU 대조와 재질 선언(도전성 45.3% 면적이 Σ|Γ|A의 73.5%)은 커널 입력의 QC이고, 커널 §5(부품 폭별 PO 무릎)가 직접 소비한다. 8박자에 메쉬 박자가 없고 0803 프레임에서 메쉬는 인프라다. 15가 4회 참조하지만 그것은 실측 규약이 QC 원장을 쓰는 것일 뿐 — 별편 지위와 무관.
+
+**10. 11_detector → 본편 08 ([태스크 우선]의 강등 기각).** 자체 헤드라인(경험 Pfa 1.52~2.66배, 문턱 교정을 먼저 적음)을 가진 처리 박자이고, 13의 R90은 이 사슬·이 문턱 위에서 계산된다(전제 역순 문제 동일). 결정적 구조 논거: 11은 이미 별편 11-2를 거느린다(11 머리에 «이 권에는 별편이 하나 딸려 있다» 명시) — 강등하면 별편의 별편이 생겨 번호 문법(부모번호_2)이 붕괴한다.
+
+**11. 11_2_two_channel → 별편 08_2, 부모=detector 유지.** 11 머리와 11-2 머리가 상호 명시 선언(«11 권의 사슬을 한 줄도 안 고치고, 기준신호만 바꾼다»). [태스크 우선]의 results 밑 07_4 배치는 이 선언과 어긋난다.
+
+# 실행 메모 (docs/RESTRUCT_PLAN.md 대비 변경점)
+
+- §2-A 게이트·§2-B 자리표시자 2단 치환·§2-C 재조립 순서는 유효. 단 치환표는 위 표로 교체 — 평면안의 «01~07 번호 불변» 전제가 깨진다(05→02, 06→03, 16→04, 17→05 등 역방향 이동 포함, 순환 치환 재산출 필수). 옛 08_1~08_5→06_1~06_5 이동이 있으므로 `src/make_report08_microdoppler.py`의 파일명 치환도 필요하다([의존 우선]의 «08 불변» 이점은 이 편성표에서 소멸 — 별편 8편 체계의 대가로 수용).
+- `src/build_volumes.py`: COMPANIONS를 {부모: [별편…]} 일반형으로 확장(1→8편). 평면안 결정점 1의 STANDALONE 신설은 불필요 — 18권도 COMPANIONS로 흡수된다.
+- 앞당김 완화 각주: 새 04(앙각)·05(스위치)가 마이크로도플러 낱말을 06보다 먼저 쓴다 → 두 권 머리에 «무늬 축의 정의는 리포트 6» 한 줄(평면안 §1 완화의 번호만 갱신).
+- README에 **분권≠별편** 지위 구별 명기: 06_1~06_5는 한 권의 장(크기 사정), N_2류는 부모 질문의 답. 06_6은 표기만 분권 꼬리를 잇고 지위는 별편.
+- 예약 슬롯: EXPERIMENT_MAP D.4 «리포트 16-2 본문» → **04_2**로 갱신.
+- §3 위험 목록(teammeeting_0818/ROADMAP.md, 메모리 acdc-metric-artifact의 «리포트 17» 등)의 옛→새 환산표를 이 표 기준으로 재산출 — acdc 노트의 «리포트 17»은 새 05를 가리키게 된다.
+- 검증 불변량: 파일 23개(본편 15 + 별편 8), 별편 8편 전부 COMPANIONS 등재.
+
+근거 파일: /workspace/sionna/reports/01_map.ipynb ~ 18_switch-grid.ipynb (23권 머리 전수 판독), /workspace/sionna/docs/RESTRUCT_PLAN.md, /workspace/sionna/reports/README.md. 참조 계수는 각 권 마크다운 셀의 «리포트 N»·파일명 링크 정규식 전수 추출값(02→05 22회, 11→10 8회, 12→10 10회, 03→01 8회, 07→06 4회/06→07 0회, 17→16 11회/17→02 2회, 13→12 2회 명시 링크).
