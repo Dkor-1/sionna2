@@ -1,0 +1,837 @@
+{
+ "papers": [
+  {
+   "title": "Micro-Doppler Signal Representation for Drone Classification by Deep Learning",
+   "authors": "Julien Gérard, Joanna Tomasik, Christèle Morisseau, Arpad Rimmel, Gilles Vieillard (CentraleSupélec·ONERA)",
+   "year": 2020,
+   "venue": "EUSIPCO 2020, pp.1561–1565",
+   "link": "https://doi.org/10.23919/Eusipco47968.2020.9287525",
+   "dl_method": "GoogLeNet(고정 백본, 표현 비교용; 1-D 입력엔 필터를 5×5→5×1로 1-D화, 실수+허수 2채널 주입)",
+   "input_rep": "표현 5종 비교 — x(t)·WSP(장시간 가중 스펙트럼)·CP(켑스트럼)·SG(STFT 스펙트로그램)·CVD",
+   "data": "실측(ONERA Medycis 측정 캠페인, S밴드 펄스), 드론 5클래스, 학습 36,730/시험 4,670 청크 — 날짜 분리",
+   "claim": "긴 관측의 WSP 표현이 최적이며, 시험/학습 날짜 분리를 안 하면 정확도가 98~100%로 부풀어 오른다",
+   "accuracy": "청정 WSP 98.1% / 잡음 92.7% / 짧은 관측 93.7%",
+   "how_found": "로컬 PDF /workspace/sionna/prior_work/pdfs/eusipco2020_1561__gerard_microdoppler-representation-drone-dl.pdf fitz 정독(§IV-B GoogLeNet 확정) + passive_ofdm_dl_survey.md §3-1 기존 항목"
+  },
+  {
+   "title": "Urban Bird-Drone Classification with Synthetic Micro-Doppler Spectrograms",
+   "authors": "Daniel White, Mohammed Jahangir, Chris J. Baker, Michail Antoniou (Univ. of Birmingham)",
+   "year": 2023,
+   "venue": "IEEE Transactions on Radar Systems vol.2 pp.167–179 (온라인 2023, DOI 10.1109/TRS.2023.3326317)",
+   "link": "https://doi.org/10.1109/TRS.2023.3326317",
+   "dl_method": "AlexNet 전이학습(ImageNet 사전학습, conv 5층 유지·FC 3층만 랜덤초기화 후 학습, Bayesian optimization으로 학습률 탐색)",
+   "input_rep": "RGB 위색 STFT 스펙트로그램(20 timestep=5.6 s, 15 Hz 고역통과로 중앙 도플러빈 제거)",
+   "data": "실측 L밴드 응시레이다(도심), 새 vs 드론 2클래스, 학습 7,256장; 반합성=합성 표적 에코를 실측 배경 시계열에 합산(큰 드론 2종만 합성)",
+   "claim": "반합성 스펙트로그램 학습이 실측 학습 대비 −3.1pp까지 접근하나 실데이터가 최종 성능에 필수; 한 비행이 train/test에 안 걸치게 분할",
+   "accuracy": "실측 89.7±0.5% / 반합성 86.6±0.5%",
+   "how_found": "로컬 PDF /data/public/sionna/sionna_jeong/reference_library/deep_learning_synthetic/white2023_TRS_urban-bird-drone-synthetic-microdoppler__AAM-bham.pdf fitz 정독(§IV AlexNet 전이 확정) + passive_ofdm_dl_survey.md §3-1"
+  },
+  {
+   "title": "AirGuard: UAV and Bird Recognition Scheme for Integrated Sensing and Communications System",
+   "authors": "Hongliang Luo, Zhonghua Chu, Tengyu Zhang, Chuanbin Zhao, Bo Lin, Feifei Gao (칭화대)",
+   "year": 2026,
+   "venue": "IEEE JSAC 채택(서베이 기록) · arXiv:2603.13112",
+   "link": "https://arxiv.org/abs/2603.13112",
+   "dl_method": "이중분기 융합 CNN(자체 설계, 0.15M) — 분기당 conv3×3 3층+maxpool 2×2→32@32×32→adaptive avgpool→FC32, 두 분기 concat 64→FC 2층(ReLU·Softmax)",
+   "input_rep": "cmD(중심화 마이크로도플러) 스펙트럼 이미지 + HRRP 이미지 이중 입력(각 3@256×256)",
+   "data": "시뮬 전용 — 26 GHz OFDM ISAC 에코 237,600장(운동모델 3600×SNR 11단×반복 6), UAV vs 새 2클래스",
+   "claim": "cmD+HRRP 이중 특징 융합이 단일 입력을 능가(95.34/97.75→99.37%); 단 분할 규약 미기재로 근접중복 누수 위험(서베이 판정)",
+   "accuracy": "99.37%(융합) / 97.75%(cmD) / 95.34%(HRRP)",
+   "how_found": "로컬 PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/2603.13112__airguard-uav-bird-recognition-isac.pdf fitz 정독(망 구조 확정) + passive_ofdm_dl_survey.md §3-1 + sionna_sensing_survey.md R20"
+  },
+  {
+   "title": "μDopplerTag: CNN-Based Drone Recognition via Cooperative Micro-Doppler Tagging",
+   "authors": "O. Yerushalimov, D. Vovchuk, A. Glam, P. Ginzburg (Tel Aviv Univ.)",
+   "year": 2026,
+   "venue": "arXiv:2601.08042 (프리프린트)",
+   "link": "https://arxiv.org/abs/2601.08042",
+   "dl_method": "경량 커스텀 CNN — conv 3층(필터 32/64/128, 커널 3×3, ReLU)+maxpool 2×2+dropout→FC128(ReLU)+dropout→출력; 스펙트로그램을 이미지가 아니라 1D 벡터로 언랩한 단일채널 입력",
+   "input_rep": "원시 레이다 신호의 스펙트로그램 행렬을 1D 벡터로 펼친 표현(이미지 취급 안 함)",
+   "data": "실측 — S밴드 3.35 GHz CW 레이다(태그 공진 주파수), 무향실 43개 태그 코드 구성(코드당 10기록, 15 s) + 야외 비행 7코드",
+   "claim": "블레이드에 공진 전자기 스티커로 인위적 마이크로도플러 코드를 새기면 CNN으로 43개 구성을 식별할 수 있다(협조적 식별)",
+   "accuracy": "SNR>9 dB에서 전체 ~99%, 0 dB에선 붕괴(~10%)",
+   "how_found": "로컬 PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/2601.08042__mudopplertag-cnn-drone-microdoppler.pdf fitz 정독(망 구조·3.35 GHz CW 확정) + passive_ofdm_dl_survey.md §3-3 파라미터 표"
+  },
+  {
+   "title": "Small Drone Classification with Light CNN and New Micro-Doppler Signature Extraction Method Based on A-SPC Technique",
+   "authors": "Junhyeong Park, Jun-Sung Park, Seong-Ook Park (KAIST)",
+   "year": 2020,
+   "venue": "arXiv:2009.14422",
+   "link": "https://arxiv.org/abs/2009.14422",
+   "dl_method": "경량 스크래치 CNN — conv 3층 + FC 1층, 0.217M 파라미터",
+   "input_rep": "A-SPC 기법으로 추출한 MDS(마이크로도플러 시그니처) 이미지 128×128×3",
+   "data": "실측 Ku밴드 FMCW, 드론 3종+잡음 2 = 5클래스, 3,500장(+독립 추출한 별도 시험셋 1,750장)",
+   "claim": "망을 고정하고 전처리(A-SPC 추출)만 교체해도 87.14→97.14%(+10pp) — 입력 품질이 백본보다 지배적",
+   "accuracy": "97.14%",
+   "how_found": "passive_ofdm_dl_survey.md §3-1 [원문] 항목 회수(중복조사 방지) + arXiv abs 웹 재확인(제목·저자·수치 일치)"
+  },
+  {
+   "title": "Drone Classification Using Convolutional Neural Networks With Merged Doppler Images",
+   "authors": "Byung Kwan Kim, Hyun Seong Kang, Seong-Ook Park (KAIST)",
+   "year": 2017,
+   "venue": "IEEE Geoscience and Remote Sensing Letters 14(1):38–42",
+   "link": "https://doi.org/10.1109/LGRS.2016.2624820",
+   "dl_method": "GoogLeNet(고성능·자원 최적화를 이유로 선택한 CNN 구조)",
+   "input_rep": "MDS 스펙트로그램 + CVD를 병합한 merged Doppler image",
+   "data": "실측 Ku밴드 FMCW, 드론 2종, 무향실+야외(고도 50/100 m)",
+   "claim": "MDS 단독 대비 CVD 병합 이미지가 89.3→94.7%(+5.4pp) — 표현 병합의 효과를 보인 초기 대표작",
+   "accuracy": "94.7%(병합, 모터수·자세각 변화 시험), 2기종 50/100 m 케이스 100%",
+   "how_found": "passive_ofdm_dl_survey.md §3-1 [2차] 항목 회수 → 이번 라운드 KAIST pure·dblp·Semantic Scholar로 1차 확인 승격"
+  },
+  {
+   "title": "Model-Based Data Augmentation Applied to Deep Learning Networks for Classification of Micro-Doppler Signatures Using FMCW Radar",
+   "authors": "N. Rojhani 외",
+   "year": 2023,
+   "venue": "IEEE Transactions on Microwave Theory and Techniques 71(5):2222–2236",
+   "link": "https://ieeexplore.ieee.org/document/10004894",
+   "dl_method": "커스텀 CNN(Adam lr 1e-3) — 스펙트로그램이 아니라 레인지 프로파일을 먹는 점이 특이",
+   "input_rep": "77 GHz FMCW 레인지 프로파일 400점 벡터",
+   "data": "합성 학습 32,000×400(결정론적 후방산란 물리모델) + 실측 시험 136장, 로터수 2클래스",
+   "claim": "물리모델 파라미터 섭동 기반 결정론적 증강이 관행 랜덤 증강보다 일반화·편향에서 우월(최소 정밀도 78.02 vs 15.55%)",
+   "accuracy": "78.68%(모델기반 증강) vs 66.18%(관행 증강); ⚠섭동 σ_P를 시험셋으로 튜닝한 결함(서베이 판정 — 따라하면 안 됨)",
+   "how_found": "passive_ofdm_dl_survey.md §3-1·T9 [원문] 회수 + IEEE Xplore 웹 확인(제목·권호·쪽 일치)"
+  },
+  {
+   "title": "Semantic Segmentation Guided RF Micro-Doppler Synthesis and UAV Classification in Low SINR",
+   "authors": "Sean Kearney, Sevgi Z. Gurbuz (Univ. of Alabama)",
+   "year": 2025,
+   "venue": "IEEE 학회판(IEEE Xplore 11031708, 2025); 확장 저널판은 IEEE TAES 62:9875–9891로 서베이에 기록(2026)",
+   "link": "https://ieeexplore.ieee.org/document/11031708",
+   "dl_method": "물리유도 시맨틱 분할망(U-Net, CAD 시뮬만으로 학습)을 GAN 판별기와 분류기 앞단에 통합한 SS-CAE(시맨틱 분할 유도 CAE)",
+   "input_rep": "스펙트로그램 + HERM 라인 시맨틱 분할 마스크",
+   "data": "실측 79건 비행(6 s→333샘플, High 107/Low 226 SINR 계층) + CAD 포인트클라우드 시뮬·GAN 합성, UAV 5기체",
+   "claim": "CAD로만 학습한 분할 마스크를 앞단에 넣으면 저SINR 일반화가 50.0→71.2%(+21.2pp); 저충실도 CAD 단독 학습은 random guessing 수준 — 시뮬은 데이터가 아니라 사전(prior)으로 쓰라는 논거",
+   "accuracy": "Real→Low SINR 50.0→71.2%(+21.2pp, TAES판 수치·서베이 기록)",
+   "how_found": "passive_ofdm_dl_survey.md §3-1·§3-6 [원문](TAES판) 회수 + 학회판 IEEE Xplore 웹 확인; TAES판 권호는 서베이 기록 그대로(이번 라운드 웹 재확인은 학회판까지)"
+  },
+  {
+   "title": "Networked ISAC Enabled Target Recognition Towards Low-Altitude Economy",
+   "authors": "Hongliang Luo, Chuanbin Zhao, Boxuan Sun, Zhonghua Chu, Shengjie Quan, Guangyi Liu, Feifei Gao (칭화대)",
+   "year": 2026,
+   "venue": "arXiv:2607.10319",
+   "link": "https://arxiv.org/abs/2607.10319",
+   "dl_method": "Swin Transformer(다중 스케일 특징 융합)",
+   "input_rep": "다중 기지국 에코의 시간-주파수 스펙트럼 3종(속도분해능 우선·시간분해능 우선·속도전이 TF 스펙트럼)",
+   "data": "시뮬 전용 — 네트워크형 ISAC 에코 1,440,000샘플 공개 벤치마크, UAV·새·차량·보행자 4클래스",
+   "claim": "다중 BS·다중 시점 TF 표현 + Swin Transformer로 저고도 4클래스 인식과 미지 서브타입 일반화를 주장(초록에 정량 수치 없음)",
+   "accuracy": "초록에 정량 수치 없음 — 미확인",
+   "how_found": "sionna_sensing_survey.md R20 노트(칭화 Feifei Gao 3부작) 회수 + arXiv abs 웹 확인(제목·저자·아키텍처)"
+  },
+  {
+   "title": "Feature-Level Robustness of Physics-Guided Micro-Doppler Descriptors for classification of Drones and Birds",
+   "authors": "Shaiq e Mustafa, Salman Liaquat, Imran Hafeez Abbasi, Azhar Hasan",
+   "year": 2026,
+   "venue": "arXiv:2604.12567",
+   "link": "https://arxiv.org/abs/2604.12567",
+   "dl_method": "딥러닝 아님(고전 기준선) — 통계·물리 기반 수제 특징(초록 기준 10개; 서베이 표엔 5개로 기록돼 있어 상충) + SVM·랜덤포레스트",
+   "input_rep": "77 GHz FMCW 스펙트로그램에서 추출한 수제 특징 벡터(엔트로피·사이드로브 등)",
+   "data": "공개 77 GHz FMCW 실측 데이터셋(드론·새; 서베이 기록은 반사체 포함 3클래스·130건뿐) + AWGN·위상잡음 부가 열화",
+   "claim": "소데이터 체제에선 수제 특징+SVM/RF가 잡음 강인 기준선 — 심한 열화에서도 엔트로피·사이드로브 특징이 F1 0.773~0.831 유지",
+   "accuracy": "청정 평균 0.916, −10 dB급 열화에서 RF F1 0.831",
+   "how_found": "passive_ofdm_dl_survey.md §3-1 [원문] 회수 + arXiv abs 웹 재확인(제목·저자·수치)"
+  },
+  {
+   "title": "Classification of drones and birds using convolutional neural networks applied to radar micro-Doppler spectrogram images",
+   "authors": "Samiur Rahman, Duncan A. Robertson",
+   "year": 2020,
+   "venue": "IET Radar, Sonar & Navigation 14(5)",
+   "link": "https://doi.org/10.1049/iet-rsn.2019.0493",
+   "dl_method": "GoogLeNet 전이학습(RGB 스펙트로그램) + 자체 설계 CNN 시리즈(그레이스케일)",
+   "input_rep": "마이크로도플러 스펙트로그램 이미지(RGB 및 그레이스케일)",
+   "data": "실측 레이다, 4클래스(드론·새·클러터·잡음) 및 2클래스(드론 vs 비드론)",
+   "claim": "GoogLeNet 전이학습으로 드론/새/클러터/잡음 4클래스에서 ~99% — 스펙트로그램 이미지+전이학습이 실측에서 통함을 보인 초기 표준 사례",
+   "accuracy": "GoogLeNet ~99%, 자체 CNN 4클래스 검증/시험 99.6%/94.4%",
+   "how_found": "웹검색 + Semantic Scholar API(DOI) 서지·초록 검증"
+  },
+  {
+   "title": "Radar-Spectrogram-Based UAV Classification Using Convolutional Neural Networks",
+   "authors": "Dongsuk Park, Seungeui Lee, SeongUk Park, Nojun Kwak",
+   "year": 2021,
+   "venue": "Sensors 21(1):210 (온라인 2020-12-31)",
+   "link": "https://doi.org/10.3390/s21010210",
+   "dl_method": "ResNet-18(기준) + ResNet-SP(제안: 채널 축소·팽창 컨볼루션·이상탐지·그래디언트 클리핑을 넣은 경량판)",
+   "input_rep": "STFT 스펙트로그램을 2채널 이미지로(레이다 신호의 실수부·허수부)",
+   "data": "실측 FMCW X-band(Ancortek SDR-KIT 980AD2), 5클래스 — 드론 3종(Metafly 날갯짓, DJI Mavic Air 2 쿼드콥터, Parrot Disco 고정익) + 인간활동 2종",
+   "claim": "실시간용 경량 ResNet-SP가 ResNet-18보다 빠르고(훈련 242s vs 640s) 정확(83.39% vs 79.88%) — 복소 2채널 입력 규약 제시",
+   "accuracy": "ResNet-SP 83.39%, ResNet-18 79.88%",
+   "how_found": "웹검색 + PMC 원문 페이지 검증"
+  },
+  {
+   "title": "Convolutional Neural Networks for Classification of Drones Using Radars",
+   "authors": "Divy Raval, Emily Hunter, Sinclair Hudson, Anthony Damini, Bhashyam Balaji",
+   "year": 2021,
+   "venue": "Drones 5(4):149",
+   "link": "https://doi.org/10.3390/drones5040149",
+   "dl_method": "자체 설계 CNN",
+   "input_rep": "STFT 스펙트로그램",
+   "data": "전량 합성(Martin–Mulgrew 블레이드 모델, 블레이드 길이·회전수 변주), X-band/W-band 시나리오, SNR 주입",
+   "claim": "합성 마이크로도플러만으로 CNN 훈련이 가능함을 보이고 F1 vs SNR 곡선 규약 제시 — X-band가 W-band보다 우위, 블레이드 피치 변화에 강건",
+   "accuracy": "F1 0.816±0.011 @ SNR 10 dB (X-band)",
+   "how_found": "웹검색 + Semantic Scholar API(DOI) 검증 (우리 noise_modeling_survey.md 기인용 논문)"
+  },
+  {
+   "title": "DIAT-μSAT: Small Aerial Targets' Micro-Doppler Signatures and Their Classification Using CNN",
+   "authors": "Harish C. Kumawat, Mainak Chakraborty, A. Arockia Bazil Raj, Sunita V. Dhavale",
+   "year": 2022,
+   "venue": "IEEE Geoscience and Remote Sensing Letters vol.19",
+   "link": "https://doi.org/10.1109/LGRS.2021.3102039",
+   "dl_method": "VGG16/VGG19 전이학습(특징추출기로 사용하는 DCNN)",
+   "input_rep": "CW 레이다 마이크로도플러 시그니처 이미지(스펙트로그램)",
+   "data": "실측 X-band(10 GHz) CW 레이다, 공개 데이터셋 DIAT-μSAT 4,849장·5클래스(2엽 로터, 3엽 단/장 로터, 쿼드콥터, 바이오닉 버드)",
+   "claim": "드론 마이크로도플러 공개 데이터셋(DIAT-μSAT)을 구축·배포하고 VGG 전이학습 기준선(95/97%)을 제시 — 이후 연구의 공통 벤치마크",
+   "accuracy": "VGG16 95%, VGG19 97%",
+   "how_found": "웹검색 + Semantic Scholar API(DOI)·IEEE DataPort 검증"
+  },
+  {
+   "title": "DIAT-RadSATNet — A Novel Lightweight DCNN Architecture for Micro-Doppler-Based Small Unmanned Aerial Vehicle (SUAV) Targets' Detection and Classification",
+   "authors": "Harish C. Kumawat, Mainak Chakraborty, A. Arockia Bazil Raj",
+   "year": 2022,
+   "venue": "IEEE Transactions on Instrumentation and Measurement vol.71",
+   "link": "https://doi.org/10.1109/TIM.2022.3188050",
+   "dl_method": "DIAT-RadSATNet — 자체 설계 경량 DCNN(0.45M 파라미터)",
+   "input_rep": "마이크로도플러 스펙트로그램",
+   "data": "실측 X-band(10 GHz) CW, DIAT-μSAT 확장 6클래스(RC플레인, 3엽 단/장 로터, 쿼드콥터, 바이오닉버드, 미니헬기+버드)",
+   "claim": "전이학습 없이 0.45M 파라미터 경량 전용망으로 97.3% — 소형 모델+전용 데이터셋이 대형 전이학습과 대등함을 입증",
+   "accuracy": "검출 97.1% / 분류 97.3%",
+   "how_found": "웹검색 + Semantic Scholar API(DOI) 검증"
+  },
+  {
+   "title": "UAVs and birds classification using robust coordinate attention synergy residual split-attention network based on micro-Doppler signature measurement by using L-band staring radar",
+   "authors": "Ting Dai, Liye Mei, Yue Zhang, Biao Tian, Rui Guo, Teng Wang, Shan Du, Shiyou Xu",
+   "year": 2023,
+   "venue": "Measurement vol.222 (Elsevier)",
+   "link": "https://doi.org/10.1016/j.measurement.2023.113692",
+   "dl_method": "RCA-ResNeSt — ResNeSt(residual split-attention) 백본 + CrossNorm/SelfNorm(일반화) + coordinate attention",
+   "input_rep": "SVD 클러터 제거 후 그레이스케일 마이크로도플러 스펙트로그램",
+   "data": "실측 L-band 홀로그래픽 응시(staring) 레이다, UAV vs 새",
+   "claim": "ResNet 최신 변형(split-attention)+어텐션 조합으로 L-band 응시 레이다 실측에서 UAV/새 구분 97.99%",
+   "accuracy": "97.99%",
+   "how_found": "웹검색 + Crossref API 서지 검증"
+  },
+  {
+   "title": "UAV Classification Based on Deep Learning Fusion of Multidimensional UAV Micro-Doppler Image Features",
+   "authors": "Xu Chen, Chunguang Ma, Chaofan Zhao, Yong Luo",
+   "year": 2024,
+   "venue": "IEEE Geoscience and Remote Sensing Letters vol.21",
+   "link": "https://doi.org/10.1109/LGRS.2024.3371171",
+   "dl_method": "ResNet34 기반 데이터-레벨/특징-레벨 융합(두 방식 비교)",
+   "input_rep": "다차원 마이크로도플러 이미지 특징(복수 표현의 융합)",
+   "data": "초록 수준만 검증 — 데이터 상세는 원문 확인 필요",
+   "claim": "단일 표현 대신 다차원 마이크로도플러 이미지 특징을 ResNet34로 융합해 97% 초과 정확도",
+   "accuracy": ">97%",
+   "how_found": "웹검색 + Semantic Scholar API 서지 검증(데이터 상세 미확인으로 표기)"
+  },
+  {
+   "title": "Classification of Flying Drones Using Millimeter-Wave Radar: Comparative Analysis of Algorithms Under Noisy Conditions",
+   "authors": "Mauro Larrat, Claudomiro Sales",
+   "year": 2025,
+   "venue": "Sensors 25(3):721",
+   "link": "https://doi.org/10.3390/s25030721",
+   "dl_method": "LSTM, GRU, Conv1D, Transformer 4종 비교 + Multimodal Transformer(제안: 진폭·위상·왜도·첨도 결합)",
+   "input_rep": "복소 레이다 시계열 직접 입력(이미지화 없음: 1000프레임×128윈도우×168특징, 진폭·위상 보존)",
+   "data": "실측 60 GHz mmWave 센서, 3클래스(DJI Mavic, DJI Phantom 3 Pro, 바이오닉 버드), 백색/임펄스/파레토/멀티패스 잡음 주입",
+   "claim": "스펙트로그램 이미지화 없이 복소 시계열을 직접 시퀀스 모델에 넣어 비교 — 잡음 조건에서 Transformer가 LSTM/GRU/Conv1D보다 일관 우위, 중꼬리(파레토) 잡음만 취약",
+   "accuracy": "Multimodal Transformer AUC ≈1.0(백색·임펄스·멀티패스), 백색잡음下 AUC 0.97–0.98",
+   "how_found": "웹검색 + PMC 원문 페이지 검증"
+  },
+  {
+   "title": "Vision Transformer for Classification of UAV and Helicopters Using Micro-Doppler Spectrograms in Surveillance Radar",
+   "authors": "Arkadiusz Czuba (Warsaw Univ. of Technology & PIT-RADWAR)",
+   "year": 2025,
+   "venue": "arXiv (2025-11-29 게시)",
+   "link": "https://arxiv.org/abs/2512.00374",
+   "dl_method": "ViT-S-M — ViT-Small 개조(트랜스포머 인코더 12→5층으로 축소, 패치 32×32, 스크래치 학습)",
+   "input_rep": "가변 길이 마이크로도플러 스펙트로그램(적분시간 102.4/204.8/307.2 ms → 384×384/768/1152 픽셀) + 개조 DT-CWT 잡음제거",
+   "data": "실측 C-band 감시 레이다(Sola, 기계식 회전 안테나), 3클래스(DJI Matrice 600 Pro, PZL SW-4, PZL W-3 헬기), 스펙트로그램 13,614장",
+   "claim": "CNN의 고정 해상도 제약 없이 적분시간이 다른 가변 크기 스펙트로그램을 ViT로 직접 분류(97.76%), 자기어텐션 맵으로 해석 가능성 제시",
+   "accuracy": "테스트 97.76% (검증 97.61%)",
+   "how_found": "웹검색 + arXiv abs/html 페이지 이중 검증"
+  },
+  {
+   "title": "A Classification Algorithm of UAV and Bird Target Based on L/K Dual-Band Micro-Doppler and Mamba",
+   "authors": "Tao Zhang, Xiaoru Song",
+   "year": 2026,
+   "venue": "Drones 10(4):265",
+   "link": "https://doi.org/10.3390/drones10040265",
+   "dl_method": "Mamba 상태공간(state-space) 백본 + 듀얼브랜치 패치 인코딩 + 상호학습·대조학습(contrastive) 손실 + late fusion",
+   "input_rep": "L/K 듀얼밴드 마이크로도플러 스펙트로그램의 패치 시퀀스화(K밴드=고주파 디테일, L밴드=스케일 정보 상보)",
+   "data": "L/K 듀얼밴드 레이다 탐지 모델, UAV vs 새(초록에 데이터 규모 상세 없음)",
+   "claim": "Mamba로 스펙트로그램 패치 시퀀스의 장기 미세운동 의존성을 추출하고 듀얼밴드를 late fusion — 97.5%, 손실에 대조학습을 결합한 드문 사례",
+   "accuracy": "97.5%",
+   "how_found": "웹검색 + Semantic Scholar API(DOI) 검증"
+  },
+  {
+   "title": "Deep learning based doppler radar for micro UAS detection and classification",
+   "authors": "Gihan J. Mendis, Tharindu Randeny, Jin Wei, Arjuna Madanayake",
+   "year": 2016,
+   "venue": "IEEE MILCOM 2016, pp.924–929",
+   "link": "https://doi.org/10.1109/MILCOM.2016.7795448",
+   "dl_method": "deep belief network (DBN; 후속판 표기는 저복잡도 binarized DBN) — CNN 아님",
+   "input_rep": "스펙트럼 상관함수(SCF, cyclostationary 패턴) — 스펙트로그램 아님",
+   "data": "실측, 2.4 GHz CW 도플러 레이다, 실험실(기체 고정·프로펠러 구동); 마이크로 UAS 3종(헬리콥터·인공 새·쿼드콥터)",
+   "accuracy": ">90% (MILCOM 초록 기준; 2017 확장판의 ~97%는 원문 미확인)",
+   "claim": "드론 마이크로도플러에 심층망을 얹은 최초기 논문 — 계보는 CNN+이미지가 아니라 DBN+SCF",
+   "how_found": "웹검색 → dblp 레코드 + Semantic Scholar 초록 교차확인"
+  },
+  {
+   "title": "Classification of small UAVs and birds by micro-Doppler signatures",
+   "authors": "Pavlo Molchanov, Ronny I. A. Harmanny, Jacco J. M. de Wit, Karen Egiazarian, Jaakko Astola",
+   "year": 2014,
+   "venue": "Int. J. Microwave and Wireless Technologies 6(3-4):435–444 (회의판 EuRAD 2013 pp.172–175)",
+   "link": "https://doi.org/10.1017/S1759078714000282",
+   "dl_method": "딥러닝 아님 — 상관행렬 고유쌍(eigenpair) 특징 + 선형/비선형 SVM·나이브베이즈",
+   "input_rep": "몸체 도플러 보상·정렬한 마이크로도플러 시그니처의 상관행렬 고유쌍 (EVD/SVD)",
+   "data": "실측, X-band 9.5 GHz CW (Thales NL+TNO D-RACE); 모형기·쿼드로터·헬기·정지 로터·새 등 11클래스",
+   "accuracy": "저널판 ~92%; 회의판 10-fold CV 비선형 SVM 95.39%",
+   "claim": "UAV/새 마이크로도플러 분류 문제 설정의 원조격 (DL 이전 세대) — 새를 처음부터 같은 문제에 포함",
+   "how_found": "웹검색 → TNO 공개 PDF 전문 직독(fitz) + OpenAlex 초록"
+  },
+  {
+   "title": "Multistatic micro-Doppler radar feature extraction for classification of unloaded/loaded micro-drones",
+   "authors": "Matthew Ritchie, Francesco Fioranelli, Hervé Borrion, Hugh Griffiths (UCL)",
+   "year": 2016,
+   "venue": "IET Radar, Sonar & Navigation 11(1):116–124 (온라인 2016, 인쇄 2017)",
+   "link": "https://doi.org/10.1049/iet-rsn.2016.0063",
+   "dl_method": "딥러닝 아님 — diagonal-linear 판별분석·나이브베이즈·랜덤포레스트 + 멀티스태틱 노드별 분류·투표",
+   "input_rep": "스펙트로그램 SVD(U행렬 대각 성분 통계) + 도플러/대역폭 센트로이드 특징",
+   "data": "실측, NetRAD 2.4 GHz S-band 코히어런트 펄스 3노드(모노1+바이2, 기선 50 m, 첩 0.6 µs/45 MHz, PRF 5 kHz), 야외; 마이크로드론 페이로드 5클래스",
+   "accuracy": "센트로이드 특징 96.8~98.2% (threshold voting), SVD 특징 92.8~96.6%, 모노 단독 91~94%",
+   "claim": "멀티스태틱 이득을 정량화한 원조 — 노드별 분류+투표는 이득, 전 노드 데이터를 한 분류기에 합치면 57~61%로 추락",
+   "how_found": "웹검색 → Glasgow eprints 공개 PDF 전문 직독 + OpenAlex 초록"
+  },
+  {
+   "title": "Radar micro-Doppler signatures of drones and birds at K-band and W-band",
+   "authors": "Samiur Rahman, Duncan A. Robertson (Univ. of St Andrews)",
+   "year": 2018,
+   "venue": "Scientific Reports 8:17396",
+   "link": "https://doi.org/10.1038/s41598-018-35880-9",
+   "dl_method": "없음 — 분류기 없는 시그니처 분석 (2020 CNN 논문의 데이터·물리 앵커)",
+   "input_rep": "STFT 스펙트로그램 (블레이드 플래시·HERM 라인 분석)",
+   "data": "실측, K-band 24 GHz FMCW + W-band 94 GHz 2기(T-220 FMCW·NIRAD); DJI Phantom 3·Inspire 1·S900 + 실제 맹금류 4종(0.26~1.84 kg)",
+   "accuracy": "— (드론 MD는 몸체 대비 −20~−40 dB, 새는 0~−10 dB·4~6 Hz 날갯짓; W-band가 일부 5~10 dB 유리)",
+   "claim": "드론/새 구분 가능성의 물리 근거를 실측으로 확립 — 드론=HERM 라인·플래시, 새=날갯짓 주기 플래시",
+   "how_found": "웹검색 → Nature 전문 직독"
+  },
+  {
+   "title": "Target Detection and Classification of Small Drones by Boosting on Radar Micro-Doppler",
+   "authors": "Svante Björklund (FOI)",
+   "year": 2018,
+   "venue": "15th European Radar Conference (EuRAD 2018), Madrid",
+   "link": "https://doi.org/10.23919/EuRAD.2018.8546569",
+   "dl_method": "딥러닝 아님 — 부스팅 분류기 (SVM과 비교)",
+   "input_rep": "TVD(Time Velocity Diagram)에서 추출한 물리 특징 — 과제 지문의 «CVD»는 부정확, 원문은 TVD",
+   "data": "실측 드론·새 (레이다 대역·기종은 페이월로 미확인)",
+   "accuracy": "초록에 수치 없음 (2차 리뷰의 ~80%는 원문 미확인이라 보류)",
+   "claim": "드론 vs 새 검출 + 드론 기종 분류를 TVD 특징+부스팅으로 — 2019 딥러닝판의 직전 기준선",
+   "how_found": "웹검색 → OpenAlex 초록 원문 검증 (본문은 IEEE 페이월)"
+  },
+  {
+   "title": "Target Detection and Classification of Small Drones by Deep Learning on Radar Micro-Doppler",
+   "authors": "Svante Björklund, Niclas Wadströmer (FOI)",
+   "year": 2019,
+   "venue": "2019 International Radar Conference (RADAR), Toulon, pp.1–6",
+   "link": "https://doi.org/10.1109/RADAR41533.2019.171294",
+   "dl_method": "딥러닝 분류기 (정확한 아키텍처명은 초록에 없음 — 페이월로 미확인, 정직하게 보류)",
+   "input_rep": "TVD (Time Velocity Diagram)",
+   "data": "2018 EuRAD판과 동일한 실측 드론·새 데이터",
+   "accuracy": "수치 미공개(초록) — 동일 데이터에서 자신들의 부스팅·SVM 대비 향상이라고만 명시",
+   "claim": "같은 데이터·같은 TVD 입력에서 부스팅→딥러닝 승격으로 분류 성능 향상을 보고",
+   "how_found": "웹검색 → OpenAlex 초록 원문 검증"
+  },
+  {
+   "title": "Multi-rotor Drone Micro-Doppler Simulation Incorporating Genuine Motor Speeds and Validation with L-band Staring Radar",
+   "authors": "D. White, M. Jahangir, M. Antoniou, C. Baker, J. Thiyagalingam, S. Harman, C. Bennett",
+   "year": 2022,
+   "venue": "IEEE Radar Conference (RadarConf22)",
+   "link": "https://doi.org/10.1109/RadarConf2248738.2022.9764352",
+   "dl_method": "없음(위 TRS 2024 분류 논문의 시뮬레이션 전신) — 시계열 반환 단순 모델 3종",
+   "input_rep": "합성 스펙트로그램 (실기 모터속도 기록으로 파라미터 주입, 진폭변조 결함은 현상학적 보정)",
+   "data": "합성 + 실측 L밴드 응시레이더 배경(합성 표적을 실측 배경에 주입해 직접 비교)",
+   "claim": "실기 드론 모터속도 로그를 운동학 모델에 주입하고 실측 배경에 합성 표적을 더하면 회전익 마이크로도플러 측대역을 실측과 나란히 재현할 수 있다",
+   "accuracy": "분류 수치 없음(시뮬-실측 스펙트로그램 정성 비교)",
+   "how_found": "WebSearch → IEEE Xplore/OpenAlex 서지 확정"
+  },
+  {
+   "title": "A new simulation methodology for generating accurate drone micro-Doppler with experimental validation",
+   "authors": "M. Moore, D. A. Robertson, S. Rahman",
+   "year": 2024,
+   "venue": "IET Radar, Sonar & Navigation 18(3):477-492 (CC-BY)",
+   "link": "https://doi.org/10.1049/rsn2.12494",
+   "dl_method": "없음(학습용 대량 합성 데이터 생성 가능성으로 남김) — 시뮬 충실도 축의 기둥",
+   "input_rep": "3D CAD 모델→포인트클라우드 기반 합성 마이크로도플러 스펙트로그램",
+   "data": "합성 + 전용 제작 검증 레이더 실측, 프로펠러 모양이 다른 3기종",
+   "claim": "CAD 정밀도에 시뮬이 매우 민감하며 레이저스캔 모델이 최상 — 실측과 very good agreement; ⚠전문은 CC-BY인데도 못 열어 초록·S2 API까지만 확인",
+   "accuracy": "분류 수치 없음(시뮬-실측 일치 검증)",
+   "how_found": "WebSearch → Semantic Scholar API; 사내 rotor_randomness_survey.md 기록과 교차"
+  },
+  {
+   "title": "Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition in Different Environments With No Prior In Situ Data",
+   "authors": "S. Kearney, S. Z. Gurbuz",
+   "year": 2026,
+   "venue": "IEEE Transactions on Aerospace and Electronic Systems 62:9875-9891",
+   "link": "https://doi.org/10.1109/TAES.2026.3685229",
+   "dl_method": "U-Net(CAD 시뮬만으로 학습한 시맨틱 분할 마스크)을 GAN 판별기·분류기 앞단의 물리 사전으로 + SS-CAE",
+   "input_rep": "스펙트로그램 + HERM 라인 시맨틱 분할 마스크",
+   "data": "실측 79 GHz FMCW, UAV 5기체(실측 79건→6 s 333샘플, High/Low SINR 계층 분리) + CAD 시뮬",
+   "claim": "저충실도 시뮬 단독 학습은 random guessing을 못 넘는다(§V-A) — 시뮬은 학습데이터가 아니라 분류기 앞단 물리 사전(prior)으로 써야 한다는 처방; sim-to-real의 하한 경고",
+   "accuracy": "SS-CAE로 Real→Low SINR 전이 50.0→71.2% (+21.2pp)",
+   "how_found": "사내 passive_ofdm_dl_survey.md [원문] 정독 기록 + 이번 라운드 OpenAlex로 DOI 확보"
+  },
+  {
+   "title": "Hybrid Quantum Neural Network Advantage for Radar-Based Drone Detection and Classification in Low Signal-to-Noise Ratio",
+   "authors": "A. S. Malarvanan",
+   "year": 2024,
+   "venue": "arXiv (quant-ph)",
+   "link": "https://arxiv.org/abs/2403.02080",
+   "dl_method": "CNN vs 하이브리드 양자 신경망(HQNN) 비교",
+   "input_rep": "Martin-Mulgrew 복소 시계열 (펄스당 SNR 10log10 A_r²/σ_n² 정의)",
+   "data": "합성 전용(Martin-Mulgrew 모델), 실측 없음",
+   "claim": "고 SNR에선 CNN, 저 SNR(-5 dB 이하)에선 HQNN이 우세 — 시뮬 전용 학습 축의 최근 변형",
+   "accuracy": "SNR 구간별 상대 우열만 제시",
+   "how_found": "사내 noise_modeling_survey.md:287 기록 → arXiv 원문 페이지 재확인"
+  },
+  {
+   "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+   "authors": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao, S. Xu (상하이대)",
+   "year": 2025,
+   "venue": "2025 IEEE 25th International Conference on Communication Technology (ICCT)",
+   "link": "https://doi.org/10.1109/ICCT67417.2025.11374154",
+   "dl_method": "없음(초록 기준 분류 없음) — ⭐Sionna RT 기반 시뮬레이션",
+   "input_rep": "Sionna RT 시나리오의 CSI에서 추출한 로터 유도 마이크로도플러",
+   "data": "합성 전용(6G ISAC 맥락), 실측 없음; 전문 IEEE 유료로 미열람",
+   "claim": "Sionna RT로 멀티로터 마이크로도플러를 뽑은 첫 확인 사례 — 반송파↑일수록 mD 스펙트럼 확산; stock Sionna의 강체 1벡터 한계를 어떻게 우회했는지가 전문 확인 1순위 질문 (우리 스택과 최직결 신규 발굴)",
+   "accuracy": "해당 없음",
+   "how_found": "WebSearch(ray tracing micro-Doppler UAV) → OpenAlex 초록 재구성"
+  },
+  {
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "authors": "H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thomä (TU Ilmenau)",
+   "year": 2025,
+   "venue": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation 1(1):208-222 (회의판: RadarConf 2024, arXiv:2401.14287)",
+   "link": "https://doi.org/10.1109/JSTEAP.2025.3604407",
+   "dl_method": "없음 — thin-wire 블레이드 모델의 바이스태틱+OFDM 확장(멀티프로펠러·기체 정적반사 2방식); ML 학습 데이터셋 생성이 목적이라 자인하되 학습은 후속과제로 비움",
+   "input_rep": "바이스태틱 OFDM 채널의 마이크로도플러 시그니처",
+   "data": "합성 + 실측 GT 검증(자체 채널사운더), 멀티프로펠러 드론",
+   "claim": "바이스태틱 OFDM 마이크로도플러를 실측 수준으로 합성하는 확장 모델 — 저널판에서도 분류 학습은 비어 있어, 바이스태틱 OFDM mD + 학습 분류의 칸은 여전히 공백(우리 자리)",
+   "accuracy": "해당 없음(실측과의 유사성 검증)",
+   "how_found": "WebSearch → arXiv 2504.05168 원문 페이지에서 저널 서지 verbatim 확인"
+  },
+  {
+   "title": "Deep Learning for Classification of Mini-UAVs Using Micro-Doppler Spectrograms in Cognitive Radar",
+   "authors": "A. Huizing, M. Heiligers, B. Dekker, J. J. M. de Wit, L. Cifola, R. Harmanny (TNO)",
+   "year": 2019,
+   "venue": "IEEE Aerospace and Electronic Systems Magazine 34(11):46-56",
+   "link": "https://doi.org/10.1109/MAES.2019.2933972",
+   "dl_method": "CNN·RNN 계열 비교(정확한 망 이름은 전문 미확보로 미확정)",
+   "input_rep": "마이크로도플러 스펙트로그램",
+   "data": "미니 UAV(2차 요약상 쿼드/헥사콥터 실험 트라이얼 포함); ⚠시뮬/실측 훈련 구성은 원문 미확정",
+   "claim": "미니 UAV 마이크로도플러 딥러닝 분류의 표준 인용처(피인용 103) — 인지레이더 프레임에서 CNN/RNN 비교; 2차 요약의 95%@0.2 s 창은 원문 확인 실패로 미확정 표기",
+   "accuracy": "95% @ 0.2 s 창 (2차 요약, 원문 미확정)",
+   "how_found": "WebSearch → Semantic Scholar/OpenAlex 서지 확정; 전문은 IEEE 유료+로그인벽으로 실패(«못 찾았다» §6에 기록)"
+  },
+  {
+   "title": "A Novel Recognition-Before-Tracking Method Based on a Beam Constraint in Passive Radars for Low-Altitude Target Surveillance",
+   "authors": "X. Cao, H. Ma, J. Jin, X. Wan, J. Yi",
+   "year": 2025,
+   "venue": "Applied Sciences (MDPI) 15(18):9957",
+   "link": "https://doi.org/10.3390/app15189957",
+   "dl_method": "딥러닝 아님 — biased-RCS 특징벡터(길이 20) + 정규화 바이스태틱 속도(NBV) 유사도 매칭 인식기",
+   "input_rep": "레인지-도플러 맵 피크의 편향 RCS 벡터(마이크로도플러 아님)",
+   "data": "실측(우한대 DTMB 멀티스태틱 패시브, A320·Cirrus SR20) + 합성(DJI Phantom 4), 3클래스",
+   "accuracy": "ACRR 85.16% (Phantom 4 행 100%는 합성), 시뮬 >89%",
+   "claim": "패시브 실측 위에 학습형 인식기+혼동행렬을 올린 유일 확인 게재 사례 — 단 §4에서 «방송대역 RCS로는 드론끼리 구분 어렵다»고 자인",
+   "how_found": "기존 0811 조사 [원문] 기록 + 웹 재확인"
+  },
+  {
+   "title": "Experimental DVB-T2 Passive Radar Signatures of Small UAVs",
+   "authors": "E. Vorobev, V. Veremyev, N. Tulenkov",
+   "year": 2019,
+   "venue": "Signal Processing Symposium (SPSympo), Kraków, pp.67–70",
+   "link": "https://doi.org/10.1109/SPS.2019.8881955",
+   "dl_method": "딥러닝 아님 — 로터 회전수 도플러 시그니처의 정성 구분(학습 분류기 없음)",
+   "input_rep": "레인지-도플러 도의 도플러(마이크로도플러) 시그니처",
+   "data": "실측, DVB-T2 660 MHz 조명, 4기체(Phantom 3·F450·Geoscan 401·고정익), 750~900 m",
+   "accuracy": "수치 없음(정성)",
+   "claim": "DVB-T2 패시브에서 기종 간 구별 특징 존재 — 단 플라스틱 블레이드 최소형 기체는 실패(재질이 분류 가능성을 가름)",
+   "how_found": "기존 조사 [초록] + 웹 재확인(수치는 Demissie IET RSN 2025의 2차 서술)"
+  },
+  {
+   "title": "Passive Radar for Drone Detection and Classification",
+   "authors": "K. Kulpa, M. Malanowski, M. K. Bączyk",
+   "year": 2025,
+   "venue": "26th International Radar Symposium (IRS), Hamburg",
+   "link": "https://doi.org/10.23919/IRS64527.2025.11046011",
+   "dl_method": "미상(원문 유료·초록만) — 프로펠러 마이크로도플러를 분류 특징으로 사용",
+   "input_rep": "프로펠러 마이크로도플러 서명",
+   "data": "실측 예제 데이터(규모 미상)",
+   "accuracy": "초록에 수치 없음",
+   "claim": "바르샤바 학파의 패시브 드론 탐지·분류 — 분류가 학습형인지 특징 관찰인지 원문 확보 전 미확정",
+   "how_found": "웹검색 + Cao 2025 참고문헌 [10] 교차확인"
+  },
+  {
+   "title": "DC-Former Network Empowered UAV and Bird Recognition Based on Integrated Sensing and Communication System",
+   "authors": "J. Xue, Q. Zhang, D. Ma, J. Wei",
+   "year": 2025,
+   "venue": "IEEE ICCCS 2025, pp.927–932 (원문 유료)",
+   "link": "https://arxiv.org/abs/2604.02680 (§IV-C ref[92] 재인용 — IEEE 원문 링크 미확보)",
+   "dl_method": "DC-Former — depth convolution(국소 공간 특징) + Transformer 멀티헤드 자기어텐션(전역 의존성)",
+   "input_rep": "STFT 시간-주파수 스펙트로그램(3D 이미지)",
+   "data": "5G NR 3.5 GHz·100 MHz 실측+시뮬(모노스태틱 ISAC), UAV vs 새 2클래스 × 각 10,000장",
+   "accuracy": "96~98%, 기존 CNN 계열 상회",
+   "claim": "통신 파형(5G NR) 실측 에코 + 딥러닝 분류의 유일 확인 사례 — 단 패시브 바이스태틱이 아니라 자체 ISAC 테스트베드·2클래스",
+   "how_found": "Bai 서베이(arXiv:2604.02680) PDF 직독으로 1차 정보원 특정 [2차]"
+  },
+  {
+   "title": "PinpuNet: Towards ISAC-based Drone Monitoring by Learning Micro-Doppler Spectrum",
+   "authors": "Y. Luo, Q. Zhu, R. Guan",
+   "year": 2025,
+   "venue": "IEEE ICC 2025, pp.6007–6012 (원문 유료)",
+   "link": "https://arxiv.org/abs/2604.02680 (§IV-C ref[89] 재인용)",
+   "dl_method": "PinpuNet — 비균질(inhomogeneous) 2D 컨볼루션(시간축·주파수축 상관 분리 학습) + residual layers",
+   "input_rep": "STFT 마이크로도플러 스펙트로그램",
+   "data": "공개 데이터셋 LSS-FMCWR-1.0(FMCW 능동 실측, Journal of Radars 13(3) 2023): DJI Mavic 2·Phantom·Inspire 2·M350·M600·고정익 6기종",
+   "accuracy": "K밴드 4클래스 97.17% / L밴드 5클래스 99.50%, 스미어링 하 >91%",
+   "claim": "ISAC 프레이밍의 드론 기종 분류 학습망 — 단 평가 데이터는 FMCW 능동 레이다 실측이라 통신 조명원 실증은 아님",
+   "how_found": "Bai 서베이 PDF 직독 [2차]"
+  },
+  {
+   "title": "A Survey on Detection, Classification, and Tracking of UAVs using Radar and Communications Systems (게재판 제목 UAV→AAV)",
+   "authors": "W. Khawaja, M. Ezuma, V. Semkin, F. Erden, O. Ozdemir, I. Guvenc",
+   "year": 2025,
+   "venue": "IEEE Communications Surveys & Tutorials 28:3272–3310 (doi:10.1109/COMST.2025.3554613)",
+   "link": "https://arxiv.org/abs/2402.05909",
+   "dl_method": "서베이 — 분류 체계: 특징 축(RCS vs 마이크로도플러) × 알고리즘 축(Table X: 15종 고전 분류기·최근접이웃·CNN/딥러닝·SVM·Naive Bayes·신경망·스펙트로그램 패턴 분석·총오류율 최소화)",
+   "input_rep": "—(총람) RCS 수치/이미지, mD 스펙트로그램",
+   "data": "—; 능동/패시브(§V-D 조명원별)/드론 자체 RF(§VI)를 절 단위 분리",
+   "accuracy": "Table X 예: RCS 15분류기 SNR≥3dB 100%, 폴라리메트릭 NN 100%, mD CNN 98.8%, SVM 95.39% 등(전부 능동)",
+   "claim": "분류 알고리즘 총람표(Table X)에 패시브 행이 0 — 패시브×분류 칸이 빈 것을 탑저널 서베이가 스스로 보여줌",
+   "how_found": "arXiv v2 PDF 다운로드·fitz 직독 [원문]"
+  },
+  {
+   "title": "Advance and Refinement: The Evolution of UAV Detection and Classification Technologies",
+   "authors": "V. Semenyuk, I. Kurmashev, A. Lupidi, D. Alyoshin, L. Kurmasheva, A. Cantelli-Forti",
+   "year": 2024,
+   "venue": "International Journal of Critical Infrastructure Protection (투고판 PDF가 arXiv에)",
+   "link": "https://arxiv.org/abs/2409.05985",
+   "dl_method": "서베이 — 레이다 인식 = 6기술 결합 체계: ①RCS 분석 ②ML·딥러닝 ③마이크로도플러 분석 ④통계적 인식 ⑤레이다 스펙트로그램 ⑥다중주파수 레이다 (+대역/변조 축)",
+   "input_rep": "—(총람)",
+   "data": "—; 레이다·RF·광학·음향+센서융합, 2020년 이후",
+   "accuracy": "Table 1: RCS 통계인식 97.73%(SNR10dB)·GA-BP 80%·ResNet-SP(Park 2021)·하이브리드 DNN 의도분류 98.97% 등",
+   "claim": "기술 6분 체계 + 논문별 이름 있는 기법·성능표 회수 — 단 패시브 조명원 갈래가 통째로 없음(passive radar 0회)",
+   "how_found": "arXiv PDF 다운로드·fitz 직독 [원문]"
+  },
+  {
+   "title": "UAV Detection with Passive Radar: Algorithms, Applications, and Challenges",
+   "authors": "Z. Tang, H. Ma, Y. Qu, X. Mao",
+   "year": 2025,
+   "venue": "Drones (MDPI) 9(1):76",
+   "link": "https://doi.org/10.3390/drones9010076",
+   "dl_method": "서베이 — 체계: 조명원별(FM·DAB·DVB-T/T2·DTMB·GSM·LTE·5G·WiFi·위성) × 처리 단계별(기준신호 정제·클러터 제거·CAF·검출·추적)",
+   "input_rep": "—(총람)",
+   "data": "—; 패시브 레이다 한정 리뷰",
+   "accuracy": "분류 정확도 인용 0건 — 원 논문들이 수치를 안 냈을 가능성",
+   "claim": "패시브 분류의 성패를 블레이드 재질(탄소섬유·흑연 ○ / 플라스틱 ×)로 정리 — 패시브 전용 서베이인데도 분류 성능표가 없음",
+   "how_found": "기존 0811 조사 [원문] 기록 재사용 + 웹 재확인"
+  },
+  {
+   "title": "Micro-Doppler Based Target Recognition With Radars: A Review",
+   "authors": "A. Hanif, M. Muaz, A. Hasan, M. Adeel",
+   "year": 2022,
+   "venue": "IEEE Sensors Journal 22(4):2948–2961",
+   "link": "https://ieeexplore.ieee.org/document/9673798",
+   "dl_method": "서베이(마이크로도플러 특징추출·분류 기법 리뷰) — 본문 미확보로 체계 미회수(원문 유료·TechRxiv 프리프린트 차단)",
+   "input_rep": "—(총람)",
+   "data": "—; 마이크로도플러 표적 인식 전반(드론 포함)",
+   "accuracy": "—",
+   "claim": "2021~2026 창 안의 mD 인식 전용 리뷰로 실재 확인 — 단 [초록] 수준이라 이 편으로 문장을 세우면 안 됨",
+   "how_found": "웹검색으로 게재 사실·서지 확인 [초록]"
+  },
+  {
+   "title": "MIMO OFDM-Enabled ISAC for Low-Altitude Non-Cooperative UAV Surveillance: A Survey",
+   "authors": "S. Bai, S. Li, C. Yin, W. Qu, L.-T. Hsu, Y. Liu, W.-H. Chen",
+   "year": 2026,
+   "venue": "미게재 프리프린트 arXiv:2604.02680",
+   "link": "https://arxiv.org/abs/2604.02680",
+   "dl_method": "서베이 — UAV 식별(§IV-C) 3분 체계: ①신호처리(mD 파라미터 추정: Ma·Wei) ②학습 기반(PinpuNet·AirGuard CNN·DC-Former) ③합성데이터 생성(Costa 생성기); Table VIII이 논문×아키텍처×데이터×성적 총람",
+   "input_rep": "—(총람) STFT 스펙트로그램·cmD+HRRP",
+   "data": "—; 통신 파형(MIMO OFDM ISAC) 한정",
+   "accuracy": "—",
+   "claim": "통신 파형 갈래의 학습 분류 3편을 전부 실명·수치로 정리한 유일 문서 — DC-Former·PinpuNet의 1차 정보원",
+   "how_found": "arXiv PDF 다운로드·fitz 직독 [원문]"
+  },
+  {
+   "title": "A Lightweight CNN-Based Method for Micro-Doppler Feature-Based UAV Detection and Classification",
+   "authors": "L. Zhang, G. Tu, Y. Xu, X. Zhou",
+   "year": 2025,
+   "venue": "Electronics (MDPI) 14(24):4831 (2025-12-08)",
+   "link": "https://doi.org/10.3390/electronics14244831",
+   "dl_method": "경량 CNN + coordinate attention(임베디드 실시간 지향)",
+   "input_rep": "레인지-도플러 맵",
+   "data": "FMCW 레이다 실측(드론·차량·보행자)",
+   "accuracy": "본문 미확인(초록 수준)",
+   "claim": "자원 제약 플랫폼용 경량화 — 소형망으로 충분하다는 축의 2025년 연장",
+   "how_found": "웹검색 + Crossref DOI·초록 검증 [초록]"
+  },
+  {
+   "title": "Radar-Based UAV Classification: A Micro-Doppler and Deep Learning Approach",
+   "authors": "(저자명 미검증 — IEEE doc 11101447; 검색요약 표기 D. Kaushal)",
+   "year": 2025,
+   "venue": "IEEE 학회 2025(학회명 미확인)",
+   "link": "https://ieeexplore.ieee.org/document/11101447/",
+   "dl_method": "VGG16 / VGG19 특징추출기 전이학습 DCNN",
+   "input_rep": "마이크로도플러 시그니처 이미지",
+   "data": "CW X밴드(10 GHz) 실측, 4,849장·소형 공중표적 5종",
+   "accuracy": "VGG16 95% / VGG19 97%",
+   "claim": "VGG 계열 전이학습의 최신 능동 레이다 사례 — 단 저자·학회명은 원문 미확인이라 문서번호로만 인용할 것",
+   "how_found": "웹검색(IEEE Xplore 결과 목록에서 제목·문서번호 확인, 페이지 렌더 실패) [초록/검색요약]"
+  }
+ ],
+ "verdicts": [
+  {
+   "title": "Radar-Based UAV Classification: A Micro-Doppler and Deep Learning Approach",
+   "verified": false,
+   "evidence": "실재·서지: Crossref(https://api.crossref.org/works/10.1109/eaic66483.2025.11101447)와 OpenAlex(https://api.openalex.org/works/doi:10.1109/EAIC66483.2025.11101447), Semantic Scholar(DOI 조회) 3중 일치 — 저자 Devesh Kaushal(단독), 2025 International Conference on Electronics, AI and Computing (EAIC), Jalandhar, India, 2025-06-05~07, pp.1–6, DOI 10.1109/EAIC66483.2025.11101447(문서번호 11101447 일치). 기법·정확도: OpenAlex abstract_inverted_index 토큰 검사 결과 초록에 'VGG16/VGG19/VGG' 토큰 없음, 'EfficientNetB3' 있음, 등장 수치는 91.30%·97.10%·97.74%뿐(95%/97% 없음), '4849'·'10 GHz'·'CW' 없음, 표적은 6클래스(long-blade rotor, short-blade rotor, bird, bird+mini-helicopter, drone, RC plane; DIAT 데이터셋). 초록 핵심문: 'the fine-tuned EfficientNetB3 model outperformed it with 97.10% test accuracy and 97.74% validation accuracy'. 주장에 있던 VGG16 95%/VGG19 97%·CW X밴드 10 GHz·4849장·transfer-learning DCNN 문구는 별개 논문인 Kumawat·Chakraborty·Bazil Raj·Dhavale, 'DIAT-μSAT: Small Aerial Targets' Micro-Doppler Signatures and Their Classification Using CNN', IEEE Geoscience and Remote Sensing Letters vol.19 (DOI 10.1109/LGRS.2021.3102039, 온라인 2021) 초록과 정확히 일치함을 OpenAlex로 확인(https://api.openalex.org/works/doi:10.1109/LGRS.2021.3102039). IEEE Xplore 페이지 직접 렌더는 차단(빈 응답/HTTP 418)이라 초록 원문은 OpenAlex 색인으로 대조함.",
+   "corrections": "① 실재·연도·학회: 논문은 실재하며 저자 Devesh Kaushal, 학회는 2025 EAIC(International Conference on Electronics, AI and Computing), DOI 10.1109/EAIC66483.2025.11101447 — '학회명 미확인'은 이제 해소됨. ② 딥러닝 기법 정정: VGG16/VGG19 전이학습이 아니라 커스텀 CNN vs 파인튜닝 EfficientNetB3 전이학습. ③ 정확도 정정: VGG16 95%/VGG19 97%가 아니라 커스텀 CNN 91.30%, EfficientNetB3 97.10%(테스트)/97.74%(검증). ④ 데이터 정정: 자체 실측이 아니라 기존 DIAT(DIAT-μSAT) 데이터셋 사용, 클래스는 5종이 아니라 6종. 'CW X밴드 10 GHz·4849장·5표적'은 이 논문 초록이 아니라 데이터셋 원저 GRSL 논문(10.1109/LGRS.2021.3102039)의 서술. ⑤ claim 정정: 'VGG 계열 전이학습의 최신 능동 레이다 사례'로 이 문서번호를 인용하면 안 됨 — VGG16 95%/VGG19 97% 수치의 올바른 인용처는 Kumawat et al., DIAT-μSAT, IEEE GRSL(2021/2022)이고, 11101447은 EfficientNetB3 전이학습 사례(2025 EAIC)로 인용해야 함. 검색엔진 요약이 두 논문을 섞은 오염 사례."
+  },
+  {
+   "title": "UAV Detection with Passive Radar: Algorithms, Applications, and Challenges",
+   "verified": true,
+   "evidence": "https://www.mdpi.com/2504-446X/9/1/76 (전문은 r.jina.ai 프록시로 열람, MDPI 직접 접근은 403). 실재·서지 확인: Drones 2025, 9(1), 76, 2025-01-20 게재, 'Open Access Feature Paper Editor's Choice Review' 라벨, 저자 Zhibo Tang·He Ma·Youmin Qu·Xingpeng Mao(하얼빈공대) — Z. Tang, H. Ma, Y. Qu, X. Mao와 일치. 조명원별 체계 확인: §3에서 FM·DAB·DVB-T/T2·DTMB·GSM·3G/4G/5G·WiFi·위성(GNSS·DVB-S·Starlink·OneWeb) 열거. 처리단계는 §4에서 클러터 억제→RD맵(matched filter로 CAF/RD맵 계산: 'The most common approach is to use a matched filter (MF) to plot the RD map')→검출·추적 순이고 기준채널·신호 재구성('Even LFM signals with unknown parameters can be reconstructed through parameter estimation')도 다룸. 블레이드 재질 주장 원문 확인: 'For UAVs equipped with carbon fiber blades, which exhibit higher reflectivity, clear micro-Doppler features caused by the blades were observed in the RD map' / 'medium-sized UAVs made from graphite materials could be detected and classified based on the Doppler characteristics of their rotating blades. Although plastic UAVs produced weaker signals, they were still detectable.' 분류 정확도 수치 인용 0건도 확인(정성 서술만, % 수치 없음).",
+   "corrections": "두 가지 뉘앙스. (1) '플라스틱 ×'는 원문상 «분류용 블레이드 mD가 약함»이지 탐지 불가가 아님 — 원문은 플라스틱도 '여전히 탐지 가능(weaker but still detectable)'이라고 명시. (2) 처리 단계 체계에서 '기준신호 정제'는 본문에서 다뤄지긴 하나 별도 최상위 단계 축이 아니라 클러터억제→RD맵→검출·추적 순의 서술 안에 흡수되어 있음."
+  },
+  {
+   "title": "Micro-Doppler Based Target Recognition With Radars: A Review",
+   "verified": true,
+   "evidence": "서지 수준 검증(본문 미확보 상태 유지). IEEE Xplore https://ieeexplore.ieee.org/document/9673798/ 및 Semantic Scholar(paper 882a30db1bb407b1db8083f734e08f3d70ef1d85) 검색 기록으로 확인: IEEE Sensors Journal 22권 4호(2022년 2월) 2948–2961쪽, 저자 Ali Hanif, Muhammad Muaz, Azhar Hasan, Muhammad Adeel — A. Hanif, M. Muaz, A. Hasan, M. Adeel과 일치. 초록 요지(마이크로도플러 시그니처 분석·특징추출의 진화와 최신 동향 + mD 기반 표적 분류 기법 리뷰, 국방·상용 응용)도 검색 결과에서 확인 — '서베이·mD 인식 전용 리뷰'라는 기술과 부합. 본문 접근은 이번에도 실패: IEEE 유료, TechRxiv 프리프린트(10.36227/techrxiv.17133611.v1) 403 차단, PDF 직링크는 Cloudflare 'Just a moment' 페이지. 따라서 '초록 수준이라 이 편으로 문장을 세우면 안 됨'이라는 기록의 자기제한은 그대로 유효.",
+   "corrections": "로컬 파일 /workspace/sionna/prior_work/pdfs/jsen2022_hanif_microdoppler_review.pdf 는 논문이 아니라 1쪽짜리 Cloudflare 차단 페이지('Enable JavaScript and cookies to continue')임 — 실물 PDF로 오인하지 말 것(파일 교체 필요)."
+  },
+  {
+   "title": "MIMO OFDM-Enabled ISAC for Low-Altitude Non-Cooperative UAV Surveillance: A Survey",
+   "verified": true,
+   "evidence": "로컬 PDF /workspace/sionna/prior_work/pdfs/arxiv2604.02680_bai_isac_uav_survey.pdf (24쪽) fitz 직독 + https://arxiv.org/abs/2604.02680 abs 페이지. 서지: 제목·저자(Shiyu Bai, Sijia Li, Cunyi Yin, Wenqiu Qu, Li-Ta Hsu, Yuanwei Liu, Wen-Hua Chen) 일치, v1 2026-04-03 제출, journal-ref 없음·IEEE COMST 투고 상태 → '미게재 프리프린트, 2026' 일치. §IV-C 'C. UAV Identification'(p16) 3분 체계 원문 확인: ①신호처리 mD 파라미터 추정 — Ma et al.[87](5G TDD 프레임별 로터 스펙트로그램·회전속도/블레이드길이 추정), Wei et al.[88](rmD-NSP+SET) ②학습 기반 — PinpuNet[89](비균질 2D 컨볼루션+잔차, STFT 스펙트로그램 입력, LSS-FMCWR-1.0, K밴드 4클래스 97.17%·L밴드 5클래스 99.50%·스미어링에도 91%↑), AirGuard[90][91](cmD 스펙트럼+HRRP 이중특징 융합 CNN, 합성데이터, 98%↑), DC-Former[92](depth conv+Transformer, 5G NR 3.5GHz/100MHz 실측 에코, 클래스당 10,000장, 96–98%) ③합성데이터 생성 — Costa et al.[93][94](바이스태틱 OFDM 기반 프로펠러 mD 시뮬레이터, 실측과 고상관). Table VIII(p18) 'SUMMARY OF EXISTING ISAC-BASED UAV IDENTIFICATION METHODS' 열 구성 References/Objectives/Algorithms/Dataset/Key Results — '논문×아키텍처×데이터×성적 총람' 기술과 일치. 입력표현 'STFT 스펙트로그램·cmD+HRRP'도 원문 그대로.",
+   "corrections": "두 가지 주의. (1) '유일 문서'는 유일성 자체를 원문으로 증명할 수 없는 주장이므로 «내가 찾은 범위에서 유일» 수준으로 완화 권장. (2) '통신 파형 갈래의 학습 분류 3편'이라는 묶음은 이 서베이의 ISAC 프레이밍이고, 그중 PinpuNet의 평가 데이터는 LSS-FMCWR-1.0(FMCW 레이다 에코, K/L밴드)이라 엄밀히는 통신 파형 실험이 아님 — 통신 파형 실측은 DC-Former(5G NR), 합성은 AirGuard."
+  },
+  {
+   "title": "A Lightweight CNN-Based Method for Micro-Doppler Feature-Based UAV Detection and Classification",
+   "verified": true,
+   "evidence": "Crossref https://api.crossref.org/works/10.3390/electronics14244831 (MDPI 페이지 직접 접근은 403이라 Crossref 공식 메타데이터+전체 초록으로 검증). 서지: Electronics 14(24):4831, 게재일 2025-12-08, 저자 Luyan Zhang, Gangyi Tu, Yike Xu, Xujia Zhou — L. Zhang, G. Tu, Y. Xu, X. Zhou와 일치. 기법: 초록 원문 'proposes a lightweight CNN ... incorporates a coordinate attention mechanism within the convolutional neural network' — 경량 CNN+coordinate attention 일치. 입력: 'builds a deep convolutional neural network using range-Doppler maps' — RD맵 일치. 데이터: 'leverages data collected by frequency-modulated continuous wave (FMCW) radar from targets such as drones, vehicles, and pedestrians' — FMCW 실측(드론·차량·보행자) 일치. 임베디드 실시간 지향('real-time embedded systems', 'resource-constrained platforms')도 일치.",
+   "corrections": "정확도 칸 갱신 가능: '본문 미확인' → 초록에 수치 명시됨. RangDopplerNet Type-1 평균 96.71%, RangeDopplerNet Type-2 평균 98.08%, 모델 크기 403 KB(MobileNetV2 대비 97.04% 축소). 망 이름은 'RangeDopplerNet'(초록의 Type-1 표기 'RangDopplerNet'은 원문 오타로 보임)."
+  },
+  {
+   "title": "Vision Transformer for Classification of UAV and Helicopters Using Micro-Doppler Spectrograms in Surveillance Radar",
+   "verified": true,
+   "evidence": "arXiv abs(https://arxiv.org/abs/2512.00374) + 전문 HTML(https://arxiv.org/html/2512.00374v1) 이중 확인. 실재·저자(Arkadiusz Czuba, 'Warsaw University of Technology'+'PIT-RADWAR S.A.')·게시일 2025-11-29 확정. 전문에서 확인한 문장: \"The modified ViT-S (ViT-S-M) structure\"는 \"only 5 TE layers\"(원래 12층에서 축소), \"32x32 patches\"; \"1024, 2048, and 3072 pulses\"→\"102.4 ms/204.8/307.2 ms\"→\"384x384, 384x768, and 384x1152 resolution\"; \"The denoising algorithm was based on modified DTCWT (mDTCWT) [21] dedicated to quadrature signals\"; \"Data was collected using the Sola redeployable radar system\"(C band, 'Mechanically rotated active antenna'); 클래스 \"UAV Matrice 600 Pro, PZL SW-4 Puszczyk, ... PZL W-3 Gluszec\"; \"The dataset contains a total of 13614 spectrograms\"; \"validation accuracy ... 97.61%\", \"test set reached an accuracy of 97.76%\"; \"Raw self-attention maps were analyzed\". 초록도 CNN 고정해상도 제약·가변 적분시간 직접분류 주장과 일치.",
+   "corrections": "«스크래치 학습»은 원문에 명시 문구 없음 — 'scratch'/'pre-trained'/'transfer learning'/'ImageNet' 검색 모두 무결과이고 학습 설정은 \"strongly inspired by the paper [23]\"라고만 서술(5층 커스텀 구조라 사전학습 가중치가 없었을 개연성은 높으나 원문 확언은 아님 → 서베이에서는 '사전학습 언급 없음'으로 완화 권장). 이미지 크기는 정확히 384×384/384×768/384×1152 (세로 384 고정·가로 가변)로 표기하는 것이 원문 그대로임. 훈련 정확도는 98.73%."
+  },
+  {
+   "title": "A Classification Algorithm of UAV and Bird Target Based on L/K Dual-Band Micro-Doppler and Mamba",
+   "verified": true,
+   "evidence": "MDPI 페이지는 403이라 출판사 기탁 메타데이터인 Crossref DOI 레코드(https://api.crossref.org/works/10.3390/drones10040265)로 검증 — 제목·저자(Tao Zhang, Xiaoru Song, 둘 다 Xi'an Technological University)·Drones 10(4):265·2026-04-06 게재 확정. 기탁 초록 원문에서 대조: \"introduce the Mamba state-space backbone network to extract the long-term sequence features of the target's micro-motion\"; \"Based on a dual-branch encoding framework, we use Patch block decomposition ... to serialize the two-dimensional spectrogram\"; \"a late fusion strategy is adopted ... fully leveraging the sensitivity of the K-band to high-frequency textures and the scale complementarity of the L-band\"; \"the joint loss function of mutual learning and contrastive learning\"; \"the accuracy rate reaches 97.5%\"; \"establish a dual-band radar detection model for unmanned aerial vehicles (UAVs) and birds\". 딥러닝 기법명·입력표현·데이터 종류·정확도 모두 주장과 일치하고, 초록에 데이터 규모가 없다는 기재도 사실.",
+   "corrections": ""
+  },
+  {
+   "title": "Multi-rotor Drone Micro-Doppler Simulation Incorporating Genuine Motor Speeds and Validation with L-band Staring Radar",
+   "verified": true,
+   "evidence": "University of Birmingham 기관 포털(https://research.birmingham.ac.uk/en/publications/multi-rotor-drone-micro-doppler-simulation-incorporating-genuine-)에서 초록 전문과 서지 확정, IEEE Xplore 문서번호 9764352와 DOI 10.1109/RadarConf2248738.2022.9764352 일치. 저자 7인(Daniel White, Mohammed Jahangir, Michail Antoniou, Christopher Baker, Jeyan Thiyagalingam, Stephen Harman, Cameron Bennett)·2022 IEEE Radar Conference (RadarConf22)·2022-05-03 게재 확인. 초록 원문: \"three simple models of a multi-rotor drone's timeseries radar returns were derived\"; \"populating the equation parameters with genuine drone motor speed recordings\"; \"Deficiencies in the model's amplitude modulation were identified and phenomenologically treated\"; \"The synthetic drone data was injected into a real radar background enabling a direct comparison of synthetic and real spectrograms ... with an L-band staring radar\". 딥러닝 없음·분류 수치 없음(시뮬-실측 비교) 기재와 정확히 부합.",
+   "corrections": ""
+  },
+  {
+   "title": "A new simulation methodology for generating accurate drone micro-Doppler with experimental validation",
+   "verified": true,
+   "evidence": "CC-BY 전문 PDF를 St Andrews 리포지토리에서 확보(https://research-repository.st-andrews.ac.uk/bitstream/10023/28555/1/Moore_2023_IETRSN_A_new_simulation_CCBY.pdf, 16쪽)해 fitz로 정독, 포털(https://research-portal.st-andrews.ac.uk/...)로 서지 확정: Moore·Robertson·Rahman(St Andrews), IET Radar Sonar & Navigation 18(3):477-492, 2024년 3월호(온라인 선공개 2023-10-22), CC BY, DOI 10.1049/rsn2.12494. 전문 문장: \"this simulation approach uses point clouds derived from accurate 3D CAD models\"(CloudCompare 변환); 결론 \"we have found the simulation methodology to be very sensitive to the accuracy of the CAD model used, and laser scanned models have been shown to generate the best results\"(Nikon H120, 7 µm); \"purpose-built validation radar\"=94 GHz CW; 3기종=\"DJI Phantom 3 Standard quadcopter, the DJI S900 hexacopter and the Joyance JT5L-404\"(프로펠러 모양 상이 명시); 초록 \"showing very good agreement\"; 분류 수치 없음·\"potential to generate large quantities ... for training classification algorithms\" 모두 일치. PDF는 /workspace/sionna/prior_work/pdfs/ietrsn2024_moore_drone_microdoppler_sim_ccby.pdf 로 신규 보존.",
+   "corrections": "원기록의 «⚠전문은 CC-BY인데도 못 열어 초록·S2 API까지만 확인» 경고는 해소됨 — 이번에 전문을 열어 방법 절까지 대조 완료했으므로 서베이에서 해당 주의문은 삭제 가능. 서지 미세사항: 온라인 선공개는 2023-10-22라 OpenAlex 등 일부 DB는 2023으로 잡지만, 주장의 2024/18(3):477-492는 인쇄호 기준으로 정확. 결론부에 \"can be used to train a neural network ... effectively\" 서술이 있으나 본 논문 내 분류 실험·수치는 없음(주장의 '가능성으로 남김' 기재가 맞음)."
+  },
+  {
+   "title": "Networked ISAC Enabled Target Recognition Towards Low-Altitude Economy",
+   "verified": true,
+   "evidence": "arXiv abs(https://arxiv.org/abs/2607.10319, v1 2026-07-11) + HTML 전문(https://arxiv.org/html/2607.10319v1). 초록 원문: \"we design a multi-BS and multi-scale feature fusion enabled LAT recognition network with Swin Transformer\", \"velocity-resolution-preferred / time-resolution-preferred / velocity-transfer time-frequency spectrum\" 3종, \"UAV, bird, vehicle, and pedestrian\" 4클래스, \"a massive echo signal dataset comprising 1,440,000 samples ... public benchmark\", \"Simulation results demonstrate ... robust unseen-subtype generalization\". 저자 7인 일치, 초록엔 정량 수치 없음(주장대로). HTML 소속: Tsinghua Univ. Dept. of Automation(Luo·Zhao·Sun·Chu·Quan·Gao).",
+   "corrections": "① 공저자 Guangyi Liu 소속은 칭화대가 아니라 China Mobile Research Institute(나머지 6인은 칭화대 자동화과). ② '정확도 미확인'은 초록 한정으론 맞지만 본문엔 수치 있음: 3-BS 멀티스케일·미지 서브타입 설정에서 평균 97.82%(SNR 조건 평균). 클래스당 서브타입 10종."
+  },
+  {
+   "title": "Feature-Level Robustness of Physics-Guided Micro-Doppler Descriptors for classification of Drones and Birds",
+   "verified": true,
+   "evidence": "arXiv abs(https://arxiv.org/abs/2604.12567, v1 2026-04-14) + HTML 전문(https://arxiv.org/html/2604.12567v1). 초록 원문: \"ten statistical and physics-motivated handcrafted features\", \"publicly available 77 GHz FMCW radar dataset\", \"additive white Gaussian noise, phase noise ... SNRs from -10 dB to 10 dB\", \"stratified 5-fold cross-validation with Support Vector Machine and Random Forest\", \"On clean data, both models achieve mean accuracy of 0.916\", \"F1 scores up to 0.773 and 0.831\". 본문에서 −10 dB의 F1 0.831=Random Forest, 0.773=SVM으로 확인 — 주장 accuracy 필드 그대로.",
+   "corrections": "① 데이터: 초록은 드론·새만 언급하지만 본문 데이터셋은 반사체(reflector) 포함 3클래스·실측 130건(스펙트로그램 44 드론/56 새/19 반사체) — 서베이 표 기록(3클래스·130건)이 원문과 일치하고, 주장 data 필드의 '드론·새' 쪽이 불완전. ② 특징 수 10 vs 5 상충은 둘 다 사실: 10개를 분석하고 그중 5개(사이드로브 에너지비·사이드로브 엔트로피·스펙트럼 엔트로피·시간 에너지 분산·시간 엔트로피)를 제안 특징셋으로 선정."
+  },
+  {
+   "title": "Deep learning based doppler radar for micro UAS detection and classification",
+   "verified": true,
+   "evidence": "dblp 레코드(https://dblp.org/rec/conf/milcom/MendisRWM16.html): Gihan J. Mendis, Tharindu Randeny, Jin Wei, Arjuna Madanayake, MILCOM 2016, pp.924–929, DOI 10.1109/MILCOM.2016.7795448 전부 일치. Semantic Scholar(DOI 조회): \"Deep Belief Networks ... Doppler signatures and spectral correlation functions. Testing with 2.4 GHz continuous-wave radar achieved above 90% detection and classification accuracy ... in laboratory conditions.\" 웹검색 교차확인(IEEE 초록 인용): 표적 3종 = \"a helicopter, an artificial bird, and a quadcopter\", \"accuracy above 90% ... SCF using DBN-based classifier\". DBN+SCF 계보(CNN·스펙트로그램 아님) 확인.",
+   "corrections": "'기체 고정·프로펠러 구동' 세부는 접근 가능한 초록·메타데이터에선 확인 불가(초록은 'laboratory conditions'까지만) — 본문 열람 전엔 미확정으로 두는 게 정확. 2017 확장판 ~97%는 주장 스스로 미확인 표기했고 이번에도 원문 미확인."
+  },
+  {
+   "title": "Classification of small UAVs and birds by micro-Doppler signatures",
+   "verified": true,
+   "evidence": "저널판 PDF 직독(Cambridge Core 공개 PDF, fitz 추출): IJMWT 2014, 6(3/4), 435–444, DOI 10.1017/S1759078714000282; 초록 \"Eigenpairs extracted from the correlation matrix of the signature are used as informative features\", \"probability of around 92%\"; 본문 \"continuous-wave radar operating in X-band at radio frequency of 9.5 GHz ... within the framework of D-RACE ... a strategic alliance of Thales Nederland B.V. and TNO\"; Table 1 = 11클래스(비행기 2·새·쿼드로터 AR.Drone·정지 로터 1~4·헬기 3), Table 2 = 10-fold CV 최고 92.3%(비선형 SVM), 분류기 = 선형/비선형 SVM + Naive Bayes. 회의판 PDF 직독(TNO 공개: https://publications.tno.nl/publication/105220/tJKET4/molchanov-2013-classification.pdf): \"Proceedings of the 10th European Radar Conference, 9-11 Oct 2013, Nuremberg\" 시작쪽 172(4쪽=172–175), Table II 10-fold CV: SVM linear 94.91% / SVM nonlinear 95.39% / NB 93.6% — 주장 수치 정확히 일치. OpenAlex도 저널 6(3-4):435-444·회의 172-175 재확인.",
+   "corrections": "사소 1건: 저널판 지면 표기는 'Jaco J.M. de Wit'(c 하나)이나 회의판 표기·이메일(jacco.dewit@tno.nl)이 'Jacco'를 확증하므로 주장의 철자가 실제 인명에 맞음. 저널판 ~92%의 정확값은 92.3%(비선형 SVM, 이중 샘플링레이트)."
+  },
+  {
+   "title": "Target Detection and Classification of Small Drones by Deep Learning on Radar Micro-Doppler",
+   "verified": true,
+   "evidence": "OpenAlex(https://api.openalex.org/works/doi:10.1109/RADAR41533.2019.171294) 초록 원문 재구성: \"generated TVDs (Time Velocity Diagrams), a deep learning classifier to distinguish between drones and birds (target detection) and types of drones (classification)... an improvement in classification performance compared to our earlier boosting and SVM (Support Vector Machine) classifiers on the same data.\" 저자 Svante Björklund·Niclas Wadströmer(Swedish Defence Research Agency=FOI), 2019 International Radar Conference (RADAR), pp.1–6 확인. IEEE Xplore 문서번호 9079042. 초록에 아키텍처명·정확도 수치 없음도 확인(주장의 «보류»가 정확). RADAR 2019 개최지 Toulon(2019-09-23~27, ieee-aess.org/event/2019-international-radar-conference) 확인. 선행 부스팅판은 EuRAD 2018 Madrid(DOI 10.23919/EuRAD.2018.8546569, IEEE 8546569) 실재 확인 — «같은 데이터» 진술과 정합.",
+   "corrections": "없음. (부기: «같은 데이터»는 초록 문구 그대로이며, 2018 부스팅판이 EuRAD 2018인 것도 별도 확인됨)"
+  },
+  {
+   "title": "Radar-Spectrogram-Based UAV Classification Using Convolutional Neural Networks",
+   "verified": true,
+   "evidence": "PMC 원문 전문(https://pmc.ncbi.nlm.nih.gov/articles/PMC7795548/, Sensors 21(1):210, 온라인 2020-12-31) 확인: 저자 Dongsuk Park, Seungeui Lee, SeongUk Park, Nojun Kwak(서울대). \"we designed a lightweight ResNet-SP model ... by compressing and stabilizing the ResNet-18 model\" — 채널 절반 축소·7×7 대신 2-dilated 3×3 컨볼루션·아웃라이어 제거(이상탐지)·그래디언트 클리핑 모두 원문 확인. 정확도 ResNet-SP 83.39% vs ResNet-18 79.88%, 훈련시간 242 s vs 640 s 확인. 입력: \"1 channel of magnitude, 2 channels of real and imaginary and 2 channels of magnitude and phase\" 중 \"highest accuracy when the real and imaginary values ... paired as two channels\" — 복소 2채널 규약 확인. 레이다: Ancortek SDR KIT 980AD2, FMCW X-band. 5클래스: Metafly(날갯짓)·Mavic Air 2(쿼드콥터)·Disco(고정익) + walking·sit-walking 확인.",
+   "corrections": "없음. (부기: 인간활동 2종의 구체명은 walking·sit-walking)"
+  },
+  {
+   "title": "Convolutional Neural Networks for Classification of Drones Using Radars",
+   "verified": true,
+   "evidence": "출판사 원본 PDF 직접 확보·fitz 추출(https://mdpi-res.com/d_attachment/drones/drones-05-00149/article_deploy/drones-05-00149.pdf, 17쪽): \"Raval, D.; Hunter, E.; Hudson, S.; Damini, A.; Balaji, B. ... Drones 2021, 5, 149\" (게재 2021-12-15). 자체 설계 CNN 확인: \"The architecture of the neural network has a convolutional and a linear portion ... three layers of convolution, SoftPlus activation, instance normalization, dropout, and periodic max pooling ... three hidden layers with ReLU\" — ResNet/VGG 등 기성 백본 0회 언급. 데이터: \"the updated versions of the Martin and Mulgrew model [26] to simulate drone signals\", 초록에 \"including blade length and blade rotation rates\", SNR 주입식(식 7) 확인. \"F1 score of 0.816 ± 0.011 when trained on data with a signal-to-noise ratio (SNR) of 10 dB\", X-band 2 kHz PRF가 W-band보다 우위, \"robust to the drone blade pitch\" 전부 원문 그대로.",
+   "corrections": "보완 2건: (1) 분류기는 5개 드론 클래스 + 노이즈 클래스 1개 추가(\"five-drone classifier (plus an additional noise class)\"). (2) X>W 우위에 저자 스스로 단서: \"likely due to the configuration of our neural network and may not be true in general cases\" — 인용 시 SNR 연구범위 내 결과로 한정할 것."
+  },
+  {
+   "title": "DIAT-μSAT: Small Aerial Targets' Micro-Doppler Signatures and Their Classification Using CNN",
+   "verified": true,
+   "evidence": "OpenAlex 초록 원문 재구성(https://api.openalex.org/works/doi:10.1109/LGRS.2021.3102039): \"an indigenously developed continuous wave (CW) (X-band: 10 GHz) radar is used to build a diversified 'DIAT-μSAT' dataset comprising 4849 micro-Doppler signature images of five different small targets ... transfer learning-based deep convolutional neural network (DCNN) ... classification accuracy of 95% and 97%, with VGG16 and VGG19 as feature extractors\" — CW 10 GHz·4,849장·VGG16 95%/VGG19 97%·전이학습(특징추출기) 전부 확인. 저자 4인(Kumawat·Chakraborty·Raj·Dhavale, DIAT Pune)·IEEE GRSL vol.19 pp.1–5 확인. 데이터셋 공개는 IEEE DataPort 페이지(ieee-dataport.org/documents/diat-msat-...) 실재 확인. IEEE Xplore 문서번호 9509570.",
+   "corrections": "보완 2건: (1) 클래스 목록 — 초록은 실험 클래스를 6항목으로 열거: \"1) a two-blade rotor; 2) a three-short-blade rotor; 3) a three-long-blade rotor; 4) a quadcopter; 5) a bionic bird; and 6) a two-blade-rotor bionic bird(동시 운용, >97%)\" — 주장의 5클래스(2엽·3엽 단/장·쿼드콥터·바이오닉버드)는 1~5항과 일치하나 6번째 복합(동시운용) 클래스가 별도로 있음. (2) 연도 — DOI는 2021(온라인 2021-08), 인쇄본 vol.19가 2022; «2022, vol.19» 표기는 통용되나 온라인 우선공개 2021을 병기하면 정확."
+  },
+  {
+   "title": "DIAT-RadSATNet — A Novel Lightweight DCNN Architecture for Micro-Doppler-Based Small Unmanned Aerial Vehicle (SUAV) Targets' Detection and Classification",
+   "verified": true,
+   "evidence": "Crossref(https://api.crossref.org/works/10.1109/TIM.2022.3188050): 제목·저자(Harish Chandra Kumawat, Mainak Chakraborty, A. Arockia Bazil Raj)·2022·IEEE TIM vol.71 일치. Semantic Scholar 초록 원문(https://api.semanticscholar.org/graph/v1/paper/DOI:10.1109/TIM.2022.3188050): \"consists of 0.45 M trainable parameters, 40 layers\", \"X-band (10 GHz) continuous-wave (CW) radar-based, open-field-collected m-D signatures dataset (named 'DIAT-μSAT')\", 6클래스 \"RC plane, three-short-blade rotor, three-long-blade rotor, quadcopter, bionic bird, and mini-helicopter + bionic bird\", \"The detection/classification accuracy ... falls within 97.1% and 97.3%\" — 파라미터 수·주파수·데이터셋·클래스·정확도 전부 원문 초록과 일치.",
+   "corrections": "초록은 정확도를 \"detection/classification accuracy falls within 97.1% and 97.3%\"라는 범위로 쓰며, '검출=97.1 / 분류=97.3'의 1:1 대응은 초록 문면에는 명시되지 않음(본문 표 기준 해석). 또 '전이학습 없이 대형 전이학습과 대등' 프레임은 초록에는 'SOTA DCNN 모델 대비 더 효율적·더 정확'으로만 표현되고 transfer learning이라는 단어는 초록에 없음."
+  },
+  {
+   "title": "UAVs and birds classification using robust coordinate attention synergy residual split-attention network based on micro-Doppler signature measurement by using L-band staring radar",
+   "verified": true,
+   "evidence": "Crossref(https://api.crossref.org/works/10.1016/j.measurement.2023.113692): 제목·저자 8인(Ting Dai, Liye Mei, Yue Zhang, Biao Tian, Rui Guo, Teng Wang, Shan Du, Shiyou Xu)·2023·Measurement vol.222 일치. ScienceDirect 항목(https://www.sciencedirect.com/science/article/abs/pii/S0263224123012563, 2023-10 게재) 색인 내용: RCA-ResNeSt = ResNeSt(residual split-attention) 특징추출기 + CrossNorm/SelfNorm(CNSN, 강건성) + 네트워크 말단 coordinate attention; 전처리에서 SVD로 지면 클러터·잡음 제거한 그레이스케일 스펙트로그램; L-band 홀로그래픽 응시 레이다 실측 데이터; 정확도 97.99%(ResNeSt 대비 약 +0.40%) — 기법명·입력표현·데이터·정확도 일치.",
+   "corrections": "실측 데이터는 UAV 3종 + 새 2종에서 수집(주장 문구 'UAV vs 새'보다 상세). ScienceDirect 본문 페이지는 403이라 초록 verbatim은 못 떴고, Crossref 서지 + ScienceDirect/SSRN 색인 요약으로 각 항목(97.99%, SVD, CNSN, coordinate attention, L-band staring)을 개별 확인함."
+  },
+  {
+   "title": "UAV Classification Based on Deep Learning Fusion of Multidimensional UAV Micro-Doppler Image Features",
+   "verified": true,
+   "evidence": "Crossref(https://api.crossref.org/works/10.1109/LGRS.2024.3371171): 제목·저자(Xu Chen, Chunguang Ma, Chaofan Zhao, Yong Luo)·2024·IEEE GRSL vol.21 일치. Semantic Scholar 초록 원문: \"two deep learning fusion approaches leveraging the ResNet34 network were employed: data-level fusion and feature-level fusion\", \"integrates frequency modulated continuous wave (FMCW) radar micro-Doppler signals, cadence-velocity diagram (CVD) signals and cepstrum (CEP) signals\", \"UAV classification with exceptional accuracy, surpassing 97%\" — 기법(ResNet34 데이터/특징 레벨 융합)·입력(다차원 마이크로도플러 이미지 융합)·정확도(>97%) 일치. 데이터 실측/시뮬 여부는 초록에 없음 — 원 주장이 '초록 수준만 검증'으로 정직하게 표기한 것과 부합.",
+   "corrections": "'다차원 마이크로도플러 이미지 특징'의 실체를 구체화하면 FMCW 레이다의 (1) micro-Doppler 스펙트로그램 (2) CVD(케이던스-속도 다이어그램) (3) 켑스트럼(CEP)의 3종 표현 융합임."
+  },
+  {
+   "title": "Classification of Flying Drones Using Millimeter-Wave Radar: Comparative Analysis of Algorithms Under Noisy Conditions",
+   "verified": true,
+   "evidence": "Crossref(https://api.crossref.org/works/10.3390/s25030721): 제목·저자(Mauro Larrat, Claudomiro Sales)·2025·Sensors 25(3):721 일치. PMC 전문(https://pmc.ncbi.nlm.nih.gov/articles/PMC11821064/): 60 GHz mmWave 센서, 3클래스(DJI Mavic, DJI Phantom 3 Pro, bionic bird), 복소 시계열 직접 입력(1000 frames × 128 windows × 168 features, 실수/허수·진폭·위상, 스펙트로그램 변환 없음), LSTM·GRU·Conv1D·Transformer 4종 비교 + Multimodal Transformer(진폭·위상·왜도·첨도 결합) 제안, 백색/임펄스/파레토/멀티패스 잡음 주입, Transformer는 파레토 잡음에 취약 — 기법·입력·데이터·비교 구도 전부 원문 확인.",
+   "corrections": "두 가지 정정: (1) 'AUC 0.97–0.98(백색잡음)'은 제안 모델이 아니라 표준 Transformer의 값이고, 실제로는 Bird 0.97 / Mavic 0.92 / P3P 0.98로 0.92가 누락됨. Multimodal Transformer는 백색·임펄스·멀티패스에서 AUC 1.0(완전), 파레토에서만 약간 저하. (2) 데이터는 저자 자체 수집이 아니라 Kang et al. (2024)의 기존 60 GHz 데이터셋을 재사용한 실측 데이터임."
+  },
+  {
+   "title": "Micro-Doppler Signal Representation for Drone Classification by Deep Learning",
+   "verified": true,
+   "evidence": "로컬 PDF /workspace/sionna/prior_work/pdfs/eusipco2020_1561__gerard_microdoppler-representation-drone-dl.pdf 전문 정독 + 웹 교차확인(eurasip.org/Proceedings/Eusipco/Eusipco2020/pdfs/0001561.pdf, dblp GerardTMRV20, DOI 10.23919/Eusipco47968.2020.9287525, pp.1561–1565 일치). 저자·소속(LRI CentraleSupélec + DEMR ONERA) 1면 확인. §IV-B: \"The classification results we present are obtained with GoogLeNet\", \"the network architecture is adapted to be 1-D (filters: 5×5→5×1, etc.). The real and imaginary components of each format are injected into the CNN as two color channels\" — DL 기법·1-D화·2채널 모두 원문 그대로. §II: 표현 5종 x(t)/WSP/CP/SG/CVD 확정. §IV-A: Medycis 측정 시스템(각주1), S밴드 f0=3 GHz·PRF 10 kHz 펄스, 드론 5종. §IV-B: \"36 730 trajectory chunks in the learning set and 4 670 in the testing one\", \"trajectories collected on different days\" — 날짜 분리 확정. 부풀림 주장: \"without day separation ... accuracy reaches more than 98% in all configurations (even 100% for x(t))\" 원문 그대로. 정확도: Table I WSP 98.1±0.09, Table II 잡음 92.7±0.15, Table III 짧은 관측 93.7±0.12 — 세 수치 모두 일치.",
+   "corrections": ""
+  },
+  {
+   "title": "Urban Bird-Drone Classification with Synthetic Micro-Doppler Spectrograms",
+   "verified": true,
+   "evidence": "로컬 AAM PDF /data/public/sionna/sionna_jeong/reference_library/deep_learning_synthetic/white2023_TRS_urban-bird-drone-synthetic-microdoppler__AAM-bham.pdf 전문 정독 + DOI 10.1109/TRS.2023.3326317 리다이렉트로 IEEE 문서번호 10288610 확인 + Semantic Scholar API(vol.2, pp.167–179) + Birmingham 포털(온라인 2023-10-20). §IV: \"the large CNN model AlexNet was used\", \"AlexNet comprises 5 convolutional and 3 fully-connected layers, and was pretrained on a dataset of 1,000 classes and 13 million images\", \"only the fully connected layers post-convolution stage were trained from random initialization\", \"Bayesian optimization was used to find appropriate learning parameters\" — 전이학습 서술 일치. 입력: \"an RGB false color scheme was used for the spectrogram images\", §III-C \"duration of each spectrogram ... was 5.6 s\"(20 timestep), \"a 15 Hz high-pass filter ... effecting the central 18 Doppler bins\". 데이터: pulse-Doppler L-Band staring radar 2기(도심 Birmingham), Table III 학습 총 7,256장, \"data from a given flight was not split across train, test or validation subsets\" — 비행 단위 분할 확정. 반합성: \"The simulated target's 1-D timeseries returns are summed elementwise with the background signal\"; 합성은 대형 2종만(\"repeated for both the large drone targets\", Table IV=Matrice/Inspire만). 정확도: Table V Real 89.7±0.5, Sub-CPI 86.6±0.5, 본문 \"suffering a total accuracy decrease of 3.1% to 86.6%\" — −3.1pp 일치.",
+   "corrections": "서지 미세정정: 최종 서지는 IEEE TRS vol.2, pp.167–179이며 볼륨 연도는 2024(온라인 공개 2023-10-20, ©2023 IEEE) — 서베이 기록의 '(온라인 2023)' 단서는 정확하나 vol.2 자체는 2024년 볼륨. 또 원문 내부 불일치 존재: §III-C는 5.6 s, §V-C는 \"20 timesteps which equates to 5.8 s\"로 표기(서베이의 5.6 s는 §III-C 근거로 유효). Bayesian optimization은 학습률만이 아니라 학습 파라미터 전반 탐색으로 서술됨."
+  },
+  {
+   "title": "AirGuard: UAV and Bird Recognition Scheme for Integrated Sensing and Communications System",
+   "verified": true,
+   "evidence": "로컬 PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/2603.13112__airguard-uav-bird-recognition-isac.pdf 전문 정독 + arxiv.org/abs/2603.13112 abs 페이지 확인(제목·저자 Luo/Chu/Zhang/Zhao/Lin/Gao·2026-03-13 제출 일치). JSAC 채택은 원고 1면 각주 \"The current version of this manuscript has been accepted by IEEE Journal on Selected Areas in Communications\"로 원문 확정. 망 구조(§IV-C+Fig.7): 입력 2개 각 3@256×256, 분기당 conv 3×3 3층+maxpool 2×2 3층→32@32×32→adaptive average pooling→32 hidden→FC로 32→concat 64→FC 2층(64→16→2)→출력 2, ReLU/Softmax, \"the number of parameters ... is 0.15 M\" — 서베이 기술과 전부 일치. 데이터(§V-A/B): f0=26 GHz OFDM(Δf=480 kHz, M=4096), 시뮬 전용, 모션모델 3600(=UAV 6종×300+새 9종×200), SNR 11단 {-20..30} dB×반복 6 → \"3600×11×6=237600 noisy echo signal matrices\", 출력 2클래스(UAV/Bird). 정확도(§V-D): \"The average accuracy of cmD and HRRP scheme, cmD only scheme, and HRRP only scheme on all SNRs are 99.37%, 97.75%, and 95.34%\" — 3수치 정확 일치. 분할 규약: \"we select 190080, 23760, and 23760 samples from all the aggregated images as the training set, validation set, and testing set\"만 있고 선정 기준(잡음 반복본의 분리 여부) 미기재 — '분할 규약 미기재' 판정은 원문과 부합(누수 '위험'은 서베이 자체 판단).",
+   "corrections": ""
+  },
+  {
+   "title": "μDopplerTag: CNN-Based Drone Recognition via Cooperative Micro-Doppler Tagging",
+   "verified": true,
+   "evidence": "로컬 PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/2601.08042__mudopplertag-cnn-drone-microdoppler.pdf 전문 정독 + arxiv.org/abs/2601.08042 abs 페이지 확인(제목·저자 Yerushalimov/Vovchuk/Glam/Ginzburg, Tel Aviv Univ., 2026-01-12 제출, 프리프린트·저널 채택 표기 없음). 레이다: \"custom-made continuous-wave (CW) radar\", \"frequency is 3.35 GHz\", 태그 \"resonate at 3.35 GHz\" — S밴드 CW·태그 공진 일치. CNN: \"three convolutional layers: the first layer applies 32 filters, followed by 64 ... and 128 ..., all with a 3x3 kernel size and ReLU activations. Max pooling with a 2x2 window ... dropout ... fully connected layer with 128 neurons ... final fully connected layer outputs the class predictions\"(dropout p=0.5, Adam lr=1e-3, batch 32) — 구조 일치. 입력 표현: \"the spectrograms are not treated as images ... the input to the CNN is a 2D matrix (frequency vs. time) of complex-valued numbers ... the matrix is unwrapped into a 1D vector, transforming it into a single-channel input\" — 서베이 문구는 원문 그대로. 협조적 식별 주장: 초록 \"resonant electromagnetic stickers attached to drone blades ... 43 tag configurations\" 일치. 정확도: \"overall accuracy of 99% is achieved at SNR levels above 9 dB\", \"roughly 10% at 0dB to about 99% above 9dB\"(Fig.4b, 실내 43코드+합성잡음) — ~99%/붕괴 ~10% 일치. 야외 7코드(00100010 등) 일치.",
+   "corrections": "데이터 세부 정정: '코드당 10기록, 15 s'는 무향실이 아니라 야외 데이터의 구조다. 원문 — 실내(무향실): 43코드, \"Each tag class has three records\", 기록당 10 s(50,001 샘플), 1.54 s 조각; 야외: 7코드, \"For each class, there were 10 records\", 기록당 15 s(90,001 샘플), 2 s 조각. 따라서 무향실은 코드당 3기록×10 s로 고쳐야 함. 또 입력 표현은 원문 자체가 이중적: §설계는 '1D 벡터로 언랩한 단일채널'이라 쓰지만 부록·요약은 Conv2D가 400×59 단일채널 2D 행렬(출력맵 32×200×29 등)에 걸린다고 명시 — '1D 벡터' 문구는 원문 인용으로는 정확하나 실제 아키텍처는 2D 합성곱이므로 '단일채널 2D 스펙트로그램 행렬(이미지 3채널 취급 안 함)'로 쓰는 편이 안전."
+  },
+  {
+   "title": "Multistatic micro-Doppler radar feature extraction for classification of unloaded/loaded micro-drones",
+   "verified": true,
+   "evidence": "전문 직독: Glasgow eprints 공개 postprint http://eprints.gla.ac.uk/119563/8/119563.pdf (21쪽 전체 추출) + 출판 기록 https://ietresearch.onlinelibrary.wiley.com/doi/10.1049/iet-rsn.2016.0063 (IET RSN 11(1):116–124, 2017권호·2016 온라인/eprint 2016-06 기탁). 원문 확인 문장: (1) \"NetRAD is a netted coherent pulse radar with three separate but identical nodes that operate at 2.4 GHz (S-band)... linear chirped pulse with 0.6 μs duration and 45 MHz bandwidth... 5 kHz pulse repetition frequency\" (2) \"three NetRAD nodes deployed along a linear baseline with approximately 50 m inter-node separation. Node 1 was used as the monostatic transceiver, and Nodes 2 and 3 as the receiver-only bistatic nodes\" — 야외(UCL Sports Ground 축구장, 2015-07), 드론=DJI Phantom Vision 2+, 페이로드 0/200/300/400/500 g 5클래스 (3) 분류기 3종 명시: \"the Naïve Bayes, diagonal-linear variant of the discriminant analysis classifier and the random forest classifier\" + 노드별 분류기·binary/threshold(65%) voting (4) SVD 특징: \"the values in the diagonal of the U matrix show noticeable [differences]\" + Doppler centroid/bandwidth 특징 (5) 수치: 본문 \"between 92.8% and 96.6% for SVD-based features and between 96.8% and 98% for centroid-based features (voting with threshold, Naïve Bayes)\"; Table 2(센트로이드) threshold voting 96.9/98.1(DL)·96.5/98.2(NB), mono 92.2/93.2·91.4/94.2, all-multi(중앙집중 결합) 57.2/56.5·61.1/60.9; Table 1(SVD) all-multi 54.1~58.8, mono 80.3~83.5 — 결합 시 추락 주장 원문 그대로: \"the degradation in accuracy if all the data are processed at a centralised classifier\"",
+   "corrections": "핵심 주장 전부 원문과 합치. 미세 정정 3건: (1) \"센트로이드 96.8~98.2%\"는 혼합 표기 — 본문 명시 범위는 96.8~98%(NB threshold voting, 스펙트로그램 길이 스윕), Table 2의 threshold voting 셀 범위는 96.5~98.2%; (2) \"모노 단독 91~94%\"는 센트로이드 특징에만 해당(SVD 특징의 모노 단독은 80.3~83.5%); (3) \"결합 시 57~61% 추락\"은 센트로이드 특징 기준(Table 2: 56.5~61.1%)이고 SVD 특징은 54.1~58.8% — 두 특징 합치면 54~61%. 참고: 실험 드론은 DJI Phantom 2 Vision+ 쿼드콥터 1대(기종 다양성 없음)"
+  },
+  {
+   "title": "Radar micro-Doppler signatures of drones and birds at K-band and W-band",
+   "verified": true,
+   "evidence": "전문 직독: Nature PDF 직접 다운로드 https://www.nature.com/articles/s41598-018-35880-9.pdf (11쪽 전체 추출). 지면 표기 \"SCientifiC ReportS | (2018) 8:17396 | DOI:10.1038/s41598-018-35880-9\", 저자 Samiur Rahman & Duncan A. Robertson, \"University of St. Andrews, SUPA School of Physics & Astronomy\" — 실재·연도·권호·소속 전부 일치. (1) 레이다: 24 GHz 위상코히어런트 K-band FMCW(Analog Devices 평가보드, +25 dBm) + 94 GHz 2기 — \"a 94 GHz, very low phase noise, coherent FMCW radar, called T-220\"(호모다인) 및 \"Another FMCW radar with a heterodyne architecture called NIRAD\" (2) 표적: DJI Phantom 3 Standard(1.216 kg)·Inspire 1(2.845 kg)·S900 hexacopter(3.3 kg) + 맹금 4종 Northern Hawk Owl 0.26 kg·Harris Hawk 0.71 kg·Indian Eagle Owl 0.97 kg·Tawny Eagle 1.84 kg → 0.26~1.84 kg 일치 (3) 분류기 없음 — classification 은 동기·향후과제로만 언급(시그니처 분석 논문) (4) 수치 전부 원문 문장으로 확인: \"return signal strength from the propeller blades is approximately 20–40 dB lower than the main body return\"; \"[bird] micro-Doppler is between 0 and 10 dB below the bulk signal\"; \"measured wingbeat frequencies of all the birds were within the range of 4–6 Hz\"; \"stronger micro-Doppler, about 5–10 dB higher in some cases (Hexacopter, Tawny Eagle), but not all the time\" (5) HERM 라인·블레이드 플래시 분석 명시(\"helicopter rotor modulation (HERM) lines\", \"vertical streaks ... correspond to rotor blade flashes\")",
+   "corrections": "정정 없음 — 과제 지문 전 항목이 원문과 합치 (W-band 이득도 원문 표현대로 '일부 경우 5~10 dB, 항상은 아님'으로 정확히 옮겨져 있음)"
+  },
+  {
+   "title": "Classification of drones and birds using convolutional neural networks applied to radar micro-Doppler spectrogram images",
+   "verified": true,
+   "evidence": "저자 최종본(AAM) 전문 직독: St Andrews 리포지터리 https://research-repository.st-andrews.ac.uk/handle/10023/19360 의 IET_RSN_Neural_Network_Author_Accepted_Version.pdf (11쪽 추출) + Crossref 10.1049/iet-rsn.2019.0493 (IET Radar, Sonar & Navigation 14(5):653–661, 2020-05 권호) + OpenAlex 온라인 게재일 2019-12-23 → \"온라인 2019-12, 14(5):653–661\" 표기 일치. 초록 원문: \"The RGB dataset was used for GoogLeNet architecture-based training. The grayscale dataset was used for training with a series architecture developed during this study\"; 클래스 구성 \"four classes (drone, bird, clutter and noise) and ... two classes (drone and non-drone)\"; 정확도 \"validation and testing accuracy for the developed series network ... 99.6% and 94.4% respectively for four classes and 99.3% and 98.3% respectively for two classes. The GoogLenet based model showed both validation and testing accuracies to be around 99% for all the cases\" — 과제 수치와 자리수까지 일치. '경량' 방증: \"This is a simpler model\", 분류시간 series 0.05 s vs GoogLeNet 0.4 s(\"eight times faster\", \"GoogLeNet is a large network compared to the series network\")",
+   "corrections": "정정이 아니라 승급 1건: 레이다는 초록엔 없지만 본문 §1에 명시 — \"All the spectrogram images used in this study were obtained with a K-band (24 GHz) radar and a W-band (94 GHz) radar\"(94 GHz=T-220), 그리고 별도 94 GHz FMCW NIRAD 데이터는 학습에 안 쓴 unseen 테스트로만 사용. 따라서 '동 그룹 24+94 GHz 캠페인 계열(2차 확인)' 표기는 '원문 본문 확정'으로 올려도 됨"
+  },
+  {
+   "title": "Target Detection and Classification of Small Drones by Boosting on Radar Micro-Doppler",
+   "verified": true,
+   "evidence": "본문은 IEEE 페이월(직접 fetch 차단)이라 초록·서지 수준 검증: Crossref https://api.crossref.org/works/10.23919/EuRAD.2018.8546569 — 제목 일치, 단독저자 Svante Bjorklund, \"2018 15th European Radar Conference (EuRAD)\", Madrid 2018-09-26~28, pp. 182–185; IEEE Xplore 랜딩 https://ieeexplore.ieee.org/document/8546569/. 퍼블리셔 초록 전문(Semantic Scholar 미러, paperId 35c949730728bb7848a0ead76e4a5e7e29560364): \"We have used radar measurements of small drones and birds, extracted physical features from TVDs (Time Velocity Diagrams), and used a boosting classifier to distinguish between drones and birds (target detection) and types of drones (target classification) with good results. We have also compared with a SVM (Support Vector Machine) classifier.\" — TVD(CVD 아님)·부스팅·SVM 비교·실측 드론+새 전부 초록 원문으로 확인; 초록에 정확도 수치 없음(\"with good results\"뿐)도 과제 표기 그대로",
+   "corrections": "미세 보강 2건: (1) 페이지 182–185 확보(Crossref); (2) 소속 FOI 는 Crossref·초록에는 안 나옴 — ResearchGate 저자 프로필(\"Swedish Defence Research Agency\")로만 방증되는 2차 확인 수준이므로 소속 표기에 '(2차 확인)' 단서를 달 것. 본문 미열람이라 레이다 대역·드론 기종·~80% 수치 보류는 여전히 타당"
+  },
+  {
+   "title": "DC-Former Network Empowered UAV and Bird Recognition Based on Integrated Sensing and Communication System",
+   "verified": true,
+   "evidence": "실재·서지 확정: Crossref API(api.crossref.org, DOI 10.1109/icccs65393.2025.11069481) — 제목 원문 일치, 저자 Junyao Xue·Qixun Zhang·Dingyou Ma·Jiachen Wei, 「2025 10th International Conference on Computer and Communication System (ICCCS)」 pp.927–932. ICCCS 2025 실체 확인(icccs.org: 10th ICCCS, 청두 2025-04-18~21). Semantic Scholar API(DOI 조회) 초록: \"collected echo data from rotorcraft UAVs and birds using 5G signals... STFT to generate spectrograms of micro-Doppler signatures... DC-Former network... outperforms existing methods\". 기법·수치 세부는 로컬 서베이 PDF(/workspace/sionna/prior_work/pdfs/arxiv2604.02680_bai_isac_uav_survey.pdf) 직독으로 재확인: 표 \"integrates depth convolution for local spatial feature extraction and Transformer with multi-head self-attention for global dependency modeling\", \"Simulation and measured radar echo data using 5G NR signals at 3.5 GHz, 100 MHz bandwidth\", 본문 \"A total of 10,000 time-frequency spectrograms for each class\", \"takes a 3D time-frequency image as input\", \"classification accuracy of 96–98%, outperforming conventional CNN-based models\". IEEE 전문은 유료라 3.5GHz/100MHz·10,000장·96~98%는 서베이 층위까지만 확인(클레임의 [2차] 표기와 일치).",
+   "corrections": "① 재인용 위치는 §IV-C가 아니라 §III-C(III. MIMO OFDM-Enabled UAV Surveillance > C. UAV Identification, Table VIII) — 서베이 §IV는 Open Issues. ② data의 「모노스태틱 ISAC」은 원문 초록·서베이 어디에도 명시가 없어 확인 불가(서베이는 ISAC 테스트베드라고만 함) — 삭제하거나 '명시 없음'으로 완화 권장."
+  },
+  {
+   "title": "PinpuNet: Towards ISAC-based Drone Monitoring by Learning Micro-Doppler Spectrum",
+   "verified": true,
+   "evidence": "실재·서지 확정: DBLP API(dblp.org/search/publ/api?q=PinpuNet) — Yige Luo·Qianqian Zhu·Ran Guan, ICC 2025, pp.6007–6012, DOI 10.1109/ICC52391.2025.11161070; ICC 2025 프로그램 페이지에도 등재(icc2025.ieee-icc.org). 기법·수치는 로컬 서베이 PDF(arxiv2604.02680) 직독: \"employs inhomogeneous 2D convolutions to separately capture temporal and frequency correlations, and integrates residual layers\", 입력 \"micro-Doppler spectrograms via short-time Fourier transform (STFT)\", 데이터 \"evaluated on the LSS-FMCWR-1.0 dataset [95]... six UAV types including DJI Mavic 2, Phantom, Inspire 2, M350, M600, and a fixed-wing UAV\", 정확도 \"97.17% on the K band(4-class) and 99.50% on the L band(5-class), maintains above 91% accuracy under the smearing effect\" — 클레임과 전부 일치. 데이터셋 원 논문도 확인: sciengine.com/JR/doi/10.12000/JR23142 및 radars.ac.cn — \"Multiband FMCW Radar LSS-target Detection Dataset (LSS-FMCWR-1.0)\", FMCW 능동 실측 6기종 ✓.",
+   "corrections": "① 재인용 위치 §IV-C → §III-C(위와 동일). ② 데이터셋 게재 연도: Journal of Radars 13(3):539–553은 2023이 아니라 2024 발행(DOI 10.12000/JR23142; Bai 서베이 ref[95]의 '2023'이 오기이고 클레임이 이를 물려받음). ③ 데이터셋 원문 표기 밴드는 Ku+L밴드(서베이·PinpuNet 재인용은 K밴드로 표기) — 사과-대-사과 비교 시 주의."
+  },
+  {
+   "title": "A Survey on Detection, Classification, and Tracking of UAVs using Radar and Communications Systems (게재판 제목 UAV→AAV)",
+   "verified": true,
+   "evidence": "로컬 PDF(/workspace/sionna/prior_work/pdfs/comst2025_khawaja_uav_dct_survey.pdf = arXiv v2 원고, 38쪽) fitz 직독 + arXiv abs(2402.05909: v1 2024-02-08, v2 2025-03-07, journal-ref 'IEEE COMST 2025') + VTT CRIS(cris.vtt.fi: 게재판 제목 \"...of AAVs Using Radar and Communications Systems\", COMST vol.28 pp.3272–3310, DOI 10.1109/COMST.2025.3554613) — 제목 변경·권호·쪽수·DOI 전부 확인. Table X 직접 대조(9행 전수): \"15 different classifiers... At SNR ≥3 dB a classification accuracy of 100%\"[33], \"Polarimetric parameters + Nearest neighbor classifier... 100%\"[130], \"Deep learning(마이크로도플러 스펙트로그램) 98.8%\"[160], \"nonlinear SVM 95.39%\"[163], Naive Bayes·신경망·\"Spectrographic pattern analysis\"[165]·\"Total error rate minimization\"[166] 행 모두 실재. 레이다/센서 열은 전부 능동(surveillance radar 15/25GHz·S-band BirdRad·FMCW·CW·automotive·X-band CW·mobile radar stations) — 패시브 행 0 ✓. 특징 축 원문: \"The popular methods... are based on RCS and micro-Doppler signatures... The RCS is either taken as number values... or as images\". 절 분리 원문: §V-D \"DCT-U Using Communication Systems in Passive Mode\"(Table XII: GSM/LTE/5G/WiFi/DAB/DVB-T 조명원별 패시브 시스템, 전부 detection/tracking 용도)와 §VI \"DCT-U Using Passive Monitoring of RF SOO\"(드론 방사 RF) 확인.",
+   "corrections": "사소 2건: ① 최종 게재 권호 vol.28은 2026년 발행분(VTT CRIS 기준) — 2025는 억셉트·조기공개·arXiv v2 연도로는 타당하나 「28:3272–3310」과 함께 쓰면 연도는 2026이 정확. ② Table X의 98.8% 행 알고리즘 칸 표기는 'Deep learning'(CNN 언급은 지표 칸·본문) — 'mD CNN'은 요약으로는 무방."
+  },
+  {
+   "title": "Advance and Refinement: The Evolution of UAV Detection and Classification Technologies",
+   "verified": true,
+   "evidence": "로컬 PDF(/workspace/sionna/prior_work/pdfs/ijcip2024_semenyuk_uav_detection_survey.pdf = IJCIP Editorial Manager 투고 원고, Manuscript Number IJCIP-D-24-00101) fitz 직독 + arXiv abs(2409.05985, v1 2024-09-09, report number IJCIP-D-24-00101) — 제목·6인 저자(Semenyuk·Kurmashev·Lupidi·Alyoshin·Kurmasheva·Cantelli-Forti) 순서까지 일치, '투고판 PDF가 arXiv에' 서술 정확. 6기술 체계 원문 그대로: \"1. Radar Cross Section (RCS) analysis 2. Machine learning and Deep learning 3. Micro-Doppler signature analysis 4. Statistical recognition 5. Use of radar spectrograms 6. Use of multi-frequency radars\" + 대역(L/S/C/X/Ka/W)·변조(FMCW/LFPM/FSK/LFM/SFM) 축 확인. Table 1 대조: [6] RCS 통계인식 \"At SNR 10 dB: 97.73%\", [7] GA-BP \"At SNR 3 dB: 80%\", [15]=Park et al. 2021(Sensors 21,210; 본문에 \"ResNet-SP model\" 명시), [18] \"Hybrid deep neural networks... 98.97%\"(본문: \"classify the intent of unmanned aerial vehicles\"=의도분류) — 전부 일치. 'passive radar' 문자열 전문 검색 0회(passive 9회는 전부 RF sensing·acoustic·참고문헌) ✓. 범위 원문: \"from 2020 to today... radar, radio frequency, optical, and acoustic sensors... sensor fusion\" ✓.",
+   "corrections": "① Crossref에 이 arXiv 제목 그대로의 IJCIP 게재 기록은 없음. 동일 6인 저자의 IJCIP 게재판은 제목이 다름: \"Advances in UAV detection: integrating multi-sensor systems and AI for enhanced accuracy and efficiency\", IJCIP vol.49, 100744, 2025, DOI 10.1016/j.ijcip.2025.100744 (내용 동일성은 저자·저널·주제 일치로 추정, 전문 대조는 못 함). 인용 시 '투고판(arXiv 2409.05985, 2024) / 게재판(개제, 2025)' 구별 권장. ② GA-BP 80%는 SNR 3dB 조건임(클레임에 조건 누락)."
+  },
+  {
+   "title": "Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition in Different Environments With No Prior In Situ Data",
+   "verified": true,
+   "evidence": "로컬 원문 PDF /workspace/sionna/outputs/survey_pdfs/kearney_gurbuz_TAES2026_physics_guided_uav.pdf (IEEE Xplore 다운로드본, 17면) 전문 대조 + https://doi.org/10.1109/TAES.2026.3685229 (ieeexplore.ieee.org/document/11509266 으로 302 리다이렉트 확인) + OpenAlex 서지. 확인된 사실: (1) 제목·저자 Sean Kearney, Sevgi Z. Gurbuz(둘 다 North Carolina State Univ.), IEEE TAES vol.62 pp.9875–9891, 2026 — PDF 러닝헤드와 OpenAlex 일치. (2) 기법: \"we propose a physics-guided approach in which a semantic segmentation network trained only using low-fidelity computer aided design (CAD)-models of UAVs is integrated into the discriminator of a generative adversarial network (GAN) for training data synthesis, and on the front end of a DNN for classification\"; U-Net 명시(\"We utilized the U-Net network\"); SS-CAE 실재(Table VIII). (3) 입력: 스펙트로그램 + HERM 라인 시맨틱 분할 마스크(SM을 곱해 마스킹) — 원문 §VII-A 확인. (4) 데이터: TI AWR2243 FMCW(77–81 GHz, 4 GHz 대역), UAV 5기체(\"A total of 79 recordings, each 30 s in duration, across all five UAVs\"), 6-s 분할로 395샘플 → HERM 없는 High-SINR 샘플 제거 후 333샘플, High/Low SINR 계층(Table IV: High 107 w/HERM 등). (5) 하한 경고 §V-A 원문 그대로: \"training with the low-fidelity models either with or without injected noise did not result in networks, which could classify the test set beyond random guessing\" — 섹션 V(UAV μD Signature Synthesis)의 A(Physics-Based Simulations) 소절에 위치 확인. (6) 수치 50.0%→71.2%는 Table VII(페이지 이미지 렌더링으로 판독)에 실재: CAE, 훈련 Real@High SINR=50.0% vs SS-GAN 합성데이터=71.2%, 시험 Real@Low SINR w/HERMs.",
+   "corrections": "① 정확도 귀속 오류: 50.0→71.2%(+21.2pp)는 SS-CAE가 아니라 일반 CAE 분류기의 결과(Table VII)이며, 개선 요인은 분류기 앞단이 아니라 SS-GAN 합성 훈련데이터다. SS-CAE(분할단 부착 CAE, Table VIII)는 52.6→73.1%이고 최고 정확도는 73.1%. ② 레이다는 원문 표기 기준 '77–81 GHz'(TI AWR2243, 4 GHz 대역) — '79 GHz'는 중심주파수 표현으로는 무방하나 원문 문구는 아님. ③ '79건→333샘플'은 중간 단계 생략: 79녹화(각 30 s)→6-s 395샘플→프루닝 후 333. ④ 참고: Low-SINR 시험은 대형 헥사콥터 제외 4기체로 수행(원문 §VI-D)."
+  },
+  {
+   "title": "Hybrid Quantum Neural Network Advantage for Radar-Based Drone Detection and Classification in Low Signal-to-Noise Ratio",
+   "verified": true,
+   "evidence": "https://arxiv.org/abs/2403.02080 (abs 페이지) + arXiv PDF 전문 대조(다운로드 후 fitz 추출). 확인된 사실: (1) 제목 정확 일치, 저자 Aiswariya Sweety Malarvanan 1인(Univ. of Cologne 물리학과), 2024-03-04 v1 제출, quant-ph. (2) 기법: \"performance of a Hybrid Quantum Neural Network (HQNN) and a comparable classical Convolution Neural Network (CNN)\" — CNN vs HQNN 비교 맞음. (3) 입력 표현: Martin-Mulgrew(MM) 모델 복소 시계열(\"radar return signals (in the form of complex time series...)\")의 STFT 스펙트로그램, SNR 정의 원문 그대로: \"the single pulse signal-to-noise ratio, which is defined as 10 log10 A2r/σ2n, where σ2n is the noise variance\". (4) 데이터: 합성 전용(MM 모델, X-band, DJI Matrice 300 RTK 파라미터 시뮬), 실측 없음 — future work에서 \"re-trained with real data\"를 제안하는 것으로 실측 부재 재확인. (5) 주장: \"when that signal-to-noise ratio (SNR) is high, CNN outperforms the HQNN... However, in the low SNR regime... the performance of HQNN is found to be superior\" — 초록 그대로. 탐지기는 SNR −5~−20 dB, 분류기는 20~−5 dB 범위에서 실험했고 −5 dB 이하 구간에서 HQNN 우세(−20 dB 탐지 F1: HQNN 0.843 vs CNN 0.745; −5 dB 분류 F1: 0.696 vs 0.654).",
+   "corrections": "사소 2건: ① '저 SNR(-5 dB 이하)'는 결과표와 부합하나 초록 자체는 문턱값 없이 'low SNR regime'이라고만 말함(탐지기 실험 자체가 −5 dB부터 시작). ② '상대 우열만 제시'는 부정확 — SNR 구간별 F1 절대수치(표준편차 포함)를 제시함; 다만 헤드라인 결론이 상대 우열인 것은 맞음."
+  },
+  {
+   "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+   "verified": true,
+   "evidence": "https://doi.org/10.1109/ICCT67417.2025.11374154 이 ieeexplore.ieee.org/document/11374154 로 302 리다이렉트되는 것 확인(실재) + OpenAlex 레코드(DOI 기반 조회)로 서지·초록 대조. 확인된 사실: (1) 제목 정확 일치, 학회 '2025 IEEE 25th International Conference on Communication Technology (ICCT)', 2025년. (2) 저자 6인 순서 일치: Changjun Li, Shiyi Mu, Jun Jiang, Lei Feng, Yuan Gao(이상 상하이대 통신정보공학부), Shugong Xu. (3) 초록(OpenAlex 재구성): Sionna RT 모듈로 CSI 데이터를 획득·분석, 레이 트레이싱으로 로터 운동 유도 마이크로도플러 시뮬레이션의 타당성 검증, \"반송파 주파수가 증가하면 스펙트럼이 더 넓어지고 신호 에너지가 더 분산\" — 주장의 핵심(Sionna RT 기반·반송파↑→mD 확산)과 일치. (4) 초록에 분류기/딥러닝 기법 언급 없음 — 'dl_method 없음(초록 기준)' 일치. IEEE Xplore 전문은 유료로 직접 열람 불가(WebFetch 차단) — 주장 스스로 '전문 미열람'을 명시하고 있어 정합.",
+   "corrections": "사소 3건: ① 저자 소속 — OpenAlex 기준 마지막 저자 Shugong Xu는 Xi'an Jiaotong-Liverpool University 소속으로 표기됨(앞 5인만 상하이대); '(상하이대)' 일괄 표기는 부정확. ② '합성 전용·실측 없음'은 초록 수준에서만 확인(초록에 실측 언급 없음) — 전문 미열람이라 단정 불가. ③ 'Sionna RT로 멀티로터 마이크로도플러를 뽑은 첫 확인 사례'의 '첫'은 서베이어의 자체 평가이지 원문에서 검증되는 명제가 아님. 나머지 서지·초록 사실은 전부 원문(DOI/IEEE 메타데이터) 확인됨."
+  },
+  {
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "verified": true,
+   "evidence": "https://arxiv.org/abs/2504.05168 (v2, IEEE accepted version) 페이지 + arXiv PDF 전문 대조 + OpenAlex(JSTEAP DOI 조회). 확인된 사실: (1) 제목 정확 일치; 저자 7인 순서 일치: Heraldo Cesar Alves Costa, Saw J. Myint, Carsten Andrich, Sebastian W. Giehl, Maximilian Engelhardt, Christian Schneider, Reiner S. Thomä — 전원 TU Ilmenau. (2) 저널 서지: IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, vol.1 no.1 pp.208–222, 2025, DOI 10.1109/JSTEAP.2025.3604407 — arXiv journal-ref와 OpenAlex 모두 일치. (3) 회의판: arXiv:2401.14287 = \"Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC\", 2024 IEEE Radar Conference (RadarConf24) — 확인(단 제목이 저널판과 다름, 저자 6인·Engelhardt 없음). (4) 기법: \"adapts the classic thin-wire model to include bistatic sensing configuration with an OFDM-like signal. Then, it extends further by incorporating multiple propellers and integrating the reflectivity of the drone's static parts\" — 정적반사 2방식(CAD 점산란자 + Gaussian body model)도 본문 확인. (5) 목적 자인: \"Existing methods... often lack scalability for generating the large datasets required to train machine learning algorithms. To address this gap...\" (6) 학습은 후속과제로 비움 — 원문 그대로: \"Future work can comprise the use of simulated data using this proposed model to train target classification algorithms\"; 본문에 분류 학습 실험 없음 확인. (7) 실측 GT: \"Measurements were performed to collect ground truth data for verification\" — BIRA 측정 시스템(자체 SDR 아키텍처, 순시대역 >2 GHz), 셋업 3.7 GHz/200 MHz + 7 GHz/2.46 GHz, Ironman 드론 바이스태틱 반사율은 무향실 측정.",
+   "corrections": "사소 2건: ① '자체 채널사운더' — 원문 측정 절의 명칭은 BIRA Measurement System(TU Ilmenau 자체 SDR 시스템 아키텍처 [IEEE Access 2024] 장착)이며 'channel sounder'라는 용어는 측정 절이 아니라 저자 약력에만 등장; '자체 측정 인프라(BIRA+SDR)'가 정확한 표현. ② 회의판(arXiv:2401.14287) 제목은 저널판과 달리 \"Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC\"이고 저자 6인(Engelhardt 미포함) — 회의판 인용 시 제목·저자를 저널판과 혼용하면 안 됨."
+  },
+  {
+   "title": "Small Drone Classification with Light CNN and New Micro-Doppler Signature Extraction Method Based on A-SPC Technique",
+   "verified": true,
+   "evidence": "arXiv abs 페이지(https://arxiv.org/abs/2009.14422) + PDF 원문 직접 추출(로컬: /tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/park2020_aspc.pdf). 제목·저자(Junhyeong Park, Jun-Sung Park, Seong-Ook Park, 이메일 @kaist.ac.kr)·2020-09-30 제출 일치. 원문 인용: \"The proposed light CNN consists of only three convolutional layers and one fully-connected layer\", \"the total number of parameters for the proposed light CNN is 217,125\"(=0.217M), \"we extracted the colored MDS images whose size is 128×128×3\", \"a Ku-band FMCW radar was used ... DJI Inspire 1, DJI Inspire 2, and DJI Spark\", \"three classes of the small drones, and two classes of the noises\"(5클래스), \"a total of 3,500 MDS images\"(클래스당 700, 80/20 분할), \"tested the trained CNNs with the newly extracted 1,750 MDS images that are independent of the training data\", \"The total classification accuracy is 87.14 %\"(관행 추출)→\"recorded at 97.14 %\"(제안 A-SPC 추출, 동일 light CNN), \"increased by 10.00 %\". A-SPC=advanced stationary point concentration 도 인덱스텀에서 확인. '망 고정·전처리만 교체' 주장 구조도 원문 그대로(둘 다 제안 CNN으로 분류, 추출법만 conventional vs proposed).",
+   "corrections": "정정 없음. 미세 보충: 0.217M의 원문 정확값은 217,125(비교표 표기는 217K)이고, 비교표의 GoogLeNet 6.8M·89.3% 행은 [3](Kim 2017) 인용값이다."
+  },
+  {
+   "title": "Drone Classification Using Convolutional Neural Networks With Merged Doppler Images",
+   "verified": true,
+   "evidence": "KAIST Pure 페이지(https://pure.kaist.ac.kr/en/publications/drone-classification-using-convolutional-neural-networks-with-mer/)에서 초록 전문 원문 확보 + Crossref/dblp(journals/lgrs/KimKP17)/Semantic Scholar(DOI:10.1109/LGRS.2016.2624820)/IEEE Xplore(문서 7748505) 서지 교차 확인. IEEE GRSL vol.14 no.1 pp.38–42, 2017, 저자 Byungkwan Kim, Hyunseong Kang, Seong-Ook Park 일치. 초록 원문 인용: \"GoogLeNet, a CNN structure, is utilized ... because of its high performance and optimized computing resources\", \"we propose a new image by merging MDS and CVD, as merged Doppler image\", \"generated by the returned Ku-band frequency modulation continuous wave radar signal\", \"tested and verified in two different environments, anechoic chamber and outdoor\", \"with different numbers of operating motor and aspect angle of a drone. The proposed method improved the accuracy from 89.3% to 94.7%\", \"two types of drone at the 50 and 100 m height are classified and showed 100% accuracy\". 주장 항목(연도·권호·기법명·병합 표현·데이터 환경·89.3→94.7=+5.4pp·2기종 50/100m 100%) 전부 일치.",
+   "corrections": "정정 없음. 보충: 89.3→94.7% 시험은 초록 기준 '작동 모터 수·자세각 변화' 조건(주장 그대로)이며, 병합 전 89.3%는 MDS 단독 이미지 기준."
+  },
+  {
+   "title": "Model-Based Data Augmentation Applied to Deep Learning Networks for Classification of Micro-Doppler Signatures Using FMCW Radar",
+   "verified": true,
+   "evidence": "실재·서지: Crossref(10.1109/TMTT.2023.3231371)로 IEEE TMTT vol.71 no.5 pp.2222–2236(2023-05), 저자 N. Rojhani, M. Passafiume, M. Sadeghibakhi, G. Collodi, A. Cidronali 확인. DOI 리다이렉트 Location 헤더가 https://ieeexplore.ieee.org/document/10004894/ 로 향해 주장 링크의 문서번호 10004894 직접 확인. Unpaywall 기준 CC-BY OA. 본문: 피렌체대 Flore 기탁본의 웨이백머신 사본 PDF(15쪽, http://web.archive.org/web/20240705134402/https://flore.unifi.it/bitstream/2158/1305501/3/... , 로컬: /tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/rojhani_wayback.pdf)를 fitz로 추출해 대조. 원문 인용: \"taking a slice of 400 samples around each different peak throughout the range profile vector ... These slices are the actual input for the DL classification network\"(스펙트로그램 아님), \"32000 synthetic measurements of 400 features each\", \"'New' ... consists of 136 measured signatures\", \"the proposed model employs an Adam optimizer\" + \"trained with a backpropagation algorithm and an LR of LR = 0.001\", \"two-class classification of the number of UAV motors\"(QUAD/HELI), \"a classification accuracy of 78.68% ... while an accuracy of 66.18% ... typical signal processing data augmentation\", \"minimum classification precision of 78.02% ... far lower minimum precision of 15.55%, thus showing a dramatic classification bias\". 제안 CNN 구조는 2conv(32·64필터)+2pooling+2FC, 400점 입력을 1×20×20 재배열. σ_P 결함 판정의 근거 문장도 원문에 실재: \"σP = 0.20 leads to the highest accuracy on the dataset of new measurements ... Therefore, we chose σP = 0.20\" — 신규 실측셋(=136장 평가셋)의 정확도로 σ_P를 고른 것이므로 서베이의 '시험셋 튜닝' 판정은 원문이 지지.",
+   "corrections": "정정 없음(⚠결함 판정은 서베이의 해석이고 원문은 스스로 결함이라 부르지 않지만, 근거 문장은 원문에 실재). 보충: 합성 학습 모델은 50 epochs, 관행증강 비교 모델은 100 epochs 재학습."
+  },
+  {
+   "title": "Semantic Segmentation Guided RF Micro-Doppler Synthesis and UAV Classification in Low SINR",
+   "verified": false,
+   "evidence": "확인된 것: ① 학회판 실재·서지 — Crossref: Sean J. Kearney, Sevgi Z. Gurbuz, 2025 IEEE International Radar Conference(RADAR, Atlanta GA, 2025-05-03~09), pp.1–6, DOI 10.1109/radar52380.2025.11031708(DOI 끝자리=Xplore 문서번호 11031708, 주장 링크와 일치). CI4R 랩 목록 기준 학생논문 2위 수상. ② 기법 골격 — Semantic Scholar 초록: \"integrates segmentation into a GAN's discriminator to preserve the kinematics of Helicopter Motor Rotation lines. Physics-based simulations pretrain a U-Net for HERM line segmentation\" → U-Net·GAN 판별기 통합·HERM 마스크는 원문 초록 수준에서 확인. 단 학회판 초록의 명칭은 SS-GAN·SS-DNN이며 개선폭은 \"8% performance improvement\"로 서술. ③ TAES판 — Crossref에서 Kearney & Gurbuz, IEEE TAES 2026, vol.62 pp.9875–9891 실재 확인, 제목은 \"Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition in Different Environments With No Prior In Situ Data\"(DOI 10.1109/TAES.2026.3685229), 초록에서 \"a semantic segmentation network trained only using low-fidelity computer aided design (CAD)-models\" + GAN + low SINR 확인. 확인 못 한 것(페이월, Xplore 직접접근 차단·OA 없음·arXiv 프리프린트 없음): 'SS-CAE' 명칭, 데이터 세부(79비행·6s→333샘플·High 107/Low 226·UAV 5기체), 핵심 수치 50.0→71.2%(+21.2pp), 'CAD 단독 학습=random guessing' 서술, 저자 소속 Univ. of Alabama(CI4R 랩 페이지는 현재 NC State 도메인). 수치·데이터를 원문에서 대조하지 못했으므로 규칙대로 verified=false.",
+   "corrections": "①TAES 확장판(62:9875–9891, 2026)은 실재하나 제목이 학회판과 다르다: \"Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition in Different Environments With No Prior In Situ Data\", DOI 10.1109/TAES.2026.3685229 — 서베이·주장 기록에 이 제목·DOI를 병기해야 향후 혼동이 없다. ②'SS-CAE' 명칭은 두 판 초록 어디에도 없음(학회판 초록은 SS-GAN·SS-DNN) — 본문 확인 전까지 SS-CAE 표기는 보류 권장. ③50.0→71.2%(+21.2pp)·79비행·5기체 등 수치는 이번 라운드 원문 재확인 실패(서베이 기록 유지하되 '원문 미재확인' 꼬리표 필요). ④학회판 초록 기준 개선폭 서술은 '8%'로, +21.2pp는 학회판 수치가 아님을 명시할 것."
+  }
+ ]
+}
