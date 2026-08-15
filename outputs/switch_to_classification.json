@@ -1,0 +1,4688 @@
+{
+ "_meta": {
+  "generator": "benchmark/switch_to_classification.py",
+  "experiment": "R14 · 엔진 설정 → 기체 분류 성적",
+  "design_doc": "docs/NEXT_EXPERIMENTS.md §② 순위 6 · §3-1 R14",
+  "generated_kst": "2026-08-15 19:03 KST",
+  "gpu_used": false,
+  "gpu_note_ko": "⛔sionna.rt·mitsuba 임포트 없음 — 저장된 원장만 읽는 CPU 분석",
+  "question_ko": "엔진 물리 설정을 켜고 끄면 기체 분류 성적이 얼마나 달라지고, 그 차이의 기전은 무엇인가",
+  "naming_map": {
+   "ours": {
+    "task_prompt": "(A) 우리 커널",
+    "design_doc": "공통 기준선"
+   },
+   "sionna_off": {
+    "task_prompt": "(B) Sionna 물리 끔",
+    "design_doc": "설정 A · R0D0E0F1·d1"
+   },
+   "sionna_refr": {
+    "task_prompt": "(중간) 굴절만",
+    "design_doc": "설정 B · R1D0E0F1·d1"
+   },
+   "sionna_phys": {
+    "task_prompt": "(C) Sionna 물리 켬",
+    "design_doc": "설정 C · R1D1E1F1·d1"
+   },
+   "warn_ko": "과제문 A/B/C 와 설계서 A/B/C 가 어긋난다 — 인용할 때 이 표를 함께 붙일 것"
+  },
+  "switch_meaning_ko": {
+   "R": "굴절",
+   "D": "쐐기 회절",
+   "E": "모서리 회절",
+   "F": "확산 반사"
+  },
+  "provenance": {
+   "ledger_json": {
+    "path": "outputs/elevation_sweep_md.json",
+    "mtime": "2026-08-15 16:15 KST",
+    "n_rows": 220
+   },
+   "ledger_npz": {
+    "path": "outputs/elevation_sweep_md.npz",
+    "mtime": "2026-08-15 16:15 KST",
+    "n_keys": 221
+   },
+   "r13": {
+    "path": "outputs/switch_factorial.json",
+    "mtime": "2026-08-15 15:23 KST"
+   },
+   "r16_bands": {
+    "path": "outputs/grid_convergence_check.json",
+    "mtime": "2026-08-15 15:04 KST"
+   },
+   "reference_classifier": {
+    "path": "outputs/classify_airframe.json",
+    "mtime": "2026-08-15 12:54 KST",
+    "role_ko": "재현 게이트(읽기 전용) — 3 클래스 성적이 같아야 한다"
+   },
+   "templates_from": "src/drones.py DRONES (제원 계산 — 데이터에 맞추지 않음)",
+   "npz_keys_used": [
+    "ours_mini5pro_r15_n8192/el+0",
+    "ours_mini5pro_r15_n8192/el-15",
+    "ours_mini5pro_r15_n8192/el-30",
+    "ours_mini5pro_r15_n8192/el-45",
+    "ours_mini5pro_r15_n8192/el-60",
+    "ours_mini5pro_r15_n8192/el-75",
+    "ours_mini5pro_r15_n8192/el-90",
+    "ours_r15_n8192/el+0",
+    "ours_r15_n8192/el-15",
+    "ours_r15_n8192/el-30",
+    "ours_r15_n8192/el-45",
+    "ours_r15_n8192/el-60",
+    "ours_r15_n8192/el-75",
+    "ours_r15_n8192/el-90",
+    "ours_s1000plus_r15_n8192/el+0",
+    "ours_s1000plus_r15_n8192/el-15",
+    "ours_s1000plus_r15_n8192/el-30",
+    "ours_s1000plus_r15_n8192/el-45",
+    "ours_s1000plus_r15_n8192/el-60",
+    "ours_s1000plus_r15_n8192/el-75",
+    "ours_s1000plus_r15_n8192/el-90",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el+0",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el-15",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el-30",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el-45",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el-60",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el-75",
+    "sionna_p4000000000_mini5pro_r15_n8192_d1/el-90",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el+0",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-15",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-30",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-45",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-60",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-75",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-90",
+    "sionna_p4000000000_onlyedge_r15_n8192/el+0",
+    "sionna_p4000000000_onlyedge_r15_n8192/el-30",
+    "sionna_p4000000000_onlyedge_r15_n8192/el-60",
+    "sionna_p4000000000_onlyedge_r15_n8192/el-90",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el+0",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el-15",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el-30",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el-45",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el-60",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el-75",
+    "sionna_p4000000000_onlyrefr_r15_n8192/el-90",
+    "sionna_p4000000000_phys_r15_n8192_d1/el+0",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-15",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-45",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-60",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-75",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-90",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el+0",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el-15",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el-30",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el-45",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el-60",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el-75",
+    "sionna_p4000000000_phys_s1000plus_r15_n8192_d1/el-90",
+    "sionna_p4000000000_r15_n8192_d1/el+0",
+    "sionna_p4000000000_r15_n8192_d1/el-15",
+    "sionna_p4000000000_r15_n8192_d1/el-30",
+    "sionna_p4000000000_r15_n8192_d1/el-45",
+    "sionna_p4000000000_r15_n8192_d1/el-60",
+    "sionna_p4000000000_r15_n8192_d1/el-75",
+    "sionna_p4000000000_r15_n8192_d1/el-90",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el+0",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el-15",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el-30",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el-45",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el-60",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el-75",
+    "sionna_p4000000000_s1000plus_r15_n8192_d1/el-90",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el+0",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el-15",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el-30",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el-45",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el-60",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el-75",
+    "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1/el-90",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el+0",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el-15",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el-30",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el-45",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el-60",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el-75",
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el-90"
+   ]
+  },
+  "prf_hz": 19700.0,
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085655,
+  "range_m": 15.0,
+  "az_deg": 0.0,
+  "range_note_ko": "네 설정 전부 15 m · 방위 0° — 원거리장 경계 2D²/λ ≈ 14.08 m 의 밖",
+  "recipe_ko": "겹치지 않는 16 창 × 512 자세 · 창별 DC 제거 · hanning · nfft 8192 · 빗살 ±8 Hz · AC 하한 8 Hz · argmax 예측. classify_airframe.py 규약 그대로.",
+  "line_floor_recipe_ko": "R13(switch_factorial.py:columns)과 같은 식. 다만 f_flash·f_tip 은 그 팔의 진짜 기체 것을 쓴다 — R13 은 판 전체를 matrice4e 로 쟀다.",
+  "dc_rule_ko": "⭐모든 레벨·에너지 비교는 정지성분(시계열 평균) 제거 후. 마이크로도플러는 STFT 만.",
+  "grid_bands_r16": {
+   "ac_power_db": 3.861,
+   "rhythm_share_pp": 21.819,
+   "above_f_tip_pp": 12.5549,
+   "beat_hz": 0.152,
+   "classify_accuracy_pp": 0.0
+  },
+  "grid_band_use_ko": "분류 정확도의 격자 밴드는 **0.0 %p** 다 — 격자는 이 잣대에 보호막을 주지 않는다. 그래서 판정의 부담을 전부 부트스트랩 CI 가 진다. 절대 dB 주장에는 AC 밴드 3.861 dB 를 쓴다.",
+  "bootstrap_ko": "⭐표본 단위는 «시계열(기체×앙각)». 창 단위로 세면 같은 시계열 안 16 창이 독립이 아니라 증거력이 부풀려진다 — 부풀린 값도 `bootstrap_window_INFLATED` 에 나란히 실어 비교한다.",
+  "null_seeds": [
+   20260815,
+   20260816,
+   20260817,
+   20260818,
+   20260819
+  ],
+  "injection_seeds": [
+   7001,
+   7002,
+   7003,
+   7004,
+   7005
+  ],
+  "n_boot": 20000,
+  "boot_seed": 314159,
+  "el_minus90_note_ko": "−90°(직하방)는 f_tip=0 이라 «상한 위» 가 전 대역이 된다. 물리적으로 날개 속도가 시선에 수직이라 마이크로도플러가 원리적으로 사라지는 앙각이다 — 그 칸의 성적은 잔결 구조만 시험한다.",
+  "elapsed_s": 2.3
+ },
+ "configs": {
+  "ours": {
+   "label_en": "Our kernel (SBR+PO)",
+   "switch": null,
+   "depth": null,
+   "engine_ko": "우리 커널",
+   "design_doc_name": "공통 기준선",
+   "arms": {
+    "mini5pro": "ours_mini5pro_r15_n8192",
+    "matrice4e": "ours_r15_n8192",
+    "s1000plus": "ours_s1000plus_r15_n8192"
+   }
+  },
+  "sionna_off": {
+   "label_en": "Sionna · physics OFF",
+   "switch": "R0D0E0F1",
+   "depth": 1,
+   "engine_ko": "Sionna PathSolver · 물리 끔",
+   "design_doc_name": "설정 A",
+   "arms": {
+    "mini5pro": "sionna_p4000000000_mini5pro_r15_n8192_d1",
+    "matrice4e": "sionna_p4000000000_r15_n8192_d1",
+    "s1000plus": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+   }
+  },
+  "sionna_refr": {
+   "label_en": "Sionna · refraction only",
+   "switch": "R1D0E0F1",
+   "depth": 1,
+   "engine_ko": "Sionna PathSolver · 굴절만",
+   "design_doc_name": "설정 B",
+   "arms": {
+    "mini5pro": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1",
+    "matrice4e": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "s1000plus": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+   }
+  },
+  "sionna_phys": {
+   "label_en": "Sionna · physics ON",
+   "switch": "R1D1E1F1",
+   "depth": 1,
+   "engine_ko": "Sionna PathSolver · 물리 켬",
+   "design_doc_name": "설정 C",
+   "arms": {
+    "matrice4e": "sionna_p4000000000_phys_r15_n8192_d1",
+    "s1000plus": "sionna_p4000000000_phys_s1000plus_r15_n8192_d1"
+   }
+  }
+ },
+ "templates": {
+  "mini5pro": {
+   "prop_blades": 2,
+   "hover_rpm": 5500,
+   "prop_dia_mm": 152.4,
+   "f_flash_hz_spec": 183.333,
+   "f_tip_hz_spec_el0": 1024.8,
+   "comb_coverage_frac_3class": 0.086
+  },
+  "matrice4e": {
+   "prop_blades": 2,
+   "hover_rpm": 3800,
+   "prop_dia_mm": 274,
+   "f_flash_hz_spec": 126.667,
+   "f_tip_hz_spec_el0": 1272.9,
+   "comb_coverage_frac_3class": 0.1251,
+   "comb_coverage_frac_2class": 0.1251
+  },
+  "s1000plus": {
+   "prop_blades": 2,
+   "hover_rpm": 4467,
+   "prop_dia_mm": 381,
+   "f_flash_hz_spec": 148.9,
+   "f_tip_hz_spec_el0": 2080.7,
+   "comb_coverage_frac_3class": 0.1073,
+   "comb_coverage_frac_2class": 0.1073
+  }
+ },
+ "tables": {
+  "two_class": {
+   "classes": [
+    "matrice4e",
+    "s1000plus"
+   ],
+   "n_series_per_config": 14,
+   "coverage_frac": {
+    "matrice4e": 0.1251,
+    "s1000plus": 0.1073
+   },
+   "constant_predictor": "matrice4e",
+   "chance_accuracy": 0.5,
+   "configs": {
+    "ours": {
+     "accuracy": 1.0,
+     "bootstrap_series": {
+      "mean": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "n_series": 14,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "n_windows": 224,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.4911,
+      0.5223,
+      0.4911,
+      0.4955,
+      0.5179
+     ],
+     "shuffle_null_mean": 0.5036,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.5,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 2 클래스라 정확도 = 1/2"
+     },
+     "per_class_recall": {
+      "matrice4e": 1.0,
+      "s1000plus": 1.0
+     },
+     "confusion": [
+      [
+       112,
+       0
+      ],
+      [
+       0,
+       112
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.1099,
+     "series_keys": [
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "cells": {
+      "matrice4e/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1260331317457548,
+       "comb_over_floor_db": 10.81,
+       "above_floor_db": -90.02,
+       "above_comb_line_db": -88.02,
+       "ac_db": -70.4,
+       "rhythm_share_pct": 63.34,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1098131459206038,
+       "comb_over_floor_db": 12.66,
+       "above_floor_db": -83.56,
+       "above_comb_line_db": -79.54,
+       "ac_db": -71.05,
+       "rhythm_share_pct": 72.74,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12976894240035308,
+       "comb_over_floor_db": 15.37,
+       "above_floor_db": -85.93,
+       "above_comb_line_db": -79.08,
+       "ac_db": -69.11,
+       "rhythm_share_pct": 83.31,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.16303865872048712,
+       "comb_over_floor_db": 8.38,
+       "above_floor_db": -86.86,
+       "above_comb_line_db": -87.6,
+       "ac_db": -67.19,
+       "rhythm_share_pct": 49.65,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.11501498582575817,
+       "comb_over_floor_db": 8.91,
+       "above_floor_db": -87.33,
+       "above_comb_line_db": -87.43,
+       "ac_db": -66.04,
+       "rhythm_share_pct": 52.85,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.0697718002742957,
+       "comb_over_floor_db": 7.75,
+       "above_floor_db": -86.98,
+       "above_comb_line_db": -88.43,
+       "ac_db": -57.71,
+       "rhythm_share_pct": 46.26,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1011021198868552,
+       "comb_over_floor_db": 11.08,
+       "above_floor_db": -86.04,
+       "above_comb_line_db": -83.73,
+       "ac_db": -81.56,
+       "rhythm_share_pct": 64.87,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09823145511775108,
+       "comb_over_floor_db": 9.62,
+       "above_floor_db": -81.99,
+       "above_comb_line_db": -82.02,
+       "ac_db": -65.73,
+       "rhythm_share_pct": 52.74,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.08946398234422631,
+       "comb_over_floor_db": 9.06,
+       "above_floor_db": -77.65,
+       "above_comb_line_db": -78.32,
+       "ac_db": -65.66,
+       "rhythm_share_pct": 49.44,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10994526053082733,
+       "comb_over_floor_db": 12.95,
+       "above_floor_db": -79.12,
+       "above_comb_line_db": -75.58,
+       "ac_db": -65.22,
+       "rhythm_share_pct": 70.4,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09529150990436082,
+       "comb_over_floor_db": 9.0,
+       "above_floor_db": -81.01,
+       "above_comb_line_db": -81.71,
+       "ac_db": -61.48,
+       "rhythm_share_pct": 49.35,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09984365652660473,
+       "comb_over_floor_db": 15.31,
+       "above_floor_db": -81.6,
+       "above_comb_line_db": -75.56,
+       "ac_db": -57.39,
+       "rhythm_share_pct": 80.56,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.19699743111245313,
+       "comb_over_floor_db": 15.89,
+       "above_floor_db": -82.47,
+       "above_comb_line_db": -75.86,
+       "ac_db": -54.62,
+       "rhythm_share_pct": 82.46,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.13223835015745145,
+       "comb_over_floor_db": 31.58,
+       "above_floor_db": -77.38,
+       "above_comb_line_db": -54.97,
+       "ac_db": -54.93,
+       "rhythm_share_pct": 99.43,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    },
+    "sionna_off": {
+     "accuracy": 0.9777,
+     "bootstrap_series": {
+      "mean": 0.9777,
+      "ci_lo": 0.933,
+      "ci_hi": 1.0,
+      "n_series": 14,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 0.9777,
+      "ci_lo": 0.9554,
+      "ci_hi": 0.9955,
+      "n_windows": 224,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.5,
+      0.5134,
+      0.4866,
+      0.5045,
+      0.5045
+     ],
+     "shuffle_null_mean": 0.5018,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.5,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 2 클래스라 정확도 = 1/2"
+     },
+     "per_class_recall": {
+      "matrice4e": 1.0,
+      "s1000plus": 0.9554
+     },
+     "confusion": [
+      [
+       112,
+       0
+      ],
+      [
+       5,
+       107
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.1113,
+     "series_keys": [
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.6875
+     ],
+     "cells": {
+      "matrice4e/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.01815055969464436,
+       "comb_over_floor_db": 0.2,
+       "above_floor_db": -95.85,
+       "above_comb_line_db": -117.46,
+       "ac_db": -94.3,
+       "rhythm_share_pct": 13.06,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12490719876634726,
+       "comb_over_floor_db": 14.77,
+       "above_floor_db": -164.12,
+       "above_comb_line_db": -157.9,
+       "ac_db": -145.33,
+       "rhythm_share_pct": 81.26,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15818403681903553,
+       "comb_over_floor_db": 14.55,
+       "above_floor_db": -162.36,
+       "above_comb_line_db": -156.36,
+       "ac_db": -135.66,
+       "rhythm_share_pct": 80.5,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.16908190336523915,
+       "comb_over_floor_db": 15.66,
+       "above_floor_db": -157.39,
+       "above_comb_line_db": -150.29,
+       "ac_db": -129.61,
+       "rhythm_share_pct": 84.06,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.10792856516275877,
+       "comb_over_floor_db": 16.53,
+       "above_floor_db": -153.98,
+       "above_comb_line_db": -145.97,
+       "ac_db": -129.72,
+       "rhythm_share_pct": 86.61,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.06785555194899923,
+       "comb_over_floor_db": 21.39,
+       "above_floor_db": -153.82,
+       "above_comb_line_db": -140.86,
+       "ac_db": -119.73,
+       "rhythm_share_pct": 95.22,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1341965616863514,
+       "comb_over_floor_db": 25.92,
+       "above_floor_db": -153.91,
+       "above_comb_line_db": -136.42,
+       "ac_db": -135.72,
+       "rhythm_share_pct": 98.25,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.1119606188695787,
+       "comb_over_floor_db": 5.02,
+       "above_floor_db": -146.61,
+       "above_comb_line_db": -152.37,
+       "ac_db": -141.11,
+       "rhythm_share_pct": 27.92,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.11054470163887446,
+       "comb_over_floor_db": 4.15,
+       "above_floor_db": -145.97,
+       "above_comb_line_db": -153.08,
+       "ac_db": -138.15,
+       "rhythm_share_pct": 24.0,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.12231555848499812,
+       "comb_over_floor_db": 6.75,
+       "above_floor_db": -149.5,
+       "above_comb_line_db": -152.97,
+       "ac_db": -133.3,
+       "rhythm_share_pct": 36.31,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.12133468014878587,
+       "comb_over_floor_db": 11.14,
+       "above_floor_db": -145.97,
+       "above_comb_line_db": -144.29,
+       "ac_db": -123.53,
+       "rhythm_share_pct": 61.47,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09228355332082278,
+       "comb_over_floor_db": 18.7,
+       "above_floor_db": -146.64,
+       "above_comb_line_db": -137.13,
+       "ac_db": -120.94,
+       "rhythm_share_pct": 90.04,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10587554095590573,
+       "comb_over_floor_db": 2.78,
+       "above_floor_db": -114.74,
+       "above_comb_line_db": -124.4,
+       "ac_db": -111.62,
+       "rhythm_share_pct": 18.65,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 11,
+       "n_win": 16,
+       "acc": 0.6875,
+       "pred_counts": {
+        "matrice4e": 5,
+        "s1000plus": 11
+       },
+       "margin_median": 0.08962213950690998,
+       "comb_over_floor_db": 3.83,
+       "above_floor_db": -110.66,
+       "above_comb_line_db": -118.32,
+       "ac_db": -107.47,
+       "rhythm_share_pct": 22.62,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    },
+    "sionna_refr": {
+     "accuracy": 0.9598,
+     "bootstrap_series": {
+      "mean": 0.9598,
+      "ci_lo": 0.8929,
+      "ci_hi": 1.0,
+      "n_series": 14,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 0.9598,
+      "ci_lo": 0.933,
+      "ci_hi": 0.9821,
+      "n_windows": 224,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.4955,
+      0.5134,
+      0.4911,
+      0.5,
+      0.5223
+     ],
+     "shuffle_null_mean": 0.5045,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.5,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 2 클래스라 정확도 = 1/2"
+     },
+     "per_class_recall": {
+      "matrice4e": 1.0,
+      "s1000plus": 0.9196
+     },
+     "confusion": [
+      [
+       112,
+       0
+      ],
+      [
+       9,
+       103
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.1099,
+     "series_keys": [
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.625,
+      0.8125
+     ],
+     "cells": {
+      "matrice4e/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.018148806716633485,
+       "comb_over_floor_db": 0.31,
+       "above_floor_db": -98.22,
+       "above_comb_line_db": -118.01,
+       "ac_db": -96.87,
+       "rhythm_share_pct": 13.33,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12736882455142234,
+       "comb_over_floor_db": 10.4,
+       "above_floor_db": -156.08,
+       "above_comb_line_db": -154.49,
+       "ac_db": -148.22,
+       "rhythm_share_pct": 61.34,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1366403253760129,
+       "comb_over_floor_db": 10.53,
+       "above_floor_db": -154.72,
+       "above_comb_line_db": -152.98,
+       "ac_db": -141.03,
+       "rhythm_share_pct": 62.07,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15783838538610895,
+       "comb_over_floor_db": 11.1,
+       "above_floor_db": -147.91,
+       "above_comb_line_db": -145.6,
+       "ac_db": -135.69,
+       "rhythm_share_pct": 64.86,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12515475994000222,
+       "comb_over_floor_db": 10.93,
+       "above_floor_db": -144.61,
+       "above_comb_line_db": -142.47,
+       "ac_db": -136.12,
+       "rhythm_share_pct": 64.05,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.07412924087513363,
+       "comb_over_floor_db": 9.64,
+       "above_floor_db": -142.38,
+       "above_comb_line_db": -141.64,
+       "ac_db": -129.71,
+       "rhythm_share_pct": 57.1,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.11062721289069544,
+       "comb_over_floor_db": 10.5,
+       "above_floor_db": -141.55,
+       "above_comb_line_db": -139.87,
+       "ac_db": -137.23,
+       "rhythm_share_pct": 61.76,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10533734828461126,
+       "comb_over_floor_db": 5.52,
+       "above_floor_db": -144.66,
+       "above_comb_line_db": -149.72,
+       "ac_db": -140.95,
+       "rhythm_share_pct": 30.29,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.1050050074694046,
+       "comb_over_floor_db": 4.53,
+       "above_floor_db": -143.34,
+       "above_comb_line_db": -149.86,
+       "ac_db": -138.74,
+       "rhythm_share_pct": 25.61,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.12767098202899607,
+       "comb_over_floor_db": 6.79,
+       "above_floor_db": -147.21,
+       "above_comb_line_db": -150.62,
+       "ac_db": -136.81,
+       "rhythm_share_pct": 36.54,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10921193999742716,
+       "comb_over_floor_db": 9.35,
+       "above_floor_db": -142.04,
+       "above_comb_line_db": -142.33,
+       "ac_db": -129.87,
+       "rhythm_share_pct": 51.39,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09550996296062202,
+       "comb_over_floor_db": 11.97,
+       "above_floor_db": -138.4,
+       "above_comb_line_db": -135.85,
+       "ac_db": -127.39,
+       "rhythm_share_pct": 65.74,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 10,
+       "n_win": 16,
+       "acc": 0.625,
+       "pred_counts": {
+        "matrice4e": 6,
+        "s1000plus": 10
+       },
+       "margin_median": 0.054728380437028636,
+       "comb_over_floor_db": 2.72,
+       "above_floor_db": -114.73,
+       "above_comb_line_db": -124.51,
+       "ac_db": -114.0,
+       "rhythm_share_pct": 18.45,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 13,
+       "n_win": 16,
+       "acc": 0.8125,
+       "pred_counts": {
+        "matrice4e": 3,
+        "s1000plus": 13
+       },
+       "margin_median": 0.11345949085257771,
+       "comb_over_floor_db": 1.12,
+       "above_floor_db": -115.37,
+       "above_comb_line_db": -129.86,
+       "ac_db": -115.0,
+       "rhythm_share_pct": 13.54,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    },
+    "sionna_phys": {
+     "accuracy": 0.7188,
+     "bootstrap_series": {
+      "mean": 0.7188,
+      "ci_lo": 0.5045,
+      "ci_hi": 0.8973,
+      "n_series": 14,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 0.7188,
+      "ci_lo": 0.6607,
+      "ci_hi": 0.7768,
+      "n_windows": 224,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.4955,
+      0.4866,
+      0.5223,
+      0.5268,
+      0.5045
+     ],
+     "shuffle_null_mean": 0.5071,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.5,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 2 클래스라 정확도 = 1/2"
+     },
+     "per_class_recall": {
+      "matrice4e": 0.9643,
+      "s1000plus": 0.4732
+     },
+     "confusion": [
+      [
+       108,
+       4
+      ],
+      [
+       59,
+       53
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.017,
+     "series_keys": [
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      0.9375,
+      0.8125,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0625,
+      0.75,
+      1.0,
+      0.625,
+      0.875
+     ],
+     "cells": {
+      "matrice4e/el+0": {
+       "n_correct": 15,
+       "n_win": 16,
+       "acc": 0.9375,
+       "pred_counts": {
+        "matrice4e": 15,
+        "s1000plus": 1
+       },
+       "margin_median": 0.017669969735421752,
+       "comb_over_floor_db": 0.56,
+       "above_floor_db": -95.52,
+       "above_comb_line_db": -112.6,
+       "ac_db": -94.84,
+       "rhythm_share_pct": 14.01,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 13,
+       "n_win": 16,
+       "acc": 0.8125,
+       "pred_counts": {
+        "matrice4e": 13,
+        "s1000plus": 3
+       },
+       "margin_median": 0.01660609740252548,
+       "comb_over_floor_db": -0.29,
+       "above_floor_db": -115.09,
+       "above_comb_line_db": null,
+       "ac_db": -115.02,
+       "rhythm_share_pct": 11.91,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.017337371902437525,
+       "comb_over_floor_db": -0.08,
+       "above_floor_db": -127.75,
+       "above_comb_line_db": null,
+       "ac_db": -126.6,
+       "rhythm_share_pct": 12.46,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.039389454744569966,
+       "comb_over_floor_db": 0.49,
+       "above_floor_db": -128.42,
+       "above_comb_line_db": -146.05,
+       "ac_db": -126.9,
+       "rhythm_share_pct": 13.82,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.03686668099475693,
+       "comb_over_floor_db": 0.87,
+       "above_floor_db": -126.99,
+       "above_comb_line_db": -141.96,
+       "ac_db": -125.88,
+       "rhythm_share_pct": 14.95,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.01923197350977742,
+       "comb_over_floor_db": -0.1,
+       "above_floor_db": -110.9,
+       "above_comb_line_db": null,
+       "ac_db": -110.96,
+       "rhythm_share_pct": 12.38,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.022590091569161162,
+       "comb_over_floor_db": 0.64,
+       "above_floor_db": -116.54,
+       "above_comb_line_db": -132.93,
+       "ac_db": -118.37,
+       "rhythm_share_pct": 14.31,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 0,
+       "n_win": 16,
+       "acc": 0.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": -0.01697767969728349,
+       "comb_over_floor_db": 0.43,
+       "above_floor_db": -97.59,
+       "above_comb_line_db": -116.56,
+       "ac_db": -96.06,
+       "rhythm_share_pct": 11.86,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 0,
+       "n_win": 16,
+       "acc": 0.0,
+       "pred_counts": {
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": -0.01710259650717655,
+       "comb_over_floor_db": 0.16,
+       "above_floor_db": -121.04,
+       "above_comb_line_db": -144.59,
+       "ac_db": -119.11,
+       "rhythm_share_pct": 11.18,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 1,
+       "n_win": 16,
+       "acc": 0.0625,
+       "pred_counts": {
+        "matrice4e": 15,
+        "s1000plus": 1
+       },
+       "margin_median": -0.013518416182065562,
+       "comb_over_floor_db": 0.2,
+       "above_floor_db": -124.38,
+       "above_comb_line_db": -146.8,
+       "ac_db": -122.87,
+       "rhythm_share_pct": 11.21,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 12,
+       "n_win": 16,
+       "acc": 0.75,
+       "pred_counts": {
+        "matrice4e": 4,
+        "s1000plus": 12
+       },
+       "margin_median": 0.00822170818998133,
+       "comb_over_floor_db": 0.65,
+       "above_floor_db": -125.02,
+       "above_comb_line_db": -142.08,
+       "ac_db": -122.74,
+       "rhythm_share_pct": 12.47,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.015237657665802165,
+       "comb_over_floor_db": 2.28,
+       "above_floor_db": -123.77,
+       "above_comb_line_db": -134.52,
+       "ac_db": -121.24,
+       "rhythm_share_pct": 17.08,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 10,
+       "n_win": 16,
+       "acc": 0.625,
+       "pred_counts": {
+        "matrice4e": 6,
+        "s1000plus": 10
+       },
+       "margin_median": 0.010279385991995585,
+       "comb_over_floor_db": 2.2,
+       "above_floor_db": -113.87,
+       "above_comb_line_db": -124.85,
+       "ac_db": -113.12,
+       "rhythm_share_pct": 16.72,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 14,
+       "n_win": 16,
+       "acc": 0.875,
+       "pred_counts": {
+        "matrice4e": 2,
+        "s1000plus": 14
+       },
+       "margin_median": 0.031442657971639296,
+       "comb_over_floor_db": 2.53,
+       "above_floor_db": -114.73,
+       "above_comb_line_db": -124.91,
+       "ac_db": -114.08,
+       "rhythm_share_pct": 17.84,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    }
+   }
+  },
+  "three_class": {
+   "classes": [
+    "mini5pro",
+    "matrice4e",
+    "s1000plus"
+   ],
+   "n_series_per_config": 21,
+   "coverage_frac": {
+    "mini5pro": 0.086,
+    "matrice4e": 0.1251,
+    "s1000plus": 0.1073
+   },
+   "constant_predictor": "matrice4e",
+   "chance_accuracy": 0.3333,
+   "configs": {
+    "ours": {
+     "accuracy": 1.0,
+     "bootstrap_series": {
+      "mean": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "n_series": 21,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "n_windows": 336,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.3333,
+      0.3363,
+      0.3125,
+      0.3423,
+      0.3155
+     ],
+     "shuffle_null_mean": 0.328,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.3333,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 3 클래스라 정확도 = 1/3"
+     },
+     "per_class_recall": {
+      "mini5pro": 1.0,
+      "matrice4e": 1.0,
+      "s1000plus": 1.0
+     },
+     "confusion": [
+      [
+       112,
+       0,
+       0
+      ],
+      [
+       0,
+       112,
+       0
+      ],
+      [
+       0,
+       0,
+       112
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.126,
+     "series_keys": [
+      "mini5pro/el+0",
+      "mini5pro/el-15",
+      "mini5pro/el-30",
+      "mini5pro/el-45",
+      "mini5pro/el-60",
+      "mini5pro/el-75",
+      "mini5pro/el-90",
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "cells": {
+      "mini5pro/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15948387661156546,
+       "comb_over_floor_db": 13.09,
+       "above_floor_db": -90.94,
+       "above_comb_line_db": -88.3,
+       "ac_db": -74.44,
+       "rhythm_share_pct": 65.89,
+       "f_tip_hz": 1024.7,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.14892606962988597,
+       "comb_over_floor_db": 13.09,
+       "above_floor_db": -89.08,
+       "above_comb_line_db": -86.46,
+       "ac_db": -79.6,
+       "rhythm_share_pct": 65.79,
+       "f_tip_hz": 989.8,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.13043520185084134,
+       "comb_over_floor_db": 17.08,
+       "above_floor_db": -90.03,
+       "above_comb_line_db": -83.23,
+       "ac_db": -77.61,
+       "rhythm_share_pct": 82.99,
+       "f_tip_hz": 887.4,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.18333239994915498,
+       "comb_over_floor_db": 14.35,
+       "above_floor_db": -90.96,
+       "above_comb_line_db": -86.96,
+       "ac_db": -72.62,
+       "rhythm_share_pct": 72.3,
+       "f_tip_hz": 724.6,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.18489472582927247,
+       "comb_over_floor_db": 11.74,
+       "above_floor_db": -90.72,
+       "above_comb_line_db": -89.47,
+       "ac_db": -68.34,
+       "rhythm_share_pct": 58.83,
+       "f_tip_hz": 512.4,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.18142794641482624,
+       "comb_over_floor_db": 11.54,
+       "above_floor_db": -90.83,
+       "above_comb_line_db": -89.84,
+       "ac_db": -72.32,
+       "rhythm_share_pct": 57.48,
+       "f_tip_hz": 265.2,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.10875501257657899,
+       "comb_over_floor_db": 12.22,
+       "above_floor_db": -90.28,
+       "above_comb_line_db": -88.55,
+       "ac_db": -86.18,
+       "rhythm_share_pct": 61.32,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "matrice4e/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1260331317457548,
+       "comb_over_floor_db": 10.81,
+       "above_floor_db": -90.02,
+       "above_comb_line_db": -88.02,
+       "ac_db": -70.4,
+       "rhythm_share_pct": 63.34,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1098131459206038,
+       "comb_over_floor_db": 12.66,
+       "above_floor_db": -83.56,
+       "above_comb_line_db": -79.54,
+       "ac_db": -71.05,
+       "rhythm_share_pct": 72.74,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12976894240035308,
+       "comb_over_floor_db": 15.37,
+       "above_floor_db": -85.93,
+       "above_comb_line_db": -79.08,
+       "ac_db": -69.11,
+       "rhythm_share_pct": 83.31,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.16303865872048712,
+       "comb_over_floor_db": 8.38,
+       "above_floor_db": -86.86,
+       "above_comb_line_db": -87.6,
+       "ac_db": -67.19,
+       "rhythm_share_pct": 49.65,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.11501498582575817,
+       "comb_over_floor_db": 8.91,
+       "above_floor_db": -87.33,
+       "above_comb_line_db": -87.43,
+       "ac_db": -66.04,
+       "rhythm_share_pct": 52.85,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.0697718002742957,
+       "comb_over_floor_db": 7.75,
+       "above_floor_db": -86.98,
+       "above_comb_line_db": -88.43,
+       "ac_db": -57.71,
+       "rhythm_share_pct": 46.26,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1011021198868552,
+       "comb_over_floor_db": 11.08,
+       "above_floor_db": -86.04,
+       "above_comb_line_db": -83.73,
+       "ac_db": -81.56,
+       "rhythm_share_pct": 64.87,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09823145511775108,
+       "comb_over_floor_db": 9.62,
+       "above_floor_db": -81.99,
+       "above_comb_line_db": -82.02,
+       "ac_db": -65.73,
+       "rhythm_share_pct": 52.74,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.08946398234422631,
+       "comb_over_floor_db": 9.06,
+       "above_floor_db": -77.65,
+       "above_comb_line_db": -78.32,
+       "ac_db": -65.66,
+       "rhythm_share_pct": 49.44,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10994526053082733,
+       "comb_over_floor_db": 12.95,
+       "above_floor_db": -79.12,
+       "above_comb_line_db": -75.58,
+       "ac_db": -65.22,
+       "rhythm_share_pct": 70.4,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09529150990436082,
+       "comb_over_floor_db": 9.0,
+       "above_floor_db": -81.01,
+       "above_comb_line_db": -81.71,
+       "ac_db": -61.48,
+       "rhythm_share_pct": 49.35,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09984365652660473,
+       "comb_over_floor_db": 15.31,
+       "above_floor_db": -81.6,
+       "above_comb_line_db": -75.56,
+       "ac_db": -57.39,
+       "rhythm_share_pct": 80.56,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.19699743111245313,
+       "comb_over_floor_db": 15.89,
+       "above_floor_db": -82.47,
+       "above_comb_line_db": -75.86,
+       "ac_db": -54.62,
+       "rhythm_share_pct": 82.46,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.13223835015745145,
+       "comb_over_floor_db": 31.58,
+       "above_floor_db": -77.38,
+       "above_comb_line_db": -54.97,
+       "ac_db": -54.93,
+       "rhythm_share_pct": 99.43,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    },
+    "sionna_off": {
+     "accuracy": 0.9464,
+     "bootstrap_series": {
+      "mean": 0.9464,
+      "ci_lo": 0.8542,
+      "ci_hi": 1.0,
+      "n_series": 21,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 0.9464,
+      "ci_lo": 0.9226,
+      "ci_hi": 0.9702,
+      "n_windows": 336,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.3333,
+      0.3333,
+      0.3393,
+      0.3363,
+      0.3333
+     ],
+     "shuffle_null_mean": 0.3351,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.3333,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 3 클래스라 정확도 = 1/3"
+     },
+     "per_class_recall": {
+      "mini5pro": 0.8839,
+      "matrice4e": 1.0,
+      "s1000plus": 0.9554
+     },
+     "confusion": [
+      [
+       99,
+       13,
+       0
+      ],
+      [
+       0,
+       112,
+       0
+      ],
+      [
+       0,
+       5,
+       107
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.1213,
+     "series_keys": [
+      "mini5pro/el+0",
+      "mini5pro/el-15",
+      "mini5pro/el-30",
+      "mini5pro/el-45",
+      "mini5pro/el-60",
+      "mini5pro/el-75",
+      "mini5pro/el-90",
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      0.1875,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.6875
+     ],
+     "cells": {
+      "mini5pro/el+0": {
+       "n_correct": 3,
+       "n_win": 16,
+       "acc": 0.1875,
+       "pred_counts": {
+        "mini5pro": 3,
+        "matrice4e": 13,
+        "s1000plus": 0
+       },
+       "margin_median": -0.03835182179539304,
+       "comb_over_floor_db": 0.02,
+       "above_floor_db": -99.18,
+       "above_comb_line_db": -132.42,
+       "ac_db": -97.66,
+       "rhythm_share_pct": 8.71,
+       "f_tip_hz": 1024.7,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15986583994562514,
+       "comb_over_floor_db": 16.38,
+       "above_floor_db": -170.22,
+       "above_comb_line_db": -164.2,
+       "ac_db": -156.43,
+       "rhythm_share_pct": 80.39,
+       "f_tip_hz": 989.8,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1742152193585091,
+       "comb_over_floor_db": 19.16,
+       "above_floor_db": -167.14,
+       "above_comb_line_db": -158.22,
+       "ac_db": -147.28,
+       "rhythm_share_pct": 88.74,
+       "f_tip_hz": 887.4,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.18985796297396282,
+       "comb_over_floor_db": 21.93,
+       "above_floor_db": -161.46,
+       "above_comb_line_db": -149.74,
+       "ac_db": -134.18,
+       "rhythm_share_pct": 93.74,
+       "f_tip_hz": 724.6,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.18395368551795935,
+       "comb_over_floor_db": 19.59,
+       "above_floor_db": -157.9,
+       "above_comb_line_db": -148.55,
+       "ac_db": -131.13,
+       "rhythm_share_pct": 89.7,
+       "f_tip_hz": 512.4,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.18179218388027096,
+       "comb_over_floor_db": 21.58,
+       "above_floor_db": -157.38,
+       "above_comb_line_db": -146.07,
+       "ac_db": -134.52,
+       "rhythm_share_pct": 93.17,
+       "f_tip_hz": 265.2,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.10141387016864224,
+       "comb_over_floor_db": 24.57,
+       "above_floor_db": -157.95,
+       "above_comb_line_db": -143.61,
+       "ac_db": -143.67,
+       "rhythm_share_pct": 96.46,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "matrice4e/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.01815055969464436,
+       "comb_over_floor_db": 0.2,
+       "above_floor_db": -95.85,
+       "above_comb_line_db": -117.46,
+       "ac_db": -94.3,
+       "rhythm_share_pct": 13.06,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12490719876634726,
+       "comb_over_floor_db": 14.77,
+       "above_floor_db": -164.12,
+       "above_comb_line_db": -157.9,
+       "ac_db": -145.33,
+       "rhythm_share_pct": 81.26,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15818403681903553,
+       "comb_over_floor_db": 14.55,
+       "above_floor_db": -162.36,
+       "above_comb_line_db": -156.36,
+       "ac_db": -135.66,
+       "rhythm_share_pct": 80.5,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.16908190336523915,
+       "comb_over_floor_db": 15.66,
+       "above_floor_db": -157.39,
+       "above_comb_line_db": -150.29,
+       "ac_db": -129.61,
+       "rhythm_share_pct": 84.06,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.10792856516275877,
+       "comb_over_floor_db": 16.53,
+       "above_floor_db": -153.98,
+       "above_comb_line_db": -145.97,
+       "ac_db": -129.72,
+       "rhythm_share_pct": 86.61,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.06785555194899923,
+       "comb_over_floor_db": 21.39,
+       "above_floor_db": -153.82,
+       "above_comb_line_db": -140.86,
+       "ac_db": -119.73,
+       "rhythm_share_pct": 95.22,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1341965616863514,
+       "comb_over_floor_db": 25.92,
+       "above_floor_db": -153.91,
+       "above_comb_line_db": -136.42,
+       "ac_db": -135.72,
+       "rhythm_share_pct": 98.25,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.1119606188695787,
+       "comb_over_floor_db": 5.02,
+       "above_floor_db": -146.61,
+       "above_comb_line_db": -152.37,
+       "ac_db": -141.11,
+       "rhythm_share_pct": 27.92,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.11054470163887446,
+       "comb_over_floor_db": 4.15,
+       "above_floor_db": -145.97,
+       "above_comb_line_db": -153.08,
+       "ac_db": -138.15,
+       "rhythm_share_pct": 24.0,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.12231555848499812,
+       "comb_over_floor_db": 6.75,
+       "above_floor_db": -149.5,
+       "above_comb_line_db": -152.97,
+       "ac_db": -133.3,
+       "rhythm_share_pct": 36.31,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.12133468014878587,
+       "comb_over_floor_db": 11.14,
+       "above_floor_db": -145.97,
+       "above_comb_line_db": -144.29,
+       "ac_db": -123.53,
+       "rhythm_share_pct": 61.47,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09228355332082278,
+       "comb_over_floor_db": 18.7,
+       "above_floor_db": -146.64,
+       "above_comb_line_db": -137.13,
+       "ac_db": -120.94,
+       "rhythm_share_pct": 90.04,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10587554095590573,
+       "comb_over_floor_db": 2.78,
+       "above_floor_db": -114.74,
+       "above_comb_line_db": -124.4,
+       "ac_db": -111.62,
+       "rhythm_share_pct": 18.65,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 11,
+       "n_win": 16,
+       "acc": 0.6875,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 5,
+        "s1000plus": 11
+       },
+       "margin_median": 0.08962213950690998,
+       "comb_over_floor_db": 3.83,
+       "above_floor_db": -110.66,
+       "above_comb_line_db": -118.32,
+       "ac_db": -107.47,
+       "rhythm_share_pct": 22.62,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    },
+    "sionna_refr": {
+     "accuracy": 0.9613,
+     "bootstrap_series": {
+      "mean": 0.9613,
+      "ci_lo": 0.9137,
+      "ci_hi": 1.0,
+      "n_series": 21,
+      "n_boot": 20000,
+      "unit_ko": "시계열(기체×앙각)"
+     },
+     "bootstrap_window_INFLATED": {
+      "mean": 0.9613,
+      "ci_lo": 0.9405,
+      "ci_hi": 0.9821,
+      "n_windows": 336,
+      "warn_ko": "⚠창은 독립이 아니다 — 이 구간은 증거력을 부풀린다. 판정에 쓰지 않는다."
+     },
+     "shuffle_null_accuracy_by_seed": [
+      0.3363,
+      0.3244,
+      0.3304,
+      0.3274,
+      0.3304
+     ],
+     "shuffle_null_mean": 0.3298,
+     "coverage_constant_predictor": {
+      "predicts": "matrice4e",
+      "accuracy": 0.3333,
+      "why_ko": "백색이면 빗살 몫 ≈ 덮개율 → 덮개율 최대인 matrice4e 로 전부 예측. 균형 3 클래스라 정확도 = 1/3"
+     },
+     "per_class_recall": {
+      "mini5pro": 0.9643,
+      "matrice4e": 1.0,
+      "s1000plus": 0.9196
+     },
+     "confusion": [
+      [
+       108,
+       4,
+       0
+      ],
+      [
+       0,
+       112,
+       0
+      ],
+      [
+       0,
+       9,
+       103
+      ]
+     ],
+     "confusion_layout": "행=정답, 열=예측, 순서=classes",
+     "margin_median": 0.1135,
+     "series_keys": [
+      "mini5pro/el+0",
+      "mini5pro/el-15",
+      "mini5pro/el-30",
+      "mini5pro/el-45",
+      "mini5pro/el-60",
+      "mini5pro/el-75",
+      "mini5pro/el-90",
+      "matrice4e/el+0",
+      "matrice4e/el-15",
+      "matrice4e/el-30",
+      "matrice4e/el-45",
+      "matrice4e/el-60",
+      "matrice4e/el-75",
+      "matrice4e/el-90",
+      "s1000plus/el+0",
+      "s1000plus/el-15",
+      "s1000plus/el-30",
+      "s1000plus/el-45",
+      "s1000plus/el-60",
+      "s1000plus/el-75",
+      "s1000plus/el-90"
+     ],
+     "per_series_acc": [
+      0.75,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.625,
+      0.8125
+     ],
+     "cells": {
+      "mini5pro/el+0": {
+       "n_correct": 12,
+       "n_win": 16,
+       "acc": 0.75,
+       "pred_counts": {
+        "mini5pro": 12,
+        "matrice4e": 4,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12371719672405956,
+       "comb_over_floor_db": 0.02,
+       "above_floor_db": -105.25,
+       "above_comb_line_db": -139.24,
+       "ac_db": -103.51,
+       "rhythm_share_pct": 8.7,
+       "f_tip_hz": 1024.7,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.09421811272477781,
+       "comb_over_floor_db": 10.1,
+       "above_floor_db": -162.36,
+       "above_comb_line_db": -162.95,
+       "ac_db": -156.78,
+       "rhythm_share_pct": 49.17,
+       "f_tip_hz": 989.8,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.11897997358262648,
+       "comb_over_floor_db": 14.1,
+       "above_floor_db": -160.48,
+       "above_comb_line_db": -156.75,
+       "ac_db": -150.99,
+       "rhythm_share_pct": 71.04,
+       "f_tip_hz": 887.4,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.17493877467939187,
+       "comb_over_floor_db": 12.06,
+       "above_floor_db": -153.08,
+       "above_comb_line_db": -151.48,
+       "ac_db": -140.58,
+       "rhythm_share_pct": 60.65,
+       "f_tip_hz": 724.6,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15976203967510122,
+       "comb_over_floor_db": 11.8,
+       "above_floor_db": -148.8,
+       "above_comb_line_db": -147.49,
+       "ac_db": -138.29,
+       "rhythm_share_pct": 59.18,
+       "f_tip_hz": 512.4,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1506667871436547,
+       "comb_over_floor_db": 11.0,
+       "above_floor_db": -147.53,
+       "above_comb_line_db": -147.12,
+       "ac_db": -139.55,
+       "rhythm_share_pct": 54.43,
+       "f_tip_hz": 265.2,
+       "above_is_degenerate": false
+      },
+      "mini5pro/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 16,
+        "matrice4e": 0,
+        "s1000plus": 0
+       },
+       "margin_median": 0.05480693180780324,
+       "comb_over_floor_db": 9.47,
+       "above_floor_db": -146.53,
+       "above_comb_line_db": -147.8,
+       "ac_db": -144.05,
+       "rhythm_share_pct": 45.67,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "matrice4e/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.018148806716633485,
+       "comb_over_floor_db": 0.31,
+       "above_floor_db": -98.22,
+       "above_comb_line_db": -118.01,
+       "ac_db": -96.87,
+       "rhythm_share_pct": 13.33,
+       "f_tip_hz": 1272.9,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12736882455142234,
+       "comb_over_floor_db": 10.4,
+       "above_floor_db": -156.08,
+       "above_comb_line_db": -154.49,
+       "ac_db": -148.22,
+       "rhythm_share_pct": 61.34,
+       "f_tip_hz": 1229.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.1366403253760129,
+       "comb_over_floor_db": 10.53,
+       "above_floor_db": -154.72,
+       "above_comb_line_db": -152.98,
+       "ac_db": -141.03,
+       "rhythm_share_pct": 62.07,
+       "f_tip_hz": 1102.4,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.15783838538610895,
+       "comb_over_floor_db": 11.1,
+       "above_floor_db": -147.91,
+       "above_comb_line_db": -145.6,
+       "ac_db": -135.69,
+       "rhythm_share_pct": 64.86,
+       "f_tip_hz": 900.1,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.12515475994000222,
+       "comb_over_floor_db": 10.93,
+       "above_floor_db": -144.61,
+       "above_comb_line_db": -142.47,
+       "ac_db": -136.12,
+       "rhythm_share_pct": 64.05,
+       "f_tip_hz": 636.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-75": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.07412924087513363,
+       "comb_over_floor_db": 9.64,
+       "above_floor_db": -142.38,
+       "above_comb_line_db": -141.64,
+       "ac_db": -129.71,
+       "rhythm_share_pct": 57.1,
+       "f_tip_hz": 329.5,
+       "above_is_degenerate": false
+      },
+      "matrice4e/el-90": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 16,
+        "s1000plus": 0
+       },
+       "margin_median": 0.11062721289069544,
+       "comb_over_floor_db": 10.5,
+       "above_floor_db": -141.55,
+       "above_comb_line_db": -139.87,
+       "ac_db": -137.23,
+       "rhythm_share_pct": 61.76,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      },
+      "s1000plus/el+0": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10533734828461126,
+       "comb_over_floor_db": 5.52,
+       "above_floor_db": -144.66,
+       "above_comb_line_db": -149.72,
+       "ac_db": -140.95,
+       "rhythm_share_pct": 30.29,
+       "f_tip_hz": 2080.7,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-15": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.1050050074694046,
+       "comb_over_floor_db": 4.53,
+       "above_floor_db": -143.34,
+       "above_comb_line_db": -149.86,
+       "ac_db": -138.74,
+       "rhythm_share_pct": 25.61,
+       "f_tip_hz": 2009.8,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-30": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.12767098202899607,
+       "comb_over_floor_db": 6.79,
+       "above_floor_db": -147.21,
+       "above_comb_line_db": -150.62,
+       "ac_db": -136.81,
+       "rhythm_share_pct": 36.54,
+       "f_tip_hz": 1801.9,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-45": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.10921193999742716,
+       "comb_over_floor_db": 9.35,
+       "above_floor_db": -142.04,
+       "above_comb_line_db": -142.33,
+       "ac_db": -129.87,
+       "rhythm_share_pct": 51.39,
+       "f_tip_hz": 1471.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-60": {
+       "n_correct": 16,
+       "n_win": 16,
+       "acc": 1.0,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 0,
+        "s1000plus": 16
+       },
+       "margin_median": 0.09550996296062202,
+       "comb_over_floor_db": 11.97,
+       "above_floor_db": -138.4,
+       "above_comb_line_db": -135.85,
+       "ac_db": -127.39,
+       "rhythm_share_pct": 65.74,
+       "f_tip_hz": 1040.3,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-75": {
+       "n_correct": 10,
+       "n_win": 16,
+       "acc": 0.625,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 6,
+        "s1000plus": 10
+       },
+       "margin_median": 0.054728380437028636,
+       "comb_over_floor_db": 2.72,
+       "above_floor_db": -114.73,
+       "above_comb_line_db": -124.51,
+       "ac_db": -114.0,
+       "rhythm_share_pct": 18.45,
+       "f_tip_hz": 538.5,
+       "above_is_degenerate": false
+      },
+      "s1000plus/el-90": {
+       "n_correct": 13,
+       "n_win": 16,
+       "acc": 0.8125,
+       "pred_counts": {
+        "mini5pro": 0,
+        "matrice4e": 3,
+        "s1000plus": 13
+       },
+       "margin_median": 0.11345949085257771,
+       "comb_over_floor_db": 1.12,
+       "above_floor_db": -115.37,
+       "above_comb_line_db": -129.86,
+       "ac_db": -115.0,
+       "rhythm_share_pct": 13.54,
+       "f_tip_hz": 0.0,
+       "above_is_degenerate": true
+      }
+     }
+    }
+   }
+  }
+ },
+ "pairwise_paired_bootstrap": [
+  {
+   "from": "ours",
+   "to": "sionna_off",
+   "delta_pp": -2.23,
+   "ci_lo_pp": -6.7,
+   "ci_hi_pp": 0.0,
+   "crosses_zero": true,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.3577,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": "⚠구간 끝이 정확히 0 이다 — 한 팔이 천장(100 %)이라 Δ 가 0 보다 클 수 없는 자리다. 이때 «걸친다» 는 «증거가 없다» 가 아니라 «이 표본 크기로는 못 가른다» 로 읽는다.",
+   "grid_band_pp": 0.0,
+   "inside_grid_band": false,
+   "verdict_ko": "판정 보류 — CI 가 0 을 걸친다"
+  },
+  {
+   "from": "ours",
+   "to": "sionna_refr",
+   "delta_pp": -4.02,
+   "ci_lo_pp": -10.71,
+   "ci_hi_pp": 0.0,
+   "crosses_zero": true,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.1111,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": "⚠구간 끝이 정확히 0 이다 — 한 팔이 천장(100 %)이라 Δ 가 0 보다 클 수 없는 자리다. 이때 «걸친다» 는 «증거가 없다» 가 아니라 «이 표본 크기로는 못 가른다» 로 읽는다.",
+   "grid_band_pp": 0.0,
+   "inside_grid_band": false,
+   "verdict_ko": "판정 보류 — CI 가 0 을 걸친다"
+  },
+  {
+   "from": "ours",
+   "to": "sionna_phys",
+   "delta_pp": -28.12,
+   "ci_lo_pp": -49.55,
+   "ci_hi_pp": -9.82,
+   "crosses_zero": false,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.0,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": null,
+   "grid_band_pp": 0.0,
+   "inside_grid_band": false,
+   "verdict_ko": "유의: sionna_phys 가 ours 대비 -28.1 %p"
+  },
+  {
+   "from": "sionna_off",
+   "to": "sionna_refr",
+   "delta_pp": -1.79,
+   "ci_lo_pp": -8.04,
+   "ci_hi_pp": 2.68,
+   "crosses_zero": true,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.3865,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": null,
+   "grid_band_pp": 0.0,
+   "inside_grid_band": false,
+   "verdict_ko": "판정 보류 — CI 가 0 을 걸친다"
+  },
+  {
+   "from": "sionna_off",
+   "to": "sionna_phys",
+   "delta_pp": -25.89,
+   "ci_lo_pp": -48.21,
+   "ci_hi_pp": -6.7,
+   "crosses_zero": false,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.002,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": null,
+   "grid_band_pp": 0.0,
+   "inside_grid_band": false,
+   "verdict_ko": "유의: sionna_phys 가 sionna_off 대비 -25.9 %p"
+  },
+  {
+   "from": "sionna_refr",
+   "to": "sionna_phys",
+   "delta_pp": -24.11,
+   "ci_lo_pp": -45.98,
+   "ci_hi_pp": -5.36,
+   "crosses_zero": false,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.0015,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": null,
+   "grid_band_pp": 0.0,
+   "inside_grid_band": false,
+   "verdict_ko": "유의: sionna_phys 가 sionna_refr 대비 -24.1 %p"
+  }
+ ],
+ "burial_vs_erasure": {
+  "pairs": [
+   {
+    "class": "matrice4e",
+    "el_deg": 0.0,
+    "contain_coeff": 0.9979,
+    "contain_coeff_db": -0.02,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": -0.04,
+    "contain_sigma": 0.0086,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 13.7,
+    "white_expect_pct": 12.53,
+    "d_above_floor_db": 2.7,
+    "refr_comb_line_db": -118.01,
+    "phys_comb_line_db": -112.6,
+    "d_comb_over_floor_db": 0.25,
+    "burial_depth_db": 2.39,
+    "acc_refr": 1.0,
+    "acc_phys": 0.9375
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -15.0,
+    "contain_coeff": 1.163,
+    "contain_coeff_db": 1.31,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 11.89,
+    "contain_sigma": 0.5051,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 11.94,
+    "white_expect_pct": 12.64,
+    "d_above_floor_db": 40.99,
+    "refr_comb_line_db": -154.49,
+    "phys_comb_line_db": null,
+    "d_comb_over_floor_db": -10.69,
+    "burial_depth_db": 30.58,
+    "acc_refr": 1.0,
+    "acc_phys": 0.8125
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -30.0,
+    "contain_coeff": 1.0962,
+    "contain_coeff_db": 0.8,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 5.07,
+    "contain_sigma": 0.0569,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 12.16,
+    "white_expect_pct": 12.65,
+    "d_above_floor_db": 26.97,
+    "refr_comb_line_db": -152.98,
+    "phys_comb_line_db": null,
+    "d_comb_over_floor_db": -10.61,
+    "burial_depth_db": 16.44,
+    "acc_refr": 1.0,
+    "acc_phys": 1.0
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -45.0,
+    "contain_coeff": 1.0668,
+    "contain_coeff_db": 0.56,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 1.33,
+    "contain_sigma": 0.028,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 12.53,
+    "white_expect_pct": 12.52,
+    "d_above_floor_db": 19.49,
+    "refr_comb_line_db": -145.6,
+    "phys_comb_line_db": -146.05,
+    "d_comb_over_floor_db": -10.61,
+    "burial_depth_db": 8.39,
+    "acc_refr": 1.0,
+    "acc_phys": 1.0
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -60.0,
+    "contain_coeff": 1.1264,
+    "contain_coeff_db": 1.03,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 1.54,
+    "contain_sigma": 0.0337,
+    "contains_unit_within_3sigma": false,
+    "residual_rhythm_pct": 12.92,
+    "white_expect_pct": 12.58,
+    "d_above_floor_db": 17.62,
+    "refr_comb_line_db": -142.47,
+    "phys_comb_line_db": -141.96,
+    "d_comb_over_floor_db": -10.06,
+    "burial_depth_db": 6.69,
+    "acc_refr": 1.0,
+    "acc_phys": 1.0
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -75.0,
+    "contain_coeff": 0.9624,
+    "contain_coeff_db": -0.33,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 0.02,
+    "contain_sigma": 0.0951,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 12.27,
+    "white_expect_pct": 12.63,
+    "d_above_floor_db": 31.48,
+    "refr_comb_line_db": -141.64,
+    "phys_comb_line_db": null,
+    "d_comb_over_floor_db": -9.74,
+    "burial_depth_db": 21.84,
+    "acc_refr": 1.0,
+    "acc_phys": 1.0
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -90.0,
+    "contain_coeff": 1.304,
+    "contain_coeff_db": 2.31,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": -8.11,
+    "contain_sigma": 0.0959,
+    "contains_unit_within_3sigma": false,
+    "residual_rhythm_pct": 13.75,
+    "white_expect_pct": 12.59,
+    "d_above_floor_db": 25.01,
+    "refr_comb_line_db": -139.87,
+    "phys_comb_line_db": -132.93,
+    "d_comb_over_floor_db": -9.86,
+    "burial_depth_db": 14.51,
+    "acc_refr": 1.0,
+    "acc_phys": 1.0
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": 0.0,
+    "contain_coeff": 2.2919,
+    "contain_coeff_db": 7.2,
+    "contain_within_grid_band": false,
+    "contain_phase_deg": 101.7,
+    "contain_sigma": 1.9413,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 11.86,
+    "white_expect_pct": 10.87,
+    "d_above_floor_db": 47.07,
+    "refr_comb_line_db": -149.72,
+    "phys_comb_line_db": -116.56,
+    "d_comb_over_floor_db": -5.09,
+    "burial_depth_db": 41.56,
+    "acc_refr": 1.0,
+    "acc_phys": 0.0
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -15.0,
+    "contain_coeff": 1.1342,
+    "contain_coeff_db": 1.09,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 0.86,
+    "contain_sigma": 0.1051,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 11.15,
+    "white_expect_pct": 10.83,
+    "d_above_floor_db": 22.3,
+    "refr_comb_line_db": -149.86,
+    "phys_comb_line_db": -144.59,
+    "d_comb_over_floor_db": -4.37,
+    "burial_depth_db": 17.77,
+    "acc_refr": 1.0,
+    "acc_phys": 0.0
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -30.0,
+    "contain_coeff": 0.9806,
+    "contain_coeff_db": -0.17,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 5.82,
+    "contain_sigma": 0.0539,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 11.24,
+    "white_expect_pct": 10.76,
+    "d_above_floor_db": 22.83,
+    "refr_comb_line_db": -150.62,
+    "phys_comb_line_db": -146.8,
+    "d_comb_over_floor_db": -6.59,
+    "burial_depth_db": 16.03,
+    "acc_refr": 1.0,
+    "acc_phys": 0.0625
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -45.0,
+    "contain_coeff": 1.0676,
+    "contain_coeff_db": 0.57,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 0.9,
+    "contain_sigma": 0.0222,
+    "contains_unit_within_3sigma": false,
+    "residual_rhythm_pct": 10.89,
+    "white_expect_pct": 10.93,
+    "d_above_floor_db": 17.02,
+    "refr_comb_line_db": -142.33,
+    "phys_comb_line_db": -142.08,
+    "d_comb_over_floor_db": -8.7,
+    "burial_depth_db": 7.66,
+    "acc_refr": 1.0,
+    "acc_phys": 0.75
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -60.0,
+    "contain_coeff": 1.1274,
+    "contain_coeff_db": 1.04,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": 1.52,
+    "contain_sigma": 0.0187,
+    "contains_unit_within_3sigma": false,
+    "residual_rhythm_pct": 11.56,
+    "white_expect_pct": 10.86,
+    "d_above_floor_db": 14.63,
+    "refr_comb_line_db": -135.85,
+    "phys_comb_line_db": -134.52,
+    "d_comb_over_floor_db": -9.69,
+    "burial_depth_db": 2.66,
+    "acc_refr": 1.0,
+    "acc_phys": 1.0
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -75.0,
+    "contain_coeff": 1.0131,
+    "contain_coeff_db": 0.11,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": -0.1,
+    "contain_sigma": 0.0049,
+    "contains_unit_within_3sigma": true,
+    "residual_rhythm_pct": 10.54,
+    "white_expect_pct": 10.79,
+    "d_above_floor_db": 0.86,
+    "refr_comb_line_db": -124.51,
+    "phys_comb_line_db": -124.85,
+    "d_comb_over_floor_db": -0.52,
+    "burial_depth_db": -1.85,
+    "acc_refr": 0.625,
+    "acc_phys": 0.625
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -90.0,
+    "contain_coeff": 1.0236,
+    "contain_coeff_db": 0.2,
+    "contain_within_grid_band": true,
+    "contain_phase_deg": -0.55,
+    "contain_sigma": 0.0048,
+    "contains_unit_within_3sigma": false,
+    "residual_rhythm_pct": 20.12,
+    "white_expect_pct": 10.8,
+    "d_above_floor_db": 0.64,
+    "refr_comb_line_db": -129.86,
+    "phys_comb_line_db": -124.91,
+    "d_comb_over_floor_db": 1.41,
+    "burial_depth_db": -0.48,
+    "acc_refr": 0.8125,
+    "acc_phys": 0.875
+   }
+  ],
+  "note_ko": "기준 팔은 **sionna_refr(굴절만)** 이다 — sionna_phys 와 «쐐기회절 D·모서리회절 E» 두 비트만 다르다. sionna_off 를 기준으로 잡으면 굴절 R 까지 함께 뒤집혀 R13 이 «바꾸는 축» 이라 부른 성분이 섞인다(담김계수 ≈0.5).",
+  "containment_summary": {
+   "coeff_db_min": -0.33,
+   "coeff_db_max": 7.2,
+   "coeff_db_median": 0.69,
+   "n_within_3sigma": 9,
+   "n_within_grid_band": 13,
+   "n_pairs": 14,
+   "reading_ko": "⭐«정확히 1» 은 아니다 — R13 의 3σ 시험은 일부 칸에서 떨어진다. 그러나 계수는 전부 1 의 **위쪽** 근처이지 0 쪽이 아니다. 지웠다면 계수가 0 으로 가야 한다. 실용 잣대(R16 AC 밴드 3.861 dB = 계수 0.64~1.56)로는 대부분이 «1 과 구별 불가» 자리다. 밴드 밖으로 나가는 칸은 따로 적는다.",
+   "outside_band_cells": [
+    "s1000plus/+0 (+7.2 dB)"
+   ]
+  },
+  "floor_rise_vs_physics_off_db_median": {
+   "ours": null,
+   "sionna_off": 0.0,
+   "sionna_refr": 5.79,
+   "sionna_phys": 26.05
+  },
+  "floor_rise_note_ko": "같은 14 칸(2 기체 × 7 앙각)에서 잰 상한 위 바닥의 중앙값 차이. 우리 커널은 엔진이 달라 절대 눈금이 다르므로 이 칸에서 제외한다."
+ },
+ "injection_control": {
+  "what_ko": "굴절만 팔 + «리듬 없는 백색 잡음»(바닥을 물리켬 바닥에 맞춤) → 같은 분류기로 채점. 빗살은 한 번도 건드리지 않았다.",
+  "per_cell": [
+   {
+    "class": "matrice4e",
+    "el_deg": 0.0,
+    "acc_measured_phys": 0.9375,
+    "acc_injection_mean": 1.0,
+    "acc_injection_by_seed": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -95.52,
+    "achieved_floor_db": -95.55,
+    "floor_match_err_db": -0.03,
+    "noise_needed": true
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -15.0,
+    "acc_measured_phys": 0.8125,
+    "acc_injection_mean": 0.9875,
+    "acc_injection_by_seed": [
+     0.9375,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -115.09,
+    "achieved_floor_db": -115.12,
+    "floor_match_err_db": -0.03,
+    "noise_needed": true
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -30.0,
+    "acc_measured_phys": 1.0,
+    "acc_injection_mean": 1.0,
+    "acc_injection_by_seed": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -127.75,
+    "achieved_floor_db": -127.71,
+    "floor_match_err_db": 0.04,
+    "noise_needed": true
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -45.0,
+    "acc_measured_phys": 1.0,
+    "acc_injection_mean": 1.0,
+    "acc_injection_by_seed": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -128.42,
+    "achieved_floor_db": -128.48,
+    "floor_match_err_db": -0.06,
+    "noise_needed": true
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -60.0,
+    "acc_measured_phys": 1.0,
+    "acc_injection_mean": 1.0,
+    "acc_injection_by_seed": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -126.99,
+    "achieved_floor_db": -126.99,
+    "floor_match_err_db": -0.0,
+    "noise_needed": true
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -75.0,
+    "acc_measured_phys": 1.0,
+    "acc_injection_mean": 0.9875,
+    "acc_injection_by_seed": [
+     1.0,
+     1.0,
+     1.0,
+     0.9375,
+     1.0
+    ],
+    "target_floor_db": -110.9,
+    "achieved_floor_db": -110.91,
+    "floor_match_err_db": -0.01,
+    "noise_needed": true
+   },
+   {
+    "class": "matrice4e",
+    "el_deg": -90.0,
+    "acc_measured_phys": 1.0,
+    "acc_injection_mean": 0.975,
+    "acc_injection_by_seed": [
+     1.0,
+     1.0,
+     0.875,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -116.54,
+    "achieved_floor_db": -116.55,
+    "floor_match_err_db": -0.01,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": 0.0,
+    "acc_measured_phys": 0.0,
+    "acc_injection_mean": 0.025,
+    "acc_injection_by_seed": [
+     0.0,
+     0.0625,
+     0.0625,
+     0.0,
+     0.0
+    ],
+    "target_floor_db": -97.59,
+    "achieved_floor_db": -97.6,
+    "floor_match_err_db": -0.01,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -15.0,
+    "acc_measured_phys": 0.0,
+    "acc_injection_mean": 0.025,
+    "acc_injection_by_seed": [
+     0.0625,
+     0.0,
+     0.0,
+     0.0625,
+     0.0
+    ],
+    "target_floor_db": -121.04,
+    "achieved_floor_db": -121.05,
+    "floor_match_err_db": -0.01,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -30.0,
+    "acc_measured_phys": 0.0625,
+    "acc_injection_mean": 0.0875,
+    "acc_injection_by_seed": [
+     0.125,
+     0.0625,
+     0.125,
+     0.125,
+     0.0
+    ],
+    "target_floor_db": -124.38,
+    "achieved_floor_db": -124.4,
+    "floor_match_err_db": -0.02,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -45.0,
+    "acc_measured_phys": 0.75,
+    "acc_injection_mean": 0.8875,
+    "acc_injection_by_seed": [
+     0.8125,
+     0.8125,
+     0.9375,
+     1.0,
+     0.875
+    ],
+    "target_floor_db": -125.02,
+    "achieved_floor_db": -125.04,
+    "floor_match_err_db": -0.02,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -60.0,
+    "acc_measured_phys": 1.0,
+    "acc_injection_mean": 0.975,
+    "acc_injection_by_seed": [
+     0.9375,
+     0.9375,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "target_floor_db": -123.77,
+    "achieved_floor_db": -123.8,
+    "floor_match_err_db": -0.03,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -75.0,
+    "acc_measured_phys": 0.625,
+    "acc_injection_mean": 0.55,
+    "acc_injection_by_seed": [
+     0.5625,
+     0.5,
+     0.5625,
+     0.5625,
+     0.5625
+    ],
+    "target_floor_db": -113.87,
+    "achieved_floor_db": -113.87,
+    "floor_match_err_db": 0.0,
+    "noise_needed": true
+   },
+   {
+    "class": "s1000plus",
+    "el_deg": -90.0,
+    "acc_measured_phys": 0.875,
+    "acc_injection_mean": 0.8125,
+    "acc_injection_by_seed": [
+     0.8125,
+     0.8125,
+     0.8125,
+     0.8125,
+     0.8125
+    ],
+    "target_floor_db": -114.73,
+    "achieved_floor_db": -114.73,
+    "floor_match_err_db": -0.0,
+    "noise_needed": true
+   }
+  ],
+  "acc_measured_phys": 0.7188,
+  "acc_injection": 0.7366,
+  "delta_injection_minus_measured": {
+   "delta_pp": 1.79,
+   "ci_lo_pp": -1.43,
+   "ci_hi_pp": 5.54,
+   "crosses_zero": true,
+   "n_series": 14,
+   "frac_draws_ge_zero": 0.8426,
+   "frac_draws_note_ko": "한쪽 꼬리 참고값 — 사전등록 관문은 «CI 가 0 을 걸치나» 다. 이 값은 판정에 쓰지 않고 «얼마나 아슬아슬한가» 만 보인다.",
+   "boundary_ko": null
+  },
+  "max_abs_cell_gap_pp": 17.5,
+  "n_seeds": 5,
+  "verdict_ko": "⭐**덮은 것이다** — 빗살을 건드리지 않고 바닥만 올린 가짜 팔이 물리켬의 성적을 1.8 %p 안에서 재현한다(짝 CI -1.4~+5.5 %p, 0 을 걸친다)."
+ },
+ "single_axis": {
+  "diffraction_only": {
+   "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+   "switch": "R0D1E0F1",
+   "axis_ko": "쐐기 회절만",
+   "label_en": "Diffraction only",
+   "elevations_available": [
+    0.0,
+    -15.0,
+    -30.0,
+    -45.0,
+    -60.0,
+    -75.0,
+    -90.0
+   ],
+   "airframes_available": [
+    "matrice4e"
+   ],
+   "why_not_scored_ko": "이 팔은 matrice4e 한 기체만 있다 — 같은 설정의 다른 기체 팔이 없어 분류 채점 자체가 성립하지 않는다.",
+   "cells_matrice4e": {
+    "el+0": {
+     "floor_db_axis": -94.08,
+     "floor_db_base": -95.85,
+     "d_floor_db": 1.77,
+     "comb_over_floor_db_axis": 0.64,
+     "comb_over_floor_db_base": 0.2,
+     "rhythm_share_pct_axis": 14.24,
+     "white_expect_pct": 12.53
+    },
+    "el-15": {
+     "floor_db_axis": -112.22,
+     "floor_db_base": -164.12,
+     "d_floor_db": 51.9,
+     "comb_over_floor_db_axis": -0.29,
+     "comb_over_floor_db_base": 14.77,
+     "rhythm_share_pct_axis": 11.93,
+     "white_expect_pct": 12.64
+    },
+    "el-30": {
+     "floor_db_axis": -126.31,
+     "floor_db_base": -162.36,
+     "d_floor_db": 36.05,
+     "comb_over_floor_db_axis": -0.38,
+     "comb_over_floor_db_base": 14.55,
+     "rhythm_share_pct_axis": 11.7,
+     "white_expect_pct": 12.65
+    },
+    "el-45": {
+     "floor_db_axis": -127.19,
+     "floor_db_base": -157.39,
+     "d_floor_db": 30.2,
+     "comb_over_floor_db_axis": 0.27,
+     "comb_over_floor_db_base": 15.66,
+     "rhythm_share_pct_axis": 13.21,
+     "white_expect_pct": 12.52
+    },
+    "el-60": {
+     "floor_db_axis": -125.8,
+     "floor_db_base": -153.98,
+     "d_floor_db": 28.18,
+     "comb_over_floor_db_axis": 0.34,
+     "comb_over_floor_db_base": 16.53,
+     "rhythm_share_pct_axis": 13.46,
+     "white_expect_pct": 12.58
+    },
+    "el-75": {
+     "floor_db_axis": -108.27,
+     "floor_db_base": -153.82,
+     "d_floor_db": 45.55,
+     "comb_over_floor_db_axis": 0.13,
+     "comb_over_floor_db_base": 21.39,
+     "rhythm_share_pct_axis": 12.96,
+     "white_expect_pct": 12.63
+    },
+    "el-90": {
+     "floor_db_axis": -111.36,
+     "floor_db_base": -153.91,
+     "d_floor_db": 42.55,
+     "comb_over_floor_db_axis": 0.13,
+     "comb_over_floor_db_base": 25.92,
+     "rhythm_share_pct_axis": 12.91,
+     "white_expect_pct": 12.59
+    }
+   },
+   "is_noop_vs_base": false,
+   "rel_diff_db_vs_base": [
+    -15.5,
+    25.1,
+    37.8,
+    25.6,
+    14.4,
+    32.8,
+    49.5
+   ],
+   "noop_note_ko": null,
+   "d_floor_db_median": 36.05,
+   "surrogate_accuracy_2class": 0.6705,
+   "surrogate_is_measured": false,
+   "surrogate_per_cell": [
+    {
+     "class": "matrice4e",
+     "el_deg": 0.0,
+     "d_floor_db": 1.77,
+     "acc_surrogate": 0.9625
+    },
+    {
+     "class": "matrice4e",
+     "el_deg": -15.0,
+     "d_floor_db": 51.9,
+     "acc_surrogate": 0.9875
+    },
+    {
+     "class": "matrice4e",
+     "el_deg": -30.0,
+     "d_floor_db": 36.05,
+     "acc_surrogate": 1.0
+    },
+    {
+     "class": "matrice4e",
+     "el_deg": -45.0,
+     "d_floor_db": 30.2,
+     "acc_surrogate": 1.0
+    },
+    {
+     "class": "matrice4e",
+     "el_deg": -60.0,
+     "d_floor_db": 28.18,
+     "acc_surrogate": 1.0
+    },
+    {
+     "class": "matrice4e",
+     "el_deg": -75.0,
+     "d_floor_db": 45.55,
+     "acc_surrogate": 1.0
+    },
+    {
+     "class": "matrice4e",
+     "el_deg": -90.0,
+     "d_floor_db": 42.55,
+     "acc_surrogate": 0.95
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": 0.0,
+     "d_floor_db": 1.77,
+     "acc_surrogate": 1.0
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": -15.0,
+     "d_floor_db": 51.9,
+     "acc_surrogate": 0.0125
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": -30.0,
+     "d_floor_db": 36.05,
+     "acc_surrogate": 0.05
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": -45.0,
+     "d_floor_db": 30.2,
+     "acc_surrogate": 0.4
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": -60.0,
+     "d_floor_db": 28.18,
+     "acc_surrogate": 0.9375
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": -75.0,
+     "d_floor_db": 45.55,
+     "acc_surrogate": 0.0375
+    },
+    {
+     "class": "s1000plus",
+     "el_deg": -90.0,
+     "d_floor_db": 42.55,
+     "acc_surrogate": 0.05
+    }
+   ],
+   "surrogate_status_ko": "⚠**측정이 아니라 대리 추정**이다 — matrice4e 에서 잰 바닥 상승분을 두 클래스에 같은 dB 로 얹은 가산 모형의 결과다. 모형의 검증 오차는 injection_control (물리켬 재현 오차) 에 있다."
+  },
+  "edge_only": {
+   "arm": "sionna_p4000000000_onlyedge_r15_n8192",
+   "switch": "R0D0E1F1",
+   "axis_ko": "모서리 회절만",
+   "label_en": "Edge diffraction only",
+   "elevations_available": [
+    0.0,
+    -30.0,
+    -60.0,
+    -90.0
+   ],
+   "airframes_available": [
+    "matrice4e"
+   ],
+   "why_not_scored_ko": "이 팔은 matrice4e 한 기체만 있다 — 같은 설정의 다른 기체 팔이 없어 분류 채점 자체가 성립하지 않는다.",
+   "cells_matrice4e": {
+    "el+0": {
+     "floor_db_axis": -95.85,
+     "floor_db_base": -95.85,
+     "d_floor_db": 0.0,
+     "comb_over_floor_db_axis": 0.2,
+     "comb_over_floor_db_base": 0.2,
+     "rhythm_share_pct_axis": 13.06,
+     "white_expect_pct": 12.53
+    },
+    "el-30": {
+     "floor_db_axis": -162.36,
+     "floor_db_base": -162.36,
+     "d_floor_db": 0.0,
+     "comb_over_floor_db_axis": 14.55,
+     "comb_over_floor_db_base": 14.55,
+     "rhythm_share_pct_axis": 80.5,
+     "white_expect_pct": 12.65
+    },
+    "el-60": {
+     "floor_db_axis": -153.98,
+     "floor_db_base": -153.98,
+     "d_floor_db": 0.0,
+     "comb_over_floor_db_axis": 16.53,
+     "comb_over_floor_db_base": 16.53,
+     "rhythm_share_pct_axis": 86.61,
+     "white_expect_pct": 12.58
+    },
+    "el-90": {
+     "floor_db_axis": -153.91,
+     "floor_db_base": -153.91,
+     "d_floor_db": 0.0,
+     "comb_over_floor_db_axis": 25.92,
+     "comb_over_floor_db_base": 25.92,
+     "rhythm_share_pct_axis": 98.25,
+     "white_expect_pct": 12.59
+    }
+   },
+   "is_noop_vs_base": true,
+   "rel_diff_db_vs_base": [
+    -316.8,
+    -308.8,
+    -315.8,
+    -316.2
+   ],
+   "noop_note_ko": "⭐이 스위치는 **아무것도 안 바꾼다** — 기준 팔과의 차이가 -309 dB(모든 앙각)로 수치 바닥 아래다. R13 의 «모서리 회절은 무동작» 과 같은 결론이다. 그러므로 대리 추정도 필요 없다: 성적 = 기준 팔의 **측정값** 그대로.",
+   "d_floor_db_median": 0.0,
+   "surrogate_accuracy_2class": 0.9777,
+   "surrogate_is_measured": true,
+   "surrogate_per_cell": [],
+   "surrogate_status_ko": "무동작 스위치라 기준 팔의 **측정값** 그대로다."
+  }
+ },
+ "translation_curve": {
+  "points": [
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el+0",
+    "contrast_db": 10.81,
+    "acc": 1.0,
+    "margin_median": 0.1260331317457548,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-15",
+    "contrast_db": 12.66,
+    "acc": 1.0,
+    "margin_median": 0.1098131459206038,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-30",
+    "contrast_db": 15.37,
+    "acc": 1.0,
+    "margin_median": 0.12976894240035308,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-45",
+    "contrast_db": 8.38,
+    "acc": 1.0,
+    "margin_median": 0.16303865872048712,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-60",
+    "contrast_db": 8.91,
+    "acc": 1.0,
+    "margin_median": 0.11501498582575817,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-75",
+    "contrast_db": 7.75,
+    "acc": 1.0,
+    "margin_median": 0.0697718002742957,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-90",
+    "contrast_db": 11.08,
+    "acc": 1.0,
+    "margin_median": 0.1011021198868552,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el+0",
+    "contrast_db": 9.62,
+    "acc": 1.0,
+    "margin_median": 0.09823145511775108,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-15",
+    "contrast_db": 9.06,
+    "acc": 1.0,
+    "margin_median": 0.08946398234422631,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-30",
+    "contrast_db": 12.95,
+    "acc": 1.0,
+    "margin_median": 0.10994526053082733,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-45",
+    "contrast_db": 9.0,
+    "acc": 1.0,
+    "margin_median": 0.09529150990436082,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-60",
+    "contrast_db": 15.31,
+    "acc": 1.0,
+    "margin_median": 0.09984365652660473,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-75",
+    "contrast_db": 15.89,
+    "acc": 1.0,
+    "margin_median": 0.19699743111245313,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "ours",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-90",
+    "contrast_db": 31.58,
+    "acc": 1.0,
+    "margin_median": 0.13223835015745145,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el+0",
+    "contrast_db": 0.2,
+    "acc": 1.0,
+    "margin_median": 0.01815055969464436,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-15",
+    "contrast_db": 14.77,
+    "acc": 1.0,
+    "margin_median": 0.12490719876634726,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-30",
+    "contrast_db": 14.55,
+    "acc": 1.0,
+    "margin_median": 0.15818403681903553,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-45",
+    "contrast_db": 15.66,
+    "acc": 1.0,
+    "margin_median": 0.16908190336523915,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-60",
+    "contrast_db": 16.53,
+    "acc": 1.0,
+    "margin_median": 0.10792856516275877,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-75",
+    "contrast_db": 21.39,
+    "acc": 1.0,
+    "margin_median": 0.06785555194899923,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-90",
+    "contrast_db": 25.92,
+    "acc": 1.0,
+    "margin_median": 0.1341965616863514,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el+0",
+    "contrast_db": 5.02,
+    "acc": 1.0,
+    "margin_median": 0.1119606188695787,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-15",
+    "contrast_db": 4.15,
+    "acc": 1.0,
+    "margin_median": 0.11054470163887446,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-30",
+    "contrast_db": 6.75,
+    "acc": 1.0,
+    "margin_median": 0.12231555848499812,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-45",
+    "contrast_db": 11.14,
+    "acc": 1.0,
+    "margin_median": 0.12133468014878587,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-60",
+    "contrast_db": 18.7,
+    "acc": 1.0,
+    "margin_median": 0.09228355332082278,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-75",
+    "contrast_db": 2.78,
+    "acc": 1.0,
+    "margin_median": 0.10587554095590573,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_off",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-90",
+    "contrast_db": 3.83,
+    "acc": 0.6875,
+    "margin_median": 0.08962213950690998,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el+0",
+    "contrast_db": 0.31,
+    "acc": 1.0,
+    "margin_median": 0.018148806716633485,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-15",
+    "contrast_db": 10.4,
+    "acc": 1.0,
+    "margin_median": 0.12736882455142234,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-30",
+    "contrast_db": 10.53,
+    "acc": 1.0,
+    "margin_median": 0.1366403253760129,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-45",
+    "contrast_db": 11.1,
+    "acc": 1.0,
+    "margin_median": 0.15783838538610895,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-60",
+    "contrast_db": 10.93,
+    "acc": 1.0,
+    "margin_median": 0.12515475994000222,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-75",
+    "contrast_db": 9.64,
+    "acc": 1.0,
+    "margin_median": 0.07412924087513363,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-90",
+    "contrast_db": 10.5,
+    "acc": 1.0,
+    "margin_median": 0.11062721289069544,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el+0",
+    "contrast_db": 5.52,
+    "acc": 1.0,
+    "margin_median": 0.10533734828461126,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-15",
+    "contrast_db": 4.53,
+    "acc": 1.0,
+    "margin_median": 0.1050050074694046,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-30",
+    "contrast_db": 6.79,
+    "acc": 1.0,
+    "margin_median": 0.12767098202899607,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-45",
+    "contrast_db": 9.35,
+    "acc": 1.0,
+    "margin_median": 0.10921193999742716,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-60",
+    "contrast_db": 11.97,
+    "acc": 1.0,
+    "margin_median": 0.09550996296062202,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-75",
+    "contrast_db": 2.72,
+    "acc": 0.625,
+    "margin_median": 0.054728380437028636,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_refr",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-90",
+    "contrast_db": 1.12,
+    "acc": 0.8125,
+    "margin_median": 0.11345949085257771,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el+0",
+    "contrast_db": 0.56,
+    "acc": 0.9375,
+    "margin_median": 0.017669969735421752,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-15",
+    "contrast_db": -0.29,
+    "acc": 0.8125,
+    "margin_median": 0.01660609740252548,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-30",
+    "contrast_db": -0.08,
+    "acc": 1.0,
+    "margin_median": 0.017337371902437525,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-45",
+    "contrast_db": 0.49,
+    "acc": 1.0,
+    "margin_median": 0.039389454744569966,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-60",
+    "contrast_db": 0.87,
+    "acc": 1.0,
+    "margin_median": 0.03686668099475693,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-75",
+    "contrast_db": -0.1,
+    "acc": 1.0,
+    "margin_median": 0.01923197350977742,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "matrice4e",
+    "cell": "matrice4e/el-90",
+    "contrast_db": 0.64,
+    "acc": 1.0,
+    "margin_median": 0.022590091569161162,
+    "degenerate_f_tip": true
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el+0",
+    "contrast_db": 0.43,
+    "acc": 0.0,
+    "margin_median": -0.01697767969728349,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-15",
+    "contrast_db": 0.16,
+    "acc": 0.0,
+    "margin_median": -0.01710259650717655,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-30",
+    "contrast_db": 0.2,
+    "acc": 0.0625,
+    "margin_median": -0.013518416182065562,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-45",
+    "contrast_db": 0.65,
+    "acc": 0.75,
+    "margin_median": 0.00822170818998133,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-60",
+    "contrast_db": 2.28,
+    "acc": 1.0,
+    "margin_median": 0.015237657665802165,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-75",
+    "contrast_db": 2.2,
+    "acc": 0.625,
+    "margin_median": 0.010279385991995585,
+    "degenerate_f_tip": false
+   },
+   {
+    "config": "sionna_phys",
+    "class": "s1000plus",
+    "cell": "s1000plus/el-90",
+    "contrast_db": 2.53,
+    "acc": 0.875,
+    "margin_median": 0.031442657971639296,
+    "degenerate_f_tip": true
+   }
+  ],
+  "note_ko": "가로축은 그 시계열 자신의 «선/바닥 대비»(진짜 기체의 f_flash·f_tip 으로 잰 값), 세로축은 그 시계열의 창 16 개 정확도. 네 설정 전부를 한 판에 얹는다.",
+  "spearman_contrast_vs_accuracy": {
+   "all": 0.0474,
+   "matrice4e": -0.26,
+   "s1000plus": 0.4964
+  },
+  "spearman_contrast_vs_margin": {
+   "all": 0.717,
+   "matrice4e": 0.7094,
+   "s1000plus": 0.6218
+  },
+  "thresholds": {
+   "all": {
+    "n": 56,
+    "min_contrast_db_among_perfect": -0.1,
+    "max_contrast_db_among_imperfect": 3.83,
+    "overlap_band_db": [
+     -0.1,
+     3.83
+    ],
+    "clean_separation": false
+   },
+   "matrice4e": {
+    "n": 28,
+    "min_contrast_db_among_perfect": -0.1,
+    "max_contrast_db_among_imperfect": 0.56,
+    "overlap_band_db": [
+     -0.1,
+     0.56
+    ],
+    "clean_separation": false
+   },
+   "s1000plus": {
+    "n": 28,
+    "min_contrast_db_among_perfect": 2.28,
+    "max_contrast_db_among_imperfect": 3.83,
+    "overlap_band_db": [
+     2.28,
+     3.83
+    ],
+    "clean_separation": false
+   }
+  },
+  "margin_note_ko": "⭐정확도는 대부분의 칸에서 100 % 에 붙어 있어(천장) 순위상관이 낮게 나온다. 천장이 없는 연속 잣대인 **판정 여유**(정답 몫 − 차점 몫)로 다시 재면 번역이 훨씬 또렷하다 — 아래 spearman_contrast_vs_margin 을 볼 것.",
+  "bias_caveat_ko": "⭐두 클래스의 곡선이 다르다 — 덮개율이 큰 matrice4e 는 대비가 0 dB 로 무너져도 성적이 높게 남는다(상수 예측기가 그 클래스를 찍기 때문). 번역이 깨끗한 쪽은 **불리한 클래스 s1000plus** 다. 그래서 «전체» 순위상관을 헤드라인으로 쓰면 안 되고, 반드시 클래스별로 읽어야 한다."
+ },
+ "verdict": {
+  "headline_ko": [
+   "⭐엔진 물리를 켜는 값은 **24.1 %p**다 — 같은 2 클래스 판에서 굴절만 96.0 % → 물리 켬 71.9 % (짝 CI -46.0~-5.4 %p, 0 을 안 걸친다 ⇒ 유의).",
+   "⭐**이 성적은 빗살 선 대 바닥의 번역이다** — 덮개율이 불리한 클래스(s1000plus)에서 선/바닥 대비가 3.8 dB 를 넘는 시계열은 **전부 100 %**, 2.3 dB 아래는 **한 칸도 100 % 가 아니다**. 대비 ↔ 판정 여유 순위상관 +0.62 (전체 +0.72).",
+   "⭐성적이 떨어진 것은 «날개 신호가 사라져서» 가 아니라 «바닥이 올라와 덮여서» 다 — 빗살을 한 번도 건드리지 않고 바닥만 물리켬 높이로 올린 가짜 팔이 물리켬 성적을 1.8 %p 안에서 재현한다.",
+   "⚠물리 켬의 성적은 **클래스가 갈린다** — matrice4e 96.4 % ↔ s1000plus 47.3 %. 앞의 숫자는 실력이 아니라 덮개율 편향(상수 예측기가 찍는 클래스)이다."
+  ],
+  "table_two_class": [
+   {
+    "config": "ours",
+    "label_en": "Our kernel (SBR+PO)",
+    "accuracy_pct": 100.0,
+    "ci95_series_pct": [
+     100.0,
+     100.0
+    ],
+    "ci95_window_INFLATED_pct": [
+     100.0,
+     100.0
+    ],
+    "shuffle_null_pct": 50.36,
+    "coverage_constant_pct": 50.0,
+    "per_class_recall_pct": {
+     "matrice4e": 100.0,
+     "s1000plus": 100.0
+    },
+    "beats_constant_predictor": true,
+    "verdict_ko": "상수 예측선 위 — 빗살 정보가 남아 있다"
+   },
+   {
+    "config": "sionna_off",
+    "label_en": "Sionna · physics OFF",
+    "accuracy_pct": 97.77,
+    "ci95_series_pct": [
+     93.3,
+     100.0
+    ],
+    "ci95_window_INFLATED_pct": [
+     95.54,
+     99.55
+    ],
+    "shuffle_null_pct": 50.18,
+    "coverage_constant_pct": 50.0,
+    "per_class_recall_pct": {
+     "matrice4e": 100.0,
+     "s1000plus": 95.54
+    },
+    "beats_constant_predictor": true,
+    "verdict_ko": "상수 예측선 위 — 빗살 정보가 남아 있다"
+   },
+   {
+    "config": "sionna_refr",
+    "label_en": "Sionna · refraction only",
+    "accuracy_pct": 95.98,
+    "ci95_series_pct": [
+     89.29,
+     100.0
+    ],
+    "ci95_window_INFLATED_pct": [
+     93.3,
+     98.21
+    ],
+    "shuffle_null_pct": 50.45,
+    "coverage_constant_pct": 50.0,
+    "per_class_recall_pct": {
+     "matrice4e": 100.0,
+     "s1000plus": 91.96
+    },
+    "beats_constant_predictor": true,
+    "verdict_ko": "상수 예측선 위 — 빗살 정보가 남아 있다"
+   },
+   {
+    "config": "sionna_phys",
+    "label_en": "Sionna · physics ON",
+    "accuracy_pct": 71.88,
+    "ci95_series_pct": [
+     50.45,
+     89.73
+    ],
+    "ci95_window_INFLATED_pct": [
+     66.07,
+     77.68
+    ],
+    "shuffle_null_pct": 50.71,
+    "coverage_constant_pct": 50.0,
+    "per_class_recall_pct": {
+     "matrice4e": 96.43,
+     "s1000plus": 47.32
+    },
+    "beats_constant_predictor": true,
+    "verdict_ko": "상수 예측선 위 — 빗살 정보가 남아 있다"
+   }
+  ],
+  "engine_cost_ko": {
+   "ours_to_physics_off_pp": -2.23,
+   "physics_off_to_refraction_pp": -1.79,
+   "refraction_to_physics_on_pp": -24.11,
+   "physics_off_to_physics_on_pp": -25.89,
+   "reading_ko": "굴절 축(R)은 성적을 거의 안 물린다(CI 가 0 을 걸친다). 값을 물리는 것은 굴절만 → 물리 켬 한 걸음이다."
+  },
+  "which_switch_ko": {
+   "diffraction_only_surrogate_pct": 67.05,
+   "edge_only_is_noop": true,
+   "edge_only_rel_diff_db": -308.8,
+   "statement_ko": "⭐범인은 **쐐기 회절(D)** 하나다. 모서리 회절(E) 팔은 기준 팔과 차이가 -309 dB — 수치 바닥 아래라 **아무것도 안 바꾼다**(무동작). 쐐기 회절이 matrice4e 에서 올린 바닥 상승분(중앙값 +36.0 dB)을 두 클래스에 그대로 얹은 대리 판은 67.0 % 로, 실제 물리켬 71.9 % 자리에 떨어진다.",
+   "caveat_ko": "대리 판은 «측정» 이 아니다 — 그 설정에 다른 기체 팔이 없어서 쓴 가산 모형이고, 모형의 검증 오차는 물리켬 재현 오차(+1.8 %p)로 잰다."
+  },
+  "mechanism_ko": {
+   "claim": "덮었다(지운 게 아니다)",
+   "evidence_1_containment_ko": "담김 시험 — 물리켬이 굴절만 팔을 계수 1 로 품고 있나: 담김계수는 -0.3~+7.2 dB(중앙값 +0.7 dB)로 전부 **1 의 위쪽 근처**다. R13 의 엄격한 3σ 시험은 9/14 칸만 통과하지만(즉 «정확히 1» 은 아니다), R16 AC 밴드(±3.86 dB = 계수 0.64~1.56)로는 13/14 칸이 1 과 구별되지 않는다. **지웠다면 계수가 0 쪽으로 가야 한다** — 그 반대다.",
+   "evidence_2_white_residual_ko": "얹힌 항 r = 물리켬 − 굴절만 의 상한 위 빗살 몫은 10.5~20.1 % 로 백색 기대치(12.5 %) 자리다 — 리듬이 없는 에코다.",
+   "evidence_3_floor_up_ko": "바닥은 +0.6~+47.1 dB 오르고(중앙값 +20.9 dB) 선/바닥 대비는 중앙값 -9.2 dB 로 무너진다. 원래 빗살이 새 바닥 밑으로 잠기는 깊이는 중앙값 +11.4 dB(최대 +41.6 dB)이며, 2 칸은 음수 = 안 잠긴 칸이다 — 그 칸들은 성적도 안 떨어진다.",
+   "evidence_4_injection_ko": "⭐**덮은 것이다** — 빗살을 건드리지 않고 바닥만 올린 가짜 팔이 물리켬의 성적을 1.8 %p 안에서 재현한다(짝 CI -1.4~+5.5 %p, 0 을 걸친다).",
+   "what_would_have_falsified_ko": "① 담김계수가 1 에서 벗어나거나 ② 잔차가 백색이 아니거나 ③ 바닥만 올린 가짜 팔이 물리켬보다 훨씬 잘 맞혔다면, «덮었다» 가 아니라 «지웠다/바꿨다» 가 된다."
+  },
+  "translation_statement_ko": "⭐**이 성적은 빗살 신호 대 바닥의 번역이다.** 분류기는 창마다 «상한 위 빗살 몫» 을 재서 제일 큰 후보를 찍는다. 얹힌 리듬 없는 에코는 분자를 줄이지 않고 **분모를 키운다** — 그래서 대비가 무너지면 몫이 전부 덮개율 쪽으로 수렴하고, 예측은 덮개율이 큰 클래스로 쏠린다. 설정 사이의 정확도 차이는 물리의 «옳고 그름» 이 아니라 그 대비가 몇 dB 남았는지의 번역이다.",
+  "grid_band_note_ko": "R16 격자 밴드는 분류 정확도에서 0.0 %p 다 — 즉 격자 산포로 설명되는 몫이 없다. 그래서 «밴드 안이라 판정 불가» 로 빠져나갈 자리가 없고, 판정의 부담은 전부 시계열 단위 CI 가 진다. 절대 dB 주장(바닥 상승·대비 붕괴)은 AC 밴드 3.861 dB 밖이다.",
+  "undecided_ko": [
+   "ours → sionna_off: Δ -2.2 %p, CI -6.7~+0.0 %p 가 0 을 걸친다 ⇒ **판정 보류**",
+   "ours → sionna_refr: Δ -4.0 %p, CI -10.7~+0.0 %p 가 0 을 걸친다 ⇒ **판정 보류**",
+   "sionna_off → sionna_refr: Δ -1.8 %p, CI -8.0~+2.7 %p 가 0 을 걸친다 ⇒ **판정 보류**",
+   "⚠**판정 보류 — 발주하지 않는다(지금은)**: 점추정 71.9 % 는 65 % 위지만 시계열 단위 95 % 구간 50.4~89.7 % 가 65 % 를 걸친다. 14 개 시계열로는 이 관문을 못 가른다 — 관문을 가르려면 표본(기체·앙각·방위)을 늘려야지 GPU 를 더 태울 일이 아니다."
+  ],
+  "prereg_stage2_gate": {
+   "rule_ko": "설계서 §④ — «1 단계에서 설정 C 가 2 클래스 65 % 미만일 때만 2 단계(mini5pro 물리켬, 14~21 GPU-h) 발주»",
+   "measured_pct": 71.88,
+   "ci95_series_pct": [
+    50.45,
+    89.73
+   ],
+   "decision_ko": "⚠**판정 보류 — 발주하지 않는다(지금은)**: 점추정 71.9 % 는 65 % 위지만 시계열 단위 95 % 구간 50.4~89.7 % 가 65 % 를 걸친다. 14 개 시계열로는 이 관문을 못 가른다 — 관문을 가르려면 표본(기체·앙각·방위)을 늘려야지 GPU 를 더 태울 일이 아니다.",
+   "undecided": true
+  },
+  "scope_ko": [
+   "방위 0° · 거리 15 m · 앙각 7 점 한정 — R12 가 방위 불변이 아님을 보였으므로 다른 방위로 옮겨 인용하지 않는다.",
+   "sionna_phys 에 mini5pro 팔이 없어 헤드라인은 **2 클래스**다. 3 클래스 표(ours·물리끔·굴절만)는 다른 판이며 두 표의 숫자를 나란히 빼지 않는다.",
+   "분류기는 학습기가 아니라 **제원 템플릿 정합**이다 — 여기 성적은 «규칙 분류기 기준» 이고 학습 기반 분류기로 옮겨 인용하지 않는다.",
+   "단일축(회절만·모서리만) 숫자는 **대리 추정**이다 — 그 설정에 다른 기체 팔이 없다."
+  ]
+ },
+ "corrections": [
+  {
+   "where": "docs/RESUME.md:25 (분석 ① 분류 첫 실험)",
+   "old": "PathSolver 팔 94.64 %(혼동은 mini5pro→matrice4e 13, s1000plus→matrice4e 5)",
+   "new": "PathSolver **물리 끔** 팔 94.64 % (3 클래스). ⚠«PathSolver» 라고만 쓰면 안 된다 — 같은 2 클래스 판에서 물리 끔 97.8 % ↔ 물리 켬 71.9 % 다.",
+   "why_ko": "원장의 «sionna» 표준 팔은 R0D0E0F1(물리 스위치 전부 끔)이다. 엔진 이름만 붙여 인용하면 «PathSolver 는 94.6 % 로 분류한다» 로 읽히는데, 물리를 켜면 그 성적이 아니다. 엔진 이름 옆에 스위치 상태를 반드시 붙인다.",
+   "evidence": "outputs/switch_to_classification.json · tables.two_class.configs"
+  },
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md §② 순위 6 (R14 판정 기준 문장)",
+   "old": "«회절이 얹은 바닥이 빗살을 21.5 dB 아래로 묻었다» 의 번역이다",
+   "new": "«회절이 얹은 바닥이 빗살을 덮었다» 의 번역이다 — 묻힌 깊이는 **한 값이 아니라 칸마다 갈린다**: 분류 판 14 칸에서 중앙값 +11.4 dB · 최대 +41.6 dB, 그리고 2 칸은 음수(= 안 묻힌 칸)다",
+   "why_ko": "21.5 dB 는 R13 이 **el −30 · matrice4e 한 칸**에서 잰 값이다. 분류 판(2 기체 × 7 앙각)에서 다시 재면 칸마다 크게 다르고(음수 칸도 있다), 성적이 무너지는 칸은 묻힌 깊이가 큰 칸이다. 한 칸 숫자를 판 전체의 값으로 인용하지 않는다.",
+   "evidence": "outputs/switch_to_classification.json · burial_vs_erasure.pairs[].burial_depth_db"
+  },
+  {
+   "where": "분류 성적을 인용하는 모든 자리 (설정 C 를 «성능 저하» 로 읽는 문장)",
+   "old": "물리를 켜면 분류 성능이 떨어진다",
+   "new": "물리를 켜면 분류 성적이 96.0 % → 71.9 % 로 내려가는데, 이는 **클래스 쏠림**이다 — matrice4e 96.4 % ↔ s1000plus 47.3 %. 덮개율이 큰 클래스로 예측이 쏠린 결과이지 두 클래스가 고르게 나빠진 것이 아니다.",
+   "why_ko": "평균만 인용하면 «조금 나빠졌다» 로 읽힌다. 실제로는 한 클래스가 거의 안 맞고 다른 클래스가 상수 예측 덕에 높게 나온 것이라, 운용 의미가 전혀 다르다.",
+   "evidence": "outputs/switch_to_classification.json · tables.two_class.configs.sionna_phys.per_class_recall"
+  },
+  {
+   "where": "R14 서술 언어 (설계서가 예고한 «회절이 빗살을 지웠다» 표현)",
+   "old": "회절이 빗살을 지워 분류가 무너진다",
+   "new": "회절이 **리듬 없는 에코를 얹어** 빗살을 덮어 분류가 무너진다 — 빗살을 안 건드리고 바닥만 같은 높이로 올린 가짜 팔이 물리켬 성적을 1.8 %p 안에서 재현한다(짝 CI -1.4~+5.5 %p).",
+   "why_ko": "R13 이 신호층에서 세운 «덮는다» 를 이번에 **태스크층에서 직접 시험**했다. 기전이 다르면 처방이 다르다 — 지웠다면 회절 모형을 고쳐야 하고, 덮었다면 얹힌 항의 절대 크기(또는 그것을 빼는 처리)가 손잡이다.",
+   "evidence": "outputs/switch_to_classification.json · injection_control"
+  },
+  {
+   "where": "3 클래스 성적을 설정 축 비교에 쓰는 자리",
+   "old": "3 클래스 정확도로 엔진 설정을 비교한다 (ours 100 % · 물리끔 94.64 %)",
+   "new": "설정 축 비교는 **2 클래스 판**에서만 한다 — sionna_phys 에 mini5pro 팔이 없어 3 클래스로는 물리 켬을 채점할 수 없다. 3 클래스 숫자와 2 클래스 숫자를 빼면 안 된다.",
+   "why_ko": "클래스 수가 다르면 우연선(1/3 ↔ 1/2)도 상수 예측선도 달라진다.",
+   "evidence": "outputs/switch_to_classification.json · tables.three_class (configs 에 sionna_phys 없음)"
+  }
+ ],
+ "figures": {
+  "main": "outputs/figures/switch_classification.png"
+ },
+ "selfcheck": {
+  "arms_exist_8192": {
+   "pass": true,
+   "detail_ko": "결측/길이 이상 0 개"
+  },
+  "reproduces_classify_airframe": {
+   "pass": true,
+   "detail_ko": "ours Δ=0.00e+00 · sionna(물리끔) Δ=0.00e+00 — 채점 규약이 원본과 같음을 확인"
+  },
+  "reproduces_switch_factorial": {
+   "pass": true,
+   "detail_ko": "R13 셀 219 개 열 비교 · 최대 |Δ| = 0.0000 dB (허용 0.02)"
+  },
+  "metric_is_scale_free": {
+   "pass": true,
+   "detail_ko": "×1e6 배율에도 정확도 동일(0.7500) — 성적은 절대 레벨이 아니라 선/바닥 대비의 함수다"
+  },
+  "injection_floor_matched": {
+   "pass": true,
+   "detail_ko": "바닥 정합 오차 최대 0.060 dB (허용 0.5) · 칸 14 개"
+  },
+  "shuffle_null_near_constant_predictor": {
+   "pass": true,
+   "detail_ko": "널 평균 two_class/ours=0.504 · two_class/sionna_off=0.502 · two_class/sionna_refr=0.504 · two_class/sionna_phys=0.507 · three_class/ours=0.328 · three_class/sionna_off=0.335 · three_class/sionna_refr=0.330 (기준 1/k)"
+  },
+  "series_ci_wider_than_window_ci": {
+   "pass": true,
+   "detail_ko": "모든 칸에서 시계열 단위 구간이 창 단위 구간보다 넓다 — 창 단위는 증거력을 부풀린다"
+  },
+  "plate_shapes": {
+   "pass": true,
+   "detail_ko": "2 클래스 14 시계열 · 3 클래스 21 시계열"
+  },
+  "json_written": {
+   "pass": true,
+   "detail_ko": "outputs/switch_to_classification.json"
+  },
+  "figure_written": {
+   "pass": true,
+   "detail_ko": "outputs/figures/switch_classification.png"
+  },
+  "all_pass": true
+ }
+}

@@ -1,0 +1,5341 @@
+{
+ "_meta": {
+  "experiment": "R6 · 로터 흔들림 프리셋 사다리",
+  "script": "benchmark/rotor_preset_ladder.py",
+  "design_doc": "docs/NEXT_EXPERIMENTS.md (순위 5)",
+  "generated_kst": "2026-08-15 19:08:38 KST",
+  "runtime_sec": 130.0,
+  "gpu_used": false,
+  "gpu_note_ko": "GPU 0. 저장된 위상표 outputs/md_classify_tables/*.npz 108 장을 그대로 재사용했다. sionna.rt·mitsuba 를 import 하지 않는다(SC6).",
+  "question_ko": "로터 흔들림 설정(rotor_preset)을 바꾸면 기종 분류 성적이 달라지나 — 딥러닝 착수 전 상류 게이트.",
+  "provenance": {
+   "phase_tables": {
+    "dir": "outputs/md_classify_tables",
+    "n_files": 108,
+    "missing": [],
+    "reused_ko": "새로 굽지 않았다(GPU 0)"
+   },
+   "preset_source": "src/rotor_dynamics.py PRESETS",
+   "preset_ledger": "outputs/rotor_jitter_model.json",
+   "baseline_ledger": "outputs/md_classify_features.npz (headline rows)",
+   "scoring_code": "benchmark/md_classify_run.py (run_cv·_models·confusion)",
+   "grid_band_ledger": "outputs/grid_convergence_check.json"
+  },
+  "n_presets_measured": 6,
+  "presets": [
+   "legacy",
+   "legacy_outdoor",
+   "sitl",
+   "indoor",
+   "outdoor",
+   "lit_iid"
+  ],
+  "preset_count_ko": "프리셋은 **6 종**이다(legacy·legacy_outdoor·sitl·indoor·outdoor·lit_iid). src/rotor_dynamics.PRESETS 를 직접 세어 6 종 전부를 돌렸다. ⚠설계서(NEXT_EXPERIMENTS.md)의 R6 행과 실행절은 «6 종»·CLI 6 줄로 **옳게** 적혀 있다 — 5 종으로 적힌 곳은 `md_classify_dataset.py` 의 `--rotor-preset` 도움말 문자열뿐이고, 거기서 legacy_outdoor 가 빠졌다.",
+  "baseline_arm_ko": "arm '' 은 프리셋이 아니라 기존 원장이 실제로 쓰는 «현행» 모델이다: 시행마다 σ_s ~ U(0.07 %, 0.29 %) · 시간 흔들림 없음 · 초기위상 U(0,180°). 사다리의 폭 W 계산에는 **넣지 않고** 참조선으로만 쓴다.",
+  "observation_ko": "PRF 20 kHz · 창 250 ms · 잡음 없음 · 기체 6 종 × 자세 18 × 추첨 8 = 864 시행/판",
+  "cv_ko": "자세 단위 leave-one-aspect-out (시험 자세는 학습에서 못 본 기하)",
+  "dc_removed_ko": "특징은 전부 시계열 평균(가만히 있는 부분·DC)을 뺀 뒤 잰다 — md_classify_dataset.features() 의 Eac = E − mean(E). 마이크로도플러 지도는 STFT 만 쓴다.",
+  "headline_model_ko": "RF100 하나로 못 박았다. 프리셋마다 최고 모델을 다시 고르면 «모델 고르기 잡음» 이 «프리셋 효과» 로 샌다. LDA·kNN5 도 함께 실었다(robustness 절).",
+  "outdoor_preset_caveat_ko": "⚠ outdoor 프리셋(σ_s 2.35 % · σ_w 2.45 %)의 근거 로그는 **DJI 기체가 아니다** — PX4 Flight Review 의 CODEV AQUILA V3 야외 Position 홀드 39 창이고, **4 Hz 표집**이라 앨리어싱 여지가 있다. 우리 표적 기체(Mavic 4 Pro·Matrice 4E)의 rpm 통계는 DJI 가 DAT 를 암호화해 못 구했다. indoor 프리셋도 DJI 가 아닌 레이싱 쿼드(NeuroBEM)다.",
+  "not_modelled_ko": "산란 진폭의 요동은 여전히 미모델이다(White IEEE TRS 2024 도 같은 자리를 자백한다). 블레이드 플렉싱·피치 변화도 안 넣는다."
+ },
+ "prereg": {
+  "criterion_ko": "씨앗 3 판으로 잡음 폭을 먼저 재고, 프리셋 6 종의 macro-F1 폭 W 가 잡음 폭의 3 배 이상이면 «좌우한다», 1 배 이하면 «둔감하다», 그 사이면 «보류».",
+  "criterion_changed": true,
+  "criterion_change_reason_ko": "⭐잡음 폭의 **정의**를 한 번 다듬었다(문턱 3·1 배는 그대로). 사전등록 문장은 «같은 프리셋 3 판의 폭» 인데, 3 표본의 폭과 6 표본의 폭은 같은 잣대가 아니다 — 정규분포에서 기대 폭은 표본 수에 따라 커진다(d₃ 1.69 → d₆ 2.53). 그대로 견주면 «프리셋이 좌우한다» 쪽으로 기운다. 그래서 6 프리셋 × 3 씨앗 = 자유도 12 로 판 하나의 표준편차 σ_pool 을 모으고, «프리셋 효과가 0 일 때 6 개 평균의 폭» W_null = d₆·σ_pool/√3 을 귀무 폭으로 쓴다. 사전등록 문장 그대로의 수 (지정 프리셋 3 판의 폭)도 아래 `literal` 에 같이 싣고, 두 판정이 갈리는지 본다.",
+  "model_locked": "RF100",
+  "seeds": [
+   20260810,
+   20260811,
+   20260812
+  ],
+  "noise_band_preset": "outdoor"
+ },
+ "noise_band": {
+  "per_preset_macro_f1": {
+   "legacy": [
+    0.91034,
+    0.91841,
+    0.92188
+   ],
+   "legacy_outdoor": [
+    0.96064,
+    0.95803,
+    0.95369
+   ],
+   "sitl": [
+    0.89395,
+    0.90017,
+    0.89634
+   ],
+   "indoor": [
+    0.9299,
+    0.93017,
+    0.93668
+   ],
+   "outdoor": [
+    0.89441,
+    0.88987,
+    0.90385
+   ],
+   "lit_iid": [
+    0.9443,
+    0.93316,
+    0.95005
+   ]
+  },
+  "per_preset_mean": {
+   "legacy": 0.91688,
+   "legacy_outdoor": 0.95745,
+   "sitl": 0.89682,
+   "indoor": 0.93225,
+   "outdoor": 0.89604,
+   "lit_iid": 0.9425
+  },
+  "per_preset_sd_over_seeds": {
+   "legacy": 0.00592,
+   "legacy_outdoor": 0.00351,
+   "sitl": 0.00314,
+   "indoor": 0.00384,
+   "outdoor": 0.00713,
+   "lit_iid": 0.00859
+  },
+  "sigma_pool": 0.00572,
+  "sigma_pool_dof": 12,
+  "W_null_expected_range_of_6_means": 0.00838,
+  "literal_prereg": {
+   "preset": "outdoor",
+   "macro_f1_3seeds": [
+    0.89441,
+    0.88987,
+    0.90385
+   ],
+   "width": 0.01398,
+   "note_ko": "설계서 문장 그대로의 수. 표본 3 개짜리 폭이라 불안정하다."
+  },
+  "baseline_arm_macro_f1": [
+   0.87585,
+   0.88693,
+   0.89623
+  ],
+  "baseline_arm_width": 0.02038,
+  "meaning_ko": "씨앗만 바꾸면 base rpm 추첨·로터 산포·초기위상·흔들림 실현이 전부 다시 뽑힌다. 그때 macro-F1 이 흔들리는 폭이 «재생성 잡음» 이다."
+ },
+ "ladder": {
+  "width_W": 0.06141,
+  "best_preset": "legacy_outdoor",
+  "worst_preset": "outdoor",
+  "best_macro_f1": 0.95745,
+  "worst_macro_f1": 0.89604,
+  "W_over_W_null": 7.332,
+  "W_over_literal_band": 4.393,
+  "permutation_test": {
+   "n_perm": 20000,
+   "p_value": 0.0015,
+   "null_W_median": 0.03533,
+   "null_W_p95": 0.05142,
+   "note_ko": "18 개 macro-F1 값의 프리셋 딱지를 무작위로 섞어 W 의 귀무분포를 만들었다. 가정이 없다 — 정규성도, 등분산도 안 쓴다."
+  },
+  "table": [
+   {
+    "preset": "legacy",
+    "static_sigma_pct": 0.22,
+    "wobble_sigma_pct": 0.0,
+    "random_phase": false,
+    "is_legacy_sine": true,
+    "macro_f1_mean": 0.91688,
+    "macro_f1_sd": 0.00592,
+    "accuracy_mean": 0.91744,
+    "per_class_f1": {
+     "mini2": 0.9706,
+     "mini5pro": 0.8464,
+     "phantom4": 0.841,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.8432,
+     "s1000plus": 1.0
+    },
+    "mean_beat_overlap": 0.1547,
+    "draw_scatter": 0.01971,
+    "beat_overlap_symmetric": {
+     "matrice4e|s1000plus": 0.0,
+     "matrice4e|typhoonh480": 0.0,
+     "mini2|matrice4e": 0.0,
+     "mini2|mini5pro": 0.0,
+     "mini2|phantom4": 0.0,
+     "mini2|s1000plus": 0.0,
+     "mini2|typhoonh480": 0.0,
+     "mini5pro|matrice4e": 0.0,
+     "mini5pro|phantom4": 0.9418,
+     "mini5pro|s1000plus": 0.0,
+     "mini5pro|typhoonh480": 0.7003,
+     "phantom4|matrice4e": 0.0,
+     "phantom4|s1000plus": 0.0,
+     "phantom4|typhoonh480": 0.6782,
+     "typhoonh480|s1000plus": 0.0
+    },
+    "source_ko": "현행 report07_hover_long.py 값 그대로. 산포는 PX4 SITL 실측 0.07~0.29% 중간값이지만 패턴 [+1,-1,-0.55,+0.55] 과 정현파 2.7 Hz 는 근거가 없다. 비트동일 회귀 기준선으로만 쓴다."
+   },
+   {
+    "preset": "legacy_outdoor",
+    "static_sigma_pct": 2.0,
+    "wobble_sigma_pct": 0.0,
+    "random_phase": false,
+    "is_legacy_sine": true,
+    "macro_f1_mean": 0.95745,
+    "macro_f1_sd": 0.00351,
+    "accuracy_mean": 0.95756,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.9426,
+     "phantom4": 0.9319,
+     "matrice4e": 0.9988,
+     "typhoonh480": 0.8725,
+     "s1000plus": 0.9988
+    },
+    "mean_beat_overlap": 0.1387,
+    "draw_scatter": 0.07203,
+    "beat_overlap_symmetric": {
+     "matrice4e|s1000plus": 0.0,
+     "matrice4e|typhoonh480": 0.0,
+     "mini2|matrice4e": 0.0,
+     "mini2|mini5pro": 0.0,
+     "mini2|phantom4": 0.0,
+     "mini2|s1000plus": 0.0,
+     "mini2|typhoonh480": 0.0,
+     "mini5pro|matrice4e": 0.0,
+     "mini5pro|phantom4": 0.8437,
+     "mini5pro|s1000plus": 0.0,
+     "mini5pro|typhoonh480": 0.5669,
+     "phantom4|matrice4e": 0.0,
+     "phantom4|s1000plus": 0.0,
+     "phantom4|typhoonh480": 0.6699,
+     "typhoonh480|s1000plus": 0.0
+    },
+    "source_ko": "옛 report07_hover_long.py PRESETS['outdoor'] 그대로 — outputs/report07_hover_long_outdoor.npz 재현용. 모양(정현파)은 틀렸다."
+   },
+   {
+    "preset": "sitl",
+    "static_sigma_pct": 0.22,
+    "wobble_sigma_pct": 0.0,
+    "random_phase": true,
+    "is_legacy_sine": false,
+    "macro_f1_mean": 0.89682,
+    "macro_f1_sd": 0.00314,
+    "accuracy_mean": 0.89853,
+    "per_class_f1": {
+     "mini2": 0.9988,
+     "mini5pro": 0.8614,
+     "phantom4": 0.8286,
+     "matrice4e": 0.9965,
+     "typhoonh480": 0.7118,
+     "s1000plus": 0.9838
+    },
+    "mean_beat_overlap": 0.1614,
+    "draw_scatter": 0.49711,
+    "beat_overlap_symmetric": {
+     "matrice4e|s1000plus": 0.0,
+     "matrice4e|typhoonh480": 0.0,
+     "mini2|matrice4e": 0.0,
+     "mini2|mini5pro": 0.0,
+     "mini2|phantom4": 0.0,
+     "mini2|s1000plus": 0.0,
+     "mini2|typhoonh480": 0.0,
+     "mini5pro|matrice4e": 0.0,
+     "mini5pro|phantom4": 0.9818,
+     "mini5pro|s1000plus": 0.0,
+     "mini5pro|typhoonh480": 0.7238,
+     "phantom4|matrice4e": 0.0,
+     "phantom4|s1000plus": 0.0,
+     "phantom4|typhoonh480": 0.7155,
+     "typhoonh480|s1000plus": 0.0
+    },
+    "source_ko": "PX4 SITL 실측 0.07~0.29% 중간값. 흔들림 없음. ⚠SITL 은 완전대칭 기체 + 이상 제어할당기라 CG 오프셋·프롭 개체차·바람이 **구조적으로 없다** — 실기체보다 한 자릿수 작은 것은 버그가 아니라 구조다(조사 §5)."
+   },
+   {
+    "preset": "indoor",
+    "static_sigma_pct": 0.54,
+    "wobble_sigma_pct": 0.65,
+    "random_phase": true,
+    "is_legacy_sine": false,
+    "macro_f1_mean": 0.93225,
+    "macro_f1_sd": 0.00384,
+    "accuracy_mean": 0.93287,
+    "per_class_f1": {
+     "mini2": 0.9977,
+     "mini5pro": 0.9184,
+     "phantom4": 0.8794,
+     "matrice4e": 0.9988,
+     "typhoonh480": 0.8016,
+     "s1000plus": 0.9977
+    },
+    "mean_beat_overlap": 0.1602,
+    "draw_scatter": 0.40389,
+    "beat_overlap_symmetric": {
+     "matrice4e|s1000plus": 0.0,
+     "matrice4e|typhoonh480": 0.0,
+     "mini2|matrice4e": 0.0,
+     "mini2|mini5pro": 0.0,
+     "mini2|phantom4": 0.0,
+     "mini2|s1000plus": 0.0,
+     "mini2|typhoonh480": 0.0,
+     "mini5pro|matrice4e": 0.0,
+     "mini5pro|phantom4": 0.9573,
+     "mini5pro|s1000plus": 0.0,
+     "mini5pro|typhoonh480": 0.738,
+     "phantom4|matrice4e": 0.0,
+     "phantom4|s1000plus": 0.0,
+     "phantom4|typhoonh480": 0.7079,
+     "typhoonh480|s1000plus": 0.0
+    },
+    "source_ko": "NeuroBEM(UZH RPG) 실내 무풍 호버 7창: 정적 산포 중앙 0.54%, 흔들림 등가사인 0.74% @0.3-5 Hz → 대역몫 보정 σ_w 0.65%. ⚠레이싱 쿼드(DJI 아님)."
+   },
+   {
+    "preset": "outdoor",
+    "static_sigma_pct": 2.35,
+    "wobble_sigma_pct": 2.45,
+    "random_phase": true,
+    "is_legacy_sine": false,
+    "macro_f1_mean": 0.89604,
+    "macro_f1_sd": 0.00713,
+    "accuracy_mean": 0.89584,
+    "per_class_f1": {
+     "mini2": 0.9787,
+     "mini5pro": 0.9225,
+     "phantom4": 0.801,
+     "matrice4e": 0.9661,
+     "typhoonh480": 0.7791,
+     "s1000plus": 0.9288
+    },
+    "mean_beat_overlap": 0.4864,
+    "draw_scatter": 0.67586,
+    "beat_overlap_symmetric": {
+     "matrice4e|s1000plus": 0.7352,
+     "matrice4e|typhoonh480": 0.5366,
+     "mini2|matrice4e": 0.0,
+     "mini2|mini5pro": 0.0637,
+     "mini2|phantom4": 0.0604,
+     "mini2|s1000plus": 0.0071,
+     "mini2|typhoonh480": 0.0639,
+     "mini5pro|matrice4e": 0.5159,
+     "mini5pro|phantom4": 0.966,
+     "mini5pro|s1000plus": 0.6048,
+     "mini5pro|typhoonh480": 0.9504,
+     "phantom4|matrice4e": 0.546,
+     "phantom4|s1000plus": 0.6341,
+     "phantom4|typhoonh480": 0.9702,
+     "typhoonh480|s1000plus": 0.6412
+    },
+    "source_ko": "PX4 Flight Review CODEV AQUILA V3 야외 Position 홀드 39창: 정적 산포 중앙 2.35%, 흔들림 등가사인 2.52% @0.3-2 Hz → 대역몫 보정 σ_w 2.45%. ⚠DJI 아님, 4 Hz 표집이라 앨리어싱 여지. DJI P3 DAT 명령환산 2.3~4.6% 와 같은 자리."
+   },
+   {
+    "preset": "lit_iid",
+    "static_sigma_pct": 0.99,
+    "wobble_sigma_pct": 0.0,
+    "random_phase": true,
+    "is_legacy_sine": false,
+    "macro_f1_mean": 0.9425,
+    "macro_f1_sd": 0.00859,
+    "accuracy_mean": 0.9429,
+    "per_class_f1": {
+     "mini2": 0.9988,
+     "mini5pro": 0.9515,
+     "phantom4": 0.8843,
+     "matrice4e": 0.9942,
+     "typhoonh480": 0.8319,
+     "s1000plus": 0.9942
+    },
+    "mean_beat_overlap": 0.1588,
+    "draw_scatter": 0.40046,
+    "beat_overlap_symmetric": {
+     "matrice4e|s1000plus": 0.0,
+     "matrice4e|typhoonh480": 0.0,
+     "mini2|matrice4e": 0.0,
+     "mini2|mini5pro": 0.0,
+     "mini2|phantom4": 0.0,
+     "mini2|s1000plus": 0.0,
+     "mini2|typhoonh480": 0.0,
+     "mini5pro|matrice4e": 0.0,
+     "mini5pro|phantom4": 0.9535,
+     "mini5pro|s1000plus": 0.0,
+     "mini5pro|typhoonh480": 0.7086,
+     "phantom4|matrice4e": 0.0,
+     "phantom4|s1000plus": 0.0,
+     "phantom4|typhoonh480": 0.7203,
+     "typhoonh480|s1000plus": 0.0
+    },
+    "source_ko": "arXiv:2506.00497 — 로터 각속도를 i.i.d. N(ω̄,σ²) 로 두고 상대 산포 0.99%. ⭐문헌이 실제로 쓰는 유일한 «분포» 앵커. 시간 변동은 그 논문도 안 넣는다."
+   }
+  ],
+  "vs_current_ledger": {
+   "pair_band": 0.00916,
+   "pair_band_ko": "두 평균의 **차** 를 볼 때 쓰는 밴드 = 1.96·σ_pool·√(2/3). 폭 밴드(W_null)와 다른 물건이다. 이 안이면 «판정 불가».",
+   "delta": {
+    "legacy": {
+     "delta_pp": 3.054,
+     "verdict_ko": "올라간다"
+    },
+    "legacy_outdoor": {
+     "delta_pp": 7.112,
+     "verdict_ko": "올라간다"
+    },
+    "sitl": {
+     "delta_pp": 1.048,
+     "verdict_ko": "올라간다"
+    },
+    "indoor": {
+     "delta_pp": 4.591,
+     "verdict_ko": "올라간다"
+    },
+    "outdoor": {
+     "delta_pp": 0.971,
+     "verdict_ko": "올라간다"
+    },
+    "lit_iid": {
+     "delta_pp": 5.617,
+     "verdict_ko": "올라간다"
+    }
+   },
+   "reading_ko": "⭐실무적으로 가장 중요한 줄: 방침이 정본으로 두는 **outdoor 는 현행 원장과 차이가 밴드에 걸릴 만큼 작다**. 즉 정본을 outdoor 로 바꿔도 기존 헤드라인 87.9 % 는 사실상 안 흔들린다. 반대로 legacy_outdoor·lit_iid 로 갈아타면 5~7 %p 가 그냥 올라가는데, 그것은 물리가 좋아진 것이 아니라 데이터가 깨끗해진 것이다."
+  },
+  "baseline_row": {
+   "arm": "(현행, 프리셋 아님)",
+   "macro_f1_mean": 0.88634,
+   "per_class_f1": {
+    "mini2": 0.9988,
+    "mini5pro": 0.8421,
+    "phantom4": 0.8135,
+    "matrice4e": 0.9965,
+    "typhoonh480": 0.6798,
+    "s1000plus": 0.9874
+   },
+   "beat_overlap_symmetric": {
+    "matrice4e|s1000plus": 0.0,
+    "matrice4e|typhoonh480": 0.0,
+    "mini2|matrice4e": 0.0,
+    "mini2|mini5pro": 0.0,
+    "mini2|phantom4": 0.0,
+    "mini2|s1000plus": 0.0,
+    "mini2|typhoonh480": 0.0,
+    "mini5pro|matrice4e": 0.0,
+    "mini5pro|phantom4": 0.9568,
+    "mini5pro|s1000plus": 0.0,
+    "mini5pro|typhoonh480": 0.6937,
+    "phantom4|matrice4e": 0.0,
+    "phantom4|s1000plus": 0.0,
+    "phantom4|typhoonh480": 0.6917,
+    "typhoonh480|s1000plus": 0.0
+   }
+  }
+ },
+ "mechanism": {
+  "question_ko": "프리셋이 성적을 움직이는 손잡이가 무엇인가",
+  "correlation_with_macro_f1_over_6_presets": {
+   "mean_pairwise_beat_overlap": -0.5777,
+   "draw_scatter": -0.5938,
+   "eta2_class": 0.8077,
+   "static_sigma": 0.1623,
+   "wobble_sigma": -0.5076,
+   "note_ko": "⚠6 점짜리 상관이라 **방향만** 읽는다(신뢰구간을 붙일 표본이 아니다). 그리고 셋 다 조심해서 읽어야 한다: ① 박자 겹침의 −0.58 은 **outdoor 한 점이 끌고 간다**(outdoor 0.49 vs 나머지 다섯 0.14~0.16) — 사다리 전체를 설명하는 사슬이 아니라 **outdoor 가 왜 바닥인지**를 설명하는 사슬이다. ② η² 는 «특징 분산 중 기체가 설명하는 몫» 이라 분류기가 쓰는 양과 거의 같다 — 상관 +0.81 은 기전이라기보다 **거의 동어반복**이다. ③ σ_s 의 +0.16 이 말해 주듯 사다리는 산포에 **단조롭지 않다**."
+  },
+  "non_monotone_ko": "⭐사다리는 σ_s 에 단조롭지 않다. 무작위 초기위상 네 판만 보면 sitl(0.22 %) 89.7 → lit_iid(0.99 %) 94.3 으로 **올라갔다가** outdoor(2.35 %+흔들림 2.45 %) 89.6 으로 **다시 내려온다**. 올라가는 구간은 적당한 로터간 산포가 로터별 박자를 **분해 가능하게** 만들어 접은-주기·고조파 특징이 기하를 읽게 해 주기 때문이고, 내려오는 구간은 산포와 흔들림이 너무 커져 f_flash 추정 자체가 번지기 때문이다(박자 겹침 0.16 → 0.49). «흔들림을 키우면 무조건 어려워진다» 는 단순한 그림은 틀렸다.",
+  "factorial_2x2_ko": "같은 σ_s 에서 «정렬·결정론»(legacy 계열)과 «무작위 초기위상·가우시안»(나머지)을 짝지어 보면 손잡이가 갈린다.",
+  "contrasts_pp": {
+   "alignment_at_small_sigma__legacy_minus_sitl": 2.006,
+   "alignment_at_large_sigma__legacy_outdoor_minus_outdoor": 6.141,
+   "sigma_within_deterministic__legacy_outdoor_minus_legacy": 4.058,
+   "sigma_within_random_no_wobble__lit_iid_minus_sitl": 4.568,
+   "wobble_added__outdoor_minus_lit_iid": -4.646
+  },
+  "per_preset": {
+   "legacy": {
+    "macro_f1_mean": 0.91688,
+    "mean_beat_overlap": 0.1547,
+    "draw_scatter": 0.01971,
+    "eta2_class": 0.35667,
+    "random_phase": false
+   },
+   "legacy_outdoor": {
+    "macro_f1_mean": 0.95745,
+    "mean_beat_overlap": 0.1387,
+    "draw_scatter": 0.07203,
+    "eta2_class": 0.42579,
+    "random_phase": false
+   },
+   "sitl": {
+    "macro_f1_mean": 0.89682,
+    "mean_beat_overlap": 0.1614,
+    "draw_scatter": 0.49711,
+    "eta2_class": 0.322,
+    "random_phase": true
+   },
+   "indoor": {
+    "macro_f1_mean": 0.93225,
+    "mean_beat_overlap": 0.1602,
+    "draw_scatter": 0.40389,
+    "eta2_class": 0.3705,
+    "random_phase": true
+   },
+   "outdoor": {
+    "macro_f1_mean": 0.89604,
+    "mean_beat_overlap": 0.4864,
+    "draw_scatter": 0.67586,
+    "eta2_class": 0.17076,
+    "random_phase": true
+   },
+   "lit_iid": {
+    "macro_f1_mean": 0.9425,
+    "mean_beat_overlap": 0.1588,
+    "draw_scatter": 0.40046,
+    "eta2_class": 0.37324,
+    "random_phase": true
+   }
+  },
+  "baseline_arm": {
+   "macro_f1_mean": 0.88634,
+   "mean_beat_overlap": 0.1561,
+   "draw_scatter": 0.50881,
+   "eta2_class": 0.31243
+  },
+  "scatter_definition_ko": "draw_scatter = 특징을 표준화한 뒤, (기체·자세) 칸 안에서 추첨 8 판이 흩어진 분산의 평균. 프리셋이 시행마다 새로 뿌리는 무작위성의 크기다. eta2_class = 특징 분산 중 기체 정체성이 설명하는 몫.",
+  "reading_ko": "⭐손잡이가 **둘**이고 크기가 비슷하다. ① «정렬»: 초기위상이 t=0 에 정렬되고 정적 산포가 고정 패턴이면(legacy 계열) 같은 기체·같은 자세의 시행이 base rpm 하나만 달라진다 — 추첨 흩어짐이 0.02~0.07 로, 무작위 초기위상 판(0.40~0.68)의 **십분의 일**이다. 데이터가 인위적으로 깨끗해져 +2.0(작은 σ)~+6.1 %p(큰 σ) 오른다. ② «산포 크기»: 무작위 초기위상 안에서도 σ_s 를 0.22 → 0.99 % 로 키우면 +4.6 %p 오르고, 거기에 흔들림까지 붙은 outdoor 로 가면 −4.6 %p 내린다. ⛔그러므로 사다리 위쪽을 «더 좋은 모델» 로 읽으면 안 된다 — legacy 계열의 우위는 물리가 아니라 **무작위성을 덜 뿌린 대가**다."
+ },
+ "subgroups": {
+  "why_ko": "legacy 계열 두 종은 초기위상이 정렬돼 있어 «데이터가 인위적으로 깨끗한» 쪽으로 치우친다. 그 둘을 빼도 사다리가 남는지 따로 본다 — 남으면 «물리 파라미터가 성적을 움직인다» 가 되고, 사라지면 «정렬 아티팩트가 전부였다» 가 된다.",
+  "random_phase_family": {
+   "presets": [
+    "sitl",
+    "indoor",
+    "outdoor",
+    "lit_iid"
+   ],
+   "macro_f1_mean": {
+    "sitl": 0.89682,
+    "indoor": 0.93225,
+    "outdoor": 0.89604,
+    "lit_iid": 0.9425
+   },
+   "width_W": 0.04646,
+   "W_null": 0.00726,
+   "ratio": 6.4,
+   "p_value": 0.0228,
+   "verdict_ko": "좌우한다"
+  },
+  "aligned_legacy_family": {
+   "presets": [
+    "legacy",
+    "legacy_outdoor"
+   ],
+   "macro_f1_mean": {
+    "legacy": 0.91688,
+    "legacy_outdoor": 0.95745
+   },
+   "width_W": 0.04058,
+   "W_null": 0.00317,
+   "ratio": 12.796,
+   "p_value": 0.09625,
+   "verdict_ko": "좌우한다"
+  }
+ },
+ "attribution": {
+  "compared_ko": "legacy_outdoor(최고) → outdoor(최저) 로 갈 때 늘어난 오분류",
+  "per_class_f1_width": {
+   "mini2": 0.0294,
+   "mini5pro": 0.1051,
+   "phantom4": 0.131,
+   "matrice4e": 0.0339,
+   "typhoonh480": 0.1608,
+   "s1000plus": 0.0712
+  },
+  "top_pairs": [
+   {
+    "true": "typhoonh480",
+    "predicted": "phantom4",
+    "rate_hi": 0.0718,
+    "rate_lo": 0.1574,
+    "delta_pp": 8.565
+   },
+   {
+    "true": "phantom4",
+    "predicted": "typhoonh480",
+    "rate_hi": 0.0648,
+    "rate_lo": 0.1343,
+    "delta_pp": 6.944
+   },
+   {
+    "true": "phantom4",
+    "predicted": "s1000plus",
+    "rate_hi": 0.0,
+    "rate_lo": 0.0417,
+    "delta_pp": 4.167
+   },
+   {
+    "true": "typhoonh480",
+    "predicted": "mini5pro",
+    "rate_hi": 0.0648,
+    "rate_lo": 0.0278,
+    "delta_pp": -3.704
+   },
+   {
+    "true": "mini5pro",
+    "predicted": "typhoonh480",
+    "rate_hi": 0.0509,
+    "rate_lo": 0.0764,
+    "delta_pp": 2.546
+   },
+   {
+    "true": "typhoonh480",
+    "predicted": "s1000plus",
+    "rate_hi": 0.0,
+    "rate_lo": 0.0255,
+    "delta_pp": 2.546
+   },
+   {
+    "true": "mini5pro",
+    "predicted": "s1000plus",
+    "rate_hi": 0.0,
+    "rate_lo": 0.0208,
+    "delta_pp": 2.083
+   },
+   {
+    "true": "phantom4",
+    "predicted": "matrice4e",
+    "rate_hi": 0.0,
+    "rate_lo": 0.0185,
+    "delta_pp": 1.852
+   },
+   {
+    "true": "mini2",
+    "predicted": "phantom4",
+    "rate_hi": 0.0,
+    "rate_lo": 0.0162,
+    "delta_pp": 1.62
+   },
+   {
+    "true": "mini5pro",
+    "predicted": "phantom4",
+    "rate_hi": 0.0,
+    "rate_lo": 0.0139,
+    "delta_pp": 1.389
+   }
+  ],
+  "beat_overlap_of_top_pairs": {
+   "typhoonh480|phantom4": 0.9702,
+   "phantom4|typhoonh480": 0.9702,
+   "phantom4|s1000plus": 0.6341,
+   "typhoonh480|mini5pro": 0.9504,
+   "mini5pro|typhoonh480": 0.9504,
+   "typhoonh480|s1000plus": 0.6412
+  },
+  "reading_ko": "혼동율은 «참 기체 행» 으로 정규화했다. Δ 가 +면 낮은 프리셋에서 그 쌍의 오분류가 늘었다는 뜻이다."
+ },
+ "robustness": {
+  "other_models": {
+   "LDA": {
+    "per_preset_mean_macro_f1": {
+     "legacy": 0.88402,
+     "legacy_outdoor": 0.93358,
+     "sitl": 0.85786,
+     "indoor": 0.88765,
+     "outdoor": 0.76914,
+     "lit_iid": 0.8968
+    },
+    "width_W": 0.16444,
+    "sigma_pool": 0.01038,
+    "W_null": 0.01519,
+    "ratio": 10.822,
+    "verdict_ko": "좌우한다"
+   },
+   "kNN5": {
+    "per_preset_mean_macro_f1": {
+     "legacy": 0.79465,
+     "legacy_outdoor": 0.9265,
+     "sitl": 0.79425,
+     "indoor": 0.88483,
+     "outdoor": 0.83389,
+     "lit_iid": 0.89303
+    },
+    "width_W": 0.13225,
+    "sigma_pool": 0.0129,
+    "W_null": 0.01887,
+    "ratio": 7.009,
+    "verdict_ko": "좌우한다"
+   }
+  },
+  "other_models_reading_ko": "⭐헤드라인 RF100 의 폭 6.14 %p 는 세 모델 중 **가장 작다** (LDA 16.44 · kNN5 13.23 %p). 즉 «프리셋이 성적을 좌우한다» 는 결론은 모델 고르기에 기대지 않고, 인용할 수 있는 6.14 %p 는 민감도의 **하한**이다.",
+  "grid_dispersion_band_classify_pp": 0.0,
+  "grid_band_scope_ko": "2026-08-15 격자 산포 밴드의 «분류» 칸은 0.0 %p 이지만 그것은 **빗살 argmax** 분류기의 정확도이지 여기 RF100 macro-F1 이 아니다. 잣대가 다르므로 이 판의 판정 문턱으로 쓰지 않는다 — 문턱은 위 씨앗 밴드로 데이터에서 세웠다. (밴드가 0 이라는 사실은 «격자 표집은 분류를 안 흔든다» 는 별개의 근거다.)"
+ },
+ "runs": [
+  {
+   "arm": "",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 35.3,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.52,
+      323.29
+     ],
+     "p5p95_b": [
+      173.33,
+      192.87
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.52,
+      323.29
+     ],
+     "p5p95_b": [
+      173.33,
+      193.24
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.52,
+      323.29
+     ],
+     "p5p95_b": [
+      119.57,
+      133.51
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.52,
+      323.29
+     ],
+     "p5p95_b": [
+      177.27,
+      196.62
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.52,
+      323.29
+     ],
+     "p5p95_b": [
+      140.78,
+      156.9
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9813,
+     "house_asym": 0.9999,
+     "p5p95_a": [
+      173.33,
+      192.87
+     ],
+     "p5p95_b": [
+      173.33,
+      193.24
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.33,
+      192.87
+     ],
+     "p5p95_b": [
+      119.57,
+      133.51
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.6698,
+     "house_asym": 0.7985,
+     "p5p95_a": [
+      173.33,
+      192.87
+     ],
+     "p5p95_b": [
+      177.27,
+      196.62
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.33,
+      192.87
+     ],
+     "p5p95_b": [
+      140.78,
+      156.9
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.33,
+      193.24
+     ],
+     "p5p95_b": [
+      119.57,
+      133.51
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6857,
+     "house_asym": 0.8023,
+     "p5p95_a": [
+      173.33,
+      193.24
+     ],
+     "p5p95_b": [
+      177.27,
+      196.62
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.33,
+      193.24
+     ],
+     "p5p95_b": [
+      140.78,
+      156.9
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.57,
+      133.51
+     ],
+     "p5p95_b": [
+      177.27,
+      196.62
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.57,
+      133.51
+     ],
+     "p5p95_b": [
+      140.78,
+      156.9
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      177.27,
+      196.62
+     ],
+     "p5p95_b": [
+      140.78,
+      156.9
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.510168775361404,
+    "eta2_class_mean": 0.31158981470681374,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 307.8,
+    "mini5pro": 183.75,
+    "phantom4": 180.92,
+    "matrice4e": 126.4,
+    "typhoonh480": 187.28,
+    "s1000plus": 148.84
+   },
+   "_X_head_sha": "f002d2399e8185ef",
+   "RF100": {
+    "accuracy": 0.87847,
+    "macro_f1": 0.87585,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.82392,
+     "phantom4": 0.79866,
+     "matrice4e": 0.99654,
+     "typhoonh480": 0.64639,
+     "s1000plus": 0.98962
+    }
+   },
+   "LDA_macro_f1": 0.85874,
+   "kNN5_macro_f1": 0.78535
+  },
+  {
+   "arm": "",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 34.4,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.44,
+      322.3
+     ],
+     "p5p95_b": [
+      172.87,
+      193.27
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.44,
+      322.3
+     ],
+     "p5p95_b": [
+      173.89,
+      192.87
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.44,
+      322.3
+     ],
+     "p5p95_b": [
+      119.65,
+      133.3
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.44,
+      322.3
+     ],
+     "p5p95_b": [
+      176.78,
+      196.67
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.44,
+      322.3
+     ],
+     "p5p95_b": [
+      140.9,
+      156.2
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9302,
+     "house_asym": 0.9302,
+     "p5p95_a": [
+      172.87,
+      193.27
+     ],
+     "p5p95_b": [
+      173.89,
+      192.87
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.87,
+      193.27
+     ],
+     "p5p95_b": [
+      119.65,
+      133.3
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.6926,
+     "house_asym": 0.8081,
+     "p5p95_a": [
+      172.87,
+      193.27
+     ],
+     "p5p95_b": [
+      176.78,
+      196.67
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.87,
+      193.27
+     ],
+     "p5p95_b": [
+      140.9,
+      156.2
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.89,
+      192.87
+     ],
+     "p5p95_b": [
+      119.65,
+      133.3
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.7062,
+     "house_asym": 0.8476,
+     "p5p95_a": [
+      173.89,
+      192.87
+     ],
+     "p5p95_b": [
+      176.78,
+      196.67
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.89,
+      192.87
+     ],
+     "p5p95_b": [
+      140.9,
+      156.2
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.65,
+      133.3
+     ],
+     "p5p95_b": [
+      176.78,
+      196.67
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.65,
+      133.3
+     ],
+     "p5p95_b": [
+      140.9,
+      156.2
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.78,
+      196.67
+     ],
+     "p5p95_b": [
+      140.9,
+      156.2
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.5102408052988417,
+    "eta2_class_mean": 0.3107172577842118,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 306.0,
+    "mini5pro": 183.33,
+    "phantom4": 183.7,
+    "matrice4e": 127.03,
+    "typhoonh480": 186.7,
+    "s1000plus": 148.33
+   },
+   "_X_head_sha": "d2291d881f697cc6",
+   "RF100": {
+    "accuracy": 0.88773,
+    "macro_f1": 0.88693,
+    "per_class_f1": {
+     "mini2": 0.99652,
+     "mini5pro": 0.85211,
+     "phantom4": 0.81188,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.67148,
+     "s1000plus": 0.98962
+    }
+   },
+   "LDA_macro_f1": 0.84593,
+   "kNN5_macro_f1": 0.81035
+  },
+  {
+   "arm": "",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 34.4,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.36,
+      323.23
+     ],
+     "p5p95_b": [
+      173.47,
+      193.68
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.36,
+      323.23
+     ],
+     "p5p95_b": [
+      173.47,
+      192.85
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.36,
+      323.23
+     ],
+     "p5p95_b": [
+      119.33,
+      132.84
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.36,
+      323.23
+     ],
+     "p5p95_b": [
+      176.87,
+      196.87
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.36,
+      323.23
+     ],
+     "p5p95_b": [
+      140.81,
+      156.85
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.959,
+     "house_asym": 0.959,
+     "p5p95_a": [
+      173.47,
+      193.68
+     ],
+     "p5p95_b": [
+      173.47,
+      192.85
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.47,
+      193.68
+     ],
+     "p5p95_b": [
+      119.33,
+      132.84
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7187,
+     "house_asym": 0.832,
+     "p5p95_a": [
+      173.47,
+      193.68
+     ],
+     "p5p95_b": [
+      176.87,
+      196.87
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.47,
+      193.68
+     ],
+     "p5p95_b": [
+      140.81,
+      156.85
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.47,
+      192.85
+     ],
+     "p5p95_b": [
+      119.33,
+      132.84
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6833,
+     "house_asym": 0.8248,
+     "p5p95_a": [
+      173.47,
+      192.85
+     ],
+     "p5p95_b": [
+      176.87,
+      196.87
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.47,
+      192.85
+     ],
+     "p5p95_b": [
+      140.81,
+      156.85
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.33,
+      132.84
+     ],
+     "p5p95_b": [
+      176.87,
+      196.87
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.33,
+      132.84
+     ],
+     "p5p95_b": [
+      140.81,
+      156.85
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.87,
+      196.87
+     ],
+     "p5p95_b": [
+      140.81,
+      156.85
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.5060216181772272,
+    "eta2_class_mean": 0.31499702164248755,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 305.6,
+    "mini5pro": 183.78,
+    "phantom4": 183.83,
+    "matrice4e": 125.74,
+    "typhoonh480": 187.75,
+    "s1000plus": 149.42
+   },
+   "_X_head_sha": "4deac4e361be0397",
+   "RF100": {
+    "accuracy": 0.89699,
+    "macro_f1": 0.89623,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.85017,
+     "phantom4": 0.82993,
+     "matrice4e": 0.99306,
+     "typhoonh480": 0.72143,
+     "s1000plus": 0.98282
+    }
+   },
+   "LDA_macro_f1": 0.84687,
+   "kNN5_macro_f1": 0.78912
+  },
+  {
+   "arm": "legacy",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 35.2,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.3,
+      323.53
+     ],
+     "p5p95_b": [
+      173.3,
+      193.04
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.3,
+      323.53
+     ],
+     "p5p95_b": [
+      174.0,
+      192.37
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.3,
+      323.53
+     ],
+     "p5p95_b": [
+      120.47,
+      133.51
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.3,
+      323.53
+     ],
+     "p5p95_b": [
+      176.79,
+      196.45
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.3,
+      323.53
+     ],
+     "p5p95_b": [
+      140.61,
+      157.07
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9307,
+     "house_asym": 0.9307,
+     "p5p95_a": [
+      173.3,
+      193.04
+     ],
+     "p5p95_b": [
+      174.0,
+      192.37
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.04
+     ],
+     "p5p95_b": [
+      120.47,
+      133.51
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7019,
+     "house_asym": 0.8234,
+     "p5p95_a": [
+      173.3,
+      193.04
+     ],
+     "p5p95_b": [
+      176.79,
+      196.45
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.04
+     ],
+     "p5p95_b": [
+      140.61,
+      157.07
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.0,
+      192.37
+     ],
+     "p5p95_b": [
+      120.47,
+      133.51
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6939,
+     "house_asym": 0.8483,
+     "p5p95_a": [
+      174.0,
+      192.37
+     ],
+     "p5p95_b": [
+      176.79,
+      196.45
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.0,
+      192.37
+     ],
+     "p5p95_b": [
+      140.61,
+      157.07
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      120.47,
+      133.51
+     ],
+     "p5p95_b": [
+      176.79,
+      196.45
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      120.47,
+      133.51
+     ],
+     "p5p95_b": [
+      140.61,
+      157.07
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.79,
+      196.45
+     ],
+     "p5p95_b": [
+      140.61,
+      157.07
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.020053027084059406,
+    "eta2_class_mean": 0.35803176224171795,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 304.97,
+    "mini5pro": 182.2,
+    "phantom4": 183.28,
+    "matrice4e": 127.23,
+    "typhoonh480": 187.63,
+    "s1000plus": 149.4
+   },
+   "_X_head_sha": "6491676a22bf56b1",
+   "RF100": {
+    "accuracy": 0.91088,
+    "macro_f1": 0.91034,
+    "per_class_f1": {
+     "mini2": 0.96599,
+     "mini5pro": 0.84211,
+     "phantom4": 0.83673,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.8172,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.88578,
+   "kNN5_macro_f1": 0.80212
+  },
+  {
+   "arm": "legacy",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 31.0,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.72,
+      322.0
+     ],
+     "p5p95_b": [
+      172.93,
+      193.21
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.72,
+      322.0
+     ],
+     "p5p95_b": [
+      173.21,
+      191.78
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.72,
+      322.0
+     ],
+     "p5p95_b": [
+      119.9,
+      132.84
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.72,
+      322.0
+     ],
+     "p5p95_b": [
+      176.77,
+      196.45
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.72,
+      322.0
+     ],
+     "p5p95_b": [
+      140.57,
+      157.18
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9159,
+     "house_asym": 0.9159,
+     "p5p95_a": [
+      172.93,
+      193.21
+     ],
+     "p5p95_b": [
+      173.21,
+      191.78
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.93,
+      193.21
+     ],
+     "p5p95_b": [
+      119.9,
+      132.84
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.699,
+     "house_asym": 0.8109,
+     "p5p95_a": [
+      172.93,
+      193.21
+     ],
+     "p5p95_b": [
+      176.77,
+      196.45
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.93,
+      193.21
+     ],
+     "p5p95_b": [
+      140.57,
+      157.18
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.21,
+      191.78
+     ],
+     "p5p95_b": [
+      119.9,
+      132.84
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.646,
+     "house_asym": 0.8085,
+     "p5p95_a": [
+      173.21,
+      191.78
+     ],
+     "p5p95_b": [
+      176.77,
+      196.45
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.21,
+      191.78
+     ],
+     "p5p95_b": [
+      140.57,
+      157.18
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.9,
+      132.84
+     ],
+     "p5p95_b": [
+      176.77,
+      196.45
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.9,
+      132.84
+     ],
+     "p5p95_b": [
+      140.57,
+      157.18
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.77,
+      196.45
+     ],
+     "p5p95_b": [
+      140.57,
+      157.18
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.01953598777678931,
+    "eta2_class_mean": 0.3566100028596291,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 305.78,
+    "mini5pro": 183.7,
+    "phantom4": 182.57,
+    "matrice4e": 126.55,
+    "typhoonh480": 186.0,
+    "s1000plus": 147.83
+   },
+   "_X_head_sha": "608afc6b4b789ca0",
+   "RF100": {
+    "accuracy": 0.91898,
+    "macro_f1": 0.91841,
+    "per_class_f1": {
+     "mini2": 0.97297,
+     "mini5pro": 0.84912,
+     "phantom4": 0.84698,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.84138,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.88198,
+   "kNN5_macro_f1": 0.78992
+  },
+  {
+   "arm": "legacy",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 31.3,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.83,
+      323.57
+     ],
+     "p5p95_b": [
+      173.38,
+      193.04
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.83,
+      323.57
+     ],
+     "p5p95_b": [
+      173.55,
+      192.79
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.83,
+      323.57
+     ],
+     "p5p95_b": [
+      119.78,
+      133.52
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.83,
+      323.57
+     ],
+     "p5p95_b": [
+      176.81,
+      196.55
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.83,
+      323.57
+     ],
+     "p5p95_b": [
+      140.96,
+      156.47
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9789,
+     "house_asym": 0.9789,
+     "p5p95_a": [
+      173.38,
+      193.04
+     ],
+     "p5p95_b": [
+      173.55,
+      192.79
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.38,
+      193.04
+     ],
+     "p5p95_b": [
+      119.78,
+      133.52
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7001,
+     "house_asym": 0.8252,
+     "p5p95_a": [
+      173.38,
+      193.04
+     ],
+     "p5p95_b": [
+      176.81,
+      196.55
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.38,
+      193.04
+     ],
+     "p5p95_b": [
+      140.96,
+      156.47
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.55,
+      192.79
+     ],
+     "p5p95_b": [
+      119.78,
+      133.52
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6946,
+     "house_asym": 0.8303,
+     "p5p95_a": [
+      173.55,
+      192.79
+     ],
+     "p5p95_b": [
+      176.81,
+      196.55
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.55,
+      192.79
+     ],
+     "p5p95_b": [
+      140.96,
+      156.47
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.78,
+      133.52
+     ],
+     "p5p95_b": [
+      176.81,
+      196.55
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.78,
+      133.52
+     ],
+     "p5p95_b": [
+      140.96,
+      156.47
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.81,
+      196.55
+     ],
+     "p5p95_b": [
+      140.96,
+      156.47
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.01955079053563311,
+    "eta2_class_mean": 0.355369013037738,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 306.83,
+    "mini5pro": 183.58,
+    "phantom4": 182.92,
+    "matrice4e": 126.32,
+    "typhoonh480": 185.88,
+    "s1000plus": 149.35
+   },
+   "_X_head_sha": "c63cb218767d7397",
+   "RF100": {
+    "accuracy": 0.92245,
+    "macro_f1": 0.92188,
+    "per_class_f1": {
+     "mini2": 0.97297,
+     "mini5pro": 0.84806,
+     "phantom4": 0.83916,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.87108,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.88429,
+   "kNN5_macro_f1": 0.79192
+  },
+  {
+   "arm": "legacy_outdoor",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 35.0,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.57,
+      327.42
+     ],
+     "p5p95_b": [
+      171.03,
+      191.26
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.57,
+      327.42
+     ],
+     "p5p95_b": [
+      172.47,
+      193.18
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.57,
+      327.42
+     ],
+     "p5p95_b": [
+      119.58,
+      135.23
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.57,
+      327.42
+     ],
+     "p5p95_b": [
+      175.78,
+      198.6
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.57,
+      327.42
+     ],
+     "p5p95_b": [
+      139.06,
+      156.37
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.8485,
+     "house_asym": 0.9291,
+     "p5p95_a": [
+      171.03,
+      191.26
+     ],
+     "p5p95_b": [
+      172.47,
+      193.18
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      171.03,
+      191.26
+     ],
+     "p5p95_b": [
+      119.58,
+      135.23
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.5618,
+     "house_asym": 0.7656,
+     "p5p95_a": [
+      171.03,
+      191.26
+     ],
+     "p5p95_b": [
+      175.78,
+      198.6
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      171.03,
+      191.26
+     ],
+     "p5p95_b": [
+      139.06,
+      156.37
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.47,
+      193.18
+     ],
+     "p5p95_b": [
+      119.58,
+      135.23
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6661,
+     "house_asym": 0.8403,
+     "p5p95_a": [
+      172.47,
+      193.18
+     ],
+     "p5p95_b": [
+      175.78,
+      198.6
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.47,
+      193.18
+     ],
+     "p5p95_b": [
+      139.06,
+      156.37
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.58,
+      135.23
+     ],
+     "p5p95_b": [
+      175.78,
+      198.6
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.58,
+      135.23
+     ],
+     "p5p95_b": [
+      139.06,
+      156.37
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      175.78,
+      198.6
+     ],
+     "p5p95_b": [
+      139.06,
+      156.37
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.07572086153580786,
+    "eta2_class_mean": 0.4262627010372521,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 302.4,
+    "mini5pro": 179.63,
+    "phantom4": 183.65,
+    "matrice4e": 127.18,
+    "typhoonh480": 188.42,
+    "s1000plus": 148.62
+   },
+   "_X_head_sha": "465caa32b96ae535",
+   "RF100": {
+    "accuracy": 0.96065,
+    "macro_f1": 0.96064,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.95105,
+     "phantom4": 0.93471,
+     "matrice4e": 0.99654,
+     "typhoonh480": 0.88502,
+     "s1000plus": 0.99652
+    }
+   },
+   "LDA_macro_f1": 0.93882,
+   "kNN5_macro_f1": 0.92829
+  },
+  {
+   "arm": "legacy_outdoor",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 34.1,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.03,
+      323.54
+     ],
+     "p5p95_b": [
+      170.91,
+      191.32
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.03,
+      323.54
+     ],
+     "p5p95_b": [
+      172.9,
+      193.13
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.03,
+      323.54
+     ],
+     "p5p95_b": [
+      119.38,
+      134.94
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.03,
+      323.54
+     ],
+     "p5p95_b": [
+      175.51,
+      199.33
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.03,
+      323.54
+     ],
+     "p5p95_b": [
+      139.34,
+      156.88
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.8289,
+     "house_asym": 0.9026,
+     "p5p95_a": [
+      170.91,
+      191.32
+     ],
+     "p5p95_b": [
+      172.9,
+      193.13
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      170.91,
+      191.32
+     ],
+     "p5p95_b": [
+      119.38,
+      134.94
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.5563,
+     "house_asym": 0.7748,
+     "p5p95_a": [
+      170.91,
+      191.32
+     ],
+     "p5p95_b": [
+      175.51,
+      199.33
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      170.91,
+      191.32
+     ],
+     "p5p95_b": [
+      139.34,
+      156.88
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.9,
+      193.13
+     ],
+     "p5p95_b": [
+      119.38,
+      134.94
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6668,
+     "house_asym": 0.8711,
+     "p5p95_a": [
+      172.9,
+      193.13
+     ],
+     "p5p95_b": [
+      175.51,
+      199.33
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.9,
+      193.13
+     ],
+     "p5p95_b": [
+      139.34,
+      156.88
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.38,
+      134.94
+     ],
+     "p5p95_b": [
+      175.51,
+      199.33
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.38,
+      134.94
+     ],
+     "p5p95_b": [
+      139.34,
+      156.88
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      175.51,
+      199.33
+     ],
+     "p5p95_b": [
+      139.34,
+      156.88
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.07117073804050505,
+    "eta2_class_mean": 0.42440896023333247,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 303.77,
+    "mini5pro": 182.67,
+    "phantom4": 182.82,
+    "matrice4e": 126.63,
+    "typhoonh480": 185.42,
+    "s1000plus": 147.33
+   },
+   "_X_head_sha": "07dd30c024d96148",
+   "RF100": {
+    "accuracy": 0.95833,
+    "macro_f1": 0.95803,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.93559,
+     "phantom4": 0.94118,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.87143,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.94434,
+   "kNN5_macro_f1": 0.93078
+  },
+  {
+   "arm": "legacy_outdoor",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 34.5,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.28,
+      325.67
+     ],
+     "p5p95_b": [
+      171.11,
+      190.68
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.28,
+      325.67
+     ],
+     "p5p95_b": [
+      172.53,
+      192.37
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.28,
+      325.67
+     ],
+     "p5p95_b": [
+      119.01,
+      134.63
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.28,
+      325.67
+     ],
+     "p5p95_b": [
+      174.32,
+      199.2
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      287.28,
+      325.67
+     ],
+     "p5p95_b": [
+      139.06,
+      157.22
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.8537,
+     "house_asym": 0.9275,
+     "p5p95_a": [
+      171.11,
+      190.68
+     ],
+     "p5p95_b": [
+      172.53,
+      192.37
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      171.11,
+      190.68
+     ],
+     "p5p95_b": [
+      119.01,
+      134.63
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.5825,
+     "house_asym": 0.8362,
+     "p5p95_a": [
+      171.11,
+      190.68
+     ],
+     "p5p95_b": [
+      174.32,
+      199.2
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      171.11,
+      190.68
+     ],
+     "p5p95_b": [
+      139.06,
+      157.22
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.53,
+      192.37
+     ],
+     "p5p95_b": [
+      119.01,
+      134.63
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6769,
+     "house_asym": 0.9099,
+     "p5p95_a": [
+      172.53,
+      192.37
+     ],
+     "p5p95_b": [
+      174.32,
+      199.2
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.53,
+      192.37
+     ],
+     "p5p95_b": [
+      139.06,
+      157.22
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.01,
+      134.63
+     ],
+     "p5p95_b": [
+      174.32,
+      199.2
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.01,
+      134.63
+     ],
+     "p5p95_b": [
+      139.06,
+      157.22
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.32,
+      199.2
+     ],
+     "p5p95_b": [
+      139.06,
+      157.22
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.06921291923719937,
+    "eta2_class_mean": 0.4267061837278061,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 306.15,
+    "mini5pro": 181.9,
+    "phantom4": 183.63,
+    "matrice4e": 126.4,
+    "typhoonh480": 187.0,
+    "s1000plus": 148.32
+   },
+   "_X_head_sha": "4cbe1b2520ebf01a",
+   "RF100": {
+    "accuracy": 0.9537,
+    "macro_f1": 0.95369,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.94118,
+     "phantom4": 0.91986,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.86111,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.91757,
+   "kNN5_macro_f1": 0.92044
+  },
+  {
+   "arm": "sitl",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 29.1,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.7,
+      323.23
+     ],
+     "p5p95_b": [
+      173.5,
+      193.07
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.7,
+      323.23
+     ],
+     "p5p95_b": [
+      173.73,
+      193.04
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.7,
+      323.23
+     ],
+     "p5p95_b": [
+      119.65,
+      133.07
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.7,
+      323.23
+     ],
+     "p5p95_b": [
+      176.87,
+      196.85
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.7,
+      323.23
+     ],
+     "p5p95_b": [
+      140.87,
+      156.85
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9868,
+     "house_asym": 0.9868,
+     "p5p95_a": [
+      173.5,
+      193.07
+     ],
+     "p5p95_b": [
+      173.73,
+      193.04
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.5,
+      193.07
+     ],
+     "p5p95_b": [
+      119.65,
+      133.07
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.6937,
+     "house_asym": 0.8279,
+     "p5p95_a": [
+      173.5,
+      193.07
+     ],
+     "p5p95_b": [
+      176.87,
+      196.85
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.5,
+      193.07
+     ],
+     "p5p95_b": [
+      140.87,
+      156.85
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.73,
+      193.04
+     ],
+     "p5p95_b": [
+      119.65,
+      133.07
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6993,
+     "house_asym": 0.8375,
+     "p5p95_a": [
+      173.73,
+      193.04
+     ],
+     "p5p95_b": [
+      176.87,
+      196.85
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.73,
+      193.04
+     ],
+     "p5p95_b": [
+      140.87,
+      156.85
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.65,
+      133.07
+     ],
+     "p5p95_b": [
+      176.87,
+      196.85
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.65,
+      133.07
+     ],
+     "p5p95_b": [
+      140.87,
+      156.85
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.87,
+      196.85
+     ],
+     "p5p95_b": [
+      140.87,
+      156.85
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.49264592061953016,
+    "eta2_class_mean": 0.32249636938661935,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 308.02,
+    "mini5pro": 183.63,
+    "phantom4": 184.35,
+    "matrice4e": 125.9,
+    "typhoonh480": 186.82,
+    "s1000plus": 149.65
+   },
+   "_X_head_sha": "bc6b1f7a6ddc7b55",
+   "RF100": {
+    "accuracy": 0.89583,
+    "macro_f1": 0.89395,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.85811,
+     "phantom4": 0.82895,
+     "matrice4e": 0.98962,
+     "typhoonh480": 0.71483,
+     "s1000plus": 0.97222
+    }
+   },
+   "LDA_macro_f1": 0.85419,
+   "kNN5_macro_f1": 0.78463
+  },
+  {
+   "arm": "sitl",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 29.3,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.9,
+      321.93
+     ],
+     "p5p95_b": [
+      173.83,
+      193.3
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.9,
+      321.93
+     ],
+     "p5p95_b": [
+      173.71,
+      193.04
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.9,
+      321.93
+     ],
+     "p5p95_b": [
+      119.78,
+      133.47
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.9,
+      321.93
+     ],
+     "p5p95_b": [
+      177.09,
+      195.81
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.9,
+      321.93
+     ],
+     "p5p95_b": [
+      141.33,
+      156.57
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9807,
+     "house_asym": 0.9867,
+     "p5p95_a": [
+      173.83,
+      193.3
+     ],
+     "p5p95_b": [
+      173.71,
+      193.04
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.83,
+      193.3
+     ],
+     "p5p95_b": [
+      119.78,
+      133.47
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7375,
+     "house_asym": 0.8327,
+     "p5p95_a": [
+      173.83,
+      193.3
+     ],
+     "p5p95_b": [
+      177.09,
+      195.81
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.83,
+      193.3
+     ],
+     "p5p95_b": [
+      141.33,
+      156.57
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.71,
+      193.04
+     ],
+     "p5p95_b": [
+      119.78,
+      133.47
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.7218,
+     "house_asym": 0.8253,
+     "p5p95_a": [
+      173.71,
+      193.04
+     ],
+     "p5p95_b": [
+      177.09,
+      195.81
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.71,
+      193.04
+     ],
+     "p5p95_b": [
+      141.33,
+      156.57
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.78,
+      133.47
+     ],
+     "p5p95_b": [
+      177.09,
+      195.81
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.78,
+      133.47
+     ],
+     "p5p95_b": [
+      141.33,
+      156.57
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      177.09,
+      195.81
+     ],
+     "p5p95_b": [
+      141.33,
+      156.57
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.49986310037189885,
+    "eta2_class_mean": 0.3256625242163011,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 304.45,
+    "mini5pro": 182.73,
+    "phantom4": 182.8,
+    "matrice4e": 126.3,
+    "typhoonh480": 186.5,
+    "s1000plus": 149.63
+   },
+   "_X_head_sha": "10d8706a40bdd6a0",
+   "RF100": {
+    "accuracy": 0.90162,
+    "macro_f1": 0.90017,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.85616,
+     "phantom4": 0.83056,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.72119,
+     "s1000plus": 0.9931
+    }
+   },
+   "LDA_macro_f1": 0.85725,
+   "kNN5_macro_f1": 0.81695
+  },
+  {
+   "arm": "sitl",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 19.5,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.89,
+      322.6
+     ],
+     "p5p95_b": [
+      173.71,
+      193.3
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.89,
+      322.6
+     ],
+     "p5p95_b": [
+      173.3,
+      193.27
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.89,
+      322.6
+     ],
+     "p5p95_b": [
+      119.33,
+      133.24
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.89,
+      322.6
+     ],
+     "p5p95_b": [
+      176.93,
+      195.82
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.89,
+      322.6
+     ],
+     "p5p95_b": [
+      140.47,
+      157.18
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.978,
+     "house_asym": 0.9985,
+     "p5p95_a": [
+      173.71,
+      193.3
+     ],
+     "p5p95_b": [
+      173.3,
+      193.27
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.71,
+      193.3
+     ],
+     "p5p95_b": [
+      119.33,
+      133.24
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7403,
+     "house_asym": 0.8359,
+     "p5p95_a": [
+      173.71,
+      193.3
+     ],
+     "p5p95_b": [
+      176.93,
+      195.82
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.71,
+      193.3
+     ],
+     "p5p95_b": [
+      140.47,
+      157.18
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.27
+     ],
+     "p5p95_b": [
+      119.33,
+      133.24
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.7254,
+     "house_asym": 0.8184,
+     "p5p95_a": [
+      173.3,
+      193.27
+     ],
+     "p5p95_b": [
+      176.93,
+      195.82
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.27
+     ],
+     "p5p95_b": [
+      140.47,
+      157.18
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.33,
+      133.24
+     ],
+     "p5p95_b": [
+      176.93,
+      195.82
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.33,
+      133.24
+     ],
+     "p5p95_b": [
+      140.47,
+      157.18
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.93,
+      195.82
+     ],
+     "p5p95_b": [
+      140.47,
+      157.18
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.49880922940432376,
+    "eta2_class_mean": 0.31785157874374587,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 306.6,
+    "mini5pro": 183.13,
+    "phantom4": 183.03,
+    "matrice4e": 126.73,
+    "typhoonh480": 184.72,
+    "s1000plus": 149.6
+   },
+   "_X_head_sha": "b05f0f8f2c1305a3",
+   "RF100": {
+    "accuracy": 0.89815,
+    "macro_f1": 0.89634,
+    "per_class_f1": {
+     "mini2": 0.99652,
+     "mini5pro": 0.86986,
+     "phantom4": 0.82623,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.69925,
+     "s1000plus": 0.98621
+    }
+   },
+   "LDA_macro_f1": 0.86215,
+   "kNN5_macro_f1": 0.78117
+  },
+  {
+   "arm": "indoor",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 20.6,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.95,
+      322.61
+     ],
+     "p5p95_b": [
+      174.05,
+      193.24
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.95,
+      322.61
+     ],
+     "p5p95_b": [
+      173.51,
+      192.87
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.95,
+      322.61
+     ],
+     "p5p95_b": [
+      119.53,
+      133.55
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.95,
+      322.61
+     ],
+     "p5p95_b": [
+      176.78,
+      196.65
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.95,
+      322.61
+     ],
+     "p5p95_b": [
+      140.78,
+      157.44
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9541,
+     "house_asym": 0.9807,
+     "p5p95_a": [
+      174.05,
+      193.24
+     ],
+     "p5p95_b": [
+      173.51,
+      192.87
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.05,
+      193.24
+     ],
+     "p5p95_b": [
+      119.53,
+      133.55
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7279,
+     "house_asym": 0.8574,
+     "p5p95_a": [
+      174.05,
+      193.24
+     ],
+     "p5p95_b": [
+      176.78,
+      196.65
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.05,
+      193.24
+     ],
+     "p5p95_b": [
+      140.78,
+      157.44
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.51,
+      192.87
+     ],
+     "p5p95_b": [
+      119.53,
+      133.55
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6951,
+     "house_asym": 0.831,
+     "p5p95_a": [
+      173.51,
+      192.87
+     ],
+     "p5p95_b": [
+      176.78,
+      196.65
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.51,
+      192.87
+     ],
+     "p5p95_b": [
+      140.78,
+      157.44
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.53,
+      133.55
+     ],
+     "p5p95_b": [
+      176.78,
+      196.65
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.53,
+      133.55
+     ],
+     "p5p95_b": [
+      140.78,
+      157.44
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.78,
+      196.65
+     ],
+     "p5p95_b": [
+      140.78,
+      157.44
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.4019721205027821,
+    "eta2_class_mean": 0.3742041347850837,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 306.05,
+    "mini5pro": 184.47,
+    "phantom4": 184.62,
+    "matrice4e": 126.93,
+    "typhoonh480": 185.88,
+    "s1000plus": 149.65
+   },
+   "_X_head_sha": "ee2d055c9b3c7006",
+   "RF100": {
+    "accuracy": 0.93056,
+    "macro_f1": 0.9299,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.92466,
+     "phantom4": 0.86486,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.78986,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.87497,
+   "kNN5_macro_f1": 0.88397
+  },
+  {
+   "arm": "indoor",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 21.1,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      292.41,
+      323.33
+     ],
+     "p5p95_b": [
+      173.72,
+      193.06
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      292.41,
+      323.33
+     ],
+     "p5p95_b": [
+      173.16,
+      192.84
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      292.41,
+      323.33
+     ],
+     "p5p95_b": [
+      119.93,
+      133.24
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      292.41,
+      323.33
+     ],
+     "p5p95_b": [
+      176.47,
+      196.74
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      292.41,
+      323.33
+     ],
+     "p5p95_b": [
+      141.04,
+      156.55
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.961,
+     "house_asym": 0.9886,
+     "p5p95_a": [
+      173.72,
+      193.06
+     ],
+     "p5p95_b": [
+      173.16,
+      192.84
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.72,
+      193.06
+     ],
+     "p5p95_b": [
+      119.93,
+      133.24
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7207,
+     "house_asym": 0.8578,
+     "p5p95_a": [
+      173.72,
+      193.06
+     ],
+     "p5p95_b": [
+      176.47,
+      196.74
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.72,
+      193.06
+     ],
+     "p5p95_b": [
+      141.04,
+      156.55
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.16,
+      192.84
+     ],
+     "p5p95_b": [
+      119.93,
+      133.24
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.6944,
+     "house_asym": 0.832,
+     "p5p95_a": [
+      173.16,
+      192.84
+     ],
+     "p5p95_b": [
+      176.47,
+      196.74
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.16,
+      192.84
+     ],
+     "p5p95_b": [
+      141.04,
+      156.55
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.93,
+      133.24
+     ],
+     "p5p95_b": [
+      176.47,
+      196.74
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.93,
+      133.24
+     ],
+     "p5p95_b": [
+      141.04,
+      156.55
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.47,
+      196.74
+     ],
+     "p5p95_b": [
+      141.04,
+      156.55
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.403790007753199,
+    "eta2_class_mean": 0.37073906126503675,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 307.03,
+    "mini5pro": 184.37,
+    "phantom4": 183.23,
+    "matrice4e": 126.0,
+    "typhoonh480": 186.0,
+    "s1000plus": 148.67
+   },
+   "_X_head_sha": "fb139c36e7c096e4",
+   "RF100": {
+    "accuracy": 0.93056,
+    "macro_f1": 0.93017,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.90526,
+     "phantom4": 0.87919,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.8,
+     "s1000plus": 0.99654
+    }
+   },
+   "LDA_macro_f1": 0.88617,
+   "kNN5_macro_f1": 0.87746
+  },
+  {
+   "arm": "indoor",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 22.1,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      291.74,
+      323.5
+     ],
+     "p5p95_b": [
+      174.05,
+      193.38
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      291.74,
+      323.5
+     ],
+     "p5p95_b": [
+      173.3,
+      193.26
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      291.74,
+      323.5
+     ],
+     "p5p95_b": [
+      119.55,
+      133.32
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      291.74,
+      323.5
+     ],
+     "p5p95_b": [
+      176.87,
+      195.62
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      291.74,
+      323.5
+     ],
+     "p5p95_b": [
+      141.7,
+      156.86
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9567,
+     "house_asym": 0.9937,
+     "p5p95_a": [
+      174.05,
+      193.38
+     ],
+     "p5p95_b": [
+      173.3,
+      193.26
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.05,
+      193.38
+     ],
+     "p5p95_b": [
+      119.55,
+      133.32
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7654,
+     "house_asym": 0.8541,
+     "p5p95_a": [
+      174.05,
+      193.38
+     ],
+     "p5p95_b": [
+      176.87,
+      195.62
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      174.05,
+      193.38
+     ],
+     "p5p95_b": [
+      141.7,
+      156.86
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.26
+     ],
+     "p5p95_b": [
+      119.55,
+      133.32
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.7343,
+     "house_asym": 0.8211,
+     "p5p95_a": [
+      173.3,
+      193.26
+     ],
+     "p5p95_b": [
+      176.87,
+      195.62
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.26
+     ],
+     "p5p95_b": [
+      141.7,
+      156.86
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.55,
+      133.32
+     ],
+     "p5p95_b": [
+      176.87,
+      195.62
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.55,
+      133.32
+     ],
+     "p5p95_b": [
+      141.7,
+      156.86
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.87,
+      195.62
+     ],
+     "p5p95_b": [
+      141.7,
+      156.86
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.40590608724444766,
+    "eta2_class_mean": 0.36655029403986983,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 308.03,
+    "mini5pro": 183.83,
+    "phantom4": 183.75,
+    "matrice4e": 125.53,
+    "typhoonh480": 187.75,
+    "s1000plus": 149.4
+   },
+   "_X_head_sha": "126b96374a5e0bac",
+   "RF100": {
+    "accuracy": 0.9375,
+    "macro_f1": 0.93668,
+    "per_class_f1": {
+     "mini2": 0.99301,
+     "mini5pro": 0.92517,
+     "phantom4": 0.89404,
+     "matrice4e": 0.99652,
+     "typhoonh480": 0.81481,
+     "s1000plus": 0.99654
+    }
+   },
+   "LDA_macro_f1": 0.90181,
+   "kNN5_macro_f1": 0.89305
+  },
+  {
+   "arm": "outdoor",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 38.5,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      278.51,
+      328.45
+     ],
+     "p5p95_b": [
+      63.93,
+      195.03
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      278.51,
+      328.45
+     ],
+     "p5p95_b": [
+      60.75,
+      194.57
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      278.51,
+      328.45
+     ],
+     "p5p95_b": [
+      60.4,
+      134.31
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      278.51,
+      328.45
+     ],
+     "p5p95_b": [
+      57.76,
+      196.82
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      278.51,
+      328.45
+     ],
+     "p5p95_b": [
+      51.09,
+      151.65
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9729,
+     "house_asym": 0.9965,
+     "p5p95_a": [
+      63.93,
+      195.03
+     ],
+     "p5p95_b": [
+      60.75,
+      194.57
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.5227,
+     "house_asym": 0.5368,
+     "p5p95_a": [
+      63.93,
+      195.03
+     ],
+     "p5p95_b": [
+      60.4,
+      134.31
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.9428,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      63.93,
+      195.03
+     ],
+     "p5p95_b": [
+      57.76,
+      196.82
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.6094,
+     "house_asym": 0.6691,
+     "p5p95_a": [
+      63.93,
+      195.03
+     ],
+     "p5p95_b": [
+      51.09,
+      151.65
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.5482,
+     "house_asym": 0.5497,
+     "p5p95_a": [
+      60.75,
+      194.57
+     ],
+     "p5p95_b": [
+      60.4,
+      134.31
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.9623,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      60.75,
+      194.57
+     ],
+     "p5p95_b": [
+      57.76,
+      196.82
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.6336,
+     "house_asym": 0.6793,
+     "p5p95_a": [
+      60.75,
+      194.57
+     ],
+     "p5p95_b": [
+      51.09,
+      151.65
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.5315,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      60.4,
+      134.31
+     ],
+     "p5p95_b": [
+      57.76,
+      196.82
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.7349,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      60.4,
+      134.31
+     ],
+     "p5p95_b": [
+      51.09,
+      151.65
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.6443,
+     "house_asym": 0.6752,
+     "p5p95_a": [
+      57.76,
+      196.82
+     ],
+     "p5p95_b": [
+      51.09,
+      151.65
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.6690561338075914,
+    "eta2_class_mean": 0.1770252593050196,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 303.13,
+    "mini5pro": 182.5,
+    "phantom4": 179.13,
+    "matrice4e": 118.92,
+    "typhoonh480": 177.68,
+    "s1000plus": 72.86
+   },
+   "_X_head_sha": "4bdea29d63436fa7",
+   "RF100": {
+    "accuracy": 0.89468,
+    "macro_f1": 0.89441,
+    "per_class_f1": {
+     "mini2": 0.97872,
+     "mini5pro": 0.92647,
+     "phantom4": 0.78519,
+     "matrice4e": 0.94702,
+     "typhoonh480": 0.78947,
+     "s1000plus": 0.9396
+    }
+   },
+   "LDA_macro_f1": 0.78128,
+   "kNN5_macro_f1": 0.83561
+  },
+  {
+   "arm": "outdoor",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 38.2,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.191,
+     "house_asym": 0.2745,
+     "p5p95_a": [
+      144.55,
+      331.09
+     ],
+     "p5p95_b": [
+      62.97,
+      195.76
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.1811,
+     "house_asym": 0.2624,
+     "p5p95_a": [
+      144.55,
+      331.09
+     ],
+     "p5p95_b": [
+      60.75,
+      193.5
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      144.55,
+      331.09
+     ],
+     "p5p95_b": [
+      59.9,
+      133.07
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.1917,
+     "house_asym": 0.2798,
+     "p5p95_a": [
+      144.55,
+      331.09
+     ],
+     "p5p95_b": [
+      58.82,
+      196.74
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0213,
+     "house_asym": 0.032,
+     "p5p95_a": [
+      144.55,
+      331.09
+     ],
+     "p5p95_b": [
+      50.84,
+      150.51
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9668,
+     "house_asym": 0.983,
+     "p5p95_a": [
+      62.97,
+      195.76
+     ],
+     "p5p95_b": [
+      60.75,
+      193.5
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.5159,
+     "house_asym": 0.5279,
+     "p5p95_a": [
+      62.97,
+      195.76
+     ],
+     "p5p95_b": [
+      59.9,
+      133.07
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.9628,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      62.97,
+      195.76
+     ],
+     "p5p95_b": [
+      58.82,
+      196.74
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.604,
+     "house_asym": 0.6593,
+     "p5p95_a": [
+      62.97,
+      195.76
+     ],
+     "p5p95_b": [
+      50.84,
+      150.51
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.5413,
+     "house_asym": 0.5448,
+     "p5p95_a": [
+      60.75,
+      193.5
+     ],
+     "p5p95_b": [
+      59.9,
+      133.07
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.9626,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      60.75,
+      193.5
+     ],
+     "p5p95_b": [
+      58.82,
+      196.74
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.6292,
+     "house_asym": 0.6762,
+     "p5p95_a": [
+      60.75,
+      193.5
+     ],
+     "p5p95_b": [
+      50.84,
+      150.51
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.5305,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      59.9,
+      133.07
+     ],
+     "p5p95_b": [
+      58.82,
+      196.74
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.734,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      59.9,
+      133.07
+     ],
+     "p5p95_b": [
+      50.84,
+      150.51
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.6285,
+     "house_asym": 0.6648,
+     "p5p95_a": [
+      58.82,
+      196.74
+     ],
+     "p5p95_b": [
+      50.84,
+      150.51
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.6882048990634445,
+    "eta2_class_mean": 0.16284550502644257,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 304.67,
+    "mini5pro": 183.15,
+    "phantom4": 175.77,
+    "matrice4e": 122.2,
+    "typhoonh480": 179.58,
+    "s1000plus": 72.37
+   },
+   "_X_head_sha": "99c160907a9829ca",
+   "RF100": {
+    "accuracy": 0.88889,
+    "macro_f1": 0.88987,
+    "per_class_f1": {
+     "mini2": 0.97872,
+     "mini5pro": 0.91971,
+     "phantom4": 0.77592,
+     "matrice4e": 0.97902,
+     "typhoonh480": 0.76224,
+     "s1000plus": 0.92359
+    }
+   },
+   "LDA_macro_f1": 0.76746,
+   "kNN5_macro_f1": 0.83407
+  },
+  {
+   "arm": "outdoor",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 39.7,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      282.0,
+      327.8
+     ],
+     "p5p95_b": [
+      64.78,
+      195.65
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      282.0,
+      327.8
+     ],
+     "p5p95_b": [
+      59.15,
+      195.73
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      282.0,
+      327.8
+     ],
+     "p5p95_b": [
+      59.29,
+      134.21
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      282.0,
+      327.8
+     ],
+     "p5p95_b": [
+      58.1,
+      194.83
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      282.0,
+      327.8
+     ],
+     "p5p95_b": [
+      50.4,
+      152.09
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9582,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      64.78,
+      195.65
+     ],
+     "p5p95_b": [
+      59.15,
+      195.73
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.5092,
+     "house_asym": 0.5305,
+     "p5p95_a": [
+      64.78,
+      195.65
+     ],
+     "p5p95_b": [
+      59.29,
+      134.21
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.9455,
+     "house_asym": 0.9938,
+     "p5p95_a": [
+      64.78,
+      195.65
+     ],
+     "p5p95_b": [
+      58.1,
+      194.83
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.6011,
+     "house_asym": 0.6671,
+     "p5p95_a": [
+      64.78,
+      195.65
+     ],
+     "p5p95_b": [
+      50.4,
+      152.09
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.5485,
+     "house_asym": 0.5485,
+     "p5p95_a": [
+      59.15,
+      195.73
+     ],
+     "p5p95_b": [
+      59.29,
+      134.21
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.9858,
+     "house_asym": 0.9934,
+     "p5p95_a": [
+      59.15,
+      195.73
+     ],
+     "p5p95_b": [
+      58.1,
+      194.83
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.6394,
+     "house_asym": 0.6804,
+     "p5p95_a": [
+      59.15,
+      195.73
+     ],
+     "p5p95_b": [
+      50.4,
+      152.09
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.5479,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      59.29,
+      134.21
+     ],
+     "p5p95_b": [
+      58.1,
+      194.83
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.7367,
+     "house_asym": 1.0,
+     "p5p95_a": [
+      59.29,
+      134.21
+     ],
+     "p5p95_b": [
+      50.4,
+      152.09
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.6507,
+     "house_asym": 0.6874,
+     "p5p95_a": [
+      58.1,
+      194.83
+     ],
+     "p5p95_b": [
+      50.4,
+      152.09
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.670322202255395,
+    "eta2_class_mean": 0.17239841647594709,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 307.53,
+    "mini5pro": 182.82,
+    "phantom4": 175.67,
+    "matrice4e": 121.5,
+    "typhoonh480": 177.68,
+    "s1000plus": 72.8
+   },
+   "_X_head_sha": "84b626b1b5345541",
+   "RF100": {
+    "accuracy": 0.90394,
+    "macro_f1": 0.90385,
+    "per_class_f1": {
+     "mini2": 0.97872,
+     "mini5pro": 0.92143,
+     "phantom4": 0.84175,
+     "matrice4e": 0.97241,
+     "typhoonh480": 0.78571,
+     "s1000plus": 0.92308
+    }
+   },
+   "LDA_macro_f1": 0.75867,
+   "kNN5_macro_f1": 0.832
+  },
+  {
+   "arm": "lit_iid",
+   "seed": 20260810,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 21.9,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.08,
+      322.74
+     ],
+     "p5p95_b": [
+      173.72,
+      192.47
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.08,
+      322.74
+     ],
+     "p5p95_b": [
+      173.8,
+      193.8
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.08,
+      322.74
+     ],
+     "p5p95_b": [
+      119.54,
+      133.64
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.08,
+      322.74
+     ],
+     "p5p95_b": [
+      176.78,
+      197.67
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      290.08,
+      322.74
+     ],
+     "p5p95_b": [
+      140.58,
+      157.07
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9294,
+     "house_asym": 0.9955,
+     "p5p95_a": [
+      173.72,
+      192.47
+     ],
+     "p5p95_b": [
+      173.8,
+      193.8
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.72,
+      192.47
+     ],
+     "p5p95_b": [
+      119.54,
+      133.64
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.6548,
+     "house_asym": 0.8365,
+     "p5p95_a": [
+      173.72,
+      192.47
+     ],
+     "p5p95_b": [
+      176.78,
+      197.67
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.72,
+      192.47
+     ],
+     "p5p95_b": [
+      140.58,
+      157.07
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.8,
+      193.8
+     ],
+     "p5p95_b": [
+      119.54,
+      133.64
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.713,
+     "house_asym": 0.8509,
+     "p5p95_a": [
+      173.8,
+      193.8
+     ],
+     "p5p95_b": [
+      176.78,
+      197.67
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.8,
+      193.8
+     ],
+     "p5p95_b": [
+      140.58,
+      157.07
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.54,
+      133.64
+     ],
+     "p5p95_b": [
+      176.78,
+      197.67
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.54,
+      133.64
+     ],
+     "p5p95_b": [
+      140.58,
+      157.07
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.78,
+      197.67
+     ],
+     "p5p95_b": [
+      140.58,
+      157.07
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.4018275138356953,
+    "eta2_class_mean": 0.3716895806537554,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 307.43,
+    "mini5pro": 183.58,
+    "phantom4": 183.48,
+    "matrice4e": 126.15,
+    "typhoonh480": 186.73,
+    "s1000plus": 149.28
+   },
+   "_X_head_sha": "4360d70c4471debd",
+   "RF100": {
+    "accuracy": 0.94444,
+    "macro_f1": 0.9443,
+    "per_class_f1": {
+     "mini2": 0.99652,
+     "mini5pro": 0.95502,
+     "phantom4": 0.89116,
+     "matrice4e": 0.98962,
+     "typhoonh480": 0.84397,
+     "s1000plus": 0.98955
+    }
+   },
+   "LDA_macro_f1": 0.89388,
+   "kNN5_macro_f1": 0.90176
+  },
+  {
+   "arm": "lit_iid",
+   "seed": 20260811,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 21.7,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.93,
+      323.26
+     ],
+     "p5p95_b": [
+      172.84,
+      193.86
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.93,
+      323.26
+     ],
+     "p5p95_b": [
+      173.33,
+      193.79
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.93,
+      323.26
+     ],
+     "p5p95_b": [
+      119.65,
+      132.86
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.93,
+      323.26
+     ],
+     "p5p95_b": [
+      176.9,
+      196.7
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      288.93,
+      323.26
+     ],
+     "p5p95_b": [
+      140.87,
+      156.84
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.9732,
+     "house_asym": 0.9732,
+     "p5p95_a": [
+      172.84,
+      193.86
+     ],
+     "p5p95_b": [
+      173.33,
+      193.79
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.84,
+      193.86
+     ],
+     "p5p95_b": [
+      119.65,
+      132.86
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.711,
+     "house_asym": 0.8071,
+     "p5p95_a": [
+      172.84,
+      193.86
+     ],
+     "p5p95_b": [
+      176.9,
+      196.7
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      172.84,
+      193.86
+     ],
+     "p5p95_b": [
+      140.87,
+      156.84
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.33,
+      193.79
+     ],
+     "p5p95_b": [
+      119.65,
+      132.86
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.7226,
+     "house_asym": 0.8256,
+     "p5p95_a": [
+      173.33,
+      193.79
+     ],
+     "p5p95_b": [
+      176.9,
+      196.7
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.33,
+      193.79
+     ],
+     "p5p95_b": [
+      140.87,
+      156.84
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.65,
+      132.86
+     ],
+     "p5p95_b": [
+      176.9,
+      196.7
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.65,
+      132.86
+     ],
+     "p5p95_b": [
+      140.87,
+      156.84
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      176.9,
+      196.7
+     ],
+     "p5p95_b": [
+      140.87,
+      156.84
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.3996292728564073,
+    "eta2_class_mean": 0.37150266033055823,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 305.23,
+    "mini5pro": 182.83,
+    "phantom4": 182.4,
+    "matrice4e": 126.3,
+    "typhoonh480": 186.82,
+    "s1000plus": 149.63
+   },
+   "_X_head_sha": "84f1547c68b6b54e",
+   "RF100": {
+    "accuracy": 0.93403,
+    "macro_f1": 0.93316,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.93793,
+     "phantom4": 0.86842,
+     "matrice4e": 1.0,
+     "typhoonh480": 0.79259,
+     "s1000plus": 1.0
+    }
+   },
+   "LDA_macro_f1": 0.8878,
+   "kNN5_macro_f1": 0.8683
+  },
+  {
+   "arm": "lit_iid",
+   "seed": 20260812,
+   "n_rows": 864,
+   "n_nan_rows": 0,
+   "seconds": 23.6,
+   "beat_overlap": {
+    "mini2|mini5pro": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.69,
+      322.86
+     ],
+     "p5p95_b": [
+      173.3,
+      193.24
+     ]
+    },
+    "mini2|phantom4": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.69,
+      322.86
+     ],
+     "p5p95_b": [
+      173.13,
+      192.57
+     ]
+    },
+    "mini2|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.69,
+      322.86
+     ],
+     "p5p95_b": [
+      119.56,
+      133.65
+     ]
+    },
+    "mini2|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.69,
+      322.86
+     ],
+     "p5p95_b": [
+      175.77,
+      196.29
+     ]
+    },
+    "mini2|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      289.69,
+      322.86
+     ],
+     "p5p95_b": [
+      139.68,
+      157.47
+     ]
+    },
+    "mini5pro|phantom4": {
+     "symmetric": 0.958,
+     "house_asym": 0.9664,
+     "p5p95_a": [
+      173.3,
+      193.24
+     ],
+     "p5p95_b": [
+      173.13,
+      192.57
+     ]
+    },
+    "mini5pro|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.24
+     ],
+     "p5p95_b": [
+      119.56,
+      133.65
+     ]
+    },
+    "mini5pro|typhoonh480": {
+     "symmetric": 0.7601,
+     "house_asym": 0.8763,
+     "p5p95_a": [
+      173.3,
+      193.24
+     ],
+     "p5p95_b": [
+      175.77,
+      196.29
+     ]
+    },
+    "mini5pro|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.3,
+      193.24
+     ],
+     "p5p95_b": [
+      139.68,
+      157.47
+     ]
+    },
+    "phantom4|matrice4e": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.13,
+      192.57
+     ],
+     "p5p95_b": [
+      119.56,
+      133.65
+     ]
+    },
+    "phantom4|typhoonh480": {
+     "symmetric": 0.7254,
+     "house_asym": 0.8642,
+     "p5p95_a": [
+      173.13,
+      192.57
+     ],
+     "p5p95_b": [
+      175.77,
+      196.29
+     ]
+    },
+    "phantom4|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      173.13,
+      192.57
+     ],
+     "p5p95_b": [
+      139.68,
+      157.47
+     ]
+    },
+    "matrice4e|typhoonh480": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.56,
+      133.65
+     ],
+     "p5p95_b": [
+      175.77,
+      196.29
+     ]
+    },
+    "matrice4e|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      119.56,
+      133.65
+     ],
+     "p5p95_b": [
+      139.68,
+      157.47
+     ]
+    },
+    "typhoonh480|s1000plus": {
+     "symmetric": 0.0,
+     "house_asym": 0.0,
+     "p5p95_a": [
+      175.77,
+      196.29
+     ],
+     "p5p95_b": [
+      139.68,
+      157.47
+     ]
+    }
+   },
+   "scatter": {
+    "draw_scatter_mean": 0.39992371036250146,
+    "eta2_class_mean": 0.3765200680876554,
+    "n_cells": 108,
+    "n_features_used": 27
+   },
+   "f_flash_median": {
+    "mini2": 306.88,
+    "mini5pro": 183.33,
+    "phantom4": 183.33,
+    "matrice4e": 126.72,
+    "typhoonh480": 185.08,
+    "s1000plus": 149.02
+   },
+   "_X_head_sha": "800bb2e039031fa7",
+   "RF100": {
+    "accuracy": 0.95023,
+    "macro_f1": 0.95005,
+    "per_class_f1": {
+     "mini2": 1.0,
+     "mini5pro": 0.96167,
+     "phantom4": 0.89333,
+     "matrice4e": 0.99306,
+     "typhoonh480": 0.85921,
+     "s1000plus": 0.99306
+    }
+   },
+   "LDA_macro_f1": 0.90872,
+   "kNN5_macro_f1": 0.90903
+  }
+ ],
+ "self_checks": [
+  {
+   "check": "SC1 현행 arm 이 기존 md_classify_features.npz 와 비트동일",
+   "pass": true,
+   "detail": "행 (864, 27) · 비트동일 True"
+  },
+  {
+   "check": "SC10 생산 원장이 rotor_preset 를 선언한다",
+   "pass": false,
+   "detail": "md_classify_features.npz 에 rotor_preset 키 **없음** — 이 원장은 2026-08-10 산이라 rotor_dynamics(2026-08-11)보다 앞선다. ⇒ 설계서 R8 의 «rotor_preset 없는 npz 는 거부» 게이트에 **현행 헤드라인 원장 자신이 걸린다**. 다만 SC1 이 그 X 배열이 rotor_preset='' 와 비트동일임을 증명하므로, 다시 굽지 않고 **선언만 채워도** 된다."
+  },
+  {
+   "check": "SC2 legacy 프리셋 ≠ 현행 arm (설계서 문장 반증)",
+   "pass": true,
+   "detail": "sha 현행 f002d2399e8185ef vs legacy 6491676a22bf56b1"
+  },
+  {
+   "check": "SC3 프리셋 σ 가 outputs/rotor_jitter_model.json 과 일치",
+   "pass": true,
+   "detail": "6 종 대조"
+  },
+  {
+   "check": "SC4 모든 판 864 행 · NaN 행 0",
+   "pass": true,
+   "detail": "판 21 · 행 [864] · NaN 0"
+  },
+  {
+   "check": "SC5 라벨섞기 널이 우연 수준(±5 %p)",
+   "pass": true,
+   "detail": "섞은 정확도 0.1725 vs 우연 0.1667"
+  },
+  {
+   "check": "SC6 mitsuba·drjit·sionna.rt 미적재",
+   "pass": true,
+   "detail": "적재 모듈 []"
+  },
+  {
+   "check": "SC7 잡음 폭 유한·양수",
+   "pass": true,
+   "detail": "σ_pool 0.00572 → W_null 0.00838"
+  },
+  {
+   "check": "SC8 박자 겹침 ↑ → macro-F1 ↓ (사후 일관성 확인)",
+   "pass": true,
+   "detail": "r = -0.5777 (6 프리셋, 사전예측 아님 — 방향만 읽는다)"
+  },
+  {
+   "check": "SC9 정렬 아티팩트를 뺀 4 종에서도 폭이 잡음 밴드 밖",
+   "pass": true,
+   "detail": "W 4.65 %p / W_null 0.73 %p = 6.40× · p 0.0228 → «좌우한다»"
+  }
+ ],
+ "verdict": {
+  "verdict_ko": "좌우한다",
+  "verdict_literal_prereg_ko": "좌우한다",
+  "verdicts_agree": true,
+  "W": 0.06141,
+  "W_null": 0.00838,
+  "ratio": 7.332,
+  "p_value_permutation": 0.0015,
+  "headline_ko": "로터 흔들림 프리셋 6 종의 macro-F1 폭은 6.14 %p 이고, 씨앗만 바꿔도 생기는 폭은 0.84 %p 다 — 배수 7.33× · 치환검정 p=0.0015. ⇒ «좌우한다».",
+  "consequence_ko": "⭐딥러닝에 들어가기 전에 **프리셋을 하나로 못 박고 원장을 그 프리셋으로 다시 굽는다.** 지금 원장(rotor_preset='')은 사다리 아래쪽에 있고, 프리셋을 바꾸면 macro-F1 이 6.1 %p 움직인다 — 이는 기존 원장에서 «전 특징» 팔과 «기하만» 팔의 차이(8.3 %p)와 맞먹는 크기다. 프리셋을 안 고정한 채 표현·백본을 비교하면 그 차이가 프리셋 차이에 묻힌다.",
+  "grid_band_check_ko": "2026-08-15 격자 산포 밴드의 «분류» 칸은 0.0 %p 이므로 이 판의 6.14 %p 는 그 밴드 **밖**이다(판정 가능). ⚠단 그 칸은 «빗살 argmax» 분류기의 정확도라 잣대가 다르다 — 이 판의 진짜 문턱은 위 씨앗 밴드 0.84 %p 이고, 두 잣대 모두에서 밖이다.",
+  "which_preset_ko": "⛔**점수가 높은 프리셋을 고르면 안 된다.** 사다리 위쪽 두 판(legacy·legacy_outdoor)은 초기위상이 t=0 에 정렬돼 있고 정적 산포가 고정 패턴이라, 같은 기체·같은 자세의 시행이 base rpm 하나만 다르다 — 점수가 높은 것은 모델이 좋아서가 아니라 **데이터가 인위적으로 깨끗해서**다. 문헌·실기 로그에 근거가 있는 팔은 sitl·indoor·outdoor·lit_iid 넷뿐이고, 이 넷 안에서도 사다리가 남는지는 `subgroups.random_phase_family` 에 따로 적었다.",
+  "policy_ko": "⭐정본 프리셋은 판정표 **바깥**의 방침이다: 실증이 야외이므로 outdoor 를 정본 후보로 둔다. 다만 그 σ 는 비-DJI 기체의 4 Hz 로그에서 왔다(위 caveat). ⚠이 판정이 «좌우한다» 이므로 정본 선택은 **성적이 아니라 물리적 정직성**으로 하되, 고른 뒤에는 바꾸지 말고 원장·리포트에 그 이름을 박아야 한다 — 프리셋을 갈아 끼우면 이후 모든 비교의 기준선이 함께 움직인다.",
+  "scope_ko": "이 판정은 «호버 · 자세 18 · 잡음 없음 · 손 특징 27 개 · RF100» 자리에서만 선다. 잡음을 넣거나 딥러닝 표현으로 바꾸면 프리셋 민감도가 달라질 수 있다 — 그 자리는 R8·R11 이 잰다. ⭐다만 RF100 은 세 모델 중 **가장 둔한** 팔이다(LDA 폭 16.44 · kNN5 폭 13.23 %p). 그러므로 6.14 %p 는 프리셋 민감도의 **하한**이지 상한이 아니다."
+ },
+ "corrections": [
+  {
+   "target": "benchmark/md_classify_dataset.py · `--rotor-preset` 도움말 문자열",
+   "was_ko": "src/rotor_dynamics.PRESETS 이름(legacy/sitl/indoor/outdoor/lit_iid) — 5 종",
+   "is_ko": "실제 프리셋은 6 종이다 — 도움말에서 **legacy_outdoor** 가 빠졌다. ⭐설계서 NEXT_EXPERIMENTS.md 의 R6 행(«프리셋 6 종»)과 실행절(CLI 6 줄)은 옳게 적혀 있으므로 **설계서는 정정할 것이 없다** — 틀린 곳은 CLI 도움말 하나뿐이다.",
+   "evidence": "src/rotor_dynamics.py PRESETS 직접 셈 = 6 (legacy, legacy_outdoor, sitl, indoor, outdoor, lit_iid) · md_classify_dataset.py:936-938"
+  },
+  {
+   "target": "docs/NEXT_EXPERIMENTS.md · R6 실행절",
+   "was_ko": "«legacy 판이 기존 md_classify_features.npz 와 X 배열 비트동일인지 게이트로 확인한 뒤에야 나머지를 굽는다»",
+   "is_ko": "legacy 프리셋은 기존 원장과 비트동일이 **될 수 없다**. 기존 원장의 arm 은 `rotor_preset=''`(시행마다 σ_s~U(0.07,0.29 %)·초기위상 U(0,180°))이고, legacy 프리셋은 결정론적 패턴 [+1,−1,−0.55,+0.55]·초기위상 0(정렬)이다. rotor_dynamics.py 의 «비트동일» 주장은 report07_hover_long(호버 지도) 경로에 대한 것이지 분류 데이터셋 경로가 아니다. ⇒ 비트동일 게이트는 arm='' 로 걸어야 맞고, 이 판이 그렇게 걸어 통과시켰다(SC1).",
+   "evidence": "SC1 행 (864, 27) · 비트동일 True · SC2 sha 현행 f002d2399e8185ef ≠ legacy 6491676a22bf56b1"
+  },
+  {
+   "target": "docs/NEXT_EXPERIMENTS.md · R8 (하드 게이트: rotor_preset 없는 npz 는 거부)",
+   "was_ko": "그 게이트는 «앞으로 구울 npz» 를 겨냥한 것으로 읽힌다",
+   "is_ko": "⭐**현행 헤드라인 원장 자신이 그 게이트에 걸린다.** outputs/md_classify_features.npz(2026-08-10)에는 rotor_preset 키가 아예 없다 — rotor_dynamics.py(2026-08-11)보다 하루 앞서 구워졌기 때문이다. ⇒ R8 에 들어가기 전에 이 원장의 로터 모델 선언을 채워야 한다. 다만 SC1 이 그 X 배열이 rotor_preset='' 와 **비트동일**임을 증명했으므로 다시 구울 필요는 없다 — 선언만 채우면 된다(GPU 0).",
+   "evidence": "npz 키 목록에 rotor_preset 없음: ['Twin', 'X', 'aspect', 'az', 'base_rpm', 'blades', 'draw', 'drone']… · SC1 비트동일 통과"
+  },
+  {
+   "target": "benchmark/md_classify_dataset.py cmd_build",
+   "was_ko": "`--rotor-seed` 로 씨앗을 바꿀 수 있다(고 읽힌다)",
+   "is_ko": "`rot_seed0` 는 npz 에 **적히기만** 하고 rng 에 안 들어간다 — `rng = np.random.default_rng(SEED)` 가 상수다. 그 CLI 로는 재생성 잡음을 못 잰다. 이 실험은 씨앗을 실제로 rng 에 넣는 별도 경로로 쟀다(파일 수정 없음). ⛔결함이 아니라 «없는 기능» 이므로 기존 원장은 그대로 유효하다.",
+   "evidence": "md_classify_dataset.py:796-798 · 905"
+  }
+ ]
+}

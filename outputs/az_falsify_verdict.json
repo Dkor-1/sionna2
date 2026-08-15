@@ -1,0 +1,653 @@
+{
+ "_meta": {
+  "generator": "benchmark/az_falsify_judge.py",
+  "role_ko": "심판 — 공격 4 라운드를 받아 살아남는 문장만 확정한다",
+  "date_kst": "2026-08-15",
+  "claim_under_test_ko": "«드론을 방위 45° 돌리면 Sionna PathSolver 의 정면(앙각 0°) 에코가 25~51 dB 사라진다. 반면 우리 커널(SBR+PO)은 방위에 둔감하다(레벨차 3 dB 안).»",
+  "gpu_ko": "⛔GPU 미사용 — sionna.rt·mitsuba 임포트 없음. 저장 원장·npz·소스만 읽었다",
+  "grid_band_ko": "판정 문턱은 격자 산포 밴드(outputs/grid_convergence_check.json) — 움직이는 부분 3.861 dB · 가만히 있는 부분 6.613 dB. 이 안이면 «판정 불가».",
+  "band_caveat_ko": "⚠밴드는 앙각 0·−15·−30·−45 에서만 쟀다(λ/24 팔이 −60 에 없다) — el−60 에 적용한 것은 외삽이다.",
+  "terms_ko": {
+   "가만히 있는 부분(DC)": "8,192 자세 시계열의 평균 — 자세가 바뀌어도 안 변하는 몫",
+   "움직이는 부분(AC)": "평균을 뺀 나머지 — 프로펠러가 돌아서 생기는 몫",
+   "박자 몫": "움직이는 부분의 전력 중 날개 플래시 박자(126.67 Hz)의 정수배에 실린 비율",
+   "이웃 표본 상관": "51 µs 떨어진 두 표본이 얼마나 닮았나 — 진짜 움직임이면 1 에 가깝다",
+   "거울각": "시선이 평평한 면에 정확히 마주 서서 빛이 곧장 되돌아오는 각도"
+  },
+  "attack_rounds_ko": [
+   "outputs/az_falsify_conditions.json — 조건 동일성·코드판 대조",
+   "outputs/az_falsify_timing.json — 벽시계는 계산량이 아니다",
+   "outputs/az_falsify_specular.json · az_falsify_facets.json — 정렬 면적",
+   "outputs/az_falsify_rhythm.json · az_falsify_comb.json — 백색 판정",
+   "outputs/az_falsify_po.json — ⭐독립 PO 심판(엔진 코드 미사용)",
+   "outputs/az_falsify_ours.json · az_falsify_plate.json — σ 다리·평판 검증·45° 공진",
+   "outputs/az_falsify_alternatives.json — 대안 가설 다섯",
+   "outputs/az_falsify_verdict_attack2.json — 공격자 2 판(원본 보존본)"
+  ]
+ },
+ "verdict": {
+  "surviving_claim_ko": "PathSolver 는 시선이 드론의 **축정렬 평판(배터리·카메라·PCB 상자면)에 정확히 마주 서는 한 칸(방위 0°·앙각 0°)에서만** 거대한 정지 에코를 내고, 그 칸을 벗어나면 40~57 dB 낮은 값으로 떨어진다. 「방위 45°」는 그 칸을 벗어나는 **한 가지 방법**일 뿐이다 — 방위를 하나도 안 돌리고 앙각만 15° 내려도 같은 자리로 떨어진다(1.4 dB 차).",
+  "expression_echo_disappears_ko": {
+   "판정": "⛔틀린 표현이다. 쓰지 마라.",
+   "왜": [
+    "① 경로 수는 오히려 늘었다(897→1280 · 235→313). 조명을 잃은 것이 아니다 — 지배하던 굵은 경로 하나가 꺼지고 잔챙이 여럿이 남은 것이다.",
+    "② 사라진 것은 **가만히 있는 평판 거울항 하나**다. 시선에 정확히 마주 선 면적이 139.35 cm² → 0.19 cm² 로 줄고, 평판식(σ ∝ 면적²) 예측 낙차 −57.3 dB 가 원장의 정지성분 낙차 −57.07 dB 와 0.3 dB 안에서 맞는다.",
+    "③ az45 에 **남아 있는** 움직이는 부분은 같은 설정의 «프로펠러만» 대조군과 1.3 dB 안에서 같다(물리 끔 −145.41 ↔ −146.68 · 물리 켬 −120.28 ↔ −119.05). 즉 진짜 프로펠러 에코는 방위에 **안 변했다**.",
+    "④ 「사라졌다」가 성립하려면 az0 값이 기준이어야 하는데, az0·el0 값 자체가 물리 상한보다 25 dB 높은 비물리 값이다(환산 σ +38.1 dBsm ≈ 6,500 m², 78 cm 드론에 불가능)."
+   ],
+   "대체_문장": "「45° 돌리면 에코가 사라진다」 대신 → **「거울각을 벗어나면 PathSolver 의 정면 특이점이 꺼지고, 그 아래 있던 프로펠러 에코가 그대로 드러난다」**"
+  },
+  "ours_azimuth_insensitivity_ko": {
+   "질문": "우리 커널이 방위에 둔감한 것은 장점인가 결함인가",
+   "판정": "⛔지금 데이터로 **못 가른다.** 그리고 「둔감하다」는 문장 자체를 쓰면 안 된다.",
+   "왜_못_가르나": [
+    "① 재는 자보다 작다 — 우리 팔의 방위 변화는 움직이는 부분에서 +0.55 / +0.36 / +3.43 / 0.00 dB 인데, 격자만 λ/12→λ/24 로 바꿔도 같은 잣대가 3.86 dB 흔들린다. 최댓값이 밴드 **안**이라 「둔감」이 아니라 «판정 불가» 다.",
+    "② 그나마도 반례가 있다 — el−60 에서 **가만히 있는 부분이 +18.05 dB** 움직인다(DC 밴드 6.61 dB 밖). 우리 커널은 방위에 무반응이 아니다.",
+    "③ 표본이 사실상 **두 점**이다(0°·45°). 그중 el−90 칸은 방위가 기하적으로 죽는 자리라 비트 단위로 같은 값이 나온다 — 쓸 수 있는 점은 셋뿐이다.",
+    "④ ⭐참값이 둔감하지 않다 — 독립 PO 심판은 el 0 에서 방위 0~90° 를 훑으면 **27.3 dB 폭**으로 출렁인다고 말한다. 그런데 하필 0° 와 45° 가 −45.03 ↔ −45.12 dB 로 거의 같다. 즉 우리 두 점이 평평한 것은 **표본을 그 두 곳에서 뜬 우연**이지 방위 둔감의 증거가 아니다.",
+    "⑤ 그 칸의 절대값 자체가 무르다 — el 0 에서 거리를 15→30 m 로 옮기면 우리 값이 −6.15 dB 움직인다(우리 E 는 원래 거리에 안 변해야 한다). 상쇄 잔차라 1.6 dB 짜리 방위 차이는 애초에 의미를 못 갖는다."
+   ],
+   "장점_쪽_증거(약함)": "el 0 에서만 보면 우리 값(−1.64 dB)이 독립 PO 심판(−0.09 dB)과 1.6 dB 안에서 맞고 PathSolver(−57.07 dB)는 57 dB 빗나간다. 이 한 칸에서는 우리가 옳다.",
+   "결함_쪽_증거(약함)": "el−60 에서는 반대다 — PO 심판 −2.97 dB 인데 우리는 **+18.05 dB** 로 21 dB 빗나가고 PathSolver(물리 끔, +2.78)가 오히려 5.8 dB 로 가깝다. 또 격자 div=12 는 표면 기울기가 정확히 45° 인 조각에서 인접 광선 위상차가 딱 60° 가 되어 여섯 표본이 서로 지우는 **공진 결함**이 있다(배터리 크기 평판: 참 −37.6 → 격자 −335 dB). 드론의 축정렬 상자면이 az45 시선에서 바로 그 각도다."
+  },
+  "killed_ko": [
+   "「방위 45° 가 원인이다」 — 무너졌다. 방위를 안 돌리고 앙각만 15° 내려도 같은 낙차다(az0·el−15 DC −118.88 ↔ az45·el0 DC −120.32).",
+   "「에코가 25~51 dB 사라진다」 — 무너졌다. 사라진 것은 정지 평판 거울항 하나이고, 남은 프로펠러 에코는 방위에 1.3 dB 밖에 안 변했다. 경로 수는 오히려 늘었다.",
+   "「그 25~51 dB 는 표적의 성질이다」 — 무너졌다. az0·el0 의 움직이는 부분은 **백색**이다(박자 몫 13.1 % ≈ 백색 기준 12.5 %, 이웃 표본 상관 0.010). 51 µs 만에 딴 값이 되는 움직임은 이 드론에 없다(날개끝 상한 1272.9 Hz → 약 15 표본 동안 매끄러워야 한다).",
+   "「우리 커널은 방위에 둔감하다(3 dB 안)」 — 무너졌다. 최대 3.43 dB 는 격자 밴드 3.86 dB 안이라 판정 불가이고, el−60 정지성분은 +18.05 dB 로 밴드 밖이다.",
+   "「깜빡임은 도는 프롭이 동체 가림을 흔들어 생긴다」(우리 쪽 기존 판정) — 무너졌다. 그 요동은 박자를 모르고(백색), 광선을 더 쏠수록 **커진다**. 프롭이 움직여 장면이 바뀌는 것이 방아쇠인 건 맞지만, 크기를 정하는 것은 표적이 아니라 광선 예산이다.",
+   "「광선을 더 쏘면 깜빡임은 줄 수 있다」 — 방향이 반대다. 11 M → 40 억 발로 가면 el 0 의 움직이는 부분이 −143.2 → −90.4 dB 로 **52.8 dB 올라간다**(같은 칸의 정지성분은 0.03 dB 안 붙박이). 저장소 자체 기록 R17 도 이미 같은 말을 한다.",
+   "「물리 켬 팔의 −25.44 dB」 — 의미가 사라졌다. 물리 켬 팔은 **두 방위 다 백색**이다(박자 몫 az0 13.4 % · az45 17.8 %, 이웃 표본 상관 0.014 · 0.065). 잡음과 잡음을 뺀 수라 크기를 인용할 수 없다.",
+   "「우리 −70.4 dB 가 PathSolver −94.3 dB 보다 24 dB 크다」 — 무너졌다. 차원이 다른 수의 뺄셈이다(우리 E 는 면적[m²], Sionna a 는 무차원 채널계수). 같은 σ 로 고치면 우리 −38.1 dBsm · PathSolver +7.1 dBsm 로 **부호가 뒤집힌다**."
+  ],
+  "open_ko": [
+   "⭐방위 축이 두 점뿐이다. 「우리 커널이 방위 로브를 제대로 그리나」는 다음 실험 없이는 못 가른다 — 우리 커널로 **el 0 에서 방위 0~90° 를 5° 간격 미세 스윕**하고 PO 심판의 같은 스윕(이미 있다, 27.3 dB 출렁임·az6~8 봉우리)과 겹쳐 본다. 봉우리 위치·골 위치가 맞으면 우리 커널이 옳고, 평평하게 나오면 우리가 방위 구조를 못 그리는 것이다. 정지 자세 한 개면 되므로 GPU 비용이 작다.",
+   "⭐el−60 에서 우리만 +18.05 dB — PO 심판은 −2.97 dB 다. 21 dB 어긋난다. 같은 미세 스윕을 el−60 에서도 돌려 골(널)의 위치가 방위 0° 에 정말 있는지 확인한다. 동체·프롭을 갈라 쏘면 어느 쪽이 널을 만드는지도 함께 갈린다.",
+   "⭐div=12 격자의 45° 공진(2k·d = 정확히 60°). az45 팔은 **λ/24 또는 반칸 어긋내기로 다시 재기 전에는 인용 금지**다. 헤드라인 영향은 ≈0.2 dB 로 추정되지만 전체 메쉬에서 검증되지 않았다.",
+   "우리 커널 el 0 값의 거리 불변성 — E 는 면적이라 거리에 안 변해야 하는데 15→30 m 에서 −6.15 dB 움직인다. 15 m 는 원거리장 경계 14.2 m 바로 밖이라 곡률이 남았을 가능성과 상쇄 잔차 가능성이 안 갈린다.",
+   "PathSolver 의 거울칸 값이 왜 물리 상한보다 25 dB 높은지 — 기전 미규명. 진폭이 1/R² 로 떨어지므로 «무한 거울(1/R)» 기전은 아니다. 기본 솔버(경로 3 개)와 40 억 발(경로 897 개)이 같은 값을 주므로 경로 수 과다합산도 아니다.",
+   "az45 팔을 돌린 작업본이 커밋되지 않았다(--az-deg 커밋은 6 시간 뒤). 코드 텍스트 대조는 불가하고, el−90 대조칸이 두 팔에서 상대차 2e−15 로 같다는 수치 일치가 유일한 증거다."
+  ]
+ },
+ "judge_remeasurement": {
+  "ours/el+0": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -54.6,
+    "ac_db": -70.4,
+    "rhythm_share": 0.9578,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9547
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -56.24,
+    "ac_db": -69.85,
+    "rhythm_share": 0.9383,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9544
+   },
+   "d_ac_db": 0.55,
+   "d_dc_db": -1.64,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": true
+  },
+  "ours/el-30": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -64.88,
+    "ac_db": -69.11,
+    "rhythm_share": 0.9534,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9379
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -65.62,
+    "ac_db": -68.75,
+    "rhythm_share": 0.952,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9482
+   },
+   "d_ac_db": 0.36,
+   "d_dc_db": -0.74,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": true
+  },
+  "ours/el-60": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -72.03,
+    "ac_db": -66.04,
+    "rhythm_share": 0.9471,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9842
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -53.98,
+    "ac_db": -62.61,
+    "rhythm_share": 0.9565,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9893
+   },
+   "d_ac_db": 3.43,
+   "d_dc_db": 18.05,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": false
+  },
+  "ours/el-90": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -41.29,
+    "ac_db": -81.56,
+    "rhythm_share": 0.6252,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.351
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -41.29,
+    "ac_db": -81.56,
+    "rhythm_share": 0.6252,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.351
+   },
+   "d_ac_db": 0.0,
+   "d_dc_db": 0.0,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": true
+  },
+  "ps_physoff/el+0": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -63.25,
+    "ac_db": -94.3,
+    "rhythm_share": 0.1306,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0102
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -120.32,
+    "ac_db": -145.41,
+    "rhythm_share": 0.9426,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9692
+   },
+   "d_ac_db": -51.11,
+   "d_dc_db": -57.07,
+   "ac_inside_grid_band": false,
+   "dc_inside_grid_band": false
+  },
+  "ps_physoff/el-30": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -137.09,
+    "ac_db": -135.66,
+    "rhythm_share": 0.962,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9908
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -136.49,
+    "ac_db": -133.57,
+    "rhythm_share": 0.9655,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9939
+   },
+   "d_ac_db": 2.09,
+   "d_dc_db": 0.6,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": true
+  },
+  "ps_physoff/el-60": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -121.36,
+    "ac_db": -129.72,
+    "rhythm_share": 0.9467,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.988
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -118.58,
+    "ac_db": -125.65,
+    "rhythm_share": 0.9592,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9939
+   },
+   "d_ac_db": 4.07,
+   "d_dc_db": 2.78,
+   "ac_inside_grid_band": false,
+   "dc_inside_grid_band": true
+  },
+  "ps_physoff/el-90": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -118.01,
+    "ac_db": -135.72,
+    "rhythm_share": 0.9423,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9617
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -118.01,
+    "ac_db": -135.72,
+    "rhythm_share": 0.9423,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9617
+   },
+   "d_ac_db": 0.0,
+   "d_dc_db": 0.0,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": true
+  },
+  "ps_physon/el+0": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -62.08,
+    "ac_db": -94.84,
+    "rhythm_share": 0.1337,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.014
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -100.59,
+    "ac_db": -120.28,
+    "rhythm_share": 0.178,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0651
+   },
+   "d_ac_db": -25.44,
+   "d_dc_db": -38.51,
+   "ac_inside_grid_band": false,
+   "dc_inside_grid_band": false
+  },
+  "ps_physon/el-30": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -95.47,
+    "ac_db": -126.6,
+    "rhythm_share": 0.1564,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0358
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -147.98,
+    "ac_db": -135.82,
+    "rhythm_share": 0.4028,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.3211
+   },
+   "d_ac_db": -9.22,
+   "d_dc_db": -52.51,
+   "ac_inside_grid_band": false,
+   "dc_inside_grid_band": false
+  },
+  "ps_physon/el-60": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -105.98,
+    "ac_db": -125.88,
+    "rhythm_share": 0.218,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.1144
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -132.48,
+    "ac_db": -131.84,
+    "rhythm_share": 0.6532,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.5985
+   },
+   "d_ac_db": -5.96,
+   "d_dc_db": -26.5,
+   "ac_inside_grid_band": false,
+   "dc_inside_grid_band": false
+  },
+  "ps_physon/el-90": {
+   "az0": {
+    "n": 8192,
+    "dc_db": -68.47,
+    "ac_db": -118.37,
+    "rhythm_share": 0.1626,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0467
+   },
+   "az45": {
+    "n": 8192,
+    "dc_db": -68.48,
+    "ac_db": -118.38,
+    "rhythm_share": 0.1624,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.046
+   },
+   "d_ac_db": -0.01,
+   "d_dc_db": -0.01,
+   "ac_inside_grid_band": true,
+   "dc_inside_grid_band": true
+  }
+ },
+ "axis_is_not_azimuth": {
+  "ps_physoff_az0_el0": {
+   "n": 8192,
+   "dc_db": -63.25,
+   "ac_db": -94.3,
+   "rhythm_share": 0.1306,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.0102
+  },
+  "ps_physoff_az0_el-15": {
+   "n": 8192,
+   "dc_db": -118.88,
+   "ac_db": -145.33,
+   "rhythm_share": 0.9512,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9603
+  },
+  "ps_physoff_az45_el0": {
+   "n": 8192,
+   "dc_db": -120.32,
+   "ac_db": -145.41,
+   "rhythm_share": 0.9426,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9692
+  },
+  "reading_ko": "방위를 **하나도 안 돌리고** 앙각만 15° 내려도 az45 와 같은 자리로 떨어진다 — az0·el−15 는 DC -118.88 · AC -145.33 dB, az45·el0 은 DC -120.32 · AC -145.41 dB. 차이가 1.5 dB 안이다. 그러므로 원인 변수는 「방위 45°」가 아니라 「정확한 거울각에서 벗어났나」다."
+ },
+ "controls_what_remains": {
+  "az45_full_physoff_el0": {
+   "n": 8192,
+   "dc_db": -120.32,
+   "ac_db": -145.41,
+   "rhythm_share": 0.9426,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9692
+  },
+  "az0_proponly_physoff_el0": {
+   "n": 8192,
+   "dc_db": -141.52,
+   "ac_db": -146.68,
+   "rhythm_share": 0.9643,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9573
+  },
+  "az0_noprop_physoff_el0": {
+   "n": 8192,
+   "dc_db": -63.23,
+   "ac_db": -384.45,
+   "rhythm_share": 0.1079,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.1178
+  },
+  "az45_full_physon_el0": {
+   "n": 8192,
+   "dc_db": -100.59,
+   "ac_db": -120.28,
+   "rhythm_share": 0.178,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.0651
+  },
+  "az0_proponly_physon_el0": {
+   "n": 8192,
+   "dc_db": -135.81,
+   "ac_db": -119.05,
+   "rhythm_share": 0.2019,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.0965
+  },
+  "ours_az0_el0": {
+   "n": 8192,
+   "dc_db": -54.6,
+   "ac_db": -70.4,
+   "rhythm_share": 0.9578,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9547
+  },
+  "ours_free_az0_el0": {
+   "n": 8192,
+   "dc_db": -82.97,
+   "ac_db": -70.4,
+   "rhythm_share": 0.9578,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9547
+  },
+  "ours_div24_az0_el0": {
+   "n": 8192,
+   "dc_db": -61.21,
+   "ac_db": -74.26,
+   "rhythm_share": 0.9646,
+   "white_baseline": 0.125,
+   "neighbor_corr": 0.9624
+  },
+  "d_az45full_minus_az0proponly_db": {
+   "physoff": 1.27,
+   "physon": -1.23
+  }
+ },
+ "ray_budget_ladder": {
+  "sionna": {
+   "el+0": {
+    "n": 4096,
+    "dc_db": -59.65,
+    "ac_db": -143.21,
+    "rhythm_share": 0.9155,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.8994
+   },
+   "el-15": {
+    "n": 4096,
+    "dc_db": -124.83,
+    "ac_db": -144.82,
+    "rhythm_share": 0.8306,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.7911
+   },
+   "spp_ko": "규칙값(약 1100 만 발)"
+  },
+  "sionna_p250000000": {
+   "el+0": {
+    "n": 4096,
+    "dc_db": -59.66,
+    "ac_db": -99.31,
+    "rhythm_share": 0.125,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0011
+   },
+   "el-15": {
+    "n": 4096,
+    "dc_db": -118.93,
+    "ac_db": -145.66,
+    "rhythm_share": 0.8652,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.8389
+   },
+   "spp_ko": "2.5 억 발"
+  },
+  "sionna_p1000000000": {
+   "el+0": {
+    "n": 4096,
+    "dc_db": -59.67,
+    "ac_db": -93.58,
+    "rhythm_share": 0.1224,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0037
+   },
+   "el-15": {
+    "n": 4096,
+    "dc_db": -113.36,
+    "ac_db": -138.66,
+    "rhythm_share": 0.9077,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9607
+   },
+   "spp_ko": "10 억 발"
+  },
+  "sionna_p4000000000": {
+   "el+0": {
+    "n": 4096,
+    "dc_db": -59.68,
+    "ac_db": -90.44,
+    "rhythm_share": 0.1237,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.0077
+   },
+   "el-15": {
+    "n": 4096,
+    "dc_db": -108.26,
+    "ac_db": -135.75,
+    "rhythm_share": 0.9105,
+    "white_baseline": 0.125,
+    "neighbor_corr": 0.9726
+   },
+   "spp_ko": "40 억 발"
+  },
+  "gap_mirror_minus_offmirror_ac_db": {
+   "sionna": 1.61,
+   "sionna_p250000000": 46.35,
+   "sionna_p1000000000": 45.08,
+   "sionna_p4000000000": 45.31
+  },
+  "reading_ko": "거울칸(el 0)의 «움직이는 부분» 은 광선을 더 쏠수록 **커진다**(−143.2 → −99.3 → −93.6 → −90.4 dB). 같은 칸의 «가만히 있는 부분» 은 0.03 dB 안에서 붙박이다. 진짜 표적 움직임이면 광선을 늘릴 때 한 값으로 모여야 하는데 모이지 않는다 ⇒ 이 요동의 크기는 표적이 아니라 **광선을 몇 발 쐈나**가 정한다. ⚠이 팔들은 10 m·자세 4096 옛 판이라 절대 레벨은 15 m 판과 나란히 못 놓는다 — 거동만 읽는다."
+ },
+ "range_law_and_sigma": {
+  "ps_physoff_el0_15m_db": -63.249,
+  "ps_physoff_el0_30m_db": -75.33,
+  "ps_15to30_db": -12.081,
+  "ours_el0_15m_db": -54.602,
+  "ours_el0_30m_db": -60.756,
+  "ours_15to30_db": -6.154,
+  "implied_sigma_ps_15m_dbsm": 38.12,
+  "implied_sigma_ps_30m_dbsm": 38.08,
+  "flat_plate_ceilings_dbsm": {
+   "aligned_facets_139cm2": -4.78,
+   "whole_body_face_0.3047x0.371m": 13.4
+  },
+  "reading_ko": "PathSolver 는 거울칸에서 진폭이 1/R² 로 떨어진다(−12.08 dB, 이론 −12.04) — 즉 σ 가 거리에 변하지 않는 «점 산란체» 처럼 행세한다. 그 σ 를 환산하면 15 m 에서 +38.1 dBsm (약 6,500 m²)이다. 정렬된 평판(139 cm²)의 물리 상한은 −4.78 dBsm 이고, 동체 앞면 전체를 완전거울로 쳐도 +13.4 dBsm 이다 ⇒ 이 값은 물리 상한보다 **25 dB 위**다. ⚠우리 커널도 이 칸에서는 무르다 — 우리 E 는 면적[m²]이라 거리에 안 변해야 하는데 15→30 m 에서 −6.15 dB 움직인다(상쇄 잔차라서 무엇을 건드려도 흔들린다)."
+ },
+ "independent_po_arbiter": {
+  "el+0": {
+   "po_d_az45_minus_az0_db": -0.09,
+   "po_az_spread_over_0_90deg_db": 27.32,
+   "observed_d_dc_db": {
+    "ps_nophys": -57.07,
+    "ps_phys": -38.51,
+    "ours": -1.64
+   },
+   "miss_vs_po_db": {
+    "ps_nophys": -56.98,
+    "ps_phys": -38.42,
+    "ours": -1.55
+   }
+  },
+  "el-30": {
+   "po_d_az45_minus_az0_db": -7.25,
+   "po_az_spread_over_0_90deg_db": 30.06,
+   "observed_d_dc_db": {
+    "ps_nophys": 0.6,
+    "ps_phys": -52.51,
+    "ours": -0.74
+   },
+   "miss_vs_po_db": {
+    "ps_nophys": 7.85,
+    "ps_phys": -45.26,
+    "ours": 6.51
+   }
+  },
+  "el-60": {
+   "po_d_az45_minus_az0_db": -2.97,
+   "po_az_spread_over_0_90deg_db": 21.25,
+   "observed_d_dc_db": {
+    "ps_nophys": 2.78,
+    "ps_phys": -26.5,
+    "ours": 18.05
+   },
+   "miss_vs_po_db": {
+    "ps_nophys": 5.75,
+    "ps_phys": -23.53,
+    "ours": 21.02
+   }
+  },
+  "el-90": {
+   "po_d_az45_minus_az0_db": 0.0,
+   "po_az_spread_over_0_90deg_db": 0.0,
+   "observed_d_dc_db": {
+    "ps_nophys": 0.0,
+    "ps_phys": -0.01,
+    "ours": 0.0
+   },
+   "miss_vs_po_db": {
+    "ps_nophys": 0.0,
+    "ps_phys": -0.01,
+    "ours": 0.0
+   }
+  },
+  "po_el0_local_shape_ko": "⭐PO 면적분은 el 0 에서 az 0° 를 **봉우리로 보지 않는다** — az0 −45.0 dB 인데 az6~8 이 −42.4 dB 로 더 높고, 0~90° 를 훑으면 27.3 dB 폭으로 출렁인다. 즉 «az0·el0 에 거대한 거울이 있다» 는 것은 **정확히 마주 선 삼각형을 세는 방식**(광선 솔버가 보는 세계)의 이야기이고, 면 전체를 위상까지 더하는 계산에는 그런 봉우리가 없다.",
+  "reading_ko": "독립 심판(두 엔진 코드 미사용) 기준 az45−az0 은 el 0 −0.09 · el−30 −7.25 · el−60 −2.97 · el−90 0.00 dB 다. el 0 에서는 **우리 커널이 1.6 dB 로 가장 가깝고 PathSolver 가 57 dB 빗나간다**. 그런데 el−60 에서는 **우리 커널이 21 dB 로 가장 멀고** PathSolver(물리 끔)가 5.8 dB 로 가장 가깝다. 어느 한쪽이 늘 옳지 않다. ⚠PO 심판은 그림자·다중반사를 무시하고 평면파·한 자세다 — 절대값이 아니라 방위 비율만 쓴다."
+ },
+ "corrections": [
+  {
+   "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+   "line": "461-464 (Two puzzles 슬라이드 발표자 노트, Q&A 대비)",
+   "now_ko": "«돌리면 0° 에서 PathSolver 의 에코 자체가 25~51 dB 사라집니다. … 우리 커널은 방위에 둔감합니다(레벨차 3 dB 안).»",
+   "fix_ko": "«돌리면 PathSolver 의 정면 특이점이 꺼집니다 — 사라지는 것은 에코가 아니라 가만히 있는 평판 거울항 하나이고, 그 아래 있던 프로펠러 에코는 그대로 남습니다(«프로펠러만» 대조군과 1.3 dB 차). 참고로 방위를 안 돌리고 앙각만 15° 내려도 같은 낙차가 납니다 — 원인은 45° 가 아니라 거울각 이탈입니다. 우리 커널은 방위 두 점밖에 안 재 봤고 그 차이가 격자 산포(3.86 dB) 안이라 «둔감하다» 가 아니라 «아직 못 잰다» 가 맞습니다.»",
+   "why_ko": "「사라진다」·「둔감하다」 둘 다 데이터가 지지하지 않는다. 특히 「둔감」은 격자 산포보다 작은 차이를 «없다» 로 말한 것이고, el−60 에서는 가만히 있는 부분이 +18 dB 움직여 문장 자체가 반례를 갖는다."
+  },
+  {
+   "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+   "line": "587 (The drowned blades 슬라이드 노트)",
+   "now_ko": "«광선을 더 쏘면 깜빡임은 줄 수 있지만 이미 40 억 발이고 …»",
+   "fix_ko": "«광선을 더 쏘면 깜빡임은 오히려 커집니다 — 1100 만 발에서 40 억 발로 가면 정면의 요동이 52.8 dB 올라갑니다(같은 칸의 정지 성분은 0.03 dB 안에서 붙박이). 광선을 더 사는 것은 해결책이 아닙니다.»",
+   "why_ko": "방향이 반대다. 원장 사다리(sionna → p250M → p1G → p4G, el 0)에서 AC 가 −143.21 → −99.31 → −93.58 → −90.44 dB 로 단조 상승한다. 저장소 자체 기록 docs/RESUME.md §R17 도 이미 «정면은 예외로 +70.2 dB 올라간다» 라고 적어 두었다 — 덱이 자기 원장과 어긋나 있다."
+  },
+  {
+   "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+   "line": "585 (및 파일 머리 31행 요약)",
+   "now_ko": "«정체는 회전하는 프롭이 동체의 가림을 자세마다 흔들면서 생기는 표본화 깜빡임»",
+   "fix_ko": "«정체는 거대한 정지 거울항을 광선이 자세마다 다시 주워 담으며 생기는 계산 흔들림입니다. 프롭이 도는 것이 방아쇠는 맞지만, 크기를 정하는 것은 표적이 아니라 광선 예산입니다 — 그래서 박자를 모르고(백색 13 %) 광선을 늘리면 오히려 커집니다.»",
+   "why_ko": "「프롭이 동체 가림을 흔든다」는 물리 모습이면 박자가 서야 하는데 박자 몫이 13.1 %(백색 기준 12.5 %)이고 이웃 표본 상관이 0.010 이다. 51 µs 만에 딴 값이 되는 움직임은 이 드론에 없다."
+  },
+  {
+   "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+   "line": "591-593 (Propellers only 슬라이드 ⚠범위 노트)",
+   "now_ko": "«익사시키는 그 동체 에코 자체가 정면 정반사라, 45° 돌리면 25~51 dB 사라집니다»",
+   "fix_ko": "«익사시키는 그 동체 에코는 시선이 축정렬 평판에 정확히 마주 설 때만 생깁니다. 거울각을 벗어나면(45° 돌려도 되고, 앙각을 15° 내려도 됩니다) 40~57 dB 내려가고, 그 아래 있던 프로펠러 에코가 드러납니다.»",
+   "why_ko": "「45°」에 이름표를 붙이면 방위가 원인처럼 들린다. az0·el−15 가 az45·el0 과 1.4 dB 차로 같은 자리다."
+  },
+  {
+   "file": "/workspace/sionna/docs/RESUME.md",
+   "line": "22 (§1 끝낸 것, 2 번 줄 끝의 ⚠단서)",
+   "now_ko": "«⚠단 이 익사는 정면(방위 0°) 의 성질이다 — 방위를 45° 돌리면 익사시키는 동체 에코가 25~51 dB 사라진다»",
+   "fix_ko": "«⚠단 이 익사는 **거울각(시선이 축정렬 평판에 정확히 마주 서는 자리)** 의 성질이다 — 거기서 벗어나면 동체 정지항이 40~57 dB 내려간다. 방위 45° 는 벗어나는 한 방법일 뿐이고, 방위를 안 돌리고 앙각만 15° 내려도 같다(az0·el−15 DC −118.88 ↔ az45·el0 DC −120.32).»",
+   "why_ko": "원인 변수 오귀속. 또한 같은 줄의 «도는 프롭이 동체 가림을 흔드는 표본화 깜빡임» 도 고쳐야 한다(백색·광선 의존)."
+  },
+  {
+   "file": "/workspace/sionna/docs/RESUME.md",
+   "line": "39 (§1 R12 행)",
+   "now_ko": "«PathSolver 두 팔의 el 0 은 방위 45° 에서 에코 자체가 사라진다 … 우리 커널은 방위에 둔감하고 …»",
+   "fix_ko": "«PathSolver 두 팔의 el 0 은 거울각을 벗어나면 **정지 평판 거울항**이 40~57 dB 내려간다. 남는 요동은 «프로펠러만» 대조군과 1.3 dB 차라 **프로펠러 에코는 방위에 안 변한다**. 우리 커널의 방위 변화는 0.4~3.4 dB 로 격자 산포 밴드(3.86 dB) 안이라 **판정 불가**이고, el−60 의 정지성분은 +18.05 dB 로 밴드 밖이다 — «둔감» 이라고 쓰지 않는다.»",
+   "why_ko": "게이트가 오염된 az0 값을 기준으로 삼았다. 기준을 «프로펠러만» 대조군으로 바꾸면 두 칸 다 통과한다."
+  },
+  {
+   "file": "/workspace/sionna/docs/RESUME.md",
+   "line": "78-82 (§ 미해결 4 번)",
+   "now_ko": "«방위 45° 에서 PathSolver 의 el 0 에코가 사라진다 … 이것이 «진짜 약한 에코» 인지 «계산 바닥» 인지 지금 판으로는 못 가른다 — 표적 없는 잡음 전용 팔과 나란히 돌려야 한다»",
+   "fix_ko": "«**갈렸다.** az45 에 남은 것은 «진짜 약한 에코» 다 — 같은 설정의 «프로펠러만» 대조군과 1.3 dB 차이고 박자 몫 94 %, 이웃 표본 상관 0.97 로 매끄럽다. «계산 바닥» 이었던 쪽은 반대로 **az0·el0** 이다(박자 몫 13 % = 백색, 이웃 상관 0.010, 광선을 11 M→40 억으로 늘리면 52.8 dB 커짐). 잡음 전용 팔은 더 안 돌려도 된다. 대신 새 미해결이 생겼다 — 우리 커널의 방위 미세 스윕이 없다(§열린 질문).»",
+   "why_ko": "이 미해결 항목은 이번 라운드에 해결되었고, 방향이 반대였다."
+  },
+  {
+   "file": "/workspace/sionna/docs/RESUME.md",
+   "line": "13 (§0 헤드라인)",
+   "now_ko": "«0° 익사는 정면(방위 0°) 한정이다»",
+   "fix_ko": "«0° 익사는 **거울각 한정**이다 — 방위 0°·앙각 0° 한 칸에서만 일어나고, 방위든 앙각이든 그 칸을 벗어나면 풀린다.»",
+   "why_ko": "「정면(방위 0°)」이라고 쓰면 방위가 축인 것처럼 읽힌다. 축은 두 각의 조합이 만드는 «정확히 마주 섰나» 하나다."
+  }
+ ]
+}

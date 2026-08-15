@@ -1,0 +1,211 @@
+{
+ "_meta": {
+  "generator": "benchmark/az_falsify_verdict.py",
+  "gpu_ko": "⛔GPU 안 씀 — sionna.rt·mitsuba 임포트 없음.",
+  "inputs": [
+   "outputs/elevation_sweep_md.npz",
+   "outputs/az_falsify_facets.json",
+   "outputs/az_falsify_po.json",
+   "outputs/switch_factorial.json",
+   "outputs/grid_convergence_check.json"
+  ],
+  "grid_band_db": 3.861,
+  "f_flash_hz": 126.66666666666667,
+  "f_tip_el0_hz": 1272.9,
+  "prf_hz": 19700.0
+ },
+ "series_stats": {
+  "ps_off_az0_el0": {
+   "dc_db": -63.25,
+   "ac_db": -94.3,
+   "comb_excess_db": -113.34,
+   "floor_db": -96.07,
+   "above_ftip_pct": 86.21,
+   "lag1_corr": 0.0102,
+   "n_unique": 8192
+  },
+  "ps_off_az45_el0": {
+   "dc_db": -120.32,
+   "ac_db": -145.41,
+   "comb_excess_db": -146.1,
+   "floor_db": -174.95,
+   "above_ftip_pct": 4.89,
+   "lag1_corr": 0.9688,
+   "n_unique": 8192
+  },
+  "ps_off_propsonly_az0_el0": {
+   "dc_db": -141.52,
+   "ac_db": -146.68,
+   "comb_excess_db": -146.83,
+   "floor_db": -174.57999999999998,
+   "above_ftip_pct": 8.12,
+   "lag1_corr": 0.9572,
+   "n_unique": 8192
+  },
+  "ps_off_noprops_az0_el0": {
+   "dc_db": -63.23,
+   "ac_db": -384.45,
+   "comb_excess_db": -403.05,
+   "floor_db": -386.67,
+   "above_ftip_pct": 75.43,
+   "lag1_corr": 0.1178,
+   "n_unique": 15
+  },
+  "ps_on_az0_el0": {
+   "dc_db": -62.08,
+   "ac_db": -94.84,
+   "comb_excess_db": -109.9,
+   "floor_db": -96.48,
+   "above_ftip_pct": 86.41,
+   "lag1_corr": 0.014,
+   "n_unique": 8192
+  },
+  "ps_on_az45_el0": {
+   "dc_db": -100.59,
+   "ac_db": -120.28,
+   "comb_excess_db": -131.98,
+   "floor_db": -122.09,
+   "above_ftip_pct": 82.59,
+   "lag1_corr": 0.0651,
+   "n_unique": 8192
+  },
+  "ours_az0_el0": {
+   "dc_db": -54.6,
+   "ac_db": -70.4,
+   "comb_excess_db": -70.17,
+   "floor_db": -96.69,
+   "above_ftip_pct": 2.7,
+   "lag1_corr": 0.9547,
+   "n_unique": 8192
+  },
+  "ours_az45_el0": {
+   "dc_db": -56.24,
+   "ac_db": -69.85,
+   "comb_excess_db": -70.26,
+   "floor_db": -97.48,
+   "above_ftip_pct": 3.5,
+   "lag1_corr": 0.9541,
+   "n_unique": 8192
+  },
+  "ours_az0_el-60": {
+   "dc_db": -72.03,
+   "ac_db": -66.04,
+   "comb_excess_db": -66.61,
+   "floor_db": -93.94,
+   "above_ftip_pct": 1.44,
+   "lag1_corr": 0.9842,
+   "n_unique": 8192
+  },
+  "ours_az45_el-60": {
+   "dc_db": -53.98,
+   "ac_db": -62.61,
+   "comb_excess_db": -62.44,
+   "floor_db": -93.66,
+   "above_ftip_pct": 0.6,
+   "lag1_corr": 0.9893,
+   "n_unique": 8192
+  }
+ },
+ "kill_1_az0_is_noise_not_signal": {
+  "ko": "az0·el0 의 «움직이는 부분» 은 물리 신호가 아니라 백색 수치잡음이다.",
+  "lag1_az0": 0.0102,
+  "lag1_az45": 0.9688,
+  "lag1_propsonly": 0.9572,
+  "above_ftip_pct_az0": 86.21,
+  "above_ftip_pct_az45": 4.89,
+  "comb_over_floor_db_az0": -17.27,
+  "comb_over_floor_db_az45": 28.85,
+  "why_ko": "이웃 표본 상관 0.01 = 51 µs 만에 완전히 딴 값. 날개끝 도플러 1272.9 Hz 로는 불가능하다(그 정도면 ~15 표본 동안 매끄러워야 한다). 게다가 전력의 86.2 % 가 날개끝 상한 **위** 에 있다 — 드론의 어떤 점도 그보다 빨리 못 움직인다."
+ },
+ "kill_2_az45_residual_is_the_propeller": {
+  "ko": "az45 에 남은 것은 «에코 부재» 가 아니라 **순수 프로펠러 에코** 다.",
+  "comb_az45_full_db": -146.1,
+  "comb_propsonly_az0_db": -146.83,
+  "gap_db": 0.73,
+  "noprops_dc_db": -63.23,
+  "full_dc_db": -63.25,
+  "noprops_ac_db": -384.45,
+  "noprops_n_unique_over_8192": 15,
+  "prop_buried_under_az0_floor_db": 50.76
+ },
+ "kill_3_facet_lottery": {
+  "ko": "동체 57 dB 하락은 «메쉬 삼각형이 마침 시선과 정확히 마주보느냐» 로 정확히 예측된다.",
+  "aligned_area_el0_az0_cm2": 69.673,
+  "aligned_area_el0_az45_cm2": 0.097,
+  "aligned_faces_el0_az0": 90,
+  "aligned_faces_el0_az45": 2,
+  "groups_el0_az0": {
+   "battery(내부)": 32.853,
+   "camera": 34.14,
+   "pcb(내부)": 2.68
+  },
+  "predicted_db_from_area_squared": -57.16,
+  "observed_ps_off_d_dc_db": -57.07,
+  "axis_aligned_area_cm2": 981.2,
+  "total_area_cm2": 3055.9,
+  "horizontal_area_in_cardinal_1deg_bins_cm2": 387.729,
+  "horizontal_area_total_cm2": 548.32,
+  "cross_check_ko": "el −30·−60 에는 어느 방위에도 정렬 삼각형이 0 개 — 저장소의 switch_factorial.json zero_echo_proof 가 순수 정반사 팔(R1D0E0F0)에서 npaths=0 · E≡0 을 기록한 것과 같은 사실이다."
+ },
+ "kill_4_po_arbiter": {
+  "ko": "제3의 심판(직접 짠 평면파 PO 적분)은 el0 에서 −0.09 dB 를 준다.",
+  "po_el0_d_db": -0.09,
+  "po_el0_nonprop_d_db": -5.03,
+  "po_el0_az_spread_db": 27.32,
+  "po_el-60_az_spread_db": 21.25,
+  "plate_lobe": {
+   "body_width_y_0.371m": {
+    "L_m": 0.371,
+    "first_null_deg": 6.629,
+    "at_45deg_db": -37.02,
+    "L_over_lambda": 4.33
+   },
+   "body_len_x_0.305m": {
+    "L_m": 0.3047,
+    "first_null_deg": 8.08,
+    "at_45deg_db": -47.33,
+    "L_over_lambda": 3.56
+   },
+   "body_height_z_0.104m": {
+    "L_m": 0.1039,
+    "first_null_deg": 24.344,
+    "at_45deg_db": -19.8,
+    "L_over_lambda": 1.21
+   },
+   "flat_front_guess_0.10m": {
+    "L_m": 0.1,
+    "first_null_deg": 25.359,
+    "at_45deg_db": -18.32,
+    "L_over_lambda": 1.17
+   },
+   "flat_front_guess_0.05m": {
+    "L_m": 0.05,
+    "first_null_deg": 58.934,
+    "at_45deg_db": -16.95,
+    "L_over_lambda": 0.58
+   },
+   "one_triangle_0.02m": {
+    "L_m": 0.02,
+    "first_null_deg": 90.0,
+    "at_45deg_db": -4.63,
+    "L_over_lambda": 0.23
+   }
+  }
+ },
+ "kill_5_ours_not_insensitive": {
+  "ko": "«우리 커널은 3 dB 안» 도 무조건은 아니다 — el−60 의 가만히 있는 부분은 18 dB 올랐다.",
+  "ours_el-60_d_dc_db": 18.05,
+  "ours_el-60_d_ac_db": 3.43,
+  "ours_el-60_az0_dc_db": -72.03,
+  "ours_el0_az0_dc_db": -54.6,
+  "why_ko": "az0·el−60 이 간섭 골(−72.03 dB, 이웃 앙각보다 18 dB 낮다)이고 az45 가 정상값이다. PO 훑기로 재면 이 앙각의 방위 글린트 산포가 21 dB — 방위 두 점으로는 아무것도 못 잰다."
+ },
+ "verdict_ko": [
+  "«45° 돌리면 PathSolver 정면 에코가 25~51 dB 사라진다» 는 성립하지 않는다.",
+  "−51 dB 는 신호가 아니라 **잡음 바닥** 이 무너진 값이다(바닥 −78.9 dB, 빗살은 az0 에서 아예 측정 불가).",
+  "az45 에 남은 −145 dB 는 프로펠러 에코이고, 프로펠러만 돌린 대조군과 0.73 dB 차이다.",
+  "동체 57 dB 하락은 정렬 삼각형 면적비의 제곱(−57.16 dB)과 0.09 dB 안에서 같다 — 기하가 아니라 **메쉬 축정렬** 이다.",
+  "물리켬 팔의 −25.4 dB 는 두 방위 다 백색(이웃상관 0.014 · 0.065)이라 잡음 대 잡음이다 — 의미 없다.",
+  "«우리 커널은 방위에 둔감» 도 el−60 에서 깨진다(가만히 있는 부분 +18.05 dB)."
+ ]
+}

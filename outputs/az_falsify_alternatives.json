@@ -1,0 +1,790 @@
+{
+ "_meta": {
+  "generator": "benchmark/az_falsify_alternatives.py",
+  "gpu_ko": "⛔GPU 미사용 — sionna.rt·mitsuba 를 임포트하지 않았다.",
+  "inputs": [
+   "outputs/elevation_sweep_md.json",
+   "outputs/elevation_sweep_md.npz",
+   "benchmark/elevation_sweep_md.py",
+   "benchmark/report15_probe.py",
+   "src/scene_build.py",
+   "src/articulated_fast.py",
+   "src/drones.py"
+  ],
+  "band_db": 3.86,
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "claim_under_test_ko": "드론을 방위 45° 돌리면 PathSolver 의 정면(el 0°) 에코가 25~51 dB 사라진다",
+  "headline_ko": "원 주장은 무너진다. ⓵ PathSolver 의 «에코» 가 사라진 칸은 el0 하나뿐이고, 거기서 사라진 것은 **배터리·카메라·PCB 평판의 정지 정반사**(도플러 0)와 그 위의 **백색 표본잡음**이다. ⓶ 같은 팔은 방위를 안 돌려도 앙각을 15° 만 내리면 똑같이 무너진다(DC −118.9 vs az45 의 −120.3). ⓷ az45 에 남은 «움직이는 부분» 은 같은 설정의 «프로펠러만» 대조군과 1.3 dB 안에서 같다 — 표적 에코는 방위에 안 변했다. 옳은 문장은 «방위 45° 면 에코가 사라진다» 가 아니라 «PathSolver 는 거울각(az0·el0)에서만 큰 값을 내고, 그 값은 정지 부위의 정반사이며, 그 잡음이 진짜 마이크로도플러를 52 dB 로 덮는다» 다."
+ },
+ "hypothesis_a_pose_sequence": {
+  "why_ko": "az 는 los(az,el)/place(az,el) 로만 들어간다. 로터 위상 ph 는 az 와 무관하고 rotor_phases() 는 난수를 안 쓴다(선형식, base_deg=None). el=-90 이면 los=[0,0,-1] 이라 방위가 죽으므로 두 팔의 시계열이 같아야 한다.",
+  "pairs": {
+   "ours": {
+    "max_rel_diff": 2.2281799784684753e-15,
+    "bit_equal": false
+   },
+   "ps_phys_off": {
+    "max_rel_diff": 4.0026332435636234e-16,
+    "bit_equal": false
+   },
+   "ps_phys_on": {
+    "max_rel_diff": 0.0037138530847150354,
+    "bit_equal": false
+   }
+  },
+  "verdict_ko": "죽었다 — 나딧에서 세 엔진 모두 두 팔의 시계열이 상대오차 1e-15 이하로 같다. 같은 자세 시퀀스를 썼다는 뜻이다."
+ },
+ "hypothesis_b_fewer_target_hits": {
+  "scene_contents_ko": "scene_build.build_scene() 은 rt.load_scene() (빈 장면) 에 드론 부위 OBJ 만 올린다 — 지면도 벽도 없다. 집계는 hit=(O!=NO_OBJ) 라 «무언가를 맞은» 경로 = 전부 표적 경로다.",
+  "npaths_median": {
+   "ps_phys_off_az0": {
+    "el+0": 897,
+    "el-30": 1505,
+    "el-60": 2070,
+    "el-90": 2357
+   },
+   "ps_phys_off_az45": {
+    "el+0": 1280,
+    "el-30": 1746,
+    "el-60": 2222,
+    "el-90": 2357
+   },
+   "ps_phys_on_az0": {
+    "el+0": 235,
+    "el-30": 366,
+    "el-60": 391,
+    "el-90": 392
+   },
+   "ps_phys_on_az45": {
+    "el+0": 313,
+    "el-30": 414,
+    "el-60": 400,
+    "el-90": 391
+   }
+  },
+  "verdict_ko": "문자 그대로의 (b) 는 죽었다 — 장면에 표적 말고는 아무것도 없고 경로 수는 오히려 늘었다(897→1280 · 235→313). 살아남는 것은 «종류» 판이다: az0·el0 의 큰 값은 **움직이지 않는 부위의 정반사**였다(아래 c2 · d 참조)."
+ },
+ "hypothesis_c_mesh_asymmetry": {
+  "metric_ko": "법선이 관측자 쪽과 0.5° 이내인 삼각형의 면적 합 [m²] — 거울(정반사) 조건. 0 이면 그 방향엔 되비쳐 줄 평면이 없다.",
+  "matrice4e_el0_vs_az": {
+   "az0": 0.006967,
+   "az1": 0.0,
+   "az2": 0.0,
+   "az3": 0.0,
+   "az4": 0.000282,
+   "az5": 1e-05,
+   "az10": 0.0,
+   "az15": 1e-05,
+   "az22.5": 0.0,
+   "az30": 0.0,
+   "az45": 1e-05,
+   "az60": 0.0,
+   "az75": 1e-05,
+   "az85": 0.000107,
+   "az90": 0.012359,
+   "az135": 1e-05,
+   "az180": 0.006967
+  },
+  "matrice4e_az0_vs_el": {
+   "el0": 0.006967,
+   "el-2": 0.0,
+   "el-5": 0.0,
+   "el-10": 7.8e-05,
+   "el-15": 0.0,
+   "el-30": 0.0,
+   "el-45": 2.1e-05,
+   "el-60": 0.0,
+   "el-75": 0.0,
+   "el-90": 0.028336
+  },
+  "other_airframes_el0": {
+   "mini5pro": {
+    "az0": 0.004927,
+    "az22.5": 0.0,
+    "az45": 0.0,
+    "az67.5": 0.0,
+    "az90": 0.004768
+   },
+   "s1000plus": {
+    "az0": 0.020182,
+    "az22.5": 0.008672,
+    "az45": 0.00168,
+    "az67.5": 0.008672,
+    "az90": 0.024668
+   }
+  },
+  "matrice4e_az0_el0_groups": {
+   "battery": 0.003285,
+   "camera": 0.003414,
+   "pcb": 0.000268
+  },
+  "verdict_ko": "반만 산다. 메쉬는 확실히 방위에 구조가 있다 — matrice4e 의 거울면은 az 0·90·180 에만 있고 그 사이는 **전부 0** 이다(1°·5°·10°·30° 도 45° 와 똑같이 0). 그러니 «45° 가 하필 최악» 이 아니라 «0° 만 유일한 거울각» 이다. 게다가 앙각으로는 **2° 만 틀어도** 0 이 된다 — 축은 방위가 아니라 «거울에서 벗어났나» 다. ⭐거울면의 정체는 동체 껍질이 아니라 **배터리·카메라·PCB 의 평평한 내부 판**이다(위 groups)."
+ },
+ "hypothesis_d_metric": {
+  "cells": {
+   "ours_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.001247466210195116,
+    "abs_max": 0.0024889537035764683,
+    "dc_db": -54.6,
+    "ac_db": -70.4,
+    "rhythm_pct": 98.94,
+    "rhythm_ac_db": -70.45,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.00282
+   },
+   "ours_az45_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.0009075914466083483,
+    "abs_max": 0.002664912772477326,
+    "dc_db": -56.24,
+    "ac_db": -69.85,
+    "rhythm_pct": 98.2,
+    "rhythm_ac_db": -69.93,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.00252
+   },
+   "ours_propsonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 2.7972754445309645e-06,
+    "abs_max": 0.0008810390482867769,
+    "dc_db": -82.97,
+    "ac_db": -70.4,
+    "rhythm_pct": 98.94,
+    "rhythm_ac_db": -70.45,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.00282
+   },
+   "ps_off_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.00045967808057965025,
+    "abs_max": 0.0006896242259785799,
+    "dc_db": -63.25,
+    "ac_db": -94.3,
+    "rhythm_pct": 12.59,
+    "rhythm_ac_db": -103.3,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.58432
+   },
+   "ps_off_az0_el-15": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 1.0542580034581635e-06,
+    "abs_max": 1.2212045717920855e-06,
+    "dc_db": -118.88,
+    "ac_db": -145.33,
+    "rhythm_pct": 98.72,
+    "rhythm_ac_db": -145.39,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.00339
+   },
+   "ps_off_az45_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 8.5261572916091e-07,
+    "abs_max": 1.0932548459844676e-06,
+    "dc_db": -120.32,
+    "ac_db": -145.41,
+    "rhythm_pct": 99.08,
+    "rhythm_ac_db": -145.45,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.00175
+   },
+   "ps_off_propsonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 1.378843971642248e-09,
+    "abs_max": 1.9910689487385347e-07,
+    "dc_db": -141.52,
+    "ac_db": -146.68,
+    "rhythm_pct": 99.08,
+    "rhythm_ac_db": -146.72,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.00226
+   },
+   "ps_off_bodyonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.0006895115156904195,
+    "abs_max": 0.0006895115156904199,
+    "dc_db": -63.23,
+    "ac_db": -384.45,
+    "rhythm_pct": 11.06,
+    "rhythm_ac_db": -394.02,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.49259
+   },
+   "ps_on_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.0005575768483645484,
+    "abs_max": 0.0007919098786030277,
+    "dc_db": -62.08,
+    "ac_db": -94.84,
+    "rhythm_pct": 13.73,
+    "rhythm_ac_db": -103.47,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.50492
+   },
+   "ps_on_az45_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 2.3405124057046813e-06,
+    "abs_max": 1.2355598742792526e-05,
+    "dc_db": -100.59,
+    "ac_db": -120.28,
+    "rhythm_pct": 17.72,
+    "rhythm_ac_db": -127.79,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.53044
+   },
+   "ps_on_propsonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 3.8016066784969043e-10,
+    "abs_max": 6.597032425843888e-06,
+    "dc_db": -135.81,
+    "ac_db": -119.05,
+    "rhythm_pct": 19.64,
+    "rhythm_ac_db": -126.12,
+    "white_baseline_pct": 12.33,
+    "flatness": 0.52954
+   }
+  },
+  "why_ko": "AC(정지성분 제거 후 전력) 안에서 **리듬(f_flash 정수배)** 과 **백색** 을 갈라 본다. 백색 기준선은 마스크가 차지한 빈 비율이다.",
+  "verdict_ko": "⭐살았다 — 결정적이다. az0·el0 의 PathSolver AC 는 **백색**이다(리듬 몫 9.7 % ≈ 백색 기준선 9.6 %, 평탄도 0.58). 같은 팔의 다른 앙각·az45 는 전부 리듬 99 %·평탄도 0.002 다. 즉 az0·el0 의 «움직이는 부분» 은 에코가 아니라 **정지 정반사 위에 얹힌 광선표본 잡음**이다. 프로펠러를 뺀 팔(bodyonly)의 AC 가 −384 dB(= 완전 상수)라, 장면이 안 변하면 PathSolver 는 결정론이고 프롭이 움직여 장면이 바뀔 때만 그 큰 항이 흔들린다는 뜻이다."
+ },
+ "core_control_props_only": {
+  "why_ko": "az45 에서 남은 것이 정말 프로펠러 에코라면, 같은 설정의 «프로펠러만» 팔과 같아야 한다. 원장에 그 대조군이 이미 있다(--parts prop).",
+  "rows": [
+   {
+    "physics": "physics_off",
+    "el_deg": 0.0,
+    "ac_az45_whole_db": -145.41,
+    "ac_az0_propsonly_db": -146.68,
+    "ac_az0_whole_db": -94.3,
+    "d_az45_vs_propsonly_db": 1.27,
+    "d_az0_vs_propsonly_db": 52.38,
+    "inside_band_az45": true,
+    "inside_band_az0": false
+   },
+   {
+    "physics": "physics_off",
+    "el_deg": -30.0,
+    "ac_az45_whole_db": -133.57,
+    "ac_az0_propsonly_db": -135.47,
+    "ac_az0_whole_db": -135.66,
+    "d_az45_vs_propsonly_db": 1.9,
+    "d_az0_vs_propsonly_db": -0.19,
+    "inside_band_az45": true,
+    "inside_band_az0": true
+   },
+   {
+    "physics": "physics_off",
+    "el_deg": -60.0,
+    "ac_az45_whole_db": -125.65,
+    "ac_az0_propsonly_db": -129.55,
+    "ac_az0_whole_db": -129.72,
+    "d_az45_vs_propsonly_db": 3.9,
+    "d_az0_vs_propsonly_db": -0.17,
+    "inside_band_az45": false,
+    "inside_band_az0": true
+   },
+   {
+    "physics": "physics_off",
+    "el_deg": -90.0,
+    "ac_az45_whole_db": -135.72,
+    "ac_az0_propsonly_db": -132.67,
+    "ac_az0_whole_db": -135.72,
+    "d_az45_vs_propsonly_db": -3.05,
+    "d_az0_vs_propsonly_db": -3.05,
+    "inside_band_az45": true,
+    "inside_band_az0": true
+   },
+   {
+    "physics": "physics_on",
+    "el_deg": 0.0,
+    "ac_az45_whole_db": -120.28,
+    "ac_az0_propsonly_db": -119.05,
+    "ac_az0_whole_db": -94.84,
+    "d_az45_vs_propsonly_db": -1.23,
+    "d_az0_vs_propsonly_db": 24.21,
+    "inside_band_az45": true,
+    "inside_band_az0": false
+   },
+   {
+    "physics": "physics_on",
+    "el_deg": -30.0,
+    "ac_az45_whole_db": -135.82,
+    "ac_az0_propsonly_db": -130.53,
+    "ac_az0_whole_db": -126.6,
+    "d_az45_vs_propsonly_db": -5.29,
+    "d_az0_vs_propsonly_db": 3.93,
+    "inside_band_az45": false,
+    "inside_band_az0": false
+   },
+   {
+    "physics": "physics_on",
+    "el_deg": -60.0,
+    "ac_az45_whole_db": -131.84,
+    "ac_az0_propsonly_db": -129.06,
+    "ac_az0_whole_db": -125.88,
+    "d_az45_vs_propsonly_db": -2.78,
+    "d_az0_vs_propsonly_db": 3.18,
+    "inside_band_az45": true,
+    "inside_band_az0": true
+   },
+   {
+    "physics": "physics_on",
+    "el_deg": -90.0,
+    "ac_az45_whole_db": -118.38,
+    "ac_az0_propsonly_db": -122.57,
+    "ac_az0_whole_db": -118.37,
+    "d_az45_vs_propsonly_db": 4.19,
+    "d_az0_vs_propsonly_db": 4.2,
+    "inside_band_az45": false,
+    "inside_band_az0": false
+   }
+  ],
+  "verdict_ko": "⭐«az45 의 전체 기체» 는 «az0 의 프로펠러만» 과 사실상 같다 — 여덟 칸 중 다섯이 3.86 dB 밴드 안이고 최대 차이가 5.3 dB 다(중앙값 2.9 dB). 반대로 «az0 의 전체 기체» 는 **el0 한 칸에서만** 프로펠러만보다 +52.4 dB(물리 끔) · +24.2 dB(물리 켬) 다 — 다른 앙각은 −0.2~+4.2 dB 로 프로펠러만과 같다. 즉 방위가 바꾼 것은 **el0 한 칸의 정지 정반사와 그 위의 잡음**이지 표적 에코가 아니다. ⚠원 주장의 «25 dB · 51 dB» 는 그 한 칸의 오염분과 자릿수까지 같다(52.4 / 24.2)."
+ },
+ "hypothesis_d2_ray_budget_ladder": {
+  "note_ko": "⚠이 사다리 팔은 range 10 m · 자세 4096 이다(머리 판 15 m 와 다른 판). 여기서 보는 것은 절대 레벨이 아니라 **광선 예산에 대한 거동**이다.",
+  "at_mirror_el0_az0": [
+   {
+    "arm": "sionna",
+    "spp": 11111111,
+    "npaths_median": 9,
+    "dc_db": -59.65,
+    "ac_db": -143.21,
+    "rhythm_pct": 96.85,
+    "flatness": 0.01155
+   },
+   {
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "npaths_median": 127,
+    "dc_db": -59.66,
+    "ac_db": -99.31,
+    "rhythm_pct": 12.49,
+    "flatness": 0.54007
+   },
+   {
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "npaths_median": 471,
+    "dc_db": -59.67,
+    "ac_db": -93.58,
+    "rhythm_pct": 12.15,
+    "flatness": 0.60511
+   },
+   {
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "npaths_median": 2008,
+    "dc_db": -59.68,
+    "ac_db": -90.44,
+    "rhythm_pct": 11.6,
+    "flatness": 0.58768
+   }
+  ],
+  "off_mirror_el-15_az0": [
+   {
+    "arm": "sionna",
+    "spp": 11111111,
+    "npaths_median": 7,
+    "dc_db": -124.83,
+    "ac_db": -144.82,
+    "rhythm_pct": 88.09,
+    "flatness": 0.04621
+   },
+   {
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "npaths_median": 159,
+    "dc_db": -118.93,
+    "ac_db": -145.66,
+    "rhythm_pct": 90.96,
+    "flatness": 0.03397
+   },
+   {
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "npaths_median": 736,
+    "dc_db": -113.36,
+    "ac_db": -138.66,
+    "rhythm_pct": 97.73,
+    "flatness": 0.00687
+   },
+   {
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "npaths_median": 2767,
+    "dc_db": -108.26,
+    "ac_db": -135.75,
+    "rhythm_pct": 98.37,
+    "flatness": 0.0037
+   }
+  ],
+  "verdict_ko": "⭐거울각(el0·az0)에서 광선을 11 M → 4 G 로 360 배 늘리면 DC 는 −59.6 dB 에 붙박이인데 AC 는 −143.2 → −90.4 dB 로 **52.8 dB 커지고** 리듬 몫이 96.9 % → 11.6 % 로 무너진다. 물리 에코라면 광선을 늘릴수록 수렴해야 한다 — 커지는 것은 추정기 잡음뿐이다. 거울에서 벗어난 칸(el−15)은 같은 사다리에서 AC 가 9 dB 만 오르고 리듬이 88~98 % 로 유지된다. ⭐같은 10 m 판 안에서만 비교하면: 광선 11 M 에서 «거울칸 vs 거울밖칸» 의 AC 차는 **1.6 dB**(−143.2 vs −144.8) 인데, 광선 4 G 에서는 **45.3 dB**(−90.4 vs −135.8) 로 벌어진다. 즉 «거울칸만 50 dB 높다» 는 현상 자체가 광선 예산이 만든 것이고, az45 를 그 부풀린 값과 견주니 «51 dB 사라졌다» 가 나온 것이다."
+ },
+ "hypothesis_e_numerics": {
+  "cells": {
+   "ours_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.001247466210195116,
+    "abs_max": 0.0024889537035764683
+   },
+   "ours_az45_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.0009075914466083483,
+    "abs_max": 0.002664912772477326
+   },
+   "ours_propsonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 2.7972754445309645e-06,
+    "abs_max": 0.0008810390482867769
+   },
+   "ps_off_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.00045967808057965025,
+    "abs_max": 0.0006896242259785799
+   },
+   "ps_off_az0_el-15": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 1.0542580034581635e-06,
+    "abs_max": 1.2212045717920855e-06
+   },
+   "ps_off_az45_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 8.5261572916091e-07,
+    "abs_max": 1.0932548459844676e-06
+   },
+   "ps_off_propsonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 1.378843971642248e-09,
+    "abs_max": 1.9910689487385347e-07
+   },
+   "ps_off_bodyonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.0006895115156904195,
+    "abs_max": 0.0006895115156904199
+   },
+   "ps_on_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 0.0005575768483645484,
+    "abs_max": 0.0007919098786030277
+   },
+   "ps_on_az45_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 2.3405124057046813e-06,
+    "abs_max": 1.2355598742792526e-05
+   },
+   "ps_on_propsonly_az0_el0": {
+    "n": 8192,
+    "n_zero": 0,
+    "n_nonfinite": 0,
+    "abs_min": 3.8016066784969043e-10,
+    "abs_max": 6.597032425843888e-06
+   }
+  },
+  "double_precision_floor_db": -6153.1,
+  "verdict_ko": "죽었다 — 결측 0 · 비유한값 0 이고 |E| 최솟값이 1e-9 대라 배정밀도 언더플로(≈ −6154 dB)와 5,000 dB 넘게 떨어져 있다. −145 dB 는 수치 한계가 아니다. 오히려 같은 파이프라인이 −384 dB 를 정확히 표현했다(bodyonly)."
+ },
+ "restated": {
+  "ours": {
+   "el+0": {
+    "ac_db": [
+     -70.4,
+     -69.85
+    ],
+    "d_ac_db": 0.55,
+    "rhythmic_ac_db": [
+     -70.45,
+     -69.93
+    ],
+    "d_rhythmic_db": 0.52,
+    "rhythm_pct": [
+     98.94,
+     98.2
+    ],
+    "dc_db": [
+     -54.6,
+     -56.24
+    ],
+    "d_dc_db": -1.64
+   },
+   "el-30": {
+    "ac_db": [
+     -69.11,
+     -68.75
+    ],
+    "d_ac_db": 0.36,
+    "rhythmic_ac_db": [
+     -69.19,
+     -68.84
+    ],
+    "d_rhythmic_db": 0.35,
+    "rhythm_pct": [
+     98.13,
+     97.96
+    ],
+    "dc_db": [
+     -64.88,
+     -65.62
+    ],
+    "d_dc_db": -0.74
+   },
+   "el-60": {
+    "ac_db": [
+     -66.04,
+     -62.61
+    ],
+    "d_ac_db": 3.43,
+    "rhythmic_ac_db": [
+     -66.08,
+     -62.63
+    ],
+    "d_rhythmic_db": 3.45,
+    "rhythm_pct": [
+     99.14,
+     99.64
+    ],
+    "dc_db": [
+     -72.03,
+     -53.98
+    ],
+    "d_dc_db": 18.05
+   },
+   "el-90": {
+    "ac_db": [
+     -81.56,
+     -81.56
+    ],
+    "d_ac_db": 0.0,
+    "rhythmic_ac_db": [
+     -83.44,
+     -83.44
+    ],
+    "d_rhythmic_db": 0.0,
+    "rhythm_pct": [
+     64.87,
+     64.87
+    ],
+    "dc_db": [
+     -41.29,
+     -41.29
+    ],
+    "d_dc_db": 0.0
+   }
+  },
+  "ps_off": {
+   "el+0": {
+    "ac_db": [
+     -94.3,
+     -145.41
+    ],
+    "d_ac_db": -51.11,
+    "rhythmic_ac_db": [
+     -103.3,
+     -145.45
+    ],
+    "d_rhythmic_db": -42.15,
+    "rhythm_pct": [
+     12.59,
+     99.08
+    ],
+    "dc_db": [
+     -63.25,
+     -120.32
+    ],
+    "d_dc_db": -57.07
+   },
+   "el-30": {
+    "ac_db": [
+     -135.66,
+     -133.57
+    ],
+    "d_ac_db": 2.09,
+    "rhythmic_ac_db": [
+     -135.67,
+     -133.58
+    ],
+    "d_rhythmic_db": 2.09,
+    "rhythm_pct": [
+     99.78,
+     99.8
+    ],
+    "dc_db": [
+     -137.09,
+     -136.49
+    ],
+    "d_dc_db": 0.6
+   },
+   "el-60": {
+    "ac_db": [
+     -129.72,
+     -125.65
+    ],
+    "d_ac_db": 4.07,
+    "rhythmic_ac_db": [
+     -129.74,
+     -125.65
+    ],
+    "d_rhythmic_db": 4.09,
+    "rhythm_pct": [
+     99.53,
+     99.86
+    ],
+    "dc_db": [
+     -121.36,
+     -118.58
+    ],
+    "d_dc_db": 2.78
+   },
+   "el-90": {
+    "ac_db": [
+     -135.72,
+     -135.72
+    ],
+    "d_ac_db": 0.0,
+    "rhythmic_ac_db": [
+     -135.8,
+     -135.8
+    ],
+    "d_rhythmic_db": 0.0,
+    "rhythm_pct": [
+     98.25,
+     98.25
+    ],
+    "dc_db": [
+     -118.01,
+     -118.01
+    ],
+    "d_dc_db": 0.0
+   }
+  },
+  "ps_on": {
+   "el+0": {
+    "ac_db": [
+     -94.84,
+     -120.28
+    ],
+    "d_ac_db": -25.44,
+    "rhythmic_ac_db": [
+     -103.47,
+     -127.79
+    ],
+    "d_rhythmic_db": -24.32,
+    "rhythm_pct": [
+     13.73,
+     17.72
+    ],
+    "dc_db": [
+     -62.08,
+     -100.59
+    ],
+    "d_dc_db": -38.51
+   },
+   "el-30": {
+    "ac_db": [
+     -126.6,
+     -135.82
+    ],
+    "d_ac_db": -9.22,
+    "rhythmic_ac_db": [
+     -134.74,
+     -140.04
+    ],
+    "d_rhythmic_db": -5.3,
+    "rhythm_pct": [
+     15.37,
+     37.84
+    ],
+    "dc_db": [
+     -95.47,
+     -147.98
+    ],
+    "d_dc_db": -52.51
+   },
+   "el-60": {
+    "ac_db": [
+     -125.88,
+     -131.84
+    ],
+    "d_ac_db": -5.96,
+    "rhythmic_ac_db": [
+     -132.76,
+     -133.38
+    ],
+    "d_rhythmic_db": -0.62,
+    "rhythm_pct": [
+     20.53,
+     70.22
+    ],
+    "dc_db": [
+     -105.98,
+     -132.48
+    ],
+    "d_dc_db": -26.5
+   },
+   "el-90": {
+    "ac_db": [
+     -118.37,
+     -118.38
+    ],
+    "d_ac_db": -0.01,
+    "rhythmic_ac_db": [
+     -126.9,
+     -126.91
+    ],
+    "d_rhythmic_db": -0.01,
+    "rhythm_pct": [
+     14.05,
+     14.01
+    ],
+    "dc_db": [
+     -68.47,
+     -68.48
+    ],
+    "d_dc_db": -0.01
+   }
+  }
+ }
+}
