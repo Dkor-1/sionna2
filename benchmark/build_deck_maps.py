@@ -235,8 +235,11 @@ def structure_bars():
     print(f"  ✅ {out}")
 
 
-def band_energy_spectrum():
+def band_energy_spectrum(pairs=(((0.0, -30.0), "a"), ((-60.0, -90.0), "b"))):
     """⭐**블레이드 대역 전력의 변조 스펙트럼** — 두 각도씩, 넓은/확대 × 3팔/2팔 = 8 장.
+
+    v10(사용자 지시 2026-08-15): 짝을 «잘 맞는 판(−30°·−60°)» 과 «의아한 판(0°·−90°)» 으로
+    재편 — pairs 인자로 굽는다(태그 3060 · 0090). v9 짝(a·b)도 재현 가능하게 남긴다.
 
     사용자 지시(2026-08-15): −90° 를 추가하되 잘 보이게 «0°·−30° 한 장, −60°·−90° 한 장».
     ⚠−90° 는 날개 천장이 0 Hz 라 **블레이드 대역이 정의되지 않는다** — 0° 의 대역
@@ -271,7 +274,7 @@ def band_energy_spectrum():
     cols = ("#c62828", "#8e9aab", "#1565c0")
     for narm, atag in ((3, ""), (2, "2")):
         for lo, hi, vtag in ((100.0, 1000.0, "wide"), (0.0, 420.0, "zoom")):
-            for pair, ptag in (((0.0, -30.0), "a"), ((-60.0, -90.0), "b")):
+            for pair, ptag in pairs:
                 fig, ax = plt.subplots(1, 2, figsize=(26.0, 9.4), sharey=True)
                 for j, el in enumerate(pair):
                     a = ax[j]
@@ -308,7 +311,7 @@ def band_energy_spectrum():
                 print(f"  ✅ {out}")
 
 
-def maps_dc_removed(els=(0.0, -30.0, -60.0)):
+def maps_dc_removed(els=(0.0, -30.0, -60.0), stem="deck_maps_dc"):
     """⭐**정지 성분을 뺀** 맵 — 가만히 있는 동체가 맵 에너지의 32~66 % 를 먹는다.
 
     빼기 전에는 세 판 모두 가운데 가로띠가 화면을 지배해 색눈금을 가져간다. 자세 시계열의
@@ -334,7 +337,59 @@ def maps_dc_removed(els=(0.0, -30.0, -60.0)):
                 a.set_xlabel("time [ms]")
     cb = fig.colorbar(ax[0, 0].collections[0], ax=ax, fraction=0.014, pad=0.008)
     cb.set_label("dB below the brightest point in that panel", fontsize=17)
-    out = f"{FIG}/deck_maps_dc.png"
+    out = f"{FIG}/{stem}.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
+def mechanism_row():
+    """⭐0° 붕괴 기전 해부(덱 v11) — PS 다끔(확산 켬) 한 엔진, 장면을 반으로 갈라 본다.
+
+    전체 장면 / 로터만 / 동체만. 판정(2026-08-15 실측): 로터만은 리듬 ~90 % 로 박자를
+    아는데 동체 에코보다 ~78 dB 약하고, 전체 장면의 요동은 그 둘의 합이 아니라(상관 0.005)
+    회전 프롭이 동체 가림을 흔드는 **표본화 깜빡임**(진짜 날개 신호의 ~10⁵ 배)이다.
+    """
+    A_FULL = "sionna_p4000000000_r15_n8192_d1"
+    A_ROT = "sionna_p4000000000_partsprop_r15_n8192_d1"
+    A_BODY = "sionna_p4000000000_partsnoprop_r15_n8192_d1"
+    FT0 = float(ROW[(A_FULL, 0.0)]["f_tip_hz"])
+
+    def rhy(E, hw=8.0):
+        n = E.size
+        P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
+        fr = np.fft.fftfreq(n, 1.0 / PRF)
+        above = np.abs(fr) >= FT0
+        k = np.round(np.abs(fr) / FFL)
+        return 100.0 * P[above & (np.abs(np.abs(fr) - k * FFL) <= hw)].sum() / P[above].sum()
+
+    Es = {a: np.asarray(Z[f"{a}/el+0"], complex) for a in (A_FULL, A_ROT, A_BODY)}
+    acp = {a: float(np.mean(np.abs(E - E.mean()) ** 2)) for a, E in Es.items()}
+    lab = {
+        A_FULL: f"motion rhythm {rhy(Es[A_FULL]):.0f} %",
+        A_ROT: f"motion {10*np.log10(acp[A_ROT]/acp[A_FULL]):.0f} dB weaker, "
+               f"rhythm {rhy(Es[A_ROT]):.0f} %",
+        A_BODY: "no motion at all",
+    }
+    n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    fig, ax = plt.subplots(1, 3, figsize=(27.5, 4.7), sharex=True, sharey=True)
+    for c, (arm, nm) in enumerate(((A_FULL, "Full scene"), (A_ROT, "Propellers only"),
+                                   (A_BODY, "Body only"))):
+        a = ax[c]
+        E = Es[arm][n0:n0 + nz]
+        f, t, S, _ = flash_spec(E, PRF, FFL, PERIODS)
+        draw(a, t, f, S, FT0)
+        a.set_ylim(-2000, 2000)
+        a.set_title(nm, pad=8)
+        a.set_xlabel("time [ms]")
+        if c == 0:
+            a.set_ylabel("0" + chr(176) + "\nDoppler [Hz]")
+        a.text(0.035, 0.945, lab[arm], transform=a.transAxes, color="w",
+               fontsize=15.5, va="top",
+               bbox=dict(fc="k", alpha=0.55, ec="none", pad=2.2))
+    cb = fig.colorbar(ax[0].collections[0], ax=ax, fraction=0.016, pad=0.010)
+    cb.set_label("dB below the brightest point in that panel")
+    out = f"{FIG}/deck_maps_mech0.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  ✅ {out}")
@@ -349,3 +404,10 @@ if __name__ == "__main__":
     full_grid()
     pair((0.0, -60.0), "deck_maps_pair")
     pair((-90.0,), "deck_maps_nadir")
+    # ── v10 짝(사용자 지시 2026-08-15): 잘 맞는 판 −30°·−60° / 의아한 판 0°·−90° ──
+    band_energy_spectrum(pairs=(((-30.0, -60.0), "3060"), ((0.0, -90.0), "0090")))
+    maps_dc_removed((-30.0, -60.0), stem="deck_maps_dc3060")
+    maps_dc_removed((0.0, -90.0), stem="deck_maps_dc0090")
+    pair((-30.0, -60.0), "deck_maps_pair3060")
+    pair((0.0, -90.0), "deck_maps_pair0090")
+    mechanism_row()

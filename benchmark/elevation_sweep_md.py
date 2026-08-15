@@ -62,7 +62,9 @@ import re
 import sys
 import time
 
-os.environ.setdefault("SIONNA2_GPU", "2")
+# ⛔(2026-08-15 제거) 옛 «GPU2 고정» 유물 setdefault("SIONNA2_GPU","2") 가 여기 있었다.
+#   런처가 CUDA_VISIBLE_DEVICES 로 보낸 카드를 gpu.pick() 이 이 유물로 덮어써서, 분산
+#   투입한 팔들이 전부 물리 GPU2 에 쌓였다. 카드 선택은 런처(감시기·수동)가 한다.
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -216,6 +218,8 @@ def run(a) -> None:
                 + (f"_sw{swbits}" if swbits else "")
                 + ("_stockdef" if getattr(a, "stock", False) else "")
                 + (f"_only{only}" if only else "")
+                + (f"_parts{str(a.parts).replace(',', '').replace('-', 'no')}"
+                   if getattr(a, "parts", "") else "")
                 + tagr + ("" if not getattr(a, "max_depth", 0) else f"_d{mdep}"))
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
         if os.path.exists(f) and not a.overwrite:
@@ -234,6 +238,16 @@ def run(a) -> None:
                               f"elev_{spec.key}_e{el:+.0f}s{a.shard}"
                               f"_p{spp}_pid{os.getpid()}_{i%2}")
             paths_obj = m.write_obj_per_group(dd, spec.key)
+            if getattr(a, "parts", ""):
+                ps_ = str(a.parts)
+                if ps_.startswith("-"):                  # -prop → prop 만 뺀 나머지 전부
+                    dropg = set(ps_[1:].split(","))
+                    paths_obj = {g: p for g, p in paths_obj.items() if g not in dropg}
+                else:
+                    keepg = set(ps_.split(","))
+                    paths_obj = {g: p for g, p in paths_obj.items() if g in keepg}
+                if not paths_obj:
+                    raise SystemExit(f"⛔ --parts {a.parts}: 남는 그룹이 없다")
             parts = [RP.Part(name=f"{spec.key}_{g}_{i%2}", obj=p,
                              mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
                      for g, p in paths_obj.items()]
@@ -528,6 +542,10 @@ def main() -> None:
                          "상한 위 누설이 격자 표본화에서 오는지 가르는 축이다 — 촘촘하게 "
                          "하면 내려가야 한다. 계산량은 대략 DIV² 로 는다. "
                          "0 이 아니면 파일명에 _div<N> 이 붙는다. (PathSolver 에는 없는 축)")
+    ap.add_argument("--parts", default="",
+                    help="쉼표 구분 그룹 필터(예: prop) — Sionna 가지 전용. 장면에 그 "
+                         "그룹 부품만 넣는다(0° 붕괴 기전 검증: 기근이냐 익사냐). "
+                         "꼬리표 _parts<이름>. 우리 커널 쪽 대응물은 ours_free 엔진.")
     ap.add_argument("--merge", action="store_true")
     ap.add_argument("--overwrite", action="store_true")
     a = ap.parse_args()

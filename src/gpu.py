@@ -128,6 +128,17 @@ def pick(n: int = 1, min_free_mb: int = MIN_FREE_MB, verbose: bool = True) -> st
     if _PICKED is not None:
         return _PICKED
 
+    # ⭐⭐우선순위 (2026-08-15 사고로 확정): **런처가 준 CUDA_VISIBLE_DEVICES 가 최우선.**
+    #   여러 벤치 스크립트에 옛 «카드 고정» 시절의 setdefault("SIONNA2_GPU", "2") 유물이
+    #   남아 있는데, 예전 코드는 SIONNA2_GPU 를 먼저 봐서 그 유물이 **런처의 CVD 를 덮어썼다**
+    #   — 카드 0·1·4 로 보낸 네 팔이 전부 물리 GPU2 에 쌓여 배치 규약을 어겼다(사용자 발견).
+    #   CVD 는 가장 낮은 층의 명시적 지정이고, SIONNA2_GPU 를 쓰는 런처(add_slot 류)는 CVD 도
+    #   같은 값으로 내보내므로 이 순서가 어느 쪽 런처와도 충돌하지 않는다.
+    if "CUDA_VISIBLE_DEVICES" in os.environ:
+        _PICKED = os.environ["CUDA_VISIBLE_DEVICES"]
+        if verbose:
+            print(f"[gpu] 이미 지정됨 → GPU {_PICKED}")
+        return _PICKED
     forced = os.environ.get("SIONNA2_GPU")
     if forced:
         os.environ["CUDA_VISIBLE_DEVICES"] = forced
@@ -135,11 +146,6 @@ def pick(n: int = 1, min_free_mb: int = MIN_FREE_MB, verbose: bool = True) -> st
         if verbose:
             print(f"[gpu] SIONNA2_GPU 강제 → GPU {forced}")
         return forced
-    if "CUDA_VISIBLE_DEVICES" in os.environ:
-        _PICKED = os.environ["CUDA_VISIBLE_DEVICES"]
-        if verbose:
-            print(f"[gpu] 이미 지정됨 → GPU {_PICKED}")
-        return _PICKED
 
     st = gpu_status()
     if not st:
