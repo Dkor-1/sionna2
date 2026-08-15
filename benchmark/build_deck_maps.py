@@ -398,6 +398,107 @@ def mechanism_row():
     print(f"  ✅ {out}")
 
 
+def props_compare():
+    """⭐프로펠러만 3엔진 비교(덱 v13, 사용자 지시 2026-08-15) — 0°, 로터는 계속 회전.
+
+    우리 커널(ours_free) / Sionna 물리 끔 / Sionna 물리 켬 — 셋 다 장면에 **프로펠러만**
+    남기고 같은 회전 시계열(8,192 자세)을 돌린 판. 굽는 것:
+      deck_maps_props3.png   맵 1×3
+      deck_be_props3.png     블레이드 대역 전력의 변조 스펙트럼 — 넓은/확대 두 패널 × 3곡선
+    """
+    P_ARMS = [
+        ("ours_free_r15_n8192", "Our kernel", "#c62828"),
+        ("sionna_p4000000000_partsprop_r15_n8192_d1", "Sionna, physics off", "#8e9aab"),
+        ("sionna_p4000000000_phys_partsprop_r15_n8192_d1", "Sionna, physics on", "#1565c0"),
+    ]
+    FT0 = float(ROW[(ARMS[0][0], 0.0)]["f_tip_hz"])
+
+    def rhy(E, hw=8.0):
+        n = E.size
+        P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
+        fr = np.fft.fftfreq(n, 1.0 / PRF)
+        above = np.abs(fr) >= FT0
+        k = np.round(np.abs(fr) / FFL)
+        return 100.0 * P[above & (np.abs(np.abs(fr) - k * FFL) <= hw)].sum() / P[above].sum()
+
+    Es = {a: np.asarray(Z[f"{a}/el+0"], complex) for a, _n, _c in P_ARMS}
+    # ── 맵 1×3 ──
+    n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    fig, ax = plt.subplots(1, 3, figsize=(27.5, 4.7), sharex=True, sharey=True)
+    for c, (arm, nm, _col) in enumerate(P_ARMS):
+        a = ax[c]
+        E = Es[arm][n0:n0 + nz]
+        f, t, S, _ = flash_spec(E, PRF, FFL, PERIODS)
+        draw(a, t, f, S, FT0)
+        a.set_ylim(-2000, 2000)
+        a.set_title(nm, pad=8)
+        a.set_xlabel("time [ms]")
+        if c == 0:
+            a.set_ylabel("0" + chr(176) + "\nDoppler [Hz]")
+        a.text(0.035, 0.945, f"rhythm {rhy(Es[arm]):.0f} %", transform=a.transAxes,
+               color="w", fontsize=15.5, va="top",
+               bbox=dict(fc="k", alpha=0.55, ec="none", pad=2.2))
+    fig.subplots_adjust(top=0.82, bottom=0.16, left=0.055, right=0.94, wspace=0.08)
+    fig.text(0.5, 0.93, "propellers only and still spinning, every engine at 0"
+             + chr(176) + ", each panel scaled to its own peak",
+             ha="center", fontsize=19, color="0.35")
+    cax = fig.add_axes([0.948, 0.16, 0.008, 0.66])
+    cb = fig.colorbar(ax[0].collections[0], cax=cax)
+    cb.set_label("dB below the brightest point in that panel", fontsize=16)
+    out = f"{FIG}/deck_maps_props3.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+    # ── 대역 전력의 변조 스펙트럼 — 넓은/확대 ──
+    def modspec(E):
+        nper = max(8, int(round(0.45 * PRF / FFL)))
+        nfft = 8 * nper
+        w = np.hanning(nper + 1)[:-1]
+        from numpy.lib.stride_tricks import sliding_window_view
+        frm = sliding_window_view(E, nper)[::2]
+        S = np.abs(np.fft.fft(frm * w, n=nfft, axis=1)).T / w.sum()
+        f = np.fft.fftshift(np.fft.fftfreq(nfft, 1.0 / PRF))
+        S = np.fft.fftshift(S, axes=0)
+        m = (np.abs(f) >= 0.35 * FT0) & (np.abs(f) <= FT0)
+        g = (S ** 2)[m, :].sum(axis=0)
+        n = g.size
+        Y = np.abs(np.fft.rfft((g - g.mean()) * np.hanning(n))) ** 2
+        fr = np.fft.rfftfreq(n, 2.0 / PRF)
+        return fr, Y
+
+    fig, ax = plt.subplots(1, 2, figsize=(26.0, 9.0), sharey=True)
+    for j, (lo, hi) in enumerate(((100.0, 1000.0), (0.0, 420.0))):
+        a = ax[j]
+        for arm, nm, col in P_ARMS:
+            fr, Y = modspec(Es[arm])
+            m = (fr >= lo) & (fr <= hi)
+            a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()), lw=2.0, color=col,
+                   label=SHORT.get(nm, nm))
+        for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
+            a.axvline(k * FFL, color="0.35", ls="--", lw=1.2, zorder=1)
+        a.set_xlim(lo, hi)
+        if hi > 500:
+            a.set_xticks(np.arange(200, hi + 1, 200))
+        a.set_ylim(-52, 4)
+        a.set_title("wide, 100 to 1,000 Hz" if j == 0 else "zoom, first three lines",
+                    pad=8)
+        a.set_xlabel("modulation rate [Hz]")
+        a.grid(alpha=0.25)
+        a.set_axisbelow(True)
+        if j == 0:
+            a.set_ylabel("line level [dB]")
+            a.legend(fontsize=17, loc="lower right", framealpha=0.95)
+    fig.subplots_adjust(top=0.845, bottom=0.115, left=0.055, right=0.985, wspace=0.05)
+    fig.text(0.5, 0.935, f"propellers only at 0{chr(176)}, dashed lines mark "
+                         f"{FFL:.1f} Hz and its multiples, the rate the blades "
+                         f"should make", ha="center", fontsize=19, color="0.35")
+    out = f"{FIG}/deck_be_props3.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
 if __name__ == "__main__":
     print("═══ 덱 맵 ═══")
     band_energy_spectrum()
@@ -414,3 +515,4 @@ if __name__ == "__main__":
     pair((-30.0, -60.0), "deck_maps_pair3060")
     pair((0.0, -90.0), "deck_maps_pair0090")
     mechanism_row()
+    props_compare()
