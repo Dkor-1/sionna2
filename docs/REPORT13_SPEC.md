@@ -1,4 +1,4 @@
-> ⚠ **2026-07-31 재편으로 퇴역한 리포트의 설계서다** — 당시 사양을 그대로 보존한다. 현재 6편 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+> ⚠ **2026-07-31 재편으로 퇴역한 리포트의 설계서다** — 당시 사양을 그대로 보존한다. 현재 6편 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다. 2026-08-16 위계 재편(본편 11권 + 별편 8편) 이전이기도 하다 — 현행 편성은 [`REPORTS_VOLUMES.md`](REPORTS_VOLUMES.md).
 
 모든 쟁점을 코드·계산으로 판정 완료했습니다. 결정적 확인: **F1**(SSB 50Hz, 저장소 자체 `PILOT_RATE_HZ`가 근거), **R6**(ridge_rel=0가 정답 — 스모크로 1e-6이 오히려 누설 확인), **F2**(equal_psd 장치 실재), **S1/S6**(비단조·국소지수·천장), **F17**(target_extent 크기순서). 이제 최종 구현 스펙을 작성합니다.
 

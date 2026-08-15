@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-build_part13_engine_physics.py — 권 17 「엔진의 물리 스위치」의 조각 → reports/_parts/83~87_*.ipynb
+build_part13_engine_physics.py — 권 5 「엔진의 물리 스위치」의 조각 → reports/_parts/83~87_*.ipynb
 ==========================================================================================
-권 17 은 스톡 PathSolver 의 굴절·회절·모서리회절·다중반사를 하나씩 켜서 **무엇이 결과를
+권 5 는 스톡 PathSolver 의 굴절·회절·모서리회절·다중반사를 하나씩 켜서 **무엇이 결과를
 만들었는지 귀속**한다. 편성은 `outputs/volumes_16_17_plan.json:volumes[1]` 이 정본이다.
 
     83 physics-single-axis   나딧 레벨을 올리는 스위치는 회절 하나다        ⭐헤드라인 절
@@ -15,7 +15,7 @@ build_part13_engine_physics.py — 권 17 「엔진의 물리 스위치」의 �
    GPU 도 Sionna 도 부르지 않는다.
 
 ⚠ 조각은 **사람이 직접 읽는 문서가 아니다.** 사람이 읽는 것은 `src/build_volumes.py` 가
-  조각을 이어 만든 권(`reports/17_physics-switches.ipynb`)이다.
+  조각을 이어 만든 권(`reports/05_engine-physics.ipynb`)이다.
 
 실행
     cd /workspace/sionna
@@ -35,7 +35,7 @@ for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
         sys.path.insert(0, _p)
 
 from report_style import (BREAK, ContractError, build_notebook,     # noqa: E402
-                          caption, from_json, header, md, next_steps, num, table)
+                          caption, from_json, header, md, next_steps, table)
 from report_registry import get as _get_old                         # noqa: E402
 
 
@@ -61,7 +61,7 @@ def _registry() -> dict:
 
 REG = _registry()
 
-#: 계획(78~87) 밖에서 이 파일이 하나 더 짓는 조각 — 권 17 의 마지막 절(범위 표).
+#: 계획(78~87) 밖에서 이 파일이 하나 더 짓는 조각 — 권 5 의 마지막 절(범위 표).
 EXTRA_PARTS = {
     "engine-claim-scope": ("88", "이 비교가 세우는 것은 el −90 한 자리의 스위치 귀속이고, "
                                  "절대 σ 는 산포 16.27 dB 로 미검증이다"),
@@ -69,7 +69,7 @@ EXTRA_PARTS = {
 REG.update(EXTRA_PARTS)
 
 #: ⚠ 계획의 조각 80 은 `el-prediction-gap` 으로 적혀 있으나 그 자리에 지어진 조각은
-#  `el-above-tip-limit`(권 16 절 3)이다. 계획 JSON 은 손대지 않고 여기서만 이름을 맞춘다.
+#  `el-above-tip-limit`(권 4 절 3)이다. 계획 JSON 은 손대지 않고 여기서만 이름을 맞춘다.
 #  같은 이유로 계획의 조각 81 `el-beat-vs-tip` 은 이 라운드에 지어지지 않았다 — 그 앵커로
 #  링크를 걸면 없는 파일을 가리키므로, 이 파일은 그 자리를 조각 80 으로 보낸다.
 REG["el-above-tip-limit"] = ("80", "물리 상한 위 누설은 우리 팔 0.26~15.65 %, "
@@ -156,7 +156,7 @@ def n_rows() -> int:
 
 
 # =========================================================================== #
-#  조각 83 — 스위치 단일축                                        ⭐권 17 헤드라인
+#  조각 83 — 스위치 단일축                                        ⭐권 5 헤드라인
 # =========================================================================== #
 TITLE_83 = "나딧에서 레벨을 −130.78 dB 에서 −64.23 dB 로 올리는 스위치는 회절 하나다"
 
@@ -351,7 +351,7 @@ def blocks_83() -> list:
 
 
 # =========================================================================== #
-#  조각 86 — 권 17 절 4 「같은 기하에서 8/11 덱의 무늬가 재현된다」
+#  조각 86 — 권 5 절 4 「같은 기하에서 8/11 덱의 무늬가 재현된다」
 #  ⚠ 이 절만의 원장·헬퍼는 이 블록 안에 모아 둔다(형제 절과 안 부딪치게).
 # =========================================================================== #
 PVD = from_json("outputs/physics_vs_deck.json")           # 덱 대조 (이 절 전용)
@@ -674,7 +674,7 @@ def blocks_86() -> list:
 
 
 # =========================================================================== #
-#  조각 88 — 권 17 **마지막 절** 「이 엔진 비교로 말할 수 있는 것과 없는 것」
+#  조각 88 — 권 5 **마지막 절** 「이 엔진 비교로 말할 수 있는 것과 없는 것」
 #  (계획의 절 1~5 는 83~87 이 채운다. 이 절은 그 뒤에 붙는 범위 표다.)
 #  ⚠ 이 절은 위 코드에 의존하지 않는다 — 원장·헬퍼 이름이 전부 `_S88_` 로 시작한다.
 #    형제 절이 이 파일을 다시 쓰더라도 이 블록만 그대로 옮겨 붙이면 살아난다.
@@ -736,7 +736,7 @@ def blocks_88() -> list:
         header(
             num=88,
             title=REG["engine-claim-scope"][1],
-            did="권 17 이 쓴 원장 열 개를 열어, 이 엔진 비교가 세우는 주장 넷과 아직 "
+            did="권 5 가 쓴 원장 열 개를 열어, 이 엔진 비교가 세우는 주장 넷과 아직 "
                 "열려 있는 질문 일곱을 범위 표 두 장으로 갈랐다.",
             results=[
                 f"스위치 귀속은 el {_S88_DP.num('_meta.el_deg', -90.0, '{:.0f}', '°')} "
@@ -789,8 +789,8 @@ def blocks_88() -> list:
                  "`engine_physics_matrix` 가 `drone_cad` 의 블레이드 법칙 상수와 "
                  "`drones.matrice4e.prop_dia_mm` 로 계산한 값"),
             ],
-            prereq=[("권 17 절 1", "el −90 에서 어느 스위치가 레벨을 올렸나"),
-                    ("권 02", "스톡 경로 진폭이 표적 크기에 반응하는 폭")],
+            prereq=[("권 5 절 1", "el −90 에서 어느 스위치가 레벨을 올렸나"),
+                    ("권 2-2", "스톡 경로 진폭이 표적 크기에 반응하는 폭")],
             repro=REPRO_88,
         ),
 
@@ -952,7 +952,7 @@ def blocks_88() -> list:
              "돌린다",
              "굴절 축이 같은 두께에서 비교되고, 두 커널의 왕복 감쇠 차가 레벨 변화에서 "
              "빠진다",
-             "`src/materials.py` → 권 17 절 1"),
+             "`src/materials.py` → 권 5 절 1"),
             ("`diag_physics_paths` 를 el 0 · −15 · −45 에서 한 번씩 더 돌린다",
              "스위치 귀속이 앙각의 함수인지 나딧 한 자리의 성질인지 갈린다",
              "`benchmark/diag_physics_paths.py <el> 20`"),
@@ -970,9 +970,9 @@ def blocks_88() -> list:
 
 
 # =========================================================================== #
-#  조각 87 — 권 17 절 5 「광선을 늘려도 레벨은 모이고 박자는 헤맨다」
+#  조각 87 — 권 5 절 5 「광선을 늘려도 레벨은 모이고 박자는 헤맨다」
 #  ⚠ 이 절만의 원장·헬퍼는 이 블록 안에 모아 둔다(형제 절과 안 부딪치게).
-#  ⭐ 이 절은 권 16 「앙각 커버리지」의 마지막 자리에도 그대로 선다 — 경로 수가 앙각에
+#  ⭐ 이 절은 권 4 「앙각 커버리지」의 마지막 자리에도 그대로 선다 — 경로 수가 앙각에
 #     걸린다는 교란(예산 축 ↔ 앙각 축)을 이 절이 들고 있기 때문이다.
 # =========================================================================== #
 from report_style import table_from                                  # noqa: E402
@@ -1008,7 +1008,22 @@ _FMT87 = {"npaths_median": "{:,.0f}", "level_db": "{:.2f}",
           "seconds": "{:,.1f}"}
 
 EVID_87 = ["outputs/elevation_sweep_md.json", "outputs/ch1_elevation_figdata.json",
-           "outputs/raybudget_seed_ladder.json"]
+           "outputs/raybudget_seed_ladder.json", "outputs/raybudget_ac_ladder.json"]
+
+#: ⭐같은 사다리를 «가만히 있는 몫(자세 평균)» 과 «움직이는 몫(자세마다 변하는 부분)» 으로
+#  갈라 다시 읽은 원장. 이 절의 «0.03 dB 안에 모인다» 는 **가만히 있는 몫 하나**에 대한
+#  말이고, 그 단서를 이 원장이 숫자로 준다 — 같은 360 배에서 움직이는 몫은 el 0 에서
+#  +52.77 dB 오른다.
+AC87 = from_json("outputs/raybudget_ac_ladder.json")
+
+#: 「대비」의 기울기 — 상한 아래 에코와 상한 위 바닥의 **차이**라 두 칸을 빼서 만든다.
+#  ⭐두 읽기를 갈라 두는 자리다: 절대 세기로 읽으면 상한 위는 광선에 불변이고, 신호 대
+#  바닥의 대비로 읽으면 광선을 부을수록 벌어진다. 이 절이 인용하는 값은 절대 세기 쪽이다.
+_ECHO_OCT = float(AC87.get(
+    "regressions.ladder_a.ac_below_tip_db__excl_el0.slope_db_per_octave"))
+_FLOOR_OCT = float(AC87.get(
+    "regressions.ladder_a.floor_above_db__excl_el0.slope_db_per_octave"))
+_CONTRAST_OCT = _ECHO_OCT - _FLOOR_OCT          # 광선 2 배마다 [dB]
 
 #: 계획의 제목은 «광선을 360 배 늘려도 레벨이 모인다» 를 예산 축의 성질로 적는다. 같은
 #  한 계단이 다른 앙각에서 레벨을 10 dB 넘게 옮기므로, 이 절의 제목만 el 0 으로 좁힌다
@@ -1046,13 +1061,17 @@ def blocks_87() -> list:
             did="el 0 에서 자세당 광선 수를 네 계단 올려 레벨·프로펠러 대역 전력·박자·경로 "
                 "수가 각각 어디로 가는지 재고, 같은 사다리를 el −30 에서 대조했다.",
             results=[
-                f"el 0 의 레벨은 광선 11.1 M 에서 {_n(f'{_L0[0]}.level_db', unit='dB')}, "
-                f"4,000 M 에서 {_n(f'{_L0[3]}.level_db', unit='dB')} 로 0.03 dB 폭 안에 "
-                f"모인다 — 광선이 360 배이고 경로는 223 배다.",
+                f"el 0 의 **가만히 있는 몫(정지 성분) 레벨**은 광선 11.1 M 에서 "
+                f"{_n(f'{_L0[0]}.level_db', unit='dB')}, 4,000 M 에서 "
+                f"{_n(f'{_L0[3]}.level_db', unit='dB')} 로 0.03 dB 폭 안에 모인다 — 광선이 "
+                f"360 배이고 경로는 223 배다.",
 
-                f"그 수렴은 el 0 의 성질이다 — 예산을 한 계단(11.1 M → 250 M)만 올려도 "
-                f"el −75 의 레벨은 {_n(f'{_R75[0]}.level_db')} → "
-                f"{_n(f'{_R75[1]}.level_db', unit='dB')} 로 12.55 dB 움직인다.",
+                f"⭐그 «모인다» 는 가만히 있는 몫 하나에 대한 말이다 — 같은 360 배에서 "
+                f"**움직이는 몫**은 el 0 에서 "
+                f"{AC87.num('headline.ladder_a_360x_change_db.el+0.ac_power_db', fmt='{:+.2f}', unit='dB')} "
+                f"오르고, 예산을 한 계단(11.1 M → 250 M)만 올리면 el −75 의 레벨이 "
+                f"{_n(f'{_R75[0]}.level_db')} → {_n(f'{_R75[1]}.level_db', unit='dB')} 로 "
+                f"12.55 dB 움직인다.",
 
                 f"같은 네 계단에서 박자는 {_n(f'{_L0[0]}.track.beat_hz')} → "
                 f"{_n(f'{_L0[1]}.track.beat_hz')} → {_n(f'{_L0[2]}.track.beat_hz')} → "
@@ -1112,8 +1131,8 @@ def blocks_87() -> list:
 
         md(table_from("outputs/elevation_sweep_md.json:rows", _COLS87,
                       fmt=_FMT87, order=[int(k[5:-1]) for k in _L0]), "",
-           "레벨 칸은 0.03 dB 폭 안에 모이고, 그 옆에서 박자 칸은 326 Hz 를 오간다. "
-           "**수렴한 것과 맞은 것은 다른 일이다.**", "",
+           "레벨 칸(자세 평균 = 가만히 있는 몫)은 0.03 dB 폭 안에 모이고, 그 옆에서 박자 "
+           "칸은 326 Hz 를 오간다. **수렴한 것과 맞은 것은 다른 일이다.**", "",
            "네 계단은 시드가 하나씩이라 그 박자 흔들림이 예산 축 하나로 닫히지 않는다 — "
            "예산을 " + S87.num("cells[1].spp", fmt="{:,.0f}", unit="발")
            + " 로 고정하고 시드만 " + S87.num("cells[1].n_seeds", fmt="{:.0f}", unit="장")
@@ -1131,11 +1150,45 @@ def blocks_87() -> list:
            + _n(f"{_L0[3]}.track.band_power_db", unit="dB")
            + " 로 0.07 dB 폭이다. 두 양 모두 **동체 정반사가 지배하는 정지 성분**이고, "
            "그 성분은 광선 몇 발로도 금방 자리를 잡는다.", "",
-           "그 수렴은 el 0 한 점의 성질이다. 예산을 한 계단(11.1 M → 250 M)만 올려도 "
-           "el −45 의 레벨은 " + _n(f"{_R45[0]}.level_db") + " → "
+           "그 수렴은 el 0 한 점의, 그것도 가만히 있는 몫 하나의 성질이다. 예산을 한 계단"
+           "(11.1 M → 250 M)만 올려도 el −45 의 레벨은 " + _n(f"{_R45[0]}.level_db") + " → "
            + _n(f"{_R45[1]}.level_db", unit="dB") + ", el −75 는 "
            + _n(f"{_R75[0]}.level_db") + " → " + _n(f"{_R75[1]}.level_db", unit="dB")
            + " 로 움직인다. 정반사가 꺼지는 앙각에서는 레벨 자체가 예산에 매달린다."),
+
+        md("## 같은 사다리를 움직이는 몫으로 다시 읽는다", "",
+           "레벨은 자세 평균이라 **가만히 있는 몫**이다. 자세마다 변하는 **움직이는 몫**만 "
+           "남기고 같은 네 계단을 다시 재면 el 0 에서 "
+           + AC87.num("headline.ladder_a_360x_change_db.el+0.ac_power_db",
+                      fmt="{:+.2f}", unit="dB")
+           + " 오른다 — 같은 구간에서 가만히 있는 몫은 "
+           + AC87.num("headline.ladder_a_360x_change_db.el+0.dc_power_db",
+                      fmt="{:+.2f}", unit="dB") + " 다.", "",
+           "⭐**날개끝 상한 위**의 내용물은 광선 수에 불변이다. 정반사가 꺼지는 세 앙각"
+           "(−15·−45·−60)에서 같은 360 배가 상한 위 바닥을 el −15 에서 "
+           + AC87.num("headline.ladder_a_360x_change_db.el-15.floor_above_db", fmt="{:+.2f}")
+           + " · el −45 에서 "
+           + AC87.num("headline.ladder_a_360x_change_db.el-45.floor_above_db",
+                      fmt="{:+.2f}", unit="dB")
+           + " 옮긴다. 광선이 사 오는 것은 상한 **아래**(에코의 크기)뿐이고, 그쪽은 같은 "
+           "구간에서 el −15 의 "
+           + AC87.num("headline.ladder_a_360x_change_db.el-15.ac_below_tip_db",
+                      fmt="{:+.2f}")
+           + " 에서 el −45 의 "
+           + AC87.num("headline.ladder_a_360x_change_db.el-45.ac_below_tip_db",
+                      fmt="{:+.2f}", unit="dB") + " 까지 오른다.", "",
+           "⚠이 «불변» 은 **절대 세기**로 읽은 값이다. 신호 대 바닥의 **대비**로 읽으면 상한 "
+           "아래 에코가 광선 2 배마다 "
+           + AC87.num("regressions.ladder_a.ac_below_tip_db__excl_el0.slope_db_per_octave",
+                      fmt="{:+.2f}", unit="dB")
+           + " 오르고 상한 위 바닥이 "
+           + AC87.num("regressions.ladder_a.floor_above_db__excl_el0.slope_db_per_octave",
+                      fmt="{:+.2f}", unit="dB")
+           + " 에 머물러, 둘의 차이인 대비는 광선 2 배마다 "
+           + f"{_CONTRAST_OCT:+.2f} dB(4 배마다 {2 * _CONTRAST_OCT:+.2f} dB)"
+           + " 벌어진다. 이 절이 인용하는 값은 절대 세기 쪽이다.", "",
+           "⇒ 이 절의 «모인다» 를 «예산이 충분하다» 로 옮기면 틀린다. 광선을 더 부으면 상한 "
+           "아래 에코가 커지고, 상한 위 자리는 그대로 남는다."),
 
         md("## 오른 것은 변조가 아니라 표본화 바닥이다", "",
            "el 0 의 변조 대 정지 비는 "
@@ -1281,7 +1334,7 @@ def blocks_87() -> list:
 
 
 # =========================================================================== #
-#  조각 84 — 권 17 절 2 「AC/DC 하락은 분모 쪽 사건이다」
+#  조각 84 — 권 5 절 2 「AC/DC 하락은 분모 쪽 사건이다」
 #  ⭐같은 원장(`diag_physics_paths_el-90.json`)의 **AC/DC 열**을 맡는다. 레벨 열의 귀속은
 #    조각 83 이 이미 세웠으므로 여기서는 그 위에 «비가 왜 내려갔나» 를 얹는다.
 # =========================================================================== #
@@ -1715,9 +1768,10 @@ def blocks_85() -> list:
                  "(`benchmark/elevation_sweep_md.py:179`)"),
                 ("두 축",
                  "광선 예산(규칙값 "
-                 + num(None, ("outputs/elevation_sweep_md.json", "_meta.sionna_spp_primary"),
-                       "{:,.0f}", "광선/자세")
-                 + " · 250M)과 물리 스위치(끔 · 켬) 두 축만 움직이고 앙각 0° · "
+                 + _n(f"{_L0[0]}.spp", "{:,.0f}", "광선/자세")
+                 + " · "
+                 + _n(f"{_L0[1]}.spp", "{:,.0f}")
+                 + ")과 물리 스위치(끔 · 켬) 두 축만 움직이고 앙각 0° · "
                  + FB.num("rows.sionna/el+0.n_poses", 4096, "{:.0f}", "자세")
                  + " · 10 m 구면 · 같은 로터 패턴은 고정한다"),
                 ("공정 예산 팔",
@@ -1982,7 +2036,7 @@ REPORTS.append(("85", "physics-above-limit", blocks_85,
 
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
-    print("── 권 17 「엔진의 물리 스위치」 조각 빌드 ──")
+    print("── 권 5 「엔진의 물리 스위치」 조각 빌드 ──")
     for no, anchor, fn, evid, figs in REPORTS:
         path = os.path.join(OUT, f"{no}_{anchor}.ipynb")
         rep = build_notebook(path, fn(), strict=True)

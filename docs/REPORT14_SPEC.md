@@ -1,4 +1,4 @@
-> ⚠ **2026-07-31 재편으로 퇴역한 리포트의 설계서다** — 당시 사양을 그대로 보존한다. 현재 6편 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+> ⚠ **2026-07-31 재편으로 퇴역한 리포트의 설계서다** — 당시 사양을 그대로 보존한다. 현재 6편 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다. 2026-08-16 위계 재편(본편 11권 + 별편 8편) 이전이기도 하다 — 현행 편성은 [`REPORTS_VOLUMES.md`](REPORTS_VOLUMES.md).
 
 # report14 SPEC — 리얼 환경 디텍션 (Sionna RT 클러터 + MVDR-STAP)
 

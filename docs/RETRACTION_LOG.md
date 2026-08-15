@@ -1,3 +1,5 @@
+> ⚠ **2026-08-16 재편 전 번호 체계의 기록이다** — 옛 권 번호(평면 01~18)로 적혀 있다. 옛→새 환산은 [`RESTRUCT_PLAN.md`](RESTRUCT_PLAN.md) §1 표, 현행 편성은 [`REPORTS_VOLUMES.md`](REPORTS_VOLUMES.md).
+
 # 철회 기록 — 정본
 
 > 이 프로젝트가 **주장했다가 스스로 거둬들인 것**의 단일 정본이다.

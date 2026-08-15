@@ -1,3 +1,5 @@
+> ⚠ **2026-08-16 재편 전 번호 체계의 기록이다** — 옛 권 번호(평면 01~18)로 적혀 있다. 옛→새 환산은 [`RESTRUCT_PLAN.md`](RESTRUCT_PLAN.md) §1 표, 현행 편성은 [`REPORTS_VOLUMES.md`](REPORTS_VOLUMES.md).
+
 # 8 권 엔진-팔 정정 계획 — 고칠 자리 확정판
 
 작성 2026-08-12 · 근거 `docs/AUDIT_VOL8_ENGINES.md` + `outputs/audit_vol8_08_[1-5].json`

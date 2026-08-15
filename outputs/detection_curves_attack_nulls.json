@@ -1,0 +1,162 @@
+{
+ "_meta": {
+  "generator": "attack nulls",
+  "seed": 990815,
+  "thresholds_from": "outputs/detection_curves.json (잡음전용 교정)",
+  "note_ko": "널·셔플 대조 — 문턱은 발표본 그대로(잡음전용이라 누설 없음)"
+ },
+ "noise_only_third_seed": {
+  "-60": {
+   "n_trial": 12000,
+   "pfa_comb": 0.0011666666666666668,
+   "pfa_band": 0.0004166666666666667
+  },
+  "-30": {
+   "n_trial": 12000,
+   "pfa_comb": 0.00125,
+   "pfa_band": 0.00075
+  },
+  "+0": {
+   "n_trial": 12000,
+   "pfa_comb": 0.001,
+   "pfa_band": 0.0008333333333333334
+  }
+ },
+ "cw_null": {
+  "R150": {
+   "n_trial": 6000,
+   "pd_comb": 0.0016666666666666668,
+   "pd_band": 0.001,
+   "expect_ko": "≈1e-3 (DC 제거가 상수를 지움)"
+  },
+  "R300": {
+   "n_trial": 6000,
+   "pd_comb": 0.0011666666666666668,
+   "pd_band": 0.0016666666666666668,
+   "expect_ko": "≈1e-3 (DC 제거가 상수를 지움)"
+  }
+ },
+ "shuffle_null": {
+  "ours_el-30": {
+   "R400": {
+    "n_trial": 4000,
+    "pd_comb_shuffled": 0.003,
+    "pd_band_shuffled": 0.027,
+    "pd_comb_true": 1.0,
+    "pd_band_true": 1.0,
+    "expect_ko": "셔플이 진짜 신호보다 한참 아래면 통계량이 리듬을 재는 것"
+   },
+   "R700": {
+    "n_trial": 4000,
+    "pd_comb_shuffled": 0.0015,
+    "pd_band_shuffled": 0.00325,
+    "pd_comb_true": 0.626,
+    "pd_band_true": 0.0535,
+    "expect_ko": "셔플이 진짜 신호보다 한참 아래면 통계량이 리듬을 재는 것"
+   }
+  },
+  "sionna_el-30": {
+   "R400": {
+    "n_trial": 4000,
+    "pd_comb_shuffled": 0.0185,
+    "pd_band_shuffled": 0.21975,
+    "pd_comb_true": 1.0,
+    "pd_band_true": 1.0,
+    "expect_ko": "셔플이 진짜 신호보다 한참 아래면 통계량이 리듬을 재는 것"
+   },
+   "R700": {
+    "n_trial": 4000,
+    "pd_comb_shuffled": 0.0005,
+    "pd_band_shuffled": 0.00225,
+    "pd_comb_true": 0.952,
+    "pd_band_true": 0.1375,
+    "expect_ko": "셔플이 진짜 신호보다 한참 아래면 통계량이 리듬을 재는 것"
+   }
+  }
+ },
+ "out_of_band_null": {
+  "R150": {
+   "n_trial": 6000,
+   "pd_comb": 0.13083333333333333,
+   "pd_band": 0.010166666666666666,
+   "expect_ko": "≈1e-3 이어야 대역 잣대가 대역 밖 에너지에 안 속는 것"
+  },
+  "R300": {
+   "n_trial": 6000,
+   "pd_comb": 0.0011666666666666668,
+   "pd_band": 0.0008333333333333334,
+   "expect_ko": "≈1e-3 이어야 대역 잣대가 대역 밖 에너지에 안 속는 것"
+  }
+ },
+ "true_signal_recheck": {
+  "ours_el-30": {
+   "R500": {
+    "n_trial": 2000,
+    "pd_comb": 1.0,
+    "pd_band": 0.9245,
+    "pub_interp_comb": 1.0,
+    "pub_interp_band": 0.9299
+   },
+   "R700": {
+    "n_trial": 2000,
+    "pd_comb": 0.6285,
+    "pd_band": 0.042,
+    "pub_interp_comb": 0.6135,
+    "pub_interp_band": 0.0747
+   },
+   "R900": {
+    "n_trial": 2000,
+    "pd_comb": 0.05,
+    "pd_band": 0.0055,
+    "pub_interp_comb": 0.0884,
+    "pub_interp_band": 0.0038
+   }
+  },
+  "sionna_el-30": {
+   "R500": {
+    "n_trial": 2000,
+    "pd_comb": 1.0,
+    "pd_band": 1.0,
+    "pub_interp_comb": 1.0,
+    "pub_interp_band": 0.9959
+   },
+   "R700": {
+    "n_trial": 2000,
+    "pd_comb": 0.9475,
+    "pd_band": 0.126,
+    "pub_interp_comb": 0.814,
+    "pub_interp_band": 0.2553
+   },
+   "R900": {
+    "n_trial": 2000,
+    "pd_comb": 0.1795,
+    "pd_band": 0.009,
+    "pub_interp_comb": 0.2914,
+    "pub_interp_band": 0.0153
+   }
+  },
+  "ours_el+0": {
+   "R500": {
+    "n_trial": 2000,
+    "pd_comb": 1.0,
+    "pd_band": 0.762,
+    "pub_interp_comb": 1.0,
+    "pub_interp_band": 0.7691
+   },
+   "R700": {
+    "n_trial": 2000,
+    "pd_comb": 0.3635,
+    "pd_band": 0.027,
+    "pub_interp_comb": 0.4561,
+    "pub_interp_band": 0.0449
+   },
+   "R900": {
+    "n_trial": 2000,
+    "pd_comb": 0.017,
+    "pd_band": 0.005,
+    "pub_interp_comb": 0.0496,
+    "pub_interp_band": 0.0083
+   }
+  }
+ }
+}

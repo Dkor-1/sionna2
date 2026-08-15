@@ -1,3 +1,5 @@
+> ⚠ **2026-08-16 재편 전 번호 체계의 기록이다** — 옛 권 번호(평면 01~18)로 적혀 있다. 옛→새 환산은 [`RESTRUCT_PLAN.md`](RESTRUCT_PLAN.md) §1 표, 현행 편성은 [`REPORTS_VOLUMES.md`](REPORTS_VOLUMES.md).
+
 # 8 권(08_1~08_5) 엔진 팔 감사 — «후반부도 PathSolver 랑 PO 둘 다 쓴 거 맞니?»
 
 감사일 2026-08-12 · 대상 `reports/08_1_scene.ipynb` ~ `reports/08_5_bistatic.ipynb` · 방법 노트북 본문 ↔ `outputs/*.json`·`*.npz` ↔ 생산 스크립트 대조

@@ -1,3 +1,5 @@
+> ⚠ **2026-08-16 재편 전 번호 체계의 기록이다** — 리포트 6편 시대의 지도라 지금의 편성이 아니다. 옛→새 환산은 [`RESTRUCT_PLAN.md`](RESTRUCT_PLAN.md) §1 표, 현행 편성은 [`REPORTS_VOLUMES.md`](REPORTS_VOLUMES.md).
+
 # REPORT_CODE_MAP — 리포트의 각 절이 어느 코드·JSON 에서 나오는가
 
 리포트 6편의 **절 하나하나**를 그것을 만든 코드와 JSON 에 잇는 지도다. 새로 온 사람이

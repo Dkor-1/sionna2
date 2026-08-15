@@ -499,6 +499,60 @@ def props_compare():
     print(f"  ✅ {out}")
 
 
+def props_grid():
+    """⭐프로펠러만 × 네 앙각 전수(덱 v14, 사용자 지시 2026-08-15) — 3엔진 × 4앙각 격자.
+
+    ours_free 는 원장에 7앙각 완비, Sionna 두 팔은 0°(v13)에 −30/−60/−90 를 큐로 추가한 판.
+    패널 구석에 리듬 몫[%] — 상한은 각 앙각의 f_tip(−90° 는 0 이라 전체 AC 몫으로 퇴화, 각주).
+    """
+    P_ARMS = [
+        ("ours_free_r15_n8192", "Our kernel"),
+        ("sionna_p4000000000_partsprop_r15_n8192_d1", "Physics off"),
+        ("sionna_p4000000000_phys_partsprop_r15_n8192_d1", "Physics on"),
+    ]
+    ELS4 = [0.0, -30.0, -60.0, -90.0]
+    FT0 = float(ROW[(ARMS[0][0], 0.0)]["f_tip_hz"])
+
+    def rhy(E, el, hw=8.0):
+        n = E.size
+        P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
+        fr = np.fft.fftfreq(n, 1.0 / PRF)
+        above = np.abs(fr) >= FT0 * np.cos(np.radians(el))
+        k = np.round(np.abs(fr) / FFL)
+        return 100.0 * P[above & (np.abs(np.abs(fr) - k * FFL) <= hw)].sum() / P[above].sum()
+
+    n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    fig, ax = plt.subplots(3, 4, figsize=(26.0, 10.8), sharex=True, sharey=True)
+    for r, (arm, nm) in enumerate(P_ARMS):
+        for c, el in enumerate(ELS4):
+            a = ax[r, c]
+            E = np.asarray(Z[f"{arm}/el{el:+.0f}"], complex)
+            f, t, S, _ = flash_spec(E[n0:n0 + nz], PRF, FFL, PERIODS)
+            draw(a, t, f, S, FT0 * np.cos(np.radians(el)))
+            a.set_ylim(-2000, 2000)
+            if r == 0:
+                a.set_title(f"{el:+.0f}" + chr(176), pad=8)
+            if c == 0:
+                a.set_ylabel(f"{nm}\nDoppler [Hz]")
+            if r == 2:
+                a.set_xlabel("time [ms]")
+            a.text(0.035, 0.94, f"{rhy(E, el):.0f} %", transform=a.transAxes,
+                   color="w", fontsize=15, va="top",
+                   bbox=dict(fc="k", alpha=0.55, ec="none", pad=2.0))
+    fig.subplots_adjust(top=0.885, bottom=0.085, left=0.075, right=0.950,
+                        hspace=0.20, wspace=0.10)
+    fig.text(0.5, 0.955, "propellers only and still spinning, corner number is the "
+                         "rhythm share, each panel scaled to its own peak",
+             ha="center", fontsize=19, color="0.35")
+    cax = fig.add_axes([0.958, 0.085, 0.008, 0.80])
+    cb = fig.colorbar(ax[0, 0].collections[0], cax=cax)
+    cb.set_label("dB below the brightest point in that panel", fontsize=16)
+    out = f"{FIG}/deck_maps_props_grid.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
 if __name__ == "__main__":
     print("═══ 덱 맵 ═══")
     band_energy_spectrum()
@@ -516,3 +570,4 @@ if __name__ == "__main__":
     pair((0.0, -90.0), "deck_maps_pair0090")
     mechanism_row()
     props_compare()
+    props_grid()

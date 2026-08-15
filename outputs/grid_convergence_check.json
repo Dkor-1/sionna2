@@ -1,0 +1,2063 @@
+{
+ "_meta": {
+  "generator": "benchmark/grid_convergence_check.py",
+  "experiment": "R16 · 격자 λ/12 ↔ λ/24 세 층 판독",
+  "design_doc": "docs/NEXT_EXPERIMENTS.md §② 순위 2 · §3-1 R16",
+  "question_ko": "우리 커널의 어떤 주장이 격자(수치 해상도) 산물인가 — 그리고 «몇 dB 차이면 유의한가» 의 산포 밴드를 만든다",
+  "generated_kst": "2026-08-15 15:04:00 (UTC+9)",
+  "runtime_sec": 18.0,
+  "gpu_used": false,
+  "gpu_note_ko": "⛔sionna.rt·mitsuba 임포트 없음 — 저장된 원장만 읽는 CPU 분석",
+  "provenance": {
+   "ledger_npz": "outputs/elevation_sweep_md.npz",
+   "ledger_json": "outputs/elevation_sweep_md.json",
+   "npz_keys_used": [
+    "ours_ptd_r15_n8192/el+0",
+    "ours_ptd_r15_n8192/el-15",
+    "ours_ptd_r15_n8192/el-30",
+    "ours_ptd_r15_n8192/el-45",
+    "ours_r15_n8192/el+0",
+    "ours_r15_n8192/el-15",
+    "ours_r15_n8192/el-30",
+    "ours_r15_n8192/el-45",
+    "ours_r15_n8192/el-90",
+    "ours_r15_n8192_div24/el+0",
+    "ours_r15_n8192_div24/el-15",
+    "ours_r15_n8192_div24/el-30",
+    "ours_r15_n8192_div24/el-45",
+    "ours_r15_n8192_pw/el-90",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el+0",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-15",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-30",
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-45",
+    "sionna_p4000000000_phys_r15_n8192_d1/el+0",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-15",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-45",
+    "sionna_p4000000000_r15_n8192_d1/el+0",
+    "sionna_p4000000000_r15_n8192_d1/el-15",
+    "sionna_p4000000000_r15_n8192_d1/el-30",
+    "sionna_p4000000000_r15_n8192_d1/el-45"
+   ],
+   "json_rows_used_ko": "rows 중 engine ∈ {위 팔} 이고 el_deg ∈ {0,−15,−30,−45} 인 행 — f_tip_hz · level_db · track.beat_hz · n_missing · grid_div 열을 읽었다",
+   "meta_fields_used": [
+    "prf_hz",
+    "f_flash_hz",
+    "fc_hz",
+    "drone",
+    "elevations_deg"
+   ]
+  },
+  "arms": {
+   "ours_div12": "ours_r15_n8192",
+   "ours_div24": "ours_r15_n8192_div24",
+   "phys_off": "sionna_p4000000000_r15_n8192_d1",
+   "phys_on": "sionna_p4000000000_phys_r15_n8192_d1",
+   "diffraction_only_supplementary": "sionna_p4000000000_onlydiffr_r15_n8192",
+   "ptd_reference_same_grid": "ours_ptd_r15_n8192",
+   "nadir_spherical": "ours_r15_n8192",
+   "nadir_plane_wave": "ours_r15_n8192_pw"
+  },
+  "arm_naming_ko": {
+   "sionna_p4000000000_r15_n8192_d1": "물리끔 — R0D0E0F1 · max_depth 1 · spp 4e9 · physics=False",
+   "sionna_p4000000000_phys_r15_n8192_d1": "물리켬 — R1D1E1F1 · max_depth 1 · spp 4e9 · physics=True",
+   "sionna_p4000000000_onlydiffr_r15_n8192": "회절만 — 설계서 판의 «회절» 읽기를 위한 보조 팔"
+  },
+  "elevations_deg": [
+   0.0,
+   -15.0,
+   -30.0,
+   -45.0
+  ],
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.08565,
+  "grid_spacing_m": {
+   "div12": 0.00714,
+   "div24": 0.00357
+  },
+  "drone": "matrice4e",
+  "range_m": 15.0,
+  "range_note_ko": "15 m — 원거리장 경계 2D²/λ ≈ 14.08 m **밖**. 이 원장의 10 m 옛 팔과 섞지 않았다.",
+  "conventions_ko": [
+   "레벨·에너지 비교는 전부 DC(시계열 평균) 제거 후",
+   "마이크로도플러 표현은 STFT 만 (md_mapstyle.flash_spec — ⛔재할당·WVD 안 씀)",
+   "리듬 몫 = P[|fr|≥f_tip 이고 f_flash 정수배 ±8 Hz] / P[|fr|≥f_tip] × 100",
+   "분류 argmax 는 classify_airframe.py 규약(16 창 × 512 자세 · nfft 8192 · ±8 Hz)"
+  ],
+  "stft_settings_ko": {
+   "beat_and_band_power": "flash_spec periods=0.45 (=auto_periods) · hop 2 · pad 8 — 원장 analyse() 와 동일. 재현 게이트가 track.beat_hz 를 0.005 Hz 안에서 되찾는다",
+   "stft_db_map_correlation": "flash_spec 기본 periods=0.6 · hop 2 · pad 8 — 덱·physics_vs_deck.json 이 0.9877 / 0.6961 을 낸 세팅과 동일",
+   "why_two_ko": "두 잣대가 서로 다른 세팅으로 이미 발표돼 있어, 각각 그 세팅으로 재야 사과-대-사과가 된다. 세팅은 그림 밖(이 블록)에만 적는다"
+  },
+  "spectrum_fft_ko": "리듬·f_tip 밖 몫은 제로패딩 없는 8192 점 FFT(빈 간격 2.405 Hz) · hanning · DC 제거",
+  "cost_note_ko": "⚠원장 `seconds` 로 λ/24 가 λ/12 보다 **싸게** 찍힌 칸이 있다(el 0: 1713.8 s → 567.8 s). 이는 벽시계이고 GPU 경합에 좌우된다 — **DIV² 비용모형의 근거로 쓰지 마라**.",
+  "figures": [
+   "outputs/figures/grid_r16_three_layers.png",
+   "outputs/figures/grid_r16_band_and_order.png"
+  ]
+ },
+ "per_elevation": {
+  "+0": {
+   "f_tip_hz": 1272.9,
+   "n_poses": 8192,
+   "layer1_waveform": {
+    "abs_rho_dc_removed": 0.5724,
+    "rho_phase_deg": -6.76,
+    "abs_rho_dc_kept": 0.9834,
+    "stft_db_map_corr_dc_removed": 0.7016,
+    "stft_db_map_corr_dc_kept": 0.7995,
+    "ref_abs_rho_vs_ptd_same_grid": 0.9976,
+    "ref_abs_rho_vs_phys_off_same_grid": 0.022,
+    "ref_stft_map_corr_vs_phys_off_same_grid": 0.1458,
+    "ref_abs_rho_shuffled_null": 0.0103
+   },
+   "layer2_statistics": {
+    "div12": {
+     "dc_power_db": -54.602,
+     "ac_power_db": -70.402,
+     "ac_over_dc_db": -15.8,
+     "level_db_ledger_formula": -54.543,
+     "above_f_tip_pct": 2.7032,
+     "above_f_tip_frac": 0.027032
+    },
+    "div24": {
+     "dc_power_db": -61.215,
+     "ac_power_db": -74.263,
+     "ac_over_dc_db": -13.048,
+     "level_db_ledger_formula": -61.103,
+     "above_f_tip_pct": 1.5193,
+     "above_f_tip_frac": 0.015193
+    },
+    "delta_div24_minus_div12": {
+     "ac_power_db": -3.861,
+     "dc_power_db": -6.613,
+     "ac_over_dc_db": 2.752,
+     "level_db_ledger_formula": -6.56,
+     "above_f_tip_pp": -1.1839
+    }
+   },
+   "layer3_metric": {
+    "div12": {
+     "rhythm_share_pct": 63.337,
+     "beat_hz": 126.759,
+     "band_power_db": -59.915,
+     "n_bins": 48,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.12603,
+      "n_windows": 16
+     }
+    },
+    "div24": {
+     "rhythm_share_pct": 51.485,
+     "beat_hz": 126.911,
+     "band_power_db": -64.786,
+     "n_bins": 48,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.15051,
+      "n_windows": 16
+     }
+    },
+    "delta_div24_minus_div12": {
+     "rhythm_share_pp": -11.852,
+     "beat_hz": 0.152,
+     "band_power_db": -4.871,
+     "classify_accuracy_pp": 0.0,
+     "classify_argmax_same": true,
+     "classify_margin": 0.02448
+    }
+   }
+  },
+  "-15": {
+   "f_tip_hz": 1229.5,
+   "n_poses": 8192,
+   "layer1_waveform": {
+    "abs_rho_dc_removed": 0.7448,
+    "rho_phase_deg": -10.07,
+    "abs_rho_dc_kept": 0.9975,
+    "stft_db_map_corr_dc_removed": 0.6039,
+    "stft_db_map_corr_dc_kept": 0.7946,
+    "ref_abs_rho_vs_ptd_same_grid": 0.9999,
+    "ref_abs_rho_vs_phys_off_same_grid": 0.6463,
+    "ref_stft_map_corr_vs_phys_off_same_grid": 0.5525,
+    "ref_abs_rho_shuffled_null": 0.0174
+   },
+   "layer2_statistics": {
+    "div12": {
+     "dc_power_db": -51.263,
+     "ac_power_db": -71.047,
+     "ac_over_dc_db": -19.784,
+     "level_db_ledger_formula": -51.246,
+     "above_f_tip_pct": 17.1839,
+     "above_f_tip_frac": 0.171839
+    },
+    "div24": {
+     "dc_power_db": -49.671,
+     "ac_power_db": -72.365,
+     "ac_over_dc_db": -22.694,
+     "level_db_ledger_formula": -49.662,
+     "above_f_tip_pct": 4.629,
+     "above_f_tip_frac": 0.04629
+    },
+    "delta_div24_minus_div12": {
+     "ac_power_db": -1.318,
+     "dc_power_db": 1.592,
+     "ac_over_dc_db": -2.91,
+     "level_db_ledger_formula": 1.584,
+     "above_f_tip_pp": -12.5549
+    }
+   },
+   "layer3_metric": {
+    "div12": {
+     "rhythm_share_pct": 72.742,
+     "beat_hz": 126.567,
+     "band_power_db": -60.638,
+     "n_bins": 44,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.10981,
+      "n_windows": 16
+     }
+    },
+    "div24": {
+     "rhythm_share_pct": 72.842,
+     "beat_hz": 126.684,
+     "band_power_db": -60.377,
+     "n_bins": 44,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.10897,
+      "n_windows": 16
+     }
+    },
+    "delta_div24_minus_div12": {
+     "rhythm_share_pp": 0.1,
+     "beat_hz": 0.117,
+     "band_power_db": 0.261,
+     "classify_accuracy_pp": 0.0,
+     "classify_argmax_same": true,
+     "classify_margin": -0.00084
+    }
+   }
+  },
+  "-30": {
+   "f_tip_hz": 1102.4,
+   "n_poses": 8192,
+   "layer1_waveform": {
+    "abs_rho_dc_removed": 0.8632,
+    "rho_phase_deg": 3.21,
+    "abs_rho_dc_kept": 0.8859,
+    "stft_db_map_corr_dc_removed": 0.6825,
+    "stft_db_map_corr_dc_kept": 0.7458,
+    "ref_abs_rho_vs_ptd_same_grid": 0.9999,
+    "ref_abs_rho_vs_phys_off_same_grid": 0.7715,
+    "ref_stft_map_corr_vs_phys_off_same_grid": 0.661,
+    "ref_abs_rho_shuffled_null": 0.0087
+   },
+   "layer2_statistics": {
+    "div12": {
+     "dc_power_db": -64.878,
+     "ac_power_db": -69.11,
+     "ac_over_dc_db": -4.232,
+     "level_db_ledger_formula": -64.025,
+     "above_f_tip_pct": 10.6171,
+     "above_f_tip_frac": 0.106171
+    },
+    "div24": {
+     "dc_power_db": -67.055,
+     "ac_power_db": -69.484,
+     "ac_over_dc_db": -2.429,
+     "level_db_ledger_formula": -65.844,
+     "above_f_tip_pct": 1.3611,
+     "above_f_tip_frac": 0.013611
+    },
+    "delta_div24_minus_div12": {
+     "ac_power_db": -0.374,
+     "dc_power_db": -2.177,
+     "ac_over_dc_db": 1.803,
+     "level_db_ledger_formula": -1.819,
+     "above_f_tip_pp": -9.256
+    }
+   },
+   "layer3_metric": {
+    "div12": {
+     "rhythm_share_pct": 83.306,
+     "beat_hz": 126.706,
+     "band_power_db": -59.909,
+     "n_bins": 42,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.12977,
+      "n_windows": 16
+     }
+    },
+    "div24": {
+     "rhythm_share_pct": 61.487,
+     "beat_hz": 126.71,
+     "band_power_db": -59.963,
+     "n_bins": 42,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.12416,
+      "n_windows": 16
+     }
+    },
+    "delta_div24_minus_div12": {
+     "rhythm_share_pp": -21.819,
+     "beat_hz": 0.004,
+     "band_power_db": -0.054,
+     "classify_accuracy_pp": 0.0,
+     "classify_argmax_same": true,
+     "classify_margin": -0.00561
+    }
+   }
+  },
+  "-45": {
+   "f_tip_hz": 900.1,
+   "n_poses": 8192,
+   "layer1_waveform": {
+    "abs_rho_dc_removed": 0.9852,
+    "rho_phase_deg": -0.46,
+    "abs_rho_dc_kept": 0.981,
+    "stft_db_map_corr_dc_removed": 0.738,
+    "stft_db_map_corr_dc_kept": 0.8028,
+    "ref_abs_rho_vs_ptd_same_grid": 1.0,
+    "ref_abs_rho_vs_phys_off_same_grid": 0.8949,
+    "ref_stft_map_corr_vs_phys_off_same_grid": 0.6598,
+    "ref_abs_rho_shuffled_null": 0.0031
+   },
+   "layer2_statistics": {
+    "div12": {
+     "dc_power_db": -59.018,
+     "ac_power_db": -67.188,
+     "ac_over_dc_db": -8.169,
+     "level_db_ledger_formula": -58.624,
+     "above_f_tip_pct": 1.814,
+     "above_f_tip_frac": 0.01814
+    },
+    "div24": {
+     "dc_power_db": -56.955,
+     "ac_power_db": -67.097,
+     "ac_over_dc_db": -10.143,
+     "level_db_ledger_formula": -56.756,
+     "above_f_tip_pct": 0.2734,
+     "above_f_tip_frac": 0.002734
+    },
+    "delta_div24_minus_div12": {
+     "ac_power_db": 0.091,
+     "dc_power_db": 2.063,
+     "ac_over_dc_db": -1.974,
+     "level_db_ledger_formula": 1.868,
+     "above_f_tip_pp": -1.5406
+    }
+   },
+   "layer3_metric": {
+    "div12": {
+     "rhythm_share_pct": 49.65,
+     "beat_hz": 126.628,
+     "band_power_db": -56.398,
+     "n_bins": 34,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.16304,
+      "n_windows": 16
+     }
+    },
+    "div24": {
+     "rhythm_share_pct": 36.826,
+     "beat_hz": 126.524,
+     "band_power_db": -55.35,
+     "n_bins": 34,
+     "classify": {
+      "accuracy": 1.0,
+      "pred_counts": {
+       "mini5pro": 0,
+       "matrice4e": 16,
+       "s1000plus": 0
+      },
+      "argmax_whole_window_majority": "matrice4e",
+      "decision_margin_median": 0.16277,
+      "n_windows": 16
+     }
+    },
+    "delta_div24_minus_div12": {
+     "rhythm_share_pp": -12.824,
+     "beat_hz": -0.104,
+     "band_power_db": 1.048,
+     "classify_accuracy_pp": 0.0,
+     "classify_argmax_same": true,
+     "classify_margin": -0.00027
+    }
+   }
+  }
+ },
+ "rho_reference_rulers": {
+  "question_ko": "«|ρ| 가 얼마면 무늬가 같은가» 를 정하려면 **다른 것들끼리의 |ρ|** 를 알아야 한다",
+  "cross_elevation_same_arm_div12": {
+   "+0": {
+    "+0": 1.0,
+    "-15": 0.325,
+    "-30": 0.5082,
+    "-45": 0.4965
+   },
+   "-15": {
+    "+0": 0.325,
+    "-15": 1.0,
+    "-30": 0.4809,
+    "-45": 0.2684
+   },
+   "-30": {
+    "+0": 0.5082,
+    "-15": 0.4809,
+    "-30": 1.0,
+    "-45": 0.7839
+   },
+   "-45": {
+    "+0": 0.4965,
+    "-15": 0.2684,
+    "-30": 0.7839,
+    "-45": 1.0
+   }
+  },
+  "shuffled_null": 0.0089,
+  "noise_floor_1_over_sqrt_n": 0.011,
+  "cross_elevation_min": 0.2684,
+  "cross_elevation_max": 0.7839,
+  "finding_ko": "⭐같은 커널·같은 격자에서 **앙각만** 15~45° 바꿔도 |ρ| 가 0.27~0.78 다. 즉 |ρ| ≈ 0.5~0.8 은 «같은 물건» 의 증거가 아니라 **명백히 다른 물건들 사이의 평범한 값**이다 — 상관을 근거로 쓰는 모든 주장이 이 자 위에서 다시 읽혀야 한다."
+ },
+ "grid_dispersion_bands": {
+  "how_to_use_ko": "⭐다른 실험은 «두 팔의 차이가 이 밴드 안이면 판정 불가» 로 쓴다. 밴드는 네 앙각(0·−15·−30·−45)에서 잰 |λ/24 − λ/12| 의 **최대값**이다 (중앙값도 같이 싣는다 — 보수적으로 쓰려면 최대값을 쓴다).",
+  "headline_ko": "⭐격자 산포 밴드 — 파형 |ρ| 바닥 0.57 · AC 절대전력 3.86 dB · 리듬 몫 21.8 %p · f_tip 밖 몫 12.6 %p · 박자 0.15 Hz · 분류 정확도 0.0 %p.",
+  "bands": {
+   "layer1_waveform": [
+    {
+     "metric": "abs_rho_dc_removed",
+     "unit": "상관(0~1)",
+     "n_elevations": 4,
+     "min": 0.5724,
+     "median": 0.804,
+     "max": 0.9852,
+     "band_ko": "격자만 바꿔도 |ρ| 가 여기까지 내려간다 — **이 값보다 높은 상관만이 «무늬가 같다» 의 근거가 된다**"
+    },
+    {
+     "metric": "stft_db_map_corr_dc_removed",
+     "unit": "상관(0~1)",
+     "n_elevations": 4,
+     "min": 0.6039,
+     "median": 0.6921,
+     "max": 0.738,
+     "band_ko": "덱·`physics_vs_deck.json` 이 인용하는 **바로 그 잣대**의 격자 바닥"
+    }
+   ],
+   "layer2_statistics": [
+    {
+     "metric": "ac_power_db",
+     "unit": "dB",
+     "n_elevations": 4,
+     "median_abs": 0.846,
+     "max_abs": 3.861,
+     "band": 3.861,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "⭐DC 제거 AC 절대전력. **레벨 주장은 이 밴드 밖에서만 유의하다**"
+    },
+    {
+     "metric": "dc_power_db",
+     "unit": "dB",
+     "n_elevations": 4,
+     "median_abs": 2.12,
+     "max_abs": 6.613,
+     "band": 6.613,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "정지성분은 AC 보다 더 흔들린다 — DC 를 낀 잣대(옛 level_db)는 밴드가 더 넓다"
+    },
+    {
+     "metric": "ac_over_dc_db",
+     "unit": "dB",
+     "n_elevations": 4,
+     "median_abs": 2.363,
+     "max_abs": 2.91,
+     "band": 2.91,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "파생 비율. 분자·분모가 같이 흔들려 밴드가 AC 단독보다 넓다"
+    },
+    {
+     "metric": "level_db_ledger_formula",
+     "unit": "dB",
+     "n_elevations": 4,
+     "median_abs": 1.8435,
+     "max_abs": 6.56,
+     "band": 6.56,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "원장 `level_db`(=20log10 mean|E|, DC 포함) — 참고용"
+    },
+    {
+     "metric": "above_f_tip_pp",
+     "unit": "%p",
+     "n_elevations": 4,
+     "median_abs": 5.3983,
+     "max_abs": 12.5549,
+     "band": 12.5549,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "⭐f_tip 밖 몫. 격자를 조이면 **일관되게 내려간다** — 이 잣대는 격자 잡음을 크게 읽고 있다"
+    }
+   ],
+   "layer3_metric": [
+    {
+     "metric": "rhythm_share_pp",
+     "unit": "%p",
+     "n_elevations": 4,
+     "median_abs": 12.338,
+     "max_abs": 21.819,
+     "band": 21.819,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "⭐리듬 몫. 헤드라인 여럿이 이 잣대 위에 서 있다"
+    },
+    {
+     "metric": "beat_hz",
+     "unit": "Hz",
+     "n_elevations": 4,
+     "median_abs": 0.1105,
+     "max_abs": 0.152,
+     "band": 0.152,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "박자 위치. 밴드가 좁다 — 박자 주장은 격자에 강건하다"
+    },
+    {
+     "metric": "band_power_db",
+     "unit": "dB",
+     "n_elevations": 4,
+     "median_abs": 0.6545,
+     "max_abs": 4.871,
+     "band": 4.871,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "블레이드 대역(0.35~1.0 f_tip) STFT 전력"
+    },
+    {
+     "metric": "classify_accuracy_pp",
+     "unit": "%p",
+     "n_elevations": 4,
+     "median_abs": 0.0,
+     "max_abs": 0.0,
+     "band": 0.0,
+     "direction_ko": "λ/24 − λ/12",
+     "note_ko": "⭐빗살 argmax 분류. 밴드 0 이면 분류 주장은 격자 산물이 아니다"
+    }
+   ]
+  }
+ },
+ "prereg_verdict": {
+  "criterion_ko": "설계서 그대로 — **팔 사이 순서(우리 vs 물리끔 vs 물리켬)가 λ/24 에서 바뀌면** 스위치 격자 인용에 «λ/12 한정» 꼬리표를 강제한다.",
+  "criterion_changed": false,
+  "criterion_change_reason_ko": "바꾸지 않았다. 다만 «순서는 같은데 간격이 밴드 안» 인 칸을 «보존» 으로 세지 않고 별도 판정(PRESERVED_BUT_WITHIN_BAND)으로 찍었다 — 기준을 **완화한 것이 아니라 조인 것**이다.",
+  "order_flip_detected": true,
+  "verdict_ko": "⭐**꼬리표 강제 — 발동**. 사전등록 조건이 성립했다.",
+  "flip_cells": [
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-15",
+    "metric": "above_f_tip_pct",
+    "flip_class": "WITHIN_BAND"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-30",
+    "metric": "rhythm_share_pct",
+    "flip_class": "WITHIN_BAND"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-45",
+    "metric": "above_f_tip_pct",
+    "flip_class": "WITHIN_BAND"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-15",
+    "metric": "above_f_tip_pct",
+    "flip_class": "WITHIN_BAND"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-30",
+    "metric": "rhythm_share_pct",
+    "flip_class": "WITHIN_BAND"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-45",
+    "metric": "above_f_tip_pct",
+    "flip_class": "WITHIN_BAND"
+   }
+  ],
+  "within_band_cells": [
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-15",
+    "metric": "rhythm_share_pct"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-15",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-30",
+    "metric": "above_f_tip_pct"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-45",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-15",
+    "metric": "rhythm_share_pct"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-15",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-30",
+    "metric": "above_f_tip_pct"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-45",
+    "metric": "beat_err_hz"
+   }
+  ],
+  "robust_cells": [
+   {
+    "set": "prereg_3arms",
+    "el_deg": "+0",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "+0",
+    "metric": "rhythm_share_pct"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "+0",
+    "metric": "above_f_tip_pct"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "+0",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-15",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-30",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-30",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-45",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "prereg_3arms",
+    "el_deg": "-45",
+    "metric": "rhythm_share_pct"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "+0",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "+0",
+    "metric": "rhythm_share_pct"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "+0",
+    "metric": "above_f_tip_pct"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "+0",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-15",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-30",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-30",
+    "metric": "beat_err_hz"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-45",
+    "metric": "ac_power_db"
+   },
+   {
+    "set": "supp_4arms_with_diffraction",
+    "el_deg": "-45",
+    "metric": "rhythm_share_pct"
+   }
+  ],
+  "enforced_tag_ko": "λ/12 한정",
+  "flip_class_summary_ko": "뒤집힌 칸이 전부 **WITHIN_BAND** 다 — 즉 그 순서들은 λ/24 에서 «바뀐» 것이 아니라 애초에 격자 해상도로 **판정할 수 없는 순서**였다. 꼬리표 강제는 그대로 발동한다.",
+  "robust_summary_ko": "⭐반면 **DC 제거 AC 절대전력** 순서(우리 ≫ 물리켬·물리끔)는 네 앙각 전부에서 밴드보다 훨씬 큰 여유로 보존된다 — 레벨 순서 진술은 격자에 강건하다.",
+  "scope_ko": "밴드·순서표는 el 0·−15·−30·−45 네 자리에서만 잰다 — λ/24 팔이 그 넷뿐이다. −60·−75·−90 은 아직 격자 대조가 없으므로 이 밴드를 **인용만 하고 검증되지는 않았다**.",
+  "band_self_reference_ko": "⚠밴드는 바로 이 네 앙각의 |λ/24 − λ/12| 최대값이라, «뒤집힌 칸이 밴드 안» 이라는 진술은 부분적으로 동어반복이다. 그래서 판정의 무게는 «밴드 안/밖» 이 아니라 **순서가 실제로 뒤집혔다**는 사실에 둔다."
+ },
+ "arm_order_tables": {
+  "prereg_3arms": {
+   "arms": {
+    "ours": "ours_r15_n8192 / ours_r15_n8192_div24",
+    "phys_off": "sionna_p4000000000_r15_n8192_d1",
+    "phys_on": "sionna_p4000000000_phys_r15_n8192_d1"
+   },
+   "per_elevation": {
+    "+0": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -70.402,
+       "phys_off": -94.302,
+       "phys_on": -94.843
+      },
+      "values_div24": {
+       "ours": -74.263,
+       "phys_off": -94.302,
+       "phys_on": -94.843
+      },
+      "min_gap_at_ours_div12": 23.9,
+      "min_gap_at_ours_div24": 20.039,
+      "min_gap_any_adjacent_pair_div12": 0.541,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 63.337,
+       "phys_off": 13.059,
+       "phys_on": 14.006
+      },
+      "values_div24": {
+       "ours": 51.485,
+       "phys_off": 13.059,
+       "phys_on": 14.006
+      },
+      "min_gap_at_ours_div12": 49.331,
+      "min_gap_at_ours_div24": 37.479,
+      "min_gap_any_adjacent_pair_div12": 0.947,
+      "grid_band": 21.819,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "phys_off",
+       "ours"
+      ],
+      "order_div24": [
+       "phys_on",
+       "phys_off",
+       "ours"
+      ],
+      "ours_rank_div12": 3,
+      "ours_rank_div24": 3,
+      "values_div12": {
+       "ours": 2.7032,
+       "phys_off": 86.2467,
+       "phys_on": 86.5069
+      },
+      "values_div24": {
+       "ours": 1.5193,
+       "phys_off": 86.2467,
+       "phys_on": 86.5069
+      },
+      "min_gap_at_ours_div12": 83.5435,
+      "min_gap_at_ours_div24": 84.7274,
+      "min_gap_any_adjacent_pair_div12": 0.2602,
+      "grid_band": 12.5549,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 0.0923,
+       "phys_off": 40.9107,
+       "phys_on": 43.1987
+      },
+      "values_div24": {
+       "ours": 0.2443,
+       "phys_off": 40.9107,
+       "phys_on": 43.1987
+      },
+      "min_gap_at_ours_div12": 40.8184,
+      "min_gap_at_ours_div24": 40.6664,
+      "min_gap_any_adjacent_pair_div12": 2.288,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     }
+    },
+    "-15": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -71.047,
+       "phys_off": -145.333,
+       "phys_on": -115.02
+      },
+      "values_div24": {
+       "ours": -72.365,
+       "phys_off": -145.333,
+       "phys_on": -115.02
+      },
+      "min_gap_at_ours_div12": 43.973,
+      "min_gap_at_ours_div24": 42.655,
+      "min_gap_any_adjacent_pair_div12": 30.313,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 72.742,
+       "phys_off": 81.256,
+       "phys_on": 11.914
+      },
+      "values_div24": {
+       "ours": 72.842,
+       "phys_off": 81.256,
+       "phys_on": 11.914
+      },
+      "min_gap_at_ours_div12": 8.514,
+      "min_gap_at_ours_div24": 8.414,
+      "min_gap_any_adjacent_pair_div12": 8.514,
+      "grid_band": 21.819,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "ours",
+       "phys_off"
+      ],
+      "order_div24": [
+       "phys_on",
+       "phys_off",
+       "ours"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 3,
+      "values_div12": {
+       "ours": 17.1839,
+       "phys_off": 6.5324,
+       "phys_on": 87.8063
+      },
+      "values_div24": {
+       "ours": 4.629,
+       "phys_off": 6.5324,
+       "phys_on": 87.8063
+      },
+      "min_gap_at_ours_div12": 10.6515,
+      "min_gap_at_ours_div24": 1.9034,
+      "min_gap_any_adjacent_pair_div12": 10.6515,
+      "grid_band": 12.5549,
+      "verdict": "ORDER_FLIP",
+      "flip_class": "WITHIN_BAND"
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 0.0997,
+       "phys_off": 0.1033,
+       "phys_on": 16.7673
+      },
+      "values_div24": {
+       "ours": 0.0173,
+       "phys_off": 0.1033,
+       "phys_on": 16.7673
+      },
+      "min_gap_at_ours_div12": 0.0036,
+      "min_gap_at_ours_div24": 0.086,
+      "min_gap_any_adjacent_pair_div12": 0.0036,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     }
+    },
+    "-30": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -69.11,
+       "phys_off": -135.664,
+       "phys_on": -126.6
+      },
+      "values_div24": {
+       "ours": -69.484,
+       "phys_off": -135.664,
+       "phys_on": -126.6
+      },
+      "min_gap_at_ours_div12": 57.49,
+      "min_gap_at_ours_div24": 57.116,
+      "min_gap_any_adjacent_pair_div12": 9.064,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 83.306,
+       "phys_off": 80.499,
+       "phys_on": 12.456
+      },
+      "values_div24": {
+       "ours": 61.487,
+       "phys_off": 80.499,
+       "phys_on": 12.456
+      },
+      "min_gap_at_ours_div12": 2.807,
+      "min_gap_at_ours_div24": 19.012,
+      "min_gap_any_adjacent_pair_div12": 2.807,
+      "grid_band": 21.819,
+      "verdict": "ORDER_FLIP",
+      "flip_class": "WITHIN_BAND"
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "ours",
+       "phys_off"
+      ],
+      "order_div24": [
+       "phys_on",
+       "ours",
+       "phys_off"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 10.6171,
+       "phys_off": 1.0606,
+       "phys_on": 85.848
+      },
+      "values_div24": {
+       "ours": 1.3611,
+       "phys_off": 1.0606,
+       "phys_on": 85.848
+      },
+      "min_gap_at_ours_div12": 9.5565,
+      "min_gap_at_ours_div24": 0.3005,
+      "min_gap_any_adjacent_pair_div12": 9.5565,
+      "grid_band": 12.5549,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 0.0393,
+       "phys_off": 0.4223,
+       "phys_on": 126.5073
+      },
+      "values_div24": {
+       "ours": 0.0433,
+       "phys_off": 0.4223,
+       "phys_on": 126.5073
+      },
+      "min_gap_at_ours_div12": 0.383,
+      "min_gap_at_ours_div24": 0.379,
+      "min_gap_any_adjacent_pair_div12": 0.383,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     }
+    },
+    "-45": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -67.188,
+       "phys_off": -129.613,
+       "phys_on": -126.899
+      },
+      "values_div24": {
+       "ours": -67.097,
+       "phys_off": -129.613,
+       "phys_on": -126.899
+      },
+      "min_gap_at_ours_div12": 59.711,
+      "min_gap_at_ours_div24": 59.802,
+      "min_gap_any_adjacent_pair_div12": 2.714,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 49.65,
+       "phys_off": 84.063,
+       "phys_on": 13.823
+      },
+      "values_div24": {
+       "ours": 36.826,
+       "phys_off": 84.063,
+       "phys_on": 13.823
+      },
+      "min_gap_at_ours_div12": 34.413,
+      "min_gap_at_ours_div24": 23.003,
+      "min_gap_any_adjacent_pair_div12": 34.413,
+      "grid_band": 21.819,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "ours",
+       "phys_off"
+      ],
+      "order_div24": [
+       "phys_on",
+       "phys_off",
+       "ours"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 3,
+      "values_div12": {
+       "ours": 1.814,
+       "phys_off": 0.9351,
+       "phys_on": 78.105
+      },
+      "values_div24": {
+       "ours": 0.2734,
+       "phys_off": 0.9351,
+       "phys_on": 78.105
+      },
+      "min_gap_at_ours_div12": 0.8789,
+      "min_gap_at_ours_div24": 0.6617,
+      "min_gap_any_adjacent_pair_div12": 0.8789,
+      "grid_band": 12.5549,
+      "verdict": "ORDER_FLIP",
+      "flip_class": "WITHIN_BAND"
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "phys_on"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 0.0387,
+       "phys_off": 0.0037,
+       "phys_on": 126.6663
+      },
+      "values_div24": {
+       "ours": 0.1427,
+       "phys_off": 0.0037,
+       "phys_on": 126.6663
+      },
+      "min_gap_at_ours_div12": 0.035,
+      "min_gap_at_ours_div24": 0.139,
+      "min_gap_any_adjacent_pair_div12": 0.035,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     }
+    }
+   },
+   "any_order_flip": true
+  },
+  "supp_4arms_with_diffraction": {
+   "arms": {
+    "ours": "ours_r15_n8192 / ours_r15_n8192_div24",
+    "phys_off": "sionna_p4000000000_r15_n8192_d1",
+    "phys_on": "sionna_p4000000000_phys_r15_n8192_d1",
+    "diffraction_only": "sionna_p4000000000_onlydiffr_r15_n8192"
+   },
+   "per_elevation": {
+    "+0": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "diffraction_only",
+       "phys_off",
+       "phys_on"
+      ],
+      "order_div24": [
+       "ours",
+       "diffraction_only",
+       "phys_off",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -70.402,
+       "phys_off": -94.302,
+       "phys_on": -94.843,
+       "diffraction_only": -93.047
+      },
+      "values_div24": {
+       "ours": -74.263,
+       "phys_off": -94.302,
+       "phys_on": -94.843,
+       "diffraction_only": -93.047
+      },
+      "min_gap_at_ours_div12": 22.645,
+      "min_gap_at_ours_div24": 18.784,
+      "min_gap_any_adjacent_pair_div12": 0.541,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 63.337,
+       "phys_off": 13.059,
+       "phys_on": 14.006,
+       "diffraction_only": 14.236
+      },
+      "values_div24": {
+       "ours": 51.485,
+       "phys_off": 13.059,
+       "phys_on": 14.006,
+       "diffraction_only": 14.236
+      },
+      "min_gap_at_ours_div12": 49.101,
+      "min_gap_at_ours_div24": 37.249,
+      "min_gap_any_adjacent_pair_div12": 0.23,
+      "grid_band": 21.819,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "diffraction_only",
+       "phys_off",
+       "ours"
+      ],
+      "order_div24": [
+       "phys_on",
+       "diffraction_only",
+       "phys_off",
+       "ours"
+      ],
+      "ours_rank_div12": 4,
+      "ours_rank_div24": 4,
+      "values_div12": {
+       "ours": 2.7032,
+       "phys_off": 86.2467,
+       "phys_on": 86.5069,
+       "diffraction_only": 86.4165
+      },
+      "values_div24": {
+       "ours": 1.5193,
+       "phys_off": 86.2467,
+       "phys_on": 86.5069,
+       "diffraction_only": 86.4165
+      },
+      "min_gap_at_ours_div12": 83.5435,
+      "min_gap_at_ours_div24": 84.7274,
+      "min_gap_any_adjacent_pair_div12": 0.0904,
+      "grid_band": 12.5549,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "diffraction_only",
+       "phys_on"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "diffraction_only",
+       "phys_on"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 0.0923,
+       "phys_off": 40.9107,
+       "phys_on": 43.1987,
+       "diffraction_only": 42.0407
+      },
+      "values_div24": {
+       "ours": 0.2443,
+       "phys_off": 40.9107,
+       "phys_on": 43.1987,
+       "diffraction_only": 42.0407
+      },
+      "min_gap_at_ours_div12": 40.8184,
+      "min_gap_at_ours_div24": 40.6664,
+      "min_gap_any_adjacent_pair_div12": 1.13,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     }
+    },
+    "-15": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -71.047,
+       "phys_off": -145.333,
+       "phys_on": -115.02,
+       "diffraction_only": -111.602
+      },
+      "values_div24": {
+       "ours": -72.365,
+       "phys_off": -145.333,
+       "phys_on": -115.02,
+       "diffraction_only": -111.602
+      },
+      "min_gap_at_ours_div12": 40.555,
+      "min_gap_at_ours_div24": 39.237,
+      "min_gap_any_adjacent_pair_div12": 3.418,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_off",
+       "ours",
+       "diffraction_only",
+       "phys_on"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "diffraction_only",
+       "phys_on"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 72.742,
+       "phys_off": 81.256,
+       "phys_on": 11.914,
+       "diffraction_only": 11.927
+      },
+      "values_div24": {
+       "ours": 72.842,
+       "phys_off": 81.256,
+       "phys_on": 11.914,
+       "diffraction_only": 11.927
+      },
+      "min_gap_at_ours_div12": 8.514,
+      "min_gap_at_ours_div24": 8.414,
+      "min_gap_any_adjacent_pair_div12": 0.013,
+      "grid_band": 21.819,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "diffraction_only",
+       "ours",
+       "phys_off"
+      ],
+      "order_div24": [
+       "phys_on",
+       "diffraction_only",
+       "phys_off",
+       "ours"
+      ],
+      "ours_rank_div12": 3,
+      "ours_rank_div24": 4,
+      "values_div12": {
+       "ours": 17.1839,
+       "phys_off": 6.5324,
+       "phys_on": 87.8063,
+       "diffraction_only": 87.687
+      },
+      "values_div24": {
+       "ours": 4.629,
+       "phys_off": 6.5324,
+       "phys_on": 87.8063,
+       "diffraction_only": 87.687
+      },
+      "min_gap_at_ours_div12": 10.6515,
+      "min_gap_at_ours_div24": 1.9034,
+      "min_gap_any_adjacent_pair_div12": 0.1193,
+      "grid_band": 12.5549,
+      "verdict": "ORDER_FLIP",
+      "flip_class": "WITHIN_BAND"
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 0.0997,
+       "phys_off": 0.1033,
+       "phys_on": 16.7673,
+       "diffraction_only": 72.7533
+      },
+      "values_div24": {
+       "ours": 0.0173,
+       "phys_off": 0.1033,
+       "phys_on": 16.7673,
+       "diffraction_only": 72.7533
+      },
+      "min_gap_at_ours_div12": 0.0036,
+      "min_gap_at_ours_div24": 0.086,
+      "min_gap_any_adjacent_pair_div12": 0.0036,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     }
+    },
+    "-30": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -69.11,
+       "phys_off": -135.664,
+       "phys_on": -126.6,
+       "diffraction_only": -124.745
+      },
+      "values_div24": {
+       "ours": -69.484,
+       "phys_off": -135.664,
+       "phys_on": -126.6,
+       "diffraction_only": -124.745
+      },
+      "min_gap_at_ours_div12": 55.635,
+      "min_gap_at_ours_div24": 55.261,
+      "min_gap_any_adjacent_pair_div12": 1.855,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 83.306,
+       "phys_off": 80.499,
+       "phys_on": 12.456,
+       "diffraction_only": 11.701
+      },
+      "values_div24": {
+       "ours": 61.487,
+       "phys_off": 80.499,
+       "phys_on": 12.456,
+       "diffraction_only": 11.701
+      },
+      "min_gap_at_ours_div12": 2.807,
+      "min_gap_at_ours_div24": 19.012,
+      "min_gap_any_adjacent_pair_div12": 0.755,
+      "grid_band": 21.819,
+      "verdict": "ORDER_FLIP",
+      "flip_class": "WITHIN_BAND"
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "diffraction_only",
+       "ours",
+       "phys_off"
+      ],
+      "order_div24": [
+       "phys_on",
+       "diffraction_only",
+       "ours",
+       "phys_off"
+      ],
+      "ours_rank_div12": 3,
+      "ours_rank_div24": 3,
+      "values_div12": {
+       "ours": 10.6171,
+       "phys_off": 1.0606,
+       "phys_on": 85.848,
+       "diffraction_only": 81.1418
+      },
+      "values_div24": {
+       "ours": 1.3611,
+       "phys_off": 1.0606,
+       "phys_on": 85.848,
+       "diffraction_only": 81.1418
+      },
+      "min_gap_at_ours_div12": 9.5565,
+      "min_gap_at_ours_div24": 0.3005,
+      "min_gap_any_adjacent_pair_div12": 4.7062,
+      "grid_band": 12.5549,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "ours",
+       "phys_off",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "order_div24": [
+       "ours",
+       "phys_off",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": 0.0393,
+       "phys_off": 0.4223,
+       "phys_on": 126.5073,
+       "diffraction_only": 126.6113
+      },
+      "values_div24": {
+       "ours": 0.0433,
+       "phys_off": 0.4223,
+       "phys_on": 126.5073,
+       "diffraction_only": 126.6113
+      },
+      "min_gap_at_ours_div12": 0.383,
+      "min_gap_at_ours_div24": 0.379,
+      "min_gap_any_adjacent_pair_div12": 0.104,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     }
+    },
+    "-45": {
+     "ac_power_db": {
+      "label_ko": "DC 제거 AC 절대전력 [dB]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "order_div24": [
+       "ours",
+       "diffraction_only",
+       "phys_on",
+       "phys_off"
+      ],
+      "ours_rank_div12": 1,
+      "ours_rank_div24": 1,
+      "values_div12": {
+       "ours": -67.188,
+       "phys_off": -129.613,
+       "phys_on": -126.899,
+       "diffraction_only": -124.385
+      },
+      "values_div24": {
+       "ours": -67.097,
+       "phys_off": -129.613,
+       "phys_on": -126.899,
+       "diffraction_only": -124.385
+      },
+      "min_gap_at_ours_div12": 57.197,
+      "min_gap_at_ours_div24": 57.288,
+      "min_gap_any_adjacent_pair_div12": 2.514,
+      "grid_band": 3.861,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "rhythm_share_pct": {
+      "label_ko": "리듬 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_off",
+       "ours",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "phys_on",
+       "diffraction_only"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 49.65,
+       "phys_off": 84.063,
+       "phys_on": 13.823,
+       "diffraction_only": 13.209
+      },
+      "values_div24": {
+       "ours": 36.826,
+       "phys_off": 84.063,
+       "phys_on": 13.823,
+       "diffraction_only": 13.209
+      },
+      "min_gap_at_ours_div12": 34.413,
+      "min_gap_at_ours_div24": 23.003,
+      "min_gap_any_adjacent_pair_div12": 0.614,
+      "grid_band": 21.819,
+      "verdict": "PRESERVED_ROBUST",
+      "flip_class": null
+     },
+     "above_f_tip_pct": {
+      "label_ko": "f_tip 밖 몫 [%]",
+      "rank_rule_ko": "높을수록 앞",
+      "order_div12": [
+       "phys_on",
+       "diffraction_only",
+       "ours",
+       "phys_off"
+      ],
+      "order_div24": [
+       "phys_on",
+       "diffraction_only",
+       "phys_off",
+       "ours"
+      ],
+      "ours_rank_div12": 3,
+      "ours_rank_div24": 4,
+      "values_div12": {
+       "ours": 1.814,
+       "phys_off": 0.9351,
+       "phys_on": 78.105,
+       "diffraction_only": 58.5159
+      },
+      "values_div24": {
+       "ours": 0.2734,
+       "phys_off": 0.9351,
+       "phys_on": 78.105,
+       "diffraction_only": 58.5159
+      },
+      "min_gap_at_ours_div12": 0.8789,
+      "min_gap_at_ours_div24": 0.6617,
+      "min_gap_any_adjacent_pair_div12": 0.8789,
+      "grid_band": 12.5549,
+      "verdict": "ORDER_FLIP",
+      "flip_class": "WITHIN_BAND"
+     },
+     "beat_err_hz": {
+      "label_ko": "박자 오차 |beat − f_flash| [Hz]",
+      "rank_rule_ko": "낮을수록 앞",
+      "order_div12": [
+       "phys_off",
+       "ours",
+       "diffraction_only",
+       "phys_on"
+      ],
+      "order_div24": [
+       "phys_off",
+       "ours",
+       "diffraction_only",
+       "phys_on"
+      ],
+      "ours_rank_div12": 2,
+      "ours_rank_div24": 2,
+      "values_div12": {
+       "ours": 0.0387,
+       "phys_off": 0.0037,
+       "phys_on": 126.6663,
+       "diffraction_only": 126.6463
+      },
+      "values_div24": {
+       "ours": 0.1427,
+       "phys_off": 0.0037,
+       "phys_on": 126.6663,
+       "diffraction_only": 126.6463
+      },
+      "min_gap_at_ours_div12": 0.035,
+      "min_gap_at_ours_div24": 0.139,
+      "min_gap_any_adjacent_pair_div12": 0.02,
+      "grid_band": 0.152,
+      "verdict": "PRESERVED_BUT_WITHIN_BAND",
+      "flip_class": null
+     }
+    }
+   },
+   "any_order_flip": true
+  }
+ },
+ "appendix_r15_nadir": {
+  "question_ko": "직하방(−90°) 잔여가 근거리장 **곡률** 때문인가 — 평면파로 바꾸면 사라지나",
+  "arms": {
+   "spherical": "ours_r15_n8192/el-90",
+   "plane_wave": "ours_r15_n8192_pw/el-90"
+  },
+  "spherical": {
+   "dc_power_db": -41.294,
+   "ac_power_db": -81.561,
+   "ac_over_dc_db": -40.267,
+   "level_db_ledger_formula": -41.294
+  },
+  "plane_wave": {
+   "dc_power_db": -40.672,
+   "ac_power_db": -82.208,
+   "ac_over_dc_db": -41.536,
+   "level_db_ledger_formula": -40.672
+  },
+  "delta_pw_minus_sph": {
+   "ac_power_db": -0.647,
+   "dc_power_db": 0.622,
+   "ac_over_dc_db": -1.269
+  },
+  "grid_band_ac_power_db": 3.861,
+  "grid_band_ac_over_dc_db": 2.91,
+  "verdict_ko": "AC **절대전력** 차이는 -0.65 dB, 파생 비율(AC/DC) 차이는 -1.27 dB 다. 둘 다 R16 격자 산포 밴드(AC 3.86 dB · AC/DC 2.91 dB) **안**이므로 «곡률이 원인이다/아니다» 를 이 원장으로는 **판정할 수 없다**.",
+  "note_ko": "⭐AC 절대전력과 DC 를 **따로** 싣는다. 비율만 보면 «평면파가 더 낮다» 가 1.27 dB 로 보이는데, AC 절대값 차이는 그 절반 이하다 — 비율이 움직인 이유의 상당 부분이 **분모(DC)** 다.",
+  "nadir_azimuth_dead_axis_ko": "나딧에서 방위는 죽은 축이다 — los(az, −90°)=[0,0,−1] 이라 방위 회전이 시선을 안 바꾼다. 앞으로 큐에서 나딧×방위 조합을 배제한다.",
+  "nadir_azimuth_los_diff_deg": 0.0,
+  "caveat_ko": "el −90 에는 λ/24 팔이 없다 — 여기 쓰는 밴드는 el 0~−45 에서 잰 값을 **가져다 쓴** 것이다."
+ },
+ "appendix_r4_scoping": {
+  "pass_line_above_f_tip_frac": 0.03,
+  "rule_ko": "λ/24 의 f_tip 밖 몫이 통과선 아래면 그 앙각은 λ/48 을 살 이유가 없다",
+  "per_elevation": {
+   "+0": {
+    "div12": 0.027032,
+    "div24": 0.015193,
+    "passes": true
+   },
+   "-15": {
+    "div12": 0.171839,
+    "div24": 0.04629,
+    "passes": false
+   },
+   "-30": {
+    "div12": 0.106171,
+    "div24": 0.013611,
+    "passes": true
+   },
+   "-45": {
+    "div12": 0.01814,
+    "div24": 0.002734,
+    "passes": true
+   }
+  },
+  "still_open_els": [
+   "-15"
+  ],
+  "verdict_ko": "λ/48 을 살 자리는 **-15° 뿐**이다 — 나머지 앙각은 λ/24 에서 이미 통과선 0.03 아래로 내려갔다. 설계서 §④ 의 «남은 자리는 el −15 하나» 를 이 판독이 확인한다."
+ },
+ "self_checks": [
+  {
+   "check": "두 팔은 격자만 다르다(n_poses·n_missing·range_m·az_deg·spp·max_depth 동일)",
+   "pass": true,
+   "detail": "el+0: div 12→24, 동일열 예 · el-15: div 12→24, 동일열 예 · el-30: div 12→24, 동일열 예 · el-45: div 12→24, 동일열 예"
+  },
+  {
+   "check": "쓰는 칸에 결측 자세가 없다(n_missing=0)",
+   "pass": true,
+   "detail": "결측 칸 없음"
+  },
+  {
+   "check": "리듬 잣대 눈금 — 백색 ≈13 % · 이상 로터 ≈100 %",
+   "pass": true,
+   "detail": "백색 12.12 % · 이상 로터 100.00 % (빗살 77 개)"
+  },
+  {
+   "check": "|ρ| 눈금 — 자기상관 1.000 · 섞기 널은 잡음 바닥(≈1/√N)",
+   "pass": true,
+   "detail": "자기 1.000000 · 섞기 널 0.0089 · 1/√N=0.0110"
+  },
+  {
+   "check": "원장 재현 — level_db 최대오차 ≤0.01 dB",
+   "pass": true,
+   "detail": "최대 0.0050 dB (8 칸)"
+  },
+  {
+   "check": "원장 재현 — track.beat_hz 최대오차 ≤0.02 Hz (STFT 0.45 주기)",
+   "pass": true,
+   "detail": "최대 0.0040 Hz (8 칸)"
+  },
+  {
+   "check": "설계서 인용 재현 — el −30 의 f_tip 밖 몫 0.1062 → 0.0136",
+   "pass": true,
+   "detail": "재계산 0.1062 → 0.0136"
+  },
+  {
+   "check": "밴드 표가 층마다 채워졌다",
+   "pass": true,
+   "detail": "밴드 항목 11 개"
+  },
+  {
+   "check": "순서 보존표가 앙각×잣대를 모두 채웠다",
+   "pass": true,
+   "detail": "32 칸 = 2 팔집합 × 4 앙각 × 4 잣대"
+  }
+ ],
+ "corrections": [
+  {
+   "where": "docs/RESUME.md §1 표 8번 · docs/PLAN_VOLUMES_16_17.md 86행·251행·423행 · outputs/physics_vs_deck.json cells.*.corr_with_ours_db_map",
+   "current_ko": "「우리 팔이 8/11 덱 15 m 판과 **상관 0.9877** 로 겹친다 — PathSolver 물리끔은 0.6961 로 안 겹친다」",
+   "correct_to_ko": "같은 잣대(STFT dB-맵 상관)로 **격자만** λ/12→λ/24 로 바꾸면 상관이 0.6039~0.7380 로 내려간다(el −15 에서 0.6039). 즉 **0.6961 은 격자 바닥과 구별되지 않는다** — 「PathSolver 가 덱과 안 닮았다」는 이 잣대로는 못 세운다. 상관 인용에는 «같은 격자끼리만» 단서를 붙인다.",
+   "severity": "high",
+   "evidence": "outputs/grid_convergence_check.json : per_elevation.*.layer1_waveform"
+  },
+  {
+   "where": "상관(|ρ|·맵 상관)을 «닮았다/안 닮았다» 의 근거로 쓰는 모든 자리 (docs/RESUME.md · docs/PLAN_VOLUMES_16_17.md · 덱 대조 표)",
+   "current_ko": "상관 0.6~0.7 을 «안 닮았다» 의 근거로, 0.98 을 «같다» 의 근거로 사용",
+   "correct_to_ko": "⭐같은 커널·같은 격자에서 **앙각만** 15~45° 바꿔도 |ρ| 가 0.27~0.78 나온다(섞기 널은 0.009). 즉 0.5~0.8 대는 **명백히 다른 물건들 사이의 평범한 값**이라 «닮았다» 의 근거가 못 된다. 상관을 인용할 때는 반드시 이 자(앙각 교차·격자 교차·섞기 널)를 같이 싣는다.",
+   "severity": "high",
+   "evidence": "outputs/grid_convergence_check.json : rho_reference_rulers"
+  },
+  {
+   "where": "docs/RESUME.md §1 표 2번 · outputs/switch_grid.json 인용 (「회절 든 조합 11.7~13.2 % ↔ 없는 조합 62.1~80.5 %」)",
+   "current_ko": "「리듬 몫 62.1~80.5 % ↔ 11.7~13.2 %」를 격자 단서 없이 인용",
+   "correct_to_ko": "리듬 몫은 격자만 λ/24 로 바꿔도 최대 **21.8 %p** 움직인다(el −30 에서 83.3 → 61.5 %). 62.1~80.5 % 는 **λ/12 한정 수치**이므로 인용에 «λ/12» 를 박는다. 다만 «회절 든 조합 ≈13 %(백색 수준)» 라는 **결론의 방향은 밴드 밖**이라 그대로 산다.",
+   "severity": "high",
+   "evidence": "outputs/grid_convergence_check.json : grid_dispersion_bands.bands.layer3_metric"
+  },
+  {
+   "where": "docs/RESUME.md §1 표 1번 (el 0 «0° 익사» 서사에서 리듬 몫·레벨을 쓰는 자리)",
+   "current_ko": "우리 커널의 el 0 리듬 몫·AC 레벨을 격자 단서 없이 절대값으로 인용",
+   "correct_to_ko": "el 0 은 격자 민감도가 가장 큰 자리다 — |ρ| 0.57, AC -3.86 dB, 리듬 몫 -11.9 %p. el 0 의 **절대 수치**는 인용하지 말고 «우리 팔은 el 0 에서 박자를 유지하고 PathSolver 는 못 한다» 는 **순서 진술**만 쓴다(그 순서는 격자에 강건하다).",
+   "severity": "medium",
+   "evidence": "outputs/grid_convergence_check.json : per_elevation.+0"
+  },
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md §② 15행(R15) 「문턱은 R16 의 격자 산포 밴드(≈3 dB)의 2 배 밖」",
+   "current_ko": "밴드를 «≈3 dB» 로 어림잡아 적어 둠",
+   "correct_to_ko": "실측 밴드는 **AC 절대전력 3.86 dB**(DC 는 더 넓다). R15 나딧 판정은 AC 차이 -0.65 dB · AC/DC 차이 -1.27 dB 로 **밴드 안**이라 «판정 불가» 다 — 설계서가 예상한 대로다.",
+   "severity": "low",
+   "evidence": "outputs/grid_convergence_check.json : appendix_r15_nadir"
+  },
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md §④ 「R4 λ/48 … DIV² 비용모형이 원장과 배치」 주변",
+   "current_ko": "원장 `seconds` 로 λ/24 가 λ/12 보다 싸 보이는 것을 비용모형 논거로 씀",
+   "correct_to_ko": "`seconds` 는 GPU 경합 아래의 **벽시계**다(el 0: 1713.8 s → 567.8 s). 비용모형의 근거로 쓰지 말고, 비용은 격자 셀 수로 따로 세운다.",
+   "severity": "low",
+   "evidence": "outputs/elevation_sweep_md.json : rows[*].seconds"
+  },
+  {
+   "where": "f_tip 밖 몫(`above_f_tip_frac`)을 쓰는 모든 자리 (benchmark/build_above_tip_fig.py · build_deck_maps.py · 덱의 «대역밖» 막대)",
+   "current_ko": "f_tip 밖 몫을 팔 사이 비교의 주 잣대로 사용",
+   "correct_to_ko": "이 잣대는 격자만 바꿔도 최대 **12.6 %p** 움직이고 방향이 **일관되게 아래**다(격자를 조이면 준다) — 즉 **격자 잡음을 크게 읽는다**. 우리 팔의 f_tip 밖 몫은 절대값으로 인용하지 말고 «격자 의존» 단서를 단다. PathSolver 물리켬의 ~86 % 는 밴드 밖이라 그대로 산다.",
+   "severity": "medium",
+   "evidence": "outputs/grid_convergence_check.json : grid_dispersion_bands.bands.layer2_statistics"
+  }
+ ]
+}

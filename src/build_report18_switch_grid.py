@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-build_report18_switch_grid.py — 리포트 18 «물리 스위치 격자» 조립.
+build_report18_switch_grid.py — 리포트 5-2 «물리 스위치 격자» 조립 (별편, reports/05_2_switch-grid.ipynb).
 
 사용자 지시(2026-08-15): 「스위치 7 조합 STFT 맵·blade band energy 를 다 실어 읽기
 편하게, **팀미팅 때 보이는 분석 방식**으로」. 그 방식이란:
@@ -9,8 +9,15 @@ build_report18_switch_grid.py — 리포트 18 «물리 스위치 격자» 조�
   · 각도는 «−30°» 표기, 쉬운 말, 그림 안 글자는 영어
   · 봉우리의 위치(예측 126.7 Hz 배수에 앉는가)를 항상 함께 본다
 
-⚠이 보고서는 17 권 체계 밖의 **작업 보고서**다(엄격 규약 빌더를 안 탄다). 결론이 서면
-리포트 16/17 에 절로 편입한다. 숫자는 전부 outputs/switch_grid.json 에서 주입한다.
+이 보고서는 리포트 5 «엔진의 물리 스위치» 의 **별편**이다(외부 빌더 — 엄격 규약 빌더를
+안 탄다). 부모의 단일축 귀속을 7 조합 전수 격자로 완결한다.
+
+원장 두 개를 쓴다.
+  · outputs/switch_factorial.json (R13) — 몫이 아니라 **절대 dB** 로 다시 읽은 판.
+    회절이 리듬을 지우는지 덮는지, 축이 «바꾸는 축» 인지 «얹는 축» 인지, 깊이 축이
+    살아 있는지가 여기서 나온다. 리듬 몫·바닥·빗살 솟음·빠진 자세는 전부 이 원장.
+  · outputs/switch_grid.json — 아래 네 그림(맵·대역 에너지)을 만든 원장. 1 차 선과
+    봉우리 위치 두 열만 여기서 읽는다.
 
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_report18_switch_grid.py
 """
@@ -23,8 +30,16 @@ import nbformat as nbf
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+
+#: 그림 원장 — 맵·대역 에너지 네 장과 1 차 선/봉우리 열.
 J = json.load(open(f"{ROOT}/outputs/switch_grid.json", encoding="utf-8"))
 M, C = J["_meta"], J["cells"]
+
+#: R13 원장 — 절대 dB 판. 이 리포트의 숫자 대부분이 여기서 온다.
+F = json.load(open(f"{ROOT}/outputs/switch_factorial.json", encoding="utf-8"))
+FM, FC, V = F["_meta"], F["cells"], F["verdict"]
+CTRL = F["controls"]
+EL = M["el_deg"]
 
 ORDER = ["Our kernel", "all off", "refraction only", "edge only", "diffraction only",
          "diffraction + edge", "refraction + diffraction", "all on"]
@@ -33,64 +48,179 @@ KO = {"Our kernel": "우리 커널", "all off": "다 끔", "refraction only": "�
       "diffraction + edge": "회절+모서리", "refraction + diffraction": "굴절+회절",
       "all on": "다 켬"}
 
+#: 표시 이름 → 팔 이름. R13 의 자기점검 블록이 옛 이름과 팔을 짝지어 뒀다 — 그것을 그대로 쓴다.
+ARM_OF = {r["name"]: r["arm"]
+          for r in F["selfcheck"]["reproduces_switch_grid_json"]["rows"]}
+
+
+def fac(name):
+    """표시 이름의 −30° 칸을 R13 원장에서 찾아온다."""
+    arm = ARM_OF[name]
+    for pool in (FC, F["reference_arms"]):
+        for v in pool.values():
+            if v["arm"] == arm and v["el_deg"] == EL:
+                return v
+    raise KeyError(f"{name} ({arm}) 의 el{EL:+.0f} 칸이 R13 원장에 없다")
+
 
 def md(*lines):
     return nbf.v4.new_markdown_cell("\n".join(lines))
 
 
-def cite(key):
-    return f"⟨outputs/switch_grid.json : cells.{key}⟩"
+def ang(x):
+    """각도는 «−30°» 표기 — 빼기표(U+2212)를 쓴다(하우스 규약)."""
+    return f"{x:.0f}°".replace("-", "−")
 
 
-def table():
-    rows = ["| 조합 | 리듬 몫 [%] | 1차 선 [dB] | 봉우리 [Hz] | 빠진 자세 |",
-            "|---|---|---|---|---|"]
-    for nm in ORDER:
-        c = C[nm]
-        rows.append(f"| {KO[nm]} ({nm}) | {c['rhythm_share_pct']:.1f} | "
-                    f"{c['h1_over_floor_db']:.1f} | {c['h1_peak_hz']:.1f} | "
-                    f"{c['n_missing']} |")
+# ── 헤드라인 쌍: 판 위(−30°)의 «꼬리표 없는 기본» 칸에서 회절만 켠 짝 ──────────
+PAIR = next(p for p in F["diffraction_on_plate_el30"]
+            if p["off"] == "R0D0E0F1_d1/el-30")
+OFF, ON = FC[PAIR["off"]], FC[PAIR["on"]]
+BURIAL = next(b for b in F["diffraction_burial"]
+              if b["pair"] == f"{PAIR['off']} → {PAIR['on']}")
+BUR_LO = min(b["burial_depth_db"] for b in F["diffraction_burial"])
+BUR_HI = max(b["burial_depth_db"] for b in F["diffraction_burial"])
+
+# ── 판 위 깊이 1 칸들의 리듬 몫 범위 — 회절 든 칸 ↔ 안 든 칸 ─────────────────
+D1 = [v for v in FC.values()
+      if v["el_deg"] == EL and v["depth"] == 1 and not v["zero_echo"]]
+ON_SH = [v["rhythm_share_pct"] for v in D1 if v["diffraction"]]
+OFF_SH = [v["rhythm_share_pct"] for v in D1 if not v["diffraction"]]
+lo_on, hi_on = min(ON_SH), max(ON_SH)
+lo_off, hi_off = min(OFF_SH), max(OFF_SH)
+WHITE = CTRL["white_share_pct_mean"]
+WBAND = F["selfcheck"]["white_control"]["band"]
+
+# ── 덮개 시험 — 판 위 다섯 쌍 ───────────────────────────────────────────────
+PL = F["diffraction_on_plate_el30"]
+A_LO = min(p["contain_coeff"] for p in PL)
+A_HI = max(p["contain_coeff"] for p in PL)
+PH_HI = max(abs(p["contain_phase_deg"]) for p in PL)
+N_UNIT = sum(1 for p in PL if p["contains_unit_within_3sigma"])
+ORTH_GAP = max(abs(p["residual_ac_db"] - p["orthogonal_pred_db"]) for p in PL)
+RES_LO = min(p["residual_rhythm_pct"] for p in PL)
+RES_HI = max(p["residual_rhythm_pct"] for p in PL)
+FL_LO = min(p["d_above_floor_db"] for p in PL)
+FL_HI = max(p["d_above_floor_db"] for p in PL)
+
+# ── 적용 범위 — 다른 앙각 ──────────────────────────────────────────────────
+SC = F["diffraction_scope_other_elevations"]
+Z0 = next(p for p in SC if p["el_deg"] == 0.0)
+Z0_OFF = FC[Z0["off"]]
+OBL = [p for p in SC if p["el_deg"] < 0.0]
+OBL_LO = min(p["d_above_floor_db"] for p in OBL)
+OBL_HI = max(p["d_above_floor_db"] for p in OBL)
+OBL_BAD = [p for p in OBL if not p["contains_unit_within_3sigma"]]
+OBL_LIST = " · ".join(ang(p["el_deg"]) for p in OBL)
+
+# ── 축의 성질 ──────────────────────────────────────────────────────────────
+AX = V["E_axis_mechanism"]
+LIFT = [AX[k] for k in ("D", "E", "F")]
+LIFT_LO = min(a["a_min"] for a in LIFT)
+LIFT_HI = max(a["a_max"] for a in LIFT)
+
+# ── 깊이 축 ────────────────────────────────────────────────────────────────
+BF = V["B_failures"]
+BF_PLATE = [b for b in BF if b["el_deg"] == EL]
+BF_OTHER = [b for b in BF if b["el_deg"] != EL]
+#: 판 위 실패 쌍의 «세 열 전부» 폭 — 세기 최대치와 바닥 차의 최소치를 함께 훑는다.
+PL_SPAN = [v for b in BF_PLATE for v in (b["max_abs_level_db"], b["d_above_floor_db"])]
+PL_LO, PL_HI = min(PL_SPAN), max(PL_SPAN)
+D60 = next(p for p in F["depth_pairs"]
+           if p["combo"] == "R0D0E0F1" and p["el_deg"] == -60.0 and p["depths"] == [1, 3])
+D60_1, D60_3 = FC[D60["d1"]], FC[D60["dN"]]
+
+
+#: 순정 기본값의 «에코 0» 칸 — 돌렸는데 경로가 0 이라는 증거.
+ZE = [v for k, v in F["zero_echo_proof"].items() if "stockdef" in v["arm"]]
+ZE_SHARDS = sorted({v["n_shards"] for v in ZE})
+
+
+def axis_table():
+    rows = ["| 스위치 | 쌍 수 | 담김계수 a | 읽는 법 |", "|---|---|---|---|"]
+    for k in ("R", "D", "E", "F"):
+        a = AX[k]
+        rows.append(f"| {k} — {FM['switch_meaning_ko'][k]} | {a['n_pairs']} | "
+                    f"{a['a_min']:.2f}~{a['a_max']:.2f} (가운데 {a['a_median']:.2f}) | "
+                    f"{a['reads_ko']} |")
     return "\n".join(rows)
 
 
-DIFFR_ON = ["diffraction only", "diffraction + edge", "refraction + diffraction", "all on"]
-DIFFR_OFF = ["all off", "edge only", "refraction only"]
-lo_on = min(C[n]["rhythm_share_pct"] for n in DIFFR_ON)
-hi_on = max(C[n]["rhythm_share_pct"] for n in DIFFR_ON)
-lo_off = min(C[n]["rhythm_share_pct"] for n in DIFFR_OFF)
-hi_off = max(C[n]["rhythm_share_pct"] for n in DIFFR_OFF)
+def table():
+    rows = ["| 조합 | 리듬 몫 [%] | 상한 위 바닥 [dB] | 빗살 솟음 [dB] | 1차 선 [dB] | "
+            "봉우리 [Hz] | 빠진 자세 |",
+            "|---|---|---|---|---|---|---|"]
+    for nm in ORDER:
+        g, f = C[nm], fac(nm)
+        dag = "†" if nm == "refraction + diffraction" else ""
+        rows.append(f"| {KO[nm]} ({nm}) | {f['rhythm_share_pct']:.2f} | "
+                    f"{f['above_floor_db']:.1f} | {f['comb_over_floor_db']:+.1f} | "
+                    f"{g['h1_over_floor_db']:.1f}{dag} | {g['h1_peak_hz']:.1f} | "
+                    f"{f['n_missing']} |")
+    return "\n".join(rows)
+
 
 nb = nbf.v4.new_notebook()
 nb.cells = [
-    md("# 리포트 18 — 물리 스위치 격자: 회절이 든 조합은 전부 잡음이 된다",
+    md("# 리포트 5-2 — 물리 스위치 격자: 회절은 리듬을 지우지 않고 리듬 없는 에코로 덮는다",
        "",
-       f"**판**: {M['setup_ko']} · 앙각 {M['el_deg']:.0f}° 한 자리. 갈리는 축은 굴절 R · "
+       "이 편은 [리포트 5 «엔진의 물리 스위치»](05_engine-physics.ipynb) 의 **별편**이다.",
+       "",
+       f"**판**: {M['setup_ko']} · 앙각 {ang(EL)} 한 자리. 갈리는 축은 굴절 R · "
        f"회절 D · 모서리회절 E 세 스위치뿐이다.",
        "",
        "### 한 일",
-       "> 세 스위치의 의미 있는 조합 7 개(+우리 커널)를 같은 자리·같은 광선 예산에서 재고, "
-       "STFT 맵과 블레이드 대역 에너지로 나란히 놓았다.",
+       "> 세 스위치의 의미 있는 조합 7 개를 같은 자리·같은 광선 예산(4×10⁹ 발)에서 재고, "
+       "STFT 맵과 블레이드 대역 에너지로 나란히 놓았다. 그 다음 같은 칸들을 **몫이 아니라 "
+       "절대 dB** 로 다시 읽어, 회절이 리듬을 지우는지 덮는지를 갈랐다. 우리 커널은 광선 "
+       "예산 축 밖의 별개 엔진이라 기준 팔로만 함께 둔다.",
        "",
        "### 결과",
-       f"1. ⭐**회절 스위치 하나가 경계선이다** — 회절이 든 네 조합은 리듬 몫 "
-       f"{lo_on:.1f}~{hi_on:.1f} %(백색잡음 = 13)로 전부 잡음 수준이고, 회절이 없는 세 "
-       f"조합은 {lo_off:.1f}~{hi_off:.1f} % 로 날개 구조를 유지한다.",
-       f"2. 모서리회절은 무동작이다 — «모서리만» 은 «다 끔» 과 리듬 "
-       f"{C['edge only']['rhythm_share_pct']:.1f} %, 1차 선 "
-       f"{C['edge only']['h1_over_floor_db']:.1f} dB 까지 같다"
-       f"(비트단위 동일, 소스 구조가 그 이유다 — {M['excluded_ko']}).",
-       f"3. 굴절은 깎지만 죽이지 않는다 — 혼자 켜면 "
-       f"{C['all off']['rhythm_share_pct']:.1f} → "
-       f"{C['refraction only']['rhythm_share_pct']:.1f} %, 1차 선 "
-       f"{C['all off']['h1_over_floor_db']:.1f} → "
-       f"{C['refraction only']['h1_over_floor_db']:.1f} dB. 선의 자리는 "
+       f"1. ⭐**회절 스위치 하나가 경계선이다** — 회절을 켜면 상한 위 **바닥이 "
+       f"{PAIR['d_above_floor_db']:+.1f} dB**({OFF['above_floor_db']:.1f} → "
+       f"{ON['above_floor_db']:.1f} dB) 오르고, 빗살 선의 바닥 위 솟음은 "
+       f"{OFF['comb_over_floor_db']:+.1f} dB → {ON['comb_over_floor_db']:+.1f} dB 로 "
+       f"무너진다. 리듬 몫이 {lo_on:.1f}~{hi_on:.1f} %(백색 = {WHITE:.1f})로 떨어진 것은 "
+       f"분자가 준 것이 아니라 **분모가 커진 것**이다. 회절이 없는 칸은 "
+       f"{lo_off:.1f}~{hi_off:.1f} %.",
+       f"2. ⭐**회절이 얹는 것은 리듬 없는 에코다** — 회절을 켠 시계열은 끈 시계열을 계수 "
+       f"{PAIR['contain_coeff']:.2f}·위상 {PAIR['contain_phase_deg']:.1f}° 로 그대로 품고 "
+       f"있고, 뺀 나머지에는 날개 박자가 없다(몫 {RES_LO:.1f}~{RES_HI:.1f} % = 백색). "
+       f"원래 빗살은 새 바닥보다 {BURIAL['burial_depth_db']:.1f} dB 아래에 잠겨 있을 뿐 "
+       f"사라지지 않았다 — 아래 «덮개 시험» 절.",
+       f"3. ⭐**바꾸는 축은 하나, 얹는 축이 셋이다** — 굴절 R 만 원래 시계열 자체를 다른 "
+       f"것으로 만들고(담김계수 {AX['R']['a_min']:.2f}~{AX['R']['a_max']:.2f}), 회절 D · "
+       f"모서리 E · 확산 F 는 원래 것을 남긴 채 위에 새 항을 더한다"
+       f"(≈{LIFT_LO:.2f}~{LIFT_HI:.2f}).",
+       f"4. **모서리회절은 무동작이다** — «모서리만» 은 «다 끔» 과 리듬 "
+       f"{fac('edge only')['rhythm_share_pct']:.2f} %, 바닥 "
+       f"{fac('edge only')['above_floor_db']:.1f} dB 까지 비트단위로 같다. 모서리회절 "
+       f"후보를 만드는 자리가 회절 스위치 안에 있기 때문이다.",
+       f"5. **굴절은 깎지만 죽이지 않는다** — 혼자 켜면 리듬 "
+       f"{fac('all off')['rhythm_share_pct']:.1f} → "
+       f"{fac('refraction only')['rhythm_share_pct']:.1f} %, 빗살 솟음 "
+       f"{fac('all off')['comb_over_floor_db']:+.1f} → "
+       f"{fac('refraction only')['comb_over_floor_db']:+.1f} dB. 선의 자리는 "
        f"{C['refraction only']['h1_peak_hz']:.1f} Hz 로 그대로다.",
-       f"4. 봉우리 위치는 여덟 팔 전부 {C['all on']['h1_peak_hz']:.1f} Hz — 예측 "
+       f"6. **봉우리 위치는 여덟 팔 전부 {C['all on']['h1_peak_hz']:.1f} Hz** — 예측 "
        f"{M['f_flash_hz']:.1f} Hz 의 자리다. 위치가 아니라 **선명도**가 갈린다.",
+       f"7. ⚠**깊이 축은 아직 살아 있다** — 깊이 1↔3 을 견준 "
+       f"{V['B_n_pairs_1to3']} 쌍 중 {len(BF)} 쌍이 문턱 밖이다. 깊이 축을 큐에서 뺄 수 "
+       f"없다 — 아래 «깊이» 절.",
        "",
-       "### 잣대 두 개 (팀미팅과 같은 규약)",
-       f"- **리듬 몫** — {M['rhythm_ko']}",
-       f"- **1차 선** — {M['h1_ko']}"),
+       "### 잣대 — 무엇을 재나 (쉬운 말)",
+       "- **상한 위** — 날개 끝이 낼 수 있는 최고 도플러(f_tip) **위쪽** 자리. 몸통은 "
+       "여기까지 못 온다. 즉 날개만 만들 수 있는 구역이다.",
+       "- **바닥** — 상한 위에서 빗살 자리를 뺀 나머지 에너지. 리듬이 없는 부분이다.",
+       f"- **빗살** — 예측 박자 {M['f_flash_hz']:.1f} Hz 의 정수배 ±{FM['comb_half_width_hz']:.0f} Hz "
+       f"자리. 날개 플래시가 앉는 곳이다.",
+       "- **빗살 솟음** — 빗살 자리의 빈 하나당 에너지를 바닥 빈 하나당 에너지로 나눈 것. "
+       "0 dB 면 «선이 없다 = 백색» 이라는 뜻이다.",
+       f"- **리듬 몫** — {M['rhythm_ko'].replace('백색잡음 13', f'백색 {WHITE:.1f}')}. "
+       f"몫이라서 바닥이 커져도 내려간다 — 그래서 절대 dB 를 함께 본다.",
+       f"- **1차 선** — {M['h1_ko']}",
+       "",
+       f"⭐{FM['units_ko']}"),
 
     md("## 맵 — 여덟 팔이 같은 자리에서 그린 것",
        "",
@@ -101,14 +231,17 @@ nb.cells = [
        "",
        "읽는 법: 시간축으로 규칙적으로 지나가는 덩어리가 날개, 가운데 가로띠가 동체다. "
        "윗줄(우리 커널·다 끔·굴절만·모서리만)은 날개 플래시가 있고, 아랫줄로 갈수록 — "
-       "회절이 켜지는 순간 — 무늬가 세로 얼룩으로 바뀐다."),
+       "회절이 켜지는 순간 — 무늬가 세로 얼룩으로 바뀐다.",
+       "",
+       "⚠패널마다 따로 정규화했기 때문에 이 그림은 **모양**만 말한다. 회절 켠 패널의 "
+       "얼룩이 원래 플래시보다 얼마나 센지는 뒤의 절대 dB 그림에서 읽는다."),
 
     md("## 같은 맵, 정지 성분 제거",
        "",
        "![switch grid maps dc removed](../outputs/figures/swgrid_maps_dc.png)",
        "",
-       "**그림 2.** 동체 에코를 빼면 차이가 더 선명하다 — 회절 없는 팔들은 규칙적으로 "
-       "뛰고, 회절 든 팔들은 번진다."),
+       "**그림 2.** 가만히 있는 부분(동체 에코)을 빼면 차이가 더 선명하다 — 회절 없는 "
+       "팔들은 규칙적으로 뛰고, 회절 든 팔들은 번진다."),
 
     md("## 블레이드 대역 에너지 — 넓은 범위 (100~1,000 Hz)",
        "",
@@ -124,32 +257,204 @@ nb.cells = [
        "",
        "![switch grid band energy zoom](../outputs/figures/swgrid_be_zoom.png)",
        "",
-       "**그림 4.** 1~3 차 선 확대. 봉우리 위치가 여덟 팔 전부 예측 자리(126.7 Hz)에 "
-       "앉는다는 것, 그리고 회절 든 조합의 선이 바닥에 눌린다는 것이 함께 보인다."),
+       f"**그림 4.** 1~3 차 선 확대. 봉우리 위치가 여덟 팔 전부 예측 자리"
+       f"({M['f_flash_hz']:.1f} Hz)에 앉는다는 것, 그리고 회절 든 조합의 선이 바닥에 "
+       f"눌린다는 것이 함께 보인다."),
 
     md("## 숫자 확인 — 그림에서 본 것",
        "",
        table(),
        "",
-       f"출처: 전 칸 outputs/switch_grid.json (rhythm_share_pct · h1_over_floor_db · "
-       f"h1_peak_hz). 리듬 몫의 눈금 — 백색잡음 13, 이상 로터 100.",
+       f"스위치 조합이 여덟(2³)이 아니라 일곱인 이유: {M['excluded_ko']}",
        "",
-       "⚠«굴절+회절» 행은 빠진 자세가 있으면 그 수가 0 이 될 때까지 재병합 후 다시 읽는다."),
+       f"리듬 몫 · 상한 위 바닥 · 빗살 솟음 · 빠진 자세는 outputs/switch_factorial.json "
+       f"(cells, 앙각 {ang(EL)} · 깊이 1)에서, 1 차 선과 봉우리는 그림 네 장을 만든 "
+       f"outputs/switch_grid.json 에서 읽었다. 리듬 몫의 눈금 — 백색 {WHITE:.1f} "
+       f"(±{CTRL['white_share_pct_std']:.1f}, 뽑기 {CTRL['white_draws']} 회), 이상 로터 "
+       f"{CTRL['ideal_comb_share_pct']:.0f}. 여덟 팔 전부 {OFF['n_poses']:,} 자세가 다 "
+       f"찼다.",
+       "",
+       "⚠**바닥 dB 열은 세로로만 읽는다.** 우리 커널 행과 Sionna 행은 애초에 단위가 "
+       "다르다 — 우리 커널이 내는 것은 산란장(면적 차원)이고 Sionna 가 내는 것은 "
+       "무차원 채널계수다. 그래서 두 엔진의 절대 dB 를 서로 빼는 것은 뜻이 없고, "
+       "**같은 엔진 안에서 스위치를 바꿨을 때의 차이**만 이 열의 쓰임이다. 빗살 솟음 "
+       "열은 같은 시계열 안의 비(선 ÷ 바닥)라 단위가 상쇄되므로 엔진 사이에서도 읽힌다.",
+       "",
+       "표를 가로로 읽으면 결과 1 이 그대로 보인다. 회절이 켜진 네 행은 **바닥 열이 "
+       "30 dB 넘게 위로 올라와 있고**, 그래서 빗살 솟음이 0 dB 근처(=선 없음)로 주저앉고, "
+       "그 결과로 리듬 몫이 백색 자리에 앉는다. 리듬 몫 하나만 보면 «선이 사라졌다» 로 "
+       "읽히지만, 바닥 열을 같이 보면 «바닥이 올라왔다» 다.",
+       "",
+       f"†«굴절+회절» 행의 1 차 선 값 하나만 갱신 대기다 — 그림 원장이 이 팔의 자세가 "
+       f"다 차기 전 판이라서, 그림 3·4 를 다시 만들 때 함께 읽힌다. 나머지 일곱 행은 두 "
+       f"원장이 리듬 몫 기준 "
+       f"{F['selfcheck']['reproduces_switch_grid_json']['max_abs_diff_pp']:.2f} %p 안에서 "
+       f"일치한다."),
+
+    md("## 덮개 시험 — 회절은 지우나, 덮나",
+       "",
+       "![switch factorial absolute dB](../outputs/figures/switch_factorial_abs_db.png)",
+       "",
+       "**그림 5.** 같은 격자를 절대 dB 로 다시 읽은 판. 왼쪽 열이 깊이 1, 오른쪽 열이 "
+       "깊이 3 이다. 위 두 패널은 세 열(움직이는 성분의 세기 AC · 상한 위 바닥 · 상한 위 "
+       "빗살)의 절대 세기, 아래 두 패널은 «빗살 빈이 바닥 빈보다 얼마나 솟았나» 다 — "
+       "0 dB 면 선이 없다는 뜻이다. 회색 음영 줄이 회절을 끈 칸이다.",
+       "",
+       "회색 줄(회절 끔)에서는 바닥 막대가 짧고 아래 패널 막대가 오른쪽(초록)으로 나가 "
+       "있다. 흰 줄(회절 켬)에서는 바닥 막대가 길게 자라 있고 아래 패널 막대는 0 에 "
+       "붙는다. **선이 사라진 것이 아니라 바닥이 선 높이까지 올라온 그림**이다.",
+       "",
+       "### 세 가지로 갈라 물었다",
+       "",
+       f"판정은 설계서가 정한 판 — 앙각 {ang(EL)} · matrice4e · 15 m · 광선 4×10⁹ — 의 "
+       f"{V['A_n_pairs_plate']} 쌍(회절만 켜고 끈 짝)에서만 내린다.",
+       "",
+       f"1. ⛔**«빗살 총합이 그대로냐»로 물으면 아니다.** 올라온 바닥이 빗살 자리 안에도 "
+       f"똑같이 들어차서 빗살 빈 총합도 함께 올라간다. 이 정의로는 «선» 을 잴 수 없다.",
+       f"2. ✅**«선이 바닥 위로 솟았느냐»로 물으면 맞다.** 바닥은 "
+       f"{FL_LO:.1f}~{FL_HI:.1f} dB 오르고, 빗살 솟음은 0 dB(=백색)로 주저앉는다.",
+       f"3. ✅**덮개 시험 — 켠 판이 끈 판을 품고 있느냐.** 켠 시계열을 «계수 a × 끈 "
+       f"시계열 + 나머지» 로 갈라 보면 a 가 {A_LO:.2f}~{A_HI:.2f} 이고 위상 틀어짐은 "
+       f"많아야 {PH_HI:.1f}° 다. {V['A_n_pairs_plate']} 쌍 중 "
+       f"{N_UNIT} 쌍이 «a = 1» 을 3σ 안에서 담는다. 나머지의 전력은 두 판 전력의 차와 "
+       f"{ORTH_GAP:.2f} dB 안에서 같다 — 원래 신호와 겹치지 않는 **새 항이 더해졌다**는 "
+       f"뜻이다.",
+       "",
+       f"그리고 그 «나머지» 만 따로 재면 리듬 몫이 {RES_LO:.1f}~{RES_HI:.1f} % 로 백색 "
+       f"밴드({WBAND[0]:.0f}~{WBAND[1]:.0f} %) 안이다. **얹힌 것에는 날개 박자가 없다.**",
+       "",
+       "### 얼마나 깊이 잠겼나",
+       "",
+       f"원래 빗살(회절 끈 판)과 그 자리를 채운 새 바닥(회절 켠 판)의 높이 차 — 판 위 "
+       f"{len(F['diffraction_burial'])} 쌍에서 {BUR_LO:.1f}~{BUR_HI:.1f} dB, 기본 칸에서 "
+       f"{BURIAL['burial_depth_db']:.1f} dB 다. 리듬은 사라진 것이 아니라 그만큼 아래에 "
+       f"있다.",
+       "",
+       "⇒ 기전이 다르면 다음 실험이 달라진다. **지운다면** 회절 모형 자체가 틀린 것이고, "
+       "**덮는다면** 회절 항의 절대 크기가 문제다. 남은 질문은 하나로 좁혀진다 — 상한 "
+       "위로 새는 그 회절 항이 물리인가, 아니면 광선을 유한하게 쏴서 생기는 계산 "
+       "흔들림인가.",
+       "",
+       f"⟨outputs/switch_factorial.json : verdict.A_* · diffraction_on_plate_el30 · "
+       f"diffraction_burial⟩"),
+
+    md("## 적용 범위 — 정면(0°)은 예외다",
+       "",
+       "![switch factorial across elevation](../outputs/figures/switch_factorial_elevation.png)",
+       "",
+       "**그림 6.** 같은 세 열을 앙각으로 훑은 것. 기전이 서로 다른 여섯 팔만 골랐다. "
+       "(a) 움직이는 성분의 세기, (b) 상한 위 바닥, (c) 상한 위 빗살.",
+       "",
+       f"⚠**덮개 문장은 빗각에서만 쓴다.** 앙각 0° 에서는 회절을 켜도 바닥이 "
+       f"{Z0['d_above_floor_db']:+.1f} dB 밖에 안 오른다. 정면에서는 회절이 오기 전에 이미 "
+       f"동체 정반사를 유한한 광선으로 재느라 생긴 계산 흔들림이 상한 위를 백색으로 채워 "
+       f"놨기 때문이다 — 회절을 끈 판의 리듬 몫이 벌써 "
+       f"{Z0_OFF['rhythm_share_pct']:.1f} %(= 백색 {WHITE:.1f})다. 덮을 것이 이미 덮여 "
+       f"있으니 회절이 더 얹어도 눈금이 안 움직인다.",
+       "",
+       f"판 밖 빗각 {len(OBL)} 자리({OBL_LIST})"
+       f"에서는 회절이 바닥을 {OBL_LO:.1f}~{OBL_HI:.1f} dB 올리고 빗살 솟음을 0 dB 로 "
+       f"눌러, 판 위에서 본 것과 같은 그림이 나온다. 다만 «계수 1» 이 3σ 안에 드는지는 "
+       f"자리마다 다르다 — "
+       + ("모든 빗각에서 든다." if not OBL_BAD else
+          " · ".join(f"{ang(p['el_deg'])} 는 3σ 밖(계수 {p['contain_coeff']:.2f})"
+                     for p in OBL_BAD) + " 이라 그 자리에서는 «품고 있다» 를 "
+          "단정하지 않는다.") +
+       f" 사전등록 판정은 판 위 한 자리에서만 내렸고, 문장을 쓰는 범위는 **빗각 "
+       f"−15°~−75°** 로 적는다.",
+       "",
+       "⟨outputs/switch_factorial.json : verdict.A_scope_ko⟩ "
+       "⟨outputs/switch_factorial.json : diffraction_scope_other_elevations⟩"),
+
+    md("## 축의 성질 — 바꾸는 축 하나, 얹는 축 셋",
+       "",
+       f"덮개 시험의 담김계수 a 를 네 스위치 전부에 돌리면 축이 두 종류로 갈린다"
+       f"(앙각 {ang(EL)} 판 위의 쌍만).",
+       "",
+       axis_table(),
+       "",
+       f"⭐**굴절 R 만 «바꾸는 축»**이다(a {AX['R']['a_min']:.2f}~{AX['R']['a_max']:.2f}) — "
+       f"셸을 통과시켜 원래 반사 자체를 다른 것으로 만든다. **회절 D · 모서리 E · 확산 F "
+       f"는 «얹는 축»**이다(a ≈ {LIFT_LO:.2f}~{LIFT_HI:.2f}) — 원래 반사를 남긴 채 위에 "
+       f"새 항을 더한다.",
+       "",
+       f"모서리 E 가 얹는 항은 크기가 0 이다 — 회절 D 가 꺼져 있으면 «모서리만» 은 "
+       f"«다 끔» 과 세 열이 소수점까지 같다. 확산 F 도 회절이 켜져 있으면 세기를 "
+       f"0.1~0.4 dB 밖에 안 바꾸지만, 회절이 꺼져 있으면 **에코의 유무**를 가른다 — "
+       f"빗각에서 살아 있는 유일한 경로원이다.",
+       "",
+       "⟨outputs/switch_factorial.json : verdict.E_axis_mechanism⟩ "
+       "⟨outputs/switch_factorial.json : verdict.C_edge_is_noop_ko⟩ "
+       "⟨outputs/switch_factorial.json : verdict.F_diffuse_keeps_it_alive_ko⟩"),
+
+    md("## 깊이 — 종결하려 했으나 살아 있다",
+       "",
+       f"사전등록한 문턱은 «깊이 1↔3 쌍 전부에서 세기 차 < 2 dB 이고 리듬 차 < 3 %p 면 "
+       f"깊이 축 종결» 이었다. 실측은 견줄 수 있는 쌍이 {V['B_n_pairs_1to3']} 쌍"
+       f"(판 위 {V['B_n_pairs_1to3_on_plate']} 쌍) + 두 판 모두 경로가 0 이라 견줄 것이 "
+       f"없는 죽은 쌍 {V['B_n_dead_pairs']} 쌍이고, 그중 **{len(BF)} 쌍이 문턱 밖**이다.",
+       "",
+       f"1. **판 위({ang(EL)})** — R1D1** 칸 "
+       f"{len(BF_PLATE)} 개가 깊이 3 에서 세 열 전부 +{PL_LO:.1f}~+{PL_HI:.1f} dB 다. "
+       f"2 dB 밴드 바로 밖이다.",
+       f"2. **판 밖(−60°)** — R0D0E0F1 은 움직이는 성분의 세기가 "
+       f"{D60['d_ac_db']:+.2f} dB 로 «같은데», 상한 위 바닥만 "
+       f"{D60['d_above_floor_db']:+.1f} dB 오르고 리듬 몫이 "
+       f"{D60_1['rhythm_share_pct']:.1f} → {D60_3['rhythm_share_pct']:.1f} %"
+       f"({abs(D60['d_rhythm_pp']):.0f} %p 낙차)로 무너진다. 세기 하나로는 안 보이던 "
+       f"자리다.",
+       "",
+       f"⛔**깊이 축 종결 불가** — 큐에서 `--max-depth 3` 를 빼지 않는다. 그리고 깊이는 "
+       f"«세기를 옮기는 축» 이 아니라 **«상한 위 바닥을 올리는 축»** 이므로, 깊이 팔을 "
+       f"발주할 때 읽을 잣대는 세기 하나가 아니라 세 열이다.",
+       "",
+       "⟨outputs/switch_factorial.json : verdict.B_* · depth_pairs⟩"),
+
+    md("## 곁가지 — 순정 공장 기본값은 빗각에서 에코가 정확히 0",
+       "",
+       f"위 격자의 일곱 조합은 전부 확산 반사를 켠 판이다. 스위치를 하나도 안 만진 "
+       f"**순정 공장 기본값**(굴절 켬 · 확산 끔 · 깊이 3)은 같은 조건의 앙각 스윕에서 "
+       f"앙각 0° 에만 에코가 있고, 빗각 여섯 자리(−15°~−90°, 이 격자의 자리 {ang(EL)} "
+       f"포함)에서는 {OFF['n_poses']:,} 자세 **전부 에코가 정확히 0** 이다 — 경로 수 "
+       f"자체가 0 이다. 이 칸들은 «안 돌린 칸» 이 아니라 «돌렸는데 경로가 0» 인 칸이다 — "
+       f"자리마다 샤드 {ZE_SHARDS[0]} 개가 다 돌아 있고, 경로 합이 0 이고, 시계열이 전부 "
+       f"0 이다.",
+       "",
+       "거울면 반사만으로는 빗각에서 수신기로 돌아오는 경로가 안 생기고, 확산이 꺼져 "
+       "있으면 그것을 메울 길이 없다. 확산도 끄고 회절도 끄면 굴절을 켜든 말든 빗각에서 "
+       "경로가 0 개다. 즉 이 격자의 «회절 없는 세 조합이 날개 구조를 유지한다» 는 결과는 "
+       "확산을 켰기 때문에 성립하는 것이다.",
+       "",
+       "원장: outputs/switch_factorial.json : zero_echo_proof · "
+       "verdict.D_no_diffuse_no_diffraction_zero_ko."),
 
     md("## 판정과 다음 작업",
        "",
-       "1. **범인은 회절이다.** 단일축에서 이미 본 결론이 조합 전체로 확장됐다 — 회절이 "
-       "든 조합은 굴절·모서리 동반 여부와 무관하게 전부 잡음이 된다. 상호작용은 없다.",
+       f"1. ⭐**회절이 얹는 것은 리듬 없는 에코다.** 회절이 든 조합은 굴절·모서리 동반 "
+       f"여부와 무관하게 상한 위 바닥이 같은 자리로 올라오고"
+       f"(≈{ON['above_floor_db']:.0f} dB), 그 바닥이 원래 있던 빗살을 덮는다. **원래 "
+       f"빗살은 그대로 남아 있다** — 계수 ≈1 로 품고 있고, "
+       f"{BURIAL['burial_depth_db']:.1f} dB 아래에 잠겨 있을 뿐이다. 상호작용은 없다.",
        "2. **모서리회절 스위치는 이 표적에서 완전한 무동작**이므로 이후 실험에서 축을 "
        "제외해도 된다.",
-       "3. **굴절은 별개의 순한 축**이다 — 선을 지우지 않고 45~62 % 수준으로 깎는다. "
-       "물을 것은 «Sionna 의 유전체 셸 투과가 우리 커널의 투과 규약과 왜 다른가» 다.",
-       "4. ⇒ 다음 작업 제안: (a) 회절 경로만 뽑아 그 도플러 분포를 직접 보기 — 왜 "
-       "백색인가의 기전, (b) 우리 커널 PTD 수리 후 «우리 모서리회절» 과 Sionna 회절의 "
-       "대조, (c) 회절을 끈 채 물리(굴절·다중반사)만 켠 조합을 실전 기본값으로 쓰는 "
-       "권고를 리포트 17 에 편입."),
+       f"3. **굴절은 별개의 순한 축**이다 — 선을 지우지 않고 깎기만 한다(리듬 몫 "
+       f"{fac('all off')['rhythm_share_pct']:.1f} → "
+       f"{fac('refraction only')['rhythm_share_pct']:.1f} %, 빗살 솟음 "
+       f"{fac('all off')['comb_over_floor_db']:+.1f} → "
+       f"{fac('refraction only')['comb_over_floor_db']:+.1f} dB). 다만 담김계수가 "
+       f"{AX['R']['a_min']:.2f}~{AX['R']['a_max']:.2f} 라 «얹는» 것이 아니라 «바꾸는» "
+       f"것이다. 물을 것은 «Sionna 의 유전체 셸 투과가 우리 커널의 투과 규약과 왜 "
+       f"다른가» 다.",
+       f"4. ⚠**깊이 축은 종결하지 않는다** — {len(BF)} 쌍이 문턱 밖이다. 큐의 "
+       f"`--max-depth 3` 를 유지하고, 깊이 팔은 세기가 아니라 세 열로 읽는다.",
+       "5. ⇒ 다음 작업 제안: (a) 상한 위로 새는 회절 항이 물리인지 계산 흔들림인지 "
+       "가르기 — 같은 칸을 광선 수를 내리며 재서 바닥이 광선 수를 따라가는지 본다, "
+       "(b) 회절 경로만 뽑아 그 도플러 분포를 직접 보기 — 왜 리듬이 없는가의 기전, "
+       "(c) 우리 커널 PTD 수리 후 «우리 모서리회절» 과 Sionna 회절의 대조, "
+       "(d) 회절을 끈 채 물리(굴절·다중반사)만 켠 조합을 실전 기본값으로 쓰는 권고를 "
+       "리포트 5 에 편입."),
 ]
 
-out = f"{ROOT}/reports/18_switch-grid.ipynb"
+out = f"{ROOT}/reports/05_2_switch-grid.ipynb"
 nbf.write(nb, out)
 print(f"✅ {out}  ({len(nb.cells)} 셀)")

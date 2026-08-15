@@ -1,0 +1,600 @@
+{
+ "_meta": {
+  "script": "benchmark/bridge_cross_precise.py",
+  "written": "2026-08-15 16:39 KST",
+  "purpose": "기동 정밀 교차검증 — 같은 PX4 창(grade 2, t=5.0 s)에서 세 파이프라인 사과-대-사과",
+  "prf_hz": 35000.0,
+  "fc_hz": 9850000000.0,
+  "wavelength_m": 0.030437,
+  "t_start_s": 5.0,
+  "n_full": 5000,
+  "n_overlap": 256,
+  "f_flash_hz": 152.97,
+  "f_flash_provenance": {
+   "full_window": {
+    "f_rev_hz": [
+     76.51,
+     76.5,
+     76.46,
+     76.46
+    ],
+    "f_flash_hz": 152.97,
+    "caveat": "x500 SITL RPM × rpm_scale — 절대 회전수 인용 금지"
+   },
+   "overlap_window": {
+    "f_rev_hz": [
+     76.5,
+     76.5,
+     76.4,
+     76.4
+    ],
+    "f_flash_hz": 152.9,
+    "caveat": "x500 SITL RPM × rpm_scale — 절대 회전수 인용 금지"
+   },
+   "note": "PX4 로그 esc_rpm×rpm_scale 적분에서 직접 — x500 SITL 값이라 절대 회전수 인용 금지"
+  },
+  "f_tip_hz": {
+   "phantom4_senior": 3770.5,
+   "matrice4e": 4326.2
+  },
+  "prop_radius_m": {
+   "phantom4_senior": 0.11940000110007523,
+   "matrice4e": 0.137
+  },
+  "alignment": {
+   "overlap_definition": "처음 256 펄스 (t=5.0~5.00731 s) — PS 팔 길이가 제약",
+   "asserts_passed": [
+    "prf_fc_tstart_match_all_npz",
+    "senior_metadata_match",
+    "trajectory_R_match_ours_vs_ps",
+    "pulse_index_alignment"
+   ],
+   "max_R_mismatch_m": 0.0
+  },
+  "normalization": "팔마다 자기 최대(그림) — 잣대는 비율이라 눈금 불변(검산 통과)",
+  "stft": {
+   "recipe": "md_mapstyle.flash_spec (STFT only, house rule)",
+   "periods_of_blade_cycle": 0.45,
+   "hop_samples": 2,
+   "zero_pad": 8,
+   "window": "hann",
+   "note": "설정은 여기(JSON)에만 — 그림 안 금지"
+  }
+ },
+ "inputs": {
+  "ours_phantom4": {
+   "file": "outputs/px4_bridge/ours_phantom4_g2_w0.npz",
+   "md5": "15634622",
+   "mtime": "2026-08-14 14:47 UTC",
+   "n_pulses": 5000,
+   "meta": {
+    "div": 12,
+    "mat_mode": "ours",
+    "blade_mat": "nylon",
+    "spherical": true,
+    "ptd": false,
+    "fc": 9850000000.0,
+    "prf": 35000.0,
+    "phase_convention": "s = E·exp(-j2kR) — 상대위상 부호는 선배와 동일(모듈 docstring 부호 검산)",
+    "spreading": "none (1/r 미포함 — rx_noise 앵커 규약)",
+    "seconds": 473.5,
+    "data_dir": "/workspace/sionna/jihyuck/po_mdoppler/data/sim_data/grade_2",
+    "t_start": 5.0,
+    "n_pulses": 5000,
+    "rpm_scale": 6.0,
+    "esc_cols": "esc[0..3].esc_rpm (po_sim/kinematics.py:24)",
+    "pulses": 5000
+   }
+  },
+  "ours_matrice4e": {
+   "file": "outputs/px4_bridge/ours_matrice4e_g2_w0.npz",
+   "md5": "1163657e",
+   "mtime": "2026-08-14 15:08 UTC",
+   "n_pulses": 5000,
+   "meta": {
+    "div": 12,
+    "mat_mode": "ours",
+    "blade_mat": "nylon",
+    "spherical": true,
+    "ptd": false,
+    "fc": 9850000000.0,
+    "prf": 35000.0,
+    "phase_convention": "s = E·exp(-j2kR) — 상대위상 부호는 선배와 동일(모듈 docstring 부호 검산)",
+    "spreading": "none (1/r 미포함 — rx_noise 앵커 규약)",
+    "seconds": 1716.0,
+    "data_dir": "/workspace/sionna/jihyuck/po_mdoppler/data/sim_data/grade_2",
+    "t_start": 5.0,
+    "n_pulses": 5000,
+    "rpm_scale": 6.0,
+    "esc_cols": "esc[0..3].esc_rpm (po_sim/kinematics.py:24)",
+    "pulses": 5000
+   }
+  },
+  "ps_phantom4": {
+   "file": "outputs/px4_bridge/sionna_phantom4_g2_w0.npz",
+   "md5": "84bbd75b",
+   "mtime": "2026-08-15 07:19 UTC",
+   "n_pulses": 256,
+   "meta": {
+    "spp": 4000000000,
+    "max_depth": 1,
+    "fc": 9850000000.0,
+    "prf": 35000.0,
+    "phase_convention": "Σ a·e^{-j2πfcτ} (실기하 — 공통 규약)",
+    "seconds": 290.8,
+    "data_dir": "/workspace/sionna/jihyuck/po_mdoppler/data/sim_data/grade_2",
+    "t_start": 5.0,
+    "n_pulses": 256,
+    "rpm_scale": 6.0,
+    "esc_cols": "esc[0..3].esc_rpm (po_sim/kinematics.py:24)",
+    "pulses": 256
+   }
+  },
+  "ps_matrice4e": {
+   "file": "outputs/px4_bridge/sionna_matrice4e_g2_w0.npz",
+   "md5": "2b99bb20",
+   "mtime": "2026-08-15 07:23 UTC",
+   "n_pulses": 256,
+   "meta": {
+    "spp": 4000000000,
+    "max_depth": 1,
+    "fc": 9850000000.0,
+    "prf": 35000.0,
+    "phase_convention": "Σ a·e^{-j2πfcτ} (실기하 — 공통 규약)",
+    "seconds": 278.7,
+    "data_dir": "/workspace/sionna/jihyuck/po_mdoppler/data/sim_data/grade_2",
+    "t_start": 5.0,
+    "n_pulses": 256,
+    "rpm_scale": 6.0,
+    "esc_cols": "esc[0..3].esc_rpm (po_sim/kinematics.py:24)",
+    "pulses": 256
+   }
+  },
+  "senior_w0": {
+   "file": "outputs/jihyuck_po/grade_2/window_00000.npz",
+   "md5": "19265535",
+   "reconstruction": "body_occ + blade_occ_nylon (occ=full, MANIFEST 규약)",
+   "spreading_note": "선배 신호는 1/R² 포함 — 창 내 ΔR/R≈1.1e-4 라 진폭변조 0.001 dB, 비율 잣대에 무영향"
+  }
+ },
+ "ps_arm": {
+  "comparable": true,
+  "nonzero_pulses": {
+   "ps_phantom4": 256,
+   "ps_matrice4e": 256
+  },
+  "spp": 4000000000,
+  "max_depth": 1,
+  "reason": null
+ },
+ "bulk_doppler": {
+  "convention": "f_D = -2·(dR/dt)/λ (거리 증가=음의 도플러)",
+  "geometric_from_log_hz": {
+   "min": -1.899,
+   "max": -1.585,
+   "mean": -1.754
+  },
+  "estimates": {
+   "ours_phantom4": {
+    "centroid_fullband_hz": 56.37,
+    "centroid_bodyband_hz": -3.98
+   },
+   "ours_matrice4e": {
+    "centroid_fullband_hz": 51.23,
+    "centroid_bodyband_hz": -4.24
+   },
+   "senior_full_nylon": {
+    "centroid_fullband_hz": 37.37,
+    "centroid_bodyband_hz": -4.55
+   },
+   "ps_phantom4": {
+    "centroid_fullband_hz": -365.7,
+    "centroid_bodyband_hz": 0.0
+   },
+   "ps_matrice4e": {
+    "centroid_fullband_hz": 533.19,
+    "centroid_bodyband_hz": 0.0
+   }
+  },
+  "choice": "동체대역(|f|≤f_flash/2) 무게중심을 벌크 추정치로 채택, 로그 기하 참값과 교차검산. 전대역 무게중심은 빗살 비대칭에 끌려(측정 16~62 Hz vs 기하 참값 ~-1.9~-1.6 Hz) 기각 — 적용하면 빗살이 격자에서 이탈해 선 SNR 이 20 dB 이상 무너진다(측정). 채택 추정치·참값 모두 |f| < 빈폭(5000펄스 Δf=7 Hz)이므로 보정을 **적용하지 않는다** — 적용 여부가 잣대에 못 미치는 것을 수치로 검산(bulk_comp_effect_db). 과주장 금지.",
+  "bulk_comp_effect_db": {
+   "ours_phantom4": 0.033,
+   "ours_matrice4e": -0.175,
+   "senior_full_nylon": -0.104,
+   "ps_phantom4": -0.025,
+   "ps_matrice4e": 0.402
+  }
+ },
+ "metric": {
+  "definition": "blade_line_snr(): P=|FFT((s-mean)·hann)|², 봉우리=±k·f_flash ±max(8 Hz, 1.5빈) 최대, 바닥=band(0.3~1.0 f_tip 중앙값) 또는 local(±60 Hz 중앙값, 빗살 정수배 ±max(12,tol) Hz 제외)",
+  "same_code_path_for_all_arms": true,
+  "comb_share": "0.5·f_flash~f_tip 대역 전력 중 박자 정수배 ±8 Hz 몫 [%] (백색잡음≈13, 이상 로터 100)"
+ },
+ "results": {
+  "ours_phantom4": {
+   "N5000": {
+    "band_k1_db": 37.0,
+    "df_hz": 7.0,
+    "local_k1_db": 34.39,
+    "local_k1_pm_db": [
+     30.81,
+     34.39
+    ],
+    "band_k2_db": 32.03,
+    "local_k2_db": 33.5,
+    "local_k2_pm_db": [
+     31.61,
+     33.5
+    ],
+    "band_k3_db": 32.4,
+    "local_k3_db": 33.71,
+    "local_k3_pm_db": [
+     33.71,
+     25.88
+    ],
+    "band_k1_dc_kept_db": 37.0,
+    "dc_artifact_db": -0.0
+   },
+   "N256": {
+    "band_k1_db": 6.92,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 6.92,
+    "local_k2_db": null,
+    "band_k3_db": 6.92,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 39.82,
+    "dc_artifact_db": 32.9
+   },
+   "comb_share_pct_N5000": 51.6
+  },
+  "ours_matrice4e": {
+   "N5000": {
+    "band_k1_db": 37.66,
+    "df_hz": 7.0,
+    "local_k1_db": 33.74,
+    "local_k1_pm_db": [
+     29.05,
+     33.74
+    ],
+    "band_k2_db": 36.75,
+    "local_k2_db": 39.03,
+    "local_k2_pm_db": [
+     38.5,
+     39.03
+    ],
+    "band_k3_db": 39.21,
+    "local_k3_db": 40.83,
+    "local_k3_pm_db": [
+     36.39,
+     40.83
+    ],
+    "band_k1_dc_kept_db": 37.66,
+    "dc_artifact_db": -0.0
+   },
+   "N256": {
+    "band_k1_db": 10.18,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 10.18,
+    "local_k2_db": null,
+    "band_k3_db": 9.07,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 41.44,
+    "dc_artifact_db": 31.26
+   },
+   "comb_share_pct_N5000": 91.9
+  },
+  "senior_full_nylon": {
+   "N5000": {
+    "band_k1_db": 25.36,
+    "df_hz": 7.0,
+    "local_k1_db": 16.32,
+    "local_k1_pm_db": [
+     9.5,
+     16.32
+    ],
+    "band_k2_db": 23.0,
+    "local_k2_db": 18.16,
+    "local_k2_pm_db": [
+     12.75,
+     18.16
+    ],
+    "band_k3_db": 16.73,
+    "local_k3_db": 14.26,
+    "local_k3_pm_db": [
+     6.73,
+     14.26
+    ],
+    "band_k1_dc_kept_db": 25.36,
+    "dc_artifact_db": 0.0
+   },
+   "N256": {
+    "band_k1_db": 15.48,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 19.86,
+    "local_k2_db": null,
+    "band_k3_db": 19.86,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 41.36,
+    "dc_artifact_db": 25.88
+   },
+   "comb_share_pct_N5000": 43.5
+  },
+  "ps_phantom4": {
+   "N5000": null,
+   "N256": {
+    "band_k1_db": 14.25,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 14.25,
+    "local_k2_db": null,
+    "band_k3_db": 14.25,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 14.25,
+    "dc_artifact_db": -0.0
+   },
+   "comb_share_pct_N5000": null
+  },
+  "ps_matrice4e": {
+   "N5000": null,
+   "N256": {
+    "band_k1_db": 17.2,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 17.2,
+    "local_k2_db": null,
+    "band_k3_db": 9.75,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 27.73,
+    "dc_artifact_db": 10.53
+   },
+   "comb_share_pct_N5000": null
+  },
+  "senior_none_nylon": {
+   "N5000": {
+    "band_k1_db": 56.53,
+    "df_hz": 7.0,
+    "local_k1_db": 51.53,
+    "local_k1_pm_db": [
+     45.88,
+     51.53
+    ],
+    "band_k2_db": 51.96,
+    "local_k2_db": 54.64,
+    "local_k2_pm_db": [
+     50.63,
+     54.64
+    ],
+    "band_k3_db": 42.21,
+    "local_k3_db": 49.21,
+    "local_k3_pm_db": [
+     48.88,
+     49.21
+    ],
+    "band_k1_dc_kept_db": 56.53,
+    "dc_artifact_db": -0.0
+   },
+   "N256": {
+    "band_k1_db": 21.96,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 21.96,
+    "local_k2_db": null,
+    "band_k3_db": 21.08,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 52.09,
+    "dc_artifact_db": 30.13
+   },
+   "comb_share_pct_N5000": 87.3
+  },
+  "senior_body_nylon": {
+   "N5000": {
+    "band_k1_db": 28.83,
+    "df_hz": 7.0,
+    "local_k1_db": 19.78,
+    "local_k1_pm_db": [
+     12.04,
+     19.78
+    ],
+    "band_k2_db": 23.7,
+    "local_k2_db": 18.87,
+    "local_k2_pm_db": [
+     15.74,
+     18.87
+    ],
+    "band_k3_db": 14.63,
+    "local_k3_db": 12.14,
+    "local_k3_pm_db": [
+     9.66,
+     12.14
+    ],
+    "band_k1_dc_kept_db": 28.83,
+    "dc_artifact_db": -0.0
+   },
+   "N256": {
+    "band_k1_db": 17.3,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 19.87,
+    "local_k2_db": null,
+    "band_k3_db": 19.87,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 41.47,
+    "dc_artifact_db": 24.17
+   },
+   "comb_share_pct_N5000": 46.7
+  },
+  "senior_full_cf": {
+   "N5000": {
+    "band_k1_db": 26.8,
+    "df_hz": 7.0,
+    "local_k1_db": 18.01,
+    "local_k1_pm_db": [
+     10.36,
+     18.01
+    ],
+    "band_k2_db": 25.51,
+    "local_k2_db": 20.95,
+    "local_k2_pm_db": [
+     15.22,
+     20.95
+    ],
+    "band_k3_db": 20.39,
+    "local_k3_db": 18.13,
+    "local_k3_pm_db": [
+     8.9,
+     18.13
+    ],
+    "band_k1_dc_kept_db": 26.8,
+    "dc_artifact_db": 0.0
+   },
+   "N256": {
+    "band_k1_db": 13.01,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 16.21,
+    "local_k2_db": null,
+    "band_k3_db": 17.99,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 38.21,
+    "dc_artifact_db": 25.2
+   },
+   "comb_share_pct_N5000": 58.5
+  },
+  "senior_full_metal": {
+   "N5000": {
+    "band_k1_db": 26.95,
+    "df_hz": 7.0,
+    "local_k1_db": 18.39,
+    "local_k1_pm_db": [
+     11.08,
+     18.39
+    ],
+    "band_k2_db": 26.51,
+    "local_k2_db": 22.13,
+    "local_k2_pm_db": [
+     16.39,
+     22.13
+    ],
+    "band_k3_db": 22.81,
+    "local_k3_db": 20.8,
+    "local_k3_pm_db": [
+     10.67,
+     20.8
+    ],
+    "band_k1_dc_kept_db": 26.95,
+    "dc_artifact_db": 0.0
+   },
+   "N256": {
+    "band_k1_db": 10.69,
+    "df_hz": 136.719,
+    "local_k1_db": null,
+    "local_unresolved": "comb spacing 153 Hz < exclusion width 410 Hz at this window length",
+    "band_k2_db": 14.1,
+    "local_k2_db": null,
+    "band_k3_db": 16.59,
+    "local_k3_db": null,
+    "band_k1_dc_kept_db": 35.36,
+    "dc_artifact_db": 24.67
+   },
+   "comb_share_pct_N5000": 64.2
+  }
+ },
+ "artifact_350hz": {
+  "off_comb_max_hz": 350.0,
+  "levels_over_band_floor_db": {
+   "senior_full_nylon": 31.5,
+   "senior_body_none": 46.4,
+   "senior_body_occ": 32.2,
+   "senior_blade_none_nylon": -2.4,
+   "ours_phantom4": -0.1
+  },
+  "log_sample_rates_hz": {
+   "clean_attitude.csv": 50.0,
+   "clean_position.csv": 50.0,
+   "clean_esc.csv": 250.0
+  },
+  "reading": "선배 팔의 off-comb 최대 선 350 Hz 는 f_flash 정수배가 아니고 자세·위치 로그 표본율(50 Hz)의 정수배(7.0×)다. 가림 없는 body_none 에 가장 강하고(+46 dB 급) 우리 팔에는 없다(0 dB 급) — px4_bridge 데이터 함정 기록(«350 Hz 인공물»)과 부합하는 **데이터/조립 단계 유래 후보**다. 보간 킹크 기전은 가설로만 둔다(확정 아님).",
+  "metric_impact": "이 선은 국소바닥 레시피의 2×f_flash 주변 고리(306±60 Hz) 안에 들어와 선배 팔의 국소바닥을 끌어올릴 수 있다 — 국소바닥 수치 해석 시 유의. 대역바닥(0.3~1.0 f_tip 중앙값)에는 영향이 한 빈 수준."
+ },
+ "gap_decomposition": {
+  "prior_reported": {
+   "ours_db": 35.8,
+   "senior_db": [
+    8.4,
+    11.4
+   ],
+   "source": "task 문맥의 이전 라운드 보고치 — 본 스크립트가 재현 시도"
+  },
+  "closest_reproduction": {
+   "ours_like": {
+    "value_db": 37.0,
+    "recipe": "N=5000·DC제거·대역바닥(0.3~1.0 f_tip)·1×f_flash"
+   },
+   "senior_like": {
+    "value_db": 16.32,
+    "per_side_k123_db": {
+     "k1": [
+      9.5,
+      16.32
+     ],
+     "k2": [
+      12.75,
+      18.16
+     ],
+     "k3": [
+      6.73,
+      14.26
+     ]
+    },
+    "recipe": "N=5000·DC제거·국소바닥(±60 Hz, 빗살 제외) — 이전 8.4~11.4 dB 는 이 레시피의 **한쪽 부호(+측) 저차 조화**값 범위와 겹친다"
+   },
+   "note": "이전 격차는 두 팔이 **서로 다른 바닥 레시피**로 측정된 값으로 재현된다"
+  },
+  "decomposition_db": {
+   "apparent_gap_mixed_recipes": 20.7,
+   "floor_recipe_local_to_band_on_senior": 9.0,
+   "same_recipe_engine_gap_band_floor": 11.6,
+   "occlusion_within_senior_none_to_full": 31.2,
+   "blade_material_nylon_to_metal": 1.6,
+   "window_5000_to_256_ours": -30.1,
+   "window_5000_to_256_senior": -9.9,
+   "dc_kept_artifact_at_256_ours": 32.9,
+   "dc_kept_artifact_at_256_senior": 25.88,
+   "normalization": 0.0
+  },
+  "reading": "겉보기 격차(≈21 dB)의 최대 항은 바닥 레시피 차이(선배 국소바닥은 가림 변조 연속체 위에 앉아 +9.0 dB)이고, 같은 레시피(대역바닥)로 재면 엔진 차이는 +11.6 dB 로 준다. 선배 파이프라인 내부에서 가림(none→full)만 +31.2 dB 를 움직인다 — 우리 SBR 은 광선 차폐가 내장이라 이 축이 규약이 아니라 물리다. 창 길이(5000→256)는 대역바닥 잣대에서 우리 팔 -30.1 dB·선배 팔 -9.9 dB 를 움직이고, DC 를 끼우면 256 창에서 +33 dB 대 아티팩트가 난다(오늘의 교훈)."
+ },
+ "honest_notes": [
+  "ours_phantom4 는 선배 메쉬(phantom4_senior) 위에서 우리 커널을 돌린 팔 — 메쉬 차이가 아니라 커널 차이를 본다. ours_matrice4e 는 우리 CAD(다른 기체)라 직접 격차 분해에는 안 쓰고 참조로만 둔다.",
+  "ours 팔 재질은 mat_mode=ours 매핑(nylon→prop_plastic, 수직입사 −2.5 dB) — 재질 규약 차이는 선배 내부 변주(nylon→metal)로 상한을 쟀다(±1.6 dB 급).",
+  "선배 국소바닥이 높은 것은 잡음이 아니라 **가림 변조 연속체**(clean 신호) — senior none→full 이 대역바닥 잣대로도 큰 폭을 움직이는 것과 같은 원인.",
+  "256 펄스 창에서 국소바닥 레시피는 빗살 간격(153 Hz) < 제외폭이라 측정 불가 — None 으로 기록(억지 측정 금지). 교차창 비교는 대역바닥 레시피로만."
+ ],
+ "selftest": {
+  "prf_fc_tstart_match_all_npz": true,
+  "senior_metadata_match": true,
+  "trajectory_R_match_ours_vs_ps": true,
+  "pulse_index_alignment": true,
+  "ps_zero_signal_detected_and_recorded": true,
+  "no_gpu_solver_modules_imported": true,
+  "bulk_comp_negligible_lt_0p5db": true,
+  "artifact_line_is_off_comb": true,
+  "normalization_invariance_0db": true,
+  "prior_ours_within_band_recipe_pm5db": true,
+  "prior_senior_within_local_recipe_range": true,
+  "comb_above_white_noise_all_arms": true,
+  "figures_written": true
+ },
+ "selftest_ok": true
+}

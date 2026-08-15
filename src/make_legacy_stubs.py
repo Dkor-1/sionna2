@@ -98,7 +98,7 @@ def main():
                "|---|---|",
                *rows, "",
                "---", "",
-               "**어디부터 읽나** — [`reports/00_map.ipynb`](reports/00_map.ipynb) 이 "
+               "**어디부터 읽나** — [`reports/01_map.ipynb`](reports/01_map.ipynb) 이 "
                "읽는 목적별로 순서를 안내합니다.", "",
                "**전체 목록** — [`README.md`](README.md) · "
                "**다시 돌리기** — [`docs/REPRODUCE.md`](docs/REPRODUCE.md) · "

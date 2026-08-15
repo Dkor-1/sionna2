@@ -1,0 +1,793 @@
+{
+ "_meta": {
+  "generator": "benchmark/r12_azimuth_harvest.py",
+  "design_doc": "docs/NEXT_EXPERIMENTS.md §② 3 행 · §3-1 R12",
+  "question_ko": "「0° 에서 프로펠러가 익사한다」가 앙각의 성질인가 정면(방위 0°) 한정인가",
+  "gpu_ko": "⛔GPU 를 쓰지 않았다. sionna.rt · mitsuba 를 임포트하지 않고 저장된 원장만 읽었다.",
+  "inputs": [
+   "outputs/elevation_sweep_md.json",
+   "outputs/elevation_sweep_md.npz",
+   "outputs/switch_grid.json"
+  ],
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "range_m": 15.0,
+  "range_note_ko": "az45 팔은 전부 15 m — 원거리장 경계 2D²/λ ≈ 14.08 m 의 밖이다. 10 m 옛 팔과 섞지 않았다.",
+  "drone": "matrice4e",
+  "level_rule_ko": "⭐모든 레벨 비교는 정지성분(DC = 시계열 평균) 제거 후의 AC 다.",
+  "rhythm_recipe_ko": "P = |FFT((E − mean)·hanning)|² · above = |f_r| ≥ f_tip(el) · 리듬 몫[%] = above 전력 중 f_flash 정수배 ±8 Hz 몫. 백색 ≈ 12.6, 이상 로터 100.",
+  "md_representation_ko": "마이크로도플러 그림은 STFT 만 썼다(md_mapstyle.flash_spec).",
+  "stft_setting": {
+   "stft_periods_of_blade_cycle": 0.45,
+   "nperseg_samples": 70,
+   "hop_samples": 2,
+   "zero_pad": 8,
+   "window": "hann",
+   "t_start_s": 0.02,
+   "t_span_s": 0.06,
+   "prf_hz": 19700.0,
+   "f_tip_hz": 1272.9
+  },
+  "prereg_gate_ko": "az45 팔의 DC 제거 AC 가 같은 (엔진,앙각) az0 팔 대비 -20 dB 밖이면 «az45 는 에코 부재» 로 판정하고 비율(리듬 몫)을 인정하지 않는다. 그 칸의 몫은 계산하더라도 JSON 에 싣지 않는다.",
+  "prereg_changes_ko": "사전 등록 기준을 바꾸지 않았다. 설계서 문구를 그대로 강제했다.",
+  "figures": [
+   "/workspace/sionna/outputs/figures/r12_gate_levels.png",
+   "/workspace/sionna/outputs/figures/r12_rhythm_admissible.png",
+   "/workspace/sionna/outputs/figures/r12_el0_stft.png"
+  ]
+ },
+ "survey_az_arms": {
+  "n_az_tagged_series": 12,
+  "engines": {
+   "ours_r15_n8192_az45": {
+    "az_deg": 45.0,
+    "elevations_deg": [
+     0.0,
+     -30.0,
+     -60.0,
+     -90.0
+    ],
+    "range_m": 15.0,
+    "n_poses": 8192,
+    "n_missing_total": 0,
+    "max_depth": null,
+    "spp": null,
+    "physics": false,
+    "grid_div": 12,
+    "seconds_total": 8363.7,
+    "npz_keys": [
+     "ours_r15_n8192_az45/el+0",
+     "ours_r15_n8192_az45/el-30",
+     "ours_r15_n8192_az45/el-60",
+     "ours_r15_n8192_az45/el-90"
+    ],
+    "row_indices": [
+     35,
+     36,
+     37,
+     38
+    ]
+   },
+   "sionna_p4000000000_phys_r15_n8192_az45_d1": {
+    "az_deg": 45.0,
+    "elevations_deg": [
+     0.0,
+     -30.0,
+     -60.0,
+     -90.0
+    ],
+    "range_m": 15.0,
+    "n_poses": 8192,
+    "n_missing_total": 0,
+    "max_depth": 1,
+    "spp": 4000000000,
+    "physics": true,
+    "grid_div": null,
+    "seconds_total": 33210.4,
+    "npz_keys": [
+     "sionna_p4000000000_phys_r15_n8192_az45_d1/el+0",
+     "sionna_p4000000000_phys_r15_n8192_az45_d1/el-30",
+     "sionna_p4000000000_phys_r15_n8192_az45_d1/el-60",
+     "sionna_p4000000000_phys_r15_n8192_az45_d1/el-90"
+    ],
+    "row_indices": [
+     123,
+     124,
+     125,
+     126
+    ]
+   },
+   "sionna_p4000000000_r15_n8192_az45_d1": {
+    "az_deg": 45.0,
+    "elevations_deg": [
+     0.0,
+     -30.0,
+     -60.0,
+     -90.0
+    ],
+    "range_m": 15.0,
+    "n_poses": 8192,
+    "n_missing_total": 0,
+    "max_depth": 1,
+    "spp": 4000000000,
+    "physics": false,
+    "grid_div": null,
+    "seconds_total": 19023.9,
+    "npz_keys": [
+     "sionna_p4000000000_r15_n8192_az45_d1/el+0",
+     "sionna_p4000000000_r15_n8192_az45_d1/el-30",
+     "sionna_p4000000000_r15_n8192_az45_d1/el-60",
+     "sionna_p4000000000_r15_n8192_az45_d1/el-90"
+    ],
+    "row_indices": [
+     148,
+     149,
+     150,
+     151
+    ]
+   }
+  },
+  "elevations_present_deg": [
+   0.0,
+   -30.0,
+   -60.0,
+   -90.0
+  ],
+  "elevations_absent_vs_az0_deg": [
+   -15.0,
+   -45.0,
+   -75.0
+  ],
+  "compute_seconds_total": 60598.0,
+  "compute_hours_total": 16.83,
+  "note_ko": "방위 태그는 `_az45` 하나뿐이다 — 원장에 다른 방위는 없다. 세 엔진 모두 15 m · 자세 8,192 · 결측 0 이고, PathSolver 두 팔은 광선 40 억 발 · 깊이 1 이다. az0 팔에는 있는 −15 · −45 · −75 가 az45 에는 없으므로 그 앙각은 나란히 놓지 않는다."
+ },
+ "gate_table": {
+  "우리 커널|el+0": "통과",
+  "우리 커널|el-30": "통과",
+  "우리 커널|el-60": "통과",
+  "우리 커널|el-90": "제외 — 나딧에서 방위는 죽은 축",
+  "PathSolver 물리 끔|el+0": "불통과 — az45 에코 부재",
+  "PathSolver 물리 끔|el-30": "통과",
+  "PathSolver 물리 끔|el-60": "통과",
+  "PathSolver 물리 끔|el-90": "제외 — 나딧에서 방위는 죽은 축",
+  "PathSolver 물리 켬|el+0": "불통과 — az45 에코 부재",
+  "PathSolver 물리 켬|el-30": "통과",
+  "PathSolver 물리 켬|el-60": "통과",
+  "PathSolver 물리 켬|el-90": "제외 — 나딧에서 방위는 죽은 축"
+ },
+ "gate_summary": {
+  "passed": [
+   "우리 커널|el+0",
+   "우리 커널|el-30",
+   "우리 커널|el-60",
+   "PathSolver 물리 끔|el-30",
+   "PathSolver 물리 끔|el-60",
+   "PathSolver 물리 켬|el-30",
+   "PathSolver 물리 켬|el-60"
+  ],
+  "failed_no_echo": [
+   "PathSolver 물리 끔|el+0",
+   "PathSolver 물리 켬|el+0"
+  ],
+  "excluded_dead_axis": [
+   "우리 커널|el-90",
+   "PathSolver 물리 끔|el-90",
+   "PathSolver 물리 켬|el-90"
+  ],
+  "n_passed": 7,
+  "n_failed": 2,
+  "n_excluded": 3
+ },
+ "cells": {
+  "ours_r15_n8192|el+0": {
+   "engine_pair_ko": "우리 커널",
+   "engine_pair_en": "Our kernel (SBR+PO)",
+   "el_deg": 0.0,
+   "f_tip_hz": 1272.9,
+   "arm_az0": "ours_r15_n8192",
+   "arm_az45": "ours_r15_n8192_az45",
+   "npz_keys": [
+    "ours_r15_n8192/el+0",
+    "ours_r15_n8192_az45/el+0"
+   ],
+   "row_indices": [
+    28,
+    35
+   ],
+   "levels_az0_db": {
+    "total_db": -54.49,
+    "dc_db": -54.6,
+    "ac_db": -70.4
+   },
+   "levels_az45_db": {
+    "total_db": -56.05,
+    "dc_db": -56.24,
+    "ac_db": -69.85
+   },
+   "delta_ac_db": 0.55,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 63.3,
+   "above_f_tip_pct_az0": 2.7,
+   "above_f_tip_power_db_az0": -85.66,
+   "beat_hz_az0": 126.1,
+   "beat_over_floor_db_az0": 60.45,
+   "ledger_beat_hz_az0": 126.76,
+   "rhythm_share_pct_az45": 50.3,
+   "above_f_tip_pct_az45": 3.5,
+   "above_f_tip_power_db_az45": -84.6,
+   "beat_hz_az45": 126.1,
+   "beat_over_floor_db_az45": 55.93,
+   "ledger_beat_hz_az45": 127.04,
+   "d_rhythm_pp": -13.0,
+   "d_beat_hz": 0.0
+  },
+  "ours_r15_n8192|el-30": {
+   "engine_pair_ko": "우리 커널",
+   "engine_pair_en": "Our kernel (SBR+PO)",
+   "el_deg": -30.0,
+   "f_tip_hz": 1102.4,
+   "arm_az0": "ours_r15_n8192",
+   "arm_az45": "ours_r15_n8192_az45",
+   "npz_keys": [
+    "ours_r15_n8192/el-30",
+    "ours_r15_n8192_az45/el-30"
+   ],
+   "row_indices": [
+    30,
+    36
+   ],
+   "levels_az0_db": {
+    "total_db": -63.49,
+    "dc_db": -64.88,
+    "ac_db": -69.11
+   },
+   "levels_az45_db": {
+    "total_db": -63.9,
+    "dc_db": -65.62,
+    "ac_db": -68.75
+   },
+   "delta_ac_db": 0.36,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 83.3,
+   "above_f_tip_pct_az0": 10.62,
+   "above_f_tip_power_db_az0": -78.16,
+   "beat_hz_az0": 126.1,
+   "beat_over_floor_db_az0": 52.28,
+   "ledger_beat_hz_az0": 126.71,
+   "rhythm_share_pct_az45": 86.8,
+   "above_f_tip_pct_az45": 14.58,
+   "above_f_tip_power_db_az45": -77.31,
+   "beat_hz_az45": 126.1,
+   "beat_over_floor_db_az45": 50.39,
+   "ledger_beat_hz_az45": 127.02,
+   "d_rhythm_pp": 3.5,
+   "d_beat_hz": 0.0
+  },
+  "ours_r15_n8192|el-60": {
+   "engine_pair_ko": "우리 커널",
+   "engine_pair_en": "Our kernel (SBR+PO)",
+   "el_deg": -60.0,
+   "f_tip_hz": 636.5,
+   "arm_az0": "ours_r15_n8192",
+   "arm_az45": "ours_r15_n8192_az45",
+   "npz_keys": [
+    "ours_r15_n8192/el-60",
+    "ours_r15_n8192_az45/el-60"
+   ],
+   "row_indices": [
+    32,
+    37
+   ],
+   "levels_az0_db": {
+    "total_db": -65.07,
+    "dc_db": -72.03,
+    "ac_db": -66.04
+   },
+   "levels_az45_db": {
+    "total_db": -53.43,
+    "dc_db": -53.98,
+    "ac_db": -62.61
+   },
+   "delta_ac_db": 3.43,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 52.8,
+   "above_f_tip_pct_az0": 1.76,
+   "above_f_tip_power_db_az0": -84.06,
+   "beat_hz_az0": 126.1,
+   "beat_over_floor_db_az0": 49.49,
+   "ledger_beat_hz_az0": 126.19,
+   "rhythm_share_pct_az45": 51.0,
+   "above_f_tip_pct_az45": 0.7,
+   "above_f_tip_power_db_az45": -83.92,
+   "beat_hz_az45": 126.1,
+   "beat_over_floor_db_az45": 57.76,
+   "ledger_beat_hz_az45": 127.13,
+   "d_rhythm_pp": -1.8,
+   "d_beat_hz": 0.0
+  },
+  "ours_r15_n8192|el-90": {
+   "engine_pair_ko": "우리 커널",
+   "engine_pair_en": "Our kernel (SBR+PO)",
+   "el_deg": -90.0,
+   "f_tip_hz": 0.0,
+   "arm_az0": "ours_r15_n8192",
+   "arm_az45": "ours_r15_n8192_az45",
+   "npz_keys": [
+    "ours_r15_n8192/el-90",
+    "ours_r15_n8192_az45/el-90"
+   ],
+   "row_indices": [
+    34,
+    38
+   ],
+   "levels_az0_db": {
+    "total_db": -41.29,
+    "dc_db": -41.29,
+    "ac_db": -81.56
+   },
+   "levels_az45_db": {
+    "total_db": -41.29,
+    "dc_db": -41.29,
+    "ac_db": -81.56
+   },
+   "delta_ac_db": 0.0,
+   "gate_threshold_db": -20.0,
+   "scored": false,
+   "gate": "제외 — 나딧에서 방위는 죽은 축",
+   "rhythm_share_pct_az0": null,
+   "rhythm_share_pct_az45": null,
+   "withheld_reason_ko": "el −90 은 시선이 [0,0,−1] 이라 방위가 기하에서 사라진다(f_tip = 0 이라 «상한 위» 잣대 자체가 퇴화한다). 사전 등록대로 채점에서 뺐다.",
+   "above_f_tip_power_db_az0": null,
+   "above_f_tip_power_db_az45": null
+  },
+  "sionna_p4000000000_r15_n8192_d1|el+0": {
+   "engine_pair_ko": "PathSolver 물리 끔",
+   "engine_pair_en": "PathSolver, physics off",
+   "el_deg": 0.0,
+   "f_tip_hz": 1272.9,
+   "arm_az0": "sionna_p4000000000_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_r15_n8192_d1/el+0",
+    "sionna_p4000000000_r15_n8192_az45_d1/el+0"
+   ],
+   "row_indices": [
+    152,
+    148
+   ],
+   "levels_az0_db": {
+    "total_db": -63.25,
+    "dc_db": -63.25,
+    "ac_db": -94.3
+   },
+   "levels_az45_db": {
+    "total_db": -120.3,
+    "dc_db": -120.32,
+    "ac_db": -145.41
+   },
+   "delta_ac_db": -51.11,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "불통과 — az45 에코 부재",
+   "rhythm_share_pct_az0": null,
+   "rhythm_share_pct_az45": null,
+   "above_f_tip_pct_az0": null,
+   "above_f_tip_pct_az45": null,
+   "beat_hz_az0": null,
+   "beat_hz_az45": null,
+   "withheld_reason_ko": "az45 팔의 DC 제거 AC 가 az0 대비 -51.11 dB 로 사전 등록 문턱 -20 dB 밖이다. 몫(비율)은 분모가 사라진 자리에서 아무 뜻이 없으므로 **계산은 했으나 값을 싣지 않는다** — 이 칸의 리듬 몫은 인용 불가다.",
+   "above_f_tip_power_db_az0": -95.24,
+   "above_f_tip_power_db_az45": -158.97
+  },
+  "sionna_p4000000000_r15_n8192_d1|el-30": {
+   "engine_pair_ko": "PathSolver 물리 끔",
+   "engine_pair_en": "PathSolver, physics off",
+   "el_deg": -30.0,
+   "f_tip_hz": 1102.4,
+   "arm_az0": "sionna_p4000000000_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_r15_n8192_d1/el-30",
+    "sionna_p4000000000_r15_n8192_az45_d1/el-30"
+   ],
+   "row_indices": [
+    154,
+    149
+   ],
+   "levels_az0_db": {
+    "total_db": -133.31,
+    "dc_db": -137.09,
+    "ac_db": -135.66
+   },
+   "levels_az45_db": {
+    "total_db": -131.78,
+    "dc_db": -136.49,
+    "ac_db": -133.57
+   },
+   "delta_ac_db": 2.09,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 80.5,
+   "above_f_tip_pct_az0": 1.06,
+   "above_f_tip_power_db_az0": -155.26,
+   "beat_hz_az0": 126.1,
+   "beat_over_floor_db_az0": 63.23,
+   "ledger_beat_hz_az0": 127.09,
+   "rhythm_share_pct_az45": 84.4,
+   "above_f_tip_pct_az45": 1.2,
+   "above_f_tip_power_db_az45": -153.51,
+   "beat_hz_az45": 128.52,
+   "beat_over_floor_db_az45": 61.03,
+   "ledger_beat_hz_az45": 127.61,
+   "d_rhythm_pp": 3.9,
+   "d_beat_hz": 2.42
+  },
+  "sionna_p4000000000_r15_n8192_d1|el-60": {
+   "engine_pair_ko": "PathSolver 물리 끔",
+   "engine_pair_en": "PathSolver, physics off",
+   "el_deg": -60.0,
+   "f_tip_hz": 636.5,
+   "arm_az0": "sionna_p4000000000_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_r15_n8192_d1/el-60",
+    "sionna_p4000000000_r15_n8192_az45_d1/el-60"
+   ],
+   "row_indices": [
+    156,
+    150
+   ],
+   "levels_az0_db": {
+    "total_db": -120.77,
+    "dc_db": -121.36,
+    "ac_db": -129.72
+   },
+   "levels_az45_db": {
+    "total_db": -117.8,
+    "dc_db": -118.58,
+    "ac_db": -125.65
+   },
+   "delta_ac_db": 4.07,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 86.6,
+   "above_f_tip_pct_az0": 3.31,
+   "above_f_tip_power_db_az0": -145.25,
+   "beat_hz_az0": 126.1,
+   "beat_over_floor_db_az0": 55.07,
+   "ledger_beat_hz_az0": 126.1,
+   "rhythm_share_pct_az45": 88.7,
+   "above_f_tip_pct_az45": 1.19,
+   "above_f_tip_power_db_az45": -144.61,
+   "beat_hz_az45": 126.1,
+   "beat_over_floor_db_az45": 65.15,
+   "ledger_beat_hz_az45": 126.89,
+   "d_rhythm_pp": 2.1,
+   "d_beat_hz": 0.0
+  },
+  "sionna_p4000000000_r15_n8192_d1|el-90": {
+   "engine_pair_ko": "PathSolver 물리 끔",
+   "engine_pair_en": "PathSolver, physics off",
+   "el_deg": -90.0,
+   "f_tip_hz": 0.0,
+   "arm_az0": "sionna_p4000000000_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_r15_n8192_d1/el-90",
+    "sionna_p4000000000_r15_n8192_az45_d1/el-90"
+   ],
+   "row_indices": [
+    158,
+    151
+   ],
+   "levels_az0_db": {
+    "total_db": -117.94,
+    "dc_db": -118.01,
+    "ac_db": -135.72
+   },
+   "levels_az45_db": {
+    "total_db": -117.94,
+    "dc_db": -118.01,
+    "ac_db": -135.72
+   },
+   "delta_ac_db": 0.0,
+   "gate_threshold_db": -20.0,
+   "scored": false,
+   "gate": "제외 — 나딧에서 방위는 죽은 축",
+   "rhythm_share_pct_az0": null,
+   "rhythm_share_pct_az45": null,
+   "withheld_reason_ko": "el −90 은 시선이 [0,0,−1] 이라 방위가 기하에서 사라진다(f_tip = 0 이라 «상한 위» 잣대 자체가 퇴화한다). 사전 등록대로 채점에서 뺐다.",
+   "above_f_tip_power_db_az0": null,
+   "above_f_tip_power_db_az45": null
+  },
+  "sionna_p4000000000_phys_r15_n8192_d1|el+0": {
+   "engine_pair_ko": "PathSolver 물리 켬",
+   "engine_pair_en": "PathSolver, physics on",
+   "el_deg": 0.0,
+   "f_tip_hz": 1272.9,
+   "arm_az0": "sionna_p4000000000_phys_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_phys_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el+0",
+    "sionna_p4000000000_phys_r15_n8192_az45_d1/el+0"
+   ],
+   "row_indices": [
+    127,
+    123
+   ],
+   "levels_az0_db": {
+    "total_db": -62.08,
+    "dc_db": -62.08,
+    "ac_db": -94.84
+   },
+   "levels_az45_db": {
+    "total_db": -100.54,
+    "dc_db": -100.59,
+    "ac_db": -120.28
+   },
+   "delta_ac_db": -25.44,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "불통과 — az45 에코 부재",
+   "rhythm_share_pct_az0": null,
+   "rhythm_share_pct_az45": null,
+   "above_f_tip_pct_az0": null,
+   "above_f_tip_pct_az45": null,
+   "beat_hz_az0": null,
+   "beat_hz_az45": null,
+   "withheld_reason_ko": "az45 팔의 DC 제거 AC 가 az0 대비 -25.44 dB 로 사전 등록 문턱 -20 dB 밖이다. 몫(비율)은 분모가 사라진 자리에서 아무 뜻이 없으므로 **계산은 했으나 값을 싣지 않는다** — 이 칸의 리듬 몫은 인용 불가다.",
+   "above_f_tip_power_db_az0": -94.87,
+   "above_f_tip_power_db_az45": -121.07
+  },
+  "sionna_p4000000000_phys_r15_n8192_d1|el-30": {
+   "engine_pair_ko": "PathSolver 물리 켬",
+   "engine_pair_en": "PathSolver, physics on",
+   "el_deg": -30.0,
+   "f_tip_hz": 1102.4,
+   "arm_az0": "sionna_p4000000000_phys_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_phys_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30",
+    "sionna_p4000000000_phys_r15_n8192_az45_d1/el-30"
+   ],
+   "row_indices": [
+    129,
+    124
+   ],
+   "levels_az0_db": {
+    "total_db": -95.47,
+    "dc_db": -95.47,
+    "ac_db": -126.6
+   },
+   "levels_az45_db": {
+    "total_db": -135.57,
+    "dc_db": -147.98,
+    "ac_db": -135.82
+   },
+   "delta_ac_db": -9.22,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 12.5,
+   "above_f_tip_pct_az0": 85.79,
+   "above_f_tip_power_db_az0": -127.17,
+   "beat_hz_az0": 252.19,
+   "beat_over_floor_db_az0": 13.98,
+   "ledger_beat_hz_az0": 253.17,
+   "rhythm_share_pct_az45": 14.5,
+   "above_f_tip_pct_az45": 64.58,
+   "above_f_tip_power_db_az45": -137.7,
+   "beat_hz_az45": 128.52,
+   "beat_over_floor_db_az45": 19.77,
+   "ledger_beat_hz_az45": 127.57,
+   "d_rhythm_pp": 2.0,
+   "d_beat_hz": -123.67
+  },
+  "sionna_p4000000000_phys_r15_n8192_d1|el-60": {
+   "engine_pair_ko": "PathSolver 물리 켬",
+   "engine_pair_en": "PathSolver, physics on",
+   "el_deg": -60.0,
+   "f_tip_hz": 636.5,
+   "arm_az0": "sionna_p4000000000_phys_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_phys_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-60",
+    "sionna_p4000000000_phys_r15_n8192_az45_d1/el-60"
+   ],
+   "row_indices": [
+    131,
+    125
+   ],
+   "levels_az0_db": {
+    "total_db": -105.94,
+    "dc_db": -105.98,
+    "ac_db": -125.88
+   },
+   "levels_az45_db": {
+    "total_db": -129.14,
+    "dc_db": -132.48,
+    "ac_db": -131.84
+   },
+   "delta_ac_db": -5.96,
+   "gate_threshold_db": -20.0,
+   "scored": true,
+   "gate": "통과",
+   "rhythm_share_pct_az0": 14.9,
+   "above_f_tip_pct_az0": 86.72,
+   "above_f_tip_power_db_az0": -126.29,
+   "beat_hz_az0": 126.1,
+   "beat_over_floor_db_az0": 21.92,
+   "ledger_beat_hz_az0": 127.22,
+   "rhythm_share_pct_az45": 28.4,
+   "above_f_tip_pct_az45": 38.68,
+   "above_f_tip_power_db_az45": -135.9,
+   "beat_hz_az45": 126.1,
+   "beat_over_floor_db_az45": 27.62,
+   "ledger_beat_hz_az45": 127.12,
+   "d_rhythm_pp": 13.5,
+   "d_beat_hz": 0.0
+  },
+  "sionna_p4000000000_phys_r15_n8192_d1|el-90": {
+   "engine_pair_ko": "PathSolver 물리 켬",
+   "engine_pair_en": "PathSolver, physics on",
+   "el_deg": -90.0,
+   "f_tip_hz": 0.0,
+   "arm_az0": "sionna_p4000000000_phys_r15_n8192_d1",
+   "arm_az45": "sionna_p4000000000_phys_r15_n8192_az45_d1",
+   "npz_keys": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-90",
+    "sionna_p4000000000_phys_r15_n8192_az45_d1/el-90"
+   ],
+   "row_indices": [
+    133,
+    126
+   ],
+   "levels_az0_db": {
+    "total_db": -68.47,
+    "dc_db": -68.47,
+    "ac_db": -118.37
+   },
+   "levels_az45_db": {
+    "total_db": -68.48,
+    "dc_db": -68.48,
+    "ac_db": -118.38
+   },
+   "delta_ac_db": -0.01,
+   "gate_threshold_db": -20.0,
+   "scored": false,
+   "gate": "제외 — 나딧에서 방위는 죽은 축",
+   "rhythm_share_pct_az0": null,
+   "rhythm_share_pct_az45": null,
+   "withheld_reason_ko": "el −90 은 시선이 [0,0,−1] 이라 방위가 기하에서 사라진다(f_tip = 0 이라 «상한 위» 잣대 자체가 퇴화한다). 사전 등록대로 채점에서 뺐다.",
+   "above_f_tip_power_db_az0": null,
+   "above_f_tip_power_db_az45": null
+  }
+ },
+ "white_noise_neutral_pct": {
+  "el+0": {
+   "mean_pct": 12.55,
+   "sd_pct": 0.48
+  },
+  "el-30": {
+   "mean_pct": 12.67,
+   "sd_pct": 0.49
+  },
+  "el-60": {
+   "mean_pct": 12.6,
+   "sd_pct": 0.48
+  }
+ },
+ "headline_ko": [
+  "⭐게이트가 먼저 답을 바꾼다 — 채점 대상 9 칸 중 **7 칸만 통과**하고 **2 칸(PathSolver 두 팔의 el 0)** 은 az45 에서 에코가 사라져 «비율 비교 불가» 다. 정면을 벗어나면 PathSolver 의 el 0 AC 가 물리 끔 -51.1 dB · 물리 켬 -25.4 dB 로 무너진다.",
+  "⭐그래서 「0° 익사」는 **방위 불변이 아니다.** 다만 az45 에서 익사가 «풀린다» 고 말할 수 없다 — 그 자리에서는 익사시킬 에코 자체가 없어진다. 정확한 문장은 «정면에서 동체 정반사가 지배할 때만 익사한다» 다.",
+  "우리 커널은 방위에 둔감하다 — 통과한 세 앙각에서 리듬 몫이 63→50 % (el 0) · 83→87 % (el −30) · 53→51 % (el −60) 이고, AC 레벨차도 +0.6 ~ +3.4 dB 안이다. 우리 커널은 el 0 에서 애초에 익사하지 않는다(az0 63 % ≫ 백색 12.6).",
+  "회절(물리 켬)이 리듬을 지우는 것은 **방위와 무관**하다 — el −30 에서 az0 12 % · az45 14 % 로 둘 다 백색 수준이다. 방위를 돌려도 안 살아난다.",
+  "⚠별도 조사 항목 — 물리 켬 el −60 만 az45 에서 15 → 28 % 로 튄다. 같은 칸의 상한 위 몫이 87 → 39 % 로 함께 내려간 것이라 «잡음 바닥이 걷혀 드러난 것» 과 «구조가 생긴 것» 이 아직 안 갈린다.",
+  "나딧(el −90)에서 방위는 죽은 축이다 — 세 엔진 모두 |ΔAC| ≤ 0.01 dB. 앞으로 큐에서 나딧 × 방위 조합을 만들지 마라."
+ ],
+ "verdict_ko": "«0° 붕괴는 앙각의 성질» 도 «정면 한정» 도 둘 다 그대로는 못 쓴다. 사전 등록 게이트가 정면 밖 el 0 칸을 전부 «에코 부재» 로 잘라내기 때문이다. 남는 참인 문장은 두 개다 — ① **방위 불변이 아니다**(정면을 45° 벗어나면 PathSolver 의 el 0 에코가 25~51 dB 사라진다) ② **정면에서 동체 정반사가 지배할 때만 익사한다**(익사시키는 그 에코 자체가 정면의 산물이다). 그리고 이 익사는 **엔진의 성질**이다 — 우리 커널은 같은 기하에서 두 방위 모두 리듬을 지킨다.",
+ "open_items_ko": [
+  "⚠PathSolver 의 el 0 · az45 칸은 이번 판으로는 못 읽는다. 읽으려면 **절대 기준이 붙은 판**이 필요하다 — 같은 팔을 잡음 전용 팔(표적 없음)과 나란히 돌려서 «−145 dB 가 MC 바닥인가 진짜 약한 에코인가» 를 가르는 실험. GPU 가 비면 그때.",
+  "⚠물리 켬 el −60 az45 의 리듬 상승은 R13(스위치 완전요인)의 «바닥 vs 빗살 선» 분해와 같은 잣대로 다시 읽어야 한다. 지금 잣대로는 원인 귀속이 안 된다.",
+  "방위 축은 45° 한 점뿐이다. 쿼드콥터는 45° 가 «팔 사이» 라 대칭을 가장 크게 깨는 각이지만, 22.5° 같은 중간 각이 없어 방위 의존이 단조인지 주기적인지 모른다."
+ ],
+ "ledger_meta_patch_proposal": {
+  "target_file": "outputs/elevation_sweep_md.json",
+  "path": "_meta.nadir_azimuth_dead_axis_ko",
+  "value_ko": "⭐el −90 에서 시선은 los(az,−90) = [0,0,−1] 이라 방위가 기하에서 사라진다. 실측으로 세 엔진 모두 az0 ↔ az45 의 AC 레벨차가 |ΔAC| ≤ 0.01 dB 다. 앞으로 큐에 나딧 × 방위 조합을 넣지 마라 — 계산이 낭비다.",
+  "applied": false,
+  "why_not_applied_ko": "이 라운드는 기존 파일 수정 금지 규약이라 제안만 남긴다.",
+  "evidence": {
+   "나딧(el −90)에서 방위는 죽은 축 — |ΔAC| ≤ 0.05 dB": "{\"우리 커널\": {\"rel_power_diff\": 1.2340449823217777e-30, \"rel_power_diff_db\": -299.1, \"d_ac_db\": 0.0}, \"PathSolver 물리 끔\": {\"rel_power_diff\": 2.3491903252193572e-32, \"rel_power_diff_db\": -316.3, \"d_ac_db\": 0.0}, \"PathSolver 물리 켬\": {\"rel_power_diff\": 3.6229775431296586e-06, \"rel_power_diff_db\": -54.4, \"d_ac_db\": -0.01}}"
+  }
+ },
+ "corrections": [
+  {
+   "where": "8/18 팀미팅 덱 · 슬라이드 «The drowned blades» (/workspace/teammeeting_0818/make_0818_v14.py:554 부근)",
+   "old_ko": "«Same engine, same rays, and the same 8,192 spinning poses, all at 0 degrees» — 판을 «0 도» 로만 적어 앙각만 밝히고 방위를 안 밝힌다.",
+   "new_ko": "«all at 0 degrees elevation, nose-on (azimuth 0)» 로 방위를 함께 못 박는다. 이 실험이 방위 축을 실제로 읽었고, 방위가 결과를 바꾸기 때문이다.",
+   "evidence": "cells.sionna_p4000000000_r15_n8192_d1|el+0.delta_ac_db = -51.11 dB"
+  },
+  {
+   "where": "8/18 덱 · 같은 슬라이드의 결론띠",
+   "old_ko": "«Alone the propellers beat at NN percent, but their echo sits NN dB below the body echo and drowns» — 익사를 앙각(0°)의 성질처럼 읽히게 둔다.",
+   "new_ko": "결론띠 뒤에 한 줄을 덧붙인다 — «and that body echo is itself nose-on: turning 45 degrees off the nose drops it by 25 to 51 dB». 즉 익사는 **정면에서 동체 정반사가 지배할 때만** 일어난다. ⛔«방위를 돌리면 익사가 풀린다» 로는 쓰지 마라 — 그 자리에서는 에코 자체가 사라져 사전 등록 게이트에 걸린다(리듬 몫 인용 불가).",
+   "evidence": "gate_summary.failed_no_echo = ['PathSolver 물리 끔|el+0', 'PathSolver 물리 켬|el+0'] · cells.sionna_p4000000000_phys_r15_n8192_d1|el+0.delta_ac_db = -25.44 dB"
+  },
+  {
+   "where": "docs/RESUME.md §1 표 1 행 «0° 붕괴 기전 해부»",
+   "old_ko": "«0° 에서 박자가 사라지는 것은 소멸이 아니라 익사다»",
+   "new_ko": "«**정면(방위 0°) 의** 0° 에서 박자가 사라지는 것은 소멸이 아니라 익사다. 그 익사를 만드는 동체 에코는 정면의 산물이라 방위를 45° 돌리면 25~51 dB 사라진다 — 방위 불변이 아니다.»",
+   "evidence": "outputs/r12_azimuth_harvest.json · gate_table"
+  },
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md §① TL;DR 3 행 · §3-1 R12 절",
+   "old_ko": "«21 GPU-h 어치가 계산돼 있는데»",
+   "new_ko": "az45 팔 12 계열의 실측 합계는 **16.8 워커-시간**이다(원장 `seconds` 열 합 60598 s). 21 은 과대 계상이다.",
+   "evidence": "survey_az_arms.compute_seconds_total"
+  },
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md §3-1 R12 절 «두 계열 차 1.96e-17»",
+   "old_ko": "el −90 에서 az0 과 az45 두 계열의 차가 1.96e-17",
+   "new_ko": "계열 차의 크기는 엔진마다 다르다. **차 전력 / 원 전력**으로 재면 우리 커널 −299 dB · PathSolver 물리 끔 −316 dB(둘 다 부동소수 반올림 수준) 인데 **물리 켬만 −54 dB** 다 — 회절 항이 광선을 확률적으로 표집해 두 팔의 잡음 실현이 다르기 때문이다. ⭐그래도 **레벨로는 셋 다 |ΔAC| ≤ 0.01 dB** 라 결론(나딧에서 방위는 죽은 축)은 그대로다. 1.96e-17 은 한 팔의 수이지 세 팔의 수가 아니고, 진폭 눈금이라 전력 눈금과 섞어 인용하면 안 된다.",
+   "evidence": "selftest[2].detail_ko"
+  }
+ ],
+ "selftest": [
+  {
+   "test": "az45 팔 12 계열 · 결측 0 · npz 키 존재",
+   "pass": true,
+   "detail_ko": "행 12 개 · 결측 합 0 · npz 키 모두 존재 True"
+  },
+  {
+   "test": "az0 짝 팔 12 계열 존재",
+   "pass": true,
+   "detail_ko": "세 엔진 × 네 앙각의 az0 키가 모두 npz 에 있다"
+  },
+  {
+   "test": "나딧(el −90)에서 방위는 죽은 축 — |ΔAC| ≤ 0.05 dB",
+   "pass": true,
+   "detail_ko": "{\"우리 커널\": {\"rel_power_diff\": 1.2340449823217777e-30, \"rel_power_diff_db\": -299.1, \"d_ac_db\": 0.0}, \"PathSolver 물리 끔\": {\"rel_power_diff\": 2.3491903252193572e-32, \"rel_power_diff_db\": -316.3, \"d_ac_db\": 0.0}, \"PathSolver 물리 켬\": {\"rel_power_diff\": 3.6229775431296586e-06, \"rel_power_diff_db\": -54.4, \"d_ac_db\": -0.01}}"
+  },
+  {
+   "test": "리듬 잣대의 백색 중립선 12.6 ± 1 %",
+   "pass": true,
+   "detail_ko": "{\"el+0\": {\"mean_pct\": 12.55, \"sd_pct\": 0.48}, \"el-30\": {\"mean_pct\": 12.67, \"sd_pct\": 0.49}, \"el-60\": {\"mean_pct\": 12.6, \"sd_pct\": 0.48}}"
+  },
+  {
+   "test": "섞기 널 — 통과 칸 az45 리듬 몫이 널 최댓값 위",
+   "pass": true,
+   "detail_ko": "{\"우리 커널|el+0\": {\"null_mean\": 12.7, \"null_max\": 14.13, \"measured\": 50.3, \"above_null\": true}, \"우리 커널|el-30\": {\"null_mean\": 12.63, \"null_max\": 14.13, \"measured\": 86.8, \"above_null\": true}, \"우리 커널|el-60\": {\"null_mean\": 12.58, \"null_max\": 13.73, \"measured\": 51.0, \"above_null\": true}, \"PathSolver 물리 끔|el-30\": {\"null_mean\": 12.64, \"null_max\": 13.66, \"measured\": 84.4, \"above_null\": true}, \"PathSolver 물리 끔|el-60\": {\"null_mean\": 12.58, \"null_max\": 13.56, \"measured\": 88.7, \"above_null\": true}, \"PathSolver 물리 켬|el-30\": {\"null_mean\": 12.76, \"null_max\": 13.97, \"measured\": 14.5, \"above_null\": true}, \"PathSolver 물리 켬|el-60\": {\"null_mean\": 12.61, \"null_max\": 13.77, \"measured\": 28.4, \"above_null\": true}}"
+  },
+  {
+   "test": "박자 재계산 ↔ 원장 track.beat_hz 차 ≤ 2 Hz",
+   "pass": true,
+   "detail_ko": "{\"우리 커널|el+0|az0\": 0.66, \"우리 커널|el+0|az45\": 0.94, \"우리 커널|el-30|az0\": 0.61, \"우리 커널|el-30|az45\": 0.92, \"우리 커널|el-60|az0\": 0.09, \"우리 커널|el-60|az45\": 1.03, \"PathSolver 물리 끔|el-30|az0\": 0.99, \"PathSolver 물리 끔|el-30|az45\": 0.91, \"PathSolver 물리 끔|el-60|az0\": 0.0, \"PathSolver 물리 끔|el-60|az45\": 0.79, \"PathSolver 물리 켬|el-30|az0\": 0.98, \"PathSolver 물리 켬|el-30|az45\": 0.95, \"PathSolver 물리 켬|el-60|az0\": 1.12, \"PathSolver 물리 켬|el-60|az45\": 1.02}"
+  },
+  {
+   "test": "기존 원장 switch_grid.json 과 리듬 몫 재현 (≤1.0 %p)",
+   "pass": true,
+   "detail_ko": "switch_grid 83.3 % ↔ 이번 재계산 83.3 % (f_tip 규약 차 0.8 Hz 만큼만 다르다)"
+  },
+  {
+   "test": "불통과·제외 칸에 리듬 몫이 실려 있지 않다",
+   "pass": true,
+   "detail_ko": "위반 칸 []"
+  },
+  {
+   "test": "그림 3 장이 생성되고 20 kB 이상",
+   "pass": true,
+   "detail_ko": "{\"r12_gate_levels.png\": true, \"r12_rhythm_admissible.png\": true, \"r12_el0_stft.png\": true}"
+  }
+ ],
+ "selftest_all_pass": true
+}

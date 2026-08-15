@@ -462,24 +462,24 @@ def main():
 
     # ── ⑥ 리포트가 무엇을 고쳐 써야 하나 ────────────────────────────────────
     must_change = [
-        ("reports/08_5_bistatic.ipynb 절 2 표 — «블레이드 전력 중 f_tip 밖 비율» 칸의 "
+        ("reports/06_5_bistatic.ipynb 절 2 표 — «블레이드 전력 중 f_tip 밖 비율» 칸의 "
          "0.02 / 2.12 / 6.05 % 를 전부 버린다. 새 표는 `frac_of_total` 로 "
          f"PO {100*E['po']['frac_of_total']:.5f} % · Sionna {100*E['sionna']['frac_of_total']:.2f} % · "
          f"SBR {100*E['sbr']['frac_of_total']:.2f} % 이고, 열 제목을 «전체 전력 중 f_tip 밖 "
          "몫» 으로 바꿔야 한다(분모를 이름에 박는다)."),
-        ("reports/08_5_bistatic.ipynb 같은 표의 «날개끝 밖 바닥(봉우리 대비)» 칸 "
+        ("reports/06_5_bistatic.ipynb 같은 표의 «날개끝 밖 바닥(봉우리 대비)» 칸 "
          "−118.8 / −41.4 / −33.5 dB 도 평활에 걸려 있다. 평활을 빼면 "
          f"{E['po']['new_floor_rel_db_raw_mean']:.1f} / {E['sionna']['new_floor_rel_db_raw_mean']:.1f} / "
          f"{E['sbr']['new_floor_rel_db_raw_mean']:.1f} dB 다(평균 기준). 순서는 안 바뀌지만 "
          "값이 20~30 dB 옮겨간다 — 평활이 분모의 봉우리를 421 빈에 퍼뜨려 깎았기 때문이다."),
-        ("reports/08_5_bistatic.ipynb 절 2 본문 «광선을 쓰는 두 팔은 둘 다 새어 나간다» 는 "
+        ("reports/06_5_bistatic.ipynb 절 2 본문 «광선을 쓰는 두 팔은 둘 다 새어 나간다» 는 "
          "**유지된다**(그리고 이것이 이 절의 논지다). 하지만 SBR↔Sionna 의 대소는 "
          "**분모를 밝히지 않고 쓰면 안 된다** — 전체전력 대비로는 SBR 이 "
          f"{ranking['sbr_over_sionna_db']['new_frac_of_total']:.1f} dB 위지만, 대역비로 재면 "
          f"순위가 뒤집힌다(SBR {100*E['sbr']['out_over_in_ratio_SECONDARY']:.1f} % ↔ Sionna "
          f"{100*E['sionna']['out_over_in_ratio_SECONDARY']:.1f} %). 표에 «전체 전력 중» 을 "
          "명기하고, 순위가 정규화에 달렸다는 각주를 단다."),
-        ("reports/08_5_bistatic.ipynb 부록 «추정기» 표에 대역밖 전력 행을 새로 넣는다 — "
+        ("reports/06_5_bistatic.ipynb 부록 «추정기» 표에 대역밖 전력 행을 새로 넣는다 — "
          "«평활 없는 주기도의 절대 대역 전력, 정규화는 전체 전력» 이라고 정의를 박는다."),
         ("benchmark/report07b_bistatic_md.py 의 `frac_power_beyond_ftip` (578행) 은 "
          "폐기 표시하고 이 원장을 참조하게 한다. `envelope` 평활은 `edge_of`·`scale_fit` "

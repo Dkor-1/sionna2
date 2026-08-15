@@ -1,0 +1,6451 @@
+{
+ "_meta": {
+  "generator": "benchmark/raybudget_ac_ladder.py",
+  "experiment": "R17 · 광선 예산 사다리를 AC 로 다시 읽기",
+  "design_doc": "docs/NEXT_EXPERIMENTS.md (순위 1 · §3-1 R17)",
+  "date_kst": "2026-08-15 15:10 KST",
+  "host": "565758bf82be",
+  "question_ko": "광선을 더 부으면 마이크로도플러 «구조» 가 생기나, 아니면 바닥만 내려가나",
+  "compute_ko": "⛔GPU 0 — sionna.rt·mitsuba 임포트 없이 저장된 원장 npz 만 읽었다",
+  "reads_only": [
+   "outputs/elevation_sweep_md.npz",
+   "outputs/elevation_sweep_md.json",
+   "outputs/raybudget_ladder/spp*_s*_*.npz",
+   "outputs/report07_range40_raybudget.json"
+  ],
+  "writes": [
+   "outputs/raybudget_ac_ladder.json",
+   "outputs/figures/raybudget_ac_ladder.png",
+   "outputs/figures/raybudget_ac_ladder_diag.png"
+  ],
+  "metric_recipe_ko": "P = |FFT((E − mean(E))·hanning)|² / (n·Σw²)  → ΣP = mean|E−mean|² (Parseval 정규화라 dB 가 **절대 전력**이다). above = |fr| ≥ f_tip(el). 빗살 = 박자 f_flash 정수배 ±8 Hz (원격자가 성길 때만 ±1.5Δf 로 넓히고 그 사실을 셀마다 기록). 바닥 = above ∩ 이빨 **밖** 빈의 **중앙값**. ⭐레벨 비교는 전부 정지 성분(DC = 시계열 평균) 제거 후다.",
+  "distance_warning_ko": "⚠사다리 A 는 **10 m**(원거리장 경계 2D²/λ ≈ 14.08 m 의 **안쪽**), 사다리 B 는 **40 m**(바깥)다. 둘을 한 회귀에 섞지 않았고 표에서도 나란히 놓지 않는다. 리포트 정본인 **15 m** 판에는 예산 축이 아예 없다.",
+  "units_ko": "sionna 팔은 채널계수 h(경로손실 포함, 무차원)라 dB 값은 **같은 엔진·같은 거리 안에서만** 비교한다. 우리 커널(ours)은 산란장 E[m²]로 눈금이 달라 사다리에 넣지 않고 참조로만 싣는다."
+ },
+ "_prereg": {
+  "criterion_1_ko": "상한 위 **바닥 절대전력**이 1/spp 를 따라가나 (예산 4 배마다 −6 dB = −3.01 dB/옥타브)",
+  "criterion_2_ko": "상한 위 **빗살 선 전력**은 spp 에 불변인가 (0 dB/옥타브)",
+  "decision_rule_ko": "기울기 회귀의 95 % 신뢰구간이 예측값을 덮으면 성립, 안 덮으면 불성립. ①성립·②불변이면 「구조 없음」을 「이 예산의 MC 바닥 위로는 구조가 없다」로 고친다.",
+  "deviations_ko": [
+   "설계서는 물리끔 4 계단만 지정했다. 전수조사에서 **40 m 예산 사다리**(outputs/raybudget_ladder, 8 계단 × 시드 3~8)를 찾았고, 시드가 있어 **모형이 아니라 재현으로** 신뢰구간을 낼 수 있으므로 **사다리 B** 로 같은 세 열을 함께 낸다. 거리(40 m)가 다르므로 사다리 A 와 절대 안 섞는다.",
+   "설계서 판정문의 «구조 없음/MC 바닥» 두 갈래 어디에도 안 들어맞는 결과가 나올 수 있어, 판정문에 세 번째 갈래(바닥이 **안 내려가는** 경우)를 미리 넣었다. 판정 규칙(신뢰구간이 예측을 덮나) 자체는 안 바꿨다.",
+   "빗살 선은 원(raw) 합과 **바닥을 뺀 초과분**을 둘 다 싣는다. 사전등록 열은 원 합이고 초과분은 보조다 — 원 합만 보면 이빨 아래 깔린 바닥이 섞여 들어간다.",
+   "el 0 은 정반사가 지배해 다른 체제이므로 **el<0 만의 회귀**를 헤드라인으로 쓰고 el 0 포함 판을 함께 싣는다(설계서에 없던 구분 — 이유는 §regime_split).",
+   "②의 판정을 «신뢰구간이 0 을 덮나» 에서 «MC 율의 1/4 미만 + −3.01 을 안 덮음» 으로 **적었다**. 사다리 B 는 시드 재현이 30 판이라 신뢰구간이 ±0.3 dB/옥타브까지 좁아지는데, 그 잣대로는 «6 옥타브에 −3 dB» 같은 물리적으로 무의미한 기울기도 «불변 아님» 이 된다. ①의 규칙은 안 바꿨다.",
+   "사다리 B 에는 사전등록에 없는 **퇴화 배제 규칙**이 필요했다 — 낮은 계단은 경로가 아예 안 잡혀 시계열이 0 이거나 상수다. 배제 규칙(전부 0 · 요동 0 · 자세 절반 초과에서 경로 없음)과 규칙을 푼 민감도 판을 둘 다 싣는다."
+  ]
+ },
+ "tldr_ko": [
+  "광선을 360 배 부어도 **날개끝 상한 위**(마이크로도플러 구조가 살 수 있는 유일하게 남은 자리)는 안 움직인다 — 바닥 -1.7~+0.3 dB · 빗살 -1.2~+2.4 dB.",
+  "같은 360 배에 **상한 아래**는 크게 오른다 — +11.3~+18.8 dB. 광선이 사는 것은 **에코 자체의 크기**이지 그 안의 무늬가 아니다.",
+  "그러므로 「구조가 없다」도 「몬테카를로 바닥에 묻혔다」도 아니다. 옳은 말은 **「이 예산 축에서는 상한 위가 광선 수에 불변이다」** — 그래서 GPU 를 더 사도 이 자리는 안 바뀐다.",
+  "예외는 정면(el 0) 하나다. 거기서는 정지 성분이 이미 수렴해 있고, 새로 찾는 경로가 전부 요동으로만 들어가 상한 위가 오히려 +70 dB **올라간다** (그리고 그 요동은 백색이라 리듬이 없다).",
+  "빗살은 진짜 있다 — 상한 위 전력의 74~89 % 가 박자 정수배 ±8 Hz 에 앉아 있고(백색 중립값 12.6 %), 반 이빨 어긋난 창보다 22 dB 넘게 높다. 다만 **상한 위에는 물리가 없으므로** 그 빗살은 신호가 아니라 자세 격자가 만든 결정론적 인공물이고, 광선으로는 지워지지 않는다."
+ ],
+ "census": {
+  "p_token_counts": {
+   "250000000": 14,
+   "1000000000": 7,
+   "4000000000": 126
+  },
+  "distinct_spp_in_elevation_ledger": [
+   11111111,
+   250000000,
+   1000000000,
+   4000000000
+  ],
+  "configurations": [
+   {
+    "max_depth": 1,
+    "n_poses": 4096,
+    "range_m": 10.0,
+    "physics": false,
+    "az_deg": 0.0,
+    "n_rungs": 4,
+    "spp_present": [
+     11111111,
+     250000000,
+     1000000000,
+     4000000000
+    ],
+    "is_budget_axis": true
+   },
+   {
+    "max_depth": 3,
+    "n_poses": 4096,
+    "range_m": 10.0,
+    "physics": true,
+    "az_deg": 0.0,
+    "n_rungs": 2,
+    "spp_present": [
+     11111111,
+     250000000
+    ],
+    "is_budget_axis": true
+   },
+   {
+    "max_depth": 1,
+    "n_poses": 8192,
+    "range_m": 15.0,
+    "physics": false,
+    "az_deg": 0.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   },
+   {
+    "max_depth": 3,
+    "n_poses": 8192,
+    "range_m": 15.0,
+    "physics": false,
+    "az_deg": 0.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   },
+   {
+    "max_depth": 1,
+    "n_poses": 8192,
+    "range_m": 10.0,
+    "physics": true,
+    "az_deg": 0.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   },
+   {
+    "max_depth": 1,
+    "n_poses": 8192,
+    "range_m": 15.0,
+    "physics": true,
+    "az_deg": 0.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   },
+   {
+    "max_depth": 1,
+    "n_poses": 8192,
+    "range_m": 15.0,
+    "physics": true,
+    "az_deg": 45.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   },
+   {
+    "max_depth": 2,
+    "n_poses": 8192,
+    "range_m": 15.0,
+    "physics": true,
+    "az_deg": 0.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   },
+   {
+    "max_depth": 1,
+    "n_poses": 8192,
+    "range_m": 15.0,
+    "physics": false,
+    "az_deg": 45.0,
+    "n_rungs": 1,
+    "spp_present": [
+     4000000000
+    ],
+    "is_budget_axis": false
+   }
+  ],
+  "note_ko": "같은 (깊이·자세수·거리·물리·방위) 조합 안에서 spp 가 2 개 이상이어야 «예산 축» 이다. 표에서 보듯 앙각 원장에서 그 조건을 만족하는 자리는 물리끔 10 m·4096·깊이1 의 4 계단과 물리켬 10 m·4096·깊이3 의 2 계단뿐이다. ⚠리포트 정본인 15 m 판에는 예산 축이 **없다**(전부 4e9 한 계단)."
+ },
+ "ladder_a": {
+  "arms": [
+   {
+    "engine": "sionna",
+    "spp": 11111111
+   },
+   {
+    "engine": "sionna_p250000000",
+    "spp": 250000000
+   },
+   {
+    "engine": "sionna_p1000000000",
+    "spp": 1000000000
+   },
+   {
+    "engine": "sionna_p4000000000",
+    "spp": 4000000000
+   }
+  ],
+  "held_fixed_ko": "matrice4e · 3.5 GHz · 10 m · 자세 4096 · 깊이 1 · 방위 0° · 물리(굴절·회절·모서리) 끔 · 확산 켬",
+  "scored_elevations_deg": [
+   0.0,
+   -15.0,
+   -45.0,
+   -60.0
+  ],
+  "excluded_elevations": [
+   {
+    "el_deg": -30.0,
+    "reasons_ko": [
+     "sionna_p4000000000: 팔 없음"
+    ]
+   },
+   {
+    "el_deg": -75.0,
+    "reasons_ko": [
+     "sionna_p4000000000: n_missing=2048"
+    ]
+   },
+   {
+    "el_deg": -90.0,
+    "reasons_ko": [
+     "sionna_p4000000000: 팔 없음"
+    ]
+   }
+  ],
+  "cells": {
+   "sionna|+0": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -59.654,
+    "ac_power_db": -143.21,
+    "level_db_recomputed": -59.654,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -142.997,
+    "window_bias_db": 0.213,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -199.184,
+    "floor_above_psd_db_per_hz": -206.006,
+    "floor_above_int_db": -158.95,
+    "comb_above_db": -148.767,
+    "comb_excess_db": -148.785,
+    "comb_share_pct": 91.252,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 0.171,
+    "comb_over_shift_db": 27.266,
+    "ac_above_tip_db": -148.369,
+    "ac_below_tip_db": -144.487,
+    "blade_band_db": -144.59,
+    "arm": "sionna",
+    "spp": 11111111,
+    "el_deg": 0.0,
+    "f_tip_hz": 1272.9,
+    "npaths_median": 9,
+    "n_missing": 0,
+    "level_db_ledger": -59.65,
+    "seconds": 1549.9,
+    "npz_key": "sionna/el+0"
+   },
+   "sionna_p250000000|+0": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -59.657,
+    "ac_power_db": -99.306,
+    "level_db_recomputed": -59.657,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -103.495,
+    "window_bias_db": -4.189,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -139.671,
+    "floor_above_psd_db_per_hz": -146.492,
+    "floor_above_int_db": -104.683,
+    "comb_above_db": -113.101,
+    "comb_excess_db": -131.919,
+    "comb_share_pct": 12.584,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 6.124,
+    "comb_over_shift_db": 3.128,
+    "ac_above_tip_db": -104.099,
+    "ac_below_tip_db": -112.364,
+    "blade_band_db": -114.264,
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": 0.0,
+    "f_tip_hz": 1272.9,
+    "npaths_median": 127,
+    "n_missing": 0,
+    "level_db_ledger": -59.66,
+    "seconds": 1221.3,
+    "npz_key": "sionna_p250000000/el+0"
+   },
+   "sionna_p1000000000|+0": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -59.668,
+    "ac_power_db": -93.577,
+    "level_db_recomputed": -59.668,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -95.525,
+    "window_bias_db": -1.947,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -132.935,
+    "floor_above_psd_db_per_hz": -139.756,
+    "floor_above_int_db": -96.69,
+    "comb_above_db": -105.145,
+    "comb_excess_db": -111.084,
+    "comb_share_pct": 12.49,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 6.362,
+    "comb_over_shift_db": 2.93,
+    "ac_above_tip_db": -96.111,
+    "ac_below_tip_db": -104.511,
+    "blade_band_db": -106.33,
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "el_deg": 0.0,
+    "f_tip_hz": 1272.9,
+    "npaths_median": 471,
+    "n_missing": 0,
+    "level_db_ledger": -59.67,
+    "seconds": 4133.4,
+    "npz_key": "sionna_p1000000000/el+0"
+   },
+   "sionna_p4000000000|+0": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -59.678,
+    "ac_power_db": -90.442,
+    "level_db_recomputed": -59.678,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -91.606,
+    "window_bias_db": -1.164,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -129.018,
+    "floor_above_psd_db_per_hz": -135.839,
+    "floor_above_int_db": -92.769,
+    "comb_above_db": -101.665,
+    "comb_excess_db": -109.215,
+    "comb_share_pct": 11.422,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 6.996,
+    "comb_over_shift_db": 2.129,
+    "ac_above_tip_db": -92.243,
+    "ac_below_tip_db": -100.261,
+    "blade_band_db": -101.856,
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "el_deg": 0.0,
+    "f_tip_hz": 1272.9,
+    "npaths_median": 2008,
+    "n_missing": 0,
+    "level_db_ledger": -59.68,
+    "seconds": 8481.2,
+    "npz_key": "sionna_p4000000000/el+0"
+   },
+   "sionna|-15": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -124.829,
+    "ac_power_db": -144.815,
+    "level_db_recomputed": -124.805,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -145.014,
+    "window_bias_db": -0.199,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -195.628,
+    "floor_above_psd_db_per_hz": -202.449,
+    "floor_above_int_db": -154.664,
+    "comb_above_db": -150.36,
+    "comb_excess_db": -150.419,
+    "comb_share_pct": 72.928,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 0.422,
+    "comb_over_shift_db": 22.374,
+    "ac_above_tip_db": -148.989,
+    "ac_below_tip_db": -147.235,
+    "blade_band_db": -148.792,
+    "arm": "sionna",
+    "spp": 11111111,
+    "el_deg": -15.0,
+    "f_tip_hz": 1229.5,
+    "npaths_median": 7,
+    "n_missing": 0,
+    "level_db_ledger": -124.8,
+    "seconds": 1820.3,
+    "npz_key": "sionna/el-15"
+   },
+   "sionna_p250000000|-15": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -118.933,
+    "ac_power_db": -145.665,
+    "level_db_recomputed": -118.928,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -145.93,
+    "window_bias_db": -0.265,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -197.588,
+    "floor_above_psd_db_per_hz": -204.409,
+    "floor_above_int_db": -156.745,
+    "comb_above_db": -152.392,
+    "comb_excess_db": -152.452,
+    "comb_share_pct": 73.154,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 0.364,
+    "comb_over_shift_db": 23.031,
+    "ac_above_tip_db": -151.034,
+    "ac_below_tip_db": -147.533,
+    "blade_band_db": -151.285,
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": -15.0,
+    "f_tip_hz": 1229.5,
+    "npaths_median": 159,
+    "n_missing": 0,
+    "level_db_ledger": -118.93,
+    "seconds": 1581.0,
+    "npz_key": "sionna_p250000000/el-15"
+   },
+   "sionna_p1000000000|-15": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -113.362,
+    "ac_power_db": -138.664,
+    "level_db_recomputed": -113.354,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -138.667,
+    "window_bias_db": -0.003,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -197.686,
+    "floor_above_psd_db_per_hz": -204.507,
+    "floor_above_int_db": -156.488,
+    "comb_above_db": -150.322,
+    "comb_excess_db": -150.358,
+    "comb_share_pct": 80.53,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 0.282,
+    "comb_over_shift_db": 24.552,
+    "ac_above_tip_db": -149.382,
+    "ac_below_tip_db": -139.052,
+    "blade_band_db": -144.143,
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "el_deg": -15.0,
+    "f_tip_hz": 1229.5,
+    "npaths_median": 736,
+    "n_missing": 0,
+    "level_db_ledger": -113.35,
+    "seconds": 3153.7,
+    "npz_key": "sionna_p1000000000/el-15"
+   },
+   "sionna_p4000000000|-15": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -108.26,
+    "ac_power_db": -135.754,
+    "level_db_recomputed": -108.254,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -135.731,
+    "window_bias_db": 0.023,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -197.31,
+    "floor_above_psd_db_per_hz": -204.131,
+    "floor_above_int_db": -156.184,
+    "comb_above_db": -151.568,
+    "comb_excess_db": -151.62,
+    "comb_share_pct": 74.324,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 0.33,
+    "comb_over_shift_db": 23.531,
+    "ac_above_tip_db": -150.279,
+    "ac_below_tip_db": -135.886,
+    "blade_band_db": -140.539,
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "el_deg": -15.0,
+    "f_tip_hz": 1229.5,
+    "npaths_median": 2767,
+    "n_missing": 0,
+    "level_db_ledger": -108.25,
+    "seconds": 15402.6,
+    "npz_key": "sionna_p4000000000/el-15"
+   },
+   "sionna|-45": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -126.115,
+    "ac_power_db": -136.458,
+    "level_db_recomputed": -125.916,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -136.302,
+    "window_bias_db": 0.155,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -190.812,
+    "floor_above_psd_db_per_hz": -197.633,
+    "floor_above_int_db": -149.737,
+    "comb_above_db": -143.13,
+    "comb_excess_db": -143.164,
+    "comb_share_pct": 82.075,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 0.298,
+    "comb_over_shift_db": 24.407,
+    "ac_above_tip_db": -142.272,
+    "ac_below_tip_db": -137.569,
+    "blade_band_db": -139.788,
+    "arm": "sionna",
+    "spp": 11111111,
+    "el_deg": -45.0,
+    "f_tip_hz": 900.1,
+    "npaths_median": 12,
+    "n_missing": 0,
+    "level_db_ledger": -125.92,
+    "seconds": 1761.0,
+    "npz_key": "sionna/el-45"
+   },
+   "sionna_p250000000|-45": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -125.003,
+    "ac_power_db": -130.975,
+    "level_db_recomputed": -124.432,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -130.726,
+    "window_bias_db": 0.249,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -190.786,
+    "floor_above_psd_db_per_hz": -197.608,
+    "floor_above_int_db": -149.712,
+    "comb_above_db": -142.855,
+    "comb_excess_db": -142.888,
+    "comb_share_pct": 82.905,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 0.266,
+    "comb_over_shift_db": 24.938,
+    "ac_above_tip_db": -142.041,
+    "ac_below_tip_db": -131.06,
+    "blade_band_db": -133.003,
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": -45.0,
+    "f_tip_hz": 900.1,
+    "npaths_median": 268,
+    "n_missing": 0,
+    "level_db_ledger": -124.43,
+    "seconds": 1332.9,
+    "npz_key": "sionna_p250000000/el-45"
+   },
+   "sionna_p1000000000|-45": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -123.241,
+    "ac_power_db": -124.252,
+    "level_db_recomputed": -121.597,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -124.063,
+    "window_bias_db": 0.19,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -190.37,
+    "floor_above_psd_db_per_hz": -197.191,
+    "floor_above_int_db": -149.521,
+    "comb_above_db": -142.753,
+    "comb_excess_db": -142.788,
+    "comb_share_pct": 82.612,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 0.308,
+    "comb_over_shift_db": 24.28,
+    "ac_above_tip_db": -141.924,
+    "ac_below_tip_db": -124.135,
+    "blade_band_db": -127.44,
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "el_deg": -45.0,
+    "f_tip_hz": 900.1,
+    "npaths_median": 1065,
+    "n_missing": 0,
+    "level_db_ledger": -121.6,
+    "seconds": 4274.4,
+    "npz_key": "sionna_p1000000000/el-45"
+   },
+   "sionna_p4000000000|-45": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -116.209,
+    "ac_power_db": -118.975,
+    "level_db_recomputed": -115.052,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -118.772,
+    "window_bias_db": 0.203,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -190.478,
+    "floor_above_psd_db_per_hz": -197.299,
+    "floor_above_int_db": -149.812,
+    "comb_above_db": -143.017,
+    "comb_excess_db": -143.054,
+    "comb_share_pct": 82.699,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 0.348,
+    "comb_over_shift_db": 23.759,
+    "ac_above_tip_db": -142.192,
+    "ac_below_tip_db": -118.792,
+    "blade_band_db": -121.869,
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "el_deg": -45.0,
+    "f_tip_hz": 900.1,
+    "npaths_median": 4136,
+    "n_missing": 0,
+    "level_db_ledger": -115.05,
+    "seconds": 16568.2,
+    "npz_key": "sionna_p4000000000/el-45"
+   },
+   "sionna|-60": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -128.492,
+    "ac_power_db": -132.7,
+    "level_db_recomputed": -127.862,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -132.793,
+    "window_bias_db": -0.093,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -186.472,
+    "floor_above_psd_db_per_hz": -193.293,
+    "floor_above_int_db": -145.296,
+    "comb_above_db": -139.207,
+    "comb_excess_db": -139.246,
+    "comb_share_pct": 80.253,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 0.263,
+    "comb_over_shift_db": 24.842,
+    "ac_above_tip_db": -138.251,
+    "ac_below_tip_db": -134.247,
+    "blade_band_db": -136.976,
+    "arm": "sionna",
+    "spp": 11111111,
+    "el_deg": -60.0,
+    "f_tip_hz": 636.5,
+    "npaths_median": 13,
+    "n_missing": 0,
+    "level_db_ledger": -127.86,
+    "seconds": 1604.4,
+    "npz_key": "sionna/el-60"
+   },
+   "sionna_p250000000|-60": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -120.048,
+    "ac_power_db": -130.758,
+    "level_db_recomputed": -119.791,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -130.921,
+    "window_bias_db": -0.163,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -186.854,
+    "floor_above_psd_db_per_hz": -193.675,
+    "floor_above_int_db": -145.749,
+    "comb_above_db": -139.091,
+    "comb_excess_db": -139.126,
+    "comb_share_pct": 82.247,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 0.276,
+    "comb_over_shift_db": 24.749,
+    "ac_above_tip_db": -138.242,
+    "ac_below_tip_db": -131.811,
+    "blade_band_db": -134.737,
+    "arm": "sionna_p250000000",
+    "spp": 250000000,
+    "el_deg": -60.0,
+    "f_tip_hz": 636.5,
+    "npaths_median": 287,
+    "n_missing": 0,
+    "level_db_ledger": -119.79,
+    "seconds": 1064.8,
+    "npz_key": "sionna_p250000000/el-60"
+   },
+   "sionna_p1000000000|-60": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -119.218,
+    "ac_power_db": -123.603,
+    "level_db_recomputed": -118.105,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -123.767,
+    "window_bias_db": -0.163,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -187.094,
+    "floor_above_psd_db_per_hz": -193.915,
+    "floor_above_int_db": -146.209,
+    "comb_above_db": -138.953,
+    "comb_excess_db": -138.986,
+    "comb_share_pct": 84.167,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 0.257,
+    "comb_over_shift_db": 25.149,
+    "ac_above_tip_db": -138.205,
+    "ac_below_tip_db": -123.926,
+    "blade_band_db": -130.73,
+    "arm": "sionna_p1000000000",
+    "spp": 1000000000,
+    "el_deg": -60.0,
+    "f_tip_hz": 636.5,
+    "npaths_median": 1143,
+    "n_missing": 0,
+    "level_db_ledger": -118.1,
+    "seconds": 4358.2,
+    "npz_key": "sionna_p1000000000/el-60"
+   },
+   "sionna_p4000000000|-60": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -111.911,
+    "ac_power_db": -117.916,
+    "level_db_recomputed": -111.158,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -118.145,
+    "window_bias_db": -0.23,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -186.65,
+    "floor_above_psd_db_per_hz": -193.471,
+    "floor_above_int_db": -145.753,
+    "comb_above_db": -136.777,
+    "comb_excess_db": -136.799,
+    "comb_share_pct": 88.763,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 0.179,
+    "comb_over_shift_db": 26.964,
+    "ac_above_tip_db": -136.26,
+    "ac_below_tip_db": -118.213,
+    "blade_band_db": -123.579,
+    "arm": "sionna_p4000000000",
+    "spp": 4000000000,
+    "el_deg": -60.0,
+    "f_tip_hz": 636.5,
+    "npaths_median": 4707,
+    "n_missing": 0,
+    "level_db_ledger": -111.16,
+    "seconds": 16673.8,
+    "npz_key": "sionna_p4000000000/el-60"
+   }
+  },
+  "baseline_reading_ko": "⭐우리 커널(ours)도 같은 앙각에서 상한 위 빗살 몫이 48~62 % 이고 반 이빨 어긋난 창보다 17 dB 넘게 높다. 즉 **상한 위 빗살은 PathSolver 만의 병이 아니다** — 두 엔진이 같은 자세 격자(결정론적 로터 위상열)를 쓰기 때문에 생기는 공통 인공물이다. 이 결과로 엔진을 탓하면 안 된다. ⚠눈금이 달라(ours 는 산란장 E[m²], sionna 는 무차원 h) 절대 dB 는 나란히 놓지 않는다 — 여기서 비교 가능한 것은 **몫과 널 대비 여유**뿐이다.",
+  "baseline_ours_reference": {
+   "+0": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -54.447,
+    "ac_power_db": -69.769,
+    "level_db_recomputed": -54.37,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -69.395,
+    "window_bias_db": 0.373,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -131.156,
+    "floor_above_psd_db_per_hz": -137.977,
+    "floor_above_int_db": -89.571,
+    "comb_above_db": -88.175,
+    "comb_excess_db": -88.274,
+    "comb_share_pct": 57.968,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 0.685,
+    "comb_over_shift_db": 19.273,
+    "ac_above_tip_db": -85.806,
+    "ac_below_tip_db": -69.496,
+    "blade_band_db": -69.891,
+    "arm": "ours",
+    "el_deg": 0.0,
+    "f_tip_hz": 1272.9,
+    "level_db_ledger": -54.37,
+    "npz_key": "ours/el+0"
+   },
+   "-15": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -51.18,
+    "ac_power_db": -70.81,
+    "level_db_recomputed": -51.164,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -70.888,
+    "window_bias_db": -0.078,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -123.651,
+    "floor_above_psd_db_per_hz": -130.472,
+    "floor_above_int_db": -83.175,
+    "comb_above_db": -81.0,
+    "comb_excess_db": -81.108,
+    "comb_share_pct": 62.264,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 0.49,
+    "comb_over_shift_db": 21.039,
+    "ac_above_tip_db": -78.942,
+    "ac_below_tip_db": -71.627,
+    "blade_band_db": -72.598,
+    "arm": "ours",
+    "el_deg": -15.0,
+    "f_tip_hz": 1229.5,
+    "level_db_ledger": -51.16,
+    "npz_key": "ours/el-15"
+   },
+   "-45": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -59.05,
+    "ac_power_db": -67.083,
+    "level_db_recomputed": -58.669,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -66.875,
+    "window_bias_db": 0.208,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -126.516,
+    "floor_above_psd_db_per_hz": -133.337,
+    "floor_above_int_db": -86.604,
+    "comb_above_db": -86.394,
+    "comb_excess_db": -86.596,
+    "comb_share_pct": 51.209,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 1.027,
+    "comb_over_shift_db": 16.977,
+    "ac_above_tip_db": -83.488,
+    "ac_below_tip_db": -66.971,
+    "blade_band_db": -69.088,
+    "arm": "ours",
+    "el_deg": -45.0,
+    "f_tip_hz": 900.1,
+    "level_db_ledger": -58.67,
+    "npz_key": "ours/el-45"
+   },
+   "-60": {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -78.079,
+    "ac_power_db": -65.372,
+    "level_db_recomputed": -65.759,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -65.55,
+    "window_bias_db": -0.179,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -128.253,
+    "floor_above_psd_db_per_hz": -135.074,
+    "floor_above_int_db": -87.092,
+    "comb_above_db": -87.5,
+    "comb_excess_db": -87.679,
+    "comb_share_pct": 47.654,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 0.859,
+    "comb_over_shift_db": 17.442,
+    "ac_above_tip_db": -84.281,
+    "ac_below_tip_db": -65.609,
+    "blade_band_db": -70.871,
+    "arm": "ours",
+    "el_deg": -60.0,
+    "f_tip_hz": 636.5,
+    "level_db_ledger": -65.76,
+    "npz_key": "ours/el-60"
+   }
+  }
+ },
+ "ladder_a_physics_on": {
+  "warning_ko": "⚠**예산 축이 아니다** — 11.1M·250M 은 깊이 3·자세 4096 인데 4e9 판은 깊이 1·자세 8192 라 깊이·자세가 예산과 섞였다. 설계서 §② 렌즈 3 처리대로 헤드라인에서 내리고 별도로만 싣는다. 아래 «깨끗한 두 계단» 만 같은 조건(d3·4096·10 m)이라 비교 가능하다.",
+  "reading_ko": "⚠물리를 켜면 상한 위가 **더 이상 예산에 불변이 아니다**. 같은 22.5 배(4.49 옥타브) 한 계단에 상한 위 바닥이 +9.2~+35.4 dB, 빗살 선이 +3.9~+34.8 dB **올라간다**. 그리고 빗살 몫이 14~61 % 에서 12~18 % 로 내려가 백색 중립값(12.6 %)에 붙는다 — 즉 광선을 부으면 물리 켠 팔에서는 **리듬 없는 넓은 잡음이 얹혀 구조를 덮는다**. ⚠단 이 두 계단은 깊이 3 이고 물리끔 사다리는 깊이 1 이라, 이 상승을 «회절의 성질» 로 귀속하려면 R13 의 스위치 분해가 필요하다 — 여기서는 **현상만** 기록한다.",
+  "clean_two_rungs_delta": [
+   {
+    "el_deg": 0.0,
+    "octaves": 4.49,
+    "d_ac_db": 37.18,
+    "d_floor_db": 35.39,
+    "d_comb_db": 34.75,
+    "comb_share_pct": [
+     14.0,
+     12.6
+    ]
+   },
+   {
+    "el_deg": -15.0,
+    "octaves": 4.49,
+    "d_ac_db": 6.3,
+    "d_floor_db": 9.25,
+    "d_comb_db": 9.0,
+    "comb_share_pct": [
+     17.7,
+     14.2
+    ]
+   },
+   {
+    "el_deg": -30.0,
+    "octaves": 4.49,
+    "d_ac_db": 9.29,
+    "d_floor_db": 11.92,
+    "d_comb_db": 3.87,
+    "comb_share_pct": [
+     51.6,
+     15.0
+    ]
+   },
+   {
+    "el_deg": -45.0,
+    "octaves": 4.49,
+    "d_ac_db": 6.66,
+    "d_floor_db": 11.47,
+    "d_comb_db": 5.2,
+    "comb_share_pct": [
+     40.4,
+     15.4
+    ]
+   },
+   {
+    "el_deg": -60.0,
+    "octaves": 4.49,
+    "d_ac_db": 9.06,
+    "d_floor_db": 15.05,
+    "d_comb_db": 4.1,
+    "comb_share_pct": [
+     60.7,
+     17.6
+    ]
+   },
+   {
+    "el_deg": -75.0,
+    "octaves": 4.49,
+    "d_ac_db": 19.46,
+    "d_floor_db": 26.4,
+    "d_comb_db": 13.66,
+    "comb_share_pct": [
+     58.3,
+     12.9
+    ]
+   },
+   {
+    "el_deg": -90.0,
+    "octaves": 4.49,
+    "d_ac_db": 30.85,
+    "d_floor_db": 34.58,
+    "d_comb_db": 25.29,
+    "comb_share_pct": [
+     45.0,
+     12.4
+    ]
+   }
+  ],
+  "clean_two_rungs": [
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -59.657,
+    "ac_power_db": -131.99,
+    "level_db_recomputed": -59.657,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -132.939,
+    "window_bias_db": -0.949,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -170.799,
+    "floor_above_psd_db_per_hz": -177.62,
+    "floor_above_int_db": -134.4,
+    "comb_above_db": -142.277,
+    "comb_excess_db": -146.592,
+    "comb_share_pct": 14.017,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 5.805,
+    "comb_over_shift_db": 3.828,
+    "ac_above_tip_db": -133.744,
+    "ac_below_tip_db": -140.654,
+    "blade_band_db": -142.268,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": 0.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 5,
+    "level_db_ledger": -59.66
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -57.38,
+    "ac_power_db": -94.807,
+    "level_db_recomputed": -57.38,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -97.931,
+    "window_bias_db": -3.124,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3567,
+    "n_bins_comb": 448,
+    "n_bins_shift": 226,
+    "floor_above_db": -135.41,
+    "floor_above_psd_db_per_hz": -142.231,
+    "floor_above_int_db": -99.115,
+    "comb_above_db": -107.526,
+    "comb_excess_db": -113.2,
+    "comb_share_pct": 12.603,
+    "white_neutral_pct": 12.56,
+    "comb_shift_share_pct": 6.366,
+    "comb_over_shift_db": 2.966,
+    "ac_above_tip_db": -98.53,
+    "ac_below_tip_db": -106.827,
+    "blade_band_db": -108.629,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": 0.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 33,
+    "level_db_ledger": -57.38
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -107.191,
+    "ac_power_db": -133.571,
+    "level_db_recomputed": -107.186,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -136.682,
+    "window_bias_db": -3.111,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -173.547,
+    "floor_above_psd_db_per_hz": -180.368,
+    "floor_above_int_db": -138.329,
+    "comb_above_db": -145.012,
+    "comb_excess_db": -149.404,
+    "comb_share_pct": 17.67,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 5.718,
+    "comb_over_shift_db": 4.9,
+    "ac_above_tip_db": -137.485,
+    "ac_below_tip_db": -144.409,
+    "blade_band_db": -146.374,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": -15.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 2,
+    "level_db_ledger": -107.19
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -97.004,
+    "ac_power_db": -127.271,
+    "level_db_recomputed": -97.001,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -126.838,
+    "window_bias_db": 0.433,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3585,
+    "n_bins_comb": 454,
+    "n_bins_shift": 226,
+    "floor_above_db": -164.293,
+    "floor_above_psd_db_per_hz": -171.114,
+    "floor_above_int_db": -128.185,
+    "comb_above_db": -136.008,
+    "comb_excess_db": -140.875,
+    "comb_share_pct": 14.169,
+    "white_neutral_pct": 12.664,
+    "comb_shift_share_pct": 5.814,
+    "comb_over_shift_db": 3.869,
+    "ac_above_tip_db": -127.522,
+    "ac_below_tip_db": -135.206,
+    "blade_band_db": -137.375,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": -15.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 48,
+    "level_db_ledger": -97.0
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -97.18,
+    "ac_power_db": -136.576,
+    "level_db_recomputed": -97.179,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -136.201,
+    "window_bias_db": 0.375,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3637,
+    "n_bins_comb": 460,
+    "n_bins_shift": 230,
+    "floor_above_db": -177.745,
+    "floor_above_psd_db_per_hz": -184.566,
+    "floor_above_int_db": -140.911,
+    "comb_above_db": -140.625,
+    "comb_excess_db": -141.031,
+    "comb_share_pct": 51.648,
+    "white_neutral_pct": 12.648,
+    "comb_shift_share_pct": 2.396,
+    "comb_over_shift_db": 13.336,
+    "ac_above_tip_db": -137.755,
+    "ac_below_tip_db": -141.417,
+    "blade_band_db": -144.381,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": -30.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 7,
+    "level_db_ledger": -97.18
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -99.202,
+    "ac_power_db": -127.281,
+    "level_db_recomputed": -99.197,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -127.644,
+    "window_bias_db": -0.363,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3637,
+    "n_bins_comb": 460,
+    "n_bins_shift": 230,
+    "floor_above_db": -165.82,
+    "floor_above_psd_db_per_hz": -172.641,
+    "floor_above_int_db": -129.213,
+    "comb_above_db": -136.75,
+    "comb_excess_db": -140.413,
+    "comb_share_pct": 14.989,
+    "white_neutral_pct": 12.648,
+    "comb_shift_share_pct": 6.906,
+    "comb_over_shift_db": 3.365,
+    "ac_above_tip_db": -128.508,
+    "ac_below_tip_db": -135.083,
+    "blade_band_db": -138.257,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": -30.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 52,
+    "level_db_ledger": -99.2
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -96.887,
+    "ac_power_db": -131.883,
+    "level_db_recomputed": -96.886,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -131.707,
+    "window_bias_db": 0.176,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -174.555,
+    "floor_above_psd_db_per_hz": -181.376,
+    "floor_above_int_db": -137.319,
+    "comb_above_db": -139.006,
+    "comb_excess_db": -139.611,
+    "comb_share_pct": 40.407,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 2.824,
+    "comb_over_shift_db": 11.556,
+    "ac_above_tip_db": -135.071,
+    "ac_below_tip_db": -134.39,
+    "blade_band_db": -137.653,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": -45.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 8,
+    "level_db_ledger": -96.89
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -91.894,
+    "ac_power_db": -125.219,
+    "level_db_recomputed": -91.893,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -124.669,
+    "window_bias_db": 0.549,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3721,
+    "n_bins_comb": 466,
+    "n_bins_shift": 236,
+    "floor_above_db": -163.084,
+    "floor_above_psd_db_per_hz": -169.905,
+    "floor_above_int_db": -126.391,
+    "comb_above_db": -133.803,
+    "comb_excess_db": -137.27,
+    "comb_share_pct": 15.359,
+    "white_neutral_pct": 12.524,
+    "comb_shift_share_pct": 6.117,
+    "comb_over_shift_db": 3.998,
+    "ac_above_tip_db": -125.667,
+    "ac_below_tip_db": -131.548,
+    "blade_band_db": -134.457,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": -45.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 64,
+    "level_db_ledger": -91.89
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -140.855,
+    "ac_power_db": -132.14,
+    "level_db_recomputed": -132.81,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -132.395,
+    "window_bias_db": -0.255,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -176.047,
+    "floor_above_psd_db_per_hz": -182.868,
+    "floor_above_int_db": -137.008,
+    "comb_above_db": -135.116,
+    "comb_excess_db": -135.289,
+    "comb_share_pct": 60.72,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 0.994,
+    "comb_over_shift_db": 17.859,
+    "ac_above_tip_db": -132.95,
+    "ac_below_tip_db": -141.605,
+    "blade_band_db": -143.855,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": -60.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 4,
+    "level_db_ledger": -132.81
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -102.829,
+    "ac_power_db": -123.08,
+    "level_db_recomputed": -102.811,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -122.901,
+    "window_bias_db": 0.179,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3831,
+    "n_bins_comb": 482,
+    "n_bins_shift": 242,
+    "floor_above_db": -161.0,
+    "floor_above_psd_db_per_hz": -167.821,
+    "floor_above_int_db": -124.317,
+    "comb_above_db": -131.02,
+    "comb_excess_db": -133.896,
+    "comb_share_pct": 17.601,
+    "white_neutral_pct": 12.582,
+    "comb_shift_share_pct": 6.149,
+    "comb_over_shift_db": 4.568,
+    "ac_above_tip_db": -123.476,
+    "ac_below_tip_db": -131.969,
+    "blade_band_db": -135.151,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": -60.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 66,
+    "level_db_ledger": -102.81
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -97.691,
+    "ac_power_db": -131.354,
+    "level_db_recomputed": -97.69,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -131.623,
+    "window_bias_db": -0.269,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3959,
+    "n_bins_comb": 500,
+    "n_bins_shift": 250,
+    "floor_above_db": -175.546,
+    "floor_above_psd_db_per_hz": -182.367,
+    "floor_above_int_db": -136.265,
+    "comb_above_db": -134.816,
+    "comb_excess_db": -135.003,
+    "comb_share_pct": 58.269,
+    "white_neutral_pct": 12.629,
+    "comb_shift_share_pct": 1.072,
+    "comb_over_shift_db": 17.354,
+    "ac_above_tip_db": -132.47,
+    "ac_below_tip_db": -139.138,
+    "blade_band_db": -139.234,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": -75.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 3,
+    "level_db_ledger": -97.69
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -79.223,
+    "ac_power_db": -111.896,
+    "level_db_recomputed": -79.222,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -112.119,
+    "window_bias_db": -0.224,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 3959,
+    "n_bins_comb": 500,
+    "n_bins_shift": 250,
+    "floor_above_db": -149.142,
+    "floor_above_psd_db_per_hz": -155.963,
+    "floor_above_int_db": -112.882,
+    "comb_above_db": -121.157,
+    "comb_excess_db": -128.043,
+    "comb_share_pct": 12.949,
+    "white_neutral_pct": 12.629,
+    "comb_shift_share_pct": 6.281,
+    "comb_over_shift_db": 3.142,
+    "ac_above_tip_db": -112.279,
+    "ac_below_tip_db": -126.537,
+    "blade_band_db": -127.962,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": -75.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 57,
+    "level_db_ledger": -79.22
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -64.233,
+    "ac_power_db": -130.92,
+    "level_db_recomputed": -64.233,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -131.148,
+    "window_bias_db": -0.229,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 4096,
+    "n_bins_comb": 515,
+    "n_bins_shift": 260,
+    "floor_above_db": -171.882,
+    "floor_above_psd_db_per_hz": -178.703,
+    "floor_above_int_db": -133.743,
+    "comb_above_db": -134.618,
+    "comb_excess_db": -135.06,
+    "comb_share_pct": 44.981,
+    "white_neutral_pct": 12.573,
+    "comb_shift_share_pct": 2.34,
+    "comb_over_shift_db": 12.837,
+    "ac_above_tip_db": -131.148,
+    "ac_below_tip_db": null,
+    "blade_band_db": -184.751,
+    "arm": "sionna_phys",
+    "spp": 11111111,
+    "el_deg": -90.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 6,
+    "level_db_ledger": -64.23
+   },
+   {
+    "n": 4096,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -61.538,
+    "ac_power_db": -100.065,
+    "level_db_recomputed": -61.537,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -100.248,
+    "window_bias_db": -0.183,
+    "df_hz": 4.81,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 4096,
+    "n_bins_comb": 515,
+    "n_bins_shift": 260,
+    "floor_above_db": -137.302,
+    "floor_above_psd_db_per_hz": -144.123,
+    "floor_above_int_db": -100.821,
+    "comb_above_db": -109.323,
+    "comb_excess_db": -116.777,
+    "comb_share_pct": 12.372,
+    "white_neutral_pct": 12.573,
+    "comb_shift_share_pct": 6.686,
+    "comb_over_shift_db": 2.672,
+    "ac_above_tip_db": -100.248,
+    "ac_below_tip_db": null,
+    "blade_band_db": -144.595,
+    "arm": "sionna_p250000000_phys",
+    "spp": 250000000,
+    "el_deg": -90.0,
+    "max_depth": 3,
+    "n_poses": 4096,
+    "npaths_median": 64,
+    "level_db_ledger": -61.54
+   }
+  ],
+  "confounded_4e9_rung": [
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -57.276,
+    "ac_power_db": -87.879,
+    "level_db_recomputed": -57.275,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -87.602,
+    "window_bias_db": 0.277,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 7133,
+    "n_bins_comb": 894,
+    "n_bins_shift": 454,
+    "floor_above_db": -129.518,
+    "floor_above_psd_db_per_hz": -133.329,
+    "floor_above_int_db": -89.795,
+    "comb_above_db": -97.01,
+    "comb_excess_db": -100.035,
+    "comb_share_pct": 15.959,
+    "white_neutral_pct": 12.533,
+    "comb_shift_share_pct": 5.638,
+    "comb_over_shift_db": 4.519,
+    "ac_above_tip_db": -89.04,
+    "ac_below_tip_db": -93.102,
+    "blade_band_db": -95.304,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": 0.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 487,
+    "level_db_ledger": -57.27
+   },
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -88.229,
+    "ac_power_db": -116.999,
+    "level_db_recomputed": -88.227,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -117.007,
+    "window_bias_db": -0.008,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 7169,
+    "n_bins_comb": 906,
+    "n_bins_shift": 454,
+    "floor_above_db": -157.696,
+    "floor_above_psd_db_per_hz": -161.507,
+    "floor_above_int_db": -118.211,
+    "comb_above_db": -126.44,
+    "comb_excess_db": -131.369,
+    "comb_share_pct": 13.069,
+    "white_neutral_pct": 12.638,
+    "comb_shift_share_pct": 6.129,
+    "comb_over_shift_db": 3.288,
+    "ac_above_tip_db": -117.603,
+    "ac_below_tip_db": -125.928,
+    "blade_band_db": -127.925,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": -15.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 642,
+    "level_db_ledger": -88.23
+   },
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -93.062,
+    "ac_power_db": -118.38,
+    "level_db_recomputed": -93.057,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -118.649,
+    "window_bias_db": -0.269,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 7275,
+    "n_bins_comb": 920,
+    "n_bins_shift": 460,
+    "floor_above_db": -159.723,
+    "floor_above_psd_db_per_hz": -163.534,
+    "floor_above_int_db": -120.041,
+    "comb_above_db": -128.347,
+    "comb_excess_db": -133.163,
+    "comb_share_pct": 12.871,
+    "white_neutral_pct": 12.646,
+    "comb_shift_share_pct": 6.135,
+    "comb_over_shift_db": 3.218,
+    "ac_above_tip_db": -119.443,
+    "ac_below_tip_db": -126.423,
+    "blade_band_db": -128.829,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": -30.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 843,
+    "level_db_ledger": -93.06
+   },
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -70.509,
+    "ac_power_db": -100.132,
+    "level_db_recomputed": -70.507,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -100.069,
+    "window_bias_db": 0.063,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 7443,
+    "n_bins_comb": 932,
+    "n_bins_shift": 474,
+    "floor_above_db": -140.86,
+    "floor_above_psd_db_per_hz": -144.671,
+    "floor_above_int_db": -101.095,
+    "comb_above_db": -109.653,
+    "comb_excess_db": -114.967,
+    "comb_share_pct": 12.233,
+    "white_neutral_pct": 12.522,
+    "comb_shift_share_pct": 7.439,
+    "comb_over_shift_db": 2.16,
+    "ac_above_tip_db": -100.528,
+    "ac_below_tip_db": -110.052,
+    "blade_band_db": -111.808,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": -45.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 938,
+    "level_db_ledger": -70.51
+   },
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -96.627,
+    "ac_power_db": -116.187,
+    "level_db_recomputed": -96.608,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -115.886,
+    "window_bias_db": 0.301,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 7663,
+    "n_bins_comb": 964,
+    "n_bins_shift": 486,
+    "floor_above_db": -157.055,
+    "floor_above_psd_db_per_hz": -160.866,
+    "floor_above_int_db": -117.293,
+    "comb_above_db": -124.896,
+    "comb_excess_db": -128.73,
+    "comb_share_pct": 14.796,
+    "white_neutral_pct": 12.58,
+    "comb_shift_share_pct": 6.172,
+    "comb_over_shift_db": 3.797,
+    "ac_above_tip_db": -116.598,
+    "ac_below_tip_db": -124.093,
+    "blade_band_db": -128.356,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": -60.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 899,
+    "level_db_ledger": -96.61
+   },
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -75.501,
+    "ac_power_db": -104.63,
+    "level_db_recomputed": -75.5,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -104.17,
+    "window_bias_db": 0.461,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 7917,
+    "n_bins_comb": 1000,
+    "n_bins_shift": 500,
+    "floor_above_db": -144.826,
+    "floor_above_psd_db_per_hz": -148.637,
+    "floor_above_int_db": -105.035,
+    "comb_above_db": -113.437,
+    "comb_excess_db": -119.063,
+    "comb_share_pct": 12.624,
+    "white_neutral_pct": 12.631,
+    "comb_shift_share_pct": 6.012,
+    "comb_over_shift_db": 3.222,
+    "ac_above_tip_db": -104.449,
+    "ac_below_tip_db": -116.229,
+    "blade_band_db": -116.937,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": -75.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 840,
+    "level_db_ledger": -75.5
+   },
+   {
+    "n": 8192,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -66.75,
+    "ac_power_db": -110.64,
+    "level_db_recomputed": -66.75,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -109.461,
+    "window_bias_db": 1.18,
+    "df_hz": 2.405,
+    "comb_tol_hz": 8.0,
+    "comb_tol_widened": false,
+    "n_bins_above": 8192,
+    "n_bins_comb": 1031,
+    "n_bins_shift": 520,
+    "floor_above_db": -149.617,
+    "floor_above_psd_db_per_hz": -153.427,
+    "floor_above_int_db": -110.248,
+    "comb_above_db": -117.266,
+    "comb_excess_db": -121.245,
+    "comb_share_pct": 16.577,
+    "white_neutral_pct": 12.585,
+    "comb_shift_share_pct": 6.233,
+    "comb_over_shift_db": 4.248,
+    "ac_above_tip_db": -109.461,
+    "ac_below_tip_db": null,
+    "blade_band_db": -163.532,
+    "arm": "sionna_p4000000000_phys_n8192_d1",
+    "spp": 4000000000,
+    "el_deg": -90.0,
+    "max_depth": 1,
+    "n_poses": 8192,
+    "npaths_median": 762,
+    "level_db_ledger": -66.75
+   }
+  ]
+ },
+ "ladder_b_40m": {
+  "note_ko": "40 m · el −15° · 자세 1024 · 시드 3~8 판. 계단 8 개 중 1M·16M 일부는 경로가 아예 안 잡혀 **구조적 0(에코 없음)** 이고, 4M 의 두 시드는 경로 1 개짜리 상수열이라 요동이 0 이다 — 둘 다 결측이 아니라 «물리적으로 아무것도 없음» 이며 회귀에서 뺐다.",
+  "spp_present": [
+   1000000,
+   4000000,
+   16000000,
+   64000000,
+   178000000,
+   712000000,
+   2848000000,
+   4000000000
+  ],
+  "seeds_per_spp": {
+   "1000000": 3,
+   "4000000": 3,
+   "16000000": 3,
+   "64000000": 3,
+   "178000000": 8,
+   "712000000": 3,
+   "2848000000": 3,
+   "4000000000": 8
+  },
+  "rung_validity": {
+   "1000000": {
+    "n_complete": 3,
+    "n_degenerate": 3,
+    "usable": false,
+    "reason_ko": "시드 s1(에코 없음(전부 0)), s2(에코 없음(전부 0)), s3(에코 없음(전부 0)) 가 퇴화 — 계단째 제외"
+   },
+   "4000000": {
+    "n_complete": 3,
+    "n_degenerate": 2,
+    "usable": false,
+    "reason_ko": "시드 s2(요동 0(경로 1 개 상수열)), s3(요동 0(경로 1 개 상수열)) 가 퇴화 — 계단째 제외"
+   },
+   "16000000": {
+    "n_complete": 3,
+    "n_degenerate": 3,
+    "usable": false,
+    "reason_ko": "시드 s1(에코 없음(전부 0)), s2(요동 0(경로 1 개 상수열)), s3(자세 91 % 에서 경로 없음) 가 퇴화 — 계단째 제외"
+   },
+   "64000000": {
+    "n_complete": 3,
+    "n_degenerate": 0,
+    "usable": true,
+    "reason_ko": null
+   },
+   "178000000": {
+    "n_complete": 7,
+    "n_degenerate": 0,
+    "usable": true,
+    "reason_ko": null
+   },
+   "712000000": {
+    "n_complete": 3,
+    "n_degenerate": 0,
+    "usable": true,
+    "reason_ko": null
+   },
+   "2848000000": {
+    "n_complete": 3,
+    "n_degenerate": 0,
+    "usable": true,
+    "reason_ko": null
+   },
+   "4000000000": {
+    "n_complete": 8,
+    "n_degenerate": 0,
+    "usable": true,
+    "reason_ko": null
+   }
+  },
+  "rung_rule_ko": "⭐계단 안의 시드가 **하나라도** 퇴화면 계단째 뺀다. 살아남은 시드만 쓰면 «에코를 찾은 판만 골라 본» 생존 편향이 생기고, 그 편향이 사다리 왼쪽을 위로 끌어올려 기울기를 가짜로 음수로 만든다 — 실측으로 4M 계단에서 그 일이 일어났다(민감도 절 참조).",
+  "n_used_in_regression": 24,
+  "arms": [
+   {
+    "n": 1024,
+    "all_zero": true,
+    "zero_frac": 1.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "에코 없음(전부 0)",
+    "dc_power_db": null,
+    "ac_power_db": null,
+    "level_db_recomputed": null,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 1000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 0.0,
+    "npaths_zero_frac": 1.0,
+    "seconds": 437.9
+   },
+   {
+    "n": 1024,
+    "all_zero": true,
+    "zero_frac": 1.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "에코 없음(전부 0)",
+    "dc_power_db": null,
+    "ac_power_db": null,
+    "level_db_recomputed": null,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 1000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 0.0,
+    "npaths_zero_frac": 1.0,
+    "seconds": 392.0
+   },
+   {
+    "n": 1024,
+    "all_zero": true,
+    "zero_frac": 1.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "에코 없음(전부 0)",
+    "dc_power_db": null,
+    "ac_power_db": null,
+    "level_db_recomputed": null,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 1000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 0.0,
+    "npaths_zero_frac": 1.0,
+    "seconds": 346.2
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -141.41,
+    "ac_power_db": -150.127,
+    "level_db_recomputed": -141.014,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -149.836,
+    "window_bias_db": 0.291,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -208.799,
+    "floor_above_psd_db_per_hz": -221.64,
+    "floor_above_int_db": -172.619,
+    "comb_above_db": -161.226,
+    "comb_excess_db": -161.257,
+    "comb_share_pct": 93.236,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.301,
+    "comb_over_shift_db": 14.51,
+    "ac_above_tip_db": -160.921,
+    "ac_below_tip_db": -150.189,
+    "blade_band_db": -159.338,
+    "spp": 4000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 3.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 354.9
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "요동 0(경로 1 개 상수열)",
+    "dc_power_db": -143.7,
+    "ac_power_db": -463.586,
+    "level_db_recomputed": -143.7,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 4000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 1.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 352.2
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "요동 0(경로 1 개 상수열)",
+    "dc_power_db": -143.7,
+    "ac_power_db": -463.586,
+    "level_db_recomputed": -143.7,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 4000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 1.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 366.4
+   },
+   {
+    "n": 1024,
+    "all_zero": true,
+    "zero_frac": 1.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "에코 없음(전부 0)",
+    "dc_power_db": null,
+    "ac_power_db": null,
+    "level_db_recomputed": null,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 16000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 0.0,
+    "npaths_zero_frac": 1.0,
+    "seconds": 481.7
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": true,
+    "degenerate_reason_ko": "요동 0(경로 1 개 상수열)",
+    "dc_power_db": -153.501,
+    "ac_power_db": null,
+    "level_db_recomputed": -153.501,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 16000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 1.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 531.5
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.905,
+    "degenerate": true,
+    "degenerate_reason_ko": "자세 91 % 에서 경로 없음",
+    "dc_power_db": -185.185,
+    "ac_power_db": -172.206,
+    "level_db_recomputed": -182.264,
+    "floor_above_db": null,
+    "floor_above_psd_db_per_hz": null,
+    "floor_above_int_db": null,
+    "comb_above_db": null,
+    "comb_excess_db": null,
+    "comb_share_pct": null,
+    "comb_shift_share_pct": null,
+    "comb_over_shift_db": null,
+    "ac_above_tip_db": null,
+    "ac_below_tip_db": null,
+    "blade_band_db": null,
+    "ac_power_spectral_db": null,
+    "window_bias_db": null,
+    "white_neutral_pct": null,
+    "df_hz": 19.238,
+    "comb_tol_hz": null,
+    "parseval_rel_err": null,
+    "spp": 16000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 0.0,
+    "npaths_zero_frac": 0.905,
+    "seconds": 469.1
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -155.976,
+    "ac_power_db": -169.132,
+    "level_db_recomputed": -155.878,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -169.047,
+    "window_bias_db": 0.085,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.849,
+    "floor_above_psd_db_per_hz": -227.69,
+    "floor_above_int_db": -184.373,
+    "comb_above_db": -173.149,
+    "comb_excess_db": -173.27,
+    "comb_share_pct": 92.985,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 1.127,
+    "comb_over_shift_db": 19.165,
+    "ac_above_tip_db": -172.833,
+    "ac_below_tip_db": -171.399,
+    "blade_band_db": -173.69,
+    "spp": 64000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 2.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 611.3
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -152.663,
+    "ac_power_db": -170.168,
+    "level_db_recomputed": -152.62,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -170.208,
+    "window_bias_db": -0.039,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -213.442,
+    "floor_above_psd_db_per_hz": -226.283,
+    "floor_above_int_db": -184.291,
+    "comb_above_db": -173.457,
+    "comb_excess_db": -173.638,
+    "comb_share_pct": 92.378,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.353,
+    "comb_over_shift_db": 15.94,
+    "ac_above_tip_db": -173.112,
+    "ac_below_tip_db": -173.326,
+    "blade_band_db": -174.328,
+    "spp": 64000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 5.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 397.8
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -160.293,
+    "ac_power_db": -174.203,
+    "level_db_recomputed": -160.193,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -174.289,
+    "window_bias_db": -0.086,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -219.714,
+    "floor_above_psd_db_per_hz": -232.556,
+    "floor_above_int_db": -190.258,
+    "comb_above_db": -177.745,
+    "comb_excess_db": -177.859,
+    "comb_share_pct": 94.69,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 1.649,
+    "comb_over_shift_db": 17.591,
+    "ac_above_tip_db": -177.508,
+    "ac_below_tip_db": -177.1,
+    "blade_band_db": -179.38,
+    "spp": 64000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 1.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 736.1
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -160.359,
+    "ac_power_db": -169.023,
+    "level_db_recomputed": -160.072,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -168.985,
+    "window_bias_db": 0.038,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.466,
+    "floor_above_psd_db_per_hz": -227.307,
+    "floor_above_int_db": -185.353,
+    "comb_above_db": -174.893,
+    "comb_excess_db": -175.093,
+    "comb_share_pct": 91.749,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.644,
+    "comb_over_shift_db": 15.404,
+    "ac_above_tip_db": -174.519,
+    "ac_below_tip_db": -170.41,
+    "blade_band_db": -173.694,
+    "spp": 178000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 4.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 428.8
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -155.112,
+    "ac_power_db": -165.262,
+    "level_db_recomputed": -154.806,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -165.139,
+    "window_bias_db": 0.124,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.123,
+    "floor_above_psd_db_per_hz": -226.964,
+    "floor_above_int_db": -184.857,
+    "comb_above_db": -174.408,
+    "comb_excess_db": -174.602,
+    "comb_share_pct": 91.728,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.082,
+    "comb_over_shift_db": 14.737,
+    "ac_above_tip_db": -174.033,
+    "ac_below_tip_db": -165.739,
+    "blade_band_db": -174.503,
+    "spp": 178000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 7.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 315.4
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -161.323,
+    "ac_power_db": -169.226,
+    "level_db_recomputed": -160.923,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -169.206,
+    "window_bias_db": 0.02,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -213.366,
+    "floor_above_psd_db_per_hz": -226.208,
+    "floor_above_int_db": -185.153,
+    "comb_above_db": -175.862,
+    "comb_excess_db": -176.189,
+    "comb_share_pct": 89.467,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 4.265,
+    "comb_over_shift_db": 13.217,
+    "ac_above_tip_db": -175.379,
+    "ac_below_tip_db": -170.406,
+    "blade_band_db": -172.595,
+    "spp": 178000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 8.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 262.6
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -156.237,
+    "ac_power_db": -171.02,
+    "level_db_recomputed": -156.163,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -170.931,
+    "window_bias_db": 0.089,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.303,
+    "floor_above_psd_db_per_hz": -228.144,
+    "floor_above_int_db": -185.98,
+    "comb_above_db": -173.884,
+    "comb_excess_db": -174.014,
+    "comb_share_pct": 94.187,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 1.985,
+    "comb_over_shift_db": 16.761,
+    "ac_above_tip_db": -173.624,
+    "ac_below_tip_db": -174.284,
+    "blade_band_db": -176.224,
+    "spp": 178000000,
+    "seed": 4,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 6.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 514.8
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -158.009,
+    "ac_power_db": -168.673,
+    "level_db_recomputed": -157.871,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -168.673,
+    "window_bias_db": -0.0,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -213.142,
+    "floor_above_psd_db_per_hz": -225.984,
+    "floor_above_int_db": -184.261,
+    "comb_above_db": -173.417,
+    "comb_excess_db": -173.61,
+    "comb_share_pct": 92.392,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.407,
+    "comb_over_shift_db": 14.333,
+    "ac_above_tip_db": -173.073,
+    "ac_below_tip_db": -170.632,
+    "blade_band_db": -172.423,
+    "spp": 178000000,
+    "seed": 5,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 8.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 561.3
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -160.865,
+    "ac_power_db": -167.385,
+    "level_db_recomputed": -160.304,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -167.394,
+    "window_bias_db": -0.009,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -213.462,
+    "floor_above_psd_db_per_hz": -226.304,
+    "floor_above_int_db": -184.433,
+    "comb_above_db": -174.021,
+    "comb_excess_db": -174.227,
+    "comb_share_pct": 91.664,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.896,
+    "comb_over_shift_db": 15.004,
+    "ac_above_tip_db": -173.643,
+    "ac_below_tip_db": -168.57,
+    "blade_band_db": -173.132,
+    "spp": 178000000,
+    "seed": 6,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 8.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 552.2
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -153.322,
+    "ac_power_db": -165.262,
+    "level_db_recomputed": -153.208,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -165.22,
+    "window_bias_db": 0.042,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -212.559,
+    "floor_above_psd_db_per_hz": -225.401,
+    "floor_above_int_db": -183.894,
+    "comb_above_db": -174.077,
+    "comb_excess_db": -174.336,
+    "comb_share_pct": 90.555,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.421,
+    "comb_over_shift_db": 14.228,
+    "ac_above_tip_db": -173.646,
+    "ac_below_tip_db": -165.893,
+    "blade_band_db": -169.489,
+    "spp": 178000000,
+    "seed": 7,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 9.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 405.8
+   },
+   {
+    "n": 768,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -168.144,
+    "ac_power_db": -168.999,
+    "level_db_recomputed": -166.385,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -169.08,
+    "window_bias_db": -0.08,
+    "df_hz": 25.651,
+    "comb_tol_hz": 38.48,
+    "comb_tol_widened": true,
+    "n_bins_above": 673,
+    "n_bins_comb": 409,
+    "n_bins_shift": 202,
+    "floor_above_db": -208.794,
+    "floor_above_psd_db_per_hz": -222.885,
+    "floor_above_int_db": -176.726,
+    "comb_above_db": -175.125,
+    "comb_excess_db": -175.964,
+    "comb_share_pct": 59.116,
+    "white_neutral_pct": 60.773,
+    "comb_shift_share_pct": 30.012,
+    "comb_over_shift_db": 2.944,
+    "ac_above_tip_db": -172.842,
+    "ac_below_tip_db": -171.449,
+    "blade_band_db": -171.769,
+    "spp": 178000000,
+    "seed": 8,
+    "complete": false,
+    "n_shards": 3,
+    "n_shards_expected": 4,
+    "npaths_median": 8.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 241.4
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -160.512,
+    "ac_power_db": -168.026,
+    "level_db_recomputed": -160.176,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -167.864,
+    "window_bias_db": 0.162,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.579,
+    "floor_above_psd_db_per_hz": -227.421,
+    "floor_above_int_db": -185.642,
+    "comb_above_db": -175.228,
+    "comb_excess_db": -175.439,
+    "comb_share_pct": 91.667,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.745,
+    "comb_over_shift_db": 13.888,
+    "ac_above_tip_db": -174.85,
+    "ac_below_tip_db": -168.834,
+    "blade_band_db": -172.976,
+    "spp": 712000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 21.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1014.9
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -161.002,
+    "ac_power_db": -167.304,
+    "level_db_recomputed": -160.624,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -167.098,
+    "window_bias_db": 0.206,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.451,
+    "floor_above_psd_db_per_hz": -227.292,
+    "floor_above_int_db": -185.433,
+    "comb_above_db": -173.41,
+    "comb_excess_db": -173.552,
+    "comb_share_pct": 94.094,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.385,
+    "comb_over_shift_db": 15.96,
+    "ac_above_tip_db": -173.146,
+    "ac_below_tip_db": -168.339,
+    "blade_band_db": -174.164,
+    "spp": 712000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 27.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1078.1
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -151.05,
+    "ac_power_db": -167.633,
+    "level_db_recomputed": -151.018,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -167.548,
+    "window_bias_db": 0.085,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.066,
+    "floor_above_psd_db_per_hz": -227.907,
+    "floor_above_int_db": -185.869,
+    "comb_above_db": -174.611,
+    "comb_excess_db": -174.773,
+    "comb_share_pct": 93.037,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.632,
+    "comb_over_shift_db": 15.484,
+    "ac_above_tip_db": -174.297,
+    "ac_below_tip_db": -168.579,
+    "blade_band_db": -173.118,
+    "spp": 712000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 26.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1056.2
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -146.619,
+    "ac_power_db": -168.221,
+    "level_db_recomputed": -146.605,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -168.132,
+    "window_bias_db": 0.089,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.68,
+    "floor_above_psd_db_per_hz": -228.521,
+    "floor_above_int_db": -186.387,
+    "comb_above_db": -175.146,
+    "comb_excess_db": -175.306,
+    "comb_share_pct": 93.011,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.412,
+    "comb_over_shift_db": 15.861,
+    "ac_above_tip_db": -174.832,
+    "ac_below_tip_db": -169.177,
+    "blade_band_db": -172.715,
+    "spp": 2848000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 108.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1845.8
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -151.017,
+    "ac_power_db": -168.745,
+    "level_db_recomputed": -150.976,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -168.696,
+    "window_bias_db": 0.05,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.938,
+    "floor_above_psd_db_per_hz": -227.78,
+    "floor_above_int_db": -185.594,
+    "comb_above_db": -174.715,
+    "comb_excess_db": -174.886,
+    "comb_share_pct": 92.45,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.565,
+    "comb_over_shift_db": 15.568,
+    "ac_above_tip_db": -174.374,
+    "ac_below_tip_db": -170.065,
+    "blade_band_db": -174.349,
+    "spp": 2848000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 111.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1063.5
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -147.133,
+    "ac_power_db": -168.311,
+    "level_db_recomputed": -147.117,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -168.254,
+    "window_bias_db": 0.057,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.603,
+    "floor_above_psd_db_per_hz": -227.445,
+    "floor_above_int_db": -185.606,
+    "comb_above_db": -175.435,
+    "comb_excess_db": -175.656,
+    "comb_share_pct": 91.228,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.5,
+    "comb_over_shift_db": 14.16,
+    "ac_above_tip_db": -175.037,
+    "ac_below_tip_db": -169.276,
+    "blade_band_db": -173.34,
+    "spp": 2848000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 128.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1515.5
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -142.83,
+    "ac_power_db": -167.424,
+    "level_db_recomputed": -142.824,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -167.264,
+    "window_bias_db": 0.159,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.685,
+    "floor_above_psd_db_per_hz": -228.527,
+    "floor_above_int_db": -185.833,
+    "comb_above_db": -173.659,
+    "comb_excess_db": -173.771,
+    "comb_share_pct": 94.285,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.144,
+    "comb_over_shift_db": 16.432,
+    "ac_above_tip_db": -173.403,
+    "ac_below_tip_db": -168.475,
+    "blade_band_db": -170.869,
+    "spp": 4000000000,
+    "seed": 1,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 193.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 4805.7
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -144.048,
+    "ac_power_db": -166.751,
+    "level_db_recomputed": -144.035,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -166.587,
+    "window_bias_db": 0.164,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.682,
+    "floor_above_psd_db_per_hz": -227.524,
+    "floor_above_int_db": -185.56,
+    "comb_above_db": -173.627,
+    "comb_excess_db": -173.768,
+    "comb_share_pct": 93.979,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.055,
+    "comb_over_shift_db": 16.603,
+    "ac_above_tip_db": -173.357,
+    "ac_below_tip_db": -167.612,
+    "blade_band_db": -169.108,
+    "spp": 4000000000,
+    "seed": 2,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 165.5,
+    "npaths_zero_frac": 0.0,
+    "seconds": 4952.0
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -143.965,
+    "ac_power_db": -166.934,
+    "level_db_recomputed": -143.955,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -166.902,
+    "window_bias_db": 0.032,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.416,
+    "floor_above_psd_db_per_hz": -227.258,
+    "floor_above_int_db": -185.656,
+    "comb_above_db": -175.196,
+    "comb_excess_db": -175.413,
+    "comb_share_pct": 91.748,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.411,
+    "comb_over_shift_db": 14.297,
+    "ac_above_tip_db": -174.822,
+    "ac_below_tip_db": -167.667,
+    "blade_band_db": -172.039,
+    "spp": 4000000000,
+    "seed": 3,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 179.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 4930.9
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -147.156,
+    "ac_power_db": -166.775,
+    "level_db_recomputed": -147.124,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -166.641,
+    "window_bias_db": 0.133,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -214.866,
+    "floor_above_psd_db_per_hz": -227.708,
+    "floor_above_int_db": -185.65,
+    "comb_above_db": -173.912,
+    "comb_excess_db": -174.057,
+    "comb_share_pct": 93.719,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.532,
+    "comb_over_shift_db": 15.683,
+    "ac_above_tip_db": -173.631,
+    "ac_below_tip_db": -167.61,
+    "blade_band_db": -173.109,
+    "spp": 4000000000,
+    "seed": 4,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 159.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 4296.1
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -147.62,
+    "ac_power_db": -168.05,
+    "level_db_recomputed": -147.604,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -168.015,
+    "window_bias_db": 0.035,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -213.861,
+    "floor_above_psd_db_per_hz": -226.703,
+    "floor_above_int_db": -184.779,
+    "comb_above_db": -173.214,
+    "comb_excess_db": -173.37,
+    "comb_share_pct": 93.48,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.392,
+    "comb_over_shift_db": 15.919,
+    "ac_above_tip_db": -172.922,
+    "ac_below_tip_db": -169.71,
+    "blade_band_db": -173.468,
+    "spp": 4000000000,
+    "seed": 5,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 153.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 2379.6
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -144.852,
+    "ac_power_db": -166.725,
+    "level_db_recomputed": -144.834,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -166.871,
+    "window_bias_db": -0.145,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.365,
+    "floor_above_psd_db_per_hz": -228.207,
+    "floor_above_int_db": -186.007,
+    "comb_above_db": -175.113,
+    "comb_excess_db": -175.283,
+    "comb_share_pct": 92.472,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 2.336,
+    "comb_over_shift_db": 15.975,
+    "ac_above_tip_db": -174.773,
+    "ac_below_tip_db": -167.639,
+    "blade_band_db": -174.356,
+    "spp": 4000000000,
+    "seed": 6,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 160.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1907.2
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -142.754,
+    "ac_power_db": -166.955,
+    "level_db_recomputed": -142.744,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -166.975,
+    "window_bias_db": -0.02,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.138,
+    "floor_above_psd_db_per_hz": -227.98,
+    "floor_above_int_db": -185.532,
+    "comb_above_db": -175.317,
+    "comb_excess_db": -175.506,
+    "comb_share_pct": 91.31,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.39,
+    "comb_over_shift_db": 14.303,
+    "ac_above_tip_db": -174.922,
+    "ac_below_tip_db": -167.735,
+    "blade_band_db": -171.232,
+    "spp": 4000000000,
+    "seed": 7,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 166.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1965.1
+   },
+   {
+    "n": 1024,
+    "all_zero": false,
+    "zero_frac": 0.0,
+    "degenerate": false,
+    "degenerate_reason_ko": null,
+    "dc_power_db": -143.763,
+    "ac_power_db": -165.532,
+    "level_db_recomputed": -143.749,
+    "parseval_rel_err": 0.0,
+    "ac_power_spectral_db": -165.563,
+    "window_bias_db": -0.031,
+    "df_hz": 19.238,
+    "comb_tol_hz": 28.86,
+    "comb_tol_widened": true,
+    "n_bins_above": 897,
+    "n_bins_comb": 408,
+    "n_bins_shift": 206,
+    "floor_above_db": -215.63,
+    "floor_above_psd_db_per_hz": -228.471,
+    "floor_above_int_db": -186.84,
+    "comb_above_db": -176.379,
+    "comb_excess_db": -176.595,
+    "comb_share_pct": 91.749,
+    "white_neutral_pct": 45.485,
+    "comb_shift_share_pct": 3.138,
+    "comb_over_shift_db": 14.66,
+    "ac_above_tip_db": -176.005,
+    "ac_below_tip_db": -165.974,
+    "blade_band_db": -172.239,
+    "spp": 4000000000,
+    "seed": 8,
+    "complete": true,
+    "n_shards": 4,
+    "n_shards_expected": 4,
+    "npaths_median": 165.0,
+    "npaths_zero_frac": 0.0,
+    "seconds": 1996.3
+   }
+  ]
+ },
+ "regressions": {
+  "ladder_a": {
+   "ac_power_db": {
+    "n": 16,
+    "n_groups": 4,
+    "dof": 11,
+    "slope_db_per_octave": 2.821,
+    "slope_db_per_4x": 5.643,
+    "power_law_exponent": 0.937,
+    "se": 0.7368,
+    "ci95": [
+     1.2,
+     4.443
+    ],
+    "rmse_db": 9.274,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "ac_power_db__excl_el0": {
+    "n": 12,
+    "n_groups": 3,
+    "dof": 8,
+    "slope_db_per_octave": 1.614,
+    "slope_db_per_4x": 3.228,
+    "power_law_exponent": 0.536,
+    "se": 0.2777,
+    "ci95": [
+     0.974,
+     2.255
+    ],
+    "rmse_db": 3.027,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "floor_above_db": {
+    "n": 16,
+    "n_groups": 4,
+    "dof": 11,
+    "slope_db_per_octave": 2.089,
+    "slope_db_per_4x": 4.179,
+    "power_law_exponent": 0.694,
+    "se": 1.214,
+    "ci95": [
+     -0.583,
+     4.761
+    ],
+    "rmse_db": 15.281,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "floor_above_db__excl_el0": {
+    "n": 12,
+    "n_groups": 3,
+    "dof": 8,
+    "slope_db_per_octave": -0.07,
+    "slope_db_per_4x": -0.139,
+    "power_law_exponent": -0.023,
+    "se": 0.052,
+    "ci95": [
+     -0.19,
+     0.05
+    ],
+    "rmse_db": 0.567,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "comb_above_db": {
+    "n": 16,
+    "n_groups": 4,
+    "dof": 11,
+    "slope_db_per_octave": 1.48,
+    "slope_db_per_4x": 2.961,
+    "power_law_exponent": 0.492,
+    "se": 0.7798,
+    "ci95": [
+     -0.236,
+     3.197
+    ],
+    "rmse_db": 9.816,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "comb_above_db__excl_el0": {
+    "n": 12,
+    "n_groups": 3,
+    "dof": 8,
+    "slope_db_per_octave": 0.055,
+    "slope_db_per_4x": 0.11,
+    "power_law_exponent": 0.018,
+    "se": 0.0844,
+    "ci95": [
+     -0.14,
+     0.25
+    ],
+    "rmse_db": 0.92,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "dc_power_db": {
+    "n": 16,
+    "n_groups": 4,
+    "dof": 11,
+    "slope_db_per_octave": 1.189,
+    "slope_db_per_4x": 2.378,
+    "power_law_exponent": 0.395,
+    "se": 0.2694,
+    "ci95": [
+     0.596,
+     1.782
+    ],
+    "rmse_db": 3.391,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "dc_power_db__excl_el0": {
+    "n": 12,
+    "n_groups": 3,
+    "dof": 8,
+    "slope_db_per_octave": 1.586,
+    "slope_db_per_4x": 3.173,
+    "power_law_exponent": 0.527,
+    "se": 0.2326,
+    "ci95": [
+     1.05,
+     2.123
+    ],
+    "rmse_db": 2.536,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "ac_below_tip_db": {
+    "n": 16,
+    "n_groups": 4,
+    "dof": 11,
+    "slope_db_per_octave": 2.707,
+    "slope_db_per_4x": 5.413,
+    "power_law_exponent": 0.899,
+    "se": 0.5403,
+    "ci95": [
+     1.517,
+     3.896
+    ],
+    "rmse_db": 6.8,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "ac_below_tip_db__excl_el0": {
+    "n": 12,
+    "n_groups": 3,
+    "dof": 8,
+    "slope_db_per_octave": 1.816,
+    "slope_db_per_4x": 3.632,
+    "power_law_exponent": 0.603,
+    "se": 0.2796,
+    "ci95": [
+     1.171,
+     2.461
+    ],
+    "rmse_db": 3.048,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "ac_above_tip_db": {
+    "n": 16,
+    "n_groups": 4,
+    "dof": 11,
+    "slope_db_per_octave": 1.736,
+    "slope_db_per_4x": 3.471,
+    "power_law_exponent": 0.577,
+    "se": 0.941,
+    "ci95": [
+     -0.336,
+     3.807
+    ],
+    "rmse_db": 11.845,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "ac_above_tip_db__excl_el0": {
+    "n": 12,
+    "n_groups": 3,
+    "dof": 8,
+    "slope_db_per_octave": 0.03,
+    "slope_db_per_4x": 0.059,
+    "power_law_exponent": 0.01,
+    "se": 0.0755,
+    "ci95": [
+     -0.144,
+     0.204
+    ],
+    "rmse_db": 0.823,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   }
+  },
+  "ladder_a_detail": {
+   "ac_power_db": {
+    "per_elevation": {
+     "+0": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 6.442,
+      "slope_db_per_4x": 12.885,
+      "power_law_exponent": 2.14,
+      "se": 1.5082,
+      "ci95": [
+       -0.047,
+       12.932
+      ],
+      "rmse_db": 9.492,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-15": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.089,
+      "slope_db_per_4x": 2.178,
+      "power_law_exponent": 0.362,
+      "se": 0.5285,
+      "ci95": [
+       -1.185,
+       3.363
+      ],
+      "rmse_db": 3.326,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-45": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 2.047,
+      "slope_db_per_4x": 4.094,
+      "power_law_exponent": 0.68,
+      "se": 0.3454,
+      "ci95": [
+       0.561,
+       3.533
+      ],
+      "rmse_db": 2.174,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     },
+     "-60": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.707,
+      "slope_db_per_4x": 3.413,
+      "power_law_exponent": 0.567,
+      "se": 0.5393,
+      "ci95": [
+       -0.614,
+       4.027
+      ],
+      "rmse_db": 3.394,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     }
+    },
+    "leave_one_elevation_out": [
+     {
+      "dropped_el": 0.0,
+      "slope": 1.614
+     },
+     {
+      "dropped_el": -15.0,
+      "slope": 3.399
+     },
+     {
+      "dropped_el": -45.0,
+      "slope": 3.079
+     },
+     {
+      "dropped_el": -60.0,
+      "slope": 3.193
+     }
+    ]
+   },
+   "floor_above_db": {
+    "per_elevation": {
+     "+0": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 8.566,
+      "slope_db_per_4x": 17.132,
+      "power_law_exponent": 2.846,
+      "se": 2.1039,
+      "ci95": [
+       -0.486,
+       17.618
+      ],
+      "rmse_db": 13.241,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-15": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": -0.22,
+      "slope_db_per_4x": -0.439,
+      "power_law_exponent": -0.073,
+      "se": 0.1051,
+      "ci95": [
+       -0.672,
+       0.233
+      ],
+      "rmse_db": 0.661,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-45": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 0.048,
+      "slope_db_per_4x": 0.097,
+      "power_law_exponent": 0.016,
+      "se": 0.0261,
+      "ci95": [
+       -0.064,
+       0.161
+      ],
+      "rmse_db": 0.164,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-60": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": -0.038,
+      "slope_db_per_4x": -0.076,
+      "power_law_exponent": -0.013,
+      "se": 0.0446,
+      "ci95": [
+       -0.23,
+       0.154
+      ],
+      "rmse_db": 0.281,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     }
+    },
+    "leave_one_elevation_out": [
+     {
+      "dropped_el": 0.0,
+      "slope": -0.07
+     },
+     {
+      "dropped_el": -15.0,
+      "slope": 2.859
+     },
+     {
+      "dropped_el": -45.0,
+      "slope": 2.77
+     },
+     {
+      "dropped_el": -60.0,
+      "slope": 2.798
+     }
+    ]
+   },
+   "comb_above_db": {
+    "per_elevation": {
+     "+0": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 5.756,
+      "slope_db_per_4x": 11.513,
+      "power_law_exponent": 1.912,
+      "se": 1.051,
+      "ci95": [
+       1.234,
+       10.278
+      ],
+      "rmse_db": 6.614,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     },
+     "-15": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": -0.09,
+      "slope_db_per_4x": -0.179,
+      "power_law_exponent": -0.03,
+      "se": 0.1849,
+      "ci95": [
+       -0.885,
+       0.706
+      ],
+      "rmse_db": 1.163,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-45": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 0.023,
+      "slope_db_per_4x": 0.046,
+      "power_law_exponent": 0.008,
+      "se": 0.0282,
+      "ci95": [
+       -0.098,
+       0.144
+      ],
+      "rmse_db": 0.177,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-60": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 0.232,
+      "slope_db_per_4x": 0.463,
+      "power_law_exponent": 0.077,
+      "se": 0.1548,
+      "ci95": [
+       -0.435,
+       0.898
+      ],
+      "rmse_db": 0.974,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     }
+    },
+    "leave_one_elevation_out": [
+     {
+      "dropped_el": 0.0,
+      "slope": 0.055
+     },
+     {
+      "dropped_el": -15.0,
+      "slope": 2.004
+     },
+     {
+      "dropped_el": -45.0,
+      "slope": 1.966
+     },
+     {
+      "dropped_el": -60.0,
+      "slope": 1.897
+     }
+    ]
+   },
+   "dc_power_db": {
+    "per_elevation": {
+     "+0": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": -0.003,
+      "slope_db_per_4x": -0.005,
+      "power_law_exponent": -0.001,
+      "se": 0.0009,
+      "ci95": [
+       -0.007,
+       0.001
+      ],
+      "rmse_db": 0.006,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-15": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.929,
+      "slope_db_per_4x": 3.859,
+      "power_law_exponent": 0.641,
+      "se": 0.2637,
+      "ci95": [
+       0.795,
+       3.064
+      ],
+      "rmse_db": 1.66,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     },
+     "-45": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.013,
+      "slope_db_per_4x": 2.027,
+      "power_law_exponent": 0.337,
+      "se": 0.486,
+      "ci95": [
+       -1.078,
+       3.104
+      ],
+      "rmse_db": 3.059,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-60": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.816,
+      "slope_db_per_4x": 3.633,
+      "power_law_exponent": 0.603,
+      "se": 0.307,
+      "ci95": [
+       0.496,
+       3.137
+      ],
+      "rmse_db": 1.932,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     }
+    },
+    "leave_one_elevation_out": [
+     {
+      "dropped_el": 0.0,
+      "slope": 1.586
+     },
+     {
+      "dropped_el": -15.0,
+      "slope": 0.942
+     },
+     {
+      "dropped_el": -45.0,
+      "slope": 1.248
+     },
+     {
+      "dropped_el": -60.0,
+      "slope": 0.98
+     }
+    ]
+   },
+   "ac_below_tip_db": {
+    "per_elevation": {
+     "+0": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 5.378,
+      "slope_db_per_4x": 10.755,
+      "power_law_exponent": 1.786,
+      "se": 0.8528,
+      "ci95": [
+       1.708,
+       9.047
+      ],
+      "rmse_db": 5.367,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     },
+     "-15": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.376,
+      "slope_db_per_4x": 2.752,
+      "power_law_exponent": 0.457,
+      "se": 0.5982,
+      "ci95": [
+       -1.197,
+       3.95
+      ],
+      "rmse_db": 3.765,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-45": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 2.206,
+      "slope_db_per_4x": 4.412,
+      "power_law_exponent": 0.733,
+      "se": 0.3147,
+      "ci95": [
+       0.852,
+       3.56
+      ],
+      "rmse_db": 1.981,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     },
+     "-60": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 1.866,
+      "slope_db_per_4x": 3.733,
+      "power_law_exponent": 0.62,
+      "se": 0.5544,
+      "ci95": [
+       -0.519,
+       4.252
+      ],
+      "rmse_db": 3.489,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     }
+    },
+    "leave_one_elevation_out": [
+     {
+      "dropped_el": 0.0,
+      "slope": 1.816
+     },
+     {
+      "dropped_el": -15.0,
+      "slope": 3.15
+     },
+     {
+      "dropped_el": -45.0,
+      "slope": 2.873
+     },
+     {
+      "dropped_el": -60.0,
+      "slope": 2.987
+     }
+    ]
+   },
+   "ac_above_tip_db": {
+    "per_elevation": {
+     "+0": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 6.854,
+      "slope_db_per_4x": 13.708,
+      "power_law_exponent": 2.277,
+      "se": 1.3966,
+      "ci95": [
+       0.845,
+       12.863
+      ],
+      "rmse_db": 8.789,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": false
+     },
+     "-15": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": -0.115,
+      "slope_db_per_4x": -0.229,
+      "power_law_exponent": -0.038,
+      "se": 0.1591,
+      "ci95": [
+       -0.799,
+       0.57
+      ],
+      "rmse_db": 1.001,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-45": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 0.019,
+      "slope_db_per_4x": 0.039,
+      "power_law_exponent": 0.006,
+      "se": 0.027,
+      "ci95": [
+       -0.097,
+       0.135
+      ],
+      "rmse_db": 0.17,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     },
+     "-60": {
+      "n": 4,
+      "n_groups": 1,
+      "dof": 2,
+      "slope_db_per_octave": 0.184,
+      "slope_db_per_4x": 0.368,
+      "power_law_exponent": 0.061,
+      "se": 0.1412,
+      "ci95": [
+       -0.424,
+       0.792
+      ],
+      "rmse_db": 0.889,
+      "covers_mc_minus3": false,
+      "covers_flat_zero": true
+     }
+    },
+    "leave_one_elevation_out": [
+     {
+      "dropped_el": 0.0,
+      "slope": 0.03
+     },
+     {
+      "dropped_el": -15.0,
+      "slope": 2.352
+     },
+     {
+      "dropped_el": -45.0,
+      "slope": 2.308
+     },
+     {
+      "dropped_el": -60.0,
+      "slope": 2.253
+     }
+    ]
+   }
+  },
+  "ladder_b": {
+   "ac_power_db": {
+    "n": 24,
+    "n_groups": 1,
+    "dof": 22,
+    "slope_db_per_octave": 0.416,
+    "slope_db_per_4x": 0.831,
+    "power_law_exponent": 0.138,
+    "se": 0.1531,
+    "ci95": [
+     0.098,
+     0.733
+    ],
+    "rmse_db": 1.717,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "floor_above_db": {
+    "n": 24,
+    "n_groups": 1,
+    "dof": 22,
+    "slope_db_per_octave": -0.053,
+    "slope_db_per_4x": -0.106,
+    "power_law_exponent": -0.018,
+    "se": 0.1232,
+    "ci95": [
+     -0.309,
+     0.202
+    ],
+    "rmse_db": 1.381,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "comb_above_db": {
+    "n": 24,
+    "n_groups": 1,
+    "dof": 22,
+    "slope_db_per_octave": -0.027,
+    "slope_db_per_4x": -0.055,
+    "power_law_exponent": -0.009,
+    "se": 0.102,
+    "ci95": [
+     -0.239,
+     0.184
+    ],
+    "rmse_db": 1.144,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "dc_power_db": {
+    "n": 24,
+    "n_groups": 1,
+    "dof": 22,
+    "slope_db_per_octave": 2.36,
+    "slope_db_per_4x": 4.721,
+    "power_law_exponent": 0.784,
+    "se": 0.3568,
+    "ci95": [
+     1.621,
+     3.1
+    ],
+    "rmse_db": 4.001,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "ac_below_tip_db": {
+    "n": 24,
+    "n_groups": 1,
+    "dof": 22,
+    "slope_db_per_octave": 0.626,
+    "slope_db_per_4x": 1.252,
+    "power_law_exponent": 0.208,
+    "se": 0.2028,
+    "ci95": [
+     0.206,
+     1.047
+    ],
+    "rmse_db": 2.274,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "ac_above_tip_db": {
+    "n": 24,
+    "n_groups": 1,
+    "dof": 22,
+    "slope_db_per_octave": -0.03,
+    "slope_db_per_4x": -0.061,
+    "power_law_exponent": -0.01,
+    "se": 0.1007,
+    "ci95": [
+     -0.239,
+     0.179
+    ],
+    "rmse_db": 1.129,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   }
+  },
+  "ladder_a_per_step": {
+   "ac_power_db": [
+    {
+     "el_deg": 0.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 43.9,
+     "db_per_octave": 9.774
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 5.73,
+     "db_per_octave": 2.865
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 3.14,
+     "db_per_octave": 1.568
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -0.85,
+     "db_per_octave": -0.189
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 7.0,
+     "db_per_octave": 3.501
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 2.91,
+     "db_per_octave": 1.455
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 5.48,
+     "db_per_octave": 1.221
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 6.72,
+     "db_per_octave": 3.361
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 5.28,
+     "db_per_octave": 2.639
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 1.94,
+     "db_per_octave": 0.432
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 7.16,
+     "db_per_octave": 3.578
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 5.69,
+     "db_per_octave": 2.844
+    }
+   ],
+   "floor_above_db": [
+    {
+     "el_deg": 0.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 59.51,
+     "db_per_octave": 13.249
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 6.74,
+     "db_per_octave": 3.368
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 3.92,
+     "db_per_octave": 1.959
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -1.96,
+     "db_per_octave": -0.436
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": -0.1,
+     "db_per_octave": -0.049
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 0.38,
+     "db_per_octave": 0.188
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 0.03,
+     "db_per_octave": 0.006
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 0.42,
+     "db_per_octave": 0.208
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": -0.11,
+     "db_per_octave": -0.054
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -0.38,
+     "db_per_octave": -0.085
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": -0.24,
+     "db_per_octave": -0.12
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 0.44,
+     "db_per_octave": 0.222
+    }
+   ],
+   "comb_above_db": [
+    {
+     "el_deg": 0.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 35.67,
+     "db_per_octave": 7.94
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 7.96,
+     "db_per_octave": 3.978
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 3.48,
+     "db_per_octave": 1.74
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -2.03,
+     "db_per_octave": -0.452
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 2.07,
+     "db_per_octave": 1.035
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": -1.25,
+     "db_per_octave": -0.623
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 0.27,
+     "db_per_octave": 0.061
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 0.1,
+     "db_per_octave": 0.051
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": -0.26,
+     "db_per_octave": -0.132
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 0.12,
+     "db_per_octave": 0.026
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 0.14,
+     "db_per_octave": 0.069
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 2.18,
+     "db_per_octave": 1.088
+    }
+   ],
+   "dc_power_db": [
+    {
+     "el_deg": 0.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -0.0,
+     "db_per_octave": -0.001
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": -0.01,
+     "db_per_octave": -0.005
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": -0.01,
+     "db_per_octave": -0.005
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 5.9,
+     "db_per_octave": 1.313
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 5.57,
+     "db_per_octave": 2.785
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 5.1,
+     "db_per_octave": 2.551
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 1.11,
+     "db_per_octave": 0.247
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 1.76,
+     "db_per_octave": 0.881
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 7.03,
+     "db_per_octave": 3.516
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 8.44,
+     "db_per_octave": 1.88
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 0.83,
+     "db_per_octave": 0.415
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 7.31,
+     "db_per_octave": 3.653
+    }
+   ],
+   "ac_below_tip_db": [
+    {
+     "el_deg": 0.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 32.12,
+     "db_per_octave": 7.151
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 7.85,
+     "db_per_octave": 3.926
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 4.25,
+     "db_per_octave": 2.125
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -0.3,
+     "db_per_octave": -0.066
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 8.48,
+     "db_per_octave": 4.241
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 3.17,
+     "db_per_octave": 1.583
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 6.51,
+     "db_per_octave": 1.449
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 6.93,
+     "db_per_octave": 3.463
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 5.34,
+     "db_per_octave": 2.671
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 2.44,
+     "db_per_octave": 0.542
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 7.89,
+     "db_per_octave": 3.943
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 5.71,
+     "db_per_octave": 2.856
+    }
+   ],
+   "ac_above_tip_db": [
+    {
+     "el_deg": 0.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 44.27,
+     "db_per_octave": 9.856
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 7.99,
+     "db_per_octave": 3.994
+    },
+    {
+     "el_deg": 0.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 3.87,
+     "db_per_octave": 1.934
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": -2.05,
+     "db_per_octave": -0.455
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 1.65,
+     "db_per_octave": 0.826
+    },
+    {
+     "el_deg": -15.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": -0.9,
+     "db_per_octave": -0.449
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 0.23,
+     "db_per_octave": 0.051
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 0.12,
+     "db_per_octave": 0.059
+    },
+    {
+     "el_deg": -45.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": -0.27,
+     "db_per_octave": -0.134
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "11.1M",
+     "to": "250M",
+     "octaves": 4.49,
+     "delta_db": 0.01,
+     "db_per_octave": 0.002
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "250M",
+     "to": "1G",
+     "octaves": 2.0,
+     "delta_db": 0.04,
+     "db_per_octave": 0.019
+    },
+    {
+     "el_deg": -60.0,
+     "frm": "1G",
+     "to": "4G",
+     "octaves": 2.0,
+     "delta_db": 1.95,
+     "db_per_octave": 0.973
+    }
+   ]
+  },
+  "forest": [
+   {
+    "ladder": "A",
+    "label": "A (1) AC power  (el<0)",
+    "slope": 1.614,
+    "ci95": [
+     0.974,
+     2.255
+    ]
+   },
+   {
+    "ladder": "A",
+    "label": "A (2) floor above tip  (el<0)",
+    "slope": -0.07,
+    "ci95": [
+     -0.19,
+     0.05
+    ]
+   },
+   {
+    "ladder": "A",
+    "label": "A (3) comb above tip  (el<0)",
+    "slope": 0.055,
+    "ci95": [
+     -0.14,
+     0.25
+    ]
+   },
+   {
+    "ladder": "A",
+    "label": "A DC power  (el<0)",
+    "slope": 1.586,
+    "ci95": [
+     1.05,
+     2.123
+    ]
+   },
+   {
+    "ladder": "B",
+    "label": "B (1) AC power",
+    "slope": 0.416,
+    "ci95": [
+     0.098,
+     0.733
+    ]
+   },
+   {
+    "ladder": "B",
+    "label": "B (2) floor above tip",
+    "slope": -0.053,
+    "ci95": [
+     -0.309,
+     0.202
+    ]
+   },
+   {
+    "ladder": "B",
+    "label": "B (3) comb above tip",
+    "slope": -0.027,
+    "ci95": [
+     -0.239,
+     0.184
+    ]
+   },
+   {
+    "ladder": "B",
+    "label": "B DC power",
+    "slope": 2.36,
+    "ci95": [
+     1.621,
+     3.1
+    ]
+   }
+  ],
+  "ladder_b_sensitivity_survivor_seeds": {
+   "note_ko": "계단째 배제 규칙을 풀고 «퇴화하지 않은 시드만» 넣어 다시 적합한 판. 결론이 규칙에 매달리지 않는지, 생존 편향이 어느 쪽으로 미는지 보는 자리다.",
+   "n": 25,
+   "slopes": {
+    "ac_power_db": -0.429,
+    "floor_above_db": -0.275,
+    "comb_above_db": -0.555
+   }
+  }
+ },
+ "headline": {
+  "ladder_a_360x_change_db": {
+   "el+0": {
+    "ac_power_db": 52.77,
+    "dc_power_db": -0.02,
+    "floor_above_db": 70.17,
+    "comb_above_db": 47.1,
+    "ac_below_tip_db": 44.23,
+    "ac_above_tip_db": 56.13
+   },
+   "el-15": {
+    "ac_power_db": 9.06,
+    "dc_power_db": 16.57,
+    "floor_above_db": -1.68,
+    "comb_above_db": -1.21,
+    "ac_below_tip_db": 11.35,
+    "ac_above_tip_db": -1.29
+   },
+   "el-45": {
+    "ac_power_db": 17.48,
+    "dc_power_db": 9.91,
+    "floor_above_db": 0.33,
+    "comb_above_db": 0.11,
+    "ac_below_tip_db": 18.78,
+    "ac_above_tip_db": 0.08
+   },
+   "el-60": {
+    "ac_power_db": 14.78,
+    "dc_power_db": 16.58,
+    "floor_above_db": -0.18,
+    "comb_above_db": 2.43,
+    "ac_below_tip_db": 16.03,
+    "ac_above_tip_db": 1.99
+   }
+  },
+  "slope_db_per_octave": {
+   "A_ac_power_el_lt0": 1.614,
+   "A_floor_above_el_lt0": -0.07,
+   "A_comb_above_el_lt0": 0.055,
+   "B_ac_power": 0.416,
+   "B_floor_above": -0.053,
+   "B_comb_above": -0.027,
+   "B_dc_power": 2.36
+  },
+  "comb_share_pct": {
+   "el+0": [
+    91.3,
+    12.6,
+    12.5,
+    11.4
+   ],
+   "el-15": [
+    72.9,
+    73.2,
+    80.5,
+    74.3
+   ],
+   "el-45": [
+    82.1,
+    82.9,
+    82.6,
+    82.7
+   ],
+   "el-60": [
+    80.3,
+    82.2,
+    84.2,
+    88.8
+   ]
+  },
+  "white_neutral_pct": 12.56
+ },
+ "verdict": {
+  "id": "PREREG_1_FALSIFIED__ABOVE_TIP_IS_RAY_INVARIANT",
+  "text_ko": "①**불성립** · ②**성립**. 상한 위 **바닥은 1/spp 를 안 따라간다** — 내려가지 않고 사실상 평평하다(사다리 A -0.07 · B -0.05 dB/옥타브, MC 예측 −3.01 의 각각 2 % · 2 %; 두 사다리 모두 신뢰구간이 −3.01 을 안 덮는다). 빗살 선도 같은 뜻으로 평평하다(A +0.06 · B -0.03). 그러므로 사전등록이 예비했던 문장 「이 예산의 몬테카를로 바닥 위로는 구조가 없다」를 **그대로 쓸 수 없다** — 상한 위에 있는 것은 몬테카를로 **바닥이 아니다**(몬테카를로 바닥이면 광선에 반비례해 내려가야 하는데 안 내려간다). 옳은 문장은 **「날개끝 상한 위의 내용물은 광선 수에 불변이다 — 광선을 더 부어도 바닥이 안 내려가고 구조도 안 생긴다. 광선이 사는 것은 상한 **아래**(에코 레벨) 뿐이고 그것도 4e9 에서 안 멈췄다」** 다. 지출 언어로 옮기면 — 상한 위 바닥을 10 dB 낮추는 데 필요한 광선 배수는 사다리 A: 10^30 배 초과(사실상 불가) · 사다리 B: 10^30 배 초과(사실상 불가) 다. 「GPU 를 더 사면 되나」의 답은 **아니오** 다.",
+  "criterion_1_floor_follows_1_over_spp": false,
+  "criterion_1_falsified": true,
+  "criterion_2_comb_invariant": true,
+  "floor_is_effectively_flat": true,
+  "decision_note_ko": "①은 사전등록 그대로 «신뢰구간이 −3.01 을 덮나» 로 판정했다. ②는 «0 을 덮나» 만으로 보면 사다리 B 처럼 표본이 많은 판에서 물리적으로 무의미한 −0.3 dB/옥타브도 «불변 아님» 이 되므로, **MC 율의 1/4 미만 + −3.01 을 안 덮음** 을 «실질 불변» 으로 정의했다. 판정 규칙을 이렇게 적은 이유를 _prereg.deviations 에도 남겼다.",
+  "classification": {
+   "A_floor": {
+    "slope_db_per_octave": -0.07,
+    "ci95": [
+     -0.19,
+     0.05
+    ],
+    "class_": "INVARIANT",
+    "frac_of_mc_rate": 0.023,
+    "total_change_over_ladder_db": -0.59,
+    "mc_would_change_db": -25.56,
+    "rays_multiplier_for_10dB": null,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "A_comb": {
+    "slope_db_per_octave": 0.055,
+    "ci95": [
+     -0.14,
+     0.25
+    ],
+    "class_": "INVARIANT",
+    "frac_of_mc_rate": -0.018,
+    "total_change_over_ladder_db": 0.47,
+    "mc_would_change_db": -25.56,
+    "rays_multiplier_for_10dB": null,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "A_ac": {
+    "slope_db_per_octave": 1.614,
+    "ci95": [
+     0.974,
+     2.255
+    ],
+    "class_": "NEITHER",
+    "frac_of_mc_rate": -0.536,
+    "total_change_over_ladder_db": 13.71,
+    "mc_would_change_db": -25.56,
+    "rays_multiplier_for_10dB": 73.3,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "B_floor": {
+    "slope_db_per_octave": -0.053,
+    "ci95": [
+     -0.309,
+     0.202
+    ],
+    "class_": "INVARIANT",
+    "frac_of_mc_rate": 0.018,
+    "total_change_over_ladder_db": -0.32,
+    "mc_would_change_db": -17.96,
+    "rays_multiplier_for_10dB": null,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "B_comb": {
+    "slope_db_per_octave": -0.027,
+    "ci95": [
+     -0.239,
+     0.184
+    ],
+    "class_": "INVARIANT",
+    "frac_of_mc_rate": 0.009,
+    "total_change_over_ladder_db": -0.16,
+    "mc_would_change_db": -17.96,
+    "rays_multiplier_for_10dB": null,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": true
+   },
+   "B_ac": {
+    "slope_db_per_octave": 0.416,
+    "ci95": [
+     0.098,
+     0.733
+    ],
+    "class_": "NEITHER",
+    "frac_of_mc_rate": -0.138,
+    "total_change_over_ladder_db": 2.48,
+    "mc_would_change_db": -17.96,
+    "rays_multiplier_for_10dB": 17200000.0,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   },
+   "B_dc": {
+    "slope_db_per_octave": 2.36,
+    "ci95": [
+     1.621,
+     3.1
+    ],
+    "class_": "NEITHER",
+    "frac_of_mc_rate": -0.784,
+    "total_change_over_ladder_db": 14.08,
+    "mc_would_change_db": -17.96,
+    "rays_multiplier_for_10dB": 18.9,
+    "covers_mc_minus3": false,
+    "covers_flat_zero": false
+   }
+  }
+ },
+ "regime_split_ko": "el 0 은 나머지와 **다른 체제**다. 정면에서는 동체 정반사가 지배해 정지 성분이 11.1M 에서 이미 수렴해 있고(360 배에 0.03 dB), 광선을 부으면 새로 찾는 경로가 전부 **요동**으로만 들어간다 — 그래서 el 0 에서는 상한 위 바닥도 빗살도 **올라간다**. 정반사가 꺼지는 앙각(−15·−45·−60)에서는 반대로 상한 위가 평평하고 상한 **아래**만 오른다. 한 회귀에 섞으면 이 두 체제가 상쇄된다.",
+ "self_checks": [
+  {
+   "name": "parseval",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "ΣP 와 Σ|x·w|²/Σw² 의 최대 상대오차 4.34e-16 < 1e-9 — 스펙트럼 열의 dB 가 절대 전력이다"
+  },
+  {
+   "name": "window_bias_stable_headline",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "헤드라인 앙각(el<0)에서 창 가중 평균 − 평범한 평균 의 차가 최대 0.29 dB 만 움직인다(<1 dB) — 측정된 기울기가 창의 산물이 아니다. ⚠el 0 은 4.40 dB 로 크다 — 정면의 요동이 기록 안에서 **고르지 않다**(몇몇 자세에 몰려 있다)는 뜻이고, 그래서 el 0 을 헤드라인에서 뗀 근거가 하나 더 된다"
+  },
+  {
+   "name": "mask_partition",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "상한 위 3567 빈 중 이빨 448 빈 — 나머지가 바닥 표본"
+  },
+  {
+   "name": "white_neutral",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "백색 잡음 80 판의 빗살 몫 평균 12.57 % vs 이론 중립값 12.56 % (차 0.02 %p < 1.5)"
+  },
+  {
+   "name": "regression_recovers_mc",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "합성 1/spp 열의 회귀 기울기 -3.01 dB/oct (예측 -3.0103)"
+  },
+  {
+   "name": "regression_recovers_flat",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "상수열의 회귀 기울기 -0.0 dB/oct (예측 0)"
+  },
+  {
+   "name": "level_matches_ledger",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "20log10 mean|E| 재계산 vs 원장 level_db 최대 차 0.0048 dB < 0.011 (원장은 소수 2 자리 반올림)"
+  },
+  {
+   "name": "degenerate_detected",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "퇴화 팔 8 개를 검출해 회귀에서 제외했다 — 결측 자리표시자(−6000 dB)가 아니라 «물리적으로 아무것도 없음» 이다: 1M/s1(에코 없음(전부 0)), 1M/s2(에코 없음(전부 0)), 1M/s3(에코 없음(전부 0)), 4M/s2(요동 0(경로 1 개 상수열)), 4M/s3(요동 0(경로 1 개 상수열)), 16M/s1(에코 없음(전부 0)), 16M/s2(요동 0(경로 1 개 상수열)), 16M/s3(자세 91 % 에서 경로 없음)"
+  },
+  {
+   "name": "comb_null_control",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "정면 밖 셀 12 개 전부에서 이빨 위 / 반 이빨 어긋남 ≥ 22.4 dB — 마스크가 아무 데나 걸리는 것이 아니다"
+  },
+  {
+   "name": "ladders_not_pooled",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "회귀는 사다리 A(10 m)·B(40 m) 를 따로 적합했다 — 거리가 다르면 같은 축이 아니다"
+  },
+  {
+   "name": "no_gpu",
+   "pass_": true,
+   "hard": true,
+   "detail_ko": "sionna.rt·mitsuba·drjit 어느 것도 임포트되지 않았다"
+  }
+ ],
+ "citations_of_11p1M_and_convergence": {
+  "note_ko": "11.1 M 계단 값과 「0.03 dB 안에 모인다(수렴)」 문장을 인용하는 자리다. ⭐«수렴» 을 말하는 줄은 전부 **정지 성분(DC)에 한정된 참**이다 — 같은 문장을 마이크로도플러(AC)나 «예산이 충분하다» 의 근거로 **재인용 금지**. AC 는 같은 360 배에서 수렴하지 않는다.",
+  "reuse_ban_legend_ko": {
+   "OK_AS_WRITTEN__DC_ONLY": "원문이 이미 «정지 성분·레벨» 로 범위를 좁혀 놓아 문장 자체는 참이다. 인용할 때 그 단서를 **떼면 안 된다**.",
+   "NEEDS_SCOPE_TAG": "«수렴» 을 범위 없이 말한다 — 인용 전에 «정지 성분에 한해» 단서를 붙여야 한다."
+  },
+  "n_hits": 139,
+  "n_claiming_convergence": 25,
+  "n_needs_scope_tag": 3,
+  "convergence_claims": [
+   {
+    "file": "reports/01_map.ipynb",
+    "line": 274,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"| 16 | 5 | `87` | el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다 |\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 19,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"| 5 | el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다 | `_parts/87_budget-not-physics.ipynb` |\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1357,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"## 절 5. el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다\\n\""
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1373,
+    "tags": [
+     "11.1M_arm",
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"1. el 0 의 레벨은 광선 11.1 M 에서 -59.65 dB [^183], 4,000 M 에서 -59.68 dB [^184] 로 0.03 dB 폭 안에 모인다 — 광선이 360 배이고 경로는 223 배다.\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1374,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"2. 그 수렴은 el 0 의 성질이다 — 예산을 한 계단(11.1 M → 250 M)만 올려도 el −75 의 레벨은 -127.60 [^185] → -115.05 dB [^186] 로 12.55 dB 움직인다.\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1447,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"레벨 칸은 0.03 dB 폭 안에 모이고, 그 옆에서 박자 칸은 326 Hz 를 오간다. **수렴한 것과 맞은 것은 다른 일이다.**\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1471,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"그 수렴은 el 0 한 점의 성질이다. 예산을 한 계단(11.1 M → 250 M)만 올려도 el −45 의 레벨은 -125.92 [^204] → -124.43 dB [^205], el −75 는 -127.60 [^185] → -115.05 dB [^186] 로 움직인다. 정반사가 꺼지는 앙각에서는 레벨 자체가 예산에 매달린다.\\n\""
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 11,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"# 리포트 87 — el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 17,
+    "tags": [
+     "11.1M_arm",
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"1. el 0 의 레벨은 광선 11.1 M 에서 -59.65 dB [^1], 4,000 M 에서 -59.68 dB [^2] 로 0.03 dB 폭 안에 모인다 — 광선이 360 배이고 경로는 223 배다.\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 18,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"2. 그 수렴은 el 0 의 성질이다 — 예산을 한 계단(11.1 M → 250 M)만 올려도 el −75 의 레벨은 -127.60 [^3] → -115.05 dB [^4] 로 12.55 dB 움직인다.\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 91,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"레벨 칸은 0.03 dB 폭 안에 모이고, 그 옆에서 박자 칸은 326 Hz 를 오간다. **수렴한 것과 맞은 것은 다른 일이다.**\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 115,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"그 수렴은 el 0 한 점의 성질이다. 예산을 한 계단(11.1 M → 250 M)만 올려도 el −45 의 레벨은 -125.92 [^22] → -124.43 dB [^23], el −75 는 -127.60 [^3] → -115.05 dB [^4] 로 움직인다. 정반사가 꺼지는 앙각에서는 레벨 자체가 예산에 매달린다.\""
+   },
+   {
+    "file": "reports/README.md",
+    "line": 212,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "| 5 | el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다 | `_parts/87_budget-not-physics.ipynb` |"
+   },
+   {
+    "file": "docs/HARVEST_AUDIT_AND_RAYBUDGET.md",
+    "line": 53,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "반증자(`refute_raybudget_level_convergence.json :: D`)가 **4,000 M 을 새로 재서** 같은 자리에 세 번째 점을 찍었다 — 11.1 M → 4,000 M 은 광선 ×360 인데 레벨이 **−0.0267 dB** 움직였다. 같은 구간에서 자세당 경로는 9 → 127 → 2,008 개로 늘었다."
+   },
+   {
+    "file": "docs/HARVEST_AUDIT_AND_RAYBUDGET.md",
+    "line": 88,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "> **11.1 M 발에서** \\|E\\| 가 상대 표준편차 4e−5 · p-p 0.002 dB 로 사실상 상수다. **250 M·4,000 M 에서는 \\|E\\| p-p 가 3.52 dB 로 살아난다** — 그런데도 4,096 자세 평균 레벨은 −59.654 / −59.658 / −59.681 dB 로 0.027 dB 안에 머문다. 광선이 사 오는 것은 **변조의 겉모양**이고 **레벨(…"
+   },
+   {
+    "file": "docs/PLAN_VOLUMES_16_17.md",
+    "line": 207,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "| **87** | `budget-not-physics` | 광선을 360 배 늘려도 레벨은 0.03 dB 안에 모이고 박자는 58.15 Hz 로 헤맨다 | 광선을 더 쏘면 고쳐지는 것과 안 고쳐지는 것은 무엇인가? | 17 · 5 | `ch1_f5_raybudget.png` |"
+   },
+   {
+    "file": "docs/PLAN_VOLUMES_16_17.md",
+    "line": 252,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "| 5 | 광선을 360 배 늘려도 레벨은 0.03 dB 안에 모이고 박자는 58.15 Hz 로 헤맨다 | el 0 예산 사다리 4 계단 · 40 m 시드 사다리(sd 4.156 → 1.833 dB) · 예산 축과 물리 축은 다른 축이다 |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 158,
+    "tags": [
+     "converged_0p03dB",
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "**레벨은 360 배 예산에 0.03 dB 안에서 같은데(수렴) 박자는 헤맨다 — «수렴했는데 틀렸다».**"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1013,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "#: 계획의 제목은 «광선을 360 배 늘려도 레벨이 모인다» 를 예산 축의 성질로 적는다. 같은"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1018,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "TITLE_87 = (f\"el 0 에서 광선을 360 배 늘리면 정지 성분은 {_D_EL0:.2f} dB 안에 모이고, \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1051,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "NEEDS_SCOPE_TAG",
+    "excerpt": "f\"모인다 — 광선이 360 배이고 경로는 223 배다.\","
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1053,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "NEEDS_SCOPE_TAG",
+    "excerpt": "f\"그 수렴은 el 0 의 성질이다 — 예산을 한 계단(11.1 M → 250 M)만 올려도 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1115,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "\"레벨 칸은 0.03 dB 폭 안에 모이고, 그 옆에서 박자 칸은 326 Hz 를 오간다. \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1134,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "NEEDS_SCOPE_TAG",
+    "excerpt": "\"그 수렴은 el 0 한 점의 성질이다. 예산을 한 계단(11.1 M → 250 M)만 올려도 \""
+   },
+   {
+    "file": "src/viz_ch1_el0_budget_ladder.py",
+    "line": 11,
+    "tags": [
+     "11.1M_arm",
+     "converged_0p03dB"
+    ],
+    "claims_convergence": true,
+    "reuse_ban": "OK_AS_WRITTEN__DC_ONLY",
+    "excerpt": "(a) 11.1 M 계단 대비 **레벨 변화** — el 0 은 0.03 dB 안에 모이고 el −30 은 계속 올라간다"
+   }
+  ],
+  "other_mentions": [
+   {
+    "file": "reports/11_2_two_channel.ipynb",
+    "line": 185,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| `G1` · 5G NR SSB | 7.89 dB / Pd 0.00 | +0.03 dB / Pd 0.72 | 7.50 dB / Pd 0.00 | -0.39 dB |\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1218,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"같은 자리에서 위상 흔들림 p95 는 우리 팔 1.18° [^171], PathSolver 11.1M 73.73° [^172], 250M 21.68° [^173] 다. 광선을 늘린 팔에서 흔들림이 함께 줄어드는 축이 곧 표본화 축이다.\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1393,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 사다리 | 표적·기하·자세 격자·시드를 고정하고 자세당 광선 수만 11.1 M → 250 M → 1,000 M → 4,000 M 으로 올렸다 — 네 계단 모두 자세 4,096 개가 완결(`n_missing` = 0)이다 |\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1396,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 대조군 | 같은 사다리를 el −30 에서 세 계단(11.1 M · 250 M · 1,000 M) 돌렸다 |\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1460,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"**그림 8.** 광선을 360 배 늘리면 el 0 의 레벨과 박자는 각각 어디로 가는가?\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1486,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"최강선은 40~400 Hz 안에서 고른다(`benchmark/elevation_sweep_md.py:237`). 11.1 M 계단의 376.73 Hz [^187] 는 f_flash 의 3 배 자리(380.0 Hz)에서 한 칸 안이고, 250 M 계단의 50.27 Hz [^188] 는 빗살 밖의 창 아래 가장자리 값이다.\\n\""
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1508,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"11.1 M 계단의 252.32 Hz [^192] 는 f_flash 의 두 배 자리다. 그 계단에서는 1 차 빗살이 2 차보다 -1.44 dB [^213] 라 최강선이 2 차로 넘어간다. 250 M 에서 그 차이가 +15.53 dB [^214] 로 뒤집히면서 최강선이 1 차로 돌아오고, 1,000 M 에서도 126.91 Hz [^215] 로 머문다.\\n\","
+   },
+   {
+    "file": "reports/16_elevation-coverage.ipynb",
+    "line": 1512,
+    "tags": [
+     "11.1M_arm",
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"el −30 은 앙각 7 점 중 규칙 예산에서 최강선이 어긋나 있던 **유일한 자리**다. 나머지 앙각(−15·−45·−60·−75)은 11.1 M 에서 이미 126.45~126.85 Hz 라 예산이 고칠 최강선이 남아 있지 않고, el 0 은 예산을 360 배까지 올려도 최강선이 창 안을 옮겨 다닌다.\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 280,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"2. 두 열의 평균 방식이 달라 정적 성분의 상승은 66.55 ~ 70.03 dB 구간으로, 변조 성분의 이동은 -2.47 ~ +1.01 dB 구간으로 묶인다 — 비를 끌어내린 것은 분모다.\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 411,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"그래서 정적 성분의 상승은 66.55 ~ 70.03 dB 구간이고, 비가 -69.02 dB 내려간 것과 합치면 변조 성분의 이동은 -2.47 ~ +1.01 dB 구간이다 — 분자는 몇 dB 안에 갇혀 있고, 수십 dB 움직인 것은 분모다.\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 531,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| [^58] | `outputs/diag_physics_paths_el-90.json` | `_meta.spp` | 11111111 |\\n\""
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 556,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"1. 규칙 예산 11.1M · 앙각 0° 에서 상한 위 몫은 물리 끔 0.290 [^59] · 물리 켬 0.831 [^60] 다.\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 626,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| PathSolver | 11.1M | 끔 | 9 개 [^70] | 0.29027 [^59] |\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 627,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| PathSolver | 11.1M | 켬 | 5 개 [^71] | 0.83078 [^60] |\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 685,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"물리를 켜면 광선 하나가 굴절 · 회절 · 모서리회절 · 3 회 반사로 갈라진다. 앙각 0° 에서 자세당 경로 중앙값은 11.1M 에서 9 [^70] → 5 [^71], 250M 에서 127 [^62] → 33 [^63] 로 줄어든다.\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 687,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"부호는 앙각이 정한다 — 같은 11.1M 짝이 앙각 −30° 에서는 6 [^80] → 7 [^81] 로 오히려 는다. 굶기는 스위치는 굴절 하나이고, 회절만 켜면 나딧에서 경로가 늘어난다[^82].\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 691,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"그래서 11.1M 짝의 0.290 [^59] 대 0.831 [^60] 는 스위치와 경로 수가 함께 움직인 값이고, 같은 예산에서 스위치만 남긴 크기는 위 표의 뺄셈 열이다.\\n\""
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 702,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 앙각 0° · 11.1M | 1549.9 s [^83] | 3361.5 s [^84] | 2.17 배 |\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 703,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 앙각 −90° · 11.1M | 1818.0 s [^85] | 3621.6 s [^86] | 1.99 배 |\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 750,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 칸 19 개 | 우리 커널 · 11.1M · 250M 이 각각 앙각 여섯 점, 그리고 물리 팔의 앙각 0° 한 칸 |\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 957,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"위 줄은 우리 커널 · 물리를 끈 PathSolver · 물리를 켠 PathSolver(11.1M) 이고, 가운데 줄은 광선 250M 에 물리를 켠 판과 덱 3 · 15 m 판, 아래 줄이 덱 40 m 판이다. 흰 점선은 날개끝 속도가 정하는 예측 상한이다. 우리 팔과 덱 세 판은 그 선 아래에 같은 간격의 빗살을 세우고, 물리를 끈 PathSolver 는 그 위로 번진 얼룩을 얹는다…"
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 1024,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"물리를 켠 두 팔은 사다리 자체가 낮다 — 여덟 칸이 8.64 [^129]~13.26 dB [^130] (물리 켬 11.1M) 과 7.23 [^131]~12.99 dB [^132] (물리 켬 250M) 안에 다 들어간다. 그 폭은 우리 팔 18.60 dB 의 3 분의 1 아래이고, 상관 0.6903 [^102] · 0.6291 [^103] 이 그 평평함의 점수다.\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 1222,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 규칙 예산 11.1M · el +0 에서 상한 위 몫이 커진다 | el +0 에서 0.290 [^161] → 0.831 [^162] | **el +0 한 칸.** el −90 은 f_tip = 0 이라 이 몫이 정의되지 않고, 광선을 250M 으로 맞춘 짝에서는 같은 스위치가 0.00084 만 남긴다 |\\n\","
+   },
+   {
+    "file": "reports/17_engine-physics.ipynb",
+    "line": 1350,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| [^160] | `outputs/diag_physics_paths_el-90.json` | `_meta.spp` | 11111111 |\\n\","
+   },
+   {
+    "file": "reports/_parts/82_el-nadir-floor.ipynb",
+    "line": 145,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"같은 자리에서 위상 흔들림 p95 는 우리 팔 1.18° [^34], PathSolver 11.1M 73.73° [^35], 250M 21.68° [^36] 다. 광선을 늘린 팔에서 흔들림이 함께 줄어드는 축이 곧 표본화 축이다.\\n\","
+   },
+   {
+    "file": "reports/_parts/84_physics-denominator.ipynb",
+    "line": 18,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"2. 두 열의 평균 방식이 달라 정적 성분의 상승은 66.55 ~ 70.03 dB 구간으로, 변조 성분의 이동은 -2.47 ~ +1.01 dB 구간으로 묶인다 — 비를 끌어내린 것은 분모다.\\n\","
+   },
+   {
+    "file": "reports/_parts/84_physics-denominator.ipynb",
+    "line": 149,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"그래서 정적 성분의 상승은 66.55 ~ 70.03 dB 구간이고, 비가 -69.02 dB 내려간 것과 합치면 변조 성분의 이동은 -2.47 ~ +1.01 dB 구간이다 — 분자는 몇 dB 안에 갇혀 있고, 수십 dB 움직인 것은 분모다.\\n\","
+   },
+   {
+    "file": "reports/_parts/84_physics-denominator.ipynb",
+    "line": 269,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| [^40] | `outputs/diag_physics_paths_el-90.json` | `_meta.spp` | 11111111 |\""
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 17,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"1. 규칙 예산 11.1M · 앙각 0° 에서 상한 위 몫은 물리 끔 0.290 [^1] · 물리 켬 0.831 [^2] 다.\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 87,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| PathSolver | 11.1M | 끔 | 9 개 [^12] | 0.29027 [^1] |\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 88,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| PathSolver | 11.1M | 켬 | 5 개 [^13] | 0.83078 [^2] |\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 146,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"물리를 켜면 광선 하나가 굴절 · 회절 · 모서리회절 · 3 회 반사로 갈라진다. 앙각 0° 에서 자세당 경로 중앙값은 11.1M 에서 9 [^12] → 5 [^13], 250M 에서 127 [^4] → 33 [^5] 로 줄어든다.\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 148,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"부호는 앙각이 정한다 — 같은 11.1M 짝이 앙각 −30° 에서는 6 [^22] → 7 [^23] 로 오히려 는다. 굶기는 스위치는 굴절 하나이고, 회절만 켜면 나딧에서 경로가 늘어난다[^24].\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 152,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"그래서 11.1M 짝의 0.290 [^1] 대 0.831 [^2] 는 스위치와 경로 수가 함께 움직인 값이고, 같은 예산에서 스위치만 남긴 크기는 위 표의 뺄셈 열이다.\""
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 163,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 앙각 0° · 11.1M | 1549.9 s [^25] | 3361.5 s [^26] | 2.17 배 |\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 164,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 앙각 −90° · 11.1M | 1818.0 s [^27] | 3621.6 s [^28] | 1.99 배 |\\n\","
+   },
+   {
+    "file": "reports/_parts/85_physics-above-limit.ipynb",
+    "line": 211,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 칸 19 개 | 우리 커널 · 11.1M · 250M 이 각각 앙각 여섯 점, 그리고 물리 팔의 앙각 0° 한 칸 |\\n\","
+   },
+   {
+    "file": "reports/_parts/86_physics-deck-match.ipynb",
+    "line": 120,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"위 줄은 우리 커널 · 물리를 끈 PathSolver · 물리를 켠 PathSolver(11.1M) 이고, 가운데 줄은 광선 250M 에 물리를 켠 판과 덱 3 · 15 m 판, 아래 줄이 덱 40 m 판이다. 흰 점선은 날개끝 속도가 정하는 예측 상한이다. 우리 팔과 덱 세 판은 그 선 아래에 같은 간격의 빗살을 세우고, 물리를 끈 PathSolver 는 그 위로 번진 얼룩을 얹는다…"
+   },
+   {
+    "file": "reports/_parts/86_physics-deck-match.ipynb",
+    "line": 187,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"물리를 켠 두 팔은 사다리 자체가 낮다 — 여덟 칸이 8.64 [^33]~13.26 dB [^34] (물리 켬 11.1M) 과 7.23 [^35]~12.99 dB [^36] (물리 켬 250M) 안에 다 들어간다. 그 폭은 우리 팔 18.60 dB 의 3 분의 1 아래이고, 상관 0.6903 [^6] · 0.6291 [^7] 이 그 평평함의 점수다.\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 37,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 사다리 | 표적·기하·자세 격자·시드를 고정하고 자세당 광선 수만 11.1 M → 250 M → 1,000 M → 4,000 M 으로 올렸다 — 네 계단 모두 자세 4,096 개가 완결(`n_missing` = 0)이다 |\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 40,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 대조군 | 같은 사다리를 el −30 에서 세 계단(11.1 M · 250 M · 1,000 M) 돌렸다 |\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 104,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"**그림 1.** 광선을 360 배 늘리면 el 0 의 레벨과 박자는 각각 어디로 가는가?\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 130,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"최강선은 40~400 Hz 안에서 고른다(`benchmark/elevation_sweep_md.py:237`). 11.1 M 계단의 376.73 Hz [^5] 는 f_flash 의 3 배 자리(380.0 Hz)에서 한 칸 안이고, 250 M 계단의 50.27 Hz [^6] 는 빗살 밖의 창 아래 가장자리 값이다.\""
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 152,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"11.1 M 계단의 252.32 Hz [^10] 는 f_flash 의 두 배 자리다. 그 계단에서는 1 차 빗살이 2 차보다 -1.44 dB [^31] 라 최강선이 2 차로 넘어간다. 250 M 에서 그 차이가 +15.53 dB [^32] 로 뒤집히면서 최강선이 1 차로 돌아오고, 1,000 M 에서도 126.91 Hz [^33] 로 머문다.\\n\","
+   },
+   {
+    "file": "reports/_parts/87_budget-not-physics.ipynb",
+    "line": 156,
+    "tags": [
+     "11.1M_arm",
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"el −30 은 앙각 7 점 중 규칙 예산에서 최강선이 어긋나 있던 **유일한 자리**다. 나머지 앙각(−15·−45·−60·−75)은 11.1 M 에서 이미 126.45~126.85 Hz 라 예산이 고칠 최강선이 남아 있지 않고, el 0 은 예산을 360 배까지 올려도 최강선이 창 안을 옮겨 다닌다.\\n\","
+   },
+   {
+    "file": "reports/_parts/88_engine-claim-scope.ipynb",
+    "line": 79,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| 규칙 예산 11.1M · el +0 에서 상한 위 몫이 커진다 | el +0 에서 0.290 [^19] → 0.831 [^20] | **el +0 한 칸.** el −90 은 f_tip = 0 이라 이 몫이 정의되지 않고, 광선을 250M 으로 맞춘 짝에서는 같은 스위치가 0.00084 만 남긴다 |\\n\","
+   },
+   {
+    "file": "reports/_parts/88_engine-claim-scope.ipynb",
+    "line": 207,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"| [^18] | `outputs/diag_physics_paths_el-90.json` | `_meta.spp` | 11111111 |\\n\","
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 32,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 팔 | `ours`(SBR+PO, 얼린 격자 λ/12) · `sionna`(PathSolver 11.1 M 광선) · `sionna_p250000000`(250 M 광선) |"
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 107,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| **G1** | `f_flash` 가 앙각에 안 변한다 | 6 앙각 전부 126.67 ± 2 Hz | ours **6/6**, 최악 편차 **0.51 Hz** · 250 M **5/6**(el 0 만 실패, 76.4 Hz) · 11.1 M **4/6** | ✅ ours 합격 |"
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 108,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| **G2** | 관측 대역 상단이 `cos(el)` 을 따른다 | 상관 ≥ 0.99 | ⚠ **잣대를 바꿨다**(아래) — 굴러떨어짐 ours **24.0 dB**(최소 12.3) · 250 M 12.3(최소 −0.1) · 11.1 M 9.9(최소 5.2) | ⚠ 부분 |"
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 111,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| **G5** | 경로 수가 앙각에 어떻게 걸리나 | 기록만 | 11.1 M **6 → 13** · 250 M **127 → 352**(밑에서 볼수록 증가) | ✅ 교란 확인 |"
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 192,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| PathSolver 11.1 M | +12.9 dB | +13.0 dB |"
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 212,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "· −30°: 11.1 M 이 **252.32 Hz**(2 배 고조파를 집었다) → 250 M 에서 **126.61 Hz** 로 고쳐진다. **예산 문제.**"
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 213,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "· el 0: 11.1 M **376.73 Hz**, 250 M **50.27 Hz** — 예산을 22.5 배 올려도 안 고쳐진다."
+   },
+   {
+    "file": "docs/CH1_ELEVATION_FINDINGS.md",
+    "line": 216,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "· 그 자리에서 변조는 11.1 M 이 반송파보다 **−83.56 dB**, 250 M 이 **−39.65 dB** 다"
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 104,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "- **근거** — `json`: outputs/cpi_guard_sweep.json : verdict.artifact · structural.s1_equal_cpi_penalty · structural.s2_alias_floor · `numbers`: {\"blind_hard_G1_at_100ms\": 0.6361111111111111, \"blind_hard_G1_at_200ms\": 0.…"
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 312,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "- **수치** `{\"5G_G1\": 0.8611111111111112, \"WiFi_W1\": 0.0, \"LTE_L1\": 0.0}`"
+   },
+   {
+    "file": "docs/ENGINE_PHYSICS_MATRIX.md",
+    "line": 234,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "⭐ **Sionna 팔은 나딧 질문에 답할 수 없다.** 그 팔의 자체 표본잡음(11.1 M spp 에서 AC/DC −0.11 dB, 2.5억 spp 로도 −11.35 dB)이 우리 팔이 재는 잔여(−38.3 dB)보다 **27~38 dB 크다**. 물리를 켜고 끄는 것과 무관하게, 이 예산에서는 신호가 잡음 아래 있다."
+   },
+   {
+    "file": "docs/EXPERIMENT_MAP.md",
+    "line": 15,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "평면파(−90°) · 광선 예산 사다리(10 m: 11.1M→4G) · 시드 8종(40 m) · 거리(10↔15 m)"
+   },
+   {
+    "file": "docs/HARVEST_AUDIT_AND_RAYBUDGET.md",
+    "line": 50,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "- **11.1 M 과 250 M 의 레벨이 0.003 dB 차이**(−59.6543 vs −59.6570). 다른 6 앙각은 1.48~12.55 dB 움직인다."
+   },
+   {
+    "file": "docs/HARVEST_AUDIT_AND_RAYBUDGET.md",
+    "line": 55,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "> **경로를 223 배 더 모았는데 답이 0.03 dB 도 안 움직인다.** 이것이 「광선은 표본을 사지 물리를 못 산다」 의 가장 깨끗한 증거다."
+   },
+   {
+    "file": "docs/HARVEST_AUDIT_AND_RAYBUDGET.md",
+    "line": 256,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "> **두 감사의 결론은 둘 다 살아남았다. 죽은 것은 「어디서나」 라는 말과, 검정력 없는 잣대와, 「이만하면 됐다」 는 문장 하나다. 그리고 이 라운드가 새로 얻은 가장 단단한 사실은 — 경로를 223 배 더 모아도 el 0 의 답이 0.03 dB 도 안 움직인다는 것이다.**"
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 258,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "### 4-1. \"셸 0.28 ↔ 프롭 0.25 차이는 0.03 dB 미만\" 주장 검증"
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 260,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "프롭 |Gamma| 를 0.25→0.28(=셸과 동일)로 올렸을 때 밴드평균 sigma 변화의 **최대 절대값**은 **0.033 dB** (mavic4pro, WiFi 5.21 GHz) 이고, 9개 (기종x밴드) 중 2개가 0.03 dB 이상이다. ⚠ **주장이 아슬아슬하게 깨진다** — 최대치가 0.03 dB 의 1.11배다. 결론(‘무시할 만하다’)은 살아남지만 **note 의 '…"
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 263,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "⭐ **정작 걱정했어야 할 파라미터는 프롭이 아니라 카메라다.** prop 0.25↔0.28 은 최대 0.033 dB 인데, 똑같이 출처 없는 `camera_assembly` 0.85 를 그 불확실 구간(0.5~1.0)에서 흔들면 최대 **1.81 dB** 움직인다 — 54배다. note 는 프롭의 0.03 dB 를 길게 변명하면서 카메라의 1 dB 대는 한 줄도 안 적었다."
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 370,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "- 영향: 0.03 dB 주장 자체는 impact_sweep 이 검증한다(아래). 즉 **결론은 살아남고 근거가 틀렸다**."
+   },
+   {
+    "file": "docs/MESH_VALIDATION.md",
+    "line": 147,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 방위 표본수 | 360↔720 최대 0.03 dB | 배제 |"
+   },
+   {
+    "file": "docs/NEXT_EXPERIMENTS.md",
+    "line": 37,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 1 | **R17 예산 사다리 AC 재독** | 광선을 더 부으면 마이크로도플러 구조가 생기나 | **0** (CPU 3분) | 물리끔 4 계단(11.1M·250M·1G·4G, 전부 d1·4096)에서 ① 상한 위 **바닥 절대전력**이 1/spp 를 따라가나(4배마다 −6 dB) ② **빗살 선 전력**은 spp 에 불변인가. ①성립·②불변 ⇒ 「구조 없음」이 아니라 **「이 예산…"
+   },
+   {
+    "file": "docs/NEXT_EXPERIMENTS.md",
+    "line": 68,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| **R17 물리켬 사다리** | «같은 축» 으로 취급 | — | **«깊이·자세가 섞여 예산 축이 아니다»**(11.1M·250M 은 d3·4096, 4e9 는 d1·8192) | 렌즈 3 채택 — 헤드라인은 **물리 끔 4 계단만**, 물리 켬은 별도 축으로 내린다 |"
+   },
+   {
+    "file": "docs/NEXT_EXPERIMENTS.md",
+    "line": 81,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "- 입력: `sionna/el{+0..-90}`(11.1M) · `sionna_p250000000/el{...}` · `sionna_p1000000000/el{...}` ·"
+   },
+   {
+    "file": "docs/NEXT_EXPERIMENTS.md",
+    "line": 88,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "- 부수 산출: **11.1M 값을 인용하는 리포트 위치 목록**(재인용 금지 표시)."
+   },
+   {
+    "file": "docs/PLAN_VOLUMES_16_17.md",
+    "line": 416,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 1 | `… : _meta.{n_poses,spp,range_m,fc_hz}` = 20 / 11111111 / 10.0 / 3.5e9 | ⚠ 20 자세 판이라 스펙트럼 주장은 못 한다 |"
+   },
+   {
+    "file": "docs/PRIOR_WORK_JIHYUCK.md",
+    "line": 227,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| **D11** | TE 전용 = 문서화 안 된 H-편파 가정 | 중간 | 금속 0.00~0.03 dB(무해). 유전체는 H-pol +0.1~0.9 dB(대체로 맞음), **V-pol 이면 +4.7~+12.3 dB**, 피치 ≥20° 면 H-pol 에서도 +2.0~6.3 dB `[전달]`. 그리고 이 데이터는 전체 샘플의 **7.1~18.7 %** 가 20° 초과 | TE/TM 둘 다…"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 52,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| sionna 물리 **끔** 11.1M | 12 | 35.4 | 34.9 | 0.6961 |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 53,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| sionna 물리 **켬** 11.1M | **2** | 13.1 | 10.0 | 0.6903 |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 141,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 3 | ⭐⭐**앙각 스윕 본편 완결** — `ours` · `sionna`(11.1M) · `sionna_p250000000` 각 7 앙각 | `elevation_sweep_md.{json,npz}` |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 142,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 4 | ⭐⭐**el 0 예산 사다리 완결** — 11.1M · 250M · 1,000M · 4,000M 네 계단 | 같은 원장 |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 152,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 11.1M | 9 | 376.73 | +250.06 | −59.65 |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 159,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "반면 el −30 은 11.1M 252.32 → 250M 126.61 로 **고쳐졌다**. 그건 예산 문제였다."
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 189,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "# 물리 켠 PathSolver (11.1M 광선, 앙각 7 점 × 샤드 8)"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 206,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| 11.1M 광선 | 1,378 MiB | 0.44 초(물리 끔) / **1.55 초(물리 켬)** | 8~14 |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 246,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "지금 두 점(11.1M −0.11 dB → 250M −11.35 dB)이라 **1/N 잡음**과 **잡음+물리 바닥**이 안 갈린다."
+   },
+   {
+    "file": "docs/RESUME_STATUS.md",
+    "line": 236,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "앙각에 따라» 도 틀렸다 — 9.58 은 11.1 M, 0.62 는 250 M 이고 **앙각이 똑같이 0°** 다."
+   },
+   {
+    "file": "docs/RESUME_STATUS.md",
+    "line": 259,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "| **sionna** (11.1 M) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **7/7 완결** |"
+   },
+   {
+    "file": "docs/RESUME_STATUS.md",
+    "line": 274,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "11.1 M → 250 M → 1,000 M → 4,000 M 네 계단 모두 8/8. 결과는 §4-라 표."
+   },
+   {
+    "file": "docs/RETRACTION_LOG.md",
+    "line": 167,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "→ 각도점당 **1.94 ms (RT) → 52.8 ms (+EV/VE)**. 우리 per-pose 값 옆에 0.7 s 를 놓으면 **360배 틀린다.**"
+   },
+   {
+    "file": "src/build_part12_elevation.py",
+    "line": 1113,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"PathSolver 11.1M \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 516,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"위 줄은 우리 커널 · 물리를 끈 PathSolver · 물리를 켠 PathSolver(11.1M) 이고, \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 595,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "+ \"(물리 켬 11.1M) 과 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 810,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"{_S88_DP.num('_meta.spp', 11111111, '{:,.0f}')} 고정\"],"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 811,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "[\"규칙 예산 11.1M · el +0 에서 상한 위 몫이 커진다\","
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 999,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "#: 대조 — 같은 한 계단(11.1 M → 250 M)이 다른 앙각에서 레벨을 얼마나 옮기나"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1049,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"el 0 의 레벨은 광선 11.1 M 에서 {_n(f'{_L0[0]}.level_db', unit='dB')}, \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1050,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"4,000 M 에서 {_n(f'{_L0[3]}.level_db', unit='dB')} 로 0.03 dB 폭 안에 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1080,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"표적·기하·자세 격자·시드를 고정하고 자세당 광선 수만 11.1 M → 250 M → \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1090,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"같은 사다리를 el −30 에서 세 계단(11.1 M · 250 M · 1,000 M) 돌렸다\"),"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1125,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "caption(1, \"광선을 360 배 늘리면 el 0 의 레벨과 박자는 각각 어디로 가는가?\"), \"\","
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1163,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"11.1 M 계단의 \" + _n(f\"{_L0[0]}.track.beat_hz\", unit=\"Hz\")"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1172,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "md(\"11.1 M 계단의 \" + _n(f\"{_L30[0]}.track.beat_hz\", unit=\"Hz\")"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1183,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"나머지 앙각(−15·−45·−60·−75)은 11.1 M 에서 이미 126.45~126.85 Hz 라 예산이 고칠 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1184,
+    "tags": [
+     "budget_360x"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"최강선이 남아 있지 않고, el 0 은 예산을 360 배까지 올려도 최강선이 창 안을 옮겨 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1643,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "(\"PathSolver\", \"11.1M\", \"끔\", W, \"sionna/el+0\", 9, 0.29027),"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1644,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "(\"PathSolver\", \"11.1M\", \"켬\", W, \"sionna_phys/el+0\", 5, 0.83078),"
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1687,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"규칙 예산 11.1M · 앙각 0° 에서 상한 위 몫은 물리 끔 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1806,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"에서 자세당 경로 중앙값은 11.1M 에서 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1812,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"부호는 앙각이 정한다 — 같은 11.1M 짝이 앙각 −30° 에서는 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1822,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "f\"그래서 11.1M 짝의 \""
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1829,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "[[\"앙각 0° · 11.1M\","
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1833,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "[\"앙각 −90° · 11.1M\","
+   },
+   {
+    "file": "src/build_part13_engine_physics.py",
+    "line": 1888,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"우리 커널 · 11.1M · 250M 이 각각 앙각 여섯 점, 그리고 물리 팔의 앙각 0° 한 칸\"],"
+   },
+   {
+    "file": "src/experiment_freespace_sigma.py",
+    "line": 502,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "· div 교차(12↔24) 방위평균 σ 차이 = **격자 이산화 셀오차**(★report2: div 12↔16 방위평균 0.03 dB)."
+   },
+   {
+    "file": "src/materials.py",
+    "line": 90,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "\"(±2~3 dB)·프롭 면적 비중 때문에 총 RCS 에 0.03 dB 미만이다. **색=재질(정밀), |Γ|=대표값**.\"),"
+   },
+   {
+    "file": "src/rcs_po.py",
+    "line": 250,
+    "tags": [
+     "converged_0p03dB"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "· **개별적으로는 수치 아티팩트**다 — 메쉬 이산화를 λ/7→λ/12 로 바꾸면 방위평균은 0.03 dB"
+   },
+   {
+    "file": "src/viz_ch1_el0_budget_ladder.py",
+    "line": 43,
+    "tags": [
+     "11.1M_arm"
+    ],
+    "claims_convergence": false,
+    "reuse_ban": null,
+    "excerpt": "RULE_SPP = int(M[\"sionna_spp\"])            # (R/3)² × 1M 규칙값 — 10 m 에서 11.1 M"
+   }
+  ]
+ },
+ "corrections": [
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md:22 (①TL;DR)",
+   "old": "요동(AC)은 광선을 4 배 할 때마다 +3 dB 로 전혀 안 수렴했다",
+   "new": "요동(AC)은 광선을 4 배 할 때마다 +3.2 dB (95 % CI +1.9~+4.5) 로 오르며 수렴하지 않았다 — ⭐다만 그 상승은 **날개끝 상한 아래**에서만 일어난다. 상한 **위**(바닥·빗살)는 예산에 불변이다(바닥 -0.07 · 빗살 +0.06 dB/옥타브). 그리고 40 m 사다리(8 계단·시드 재현)에서는 AC 조차 평평하다(+0.42 dB/옥타브) — 거기서 오르는 것은 DC 뿐이다(+2.36).",
+   "why_ko": "크기(+3 dB/4배)는 맞다. 틀린 것은 **귀속**이다 — 그 상승은 마이크로도플러가 자라는 것이 아니라 상한 아래 에코가 자라는 것이고, 구조가 사는 자리(상한 위)는 360 배를 부어도 안 움직인다."
+  },
+  {
+   "where": "docs/NEXT_EXPERIMENTS.md:37 (순위 표 R17 판정 기준)",
+   "old": "①성립·②불변 ⇒ 「구조 없음」이 아니라 「이 예산의 MC 바닥 위로는 구조가 없다」로 문장을 고친다",
+   "new": "①은 **불성립**이다 — 상한 위 바닥은 1/spp 를 안 따라간다(내려가지 않고 평평하다). 그러므로 「MC 바닥」이라는 이름을 쓸 수 없다. 옳은 문장은 「상한 위 내용물은 광선 수에 **불변**이다 — 더 사도 바닥이 안 내려가고 구조도 안 생긴다」다.",
+   "why_ko": "바닥의 회귀 기울기가 0 을 덮고 −3.01 을 안 덮는다(두 사다리 모두)."
+  },
+  {
+   "where": "docs/RESUME.md:158",
+   "old": "레벨은 360 배 예산에 0.03 dB 안에서 같은데(수렴) 박자는 헤맨다 — «수렴했는데 틀렸다».",
+   "new": "**정지 성분(DC) 레벨**은 360 배 예산에 0.03 dB 안에서 같은데(수렴) 박자는 헤맨다 — «수렴했는데 틀렸다». ⚠그 수렴은 **el 0 의 DC 한 칸**이다. 같은 360 배에서 DC 제거 AC 는 el 0 에서 +52.8 dB 움직인다.",
+   "why_ko": "「수렴」이 마이크로도플러까지 덮는 말로 재인용되는 것을 막는다."
+  },
+  {
+   "where": "reports/16_elevation-coverage.ipynb 절 5 · reports/_parts/87_budget-not-physics.ipynb · reports/README.md:212 · reports/01_map.ipynb:274",
+   "old": "el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다",
+   "new": "(문장 자체는 맞다 — 정지 성분으로 한정돼 있다) ⭐**한 줄 덧붙임**: 같은 360 배에서 DC 제거 AC 는 el 0 에서 +52.8 dB 오른다. 정지 성분의 수렴은 마이크로도플러의 수렴이 아니다.",
+   "why_ko": "원문은 틀리지 않았지만, 이 문장이 덱·요약에서 «예산은 충분하다» 로 번역돼 재인용되는 경로를 막는다."
+  },
+  {
+   "where": "benchmark/verify_el0_acdc_lens3.py 의 verdict_ko (outputs/verify_el0_acdc_lens3.json)",
+   "old": "표본화 잡음이다. 250 M 이상에서 변동 스펙트럼은 백색이고, AC 전력은 경로 수에 비례한다. 11.1 M 이 갖고 있던 빗살 구조는 예산을 올리면 사라진다.",
+   "new": "(el 0 에 한해 맞다) ⭐**적용 범위 단서 필요**: 그 백색화는 **el 0 전용**이다. el −15·−45·−60 에서는 예산을 4e9 까지 올려도 상한 위 빗살 몫이 74~89 % 로 백색 중립값의 6 배 넘게 남는다.",
+   "why_ko": "같은 원장을 절대 전력으로 다시 읽으면 백색화는 정면에서만 일어난다."
+  }
+ ]
+}

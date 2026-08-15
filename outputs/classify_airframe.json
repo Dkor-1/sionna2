@@ -1,0 +1,1520 @@
+{
+ "_meta": {
+  "generator": "benchmark/classify_airframe.py",
+  "question_ko": "마이크로도플러 무늬(박자 빗살)만 보고 기체를 맞히나 — 분류 첫 실험",
+  "sources": {
+   "ledger_json": "outputs/elevation_sweep_md.json",
+   "ledger_npz": "outputs/elevation_sweep_md.npz",
+   "templates": "src/drones.py DRONES (스펙에서 계산, 데이터에 맞추지 않음)"
+  },
+  "prf_hz": 19700.0,
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085655,
+  "elevations_deg": [
+   0.0,
+   -15.0,
+   -30.0,
+   -45.0,
+   -60.0,
+   -75.0,
+   -90.0
+  ],
+  "window": {
+   "n_windows": 16,
+   "win_len_poses": 512,
+   "nfft_zeropad": 8192,
+   "grid_hz": 2.405,
+   "why_zeropad_ko": "512점 원격자 38.5 Hz 로는 ±8 Hz 빗살 창에 빈이 안 들어간다 — 제로패딩은 정보를 만들지 않고 스펙트럼을 보간만 한다"
+  },
+  "comb_tol_hz": 8.0,
+  "ac_min_hz": 8.0,
+  "dc_note_ko": "⭐창별로 시계열 평균(DC=정지성분)을 빼고 나서 잰다 — DC 를 끼우면 수 dB 아티팩트",
+  "null_seed": 20260815,
+  "null_mechanism_ko": "섞기로 스펙트럼이 백색화되면 raw 빗살 몫 ≈ 덮개율이고, 덮개율은 f_flash 최소(=이빨 최다)인 matrice4e 가 최대 → 널은 matrice4e 고정 예측으로 쏠려 균형 3클래스에서 정답률 1/3 이 된다",
+  "el_minus90_note_ko": "−90°(직하방)는 f_tip=0 이라 f_tip 기반 대역 잣대가 퇴화한다. 본 분류기는 모든 앙각에서 전체 AC 빗살 몫으로 재므로 식은 정의되지만, 물리적으로 마이크로도플러가 원리적으로 사라지는 앙각이라 −90° 성적은 잔결 구조만 시험한다 — 별도 앙각별 표에서 확인하라",
+  "chance_level": 0.3333,
+  "elapsed_s": 0.4
+ },
+ "arms_inventory": {
+  "ours": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 7
+  },
+  "ours_free_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "ours_mini5pro_r15_n8192": {
+   "airframe": "mini5pro",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "ours_ptd_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "ours_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "ours_r15_n8192_az45": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-30",
+    "el-60",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 4
+  },
+  "ours_r15_n8192_div24": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 4
+  },
+  "ours_r15_n8192_pw": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "ours_s1000plus_r15_n8192": {
+   "airframe": "s1000plus",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 7
+  },
+  "sionna_p1000000000": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 7
+  },
+  "sionna_p250000000": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 7
+  },
+  "sionna_p250000000_phys": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-45",
+    "el-60",
+    "el-75"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 5
+  },
+  "sionna_p4000000000_mini5pro_r15_n8192_d1": {
+   "airframe": "mini5pro",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_onlydepth3_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-30",
+    "el-60",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 4
+  },
+  "sionna_p4000000000_onlydiffr_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_onlyedge_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-30",
+    "el-60",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 4
+  },
+  "sionna_p4000000000_onlyrefr_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_partsnoprop_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_partsprop_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_phys_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_phys_partsprop_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_phys_r15_n8192_az45_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-30",
+    "el-60",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 4
+  },
+  "sionna_p4000000000_phys_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_phys_r15_n8192_d2": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_phys_s1000plus_r15_n8192_d1": {
+   "airframe": "s1000plus",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_r15_n8192_az45_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-30",
+    "el-60",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 4
+  },
+  "sionna_p4000000000_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_s1000plus_r15_n8192_d1": {
+   "airframe": "s1000plus",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_stockdef_r15_n8192": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_swR0D0E0F0_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D0E0F0_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E0F0_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E0F0_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E0F1_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E1F0_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E1F0_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E1F1_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR0D1E1F1_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D0E0F0_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1": {
+   "airframe": "mini5pro",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_swR1D0E0F1_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1": {
+   "airframe": "s1000plus",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 7
+  },
+  "sionna_p4000000000_swR1D1E0F0_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D1E0F0_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D1E0F1_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D1E0F1_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D1E1F0_r15_n8192_d1": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D1E1F0_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_p4000000000_swR1D1E1F1_r15_n8192_d3": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el-30"
+   ],
+   "n_poses": 8192,
+   "n_elevations": 1
+  },
+  "sionna_phys": {
+   "airframe": "matrice4e",
+   "elevations": [
+    "el+0",
+    "el-15",
+    "el-30",
+    "el-45",
+    "el-60",
+    "el-75",
+    "el-90"
+   ],
+   "n_poses": 4096,
+   "n_elevations": 7
+  }
+ },
+ "chosen_arms": {
+  "ours": {
+   "matrice4e": "ours_r15_n8192",
+   "mini5pro": "ours_mini5pro_r15_n8192",
+   "s1000plus": "ours_s1000plus_r15_n8192"
+  },
+  "sionna": {
+   "matrice4e": "sionna_p4000000000_r15_n8192_d1",
+   "mini5pro": "sionna_p4000000000_mini5pro_r15_n8192_d1",
+   "s1000plus": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+  }
+ },
+ "airframes": [
+  "mini5pro",
+  "matrice4e",
+  "s1000plus"
+ ],
+ "templates": {
+  "mini5pro": {
+   "prop_blades": 2,
+   "hover_rpm": 5500,
+   "prop_dia_mm": 152.4,
+   "f_flash_hz_spec": 183.333,
+   "f_tip_hz_spec_el0": 1024.8,
+   "comb_coverage_frac": 0.086
+  },
+  "matrice4e": {
+   "prop_blades": 2,
+   "hover_rpm": 3800,
+   "prop_dia_mm": 274,
+   "f_flash_hz_spec": 126.667,
+   "f_tip_hz_spec_el0": 1272.9,
+   "comb_coverage_frac": 0.1251
+  },
+  "s1000plus": {
+   "prop_blades": 2,
+   "hover_rpm": 4467,
+   "prop_dia_mm": 381,
+   "f_flash_hz_spec": 148.9,
+   "f_tip_hz_spec_el0": 2080.7,
+   "comb_coverage_frac": 0.1073
+  }
+ },
+ "crosscheck_vs_ledger_rows": {
+  "per_arm": {
+   "ours_mini5pro_r15_n8192": {
+    "airframe": "mini5pro",
+    "n_rows": 7,
+    "beat_hz_row_median": 183.07,
+    "f_flash_hz_spec": 183.333,
+    "beat_minus_spec_hz": -0.26,
+    "f_tip_absdiff_hz_max": 0.071
+   },
+   "ours_r15_n8192": {
+    "airframe": "matrice4e",
+    "n_rows": 7,
+    "beat_hz_row_median": 126.61,
+    "f_flash_hz_spec": 126.667,
+    "beat_minus_spec_hz": -0.05,
+    "f_tip_absdiff_hz_max": 0.072
+   },
+   "ours_s1000plus_r15_n8192": {
+    "airframe": "s1000plus",
+    "n_rows": 7,
+    "beat_hz_row_median": 149.0,
+    "f_flash_hz_spec": 148.9,
+    "beat_minus_spec_hz": 0.1,
+    "f_tip_absdiff_hz_max": 0.07
+   },
+   "sionna_p4000000000_mini5pro_r15_n8192_d1": {
+    "airframe": "mini5pro",
+    "n_rows": 7,
+    "beat_hz_row_median": 183.97,
+    "f_flash_hz_spec": 183.333,
+    "beat_minus_spec_hz": 0.64,
+    "f_tip_absdiff_hz_max": 0.071
+   },
+   "sionna_p4000000000_r15_n8192_d1": {
+    "airframe": "matrice4e",
+    "n_rows": 7,
+    "beat_hz_row_median": 126.57,
+    "f_flash_hz_spec": 126.667,
+    "beat_minus_spec_hz": -0.1,
+    "f_tip_absdiff_hz_max": 0.072
+   },
+   "sionna_p4000000000_s1000plus_r15_n8192_d1": {
+    "airframe": "s1000plus",
+    "n_rows": 7,
+    "beat_hz_row_median": 149.0,
+    "f_flash_hz_spec": 148.9,
+    "beat_minus_spec_hz": 0.1,
+    "f_tip_absdiff_hz_max": 0.07
+   }
+  },
+  "f_tip_absdiff_hz_max_overall": 0.072,
+  "note_ko": "beat 중앙값 사용 — 원장 자체 추적기가 일부 앙각에서 고조파(2×)나 하위 성분을 무는 행이 있어(예: mini el−15 의 367 Hz) 중앙값으로 대조한다."
+ },
+ "results": {
+  "ours": {
+   "per_elevation": {
+    "+0": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       15,
+       1
+      ]
+     ],
+     "null_accuracy": 0.3333
+    },
+    "-15": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       15,
+       1
+      ]
+     ],
+     "null_accuracy": 0.3542
+    },
+    "-30": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       14,
+       2
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ]
+     ],
+     "null_accuracy": 0.3333
+    },
+    "-45": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ]
+     ],
+     "null_accuracy": 0.3333
+    },
+    "-60": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ]
+     ],
+     "null_accuracy": 0.3333
+    },
+    "-75": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       14,
+       2
+      ]
+     ],
+     "null_accuracy": 0.375
+    },
+    "-90": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       14,
+       2
+      ],
+      [
+       0,
+       15,
+       1
+      ]
+     ],
+     "null_accuracy": 0.3125
+    }
+   },
+   "aggregate_confusion": [
+    [
+     112,
+     0,
+     0
+    ],
+    [
+     0,
+     112,
+     0
+    ],
+    [
+     0,
+     0,
+     112
+    ]
+   ],
+   "aggregate_accuracy": 1.0,
+   "null_aggregate_confusion": [
+    [
+     0,
+     108,
+     4
+    ],
+    [
+     0,
+     109,
+     3
+    ],
+    [
+     0,
+     107,
+     5
+    ]
+   ],
+   "null_aggregate_accuracy": 0.3393,
+   "n_windows_total": 336,
+   "decision_margin_median": 0.1312
+  },
+  "sionna": {
+   "per_elevation": {
+    "+0": {
+     "confusion": [
+      [
+       3,
+       13,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 0.7292,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       14,
+       2
+      ],
+      [
+       0,
+       12,
+       4
+      ]
+     ],
+     "null_accuracy": 0.375
+    },
+    "-15": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       14,
+       2
+      ]
+     ],
+     "null_accuracy": 0.3542
+    },
+    "-30": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ]
+     ],
+     "null_accuracy": 0.3333
+    },
+    "-45": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       14,
+       2
+      ],
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       13,
+       3
+      ]
+     ],
+     "null_accuracy": 0.375
+    },
+    "-60": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       14,
+       2
+      ]
+     ],
+     "null_accuracy": 0.3542
+    },
+    "-75": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       0,
+       16
+      ]
+     ],
+     "accuracy": 1.0,
+     "null_confusion": [
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ]
+     ],
+     "null_accuracy": 0.3333
+    },
+    "-90": {
+     "confusion": [
+      [
+       16,
+       0,
+       0
+      ],
+      [
+       0,
+       16,
+       0
+      ],
+      [
+       0,
+       5,
+       11
+      ]
+     ],
+     "accuracy": 0.8958,
+     "null_confusion": [
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       15,
+       1
+      ],
+      [
+       0,
+       15,
+       1
+      ]
+     ],
+     "null_accuracy": 0.3333
+    }
+   },
+   "aggregate_confusion": [
+    [
+     99,
+     13,
+     0
+    ],
+    [
+     0,
+     112,
+     0
+    ],
+    [
+     0,
+     5,
+     107
+    ]
+   ],
+   "aggregate_accuracy": 0.9464,
+   "null_aggregate_confusion": [
+    [
+     0,
+     108,
+     4
+    ],
+    [
+     0,
+     106,
+     6
+    ],
+    [
+     0,
+     100,
+     12
+    ]
+   ],
+   "null_aggregate_accuracy": 0.3512,
+   "n_windows_total": 336,
+   "decision_margin_median": 0.13
+  }
+ },
+ "whole_series_crosscheck": {
+  "ours": {
+   "mini5pro": {
+    "el+0": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-15": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-30": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-45": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-60": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-75": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-90": {
+     "pred": "mini5pro",
+     "correct": true
+    }
+   },
+   "matrice4e": {
+    "el+0": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-15": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-30": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-45": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-60": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-75": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-90": {
+     "pred": "matrice4e",
+     "correct": true
+    }
+   },
+   "s1000plus": {
+    "el+0": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-15": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-30": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-45": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-60": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-75": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-90": {
+     "pred": "s1000plus",
+     "correct": true
+    }
+   },
+   "_accuracy": 1.0
+  },
+  "sionna": {
+   "mini5pro": {
+    "el+0": {
+     "pred": "matrice4e",
+     "correct": false
+    },
+    "el-15": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-30": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-45": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-60": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-75": {
+     "pred": "mini5pro",
+     "correct": true
+    },
+    "el-90": {
+     "pred": "mini5pro",
+     "correct": true
+    }
+   },
+   "matrice4e": {
+    "el+0": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-15": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-30": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-45": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-60": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-75": {
+     "pred": "matrice4e",
+     "correct": true
+    },
+    "el-90": {
+     "pred": "matrice4e",
+     "correct": true
+    }
+   },
+   "s1000plus": {
+    "el+0": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-15": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-30": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-45": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-60": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-75": {
+     "pred": "s1000plus",
+     "correct": true
+    },
+    "el-90": {
+     "pred": "s1000plus",
+     "correct": true
+    }
+   },
+   "_accuracy": 0.9524
+  }
+ },
+ "confusion_layout": "행=정답 기체, 열=예측 기체, 순서=airframes"
+}
