@@ -373,7 +373,10 @@ def mechanism_row():
     }
     n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
     fig, ax = plt.subplots(1, 3, figsize=(27.5, 4.7), sharex=True, sharey=True)
-    for c, (arm, nm) in enumerate(((A_FULL, "Full scene"), (A_ROT, "Propellers only"),
+    #: ⭐패널 제목에 «spinning» 을 명시한다(사용자 지적 2026-08-15) — 세 판 모두 같은
+    #  회전 시계열을 돌렸고, 로터만 판의 박자는 그 회전이 만든 것임이 그림에서 읽혀야 한다.
+    for c, (arm, nm) in enumerate(((A_FULL, "Full scene"),
+                                   (A_ROT, "Propellers only, still spinning"),
                                    (A_BODY, "Body only"))):
         a = ax[c]
         E = Es[arm][n0:n0 + nz]
