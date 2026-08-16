@@ -502,53 +502,107 @@ def fig_tri_quality():
 #  12) 파이프라인 지도 — 자료 → CAD → 검증
 # --------------------------------------------------------------------------- #
 def fig_pipeline_map():
-    fig, ax = plt.subplots(figsize=(13, 6.2))
-    ax.set_xlim(0, 13)
-    ax.set_ylim(0, 10)
+    """4 layers: sources → build → checkers → ledgers.
+
+    ⭐ The two red arrows are the point of this figure. Official manufacturer CAD does
+    feed the BUILD layer for two airframes (Matrice 4E constants, Mini 2 constants), so
+    a re-check against the same CAD reads as "the fix landed", not as independent
+    scoring. The scan (Phantom 4) never enters the build — that one is independent.
+    """
+    fig, ax = plt.subplots(figsize=(14.4, 8.4))
+    ax.set_xlim(0, 14.4)
+    ax.set_ylim(0, 12.2)
     ax.set_axis_off()
 
-    def box(x, y, w, h, text, fc="#eef3fa", ec="C0", fs=8.6):
+    def box(x, y, w, h, text, fc="#eef3fa", ec="C0", fs=8.4):
         ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, lw=1.4))
         ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fs)
 
-    def arrow(x0, y0, x1, y1):
+    def arrow(x0, y0, x1, y1, color="0.35", lw=1.3, style="->", ls="-"):
         ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
-                    arrowprops=dict(arrowstyle="->", lw=1.3, color="0.35"))
+                    arrowprops=dict(arrowstyle=style, lw=lw, color=color, linestyle=ls))
 
-    # 자료층
-    box(0.2, 7.8, 3.6, 1.7, "DJI official spec sheets\n(dji.com/specs per model)\n"
-        "→ docs/drone_research.json\n→ docs/SPECS.md (verified)", fc="#fdf3e7", ec="C1")
-    box(4.2, 7.8, 4.2, 1.7, "Real-unit 3D scan (verify only)\nPhantom 4, Thingiverse "
-        "thing:1456295\nCC-BY → phantom4_scan_points.npz", fc="#fdf3e7", ec="C1")
-    box(8.8, 7.8, 4.0, 1.7, "Real product CADs (verify only)\nTyphoon H480 / Solo "
-        "(Apache-2.0)\nX500 parts (BSD-3) — SOURCES.md", fc="#fdf3e7", ec="C1")
-    # 제작층
-    box(0.2, 5.0, 4.4, 1.9, "Parametric CAD build\nsrc/drones.py (DroneSpec: official numbers)\n"
-        "src/drone_cad.py + src/cadkit.py\n(trimesh + manifold3d: loft/sweep/boolean)")
-    box(5.2, 5.0, 3.4, 1.9, "Per-part OBJ export\n1 part = 1 OBJ = 1 material\n"
-        "assets/meshes/drones/<key>/")
-    box(9.2, 5.0, 3.6, 1.9, "Radio materials\nsrc/materials.py\nSionna ITU-R P.2040 + custom\n"
-        "color = material (MATERIAL_COLOR)")
-    # 검증층
-    box(0.2, 1.6, 6.2, 2.4, "Geometry verification\nA watertight/normals/winding/degenerate\n"
-        "B symmetry (mirror chamfer)  C dims vs official\nD volume sanity  E material coverage\n"
-        "F part-overlap disclosure", fc="#eefaef", ec="C2")
-    box(6.9, 1.6, 5.9, 2.4, "Physics verification\nG chamfer vs real scan (mm)\n"
-        "H PO point-density convergence\nI SBR subdivision + ray-density (GPU)\n"
-        "+ report03/07/08 cross-checks", fc="#eefaef", ec="C2")
-    box(3.6, 0.1, 5.6, 1.0, "evidence JSON → report_mesh/outputs/mesh_verify.json\n"
-        "(all report numbers come from here)", fc="#f5eefa", ec="C4", fs=8.2)
-    arrow(2.0, 7.8, 2.2, 6.9)
-    arrow(6.3, 7.8, 9.5, 4.0)
-    arrow(10.8, 7.8, 10.4, 4.0)
-    arrow(4.6, 5.9, 5.2, 5.9)
-    arrow(8.6, 5.9, 9.2, 5.9)
-    arrow(2.4, 5.0, 2.6, 4.0)
-    arrow(6.9, 5.0, 8.5, 4.0)
-    arrow(5.0, 1.6, 5.4, 1.1)
-    arrow(8.6, 1.6, 8.2, 1.1)
-    ax.set_title("Mesh pipeline: where every piece of information comes from, "
-                 "and how it is verified", fontsize=12.5)
+    def band(y, label):
+        ax.text(0.06, y, label, ha="left", va="center", fontsize=9.5,
+                color="0.35", rotation=90, fontweight="bold")
+
+    RED = "#c0392b"
+
+    # ── ① sources ─────────────────────────────────────────────────────────
+    band(10.9, "① sources")
+    box(0.7, 10.05, 4.0, 1.7,
+        "Manufacturer spec sheets\n(published L/W/H, prop dia, diagonal)\n"
+        "-> docs/drone_research.json -> docs/SPECS.md\nall 10 airframes",
+        fc="#fdf3e7", ec="C1")
+    box(5.1, 10.05, 4.5, 1.7,
+        "Official manufacturer CAD\nDJI Matrice 4T STEP - DJI Mini 2 GLB\n"
+        "Holybro X500 v2 STEP\n(3 airframes only)",
+        fc="#fdf3e7", ec="C1")
+    box(10.0, 10.05, 3.7, 1.7,
+        "Real-unit 3D scan + third-party CAD\nPhantom 4 scan (CC-BY)\n"
+        "Typhoon H480 / Solo (Apache-2.0)\nscoring only",
+        fc="#fdf3e7", ec="C1")
+
+    # ── ② build ───────────────────────────────────────────────────────────
+    band(7.55, "② build")
+    box(0.7, 6.75, 4.6, 1.9,
+        "Parametric CAD build\nsrc/drones.py (DroneSpec)\n"
+        "src/drone_cad.py + src/cadkit.py\ntrimesh + manifold3d (loft/sweep/boolean)")
+    box(5.7, 6.75, 3.7, 1.9,
+        "Per-part OBJ export\n1 part = 1 OBJ = 1 material\nassets/meshes/drones/<key>/")
+    box(9.8, 6.75, 3.9, 1.9,
+        "Radio materials\nsrc/materials.py\nSionna slab (eps_r, sigma)\n"
+        "PO kernel |Gamma| (differs by design)")
+
+    # ── ③ checkers ────────────────────────────────────────────────────────
+    band(4.15, "③ checkers")
+    box(0.7, 3.15, 4.1, 2.0,
+        "src/mesh_check.py  (ship gate)\n10 checks + declared budgets\n"
+        "wired to `python src/drones.py`\nMESH_GATE=off disables it",
+        fc="#eefaef", ec="C2")
+    box(5.2, 3.15, 4.2, 2.0,
+        "report_mesh/src/verify_mesh_suite.py\nA geometry  B symmetry  C dims\n"
+        "D volume  E materials  F overlap\nG scan  H PO conv.  I SBR (GPU)",
+        fc="#eefaef", ec="C2")
+    box(9.8, 3.15, 3.9, 2.0,
+        "special checkers (2026-08-16)\ngimbal / sensors gates A-D\n"
+        "internal-metal containment\nmaterial assignment audit",
+        fc="#eefaef", ec="C2")
+
+    # ── ④ ledgers ─────────────────────────────────────────────────────────
+    band(1.1, "④ ledgers")
+    box(0.7, 0.35, 13.0, 1.5,
+        "report_mesh/outputs/mesh_verify.json   +   outputs/mesh_inspect_*_0816.json   "
+        "+   outputs/meshfix_matrice4e.json\n"
+        "every number in mesh01-08 is injected from these files - none is typed by hand",
+        fc="#f5eefa", ec="C4", fs=8.6)
+
+    # ── arrows ────────────────────────────────────────────────────────────
+    arrow(2.7, 10.05, 2.7, 8.65)                       # spec -> build
+    # ⭐ official CAD -> build (this is the arrow that used to be missing)
+    arrow(6.4, 10.05, 4.3, 8.65, color=RED, lw=2.2)
+    ax.text(5.05, 9.42, "shape constants\n(Matrice 4E, Mini 2)", ha="center", va="center",
+            fontsize=8.2, color=RED, fontweight="bold")
+    # official CAD -> checkers (same file also scores)
+    arrow(8.8, 10.05, 11.4, 5.15, color=RED, lw=1.5, ls=(0, (4, 2)))
+    ax.text(10.75, 7.9, "same CAD also scores\n=> reads as 'the fix landed',\n"
+            "not as independent scoring", ha="center", va="center", fontsize=7.8, color=RED)
+    # scan / third-party CAD -> checkers only
+    arrow(11.6, 10.05, 7.6, 5.15)
+    ax.text(9.15, 6.05, "scan never enters the build\n(independent scoring)",
+            ha="center", va="center", fontsize=7.8, color="0.3")
+
+    arrow(5.3, 7.7, 5.7, 7.7)
+    arrow(9.4, 7.7, 9.8, 7.7)
+    arrow(2.6, 6.75, 2.6, 5.15)
+    arrow(7.0, 6.75, 7.0, 5.15)
+    arrow(11.7, 6.75, 11.7, 5.15)
+    arrow(2.75, 3.15, 3.4, 1.85)
+    arrow(7.3, 3.15, 7.2, 1.85)
+    arrow(11.75, 3.15, 11.0, 1.85)
+
+    ax.set_title("Mesh pipeline: what feeds the build, what only scores it, "
+                 "and where every number is written down", fontsize=12.8)
     _save(fig, "pipeline_map")
 
 

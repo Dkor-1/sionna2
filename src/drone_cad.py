@@ -112,6 +112,204 @@ TC_ROOT, TC_TIP = 0.095, 0.065
 #   RF 영향은 유계다(시위/λ ≤ 0.86, 캠버 곡률반경 0.17~1.23λ) — 방위평균 σ 로는 1 dB 미만.
 CAMBER_M, CAMBER_P = 0.05, 0.50
 
+#  ⭐⭐ 2026-08-16 **선언 — 위 파라미터와 «실제로 지어진 값» 은 다르다**(감사 m3).
+#     버그가 아니다. 그런데 그 차이가 어디에도 안 적혀 있었던 것이 문제라 여기 박아 둔다.
+#
+#       | 항목        | 설정 파라미터        | 메쉬에서 실제로 재면 | 차이     |
+#       |------------|--------------------|------------------|---------|
+#       | 두께비 t/c  | TC_TIP~TC_ROOT 6.5~9.5 % | 6.3~11.5 %  | +19~21 % |
+#       | 캠버        | CAMBER_M 5.0 %      | 6.4~7.3 %       | +29~46 % |
+#
+#     ⚠ 원인은 **캠버**다(측정 버그가 아니다). 캠버가 있는 익형은 «시위 좌표계에서 상면과
+#       하면의 차» 가 NACA 의 두께 파라미터 t 보다 커진다 — 평균선이 휘어 있으니 위아래
+#       봉우리가 시위선 기준으로 어긋나 더해지기 때문이다. 즉 t/c 파라미터는 «평균선에
+#       수직으로 잰 두께» 이고, 실측 t/c 는 «시위선 기준 상하면 차» 다. **다른 잣대다.**
+#
+#     참조 밴드와 견주면: 실현 최대 t/c 11.3~11.5 % 는 소비자 참조 둘(1345 9.3 % ·
+#     Solo 8.2 %)보다 여전히 두껍고, Typhoon 밴드(8.6~12.8 %) 안에는 든다.
+#     ⇒ 인용 규칙: **파라미터 값을 «우리 날의 두께비» 라고 쓰지 말 것.** 둘 다 적거나,
+#       실현값(6.3~11.5 %)을 쓸 것.
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐⭐ 블레이드 «법칙 판» — 갈아끼울 수 있게 (2026-08-16, 감사 §⑤ 3층 13·15·16·17·18)
+# --------------------------------------------------------------------------- #
+#  왜 판으로 나누나
+#    위의 상수들(CHORD_FRAC·PITCH_K·CHORD_MAX_OVER_R)로 지금까지의 **모든** 원장·리포트·덱이
+#    나왔다. 감사가 그 상수의 근거를 무너뜨렸다고 해서 상수를 덮어쓰면 기존 수치가 통째로
+#    바뀌고, 무엇이 왜 달라졌는지 되짚을 방법이 없어진다.
+#    그래서 **덮어쓰지 않는다**. 현행 법칙에 `legacy` 라는 이름을 붙여 그대로 얼려 두고,
+#    새 법칙을 `dji_mini2` 라는 **다른 이름으로 추가**한다. 고르는 것은 호출부의 몫이고
+#    **기본값은 계속 `legacy`** 다 — 즉 인자를 안 주면 메쉬는 **비트 단위로 예전 그대로**다.
+#    (정본을 언제 갈아끼울지는 파일럿으로 크기를 재고 나서 정할 일이지 이 파일이 정할 일이 아니다.)
+#
+#  용어 한 줄 풀이
+#    · **시위(chord)**   날 단면의 앞전~뒷전 길이. 날의 «폭».
+#    · **평면형(planform)** 위에서 본 날 윤곽 = 시위가 반경에 따라 어떻게 변하는가.
+#    · **c_max/R**      최대 시위를 프롭 반경으로 나눈 값. 날이 얼마나 «통통한가».
+#    · **국소 기하피치 k(r)** 반경 r 에서의 피치를 공칭 피치로 나눈 값. 1 이면 공칭 그대로.
+#
+#  판 목록
+#    | 이름         | 시위 분포                 | c_max/R          | 팁                        | 피치   |
+#    |-------------|--------------------------|------------------|---------------------------|--------|
+#    | `legacy`    | 3DR Solo 실측(2026-07-28) | 전 기종 0.25 상수 | 0.10 (뾰족)                | legacy |
+#    | `dji_mini2` | DJI Mini 2 공식 CAD 실측   | 기종별(아래 표)   | 0.20 (뭉툭) + 팁 단면 3배 조밀 | legacy |
+#
+#    ⚠ `dji_mini2` 판도 **피치는 legacy 를 쓴다.** 피치 법칙은 따로 고른다(`pitch_law` 인자) —
+#      이유는 아래 PITCH_LAWS 주석에 적었다(감사 I7: 어림이 과했을 가능성이 크다).
+
+#  ── 시위 분포 c(r/R)/c_max — DJI Mini 2 공식 CAD 4로터 평균 (감사 C4 · 원장 L.priority_1)
+#     제품사진 blade0 이 ±4 % 안에서 독립 확인. 우리 legacy(Solo 유래)는 외곽에서 실물보다
+#     27~39 % 좁고, 정점 위치도 0.30R(우리) ↔ 0.45R(실물)로 어긋나 있었다.
+CHORD_RR_DJI_MINI2 = (0.00, 0.07, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50,
+                      0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00)
+CHORD_FRAC_DJI_MINI2 = (0.300, 0.420, 0.550, 0.662, 0.816, 0.912, 0.957, 0.987, 1.000, 0.997,
+                        0.982, 0.953, 0.916, 0.866, 0.808, 0.744, 0.664, 0.579, 0.475, 0.200)
+#     ⭐ 끝값 0.200 이 감사 I8(팁을 뭉툭하게)의 집행이다 — legacy 는 0.10 이라 실물보다 뾰족했고
+#       (c/R @0.98R 실물 0.1028 ↔ 우리 0.0609), 마이크로도플러에서 **f_tip 밴드의 세기**를
+#       정하는 것이 바로 그 팁 면적이다. ⚠ 그 스펙트럼 효과는 아직 커널로 안 쟀다(감사도
+#       «σ 로는 소액, 스펙트럼 축은 안 쟀다» 라고만 적었다). 지금의 근거는 «형상을 실물에
+#       맞춘다» 까지다.
+
+#  ── 국소 기하피치 k(r/R) — DJI Mini 2 공식 CAD 실측 (감사 I7 · 원장 G 절)
+#     legacy 는 공칭 피치의 기준 반경이 0.5R 인데, 프로펠러 공학의 표준 규약이자 실물 DJI 는
+#     **0.75R** 이다(k 가 0.75R 에서 최대 1.015). 그 결과 legacy 날은 외곽(0.6~0.9R) 비틀림
+#     폭이 9.2° 로 실물 5.5° 의 1.7 배다.
+#     ⚠⚠ **기본으로 켜지 않는다.** 감사가 스스로 «어림이 과했을 가능성이 크다» 고 적었다 —
+#       «플래시 봉우리 −2.2 dB» 는 계산이 아니라 어림이고, 커널 민감도(피치 ×1.25)는
+#       +0.15~+0.82 dB 로 훨씬 작았다. 켜기 전에 **커널로 플래시 폭을 직접 재라**(감사 §⑤ 17).
+#     ⚠ 0.25R 미만과 1.00R 은 **실측이 없다.** 둘의 외삽 방식이 서로 다르니 그대로 적어 둔다
+#       (2026-08-16 적대검증에서 재계산해 확인):
+#         · 0.25R 미만 — legacy 곡선 × **1.0523**(=0.543/0.516, 0.25R 의 실측/legacy 비).
+#           0.070→0.074 · 0.080→0.084 · 0.130→0.137 · 0.238→0.250 · 0.369→0.388.
+#         · 1.00R — 같은 비를 쓰면 0.758 이 되지만, 실제로 넣은 값은 **0.816** 이다.
+#           0.95R 실측(0.830)에 legacy 의 국소비(0.720/0.732)를 이어붙인 값이다 —
+#           팁에서 실측 곡선의 기울기를 잇는 쪽이 자연스럽기 때문이다.
+#       ⇒ 어느 쪽이든 **어림**이다. 이 두 점을 실측이라고 인용하지 말 것.
+#     ⚠ 0.60~0.70R 이 0.974 → 0.953 → 0.991 로 출렁이는데, 1k 로 간략화된 GLB 의 측정 잡음으로
+#       보인다. 매끄럽게 다듬지 않고 **실측 그대로** 둔다(감사 권고를 그대로 집행한다).
+PITCH_RR_DJI_MINI2 = (0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50,
+                      0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00)
+PITCH_K_DJI_MINI2 = (0.074, 0.084, 0.137, 0.250, 0.388,            # ← 어림(실측 없음)
+                     0.543, 0.674, 0.756, 0.821, 0.892, 0.929,     # ← 여기부터 DJI 실측
+                     0.947, 0.974, 0.953, 0.991, 1.015, 0.993, 1.014, 0.949, 0.830,
+                     0.816)                                        # ← 어림(실측 없음)
+
+#  ── c_max/R 을 기종별로 (감사 I2). ⛔**시위 분포 교체와 반드시 한 묶음이다** ──────────
+#     따로 하면 큰 프롭의 총면적이 튄다: DJI 평면형은 legacy 보다 ∫c dr 이 +17.2 % 크므로,
+#     c_max/R 을 0.25 에 둔 채 분포만 바꾸면 그만큼 날이 통째로 넓어진다.
+#     그래서 `dji_mini2` 판을 고르면 c_max/R 도 **같이** 바뀐다(아래 표 → 없으면 면적중립값).
+#
+#     [실측 있는 기종] 감사 원장 outputs/mesh_audit_0816_prop_geometry.json L.priority_2 그대로.
+CHORD_MAX_OVER_R_MEASURED = {
+    "mini2":       (0.262, "DJI Mini 2 공식 CAD(assets/meshes/reference/WM161_zhankai_1k.glb) "
+                           "4로터 평균. 제품사진 독립 측정 0.272 와 ±4 % 안."),
+    "mavic4pro":   (0.181, "정품 1158F 프롭 제품사진 실측"
+                           "(assets/photos/mavic4pro/mavic4pro_c10_propeller_pair_1158F.jpg)."),
+    "matrice4e":   (0.190, "정품 1157F(표준) 프롭 제품사진 실측. ⚠저소음 1154F 라면 0.212 이고 "
+                           "면적이 +25 % 다 — 우리 기체가 어느 프롭을 쓰는지 저장소에 기록이 "
+                           "없다(감사 판정보류 ?3)."),
+    "typhoonh480": (0.177, "Yuneec Typhoon H480 참조 CAD 실측"
+                           "(assets/meshes/reference/prop_cw_assembly_remeshed_v3.stl)."),
+}
+#     [실측 없는 기종] 모르면 모른다고 하고, **총면적을 legacy 와 같게** 둔다:
+#       c_max/R = 0.25 × ∫c_legacy dr / ∫c_dji dr   (root_frac 0.070 ~ 1.0 구간 수치적분)
+#              = 0.25 × 0.617275 / 0.723450 = 0.21331
+#     이러면 «검증된 것(분포)만 바꾸고 검증 안 된 것(총면적)은 안 건드린» 판이 된다.
+#     ⚠ 이 값은 «실물이 이렇다» 는 주장이 **아니다**. 참조 실측 밴드는 0.177~0.273 이고
+#       프롭이 클수록 작아지는 경향이 있으니, m350rtk(21 인치) 같은 큰 프롭은 실제로는
+#       이보다 더 슬림할 가능성이 크다. 크기별 회귀를 세우기엔 실측 표본 7개의 산포가 크다
+#       (같은 13 인치급 Holybro 1345 가 0.225 인데 10 인치 Solo 가 0.273 이다).
+CHORD_MAX_OVER_R_AREA_NEUTRAL = 0.21331
+
+BLADE_LAWS = {
+    "legacy": dict(
+        chord_rr=CHORD_RR, chord_frac=CHORD_FRAC, tip_refine=1,
+        chord_max_mode="constant", pitch_default="legacy",
+        source="3DR Solo 참조 CAD 실측(2026-07-28). 감사 C4 가 «Solo 는 참조 4종 중 유일한 "
+               "이상치» 라고 반증했지만, 지금까지의 모든 원장·리포트가 이 판으로 나왔으므로 "
+               "**비트동일 기준선**으로 얼려 둔다."),
+    "dji_mini2": dict(
+        chord_rr=CHORD_RR_DJI_MINI2, chord_frac=CHORD_FRAC_DJI_MINI2, tip_refine=3,
+        chord_max_mode="per_drone", pitch_default="legacy",
+        source="DJI Mini 2 공식 CAD 실측 평면형 + 기종별 c_max/R + 뭉툭한 팁"
+               "(감사 C4·I2·I8 을 한 묶음으로). 피치는 legacy 그대로다."),
+}
+
+PITCH_LAWS = {
+    "legacy": dict(rr=PITCH_RR, k=PITCH_K,
+                   source="3DR Solo 실측. 공칭 피치의 기준 반경이 0.5R 이다."),
+    "dji_mini2": dict(rr=PITCH_RR_DJI_MINI2, k=PITCH_K_DJI_MINI2,
+                      source="DJI Mini 2 공식 CAD 실측(0.25~0.95R). 기준 반경 0.75R = 프로펠러 "
+                             "공학의 표준 규약. ⚠ 기본으로 켜지 않는다 — 감사 I7 이 «어림이 "
+                             "과했을 가능성이 크다» 고 적었다."),
+}
+
+
+def resolve_chord_max_over_r(spec, blade_law: str = "legacy") -> tuple[float, str]:
+    """이 기체·이 판에서 쓸 `c_max/R` 과 그 출처 한 줄을 돌려준다.
+
+    순서: ① 스펙에 `prop_chord_max_over_r` 가 **있으면** 그것(명시 지정이 항상 이긴다)
+          ② `legacy` 판이면 전 기종 공통 상수 0.25 (예전 그대로)
+          ③ `dji_mini2` 판이면 실측표 → 없으면 면적중립값
+    ⚠ ① 이 `None` 이 아니면 `legacy` 판의 메쉬도 바뀐다. 레지스트리에서 이 필드를 채우는
+      것은 «기존 원장과 다른 메쉬를 만들겠다» 는 선언이므로, 지금은 **아무 기종에도 안 채워
+      두었다**(전 기종 None → 비트동일)."""
+    v = getattr(spec, "prop_chord_max_over_r", None)
+    if v is not None:
+        return float(v), "spec.prop_chord_max_over_r (명시 지정)"
+    if blade_law == "legacy":
+        return float(CHORD_MAX_OVER_R), "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)"
+    key = getattr(spec, "key", None)
+    if key in CHORD_MAX_OVER_R_MEASURED:
+        val, why = CHORD_MAX_OVER_R_MEASURED[key]
+        return float(val), f"실측: {why}"
+    return (float(CHORD_MAX_OVER_R_AREA_NEUTRAL),
+            "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.")
+
+
+def blade_law_tag(blade_law: str = "legacy", pitch_law=None, max_edge_m=None) -> str:
+    """산출물 파일명에 붙일 꼬리표. **기본값이면 빈 문자열**(= 꼬리표 없음)이라
+    기존 파일 이름이 안 바뀐다. 다른 판으로 돌린 결과는 옛 샤드와 파일명이 갈린다."""
+    parts = []
+    if blade_law and blade_law != "legacy":
+        parts.append(f"blade-{blade_law}")
+    if pitch_law and pitch_law != "legacy":
+        parts.append(f"pitch-{pitch_law}")
+    if max_edge_m:
+        parts.append(f"edge{float(max_edge_m) * 1000:.0f}mm")
+    return ("_" + "_".join(parts)) if parts else ""
+
+
+def mesh_max_edge_m(mesh) -> float:
+    """메쉬의 **가장 긴 삼각형 모서리**[m]. 파장에 견주는 잣대다."""
+    V = np.asarray(mesh.vertices, float)
+    F = np.asarray(mesh.faces, np.int64)
+    if len(F) == 0:
+        return 0.0
+    E = np.vstack([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
+    return float(np.linalg.norm(V[E[:, 0]] - V[E[:, 1]], axis=1).max())
+
+
+def refine_to_max_edge(mesh, max_edge_m: float):
+    """긴 모서리를 **쪼개기만** 한다 — 형상은 한 점도 안 움직인다 (감사 m5).
+
+    왜 필요한가: PO 면적분은 삼각형 **안**의 위상을 상수로 본다. 그래서 삼각형이 파장에
+    비해 크면 위상 표본이 모자란다. 지금 프롭은 «면 수» 가 로터당 3184~3200 장으로 **고정**
+    돼 있는데 프롭 지름은 119 → 533 mm 로 4.5 배 변하므로, 큰 기체일수록 성기다
+    (3.5 GHz 에서 mini2 λ/16.9 ↔ m350rtk **λ/3.8**).
+    ⭐ 그런데 그 최장 모서리는 날의 로프트 격자가 아니라 **허브 윗면·아랫면의 부채꼴**과
+      **날 뿌리 마감면**에서 나온다(둘 다 중심에서 가장자리로 뻗는 부채꼴이라 반지름만큼
+      길다). 그래서 `n_sec`·`n_pts` 를 올려도 최장 모서리는 안 줄어든다 — 실측으로 확인했다.
+      해결은 «다시 짓기» 가 아니라 **다 짓고 나서 긴 모서리만 쪼개기**다. 선형 세분은 평면
+      삼각형을 평면 조각으로 나누므로 표면적·부피·법선이 **정확히 보존**된다.
+    ⚠ 이것은 «메쉬 미세정밀화» 가 아니다. 감사가 말리는 것은 «형상 해상도를 올리는 것»
+      (로프트 단면 늘리기)이고, 이건 **같은 형상의 위상 표본**을 늘리는 것이다."""
+    V = np.asarray(mesh.vertices, float)
+    F = np.asarray(mesh.faces, np.int64)
+    v2, f2 = trimesh.remesh.subdivide_to_size(V, F, max_edge=float(max_edge_m))
+    return trimesh.Trimesh(vertices=v2, faces=f2, process=False)
+
 
 def _airfoil(chord, thick_ratio=0.10, pts=40, camber_m=CAMBER_M, camber_p=CAMBER_P):
     """NACA-4 익형 단면(y=시위, z=두께). **캠버 포함**(camber_m=0 이면 대칭).
@@ -144,24 +342,41 @@ def _airfoil(chord, thick_ratio=0.10, pts=40, camber_m=CAMBER_M, camber_p=CAMBER
 
 
 def _blade(R, root_frac=0.14, chord_max=CHORD_MAX_OVER_R, pitch_deg=20.0, twist_deg=13.0,
-           sweep_frac=0.10, n_sec=22, n_pts=36, pitch_m=None):
+           sweep_frac=0.10, n_sec=22, n_pts=36, pitch_m=None,
+           law="legacy", pitch_law=None, tip_refine=None):
     """**진짜 익형 프로펠러 블레이드 1장** — 로프트(테이퍼 + 워시아웃 트위스트 + 시미터 스윕).
     +x = 스팬. 익형 단면을 스팬을 따라 회전(피치)·축소(테이퍼)·후퇴(스윕)시키며 잇는다.
       chord_max : **R 에 대한 비율**(0.26 = 최대시위 0.26·R). ⚠ 절대길이를 넣지 말 것.
       pitch_m   : 프로펠러 **기하 피치**[m] (1회전 전진량). 주면 각 단면 피치각을
                   θ(r)=atan(P/(2πr)) 로 **물리적으로** 준다(모델별로 다름). None 이면
-                  pitch_deg/twist_deg 의 선형 워시아웃(구버전)."""
+                  pitch_deg/twist_deg 의 선형 워시아웃(구버전).
+      law       : 시위 분포 판 이름 — `BLADE_LAWS` 참조. **기본 'legacy' = 예전 그대로**.
+      pitch_law : 피치 분포 판 이름 — `PITCH_LAWS` 참조. None 이면 그 판의 기본값(둘 다 legacy).
+      tip_refine: 마지막 로프트 구간을 몇 등분할지(감사 I8). None 이면 판의 기본값
+                  (legacy 1 = 안 쪼갬 → 비트동일 / dji_mini2 3).
+    ⚠ 인자를 안 주면 **비트 단위로 예전과 같은 메쉬**가 나온다. 회귀 증명:
+      `benchmark/regress_blade_law_bitidentical.py`."""
     from shapely import affinity as aff
+    lw = BLADE_LAWS[law]
+    pw = PITCH_LAWS[pitch_law or lw["pitch_default"]]
+    n_ref = int(lw["tip_refine"] if tip_refine is None else tip_refine)
     r0 = root_frac * R
     xs = np.linspace(r0, R, n_sec)
+    if n_ref > 1:
+        #  ⭐ 감사 I8 — 팁 쪽 로프트 단면 간격을 좁힌다. legacy 는 마지막 두 단면이
+        #    0.9511R → 1.000R 로 벌어져 있어 뭉툭한 팁을 표현할 해상도가 없다.
+        #    맨 끝 구간만 n_ref 등분한다(나머지 스팬은 그대로 — 총 면 수가 거의 안 는다).
+        step = xs[-1] - xs[-2]
+        extra = xs[-2] + step * np.arange(1, n_ref) / n_ref
+        xs = np.concatenate([xs[:-1], extra, xs[-1:]])
     tt = (xs - r0) / (R - r0)
     rr = xs / R                                                      # ⭐ r/R (tt 가 아니다)
 
-    # 시위 분포 — **r/R 기준** 실측 곡선(3DR Solo). 옛 코드는 tt 에 걸어 피크가 0.396R 이었다.
-    c = np.interp(rr, CHORD_RR, CHORD_FRAC) * float(chord_max) * R
+    # 시위 분포 — **r/R 기준** 실측 곡선. 옛 코드는 tt 에 걸어 피크가 0.396R 이었다.
+    c = np.interp(rr, lw["chord_rr"], lw["chord_frac"]) * float(chord_max) * R
     if pitch_m is not None:
         # 국소 기하피치 분포 k(r/R) 를 곱한다 — 실물 프롭은 정피치가 아니다.
-        k = np.interp(rr, PITCH_RR, PITCH_K)
+        k = np.interp(rr, pw["rr"], pw["k"])
         th = np.arctan(k * float(pitch_m) / (2 * np.pi * xs))
     else:
         th = np.radians(pitch_deg - twist_deg * tt)                 # 워시아웃(선형 근사, 구버전)
@@ -256,7 +471,7 @@ INTERNALS = {
 #  기종별 동체
 # --------------------------------------------------------------------------- #
 def _body_folding(L, W, H, nose_drop=0.18, tail_w=0.95, n_pow=2.9,
-                  hw_f=None, hh_f=None, zo_f=None):
+                  hw_f=None, hh_f=None, zo_f=None, smooth_iters=4):
     """접이식 소비자기(미니/마빅/매트리스) 공용 눈물방울 동체.
     코는 좁고 살짝 처지고, 허리에서 가장 넓고, 꼬리는 완만히 좁아진다.
 
@@ -265,14 +480,31 @@ def _body_folding(L, W, H, nose_drop=0.18, tail_w=0.95, n_pow=2.9,
       프로파일을 재면(예: matrice4e 는 최대폭 스테이션이 **중앙보다 앞**, 꼬리는 배터리 평면,
       코는 뭉툭) 그 값을 넣어 실루엣을 맞춘다.
       hw_f/hh_f : xs=(-0.50,-0.30,-0.05,0.18,0.38,0.50)·L 에서의 반폭/반높이 (W·H 대비 비).
-      zo_f      : 같은 스테이션의 중심선 z 오프셋(H 대비 비). None 이면 nose_drop 규약."""
+      zo_f      : 같은 스테이션의 중심선 z 오프셋(H 대비 비). None 이면 nose_drop 규약.
+
+    ⭐⭐ 2026-08-16 (형상 감사) — `smooth_iters` 를 **선택 인자로 뺐다**. 기본 4 는 옛 값이라
+      안 주면 전 기종 메쉬가 **비트동일**하다. 왜 손잡이가 필요한가:
+        Taubin 스무딩은 로프트의 **양 끝 캡**(팬 삼각화 + 중심점)에서 테두리 링을 안쪽으로
+        끌어당기고 중심점을 바깥으로 민다. 전 기종 실측(iters 0 ↔ 4):
+          matrice4e  기수 반폭·반높이 41.02 × 36.88 → **23.42 × 21.31** (−43 %), 꼬리 27.31 ×
+                     27.10 → 15.85 × 15.84 (−42 %), 셸 길이 234.60 → 236.91 (+2.31 mm)
+          mavic4pro  꼬리 42.63 × 28.57 → 24.58 × 16.43   ·  mini5pro 꼬리 16.07 × 18.92 → 9.52 × 10.89
+          phantom4   꼬리 50.97 × 24.59 → 29.53 × 14.27   ·  phantom3 기수 26.04 × 22.01 → 16.30 × 12.96
+        즉 **끝단 스테이션의 실측값은 메쉬에 그대로 실리지 않는다** — matrice4e 의 «기수는
+        뭉툭한 평면» 이라는 공식 CAD 측정(F04/F05)이 절반만 전달된다. 가운데 4 스테이션은
+        표를 0.5 % 안에서 재현하므로 이 손실은 **끝단 전용**이다.
+      ⚠ 그런데 방위평균 투영면적은 iters 0 ↔ 4 에서 **0.06 dB 밖에** 안 움직인다(전 기종
+        0.00~0.06 dB). 즉 이것은 «레벨» 결함이 아니라 **기수/꼬리 정면 정반사 형상** 결함이다
+        — 평판극한으로 보면 기수 정면 면적이 5264 → 1668 mm² 로 10 dB 급이지만, 그 각도는
+        좁고 셸은 0.75 mm 유전체라 실제 기여는 그보다 훨씬 작다. 값은 아직 **안 바꿨다**
+        (바꾸면 전 기종 σ 원장이 낡는다). 고칠 때는 이 인자로 기종별로 넣을 것."""
     xs = np.array([-0.50, -0.30, -0.05, 0.18, 0.38, 0.50]) * L
     hw = np.array(hw_f if hw_f is not None else (0.30, 0.46, 0.50, 0.44, 0.28, 0.10)) * W * tail_w
     hh = np.array(hh_f if hh_f is not None else (0.30, 0.46, 0.50, 0.46, 0.34, 0.16)) * H
     zo = np.array(zo_f if zo_f is not None
                   else (0.02, 0.01, 0.00, -0.04, -0.10, -nose_drop)) * H
-    return smooth(loft(spline_sections(xs, hw, hh, zo, n_pow=n_pow, n_sec=30, n_pts=72),
-                       n_pts=72), iters=4)
+    m = loft(spline_sections(xs, hw, hh, zo, n_pow=n_pow, n_sec=30, n_pts=72), n_pts=72)
+    return smooth(m, iters=int(smooth_iters)) if int(smooth_iters) > 0 else m
 
 
 #  기종별 셸 형상표 — **사진 실측**으로 얻은 것만 여기에 넣는다(없으면 _SHELL_DEFAULT).
@@ -1204,14 +1436,28 @@ def _gear_arm_spikes(r_motor, angles, z_arm, h, d_root, d_tip,
       r_motor : 모터 반경[m], angles : 모터 각도[deg] 목록
       z_arm   : 다리가 붙는 암 아랫면의 z[m]
       h       : 다리 길이[m], d_root/d_tip : 뿌리/끝 지름[m]
+      inboard : 다리 뿌리 반경 ÷ 모터 반경. **스칼라 또는 로터별 시퀀스.**
+
+    ⭐⭐ 2026-08-16 (형상 감사) — `inboard` 가 시퀀스도 되게 넓혔다. 스칼라를 주면 옛 동작
+      그대로라 **메쉬는 비트동일**하다. 왜 필요한가: 공식 STEP 실측(`outputs/meshfix_matrice4e.json`
+      F07)이 «앞 1.011 · 뒤 1.034» 로 **앞뒤가 다르다** 고 적어 놓고 값은 스칼라 1.01 하나를
+      쓴다. 그 결과 지금 메쉬의 다리 반경은
+          앞 뿌리 224.96 (CAD 229.75, −4.8 mm) · 앞 발 218.46 (CAD 216.52, +1.9 mm)
+          뒤 뿌리 206.37 (CAD 217.10, **−10.7 mm**) · 뒤 발 199.86 (CAD 208.54, **−8.7 mm**)
+      즉 **뒷다리 2개가 실물보다 9~11 mm 안쪽**에 서 있다. 접지 트랙(뒤)이 CAD 417.1 →
+      우리 399.7 mm 로 −4.2 % 다. σ 로는 작지만(다리는 가는 유전체) 저앙각 바닥반사 기하와
+      «발이 어디를 딛는가» 를 쓰는 자리에 그대로 실린다. 값은 아직 **안 바꿨다** — 바꾸면
+      matrice4e 메쉬 지문이 달라져 저장된 σ 원장이 낡는다.
     """
     from shapely.geometry import Point
     A = []
     dr = h * np.tan(np.radians(splay_deg))         # 벌림에 따른 발끝의 바깥 이동
     #  ⭐ 2026-07-31 — r_motor 는 스칼라(한 원 배치) 또는 **각도별 목록**(사다리꼴)이다.
     rs = [float(r_motor)] * len(angles) if np.isscalar(r_motor) else [float(v) for v in r_motor]
-    for a, rm in zip(angles, rs):
-        r0, r1 = rm * inboard, rm * inboard + dr
+    ib = ([float(inboard)] * len(angles) if np.isscalar(inboard)
+          else [float(v) for v in inboard])
+    for a, rm, inb in zip(angles, rs, ib):
+        r0, r1 = rm * inb, rm * inb + dr
         ca, sa = np.cos(np.radians(a)), np.sin(np.radians(a))
         top = np.array([r0 * ca, r0 * sa, z_arm])
         bot = np.array([r1 * ca, r1 * sa, z_arm - h])
@@ -2161,8 +2407,11 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
             #    P3 는 뒤쪽 배터리 베이 때문에 셸이 로터 중심보다 14.8 mm 뒤에 있다(톱뷰 실측:
             #    기수 +60.0 / 꼬리 −89.6). `bx0` 이 없는 기종은 0.0 → 메쉬 **비트동일**.
             bx0 = sh.get("bx0", 0.0) * bl
+            #  ⭐ smooth_iters — 표에 있으면 그 값, 없으면 4(옛 값 → 비트동일). 끝단 캡이
+            #    실측 단면을 얼마나 잃는지는 `_body_folding` docstring 에 기종별로 적혀 있다.
             A.add(mv(_body_folding(bl, bw, bh, nose_drop=sh["ndrop"], n_pow=sh["npow"],
-                                   hw_f=sh["hw"], hh_f=sh["hh"], zo_f=sh["zo"]), x=bx0), "body")
+                                   hw_f=sh["hw"], hh_f=sh["hh"], zo_f=sh["zo"],
+                                   smooth_iters=sh.get("smooth_iters", 4)), x=bx0), "body")
             #  ⭐ cfw — 캐노피 **좌우 폭 계수**. 없으면 1.0 → 옛 동작(비트동일).
             #    phantom3 은 캐노피를 배터리 폭까지 좁혀 동체 안에 묻는다(위 표 주석).
             A.add(mv(_canopy(bl, bw * sh.get("cfw", 1.0), bh * sh["cfh"],
@@ -2716,7 +2965,8 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
     return A
 
 
-def build_propeller_cad(spec, n_sec=22) -> Assembly:
+def build_propeller_cad(spec, n_sec=22, blade_law: str = "legacy", pitch_law=None,
+                        max_edge_m=None, lambda_m=None, edge_over_lambda: float = 10.0) -> Assembly:
     """프로펠러 1개 — **진짜 익형** 블레이드 + 허브. **모델별로 다르다**(반경·날개수·피치).
 
     ⚠ 2026-07-16 버그 수정 2건:
@@ -2725,17 +2975,31 @@ def build_propeller_cad(spec, n_sec=22) -> Assembly:
          (Mavic 최대시위 4.6mm → 34.7mm. 실물 DJI 프롭 ≈30mm 와 부합.)
       2) 전 모델이 기본 pitch_deg=20°·twist=13° 로 **똑같은 형상**이었다. 스펙의 prop_pitch_in
          (Mini 2.8" ~ Mavic 5.8")을 써서 θ(r)=atan(P/(2πr)) 로 **모델별 실제 피치**를 준다.
-    """
+
+    ⭐ 2026-08-16 — 감사 3층을 **갈아끼울 수 있는 판**으로 붙였다(원본은 하나도 안 바꿨다):
+      blade_law        : 'legacy'(기본, 예전 그대로) / 'dji_mini2'(실물 평면형 + 기종별
+                         c_max/R + 뭉툭한 팁). `BLADE_LAWS` 참조.
+      pitch_law        : None(=판의 기본 'legacy') / 'dji_mini2'. ⚠기본으로 안 켜진다(감사 I7).
+      max_edge_m       : 삼각형 최장 모서리 상한[m]. 주면 다 짓고 나서 긴 모서리만 쪼갠다
+                         (형상 불변, 감사 m5). `lambda_m` 과 둘 중 하나만 주면 된다.
+      lambda_m         : 파장[m]. 주면 상한을 `lambda_m / edge_over_lambda` 로 잡는다.
+      edge_over_lambda : 파장을 몇 등분할지(기본 10 = λ/10).
+    ⚠ **인자를 안 주면 예전과 비트 단위로 같은 메쉬**가 나온다(회귀 증명:
+      benchmark/regress_blade_law_bitidentical.py)."""
     R = spec.prop_dia_mm / 1000.0 / 2.0
     P = float(spec.prop_pitch_in or 5.0) * 0.0254          # 피치[inch] → [m]
     hub_r = R * 0.085
+    chord_max, _chord_max_src = resolve_chord_max_over_r(spec, blade_law)
+    if max_edge_m is None and lambda_m is not None:
+        max_edge_m = float(lambda_m) / float(edge_over_lambda)
 
     def _one_blade(Rb):
         # chord_max·트위스트·두께·캠버는 전부 실측 앵커(모듈 상단 상수, outputs/reference_props.json).
         # 루트는 허브 반경(0.085R)보다 **안쪽**에서 시작해 허브와 겹치게 둔다 — 실물 프롭은
         # 블레이드 생크가 허브에 물려 하나의 솔리드다. 떨어뜨리면 공중에 뜬 루트 모서리가
         # 생겨 산란에 가짜로 기여한다(간극이 λ/20~λ/8 수준이라 무시할 크기가 아니다).
-        return _blade(Rb, root_frac=0.070, chord_max=CHORD_MAX_OVER_R, pitch_m=P, n_sec=n_sec)
+        return _blade(Rb, root_frac=0.070, chord_max=chord_max, pitch_m=P, n_sec=n_sec,
+                      law=blade_law, pitch_law=pitch_law)
 
     # ⭐ **스윕디스크 정규화** (2026-07-28 수정)
     #   제조사가 말하는 "직경" 은 프롭이 쓸고 지나가는 **원의 지름**이다. 그런데 스키미터 스윕
@@ -2754,4 +3018,8 @@ def build_propeller_cad(spec, n_sec=22) -> Assembly:
         bl = _one_blade(R * scale)
         A.add(rot_z(bl, (360.0 / spec.prop_blades) * b), "prop")
     A.union_group("prop")
+    #  ⭐ 감사 m5 — 파장에 견줘 긴 삼각형만 쪼갠다. **형상은 안 건드린다**(선형 세분).
+    #    안 주면 이 블록 자체가 안 돈다 → 비트동일.
+    if max_edge_m:
+        A.parts["prop"] = [refine_to_max_edge(m, max_edge_m) for m in A.parts.get("prop", [])]
     return A

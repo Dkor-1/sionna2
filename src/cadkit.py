@@ -63,9 +63,18 @@ class Assembly:
             self.add(m, group)
         return self
 
+    #  ⭐ 2026-08-16 — 합집합이 실패한 그룹을 여기에 쌓는다(감사 I6).
+    #    옛 코드는 `except Exception: pass` 라 **예외도 로그도 없이** 실패했다.
+    #    합집합이 실패하면 겹친 자리의 내부 면이 살아남아 **PO 가 면적을 이중계상**한다 —
+    #    «최적화일 뿐» 이 아니라 σ 에 직접 들어가는 사건이라 조용히 넘기면 안 된다.
+    UNION_FAILURES: list[dict] = []
+
     def union_group(self, group: str):
         """한 그룹 안의 파트들을 **불리언 합집합**으로 녹여 하나의 껍질로 만든다.
-        → 겹친 부분의 **내부 면이 사라진다**(PO/SBR 이 헛세지 않는다)."""
+        → 겹친 부분의 **내부 면이 사라진다**(PO/SBR 이 헛세지 않는다).
+
+        실패해도 **동작은 그대로**(원래 파트들을 둔다) — 다만 이제 조용하지 않다:
+        경고를 띄우고 `Assembly.UNION_FAILURES` 에 기록을 남긴다."""
         ms = self.parts.get(group)
         if not ms or len(ms) == 1:
             return self
@@ -78,8 +87,14 @@ class Assembly:
                 u.invert()
             if len(u.faces):
                 self.parts[group] = [u]
-        except Exception:
-            pass                                   # 실패하면 그냥 둔다(합집합은 최적화일 뿐)
+        except Exception as exc:                   # 실패하면 그냥 둔다(형상은 옛 동작과 동일)
+            import warnings
+            rec = dict(group=group, n_parts=len(ms),
+                       error=f"{type(exc).__name__}: {exc}")
+            Assembly.UNION_FAILURES.append(rec)
+            warnings.warn(f"cadkit.union_group('{group}') 실패 — 파트 {len(ms)}개가 "
+                          f"합쳐지지 않은 채 남는다(겹친 면이 PO 에서 이중계상된다). {rec['error']}",
+                          RuntimeWarning, stacklevel=2)
         return self
 
     def subtract(self, group: str, tool: trimesh.Trimesh):

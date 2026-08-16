@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """make_mesh02.py — mesh02 ipynb 생성기. ⚠ 이 파일이 소스다.
 
-mesh02 — "도구 상자: 어떤 파이썬 라이브러리를 왜 골랐나"
-모든 수치는 outputs/mesh_verify.json 에서 읽어 f-string 으로 주입한다(손 숫자 금지).
+mesh02 — "도구 상자: 어떤 파이썬 라이브러리를 왜 골랐나, 그리고 검사기는 무엇을 보나"
+모든 수치는 원장에서 읽어 f-string 으로 주입한다(손 숫자 금지).
 라이브러리 버전은 생성 시점에 실제 설치 환경(importlib.metadata)에서 읽는다.
+⭐ 소스 **행 번호는 `inspect` 로 자동 주입**한다 — 손으로 적으면 다음 편집에서 곧바로 낡는다.
+⏳ 프로펠러 축(날 법칙·기종별 두께·λ 대비 삼각형 크기)은 기체별 프로펠러 정본화 라운드가 정본.
 """
+import inspect
 import json, os, sys
 import importlib.metadata as _im
 
@@ -12,13 +15,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RM = os.path.abspath(os.path.join(HERE, ".."))
 ROOT = os.path.abspath(os.path.join(RM, ".."))
 sys.path.insert(0, os.path.join(ROOT, "src"))
+sys.path.insert(0, HERE)
 V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
 
-# ---- 실제 설치 환경에서 버전 읽기 (← 출처: ~/.venvs/py312, importlib.metadata) ----
+# ---- 실제 설치 환경에서 버전 읽기 (← 출처: /workspace/.venvs/py312, importlib.metadata) ----
 VER = {p: _im.version(p) for p in ["numpy", "trimesh", "manifold3d", "shapely", "scipy"]}
 
-# ---- JSON 수치 꺼내기 (전부 mesh_verify.json) -------------------------------------
+# ---- JSON 수치 꺼내기 -------------------------------------------------------------
 from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+import mesh_facts_0816 as F            # noqa: E402  (2026-08-16 원장 공용 로더)
 DR = ledger_order(V)                       # = DRONES 레지스트리 전수
 A = V["A_geometry"]
 mav = A["mavic4pro"]
@@ -27,13 +32,41 @@ n_verts_total = sum(A[k]["n_verts"] for k in DR)
 all_ok = all(A[k]["ok"] for k in DR)
 dup_total = sum(A[k]["dup_vertices"] for k in DR)
 unused_total = sum(A[k]["unused_vertices"] for k in DR)
-ov_mav = V["F_overlap"]["mavic4pro"]["overlap_pct_of_volume"]
-ov_s1000 = V["F_overlap"]["s1000plus"]["overlap_pct_of_volume"]
 engine = V["meta"]["mesh_engine"]
 fc = V["meta"]["fc_ghz"]
 lam_mm = V["meta"]["lam_hi_mm"]
-sub = V["I_sbr_subdiv"]["subdivision_invariance"]
+_sbr = V.get("I_sbr_subdiv", {})
+sub = _sbr.get("subdivision_invariance")
+SBR_STALE = bool(_sbr.get("stale"))
 mav_groups = ", ".join(A["mavic4pro"]["groups"].keys())
+
+# ---- ⭐ 소스 행 번호 자동 주입 — 손으로 적으면 다음 편집에서 낡는다 ----------------
+import cadkit as _ck      # noqa: E402
+import drone_cad as _dc   # noqa: E402
+import geom as _gm        # noqa: E402
+
+
+def L(obj, attr=None) -> int:
+    """함수/클래스의 **정의 시작 행 번호**를 소스에서 직접 읽는다."""
+    t = getattr(obj, attr) if attr else obj
+    return inspect.getsourcelines(t)[1]
+
+
+CK = {n: L(_ck, n) for n in ["superellipse", "rounded_rect", "spline_sections", "loft",
+                             "sweep", "revolve", "smooth", "Assembly", "box", "cyl",
+                             "sphere", "capsule"]}
+CK["Assembly.add"] = L(_ck.Assembly, "add")
+CK["Assembly.union_group"] = L(_ck.Assembly, "union_group")
+CK["Assembly.check"] = L(_ck.Assembly, "check")
+DC = {n: L(_dc, n) for n in ["_motor_bell", "_airfoil", "_blade", "_body_folding",
+                             "_canopy", "_arm_folding", "_gimbal_infinity"]}
+GM_ = {n: L(_gm, n) for n in ["Mesh", "box", "cylinder", "pyramid", "pyramid_field",
+                              "uv_sphere", "write_obj_per_group"]}
+
+# ---- 겹침 — 부피 % 가 아니라 재질 가중(A·|Γ|²) + 담는 쪽의 불투명 여부 -------------
+OVL = {k: F.MAT["fleet"][k] for k in DR}
+ovl_worst = max(DR, key=lambda k: OVL[k]["po_overcount_opaque_dB"])
+ovl_best = min(DR, key=lambda k: OVL[k]["po_overcount_opaque_dB"])
 
 
 def md(*lines):
@@ -51,9 +84,13 @@ cells = [
 
 # ────────────────────────────────────────────────────────────────── 1. 표지
 md(
-"# mesh02 — 도구 상자: 어떤 파이썬 라이브러리를 왜 골랐나",
+"# mesh02 — 도구 상자: 어떤 라이브러리를 왜 골랐고, 검사기는 무엇을 보나",
 "",
-"> ⚠ **이 노트북은 생성물이다. 수정은 `src/make_mesh02.py` 에서 하라.**",
+*F.head_md(
+    "mesh02",
+    "이 드론들을 만드는 도구는 무엇이고, 그 도구로 만든 것을 무엇이 검사하며, "
+    "그 검사가 아직 못 보는 것은 무엇인가.",
+    ["verify", "materials", "body_arms", "audit"]),
 "",
 f"**한 줄 요약** — 드론 {len(DR)}기의 CAD 메쉬(총 삼각형 {n_faces_total:,}개)는 딱 5개 라이브러리",
 "(numpy · shapely · trimesh · manifold3d · scipy) 위에서 만들어지고, 결과는 경량 컨테이너",
@@ -102,12 +139,33 @@ f"메쉬 엔진은 `\"{engine}\"` 단일 경로다 ← 출처: mesh_verify.json 
 
 # ────────────────────────────────────────────────────────────────── 3. 버전 확인 코드
 md(
-"### 0.1 이 노트북이 쓰는 실제 버전",
+"### 0.1 이 노트북이 쓰는 실제 버전 — 그리고 왜 버전이 이 편의 주제인가",
 "",
 "아래 셀은 지금 커널(py312)에 실제로 설치된 버전을 출력한다. 리포트 생성 시점에 확인된 버전은",
-f"numpy {VER['numpy']} · trimesh {VER['trimesh']} · manifold3d {VER['manifold3d']} ·",
+f"numpy {VER['numpy']} · **trimesh {VER['trimesh']}** · manifold3d {VER['manifold3d']} ·",
 f"shapely {VER['shapely']} · scipy {VER['scipy']} 였다",
-"← 출처: 실제 설치 환경(~/.venvs/py312, importlib.metadata 로 조회).",
+"← 출처: 실제 설치 환경(`/workspace/.venvs/py312`, importlib.metadata 로 조회).",
+"",
+"⭐ **버전을 굵게 적는 이유** — 라이브러리 판이 바뀌면 **검사의 뜻이 바뀔 수 있다.**",
+f"trimesh {VER['trimesh']} 에서 `split()` 의 `repair` 기본값이 **켜짐**이다. 그냥 부르면",
+"구멍 뚫린 부품을 **조용히 메운 사본**을 돌려주고, 그 사본은 당연히 «수밀» 로 나온다.",
+"",
+"확인은 세 줄이면 된다 — 삼각형 1장을 뺀 상자를 두 방식으로 쪼개 보는 것이다(§8 셀).",
+"그래서 이 저장소의 검사 경로는 **모든 `split` 에 `repair=False` 를 명시**한다",
+"← 출처: `src/mesh_check.py` 머리말·`_split()`, `report_mesh/src/verify_mesh_suite.py` 머리말.",
+"",
+"이것이 이 편의 교훈이다: **도구 편에서 버전은 각주가 아니라 본문이다.**",
+),
+code(
+"# trimesh 5.x 의 split 기본값 확인 — 검사기가 «수리한 사본» 을 보지 않게 하는 이유",
+"import trimesh",
+"b = trimesh.creation.box()",
+"holed = trimesh.Trimesh(vertices=b.vertices, faces=b.faces[:-1], process=True)  # 삼각형 1장 뺌",
+"for kw in [{}, {\"repair\": False}]:",
+"    c = holed.split(only_watertight=False, **kw)[0]",
+"    tag = \"기본값\" if not kw else \"repair=False\"",
+"    print(f\"{tag:12s} 면 {len(c.faces):3d}  수밀 {str(c.is_watertight):5s}  부피 {abs(c.volume):.3f}\")",
+"print(\"→ 기본값은 없는 삼각형을 지어 구멍을 메운다. 검사기가 하면 안 되는 일이다.\")",
 ),
 code(
 "# 설치된 라이브러리 버전 확인 — 재현 시 아래 값이 본문 값과 같은지 보라",
@@ -156,13 +214,25 @@ md(
 "",
 "| 함수 | 만드는 것 | 소스 위치 |",
 "|---|---|---|",
-"| `Mesh` (클래스) | 컨테이너 — .v/.f/.g + 변환·바운즈·그룹 조회 | src/geom.py:41 |",
-"| `box` | 직육면체(정점 8개, 삼각형 12개) | src/geom.py:184 |",
-"| `cylinder` | 원기둥·원뿔대(`r_top`) | src/geom.py:213 |",
-"| `pyramid` / `pyramid_field` | 전파흡수체 피라미드 1개 / 피라미드 밭 | src/geom.py:247, 304 |",
-"| `uv_sphere` | 구 — 극점은 삼각형 팬으로 퇴화면 방지 | src/geom.py:271 |",
-"| `translate` / `rotate` / `scale` | 4×4 변환 행렬 | src/geom.py:157-178 |",
-"| `write_obj_per_group` | 그룹별 .obj 저장 — \"OBJ 1개 = Sionna 재질 1개\" 규약 | src/geom.py:137-147 |",
+f"| `Mesh` (클래스) | 컨테이너 — .v/.f/.g + 변환·바운즈·그룹 조회 | src/geom.py:{GM_['Mesh']} |",
+f"| `box` | 직육면체(정점 8개, 삼각형 12개) | src/geom.py:{GM_['box']} |",
+f"| `cylinder` | 원기둥·원뿔대(`r_top`) | src/geom.py:{GM_['cylinder']} |",
+f"| `pyramid` / `pyramid_field` | 전파흡수체 피라미드 1개 / 피라미드 밭 "
+f"| src/geom.py:{GM_['pyramid']}, {GM_['pyramid_field']} |",
+f"| `uv_sphere` | 구 — 극점을 삼각형 팬으로 접어 **넓이 0 삼각형을 안 만든다** "
+f"| src/geom.py:{GM_['uv_sphere']} |",
+"| `translate` / `rotate` / `scale` | 4×4 변환 행렬 | src/geom.py |",
+f"| `write_obj_per_group` | 그룹별 .obj 저장 — \"OBJ 1개 = Sionna 재질 1개\" 규약 "
+f"| src/geom.py:{GM_['write_obj_per_group']} |",
+"",
+"(행 번호는 이 노트북을 만들 때 `inspect` 로 소스에서 직접 읽는다 — 손으로 적지 않는다.)",
+"",
+"⚠ **`uv_sphere` 의 극점에 대해 정확히 적는다.** 넓이 0 삼각형은 **0개**가 맞다.",
+"다만 극점 자리에 정점이 세그먼트 수만큼 **겹쳐** 있어, 출하 인덱스 그대로는 그 구가",
+"수밀이 아니다(합쳐 보면 수밀이다). 선택 인자 `uv_sphere(..., weld_poles=True)` 를 주면",
+"삼각형 좌표·개수·부피가 **완전히 같은 채로** 정점만 2·(seg−1)개 줄어든다. 기본값은 꺼져",
+"있어 예전과 비트동일하다 ← 출처: `outputs/mesh_inspect_materials_check_0816.json`",
+"`uv_sphere`·`selftest_weld_poles`.",
 ),
 code(
 "# geom.py 맛보기 — 챔버·범용 프리미티브를 라이브러리 없이 삼각형만으로",
@@ -235,13 +305,17 @@ f"**무엇** — 파이썬 3D 삼각형 메쉬 라이브러리(버전 {VER['trim
 "",
 "1. **컨테이너/IO** — 정점·면을 담고 OBJ 등으로 읽고 쓴다.",
 "2. **프리미티브** — `creation.box/cylinder/icosphere/capsule` 을 cadkit 이 얇게 감싼다",
-"   ← 출처: src/cadkit.py:329-358 (`box`, `cyl`, `sphere`, `capsule`).",
-"3. **검증** — `is_watertight`(구멍 없음), `is_winding_consistent`(감김 일관), `volume` 부호",
-"   (법선이 안쪽이면 부피가 음수!), `nondegenerate_faces`(넓이 0 삼각형 탐지). 눈으로는",
-"   놓치기 쉬운 기하 결함을 **수치로 자동 적발**한다 ← 출처: src/cadkit.py:124-135",
+f"   ← 출처: src/cadkit.py:{CK['box']}~{CK['capsule']} (`box`, `cyl`, `sphere`, `capsule`).",
+"3. **검증 API** — `is_watertight`(구멍 없음), `is_winding_consistent`(감김 일관), `volume` 부호",
+"   (법선이 안쪽이면 부피가 음수), `nondegenerate_faces`(넓이 0 삼각형 탐지). 눈으로는",
+f"   놓치기 쉬운 기하 결함을 수치로 드러낸다 ← 출처: src/cadkit.py:{CK['Assembly.check']}",
 "   (`Assembly.check`).",
+"   ",
+"   ⭐ **다만 API 를 주는 것과 올바르게 부르는 것은 다르다.** §0.1 에서 봤듯 `split()` 의",
+"   `repair` 기본값이 켜져 있어서, 그냥 부르면 «검사하려던 그 결함» 이 사라진 사본을 본다.",
+"   그래서 우리 검사 경로는 `repair=False` 를 명시한다.",
 "4. **불리언 인터페이스** — `trimesh.boolean.union(..., engine=\"manifold\")` 처럼 계산 엔진을",
-"   갈아끼울 수 있는 표준 창구 ← 출처: src/cadkit.py:73, 93.",
+"   갈아끼울 수 있는 표준 창구 ← 출처: src/cadkit.py `Assembly.union_group`.",
 "",
 "**왜 trimesh 가 표준인가** — numpy 배열을 그대로 쓰는 가벼운 API, 순수 파이썬 + 선택적",
 "가속, 그리고 위 검증 속성들이 property 하나로 제공된다. 검토했던 대안: **open3d**(포인트클라우드",
@@ -251,9 +325,9 @@ f"**무엇** — 파이썬 3D 삼각형 메쉬 라이브러리(버전 {VER['trim
 "",
 "**어떻게** — 모든 파트는 `Assembly.add` 를 지나며 4단계 정리를 받는다: 퇴화면 제거 → 정점",
 "병합 → 미사용 정점 제거 → 법선 바깥 정렬(`fix_normals` + 부피 음수면 `invert`)",
-"← 출처: src/cadkit.py:44-58 (\"여기서 걸러야 PO/SBR 의 조명판정(n̂·û>0)이 오염되지 않는다\").",
+f"← 출처: src/cadkit.py:{CK['Assembly.add']} (\"여기서 걸러야 PO/SBR 의 조명판정(n̂·û>0)이 오염되지 않는다\").",
 "각진 로프트는 `smooth`(Taubin 스무딩 + 선택적 서브디비전)로 실물처럼 다듬는다",
-"← 출처: src/cadkit.py:318-326.",
+f"← 출처: src/cadkit.py:{CK['smooth']}. 그 매끈함에는 **대가가 있다** — §6.1 에서 잰다.",
 ),
 
 # ────────────────────────────────────────────────────────────────── 9. §5 manifold3d

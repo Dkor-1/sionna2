@@ -144,13 +144,39 @@ def main():
     for az, el in ((0, 0), (45, 0), (0, -60), (45, -60), (0, -90)):
         a_, e_ = np.radians(az), np.radians(el)
         u = np.array([np.cos(e_) * np.cos(a_), np.cos(e_) * np.sin(a_), np.sin(e_)])
-        m = np.abs(nrm @ u) > np.cos(np.radians(0.2))
+        d = nrm @ u
+        #  ⛔ **2026-08-16 정정(감사 I10④)** — 아래 `m` 은 `|n·u|` 라 **뒷면까지 센다.**
+        #    닫힌 상자는 앞면마다 짝이 되는 뒷면이 있어 면적이 정확히 2 배로 나온다
+        #    (az0/el0 실측: 양면 106장 139.35 cm² ↔ 앞면 90장 69.67 cm², 면적비 정확히 0.5000).
+        #    PO 의 조명 판정은 `n̂·û>0` 이므로 **σ 로 번역할 때 써야 하는 값은 앞면 쪽**이다.
+        #    옛 키(n_tri_perp·area_cm2)는 읽는 쪽 호환을 위해 그대로 두되, 이제 뜻을 이름에
+        #    적어 둔다(`_both_sides`). 새로 인용할 값은 `*_front` 다.
+        m = np.abs(d) > np.cos(np.radians(0.2))
+        mf = d > np.cos(np.radians(0.2))
         geo[f"az{az}_el{el}"] = dict(n_tri_perp=int(m.sum()),
                                      area_cm2=round(float(area[m].sum()) * 1e4, 2),
-                                     groups=sorted(set(G[m].tolist())))
-    geo["_reading_ko"] = ("az0/el0 에서 시선에 **정확히 수직인** 삼각형이 106 장(139 cm²·battery·camera·pcb "
-                          "= 축정렬 금속 상자면)이고, az45 에서는 4 장(0.19 cm²·플라스틱 캐노피)뿐이다. "
-                          "PathSolver 의 붕괴는 이 정렬이 꺼지는 사건이다.")
+                                     n_tri_perp_both_sides=int(m.sum()),
+                                     area_cm2_both_sides=round(float(area[m].sum()) * 1e4, 2),
+                                     n_tri_perp_front=int(mf.sum()),
+                                     area_cm2_front=round(float(area[mf].sum()) * 1e4, 2),
+                                     groups=sorted(set(G[m].tolist())),
+                                     groups_front=sorted(set(G[mf].tolist())))
+    geo["_reading_ko"] = ("az0/el0 에서 시선에 **정확히 수직인** 삼각형은 **앞면 90 장(69.67 cm²)** 이다"
+                          "(battery·camera·pcb = 축정렬 금속 상자면). az45 에서는 앞면 2 장(0.10 cm²)뿐이다. "
+                          "PathSolver 의 붕괴는 이 정렬이 꺼지는 사건이다.\n"
+                          "⛔ 옛 문면 «106 장·139 cm²» 는 `|n·u|` 로 골라 **뒷면까지 센 값**이다 — "
+                          "면적이 정확히 2 배다. PO 조명 판정이 `n̂·û>0` 이므로 절대 σ 로 번역할 때는 "
+                          "앞면 값을 써야 하고, 그 차이는 **−6.02 dB**(면적비 2배의 제곱, 평판식 "
+                          "σ∝A²)다. 가림까지 반영하면 47.15 cm², 전부 반영하면 35.23 cm² 라 "
+                          "낙차는 최대 −9.41 dB 다(감사 docs/MESH_AUDIT_0816.md I10④).\n"
+                          "⚠ az45 대비 낙차(−57 dB)는 **비율**이라 이 정정에도 그대로 살아남는다 — "
+                          "바뀌는 것은 절대 σ_max 이지 정렬 논증이 아니다.")
+    geo["_correction_20260816"] = dict(
+        what="n_tri_perp·area_cm2 는 |n·u| 로 골라 뒷면을 포함한다",
+        front_only_keys="n_tri_perp_front · area_cm2_front",
+        measured="az0_el0: 양면 106장 139.35 cm² → 앞면 90장 69.67 cm² (면적비 0.5000)",
+        db_effect="절대 σ_max −4.78 → −10.80~−14.19 dBsm (앞면만 −6.02 dB, 가림 반영 −9.41 dB)",
+        ledger="docs/MESH_AUDIT_0816.md I10④")
     out["mesh_perpendicular_facets"] = geo
 
     with open(f"{ROOT}/outputs/az_falsify_ours.json", "w") as f:

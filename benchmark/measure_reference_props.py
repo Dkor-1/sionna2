@@ -14,14 +14,27 @@ measure_reference_props.py — 실물 참조 프로펠러 CAD 정밀 측정 → 
 
 ⚠ **세 개 모두 시뮬레이터/시각화용 CAD 이지 계측 스캔이 아니다.** 특히 1345 는 트위스트가
    전 스팬 19.2~19.9° 로 **워시아웃이 0** 이라 물리적으로 실현 불가능한 로프트다 —
-   트위스트 기준으로 쓰면 안 된다. Solo 가 소비자용 쿼드 프롭(10 in)이라 DJI 급에 가장 가깝다.
-   ⭐ 저장소에 **DJI 프로펠러 실물 기하는 하나도 없다**(Phantom 4 스캔에도 프롭이 없다).
-   따라서 여기서 나오는 모든 값은 "DJI 프롭의 참값" 이 아니라 **같은 급 소형 프롭의 대표값**이다.
+   트위스트 기준으로 쓰면 안 된다.
 
-측정 방법
-  스팬축(bbox 최장축) 수직 평면으로 절단 → 단면 폴리곤 → 최대 캘리퍼로 시위선을 찾고,
-  시위 좌표계로 회전시켜 상·하면에서 두께·평균선(캠버)을 뽑는다. 국소 스윕이 ~2° 라
-  평면절단의 사각(obliquity) 보정은 불필요하다.
+⛔⛔ **2026-08-16 정정 — 옛 문장 두 개를 철회한다.**
+   옛 문장 ①: «저장소에 DJI 프로펠러 실물 기하는 하나도 없다»
+   옛 문장 ②: «Solo 가 소비자용 쿼드 프롭이라 DJI 급에 가장 가깝다»
+   ① 은 **거짓이 됐다.** 2026-08-07 에 들어온 `assets/meshes/reference/WM161_zhankai_1k.glb`
+     (DJI Mini 2 공식 3D 모델) 안에 **날 8장 + 허브 4개**가 실재한다
+     (디스크 지름 118.4~119.7 mm ↔ 공칭 4726F 119.4 mm, −0.9~+0.3 %).
+   ② 는 ① 위에 서 있던 판단이라 같이 무너졌다. 실물 DJI 평면형과 대보니 **Solo 가 참조
+     넷 중 유일한 이상치**다 — 정규화 시위 `c/c_max @0.70R` 이 Mini2 공식CAD 0.866 ·
+     Yuneec 0.866 인데 Solo 계열 법칙은 0.577 이다(감사 `docs/MESH_AUDIT_0816.md` C3·C4).
+   ⇒ **1차 앵커는 이제 DJI Mini 2 공식 CAD 다.** 이 스크립트가 재는 3종은 «같은 급 소형 프롭의
+     참조 밴드» 로 남는다(여전히 쓸모 있다 — 밴드 안인지 밖인지를 보는 데 쓴다).
+   ⚠ 여전히 참인 것: 세 CAD 는 계측 스캔이 아니고, 절대 σ 앵커는 계속
+     `docs/DRONE_SPECS.md` §4 의 실측 문헌에 의존한다.
+
+측정 방법 — **원통 단면**(프로펠러 단면의 정식 정의)
+  반경 r 인 원통으로 날을 잘라 (접선 호길이, 축방향) 단면을 얻고, 최대 캘리퍼로 시위선을
+  찾은 뒤 시위 좌표계로 회전시켜 상·하면에서 두께·평균선(캠버)을 뽑는다.
+  ⚠ 평면절단(스팬축 수직)은 **못 쓴다** — 자세한 이유는 `_cyl_sections` 의 docstring 에 있다
+    (스윕 큰 프롭은 팁이 절단면 밖으로 밀리고, 비폐곡면 어셈블리는 폴리곤이 안 나온다).
 
 실행: cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/measure_reference_props.py
 산출: outputs/reference_props.json
@@ -53,7 +66,10 @@ PROPS = {
         file="solo_prop_cw.stl", label="3DR Solo 10 in",
         nominal_dia_mm=254.0, nominal_pitch_in=4.5,
         source="rotors_simulator 계열",
-        caveat="소비자용 쿼드 프롭 — DJI 급에 가장 가까운 참조. 공칭 피치 4.5 in 은 가정."),
+        caveat="소비자용 쿼드 프롭(10 in). 공칭 피치 4.5 in 은 가정. "
+               "⛔2026-08-16 정정: «DJI 급에 가장 가까운 참조» 였다는 옛 판단은 철회됐다 — "
+               "실물 DJI(Mini 2 공식 CAD)와 대보니 참조 넷 중 유일한 이상치다"
+               "(c/c_max @0.70R: Solo 계열 0.577 ↔ DJI 0.866 ↔ Yuneec 0.866)."),
     "yuneec_typhoon": dict(
         file="prop_cw_assembly_remeshed_v3.stl", label="Yuneec Typhoon H480",
         nominal_dia_mm=None, nominal_pitch_in=None,
@@ -217,12 +233,19 @@ def main():
               f"t/c {r['t_over_c_range'][0]*100:4.1f}-{r['t_over_c_range'][1]*100:4.1f}%")
     doc = dict(
         meta=dict(generated=time.strftime("%Y-%m-%dT%H:%M:%S"),
-                  purpose="실물 참조 프로펠러 CAD 3종 측정 — drone_cad 블레이드 법칙의 근거",
-                  method="스팬축 수직 평면 절단 → 최대캘리퍼 시위선 → 시위좌표계 상하면에서 두께·캠버",
+                  purpose="실물 참조 프로펠러 CAD 3종 측정 — 같은 급 소형 프롭의 참조 밴드",
+                  #  ⛔ m8 정정(2026-08-16): 옛 문면은 «스팬축 수직 평면 절단» 이었는데
+                  #     실제 코드(_cyl_sections)는 **원통 단면**이고, 그 docstring 이 평면절단을
+                  #     못 쓰는 이유를 적고 있다. 측정값 자체는 옳다 — 틀린 건 기록이었다.
+                  method="원통 단면(반경 r 인 원통으로 절단) → 최대캘리퍼 시위선 "
+                         "→ 시위좌표계 상하면에서 두께·캠버",
                   r_over_R_grid=[float(v) for v in RR],
                   warning=("세 CAD 모두 시뮬/시각화용이지 계측 스캔이 아니다. "
                            "1345 는 워시아웃 0 이라 트위스트 기준 부적합. "
-                           "저장소에 DJI 프로펠러 실물 기하는 존재하지 않는다."),
+                           "⛔2026-08-16 정정: 옛 문장 «저장소에 DJI 프로펠러 실물 기하는 "
+                           "존재하지 않는다» 는 거짓이 됐다 — assets/meshes/reference/"
+                           "WM161_zhankai_1k.glb (DJI Mini 2 공식)에 날 8장·허브 4개가 있다. "
+                           "1차 앵커는 그 GLB 이고, 여기 3종은 참조 밴드로 쓴다."),
                   runtime_s=round(time.time() - t0, 1)),
         props=res)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

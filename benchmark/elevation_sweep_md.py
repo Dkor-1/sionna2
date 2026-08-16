@@ -485,8 +485,15 @@ def analyse() -> None:
     engines = sorted({os.path.basename(f).rsplit("_el", 1)[0]
                       for f in glob.glob(f"{SHD}/*_el*.npz")},
                      key=lambda e: (not e.startswith("ours"), e))
+    # ⭐앙각도 **디스크에서 읽는다** — 상수 ELS 만 돌면 −52·−68·−82 처럼 규약 밖 각도로
+    #   돌린 완결 칸이 영원히 원장에 못 들어온다(2026-08-16 에 34 칸이 그렇게 묶여 있었다).
+    els_on_disk = sorted({float(m.group(1))
+                          for f in glob.glob(f"{SHD}/*_el*.npz")
+                          if (m := re.search(r"_el([+-]\d+(?:\.\d+)?)_\d+\.npz$",
+                                              os.path.basename(f)))},
+                         reverse=True)
     for eng in engines:
-        for el in ELS:
+        for el in (els_on_disk or ELS):
             fs = sorted(glob.glob(f"{SHD}/{eng}_el{el:+.0f}_*.npz"))
             if not fs:
                 continue

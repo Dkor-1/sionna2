@@ -131,7 +131,7 @@ cells.append(md(
     "여기서 '부품'은 서로 붙어 있는 삼각형 덩어리(연결요소) 하나를 말한다. 프로펠러 하나는",
     "허브 1개+날개 2장 = 부품 3개다. 검사는 **부품 단위**로 한다 — 드론 전체는 부품을 조립해 만든",
     "것이라 전체가 하나의 닫힌 표면일 이유가 없고, \"닫혔는가\"라는 질문이 의미를 갖는 최소 단위가",
-    "부품이기 때문이다 ← 출처: src/mesh_check.py 14~15행 주석(\"의미 있는 검사는 부품별 검사다\").",
+    "부품이기 때문이다 ← 출처: src/mesh_check.py 머리말(\"의미 있는 검사는 부품별 검사다\").",
 ))
 
 # ---------------------------------------------------------------- 4. 검사 도구
@@ -154,14 +154,14 @@ cells.append(md(
     "",
     "| 도구 | 무엇에 쓰나 | 왜 이것인가 (대안은 왜 아닌가) |",
     "|---|---|---|",
-    "| **trimesh** | watertight·winding·부호부피 판정 | 파이썬 메쉬 검증의 사실상 표준. `is_watertight`·`is_winding_consistent`·부호있는 `volume` 이 내장 — 직접 짜면 검증기 자체를 또 검증해야 한다 ← 출처: src/mesh_check.py check_mesh() 54~56행(세 판정 모두 trimesh 내장 속성 호출) |",
+    "| **trimesh** | watertight·winding·부호부피 판정 | 파이썬 메쉬 검증의 사실상 표준. `is_watertight`·`is_winding_consistent`·부호있는 `volume` 이 내장 — 직접 짜면 검증기 자체를 또 검증해야 한다 ← 출처: src/mesh_check.py check_mesh()(세 판정 모두 trimesh 내장 속성 호출) |",
     "| **scipy cKDTree** | 대칭 검사(B)의 최근접점 탐색 | 점이 최대 백만 개(S1000+ full "
     f"{B['s1000plus']['full']['n_points']:,}점 ← mesh_verify.json §B). 모든 쌍을 재는 브루트포스는 조 단위 연산이라 불가능, KD-트리는 점당 log 시간 |",
     "| **manifold3d** | 겹침 검사(F)의 불리언 교집합 | trimesh 기본 불리언 백엔드(Blender/OpenSCAD)는 외부 프로그램 설치가 필요하고 느리다. manifold 는 pip 휠 하나로 붙는 수치적으로 견고한 전용 엔진 ← 출처: verify_mesh_suite.py sec_F_overlap() 257행 `engine=\"manifold\"` |",
     "",
     "판정 기준도 코드에 그대로 있다: 부품이 닫혔는가(`is_watertight`), 닫힌 부품의 **부호있는 부피가",
     "양수**인가(음수 = 법선이 안쪽 = 뒤집힌 부품), winding 일관성, 넓이 1e-14 m² 미만 퇴화면 개수",
-    "← 출처: src/mesh_check.py check_mesh() 54~57행.",
+    "← 출처: src/mesh_check.py check_mesh().",
 ))
 
 # ---------------------------------------------------------------- 5. 코드: 메타
@@ -191,7 +191,7 @@ cells.append(md(
     "   verify_mesh_suite.py 의 겹침 검사도 watertight 부품만 불리언 대상으로 삼는다",
     "   ← 출처: verify_mesh_suite.py sec_F_overlap() 238행 주석 \"watertight 단일컴포넌트만 불리언 대상(견고성)\".",
     "3. **법선 방향 판정의 전제** — \"바깥을 향한다\"는 말은 안/밖이 있어야 성립한다. 닫힌 부품이라야",
-    "   부호있는 부피의 부호로 안팎 뒤집힘을 기계적으로 잡을 수 있다 ← 출처: mesh_check.py 55행.",
+    "   부호있는 부피의 부호로 안팎 뒤집힘을 기계적으로 잡을 수 있다 ← 출처: mesh_check.py check_mesh()(부호부피 판정).",
     "",
     f"**결과: {len(ORDER)}종 전 기체, 전 부위, {n_wt}/{tot_parts} 부품 watertight 통과** ← 출처: mesh_verify.json",
     "§A_geometry 각 드론 groups.watertight (아래 코드 셀이 그대로 집계한다).",
@@ -238,9 +238,14 @@ cells.append(md(
     "— 삼각형이 한 점으로 모이는 곳이라 감는 순서가 헷갈리기 쉽고 0-넓이 퇴화면도 함께 생기기 쉽다.",
     "이런 실수는 겉보기 렌더링으로는 안 보인다(대부분의 뷰어는 양면을 그린다). 법선 검사만이 잡는다.",
     "",
-    "그래서 사람의 믿음 대신 기계 검사를 빌드 파이프라인에 상시로 넣어 두었다: 닫힌 부품의 부호있는",
-    "부피가 음수면(=안팎 뒤집힘) `mesh_check.assert_ok()` 가 예외를 던져 **빌드 자체가 실패**한다",
-    "← 출처: src/mesh_check.py check_mesh() 55행(부호부피 판정)·assert_ok() 90~98행.",
+    "그래서 사람의 믿음 대신 기계 검사를 **메쉬가 밖으로 나가는 문**에 걸어 두었다: 닫힌 부품의",
+    "부호있는 부피가 음수면(=안팎 뒤집힘) `mesh_check.assert_ok()` 가 예외를 던져 **OBJ 내보내기가",
+    "실패**한다. 부호부피는 두 번 잰다 — trimesh 로 한 번, **trimesh 를 전혀 안 거치고 출하 인덱스에서**",
+    "손으로 한 번. 그리고 검사기는 자기가 보는 것을 **고치지 않는다**(모든 `split` 이 `repair=False` 라",
+    "구멍은 메워지지 않고 경계 모서리 수로 세어진다).",
+    "⚠ 이 게이트가 덮는 범위는 정확히 내보내기 경로다. 메쉬를 메모리에서 만들어 바로 쓰는 계산은",
+    "이 문을 지나지 않는다.",
+    "← 출처: src/mesh_check.py check_mesh()·assert_ok() · src/drones.py 내보내기 진입점의 게이트 호출.",
     "",
     f"**현재 결과: {len(ORDER)}종 {tot_parts}개 부품 중 안쪽 법선 {tot_inward}건, winding 불일치 {tot_badwind}건**",
     "← 출처: mesh_verify.json §A_geometry groups.inward_normals·bad_winding (위 코드 셀 합계 행).",
@@ -253,7 +258,7 @@ cells.append(md(
     "나머지 잔병 세 가지도 훑는다:",
     "",
     "- **퇴화면**(넓이 0 삼각형): 법선을 계산할 수 없고(0으로 나누기), 레이트레이서에 따라 NaN 을",
-    "  퍼뜨린다. 기준은 넓이 1e-14 m² 미만 ← 출처: src/mesh_check.py 57행. 구·회전체의 극점처럼",
+    "  퍼뜨린다. 기준은 넓이 1e-14 m² 미만 ← 출처: src/mesh_check.py DEGENERATE_AREA_M2. 구·회전체의 극점처럼",
     "  삼각형이 한 점으로 모이는 자리에서 생기기 쉬운 유형이다(§4).",
     "- **중복 꼭짓점**(같은 자리 점 2개, 1 nm 격자 기준): 파일 용량 낭비이자, 이웃 관계가 끊긴",
     "  '가짜 틈'의 씨앗 ← 출처: verify_mesh_suite.py sec_A_geometry() 101~102행.",
@@ -467,7 +472,7 @@ cells.append(md(
     "| 검사 | 결과 | 판정 |",
     "|---|---|---|",
     f"| watertight (부품 {tot_parts}개) | {n_wt}/{tot_parts} | 통과 |",
-    f"| 안쪽 법선 | {tot_inward}건 (부호부피 회귀 장치 `assert_ok` 상시 가동) | 통과 |",
+    f"| 안쪽 법선 | {tot_inward}건 (부호부피 회귀 장치 `assert_ok` — 메쉬 내보내기 경로에 배선) | 통과 |",
     f"| winding 불일치 / 퇴화면 / 중복점 / 미사용점 | {tot_badwind} / {tot_degen} / {tot_dup} / {tot_unused} | 통과 |",
     f"| 엣지 p95 vs λ({LAM:.1f} mm) | {min(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}~"
     f"{max(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}λ | 통과(반파장 이하) |",

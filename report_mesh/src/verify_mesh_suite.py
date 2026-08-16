@@ -17,8 +17,17 @@ verify_mesh_suite.py — 드론 메쉬 신뢰성 **종합 검증 스위트** (re
   H po_conv      — PO 적분이 점 간격을 절반으로 줄여도 RCS 가 흔들리지 않는가? (수치 수렴)
   I sbr_subdiv   — SBR(GPU)이 메쉬를 세분화해도 RCS 가 흔들리지 않는가? (표현 충실도)
 
-실행:  ~/.venvs/py312/bin/python report_mesh/src/verify_mesh_suite.py            # 전체 (I 는 GPU)
-       ~/.venvs/py312/bin/python report_mesh/src/verify_mesh_suite.py --skip-sbr # GPU 없이 A~H
+⚠ **검사기는 자기가 보는 것을 고치지 않는다.** `trimesh.split()` 은 trimesh 5.x 에서
+  `repair=True` 가 **기본**이라, 구멍 뚫린 부품을 조용히 메운 뒤 «수밀» 을 돌려준다
+  (합성 대조: 삼각형 1장 뺀 상자 11면·수밀 False → 12면·수밀 True). 그래서 이 파일의
+  **모든 `split` 호출은 `repair=False` 를 명시**한다 — `src/mesh_check.py` 와 같은 규약이다.
+  구별할 것: 웰딩(`process=True`, 같은 자리의 중복 «정점» 합치기)은 유지한다. 우리 `geom.Mesh`
+  는 프리미티브마다 정점을 따로 쌓으므로 웰딩 없이는 멀쩡한 부품도 전부 비수밀로 나온다.
+
+실행:  /workspace/.venvs/py312/bin/python report_mesh/src/verify_mesh_suite.py            # 전체 (I 는 GPU)
+       /workspace/.venvs/py312/bin/python report_mesh/src/verify_mesh_suite.py --skip-sbr # GPU 없이 A~H
+       (`--skip-sbr` 는 직전 원장의 I 절을 `stale=True` 표시와 함께 **이월**한다 —
+        GPU 없는 갱신이 GPU 증거를 조용히 지우지 않게.)
 """
 from __future__ import annotations
 
@@ -203,7 +212,7 @@ def sec_D_volume(drones, specs):
         tms = _group_trimeshes(mesh)
         vols = {}
         for grp, tm in tms.items():
-            comps = tm.split(only_watertight=False)
+            comps = tm.split(only_watertight=False, repair=False)   # ⚠ 수리 금지(머리말)
             v = sum(abs(c.volume) for c in comps if c.is_watertight)
             vols[grp] = float(v * 1e6)                  # cm³
         total_cm3 = float(sum(vols.values()))
@@ -249,7 +258,8 @@ def sec_F_overlap(drones):
         # watertight 단일컴포넌트만 불리언 대상(견고성)
         solid = {}
         for g, t in tms.items():
-            comps = [c for c in t.split(only_watertight=False) if c.is_watertight]
+            comps = [c for c in t.split(only_watertight=False, repair=False)  # ⚠ 수리 금지
+                     if c.is_watertight]
             if comps:
                 solid[g] = comps
         pairs = []
@@ -448,6 +458,7 @@ def main():
         except BaseException as e:
             out[name] = dict(error=repr(e))
             print(f"  [{name}] ERROR: {e!r}")
+    path = os.path.join(OUT, "mesh_verify.json")
     if not a.skip_sbr:
         t0 = time.time()
         try:
@@ -456,8 +467,19 @@ def main():
         except BaseException as e:
             out["I_sbr_subdiv"] = dict(error=repr(e))
             print(f"  [I_sbr_subdiv] ERROR: {e!r}")
+    elif os.path.exists(path):
+        # GPU 없는 갱신이 GPU 증거를 **조용히 지우지 않게** 이월한다. 낡았음을 명시한다.
+        try:
+            old = json.load(open(path, encoding="utf-8")).get("I_sbr_subdiv")
+            if isinstance(old, dict):
+                old = dict(old, stale=True,
+                           stale_note="이 절만 직전 원장에서 이월됐다(--skip-sbr). "
+                                      "다른 절과 세대가 다르므로 면 수·σ 를 나란히 인용하지 말 것.")
+                out["I_sbr_subdiv"] = old
+                print("  [I_sbr_subdiv] 이월(stale=True) — GPU 미실행")
+        except BaseException as e:
+            print(f"  [I_sbr_subdiv] 이월 실패: {e!r}")
 
-    path = os.path.join(OUT, "mesh_verify.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     print(f"✅ 저장: {path}")

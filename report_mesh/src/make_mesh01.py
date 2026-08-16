@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 """make_mesh01.py — mesh01 ipynb 생성기. ⚠ 이 파일이 소스다.
 ================================================================
-mesh01 — "우리 드론 3D 모델, 왜 이렇게 만들었나 (전체 지도)"
+mesh01 — "표적 10종을 무엇으로 짓고, 무엇으로 채점하나 (전체 지도)"
 
-시리즈의 문을 여는 편. 단 하나의 주제: **왜 인터넷 3D 모델을 받지 않고
-코드로 드론을 만들었는가, 그리고 그 전체 파이프라인의 지도**.
+시리즈의 문을 여는 편. 단 하나의 주제: **드론을 어디서 받지 않고 코드로 지은 이유,
+참조 자료를 어디까지 제작에 썼는지, 그리고 그 결과를 무엇이 채점하는가의 지도**.
 
 하우스 규약:
-  · 본문 수치는 전부 report_mesh/outputs/mesh_verify.json 에서 f-string 주입 (손숫자 금지)
+  · 본문 수치는 전부 원장에서 f-string 주입 (손숫자 금지)
+      - report_mesh/outputs/mesh_verify.json  (기하 검증 A~I)
+      - outputs/mesh_inspect_*_0816.json      (2026-08-16 라운드 원장 4종)
+      - outputs/meshfix_matrice4e.json        (공식 CAD 정정 명세)
+    공용 로더는 report_mesh/src/mesh_facts_0816.py
   · 스펙 숫자는 src/drones.py 의 DroneSpec 에서 import
-  · 모든 사실 옆에 "← 출처:" 표기 (사용자 특별 지시)
-  · 배정 그림: pipeline_map.png, wireframe_mavic4pro.png (이 두 장만 사용)
+  · 모든 사실 옆에 "← 출처:" 표기
+  · 근거 등급 [A]공식CAD직접 / [B]사진계측 / [C]계열유추 / [D]대리 를 표에 붙인다
+  · ⏳ 프로펠러 형상 절은 **자리만** — 기체별 프로펠러 정본화 라운드가 정본이다
+  · 톤: 과거 버그 서사 금지. **지금 상태의 신뢰성**과 **지금 남은 한계**만 적는다
 """
 import json
 import math
@@ -19,87 +25,71 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RM = os.path.abspath(os.path.join(HERE, ".."))            # report_mesh/
-ROOT = os.path.abspath(os.path.join(RM, ".."))            # sionna2/
+ROOT = os.path.abspath(os.path.join(RM, ".."))            # 저장소 루트
 sys.path.insert(0, os.path.join(ROOT, "src"))
+sys.path.insert(0, HERE)
 
 V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
 
 from drones import DRONES, drone_label  # noqa: E402  (스펙 원본: src/drones.py DroneSpec)
+import mesh_facts_0816 as F             # noqa: E402  (2026-08-16 원장 공용 로더)
+from mesh_ledger import ledger_order    # noqa: E402  (원장↔레지스트리 일치 강제)
 
 # --------------------------------------------------------------------------- #
 #  수치 준비 — 본문의 모든 숫자는 여기서 계산해 주입한다
 # --------------------------------------------------------------------------- #
 META = V["meta"]
 A = V["A_geometry"]
-from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
 ORDER = ledger_order(V)                    # = DRONES 레지스트리 전수(개수 하드코딩 없음)
+TOT = F.fleet_totals(V, ORDER)
+
 
 def _parts(s):                             # "12/12" → (12, 12)
     a, b = s.split("/")
     return int(a), int(b)
 
-tot_verts = sum(A[k]["n_verts"] for k in ORDER)
-tot_faces = sum(A[k]["n_faces"] for k in ORDER)
-tot_parts = 0
-tot_wt = 0
-tot_inward = 0
-tot_degen = 0
-tot_dup = 0
-for k in ORDER:
-    tot_dup += A[k]["dup_vertices"]
-    for g in A[k]["groups"].values():
-        w_ok, w_all = _parts(g["watertight"])
-        tot_wt += w_ok
-        tot_parts += w_all
-        tot_inward += g["inward_normals"]
-        tot_degen += g["degenerate"]
 
-MV = A["mavic4pro"]                        # 대표 기종(실측 대상)
-mv_spec = DRONES["mavic4pro"]
-mv_groups = MV["groups"]
-mv_parts = sum(_parts(g["watertight"])[1] for g in mv_groups.values())
 lam_hi = META["lam_hi_mm"]                 # 최고 대역(WiFi 5.21 GHz) 파장 [mm]
-mv_p95 = MV["edge_mm"]["p95"]
-mv_ratio = MV["edge_vs_lam52"]["p95_over_lam"]
 
-# 재질 반사계수(|Γ| 진폭) — E_materials 는 전 기종 공통 gamma_map
-GM = V["E_materials"]["mavic4pro"]["gamma_map"]
-g_body, g_prop, g_batt, g_cam = GM["body"], GM["prop"], GM["battery"], GM["camera"]
-db_batt_vs_body = 20.0 * math.log10(g_batt / g_body)     # 전력비 [dB]
-db_batt_vs_prop = 20.0 * math.log10(g_batt / g_prop)
+#  대표 기종 둘 — 실측 표적(mini5pro)과 공식 CAD 대조가 끝난 기체(matrice4e)
+REP = ("mini5pro", "matrice4e")
+rep_rows = []
+for k in REP:
+    a = A[k]
+    e = a["edge_mm"]
+    rep_rows.append(
+        f"| {drone_label(k)} | **[{F.GRADES[k][0]}]** | {a['n_verts']:,} | {a['n_faces']:,} "
+        f"| {a['n_groups']} | {e['p50']:.1f} | {e['p95']:.1f} | {e['max']:.1f} "
+        f"| {e['p95'] / lam_hi:.2f} λ | {e['max'] / lam_hi:.2f} λ |")
+rep_table = "\n".join(rep_rows)
 
-# 치수 검증(C) 최악 오차 — 전 기종 중 최댓값
-worst_dim = max(V["C_dims"][k]["worst_err_pct"] for k in ORDER)
+#  근거 등급 표(기체별)
+grade_rows = "\n".join(
+    f"| {drone_label(k)} | **[{F.GRADES[k][0]}]** | {F.GRADES[k][1]} |" for k in ORDER)
 
-# 실기체 스캔 대조(G)
+#  |Γ| — 원장 E 절(전 기종 공통 gamma_map)
+GM = V["E_materials"][REP[1]]["gamma_map"]
+g_body, g_prop, g_batt = GM["body"], GM["prop"], GM["battery"]
+db_batt_vs_body = 20.0 * math.log10(g_batt / g_body)
+
+#  치수 검증(C) 최악 오차 — 원장이 덮는 전 기종 중 최댓값
+worst_dim_key = max(ORDER, key=lambda k: V["C_dims"][k]["worst_err_pct"])
+worst_dim = V["C_dims"][worst_dim_key]["worst_err_pct"]
+
+#  실기체 스캔 대조(G)
 G = V["G_scan"]
 g_p50 = G["scan_to_cad_mm"]["p50"]
 g_p90 = G["scan_to_cad_mm"]["p90"]
 
-# 드론 전 기종 표(스펙은 DroneSpec, 측정은 JSON) — 개수는 len(ORDER)
-_diag_est = {"mini5pro", "mavic4pro"}       # DJI 대각 비공개 → 추정 (src/drones.py note)
-rows = []
-for k in ORDER:
-    sp = DRONES[k]
-    a = A[k]
-    parts = sum(_parts(g["watertight"])[1] for g in a["groups"].values())
-    wt = sum(_parts(g["watertight"])[0] for g in a["groups"].values())
-    star = "*" if k in _diag_est else ""
-    rows.append(
-        f"| {sp.name} | {sp.diagonal_mm:.0f}{star} | {sp.prop_dia_mm:.0f}×{sp.num_rotors} "
-        f"| {a['n_verts']:,} | {a['n_faces']:,} | {a['n_groups']} | {wt}/{parts} |")
-drone_table = "\n".join(rows)
+#  matrice4e 공식 CAD 정정 착지
+LAND = F.BODY["meshfix_matrice4e_landed"]
+n_fixes = len(F.M4EFIX["fixes"])
 
-# Mavic 4 Pro 부위(그룹)별 면 수 표 — §3 에서 사용
-mat_of = {"body": "plastic_abs", "canopy": "plastic_abs", "camera": "glass+metal",
-          "motor": "metal", "prop": "plastic_thin", "battery": "metal(Li-ion)",
-          "pcb": "pcb(FR-4)"}
-mv_rows = []
-for gname in sorted(mv_groups, key=lambda x: -mv_groups[x]["n_faces"]):
-    g = mv_groups[gname]
-    mv_rows.append(f"| `{gname}` | {g['n_faces']:,} | {g['n_parts']} | {g['watertight']} "
-                   f"| {mat_of.get(gname, '-')} | {GM.get(gname, float('nan')):.2f} |")
-mv_group_table = "\n".join(mv_rows)
+#  mini2 공식 GLB
+MINI2 = F.BODY["per_drone"]["mini2"]
+
+#  SBR 절(I)이 낡았는지 — 원장이 스스로 표시한다
+I_STALE = bool(V.get("I_sbr_subdiv", {}).get("stale"))
 
 
 # --------------------------------------------------------------------------- #
@@ -112,21 +102,25 @@ def md(*lines):
 
 cells = [
 
-# ── 1. 제목 + 경고 + 요약 ──────────────────────────────────────────────────
+# ── 1. 제목 + 머리 블록 ───────────────────────────────────────────────────
 md(
-"# mesh01 — 우리 드론 3D 모델, 왜 이렇게 만들었나 (전체 지도)",
+"# mesh01 — 표적 10종을 무엇으로 짓고, 무엇으로 채점하나 (전체 지도)",
 "",
-"> ⚠ **이 노트북은 생성물이다.** 수정은 `report_mesh/src/make_mesh01.py` 에서 하고 재실행할 것",
-"> (`.ipynb` 를 직접 고치면 다음 빌드에서 사라진다).",
+*F.head_md(
+    "mesh01",
+    "우리가 레이더 시뮬레이션에 쓰는 드론 표적 "
+    f"{len(ORDER)}종은 무엇으로 만들어졌고, 그 형상을 무엇이 채점하는가.",
+    ["verify", "body_arms", "gimbal", "internal_check", "materials", "meshfix_m4e",
+     "audit", "sources"]),
 "",
 f"**한 줄 요약** — 인터넷의 드론 3D 모델은 시각용 껍데기라 레이더 시뮬레이션에 못 쓴다.",
-f"그래서 우리는 **제조사 공식 제원표의 숫자**로부터 코드가 드론 {len(ORDER)}종을 직접 깎아 만들고",
-f"(총 {tot_faces:,}개 삼각형), 9가지 독립 검사로 품질을 증명한다. 이 편은 그 **전체 지도**다.",
+f"그래서 제조사 공식 제원과 (있는 경우) 공식 CAD 로부터 코드가 드론 {len(ORDER)}종을 직접 깎는다",
+f"(총 {TOT['faces']:,}개 삼각형 · 부품 {TOT['parts']}개). 이 편은 그 **전체 지도**다 —",
+"자료가 어디까지 제작에 들어갔고, 어디서부터 독립 채점이 시작되는지.",
 "",
 "이 시리즈(mesh01~08)는 **파이썬 기초만 아는 독자**를 위한 3D 모델 제작 가이드다.",
-"본문의 모든 숫자는 손으로 적지 않고 검증 스위트가 만든",
-"`outputs/mesh_verify.json` 에서 자동 주입했으며, **모든 사실 옆에 `← 출처:` 를 단다** —",
-"어느 파일·어느 웹페이지·어느 측정에서 온 정보인지 독자가 직접 추적할 수 있게."),
+"본문의 모든 숫자는 손으로 적지 않고 위 원장에서 자동 주입했으며,",
+"**모든 사실 옆에 `← 출처:` 를 단다** — 어느 파일·어느 측정에서 온 정보인지 추적할 수 있게."),
 
 # ── 2. 용어풀이 ────────────────────────────────────────────────────────────
 md(
@@ -138,37 +132,43 @@ md(
 "| **꼭짓점(vertex)** | 3D 공간의 점 (x, y, z). 삼각형의 모서리 끝점 |",
 "| **면(face)** | 꼭짓점 3개를 이은 삼각형 1장. 메쉬의 최소 단위 |",
 "| **법선(normal)** | 삼각형이 바라보는 방향(수직 화살표). 물체의 '겉'과 '속'을 구분한다 |",
-"| **watertight(방수)** | 구멍이 하나도 없는 닫힌 표면 — 물을 부어도 새지 않는 그릇 |",
+"| **수밀(watertight)** | 구멍이 하나도 없는 닫힌 표면 — 물을 부어도 새지 않는 그릇 |",
+"| **경계 모서리** | 삼각형 **하나만** 쓰는 모서리. 구멍의 테두리다 |",
 "| **그룹(group)** | 면마다 붙인 부위 이름표(body/prop/motor …). 부위별 재질 배정의 열쇠 |",
 "| **OBJ** | 꼭짓점·삼각형 목록을 적는 텍스트 3D 파일 형식. Sionna/Mitsuba 가 바로 읽는다 |",
 "| **파라메트릭 CAD** | 치수(파라미터)를 넣으면 코드가 형상을 만들어 주는 설계 방식 |",
 "| **불리언(boolean union)** | 두 입체를 '합집합' 으로 녹여 붙여 내부의 숨은 면을 없애는 연산 |",
-"| **trimesh / manifold3d** | 파이썬 3D 메쉬 라이브러리 / 불리언 연산 엔진 (둘을 함께 쓴다) |",
-"| **Sionna RT** | NVIDIA 의 전파(RF) 광선추적 시뮬레이터. 우리 실험의 무대 |",
-"| **RCS** | Radar Cross Section. 레이더에게 물체가 얼마나 '밝게' 보이는지의 면적값 [m²] |",
-"| **PO / SBR** | 물리광학 / 광선발사·반사 — 메쉬 표면에서 RCS 를 계산하는 두 방법 (mesh08·report07) |",
+"| **축간거리(wheelbase)** | 마주 보는 두 로터 축 사이의 거리. **메쉬에서 잰 값** |",
+"| **대각(diagonal)** | 제조사가 공표하는 대각 치수. 축간거리와 **같지 않을 수 있다**(§1.3) |",
+"| **RCS(σ)** | 레이더에게 물체가 얼마나 '밝게' 보이는지의 면적값 [m²] |",
+"| **PO / SBR** | 물리광학 / 광선발사·반사 — 표면에서 RCS 를 계산하는 두 방법 |",
 "| **\\|Γ\\|(반사계수)** | 전파가 재질 표면에서 반사되는 진폭 비율. 금속≈1.0, 플라스틱≈0.3 |",
+"| **평판극한 상한** | 형상 차이를 «같은 크기 평판이면 최대 이만큼» 으로 옮긴 **상한값**. "
+"커널 계산 결과가 아니라 크기 감각을 주는 자다 |",
 "| **파장 λ** | 전파의 한 주기 길이. 메쉬 삼각형은 λ 보다 충분히 작아야 형상을 '전파의 눈'으로 담는다 |"),
 
 # ── 3. §0 이 편이 답하는 질문 ─────────────────────────────────────────────
 md(
 "## 0. 이 편이 답하는 질문",
 "",
-"우리 프로젝트는 30×20×11 m 반무향 챔버 안에서 WiFi/LTE/5G 신호로 드론을 탐지하는",
-"패시브 레이더 시뮬레이션이다 ← 출처: `README.md` 1~10행. 그 시뮬레이션의 **표적**이 되는",
-#  ⚠ 2026-07-30 (Phase 3): 'DJI 드론 N종' 이라고 쓰면 안 된다 — 표적에 Yuneec·Holybro 가
-#     들어왔다. 제조사 접두어를 떼는 규약도 drones.drone_label 한 군데로 모았다.
+"이 저장소는 통신 신호를 조명 삼아 드론을 탐지하는 시뮬레이터다. 시나리오는 하나가 아니다 —",
+"**패시브 바이스태틱**(남의 신호를 빌려 쓴다)과 **모노스태틱**(파형을 우리가 안다)을 함께 본다",
+"← 출처: `README.md`. 그 시뮬레이션의 **표적**이 되는",
 f"드론 {len(ORDER)}종({', '.join(drone_label(k) for k in ORDER)})의",
 "3D 모델을 어떻게 만들었는지가 이 시리즈의 주제다.",
 "",
-"이 편(mesh01)은 네 가지 질문에 답한다:",
+"⭐ **표적 축은 시나리오와 무관하다.** σ·마이크로도플러·앙각은 «누가 신호를 쐈나» 와 상관없이",
+"같은 형상에서 나온다. 그래서 이 시리즈는 시나리오를 안 고르고 형상만 다룬다.",
+"",
+"이 편(mesh01)은 다섯 가지 질문에 답한다:",
 "",
 "1. **삼각형 메쉬가 뭔가?** — 종이접기 비유로 (§1)",
 "2. **왜 인터넷 3D 모델을 안 받고 코드로 만들었나?** (§2)",
-"3. **핵심 원칙 'OBJ 1개 = 부위 1개 = 재질 1개' 는 무슨 뜻인가?** (§3)",
-"4. **자료 → 제작 → 검증, 전체 파이프라인은 어떻게 생겼나?** (§4, 지도 그림)",
+"3. **그럼 참조 자료는 어디까지 제작에 들어갔나?** (§2.3 — 이 편에서 가장 자주 오해받는 자리)",
+"4. **'OBJ 1개 = 부위 1개 = 재질 1개' 는 무슨 뜻인가?** (§3)",
+"5. **자료 → 제작 → 검사기 → 원장, 전체 지도는 어떻게 생겼나?** (§4)",
 "",
-"세부(몸체 깎는 법, 프로펠러 익형, 치수 검증, 재질, 삼각형 품질, 실물 대조, 수치 수렴)는",
+"세부(몸체 깎는 법, 프로펠러, 자료 출처, 재질, 기하 품질, 실물 대조)는",
 "mesh02~08 각 편이 하나씩 맡는다 — 목차는 §5."),
 
 # ── 4. §1 삼각형 메쉬란 ───────────────────────────────────────────────────
@@ -195,12 +195,7 @@ md(
 "",
 "← 출처: `src/geom.py` 15~21행 모듈 docstring (그대로 인용).",
 "실제 클래스도 딱 세 줄이다 — `.v`(꼭짓점), `.f`(삼각형 인덱스), `.g`(면별 그룹 이름)",
-"← 출처: `src/geom.py:41` `class Mesh` docstring.",
-"",
-f"예컨대 대표 기종 **{mv_spec.name}** 모델은 꼭짓점 {MV['n_verts']:,}개를",
-f"삼각형 {MV['n_faces']:,}장으로 이어붙인 것이고, 면마다 {MV['n_groups']}가지 부위 이름표",
-"(body/canopy/prop/motor/camera/battery/pcb)가 붙어 있다",
-"← 출처: `outputs/mesh_verify.json` `A_geometry.mavic4pro` (측정: `report_mesh/src/verify_mesh_suite.py` §A)."),
+"← 출처: `src/geom.py:41` `class Mesh` docstring."),
 
 # ── 5. §1.2 법선과 watertight ─────────────────────────────────────────────
 md(
@@ -209,145 +204,206 @@ md(
 "종이 다면체를 접을 때 겉과 속을 뒤집어 붙이면 이상해진다. 메쉬도 같다. 삼각형마다",
 "**법선(normal)** — 어느 쪽이 '겉'인지 가리키는 수직 화살표 — 이 있고, 모든 법선이",
 "바깥을 향해야 전파 시뮬레이터가 \"여기가 물체 표면\" 을 올바로 인식한다.",
-"법선이 안쪽을 보면 그 면은 반사 계산에서 **거꾸로 세어져** RCS 가 틀어진다 —",
-"그래서 검사 A 가 법선 방향·winding 을 전수 확인한다",
-"← 출처: `report_mesh/src/verify_mesh_suite.py` §A 검사 항목(법선방향·winding).",
+"우리 PO 커널의 조명 판정이 `n̂·û > 0` 이라, 법선이 뒤집힌 면은 조명 여부가 **반대로** 정해진다",
+"← 출처: `src/rcs_po.py` 조명 판정.",
 "",
-"**watertight(방수)** 는 표면에 구멍이 하나도 없다는 뜻이다 — 그릇에 물을 부어도 안 샌다.",
-"구멍이 있으면 (a) 부피를 정의할 수 없고 (b) 광선이 물체 '속'으로 새어들어 유령 반사를 만든다.",
+"**watertight(수밀)** 는 표면에 구멍이 하나도 없다는 뜻이다 — 그릇에 물을 부어도 안 샌다.",
+"구멍이 있으면 (a) 부피를 정의할 수 없고 (b) **안/밖 판정(`contains`)이 정의되지 않는다.**",
+"두 번째가 실질적인 피해다: 내부 판정을 쓰는 검사가 그 부품을 조용히 건너뛴다.",
 "",
-f"우리 {len(ORDER)}종의 성적표 (검사: trimesh 의 `is_watertight`·winding·법선 검사",
-"← 출처: `report_mesh/src/verify_mesh_suite.py` §A):",
-"",
-f"- 부위 조각(파트) **{tot_parts}개 전부 watertight** ({tot_wt}/{tot_parts} 통과)",
-f"- 안쪽을 보는 법선 **{tot_inward}개**, 퇴화 삼각형(넓이 0) **{tot_degen}개**, 중복 꼭짓점 **{tot_dup}개**",
-"",
-"← 출처: `outputs/mesh_verify.json` `A_geometry.*.groups` (watertight/inward_normals/degenerate/dup_vertices 합산).",
-"",
-"뒤 리포트들이 쓰는 물리 계산(PO 적분·SBR 광선추적, mesh08·report07)은 이",
-"기하학적 건강함을 **전제**로 한다. 그래서 시리즈 첫 편에서 이 성적표부터 보여 준다."),
+"두 개념을 여기서는 **뜻만** 익히고, 지금 우리 메쉬의 성적표는 §4.3~§4.4 에서",
+"검사기·예산과 함께 읽는다 — 숫자 하나로 «통과» 를 말하는 것이 정확하지 않기 때문이다."),
 
 # ── 6. §1.3 전 기종 규모 표 ────────────────────────────────────────────────
 md(
-f"### 1.3 우리 드론 {len(ORDER)}종 — 한 표로",
+f"### 1.3 표적 {len(ORDER)}종 — 한 표로",
 "",
-"| 드론 | 대각[mm] | 프롭Ø[mm]×수 | 꼭짓점 | 삼각형 | 부위 수 | watertight |",
-"|---|---|---|---|---|---|---|",
-drone_table,
-f"| **합계** | | | **{tot_verts:,}** | **{tot_faces:,}** | | **{tot_wt}/{tot_parts}** |",
+"| 드론 | 근거 | 축간거리[mm] | 프롭Ø[mm]×수 | 꼭짓점 | 삼각형 | 그룹 | 수밀 | 지금 선언된 결함 |",
+"|---|---|---|---|---|---|---|---|---|",
+F.fleet_table(V, ORDER, drone_label, DRONES),
+f"| **합계** | | | | **{TOT['verts']:,}** | **{TOT['faces']:,}** | | "
+f"**{TOT['watertight']}/{TOT['parts']}** | |",
 "",
-"\\* 표시: DJI 가 대각거리(모터-모터 휠베이스)를 공개하지 않아 외형에서 **추정**한 값",
-"← 출처: `src/drones.py:98·121` DroneSpec `note` 필드(mini5pro·mavic4pro)·`docs/SPECS.md` (각 기종 dji.com 스펙페이지 URL 포함).",
-"대각·프롭 지름·로터 수는 `src/drones.py:37` `DroneSpec` dataclass 에서 import 했고(손숫자 아님),",
-"꼭짓점·삼각형·watertight 는 `outputs/mesh_verify.json` `A_geometry` 측정값이다.",
+"**«축간거리» 열을 쓰는 이유** — 이 열은 마주 보는 두 로터 축 사이 거리를 **메쉬에서 잰 값**이다.",
+"제조사가 공표하는 «대각» 과 같지 않을 수 있다. 가장 큰 차이는 Mini 5 Pro 로,",
+f"공표 대각 {DRONES['mini5pro'].diagonal_mm:.0f} mm ↔ 축간거리",
+f"{F.BODY['per_drone']['mini5pro']['wheelbase_mm']:.2f} mm 다. 로터가 정사각형이 아니라",
+"사다리꼴로 놓이기 때문이고, 이것은 결함이 아니라 **선언된 선택**이다",
+"← 출처: `src/drones.py` mini5pro `note`(«diagonal_mm 은 로터 위치를 정하지 않는다»)·",
+"`outputs/mesh_inspect_body_arms_0816.json` `per_drone.mini5pro.wheelbase_mm`.",
 "",
-f"공식 외형치수와의 오차는 {len(ORDER)}종 최악이 **{worst_dim:.1f}%** (자세한 검증은 mesh04·mesh08)",
-"← 출처: `mesh_verify.json` `C_dims.*.worst_err_pct`."),
+"⚠ **리포트·발표에서 Mini 5 Pro 의 로터 간격을 쓸 때는 축간거리를 인용할 것.**",
+"«대각 275 mm» 를 로터 간격으로 쓰면 9.7 % 틀린다.",
+"",
+"**근거 등급** — 형상이 어디서 왔는가:",
+"",
+*F.GRADE_LEGEND,
+"",
+"| 드론 | 등급 | 근거 |",
+"|---|---|---|",
+grade_rows,
+"",
+"← 출처: `outputs/mesh_inspect_body_arms_0816.json`(암 단면·셸 스테이션 실측 대조)·",
+"`outputs/meshfix_matrice4e.json`(공식 STEP)·`assets/meshes/reference/SOURCES.md`."),
 
-# ── 7. 그림: wireframe ────────────────────────────────────────────────────
+# ── 7. §1.4 대표 두 기종 ──────────────────────────────────────────────────
 md(
-"### 1.4 눈으로 보기 — 대표 기종 Mavic 4 Pro",
+"### 1.4 눈으로 보기 — 대표 두 기종",
 "",
-"![wireframe mavic4pro](outputs/figures/wireframe_mavic4pro.png)",
+"대표를 **둘** 세운다. 두 기체가 다른 것을 대표하기 때문이다.",
 "",
-f"**그림 1** — {mv_spec.name} 메쉬 3면. 실측 캠페인 대상 기종이라 대표로 골랐다",
-"← 출처: 프로젝트 방향(`README.md` 137~138행: 실측 = Mavic 4 Pro·Matrice 4E).",
+f"- **{drone_label('mini5pro')}** — 실측 캠페인의 표적이다 ← 출처: `README.md` 실측 계획.",
+"  형상 근거는 사진 계측이고, **셸 높이의 1차 출처가 없다**는 한계를 그대로 안고 있다(§4.4).",
+f"- **{drone_label('matrice4e')}** — 공식 CAD 대조가 끝난 기체다. DJI Matrice 4T 공식 STEP 으로",
+f"  형상 상수 {n_fixes}건을 정정했고 **{LAND['verdict'].split('.')[0]}**",
+"  ← 출처: `outputs/mesh_inspect_body_arms_0816.json` `meshfix_matrice4e_landed`.",
 "",
-"- **왼쪽(shaded)**: 색이 곧 부위(=재질)다. 회색 몸체(body), 같은 회색 프로펠러(prop),",
-"  금속색 모터(motor), 렌즈 3개가 박힌 구형 짐벌(camera) — Mavic 4 의 실제 특징인",
-"  '인피니티 볼 짐벌'을 반영했다 ← 출처: `src/drone_cad.py` 머리말 실루엣 목록(16~17행).",
-f"- **가운데(wireframe)**: 삼각형 {MV['n_faces']:,}장의 뼈대가 그대로 보인다. 곡면(동체·짐벌 볼)일수록",
-"  삼각형이 촘촘하다.",
-f"- **오른쪽(top view)**: 위에서 본 대각 배치. 프로펠러 지름 {mv_spec.prop_dia_mm:.0f} mm ×",
-f"  로터 {mv_spec.num_rotors}개 ← 출처: DJI 공식 스펙(`docs/SPECS.md`, drdrone.ca/pages/dji-mavic-4-pro-technical-specifications).",
+"![wireframe mini5pro](outputs/figures/wireframe_mini5pro.png)",
 "",
-f"삼각형 한 변 길이는 상위 95% 가 {mv_p95:.1f} mm — 우리가 쓰는 최고 대역(WiFi 5.21 GHz)의",
-f"파장 λ={lam_hi:.1f} mm 의 **{mv_ratio:.2f}λ ≈ λ/{1/mv_ratio:.1f}** 수준이라, 전파의 눈으로 봐도",
-"형상이 충분히 매끄럽다(엣지 길이 통계는 mesh07 에서 자세히)",
-"← 출처: `mesh_verify.json` `A_geometry.mavic4pro.edge_mm/edge_vs_lam52`, 그림: `report_mesh/src/viz_mesh_reports.py` `fig_wireframes()`(119행)."),
+f"**그림 1** — {drone_label('mini5pro')} 메쉬 3면 ← 그림 생성:",
+"`report_mesh/src/viz_mesh_reports.py` `fig_wireframes()`.",
+"",
+"![wireframe matrice4e](outputs/figures/wireframe_matrice4e.png)",
+"",
+f"**그림 2** — {drone_label('matrice4e')} 메쉬 3면. 같은 코드가 스펙만 바꿔 만든 것이다.",
+"",
+"- **왼쪽(shaded)**: 색이 곧 부위(=재질)다 — 셸(body), 프로펠러(prop), 금속 모터(motor),",
+"  짐벌(camera).",
+"- **가운데(wireframe)**: 삼각형 뼈대. 곡면(동체·짐벌)일수록 촘촘하다.",
+"- **오른쪽(top view)**: 위에서 본 로터 배치.",
+"",
+"**삼각형 크기 — 세 숫자로 읽는다.** 중앙값만 적으면 최댓값을 못 본다:",
+"",
+"| 드론 | 근거 | 꼭짓점 | 삼각형 | 그룹 | 한 변 p50[mm] | p95[mm] | **최대[mm]** | p95/λ | **최대/λ** |",
+"|---|---|---|---|---|---|---|---|---|---|",
+rep_table,
+"",
+f"λ 는 우리가 쓰는 최고 대역(WiFi 5.21 GHz)의 파장 **{lam_hi:.1f} mm** 다",
+"← 출처: `mesh_verify.json` `meta.lam_hi_mm`·`A_geometry.*.edge_mm`.",
+"",
+"**최대값이 λ 를 넘는 것을 어떻게 읽나** — 가장 긴 모서리는 배터리·기판 같은 **평평한 상자**의",
+"모서리다. 평면은 잘게 쪼개도 같은 평면이라 형상이 나빠지지 않고, PO 적분은 면을 λ/11 로",
+"다시 나눠 표본을 뜬다 ← 출처: `src/rcs_po.py` `mesh_to_points`. 그래서 이 최댓값은",
+"위상 표본 문제가 아니다. ⏳ **프로펠러의 삼각형 크기는 별개 축**이고, 기체별 프로펠러 정본화",
+"라운드가 정본이다(§3 끝)."),
 
 # ── 8. §2 왜 인터넷 모델을 안 쓰나 ────────────────────────────────────────
 md(
 "## 2. 왜 인터넷 3D 모델을 그대로 안 쓰나",
 "",
 "가장 쉬운 길은 3D 모델 공유 사이트에서 \"DJI Mavic 4\" 를 검색해 받는 것이다.",
-"우리는 그 길을 **버렸다**. 프로젝트 문서에 적어 둔 이유를 그대로 인용한다:",
+"그 길을 버린 이유는 둘이다.",
 "",
-"> ⚠️ **DJI 는 공식 CAD 를 공개하지 않습니다.** 인터넷의 DJI 3D 모델들은",
-"> · 시각용(껍데기만 — 내부 금속 산란체 없음)",
-"> · 치수 검증 안 됨",
-"> · 라이선스 제약",
-"> 이라 RCS 에 쓸 수 없습니다.",
+"1. **치수 미검증** — 취미 모델러가 사진을 보고 눈대중으로 만든 것이 많다. RCS 는 투영 면적과",
+"   세부 형상에 민감해서 치수가 몇 % 틀리면 답이 몇 dB 틀어진다.",
+"2. **라이선스 제약** — 연구 산출물에 재배포 불가·상업 불가 모델을 섞으면 재현 패키지를 공개할 수 없다.",
 "",
-"← 출처: `assets/meshes/reference/SOURCES.md` 6~10행 (그대로 인용).",
+"거기에 **레이더 고유의 이유**가 하나 더 붙는다. 게임·렌더용 모델은 겉모습만 그럴듯하면 되지만,",
+f"전파의 눈에는 겉껍데기 플라스틱(\\|Γ\\|={g_body:.2f})보다 속의 **배터리·모터 금속**",
+f"(\\|Γ\\|≈{g_batt:.2f})이 훨씬 밝다 — 같은 넓이면 반사 전력이 약 **{db_batt_vs_body:.0f} dB**",
+f"(≈{10**(db_batt_vs_body/10):.0f}배) 차이다",
+"← 출처: `mesh_verify.json` `E_materials.*.gamma_map`(원본 `src/materials.py`, ITU-R P.2040).",
 "",
-"세 가지를 하나씩 풀면:",
-"",
-"1. **시각용 껍데기** — 게임·렌더용 모델은 겉모습만 그럴듯하면 된다. 하지만 전파(RF)의 눈에는",
-f"   겉껍데기 플라스틱(반사 진폭 \\|Γ\\|={g_body:.2f})보다 속의 **배터리·모터 금속**",
-f"   (\\|Γ\\|≈{g_batt:.2f})이 전력비로 **약 {db_batt_vs_body:.0f} dB**(≈{10**(db_batt_vs_body/10):.0f}배) 더 밝다.",
-"   내부 금속이 없는 모델은 레이더 관점에서 '속 빈 유령'이다",
-"   ← 출처: \\|Γ\\| 값은 `mesh_verify.json` `E_materials.*.gamma_map`(원본: `src/materials.py`, ITU-R P.2040), dB 는 20·log₁₀ 비율 계산.",
-"2. **치수 미검증** — 취미 모델러가 사진을 보고 눈대중으로 만든 것이 많다. RCS 는 투영 면적과",
-"   세부 형상에 민감해서(∝A²/λ² 까지 가능, report06) 치수가 몇 % 틀리면 답이 몇 dB 틀어진다.",
-"3. **라이선스 제약** — 연구 산출물에 재배포 불가/상업 불가 모델을 섞으면 재현 패키지를 공개할 수 없다.",
-"",
-f"**대안은 없었나?** 상용 스캔 서비스(수백만 원)나 직접 3D 스캔도 검토 대상이지만, {len(ORDER)}종 전부를",
-"검증 가능한 품질로 확보할 방법이 아니었다. 대신 **공짜이면서 가장 신뢰할 수 있는 원천** —",
-"DJI 공식 제원표(외형 L×W×H·프로펠러 지름·무게) — 에서 출발하기로 했다",
-"← 출처: `docs/SPECS.md` (기종별 dji.com/specs URL 목록·독립 교차검증 기록)."),
+"⚠ 다만 이 문장을 **«내부 금속이 없으면 속 빈 유령»** 으로 밀어붙이면 지금 상태를 과장한다.",
+"단서 셋을 함께 적어야 한다 — §3.2 에서 숫자로 푼다."),
 
-# ── 9. §2.2 코드 생성의 이점 ──────────────────────────────────────────────
+# ── 9. §2.1 공식 CAD 는 어디까지 있나 ─────────────────────────────────────
+md(
+"### 2.1 공식 CAD 는 어디까지 있나 — 두 기체는 있고 나머지는 없다",
+"",
+"«제조사가 CAD 를 공개하지 않는다» 는 **기체마다 다르다.** 지금 저장소가 가진 것:",
+"",
+"| 자료 | 정체 | 축척 검산 |",
+"|---|---|---|",
+"| `assets/meshes/reference/matrice4-M4T_v2.step` | DJI **Matrice 4T** 공식 STEP | "
+"폭 387.501 ↔ 공표 387.5 mm |",
+"| `assets/meshes/reference/WM161_zhankai_1k.glb` | DJI **Mini 2** 공식 3D(펼침) | "
+f"bbox {MINI2.get('cad_grade','')} — 셸 스테이션이 GLB 와 0.5 % 안 |",
+"| `assets/meshes/reference/x500v2-frame.step` | Holybro **X500 v2** 공식 프레임 STEP | "
+"암 단면 16.0×16.0 mm 재현 |",
+"",
+"← 출처: `assets/meshes/reference/SOURCES.md`·`outputs/meshfix_matrice4e.json` `scale_check`·",
+"`outputs/mesh_inspect_body_arms_0816.json` `per_drone.mini2`.",
+"",
+"⭐ **그런데 M4T 는 우리 표적이 아니다.** 우리 표적은 Matrice 4**E** 이고 DJI 는 4E 판 CAD 를",
+"공개하지 않는다. 그래서 이 CAD 는 **갈라 써야 한다**",
+"← 출처: `docs/MESH_AUDIT_0816.md` §⑧(사용자 지시로 세운 상시 규칙):",
+"",
+"| 부품군 | 4T ↔ 4E | CAD 를 써도 되나 |",
+"|---|---|---|",
+"| 셸(동체)·팔·다리·모터 | 공용 | ✅ 그대로 |",
+"| 어안·비전 센서·비콘 위치 | 공용 | ✅ 그대로 |",
+"| RTK 안테나 | 공용 | ✅ 그대로 |",
+"| ⚠ **짐벌·카메라 블록** | **다르다** — 탑재체가 갈리는 지점 | ⛔ **치수는 쓰지 마라.** "
+"매다는 자리(크래들·댐핑플레이트)만 공용이라 **위치는** 써도 된다 |",
+"| 내부 기판·배터리 | CAD 는 외장 모델이라 애초에 없다 | — |",
+"",
+"**나머지 7종에는 공식 CAD 가 없다.** Mavic 4 Pro 도 없다 — 그래서 그 기체의 암 폭은",
+"Mini 5 Pro 실측을 크기비로 옮긴 값이고, 표에 **[C] 계열 유추**로 적혀 있다(§1.3).",
+"",
+"⚠ 남은 불확실: «4T 와 4E 의 기체가 공용» 이라는 것은 제원·매뉴얼 대조에서 나온 판단이고",
+"부품 단위로 전수 대조한 것은 아니다 ← 출처: `docs/MESH_AUDIT_0816.md` §⑧ 말미."),
+
+# ── 10. §2.2 코드 생성의 이점 ─────────────────────────────────────────────
 md(
 "### 2.2 그래서 코드로 만든다 — 파라메트릭 CAD 의 4가지 이점",
 "",
 "\"코드로 만든다\" = 치수를 넣으면 형상이 나오는 함수를 짠다는 뜻이다(파라메트릭 CAD).",
 "각 드론은 `DroneSpec` 이라는 데이터클래스 하나로 요약된다 — 대각거리, 무게, 프로펠러",
-"지름·날 수, 로터 수, 공식 외형(L×W×H) … ← 출처: `src/drones.py:37~81` `class DroneSpec`.",
+"지름·날 수, 로터 수, 공식 외형(L×W×H) … ← 출처: `src/drones.py` `class DroneSpec`.",
 "",
-"| 이점 | 설명 |",
-"|---|---|",
-"| **재현성** | 누구든 `build_drone(spec)` 한 줄로 비트 단위 동일한 메쉬를 재생성 — 다운로드 링크가 죽어도 모델은 안 죽는다 |",
-"| **파라메트릭** | 제원이 정정되면 숫자 하나만 고치면 형상 전체가 따라온다 (실제로 Mini 5 Pro 외형 정정이 있었다, 아래) |",
-"| **부위별 재질** | 만들 때부터 면마다 body/prop/motor … 그룹 이름표 → 부위별 전파재질 배정이 공짜 (§3) |",
-"| **버전관리** | 메쉬가 곧 코드니까 git diff 로 형상 변경 이력이 남는다 — 바이너리 3D 파일로는 불가능 |",
+"| 이점 | 설명 | 이 저장소에서 실증된 방식 |",
+"|---|---|---|",
+"| **재현성** | `build_drone(spec)` 한 줄로 같은 메쉬가 다시 나온다 | "
+f"메쉬 지문(sha256(정점+삼각형))을 A/B 로 비교해 {len(ORDER)}종 **비트동일** 확인 |",
+"| **파라메트릭** | 제원이 정정되면 숫자 하나만 고치면 형상 전체가 따라온다 | "
+f"matrice4e 상수 {n_fixes}건 정정이 한 번에 착지 |",
+"| **부위별 재질** | 만들 때부터 면마다 body/prop/motor … 이름표 → 재질 배정이 공짜 | §3 |",
+"| **버전관리** | 메쉬가 곧 코드니까 형상 변경 이력이 텍스트로 남는다 | 바이너리 3D 파일로는 불가능 |",
 "",
-"← 출처: 설계 의도는 `src/drones.py:2~24`·`src/geom.py:7~13` 모듈 docstring.",
+"← 출처: 설계 의도는 `src/drones.py`·`src/geom.py` 모듈 docstring;",
+"지문 A/B 검증은 `outputs/mesh_inspect_body_arms_0816.json` `code_changes.verification`.",
 "",
-"**정직성 원칙** — 모르는 값은 모른다고 적는다. 예컨대 Mini 5 Pro 스펙의 `note` 필드:",
+"**정직성 원칙 — 모르는 값은 모른다고 적는다.** 예컨대 Mini 5 Pro:",
 "",
-"> \"Mini 5 Pro 의 대각(모터-모터 휠베이스)은 DJI 가 공개하지 않는다 — 공식 외형 상자(L×W×H)에",
-"> 맞춰 **재유도한 추정값 ≈ 275 mm** 이며, 코드에 '추정'으로 표시돼 있다.\"",
+"> Mini 5 Pro 의 대각(모터-모터 휠베이스)은 DJI 가 공개하지 않는다. 코드는 그 값을 추정으로",
+"> 표시하고, **로터의 실제 위치는 따로 선언한다** — 275 mm 는 암 두께·모터 비례식의 스케일로만 남는다.",
 "",
-"← 출처: `src/drones.py` Mini 대각 주석. DJI 미공개 값은 이렇게 **추정임을 명시**하고 공식 외형에서",
-"재유도한다 — 스펙시트 숫자에서 형상을 짓는 파라메트릭 원칙이 여기서도 그대로 적용돼, mesh04 의 치수 검증이 의미를 갖는다."),
+"← 출처: `src/drones.py` mini5pro `note`. 지금 남아 있는 «모른다» 목록은 §4.4 에 모아 두었다."),
 
-# ── 10. §2.3 인터넷 모델·스캔의 올바른 자리 ───────────────────────────────
+# ── 11. §2.3 참조 자료가 제작에 들어간 세 자리 ────────────────────────────
 md(
-"### 2.3 그럼 인터넷 모델은 어디에 쓰나 — '제작'이 아니라 '검증'에",
+"### 2.3 ⭐ 참조 자료는 어디까지 제작에 들어갔나",
 "",
-"인터넷 3D 자료를 전부 버린 건 아니다. **라이선스가 확실하고 실물에서 온** 자료만 골라,",
-"우리 모델을 만드는 데가 아니라 **우리 모델을 채점하는 데** 쓴다:",
+"«참조 자료는 채점에만 쓰고 제작에는 안 쓴다» 는 **깔끔하지만 지금은 사실이 아니다.**",
+"참조 자료가 제작에 들어간 자리가 셋 있고, 그것을 감추면 «독립 채점» 이라는 말이 과장이 된다.",
 "",
-"| 자료 | 정체 | 라이선스 | 용도 |",
+"| # | 어디에 | 무엇이 들어갔나 | 등급 |",
 "|---|---|---|---|",
-f"| Phantom 4 실기체 3D 스캔 | {G['source']['thing']} (저작자 {G['source']['author']}) | {G['source']['license']} | 표면 오차 채점 (mesh08) |",
-"| Typhoon H480 / 3DR Solo CAD | ethz-asl/rotors_simulator 실물 모델 | Apache-2.0 | 실물 CAD 갤러리 대조 (mesh03·본편 report03) |",
-"| Holybro X500 부품(프롭·모터) | PX4/PX4-gazebo-models | BSD-3-Clause | 부품 형상 대조 (mesh03·본편 report03) |",
+f"| ① | **matrice4e 형상 상수 {n_fixes}건** | DJI Matrice 4T 공식 STEP 의 모서리 실측 "
+f"(접지 −59.82 · 갑판 crown 69.18 · RTK 꼭대기 89.70 · 셸 중심 x 41.71 mm 를 0.1 mm 안에서 재현) | **[A]** |",
+"| ② | **mini2 전 형상 상수** | DJI 공식 GLB(WM161) 실측 — 셸 6 스테이션 중 가운데 4개가 "
+"GLB 와 0.5 % 안 | **[A]** |",
+"| ③ | ⏳ **프로펠러 날 법칙** | 실물 참조 프로펠러 측정에서 유도된 상수들 | ⏳ |",
 "",
-"← 출처: `assets/meshes/reference/SOURCES.md` 표(저장소 URL 포함)·`assets/meshes/cad/SOURCE.txt`",
-"(Thingiverse thing:1456295, 0.4 mm 해상도 실기체 스캔, CC-BY, 미러 archive.org).",
+"← 출처: ①은 `outputs/meshfix_matrice4e.json` + `outputs/mesh_inspect_body_arms_0816.json`",
+"`meshfix_matrice4e_landed`(착지 검증) · ②는 `per_drone.mini2` · ③은 `src/drone_cad.py` 블레이드 법칙 머리말.",
+"",
+"⏳ **③ 은 기체별 프로펠러 정본화 라운드가 정본이다.** 이 편에서는 자리만 잡고 값은 적지 않는다 —",
+"그 라운드가 날 시위 분포·기종별 두께·팁 형상을 다시 정하는 중이라, 여기 숫자를 적으면 두 곳이 갈린다.",
+"",
+"**그래서 «독립 채점» 이라는 말을 어떻게 써야 하나.** 정확한 문장은 이렇다:",
+"",
+"> 채점자 중 **실기체 3D 스캔(Phantom 4, CC-BY)** 은 제작에 한 번도 안 들어갔다 —",
+"> 그 기체에 대해서는 채점이 진짜로 독립이다.",
+"> 반대로 matrice4e·mini2 의 공식 CAD 는 **제작에 들어갔으므로**, 같은 CAD 로 다시 채점한",
+"> 결과는 «맞췄다» 가 아니라 «반영이 착지했다» 로 읽어야 한다.",
 "",
 f"미리보기 하나: 우리 Phantom 4 메쉬는 실기체 스캔과 표면 거리 중앙값 **{g_p50:.1f} mm**,",
 f"90분위 {g_p90:.1f} mm 안에서 겹친다 ← 출처: `mesh_verify.json` `G_scan.scan_to_cad_mm`.",
-"자세한 방법(chamfer 거리 — 두 표면 사이 최근접점 거리 분포)과 그림은 mesh08 에서.",
-"",
-"**왜 이 역할 분담인가?** 스캔·타사 CAD 로 모델을 '만들면' 그 자료의 오류·라이선스가 우리",
-"모델에 스며든다. '채점'에만 쓰면 독립된 두 원천(공식 제원 vs 실물 스캔)이 서로를 견제하는",
-"교차검증이 된다 ← 출처: `assets/meshes/reference/SOURCES.md` 23~24행 (\"이 파일들은 비교·검증",
-"전용입니다\")."),
+"이 기체는 제작에 스캔을 안 썼으므로 이 숫자는 독립 채점이다. 방법과 그림은 mesh08 에서."),
 
-# ── 11. §3 OBJ 1개 = 부위 1개 = 재질 1개 ─────────────────────────────────
+# ── 12. §3 OBJ 1개 = 부위 1개 = 재질 1개 ─────────────────────────────────
 md(
 "## 3. 핵심 원칙 — \"OBJ 1개 = 부위 1개 = Sionna 재질 1개\"",
 "",
@@ -357,130 +413,230 @@ md(
 "> Sionna 는 'OBJ 1개 = SceneObject 1개 = 재질 1개' 이므로, 부위별 재질을",
 "> 주려면 이렇게 부위별로 나눠 저장한다.",
 "",
-"← 출처: `src/geom.py:137~140` `write_obj_per_group()` docstring (그대로 인용);",
-"같은 원칙이 `README.md:79` 에 \"메쉬 원칙: OBJ 1개 = 부위 1개 = Sionna 재질 1개\" 로 선언돼 있다.",
+"← 출처: `src/geom.py` `write_obj_per_group()` docstring (그대로 인용);",
+"같은 원칙이 `README.md` 에 \"메쉬 원칙: OBJ 1개 = 부위 1개 = Sionna 재질 1개\" 로 선언돼 있다.",
 "",
-f"{mv_spec.name} 의 부위 {MV['n_groups']}개 ← 출처: 아래 표 전부 `mesh_verify.json`",
-"`A_geometry.mavic4pro.groups`(면 수·파트·watertight)·`E_materials.mavic4pro.gamma_map`(\\|Γ\\|):",
+f"함대 전체가 쓰는 부위 그룹은 **{len([g for g in F.MAT['assignment_audit'] if not g.startswith('_')])}개**다",
+"(기체 하나가 그 전부를 쓰지는 않는다 — 열린 프레임 기체에는 셸이 없고, 접이식에는 데크가 없다):",
 "",
-"| 부위(그룹) | 삼각형 | 파트 | watertight | 재질 계열 | \\|Γ\\|@3.5GHz |",
-"|---|---|---|---|---|---|",
-mv_group_table,
+F.assignment_table(),
 "",
-f"플라스틱 프로펠러(\\|Γ\\|={g_prop:.2f})와 금속 배터리(\\|Γ\\|≈{g_batt:.2f})는 반사 전력이",
-f"**{db_batt_vs_prop:.0f} dB** 차이 난다. 부위를 한 재질로 뭉뚱그리면 이 대비가 사라져",
-"RCS 도, 회전 프로펠러의 마이크로도플러도 다 틀어진다 — 부위별 OBJ 는 겉치레가 아니라",
-"물리의 요구다 ← 출처: 재질 배정 원본 `src/materials.py`(ITU-R P.2040 + 커스텀), 상세는 mesh06.",
-"",
-"덤으로 **분절(articulated) 자세**도 공짜로 얻는다: 몸체와 프로펠러가 별개 조각이라",
-"몸체 기울기와 로터별 회전 위상을 따로 줄 수 있다 ← 출처: `src/drones.py` `pose_articulated()` docstring."),
+"← 출처: `outputs/mesh_inspect_materials_check_0816.json` `assignment_audit`",
+"(면적은 10종 합계 실측). ⚠ 표시는 «배정 자체가 다시 봐야 하는 칸» 이다 — §4.4 참조."),
 
-# ── 12. §4 파이프라인 지도 ────────────────────────────────────────────────
+# ── 13. §3.1 두 엔진의 |Γ| 는 설계상 다르다 ───────────────────────────────
 md(
-"## 4. 전체 파이프라인 지도",
+"### 3.1 같은 재질인데 숫자가 둘이다 — 두 계산 경로가 다른 값을 쓴다",
+"",
+"우리는 산란을 두 경로로 계산한다. **Sionna 재질**(광선엔진이 쓰는 (εr, σ) 슬래브)과",
+"**PO 커널의 \\|Γ\\|**(면적분이 쓰는 실효 반사계수)다. 둘은 **일부러 다른 값**이고,",
+"그 갈림이 얼마인지 적어 두는 것이 정직한 서술이다:",
+"",
+F.engine_divergence_table(),
+"",
+"← 출처: `outputs/mesh_inspect_materials_check_0816.json` `engine_divergence`",
+"(fc = 3.5 GHz, 수직입사).",
+"",
+"**왜 갈리나** — Sionna 쪽은 «반무한 벌크» 프레넬 값이고, PO 쪽은 «얇은 판의 앞뒷면 간섭까지",
+"넣은 실효값» 이다. 드론 셸은 두께 **0.75 mm** 급이라 그 차이가 실재한다",
+"← 출처: `docs/MATERIAL_CORRECTION.md`(셸 정본 두께 = DJI 공식 CAD 벽 두께 실측의 중앙값).",
+"",
+"⚠ **현재의 한계** — 우리 PO 커널에는 **두께라는 개념이 없다.** \\|Γ\\| 하나를 상수로 받는다.",
+"즉 PO 경로는 «두꺼운 판» 극한으로 계산하고, 두께는 그 상수를 고를 때 한 번만 반영된다.",
+"이 한계는 지금 그대로 있고, 값은 발표까지 동결돼 있다."),
+
+# ── 14. §3.2 «속 빈 유령» 을 정확하게 ─────────────────────────────────────
+md(
+"### 3.2 «내부 금속이 없으면 속 빈 유령» — 방향은 맞고, 단서가 셋 있다",
+"",
+"§2 의 문장을 지금 상태로 정확히 다시 쓴다.",
+"",
+"**단서 ① — 우리 배터리는 상한값이다.** 팩 **외피 6면 전부**를 금속으로 둔다. 실물 팩은",
+"플라스틱 케이스 안에 셀 스택이 들어 있어, 되쏘는 금속면은 더 작다. 크기는 1~3 dB 급이고",
+"**미해결로 선언돼 있다** ← 출처: `outputs/mesh_inspect_internal_metal_0816.json` `battery_material`.",
+"",
+"**단서 ② — 그 «내부» 금속이 실제로 셸 안에 있는 기체는 소수다.**",
+"",
+F.internal_metal_table(ORDER, drone_label),
+"",
+"← 출처: `outputs/mesh_internal_metal_check_0816.json`.",
+"이것이 왜 중요한가: 우리 SBR 경로는 **셸을 맞은 광선만** 내부를 투과로 본다. 금속 상자가",
+"셸 밖으로 나와 있으면 그 상자는 «내부 산란체» 가 아니라 그냥 겉면이 된다.",
+"",
+"**단서 ③ — 카메라 조립품의 \\|Γ\\|=0.85 는 출처가 없다.** 저장소가 스스로 그렇게 적는다",
+"← 출처: `docs/MATERIAL_SOURCES.md` §6-4. 그 값을 유전체로 바꿔 보면 방위평균 σ 가",
+"el 0/−30/−60° 에서는 −2.2…+0.1 dB 움직이는데, **바로 아래(나디르, el −90°)에서는",
+"−6.5…+2.7 dB** 로 훨씬 크게 움직인다",
+"← 출처: `outputs/mesh_inspect_gimbal_sensors_0816.json` `_summary.gate_D_dielectric_swing_db`.",
+"원인은 짐벌을 매다는 **방진판이 수평 평판**이라 바로 아래 방향에 정반사가 서기 때문이다.",
+"",
+"⇒ **절대 σ 를 인용할 때는 «배터리는 팩 외피 전체를 금속으로 본 상한값» 과**",
+"**«카메라 0.85 는 출처 없는 값» 을 함께 적어야 한다.**"),
+
+# ── 15. §3.3 프로펠러 자리 ────────────────────────────────────────────────
+md(
+"### 3.3 ⏳ 프로펠러 — 이 절은 기체별 프로펠러 정본화 결과로 채운다",
+"",
+*F.PROP_PLACEHOLDER,
+"",
+"← 출처: 부품 분해는 `docs/MESH_AUDIT_0816.md` §④-1(우리 PO 커널로 matrice4e 를 부품별로 분해).",
+"",
+"덤으로 **분절(articulated) 자세**도 부위별 OBJ 에서 공짜로 얻는다: 몸체와 프로펠러가 별개",
+"조각이라 몸체 기울기와 로터별 회전 위상을 따로 줄 수 있다",
+"← 출처: `src/drones.py` `pose_articulated()` docstring."),
+
+# ── 16. §4 파이프라인 지도 ────────────────────────────────────────────────
+md(
+"## 4. 전체 지도 — 자료 → 제작 → 검사기 → 원장",
 "",
 "![pipeline map](outputs/figures/pipeline_map.png)",
 "",
-"**그림 2** — 모든 정보가 어디서 와서 어떻게 검증되는지 한 장 지도",
-"← 출처: 그림 생성 `report_mesh/src/viz_mesh_reports.py` `fig_pipeline_map()`(486행).",
+"**그림 3** — 모든 정보가 어디서 와서 어떻게 채점되는지 한 장 지도",
+"← 그림 생성: `report_mesh/src/viz_mesh_reports.py` `fig_pipeline_map()`.",
 "",
-"**① 자료층 (주황)** — 세 가지 원천, 역할이 서로 다르다:",
+"층이 **넷**이다. 앞의 세 층은 예전부터 있었고, 넷째(원장)를 따로 세운 것이 지금 구조다.",
 "",
-"- **DJI 공식 제원표** (기종별 dji.com/specs) → 웹 조사 + 독립 교차검증을 거쳐",
-"  `docs/drone_research.json` → `docs/SPECS.md` 로 정리 ← 출처: `docs/SPECS.md` 머리말",
-"  (\"1차 조사 후 독립 검증\", 조사일·URL 목록 포함). **모델 제작의 유일한 치수 원천.**",
-"- **실기체 3D 스캔** (Phantom 4, CC-BY) — 검증 전용 ← 출처: `assets/meshes/cad/SOURCE.txt`",
-"- **실물 제품 CAD** (Typhoon H480 등, Apache-2.0/BSD-3) — 검증 전용 ← 출처: `assets/meshes/reference/SOURCES.md`",
+"**① 자료층** — 세 종류, 역할이 다르다:",
 "",
-"화살표 방향이 핵심이다: 스캔·실물 CAD 에서 제작층으로 가는 화살표는 **없다**.",
-"둘은 오른쪽 아래 '물리 검증' 상자로만 흘러든다 (§2.3 의 역할 분담)."),
-
-# ── 13. §4.2 제작층·검증층 ────────────────────────────────────────────────
-md(
-"### 4.2 제작층과 검증층",
+"- **제조사 공식 제원표** → `docs/drone_research.json` → `docs/SPECS.md`. **모든 기체의 치수 출발점.**",
+"- **제조사 공식 CAD** (Matrice 4T STEP · Mini 2 GLB · X500 v2 STEP) — **제작에도 들어간다**(§2.3).",
+"- **실기체 3D 스캔 / 타사 실물 CAD** — 채점 전용.",
 "",
-"**② 제작층 (파랑)** — 숫자가 형상이 되는 곳:",
+"**② 제작층** — 숫자가 형상이 되는 곳:",
 "",
-f"- `src/drones.py` 의 `DroneSpec` {len(ORDER)}개(공식 숫자) → `src/drone_cad.py` + `src/cadkit.py` 가",
-f"  드론을 **{META['mesh_engine']}** 엔진으로 깎는다(드론 제작은 이 CAD 경로 하나뿐이다)",
-"  ← 출처: `mesh_verify.json` `meta.mesh_engine`·`src/drones.py:243` `_build_frame_raw()`.",
+f"- `src/drones.py` 의 `DroneSpec` {len(ORDER)}개 → `src/drone_cad.py` + `src/cadkit.py` 가",
+f"  드론을 **{META['mesh_engine']}** 엔진으로 깎는다(드론 제작 경로는 이 하나뿐이다)",
+"  ← 출처: `mesh_verify.json` `meta.mesh_engine`.",
 "- **왜 trimesh + manifold3d 인가?** 프리미티브를 그냥 겹쳐 놓으면 겹친 파트의 **내부에 숨은 면**이",
-"  표면 데이터에 그대로 남고, PO/SBR 은 그런 면까지 반사면으로 세어 RCS 를 틀리게 만든다.",
-"  manifold3d 의 **불리언 합집합**은 겹친 파트를 한 덩어리로 녹여 내부 면이 애초에 존재하지",
-"  않게 한다 — 더 정확하고 더 빠르다 ← 출처: `src/drone_cad.py:23~27` \"왜 이게 RCS 에 중요한가\".",
+"  표면 데이터에 그대로 남고, PO 는 그런 면까지 반사면으로 센다. manifold3d 의 **불리언 합집합**은",
+"  겹친 파트를 한 덩어리로 녹여 내부 면이 애초에 존재하지 않게 한다",
+"  ← 출처: `src/drone_cad.py` 머리말 \"왜 이게 RCS 에 중요한가\".",
 "  (자작 `geom.Mesh` 의 역할은 **컨테이너와 무대**다: 완성 메쉬 담기(.v/.f/.g)·부위별 OBJ 저장,",
-"  그리고 챔버·범용 프리미티브(box/cylinder/uv_sphere/pyramid_field) 제작",
-"  ← 출처: `src/geom.py:41` `class Mesh`·`src/geom.py:137` `write_obj_per_group()`.)",
+"  그리고 범용 프리미티브 제작.)",
 "- 완성 메쉬는 `write_obj_per_group()` 으로 **부위별 OBJ** 저장(§3) → `src/materials.py` 가",
-"  부위→전파재질 배정 ← 출처: `src/geom.py:137`·`README.md:79~80`.",
+"  부위→전파재질 배정.",
 "",
-"**③ 검증층 (초록)** — 만들었으면 증명한다. 기하 검증(A~F)과 물리 검증(G~I)의 결과가",
-"전부 **증거 JSON 한 파일**로 모인다:",
-"",
-"> evidence JSON → `report_mesh/outputs/mesh_verify.json` (all report numbers come from here)",
-"",
-"← 출처: 그림 2 보라 상자. 이 노트북의 모든 숫자도 그 파일에서 자동 주입됐다."),
+"**③ 검사기층 · ④ 원장층** — §4.2~§4.3."),
 
-# ── 14. §4.3 검증 9종 ─────────────────────────────────────────────────────
+# ── 17. §4.2 검사기 셋 ────────────────────────────────────────────────────
 md(
-"### 4.3 검증 9종 — 각각 한 질문",
+"### 4.2 검사기는 하나가 아니다 — 다섯이고, 역할이 다르다",
 "",
-"검증 스위트의 자기소개(9개 검사, 각각 한 질문)를 표로 옮긴다",
-"← 출처: `report_mesh/src/verify_mesh_suite.py:9~18` 모듈 docstring:",
+F.checker_table(),
 "",
-"| 검사 | 질문 |",
-"|---|---|",
-"| **A** geometry | 삼각형이 기하학적으로 건강한가? (watertight·법선방향·winding·퇴화면·중복점·엣지길이) |",
-"| **B** symmetry | 좌우대칭 기체가 정말 대칭인가? (미러 chamfer 거리) |",
-"| **C** dims | 공식 제원(외형·대각·프롭지름)과 몇 % 안에서 맞는가? |",
-"| **D** volume | 닫힌 부피 → 암시 밀도가 물리적으로 말이 되는가? |",
-"| **E** materials | 모든 부위(그룹)에 전파 재질이 배정돼 있는가? |",
-"| **F** overlap | 부위끼리 얼마나 겹치는가? (의도된 겹침의 정량 공개) |",
-"| **G** scan | 실기체 3D 스캔과 표면이 몇 mm 안에서 일치하는가? |",
-"| **H** po_conv | PO 적분이 점 간격을 절반으로 줄여도 RCS 가 흔들리지 않는가? |",
-"| **I** sbr_subdiv | SBR(GPU)이 메쉬를 세분화해도 RCS 가 흔들리지 않는가? |",
+"← 출처: 각 파일의 모듈 docstring·`__main__` 배선.",
 "",
-"이 편에서는 A(§1.2 성적표)·C(§1.3 오차)·E(§3 재질표)·G(§2.3 스캔 미리보기)를 맛만 봤다.",
-"나머지는 담당 편(mesh04·06·07·08)에서 그림과 함께 자세히 다룬다.",
+"**게이트의 범위를 정확히 적는다.** `src/mesh_check.py` 의 회귀 게이트는",
+"`python src/drones.py`(부위별 OBJ 내보내기) **한 문**에 걸려 있다. 세 가지 단서가 있다:",
 "",
-f"현재 상태 요약: {len(ORDER)}종 전부 A 검사 통과(`ok: true`), 치수 최악 오차 {worst_dim:.1f}%,",
-"재질 미배정 부위 0개(`uncovered: []`) ← 출처: `mesh_verify.json` `A_geometry.*.ok`·`C_dims`·`E_materials.*.uncovered`."),
+"1. 환경변수 `MESH_GATE=off` 로 끌 수 있다.",
+"2. RCS·렌더·마이크로도플러가 쓰는 **인메모리 `build_drone()` 은 이 문을 안 지난다** —",
+"   전 기종 검사가 수십 초 걸려서 import 시점에 걸지 않는다고 코드가 스스로 적는다.",
+"3. 그래서 «메쉬를 쓰는 모든 경로가 검사를 통과한다» 고 쓰면 지금 상태보다 강한 말이 된다.",
+"",
+"**원장층(④)** — 검사 결과가 모이는 파일들이다. 이 편 머리의 «무엇을 근거로 하는가» 표가",
+"그 목록이고, 이 노트북의 모든 숫자가 거기서 나왔다."),
 
-# ── 15. §5 시리즈 목차 ────────────────────────────────────────────────────
+# ── 18. §4.3 10 검사와 예산 ───────────────────────────────────────────────
 md(
-"## 5. 시리즈 목차 — mesh02~08 예고",
+"### 4.3 무엇을 검사하나 — 10 검사, 그리고 «예산» 이라는 규약",
+"",
+F.checks_table(),
+"",
+"← 출처: `src/mesh_check.py` 모듈 docstring·구현.",
+"",
+"⭐ **«통과» 의 뜻이 «0» 이 아니다.** 검사기는 항목마다 **예산 표**를 들고 있고,",
+"통과란 «선언된 예산 안» 이라는 뜻이다:",
+"",
+F.budget_table(),
+"",
+"← 출처: `src/mesh_check.py` 예산 표.",
+"",
+"**예산 표를 왜 이렇게 쓰나** — 이 표들은 «이만큼이 옳다» 가 아니라 **«지금 이만큼이다» 라는**",
+"**선언**이다. 값은 전수 실측으로 채웠고 여유는 약 10 % 다. 그래서 **새로 생기는 결함은**",
+"**예산을 넘겨 실패한다.** 숨기지 않으면서도 회귀를 막는 방식이다.",
+"",
+"**이 검사가 아직 못 보는 것** — 정직하게 남긴다:",
+"",
+*[f"- {b}" for b in F.BLIND_SPOTS]),
+
+# ── 19. §4.4 지금 남은 결함 지도 ──────────────────────────────────────────
+md(
+"## 4.4 지금 남은 결함 — 있는 그대로",
+"",
+"아래는 **현재 메쉬가 안고 있는 어긋남**이다. 크기를 함께 적어, 어느 결론이 흔들리고",
+"어느 결론이 안 흔들리는지 독자가 직접 판단할 수 있게 한다.",
+"",
+F.defect_table(),
+"",
+"← 출처: `outputs/mesh_inspect_body_arms_0816.json` `findings`·",
+"`outputs/mesh_inspect_gimbal_sensors_0816.json` `_summary`·",
+"`outputs/mesh_inspect_materials_check_0816.json` `findings`.",
+"",
+"**dB 를 읽는 법** — 위 표의 dB 는 대부분 **평판극한 상한**이다. «같은 크기 평판이라면 최대",
+"이만큼» 이라는 뜻이지 커널이 계산한 σ 가 아니다. 크기 감각을 주는 자로만 쓸 것.",
+"",
+"### 지금 «모른다» 고 선언한 것",
+"",
+*F.unresolved_list(),
+"",
+"⭐ **빈칸이 가짜 값보다 낫다.** 위 항목들은 값을 채워 넣는 대신 비워 두었다."),
+
+# ── 20. §5 시리즈 목차 ────────────────────────────────────────────────────
+md(
+"## 5. 시리즈 목차 — mesh02~08",
 "",
 "| 편 | 주제 (한 줄) |",
 "|---|---|",
-"| **mesh02** | 도구 상자 — 어떤 파이썬 라이브러리를 왜 골랐나 (trimesh·manifold3d·cadkit) |",
-"| **mesh03** | 자료 수집 — 모든 숫자·모델의 출처 (공식 스펙·실기체 스캔·외부 CAD, 라이선스) |",
-"| **mesh04** | 몸체 CAD — 스펙 숫자가 드론 모양이 되기까지 (로프트·조립 순서·기종별 개성) |",
-"| **mesh05** | 프로펠러 — NACA 익형 단면을 피치·테이퍼·스큐로 비틀어 진짜 블레이드를 만들기 |",
-"| **mesh06** | 색이 곧 재질 — 부위별 전파 재질(ITU-R P.2040 + 커스텀)과 5색 규칙 |",
-"| **mesh07** | 검증 ① 기하 품질 — watertight·법선·삼각형 품질·대칭·부위 겹침 |",
-"| **mesh08** | 검증 ② 실물·물리 — 치수 대조·실기체 스캔 chamfer·PO/SBR 수치 수렴 |",
+"| **mesh02** | 도구 상자 — 어떤 파이썬 라이브러리를 왜 골랐나, 그리고 검사기는 무엇을 보고 무엇을 못 보나 |",
+"| **mesh03** | 자료 수집 — 모든 숫자·모델의 출처(공식 제원·공식 CAD·실기체 스캔·타사 CAD, 라이선스) |",
+"| **mesh04** | 몸체 CAD — 스펙 숫자가 드론 모양이 되기까지(로프트·조립 순서·기종별 개성) |",
+"| **mesh05** | 프로펠러 — ⏳ 기체별 프로펠러 정본화 라운드가 정본 |",
+"| **mesh06** | 색이 곧 재질 — 부위별 전파 재질과 두 계산 경로의 \\|Γ\\| |",
+"| **mesh07** | 검증 ① 기하 — 수밀·법선·삼각형 품질·대칭·부위 겹침 |",
+"| **mesh08** | 검증 ② 실물·물리 — 치수 대조·실기체 스캔 chamfer·수치 수렴 |",
 "",
-"모든 편이 이 편과 같은 규약을 따른다: 생성물 노트북, 수치는 `mesh_verify.json` 주입,",
-"사실마다 `← 출처:` 표기."),
+"모든 편이 이 편과 같은 규약을 따른다: 생성물 노트북, 수치는 원장에서 주입, 사실마다 `← 출처:`.",
+"",
+"**이 시리즈의 지위** — `README.md` 편성에서 report_mesh 8편은 **부록**이다. 본편 쪽에는",
+"같은 주제의 별편 **2-3 «표적을 짓는다 — 메쉬와 재질»**(`reports/02_3_target-mesh.ipynb`)이",
+"따로 있다. 둘의 차이는 독자다 — 별편 2-3 은 결론을 쓰고, 이 시리즈는 **만드는 법과 채점 방법**을 쓴다."),
 
-# ── 16. 재현 + 다음 편 ────────────────────────────────────────────────────
+# ── 21. 재현 + 다음 편 ────────────────────────────────────────────────────
 md(
 "## 재현 명령",
 "",
 "```bash",
-"PY=~/.venvs/py312/bin/python",
+"PY=/workspace/.venvs/py312/bin/python",
 "cd /workspace/sionna",
-"$PY report_mesh/src/verify_mesh_suite.py     # 증거 JSON 재생성 (검사 I 는 GPU 필요; --skip-sbr 로 생략 가능)",
-"$PY report_mesh/src/viz_mesh_reports.py      # 그림 재생성 (outputs/figures/*.png)",
-"$PY report_mesh/src/make_mesh01.py           # 이 노트북 재생성",
+"",
+"# 1) 원장 재생성 — 이것부터. I 절(SBR)만 GPU 가 필요하다.",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_suite.py             # 전체",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_suite.py --skip-sbr  # GPU 없이 A~H",
+"",
+"# 2) 그림 재생성",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/viz_mesh_reports.py",
+"",
+"# 3) 노트북 재생성",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/make_mesh01.py",
 "```",
 "",
-"← 출처: 실행법은 `report_mesh/src/verify_mesh_suite.py:21~23` docstring.",
+"⭐ **순서를 지켜야 한다.** 생성기는 원장이 레지스트리와 다르면 **일부러 멈춘다** —",
+f"«원장 {len(ORDER)}종 vs 레지스트리 N종» 으로 예외를 던진다",
+"← 출처: `report_mesh/src/mesh_ledger.py` `ledger_order()`.",
+"리포트가 틀린 개수를 조용히 쓰는 것보다 멈추는 편이 낫다는 규약이다.",
+"",
+*([
+"",
+"⚠ **지금 원장의 I 절(SBR)은 이월된 값이다** — `--skip-sbr` 로 돌린 갱신이 GPU 증거를",
+"지우지 않게 직전 원장에서 옮겨 왔고, `stale: true` 로 표시돼 있다. 다른 절과 세대가",
+"다르므로 면 수·σ 를 나란히 인용하지 말 것.",
+] if I_STALE else []),
 "",
 "---",
 "",
 "**다음 편** → [mesh02 — 도구 상자](mesh02_tools.ipynb) : 어떤 파이썬 라이브러리를 왜 골랐고,",
-"로프트·불리언이 실제로 무엇을 만드는지 빌드 단계 그림과 함께."),
+"검사기가 무엇을 보고 무엇을 못 보는지."),
 
 ]
 

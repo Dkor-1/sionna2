@@ -602,7 +602,8 @@ def fig_meshcheck(mm: dict):
                  fontsize=14, fontweight="bold")
     _cap(fig, "src/mesh_check.py splits each drone into groups, then into connected components, and asks trimesh: is it watertight, is the winding consistent, do the normals point outward, are any faces degenerate?\n"
               "This is not cosmetic. PO and SBR both decide 'is this face lit' from the sign of n . u, so a flipped cap or a zero-area triangle silently corrupts the integral -- and the propeller IS the micro-Doppler signal.\n"
-              "assert_ok() runs inside the build pipeline as a hard gate: a mesh that fails any check cannot ship into the RCS/render stages.")
+              "assert_ok() is wired into the mesh export path (src/drones.py) as a hard gate: a drone that fails any check cannot be written out as an OBJ. Callers that build a mesh in memory do not pass through that gate.\n"
+              "The checker never repairs what it inspects -- every split() is called with repair=False, and the boundary-edge count is reported alongside the verdict, so a hole is counted rather than quietly filled.")
     return _save(fig, "report1_meshcheck.png")
 
 

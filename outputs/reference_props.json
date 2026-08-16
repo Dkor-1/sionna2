@@ -1,8 +1,8 @@
 {
  "meta": {
   "generated": "2026-07-29T02:48:59",
-  "purpose": "실물 참조 프로펠러 CAD 3종 측정 — drone_cad 블레이드 법칙의 근거",
-  "method": "스팬축 수직 평면 절단 → 최대캘리퍼 시위선 → 시위좌표계 상하면에서 두께·캠버",
+  "purpose": "실물 참조 프로펠러 CAD 3종 측정 — 같은 급 소형 프롭의 참조 밴드",
+  "method": "원통 단면(반경 r 인 원통으로 절단) → 최대캘리퍼 시위선 → 시위좌표계 상하면에서 두께·캠버",
   "r_over_R_grid": [
    0.1,
    0.125,
@@ -41,13 +41,21 @@
    0.95,
    0.975
   ],
-  "warning": "세 CAD 모두 시뮬/시각화용이지 계측 스캔이 아니다. 1345 는 워시아웃 0 이라 트위스트 기준 부적합. ⛔2026-08-16 정정: 옛 문장 «저장소에 DJI 프로펠러 실물 기하는 존재하지 않는다» 는 지금 거짓이다 — assets/meshes/reference/WM161_zhankai_1k.glb (DJI Mini 2 공식 3D 모델)에 날 8장·허브 4개가 실재한다(디스크 지름 −0.9~+0.3 %). 이 원장이 뒷받침하던 3DR Solo 1차 앵커는 감사에서 참조 넷 중 유일한 이상치로 판정됐다(docs/MESH_AUDIT_0816.md).",
+  "warning": "세 CAD 모두 시뮬/시각화용이지 계측 스캔이 아니다. 1345 는 워시아웃 0 이라 트위스트 기준 부적합. ⛔2026-08-16 정정: 옛 문장 «저장소에 DJI 프로펠러 실물 기하는 존재하지 않는다» 는 지금 거짓이다 — assets/meshes/reference/WM161_zhankai_1k.glb (DJI Mini 2 공식 3D 모델)에 날 8장·허브 4개가 실재한다(디스크 지름 −0.9~+0.3 %). 이 원장이 뒷받침하던 3DR Solo 1차 앵커는 감사에서 참조 넷 중 유일한 이상치로 판정됐다 — c/c_max @0.70R 로 Solo 계열 0.577 ↔ DJI 0.866 ↔ Yuneec 0.866 (근거 원장 docs/MESH_AUDIT_0816.md).",
   "runtime_s": 4.2,
   "retraction_20260816": {
    "what": "meta.warning 의 «DJI 프로펠러 실물 기하는 존재하지 않는다»",
    "status": "⛔철회 — 2026-08-07 이후 거짓",
    "supersedes_ledger": "docs/MESH_AUDIT_0816.md",
-   "note_ko": "이 원장의 측정값 자체(1345·Solo·Yuneec)는 유효하다. 무효가 된 것은 «Solo 를 DJI 대리 기준으로 쓴다» 는 판단뿐이다."
+   "note_ko": "이 원장의 측정값 자체(1345·Solo·Yuneec)는 유효하다. 무효가 된 것은 «Solo 를 DJI 대리 기준으로 쓴다» 는 판단뿐이다.",
+   "also_ko": "이 철회는 코드 쪽 3곳에도 반영됐다: src/drone_cad.py 블레이드 법칙 머리말 · benchmark/measure_reference_props.py 파일 머리말 · 같은 파일 main() 의 meta.warning. 1차 앵커는 DJI Mini 2 공식 CAD(WM161_zhankai_1k.glb) 이고 이 원장의 3종은 참조 밴드다."
+  },
+  "method_correction_20260816": {
+   "what": "meta.method 옛 문면 «스팬축 수직 평면 절단 → 최대캘리퍼 시위선 → 시위좌표계 상하면에서 두께·캠버»",
+   "status": "⛔정정 — 코드와 달랐다(감사 m8)",
+   "why_ko": "실제 코드 benchmark/measure_reference_props.py::_cyl_sections 는 **원통 단면**이고, 그 docstring 이 평면절단을 못 쓰는 이유를 적고 있다(스윕 큰 프롭은 팁이 절단면 밖으로 밀리고, 비폐곡면 어셈블리는 폴리곤이 안 나온다).",
+   "values_affected": "없음 — 이 원장의 측정값은 그대로다. 틀린 것은 방법 설명 문면뿐이다.",
+   "supersedes_ledger": "docs/MESH_AUDIT_0816.md"
   }
  },
  "props": {

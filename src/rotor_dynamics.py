@@ -55,8 +55,43 @@ rotor_dynamics.py — **로터 회전 랜덤성 한 자리** (2026-08-11)
   각속도를 시간에 대해 상수로 둔다. 근거는 **실기 로그뿐**이다. 리포트에서 «문헌이 한다»
   라고 쓰면 안 된다.
 - **블레이드 플렉싱·피치 변화는 안 넣는다.** 원문 확인 범위에서 사례 0 건.
+  ⭐⭐ **2026-08-16 선언(감사 I11)** — «선례 0 건» 은 «크기가 작다» 의 근거가 아니다.
+  크기를 실제로 어림해 보니 작지 않다. matrice4e 호버 3800 rpm, 날 1장 5.8 g·질량중심
+  반경 55.9 mm 에서:
+    · 경첩 코닝(날이 위로 들리는 각) β = 2.29° → 팁이 5.46 mm 올라간다
+    · 외팔보 처짐(E = 5~15 GPa) 3.17~9.51 mm
+    · 채택 브래킷 **δ_tip 3~5.5 mm = λ/25~λ/14**(3.5 GHz), 면 기울기 2.5~4.6°
+    · ⇒ **정반사 방향이 5.0~9.2° 밀린다.** 원심 신장은 λ/1300~λ/3900 로 무시 가능.
+  고정 고각에서 σ 자체는 ~0.5~1.5 dB 지만, **가장 센 플래시가 나오는 고각이 밀린다.**
+  게다가 처짐은 추력에 비례하므로 **호버 ↔ 기동에서 달라진다** — 강체 메쉬로는 못 낸다.
+  ⇒ 고각 스윕의 결론을 인용할 때는 **«강체 날 가정»** 이라는 단서를 반드시 붙일 것.
+  ⇒ 이 축은 이번 라운드에서 **고치지 않는다**(별도 축). 여기 선언으로만 남긴다.
 - **우리 표적 기체(Mavic 4 Pro · Matrice 4E)의 rpm 통계는 못 찾았다.** DJI 가 최신 DAT 를
   암호화한다. 프리셋의 σ 는 **다른 기체의 로그**에서 왔다. 자체 실측이 유일한 경로다.
+
+⭐ 2026-08-16 추가 — 새 프리셋 `outdoor_v2` (기존 항목은 한 글자도 안 바꿨다)
+------------------------------------------------------------------------------
+공개 PX4 로그 **실기체 52대·호버 2.43시간** 코퍼스가 생기면서 야외 값의 근거가 통째로
+갈렸다(정본 `prior_work/rotor_model_evidence_0816.md` §5-1). 셋을 새 이름으로 **추가**한다:
+
+    τ  0.227 s → **1.8 s** (밴드 1.2~2.4)   ← 가장 크게 틀렸던 축. 현행은 5~8배 빠르다
+    σ_s 2.35 % → **5.3 %**  (밴드 3.4~8.6)  ← 표본편향 시험을 통과한 두 배 권고
+    σ_w 2.45 % → **2.3 %**  (거의 유지)      ← 값은 그대로지만 **근거를 갈아 끼웠다**
+
+⛔ **기본값은 여전히 `legacy`** 이고 기존 항목(`legacy`·`legacy_outdoor`·`sitl`·`indoor`·
+`outdoor`·`lit_iid`)은 손대지 않았다. 인자를 안 주면 예전과 비트동일이다.
+⚠ **`indoor` 짝은 안 만들었다** — 실내 앵커(NeuroBEM)를 새 규약(전대역·창-안 rms)으로 다시
+재지 않았다(증거 문서 §6 구멍 12). 근거 없이 이름만 붙이지 않는다.
+
+⭐ **세 값은 따로 고르면 안 된다.** 관측이 실제로 보는 양은 σ_w 도 τ 도 아니라 «창 T 안에서
+회전수가 얼마나 흔들려 보이는가»(창-안 rms) 하나다. τ 를 옮기면 σ_w 도 같이 옮겨야 같은
+관측이 나온다. 그래서 이 모듈은 **프리셋이 실측 사다리를 재현하는지 스스로 검산한다**
+(`ladder_check()`, 모듈을 읽을 때 한 번 자동 실행 → `LadderError`).
+
+⭐ **두 번째 길** `outdoor_v2_eff` — 0.25 s(분류 헤드라인) 창에서는 흔들림 분산의 95.5 % 가
+«그 창의 상수 오프셋» 으로 보인다. 그래서 손잡이 셋을 **유효 산포 하나**로 못 박아도 같은
+빗살이 나온다: σ_eff = √(σ_s² + σ_w²·f) = 5.757 %. 값은 `outdoor_v2` 에서 **유도**한다
+(하드코딩 아님). ⛔0.25 s 전용이다 — 창이 길어지면 두 길이 갈라진다.
 """
 from __future__ import annotations
 
@@ -216,6 +251,178 @@ def window_mean_variance_fraction(tau_s: float, window_s: float) -> float:
       그러니 분류에서 먼저 고칠 것은 흔들림이 아니라 **정적 산포 값 자체**다."""
     r = tau_s / window_s
     return float(2.0 * r * (1.0 - r * (1.0 - np.exp(-1.0 / r))))
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 창-안 rms «사다리» — 세 값(σ_s · σ_w · τ)이 짝이라는 것을 코드가 검산한다
+# --------------------------------------------------------------------------- #
+#  정본: `prior_work/rotor_model_evidence_0816.md` §3-2 · §5-1 · §1-나 정정 ④.
+#
+#  마이크로도플러가 실제로 보는 양은 σ_w 도 τ 도 아니고 **관측 창 T 안에서 회전수가 얼마나
+#  흔들려 보이는가** 하나다. OU 에서 그것은 닫힌 꼴로 나온다:
+#
+#      rms(T) = σ_w · √(1 − f(T, τ))        f = window_mean_variance_fraction
+#
+#  그래서 τ 를 옮기면 σ_w 도 같이 옮겨야 **같은 관측**이 나온다. 아래는 실측 사다리이고,
+#  프리셋이 그 안에 드는지 `ladder_check()` 가 잰다.
+#
+#  ⚠ 밴드의 아래끝·위끝은 **서로 다른 함대**다(둘 다 실측, 어느 쪽도 «참» 이 아니다):
+#    · 아래끝 = 두 함대 접합 사다리(§3-2). 짧은 창이 표집률 때문에 눌려 있다.
+#    · 위끝  = fs 76~226 Hz 로그 **8대만**으로 0.25~20 s 를 통째로 다시 잰 값(§1-나 정정 ④).
+#      급이 섞였고 20 s 점은 4대뿐이라 **절대 눈금이 ±30 % 열려 있다.**
+#  그래서 이 검사는 «한 점 맞히기» 가 아니라 **«두 실측 사이에 드는가»** 다.
+LADDER_ANCHORS = {
+    0.25: (0.0040, 0.0068),      # ⭐분류 헤드라인 창
+    1.00: (0.0089, 0.0125),
+    3.00: (0.0133, 0.0197),
+    20.0: (0.0197, 0.0272),      # 호버 창 규약
+}
+#: 합격 판정에 쓰는 두 rung — 사다리의 **양 끝**을 잡으면 기울기가 잡힌다.
+LADDER_HARD_RUNGS = (0.25, 20.0)
+LADDER_SOURCE = (
+    "prior_work/rotor_model_evidence_0816.md §3-2(접합 사다리 0.40·0.89·1.33·1.97 %) 와 "
+    "§1-나 정정 ④(한 함대 8대 재측정 0.62~0.68·1.25·1.97·2.72 %). 규약: 호버 창, "
+    "전대역(0.05 Hz 고역통과), 창평균을 뺀 뒤의 rms.")
+
+
+class LadderError(AssertionError):
+    """프리셋의 (σ_w, τ) 짝이 실측 창-안 rms 사다리를 재현하지 못한다."""
+
+
+def in_window_rms(sigma_w: float, tau_s: float, window_s: float) -> float:
+    """길이 T 인 창 하나가 실제로 보는 상대 흔들림 rms = σ_w·√(1 − f(T,τ))."""
+    return float(sigma_w * np.sqrt(max(1.0 - window_mean_variance_fraction(tau_s, window_s),
+                                       0.0)))
+
+
+def sigma_w_window_for_tau(tau_s: float, rungs=LADDER_HARD_RUNGS,
+                           anchors=None) -> Tuple[float, float]:
+    """그 τ 로 rungs 를 **동시에** 재현할 수 있는 σ_w 구간 (lo, hi).
+
+    ⭐`lo > hi` 면 **그 τ 로는 어떤 σ_w 도 사다리를 못 맞춘다.** 현행 τ=0.227 s 가 바로
+      그 경우다 — «σ_w 만 손보면 된다» 를 코드가 직접 반증한다."""
+    a = LADDER_ANCHORS if anchors is None else anchors
+    lo = max(a[T][0] / max(in_window_rms(1.0, tau_s, T), 1e-300) for T in rungs)
+    hi = min(a[T][1] / max(in_window_rms(1.0, tau_s, T), 1e-300) for T in rungs)
+    return float(lo), float(hi)
+
+
+def ladder_check(jitter, rungs=LADDER_HARD_RUNGS, anchors=None) -> dict:
+    """프리셋의 (σ_w, τ) 짝이 실측 사다리 밴드 안에 드는가. 판정은 `rungs` 만, 나머지는 보고용."""
+    jit = get(jitter)
+    a = LADDER_ANCHORS if anchors is None else anchors
+    rows, ok = {}, True
+    for T in sorted(a):
+        pred = in_window_rms(jit.wobble_sigma, jit.tau_ctl_s, T)
+        lo, hi = a[T]
+        inb = bool(lo <= pred <= hi)
+        rows[f"{T:g}s"] = {"window_s": float(T), "pred_pct": round(100.0 * pred, 4),
+                           "band_pct": [100.0 * lo, 100.0 * hi], "in_band": inb,
+                           "is_pass_rung": bool(T in rungs),
+                           "window_mean_fraction_f": round(
+                               window_mean_variance_fraction(jit.tau_ctl_s, T), 5)}
+        if T in rungs:
+            ok &= inb
+    sw_lo, sw_hi = sigma_w_window_for_tau(jit.tau_ctl_s, rungs, a)
+    return {"preset": jit.name, "pass": bool(ok),
+            "sigma_w": float(jit.wobble_sigma), "tau_ctl_s": float(jit.tau_ctl_s),
+            "rungs": rows, "pass_rungs_s": [float(t) for t in rungs],
+            "sigma_w_feasible_pct": [100.0 * sw_lo, 100.0 * sw_hi],
+            "sigma_w_feasible_empty": bool(sw_lo > sw_hi),
+            "anchors_source": LADDER_SOURCE}
+
+
+#: `σ_eff` 를 정의하는 창 — **분류 헤드라인이 쓰는 창**이다.
+SIGMA_EFF_WINDOW_S = 0.25
+
+
+def sigma_eff(jitter, window_s: float = SIGMA_EFF_WINDOW_S) -> float:
+    """창 하나가 실제로 보는 **유효 산포** σ_eff = √(σ_s² + σ_w²·f(T,τ)).
+
+    창이 짧으면 느린 배회가 «그 창의 상수 오프셋» 으로 흡수되어 정적 산포와 구별되지 않는다.
+    빗살 폭을 정하는 단일 변수가 이것이다(퍼짐 ≈ m·f_flash·0.866·σ_eff).
+
+    ⚠ legacy 처럼 결정론 패턴을 쓰는 프리셋은 σ_s 대신 **패턴의 실현 std** 를 쓴다."""
+    jit = get(jitter)
+    if jit.static_pattern is not None:
+        p = np.asarray(jit.static_pattern, float)
+        s_stat = float(jit.static_sigma * (p - p.mean()).std())
+    else:
+        s_stat = float(jit.static_sigma)
+    f = window_mean_variance_fraction(jit.tau_ctl_s, window_s)
+    return float(np.sqrt(s_stat ** 2 + (jit.wobble_sigma ** 2) * f))
+
+
+def as_effective(jitter, window_s: float = SIGMA_EFF_WINDOW_S,
+                 name: Optional[str] = None) -> RotorJitter:
+    """⭐**두 번째 길** — 손잡이 셋을 그 창에서 **유효 산포 하나**로 접은 프리셋.
+
+    σ_s ← σ_eff(T), σ_w ← 0. 창-안 잔여 요동(outdoor_v2 는 0.25 s 에서 0.49 %)은 버린다 —
+    그 창에서 빗살 **폭**에는 거의 안 실린다(시험: `verify_rotor_dynamics.py` G28).
+    ⛔**그 창 전용**이고 **빗살 기하 전용**이다. 창이 길어지면 두 길이 갈라지고,
+      비정상성 잣대(반창 스펙트럼 상관)는 0.25 s 에서도 갈린다
+      (0.91 vs 0.81 — `outputs/rotor_outdoor_v2_ripple.json` 의 `two_paths`)."""
+    jit = get(jitter)
+    return jit.with_(name=name or f"{jit.name}_eff",
+                     static_sigma=sigma_eff(jit, window_s), wobble_sigma=0.0,
+                     legacy_sine=None, static_pattern=None,
+                     source=f"as_effective({jit.name}, window_s={window_s}) — "
+                            f"σ_eff=√(σ_s²+σ_w²·f) 로 접은 판.")
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 새 프리셋 — 기존 PRESETS 항목은 **한 글자도 안 바꾸고** 이름을 더한다
+# --------------------------------------------------------------------------- #
+_V2_TAU_S = 1.8        # 밴드 1.2~2.4 (한 함대 사다리 최소제곱 1.5~1.8, 로그별 중앙 1.2)
+_V2_SIGMA_S = 0.053    # 밴드 3.4~8.6 (표적대역 16건 ddof1 중앙 5.27 %, 전체 52대 4.97 %)
+_V2_SIGMA_W = 0.023    # 값은 옛 2.45 % 와 거의 같고 **근거만 갈렸다**
+
+_V2_SOURCE = (
+    "⭐2026-08-16 — prior_work/rotor_model_evidence_0816.md §5-1 집행. "
+    "τ 1.8 s(밴드 1.2~2.4): 창-안 rms 사다리 적합. 현행 0.227 s 는 어느 잣대로도 5~8배 "
+    "너무 빠르다(접합 사다리 2.14~2.39 s, 표집률 편의를 뺀 한 함대 1.5~1.8 s, 로그별 중앙 "
+    "1.2 s). σ_s 5.3 %(밴드 3.4~8.6): PX4 공개로그 코퍼스의 **표적 대역**(4로터·호버 "
+    "3,000~4,600 rpm) 16건 ddof1 중앙 5.27 %, 전체 52대 4.97 %. 하드웨어 계열을 하나씩 빼도 "
+    "4.85~5.06 이고 설계 단위로 접으면 5.62 로 오히려 오른다(표본편향 시험 통과). "
+    "σ_w 2.3 %: 값은 옛 2.45 % 와 사실상 같지만 **근거를 갈아 끼웠다** — 옛 값은 4 Hz 로그의 "
+    "0.3–2 Hz «대역 등가사인 진폭» 규약에서 나왔고 그 자에는 최대 ×1.8 상방 편의가 있을 수 "
+    "있다(정정 ①). 새 근거는 전대역 규약의 창-안 rms 사다리이고, τ 와 **짝으로만** 뜻이 있다. "
+    "⚠DJI 기체 아님(코퍼스에 DJI 0건) · **호버 전용**(수직 기동의 공통 22 % 스윙은 원리적으로 "
+    "못 담는다) · 바람 축 없음 · 절대 눈금 ±30 % 열림.")
+
+PRESETS.update({
+    # ── ⭐야외 v2 — 실측 코퍼스(52대) 기반. 기본값은 아니다 ──────────────────
+    "outdoor_v2": RotorJitter(
+        name="outdoor_v2", static_sigma=_V2_SIGMA_S, wobble_sigma=_V2_SIGMA_W,
+        tau_ctl_s=_V2_TAU_S, random_phase=True, source=_V2_SOURCE),
+})
+#: ⭐두 번째 길 — 0.25 s 헤드라인 전용. 값은 outdoor_v2 에서 **유도**한다(하드코딩 아님).
+PRESETS["outdoor_v2_eff"] = as_effective(
+    PRESETS["outdoor_v2"], SIGMA_EFF_WINDOW_S, name="outdoor_v2_eff").with_(
+    source=("⭐outdoor_v2 를 **0.25 s 창 하나의 유효 산포**로 접은 판(§5-1 각주). "
+            f"τ={_V2_TAU_S} s 에서 f(0.25 s)=0.955 — 흔들림 분산의 95.5 % 가 그 창에서는 "
+            "«상수 오프셋» 으로 보이므로 σ_eff=√(σ_s²+σ_w²·f)=5.757 % 하나로 못 박아도 "
+            "같은 빗살이 나온다(시험 G28). ⛔0.25 s 전용 — 1 s 이상이면 창-안 잔여 요동을 "
+            "못 담아 두 길이 갈라진다. 값은 outdoor_v2 에서 유도한다."))
+
+
+def _selfcheck_v2() -> None:
+    """⭐모듈을 읽을 때 한 번 — 새 프리셋의 세 값이 **짝으로** 맞는지 코드가 검산한다.
+
+    ⛔여기서 터지면 값을 손으로 고쳤는데 사다리를 안 맞춘 것이다. 값과 근거를 같이 고쳐라."""
+    lc = ladder_check(PRESETS["outdoor_v2"])
+    if not lc["pass"]:
+        bad = {k: v for k, v in lc["rungs"].items() if v["is_pass_rung"] and not v["in_band"]}
+        raise LadderError(
+            f"outdoor_v2 (σ_w={_V2_SIGMA_W}, τ={_V2_TAU_S}s) 가 실측 창-안 rms 사다리를 "
+            f"재현하지 못한다: {bad}. τ 를 바꿨다면 σ_w 도 같이 움직여야 한다 — "
+            f"그 τ 가 허용하는 σ_w 구간은 {lc['sigma_w_feasible_pct']} % 다. {LADDER_SOURCE}")
+    d = abs(PRESETS["outdoor_v2_eff"].static_sigma / sigma_eff(PRESETS["outdoor_v2"]) - 1.0)
+    if d > 1e-12:
+        raise LadderError(f"outdoor_v2_eff 가 outdoor_v2 에서 유도되지 않았다 (rel {d:.3e})")
+
+
+_selfcheck_v2()
 
 
 # --------------------------------------------------------------------------- #
@@ -436,3 +643,16 @@ if __name__ == "__main__":   # 손으로 훑어보는 용도 — 게이트는 ve
               f"{s['static_spread_std_rel']:9.5f} {s['wobble_std_rel']:9.5f} "
               f"{s.get('dominant_hz', float('nan')):8.2f} "
               f"{s.get('psd_slope_db_per_decade', float('nan')):9.2f}")
+    print("\n⚠ 위 «실측» 두 칸은 **2 초짜리 한 판·씨앗 하나**다. τ 가 긴 프리셋"
+          "(outdoor_v2, τ=1.8 s)은 2 초 창이 느린 배회를 다 못 봐서 실측 σ_w 가 "
+          "구조적으로 낮게, 실측 σ_s 는 배회가 섞여 흔들리게 나온다 — 결함이 아니라 "
+          "«창-안 rms» 그 자체다. 제대로 된 판정은 게이트 G26·G27 이 한다.")
+    print("\n창-안 rms 사다리 [%] — 관측이 실제로 보는 양")
+    print(f"{'preset':16s} " + " ".join(f"{T:>7g}s" for T in sorted(LADDER_ANCHORS)))
+    for k in ("outdoor", "outdoor_v2"):
+        j = PRESETS[k]
+        print(f"{k:16s} " + " ".join(
+            f"{100 * in_window_rms(j.wobble_sigma, j.tau_ctl_s, T):8.3f}"
+            for T in sorted(LADDER_ANCHORS)))
+    print(f"{'실측 밴드':16s} " + " ".join(
+        f"{100 * v[0]:.2f}~{100 * v[1]:.2f}" for _, v in sorted(LADDER_ANCHORS.items())))

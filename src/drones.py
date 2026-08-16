@@ -145,6 +145,21 @@ class DroneSpec:
     #    열린 프레임에는 body·canopy 그룹이 **존재하지 않으므로** 기본값도 결과적으로 안전하다
     #    (셸 후보가 0개 → 투과 패스 없음). 배선은 Phase 3(저장소 전체 5종→7종)에서 한다.
     shell_groups: tuple | None = None
+    # ----------------------------------------------------------------------- #
+    #  ⭐⭐ 프로펠러 «최대 시위 / 반경» (2026-08-16 추가 — 감사 I2)
+    # ----------------------------------------------------------------------- #
+    #  시위(chord) = 날 단면의 앞전~뒷전 길이 = 날의 «폭». 그 최댓값을 프롭 반경으로 나눈 값이
+    #  `c_max/R` 이고, 날이 얼마나 통통한지를 정한다.
+    #  ⛔ 지금까지 **8기종 전부 `drone_cad.CHORD_MAX_OVER_R = 0.25` 하나**를 썼다. 실측은
+    #    0.177~0.273 으로 두 배 가까이 벌어지고 **프롭이 클수록 작아진다** — 그래서 기종마다
+    #    오차 부호가 뒤집혔다(mini2 −5 % · matrice4e +31 % · mavic4pro +37 %).
+    #  ⚠ **None 이면 예전 그대로**(0.25) — 전 기종 None 이라 기존 메쉬는 비트 단위로 동일하다.
+    #  ⛔⛔ 이 필드만 채우고 시위 «분포» 를 그대로 두면 안 된다. 둘은 한 묶음이다
+    #    (감사 §⑤ 15). 분포는 `build_propeller(..., blade_law='dji_mini2')` 로 고르고,
+    #    그 판을 고르면 c_max/R 도 기종별로 **같이** 따라온다
+    #    (`drone_cad.resolve_chord_max_over_r`). 이 필드는 그 자동 선택을 **덮어쓰는**
+    #    수동 손잡이다 — 실험용으로만 쓸 것.
+    prop_chord_max_over_r: float | None = None
 
 
 #  DroneSpec 의 전체 필드 이름 — 필드를 추가하면 자동으로 따라온다(캐시 키가 낡지 않는다).
@@ -358,6 +373,16 @@ DRONES: dict[str, DroneSpec] = {
         #   [독립 검사 2건] 모터벨 27 mm 로 두면
         #       폭 2·181.35 + 27 = 389.7  ↔ 공식 387.5  (**+0.57 %**)
         #       길이 2·139.45 + 27 = 305.9 ↔ 공식 307    (**−0.36 %**)
+        #   ⛔ **2026-08-16 정정 — 위 두 수는 «로터 배치 검산» 이지 «프레임 치수» 가 아니다.**
+        #     그대로 프레임 오차로 인용하면 틀린다. 실제로 지어진 프레임 bbox 를 재면:
+        #       폭   **389.75 mm** ↔ 공식 387.5 = **+0.58 %**  ← 검산과 사실상 같다(우연이 아니라
+        #                                                        폭은 로터가 정하기 때문)
+        #       길이 **331.43 mm** ↔ 공식 307   = **+7.96 %**  ← 검산 305.9(−0.36 %)와 **다르다**
+        #     이유: 길이 검산은 x 방향 끝을 «앞 모터 벨 앞끝»(139.45+13.5=152.95)으로 놓는데,
+        #     실제 프레임은 그 앞으로 더 나간다(코·짐벌 쪽이 x 최대점을 만든다 — 165.7 mm).
+        #     즉 로터 배치의 근거로는 여전히 유효하고, **프레임 길이 오차의 근거로는 못 쓴다.**
+        #     ⇒ 이 기체의 프레임 길이는 지금 «공표 대비 +7.96 %» 로 적어야 한다(선언).
+        #        (감사 docs/MESH_AUDIT_0816.md I10① · 적대검증에서 331.43 mm 로 재현)
         #     옛 대칭 X(51.2°)는 같은 검사에서 길이 320.4(**+4.4 %**)였고, 폭을 맞추려고
         #     모터벨을 **45.6 mm**(실물 27~32 의 1.7배)로 부풀려야만 성립했다 — 그 매듭이 풀렸다.
         #   [3번째 사진의 독립 확인] 정면컷 _1 에서도 같은 방법으로 허브를 재면 앞쌍 641.55 px,
@@ -480,8 +505,12 @@ DRONES: dict[str, DroneSpec] = {
              "arm/motor PART dimensions are UNKNOWN (unpublished, and not extractable from one fused "
              "body STL), so the mesh falls back to the diagonal-proportional rule - arm root half-width "
              "0.055*diag = 26.4 mm (a 52.8 mm wide profile) and a motor bell 0.104*diag = 49.9 mm in "
-             "diameter. That bell is what pushes the frame bbox to 465.6 x 529.9 mm, +1.9% over the "
-             "official 457 x 520: the official width leaves only 520 - 2*240 = 40.0 mm for the bell on "
+             "diameter. *** CORRECTED 2026-08-16 (audit I10-2): the frame bbox this actually builds is "
+             "452.17 x 517.00 mm, i.e. -1.06% / -0.58% versus the official 457 x 520 - UNDER, not over. "
+             "The old note said '465.6 x 529.9 mm, +1.9%', which is stale in magnitude AND in sign; do "
+             "not quote it. The clearance argument below still holds because it is about the official "
+             "envelope, not about our bbox. *** "
+             "the official width leaves only 520 - 2*240 = 40.0 mm for the bell on "
              "our 480 mm diagonal (34.4 mm if the CAD's measured 242.8 mm rotor radius is used instead). "
              "arm_od_mm / motor_dia_mm / motor_h_mm exist to fix this the moment a graded figure lands. "
              "envelope_mm forces HEIGHT ONLY (310 mm), like mini5pro and matrice4e: forcing L/W too "
@@ -1360,7 +1389,9 @@ def _mirror_y(m: Mesh) -> Mesh:
     return out
 
 
-def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False) -> Mesh:
+def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False,
+                    blade_law: str = "legacy", pitch_law=None,
+                    max_edge_m=None, lambda_m=None, edge_over_lambda: float = 10.0) -> Mesh:
     """프로펠러 1개 — **진짜 익형(NACA-4, 캠버 포함)** 로프트 블레이드 + 허브 (CAD 단일 경로).
     n 은 블레이드 스팬 분할 힌트(마이크로도플러는 크게 줘서 단면을 촘촘히).
     pose_articulated 가 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
@@ -1369,9 +1400,18 @@ def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False) -> Mesh:
              — 스윕 방향과 피치 부호가 함께 뒤집힌다. 옛 코드는 한 메쉬를 z회전으로만 복제해
              네 로터가 전부 같은 손잡이였다(2026-07-28 수정). 산란 패턴 지표에 유의미하다.
              ⚠ DJI 는 기종별 절대 회전방향을 공개하지 않는다(docs/drone_specs_2026.json
-               rotor_directions '미확인'). 여기서는 `rotor_layout` 의 dir(대각쌍 동일) 관례를 따른다."""
+               rotor_directions '미확인'). 여기서는 `rotor_layout` 의 dir(대각쌍 동일) 관례를 따른다.
+
+    ⭐ 2026-08-16 — 날 법칙을 고르는 손잡이가 붙었다(감사 §⑤ 3층). **기본은 예전 그대로**:
+      blade_law  'legacy'(기본) / 'dji_mini2'  — 시위 분포 + 기종별 c_max/R + 뭉툭한 팁
+      pitch_law  None(=legacy) / 'dji_mini2'   — ⚠기본으로 안 켜진다(감사 I7)
+      lambda_m   파장[m]. 주면 λ/`edge_over_lambda` 보다 긴 삼각형 모서리만 쪼갠다(형상 불변)
+    인자를 안 주면 나오는 메쉬는 **비트 단위로 예전과 같다**
+    (증명: benchmark/regress_blade_law_bitidentical.py)."""
     from drone_cad import build_propeller_cad
-    m = build_propeller_cad(spec, n_sec=max(12, n * 2)).to_geom()
+    m = build_propeller_cad(spec, n_sec=max(12, n * 2), blade_law=blade_law,
+                            pitch_law=pitch_law, max_edge_m=max_edge_m,
+                            lambda_m=lambda_m, edge_over_lambda=edge_over_lambda).to_geom()
     return _mirror_y(m) if mirror else m
 
 
@@ -1501,6 +1541,22 @@ def drone_colors(spec: DroneSpec) -> dict:
 
 if __name__ == "__main__":
     import os
+    #  ⭐⭐ 2026-08-16 — **회귀 게이트를 여기에 배선한다**(감사 C2).
+    #    `mesh_check.assert_ok()` 는 «상시 가동» 이라 적혀 있었지만 저장소 전체에 호출부가
+    #    0 건이었다. 메쉬가 밖으로 나가는 문은 이 스크립트(OBJ 내보내기)뿐이므로 여기서
+    #    막는다 — 검사에 걸린 메쉬는 **파일로 나가지 못한다.**
+    #    ⚠ 이 게이트가 덮는 범위는 정직하게: 인메모리로 `build_drone()` 을 직접 부르는
+    #      경로(RCS·렌더·마이크로도플러)는 이 문을 안 지난다. 그 경로까지 막으려면
+    #      import 시점에 검사를 걸어야 하는데, 전 기종 검사가 ~35 초라 그렇게 안 한다.
+    #    탈출구: MESH_GATE=off 로 끌 수 있다(끄면 경고를 크게 찍는다).
+    if os.environ.get("MESH_GATE", "on").lower() in ("off", "0", "false", "no"):
+        print("⚠⚠ MESH_GATE=off — 메쉬 검증 게이트를 끄고 내보낸다. "
+              "여기서 나온 OBJ 는 검증되지 않은 메쉬다.")
+    else:
+        from mesh_check import assert_ok
+        print("메쉬 검증 게이트(mesh_check.assert_ok) 실행 중 …", flush=True)
+        assert_ok()
+        print("메쉬 검증 게이트 통과 — 내보내기를 시작한다.\n")
     out = os.path.join(os.path.dirname(__file__), "..", "assets", "meshes", "drones")
     print(f"{'key':12s} {'rotors':>6s} {'diag_mm':>8s} {'prop_mm':>8s} {'tris':>7s}  release")
     for key, spec in DRONES.items():

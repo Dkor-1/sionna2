@@ -13,13 +13,33 @@ mesh_check.py — **trimesh 로 메쉬를 검증한다** (자작 geom.py 가 못
 
 무엇을 검사하나 — **부품(연결요소) 단위**로. 드론은 프리미티브의 합집합이라 전체 메쉬는
 원래 watertight 가 아니다. 의미 있는 검사는 **부품별** 검사다.
-  1. watertight   : 부품이 닫힌 껍질인가 (구멍 없음)
-  2. winding      : 이웃한 면들이 같은 방향으로 감겼는가
-  3. 법선 방향    : 바깥을 향하는가 (닫힌 부품의 부호있는 부피 > 0)
-  4. 퇴화면·중복정점
 
-실행:  python src/mesh_check.py          (DRONES 레지스트리 전 기종 + 챔버 전수 검사)
-       assert_ok() 를 빌드 파이프라인에서 부르면 회귀를 막는다.
+  ⑴ 그룹 안 (check_mesh)
+     1. watertight   : 부품이 닫힌 껍질인가 (구멍 없음)
+     2. 경계 모서리  : 삼각형 하나만 쓰는 모서리 = 구멍의 테두리. **0 이어야 한다**
+     3. winding      : 이웃한 면들이 같은 방향으로 감겼는가
+     4. 법선 방향    : 바깥을 향하는가 (닫힌 부품의 부호있는 부피 > 0)
+     5. 부호부피(원본): trimesh 를 **전혀 안 거치고** 출하 인덱스로 직접 계산한 부피 > 0
+     6. 퇴화면       : 절대 잣대(면적) + **상대 잣대(최소 내각)** 둘 다
+     7. 그룹 안 겹침 : 같은 그룹의 두 부품이 서로 파묻혀 있는가 (PO 면적 이중계상)
+  ⑵ 스펙 대조 (check_dimensions · check_handedness)
+     8. 치수         : 프롭 지름·로터 대각·공식 외형을 **DroneSpec 의 수**와 대조
+     9. 손대칭성     : 로터별 날 비틀림 방향이 회전방향(dir)과 맞는가 (거울상 기체 탐지)
+  ⑶ 그룹 사이 (check_prop_bell · check_prop_bell_solid)
+    10. 프롭↔모터 벨 관통 — 원통 근사(빠름) + 솔리드 내부판정(판정 기준)
+
+⭐⭐ 2026-08-16 — **검사기가 자기가 방금 수리한 사본을 검사하고 있었다**(감사 C1).
+  `trimesh.split()` 은 trimesh 5.x 에서 `repair=True` 가 **기본**이라, 구멍 뚫린 부품을
+  조용히 메운 뒤 «수밀 통과» 를 돌려줬다(합성 대조: 삼각형 1장 뺀 상자가 11면 → 12면·수밀 True).
+  이제 **모든 split 호출에 `repair=False` 를 명시**하고, 경계 모서리 수를 결과에 싣는다.
+  ⚠ 구별할 것 — **웰딩(process=True)은 유지한다.**
+     · 웰딩  = 같은 자리의 중복 «정점» 을 합치는 것. 새 형상을 만들지 않는다.
+               우리 geom.Mesh 는 프리미티브마다 정점을 따로 쌓으므로 웰딩 없이는
+               멀쩡한 부품도 전부 «비수밀» 로 나온다(감사 m6).
+     · 수리(repair=True) = 없는 «삼각형» 을 지어 구멍을 메우는 것. **검사기가 하면 안 된다.**
+
+실행:  python src/mesh_check.py          (DRONES 레지스트리 **전 기종** 전수 검사)
+       assert_ok() 는 메쉬 내보내기 경로(`python src/drones.py`)에 게이트로 배선돼 있다.
 """
 from __future__ import annotations
 
@@ -33,45 +53,395 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 
+#  ── 검사 잣대 ────────────────────────────────────────────────────────────── #
+#  ⚠ 아래 «예산» 표들은 전부 **«지금 이만큼이다» 라는 선언**이지 «이만큼이 옳다» 가 아니다.
+#    (이 저장소의 기존 규약 — PROP_BELL_* 표와 같은 뜻.) 값은 2026-08-16 전수 실측으로
+#    초기화했고, 여유는 실측값의 약 10 % 다. 새로 생기는 결함은 예산을 넘겨 **실패한다.**
+
+SLIVER_MIN_ANGLE_DEG = 0.5      # 이보다 좁은 내각을 가진 삼각형 = 슬리버(상대 잣대, 감사 m2)
+DEGENERATE_AREA_M2 = 1e-14      # 절대 잣대(옛 기준). 기체 크기에 따라 뜻이 달라져 상대 잣대를 겸용한다
+
+#  ⑵ 경계 모서리(구멍) 예산 — (기종, 그룹) → 허용 개수. **원칙은 0 이다.**
+BOUNDARY_EDGE_BUDGET = {
+    "_default": 0,
+    #  ↓ 선언된 기존 결함(감사 I5). 2층 수리 대상이라 여기 «지금 상태» 로 박아 둔다.
+    #    mini2 body 는 면 수가 7757(홀수)로, cadkit.Assembly.add() 의 nondegenerate_faces()
+    #    가 슬리버 1장을 지우면서 경계 모서리 3개짜리 구멍이 남았다. 구멍 삼각형 면적은
+    #    4.96e-06 mm² 라 산란에는 영향이 없고, 진짜 피해는 간접이다 — is_watertight=False 라
+    #    부피·contains() 가 무효가 되어 **내부판정을 쓰는 검사가 이 부품을 조용히 건너뛴다.**
+    ("mini2", "body"): 3,
+}
+
+#  ⑶ 슬리버(최소 내각 < 0.5°) 예산 — 기종 전체 개수. 실측 + 10 % 여유.
+#     면적 비중은 0.0001~0.03 % 라 σ 에는 무해하다(감사 m2 가 확인). 감시하는 이유는
+#     법선이 수치적으로 불안정한데 PO 조명판정이 n̂·û>0 이기 때문이다.
+SLIVER_BUDGET = {
+    "_default": 0,
+    "mini5pro": 382, "mavic4pro": 261, "matrice4e": 312, "s1000plus": 638,
+    "phantom4": 270, "typhoonh480": 508, "x500v2": 420, "phantom3": 339,
+    "m350rtk": 347, "mini2": 198,
+}
+
+#  ⑷ **그룹 안** 부품 겹침 예산 [%] — (기종, 그룹) → 그 그룹 표면적 중 다른 부품 솔리드
+#     안에 파묻힌 비율. `build_frame_cad` 의 불리언 union 목록에 없는 그룹은 겹치면
+#     내부 면이 그대로 남아 **PO 가 면적을 이중계상**한다(PO 는 가림을 안 본다).
+#     ⭐ 2026-08-16 신규 발견 — 셸형 공용 경로의 'battery' 그룹에서 배터리 팩 상자와
+#        구조판 상자가 실제로 파고들어 있다(48~50 %). `drone_cad.py` INTERNALS 주석은
+#        «battery·pcb 는 union 목록에 없으니 서로 겹치지 않게 놓는다» 고 적는데,
+#        기종별 실측표를 받은 matrice4e·phantom3 만 그 규칙을 지키고 있다(겹침 0 %).
+#        ⇒ 3층(감사 I3) 수리 대상. 여기서는 **선언**만 한다.
+GROUP_OVERLAP_BUDGET_PCT = {
+    "_default": 0.1,
+    ("mini2", "battery"): 55.0,
+    ("mini5pro", "battery"): 55.0,
+    ("mavic4pro", "battery"): 55.0,
+    ("phantom4", "battery"): 55.0,
+}
+
+#  ⑸ 치수 대조 허용오차 [%] — 메쉬에서 잰 값 ↔ DroneSpec 의 수
+DIM_TOL_PCT = {
+    "prop_dia": 1.0,        # 실측 전 10기체 −0.000 % (스윕디스크 정규화가 정확히 작동)
+    "envelope": 1.0,        # 실측 전 10기체 0.0 % (frame_fit_scale 이 외형을 맞춘다)
+    "diagonal": 3.0,        # 실측 −0.14~+1.98 % (phantom4 +1.98 이 최대)
+}
+#  ↓ 대각선만 기종별 예외가 있다 — spec note 에 이미 선언된 값들.
+DIM_DIAGONAL_TOL_PCT = {
+    #  mini5pro: spec note 가 «diagonal_mm 275 는 로터 위치를 정하지 않는다» 고 선언한다.
+    "mini5pro": 12.0,       # 실측 −9.46 %
+}
+
+#  ⑹ 손대칭성 — 날 비틀림 방향 지표의 최소 크기. 이보다 작으면 «날이 비틀리지 않았다» 는 뜻이라
+#     부호를 믿을 수 없다. 실측 |h| = 0.16~0.29 라 0.05 는 3배 이상 여유다.
+HANDEDNESS_MIN_ABS = 0.05
+
+
 def _tm(v, f):
+    """(정점, 면) → trimesh. **웰딩만 하고 수리는 하지 않는다**(파일 머리말 참조)."""
     import trimesh
     return trimesh.Trimesh(vertices=np.asarray(v, float),
                            faces=np.asarray(f, int), process=True)
 
 
+def _split(tm):
+    """연결요소 분리 — ⭐`repair=False` 를 **반드시** 명시한다(감사 C1).
+    trimesh 5.x 의 `split` 은 repair 기본값이 True 라, 그냥 부르면 구멍을 메운 사본을 돌려준다."""
+    return tm.split(only_watertight=False, repair=False)
+
+
+def _edge_defects(tm):
+    """`is_watertight` 를 **두 원인으로 쪼갠다**.
+      · 경계 모서리   = 삼각형 하나만 쓰는 모서리 → 구멍의 테두리
+      · 비다양체 모서리 = 삼각형 셋 이상이 쓰는 모서리 → 껍질이 겹쳐 붙음
+    trimesh 의 `is_watertight` 는 «모든 모서리가 정확히 두 번» 이라 이 둘을 합쳐 참/거짓
+    하나로 뭉갠다. 쪼개 놓으면 «구멍 3개» 를 예산으로 선언하면서 **새로 생긴 겹침은
+    그대로 실패**시킬 수 있다."""
+    import trimesh
+    e = tm.edges_sorted
+    n_b = int(len(trimesh.grouping.group_rows(e, require_count=1)))
+    n_2 = int(len(trimesh.grouping.group_rows(e, require_count=2)))
+    n_all = int(len(trimesh.grouping.group_rows(e)))
+    return n_b, int(n_all - n_b - n_2)
+
+
+def _min_angles_deg(V, F) -> np.ndarray:
+    """삼각형별 **최소 내각**[deg] — 슬리버의 상대 잣대. 절대 면적 잣대는 기체 크기에 따라
+    뜻이 달라져서(m350rtk 는 mini2 의 20배) 같은 1e-14 m² 가 전혀 다른 엄격도가 된다."""
+    A, B, C = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
+
+    def ang(P, Q, R):
+        u, w = Q - P, R - P
+        nu = np.linalg.norm(u, axis=1)
+        nw = np.linalg.norm(w, axis=1)
+        d = np.clip((u * w).sum(1) / np.maximum(nu * nw, 1e-300), -1.0, 1.0)
+        return np.degrees(np.arccos(d))
+
+    return np.minimum(np.minimum(ang(A, B, C), ang(B, C, A)), ang(C, A, B))
+
+
+def _raw_components(F, n_vert):
+    """**출하 인덱스 그대로**의 연결요소 라벨 — trimesh 를 안 거친다(웰딩도 수리도 없음).
+    geom.Mesh 는 프리미티브마다 정점 블록을 따로 쌓으므로 «인덱스 연결» = «부품» 이다."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    rows = np.repeat(np.arange(len(F)), 3)
+    M = coo_matrix((np.ones(len(rows), np.int8), (rows, F.reshape(-1))),
+                   shape=(len(F), n_vert)).tocsr()
+    n, lab = connected_components(M @ M.T, directed=False)
+    return n, lab
+
+
+def _raw_signed_volumes_mm3(V, F):
+    """수리 없는 **손계산 부호부피**[mm³] — 감사 §⑤ 0층 4번.
+    발산정리로 Σ a·(b×c)/6. 법선이 안쪽을 보면 부호가 음수가 된다. 이 축은 지금 깨끗하고
+    (2026-07-01 안쪽법선 수정이 살아 있다) C1 과 **무관하게** 지킬 수 있어서 게이트에 넣는다."""
+    used = np.unique(F)
+    remap = np.zeros(int(used.max()) + 1, np.int64)
+    remap[used] = np.arange(len(used))
+    ff = remap[F]
+    Vv = np.asarray(V, float)[used]
+    n, lab = _raw_components(ff, len(used))
+    a, b, c = Vv[ff[:, 0]], Vv[ff[:, 1]], Vv[ff[:, 2]]
+    d = np.einsum("ij,ij->i", a, np.cross(b, c)) / 6.0
+    return np.bincount(lab, weights=d, minlength=n) * 1e9      # m³ → mm³
+
+
+def _group_overlap_pct(comps) -> float:
+    """**그룹 안** 부품 겹침 — 한 부품의 삼각형 중심이 같은 그룹의 다른 (수밀) 부품 솔리드
+    **안**에 드는 면적의 비율 [%]. PO 는 가림을 안 보므로 이 면적은 그대로 이중계상된다.
+
+    ⚠ 담는 쪽(cj)이 수밀이 아니면 `contains()` 가 성립하지 않아 **그 부품은 담는 쪽에서 뺀다.**
+      즉 이 수는 «겹침의 하한» 이다 — «못 봄» 이 0 으로 보고될 수 있다는 뜻인데, 그 조건
+      (비수밀 부품의 존재)은 같은 그룹의 `boundary_edges` 가 따로 드러내므로 정보가 사라지진
+      않는다. 감사 부록 A 의 교훈(«수밀 필터를 건 검사는 못 봄을 0 으로 보고한다»)을 여기 적어 둔다."""
+    if len(comps) < 2:
+        return 0.0
+    cen = [c.triangles_center for c in comps]
+    ar = [c.area_faces for c in comps]
+    tot = float(sum(float(a.sum()) for a in ar))
+    if tot <= 0:
+        return 0.0
+    buried = 0.0
+    for i, _ in enumerate(comps):
+        for j, cj in enumerate(comps):
+            if i == j or not cj.is_watertight:
+                continue
+            lo, hi = cj.bounds
+            sel = np.all((cen[i] >= lo - 1e-12) & (cen[i] <= hi + 1e-12), axis=1)
+            if not sel.any():
+                continue
+            hit = cj.contains(cen[i][sel])
+            buried += float(ar[i][np.where(sel)[0][hit]].sum())
+    return round(100.0 * buried / tot, 4)
+
+
 def check_mesh(mesh, name="mesh") -> dict:
-    """geom.Mesh → 부품별 검진 결과. 그룹(부위) 단위로 쪼개서 본다."""
+    """geom.Mesh → 부품별 검진 결과. 그룹(부위) 단위로 쪼개서 본다.
+
+    name 은 예산표(BOUNDARY_EDGE_BUDGET·GROUP_OVERLAP_BUDGET_PCT·SLIVER_BUDGET)의 키다 —
+    레지스트리에 없는 이름(임시·합성 메쉬)이면 `_default`(=결함 0 허용)가 걸린다."""
     V = np.asarray(mesh.v, float)
     F = np.asarray(mesh.f, int)
     G = np.asarray(mesh.g)
+    ang_all = _min_angles_deg(V, F)
     groups = {}
+    n_sliver_total = 0
     for grp in sorted(set(G.tolist())):
-        f = F[G == grp]
+        sub = G == grp
+        f = F[sub]
         used = np.unique(f)
         remap = {int(o): i for i, o in enumerate(used)}
-        tm = _tm(V[used], np.vectorize(remap.get)(f))
-        comps = tm.split(only_watertight=False)
+        f_local = np.vectorize(remap.get)(f)
+        tm = _tm(V[used], f_local)
+        comps = _split(tm)
         n_wt = sum(1 for c in comps if c.is_watertight)
         n_inward = sum(1 for c in comps if c.is_watertight and c.volume < 0)
         n_badwind = sum(1 for c in comps if not c.is_winding_consistent)
-        n_degen = int((tm.area_faces < 1e-14).sum())
+        n_degen = int((tm.area_faces < DEGENERATE_AREA_M2).sum())
+        n_bedge, n_nonmani = _edge_defects(tm)
+        n_sliver = int((ang_all[sub] < SLIVER_MIN_ANGLE_DEG).sum())
+        n_sliver_total += n_sliver
+        raw_vol = _raw_signed_volumes_mm3(V, f)
+        n_rawneg = int((raw_vol <= 0.0).sum())
+        overlap = _group_overlap_pct(comps)
+        be_budget = BOUNDARY_EDGE_BUDGET.get((name, grp), BOUNDARY_EDGE_BUDGET["_default"])
+        ov_budget = GROUP_OVERLAP_BUDGET_PCT.get((name, grp),
+                                                 GROUP_OVERLAP_BUDGET_PCT["_default"])
         groups[grp] = dict(
             n_faces=int(len(f)), n_parts=len(comps),
             watertight=f"{n_wt}/{len(comps)}",
             inward_normals=n_inward, bad_winding=n_badwind, degenerate=n_degen,
-            ok=(n_wt == len(comps) and n_inward == 0 and n_badwind == 0 and n_degen == 0),
+            #  ↓ 2026-08-16 추가
+            boundary_edges=n_bedge, boundary_edge_budget=be_budget,
+            nonmanifold_edges=n_nonmani,
+            raw_min_signed_volume_mm3=round(float(raw_vol.min()), 4),
+            raw_negative_parts=n_rawneg,
+            slivers=n_sliver, min_angle_deg=round(float(ang_all[sub].min()), 5),
+            overlap_pct=overlap, overlap_budget_pct=ov_budget,
+            #  ⚠ 판정에서 `is_watertight` 자체를 쓰지 않는다 — 그 참/거짓은 «구멍» 과
+            #    «겹침» 을 뭉쳐 놓아서 선언된 구멍(mini2 body 3개)을 예산으로 통과시키면
+            #    새로 생긴 겹침까지 같이 통과해 버린다. 두 원인을 따로 판정한다.
+            ok=(n_inward == 0 and n_badwind == 0 and n_degen == 0
+                and n_bedge <= be_budget and n_nonmani == 0
+                and n_rawneg == 0 and overlap <= ov_budget),
         )
-    return dict(name=name, groups=groups, ok=all(g["ok"] for g in groups.values()))
+    sl_budget = SLIVER_BUDGET.get(name, SLIVER_BUDGET["_default"])
+    #  ⚠ 슬리버는 **`ok` 에 넣지 않는다** — 일부러 그렇다.
+    #    `check_mesh(...)["ok"]` 는 예전부터 «부품 무결성» 의 뜻으로 쓰여 왔고, 실제로
+    #    `benchmark/audit_m350rtk_mesh.py` 는 그 값을 `watertight_all_parts` 라는 이름으로
+    #    원장에 싣는다. 슬리버는 기체 전체를 보는 **다른 층의 잣대**(상대 잣대·기종별 예산)라
+    #    그 자리에 섞으면 뜻이 흐려지고, 미등록 이름으로 부른 기존 호출부가 조용히 뒤집힌다.
+    #    게이트(assert_ok)와 check_all 은 `sliver_ok` 를 따로 확인한다.
+    return dict(name=name, groups=groups,
+                slivers=n_sliver_total, sliver_budget=sl_budget,
+                sliver_ok=bool(n_sliver_total <= sl_budget),
+                ok=all(g["ok"] for g in groups.values()))
 
 
 def report(res: dict) -> str:
     lines = [f"  {'그룹':10s} {'면':>6} {'부품':>5} {'watertight':>11} {'법선안쪽':>8} "
-             f"{'winding깨짐':>11} {'퇴화면':>6}  판정"]
+             f"{'winding깨짐':>11} {'퇴화면':>6} {'경계모서리':>10} {'비다양체':>8} "
+             f"{'슬리버':>6} {'그룹내겹침%':>11}  판정"]
     for grp, g in res["groups"].items():
+        be = f"{g['boundary_edges']}/{g['boundary_edge_budget']}"
+        ov = f"{g['overlap_pct']:.2f}/{g['overlap_budget_pct']:g}"
         lines.append(f"  {grp:10s} {g['n_faces']:6d} {g['n_parts']:5d} {g['watertight']:>11s} "
                      f"{g['inward_normals']:8d} {g['bad_winding']:11d} {g['degenerate']:6d}"
+                     f" {be:>10s} {g.get('nonmanifold_edges', 0):8d}"
+                     f" {g['slivers']:6d} {ov:>11s}"
                      f"  {'✅' if g['ok'] else '❌'}")
+    if "slivers" in res:
+        lines.append(f"  슬리버(최소내각<{SLIVER_MIN_ANGLE_DEG}°) 합계 {res['slivers']} "
+                     f"(예산 {res['sliver_budget']})  {'✅' if res['sliver_ok'] else '❌'}")
     return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 2026-08-16 — 스펙 대조 검사 (감사 I6). 위의 검사들은 전부 «메쉬가 스스로 앞뒤가
+#     맞는가» 만 본다. 그래서 **단위를 1000 배 틀린 메쉬**도, **좌우가 뒤집힌 기체**도
+#     통과했다(감사 I6: 나쁜 메쉬 5종을 지어 시험했더니 5/5 통과). 이 두 검사는 메쉬를
+#     **바깥의 수(DroneSpec)** 와 대조해서 그 구멍을 막는다.
+# --------------------------------------------------------------------------- #
+def _rotor_clusters(spec, V_mm, F_prop):
+    """프롭 삼각형을 로터별로 나눈다 — 삼각형 중심에서 가장 가까운 로터 축.
+    반환: (로터별 면 인덱스 리스트, 로터 정보 리스트)."""
+    from drones import rotor_layout
+    rl = rotor_layout(spec)
+    ctr = np.asarray([r["center"] for r in rl], float) * 1000.0
+    C = V_mm[F_prop].mean(1)
+    idx = np.linalg.norm(C[:, None, :2] - ctr[None, :, :2], axis=2).argmin(1)
+    return [np.where(idx == i)[0] for i in range(len(rl))], rl, ctr
+
+
+def check_dimensions(spec, mesh=None, verbose=False) -> dict:
+    """**치수 검사** — 메쉬에서 잰 프롭 지름·로터 대각·외형을 DroneSpec 의 수와 대조한다.
+    이 검사가 없으면 단위를 1000 배 틀린 메쉬가 모든 위상 검사를 통과한다(감사 I6 D3)."""
+    from drones import build_drone
+    m = mesh if mesh is not None else build_drone(spec)
+    V = np.asarray(m.v, float) * 1000.0
+    F = np.asarray(m.f, np.int64)
+    G = np.asarray(m.g)
+    if not (G == "prop").any():
+        return dict(key=spec.key, checked=False, ok=True, reason="prop 그룹 없음")
+    Fp = F[G == "prop"]
+    sel_list, rl, _ = _rotor_clusters(spec, V, Fp)
+
+    dia, errs = [], []
+    for sel in sel_list:
+        if not len(sel):
+            continue
+        P = V[Fp[sel]].reshape(-1, 3)
+        cx, cy = float(P[:, 0].mean()), float(P[:, 1].mean())
+        dia.append(2.0 * float(np.hypot(P[:, 0] - cx, P[:, 1] - cy).max()))
+        errs.append((cx, cy))
+    dia_mean = float(np.mean(dia)) if dia else 0.0
+    e_prop = 100.0 * (dia_mean / spec.prop_dia_mm - 1.0) if spec.prop_dia_mm else 0.0
+
+    #  로터 대각 = 2 × (로터 중심의 평균 반경). 프롭 군집의 xy 무게중심이 로터 축이다
+    #  (2날 프롭은 허브 기준 대칭이라 무게중심이 축 위에 온다).
+    ctr_meas = np.asarray(errs, float)
+    diag_meas = 2.0 * float(np.linalg.norm(ctr_meas, axis=1).mean()) if len(ctr_meas) else 0.0
+    e_diag = 100.0 * (diag_meas / spec.diagonal_mm - 1.0) if spec.diagonal_mm else 0.0
+
+    #  외형 — 공식 치수가 «프롭 포함» 이면 전체 드론을, 아니면 프레임(프롭 제외)을 견준다.
+    #  (frame_envelope_mm 과 같은 규약)
+    full = V.max(0) - V.min(0)
+    nonp = np.unique(F[G != "prop"])
+    frame = (V[nonp].max(0) - V[nonp].min(0)) if len(nonp) else full
+    cmp_mm = full if bool(getattr(spec, "env_props_included", False)) else frame
+    env = spec.envelope_mm
+    e_env = [None if (env is None or env[i] is None) else
+             round(100.0 * (float(cmp_mm[i]) / float(env[i]) - 1.0), 4) for i in range(3)]
+
+    tol_diag = DIM_DIAGONAL_TOL_PCT.get(spec.key, DIM_TOL_PCT["diagonal"])
+    bad = []
+    if abs(e_prop) > DIM_TOL_PCT["prop_dia"]:
+        bad.append(f"prop_dia {dia_mean:.2f} mm ↔ spec {spec.prop_dia_mm} ({e_prop:+.2f} %)")
+    if abs(e_diag) > tol_diag:
+        bad.append(f"diagonal {diag_meas:.2f} mm ↔ spec {spec.diagonal_mm} "
+                   f"({e_diag:+.2f} %, 허용 {tol_diag} %)")
+    for i, e in enumerate(e_env):
+        if e is not None and abs(e) > DIM_TOL_PCT["envelope"]:
+            bad.append(f"envelope[{'LWH'[i]}] {cmp_mm[i]:.2f} mm ↔ 공식 {env[i]} ({e:+.2f} %)")
+
+    res = dict(key=spec.key, checked=True, prop_dia_mm=round(dia_mean, 3),
+               prop_dia_err_pct=round(e_prop, 4), diagonal_mm=round(diag_meas, 3),
+               diagonal_err_pct=round(e_diag, 4), diagonal_tol_pct=tol_diag,
+               envelope_err_pct=e_env,
+               envelope_includes_props=bool(getattr(spec, "env_props_included", False)),
+               failures=bad, ok=not bad)
+    if verbose:
+        print(f"  치수: 프롭지름 {dia_mean:.2f} mm ({e_prop:+.3f} %) · 대각 {diag_meas:.1f} mm "
+              f"({e_diag:+.2f} %) · 외형 {e_env}  {'✅' if res['ok'] else '❌'}")
+    return res
+
+
+def _twist_chirality(V, F, cx, cy) -> float:
+    """날 비틀림의 **손대칭성 지표**. 윗면(n_z>0) 삼각형만 골라 법선의 «접선방향 성분» 을
+    면적가중 평균한다. 값의 부호가 곧 날이 어느 쪽으로 비틀렸는가다.
+
+    왜 윗면만 쓰나: 닫힌 껍질에서는 ∮(r×n)dS ≡ 0 이라 전면을 다 더하면 **항등적으로 0** 이
+    나온다(실측으로 확인: 1e-21 수준). 윗면만 고르면 그 상쇄가 깨진다.
+    왜 부호가 뒤집히나: y→−y 거울에서 n → M n 이고 접선 단위벡터는 φ̂ → −M φ̂ 이므로
+    n·φ̂ 의 부호가 뒤집힌다. 실측 |값| = 0.16~0.29 라 잡음이 아니다."""
+    A, B, C = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
+    n = np.cross(B - A, C - A)
+    a2 = np.linalg.norm(n, axis=1)
+    ok = a2 > 0
+    if not ok.any():
+        return 0.0
+    nh = n[ok] / a2[ok][:, None]
+    area = 0.5 * a2[ok]
+    c = ((A + B + C) / 3.0)[ok]
+    x, y = c[:, 0] - cx, c[:, 1] - cy
+    rho = np.hypot(x, y)
+    m = (rho > 1e-12) & (nh[:, 2] > 0.0)
+    if not m.any():
+        return 0.0
+    tang = nh[m, 0] * (-y[m] / rho[m]) + nh[m, 1] * (x[m] / rho[m])
+    return float((area[m] * tang).sum() / area[m].sum())
+
+
+def check_handedness(spec, mesh=None, verbose=False) -> dict:
+    """**손대칭성 검사** — 로터마다 날의 비틀림 방향이 그 로터의 회전방향(dir)과 맞는가.
+
+    왜 필요한가: 좌우를 통째로 뒤집은(거울상) 기체는 위상·치수 검사를 **전부 통과한다**
+    (감사 I6 D4). 그런데 거울상 기체는 프롭의 회전방향과 피치 부호가 물리적으로 반대라
+    마이크로도플러의 부호와 추력 방향이 뒤집힌다.
+
+    기준은 이 스펙 자신의 `build_propeller(spec)`(=CCW 기준 형상)에서 뽑는다. 즉 «규약이
+    무엇인가» 를 코드에 박지 않고 **매번 같은 출처에서 다시 읽는다**."""
+    from drones import build_drone, build_propeller
+    m = mesh if mesh is not None else build_drone(spec)
+    V = np.asarray(m.v, float) * 1000.0
+    F = np.asarray(m.f, np.int64)
+    G = np.asarray(m.g)
+    if not (G == "prop").any():
+        return dict(key=spec.key, checked=False, ok=True, reason="prop 그룹 없음")
+    p = build_propeller(spec)
+    h_ref = _twist_chirality(np.asarray(p.v, float) * 1000.0,
+                             np.asarray(p.f, np.int64), 0.0, 0.0)
+    if abs(h_ref) < HANDEDNESS_MIN_ABS:
+        return dict(key=spec.key, checked=False, ok=True,
+                    reason=f"기준 프롭의 비틀림이 너무 작다(|h_ref|={abs(h_ref):.4f})")
+    Fp = F[G == "prop"]
+    sel_list, rl, ctr = _rotor_clusters(spec, V, Fp)
+    rows, bad = [], []
+    for i, (sel, r) in enumerate(zip(sel_list, rl)):
+        if not len(sel):
+            continue
+        h = _twist_chirality(V, Fp[sel], ctr[i, 0], ctr[i, 1])
+        want = float(np.sign(h_ref) * r["dir"])       # dir=+1 → 기준 형상, dir=−1 → 거울상
+        good = (abs(h) >= HANDEDNESS_MIN_ABS) and (np.sign(h) == want)
+        rows.append(dict(rotor=i, dir=int(r["dir"]), h=round(h, 5),
+                         expect_sign=int(want), ok=bool(good)))
+        if not good:
+            bad.append(f"rotor{i}(dir {r['dir']:+d}) h={h:+.4f}, 기대부호 {want:+.0f}")
+    res = dict(key=spec.key, checked=True, h_ref=round(h_ref, 5),
+               per_rotor=rows, failures=bad, ok=not bad)
+    if verbose:
+        print(f"  손대칭성: h_ref {h_ref:+.4f} · 로터 {len(rows)}개  "
+              f"{'✅' if res['ok'] else '❌'}" + (f"  {bad}" if bad else ""))
+    return res
 
 
 #  ⭐⭐ 2026-08-07 — **그룹 사이 관통 검사**. 위의 검사는 전부 «그룹 안»만 본다.
@@ -160,7 +530,10 @@ PROP_BELL_SOLID_AREA_PCT = {
 
 def check_prop_bell_solid(spec, verbose=False, mesh=None) -> dict:
     """프롭 삼각형 **중심**이 로터 근방 motor 솔리드(수밀 연결요소) **안**에 드는가 —
-    PO 이중계상 면적의 직접 측정. 근사 없음(trimesh contains)."""
+    PO 이중계상 면적의 직접 측정. 근사 없음(trimesh contains).
+
+    ⚠ 여기서도 split 은 `repair=False` 다(감사 C1). 수밀이 아닌 벨 부품은 contains() 를
+    쓸 수 없으므로 **세지 않고 개수만 보고한다** — «못 봄» 을 0 으로 보고하지 않기 위해서다."""
     import trimesh
     from drones import build_drone, rotor_layout
     m = mesh if mesh is not None else build_drone(spec)
@@ -177,7 +550,7 @@ def check_prop_bell_solid(spec, verbose=False, mesh=None) -> dict:
     used = np.unique(fm)
     remap = {int(o): i for i, o in enumerate(used)}
     tm = trimesh.Trimesh(vertices=V[used], faces=np.vectorize(remap.get)(fm), process=True)
-    comps = tm.split(only_watertight=False)
+    comps = _split(tm)
     inside = np.zeros(len(Cp), bool)
     n_nonwt = 0
     for r in rotor_layout(spec):
@@ -206,24 +579,34 @@ def check_prop_bell_solid(spec, verbose=False, mesh=None) -> dict:
 
 
 def check_all(verbose=True) -> dict:
-    """DRONES 레지스트리 **전 기종** + 챔버 전수 검사(기종 수는 len(DRONES)).
-    검사 4층: ① 부품별 수밀·winding·법선(부피부호)·퇴화면(check_mesh)
-             ② 프롭↔벨 원통 근사 관통(check_prop_bell — 빠른 회귀 감지)
-             ③ 프롭↔벨 솔리드 내부판정(check_prop_bell_solid — 이중계상 면적의 판정 기준)"""
+    """DRONES 레지스트리 **전 기종** 전수 검사(기종 수는 len(DRONES)).
+    검사 5층: ① 부품별 수밀·경계모서리·winding·법선(부호부피 2종)·퇴화면·슬리버·
+                그룹내 겹침 (check_mesh)
+             ② 치수 대조 — 프롭 지름·로터 대각·공식 외형 vs DroneSpec (check_dimensions)
+             ③ 손대칭성 — 날 비틀림 방향 vs 로터 회전방향 (check_handedness)
+             ④ 프롭↔벨 원통 근사 관통(check_prop_bell — 빠른 회귀 감지)
+             ⑤ 프롭↔벨 솔리드 내부판정(check_prop_bell_solid — 이중계상 면적의 판정 기준)"""
     from drones import DRONES, build_drone
     out = {}
     for k, s in DRONES.items():
         m = build_drone(s)
         r = check_mesh(m, k)
+        dim = check_dimensions(s, mesh=m)
+        hnd = check_handedness(s, mesh=m)
         pb = check_prop_bell(s)
         ps = check_prop_bell_solid(s, mesh=m)
+        r["dimensions"] = dim
+        r["handedness"] = hnd
         r["prop_bell"] = pb
         r["prop_bell_solid"] = ps
-        r["ok"] = bool(r["ok"] and pb["ok"] and ps["ok"])
+        r["ok"] = bool(r["ok"] and r.get("sliver_ok", True) and dim["ok"] and hnd["ok"]
+                       and pb["ok"] and ps["ok"])
         out[k] = r
         if verbose:
             print(f"\n[{k}]  {'✅ 통과' if r['ok'] else '❌ 결함'}")
             print(report(r))
+            check_dimensions(s, mesh=m, verbose=True)
+            check_handedness(s, mesh=m, verbose=True)
             print(f"  프롭↔벨 관통(원통): 깊이 {pb.get('max_depth_mm', 0)} mm "
                   f"(예산 {pb.get('budget_mm', '-')}) · 삼각형 {pb.get('tris', 0)} · "
                   f"면적 {pb.get('area_mm2', 0)} mm² ({pb.get('area_pct', 0)} %)"
@@ -235,27 +618,39 @@ def check_all(verbose=True) -> dict:
 
 
 def assert_ok():
-    """빌드 파이프라인용 — 결함이 있으면 예외를 던진다(회귀 방지)."""
+    """빌드 파이프라인용 — 결함이 있으면 예외를 던진다(회귀 방지).
+
+    배선 위치: `python src/drones.py`(메쉬 내보내기 경로)가 OBJ 를 쓰기 **전에** 부른다.
+    ⚠ 인메모리로 `build_drone()` 을 직접 부르는 경로는 이 게이트를 거치지 않는다."""
     res = check_all(verbose=False)
-    bad = {k: ([g for g, v in r["groups"].items() if not v["ok"]]
-               + ([f"prop↔bell(cyl) {r['prop_bell']['max_depth_mm']} mm > "
-                   f"{r['prop_bell']['budget_mm']} mm"] if not r["prop_bell"]["ok"] else [])
-               + ([f"prop↔bell(solid) {r['prop_bell_solid']['area_pct']} % > "
-                   f"{r['prop_bell_solid']['budget_pct']} %"]
-                  if not r["prop_bell_solid"]["ok"] else []))
-           for k, r in res.items() if not r["ok"]}
+    bad = {}
+    for k, r in res.items():
+        if r["ok"]:
+            continue
+        why = [g for g, v in r["groups"].items() if not v["ok"]]
+        if not r.get("sliver_ok", True):
+            why.append(f"슬리버 {r['slivers']} > {r['sliver_budget']}")
+        why += r["dimensions"].get("failures", [])
+        why += r["handedness"].get("failures", [])
+        if not r["prop_bell"]["ok"]:
+            why.append(f"prop↔bell(cyl) {r['prop_bell']['max_depth_mm']} mm > "
+                       f"{r['prop_bell']['budget_mm']} mm")
+        if not r["prop_bell_solid"]["ok"]:
+            why.append(f"prop↔bell(solid) {r['prop_bell_solid']['area_pct']} % > "
+                       f"{r['prop_bell_solid']['budget_pct']} %")
+        bad[k] = why
     if bad:
-        raise AssertionError(f"메쉬 검증 실패 — 결함 그룹: {bad}\n"
+        raise AssertionError(f"메쉬 검증 실패 — 결함: {bad}\n"
                              f"  python src/mesh_check.py 로 상세 확인")
     return True
 
 
 if __name__ == "__main__":
-    print("=" * 84)
-    print("trimesh 메쉬 검증 — 부품(연결요소) 단위")
-    print("=" * 84)
+    print("=" * 110)
+    print("trimesh 메쉬 검증 — 부품(연결요소) 단위 · split(repair=False) · 스펙 대조 포함")
+    print("=" * 110)
     res = check_all()
     n_ok = sum(1 for r in res.values() if r["ok"])
-    print(f"\n{'='*84}\n결과: {n_ok}/{len(res)} 통과")
+    print(f"\n{'='*110}\n결과: {n_ok}/{len(res)} 통과")
     if n_ok < len(res):
         sys.exit(1)

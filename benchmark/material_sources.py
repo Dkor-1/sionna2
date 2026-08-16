@@ -261,10 +261,25 @@ def proj_weighted_mean_gamma(eps_r, sigma, f, d, n=721):
 
 
 def blade_thickness_stats():
-    """우리 CAD 상수에서 **프로펠러 날개 두께**를 직접 유도한다(추측 아님).
+    """우리 CAD **상수에서** 프로펠러 날개 두께를 유도한다(추측 아님).
       t_max(r) = thick_ratio(r) * c(r),  c(r) = CHORD_FRAC(r/R) * CHORD_MAX_OVER_R * R
       thick_ratio(r) = TC_TIP + (TC_ROOT - TC_TIP) * (1 - f)
-    시위방향 평균은 NACA-4 두께분포의 <yt>/max(yt) 로 환산한다."""
+    시위방향 평균은 NACA-4 두께분포의 <yt>/max(yt) 로 환산한다.
+
+    ⭐⭐ **2026-08-16 선언 — 이 함수는 메쉬를 열지 않는다**(감사 m1).
+      나오는 값(matrice4e **1.4302 mm**, 문서가 «정본» 이라 부르는 그 수)은 «우리 메쉬 자신의
+      두께» 가 아니라 **법칙의 해석 근사**다. 같은 기체의 메쉬를 직접 재면 **1.456~1.488 mm**
+      (감사 원장 1.456~1.484 · 이 라운드 독립 재측정 1.488)이라 **+1.8~+4.1 %** 높고,
+      원장이 계산한 |Γ| 영향은 +1.8 % 경우에 **+0.13 dB** — 무해하다. 그래서 값은 그대로 둔다.
+      다만 **문면이** 틀렸으니 편향 둘을 여기 적어 둔다:
+        ① **스윕디스크 정규화 −0.679 % 가 빠져 있다.** 실제 빌드는 프롭을 공칭 지름에 맞추려
+           배율 0.99321 을 걸지만, 이 식은 공칭 R 을 그대로 쓴다.
+        ② **NACA-4 시위평균/최대 비 0.684879 는 «대칭» 익형 값이다.** 우리 날은 캠버가 있고,
+           캠버를 얹은 실측 비는 **0.695** 다(감사 m3 와 같은 원인 — 시위선 기준 상하면 차).
+      ⇒ 인용 규칙: 이 수를 «메쉬 실측» 이라고 쓰지 말 것. «법칙에서 유도한 값» 이라고 쓰거나,
+        메쉬 실측치(1.4559 mm)를 나란히 적을 것.
+      ⚠ 더 큰 문제는 정확도가 아니라 **스칼라 하나로 함대 전체를 덮는다는 것**이다 —
+        메쉬 실측 두께는 mini2 0.664 ~ m350rtk 2.879 mm 로 **4.3 배** 벌어진다(감사 I1, 3층 과제)."""
     from drone_cad import (CHORD_RR, CHORD_FRAC, CHORD_MAX_OVER_R, TC_ROOT, TC_TIP)
     from drones import DRONES
 
@@ -299,7 +314,21 @@ def blade_thickness_stats():
         tc_root=float(TC_ROOT), tc_tip=float(TC_TIP),
         chord_max_over_R=float(CHORD_MAX_OVER_R),
         per_drone=per_drone,
-        note="셸(1-3 mm)보다 날개가 **얇다**는 현행 note 의 전제를 이 표로 직접 검사한다.",
+        note="셸(1-3 mm)보다 날개가 **얇다**는 현행 note 의 전제를 이 표로 직접 검사한다. "
+             "⭐2026-08-16 — **메쉬를 직접 재는 판이 생겼다**: `src/prop_thickness.py` 와 "
+             "표 `outputs/prop_thickness_by_drone.json`(감사 I1 집행). 그 자로 재면 우리 메쉬는 "
+             "이 해석식보다 전 10기종에서 일관되게 1.1 % 얇고(부호가 감사 m1 의 «+1.8 %» 와 "
+             "반대인데, 원인은 두 자의 차이다 — 감사는 시위를 조각내 조각마다 최대·최소를 "
+             "읽어 두께를 위로 민다), 기종 간 폭은 4.48 배다. "
+             "⚠ **기종별 값이 필요하면 이 함수가 아니라 그 표를 쓸 것.**",
+        measured_from_mesh="src/prop_thickness.py :: prop_slab_thickness_mm(spec) — "
+                           "원통 단면의 정확한 교선 → 넓이÷시위. 표: "
+                           "outputs/prop_thickness_by_drone.json",
+        provenance="상수에서 유도한 값이지 메쉬 실측이 아니다(2026-08-16 선언). "
+                   "matrice4e 기준 이 식 1.4302 mm ↔ 메쉬 직접 실측 1.456~1.488 mm "
+                   "(+1.8~+4.1 %, |Γ| 로 +0.13 dB 급). "
+                   "빠진 편향 둘: 스윕디스크 정규화 −0.679 % · NACA-4 시위평균비 0.684879 는 대칭익형 값"
+                   "(캠버 얹은 실측 비 0.695). 근거 원장 docs/MESH_AUDIT_0816.md m1.",
     )
 
 
