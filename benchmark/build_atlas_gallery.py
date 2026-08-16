@@ -593,6 +593,26 @@ def topic_findings(tkey: str, tinfo: dict) -> list[str]:
             + (f" 남은 읽을 수 있는 칸은 {n_read} 개다." if n_read else
                " <b>이 주제에는 읽을 수 있는 칸이 하나도 없다.</b>"))
 
+    # ── ⓪-b ⭐이 주제 안에 «자세 하나가 끄는 칸» 이 있나 ─────────────────────
+    #    있으면 그 칸의 수를 근거로 쓰기 전에 그 자세를 열어 봐야 한다(버리라는 뜻이 아니다).
+    mov = [(nm, k, c) for nm, k, c in cells_of_topic(tinfo)
+           if c.get("one_pose_moves_headline")]
+    und = [(nm, k) for nm, k, c in cells_of_topic(tinfo)
+           if c.get("flash_comb_undersampled")]
+    if mov:
+        out.append(
+            f"⚑<b>자세 하나가 헤드라인을 끄는 칸이 {len(mov)} 개</b> 있다 — "
+            + " · ".join(f"<code>{esc(nm)}</code> {deg_txt(float(k))}"
+                         f"(자세 #{c.get('outlier_argmax_pose')})" for nm, k, c in mov)
+            + ". 가장 큰 자세 하나를 이웃 평균으로 갈아 끼우면 헤드라인이 그 앙각의 격자 산포 "
+              "밴드 밖으로 움직인다. ⛔<b>버리라는 뜻이 아니다</b> — 그 자세가 진짜 정반사 "
+              "플래시일 수도 있으니, 이 칸의 수를 근거로 쓰기 전에 그 자세를 열어 본다.")
+    if und:
+        out.append(
+            f"⌗<b>플래시가 한 표본 폭으로 찍힌 칸이 {len(und)} 개</b> 있다 — "
+            "튐이 <b>아니라</b> 시간 분해능 문제다(참 신호가 표본 간격보다 좁다). "
+            "그 칸의 «상한 위 몫 · 빗살 대비»를 인용할 때는 그 단서를 함께 적는다.")
+
     # ── ① 팔 사이(팔이 하나면 앙각 사이) 리듬 몫이 얼마나 벌어지나 ──────────
     el_count = Counter()
     for a in arms.values():
@@ -1012,8 +1032,108 @@ def flags_cell(c: dict) -> str:
     if c.get("band_borrowed_from_0deg"):
         out.append('<span class="badge b-warn">↺ 대역 빌림</span>')
     if c.get("beat_spiky"):
-        out.append(f'<span class="badge b-warn">⚡ 튐 {c.get("spike_ratio", 0):.0f}배</span>')
+        # ⚠«크다» 와 «혼자 크다» 는 다른 잣대다 — 이름을 갈라 둔다(아래 ⚑ 가 튐 진단이다).
+        out.append(f'<span class="badge b-warn" title="|AC| 의 최대÷중앙 = '
+                   f'{c.get("spike_ratio", 0):.0f}. 크기만 잰 수다 — 정반사 플래시는 원래 '
+                   f'크다.">⚡ 큰 자세 {c.get("spike_ratio", 0):.0f}배</span>')
+    # ── ⭐튐 진단(2026-08-16 부터 상시) ──────────────────────────────────────
+    if c.get("one_pose_moves_headline"):
+        out.append(f'<span class="badge b-crit" title="{esc(c.get("outlier_why_ko") or "")}">'
+                   f'⚑ 튐 — 자세 #{c.get("outlier_argmax_pose")} 하나가 헤드라인을 민다</span>')
+    elif c.get("one_pose_dominates_within_band"):
+        out.append('<span class="badge b-warn" title="자세 하나가 잣대를 끌긴 하는데 움직인 '
+                   '폭이 격자 산포 밴드 안이라 읽기는 안 바뀐다.">◱ 자세 하나 쏠림(밴드 안)</span>')
+    if c.get("flash_comb_undersampled"):
+        out.append('<span class="badge b-warn" title="진짜 날개 플래시인데 한 표본 폭으로 '
+                   '찍혔다 — 튐이 아니라 시간 분해능 문제다.">⌗ 덜 찍힌 플래시</span>')
+    if c.get("outlier_grade_shaky"):
+        cg = c.get("outlier_census_grade")
+        out.append('<span class="badge b-warn" title="죄 없는 자세 12 개를 어느 것으로 뽑느냐에 '
+                   '등급이 걸린 칸이다 — 문턱에 걸터앉아 있다는 뜻이지 둘 중 하나가 틀렸다는 '
+                   '뜻이 아니다.">◈ 경계 — 대조군 추첨에 흔들림'
+                   + (f' (census: {esc(cg)})' if cg and cg != c.get("outlier_grade") else "")
+                   + '</span>')
+    if c.get("isolation_over_noise_null") and not c.get("one_pose_moves_headline"):
+        out.append('<span class="badge b-warn" title="가장 큰 자세가 둘째보다 유난히 크다 — '
+                   '같은 길이 무작위 잡음 판의 99.9 % 자리보다 고립돼 있다.">◇ 고립도 잡음판 밖</span>')
     return "".join(out) or '<span class="badge b-ok">정상</span>'
+
+
+#: ⭐튐 진단 원장 — 아틀라스가 쓰는 문턱이 어디서 왔는지를 색인 _meta 가 적어 둔다.
+OUT_META = META.get("outlier") or {}
+
+
+def outlier_note(n_move: int, n_under: int, n_dom: int, li: str) -> str:
+    """⭐«튐» 깃발 범례 — 대문에 붙는 절. ⚠손으로 안 적는다(생성기 안에서 원장을 읽는다).
+
+    왜 이 절이 필요한가 — 2026-08-16 에 «−60° 에서 깊이 3 이면 리듬이 86.6 → 32.4 % 로
+    무너진다» 는 헤드라인이 자세 8,192 개 중 **하나** 때문이었다. 그 뒤로 진단을 상시로
+    돌리는데, 깃발의 **읽는 법**이 같이 붙어 있지 않으면 다음 사람이 «튐 = 버려라» 로
+    읽는다. 그것이 두 번째 사고다.
+    """
+    if not OUT_META:
+        return ""
+    src = OUT_META.get("threshold_source") or "(없음)"
+    band = OUT_META.get("band_source") or "(없음)"
+    fen = OUT_META.get("dominance_fence")
+    stale = OUT_META.get("thresholds_stale")
+    ok = OUT_META.get("thresholds_ok")
+    g = OUT_META.get("grades") or {}
+    gtxt = " · ".join(f"{k} {v}" for k, v in sorted(g.items(), key=lambda x: -x[1]))
+    warn = ""
+    if not ok:
+        warn = ('<br><b class="crit">⛔ 문턱 원장을 못 읽어 등급을 안 매겼다</b> — '
+                + esc(" / ".join(OUT_META.get("notes") or [])))
+    elif stale:
+        warn = ('<br><b>⚠ 문턱이 낡았다</b> — 문턱은 원장 '
+                f'{OUT_META.get("census_ledger_rows")} 행에서 뜬 값인데 지금 원장은 '
+                f'{OUT_META.get("ledger_rows_now")} 행이다. '
+                '<code>benchmark/outlier_census_0816.py</code> 를 다시 돌려야 선이 맞는다.')
+    return f"""
+<div class="note crit">
+  <b>6. ⭐자세 <u>하나</u>가 헤드라인을 끄는 칸이 {n_move} 개 있다 — 그 칸은 수보다 자세를 먼저 봐라.</b>
+  <p>2026-08-16 에 «{MINUS}60{DEG} 에서 반사 깊이 3 이면 리듬 몫이 86.6 → 32.4 % 로 무너진다»는
+  판정이 <b>자세 8,192 개 중 하나</b> 때문이었다. 그 자세를 이웃 평균으로 갈아 끼우면 두 판이
+  85.5 대 85.2 % 로 같다. 그래서 <b>튐 진단을 모든 칸에 상시로</b> 돌린다.</p>
+  <p>재는 법은 이렇다 — 그 칸에서 가장 큰 자세 <b>하나</b>를 이웃 평균으로 갈아 끼우고
+  헤드라인 넷(리듬 몫 · 빗살 대비 · 요동 전력 · 상한 위 몫)을 다시 잰다. 그 폭이
+  ① 죄 없는 자세 12 개와 둘째로 큰 자세를 같은 방법으로 갈아 끼웠을 때보다
+  <b>{f"{fen:.0f}배" if isinstance(fen, (int, float)) else "울타리"}</b> 넘게 크고
+  ② 그 앙각의 <b>격자 산포 밴드</b>보다 크면 «튐»이다. 두 문턱 다 원장에서 읽어 온다
+  (<code>{esc(src)}</code> · 밴드는 <code>{esc(band)}</code>).{warn}</p>
+  <ul class="find">
+    <li><span class="badge b-crit">⚑ 튐</span> <b>{n_move} 개</b> — 자세 하나가 헤드라인을
+        격자 밴드 <b>밖으로</b> 민다.{f"<ul class='find'>{li}</ul>" if li else ""}</li>
+    <li><span class="badge b-warn">◱ 자세 하나 쏠림(밴드 안)</span> <b>{n_dom} 개</b> —
+        자세 하나가 잣대를 끌긴 하는데 움직인 폭이 밴드 안이라 <b>읽기는 안 바뀐다</b>.</li>
+    <li><span class="badge b-warn">⌗ 덜 찍힌 플래시</span> <b>{n_under} 개</b> —
+        ⭐<b>튐이 아니다.</b> 진짜 날개 플래시가 <b>한 표본 폭</b>으로 찍힌 것이다. 에코는
+        날개끝 상한으로 대역제한돼 있어 플래시의 최소 폭이 0{DEG} 에서 7.7 표본이어야 하는데
+        1 표본이면 참 신호가 표본 간격보다 좁다는 뜻이다 — 고칠 곳은 그 칸이 아니라
+        <b>표집(시간 분해능)</b>이다. 그 칸의 «상한 위 몫 · 빗살 대비»를 인용할 때는
+        그 단서를 함께 적는다.</li>
+    <li><span class="badge b-warn">◇ 고립도 잡음판 밖</span> — 가장 큰 자세가 둘째보다
+        유난히 크다(같은 길이 무작위 잡음 판의 99.9 % 자리보다 고립). 왜 그런지를
+        설명하는 <b>보조</b> 증거지 판정이 아니다.</li>
+    <li><span class="badge b-warn">◈ 경계 — 대조군 추첨에 흔들림</span>
+        <b>{OUT_META.get('n_grade_shaky', 0)} 개</b> — 쏠림의 분모가 «죄 없는 자세 12 개를
+        갈아 끼웠을 때의 <b>최댓값</b>»이라 <b>어느 12 개를 뽑느냐</b>에 등급이 걸린다.
+        중앙값 대조군으로 다시 재서 판정이 갈리는 칸에 이 딱지를 붙였다.
+        {(f"감식 원장(<code>outputs/outlier_census_0816.json</code>)과 등급이 갈린 칸이 "
+          f"<b>{OUT_META.get('n_disagree_with_census')} 개</b> 있는데, 그 칸에는 감식 원장의 "
+          "등급도 함께 적어 두었다 — «둘 중 하나가 틀렸다»가 아니라 «그 칸이 문턱에 "
+          "걸터앉아 있다»는 뜻이다.") if OUT_META.get("n_disagree_with_census") else ""}</li>
+  </ul>
+  <p>⛔<b>깃발이 떴다고 그 칸을 자동으로 버리지 마라.</b> 깃발의 뜻은 «이 수는 자세 하나에
+  걸려 있으니 그 자세를 열어 보라»이지 «틀렸다»가 아니다 — 로터가 시선과 딱 맞는 순간의
+  <b>진짜 정반사 플래시</b>도 이렇게 보인다. 그래서 «얼마나 큰가»(최대÷중앙)는 등급에 <b>안
+  쓰고</b>, «날개가 지나갈 때마다 다시 서나 · 이웃 자세와 이어지나 · 갈아 끼우면 헤드라인이
+  움직이나»로만 판정한다. 등급 분포: {esc(gtxt) or "—"}.</p>
+  <p class="small muted">잣대 정의는 <code>benchmark/build_md_atlas.py</code> 의
+  <code>outlier_probe</code>, 문턱은 <code>benchmark/outlier_census_0816.py</code> 가 원장
+  자기 분포의 꼬리에서 뜬 값이다(이 갤러리에 손으로 적은 숫자는 없다). 그 자세의
+  <b>경로 수</b>가 이상한지(계산 사건인지)는 샤드를 읽어야 해서 census 원장에만 있다.</p>
+</div>"""
 
 
 def arm_table(arm: str) -> str:
@@ -1188,6 +1308,16 @@ def build_index() -> str:
                    if c.get("no_motion"))
     sp_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
                    if c.get("beat_spiky"))
+    ou_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
+                   if c.get("one_pose_moves_headline"))
+    us_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
+                   if c.get("flash_comb_undersampled"))
+    dm_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
+                   if c.get("one_pose_dominates_within_band"))
+    ou_list = "".join(
+        f'<li><code>{esc(nm)}</code> {deg_txt(float(k))} — {esc(c.get("outlier_why_ko") or "")}</li>'
+        for nm, a in sorted(ARM_IDX.items()) for k, c in sorted(a["cells"].items())
+        if c.get("one_pose_moves_headline"))
     ff_rows = "".join(
         f'<tr><td class="el">{esc(r["label"])}</td><td class="n">{r["D"]:.2f} m</td>'
         f'<td class="n"><b>{r["r_ff"]:.2f} m</b></td>'
@@ -1368,13 +1498,15 @@ def build_index() -> str:
     <li><b>움직이는 것이 없는 칸 {nm_cells} 개</b> — AC/DC 가 반올림 바닥 아래다
         (<span class="badge b-crit">○ 움직이는 것 없음</span>). 거기서 뽑은 «박자»는
         마지막 자리 한 칸을 흔든 자리라 재현되지 않는다.</li>
-    <li><b>자세 몇 개가 튄 칸 {sp_cells} 개</b> — <span class="badge b-warn">⚡ 튐</span> 딱지가
-        붙은 칸의 박자는 회전이 아니라 <b>튄 자세들의 간격</b>이다. 맵도 그 튐 하나가 색역을
-        다 먹어 나머지가 바닥색으로 깔린다.</li>
+    <li><b>자세 몇 개가 유난히 큰 칸 {sp_cells} 개</b> — <span class="badge b-warn">⚡ 큰 자세</span>
+        딱지가 붙은 칸의 박자는 회전이 아니라 <b>튄 자세들의 간격</b>일 수 있다. 맵도 그 자세
+        하나가 색역을 다 먹어 나머지가 바닥색으로 깔린다. ⚠이 딱지는 <b>크기만</b> 잰 수다 —
+        «혼자 큰가»는 아래 6 번의 <span class="badge b-crit">⚑ 튐</span> 이 잰다.</li>
   </ul>
 </div>
+{outlier_note(ou_cells, us_cells, dm_cells, ou_list)}
 <div class="note warn">
-  <b>6. 아직 못 고친 것 — 알고 쓰라고 적어 둔다.</b>
+  <b>7. 아직 못 고친 것 — 알고 쓰라고 적어 둔다.</b>
   <ul class="find">
     <li><b>덜 찬 칸 {inc_cells} 개의 참값</b> — 원장을 다시 병합해야 나온다. 이 갤러리는 원장을
         읽기만 하므로 여기서는 못 고친다. 세 칸 중 둘은 자세가 <b>뭉텅이로</b> 빠져 있어
@@ -1636,6 +1768,50 @@ def readme_extra(slug: str) -> list[str]:
     ]
 
 
+def readme_outlier(n_move: int, n_under: int, n_dom: int, rows: list) -> list[str]:
+    """`outlier_note()` 의 마크다운 판 — 같은 수를 같은 원장(색인 `_meta.outlier`)에서 읽는다."""
+    if not OUT_META:
+        return []
+    fen = OUT_META.get("dominance_fence")
+    g = OUT_META.get("grades") or {}
+    out = [
+        f"7. ⭐**자세 «하나»가 헤드라인을 끄는 칸이 {n_move} 개** — «⚑ 튐» 딱지. "
+        "그 칸에서 가장 큰 자세 하나를 이웃 평균으로 갈아 끼우고 헤드라인 넷(리듬 몫 · "
+        "빗살 대비 · 요동 전력 · 상한 위 몫)을 다시 잰 폭이 ① 죄 없는 자세 12 개·둘째 자세를 "
+        f"같은 방법으로 갈아 끼웠을 때보다 **{fen:.0f}배** 넘게 크고 ② 그 앙각의 **격자 산포 "
+        "밴드**보다 크면 «튐»이다.",
+    ]
+    for nm, k, c in rows:
+        out.append(f"   - `{md_uscore(nm)}` {deg_txt(float(k))} — "
+                   + md_escape(c.get("outlier_why_ko") or ""))
+    out += [
+        f"   - «◱ 자세 하나 쏠림(밴드 안)» {n_dom} 개 — 끌긴 하는데 폭이 밴드 안이라 "
+        "**읽기는 안 바뀐다**.",
+        f"   - «⌗ 덜 찍힌 플래시» {n_under} 개 — ⭐**튐이 아니다.** 진짜 날개 플래시가 "
+        "**한 표본 폭**으로 찍힌 것이다(참 신호가 표본 간격보다 좁다). 고칠 곳은 그 칸이 "
+        "아니라 **표집**이고, 그 칸의 «상한 위 몫·빗살 대비» 인용에는 그 단서가 필요하다.",
+        f"   - «◈ 경계 — 대조군 추첨에 흔들림» {OUT_META.get('n_grade_shaky', 0)} 개 — 쏠림의 "
+        "분모가 «죄 없는 자세 12 개의 **최댓값**»이라 어느 12 개를 뽑느냐에 등급이 걸린다. "
+        "중앙값 대조군으로 다시 재서 판정이 갈리면 이 딱지를 붙였고, 감식 원장과 등급이 갈린 "
+        f"칸 {OUT_META.get('n_disagree_with_census', 0)} 개에는 그쪽 등급도 함께 적었다 — "
+        "«둘 중 하나가 틀렸다»가 아니라 «문턱에 걸터앉아 있다»는 뜻이다.",
+        "   - ⛔**깃발이 떴다고 자동으로 버리지 마라** — 뜻은 «이 수는 자세 하나에 걸려 "
+        "있으니 그 자세를 열어 보라»이지 «틀렸다»가 아니다. 로터가 시선과 맞는 순간의 "
+        "**진짜 정반사 플래시**도 이렇게 보인다. 그래서 크기(최대÷중앙)는 등급에 안 쓰고 "
+        "되풀이·이웃·영향으로만 판정한다.",
+        "   - 등급 분포 " + (" · ".join(f"{k} {v}" for k, v in sorted(g.items(),
+                                                                     key=lambda x: -x[1]))
+                          or "—")
+        + f". 문턱 출처 `{md_uscore(str(OUT_META.get('threshold_source')))}` "
+          f"(원장 {OUT_META.get('census_ledger_rows')} 행) · 밴드 "
+          f"`{md_uscore(str(OUT_META.get('band_source')))}`."
+        + ("" if not OUT_META.get("thresholds_stale") else
+           f" ⚠**문턱이 낡았다** — 지금 원장은 {OUT_META.get('ledger_rows_now')} 행이라 "
+           "`benchmark/outlier_census_0816.py` 를 다시 돌려야 선이 맞는다."),
+    ]
+    return out
+
+
 def md_escape(s: str) -> str:
     return s.replace("<b>", "**").replace("</b>", "**") \
             .replace("<code>", "`").replace("</code>", "`") \
@@ -1655,6 +1831,15 @@ def build_readme() -> str:
                    if c.get("no_motion"))
     sp_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
                    if c.get("beat_spiky"))
+    ou_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
+                   if c.get("one_pose_moves_headline"))
+    us_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
+                   if c.get("flash_comb_undersampled"))
+    dm_cells = sum(1 for a in ARM_IDX.values() for c in a["cells"].values()
+                   if c.get("one_pose_dominates_within_band"))
+    ou_rows = [(nm, k, c) for nm, a in sorted(ARM_IDX.items())
+               for k, c in sorted(a["cells"].items())
+               if c.get("one_pose_moves_headline")]
     L = []
     A = L.append
     A("# 드론 마이크로도플러 아틀라스 — 보기 쉬운 판")
@@ -1794,8 +1979,11 @@ def build_readme() -> str:
       f"움직이는 것이 없는 칸 {nm_cells} 개. 그 칸에는 잣대를 싣지 않았다. "
       "덜 찬 칸은 빈 자세 자리의 0 채움이 스펙트럼을 PRF/2 · PRF/4 에 복제해 리듬 몫을 "
       "0 % 로 만든다 — **물리가 아니라 결측 자국**이라, 원장을 다시 병합해야 읽을 수 있다.")
-    A(f"6. **자세 몇 개가 튄 칸이 {sp_cells} 개** — «⚡ 튐» 딱지가 붙은 칸의 박자는 회전이 "
-      "아니라 튄 자세들의 간격이다. 맵도 그 튐 하나가 색역을 다 먹는다.")
+    A(f"6. **자세 몇 개가 유난히 큰 칸이 {sp_cells} 개** — «⚡ 큰 자세» 딱지가 붙은 칸의 박자는 "
+      "회전이 아니라 튄 자세들의 간격일 수 있다. 맵도 그 자세 하나가 색역을 다 먹는다. "
+      "⚠이 딱지는 **크기만** 잰 수다 — «혼자 큰가»는 아래 7 번이 잰다.")
+    for line in readme_outlier(ou_cells, us_cells, dm_cells, ou_rows):
+        A(line)
     A("")
     A("### 아직 못 고친 것")
     A("")

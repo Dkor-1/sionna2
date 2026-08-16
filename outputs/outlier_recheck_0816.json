@@ -1,0 +1,656 @@
+{
+ "_meta": {
+  "generator": "재검사 라운드 (수작업 역추적 · 저장된 원장만 읽음)",
+  "experiment": "튐 칸이 떠받치는 살아 있는 판정 역추적 · 튐 솎은 값으로 재채점",
+  "written_at_kst": "2026-08-16 22:0x KST",
+  "gpu_used": "⛔ 안 씀 — sionna.rt · mitsuba 임포트 없음. outputs/*.json · docs/*.md · 덱 덤프만 읽었다",
+  "why_ko": "깊이 축 판정에서 자세 하나(#3399)가 헤드라인을 뒤집은 사고가 있었다. outlier_census_0816 이 원장 349 칸 전부를 재고 나서, 그 칸들이 **지금 살아 있는 판정·발표물** 중 무엇을 떠받치는지 거꾸로 훑고 튐을 솎은 값으로 다시 채점했다.",
+  "inputs": {
+   "census": "outputs/outlier_census_0816.json (349 칸 · 2026-08-16 19:55 KST · 원장 19:51 KST 349 행)",
+   "deck": "/workspace/teammeeting_0818/_dump_v17.txt (v17 · 본론 30 장 · 8/18 발표분)",
+   "ledgers": [
+    "outputs/switch_factorial.json",
+    "outputs/depth_axis_verdict_0816.json",
+    "outputs/raybudget_ac_ladder.json",
+    "outputs/grid_convergence_check.json",
+    "outputs/frame_completion_0816.json",
+    "outputs/material_verdict_0816.json",
+    "outputs/classify_airframe.json",
+    "outputs/detection_curves.json",
+    "outputs/bridge_cross_precise.json",
+    "outputs/r12_azimuth_harvest.json",
+    "outputs/noise_distance_frame.json",
+    "outputs/switch_to_classification.json",
+    "outputs/md_atlas_index.json",
+    "outputs/atlas_falsify.json",
+    "outputs/physics_vs_deck.json",
+    "outputs/physics_deck_repro_check.json",
+    "outputs/wideband_energy.json"
+   ],
+   "docs": [
+    "docs/RESUME.md",
+    "docs/PLAN_VOLUMES_16_17.md",
+    "docs/ENGINE_PHYSICS_MATRIX.md",
+    "atlas/00_since_deck.html"
+   ]
+  },
+  "method_ko": [
+   "① census 의 칸 이름을 살아 있는 원장·문서·덱의 팔 이름과 맞춰 «이 수가 어느 칸에서 왔나» 를 확정했다.",
+   "② 재채점은 census 의 replace_one(가장 튄 자세를 이웃 평균으로 갈아 끼운 값)을 그 칸의 base 에 더해서 냈다 — 새 계산을 하지 않았다.",
+   "③ 그래서 census 가 재는 네 잣대(리듬 몫·빗살 대비·요동 전력·상한 위 몫) 밖의 수(예: floor_above_db · 상관 · Pd)는 **다시 못 잰다** — 그런 자리는 방향만 적고 «재채점 불가» 로 남겼다.",
+   "④ ⭐정직 — «튐» 깃발이 곧 «틀렸다» 가 아니다. 재채점해서 판정이 안 바뀌면 그대로 «유지» 로 적었다."
+  ],
+  "honesty_ko": [
+   "⭐덱 v17 에서 뒤집힌 수는 **하나도 없다**. 덱의 세 팔(우리 커널 · 물리 끔 · 물리 켬, 전부 15 m · 자세 8192)은 튐이 거의 없는 칸들이고, 재채점 폭이 리듬 ≤0.14 %p · 빗살 ≤0.4 dB 다.",
+   "⭐뒤집힌 것은 전부 **10 m · 자세 4096 짜리 옛 팔**(sionna_phys · sionna_p250000000_phys)이 떠받치던 문장이다. 덱은 그 팔을 안 쓴다.",
+   "⚠scan 요약이 0° 물리끔 칸을 «진짜 날개 플래시인데 덜 찍힌 것» 이라 적었는데, **같은 census 의 flash_recur 가 그 읽기를 지지하지 않는다**(141× — 큰 자세들이 날개 통과 주기 자리에 안 선다). 그 칸에 대해서는 덱 26 장의 «박자를 모르는 계산 흔들림» 쪽이 더 잘 받쳐진다.",
+   "⚠원장은 살아 있다 — census 는 349 행 판이다. 스윕이 더 돌면 문턱도 이 재채점도 다시 돌려야 한다."
+  ]
+ },
+ "rescored": [
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 7장",
+   "claim_ko": "정면 0° 리듬 몫 — 우리 커널 63~65 % · 물리 끔 13 % · 물리 켬 14 % (호버 rpm ±5 % 재계산 포함)",
+   "cells": [
+    "ours_r15_n8192/el+0 (정상)",
+    "sionna_p4000000000_r15_n8192_d1/el+0 (주의·flash_comb_undersampled)",
+    "sionna_p4000000000_phys_r15_n8192_d1/el+0 (정상)"
+   ],
+   "rescored_ko": "63.34→63.34 · 13.06→13.07 · 14.01→14.12 (튐 솎은 뒤)",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 12장",
+   "claim_ko": "물리 켬도 빗살 대비로 재면 백색 위 — −30° +6.3 · −45° +11.8 · −60° +7.0 dB",
+   "cells": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30 (주의)",
+    "…/el-45 (정상)",
+    "…/el-60 (주의)"
+   ],
+   "rescored_ko": "6.29→6.57 · 11.77→12.08 · 7.05→6.88 dB",
+   "verdict": "유지",
+   "note_ko": "세 칸 다 백색(0 dB) 위라는 읽기가 안 바뀐다"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 13장",
+   "claim_ko": "−30° 리듬 몫 우리 83 % 대 물리 끔 80 % (차 2.8 %p — 격자 밴드 안이라 «구별 못 한다»)",
+   "cells": [
+    "ours_r15_n8192/el-30 (정상)",
+    "sionna_p4000000000_r15_n8192_d1/el-30 (정상)"
+   ],
+   "rescored_ko": "83.31→83.32 대 80.50→80.50 (차 2.82 %p)",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 13장",
+   "claim_ko": "−60° 리듬 몫 우리 53 % 대 물리 끔 87 % — 차 33.8 %p 로 밴드 밖",
+   "cells": [
+    "ours_r15_n8192/el-60 (정상)",
+    "sionna_p4000000000_r15_n8192_d1/el-60 (정상)"
+   ],
+   "rescored_ko": "52.85→52.85 대 86.61→86.61 (차 33.76 %p)",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 13장",
+   "claim_ko": "빗살 대비 −30° 42.9 대 52.0 dB · −60° 45.4 대 48.3 dB",
+   "cells": [
+    "ours_r15_n8192/el-30,-60 (정상)",
+    "sionna_p4000000000_r15_n8192_d1/el-30,-60 (정상)"
+   ],
+   "rescored_ko": "42.93→42.89 대 51.99→51.99 · 45.36→45.36 대 48.33→48.33",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 14장",
+   "claim_ko": "정면 0° — 우리 63 % · 빗살 +47.8 dB 대 물리 끔 13 % · 빗살 −0.8 dB (두 잣대가 합의)",
+   "cells": [
+    "ours_r15_n8192/el+0 (정상)",
+    "sionna_p4000000000_r15_n8192_d1/el+0 (주의)"
+   ],
+   "rescored_ko": "63.34/47.82 대 13.07/−0.76",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 14장",
+   "claim_ko": "물리 끔 일곱 앙각 리듬 몫 13 / 81 / 80 / 84 / 87 / 95 / 98 % — «0° 만 무너지고 −15° 부터 포화»",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_d1/el+0 (주의)",
+    "…/el-15,-30,-45,-60,-75 (정상)",
+    "…/el-90 (정상·나딧 퇴화 깃발)"
+   ],
+   "rescored_ko": "13.07 / 81.29 / 80.50 / 84.06 / 86.61 / 95.22 / 98.25 (최대 이동 0.03 %p)",
+   "verdict": "유지",
+   "note_ko": "⭐덱의 곡선 일곱 점 전부 튐에 강건하다"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 14·16·18장",
+   "claim_ko": "직하방 −90° — 물리 끔이 리듬 몫 98 % 로 유령 무늬를 그린다",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_d1/el-90 (주의·npaths_odd + 나딧 퇴화)"
+   ],
+   "rescored_ko": "98.25→98.25",
+   "verdict": "유지",
+   "note_ko": "⚠−90° 는 f_tip=0 이라 리듬 잣대 자체가 퇴화한 자리라는 덱의 각주가 그대로 필요하다"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 26장",
+   "claim_ko": "로터만 남기면 리듬 몫 90 % — PathSolver 확산도 도는 프로펠러를 그릴 줄 안다",
+   "cells": [
+    "sionna_p4000000000_partsprop_r15_n8192_d1/el+0 (정상)"
+   ],
+   "rescored_ko": "89.69→89.69",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 26장",
+   "claim_ko": "동체만 남기면 완전히 정적이다",
+   "cells": [
+    "sionna_p4000000000_partsnoprop_r15_n8192_d1/el+0 (퇴화·no_motion, AC/DC 6e-33)"
+   ],
+   "rescored_ko": "재채점 대상 아님 — census 도 «움직이는 것이 없다» 로 같은 판정",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 2·10·26장",
+   "claim_ko": "⭐정면에서 광선을 360 배로 늘리면 움직이는 부분이 +52.8 dB 올라간다",
+   "cells": [
+    "sionna/el+0 (정상)",
+    "sionna_p4000000000/el+0 (주의·flash_comb_undersampled)"
+   ],
+   "rescored_ko": "−143.210→−143.220 대 −90.442→−90.583 ⇒ +52.77 → +52.64 dB",
+   "verdict": "유지",
+   "note_ko": "0.13 dB 움직인다 — 덱의 «+52.8 dB» 를 그대로 써도 된다"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 27장",
+   "claim_ko": "프로펠러만 판 3 엔진 리듬 몫 — 우리 63 % · 물리 끔 90 % · 물리 켬 13 %",
+   "cells": [
+    "ours_free_r15_n8192/el+0 (정상)",
+    "sionna_p4000000000_partsprop_r15_n8192_d1/el+0 (정상)",
+    "sionna_p4000000000_phys_partsprop_r15_n8192_d1/el+0 (정상)"
+   ],
+   "rescored_ko": "63.34 / 89.69 / 12.66→12.80",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 27·28장",
+   "claim_ko": "프로펠러만 판 빗살 대비 — 우리 48 · 물리 끔 48 · 물리 켬 +7.4 dB (0°)",
+   "cells": [
+    "같은 세 칸"
+   ],
+   "rescored_ko": "47.82 / 48.38 / 7.36→7.39",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 28장",
+   "claim_ko": "프로펠러만 × 네 앙각 리듬 몫 격자 12 칸 — 우리 63/83/52/56 · 끔 90/81/86/99 · 켬 13/14/19/23 %",
+   "cells": [
+    "ours_free_r15_n8192 4칸 (정상)",
+    "sionna_p4000000000_partsprop_r15_n8192_d1 4칸 (정상)",
+    "sionna_p4000000000_phys_partsprop_r15_n8192_d1 4칸 (el−60 만 주의·isolation)"
+   ],
+   "rescored_ko": "63.34/82.91/52.36/55.58 · 89.69/81.44/85.97/99.20 · 12.80/14.30/19.14/22.97 (최대 이동 0.14 %p)",
+   "verdict": "유지",
+   "note_ko": "물리 켬 −60° 칸이 주의(고립도 1.60 > 잡음판 1.40)인데 갈아 끼워도 리듬이 0.00 %p 움직인다"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 28장",
+   "claim_ko": "프로펠러만 빗살 대비 0° +7.4 · −30° +10.6 · −60° +12.6 dB (물리 켬), 끔 48/52/48, 우리 48/43/45",
+   "cells": [
+    "같은 12 칸"
+   ],
+   "rescored_ko": "7.39/10.69/12.58 · 48.38/51.80/48.26 · 47.82/42.76/45.00",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 30장",
+   "claim_ko": "⭐Future work ① — 표준 프레임 두 팔에서 깊이 짝 일곱 개 전부 리듬 몫 차 ≤0.40 %p",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_d1 ↔ …_onlydepth3_r15_n8192 4 앙각",
+    "…_onlyrefr ↔ …_swR1D0E0F1_d3",
+    "r30 · r120 짝"
+   ],
+   "rescored_ko": "깊이 판정(depth_axis_verdict_0816)이 **이미 튐 솎은 값으로 채점**한다 — el−60 짝의 생값 −54.25 %p 는 자세 #3399 탓이고 솎으면 리듬 85.52 대 85.24 %",
+   "verdict": "유지",
+   "note_ko": "⭐덱이 인용하는 것은 이미 정정된 판이다. 옛 switch_factorial(08-15) B_failures 첫 줄만 인용 금지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 30장",
+   "claim_ko": "회절 켠 조합에서만 깊이 3 이 세기를 최대 +2.3 dB 올린다",
+   "cells": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30 (주의)",
+    "…_swR1D1E*_r15_n8192_d3/el-30 (주의 4 칸)"
+   ],
+   "rescored_ko": "그 칸들의 갈아 끼우기 폭이 요동 전력 ≤0.08 dB — +2.15~+2.33 dB 를 못 흔든다 (depth 판정의 k1·k8 트림도 같은 답)",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 30장",
+   "claim_ko": "세 번째 튕김이 두 번째 튕김의 4.9 배를 더한다 (물리 급수가 아니다)",
+   "cells": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30",
+    "…_d2/el-30",
+    "…_swR1D1E1F1_r15_n8192_d3/el-30"
+   ],
+   "rescored_ko": "depth_axis_verdict 의 third_over_second_trimmed = 4.867 / 4.671(k1) / 4.847(k8)",
+   "verdict": "유지"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 26장",
+   "claim_ko": "⭐0° 전체 장면의 요동은 «박자를 모르는» 계산 흔들림이다 (리듬 13 % = 백색)",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_d1/el+0 (주의·flash_comb_undersampled · 큰 자세 58 개가 AC 의 99.3 %)"
+   ],
+   "rescored_ko": "그 58 개 자세의 flash_recur = 141× — **날개 통과 주기 자리에 안 선다**. 갈아 끼워도 리듬 13.06→13.07 %",
+   "verdict": "유지(오히려 보강)",
+   "note_ko": "⚠scan 요약문의 «자세 58 개 ≈ 날개 통과 횟수 53» 은 **개수의 우연**이고 자리가 아니다 — census 자신의 flash_recur 가 그렇게 적는다. 덱의 «박자를 모른다» 가 더 잘 받쳐진다"
+  },
+  {
+   "scope": "덱 v17",
+   "where": "teammeeting_0818/_dump_v17.txt 14·26장",
+   "claim_ko": "방위 45° 로 돌리면 거울항이 −57.1 dB 빠지는데 경로 수는 897→1280 으로 오히려 는다",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_d1/el+0 (주의)",
+    "sionna_p4000000000_r15_n8192_az45_d1/el+0 (정상)"
+   ],
+   "rescored_ko": "az45 칸이 정상이고 az0 칸의 갈아 끼우기 폭이 요동 0.08 dB — 낙차를 못 흔든다",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/switch_factorial.json verdict.B_failures[0]",
+   "claim_ko": "«−60° 에서 깊이 3 이 리듬을 86.6 → 32.4 % 로 무너뜨린다»",
+   "cells": [
+    "sionna_p4000000000_onlydepth3_r15_n8192/el-60 (튐 · 자세 #3399)"
+   ],
+   "rescored_ko": "솎으면 85.52 대 85.24 % (차 0.28 %p)",
+   "verdict": "이미 철회됨 — 재확인",
+   "note_ko": "RESUME §1-b · atlas §4-1 · RETRACTION_LOG 2026-08-16 ③ 에 이미 적혀 있다. census 가 독립으로 같은 답을 냈다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/switch_factorial.json verdict.B_failures[1..4]",
+   "claim_ko": "판 위 −30° 의 R1D1** 칸 넷이 깊이 3 에서 +2.26~+2.37 dB — 사전등록 2 dB 밖",
+   "cells": [
+    "sionna_p4000000000_swR1D1E0F0/E1F0/E0F1/E1F1_r15_n8192_d3/el-30 (주의 4 칸)",
+    "같은 조합 d1 칸"
+   ],
+   "rescored_ko": "갈아 끼우기 폭이 요동 ≤0.08 dB · 리듬 ≤0.08 %p",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/switch_factorial.json verdict.A_cover / A_headline",
+   "claim_ko": "«회절은 리듬을 지우는 것이 아니라 덮는다» — el−30 에서 바닥 +36.0 dB · 선 −14.9 dB · 담김계수 1.04",
+   "cells": [
+    "sionna_p4000000000_onlydiffr_r15_n8192/el-30 (정상)",
+    "…_r15_n8192_d1/el-30 (정상)",
+    "…_phys_r15_n8192_d1/el-30 (주의)"
+   ],
+   "rescored_ko": "세 칸 최대 이동 리듬 0.49 %p · 빗살 0.28 dB",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/depth_axis_verdict_0816.json closure",
+   "claim_ko": "«우리 규약(깊이 1)에 대해서는 닫힌다 · 축 전체로는 안 닫힌다»",
+   "cells": [
+    "깊이 짝 22 개"
+   ],
+   "rescored_ko": "이 판정이 **튐 진단의 출발점**이고 이미 솎은 값으로 채점돼 있다",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/raybudget_ac_ladder.json ladder_a (물리 끔 사다리) · RESUME §1-b R17",
+   "claim_ko": "⭐«광선을 늘려도 날개끝 상한 위는 안 바뀐다(−0.07 dB/옥타브)» · «el−15·−45·−60 에서 상한 위 빗살 몫 74~89 %»",
+   "cells": [
+    "sionna · p250M · p1000M · p4000M 의 el+0/−15/−45/−60 — el+0 두 칸만 주의, 나머지 정상"
+   ],
+   "rescored_ko": "el+0 칸의 갈아 끼우기 폭이 빗살 ≤0.99 dB · 요동 ≤1.25 dB, 빗각 칸은 ≤0.07 dB",
+   "verdict": "유지",
+   "note_ko": "R17 헤드라인은 물리 끔 사다리다 — 아래 물리 켬 사다리와 다른 팔이다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/raybudget_ac_ladder.json ladder_a_physics_on (el −15 계단)",
+   "claim_ko": "«같은 22.5 배 한 계단에 요동 +6.30 dB · 빗살 몫 17.7 → 14.2 %»",
+   "cells": [
+    "sionna_phys/el-15 (튐 · 자세 #3195 가 AC 의 91.6 %)",
+    "sionna_p250000000_phys/el-15 (주의)"
+   ],
+   "rescored_ko": "솎으면 요동 −144.351 → −128.329 ⇒ **+16.02 dB**, 빗살 몫 **47.6 → 15.6 %**",
+   "verdict": "⛔뒤집힘",
+   "note_ko": "레벨은 2.5 배, 몫은 30 %p 어긋난다. 계단 상승폭의 **최솟값 자리**도 el−15(6.30) 에서 el−45(6.73) 로 옮겨간다. 문장의 방향(레벨 오르고 몫은 백색으로)은 오히려 더 세게 선다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/raybudget_ac_ladder.json ladder_a_physics_on (reading_ko 요약)",
+   "claim_ko": "«빗살 몫이 14~61 % 에서 12~18 % 로 내려가 백색(12.6 %)에 붙는다»",
+   "cells": [
+    "sionna_phys 7 칸 (el−15·−30 이 튐)",
+    "sionna_p250000000_phys 7 칸 (5 칸 주의)"
+   ],
+   "rescored_ko": "솎으면 첫 계단 **14.0~69.8 %**(el−30 이 51.6→69.8 로 최댓값이 된다), 둘째 계단 12.1~17.6 %",
+   "verdict": "⛔뒤집힘(수치)",
+   "note_ko": "문장 자체는 유지 — 바뀌는 것은 범위 상한 61 → 70 % 다"
+  },
+  {
+   "scope": "원장",
+   "where": "docs/RESUME.md «⭐⭐최종 판정 — 물리 스위치 (2026-08-12)» 판정표",
+   "claim_ko": "«sionna 물리 켬 11.1M · el−15 · 경로 2 · 플래시 1× 13.1 dB · 2× 10.0 dB · 덱 상관 0.6903»",
+   "cells": [
+    "sionna_phys/el-15 (튐)"
+   ],
+   "rescored_ko": "그 칸의 빗살 대비 7.55 → **23.83 dB**(+16.27) · 리듬 몫 17.67 → **47.64 %**(+29.97) · 요동 −133.57 → −144.35 dB. 고립도 34.90(잡음판 한계 1.40) · 그 자세만 경로 수 1(중앙 2)",
+   "verdict": "⛔뒤집힘",
+   "note_ko": "그 행 인용 금지. ⑴ 「켜면 빗살이 지워진다」의 **방향**은 250M 물리 켬 팔(1× 11.18 dB · 갈아 끼우기 폭 빗살 +1.50 dB)로 여전히 선다. ⑵ 다만 11.1M 행이 보여 준 «지워짐» 의 절반쯤이 자세 하나였다. ⑶ 덤 — 그 행은 physics_deck_repro_check.json 이 적어 둔 대로 자세 1536/4096 결측 시절 값이기도 하다(지금 원장은 결측 0)"
+  },
+  {
+   "scope": "원장",
+   "where": "docs/PLAN_VOLUMES_16_17.md §인용 규칙 2 · 재고표 rows[25]·rows[26]",
+   "claim_ko": "«sionna_phys/el−15(n_missing=1536) · el−45(n_missing=3072) 는 부분 병합이라 ⛔인용 금지»",
+   "cells": [
+    "sionna_phys/el-15 (튐)",
+    "sionna_phys/el-45 (정상)"
+   ],
+   "rescored_ko": "지금 원장은 **둘 다 n_missing = 0** — 옛 금지 사유가 사라졌다",
+   "verdict": "⛔뒤집힘(사유 교체)",
+   "note_ko": "el−45 는 이제 등급 정상이라 **인용 가능**해졌고, el−15 는 금지가 유지되되 **사유가 «결측» 에서 «튐»으로 바뀐다**. 문서가 낡았다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/grid_convergence_check.json 격자 산포 밴드",
+   "claim_ko": "리듬 21.8 %p · 요동 3.86(정면)~0.02(−60°) dB · 빗살 4.04 dB 밴드",
+   "cells": [
+    "ours 계열 격자 칸 전부 (정상)"
+   ],
+   "rescored_ko": "우리 커널 칸은 갈아 끼우기 폭이 ≤0.06 %p",
+   "verdict": "유지",
+   "note_ko": "튐 채점의 기준자 자체가 튐에 안 걸린다 — 재채점의 전제가 성립한다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json q1 (굴절만 × 기체)",
+   "claim_ko": "«빗각 생존은 기체 불문 · 단 정면 익사는 아니다 — s1000plus 만 0° 에서 리듬 30.3 % · 빗살 22.0 dB»",
+   "cells": [
+    "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1/el+0 (정상)",
+    "…_mini5pro…/el-30 (정상)",
+    "…_onlyrefr_r15_n8192/el+0 (주의)"
+   ],
+   "rescored_ko": "30.29→30.31 · 21.97→21.85 · matrice4e 13.33→13.33",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json 거리 축 (굴절만 30~240 m)",
+   "claim_ko": "«리듬 63.6/69.7/66.2/68.8 % · 빗살 33.0 → 28.2 dB 로 완만 감쇄 생존 · 30·60 m 정면은 익사»",
+   "cells": [
+    "sionna_p4000000000_onlyrefr_r30/r60/r120/r240_n8192/el-30 (정상)",
+    "…/el+0 (r240 만 주의)"
+   ],
+   "rescored_ko": "el−30 칸 이동 ≤0.02 %p · ≤0.02 dB. 정면 30 m 12.59→12.60 · 60 m 12.63→12.53 %",
+   "verdict": "유지",
+   "note_ko": "⚠120·240 m 정면 칸은 원래부터 near_numeric_floor 로 물리 인용 금지 — 그대로다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json 방위 축 (우리 커널 9 점)",
+   "claim_ko": "«−30° 방위 0~90° 에서 리듬 83.3~89.7 % · 빗살 39.9~45.0 dB — 격자 밴드 안이라 «못 잰다»»",
+   "cells": [
+    "ours_r15_n8192_az{15,22.5,30,45,60,67.5,75,90}/el-30 (전부 정상)"
+   ],
+   "rescored_ko": "최대 이동 0.06 %p",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json q2 (PS 다끔 480 m)",
+   "claim_ko": "«480 m 두 칸은 인용 못 한다 — 정면은 반올림 바닥, −30° 는 자세 64.5 % 가 경로 0»",
+   "cells": [
+    "sionna_p4000000000_r480_n8192_d1/el-30 (census 정상 · 아틀라스 퇴화)",
+    "…/el+0"
+   ],
+   "rescored_ko": "census 는 «정상», 아틀라스는 «퇴화(incomplete)» 로 갈린다 — 아틀라스가 맞다(원장 결측 5287)",
+   "verdict": "유지",
+   "note_ko": "⚠census 와 아틀라스가 어긋난 8 칸 중 하나. 인용 금지는 유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json q3 (PTD 확장 7 칸)",
+   "claim_ko": "«PTD 는 무늬를 안 바꾼다 — 요동 차 ≤0.02 dB · 리듬 차 ≤0.1 %p · 상관 ≥0.9999»",
+   "cells": [
+    "ours_ptd_* 7 칸 (전부 정상)"
+   ],
+   "rescored_ko": "최대 이동 0.06 %p",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/material_verdict_0816.json (셸 두께)",
+   "claim_ko": "«셸은 표적 축에 배선이 없다 — 0.75 mm 에서 DC −6.24 dB · AC ±0.00 · 빗살 52.0 dB 그대로»",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_shell{0.5,0.75,1.5}mm_d1/el-30 (전부 정상)"
+   ],
+   "rescored_ko": "이동 ≤0.03 dB",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/material_verdict_0816.json (프롭 0.9 mm)",
+   "claim_ko": "«진짜 손잡이는 프롭 — −30° 에서 AC −16.99 · 바닥 −12.56 · 빗살 −6.98 dB, 정면은 0.000 dB»",
+   "cells": [
+    "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1/el-30 (정상)",
+    "…/el+0 (주의·flash_comb_undersampled)"
+   ],
+   "rescored_ko": "el−30 이동 ≤0.02 dB · el+0 이동 빗살 0.36 dB",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/classify_airframe.json",
+   "claim_ko": "«우리 커널 100 % · PathSolver 94.64 % · 틀리는 자리는 정면 72.9 % 와 직하방 89.6 %»",
+   "cells": [
+    "ours_{matrice4e,mini5pro,s1000plus} 21 칸 (전부 정상)",
+    "sionna 쪽 21 칸 — −90° 두 칸만 주의"
+   ],
+   "rescored_ko": "정면 칸 전부 정상·이동 ≤0.03 %p. 직하방 s1000plus 칸은 주의지만 이동이 리듬 ≤0.24 %p 이고 −90° 빗살은 애초에 정의되지 않는다",
+   "verdict": "유지",
+   "note_ko": "⚠«−90° 는 앙각별 표로만 읽는다» 는 기존 단서가 그대로 필요하다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/detection_curves.json",
+   "claim_ko": "«우리 커널 el −30° 에서 R50 = 724 m(빗살) / 567 m(대역)»",
+   "cells": [
+    "ours_r15_n8192/el-30 (정상)",
+    "sionna_p4000000000_r15_n8192_d1/el-30 (정상)"
+   ],
+   "rescored_ko": "이동 ≤0.06 %p · ≤0.09 dB",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/bridge_cross_precise.json",
+   "claim_ko": "«겉보기 20.7 dB 중 바닥 레시피 차 9.0 dB · 엔진 차 11.6 dB · 가림 31.2 dB»",
+   "cells": [
+    "없음 — outputs/jihyuck_po/ 와 별도 npz 를 쓴다"
+   ],
+   "rescored_ko": "앙각 원장 칸을 안 쓴다 ⇒ 튐 진단 대상 밖",
+   "verdict": "해당 없음"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/r12_azimuth_harvest.json",
+   "claim_ko": "«정면에서 동체 정반사가 지배할 때만 익사한다» · «나딧에서 방위는 죽은 축(차 ≤0.01 dB)»",
+   "cells": [
+    "sionna_p4000000000_phys_r15_n8192_az45_d1/el+0 (튐·약한 판정)",
+    "…/el-90 (주의)",
+    "sionna_p4000000000_phys_r15_n8192_d1/el-90 (주의)"
+   ],
+   "rescored_ko": "az45 el+0 의 갈아 끼우기 폭은 요동 0.03 dB · 빗살 0.19 dB. 나딧은 az0·az45 **두 칸이 같이** +12.9 / +12.8 %p 움직여 둘의 차가 0.04 → 0.17 %p",
+   "verdict": "유지",
+   "note_ko": "⭐나딧의 큰 튐이 두 팔에 **똑같이** 있다는 것이 오히려 «방위는 죽은 축» 을 보강한다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/noise_distance_frame.json",
+   "claim_ko": "«물리 켬은 60 m 부터 Pd 0.00 · 무늬 읽히는 한계 47 m»",
+   "cells": [
+    "sionna_p4000000000_phys_r15_n8192_d1/el-30 (주의)",
+    "…_r30…/el-30 (주의)",
+    "…_r60…/el-30 (정상)",
+    "…_r120…/el-30 (주의·큰 폭)"
+   ],
+   "rescored_ko": "연장선이 서는 15 m 칸의 이동이 빗살 +0.28 dB ⇒ 47 m 는 안 흔들린다",
+   "verdict": "유지",
+   "note_ko": "⚠단 120 m 물리 켬 칸의 **잡음 넣기 전** 빗살 4.67 dB 는 자세 하나가 끌고 있다(솎으면 11.59 dB · 리듬 13.5→21.9 % · 요동 −2.24 dB · 상한 위 −19.5 %p). 잡음 뒤 판정(0.11 dB · Pd 0.00 · 안 읽힘)은 SNR 이 정하므로 안 바뀌지만, 그 칸의 **깨끗한 수**를 따로 인용하면 안 된다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/switch_to_classification.json",
+   "claim_ko": "«물리를 켜면 분류 성적 24.1 %p 를 잃는다 · 범인은 쐐기 회절(바닥 +28~52 dB, 중앙값 +36.1)»",
+   "cells": [
+    "sionna_p4000000000_onlydiffr_r15_n8192 7 칸(3 칸 주의)",
+    "…_onlyedge 4 칸",
+    "…_onlyrefr 7 칸",
+    "…_phys_r15_n8192_d1 7 칸"
+   ],
+   "rescored_ko": "최대 이동 리듬 0.49 %p · 빗살 0.43 dB — 24.1 %p 도 +36.1 dB 도 못 흔든다",
+   "verdict": "유지",
+   "note_ko": "⚠이 원장의 «sionna_phys» 는 **라벨**이고 실제 팔은 15 m·8192 자세짜리 sionna_p4000000000_phys_r15_n8192_d1 이다 — 10 m 짜리 튐 팔과 이름만 같다. 헷갈리기 쉬운 자리라 적어 둔다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/md_atlas_index.json",
+   "claim_ko": "아틀라스 337→349 칸 · 칸마다 outlier_grade 표시",
+   "cells": [
+    "349 칸 전부"
+   ],
+   "rescored_ko": "아틀라스가 **이미 census 를 읽어 들였다**(threshold_source = outputs/outlier_census_0816.json · 20:52 KST 재생성). 자체 등급은 정상 277 · 주의 55 · 튐 3 · 퇴화 14 이고 census 와 8 칸이 갈린다",
+   "verdict": "유지",
+   "note_ko": "갈린 8 칸은 «둘 중 하나가 틀렸다» 가 아니라 문턱에 걸터앉은 칸이다. 그중 sionna_p4000000000_phys_r15_n8192_az45_d1/el+0 은 census 가 «튐», 아틀라스가 «주의» — scan 자신이 «약한 판정» 이라 적은 그 칸이다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/atlas_falsify.json D7_spiky_beats",
+   "claim_ko": "«자세 몇 개가 통째로 튄 칸의 박자를 진짜 박자처럼 적었다» → 42 칸에 «⚡튐» 배지",
+   "cells": [
+    "최악 칸으로 sionna_phys@-15 (spike 1226.3 · beat 24.5 Hz · 예측의 0.193 배)"
+   ],
+   "rescored_ko": "튐 1 번 칸을 **독립으로 이미 잡아냈다**",
+   "verdict": "유지",
+   "note_ko": "⭐아틀라스 쪽 방어선이 이미 서 있었다 — 다만 그 배지는 아틀라스 그림에만 붙었고 raybudget · RESUME 08-12 표에는 안 붙었다"
+  },
+  {
+   "scope": "발표물",
+   "where": "atlas/00_since_deck.html",
+   "claim_ko": "«팔 115 · 칸 337 · 그림 258 · 실험 29 건» 색인",
+   "cells": [
+    "349 칸"
+   ],
+   "rescored_ko": "뒤집힌 수는 없다. 다만 이 쪽은 19:45 KST 판이라 **아틀라스 원장(20:52 KST · 팔 122 · 칸 349 · 그림 273)보다 한 판 낡았다**",
+   "verdict": "유지(낡음)",
+   "note_ko": "§4-1 의 #3399 철회 서술과 «튀는 자세» 말풀이는 이미 들어 있다 — 다시 구울 때 개수만 맞추면 된다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/wideband_energy.json cells.sionna_phys/el+0",
+   "claim_ko": "«물리 켠 팔의 상한 위 몫 0.83078 · above_f_tip_db −0.81»",
+   "cells": [
+    "sionna_phys/el+0 (정상)"
+   ],
+   "rescored_ko": "상한 위 몫 83.08 → 83.09 %",
+   "verdict": "유지",
+   "note_ko": "같은 팔이라도 el+0 칸은 튐이 없다 — 튐은 el−15·−30 두 칸이다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/physics_deck_repro_check.json gate",
+   "claim_ko": "«sionna_phys/el−15 는 n_missing=1536 이고 생성 스크립트에 완결성 게이트가 없다»",
+   "cells": [
+    "sionna_phys/el-15 (튐)"
+   ],
+   "rescored_ko": "결측은 해소됐지만(0) **튐이 새로 붙었다** — 게이트가 없다는 지적 자체는 여전히 유효하고, 이제 «완결성» 이 아니라 «튐» 을 걸러야 한다",
+   "verdict": "유지(사유 확장)"
+  },
+  {
+   "scope": "원장",
+   "where": "docs/RESUME.md §5 «재인용 금지 · 꼬리표 강제» 표 13 줄",
+   "claim_ko": "격자 꼬리표 · 광선 예산 재독 · az45 워커시간 · 나딧 전력 눈금 등",
+   "cells": [
+    "표가 가리키는 칸들"
+   ],
+   "rescored_ko": "13 줄 중 튐 칸에 걸린 것은 없다 — 전부 정상 칸이거나 이미 꼬리표가 붙어 있다",
+   "verdict": "유지"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json q4 (격자 밴드 전 앙각 확장)",
+   "claim_ko": "«빗각 요동 산포는 좁아졌다(최대 1.31 dB) · 리듬 밴드 21.8 %p 유지 · 빗살은 격자 계단마다 +4.0~4.6 dB»",
+   "cells": [
+    "ours 격자 칸 (정상)"
+   ],
+   "rescored_ko": "이동 ≤0.06 %p",
+   "verdict": "유지",
+   "note_ko": "⭐이 밴드가 튐 채점의 분모다 — 밴드 자체가 안 흔들리는 것이 확인됐다"
+  },
+  {
+   "scope": "원장",
+   "where": "outputs/frame_completion_0816.json 별칭 재실행 앵커",
+   "claim_ko": "«같은 물리 두 이름의 잣대 차 0.0 dB · 0.0 %p · 상관 1.0000»",
+   "cells": [
+    "별칭 6 쌍 (전부 정상)"
+   ],
+   "rescored_ko": "이동 ≤0.02",
+   "verdict": "유지"
+  }
+ ],
+ "n_rescored": 51,
+ "n_flipped": 4,
+ "counts": {
+  "유지": 45,
+  "뒤집힘": 4,
+  "해당 없음": 1,
+  "이미 철회됨": 1
+ },
+ "headline_ko": [
+  "⭐**8/18 덱 v17 에서 뒤집힌 수는 하나도 없다.** 덱이 쓰는 세 팔(15 m · 자세 8192)의 칸 전부를 튐 솎은 값으로 다시 재도 리듬 ≤0.14 %p · 빗살 ≤0.4 dB 만 움직인다. 덱의 21 개 수치 묶음이 전부 그대로 선다.",
+  "⛔**뒤집힌 것은 넷이고 전부 옛 10 m · 자세 4096 팔(sionna_phys)이 떠받치던 문장이다.** ①·② 광선 예산 사다리의 «물리 켬» 판(el−15 계단이 +6.30 → **+16.02 dB**, 빗살 몫 17.7→14.2 % 가 **47.6→15.6 %**), ③ RESUME 2026-08-12 «최종 판정» 표의 물리 켬 11.1M · el−15 행(그 칸 빗살 대비가 솎으면 +16.27 dB 오른다), ④ PLAN_VOLUMES_16_17 의 인용 금지 사유(결측 1536 → 지금 0, 사유가 «튐» 으로 바뀐다).",
+  "⭐뒤집힌 셋 다 **결론의 방향은 살아남는다** — 물리를 켜면 빗살이 약해진다는 이야기는 250M 팔이 따로 받쳐 준다. 못 쓰게 된 것은 **el−15 의 크기**다.",
+  "⭐덱의 «−60° 깊이 3» 관련 문장은 이미 정정된 판을 인용하고 있었다 — 다시 손댈 곳이 없다.",
+  "⚠판정을 안 뒤집지만 따로 적어 둘 것 — 잡음 거리 프레임의 **120 m 물리 켬 칸**(잡음 넣기 전 빗살 4.67 dB)이 자세 하나에 걸려 있다(솎으면 11.59 dB). 잡음 뒤 판정(Pd 0.00)은 안 바뀌지만 그 «깨끗한 수» 는 따로 인용하면 안 된다."
+ ],
+ "not_rescorable_ko": [
+  "raybudget_ac_ladder 의 floor_above_db(상한 위 바닥) — census 가 안 재는 잣대다. el−15 첫 계단의 상한 위 전력이 솎으면 약 12 dB 내려가므로 «바닥 +9.2~+35.4 dB» 의 **하한 9.2 는 과소**일 것이나, 정확한 값은 다시 계산해야 한다.",
+  "physics_vs_deck 의 corr_with_ours_db_map(맵 상관) — 솎은 판으로 다시 못 잰다. 다만 RESUME §5 가 이미 «상관은 격자 바닥과 구별 안 된다» 로 꼬리표를 박아 뒀다.",
+  "noise_distance_frame 의 Pd — 잡음 재주입이 필요하다. 여기서는 판정이 SNR 에 지배된다는 근거로 «안 바뀐다» 를 적었을 뿐 다시 돌린 것은 아니다."
+ ],
+ "todo_ko": [
+  "① benchmark/raybudget_ac_ladder.py 를 튐 솎기 옵션과 함께 다시 돌린다 — 물리 켬 사다리 전체(el 7 점)를 갈아 끼운 판으로 재발행.",
+  "② docs/PLAN_VOLUMES_16_17.md rows[25]·rows[26] 의 인용 금지 사유를 «결측» 에서 «튐» 으로 바꾸고 el−45 는 금지 해제.",
+  "③ docs/RESUME.md 2026-08-12 판정표의 «물리 켬 11.1M» 행에 ⛔줄을 단다.",
+  "④ atlas/00_since_deck.html 재생성(팔 122 · 칸 349 · 그림 273 로 맞춤).",
+  "⑤ 원장이 349 행에서 더 자라면 census 부터 다시 돌리고 이 재검사도 다시."
+ ]
+}

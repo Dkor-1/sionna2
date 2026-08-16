@@ -368,6 +368,430 @@ def spike_ratio(E: np.ndarray):
     return float(ac.max() / med)
 
 
+# ═══════════════════════════════════════════════════════════════════════════ #
+#  ⭐튐 진단 — «이 칸의 수를 자세 하나가 끌고 있나» (2026-08-16 부터 상시 잣대)
+# ═══════════════════════════════════════════════════════════════════════════ #
+# 왜 상시인가
+# ----------
+#   깊이 축 판정에서 «−60° 에서 깊이 3 이면 리듬이 86.6 → 32.4 % 로 무너진다» 는 헤드라인이
+#   자세 8,192 개 중 **단 하나**(#3399) 때문이었다. 그 자세를 이웃 평균으로 갈아 끼우면 두
+#   판이 85.5 대 85.2 % 로 같다. 자세 하나가 헤드라인을 뒤집을 수 있다는 뜻이라, 진단을
+#   «생각날 때 돌리는 감식» 이 아니라 **칸 요약에 늘 붙는 잣대**로 옮긴다.
+#
+# 기존 잣대와의 관계 — ⭐**정의를 하나도 안 바꾼다. 옆에 붙이기만 한다.**
+#   · 이미 있던 spike_ratio(최대÷중앙)·beat_spiky 는 «얼마나 큰가» 를 잰다. 그대로 둔다.
+#   · 여기서 더하는 것은 «얼마나 **혼자** 큰가»(고립·이웃·되풀이)와 «그 자세를 갈아 끼우면
+#     헤드라인이 얼마나 움직이나»(영향)다. 크기는 등급에 안 쓴다 — 정반사 플래시는 원래 크다.
+#
+# 문턱 — ⛔이 파일에 임의 숫자를 안 적는다
+#   전부 **저장된 원장에서 읽어 온다**(outlier_rules()):
+#     outputs/outlier_census_0816.json  꼬리 울타리(원장 자기 분포) · 잡음판 고립도 널
+#     benchmark/depth_axis_verdict_0816 앙각별 격자 산포 밴드 · 빗살 백색 널 폭
+#   원장이 없거나 행 수가 어긋나면 **등급을 매기지 않고** 그 사실을 적는다(조용히 봐주지 않는다).
+CENSUS_J = os.path.join(ROOT, "outputs", "outlier_census_0816.json")
+DEPTH_J = os.path.join(ROOT, "outputs", "depth_axis_verdict_0816.json")
+#: 죄 없는 자세(중앙 순위)를 같은 방법으로 갈아 끼우는 대조 횟수 — census 와 같은 값
+OUT_N_CONTROL = 12
+OUT_SEED = 20260816
+#: 흔들어 보는 헤드라인 넷과 단위
+OUT_KEYS = ("rhythm_pct", "comb_db", "moving_power_db", "above_ceiling_pct")
+OUT_UNIT = {"rhythm_pct": "%p", "comb_db": "dB",
+            "moving_power_db": "dB", "above_ceiling_pct": "%p"}
+OUT_KEY_KO = {"rhythm_pct": "리듬 몫", "comb_db": "빗살 대비",
+              "moving_power_db": "요동 전력", "above_ceiling_pct": "상한 위 몫"}
+
+_OUT_RULES: dict | None = None
+
+
+def _band_by_el(d: dict, el: float):
+    """앙각별 밴드 표에서 값 하나 — 키가 «-60.0» 로 저장된 JSON 도 함께 받는다."""
+    if not d:
+        return None
+    for k in (el, f"{el:.1f}", f"{el:g}", str(el)):
+        if k in d:
+            return d[k]
+    return None
+
+
+def outlier_rules() -> dict:
+    """튐 등급에 쓰는 문턱을 **원장에서** 읽어 온다(모듈에 한 번만).
+
+    ⭐왜 읽어 오나 — 문턱을 이 파일에 박으면 원장이 자랄 때 조용히 낡는다. census 는 원장
+    자기 분포의 꼬리에서 문턱을 뜨므로, 그 원장이 지금 원장과 같은 행 수인지까지 함께 본다.
+    ⚠행 수가 다르면 `stale=True` 로 적고 등급은 매기되 «문턱이 낡았다» 를 함께 싣는다 —
+      숨기면 다음 사람이 낡은 선으로 판정하게 된다.
+    """
+    global _OUT_RULES
+    if _OUT_RULES is not None:
+        return _OUT_RULES
+    r: dict = dict(ok=False, stale=False, notes=[],
+                   census=os.path.relpath(CENSUS_J, ROOT))
+    try:
+        cj = json.load(open(CENSUS_J, encoding="utf-8"))
+    except Exception as e:                       # 원장이 없으면 등급을 안 매긴다
+        r["notes"].append(f"⛔ 문턱 원장을 못 읽었다({e.__class__.__name__}) — 등급 없음")
+        _OUT_RULES = r
+        return r
+    th = cj.get("thresholds", {})
+    st = (cj.get("_meta", {}) or {}).get("ledger_state", {}) or {}
+
+    def fence(name, which="outer_fence"):
+        v = (th.get(name) or {}).get(which)
+        return None if v is None else float(v)
+
+    r.update(
+        dominance_fence=fence("dominance_pooled"),
+        isolation_fence=fence("isolation"),
+        flash_recur_fence=fence("flash_recur"),
+        neighbor_jump_fence=fence("neighbor_jump", "inner_fence"),
+        null_isolation={int(k): float(v["p999"])
+                        for k, v in (cj.get("null_isolation") or {}).items()
+                        if v.get("p999") is not None},
+        census_rows=st.get("n_rows"), census_at=st.get("ledger_json_mtime_kst"),
+        census_written=(cj.get("_meta", {}) or {}).get("written_at_kst"),
+        census_grades=(cj.get("summary", {}) or {}).get("grades"),
+        #: ⭐census 가 그 칸에 매긴 등급 — 갈리면 **숨기지 않고** 칸에 적는다(아래 참조)
+        census_grade={c["cell"]: c.get("grade") for c in (cj.get("cells") or [])},
+    )
+    # ── 격자 산포 밴드 · 빗살 백색 널 — 깊이 축 판정의 정의를 그대로 쓴다 ─────
+    #    ⚠순환 임포트를 피하려고 **함수 안에서** 늦게 부른다(census 가 이 모듈을 임포트한다).
+    try:
+        import depth_axis_verdict_0816 as _D                        # noqa: PLC0415
+        r.update(band_ac=dict(_D.GRID_BAND_AC_DB),
+                 band_rhythm=dict(_D.GRID_BAND_RHYTHM_PP_BY_EL),
+                 band_comb=dict(_D.GRID_BAND_COMB_DB_BY_EL),
+                 band_above=float(_D.GRID_BAND_ABOVE_PP_GLOBAL),
+                 comb_null_db=float(_D.COMB_NULL_DB),
+                 band_src="benchmark/depth_axis_verdict_0816.py")
+    except Exception:
+        try:                                     # 대체 길 — 같은 수가 실린 판정 원장
+            nb = json.load(open(DEPTH_J, encoding="utf-8"))["null_bands"]
+            r.update(band_ac=nb["grid_dispersion_ac_db_by_el"],
+                     band_rhythm=nb["grid_dispersion_rhythm_pp_by_el"],
+                     band_comb=nb["grid_dispersion_comb_db_by_el"],
+                     band_above=float(nb["grid_dispersion_above_ceiling_pp_global"]),
+                     comb_null_db=None,
+                     band_src=os.path.relpath(DEPTH_J, ROOT))
+            r["notes"].append("⚠빗살 백색 널 폭을 못 읽어 «읽기 안 바뀜» 예외를 못 쓴다")
+        except Exception as e:
+            r["notes"].append(f"⛔ 격자 밴드를 못 읽었다({e.__class__.__name__}) — 등급 없음")
+            _OUT_RULES = r
+            return r
+
+    r["ok"] = all(r.get(k) is not None for k in
+                  ("dominance_fence", "isolation_fence", "flash_recur_fence",
+                   "neighbor_jump_fence"))
+    if not r["ok"]:
+        r["notes"].append("⛔ 꼬리 울타리가 원장에 없다 — 등급 없음")
+    now_rows = len(J.get("rows", []))
+    if r.get("census_rows") is not None and int(r["census_rows"]) != now_rows:
+        r["stale"] = True
+        r["notes"].append(
+            f"⚠문턱은 원장 {r['census_rows']} 행에서 뜬 값인데 지금 원장은 {now_rows} 행이다 — "
+            "benchmark/outlier_census_0816.py 를 다시 돌려야 선이 맞는다")
+    r["ledger_rows_now"] = now_rows
+    _OUT_RULES = r
+    return r
+
+
+def _outlier_meta_ko() -> str:
+    """목차 _meta 에 싣는 «문턱을 어디서 땄나» 한 문단 — 값은 그때그때 원장에서 읽는다."""
+    r = outlier_rules()
+    if not r.get("ok"):
+        return "⛔ 문턱 원장을 못 읽어 등급을 안 매겼다 — " + " / ".join(r["notes"])
+    s = (f"문턱은 전부 원장에서 읽어 온다(이 파일에 임의 숫자 없음). "
+         f"쏠림 꼬리 울타리 {r['dominance_fence']:.1f}× · 고립도 울타리 "
+         f"{r['isolation_fence']:.3f} · 날개주기 되풀이 울타리 {r['flash_recur_fence']:.2f} · "
+         f"이웃 급변 울타리 {r['neighbor_jump_fence']:.0f}× "
+         f"— 출처 {r['census']}(원장 {r.get('census_rows')} 행 · {r.get('census_at')}). "
+         f"격자 산포 밴드와 빗살 백색 널은 {r['band_src']} 의 정의를 그대로 쓴다. "
+         f"고립도의 두 번째 잣대인 잡음판 99.9 % 값도 같은 원장에서 온다"
+         f"({' · '.join(f'{k}자세 {v:.2f}' for k, v in sorted(r['null_isolation'].items()))}).")
+    if r.get("notes"):
+        s += " " + " / ".join(r["notes"])
+    return s
+
+
+def _headline4(E: np.ndarray, ffl: float, ft: float) -> dict:
+    """튐 진단이 흔들어 보는 헤드라인 넷.
+
+    ⭐잣대는 위의 `rhythm_share`·`comb_contrast_db` 를 **그대로** 부른다 — 진단용으로 새
+    정의를 만들면 이미 인용된 수와 갈린다(`outlier_census_0816.headline` 과 같은 함수다).
+    """
+    share, null, above, degen = rhythm_share(E, ffl, ft)
+    comb = comb_contrast_db(E, ffl, ft)
+    x = np.asarray(E, complex)
+    x = x - x.mean()
+    p = float(np.mean(np.abs(x) ** 2))
+    return dict(rhythm_pct=share, comb_db=comb,
+                moving_power_db=(None if p <= 0 else float(10.0 * math.log10(p))),
+                above_ceiling_pct=above, rhythm_null_pct=null,
+                rhythm_degenerate=bool(degen))
+
+
+def _replace_pose(E: np.ndarray, i: int) -> np.ndarray:
+    """⭐그 자세를 **삭제하지 않고** 이웃 평균으로 갈아 끼운다 — 표집 간격을 안 깬다.
+
+    삭제(마스킹)는 표본 간격을 깨서 스펙트럼 자체를 바꾼다. 갈아 끼우기는 격자를 지키므로
+    «그 자세 하나가 얼마나 끌었나» 만 깨끗하게 남는다.
+    """
+    y = np.array(E, complex, copy=True)
+    n = y.size
+    y[i] = 0.5 * (E[(i - 1) % n] + E[(i + 1) % n])
+    return y
+
+
+def _dd(a, b):
+    return None if (a is None or b is None) else float(b - a)
+
+
+def outlier_probe(E: np.ndarray, ffl: float, ft: float, el: float) -> dict:
+    """한 칸의 튐 지표 + 등급. ⛔GPU 를 안 쓴다 — 저장된 시계열만 흔든다.
+
+    지표 (각각 왜 필요한지)
+      isolation        최대 ÷ 둘째 — 로터 대칭이 만든 **구조적** 플래시는 여럿이 같이 서므로
+                       1 에 가깝다. 혼자 튀면 커진다.
+      neighbor_jump    최대 ÷ 이웃 ±3 자세의 중앙 — 에코는 f_tip 으로 대역제한이라 최소 폭이
+                       PRF/(2·f_tip) 표본이다(0° 에서 ≈ 7.7). 한 표본만 뛴 모양은 물리가 못 낸다.
+      flash_recur      최대 ÷ 날개 통과 주기(T = PRF/f_flash) ±1~4 배 자리 — 진짜 플래시라면
+                       날개가 지나갈 때마다 다시 선다. 안 서면 그 자세만의 사건이다.
+      share_top1_x     상위 1 자세의 AC 전력 ÷ 균등 몫 — 잣대가 실제로 몇 자세를 재고 있나.
+      impact           그 자세를 이웃 평균으로 갈아 끼우고 헤드라인 넷을 다시 잰 차이.
+      dominance        맨 위 자세의 영향 ÷ (둘째 자세 · 죄 없는 자세 12 개)의 영향 —
+                       ⭐칸마다 자기 대조군을 쓰므로 임의 숫자가 없다. 1 이면 특별할 것 없다.
+
+    ⚠여기서 **안 재는 것** — 그 자세의 경로 수(npaths). 샤드 수천 개를 읽어야 해서 아틀라스
+      에는 안 싣는다. 그 잣대의 정본은 outputs/outlier_census_0816.json 이다.
+    """
+    rules = outlier_rules()
+    E = np.asarray(E, complex)
+    n = E.size
+    a = np.abs(E - E.mean())
+    out: dict = dict(gradeable=False, grade=None, reasons=[], impact_over_band=[],
+                     classes=[])
+    if n < 8 or not np.any(a):
+        out["why_ko"] = "AC 가 통째로 0 — 흔들어 볼 것이 없다"
+        return out
+
+    srt = np.sort(a)[::-1]
+    ip = int(np.argmax(a))
+    med = float(np.median(a))
+    pw = a ** 2
+    tot = float(pw.sum())
+    iso = float(srt[0] / srt[1]) if srt[1] > 0 else float("inf")
+    s1 = float(pw[ip] / tot * n) if tot > 0 else None
+    s8 = float(np.sort(pw)[::-1][:8].sum() / tot * n / 8.0) if tot > 0 else None
+    T = PRF / ffl
+    rec = []
+    for m2 in (1, 2, 3, 4, -1, -2, -3, -4):
+        c0 = int(round(ip + m2 * T))
+        if 0 <= c0 < n:
+            w = a[max(c0 - 2, 0):min(c0 + 3, n)]
+            if w.size:
+                rec.append(float(w.max()))
+    recur = float(a[ip] / max(rec)) if (rec and max(rec) > 0) else None
+    nb = float(np.median(a[[(ip + d) % n for d in (-3, -2, -1, 1, 2, 3)]]))
+    jump = float(a[ip] / nb) if nb > 0 else float("inf")
+
+    # ⭐«높은 자세» 집합 — 칸 **자기** 분포의 꼬리에서 뜬다(임의 숫자 없음)
+    la = np.log10(a[a > 0])
+    q1, q3 = np.percentile(la, [25, 75])
+    hi_line = (10 ** (q3 + 3.0 * (q3 - q1)) if q3 > q1 else float(a.max()) * 1.001)
+    hi = np.where(a > hi_line)[0]
+    hi_share = float(pw[hi].sum() / tot) if (hi.size and tot > 0) else 0.0
+    hi_jump = None
+    if hi.size:
+        jj = [a[i] / np.median(a[[(i + d) % n for d in (-3, -2, -1, 1, 2, 3)]]) for i in hi]
+        jj = [v for v in jj if np.isfinite(v)]
+        hi_jump = float(np.median(jj)) if jj else None
+
+    # ── 영향 — 갈아 끼우기(정본) · 대조군 ────────────────────────────────────
+    base = _headline4(E, ffl, ft)
+    rank = np.argsort(a)[::-1]
+    rep1 = _headline4(_replace_pose(E, ip), ffl, ft)
+    i2 = int(rank[1])
+    rep2 = _headline4(_replace_pose(E, i2), ffl, ft)
+    rng = np.random.default_rng(OUT_SEED)
+    mid = rank[n // 4: 3 * n // 4]
+    ctrl = [_headline4(_replace_pose(E, int(i)), ffl, ft)
+            for i in rng.choice(mid, size=min(OUT_N_CONTROL, mid.size), replace=False)]
+    d_top = {k: _dd(base[k], rep1[k]) for k in OUT_KEYS}
+    d_2nd = {k: _dd(base[k], rep2[k]) for k in OUT_KEYS}
+    d_ctl, d_ctl_med = {}, {}
+    for k in OUT_KEYS:
+        v = [abs(_dd(base[k], q[k])) for q in ctrl if _dd(base[k], q[k]) is not None]
+        d_ctl[k] = max(v) if v else None
+        d_ctl_med[k] = float(np.median(v)) if v else None
+
+    def _dom(k, ref_tbl):
+        t = d_top.get(k)
+        if t is None:
+            return None
+        ref = [abs(v) for v in (d_2nd.get(k), ref_tbl.get(k)) if v is not None]
+        ref = max(ref) if ref else 0.0
+        if ref <= 0:
+            return None if abs(t) <= 0 else float("inf")
+        return float(abs(t) / ref)
+
+    dom = {k: _dom(k, d_ctl) for k in OUT_KEYS}            # ⭐정본 — census 와 같은 정의
+    #: ⚠대조군 **최댓값**은 12 번 추첨의 꼬리라 흔들린다. 같은 칸을 다른 추첨으로 재면
+    #  경계에서 등급이 뒤집힐 수 있다. 그것을 숨기지 않으려고 «중앙값 대조군» 판을 함께 재고,
+    #  두 판의 판정이 갈리는 칸에 grade_sensitive_to_control_draw 를 세운다.
+    dom_med = {k: _dom(k, d_ctl_med) for k in OUT_KEYS}
+    out.update(
+        gradeable=True, argmax_pose=ip, runnerup_pose=i2,
+        isolation=None if not np.isfinite(iso) else round(iso, 4),
+        isolation_inf=bool(not np.isfinite(iso)),
+        neighbor_jump=None if not np.isfinite(jump) else round(jump, 3),
+        flash_recur=None if recur is None else round(recur, 3),
+        share_top1_x=None if s1 is None else round(s1, 3),
+        share_top8_x=None if s8 is None else round(s8, 3),
+        n_hi_poses=int(hi.size), hi_power_share=round(hi_share, 5),
+        hi_expected_flashes=round(n / T, 1),
+        hi_count_over_flashes=(round(float(hi.size) / (n / T), 3) if hi.size else 0.0),
+        hi_neighbor_jump_med=None if hi_jump is None else round(hi_jump, 2),
+        base={k: (None if base[k] is None else round(base[k], 4)) for k in OUT_KEYS},
+        replace_one={f"d_{k}": (None if d_top[k] is None else round(d_top[k], 4))
+                     for k in OUT_KEYS},
+        replace_runnerup={f"d_{k}": (None if d_2nd[k] is None else round(d_2nd[k], 4))
+                          for k in OUT_KEYS},
+        innocent_control_max_abs={f"d_{k}": (None if d_ctl[k] is None else round(d_ctl[k], 4))
+                                  for k in OUT_KEYS},
+        innocent_control_med_abs={f"d_{k}": (None if d_ctl_med[k] is None
+                                             else round(d_ctl_med[k], 4))
+                                  for k in OUT_KEYS},
+        dominance={k: (None if dom[k] is None or not np.isfinite(dom[k])
+                       else round(dom[k], 3)) for k in OUT_KEYS},
+        dominance_vs_median_control={k: (None if dom_med[k] is None or not np.isfinite(dom_med[k])
+                                         else round(dom_med[k], 3)) for k in OUT_KEYS},
+        dominance_inf=[k for k in OUT_KEYS if dom[k] is not None and not np.isfinite(dom[k])],
+        n_control=len(ctrl), rhythm_degenerate=bool(base["rhythm_degenerate"]),
+    )
+
+    # ── 등급 — 문턱은 전부 원장에서 온다 ────────────────────────────────────
+    if not rules.get("ok"):
+        out["grade"] = None
+        out["why_ko"] = "문턱 원장이 없어 등급을 못 매긴다 — 지표만 실었다"
+        return out
+
+    dline = rules["dominance_fence"]
+    band_of = {"rhythm_pct": _band_by_el(rules.get("band_rhythm"), el),
+               "moving_power_db": _band_by_el(rules.get("band_ac"), el),
+               "comb_db": _band_by_el(rules.get("band_comb"), el),
+               "above_ceiling_pct": rules.get("band_above")}
+
+    def _classify(domtbl):
+        """영향 잣대로 (근거 · 밴드밖 · 지켜볼 것)을 낸다 — 쏠림 표만 갈아 끼워 두 번 부른다."""
+        rr, bb, ww = [], [], []
+        for kk in ("rhythm_pct", "moving_power_db", "comb_db", "above_ceiling_pct"):
+            # ⚠−90° 는 «상한 위» 라는 잣대 자체가 퇴화한다 — 영향으로 안 센다
+            if kk in ("rhythm_pct", "above_ceiling_pct") and base["rhythm_degenerate"]:
+                continue
+            v, dv = d_top.get(kk), domtbl.get(kk)
+            if v is None:
+                continue
+            inf = kk in out["dominance_inf"]
+            if not (inf or (dv is not None and dv > dline)):
+                continue
+            # ⭐«읽기» 가 안 바뀌는 자리는 판정을 못 뒤집는다 — 프로젝트 규약 그대로
+            b0 = base.get(kk)
+            frozen = ""
+            cn = rules.get("comb_null_db")
+            if kk == "comb_db" and b0 is not None and cn is not None and \
+                    max(abs(b0), abs(b0 + v)) <= cn:
+                frozen = f"빗살 백색 널 자리(±{cn:g} dB) 안 — 읽기 안 바뀜"
+            nullp = base.get("rhythm_null_pct")
+            if kk == "rhythm_pct" and b0 is not None and nullp is not None and \
+                    max(b0, b0 + v) <= nullp:
+                frozen = f"리듬이 백색 널 {nullp:.1f} % 아래 — 읽기 안 바뀜"
+            bnd = band_of.get(kk)
+            tag = "대조군이 0" if inf else f"쏠림 {dv:.0f}×"
+            rr.append(f"자세 하나로 {OUT_KEY_KO[kk]} {v:+.3g}{OUT_UNIT[kk]} · {tag} "
+                      f"(쏠림 울타리밖 {dline:.0f}×)")
+            if frozen:
+                ww.append(f"{OUT_KEY_KO[kk]} {v:+.3g}{OUT_UNIT[kk]} · {tag} ({frozen})")
+            elif bnd is not None and abs(v) > float(bnd):
+                # ⭐밴드 대비 몇 배인지 함께 적는다 — 0° 빗살 밴드처럼 아주 좁은 자리에서는
+                #   «넘었다» 가 절대 폭으로는 작을 수 있다. 읽는 사람이 그걸 알아야 한다.
+                bb.append(f"{OUT_KEY_KO[kk]} {v:+.3g}{OUT_UNIT[kk]} > 격자밴드 "
+                          f"{float(bnd):g}{OUT_UNIT[kk]} ({abs(v) / float(bnd):.1f} 배) · {tag}")
+            else:
+                ww.append(f"{OUT_KEY_KO[kk]} {v:+.3g}{OUT_UNIT[kk]} · {tag} "
+                          + ("(격자밴드 안)" if bnd is not None else "(이 앙각의 격자밴드 없음)"))
+        return rr, bb, ww
+
+    R, big, watch = _classify(dom)                 # ⭐정본 — census 와 같은 대조군 정의
+    #: ⚠같은 정의라도 «죄 없는 자세 12 개를 어느 것으로 뽑느냐» 에 등급이 걸리는 칸이 있다.
+    #  분모가 대조군의 **최댓값**이라 추첨의 꼬리를 타기 때문이다. 중앙값 대조군으로 한 번 더
+    #  매겨 등급이 갈리면 그 사실을 칸에 적는다 — census 와 이 아틀라스가 갈리는 자리다.
+    _, big_m, watch_m = _classify(dom_med)
+
+    # ── 구조 증거 — «왜 그렇게 됐나» 를 설명한다(등급의 보조) ────────────────
+    tbl = rules.get("null_isolation") or {}
+    iso_null = None
+    if tbl:
+        nn = min(tbl, key=lambda k: abs(k - n))   # 잡음판 널은 자세 수마다 다르다
+        iso_null = tbl[nn]
+        out["isolation_null_n"] = nn
+        out["isolation_null_p999"] = iso_null
+    if iso_null is not None and (out["isolation_inf"] or
+                                 (out["isolation"] is not None and out["isolation"] > iso_null)):
+        iso_txt = "∞" if out["isolation_inf"] else f"{out['isolation']:.2f}"
+        R.append(f"고립도 {iso_txt} > 잡음판 99.9 % {iso_null:.3f}"
+                 f" (꼬리 울타리 {rules['isolation_fence']:.3f})")
+        # ⭐구조 잣대는 대조군 추첨과 무관하다 — 두 판에 똑같이 얹는다
+        watch.append("고립도가 잡음판 꼬리 밖")
+        watch_m.append("고립도가 잡음판 꼬리 밖")
+    if out["flash_recur"] is not None and out["flash_recur"] > rules["flash_recur_fence"]:
+        R.append(f"날개 통과 주기에 되풀이 없음 {out['flash_recur']:.1f}× "
+                 f"(울타리밖 {rules['flash_recur_fence']:.2f})")
+    if out["neighbor_jump"] is not None and out["neighbor_jump"] > rules["neighbor_jump_fence"]:
+        R.append(f"이웃 자세 대비 {out['neighbor_jump']:.0f}× — 한 표본 폭")
+
+    # ── ⭐덜 찍힌 플래시 빗살 — 튐이 **아니다**. 시간 분해능 문제다 ──────────
+    comb_like = bool(out["n_hi_poses"] >= 8 and out["hi_count_over_flashes"] >= 0.5
+                     and (out["hi_neighbor_jump_med"] or 0) > 5)
+    out["flash_comb_undersampled"] = comb_like
+    if comb_like:
+        R.append(f"플래시 {out['n_hi_poses']} 개가 한 표본 폭(이웃 대비 중앙 "
+                 f"{out['hi_neighbor_jump_med']}×) — 덜 찍힌 것이지 튐이 아니다")
+        watch.append("플래시가 한 표본 폭 — 덜 찍힘")
+        watch_m.append("플래시가 한 표본 폭 — 덜 찍힘")
+
+    out["grade"] = "튐" if big else ("주의" if watch else "정상")
+    grade_m = "튐" if big_m else ("주의" if watch_m else "정상")
+    out["grade_alt_median_control"] = grade_m
+    out["grade_sensitive_to_control_draw"] = bool(grade_m != out["grade"])
+    if grade_m != out["grade"]:
+        R.append(f"⚠등급이 대조군 추첨에 흔들린다 — 죄 없는 자세의 **중앙값**을 분모로 쓰면 "
+                 f"«{grade_m}» 이 된다(정본은 최댓값 분모 «{out['grade']}»)")
+    out["reasons"] = R
+    out["impact_over_band"] = big
+    cls = []
+    if big:
+        cls.append("one_pose_moves_headline")
+    elif any("쏠림" in w for w in watch):
+        cls.append("one_pose_dominates_within_band")
+    if comb_like:
+        cls.append("flash_comb_undersampled")
+    if any("고립도" in w for w in watch):
+        cls.append("isolation_over_noise_null")
+    if out["grade_sensitive_to_control_draw"]:
+        cls.append("grade_sensitive_to_control_draw")
+    out["classes"] = cls
+    if out["grade"] == "정상":
+        out["why_ko"] = "울타리 밖 잣대 없음 — 자세 하나가 끌고 있지 않다"
+    elif big:
+        out["why_ko"] = ("자세 하나(#%d)가 격자 밴드보다 크게 헤드라인을 움직인다: "
+                         % ip) + " · ".join(big)
+    elif comb_like:
+        out["why_ko"] = (f"플래시 {out['n_hi_poses']} 개가 한 표본 폭으로 찍혔다 — "
+                         "튐이 아니라 시간 분해능 문제")
+    else:
+        out["why_ko"] = " · ".join(R[:3]) or " · ".join(watch[:3])
+    return out
+
+
 def modspec_curve(E: np.ndarray, f_flash: float, f_tip_band: float, periods: float):
     """블레이드 대역 전력 g(t) 의 **변조 스펙트럼**.
 
@@ -404,6 +828,11 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
                     낡았을 때(샤드가 원장보다 새로울 때) n_missing 은 0 으로 남아 있다.
       no_motion   AC/DC 가 배정밀도 반올림 바닥(1e-12) 아래. 움직이는 부분이 아예 없는 판이다
                   (프로펠러를 뺀 대조군). 그런 칸의 «박자» 는 1 ULP 를 흔든 자리라 재현되지 않는다.
+
+    ⭐2026-08-16 추가 — **튐 진단**(`outlier_probe`)을 여기에 붙였다. 위 잣대의 정의는 하나도
+      안 바꿨다; «이 칸의 수를 자세 **하나**가 끌고 있나» 를 옆에 함께 낸다. 깃발은
+      `outlier_grade`(정상·주의·튐·퇴화) 와 `one_pose_moves_headline` 이고, 근거 수치는
+      `outlier` 상자에 들어간다. 왜 상시로 두는지는 `outlier_probe` 의 머리말에 있다.
     """
     E = series(arm, el)
     ft = f_tip_at(rates, el)
@@ -436,6 +865,37 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
             if sel.any() and float(Y[sel].max()) > 0.0:
                 beat = float(fr[sel][int(np.argmax(Y[sel]))])
                 beat_rel = round(beat / ffl, 3)
+
+    # ── ⭐튐 진단 — 수를 낼 자격이 없는 칸은 «퇴화» 로 두고 흔들지 않는다 ─────
+    if mute:
+        why = ("에코가 0 — 흔들어 볼 것이 없다" if empty else
+               "자세가 덜 찼다 — 결측 자국 위에서 «튐» 을 물을 수 없다" if incomplete else
+               "AC/DC 가 반올림 바닥 — 움직이는 것이 없어 «튐» 이 정의되지 않는다")
+        ol = dict(gradeable=False, grade="퇴화", why_ko=why, classes=[], reasons=[],
+                  impact_over_band=[])
+    else:
+        ol = outlier_probe(E, ffl, ft, el)
+    # ⭐census 원장이 같은 칸에 매긴 등급을 나란히 적는다 — 갈리면 **숨기지 않는다**.
+    #   갈리는 자리는 거의 다 대조군 추첨이 흔드는 경계 칸이다(grade_sensitive_to_control_draw).
+    cg = (outlier_rules().get("census_grade") or {}).get(f"{arm}/el{el:+.0f}")
+    if cg is not None:
+        ol["census_grade"] = cg
+        ol["agrees_with_census"] = bool(cg == ol.get("grade"))
+        if cg != ol.get("grade"):
+            # ⭐갈린 까닭을 **그 칸에 맞게** 적는다 — 한 문장으로 뭉뚱그리면 거짓이 된다.
+            if mute:
+                why = ("이 아틀라스는 수를 낼 자격이 없는 칸(덜 참 · 에코 0 · 안 움직임)에 "
+                       "아예 등급을 안 매긴다 — 감식 원장보다 엄한 규약이다")
+            elif ol.get("grade_sensitive_to_control_draw"):
+                why = ("문턱에 걸터앉은 칸이라 죄 없는 자세 12 개를 어느 것으로 뽑느냐에 "
+                       "등급이 갈린다 — 둘 중 하나가 틀린 것이 아니다")
+            else:
+                why = ("대조군 추첨이 다르거나, 감식 원장만 재는 잣대(그 자세의 경로 수)로 "
+                       "갈렸다 — 그 잣대는 샤드를 읽어야 해서 아틀라스에 없다")
+            ol["disagree_reason_ko"] = why
+            ol["why_ko"] = (ol.get("why_ko") or "") + \
+                f" ⚠감식 원장(outlier_census)은 이 칸을 «{cg}» 으로 적었다 — {why}."
+    cls = ol.get("classes") or []
     return dict(
         el_deg=el,
         f_tip_hz=round(ft, 1),
@@ -451,6 +911,22 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
         ac_over_dc=None if empty else float(f"{acdc:.4g}"),
         spike_ratio=None if (spike is None or not np.isfinite(spike))
         else round(spike, 1),
+        # ── ⭐튐 깃발 — «이 칸의 수를 자세 하나가 끌고 있나» ───────────────
+        #    ⚠«튐» 이라고 자동으로 버리면 안 된다. 이 깃발은 «이 수는 자세 하나에 걸려
+        #      있으니 그 자세를 열어 보라» 는 뜻이고, 그 자세가 진짜 물리(정반사 플래시)일
+        #      수도 있다. 판정은 outlier.reasons 를 읽고 사람이 한다.
+        outlier_grade=ol.get("grade"),
+        one_pose_moves_headline="one_pose_moves_headline" in cls,
+        one_pose_dominates_within_band="one_pose_dominates_within_band" in cls,
+        flash_comb_undersampled=bool(ol.get("flash_comb_undersampled")),
+        isolation_over_noise_null="isolation_over_noise_null" in cls,
+        outlier_isolation=ol.get("isolation"),
+        outlier_neighbor_jump=ol.get("neighbor_jump"),
+        outlier_argmax_pose=ol.get("argmax_pose"),
+        outlier_grade_shaky=bool(ol.get("grade_sensitive_to_control_draw")),
+        outlier_census_grade=ol.get("census_grade"),
+        outlier_why_ko=ol.get("why_ko"),
+        outlier=ol,
         # ── 잣대 ─────────────────────────────────────────────────────────
         rhythm_share_pct=None if (share is None or mute) else round(share, 1),
         rhythm_null_pct=None if null is None else round(null, 1),
@@ -559,6 +1035,14 @@ def cell_corner(s) -> str:
     if s["beat_hz"] is not None:
         lines.append(f"beat {s['beat_hz']:.0f} Hz = {s['beat_over_flash']:.2f}x"
                      + ("  (spiky)" if s.get("beat_spiky") else ""))
+    # ⭐⑤ 튐 — 그림 한 장만 여는 사람에게도 «이 수는 자세 하나에 걸려 있다» 를 알린다.
+    #    ⚠«버려라» 가 아니라 «그 자세를 열어 보라» 는 뜻이라 문구를 그렇게 적는다.
+    #   ⚠상자 폭은 한 줄 ≈ 39 자다 — 넘으면 낱말 가운데서 접혀 지저분해진다. 두 줄이 필요하면
+    #     접히는 자리를 **내가** 정한다(\n).
+    if s.get("one_pose_moves_headline"):
+        lines.append(f"! one pose (#{s.get('outlier_argmax_pose')}) drives this cell")
+    elif s.get("flash_comb_undersampled"):
+        lines.append("flashes ~1 sample wide\n(undersampled, not a spike)")
     return "\n".join(lines)
 
 
@@ -1180,7 +1664,26 @@ def main():
                        "채워져 스펙트럼이 PRF/2·PRF/4 에 복제되고 그 복제본이 «상한 위» 를 "
                        "삼켜 리듬 몫을 0 % 로 만든다 — 물리가 아니라 결측 자국이다.",
             "spike_ko": "spike_ratio = |AC| 의 최대÷중앙. 100 을 넘으면 beat_spiky 를 세운다 — "
-                        "몇 자세가 통째로 튄 것이라 그 «박자» 는 회전이 아니라 튐의 간격이다.",
+                        "몇 자세가 통째로 튄 것이라 그 «박자» 는 회전이 아니라 튐의 간격이다. "
+                        "⚠이것은 «얼마나 큰가» 만 잰다. «얼마나 혼자인가·헤드라인을 끄나» 는 "
+                        "아래 outlier_ko 의 잣대다.",
+            "outlier_ko": "⭐튐 진단(2026-08-16 부터 상시) — «이 칸의 수를 자세 **하나**가 "
+                          "끌고 있나». 칸마다 outlier_grade(정상·주의·튐·퇴화)와 "
+                          "one_pose_moves_headline 깃발이 붙고, 근거는 cells[*].outlier 에 "
+                          "들어 있다. 정본 잣대는 **영향**이다 — 가장 큰 자세 하나를 이웃 "
+                          "평균으로 갈아 끼우고 헤드라인 넷(리듬 몫·빗살 대비·요동 전력·상한 위 "
+                          "몫)을 다시 재서, 움직인 폭이 ① 죄 없는 자세 12 개·둘째 자세를 갈아 "
+                          "끼웠을 때보다 꼬리 울타리 밖으로 크고 ② 그 앙각의 격자 산포 밴드보다 "
+                          "크면 «튐» 이다. 구조 잣대(고립도·이웃 대비·날개 주기 되풀이)는 왜 "
+                          "그렇게 됐는지를 설명한다.",
+            "outlier_read_ko": "⛔«튐» 깃발이 떴다고 그 칸을 자동으로 버리지 마라. 깃발의 뜻은 "
+                               "«이 수는 자세 하나에 걸려 있으니 그 자세를 열어 보라» 이지 "
+                               "«틀렸다» 가 아니다 — 그 자세가 진짜 정반사 플래시일 수 있다. "
+                               "그래서 크기(top1÷중앙)는 등급에 안 쓰고, 되풀이·이웃·영향으로만 "
+                               "판정한다. flash_comb_undersampled 는 아예 튐이 **아니다** — "
+                               "진짜 플래시가 한 표본 폭으로 **덜 찍힌** 것(시간 분해능)이라 "
+                               "고칠 곳이 표집이지 그 칸이 아니다.",
+            "outlier_thresholds_ko": _outlier_meta_ko(),
             "beat_window_ko": "⚠박자는 **전 구간**(자세 전부)으로 재고, 맵 그림은 20~80 ms "
                               "창만 그린다 — 같은 상자의 두 수가 다른 구간에서 나온 수다.",
             "topics_ko": {s: TOPIC_LABEL.get(s, (s, s))[1] for s in topics},
@@ -1257,6 +1760,11 @@ def main():
                                    if c.get("no_return"))
         tinfo["n_no_motion"] = sum(1 for x in cells_of.values() for c in x.values()
                                    if c.get("no_motion"))
+        # ⭐튐 깃발도 주제 단위로 세어 둔다 — 갤러리가 «이 주제로 결론을 내도 되나» 에 쓴다
+        tinfo["n_one_pose_moves"] = sum(1 for x in cells_of.values() for c in x.values()
+                                        if c.get("one_pose_moves_headline"))
+        tinfo["n_flash_undersampled"] = sum(1 for x in cells_of.values() for c in x.values()
+                                            if c.get("flash_comb_undersampled"))
 
         # ── 주제별 비교판 ────────────────────────────────────────────────
         if not a.no_compare and len(arms) > 1:
@@ -1325,6 +1833,46 @@ def main():
     index["_meta"]["n_figures"] = sum(len(x["figures"]) for t in index["topics"].values()
                                       for x in t["arms"].values()) \
         + sum(len(t["compare"]) for t in index["topics"].values())
+    # ⭐튐 진단 요약 — 등급 분포와 «어느 문턱으로 쟀나» 를 목차 머리에 박아 둔다.
+    #   ⚠부분 실행이면 합쳐진 목차 전체를 다시 센다(옛 주제도 함께 세도록).
+    _grades: dict[str, int] = {}
+    for t in index["topics"].values():
+        for x in t["arms"].values():
+            for c in x["cells"].values():
+                g = c.get("outlier_grade") or "등급없음"
+                _grades[g] = _grades.get(g, 0) + 1
+    _R = outlier_rules()
+    index["_meta"]["outlier"] = dict(
+        grades=_grades,
+        n_one_pose_moves_headline=sum(1 for t in index["topics"].values()
+                                      for x in t["arms"].values() for c in x["cells"].values()
+                                      if c.get("one_pose_moves_headline")),
+        n_flash_comb_undersampled=sum(1 for t in index["topics"].values()
+                                      for x in t["arms"].values() for c in x["cells"].values()
+                                      if c.get("flash_comb_undersampled")),
+        n_grade_shaky=sum(1 for t in index["topics"].values()
+                          for x in t["arms"].values() for c in x["cells"].values()
+                          if c.get("outlier_grade_shaky")),
+        n_disagree_with_census=sum(1 for t in index["topics"].values()
+                                   for x in t["arms"].values() for c in x["cells"].values()
+                                   if c.get("outlier_census_grade") is not None
+                                   and c.get("outlier_census_grade") != c.get("outlier_grade")),
+        control_draw_ko="⚠쏠림의 분모는 «죄 없는 자세 12 개를 갈아 끼웠을 때의 **최댓값**» "
+                        "이라 추첨에 흔들린다. 그래서 중앙값 대조군으로 다시 재서 판정이 갈리는 "
+                        "칸에 outlier_grade_shaky 를 세우고, census 원장의 등급을 "
+                        "outlier_census_grade 에 나란히 싣는다 — 갈린 칸은 «둘 중 하나가 "
+                        "틀렸다» 가 아니라 «그 칸이 문턱에 걸터앉아 있다» 는 뜻이다.",
+        thresholds_ok=bool(_R.get("ok")), thresholds_stale=bool(_R.get("stale")),
+        threshold_source=_R.get("census"), band_source=_R.get("band_src"),
+        census_ledger_rows=_R.get("census_rows"), census_ledger_at=_R.get("census_at"),
+        census_written_at_kst=_R.get("census_written"),
+        ledger_rows_now=_R.get("ledger_rows_now"), notes=_R.get("notes"),
+        dominance_fence=_R.get("dominance_fence"), isolation_fence=_R.get("isolation_fence"),
+        flash_recur_fence=_R.get("flash_recur_fence"),
+        neighbor_jump_fence=_R.get("neighbor_jump_fence"),
+        npaths_note_ko="⚠그 자세의 **경로 수**(계산이 그 자세에서 달랐나)는 여기서 안 잰다 — "
+                       "샤드 수천 개를 읽어야 한다. 그 잣대의 정본은 "
+                       "outputs/outlier_census_0816.json 이다.")
     json.dump(index, open(INDEX, "w"), ensure_ascii=False, indent=1)
 
     n_png = len([f for f in os.listdir(OUTDIR) if f.endswith(".png")])
