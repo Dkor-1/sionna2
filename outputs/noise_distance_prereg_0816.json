@@ -1,0 +1,307 @@
+{
+ "_meta": {
+  "title_ko": "본판 «잡음을 얹으면 얼마나 멀리 읽히나» 의 사전등록",
+  "generated_kst": "2026-08-16 (UTC+9)",
+  "author_role_ko": "판정·검산 설계자. 신호를 만드는 층이 아니라 «얼마를 넘어야 읽힘인가 · 몇 미터인가 · 다른 원장과 맞나» 를 정하는 층이다.",
+  "what_this_is_ko": "재계산 큐가 끝나기 **전에** 예측·판정규칙·합격선을 못 박아 두는 문서다. 나중에 맞고 틀림을 채점한다. 사후에 규칙을 고치면 그 사실을 changed_after_the_fact 에 남긴다.",
+  "why_ko": "이 저장소에는 규약이 결론을 지배한 전례가 두 번 있다. ⓐ 앵커 규약을 바꾸니 엔진 간 배수가 12배 → 1.3배가 됐다. ⓑ 판정 막대를 다른 통계량에서 빌려 오니 보이는 판이 «안 보임» 이 됐다(16.6 dB 어긋남). 그래서 이번에는 **수를 보기 전에** 규칙을 적는다.",
+  "gpu_used": false,
+  "gpu_note_ko": "이 문서를 만들며 한 계산은 전부 CPU 이고 저장된 원장만 읽었다. sionna.rt·mitsuba·torch 임포트 없음.",
+  "inputs_read_only": [
+   "outputs/elevation_sweep_md.{json,npz} (2026-08-16 판)",
+   "outputs/noise_distance_frame.json (방법판 — 잠정 수치의 출처)",
+   "outputs/detection_curves.json (R50 교차검산 상대)",
+   "outputs/material_canon_0816.json (재질 정본 · 앙각별 격자 밴드 · 파급 목록 I1~I10)",
+   "docs/MAP_SCALING.md (§1 세 눈금 · §2-b 판정 막대 규칙 · §4-b 앵커 범위 표)",
+   "docs/STANDARD_FRAME.md (팔 정의)"
+  ],
+  "companion_code": "benchmark/noise_distance_judge.py (판정 규약을 코드로 박아 둔 층 — 본판이 import 한다)",
+  "scoring_ko": "재계산 뒤 본판을 돌리고, 각 예측의 scoring_rule 대로 hit/miss 를 매겨 outputs/noise_distance_prereg_0816_scored.json 에 적는다. 예측구간 밖이면 miss 이고, miss 여도 지우지 않는다 — 왜 틀렸는지를 적는다."
+ },
+
+ "locked_definitions": {
+  "metric_ko": "판독 잣대 = 빗살 대비 comb_contrast_db. build_md_atlas 정의 그대로(2·f_flash ~ f_tip, 정수배 칸 ÷ 중간 칸, 반폭 ±8 Hz), **잡음 섞은 시계열에서 다시** 잰다. 백색 = 0 dB.",
+  "metric_tag_ko": "⚠빗살 대비의 **절대값**에는 항상 격자 꼬리표(우리 커널 λ/12)를 붙인다 — 격자를 조이면 +4.0~4.7 dB 단조 상승한다(canon comb_grid_tag_ko).",
+  "R_read50_m": "잡음을 다시 태웠을 때 시행의 **50 %** 가 판정 막대를 넘는 거리.",
+  "R_read90_m": "같은 것의 **90 %**. ⭐덱 헤드라인은 이 수를 쓴다 — «읽힌다» 고 말하려면 열에 아홉이어야 한다.",
+  "R50_m": "탐지 통계량(빗살 에너지)의 Pd = 0.5 인 거리. Pfa = 1e−3.",
+  "R_pd90_m": "같은 것의 Pd = 0.9 인 거리.",
+  "changed_from_method_version_ko": "⚠방법판은 «잡음 시행의 **평균** 곡선이 막대를 지나는 자리» 하나뿐이었다. 평균은 분포의 반쪽만 말한다. R_read50 은 그것과 거의 같고 R_read90 은 약 0.90~0.92 배 짧다.",
+  "threshold_calibration_ko": "탐지 문턱은 잡음 **전용** 30,000 시행의 (1−Pfa) 분위수, 다른 씨앗 30,000 홀드아웃으로 Pfa 실측 검증. 교정 루틴은 신호 E 를 인자로도 안 받는다(문턱 누설 구조적 불가). detection_curves.py 와 같은 규약·같은 Pfa.",
+  "range_axis_ko": "A2 = 원장이 그 거리에서 다시 계산한 판. A1 = 15 m 모양을 얼리고 잡음만 바꾸는 연장선(1/R⁴). 헤드라인 거리는 A1 으로 내되 **A2 로 검증**한다.",
+  "convention_S1_S2_S3_ko": "S1(총 σ 앵커·엔진 확산 되벗김) 헤드라인 · S2(안 벗김=이중계상) · S3(움직이는 몫에 앵커). 세 수를 헤드라인 표 **앞면**에 나란히 싣는다 — 부록으로 밀지 않는다."
+ },
+
+ "decision_bar_rule": {
+  "rule_ko": "⭐판정 막대 = max(B1, B2, B3). 셋 다 넘어야 «무늬 읽힘».",
+  "B1_white_null": {
+   "what_ko": "백색 CN(0,1) 을 같은 마스크로 통과시킨 빗살 대비의 p99.9 (Pfa 1e−3 과 같은 분위수).",
+   "measured_db": {"el-30": 2.701, "el+0": 2.467, "el-60": 4.034},
+   "measured_null_sd_db": {"el-30": 0.871, "el+0": 0.790, "el-60": 1.279},
+   "comb_bins_on_off": {"el-30": [86, 94], "el+0": [112, 106], "el-60": [42, 40]},
+   "why_el60_highest_ko": "el −60 은 f_tip 이 636 Hz 로 낮아 빗살 칸이 42 개뿐이다 — 칸이 적을수록 최댓값 통계가 흔들려 막대가 올라간다.",
+   "n_trials_required": 20000,
+   "n_trials_evidence_ko": "p99.9 추정의 sd: 4,000 시행 0.15~0.18 dB · 10,000 0.08~0.11 · 20,000 0.05~0.07 · 40,000 0.02~0.03 dB. 잣대 곡선 기울기가 교차점에서 0.44~0.76 dB/dB 이므로 막대 0.1 dB = 거리 0.8~1.3 %. ⇒ 20,000 이면 막대발 거리 오차 ≤ 0.5 %."
+  },
+  "B2_surrogate_null": {
+   "what_ko": "⭐칸마다 다시 세운다. 그 칸의 움직이는 성분(AC)을 슬로타임에서 **뒤섞어** 리듬만 부수고(진폭 분포·희소성 보존) 같은 SNR 로 잡음을 얹은 뒤 p99.9.",
+   "why_ko": "B1 은 8192 표본에 **고르게** 실린 열의 막대다. 움직이는 몫이 몇 자세에 몰린 칸은 리듬이 하나도 없어도 빗살 대비가 크게 흔들린다.",
+   "measured_clean_bars_db": {
+    "ours_r15_el-30": 2.98, "ps_off_r15_el-30": 2.59, "ps_refr_r15_el-30": 2.82,
+    "ps_phys_r15_el-30": 2.70, "ps_off_r120_el+0": 8.92, "ps_refr_r60_el+0": 9.17
+   },
+   "headline_use_ko": "⭐이 검사가 덱 헤드라인을 살렸다 — ps_phys el −30 15 m 는 유효 자세 수가 180 뿐이라 «희소성 인공물» 이 의심됐는데, 자기 뒤섞기 막대가 2.70 dB 이고 실제 값은 6.29 dB 라 여유 +3.59 dB 다. 반대로 유효 자세 수 3 인 칸의 막대는 8.92 dB 로 B1 의 3.6 배다 — B1 만 썼으면 그 칸이 «읽힘» 으로 잘못 넘어갔다.",
+   "snr_dependence_ko": "낮은 SNR(먼 거리)에서는 B2 → B1 로 수렴한다. ⇒ B2 는 **가까운 거리의 원장 칸**을 지키고 B1 은 **판독거리 교차점**을 지킨다."
+  },
+  "B3_grid_band": {
+   "what_ko": "우리 자신의 수치 손잡이를 조였을 때 이 잣대가 움직이는 폭. 앙각마다 다르다.",
+   "canon_db": {"el+0": 0.105, "el-15": 4.038, "el-30": 4.616, "el-45": 4.669, "el-60": 4.053},
+   "source": "outputs/material_canon_0816.json : metric_protocol.comb_grid_band_db_by_el",
+   "verified_ko": "이 문서를 쓰며 원장에서 직접 재확인했다 — ours_r15_n8192 (λ/12) ↔ ours_r15_n8192_div24 (λ/24) 의 빗살 대비 차가 el −30 4.617 · el +0 0.105 · el −60 4.053 dB 로 canon 과 같다.",
+   "hairline_rule_ko": "밴드 < 0.5 dB 이면 그 폭에 물리 의미를 안 붙인다(canon). el +0 의 0.105 dB 가 여기 걸리므로 **el +0 막대는 사실상 B1(2.467)이 정한다**.",
+   "engine_specific_warning_ko": "⭐⭐밴드는 **엔진마다 손잡이가 다르다.** 우리 커널은 격자 λ/12↔λ/24, PathSolver 는 광선 예산(spp)·깊이다. 지금 원장에는 우리 커널 밴드밖에 없어 PathSolver 팔에는 **빌려 쓴다**. 빌렸다는 사실을 칸마다 적는다(bar.b3_borrowed).",
+   "what_we_could_measure_now": {
+    "pathsolver_depth_band_db": {"ps_off_r30_el-30": 0.373, "ps_off_r120_el-30": 0.063,
+                                 "note_ko": "깊이 d1↔d3 — 아주 좁다"},
+    "physics_on_depth_band_db": {"el-30": 0.16, "el-60": 0.02,
+                                 "note_ko": "⭐물리 켬 d1(6.29) ↔ d2(6.13) — 천장이 깊이 손잡이에 대해 사실상 불변"},
+    "pathsolver_ray_budget_band_db_OLD_GENERATION": {
+     "all_off_top_two_rungs": {"el-15": 1.95, "el-45": 5.07, "el-60": 5.89, "el+0": 3.50, "el-75": 17.75},
+     "physics_on_11M_vs_250M": {"el-30": 10.42, "el-45": 10.05, "el-60": 12.41, "el-75": 32.84},
+     "caveat_ko": "⚠이 광선예산 사다리는 10 m · n=4096 · 깊이 3 판이라 생산 설정(15 m · n=8192 · 깊이 1 · spp 4e9)과 **세대가 다르다**. 물리 켬의 10.4 dB 는 11.1M spp 라는 아주 성긴 예산에서 나온 수다. 그대로 막대로 쓰면 안 되지만, **그 크기면 «6 dB 천장» 주장이 뒤집힌다**는 사실은 남는다 ⇒ 게이트 G-d."
+    }
+   }
+  },
+  "what_changed_and_why_ko": "감사가 서로 다른 두 정정을 요구했다 — ⓐ «정본 앙각 밴드 4.616 을 써라»(거리 −6~−14 %) ⓑ «귀무 p99.9 2.70 을 써라»(거리 +16 %). max 규칙은 둘을 동시에 만족시킨다. 큰 쪽이 이기므로 el −30 에서는 ⓐ(4.616)가, el +0 에서는 ⓑ(2.467)가 막대가 된다."
+ },
+
+ "eligibility_gates": {
+  "rule_ko": "⭐**두 층**이다. 1층에 걸리면 판정 금지(수만 기록), 2층은 판정하되 조건이 붙는다.",
+  "design_correction_ko": "⭐처음에는 다섯 관문을 전부 «자격 박탈» 로 설계했다가 자가검사에서 되돌렸다 — 그 규칙은 덱 헤드라인 칸(ps_phys 15 m, N_eff 180)을 통째로 지웠다. 유효 자세 수가 적다는 것은 «잣대를 못 낸다» 가 아니라 «**백색 막대를 쓸 자격이 없다**» 는 뜻이고, 그건 B2 가 푼다. 사전등록이 실제로 한 일이 이것이다 — 수를 보기 전에 규칙을 적었더니 규칙 자신의 결함이 먼저 드러났다.",
+  "tier1_disqualify": {
+   "T1_complete": {"criterion": "n_missing = 0 및 0 표본 = 0", "why_ko": "덜 찬 칸은 잣대를 낼 자격이 없다"},
+   "T2_ac_fraction": {"criterion": "ac_fraction_db ≥ −60 dB", "why_ko": "수치 바닥 판별. ps_off el +0 240 m 는 −106 dB 인데 빗살 대비 54 dB 를 낸다 — 순전한 수치 쓰레기다"},
+   "T3_top8_share": {"criterion": "상위 8 자세가 AC 전력의 < 50 %", "why_ko": "절반을 넘으면 물리가 아니라 사건 몇 개다. ps_phys 60 m 은 90.7 %"},
+   "T4_uniform_resample": {"criterion": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차 ≤ 3 dB", "why_ko": "⛔삭제 솎기는 빗살·리듬 잣대를 부순다(canon J1) — 균일 재표집이나 이웃 평균 갈아끼우기만 쓴다"}
+  },
+  "tier2_flags": {
+   "W1_sparse": {
+    "criterion": "N_eff = (Σp)²/Σp² < 256  (p = |E−mean|²)",
+    "why_ko": "8192 자세 중 실제로 움직이는 몫을 지고 있는 자세 수. ⭐이상값 검사의 정본 — 고립도(최대÷둘째)는 «여럿이 함께 튀는» 칸을 못 잡는다(canon 이 이미 지적)",
+    "consequences_ko": [
+     "막대를 **반드시 B2(구조 귀무)로** 세운다 — 백색 막대 단독 사용 금지(코드가 예외를 던진다)",
+     "⭐**A1 연장선의 미터 인용 금지** — 곡선은 그려도 되지만 «몇 m» 를 헤드라인으로 못 쓴다. 그 모양이 자세 180 개에 실려 있어 «먼 거리에서도 이 모양» 은 물리 예측이 아니라 가정이다",
+     "인용할 때 «움직이는 몫을 자세 N 개가 지고 있다» 를 함께 적는다"
+    ]
+   },
+   "W2_neighbour": {"criterion": "이웃 거리와 N_eff 가 10 배 또는 잣대가 10 dB 이상 튐", "why_ko": "자동 탈락은 아니고 조사 표시. 실측 예: ps_phys el −60 이 60 m N_eff 9 → 120 m N_eff 3304 로 튄다"}
+  },
+  "consequence_for_the_deck_ko": "⭐⭐**«물리 켬 47 m» 는 본판에서 미터로 나오지 않는다.** ps_phys 15 m 은 희소 딱지(W1)라 A1 미터 인용이 금지되고, 30·60·120 m 은 상위 8 자세가 51/91/89 % 라 1층에서 탈락한다. ⇒ 이 팔이 낼 수 있는 것은 «15 m 에서의 판정» 하나뿐이다. 그리고 그 판정은 «읽히긴 하되 여유 1.7 dB» 다(다 끔은 47 dB).",
+  "measured_now": {
+   "N_eff_healthy_range": {"ours": "2019~3883", "ours_ptd": "2029~3883", "ps_off_el-30": "2680~4609", "ps_refr_el-30": "2466~4259"},
+   "N_eff_failing": {
+    "ps_phys_el-30": {"15m": 180, "30m": 21.5, "60m": 8.3, "120m": 3.0},
+    "ps_phys_el-60": {"15m": 226, "30m": 57.7, "60m": 9.3, "120m": 3304},
+    "ps_off_el+0": {"15m": 58.8, "30m": 23.1, "60m": 8.0, "120m": 3.0},
+    "ps_refr_el+0": {"15m": 32.3, "30m": 9.0, "60m": 2.0}
+   },
+   "G1_failure": {"ps_off_r480_el-30": "n_missing = 5287 / 8192 — 자격 없음"},
+   "replace_k1_effect_db": {"ours": -0.045, "ours_ptd": -0.042, "ps_off": -0.002, "ps_refr": 0.051, "ps_phys": 0.277,
+                            "note_ko": "이웃 평균 갈아끼움 k=1 이 빗살 대비를 흔드는 크기. ps_phys 만 0.28 dB 움직인다 — 그 칸이 얇다는 증거 자체다"}
+  },
+  "predicted_ineligible_cells": {
+   "count": 16,
+   "list_ko": "el −30: ps_phys 30·60·120 m (3) · ps_off 480 m (1). el +0: PathSolver 세 팔 전 거리 (12). el −60: ps_phys 60 m 등.",
+   "consequence_ko": "⭐⭐본판에서 **ps_phys 의 거리 팔(A2)은 쓸 수 없다.** 15 m 판 + A1 연장선만 쓰고 그 사실을 그림에 적는다. 그리고 el +0 칸에서 «PathSolver 가 무늬를 못 낸다» 는 말은 맞지만 **그 칸의 빗살 대비 수를 인용하면 안 된다**."
+  }
+ },
+
+ "ledger_inventory_now": {
+  "note_ko": "⭐방법판 코드가 하드코딩으로 막고 있던 칸들이 이미 원장에 착지했다. 본판은 ranges 를 상수로 두지 말고 원장 조회로 바꾼다.",
+  "ours": {"el-30": [15, 30, 60, 120, 240, 480], "el+0": [15, 30, 60, 120, 240, 480], "el-60": [15, 30, 60, 120]},
+  "ours_ptd": {"el-30": [15, 30, 60, 120], "el+0": [15], "el-60": [15]},
+  "ps_off": {"el-30": [15, 30, 60, 120, 240, "480(결측 5287 — 자격 없음)"], "el+0": [15, 30, 60, 120, 240, 480], "el-60": [15, 30, 60, 120]},
+  "ps_refr": {"el-30": [15, 30, 60, 120, 240], "el+0": [15, 30, 60, 120, 240], "el-60": [15]},
+  "ps_phys": {"el-30": [15, 30, 60, 120], "el+0": [15, 30, 60, 120], "el-60": [15, 30, 60, 120]},
+  "biggest_gain_ko": "⭐ours el −30 은 **480 m 실판**이 있다. 판독거리 예측(약 520 m) 코앞이므로 A1 연장선을 실측으로 받칠 수 있다 — 방법판에는 없던 검증이다."
+ },
+
+ "predictions": [
+  {
+   "id": "P1", "layer": "규칙 변경(재계산과 무관)",
+   "claim_ko": "el −30 판정 막대가 3.843 → 4.616 dB 로 오른다(max 규칙에서 B3 가 이긴다).",
+   "current": 3.843, "predicted": 4.616, "interval": [4.616, 4.616],
+   "confidence": "높음", "basis_ko": "B1 2.701 · B2 2.59~2.98 · B3 4.616 — 셋 다 실측",
+   "scoring_rule": "본판 read_lines['-30'].bar_db 와 비교, |Δ| ≤ 0.05 dB 면 hit"
+  },
+  {
+   "id": "P2", "layer": "규칙 변경",
+   "claim_ko": "el +0 막대는 반대로 3.856 → 2.467 dB 로 **내려간다**. ⚠감사는 정본 밴드 0.105 를 그대로 써서 «훨씬 관대해진다» 고 봤지만 max 규칙에서는 B1 이 바닥을 받친다.",
+   "current": 3.856, "predicted": 2.467, "interval": [2.40, 3.10],
+   "confidence": "높음", "basis_ko": "머리카락 밴드 규칙 + B1 실측 2.467 (칸에 따라 B2 3.0 이 이길 수 있어 상단을 3.10 으로 둔다)",
+   "scoring_rule": "|Δ| ≤ 0.1 dB 면 hit"
+  },
+  {
+   "id": "P3", "layer": "규칙 변경", "arm": "ours", "el_deg": -30,
+   "claim_ko": "우리 커널의 판독거리(R_read50)가 554 → 519 m 로 −6.2 % 움직인다.",
+   "current": 553.6, "predicted": 519, "interval": [508, 532],
+   "confidence": "높음",
+   "basis_ko": "잣대 곡선에서 막대 3.843 교차 SNR −17.62 dB, 4.616 교차 −16.49 dB ⇒ ΔSNR 1.13 dB ⇒ 거리 ×10^(−1.13/40) = 0.938",
+   "scoring_rule": "예측구간 안이면 hit"
+  },
+  {"id": "P4", "layer": "규칙 변경", "arm": "ps_off", "el_deg": -30,
+   "claim_ko": "PathSolver 다 끔 641 → 597 m (−6.9 %).", "current": 641.0, "predicted": 597,
+   "interval": [583, 612], "confidence": "높음",
+   "basis_ko": "교차 SNR −16.90 → −15.64 dB, ΔSNR 1.26 dB", "scoring_rule": "예측구간 안이면 hit"},
+  {"id": "P5", "layer": "규칙 변경", "arm": "ps_refr", "el_deg": -30,
+   "claim_ko": "굴절만 556 → 516 m (−7.2 %).", "current": 555.9, "predicted": 516,
+   "interval": [500, 532], "confidence": "중간", "basis_ko": "같은 기울기 대역(0.5~0.7 dB/dB) 가정",
+   "scoring_rule": "예측구간 안이면 hit"},
+  {"id": "P6", "layer": "규칙 변경", "arm": "ours_ptd", "el_deg": -30,
+   "claim_ko": "PTD 656 → 616 m (−6.1 %).", "current": 656.4, "predicted": 616,
+   "interval": [600, 632], "confidence": "높음",
+   "basis_ko": "무잡음 천장·곡선이 순정 팔과 사실상 같다(42.87 vs 42.93 dB)", "scoring_rule": "예측구간 안이면 hit"},
+  {"id": "P7", "layer": "규칙 변경", "arm": "ps_phys", "el_deg": -30,
+   "claim_ko": "⭐⭐물리 켬 팔은 본판에서 **미터가 안 나온다.** 15 m 판은 희소 딱지(W1: N_eff 180)라 A1 미터 인용이 금지되고, 30·60·120 m 은 상위 8 자세가 51/91/89 % 라 1층에서 탈락한다.",
+   "current": 46.6, "predicted": null,
+   "what_comes_out_instead_ko": "15 m 한 칸의 판정 — 무잡음 빗살 대비 6.29 dB, 막대 max(B2 2.70, B3 4.616) = 4.616 ⇒ «읽히긴 하되 여유 1.67 dB». 같은 자세 다 끔 팔의 여유는 47.4 dB.",
+   "predicted_margin_db": 1.67, "interval_db": [1.0, 2.3], "confidence": "중간",
+   "basis_ko": "무잡음 6.29 dB 는 실측, B2 2.70 은 뒤섞기 4,000 시행 실측, B3 4.616 은 canon(⚠우리 커널에서 빌린 밴드)",
+   "scoring_rule": "여유가 구간 안이면 hit. ⛔이 팔의 미터가 본판 JSON 에 헤드라인으로 나오면 그 자체가 규칙 위반이다"},
+  {"id": "P8", "layer": "규칙 변경", "arm": "ours", "el_deg": 0,
+   "claim_ko": "정면(el +0)은 막대가 내려가 판독거리가 299 → 345 m 로 **늘어난다**(+15 %).",
+   "current": 299.4, "predicted": 345, "interval": [325, 365], "confidence": "중간",
+   "basis_ko": "막대 3.856 → 2.467, 교차 SNR −17.23 → −19.68 dB", "scoring_rule": "예측구간 안이면 hit"},
+  {"id": "P9", "layer": "규칙 변경(정의)",
+   "claim_ko": "R_read90 은 R_read50 의 0.90~0.92 배다.",
+   "predicted": 0.91, "interval": [0.88, 0.94], "confidence": "중간",
+   "basis_ko": "교차점 부근 빗살 대비의 시행간 sd 0.75~0.93 dB, 곡선 기울기 0.55~0.76 dB/dB ⇒ 필요 SNR 여유 1.4~2.0 dB ⇒ 거리 ×0.90~0.92",
+   "scoring_rule": "다섯 팔의 중앙값이 구간 안이면 hit"},
+  {"id": "P10", "layer": "규칙 변경(자격)",
+   "claim_ko": "1층 자격 박탈은 61 칸 중 약 14 칸, 2층 희소 딱지가 약 6 칸이다.",
+   "predicted_tier1": 14, "interval_tier1": [11, 18],
+   "predicted_tier2_sparse": 6, "interval_tier2": [4, 9], "confidence": "중간",
+   "basis_ko": "설계 시점 자가검사(outputs/noise_distance_judge_selftest.json)에서 실제로 돌려 본 수. ⚠재계산 뒤에는 Sionna 팔의 시계열이 바뀌므로 이 수도 움직인다 — 그래서 구간을 넓게 뒀다.",
+   "prediction_about_recompute_ko": "⭐재계산은 **탈락 칸을 줄이는 쪽**으로 갈 것이다 — 셸을 100 mm 에서 0.75 mm 로 얇게 하면 정지 성분이 내려가 움직이는 몫의 상대 크기가 커지고, 그만큼 수치 바닥에서 멀어진다. 예측: 1층 탈락이 14 → 10~13 칸.",
+   "scoring_rule": "두 수가 각 구간 안이고 탈락 목록의 성격(ps_phys 원거리 · el +0 PathSolver)이 유지되면 hit"},
+  {"id": "P11", "layer": "새 축(el −60)", "arm": "ours", "el_deg": -60,
+   "claim_ko": "빗각을 더 눕히면(el −60) 우리 커널의 판독거리가 el −30 대비 **+35 %** 늘어난다.",
+   "predicted": 700, "interval": [620, 790], "confidence": "중간",
+   "basis_ko": "① 15 m 움직이는 몫이 el −60 에서 −0.98 dB 로 el −30(−5.62)보다 4.64 dB 좋다 ⇒ ×1.31 ② 막대가 4.053 으로 0.56 dB 낮다 ⇒ ×1.04 ③ 무잡음 천장도 45.4 vs 42.9 dB. 519 × 1.31 × 1.04 ≈ 707 m",
+   "scoring_rule": "예측구간 안이면 hit. ⚠앵각별 앵커가 없다는 구조적 한계(앙각마다 그 팔의 15 m 에 앵커)를 문장에 함께 적어야 한다"},
+
+  {"id": "P12", "layer": "재계산(재질 정본)", "arm": "ours",
+   "claim_ko": "우리 커널·PTD 는 **안 움직인다**(D3 동결 — 우리 커널에는 두께 개념이 없다).",
+   "predicted_pct": 0.0, "interval_pct": [-0.5, 0.5], "confidence": "높음",
+   "basis_ko": "canon.ours_kernel.status_ko — 구조적 N/A", "scoring_rule": "|Δ| ≤ 0.5 % 면 hit (그 이상이면 몬테카를로 잡음이 아니라 코드 변경이 섞인 것)"},
+  {"id": "P13", "layer": "재계산", "arm": "ps_off", "el_deg": -30,
+   "claim_ko": "다 끔 팔은 −0.5 % 만 움직인다(셸·프롭을 **같이** 고칠 때).",
+   "current_after_rule_change": 597, "predicted": 594, "interval_pct": [-4.0, 3.0], "confidence": "중간",
+   "basis_ko": "canon I4 — 움직이는 몫 −0.08 dB. ⚠이 «사실상 불변» 은 두께에 매우 민감하다: 0.9 mm 면 −8.9 %, 0.5 mm 면 −23.6 %",
+   "scoring_rule": "예측구간 안이면 hit. 벗어나면 **셸 정책이 문장에 적혔는지** 부터 확인한다"},
+  {"id": "P14", "layer": "재계산", "arm": "ps_refr", "el_deg": -30,
+   "claim_ko": "굴절만 팔은 +0.6 % 움직인다.", "current_after_rule_change": 516,
+   "predicted": 519, "interval_pct": [-4.0, 5.0], "confidence": "중간",
+   "basis_ko": "canon I4 — 움직이는 몫 +0.10 dB", "scoring_rule": "예측구간 안이면 hit"},
+  {"id": "P15", "layer": "재계산", "arm": "ps_phys", "el_deg": -30,
+   "claim_ko": "⭐canon 이 수를 안 준 칸이다. 나는 **+8 %** 로 예측한다(구간 −15 %~+40 %).",
+   "current_after_rule_change": 40, "predicted": 43, "interval": [34, 56], "confidence": "낮음",
+   "basis_ko": "셸이 얇아지면 정지 성분이 내려가 움직이는 몫이 오르고(다 끔 팔에서 셸 단독 +1.67 dB) 판독거리가 늘어난다. 반대로 회절 자체도 프롭 두께를 타서 줄어드는 쪽으로 민다. 두 힘의 크기를 모른다 — 정본 두께의 물리 켬 판이 원장에 없다.",
+   "scoring_rule": "예측구간 안이면 hit. ⛔이 예측의 확실도가 낮다는 사실 자체를 덱에 반영한다(이 팔의 미터는 슬라이드 큰 글자로 안 쓴다)"},
+  {"id": "P16", "layer": "재계산", "el_deg": -60,
+   "claim_ko": "el −60 은 재계산으로 **좋아진다** — Sionna 팔의 움직이는 몫이 +5.74 dB 올라 판독거리 +39 %.",
+   "predicted_pct": 39, "interval_pct": [25, 50], "confidence": "중간",
+   "basis_ko": "canon I3", "scoring_rule": "ps_off el −60 의 변화가 구간 안이면 hit"},
+  {"id": "P17", "layer": "재계산", "claim_ko": "el −30 의 Pd(R) 표는 사실상 불변 — 문턱 근처인 ps_off 120 m 의 Pd 0.93 조차 0.90~0.96 안에 머문다.",
+   "predicted": 0.93, "interval": [0.90, 0.96], "confidence": "높음", "basis_ko": "canon I7 — 움직이는 몫 −0.08 dB ≈ SNR 0.02 dB",
+   "scoring_rule": "구간 안이면 hit"},
+
+  {"id": "P18", "layer": "검산", "claim_ko": "정렬(σ 라벨·거리 격자·시행수) 뒤 R50 이 detection_curves 와 2 % 안에서 만난다.",
+   "current_unaligned_pct": {"ours": -1.85, "ps_off": -3.72}, "predicted_pct": 0.0,
+   "interval_pct": [-2.0, 2.0], "confidence": "중간",
+   "basis_ko": "미정렬 편차의 상당 부분이 **거리 격자 거칢**에서 온다고 본다 — detection_curves 는 100~10,000 m 를 21 점(한 칸 = SNR 4.0 dB)으로 훑고 Pd 가 0.97 → 0.18 로 떨어지는 칸을 선형보간한다",
+   "scoring_rule": "정렬 후 |Δ| ≤ 2 % 면 hit. 넘으면 **미해결**로 적고 미터를 덱에 안 올린다"},
+  {"id": "P19", "layer": "검산", "claim_ko": "A1 연장선이 예측한 480 m 의 빗살 대비가 A2 실판과 격자 밴드 안에서 맞는다(ours el −30).",
+   "predicted_db": 0.0, "interval_db": [-1.0, 1.0], "confidence": "높음",
+   "basis_ko": "무잡음 모양 드리프트가 15 → 480 m 에서 0.82 dB (ours). ⚠ps_off 11.54 dB · ps_refr 9.30 dB 는 밴드를 크게 넘으므로 그 두 팔의 A1 은 «대략의 기울기» 로만 읽는다",
+   "scoring_rule": "|Δ| ≤ 1.0 dB 면 hit"},
+  {"id": "P20", "layer": "검산", "claim_ko": "앵커는 계속 비트동일하다(c_anchor ours el −30 = 52.0703).",
+   "predicted_db": 0.0, "interval_db": [-0.001, 0.001], "confidence": "높음",
+   "basis_ko": "이미 확인됨", "scoring_rule": "|Δ| < 0.001 dB 면 hit"}
+ ],
+
+ "convention_survival": {
+  "knobs_ko": "손잡이 여섯을 흔든다 — K1 앵커 범위(S1/S3/7앙각평균) · K2 판정 막대(B1/B3/max) · K3 EIRP(12/30/63 dBm) · K4 캡처(풀웨이브폼/상시기준신호) · K5 거리축(A1/A2) · K6 앙각(−30/0/−60).",
+  "grades": [
+   {
+    "grade": "A", "survives": "6/6",
+    "claim_ko": "⭐⭐**물리를 전부 켜면 날개 무늬의 «천장»이 무너진다.** 잡음이 하나도 없어도 빗살 대비가 el −30 에서 6.3 dB, el −60 에서 7.1 dB 에서 멈춘다 — 같은 자세의 다 끔 팔은 52.0 / 48.3 dB 다. **간격 45.7 / 41.3 dB.**",
+    "why_immune_ko": "무잡음 값이라 앵커·EIRP·캡처·거리와 전부 무관하고, 두 팔의 **차**라 공통 상수는 약분된다.",
+    "corroboration_ko": "⭐한 칸의 수가 아니다. 깊이 손잡이(d1 6.29 ↔ d2 6.13 dB, Δ 0.16) · 기체 세 종(matrice4e 6.29 · s1000plus 0.96 · mini5pro 0.01 dB) · 회절만 팔(9.09 dB) · 10 m 판(8.58 dB) 이 전부 한 자릿수~십 몇 dB 다.",
+    "honest_limits_ko": "⚠방위 45° 판은 14.99 dB 로 더 높다. 그러므로 «6 dB» 라는 **한 수**가 아니라 «한 자릿수~십 몇 dB, 다 끔 대비 30~50 dB 아래» 라고 적는다.",
+    "deck_rule_ko": "덱 큰 글자로 쓸 수 있는 유일한 문장."
+   },
+   {
+    "grade": "A-", "survives": "5/6",
+    "claim_ko": "우리 커널의 천장(42.9 dB)이 PathSolver 다 끔(52.0 dB)보다 9 dB 낮다.",
+    "moved_by_ko": "K5 — ps_off 은 거리마다 40.5~52.0 dB 로 11.5 dB 흔들린다. 15 m 판 하나로 «9 dB» 를 말하면 안 되고 거리 범위를 함께 적어야 한다."
+   },
+   {
+    "grade": "B", "survives": "2/6",
+    "claim_ko": "판독거리는 수백 m 다.",
+    "moved_by_ko": "K3 EIRP 하나가 19배 범위 안 아무 데나 놓는다 — R ∝ 10^(Δ/40) 이므로 12 dBm 이면 ×0.355, 63 dBm 이면 ×6.68 (30 dBm 기준). 519 m 가 184 m ↔ 3,467 m 가 된다. K4 캡처가 «상시 기준신호» 면 정합필터 이득 10log10(B/PRF) = 37.1 dB(B 100 MHz)/43.1 dB(400 MHz)를 잃어 ×0.119.",
+    "audit_number_note_ko": "⚠감사 메모의 «12 dBm → 175 m» 는 내 산술(×0.355 → 197 m)과 12 % 다르다. 63 dBm 쪽(3,703 m)은 정확히 일치하므로 12 dBm 쪽 한 줄이 다른 지수를 썼다고 본다 — 본판에서 다시 계산한다.",
+    "deck_rule_ko": "«이 송신기·이 캡처에서» 라는 조건절과 함께만."
+   },
+   {
+    "grade": "C", "survives": "0/6",
+    "claim_ko": "⛔«물리 켬은 47 m» — 덱 최강 후보였던 수.",
+    "moved_by_ko": "K1 하나로 6배(S1 47 m ↔ S3 280 m). K2 로 40~56 m. 규칙 변경 뒤 40 m, 재계산 뒤 예측 43 m(구간 34~56).",
+    "deck_rule_ko": "⛔단독으로 덱에 올리지 않는다. 올린다면 반드시 «앵커를 총 σ 에 걸었을 때» 를 같은 크기 글자로 붙인다."
+   }
+  ],
+  "reframing_ko": "⭐절정 문장을 **거리에서 간격으로** 옮긴다. «회절을 켜면 47 m 밖에 못 본다» 가 아니라 **«회절을 켜면 무늬가 애초에 45 dB 낮게 시작한다 — 잡음을 아무리 줄여도 그 이상 안 올라간다»**. 앞 문장은 규약마다 6배 흔들리고 뒤 문장은 안 흔들린다."
+ },
+
+ "gates_before_meters_go_on_a_slide": [
+  {"id": "G-a", "what_ko": "EIRP 를 문장으로 선언한다 — 어느 시나리오의 송신기인가.",
+   "why_ko": "저장소에 12 dBm(챔버) · 30 dBm(이 프레임) · 63 dBm(매크로셀)이 **동시에 산다**. R ∝ 10^(Δ/40) 이라 하나가 21배 범위를 만든다.", "blocking": true},
+  {"id": "G-b", "what_ko": "capture 모드와 대역 B 를 _meta 에 적는다.",
+   "why_ko": "N = k·T₀·F·PRF 는 풀 웨이브폼 캡처 전제이고 그 안에 정합필터 이득 10log10(B/PRF) = 37.1 dB(100 MHz)/43.1 dB(400 MHz)가 숨어 있다. B 는 약분되지만 **가정은 남는다**.", "blocking": true},
+  {"id": "G-c", "what_ko": "PRF 19.7 kHz 를 «시뮬 표본율» 이 아니라 «센서 설계값» 으로 선언하고 근거를 적는다.",
+   "why_ko": "잡음 전력이 PRF 에 정비례한다. 실제 상시 기준신호 반복률(1 kHz·50 Hz·200 Hz)과 20~400배 다르다.", "blocking": true},
+  {"id": "G-d", "what_ko": "⭐⭐ps_phys 의 **생산 설정 광선예산 밴드**를 잰다 — 반예산 쌍(spp 1e9 또는 2e9 · r15 · n8192 · d1 · el −30/−60).",
+   "why_ko": "덱의 가장 센 주장(«물리 켬 천장»)에 자기 수치 재현 밴드가 없다. 지금 빌려올 수 있는 유일한 밴드는 세대가 다른 10 m·n4096·깊이3 판의 **10.4 dB** 이고, 그 크기면 6.3 dB 주장이 뒤집힌다. 깊이 손잡이(d1↔d2 0.16 dB)는 좁지만 그것은 다른 손잡이다.",
+   "blocking": true, "queue_priority": "최우선", "gpu_needed": true},
+  {"id": "G-e", "what_ko": "ps_off·ps_refr 의 반예산 쌍(우선순위 낮음).",
+   "why_ko": "그 팔들의 천장은 40~52 dB 라 몇 dB 밴드로는 결론이 안 뒤집힌다.", "blocking": false, "gpu_needed": true},
+  {"id": "G-f", "what_ko": "X410+ZBX 실제 TX 출력 · 쓸 안테나 이득 · 체인 NF 를 스펙시트에서 확보해 rx_spec 에 provenance 로 박는다.",
+   "why_ko": "src/experiment_x410.py 의 «장비 제원 단일 출처» 에 링크버짓이 아예 없다 — 지금 «몇 미터» 의 절대값은 보유 하드웨어에 뿌리가 없다.", "blocking": false, "gpu_needed": false},
+  {"id": "G-g", "what_ko": "ps_phys 의 재질 정본 판(셸 0.75 · 프롭 1.43 mm)을 원장에 착지시킨다.",
+   "why_ko": "P15 의 확실도가 낮은 이유 그 자체.", "blocking": false, "gpu_needed": true}
+ ],
+
+ "run_scale": {
+  "N_CAL": 30000, "N_VER": 30000,
+  "N_NULL_B1": 20000, "N_NULL_B2": 20000,
+  "N_MC_per_distance": 2000, "N_SNR_per_grid_point": 1000,
+  "elevations": [-30.0, 0.0, -60.0],
+  "conventions": ["S1", "S2", "S3"],
+  "changed_from_method_version_ko": "N_NULL 4,000 → 20,000 (막대 정밀도) · N_MC 240 → 2,000 (거리 정밀도) · 앙각 2 → 3 · 거리 4점 → 원장이 주는 만큼(최대 6점).",
+  "cpu_only_ko": "⛔GPU 없음. B2 뒤섞기가 새 비용이지만 교차점 ±4 dB 구간만 20,000 시행으로 하고 나머지 격자는 2,000 이면 충분하다."
+ },
+
+ "figure_rules": {
+  "scale_ko": "⛔잡음 섞인 맵에 패널별 눈금 금지(사용자 지시). 잡음 기준(③) 을 쓰고 판정 막대가 무엇인지 그림에 적는다.",
+  "two_layers_ko": "그림에 두 층으로 적는다 — **검증된 것**: 팔 사이 상대 비교와 무늬 천장 / **검증 안 된 것**: 절대 미터(실측 대조 0 건, EIRP·이득·NF·캡처·PRF 는 전부 선언값).",
+  "axis_fallback_ko": "게이트 G-a~G-c 를 못 잠그면 그림의 x 축을 **미터 대신 SNR** 로 내고 미터는 표로만 낸다.",
+  "language_ko": "그림 글자는 영어, 본문·주석은 한국어(집 규약)."
+ },
+
+ "open_questions": [
+  "앙각별 앵커가 없다 — 문헌 앵커가 방위 선형평균 한 값(−13.98 dBsm)뿐이라 «앙각을 바꾸면 몇 미터» 는 지금 구조로 못 낸다. P11 은 그래서 «그 팔 그 앙각의 15 m 에 앵커» 규약 안에서만 참이다.",
+  "실측 대조 0 건 — 이 원장의 어떤 거리도 측정으로 검증된 적이 없다.",
+  "ps_phys 의 리듬 몫이 백색 널과 구별되지 않는다(12.46 % vs 12.65 %). 빗살은 있고 날개끝 위 리듬은 없다 — 두 잣대가 갈리는 이유를 아직 모른다. 문장에 함께 적는다.",
+  "B2(뒤섞기)는 **슬로타임 독립성**을 가정한다. 실제 AC 열은 자세끼리 상관이 있으므로 뒤섞기가 리듬 말고도 다른 구조를 부술 수 있다 — 위상 무작위화(진폭 스펙트럼 보존) 대조군을 함께 돌려 두 귀무가 같은 막대를 주는지 확인할 것."
+ ]
+}

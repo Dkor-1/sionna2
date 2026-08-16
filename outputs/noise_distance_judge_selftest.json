@@ -1,0 +1,3951 @@
+{
+ "_meta": {
+  "generator": "benchmark/noise_distance_judge.py (판정·검산 층 자가검사)",
+  "role_ko": "본판 noise_distance_frame 이 import 할 판정 규약. 이 파일 자체는 신호를 만들지 않는다 — 막대·자격·거리 정의·교차검산만 담는다",
+  "generated_kst": "2026-08-16 22:35:03 (UTC+9)",
+  "gpu_ko": "⛔GPU/솔버 임포트 없음 — 저장된 원장만 읽는 CPU 판정",
+  "inputs": [
+   "outputs/elevation_sweep_md.json",
+   "outputs/elevation_sweep_md.npz",
+   "outputs/material_canon_0816.json",
+   "outputs/detection_curves.json"
+  ],
+  "n_bar_used": 2500,
+  "n_bar_for_production": 20000,
+  "gate_tiers_ko": "1층(자격 박탈) T1 완결성 · T2 수치바닥 · T3 한줌자세 · T4 균일재표집 / 2층(주의 딱지) W1 희소(N_eff<256 → 막대는 B2 로·A1 금지) · W2 이웃 불연속(조사 표시)",
+  "design_correction_ko": "⭐처음에는 N_eff<256 도 자격 박탈로 설계했다가 자가검사에서 되돌렸다 — 그 규칙은 덱 헤드라인 칸(ps_phys 15 m, N_eff 180)을 통째로 지웠다. 희소는 «잣대를 못 낸다» 가 아니라 «백색 막대를 쓸 자격이 없다» 는 뜻이고, 그건 B2 가 푼다",
+  "bar_precision_ko": "p99.9 추정 sd — 4,000 시행 0.15~0.18 dB · 20,000 시행 0.05~0.07 dB. 잣대 곡선 기울기 0.44~0.76 dB/dB 이므로 막대 0.1 dB = 거리 0.8~1.3 %",
+  "constants": {
+   "PFA": 0.001,
+   "N_NULL_BAR": 20000,
+   "N_MC_DIST": 2000,
+   "SPARSE_NEFF_MIN": 256.0,
+   "GATE_TOP8_MAX_PCT": 50.0,
+   "GATE_AC_FRAC_MIN_DB": -60.0,
+   "GATE_RESAMPLE_MAX_DB": 3.0,
+   "NEIGHBOUR_NEFF_RATIO": 10.0,
+   "NEIGHBOUR_COMB_JUMP_DB": 10.0,
+   "CROSSCHECK_TOL_PCT": 2.0
+  },
+  "knobs": {
+   "K1_anchor_scope": [
+    "S1_total_sigma",
+    "S3_ac_sigma",
+    "scaled_maps_7el_mean"
+   ],
+   "K2_decision_bar": [
+    "B1_only",
+    "B3_only",
+    "max_B1_B2_B3"
+   ],
+   "K3_eirp_dbm": [
+    12.0,
+    30.0,
+    63.0
+   ],
+   "K4_capture": [
+    "full_waveform",
+    "always_on_pilot"
+   ],
+   "K5_range_axis": [
+    "A1_frozen_shape",
+    "A2_ledger_points"
+   ],
+   "K6_elevation": [
+    -30.0,
+    0.0,
+    -60.0
+   ]
+  },
+  "elapsed_s": 66.0
+ },
+ "bands_B3": {
+  "comb_db_by_el": {
+   "+0": 0.105,
+   "-15": 4.038,
+   "-30": 4.616,
+   "-45": 4.669,
+   "-60": 4.053
+  },
+  "rhythm_pp_by_el": {
+   "+0": 11.852,
+   "-15": 0.1,
+   "-30": 21.819,
+   "-45": 12.824,
+   "-60": 15.914,
+   "-75": 2.442,
+   "-90": 16.45
+  },
+  "ac_db_by_el": {
+   "+0": 3.861,
+   "-15": 1.318,
+   "-30": 0.374,
+   "-45": 0.091,
+   "-60": 0.018,
+   "-75": 0.104,
+   "-90": 5.62
+  },
+  "source": "outputs/material_canon_0816.json : metric_protocol",
+  "knob_ko": "우리 커널의 손잡이는 격자 λ/12 ↔ λ/24 다",
+  "borrowed_for_ko": "⚠PathSolver 팔에는 이 밴드를 **빌려 쓴다** — 그쪽 손잡이는 광선 예산(spp)·깊이이고 그 밴드는 생산 설정에서 아직 안 쟀다"
+ },
+ "bars_B1": {
+  "-30": {
+   "bar_db": 2.6959973628007035,
+   "mean_db": -0.009581674284506412,
+   "std_db": 0.8740624117196549,
+   "p99_db": 2.073564447739895,
+   "max_db": 3.096428721568723,
+   "n_trial": 2500,
+   "what_ko": "잡음만으로 이 빗살 대비가 나오나 (판정량 자체의 귀무 p99.9)",
+   "n_comb_on": 86,
+   "n_comb_off": 94
+  },
+  "+0": {
+   "bar_db": 2.2928103073220485,
+   "mean_db": -0.0065696173943203704,
+   "std_db": 0.7813175806989038,
+   "p99_db": 1.7723570899788024,
+   "max_db": 2.71823852166123,
+   "n_trial": 2500,
+   "what_ko": "잡음만으로 이 빗살 대비가 나오나 (판정량 자체의 귀무 p99.9)",
+   "n_comb_on": 112,
+   "n_comb_off": 106
+  },
+  "-60": {
+   "bar_db": 3.8740650437305124,
+   "mean_db": 0.00963133035946159,
+   "std_db": 1.2769286085863851,
+   "p99_db": 3.088409367426581,
+   "max_db": 4.721889115930898,
+   "n_trial": 2500,
+   "what_ko": "잡음만으로 이 빗살 대비가 나오나 (판정량 자체의 귀무 p99.9)",
+   "n_comb_on": 42,
+   "n_comb_off": 40
+  }
+ },
+ "cells": {
+  "ours_r15_el-60": {
+   "arm": "ours",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -0.98,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.33,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3883.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3883.0,
+   "forbid_A1": false,
+   "clean_comb_db": 45.36,
+   "bar": {
+    "bar_db": 4.666747710482504,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.666747710482504
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 40.69,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r15_el-30": {
+   "arm": "ours",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.62,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.99,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.23,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2160.6,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2160.6,
+   "forbid_A1": false,
+   "clean_comb_db": 42.93,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0406954879163317
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 38.31,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r15_el+0": {
+   "arm": "ours",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -15.91,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.67,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2706.5,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2706.5,
+   "forbid_A1": false,
+   "clean_comb_db": 47.82,
+   "bar": {
+    "bar_db": 2.7743817728758264,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.7743817728758264
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.04,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r30_el-60": {
+   "arm": "ours",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -1.75,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.07,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3843.2,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3843.2,
+   "forbid_A1": false,
+   "clean_comb_db": 45.24,
+   "bar": {
+    "bar_db": 4.726788107710825,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.726788107710825
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 40.51,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r30_el-30": {
+   "arm": "ours",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.32,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.02,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.37,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2080.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2080.9,
+   "forbid_A1": false,
+   "clean_comb_db": 43.37,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0098044916330178
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 38.75,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r30_el+0": {
+   "arm": "ours",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -15.79,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.71,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.64,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2677.5,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2677.5,
+   "forbid_A1": false,
+   "clean_comb_db": 48.03,
+   "bar": {
+    "bar_db": 2.7404394219888575,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.7404394219888575
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.29,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r60_el-60": {
+   "arm": "ours",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.17,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.04,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3824.2,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3824.2,
+   "forbid_A1": false,
+   "clean_comb_db": 45.18,
+   "bar": {
+    "bar_db": 4.745234866914211,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.745234866914211
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 40.43,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r60_el-30": {
+   "arm": "ours",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.19,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.03,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.43,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2046.2,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2046.2,
+   "forbid_A1": false,
+   "clean_comb_db": 43.57,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0091930861258307
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 38.96,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r60_el+0": {
+   "arm": "ours",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -15.73,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.72,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.63,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2662.5,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2662.5,
+   "forbid_A1": false,
+   "clean_comb_db": 48.13,
+   "bar": {
+    "bar_db": 2.774638288908807,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.774638288908807
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.35,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r120_el-60": {
+   "arm": "ours",
+   "range_m": 120,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.39,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.71,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.09,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3814.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3814.9,
+   "forbid_A1": false,
+   "clean_comb_db": 45.15,
+   "bar": {
+    "bar_db": 4.750886541867455,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.750886541867455
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 40.4,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r120_el-30": {
+   "arm": "ours",
+   "range_m": 120,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.14,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.03,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.46,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2030.2,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2030.2,
+   "forbid_A1": false,
+   "clean_comb_db": 43.67,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.006284081701649
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 39.06,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r120_el+0": {
+   "arm": "ours",
+   "range_m": 120,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -15.7,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.72,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.62,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2654.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2654.9,
+   "forbid_A1": false,
+   "clean_comb_db": 48.18,
+   "bar": {
+    "bar_db": 2.774465265482628,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.774465265482628
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.4,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r240_el-30": {
+   "arm": "ours",
+   "range_m": 240,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.11,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.03,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.48,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2022.6,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2022.6,
+   "forbid_A1": false,
+   "clean_comb_db": 43.72,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0041859635106554
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 39.11,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r240_el+0": {
+   "arm": "ours",
+   "range_m": 240,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -15.69,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.72,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.62,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2651.1,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2651.1,
+   "forbid_A1": false,
+   "clean_comb_db": 48.2,
+   "bar": {
+    "bar_db": 2.7735965262923616,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.7735965262923616
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.43,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r480_el-30": {
+   "arm": "ours",
+   "range_m": 480,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.1,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.03,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.49,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2018.8,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2018.8,
+   "forbid_A1": false,
+   "clean_comb_db": 43.75,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0029825774550636
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 39.13,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_r480_el+0": {
+   "arm": "ours",
+   "range_m": 480,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -15.68,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.72,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.62,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2649.2,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2649.2,
+   "forbid_A1": false,
+   "clean_comb_db": 48.21,
+   "bar": {
+    "bar_db": 2.772967947538774,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.772967947538774
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.44,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_ptd_r15_el-60": {
+   "arm": "ours_ptd",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.89,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.33,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3883.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3883.0,
+   "forbid_A1": false,
+   "clean_comb_db": 45.36,
+   "bar": {
+    "bar_db": 4.666747710482503,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.666747710482503
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 40.69,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_ptd_r15_el-30": {
+   "arm": "ours_ptd",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.86,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.99,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.26,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2158.1,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2158.1,
+   "forbid_A1": false,
+   "clean_comb_db": 42.87,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.057144990027638
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 38.26,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_ptd_r15_el+0": {
+   "arm": "ours_ptd",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -16.04,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.68,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.79,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2814.3,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2814.3,
+   "forbid_A1": false,
+   "clean_comb_db": 47.98,
+   "bar": {
+    "bar_db": 2.743554623150178,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 2.743554623150178
+    },
+    "b3_hairline": true,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 가 머리카락 밴드(<0.5 dB)라 폭에 의미를 안 준다"
+   },
+   "margin_db": 45.24,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_ptd_r30_el-30": {
+   "arm": "ours_ptd",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.58,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.02,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.4,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2079.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2079.0,
+   "forbid_A1": false,
+   "clean_comb_db": 43.31,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0024740263603866
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 38.7,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_ptd_r60_el-30": {
+   "arm": "ours_ptd",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.43,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.03,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.46,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2044.6,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2044.6,
+   "forbid_A1": false,
+   "clean_comb_db": 43.52,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.0027277354535453
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 38.91,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ours_ptd_r120_el-30": {
+   "arm": "ours_ptd",
+   "range_m": 120,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.35,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.03,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.49,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2028.8,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2028.8,
+   "forbid_A1": false,
+   "clean_comb_db": 43.63,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.00024572033931
+    },
+    "b3_hairline": false,
+    "b3_borrowed": false,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": ""
+   },
+   "margin_db": 39.01,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r15_el-60": {
+   "arm": "ps_off",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -8.95,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.53,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.15,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 4572.7,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 4572.7,
+   "forbid_A1": false,
+   "clean_comb_db": 48.33,
+   "bar": {
+    "bar_db": 4.5027201549381495,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.5027201549381495
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 43.83,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r15_el-30": {
+   "arm": "ps_off",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -2.36,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.53,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.09,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3243.5,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3243.5,
+   "forbid_A1": false,
+   "clean_comb_db": 51.99,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.3814850139051793
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 47.37,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r15_el+0": {
+   "arm": "ps_off",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -31.06,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 13.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.35,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 58.8,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 58.8,
+   "forbid_A1": true,
+   "clean_comb_db": -0.84,
+   "bar": {
+    "bar_db": 3.8319943416718805,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 3.8319943416718805
+    },
+    "b3_hairline": true,
+    "b3_borrowed": true,
+    "sparse": true,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": -4.67,
+   "verdict_ko": "무늬 안 읽힘  ⚠희소(자세 59 개가 지고 있다)"
+  },
+  "ps_off_r30_el-60": {
+   "arm": "ps_off",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -8.94,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.64,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.05,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 4307.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 4307.0,
+   "forbid_A1": false,
+   "clean_comb_db": 43.21,
+   "bar": {
+    "bar_db": 4.053,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 3.859923630489649
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 39.16,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r30_el-30": {
+   "arm": "ps_off",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -5.72,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.53,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.12,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3625.4,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3625.4,
+   "forbid_A1": false,
+   "clean_comb_db": 46.82,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.411447689184196
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 42.21,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r30_el+0": {
+   "arm": "ps_off",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T4_uniform_resample_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -35.07,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 34.69,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": false,
+     "value": 3.21,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 23.1,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 23.1,
+   "forbid_A1": true,
+   "clean_comb_db": -1.31,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_off_r60_el-60": {
+   "arm": "ps_off",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -3.83,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.91,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 2.67,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3316.3,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3316.3,
+   "forbid_A1": false,
+   "clean_comb_db": 43.01,
+   "bar": {
+    "bar_db": 4.2862665678749705,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.2862665678749705
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 38.72,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r60_el-30": {
+   "arm": "ps_off",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -1.24,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.48,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.34,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 4609.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 4609.0,
+   "forbid_A1": false,
+   "clean_comb_db": 41.24,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.7485881911888983
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 36.62,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r60_el+0": {
+   "arm": "ps_off",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -39.65,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 99.9,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.32,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 8.0,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 8.0,
+   "forbid_A1": true,
+   "clean_comb_db": 0.19,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_off_r120_el-60": {
+   "arm": "ps_off",
+   "range_m": 120,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -1.18,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.96,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.01,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3723.7,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3723.7,
+   "forbid_A1": false,
+   "clean_comb_db": 39.86,
+   "bar": {
+    "bar_db": 4.053,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 3.9690993699649093
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 35.81,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r120_el-30": {
+   "arm": "ps_off",
+   "range_m": 120,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -8.55,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.55,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.36,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 4187.5,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 4187.5,
+   "forbid_A1": false,
+   "clean_comb_db": 40.45,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.9980526655943285
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 35.84,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r120_el+0": {
+   "arm": "ps_off",
+   "range_m": 120,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -43.91,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 99.96,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.1,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 3.0,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 3.0,
+   "forbid_A1": true,
+   "clean_comb_db": -0.04,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_off_r240_el-30": {
+   "arm": "ps_off",
+   "range_m": 240,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -4.26,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.16,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.66,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2680.4,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2680.4,
+   "forbid_A1": false,
+   "clean_comb_db": 42.33,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.633705064586471
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 37.71,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_off_r240_el+0": {
+   "arm": "ps_off",
+   "range_m": 240,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T2_ac_fraction_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": false,
+     "value": -106.19,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.33,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.32,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3920.8,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3920.8,
+   "forbid_A1": false,
+   "clean_comb_db": 53.95,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_off_r480_el-30": {
+   "arm": "ps_off",
+   "range_m": 480,
+   "el_deg": -30.0,
+   "eligible": false,
+   "failed_gates": [
+    "T1_complete"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": false,
+     "n_missing": 5287,
+     "zeros": 5287
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -0.58,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.93,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.01,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2469.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2469.9,
+   "forbid_A1": false,
+   "clean_comb_db": 41.34,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_off_r480_el+0": {
+   "arm": "ps_off",
+   "range_m": 480,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T2_ac_fraction_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": false,
+     "value": -321.99,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.1,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.0,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 8192.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 8192.0,
+   "forbid_A1": false,
+   "clean_comb_db": 0.71,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r15_el-60": {
+   "arm": "ps_phys",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -19.95,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 8.43,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.32,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 225.8,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 225.8,
+   "forbid_A1": true,
+   "clean_comb_db": 7.05,
+   "bar": {
+    "bar_db": 4.053,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 3.9719296610356025
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": true,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 2.99,
+   "verdict_ko": "무늬 읽힘  ⚠희소(자세 226 개가 지고 있다)"
+  },
+  "ps_phys_r15_el-30": {
+   "arm": "ps_phys",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -31.13,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 8.07,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.38,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 179.6,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 179.6,
+   "forbid_A1": true,
+   "clean_comb_db": 6.29,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.9608629996754656
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": true,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 1.68,
+   "verdict_ko": "무늬 읽힘  ⚠희소(자세 180 개가 지고 있다)"
+  },
+  "ps_phys_r15_el+0": {
+   "arm": "ps_phys",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -32.76,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 15.63,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.54,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 53.6,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 53.6,
+   "forbid_A1": true,
+   "clean_comb_db": -2.13,
+   "bar": {
+    "bar_db": 3.5905647177734727,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 2.2928103073220485,
+     "B3_grid_band": 0.105,
+     "B2_surrogate_null": 3.5905647177734727
+    },
+    "b3_hairline": true,
+    "b3_borrowed": true,
+    "sparse": true,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": -5.73,
+   "verdict_ko": "무늬 안 읽힘  ⚠희소(자세 54 개가 지고 있다)"
+  },
+  "ps_phys_r30_el-60": {
+   "arm": "ps_phys",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -28.85,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 22.78,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.57,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 57.7,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 57.7,
+   "forbid_A1": true,
+   "clean_comb_db": 8.34,
+   "bar": {
+    "bar_db": 4.1533708058672385,
+    "decided_by": "B2_surrogate_null",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 4.1533708058672385
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": true,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 4.18,
+   "verdict_ko": "무늬 읽힘  ⚠희소(자세 58 개가 지고 있다)"
+  },
+  "ps_phys_r30_el-30": {
+   "arm": "ps_phys",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -35.37,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 51.33,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.33,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 21.5,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 21.5,
+   "forbid_A1": true,
+   "clean_comb_db": 7.81,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r30_el+0": {
+   "arm": "ps_phys",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -40.05,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 83.87,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.22,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 10.0,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 10.0,
+   "forbid_A1": true,
+   "clean_comb_db": 0.01,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r60_el-60": {
+   "arm": "ps_phys",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -36.58,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 76.54,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.83,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 9.3,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 9.3,
+   "forbid_A1": true,
+   "clean_comb_db": 8.03,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r60_el-30": {
+   "arm": "ps_phys",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -34.88,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 90.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.29,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 8.3,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 8.3,
+   "forbid_A1": true,
+   "clean_comb_db": 6.68,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r60_el+0": {
+   "arm": "ps_phys",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -48.85,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 99.67,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.4,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 1.5,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 1.5,
+   "forbid_A1": true,
+   "clean_comb_db": 0.15,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r120_el-60": {
+   "arm": "ps_phys",
+   "range_m": 120,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -40.99,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.2,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.78,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3303.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3303.9,
+   "forbid_A1": false,
+   "clean_comb_db": 23.69,
+   "bar": {
+    "bar_db": 4.053,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 3.5993373327817144
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 19.64,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_phys_r120_el-30": {
+   "arm": "ps_phys",
+   "range_m": 120,
+   "el_deg": -30.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct",
+    "T4_uniform_resample_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -41.34,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 89.41,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": false,
+     "value": 6.12,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 3.0,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 3.0,
+   "forbid_A1": true,
+   "clean_comb_db": 4.67,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_phys_r120_el+0": {
+   "arm": "ps_phys",
+   "range_m": 120,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T2_ac_fraction_db",
+    "T3_top8_share_pct",
+    "T4_uniform_resample_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": false,
+     "value": -84.84,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 86.57,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": false,
+     "value": 6.94,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 9.6,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 9.6,
+   "forbid_A1": true,
+   "clean_comb_db": 0.28,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_refr_r15_el-60": {
+   "arm": "ps_refr",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -6.73,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.68,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.08,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 4073.0,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 4073.0,
+   "forbid_A1": false,
+   "clean_comb_db": 28.95,
+   "bar": {
+    "bar_db": 4.053,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 3.8740650437305124,
+     "B3_grid_band": 4.053,
+     "B2_surrogate_null": 3.944976883771998
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 24.89,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_refr_r15_el-30": {
+   "arm": "ps_refr",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -4.15,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.93,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.0,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2528.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2528.9,
+   "forbid_A1": false,
+   "clean_comb_db": 37.51,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.6769157311682794
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 32.9,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_refr_r15_el+0": {
+   "arm": "ps_refr",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T4_uniform_resample_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -33.63,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 24.91,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": false,
+     "value": 3.46,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 32.3,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 32.3,
+   "forbid_A1": true,
+   "clean_comb_db": 0.31,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_refr_r30_el-30": {
+   "arm": "ps_refr",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -4.63,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.74,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.31,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3734.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3734.9,
+   "forbid_A1": false,
+   "clean_comb_db": 33.0,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.821518229362437
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 28.38,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_refr_r30_el+0": {
+   "arm": "ps_refr",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -39.14,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 88.79,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.25,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 9.0,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 9.0,
+   "forbid_A1": true,
+   "clean_comb_db": 0.03,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_refr_r60_el-30": {
+   "arm": "ps_refr",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -7.42,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.73,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 2.5,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 4258.9,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 4258.9,
+   "forbid_A1": false,
+   "clean_comb_db": 31.03,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.7345591568496213
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 26.42,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_refr_r60_el+0": {
+   "arm": "ps_refr",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T3_top8_share_pct"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -45.67,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": false,
+     "value": 99.98,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.0,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": true,
+     "n_eff": 2.0,
+     "threshold": 256.0,
+     "consequences_ko": [
+      "막대는 반드시 B2(구조 귀무)로 — 백색 막대 단독 금지",
+      "A1 연장선 금지 — 이 모양을 얼려 먼 거리로 밀지 않는다",
+      "인용할 때 «자세 N 개가 지고 있다» 를 함께 적는다"
+     ]
+    }
+   },
+   "sparse": true,
+   "n_eff": 2.0,
+   "forbid_A1": true,
+   "clean_comb_db": -0.12,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_refr_r120_el-30": {
+   "arm": "ps_refr",
+   "range_m": 120,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -11.33,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 0.7,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.53,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 3973.2,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 3973.2,
+   "forbid_A1": false,
+   "clean_comb_db": 28.45,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 3.131501036394999
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 23.84,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_refr_r120_el+0": {
+   "arm": "ps_refr",
+   "range_m": 120,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T2_ac_fraction_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": false,
+     "value": -107.85,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.64,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.16,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2440.4,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2440.4,
+   "forbid_A1": false,
+   "clean_comb_db": 28.53,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  },
+  "ps_refr_r240_el-30": {
+   "arm": "ps_refr",
+   "range_m": 240,
+   "el_deg": -30.0,
+   "eligible": true,
+   "failed_gates": [],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": true,
+     "value": -1.85,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 1.26,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 0.25,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 2466.1,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 2466.1,
+   "forbid_A1": false,
+   "clean_comb_db": 28.22,
+   "bar": {
+    "bar_db": 4.616,
+    "decided_by": "B3_grid_band",
+    "parts_db": {
+     "B1_white_null": 2.6959973628007035,
+     "B3_grid_band": 4.616,
+     "B2_surrogate_null": 2.537908368152191
+    },
+    "b3_hairline": false,
+    "b3_borrowed": true,
+    "sparse": false,
+    "rule_ko": "셋 다 넘어야 «무늬 읽힘». 큰 쪽이 막대가 된다",
+    "caveat_ko": "⚠B3 를 다른 엔진에서 빌려 왔다 — 이 팔의 수치 재현 밴드는 아직 안 쟀다"
+   },
+   "margin_db": 23.6,
+   "verdict_ko": "무늬 읽힘"
+  },
+  "ps_refr_r240_el+0": {
+   "arm": "ps_refr",
+   "range_m": 240,
+   "el_deg": 0.0,
+   "eligible": false,
+   "failed_gates": [
+    "T2_ac_fraction_db"
+   ],
+   "tier1": {
+    "T1_complete": {
+     "ok": true,
+     "n_missing": 0,
+     "zeros": 0
+    },
+    "T2_ac_fraction_db": {
+     "ok": false,
+     "value": -106.51,
+     "threshold": -60.0,
+     "what_ko": "움직이는 몫이 총 전력의 몇 dB — 수치 바닥 판별"
+    },
+    "T3_top8_share_pct": {
+     "ok": true,
+     "value": 2.06,
+     "threshold": 50.0,
+     "what_ko": "상위 8 자세가 움직이는 전력의 몇 % — 절반을 넘으면 물리가 아니라 사건 몇 개다"
+    },
+    "T4_uniform_resample_db": {
+     "ok": true,
+     "value": 1.23,
+     "threshold": 3.0,
+     "what_ko": "짝수 자세 판 ↔ 홀수 자세 판의 빗살 대비 차(⛔삭제 솎기 금지, canon J1)"
+    }
+   },
+   "tier2": {
+    "W1_sparse": {
+     "flag": false,
+     "n_eff": 781.7,
+     "threshold": 256.0,
+     "consequences_ko": []
+    }
+   },
+   "sparse": false,
+   "n_eff": 781.7,
+   "forbid_A1": false,
+   "clean_comb_db": 24.42,
+   "bar": null,
+   "margin_db": null,
+   "verdict_ko": "자격 없음"
+  }
+ },
+ "crosschecks": {
+  "anchor": {
+   "ok": true,
+   "engine": "ours",
+   "frame": 52.07030119796651,
+   "detection_curves": 52.07030119796651,
+   "delta_db": 0.0
+  },
+  "alignment": {
+   "i_sigma_of_the_snr_label": {
+    "issue_ko": "⭐detection_curves 의 snr_sample_db_at_100m 은 **총 σ**(DC 포함) 기준이고 프레임의 snr_ac_db 는 **AC** 기준이다. 두 라벨을 그냥 나란히 놓으면 그 칸의 ac_fraction_db 만큼 어긋난다",
+    "measured_offset_db": {
+     "ours_el_minus30": -5.62,
+     "ps_off_el_minus30": -2.36
+    },
+    "rule_ko": "⇒ 교차검산은 **미터**로만 한다. SNR 라벨을 인용할 때는 총/AC 를 함께 적는다"
+   },
+   "ii_same_range_grid": {
+    "issue_ko": "detection_curves 는 100~10,000 m 를 21 점(옥타브당 4.0 dB SNR)으로 훑는다. Pd 가 0.97 → 0.18 로 떨어지는 한 칸을 선형보간하므로 편향이 있다",
+    "rule_ko": "⇒ 교차검산은 **그 21 점 위에서** 프레임 기계로 Pd 를 다시 재고 **같은 보간식**(log R 위 선형)을 쓴다. 헤드라인 수는 미세 격자로 따로 낸다"
+   },
+   "iii_same_trials": {
+    "issue_ko": "N_MC=240 은 Pd 0.5 근처에서 SNR sd 0.13 dB(거리 0.7~0.8 %)를 준다",
+    "rule_ko": "⇒ 본판은 N_MC = 2000 (거리 0.3 %)로 올린다"
+   },
+   "pass_rule_ko": "세 정렬 뒤 편차 |Δ| ≤ 2.0 %. 넘으면 원장에 «미해결» 로 적고 원인을 찾을 때까지 미터를 덱에 안 올린다"
+  },
+  "detection_curves_meta": {
+   "R_grid_points": 21,
+   "snr_step_per_grid_db": 4.0,
+   "n_mc": 240,
+   "pfa": 0.001,
+   "snr_label_uses_ko": "총 σ (DC 포함) — 프레임의 snr_ac_db 와 다른 라벨"
+  },
+  "A1_vs_A2": {
+   "ours_el-30": {
+    "ledger_points": {
+     "15": 42.93,
+     "30": 43.37,
+     "60": 43.57,
+     "120": 43.67,
+     "240": 43.72,
+     "480": 43.75
+    },
+    "max_shape_drift_db": 0.82,
+    "band_b3_db": 4.616,
+    "tolerance_db": 4.62,
+    "trust_A1": true,
+    "farthest_ledger_m": 480
+   },
+   "ours_el+0": {
+    "ledger_points": {
+     "15": 47.82,
+     "30": 48.03,
+     "60": 48.13,
+     "120": 48.18,
+     "240": 48.2,
+     "480": 48.21
+    },
+    "max_shape_drift_db": 0.39,
+    "band_b3_db": 0.105,
+    "tolerance_db": 2.29,
+    "trust_A1": true,
+    "farthest_ledger_m": 480
+   },
+   "ours_el-60": {
+    "ledger_points": {
+     "15": 45.36,
+     "30": 45.24,
+     "60": 45.18,
+     "120": 45.15
+    },
+    "max_shape_drift_db": 0.21,
+    "band_b3_db": 4.053,
+    "tolerance_db": 4.05,
+    "trust_A1": true,
+    "farthest_ledger_m": 120
+   },
+   "ours_ptd_el-30": {
+    "ledger_points": {
+     "15": 42.87,
+     "30": 43.31,
+     "60": 43.52,
+     "120": 43.63
+    },
+    "max_shape_drift_db": 0.76,
+    "band_b3_db": 4.616,
+    "tolerance_db": 4.62,
+    "trust_A1": true,
+    "farthest_ledger_m": 120
+   },
+   "ps_off_el-30": {
+    "ledger_points": {
+     "15": 51.99,
+     "30": 46.82,
+     "60": 41.24,
+     "120": 40.45,
+     "240": 42.33
+    },
+    "max_shape_drift_db": 11.54,
+    "band_b3_db": 4.616,
+    "tolerance_db": 4.62,
+    "trust_A1": false,
+    "farthest_ledger_m": 240
+   },
+   "ps_off_el-60": {
+    "ledger_points": {
+     "15": 48.33,
+     "30": 43.21,
+     "60": 43.01,
+     "120": 39.86
+    },
+    "max_shape_drift_db": 8.47,
+    "band_b3_db": 4.053,
+    "tolerance_db": 4.05,
+    "trust_A1": false,
+    "farthest_ledger_m": 120
+   },
+   "ps_refr_el-30": {
+    "ledger_points": {
+     "15": 37.51,
+     "30": 33.0,
+     "60": 31.03,
+     "120": 28.45,
+     "240": 28.22
+    },
+    "max_shape_drift_db": 9.29,
+    "band_b3_db": 4.616,
+    "tolerance_db": 4.62,
+    "trust_A1": false,
+    "farthest_ledger_m": 240
+   },
+   "ps_phys_el-60": {
+    "ledger_points": {
+     "15": 7.05,
+     "30": 8.34,
+     "120": 23.69
+    },
+    "max_shape_drift_db": 16.64,
+    "band_b3_db": 4.053,
+    "tolerance_db": 4.05,
+    "trust_A1": false,
+    "farthest_ledger_m": 120
+   }
+  },
+  "W2_neighbour_discontinuity": [
+   {
+    "arm": "ps_off",
+    "el_deg": 0.0,
+    "pair_m": [
+     120,
+     240
+    ],
+    "n_eff": [
+     3.0,
+     3920.8
+    ],
+    "clean_comb_db": [
+     -0.04,
+     53.95
+    ],
+    "why_ko": "이웃 거리와 유효 자세 수/잣대가 크게 튄다 — 조사 대상"
+   },
+   {
+    "arm": "ps_off",
+    "el_deg": 0.0,
+    "pair_m": [
+     240,
+     480
+    ],
+    "n_eff": [
+     3920.8,
+     8192.0
+    ],
+    "clean_comb_db": [
+     53.95,
+     0.71
+    ],
+    "why_ko": "이웃 거리와 유효 자세 수/잣대가 크게 튄다 — 조사 대상"
+   },
+   {
+    "arm": "ps_refr",
+    "el_deg": 0.0,
+    "pair_m": [
+     60,
+     120
+    ],
+    "n_eff": [
+     2.0,
+     2440.4
+    ],
+    "clean_comb_db": [
+     -0.12,
+     28.53
+    ],
+    "why_ko": "이웃 거리와 유효 자세 수/잣대가 크게 튄다 — 조사 대상"
+   },
+   {
+    "arm": "ps_phys",
+    "el_deg": -60.0,
+    "pair_m": [
+     60,
+     120
+    ],
+    "n_eff": [
+     9.3,
+     3303.9
+    ],
+    "clean_comb_db": [
+     8.03,
+     23.69
+    ],
+    "why_ko": "이웃 거리와 유효 자세 수/잣대가 크게 튄다 — 조사 대상"
+   }
+  ]
+ },
+ "survival": [
+  {
+   "claim_ko": "물리를 전부 켜면 날개 무늬의 «천장»(무잡음 빗살 대비)이 한 자릿수 dB 에 머문다 — 같은 자세의 다 끔 팔은 40~52 dB 다. 그 간격 40~46 dB 가 결론이다",
+   "grade": "A",
+   "survives": "6/6",
+   "immune_to": [
+    "K1_anchor_scope",
+    "K2_decision_bar",
+    "K3_eirp_dbm",
+    "K4_capture",
+    "K5_range_axis",
+    "K6_elevation"
+   ],
+   "moved_by": {
+    "measured_gap_db_el_minus30": 45.7,
+    "measured_gap_db_el_minus60": 41.3,
+    "why_immune_ko": "무잡음 값이라 앵커·EIRP·캡처·거리와 무관하고, 두 팔의 차라 공통 상수는 약분된다"
+   },
+   "deck_rule_ko": "덱 큰 글자로 써도 된다"
+  },
+  {
+   "claim_ko": "우리 커널의 천장(42.9 dB)은 PathSolver 다 끔(52.0 dB)보다 9 dB 낮다",
+   "grade": "A-",
+   "survives": "5/6",
+   "immune_to": [
+    "K1_anchor_scope",
+    "K2_decision_bar",
+    "K3_eirp_dbm",
+    "K4_capture",
+    "K6_elevation"
+   ],
+   "moved_by": {
+    "K5_range_axis_ko": "ps_off 은 거리마다 40.5~52.0 dB 로 11.5 dB 흔들린다"
+   },
+   "deck_rule_ko": "조건절과 함께만"
+  },
+  {
+   "claim_ko": "판독거리는 수백 m 다",
+   "grade": "C",
+   "survives": "2/6",
+   "immune_to": [
+    "K2_decision_bar",
+    "K5_range_axis"
+   ],
+   "moved_by": {
+    "K3_eirp_ko": "12/30/63 dBm 에서 0.32×/1×/6.7×",
+    "K4_capture_ko": "상시 기준신호면 정합필터 이득 37~43 dB 를 잃는다(×0.12)"
+   },
+   "deck_rule_ko": "⛔단독으로 덱에 올리지 않는다"
+  },
+  {
+   "claim_ko": "물리 켬은 47 m 다",
+   "grade": "C",
+   "survives": "0/6",
+   "immune_to": [],
+   "moved_by": {
+    "K1_anchor_ko": "S1 47 m ↔ S3 280 m (6배)",
+    "K2_bar_ko": "막대에 따라 40~56 m",
+    "verdict_ko": "⛔덱에 단독으로 올리지 않는다"
+   },
+   "deck_rule_ko": "⛔단독으로 덱에 올리지 않는다"
+  }
+ ],
+ "summary_ko": [
+  "칸 61 개 중 1층 자격 박탈 18 개: ps_off_r30_el+0, ps_off_r60_el+0, ps_off_r120_el+0, ps_off_r240_el+0, ps_off_r480_el-30, ps_off_r480_el+0, ps_phys_r30_el-30, ps_phys_r30_el+0, ps_phys_r60_el-60, ps_phys_r60_el-30, ps_phys_r60_el+0, ps_phys_r120_el-30, ps_phys_r120_el+0, ps_refr_r15_el+0, ps_refr_r30_el+0, ps_refr_r60_el+0, ps_refr_r120_el+0, ps_refr_r240_el+0",
+  "2층 희소 딱지(판정은 하되 B2 막대·A1 금지) 5 개: ps_off_r15_el+0, ps_phys_r15_el-60, ps_phys_r15_el-30, ps_phys_r15_el+0, ps_phys_r30_el-60",
+  "막대는 max(B1 잡음귀무, B2 구조귀무, B3 격자밴드) — 칸마다 어느 것이 이겼는지 cells[*].bar.decided_by 에 남는다",
+  "⭐PathSolver 팔의 B3 는 우리 커널 밴드를 빌려 쓴 것이다(bar.b3_borrowed=true) — 생산 설정의 반예산 쌍이 원장에 착지해야 자기 밴드를 갖는다"
+ ]
+}
