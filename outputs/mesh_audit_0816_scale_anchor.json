@@ -1,0 +1,1442 @@
+{
+ "_meta": {
+  "title": "메쉬 치수 앵커 감사 (담당 렌즈: 치수·투영면적·금속부품)",
+  "date_kst": "2026-08-16",
+  "scope_ko": "10기종 전체. 전개크기·휠베이스·동체·프롭지름 대조 + 정면투영면적/금속거울면적 + 프롭 형상(시위·두께·트위스트)을 DJI 자기 CAD 와 대조.",
+  "gpu_used": false,
+  "method_ko": "src 를 한 줄도 고치지 않고 drones.build_frame/build_drone/build_propeller 출력만 잰다. 실루엣은 0.5 mm 픽셀 래스터, 가림은 0.25 mm z-buffer. 프롭 단면은 원통단면법(저장소 규약과 동일).",
+  "sources_checked_2026_08_16": [
+   "DJI Matrice 4 Series 제원 (307.0x387.5x149.5 mm, 대각 438.8 mm)",
+   "DJI Mavic 4 Pro 제원 (328.7x390.5x135.2 mm)",
+   "DJI Mini 5 Pro Specification PDF 원문 (157x95x68 folded / 255x181x91 'unfolded with propellers')",
+   "DJI S1000+ User Manual v1.4 (대각 1045 mm, 암 386 mm)",
+   "DJI TB65 263.2 Wh · Mavic4Pro 95 Wh · Mini5Pro 19.52 Wh"
+  ]
+ },
+ "dimension_table": {
+  "mini5pro": {
+   "official_unfolded_no_props_mm": [
+    181.0,
+    255.0,
+    null
+   ],
+   "built_frame_lwh_mm": [
+    180.26,
+    256.19,
+    82.84
+   ],
+   "frame_err_pct": [
+    -0.41,
+    0.47,
+    null
+   ],
+   "official_diagonal_mm": null,
+   "registry_diagonal_mm": 275,
+   "built_wheelbase_mm": 248.263,
+   "wheelbase_err_vs_official_pct": null,
+   "prop_dia_spec_mm": 152.4,
+   "prop_dia_built_mm": 152.4,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    304.01,
+    379.99
+   ],
+   "min_adjacent_rotor_gap_mm": 2.337,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    1.298546
+   ],
+   "source": "DJI Mini 5 Pro Specification PDF (fitz 원문추출, 2026-08-16): 'Folded (without propellers): 157x95x68 mm' · 'Unfolded (with propellers): 255x181x91 mm'. 304x380x91 은 리뷰 매체 다수가 쓰는 프롭포함값"
+  },
+  "mavic4pro": {
+   "official_unfolded_no_props_mm": [
+    328.7,
+    390.5,
+    135.2
+   ],
+   "built_frame_lwh_mm": [
+    320.99,
+    390.51,
+    135.2
+   ],
+   "frame_err_pct": [
+    -2.35,
+    0.0,
+    0.0
+   ],
+   "official_diagonal_mm": null,
+   "registry_diagonal_mm": 441,
+   "built_wheelbase_mm": 441.0,
+   "wheelbase_err_vs_official_pct": null,
+   "prop_dia_spec_mm": 267,
+   "prop_dia_built_mm": 267.0,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    542.13,
+    611.65
+   ],
+   "min_adjacent_rotor_gap_mm": 8.131,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    1.352406
+   ],
+   "source": "DJI Mavic 4 Pro 제원(Clifton Cameras PDF·dronexl) (2026-08-16 재확인). DJI 는 대각을 공표하지 않는다"
+  },
+  "matrice4e": {
+   "official_unfolded_no_props_mm": [
+    307.0,
+    387.5,
+    149.5
+   ],
+   "built_frame_lwh_mm": [
+    331.43,
+    389.75,
+    149.5
+   ],
+   "frame_err_pct": [
+    7.96,
+    0.58,
+    0.0
+   ],
+   "official_diagonal_mm": 438.8,
+   "registry_diagonal_mm": 438.8,
+   "built_wheelbase_mm": 438.866,
+   "wheelbase_err_vs_official_pct": 0.015,
+   "prop_dia_spec_mm": 274,
+   "prop_dia_built_mm": 274.0,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    552.94,
+    636.75
+   ],
+   "min_adjacent_rotor_gap_mm": 5.918,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    0.999873
+   ],
+   "source": "enterprise.dji.com/matrice-4-series/specs + Clifton Cameras 제원 PDF (2026-08-16 재확인)"
+  },
+  "s1000plus": {
+   "official_unfolded_no_props_mm": [
+    1016.0,
+    1016.0,
+    380.0
+   ],
+   "built_frame_lwh_mm": [
+    1016.0,
+    1016.0,
+    380.0
+   ],
+   "frame_err_pct": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "official_diagonal_mm": 1045.0,
+   "registry_diagonal_mm": 1045,
+   "built_wheelbase_mm": 1043.506,
+   "wheelbase_err_vs_official_pct": -0.143,
+   "prop_dia_spec_mm": 381,
+   "prop_dia_built_mm": 381.0,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    1345.07,
+    1345.07
+   ],
+   "min_adjacent_rotor_gap_mm": 18.333,
+   "envelope_forced_axes": [
+    "L",
+    "W",
+    "H"
+   ],
+   "fit_scale": [
+    0.998571,
+    0.998571,
+    0.929095
+   ],
+   "source": "DJI Spreading Wings S1000+ User Manual v1.4 (대각 1045·암 386 재확인, 2026-08-16)"
+  },
+  "phantom4": {
+   "official_unfolded_no_props_mm": [
+    289.5,
+    289.5,
+    196.0
+   ],
+   "built_frame_lwh_mm": [
+    289.5,
+    289.5,
+    196.0
+   ],
+   "frame_err_pct": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "official_diagonal_mm": 350.0,
+   "registry_diagonal_mm": 350,
+   "built_wheelbase_mm": 356.92,
+   "wheelbase_err_vs_official_pct": 1.977,
+   "prop_dia_spec_mm": 240,
+   "prop_dia_built_mm": 240.0,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    492.38,
+    492.38
+   ],
+   "min_adjacent_rotor_gap_mm": 12.38,
+   "envelope_forced_axes": [
+    "L",
+    "W",
+    "H"
+   ],
+   "fit_scale": [
+    1.019771,
+    1.019771,
+    0.937315
+   ],
+   "source": "레지스트리 인용(DJI Quick Start Guide v1.2) — 이번 라운드에서 원문 재확인 못함"
+  },
+  "typhoonh480": {
+   "official_unfolded_no_props_mm": [
+    457.0,
+    520.0,
+    310.0
+   ],
+   "built_frame_lwh_mm": [
+    452.17,
+    517.0,
+    310.0
+   ],
+   "frame_err_pct": [
+    -1.06,
+    -0.58,
+    0.0
+   ],
+   "official_diagonal_mm": 480.0,
+   "registry_diagonal_mm": 480,
+   "built_wheelbase_mm": 480.0,
+   "wheelbase_err_vs_official_pct": 0.0,
+   "prop_dia_spec_mm": 230.2,
+   "prop_dia_built_mm": 230.2,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    645.89,
+    710.2
+   ],
+   "min_adjacent_rotor_gap_mm": 9.8,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    1.018932
+   ],
+   "source": "레지스트리 인용(Yuneec 매뉴얼 V1.2)"
+  },
+  "x500v2": {
+   "official_unfolded_no_props_mm": [
+    null,
+    null,
+    null
+   ],
+   "built_frame_lwh_mm": [
+    400.38,
+    400.38,
+    336.28
+   ],
+   "frame_err_pct": [
+    null,
+    null,
+    null
+   ],
+   "official_diagonal_mm": 500.0,
+   "registry_diagonal_mm": 500,
+   "built_wheelbase_mm": 500.0,
+   "wheelbase_err_vs_official_pct": 0.0,
+   "prop_dia_spec_mm": 254.0,
+   "prop_dia_built_mm": 254.0,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    607.55,
+    607.55
+   ],
+   "min_adjacent_rotor_gap_mm": 99.553,
+   "envelope_forced_axes": [],
+   "fit_scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "source": "docs.holybro.com (L/W/H 미공표)"
+  },
+  "phantom3": {
+   "official_unfolded_no_props_mm": [
+    289.5,
+    289.0,
+    185.0
+   ],
+   "built_frame_lwh_mm": [
+    289.07,
+    289.07,
+    185.0
+   ],
+   "frame_err_pct": [
+    -0.15,
+    0.02,
+    0.0
+   ],
+   "official_diagonal_mm": 350.0,
+   "registry_diagonal_mm": 350.0,
+   "built_wheelbase_mm": 350.0,
+   "wheelbase_err_vs_official_pct": 0.0,
+   "prop_dia_spec_mm": 240.0,
+   "prop_dia_built_mm": 240.0,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    487.49,
+    487.49
+   ],
+   "min_adjacent_rotor_gap_mm": 7.487,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    0.998109
+   ],
+   "source": "레지스트리 인용"
+  },
+  "m350rtk": {
+   "official_unfolded_no_props_mm": [
+    810.0,
+    670.0,
+    430.0
+   ],
+   "built_frame_lwh_mm": [
+    771.05,
+    626.34,
+    430.0
+   ],
+   "frame_err_pct": [
+    -4.81,
+    -6.52,
+    0.0
+   ],
+   "official_diagonal_mm": 895.0,
+   "registry_diagonal_mm": 895.0,
+   "built_wheelbase_mm": 895.0,
+   "wheelbase_err_vs_official_pct": 0.0,
+   "prop_dia_spec_mm": 533.4,
+   "prop_dia_built_mm": 533.4,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    1232.37,
+    1092.38
+   ],
+   "min_adjacent_rotor_gap_mm": 25.582,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    0.990783
+   ],
+   "source": "레지스트리 인용(enterprise.dji.com)"
+  },
+  "mini2": {
+   "official_unfolded_no_props_mm": [
+    159.0,
+    203.0,
+    56.0
+   ],
+   "built_frame_lwh_mm": [
+    160.09,
+    206.92,
+    56.0
+   ],
+   "frame_err_pct": [
+    0.69,
+    1.93,
+    0.0
+   ],
+   "official_diagonal_mm": 213.0,
+   "registry_diagonal_mm": 213.0,
+   "built_wheelbase_mm": 213.046,
+   "wheelbase_err_vs_official_pct": 0.022,
+   "prop_dia_spec_mm": 119.1,
+   "prop_dia_built_mm": 119.1,
+   "prop_dia_err_pct": -0.0,
+   "prop_disc_envelope_lw_mm": [
+    280.66,
+    294.72
+   ],
+   "min_adjacent_rotor_gap_mm": 6.193,
+   "envelope_forced_axes": [
+    "H"
+   ],
+   "fit_scale": [
+    1.0,
+    1.0,
+    1.00126
+   ],
+   "source": "레지스트리 인용(User Manual v1.0)"
+  }
+ },
+ "frontal_aligned_area": {
+  "mini5pro": {
+   "aligned_abs_cm2": 102.544,
+   "aligned_front_only_cm2": 53.276,
+   "aligned_front_visible_cm2": 30.646,
+   "aligned_front_visible_all_occluders_cm2": 28.525,
+   "double_count_ratio": 1.925,
+   "sigma_plate_dbsm": {
+    "as_published": -7.44,
+    "front_only": -13.13,
+    "front_visible": -17.94
+   },
+   "overstatement_db": {
+    "vs_front_only": 5.69,
+    "vs_front_visible": 10.49
+   },
+   "by_group": {
+    "accent": {
+     "front_cm2": 4.875,
+     "visible_opaqueonly_cm2": 4.875
+    },
+    "battery": {
+     "front_cm2": 17.142,
+     "visible_opaqueonly_cm2": 0.756
+    },
+    "body": {
+     "front_cm2": 4.757,
+     "visible_opaqueonly_cm2": 1.281
+    },
+    "camera": {
+     "front_cm2": 25.097,
+     "visible_opaqueonly_cm2": 24.163
+    },
+    "pcb": {
+     "front_cm2": 1.405,
+     "visible_opaqueonly_cm2": 0.651
+    }
+   }
+  },
+  "mavic4pro": {
+   "aligned_abs_cm2": 112.531,
+   "aligned_front_only_cm2": 70.106,
+   "aligned_front_visible_cm2": 28.273,
+   "aligned_front_visible_all_occluders_cm2": 27.668,
+   "double_count_ratio": 1.605,
+   "sigma_plate_dbsm": {
+    "as_published": -6.64,
+    "front_only": -10.75,
+    "front_visible": -18.64
+   },
+   "overstatement_db": {
+    "vs_front_only": 4.11,
+    "vs_front_visible": 12.0
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 39.212,
+     "visible_opaqueonly_cm2": 0.544
+    },
+    "camera": {
+     "front_cm2": 27.681,
+     "visible_opaqueonly_cm2": 27.691
+    },
+    "pcb": {
+     "front_cm2": 3.213,
+     "visible_opaqueonly_cm2": 0.038
+    }
+   }
+  },
+  "matrice4e": {
+   "aligned_abs_cm2": 139.346,
+   "aligned_front_only_cm2": 69.673,
+   "aligned_front_visible_cm2": 47.146,
+   "aligned_front_visible_all_occluders_cm2": 35.234,
+   "double_count_ratio": 2.0,
+   "sigma_plate_dbsm": {
+    "as_published": -4.78,
+    "front_only": -10.8,
+    "front_visible": -14.19
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.02,
+    "vs_front_visible": 9.41
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 32.853,
+     "visible_opaqueonly_cm2": 13.107
+    },
+    "camera": {
+     "front_cm2": 34.14,
+     "visible_opaqueonly_cm2": 34.039
+    },
+    "pcb": {
+     "front_cm2": 2.68,
+     "visible_opaqueonly_cm2": 0.0
+    }
+   }
+  },
+  "phantom4": {
+   "aligned_abs_cm2": 171.952,
+   "aligned_front_only_cm2": 85.976,
+   "aligned_front_visible_cm2": 69.981,
+   "aligned_front_visible_all_occluders_cm2": 28.964,
+   "double_count_ratio": 2.0,
+   "sigma_plate_dbsm": {
+    "as_published": -2.96,
+    "front_only": -8.98,
+    "front_visible": -10.76
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.02,
+    "vs_front_visible": 7.81
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 48.854,
+     "visible_opaqueonly_cm2": 35.151
+    },
+    "camera": {
+     "front_cm2": 33.119,
+     "visible_opaqueonly_cm2": 30.915
+    },
+    "pcb": {
+     "front_cm2": 4.003,
+     "visible_opaqueonly_cm2": 3.915
+    }
+   }
+  },
+  "phantom3": {
+   "aligned_abs_cm2": 161.122,
+   "aligned_front_only_cm2": 80.561,
+   "aligned_front_visible_cm2": 78.381,
+   "aligned_front_visible_all_occluders_cm2": 40.01,
+   "double_count_ratio": 2.0,
+   "sigma_plate_dbsm": {
+    "as_published": -3.52,
+    "front_only": -9.54,
+    "front_visible": -9.78
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.02,
+    "vs_front_visible": 6.26
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 40.723,
+     "visible_opaqueonly_cm2": 38.658
+    },
+    "camera": {
+     "front_cm2": 36.544,
+     "visible_opaqueonly_cm2": 36.424
+    },
+    "pcb": {
+     "front_cm2": 3.294,
+     "visible_opaqueonly_cm2": 3.3
+    }
+   }
+  },
+  "mini2": {
+   "aligned_abs_cm2": 48.06,
+   "aligned_front_only_cm2": 24.03,
+   "aligned_front_visible_cm2": 14.496,
+   "aligned_front_visible_all_occluders_cm2": 6.314,
+   "double_count_ratio": 2.0,
+   "sigma_plate_dbsm": {
+    "as_published": -14.03,
+    "front_only": -20.05,
+    "front_visible": -24.44
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.02,
+    "vs_front_visible": 10.41
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 12.423,
+     "visible_opaqueonly_cm2": 3.226
+    },
+    "camera": {
+     "front_cm2": 8.877,
+     "visible_opaqueonly_cm2": 8.861
+    },
+    "motor": {
+     "front_cm2": 1.713,
+     "visible_opaqueonly_cm2": 1.741
+    },
+    "pcb": {
+     "front_cm2": 1.018,
+     "visible_opaqueonly_cm2": 0.667
+    }
+   }
+  },
+  "typhoonh480": {
+   "aligned_abs_cm2": 370.34,
+   "aligned_front_only_cm2": 179.641,
+   "aligned_front_visible_cm2": 133.079,
+   "aligned_front_visible_all_occluders_cm2": 98.853,
+   "double_count_ratio": 2.062,
+   "sigma_plate_dbsm": {
+    "as_published": 3.71,
+    "front_only": -2.58,
+    "front_visible": -5.18
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.28,
+    "vs_front_visible": 8.89
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 53.239,
+     "visible_opaqueonly_cm2": 27.123
+    },
+    "camera": {
+     "front_cm2": 90.521,
+     "visible_opaqueonly_cm2": 90.568
+    },
+    "gear": {
+     "front_cm2": 30.638,
+     "visible_opaqueonly_cm2": 10.217
+    },
+    "gear_cf": {
+     "front_cm2": 1.574,
+     "visible_opaqueonly_cm2": 1.571
+    },
+    "pcb": {
+     "front_cm2": 3.668,
+     "visible_opaqueonly_cm2": 3.6
+    }
+   }
+  },
+  "x500v2": {
+   "aligned_abs_cm2": 311.44,
+   "aligned_front_only_cm2": 155.72,
+   "aligned_front_visible_cm2": 77.789,
+   "aligned_front_visible_all_occluders_cm2": 77.917,
+   "double_count_ratio": 2.0,
+   "sigma_plate_dbsm": {
+    "as_published": 2.2,
+    "front_only": -3.82,
+    "front_visible": -9.84
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.02,
+    "vs_front_visible": 12.05
+   },
+   "by_group": {
+    "accent": {
+     "front_cm2": 85.786,
+     "visible_opaqueonly_cm2": 23.381
+    },
+    "battery": {
+     "front_cm2": 11.25,
+     "visible_opaqueonly_cm2": 10.35
+    },
+    "deck": {
+     "front_cm2": 8.337,
+     "visible_opaqueonly_cm2": 8.173
+    },
+    "fc": {
+     "front_cm2": 6.519,
+     "visible_opaqueonly_cm2": 5.85
+    },
+    "gear": {
+     "front_cm2": 40.462,
+     "visible_opaqueonly_cm2": 28.801
+    },
+    "gear_cf": {
+     "front_cm2": 1.545,
+     "visible_opaqueonly_cm2": 1.54
+    },
+    "pcb": {
+     "front_cm2": 1.82,
+     "visible_opaqueonly_cm2": 1.627
+    }
+   }
+  },
+  "m350rtk": {
+   "aligned_abs_cm2": 534.095,
+   "aligned_front_only_cm2": 249.799,
+   "aligned_front_visible_cm2": 205.014,
+   "aligned_front_visible_all_occluders_cm2": 56.688,
+   "double_count_ratio": 2.138,
+   "sigma_plate_dbsm": {
+    "as_published": 6.89,
+    "front_only": 0.29,
+    "front_visible": -1.43
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.6,
+    "vs_front_visible": 8.32
+   },
+   "by_group": {
+    "battery": {
+     "front_cm2": 154.562,
+     "visible_opaqueonly_cm2": 140.294
+    },
+    "body": {
+     "front_cm2": 27.346,
+     "visible_opaqueonly_cm2": 27.37
+    },
+    "camera": {
+     "front_cm2": 18.845,
+     "visible_opaqueonly_cm2": 12.713
+    },
+    "gear": {
+     "front_cm2": 31.352,
+     "visible_opaqueonly_cm2": 6.857
+    },
+    "gear_cf": {
+     "front_cm2": 8.818,
+     "visible_opaqueonly_cm2": 8.82
+    },
+    "pcb": {
+     "front_cm2": 8.877,
+     "visible_opaqueonly_cm2": 8.96
+    }
+   }
+  },
+  "s1000plus": {
+   "aligned_abs_cm2": 403.635,
+   "aligned_front_only_cm2": 201.818,
+   "aligned_front_visible_cm2": 169.86,
+   "aligned_front_visible_all_occluders_cm2": 162.971,
+   "double_count_ratio": 2.0,
+   "sigma_plate_dbsm": {
+    "as_published": 4.46,
+    "front_only": -1.56,
+    "front_visible": -3.06
+   },
+   "overstatement_db": {
+    "vs_front_only": 6.02,
+    "vs_front_visible": 7.52
+   },
+   "by_group": {
+    "accent": {
+     "front_cm2": 28.056,
+     "visible_opaqueonly_cm2": 13.777
+    },
+    "battery": {
+     "front_cm2": 38.27,
+     "visible_opaqueonly_cm2": 38.25
+    },
+    "body": {
+     "front_cm2": 3.263,
+     "visible_opaqueonly_cm2": 3.5
+    },
+    "camera": {
+     "front_cm2": 82.107,
+     "visible_opaqueonly_cm2": 82.125
+    },
+    "gear": {
+     "front_cm2": 43.112,
+     "visible_opaqueonly_cm2": 26.242
+    },
+    "gear_cf": {
+     "front_cm2": 3.67,
+     "visible_opaqueonly_cm2": 3.67
+    },
+    "pcb": {
+     "front_cm2": 3.34,
+     "visible_opaqueonly_cm2": 2.295
+    }
+   }
+  },
+  "_az45_control_matrice4e": {
+   "aligned_abs_cm2": 0.1931,
+   "aligned_front_only_cm2": 0.0966,
+   "double_count_ratio": 2.0,
+   "drop_az45_minus_az0_db": {
+    "as_published": -57.31,
+    "front_only": -57.17
+   },
+   "reading_ko": "az45 도 정확히 2배로 중복 세고 있어 **낙차(비율) 주장은 살아남는다**(-57.31 → -57.17 dB, 0.14 dB 변화). 무너지는 것은 절대치뿐이다: 139 cm² 와 σ_max=-4.78 dBsm."
+  }
+ },
+ "frontal_silhouette_matrice4e": {
+  "total_area_m2": 0.305586,
+  "n_tris": 30662,
+  "aligned_cm2_abs": {
+   "battery": 65.706,
+   "camera": 68.28,
+   "pcb": 5.359
+  },
+  "aligned_cm2_abs_total": 139.346,
+  "aligned_cm2_front_only": {
+   "battery": 32.853,
+   "camera": 34.14,
+   "pcb": 2.68
+  },
+  "aligned_cm2_front_only_total": 69.673,
+  "aligned_cm2_back_only": {
+   "battery": 32.853,
+   "camera": 34.14,
+   "pcb": 2.68
+  },
+  "aligned_cm2_back_only_total": 69.673,
+  "cos_proj_cm2_front_by_group": {
+   "accent": 0.7,
+   "battery": 32.853,
+   "body": 173.07,
+   "camera": 53.183,
+   "canopy": 50.227,
+   "gear": 28.416,
+   "motor": 15.713,
+   "pcb": 2.68,
+   "prop": 65.341
+  },
+  "cos_proj_cm2_front_total": 422.183,
+  "silhouette_cm2_total": 213.918,
+  "silhouette_cm2_by_group": {
+   "accent": 0.7,
+   "battery": 32.858,
+   "body": 124.075,
+   "camera": 45.35,
+   "canopy": 50.172,
+   "gear": 28.443,
+   "motor": 15.34,
+   "pcb": 2.675,
+   "prop": 43.128
+  },
+  "silhouette_cm2_metal_groups": 73.83
+ },
+ "battery_volume_anchor": {
+  "note_ko": "DJI 인텔리전트 팩의 부피 에너지밀도는 phantom3 실측(249.4 Wh/L)과 matrice4e 공표치수(243.8 Wh/L) 두 점이 2% 안에서 일치한다 → 246 Wh/L 를 앵커로 삼는다. x500v2·typhoonh480 은 DJI 팩이 아니라 이 앵커가 그대로 적용되지 않는다(맨 LiPo 는 더 조밀하다) — 참고로만 싣는다.",
+  "per_drone": {
+   "mini5pro": {
+    "pack_box_mm": [
+     68.98,
+     45.95,
+     32.17
+    ],
+    "pack_vol_cm3": 101.98,
+    "pack_front_face_cm2": 14.78,
+    "published_Wh": 19.52,
+    "implied_Wh_per_L": 191.4,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 1.285,
+    "implied_linear_correction": 0.9198,
+    "implied_face_area_err_pct": 18.2,
+    "implied_sigma_plate_err_db": 1.45,
+    "source": "DJI Mini 5 Pro Intelligent Flight Battery 2788 mAh / 19.52 Wh (판매처 제원, 2026-08-16)",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       68.98,
+       45.95,
+       32.17
+      ],
+      "centre_mm": [
+       -8.28,
+       0.0,
+       1.17
+      ],
+      "vol_cm3": 101.98,
+      "face_yz_cm2": 14.78,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       80.01,
+       50.4,
+       4.68
+      ],
+      "centre_mm": [
+       -2.76,
+       0.0,
+       -2.34
+      ],
+      "vol_cm3": 18.87,
+      "face_yz_cm2": 2.36,
+      "n_tri": 12
+     }
+    ]
+   },
+   "mavic4pro": {
+    "pack_box_mm": [
+     101.99,
+     73.21,
+     46.19
+    ],
+    "pack_vol_cm3": 344.9,
+    "pack_front_face_cm2": 33.82,
+    "published_Wh": 95.0,
+    "implied_Wh_per_L": 275.4,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 0.893,
+    "implied_linear_correction": 1.0384,
+    "implied_face_area_err_pct": -7.3,
+    "implied_sigma_plate_err_db": -0.65,
+    "source": "DJI Mavic 4 Pro Intelligent Flight Battery 6654 mAh / 95 Wh",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       101.99,
+       73.21,
+       46.19
+      ],
+      "centre_mm": [
+       -12.24,
+       0.0,
+       1.68
+      ],
+      "vol_cm3": 344.9,
+      "face_yz_cm2": 33.82,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       118.31,
+       80.3,
+       6.72
+      ],
+      "centre_mm": [
+       -4.08,
+       0.0,
+       -3.36
+      ],
+      "vol_cm3": 63.83,
+      "face_yz_cm2": 5.39,
+      "n_tri": 12
+     }
+    ]
+   },
+   "matrice4e": {
+    "pack_box_mm": [
+     145.47,
+     60.6,
+     46.29
+    ],
+    "pack_vol_cm3": 408.11,
+    "pack_front_face_cm2": 28.05,
+    "published_Wh": 99.5,
+    "implied_Wh_per_L": 243.8,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 1.009,
+    "implied_linear_correction": 0.997,
+    "implied_face_area_err_pct": 0.6,
+    "implied_sigma_plate_err_db": 0.05,
+    "source": "BPX345-6741-14.76 → 6.741 Ah x 14.76 V",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       145.47,
+       60.6,
+       46.29
+      ],
+      "centre_mm": [
+       -2.9,
+       0.0,
+       17.0
+      ],
+      "vol_cm3": 408.11,
+      "face_yz_cm2": 28.05,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       142.0,
+       67.6,
+       7.1
+      ],
+      "centre_mm": [
+       -2.9,
+       0.0,
+       -22.0
+      ],
+      "vol_cm3": 68.15,
+      "face_yz_cm2": 4.8,
+      "n_tri": 12
+     }
+    ]
+   },
+   "phantom4": {
+    "pack_box_mm": [
+     89.31,
+     99.76,
+     42.24
+    ],
+    "pack_vol_cm3": 376.27,
+    "pack_front_face_cm2": 42.13,
+    "published_Wh": 81.32,
+    "implied_Wh_per_L": 216.1,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 1.138,
+    "implied_linear_correction": 0.9578,
+    "implied_face_area_err_pct": 9.0,
+    "implied_sigma_plate_err_db": 0.75,
+    "source": "PH4-5350mAh-15.2V → 5.35 Ah x 15.2 V",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       89.31,
+       99.76,
+       42.24
+      ],
+      "centre_mm": [
+       -10.72,
+       0.0,
+       1.54
+      ],
+      "vol_cm3": 376.27,
+      "face_yz_cm2": 42.13,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       103.59,
+       109.41,
+       6.14
+      ],
+      "centre_mm": [
+       -3.57,
+       0.0,
+       -3.07
+      ],
+      "vol_cm3": 69.63,
+      "face_yz_cm2": 6.72,
+      "n_tri": 12
+     }
+    ]
+   },
+   "typhoonh480": {
+    "pack_box_mm": [
+     110.0,
+     95.0,
+     56.04
+    ],
+    "pack_vol_cm3": 585.63,
+    "pack_front_face_cm2": 53.24,
+    "published_Wh": 79.92,
+    "implied_Wh_per_L": 136.5,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 1.803,
+    "implied_linear_correction": 0.8217,
+    "implied_face_area_err_pct": 48.1,
+    "implied_sigma_plate_err_db": 3.41,
+    "source": "Yuneec 5400 mAh 4S 14.8 V (2차 출처)",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       110.0,
+       95.0,
+       56.04
+      ],
+      "centre_mm": [
+       -45.0,
+       0.0,
+       -102.61
+      ],
+      "vol_cm3": 585.63,
+      "face_yz_cm2": 53.24,
+      "n_tri": 12
+     }
+    ]
+   },
+   "x500v2": {
+    "pack_box_mm": [
+     145.0,
+     45.0,
+     25.0
+    ],
+    "pack_vol_cm3": 163.12,
+    "pack_front_face_cm2": 11.25,
+    "published_Wh": 74.0,
+    "implied_Wh_per_L": 453.7,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 0.542,
+    "implied_linear_correction": 1.2263,
+    "implied_face_area_err_pct": -33.5,
+    "implied_sigma_plate_err_db": -3.54,
+    "source": "4S 5000 mAh 14.8 V (킷 구성 추정)",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       145.0,
+       45.0,
+       25.0
+      ],
+      "centre_mm": [
+       0.0,
+       0.0,
+       -48.0
+      ],
+      "vol_cm3": 163.12,
+      "face_yz_cm2": 11.25,
+      "n_tri": 12
+     }
+    ]
+   },
+   "phantom3": {
+    "pack_box_mm": [
+     80.0,
+     76.0,
+     44.91
+    ],
+    "pack_vol_cm3": 273.08,
+    "pack_front_face_cm2": 34.14,
+    "published_Wh": 68.1,
+    "implied_Wh_per_L": 249.4,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 0.986,
+    "implied_linear_correction": 1.0046,
+    "implied_face_area_err_pct": -0.9,
+    "implied_sigma_plate_err_db": -0.08,
+    "source": "PH3 4480 mAh 15.2 V (레지스트리 앵커)",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       80.0,
+       76.0,
+       44.91
+      ],
+      "centre_mm": [
+       -49.6,
+       0.0,
+       -24.45
+      ],
+      "vol_cm3": 273.08,
+      "face_yz_cm2": 34.14,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       44.0,
+       33.0,
+       19.96
+      ],
+      "centre_mm": [
+       13.0,
+       0.0,
+       11.98
+      ],
+      "vol_cm3": 28.99,
+      "face_yz_cm2": 6.59,
+      "n_tri": 12
+     }
+    ]
+   },
+   "m350rtk": {
+    "pack_box_mm": [
+     150.0,
+     78.0,
+     99.08
+    ],
+    "pack_vol_cm3": 1159.22,
+    "pack_front_face_cm2": 77.28,
+    "published_Wh": 263.2,
+    "implied_Wh_per_L": 227.0,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 1.083,
+    "implied_linear_correction": 0.9736,
+    "implied_face_area_err_pct": 5.5,
+    "implied_sigma_plate_err_db": 0.46,
+    "source": "TB65 5880 mAh 44.76 V = 263.2 Wh (1개)",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       150.0,
+       78.0,
+       99.08
+      ],
+      "centre_mm": [
+       -62.0,
+       43.0,
+       55.48
+      ],
+      "vol_cm3": 1159.22,
+      "face_yz_cm2": 77.28,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       150.0,
+       78.0,
+       99.08
+      ],
+      "centre_mm": [
+       -62.0,
+       -43.0,
+       55.48
+      ],
+      "vol_cm3": 1159.22,
+      "face_yz_cm2": 77.28,
+      "n_tri": 12
+     }
+    ]
+   },
+   "mini2": {
+    "pack_box_mm": [
+     68.83,
+     43.43,
+     24.67
+    ],
+    "pack_vol_cm3": 73.74,
+    "pack_front_face_cm2": 10.71,
+    "published_Wh": 17.32,
+    "implied_Wh_per_L": 234.9,
+    "anchor_Wh_per_L": 246.0,
+    "volume_oversize_factor": 1.047,
+    "implied_linear_correction": 0.9847,
+    "implied_face_area_err_pct": 3.1,
+    "implied_sigma_plate_err_db": 0.27,
+    "source": "DJI Mini 2 Intelligent Flight Battery 2250 mAh 7.7 V",
+    "boxes_all": [
+     {
+      "ext_mm": [
+       68.83,
+       43.43,
+       24.67
+      ],
+      "centre_mm": [
+       -8.26,
+       0.0,
+       0.9
+      ],
+      "vol_cm3": 73.74,
+      "face_yz_cm2": 10.71,
+      "n_tri": 12
+     },
+     {
+      "ext_mm": [
+       79.84,
+       47.63,
+       3.59
+      ],
+      "centre_mm": [
+       -2.75,
+       0.0,
+       -1.79
+      ],
+      "vol_cm3": 13.65,
+      "face_yz_cm2": 1.71,
+      "n_tri": 12
+     }
+    ]
+   }
+  }
+ },
+ "propeller_vs_dji_cad": {
+  "artifact": "assets/meshes/reference/WM161_zhankai_1k.glb (DJI 제품페이지 Mini 2 공식 GLB, 블레이드 8장)",
+  "stale_comment_ko": "src/drone_cad.py 60~70행과 benchmark/measure_reference_props.py 는 «저장소에 DJI 프로펠러 실물 기하는 하나도 없다» 고 적혀 있다. 2026-08-03 mini2 GLB 가 들어오면서 그 문장은 거짓이 됐고, 블레이드 법칙은 그 뒤로 한 번도 DJI 프롭에 대조된 적이 없다.",
+  "diameter": {
+   "dji_cad_front_mm": 117.92,
+   "dji_cad_rear_mm": 118.91,
+   "dji_cad_mean_mm": 118.42,
+   "registry_mm": 119.1,
+   "err_pct": -0.57
+  },
+  "blade_area": {
+   "dji_planform_cm2": 12.346,
+   "ours_planform_cm2": 9.996,
+   "planform_err_pct": -19.03,
+   "dji_surface_cm2": 13.609,
+   "ours_surface_cm2": 10.68,
+   "surface_err_pct": -21.53,
+   "dji_R_mm": 59.3,
+   "ours_R_mm": 59.55
+  },
+  "chord_integral": {
+   "note": "c/R 를 r/R 로 적분 = 블레이드 면적/R^2. r/R>=0.175 (허브 제외)",
+   "dji_all": 0.17682,
+   "ours_all": 0.1368,
+   "err_all_pct": -22.63,
+   "dji_inboard": 0.07037,
+   "ours_inboard": 0.06763,
+   "err_inboard_pct": -3.9,
+   "dji_outboard": 0.09984,
+   "ours_outboard": 0.06434,
+   "err_outboard_pct": -35.56,
+   "dji_chord_peak_rr": 0.475,
+   "ours_chord_peak_rr": 0.3,
+   "dji_chord_max_over_R": 0.2646,
+   "ours_chord_max_over_R": 0.25
+  },
+  "law_vs_its_own_references": {
+   "holybro_1345": {
+    "rms_frac_err": 0.0804,
+    "area_err_pct": 22.73
+   },
+   "3dr_solo": {
+    "rms_frac_err": 0.0125,
+    "area_err_pct": -8.54
+   },
+   "yuneec_typhoon": {
+    "rms_frac_err": 0.2184,
+    "area_err_pct": 16.12
+   }
+  },
+  "reference_prop_peaks": {
+   "holybro_1345": {
+    "chord_max_over_R": 0.2253254285231113,
+    "chord_peak_r_over_R": 0.3
+   },
+   "3dr_solo": {
+    "chord_max_over_R": 0.27263965608104584,
+    "chord_peak_r_over_R": 0.275
+   },
+   "yuneec_typhoon": {
+    "chord_max_over_R": 0.1768843328701323,
+    "chord_peak_r_over_R": 0.45
+   }
+  },
+  "thickness": {
+   "area_weighted_mean_mm": {
+    "dji": 0.876,
+    "ours": 0.968,
+    "err_pct": 10.4
+   },
+   "inboard_0p175_0p5_mm": {
+    "dji": 1.042,
+    "ours": 1.24,
+    "err_pct": 19.0
+   },
+   "mid_0p5_0p8_mm": {
+    "dji": 0.847,
+    "ours": 0.764,
+    "err_pct": -9.8
+   },
+   "tip_0p8_1p0_mm": {
+    "dji": 0.604,
+    "ours": 0.443,
+    "err_pct": -26.6
+   },
+   "material_knob_mm": 0.9,
+   "note_ko": "재질 라운드가 고른 0.9 mm 는 DJI 실물의 **면적가중 평균 0.876 mm** 와 2.7% 안에서 일치한다(독립 확증). 다만 팁 구간(r/R 0.8~1.0)은 실물 0.604·우리 메쉬 0.443 mm 라 0.9 mm 슬래브가 그 구간을 +3.5 dB(실물 대비) / +6.1 dB(우리 메쉬 대비) 과대반사시킨다."
+  },
+  "twist_rms_deg": 1.86,
+  "caveat_ko": "GLB 는 제품페이지용 시각화 CAD 다(계측 스캔 아님). 다만 레지스트리는 이미 이 GLB 를 prop_dia·prop_pitch 의 출처로 채택했다 — 같은 파일을 시위·두께에만 안 쓰는 것은 일관성 문제다."
+ },
+ "envelope_forcing_cost": {
+  "note_ko": "집안 규칙은 «높이만 강제»(mini5pro/mavic4pro/matrice4e/typhoonh480/phantom3/m350rtk 가 따른다). phantom4·s1000plus 두 기종만 L/W 까지 강제하고 있어 로터 원이 함께 늘어난다.",
+  "cases": {
+   "phantom4/as_built": {
+    "fit": [
+     1.01977,
+     1.01977,
+     0.93731
+    ],
+    "frame": [
+     289.5,
+     289.5,
+     196.0
+    ],
+    "wb": 356.92,
+    "sil_front_cm2": 216.73,
+    "sil_side_cm2": 254.35,
+    "sil_top_cm2": 529.63
+   },
+   "phantom4/height_only": {
+    "fit": [
+     1.0,
+     1.0,
+     0.93731
+    ],
+    "frame": [
+     283.89,
+     283.89,
+     196.0
+    ],
+    "wb": 350.0,
+    "sil_front_cm2": 212.64,
+    "sil_side_cm2": 249.7,
+    "sil_top_cm2": 512.46
+   },
+   "s1000plus/as_built": {
+    "fit": [
+     0.99857,
+     0.99857,
+     0.9291
+    ],
+    "frame": [
+     1016.0,
+     1016.0,
+     380.0
+    ],
+    "wb": 1043.51,
+    "sil_front_cm2": 699.87,
+    "sil_side_cm2": 727.77,
+    "sil_top_cm2": 2445.25
+   },
+   "s1000plus/height_only": {
+    "fit": [
+     1.0,
+     1.0,
+     0.9291
+    ],
+    "frame": [
+     1017.45,
+     1017.45,
+     380.0
+    ],
+    "wb": 1045.0,
+    "sil_front_cm2": 700.75,
+    "sil_side_cm2": 728.48,
+    "sil_top_cm2": 2449.8
+   }
+  },
+  "phantom4": {
+   "built_wheelbase_mm": 356.92,
+   "official_mm": 350.0,
+   "err_pct": 1.98,
+   "silhouette_front_cm2": {
+    "as_built": 216.73,
+    "height_only": 212.64,
+    "delta_pct": 1.92,
+    "sigma_plate_delta_db": 0.17
+   },
+   "contradiction_ko": "같은 350 mm 대각·같은 9450 프롭인 phantom3 는 높이만 강제해 휠베이스가 정확히 350.0 mm 다. 두 팬텀이 공표된 같은 앵커에서 2% 어긋난다."
+  },
+  "s1000plus": {
+   "built_wheelbase_mm": 1043.51,
+   "official_mm": 1045.0,
+   "err_pct": -0.14
+  }
+ },
+ "stale_documentation": [
+  {
+   "where": "src/drones.py typhoonh480 note",
+   "claim": "«arm/motor PART dimensions are UNKNOWN … 그래서 프레임 bbox 가 465.6 x 529.9 mm, 공식 대비 +1.9%»",
+   "measured": "arm_od_mm=12.0·motor_dia_mm=35.4 가 같은 note 뒤쪽에서 이미 설정돼 있고, 현재 프레임 bbox 는 452.17 x 517.00 mm = 공식 457x520 대비 -1.06% / -0.58%",
+   "impact_ko": "주석이 두 라운드 낡았다. 부호까지 반대(+1.9% → -1.1%)라 이 문장을 인용하면 결론이 뒤집힌다."
+  },
+  {
+   "where": "src/drones.py matrice4e note (2026-07-31 로터 배치)",
+   "claim": "«길이 2·139.45 + 27 = 305.9 ↔ 공식 307 (-0.36%)» 를 독립 검사로 제시",
+   "measured": "그 검사는 **모터 벨 앞끝**까지만 잰다. 실제로 build_frame 이 내는 프레임 길이는 331.43 mm (기수 최전방은 카메라/센서 포드 x=+178.46, 모터 벨 앞끝은 +152.92) = 공식 307 대비 +7.96%",
+   "impact_ko": "공표된 '-0.36%' 는 메쉬가 내는 수치가 아니다. 독립 사진검사(자체 톱뷰 렌더, 0.63351 mm/px)로는 322.0 mm(+4.9%)라 메쉬는 사진보다도 +2.9% 길다."
+  },
+  {
+   "where": "src/drones.py mini5pro note",
+   "claim": "«DJI 는 Mini 5 Pro 의 언폴드(프롭 제외) L×W 를 공개하지 않는다» + «우리가 쓰던 (255,181,91) 은 틀렸다»",
+   "measured": "DJI 공식 제원 PDF 원문에 'Unfolded (with propellers): 255x181x91 mm' 가 있다. 프롭 152.4 mm 짜리 쿼드가 폭 181 mm 안에 프롭까지 들어갈 수 없으므로 그 라벨('with propellers')이 잘못이고 숫자 자체는 **프롭 제외 언폴드**다. 우리 프레임은 180.26 x 256.19 mm 로 그 값을 -0.41% / +0.47% 로 재현한다.",
+   "impact_ko": "레지스트리가 '틀렸다'며 버린 값이 실은 유일한 **비순환** 외부 검사였고, 메쉬는 그 검사를 0.5% 로 통과한다. 반대로 채택된 304x380 은 로터 배치를 유도한 바로 그 수라 순환이다."
+  },
+  {
+   "where": "benchmark/az_falsify_ours.py _reading_ko · benchmark/az_falsify_specular.py",
+   "claim": "«az0/el0 에서 시선에 정확히 수직인 삼각형이 106장(139 cm²)»",
+   "measured": "선택 조건이 |n·u| ≥ cos(tol) 라 **뒷면까지 센다**. 앞면만은 69.67 cm²(정확히 1/2), 가림(금속끼리)까지 반영하면 47.15 cm², 전부 반영하면 35.23 cm².",
+   "impact_ko": "평판상한 σ=4πA²/λ² 에서 -6.02 dB(앞면만) ~ -9.41 dB(가림반영). az45 대비 낙차(-57 dB)는 비율이라 살아남지만, 절대치 σ_max=-4.78 dBsm 는 -10.8 ~ -14.2 dBsm 로 내려간다."
+  }
+ ]
+}

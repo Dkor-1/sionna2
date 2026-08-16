@@ -1,0 +1,3207 @@
+Wind Tunnel and Hover Performance Test Results for
+Multicopter UAS Vehicles
+Carl Russell
+
+Jaewoo Jung
+
+Gina Willink
+
+Brett Glasner
+
+Aeromechanics Office
+NASA Ames Research
+Center
+Moffett Field, CA
+
+Aviation Systems Division
+NASA Ames Research
+Center
+Moffett Field, CA
+
+Aeromechanics Office
+NASA Ames Research
+Center
+Moffett Field, CA
+
+Universities Space Research
+Association
+Moffett Field, CA
+
+ABSTRACT
+There is currently a lack of published data for the performance of multicopter unmanned aircraft system (UAS)
+vehicles, such as quadcopters and octocopters, often referred to collectively as drones. With the rapidly increasing
+popularity of multicopter UAS, there is interest in better characterizing the performance of this type of aircraft. By
+studying the performance of currently available vehicles, it will be possible to develop models for vehicles at this
+scale that can accurately predict performance and model trajectories. This paper describes a wind tunnel test that
+was recently performed in the U.S. Army’s 7- by 10-ft Wind Tunnel at NASA Ames Research Center. During this
+wind tunnel entry, five multicopter UAS vehicles were tested to determine forces and moments as well as electrical
+power as a function of wind speed, rotor speed, and vehicle attitude. The test is described here in detail, and a
+selection of the key results from the test is presented.
+
+NOMENCLATURE1
+BDAS
+DELIVER
+ESC
+FFT
+NDARC
+RVLT
+UAS
+UTM
+
+Basic Data Acquisition System
+Design Environment for Novel Vertical
+Lift Vehicles
+Electronic Speed Controller
+Fast Fourier Transform
+NASA Design and Analysis of Rotorcraft
+Revolutionary Vertical Lift Technology
+Unmanned Aircraft System
+UAS Traffic Management
+
+A
+CT
+Fx, Fy, Fz
+Mx, My, Mz
+q	
+R
+T
+
+Rotor disk area, ft2
+Thrust coefficient, T/ρA(ΩR)2
+x-, y-, and z-force, lb
+x-, y-, and z-moment, ft-lb
+Dynamic	pressure,	lb/ft2
+Rotor radius, ft
+Thrust, lb
+
+α	
+ρ
+Ω
+
+and Revolutionary Vertical Lift Technology (RVLT)—have
+an interest in determining the aerodynamic performance
+characteristics of multicopters.
+
+Pitch	angle,	deg
+Air density, slugs/ft3
+Rotor rotation speed, rad/s
+
+DELIVER and RVLT are focused on advancing the state of
+the art in design and analysis tools for vertical lift vehicles
+[Ref. 1]. DELIVER is particularly focused on small (less
+than 2-passenger) alternative propulsion concepts. Both
+DELIVER and RVLT use a rotorcraft design software tool
+called NDARC (NASA Design and Analysis of Rotorcraft),
+which has been extensively validated for large (above 2passenger) rotorcraft [Ref. 2 ]. Recently completed
+modifications to NDARC extended the propulsion models to
+include electric propulsion systems [Ref. 3]. The NDARC
+models should, in theory, be extensible to small
+multicopters, but have not yet been calibrated to existing
+aircraft. A research effort is currently underway to obtain
+data on small (up to approximately 10 lb) multicopters to aid
+in this calibration. The necessary data include rotor
+performance, airframe aerodynamics, battery and motor
+performance, and detailed component weights. The data
+gathered as part of this test will provide calibration data for
+rotor performance and airframe aerodynamics.
+
+INTRODUCTION
+The UTM Project is developing a prototype system
+consisting of technologies that will enable safe, efficient
+operations in low-altitude, where a significant increase in
+unmanned aircraft flights is anticipated [Ref. 4]. Currently,
+the system shown in Fig. 1 is being considered as a
+prototype. One of the key requirements in implementing the
+system in Fig. 1 is an understanding of the capabilities of
+unmanned aircraft under a range of environmental
+conditions. In particular, there is a need to determine
+whether a given aircraft will be able to maintain control
+and/or station-keeping within a pre-defined area of airspace
+under forecasted weather conditions. Information that is
+
+Multicopter unmanned aircraft have seen a rapid rise in
+production and utilization in the past few years. As the use
+of these vehicles continues to increase, research questions
+have emerged concerning their design, handling qualities,
+and control. In particular, three NASA projects/subprojects—UAS Traffic Management (UTM), Design
+Environment for Novel Vertical Lift Vehicles (DELIVER),
+
+																																																								
+Presented at the AHS 72nd Annual Forum, West Palm Beach,
+FL, May 16-19, 2016. This is a work of the U.S. Government
+and is not subject to copyright protection.
+1
+	
+
+critical to this type of understanding is the interaction
+between rotor RPM, vehicle air speed, and attitude on the
+forces and moments on the vehicle. The data collected from
+the test described here will be used to help populate the
+vehicle performance database shown in the top left of Fig. 1.
+
+wind tunnel at NASA Ames Research Center. Measurements
+included forces and moments on the multicopter rotors and
+airframes as well as electrical power as a function of speed,
+attitude, and rotor RPM. Complementary testing was
+performed to measure hover performance of multicopter
+rotors and complete vehicles. This paper summarizes the
+wind tunnel and hover performance tests and presents a
+subset of the data collected.
+
+TEST OVERVIEW
+Five aircraft were tested as part of this wind tunnel entry: 3D
+Robotics (3DR) SOLO, DJI Phantom 3 Advanced, 3D
+Robotics Iris+, Drone America x8, and Straight Up Imaging
+(SUI) Endurance [Refs. 9 - 13]. All five aircraft are
+commercially available multicopters whose primary mission
+is photographic surveillance. Table 1 summarizes the
+pertinent details of the five aircraft, and Figs. 2-6 show
+pictures of the vehicles installed in the wind tunnel. In
+addition to the full vehicles, three of the isolated rotors were
+tested in the wind tunnel, and this configuration is shown in
+Fig. 7 for the SUI Endurance. 10,11,12,13,
+
+Figure 1. UTM system schematic.
+The vast majority of published research on multicopters
+focuses on dynamics and control of the vehicles, with little
+on experimental performance data. In recent years, there
+have been some tests on the small propellers used for
+multicopters. In particular, Brandt and Selig [Refs. 5 and 6]
+published a database of propeller performance data including
+thrust and shaft power in axial flow in a wind tunnel as well
+as at static conditions. There have also been limited results
+published for small quadcopter propellers in edgewise flight,
+such as Ref. 7. Flight test data has also been used to estimate
+quadcopter performance and enhance simulation models
+[Ref. 8].
+
+All of the vehicles were modified from their typical
+consumer configuration to facilitate testing in the wind
+tunnel, with internal electronic components being the most
+notable change. The brushless motors employed by all of the
+multicopters tested here require a three-phase switched DC
+power signal provided by an electronic speed controller
+(ESC). On production versions of the vehicles, the ESCs are
+typically embedded in custom circuit boards. Directly
+controlling the ESCs would therefore require access to the
+programming interface for the custom circuitry for each
+vehicle, which was an unnecessary complication for the test.
+Thus, the custom circuitry was removed and was replaced by
+off-the-shelf ESCs—one for each motor—for the wind
+tunnel test.
+
+There is significant overlap between the data needs of the
+UTM, DELIVER, and RVLT research efforts, so a jointly
+planned wind tunnel test was executed to determine the
+aerodynamic performance characteristics of five different
+multicopter aircraft. The primary goal of the test was to
+generate a high-quality set of data for multicopter
+performance that can be used for model development and
+validation. The test took place in the U.S. Army 7- by 10-ft
+
+The other primary modification was the removal of the
+camera gimbals in order to use the gimbal mounting holes to
+install the vehicles in the wind tunnel test section. Both the
+interface with the ESCs and the physical interface with the
+test vehicles are discussed further in the following section.
+
+Table 1. Multicopter Test Vehicles.
+
+Quadcopter
+Quadcopter
+Quadcopter
+Octocopter
+
+Rotor-to-Rotor
+Length, in
+11.5
+9.8
+10.4
+31.4
+
+Rotor-to-Rotor
+Width, in
+11.5
+9.9
+16.1
+31.4
+
+Rotor
+Diameter, in
+10.0
+9.4
+9.6
+11.0
+
+Nominal Flight
+Weight, lb★
+3.3
+2.8
+2.8
+12.8
+
+Quadcopter
+
+20.1
+
+20.1
+
+15.0
+
+6.0
+
+Make/Model
+3DR SOLO
+DJI Phantom 3
+3DR Iris+
+Drone America x8
+Straight Up Imaging
+Endurance
+★
+
+	
+
+Configuration
+
+Without additional payload
+
+2
+
+Figure 2. 3D Robotics SOLO.
+
+Figure 3. DJI Phantom 3 Advanced.
+
+Figure 6. SUI Endurance.
+
+Figure 4. 3D Robotics Iris+.
+
+	
+
+Figure 5. Drone America DAx8.
+
+Figure 7. Isolated rotor – SUI Endurance.
+3
+
+TEST DETAILS
+
+each ESC. These signals were passed through a Pacific
+Instruments signal conditioning system to the BDAS system,
+which collected data at a rate of 1,024 samples per second
+and then computed the average over a 30 second data record.
+
+The objective of the test was to measure forces, moments,
+and motor power as a function of wind speed, attitude, and
+rotor RPM for each test vehicle. Each of the five multicopter
+aircraft was run through a range of test conditions, including
+the full airframe, bare airframe, and propeller only.
+
+The secondary data system contained both the software for
+commanding the ESC and a second LabVIEW program for
+recording rotor RPM. This system recorded the rotor RPM
+and also provided a real-time display of RPM for each
+motor. Rotor speed control inputs were made by a human in
+the loop (usually the test engineer), to match the target RPM.
+Radio control of the test vehicles was undesirable due to
+concerns about radio interference. Control was therefore
+accomplished via a servo controller with a wired connection
+to the test article. The Pololu Mini Maestro servo controller
+has outputs for up to 12 servos, which can be controlled
+independently. The pulse-width modulated (PWM) signal
+used by RC aircraft servos is the same as that used by the
+ESCs, so this servo controller provides a convenient means
+of sending commands to the ESC.
+
+The following sections detail the data acquisition and model
+control systems that were used to meet the test objectives.
+Next, the model mounting hardware is described, followed
+by an overview of the testing procedures. Finally, the steps
+taken to reduce and correct the data are described.
+Test Control and Measurement Systems
+An overview of the test systems used for data acquisition,
+model control, and power delivery is shown in the schematic
+in Fig. 8, and is described below. These aircraft normally fly
+either autonomously or under radio control with batteries
+providing power. To eliminate battery safety concerns and
+eliminate testing downtime that would be required for
+battery charging, power was provided by a 3,000-watt
+Sorensen DC power supply. The power supply is capable of
+supplying up to 20 V DC power at up to 150 A, which is
+sufficient to power each of the test vehicles up to their
+respective maximum power.
+
+Rotor RPM measurements were made with Eagle Tree
+brushless motor RPM sensors. These sensors tap into the
+motor power leads and provide a sinusoidal output voltage
+signal with a frequency equal to the commutation frequency
+of the motor. All of the motors used for this test are 7-pole
+motors, with a commutation frequency of 7 times the
+rotation speed. The LabVIEW program mentioned above
+provides filtering on the signal and uses a Fast Fourier
+Transform (FFT) to isolate the commutation frequency and
+record rotation speed for each motor. Based on the
+resolution of the FFT as well as comparison with a handheld
+optical tachometer during test preparations, the accuracy of
+
+Two different data acquisition systems were used to collect
+data for this test. The primary data system was the Basic
+Data Acquisition System (BDAS), which is a LabVIEWbased system that can be configured to record tunnel
+conditions in addition to user data signals [Ref. 14]. For this
+test, the user data included the model angle of attack, the
+model forces and moments, and the voltage and current to
+
+Control'Room'
+
+Tunnel'
+Conds.'
+
+Primary'Data'System'
+
+Amp/'
+Signal'
+Cond.'
+Trigger'Signal'
+
+Test'Sec/on'
+Test'Ar/cle'
+
+Forces'&'
+Moments'
+Voltage'&'
+Current'
+ESC'
+Control'
+Rotor'RPM'
+
+Secondary'Data'System'
+
+DC'Power'
+
+Power'Supply'
+Below'Test'Sec/on'
+
+Figure 8. Schematic of data acquisition, control, and power systems.
+
+	
+
+4
+
+the RPM measurements was estimated to be ±30 rpm. A
+typical operating rotor speed for the vehicles tested here is
+around 5,000 rpm, so the relative accuracy of the RPM
+measurements is better than ±1%. Acquisition of the motor
+RPM data was triggered by a signal from the primary data
+system so that the data collected by both systems was
+properly synchronized.
+
+is shown in gray, and the model interface plates were bolted
+on top of the load cell as shown. Each model has its own
+mounting plate with a 1.25-inch-diameter boss that inserted
+into the interface plate and was secured in place with four
+bolts. Figure 11 shows an example model mounting plate.
+Because each model has the same 1.25-inch boss, model
+changes could be made very quickly during the test.
+
+The forces and moments were measured using six-axis load
+cells manufactured by JR3, Inc. The majority of testing was
+carried out using a JR3 50-lb six-axis load cell, which has
+maximum loads of 50 lb in the x- and y-directions, 100 lb in
+the z-direction, and maximum moments of 150 in-lb in all
+three directions. Manufacturer-stated accuracy of the load
+cells is 0.25% of full-scale. Sting balances typically have
+accuracies no worse than 0.1% of full-scale, so some
+accuracy was sacrificed in favor of lower cost and hardware
+risk. Measurement uncertainty is addressed later in the
+Results section. The test plan originally called for a smaller
+10-lb load cell for the lighter quadcopters, but early testing
+revealed significant vibrations that exceeded the capacity of
+the 10-lb load cell. The 50-lb model was therefore used for
+all five vehicles. These vibrations will be discussed later in
+the results section.
+
+Yaw changes were made by rotating the yaw stub (shown in
+dark blue) below the load cell inside of the yaw tube, shown
+in orange. Two bolts could then be inserted into a series of
+threaded holes, allowing model yaw angles of 0, 5, 10, 30,
+45, 60, and 90 deg.
+
+Flow%Direc+on%
+
+S+ng%
+A4achment%
+
+Mounting and interface hardware
+
+Yaw%
+Tube%
+
+Yaw%Stub%
+Load%Cell%
+
+Mx%
+
+Each test vehicle was installed using the “sting stand” as
+shown in Figs. 2-7. In order to expedite pitch movement
+using existing wind tunnel hardware and control systems, the
+vehicles were installed at a 90-degree right roll angle,
+allowing the tunnel turntable to be used to vary the vehicle
+angle of attack. This allowed parameter sweeps with
+arbitrary values of angle of attack without requiring access
+to the model. Changing the model yaw angle required
+manual adjustment, but only a handful of yaw angles were
+tested per vehicle, so making yaw angle changes did not
+have a significant impact on testing time.
+
+Fx%
+My%
+
+Mz%
+
+Fz%
+
+Interface%
+Plate%
+
+Fy%
+Figure 9. Model mounting hardware.
+
+The hardware used to mount the vehicles on the sting stand
+allowed quick model changes by using an interface that was
+common to all five multicopters. A drawing of the mounting
+hardware is shown in Fig. 9 and a close-up photograph of
+the mounting hardware is shown in Fig. 10. Note that the
+viewing angle is flipped 180 degrees between Figs. 9 and 10
+to show the details of the hardware. Also shown in both
+images are the directions of the forces measured by the load
+cell and the direction of airflow relative to the model. The
+forces were measured using typical aircraft body axes, with
+Fx positive downstream, Fz positive up, and Fy positive to the
+right. Moments were defined as Mx positive roll right, My
+positive nose up, and Mz positive nose right. Again, the
+model is mounted at a 90 deg roll angle, so the y- and zdirections of the load cell do not align with a typical wind
+tunnel coordinate system.
+
+Fx%
+
+Fz%
+
+Fy%
+
+Flow%Direc+on%
+
+The yellow sting attachment bar parallel to the x-axis in
+Fig. 9 was inserted into the sting tube on the sting stand and
+was bolted in place for the duration of the test. The load cell
+
+Figure 10. Close-up of DJI Phantom 3 mounted on sting
+stand.
+5
+	
+
+Test matrix and testing procedures
+For each model, the test plan called for three different
+configurations to be tested in the wind tunnel: full vehicle,
+bare airframe (rotors removed), and isolated rotor. By testing
+the vehicles in these three configurations, it will be possible
+to determine the performance of the rotors in isolation as
+well as the full vehicle performance, where rotor-to-rotor
+and rotor-to-airframe interactions have an effect.
+Additionally, the bare airframe runs will provide
+measurements of the forces and moments on the vehicle
+structure with the airframe drag being the primary
+measurement of interest.
+In hover, both the full vehicles and isolated rotors were
+tested. Again, these measurements will make it possible to
+quantify the isolated rotor performance as well as the effects
+of aerodynamic interactions between the rotors and airframe.
+Rotor RPM was varied in two ways for the full vehicle
+configurations. First, the rotor speed was changed uniformly
+for all of the rotors on the vehicle in order to quantify the
+effects of RPM on the vehicle forces and moments,
+particularly lift and drag. Second, non-uniform rotor speeds
+were tested, where there was a difference in RPM either
+from front to back or from side to side. These differential
+RPM runs will allow quantification of the pitch and roll
+moments that can be induced by the rotors as well as provide
+estimates of the different rotor speeds required to trim
+pitching moment in forward flight.
+
+Figure 11. Model mounting plate for DJI Phantom 3.
+For the DJI and 3DR quadcopters, shown in Figs. 2-4, the
+camera gimbal mounting holes were used to support the
+vehicles and serve as attachment points to the interface
+hardware. The DAx8 octocopter (Fig. 5) and SUI Endurance
+quadcopter (Fig. 6) are heavier vehicles, so the camera
+mounting holes did not provide sufficient strength to support
+the vehicle weight and aerodynamic loads. For the latter two
+vehicles, the mounting hardware was attached directly to the
+vehicle chassis. For the Endurance, it was possible to attach
+the DJI Phantom mounting plate to the bottom chassis plate
+of the vehicle. For the DAx8, a set of metal struts had to be
+fabricated to attach to the vehicle inner structure as shown in
+Fig. 12.
+
+The primary variables for each test run were model angle of
+attack and rotor RPM. Each run started with a set of static
+and housekeeping points with wind off and wind on that
+were repeated at the end of the run to check for repeatability
+of measurements. To facilitate the application of
+aerodynamic tares, speed was set based on dynamic
+pressure, q. With speed and vehicle pitch fixed, RPM was
+swept from approximately 80 to 120 percent of the baseline
+RPM. All target rotor speeds were rounded to the nearest
+100 rpm to make RPM adjustments easier. Baseline RPM
+was selected based on a thrust approximately equal to the
+manufacturers’ specified nominal flight weight. Table 2
+gives the baseline thrust and rotor speed for each of the five
+test vehicles.
+Table 2. Baseline vehicle thrust and rotor RPM.
+Vehicle
+3DR SOLO
+3DR Iris+
+DJI Phantom 3 Advanced
+Drone America DAx8
+SUI Endurance
+
+Figure 12. Drone America x8 internal mounting
+hardware.
+
+	
+
+6
+
+Baseline
+Thrust (lb)
+3.3
+2.8
+2.8
+12.8
+6.0
+
+Baseline
+Rotor RPM
+5,700
+5,400
+5,300
+7,000
+3,500
+
+RPM for each rotor was adjusted manually on the secondary
+data acquisition system as described earlier. After testing the
+uniform RPM data points, differential rotor speed was tested
+to measure moments on the vehicles. The procedure was
+then repeated for a series of pitch angles. The test matrix is
+summarized in Table 3 and presented in full in Tables A1A3 in the Appendix. The bulk of testing concentrated on the
+full vehicle configurations at nominal speeds of 20 and
+40 ft/s, with a limited number of runs at 60 and 80 ft/s. Due
+to time constraints, yaw sweeps as well as isolated rotor
+testing were limited to the 3DR SOLO, DAx8, and the SUI
+Endurance.
+
+and is discussed further in the Measurement Uncertainty
+section.
+The linear fit based on tunnel temperature was applied to the
+force measurements using the recorded temperature for each
+data point. The results of these corrections for an example
+run are shown in Fig. 14. The data shown are for the 3DR
+Iris+ at q = 1.9 lb/ft2, with pitch ranging from -5 to 0 deg and
+RPM from 4,300 to 6,500, plus differential RPM. In this
+particular case, the temperature increased from 54.6° F at the
+beginning of the run to 62.9° F at the end of the run. This
+temperature change resulted in the uncorrected z-force
+measurement for the final static point being 0.2 lb below the
+initial static point reading, or about 4% of the maximum
+force measured during this run. After application of the
+temperature drift correction, the final static point only differs
+from the initial static point by 0.003 lb.
+
+Table 3. Test matrix summary.
+Configuration
+Full Airframe
+Bare Airframe
+Rotor Only
+Hover
+
+Pitch
+(deg)
+-40 – 40
+-40 – 40
+-40 – 40
+N/A
+
+Yaw Airspeed
+RPM
+(deg)
+(ft/s)
+(% baseline)
+0 – 90 20 – 80
+80 – 120
+0 – 90 20 – 80
+N/A
+N/A 20 – 80
+80 – 120
+N/A
+0
+70 – 130
+
+Load cell aerodynamic tares for the full vehicles and bare
+airframes were measured with just the model interface plate
+installed and taped over as shown in Fig. 15 (note that this
+photo was not taken in the wind tunnel, but does show the
+configuration as tested for the aerodynamic tares). Not
+
+For the DAx8 and the Endurance, hover testing was done
+with the model mounted in the wind tunnel due to limited
+availability of those two vehicles. The remaining three
+vehicles were hover tested in a lab. In the wind tunnel, the
+rotors are approximately six feet from the walls, so there is
+potential for recirculating air to affect the measurements. In
+the lab, the models were mounted on the sting stand, with
+the nearest wall approximately 30 feet away. Recirculation
+should therefore not be a problem for the data collected in
+the lab. The effects of recirculation for the hover tests in the
+tunnel have yet to be quantified.
+
+1
+0.8
+0.6
+
+F z Change, lb
+
+0.4
+0.2
+0
+-0.2
+-0.4
+
+Data reduction and corrections
+
+-0.6
+
+Most of the data processing was performed in real time by
+the BDAS system. The two post-processing tasks required
+were temperature drift corrections and application of
+aerodynamic tares. During the test, it was observed that the
+final static points were not matching well with the initial
+static points. In particular, the z-force for the final static
+point was often approximately 0.1 – 0.3 lb less than that for
+the initial static point on a given run. This drift appeared to
+be well correlated with temperature changes in the test
+section. After the test was completed, a linear fit was
+generated for each of the six force and moment
+measurements relating temperature change to drift in the
+static point force measurements. The z-force measurement
+drift with temperature is plotted in Fig. 13 along with the
+linear fit to the data.
+
+-0.8
+-1
+-5
+
+5
+
+10
+
+15
+
+Temperature Change, °F
+
+Figure 13. Variation of z-force static measurements with
+temperature.
+5
+
+4
+
+F z, lb
+
+3
+
+2
+Corrected Data
+Uncorrected Data
+
+1
+
+The temperature typically increased from the beginning of a
+run to the end because testing was carried out in the morning
+and early afternoon when exterior temperatures were rising.
+As the plot shows, there is additional scatter in the data not
+related to temperature drift. This scatter can provide a first
+approximation of the uncertainty in the test measurements
+
+	
+
+0
+
+0
+
+-1
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Point
+
+Figure 14. z-force for Run 63 – 3DR Iris+ with and
+without temperature drift corrections.
+7
+
+RESULTS
+
+accounted for in the tares were the effect of the individual
+model mounting plates and the cables that supplied power
+and RPM commands to the vehicles. The mounting plates
+were not included, because putting them in the airstream in
+isolation would not be representative of their effects on the
+full model. The cables were not included, because with the
+vehicle removed, there was nothing to attach them to. A
+separate set of aerodynamic tares was measured for the
+isolated rotors, and this configuration is shown in Fig. 16.
+For the isolated rotor tares, all of the hardware shown in
+Fig. 7 was installed except for the rotor blade.
+
+A selection of the test results is presented in this section. A
+follow-on data report will be published containing additional
+data. Forward flight results for the full airframes will be
+presented first in this section including trim analysis,
+followed by bare airframe and isolated rotor results. Next, a
+subset of the hover test results will be presented. The
+vibrations of the models will then be discussed, followed by
+a discussion of measurement uncertainty.
+Full Airframe
+Lift and drag results for all five vehicles are presented in
+Figs. 17-26. For the three smaller quadcopters (Figs. 17-22),
+the scales on the lift and drag plots are the same in order to
+show any differences between these similar vehicles. Test
+conditions shown include variations in RPM and model
+pitch at zero degrees yaw and q = 0.48 lb/ft2 (approximately
+20 ft/s). For the 3DR SOLO and SUI Endurance, pitch
+angles were tested from -40° to +40° (positive pitch defined
+as nose-up) at this airspeed. DAx8 pitch ranged from -40° to
++20°. Due to time constraints, positive angles of attack were
+not tested for the DJI Phantom or 3DR Iris+, with pitch
+ranging from -40° to 0°.
+In general for the quadcopters, lift increases from α = -40° to
+0° and then levels off. For the DAx8 octocopter, lift
+continues to increase above zero pitch, most likely because
+the DAx8 airframe generates a significant amount of lift at
+positive angles of attack. For all five vehicles, the drag
+increases monotonically with angle of attack. This is not
+surprising, since at negative angles of attack, the rotors are
+thrusting forward, and at positive angles of attack, they are
+thrusting aft.
+
+Figure 15. Full vehicle and bare airframe aerodynamic
+tare configuration.
+
+The variation in drag with rotor RPM at zero angle of attack
+is not consistent across the five different vehicles. The DAx8
+shows the largest dependence of drag on RPM, with the drag
+almost doubling as RPM is increased from the lowest to the
+highest rotor speed. For the other vehicles, this variation is
+much less pronounced at zero pitch. The cause of this
+discrepancy is yet to be determined, but may be
+aerodynamic interactions or differences in rotor geometries.
+Figure 16. Isolated rotor aerodynamic tare
+configuration.
+
+Trim
+By searching for the regions where the lift values equal the
+weight of the vehicle and where the net drag force and
+pitching moment are zero, it is possible to estimate at what
+RPM and pitch value the trim condition is reached.
+Figure 18 shows that for all rotor speeds, the drag values for
+the SOLO pass through zero at approximately α = -6°. At
+α = -6°, the RPM for a lift value of 3.3 lb (the nominal flight
+weight of the SOLO including camera and battery), is
+approximately 5,400 rpm.
+
+Typically in this type of wind tunnel test, weight tares would
+be required to account for changes in the model center of
+gravity relative to the load cell during model pitch changes.
+For this test, however, weight tares were not required,
+because the model was mounted on its side and the load cell
+moved with the model. In this configuration, the gravity
+vector of the model does not move relative to the load cell
+during pitch changes. The gravity vector does move relative
+to the load cell for model yaw changes, but a new data run
+was started any time the model yaw was changed, at which
+point the load cell measurements were re-zeroed.
+
+	
+
+To trim moments, a higher rotor speed would be required on
+the aft rotors. Pitching moment for the differential RPM runs
+with the SOLO at q = 0.48 lb/ft2 is shown in Fig. 27. The
+8
+
+5
+
+6
+
+4
+4600 RPM
+5100 RPM
+5700 RPM
+6300 RPM
+6800 RPM
+
+5
+3
+
+4
+
+Drag, lb
+
+Lift, lb
+
+2
+
+3
+
+1
+0
+
+2
+4600 RPM
+5100 RPM
+5700 RPM
+6300 RPM
+6800 RPM
+
+1
+
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+-1
+-2
+
+40
+
+-3
+-50
+
+50
+
+-40
+
+-30
+
+-20
+
+Figure 17. Lift for 3DR SOLO, q = 0.48 lb/ft2,
+yaw = 0°.
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Figure 18. Drag for 3DR SOLO, q = 0.48 lb/ft2,
+yaw = 0°.
+
+6
+
+5
+4
+
+5
+4200 RPM
+4800 RPM
+5300 RPM
+5800 RPM
+6400 RPM
+
+4200 RPM
+4800 RPM
+5300 RPM
+5800 RPM
+6400 RPM
+
+3
+2
+
+Drag, lb
+
+4
+
+Lift, lb
+
+-10
+
+Pitch, deg
+
+Pitch, deg
+
+3
+
+1
+0
+
+2
+
+-1
+1
+
+-2
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+-3
+-50
+
+Pitch, deg
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+Figure 19. Lift for DJI Phantom 3, q = 0.48 lb/ft2, yaw =
+0°.
+
+40
+
+50
+
+Figure 20. Drag for DJI Phantom, q = 0.48 lb/ft2,
+yaw = 0°.
+
+6
+
+5
+4
+
+5
+
+4300 RPM
+4900 RPM
+5400 RPM
+5900 RPM
+6500 RPM
+
+3
+
+4
+4300 RPM
+4900 RPM
+5400 RPM
+5900 RPM
+6500 RPM
+
+3
+
+2
+
+Drag, lb
+
+Lift, lb
+
+30
+
+Pitch, deg
+
+1
+0
+
+2
+
+-1
+
+1
+-2
+
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+-3
+-50
+
+50
+
+Pitch, deg
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+Pitch, deg
+
+Figure 21. Lift for 3DR Iris+, q = 0.48 lb/ft2, yaw = 0°.
+
+	
+
+-40
+
+Figure 22. Drag for 3DR Iris+, q = 0.48 lb/ft2,
+yaw = 0°.
+
+9
+
+50
+
+18
+
+10
+
+16
+
+8
+
+14
+
+5000 RPM
+5600 RPM
+6200 RPM
+6800 RPM
+7400 RPM
+
+6
+
+12
+
+Drag, lb
+
+Lift, lb
+
+4
+10
+8
+
+2
+0
+
+5000 RPM
+5600 RPM
+6200 RPM
+6800 RPM
+7400 RPM
+
+6
+4
+
+-2
+-4
+
+2
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+-6
+-50
+
+50
+
+-40
+
+-30
+
+-20
+
+-10
+
+Pitch, deg
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+Figure 23. Lift for DAx8, q = 0.48 lb/ft2, yaw = 0°.
+
+Figure 24. Drag for DAx8, q = 0.48 lb/ft2, yaw = 0°.
+
+10
+
+8
+
+9
+6
+
+8
+4
+
+7
+
+Drag, lb
+
+Lift, lb
+
+6
+5
+4
+2800 RPM
+3200 RPM
+3500 RPM
+3800 RPM
+4200 RPM
+
+3
+2
+
+2
+
+0
+2800 RPM
+3200 RPM
+3500 RPM
+3800 RPM
+4200 RPM
+
+-2
+
+-4
+
+1
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+-6
+-50
+
+50
+
+-40
+
+-30
+
+-20
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Figure 26. Drag for SUI Endurance, q = 0.48 lb/ft2, yaw =
+0°.
+
+Figure 25. Lift for SUI Endurance, q = 0.48 lb/ft2, yaw =
+0°.
+
+20
+
+moments are expressed about a point at the center of the four
+rotors at the height of the rotor plane. Based on Fig. 27, at
+α = -6°, a pitch moment of zero would be reached for a rotor
+speed of approximately 6,200 rpm on the aft rotors and
+5,200 on the forward rotors. Assuming changes in pitching
+moment are only dependent on the difference in rotor speeds
+(and not on the average rotor speed, which is not a bad
+approximation), the trim condition for the SOLO at
+q = 0.48 lb/ft2 would be a pitch of -6°, forward rotor RPM of
+4,900 and aft rotor RPM of 5,900.
+
+15
+
+Pitch Moment, in-lb
+
+10
+5
+0
+-5
+Fwd 6800, Aft 4600
+Fwd 6300, Aft 5100
+Fwd 5700, Aft 5700
+Fwd 5100, Aft 6300
+Fwd 4600, Aft 6800
+
+-10
+
+Bare Airframe
+
+-15
+
+Lift and drag results for the bare airframe runs are shown in
+Figs. 28 and 29. The solid lines show results for q = 1.9 lb/ft2
+(40 ft/s), and the dotted lines show results for q = 0.48 lb/ft2
+(20 ft/s). The results are shown normalized by dynamic
+pressure to expose any Reynolds number effects. The
+quadcopter airframes all generate very little lift. The DAx8
+
+	
+
+-10
+
+Pitch, deg
+
+Pitch, deg
+
+-20
+-15
+
+-10
+
+-5
+
+0
+
+5
+
+10
+
+15
+
+Pitch, deg
+
+Figure 27. Pitching moment for the 3DR SOLO,
+q = 0.48 lb/ft2, yaw = 0°, differential RPM.
+
+10
+
+octocopter airframe, however, is a large flat disk with a
+curved top, so it actually does generate a significant amount
+of lift. The curves for the two airspeeds are very similar,
+indicating very little effect of Reynolds number on lift.
+
+3
+
+2
+
+1
+
+Lift/q, ft2
+
+Because the DAx8 is a much larger vehicle than the
+quadcopters, its drag is much higher and makes it difficult to
+interpret the results for the smaller vehicles in Fig. 29. The
+same drag results are shown in Fig. 30 but with the DAx8
+results removed to increase the scale and better show the
+quadcopter results. The Reynolds number effects on drag of
+the DAx8 and SUI Endurance airframes are minimal. For the
+smaller quadcopters, lowering the speed results in a higher
+q-normalized drag.
+
+0
+SOLO q = 0.48
+SOLO q = 1.9
+Phantom q = 1.9
+Iris q = 0.48
+Iris q = 1.9
+DAx8 q = 0.48
+DAx8 q = 1.9
+Endurance q = 0.48
+Endurance q = 1.9
+
+-1
+
+-2
+
+-3
+
+-4
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+Isolated Rotor
+
+Figure 28. Lift/q for bare airframe runs.
+
+In addition to the full airframe runs, the isolated rotors of the
+3DR SOLO, DAx8, and SUI Endurance were tested in
+forward flight. This configuration was previously shown in
+Fig. 7 for the SUI Endurance rotor. A small metal adapter
+was fabricated to attach a motor to the model interface plate
+with a standoff distance of 2.1 in from the interface plate.
+The adapter only allowed for attaching a motor with a
+16 mm x 19 mm bolt pattern (the standard bolt pattern used
+by the motors on the Iris+, SOLO, and Phantom 3).
+Therefore, an Iris+ motor was used for all of the isolated
+rotor tests. Due to time constraints on testing, only a limited
+number of conditions were tested for the isolated rotor cases.
+These conditions are listed in Table A3 in the Appendix.
+Figures 31 and 32 show the lift and drag for the 3DR SOLO
+rotor at q = 0.48 lb/ft2.
+
+5
+SOLO q = 0.48
+SOLO q = 1.9
+Phantom q = 1.9
+Iris q = 0.48
+Iris q = 1.9
+DAx8 q = 0.48
+DAx8 q = 1.9
+Endurance q = 0.48
+Endurance q = 1.9
+
+4.5
+4
+
+Drag/q, ft2
+
+3.5
+3
+2.5
+2
+1.5
+1
+0.5
+
+By comparing the isolated rotor results with the full airframe
+results, it is possible to estimate the effect of rotor-airframe
+and rotor-rotor interactions. For example, at 0 degrees pitch
+and 5700 RPM, the isolated rotor generates 1.0 lb of lift. For
+the same test condition with the full airframe, the lift shown
+in Fig. 17 is 3.8 lb, and the bare airframe lift (calculated by
+multiplying the value given in Fig. 28 by 0.48 lb/ft2) is
+0.01 lb. With no aerodynamic interactions, the total expected
+lift would be the number of rotors (4) times the isolated rotor
+lift, plus the isolated airframe lift, for a total of 4.01 lb. This
+indicates that at q = 0.48 lb/ft2 and zero pitch, approximately
+5 percent of the SOLO rotor lift is lost to rotor-airframe and
+rotor-rotor interactions. Similar calculations can be made for
+the other vehicles and different test conditions.
+
+0
+-50
+
+	
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+Figure 29. Drag/q for bare airframe runs.
+
+0.8
+SOLO q = 0.48
+SOLO q = 1.9
+Phantom q = 1.9
+Iris q = 0.48
+Iris q = 1.9
+Endurance q = 0.48
+Endurance q = 1.9
+
+0.7
+0.6
+
+Drag/q, ft2
+
+0.5
+
+Because there are no flap hinges on the rotors used for these
+small vehicles, it can be expected that the rotors will carry
+hub moments, especially at higher airspeeds. As an example,
+the roll moment at the SOLO rotor hub at q = 0.48 lb/ft2 is
+given in Figs. 33 and 34, first as the measured roll moment,
+and second as the lift offset. The lift offset is given by:
+!""#$% =
+
+-40
+
+0.4
+0.3
+0.2
+0.1
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+!!
+!! !
+
+Figure 30. Drag/q for bare airframe runs (DAx8 results
+removed).
+
+11
+
+Roll moment varies much more with shaft pitch than with
+rotor RPM. The lift offset peaks at a pitch angle of -2° for all
+rotor speeds and varies from 5 to 8 percent of the rotor
+radius. As expected, the lift offset generally decreases with
+increased rotor speed (and decreased advance ratio).
+Advance ratios range from 0.07 at 6,800 RPM to 0.10 at
+4,600 RPM. It is unclear why the lift offset is higher for
+5,100 RPM than it is for 4,600 RPM; however, it could be
+due to measurement error, since the measured roll moments
+are very small. The discrepancy could be due to Reynolds
+number effects.
+
+Finally, isolated rotor tests enable measurement of
+individual rotor shaft torque, allowing calculation of the
+mechanical power produced by the rotor at each test
+condition. Results for both mechanical and electrical power
+are given in Fig. 35 for the 3DR SOLO rotor at
+q = 0.48 lb/ft2. The motors and ESCs have not yet been
+bench tested for their individual efficiencies, so dividing the
+value for the mechanical power (solid line) by the electrical
+power (dotted line) gives the electrical efficiency of the
+combined motor and ESC. In this case the efficiency is
+between 72 and 78 percent, depending on rotor speed. Note
+that a motor and ESC from the 3DR Iris+ were used for all
+three isolated rotors that were tested. As the results in
+Fig. 35 show, the power is largely independent of shaft pitch
+angle, and is much more dependent on rotor RPM. The
+results for the other two isolated rotors tested (not presented
+here) showed similar trends.
+
+For q = 1.9 lb/ft2 (not shown), the measured lift offset was as
+high as 13% for an RPM of 5,700; however, a resonance
+issue encountered with the test stand prevented testing the
+two lower rotor speeds at this higher airspeed.
+
+3
+
+1
+4600 RPM
+5100 RPM
+5700 RPM
+6300 RPM
+6800 RPM
+
+2.5
+
+0.8
+0.6
+0.4
+
+2
+
+Drag, lb
+
+Lift, lb
+
+0.2
+1.5
+
+0
+4600 RPM
+5100 RPM
+5700 RPM
+6300 RPM
+6800 RPM
+
+-0.2
+
+1
+
+-0.4
+-0.6
+
+0.5
+
+-0.8
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+-1
+-50
+
+50
+
+Pitch, deg
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+Figure 31. Lift for 3DR SOLO rotor, q = 0.48 lb/ft2.
+
+Figure 32. Drag for 3DR SOLO rotor, q = 0.48 lb/ft2.
+
+0.5
+
+0.15
+
+4600 RPM
+5100 RPM
+5700 RPM
+6300 RPM
+6800 RPM
+
+Lift Offset
+
+Roll Moment, in-lb
+
+0.1
+
+0
+
+-0.5
+4600 RPM
+5100 RPM
+5700 RPM
+6300 RPM
+6800 RPM
+
+-1
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+0
+
+40
+
+-0.05
+-50
+
+50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+Pitch, deg
+
+Figure 34. Lift offset for 3DR SOLO rotor, q = 0.48 lb/ft2.
+
+Figure 33. Roll moment for 3DR SOLO rotor,
+q = 0.48 lb/ft2.
+
+	
+
+0.05
+
+12
+
+90
+80
+70
+
+Power, W
+
+60
+50
+40
+
+4600 RPM Mech.
+4600 RPM Elec.
+5100 RPM Mech.
+5100 RPM Elec.
+5700 RPM Mech.
+5700 RPM Elec.
+6300 RPM Mech.
+6300 RPM Elec.
+6800 RPM Mech.
+6800 RPM Elec.
+
+30
+20
+10
+0
+-50
+
+-40
+
+-30
+
+-20
+
+-10
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+Pitch, deg
+
+Figure 35. Power for the 3DR SOLO rotor,
+q = 0.48 lb/ft2.
+Hover Test Results
+Figure 36. 3DR Iris+ hover test configuration.
+
+The hover performance was measured for all five complete
+vehicles and all five isolated rotors. As previously
+mentioned in the Test Description section, the DAx8 and
+SUI Endurance were hover tested in the test section of the 7by 10-ft wind tunnel mounted at zero degrees in the wind-on
+test configuration. The remaining three vehicles and all five
+isolated rotors were tested on the sting stand in a lab, as
+shown in Fig. 36. A clone of the BDAS system used in the
+wind tunnel was used for data acquisition in the lab. The
+range of hover test conditions is included with the full
+airframe and isolated rotor test matrices in Tables A1 and
+A3.
+
+25
+
+Thrust, lb
+
+20
+Phantom
+SOLO
+Iris
+DAx8
+Endurance
+
+15
+
+10
+
+5
+
+Results for the full vehicle hover tests are given in Figs. 37
+and 38. The first figure shows the thrust as a function of
+rotor RPM and the second shows the thrust coefficient,
+defined as T/ρA(ΩR)2. As expected, the thrust follows a
+quadratic trend with rotor speed. Thrust coefficient for all
+five vehicles shows a slight increase with RPM, and the
+Phantom operates at the highest thrust coefficient of the five
+vehicles. The variation with rotor RPM indicates that nondimensional rotor lift increases slightly with increasing
+Reynolds number over the range of rotor speeds tested. For
+reference, the Reynolds number at the tip of the DJI
+Phantom rotor blade at 5,000 RPM is approximately 50,000.
+
+0
+
+1000
+
+2000
+
+3000
+
+4000
+
+5000
+
+6000
+
+7000
+
+8000
+
+9000
+
+RPM
+
+Figure 37. Full vehicle hover thrust.
+0.02
+Phantom
+SOLO
+Iris
+DAx8
+Endurance
+
+Thrust Coefficient, T/; A(+R)2
+
+0.018
+
+Thrust coefficient results for the isolated rotors are given in
+Fig. 39. The results are similar to the full vehicle results, but
+there is more noise in the thrust coefficient curves. This is
+likely due to higher relative measurement uncertainty for the
+isolated rotors. The thrust being measured is only a quarter
+of that of the full vehicles for the quadcopters (and an eighth
+of that of the octocopter), so the relative error in the
+measurement is four times higher, which carries into the
+thrust coefficient calculation. Regardless, the same trend is
+observed as for the full vehicle, with thrust coefficient
+increasing slightly with RPM.
+
+	
+
+0
+
+0.016
+0.014
+0.012
+0.01
+0.008
+0.006
+0.004
+0.002
+0
+
+0
+
+1000
+
+2000
+
+3000
+
+4000
+
+5000
+
+6000
+
+7000
+
+8000
+
+RPM
+
+Figure 38. Full vehicle hover thrust coefficient.
+13
+
+9000
+
+0.02
+
+150
+
+1
+0.9
+Mech. Power
+Elec. Power
+Efficiency
+
+0.014
+
+0.8
+0.7
+
+100
+
+0.012
+
+0.6
+
+0.01
+0.008
+
+0.004
+
+0.4
+50
+
+Phantom
+SOLO
+Iris
+DAx8
+Endurance
+
+0.006
+
+0.5
+
+0.3
+0.2
+0.1
+
+0.002
+0
+
+0
+
+0
+
+1000
+
+2000
+
+3000
+
+4000
+
+5000
+
+6000
+
+7000
+
+Electrical Efficiency
+
+0.016
+
+Power, W
+
+Thrust Coefficient, T/; A(+R)2
+
+0.018
+
+8000
+
+0
+
+1000
+
+2000
+
+3000
+
+4000
+
+9000
+
+5000
+
+6000
+
+7000
+
+8000
+
+0
+9000
+
+RPM
+
+RPM
+
+Figure 40. Hover power for DJI Phantom rotor.
+Figure 39. Isolated rotor thrust coefficient.
+1
+
+By comparing the full vehicle and isolated rotor results for
+thrust coefficient, it is also possible to calculate the
+download, DL, in hover with the following:
+
+0.8
+
+Electrical Efficiency
+
+!" =
+
+0.9
+
+!!,!" − !!,!"
+!!,!"
+
+where the IR and FV subscripts represent isolated rotor and
+full vehicle, respectively. The hover download across all five
+vehicles for the baseline rotor speed ranges from a low of
+approximately 5% for the SUI Endurance to about 15% for
+the DAx8. The SUI Endurance has fairly thin arms
+supporting the rotors, while the DAx8 rotor support arms are
+relatively thick, which is likely the driving factor behind the
+difference in hover download between the different vehicles.
+
+0.7
+0.6
+Phantom
+SOLO
+Iris
+DAx8
+Endurance
+
+0.5
+0.4
+0.3
+0.2
+0.1
+0
+
+0
+
+1000
+
+2000
+
+3000
+
+5000
+
+6000
+
+7000
+
+8000
+
+9000
+
+RPM
+
+As with the forward flight isolated rotor tests, the
+mechanical and electrical power can be compared to
+compute the efficiency of the motor-ESC combination. The
+same motor and ESC from the Iris+ that were used for
+forward-flight testing were used for the hover tests. As an
+example, Fig. 40 shows the mechanical and electrical power
+of the DJI Phantom rotor on the primary y-axis. Electrical
+efficiency is plotted on the secondary axis. The combined
+motor-ESC efficiency is as low as 50% at the lowest RPM
+tested and increases quickly above 70% once rotor speed is
+increased to 4,500 rpm. Maximum efficiency of 77% was
+reached at the highest rotor speed tested. Efficiency results
+were similar to the Phantom results for the other similarly
+sized quadcopter rotors (3DR Iris+ and 3DR SOLO).
+
+Figure 41. Isolated rotor electrical efficiency.
+since the motor and rotor are normally paired to achieve
+maximum efficiency on the production vehicles. If the other
+rotors were hover tested with their appropriate motors, the
+measured electrical efficiencies would be expected to be
+higher.
+Finally, with the mechanical power and thrust
+measurements, it is possible to calculate the rotor figure of
+merit, M, defined as the ratio of ideal induced power to total
+rotor mechanical power:
+!=
+
+For the DAx8 and SUI Endurance, which use larger rotors,
+the efficiency drops off significantly, as shown in Fig. 41.
+Again, the Iris+ motor was used to test all five isolated
+rotors, and it was very under-sized for the larger rotors. This
+is particularly true for the 15-inch SUI rotor, which is
+normally mated to a much larger motor on the vehicle. The
+highest electrical efficiency for the isolated rotor hover tests
+was measured for the Iris+ rotor, which is not surprising,
+
+	
+
+4000
+
+! ! 2!"
+!!"#!
+
+In the above equation, T is the rotor thrust, and Pmech is the
+mechanical power, equal to MzΩ. The measured figure of
+merit for all five rotors is plotted in Fig. 42. The highest
+figure of merit measured is for the 3DR Iris+, which has a
+maximum of 0.72 at 8,000 rpm. For each rotor, the figure of
+merit is maximized at the upper end of the RPM range. The
+14
+
+results show good agreement with results from Ref. 6 for the
+APC Thin Electric 10x5 blade, which has a similar geometry
+to the rotors of the DJI Phantom 3. The figure of merit for
+the APC blades ranges from 0.59 at 2,508 rpm to 0.66 at
+6,708 rpm, while for the Phantom blade measured here, the
+figure of merit is 0.58 at 2,500 rpm and 0.67 at 6,500 rpm.
+
+vibration magnitude varies significantly with time. If the plot
+showed a longer sample time, the beat frequency would be
+much more apparent. An FFT of the same data is given in
+Fig. 44.
+At 5,700 rpm, the 1/rev frequency is 95 Hz. There is a low
+peak at 1/rev due to blade imbalance, but the primary
+vibration frequencies are at 2/rev and 4/rev. The 2/rev is
+explained by the fact that the rotors are 2-bladed, with very
+little flexibility in the lag direction. The alternating
+aerodynamic conditions seen by the blades between the
+advancing and retreating sides therefore lead to high 2/rev
+vibrations. Aerodynamic interactions between the forward
+and aft rotors are the likely cause of the higher harmonic
+content at 4/rev and 8/rev.
+
+The four smaller quadcopter rotors have very similar trends
+for figure of merit. The SUI Endurance rotor has a higher
+figure of merit at the low RPM values than any of the other
+rotors. The Endurance rotor was limited to a maximum
+speed of 4,500 rpm because of the power limit of the Iris+
+motor being used for isolated rotor testing.
+1
+0.9
+
+Vibrations were measured for the same test condition for the
+isolated rotor, and the results are shown in Fig. 45. Because
+there was only one rotor operating at a fixed speed, there is
+no beating as there is for the full vehicle results. Looking at
+
+0.8
+
+Figure of Merit
+
+0.7
+0.6
+Phantom
+SOLO
+Iris
+DAx8
+Endurance
+
+0.5
+0.4
+
+15
+
+10
+
+0.3
+0.2
+
+5
+
+0
+
+0
+
+1000
+
+2000
+
+3000
+
+4000
+
+5000
+
+6000
+
+7000
+
+8000
+
+Fx, lb
+
+0.1
+9000
+
+RPM
+
+-5
+
+Figure 42. Isolated rotor figure of merit.
+
+-10
+
+Vibrations
+One of the initial challenges encountered during the wind
+tunnel test was a high level of vibration. Vibrations in this
+type of vehicle are not unexpected, and in fact, the designs
+for all of the vehicles show that the manufacturers actively
+worked to reduce vibrations by using rubber dampers on
+critical components, the camera gimbals in particular. The
+level and character of vibration, however, was previously
+not well documented.
+
+-15
+
+0
+
+0.1
+
+0.2
+
+0.3
+
+0.4
+
+0.5
+
+Time, s
+
+Figure 43. Fx time history for 3DR SOLO, q = 1.9 lb/ft2,
+α = 0°, RPM = 5,700.
+3.5
+
+3
+
+As discussed in the Test Setup section, the BDAS system
+was configured to measure the mean values of the load cell
+measurements over a 30-second data record. It was not set
+up to measure dynamic data; however, the signal
+conditioning/amplifier system could be used at any time to
+capture short data records at a rate of 100,000 samples per
+second. Vibration data were collected for several test points
+using this system. Sample results for the 3DR SOLO are
+provided in this section. Figure 43 shows a 0.5 second time
+history of Fx for the full vehicle for a rotor speed of
+5,700 rpm at a vehicle pitch of zero degrees and
+q = 1.9 lb/ft2 (approximately 40 ft/s).
+
+|Fx|, lb
+
+2.5
+
+2
+
+1.5
+
+1
+
+0.5
+
+0
+
+0
+
+200
+
+400
+
+600
+
+800
+
+1000
+
+Frequency, Hz
+
+At this condition, the mean drag is 0.8 lb, but as the plot
+shows, the peak loads are as much as ±10 lb. Additionally,
+due to the inconsistent phasing of the four rotors, the
+
+	
+
+0
+
+Figure 44. FFT of Fx for 3DR SOLO, q = 1.9 lb/ft2,
+α = 0°, RPM = 5,700.
+15
+
+the FFT for the isolated rotor results, shown in Fig. 46, the
+highest vibration levels are at the 2/rev frequency, but there
+is still a significant amount of 4/rev content. Since the data
+shown here were collected at a shaft pitch of zero degrees,
+blade vortex interaction is the likely cause of the higher
+harmonic content [Ref. 15].
+
+15
+
+10
+
+5
+
+Fx, lb
+
+Because vibration measurements were not in the original test
+plan, there were only limited measurements taken. Further
+testing that focuses on better characterizing the vibrations of
+these vehicles and exploring mitigation strategies would
+therefore be a good follow-on topic of research.
+
+0
+
+-5
+
+-10
+
+Measurement Uncertainty
+-15
+
+As previously mentioned, the manufacturer’s stated
+uncertainty for the load cell is 0.25% of full scale. For the
+50-lb load cell that was used for the majority of testing, the
+capacity in the x- and y-directions is 50 lb. In the z-direction,
+the capacity is 100 lb, and the moment capacity is 150 in-lb
+in all three directions. This translates to an uncertainty of
+0.13 lb in the x- and y-force measurements, 0.25 lb in the zforce measurements, and 0.38 in-lb in all three moment
+directions. Based on the error analysis presented below, the
+uncertainty is believed to be less than the manufacturer’s
+stated uncertainty for the load ranges measured during this
+test.
+
+0.1
+
+0.2
+
+0.3
+
+0.4
+
+0.5
+
+Time, s
+
+Figure 45. Fx time history for 3DR SOLO isolated rotor,
+q = 1.9 lb/ft2, α = 0°, RPM = 5,700.
+3.5
+
+3
+
+|Fx|, lb
+
+2.5
+
+Check loads were performed both before and after the test in
+order to quantify the accuracy of the load cell over the load
+range tested. The results for the post-test check loads in the
+x-direction are shown in Fig. 47. Measurements were taken
+with both increasing and decreasing loads to check for
+hysteresis. If the load cell measurements were perfect, the
+measured loads would exactly follow the black line, with a
+slope of 1. The measured loads shown are slightly less than
+expected, with the absolute error increasing to a maximum
+of 0.19 lb as the load increases. The relative error for all of
+the check loads is fairly constant for the non-zero
+measurements, indicating that the slope of the sensitivity
+curve over this load range is slightly off. Based on the check
+load data, the uncertainty in the x-direction due to
+calibration error is calculated to be ±0.020Fx. As shown, the
+hysteresis is very small, with a maximum value of 0.021 lb.
+The uncertainty in the x-direction due to hysteresis is
+therefore considered to be ±0.021 lb.
+
+2
+
+1.5
+
+1
+
+0.5
+
+0
+
+0
+
+200
+
+400
+
+600
+
+800
+
+1000
+
+Frequency, Hz
+
+Figure 46. FFT of Fx for 3DR SOLO isolated rotor,
+q = 1.9 lb/ft2, α = 0°, RPM = 5,700.
+12
+Expected Load
+Measured Load, Increasing
+Measured Load, Decreasing
+
+10
+
+F x Measured
+
+8
+
+The third source of force and moment measurement
+uncertainty that can be applied across all of the data runs is
+the repeatability of measurements. Ideally, the temperaturecorrected forces and moments measured for the static point
+at the end of each run would be zero; however, there is
+scatter in these ending static points (shown for the zdirection in Fig. 13). The 95% confidence interval for the
+uncertainty due to non-repeatability of data points is two
+times the standard deviation of the errors for the ending
+static points. The contributions to uncertainty for all six
+force and moment measurements are given in Table 4.
+
+	
+
+0
+
+6
+
+4
+
+2
+
+0
+
+-2
+-2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+F x Applied
+
+Figure 47. Fx check load results
+16
+
+12
+
+The final source of uncertainty is the fact that the force and
+moment measurements are based on an average of unsteady
+loading measurements. For each measurement taken during
+the test, the standard deviation was recorded, so for a 95%
+confidence interval, the uncertainty due to measurement
+unsteadiness is 2!/ !, where σ is the standard deviation at
+a given data point and N is the number of samples. For the
+30-second data records at 1,024 samples per second
+collected for this test, N equals 30,720.
+
+database for multicopter vehicles. This database can then be
+used to accurately model trajectories of these types of
+aircraft. There is currently an effort underway to build a
+query-able database of the data collected in this test to make
+it easier to extract trends. In its current form, data can only
+be extracted by finding a desired test condition in the test log
+and pulling the matching data from the dataset.
+There are also follow-on experimental efforts planned to
+further characterize small multicopter vehicles. The motors
+and speed controllers used for this test will be bench tested
+to better characterize their efficiency as a function of torque
+and motor RPM. These tests will follow the methodology
+described by Green and McDonald in Ref. 16. Finally, in
+order to accurately characterize the performance of these
+vehicles using a comprehensive analysis tool such as
+CAMRAD II, it may be necessary to measure blade
+deflections in flight. An effort is underway to use a
+photogrammetry system to measure the blade deflections in
+both hover and in forward flight.
+
+The total measurement uncertainty is then calculated as the
+root-sum-squared of the four different uncertainty sources.
+Figure 48 shows an example of the z-force data with error
+bars for Run 63, which is the same run shown in Fig. 14.
+The maximum calculated uncertainty in the z-force for this
+run is 0.163 lb.
+Table 4. Uncertainty contributions.
+Source
+Relative Cal.
+Error
+Hysteresis,
+lb or in-lb
+Repeatability,
+lb or in-lb
+
+Fx
+
+Fy
+
+Fz
+
+Mx
+
+My
+
+Mz
+
+0.020 0.012 0.002 0.004 0.003 0.008
+
+CONCLUSIONS
+
+0.021 0.011 0.052 0.010 0.032 0.018
+
+The goal of this test was to generate a high-quality set of
+data for the performance of multicopter UAS vehicles. The
+intent is to use this data to enhance software tools in use
+both inside and outside of NASA to design and analyze
+multicopter vehicles. The applications targeted by this test
+are trajectory estimation and vehicle design and analysis, but
+there could certainly be others that will be able to make use
+of the data.
+
+0.085 0.055 0.123 0.148 0.269 0.191
+
+5
+
+4
+
+The test generated data for five different vehicles in both
+forward flight and in hover. The data include forces and
+moments and electrical power as a function of rotor RPM,
+airspeed, and vehicle attitude. This paper described the test
+setup and procedure as well as summarized the results of the
+test at a select number of operating conditions. A large
+amount of data from this test was not included in this paper
+and will be published in a technical report at a later date.
+
+Fz, lb
+
+3
+
+2
+
+1
+
+0
+
+-1
+
+0
+
+10
+
+20
+
+30
+
+40
+
+The data that were collected for the full vehicles as well as
+for the bare airframes and isolated rotors will allow for
+development and validation of analytical and numerical
+models at both the full vehicle and component levels. This
+breadth of validation data was previously unavailable in the
+public domain. The data produced by this research effort
+represent a significant step forward in advancing the
+understanding of multicopter UAS performance.
+
+50
+
+Point
+
+Figure 48. z-force for Run 63 – 3DR Iris+ including
+uncertainty.
+
+FUTURE WORK
+The next major research effort related to this test is to use
+the data to calibrate and validate the various models used to
+model multicopter vehicles. In particular, research under
+DELIVER and RVLT will seek to validate CAMRAD II
+models of small rotors using the data collected here. These
+models will then be used to calibrate rotor performance
+models in NDARC to allow for design trade studies of
+multicopter vehicles. Research under UTM will use the data
+collected here to help populate a vehicle performance
+
+	
+
+ACKNOWLEDGMENTS
+A large team was required to accomplish this test, and the
+authors would like to acknowledge the contributions of all
+who were involved. In particular, the authors would like to
+thank Nili Gold and the 7- by 10-ft Wind Tunnel test crew
+for all the hard work they put in to ensure that the test ran
+smoothly. The NASA machine shop teams, led by Robert
+Kornienko and Vincent Derilo, produced the vehicle
+17
+
+	
+
+mounting hardware, which was absolutely critical to the
+success of the test. Tom Norman provided invaluable
+insights into wind tunnel testing and data reduction. Straight
+Up Imaging provided the Endurance vehicle for the wind
+tunnel test. The assistance of all of those who acted as safety
+loads monitors during the test is greatly appreciated. Three
+NASA projects supported this test: the UAS Traffic
+Management (UTM) Sub-project, under the Safe
+Autonomous Systems Operations (SASO) Project; the
+Design Environment for Novel Vertical Lift Vehicles
+(DELIVER) Sub-project, under the Convergent Aeronautics
+Solutions (CAS) Project; and the Revolutionary Vertical Lift
+Technology (RVLT) Project.
+
+10. “Phantom 3 Advanced Specs,”
+http://www.dji.com/product/phantom-3-adv/info#specs,
+accessed March 28, 2016.
+11. “3DR Iris+,” https://3dr.com/iris-plus/,
+accessed March 28, 2016.
+12. “Drone America – DAx8,”
+http://www.droneamerica.com/systems/dax8,
+accessed March 28, 2016.
+13. “Products – Straight Up Imaging,”
+http://www.straightupimaging.com/products/,
+accessed March 28, 2016.
+
+REFERENCES
+	
+1.
+
+2.
+
+Johnson, W., “NDARC: NASA Design and Analysis of
+Rotorcraft,” NASA/TP-2015-218751, April 2015.
+
+3.
+
+Johnson, W., “Propulsion System Models for Rotorcraft
+Conceptual
+Design,”
+AHS
+5th
+Decennial
+Aeromechanics Specialists’ Conference, San Francisco,
+CA, January 2014.
+
+4.
+
+“UTM: Air Traffic Management for Low-Altitude
+Drones”, NASA facts, NF-2015-10-596-HQ.
+
+5.
+
+Brandt, J. and Selig, M., “Propeller Performance Data at
+Low Reynolds Numbers,” 49th AIAA Aerospace
+Sciences Meeting, Orlando, FL, January 2011.
+
+6.
+
+Brandt, J., Deters, R., Ananda, G., and Selig, M.,
+“UIUC Propeller Data Site,”
+http://m-selig.ae.illinois.edu/props/propDB.html,
+accessed March 28, 2016.
+
+7.
+
+Carroll, T., George, I.-R., Bramesfeld, G., and
+Raahemifar, K., “Design Optimization of Small Rotors
+in Quad-Rotor Configuration,” AIAA SciTech, San
+Diego, CA, January 2016.
+
+8.
+
+Huang, H., Hoffmann, G., Waslander, S., and Tomlin,
+C., “Aerodynamics and Control of Autonomous
+Quadrotor Helicopters in Aggressive Maneuvering,”
+2009 IEEE International Conference on Robotics and
+Automation, Kobe, Japan, May 2009.
+
+9.
+
+14. Storms, B., Nishikawa, D., Mason, S, Hange, C., and
+Phillips, J., “BDAS 13.2 User Manual,” Rev. 2,
+February 2016.
+
+Gorton, S., López, I., and Theodore, C., “NASA
+Technology for Next Generation Vertical Lift
+Vehicles,” AIAA SciTech, Kissimmee, FL, January
+2015.
+
+“SOLO Specs: Just the facts,”
+https://3dr.com/solo-gopro-drone-specs/,
+accessed March 28, 2016.
+
+	
+
+15. Johnson, W., Rotorcraft Aeromechanics, Cambridge
+University Press, New York, NY, 2013, Chapter 18.3:
+Vibration, pp. 717-722.
+16. Green, C, and McDonald, R. “Modeling and Test of the
+Efficiency of Electronic Speed Controllers for Brushless
+DC Motors,” 15th AIAA Aviation Technology,
+Integration, and Operations Conference, Dallas, TX,
+June 2015.
+
+18
+
+Table A1. Full airframe test matrix.
+Speed
+Nominal
+Yaw
+Pitch Angleu
+RPMv
+2
+(q, lb/ft ) Speed, ft/s Angle, deg
+3DR SOLO
+0.48
+20
+0
+-40 – 40
+4,600 – 6,800 +Δ
+1.9
+40
+0
+-40 – 40
+4,600 – 6,800 +Δ
+7.7
+80
+0
+-40 – -20
+5,700 – 6,800
+0.48
+20
+-5
+-40 – 40
+4,600 – 6,800 +Δ
+1.9
+40
+-5
+-40 – 40
+4,600 – 6,800 +Δ
+1.9
+40
+-30
+-10 – 10
+4,000 – 6,300
+0.48
+20
+-45
+-10 – 10
+4,000 – 6,300 +Δ
+1.9
+40
+-45
+-10 – 10
+4,000 – 6,300
+1.9
+40
+-60
+-10 – 10
+4,000 – 6,300
+0.48
+20
+-90
+-10 – 10
+4,000 – 6,300 +Δ
+1.9
+40
+-90
+-10 – 10
+4,000 – 6,300
+0 (hover)
+0
+0
+0
+3,500 – 8,000 +Δ
+DJI Phantom 3
+0.48
+20
+0
+-40 – 0
+4,200 – 6,400 +Δ
+1.9
+40
+0
+-40 – 0
+4,200 – 6,400 +Δ
+0 (hover)
+0
+0
+0
+3,500 – 7,500 +Δ
+3DR Iris+
+0.48
+20
+0
+-40 – 0
+4,300 – 6,500 +Δ
+1.9
+40
+0
+-40 – 0
+4,300 – 6,500 +Δ
+0 (hover)
+0
+0
+0
+2,500 – 8,000 +Δ
+Drone America x8
+0.48
+20
+0
+-40 – 20
+5,000 – 7,400 +Δ
+1.9
+40
+0
+-40 – 0
+5,000 – 7,400 +Δ
+0.48
+20
+-5
+-40 – 20
+5,600 – 8,400 +Δ★
+1.9
+40
+-5
+-40 – 0
+5,600 – 8,400 +Δ★
+0.48
+20
+-30
+-10 – 10
+5,600 – 8,400★
+0.48
+20
+-45
+-10 – 10
+5,600 – 8,400 +Δ★
+0.48
+20
+-60
+-10 – 10
+5,600 – 8,400★
+0.48
+20
+-90
+-10 – 10
+5,600 – 8,400 +Δ★
+0 (hover)
+0
+0
+0
+4,500 – 9,000 +Δ
+SUI Endurance
+0.48
+20
+0
+-40 – 40
+2,800 – 4,200 +Δ
+1.9
+40
+0
+-40 – 40
+2,800 – 4,200 +Δ
+4.3
+60
+0
+-40 – -20
+4,200 – 5,000
+0.48
+20
+-5
+-40 – 40
+2,800 – 4,200 +Δ
+0.48
+20
+-30
+-10 – 10
+2,800 – 4,200
+0.48
+20
+-45
+-10 – 10
+2,800 – 4,200 +Δ
+0.48
+20
+-60
+-10 – 10
+2,800 – 4,200
+0.48
+20
+-90
+-10 – 10
+2,800 – 4,200 +Δ
+0 (hover)
+0
+0
+0
+1,500 – 4,600 +Δ
+u
+Pitch angle is the angle of the tunnel turntable, so in terms of vehicle Euler angles, the pitch rotation
+would be executed first and the yaw angle second
+v
++Δ next to the RPM entries indicates that differential RPM values were tested in addition to the uniform
+RPM sweeps
+★
+During testing of the DAx8, the baseline RPM was changed from 6,200 to 7,000 to better represent the
+baseline weight of the vehicle
+Model
+
+	
+
+19
+
+Table A2. Bare airframe test matrix.
+Speed (q,
+Nominal
+Yaw Angle,
+Pitch Angleu
+RPM
+lb/ft2)
+Speed, ft/s
+deg
+3DR SOLO
+0.48
+20
+0
+-40 – 40
+N/A
+1.9
+40
+0
+-40 – 40
+N/A
+7.7
+80
+0
+-40 – 40
+N/A
+0.48
+20
+-90
+-10 – 10
+N/A
+1.9
+40
+-90
+-10 – 10
+N/A
+DJI Phantom 3
+1.9
+40
+0
+-40 – 40
+N/A
+3DR Iris+
+0.48
+20
+0
+-40 – 40
+N/A
+1.9
+40
+0
+-40 – 40
+N/A
+Drone America x8
+0.48
+20
+0
+-40 – 40
+N/A
+0.48
+20
+0
+-40 – 40
+N/A
+0.48
+20
+-45
+-10 – 10
+N/A
+1.9
+40
+-90
+-10 – 10
+N/A
+SUI Endurance
+0.48
+20
+0
+-40 – 40
+N/A
+1.9
+40
+0
+-40 – 40
+N/A
+0.48
+20
+-90
+-10 – 10
+N/A
+u
+Pitch angle is the angle of the tunnel turntable, so in terms of vehicle Euler angles, the pitch rotation
+would be executed first and the yaw angle second
+Model
+
+Table A3. Isolated rotor test matrix.
+Model
+3DR SOLO
+
+DJI Phantom 3
+3DR Iris+
+Drone America x8
+
+SUI Endurance
+
+	
+
+Speed (q,
+lb/ft2)
+0.48
+1.9
+7.7
+0 (hover)
+0 (hover)
+0 (hover)
+0.48
+1.9
+0 (hover)
+0.48
+0 (hover)
+
+Nominal
+Speed, ft/s
+20
+40
+80
+0
+0
+0
+20
+40
+0
+20
+0
+
+Yaw Angle,
+deg
+N/A
+N/A
+N/A
+N/A
+N/A
+N/A
+N/A
+N/A
+N/A
+N/A
+N/A
+
+20
+
+Pitch Angle
+
+RPM
+
+-40 – 40
+-40 – 0
+-40 – -20
+0
+0
+0
+-10 – 0
+-20 – 0
+0
+-20 – 0
+0
+
+4,600 – 6,800
+5,700 – 6,800
+5,700 – 8,600
+2,500 – 8,000
+2,500 – 8,000
+2,500 – 8,000
+6,200 – 8,400
+6,200 – 8,400
+2,500 – 8,500
+2,800 – 4,200
+2,000 – 4,500
+

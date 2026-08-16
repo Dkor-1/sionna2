@@ -1,0 +1,692 @@
+{
+ "_meta": {
+  "title": "로터 회전수 모델 적대적 검증 — 실측 코퍼스 재구축과 반증 (2026-08-16)",
+  "scope_ko": "src/rotor_dynamics.py 의 OU 모델을 공개 실기 로그로 반증 시험. 코드·기존 원장·PRESETS 는 건드리지 않았다. 이 파일은 **측정값만** 담는다.",
+  "cpu_only": true,
+  "gpu_used": false,
+  "interpreter": "/workspace/.venvs/py312/bin/python",
+  "scripts_scratch": "/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/rotor_adv",
+  "corpus_new_ko": "PX4 Flight Review 공개 로그 2500건을 ADD_LOGGED_MSG 바이트 패턴으로 선별(첫 768 KB Range 요청) → 70건 내려받아 pyulog 로 검증 → esc_rpm 실측 26건(37.1 %) → 호버 창 보유 17기체 104세그먼트.",
+  "false_filter_corrected_ko": "1차 필터(앞머리에 문자열 'esc_status' 존재)는 무효였다 — PX4 는 구독 안 한 토픽의 포맷 정의도 앞머리에 적는다. 유효 증거는 ADD_LOGGED_MSG('A',0x41) 레코드다."
+ },
+ "corpus": {
+  "px4_fleet_logs_probed": 2500,
+  "px4_fleet_logs_downloaded": 70,
+  "px4_fleet_logs_with_real_esc_rpm": 26,
+  "px4_fleet_vehicles_with_hover": 11,
+  "hover_segments_real": 107,
+  "hover_segments_sitl": 31,
+  "vehicles": {
+   "18873f6f": {
+    "hw": "CODEV_AQUILA_V3",
+    "airframe": "",
+    "date": "2026-05-20",
+    "dur_s": 721,
+    "url": "https://review.px4.io/plot_app?log=18873f6f-1e25-4858-954c-1686cb6aafc6",
+    "n_seg": 19,
+    "fs_hz": 4.0,
+    "base_rpm": 2949.940141614347,
+    "sigma_s": 0.07842151144204525,
+    "sigma_w_ou": 0.02098481921415203,
+    "band_amp": 0.021112879804912,
+    "pair_corr": 0.47896208573967086,
+    "acf_tau_s": 1.3829937780896093
+   },
+   "35b1d6eb": {
+    "hw": "MODALAI_VOXL2",
+    "airframe": "Generic Quadcopter",
+    "date": "2024-02-28",
+    "dur_s": 188,
+    "url": "https://review.px4.io/plot_app?log=35b1d6eb-e53d-4866-b07d-dc35020c482d",
+    "n_seg": 8,
+    "fs_hz": 50.0,
+    "base_rpm": 6952.852561870578,
+    "sigma_s": 0.10546001648070374,
+    "sigma_w_ou": 0.00481127859688728,
+    "band_amp": 0.005501236467649568,
+    "pair_corr": 0.13767711667207674,
+    "acf_tau_s": 1.159623508546829
+   },
+   "3851e75b": {
+    "hw": "Indowings_Cyberonemax_SV041023",
+    "airframe": "",
+    "date": "2025-12-12",
+    "dur_s": 185,
+    "url": "https://review.px4.io/plot_app?log=3851e75b-d47c-486d-957f-537d19afae1d",
+    "n_seg": 1,
+    "fs_hz": 4.0,
+    "base_rpm": 2726.558002768355,
+    "sigma_s": 0.038239292078225934,
+    "sigma_w_ou": 0.009509199404760695,
+    "band_amp": 0.009567229625607522,
+    "pair_corr": 0.19750357798404017,
+    "acf_tau_s": null
+   },
+   "4234a37d": {
+    "hw": "PX4_FMU_V6X",
+    "airframe": "Generic Quadcopter",
+    "date": "2025-10-01",
+    "dur_s": 140,
+    "url": "https://review.px4.io/plot_app?log=4234a37d-c710-48a0-b54d-f643ce10448f",
+    "n_seg": 1,
+    "fs_hz": 50.0,
+    "base_rpm": 6754.217724780549,
+    "sigma_s": 0.07999412198844046,
+    "sigma_w_ou": 0.019407978352427205,
+    "band_amp": 0.02219116522265013,
+    "pair_corr": -0.10266573447208911,
+    "acf_tau_s": 0.3930143639438321
+   },
+   "4677d0a0": {
+    "hw": "PX4_FMU_V3",
+    "airframe": "",
+    "date": "2025-05-21",
+    "dur_s": 164,
+    "url": "https://review.px4.io/plot_app?log=4677d0a0-5036-4f08-bde2-a5d8a3be670d",
+    "n_seg": 3,
+    "fs_hz": 19.0,
+    "base_rpm": 2002.3622536987125,
+    "sigma_s": 0.012824275323774136,
+    "sigma_w_ou": 0.003459343488567341,
+    "band_amp": 0.003955428098831124,
+    "pair_corr": -0.24260897432448317,
+    "acf_tau_s": 0.6023884019941761
+   },
+   "5f63aaa6": {
+    "hw": "PX4_FMU_V3",
+    "airframe": "",
+    "date": "2024-02-14",
+    "dur_s": 173,
+    "url": "https://review.px4.io/plot_app?log=5f63aaa6-5a4f-4d4a-87f2-fbe4d4674585",
+    "n_seg": 2,
+    "fs_hz": 19.0,
+    "base_rpm": 1969.8137198554466,
+    "sigma_s": 0.05983495402579632,
+    "sigma_w_ou": 0.010595611914742125,
+    "band_amp": 0.012115067853304622,
+    "pair_corr": 0.04756947194179153,
+    "acf_tau_s": 0.5459488216870991
+   },
+   "61857844": {
+    "hw": "CODEV_DP1000_V2",
+    "airframe": "",
+    "date": "2025-08-26",
+    "dur_s": 124,
+    "url": "https://review.px4.io/plot_app?log=61857844-3b22-489b-bb09-44eaf61e1cb8",
+    "n_seg": 3,
+    "fs_hz": 4.0,
+    "base_rpm": 4025.731122633637,
+    "sigma_s": 0.0178264635696843,
+    "sigma_w_ou": 0.00959286644523633,
+    "band_amp": 0.009651407247114194,
+    "pair_corr": 0.4946790710889643,
+    "acf_tau_s": 0.9381876426389961
+   },
+   "7914739f": {
+    "hw": "PX4_FMU_V6X",
+    "airframe": "Generic Quadcopter",
+    "date": "2024-08-13",
+    "dur_s": 115,
+    "url": "https://review.px4.io/plot_app?log=7914739f-092c-48a8-9537-9465cc7bec32",
+    "n_seg": 3,
+    "fs_hz": 4.0,
+    "base_rpm": 1516.9190146437809,
+    "sigma_s": 0.04449767939651284,
+    "sigma_w_ou": 0.015244266675455904,
+    "band_amp": 0.015337295344239709,
+    "pair_corr": -0.14008276009367412,
+    "acf_tau_s": 1.5196102562306526
+   },
+   "90b53755": {
+    "hw": "CF_FFT_V2",
+    "airframe": "",
+    "date": "2024-07-17",
+    "dur_s": 565,
+    "url": "https://review.px4.io/plot_app?log=90b53755-448c-4747-94b3-251eaebd94de",
+    "n_seg": 7,
+    "fs_hz": 9.0,
+    "base_rpm": 3851.55547328191,
+    "sigma_s": 0.08698098789183319,
+    "sigma_w_ou": 0.027284514901732452,
+    "band_amp": 0.030706446846326885,
+    "pair_corr": -0.009082153664466982,
+    "acf_tau_s": 0.8667643513209818
+   },
+   "af26fde6": {
+    "hw": "CZI_CZ100",
+    "airframe": "Generic Quadcopter",
+    "date": "2026-07-30",
+    "dur_s": 407,
+    "url": "https://review.px4.io/plot_app?log=af26fde6-a40e-4a6b-ba6a-7ec5b8d81ecc",
+    "n_seg": 10,
+    "fs_hz": 50.0,
+    "base_rpm": 5903.532275760428,
+    "sigma_s": 0.06534888740992899,
+    "sigma_w_ou": 0.011242079823550768,
+    "band_amp": 0.012854242017403974,
+    "pair_corr": 0.19701979629888683,
+    "acf_tau_s": 1.299379286210484
+   },
+   "b12bf94b": {
+    "hw": "PX4_FMU_V5",
+    "airframe": "Generic Quadcopter",
+    "date": "2025-12-03",
+    "dur_s": 489,
+    "url": "https://review.px4.io/plot_app?log=b12bf94b-06a0-4065-9855-a8bb6f7ba689",
+    "n_seg": 16,
+    "fs_hz": 21.0,
+    "base_rpm": 3776.696903012571,
+    "sigma_s": 0.05502018283544186,
+    "sigma_w_ou": 0.013115103155938971,
+    "band_amp": 0.014995864884048773,
+    "pair_corr": -0.1383881989326209,
+    "acf_tau_s": 0.7828008040874528
+   },
+   "dregon_cmd": {
+    "n_seg": 10,
+    "fs_hz": 100.0,
+    "base_rpm": 80.59592567255517,
+    "sigma_s": 0.04557056086610665,
+    "sigma_w_ou": 0.010865860221332957,
+    "band_amp": 0.012424070919662047,
+    "pair_corr": 0.022783924146098027,
+    "acf_tau_s": 0.5793282838143479
+   },
+   "dregon_meas": {
+    "n_seg": 4,
+    "fs_hz": 100.0,
+    "base_rpm": 80.66215626767993,
+    "sigma_s": 0.06565555259914882,
+    "sigma_w_ou": 0.011299999949220612,
+    "band_amp": 0.01292046813612259,
+    "pair_corr": 0.013612201781622191,
+    "acf_tau_s": 0.7171875319722198
+   },
+   "px4_s500": {
+    "n_seg": 20,
+    "fs_hz": 10.0,
+    "base_rpm": 5820.7990419022435,
+    "sigma_s": 0.021620238149212677,
+    "sigma_w_ou": 0.01628398083646607,
+    "band_amp": 0.018480639548379446,
+    "pair_corr": -0.12704190617665312,
+    "acf_tau_s": 1.0350966429516315
+   }
+  }
+ },
+ "F1_preset_percentiles": {
+  "convention": "outputs/rotor_rpm_web_anchor.json method_note (|v|<0.3 m/s, 정적산포=창 내 로터별 평균의 로터간 std/평균, 흔들림=0.3–min(5,0.45fs) Hz 대역 rms×√2 → F-공식으로 σ_w)",
+  "real_vehicles_n": 14,
+  "sigma_s_pct": {
+   "median": 5.74,
+   "p25": 3.98,
+   "p75": 7.52,
+   "min": 1.28,
+   "max": 10.55
+  },
+  "sigma_w_pct": {
+   "median": 1.13,
+   "p25": 0.98,
+   "p75": 1.6,
+   "min": 0.35,
+   "max": 2.73
+  },
+  "percentile_of_presets_vehicle_weighted": {
+   "outdoor_sigma_s_2.35pct": 21.428571428571427,
+   "outdoor_sigma_w_2.45pct": 92.85714285714286,
+   "indoor_sigma_s_0.54pct": 0.0,
+   "indoor_sigma_w_0.65pct": 14.285714285714286,
+   "lit_iid_sigma_s_0.99pct": 0.0,
+   "legacy_sigma_s_0.22pct": 0.0
+  },
+  "sitl_control_group_pct": {
+   "sigma_s_median": 0.003,
+   "sigma_w_median": 0.154,
+   "n_vehicles": 6,
+   "note_ko": "PX4 SITL 6기. 실기체와 한 자릿수 차이라는 기존 결론을 새 표본이 재확인."
+  },
+  "sigma_s_window_robustness_ko": "창 5 s/20 s/60 s/전구간에서 기체별 중앙 5.62/5.65/5.69/5.73 % — 창 길이에 둔감하다."
+ },
+ "F2_shape": {
+  "acf_tau_s": {
+   "measured_median": 0.899578223762255,
+   "model_same_estimator": 0.21921390188977774,
+   "our_tau_ctl_s": 0.227364,
+   "px4_MPC_XY_P_median": 0.95,
+   "px4_MPC_XY_P_tau_s": 1.0526,
+   "px4_MC_ROLL_P_median": 6.5,
+   "px4_MC_ROLL_P_tau_s": 0.1538,
+   "n_logs_params_read": 26,
+   "verdict_ko": "실측 배회 시간이 우리 값의 3.6배. 크기는 **위치루프**(MPC_XY_P 0.95 → τ 1.05 s)와 맞고 자세루프(τ 0.15 s)와 안 맞는다. ⚠기체별 상관은 n=8 로 유의하지 않다(r=−0.54, p=0.17) — «크기 일치»까지만 주장할 수 있다."
+  },
+  "power_fraction_pct_high_rate_logs": {
+   "logs": [
+    {
+     "tag": "35b1d6eb",
+     "fs_hz": 201.12630732090872,
+     "n_windows": 1,
+     "<0.5": 80.6,
+     "0.5-2": 12.6,
+     "2-5": 2.7,
+     "5-10": 2.1,
+     "10-20": 0.7,
+     ">20": 1.0
+    },
+    {
+     "tag": "4234a37d",
+     "fs_hz": 94.6163307789126,
+     "n_windows": 1,
+     "<0.5": 32.0,
+     "0.5-2": 32.5,
+     "2-5": 6.9,
+     "5-10": 1.8,
+     "10-20": 4.9,
+     ">20": 5.4
+    },
+    {
+     "tag": "af26fde6",
+     "fs_hz": 232.1262766940444,
+     "n_windows": 5,
+     "<0.5": 72.3,
+     "0.5-2": 6.1,
+     "2-5": 3.7,
+     "5-10": 6.8,
+     "10-20": 1.5,
+     ">20": 0.7
+    }
+   ],
+   "measured_median": {
+    "<0.5": 72.3,
+    "0.5-2": 12.6,
+    "2-5": 3.7,
+    "5-10": 2.1,
+    "10-20": 1.5,
+    ">20": 1.0
+   },
+   "our_ou_tau0.227": {
+    "<0.5": 39.6,
+    "0.5-2": 39.3,
+    "2-5": 12.7,
+    "5-10": 4.4,
+    "10-20": 2.2,
+    ">20": 1.8
+   },
+   "ou_tau1.04": {
+    "<0.5": 81.2,
+    "0.5-2": 14.1,
+    "2-5": 2.9,
+    "5-10": 1.0,
+    "10-20": 0.5,
+    ">20": 0.4
+   },
+   "verdict_ko": "OU 라는 «모양»은 맞다. τ 만 고치면 옥타브 몫이 실측과 겹친다."
+  },
+  "distribution_ko": "주변분포는 거의 가우시안이다(초과첨도 실측 +0.13 vs 모델 −0.06, |z|의 99.9 % 분위 3.31 vs 3.11). Anderson–Darling 은 유의하지만 꼬리 차이는 작다 — 이 축은 우리 모델의 약점이 아니다."
+ },
+ "F3_rotor_structure": {
+  "pair_corr_hover_fs_ge9": {
+   "median": -0.09206787980898723,
+   "per_vehicle": {
+    "18873f6f": null,
+    "35b1d6eb": 0.13767711667207674,
+    "3851e75b": null,
+    "4234a37d": -0.10266573447208911,
+    "4677d0a0": -0.24260897432448317,
+    "5f63aaa6": 0.04756947194179153,
+    "61857844": null,
+    "7914739f": null,
+    "90b53755": -0.009082153664466982,
+    "af26fde6": 0.19701979629888683,
+    "b12bf94b": -0.1383881989326209,
+    "dregon_cmd": 0.022783924146098027,
+    "dregon_meas": 0.013612201781622191,
+    "px4_s500": -0.12704190617665312
+   },
+   "verdict_ko": "호버·충분표집에서 로터 간 상관 중앙 ≈ 0.00 (범위 −0.24…+0.20) — **독립 가정은 호버에서 지지된다**(적대적 검증의 반대 방향 결과)."
+  },
+  "maneuver_common_mode": {
+   "px4_race_1e858ce3_pair_corr_10s_tiles": 0.934,
+   "common_mode_share": 0.95,
+   "note_ko": "⚠이 로그는 «과격 호버» 가 아니라 **기동 비행**이다(중앙 |v| 2.19 m/s, |v|<0.3 m/s 창이 2 s 이상 하나도 없다). 어제 기록의 «호버» 표기는 정정 필요."
+  },
+  "per_rotor_wobble_inequality": {
+   "measured_max_over_min_median": 1.47,
+   "measured_range": [
+    1.08,
+    2.98
+   ],
+   "model_null_median": 1.13,
+   "model_null_p90": 1.23,
+   "verdict_ko": "실기체는 로터마다 흔들림 «크기»가 다르다(중앙 1.47배). 우리 모델은 네 로터에 같은 σ_w 를 쓴다."
+  },
+  "static_offset_structure": {
+   "dominant_split_counts": {
+    "pitch(fore-aft)": 9,
+    "roll(left-right)": 3,
+    "yaw": 3
+   },
+   "best_split_share_measured_median": 0.799,
+   "best_split_share_iid_null_median": 0.695,
+   "mannwhitney_p": 0.0335,
+   "pattern_stability_cosine_median": 0.93,
+   "verdict_ko": "정적 편차는 «둘 vs 둘» 트림 구조를 띠고 축은 주로 **피치(앞뒤 무게중심)** 다. 다만 독립 가우시안 귀무와의 차이는 약하다(p=0.03) — «DREGON 0.997» 만 보고 강한 구조라고 결론내면 과장이다. 패턴은 한 비행 안에서 거의 고정(코사인 0.93).",
+   "per_vehicle": [
+    {
+     "vehicle": "18873f6f",
+     "hw": "CODEV_AQUILA_V3",
+     "n": 19,
+     "01_vs_23": 0.0023198317854221787,
+     "02_vs_13": 0.25933850540555786,
+     "03_vs_12": 0.7383416628090198,
+     "stability": 0.36192540600145606,
+     "range_pct": 13.77787939496406,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "35b1d6eb",
+     "hw": "MODALAI_VOXL2",
+     "n": 8,
+     "01_vs_23": 0.015756129020995345,
+     "02_vs_13": 0.0321809777698593,
+     "03_vs_12": 0.9520628932091455,
+     "stability": 0.9975991585470292,
+     "range_pct": 24.40864093081976,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "3851e75b",
+     "hw": "Indowings_Cyberonemax_SV041023",
+     "n": 1,
+     "01_vs_23": 0.3754351641426577,
+     "02_vs_13": 0.5756052852269815,
+     "03_vs_12": 0.048959550630360886,
+     "stability": NaN,
+     "range_pct": 10.488381595607299,
+     "verdict": "분할 구조 약함"
+    },
+    {
+     "vehicle": "4234a37d",
+     "hw": "PX4_FMU_V6X",
+     "n": 1,
+     "01_vs_23": 0.0004543300280565763,
+     "02_vs_13": 0.603148527857029,
+     "03_vs_12": 0.39639714211491445,
+     "stability": NaN,
+     "range_pct": 22.49798133088927,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "4677d0a0",
+     "hw": "PX4_FMU_V3",
+     "n": 3,
+     "01_vs_23": 0.3971172060826742,
+     "02_vs_13": 0.2916051628691244,
+     "03_vs_12": 0.3112776310482014,
+     "stability": 0.09840230336733014,
+     "range_pct": 2.0090290944409173,
+     "verdict": "분할 구조 약함"
+    },
+    {
+     "vehicle": "5f63aaa6",
+     "hw": "PX4_FMU_V3",
+     "n": 2,
+     "01_vs_23": 0.0006684844095358499,
+     "02_vs_13": 0.6265753249048487,
+     "03_vs_12": 0.3727561906856155,
+     "stability": 0.9890243561968061,
+     "range_pct": 16.733019500459623,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "61857844",
+     "hw": "CODEV_DP1000_V2",
+     "n": 3,
+     "01_vs_23": 0.8503134042453249,
+     "02_vs_13": 0.06103437689463415,
+     "03_vs_12": 0.08865221886004107,
+     "stability": 0.9269912581278278,
+     "range_pct": 4.11691919579588,
+     "verdict": "요트림(01v23) 지배"
+    },
+    {
+     "vehicle": "7914739f",
+     "hw": "PX4_FMU_V6X",
+     "n": 3,
+     "01_vs_23": 0.9556893224153962,
+     "02_vs_13": 0.020309330050716633,
+     "03_vs_12": 0.02400134753388715,
+     "stability": -0.15789610313614466,
+     "range_pct": 6.4714272526725125,
+     "verdict": "요트림(01v23) 지배"
+    },
+    {
+     "vehicle": "90b53755",
+     "hw": "CF_FFT_V2",
+     "n": 7,
+     "01_vs_23": 0.29574894510131144,
+     "02_vs_13": 0.6991771057156179,
+     "03_vs_12": 0.005073949183070854,
+     "stability": 0.04629021652356864,
+     "range_pct": 6.819735897450213,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "af26fde6",
+     "hw": "CZI_CZ100",
+     "n": 10,
+     "01_vs_23": 0.0013889480857784365,
+     "02_vs_13": 0.995777277029473,
+     "03_vs_12": 0.002833774884748239,
+     "stability": 0.9692552664355057,
+     "range_pct": 13.825519245755629,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "b12bf94b",
+     "hw": "PX4_FMU_V5",
+     "n": 16,
+     "01_vs_23": 5.970144232180934e-05,
+     "02_vs_13": 0.7988620341660441,
+     "03_vs_12": 0.2010782643916339,
+     "stability": 0.9881814175701791,
+     "range_pct": 15.093949511989443,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "dregon_cmd",
+     "hw": "MIKROKOPTER",
+     "n": 10,
+     "01_vs_23": 0.0009719431556242063,
+     "02_vs_13": 0.9602363934769041,
+     "03_vs_12": 0.03879166336747205,
+     "stability": 0.931355518368521,
+     "range_pct": 11.308769239798771,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "dregon_meas",
+     "hw": "MIKROKOPTER",
+     "n": 4,
+     "01_vs_23": 0.0024189739602597086,
+     "02_vs_13": 0.9973216909136793,
+     "03_vs_12": 0.00025933512606113535,
+     "stability": 0.994039762472641,
+     "range_pct": 13.594567359590595,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "px4_race",
+     "hw": "KAKUTEH7",
+     "n": 3,
+     "01_vs_23": 0.00018236546051548865,
+     "02_vs_13": 0.18172672011443405,
+     "03_vs_12": 0.8180909144250502,
+     "stability": 0.9656089469616917,
+     "range_pct": 10.354901167444282,
+     "verdict": "다른 분할 지배"
+    },
+    {
+     "vehicle": "px4_s500",
+     "hw": "PIXHAWK6C",
+     "n": 20,
+     "01_vs_23": 0.04505222569357565,
+     "02_vs_13": 0.7300759819705713,
+     "03_vs_12": 0.22487179233585297,
+     "stability": 0.9317897507037576,
+     "range_pct": 5.494626622649909,
+     "verdict": "다른 분할 지배"
+    }
+   ]
+  },
+  "throttle_step": {
+   "n_vertical_segments": 51,
+   "common_rpm_swing_pct_median": 22.0,
+   "common_rpm_swing_pct_p90": 45.1,
+   "rate_pct_per_s_median": 4.9,
+   "verdict_ko": "수직 기동에서 네 로터가 **함께** 중앙 22 % 움직인다(변화율 ~5 %/s). 우리 모델은 평균 rpm 이 상수라 이 성분이 원리적으로 0 이다."
+  },
+  "wind_proxy": {
+   "proxy_ko": "호버 중 기체 기울기[deg] (바람 속 위치유지 = 바람 쪽으로 기울임)",
+   "n_windows": 21,
+   "pearson_r": 0.493,
+   "pearson_p": 0.023,
+   "spearman_rho": 0.544,
+   "spearman_p": 0.011,
+   "fit_ko": "흔들림[%] = 0.84 + 0.306 × 기울기[deg]",
+   "verdict_ko": "«흔들림은 바람이 만든다»(Heutschi 2020·Rahman 2020)가 독립 데이터에서 재현. ⚠기울기는 대리값이라 m/s 로 환산은 못 한다."
+  }
+ },
+ "F4_microdoppler_comb": {
+  "config": {
+   "prf": 20000.0,
+   "dur": 1.0,
+   "rpm0": 3800.0,
+   "f_flash": 126.66666666666667,
+   "lam": 0.085654988,
+   "el_deg": -15.0,
+   "nr": 24,
+   "n_blade": 2,
+   "n_rotor": 4,
+   "r_prop": 0.137,
+   "fc": 3500000000.0
+  },
+  "verdict_single_rotor_ko": "로터 1개(흔들림만): 레벨을 맞추면 우리 OU 가 실측 빗살을 잘 재현한다(퍼짐 m=12 에서 실측 13.6 Hz vs 모델 14.1 Hz, +4 %). ⇒ 호버에서 «모양» 오차는 작다.",
+  "verdict_preset_level_ko": "생산 설정(outdoor σ_w 2.45 %)은 실측보다 퍼짐 1.8배(m=12: 24.3 vs 13.6 Hz), m=9 빗살 꼭대기/중앙 24 dB 낮음. ⇒ 오차의 주범은 «모양»이 아니라 **프리셋 값**이다.",
+  "verdict_quad_ko": "4로터 현실 조건(σ_s 2.35 %)에서는 흔들림의 모양·상관 구조를 아무리 바꿔도 빗살이 거의 안 변한다(퍼짐 ≤3 %, 꼭대기 ≤3.5 dB). **정적 산포 σ_s 가 빗살 폭을 지배한다** — 퍼짐 ≈ m·f_flash·0.866σ_s.",
+  "verdict_maneuver_ko": "기동에서는 반대다: 같은 σ_w 라도 실측은 저주파에 몰려 있어 우리 OU 보다 퍼짐이 45 % 작다(m=3: 12.1 vs 17.6 Hz).",
+  "model_free_anchor_pct": {
+   "in_window_rms_1.0s_median": 0.89,
+   "in_window_rms_1.0s_range": [
+    0.1,
+    1.77
+   ],
+   "in_window_rms_0.25s_median": 0.4,
+   "in_window_rms_0.25s_range": [
+    0.08,
+    0.99
+   ],
+   "why_ko": "빗살 퍼짐은 «창 안 상대 rms» 에만 걸린다. 이 값은 OU 가정이 필요 없다 — 프리셋을 σ_w 대신 이 값으로 못 박으면 τ 논쟁과 무관해진다.",
+   "our_outdoor_equivalent_1s": 1.97
+  },
+  "knob_ladder_4rotor": {
+   "note_ko": "같은 빗살 모형·4로터·씨앗 40. 퍼짐[Hz]=구역 2차모멘트, 꼭대기[dB]=구역 최대/중앙값비.",
+   "win_0.25s": {
+    "legacy(0.22/0.00)": {
+     "spread_m3": 2.37,
+     "spread_m6": 2.68,
+     "peak_m6_db": 64.7,
+     "half_corr": 0.975
+    },
+    "indoor(0.54/0.65)": {
+     "spread_m3": 3.34,
+     "spread_m6": 5.98,
+     "peak_m6_db": 39.5,
+     "half_corr": 0.922
+    },
+    "outdoor(2.35/2.45)": {
+     "spread_m3": 10.02,
+     "spread_m6": 21.5,
+     "peak_m6_db": 12.1,
+     "half_corr": 0.835
+    },
+    "fleet_median(5.60/1.40)": {
+     "spread_m3": 17.03,
+     "spread_m6": 27.08,
+     "peak_m6_db": 14.3,
+     "half_corr": 0.847
+    },
+    "fleet+tau1.04": {
+     "spread_m3": 16.52,
+     "spread_m6": 26.84,
+     "peak_m6_db": 19.8,
+     "half_corr": 0.875
+    },
+    "only_sigma_s_fleet": {
+     "spread_m3": 16.77,
+     "spread_m6": 29.87,
+     "peak_m6_db": 10.5,
+     "half_corr": 0.809
+    },
+    "only_sigma_w_fleet": {
+     "spread_m3": 8.35,
+     "spread_m6": 16.6,
+     "peak_m6_db": 19.0,
+     "half_corr": 0.857
+    }
+   },
+   "verdict_ko": "0.25 s 분류 창에서 σ_s 를 2.35→5.60 % 로 고치면 빗살 구역 폭이 m=3 에서 10.0→16.8 Hz(1.67배)로 넓어진다. σ_w 를 2.45→1.40 % 로 고치면 폭은 −17 % 지만 빗살 깊이가 +6.9 dB 회복된다. τ 를 1.04 s 로 고치면 깊이가 다시 +5.5 dB. ⇒ 세 손잡이가 모두 «분류가 보는 것»을 바꾼다.",
+   "win_1.0s": {
+    "legacy(0.22/0.00)": {
+     "spread_m3": 0.84,
+     "spread_m6": 1.51,
+     "peak_m6_db": 103.7,
+     "half_corr": 0.976
+    },
+    "indoor(0.54/0.65)": {
+     "spread_m3": 3.16,
+     "spread_m6": 6.09,
+     "peak_m6_db": 42.3,
+     "half_corr": 0.899
+    },
+    "outdoor(2.35/2.45)": {
+     "spread_m3": 11.95,
+     "spread_m6": 24.7,
+     "peak_m6_db": 12.5,
+     "half_corr": 0.821
+    },
+    "fleet_median(5.60/1.40)": {
+     "spread_m3": 18.62,
+     "spread_m6": 30.45,
+     "peak_m6_db": 13.6,
+     "half_corr": 0.812
+    },
+    "fleet+tau1.04": {
+     "spread_m3": 18.89,
+     "spread_m6": 29.35,
+     "peak_m6_db": 20.0,
+     "half_corr": 0.789
+    },
+    "only_sigma_s_fleet": {
+     "spread_m3": 20.35,
+     "spread_m6": 32.67,
+     "peak_m6_db": 11.8,
+     "half_corr": 0.788
+    },
+    "only_sigma_w_fleet": {
+     "spread_m3": 9.32,
+     "spread_m6": 18.96,
+     "peak_m6_db": 17.6,
+     "half_corr": 0.847
+    }
+   }
+  },
+  "comb_model_validation_ko": "빗살 모형 자체 검증: 흔들림 0 일 때 f_flash 126.67 Hz 정수배에 선이 서고, 대역 끝이 1520 Hz 에서 −35 dB 로 떨어진다 — 예측 f_tip 1229.6 Hz(원장 1228.72)와 일치. ⚠m≥10 은 f_tip 바깥 스커트라 지표 해석에 쓰지 않는다(핵심 수치는 m≤9)."
+ },
+ "F5_open": [
+  "표적 기체(Mavic 4 Pro · Matrice 4E)의 로터별 rpm 은 여전히 공개 어디에도 없다 — 이번 함대 검색(2500건 훑음)에서도 DJI 기체는 0건이다. 자체 실측이 유일 경로.",
+  "σ_s 가 큰 기체(≥8 %)에서 그 값이 진짜 트림인지 ESC 눈금 오차인지 못 가른다 — 35b1d6eb 는 저/고 스로틀에서 패턴이 0.42 %p 밖에 안 변해 «고정 배수» 가설을 못 배제한다. 다만 af26fde6(5.5 %p 변화)처럼 조건 의존인 기체가 더 많고, 그 기체를 빼도 중앙값은 5.6 % 다.",
+  "로터 초기 위상 𝒰(0,360/blades) 는 어떤 공개 로그로도 검증할 수 없다(로그에 위상이 없다).",
+  "DREGON(1 kHz MikroKopter)만 8–32 Hz 에 10 % 대 파워를 갖는다. 고속 PX4 3기는 >5 Hz 가 5 % 미만이다. 이 차이가 기체 차이인지 회전수 추정기 잡음인지 못 가른다.",
+  "산란 진폭 요동·회전 1바퀴 안의 결정론적 리플은 여전히 미모델(기존 결론과 동일)."
+ ]
+}

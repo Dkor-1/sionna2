@@ -1,0 +1,40 @@
+417-     * - Deadzones near the center of the stick positions are also handled in this topic.
+418-     *
+419-     * @datastruct \ref T_DjiFcSubscriptionRCWithFlagData
+420-     * @also \ref TOPIC_RC
+421-     */
+422-    DJI_FC_SUBSCRIPTION_TOPIC_RC_WITH_FLAG_DATA = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 36),
+423-    /*!
+424-     * @brief Provides raw data from the ESCs @ up to 50Hz
+425-     * @note This topic was added in August 2018. Your aircraft may require a FW update to enable this feature.
+426-     * @details This topic supports reporting data for up to 8 ESCs; note that only DJI Intelligent ESCs are supported
+427-     * for this reporting feature. Use this topic to get data on elements close to the hardware - e.g. motor speeds,
+428-     * ESC current and voltage, error flags at the ESC level etc.
+429-     * @datastruct \ref T_DjiFcSubscriptionEscData
+430-     */
+431:    DJI_FC_SUBSCRIPTION_TOPIC_ESC_DATA = DJI_DATA_SUBSCRIPTION_TOPIC(DJI_DATA_SUBSCRIPTION_MODULE_FC, 37),
+
+/*!
+ * @brief struct for status of each individual esc
+ */
+typedef struct ESCStatusIndividual {
+    int16_t current;              /*!< ESC current, unit: mA */
+    int16_t speed;                /*!< ESC speed, unit: rpm */
+    uint16_t voltage;              /*!< Input power from battery to ESC, unit: mV */
+    int16_t temperature;          /*!< ESC temperature, unit: degree C */
+    uint16_t stall: 1; /*!< Motor is stall */
+    uint16_t empty: 1; /*!< Motor has no load */
+    uint16_t unbalanced: 1; /*!< Motor speed is unbalanced */
+    uint16_t escDisconnected: 1; /*!< ESC is disconnected */
+    uint16_t temperatureHigh: 1; /*!< Temperature is high */
+    uint16_t reserved: 11;
+} ESCStatusIndividual;
+
+/*!
+ * @brief struct for TOPIC_ESC_DATA
+ */
+typedef struct EscData {
+    ESCStatusIndividual esc[8];
+} T_DjiFcSubscriptionEscData;
+
+/*!

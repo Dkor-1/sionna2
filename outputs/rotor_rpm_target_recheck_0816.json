@@ -1,0 +1,260 @@
+{
+ "_meta": {
+  "title": "표적 3기체(Mavic 4 Pro·Matrice 4E·Mini 5 Pro) 로터 회전수 자료 재추적",
+  "generated_kst": "2026-08-16 18:41:24 KST",
+  "scope_ko": "① DJI 공식 SDK·로그 경로 ② 서드파티/포럼 실측 ③ 음향 추정 ④ 스펙 역산 ⑤ 현행 값 출처·등급",
+  "grades_ko": {
+   "A": "1차 원문/원시데이터를 이 세션에서 직접 열어 확인",
+   "B": "공개 1차 문헌의 수치를 이 세션에서 재계산·교차검증",
+   "C": "검색 요약·2차 출처 수준(원문 미확인)",
+   "D": "가정·추정(출처 없음)"
+  },
+  "constraints_ko": "GPU 미사용, git 미사용, PRESETS·메쉬 코드 무변경",
+  "ct_definition": "C_T = T_rotor/(rho*A*(Omega R)^2), A=pi R^2 (NASA Russell 2016 과 동일 정의)"
+ },
+ "path_official": {
+  "PSDK_ESC_topic": {
+   "grade": "A",
+   "fact_ko": "DJI Payload SDK 헤더 dji_fc_subscription.h 에 DJI_FC_SUBSCRIPTION_TOPIC_ESC_DATA (module FC, id 37) 가 실재. 구조체 T_DjiFcSubscriptionEscData = ESCStatusIndividual esc[8], 각 항목에 int16_t speed 'ESC speed, unit: rpm'. 최대 50 Hz.",
+   "verbatim": "@brief Provides raw data from the ESCs @ up to 50Hz / int16_t speed;  /*!< ESC speed, unit: rpm */",
+   "url": "https://raw.githubusercontent.com/dji-sdk/Payload-SDK/master/psdk_lib/include/dji_fc_subscription.h",
+   "caveat_ko": "헤더 주석은 'only DJI Intelligent ESCs are supported'. 기종별 지원표는 DJI 문서 사이트가 JS 렌더라 이번 세션에서 못 열었다 — Matrice 4E 에서 실제로 이 토픽이 오는지는 **미확인**. PSDK 3.16.0 릴리스노트는 M4E/M4T 를 명시 지원(속성·카메라 상태 등)하므로 시도할 가치 있음.",
+   "actionable_ko": "⭐Matrice 4E 는 E-Port 가 있어 PSDK 페이로드를 붙일 수 있다. 실측 캠페인 때 E-Port 어댑터 + PSDK 샘플로 ESC_DATA 50 Hz 를 녹화하면 **로터별 실측 rpm 시계열**을 우리 표적 기체에서 직접 얻는다. Mavic 4 Pro·Mini 5 Pro 는 PSDK 대상이 아니라 이 경로가 없다."
+  },
+  "MSDK_v5_keys": {
+   "grade": "A",
+   "fact_ko": "MSDK V5 FlightControllerKey 전체 87 키를 받아 확인 — 모터/로터 회전수 키는 **없다**. 모터 관련은 KeyAreMotorsOn(bool)·KeyLockMotors·KeyESCBeepEnabled 뿐. 부수 발견: KeyWindSpeed(dm/s)·KeyWindDirection 존재.",
+   "url": "https://developer.dji.com/api-reference-v5/android-api/Components/IKeyManager/Key_FlightController_FlightControllerKey.html",
+   "implication_ko": "휴대앱(MSDK) 경로로는 rpm 을 못 얻는다 — 어제의 '공개 부재' 결론이 이 축에서는 **유지**된다. 단 KeyWindSpeed 는 Heutschi 의 바람항(σ_w = a + b·v_wind)을 실측 캠페인에서 동시 기록할 수 있게 해 준다."
+  },
+  "DAT_log": {
+   "grade": "B",
+   "fact_ko": "모터 rpm 은 기체 온보드 .DAT 에만 있다. 최신 기종 .DAT 는 DJI 가 암호화하고 공개 복호기가 없다. Mavic 4 Pro 사용자 스레드(2025-)에서 msinger(Flight Reader 개발자)가 «Motor data only exists in DAT flight logs. DJI does not allow anyone to decrypt DAT flight log» / «My tools are only able to decrypt DJI TXT flight logs» 라고 확인.",
+   "urls": [
+    "https://mavicpilots.com/threads/mavic-4-pro-decryption-of-dat-files.154022/",
+    "https://datfile.net/DatCon/intro.html"
+   ],
+   "residual_lead_ko": "DatCon/CsvView 는 '휴대기기(Go/Fly 앱)가 만든 .DAT' 는 Mavic Mini 2 만 빼고 전 기종 처리 가능하다고 문서에 명시하고, DatCon 저자 BudWalker 가 Mini 3 Pro 휴대기기 .DAT 에서 모터 속도를 실제로 봤다고 포럼에서 진술. ⇒ **우리 Mini 5 Pro·Mavic 4 Pro 로 Fly 앱 동기화를 끈 채 비행하고 태블릿의 .DAT 를 CsvView 로 열어 보는 시험은 아직 아무도 안 해 봤다(비용 0).** 다만 최신 기종에서도 되는지는 미확인이고, 스케일 계수(Mini 3 Pro 는 ×10 이라는 보고 vs 저자 본인은 미확인) 문제가 있어 레이저 타코미터 대조가 필요.",
+   "txt_log_ko": "DJI TXT 비행기록은 v13+ 가 AES 암호화지만 DJI API 키로 복호 가능(dji-log-parser). 그러나 소스 확인 결과 레코드에 로터 rpm 이 없다 — OSD 에 motor_revolution(u8, 누적 카운터)·is_motor_on 뿐. ⇒ TXT 경로는 rpm 을 못 준다(직접 확인)."
+  }
+ },
+ "path_thirdparty": {
+  "grade": "C",
+  "findings_ko": [
+   "AirData UAV 는 rpm 을 안 준다(포럼 다수 확인) — DAT 전용.",
+   "Mavic Mini(4726F, 249 g) 휴대기기 DAT 를 CsvView 로 본 사용자 보고: 호버 **8,000~10,000 rpm**. ⭐우리 mini2 코드값 9,200 rpm 과 정합(같은 프롭·같은 무게 등급).",
+   "Mini 3 Pro DAT 는 ×10 보정이 필요하다는 보고(호버 ≈8,000 rpm)와, 같은 스레드의 음향 추정 '8000 rpm 에 조금 못 미침'. ⚠단 이 두 값은 서로 독립이 아니고(같은 스레드에서 서로를 근거로 삼음), 아래 ④ 의 프롭 지름 스케일(rpm ∝ 1/R²)과 충돌한다 — Mavic Mini 9,000 rpm(4.7in)에서 6.0in 로 옮기면 5,496 rpm 이 나온다.",
+   "우리 표적 3기체(Mavic 4 Pro·Matrice 4E·Mini 5 Pro)의 실측 rpm 보고는 **여전히 0건**."
+  ]
+ },
+ "path_acoustic": {
+  "grade": "A",
+  "heutschi_table4_verified_ko": "actasynth.pdf 원문을 직접 열어 표 4 를 재확인(어제 팀 기록과 일치): 호버 M2 6150 · I2 4350 · P4 6300 · F-4 5250 · S-9 5100 r/min. 방법 원문: «All drone models had two-blade propellers so that the time T for a complete revolution of the rotor is T = 2/f0 and the rotational speed in rpm is obtained as R = 30f0» ⇒ f0 는 블레이드 통과 주파수(BPF)다.",
+  "new_use_ko": "⭐어제는 이 표를 σ_w(요동)에만 썼다. 이번에 **평균 회전수 축**으로 재활용해 DJI 기종 C_T 를 역산했다 — 이것이 우리 표적 rpm 을 검증하는 유일한 «실비행 DJI» 앵커다.",
+  "other_papers_ko": "Rahman & Robertson 2020 의 S900 무적재 호버 지배 주파수 160 Hz(=4,800 rpm 환산)는 Heutschi 의 S-9 5,100 과 6 % 안에서 일치 — 음향·레이다 두 분야가 서로를 지지. 우리 3기체를 다룬 음향 논문은 못 찾았다(Mavic 4 Pro·Mini 5 Pro 는 2025 년 기체)."
+ },
+ "path_spec_backsolve": {
+  "nasa_russell2016": {
+   "grade": "A",
+   "source": "R.Russell, J.Jung, G.Willink, B.Glasner, «Wind Tunnel and Hover Performance Test Results for Multicopter UAS Vehicles», AHS Forum 72 (2016). NTRS 20160007399 — 본문 전문을 이 세션에서 내려받아 표 1·표 2 를 직접 읽음.",
+   "url": "https://ntrs.nasa.gov/api/citations/20160007399/downloads/20160007399.txt",
+   "verbatim_ko": "«Baseline RPM was selected based on a thrust approximately equal to the manufacturers' specified nominal flight weight.» + 표 2(기준추력 lb / 기준 rpm) + 표 1(로터 지름 in)",
+   "measured": [
+    {
+     "vehicle": "3DR SOLO",
+     "n_rotors": 4,
+     "D_mm": 254.0,
+     "nominal_weight_kg": 1.497,
+     "baseline_rpm": 5700,
+     "C_T": 0.01029
+    },
+    {
+     "vehicle": "DJI Phantom 3 Advanced",
+     "n_rotors": 4,
+     "D_mm": 238.8,
+     "nominal_weight_kg": 1.27,
+     "baseline_rpm": 5300,
+     "C_T": 0.01293
+    },
+    {
+     "vehicle": "3DR Iris+",
+     "n_rotors": 4,
+     "D_mm": 243.8,
+     "nominal_weight_kg": 1.27,
+     "baseline_rpm": 5400,
+     "C_T": 0.01145
+    },
+    {
+     "vehicle": "Drone America x8",
+     "n_rotors": 8,
+     "D_mm": 279.4,
+     "nominal_weight_kg": 5.806,
+     "baseline_rpm": 7000,
+     "C_T": 0.00904
+    },
+    {
+     "vehicle": "SUI Endurance",
+     "n_rotors": 4,
+     "D_mm": 381.0,
+     "nominal_weight_kg": 2.722,
+     "baseline_rpm": 3500,
+     "C_T": 0.0098
+    }
+   ],
+   "note_ko": "⭐Phantom 3 Advanced 는 2.8 lb 에서 **5,300 rpm** — 우리 저장소가 인용해 온 바로 그 앵커다. 우리가 표 1·2 에서 직접 역산한 C_T = 0.01293 은 원장의 «0.0132@3500 → 0.0142@7500»(그림 38 판독)보다 4 % 낮다. 그림 판독 오차 범위이지만, **우리 사다리는 측정 5기체 중 가장 높은 C_T 를 쓰고 있다**(5기체 범위 0.00904~0.01293).",
+   "important_ko": "⚠이것은 **정지 시험대(sting stand)** 값이다 — 동체 하강류(download)·현장 공기밀도·탑재물이 없다. 실비행 호버는 같은 기체라도 이보다 rpm 이 높다."
+  },
+  "heutschi_inflight": {
+   "grade": "B",
+   "implied": [
+    {
+     "vehicle": "DJI Mavic 2 Pro",
+     "D_mm": 221.0,
+     "mass_kg": 0.907,
+     "hover_rpm": 6150,
+     "C_T_implied": 0.00935
+    },
+    {
+     "vehicle": "DJI Inspire 2",
+     "D_mm": 381.0,
+     "mass_kg": 3.44,
+     "hover_rpm": 4350,
+     "C_T_implied": 0.00802
+    },
+    {
+     "vehicle": "DJI Phantom 4",
+     "D_mm": 238.8,
+     "mass_kg": 1.38,
+     "hover_rpm": 6300,
+     "C_T_implied": 0.00994
+    }
+   ],
+   "note_ko": "실비행 음향 역산 C_T = 0.0080~0.0099 로 NASA 정지값(0.0129)보다 23~38 % 낮다 ⇒ 같은 기체라도 실비행 rpm 이 정지 시험대 예측보다 15~30 % 높게 나온다는 뜻. P4(9450 프롭)에서 직접 충돌: NASA 스케일 5,468 vs Heutschi 실측 6,300 (+15.2 %).",
+   "reconciliation_ko": "차이의 절반 이상은 설명된다 — ①현장 고도·기온(Thun 560 m·Felixdorf 270 m, 4~23 °C)의 공기밀도 5~8 % 감소 → rpm +2.5~4 % ②기내 녹음기(Sony PCM-A10)+0.8 m 케이블+GPS 트래커 탑재 ~100~150 g → P4 기준 +7~11 % 중량 → rpm +3.5~5 % ③동체 하강류 +2~5 % 추력 → rpm +1~2.5 %. 합 +7~11 % (나머지 4 % 미설명)."
+  },
+  "uiuc_static": {
+   "grade": "A",
+   "source": "UIUC Propeller Data Site (Brandt/Selig) 전체 zip(90.9 MB)을 내려받아 정적 시험 파일에서 직접 계산",
+   "url": "https://m-selig.ae.illinois.edu/props/download/UIUC-propDB.zip",
+   "matched_props_CT_heli": {
+    "mini_class(5in, p/D .53-.60)": [
+     0.01272,
+     0.01155,
+     0.01427
+    ],
+    "phantom_class(9in, p/D .50-.56)": [
+     0.01257,
+     0.01516,
+     0.01236
+    ],
+    "mavic_class(10-11in, p/D .46-.50)": [
+     0.01235,
+     0.01111,
+     0.01263
+    ]
+   },
+   "median": 0.01257,
+   "note_ko": "환산 C_T(heli) = (4/π³)·C_T(Renard). 우리 코드가 쓴 «전형값 Renard 0.09~0.13» 은 heli 0.0116~0.0168 인데, 실측 정적 중앙값은 0.01257 로 그 구간의 **아래쪽**이다. DJI 프롭 자체 데이터는 UIUC 에 없다(우리 원장의 'Vol.3 에 DJI 9450 있음' 기록은 이번 확인에서 **재현되지 않았다** — 목록에 DJI 항목 0건)."
+  },
+  "motor_KV": {
+   "grade": "D",
+   "note_ko": "모터 KV·k_T 는 3기체 모두 DJI 미공개이고 신뢰할 만한 티어다운 수치도 못 찾았다. KV×전압은 **무부하** 상한만 주고 호버는 그 40~60 % 라는 경험칙뿐이라 ±20 % 미만으로 좁힐 수 없다 — 이 경로는 포기가 옳다(s1000plus 원장이 이미 이 방식을 썼고 그래서 등급이 낮다)."
+  },
+  "power_balance_REJECTED": {
+   "grade": "D",
+   "note_ko": "⛔시도했다가 **기각**. 배터리 에너지·공표 호버시간에서 호버 전력을 구하고 유도동력을 뺀 나머지를 프로파일 동력으로 보고 rpm 을 푸는 방법. Mavic 4 Pro 는 4,180~6,630 rpm(중앙 ~5,100)을 주지만, **같은 방법을 Mini 5 Pro 에 걸면 8,200~11,800 rpm** 이 나와 공식 상한 7,800 rpm 을 넘는다 ⇒ 방법이 틀렸다(소형기에서 항전·영상송신 소비와 낮은 Re 의 FM 저하를 프로파일 항력으로 잘못 몰아준다). 결론에 쓰지 않는다."
+  }
+ },
+ "current_values_and_grades": {
+  "targets": [
+   {
+    "key": "mini5pro",
+    "mass_kg": 0.2499,
+    "D_mm": 152.4,
+    "coded_hover_rpm": 5500,
+    "coded_C_T": 0.01423,
+    "coded_f_flash_hz": 183.3,
+    "coded_v_tip_ms": 43.9,
+    "official_max_rpm": 7800,
+    "max_rpm_note": "C0 모델 상한",
+    "T_over_W_at_max": 2.01,
+    "rpm_if_CT_NASA_0.01293": 5771,
+    "rpm_if_CT_UIUC_0.01257": 5853,
+    "rpm_if_CT_Heutschi_0.00935": 6786
+   },
+   {
+    "key": "mavic4pro",
+    "mass_kg": 1.063,
+    "D_mm": 267.0,
+    "coded_hover_rpm": 3600,
+    "coded_C_T": 0.015,
+    "coded_f_flash_hz": 120.0,
+    "coded_v_tip_ms": 50.3,
+    "official_max_rpm": 8400,
+    "max_rpm_note": "C2 표 MTOM",
+    "T_over_W_at_max": 5.33,
+    "rpm_if_CT_NASA_0.01293": 3878,
+    "rpm_if_CT_UIUC_0.01257": 3933,
+    "rpm_if_CT_Heutschi_0.00935": 4560
+   },
+   {
+    "key": "matrice4e",
+    "mass_kg": 1.219,
+    "D_mm": 274.0,
+    "coded_hover_rpm": 3800,
+    "coded_C_T": 0.01392,
+    "coded_f_flash_hz": 126.7,
+    "coded_v_tip_ms": 54.5,
+    "official_max_rpm": 6130,
+    "max_rpm_note": "C2 표 MTOM",
+    "T_over_W_at_max": 2.22,
+    "rpm_if_CT_NASA_0.01293": 3943,
+    "rpm_if_CT_UIUC_0.01257": 3999,
+    "rpm_if_CT_Heutschi_0.00935": 4637
+   }
+  ],
+  "provenance_ko": {
+   "mini5pro=5500": {
+    "grade_now": "B",
+    "source": "docs/drone_specs_2026.json hover_rpm_basis — (1) Renard C_T 0.09~0.13 «소형 프롭 전형값» 가정 → 5,070~6,090 (2) 공식 상한 7,800 을 T/W=2.0 가정으로 나눠 5,515. 둘 다 **가정**이지만 우연히 일치.",
+    "recheck_ko": "⭐이번에 독립 3선으로 재확인: NASA C_T 5,771 / UIUC 정적 C_T 5,853 / **Mini 계열 DAT 스케일**(Mavic Mini 4726F 호버 8,000~10,000 rpm 실측 보고 → rpm ∝ 1/R² 로 6.0 in 환산 4,885~6,106, 중앙 5,496). C0 상한 7,800 이 T/W≥1.7 을 요구하므로 6,000 rpm 이 물리적 상한. ⇒ **5,500 은 타당, 다만 밴드의 아래끝**. 권고: 5,500~5,800(중앙 5,650)."
+   },
+   "mavic4pro=3600": {
+    "grade_now": "D",
+    "source": "docs/drone_specs_2026.json — Renard C_T 0.11~0.13 **가정** + «Mavic 3 호버 4,000~4,700 실측 보고» 라는 **출처 없는** 교차검증 한 줄. 실측 앵커 0건.",
+    "recheck_ko": "⭐⭐**이 라운드 최대 결함**. 네 가지가 전부 3,600 을 반박한다: ①코드가 함의하는 C_T=0.01500 은 이번에 모은 모든 실측 앵커(NASA 5기체 0.0090~0.0129, UIUC 정적 0.0111~0.0152 중앙 0.0126)의 위 끝이고, 자매기 matrice4e(0.01392)와도 **다른 사다리**다 — note 는 같은 C_T 법을 썼다고 적었지만 실제로는 안 맞는다. ②NASA C_T 로 풀면 3,878, UIUC 로 3,933. ③Heutschi 가 실측한 Mavic 2 Pro(6,150 rpm)를 같은 계열로 이전하면 **4,561**. ④공식 최대 8,400 rpm(매뉴얼 p.88 직접 확인) 기준 T/W = **5.33** — 자매기 matrice4e 2.22·mini5pro C1 2.92 대비 2 배 이상 벗어난 이상치(T/W 를 2.5~3.5 로 두면 호버는 4,490~5,313).",
+    "recommend_ko": "권고: 3,600 → **약 4,200(밴드 3,900~4,600)**. 최소한의 즉시 수정은 자매기와 같은 C_T(0.0140)로 맞추는 것 = 3,726. f_flash 120 → 140 Hz(+17 %), v_tip 50.3 → 58.7 m/s."
+   },
+   "matrice4e=3800": {
+    "grade_now": "B",
+    "source": "drones.py note — NASA/US Army 실측 C_T 0.0140(Phantom 3+9450, 피치비 0.53 대 0.532 라 외삽 불필요) 로 T=2.989 N 을 풀어 3,789. 실측 앵커에서 유도된 유일한 표적값.",
+    "recheck_ko": "NASA C_T 를 표 1·2 에서 직접 재계산하면 0.01293(그림 판독 0.0140 보다 낮음) → 3,943(+3.8 %). 공식 상한 6,130 기준 T/W = 2.22(정상). ⇒ **3,800 은 건전하나 하한측**. note 가 적은 «잔여 불확실 ±5 %(3,613~3,994)» 는 좁다 — 실비행 보정(밀도·하강류)과 음향 앵커를 넣으면 실제 밴드는 **3,800~4,650(비대칭 상방)**."
+   },
+   "phantom4=5500": {
+    "grade_now": "A-",
+    "recheck_ko": "NASA 표 2 직접 스케일 5,468 과 0.6 % 일치 ✓ — 저장소에서 가장 단단한 rpm."
+   },
+   "phantom3=5100": {
+    "grade_now": "C",
+    "recheck_ko": "⚠**저장소가 인용하는 바로 그 NASA 측정과 어긋난다**. NASA 는 Phantom 3 Advanced(공칭 1.27 kg)를 **5,300 rpm** 으로 실측했고 우리 코드는 같은 기체를 1,280 g·5,100 rpm 으로 적었다(−3.8 %). 같은 C_T 로 우리 지름 240 mm·1,280 g 를 풀면 5,266. 사소하지만 **1차 실측이 있는데 안 쓴** 자리다."
+   }
+  },
+  "max_rpm_conflict_RESOLVED": {
+   "grade": "A",
+   "ko": "⭐drones.py 가 «UNRESOLVED» 로 남긴 matrice4e 최대 rpm 7500 vs 6130 을 이번에 닫았다. DJI Matrice 4 Series User Manual v1.2 (EN, 2025-04-15) 원문 PDF 를 받아 확인: «UAS Class C2 / Sound Power Level 85 dB / **Maximum Propeller Speed 6130 RPM** / MTOM ... 1430 g». 매뉴얼 전문에 '7500' 은 **0회** 등장. ⇒ 코드의 max_rpm=7500 은 근거 없음, docs/drone_specs_2026.json 의 6130 이 옳다. (검색엔진 요약은 '7500 RPM' 이라고 답했으나 원문 대조에서 거짓으로 판명 — 요약을 인용하지 않기를 잘했다.)",
+   "url": "https://dl.djicdn.com/downloads/DJI_Matrice_4_Series/20250415/DJI_Matrice_4_Series_User_Manual_en.pdf"
+  },
+  "mavic4pro_max_rpm_verified": {
+   "grade": "A",
+   "ko": "Mavic 4 Pro User Manual v1.0 (2025-05-13) p.88 원문 확인: «UAS Class C2 / MTOM 1085 g / Sound Power Level 83 dB / Maximum Propeller Speed 8400 RPM», 프롭 1158F 267×147 mm. 코드의 8400·1158F·267 mm 는 정확하다.",
+   "url": "https://dl.djicdn.com/downloads/mavic-4-pro/20250513/DJI_Mavic_4_Pro_User_Manual_v1.0_en.pdf"
+  }
+ },
+ "headline_ko": [
+  "① 어제 «공개 부재» 로 닫은 결론은 **절반만 맞다**. 표적 3기체의 «공개된 실측 rpm 시계열» 은 여전히 0건이지만, **취득 경로가 하나 살아 있다** — PSDK 의 ESC_DATA 토픽(로터별 speed[rpm], 50 Hz)이 헤더에 실재하고 Matrice 4E 는 E-Port 로 PSDK 를 붙일 수 있다. 실측 캠페인에서 시도할 것.",
+  "② MSDK(휴대앱) 경로는 **확정적으로 없다** — 87 키 전수 확인, 모터 rpm 키 부재.",
+  "③ 우리 표적 rpm 3개 중 **mavic4pro=3600 이 가장 약하다**(등급 D). 네 갈래 증거가 모두 위쪽을 가리키고 T/W 이상치(5.33)까지 겹친다. 권고 4,200(3,900~4,600).",
+  "④ matrice4e 최대 rpm 의 «UNRESOLVED» 는 원문으로 닫혔다 — 6130 이 맞고 코드의 7500 은 근거 없음.",
+  "⑤ 정적 시험대 C_T(NASA·UIUC)와 실비행 음향 C_T(Heutschi) 사이에 15~30 % 계통차가 있고, 그 절반 이상이 밀도·탑재·하강류로 설명된다. 우리 사다리는 전부 정적측이라 **호버 rpm 은 구조적으로 하한** 이다."
+ ]
+}

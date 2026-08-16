@@ -1,0 +1,1229 @@
+{
+ "_meta": {
+  "title": "프로펠러 형상 정밀 감사 — 우리 메쉬 대 DJI 실물 (적대적 재검증)",
+  "generated_kst": "2026-08-16 17:52",
+  "lens": "프롭 날의 시위·두께·비틀림·면적·끝단·날개수·단면을 수치로 해부하고 DJI 공식 CAD·제품사진·참조 CAD 와 대조",
+  "why": "outputs/material_verdict_0816.json 이 표적 축을 프로펠러가 혼자 진다고 실측했다(프롭 0.9 mm 에서 AC −16.99 dB·확산바닥 −12.56 dB·빗살 −6.98 dB, 셸은 AC ±0.00). 그러면 프롭 형상 오차가 곧 결과 오차다.",
+  "policy": "⛔ 코드 무변경(발견·권고까지). ⛔ GPU 미사용 — trimesh/numpy/scipy/PIL 만.",
+  "python": "/workspace/.venvs/py312/bin/python",
+  "scratch_scripts": "세션 스크래치패드 audit/m1_ours.py · m3_planecheck.py · m5_dji_profile.py · m6_area.py · m8_pitch_area.py · m11_photo2.py · m13_photo_fleet.py · m15_tip_section.py",
+  "method": {
+   "sections": "원통 단면(회전축 중심, 반경 r 의 원통으로 자름) — 프로펠러 단면의 정식 정의. benchmark/measure_reference_props.py 와 같은 규약이라 사과-대-사과다.",
+   "chord": "단면 점구름의 볼록껍질 최대 캘리퍼 = 시위",
+   "thickness": "시위선 좌표계에서 상·하면 간격. t_chordmean = 시위 전체에 걸친 평균 두께",
+   "weighting": "스팬평균은 **시위 가중**(∫x·c dr / ∫c dr) — 산란 기여가 국소 면적에 비례하므로",
+   "validation": "내 파이프라인이 outputs/reference_props.json 을 3종 전부 소수 4자리까지 재현한다(1345 dia 346.66·c_max/R 0.2253@0.300 · Solo 253.82·0.2726@0.275 · Yuneec 230.10·0.1769@0.450). 따라서 아래 DJI 수치는 같은 자로 잰 값이다."
+  },
+  "sources": {
+   "dji_official_cad": "assets/meshes/reference/WM161_zhankai_1k.glb — DJI Mini 2(WM161) 공식 3D 모델(펼침). 프로펠러 **날 8장 + 허브 4개**가 들어 있다. 회전축은 월드 +y(허브 관성주축 실측, 오차 0.001).",
+   "photos": [
+    "assets/photos/mini2/mini2_c07_fcc_mt2wd_propeller_2blade_ruler.jpg (실물 접이식 프롭, 자 포함)",
+    "assets/photos/matrice4e/matrice4e_c02_prop_standard_1157F_pair.jpg (정품 1157F 2쌍, 정면 탑뷰)",
+    "assets/photos/matrice4e/matrice4e_c01_prop_low_noise_1154F_pair.jpg (저소음 1154F)",
+    "assets/photos/mavic4pro/mavic4pro_c10_propeller_pair_1158F.jpg (정품 1158F)"
+   ],
+   "reference_cad": "1345_prop_cw.stl · solo_prop_cw.stl · prop_cw_assembly_remeshed_v3.stl",
+   "specs": "DJI M4 시리즈 매뉴얼 p.101 (1154F = 27.4×13.7 cm) · Mavic 4 Pro (1158F = 26.7×14.7 cm) — src/drones.py note 인용"
+  },
+  "caveats": [
+   "DJI Mini 2 GLB 는 제품 뷰어용 **1k 간략화판**이다. 실루엣(디스크 지름 118.4~119.7 mm vs 공칭 119.4)은 0.9 % 안에서 맞지만, 날 1장이 1635~1691 삼각형이라 **두께는 시위만큼 검증된 값이 아니다**. 두께 비교는 ±10 % 정도로 읽어라.",
+   "제품사진 측정은 스팬축에 수직한 폭이라 스윕·비틀림 때문에 참시위를 **약간 크게** 읽는다(Mini 2 에서 사진 0.272 vs CAD 0.262 → +4 %). 시위 절대값은 그만큼 상한으로 읽어라.",
+   "matrice4e·mavic4pro 는 **두께 실측이 없다**. 사진은 평면형만 준다.",
+   "단면 최대두께 위치(x/c)는 내 캘리퍼법이 앞전·뒷전을 구별하지 못해 0.27 과 0.73 이 구별되지 않는다 — **판정 보류**로 남긴다."
+  ],
+  "audited_object": "drones.build_propeller → drone_cad.build_propeller_cad(spec, n_sec=20) 가 실제 내보내기 경로다(assets/meshes/drones/*/*__prop.obj = 4로터 12192 삼각형). 내가 잰 것은 같은 함수의 n_sec=22 판이라 같은 법칙·같은 형상이다."
+ },
+ "A_our_mesh_as_built": {
+  "note": "코드 상수가 아니라 **빌드된 메쉬를 직접 재서** 적는다.",
+  "constants_read": {
+   "CHORD_MAX_OVER_R": 0.25,
+   "TC_ROOT": 0.095,
+   "TC_TIP": 0.065,
+   "CAMBER_M": 0.05,
+   "CAMBER_P": 0.5,
+   "root_frac": 0.07,
+   "n_sec": 22,
+   "n_pts": 36,
+   "CHORD_RR": [
+    0.0,
+    0.07,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    0.95,
+    1.0
+   ],
+   "CHORD_FRAC": [
+    0.38,
+    0.45,
+    0.725,
+    0.868,
+    0.978,
+    0.989,
+    0.922,
+    0.865,
+    0.76,
+    0.665,
+    0.577,
+    0.489,
+    0.403,
+    0.352,
+    0.1
+   ],
+   "PITCH_RR": [
+    0.0,
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    0.95,
+    1.0
+   ],
+   "PITCH_K": [
+    0.07,
+    0.08,
+    0.13,
+    0.238,
+    0.369,
+    0.516,
+    0.649,
+    0.751,
+    0.833,
+    1.0,
+    1.106,
+    1.109,
+    1.013,
+    0.748,
+    0.732,
+    0.72
+   ]
+  },
+  "per_drone": {
+   "mini2": {
+    "spec_dia_mm": 119.1,
+    "measured_dia_mm": 118.921,
+    "dia_err_pct": -0.151,
+    "blades": 2,
+    "n_tris_whole_prop": 3476,
+    "watertight": true,
+    "chord_max_over_R": 0.2471,
+    "chord_peak_r_over_R": 0.35
+   },
+   "mini5pro": {
+    "spec_dia_mm": 152.4,
+    "measured_dia_mm": 152.183,
+    "dia_err_pct": -0.142,
+    "blades": 2,
+    "n_tris_whole_prop": 3472,
+    "watertight": true,
+    "chord_max_over_R": 0.2456,
+    "chord_peak_r_over_R": 0.35
+   },
+   "mavic4pro": {
+    "spec_dia_mm": 267,
+    "measured_dia_mm": 266.618,
+    "dia_err_pct": -0.143,
+    "blades": 2,
+    "n_tris_whole_prop": 3476,
+    "watertight": true,
+    "chord_max_over_R": 0.2343,
+    "chord_peak_r_over_R": 0.275
+   },
+   "matrice4e": {
+    "spec_dia_mm": 274,
+    "measured_dia_mm": 273.599,
+    "dia_err_pct": -0.146,
+    "blades": 2,
+    "n_tris_whole_prop": 3476,
+    "watertight": true,
+    "chord_max_over_R": 0.2451,
+    "chord_peak_r_over_R": 0.325
+   },
+   "phantom4": {
+    "spec_dia_mm": 240,
+    "measured_dia_mm": 239.647,
+    "dia_err_pct": -0.147,
+    "blades": 2,
+    "n_tris_whole_prop": 3476,
+    "watertight": true,
+    "chord_max_over_R": 0.2451,
+    "chord_peak_r_over_R": 0.325
+   },
+   "s1000plus": {
+    "spec_dia_mm": 381,
+    "measured_dia_mm": 380.445,
+    "dia_err_pct": -0.146,
+    "blades": 2,
+    "n_tris_whole_prop": 3488,
+    "watertight": true,
+    "chord_max_over_R": 0.246,
+    "chord_peak_r_over_R": 0.325
+   },
+   "typhoonh480": {
+    "spec_dia_mm": 230.2,
+    "measured_dia_mm": 229.83,
+    "dia_err_pct": -0.161,
+    "blades": 2,
+    "n_tris_whole_prop": 3480,
+    "watertight": true,
+    "chord_max_over_R": 0.2448,
+    "chord_peak_r_over_R": 0.325
+   },
+   "x500v2": {
+    "spec_dia_mm": 254.0,
+    "measured_dia_mm": 253.648,
+    "dia_err_pct": -0.139,
+    "blades": 2,
+    "n_tris_whole_prop": 3472,
+    "watertight": true,
+    "chord_max_over_R": 0.2461,
+    "chord_peak_r_over_R": 0.325
+   }
+  },
+  "loft_discretisation": {
+   "method": "설계평면(스팬 수직) 절단으로 메쉬 시위·두께를 법칙 예측과 대조 (matrice4e)",
+   "chord_err_mean_pct": -1.22,
+   "chord_err_worst_pct": -6.48,
+   "chord_err_worst_at_r_over_R": 0.95,
+   "t_max_err_mean_pct": 0.47,
+   "verdict_ko": "무해. 최악 −6.5 % 는 마지막 두 로프트 단면(0.9557·1.000) 사이에서 시위가 급락하는 구간뿐이다."
+  },
+  "sweep_disc_normalisation": {
+   "scale_measured": 0.99321,
+   "shrink_pct": -0.679,
+   "note_ko": "build_propeller_cad 가 팁을 실제로 재서 되돌리는 배율. 8기종 전부 0.9932 로 같고, 그 덕에 디스크 지름이 제원 대비 −0.15 % 안에 든다."
+  }
+ },
+ "B_dji_official_cad_mini2": {
+  "what": "DJI 공식 GLB 에서 잰 **실물 DJI 프로펠러** — 이 저장소 최초",
+  "n_blades_found": 8,
+  "n_hubs_found": 4,
+  "rotor_axis": "world +y (허브 관성주축, 편차 0.001)",
+  "per_rotor": {
+   "rotor0": {
+    "dia_mm": 119.727,
+    "chord_max_over_R": 0.2596,
+    "chord_peak_r_over_R": 0.45,
+    "t_over_c_range": [
+     0.0552,
+     0.082
+    ],
+    "camber_over_c_mean": 0.0427
+   },
+   "rotor1": {
+    "dia_mm": 119.716,
+    "chord_max_over_R": 0.2604,
+    "chord_peak_r_over_R": 0.475,
+    "t_over_c_range": [
+     0.0568,
+     0.0747
+    ],
+    "camber_over_c_mean": 0.0324
+   },
+   "rotor2": {
+    "dia_mm": 118.389,
+    "chord_max_over_R": 0.2647,
+    "chord_peak_r_over_R": 0.45,
+    "t_over_c_range": [
+     0.056,
+     0.0859
+    ],
+    "camber_over_c_mean": 0.0439
+   },
+   "rotor3": {
+    "dia_mm": 118.387,
+    "chord_max_over_R": 0.2654,
+    "chord_peak_r_over_R": 0.45,
+    "t_over_c_range": [
+     0.055,
+     0.0799
+    ],
+    "camber_over_c_mean": 0.0352
+   }
+  },
+  "fleet_mean": {
+   "dia_mm": 119.05,
+   "chord_max_over_R": 0.2625,
+   "chord_peak_r_over_R": 0.456
+  },
+  "nominal_check_ko": "4726F = 4.7 in = 119.4 mm ↔ 측정 118.4~119.7 mm (−0.9~+0.3 %). 제원과 맞는다."
+ },
+ "C_station_table_mini2": {
+  "columns": [
+   "r_over_R",
+   "dji_chord_mm",
+   "ours_chord_mm",
+   "chord_ratio",
+   "dji_t_max_mm",
+   "ours_t_max_mm",
+   "t_ratio",
+   "dji_theta_deg",
+   "ours_theta_deg"
+  ],
+  "rows": [
+   [
+    0.25,
+    12.747,
+    13.347,
+    1.0471,
+    1.029,
+    1.394,
+    1.3548,
+    20.98,
+    17.52
+   ],
+   [
+    0.3,
+    14.247,
+    14.55,
+    1.0212,
+    0.905,
+    1.379,
+    1.5241,
+    21.63,
+    19.21
+   ],
+   [
+    0.35,
+    14.94,
+    14.692,
+    0.9834,
+    0.89,
+    1.267,
+    1.4229,
+    20.87,
+    20.2
+   ],
+   [
+    0.45,
+    15.615,
+    12.735,
+    0.8156,
+    0.92,
+    1.056,
+    1.1476,
+    19.29,
+    20.01
+   ],
+   [
+    0.475,
+    15.613,
+    12.265,
+    0.7856,
+    0.921,
+    1.009,
+    1.0965,
+    18.59,
+    19.85
+   ],
+   [
+    0.5,
+    15.566,
+    11.817,
+    0.7592,
+    0.914,
+    0.966,
+    1.0574,
+    18.17,
+    19.62
+   ],
+   [
+    0.525,
+    15.498,
+    11.4,
+    0.7356,
+    0.914,
+    0.925,
+    1.0124,
+    17.54,
+    19.41
+   ],
+   [
+    0.55,
+    15.331,
+    10.998,
+    0.7174,
+    0.91,
+    0.886,
+    0.9741,
+    16.91,
+    19.16
+   ],
+   [
+    0.575,
+    15.123,
+    10.635,
+    0.7032,
+    0.903,
+    0.849,
+    0.9411,
+    16.49,
+    18.77
+   ],
+   [
+    0.6,
+    14.875,
+    10.258,
+    0.6896,
+    0.89,
+    0.811,
+    0.9115,
+    15.99,
+    18.43
+   ],
+   [
+    0.625,
+    14.584,
+    9.89,
+    0.6781,
+    0.868,
+    0.775,
+    0.8929,
+    15.15,
+    18.02
+   ],
+   [
+    0.65,
+    14.3,
+    9.542,
+    0.6673,
+    0.851,
+    0.74,
+    0.8697,
+    14.52,
+    17.49
+   ],
+   [
+    0.675,
+    13.932,
+    9.201,
+    0.6604,
+    0.828,
+    0.707,
+    0.8533,
+    14.16,
+    16.86
+   ],
+   [
+    0.7,
+    13.515,
+    8.866,
+    0.656,
+    0.8,
+    0.676,
+    0.8447,
+    14.03,
+    16.27
+   ],
+   [
+    0.725,
+    13.111,
+    8.532,
+    0.6507,
+    0.776,
+    0.643,
+    0.8288,
+    13.83,
+    15.55
+   ],
+   [
+    0.75,
+    12.62,
+    8.186,
+    0.6487,
+    0.747,
+    0.612,
+    0.8195,
+    13.44,
+    14.76
+   ],
+   [
+    0.775,
+    12.127,
+    7.872,
+    0.6491,
+    0.716,
+    0.581,
+    0.8108,
+    12.88,
+    14.05
+   ],
+   [
+    0.8,
+    11.617,
+    7.51,
+    0.6464,
+    0.688,
+    0.549,
+    0.7977,
+    12.37,
+    13.18
+   ],
+   [
+    0.825,
+    11.031,
+    7.181,
+    0.6509,
+    0.659,
+    0.519,
+    0.7879,
+    11.79,
+    12.34
+   ],
+   [
+    0.85,
+    10.375,
+    6.863,
+    0.6615,
+    0.64,
+    0.491,
+    0.7678,
+    11.89,
+    11.29
+   ],
+   [
+    0.875,
+    9.764,
+    6.539,
+    0.6697,
+    0.613,
+    0.462,
+    0.7531,
+    11.17,
+    10.2
+   ],
+   [
+    0.9,
+    9.034,
+    6.205,
+    0.6868,
+    0.582,
+    0.433,
+    0.7436,
+    10.54,
+    9.23
+   ],
+   [
+    0.925,
+    8.284,
+    5.829,
+    0.7037,
+    0.55,
+    0.403,
+    0.7334,
+    9.63,
+    8.41
+   ],
+   [
+    0.95,
+    7.416,
+    5.267,
+    0.7102,
+    0.508,
+    0.358,
+    0.7057,
+    8.77,
+    8.01
+   ],
+   [
+    0.975,
+    6.534,
+    4.406,
+    0.6743,
+    0.464,
+    0.283,
+    0.6092,
+    7.75,
+    7.79
+   ]
+  ]
+ },
+ "D_chord_law_falsified": {
+  "claim_under_test": "src/drone_cad.py 의 CHORD_FRAC 은 3DR Solo 실측에서 왔고, 주석이 그 선택 근거를 «소비자용 쿼드 프롭이라 DJI 급에 가장 가깝다» 라고 적는다.",
+  "step1_derivation_is_clean": "CHORD_FRAC 은 Solo 실측을 소수 3자리까지 정확히 재현한다 — 유도 자체엔 버그가 없다. 문제는 **Solo 를 고른 것**이다.",
+  "step2_solo_is_the_outlier": {
+   "peak_r_over_R": {
+    "3dr_solo": 0.275,
+    "holybro_1345": 0.3,
+    "yuneec_typhoon": 0.45,
+    "dji_mini2_official_cad": 0.45,
+    "dji_matrice4e_1157F_photo": 0.26,
+    "dji_matrice4e_1154F_photo": 0.35,
+    "ours_code": 0.3
+   },
+   "c_max_over_R": {
+    "3dr_solo": 0.2726,
+    "holybro_1345": 0.2253,
+    "yuneec_typhoon": 0.1769,
+    "dji_mini2_official_cad": 0.2617,
+    "dji_mini2_photo": 0.2724,
+    "dji_matrice4e_1157F_photo": 0.1901,
+    "dji_matrice4e_1154F_photo": 0.2122,
+    "dji_mavic4pro_1158F_photo": 0.1808,
+    "ours_code": 0.25
+   },
+   "normalised_chord_c_over_cmax": {
+    "grid_r_over_R": [
+     0.25,
+     0.3,
+     0.35,
+     0.4,
+     0.45,
+     0.5,
+     0.55,
+     0.6,
+     0.65,
+     0.7,
+     0.75,
+     0.8,
+     0.85,
+     0.9,
+     0.95
+    ],
+    "ours_code": [
+     0.978,
+     0.989,
+     0.922,
+     0.865,
+     0.812,
+     0.76,
+     0.713,
+     0.665,
+     0.621,
+     0.577,
+     0.533,
+     0.489,
+     0.446,
+     0.403,
+     0.352
+    ],
+    "dji_mini2_official_cad": [
+     0.816,
+     0.912,
+     0.957,
+     0.987,
+     1.0,
+     0.997,
+     0.982,
+     0.953,
+     0.916,
+     0.866,
+     0.808,
+     0.744,
+     0.664,
+     0.579,
+     0.475
+    ],
+    "dji_matrice4e_1157F_photo": [
+     0.989,
+     1.0,
+     0.993,
+     0.977,
+     0.962,
+     0.923,
+     0.899,
+     0.868,
+     0.821,
+     0.785,
+     0.744,
+     0.688,
+     0.624,
+     0.533,
+     0.442
+    ],
+    "dji_matrice4e_1154F_photo": [
+     0.965,
+     0.985,
+     0.99,
+     1.0,
+     0.995,
+     0.995,
+     0.988,
+     0.985,
+     0.957,
+     0.952,
+     0.939,
+     0.911,
+     0.881,
+     0.81,
+     0.606
+    ],
+    "yuneec_typhoon": [
+     0.786,
+     0.884,
+     0.954,
+     0.987,
+     1.0,
+     0.992,
+     0.975,
+     0.95,
+     0.911,
+     0.866,
+     0.813,
+     0.754,
+     0.677,
+     0.595,
+     0.505
+    ],
+    "3dr_solo": [
+     0.978,
+     0.989,
+     0.922,
+     0.865,
+     0.812,
+     0.76,
+     0.712,
+     0.665,
+     0.621,
+     0.577,
+     0.533,
+     0.489,
+     0.447,
+     0.403,
+     0.352
+    ]
+   },
+   "verdict_ko": "실물 DJI 프롭 3종(Mini 2 공식 CAD · M4E 1157F 사진 · M4E 1154F 사진)이 전부 r/R 0.6 이상에서 우리 곡선보다 훨씬 넓다. 우리 곡선이 r/R 0.70 에서 0.577 인데 실물은 0.785~0.952 다 — **27~39 % 좁다.** Solo 만 우리와 같고, 나머지는 전부 Yuneec 형(늦게 정점, 천천히 가늘어짐)이다."
+  },
+  "step3_area_centroid": {
+   "definition": "r̄/R = ∫c·r dr / ∫c dr (0.15–0.96R, 정규화 시위)",
+   "ours": 0.4933,
+   "dji_matrice4e_1157F": 0.5213,
+   "dji_matrice4e_1154F": 0.5504,
+   "dji_mini2": 0.5388,
+   "meaning_ko": "우리 날은 면적을 실물보다 안쪽에 몰아 놓는다. 도플러는 반경에 비례하므로 이건 곧 **스펙트럼을 저주파로 몰아 놓는다**는 뜻이다."
+  }
+ },
+ "E_area_impact_dB": {
+  "model_ko": "평판 근사 σ = 4πA²/λ² 이므로 면적비는 20log10 으로 들어간다. 얇은 판 |Γ| 는 슬래브 계산에서 t^0.85 정도로 비례한다(outputs/material_verdict_0816.json 의 0.5/0.75/0.9/1.43 mm 각도평균값에서 역산). 두 항을 곱해 net 을 적는다.",
+  "mini2_vs_official_cad": {
+   "0.20-0.96": {
+    "dji_area_mm2": 597.74,
+    "ours_area_mm2": 471.82,
+    "area_ratio": 0.7893,
+    "area_dB_A2": -2.05,
+    "dji_t_chordmean_mm": 0.5999,
+    "ours_t_chordmean_mm": 0.7312,
+    "thickness_ratio": 1.2188,
+    "thickness_dB_gamma_lin": 1.72,
+    "net_dB_plate_thinslab": -0.59
+   },
+   "0.50-0.96": {
+    "dji_area_mm2": 341.55,
+    "ours_area_mm2": 232.02,
+    "area_ratio": 0.6793,
+    "area_dB_A2": -3.36,
+    "dji_t_chordmean_mm": 0.5481,
+    "ours_t_chordmean_mm": 0.5094,
+    "thickness_ratio": 0.9295,
+    "thickness_dB_gamma_lin": -0.64,
+    "net_dB_plate_thinslab": -3.9
+   },
+   "0.60-0.96": {
+    "dji_area_mm2": 250.52,
+    "ours_area_mm2": 166.51,
+    "area_ratio": 0.6647,
+    "area_dB_A2": -3.55,
+    "dji_t_chordmean_mm": 0.5157,
+    "ours_t_chordmean_mm": 0.4515,
+    "thickness_ratio": 0.8756,
+    "thickness_dB_gamma_lin": -1.15,
+    "net_dB_plate_thinslab": -4.53
+   },
+   "0.70-0.96": {
+    "dji_area_mm2": 165.67,
+    "ours_area_mm2": 109.74,
+    "area_ratio": 0.6624,
+    "area_dB_A2": -3.58,
+    "dji_t_chordmean_mm": 0.4739,
+    "ours_t_chordmean_mm": 0.4001,
+    "thickness_ratio": 0.8443,
+    "thickness_dB_gamma_lin": -1.47,
+    "net_dB_plate_thinslab": -4.83
+   },
+   "0.80-0.96": {
+    "dji_area_mm2": 90.63,
+    "ours_area_mm2": 61.01,
+    "area_ratio": 0.6732,
+    "area_dB_A2": -3.44,
+    "dji_t_chordmean_mm": 0.4326,
+    "ours_t_chordmean_mm": 0.3522,
+    "thickness_ratio": 0.8142,
+    "thickness_dB_gamma_lin": -1.79,
+    "net_dB_plate_thinslab": -4.95
+   },
+   "0.90-0.96": {
+    "dji_area_mm2": 28.88,
+    "ours_area_mm2": 20.22,
+    "area_ratio": 0.7002,
+    "area_dB_A2": -3.1,
+    "dji_t_chordmean_mm": 0.391,
+    "ours_t_chordmean_mm": 0.2988,
+    "thickness_ratio": 0.7641,
+    "thickness_dB_gamma_lin": -2.34,
+    "net_dB_plate_thinslab": -5.08
+   }
+  },
+  "fleet_vs_product_photo": {
+   "matrice4e_1157F": {
+    "photo_area_mm2": 2411.5,
+    "photo_area_sd": 19.3,
+    "ours_area_mm2": 2657.7,
+    "ratio": 1.1021,
+    "dB_A2": 0.84,
+    "n_blades_measured": 4
+   },
+   "matrice4e_1154F": {
+    "photo_area_mm2": 3014.4,
+    "photo_area_sd": 60.8,
+    "ours_area_mm2": 2657.7,
+    "ratio": 0.8817,
+    "dB_A2": -1.09,
+    "n_blades_measured": 4
+   },
+   "mavic4pro_1158F": {
+    "photo_area_mm2": 2153.6,
+    "photo_area_sd": 335.9,
+    "ours_area_mm2": 2523.6,
+    "ratio": 1.1718,
+    "dB_A2": 1.38,
+    "n_blades_measured": 4
+   }
+  },
+  "matrice4e_absolute_bands_mm2": {
+   "0.15-0.96": {
+    "photo_1157F": 2364.1,
+    "ours": 2620.3,
+    "ratio": 1.108,
+    "dB": 0.89
+   },
+   "0.50-0.96": {
+    "photo_1157F": 1201.6,
+    "ours": 1180.9,
+    "ratio": 0.983,
+    "dB": -0.15
+   },
+   "0.60-0.96": {
+    "photo_1157F": 882.3,
+    "ours": 848.9,
+    "ratio": 0.962,
+    "dB": -0.34
+   },
+   "0.70-0.96": {
+    "photo_1157F": 588.3,
+    "ours": 559.4,
+    "ratio": 0.951,
+    "dB": -0.44
+   },
+   "0.80-0.96": {
+    "photo_1157F": 323.7,
+    "ours": 311.0,
+    "ratio": 0.961,
+    "dB": -0.35
+   }
+  },
+  "two_failure_modes_ko": [
+   "작은 프롭(mini2·mini5pro): c_max/R 0.25 가 실물 0.26 과 비슷해서 **형상 오차가 상쇄되지 않는다** → 전체 면적 −29 %(−2.97 dB), 외곽(0.6R↑) −3.5 dB.",
+   "큰 프롭(matrice4e·mavic4pro): c_max/R 0.25 가 실물 0.19 보다 **31~37 % 크다.** 그 초과가 형상 오차를 상쇄해서 절대 면적은 총합 +0.9~+1.4 dB, 외곽은 −0.3~−0.4 dB 로 거의 맞는다. **하지만 반경 분포는 여전히 틀렸다**(면적이 뿌리 쪽으로 쏠림)."
+  ]
+ },
+ "F_thickness_anchor_1p43mm": {
+  "question": "정본 1.43 mm 는 어디서 나왔고, 우리 메쉬가 실제로 그 두께인가",
+  "provenance": "benchmark/material_sources.py :: blade_thickness_stats() 가 **메쉬를 재지 않고 코드 상수에서 해석적으로** 계산한다. t_max(r)=tratio(r)·c(r), 시위가중 스팬평균 후 NACA-4 시위평균/최대 비 0.684879 를 곱한다. matrice4e 값 1.4302 mm.",
+  "reproduced": true,
+  "reproduced_value_mm": 1.4302,
+  "mesh_measured_value_mm": 1.4559,
+  "mesh_vs_analytic_pct": 1.8,
+  "two_small_biases_ko": [
+   "해석식이 **스윕디스크 정규화 −0.68 %** 를 빠뜨린다(빌드된 날은 R·0.99321 스팬으로 지어진다).",
+   "NACA-4 시위평균/최대 비 0.6849 는 **대칭 익형**의 값이다. 캠버를 얹은 실제 단면에서 메쉬가 주는 비는 0.695 (+1.5 %)."
+  ],
+  "net_ko": "둘이 합쳐 메쉬 실측이 해석 정본보다 +1.8 % (1.4559 vs 1.4302 mm) — |Γ| 로는 +0.13 dB. **무해하지만 원장에 없다.**",
+  "is_it_uniform": {
+   "answer_ko": "아니다 — 설계상 t/c 가 루트 0.095 → 팁 0.065 로 줄고, 시위도 줄어 t_max 는 matrice4e 에서 1.89 mm(0.10R) → 3.16 mm(0.25R) → 0.60 mm(0.975R) 로 5 배 넘게 변한다. 1.43 mm 는 **시위가중 스팬평균 후 시위평균**이라는 한 개의 요약값이다.",
+   "matrice4e_t_max_by_r_over_R_mm": {
+    "0.1": 1.89,
+    "0.175": 2.676,
+    "0.225": 3.031,
+    "0.25": 3.156,
+    "0.3": 3.116,
+    "0.325": 2.988,
+    "0.35": 2.862,
+    "0.4": 2.615,
+    "0.425": 2.508,
+    "0.45": 2.404,
+    "0.475": 2.3,
+    "0.5": 2.209,
+    "0.525": 2.109,
+    "0.55": 2.02,
+    "0.575": 1.933,
+    "0.6": 1.854,
+    "0.625": 1.771,
+    "0.65": 1.692,
+    "0.675": 1.617,
+    "0.7": 1.539,
+    "0.725": 1.468,
+    "0.75": 1.393,
+    "0.775": 1.325,
+    "0.8": 1.251,
+    "0.825": 1.184,
+    "0.85": 1.116,
+    "0.875": 1.054,
+    "0.9": 0.986,
+    "0.925": 0.908,
+    "0.95": 0.806,
+    "0.975": 0.6
+   }
+  },
+  "vs_real_dji": {
+   "direct_measurement_mini2": {
+    "metric": "시위가중 스팬평균 시위평균두께 (0.20–0.96R, 두 쪽 같은 자)",
+    "dji_official_cad_mm": 0.5999,
+    "ours_mm": 0.7312,
+    "ratio": 1.2188,
+    "dB_gamma": 1.72,
+    "by_band": {
+     "0.20-0.96": {
+      "ratio": 1.2188,
+      "dB": 1.72
+     },
+     "0.50-0.96": {
+      "ratio": 0.9295,
+      "dB": -0.64
+     },
+     "0.60-0.96": {
+      "ratio": 0.8756,
+      "dB": -1.15
+     },
+     "0.70-0.96": {
+      "ratio": 0.8443,
+      "dB": -1.47
+     },
+     "0.80-0.96": {
+      "ratio": 0.8142,
+      "dB": -1.79
+     },
+     "0.90-0.96": {
+      "ratio": 0.7641,
+      "dB": -2.34
+     }
+    },
+    "reading_ko": "안쪽 절반은 우리가 두껍고 바깥쪽 절반은 우리가 얇다. 전체로는 +19 % 두껍다(+1.5 dB).",
+    "spread_note_ko": "같은 밴드를 «측정 스테이션만으로» 적분하면 비가 1.148(+1.20 dB), «공통격자 보간»으로 적분하면 1.219(+1.72 dB) 다. 우리 프로파일이 0.175~0.225 구간 스테이션을 못 뽑아 생기는 차이다. ⇒ 정직한 범위는 **+15~+22 % (+1.2~+1.7 dB)** 이고, 이 감사는 그 범위로 읽는다."
+   },
+   "matrice4e_no_direct_measurement": {
+    "estimate_A_geometric_scaling_mm": 1.3987,
+    "estimate_A_basis": "Mini 2 실측값을 반경비(136.8/59.53)로 환산. 우리 대비 +4.0 % (+0.34 dB).",
+    "estimate_B_tc_transfer_mm": 0.9909,
+    "estimate_B_basis": "1157F 사진 시위 × Mini 2 실측 t/c(r). 우리 대비 +46.9 % (+3.34 dB).",
+    "honest_bracket_dB": [
+     0.34,
+     3.34
+    ],
+    "note_ko": "두 추정이 1.41 배 벌어지는데 그 배수는 정확히 시위비(Mini2 0.262 vs M4E 0.190)다. **어느 쪽인지 모른다** — M4E 프롭 두께 실측이 저장소에 없다."
+   }
+  }
+ },
+ "G_twist_and_pitch": {
+  "our_law": "θ(r)=atan(k(r/R)·P_nominal/(2πr)), k = PITCH_K (3DR Solo 실측)",
+  "dji_measured_k": "국소피치 P_loc(r)=2πr·tanθ 를 공칭 66.04 mm(2.6 in)로 나눈 값",
+  "table": {
+   "r_over_R": [
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95
+   ],
+   "k_dji_mini2": [
+    0.543,
+    0.674,
+    0.756,
+    0.821,
+    0.892,
+    0.929,
+    0.947,
+    0.974,
+    0.953,
+    0.991,
+    1.015,
+    0.993,
+    1.014,
+    0.949,
+    0.83
+   ],
+   "k_ours_code": [
+    0.516,
+    0.649,
+    0.751,
+    0.833,
+    0.916,
+    1.0,
+    1.053,
+    1.106,
+    1.108,
+    1.109,
+    1.061,
+    1.013,
+    0.881,
+    0.748,
+    0.732
+   ]
+  },
+  "findings_ko": [
+   "⭐**공칭 피치의 기준 반경이 다르다.** DJI 실물은 k 가 **0.75R 에서 1.015** 로 최대 — 프로펠러 공학의 표준 규약(공칭 피치는 0.75R 에서 정의)과 정확히 맞는다. 우리 법칙은 k(0.50)=1.000 로 **0.5R** 을 기준으로 잡는다.",
+   "그 결과 우리 날은 0.5~0.8R 에서 국소피치가 9~14 % 크다(θ 가 1~2.5° 더 서 있다).",
+   "DJI 실물은 0.6~0.9R 에서 k 가 0.95~1.02 로 거의 **정피치**인데, 우리는 1.109 → 0.748 로 크게 떨어진다.",
+   "외곽 스팬(0.6~0.9R) 피치각 폭: DJI 16.0°→10.5° = **5.5°**, 우리 18.4°→9.2° = **9.2°**. 우리 날이 1.7 배 더 비틀려 있다."
+  ],
+  "impact_estimate_ko": "추정(계산 아님): 정반사 플래시는 날의 면이 시선에 수직해지는 회전각에서 난다. 외곽 스팬의 피치각 폭이 넓을수록 각 반경이 서로 다른 회전각에서 번쩍이므로 플래시가 **더 넓게 번지고 봉우리는 낮아진다.** 폭 비 9.2/5.5=1.67 → 봉우리 −2.2 dB 정도. ⚠ 이건 어림이다. 확정하려면 커널로 플래시 폭을 직접 재야 한다."
+ },
+ "H_tip": {
+  "our_law_ko": "CHORD_FRAC 이 0.95R 0.352 → 1.00R 0.10 으로 급락 — **뾰족한 팁**",
+  "measured_c_over_R": {
+   "r_over_R": [
+    0.9,
+    0.92,
+    0.94,
+    0.96,
+    0.98,
+    0.99,
+    1.0
+   ],
+   "dji_mini2": [
+    0.1481,
+    0.138,
+    0.1266,
+    0.1147,
+    0.1028,
+    0.0924,
+    0.0206
+   ],
+   "ours": [
+    0.1029,
+    0.098,
+    0.0909,
+    0.0829,
+    0.0609,
+    0.0476,
+    0.0337
+   ]
+  },
+  "tip_band_area_ratio_0p90_0p96": 0.7002,
+  "tip_band_dB": -3.1,
+  "why_it_matters_ko": "회전 날의 마이크로도플러 스펙트럼은 대략 **시위분포를 주파수축에 그대로 옮긴 것**이다(f ∝ r 이므로). f_tip 근방의 세기를 정하는 것이 바로 이 팁 밴드 면적이고, 우리는 거기서 −2.9 dB 낮다. 실물 팁은 뭉툭해서 f_tip 에 면적을 몰아 준다.",
+  "sionna_note_ko": "팁 근방은 우리 메쉬가 실물보다 **일관되게 좁다** — 큰 프롭에서 총면적이 맞아떨어지는 상쇄가 여기선 안 통한다(matrice4e 0.80–0.96 밴드도 −0.35 dB)."
+ },
+ "I_airfoil_section_0p70R": {
+  "dji": {
+   "chord_mm": 13.2768,
+   "theta_deg": 13.0809,
+   "t_max_mm": 0.7444,
+   "t_over_c": 0.0561,
+   "t_chordmean_mm": 0.5039,
+   "t_peak_x_over_c": 0.735,
+   "camber_over_c": 0.0372,
+   "camber_peak_x_over_c": 0.5,
+   "area_mm2": 6.2885
+  },
+  "ours": {
+   "chord_mm": 8.7378,
+   "theta_deg": 16.2165,
+   "t_max_mm": 0.6692,
+   "t_over_c": 0.0766,
+   "t_chordmean_mm": 0.497,
+   "t_peak_x_over_c": 0.2885,
+   "camber_over_c": 0.0449,
+   "camber_peak_x_over_c": 0.5235,
+   "area_mm2": 4.0822
+  },
+  "readout_ko": [
+   "시위 DJI 13.28 mm ↔ 우리 8.74 mm (66 %)",
+   "최대두께 DJI 0.744 mm ↔ 우리 0.669 mm (90 %) — t/c 는 DJI 0.056 ↔ 우리 0.077",
+   "⭐**시위평균 두께는 DJI 0.504 ↔ 우리 0.497 mm 로 거의 같다**(−1.4 %). 좁은 시위 × 두꺼운 t/c 가 넓은 시위 × 얇은 t/c 와 상쇄된 것이다.",
+   "단면 면적 DJI 6.29 mm² ↔ 우리 4.08 mm² (65 %)",
+   "캠버 DJI 3.7 % ↔ 우리 4.5 % — 우리가 조금 더 휘었다(CAMBER_M=0.05)",
+   "최대두께 위치는 앞전/뒷전 구별이 안 돼 **판정 보류**(둘 다 0.27 또는 0.73 으로 읽힌다)."
+  ]
+ },
+ "J_things_that_checked_out": [
+  {
+   "item": "날개 수",
+   "result": "우리 2장 = 실물 2장(mini2·mavic4pro·matrice4e·phantom4·s1000plus 전부). 이상 없음."
+  },
+  {
+   "item": "디스크 지름",
+   "result": "8기종 전부 제원 대비 −0.15 % 안(스윕디스크 정규화가 작동한다)."
+  },
+  {
+   "item": "CW/CCW 거울상",
+   "result": "drones.build_* 가 mirror=True 로 반대회전 프롭을 거울상으로 만든다. 2026-07-28 의 이름 뒤바뀜도 이미 고쳐져 있다."
+  },
+  {
+   "item": "로프트 이산화",
+   "result": "설계평면 절단으로 잰 시위 오차 평균 −1.22 %, 두께 오차 +0.47 %. 최악 −6.5 % 는 0.94~0.95R 한 곳뿐."
+  },
+  {
+   "item": "메쉬 무결성",
+   "result": "프롭 어셈블리 8기종 전부 watertight=True, 삼각형 3472~3488개."
+  },
+  {
+   "item": "1.43 mm 정본의 재현성",
+   "result": "코드 상수에서 정확히 재현된다. 메쉬 실측과는 +1.8 % 차."
+  },
+  {
+   "item": "캠버",
+   "result": "우리 4.4~4.6 % ↔ DJI 3.2~4.4 %. 약간 과하지만 3.5 GHz 에서 곡률반경이 λ 급이라 방위평균으로는 1 dB 미만."
+  }
+ ],
+ "K_falsified_prior_conclusions": [
+  {
+   "where": "src/drone_cad.py 블레이드 법칙 머리말 · outputs/reference_props.json meta.warning",
+   "claim": "«저장소에 DJI 프로펠러 실물 기하는 하나도 없다»",
+   "status": "거짓 — 2026-08-07 에 WM161_zhankai_1k.glb 가 들어오면서 **날 8장 + 허브 4개**가 생겼다. 두 곳 다 문구가 그대로다.",
+   "note": "benchmark/measure_mini2_prop_thickness.py 는 이미 이 사실을 적었지만(2026-08 라운드) 산출 JSON 이 outputs/ 에 없고 상류 원장·주석에 역류하지 않았다."
+  },
+  {
+   "where": "src/drone_cad.py CHORD_FRAC 주석",
+   "claim": "«3DR Solo 측정(소비자용 쿼드 프롭, DJI 급에 가장 가깝다)»",
+   "status": "반증 — DJI 실물 프롭 3종이 전부 Yuneec 형이다. Solo 는 네 참조 중 **유일한 뿌리 편중형**이고 우리는 그걸 골랐다."
+  },
+  {
+   "where": "docs/MATERIAL_CORRECTION.md §2-2 D2 잔차표",
+   "claim": "«우리 1.43 mm 대비 실물 0.53 mm 면 +7.13 dB · 0.80 mm 면 +4.11 dB · 1.08 mm 면 +1.96 dB» (R50 +51/+27/+12 %)",
+   "status": "⭐**범주 오류다.** 1.43 mm 는 **matrice4e**(지름 274 mm)의 **시위평균** 두께이고, 0.53~1.08 mm 는 **Mini 2**(지름 119 mm)의 **최대두께 범위**다. 기체도 다르고 잣대도 다르다.",
+   "like_for_like": "같은 기체·같은 잣대로 다시 재면 Mini 2 에서 우리 0.698 mm ↔ DJI 0.608 mm = **+14.8 %(+1.2 dB)** 다. 1.6 배가 아니다. matrice4e 는 실측이 없어 **+0.3~+3.3 dB** 로만 묶인다.",
+   "consequence_ko": "이 잔차를 근거로 적힌 R50 +12~+51 % 는 과대평가다. 방향(우리가 밝게 센다)은 맞다."
+  }
+ ],
+ "L_recommendations_no_code_changed": {
+  "priority_1": {
+   "what": "CHORD_FRAC 을 DJI 실물 평면형으로 교체",
+   "proposed_CHORD_RR": [
+    0.0,
+    0.07,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95,
+    1.0
+   ],
+   "proposed_CHORD_FRAC_dji_mini2": [
+    0.3,
+    0.42,
+    0.55,
+    0.662,
+    0.816,
+    0.912,
+    0.957,
+    0.987,
+    1.0,
+    0.997,
+    0.982,
+    0.953,
+    0.916,
+    0.866,
+    0.808,
+    0.744,
+    0.664,
+    0.579,
+    0.475,
+    0.2
+   ],
+   "basis": "DJI Mini 2 공식 CAD 4로터 평균(사진 blade0 이 ±4 % 안에서 독립 확인)",
+   "expected_effect": "mini2 프롭 면적 +41 % (+3.0 dB), 외곽 밴드 +3.5 dB. matrice4e 는 c_max/R 도 같이 고쳐야 총면적이 안 뛴다."
+  },
+  "priority_2": {
+   "what": "CHORD_MAX_OVER_R 를 기종별 스펙 필드로 승격",
+   "measured_values": {
+    "mini2": 0.262,
+    "matrice4e_1157F": 0.19,
+    "matrice4e_1154F": 0.212,
+    "mavic4pro_1158F": 0.181,
+    "3dr_solo": 0.273,
+    "holybro_1345": 0.225,
+    "yuneec_typhoon": 0.177
+   },
+   "why": "지금은 8기종 전부 0.25 하나다. 실측은 0.177~0.273 으로 2 배 가까이 벌어지고 프롭이 클수록 작아진다."
+  },
+  "priority_3": {
+   "what": "PITCH_K 기준 반경을 0.5R → 0.75R 로 (표준 규약 = DJI 실물)",
+   "proposed_k_from_dji": "G 절 k_dji_mini2 행",
+   "expected_effect": "외곽 스팬 피치각 1~2.5° 감소, 비틀림 폭 9.2° → 5.5°"
+  },
+  "priority_4": {
+   "what": "팁을 뭉툭하게 — CHORD_FRAC 끝값 0.10 → 0.20 근처",
+   "why": "f_tip 밴드가 여기서 나온다. 지금 0.90~0.96R 에서 −2.9 dB."
+  },
+  "priority_5": {
+   "what": "문구 정정 3곳",
+   "items": [
+    "drone_cad.py 머리말과 reference_props.json meta 의 «DJI 프롭 실물 기하 없음» 삭제",
+    "MATERIAL_CORRECTION §2-2 D2 잔차표를 같은 기체·같은 잣대로 재작성(+1.2 dB)",
+    "benchmark/measure_mini2_prop_thickness.py 산출을 outputs/ 에 고정"
+   ]
+  },
+  "not_recommended": "메쉬 미세정밀화(삼각형 증가). 로프트 이산화는 이미 −1.2 %라 병목이 아니다."
+ },
+ "M_robustness_definition_free": {
+  "why_ko": "헤드라인(우리 날이 외곽에서 27~39 % 좁다)이 «시위» 의 정의에 기대고 있을 수 있다. 원통단면 캘리퍼는 스윕이 크면 c/cosΛ 를 읽는다. 그래서 **단면을 아예 안 쓰는 두 잣대**로 다시 쟀다.",
+  "attempt_that_failed_ko": "스윕각 Λ 를 중시위 궤적에서 직접 재서 보정하려 했으나 위상 언랩이 깨져 Λ 가 ±89° 로 튀었다(mid-chord φ 의 ±π 점프). **폐기하고** 아래 투영/표면적으로 대체했다.",
+  "measure_1_projected_area": {
+   "definition": "날을 회전평면(z 축)으로 눌러 래스터(0.05 mm 격자)한 면적",
+   "dji_mini2_8blades_mm2": 636.4,
+   "dji_sd": 7.6,
+   "ours_mini2_1blade_mm2": 507.8,
+   "ratio": 0.7979,
+   "dB_A2": -1.96
+  },
+  "measure_2_half_surface_area": {
+   "definition": "닫힌 날 메쉬 표면적 ÷ 2 (얇은 날이면 평면형 면적에 수렴)",
+   "dji_mini2_mm2": 720.2,
+   "ours_mini2_mm2": 543.9,
+   "ratio": 0.7551,
+   "dB_A2": -2.44
+  },
+  "reconciliation_ko": "투영 0.798 · 표면적 0.755 · 단면적분(0.175–0.975R) 0.710 — 셋이 다른 이유는 **뿌리**다. 우리 날은 0.070R 부터 시작하는데 DJI 는 날 부품이 0.175R 부터라 그 안쪽은 허브 부품이다. 우리 뿌리 여유분 ≈50 mm² 를 빼면 458/636 = 0.72 로 단면적분과 만난다.",
+  "verdict_ko": "세 잣대 모두 **0.71~0.80** — 정의에 기대지 않는다. 외곽 밴드(r/R≥0.6)의 −3.4~−3.5 dB 가 가장 튼튼한 숫자다."
+ }
+}
