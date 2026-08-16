@@ -1636,10 +1636,13 @@ def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False,
 
     ⭐ 2026-08-16 — 날 법칙을 고르는 손잡이가 붙었다(감사 §⑤ 3층). **기본은 예전 그대로**:
       blade_law  'legacy'(기본) / 'dji_mini2'  — 시위 분포 + 기종별 c_max/R + 뭉툭한 팁
+                 / ⭐'per_airframe' — **그 기체의 순정 프롭**(평면형·c_max/R 을 둘 다
+                   `PROP_LAW_0816` 에서 꺼낸다). 서술: docs/MESH_AUDIT_0816.md §⑦
       pitch_law  None(=legacy) / 'dji_mini2'   — ⚠기본으로 안 켜진다(감사 I7)
       lambda_m   파장[m]. 주면 λ/`edge_over_lambda` 보다 긴 삼각형 모서리만 쪼갠다(형상 불변)
     인자를 안 주면 나오는 메쉬는 **비트 단위로 예전과 같다**
-    (증명: benchmark/regress_blade_law_bitidentical.py)."""
+    (증명: benchmark/regress_blade_law_bitidentical.py ·
+     per_airframe 의 실현 충실도: benchmark/verify_prop_law_per_airframe_0816.py)."""
     from drone_cad import build_propeller_cad
     m = build_propeller_cad(spec, n_sec=max(12, n * 2), blade_law=blade_law,
                             pitch_law=pitch_law, max_edge_m=max_edge_m,

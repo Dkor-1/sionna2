@@ -1,0 +1,681 @@
+{
+ "_meta": {
+  "title": "DJI Mini 2 4726F 기준자 — 독립 교차검증 (해석적 원통단면)",
+  "generated_kst": "2026-08-16 13:20  (UTC 기준, KST=+9h)",
+  "script": "benchmark/xcheck_prop_mini2_0816.py",
+  "verifies": "outputs/prop_measure_mini2_reference_0816.json",
+  "gpu": "미사용 — numpy·trimesh·scipy CPU 만",
+  "independence": "축·중심·시위·두께 계산에 원본 코드를 한 줄도 쓰지 않았다. 원본은 표면 표본점 + 반경 띠, 이 파일은 모서리–원통 교차 해석해다.",
+  "conventions": {
+   "R": "회전축에서 잰 날끝 반경. 축 = 날 2장 점구름의 최소분산 방향, 중심 = 두 날끝 중점(축수직). 원본의 R_shaft(모터축 부품)와 **다른 정의**다.",
+   "blade": "에어포일 셸(연결요소 최대, 1180면)만 «날» 로 센다 — 원본과 같은 규약.",
+   "chord": "참시위 = 반경 r 원통 단면의 최대 캘리퍼",
+   "headline": "헤드라인은 **완전전개 4장**에서만 낸다(뒤 프롭 2개는 덜 펴져 있다)."
+  }
+ },
+ "R1_reproducibility": {
+  "ran": false,
+  "note": "--rerun 없이 돌렸다. 2026-08-16 확인 기록: 원본 스크립트를 임시 경로로 다시 돌려 타임스탬프·소요시간을 뺀 모든 값이 **비트동일**(차이 0건)이었다."
+ },
+ "R2_geometry": {
+  "R_mm_xcheck": 59.6521,
+  "R_mm_reference": 59.7019,
+  "R_delta_pct": -0.0834,
+  "c_max_over_R_xcheck": 0.25711,
+  "c_max_over_R_reference": 0.25748,
+  "c_max_over_R_delta_pct": -0.144,
+  "normalised_chord_curve": {
+   "0.15": {
+    "xcheck": 0.4989,
+    "reference": 0.4902,
+    "delta_pct": 1.78
+   },
+   "0.20": {
+    "xcheck": 0.6485,
+    "reference": 0.6436,
+    "delta_pct": 0.76
+   },
+   "0.25": {
+    "xcheck": 0.807,
+    "reference": 0.803,
+    "delta_pct": 0.5
+   },
+   "0.30": {
+    "xcheck": 0.9058,
+    "reference": 0.9029,
+    "delta_pct": 0.33
+   },
+   "0.35": {
+    "xcheck": 0.9525,
+    "reference": 0.9494,
+    "delta_pct": 0.33
+   },
+   "0.40": {
+    "xcheck": 0.9846,
+    "reference": 0.9829,
+    "delta_pct": 0.17
+   },
+   "0.45": {
+    "xcheck": 0.9992,
+    "reference": 0.999,
+    "delta_pct": 0.02
+   },
+   "0.50": {
+    "xcheck": 0.9971,
+    "reference": 0.9965,
+    "delta_pct": 0.06
+   },
+   "0.55": {
+    "xcheck": 0.9823,
+    "reference": 0.9829,
+    "delta_pct": -0.06
+   },
+   "0.60": {
+    "xcheck": 0.9537,
+    "reference": 0.9547,
+    "delta_pct": -0.11
+   },
+   "0.65": {
+    "xcheck": 0.9182,
+    "reference": 0.9193,
+    "delta_pct": -0.12
+   },
+   "0.70": {
+    "xcheck": 0.8668,
+    "reference": 0.8682,
+    "delta_pct": -0.16
+   },
+   "0.75": {
+    "xcheck": 0.809,
+    "reference": 0.811,
+    "delta_pct": -0.25
+   },
+   "0.80": {
+    "xcheck": 0.7448,
+    "reference": 0.7468,
+    "delta_pct": -0.27
+   },
+   "0.85": {
+    "xcheck": 0.6633,
+    "reference": 0.6655,
+    "delta_pct": -0.33
+   },
+   "0.90": {
+    "xcheck": 0.575,
+    "reference": 0.5784,
+    "delta_pct": -0.6
+   },
+   "0.95": {
+    "xcheck": 0.4679,
+    "reference": 0.4721,
+    "delta_pct": -0.9
+   },
+   "0.98": {
+    "xcheck": 0.3983,
+    "reference": 0.4039,
+    "delta_pct": -1.38
+   }
+  },
+  "normalised_curve_worst_dev_pct": 1.78,
+  "verdict": "⭐**기하 축은 재현된다.** 축·중심·시위를 전부 다른 길로 잡았는데 R 은 0.1 % 안, c_max/R 은 0.15 % 안, 정규화 시위곡선은 r/R 0.20~0.95 에서 1 % 안에 든다 (뿌리 0.15R 만 1.8 % 벌어지는데 거기는 에어포일이 시작되는 자리라 정의가 흔들리는 구간이다)."
+ },
+ "R3_thickness": {
+  "window": "0.2-0.96R · 완전전개 4장 평균 · 시위가중",
+  "table": {
+   "0.15": {
+    "chord_xcheck": 7.6482,
+    "chord_reference": 7.5358,
+    "chord_delta_pct": 1.49,
+    "t_env_max_xcheck": 1.4232,
+    "t_env_max_reference": 1.4274,
+    "t_env_max_delta_pct": -0.3,
+    "t_env_mean_xcheck": 1.1504,
+    "t_env_mean_reference": 1.1975,
+    "t_env_mean_delta_pct": -3.94
+   },
+   "0.20": {
+    "chord_xcheck": 9.9413,
+    "chord_reference": 9.894,
+    "chord_delta_pct": 0.48,
+    "t_env_max_xcheck": 1.0541,
+    "t_env_max_reference": 1.0929,
+    "t_env_max_delta_pct": -3.55,
+    "t_env_mean_xcheck": 0.7999,
+    "t_env_mean_reference": 0.8505,
+    "t_env_mean_delta_pct": -5.95
+   },
+   "0.25": {
+    "chord_xcheck": 12.3707,
+    "chord_reference": 12.3441,
+    "chord_delta_pct": 0.22,
+    "t_env_max_xcheck": 0.795,
+    "t_env_max_reference": 0.8428,
+    "t_env_max_delta_pct": -5.68,
+    "t_env_mean_xcheck": 0.5313,
+    "t_env_mean_reference": 0.5871,
+    "t_env_mean_delta_pct": -9.5
+   },
+   "0.30": {
+    "chord_xcheck": 13.8862,
+    "chord_reference": 13.8795,
+    "chord_delta_pct": 0.05,
+    "t_env_max_xcheck": 0.7725,
+    "t_env_max_reference": 0.8075,
+    "t_env_max_delta_pct": -4.33,
+    "t_env_mean_xcheck": 0.4826,
+    "t_env_mean_reference": 0.5325,
+    "t_env_mean_delta_pct": -9.36
+   },
+   "0.35": {
+    "chord_xcheck": 14.6013,
+    "chord_reference": 14.5943,
+    "chord_delta_pct": 0.05,
+    "t_env_max_xcheck": 0.8046,
+    "t_env_max_reference": 0.8211,
+    "t_env_max_delta_pct": -2.02,
+    "t_env_mean_xcheck": 0.508,
+    "t_env_mean_reference": 0.5526,
+    "t_env_mean_delta_pct": -8.07
+   },
+   "0.40": {
+    "chord_xcheck": 15.0929,
+    "chord_reference": 15.109,
+    "chord_delta_pct": -0.11,
+    "t_env_max_xcheck": 0.8318,
+    "t_env_max_reference": 0.8426,
+    "t_env_max_delta_pct": -1.29,
+    "t_env_mean_xcheck": 0.5239,
+    "t_env_mean_reference": 0.5716,
+    "t_env_mean_delta_pct": -8.34
+   },
+   "0.45": {
+    "chord_xcheck": 15.3179,
+    "chord_reference": 15.3567,
+    "chord_delta_pct": -0.25,
+    "t_env_max_xcheck": 0.8494,
+    "t_env_max_reference": 0.8754,
+    "t_env_max_delta_pct": -2.97,
+    "t_env_mean_xcheck": 0.5278,
+    "t_env_mean_reference": 0.5804,
+    "t_env_mean_delta_pct": -9.07
+   },
+   "0.50": {
+    "chord_xcheck": 15.2857,
+    "chord_reference": 15.3186,
+    "chord_delta_pct": -0.21,
+    "t_env_max_xcheck": 0.8438,
+    "t_env_max_reference": 0.8606,
+    "t_env_max_delta_pct": -1.95,
+    "t_env_mean_xcheck": 0.5222,
+    "t_env_mean_reference": 0.5729,
+    "t_env_mean_delta_pct": -8.85
+   },
+   "0.55": {
+    "chord_xcheck": 15.0579,
+    "chord_reference": 15.1089,
+    "chord_delta_pct": -0.34,
+    "t_env_max_xcheck": 0.8312,
+    "t_env_max_reference": 0.8591,
+    "t_env_max_delta_pct": -3.25,
+    "t_env_mean_xcheck": 0.5138,
+    "t_env_mean_reference": 0.5662,
+    "t_env_mean_delta_pct": -9.25
+   },
+   "0.60": {
+    "chord_xcheck": 14.6193,
+    "chord_reference": 14.6758,
+    "chord_delta_pct": -0.38,
+    "t_env_max_xcheck": 0.8079,
+    "t_env_max_reference": 0.8365,
+    "t_env_max_delta_pct": -3.41,
+    "t_env_mean_xcheck": 0.5061,
+    "t_env_mean_reference": 0.5556,
+    "t_env_mean_delta_pct": -8.91
+   },
+   "0.65": {
+    "chord_xcheck": 14.076,
+    "chord_reference": 14.1314,
+    "chord_delta_pct": -0.39,
+    "t_env_max_xcheck": 0.7704,
+    "t_env_max_reference": 0.7966,
+    "t_env_max_delta_pct": -3.29,
+    "t_env_mean_xcheck": 0.4839,
+    "t_env_mean_reference": 0.5312,
+    "t_env_mean_delta_pct": -8.9
+   },
+   "0.70": {
+    "chord_xcheck": 13.2878,
+    "chord_reference": 13.3469,
+    "chord_delta_pct": -0.44,
+    "t_env_max_xcheck": 0.7125,
+    "t_env_max_reference": 0.7411,
+    "t_env_max_delta_pct": -3.86,
+    "t_env_mean_xcheck": 0.4526,
+    "t_env_mean_reference": 0.4968,
+    "t_env_mean_delta_pct": -8.91
+   },
+   "0.75": {
+    "chord_xcheck": 12.4012,
+    "chord_reference": 12.4667,
+    "chord_delta_pct": -0.53,
+    "t_env_max_xcheck": 0.6574,
+    "t_env_max_reference": 0.6875,
+    "t_env_max_delta_pct": -4.37,
+    "t_env_mean_xcheck": 0.4209,
+    "t_env_mean_reference": 0.4593,
+    "t_env_mean_delta_pct": -8.37
+   },
+   "0.80": {
+    "chord_xcheck": 11.417,
+    "chord_reference": 11.4806,
+    "chord_delta_pct": -0.55,
+    "t_env_max_xcheck": 0.603,
+    "t_env_max_reference": 0.6271,
+    "t_env_max_delta_pct": -3.84,
+    "t_env_mean_xcheck": 0.3838,
+    "t_env_mean_reference": 0.4183,
+    "t_env_mean_delta_pct": -8.24
+   },
+   "0.85": {
+    "chord_xcheck": 10.1686,
+    "chord_reference": 10.2301,
+    "chord_delta_pct": -0.6,
+    "t_env_max_xcheck": 0.5562,
+    "t_env_max_reference": 0.579,
+    "t_env_max_delta_pct": -3.93,
+    "t_env_mean_xcheck": 0.3576,
+    "t_env_mean_reference": 0.3889,
+    "t_env_mean_delta_pct": -8.05
+   },
+   "0.90": {
+    "chord_xcheck": 8.8138,
+    "chord_reference": 8.8913,
+    "chord_delta_pct": -0.87,
+    "t_env_max_xcheck": 0.5043,
+    "t_env_max_reference": 0.5192,
+    "t_env_max_delta_pct": -2.88,
+    "t_env_mean_xcheck": 0.3278,
+    "t_env_mean_reference": 0.3529,
+    "t_env_mean_delta_pct": -7.11
+   },
+   "0.95": {
+    "chord_xcheck": 7.172,
+    "chord_reference": 7.2576,
+    "chord_delta_pct": -1.18,
+    "t_env_max_xcheck": 0.4388,
+    "t_env_max_reference": 0.4491,
+    "t_env_max_delta_pct": -2.3,
+    "t_env_mean_xcheck": 0.2922,
+    "t_env_mean_reference": 0.3126,
+    "t_env_mean_delta_pct": -6.51
+   },
+   "0.98": {
+    "chord_xcheck": 6.1062,
+    "chord_reference": 6.2081,
+    "chord_delta_pct": -1.64,
+    "t_env_max_xcheck": 0.3808,
+    "t_env_max_reference": 0.3922,
+    "t_env_max_delta_pct": -2.91,
+    "t_env_mean_xcheck": 0.263,
+    "t_env_mean_reference": 0.2816,
+    "t_env_mean_delta_pct": -6.59
+   }
+  },
+  "t_env_max_worst_dev_pct": 5.68,
+  "t_env_mean_worst_dev_pct": 9.5,
+  "t_chordmean_xcheck_mm": 0.4787,
+  "t_chordmean_reference_mm": 0.5237,
+  "t_chordmean_delta_pct": -8.59,
+  "self_check_envelope_vs_shoelace": {
+   "median_ratio": 0.98579,
+   "frac_within_2pct": 0.9583,
+   "frac_within_3pct": 0.9643,
+   "note": "⭐자기검사 통과. 같은 해석 단면에서 ∫t dx(내 두께 포락의 적분)를 신발끈 공식의 **참 단면적**과 나누면 중앙값 0.986 이다 — 즉 두 잣대가 1.4 % 안에서 같은 물건을 센다. 1 이 아니라 0.986 인 이유도 알려져 있다: 두께 station 을 시위의 0.02~0.98 구간에서만 잡아 **앞·뒷전의 얇은 꼬리 4 %** 를 뺐기 때문이고, 그래서 부호가 항상 아래쪽이다. ⇒ 내 두께가 단면 «면적» 과 자기모순이 없다."
+  },
+  "blade_volume_section_integral_mm3": 301.749,
+  "verdict": "⚠**두께는 계통적으로 낮게 나온다** — 반경별 최대두께는 6 % 안, 시위평균 두께는 10 % 안에서 낮다(항상 같은 방향). 시위는 같은 자리에서 0.6 % 안에 드니 형상이 다른 것이 아니라 **두께 잣대의 창폭 문제**로 보인다. R6 이 그 귀속이다."
+ },
+ "R4_blade_congruence": {
+  "area_mm2": [
+   1309.0395,
+   1309.0324,
+   1309.0333,
+   1309.0372,
+   1309.0268,
+   1309.0323,
+   1309.0285,
+   1309.0296
+  ],
+  "area_spread_pct": 0.000969,
+  "centroid_dist_spectrum_max_dev_mm": 0.000872,
+  "edge_length_spectrum_max_dev_mm": 0.001567,
+  "canonical_hausdorff_mm": [
+   0.0,
+   0.000874,
+   0.000884,
+   0.000832,
+   0.000925,
+   0.000875,
+   0.000858,
+   0.000854
+  ],
+  "verdict": "날 8장은 **한 날의 복제**다 — 대응을 안 쓰는 불변량 두 개(중심거리·모서리길이 정렬 스펙트럼)가 0.002 mm 안에서 겹치고, 주축 정준화 후 양방향 하우스도르프 거리도 0.001 mm 미만이다. ⇒ **날 사이 산포는 개체 산포가 아니라 배치 자세 차이일 뿐이고, 이 GLB 로는 제조 산포를 잴 수 없다.**"
+ },
+ "R5_volume_trap": {
+  "euler_characteristic": 1,
+  "boundary_edges": 112,
+  "boundary_loops": [
+   112
+  ],
+  "boundary_vertex_bbox_mm": [
+   41.2,
+   5.446,
+   43.357
+  ],
+  "whole_blade_bbox_mm": [
+   41.2,
+   6.458,
+   43.358
+  ],
+  "volume_by_origin_shift": {
+   "as-is": -282.4811,
+   "+x100mm": -1055.5342,
+   "+y100mm": -282.4811,
+   "+z100mm": -282.4811
+  },
+  "merge_by_position": {
+   "vertices_before": 647,
+   "vertices_after": 610,
+   "boundary_edges_after": 44,
+   "watertight": false
+  },
+  "capped_fan_volume_mm3": 219.917,
+  "capped_monte_carlo_mm3": 252.309,
+  "verdict": "⛔**이 날에 `mesh.volume` 도, «구멍을 막고 재기» 도 쓰면 안 된다.** χ=1(원판 위상)이고 경계고리 하나가 뿌리부터 날끝까지(bbox 가 날 전체와 같다) 이어져 있다 — 뿌리에 뚫린 작은 구멍이 아니라 **앞·뒷전 이음매가 안 붙은 것**이다. 원점을 100 mm 옮기면 부피 부호까지 바뀌고, 부채꼴로 막아 재면 발산정리 값과 몬테카를로 점유값이 서로 10 % 넘게 어긋난다(둘 다 틀렸다는 뜻이다). ⇒ 부피는 **원통 단면적분으로만** 낼 것. 원본 스크립트 §B 의 경고가 옳다."
+ },
+ "R6_window_attribution": {
+  "method": "해석 단면의 선분을 48 점으로 재표본 → 점밀도 제거 → 띠폭 h·시위창 w 만 변화. 난수·표면 표본추출을 안 쓴다.",
+  "blade": "polySurface102",
+  "R_mm": 59.6521,
+  "window": "0.2-0.96R · 시위가중",
+  "sweep": [
+   {
+    "band_halfwidth_mm": 0.0,
+    "n_subradius": 1,
+    "n_station": 401,
+    "chord_window_halfwidth_mm": 0.0309,
+    "t_chordmean_mm": 0.4923
+   },
+   {
+    "band_halfwidth_mm": 0.0,
+    "n_subradius": 1,
+    "n_station": 201,
+    "chord_window_halfwidth_mm": 0.0618,
+    "t_chordmean_mm": 0.4872
+   },
+   {
+    "band_halfwidth_mm": 0.0,
+    "n_subradius": 1,
+    "n_station": 61,
+    "chord_window_halfwidth_mm": 0.2058,
+    "t_chordmean_mm": 0.5065
+   },
+   {
+    "band_halfwidth_mm": 0.0373,
+    "n_subradius": 7,
+    "n_station": 61,
+    "chord_window_halfwidth_mm": 0.2062,
+    "t_chordmean_mm": 0.5104
+   },
+   {
+    "band_halfwidth_mm": 0.0746,
+    "n_subradius": 13,
+    "n_station": 61,
+    "chord_window_halfwidth_mm": 0.2065,
+    "t_chordmean_mm": 0.5137
+   },
+   {
+    "band_halfwidth_mm": 0.1491,
+    "n_subradius": 25,
+    "n_station": 61,
+    "chord_window_halfwidth_mm": 0.2072,
+    "t_chordmean_mm": 0.5201
+   },
+   {
+    "band_halfwidth_mm": 0.1491,
+    "n_subradius": 25,
+    "n_station": 201,
+    "chord_window_halfwidth_mm": 0.0622,
+    "t_chordmean_mm": 0.5008
+   },
+   {
+    "band_halfwidth_mm": 0.2983,
+    "n_subradius": 25,
+    "n_station": 61,
+    "chord_window_halfwidth_mm": 0.2085,
+    "t_chordmean_mm": 0.533
+   }
+  ],
+  "t_zero_window_mm": 0.4923,
+  "t_reference_settings_emulated_mm": 0.5201,
+  "t_reference_actual_mm": 0.5237,
+  "artifact_pct": 5.65,
+  "verdict": "⭐**귀속 완료 — 형상이 아니라 창폭이다.** 원본 설정(띠 반폭 0.149 mm · station 61)을 해석 단면 위에서 그대로 흉내내면 0.520 mm 가 나와 원본이 실제로 낸 0.5237 mm 를 0.7 % 안에서 재현한다. 같은 코드에서 두 창을 0 으로 줄이면 0.492 mm 다. ⇒ 원본의 시위평균 두께는 **+6 % 부풀어 있고**, 부호는 항상 위쪽이다(창은 포락을 넓히기만 한다). 참값 구간은 **0.48~0.49 mm** 로 읽는 게 옳다. ⚠시위·c_max/R 은 이 영향이 훨씬 작다(원본도 띠폭 계단을 이미 실었다)."
+ },
+ "R6b_window_attribution_monte_carlo": {
+  "n_sample": 2000000,
+  "seed": 3,
+  "blade": "polySurface102",
+  "t_exact_same_grid_mm": 0.4798,
+  "sweep": [
+   {
+    "band_halfwidth_mm": 0.1491,
+    "n_station": 61,
+    "chord_window_halfwidth_mm": 0.2046,
+    "n_pts_median": 12774,
+    "pts_per_station": 209.4,
+    "starved": false,
+    "t_chordmean_mm": 0.5194,
+    "vs_exact_pct": 8.27
+   },
+   {
+    "band_halfwidth_mm": 0.1491,
+    "n_station": 121,
+    "chord_window_halfwidth_mm": 0.1023,
+    "n_pts_median": 12774,
+    "pts_per_station": 105.6,
+    "starved": false,
+    "t_chordmean_mm": 0.5057,
+    "vs_exact_pct": 5.4
+   },
+   {
+    "band_halfwidth_mm": 0.1491,
+    "n_station": 241,
+    "chord_window_halfwidth_mm": 0.0511,
+    "n_pts_median": 12774,
+    "pts_per_station": 53.0,
+    "starved": false,
+    "t_chordmean_mm": 0.4988,
+    "vs_exact_pct": 3.96
+   },
+   {
+    "band_halfwidth_mm": 0.0716,
+    "n_station": 121,
+    "chord_window_halfwidth_mm": 0.1021,
+    "n_pts_median": 6054,
+    "pts_per_station": 50.0,
+    "starved": false,
+    "t_chordmean_mm": 0.499,
+    "vs_exact_pct": 4.01
+   },
+   {
+    "band_halfwidth_mm": 0.0358,
+    "n_station": 241,
+    "chord_window_halfwidth_mm": 0.0511,
+    "n_pts_median": 3002,
+    "pts_per_station": 12.5,
+    "starved": false,
+    "t_chordmean_mm": 0.4889,
+    "vs_exact_pct": 1.91
+   },
+   {
+    "band_halfwidth_mm": 0.0179,
+    "n_station": 401,
+    "chord_window_halfwidth_mm": 0.0306,
+    "n_pts_median": 1512,
+    "pts_per_station": 3.8,
+    "starved": true,
+    "t_chordmean_mm": 0.4582,
+    "vs_exact_pct": -4.5
+   },
+   {
+    "band_halfwidth_mm": 0.0089,
+    "n_station": 401,
+    "chord_window_halfwidth_mm": 0.0306,
+    "n_pts_median": 739,
+    "pts_per_station": 1.8,
+    "starved": true,
+    "t_chordmean_mm": 0.4288,
+    "vs_exact_pct": -10.62
+   }
+  ],
+  "narrowest_unstarved": {
+   "band_halfwidth_mm": 0.0358,
+   "n_station": 241,
+   "chord_window_halfwidth_mm": 0.0511,
+   "n_pts_median": 3002,
+   "pts_per_station": 12.5,
+   "starved": false,
+   "t_chordmean_mm": 0.4889,
+   "vs_exact_pct": 1.91
+  },
+  "verdict": "⭐**세 번째 길도 같은 답이다.** 원본과 똑같이 표면을 난수로 뿌려 놓고 창만 줄이면 두께가 **단조롭게 내려와** 해석 단면값 쪽으로 붙는다: 원본 설정(띠 0.149 mm · station 61)에서 +8.3 % 였다가 띠 0.036 mm · station 241 에서 +1.9 % 가 된다. ⇒ 표본추출 자체는 죄가 없고 **창폭 하나가 원인**이다. ⚠ `starved=true` 인 줄은 읽지 말 것 — 띠가 너무 좁아 station 당 점이 8 개도 안 되면 포락이 이번엔 **반대로 과소**평가된다(2 M 점에서는 마지막 두 줄이 그렇다). 점을 6 M 으로 올려 이 굶주림을 없애고 다시 돌리면 가장 좁은 설정이 해석값 대비 **−0.4 %** 로 붙는 것을 2026-08-16 에 확인했다(`--mc-n 6000000`)."
+ },
+ "R7_audit_thickness_definition": {
+  "source": "outputs/mesh_audit_0816_scale_anchor.json · propeller_vs_dji_cad.thickness → docs/MESH_AUDIT_0816.md §4-3",
+  "bands": {
+   "inboard_0.175-0.5R": {
+    "audit_mm": 1.042,
+    "xcheck_t_max_mm": 0.8446,
+    "xcheck_t_mean_mm": 0.5499,
+    "audit_vs_t_max_pct": 23.4,
+    "audit_vs_t_mean_pct": 89.5
+   },
+   "mid_0.5-0.8R": {
+    "audit_mm": 0.847,
+    "xcheck_t_max_mm": 0.7572,
+    "xcheck_t_mean_mm": 0.4751,
+    "audit_vs_t_max_pct": 11.9,
+    "audit_vs_t_mean_pct": 78.3
+   },
+   "tip_0.8-1.0R": {
+    "audit_mm": 0.604,
+    "xcheck_t_max_mm": 0.5166,
+    "xcheck_t_mean_mm": 0.3357,
+    "audit_vs_t_max_pct": 16.9,
+    "audit_vs_t_mean_pct": 79.9
+   },
+   "all_0.175R+": {
+    "audit_mm": 0.876,
+    "xcheck_t_max_mm": 0.7561,
+    "xcheck_t_mean_mm": 0.4851,
+    "audit_vs_t_max_pct": 15.9,
+    "audit_vs_t_mean_pct": 80.6
+   }
+  },
+  "verdict": "⚠**감사의 «면적가중 평균 두께 0.876 mm» 는 평균 두께가 아니다.** 세 구간 모두 내 **최대두께**(시위가중 0.756 mm)와 같은 자리에 있고 내 **시위평균 두께**(0.485 mm)의 1.8 배다. 게다가 최대두께와 견줘도 +11~+19 % 위인데, 이는 R6 이 밝힌 창폭 아티팩트와 같은 방향·같은 크기다. ⇒ «0.9 mm 슬래브가 DJI 실물 0.876 mm 와 2.7 % 안에서 맞는다» 는 문장은 **슬래브 두께를 «최대두께의 평균» 과 견준 것**이다. 물질량(단위 평면형당 두께) 기준으로 견주면 실물은 0.485 mm 이고 0.9 mm 슬래브는 **1.86 배 두껍다.** ⛔어느 쪽이 슬래브 등가인지는 이 파일이 정하지 않는다 — 얇은 슬래브 반사는 t 에 비선형이라 평균도 최대도 자동으로 옳지 않다. 여기서 확실한 것은 **두 값이 1.8 배 차이나는 다른 양이고, 지금 문서가 그 둘을 같은 것처럼 견주고 있다**는 사실뿐이다. 두께 축이 13~17 dB 축이므로 이 구분은 그냥 넘길 수 없다."
+ },
+ "per_blade": [
+  {
+   "rotor": 0,
+   "node": "polySurface102",
+   "R_mm": 59.6521,
+   "dia_mm": 119.3042,
+   "c_max_mm": 15.3656,
+   "c_max_over_R": 0.25759,
+   "peak_rr": 0.455,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 0,
+   "node": "polySurface95",
+   "R_mm": 59.6521,
+   "dia_mm": 119.3042,
+   "c_max_mm": 15.3085,
+   "c_max_over_R": 0.25663,
+   "peak_rr": 0.465,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 1,
+   "node": "polySurface84",
+   "R_mm": 59.6521,
+   "dia_mm": 119.3042,
+   "c_max_mm": 15.3659,
+   "c_max_over_R": 0.25759,
+   "peak_rr": 0.455,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 1,
+   "node": "polySurface89",
+   "R_mm": 59.6521,
+   "dia_mm": 119.3042,
+   "c_max_mm": 15.3085,
+   "c_max_over_R": 0.25663,
+   "peak_rr": 0.465,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 2,
+   "node": "polySurface81",
+   "R_mm": 59.139,
+   "dia_mm": 118.278,
+   "c_max_mm": 15.4495,
+   "c_max_over_R": 0.26124,
+   "peak_rr": 0.455,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 2,
+   "node": "polySurface80",
+   "R_mm": 59.139,
+   "dia_mm": 118.278,
+   "c_max_mm": 15.3694,
+   "c_max_over_R": 0.25989,
+   "peak_rr": 0.45,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 3,
+   "node": "polySurface61",
+   "R_mm": 59.1392,
+   "dia_mm": 118.2783,
+   "c_max_mm": 15.4493,
+   "c_max_over_R": 0.26124,
+   "peak_rr": 0.455,
+   "faces_dropped_max": 1
+  },
+  {
+   "rotor": 3,
+   "node": "polySurface58",
+   "R_mm": 59.1392,
+   "dia_mm": 118.2783,
+   "c_max_mm": 15.3691,
+   "c_max_over_R": 0.25988,
+   "peak_rr": 0.45,
+   "faces_dropped_max": 1
+  }
+ ],
+ "deployed4_nodes": [
+  "polySurface102",
+  "polySurface95",
+  "polySurface84",
+  "polySurface89"
+ ],
+ "consequences": {
+  "c_max_over_R": "⭐`src/drone_cad.py` 의 `CHORD_MAX_OVER_R_MEASURED['mini2'] = 0.262` 는 **높다**. 두 가지가 겹쳤다 — (a) 덜 펴진 뒤 프롭 2개를 섞은 8장 평균 (b) 넓은 반경 띠. 완전전개 4장·좁은 띠로 다시 재면 **0.2575**(내 독립 경로 0.2571)다. −1.7 %. ⛔이 파일은 코드를 고치지 않는다 — 계측 보고만 한다.",
+  "thickness": "⭐원본 산출물의 두께 표는 **+4~10 % 높다**(R6 이 창폭으로 귀속). 0.20~0.96R 시위평균 참값은 **0.48~0.49 mm** 다. 잣대별 사다리를 함께 읽을 것: 포락 0.48~0.49 < 원본(창 포함) 0.524 < 감사 0.600 < 볼록껍질 0.686 mm — **정의만으로 44 % 가 갈린다.**",
+  "for_other_aircraft": "다른 기종으로 옮길 것은 **정규화 시위곡선뿐**이다. c_max/R 은 프롭 크기와 반비례하므로(4.7 in 0.258 ↔ 9 in 0.177) 기체마다 따로 재야 하고, 두께는 절대값(mm)이라 아예 못 넘긴다."
+ }
+}
