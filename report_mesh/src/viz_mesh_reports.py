@@ -273,8 +273,8 @@ def fig_originals():
         except BaseException as e:
             ax.text2D(0.1, 0.5, f"load error: {e}", transform=ax.transAxes)
         ax.set_title(f"{nm}\ncommunity mesh · props as discs", fontsize=9)
-    fig.suptitle("Downloaded ORIGINALS — the same four report03 cross-checks against "
-                 "(our 5 DJI targets are built from official spec sheets, not these)",
+    fig.suptitle("Downloaded ORIGINALS, shown as received — scoring references, not build inputs "
+                 "(our target meshes are built from published specs, photos and official CAD)",
                  fontsize=11.5)
     fig.subplots_adjust(left=0.01, right=0.99, top=0.80, bottom=0.02, wspace=0.04)
     _save(fig, "originals_gallery")

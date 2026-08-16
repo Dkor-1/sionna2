@@ -1,0 +1,2434 @@
+{
+ "_meta": {
+  "title": "짐벌·카메라·센서 검사 — 드론 10종",
+  "generated": "2026-08-16T12:15:14",
+  "generator": "benchmark/check_gimbal_sensors_0816.py",
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085655,
+  "po_spacing_m": 0.012236,
+  "az_deg": "0..355 step 5",
+  "el_deg": [
+   0.0,
+   -30.0,
+   -60.0,
+   -90.0
+  ],
+  "engine": "pure PO (CPU) — 가림 없음. SBR/GPU 미사용.",
+  "gamma_source": "materials.MATERIALS (ITU metal 은 벌크 프레넬 극한 0.9997 로 되품)",
+  "gamma_used": {
+   "accent": 0.28,
+   "arm": 0.9,
+   "battery": 0.9997,
+   "body": 0.28,
+   "camera": 0.85,
+   "canopy": 0.28,
+   "deck": 0.9,
+   "fc": 0.8,
+   "gear": 0.28,
+   "gear_cf": 0.9,
+   "motor": 0.9997,
+   "pcb": 0.8,
+   "prop": 0.25
+  },
+  "src_touched": "none — 읽기 전용"
+ },
+ "sensor_facts": {
+  "_note": "메쉬가 무엇을 붙이는가 ↔ 실물에 무엇이 있는가. LiDAR 유무는 2026-07-20 확정 사실을 다시 대조한 것이다(재조사 아님).",
+  "mini5pro": {
+   "front_lidar_mesh": true,
+   "front_lidar_real": true,
+   "grade": "A",
+   "source": "DJI Mini 5 Pro User Manual — Forward-Facing LiDAR 명시",
+   "fisheye_mesh": 6,
+   "fisheye_note": "앞2(기수면)·뒤2(등판)·배2(좌우). 실물 배치는 미확인(저면 정투영 사진 없음)."
+  },
+  "mavic4pro": {
+   "front_lidar_mesh": true,
+   "front_lidar_real": true,
+   "grade": "A",
+   "source": "User Manual §5.4 Sensing System 콜아웃 4 = Forward-Facing LiDAR",
+   "fisheye_mesh": 6,
+   "fisheye_real": 6,
+   "fisheye_note": "⚠ 개수는 맞고 **배치가 다르다**. 실물(FCC 상면 p01·저면 p07 정투영): 등판 = 기수쪽 좌우 한 쌍 + 중심선 뒤 1개, 배 = 기수쪽 좌우 한 쌍 + 중심선 뒤 1개. 메쉬 = 기수 정면 쌍 + 배 쌍 + 등판 뒤 쌍. 기수 '정면'에는 실물에 쌍이 없고, 중심선 단독 2개가 메쉬에 없다."
+  },
+  "matrice4e": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "짐벌 정면 2×2 개구 중 좌하가 레이저 거리계 — 전방 LiDAR 와 다른 부품",
+   "fisheye_mesh": 4,
+   "fisheye_real": 4,
+   "down_vision_mesh": 2,
+   "down_vision_real": 2,
+   "down_vision_note": "등판 4 + 배 2. 공식 STEP·매뉴얼 도해·제품 저면사진 셋이 일치."
+  },
+  "s1000plus": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "2014 플랫폼 — 비전/장애물 센서 자체가 없다",
+   "fisheye_mesh": 0,
+   "fisheye_real": 0
+  },
+  "typhoonh480": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "2016 플랫폼 — 기수 초음파 트랜스듀서 2개만",
+   "fisheye_mesh": 0,
+   "fisheye_real": 0
+  },
+  "mini2": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "User Manual v1.0 p.46 — Downward Vision + Infrared 뿐",
+   "fisheye_mesh": 0
+  },
+  "phantom3": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "User Manual v1.8 p.8 — VPS(하방 비전 1 + 초음파 2)만"
+  },
+  "phantom4": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A"
+  },
+  "m350rtk": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "QSG 부품도 — 1 FPV · 2 Infrared Sensing · 3 Vision System(6면)",
+   "ir_note": "⚠ 메쉬는 적외선을 기수 중심선 좌우 대칭 ±16 mm 로 놓는데, 실물 기수 근접사진(p08)은 작은 구멍 2개가 **세로로 겹쳐 한쪽으로 치우친** 배치다. σ 영향은 |Δ|≤0.35 dB."
+  },
+  "x500v2": {
+   "front_lidar_mesh": false,
+   "front_lidar_real": false,
+   "grade": "A",
+   "source": "개발 프레임 — gimbal_style='none', camera 그룹 0면"
+  }
+ },
+ "matrice4e_downward_vision_ruling": {
+  "question": "Matrice 4E 하방 비전 카메라는 좌우 한 쌍인가, 중심선 앞뒤 한 쌍인가",
+  "prior_state": "outputs/meshfix_matrice4e.json 의 not_settled_this_round 3번이 «CAD 좌우 ±17.75 ↔ 사진 앞뒤, 충돌 미해결» 로 남겨 뒀다.",
+  "ruling": "**중심선 앞뒤 한 쌍**이 맞다. 좌우 쌍은 실물에 없다.",
+  "evidence": [
+   "제품 저면 사진 assets/photos/matrice4e/matrice4e_p09_underside_plan.jpg 를 원해상도로 확대하면 배 중심선을 따라 기수→꼬리 순서로 **둥근 렌즈 · 사각 적외선 창 · 노란 보조등 · 둥근 렌즈** 가 한 줄로 놓여 있다. 중심선 밖 좌우에 렌즈는 없다. (이번 라운드가 직접 확대해 확인)",
+   "매뉴얼 도해 matrice4e_m05_sensing_system_placement.png 의 «Downward Vision System» 지시선 두 개가 그 두 렌즈를 각각 가리킨다.",
+   "공식 STEP: 하부커버 솔리드 안의 안착원 Ø14.449 mm 가 x_ours=+41.80 과 −35.14, **둘 다 y=0**.",
+   "«CAD 가 좌우 쌍이라고 했다» 는 오독이었다 — 그 솔리드(#44~#47)는 카메라가 아니라 짐벌 방진 고무이고 같은 부품이 기수 위에도 두 벌 더 있다(outputs/meshgate_fisheye.json 이 2026-08-07 에 이미 판정)."
+  ],
+  "mesh_state": "현 메쉬는 이미 옳다 — 렌즈 2개가 (x=+41.80, y=0)·(x=−35.14, y=0), 기선 76.94 mm, 셸에 0.000~0.001 mm 로 닿는다.",
+  "action": "⭐ outputs/meshfix_matrice4e.json 의 «충돌 미해결» 문장은 **낡았다**. 그 파일에 _superseded_0816 로 표시해 두었다.",
+  "confidence": "high — 서로 독립인 근거 셋(제품사진·매뉴얼 도해·공식 CAD)이 같은 답"
+ },
+ "material_review": {
+  "_note": "camera 그룹이 실제로 어떤 물건들을 담고 있는가, 그리고 그걸 통째로 금속으로 두는 대가는 얼마인가.",
+  "group_material": "camera → materials.camera_assembly = ITU metal(Sionna) + PO 실효 |Γ|=0.85",
+  "repo_prior": "docs/MATERIAL_SOURCES.md §6-4 가 이미 «출처 없음 · 총 σ 를 최대 1.81 dB 움직임» 으로 적어 뒀다 (그 1.81 은 mavic4pro·1.843 GHz 한 팔의 값이다).",
+  "what_is_actually_in_the_bucket": [
+   {
+    "part": "짐벌 카메라 블록 · 렌즈 배럴 · 롤/요 모터",
+    "real": "금속 하우징 + 유리 + BLDC 모터",
+    "verdict": "금속 취급 타당",
+    "grade": "B"
+   },
+   {
+    "part": "방진판(vibration-damping plate)",
+    "real": "구조 마운트 판 — 금속인지 **저장소에 근거가 없다**(grep 확인)",
+    "verdict": "⚠ 금속 취급이 미검증. 이 그룹 면적의 큰 몫을 차지한다",
+    "grade": "C",
+    "area_share_of_camera_group": {
+     "phantom3": "238.35/371 cm² = 64 %",
+     "phantom4": "140/325 cm² = 43 %",
+     "s1000plus": "504/1015 cm² = 50 %"
+    }
+   },
+   {
+    "part": "어안·하방 비전 렌즈 포드",
+    "real": "유리/플라스틱 창 + 뒤에 작은 금속 캔",
+    "verdict": "통째 금속. 다만 r=9 mm 구는 ka=0.66(레일리~공진)이라 감도가 낮다 — 성분별 제거 |Δ|≤0.1 dB",
+    "grade": "B"
+   },
+   {
+    "part": "전방 LiDAR 창",
+    "real": "유전체 창 + 뒤 금속 캔",
+    "verdict": "통째 금속. 면적 3.7 cm² 로 작다",
+    "grade": "C"
+   },
+   {
+    "part": "초음파 트랜스듀서(typhoonh480)",
+    "real": "금속 캔",
+    "verdict": "금속 취급 타당",
+    "grade": "B"
+   },
+   {
+    "part": "DGC2.0 페이로드 커넥터(m350rtk)",
+    "real": "금속",
+    "verdict": "금속 취급 타당",
+    "grade": "B"
+   }
+  ],
+  "cost_of_the_guess_db": "게이트 D 의 d_camera_as_dielectric_db 를 볼 것. 방위평균 σ 가 움직이는 폭은 el 0/−30/−60 에서 −2.2…+0.1 dB 인데 **el −90(나디르)에서 −6.54 dB(phantom4) … +2.65 dB(s1000plus)** 로 훨씬 넓다. 저장소의 «최대 1.81 dB» 브래킷은 나디르를 안 본 값이다.",
+  "flat_plate_reference": {
+   "formula": "σ = 4πA²/λ² · |Γ|²  (수직입사 평판 한계, λ=85.7 mm)",
+   "plate_150x150_gamma085_dbsm": -2.03,
+   "plate_150x150_gamma028_dbsm": -11.65,
+   "plate_100x100_gamma085_dbsm": -9.08,
+   "plate_78x78_gamma085_dbsm": -13.4,
+   "why": "방진판은 **수평 평판**이라 나디르에서 정반사가 선다. 크기를 1.5배로 지으면 σ 가 4배(+6 dB) 커진다."
+  }
+ },
+ "gate_C_helper_envelope": {
+  "_gimbal_compact3(50,33,30)": {
+   "used_by": [
+    "mini5pro"
+   ],
+   "declared_xyz_mm": [
+    30.0,
+    50.0,
+    33.0
+   ],
+   "built_xyz_mm": [
+    43.5,
+    50.0,
+    46.04
+   ],
+   "built_over_declared": [
+    1.45,
+    1.0,
+    1.395
+   ]
+  },
+  "_gimbal_compact3(32.24,24.38,27.98)": {
+   "used_by": [
+    "mini2 (역산 인자 — built 가 공식 CAD bbox 40.57×32.24×34.01 과 일치)"
+   ],
+   "declared_xyz_mm": [
+    27.98,
+    32.24,
+    24.38
+   ],
+   "built_xyz_mm": [
+    40.57,
+    32.24,
+    34.01
+   ],
+   "built_over_declared": [
+    1.45,
+    1.0,
+    1.395
+   ]
+  },
+  "_gimbal_sensor_v2(59,61.2,52)": {
+   "used_by": [
+    "matrice4e"
+   ],
+   "declared_xyz_mm": [
+    52.0,
+    59.0,
+    61.2
+   ],
+   "built_xyz_mm": [
+    60.84,
+    80.83,
+    78.95
+   ],
+   "built_over_declared": [
+    1.17,
+    1.37,
+    1.29
+   ]
+  },
+  "_gimbal_hasselblad(s=50)": {
+   "used_by": [
+    "mavic4pro"
+   ],
+   "declared_xyz_mm": [
+    81.7,
+    95.0,
+    95.0
+   ],
+   "built_xyz_mm": [
+    95.48,
+    100.0,
+    95.0
+   ],
+   "built_over_declared": [
+    1.169,
+    1.053,
+    1.0
+   ]
+  },
+  "_gimbal_hanging(52,48,56)": {
+   "used_by": [
+    "phantom4"
+   ],
+   "declared_xyz_mm": [
+    56.0,
+    52.0,
+    48.0
+   ],
+   "built_xyz_mm": [
+    85.2,
+    78.0,
+    56.64
+   ],
+   "built_over_declared": [
+    1.521,
+    1.5,
+    1.18
+   ]
+  },
+  "_gimbal_hanging(100,75,100)": {
+   "used_by": [
+    "s1000plus"
+   ],
+   "declared_xyz_mm": [
+    100.0,
+    100.0,
+    75.0
+   ],
+   "built_xyz_mm": [
+    157.5,
+    150.0,
+    88.5
+   ],
+   "built_over_declared": [
+    1.575,
+    1.5,
+    1.18
+   ]
+  },
+  "_note": "built/declared 배율은 helper 의 성질이다(방진판·요크·마운트가 선언값 밖으로 자란다). mini2 는 2026-08-04 에 그 배율을 미리 나눠 넘겨 해소했고, mini5pro 는 같은 helper 에 사진 실측값을 그대로 넘긴다 — 같은 helper 에 두 가지 규약이 섞여 있다. _gimbal_hanging 사용자(phantom4·s1000plus·belly 대조기)는 미해소."
+ },
+ "drones": {
+  "mini5pro": {
+   "group_zmin_mm": {
+    "accent": -8.03,
+    "battery": -14.92,
+    "body": -30.47,
+    "camera": -38.97,
+    "canopy": 1.68,
+    "gear": -51.61,
+    "motor": -4.09,
+    "pcb": 13.45,
+    "prop": 12.66
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -30.01,
+    "z_gear_min_raw_mm": -39.75,
+    "fit_scale": [
+     1.0,
+     1.0,
+     1.2985
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     91.0
+    ],
+    "camera_below_gear_mm": 9.73,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 2146,
+   "n_components": 6,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 320,
+     "area_cm2": 9.502,
+     "size_mm": [
+      16.0,
+      16.0,
+      20.78
+     ],
+     "centroid_mm": [
+      -41.39,
+      -17.79,
+      17.55
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 19.623,
+     "frac_inside_shell": 0.397,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 320,
+     "area_cm2": 9.502,
+     "size_mm": [
+      16.0,
+      16.0,
+      20.78
+     ],
+     "centroid_mm": [
+      -41.39,
+      17.79,
+      17.55
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 19.619,
+     "frac_inside_shell": 0.41,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 320,
+     "area_cm2": 9.502,
+     "size_mm": [
+      16.0,
+      16.0,
+      20.78
+     ],
+     "centroid_mm": [
+      13.8,
+      -17.79,
+      -22.23
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 19.62,
+     "frac_inside_shell": 0.76,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 3,
+     "n_tris": 320,
+     "area_cm2": 9.502,
+     "size_mm": [
+      16.0,
+      16.0,
+      20.78
+     ],
+     "centroid_mm": [
+      13.8,
+      17.79,
+      -22.23
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 19.58,
+     "frac_inside_shell": 0.777,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 4,
+     "n_tris": 788,
+     "area_cm2": 126.263,
+     "size_mm": [
+      43.5,
+      54.54,
+      59.78
+     ],
+     "centroid_mm": [
+      64.38,
+      0.0,
+      -12.29
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 0.156,
+     "frac_inside_shell": 0.327,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 5,
+     "n_tris": 78,
+     "area_cm2": 3.736,
+     "size_mm": [
+      5.6,
+      11.2,
+      8.31
+     ],
+     "centroid_mm": [
+      67.96,
+      -0.0,
+      8.19
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 0.156,
+     "frac_inside_shell": 0.493,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -19.489,
+     "d_camera_group_removed_db": -2.501,
+     "d_camera_as_dielectric_db": -1.82,
+     "d_remove_each_component_db": [
+      -0.067,
+      -0.065,
+      -0.219,
+      -0.226,
+      -1.641,
+      0.019
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -22.683,
+     "d_camera_group_removed_db": -0.216,
+     "d_camera_as_dielectric_db": -0.286,
+     "d_remove_each_component_db": [
+      -0.035,
+      -0.052,
+      -0.016,
+      -0.028,
+      0.048,
+      0.086
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -23.479,
+     "d_camera_group_removed_db": -1.396,
+     "d_camera_as_dielectric_db": -1.327,
+     "d_remove_each_component_db": [
+      -0.045,
+      -0.05,
+      0.156,
+      0.04,
+      -1.497,
+      -0.155
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -24.073,
+     "d_camera_group_removed_db": 1.588,
+     "d_camera_as_dielectric_db": 0.024,
+     "d_remove_each_component_db": [
+      0.172,
+      0.169,
+      0.509,
+      0.507,
+      -1.959,
+      -0.193
+     ]
+    }
+   }
+  },
+  "mavic4pro": {
+   "group_zmin_mm": {
+    "battery": -21.42,
+    "body": -44.64,
+    "camera": -89.43,
+    "canopy": 3.08,
+    "gear": -68.68,
+    "motor": 8.35,
+    "pcb": 19.32,
+    "prop": 33.54
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -66.13,
+    "z_gear_min_raw_mm": -50.78,
+    "fit_scale": [
+     1.0,
+     1.0,
+     1.3524
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     135.2
+    ],
+    "camera_below_gear_mm": -15.35,
+    "verdict": "FAIL — 카메라가 착륙장치보다 낮다",
+    "sz_now": 1.3524,
+    "sz_if_bottom_were_the_feet": 1.5977,
+    "vertical_scale_error_pct": 18.14
+   },
+   "n_camera_tris": 3934,
+   "n_components": 5,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 320,
+     "area_cm2": 12.402,
+     "size_mm": [
+      18.0,
+      18.0,
+      24.34
+     ],
+     "centroid_mm": [
+      -10.2,
+      -28.34,
+      33.59
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 38.757,
+     "frac_inside_shell": 0.383,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 320,
+     "area_cm2": 12.402,
+     "size_mm": [
+      18.0,
+      18.0,
+      24.34
+     ],
+     "centroid_mm": [
+      -10.2,
+      28.34,
+      33.59
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 38.722,
+     "frac_inside_shell": 0.4,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 320,
+     "area_cm2": 12.402,
+     "size_mm": [
+      18.0,
+      18.0,
+      24.34
+     ],
+     "centroid_mm": [
+      30.6,
+      -30.7,
+      -33.59
+     ],
+     "gap_to_airframe_mm": 0.004,
+     "gap_to_other_camera_parts_mm": 0.106,
+     "frac_inside_shell": 0.803,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 3,
+     "n_tris": 320,
+     "area_cm2": 12.402,
+     "size_mm": [
+      18.0,
+      18.0,
+      24.34
+     ],
+     "centroid_mm": [
+      30.6,
+      30.7,
+      -33.59
+     ],
+     "gap_to_airframe_mm": 0.01,
+     "gap_to_other_camera_parts_mm": 0.103,
+     "frac_inside_shell": 0.803,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 4,
+     "n_tris": 2654,
+     "area_cm2": 387.451,
+     "size_mm": [
+      95.48,
+      100.0,
+      128.48
+     ],
+     "centroid_mm": [
+      78.7,
+      -0.0,
+      -25.24
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 0.192,
+     "frac_inside_shell": 0.3,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -16.173,
+     "d_camera_group_removed_db": -1.325,
+     "d_camera_as_dielectric_db": -1.173,
+     "d_remove_each_component_db": [
+      -0.016,
+      -0.02,
+      -0.105,
+      -0.109,
+      -0.845
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -18.983,
+     "d_camera_group_removed_db": -1.092,
+     "d_camera_as_dielectric_db": -1.293,
+     "d_remove_each_component_db": [
+      0.08,
+      0.067,
+      0.064,
+      0.041,
+      -1.433
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -15.13,
+     "d_camera_group_removed_db": -1.13,
+     "d_camera_as_dielectric_db": -0.867,
+     "d_remove_each_component_db": [
+      -0.034,
+      -0.016,
+      0.053,
+      0.036,
+      -1.1
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -12.675,
+     "d_camera_group_removed_db": -0.31,
+     "d_camera_as_dielectric_db": -0.225,
+     "d_remove_each_component_db": [
+      0.252,
+      0.252,
+      -0.301,
+      -0.301,
+      -0.191
+     ]
+    }
+   }
+  },
+  "matrice4e": {
+   "group_zmin_mm": {
+    "accent": 44.49,
+    "battery": -25.55,
+    "body": -34.73,
+    "camera": -39.73,
+    "canopy": 5.23,
+    "gear": -59.81,
+    "motor": 6.14,
+    "pcb": -14.5,
+    "prop": 19.05
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -39.74,
+    "z_gear_min_raw_mm": -59.82,
+    "fit_scale": [
+     1.0,
+     1.0,
+     0.9999
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     149.5
+    ],
+    "camera_below_gear_mm": 20.08,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 2490,
+   "n_components": 9,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 320,
+     "area_cm2": 9.986,
+     "size_mm": [
+      18.0,
+      18.0,
+      18.0
+     ],
+     "centroid_mm": [
+      -53.6,
+      -30.25,
+      49.39
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 42.534,
+     "frac_inside_shell": 0.143,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 320,
+     "area_cm2": 9.986,
+     "size_mm": [
+      18.0,
+      18.0,
+      18.0
+     ],
+     "centroid_mm": [
+      -53.6,
+      30.25,
+      49.39
+     ],
+     "gap_to_airframe_mm": 0.003,
+     "gap_to_other_camera_parts_mm": 42.554,
+     "frac_inside_shell": 0.103,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 320,
+     "area_cm2": 6.391,
+     "size_mm": [
+      14.4,
+      14.4,
+      14.4
+     ],
+     "centroid_mm": [
+      -35.14,
+      -0.0,
+      -28.44
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 63.016,
+     "frac_inside_shell": 0.533,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 3,
+     "n_tris": 320,
+     "area_cm2": 6.391,
+     "size_mm": [
+      14.4,
+      14.4,
+      14.4
+     ],
+     "centroid_mm": [
+      41.8,
+      0.0,
+      -20.81
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 63.056,
+     "frac_inside_shell": 0.55,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 4,
+     "n_tris": 410,
+     "area_cm2": 221.081,
+     "size_mm": [
+      60.84,
+      74.34,
+      60.64
+     ],
+     "centroid_mm": [
+      148.87,
+      0.13,
+      -7.88
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 0.295,
+     "frac_inside_shell": 0.293,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 5,
+     "n_tris": 80,
+     "area_cm2": 10.502,
+     "size_mm": [
+      23.26,
+      2.95,
+      23.25
+     ],
+     "centroid_mm": [
+      145.18,
+      -38.94,
+      -3.02
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 0.295,
+     "frac_inside_shell": 0.263,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 6,
+     "n_tris": 80,
+     "area_cm2": 10.502,
+     "size_mm": [
+      23.26,
+      2.95,
+      23.25
+     ],
+     "centroid_mm": [
+      145.18,
+      38.94,
+      -3.02
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 0.295,
+     "frac_inside_shell": 0.287,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 7,
+     "n_tris": 320,
+     "area_cm2": 9.986,
+     "size_mm": [
+      18.0,
+      18.0,
+      18.0
+     ],
+     "centroid_mm": [
+      146.2,
+      -30.4,
+      48.49
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 19.104,
+     "frac_inside_shell": 0.69,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 8,
+     "n_tris": 320,
+     "area_cm2": 9.986,
+     "size_mm": [
+      18.0,
+      18.0,
+      18.0
+     ],
+     "centroid_mm": [
+      146.2,
+      30.4,
+      48.49
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 19.128,
+     "frac_inside_shell": 0.65,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -15.991,
+     "d_camera_group_removed_db": -0.116,
+     "d_camera_as_dielectric_db": -0.3,
+     "d_remove_each_component_db": [
+      -0.018,
+      -0.02,
+      0.066,
+      0.101,
+      0.012,
+      -0.028,
+      -0.031,
+      -0.105,
+      -0.095
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -21.203,
+     "d_camera_group_removed_db": -1.043,
+     "d_camera_as_dielectric_db": -0.977,
+     "d_remove_each_component_db": [
+      0.061,
+      0.06,
+      -0.077,
+      -0.103,
+      -1.295,
+      -0.065,
+      -0.083,
+      0.22,
+      0.235
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -19.564,
+     "d_camera_group_removed_db": -0.88,
+     "d_camera_as_dielectric_db": -0.853,
+     "d_remove_each_component_db": [
+      0.007,
+      0.005,
+      0.024,
+      -0.135,
+      -0.576,
+      -0.054,
+      -0.055,
+      -0.046,
+      -0.047
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -12.938,
+     "d_camera_group_removed_db": 2.868,
+     "d_camera_as_dielectric_db": 2.023,
+     "d_remove_each_component_db": [
+      0.309,
+      0.31,
+      0.093,
+      -0.131,
+      2.028,
+      -0.039,
+      -0.039,
+      0.299,
+      0.299
+     ]
+    }
+   }
+  },
+  "s1000plus": {
+   "group_zmin_mm": {
+    "accent": 20.9,
+    "arm": -11.61,
+    "battery": 20.9,
+    "body": -20.9,
+    "camera": -106.38,
+    "gear": -308.0,
+    "gear_cf": -304.28,
+    "motor": 11.61,
+    "pcb": -1.39,
+    "prop": 38.13
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -114.5,
+    "z_gear_min_raw_mm": -331.5,
+    "fit_scale": [
+     0.9986,
+     0.9986,
+     0.9291
+    ],
+    "envelope_mm": [
+     1016.0,
+     1016.0,
+     380.0
+    ],
+    "camera_below_gear_mm": 217.0,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 190,
+   "n_components": 1,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 190,
+     "area_cm2": 1015.103,
+     "size_mm": [
+      157.27,
+      149.79,
+      82.22
+     ],
+     "centroid_mm": [
+      3.86,
+      -0.0,
+      -50.73
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": null,
+     "frac_inside_shell": 0.0,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -11.147,
+     "d_camera_group_removed_db": -1.072,
+     "d_camera_as_dielectric_db": -0.879,
+     "d_remove_each_component_db": [
+      -1.072
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -15.714,
+     "d_camera_group_removed_db": -0.517,
+     "d_camera_as_dielectric_db": -0.439,
+     "d_remove_each_component_db": [
+      -0.517
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -8.676,
+     "d_camera_group_removed_db": 0.137,
+     "d_camera_as_dielectric_db": 0.072,
+     "d_remove_each_component_db": [
+      0.137
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": 2.605,
+     "d_camera_group_removed_db": 3.722,
+     "d_camera_as_dielectric_db": 2.652,
+     "d_remove_each_component_db": [
+      3.722
+     ]
+    }
+   }
+  },
+  "phantom4": {
+   "group_zmin_mm": {
+    "battery": -19.58,
+    "body": -39.19,
+    "camera": -70.11,
+    "canopy": 2.01,
+    "gear": -153.39,
+    "motor": 4.59,
+    "pcb": 17.66,
+    "prop": 17.36
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -74.8,
+    "z_gear_min_raw_mm": -163.64,
+    "fit_scale": [
+     1.0198,
+     1.0198,
+     0.9373
+    ],
+    "envelope_mm": [
+     289.5,
+     289.5,
+     196.0
+    ],
+    "camera_below_gear_mm": 88.85,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 494,
+   "n_components": 7,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 48,
+     "area_cm2": 5.041,
+     "size_mm": [
+      8.16,
+      12.24,
+      11.25
+     ],
+     "centroid_mm": [
+      -75.02,
+      -32.18,
+      -12.29
+     ],
+     "gap_to_airframe_mm": 6.546,
+     "gap_to_other_camera_parts_mm": 52.122,
+     "frac_inside_shell": 1.0,
+     "verdict": "swallowed — 셸 속에 완전히 파묻혔다(PO 는 세고 SBR 은 안 센다)"
+    },
+    {
+     "idx": 1,
+     "n_tris": 48,
+     "area_cm2": 5.041,
+     "size_mm": [
+      8.16,
+      12.24,
+      11.25
+     ],
+     "centroid_mm": [
+      -75.02,
+      32.18,
+      -12.29
+     ],
+     "gap_to_airframe_mm": 6.599,
+     "gap_to_other_camera_parts_mm": 52.123,
+     "frac_inside_shell": 1.0,
+     "verdict": "swallowed — 셸 속에 완전히 파묻혔다(PO 는 세고 SBR 은 안 센다)"
+    },
+    {
+     "idx": 2,
+     "n_tris": 12,
+     "area_cm2": 3.814,
+     "size_mm": [
+      8.16,
+      5.1,
+      11.25
+     ],
+     "centroid_mm": [
+      -3.57,
+      -70.79,
+      -10.75
+     ],
+     "gap_to_airframe_mm": 1.642,
+     "gap_to_other_camera_parts_mm": 32.277,
+     "frac_inside_shell": 1.0,
+     "verdict": "swallowed — 셸 속에 완전히 파묻혔다(PO 는 세고 SBR 은 안 센다)"
+    },
+    {
+     "idx": 3,
+     "n_tris": 12,
+     "area_cm2": 3.814,
+     "size_mm": [
+      8.16,
+      5.1,
+      11.25
+     ],
+     "centroid_mm": [
+      -3.57,
+      70.79,
+      -10.75
+     ],
+     "gap_to_airframe_mm": 1.636,
+     "gap_to_other_camera_parts_mm": 32.248,
+     "frac_inside_shell": 1.0,
+     "verdict": "swallowed — 셸 속에 완전히 파묻혔다(PO 는 세고 SBR 은 안 센다)"
+    },
+    {
+     "idx": 4,
+     "n_tris": 40,
+     "area_cm2": 3.3,
+     "size_mm": [
+      10.2,
+      9.7,
+      5.62
+     ],
+     "centroid_mm": [
+      10.72,
+      -22.53,
+      -35.32
+     ],
+     "gap_to_airframe_mm": 0.434,
+     "gap_to_other_camera_parts_mm": 10.096,
+     "frac_inside_shell": 1.0,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 5,
+     "n_tris": 40,
+     "area_cm2": 3.3,
+     "size_mm": [
+      10.2,
+      9.7,
+      5.62
+     ],
+     "centroid_mm": [
+      10.72,
+      22.53,
+      -35.32
+     ],
+     "gap_to_airframe_mm": 0.432,
+     "gap_to_other_camera_parts_mm": 10.096,
+     "frac_inside_shell": 1.0,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 6,
+     "n_tris": 294,
+     "area_cm2": 325.137,
+     "size_mm": [
+      86.88,
+      83.03,
+      61.91
+     ],
+     "centroid_mm": [
+      58.56,
+      0.0,
+      -34.81
+     ],
+     "gap_to_airframe_mm": 0.003,
+     "gap_to_other_camera_parts_mm": 10.152,
+     "frac_inside_shell": 0.533,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -18.272,
+     "d_camera_group_removed_db": -0.991,
+     "d_camera_as_dielectric_db": -0.829,
+     "d_remove_each_component_db": [
+      0.039,
+      0.037,
+      0.028,
+      0.026,
+      0.056,
+      0.058,
+      -1.251
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -21.05,
+     "d_camera_group_removed_db": -1.08,
+     "d_camera_as_dielectric_db": -0.911,
+     "d_remove_each_component_db": [
+      -0.001,
+      0.003,
+      0.05,
+      0.054,
+      -0.058,
+      -0.063,
+      -1.061
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -17.92,
+     "d_camera_group_removed_db": -2.359,
+     "d_camera_as_dielectric_db": -1.823,
+     "d_remove_each_component_db": [
+      0.044,
+      0.042,
+      -0.036,
+      -0.026,
+      -0.044,
+      -0.036,
+      -2.272
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -8.046,
+     "d_camera_group_removed_db": -13.074,
+     "d_camera_as_dielectric_db": -6.535,
+     "d_remove_each_component_db": [
+      -0.043,
+      -0.043,
+      -0.019,
+      -0.019,
+      0.037,
+      0.037,
+      -12.728
+     ]
+    }
+   }
+  },
+  "typhoonh480": {
+   "group_zmin_mm": {
+    "battery": -130.63,
+    "body": -132.29,
+    "camera": -250.63,
+    "canopy": -22.33,
+    "gear": -270.97,
+    "gear_cf": -263.59,
+    "motor": 20.17,
+    "pcb": -28.22,
+    "prop": 33.73
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -245.98,
+    "z_gear_min_raw_mm": -265.94,
+    "fit_scale": [
+     1.0,
+     1.0,
+     1.0189
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     310.0
+    ],
+    "camera_below_gear_mm": 19.97,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 1340,
+   "n_components": 3,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 1052,
+     "area_cm2": 671.688,
+     "size_mm": [
+      113.1,
+      80.48,
+      148.25
+     ],
+     "centroid_mm": [
+      24.4,
+      0.0,
+      -172.63
+     ],
+     "gap_to_airframe_mm": 0.019,
+     "gap_to_other_camera_parts_mm": 22.309,
+     "frac_inside_shell": 0.123,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 144,
+     "area_cm2": 9.576,
+     "size_mm": [
+      10.2,
+      17.0,
+      17.32
+     ],
+     "centroid_mm": [
+      96.09,
+      -21.0,
+      -86.3
+     ],
+     "gap_to_airframe_mm": 0.004,
+     "gap_to_other_camera_parts_mm": 22.285,
+     "frac_inside_shell": 0.057,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 144,
+     "area_cm2": 9.576,
+     "size_mm": [
+      10.2,
+      17.0,
+      17.32
+     ],
+     "centroid_mm": [
+      96.09,
+      21.0,
+      -86.3
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 22.265,
+     "frac_inside_shell": 0.063,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -14.049,
+     "d_camera_group_removed_db": -2.524,
+     "d_camera_as_dielectric_db": -2.219,
+     "d_remove_each_component_db": [
+      -2.486,
+      0.034,
+      0.035
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -15.531,
+     "d_camera_group_removed_db": -1.895,
+     "d_camera_as_dielectric_db": -1.453,
+     "d_remove_each_component_db": [
+      -1.888,
+      -0.031,
+      -0.039
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -18.008,
+     "d_camera_group_removed_db": -2.738,
+     "d_camera_as_dielectric_db": -2.026,
+     "d_remove_each_component_db": [
+      -2.441,
+      -0.093,
+      -0.095
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -5.842,
+     "d_camera_group_removed_db": -0.675,
+     "d_camera_as_dielectric_db": -0.506,
+     "d_remove_each_component_db": [
+      -0.489,
+      -0.091,
+      -0.091
+     ]
+    }
+   }
+  },
+  "x500v2": {
+   "group_zmin_mm": {
+    "accent": -60.5,
+    "arm": -8.0,
+    "battery": -60.5,
+    "deck": -62.5,
+    "fc": 16.0,
+    "gear": -231.28,
+    "gear_cf": -226.78,
+    "motor": 6.0,
+    "pcb": -9.0,
+    "prop": 35.28
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": null,
+    "z_gear_min_raw_mm": -231.28,
+    "fit_scale": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "envelope_mm": null
+   },
+   "n_camera_tris": 0,
+   "n_components": 0,
+   "components": [],
+   "note": "camera 그룹 없음(카메라 미탑재 기체)"
+  },
+  "phantom3": {
+   "group_zmin_mm": {
+    "battery": -46.91,
+    "body": -47.11,
+    "camera": -124.91,
+    "canopy": 0.66,
+    "gear": -150.61,
+    "motor": 10.98,
+    "pcb": -1.5,
+    "prop": 23.22
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -125.15,
+    "z_gear_min_raw_mm": -150.9,
+    "fit_scale": [
+     1.0,
+     1.0,
+     0.9981
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     185.0
+    ],
+    "camera_below_gear_mm": 25.75,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 354,
+   "n_components": 6,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 12,
+     "area_cm2": 238.346,
+     "size_mm": [
+      92.0,
+      95.9,
+      16.47
+     ],
+     "centroid_mm": [
+      22.0,
+      0.0,
+      -57.59
+     ],
+     "gap_to_airframe_mm": 2.445,
+     "gap_to_other_camera_parts_mm": 2.994,
+     "frac_inside_shell": 0.0,
+     "verdict": "FLOATING — 아무데도 안 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 64,
+     "area_cm2": 7.408,
+     "size_mm": [
+      16.0,
+      16.0,
+      6.99
+     ],
+     "centroid_mm": [
+      2.99,
+      -36.11,
+      -36.09
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 9.775,
+     "frac_inside_shell": 0.883,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 64,
+     "area_cm2": 7.408,
+     "size_mm": [
+      16.0,
+      16.0,
+      6.99
+     ],
+     "centroid_mm": [
+      2.99,
+      36.11,
+      -36.09
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 9.775,
+     "frac_inside_shell": 0.817,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 3,
+     "n_tris": 40,
+     "area_cm2": 3.32,
+     "size_mm": [
+      10.0,
+      9.51,
+      5.99
+     ],
+     "centroid_mm": [
+      8.98,
+      0.0,
+      -36.09
+     ],
+     "gap_to_airframe_mm": 4.947,
+     "gap_to_other_camera_parts_mm": 10.275,
+     "frac_inside_shell": 1.0,
+     "verdict": "swallowed — 셸 속에 완전히 파묻혔다(PO 는 세고 SBR 은 안 센다)"
+    },
+    {
+     "idx": 4,
+     "n_tris": 110,
+     "area_cm2": 112.017,
+     "size_mm": [
+      44.0,
+      66.0,
+      31.44
+     ],
+     "centroid_mm": [
+      22.96,
+      -0.0,
+      -109.19
+     ],
+     "gap_to_airframe_mm": 37.673,
+     "gap_to_other_camera_parts_mm": 8.184,
+     "frac_inside_shell": 0.0,
+     "verdict": "FLOATING — 아무데도 안 닿는다"
+    },
+    {
+     "idx": 5,
+     "n_tris": 64,
+     "area_cm2": 9.73,
+     "size_mm": [
+      13.5,
+      13.5,
+      16.47
+     ],
+     "centroid_mm": [
+      22.0,
+      -0.0,
+      -77.05
+     ],
+     "gap_to_airframe_mm": 24.827,
+     "gap_to_other_camera_parts_mm": 2.994,
+     "frac_inside_shell": 0.0,
+     "verdict": "FLOATING — 아무데도 안 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -19.489,
+     "d_camera_group_removed_db": -0.463,
+     "d_camera_as_dielectric_db": -0.442,
+     "d_remove_each_component_db": [
+      0.251,
+      0.015,
+      -0.004,
+      -0.02,
+      -0.342,
+      -0.034
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -18.282,
+     "d_camera_group_removed_db": -1.235,
+     "d_camera_as_dielectric_db": -0.948,
+     "d_remove_each_component_db": [
+      -0.377,
+      0.073,
+      0.096,
+      0.057,
+      -1.24,
+      0.084
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -20.708,
+     "d_camera_group_removed_db": -0.133,
+     "d_camera_as_dielectric_db": -0.559,
+     "d_remove_each_component_db": [
+      -1.038,
+      0.077,
+      0.138,
+      -0.096,
+      0.485,
+      -0.237
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -3.731,
+     "d_camera_group_removed_db": 2.791,
+     "d_camera_as_dielectric_db": 1.965,
+     "d_remove_each_component_db": [
+      3.373,
+      -0.062,
+      -0.062,
+      -0.021,
+      -0.602,
+      -0.06
+     ]
+    }
+   }
+  },
+  "m350rtk": {
+   "group_zmin_mm": {
+    "arm": -10.9,
+    "battery": 5.94,
+    "body": -83.23,
+    "camera": -107.0,
+    "gear": -281.38,
+    "gear_cf": -277.42,
+    "motor": 10.9,
+    "pcb": -17.83,
+    "prop": 40.54
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -108.0,
+    "z_gear_min_raw_mm": -284.0,
+    "fit_scale": [
+     1.0,
+     1.0,
+     0.9908
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     430.0
+    ],
+    "camera_below_gear_mm": 176.0,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 944,
+   "n_components": 12,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 80,
+     "area_cm2": 11.106,
+     "size_mm": [
+      8.0,
+      20.0,
+      19.82
+     ],
+     "centroid_mm": [
+      -142.5,
+      -40.0,
+      55.48
+     ],
+     "gap_to_airframe_mm": 0.003,
+     "gap_to_other_camera_parts_mm": 60.0,
+     "frac_inside_shell": 0.407,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 80,
+     "area_cm2": 11.106,
+     "size_mm": [
+      8.0,
+      20.0,
+      19.82
+     ],
+     "centroid_mm": [
+      -142.5,
+      40.0,
+      55.48
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 60.002,
+     "frac_inside_shell": 0.433,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 80,
+     "area_cm2": 9.47,
+     "size_mm": [
+      18.0,
+      18.0,
+      7.93
+     ],
+     "centroid_mm": [
+      -30.0,
+      -38.0,
+      144.65
+     ],
+     "gap_to_airframe_mm": 0.003,
+     "gap_to_other_camera_parts_mm": 58.001,
+     "frac_inside_shell": 0.507,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 3,
+     "n_tris": 80,
+     "area_cm2": 9.47,
+     "size_mm": [
+      18.0,
+      18.0,
+      7.93
+     ],
+     "centroid_mm": [
+      -30.0,
+      38.0,
+      144.65
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 58.005,
+     "frac_inside_shell": 0.557,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 4,
+     "n_tris": 80,
+     "area_cm2": 9.47,
+     "size_mm": [
+      18.0,
+      18.0,
+      7.93
+     ],
+     "centroid_mm": [
+      30.0,
+      -38.0,
+      -53.5
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 30.371,
+     "frac_inside_shell": 0.963,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 5,
+     "n_tris": 80,
+     "area_cm2": 9.47,
+     "size_mm": [
+      18.0,
+      18.0,
+      7.93
+     ],
+     "centroid_mm": [
+      30.0,
+      38.0,
+      -53.5
+     ],
+     "gap_to_airframe_mm": 0.004,
+     "gap_to_other_camera_parts_mm": 30.352,
+     "frac_inside_shell": 0.957,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 6,
+     "n_tris": 96,
+     "area_cm2": 50.73,
+     "size_mm": [
+      38.0,
+      38.0,
+      23.78
+     ],
+     "centroid_mm": [
+      52.0,
+      -0.0,
+      -95.12
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 30.365,
+     "frac_inside_shell": 0.0,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 7,
+     "n_tris": 96,
+     "area_cm2": 16.346,
+     "size_mm": [
+      10.0,
+      24.0,
+      23.78
+     ],
+     "centroid_mm": [
+      142.5,
+      -0.0,
+      33.69
+     ],
+     "gap_to_airframe_mm": 0.003,
+     "gap_to_other_camera_parts_mm": 6.239,
+     "frac_inside_shell": 0.513,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 8,
+     "n_tris": 80,
+     "area_cm2": 11.106,
+     "size_mm": [
+      8.0,
+      20.0,
+      19.82
+     ],
+     "centroid_mm": [
+      142.5,
+      -40.0,
+      15.85
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 21.956,
+     "frac_inside_shell": 0.05,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 9,
+     "n_tris": 80,
+     "area_cm2": 11.106,
+     "size_mm": [
+      8.0,
+      20.0,
+      19.82
+     ],
+     "centroid_mm": [
+      142.5,
+      40.0,
+      15.85
+     ],
+     "gap_to_airframe_mm": 0.002,
+     "gap_to_other_camera_parts_mm": 21.952,
+     "frac_inside_shell": 0.057,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 10,
+     "n_tris": 56,
+     "area_cm2": 4.399,
+     "size_mm": [
+      6.0,
+      11.7,
+      11.89
+     ],
+     "centroid_mm": [
+      142.5,
+      -16.0,
+      51.52
+     ],
+     "gap_to_airframe_mm": 0.006,
+     "gap_to_other_camera_parts_mm": 6.239,
+     "frac_inside_shell": 0.407,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 11,
+     "n_tris": 56,
+     "area_cm2": 4.399,
+     "size_mm": [
+      6.0,
+      11.7,
+      11.89
+     ],
+     "centroid_mm": [
+      142.5,
+      16.0,
+      51.52
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 6.239,
+     "frac_inside_shell": 0.39,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -5.488,
+     "d_camera_group_removed_db": 0.016,
+     "d_camera_as_dielectric_db": 0.006,
+     "d_remove_each_component_db": [
+      0.012,
+      0.015,
+      -0.0,
+      -0.0,
+      0.008,
+      0.007,
+      -0.036,
+      0.001,
+      0.004,
+      0.006,
+      0.0,
+      -0.0
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -12.554,
+     "d_camera_group_removed_db": 0.24,
+     "d_camera_as_dielectric_db": 0.142,
+     "d_remove_each_component_db": [
+      0.028,
+      0.032,
+      -0.006,
+      -0.004,
+      -0.013,
+      -0.015,
+      0.316,
+      0.016,
+      -0.044,
+      -0.043,
+      -0.009,
+      -0.008
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -11.006,
+     "d_camera_group_removed_db": -0.012,
+     "d_camera_as_dielectric_db": -0.027,
+     "d_remove_each_component_db": [
+      0.005,
+      0.005,
+      -0.061,
+      -0.064,
+      -0.022,
+      -0.025,
+      0.177,
+      -0.011,
+      -0.006,
+      -0.005,
+      0.003,
+      0.001
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -7.09,
+     "d_camera_group_removed_db": -0.744,
+     "d_camera_as_dielectric_db": -0.497,
+     "d_remove_each_component_db": [
+      -0.023,
+      -0.023,
+      -0.168,
+      -0.168,
+      0.083,
+      0.083,
+      -0.345,
+      -0.008,
+      -0.066,
+      -0.067,
+      -0.005,
+      -0.004
+     ]
+    }
+   }
+  },
+  "mini2": {
+   "group_zmin_mm": {
+    "battery": -11.44,
+    "body": -21.74,
+    "camera": -16.81,
+    "canopy": 2.0,
+    "gear": -24.78,
+    "motor": -2.65,
+    "pcb": 10.32,
+    "prop": 5.73
+   },
+   "gate_A_gimbal_vs_gear": {
+    "z_camera_min_raw_mm": -16.78,
+    "z_gear_min_raw_mm": -24.74,
+    "fit_scale": [
+     1.0,
+     1.0,
+     1.0013
+    ],
+    "envelope_mm": [
+     null,
+     null,
+     56.0
+    ],
+    "camera_below_gear_mm": 7.96,
+    "verdict": "PASS"
+   },
+   "n_camera_tris": 294,
+   "n_components": 3,
+   "components": [
+    {
+     "idx": 0,
+     "n_tris": 56,
+     "area_cm2": 1.421,
+     "size_mm": [
+      6.4,
+      6.24,
+      4.01
+     ],
+     "centroid_mm": [
+      -40.9,
+      -7.2,
+      -14.8
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 8.16,
+     "frac_inside_shell": 0.73,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 1,
+     "n_tris": 56,
+     "area_cm2": 1.421,
+     "size_mm": [
+      6.4,
+      6.24,
+      4.01
+     ],
+     "centroid_mm": [
+      -40.9,
+      7.2,
+      -14.8
+     ],
+     "gap_to_airframe_mm": 0.001,
+     "gap_to_other_camera_parts_mm": 8.16,
+     "frac_inside_shell": 0.767,
+     "verdict": "attached — 기체 표면에 닿는다"
+    },
+    {
+     "idx": 2,
+     "n_tris": 182,
+     "area_cm2": 58.129,
+     "size_mm": [
+      40.57,
+      32.24,
+      34.05
+     ],
+     "centroid_mm": [
+      34.98,
+      0.0,
+      -1.44
+     ],
+     "gap_to_airframe_mm": 0.0,
+     "gap_to_other_camera_parts_mm": 57.54,
+     "frac_inside_shell": 0.593,
+     "verdict": "attached — 기체 표면에 닿는다"
+    }
+   ],
+   "gate_D_rf_po": {
+    "0": {
+     "sigma_dbsm_azmean": -24.585,
+     "d_camera_group_removed_db": 0.083,
+     "d_camera_as_dielectric_db": -0.125,
+     "d_remove_each_component_db": [
+      0.01,
+      0.011,
+      0.07
+     ]
+    },
+    "-30": {
+     "sigma_dbsm_azmean": -25.579,
+     "d_camera_group_removed_db": -0.821,
+     "d_camera_as_dielectric_db": -0.799,
+     "d_remove_each_component_db": [
+      -0.023,
+      -0.022,
+      -0.723
+     ]
+    },
+    "-60": {
+     "sigma_dbsm_azmean": -20.756,
+     "d_camera_group_removed_db": -0.322,
+     "d_camera_as_dielectric_db": -0.317,
+     "d_remove_each_component_db": [
+      -0.03,
+      -0.031,
+      -0.267
+     ]
+    },
+    "-90": {
+     "sigma_dbsm_azmean": -13.636,
+     "d_camera_group_removed_db": -0.436,
+     "d_camera_as_dielectric_db": -0.317,
+     "d_remove_each_component_db": [
+      -0.004,
+      -0.004,
+      -0.443
+     ]
+    }
+   }
+  }
+ },
+ "_summary": {
+  "gate_A_fail": [
+   {
+    "drone": "mavic4pro",
+    "camera_below_gear_mm": -15.35,
+    "sz_now": 1.3524,
+    "sz_if_bottom_were_the_feet": 1.5977,
+    "vertical_scale_error_pct": 18.14
+   }
+  ],
+  "gate_B_floating": [
+   {
+    "drone": "phantom3",
+    "area_cm2": 238.346,
+    "size_mm": [
+     92.0,
+     95.9,
+     16.47
+    ],
+    "centroid_mm": [
+     22.0,
+     0.0,
+     -57.59
+    ],
+    "gap_to_airframe_mm": 2.445,
+    "gap_to_other_camera_parts_mm": 2.994
+   },
+   {
+    "drone": "phantom3",
+    "area_cm2": 112.017,
+    "size_mm": [
+     44.0,
+     66.0,
+     31.44
+    ],
+    "centroid_mm": [
+     22.96,
+     -0.0,
+     -109.19
+    ],
+    "gap_to_airframe_mm": 37.673,
+    "gap_to_other_camera_parts_mm": 8.184
+   },
+   {
+    "drone": "phantom3",
+    "area_cm2": 9.73,
+    "size_mm": [
+     13.5,
+     13.5,
+     16.47
+    ],
+    "centroid_mm": [
+     22.0,
+     -0.0,
+     -77.05
+    ],
+    "gap_to_airframe_mm": 24.827,
+    "gap_to_other_camera_parts_mm": 2.994
+   }
+  ],
+  "gate_B_swallowed": [
+   {
+    "drone": "phantom4",
+    "area_cm2": 5.041,
+    "size_mm": [
+     8.16,
+     12.24,
+     11.25
+    ],
+    "centroid_mm": [
+     -75.02,
+     -32.18,
+     -12.29
+    ],
+    "gap_to_airframe_mm": 6.546,
+    "gap_to_other_camera_parts_mm": 52.122
+   },
+   {
+    "drone": "phantom4",
+    "area_cm2": 5.041,
+    "size_mm": [
+     8.16,
+     12.24,
+     11.25
+    ],
+    "centroid_mm": [
+     -75.02,
+     32.18,
+     -12.29
+    ],
+    "gap_to_airframe_mm": 6.599,
+    "gap_to_other_camera_parts_mm": 52.123
+   },
+   {
+    "drone": "phantom4",
+    "area_cm2": 3.814,
+    "size_mm": [
+     8.16,
+     5.1,
+     11.25
+    ],
+    "centroid_mm": [
+     -3.57,
+     -70.79,
+     -10.75
+    ],
+    "gap_to_airframe_mm": 1.642,
+    "gap_to_other_camera_parts_mm": 32.277
+   },
+   {
+    "drone": "phantom4",
+    "area_cm2": 3.814,
+    "size_mm": [
+     8.16,
+     5.1,
+     11.25
+    ],
+    "centroid_mm": [
+     -3.57,
+     70.79,
+     -10.75
+    ],
+    "gap_to_airframe_mm": 1.636,
+    "gap_to_other_camera_parts_mm": 32.248
+   },
+   {
+    "drone": "phantom3",
+    "area_cm2": 3.32,
+    "size_mm": [
+     10.0,
+     9.51,
+     5.99
+    ],
+    "centroid_mm": [
+     8.98,
+     0.0,
+     -36.09
+    ],
+    "gap_to_airframe_mm": 4.947,
+    "gap_to_other_camera_parts_mm": 10.275
+   }
+  ],
+  "gate_C_over_declared": [
+   {
+    "helper": "_gimbal_compact3(50,33,30)",
+    "used_by": [
+     "mini5pro"
+    ],
+    "declared_xyz_mm": [
+     30.0,
+     50.0,
+     33.0
+    ],
+    "built_xyz_mm": [
+     43.5,
+     50.0,
+     46.04
+    ],
+    "built_over_declared": [
+     1.45,
+     1.0,
+     1.395
+    ]
+   },
+   {
+    "helper": "_gimbal_compact3(32.24,24.38,27.98)",
+    "used_by": [
+     "mini2 (역산 인자 — built 가 공식 CAD bbox 40.57×32.24×34.01 과 일치)"
+    ],
+    "declared_xyz_mm": [
+     27.98,
+     32.24,
+     24.38
+    ],
+    "built_xyz_mm": [
+     40.57,
+     32.24,
+     34.01
+    ],
+    "built_over_declared": [
+     1.45,
+     1.0,
+     1.395
+    ],
+    "note": "의도된 역산 — 결함 아님"
+   },
+   {
+    "helper": "_gimbal_sensor_v2(59,61.2,52)",
+    "used_by": [
+     "matrice4e"
+    ],
+    "declared_xyz_mm": [
+     52.0,
+     59.0,
+     61.2
+    ],
+    "built_xyz_mm": [
+     60.84,
+     80.83,
+     78.95
+    ],
+    "built_over_declared": [
+     1.17,
+     1.37,
+     1.29
+    ]
+   },
+   {
+    "helper": "_gimbal_hasselblad(s=50)",
+    "used_by": [
+     "mavic4pro"
+    ],
+    "declared_xyz_mm": [
+     81.7,
+     95.0,
+     95.0
+    ],
+    "built_xyz_mm": [
+     95.48,
+     100.0,
+     95.0
+    ],
+    "built_over_declared": [
+     1.169,
+     1.053,
+     1.0
+    ]
+   },
+   {
+    "helper": "_gimbal_hanging(52,48,56)",
+    "used_by": [
+     "phantom4"
+    ],
+    "declared_xyz_mm": [
+     56.0,
+     52.0,
+     48.0
+    ],
+    "built_xyz_mm": [
+     85.2,
+     78.0,
+     56.64
+    ],
+    "built_over_declared": [
+     1.521,
+     1.5,
+     1.18
+    ]
+   },
+   {
+    "helper": "_gimbal_hanging(100,75,100)",
+    "used_by": [
+     "s1000plus"
+    ],
+    "declared_xyz_mm": [
+     100.0,
+     100.0,
+     75.0
+    ],
+    "built_xyz_mm": [
+     157.5,
+     150.0,
+     88.5
+    ],
+    "built_over_declared": [
+     1.575,
+     1.5,
+     1.18
+    ]
+   }
+  ],
+  "gate_D_dielectric_swing_db": {
+   "mini5pro": {
+    "0": -1.82,
+    "-30": -0.286,
+    "-60": -1.327,
+    "-90": 0.024
+   },
+   "mavic4pro": {
+    "0": -1.173,
+    "-30": -1.293,
+    "-60": -0.867,
+    "-90": -0.225
+   },
+   "matrice4e": {
+    "0": -0.3,
+    "-30": -0.977,
+    "-60": -0.853,
+    "-90": 2.023
+   },
+   "s1000plus": {
+    "0": -0.879,
+    "-30": -0.439,
+    "-60": 0.072,
+    "-90": 2.652
+   },
+   "phantom4": {
+    "0": -0.829,
+    "-30": -0.911,
+    "-60": -1.823,
+    "-90": -6.535
+   },
+   "typhoonh480": {
+    "0": -2.219,
+    "-30": -1.453,
+    "-60": -2.026,
+    "-90": -0.506
+   },
+   "phantom3": {
+    "0": -0.442,
+    "-30": -0.948,
+    "-60": -0.559,
+    "-90": 1.965
+   },
+   "m350rtk": {
+    "0": 0.006,
+    "-30": 0.142,
+    "-60": -0.027,
+    "-90": -0.497
+   },
+   "mini2": {
+    "0": -0.125,
+    "-30": -0.799,
+    "-60": -0.317,
+    "-90": -0.317
+   }
+  },
+  "read_this_first": [
+   "게이트 A 는 FAIL 이 하나뿐인데 그 하나가 가장 무겁다 — 그 기체는 짐벌이 바닥을 정하고, 바닥이 세로 배율을 정하고, 세로 배율이 기체 전 부위를 정한다.",
+   "게이트 B 의 «swallowed» 는 σ 를 거의 안 움직이지만 **PO 와 SBR 이 같은 메쉬를 다르게 읽게** 만든다.",
+   "게이트 C 의 배율은 mini2 가 2026-08-04 에 역산으로 없앤 것과 같은 성격이다 — 나머지 helper 사용자에게 남아 있다.",
+   "게이트 D 에서 재질 선택(금속↔유전체)의 대가는 **앙각에 크게 의존한다**. 나디르에서 가장 크다."
+  ]
+ }
+}

@@ -89,7 +89,8 @@ def head_md(volume: str, question: str, keys, extra=()) -> list[str]:
         "",
         f"**이 편이 답하는 질문** — {question}",
         "",
-        "**무엇을 근거로 하는가** (본문 수치는 손으로 적지 않고 아래 원장에서 주입한다)",
+        "**무엇을 근거로 하는가** (본문 수치는 손으로 적지 않고 아래 **원장** "
+        "— 검사기가 낸 측정 기록 파일 — 에서 주입한다)",
         "",
         "| 원장 | 무엇이 들어 있나 |",
         "|---|---|",
@@ -108,16 +109,24 @@ def head_md(volume: str, question: str, keys, extra=()) -> list[str]:
 GRADE_LEGEND = [
     "| 등급 | 뜻 | 이 저장소에서의 실체 |",
     "|---|---|---|",
-    "| **[A]** | 공식 CAD 직접 | 제조사가 낸 CAD 파일을 열어 잰 값 — DJI Matrice 4T STEP · "
-    "DJI Mini 2 GLB · Holybro X500 v2 STEP · Yuneec Typhoon H480 실물 CAD |",
+    "| **[A]** | 실물 CAD 직접 | CAD 파일을 열어 잰 값. **제조사 배포물** — DJI Matrice 4T STEP · "
+    "DJI Mini 2 GLB · Holybro X500 v2 STEP — 과 **로보틱스 저장소의 실물 CAD** "
+    "(Yuneec Typhoon H480, ethz-asl/rotors_simulator·Apache-2.0)를 함께 포함한다 |",
     "| **[B]** | 사진 계측 | 제품사진·매뉴얼 도해를 픽셀로 잰 값 |",
     "| **[C]** | 계열 유추 | 다른 기체의 실측을 크기비로 옮긴 값 |",
     "| **[D]** | 대리 | 다른 제조사의 부품을 대신 세운 값 |",
-    "",
-    "⚠ 등급은 **«공표 숫자만으로는 안 정해지는 형상»** 이 어디서 왔는가를 매긴다. "
-    "공표 제원(외형 L×W×H · 프로펠러 지름 · 대각)은 10종 공통 입력이라 이 축 밖이다 — "
-    "그 숫자들의 출처는 mesh03 이 따로 맡는다.",
 ]
+
+
+def grade_legend(self_is_mesh03: bool = False) -> list[str]:
+    """등급 범례 + «이 축 밖» 단서. mesh03 자신은 자기를 가리키지 않는다."""
+    where = ("이 편 §1" if self_is_mesh03 else "mesh03(자료 수집 편)")
+    return GRADE_LEGEND + [
+        "",
+        "⚠ 등급은 **«공표 숫자만으로는 안 정해지는 형상»** 이 어디서 왔는가를 매긴다. "
+        "공표 제원(외형 L×W×H · 프로펠러 지름 · 대각)은 10종 공통 입력이라 이 축 밖이다 — "
+        f"그 숫자들의 출처는 {where} 이 맡는다.",
+    ]
 
 #  기체별 형상 근거 등급. 근거는 옆 칸에 적는다(전부 원장·소스에서 확인한 것).
 GRADES = {
@@ -201,6 +210,14 @@ def defect_table() -> str:
     cam = g["gate_A_fail"][0]
     wb_p4 = BODY["per_drone"]["phantom4"]["wheelbase_mm"]
     plate = MAT["s1000plus_center_plate"]
+    #  게이트 B(뜬 짐벌 조각) · 게이트 C(선언 치수 대비 실제 크기) — 전부 원장에서 뽑는다
+    _fl = g["gate_B_floating"]
+    _p3_gap_min = min(x["gap_to_other_camera_parts_mm"] for x in _fl)
+    _p3_gap_max = max(x["gap_to_other_camera_parts_mm"] for x in _fl)
+    _p3_air_min = min(x["gap_to_airframe_mm"] for x in _fl)
+    _p3_air_max = max(x["gap_to_airframe_mm"] for x in _fl)
+    _p3_area = sum(x["area_cm2"] for x in _fl)
+    _gc_max = max(max(r["built_over_declared"]) for r in g["gate_C_over_declared"])
     rows = [
         "| 무엇 | 기체 | 지금 이만큼 | 어디에 실리나 |",
         "|---|---|---|---|",
@@ -222,6 +239,14 @@ def defect_table() -> str:
         f"명세가 F19~F21 로 «엔진 변경 필요» 라 미뤄 둔 자리 | 프롭 장착 높이가 함께 움직인다 ⏳ |",
         f"| 셸에 삼각형 1장 구멍 | mini2 | 경계 모서리 3개, 구멍 넓이 약 0.35 mm² (λ²/21000) "
         f"| σ 는 무시할 수준. 진짜 피해는 **안/밖 판정이 정의되지 않는 것** |",
+        f"| 짐벌이 세 조각으로 떨어져 있다 | phantom3 | 방진판·요 샤프트·카메라 블록이 서로"
+        f" {_p3_gap_min:.2f}~{_p3_gap_max:.2f} mm 씩 벌어져 있고, 기체 표면과도"
+        f" {_p3_air_min:.2f}~{_p3_air_max:.2f} mm 떨어져 있다 — 잇는 구조가 없다"
+        f" | 면적 {_p3_area:.0f} cm² 가 공중에 뜬다. 가림·다중반사가 달라지고,"
+        f" PO 와 SBR 이 같은 메쉬를 다르게 읽는다 |",
+        f"| 짐벌 헬퍼의 «선언 치수» ↔ 실제 크기 | mini5pro·matrice4e·phantom4·s1000plus 등"
+        f" | 인자로 넣은 상자 위에 요크·렌즈·마운트가 더 붙어 최대 {_gc_max:.2f} 배로 지어진다"
+        f" | 인자를 실물 치수로 인용하면 틀린다. mini2 처럼 **역산**해야 실물과 맞는다 |",
         f"| 카본 판이 `plastic` 그룹에 있다 | s1000plus | 판 2장만 세도 body 합집합 전 면적의"
         f" {plate['plates_only_share_of_body_pct']:.1f} % (스탠드오프 기둥까지 넣은 스택은"
         f" {plate['carbon_plate_share_of_body_pct']:.1f} %) | 면 반사율 +10.14 dB"
@@ -238,7 +263,10 @@ def unresolved_list() -> list[str]:
     bat = INTERNAL["battery_material"]
     out.append(f"- **배터리 재질** — {bat['verdict']}")
     cam = GIMBAL["material_review"]
-    out.append(f"- **카메라 재질 0.85 의 출처** — {cam['repo_prior']}")
+    #  ⭐ 사람이 읽는 문장에는 내부 축약어를 남기지 않는다 — 원장의 «한 팔» 은
+    #     «한 계산 조건(기체·주파수 한 조합)» 이라는 뜻이다.
+    out.append("- **카메라 재질 0.85 의 출처** — "
+               + cam["repo_prior"].replace("한 팔의 값이다", "한 조건에서 잰 값이다"))
     return out
 
 
@@ -394,8 +422,8 @@ PROP_PLACEHOLDER = [
     "지금 확실한 것만 적는다.",
     "",
     "- **움직이는 성분(AC)은 정의상 프로펠러만 남는다.** 정지한 동체의 기여는 순수 DC 라 "
-    "  DC 를 걷어내면 사라진다. 이것은 측정이 아니라 구조적 필연이다.",
+    "DC 를 걷어내면 사라진다. 이것은 측정이 아니라 구조적 필연이다.",
     "- **총 반사(σ)로는 동체가 훨씬 세다** — matrice4e 부품 분해에서 프로펠러 몫은 "
-    "  el −30° 에서 2.4 %(16.2 dB 아래), el 0° 에서 0.2 %(28.1 dB 아래)다.",
+    "el −30° 에서 2.4 %(16.2 dB 아래), el 0° 에서 0.2 %(28.1 dB 아래)다.",
     "- ⇒ «프로펠러가 표적을 지배한다» 는 **AC 채널 한정 문장**이다. 총 σ 문장으로 옮겨 쓰면 틀린다.",
 ]

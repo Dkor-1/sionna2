@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
 
 # drones.py 는 numpy/geom 만 필요(가벼움). materials.py 는 sionna 를 import 하므로 여기선 안 부른다
-# — 대신 벌크 프레넬은 materials.gamma_bulk 와 **같은 공식**(materials.py:127-132)을 그대로 재현해 계산.
+# — 대신 벌크 프레넬은 materials.gamma_bulk 와 **같은 공식**(materials.py)을 그대로 재현해 계산.
 from drones import DRONES, DRONE_GROUP_MAT, MATERIAL_COLOR, drone_label
 sys.path.insert(0, HERE)
 import mesh_facts_0816 as MF  # noqa: E402  (2026-08-16 원장 공용 로더)
@@ -117,7 +117,7 @@ cells.append(md(
     "| εr (비유전율) / σ (전도도) | 재질의 전기적 성질. εr 는 전기장을 얼마나 저장하나, σ[S/m] 는 얼마나 전류가 흐르나 |",
     "| PEC | Perfect Electric Conductor(완전도체) — \\|Γ\\|=1.0 인 이상 금속 |",
     "| 프레넬(Fresnel) 반사 | (εr, σ) 에서 경계면 반사계수를 주는 고전 공식 |",
-    "| 박막 간섭 | 얇은 층(드론 셸 1~3 mm)의 앞·뒷면 반사가 겹쳐 \\|Γ\\| 가 두께·파장에 따라 출렁이는 현상 |",
+    "| 박막 간섭 | 얇은 층(드론 셸 **0.75 mm 급**)의 앞·뒷면 반사가 겹쳐 \\|Γ\\| 가 두께·파장에 따라 출렁이는 현상 |",
     "| CFRP / FR-4 | 탄소섬유강화플라스틱(암 소재) / PCB 기판 유리섬유 에폭시 |",
     "| 메쉬 그룹(group) | 메쉬 삼각형에 붙인 부위 라벨(body, prop, …). 재질 배정의 단위 |",
 ))
@@ -144,7 +144,7 @@ cells.append(md(
     "만들지 않고 **내부 배터리팩·PCB 를 금속 산란체로 함께 모델링**한다. 소스코드 주석 그대로:",
     "",
     "> \"내부 금속 산란체 (RCS 지배) — 셸 안이라 렌더엔 안 보이지만 PO/SBR 이 센다\"",
-    "> ← 출처: `src/drone_cad.py:321-323` (배터리팩·PCB 박스를 동체 안에 넣는 코드의 주석)",
+    "> ← 출처: `src/drone_cad.py` (배터리팩·PCB 박스를 동체 안에 넣는 코드의 주석)",
     "",
     "즉 부위별 재질은 장식이 아니라, **문헌이 보고하는 7 dB 급 차이를 재현하기 위한 최소",
     "조건**이다. 대안이었던 '전체 PEC' 는 플라스틱 기종의 RCS 를 크게 과대평가해 폐기했다.",
@@ -160,7 +160,7 @@ cells.append(md(
     "![material legend](outputs/figures/material_legend.png)",
     "",
     f"*그림 1 — 재질 범례. \\|Γ\\| 수치는 {FC_GHZ:g} GHz 기준이고 `drone_gamma_map()` 이",
-    "`materials.MATERIALS` 에서 유도한 값(그림 생성 코드: `report_mesh/src/viz_mesh_reports.py:84-113`,",
+    "`materials.MATERIALS` 에서 유도한 값(그림 생성 코드: `report_mesh/src/viz_mesh_reports.py`,",
     "수치 검증: `outputs/mesh_verify.json` §E_materials).*",
 ))
 
@@ -173,7 +173,7 @@ for grp, (mat, desc) in DRONE_GROUP_MAT.items():
 cells.append(md(
     "### 2.1 부위 그룹 → 재질 배정표 (`DRONE_GROUP_MAT`) 전체",
     "",
-    "부위→재질 배정은 `src/drones.py:179-190` 의 `DRONE_GROUP_MAT` **한 곳**에서만 한다.",
+    "부위→재질 배정은 `src/drones.py` 의 `DRONE_GROUP_MAT` **한 곳**에서만 한다.",
     "표의 한글 설명은 그 딕셔너리의 문자열을 그대로 가져온 것이고, \\|Γ\\| 는",
     f"`outputs/mesh_verify.json` §E_materials 의 gamma_map({len(ORDER)}종 모두 동일함을 생성 시",
     "검증했다)에서 읽었다.",
@@ -192,10 +192,10 @@ cells.append(md(
     f"({'·'.join(DRONES[k].name for k in PRESENCE['arm'])}).** 나머지 기종의 접이식/일체형",
     "  암은 플라스틱 셸의 연장이라 `body` 그룹으로 들어간다. 코드의 규칙 그대로 —",
     "  \"셸형 암(arm_style≠carbon)은 build_frame 이 'body' 그룹으로 넣으므로 자동으로",
-    "  플라스틱이 적용된다\" ← 출처: `src/drones.py:197-202` (`drone_gamma_map` docstring).",
+    "  플라스틱이 적용된다\" ← 출처: `src/drones.py` (`drone_gamma_map` docstring).",
     "  §1 의 Semkin 실측(카본 기체가 밝다)과 정확히 같은 구도다 — 카본 프레임 S1000+ ↔ 카본 M100.",
     f"- **`battery`(\\|Γ\\|={GM['battery']:.2f})가 금속인 이유**는 표의 설명 그대로 \"GHz 에서 파우치",
-    "  포일은 사실상 금속\"이기 때문이다 ← 출처: `src/drones.py:188`. LiPo 배터리의 알루미늄",
+    "  포일은 사실상 금속\"이기 때문이다 ← 출처: `src/drones.py`. LiPo 배터리의 알루미늄",
     "  파우치 포일은 파장(수 cm)보다 훨씬 넓고 연속된 도체면이다.",
     f"- **`camera` 는 단일 재질이 아니라 '조립품'**(`camera_assembly`, \\|Γ\\|={GM['camera']:.2f})이다.",
     "  금속 하우징+유리 렌즈+짐벌 모터의 복합체라서인데, 왜 전용 재질 한 항목으로 두는지는",
@@ -217,7 +217,8 @@ cells.append(md(
     f"(수치 ← 출처: `mesh_verify.json` §E_materials gamma_map, dB 는 여기서 환산)",
     "",
     f"직관 하나: 우리 **최고 대역**(WiFi 5.21 GHz)의 파장이 약 {LAM_MM:.1f} mm(주력 3.5 GHz 는 85.7 mm)",
-    "← 출처: `mesh_verify.json` §meta lam_hi_mm(최고 대역 기준). 드론 셸 두께(1~3 mm)는 파장의 수십분의 1이라",
+    "← 출처: `mesh_verify.json` §meta lam_hi_mm(최고 대역 기준). 드론 셸 두께는 **정본 0.75 mm** 라"
+"(DJI 공식 CAD 의 벽 두께 중앙값 0.704 mm 실측 ← `docs/MATERIAL_CORRECTION.md` D1) 파장의 백분의 1 급이라",
     "전파 입장에서 셸은 '벽'이 아니라 '비닐막'이다 — 그래서 얇은 부위일수록 \\|Γ\\| 를 더 낮게",
     "잡는다(§4.1 박막 간섭).",
 ))
@@ -295,7 +296,7 @@ cells.append(md(
     "> \"부위 그룹 → **재질별** 표시색 RGB. **모든 드론이 같은 규칙**이라 색만 보면 재질을 안다:",
     "> plastic=회색(프로펠러 포함) · carbon=검정 · metal=파랑 · camera=주황 · pcb=초록.",
     "> (색과 전파재질은 **같은 그룹**(DRONE_GROUP_MAT)에서 나온다 — 이제 렌더 색이 곧 재질이다.)\"",
-    "> ← 출처: `src/drones.py:390-392`",
+    "> ← 출처: `src/drones.py`",
     "",
     "핵심은 마지막 괄호다: 색과 전파재질이 **같은 딕셔너리 한 곳**(DRONE_GROUP_MAT)에서",
     "나오므로, 색과 물성이 어긋나는 일이 구조적으로 불가능하다. '예쁜 그림용 색표'와",
@@ -312,7 +313,7 @@ cells.append(md(
     "",
     f"*그림 2 — {DRONES['matrice4e'].name} 메쉬(삼각형 {A_M4E['n_faces']:,}개, 그룹 {A_M4E['n_groups']}개",
     "← 출처: `mesh_verify.json` §A_geometry). 왼쪽: 색=재질 셰이딩, 가운데: 와이어프레임,",
-    "오른쪽: 상면도. 그림 생성: `report_mesh/src/viz_mesh_reports.py:119-138`.*",
+    "오른쪽: 상면도. 그림 생성: `report_mesh/src/viz_mesh_reports.py`.*",
     "",
     f"이 기종에 실재하는 그룹은 {A_M4E['n_groups']}개 — {m4e_groups}",
     "← 출처: `mesh_verify.json` §E_materials matrice4e.groups. 색을 읽어보면:",
@@ -324,7 +325,7 @@ cells.append(md(
     "(§2.1 표의 '실재하는 기종' 열과 일치).",
     "",
     "같은 규칙의 나머지 4종 그림(`wireframe_mini5pro/mavic4pro/s1000plus/phantom4.png`)은",
-    "mesh01(mavic4pro)·mesh04(mini/phantom)·mesh07(s1000plus) 에 실려 있다 — 색 규칙은 어디서나 동일하다.",
+    "mesh01(mini5pro)·mesh04(mini5pro/phantom4)·mesh07(s1000plus) 에 실려 있다 — 색 규칙은 어디서나 동일하다.",
 ))
 
 # --- 9. §4 재질값의 출처 2층 (ITU vs custom) -------------------------------------------
@@ -336,30 +337,30 @@ cells.append(md(
     "재질의 (εr, σ) 정의는 `src/materials.py` 의 `MATERIALS` **단 한 곳**이다. 파일 docstring 이",
     "선언하듯 이 파일이 \"**재질의 단일 진리원(single source of truth)**\" 이고, \"이 파일이",
     "정의한 재질을 **Sionna RT(전파 시뮬레이션)와 PO(RCS 계산)가 똑같이** 쓴다\"",
-    "← 출처: `src/materials.py:2-5`.",
+    "← 출처: `src/materials.py`.",
     "",
     "그 안에서 값의 출처는 두 부류로 나뉜다. 원칙은 docstring 그대로:",
     "",
     "> \"■ 원칙 — **ITU 가 있으면 ITU 를 쓴다**",
     "> Sionna 는 ITU-R P.2040 재질(주파수 의존 εr·σ)을 내장한다. 우리가 숫자를 지어내는 대신",
     "> Sionna 에게 물어본다(= scene.frequency 를 주고 값을 읽는다).\"",
-    "> ← 출처: `src/materials.py:15-18`",
+    "> ← 출처: `src/materials.py`",
     "",
     "| 부류 | 재질 | 근거 |",
     "|---|---|---|",
-    "| **Sionna 내장 (ITU-R P.2040)** | `metal`(모터·배터리·camera/pcb 의 반사면) | 국제 표준 권고안. 주파수를 바꾸면 εr·σ 가 자동 보정된다 ← `src/materials.py:49-51,106-124` |",
-    "| **커스텀 (문헌 기반)** | `plastic`(ABS/PC, εr=2.7 — 프로펠러 포함), `carbon`(CFRP, σ=3×10³ S/m), `pcb`(FR-4+구리) | ITU 표에 이 재질들이 **없다**. 문헌값으로 정의하고 근거를 각 `note` 에 기록 ← `src/materials.py:69-90` |",
+    "| **Sionna 내장 (ITU-R P.2040)** | `metal`(모터·배터리·camera/pcb 의 반사면) | 국제 표준 권고안. 주파수를 바꾸면 εr·σ 가 자동 보정된다 ← `src/materials.py,106-124` |",
+    "| **커스텀 (문헌 기반)** | `plastic`(ABS/PC, εr=2.7 — 프로펠러 포함), `carbon`(CFRP, σ=3×10³ S/m), `pcb`(FR-4+구리) | ITU 표에 이 재질들이 **없다**. 문헌값으로 정의하고 근거를 각 `note` 에 기록 ← `src/materials.py` |",
     "",
     "커스텀이라고 감으로 지은 값이 아니라는 '건전성 검사(sanity check)'도 코드에 있다.",
     "플라스틱 항목의 note:",
     "",
     "> \"드론 셸(ABS/PC). ITU 에 plastic 없음 — 문헌값 εr≈2.6~3.0.",
     "> 가장 가까운 ITU plasterboard(2.73)와 벌크 \\|Γ\\| 가 0.247 vs 0.244 로 사실상 동일.\"",
-    "> ← 출처: `src/materials.py:71-74` ('plastic' note)",
+    "> ← 출처: `src/materials.py` ('plastic' note)",
     "",
     "즉 철학은 \"**최대한 Sionna(표준) 값을 쓰고, 표준에 없는 것만 문헌으로 채우되 근거를",
     "적는다**\"이다. 반대 대안 — 전부 직접 수치를 지정 — 은 주파수 보정을 스스로 다시 짜야 하고",
-    "표준과 어긋날 위험이 있어 쓰지 않았다(\"우리가 공식을 다시 짜지 않는다\" ← `src/materials.py:93`).",
+    "표준과 어긋날 위험이 있어 쓰지 않았다(\"우리가 공식을 다시 짜지 않는다\" ← `src/materials.py`).",
 ))
 
 # --- 10. §4.2 gamma_po 실효값 층 -------------------------------------------------------
@@ -367,30 +368,36 @@ cells.append(md(
     "### 4.2 2층: 벌크 프레넬 vs 실효 \\|Γ\\| — 얇은 것들의 사정",
     "",
     "PO 가 쓰는 \\|Γ\\| 의 **기본값은 (εr, σ) 에서 프레넬 공식으로 유도**한다",
-    "(`gamma_bulk`, 공식 Γ=(1−√εc)/(1+√εc), εc=εr−j·σ/(ω·ε0) ← `src/materials.py:127-132`).",
+    "(`gamma_bulk`, 공식 Γ=(1−√εc)/(1+√εc), εc=εr−j·σ/(ω·ε0) ← `src/materials.py`).",
     "손으로 적는 표가 아니므로 Sionna 와 어긋날 수 없다.",
     "",
     "그런데 **벌크(반무한 두께) 프레넬로는 못 담는 물리**가 있다. 그 경우에만 재질 정의에",
-    "`gamma_po`(실효값)를 명시하고 이유를 note 에 적는다 ← `src/materials.py:44-46,135-144`:",
+    "`gamma_po`(실효값)를 명시하고 이유를 note 에 적는다 ← `src/materials.py`:",
     "",
     f"| 재질 | 벌크 프레넬 | 실효 \\|Γ\\| (채택) | 왜 다른가 (note 요약) |",
     "|---|---|---|---|",
-    f"| `plastic` | {G_PLASTIC_BULK:.3f} | {GM['body']:.2f} | 셸이 1~3 mm **박막**이라 앞뒷면 간섭으로 \\|Γ\\| 가 0.1~0.45 를 오간다 — 벌크 값은 그 하한 근처라 대표값 0.28 채택 ← `materials.py:73-74` |",
-    f"| `prop_plastic` | {G_PLASTIC_BULK:.3f} | {GM.get('prop', 0.25):.2f} | `plastic` 과 **동일 재질·동일 회색**이지만, 프롭은 셸보다 **더 얇은 날개**라 실효 \\|Γ\\| 만 0.28→0.25 로 더 낮춘 대표값(정밀 두께모델 아님) ← `materials.py:78-85` |",
-    f"| `carbon` | {G_CARBON_BULK:.3f} | {GM['arm']:.2f} | \"직조 섬유 사이 유전체 개구·이방성을 반영\" — 벌크는 금속 근접이지만 실물 CFRP 는 약간 샌다 ← `materials.py:81-84` |",
-    f"| `pcb` | (ITU metal≈1.0) | {GM['pcb']:.2f} | \"부분 개구(커넥터·비도체 영역)를 반영한 실효 0.80\" — 반사면은 구리 그라운드플레인 ← `materials.py:59-62` |",
-    f"| `camera_assembly` | (ITU metal≈1.0) | {GM['camera']:.2f} | 금속 하우징+**유리 렌즈+틈새** 복합 조립품의 실효값 ← `materials.py:52-58` |",
+    f"| `plastic` | {G_PLASTIC_BULK:.3f} | {GM['body']:.2f} | 셸이 **박막**이라 앞뒷면 간섭으로 \\|Γ\\| 가 0.1~0.45 를 오간다 — 벌크 값은 그 하한 근처라 대표값 0.28 채택 ← `materials.py` |",
+    f"| `prop_plastic` | {G_PLASTIC_BULK:.3f} | {GM.get('prop', 0.25):.2f} | `plastic` 과 **동일 재질·동일 회색**이지만, 프롭은 셸보다 **더 얇은 날개**라 실효 \\|Γ\\| 만 0.28→0.25 로 더 낮춘 대표값(정밀 두께모델 아님) ← `materials.py` |",
+    f"| `carbon` | {G_CARBON_BULK:.3f} | {GM['arm']:.2f} | \"직조 섬유 사이 유전체 개구·이방성을 반영\" — 벌크는 금속 근접이지만 실물 CFRP 는 약간 샌다 ← `materials.py` |",
+    f"| `pcb` | (ITU metal≈1.0) | {GM['pcb']:.2f} | \"부분 개구(커넥터·비도체 영역)를 반영한 실효 0.80\" — 반사면은 구리 그라운드플레인 ← `materials.py` |",
+    f"| `camera_assembly` | (ITU metal≈1.0) | {GM['camera']:.2f} | 금속 하우징+**유리 렌즈+틈새** 복합 조립품의 실효값 ← `materials.py` |",
     "",
     "(벌크 열은 `materials.py` 의 εr·σ 로 같은 프레넬 공식을 계산한 값; 실효 열은",
     "`mesh_verify.json` §E_materials gamma_map — 두 층 어느 쪽이든 **같은 표에서** 나온다는",
     "것이 gamma_po docstring 의 핵심: \"어느 쪽이든 Sionna 와 같은 표에서 나온다. 두 엔진이",
-    "조용히 어긋날 수 없다\" ← `src/materials.py:135-144`)",
+    "조용히 어긋날 수 없다\" ← `src/materials.py`)",
+    "",
+    "⚠ **두께 축의 현재 상태를 한 번 더 못 박아 둔다.** 셸 두께의 정본은 **0.75 mm** 이고 "
+    "(DJI 공식 CAD 벽 두께 중앙값 0.704 mm 실측), 민감도 축은 0.75 / 1.5 / 3.0 mm 다 "
+    "← `docs/MATERIAL_CORRECTION.md` D1. 위 표의 `plastic` note 문면은 그보다 두꺼운 대(1~3 mm)를 "
+    "가정한 서술이 남아 있다 — **채택한 대표값 0.28 은 그대로 쓰고, 두께를 인용할 때는 "
+    "정본 0.75 mm 를 쓸 것.** ⏳ 프로펠러 두께 규약은 기체별 프로펠러 정본화 라운드가 정본이다.",
 ))
 
 # --- 11. code: 프레넬 직접 계산 --------------------------------------------------------
 cells.append(code(
     "# 벌크 프레넬 |Gamma| 를 직접 계산해 본다 — materials.gamma_bulk 와 같은 공식\n"
-    "# (src/materials.py:127-132:  Gamma=(1-sqrt(eps_c))/(1+sqrt(eps_c)),  eps_c=eps_r-j*sigma/(w*eps0))\n"
+    "# (src/materials.py:  Gamma=(1-sqrt(eps_c))/(1+sqrt(eps_c)),  eps_c=eps_r-j*sigma/(w*eps0))\n"
     "import math\n"
     "EPS0 = 8.8541878128e-12\n"
     f"FC = {FC_GHZ:g}e9\n"
@@ -413,7 +420,7 @@ cells.append(md(
     "",
     "재질 배정이 왜 '한 곳 정의'를 고집하는지, 카메라가 가장 좋은 예다. 짐벌 카메라는",
     "**금속 하우징 + 유리 렌즈 + 짐벌 모터**의 복합체라, 단일 재질로 뭉개기 가장 애매한",
-    "부품이다(← `src/materials.py:52-58` 'camera_assembly' note).",
+    "부품이다(← `src/materials.py` 'camera_assembly' note).",
     "",
     f"애매함의 대가는 크다. 겉면만 보고 `plastic`(벌크 \\|Γ\\|={G_PLASTIC_BULK:.3f})으로 두면,",
     f"금속 하우징이 지배하는 실효값 \\|Γ\\|={GM['camera']:.2f} 와의 차이는",
@@ -424,10 +431,10 @@ cells.append(md(
     "",
     "**그래서 구조로 막는다.** `camera_assembly` 라는 전용 재질을 `materials.MATERIALS`",
     f"**한 곳**에 두고(Sionna 쪽=ITU metal, PO 쪽=실효 {GM['camera']:.2f}, 근거는 note 에",
-    "← `src/materials.py:52-58`), 두 엔진이 그 한 항목을 읽는다. 같은 값을 사람이 두 군데",
+    "← `src/materials.py`), 두 엔진이 그 한 항목을 읽는다. 같은 값을 사람이 두 군데",
     "적는 구조라면 언젠가 조용히 어긋난다 — 단일 정의는 그 가능성 자체를 없앤다",
     "(gamma_po docstring: \"어느 쪽이든 Sionna 와 같은 표에서 나온다. 두 엔진이 조용히",
-    "어긋날 수 없다\" ← `src/materials.py:135-144`).",
+    "어긋날 수 없다\" ← `src/materials.py`).",
 ))
 
 # --- 13. §6 커버리지 검증 --------------------------------------------------------------
@@ -451,12 +458,12 @@ cells.append(md(
     "이 항목을 두는 이유는 코드 주석 한 줄로 요약된다:",
     "",
     "> \"E. 재질 커버리지 — 그룹마다 \\|Γ\\| 가 배정돼 있나 (**빠지면 PEC=1.0 으로 과대반사**)\"",
-    "> ← 출처: `report_mesh/src/verify_mesh_suite.py:210`",
+    "> ← 출처: `report_mesh/src/verify_mesh_suite.py`",
     "",
     f"즉 누락된 그룹은 기본값(완전도체)으로 굴러떨어져 플라스틱 부위(\\|Γ\\|={GM['body']:.2f},",
     f"{db(GM['body']):.1f} dB)가 금속(0 dB)으로 계산되는 — §5 가 경고하는 종류의 — 조용한 과대평가를",
     f"만든다. 검사는 {len(ORDER)}종 메쉬의 **실제 그룹 라벨**을 모두 모아 gamma_map 키와 대조한다",
-    "(`verify_mesh_suite.py:212-227`). 결과 전체:",
+    "(`verify_mesh_suite.py`). 결과 전체:",
     "",
     "| 기종 | 그룹 수 | 실재 그룹 | 누락(uncovered) | all_covered |",
     "|---|---|---|---|---|",
@@ -549,7 +556,7 @@ cells.append(md(
     "  **10.14 dB** 차이다 ← `outputs/mesh_inspect_materials_check_0816.json` `findings` A1.",
     "- **`drone_gamma_map(spec, fc)` 이 `spec` 을 안 쓴다.** 지금은 재질이 기체와 무관해서",
     "  맞지만, 기종별 재질(위 카본 판 같은)이 생기는 순간 **조용히 틀린 답**을 준다.",
-    "- 탄소섬유의 **이방성(방향에 따라 도전율이 다름)은 무시**했다 ← `src/materials.py:22`.",
+    "- 탄소섬유의 **이방성(방향에 따라 도전율이 다름)은 무시**했다 ← `src/materials.py`.",
     "- Semkin 실측은 26–40 GHz, 우리는 3.5 GHz — 재질 차이의 '방향'은 이전 가능하지만 절대값",
     "  비교엔 3~10 dB 보정이 필요하다 ← `refs/drone_papers/Semkin_2020_..._IEEE_Access.md`.",
     "- 재질 가중이 실제 RCS 수치에 주는 효과(기종 간 A/B, 실측 앵커링)는 RCS 결과 편의 주제다",

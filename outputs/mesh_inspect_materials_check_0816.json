@@ -1,0 +1,3692 @@
+{
+ "_meta": {
+  "generated": "2026-08-16T12:12:08",
+  "script": "benchmark/mesh_inspect_materials_check.py",
+  "scope": "재질 배정 · 검사기 · 프로펠러 **외** 부품(프롭 형상은 별도 라운드)",
+  "rules": [
+   "GPU 미사용(numpy·trimesh CPU)",
+   "코드 기본 동작 무변경 — 수리는 전부 선택 함수(heal_boundary_holes · prune_buried_faces)와 선택 인자(geom.uv_sphere(weld_poles=True))",
+   "|Γ| 는 materials.gamma_po(=PO 경로) 기준 · 3.5 GHz"
+  ],
+  "caveat": "`power_weight`(A·|Γ|²)는 **σ 가 아니다** — 위상·가림·각도를 무시한 순위 대용치다."
+ },
+ "material_table": {
+  "metal": {
+   "source": "ITU",
+   "itu_type": "metal",
+   "scattering_S": 0.0,
+   "gamma_po_override": null,
+   "thickness_m": 0.02,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 74896264.93551,
+     "gamma_bulk": 0.99984,
+     "gamma_po": 0.99984,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": 0.003249
+    },
+    "3.5GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 51357438.812921,
+     "gamma_bulk": 0.9998,
+     "gamma_po": 0.9998,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": 0.00269
+    },
+    "5.8GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 30991557.904349,
+     "gamma_bulk": 0.99975,
+     "gamma_po": 0.99975,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": 0.00209
+    }
+   },
+   "note": "ITU 'metal' — PEC 근사(σ=1e7 S/m). 모터·배터리·차폐벽·골조."
+  },
+  "camera_assembly": {
+   "source": "ITU",
+   "itu_type": "metal",
+   "scattering_S": 0.0,
+   "gamma_po_override": 0.85,
+   "thickness_m": 0.02,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 74896264.93551,
+     "gamma_bulk": 0.99984,
+     "gamma_po": 0.85,
+     "po_minus_bulk_dB": -1.41,
+     "skin_depth_mm": 0.003249
+    },
+    "3.5GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 51357438.812921,
+     "gamma_bulk": 0.9998,
+     "gamma_po": 0.85,
+     "po_minus_bulk_dB": -1.41,
+     "skin_depth_mm": 0.00269
+    },
+    "5.8GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 30991557.904349,
+     "gamma_bulk": 0.99975,
+     "gamma_po": 0.85,
+     "po_minus_bulk_dB": -1.409,
+     "skin_depth_mm": 0.00209
+    }
+   },
+   "note": "짐벌 카메라 = **금속 하우징 + 유리 렌즈 + 짐벌 모터**. 전파 반사면은 금속 하우징이 지배 → Sionna 는 ITU metal. PO 는 유리/틈새를 반영한 실효 0.85. ⚠ 2026-07-14 이전에는 Sionna 가 이걸 **plastic**(|Γ|=0.244)으로 보고 있었다 — PO(0.85)와 **10.9 dB** 어긋난 버그. 이 항목이 그 버그를 없앤다."
+  },
+  "pcb": {
+   "source": "ITU",
+   "itu_type": "metal",
+   "scattering_S": 0.0,
+   "gamma_po_override": 0.8,
+   "thickness_m": 0.002,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 74896264.93551,
+     "gamma_bulk": 0.99984,
+     "gamma_po": 0.8,
+     "po_minus_bulk_dB": -1.937,
+     "skin_depth_mm": 0.003249
+    },
+    "3.5GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 51357438.812921,
+     "gamma_bulk": 0.9998,
+     "gamma_po": 0.8,
+     "po_minus_bulk_dB": -1.936,
+     "skin_depth_mm": 0.00269
+    },
+    "5.8GHz": {
+     "eps_r": 1.0,
+     "sigma_S_per_m": 10000000.0,
+     "tan_delta": 30991557.904349,
+     "gamma_bulk": 0.99975,
+     "gamma_po": 0.8,
+     "po_minus_bulk_dB": -1.936,
+     "skin_depth_mm": 0.00209
+    }
+   },
+   "note": "ESC/메인보드 = FR-4 유전체 + **구리 그라운드플레인**. 반사면은 구리면이 지배 → ITU metal. PO 는 부분 개구(커넥터·비도체 영역)를 반영한 실효 0.80."
+  },
+  "concrete_light": {
+   "source": "ITU",
+   "itu_type": "concrete",
+   "scattering_S": 0.0,
+   "gamma_po_override": null,
+   "thickness_m": 0.3,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 5.24,
+     "sigma_S_per_m": 0.0916312,
+     "tan_delta": 0.13097,
+     "gamma_bulk": 0.39504,
+     "gamma_po": 0.39504,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": null
+    },
+    "3.5GHz": {
+     "eps_r": 5.24,
+     "sigma_S_per_m": 0.123087,
+     "tan_delta": 0.120638,
+     "gamma_bulk": 0.39458,
+     "gamma_po": 0.39458,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": null
+    },
+    "5.8GHz": {
+     "eps_r": 5.24,
+     "sigma_S_per_m": 0.182724,
+     "tan_delta": 0.108071,
+     "gamma_bulk": 0.39406,
+     "gamma_po": 0.39406,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": null
+    }
+   },
+   "note": "ITU 'concrete' — 챔버 바닥 타일(밝은). **반사성** → semi-anechoic 의 원인."
+  },
+  "concrete_dark": {
+   "source": "ITU",
+   "itu_type": "concrete",
+   "scattering_S": 0.0,
+   "gamma_po_override": null,
+   "thickness_m": 0.3,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 5.24,
+     "sigma_S_per_m": 0.0916312,
+     "tan_delta": 0.13097,
+     "gamma_bulk": 0.39504,
+     "gamma_po": 0.39504,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": null
+    },
+    "3.5GHz": {
+     "eps_r": 5.24,
+     "sigma_S_per_m": 0.123087,
+     "tan_delta": 0.120638,
+     "gamma_bulk": 0.39458,
+     "gamma_po": 0.39458,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": null
+    },
+    "5.8GHz": {
+     "eps_r": 5.24,
+     "sigma_S_per_m": 0.182724,
+     "tan_delta": 0.108071,
+     "gamma_bulk": 0.39406,
+     "gamma_po": 0.39406,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": null
+    }
+   },
+   "note": "ITU 'concrete' — 챔버 바닥 타일(어두운). 전파물성은 light 와 동일."
+  },
+  "plastic": {
+   "source": "custom",
+   "itu_type": null,
+   "scattering_S": 0.2,
+   "gamma_po_override": 0.28,
+   "thickness_m": null,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.055479,
+     "gamma_bulk": 0.24409,
+     "gamma_po": 0.28,
+     "po_minus_bulk_dB": 1.192,
+     "skin_depth_mm": null
+    },
+    "3.5GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.038043,
+     "gamma_bulk": 0.24369,
+     "gamma_po": 0.28,
+     "po_minus_bulk_dB": 1.207,
+     "skin_depth_mm": null
+    },
+    "5.8GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.022957,
+     "gamma_bulk": 0.24346,
+     "gamma_po": 0.28,
+     "po_minus_bulk_dB": 1.215,
+     "skin_depth_mm": null
+    }
+   },
+   "note": "드론 셸(ABS/PC). ITU 에 plastic 없음 — 문헌값 εr≈2.6~3.0. 가장 가까운 ITU plasterboard(2.73)와 벌크 |Γ| 가 0.247 vs 0.244 로 사실상 동일. PO 실효 0.28: 셸이 1~3 mm **박막**이라 앞뒷면 간섭으로 |Γ| 가 0.1~0.45 를 오간다 (벌크 반무한 프레넬 0.244 는 그 하한 근처) → 대표값 0.28."
+  },
+  "plastic_blue": {
+   "source": "custom",
+   "itu_type": null,
+   "scattering_S": 0.2,
+   "gamma_po_override": 0.28,
+   "thickness_m": null,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.055479,
+     "gamma_bulk": 0.24409,
+     "gamma_po": 0.28,
+     "po_minus_bulk_dB": 1.192,
+     "skin_depth_mm": null
+    },
+    "3.5GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.038043,
+     "gamma_bulk": 0.24369,
+     "gamma_po": 0.28,
+     "po_minus_bulk_dB": 1.207,
+     "skin_depth_mm": null
+    },
+    "5.8GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.022957,
+     "gamma_bulk": 0.24346,
+     "gamma_po": 0.28,
+     "po_minus_bulk_dB": 1.215,
+     "skin_depth_mm": null
+    }
+   },
+   "note": "파란 모서리 트림 — 전파물성은 plastic 과 동일(색만 다름)."
+  },
+  "prop_plastic": {
+   "source": "custom",
+   "itu_type": null,
+   "scattering_S": 0.2,
+   "gamma_po_override": 0.25,
+   "thickness_m": null,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.055479,
+     "gamma_bulk": 0.24409,
+     "gamma_po": 0.25,
+     "po_minus_bulk_dB": 0.208,
+     "skin_depth_mm": null
+    },
+    "3.5GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.038043,
+     "gamma_bulk": 0.24369,
+     "gamma_po": 0.25,
+     "po_minus_bulk_dB": 0.222,
+     "skin_depth_mm": null
+    },
+    "5.8GHz": {
+     "eps_r": 2.7,
+     "sigma_S_per_m": 0.02,
+     "tan_delta": 0.022957,
+     "gamma_bulk": 0.24346,
+     "gamma_po": 0.25,
+     "po_minus_bulk_dB": 0.23,
+     "skin_depth_mm": null
+    }
+   },
+   "note": "프로펠러 — **재질은 plastic 과 동일**(같은 ABS/PC·εr 2.7 → 렌더 색도 회색 동일). 날개가 셸(1~3 mm)보다 더 얇아 실효 |Γ| 가 낮다는 **방향**만 반영해 0.25 채택. ⚠ **정밀 두께 모델이 아니다** — DJI 가 부품 두께를 공개하지 않고, 박막 |Γ| 는 두께·각도·주파수에 따라 0.1~0.45 로 출렁인다(모든 드론 프롭에 같은 0.25 를 쓴다). 즉 재질 클래스별 **대표 실효값**이며, 이 정도 차이(셸 0.28↔프롭 0.25)는 우리 RCS 불확실도(±2~3 dB)·프롭 면적 비중 때문에 총 RCS 에 0.03 dB 미만이다. **색=재질(정밀), |Γ|=대표값**."
+  },
+  "carbon": {
+   "source": "custom",
+   "itu_type": null,
+   "scattering_S": 0.3,
+   "gamma_po_override": 0.9,
+   "thickness_m": null,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 5.0,
+     "sigma_S_per_m": 3000.0,
+     "tan_delta": 4493.775896,
+     "gamma_bulk": 0.99061,
+     "gamma_po": 0.9,
+     "po_minus_bulk_dB": -0.833,
+     "skin_depth_mm": 0.187566
+    },
+    "3.5GHz": {
+     "eps_r": 5.0,
+     "sigma_S_per_m": 3000.0,
+     "tan_delta": 3081.446329,
+     "gamma_bulk": 0.98867,
+     "gamma_po": 0.9,
+     "po_minus_bulk_dB": -0.816,
+     "skin_depth_mm": 0.155319
+    },
+    "5.8GHz": {
+     "eps_r": 5.0,
+     "sigma_S_per_m": 3000.0,
+     "tan_delta": 1859.493474,
+     "gamma_bulk": 0.98544,
+     "gamma_po": 0.9,
+     "po_minus_bulk_dB": -0.788,
+     "skin_depth_mm": 0.120655
+    }
+   },
+   "note": "탄소섬유(도전성) — ITU 에 없음. 벌크 |Γ|≈0.99(금속 근접). PO 실효 0.90: 직조 섬유 사이 유전체 개구·이방성을 반영."
+  },
+  "absorber": {
+   "source": "custom",
+   "itu_type": null,
+   "scattering_S": 0.35,
+   "gamma_po_override": null,
+   "thickness_m": null,
+   "bands": {
+    "2.4GHz": {
+     "eps_r": 1.4,
+     "sigma_S_per_m": 1.2,
+     "tan_delta": 6.41968,
+     "gamma_bulk": 0.61294,
+     "gamma_po": 0.61294,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": 9.378295
+    },
+    "3.5GHz": {
+     "eps_r": 1.4,
+     "sigma_S_per_m": 1.2,
+     "tan_delta": 4.402066,
+     "gamma_bulk": 0.549,
+     "gamma_po": 0.549,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": 7.765966
+    },
+    "5.8GHz": {
+     "eps_r": 1.4,
+     "sigma_S_per_m": 1.2,
+     "tan_delta": 2.656419,
+     "gamma_bulk": 0.45327,
+     "gamma_po": 0.45327,
+     "po_minus_bulk_dB": 0.0,
+     "skin_depth_mm": 6.032753
+    }
+   },
+   "note": "⚠ **실측치 아님 — 모델값**. 이 재질의 **평평한 단일면** 수직입사 반사는 |Γ|=0.549 (≈−5.2 dB)로 전혀 낮지 않다. 무반사(−25~−30 dB)는 **피라미드 골짜기 다중반사**(4~5회 × 회당 −5.2 dB)로 달성되는 **기하 효과**이지 재질 자체의 성질이 아니다. 그리고 그 −25 dB 는 **설계 목표**이지 이 씬에서 측정한 값이 아니다."
+  }
+ },
+ "engine_divergence": {
+  "camera_assembly": {
+   "sionna_side": "ITU metal",
+   "gamma_sionna_normal": 0.9998,
+   "gamma_po": 0.85,
+   "divergence_dB": -1.41,
+   "declared_reason": "짐벌 카메라 = **금속 하우징 + 유리 렌즈 + 짐벌 모터**. 전파 반사면은 금속 하우징이 지배 → Sionna 는 ITU metal. PO 는 유리/틈새를 반영한 실효 0.85. ⚠ 2026-07-14 이전에는"
+  },
+  "pcb": {
+   "sionna_side": "ITU metal",
+   "gamma_sionna_normal": 0.9998,
+   "gamma_po": 0.8,
+   "divergence_dB": -1.936,
+   "declared_reason": "ESC/메인보드 = FR-4 유전체 + **구리 그라운드플레인**. 반사면은 구리면이 지배 → ITU metal. PO 는 부분 개구(커넥터·비도체 영역)를 반영한 실효 0.80."
+  },
+  "plastic": {
+   "sionna_side": "custom (εr,σ) 슬래브",
+   "gamma_sionna_normal": 0.24369,
+   "gamma_po": 0.28,
+   "divergence_dB": 1.207,
+   "declared_reason": "드론 셸(ABS/PC). ITU 에 plastic 없음 — 문헌값 εr≈2.6~3.0. 가장 가까운 ITU plasterboard(2.73)와 벌크 |Γ| 가 0.247 vs 0.244 로 사실상 동일. PO 실효 "
+  },
+  "plastic_blue": {
+   "sionna_side": "custom (εr,σ) 슬래브",
+   "gamma_sionna_normal": 0.24369,
+   "gamma_po": 0.28,
+   "divergence_dB": 1.207,
+   "declared_reason": "파란 모서리 트림 — 전파물성은 plastic 과 동일(색만 다름)."
+  },
+  "prop_plastic": {
+   "sionna_side": "custom (εr,σ) 슬래브",
+   "gamma_sionna_normal": 0.24369,
+   "gamma_po": 0.25,
+   "divergence_dB": 0.222,
+   "declared_reason": "프로펠러 — **재질은 plastic 과 동일**(같은 ABS/PC·εr 2.7 → 렌더 색도 회색 동일). 날개가 셸(1~3 mm)보다 더 얇아 실효 |Γ| 가 낮다는 **방향**만 반영해 0.25 채택. ⚠ **"
+  },
+  "carbon": {
+   "sionna_side": "custom (εr,σ) 슬래브",
+   "gamma_sionna_normal": 0.98867,
+   "gamma_po": 0.9,
+   "divergence_dB": -0.816,
+   "declared_reason": "탄소섬유(도전성) — ITU 에 없음. 벌크 |Γ|≈0.99(금속 근접). PO 실효 0.90: 직조 섬유 사이 유전체 개구·이방성을 반영."
+  }
+ },
+ "assignment_audit": {
+  "body": {
+   "material": "plastic",
+   "description": "동체 셸",
+   "gamma_po": 0.28,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 9,
+   "total_area_mm2": 1356945.3,
+   "total_power_weight": 106384.6,
+   "verdict": "ok",
+   "why": "접이식 소비자기의 동체 셸은 사출 ABS/PC 다. 다만 **s1000plus 는 예외** — 아래 findings 의 A1 참조(이 기체의 body 는 카본 센터플레이트다)."
+  },
+  "canopy": {
+   "material": "plastic",
+   "description": "상단 캐노피/배터리",
+   "gamma_po": 0.28,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "phantom4",
+    "typhoonh480",
+    "phantom3",
+    "mini2"
+   ],
+   "n_drones": 7,
+   "total_area_mm2": 143623.6,
+   "total_power_weight": 11260.2,
+   "verdict": "ok",
+   "why": "등에 얹히는 배터리 팩의 **바깥 플라스틱 껍데기**를 뜻한다. 팩 안의 금속은 별도 'battery' 그룹(ITU metal)으로 따로 들어간다 — 이중 모델링이 맞다."
+  },
+  "arm": {
+   "material": "carbon",
+   "description": "암",
+   "gamma_po": 0.9,
+   "used_by": [
+    "s1000plus",
+    "x500v2",
+    "m350rtk"
+   ],
+   "n_drones": 3,
+   "total_area_mm2": 352838.3,
+   "total_power_weight": 285799.1,
+   "verdict": "ok",
+   "why": "열린 프레임(s1000plus·m350rtk)의 25 mm/외경 카본 튜브. 접이식 기체의 셸형 암은 build_frame 이 'body'(플라스틱)로 넣는데 실물도 플라스틱이다."
+  },
+  "motor": {
+   "material": "metal",
+   "description": "모터",
+   "gamma_po": 0.9998,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "x500v2",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 10,
+   "total_area_mm2": 210558.1,
+   "total_power_weight": 210475.0,
+   "verdict": "ok",
+   "why": "아웃러너 모터 = 강판 벨 + NdFeB 자석 + 구리 권선. GHz 에서 금속."
+  },
+  "prop": {
+   "material": "prop_plastic",
+   "description": "프로펠러",
+   "gamma_po": 0.25,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "x500v2",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 10,
+   "total_area_mm2": 695292.0,
+   "total_power_weight": 43455.5,
+   "verdict": "ok",
+   "why": "유리섬유 강화 나일론. |Γ| 실효 0.25 는 «얇은 날» 을 담은 모델링 선택이고 그 근거 문장(«셸보다 얇다»)은 우리 CAD 가 반증했다 — 값이 아니라 근거 문면의 문제다(material_sources.py 가 이미 기록)."
+  },
+  "gear": {
+   "material": "plastic",
+   "description": "착륙장치",
+   "gamma_po": 0.28,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "x500v2",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 10,
+   "total_area_mm2": 238459.5,
+   "total_power_weight": 18695.3,
+   "verdict": "ok",
+   "why": "플라스틱 착륙다리·발. 카본 튜브 다리는 'gear_cf' 로 분리돼 있다."
+  },
+  "camera": {
+   "material": "camera_assembly",
+   "description": "짐벌 카메라(금속 하우징+유리렌즈)",
+   "gamma_po": 0.85,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 9,
+   "total_area_mm2": 355264.9,
+   "total_power_weight": 256679.0,
+   "verdict": "ok",
+   "why": "금속 하우징 + 유리 렌즈 + 짐벌 모터 복합체. Sionna=ITU metal, PO=실효 0.85."
+  },
+  "accent": {
+   "material": "plastic",
+   "description": "전방 식별색",
+   "gamma_po": 0.28,
+   "used_by": [
+    "mini5pro",
+    "matrice4e",
+    "s1000plus",
+    "x500v2"
+   ],
+   "n_drones": 4,
+   "total_area_mm2": 116261.0,
+   "total_power_weight": 9114.9,
+   "verdict": "doc",
+   "why": "⚠ 배정표 설명이 «전방 식별색» 인데, x500v2 에서는 이 그룹이 **나일론 구조 부재**(암 클램프·모터 시트·GPS 마스트)이고 기체 표면적의 20.2 % 를 진다. 재질 자체는 «플라스틱류» 로 크게 틀리지 않으나(아래 A2) 설명은 틀렸다."
+  },
+  "battery": {
+   "material": "metal",
+   "description": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+   "gamma_po": 0.9998,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "x500v2",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 10,
+   "total_area_mm2": 501230.0,
+   "total_power_weight": 501032.1,
+   "verdict": "ok",
+   "why": "Li-폴리머 파우치의 Al 배리어층 15-70 µm ≫ 표피깊이 1.2-2.0 µm ⇒ 불투명. 계산으로 정당화된다(문헌 불필요)."
+  },
+  "pcb": {
+   "material": "pcb",
+   "description": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+   "gamma_po": 0.8,
+   "used_by": [
+    "mini5pro",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "phantom4",
+    "typhoonh480",
+    "x500v2",
+    "phantom3",
+    "m350rtk",
+    "mini2"
+   ],
+   "n_drones": 10,
+   "total_area_mm2": 224992.4,
+   "total_power_weight": 143995.1,
+   "verdict": "ok",
+   "why": "FR-4 + 구리 그라운드플레인. 반사면은 구리가 지배 → ITU metal, PO 실효 0.80."
+  },
+  "deck": {
+   "material": "carbon",
+   "description": "카본 데크(상·하판 + 스탠드오프) — 셸 없는 열린 프레임",
+   "gamma_po": 0.9,
+   "used_by": [
+    "x500v2"
+   ],
+   "n_drones": 1,
+   "total_area_mm2": 121152.4,
+   "total_power_weight": 98133.4,
+   "verdict": "ok",
+   "why": "열린 프레임의 카본 상·하판."
+  },
+  "gear_cf": {
+   "material": "carbon",
+   "description": "카본 튜브 착륙장치 — 'gear'(플라스틱)와 재질이 다르다",
+   "gamma_po": 0.9,
+   "used_by": [
+    "s1000plus",
+    "typhoonh480",
+    "x500v2",
+    "m350rtk"
+   ],
+   "n_drones": 4,
+   "total_area_mm2": 277382.7,
+   "total_power_weight": 224680.0,
+   "verdict": "ok",
+   "why": "카본 튜브 착륙장치 — 'gear'(플라스틱)와 재질이 다르다."
+  },
+  "fc": {
+   "material": "pcb",
+   "description": "비행제어기(Pixhawk 류) — 상판 위 노출",
+   "gamma_po": 0.8,
+   "used_by": [
+    "x500v2"
+   ],
+   "n_drones": 1,
+   "total_area_mm2": 11180.0,
+   "total_power_weight": 7155.2,
+   "verdict": "ok",
+   "why": "비행제어기 = FR-4 + 구리 + 알루미늄 케이스."
+  },
+  "_unused_keys": []
+ },
+ "fleet": {
+  "mini5pro": {
+   "n_faces": 29036,
+   "total_area_mm2": 132253.25,
+   "total_power_weight": 53024.1,
+   "buried_power_weight": 34155.9,
+   "buried_power_weight_pct": 64.42,
+   "buried_in_opaque_weight": 4361.8,
+   "buried_in_opaque_weight_pct": 8.23,
+   "po_overcount_opaque_dB": 0.373,
+   "po_overcount_allburied_dB": 4.487,
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 128,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 2836.64,
+     "area_pct": 2.145,
+     "power_weight": 222.4,
+     "buried_pct": 36.9,
+     "buried_by": {
+      "body": 36.9
+     },
+     "buried_power_weight": 82.1,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 36.9,
+     "power_weight_pct": 0.419
+    },
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 23020.7,
+     "area_pct": 17.407,
+     "power_weight": 23011.6,
+     "buried_pct": 98.37,
+     "buried_by": {
+      "body": 98.37,
+      "canopy": 19.74
+     },
+     "buried_power_weight": 22637.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 98.37,
+     "power_weight_pct": 43.398
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 8508,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 46172.27,
+     "area_pct": 34.912,
+     "power_weight": 3619.9,
+     "buried_pct": 17.15,
+     "buried_by": {
+      "accent": 1.62,
+      "battery": 0.27,
+      "camera": 9.33,
+      "canopy": 3.36,
+      "gear": 0.08,
+      "motor": 2.5
+     },
+     "buried_power_weight": 621.0,
+     "buried_in_opaque_pct": 12.1,
+     "buried_in_opaque_weight": 438.0,
+     "buried_in_dielectric_pct": 5.06,
+     "power_weight_pct": 6.827
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 2146,
+     "n_parts": 6,
+     "n_watertight": 6,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 16800.57,
+     "area_pct": 12.703,
+     "power_weight": 12138.4,
+     "buried_pct": 50.78,
+     "buried_by": {
+      "battery": 3.96,
+      "body": 50.78,
+      "canopy": 4.92
+     },
+     "buried_power_weight": 6163.7,
+     "buried_in_opaque_pct": 3.96,
+     "buried_in_opaque_weight": 481.0,
+     "buried_in_dielectric_pct": 46.82,
+     "power_weight_pct": 22.892
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2240,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 11121.84,
+     "area_pct": 8.41,
+     "power_weight": 872.0,
+     "buried_pct": 85.13,
+     "buried_by": {
+      "battery": 48.0,
+      "body": 85.13,
+      "camera": 3.45,
+      "pcb": 9.84
+     },
+     "buried_power_weight": 742.3,
+     "buried_in_opaque_pct": 49.51,
+     "buried_in_opaque_weight": 431.7,
+     "buried_in_dielectric_pct": 35.61,
+     "power_weight_pct": 1.645
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 1210,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 2733.61,
+     "area_pct": 2.067,
+     "power_weight": 214.3,
+     "buried_pct": 1.35,
+     "buried_by": {
+      "body": 1.35
+     },
+     "buried_power_weight": 2.9,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 1.35,
+     "power_weight_pct": 0.404
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2016,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 8856.42,
+     "area_pct": 6.697,
+     "power_weight": 8852.9,
+     "buried_pct": 9.1,
+     "buried_by": {
+      "body": 9.1
+     },
+     "buried_power_weight": 805.6,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 9.1,
+     "power_weight_pct": 16.696
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 4845.31,
+     "area_pct": 3.664,
+     "power_weight": 3101.0,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "battery": 97.1,
+      "body": 100.0,
+      "canopy": 48.1
+     },
+     "buried_power_weight": 3101.0,
+     "buried_in_opaque_pct": 97.1,
+     "buried_in_opaque_weight": 3011.1,
+     "buried_in_dielectric_pct": 2.9,
+     "power_weight_pct": 5.848
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12752,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 15865.89,
+     "area_pct": 11.997,
+     "power_weight": 991.6,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.87
+    }
+   }
+  },
+  "mavic4pro": {
+   "n_faces": 29932,
+   "total_area_mm2": 328975.77,
+   "total_power_weight": 129586.0,
+   "buried_power_weight": 77175.4,
+   "buried_power_weight_pct": 59.56,
+   "buried_in_opaque_weight": 12880.2,
+   "buried_in_opaque_weight_pct": 9.94,
+   "po_overcount_opaque_dB": 0.455,
+   "po_overcount_allburied_dB": 3.931,
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 52787.17,
+     "area_pct": 16.046,
+     "power_weight": 52766.3,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "body": 100.0,
+      "camera": 4.23,
+      "canopy": 26.27
+     },
+     "buried_power_weight": 52766.3,
+     "buried_in_opaque_pct": 4.23,
+     "buried_in_opaque_weight": 2229.5,
+     "buried_in_dielectric_pct": 95.77,
+     "power_weight_pct": 40.719
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 7758,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 116466.26,
+     "area_pct": 35.403,
+     "power_weight": 9131.0,
+     "buried_pct": 14.18,
+     "buried_by": {
+      "camera": 11.47,
+      "gear": 0.08,
+      "motor": 2.63
+     },
+     "buried_power_weight": 1295.1,
+     "buried_in_opaque_pct": 14.1,
+     "buried_in_opaque_weight": 1287.7,
+     "buried_in_dielectric_pct": 0.08,
+     "power_weight_pct": 7.046
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 3934,
+     "n_parts": 5,
+     "n_watertight": 5,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 43706.1,
+     "area_pct": 13.286,
+     "power_weight": 31577.7,
+     "buried_pct": 36.59,
+     "buried_by": {
+      "battery": 5.03,
+      "body": 36.59,
+      "canopy": 2.5,
+      "pcb": 0.46
+     },
+     "buried_power_weight": 11553.7,
+     "buried_in_opaque_pct": 5.03,
+     "buried_in_opaque_weight": 1586.9,
+     "buried_in_dielectric_pct": 31.56,
+     "power_weight_pct": 24.368
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2240,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 25658.84,
+     "area_pct": 7.8,
+     "power_weight": 2011.7,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "battery": 31.92,
+      "body": 100.0,
+      "camera": 2.84,
+      "pcb": 2.31
+     },
+     "buried_power_weight": 2011.7,
+     "buried_in_opaque_pct": 35.84,
+     "buried_in_opaque_weight": 721.1,
+     "buried_in_dielectric_pct": 64.16,
+     "power_weight_pct": 1.552
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 1196,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 7055.01,
+     "area_pct": 2.145,
+     "power_weight": 553.1,
+     "buried_pct": 1.31,
+     "buried_by": {
+      "body": 1.31
+     },
+     "buried_power_weight": 7.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 1.31,
+     "power_weight_pct": 0.427
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2016,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 23272.79,
+     "area_pct": 7.074,
+     "power_weight": 23263.6,
+     "buried_pct": 9.8,
+     "buried_by": {
+      "body": 9.07,
+      "prop": 0.74
+     },
+     "buried_power_weight": 2280.6,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 9.8,
+     "power_weight_pct": 17.952
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 11308.85,
+     "area_pct": 3.438,
+     "power_weight": 7237.7,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "battery": 97.16,
+      "body": 100.0,
+      "canopy": 98.58
+     },
+     "buried_power_weight": 7237.7,
+     "buried_in_opaque_pct": 97.16,
+     "buried_in_opaque_weight": 7032.0,
+     "buried_in_dielectric_pct": 2.84,
+     "power_weight_pct": 5.585
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12752,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 48720.75,
+     "area_pct": 14.81,
+     "power_weight": 3045.0,
+     "buried_pct": 0.76,
+     "buried_by": {
+      "motor": 0.76
+     },
+     "buried_power_weight": 23.0,
+     "buried_in_opaque_pct": 0.76,
+     "buried_in_opaque_weight": 23.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.35
+    }
+   }
+  },
+  "matrice4e": {
+   "n_faces": 30662,
+   "total_area_mm2": 305586.19,
+   "total_power_weight": 110097.0,
+   "buried_power_weight": 75671.4,
+   "buried_power_weight_pct": 68.73,
+   "buried_in_opaque_weight": 2456.5,
+   "buried_in_opaque_weight_pct": 2.23,
+   "po_overcount_opaque_dB": 0.098,
+   "po_overcount_allburied_dB": 5.049,
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 64,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 518.5,
+     "area_pct": 0.17,
+     "power_weight": 40.7,
+     "buried_pct": 77.63,
+     "buried_by": {
+      "body": 77.63,
+      "canopy": 13.48
+     },
+     "buried_power_weight": 31.6,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 77.63,
+     "power_weight_pct": 0.037
+    },
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 58884.97,
+     "area_pct": 19.27,
+     "power_weight": 58861.7,
+     "buried_pct": 94.95,
+     "buried_by": {
+      "body": 94.95,
+      "canopy": 26.41
+     },
+     "buried_power_weight": 55887.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 94.95,
+     "power_weight_pct": 53.463
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 7812,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 102707.63,
+     "area_pct": 33.61,
+     "power_weight": 8052.3,
+     "buried_pct": 20.69,
+     "buried_by": {
+      "accent": 0.06,
+      "battery": 7.03,
+      "camera": 6.78,
+      "canopy": 5.74,
+      "gear": 0.08,
+      "motor": 1.16
+     },
+     "buried_power_weight": 1665.7,
+     "buried_in_opaque_pct": 14.82,
+     "buried_in_opaque_weight": 1193.6,
+     "buried_in_dielectric_pct": 5.86,
+     "power_weight_pct": 7.314
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 2490,
+     "n_parts": 9,
+     "n_watertight": 9,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 29481.19,
+     "area_pct": 9.647,
+     "power_weight": 21300.2,
+     "buried_pct": 38.23,
+     "buried_by": {
+      "battery": 1.75,
+      "body": 37.46,
+      "canopy": 0.75,
+      "pcb": 0.1
+     },
+     "buried_power_weight": 8142.4,
+     "buried_in_opaque_pct": 1.85,
+     "buried_in_opaque_weight": 394.2,
+     "buried_in_dielectric_pct": 36.38,
+     "power_weight_pct": 19.347
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2528,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 33614.19,
+     "area_pct": 11.0,
+     "power_weight": 2635.4,
+     "buried_pct": 69.23,
+     "buried_by": {
+      "accent": 0.14,
+      "battery": 32.47,
+      "body": 69.19,
+      "camera": 0.48
+     },
+     "buried_power_weight": 1824.3,
+     "buried_in_opaque_pct": 32.95,
+     "buried_in_opaque_weight": 868.3,
+     "buried_in_dielectric_pct": 36.28,
+     "power_weight_pct": 2.394
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2964,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 9718.85,
+     "area_pct": 3.18,
+     "power_weight": 762.0,
+     "buried_pct": 0.76,
+     "buried_by": {
+      "body": 0.76
+     },
+     "buried_power_weight": 5.8,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.76,
+     "power_weight_pct": 0.692
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2016,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 7922.92,
+     "area_pct": 2.593,
+     "power_weight": 7919.8,
+     "buried_pct": 10.04,
+     "buried_by": {
+      "body": 10.04
+     },
+     "buried_power_weight": 795.5,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 10.04,
+     "power_weight_pct": 7.193
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 11435.41,
+     "area_pct": 3.742,
+     "power_weight": 7318.7,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "body": 100.0
+     },
+     "buried_power_weight": 7318.7,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 100.0,
+     "power_weight_pct": 6.648
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12752,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 51302.52,
+     "area_pct": 16.788,
+     "power_weight": 3206.4,
+     "buried_pct": 0.01,
+     "buried_by": {
+      "motor": 0.01
+     },
+     "buried_power_weight": 0.4,
+     "buried_in_opaque_pct": 0.01,
+     "buried_in_opaque_weight": 0.4,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.912
+    }
+   }
+  },
+  "s1000plus": {
+   "n_faces": 35374,
+   "total_area_mm2": 1194456.32,
+   "total_power_weight": 518827.9,
+   "buried_power_weight": 45733.8,
+   "buried_power_weight_pct": 8.81,
+   "buried_in_opaque_weight": 3548.9,
+   "buried_in_opaque_weight_pct": 0.68,
+   "po_overcount_opaque_dB": 0.03,
+   "po_overcount_allburied_dB": 0.401,
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 176,
+     "n_parts": 9,
+     "n_watertight": 9,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 24817.67,
+     "area_pct": 2.078,
+     "power_weight": 1945.7,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 0.375
+    },
+    "arm": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 2304,
+     "n_parts": 8,
+     "n_watertight": 8,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 243263.64,
+     "area_pct": 20.366,
+     "power_weight": 197043.5,
+     "buried_pct": 10.97,
+     "buried_by": {
+      "body": 10.97
+     },
+     "buried_power_weight": 21617.4,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 10.97,
+     "power_weight_pct": 37.979
+    },
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 51688.63,
+     "area_pct": 4.327,
+     "power_weight": 51668.2,
+     "buried_pct": 25.32,
+     "buried_by": {
+      "body": 25.32
+     },
+     "buried_power_weight": 13082.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 25.32,
+     "power_weight_pct": 9.959
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 820,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 355544.27,
+     "area_pct": 29.766,
+     "power_weight": 27874.7,
+     "buried_pct": 10.26,
+     "buried_by": {
+      "accent": 0.03,
+      "arm": 5.52,
+      "battery": 4.71
+     },
+     "buried_power_weight": 2860.4,
+     "buried_in_opaque_pct": 10.23,
+     "buried_in_opaque_weight": 2852.0,
+     "buried_in_dielectric_pct": 0.03,
+     "power_weight_pct": 5.373
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 190,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 101510.35,
+     "area_pct": 8.498,
+     "power_weight": 73341.2,
+     "buried_pct": 8.87,
+     "buried_by": {
+      "gear": 8.87
+     },
+     "buried_power_weight": 6507.5,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 8.87,
+     "power_weight_pct": 14.136
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 704,
+     "n_parts": 10,
+     "n_watertight": 10,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 40349.1,
+     "area_pct": 3.378,
+     "power_weight": 3163.4,
+     "buried_pct": 22.16,
+     "buried_by": {
+      "body": 0.13,
+      "camera": 1.94,
+      "gear_cf": 20.09
+     },
+     "buried_power_weight": 701.0,
+     "buried_in_opaque_pct": 22.03,
+     "buried_in_opaque_weight": 696.9,
+     "buried_in_dielectric_pct": 0.13,
+     "power_weight_pct": 0.61
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 772,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 74697.87,
+     "area_pct": 6.254,
+     "power_weight": 60505.3,
+     "buried_pct": 1.6,
+     "buried_by": {
+      "gear": 1.6
+     },
+     "buried_power_weight": 965.2,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 1.6,
+     "power_weight_pct": 11.662
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 4784,
+     "n_parts": 8,
+     "n_watertight": 8,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 66988.95,
+     "area_pct": 5.608,
+     "power_weight": 66962.5,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 12.906
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 37400.15,
+     "area_pct": 3.131,
+     "power_weight": 23936.1,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 4.613
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 25600,
+     "n_parts": 8,
+     "n_watertight": 8,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 198195.68,
+     "area_pct": 16.593,
+     "power_weight": 12387.2,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.388
+    }
+   }
+  },
+  "phantom4": {
+   "n_faces": 28594,
+   "total_area_mm2": 343993.08,
+   "total_power_weight": 122386.3,
+   "buried_power_weight": 87612.9,
+   "buried_power_weight_pct": 71.59,
+   "buried_in_opaque_weight": 10217.8,
+   "buried_in_opaque_weight_pct": 8.35,
+   "po_overcount_opaque_dB": 0.379,
+   "po_overcount_allburied_dB": 5.465,
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 59073.27,
+     "area_pct": 17.173,
+     "power_weight": 59050.0,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "body": 100.0,
+      "canopy": 13.52
+     },
+     "buried_power_weight": 59050.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 100.0,
+     "power_weight_pct": 48.249
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 7064,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 103720.6,
+     "area_pct": 30.152,
+     "power_weight": 8131.7,
+     "buried_pct": 5.94,
+     "buried_by": {
+      "camera": 3.23,
+      "motor": 2.62,
+      "prop": 0.09
+     },
+     "buried_power_weight": 483.2,
+     "buried_in_opaque_pct": 5.85,
+     "buried_in_opaque_weight": 475.9,
+     "buried_in_dielectric_pct": 0.09,
+     "power_weight_pct": 6.644
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 494,
+     "n_parts": 7,
+     "n_watertight": 7,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 34944.9,
+     "area_pct": 10.159,
+     "power_weight": 25247.7,
+     "buried_pct": 54.37,
+     "buried_by": {
+      "battery": 0.61,
+      "body": 54.37
+     },
+     "buried_power_weight": 13726.1,
+     "buried_in_opaque_pct": 0.61,
+     "buried_in_opaque_weight": 155.1,
+     "buried_in_dielectric_pct": 53.75,
+     "power_weight_pct": 20.63
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2336,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 35215.43,
+     "area_pct": 10.237,
+     "power_weight": 2760.9,
+     "buried_pct": 92.86,
+     "buried_by": {
+      "battery": 49.47,
+      "body": 92.86,
+      "pcb": 11.65
+     },
+     "buried_power_weight": 2563.6,
+     "buried_in_opaque_pct": 49.47,
+     "buried_in_opaque_weight": 1365.9,
+     "buried_in_dielectric_pct": 43.38,
+     "power_weight_pct": 2.256
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 3896,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 45766.06,
+     "area_pct": 13.304,
+     "power_weight": 3588.1,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.932
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2016,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 12692.11,
+     "area_pct": 3.69,
+     "power_weight": 12687.1,
+     "buried_pct": 25.35,
+     "buried_by": {
+      "body": 18.03,
+      "prop": 7.31
+     },
+     "buried_power_weight": 3215.9,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 25.35,
+     "power_weight_pct": 10.366
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 13220.1,
+     "area_pct": 3.843,
+     "power_weight": 8460.9,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "battery": 96.97,
+      "body": 100.0,
+      "canopy": 48.82
+     },
+     "buried_power_weight": 8460.9,
+     "buried_in_opaque_pct": 96.97,
+     "buried_in_opaque_weight": 8204.7,
+     "buried_in_dielectric_pct": 3.03,
+     "power_weight_pct": 6.913
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12752,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 39360.62,
+     "area_pct": 11.442,
+     "power_weight": 2460.0,
+     "buried_pct": 4.6,
+     "buried_by": {
+      "battery": 0.04,
+      "body": 3.99,
+      "motor": 0.62
+     },
+     "buried_power_weight": 113.2,
+     "buried_in_opaque_pct": 0.66,
+     "buried_in_opaque_weight": 16.2,
+     "buried_in_dielectric_pct": 3.95,
+     "power_weight_pct": 2.01
+    }
+   }
+  },
+  "typhoonh480": {
+   "n_faces": 34732,
+   "total_area_mm2": 453353.07,
+   "total_power_weight": 168402.1,
+   "buried_power_weight": 57092.7,
+   "buried_power_weight_pct": 33.9,
+   "buried_in_opaque_weight": 6563.3,
+   "buried_in_opaque_weight_pct": 3.9,
+   "po_overcount_opaque_dB": 0.173,
+   "po_overcount_allburied_dB": 1.798,
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 43876.93,
+     "area_pct": 9.678,
+     "power_weight": 43859.6,
+     "buried_pct": 50.0,
+     "buried_by": {
+      "body": 50.0,
+      "camera": 6.07
+     },
+     "buried_power_weight": 21929.8,
+     "buried_in_opaque_pct": 6.07,
+     "buried_in_opaque_weight": 2660.9,
+     "buried_in_dielectric_pct": 43.93,
+     "power_weight_pct": 26.045
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 10708,
+     "n_parts": 3,
+     "n_watertight": 3,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 167862.11,
+     "area_pct": 37.027,
+     "power_weight": 13160.4,
+     "buried_pct": 11.71,
+     "buried_by": {
+      "battery": 6.74,
+      "camera": 4.16,
+      "gear_cf": 0.14,
+      "motor": 1.15
+     },
+     "buried_power_weight": 1541.0,
+     "buried_in_opaque_pct": 11.71,
+     "buried_in_opaque_weight": 1541.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 7.815
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 1340,
+     "n_parts": 3,
+     "n_watertight": 3,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 69083.95,
+     "area_pct": 15.238,
+     "power_weight": 49913.2,
+     "buried_pct": 11.88,
+     "buried_by": {
+      "battery": 2.55,
+      "body": 11.88
+     },
+     "buried_power_weight": 5928.9,
+     "buried_in_opaque_pct": 2.55,
+     "buried_in_opaque_weight": 1274.3,
+     "buried_in_dielectric_pct": 9.33,
+     "power_weight_pct": 29.639
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 1344,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 19186.46,
+     "area_pct": 4.232,
+     "power_weight": 1504.2,
+     "buried_pct": 74.66,
+     "buried_by": {
+      "body": 74.66
+     },
+     "buried_power_weight": 1123.1,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 74.66,
+     "power_weight_pct": 0.893
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 344,
+     "n_parts": 6,
+     "n_watertight": 6,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 31680.69,
+     "area_pct": 6.988,
+     "power_weight": 2483.8,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.475
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 764,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 32522.23,
+     "area_pct": 7.174,
+     "power_weight": 26343.0,
+     "buried_pct": 25.63,
+     "buried_by": {
+      "battery": 3.47,
+      "body": 9.95,
+      "gear": 15.68
+     },
+     "buried_power_weight": 6751.3,
+     "buried_in_opaque_pct": 3.47,
+     "buried_in_opaque_weight": 912.9,
+     "buried_in_dielectric_pct": 22.16,
+     "power_weight_pct": 15.643
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 1056,
+     "n_parts": 6,
+     "n_watertight": 6,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 15235.49,
+     "area_pct": 3.361,
+     "power_weight": 15229.5,
+     "buried_pct": 46.84,
+     "buried_by": {
+      "body": 24.55,
+      "prop": 22.29
+     },
+     "buried_power_weight": 7133.2,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 46.84,
+     "power_weight_pct": 9.044
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 19548.78,
+     "area_pct": 4.312,
+     "power_weight": 12511.2,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "body": 100.0
+     },
+     "buried_power_weight": 12511.2,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 100.0,
+     "power_weight_pct": 7.429
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 19152,
+     "n_parts": 6,
+     "n_watertight": 6,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 54356.45,
+     "area_pct": 11.99,
+     "power_weight": 3397.3,
+     "buried_pct": 5.13,
+     "buried_by": {
+      "motor": 5.13
+     },
+     "buried_power_weight": 174.2,
+     "buried_in_opaque_pct": 5.13,
+     "buried_in_opaque_weight": 174.2,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.017
+    }
+   }
+  },
+  "x500v2": {
+   "n_faces": 19030,
+   "total_area_mm2": 436105.84,
+   "total_power_weight": 226158.7,
+   "buried_power_weight": 49440.9,
+   "buried_power_weight_pct": 21.86,
+   "buried_in_opaque_weight": 15295.0,
+   "buried_in_opaque_weight_pct": 6.76,
+   "po_overcount_opaque_dB": 0.304,
+   "po_overcount_allburied_dB": 1.071,
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 730,
+     "n_parts": 18,
+     "n_watertight": 18,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 88088.21,
+     "area_pct": 20.199,
+     "power_weight": 6906.1,
+     "buried_pct": 20.68,
+     "buried_by": {
+      "arm": 10.73,
+      "battery": 7.61,
+      "deck": 2.34
+     },
+     "buried_power_weight": 1427.9,
+     "buried_in_opaque_pct": 20.68,
+     "buried_in_opaque_weight": 1427.9,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 3.054
+    },
+    "arm": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 1636,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 46866.49,
+     "area_pct": 10.747,
+     "power_weight": 37961.9,
+     "buried_pct": 30.46,
+     "buried_by": {
+      "accent": 30.46
+     },
+     "buried_power_weight": 11562.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 30.46,
+     "power_weight_pct": 16.786
+    },
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 22550.0,
+     "area_pct": 5.171,
+     "power_weight": 22541.1,
+     "buried_pct": 31.43,
+     "buried_by": {
+      "deck": 31.43
+     },
+     "buried_power_weight": 7084.7,
+     "buried_in_opaque_pct": 31.43,
+     "buried_in_opaque_weight": 7084.7,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 9.967
+    },
+    "deck": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 280,
+     "n_parts": 7,
+     "n_watertight": 7,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 121152.37,
+     "area_pct": 27.78,
+     "power_weight": 98133.4,
+     "buried_pct": 10.76,
+     "buried_by": {
+      "accent": 6.46,
+      "battery": 4.31
+     },
+     "buried_power_weight": 10559.7,
+     "buried_in_opaque_pct": 4.31,
+     "buried_in_opaque_weight": 4225.0,
+     "buried_in_dielectric_pct": 6.46,
+     "power_weight_pct": 43.391
+    },
+    "fc": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 11180.05,
+     "area_pct": 2.564,
+     "power_weight": 7155.2,
+     "buried_pct": 32.7,
+     "buried_by": {
+      "deck": 32.7
+     },
+     "buried_power_weight": 2339.8,
+     "buried_in_opaque_pct": 32.7,
+     "buried_in_opaque_weight": 2339.8,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 3.164
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 368,
+     "n_parts": 8,
+     "n_watertight": 8,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 46458.47,
+     "area_pct": 10.653,
+     "power_weight": 3642.3,
+     "buried_pct": 5.97,
+     "buried_by": {
+      "gear_cf": 5.97
+     },
+     "buried_power_weight": 217.6,
+     "buried_in_opaque_pct": 5.97,
+     "buried_in_opaque_weight": 217.6,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.611
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 780,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 36574.82,
+     "area_pct": 8.387,
+     "power_weight": 29625.6,
+     "buried_pct": 54.85,
+     "buried_by": {
+      "gear": 54.85
+     },
+     "buried_power_weight": 16249.2,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 54.85,
+     "power_weight_pct": 13.099
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2464,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 14381.45,
+     "area_pct": 3.298,
+     "power_weight": 14375.8,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 6.357
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 4786.0,
+     "area_pct": 1.097,
+     "power_weight": 3063.0,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.354
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12736,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 44067.98,
+     "area_pct": 10.105,
+     "power_weight": 2754.2,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.218
+    }
+   }
+  },
+  "phantom3": {
+   "n_faces": 28508,
+   "total_area_mm2": 277955.56,
+   "total_power_weight": 97935.3,
+   "buried_power_weight": 47709.9,
+   "buried_power_weight_pct": 48.72,
+   "buried_in_opaque_weight": 1003.5,
+   "buried_in_opaque_weight_pct": 1.02,
+   "po_overcount_opaque_dB": 0.045,
+   "po_overcount_allburied_dB": 2.9,
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 32151.62,
+     "area_pct": 11.567,
+     "power_weight": 32138.9,
+     "buried_pct": 81.09,
+     "buried_by": {
+      "body": 81.09
+     },
+     "buried_power_weight": 26061.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 81.09,
+     "power_weight_pct": 32.816
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 7792,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 99102.46,
+     "area_pct": 35.654,
+     "power_weight": 7769.6,
+     "buried_pct": 11.12,
+     "buried_by": {
+      "battery": 9.41,
+      "camera": 0.15,
+      "motor": 1.16,
+      "pcb": 0.4
+     },
+     "buried_power_weight": 864.1,
+     "buried_in_opaque_pct": 11.12,
+     "buried_in_opaque_weight": 864.1,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 7.933
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 354,
+     "n_parts": 6,
+     "n_watertight": 6,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 37822.88,
+     "area_pct": 13.608,
+     "power_weight": 27327.0,
+     "buried_pct": 4.14,
+     "buried_by": {
+      "body": 4.14
+     },
+     "buried_power_weight": 1131.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 4.14,
+     "power_weight_pct": 27.903
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2240,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 9013.24,
+     "area_pct": 3.243,
+     "power_weight": 706.6,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "body": 100.0,
+      "pcb": 19.73
+     },
+     "buried_power_weight": 706.6,
+     "buried_in_opaque_pct": 19.73,
+     "buried_in_opaque_weight": 139.4,
+     "buried_in_dielectric_pct": 80.27,
+     "power_weight_pct": 0.721
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 3318,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 24922.74,
+     "area_pct": 8.966,
+     "power_weight": 1953.9,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.995
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2016,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 7804.62,
+     "area_pct": 2.808,
+     "power_weight": 7801.5,
+     "buried_pct": 17.68,
+     "buried_by": {
+      "body": 17.68
+     },
+     "buried_power_weight": 1379.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 17.68,
+     "power_weight_pct": 7.966
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 27777.39,
+     "area_pct": 9.993,
+     "power_weight": 17777.5,
+     "buried_pct": 98.81,
+     "buried_by": {
+      "body": 98.81
+     },
+     "buried_power_weight": 17566.7,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 98.81,
+     "power_weight_pct": 18.152
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12752,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 39360.62,
+     "area_pct": 14.161,
+     "power_weight": 2460.0,
+     "buried_pct": 0.04,
+     "buried_by": {
+      "body": 0.04
+     },
+     "buried_power_weight": 0.9,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.04,
+     "power_weight_pct": 2.512
+    }
+   }
+  },
+  "m350rtk": {
+   "n_faces": 26216,
+   "total_area_mm2": 1040901.38,
+   "total_power_weight": 455184.2,
+   "buried_power_weight": 236540.8,
+   "buried_power_weight_pct": 51.97,
+   "buried_in_opaque_weight": 11504.7,
+   "buried_in_opaque_weight_pct": 2.53,
+   "po_overcount_opaque_dB": 0.111,
+   "po_overcount_allburied_dB": 3.185,
+   "groups": {
+    "arm": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 960,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 62708.22,
+     "area_pct": 6.024,
+     "power_weight": 50793.7,
+     "buried_pct": 2.36,
+     "buried_by": {
+      "body": 2.36
+     },
+     "buried_power_weight": 1200.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 2.36,
+     "power_weight_pct": 11.159
+    },
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 137159.44,
+     "area_pct": 13.177,
+     "power_weight": 137105.3,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "body": 100.0
+     },
+     "buried_power_weight": 137105.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 100.0,
+     "power_weight_pct": 30.121
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 7560,
+     "n_parts": 5,
+     "n_watertight": 5,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 329071.21,
+     "area_pct": 31.614,
+     "power_weight": 25799.2,
+     "buried_pct": 6.1,
+     "buried_by": {
+      "arm": 0.25,
+      "battery": 1.62,
+      "camera": 0.86,
+      "gear_cf": 0.47,
+      "motor": 2.85,
+      "pcb": 0.04
+     },
+     "buried_power_weight": 1574.8,
+     "buried_in_opaque_pct": 6.1,
+     "buried_in_opaque_weight": 1574.8,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 5.668
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 944,
+     "n_parts": 12,
+     "n_watertight": 12,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 15817.94,
+     "area_pct": 1.52,
+     "power_weight": 11428.5,
+     "buried_pct": 31.44,
+     "buried_by": {
+      "body": 31.44,
+      "gear_cf": 0.14
+     },
+     "buried_power_weight": 3592.6,
+     "buried_in_opaque_pct": 0.14,
+     "buried_in_opaque_weight": 16.1,
+     "buried_in_dielectric_pct": 31.29,
+     "power_weight_pct": 2.511
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 320,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 28194.92,
+     "area_pct": 2.709,
+     "power_weight": 2210.5,
+     "buried_pct": 22.24,
+     "buried_by": {
+      "gear_cf": 22.24
+     },
+     "buried_power_weight": 491.6,
+     "buried_in_opaque_pct": 22.24,
+     "buried_in_opaque_weight": 491.6,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 0.486
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "gamma_po": 0.9,
+     "n_faces": 1296,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 133587.73,
+     "area_pct": 12.834,
+     "power_weight": 108206.1,
+     "buried_pct": 9.69,
+     "buried_by": {
+      "body": 1.36,
+      "gear": 8.33
+     },
+     "buried_power_weight": 10487.5,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 9.69,
+     "power_weight_pct": 23.772
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2336,
+     "n_parts": 8,
+     "n_watertight": 8,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 49766.65,
+     "area_pct": 4.781,
+     "power_weight": 49747.0,
+     "buried_pct": 47.89,
+     "buried_by": {
+      "body": 20.11,
+      "prop": 27.78
+     },
+     "buried_power_weight": 23823.9,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 47.89,
+     "power_weight_pct": 10.929
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 90228.2,
+     "area_pct": 8.668,
+     "power_weight": 57746.0,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "battery": 15.42,
+      "body": 100.0
+     },
+     "buried_power_weight": 57746.0,
+     "buried_in_opaque_pct": 15.42,
+     "buried_in_opaque_weight": 8903.4,
+     "buried_in_dielectric_pct": 84.58,
+     "power_weight_pct": 12.686
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12752,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 194367.06,
+     "area_pct": 18.673,
+     "power_weight": 12147.9,
+     "buried_pct": 4.27,
+     "buried_by": {
+      "motor": 4.27
+     },
+     "buried_power_weight": 518.8,
+     "buried_in_opaque_pct": 4.27,
+     "buried_in_opaque_weight": 518.8,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.669
+    }
+   }
+  },
+  "mini2": {
+   "n_faces": 25823,
+   "total_area_mm2": 91599.83,
+   "total_power_weight": 35257.8,
+   "buried_power_weight": 10325.9,
+   "buried_power_weight_pct": 29.29,
+   "buried_in_opaque_weight": 5198.1,
+   "buried_in_opaque_weight_pct": 14.74,
+   "po_overcount_opaque_dB": 0.693,
+   "po_overcount_allburied_dB": 1.505,
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 24,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 20037.3,
+     "area_pct": 21.875,
+     "power_weight": 20029.4,
+     "buried_pct": 29.59,
+     "buried_by": {
+      "camera": 6.2,
+      "canopy": 23.39
+     },
+     "buried_power_weight": 5927.0,
+     "buried_in_opaque_pct": 6.2,
+     "buried_in_opaque_weight": 1241.8,
+     "buried_in_dielectric_pct": 23.39,
+     "power_weight_pct": 56.809
+    },
+    "body": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 7757,
+     "n_parts": 1,
+     "n_watertight": 0,
+     "boundary_edges": 3,
+     "nonmanifold_edges": 0,
+     "area_mm2": 36298.47,
+     "area_pct": 39.627,
+     "power_weight": 2845.8,
+     "buried_pct": 6.37,
+     "buried_by": {
+      "camera": 2.2,
+      "canopy": 2.66,
+      "gear": 0.05,
+      "motor": 1.46
+     },
+     "buried_power_weight": 181.4,
+     "buried_in_opaque_pct": 3.66,
+     "buried_in_opaque_weight": 104.3,
+     "buried_in_dielectric_pct": 2.71,
+     "power_weight_pct": 8.071
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "gamma_po": 0.85,
+     "n_faces": 294,
+     "n_parts": 3,
+     "n_watertight": 3,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 6096.98,
+     "area_pct": 6.656,
+     "power_weight": 4405.1,
+     "buried_pct": 19.37,
+     "buried_by": {
+      "battery": 16.55,
+      "canopy": 6.87,
+      "pcb": 1.56
+     },
+     "buried_power_weight": 853.1,
+     "buried_in_opaque_pct": 16.55,
+     "buried_in_opaque_weight": 728.9,
+     "buried_in_dielectric_pct": 2.82,
+     "power_weight_pct": 12.494
+    },
+    "canopy": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 2240,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 9813.65,
+     "area_pct": 10.714,
+     "power_weight": 769.4,
+     "buried_pct": 34.05,
+     "buried_by": {
+      "battery": 31.73,
+      "camera": 3.48,
+      "pcb": 1.13
+     },
+     "buried_power_weight": 262.0,
+     "buried_in_opaque_pct": 34.05,
+     "buried_in_opaque_weight": 262.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 2.182
+    },
+    "gear": {
+     "material": "plastic",
+     "gamma_po": 0.28,
+     "n_faces": 512,
+     "n_parts": 2,
+     "n_watertight": 2,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 1580.07,
+     "area_pct": 1.725,
+     "power_weight": 123.9,
+     "buried_pct": 0.0,
+     "buried_by": {},
+     "buried_power_weight": 0.0,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 0.351
+    },
+    "motor": {
+     "material": "metal",
+     "gamma_po": 0.9998,
+     "n_faces": 2248,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 3636.74,
+     "area_pct": 3.97,
+     "power_weight": 3635.3,
+     "buried_pct": 6.64,
+     "buried_by": {
+      "prop": 6.64
+     },
+     "buried_power_weight": 241.3,
+     "buried_in_opaque_pct": 0.0,
+     "buried_in_opaque_weight": 0.0,
+     "buried_in_dielectric_pct": 6.64,
+     "power_weight_pct": 10.311
+    },
+    "pcb": {
+     "material": "pcb",
+     "gamma_po": 0.8,
+     "n_faces": 12,
+     "n_parts": 1,
+     "n_watertight": 1,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 4442.2,
+     "area_pct": 4.85,
+     "power_weight": 2843.0,
+     "buried_pct": 100.0,
+     "buried_by": {
+      "battery": 97.71,
+      "camera": 2.29,
+      "canopy": 97.71
+     },
+     "buried_power_weight": 2843.0,
+     "buried_in_opaque_pct": 100.0,
+     "buried_in_opaque_weight": 2843.0,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 8.063
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "gamma_po": 0.25,
+     "n_faces": 12736,
+     "n_parts": 4,
+     "n_watertight": 4,
+     "boundary_edges": 0,
+     "nonmanifold_edges": 0,
+     "area_mm2": 9694.41,
+     "area_pct": 10.583,
+     "power_weight": 605.9,
+     "buried_pct": 2.98,
+     "buried_by": {
+      "motor": 2.98
+     },
+     "buried_power_weight": 18.1,
+     "buried_in_opaque_pct": 2.98,
+     "buried_in_opaque_weight": 18.1,
+     "buried_in_dielectric_pct": 0.0,
+     "power_weight_pct": 1.718
+    }
+   }
+  }
+ },
+ "mini2_body_hole": {
+  "where": "cadkit.Assembly.union_group() — manifold 합집합 결과에서 `nondegenerate_faces()` 가 슬리버를 지우면서 구멍이 뚫린다.",
+  "correction": "⭐ 감사 I5 는 원인을 `Assembly.add()` 의 nondegenerate_faces 로 적었다. 실측하면 add() 는 **전 기종에서 단 한 장도 지우지 않는다** — 지우는 것은 union_group() 이다. 결함은 실재하고 위치만 다르다.",
+  "per_drone": {
+   "typhoonh480": [
+    {
+     "group": "body",
+     "union_faces": 10724,
+     "dropped": 16,
+     "dropped_area_mm2": 9.586930840419346e-06,
+     "boundary_before": 0,
+     "boundary_after": 0,
+     "watertight_before": true,
+     "watertight_after": true
+    }
+   ],
+   "mini2": [
+    {
+     "group": "body",
+     "union_faces": 7758,
+     "dropped": 1,
+     "dropped_area_mm2": 4.9497243320077054e-06,
+     "boundary_before": 0,
+     "boundary_after": 3,
+     "watertight_before": true,
+     "watertight_after": false
+    }
+   ]
+  }
+ },
+ "coplanar_material_flip": {
+  "mini5pro": [
+   {
+    "group_a": "canopy",
+    "group_b": "pcb",
+    "mat_a": "plastic",
+    "mat_b": "pcb",
+    "gamma_a": 0.28,
+    "gamma_b": 0.8,
+    "flip_dB": 9.12,
+    "coplanar_area_mm2": 5.69,
+    "coplanar_pct_of_a": 0.051,
+    "coplanar_pct_of_airframe": 0.004,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "mavic4pro": [
+   {
+    "group_a": "prop",
+    "group_b": "motor",
+    "mat_a": "prop_plastic",
+    "mat_b": "metal",
+    "gamma_a": 0.25,
+    "gamma_b": 1.0,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 1523.23,
+    "coplanar_pct_of_a": 3.126,
+    "coplanar_pct_of_airframe": 0.463,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "motor",
+    "group_b": "prop",
+    "mat_a": "metal",
+    "mat_b": "prop_plastic",
+    "gamma_a": 1.0,
+    "gamma_b": 0.25,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 1159.81,
+    "coplanar_pct_of_a": 4.984,
+    "coplanar_pct_of_airframe": 0.353,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "body",
+    "group_b": "camera",
+    "mat_a": "plastic",
+    "mat_b": "camera_assembly",
+    "gamma_a": 0.28,
+    "gamma_b": 0.85,
+    "flip_dB": 9.65,
+    "coplanar_area_mm2": 14.66,
+    "coplanar_pct_of_a": 0.013,
+    "coplanar_pct_of_airframe": 0.004,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "matrice4e": [
+   {
+    "group_a": "battery",
+    "group_b": "canopy",
+    "mat_a": "metal",
+    "mat_b": "plastic",
+    "gamma_a": 1.0,
+    "gamma_b": 0.28,
+    "flip_dB": 11.06,
+    "coplanar_area_mm2": 3367.2,
+    "coplanar_pct_of_a": 5.718,
+    "coplanar_pct_of_airframe": 1.102,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "motor",
+    "group_b": "prop",
+    "mat_a": "metal",
+    "mat_b": "prop_plastic",
+    "gamma_a": 1.0,
+    "gamma_b": 0.25,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 401.95,
+    "coplanar_pct_of_a": 5.073,
+    "coplanar_pct_of_airframe": 0.132,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "camera",
+    "group_b": "body",
+    "mat_a": "camera_assembly",
+    "mat_b": "plastic",
+    "gamma_a": 0.85,
+    "gamma_b": 0.28,
+    "flip_dB": 9.65,
+    "coplanar_area_mm2": 14.7,
+    "coplanar_pct_of_a": 0.05,
+    "coplanar_pct_of_airframe": 0.005,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "s1000plus": [
+   {
+    "group_a": "body",
+    "group_b": "battery",
+    "mat_a": "plastic",
+    "mat_b": "metal",
+    "gamma_a": 0.28,
+    "gamma_b": 1.0,
+    "flip_dB": 11.06,
+    "coplanar_area_mm2": 16745.84,
+    "coplanar_pct_of_a": 4.71,
+    "coplanar_pct_of_airframe": 1.402,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "battery",
+    "group_b": "body",
+    "mat_a": "metal",
+    "mat_b": "plastic",
+    "gamma_a": 1.0,
+    "gamma_b": 0.28,
+    "flip_dB": 11.06,
+    "coplanar_area_mm2": 13087.51,
+    "coplanar_pct_of_a": 25.32,
+    "coplanar_pct_of_airframe": 1.096,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "body",
+    "group_b": "arm",
+    "mat_a": "plastic",
+    "mat_b": "carbon",
+    "gamma_a": 0.28,
+    "gamma_b": 0.9,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 12803.19,
+    "coplanar_pct_of_a": 3.601,
+    "coplanar_pct_of_airframe": 1.072,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "arm",
+    "group_b": "body",
+    "mat_a": "carbon",
+    "mat_b": "plastic",
+    "gamma_a": 0.9,
+    "gamma_b": 0.28,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 3581.33,
+    "coplanar_pct_of_a": 1.472,
+    "coplanar_pct_of_airframe": 0.3,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "gear",
+    "group_b": "gear_cf",
+    "mat_a": "plastic",
+    "mat_b": "carbon",
+    "gamma_a": 0.28,
+    "gamma_b": 0.9,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 1146.78,
+    "coplanar_pct_of_a": 2.842,
+    "coplanar_pct_of_airframe": 0.096,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "gear_cf",
+    "group_b": "gear",
+    "mat_a": "carbon",
+    "mat_b": "plastic",
+    "gamma_a": 0.9,
+    "gamma_b": 0.28,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 733.94,
+    "coplanar_pct_of_a": 0.983,
+    "coplanar_pct_of_airframe": 0.061,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "gear",
+    "group_b": "camera",
+    "mat_a": "plastic",
+    "mat_b": "camera_assembly",
+    "gamma_a": 0.28,
+    "gamma_b": 0.85,
+    "flip_dB": 9.65,
+    "coplanar_area_mm2": 630.88,
+    "coplanar_pct_of_a": 1.564,
+    "coplanar_pct_of_airframe": 0.053,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "motor",
+    "group_b": "arm",
+    "mat_a": "metal",
+    "mat_b": "carbon",
+    "gamma_a": 1.0,
+    "gamma_b": 0.9,
+    "flip_dB": 0.91,
+    "coplanar_area_mm2": 140.79,
+    "coplanar_pct_of_a": 0.21,
+    "coplanar_pct_of_airframe": 0.012,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "phantom4": [
+   {
+    "group_a": "prop",
+    "group_b": "motor",
+    "mat_a": "prop_plastic",
+    "mat_b": "metal",
+    "gamma_a": 0.25,
+    "gamma_b": 1.0,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 1230.55,
+    "coplanar_pct_of_a": 3.126,
+    "coplanar_pct_of_airframe": 0.358,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "motor",
+    "group_b": "prop",
+    "mat_a": "metal",
+    "mat_b": "prop_plastic",
+    "gamma_a": 1.0,
+    "gamma_b": 0.25,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 759.71,
+    "coplanar_pct_of_a": 5.986,
+    "coplanar_pct_of_airframe": 0.221,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "typhoonh480": [
+   {
+    "group_a": "gear_cf",
+    "group_b": "gear",
+    "mat_a": "carbon",
+    "mat_b": "plastic",
+    "gamma_a": 0.9,
+    "gamma_b": 0.28,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 314.87,
+    "coplanar_pct_of_a": 0.968,
+    "coplanar_pct_of_airframe": 0.069,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "x500v2": [
+   {
+    "group_a": "accent",
+    "group_b": "deck",
+    "mat_a": "plastic",
+    "mat_b": "carbon",
+    "gamma_a": 0.28,
+    "gamma_b": 0.9,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 6698.36,
+    "coplanar_pct_of_a": 7.604,
+    "coplanar_pct_of_airframe": 1.536,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "battery",
+    "group_b": "deck",
+    "mat_a": "metal",
+    "mat_b": "carbon",
+    "gamma_a": 1.0,
+    "gamma_b": 0.9,
+    "flip_dB": 0.91,
+    "coplanar_area_mm2": 6525.0,
+    "coplanar_pct_of_a": 28.936,
+    "coplanar_pct_of_airframe": 1.496,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "arm",
+    "group_b": "accent",
+    "mat_a": "carbon",
+    "mat_b": "plastic",
+    "gamma_a": 0.9,
+    "gamma_b": 0.28,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 5783.92,
+    "coplanar_pct_of_a": 12.341,
+    "coplanar_pct_of_airframe": 1.326,
+    "nonmanifold_edges_when_welded": 172
+   },
+   {
+    "group_a": "accent",
+    "group_b": "arm",
+    "mat_a": "plastic",
+    "mat_b": "carbon",
+    "gamma_a": 0.28,
+    "gamma_b": 0.9,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 5408.5,
+    "coplanar_pct_of_a": 6.14,
+    "coplanar_pct_of_airframe": 1.24,
+    "nonmanifold_edges_when_welded": 172
+   },
+   {
+    "group_a": "deck",
+    "group_b": "battery",
+    "mat_a": "carbon",
+    "mat_b": "metal",
+    "gamma_a": 0.9,
+    "gamma_b": 1.0,
+    "flip_dB": 0.91,
+    "coplanar_area_mm2": 5030.0,
+    "coplanar_pct_of_a": 4.152,
+    "coplanar_pct_of_airframe": 1.153,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "fc",
+    "group_b": "deck",
+    "mat_a": "pcb",
+    "mat_b": "carbon",
+    "gamma_a": 0.8,
+    "gamma_b": 0.9,
+    "flip_dB": 1.02,
+    "coplanar_area_mm2": 3656.01,
+    "coplanar_pct_of_a": 32.701,
+    "coplanar_pct_of_airframe": 0.838,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "arm",
+    "group_b": "motor",
+    "mat_a": "carbon",
+    "mat_b": "metal",
+    "gamma_a": 0.9,
+    "gamma_b": 1.0,
+    "flip_dB": 0.91,
+    "coplanar_area_mm2": 2713.96,
+    "coplanar_pct_of_a": 5.791,
+    "coplanar_pct_of_airframe": 0.622,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "gear",
+    "group_b": "deck",
+    "mat_a": "plastic",
+    "mat_b": "carbon",
+    "gamma_a": 0.28,
+    "gamma_b": 0.9,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 2197.0,
+    "coplanar_pct_of_a": 4.729,
+    "coplanar_pct_of_airframe": 0.504,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "motor",
+    "group_b": "arm",
+    "mat_a": "metal",
+    "mat_b": "carbon",
+    "gamma_a": 1.0,
+    "gamma_b": 0.9,
+    "flip_dB": 0.91,
+    "coplanar_area_mm2": 1900.61,
+    "coplanar_pct_of_a": 13.216,
+    "coplanar_pct_of_airframe": 0.436,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "accent",
+    "group_b": "battery",
+    "mat_a": "plastic",
+    "mat_b": "metal",
+    "gamma_a": 0.28,
+    "gamma_b": 1.0,
+    "flip_dB": 11.06,
+    "coplanar_area_mm2": 1318.6,
+    "coplanar_pct_of_a": 1.497,
+    "coplanar_pct_of_airframe": 0.302,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "deck",
+    "group_b": "accent",
+    "mat_a": "carbon",
+    "mat_b": "plastic",
+    "gamma_a": 0.9,
+    "gamma_b": 0.28,
+    "flip_dB": 10.14,
+    "coplanar_area_mm2": 12.15,
+    "coplanar_pct_of_a": 0.01,
+    "coplanar_pct_of_airframe": 0.003,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "phantom3": [
+   {
+    "group_a": "body",
+    "group_b": "pcb",
+    "mat_a": "plastic",
+    "mat_b": "pcb",
+    "gamma_a": 0.28,
+    "gamma_b": 0.8,
+    "flip_dB": 9.12,
+    "coplanar_area_mm2": 30.94,
+    "coplanar_pct_of_a": 0.031,
+    "coplanar_pct_of_airframe": 0.011,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "canopy",
+    "group_b": "pcb",
+    "mat_a": "plastic",
+    "mat_b": "pcb",
+    "gamma_a": 0.28,
+    "gamma_b": 0.8,
+    "flip_dB": 9.12,
+    "coplanar_area_mm2": 4.07,
+    "coplanar_pct_of_a": 0.045,
+    "coplanar_pct_of_airframe": 0.001,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ],
+  "m350rtk": [
+   {
+    "group_a": "prop",
+    "group_b": "motor",
+    "mat_a": "prop_plastic",
+    "mat_b": "metal",
+    "gamma_a": 0.25,
+    "gamma_b": 1.0,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 6075.94,
+    "coplanar_pct_of_a": 3.126,
+    "coplanar_pct_of_airframe": 0.584,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "motor",
+    "group_b": "prop",
+    "mat_a": "metal",
+    "mat_b": "prop_plastic",
+    "gamma_a": 1.0,
+    "gamma_b": 0.25,
+    "flip_dB": 12.04,
+    "coplanar_area_mm2": 4004.86,
+    "coplanar_pct_of_a": 8.047,
+    "coplanar_pct_of_airframe": 0.385,
+    "nonmanifold_edges_when_welded": 0
+   },
+   {
+    "group_a": "camera",
+    "group_b": "body",
+    "mat_a": "camera_assembly",
+    "mat_b": "plastic",
+    "gamma_a": 0.85,
+    "gamma_b": 0.28,
+    "flip_dB": 9.65,
+    "coplanar_area_mm2": 1136.51,
+    "coplanar_pct_of_a": 7.185,
+    "coplanar_pct_of_airframe": 0.109,
+    "nonmanifold_edges_when_welded": 0
+   }
+  ]
+ },
+ "uv_sphere": {
+  "seg18_rings10": {
+   "n_verts": 198,
+   "n_unique_verts": 164,
+   "duplicate_verts": 34,
+   "n_faces": 324,
+   "zero_area_faces": 0,
+   "watertight_as_shipped": false,
+   "watertight_after_weld": true,
+   "volume_err_pct": -4.4162
+  },
+  "seg90_rings45": {
+   "n_verts": 4140,
+   "n_unique_verts": 3962,
+   "duplicate_verts": 178,
+   "n_faces": 7920,
+   "zero_area_faces": 0,
+   "watertight_as_shipped": false,
+   "watertight_after_weld": true,
+   "volume_err_pct": -0.2029
+  },
+  "seg120_rings60": {
+   "n_verts": 7320,
+   "n_unique_verts": 7082,
+   "duplicate_verts": 238,
+   "n_faces": 14160,
+   "zero_area_faces": 0,
+   "watertight_as_shipped": false,
+   "watertight_after_weld": true,
+   "volume_err_pct": -0.1142
+  },
+  "seg180_rings90": {
+   "n_verts": 16380,
+   "n_unique_verts": 16022,
+   "duplicate_verts": 358,
+   "n_faces": 32040,
+   "zero_area_faces": 0,
+   "watertight_as_shipped": false,
+   "watertight_after_weld": true,
+   "volume_err_pct": -0.0508
+  }
+ },
+ "material_path_fallbacks": {
+  "gamma_po_unknown_key": "KeyError — 막혀 있다(정상)",
+  "make_material_unknown_key": {
+   "raised": false,
+   "got_eps_r": 2.7,
+   "got_sigma": 0.02,
+   "same_as_plastic": true
+  },
+  "MATERIAL_COLOR_missing_keys": [
+   "absorber",
+   "concrete_dark",
+   "concrete_light",
+   "plastic_blue"
+  ],
+  "group_materials_not_in_MATERIALS": []
+ },
+ "s1000plus_center_plate": {
+  "method": "합집합 전 파트 면적(스케일 적용 전). n_runs 로 중복 호출을 접었다. 판 자체는 body 합집합을 건너뛰고 «두께<4 mm · 폭>200 mm» 부품으로 골랐다.",
+  "body_parts_by_callsite": {
+   "build_frame_cad:2065  A.add(m, \"body\")": 303455.5,
+   "build_frame_cad:2072  A.add(rot_z(blk, a), \"body\")": 103008.0,
+   "build_frame_cad:2113  A.add(cyl(0.006, 0.020, center=(0.150, 0, z_top + 0.010), seg=12), \"body\")": 961.4
+  },
+  "body_preunion_area_mm2": 407424.9,
+  "carbon_plate_stack_area_mm2": 303455.5,
+  "carbon_plate_share_of_body_pct": 74.48,
+  "plates_only_n": 2,
+  "plates_only_bbox_mm": [
+   [
+    289.6,
+    289.6,
+    2.3
+   ],
+   [
+    289.6,
+    289.6,
+    2.3
+   ]
+  ],
+  "plates_only_area_mm2": 282344.7,
+  "plates_only_share_of_body_pct": 69.3,
+  "note": "스택 74.5 % 안에는 스탠드오프 기둥 8개(실물 알루미늄/나일론)가 들어 있다. 카본이 확실한 것은 **판 2장**이고 그것이 body 의 69 % 다."
+ },
+ "nylon_sensitivity": {
+  "우리 plastic(ABS/PC)": {
+   "2.4GHz": {
+    "eps_r": 2.7,
+    "sigma": 0.02,
+    "tan_delta": 0.05548,
+    "gamma_bulk": 0.24409,
+    "dB_vs_ours": 0.0
+   },
+   "3.5GHz": {
+    "eps_r": 2.7,
+    "sigma": 0.02,
+    "tan_delta": 0.03804,
+    "gamma_bulk": 0.24369,
+    "dB_vs_ours": 0.0
+   },
+   "5.8GHz": {
+    "eps_r": 2.7,
+    "sigma": 0.02,
+    "tan_delta": 0.02296,
+    "gamma_bulk": 0.24346,
+    "dB_vs_ours": 0.0
+   }
+  },
+  "ABS 문헌 하한": {
+   "2.4GHz": {
+    "eps_r": 2.55,
+    "sigma": 0.001192,
+    "tan_delta": 0.0035,
+    "gamma_bulk": 0.22985,
+    "dB_vs_ours": -0.522
+   },
+   "3.5GHz": {
+    "eps_r": 2.55,
+    "sigma": 0.001738,
+    "tan_delta": 0.0035,
+    "gamma_bulk": 0.22985,
+    "dB_vs_ours": -0.508
+   },
+   "5.8GHz": {
+    "eps_r": 2.55,
+    "sigma": 0.00288,
+    "tan_delta": 0.0035,
+    "gamma_bulk": 0.22985,
+    "dB_vs_ours": -0.5
+   }
+  },
+  "ABS 문헌 상한": {
+   "2.4GHz": {
+    "eps_r": 2.95,
+    "sigma": 0.003151,
+    "tan_delta": 0.008,
+    "gamma_bulk": 0.26406,
+    "dB_vs_ours": 0.683
+   },
+   "3.5GHz": {
+    "eps_r": 2.95,
+    "sigma": 0.004595,
+    "tan_delta": 0.008,
+    "gamma_bulk": 0.26406,
+    "dB_vs_ours": 0.697
+   },
+   "5.8GHz": {
+    "eps_r": 2.95,
+    "sigma": 0.007615,
+    "tan_delta": 0.008,
+    "gamma_bulk": 0.26406,
+    "dB_vs_ours": 0.705
+   }
+  },
+  "PA66 건조": {
+   "2.4GHz": {
+    "eps_r": 3.15,
+    "sigma": 0.006309,
+    "tan_delta": 0.015,
+    "gamma_bulk": 0.27928,
+    "dB_vs_ours": 1.17
+   },
+   "3.5GHz": {
+    "eps_r": 3.15,
+    "sigma": 0.0092,
+    "tan_delta": 0.015,
+    "gamma_bulk": 0.27928,
+    "dB_vs_ours": 1.184
+   },
+   "5.8GHz": {
+    "eps_r": 3.15,
+    "sigma": 0.015246,
+    "tan_delta": 0.015,
+    "gamma_bulk": 0.27928,
+    "dB_vs_ours": 1.192
+   }
+  },
+  "PA66 흡습 2 %": {
+   "2.4GHz": {
+    "eps_r": 3.6,
+    "sigma": 0.01442,
+    "tan_delta": 0.03,
+    "gamma_bulk": 0.30991,
+    "dB_vs_ours": 2.074
+   },
+   "3.5GHz": {
+    "eps_r": 3.6,
+    "sigma": 0.021029,
+    "tan_delta": 0.03,
+    "gamma_bulk": 0.30991,
+    "dB_vs_ours": 2.088
+   },
+   "5.8GHz": {
+    "eps_r": 3.6,
+    "sigma": 0.034848,
+    "tan_delta": 0.03,
+    "gamma_bulk": 0.30991,
+    "dB_vs_ours": 2.096
+   }
+  },
+  "PA66-GF30": {
+   "2.4GHz": {
+    "eps_r": 3.9,
+    "sigma": 0.009373,
+    "tan_delta": 0.018,
+    "gamma_bulk": 0.32776,
+    "dB_vs_ours": 2.56
+   },
+   "3.5GHz": {
+    "eps_r": 3.9,
+    "sigma": 0.013669,
+    "tan_delta": 0.018,
+    "gamma_bulk": 0.32776,
+    "dB_vs_ours": 2.575
+   },
+   "5.8GHz": {
+    "eps_r": 3.9,
+    "sigma": 0.022651,
+    "tan_delta": 0.018,
+    "gamma_bulk": 0.32776,
+    "dB_vs_ours": 2.583
+   }
+  }
+ },
+ "rf_estimates": {
+  "s1000plus_center_plate": {
+   "plate_area_mm2": 246392.2,
+   "plate_share_of_body_pct": 69.3,
+   "plate_share_of_airframe_pct": 20.63,
+   "gamma_now": 0.28,
+   "gamma_if_carbon": 0.9,
+   "facet_reflectivity_dB": 10.14,
+   "power_weight_now": 518827.9,
+   "power_weight_if_carbon": 699088.4,
+   "power_weight_shift_dB": 1.3,
+   "broadside_plate_sigma_dBsm": {
+    "plastic_now": -1.86,
+    "carbon_real": 8.28
+   },
+   "ruler": "정면 평판식 σ=4πA²|Γ|²/λ² (판 1장, 맞변 290 mm 정팔각 = 0.0697 m²)",
+   "caveat": "판 σ 는 **판이 정반사인 각(천저·천정)에서만** 그렇다. 방위평균 총 σ 는 power_weight_shift_dB 쪽이 눈금이고 그것도 대용치다."
+  },
+  "buried_canopy": {
+   "mini5pro": {
+    "buried_pct": 85.13,
+    "buried_area_mm2": 9468.0,
+    "pct_of_airframe_area": 7.16,
+    "pct_of_power_weight": 1.4,
+    "po_change_if_removed_dB": -0.061,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   },
+   "mavic4pro": {
+    "buried_pct": 100.0,
+    "buried_area_mm2": 25658.8,
+    "pct_of_airframe_area": 7.8,
+    "pct_of_power_weight": 1.55,
+    "po_change_if_removed_dB": -0.068,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   },
+   "matrice4e": {
+    "buried_pct": 69.23,
+    "buried_area_mm2": 23271.1,
+    "pct_of_airframe_area": 7.62,
+    "pct_of_power_weight": 1.66,
+    "po_change_if_removed_dB": -0.073,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   },
+   "phantom4": {
+    "buried_pct": 92.86,
+    "buried_area_mm2": 32701.0,
+    "pct_of_airframe_area": 9.51,
+    "pct_of_power_weight": 2.09,
+    "po_change_if_removed_dB": -0.092,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   },
+   "typhoonh480": {
+    "buried_pct": 74.66,
+    "buried_area_mm2": 14324.6,
+    "pct_of_airframe_area": 3.16,
+    "pct_of_power_weight": 0.67,
+    "po_change_if_removed_dB": -0.029,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   },
+   "phantom3": {
+    "buried_pct": 100.0,
+    "buried_area_mm2": 9013.2,
+    "pct_of_airframe_area": 3.24,
+    "pct_of_power_weight": 0.72,
+    "po_change_if_removed_dB": -0.031,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   },
+   "mini2": {
+    "buried_pct": 34.05,
+    "buried_area_mm2": 3341.5,
+    "pct_of_airframe_area": 3.65,
+    "pct_of_power_weight": 0.74,
+    "po_change_if_removed_dB": -0.032,
+    "sbr_change": "0 (first-hit 이 못 되고 투과 패스에서 셸은 제외된다)"
+   }
+  }
+ },
+ "selftest_weld_poles": {
+  "seg18": {
+   "verts": [
+    198,
+    164
+   ],
+   "faces": [
+    324,
+    324
+   ],
+   "triangle_coords_identical": true,
+   "watertight": [
+    false,
+    true
+   ],
+   "volume_m3": [
+    0.000500475472,
+    0.000500475472
+   ]
+  },
+  "seg90": {
+   "verts": [
+    4140,
+    3962
+   ],
+   "faces": [
+    7920,
+    7920
+   ],
+   "triangle_coords_identical": true,
+   "watertight": [
+    false,
+    true
+   ],
+   "volume_m3": [
+    0.000522536341,
+    0.000522536341
+   ]
+  },
+  "seg180": {
+   "verts": [
+    16380,
+    16022
+   ],
+   "faces": [
+    32040,
+    32040
+   ],
+   "triangle_coords_identical": true,
+   "watertight": [
+    false,
+    true
+   ],
+   "volume_m3": [
+    0.000523333002,
+    0.000523333002
+   ]
+  }
+ },
+ "findings": [
+  {
+   "id": "A1",
+   "severity": "중요",
+   "status": "새 발견 · 미수리",
+   "title": "s1000plus 의 카본 센터플레이트가 `plastic` 그룹에 들어 있다",
+   "evidence": "`drone_cad.build_frame_cad` 이 `_body_plate_stack(...)` 결과를 `A.add(m, \"body\")` 로 넣는다(같은 함수가 x500v2 에서는 `\"deck\"`= carbon 으로 간다). 판 2장만 세도 body 합집합 전 면적의 69.3 %(스탠드오프 기둥까지 포함한 스택은 74.48 %) = 기체 표면적의 20.63 % (≈246392 mm²)이고, 코드 주석 자신이 «카본 정팔각 센터플레이트(상·하판)»·«카본판 2~3 mm 급» 이라 적는다. 판 실측 bbox [289.6, 289.6, 2.3] mm.",
+   "rf": "면 반사율 +10.14 dB. 판이 정반사인 각(천저·천정)의 평판 σ 는 -1.86 → +8.28 dBsm. 방위평균 대용치 (ΣA|Γ|²)로는 +1.30 dB.",
+   "knock_on": "① `THICKNESS_KNOBS['shell']` 이 `plastic` 을 잡으므로 셸 두께 손잡이가 이 카본 판까지 얇게 만든다(카본은 두께를 안 타는 재질이다). ② `material_sources.json` 의 `s1000plus._has_shell=True` 는 이 배정의 결과다 — 실물 S1000+ 는 x500v2 와 같은 **열린 카본 프레임**이고 몰드 유전체 셸이 없다. `MATERIAL_CORRECTION.md:563` 이 대조군을 x500v2 로 바꾼 근거가 여기서 더 강해진다. ⚠ «s1000plus 만 스펙트럼 성격이 다르다» (MATERIAL_CORRECTION §D)의 원인이 이것인지는 **안 쟀다 — 가설이다.**",
+   "action": "`build_frame_cad` 의 s1000plus 판 스택을 `\"deck\"` 그룹으로 옮길 것. 암 마운트 블록(플라스틱/알루미늄)·GPS 포스트는 body 로 남긴다. ⛔ 이번 라운드는 `drone_cad.py` 를 안 고쳤다(다른 라운드가 편집 중)."
+  },
+  {
+   "id": "A2",
+   "severity": "사소",
+   "status": "새 발견 · 기록",
+   "title": "x500v2 의 `accent` 는 «전방 식별색» 이 아니라 **나일론 구조부재**다",
+   "evidence": "`_x500v2_arm_tip` 의 모터 시트·튜브 클램프, `build_frame_cad` 의 네 모서리 암 클램프, `_x500v2_underslung` 의 GPS 마스트가 전부 `accent` 로 간다. 면적 88088 mm² = 기체의 20.199 % (다른 기체의 accent 는 0.17~2.1 %).",
+   "rf": "나일론(PA66)을 ABS/PC(εr 2.7)로 모델링한 대가는 벌크 |Γ| 기준 건조 +1.19 dB · 흡습 2 % +2.09 dB · GF30 +2.57 dB(3.5 GHz, nylon_sensitivity 절). PO 경로는 재질과 무관하게 실효 0.28 을 쓰므로 **PO 는 안 움직인다** — 움직이는 것은 Sionna 슬래브 쪽이다.",
+   "action": "배정표의 설명 문구를 고칠 것(«전방 식별색» → 기체마다 다르다). 재질을 나일론으로 분리하려면 `MATERIALS` 에 키를 늘려야 하는데, 그 표를 순회해 리포트 표를 만드는 곳이 여럿이라 파급이 있다 — 이번엔 안 건드렸다."
+  },
+  {
+   "id": "A3",
+   "severity": "중요",
+   "status": "새 발견 · 수리함(경고만)",
+   "title": "`make_material()` 만 **조용한 폴백**이 남아 있었다",
+   "evidence": "`gamma_po('nylon')` 은 KeyError 로 죽지만 `make_material('nylon', …)` 은 경고 한 줄 없이 plastic(εr 2.7, σ 0.02)을 돌려줬다. `materials.py` 머리말은 «|Γ|·(εr,σ) 를 내는 경로는 전부 여기서 막는다» 고 적는데 이 함수가 예외였다.",
+   "rf": "현재 저장소에는 모르는 키를 넘기는 호출부가 **0 건**이라 지금 나온 수치는 하나도 안 틀렸다. 위험은 앞으로 생길 오타다 — 그 경우 Sionna 쪽만 플라스틱으로 흘러 −12.3 dB(의도가 PEC 였다면) 어긋난다.",
+   "action": "✅ 수리함 — 폴백 시 RuntimeWarning + `materials.UNKNOWN_KEY_FALLBACKS` 기록. `strict=True` 를 주면 `gamma_po` 와 같은 규약으로 예외. **기본 숫자 무변경.**"
+  },
+  {
+   "id": "A4",
+   "severity": "중요",
+   "status": "감사 I5 · 미수리(도구 제공)",
+   "title": "mini2 body 구멍의 **발생 지점이 감사와 다르다** — `union_group()` 이다",
+   "evidence": "감사 I5 는 `cadkit.Assembly.add()` 의 `nondegenerate_faces()` 를 지목했다. 실측하면 add() 는 **전 기종에서 단 한 장도 지우지 않는다**. 지우는 것은 `union_group()` 이고, manifold 합집합 결과(7758 면·수밀 True)에서 넓이 4.95e-06 mm² 짜리 슬리버 1장을 지우면서 경계 모서리 3개가 열린다. typhoonh480 body 도 같은 자리에서 16장을 지우지만 **수밀이 유지된다**.",
+   "rf": "산란 0(면적이 전체의 1.4e-08 %). 피해는 간접이다 — mini2 body 가 수밀이 아니라서 `contains()` 를 쓰는 검사가 이 부품을 **담는 쪽에서 통째로 뺀다**. 실제로 이번 실측에서 mini2 canopy 의 매몰이 34.05 % 로 나왔는데, 구멍을 메우면 86.35 % 다.",
+   "action": "`union_group` 의 퇴화면 제거를 «지워도 수밀이 유지될 때만» 으로 바꾸면 typhoonh480 은 그대로고 mini2 만 7757 → 7758 면이 된다. ⛔ `cadkit.py` 는 다른 라운드가 편집 중이라 안 고쳤다 — 대신 사후 수리 도구 `heal_boundary_holes()` 를 이 파일에 넣었다(부르지 않으면 아무 일도 없다)."
+  },
+  {
+   "id": "A5",
+   "severity": "사소",
+   "status": "감사 I4 · 미수리(수치 정정)",
+   "title": "묻힌 캐노피의 대가는 **면적이 아니라 |Γ| 로 재면 작다**",
+   "evidence": "면적으로는 mavic4pro 100 %·phantom3 100 %·phantom4 92.9 %·mini5pro 85.1 % 가 묻혀 있고 기체 표면적의 3.2~9.5 % 다. 그러나 캐노피는 플라스틱(|Γ|=0.28)이라 A·|Γ|² 비중은 0.67~2.09 % 뿐이다.",
+   "rf": "PO 에서 전부 빼도 −0.03~−0.09 dB. SBR 은 정확히 0(first-hit 이 못 되고 투과 패스에서 셸은 제외). ⇒ **σ 문제가 아니라 계산비·서술 문제다.**",
+   "action": "지금 순위를 올릴 이유가 없다. 빼고 싶으면 `prune_buried_faces()` 로. 리포트에는 «죽은 무게» 로 선언만 남기면 충분하다."
+  },
+  {
+   "id": "A6",
+   "severity": "중요",
+   "status": "새 발견 · 미수리",
+   "title": "PO 의 **가림 없음**이 만드는 과대계상은 «불투명 부품 안» 만 세면 0.03~0.69 dB 다",
+   "evidence": "매몰면 전체는 전력가중의 8.8~71.6 % 지만, 그 대부분은 **유전체 셸 안**(내부 금속을 투과로 보는 것이 설계 의도)이다. 실물이라면 절대 안 보이는 «불투명 부품 안» 만 세면 0.68~14.7 %, dB 로 +0.03 ~ +0.69 dB(최악 mini2)다.",
+   "rf": "감사 I3 의 «mavic4pro +38 %·mini5pro +42 % 면적 과대» 는 **면적** 기준이고, 재질로 무게를 주면 그 대부분이 의도된 투과 경로다. 실제 순수 과대는 위 값이다.",
+   "action": "I3 예산표를 만들 때 **면적이 아니라 A·|Γ|², 그리고 담는 쪽의 불투명 여부**로 가를 것. 지금 표를 면적으로 만들면 우선순위가 뒤집힌다."
+  },
+  {
+   "id": "A7",
+   "severity": "사소",
+   "status": "감사 m4 · 미수리(범위 확장)",
+   "title": "동일평면 재질 뒤집힘은 x500v2 만의 문제가 아니다 — 9기체에서 34쌍",
+   "evidence": "가장 큰 것은 x500v2 가 아니라 **s1000plus** 다: body(plastic) 위에 battery(metal) 16,745.8 mm²(기체의 1.40 %, 뒤집힘 11.06 dB), body 위에 arm(carbon) 12,803.2 mm²(1.07 %, 10.14 dB). x500v2 accent↔arm 은 5,408.5 mm²(1.24 %, 10.14 dB)이고 **웰딩 시 비다양체 모서리 172개는 이 쌍에서만** 나온다(정점 96개 비트동일 공유). m350rtk 는 prop(0.25)↔motor(1.0) 6,075.9 mm²·12.04 dB.",
+   "rf": "⚠ **σ 로는 안 쟀다.** 상한은 «그 면적이 통째로 반대 재질이 될 때» 이고 면적 비중이 0.4~1.5 % 라 방위평균으로는 작을 것으로 본다(추측).",
+   "action": "두 표면을 0.1 mm 이상 띄우거나 union 할 것. 우선순위는 s1000plus 부터."
+  },
+  {
+   "id": "A8",
+   "severity": "무해(확인됨)",
+   "status": "감사 m6 · 수리함(선택)",
+   "title": "`uv_sphere` 극점 — 중복 정점만 남고 면적 0 삼각형은 없다",
+   "evidence": "seg18/90/180 에서 중복 정점 34/178/358개, 면적 0 삼각형 0개, 출하 인덱스로는 비수밀·웰딩 후 수밀.",
+   "rf": "0 dB — PO 는 면 중심·법선·면적만 보고 Mitsuba 는 삼각형 수프다.",
+   "action": "✅ `geom.uv_sphere(..., weld_poles=True)` 신설. 삼각형 좌표·개수·부피가 **완전히 같고** 정점만 2·(seg−1)개 준다. 기본은 False = 예전과 비트동일."
+  },
+  {
+   "id": "A9",
+   "severity": "중요",
+   "status": "새 발견 · 기록(리포트용)",
+   "title": "report_mesh 의 재질·기하 검증 원장이 **10기체 중 5기체**만 덮는다",
+   "evidence": "`report_mesh/outputs/mesh_verify.json`(2026-07-29) 의 meta.drones 는 mini5pro·mavic4pro·matrice4e·s1000plus·phantom4 다섯이고 gamma_map 은 그룹 10개다. 현재 레지스트리는 **기체 10종·그룹 13종**이고, 늘어난 `deck`·`gear_cf`·`fc` 는 2026-07-30 신설이라 원장보다 하루 늦다. 빠진 5기체에는 **유일하게 구멍이 있는 mini2** 와 **`deck`·`fc` 의 유일한 사용자인 x500v2** 가 들어 있다.",
+   "rf": "없음(기록 문제). 다만 mesh06 의 «재질이 빠진 그룹 0개(all_covered=True)» 와 mesh07 의 «watertight 129/129·기하 결함 0» 은 **그 5기체에 한정된 참**이다.",
+   "action": "원장을 10기체·13그룹으로 다시 돌리고, 리포트의 «전 기종» 문구를 «원장이 덮는 기종» 으로 좁힐 것. 이 파일이 10기체 판을 이미 갖고 있다."
+  },
+  {
+   "id": "A10",
+   "severity": "사소",
+   "status": "새 발견 · 기록",
+   "title": "`drone_gamma_map(spec, fc)` 은 `spec` 을 **안 쓴다**",
+   "evidence": "`src/drones.py:1162-1167` — 인자 `spec` 를 받고 본문에서 한 번도 안 쓴다. 10기체 전부 같은 맵이 나온다(이번 실측으로 확인).",
+   "rf": "없음 — 지금은 재질이 기체와 무관한 것이 맞다.",
+   "action": "기종별 재질(예: A1 의 s1000plus 판)이 생기면 이 함수가 **조용히 틀린 답**을 준다. 지금은 문서만, 기종별 분기가 생기는 순간 여기부터 고칠 것."
+  }
+ ],
+ "code_changes": [
+  {
+   "file": "src/materials.py",
+   "what": "`make_material()` 의 모르는-키 폴백에 RuntimeWarning + `UNKNOWN_KEY_FALLBACKS` 기록, `strict=True` 선택 인자 추가",
+   "default_behaviour": "**무변경** — 아는 키는 경고도 안 나고 값도 그대로. 모르는 키도 예전과 **같은 값**(plastic)을 돌려준다."
+  },
+  {
+   "file": "src/geom.py",
+   "what": "`uv_sphere(..., weld_poles=True)` 선택 인자 신설 (감사 m6) + `__main__` 자체점검이 존재하지 않는 `blade()` 를 불러 NameError 로 죽던 두 줄 교체",
+   "default_behaviour": "**무변경** — `weld_poles=False` 가 기본이고 그때 정점·면 인덱스가 예전과 비트동일하다(selftest_weld_poles 절 참조)."
+  },
+  {
+   "file": "benchmark/mesh_inspect_materials_check.py",
+   "what": "이 파일(신규). 선택 수리 도구 `heal_boundary_holes()`·`prune_buried_faces()` 포함",
+   "default_behaviour": "아무 파이프라인도 이 파일을 import 하지 않는다."
+  }
+ ],
+ "not_touched": {
+  "files": [
+   "src/drone_cad.py",
+   "src/cadkit.py",
+   "src/drones.py",
+   "src/mesh_check.py"
+  ],
+  "why": "이 라운드가 도는 동안 **다른 라운드가 같은 파일들을 편집 중**이었다(mtime 이 이 세션 안에서 움직였다). 겹쳐 쓰면 서로의 수정을 지운다. 그래서 A1(s1000plus 판 → deck) · A4(union_group 퇴화면 규칙) · A7(동일평면 0.1 mm 띄움)은 **수치와 패치 방향만 남기고 안 고쳤다.**"
+ }
+}

@@ -1,0 +1,661 @@
+{
+ "_meta": {
+  "title": "내부 금속(배터리·PCB·모터·냉각) 정밀 검토 — 2026-08-16",
+  "scope": "프로펠러 **밖**의 내부 금속 축만 본다. 프롭(시위·피치·두께)은 다른 라운드가 정본이므로 이 원장은 손대지 않는다.",
+  "rules_followed": [
+   "GPU 미사용 — 전부 numpy/trimesh CPU. Mitsuba·Sionna RT import 없음",
+   "git 명령 0회",
+   "메쉬 생성 코드(src/drones.py · src/drone_cad.py) **무변경** — 기본 동작 그대로. 변형 메쉬는 측정 프로세스 안에서만 만들었고 저장하지 않았다",
+   "새로 만든 것은 **읽기 전용 검사기 파일 하나**뿐이다(benchmark/mesh_internal_metal_check.py)"
+  ],
+  "engine_note": "σ 는 전부 **순수 PO**(rcs_po, engine='po')로 쟀다. PO 는 자기차폐가 없다(rcs_po.py 자기선언) — 내부 부품 기여는 **상한**으로 읽어야 한다. 기본 엔진 SBR 은 GPU 가 필요해 이 라운드에서 못 돌렸다.",
+  "sigma_convention": "표기는 전부 **방위평균 σ [dBsm]**, az 0~358° 2° 간격 180점, fc 3.5 GHz, 점간격 λ/7, 재질 |Γ| 는 materials.MATERIALS 그대로.",
+  "gamma_used": {
+   "metal(battery·motor)": 0.9998026802895116,
+   "pcb": 0.8,
+   "camera_assembly": 0.85,
+   "plastic(body·canopy·gear·accent)": 0.28,
+   "prop_plastic": 0.25,
+   "carbon(arm)": 0.9,
+   "how": "ITU metal(εr=1, σ=1e7 S/m) 은 프레넬로 직접 유도 — 문서에 적힌 0.99980 과 소수 5자리까지 일치. 나머지는 MATERIALS 의 gamma_po 값 그대로."
+  },
+  "elevation_caveat": "el −90 은 시선 벡터가 방위와 무관하게 (0,0,−1) 하나뿐이라 **방위평균이 아니라 단일 코히런트 측정**이다. 간섭에 극도로 민감하니 인용하지 말 것. 나디르 밴드가 필요하면 **el −80**(방위 180점 평균)을 쓴다.",
+  "sources": {
+   "cad": "assets/meshes/reference/matrice4-M4T_v2.step (DJI 공식 STEP, **외장 모델** — 내부 보드·블로어 없음)",
+   "published": "docs/drone_specs_2026.json (DJI User Manual 원문 대조 기록 포함)",
+   "teardown_photos": "assets/photos/matrice4e/t01~t16 (JANGYAO M4T 분해영상 프레임)",
+   "prior_ledger": "outputs/meshfix_matrice4e.json (F11·F12) · docs/MESH_AUDIT_0816.md"
+  },
+  "new_tool": "benchmark/mesh_internal_metal_check.py (읽기 전용 검사기, 결과 outputs/mesh_internal_metal_check_0816.json)",
+  "how_to_reproduce": [
+   "PYTHONPATH=src python benchmark/mesh_internal_metal_check.py --json outputs/mesh_internal_metal_check_0816.json",
+   "σ 실험은 src/rcs_po.py 를 그대로 부르고 변형 상자만 프로세스 안에서 붙였다 — 재현 절차는 이 원장의 각 항목 method 에 적었다."
+  ],
+  "concurrency_warning": "⚠ 이 라운드 도중 **다른 세션이 같은 저장소를 편집했다** — src/drone_cad.py(12:11 UTC) · src/drones.py(12:08) · src/materials.py(12:01) · src/mesh_check.py(11:43) 의 mtime 이 내 작업 시간대 안에 있다(프로펠러 라운드로 보인다). 그래서 편집 **전후로 같은 측정을 돌려 대조**했다 — matrice4e PO 방위평균 σ 가 12:07(편집 전)과 12:13(편집 후)에 **비트동일**이었고(el0 −16.003 · el−30 −21.201 · el−60 −19.564 · el−80 −12.759), 봉인 검사 수치도 소수점까지 재현됐다. _SHELL_SHAPE['matrice4e'] · INTERNALS['matrice4e'] 는 변하지 않았다. ⇒ 이 원장의 수치는 편집의 영향을 받지 않았다. ⭐그래도 인용할 때는 **src/drone_cad.py 의 그날 상태**를 함께 확인할 것."
+ },
+ "front_metal_mirror": {
+  "question": "0° 익사 서사의 주역 «정면 139 cm² 금속 거울(배터리·카메라·기판)» 이 실물과 맞나",
+  "how_measured": "az_falsify_ours.py ④ 와 **같은 경로**(FastPoser 자세, 같은 rotor_phases)로 메쉬를 세우고 시선에 수직인 삼각형을 골라 **그룹별로** 나눴다.",
+  "reproduced": {
+   "az0_el0_front_only_cm2": 69.673,
+   "n_tri": 90,
+   "note": "감사 I10④ 의 앞면 69.67 cm² 를 독립적으로 그대로 재현했다(양면 139.35 의 정확히 1/2)."
+  },
+  "decomposition_az0_el0": {
+   "battery": {
+    "area_cm2": 32.853,
+    "share_pct": 47.2,
+    "n_tri": 4,
+    "coherent_plates_cm2": [
+     28.054,
+     4.799
+    ],
+    "plate_limit_sigma_dbsm": -18.58,
+    "what": "배터리 팩 앞면(60.6×46.3) + 구조판 앞면(67.6×7.1)"
+   },
+   "camera": {
+    "area_cm2": 34.14,
+    "share_pct": 49.0,
+    "n_tri": 84,
+    "coherent_plates_cm2": [
+     15.615,
+     10.404,
+     6.85,
+     1.271
+    ],
+    "plate_limit_sigma_dbsm": -21.64,
+    "what": "⭐**내부 금속이 아니다** — 밖에 달린 짐벌 카메라 블록이다"
+   },
+   "pcb": {
+    "area_cm2": 2.68,
+    "share_pct": 3.8,
+    "n_tri": 2,
+    "coherent_plates_cm2": [
+     2.68
+    ],
+    "plate_limit_sigma_dbsm": -39.1,
+    "what": "메인보드 상자 앞면(53.6×5.0)"
+   }
+  },
+  "verdict_wording": "«배터리·카메라·기판» 이라는 나열은 **순서는 맞고 무게가 틀렸다**: 기판은 면적의 **3.8 %**(σ 로는 배터리보다 20.5 dB 아래)이고, **절반(49 %)은 내부 금속이 아니라 외부 짐벌**이다. 내부 금속만 세면 35.53 cm² 다.",
+  "is_it_a_mirror": {
+   "lambda2_cm2": 73.37,
+   "largest_single_coherent_plate_cm2": 28.054,
+   "plate_over_lambda2": 0.382,
+   "specular_null_check": {
+    "L_mm": [
+     60.6,
+     46.3
+    ],
+    "lambda_over_L": [
+     1.414,
+     1.851
+    ],
+    "reading": "둘 다 1 을 넘는다 ⇒ 가시영역 안에 **첫 널이 없다**. 즉 이 판의 정반사 로브는 좁지 않다 — 광학 거울이 아니다."
+   },
+   "formula_validity": "σ=4πA²/λ² 는 A ≫ λ² 에서만 옳다. 여기서 A/λ² = 0.38 이라 **공식의 적용 한계 위**다. 위 plate_limit_sigma_dbsm 은 상한 표시로만 쓸 것."
+  },
+  "does_our_sigma_care": {
+   "test": "내부 상자 3개를 통째로 피치 1°·3° 기울여 PO σ 를 다시 쟀다(축정렬이 만든 것인지 확인)",
+   "delta_db_pitch1": {
+    "el0": 0.001,
+    "el-30": -0.287,
+    "el-60": 0.171,
+    "el-80": -0.146
+   },
+   "delta_db_pitch3": {
+    "el0": 0.001,
+    "el-30": -0.294,
+    "el-60": 0.24,
+    "el-80": -0.234
+   },
+   "reading": "⭐ 축정렬을 깨도 우리 σ 는 **el0 에서 0.001 dB**, 다른 밴드에서도 0.29 dB 안이다. 즉 «시선에 수직인 삼각형 90 장» 은 **거울/이미지소스 방식 솔버(Sionna PathSolver)의 정반사 조건을 진단하는 수**이지 우리 σ 를 설명하는 수가 아니다. 리포트에서 이 면적을 σ 서사의 근거로 쓰면 엔진을 섞는 것이다."
+  },
+  "other_aspects": {
+   "az45_el0": {
+    "n_tri": 2,
+    "area_cm2": 0.097,
+    "groups": [
+     "canopy"
+    ]
+   },
+   "az0_el-30": {
+    "n_tri": 0,
+    "area_cm2": 0.0
+   },
+   "az0_el-60": {
+    "n_tri": 0,
+    "area_cm2": 0.0
+   },
+   "az0_el-90": {
+    "n_tri": 360,
+    "area_cm2": 306.19,
+    "by_group_cm2": {
+     "battery": 184.147,
+     "pcb": 49.848,
+     "camera": 34.994,
+     "prop": 16.306,
+     "canopy": 12.503,
+     "motor": 6.893,
+     "accent": 1.5
+    }
+   },
+   "reading": "el −30·−60 에서 수직 삼각형이 **정확히 0** 인 것이 위 판정을 뒷받침한다."
+  },
+  "position_and_size_check": {
+   "battery_front_face_x_mm": 69.84,
+   "cad_battery_bay_front_x_mm": 70.1,
+   "delta_mm": 0.26,
+   "published_size_mm": [
+    145.47,
+    60.6,
+    46.3
+   ],
+   "mesh_size_mm": [
+    145.47,
+    60.6,
+    46.29
+   ],
+   "verdict": "matrice4e 배터리의 **치수와 앞뒤 위치는 맞다**(공표 제원 그대로, CAD 베이와 0.26 mm)."
+  },
+  "gamma_weighted_forward_budget_az0_el0": {
+   "note": "조명면 투영면적[cm²] × |Γ| (코히런트 아님 — 위상 다 맞았을 때의 상한 배분)",
+   "lit_projected_area_cm2_total": 422.18,
+   "shares_pct": {
+    "plastic_shell+canopy+gear": 38.6,
+    "camera(gimbal)": 24.7,
+    "internal_metal+motor": 27.7,
+    "prop": 8.9
+   },
+   "reading": "정면에서 내부 금속의 몫은 **약 1/4~1/3** 이지 «전부» 가 아니다."
+  }
+ },
+ "containment": {
+  "question": "«내부» 금속 산란체가 정말 플라스틱 셸 **안**에 있나",
+  "why_it_matters": "우리 기본 엔진 SBR 은 **셸을 맞은 광선만** 내부를 τ=1−|Γ_shell|²=0.9216 로 가중해 코히런트로 더한다(rcs_sbr.rcs_sbr_batch 의 penetrate 분기). 노출된 금속은 그 관문을 건너뛰고 **first-hit 금속**이 되어 |Γ|=0.9998 로 잡히고, 그 뒤에 있던 내부 기여는 아예 사라진다. 순수 PO 는 가림이 없어 두 경우를 **구별조차 못 한다** — 그래서 이 결함은 σ 숫자만 보고는 절대 안 보인다.",
+  "method": [
+   "상자 6면을 0.5 mm 격자로 훑어 body 그룹(=셸+셸형 암, 불리언 union) 안/밖 판정",
+   "독립 교차검증: trimesh.section 으로 x 스테이션마다 셸 단면을 직접 잘라 대조 (contains() 와 **다른 코드 경로**)",
+   "⛔ trimesh.split(repair=True) 은 쓰지 않았다 — 검사기가 «방금 수리한 사본» 을 보는 것을 막기 위해(docs/MESH_AUDIT_0816.md C1)"
+  ],
+  "matrice4e": {
+   "battery_pack_145x61x46": {
+    "surface_cm2": 367.11,
+    "outside_cm2_total": 41.26,
+    "outside_cm2_excluding_design_skin": 21.09,
+    "outside_frac_counted": 0.057,
+    "max_protrusion_mm": 7.13,
+    "per_face_outside_cm2": {
+     "tail(-x)": 20.17,
+     "nose(+x)": 2.23,
+     "left(-y)": 5.16,
+     "right(+y)": 5.16,
+     "belly(-z)": 5.51,
+     "top(+z)": 3.03
+    },
+    "reading": "뒷면 20.17 cm²(71.9 %)는 **설계상 맞다** — 실물 M4E 배터리 후면이 곧 기체 꼬리 외피다(제품 후면 사진의 전원버튼·잔량 LED 4칸이 그 면). 문제는 나머지 21.09 cm² 가 셸 옆·배·코로 최대 7.13 mm **새어 나간다**는 것.",
+    "severity": "중요"
+   },
+   "structural_plate_142x67.6x7.1": {
+    "surface_cm2": 221.74,
+    "outside_cm2_total": 112.59,
+    "outside_frac_counted": 0.508,
+    "max_protrusion_mm": 21.26,
+    "per_face_outside_cm2": {
+     "tail(-x)": 4.8,
+     "nose(+x)": 4.8,
+     "left(-y)": 9.07,
+     "right(+y)": 9.05,
+     "belly(-z)": 54.36,
+     "top(+z)": 30.51
+    },
+    "independent_cross_section_check": {
+     "method": "trimesh.section — 셸 단면을 x 스테이션마다 직접 절단",
+     "shell_z_at_y0_mm": {
+      "x=-75": [
+       -10.29,
+       36.65
+      ],
+      "x=-60": [
+       -19.73,
+       50.82
+      ],
+      "x=-40": [
+       -26.82,
+       59.09
+      ],
+      "x=0": [
+       -34.68,
+       64.72
+      ],
+      "x=+40": [
+       -21.99,
+       66.45
+      ],
+      "x=+60": [
+       -8.71,
+       68.27
+      ]
+     },
+     "shell_halfwidth_at_z_minus22_mm": {
+      "x=-75": 0.0,
+      "x=-60": 12.94,
+      "x=-40": 28.0,
+      "x=0": 34.77,
+      "x=+40": 25.56,
+      "x=+60": 0.0
+     },
+     "plate_needs_halfwidth_mm": 33.8,
+     "plate_z_range_mm": [
+      -25.55,
+      -18.45
+     ],
+     "verdict": "두 방법이 일치한다 — x=−75·+60 에서 셸은 z=−22 자리에 **존재하지 않는다**. 판의 코·꼬리 면은 100 % 자유공간에 떠 있다."
+    },
+    "largest_box_that_fits_mm": [
+     69.6,
+     33.1,
+     7.1
+    ],
+    "shrink_factor_needed": 0.49,
+    "reading": "142 × 67.6 mm 금속판의 **절반(112.58 cm², 50.8 %)이 플라스틱 셸 밖**이다. 즉 저앙각·나디르에서 우리 matrice4e 는 배 밑에 **맨 금속판**을 달고 있다. 이 상자는 원래도 실측이 아니라 «옛 비율상자 크기를 정정된 셸 안으로 옮기기만 한» 엔진 손잡이다(outputs/meshfix_matrice4e.json F12 가 스스로 그렇게 선언한다) — 그 이설이 셸 형상과 맞물리는지는 검사된 적이 없다.",
+    "severity": "치명"
+   },
+   "pcb_93x53.6x5": {
+    "surface_cm2": 114.35,
+    "outside_cm2": 0.0,
+    "reading": "완전히 안에 있다 — 문제 없음(확인됨).",
+    "severity": "무해(확인됨)"
+   }
+  },
+  "fleet": {
+   "verdicts": {
+    "PASS": [
+     "mavic4pro",
+     "phantom4"
+    ],
+    "FAIL": [
+     "matrice4e",
+     "mini5pro",
+     "typhoonh480",
+     "phantom3",
+     "m350rtk"
+    ],
+    "N/A(열린 프레임·설계상 노출)": [
+     "s1000plus",
+     "x500v2"
+    ],
+    "UNKNOWN(셸이 수밀이 아니라 판정 불가)": [
+     "mini2"
+    ]
+   },
+   "exposed_internal_metal_cm2": {
+    "typhoonh480": 229.23,
+    "matrice4e": 133.67,
+    "phantom3": 108.79,
+    "m350rtk": 78.27,
+    "mini5pro": 1.4,
+    "mavic4pro": 0.0,
+    "phantom4": 0.0
+   },
+   "exposed_frac_of_internal_surface": {
+    "typhoonh480": 0.361,
+    "matrice4e": 0.19,
+    "phantom3": 0.182,
+    "m350rtk": 0.034,
+    "mini5pro": 0.005
+   },
+   "mini2_note": "mini2 는 body 가 삼각형 1장 모자라 수밀이 아니다(감사 I5) → 안/밖이 정의되지 않는다. 검사기는 0 이 아니라 **UNKNOWN** 을 낸다 — «수밀 필터를 건 검사는 깨끗함이 아니라 못 봄을 0 으로 보고한다» 는 교훈을 그대로 넣었다.",
+   "reading": "셸형 8기체 중 **5기체**가 내부 금속을 셸 밖으로 내밀고 있고, 1기체는 검사조차 안 된다."
+  },
+  "sigma_cost_measured": {
+   "engine": "순수 PO, 방위평균, fc 3.5 GHz",
+   "matrice4e_baseline_dbsm": {
+    "el0": -16.003,
+    "el-30": -21.201,
+    "el-60": -19.564,
+    "el-80": -12.759
+   },
+   "remove_the_plate_delta_db": {
+    "el0": -0.634,
+    "el-30": 0.958,
+    "el-60": -0.237,
+    "el-80": 0.533
+   },
+   "shrink_plate_to_100x50x7_delta_db": {
+    "el0": -0.504,
+    "el-30": 1.107,
+    "el-60": 0.118
+   },
+   "reading": "판을 빼거나 셸 안에 들어가게 줄이면 방위평균 σ 가 **0.2~1.1 dB** 움직인다. 부호가 밴드마다 뒤집히는 것은 코히런트 간섭이라 그렇다 — «기여» 가 아니라 «흔들림» 으로 읽어야 한다. ⚠ PO 는 노출 여부를 못 보므로 이 수치는 **기하 변경분만**이다. 노출→가림 전환이 SBR 에서 얼마인지는 GPU 금지로 **못 쟀다**."
+  }
+ },
+ "cooling_blower": {
+  "question": "meshfix_matrice4e.json 이 «우리 메쉬에 아예 없는 금속 덩어리» 라 적은 냉각 블로어 — 넣어야 하나",
+  "what_it_is": "원심 블로어(플라스틱 하우징 + 임펠러) + 핀 히트싱크(알루미늄) 일체 모듈. 사진 t04 에 단품이, t02·t03 에 장착 상태가 있다.",
+  "size_and_position": {
+   "verdict": "⛔ **못 잰다 — 모른다.**",
+   "why": [
+    "공식 STEP 은 **외장 모델**이라 블로어·메인보드가 아예 없다(meshfix_matrice4e.json scale_check.props_in_cad=false 와 같은 성격).",
+    "분해 프레임 t02/t03/t04 는 손으로 든 채 찍혔고 **축척 앵커가 없다**. 후보 앵커 두 개가 서로 어긋난다 — 모터 벨 27 mm 로 잡으면 0.19 mm/px, «보이는 베이 = 셸 길이 234.6 mm» 로 잡으면 0.31 mm/px (1.6 배 차).",
+    "게다가 t03 에서 모터 상면 원판이 **가로:세로 = 1 : 0.43** 으로 찍혔다 ⇒ 시선이 나디르에서 약 64° 기울어져 있다. 정사영이 아니므로 한 축의 축척을 다른 축에 쓸 수 없다."
+   ],
+   "what_i_can_say_scale_free": {
+    "note": "같은 이미지 축을 따라 잰 **비**라 단축(foreshortening)이 약분된다. 판독 오차 ±4~7 %.",
+    "blower_disc_over_board_width": 0.491,
+    "shield_can_over_board_width": 0.632,
+    "shield_can_over_board_length": 0.562,
+    "bound": "셸 최대 외폭이 93.6 mm 이므로 메인보드 폭은 55~80 mm 안이다 ⇒ 블로어 하우징 지름 **27~39 mm**. 모듈(블로어+히트싱크) 발자국은 그보다 크지만 상한은 못 좁혔다."
+   }
+  },
+  "rf_estimate_measured": {
+   "method": "**어림이 아니라 커널 측정**이다. 셸 안 빈 자리에 통짜 금속 상자를 넣고 PO 로 σ 를 다시 쟀다(최악 가정: 전부 금속). 크기 3종.",
+   "delta_db_azimuth_mean": {
+    "blower_30x30x12": {
+     "el0": 0.147,
+     "el-30": 0.287,
+     "el-60": -0.089
+    },
+    "blower_45x40x15": {
+     "el0": 0.143,
+     "el-30": 0.172,
+     "el-60": 0.369,
+     "el-80": -0.913
+    },
+    "blower_80x50x20_generous": {
+     "el0": -0.098,
+     "el-30": 0.13,
+     "el-60": 1.258,
+     "el-80": -0.013
+    }
+   },
+   "reference_bands": {
+    "grid_ladder_dispersion_DC_db": 6.613,
+    "grid_ladder_dispersion_AC_db": 3.861,
+    "repo_stated_rcs_uncertainty_db": "±2~3",
+    "source": "docs/MESH_AUDIT_0816.md ③ · outputs/grid_convergence_check.json"
+   }
+  },
+  "verdict": {
+   "decision": "⛔ **지금 넣지 않는다.** 선언으로 남긴다.",
+   "reasons": [
+    "일부러 **후하게 잡은 80×50×20 mm 통짜 금속**도 방위평균 σ 를 el0/−30 에서 0.15 dB 안, 최악 밴드(el−60)에서도 1.26 dB 밖에 못 움직인다 — 우리 자신의 격자 산포 밴드(3.9~6.6 dB) 와 공표 불확실도(±2~3 dB) 아래다.",
+    "그 1.26 dB 조차 **상한이다**: PO 는 가림이 없어 셸 안 부품을 전부 세고, 실물 모듈은 통짜 금속이 아니라 플라스틱 하우징 + 핀 히트싱크이며, SBR 에서는 메인보드 차폐캔 뒤에 가린다.",
+    "치수를 정직하게 못 잰다 — 넣으면 **측정이 아니라 창작**을 메쉬에 박는 것이 된다.",
+    "⭐우선순위: 같은 라운드에서 튀어나온 구조판(0.2~1.1 dB, 게다가 노출 결함)과 mini5pro 배터리 공표치수(최대 6.2 dB)가 훨씬 크다."
+   ],
+   "if_it_is_ever_added": [
+    "⛔ 핀을 핀으로 짓지 말 것 — 순수 PO 는 가림이 없어 **핀 15장이면 15장을 다 센다**. 반드시 **등가 통짜 블록**으로 넣는다.",
+    "그룹은 'battery'(=ITU metal) 가 아니라 별도 그룹이 맞다 — 지금 'battery' 는 gazebo_export 의 질량 배분에도 쓰인다."
+   ]
+  }
+ },
+ "landing_gear_antennas": {
+  "question": "매뉴얼이 명시한 «다리 내장 안테나» — 유전체 다리 안의 금속. 넣어야 하나",
+  "evidence": {
+   "matrice4e": "DJI Matrice 4 Series User Manual 기체 도해 항목 11 «Landing Gears (Built-in antennas)»",
+   "mini5pro": "안테나 4개 2T4R 착륙다리 내장 (O4+ 2.4/5.1/5.8 GHz) — 매뉴얼 p.86-87 대조 기록",
+   "mavic4pro": "«다리 안에 영상전송/제어 안테나 내장, 총 6안테나 2T4R»",
+   "repo_copy": "docs/drone_specs_2026.json (원문 대조 절이 «RCS/편파 모델링 시 이 4개의 다리는 유전체 껍질 안의 금속 안테나로 취급해야 한다» 고 이미 적어 두었다)"
+  },
+  "current_mesh_state": {
+   "group": "gear",
+   "material": "plastic",
+   "gamma_po": 0.28,
+   "geometry": "속 찬 원뿔 4개 (matrice4e 표면적 97.19 cm²)",
+   "metal_inside": "없음"
+  },
+  "rf_estimate": {
+   "structural_scattering": {
+    "assumption": "인쇄 모노폴/PIFA 1개 ≈ 30 × 8 mm 구리 = 2.4 cm²",
+    "single_plate_broadside_dbsm": -40.1,
+    "four_incoherent_dbsm": -34.1,
+    "airframe_total_dbsm": {
+     "el0": -16.0,
+     "el-30": -21.2
+    },
+    "margin_db": "13~18 dB 아래 ⇒ 총 σ 에 +0.1~+0.3 dB",
+    "verdict": "수동 금속으로만 보면 **무시 가능**"
+   },
+   "antenna_mode_caveat": {
+    "what": "안테나는 **공진하고 부하가 걸린** 산란체라 일반 금속조각과 다르다. 공진 λ/2 다이폴은 자기 대역에서 σ ≈ 0.86 λ² 급까지 간다.",
+    "why_it_still_does_not_bite_here": [
+     "이 안테나들의 공진은 2.4 / 5.1 / 5.8 GHz 다. 우리 기준 밴드 3.5 GHz 에서 2.4 GHz λ/4 모노폴(31 mm)은 0.36 λ, 5.8 GHz 용(12.9 mm)은 0.15 λ — 둘 다 비공진.",
+     "안테나 모드 산란은 수신단 부하에 달렸고, 우리 PO·SBR 커널은 **부하 걸린 공진 도선을 표현할 수 없다**(선형 안테나/MoM 모델이 필요하다)."
+    ],
+    "where_it_would_bite": "⚠ 조명원을 **2.4 GHz 대역**으로 옮기는 팔에서는 이 가정이 약해진다. 그 팔을 돌릴 때 반드시 이 항목을 다시 볼 것."
+   }
+  },
+  "engine_gotcha_if_ever_modelled": "⚠ 지금 넣어도 **SBR 은 못 본다.** rcs_sbr 의 유전체 셸 집합은 `_DIELECTRIC_SHELLS = {'body','canopy'}` 뿐이라 `gear`(다리)는 **불투명 취급**이다 — 다리 안에 금속을 넣으면 광선이 다리 표면에서 멈추고 안쪽은 τ 관문을 못 통과한다. 넣으려면 gear 를 shell_groups 에 추가해야 하는데(플라스틱 |Γ|=0.28 이라 SHELL_GAMMA_MAX=0.5 검사는 통과한다), 그러면 **다리가 가림을 안 하게 되어** 다른 축이 흔들린다. 즉 이 항목은 «상자 하나 추가» 가 아니라 엔진 규약 변경이다.",
+  "verdict": "⛔ **모델링하지 않는다 — 선언으로 남긴다.** 3.5 GHz 에서는 수동 금속으로도 공진체로도 우리 σ 를 못 움직이고, 공진 축은 우리 커널의 표현 범위 밖이다. 2.4 GHz 팔에는 «다리 안테나 미반영» 단서를 붙일 것."
+ },
+ "published_vs_mesh": {
+  "method": "축을 크기순으로 정렬해 비교한다(상자 방향이 다를 수 있어서). 최대면 dB 는 평판극한 σ∝A².",
+  "matrice4e": {
+   "published_mm": [
+    145.47,
+    60.6,
+    46.3
+   ],
+   "mass_g": 400,
+   "wh": 99.5,
+   "source": "DJI Matrice 4 Series User Manual v1.2 p.103 · C2 표 (BPX345-6741-14.76)",
+   "mesh_mm": [
+    145.47,
+    60.6,
+    46.29
+   ],
+   "err_pct": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "verdict": "✅ **정확히 일치**. 치수 축은 손댈 것이 없다."
+  },
+  "mini5pro": {
+   "published_mm": [
+    86.1,
+    54.89,
+    24.85
+   ],
+   "mass_g": 71.2,
+   "wh": 19.52,
+   "source": "DJI Mini 5 Pro User Manual p.86-87 · DJI 스펙 페이지 (저장소가 원문 대조까지 마친 값)",
+   "mesh_mm": [
+    68.98,
+    45.95,
+    32.17
+   ],
+   "err_pct_sorted_axes": [
+    -19.9,
+    -16.3,
+    29.5
+   ],
+   "volume_ratio": 0.868,
+   "largest_face_ratio": 0.671,
+   "largest_face_db": -3.47,
+   "why": "mini5pro 는 drone_cad.INTERNALS 표에 **없어서** 공용 비율상자 경로를 탄다 (bl·0.50, bw·0.62, bh·0.55). 즉 이 기체의 최대 산란체가 형상 비율 추측이다.",
+   "sigma_cost_measured": {
+    "baseline_dbsm": {
+     "el0": -19.488,
+     "el-30": -22.682,
+     "el-60": -23.478,
+     "el-80": -22.85
+    },
+    "swap_to_published_box_same_place_delta_db": {
+     "el0": -1.172,
+     "el-30": 0.533,
+     "el-60": 0.362,
+     "el-80": 6.176
+    },
+    "also_move_to_rear_top_delta_db": {
+     "el0": -1.348,
+     "el-30": 0.183,
+     "el-60": 2.946,
+     "el-80": 11.309
+    },
+    "caveat": "«rear_top» 자리(−30, 0, +14)는 실물 서술(«윗면 뒤쪽 절반이 배터리 상면»)에서 **내가 고른 값**이지 측정이 아니다. 인용은 same_place 쪽(+6.18 dB @ el−80)으로 할 것."
+   },
+   "severity": "치명",
+   "verdict": "⭐**이 라운드에서 가장 큰 실행가능 dB.** 실측 표적 1순위인 Mini 5 Pro 의 배터리가 공표 치수와 −20 %/−16 %/+30 % 어긋나 있고, 나디르 밴드(el−80) σ 가 **6.2 dB** 달라진다. 공표값이 저장소 안에 이미 원문 대조까지 끝난 채로 있다."
+  },
+  "mavic4pro": {
+   "published_mm": null,
+   "mass_g": 332,
+   "wh": 95.3,
+   "source": "DJI 는 Mavic 4 Pro 배터리 **외형치수를 공개하지 않는다**(에너지·질량만).",
+   "mesh_mm": [
+    101.99,
+    73.21,
+    46.19
+   ],
+   "verdict": "치수 대조 불가 — **모른다**. 다만 **자리**는 성격이 다르다: 실물은 «동체 뒤쪽 윗면 절반이 배터리 껍데기» 인 등짐형인데 우리 상자는 중심 z=+1.7 mm(중간 높이)에 있다. 부피만은 자기일관적이다(95.3 Wh / 345 cm³ = 276 Wh/L, matrice4e 244 Wh/L 와 같은 급).",
+   "severity": "중요"
+  }
+ },
+ "battery_material": {
+  "question": "배터리 팩 **외피 전체**를 ITU metal(|Γ|=0.9998)로 두는 것이 맞나",
+  "current": "DRONE_GROUP_MAT['battery'] = 'metal' — 상자 6면 전부 |Γ|=0.99980",
+  "reality": "실물 팩은 **플라스틱 케이스 + 그 안의 셀 스택**이다. 전파를 되쏘는 것은 셀의 알루미늄 라미네이트/캔이지 케이스 바깥면이 아니다.",
+  "how_much_smaller_is_the_metal": {
+   "method": "질량·에너지 밀도로 셀 스택 부피를 **역산**한다(측정 아님 — 가정 명시).",
+   "assumptions": [
+    "고에너지 파우치 셀 체적 에너지밀도 600~700 Wh/L",
+    "셀 밀도 2.2~2.5 g/cm³"
+   ],
+   "matrice4e": {
+    "envelope_cm3": 408.1,
+    "pack_mass_g": 400,
+    "pack_density_g_cm3": 0.98,
+    "cell_volume_cm3_est": [
+     142,
+     166
+    ],
+    "cell_share_of_envelope": [
+     0.35,
+     0.41
+    ]
+   },
+   "mini5pro": {
+    "envelope_cm3": 117.4,
+    "pack_mass_g": 71.2,
+    "pack_density_g_cm3": 0.606,
+    "cell_volume_cm3_est": [
+     28,
+     33
+    ],
+    "cell_share_of_envelope": [
+     0.24,
+     0.28
+    ]
+   },
+   "caveat": "⚠ 이것은 **추정이다**. 셀 포맷·화학을 DJI 가 공개하지 않는다. 다만 팩 밀도가 0.6~1.0 g/cm³ 로 셀 밀도의 절반 이하라는 것 자체가 «상당한 공동» 을 말해 준다."
+  },
+  "sigma_cost_measured": {
+   "engine": "순수 PO, 방위평균",
+   "matrice4e_baseline_dbsm": {
+    "el0": -16.003,
+    "el-30": -21.201,
+    "el-60": -19.564,
+    "el-80": -12.759
+   },
+   "inset_3mm_walls_139.5x54.6x40.3_delta_db": {
+    "el0": -1.308,
+    "el-30": -1.134,
+    "el-60": -0.611
+   },
+   "cell_stack_136x52x25_delta_db": {
+    "el0": -2.932,
+    "el-30": -1.09,
+    "el-60": -0.662,
+    "el-80": -1.807
+   },
+   "cell_stack_130x50x22_delta_db": {
+    "el0": -3.418,
+    "el-30": -1.566,
+    "el-60": -0.855,
+    "el-80": -1.003
+   },
+   "reading": "«팩 외피 = 통짜 금속» 가정의 값은 **1.1~3.4 dB 과대** 쪽이다. 정면(el0)에서 가장 크다 — 정면 거울의 절반이 배터리 앞면이기 때문."
+  },
+  "verdict": "⚠ **미해결로 선언한다.** 지금 고치지 않는 이유: 셀 스택의 실제 치수가 1차 출처 0 이고, 추정으로 줄이면 «측정 아닌 값» 을 또 하나 심는다. 대신 **모든 절대 σ 인용에 «배터리는 팩 외피 전체를 금속으로 본 값(상한 쪽 1~3 dB)» 단서를 붙일 것.**",
+  "severity": "중요"
+ },
+ "verified_ok": {
+  "matrice4e_battery_dimensions": "공표 145.47×60.6×46.3 을 메쉬가 그대로 낸다(오차 0.00 %).",
+  "matrice4e_battery_fore_aft_position": "팩 앞면 x=+69.84 ↔ CAD 배터리 베이 앞끝 +70.10 (0.26 mm).",
+  "matrice4e_pcb_containment": "메인보드 상자 93×53.6×5 는 셸 안에 **완전히** 들어 있다(밖 0.00 cm²).",
+  "mavic4pro_and_phantom4_containment": "두 기체는 내부 금속이 100 % 셸 안이다(밖 0.00 cm²).",
+  "motors": "모터 4개 = 지름 27.0 mm · 높이 16.3 mm 금속 원통. CAD 실측(지름 26.9, 높이 16.53/16.13)과 0.4 %/1.4 % 안 — meshfix F14 로 이미 정정돼 있다. 표면적 79.23 cm². **손댈 것 없다.**",
+  "internal_boxes_are_watertight": "battery·pcb 상자는 전부 수밀이고 중복면·퇴화면 0.",
+  "pcb_material": "pcb 그룹 |Γ|=0.80(=FR-4 위 구리 그라운드플레인의 실효값). 분해사진 t06·t07 의 메인보드가 실제로 **차폐캔으로 거의 전면을 덮은** 보드라 «구리면이 지배» 라는 재질 서술과 어긋나지 않는다.",
+  "sigma_insensitivity_to_box_alignment": "내부 상자를 3° 기울여도 방위평균 σ 는 0.29 dB 안(el0 0.001 dB)."
+ },
+ "fix_spec_not_applied": {
+  "why_not_applied": "이 라운드의 규약이 «코드 기본 동작 변경 금지» 이고, INTERNALS 를 고치면 모든 하류 σ 가 조용히 바뀐다(측정치로 0.2~1.1 dB). 게다가 같은 파일(src/drone_cad.py)을 프로펠러 라운드가 동시에 만지고 있어 동시편집 위험이 있다. 그래서 **명세만 남기고 적용은 재계산 층이 순서대로** 한다.",
+  "apply_order": [
+   "1) 검사기부터 배선 — benchmark/mesh_internal_metal_check.py 를 회귀 게이트에 넣는다. 안 그러면 고쳐도 «되었는지» 확인할 방법이 없다(감사 0층 원칙).",
+   "2) N1 (matrice4e 구조판) — 가장 큰 기하 결함.",
+   "3) N2 (mini5pro 배터리 공표치수) — 가장 큰 dB.",
+   "4) 그 뒤에 σ 재계산. ⭐이 두 건은 report_mesh 의 재질·σ 절 수치를 바꾼다."
+  ],
+  "N1": {
+   "target": "src/drone_cad.py INTERNALS['matrice4e'] 세 번째 항목 (구조판)",
+   "old": [
+    "battery",
+    [
+     142.0,
+     67.6,
+     7.1
+    ],
+    [
+     -2.9,
+     0.0,
+     -22.0
+    ]
+   ],
+   "problem": "표면의 48.6 %(112.6 cm²)가 셸 밖, 최대 21.26 mm 돌출. 코·꼬리 면은 100 % 자유공간.",
+   "measured_max_fit_mm": [
+    69.6,
+    33.1,
+    7.1
+   ],
+   "recommended": "셸 안에 들어가는 크기로 줄이거나(중심 유지 시 최대 69.6 × 33.1 × 7.1), z 를 올려(−22 → −14 근처) 셸 단면이 넓은 자리로 옮길 것. ⭐어느 쪽이든 **적용 후 mesh_internal_metal_check 를 다시 돌려 PASS 를 확인**한다.",
+   "expected_sigma_shift_db": "0.2~1.1 (방위평균, 밴드에 따라 부호가 바뀜) — PO 실측",
+   "honesty_note": "이 상자는 애초에 실측이 아니다. meshfix F12 가 «치수는 측정하지 않았다 … 리포트에 실측으로 적으면 안 된다» 고 스스로 선언한 엔진 손잡이다."
+  },
+  "N2": {
+   "target": "src/drone_cad.py INTERNALS 에 'mini5pro' 항목 신설",
+   "recommended_battery_mm": {
+    "size": [
+     86.1,
+     54.89,
+     24.85
+    ],
+    "source": "DJI Mini 5 Pro User Manual p.86-87(저장소 원문 대조 완료)"
+   },
+   "position": "⚠ **미정** — 실물은 «윗면 뒤쪽 절반이 배터리 상면» 인 등짐형이라 뒤·위로 가야 하는데, 정확한 x·z 는 이 라운드가 못 정했다. 자리를 정하기 전에 mini5pro 셸 단면과 맞물리는지 검사기로 확인할 것.",
+   "expected_sigma_shift_db": "el−80 +6.2 (자리 그대로 교체 시) · el0 −1.2 — PO 실측"
+  },
+  "N3": {
+   "target": "matrice4e 배터리 팩의 옆·배·코 누출 21.09 cm²(최대 7.13 mm)",
+   "recommended": "팩을 xy 로 0.85 배(123.6 × 51.5 × 46.3) 하면 셸 안에 들어간다 — 그러나 그러면 **공표 치수를 버리게 된다.** 옳은 방향은 팩이 아니라 **셸 단면(hh/hw/zo)** 을 다시 보는 것이다(팩 치수는 공표값이 정본이니까). 이 라운드는 셸 축을 안 건드렸다.",
+   "severity": "중요 — 지금 고치지 말고 셸 라운드로 넘길 것"
+  },
+  "N4": {
+   "target": "typhoonh480(36.1 %) · phantom3(18.2 %) · m350rtk(3.4 %) 노출",
+   "recommended": "주력 표적 3종이 아니므로 이번 라운드 밖. 검사기가 이제 잡으니 목록만 넘긴다."
+  }
+ },
+ "not_settled": [
+  "냉각 블로어의 **절대 치수·위치** — CAD 에 없고 분해사진에 축척 앵커가 없다. 비(ratio)만 남겼다.",
+  "메인보드·차폐캔의 **절대 치수** — 같은 이유. 현재 pcb 상자 93×53.6×5 는 옛 비율상자를 옮긴 값이지 측정이 아니다(meshfix F12 가 그렇게 선언한다).",
+  "배터리 **셀 스택**의 실제 치수 — 1차 출처 0. 질량·에너지 밀도 역산(35~41 %)은 추정이다.",
+  "노출된 금속이 **SBR** 에서 얼마인지 — GPU 금지로 못 쟀다. 메커니즘(τ 관문을 건너뛴다)만 기록.",
+  "mavic4pro 배터리 **외형치수** — DJI 미공개.",
+  "mini5pro 배터리의 **정확한 자리** — 실물 서술(등짐형)만 있고 치수 기입 도면이 없다.",
+  "mini2 는 셸이 수밀이 아니라 봉인 검사 자체가 **불가**(감사 I5 가 먼저다).",
+  "다리 안테나의 **공진 산란** — 우리 커널의 표현 범위 밖(부하 걸린 도선). 2.4 GHz 팔에서 재검토."
+ ],
+ "one_line": "치수는 matrice4e 만 정확하고(공표값 그대로), **문제는 치수가 아니라 «어디에 있는가»** 였다 — 셸형 8기체 중 5기체가 내부 금속을 플라스틱 셸 밖으로 내밀고 있고 matrice4e 구조판은 절반이 맨 금속으로 노출돼 있다. 반면 냉각 블로어는 후하게 잡아도 1.3 dB 이내라 지금 넣을 이유가 없고, 다리 안테나는 3.5 GHz 에서 13~18 dB 아래다."
+}

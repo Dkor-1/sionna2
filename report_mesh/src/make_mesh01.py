@@ -193,9 +193,9 @@ md(
 "(예: body / arm / motor / prop / absorber ...)에 속하는지 이름표를 답니다.",
 "```",
 "",
-"← 출처: `src/geom.py` 15~21행 모듈 docstring (그대로 인용).",
+"← 출처: `src/geom.py` 모듈 docstring (그대로 인용).",
 "실제 클래스도 딱 세 줄이다 — `.v`(꼭짓점), `.f`(삼각형 인덱스), `.g`(면별 그룹 이름)",
-"← 출처: `src/geom.py:41` `class Mesh` docstring."),
+"← 출처: `src/geom.py` `class Mesh` docstring."),
 
 # ── 5. §1.2 법선과 watertight ─────────────────────────────────────────────
 md(
@@ -237,7 +237,7 @@ f"{F.BODY['per_drone']['mini5pro']['wheelbase_mm']:.2f} mm 다. 로터가 정사
 "",
 "**근거 등급** — 형상이 어디서 왔는가:",
 "",
-*F.GRADE_LEGEND,
+*F.grade_legend(),
 "",
 "| 드론 | 등급 | 근거 |",
 "|---|---|---|",
@@ -255,7 +255,8 @@ md(
 f"- **{drone_label('mini5pro')}** — 실측 캠페인의 표적이다 ← 출처: `README.md` 실측 계획.",
 "  형상 근거는 사진 계측이고, **셸 높이의 1차 출처가 없다**는 한계를 그대로 안고 있다(§4.4).",
 f"- **{drone_label('matrice4e')}** — 공식 CAD 대조가 끝난 기체다. DJI Matrice 4T 공식 STEP 으로",
-f"  형상 상수 {n_fixes}건을 정정했고 {LAND['verdict'].split('.')[0]}이다.",
+f"  형상 상수 {n_fixes}건이 반영돼 있다 — **{LAND['verdict'].split('.')[0].strip('*')}**"
+f"(정정 명세 대비 착지 검증).",
 "  ← 출처: `outputs/mesh_inspect_body_arms_0816.json` `meshfix_matrice4e_landed`.",
 "",
 "![wireframe mini5pro](outputs/figures/wireframe_mini5pro.png)",
@@ -309,7 +310,7 @@ f"(≈{10**(db_batt_vs_body/10):.0f}배) 차이다",
 
 # ── 9. §2.1 공식 CAD 는 어디까지 있나 ─────────────────────────────────────
 md(
-"### 2.1 공식 CAD 는 어디까지 있나 — 두 기체는 있고 나머지는 없다",
+"### 2.1 공식 CAD 는 어디까지 있나 — 세 기체는 있고 나머지는 없다",
 "",
 "«제조사가 CAD 를 공개하지 않는다» 는 **기체마다 다르다.** 지금 저장소가 가진 것:",
 "",
@@ -318,7 +319,8 @@ md(
 "| `assets/meshes/reference/matrice4-M4T_v2.step` | DJI **Matrice 4T** 공식 STEP | "
 "폭 387.501 ↔ 공표 387.5 mm |",
 "| `assets/meshes/reference/WM161_zhankai_1k.glb` | DJI **Mini 2** 공식 3D(펼침) | "
-f"bbox {MINI2.get('cad_grade','')} — 셸 스테이션이 GLB 와 0.5 % 안 |",
+f"축간거리 {MINI2['wheelbase_mm']:.2f} ↔ 공표 {MINI2['diagonal_spec_mm']:g} mm "
+f"({(MINI2['wheelbase_mm'] / MINI2['diagonal_spec_mm'] - 1) * 100:+.2f} %) |",
 "| `assets/meshes/reference/x500v2-frame.step` | Holybro **X500 v2** 공식 프레임 STEP | "
 "암 단면 16.0×16.0 mm 재현 |",
 "",
@@ -338,7 +340,7 @@ f"bbox {MINI2.get('cad_grade','')} — 셸 스테이션이 GLB 와 0.5 % 안 |",
 "매다는 자리(크래들·댐핑플레이트)만 공용이라 **위치는** 써도 된다 |",
 "| 내부 기판·배터리 | CAD 는 외장 모델이라 애초에 없다 | — |",
 "",
-"**나머지 7종에는 공식 CAD 가 없다.** Mavic 4 Pro 도 없다 — 그래서 그 기체의 암 폭은",
+"**나머지 7종에는 제조사 공식 CAD 가 없다.** Mavic 4 Pro 도 없다 — 그래서 그 기체의 암 폭은",
 "Mini 5 Pro 실측을 크기비로 옮긴 값이고, 표에 **[C] 계열 유추**로 적혀 있다(§1.3).",
 "",
 "⚠ 남은 불확실: «4T 와 4E 의 기체가 공용» 이라는 것은 제원·매뉴얼 대조에서 나온 판단이고",

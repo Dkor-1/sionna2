@@ -39,6 +39,53 @@ from cadkit import (Assembly, loft, spline_sections, superellipse, rounded_rect,
 
 
 # --------------------------------------------------------------------------- #
+#  ⭐⭐ 2026-08-16 — 메쉬 결함 **수리 스위치** (감사 §⑤ 2층)
+# --------------------------------------------------------------------------- #
+#  규약(이 라운드의 핵심): **수리는 선택 인자로 넣고 기본은 끈다.**
+#    · 인자를 안 주면 전 기종 메쉬가 **비트동일**이다 — 기존 σ 원장·리포트가 안 낡는다.
+#    · 인자를 주면 형상이 실제로 바뀐다(그래서 비트동일이 깨진다). 그것이 **의도된 것**이며
+#      회귀 시험이 두 방향을 다 증명한다(benchmark/regress_mesh_fix_battery_0816.py).
+#  ⚠ 모르는 토큰은 **조용히 무시하지 않는다** — 즉시 ValueError.
+#    (이 저장소가 반복해서 물린 함정이 «조용한 폴백» 이다. materials._spec 와 같은 규약.)
+#  ⭐ 수리를 새로 추가하는 사람에게: 여기 토큰 한 줄 + 실제 수리 코드를 넣고,
+#    «기본 끔 · 인자 주면 켜짐» 두 방향을 시험으로 증명할 것.
+MESH_FIX_TOKENS = {
+    "battery_union": (
+        "'battery' 그룹의 부품들을 불리언 합집합으로 하나로 만든다. 셸형 공용 경로에서 "
+        "배터리 팩 상자와 v2 구조판 상자가 서로 파고들어(mini2 49.96 % · phantom4 49.46 % · "
+        "mavic4pro 48.12 % · mini5pro 47.89 %) 그 매몰면을 PO 가 이중계상한다 — PO 는 가림을 "
+        "안 보기 때문이다(rcs_po.py 가 스스로 선언). 치수는 **하나도 안 바꾼다**(기종별 실측 "
+        "치수가 없으므로 상자를 옮기는 것은 «지어내기» 다). 합집합은 겹친 자리의 내부 면만 없앤다."),
+}
+
+
+def normalize_mesh_fix(mesh_fix=None) -> frozenset:
+    """수리 스위치 정규화 — None/False(기본) → 빈 집합. 'a,b' · ('a','b') · 'all' 을 받는다.
+
+    반환은 frozenset 이라 캐시 키로 그대로 쓸 수 있다(drones.frame_fit_scale)."""
+    if mesh_fix is None or mesh_fix is False:
+        return frozenset()
+    if mesh_fix is True:
+        return frozenset(MESH_FIX_TOKENS)
+    toks = ([t for t in str(mesh_fix).replace(",", " ").split()]
+            if isinstance(mesh_fix, str) else [str(t).strip() for t in mesh_fix])
+    out = set()
+    for t in toks:
+        if not t:
+            continue
+        if t == "all":
+            out.update(MESH_FIX_TOKENS)
+            continue
+        if t not in MESH_FIX_TOKENS:
+            raise ValueError(
+                f"drone_cad: 모르는 mesh_fix 토큰 {t!r}. 아는 토큰 = "
+                f"{sorted(MESH_FIX_TOKENS)} (+ 'all'). ⛔오타를 조용히 무시하면 "
+                f"«수리를 켠 줄 알았는데 안 켜진» 결과가 원장에 들어간다.")
+        out.add(t)
+    return frozenset(out)
+
+
+# --------------------------------------------------------------------------- #
 #  공통 부품
 # --------------------------------------------------------------------------- #
 def _motor_bell(r, h, seg=36):
@@ -2070,10 +2117,15 @@ def _gear_motor_legs(r_motor, angs, z_arm, h, w, spread, taper=0.55, n_pts=16, n
 # --------------------------------------------------------------------------- #
 #  프레임 (프로펠러 제외) — 기종별
 # --------------------------------------------------------------------------- #
-def build_frame_cad(spec) -> "trimesh.Trimesh":
-    """geom.Mesh 로 반환 (기존 파이프라인 호환). 그룹 이름 보존."""
+def build_frame_cad(spec, mesh_fix=None) -> "trimesh.Trimesh":
+    """geom.Mesh 로 반환 (기존 파이프라인 호환). 그룹 이름 보존.
+
+    mesh_fix : ⭐선택 수리 스위치(기본 None = **끔** = 예전 메쉬와 비트동일).
+        토큰 목록·뜻은 `MESH_FIX_TOKENS`, 정규화는 `normalize_mesh_fix`.
+        예) build_frame_cad(spec, mesh_fix='battery_union')."""
     from drones import motor_angles, motor_radii, DRONE_GROUP_MAT   # 순환 import 회피용 지연
 
+    fix = normalize_mesh_fix(mesh_fix)
     key = spec.key
     diag = spec.diagonal_mm / 1000.0
     #  ⭐ 2026-07-31 — 로터 반경은 **drones.motor_radii 가 유일 출처**다. spec.rotor_r_mm 이 없으면
@@ -3006,9 +3058,27 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
     #  ⚠ 새 그룹을 추가하면 **여기에도** 넣어야 한다(등록 3곳 중 두 번째:
     #    drones.DRONE_GROUP_MAT · 이 목록 · gazebo_export.DENSITY).
     #    빠지면 겹친 파트의 내부 면이 남아 PO/SBR 이 헛센다 — 예외는 안 난다.
-    for g in ("body", "arm", "motor", "camera", "gear", "canopy", "accent",
-              "deck", "gear_cf", "fc"):
+    union_groups = ["body", "arm", "motor", "camera", "gear", "canopy", "accent",
+                    "deck", "gear_cf", "fc"]
+    #  ⭐⭐ 2026-08-16 (감사 §⑤ 2층 수리, 선택) — mesh_fix='battery_union' 일 때만 'battery' 를 더한다.
+    #    왜 기본이 아닌가: 형상이 실제로 바뀌므로(내부 면이 사라진다) 기존 σ 원장이 낡는다.
+    #    왜 상자를 옮기지 않고 합치는가: 기종별 실측 치수가 없다. 없는 치수를 지어내 상자를
+    #    옮기면 «임의로 옮긴 손잡이» 가 되지만, 합집합은 **치수를 하나도 안 바꾸고**
+    #    겹친 자리의 이중계상만 없앤다. 실측표를 받은 matrice4e·phantom3 은 애초에 안 겹치므로
+    #    합쳐도 상자 두 개가 그대로 남는다(면 24장 유지 — 이 수리는 그 둘을 안 건드린다).
+    if "battery_union" in fix:
+        union_groups.append("battery")
+    for g in union_groups:
         A.union_group(g)
+    #  ⚠ 조용한 실패 금지 — union_group 은 실패해도 «형상 그대로» 두고 경고만 남긴다(cadkit).
+    #    수리를 **명시적으로 켠** 호출에서 그 경고를 놓치면 «고쳤다고 믿는 안 고친 메쉬» 가
+    #    원장에 들어간다. 부품이 2개 이상 남아 있으면 합집합이 안 된 것이므로 여기서 죽인다.
+    if "battery_union" in fix and len(A.parts.get("battery", ())) > 1:
+        raise RuntimeError(
+            f"drone_cad.build_frame_cad(key={key!r}, mesh_fix='battery_union'): "
+            f"'battery' 합집합이 실패했다 — 부품 {len(A.parts['battery'])}개가 그대로 남았다. "
+            f"cadkit.Assembly.UNION_FAILURES 를 볼 것. (겹친 면이 PO 에서 이중계상된 채로 "
+            f"«수리됨» 이라고 원장에 실리는 것을 막는다.)")
 
     return A
 

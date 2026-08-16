@@ -121,8 +121,42 @@ RES_MM = re.search(r"([\d.]+)\s*mm 해상도", SOURCE_TXT).group(1)   # "0.4"
 CURL = re.search(r"(curl -LO \S+)", PREP_DOC).group(1)
 compress_x = float(STL_MB) / npz_mb
 
-# SOURCES.md 표(| 로 시작하는 줄)와 경고 블록
-SOURCES_TABLE = "\n".join(l for l in SOURCES_MD.splitlines() if l.startswith("|"))
+# SOURCES.md 의 표 — ⚠ «| 로 시작하는 줄» 을 통째로 모으면 서로 다른 표 다섯 개가 한 덩어리로
+#   붙어 분류 자체가 거짓이 된다. 그래서 **표 블록별로** 뽑는다.
+_SRC_HDR = "| 파일 | 실물 | 출처 | 라이선스 |"
+
+
+def sources_table(nth: int) -> str:
+    """`SOURCES.md` 의 nth(0-base) «파일|실물|출처|라이선스» 표를 그대로 발췌.
+
+    표 중간에 `>` 경고 블록이 끼어 있으므로 «다음 표 머리글까지» 를 경계로 삼는다.
+    """
+    lines = SOURCES_MD.splitlines()
+    starts = [i for i, l in enumerate(lines) if l.strip() == _SRC_HDR]
+    assert len(starts) > nth, f"SOURCES.md 에 표가 {len(starts)}개뿐이다 (nth={nth})"
+    out = []
+    for l in lines[starts[nth]:]:
+        if l.startswith("|"):
+            out.append(l)
+        elif l.strip() == "" or l.startswith(">"):
+            continue          # 표 사이의 빈 줄·경고 블록은 건너뛴다(같은 표의 일부다)
+        else:
+            break             # 산문·헤딩이 나오면 이 표는 끝났다 — 다음 표를 삼키지 않는다
+    return "\n".join(out)
+
+
+SOURCES_TABLE = sources_table(0)      # 로보틱스 저장소(Apache-2.0·BSD-3)
+SOURCES_TABLE_MFR = sources_table(1)  # 제조사 배포물(공개 라이선스 없음)
+
+# ---- 사진층(등급 [B] 의 실체) — 폴더를 세어서 적는다(손으로 안 적음) ----------------
+_PHOTO_ROOT = os.path.join(ROOT, "assets", "photos")
+PHOTO_DIRS = sorted(k for k in ORDER
+                    if os.path.isdir(os.path.join(_PHOTO_ROOT, k)))
+_PHOTO_CNT = {k: len([f for f in os.listdir(os.path.join(_PHOTO_ROOT, k))
+                      if not f.startswith(".")]) for k in PHOTO_DIRS}
+PHOTO_N = sum(_PHOTO_CNT.values())
+PHOTO_ROWS = [f"| {DRONES[k].name} | `assets/photos/{k}/` | {_PHOTO_CNT[k]} |"
+              for k in sorted(PHOTO_DIRS, key=lambda k: -_PHOTO_CNT[k])]
 Q_SOURCES_WARN = quote(SOURCES_MD, "⚠️ **제조사 공식 CAD 는",
                        "**채점 전용**입니다.")
 Q_SOURCES_UNIT = quote(SOURCES_MD, "**단위**: STL 은 mm 단위",
@@ -191,7 +225,7 @@ md("# mesh03 — 자료 수집: 모든 숫자와 모델은 어디서 왔나",
    "",
    "**형상 근거 등급** — 이 시리즈 공통 규약:",
    "",
-   *MF.GRADE_LEGEND,
+   *MF.grade_legend(self_is_mesh03=True),
    "",
    "| 드론 | 등급 | 근거 |",
    "|---|---|---|",
@@ -225,19 +259,29 @@ md("## 0. 왜 출처만 다루는 리포트가 따로 있나",
    "   '추정 ±20 mm' 로 명시한다 (덮어두지 않는다).",
    "3. **다운로드물은 라이선스와 함께 산다** — 저작자표시 의무를 파일 옆에 기록한다(§5).",
    "",
-   "이번 편에서 다루는 자료는 세 층이다:",
+   "이번 편에서 다루는 자료는 **네 층**이고, 층마다 «제작에 들어가나» 가 다르다:",
    "",
-   "| 층 | 자료 | 용도 | 출처 문서 |",
+   "| 층 | 자료 | 제작에 들어가나 | 출처 문서 |",
    "|---|---|---|---|",
-   f"| A | 제조사 공식 제원 ({len(ORDER)}기체: {', '.join(d[k].name for k in ORDER)}) "
-   "| **표적 메쉬 생성의 입력** | `docs/SPECS.md` + `docs/drone_research.json` |",
-   f"| B | Phantom 4 실기체 3D 스캔 ({RES_MM} mm 해상도) | 우리 메쉬 vs 실물 형상 검증(A/B) "
-   "| `assets/meshes/cad/SOURCE.txt` |",
-   "| C | 실물 CAD·커뮤니티 메쉬 (Typhoon H480 실물 CAD · 커뮤니티 M100/M600) | 방법론 교차검증(report03) "
-   "| `assets/meshes/reference/SOURCES.md` |",
+   f"| A | 제조사 공표 제원 ({len(ORDER)}기체) — 대각·외형 L×W×H·프롭 지름·무게 "
+   "| ✅ **전 기체의 출발점** | `docs/SPECS.md`(DJI 5종) + `docs/drone_research.json` + "
+   "`src/drones.py` 의 `note`(비-DJI 5종) |",
+   "| B | 제품사진·매뉴얼 도해 | ✅ **공표 숫자가 안 정하는 형상**(셸 비율·암 폭·다리·짐벌) "
+   "| `assets/photos/*` + `src/drones.py` note 의 픽셀 근거 |",
+   "| C | 제조사 공식 CAD 3종 (Matrice 4T STEP · Mini 2 GLB · X500 V2 STEP) "
+   "| ✅ **그 기체에 한해 형상 상수를 읽는다**(§3.2) | `assets/meshes/reference/SOURCES.md` |",
+   f"| D | Phantom 4 실기체 3D 스캔({RES_MM} mm) · 로보틱스 저장소의 실물 CAD "
+   "| ⛔ 스캔은 채점 전용 · ⏳ 참조 프로펠러는 날 법칙의 입력이었다 "
+   "| `assets/meshes/cad/SOURCE.txt` · `SOURCES.md` · `outputs/reference_props.json` |",
    "",
-   f"핵심 원칙을 미리 말하면: **표적 메쉬 {len(ORDER)}종은 A(공식 스펙)에서만 생성**하고, B·C 는",
-   "**검증에만** 쓴다. 이유는 §3.1 에서. ← 출처: `assets/meshes/reference/SOURCES.md` 마지막 문단",
+   "⭐ **핵심 원칙을 정확히 적으면 이렇다.** 표적 메쉬는 **공표 제원(A)에서 파라메트릭으로 생성**하고,",
+   "공표 숫자가 안 정하는 형상은 **사진(B)** 이 정하며, **공식 CAD 가 있는 기체에 한해 그 CAD(C)에서",
+   "형상 상수를 읽는다.** 나머지(D)는 채점 쪽이다 — 다만 **참조 프로펠러 3종은 날 법칙의 입력으로",
+   "제작에 들어갔다**(⏳ 그 법칙의 정본은 기체별 프로펠러 정본화 라운드다).",
+   "← 출처: `assets/meshes/reference/SOURCES.md` 머리말 · 본 편 §3.2.",
+   "",
+   "«전부 검증 전용» 이라고 쓰면 짧고 깔끔하지만 지금 상태와 다르다. 그 차이가 «독립 채점» 이라는",
+   "말의 무게를 정하므로, 이 편은 층마다 위 열을 붙여 둔다.",
    ),
 
 # 3 ── §1 공식 제원: 2단계 구조 ----------------------------------------------------
@@ -262,7 +306,7 @@ md("## 1. DJI 공식 제원 — 조사 → 독립검증의 2단계",
    "`docs/drone_research.json` 은 이 두 단계의 **원자료**다: 기체당 `{research: {...}, verify:",
    "{...}}` 두 블록이 있고, `SPECS.md` 는 그걸 사람이 읽게 요약한 문서다. 코드가 실제로 쓰는 값은",
    "`src/drones.py` 의 `DroneSpec`(기체당 하나)에 옮겨져 있으며, 조사값과 다르게 채택한 경우",
-   "그 이유를 `note` 필드에 남겼다(§1.2). ← 출처: `docs/drone_research.json` 구조 · `src/drones.py:37`(DroneSpec 정의)·`:90`(DRONES)",
+   "그 이유를 `note` 필드에 남겼다(§1.2). ← 출처: `docs/drone_research.json` 구조 · `src/drones.py`(DroneSpec 정의)·`:90`(DRONES)",
    ),
 
 # 4 ── §1.1 스펙 표 ---------------------------------------------------------------
@@ -307,7 +351,14 @@ md("## 1.2 사례 1 — Mini 5 Pro 대각: '추정 ±20 mm' 를 그대로 드러
    "",
    f"> \"{NOTE_MINI}\"",
    "",
-   "← 출처: `src/drones.py:92-113` (mini5pro note + 주석, 원문 그대로)",
+   "← 출처: `src/drones.py` (mini5pro note + 주석, 원문 그대로)",
+   "",
+   "⚠ **인용문 안의 `255×181×91 mm` 를 그대로 쓰지 말 것.** 저장소의 제원 조사가 이 수를"
+   " **2차 매체의 오류로 기각**해 두었다 — DJI 가 공개한 것은 «접었을 때(프롭 제외) 157×95×68»"
+   " 과 «펼쳤을 때(프롭 포함) 304×380×91» 두 줄뿐이고, 폭 181 mm 는 152.4 mm 프롭 4장이"
+   " 물리적으로 들어가지 못한다 ← 출처: `docs/drone_specs_2026.json`(mini5pro, `unfolded_*` = null"
+   " · «이 숫자를 쓰지 말 것»). 코드도 그 기각을 따른다 — `DroneSpec.envelope_mm` 은"
+   " **높이 91 mm 만** 강제하고 L/W 는 비워 둔다.",
    "",
    "즉 **공식 외형(envelope)에 프레임을 맞추자 대각 274.6 mm 가 유도**됐고, 옛 추정 250 mm 는",
    "약 9 % 작았던 것이다. 우리는 '더 공식적인 값(외형)이 이긴다'는 규칙으로 envelope 을 우선했다.",
@@ -330,7 +381,7 @@ md("## 1.3 사례 2·3 — Mavic 4 Pro 대각, Matrice 4E 프로펠러",
    "",
    f"> \"{NOTE_MAVIC}\"",
    "",
-   "← 출처: `src/drones.py:115-131` (mavic4pro note, 원문 그대로)",
+   "← 출처: `src/drones.py` (mavic4pro note, 원문 그대로)",
    "",
    f"**사례 3 · Matrice 4E: 프로펠러 292 → {d['matrice4e'].prop_dia_mm:g} mm (검증 정정).**",
    "1단계 조사는 프롭 모델명 '1157F' 의 앞자리를 11.5 인치로 읽어 292 mm 로 냈다.",
@@ -338,7 +389,7 @@ md("## 1.3 사례 2·3 — Mavic 4 Pro 대각, Matrice 4E 프로펠러",
    "",
    f"> \"{Q_M4E_FIX}\"",
    "",
-   "← 출처: `docs/SPECS.md` Matrice 4E '검증' 항목 (원문 그대로) · 채택값 확인: `src/drones.py:132-149`",
+   "← 출처: `docs/SPECS.md` Matrice 4E '검증' 항목 (원문 그대로) · 채택값 확인: `src/drones.py`",
    "",
    "**세 사례가 보여주는 원칙**: 웹에서 한 번 긁은 값은 믿지 않는다. (1) 독립 재조사로 대조하고,",
    "(2) 공식 외형과의 **기하 일관성**으로 다시 검산하고, (3) 정정 이력을 지우지 않고 남긴다.",
@@ -357,6 +408,42 @@ md("## 1.4 근거 URL (발췌)",
    "공식 페이지(dji.com·enterprise.dji.com)를 1순위로, 제3자 데이터시트(dronespec 등)와",
    "리뷰를 교차확인용으로 썼다. 단종품(S1000+, 2014)은 공식 페이지가 아카이브 상태라",
    "소매점 사양표까지 대조했다.",
+   ),
+
+# 7b ── §1.5 사진층 ---------------------------------------------------------------
+md("## 1.5 ⭐ 사진층 — 공표 숫자가 **안 정하는** 형상은 어디서 왔나",
+   "",
+   "공표 제원은 상자 하나(L×W×H)와 몇 개의 길이를 줄 뿐이다. 셸이 어디서 넓고 어디서 잘록한지,",
+   "암이 얼마나 굵은지, 다리가 얼마나 긴지, 짐벌이 어디에 매달리는지는 **그 숫자로 안 정해진다.**",
+   "공식 CAD 가 없는 기체에서 그 형상의 1차 근거는 **제품사진·매뉴얼 도해**이고, 그래서 이 층이",
+   "형상 근거 등급 **[B]** 의 실체다.",
+   "",
+   f"저장소에 있는 사진: `assets/photos/` 아래 {len(PHOTO_DIRS)}개 기체 폴더, 파일 {PHOTO_N}장",
+   "(공식 제품컷·FCC 정투영·매뉴얼 도해·저면 렌더).",
+   "",
+   "| 기체 | 폴더 | 장수 |",
+   "|---|---|---|",
+   *PHOTO_ROWS,
+   "",
+   "**사진을 어떻게 숫자로 바꾸나 — 축척 앵커.** 사진 한 장에는 «몇 픽셀» 밖에 없으므로, 그 사진",
+   "안에서 **길이를 아는 것 하나**를 골라 mm/px 를 정하고 나머지를 잰다. 그 앵커와 결과를",
+   "`src/drones.py` 의 `note` 에 그대로 적어 둔다. 예(Mini 5 Pro 다리 길이):",
+   "",
+   "> 앞 로터쌍 **641.55 px = 227.6 mm**(공표 프롭 포함 폭 380 mm 에서) 로 축척을 잡으면 다리의",
+   "> 투영 길이가 85 px = 30.2 mm 이고, 앙각 성분을 빼면 **31.1 mm**. 밴드 **±15 %** —",
+   "> DJI 는 다리 치수를 공표하지 않는다.",
+   "",
+   "← 출처: `src/drones.py` mini5pro `note`(§1.2 전문 인용에 같은 문장이 있다).",
+   "픽셀 근거는 `src/drone_cad.py` 의 `_SHELL_SHAPE` · `_ARM_WIDTH` · `_ARM_SECTION` 에도 함께 산다.",
+   "",
+   "⚠ **이 층의 한계를 그대로 적는다.**",
+   "",
+   "- **원근**이 남는다. 마케팅 렌더는 정투영이 아니어서 앞뒤 트랙이 다르게 보일 수 있다 —",
+   "  Mini 5 Pro 의 «사다리꼴 배치» 가설이 그렇게 나왔고, 공표 두 치수와 안 맞아 **채택하지 않은",
+   "  채로 note 에 남겨 두었다**(반증 기록).",
+   "- **밴드가 붙는다.** 사진 계측값은 대개 ±15 % 대의 폭을 함께 선언한다.",
+   "- 기체별로 사진의 질이 다르다 — FCC 정투영(자 포함)이 있는 기체와 제품컷 3장뿐인 기체가 같은",
+   "  [B] 등급 안에 있다.",
    ),
 
 # 8 ── §2 실기체 스캔 --------------------------------------------------------------
@@ -381,6 +468,9 @@ md("## 2. 실기체 3D 스캔 — DJI Phantom 4 (Thingiverse thing:1456295)",
    "```",
    "",
    "← 출처: `assets/meshes/cad/SOURCE.txt` (전문 그대로)",
+   "",
+   "⚠ 위 인용문의 «report03» 은 **옛 리포트 번호**다. 지금 그 자리는 별편 2-3 "
+   "«표적을 짓는다 — 메쉬와 재질»(`reports/02_3_target-mesh.ipynb`)과 이 시리즈 mesh08 이다.",
    "",
    "표적 기체 중 왜 Phantom 4 만 스캔이 있나 — **공개된 실기체 고해상도 스캔이 사실상 이것뿐**",
    "이기 때문이다. 2016년 인기 기종이라 3D 프린팅 커뮤니티(Thingiverse)에 실물 스캔이 올라온",
@@ -408,9 +498,9 @@ md("## 2.1 왜 원본 STL 을 저장소에 안 넣고 npz 로 전처리했나",
    PREP_DOC,
    "```",
    "",
-   "← 출처: `src/prep_cad_scan.py:1-20` (모듈 docstring 전문) · 상수 확인: "
+   "← 출처: `src/prep_cad_scan.py` (모듈 docstring 전문) · 상수 확인: "
    f"`SCALE={prep_cad_scan.SCALE}` (mm→m ×1.0125 보정), `CELL={prep_cad_scan.CELL}` m"
-   " (`src/prep_cad_scan.py:32-33`)",
+   " (`src/prep_cad_scan.py`)",
    "",
    "**스케일 보정 ×1.0125 의 근거**: 스캔의 모터 허브 대각을 재면 345.7 mm 인데 공식 대각은",
    f"{d['phantom4'].diagonal_mm:g} mm 다(← 출처: 위 docstring ③ · `docs/SPECS.md` Phantom 4)."
@@ -494,17 +584,63 @@ md("## 3. 실물·공식 CAD — 어디서, 어떤 라이선스로, 그리고 �
    "14건의 측정값·근거·출처를 전부 들고 있어서, 원본 없이도 «무엇을 어떤 값으로 고쳤는지» 는",
    "저장소만으로 읽힌다. 원본이 필요한 것은 그 측정을 **다시 재고 싶을 때**뿐이다.",
    "",
-   "### 3.1 채점 전용 자료 — 로보틱스 저장소의 실물 CAD",
+   "### 3.0.2 ⭐ Mini 2 GLB 안에는 **DJI 실물 프로펠러 날**도 들어 있다",
    "",
-   "그래서 **CAD 가 공식 공개된 실물 드론**을 로보틱스 시뮬레이터 저장소에서 가져왔다.",
+   "출처 장부로서 이 편이 반드시 적어야 하는 사실이다. `WM161_zhankai_1k.glb` 는 셸만 담은 파일이",
+   "아니라 **날 8장 + 허브 4개**를 함께 담고 있다 — 즉 **이 저장소에는 DJI 프로펠러의 실물 기하가",
+   "있다.**",
+   "",
+   "| 무엇 | 측정값 | 어떻게 알았나 |",
+   "|---|---|---|",
+   "| 날·허브 개수 | 날 **8장**(1635×4 + 1691×4 삼각형) · 허브 **4개**(1704×4) | 면수 히스토그램 |",
+   "| 프롭 디스크 지름 | **118.13~119.07 mm**(평균 118.60) ↔ 공칭 4726F 119.4 mm(**−0.67 %**) "
+   "| 로터별 최적중심 최대반경 |",
+   "| 회전축 | 월드 **+y**(4로터 편차 0.001) | 허브 관성주축 실측 |",
+   "",
+   "← 출처: `docs/MESH_AUDIT_0816.md` C3 · 부록 D-1 #4·#5(별도 검증자가 GLB 를 새로 열어 재현).",
+   "이 사실은 원장 `outputs/reference_props.json` 에도 `meta.retraction_20260816` 으로 실려 있다 —",
+   "그 파일의 옛 문면(«저장소에 DJI 프로펠러 실물 기하는 존재하지 않는다»)이 **지금은 거짓**임을",
+   "원장 스스로 선언한다.",
+   "",
+   "⚠ **GLB 를 얼마나 믿을 것인가** — 이 파일은 **제품 뷰어용 1k 간략화판**이지 계측 스캔이 아니다.",
+   "실루엣·평면형은 믿을 만하고(Mini 2 실물 사진과 +4 % 안에서 일치), **두께는 날 1장이",
+   "1635~1691 삼각형뿐이라 ±10 % 로 읽어야 한다** ← 출처: `docs/MESH_AUDIT_0816.md` 부록 C.",
+   "mini2 를 «형상 근거 등급이 가장 높은 기체» 로 세우는 것도 이 한계와 함께 읽을 것.",
+   "",
+   "⏳ **이 실물 날에서 무엇을 법칙으로 삼을지는 이 편이 정하지 않는다** — 기체별 프로펠러 정본화",
+   "라운드가 정본이다. 여기서는 «그 자료가 저장소에 있다» 는 출처 사실까지만 적는다.",
+   "",
+   "### 3.1 로보틱스 저장소의 실물 CAD — 대부분은 채점자, 프로펠러 셋만은 제작의 입력",
+   "",
+   "**CAD 가 공개된 실물 드론**을 로보틱스 시뮬레이터 저장소에서 가져왔다.",
    "이 저장소들을 고른 이유: (1) **실제 판매 제품**의 형상이고, (2) PX4/ETH 취리히가",
    "시뮬레이션용으로 검수해 왔으며, (3) 라이선스가 허용적(Apache-2.0·BSD-3)이라 연구 사용에",
    "제약이 없다.",
    "",
    SOURCES_TABLE,
    "",
-   "← 출처: `assets/meshes/reference/SOURCES.md` 표 (전문 그대로) — 파일 실물은"
+   "← 출처: `assets/meshes/reference/SOURCES.md` 첫 표(원문 그대로) — 파일 실물은"
    " `assets/meshes/reference/` 에 있다",
+   "",
+   "⏳ **이 표의 프로펠러 셋은 «채점자» 가 아니다.** `solo_prop_*.stl`(3DR Solo) ·",
+   "`1345_prop_cw.stl`(PX4) · Typhoon H480 프롭 어셈블리는 실제로 **날 법칙의 입력**으로",
+   "제작에 들어갔다. 측정 원장이 따로 있다 — `outputs/reference_props.json`",
+   "(디스크 지름 1345 **346.66** · Solo **253.82** · Yuneec **230.10** mm, 반경 36 스테이션에서",
+   "시위·두께·비틀림을 잰 표). ⛔ 그 측정에서 어떤 상수를 뽑아 쓸지는 **기체별 프로펠러 정본화",
+   "라운드가 정본**이므로 이 편은 자료의 존재와 출처까지만 적는다.",
+   "",
+   "⚠ 그 원장이 스스로 붙여 둔 단서 둘도 함께 읽어야 한다 ← 출처: 같은 파일 `meta`:",
+   "",
+   "- 세 CAD 는 **시뮬/시각화용이지 계측 스캔이 아니다.** 1345 는 워시아웃이 0 이라 비틀림 기준으로 쓸 수 없다.",
+   "- 측정 방법은 «스팬축 수직 평면 절단» 이 아니라 **원통 단면**이다"
+   "(`meta.method_correction_20260816` — 측정값은 그대로고 방법 설명 문면만 정정됐다).",
+   "",
+   "### 3.1.1 제조사 배포물이지만 공개 라이선스가 없는 것 — 두 건",
+   "",
+   SOURCES_TABLE_MFR,
+   "",
+   "← 출처: `assets/meshes/reference/SOURCES.md` 둘째 표. 위 표(Apache-2.0·BSD-3)와 달리",
+   "**재배포 조건이 표기돼 있지 않아** 저장소는 이 둘을 «내부 참조용» 으로 다룬다(§5).",
    "",
    f"단위 규약도 문서에 있다: \"{Q_SOURCES_UNIT}\"",
    "← 출처: `assets/meshes/reference/SOURCES.md`",
@@ -558,7 +694,8 @@ md("## 3.3 그 밖의 다운로드물은 채점 전용",
    "3. **라이선스 제약** — 다수가 개인용/비상업 조건이거나 라이선스 불명이다.",
    "",
    f"그래서 표적 {len(ORDER)}종은 전부 `src/drone_cad.py` 가 **공표 제원 수치에서 생성**한다",
-   f"(엔진: {V['meta']['mesh_engine']}). 공식 CAD 가 있는 두 기체만 그 위에 CAD 실측이 얹힌다(§3.2).",
+   f"(엔진: {V['meta']['mesh_engine']}). 공식 CAD 가 있는 기체(matrice4e·mini2·x500v2)만 그 위에 "
+   "CAD 실측이 얹힌다(§3.2).",
    "",
    "⚠ **두 기체는 표적이면서 동시에 자기 채점 기준이다** — Typhoon H480 과 X500 V2 는 표적",
    "목록에 올라 있고, 그 실물 CAD 도 저장소에 있다. 그 경우에도 표적 메쉬 자체는 파라메트릭",
@@ -581,12 +718,13 @@ md("## 4. 원본 갤러리 — 다운로드한 그대로",
    "- **Yuneec Typhoon H480** — 실물 헥사콥터(로터 6개)의 CAD 조립:"
    " 동체+다리+프롭+CGO3 짐벌. ethz-asl/rotors_simulator, Apache-2.0.",
    "- **DJI Matrice 100·600 Pro** — 커뮤니티 시각용 메쉬. 프로펠러를 **회전 원판**으로 그린"
-   " 껍데기(정밀 CAD 아님)라 형상이 거칠다 — report03 이 실물 CAD·스캔과 함께 대조하는 **네 원본**에 포함된다.",
+   " 껍데기(정밀 CAD 아님)라 형상이 거칠다. 이 둘은 우리 표적이 아니고, **형상 거칠기가 σ 에"
+   " 주는 영향**을 보는 대조군으로만 등장한다.",
    "",
-   "그림 제목이 다시 한 번 원칙을 말한다 — *\"Downloaded ORIGINALS used only for verification",
-   "(our 5 DJI targets are built from official spec sheets, not these)\"*.",
+   "그림 제목이 다시 한 번 원칙을 말한다 — *\"Downloaded ORIGINALS, shown as received — scoring",
+   "references, not build inputs\"*. ⚠ 프로펠러 참조 셋만은 예외다(§3.1).",
    "",
-   "← 그림 생성: `report_mesh/src/viz_mesh_reports.py:218-263` `fig_originals()` —",
+   "← 그림 생성: `report_mesh/src/viz_mesh_reports.py` `fig_originals()` —",
    "스캔은 npz 에서 직접, CAD 2종은 `mesh_compare.load_reference()`/`typhoon_h480_real()` 로"
    " 원본 STL 을 읽어 그렸다.",
    ),
@@ -599,9 +737,19 @@ md("## 5. 라이선스를 어떻게 지켰나",
    f"| {SRC['license']} (스캔) | 저작자표시 조건 자유 이용 | 저작자({SRC['author']})·출처·"
    "파생물임을 명시 | `assets/meshes/cad/SOURCE.txt` + 그림 제목 + 본 리포트 §2 |",
    "| Apache-2.0 (Typhoon·Solo) | 허용적 SW 라이선스 | 출처 저장소·라이선스 표기 유지 "
-   "| `assets/meshes/reference/SOURCES.md` 표 + 그림 제목 |",
-   "| BSD-3-Clause (X500 부품) | 허용적 SW 라이선스 | 출처·라이선스 표기 유지 "
-   "| `assets/meshes/reference/SOURCES.md` 표 |",
+   "| `assets/meshes/reference/SOURCES.md` 첫 표 + 그림 제목 |",
+   "| BSD-3-Clause (PX4 부품) | 허용적 SW 라이선스 | 출처·라이선스 표기 유지 "
+   "| `assets/meshes/reference/SOURCES.md` 첫 표 |",
+   "| ⚠ **공개 라이선스 없음** — DJI Matrice 4T STEP · DJI Mini 2 GLB 2종 "
+   "| DJI 저작물이다 | **파일 자체를 재배포하지 않는다.** 형상 대조·치수 근거로만 쓴다 "
+   "| `SOURCES.md` 각 절의 라이선스 문단(«재배포하지 말 것») |",
+   "| ⚠ **재배포 조건 미표기** — Holybro X500 V2 프레임 STEP · AIR2216II 모터 STEP "
+   "| 제조사 배포물 | **내부 참조용**으로만 둔다 | `SOURCES.md` 둘째 표 |",
+   "",
+   "⭐ **위 두 줄이 이 편에서 가장 조심해야 할 칸이다.** 그 넷은 «채점만 하는 자료» 가 아니라",
+   "**형상 상수의 근거로 제작에 들어간 자료**인데(§3.0·§3.2), 공개 라이선스가 없다. 그래서 규약이",
+   "이렇다 — **파일은 배포하지 않고, 그 파일에서 잰 «숫자와 근거» 만 원장으로 배포한다**",
+   "(`outputs/meshfix_matrice4e.json` 이 그 예다, §3.0.1).",
    "",
    "구체적으로 한 일:",
    "",
@@ -614,7 +762,7 @@ md("## 5. 라이선스를 어떻게 지켰나",
    "4. **원본 재배포 회피** — 154 MB 원본은 저장소에 넣지 않고 공식 미러 링크로 대체(§2.1).",
    "",
    "← 출처: `assets/meshes/cad/SOURCE.txt` · `assets/meshes/reference/SOURCES.md` ·"
-   " `report_mesh/src/viz_mesh_reports.py:230-262` (그림 제목 문자열)",
+   " `report_mesh/src/viz_mesh_reports.py` (그림 제목 문자열)",
    ),
 
 # 15 ── §6 출처 지도 --------------------------------------------------------------
@@ -622,11 +770,16 @@ md("## 6. 정리 — 무엇의 진리원(source of truth)이 어디인가",
    "",
    "| 알고 싶은 것 | 이 파일을 보라 | 성격 |",
    "|---|---|---|",
-   "| 기체 제원의 근거·공식/추정 구분·URL | `docs/SPECS.md` | 사람용 요약(조사+검증) |",
+   "| 기체 제원의 근거·공식/추정 구분·URL | `docs/SPECS.md` | 사람용 요약(조사+검증) · **DJI 5종 전용** |",
    f"| 조사·검증의 원자료(JSON) | `docs/drone_research.json` | research/verify 두 블록 × {len(ORDER)}기체 |",
-   "| **코드가 실제 쓰는 스펙값**과 채택 이유 | `src/drones.py` (`DroneSpec.note`) | 최종 채택 |",
+   "| **코드가 실제 쓰는 스펙값**과 채택 이유, 비-DJI 5종의 제원 출처 | `src/drones.py` "
+   "(`DroneSpec.note`) + `docs/RESUME_0729.md` §5 | 최종 채택 |",
+   "| 사진에서 잰 형상 상수와 그 픽셀 근거 | `src/drone_cad.py` "
+   "(`_SHELL_SHAPE`·`_ARM_WIDTH`·`_ARM_SECTION`) + `assets/photos/` | 등급 [B] 의 실체 |",
    "| 실기체 스캔의 출처·라이선스·전처리 | `assets/meshes/cad/SOURCE.txt` + `src/prep_cad_scan.py` | 파생물 기록 |",
-   "| 실물 CAD 3종의 출처·라이선스 | `assets/meshes/reference/SOURCES.md` | 검증 전용 |",
+   "| 실물·공식 CAD 의 출처·라이선스 | `assets/meshes/reference/SOURCES.md` | 제작 근거 + 채점자 |",
+   "| matrice4e 정정 14건의 측정값·근거 | `outputs/meshfix_matrice4e.json` | 원본 CAD 없이도 읽힌다 |",
+   "| 참조 프로펠러 3종의 측정 | `outputs/reference_props.json` | ⏳ 날 법칙의 입력 |",
    "| 메쉬 측정치(이 시리즈의 수치) | `report_mesh/outputs/mesh_verify.json` | 검증 스위트 출력 |",
    "",
    "이번 편의 요점 세 가지:",
@@ -635,9 +788,13 @@ md("## 6. 정리 — 무엇의 진리원(source of truth)이 어디인가",
    f" {research_diag('mini5pro'):g}→{d['mini5pro'].diagonal_mm:g}, Mavic"
    f" {research_diag('mavic4pro'):g}→{d['mavic4pro'].diagonal_mm:g} mm)은 추정임을 명시한 채",
    "   공식 외형과의 일관성으로 재유도했다.",
-   f"2. 실물 대조 자료는 **라이선스가 확인된 공개물만** 썼다 — 스캔 1종({SRC['license']}),",
-   "   CAD 3종(Apache-2.0·BSD-3) — 그리고 전부 **검증 전용**이다.",
-   "3. 모든 다운로드물 옆에 출처 문서를 두어, 누구든 같은 자료를 같은 조건으로 다시 구할 수 있다.",
+   "2. 자료는 **층마다 지위가 다르다** — 공표 제원과 사진은 전 기체의 제작 입력이고, 공식 CAD 는"
+   "   가진 기체(matrice4e·mini2·x500v2)에서 제작에 들어가며, **실기체 스캔만이 제작에 한 번도"
+   "   안 들어간 진짜 독립 채점자**다. ⏳ 참조 프로펠러 3종은 날 법칙의 입력이었고, 그 법칙의"
+   "   정본은 기체별 프로펠러 정본화 라운드가 정한다.",
+   "3. 라이선스도 층마다 다르다 — 스캔은 CC-BY, 로보틱스 저장소는 Apache-2.0·BSD-3,"
+   "   **DJI·Holybro 배포물은 공개 라이선스가 없어 파일을 재배포하지 않는다**(§5).",
+   "   모든 다운로드물 옆에 출처 문서를 두어, 누구든 같은 자료를 같은 조건으로 다시 구할 수 있다.",
    ),
 
 # 16 ── 재현 + 다음 편 ------------------------------------------------------------
