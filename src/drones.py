@@ -362,6 +362,12 @@ DRONES: dict[str, DroneSpec] = {
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
         accent_rgb=None, body_frac=0.42, shape_source="spec_photo",
         rotor_deg=(52.45, 131.53, 228.47, 307.55), rotor_r_mm=(228.77, 210.36, 210.36, 228.77),
+        #  ⭐⭐ 2026-08-16 (B7 / meshfix F21) — 앞 로터가 뒤보다 **7.82 mm 높다**. 공식 STEP 의
+        #    벨 솔리드 z 범위(앞 [−8.51, +8.03] · 뒤 [−16.33, −0.20])에서 두 밑동의 평균
+        #    −12.42 를 drone_cad.MOTOR_BASE_Z 에 적고, 여기에는 그 평균에서의 **편차**만 적는다.
+        #    ⚠ 이 값이 실제로 암·벨·다리까지 움직이려면 drone_cad.ARM_Z_FOLLOWS_ROTOR 에
+        #      'matrice4e' 가 있어야 한다(둘은 짝이다). 없으면 프롭만 뜬다 — F21 의 경고.
+        rotor_z_mm=(3.91, -3.91, -3.91, 3.91),
         body_lw=(1.08, 0.98), gimbal_style="sensor", cad_version="v2",
         envelope_mm=(None, None, 149.5),
         arm_od_mm=13.6, motor_dia_mm=27.0, motor_h_mm=16.3),   # ⭐ 공식 STEP 실측 — 아래 주석
@@ -474,11 +480,32 @@ DRONES: dict[str, DroneSpec] = {
         note="Fixed (non-folding) arms, one-piece white shell + integrated landing legs. Classic Phantom shape. "
              "Propeller is DJI part 9450; DJI's own propeller-dimensions table gives 24 x 12.7 cm, hence "
              "prop_dia_mm=240. (The part number literally reads 9.4 in = 238.8 mm, 0.5% smaller - we follow "
-             "DJI's published table, and the 0.5% is inside the mesh tolerance.)",
+             "DJI's published table, and the 0.5% is inside the mesh tolerance.) "
+             "⭐⭐ 2026-08-16 L/W ENVELOPE FORCING RELEASED (audit finding B6). This was the last "
+             "airframe in the repo still forcing all three axes; mavic4pro (2026-07-30) and "
+             "matrice4e (2026-07-28) had already been released for the same defect. "
+             "WHAT WAS WRONG: forcing the frame bbox to 289.5 x 289.5 made frame_fit_scale "
+             "multiply the whole airframe in-plane by 1.019771, and that factor rides straight "
+             "through to the MOTOR POSITIONS - the wheelbase came out 356.92 mm against DJI's "
+             "published 350 mm diagonal (+1.98%). Two official figures were fighting and the "
+             "scale factor silently picked the loser: 350 mm is the DIAGONAL (motor to motor), "
+             "289.5 mm is the BODY square, and our built frame cannot satisfy both because the "
+             "289.5 square is set by the shell and legs, not by the motors. "
+             "THE FIX: release L/W, keep HEIGHT forced (196 mm), exactly the house rule the other "
+             "eight airframes follow. Fixed arms put the rotors at 45/135/225/315 deg by "
+             "construction, so nothing has to be re-solved - the rotor radius is diagonal/2 = "
+             "175 mm and the wheelbase lands on 350.000 mm (error 0.000%). "
+             "WHAT IT COSTS (declared, not hidden): the frame L/W is now BUILT, not asserted - it "
+             "measures 283.89 mm against the official 289.5 (-1.94%). As report02 already records, "
+             "a 0% envelope match was a CONSTRAINT that frame_fit_scale manufactured, not evidence. "
+             "PROP CLEARANCE (house rule, must stay positive): adjacent rotors sit 247.49 mm apart "
+             "against a 240 mm prop -> +7.49 mm, still positive (it was +12.38 mm inflated). "
+             "Numbers and the sigma re-measure: outputs/mesh_apply_caps_envelope_0816.json",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
         accent_rgb=None, body_frac=0.52, shape_source="spec_photo",
         rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed", cad_version="v2",
-        envelope_mm=(289.5, 289.5, 196.0)),     # DJI 공식 Quick Start Guide v1.2 (프롭 제외),
+        envelope_mm=(None, None, 196.0)),       # ⭐ 높이만 강제(2026-08-16, B6) — 위 note 참조.
+                                                #   공식 289.5 × 289.5 × 196 = Quick Start Guide v1.2(프롭 제외)
     # ----------------------------------------------------------------------- #
     #  비-DJI 2기종 (2026-07-30 추가). 제원은 docs/RESUME_0729.md §5 가 단일 출처이고
     #  등급(VERIFIED / MEASURED / DERIVED / UNKNOWN)은 아래 note 에 그대로 옮겼다 — **올리지 않았다.**
@@ -1520,11 +1547,14 @@ def _drone_dims(spec: DroneSpec):
 #           매끈한 로프트 동체, 익형 프로펠러, 기종별 짐벌(Mavic4 = 구형 Infinity 짐벌),
 #           착륙장치, RTK 돔. **불리언 합집합**으로 겹친 파트의 내부 면을 녹여 없앤다.
 #  legacy : 예전 프리미티브 스택(비교·회귀용).
-def _build_frame_raw(spec: DroneSpec) -> Mesh:
+def _build_frame_raw(spec: DroneSpec, mesh_fix=None) -> Mesh:
     """(내부) 외형보정 **전** 프레임 — CAD(trimesh+manifold3d 로프트/불리언) 단일 경로.
-    (예전 프리미티브 조립 legacy 경로는 2026-07-20 제거 — git 히스토리에만 남음.)"""
+    (예전 프리미티브 조립 legacy 경로는 2026-07-20 제거 — git 히스토리에만 남음.)
+
+    mesh_fix : ⭐선택 메쉬 수리 스위치. 기본 None = **끔** = 예전 메쉬와 비트동일.
+        id 는 `geom.MESH_FIX_KNOWN`/`drone_cad.MESH_FIX_TOKENS`(예: 'battery')."""
     from drone_cad import build_frame_cad
-    return build_frame_cad(spec).to_geom()
+    return build_frame_cad(spec, mesh_fix=mesh_fix).to_geom()
 
 
 # --------------------------------------------------------------------------- #
@@ -1563,10 +1593,21 @@ def _fit_cache_key(spec: DroneSpec):
     return tuple(getattr(spec, f) for f in _SPEC_FIELDS)
 
 
-def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
+def frame_fit_scale(spec: DroneSpec, mesh_fix=None) -> tuple[float, float, float]:
     """프레임을 공식 외형(spec.envelope_mm)에 맞추는 축별 배율 (sx, sy, sz).
-    envelope_mm 이 없거나 해당 축이 None 이면 그 축 배율은 1.0."""
-    _ck = _fit_cache_key(spec)
+    envelope_mm 이 없거나 해당 축이 None 이면 그 축 배율은 1.0.
+
+    ⚠ 수리 스위치는 **캐시 키에 들어간다**. 수리가 바운딩박스를 바꾸는 경우(예: 묻힌 부품을
+    빼는 수리) 캐시가 남의 배율을 조용히 물려주면 «엉뚱한 크기의 메쉬 + 예외 없음» 이 된다 —
+    이 저장소가 2026-07-30 에 이미 한 번 걸린 함정이다(_fit_cache_key 주석).
+    ⭐ 키에는 **전역 스위치(MESH_FIX)까지** 넣는다. 이 함수가 안 읽는 수리(cadkit 의 i5 등)도
+    프레임 형상을 바꿀 수 있어서다 — 스위치 상태가 다르면 캐시 칸도 달라야 한다.
+    스위치가 하나도 안 켜져 있으면 키 모양이 예전 그대로라 기존 동작과 비트동일이다."""
+    from drone_cad import normalize_mesh_fix
+    from geom import mesh_fix_set
+    fix = normalize_mesh_fix(mesh_fix)
+    _sw = frozenset(mesh_fix_set()) | (fix if mesh_fix is not None else frozenset())
+    _ck = _fit_cache_key(spec) if not _sw else (_fit_cache_key(spec), _sw)
     if _ck in _FIT_CACHE:
         return _FIT_CACHE[_ck]
     env = spec.envelope_mm
@@ -1574,7 +1615,7 @@ def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
         _FIT_CACHE[_ck] = (1.0, 1.0, 1.0)
         return _FIT_CACHE[_ck]
     import numpy as _np
-    V = _np.asarray(_build_frame_raw(spec).v, float)
+    V = _np.asarray(_build_frame_raw(spec, mesh_fix=fix).v, float)
     ext = (V.max(0) - V.min(0)) * 1000.0                  # 현재 바운딩박스 [mm]
     s = []
     for i in range(3):
@@ -1602,12 +1643,17 @@ def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
     return _FIT_CACHE[_ck]
 
 
-def build_frame(spec: DroneSpec) -> Mesh:
+def build_frame(spec: DroneSpec, mesh_fix=None) -> Mesh:
     """**회전하지 않는 부분**: 동체/캐노피/암/모터/착륙장치/카메라/액센트 (프로펠러 제외).
     드론 로컬 프레임(전방 +x). 바운딩박스는 **공식 외형(envelope_mm)과 일치**한다.
-    pose_articulated 에서 몸체 자세를 통째로 적용한다."""
-    m = _build_frame_raw(spec)
-    sx, sy, sz = frame_fit_scale(spec)
+    pose_articulated 에서 몸체 자세를 통째로 적용한다.
+
+    mesh_fix : ⭐선택 메쉬 수리(기본 None = 끔 = 예전 메쉬와 비트동일).
+        `drone_cad.MESH_FIX_TOKENS` 참조 — 예 build_frame(spec, mesh_fix='battery').
+        ⚠**여러 수리를 함께 켤 때는 환경변수 `MESH_FIX` 를 쓸 것** — 인자는 drone_cad 담당
+        수리만 켠다(cadkit 의 i5·geom 의 m6 는 환경변수만 읽는다). drone_cad 머리말 참조."""
+    m = _build_frame_raw(spec, mesh_fix=mesh_fix)
+    sx, sy, sz = frame_fit_scale(spec, mesh_fix=mesh_fix)
     return m if (sx, sy, sz) == (1.0, 1.0, 1.0) else m.scaled(sx, sy, sz)
 
 
@@ -1708,10 +1754,13 @@ def frame_envelope_mm(spec: DroneSpec) -> dict:
                 fit_scale=frame_fit_scale(spec))
 
 
-def build_drone(spec: DroneSpec) -> Mesh:
+def build_drone(spec: DroneSpec, mesh_fix=None) -> Mesh:
     """정적 멀티로터 메쉬(프레임 + 프로펠러 초기위상). **기존과 동일 출력**(report1/2 RCS 호환).
-    = build_frame + 각 로터에 build_propeller 를 초기위상(스핀 0)으로 배치."""
-    m = build_frame(spec)
+    = build_frame + 각 로터에 build_propeller 를 초기위상(스핀 0)으로 배치.
+
+    mesh_fix : ⭐선택 메쉬 수리(기본 None = 끔 = 예전 메쉬와 비트동일). 프로펠러는 프레임과
+        별개 경로라 이 스위치가 안 닿는다(프롭 쪽 손잡이는 blade_law/pitch_law 다)."""
+    m = build_frame(spec, mesh_fix=mesh_fix)
     # ⚠ 명명 규약: rotor_layout 의 dir 은 **+1 = CCW / −1 = CW** 다(그 docstring 참조).
     #   2026-07-28 최초 판은 dir>0 에 prop_cw 를 줘서 **이름이 반대**였다(적대검증 지적).
     #   물리적으로는 기체 전체가 거울상이 될 뿐이고 DJI 는 절대 회전방향을 공개하지 않지만,
