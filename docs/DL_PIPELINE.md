@@ -1326,6 +1326,55 @@ M7 이 캠페인 전에 안 끝나면 **「엔진 교차는 미측정」으로 �
 | NCC ≥ 0.7 물리 게이트 | Moore | ⚠**대리 지표(엔진 간 NCC)도 지금은 못 잰다**(Sionna 표 0장) |
 | 보고 체크리스트 | MLRC v2.0 · NeurIPS Checklist · REFORMS | — |
 
+## 부록 A-2. ⭐탑티어 뒷받침 — 설계 선택마다 상위 문헌의 같은 원리 (2026-08-16 추가)
+
+> 사용자 지시(2026-08-16): *«딥러닝 프레임워크는 웬만하면 **탑티어 논문**을 토대로 했으면 좋겠다»*
+>
+> **원칙**: 응용 결과(드론 마이크로도플러)는 그 분야 학술지에만 있으므로 부록 A 의 응용 인용은
+> **한 줄도 지우지 않는다**. 대신 설계 선택마다 «같은 원리를 상위 학술지·학회가 확립한 논문»을
+> 옆에 단다. 탑티어 기준: IEEE TAES·TGRS·TSP·JSTSP·Proc. IEEE / NeurIPS·ICML·ICLR·CVPR /
+> JMLR·Patterns·Science·Nature 계열. **아래 31편은 전부 원문을 열어 실재·서지·핵심 주장을
+> 대조했다**(수치 이관 4건은 PDF 전문 축자 대조). 한 줄 소개·검증 방법·표기 주의 전문은
+> [`prior_work/dl_toptier_anchors.md`](../prior_work/dl_toptier_anchors.md).
+> 우리 선택과 **어긋나는 탑티어는 ⚠어긋남으로 그대로 기록**한다 — 맞춰 고치지 않는다.
+
+| 우리 설계 (자리) | 응용 인용(유지) | ⭐탑티어 뒷받침 | 관계·주의 |
+|---|---|---|---|
+| R1 = 문헌 표준 + 수식 합성 커널 접근(§4-1) | Gérard · 서베이 | **Chen 외, IEEE TAES 42(1), 2006** — 미세도플러 시조: 수식 모델→시뮬→시간-주파수 맵 절차 정립 | 지지. ⚠원문은 «고분해능 시간-주파수 변환»이라 STFT 로만 못박지 않는다 |
+| 칸(그룹) 단위 배타 분할 + L-5 부풀림 측정(§3-4·§8-1) | Gérard · Mustafa · White · MAFAT | **Chaibub Neto 외, npj Digital Medicine 2:99, 2019** — 같은 개체가 학습·시험 양쪽에 들어가면 오차 대폭 과소평가(정량 실증) | 지지 — 그들의 «사람»이 우리의 «칸». ✗«그룹 CV 창설 단일 논문»은 존재하지 않는다(정직) |
+| 누수 검사표 L-1~L-4 · 사전등록(§8-1·§7-4) | Kapoor 번호 인용 | **Kapoor & Narayanan, Patterns 4(9), 2023** — 이미 탑티어. 원문 번호 체계 일치 재확인 + model info sheet | 지지 |
+| L0″ 손 특징+RF = 관행 선(§5) | Dhulashia · §2-2(나) | **Kim & Ling, IEEE TGRS 47(5), 2009** — 손 특징 6개+SVM+CV 로 7활동 90 %+ (딥러닝 이전 정본) | 지지 — M3 «손 특징으로 충분» 판정의 비교 계보 |
+| L1 경량 CNN 먼저(§5-0) | 서베이 · Park | **Chen 외(A-ConvNets), IEEE TGRS 54(8), 2016** — FC 층 제거·파라미터 절약으로 소데이터 과적합 회피, MSTAR 99.13 % | 지지. **Raghu 외, NeurIPS 2019** 도 «작은 망 먼저» 지지 |
+| L1 대조군·초기화의 힘(§5) | Seyfioglu 4층 CNN | **Seyfioglu 외, IEEE TAES 54(4), 2018** — 무작위 초기화 CNN 특징+SVM 8.3 % vs 비지도 사전학습 83.4 % | 지지. ⚠비교군은 CNN·AE·CAE·SVM·RF·XGBoost — 전이학습 정면 비교는 자매 논문(Seyfioglu & Gurbuz, IEEE GRSL 2017). ⚠조기종료 출처 아님(고정 280 epoch + 매 epoch 검증 평가) ⇒ **B11** |
+| L3·L3′ 사전학습→미세조정(§5·§9-3) | Seyfioglu · Zhang · mmSimPrior | **Seyfioglu 외(DivNet), IEEE TAES 55(5), 2019** — 이미 탑티어(97>95>94>86, 474표본/7클래스 축자 재확인) + **Yosinski 외, NeurIPS 2014** — 미세조정>동결>무작위 초기화 + **Zhuang 외, Proc. IEEE 109(1), 2021** — 분량별 전략의 상위 좌표 | 지지 |
+| L3 ImageNet 전이 기대(+8~16 %p)(§5) | Seyfioglu · Zhang | **⚠어긋남 — Raghu 외(Transfusion), NeurIPS 2019**: 작은 비자연영상 데이터에서 ImageNet 전이 이득이 작고, 일부는 과매개변수화 효과 | ⚠어긋남 — L3 결과 해석 때 대조 인용으로 원장에 |
+| L6 공분산(SPD) 대조군(§5) | Brooks CAp 2020 | **Brooks 외, NeurIPS 2019** — 같은 저자들의 상위판, 실험이 레이다 드론 데이터. «데이터 부족에 눈에 띄게 강인» | 지지 — ⭐L6 인용을 이 판으로 승급 ⇒ **B12** |
+| CNN 이라는 선택 · L2 전역평균풀링(§4-1·§5) | arXiv:2402.13651 | **LeCun 외(LeNet), Proc. IEEE 86(11), 1998** — 가중치 공유+풀링 = 이동 불변을 구조로. «CNN 은 텍스처 기계» 진단의 바닥 | 지지. ✗«레이다 DL 리뷰 in Proc. IEEE»는 실재 확인 실패 — Proc. IEEE 몫은 이 정본 |
+| Adam 채택(§6-1) | Park · Ha · Czerkawski · Larrat | **Kingma & Ba, ICLR 2015** — 알고리즘 원 논문 | 지지하되 ⚠원문 기본 lr 은 **1e-3** — 1e-4 는 분야 관행의 수. **⚠어긋남 — Wilson 외, NeurIPS 2017**: 적응형이 튜닝된 SGD 보다 일반화 나쁜 사례 ⇒ Adam 채택 목적이 «선행 재현·비교가능성»임을 명시, SGD 팔은 미래 작업 |
+| AdamW 배제(§6-1) | ✗분야 사례 0편 | **⚠어긋남 — Loshchilov & Hutter, ICLR 2019** — Adam 의 L2 정칙화 결함, AdamW 가 일반화 실질 개선(현 PyTorch 표준) | ⚠어긋남 — 라운드1 결정 유지 + 후속 감사 팔(AdamW 1개) |
+| 조기종료(§6-1) | Larrat · Seyfioglu(⚠문구 정정 B11) | **Caruana 외, NeurIPS 2000** — 큰 망도 조기종료면 작은 망 수준 일반화 = 소데이터 1차 정칙화 | 지지 |
+| dropout·weight decay | ✗**문서 전체에 0회(빈칸)** | **Srivastava 외, JMLR 15(56), 2014** — dropout 정본 | ⚠빈칸 — L1 에 쓸지 말지를 어느 쪽이든 이 인용과 함께 사전등록 |
+| 허용 증강(시간이동·SNR·재추첨)(§6-2) | Raval · Rojhani | **Chen·Dobriban·Lee, JMLR 21(245), 2020** — 정리: 분포를 (근사)보존하는 변환일 때만 분산 감소 이득 | 지지 — 허용/금지 목록 전체가 이 틀에서 정당화 |
+| ⛔회전·반전·크롭 금지(§6-2) | Erol 축자 | **Erol 외, IEEE TAES 56(4), 2020** — 이미 탑티어 | 지지. ⚠원문 축자는 **"scaling and rotating"** — 반전·크롭은 같은 원리의 우리식 확장으로 적는다 |
+| ⛔SpecAugment 금지(§6-2) | ✗사례 못 찾음 | **Balestriero 외, NeurIPS 2022** — 라벨 정보가 실린 구조를 지우는 증강은 그 클래스를 침몰(random crop 만으로 한 클래스 68→46 %) | 지지 — «빗살을 지운다» 한 줄에 인용. TAES/TGRS 급 성공 반례도 검색 못 찾음 |
+| 물리 체질 게이트(§6-2) | Erol | Erol 2020(위) — 체질 하나로 +9 %p → 93 %(보행 15 %·낙상 10 % 탈락, 축자 확인) | 지지 |
+| S-1 안쪽에서 고르기 · S-3 n_test_peeks(§7-0) | Cawley & Talbot | **Cawley & Talbot, JMLR 11(70), 2010** — 이미 탑티어. "surprisingly large" 축자 확인 + **Dwork 외, Science 349, 2015** — 홀드아웃 재사용은 보증 붕괴(이론 세부는 NeurIPS 2015 판) | 지지 |
+| S-2 다중비교 문턱 · B-2 짝지은 비교(§7-0·§7-2) | ✗우리 규약 | **Demšar, JMLR 7, 2006** — 분류기 비교의 Wilcoxon·Friedman+사후보정 정본 | 지지 — 임의 규약이 아님을 받친다 |
+| B-1 밴드 재측정 · B-3 두 sd 병기(§7-2) | ✗우리 규약 | **Nadeau & Bengio, NeurIPS 1999**(저널판 Machine Learning 52, 2003) — 분산의 큰 몫은 학습집합(분할) 가변성 ⇒ 남의 밴드 이식 금지 | 지지 |
+| B-4 폴드 sd 과신 금지(§7-2) | ✗우리 규약 | **Bengio & Grandvalet, JMLR 5, 2004** — K겹 CV 분산의 보편 불편추정량 부재(정리) | 지지 — σ/√k 를 신뢰구간처럼 안 쓰는 이유 |
+| C1 칸 단위 라벨 치환 · 특징 안 섞기(§7-3) | Ojala & Garriga | **Ojala & Garriga, JMLR 11(62), 2010** — 이미 탑티어(두 검정 원문 확인) | 지지. ⚠원문 치환은 표본 단위 — «칸 단위»는 그룹 구조에 맞춘 우리 강화라고 적는다 |
+| 세기 널·백색잡음 탐침·치트 진단(§4-1·§7-3·§8-3) | ✗선례 0편 | **Geirhos 외, Nature Machine Intelligence 2, 2020** — 지름길 학습: 같은 분포 성적은 허위 단서일 수 있고 분포가 바뀌면 무너진다 | 지지 — 개별 널의 형태는 여전히 우리 것 |
+| S / S+DR / SM / M 4팔 · 시험은 언제나 M(§9-1) | White · Camus · SimHumalator | **Ben-David 외, NeurIPS 2006** — 실측오차 ≤ 시뮬오차 + 도메인 거리(⑨축의 논리 골격). proxy A-distance = Q4 대리 측정의 정식 이름 + **Shrivastava 외(SimGAN), CVPR 2017 Best Paper** — 합성 단독 < 실측 통계로 정제한 합성(SM 팔·번역 백업의 상위 근거) | 지지 |
+| DR 은 모델 파라미터를 흔든다(§9-2) | Rojhani · Camus | **Chen 외, ICLR 2022 spotlight** — DR 만으로 전이 성립하는 조건과 갭 상계를 «파라미터화된 시뮬레이터 집합» 프레임으로 증명 | 지지(Tobin IROS 2017 원조 인용 유지) |
+| 라벨 없는 실측 활용 예비 팔(§9-3·§9-5) | ✗(미세조정만 있었음) | **Ganin 외(DANN), JMLR 17(59), 2016** — 라벨 없는 실측만으로 도메인 구별 안 되는 특징 학습 | 지지. ⚠회의판 표기는 Ganin & Lempitsky, ICML 2015, «Unsupervised Domain Adaptation by Backpropagation» |
+| 시뮬 내부 성적 불신(§8-4) | Camus | Geirhos 2020(위) | 지지 |
+
+**⚠어긋남 요약(3건 + 빈칸 1건)** — AdamW(ICLR 2019) · Wilson(NeurIPS 2017) ·
+Raghu(NeurIPS 2019, 부분) · dropout 빈칸(Srivastava JMLR 2014). 넷 다 **맞춰 고치지 않고**
+원장에 남기며, 처분은 위 표와 `prior_work/dl_toptier_anchors.md` §7 에 적었다.
+**인용 문구 정정이 필수인 것 1건**(Seyfioglu 2018 — 전이학습 비교 아님·patience 조기종료
+아님)은 부록 B11 로 올렸다.
+
 ## 부록 B. 정정 대상 (다음 라운드 할 일)
 
 | # | 대상 | 지금 | 고쳐야 할 것 |
@@ -1340,6 +1389,8 @@ M7 이 캠페인 전에 안 끝나면 **「엔진 교차는 미측정」으로 �
 | ⭐B8 | `src/rotor_dynamics.py:355` · `src/articulated_fast.py:197` | inclusive cumsum → 위상 원점이 ω·dt | ⭐**exclusive + 사다리꼴로 정정.** 별건 회귀 작업으로 RESUME 에 올린다(§2-3) |
 | ⭐B9 | `benchmark/md_classify_dataset.py:841–842` 주석 | 「조건이 달라도 **같은 물리 실현**을 쓴다」 | ⭐**흔들림 프리셋에서 거짓**(위상만 어긋난다) — 주석 정정 |
 | ⭐B10 | `benchmark/classify_airframe.py` 를 인용하는 모든 자리 | 「무학습 기준선 100 % / 94.6 %」 | ⭐**「스펙 회전수를 아는 오라클, 3클래스, 별도 원장」**으로 이름표(§5 L0′) |
+| ⭐B11 | §6-1 조기종료 행의 «Seyfioglu» 인용 | patience 조기종료의 출처처럼 읽힌다 | ⭐원문(TAES 2018)은 **고정 280 epoch + 매 epoch 검증셋 평가**이고 patience 조기종료가 아니다(오히려 "no overfitting") ⇒ «epoch 수·검증 모니터링 관행» 출처로만. 전이학습 정면 비교도 이 논문이 아니라 자매 GRSL 2017 이다(부록 A-2) |
+| ⭐B12 | §5 L6 행 «Brooks CAp 2020» | 회의(CAp) 판 인용 | ⭐**상위 NeurIPS 2019 판**("Riemannian Batch Normalization for SPD Neural Networks" — 실험이 레이다 드론 데이터)으로 승급(부록 A-2) |
 
 ## 부록 C. 실측한 환경·비용 수치 (2026-08-15 ⭐전부 재측정)
 
