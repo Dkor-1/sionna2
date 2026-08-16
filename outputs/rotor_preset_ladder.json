@@ -5337,5 +5337,59 @@
    "is_ko": "`rot_seed0` 는 npz 에 **적히기만** 하고 rng 에 안 들어간다 — `rng = np.random.default_rng(SEED)` 가 상수다. 그 CLI 로는 재생성 잡음을 못 잰다. 이 실험은 씨앗을 실제로 rng 에 넣는 별도 경로로 쟀다(파일 수정 없음). ⛔결함이 아니라 «없는 기능» 이므로 기존 원장은 그대로 유효하다.",
    "evidence": "md_classify_dataset.py:796-798 · 905"
   }
- ]
+ ],
+ "candidate_presets": {
+  "_note_ko": "⭐«후보» 칸 — 관문(M0) 담당이 반영 여부를 정한다. 사다리 판정표(ladder.table)의 실측 행이 아니며 macro-F1 은 재지 않았다(분류 재실행은 관문 몫). 기존 행·프리셋은 무변경.",
+  "dji_acoustic": {
+   "candidate": true,
+   "proposed_kst": "2026-08-16 11:54:26 KST",
+   "proposed_by": "prior_work/rotor_jitter_sources.md §2-3 행동 3 (권고 ③) 실행 원장 outputs/rotor_heutschi2020_table5.json",
+   "source_status_ko": "⭐진짜 DJI 실비행 — Heutschi et al. 2020(Acta Acustica 4:24, 오픈액세스), DJI Mavic 2 Pro 기내 녹음 18 비행에서 소리 기본주파수를 1 ms 자기상관으로 추적해 회전수 복원. 원문 사본 prior_work/outputs/rotor_jitter_raw/actasynth.pdf. 사다리 기존 프리셋 중 유일하게 DJI 기체 실측이 σ_w 를 앵커한다(outdoor·indoor 는 비-DJI).",
+   "basis_table5": {
+    "equation": "sigma_n = a + b * v_wind_2.5m",
+    "hover_10m": {
+     "a": 0.005,
+     "b_s_per_m": 0.0052,
+     "R2": 0.43
+    },
+    "hover_20m": {
+     "a": 0.005,
+     "b_s_per_m": 0.0079,
+     "R2": 0.34
+    },
+    "hover_50m": {
+     "a": 0.006,
+     "b_s_per_m": 0.0109,
+     "R2": 0.52
+    }
+   },
+   "conversion": {
+    "formula": "sigma_w[%] = 100*(a + b*v) / sqrt(F);  F=(2/pi)*(atan(2*pi*f2*T)-atan(2*pi*f1*T)), T=0.2274 s(원장 tau_ctl), 대역 [0.2, 20] Hz(논문 그림 13) → F=0.8006, 환산계수 1.118 (대역 가정 민감도 1.026~1.237)",
+    "ledger": "outputs/rotor_jitter_model.json sigma_w_calibration + outputs/rotor_heutschi2020_table5.json"
+   },
+   "wobble_sigma_pct": {
+    "no_wind_floor": [
+     0.56,
+     0.67
+    ],
+    "per_ms_wind_slope_pp": [
+     0.58,
+     1.22
+    ],
+    "example_hover20m_wind2ms": 2.32,
+    "example_hover20m_wind3ms": 3.21,
+    "note_ko": "σ_w 는 상수가 아니라 바람 손잡이 σ_w(v) 로 제안 — 무풍 하한 0.56~0.67 %(고도 10~50 m), 바람 1 m/s 당 +0.58~1.22 %p. 현행 outdoor σ_w 2.45 % 는 이 식으로 호버 바람 1.5~3.3 m/s 등가(20 m 식 2.1 m/s) — outdoor 유지와 정합."
+   },
+   "static_sigma_pct": null,
+   "static_sigma_note_ko": "⚠음향은 로터 분리가 안 되므로 σ_s 는 이 출처가 못 준다 — 행동 ①(PX4 fe7c9eed S500)·②(DREGON) 재측정 값과 짝지어 완성할 것(정본 문서 §2-3 권고 그대로).",
+   "macro_f1_mean": null,
+   "macro_f1_note_ko": "미측정 — 후보 칸이라 분류 사다리를 돌리지 않았다(GPU 금지 세션·관문 담당 몫).",
+   "caveats_ko": [
+    "Mavic 2 Pro(2018)는 표적 기체가 아니다 — DJI 제어 계열 앵커.",
+    "풍속은 지상 2.5 m 측정이라 고도별 b 에 바람 연직 분포가 접혀 있고 R² 0.34~0.52.",
+    "±2 % 점프 게이트·10주기 평활로 >10 Hz 성분은 하한측.",
+    "F-환산은 OU 가정(원장 unresolved 동일)."
+   ]
+  }
+ }
 }

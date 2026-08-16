@@ -507,6 +507,19 @@ def main():
         ),
         sources=srcs,
     )
+    # 다른 측정 스크립트(rotor_log_traces_px4ab.py·analyze_dregon_room1.py 등)가 이 원장에
+    # 끼워 넣은 행은 이 빌더가 모르는 키다 — 덮어쓰지 말고 보존한다(최상위·sources 두 층).
+    try:
+        with open(f"{ROOT}/outputs/rotor_log_traces.json") as f:
+            prev = json.load(f)
+        for k, v in prev.items():
+            if k == "sources":
+                for sk, sv in v.items():
+                    doc["sources"].setdefault(sk, sv)
+            else:
+                doc.setdefault(k, v)
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
     with open(f"{ROOT}/outputs/rotor_log_traces.json", "w") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
     if npz:

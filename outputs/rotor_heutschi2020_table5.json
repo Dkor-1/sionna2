@@ -1,0 +1,160 @@
+{
+ "_meta": {
+  "title": "Heutschi 2020 표 5 추출 + F-공식 σ_w 환산 (권고 ③ 실행 원장)",
+  "generated_kst": "2026-08-16 11:54:26 KST",
+  "task": "prior_work/rotor_jitter_sources.md §2-3 행동 3 — 표 5(σn=a+b·풍속)를 outputs/rotor_jitter_model.json 의 F-공식으로 σ_w 로 환산하고 rotor_preset_ladder.json 에 «dji_acoustic» 후보 칸을 추가",
+  "paper": "K. Heutschi, R. Ott, T. Nussbaumer, P. Wellig — Synthesis of real world drone signals based on lab recordings, Acta Acustica 2020, 4:24 (오픈액세스)",
+  "pdf_copy": "prior_work/outputs/rotor_jitter_raw/actasynth.pdf",
+  "source_status_ko": "⭐진짜 DJI 실비행 — DJI Mavic 2 Pro(2018, low-noise propellers 장착) 실기체 18 비행. 기내 2채널 녹음(Sony PCM-A10, 마이크는 뒤쪽 로터 2개를 향함) → 소리의 기본 주파수를 1 ms 분해능 자기상관(10주기 프레임)으로 추적해 회전수 시계열 복원, R=30·f0. 풍속 0.3~5.3 m/s(지상 2.5 m 휴대 풍속계), 기온 4~23 °C.",
+  "verification_ko": "표 5는 PDF 텍스트 추출과 페이지 렌더 이미지 판독을 이중으로 대조했고, 그림 12 부속 주석(forward downwind: offset 0.012·slope 0.0033·R2 0.22 / forward upwind: offset 0.005·slope 0.0130·R2 0.33)이 표의 두 행을 독립 재확인한다. 정본 문서 rotor_jitter_sources.md §1-나 [B] 수치(무풍 0.5~0.6 %·바람 1 m/s 당 0.52~1.09 %p·하강 6.3 %·전진 맞바람 1.30 vs 뒷바람 0.33)와 전부 일치 — 어긋난 항목 없음."
+ },
+ "table5_verbatim": {
+  "equation": "sigma_n = a + b * v_wind_average_2.5m   (Eq. 4; sigma_n = std(R[n])/R_average, 무차원 비율)",
+  "units": "a 무차원(비율), b [s/m] (풍속 m/s 당 비율), R2 결정계수",
+  "wind_reference_ko": "⚠풍속은 지상 2.5 m 에서 잰 값 — 드론 고도(10~50 m)의 바람이 아니라서 고도별 b 증가(0.0052→0.0109)에 바람 연직 분포가 접혀 있다",
+  "rows": {
+   "hover_10m": {
+    "paper_label": "Hover 10 m",
+    "a": 0.005,
+    "b_s_per_m": 0.0052,
+    "R2": 0.43
+   },
+   "hover_20m": {
+    "paper_label": "Hover 20 m",
+    "a": 0.005,
+    "b_s_per_m": 0.0079,
+    "R2": 0.34
+   },
+   "hover_50m": {
+    "paper_label": "Hover 50 m",
+    "a": 0.006,
+    "b_s_per_m": 0.0109,
+    "R2": 0.52
+   },
+   "climb_20_50m": {
+    "paper_label": "Climb 20-50 m",
+    "a": 0.001,
+    "b_s_per_m": 0.0084,
+    "R2": 0.69
+   },
+   "sink_50_10m": {
+    "paper_label": "sink 50-10 m",
+    "a": 0.063,
+    "b_s_per_m": 0.0017,
+    "R2": 0.01
+   },
+   "forward_downwind": {
+    "paper_label": "Forward, downwind",
+    "a": 0.012,
+    "b_s_per_m": 0.0033,
+    "R2": 0.22
+   },
+   "forward_upwind": {
+    "paper_label": "Forward, upwind",
+    "a": 0.005,
+    "b_s_per_m": 0.013,
+    "R2": 0.33
+   }
+  }
+ },
+ "f_formula_conversion": {
+  "formula": "sigma_w = sigma_n / sqrt(F);  F = (2/pi)*(atan(2*pi*f2*T) - atan(2*pi*f1*T)),  T = tau_ctl_s",
+  "tau_ctl_s": 0.22736420441699334,
+  "why_ko": "원장 rotor_jitter_model.json 의 F-공식은 «대역 rms → OU 총 σ» 환산이다(등가 사인 진폭 amp = 대역 rms×√2 를 넣으면 σ_w = (amp/√2)/√F = 대역rms/√F). Heutschi 의 σn 은 기동 구간 전체 시계열의 std, 즉 그 논문의 관측 대역 안 rms 다. 관측 대역을 정하고 F 로 나눠 총 σ_w 로 올린다.",
+  "band_choice_ko": "주 대역 [0.2, 20] Hz — 논문 그림 13 의 PSD 표시 대역(0.2 Hz 부근에서 시작, 20 Hz 부근에서 끝; 0.3→20 Hz 약 40 dB 내리막을 렌더 이미지로 재확인). 상한 20 Hz 는 10주기 자기상관 프레임(호버 f0≈205 Hz 에서 ~49 ms)의 평활과도 정합.",
+  "F_primary_band_0p2_20hz": 0.8006,
+  "conversion_factor_primary": 1.1176,
+  "sensitivity": {
+   "band_0p03_20hz_F": 0.9505,
+   "factor_lo": 1.0257,
+   "band_0p3_5hz_house_F": 0.6537,
+   "factor_hi": 1.2368,
+   "note_ko": "대역 가정을 [0.03,20](30 s 구간 하한)나 집규약 [0.3,5] 로 바꿔도 환산계수는 1.026~1.237 — σ_w 가 ±10 % 안에서 움직인다. 바람 항의 산포(R² 0.34~0.52)가 이보다 훨씬 크다."
+  },
+  "sigma_w_pct_by_manoeuvre": {
+   "hover_10m": {
+    "sigma_w_at_0ms_pct": 0.5588,
+    "sigma_w_slope_pct_per_ms": 0.5812,
+    "sigma_w_at_2ms_pct": 1.7212,
+    "sigma_w_at_3ms_pct": 2.3023,
+    "sigma_w_at_5ms_pct": 3.4647
+   },
+   "hover_20m": {
+    "sigma_w_at_0ms_pct": 0.5588,
+    "sigma_w_slope_pct_per_ms": 0.8829,
+    "sigma_w_at_2ms_pct": 2.3247,
+    "sigma_w_at_3ms_pct": 3.2076,
+    "sigma_w_at_5ms_pct": 4.9735
+   },
+   "hover_50m": {
+    "sigma_w_at_0ms_pct": 0.6706,
+    "sigma_w_slope_pct_per_ms": 1.2182,
+    "sigma_w_at_2ms_pct": 3.1071,
+    "sigma_w_at_3ms_pct": 4.3253,
+    "sigma_w_at_5ms_pct": 6.7618
+   },
+   "climb_20_50m": {
+    "sigma_w_at_0ms_pct": 0.1118,
+    "sigma_w_slope_pct_per_ms": 0.9388,
+    "sigma_w_at_2ms_pct": 1.9894,
+    "sigma_w_at_3ms_pct": 2.9282,
+    "sigma_w_at_5ms_pct": 4.8059
+   },
+   "sink_50_10m": {
+    "sigma_w_at_0ms_pct": 7.0412,
+    "sigma_w_slope_pct_per_ms": 0.19,
+    "sigma_w_at_2ms_pct": 7.4212,
+    "sigma_w_at_3ms_pct": 7.6112,
+    "sigma_w_at_5ms_pct": 7.9912
+   },
+   "forward_downwind": {
+    "sigma_w_at_0ms_pct": 1.3412,
+    "sigma_w_slope_pct_per_ms": 0.3688,
+    "sigma_w_at_2ms_pct": 2.0788,
+    "sigma_w_at_3ms_pct": 2.4476,
+    "sigma_w_at_5ms_pct": 3.1853
+   },
+   "forward_upwind": {
+    "sigma_w_at_0ms_pct": 0.5588,
+    "sigma_w_slope_pct_per_ms": 1.4529,
+    "sigma_w_at_2ms_pct": 3.4647,
+    "sigma_w_at_3ms_pct": 4.9176,
+    "sigma_w_at_5ms_pct": 7.8235
+   }
+  }
+ },
+ "consistency_checks": {
+  "vs_canonical_doc_ko": "prior_work/rotor_jitter_sources.md 의 [B] 수치와 전 항목 일치(어긋남 0건).",
+  "outdoor_preset_equivalence_ko": "현행 정본 후보 outdoor 의 σ_w 2.45 % 는 이 환산으로 호버 바람 1.46 m/s(50 m 식)~3.25 m/s(10 m 식), 20 m 식 기준 2.14 m/s 에 해당 — 정본 문서의 «바람 ~2~3 m/s 등가» 해석을 수치로 재확인. outdoor 를 덮어쓸 이유 없음.",
+  "table4_hover_rpm_check": {
+   "M2": 6150,
+   "I2": 4350,
+   "P4": 6300,
+   "F-4": 5250,
+   "S-9": 5100
+  },
+  "sink_note_ko": "하강(sink)의 σ_w≈7 % 는 자기 후류의 난류 탓이며 바람과 무관(b 0.0017, R² 0.01 — 기울기는 사실상 무의미). 상승(climb)은 절편이 0.1 % 로 가장 작고 바람 의존이 가장 깨끗(R² 0.69)."
+ },
+ "caveats_ko": [
+  "음향 추출이라 «지배 회전수 한 줄»만 나온다(마이크가 뒤 로터 2개를 향함) — 로터별 분리가 안 되므로 σ_s(로터 간 산포)는 이 출처에서 못 얻는다. 후보 칸의 σ_s 는 행동 ①(PX4 S500)·②(DREGON) 로그 값과 짝지어야 완성된다.",
+  "±2 % 점프 게이트(0.98<R[n+1]/R[n]<1.02, 위반 시 지수 보간)와 10주기 프레임 평활이 빠르고 큰 요동을 누른다 — σn 은 >10 Hz 성분에 대해 하한측(그림 13 상 그 대역 파워는 어차피 작다).",
+  "풍속은 지상 2.5 m 값이라 b 에 바람 연직 분포가 접혀 있고, 호버 행 R² 0.34~0.52 로 산포가 크다 — σ_w(v) 는 점 추정이 아니라 대역으로 읽어야 한다.",
+  "Mavic 2 Pro(2018)는 우리 표적 기체(Mavic 4 Pro·Matrice 4E)가 아니다 — DJI 라는 제조사·제어 계열 앵커이지 기종 앵커가 아니다.",
+  "F-환산은 OU 스펙트럼 가정을 쓴다(rotor_jitter_model.json unresolved 와 동일) — 실제 스펙트럼이 OU 가 아니면 F 가 달라진다. 그림 13 의 저주파 내리막은 OU 와 정성 정합.",
+  "σn 은 기동 구간 전체의 std 라 구간 내 느린 드리프트를 포함한다 — 창 규약(집규약 0.3-5 Hz)과 정의가 다르므로 rotor_log_traces.json 행들과 직접 비교할 때는 환산 대역 주의."
+ ],
+ "provenance": {
+  "measured_by": "권고 ③ 측정 서브에이전트, 2026-08-16",
+  "interpreter": "~/.venvs/py312/bin/python (benchmark/das_fleet_* 가 쓰는 인터프리터; PyMuPDF 1.28.2 기설치 — 추가 pip 설치 없음)",
+  "method": "fitz 텍스트 추출 + 160 dpi 페이지 렌더 이미지 판독 이중 대조(p.7 표 5·그림 12, p.8 그림 13)",
+  "gpu_used": false,
+  "files_written": [
+   "outputs/rotor_heutschi2020_table5.json",
+   "outputs/rotor_preset_ladder.json (candidate_presets 키 추가만)"
+  ],
+  "untouched": [
+   "src/rotor_dynamics.py PRESETS",
+   "기존 outputs/rotor_*.json 항목 전부(추가만 했고 기존 바이트 무변경 검증)"
+  ]
+ }
+}

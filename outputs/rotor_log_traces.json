@@ -1741,6 +1741,2922 @@
     ],
     "why": "정적 산포가 그 원천 창들의 사분위 범위(p25–p75) 안에 드는 창 중 가장 긴 것 — 전형적이면서 읽히는 길이"
    }
+  },
+  "dregon_room1": {
+   "name": "DREGON room1 (명령+실측, 자유비행)",
+   "venue": "indoor",
+   "signal": "measured + commanded rotor speed [rps 추정 — 절대 단위 미확정, % 통계만 유효]",
+   "access_ok": true,
+   "status": "«후보» — 2026-08-16 권고 ②(prior_work/rotor_jitter_sources.md §2-3 행동 2) 재측정. 프리셋 반영은 관문(M0) 담당 몫",
+   "note": "⚠규약 이탈 1건: 이 .mat 에는 속도 신호가 없어 호버 창 |v|<0.3 m/s 판정 불가 — 대신 램프 제외 안정 구간 t=8–62 s(54 s)를 6 s 창 9개로 썼다(자유비행이라 진성 호버 아님, v_mean=null). ⚠빌더 build_rotor_log_fig.py 는 이 json 을 다시 «쓰기»만 하므로 재실행 시 이 행이 사라진다 — 재생성 후 재추가 필요. 원자료 타임스탬프 불균일(dt 0.15–23.9 ms)이라 1 kHz 균일 격자로 선형보간 후 측정",
+   "n_windows": 9,
+   "files": [
+    "dregon_ff_room1_motors.mat (prior_work/outputs/rotor_jitter_raw/)"
+   ],
+   "total_hover_s": 54.0,
+   "fs_hz": 1000.0,
+   "level_mean": 80.5,
+   "level_unit_note": "⚠rps 추정치 — 절대 단위 미확정(파일에 단위 메타 없음). 이 행의 원장 수치는 % 통계만",
+   "static_std_pct": {
+    "median": 6.33,
+    "min": 5.07,
+    "max": 8.23
+   },
+   "wobble_amp_pct": {
+    "median": 1.62,
+    "p25": 1.28,
+    "p75": 2.12,
+    "min": 0.81,
+    "max": 4.62
+   },
+   "wobble_peak_hz": {
+    "median": 0.33,
+    "p25": 0.33,
+    "p75": 0.67
+   },
+   "measured_full54s": {
+    "static_spread_std_pct": 6.5,
+    "static_spread_range_pct": 13.75,
+    "rotor_mean_ratio": [
+     1.0687,
+     0.939,
+     1.061,
+     0.9313
+    ],
+    "cv_per_rotor_pct": [
+     1.81,
+     2.58,
+     2.01,
+     2.45
+    ],
+    "wobble_amp_pct": [
+     1.39,
+     2.22,
+     1.6,
+     2.15
+    ],
+    "wobble_peak_hz": [
+     0.59,
+     0.7,
+     0.59,
+     0.83
+    ],
+    "sigma_w_pct": [
+     1.22,
+     1.94,
+     1.4,
+     1.88
+    ],
+    "note": "대각 쌍 구조(1·3번 +6.1~6.9 % / 2·4번 −6.1~6.9 %) — σ_s 가 로터쌍 오프셋 지배"
+   },
+   "command_full54s": {
+    "static_spread_std_pct": 6.48,
+    "wobble_amp_pct": [
+     1.3,
+     2.13,
+     1.43,
+     2.07
+    ],
+    "sigma_w_pct": [
+     1.14,
+     1.86,
+     1.25,
+     1.81
+    ],
+    "note": "명령도 같은 비대칭·거의 같은 요동 — σ_s 는 제어할당이 이미 명령에 새긴 것(추종 아티팩트 아님)"
+   },
+   "sigma_w_conversion": {
+    "formula_source": "outputs/rotor_jitter_model.json sigma_w_calibration (F-공식, tau_ctl=0.22736420441699334)",
+    "band_hz": [
+     0.3,
+     5.0
+    ],
+    "band_fraction_F": 0.6537,
+    "sigma_w_pct_win_median": 1.41,
+    "sigma_w_pct_full54s_per_rotor": [
+     1.22,
+     1.94,
+     1.4,
+     1.88
+    ]
+   },
+   "tracking_cmd_vs_measured": {
+    "tracking_err_std_pct_full54s": [
+     0.859,
+     1.089,
+     1.048,
+     1.098
+    ],
+    "tracking_err_bandrms_pct_full54s_0p3to5hz": [
+     0.388,
+     0.505,
+     0.5,
+     0.511
+    ],
+    "verdict": "정본 문서의 «명령 vs 실측 추종오차 std 0.9~1.1 %» 재현: 이번 측정 0.86~1.10 % (로터별 0.859/1.089/1.048/1.098) — 하한이 0.86 으로 살짝 아래, 구간 선택 차이 수준. 추종오차의 0.3–5 Hz 대역 성분은 rms 0.39~0.51 % 뿐 — 대부분 5 Hz 위 고속 성분이라 명령만 로그하는 시뮬이 놓치는 것은 주로 빠른 미세 추종"
+   },
+   "lowfreq_power_note": "스펙트럼: ≥0.1 Hz 파워 중 0.1–1 Hz 몫 50~64 % (로터별) — 저주파 배회 재확인",
+   "comparison_with_canonical_doc": {
+    "doc": "prior_work/rotor_jitter_sources.md §1-가 DREGON [A]",
+    "agree": [
+     "σ_s 범위 기준: 문서 13.7 % ↔ 이번 13.75 % (전구간)",
+     "CV(안정 55 s): 문서 1.9~2.6 % ↔ 이번 1.81~2.58 % (구간 경계 차이 수준)",
+     "1 s 창 CV: 문서 1.0~1.4 % ↔ 이번 중앙 1.16 % (p10–p90 0.86~1.75 로 문서보다 폭 넓음)",
+     "추종오차: 문서 0.9~1.1 % ↔ 이번 0.86~1.10 %"
+    ],
+    "mismatch": [
+     "σ_s std 환산: 문서 «~6.8 %» ↔ 이번 전구간 6.50 % · 6 s 창 중앙 6.33 %(5.07~8.23) — 소폭 어긋남, 맞추지 않고 그대로 기록(문서 값은 ~ 근사 표기, 구간 선택 차이 추정)"
+    ]
+   },
+   "provenance": {
+    "date": "2026-08-16",
+    "script": "benchmark/analyze_dregon_room1.py (프로젝트 파이썬 ~/.venvs/py312/bin/python — benchmark 스크립트 공용 인터프리터, scipy 1.18.0/numpy 2.5.2 기설치, 추가 설치 없음)",
+    "raw": "prior_work/outputs/rotor_jitter_raw/dregon_ff_room1_motors.mat (59660×4, 63.9 s, 중앙 fs 1002 Hz)",
+    "stable_segment_s": [
+     8.0,
+     62.0
+    ]
+   },
+   "windows": [
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 8.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 81.0,
+     "static_dev_pct": [
+      5.957,
+      -5.494,
+      6.173,
+      -6.635
+     ],
+     "static_std_pct": 6.079,
+     "static_maxabs_pct": 6.635,
+     "wobble_amp_pct": [
+      2.522,
+      4.621,
+      2.731,
+      4.591
+     ],
+     "wobble_peak_hz": [
+      0.67,
+      0.83,
+      0.5,
+      0.67
+     ],
+     "tracking_err_std_pct": [
+      0.877,
+      1.199,
+      1.034,
+      1.198
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 14.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 80.8,
+     "static_dev_pct": [
+      5.541,
+      -4.891,
+      6.927,
+      -7.578
+     ],
+     "static_std_pct": 6.325,
+     "static_maxabs_pct": 7.578,
+     "wobble_amp_pct": [
+      1.526,
+      1.843,
+      1.412,
+      1.723
+     ],
+     "wobble_peak_hz": [
+      0.33,
+      0.33,
+      0.33,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.943,
+      1.057,
+      1.076,
+      1.073
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 20.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 80.5,
+     "static_dev_pct": [
+      7.323,
+      -5.75,
+      6.126,
+      -7.699
+     ],
+     "static_std_pct": 6.773,
+     "static_maxabs_pct": 7.699,
+     "wobble_amp_pct": [
+      1.045,
+      1.625,
+      1.27,
+      1.716
+     ],
+     "wobble_peak_hz": [
+      0.33,
+      0.33,
+      1.5,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.845,
+      1.0,
+      1.059,
+      1.029
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 26.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 80.6,
+     "static_dev_pct": [
+      7.237,
+      -7.287,
+      6.716,
+      -6.666
+     ],
+     "static_std_pct": 6.982,
+     "static_maxabs_pct": 7.287,
+     "wobble_amp_pct": [
+      0.812,
+      1.569,
+      1.102,
+      1.282
+     ],
+     "wobble_peak_hz": [
+      2.67,
+      0.33,
+      0.83,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.926,
+      1.21,
+      1.017,
+      1.202
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 32.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 80.4,
+     "static_dev_pct": [
+      8.612,
+      -8.217,
+      7.849,
+      -8.244
+     ],
+     "static_std_pct": 8.235,
+     "static_maxabs_pct": 8.612,
+     "wobble_amp_pct": [
+      1.211,
+      1.387,
+      1.367,
+      1.443
+     ],
+     "wobble_peak_hz": [
+      0.33,
+      0.5,
+      0.33,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.854,
+      0.975,
+      1.079,
+      1.056
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 38.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 79.9,
+     "static_dev_pct": [
+      6.913,
+      -5.418,
+      5.461,
+      -6.956
+     ],
+     "static_std_pct": 6.232,
+     "static_maxabs_pct": 6.956,
+     "wobble_amp_pct": [
+      1.248,
+      1.207,
+      1.606,
+      1.309
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.67,
+      0.33,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.814,
+      0.988,
+      1.036,
+      0.984
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 44.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 80.8,
+     "static_dev_pct": [
+      5.98,
+      -4.898,
+      4.072,
+      -5.154
+     ],
+     "static_std_pct": 5.072,
+     "static_maxabs_pct": 5.98,
+     "wobble_amp_pct": [
+      1.767,
+      2.115,
+      2.125,
+      2.141
+     ],
+     "wobble_peak_hz": [
+      0.33,
+      0.67,
+      0.33,
+      0.67
+     ],
+     "tracking_err_std_pct": [
+      0.843,
+      1.098,
+      1.071,
+      1.104
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 50.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 80.7,
+     "static_dev_pct": [
+      5.729,
+      -5.788,
+      5.512,
+      -5.453
+     ],
+     "static_std_pct": 5.622,
+     "static_maxabs_pct": 5.788,
+     "wobble_amp_pct": [
+      1.197,
+      2.08,
+      1.132,
+      2.249
+     ],
+     "wobble_peak_hz": [
+      0.33,
+      0.33,
+      1.0,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.798,
+      1.124,
+      0.994,
+      1.057
+     ]
+    },
+    {
+     "file": "dregon_ff_room1_motors.mat",
+     "t0": 56.0,
+     "dur_s": 6.0,
+     "v_mean": null,
+     "n_motor": 4,
+     "fs_hz": 1000.0,
+     "level_mean": 79.8,
+     "static_dev_pct": [
+      8.612,
+      -7.202,
+      6.094,
+      -7.504
+     ],
+     "static_std_pct": 7.407,
+     "static_maxabs_pct": 8.612,
+     "wobble_amp_pct": [
+      1.8,
+      2.02,
+      2.475,
+      2.408
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.33,
+      0.5,
+      0.33
+     ],
+     "tracking_err_std_pct": [
+      0.807,
+      1.101,
+      1.051,
+      1.143
+     ]
+    }
+   ]
+  },
+  "px4_s500_fe7c9eed": {
+   "name": "PX4 S500 (Pixhawk 6C, 양방향 DShot300) — fe7c9eed",
+   "status": "«후보» — 2026-08-16 추가 (prior_work/rotor_jitter_sources.md §2-3 행동 1). 프리셋 반영은 관문(M0) 담당 몫",
+   "venue": "outdoor",
+   "signal": "measured rotor speed [rpm] (esc_status, 양방향 DShot 텔레메트리)",
+   "access_ok": true,
+   "note": "위치유지 자동 호버 626 s. |v|<0.3 m/s 연속 호버가 사실상 비행 전체(613 s 런 1개)라 규약 창이 1개로 퇴화 — 그래서 (a) 규약 그대로의 613 s 창 1개와 (b) 10 s 등분 타일(분포 통계용 확장, 규약의 창 정의에는 없는 등분)을 둘 다 싣는다",
+   "n_windows": 1,
+   "n_tiles_10s": 61,
+   "files": [
+    "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg"
+   ],
+   "total_hover_s": 613.1,
+   "fs_hz": 9.85,
+   "band_hz": [
+    0.3,
+    4.43
+   ],
+   "level_mean": 5814.5,
+   "windows_literal": [
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 222.2,
+     "dur_s": 613.1,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5815.6,
+     "static_dev_pct": [
+      -0.367,
+      1.23,
+      -3.189,
+      2.326
+     ],
+     "static_std_pct": 2.075,
+     "static_maxabs_pct": 3.189,
+     "static_range_pct": 5.514,
+     "wobble_amp_pct": [
+      1.578,
+      1.778,
+      2.227,
+      1.944
+     ],
+     "wobble_peak_hz": [
+      0.59,
+      0.43,
+      0.32,
+      0.3
+     ]
+    }
+   ],
+   "tile_stats_10s": {
+    "static_std_pct": {
+     "median": 2.177,
+     "min": 1.527,
+     "max": 2.934
+    },
+    "wobble_amp_pct": {
+     "median": 1.615,
+     "p25": 1.468,
+     "p75": 1.961,
+     "min": 1.092,
+     "max": 3.108
+    },
+    "wobble_peak_hz": {
+     "median": 0.4,
+     "p25": 0.3,
+     "p75": 0.7
+    }
+   },
+   "windows": [
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 222.2,
+     "dur_s": 10.0,
+     "v_mean": 0.048,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5822.7,
+     "static_dev_pct": [
+      -2.775,
+      -1.23,
+      -0.93,
+      4.935
+     ],
+     "static_std_pct": 2.934,
+     "static_maxabs_pct": 4.935,
+     "wobble_amp_pct": [
+      1.701,
+      1.587,
+      1.459,
+      2.008
+     ],
+     "wobble_peak_hz": [
+      0.9,
+      0.4,
+      1.61,
+      0.6
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 232.2,
+     "dur_s": 10.0,
+     "v_mean": 0.012,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5836.1,
+     "static_dev_pct": [
+      -1.98,
+      0.087,
+      -1.17,
+      3.063
+     ],
+     "static_std_pct": 1.916,
+     "static_maxabs_pct": 3.063,
+     "wobble_amp_pct": [
+      1.522,
+      1.19,
+      1.153,
+      1.615
+     ],
+     "wobble_peak_hz": [
+      2.01,
+      0.6,
+      2.11,
+      0.5
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 242.2,
+     "dur_s": 10.0,
+     "v_mean": 0.013,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5820.1,
+     "static_dev_pct": [
+      -1.479,
+      0.017,
+      -1.62,
+      3.082
+     ],
+     "static_std_pct": 1.892,
+     "static_maxabs_pct": 3.082,
+     "wobble_amp_pct": [
+      1.34,
+      1.363,
+      1.758,
+      1.946
+     ],
+     "wobble_peak_hz": [
+      2.11,
+      0.6,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 252.2,
+     "dur_s": 10.0,
+     "v_mean": 0.021,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5818.1,
+     "static_dev_pct": [
+      -1.266,
+      -0.017,
+      -1.399,
+      2.681
+     ],
+     "static_std_pct": 1.639,
+     "static_maxabs_pct": 2.681,
+     "wobble_amp_pct": [
+      1.63,
+      1.477,
+      1.472,
+      1.542
+     ],
+     "wobble_peak_hz": [
+      1.41,
+      0.4,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 262.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5809.5,
+     "static_dev_pct": [
+      -0.497,
+      1.945,
+      -2.949,
+      1.5
+     ],
+     "static_std_pct": 1.935,
+     "static_maxabs_pct": 2.949,
+     "wobble_amp_pct": [
+      1.278,
+      1.351,
+      1.56,
+      1.133
+     ],
+     "wobble_peak_hz": [
+      0.6,
+      0.9,
+      0.7,
+      0.7
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 272.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5807.1,
+     "static_dev_pct": [
+      1.097,
+      2.19,
+      -4.467,
+      1.18
+     ],
+     "static_std_pct": 2.615,
+     "static_maxabs_pct": 4.467,
+     "wobble_amp_pct": [
+      1.656,
+      1.266,
+      2.142,
+      1.691
+     ],
+     "wobble_peak_hz": [
+      0.71,
+      0.71,
+      0.41,
+      0.41
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 282.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5813.3,
+     "static_dev_pct": [
+      0.351,
+      2.345,
+      -3.335,
+      0.639
+     ],
+     "static_std_pct": 2.071,
+     "static_maxabs_pct": 3.335,
+     "wobble_amp_pct": [
+      1.379,
+      1.468,
+      2.039,
+      1.32
+     ],
+     "wobble_peak_hz": [
+      0.6,
+      0.5,
+      0.7,
+      0.6
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 292.2,
+     "dur_s": 10.0,
+     "v_mean": 0.017,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5818.1,
+     "static_dev_pct": [
+      0.992,
+      1.807,
+      -4.252,
+      1.453
+     ],
+     "static_std_pct": 2.472,
+     "static_maxabs_pct": 4.252,
+     "wobble_amp_pct": [
+      1.382,
+      1.53,
+      2.232,
+      1.459
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.51,
+      0.51
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 302.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5819.8,
+     "static_dev_pct": [
+      1.093,
+      0.946,
+      -4.626,
+      2.587
+     ],
+     "static_std_pct": 2.747,
+     "static_maxabs_pct": 4.626,
+     "wobble_amp_pct": [
+      1.857,
+      1.972,
+      2.563,
+      2.267
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 312.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5808.1,
+     "static_dev_pct": [
+      -0.533,
+      1.68,
+      -3.336,
+      2.189
+     ],
+     "static_std_pct": 2.181,
+     "static_maxabs_pct": 3.336,
+     "wobble_amp_pct": [
+      1.615,
+      1.684,
+      2.569,
+      1.536
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 322.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5819.5,
+     "static_dev_pct": [
+      -1.134,
+      -0.197,
+      -2.438,
+      3.769
+     ],
+     "static_std_pct": 2.317,
+     "static_maxabs_pct": 3.769,
+     "wobble_amp_pct": [
+      1.487,
+      1.277,
+      1.539,
+      1.658
+     ],
+     "wobble_peak_hz": [
+      1.11,
+      0.6,
+      0.4,
+      0.7
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 332.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5829.1,
+     "static_dev_pct": [
+      -0.078,
+      1.173,
+      -3.656,
+      2.561
+     ],
+     "static_std_pct": 2.308,
+     "static_maxabs_pct": 3.656,
+     "wobble_amp_pct": [
+      1.402,
+      1.293,
+      2.345,
+      1.531
+     ],
+     "wobble_peak_hz": [
+      1.39,
+      0.4,
+      0.4,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 342.2,
+     "dur_s": 10.0,
+     "v_mean": 0.02,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5818.5,
+     "static_dev_pct": [
+      -1.046,
+      1.031,
+      -2.694,
+      2.709
+     ],
+     "static_std_pct": 2.047,
+     "static_maxabs_pct": 2.709,
+     "wobble_amp_pct": [
+      1.592,
+      1.516,
+      2.173,
+      1.482
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.61
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 352.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5819.7,
+     "static_dev_pct": [
+      -0.118,
+      0.822,
+      -3.35,
+      2.646
+     ],
+     "static_std_pct": 2.174,
+     "static_maxabs_pct": 3.35,
+     "wobble_amp_pct": [
+      1.581,
+      1.138,
+      1.963,
+      1.596
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.6,
+      0.5,
+      0.7
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 362.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5825.1,
+     "static_dev_pct": [
+      -0.796,
+      1.247,
+      -3.047,
+      2.596
+     ],
+     "static_std_pct": 2.134,
+     "static_maxabs_pct": 3.047,
+     "wobble_amp_pct": [
+      1.474,
+      1.323,
+      2.325,
+      2.071
+     ],
+     "wobble_peak_hz": [
+      0.41,
+      1.62,
+      0.3,
+      0.41
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 372.2,
+     "dur_s": 10.0,
+     "v_mean": 0.013,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5830.1,
+     "static_dev_pct": [
+      -0.698,
+      0.517,
+      -2.195,
+      2.376
+     ],
+     "static_std_pct": 1.674,
+     "static_maxabs_pct": 2.376,
+     "wobble_amp_pct": [
+      1.399,
+      1.474,
+      1.583,
+      1.341
+     ],
+     "wobble_peak_hz": [
+      0.8,
+      0.3,
+      2.91,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 382.2,
+     "dur_s": 10.0,
+     "v_mean": 0.013,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5823.5,
+     "static_dev_pct": [
+      -0.121,
+      2.22,
+      -3.651,
+      1.552
+     ],
+     "static_std_pct": 2.274,
+     "static_maxabs_pct": 3.651,
+     "wobble_amp_pct": [
+      1.542,
+      1.305,
+      1.724,
+      1.433
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      2.11,
+      0.5,
+      0.9
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 392.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5812.6,
+     "static_dev_pct": [
+      -0.682,
+      1.315,
+      -2.784,
+      2.151
+     ],
+     "static_std_pct": 1.909,
+     "static_maxabs_pct": 2.784,
+     "wobble_amp_pct": [
+      1.69,
+      1.567,
+      2.094,
+      1.391
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.9,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 402.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5818.2,
+     "static_dev_pct": [
+      0.6,
+      2.285,
+      -4.188,
+      1.304
+     ],
+     "static_std_pct": 2.491,
+     "static_maxabs_pct": 4.188,
+     "wobble_amp_pct": [
+      1.361,
+      1.38,
+      2.437,
+      1.627
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      1.41,
+      0.3,
+      1.21
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 412.2,
+     "dur_s": 10.0,
+     "v_mean": 0.017,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5820.5,
+     "static_dev_pct": [
+      0.293,
+      2.131,
+      -4.032,
+      1.608
+     ],
+     "static_std_pct": 2.422,
+     "static_maxabs_pct": 4.032,
+     "wobble_amp_pct": [
+      1.113,
+      1.487,
+      1.956,
+      1.478
+     ],
+     "wobble_peak_hz": [
+      0.9,
+      1.89,
+      0.4,
+      0.5
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 422.2,
+     "dur_s": 10.0,
+     "v_mean": 0.017,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5820.5,
+     "static_dev_pct": [
+      -0.261,
+      1.971,
+      -3.904,
+      2.194
+     ],
+     "static_std_pct": 2.45,
+     "static_maxabs_pct": 3.904,
+     "wobble_amp_pct": [
+      1.547,
+      1.689,
+      2.307,
+      1.655
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 432.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5828.2,
+     "static_dev_pct": [
+      -0.027,
+      2.177,
+      -3.304,
+      1.153
+     ],
+     "static_std_pct": 2.061,
+     "static_maxabs_pct": 3.304,
+     "wobble_amp_pct": [
+      1.132,
+      1.53,
+      2.197,
+      1.217
+     ],
+     "wobble_peak_hz": [
+      0.71,
+      0.81,
+      0.3,
+      2.64
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 442.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5821.7,
+     "static_dev_pct": [
+      0.462,
+      1.61,
+      -3.459,
+      1.387
+     ],
+     "static_std_pct": 2.043,
+     "static_maxabs_pct": 3.459,
+     "wobble_amp_pct": [
+      1.47,
+      1.38,
+      2.175,
+      1.258
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      1.91,
+      0.6,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 452.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5833.7,
+     "static_dev_pct": [
+      -0.023,
+      1.326,
+      -3.394,
+      2.09
+     ],
+     "static_std_pct": 2.1,
+     "static_maxabs_pct": 3.394,
+     "wobble_amp_pct": [
+      1.97,
+      1.139,
+      1.999,
+      1.662
+     ],
+     "wobble_peak_hz": [
+      3.02,
+      0.4,
+      0.4,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 462.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5814.4,
+     "static_dev_pct": [
+      -0.659,
+      1.604,
+      -3.194,
+      2.249
+     ],
+     "static_std_pct": 2.137,
+     "static_maxabs_pct": 3.194,
+     "wobble_amp_pct": [
+      1.635,
+      1.762,
+      2.31,
+      2.287
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.4,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 472.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5833.3,
+     "static_dev_pct": [
+      -0.111,
+      0.921,
+      -3.48,
+      2.67
+     ],
+     "static_std_pct": 2.242,
+     "static_maxabs_pct": 3.48,
+     "wobble_amp_pct": [
+      1.513,
+      1.409,
+      1.94,
+      1.9
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      3.38,
+      0.4,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 482.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5819.1,
+     "static_dev_pct": [
+      -0.022,
+      0.719,
+      -3.044,
+      2.348
+     ],
+     "static_std_pct": 1.956,
+     "static_maxabs_pct": 3.044,
+     "wobble_amp_pct": [
+      1.237,
+      1.642,
+      2.276,
+      1.427
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.41,
+      0.51
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 492.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5821.6,
+     "static_dev_pct": [
+      -0.875,
+      0.828,
+      -2.742,
+      2.789
+     ],
+     "static_std_pct": 2.046,
+     "static_maxabs_pct": 2.789,
+     "wobble_amp_pct": [
+      1.371,
+      1.51,
+      1.79,
+      1.603
+     ],
+     "wobble_peak_hz": [
+      1.09,
+      0.4,
+      0.5,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 502.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5838.6,
+     "static_dev_pct": [
+      -0.108,
+      2.184,
+      -3.615,
+      1.538
+     ],
+     "static_std_pct": 2.248,
+     "static_maxabs_pct": 3.615,
+     "wobble_amp_pct": [
+      1.479,
+      1.683,
+      2.185,
+      1.378
+     ],
+     "wobble_peak_hz": [
+      1.93,
+      0.3,
+      2.84,
+      1.02
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 512.2,
+     "dur_s": 10.0,
+     "v_mean": 0.023,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5824.5,
+     "static_dev_pct": [
+      -0.958,
+      0.694,
+      -2.813,
+      3.076
+     ],
+     "static_std_pct": 2.166,
+     "static_maxabs_pct": 3.076,
+     "wobble_amp_pct": [
+      2.062,
+      1.38,
+      2.164,
+      1.763
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      1.31,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 522.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5822.2,
+     "static_dev_pct": [
+      -0.055,
+      1.985,
+      -3.826,
+      1.896
+     ],
+     "static_std_pct": 2.355,
+     "static_maxabs_pct": 3.826,
+     "wobble_amp_pct": [
+      1.519,
+      1.726,
+      2.414,
+      1.643
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.4,
+      0.4,
+      0.7
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 532.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5840.2,
+     "static_dev_pct": [
+      -0.648,
+      -0.135,
+      -2.825,
+      3.607
+     ],
+     "static_std_pct": 2.315,
+     "static_maxabs_pct": 3.607,
+     "wobble_amp_pct": [
+      1.525,
+      1.31,
+      1.896,
+      1.804
+     ],
+     "wobble_peak_hz": [
+      0.6,
+      0.4,
+      0.3,
+      0.5
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 542.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5824.8,
+     "static_dev_pct": [
+      -0.469,
+      1.07,
+      -3.251,
+      2.65
+     ],
+     "static_std_pct": 2.177,
+     "static_maxabs_pct": 3.251,
+     "wobble_amp_pct": [
+      1.475,
+      1.483,
+      2.15,
+      1.744
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 552.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5809.2,
+     "static_dev_pct": [
+      0.036,
+      1.747,
+      -4.313,
+      2.531
+     ],
+     "static_std_pct": 2.649,
+     "static_maxabs_pct": 4.313,
+     "wobble_amp_pct": [
+      1.543,
+      1.301,
+      1.919,
+      1.434
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.5,
+      0.6,
+      0.8
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 562.2,
+     "dur_s": 10.0,
+     "v_mean": 0.02,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5812.5,
+     "static_dev_pct": [
+      -0.825,
+      0.843,
+      -2.77,
+      2.752
+     ],
+     "static_std_pct": 2.04,
+     "static_maxabs_pct": 2.77,
+     "wobble_amp_pct": [
+      1.476,
+      1.549,
+      1.794,
+      1.992
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.9,
+      0.4,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 572.2,
+     "dur_s": 10.0,
+     "v_mean": 0.02,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5831.1,
+     "static_dev_pct": [
+      0.269,
+      0.825,
+      -3.145,
+      2.051
+     ],
+     "static_std_pct": 1.927,
+     "static_maxabs_pct": 3.145,
+     "wobble_amp_pct": [
+      1.352,
+      1.47,
+      2.118,
+      2.052
+     ],
+     "wobble_peak_hz": [
+      0.61,
+      0.3,
+      0.51,
+      0.61
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 582.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5829.2,
+     "static_dev_pct": [
+      -1.211,
+      -0.331,
+      -2.604,
+      4.146
+     ],
+     "static_std_pct": 2.527,
+     "static_maxabs_pct": 4.146,
+     "wobble_amp_pct": [
+      1.844,
+      1.551,
+      1.888,
+      1.464
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      1.01,
+      0.8,
+      0.6
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 592.2,
+     "dur_s": 10.0,
+     "v_mean": 0.013,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5813.2,
+     "static_dev_pct": [
+      -0.228,
+      1.144,
+      -2.667,
+      1.751
+     ],
+     "static_std_pct": 1.699,
+     "static_maxabs_pct": 2.667,
+     "wobble_amp_pct": [
+      1.419,
+      1.387,
+      1.745,
+      1.448
+     ],
+     "wobble_peak_hz": [
+      1.51,
+      2.81,
+      1.61,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 602.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5825.2,
+     "static_dev_pct": [
+      -0.803,
+      1.54,
+      -2.853,
+      2.116
+     ],
+     "static_std_pct": 1.977,
+     "static_maxabs_pct": 2.853,
+     "wobble_amp_pct": [
+      1.476,
+      1.239,
+      1.89,
+      1.563
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.8,
+      2.81,
+      1.31
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 612.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5810.4,
+     "static_dev_pct": [
+      0.869,
+      2.207,
+      -4.822,
+      1.745
+     ],
+     "static_std_pct": 2.825,
+     "static_maxabs_pct": 4.822,
+     "wobble_amp_pct": [
+      1.462,
+      2.177,
+      2.012,
+      1.589
+     ],
+     "wobble_peak_hz": [
+      0.6,
+      0.3,
+      0.4,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 622.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5821.3,
+     "static_dev_pct": [
+      -0.748,
+      -0.21,
+      -2.001,
+      2.96
+     ],
+     "static_std_pct": 1.828,
+     "static_maxabs_pct": 2.96,
+     "wobble_amp_pct": [
+      1.092,
+      1.263,
+      1.911,
+      1.711
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      2.41,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 632.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5818.8,
+     "static_dev_pct": [
+      -0.375,
+      2.186,
+      -3.597,
+      1.786
+     ],
+     "static_std_pct": 2.294,
+     "static_maxabs_pct": 3.597,
+     "wobble_amp_pct": [
+      1.258,
+      1.292,
+      2.249,
+      1.603
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.4,
+      0.7,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 642.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5811.1,
+     "static_dev_pct": [
+      -0.192,
+      1.836,
+      -3.659,
+      2.014
+     ],
+     "static_std_pct": 2.283,
+     "static_maxabs_pct": 3.659,
+     "wobble_amp_pct": [
+      1.531,
+      1.987,
+      2.156,
+      2.407
+     ],
+     "wobble_peak_hz": [
+      1.32,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 652.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5822.5,
+     "static_dev_pct": [
+      -0.326,
+      1.907,
+      -3.396,
+      1.815
+     ],
+     "static_std_pct": 2.155,
+     "static_maxabs_pct": 3.396,
+     "wobble_amp_pct": [
+      1.363,
+      1.442,
+      2.061,
+      1.493
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.5,
+      0.6,
+      1.71
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 662.2,
+     "dur_s": 10.0,
+     "v_mean": 0.023,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5827.2,
+     "static_dev_pct": [
+      0.034,
+      1.884,
+      -3.855,
+      1.937
+     ],
+     "static_std_pct": 2.354,
+     "static_maxabs_pct": 3.855,
+     "wobble_amp_pct": [
+      1.569,
+      1.78,
+      2.589,
+      2.135
+     ],
+     "wobble_peak_hz": [
+      2.81,
+      0.3,
+      1.01,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 672.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5813.3,
+     "static_dev_pct": [
+      -0.016,
+      1.866,
+      -3.875,
+      2.026
+     ],
+     "static_std_pct": 2.377,
+     "static_maxabs_pct": 3.875,
+     "wobble_amp_pct": [
+      1.505,
+      1.749,
+      2.654,
+      2.122
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.4,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 682.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5812.7,
+     "static_dev_pct": [
+      -0.342,
+      2.191,
+      -3.153,
+      1.304
+     ],
+     "static_std_pct": 2.035,
+     "static_maxabs_pct": 3.153,
+     "wobble_amp_pct": [
+      1.357,
+      1.743,
+      2.42,
+      1.426
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 692.2,
+     "dur_s": 10.0,
+     "v_mean": 0.019,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5817.5,
+     "static_dev_pct": [
+      -0.505,
+      1.918,
+      -3.245,
+      1.831
+     ],
+     "static_std_pct": 2.11,
+     "static_maxabs_pct": 3.245,
+     "wobble_amp_pct": [
+      1.254,
+      1.585,
+      2.034,
+      1.673
+     ],
+     "wobble_peak_hz": [
+      0.99,
+      0.4,
+      0.6,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 702.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5824.0,
+     "static_dev_pct": [
+      -0.62,
+      0.114,
+      -2.694,
+      3.2
+     ],
+     "static_std_pct": 2.115,
+     "static_maxabs_pct": 3.2,
+     "wobble_amp_pct": [
+      1.585,
+      1.701,
+      2.176,
+      1.647
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.4,
+      0.3,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 712.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5827.5,
+     "static_dev_pct": [
+      -0.901,
+      -0.062,
+      -2.705,
+      3.668
+     ],
+     "static_std_pct": 2.323,
+     "static_maxabs_pct": 3.668,
+     "wobble_amp_pct": [
+      1.594,
+      1.322,
+      2.125,
+      2.097
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      1.32,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 722.2,
+     "dur_s": 10.0,
+     "v_mean": 0.017,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5829.1,
+     "static_dev_pct": [
+      -0.716,
+      0.072,
+      -2.508,
+      3.151
+     ],
+     "static_std_pct": 2.046,
+     "static_maxabs_pct": 3.151,
+     "wobble_amp_pct": [
+      1.717,
+      2.122,
+      1.942,
+      1.96
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 732.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5825.3,
+     "static_dev_pct": [
+      0.039,
+      1.204,
+      -3.631,
+      2.388
+     ],
+     "static_std_pct": 2.255,
+     "static_maxabs_pct": 3.631,
+     "wobble_amp_pct": [
+      1.554,
+      1.466,
+      2.037,
+      1.534
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      1.71,
+      0.3,
+      0.9
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 742.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5814.0,
+     "static_dev_pct": [
+      -1.127,
+      0.342,
+      -2.648,
+      3.433
+     ],
+     "static_std_pct": 2.246,
+     "static_maxabs_pct": 3.433,
+     "wobble_amp_pct": [
+      1.852,
+      1.624,
+      2.084,
+      2.048
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.4,
+      0.5,
+      0.7
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 752.2,
+     "dur_s": 10.0,
+     "v_mean": 0.016,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5819.2,
+     "static_dev_pct": [
+      0.466,
+      1.653,
+      -4.166,
+      2.046
+     ],
+     "static_std_pct": 2.474,
+     "static_maxabs_pct": 4.166,
+     "wobble_amp_pct": [
+      1.481,
+      1.44,
+      2.569,
+      1.821
+     ],
+     "wobble_peak_hz": [
+      1.31,
+      0.5,
+      0.5,
+      0.5
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 762.2,
+     "dur_s": 10.0,
+     "v_mean": 0.017,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5821.5,
+     "static_dev_pct": [
+      -1.184,
+      0.081,
+      -2.004,
+      3.108
+     ],
+     "static_std_pct": 1.942,
+     "static_maxabs_pct": 3.108,
+     "wobble_amp_pct": [
+      1.811,
+      1.569,
+      1.796,
+      1.912
+     ],
+     "wobble_peak_hz": [
+      0.8,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 772.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5792.7,
+     "static_dev_pct": [
+      0.517,
+      2.498,
+      -4.831,
+      1.815
+     ],
+     "static_std_pct": 2.878,
+     "static_maxabs_pct": 4.831,
+     "wobble_amp_pct": [
+      1.48,
+      1.396,
+      2.331,
+      1.574
+     ],
+     "wobble_peak_hz": [
+      0.7,
+      0.5,
+      0.7,
+      0.5
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 782.2,
+     "dur_s": 10.0,
+     "v_mean": 0.018,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5827.0,
+     "static_dev_pct": [
+      0.234,
+      1.739,
+      -3.856,
+      1.884
+     ],
+     "static_std_pct": 2.318,
+     "static_maxabs_pct": 3.856,
+     "wobble_amp_pct": [
+      1.522,
+      1.476,
+      1.888,
+      2.011
+     ],
+     "wobble_peak_hz": [
+      0.3,
+      0.61,
+      1.02,
+      0.41
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 792.2,
+     "dur_s": 10.0,
+     "v_mean": 0.015,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5829.5,
+     "static_dev_pct": [
+      -0.592,
+      1.635,
+      -2.824,
+      1.78
+     ],
+     "static_std_pct": 1.882,
+     "static_maxabs_pct": 2.824,
+     "wobble_amp_pct": [
+      1.281,
+      1.713,
+      2.127,
+      1.96
+     ],
+     "wobble_peak_hz": [
+      3.12,
+      0.3,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 802.2,
+     "dur_s": 10.0,
+     "v_mean": 0.014,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5827.2,
+     "static_dev_pct": [
+      -0.883,
+      0.911,
+      -1.979,
+      1.95
+     ],
+     "static_std_pct": 1.527,
+     "static_maxabs_pct": 1.979,
+     "wobble_amp_pct": [
+      1.539,
+      1.823,
+      2.379,
+      1.98
+     ],
+     "wobble_peak_hz": [
+      0.5,
+      0.3,
+      0.3,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 812.2,
+     "dur_s": 10.0,
+     "v_mean": 0.034,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5818.0,
+     "static_dev_pct": [
+      0.844,
+      2.505,
+      -4.513,
+      1.165
+     ],
+     "static_std_pct": 2.679,
+     "static_maxabs_pct": 4.513,
+     "wobble_amp_pct": [
+      1.759,
+      1.731,
+      2.271,
+      2.186
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.9,
+      0.3,
+      0.4
+     ]
+    },
+    {
+     "file": "fe7c9eed-8dff-4283-a2a0-117185b41505.ulg",
+     "t0": 822.2,
+     "dur_s": 10.0,
+     "v_mean": 0.057,
+     "n_motor": 4,
+     "fs_hz": 9.85,
+     "level_mean": 5750.0,
+     "static_dev_pct": [
+      -1.701,
+      1.629,
+      -2.82,
+      2.892
+     ],
+     "static_std_pct": 2.338,
+     "static_maxabs_pct": 2.892,
+     "wobble_amp_pct": [
+      2.584,
+      1.623,
+      3.108,
+      1.68
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.3,
+      0.3,
+      0.3
+     ]
+    }
+   ],
+   "sigma_w_conversion": {
+    "formula_source": "outputs/rotor_jitter_model.json sigma_w_calibration",
+    "tau_ctl_s": 0.22736420441699334,
+    "band_hz": [
+     0.3,
+     4.43
+    ],
+    "band_fraction_F": 0.6425,
+    "from_tile_median_amp": {
+     "amp_equiv_sine_pct": 1.615,
+     "sigma_w_pct": 1.425
+    },
+    "from_literal_613s_amp": {
+     "amp_equiv_sine_pct": 1.861,
+     "sigma_w_pct": 1.642
+    }
+   },
+   "doc_crosscheck_60s": {
+    "window_t0_s": 381.3,
+    "window_dur_s": 60.0,
+    "per_motor_mean_rpm": [
+     5819.0,
+     5937.0,
+     5608.0,
+     5919.0
+    ],
+    "per_motor_std_rpm": [
+     84.0,
+     98.0,
+     126.0,
+     91.0
+    ],
+    "per_motor_cv_pct": [
+     1.44,
+     1.65,
+     2.25,
+     1.54
+    ],
+    "inter_rotor_offset_range_rpm": 328.0,
+    "inter_rotor_offset_range_pct": 5.64,
+    "inter_rotor_wobble_corr_mean": -0.11,
+    "power_fraction": {
+     "lt_0p5hz": 0.545,
+     "gt_2hz": 0.241
+    },
+    "doc_claims": "정본 §1-가: CV 1.4~2.3 % · 오프셋 321 RPM=5.5 % · 상관 -0.10 · <0.5 Hz 50 % · >2 Hz 37 %",
+    "agreement": "CV(1.44~2.25↔1.4~2.3)·오프셋(328 RPM 5.64 %↔321 RPM 5.5 %)·상관(-0.11↔-0.10)·<0.5 Hz(54.5↔50 %) 일치. ⚠어긋남 1건: >2 Hz 파워 24.1 % ↔ 정본 37 % — 창 위치·격자 규약 차이로 보이나 정본 수치를 재현하지 못했다(맞추지 않고 그대로 둔다)"
+   },
+   "caution": "⚠DJI 아님(홀리브로 S500 키트급). 10 Hz 표집이라 4.5 Hz 위는 접힘 여지 — 단 아래 aliasing_ab 절이 67 Hz 로그로 그 여지를 정량화한다. 야외 바람 미상"
+  },
+  "px4_racing_1e858ce3": {
+   "name": "PX4 레이싱 쿼드 (KakuteH7, DShot150) — 1e858ce3",
+   "status": "«후보» — 2026-08-16 추가 (prior_work/rotor_jitter_sources.md §2-3 행동 1). 프리셋 반영은 관문(M0) 담당 몫",
+   "venue": "outdoor (과격 조종 호버)",
+   "signal": "measured rotor speed [rpm] (esc_status, DShot 텔레메트리, 평균 ~67 Hz 불균일 표집)",
+   "access_ok": true,
+   "note": "⚠규약 호버 창 0개: |v|<0.3 m/s 연속 3 s 이상이 없다(최장 1.8 s) — 과격 조종 호버라서. 아래 행들은 «스로틀 유지 구간»(전 모터 >0.5·중앙값, 글리치 제외) fallback 이며 v_mean 이 규약(0.3)을 넘는다. 프리셋 값으로 직접 쓰지 말 것 — 기동 상한과 A/B 앨리어싱 정량화 전용",
+   "n_windows": 0,
+   "windows": [],
+   "n_fallback_segments": 4,
+   "files": [
+    "1e858ce3-07df-4a9f-9336-7670c953874f.ulg"
+   ],
+   "total_hover_s": 0.0,
+   "total_fallback_s": 48.7,
+   "fs_hz": 67.0,
+   "fs_note": "메시지 중앙 dt 11.8 ms(~85 Hz)이나 드랍 포함 평균 67 Hz. 표본의 12.6 %는 글리치·스로틀 컷(0~2 kRPM, 1건 285 kRPM)으로 제외",
+   "band_hz": [
+    0.3,
+    5.0
+   ],
+   "level_mean": 10449.9,
+   "fallback_segments": [
+    {
+     "file": "1e858ce3-07df-4a9f-9336-7670c953874f.ulg",
+     "t0": 221.5,
+     "dur_s": 13.6,
+     "v_mean": 6.124,
+     "n_motor": 4,
+     "fs_hz": 67.0,
+     "level_mean": 9828.4,
+     "static_dev_pct": [
+      2.654,
+      -2.205,
+      -4.652,
+      4.203
+     ],
+     "static_std_pct": 3.578,
+     "static_maxabs_pct": 4.652,
+     "static_range_pct": 8.855,
+     "wobble_amp_pct": [
+      14.412,
+      14.676,
+      14.86,
+      13.406
+     ],
+     "wobble_peak_hz": [
+      0.88,
+      0.88,
+      0.88,
+      0.88
+     ]
+    },
+    {
+     "file": "1e858ce3-07df-4a9f-9336-7670c953874f.ulg",
+     "t0": 235.7,
+     "dur_s": 5.3,
+     "v_mean": 5.083,
+     "n_motor": 4,
+     "fs_hz": 67.0,
+     "level_mean": 12661.9,
+     "static_dev_pct": [
+      0.918,
+      -3.527,
+      -4.647,
+      7.256
+     ],
+     "static_std_pct": 4.678,
+     "static_maxabs_pct": 7.256,
+     "static_range_pct": 11.903,
+     "wobble_amp_pct": [
+      26.613,
+      28.156,
+      26.841,
+      18.08
+     ],
+     "wobble_peak_hz": [
+      0.56,
+      0.56,
+      0.56,
+      0.56
+     ]
+    },
+    {
+     "file": "1e858ce3-07df-4a9f-9336-7670c953874f.ulg",
+     "t0": 247.1,
+     "dur_s": 17.6,
+     "v_mean": 3.707,
+     "n_motor": 4,
+     "fs_hz": 67.0,
+     "level_mean": 10780.9,
+     "static_dev_pct": [
+      1.797,
+      -2.525,
+      -4.431,
+      5.159
+     ],
+     "static_std_pct": 3.737,
+     "static_maxabs_pct": 5.159,
+     "static_range_pct": 9.59,
+     "wobble_amp_pct": [
+      16.612,
+      15.42,
+      15.752,
+      16.174
+     ],
+     "wobble_peak_hz": [
+      0.4,
+      0.4,
+      0.4,
+      0.4
+     ]
+    },
+    {
+     "file": "1e858ce3-07df-4a9f-9336-7670c953874f.ulg",
+     "t0": 267.1,
+     "dur_s": 12.2,
+     "v_mean": 0.53,
+     "n_motor": 4,
+     "fs_hz": 67.0,
+     "level_mean": 10701.1,
+     "static_dev_pct": [
+      1.542,
+      -1.294,
+      -4.325,
+      4.077
+     ],
+     "static_std_pct": 3.138,
+     "static_maxabs_pct": 4.325,
+     "static_range_pct": 8.401,
+     "wobble_amp_pct": [
+      7.889,
+      7.873,
+      7.76,
+      7.922
+     ],
+     "wobble_peak_hz": [
+      0.65,
+      1.23,
+      1.23,
+      0.65
+     ]
+    }
+   ],
+   "fallback_stats": {
+    "static_std_pct": {
+     "median": 3.657,
+     "min": 3.138,
+     "max": 4.678
+    },
+    "wobble_amp_pct": {
+     "median": 15.14,
+     "p25": 12.035,
+     "p75": 16.979,
+     "min": 7.76,
+     "max": 28.156
+    },
+    "wobble_peak_hz": {
+     "median": 0.605,
+     "p25": 0.52,
+     "p75": 0.88
+    }
+   },
+   "sigma_w_conversion_reference_only": {
+    "formula_source": "outputs/rotor_jitter_model.json sigma_w_calibration",
+    "tau_ctl_s": 0.22736420441699334,
+    "band_hz": [
+     0.3,
+     5.0
+    ],
+    "band_fraction_F": 0.6537,
+    "from_fallback_median_amp": {
+     "amp_equiv_sine_pct": 15.14,
+     "sigma_w_pct": 13.241
+    },
+    "warning": "호버 규약 밖(과격 조종) — outdoor 프리셋 앵커로 쓰면 안 되고 기동 상한 참고치"
+   },
+   "doc_crosscheck": {
+    "doc_claims": "정본 §1-가: 평균 10225~11126 · CV 5.3~6.4 % · <2 Hz 86 % · >10 Hz 3 % · 오프셋 범위 8.4 % · 상관 +0.77 (15 s 창)",
+    "best_15s_under_our_cleaning": {
+     "window_t0_s": 247.1,
+     "window_dur_s": 15.0,
+     "per_motor_mean_rpm": [
+      10794.0,
+      10288.0,
+      10117.0,
+      11137.0
+     ],
+     "per_motor_cv_pct": [
+      23.84,
+      22.85,
+      22.99,
+      24.03
+     ],
+     "note": "우리 정제(전 모터>0.5·중앙, 글리치 제외, 틈<0.5 s 다리) 아래 최안정 15 s — CV 가 정본의 5.3~6.4 % 와 크게 어긋난다(과격 구간이라). 정본의 «15 s 창»은 이 창이 아니다"
+    },
+    "quiet_tail_segment": {
+     "window_t0_s": 267.1,
+     "window_dur_s": 12.2,
+     "per_motor_mean_rpm": [
+      10866.0,
+      10563.0,
+      10238.0,
+      11137.0
+     ],
+     "per_motor_cv_pct": [
+      7.11,
+      6.98,
+      6.95,
+      7.19
+     ],
+     "inter_rotor_offset_range_pct": 8.4,
+     "inter_rotor_wobble_corr_mean": 0.89,
+     "power_fraction": {
+      "lt_2hz": 0.556,
+      "gt_10hz": 0.075
+     },
+     "agreement": "평균 rpm(10238~11137↔10225~11126)·오프셋 범위(8.40↔8.4 %)가 정본과 일치 — 정본의 «15 s 창»은 사실상 이 조용한 꼬리(우리 정제로는 12.2 s). ⚠어긋남도 있다: CV 6.95~7.19 % (정본 5.3~6.4), 상관 +0.89 (정본 +0.77), <2 Hz 55.6 % (정본 86), >10 Hz 7.5 % (정본 3) — 정제·격자 규약 차이로 보이나, 정본 쪽 수치를 그대로 재현하지는 못했다"
+    }
+   },
+   "caution": "⚠DJI 아님(레이싱 프레임). 조종 공통 성분이 커서 로터 간 요동이 독립이 아님(정본 §1-가 상관 +0.77) — 호버 프리셋의 독립 OU 가정과 다른 레짐"
   }
+ },
+ "aliasing_ab_10hz_20260816": {
+  "purpose": "정본 §2 의 «4 Hz(및 10 Hz) 앨리어싱 단서» 정량화 — 67 Hz 로그를 10/4 Hz 표본유지(sample-hold)로 강등해 같은 규약 통계를 재는 A/B",
+  "method": "구간별로 native(67 Hz 균일격자, 0.3–5 Hz) ↔ sample-hold 10 Hz(0.3–4.5 Hz) ↔ 4 Hz(0.3–1.8 Hz). ratio_aliasing = 강등판/같은대역 native (접힘+표본유지 왜곡), ratio_band_clip = 잘린대역 native/전대역 native (대역 상한 손실), ratio_total = 둘의 곱. 4모터 비율 평균. 강등판도 유효 표본만 표본유지(글리치 미유입)",
+  "source_segments": "1e858ce3 스로틀 유지 구간 4개 (13.6·5.3·17.6·12.2 s). 앞 3개는 과격 조종(v_mean 3.7~6.1 m/s), 마지막 1개가 준-호버 꼬리(v_mean 0.53 m/s) — 호버 프리셋에 유관한 레짐은 마지막 것",
+  "per_segment": [
+   {
+    "t0": 221.5,
+    "dur_s": 13.6,
+    "ds10": {
+     "band_hz": [
+      0.3,
+      4.5
+     ],
+     "amp_native_full": [
+      14.412,
+      14.676,
+      14.86,
+      13.406
+     ],
+     "amp_native_band": [
+      14.327,
+      14.619,
+      14.742,
+      13.381
+     ],
+     "amp_ds": [
+      15.999,
+      15.864,
+      16.516,
+      15.147
+     ],
+     "static_std_native": 3.578,
+     "static_std_ds": 3.658,
+     "ratio_aliasing": 1.114,
+     "ratio_band_clip": 0.995,
+     "ratio_total": 1.108
+    },
+    "ds4": {
+     "band_hz": [
+      0.3,
+      1.8
+     ],
+     "amp_native_full": [
+      14.412,
+      14.676,
+      14.86,
+      13.406
+     ],
+     "amp_native_band": [
+      13.092,
+      13.472,
+      13.452,
+      12.036
+     ],
+     "amp_ds": [
+      16.299,
+      18.265,
+      16.347,
+      17.075
+     ],
+     "static_std_native": 3.578,
+     "static_std_ds": 3.821,
+     "ratio_aliasing": 1.309,
+     "ratio_band_clip": 0.907,
+     "ratio_total": 1.187
+    },
+    "v_mean": 6.124
+   },
+   {
+    "t0": 235.7,
+    "dur_s": 5.3,
+    "ds10": {
+     "band_hz": [
+      0.3,
+      4.5
+     ],
+     "amp_native_full": [
+      26.613,
+      28.156,
+      26.841,
+      18.08
+     ],
+     "amp_native_band": [
+      26.449,
+      28.039,
+      26.766,
+      17.967
+     ],
+     "amp_ds": [
+      26.473,
+      28.393,
+      24.347,
+      15.086
+     ],
+     "static_std_native": 4.678,
+     "static_std_ds": 4.717,
+     "ratio_aliasing": 0.941,
+     "ratio_band_clip": 0.995,
+     "ratio_total": 0.936
+    },
+    "ds4": {
+     "band_hz": [
+      0.3,
+      1.8
+     ],
+     "amp_native_full": [
+      26.613,
+      28.156,
+      26.841,
+      18.08
+     ],
+     "amp_native_band": [
+      25.294,
+      26.481,
+      24.943,
+      15.662
+     ],
+     "amp_ds": [
+      29.519,
+      30.591,
+      26.374,
+      19.714
+     ],
+     "static_std_native": 4.678,
+     "static_std_ds": 4.806,
+     "ratio_aliasing": 1.16,
+     "ratio_band_clip": 0.922,
+     "ratio_total": 1.067
+    },
+    "v_mean": 5.083
+   },
+   {
+    "t0": 247.1,
+    "dur_s": 17.6,
+    "ds10": {
+     "band_hz": [
+      0.3,
+      4.5
+     ],
+     "amp_native_full": [
+      16.612,
+      15.42,
+      15.752,
+      16.174
+     ],
+     "amp_native_band": [
+      16.573,
+      15.4,
+      15.724,
+      16.147
+     ],
+     "amp_ds": [
+      17.645,
+      16.31,
+      16.834,
+      16.812
+     ],
+     "static_std_native": 3.737,
+     "static_std_ds": 3.56,
+     "ratio_aliasing": 1.059,
+     "ratio_band_clip": 0.998,
+     "ratio_total": 1.057
+    },
+    "ds4": {
+     "band_hz": [
+      0.3,
+      1.8
+     ],
+     "amp_native_full": [
+      16.612,
+      15.42,
+      15.752,
+      16.174
+     ],
+     "amp_native_band": [
+      15.511,
+      14.511,
+      14.841,
+      15.417
+     ],
+     "amp_ds": [
+      17.124,
+      15.629,
+      16.282,
+      16.03
+     ],
+     "static_std_native": 3.737,
+     "static_std_ds": 3.637,
+     "ratio_aliasing": 1.079,
+     "ratio_band_clip": 0.943,
+     "ratio_total": 1.017
+    },
+    "v_mean": 3.707
+   },
+   {
+    "t0": 267.1,
+    "dur_s": 12.2,
+    "ds10": {
+     "band_hz": [
+      0.3,
+      4.5
+     ],
+     "amp_native_full": [
+      7.889,
+      7.873,
+      7.76,
+      7.922
+     ],
+     "amp_native_band": [
+      7.695,
+      7.724,
+      7.566,
+      7.741
+     ],
+     "amp_ds": [
+      9.95,
+      9.862,
+      10.075,
+      10.239
+     ],
+     "static_std_native": 3.138,
+     "static_std_ds": 3.167,
+     "ratio_aliasing": 1.306,
+     "ratio_band_clip": 0.977,
+     "ratio_total": 1.276
+    },
+    "ds4": {
+     "band_hz": [
+      0.3,
+      1.8
+     ],
+     "amp_native_full": [
+      7.889,
+      7.873,
+      7.76,
+      7.922
+     ],
+     "amp_native_band": [
+      5.977,
+      6.072,
+      5.641,
+      5.799
+     ],
+     "amp_ds": [
+      9.929,
+      10.382,
+      11.132,
+      10.106
+     ],
+     "static_std_native": 3.138,
+     "static_std_ds": 3.122,
+     "ratio_aliasing": 1.772,
+     "ratio_band_clip": 0.747,
+     "ratio_total": 1.322
+    },
+    "v_mean": 0.53
+   }
+  ],
+  "summary": {
+   "aggressive_3segs_median": {
+    "ds10": {
+     "ratio_aliasing": 1.059,
+     "ratio_band_clip": 0.995,
+     "ratio_total": 1.057
+    },
+    "ds4": {
+     "ratio_aliasing": 1.16,
+     "ratio_band_clip": 0.922,
+     "ratio_total": 1.067
+    },
+    "reading": "저주파 요동이 지배하는 과격 레짐에서는 강등 왜곡이 ±5~10 % 수준"
+   },
+   "near_hover_quiet_seg": {
+    "v_mean_ms": 0.53,
+    "dur_s": 12.2,
+    "ds10": {
+     "band_hz": [
+      0.3,
+      4.5
+     ],
+     "amp_native_full": [
+      7.889,
+      7.873,
+      7.76,
+      7.922
+     ],
+     "amp_native_band": [
+      7.695,
+      7.724,
+      7.566,
+      7.741
+     ],
+     "amp_ds": [
+      9.95,
+      9.862,
+      10.075,
+      10.239
+     ],
+     "static_std_native": 3.138,
+     "static_std_ds": 3.167,
+     "ratio_aliasing": 1.306,
+     "ratio_band_clip": 0.977,
+     "ratio_total": 1.276
+    },
+    "ds4": {
+     "band_hz": [
+      0.3,
+      1.8
+     ],
+     "amp_native_full": [
+      7.889,
+      7.873,
+      7.76,
+      7.922
+     ],
+     "amp_native_band": [
+      5.977,
+      6.072,
+      5.641,
+      5.799
+     ],
+     "amp_ds": [
+      9.929,
+      10.382,
+      11.132,
+      10.106
+     ],
+     "static_std_native": 3.138,
+     "static_std_ds": 3.122,
+     "ratio_aliasing": 1.772,
+     "ratio_band_clip": 0.747,
+     "ratio_total": 1.322
+    },
+    "reading": "준-호버에서는 저주파 요동이 작아지는 대신 4.5 Hz 위 성분(고속 성분+텔레메트리 잡음)의 접힘이 상대적으로 커져, 10 Hz 강등이 흔들림 진폭을 ×1.306, 4 Hz 강등이 ×1.772(같은 대역 대비; 대역 손실까지 곱한 total 은 ×1.322) 부풀린다"
+   },
+   "static_spread": "정적 산포는 표집률에 사실상 불변 (per_segment 의 static_std_native vs static_std_ds)"
+  },
+  "conclusion": {
+   "direction": "⭐표집 강등은 흔들림 통계를 «깎지» 않고 오히려 «부풀리는» 쪽이다 — 대역 손실(band_clip 0.75~1.00)보다 접힘 유입(aliasing 0.94~1.77)이 크다. 따라서 S500 10 Hz·AQUILA 4 Hz 에서 잰 σ_w 는 과소가 아니라 상한측 추정",
+   "s500_implication": "S500 10 Hz 타일 중앙 amp 1.615 % 에 준-호버 비율(÷1.306)을 적용하면 참-대역 amp ≈ 1.24 %, σ_w ≈ 1.09 % — 즉 S500 σ_w 는 1.09~1.42 % 구간",
+   "aquila_implication": "outdoor 프리셋 근거(AQUILA 4 Hz, amp 2.52 %→σ_w 2.45 %)에 준-호버 비율(÷1.772)을 그대로 옮기면 σ_w ≈ 1.41 % 까지 내려갈 수 있다. ⚠단 전이 불확실 — 접힘 몫은 기체·ESC 텔레메트리의 고주파 잡음 구조에 달려 있고(레이싱 쿼드는 그 잡음이 큰 쪽), AQUILA 는 CAN ESC 라 다를 수 있다. 결론: outdoor σ_w 2.45 % 는 «1.41~2.45 % 대역의 상한측» 으로 읽는 것이 정직하다",
+   "doc_caveat_status": "정본 §2-2 의 낙관(«67 Hz 로그의 >10 Hz 파워 3 % 가 앨리어싱 걱정 자체를 줄여 준다»)은 과격 레짐에서만 성립한다. 준-호버 구간에서는 4.5 Hz 위 파워(총 AC 의 ~22 %)의 접힘이 무시 못 할 크기다 — 단 방향이 «부풀림»이므로, 4 Hz 표집 때문에 프리셋이 실측보다 «작게» 잡혔을 걱정은 방향부터 성립하지 않는다. ⚠앨리어싱 단서는 «닫힘»이 아니라 «방향 확정 + 크기 상한(≤×1.77) 확보»로 좁혀졌다"
+  }
+ },
+ "amendment_20260816": {
+  "what": "권고 ①(prior_work/rotor_jitter_sources.md §2-3 행동 1): PX4 로그 2건을 창 규약으로 재측정한 «후보» 행 2개 + 10/4 Hz 앨리어싱 A/B 절 추가. 기존 행 무수정",
+  "script": "benchmark/rotor_log_traces_px4ab.py",
+  "interpreter": "/workspace/.venvs/py312/bin/python (pyulog·scipy 기설치 — 신규 설치 없음)",
+  "convention_source": "outputs/rotor_rpm_web_anchor.json method_note + 본 파일 measurement_convention (동일 규약)"
  }
 }
