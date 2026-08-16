@@ -1,0 +1,2107 @@
+{
+ "_meta": {
+  "generator": "scratchpad/ladder_final.py (프로펠러 두께 사다리 판정자 · 08-16 병합 원장)",
+  "date_kst": "2026-08-16",
+  "question_ko": "정본 프로펠러 두께 1.43 mm 를 포함한 두께 사다리(0.5·0.9·1.43·2.0 mm)가 기본(Sionna 100 mm)과 어떻게 다른가",
+  "gpu_used": false,
+  "inputs": [
+   "/workspace/sionna/outputs/elevation_sweep_md.json",
+   "/workspace/sionna/outputs/elevation_sweep_md.npz",
+   "/workspace/sionna/outputs/grid_convergence_check.json",
+   "outputs/frame_completion_0816.json(앙각별 밴드 정정)",
+   "outputs/depth_axis_verdict_0816.json(튀는 자세 조사 절차)",
+   "outputs/material_verdict_0816.json(08-16 오전 판 — 비교 기준)",
+   "docs/MATERIAL_CORRECTION.md §2-4·§6(사전등록 문안)"
+  ],
+  "conventions_ko": "모든 레벨 비교는 **정지 성분(DC) 제거 후**. 요동 = ac_power_db(DC 뺀 자세열의 평균 전력). 확산 바닥 = ac_power_db + 10log10(날개끝 상한 위 몫). 빗살 대비 = build_md_atlas.comb_contrast_db(2·f_flash~f_tip, 정수배÷중간자리). 잣대 식은 08-16 오전 판(build_material_verdict.py)과 글자 그대로 같아 두 판을 바로 비교할 수 있다. 팔: PathSolver spp 4e9 · 물리 끔 · 반사깊이 1 · 15 m · matrice4e · 자세 8192 · 같은 seed(짝지은 비교). 우리 커널(SBR+PO)에는 두께 개념이 없어 이 축은 구조적으로 못 잰다.",
+  "paired_comparison_evidence_ko": "사다리 다섯 팔 전부 자세 8192 · 빠진 자세 0 · 경로수 중앙값 1505 로 **똑같다** — 두께는 기하를 안 건드리고 재질 계수만 바꾸므로 광선 표집이 같다. 짝지은 비교라 표집 요동이 소거된다.",
+  "arm_naming_ko": "두께 팔은 전부 셸 0.75 mm 와 한 묶음이다(프롭 단독 팔은 원장에 없다). 다만 셸 0.75 단독 팔(프롭 100 mm)이 대조군으로 있고 그 팔의 요동·바닥·빗살 변화가 0.00 dB 라, 사다리가 움직인 것은 전부 프롭 몫으로 읽어도 된다."
+ },
+ "bands": {
+  "owner_ko": "격자 산포 밴드의 주인은 **우리 커널(SBR+PO)의 λ/12↔λ/24 격자 축**이다 — 여기 팔은 전부 PathSolver 라 «가져다 쓰는» 밴드다.",
+  "correction_ko": "⭐08-16 오전 판은 요동(AC) 밴드로 **전 앙각 3.861 dB** 한 값을 썼다. 정정본은 앙각마다 다르다 — el −30 의 요동 밴드는 **0.37 dB** 이고 3.86 은 정면(el 0) 값이다. 이 사다리는 전부 el −30 이라 좁은 정정본으로 채점했다(더 엄격한 쪽).",
+  "used_at_el_minus30": {
+   "ac_db": 0.374,
+   "floor_db": 9.295,
+   "comb_db": 4.6,
+   "rhythm_pp": 21.8,
+   "above_pp": 9.256,
+   "beat_hz": 0.152,
+   "seed_2sd_db": 3.67
+  },
+  "ac_grid_band_by_el_db": {
+   "0": 3.86,
+   "-15": 1.31,
+   "-30": 0.37,
+   "-45": 0.09,
+   "-60": 0.02,
+   "-75": 0.1,
+   "-90": 5.62
+  },
+  "floor_grid_band_by_el_db": {
+   "+0": 6.363,
+   "-15": 7.014,
+   "-30": 9.295,
+   "-45": 8.127
+  },
+  "floor_band_caveat_ko": "⚠확산 바닥의 격자 밴드는 el −30 에서 **9.30 dB** 로 매우 넓다 — 그 밴드는 «상한 위 몫» 이 격자에 9.26 %p 나 흔들리는 데서 온다. 요동 밴드(0.37 dB)의 25 배다. 그래서 확산 바닥은 이 축을 재는 데 둔한 잣대이고, 헤드라인은 요동으로 쓰는 것이 옳다.",
+  "grid_convergence_coverage_ko": "grid_convergence_check 는 el +0·−15·−30·−45 네 점뿐 — el −60 밴드는 없다."
+ },
+ "slab_predictions_3p5ghz": {
+  "abs": {
+   "0.5mm": {
+    "normal_db": -30.13,
+    "angle_avg_db": -24.15,
+    "deg30_db": -30.34,
+    "deg45_db": -29.73,
+    "deg60_db": -27.15
+   },
+   "0.75mm": {
+    "normal_db": -26.63,
+    "angle_avg_db": -21.17,
+    "deg30_db": -26.83,
+    "deg45_db": -26.23,
+    "deg60_db": -23.67
+   },
+   "0.9mm": {
+    "normal_db": -25.06,
+    "angle_avg_db": -19.85,
+    "deg30_db": -25.26,
+    "deg45_db": -24.67,
+    "deg60_db": -22.11
+   },
+   "1.43mm": {
+    "normal_db": -21.1,
+    "angle_avg_db": -16.59,
+    "deg30_db": -21.31,
+    "deg45_db": -20.73,
+    "deg60_db": -18.22
+   },
+   "1.5mm": {
+    "normal_db": -20.7,
+    "angle_avg_db": -16.26,
+    "deg30_db": -20.9,
+    "deg45_db": -20.33,
+    "deg60_db": -17.83
+   },
+   "2mm": {
+    "normal_db": -18.28,
+    "angle_avg_db": -14.32,
+    "deg30_db": -18.48,
+    "deg45_db": -17.93,
+    "deg60_db": -15.49
+   },
+   "3mm": {
+    "normal_db": -14.97,
+    "angle_avg_db": -11.74,
+    "deg30_db": -15.17,
+    "deg45_db": -14.67,
+    "deg60_db": -12.39
+   },
+   "100mm": {
+    "normal_db": -13.38,
+    "angle_avg_db": -8.5,
+    "deg30_db": -9.16,
+    "deg45_db": -8.02,
+    "deg60_db": -8.17
+   }
+  },
+  "delta_vs_100mm": {
+   "0.5mm": {
+    "normal_delta_db": -16.75,
+    "angle_avg_delta_db": -15.65,
+    "deg30_delta_db": -21.18,
+    "deg45_delta_db": -21.71,
+    "deg60_delta_db": -18.98
+   },
+   "0.75mm": {
+    "normal_delta_db": -13.25,
+    "angle_avg_delta_db": -12.67,
+    "deg30_delta_db": -17.67,
+    "deg45_delta_db": -18.21,
+    "deg60_delta_db": -15.5
+   },
+   "0.9mm": {
+    "normal_delta_db": -11.68,
+    "angle_avg_delta_db": -11.35,
+    "deg30_delta_db": -16.1,
+    "deg45_delta_db": -16.65,
+    "deg60_delta_db": -13.94
+   },
+   "1.43mm": {
+    "normal_delta_db": -7.72,
+    "angle_avg_delta_db": -8.09,
+    "deg30_delta_db": -12.15,
+    "deg45_delta_db": -12.71,
+    "deg60_delta_db": -10.05
+   },
+   "1.5mm": {
+    "normal_delta_db": -7.32,
+    "angle_avg_delta_db": -7.76,
+    "deg30_delta_db": -11.74,
+    "deg45_delta_db": -12.31,
+    "deg60_delta_db": -9.66
+   },
+   "2mm": {
+    "normal_delta_db": -4.9,
+    "angle_avg_delta_db": -5.82,
+    "deg30_delta_db": -9.32,
+    "deg45_delta_db": -9.91,
+    "deg60_delta_db": -7.32
+   },
+   "3mm": {
+    "normal_delta_db": -1.59,
+    "angle_avg_delta_db": -3.24,
+    "deg30_delta_db": -6.01,
+    "deg45_delta_db": -6.65,
+    "deg60_delta_db": -4.22
+   }
+  },
+  "note_ko": "ITU-R P.2040 단층 슬래브, plastic εr 2.7 · σ 0.02, 편파(TE·TM) 전력평균. 각도평균은 sinθcosθ 가중(반구 등입체각). ⚠슬래브는 무한 평판이라 프로펠러 날 같은 좁고 휜 면의 회절·끝단 효과는 안 담는다."
+ },
+ "el_minus30_ladder": {
+  "el_deg": -30.0,
+  "f_tip_hz": 1102.4,
+  "arms": {
+   "base_100mm": {
+    "n_used": 8192,
+    "dc_power_db": -137.088,
+    "ac_power_db": -135.664,
+    "ac_over_dc": 1.38804323,
+    "rhythm_share_pct": 80.499,
+    "above_f_tip_pct": 1.0606,
+    "floor_above_tip_db": -155.408,
+    "comb_contrast_db": 51.989,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": -30.0,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 7543.3,
+    "npaths_median": 1505,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -133.97,
+    "beat_hz_track": 127.09,
+    "blade_band_power_db_track": -126.84,
+    "spike": {
+     "top1_over_median": 3.7,
+     "top2_over_median": 3.7,
+     "isolation": 1.001,
+     "argmax_pose": 2652,
+     "top1_energy_pct": 0.0674,
+     "top8_energy_pct": 0.53,
+     "top32_energy_pct": 2.0695
+    }
+   },
+   "shell0.75_prop100_control": {
+    "n_used": 8192,
+    "dc_power_db": -143.328,
+    "ac_power_db": -135.662,
+    "ac_over_dc": 5.84291081,
+    "rhythm_share_pct": 80.49,
+    "above_f_tip_pct": 1.0598,
+    "floor_above_tip_db": -155.41,
+    "comb_contrast_db": 51.994,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_d1",
+    "el_deg": -30.0,
+    "shell_mm": 0.75,
+    "prop_mm": 100.0,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 4575.2,
+    "npaths_median": 1505,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -136.23,
+    "beat_hz_track": 127.1,
+    "blade_band_power_db_track": -126.9,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -0.002,
+     "d_ac_power_db": 0.002,
+     "d_dc_power_db": -6.24,
+     "d_level_db_ledger": -2.26,
+     "d_comb_contrast_db": 0.005,
+     "d_rhythm_share_pct": -0.009,
+     "d_above_f_tip_pct": -0.0008,
+     "d_beat_hz_track": 0.01
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 1.0,
+     "stft_db_map_corr_dc_removed": 0.9998
+    },
+    "spike": {
+     "top1_over_median": 3.7,
+     "top2_over_median": 3.7,
+     "isolation": 1.001,
+     "argmax_pose": 2652,
+     "top1_energy_pct": 0.0674,
+     "top8_energy_pct": 0.5307,
+     "top32_energy_pct": 2.0705
+    }
+   },
+   "prop_0.5mm": {
+    "n_used": 8192,
+    "dc_power_db": -151.675,
+    "ac_power_db": -157.739,
+    "ac_over_dc": 0.24750787,
+    "rhythm_share_pct": 73.779,
+    "above_f_tip_pct": 3.1152,
+    "floor_above_tip_db": -172.804,
+    "comb_contrast_db": 44.149,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.5mm_d1",
+    "el_deg": -30.0,
+    "shell_mm": 0.75,
+    "prop_mm": 0.5,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 4630.3,
+    "npaths_median": 1505,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -151.14,
+    "beat_hz_track": 127.03,
+    "blade_band_power_db_track": -148.73,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -17.396,
+     "d_ac_power_db": -22.075,
+     "d_dc_power_db": -14.587,
+     "d_level_db_ledger": -17.17,
+     "d_comb_contrast_db": -7.84,
+     "d_rhythm_share_pct": -6.72,
+     "d_above_f_tip_pct": 2.0546,
+     "d_beat_hz_track": -0.06
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 0.9766,
+     "stft_db_map_corr_dc_removed": 0.8796
+    },
+    "spike": {
+     "top1_over_median": 3.96,
+     "top2_over_median": 3.93,
+     "isolation": 1.008,
+     "argmax_pose": 1755,
+     "top1_energy_pct": 0.0837,
+     "top8_energy_pct": 0.6277,
+     "top32_energy_pct": 2.3177
+    }
+   },
+   "prop_0.9mm": {
+    "n_used": 8192,
+    "dc_power_db": -150.901,
+    "ac_power_db": -152.65,
+    "ac_over_dc": 0.66846522,
+    "rhythm_share_pct": 75.29,
+    "above_f_tip_pct": 2.9418,
+    "floor_above_tip_db": -167.964,
+    "comb_contrast_db": 45.009,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "el_deg": -30.0,
+    "shell_mm": 0.75,
+    "prop_mm": 0.9,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 4416.5,
+    "npaths_median": 1505,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -149.22,
+    "beat_hz_track": 127.05,
+    "blade_band_power_db_track": -143.93,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -12.556,
+     "d_ac_power_db": -16.986,
+     "d_dc_power_db": -13.813,
+     "d_level_db_ledger": -15.25,
+     "d_comb_contrast_db": -6.98,
+     "d_rhythm_share_pct": -5.209,
+     "d_above_f_tip_pct": 1.8812,
+     "d_beat_hz_track": -0.04
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 0.9775,
+     "stft_db_map_corr_dc_removed": 0.8923
+    },
+    "spike": {
+     "top1_over_median": 3.93,
+     "top2_over_median": 3.91,
+     "isolation": 1.006,
+     "argmax_pose": 1755,
+     "top1_energy_pct": 0.0822,
+     "top8_energy_pct": 0.6252,
+     "top32_energy_pct": 2.3079
+    }
+   },
+   "prop_1.43mm": {
+    "n_used": 8192,
+    "dc_power_db": -149.913,
+    "ac_power_db": -148.683,
+    "ac_over_dc": 1.32741427,
+    "rhythm_share_pct": 76.66,
+    "above_f_tip_pct": 2.7958,
+    "floor_above_tip_db": -164.218,
+    "comb_contrast_db": 45.784,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+    "el_deg": -30.0,
+    "shell_mm": 0.75,
+    "prop_mm": 1.43,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 5480.3,
+    "npaths_median": 1505,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -146.88,
+    "beat_hz_track": 127.05,
+    "blade_band_power_db_track": -140.04,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -8.81,
+     "d_ac_power_db": -13.019,
+     "d_dc_power_db": -12.825,
+     "d_level_db_ledger": -12.91,
+     "d_comb_contrast_db": -6.205,
+     "d_rhythm_share_pct": -3.839,
+     "d_above_f_tip_pct": 1.7352,
+     "d_beat_hz_track": -0.04
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 0.9786,
+     "stft_db_map_corr_dc_removed": 0.9032
+    },
+    "spike": {
+     "top1_over_median": 3.89,
+     "top2_over_median": 3.88,
+     "isolation": 1.004,
+     "argmax_pose": 1755,
+     "top1_energy_pct": 0.0806,
+     "top8_energy_pct": 0.6224,
+     "top32_energy_pct": 2.3019
+    }
+   },
+   "prop_2mm": {
+    "n_used": 8192,
+    "dc_power_db": -148.939,
+    "ac_power_db": -145.852,
+    "ac_over_dc": 2.03605818,
+    "rhythm_share_pct": 77.726,
+    "above_f_tip_pct": 2.6685,
+    "floor_above_tip_db": -161.589,
+    "comb_contrast_db": 46.383,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop2mm_d1",
+    "el_deg": -30.0,
+    "shell_mm": 0.75,
+    "prop_mm": 2.0,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 4233.2,
+    "npaths_median": 1505,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -144.86,
+    "beat_hz_track": 127.06,
+    "blade_band_power_db_track": -137.23,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -6.181,
+     "d_ac_power_db": -10.188,
+     "d_dc_power_db": -11.851,
+     "d_level_db_ledger": -10.89,
+     "d_comb_contrast_db": -5.606,
+     "d_rhythm_share_pct": -2.773,
+     "d_above_f_tip_pct": 1.6079,
+     "d_beat_hz_track": -0.03
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 0.9797,
+     "stft_db_map_corr_dc_removed": 0.912
+    },
+    "spike": {
+     "top1_over_median": 3.86,
+     "top2_over_median": 3.86,
+     "isolation": 1.002,
+     "argmax_pose": 1755,
+     "top1_energy_pct": 0.0793,
+     "top8_energy_pct": 0.6196,
+     "top32_energy_pct": 2.3003
+    }
+   },
+   "ref_props_only_100mm": {
+    "n_used": 8192,
+    "dc_power_db": -147.991,
+    "ac_power_db": -135.473,
+    "ac_over_dc": 17.85785562,
+    "rhythm_share_pct": 81.455,
+    "above_f_tip_pct": 1.1785,
+    "floor_above_tip_db": -154.76,
+    "comb_contrast_db": 51.814,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+    "el_deg": -30.0,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 6862.2,
+    "npaths_median": 663,
+    "f_tip_hz": 1102.4,
+    "level_db_ledger": -136.97,
+    "beat_hz_track": 127.05,
+    "blade_band_power_db_track": -126.93,
+    "spike": {
+     "top1_over_median": 3.79,
+     "top2_over_median": 3.77,
+     "isolation": 1.005,
+     "argmax_pose": 2222,
+     "top1_energy_pct": 0.0724,
+     "top8_energy_pct": 0.562,
+     "top32_energy_pct": 2.1278
+    }
+   }
+  },
+  "ladder_table_raw": [
+   {
+    "prop_mm": 0.5,
+    "d_ac_power_db": -22.075,
+    "d_floor_above_tip_db": -17.396,
+    "d_comb_contrast_db": -7.84,
+    "d_rhythm_share_pp": -6.72,
+    "d_dc_power_db": -14.587
+   },
+   {
+    "prop_mm": 0.9,
+    "d_ac_power_db": -16.986,
+    "d_floor_above_tip_db": -12.556,
+    "d_comb_contrast_db": -6.98,
+    "d_rhythm_share_pp": -5.209,
+    "d_dc_power_db": -13.813
+   },
+   {
+    "prop_mm": 1.43,
+    "d_ac_power_db": -13.019,
+    "d_floor_above_tip_db": -8.81,
+    "d_comb_contrast_db": -6.205,
+    "d_rhythm_share_pp": -3.839,
+    "d_dc_power_db": -12.825
+   },
+   {
+    "prop_mm": 2.0,
+    "d_ac_power_db": -10.188,
+    "d_floor_above_tip_db": -6.181,
+    "d_comb_contrast_db": -5.606,
+    "d_rhythm_share_pp": -2.773,
+    "d_dc_power_db": -11.851
+   }
+  ],
+  "shell_isolation_ko": "셸 0.75 mm 단독 팔(프롭 100 mm)의 기본 대비: 요동 +0.002 dB · 바닥 -0.002 dB · 빗살 +0.005 dB — 표적 축에 셸은 배선이 없다."
+ },
+ "monotonicity": {
+  "ac": {
+   "steps_db": [
+    5.089,
+    3.967,
+    2.831
+   ],
+   "monotone_brighter_with_thickness": true,
+   "n_inversions": 0
+  },
+  "floor": {
+   "steps_db": [
+    4.84,
+    3.746,
+    2.629
+   ],
+   "monotone_brighter_with_thickness": true,
+   "n_inversions": 0
+  },
+  "comb": {
+   "steps_db": [
+    0.86,
+    0.775,
+    0.599
+   ],
+   "monotone_brighter_with_thickness": true,
+   "n_inversions": 0
+  },
+  "rhythm": {
+   "steps_db": [
+    1.511,
+    1.37,
+    1.066
+   ],
+   "monotone_brighter_with_thickness": true,
+   "n_inversions": 0
+  },
+  "dc": {
+   "steps_db": [
+    0.774,
+    0.988,
+    0.974
+   ],
+   "monotone_brighter_with_thickness": true,
+   "n_inversions": 0
+  },
+  "check_in_uniform_resamples": {
+   "first_half": true,
+   "second_half": true,
+   "even_decimate": true,
+   "odd_decimate": true
+  }
+ },
+ "outlier_forensics": {
+  "why_ko": "⭐한 자세가 통째로 튀면 잣대가 그 자세 하나를 재게 된다. 08-16 에 판정 하나가 실제로 그렇게 뒤집혔다. 그래서 사다리 다섯 팔을 통틀어 |AC|/중앙 이 큰 자세 k 개를 다섯 팔에서 똑같이 빼고 다시 쟀다.",
+  "isolation_def_ko": "isolation = |AC| 최대 ÷ 둘째. 1 에 가까우면 로터 대칭이 만든 구조적 플래시(정상), 2 를 넘으면 자세 하나만 튄 것이다.",
+  "verdict_ko": "⭐**튀는 자세는 없다.** 다섯 팔 전부 isolation 1.001~1.008 로 문턱 2.0 에서 한참 멀고(깊이 축 판정의 중앙값 1.018 과 같은 자리), 최대 자세가 가진 요동 에너지는 0.07~0.08 % · 상위 8 자세 합쳐도 0.53~0.63 % 다. 가장 큰 자세들의 번호(1755·1756 · 2845·2846 · 3001·3002 · 2222·2224)가 **이웃끼리 짝**을 이루는 것도 로터 대칭이 만든 구조적 플래시라는 증거다.",
+  "isolation_by_arm": {
+   "base_100mm": 1.001,
+   "shell0.75_prop100_control": 1.001,
+   "prop_0.5mm": 1.008,
+   "prop_0.9mm": 1.006,
+   "prop_1.43mm": 1.004,
+   "prop_2mm": 1.002,
+   "ref_props_only_100mm": 1.005
+  },
+  "spike_by_arm": {
+   "base_100mm": {
+    "top1_over_median": 3.7,
+    "top2_over_median": 3.7,
+    "isolation": 1.001,
+    "argmax_pose": 2652,
+    "top1_energy_pct": 0.0674,
+    "top8_energy_pct": 0.53,
+    "top32_energy_pct": 2.0695
+   },
+   "shell0.75_prop100_control": {
+    "top1_over_median": 3.7,
+    "top2_over_median": 3.7,
+    "isolation": 1.001,
+    "argmax_pose": 2652,
+    "top1_energy_pct": 0.0674,
+    "top8_energy_pct": 0.5307,
+    "top32_energy_pct": 2.0705
+   },
+   "prop_0.5mm": {
+    "top1_over_median": 3.96,
+    "top2_over_median": 3.93,
+    "isolation": 1.008,
+    "argmax_pose": 1755,
+    "top1_energy_pct": 0.0837,
+    "top8_energy_pct": 0.6277,
+    "top32_energy_pct": 2.3177
+   },
+   "prop_0.9mm": {
+    "top1_over_median": 3.93,
+    "top2_over_median": 3.91,
+    "isolation": 1.006,
+    "argmax_pose": 1755,
+    "top1_energy_pct": 0.0822,
+    "top8_energy_pct": 0.6252,
+    "top32_energy_pct": 2.3079
+   },
+   "prop_1.43mm": {
+    "top1_over_median": 3.89,
+    "top2_over_median": 3.88,
+    "isolation": 1.004,
+    "argmax_pose": 1755,
+    "top1_energy_pct": 0.0806,
+    "top8_energy_pct": 0.6224,
+    "top32_energy_pct": 2.3019
+   },
+   "prop_2mm": {
+    "top1_over_median": 3.86,
+    "top2_over_median": 3.86,
+    "isolation": 1.002,
+    "argmax_pose": 1755,
+    "top1_energy_pct": 0.0793,
+    "top8_energy_pct": 0.6196,
+    "top32_energy_pct": 2.3003
+   },
+   "ref_props_only_100mm": {
+    "top1_over_median": 3.79,
+    "top2_over_median": 3.77,
+    "isolation": 1.005,
+    "argmax_pose": 2222,
+    "top1_energy_pct": 0.0724,
+    "top8_energy_pct": 0.562,
+    "top32_energy_pct": 2.1278
+   }
+  },
+  "top_rel_poses": [
+   1755,
+   3002,
+   2222,
+   2534,
+   2846,
+   2845,
+   3275,
+   2379,
+   2224,
+   1756,
+   3001,
+   2652,
+   1910,
+   1601,
+   3273,
+   2067
+  ],
+  "trim_delete": {
+   "k0": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.664,
+      "floor_above_tip_db": -155.408,
+      "comb_contrast_db": 51.989,
+      "rhythm_share_pct": 80.499,
+      "above_f_tip_pct": 1.0606,
+      "n_used": 8192
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.739,
+      "floor_above_tip_db": -172.804,
+      "comb_contrast_db": 44.149,
+      "rhythm_share_pct": 73.779,
+      "above_f_tip_pct": 3.1152,
+      "n_used": 8192
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.65,
+      "floor_above_tip_db": -167.964,
+      "comb_contrast_db": 45.009,
+      "rhythm_share_pct": 75.29,
+      "above_f_tip_pct": 2.9418,
+      "n_used": 8192
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.683,
+      "floor_above_tip_db": -164.218,
+      "comb_contrast_db": 45.784,
+      "rhythm_share_pct": 76.66,
+      "above_f_tip_pct": 2.7958,
+      "n_used": 8192
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.852,
+      "floor_above_tip_db": -161.589,
+      "comb_contrast_db": 46.383,
+      "rhythm_share_pct": 77.726,
+      "above_f_tip_pct": 2.6685,
+      "n_used": 8192
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.075,
+      "d_floor_above_tip_db": -17.396,
+      "d_comb_contrast_db": -7.84,
+      "d_rhythm_share_pp": -6.72,
+      "d_dc_power_db": -14.587
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.986,
+      "d_floor_above_tip_db": -12.556,
+      "d_comb_contrast_db": -6.98,
+      "d_rhythm_share_pp": -5.209,
+      "d_dc_power_db": -13.813
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.019,
+      "d_floor_above_tip_db": -8.81,
+      "d_comb_contrast_db": -6.205,
+      "d_rhythm_share_pp": -3.839,
+      "d_dc_power_db": -12.825
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.188,
+      "d_floor_above_tip_db": -6.181,
+      "d_comb_contrast_db": -5.606,
+      "d_rhythm_share_pp": -2.773,
+      "d_dc_power_db": -11.851
+     }
+    ]
+   },
+   "k1": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.666,
+      "floor_above_tip_db": -155.4,
+      "comb_contrast_db": 47.536,
+      "rhythm_share_pct": 80.173,
+      "above_f_tip_pct": 1.0632,
+      "n_used": 8191
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.742,
+      "floor_above_tip_db": -172.803,
+      "comb_contrast_db": 43.439,
+      "rhythm_share_pct": 73.101,
+      "above_f_tip_pct": 3.1185,
+      "n_used": 8191
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.653,
+      "floor_above_tip_db": -167.962,
+      "comb_contrast_db": 44.102,
+      "rhythm_share_pct": 74.583,
+      "above_f_tip_pct": 2.9451,
+      "n_used": 8191
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.686,
+      "floor_above_tip_db": -164.216,
+      "comb_contrast_db": 44.662,
+      "rhythm_share_pct": 75.933,
+      "above_f_tip_pct": 2.7991,
+      "n_used": 8191
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.854,
+      "floor_above_tip_db": -161.586,
+      "comb_contrast_db": 45.064,
+      "rhythm_share_pct": 76.994,
+      "above_f_tip_pct": 2.6719,
+      "n_used": 8191
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.076,
+      "d_floor_above_tip_db": -17.403,
+      "d_comb_contrast_db": -4.097,
+      "d_rhythm_share_pp": -7.072,
+      "d_dc_power_db": -14.586
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.987,
+      "d_floor_above_tip_db": -12.562,
+      "d_comb_contrast_db": -3.434,
+      "d_rhythm_share_pp": -5.59,
+      "d_dc_power_db": -13.813
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.02,
+      "d_floor_above_tip_db": -8.816,
+      "d_comb_contrast_db": -2.874,
+      "d_rhythm_share_pp": -4.24,
+      "d_dc_power_db": -12.825
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.188,
+      "d_floor_above_tip_db": -6.186,
+      "d_comb_contrast_db": -2.472,
+      "d_rhythm_share_pp": -3.179,
+      "d_dc_power_db": -11.853
+     }
+    ]
+   },
+   "k8": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.681,
+      "floor_above_tip_db": -155.232,
+      "comb_contrast_db": 36.244,
+      "rhythm_share_pct": 68.705,
+      "above_f_tip_pct": 1.1089,
+      "n_used": 8184
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.762,
+      "floor_above_tip_db": -172.721,
+      "comb_contrast_db": 36.02,
+      "rhythm_share_pct": 62.946,
+      "above_f_tip_pct": 3.1923,
+      "n_used": 8184
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.673,
+      "floor_above_tip_db": -167.877,
+      "comb_contrast_db": 36.081,
+      "rhythm_share_pct": 64.254,
+      "above_f_tip_pct": 3.0173,
+      "n_used": 8184
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.705,
+      "floor_above_tip_db": -164.126,
+      "comb_contrast_db": 36.118,
+      "rhythm_share_pct": 65.392,
+      "above_f_tip_pct": 2.8702,
+      "n_used": 8184
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.874,
+      "floor_above_tip_db": -161.493,
+      "comb_contrast_db": 36.134,
+      "rhythm_share_pct": 66.276,
+      "above_f_tip_pct": 2.742,
+      "n_used": 8184
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.081,
+      "d_floor_above_tip_db": -17.489,
+      "d_comb_contrast_db": -0.224,
+      "d_rhythm_share_pp": -5.759,
+      "d_dc_power_db": -14.581
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.992,
+      "d_floor_above_tip_db": -12.645,
+      "d_comb_contrast_db": -0.163,
+      "d_rhythm_share_pp": -4.451,
+      "d_dc_power_db": -13.811
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.024,
+      "d_floor_above_tip_db": -8.894,
+      "d_comb_contrast_db": -0.126,
+      "d_rhythm_share_pp": -3.313,
+      "d_dc_power_db": -12.829
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.193,
+      "d_floor_above_tip_db": -6.261,
+      "d_comb_contrast_db": -0.11,
+      "d_rhythm_share_pp": -2.429,
+      "d_dc_power_db": -11.86
+     }
+    ]
+   },
+   "k32": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.734,
+      "floor_above_tip_db": -154.71,
+      "comb_contrast_db": 30.014,
+      "rhythm_share_pct": 42.154,
+      "above_f_tip_pct": 1.2659,
+      "n_used": 8160
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.823,
+      "floor_above_tip_db": -172.526,
+      "comb_contrast_db": 29.713,
+      "rhythm_share_pct": 41.113,
+      "above_f_tip_pct": 3.3861,
+      "n_used": 8160
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.734,
+      "floor_above_tip_db": -167.664,
+      "comb_contrast_db": 29.798,
+      "rhythm_share_pct": 41.891,
+      "above_f_tip_pct": 3.2133,
+      "n_used": 8160
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.766,
+      "floor_above_tip_db": -163.9,
+      "comb_contrast_db": 29.871,
+      "rhythm_share_pct": 42.553,
+      "above_f_tip_pct": 3.0665,
+      "n_used": 8160
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.935,
+      "floor_above_tip_db": -161.255,
+      "comb_contrast_db": 29.923,
+      "rhythm_share_pct": 43.044,
+      "above_f_tip_pct": 2.9377,
+      "n_used": 8160
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.089,
+      "d_floor_above_tip_db": -17.816,
+      "d_comb_contrast_db": -0.301,
+      "d_rhythm_share_pp": -1.041,
+      "d_dc_power_db": -14.582
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -17.0,
+      "d_floor_above_tip_db": -12.954,
+      "d_comb_contrast_db": -0.216,
+      "d_rhythm_share_pp": -0.263,
+      "d_dc_power_db": -13.815
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.032,
+      "d_floor_above_tip_db": -9.19,
+      "d_comb_contrast_db": -0.143,
+      "d_rhythm_share_pp": 0.399,
+      "d_dc_power_db": -12.835
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.201,
+      "d_floor_above_tip_db": -6.545,
+      "d_comb_contrast_db": -0.091,
+      "d_rhythm_share_pp": 0.89,
+      "d_dc_power_db": -11.87
+     }
+    ]
+   }
+  },
+  "trim_null_time_base_preserved": {
+   "k0": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.664,
+      "floor_above_tip_db": -155.408,
+      "comb_contrast_db": 51.989,
+      "rhythm_share_pct": 80.499,
+      "above_f_tip_pct": 1.0606,
+      "n_used": 8192
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.739,
+      "floor_above_tip_db": -172.804,
+      "comb_contrast_db": 44.149,
+      "rhythm_share_pct": 73.779,
+      "above_f_tip_pct": 3.1152,
+      "n_used": 8192
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.65,
+      "floor_above_tip_db": -167.964,
+      "comb_contrast_db": 45.009,
+      "rhythm_share_pct": 75.29,
+      "above_f_tip_pct": 2.9418,
+      "n_used": 8192
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.683,
+      "floor_above_tip_db": -164.218,
+      "comb_contrast_db": 45.784,
+      "rhythm_share_pct": 76.66,
+      "above_f_tip_pct": 2.7958,
+      "n_used": 8192
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.852,
+      "floor_above_tip_db": -161.589,
+      "comb_contrast_db": 46.383,
+      "rhythm_share_pct": 77.726,
+      "above_f_tip_pct": 2.6685,
+      "n_used": 8192
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.075,
+      "d_floor_above_tip_db": -17.396,
+      "d_comb_contrast_db": -7.84,
+      "d_rhythm_share_pp": -6.72,
+      "d_dc_power_db": -14.587
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.986,
+      "d_floor_above_tip_db": -12.556,
+      "d_comb_contrast_db": -6.98,
+      "d_rhythm_share_pp": -5.209,
+      "d_dc_power_db": -13.813
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.019,
+      "d_floor_above_tip_db": -8.81,
+      "d_comb_contrast_db": -6.205,
+      "d_rhythm_share_pp": -3.839,
+      "d_dc_power_db": -12.825
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.188,
+      "d_floor_above_tip_db": -6.181,
+      "d_comb_contrast_db": -5.606,
+      "d_rhythm_share_pp": -2.773,
+      "d_dc_power_db": -11.851
+     }
+    ]
+   },
+   "k1": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.667,
+      "floor_above_tip_db": -155.328,
+      "comb_contrast_db": 49.768,
+      "rhythm_share_pct": 79.087,
+      "above_f_tip_pct": 1.0812,
+      "n_used": 8192
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.743,
+      "floor_above_tip_db": -172.779,
+      "comb_contrast_db": 43.515,
+      "rhythm_share_pct": 73.33,
+      "above_f_tip_pct": 3.1361,
+      "n_used": 8192
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.654,
+      "floor_above_tip_db": -167.937,
+      "comb_contrast_db": 44.231,
+      "rhythm_share_pct": 74.804,
+      "above_f_tip_pct": 2.9628,
+      "n_used": 8192
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.686,
+      "floor_above_tip_db": -164.188,
+      "comb_contrast_db": 44.855,
+      "rhythm_share_pct": 76.134,
+      "above_f_tip_pct": 2.8169,
+      "n_used": 8192
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.855,
+      "floor_above_tip_db": -161.558,
+      "comb_contrast_db": 45.33,
+      "rhythm_share_pct": 77.161,
+      "above_f_tip_pct": 2.6897,
+      "n_used": 8192
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.076,
+      "d_floor_above_tip_db": -17.451,
+      "d_comb_contrast_db": -6.253,
+      "d_rhythm_share_pp": -5.757,
+      "d_dc_power_db": -14.586
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.987,
+      "d_floor_above_tip_db": -12.609,
+      "d_comb_contrast_db": -5.537,
+      "d_rhythm_share_pp": -4.283,
+      "d_dc_power_db": -13.813
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.019,
+      "d_floor_above_tip_db": -8.86,
+      "d_comb_contrast_db": -4.913,
+      "d_rhythm_share_pp": -2.953,
+      "d_dc_power_db": -12.825
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.188,
+      "d_floor_above_tip_db": -6.23,
+      "d_comb_contrast_db": -4.438,
+      "d_rhythm_share_pp": -1.926,
+      "d_dc_power_db": -11.853
+     }
+    ]
+   },
+   "k8": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.686,
+      "floor_above_tip_db": -153.709,
+      "comb_contrast_db": 41.74,
+      "rhythm_share_pct": 59.715,
+      "above_f_tip_pct": 1.5767,
+      "n_used": 8192
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.767,
+      "floor_above_tip_db": -172.104,
+      "comb_contrast_db": 39.979,
+      "rhythm_share_pct": 64.76,
+      "above_f_tip_pct": 3.6841,
+      "n_used": 8192
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.677,
+      "floor_above_tip_db": -167.222,
+      "comb_contrast_db": 40.116,
+      "rhythm_share_pct": 65.54,
+      "above_f_tip_pct": 3.5117,
+      "n_used": 8192
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.71,
+      "floor_above_tip_db": -163.438,
+      "comb_contrast_db": 40.221,
+      "rhythm_share_pct": 66.191,
+      "above_f_tip_pct": 3.367,
+      "n_used": 8192
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.879,
+      "floor_above_tip_db": -160.772,
+      "comb_contrast_db": 40.304,
+      "rhythm_share_pct": 66.597,
+      "above_f_tip_pct": 3.2412,
+      "n_used": 8192
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.081,
+      "d_floor_above_tip_db": -18.395,
+      "d_comb_contrast_db": -1.761,
+      "d_rhythm_share_pp": 5.045,
+      "d_dc_power_db": -14.581
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.991,
+      "d_floor_above_tip_db": -13.513,
+      "d_comb_contrast_db": -1.624,
+      "d_rhythm_share_pp": 5.825,
+      "d_dc_power_db": -13.811
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.024,
+      "d_floor_above_tip_db": -9.729,
+      "d_comb_contrast_db": -1.519,
+      "d_rhythm_share_pp": 6.476,
+      "d_dc_power_db": -12.829
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.193,
+      "d_floor_above_tip_db": -7.063,
+      "d_comb_contrast_db": -1.436,
+      "d_rhythm_share_pp": 6.882,
+      "d_dc_power_db": -11.86
+     }
+    ]
+   },
+   "k32": {
+    "abs": {
+     "base_100mm": {
+      "ac_power_db": -135.751,
+      "floor_above_tip_db": -150.906,
+      "comb_contrast_db": 32.868,
+      "rhythm_share_pct": 47.917,
+      "above_f_tip_pct": 3.0514,
+      "n_used": 8192
+     },
+     "prop_0.5mm": {
+      "ac_power_db": -157.84,
+      "floor_above_tip_db": -170.662,
+      "comb_contrast_db": 31.821,
+      "rhythm_share_pct": 55.673,
+      "above_f_tip_pct": 5.2215,
+      "n_used": 8192
+     },
+     "prop_0.9mm": {
+      "ac_power_db": -152.751,
+      "floor_above_tip_db": -165.717,
+      "comb_contrast_db": 31.873,
+      "rhythm_share_pct": 55.877,
+      "above_f_tip_pct": 5.051,
+      "n_used": 8192
+     },
+     "prop_1.43mm": {
+      "ac_power_db": -148.783,
+      "floor_above_tip_db": -161.873,
+      "comb_contrast_db": 31.909,
+      "rhythm_share_pct": 56.014,
+      "above_f_tip_pct": 4.9087,
+      "n_used": 8192
+     },
+     "prop_2mm": {
+      "ac_power_db": -145.952,
+      "floor_above_tip_db": -159.153,
+      "comb_contrast_db": 31.941,
+      "rhythm_share_pct": 55.996,
+      "above_f_tip_pct": 4.7854,
+      "n_used": 8192
+     }
+    },
+    "delta_vs_base": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.089,
+      "d_floor_above_tip_db": -19.756,
+      "d_comb_contrast_db": -1.047,
+      "d_rhythm_share_pp": 7.756,
+      "d_dc_power_db": -14.582
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -17.0,
+      "d_floor_above_tip_db": -14.811,
+      "d_comb_contrast_db": -0.995,
+      "d_rhythm_share_pp": 7.96,
+      "d_dc_power_db": -13.814
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.032,
+      "d_floor_above_tip_db": -10.967,
+      "d_comb_contrast_db": -0.959,
+      "d_rhythm_share_pp": 8.097,
+      "d_dc_power_db": -12.835
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.201,
+      "d_floor_above_tip_db": -8.247,
+      "d_comb_contrast_db": -0.927,
+      "d_rhythm_share_pp": 8.079,
+      "d_dc_power_db": -11.87
+     }
+    ]
+   }
+  },
+  "random_delete_control": {
+   "k1": {
+    "n_draws": 24,
+    "base_comb_db_mean": 48.32,
+    "base_comb_db_sd": 3.82,
+    "base_comb_db_intact": 51.989,
+    "d_comb_1p43_mean": -3.65,
+    "d_comb_1p43_sd": 1.94,
+    "d_comb_0p9_mean": -4.2,
+    "d_comb_0p9_sd": 2.16
+   },
+   "k8": {
+    "n_draws": 24,
+    "base_comb_db_mean": 38.56,
+    "base_comb_db_sd": 3.49,
+    "base_comb_db_intact": 51.989,
+    "d_comb_1p43_mean": -0.86,
+    "d_comb_1p43_sd": 0.62,
+    "d_comb_0p9_mean": -1.0,
+    "d_comb_0p9_sd": 0.73
+   }
+  },
+  "uniform_resample": {
+   "first_half": {
+    "base_comb_db": 54.193,
+    "base_ac_db": -134.96,
+    "rows": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.153,
+      "d_floor_above_tip_db": -17.28,
+      "d_comb_contrast_db": -8.452,
+      "d_rhythm_share_pp": -5.445
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -17.064,
+      "d_floor_above_tip_db": -12.385,
+      "d_comb_contrast_db": -7.324,
+      "d_rhythm_share_pp": -3.945
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.094,
+      "d_floor_above_tip_db": -8.599,
+      "d_comb_contrast_db": -6.312,
+      "d_rhythm_share_pp": -2.663
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.26,
+      "d_floor_above_tip_db": -5.946,
+      "d_comb_contrast_db": -5.57,
+      "d_rhythm_share_pp": -1.697
+     }
+    ]
+   },
+   "second_half": {
+    "base_comb_db": 52.265,
+    "base_ac_db": -136.505,
+    "rows": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -21.966,
+      "d_floor_above_tip_db": -17.449,
+      "d_comb_contrast_db": -7.624,
+      "d_rhythm_share_pp": -7.173
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.878,
+      "d_floor_above_tip_db": -12.586,
+      "d_comb_contrast_db": -6.673,
+      "d_rhythm_share_pp": -5.523
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -12.913,
+      "d_floor_above_tip_db": -8.828,
+      "d_comb_contrast_db": -5.836,
+      "d_rhythm_share_pp": -4.139
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.086,
+      "d_floor_above_tip_db": -6.188,
+      "d_comb_contrast_db": -5.209,
+      "d_rhythm_share_pp": -3.061
+     }
+    ]
+   },
+   "even_decimate": {
+    "base_comb_db": 48.059,
+    "base_ac_db": -135.668,
+    "rows": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.069,
+      "d_floor_above_tip_db": -17.407,
+      "d_comb_contrast_db": -7.835,
+      "d_rhythm_share_pp": -5.492
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.982,
+      "d_floor_above_tip_db": -12.554,
+      "d_comb_contrast_db": -7.003,
+      "d_rhythm_share_pp": -4.314
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.017,
+      "d_floor_above_tip_db": -8.797,
+      "d_comb_contrast_db": -6.223,
+      "d_rhythm_share_pp": -3.203
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.188,
+      "d_floor_above_tip_db": -6.161,
+      "d_comb_contrast_db": -5.592,
+      "d_rhythm_share_pp": -2.298
+     }
+    ]
+   },
+   "odd_decimate": {
+    "base_comb_db": 49.152,
+    "base_ac_db": -135.66,
+    "rows": [
+     {
+      "prop_mm": 0.5,
+      "d_ac_power_db": -22.081,
+      "d_floor_above_tip_db": -17.484,
+      "d_comb_contrast_db": -7.308,
+      "d_rhythm_share_pp": -5.731
+     },
+     {
+      "prop_mm": 0.9,
+      "d_ac_power_db": -16.99,
+      "d_floor_above_tip_db": -12.629,
+      "d_comb_contrast_db": -6.503,
+      "d_rhythm_share_pp": -4.356
+     },
+     {
+      "prop_mm": 1.43,
+      "d_ac_power_db": -13.02,
+      "d_floor_above_tip_db": -8.87,
+      "d_comb_contrast_db": -5.779,
+      "d_rhythm_share_pp": -3.138
+     },
+     {
+      "prop_mm": 2.0,
+      "d_ac_power_db": -10.187,
+      "d_floor_above_tip_db": -6.232,
+      "d_comb_contrast_db": -5.218,
+      "d_rhythm_share_pp": -2.194
+     }
+    ]
+   }
+  },
+  "procedure_warning_ko": "⭐⭐**자세를 «지우는» 솎기는 빗살·리듬 잣대에 쓰면 안 된다.** 자세열은 균일 시간 표본이라 가운데서 하나를 빼면 뒤가 한 칸씩 당겨져 배음선이 번진다. 실측: 기본판 빗살 대비가 51.99 → 47.54(하나 뺌) → 36.24(여덟 뺌) dB 로 무너지고, 사다리의 Δ빗살도 −6.21 → −2.87 → −0.13 dB 로 사라진다. 그런데 **튀는 자세(이상값)와 무관한 아무 자세**를 지워도 똑같이 무너진다 — 기본판 빗살 48.32 ± 3.82 dB(하나), 38.56 ± 3.49 dB(여덟). 즉 그 «사라짐» 은 이상값이 아니라 **지우기 절차의 부작용**이다. 요동·확산 바닥은 지워도 0.01~0.09 dB 밖에 안 움직이므로 그 두 잣대에는 안전하다. 빗살·리듬의 옳은 강건성 검사는 **균일 재표집**(반쪽 나누기·짝수/홀수 솎기)이고, 그 검사에서 Δ빗살(1.43 mm)은 −5.8~−6.3 dB 로 원판 −6.21 dB 와 같은 자리에 선다.",
+  "headline_rule_ko": "튀는 자세가 없고(isolation ≈ 1.00) 지우기 솎기는 빗살에 부작용이 있으므로, 이 사다리의 헤드라인은 **솎지 않은 원판**으로 쓴다. 솎은 값은 위 표에 전부 실었다 — 요동·바닥은 솎아도 같고, 빗살만 절차 부작용으로 줄어든다."
+ },
+ "prereg_band_scoring_el_minus30": [
+  {
+   "prop_mm": 0.5,
+   "ac": {
+    "delta_db": -22.075,
+    "band_db": 0.374,
+    "call": "밴드 밖(유의)",
+    "vs_seed_2sd": "밴드 밖(유의)"
+   },
+   "floor": {
+    "delta_db": -17.396,
+    "band_db": 9.295,
+    "call": "밴드 밖(유의)"
+   },
+   "comb": {
+    "delta_db": -7.84,
+    "band_db": 4.6,
+    "call": "밴드 밖(유의)"
+   },
+   "rhythm": {
+    "delta_pp": -6.72,
+    "band_pp": 21.8,
+    "call": "밴드 안(판정 불가)"
+   }
+  },
+  {
+   "prop_mm": 0.9,
+   "ac": {
+    "delta_db": -16.986,
+    "band_db": 0.374,
+    "call": "밴드 밖(유의)",
+    "vs_seed_2sd": "밴드 밖(유의)"
+   },
+   "floor": {
+    "delta_db": -12.556,
+    "band_db": 9.295,
+    "call": "밴드 밖(유의)"
+   },
+   "comb": {
+    "delta_db": -6.98,
+    "band_db": 4.6,
+    "call": "밴드 밖(유의)"
+   },
+   "rhythm": {
+    "delta_pp": -5.209,
+    "band_pp": 21.8,
+    "call": "밴드 안(판정 불가)"
+   }
+  },
+  {
+   "prop_mm": 1.43,
+   "ac": {
+    "delta_db": -13.019,
+    "band_db": 0.374,
+    "call": "밴드 밖(유의)",
+    "vs_seed_2sd": "밴드 밖(유의)"
+   },
+   "floor": {
+    "delta_db": -8.81,
+    "band_db": 9.295,
+    "call": "밴드 안(판정 불가)"
+   },
+   "comb": {
+    "delta_db": -6.205,
+    "band_db": 4.6,
+    "call": "밴드 밖(유의)"
+   },
+   "rhythm": {
+    "delta_pp": -3.839,
+    "band_pp": 21.8,
+    "call": "밴드 안(판정 불가)"
+   }
+  },
+  {
+   "prop_mm": 2.0,
+   "ac": {
+    "delta_db": -10.188,
+    "band_db": 0.374,
+    "call": "밴드 밖(유의)",
+    "vs_seed_2sd": "밴드 밖(유의)"
+   },
+   "floor": {
+    "delta_db": -6.181,
+    "band_db": 9.295,
+    "call": "밴드 안(판정 불가)"
+   },
+   "comb": {
+    "delta_db": -5.606,
+    "band_db": 4.6,
+    "call": "밴드 밖(유의)"
+   },
+   "rhythm": {
+    "delta_pp": -2.773,
+    "band_pp": 21.8,
+    "call": "밴드 안(판정 불가)"
+   }
+  }
+ ],
+ "slab_comparison": [
+  {
+   "prop_mm": 0.5,
+   "measured_d_ac_db": -22.075,
+   "pred_deg45_db": -21.71,
+   "pred_angle_avg_db": -15.65,
+   "pred_normal_db": -16.75,
+   "resid_vs_deg45_db": -0.365,
+   "resid_vs_angle_avg_db": -6.425,
+   "measured_d_floor_db": -17.396,
+   "floor_resid_vs_deg45_db": 4.314,
+   "floor_resid_vs_angle_avg_db": -1.746
+  },
+  {
+   "prop_mm": 0.9,
+   "measured_d_ac_db": -16.986,
+   "pred_deg45_db": -16.65,
+   "pred_angle_avg_db": -11.35,
+   "pred_normal_db": -11.68,
+   "resid_vs_deg45_db": -0.336,
+   "resid_vs_angle_avg_db": -5.636,
+   "measured_d_floor_db": -12.556,
+   "floor_resid_vs_deg45_db": 4.094,
+   "floor_resid_vs_angle_avg_db": -1.206
+  },
+  {
+   "prop_mm": 1.43,
+   "measured_d_ac_db": -13.019,
+   "pred_deg45_db": -12.71,
+   "pred_angle_avg_db": -8.09,
+   "pred_normal_db": -7.72,
+   "resid_vs_deg45_db": -0.309,
+   "resid_vs_angle_avg_db": -4.929,
+   "measured_d_floor_db": -8.81,
+   "floor_resid_vs_deg45_db": 3.9,
+   "floor_resid_vs_angle_avg_db": -0.72
+  },
+  {
+   "prop_mm": 2.0,
+   "measured_d_ac_db": -10.188,
+   "pred_deg45_db": -9.91,
+   "pred_angle_avg_db": -5.82,
+   "pred_normal_db": -4.9,
+   "resid_vs_deg45_db": -0.278,
+   "resid_vs_angle_avg_db": -4.368,
+   "measured_d_floor_db": -6.181,
+   "floor_resid_vs_deg45_db": 3.729,
+   "floor_resid_vs_angle_avg_db": -0.361
+  }
+ ],
+ "effective_incidence_fit": {
+  "el-30_ac": {
+   "joint_deg": 40.18,
+   "rms_resid_db": 0.145,
+   "per_thickness_deg_same_branch": {
+    "0.5": 40.08,
+    "0.9": 40.13,
+    "1.43": 40.22,
+    "2.0": 40.35
+   },
+   "spread_deg_same_branch": 0.27,
+   "per_thickness_deg_global_argmin": {
+    "0.5": 40.08,
+    "0.9": 40.13,
+    "1.43": 40.22,
+    "2.0": 40.35
+   },
+   "branch_note_ko": "슬래브 |R|(θ) 는 각에 대해 단조가 아니라 같은 dB 를 내는 각이 둘 이상이다 — 점별 역산은 공동해 가지 안에서만 읽는다.",
+   "pred_at_joint_db": {
+    "0.5": -21.901,
+    "0.9": -16.835,
+    "1.43": -12.886,
+    "2.0": -10.075
+   },
+   "resid_at_joint_db": {
+    "0.5": -0.174,
+    "0.9": -0.151,
+    "1.43": -0.133,
+    "2.0": -0.113
+   }
+  },
+  "el-30_floor": {
+   "joint_deg": 64.48,
+   "rms_resid_db": 0.135,
+   "per_thickness_deg_same_branch": {
+    "0.5": 65.08,
+    "0.9": 64.56,
+    "1.43": 64.2,
+    "2.0": 64.0
+   },
+   "spread_deg_same_branch": 1.08,
+   "per_thickness_deg_global_argmin": {
+    "0.5": 65.08,
+    "0.9": 10.43,
+    "1.43": 11.74,
+    "2.0": 12.87
+   },
+   "branch_note_ko": "슬래브 |R|(θ) 는 각에 대해 단조가 아니라 같은 dB 를 내는 각이 둘 이상이다 — 점별 역산은 공동해 가지 안에서만 읽는다.",
+   "pred_at_joint_db": {
+    "0.5": -17.601,
+    "0.9": -12.582,
+    "1.43": -8.721,
+    "2.0": -6.032
+   },
+   "resid_at_joint_db": {
+    "0.5": 0.205,
+    "0.9": 0.026,
+    "1.43": -0.089,
+    "2.0": -0.149
+   }
+  }
+ },
+ "prop_vs_nonprop_decomposition": {
+  "ac_el-30_at_fitted_angle": {
+   "theta_deg": 40.18,
+   "A_prop": 1.00114,
+   "B_nonprop": -0.00127,
+   "nonprop_share_of_base_pct": -0.13,
+   "resid_db": [
+    0.001,
+    0.775,
+    0.119,
+    -0.029,
+    -0.061
+   ]
+  },
+  "ac_el-30_at_45deg": {
+   "theta_deg": 45.0,
+   "A_prop": 1.00271,
+   "B_nonprop": -0.00306,
+   "nonprop_share_of_base_pct": -0.31,
+   "resid_db": [
+    0.002,
+    2.249,
+    0.316,
+    -0.065,
+    -0.156
+   ]
+  },
+  "floor_el-30_at_fitted_angle": {
+   "theta_deg": 64.48,
+   "A_prop": 1.00072,
+   "B_nonprop": -0.00221,
+   "nonprop_share_of_base_pct": -0.22,
+   "resid_db": [
+    0.006,
+    0.792,
+    0.2,
+    -0.02,
+    -0.114
+   ]
+  },
+  "note_ko": "B 는 «두께를 아무리 바꿔도 안 줄어드는 몫» 이다. 요동 축에서 B ≈ 0 이면 그 축은 프로펠러 플라스틱 하나로 다 설명된다는 뜻이다."
+ },
+ "angle_subladder": {
+  "el+0": {
+   "base_100mm": {
+    "n_used": 8192,
+    "dc_power_db": -63.249,
+    "ac_power_db": -94.302,
+    "ac_over_dc": 0.00078465,
+    "rhythm_share_pct": 13.059,
+    "above_f_tip_pct": 86.2467,
+    "floor_above_tip_db": -94.945,
+    "comb_contrast_db": -0.836,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": 0.0,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 7616.4,
+    "npaths_median": 897,
+    "f_tip_hz": 1272.9,
+    "level_db_ledger": -63.25,
+    "beat_hz_track": 85.76,
+    "blade_band_power_db_track": -77.19,
+    "spike": {
+     "top1_over_median": 140.2,
+     "top2_over_median": 140.2,
+     "isolation": 1.0,
+     "argmax_pose": 2250,
+     "top1_energy_pct": 1.7128,
+     "top8_energy_pct": 13.7003,
+     "top32_energy_pct": 54.791
+    }
+   },
+   "prop_0.9mm": {
+    "n_used": 8192,
+    "dc_power_db": -63.249,
+    "ac_power_db": -94.302,
+    "ac_over_dc": 0.00078473,
+    "rhythm_share_pct": 13.058,
+    "above_f_tip_pct": 86.2438,
+    "floor_above_tip_db": -94.945,
+    "comb_contrast_db": -0.832,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "el_deg": 0.0,
+    "shell_mm": 0.75,
+    "prop_mm": 0.9,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 4993.1,
+    "npaths_median": 897,
+    "f_tip_hz": 1272.9,
+    "level_db_ledger": -63.25,
+    "beat_hz_track": 85.75,
+    "blade_band_power_db_track": -77.19,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": 0.0,
+     "d_ac_power_db": 0.0,
+     "d_dc_power_db": 0.0,
+     "d_level_db_ledger": 0.0,
+     "d_comb_contrast_db": 0.004,
+     "d_rhythm_share_pct": -0.001,
+     "d_above_f_tip_pct": -0.0029,
+     "d_beat_hz_track": -0.01
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 1.0,
+     "stft_db_map_corr_dc_removed": 0.9943
+    },
+    "spike": {
+     "top1_over_median": 140.21,
+     "top2_over_median": 140.21,
+     "isolation": 1.0,
+     "argmax_pose": 2250,
+     "top1_energy_pct": 1.7122,
+     "top8_energy_pct": 13.6969,
+     "top32_energy_pct": 54.784
+    }
+   },
+   "prop_1.43mm": {
+    "n_used": 8192,
+    "dc_power_db": -63.249,
+    "ac_power_db": -94.302,
+    "ac_over_dc": 0.00078472,
+    "rhythm_share_pct": 13.058,
+    "above_f_tip_pct": 86.2436,
+    "floor_above_tip_db": -94.945,
+    "comb_contrast_db": -0.83,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+    "el_deg": 0.0,
+    "shell_mm": 0.75,
+    "prop_mm": 1.43,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 5523.9,
+    "npaths_median": 897,
+    "f_tip_hz": 1272.9,
+    "level_db_ledger": -63.25,
+    "beat_hz_track": 85.75,
+    "blade_band_power_db_track": -77.19,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": 0.0,
+     "d_ac_power_db": 0.0,
+     "d_dc_power_db": 0.0,
+     "d_level_db_ledger": 0.0,
+     "d_comb_contrast_db": 0.006,
+     "d_rhythm_share_pct": -0.001,
+     "d_above_f_tip_pct": -0.0031,
+     "d_beat_hz_track": -0.01
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 1.0,
+     "stft_db_map_corr_dc_removed": 0.9953
+    },
+    "spike": {
+     "top1_over_median": 140.19,
+     "top2_over_median": 140.19,
+     "isolation": 1.0,
+     "argmax_pose": 2250,
+     "top1_energy_pct": 1.7123,
+     "top8_energy_pct": 13.6976,
+     "top32_energy_pct": 54.7852
+    }
+   },
+   "monotone_brighter_with_thickness": true
+  },
+  "el-60": {
+   "base_100mm": {
+    "n_used": 8192,
+    "dc_power_db": -121.362,
+    "ac_power_db": -129.718,
+    "ac_over_dc": 0.14601976,
+    "rhythm_share_pct": 86.614,
+    "above_f_tip_pct": 3.3127,
+    "floor_above_tip_db": -144.516,
+    "comb_contrast_db": 48.334,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": -60.0,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 7704.7,
+    "npaths_median": 2070,
+    "f_tip_hz": 636.5,
+    "level_db_ledger": -120.9,
+    "beat_hz_track": 126.1,
+    "blade_band_power_db_track": -117.12,
+    "spike": {
+     "top1_over_median": 2.79,
+     "top2_over_median": 2.78,
+     "isolation": 1.005,
+     "argmax_pose": 17,
+     "top1_energy_pct": 0.0693,
+     "top8_energy_pct": 0.5329,
+     "top32_energy_pct": 1.995
+    }
+   },
+   "prop_0.9mm": {
+    "n_used": 8192,
+    "dc_power_db": -138.554,
+    "ac_power_db": -144.441,
+    "ac_over_dc": 0.2578047,
+    "rhythm_share_pct": 86.913,
+    "above_f_tip_pct": 2.7088,
+    "floor_above_tip_db": -160.113,
+    "comb_contrast_db": 49.982,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "el_deg": -60.0,
+    "shell_mm": 0.75,
+    "prop_mm": 0.9,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 3960.4,
+    "npaths_median": 2070,
+    "f_tip_hz": 636.5,
+    "level_db_ledger": -137.79,
+    "beat_hz_track": 125.96,
+    "blade_band_power_db_track": -133.43,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -15.597,
+     "d_ac_power_db": -14.723,
+     "d_dc_power_db": -17.192,
+     "d_level_db_ledger": -16.89,
+     "d_comb_contrast_db": 1.648,
+     "d_rhythm_share_pct": 0.299,
+     "d_above_f_tip_pct": -0.6039,
+     "d_beat_hz_track": -0.14
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 0.977,
+     "stft_db_map_corr_dc_removed": 0.9743
+    },
+    "spike": {
+     "top1_over_median": 2.98,
+     "top2_over_median": 2.96,
+     "isolation": 1.006,
+     "argmax_pose": 17,
+     "top1_energy_pct": 0.0742,
+     "top8_energy_pct": 0.5694,
+     "top32_energy_pct": 2.1055
+    }
+   },
+   "prop_1.43mm": {
+    "n_used": 8192,
+    "dc_power_db": -140.092,
+    "ac_power_db": -140.475,
+    "ac_over_dc": 0.91571873,
+    "rhythm_share_pct": 86.921,
+    "above_f_tip_pct": 2.7014,
+    "floor_above_tip_db": -156.159,
+    "comb_contrast_db": 49.968,
+    "near_numeric_floor": false,
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+    "el_deg": -60.0,
+    "shell_mm": 0.75,
+    "prop_mm": 1.43,
+    "n_poses": 8192,
+    "n_missing": 0,
+    "seconds": 4971.3,
+    "npaths_median": 2070,
+    "f_tip_hz": 636.5,
+    "level_db_ledger": -137.73,
+    "beat_hz_track": 126.13,
+    "blade_band_power_db_track": -131.91,
+    "delta_vs_base": {
+     "d_floor_above_tip_db": -11.643,
+     "d_ac_power_db": -10.757,
+     "d_dc_power_db": -18.73,
+     "d_level_db_ledger": -16.83,
+     "d_comb_contrast_db": 1.634,
+     "d_rhythm_share_pct": 0.307,
+     "d_above_f_tip_pct": -0.6113,
+     "d_beat_hz_track": 0.03
+    },
+    "vs_base_waveform": {
+     "abs_rho_dc_removed": 0.9774,
+     "stft_db_map_corr_dc_removed": 0.9757
+    },
+    "spike": {
+     "top1_over_median": 2.98,
+     "top2_over_median": 2.97,
+     "isolation": 1.006,
+     "argmax_pose": 17,
+     "top1_energy_pct": 0.0743,
+     "top8_energy_pct": 0.5701,
+     "top32_energy_pct": 2.1082
+    }
+   },
+   "effective_angle_fit": {
+    "joint_deg": 21.87,
+    "rms_resid_db": 0.003,
+    "per_thickness_deg_same_branch": {
+     "0.9": 21.89,
+     "1.43": 21.86
+    },
+    "spread_deg_same_branch": 0.03,
+    "per_thickness_deg_global_argmin": {
+     "0.9": 21.89,
+     "1.43": 21.86
+    },
+    "branch_note_ko": "슬래브 |R|(θ) 는 각에 대해 단조가 아니라 같은 dB 를 내는 각이 둘 이상이다 — 점별 역산은 공동해 가지 안에서만 읽는다.",
+    "pred_at_joint_db": {
+     "0.9": -14.719,
+     "1.43": -10.759
+    },
+    "resid_at_joint_db": {
+     "0.9": -0.004,
+     "1.43": 0.002
+    }
+   },
+   "monotone_brighter_with_thickness": true
+  }
+ },
+ "canon_1p43mm_headline": {
+  "trim": "원판(솎지 않음) — 튀는 자세 없음",
+  "d_ac_power_db": -13.019,
+  "d_floor_above_tip_db": -8.81,
+  "d_comb_contrast_db": -6.205,
+  "d_rhythm_share_pp": -3.839,
+  "d_dc_power_db": -12.825,
+  "trimmed_k1_delete": {
+   "prop_mm": 1.43,
+   "d_ac_power_db": -13.02,
+   "d_floor_above_tip_db": -8.816,
+   "d_comb_contrast_db": -2.874,
+   "d_rhythm_share_pp": -4.24,
+   "d_dc_power_db": -12.825
+  },
+  "trimmed_k8_delete": {
+   "prop_mm": 1.43,
+   "d_ac_power_db": -13.024,
+   "d_floor_above_tip_db": -8.894,
+   "d_comb_contrast_db": -0.126,
+   "d_rhythm_share_pp": -3.313,
+   "d_dc_power_db": -12.829
+  },
+  "abs_values": {
+   "ac_power_db": -148.683,
+   "dc_power_db": -149.913,
+   "floor_above_tip_db": -164.218,
+   "comb_contrast_db": 45.784,
+   "rhythm_share_pct": 76.66,
+   "above_f_tip_pct": 2.7958,
+   "beat_hz_track": 127.05
+  },
+  "band_calls": {
+   "ac": "밴드 밖(유의)",
+   "floor": "밴드 안(판정 불가)",
+   "comb": "밴드 밖(유의)",
+   "rhythm": "밴드 안(판정 불가)"
+  }
+ },
+ "vs_0p9mm_prior_verdict": {
+  "prior_ko": "08-16 오전 판(0.9 mm 민감도 점): 요동 −16.99 · 확산 바닥 −12.56 · 빗살 대비 −6.98 dB",
+  "reproduced_here_0p9": {
+   "d_ac_power_db": -16.986,
+   "d_floor_above_tip_db": -12.556,
+   "d_comb_contrast_db": -6.98
+  },
+  "reproduction_exact": true,
+  "prior_estimate_for_1p43_ac_db": -13.0,
+  "measured_1p43_ac_db": -13.019,
+  "estimate_error_db": -0.019,
+  "story_holds_ko": "④ **같은 이야기를 한다 — 크기만 한 칸 작다.** 정본 1.43 mm 에서도 방향·구조·판정이 모두 0.9 mm 판과 같다(프롭이 표적 축 손잡이 · 셸은 0.00 · 요동이 밴드 밖 · 무늬 살아남음). 오전 판이 «45° 열로 미뤄 −13 dB» 라고 적은 추정은 측정 −13.02 dB 로 0.02 dB 안에 맞았다. ⚠단 **한 문장은 값을 고쳐야 한다** — «100 mm 때문에 12~13 dB 밝게 깔려 있다»(§6 게이트 2)는 0.9 mm 의 확산 바닥 −12.56 dB 로 «적중» 처리됐는데, 정본 1.43 mm 의 확산 바닥은 **−8.81 dB** 다. 정본에서 12~13 dB 에 해당하는 것은 **요동(−13.02 dB)** 이지 확산 바닥이 아니다 — 두 잣대가 우연히 같은 수에 걸린 것이라 어느 잣대인지 반드시 적어야 한다."
+ },
+ "pattern_survival": {
+  "question_ko": "⑤ 무늬는 사는가",
+  "answer_ko": "**산다 — 그리고 두꺼워질수록 기본판 무늬로 되돌아온다.** 맵 상관(격자 바닥 0.6825)은 0.5 mm 0.880 · 0.9 mm 0.892 · 1.43 mm 0.903 · 2.0 mm 0.912 로 전부 바닥 위이고 두께에 단조. 박자는 127.09 → 127.03~127.06 Hz(Δ ≤ 0.06, 밴드 0.152 안). 리듬 몫은 80.5 % → 73.8~77.7 %(Δ −6.7~−2.8 %p, 밴드 21.8 안). 빗살 대비는 51.99 → 44.1~46.4 dB 로 내려가되 백색잡음 널 0 dB 대비 **+44 dB 이상**이라 무늬 자체는 멀쩡하다. 정본 1.43 mm 의 Δ빗살 −6.21 dB 만 격자 밴드(4.6) 밖이라 유의하다.",
+  "by_arm": {
+   "base_100mm": {
+    "stft_db_map_corr": null,
+    "abs_rho": null,
+    "beat_hz": 127.09,
+    "rhythm_share_pct": 80.499,
+    "comb_contrast_db": 51.989,
+    "above_f_tip_pct": 1.0606
+   },
+   "shell0.75_prop100_control": {
+    "stft_db_map_corr": 0.9998,
+    "abs_rho": 1.0,
+    "beat_hz": 127.1,
+    "rhythm_share_pct": 80.49,
+    "comb_contrast_db": 51.994,
+    "above_f_tip_pct": 1.0598
+   },
+   "prop_0.5mm": {
+    "stft_db_map_corr": 0.8796,
+    "abs_rho": 0.9766,
+    "beat_hz": 127.03,
+    "rhythm_share_pct": 73.779,
+    "comb_contrast_db": 44.149,
+    "above_f_tip_pct": 3.1152
+   },
+   "prop_0.9mm": {
+    "stft_db_map_corr": 0.8923,
+    "abs_rho": 0.9775,
+    "beat_hz": 127.05,
+    "rhythm_share_pct": 75.29,
+    "comb_contrast_db": 45.009,
+    "above_f_tip_pct": 2.9418
+   },
+   "prop_1.43mm": {
+    "stft_db_map_corr": 0.9032,
+    "abs_rho": 0.9786,
+    "beat_hz": 127.05,
+    "rhythm_share_pct": 76.66,
+    "comb_contrast_db": 45.784,
+    "above_f_tip_pct": 2.7958
+   },
+   "prop_2mm": {
+    "stft_db_map_corr": 0.912,
+    "abs_rho": 0.9797,
+    "beat_hz": 127.06,
+    "rhythm_share_pct": 77.726,
+    "comb_contrast_db": 46.383,
+    "above_f_tip_pct": 2.6685
+   },
+   "ref_props_only_100mm": {
+    "stft_db_map_corr": null,
+    "abs_rho": null,
+    "beat_hz": 127.05,
+    "rhythm_share_pct": 81.455,
+    "comb_contrast_db": 51.814,
+    "above_f_tip_pct": 1.1785
+   }
+  },
+  "map_corr_grid_floor_el_minus30": 0.6825,
+  "comb_grid_tag_ko": "⚠빗살 대비 절대값은 격자 계단마다 +4.0~5.6 dB 단조 상승한다 — 절대 인용에는 격자 꼬리표(λ/12)가 필요하다."
+ },
+ "answers_ko": {
+  "a_monotone": "① **단조다 — 뒤집힘 0.** 두꺼울수록 밝다: 요동 Δ 가 0.5 mm −22.08 → 0.9 −16.99 → 1.43 −13.02 → 2.0 −10.19 dB 로 한 칸씩(+5.09 · +3.97 · +2.83 dB) 올라간다. 확산 바닥·빗살 대비·리듬 몫·정지 성분도 같은 순서로 단조이고, 균일 재표집 네 판에서도 단조가 유지된다.",
+  "b_canon": "② **정본 1.43 mm: 요동 −13.02 dB · 확산 바닥 −8.81 dB · 빗살 대비 −6.21 dB**(리듬 몫 −3.84 %p · 정지 성분 −12.83 dB). el −30 밴드로 채점하면 요동(밴드 0.37)·빗살(4.6)은 밴드 **밖**이라 유의하고, 확산 바닥(−8.81)은 그 잣대의 넓은 격자 밴드 9.30 dB **안**이라 사전등록 문면으로는 «판정 불가» 다. ⚠확산 바닥은 «상한 위 몫» 이 격자에 9.26 %p 흔들려 밴드가 넓은 둔한 잣대다 — 짝지은 비교(같은 경로수 1505·같은 자세)라는 사실과 요동 축의 −13.02 dB 를 함께 읽는 것이 정직하다.",
+  "c_slab": "③ **요동은 45° 입사 예측과 0.31 dB, 각도평균 예측과 4.93 dB 차**(정본 1.43 mm). 네 두께 전부에서 45° 잔차가 −0.28~−0.36 dB 로 **거의 일정**하고(각도평균 잔차는 −4.37~−6.43 dB), 그 일정한 잔차는 각을 조금 옮기면 사라진다 — 네 점을 한 각으로 맞추면 **유효 입사각 40.2°** 에서 RMS 잔차 **0.145 dB**(같은 가지 안 점별 역산 40.08~40.35°, 폭 0.27°)로 닫힌다. 즉 요동 축은 **프로펠러 플라스틱 평판의 두께 반사율 그 자체**이고 다른 재질이 낄 자리가 없다 — P = A·r(두께) + B 로 갈라 보면 «두께로 안 줄어드는 몫» B 가 기본판의 −0.13 %(=0)다. ⚠확산 바닥도 한 각으로 닫히기는 한다(64.5°·RMS 0.135 dB). 그러나 그 각이 요동의 40.2° 와 **다르다** — 같은 표면을 두 잣대로 봤는데 «유효 입사각» 이 24° 나 갈리면 둘 중 하나는 실제 입사각이 아니라는 뜻이다. 갈리는 까닭은 프롭이 어두워질 때 «날개끝 상한 위 몫» 이 1.06 % → 2.67~3.12 %(+4.0~+4.7 dB) 로 오르기 때문이고, 확산 바닥은 그 몫이 곱해진 **합성 잣대**다. 그래서 «평판 물리와 몇 dB 차인가» 는 요동 축으로 답해야 한다.",
+  "d_prior": "④ 0.9 mm 판정과 **같은 이야기**를 한다(vs_0p9mm_prior_verdict 참조). 오전 판의 −13 dB 추정이 측정 −13.02 dB 로 맞았고, 고칠 것은 «12~13 dB» 가 어느 잣대의 수인지 하나뿐이다.",
+  "e_pattern": "⑤ 무늬는 산다 — pattern_survival 참조."
+ },
+ "verdict_headline_ko": "① 프로펠러 두께 사다리는 **완전 단조**다(뒤집힘 0) — 얇을수록 어둡다. ② 정본 1.43 mm 에서 기본판(100 mm) 대비 **요동 −13.02 dB · 확산 바닥 −8.81 dB · 빗살 대비 −6.21 dB**. 요동·빗살은 el −30 격자 밴드 밖(유의), 확산 바닥은 그 잣대의 넓은 밴드(9.30 dB) 안이라 문면상 판정 불가. ③ 요동 축은 평판 물리로 **완전히** 설명된다 — 유효 입사각 40.2° 한 값으로 네 두께가 RMS 0.145 dB 에 닫히고, 45° 예측과는 0.28~0.36 dB(정본 0.31 dB), 각도평균 예측과는 4.4~6.4 dB(정본 4.93 dB) 차다. ③′ 확산 바닥도 한 각(64.5°)으로 닫히지만 그 각이 요동의 40.2° 와 다르다 — 확산 바닥은 «평판 반사 × 상한 위 몫» 의 합성 잣대라 평판 물리 대조에는 요동을 쓴다. ④ 0.9 mm 로 낸 앞선 판정은 정본에서도 **같은 이야기**를 한다(추정 −13 dB ↔ 측정 −13.02 dB). 다만 «100 mm 때문에 12~13 dB 밝게 깔림» 은 정본에서 **요동** 의 수이지 **확산 바닥**(−8.81 dB)의 수가 아니다 — 잣대 이름을 반드시 붙여야 한다. ⑤ 무늬는 산다 — 맵 상관 0.880~0.912(격자 바닥 0.68 위)·박자 Δ ≤ 0.06 Hz·리듬 몫 밴드 안이고, 두꺼워질수록 기본판 무늬로 되돌아온다. ⑥ 절차 경고 — **자세를 지우는 솎기는 빗살·리듬 잣대를 망가뜨린다**(무작위 자세를 지워도 똑같이 무너진다). 튀는 자세는 애초에 없다(isolation 1.001~1.008). 헤드라인은 솎지 않은 원판을 쓴다.",
+ "headline_impacts_ko": {
+  "§6_게이트2_12~13dB": "⚠**잣대 이름을 붙여 고쳐야 한다.** 오전 판은 0.9 mm 의 확산 바닥 −12.56 dB 로 «적중» 처리했는데, 정본 1.43 mm 의 확산 바닥은 −8.81 dB 다. 정본에서 12~13 dB 인 것은 **요동(−13.02 dB)** 이다. 두 잣대가 우연히 같은 수에 걸린 것이라 «12~13 dB» 를 인용할 때는 반드시 어느 잣대인지 적는다.",
+  "덱24_drowned_blades_−8.08dB": "⚠**값을 다시 봐야 한다.** MATERIAL_CORRECTION §4-3 은 덱 24 장의 프로펠러 문장에 정본 1.43 mm 의 **각도평균 슬래브 −8.08 dB** 를 넣기로 했다(«78 → 약 86 dB»). 그런데 이 사다리가 실제로 잰 날개 에코(요동) 변화는 el −30 에서 **−13.02 dB** 이고, 각도평균이 아니라 **유효 입사각 40.2°** 가 맞는 잣대다. 그 수를 쓰면 «78 → 약 91 dB» 가 된다 — 익사 간격은 계획보다 **약 4.9 dB 더 벌어진다**(결론 방향은 같고 강해진다). ⚠단 우리 측정은 el −30 한 앙각이고 덱 문장은 각도 무관 서술이라, 인용 전에 어느 기하의 수인지 정해야 한다.",
+  "R50_−34%_추정": "방향 유지·크기 갱신 — 커널 프롭 정정의 −34 % R50 추정은 0.9 mm 근처 감쇄를 깔고 있었다. 정본 1.43 mm 의 PathSolver 요동 감쇄는 −13.02 dB 로 0.9 mm(−16.99)보다 **약 4 dB 얕다**. 절대 거리 주장은 게이트 전까지 보류이므로 여기서 R50 을 다시 계산하지 않는다 — 다만 «−34 %» 는 정본 두께에서 다시 내야 하는 수다.",
+  "el0_금속_추첨": "정본에서도 확증 — el 0 에서 프롭 1.43 mm 판의 요동·확산 바닥·정지 성분이 전부 0.000 dB. 정면은 금속 거울이 다 먹는다는 읽기가 두께 손잡이 두 점(0.9·1.43)에서 똑같이 나온다.",
+  "무늬_분류_서사": "유지 — 맵 상관 0.903(격자 바닥 0.68 위)·박자 Δ 0.04 Hz·리듬 몫 밴드 안. 정본 두께에서도 무늬는 산다."
+ },
+ "open_ko": [
+  "⚠이 사다리는 **기하를 안 건드리는 재질 계수 쓸기**다(다섯 팔의 경로수 중앙값이 1505 로 똑같다). 그래서 «두꺼울수록 밝다» 는 단조성 자체는 슬래브 공식이 그 두께 범위에서 단조라는 사실의 되풀이에 가깝다 — 새로 안 것은 **크기**(정본에서 −13.02 dB)와 **유효 입사각 40.2°**, 그리고 그 축에 프롭 말고는 아무것도 안 낀다는 사실이다.",
+  "el −60 에는 격자 밴드가 없다(grid_convergence_check 가 네 앙각뿐) — 그 앙각 수치는 밴드 없이 방향만 읽는다.",
+  "두께 0.5·0.9·2.0 mm 는 측정값이 아니라 민감도 점이다(RETRACTION_LOG A3). 정본은 1.43 mm 하나뿐이고 그것도 «우리 메쉬 자신의 시위평균» 이지 DJI 실물 실측이 아니다.",
+  "유효 입사각 40.2°(el −30)·21.9°(el −60)는 **역산값**이지 기하로 유도한 값이 아니다 — 시선이 가팔라질수록 수직입사에 가까워진다는 방향만 맞다.",
+  "프롭이 어두워질 때 «날개끝 상한 위 몫» 이 왜 오르는지(요동 40.2° ↔ 확산 바닥 64.5° 의 갈림)는 이 원장이 안 닫았다 — 상한 위에 프롭 |Γ|² 로 안 줄어드는 항이 있다는 뜻인데 그것이 무엇인지는 안 갈랐다.",
+  "우리 커널(SBR+PO)에는 두께 개념이 없어 이 사다리는 PathSolver 한 엔진에서만 잰 것이다 — 교차 확인이 없다.",
+  "빗살 대비의 사전등록 밴드는 없다 — 여기서는 격자 계단(el −30 4.6 dB)을 대신 썼고, 그것은 «가져다 쓴» 눈금이다."
+ ]
+}

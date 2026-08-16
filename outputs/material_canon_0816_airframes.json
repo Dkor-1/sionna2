@@ -1,0 +1,1329 @@
+{
+ "_meta": {
+  "generator": "scratchpad/build_airframe_canon_verdict.py (기체 교차 판정자 갈래)",
+  "date_kst": "2026-08-16",
+  "question_ko": "matrice4e 에서 나온 «껍데기는 무관 · 프로펠러가 손잡이» 가 mini5pro · s1000plus 에서도 성립하나 — 효과 크기와 기체별 널로 채점",
+  "inputs": [
+   "outputs/elevation_sweep_md.json",
+   "outputs/elevation_sweep_md.npz",
+   "outputs/material_verdict_0816.json(밴드·사전등록 문면)",
+   "outputs/grid_convergence_check.json(격자 밴드 출처)",
+   "outputs/mesh_audit_0816_prop_geometry.json(정본 두께 감사)",
+   "assets/meshes/drones/*/*.obj(재질 비중)"
+  ],
+  "conventions_ko": "① 모든 레벨은 **정지 성분(DC) 제거 후**. ② 날개선 = 상한 아래 박자 정수배 자리의 전력, 배경 = 정수배가 아닌 자리. ③ 잣대는 팔마다 **그 기체의 박자·상한**을 쓴다(matrice4e 126.67 · mini5pro 183.33 · s1000plus 148.90 Hz). ④ 리듬 몫의 백색 널도 기체마다 다르다(12.65 · 8.72 · 10.76 %). ⑤ 튀는 자세(이상값) 솎기 전/후를 둘 다 싣고 헤드라인은 솎은 값(k=1). ⑥ 팔은 전부 PathSolver 4e9 · 물리끔 · 깊이1 · 15 m · seed 1 로 **짝지은 비교**.",
+  "gpu_used": false,
+  "landed_arms_ko": "기체 교차에 실제로 착지한 칸은 **앙각 −30° 한 점**뿐이다 — mini5pro·s1000plus 는 정정판(셸0.75+프롭0.9)이 −30° 에만 있다."
+ },
+ "airframes": {
+  "matrice4e": {
+   "drone_label": "DJI Matrice 4E",
+   "base_arm": "sionna_p4000000000_r15_n8192_d1",
+   "thin_arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": -30.0,
+   "n_rotors": 4,
+   "blades": 2,
+   "hover_rpm": 3800.0,
+   "prop_dia_mm": 274.0,
+   "f_flash_hz": 126.667,
+   "f_tip_hz_at_el": 1102.4,
+   "n_poses": 8192,
+   "n_missing": [
+    0,
+    0
+   ],
+   "npaths_median": [
+    1505,
+    1505
+   ],
+   "canon_prop_t_chordmean_mm": 1.4302,
+   "handle_prop_mm": 0.9,
+   "handle_shell_mm": 0.75,
+   "handle_over_canon": 0.629,
+   "base": {
+    "dc_power_db": -137.088,
+    "ac_power_db": -135.664,
+    "ac_over_dc": 1.3880432299981678,
+    "rhythm_share_pct": 80.499,
+    "rhythm_null_pct": 12.646,
+    "above_f_tip_pct": 1.0606,
+    "comb_contrast_db": 51.989,
+    "floor_above_tip_db": -155.408,
+    "p_below_on": 6.99140960582108e-07,
+    "p_below_off": 1.1351116014740135e-10,
+    "p_above_on": 6.033999645945425e-09,
+    "p_above_off": 1.4617724780030428e-09,
+    "tip_ceiling_degenerate": false,
+    "near_numeric_floor": false
+   },
+   "thin": {
+    "dc_power_db": -150.901,
+    "ac_power_db": -152.65,
+    "ac_over_dc": 0.6684652155112266,
+    "rhythm_share_pct": 75.29,
+    "rhythm_null_pct": 12.646,
+    "above_f_tip_pct": 2.9418,
+    "comb_contrast_db": 45.009,
+    "floor_above_tip_db": -167.964,
+    "p_below_on": 1.3990979387078419e-08,
+    "p_below_off": 8.061715800219071e-12,
+    "p_above_on": 3.194634176712719e-10,
+    "p_above_off": 1.0484640945989654e-10,
+    "tip_ceiling_degenerate": false,
+    "near_numeric_floor": false
+   },
+   "delta_raw": {
+    "d_ac_power_db": -16.986,
+    "d_dc_power_db": -13.813,
+    "d_floor_above_tip_db": -12.556,
+    "d_rhythm_pp": -5.209,
+    "d_comb_contrast_db": -6.98,
+    "d_above_f_tip_pp": 1.881,
+    "d_blade_line_db": -16.987,
+    "d_offcomb_below_db": -11.486,
+    "d_offcomb_above_db": -11.443,
+    "d_above_on_db": -12.762
+   },
+   "trim": {
+    "k0": {
+     "k_trimmed": 0,
+     "n_kept": 8192,
+     "d_ac_power_db": -16.986,
+     "d_dc_power_db": -13.813,
+     "d_floor_above_tip_db": -12.556,
+     "d_rhythm_pp": -5.209,
+     "d_comb_contrast_db": -6.98,
+     "d_above_f_tip_pp": 1.881,
+     "d_blade_line_db": -16.987,
+     "d_offcomb_below_db": -11.486,
+     "d_offcomb_above_db": -11.443,
+     "rhythm_base_pct": 80.499,
+     "rhythm_thin_pct": 75.29,
+     "comb_base_db": 51.989,
+     "comb_thin_db": 45.009
+    },
+    "k1": {
+     "k_trimmed": 1,
+     "n_kept": 8191,
+     "d_ac_power_db": -16.987,
+     "d_dc_power_db": -13.813,
+     "d_floor_above_tip_db": -12.562,
+     "d_rhythm_pp": -5.59,
+     "d_comb_contrast_db": -3.434,
+     "d_above_f_tip_pp": 1.882,
+     "d_blade_line_db": -16.987,
+     "d_offcomb_below_db": -14.585,
+     "d_offcomb_above_db": -11.399,
+     "rhythm_base_pct": 80.173,
+     "rhythm_thin_pct": 74.583,
+     "comb_base_db": 47.536,
+     "comb_thin_db": 44.102
+    },
+    "k8": {
+     "k_trimmed": 8,
+     "n_kept": 8184,
+     "d_ac_power_db": -16.992,
+     "d_dc_power_db": -13.811,
+     "d_floor_above_tip_db": -12.645,
+     "d_rhythm_pp": -4.451,
+     "d_comb_contrast_db": -0.163,
+     "d_above_f_tip_pp": 1.908,
+     "d_blade_line_db": -16.994,
+     "d_offcomb_below_db": -16.981,
+     "d_offcomb_above_db": -11.984,
+     "rhythm_base_pct": 68.705,
+     "rhythm_thin_pct": 64.254,
+     "comb_base_db": 36.244,
+     "comb_thin_db": 36.081
+    }
+   },
+   "trim_headline_k": 1,
+   "spike_base": {
+    "top1_over_median": 3.7,
+    "top2_over_median": 3.7,
+    "isolation": 1.001,
+    "argmax_pose": 2652
+   },
+   "spike_thin": {
+    "top1_over_median": 3.93,
+    "top2_over_median": 3.91,
+    "isolation": 1.006,
+    "argmax_pose": 1755
+   },
+   "waveform": {
+    "abs_rho_dc_removed": 0.977496,
+    "rho_shuffled_null": 0.011049,
+    "contain_coeff": 0.138292,
+    "contain_db": -17.184,
+    "stft_db_map_corr": 0.8923
+   },
+   "nulls": {
+    "rhythm_null_pct": 12.646,
+    "rhythm_null_sd_pct": 0.39,
+    "n_bins_above_tip": 7275,
+    "n_bins_above_on_comb": 920,
+    "comb_band_hz": [
+     253.3,
+     1102.4
+    ],
+    "comb_harmonics_k": [
+     2,
+     8
+    ],
+    "comb_n_on_bins": 86,
+    "comb_n_off_bins": 94,
+    "comb_null_db": 0.0,
+    "comb_null_measured_white_db": 0.4,
+    "note_ko": "널은 기체마다 다르다 — 상한 위 빈 중 정수배 창에 드는 비율이 박자·상한·자세 수로 정해진다. 빗살 널은 백색 0 dB(실측 +0.4)."
+   },
+   "null_normalised_rhythm": {
+    "base_pct_of_span": 77.68,
+    "thin_pct_of_span": 71.71,
+    "d_pct_of_span": -5.97,
+    "base_over_null": 6.37,
+    "thin_over_null": 5.95,
+    "explain_ko": "널 대비 배수. 1.0 이면 백색과 구별 불가."
+   },
+   "inert_share": {
+    "gamma_amp_used": 0.14147,
+    "gamma_source_ko": "matrice4e 프롭 0.9 mm 사다리의 **실측** 날개선 진폭비",
+    "total_ac_inert_pct": 0.122,
+    "by_band_pct": {
+     "below_on": 0.0,
+     "below_off": 5.21,
+     "above_on": 3.36,
+     "above_off": 5.28
+    },
+    "inert_part_rhythm_pct": 68.41,
+    "inert_part_comb_db": 35.33,
+    "caveat_ko": "두 성분 가정(x_thin = γ·x_prop + x_inert)의 **추정**이다. γ 를 각도평균 슬래브로 바꾸면 몫이 바뀐다 — 아래 gamma_sensitivity 참조.",
+    "gamma_sensitivity": {
+     "slab_45deg": {
+      "gamma_db": -16.65,
+      "total_ac_inert_pct": 0.133
+     },
+     "slab_angle_avg": {
+      "gamma_db": -11.35,
+      "total_ac_inert_pct": 3.465
+     },
+     "measured_m4e_blade_line": {
+      "gamma_db": -16.987,
+      "total_ac_inert_pct": 0.122
+     }
+    }
+   },
+   "canon_projection": {
+    "canon_mm": 1.4302,
+    "measured_at_0p9mm_blade_line_db": -16.987,
+    "ladder_m4e_at_0p9_db": -16.987,
+    "ladder_m4e_at_canon_db": -13.012,
+    "projected_canon_blade_line_db": -13.012,
+    "method_ko": "matrice4e 실측 사다리(0.5·0.9·1.43·2 mm)를 log-두께로 보간한 곡선에 그 기체의 0.9 mm 실측 오프셋을 얹었다. ⚠**추정**이지 측정이 아니다 — matrice4e 만 정본 1.43 mm 를 직접 쟀다(−13.01 dB).",
+    "is_measured": true
+   },
+   "area_census": {
+    "total_cm2": 3382.7,
+    "by_material_cm2": {
+     "plastic": 1535.7,
+     "metal": 718.4,
+     "prop_plastic": 586.3,
+     "camera_assembly": 407.0,
+     "pcb": 135.4
+    },
+    "by_material_pct": {
+     "plastic": 45.4,
+     "metal": 21.24,
+     "prop_plastic": 17.33,
+     "camera_assembly": 12.03,
+     "pcb": 4.0
+    }
+   }
+  },
+  "mini5pro": {
+   "drone_label": "DJI Mini 5 Pro",
+   "base_arm": "sionna_p4000000000_mini5pro_r15_n8192_d1",
+   "thin_arm": "sionna_p4000000000_mini5pro_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": -30.0,
+   "n_rotors": 4,
+   "blades": 2,
+   "hover_rpm": 5500.0,
+   "prop_dia_mm": 152.4,
+   "f_flash_hz": 183.333,
+   "f_tip_hz_at_el": 887.4,
+   "n_poses": 8192,
+   "n_missing": [
+    0,
+    0
+   ],
+   "npaths_median": [
+    624,
+    624
+   ],
+   "canon_prop_t_chordmean_mm": 0.7955,
+   "handle_prop_mm": 0.9,
+   "handle_shell_mm": 0.75,
+   "handle_over_canon": 1.131,
+   "base": {
+    "dc_power_db": -135.821,
+    "ac_power_db": -147.279,
+    "ac_over_dc": 0.07147962769732441,
+    "rhythm_share_pct": 88.742,
+    "rhythm_null_pct": 8.721,
+    "above_f_tip_pct": 11.4428,
+    "comb_contrast_db": 46.994,
+    "floor_above_tip_db": -156.694,
+    "p_below_on": 3.3416020096023645e-08,
+    "p_below_off": 1.8634559885756745e-11,
+    "p_above_on": 3.833951992004248e-09,
+    "p_above_off": 4.863905415718779e-10,
+    "tip_ceiling_degenerate": false,
+    "near_numeric_floor": false
+   },
+   "thin": {
+    "dc_power_db": -151.425,
+    "ac_power_db": -162.275,
+    "ac_over_dc": 0.08223569361098296,
+    "rhythm_share_pct": 84.223,
+    "rhythm_null_pct": 8.721,
+    "above_f_tip_pct": 12.9086,
+    "comb_contrast_db": 40.566,
+    "floor_above_tip_db": -171.166,
+    "p_below_on": 1.184061298196561e-09,
+    "p_below_off": 1.344332093612121e-12,
+    "p_above_on": 1.479839092406719e-10,
+    "p_above_off": 2.772007824420147e-11,
+    "tip_ceiling_degenerate": false,
+    "near_numeric_floor": false
+   },
+   "delta_raw": {
+    "d_ac_power_db": -14.996,
+    "d_dc_power_db": -15.604,
+    "d_floor_above_tip_db": -14.472,
+    "d_rhythm_pp": -4.519,
+    "d_comb_contrast_db": -6.428,
+    "d_above_f_tip_pp": 1.466,
+    "d_blade_line_db": -14.506,
+    "d_offcomb_below_db": -11.418,
+    "d_offcomb_above_db": -12.442,
+    "d_above_on_db": -14.134
+   },
+   "trim": {
+    "k0": {
+     "k_trimmed": 0,
+     "n_kept": 8192,
+     "d_ac_power_db": -14.996,
+     "d_dc_power_db": -15.604,
+     "d_floor_above_tip_db": -14.472,
+     "d_rhythm_pp": -4.519,
+     "d_comb_contrast_db": -6.428,
+     "d_above_f_tip_pp": 1.466,
+     "d_blade_line_db": -14.506,
+     "d_offcomb_below_db": -11.418,
+     "d_offcomb_above_db": -12.442,
+     "rhythm_base_pct": 88.742,
+     "rhythm_thin_pct": 84.223,
+     "comb_base_db": 46.994,
+     "comb_thin_db": 40.566
+    },
+    "k1": {
+     "k_trimmed": 1,
+     "n_kept": 8191,
+     "d_ac_power_db": -14.996,
+     "d_dc_power_db": -15.604,
+     "d_floor_above_tip_db": -14.473,
+     "d_rhythm_pp": -4.417,
+     "d_comb_contrast_db": -6.446,
+     "d_above_f_tip_pp": 1.466,
+     "d_blade_line_db": -14.506,
+     "d_offcomb_below_db": -11.424,
+     "d_offcomb_above_db": -12.48,
+     "rhythm_base_pct": 88.651,
+     "rhythm_thin_pct": 84.234,
+     "comb_base_db": 47.053,
+     "comb_thin_db": 40.607
+    },
+    "k8": {
+     "k_trimmed": 8,
+     "n_kept": 8184,
+     "d_ac_power_db": -14.998,
+     "d_dc_power_db": -15.604,
+     "d_floor_above_tip_db": -14.473,
+     "d_rhythm_pp": -4.416,
+     "d_comb_contrast_db": -6.351,
+     "d_above_f_tip_pp": 1.469,
+     "d_blade_line_db": -14.507,
+     "d_offcomb_below_db": -11.631,
+     "d_offcomb_above_db": -12.456,
+     "rhythm_base_pct": 88.866,
+     "rhythm_thin_pct": 84.45,
+     "comb_base_db": 47.591,
+     "comb_thin_db": 41.24
+    }
+   },
+   "trim_headline_k": 1,
+   "spike_base": {
+    "top1_over_median": 2.98,
+    "top2_over_median": 2.98,
+    "isolation": 1.0,
+    "argmax_pose": 16
+   },
+   "spike_thin": {
+    "top1_over_median": 3.24,
+    "top2_over_median": 3.2,
+    "isolation": 1.01,
+    "argmax_pose": 14
+   },
+   "waveform": {
+    "abs_rho_dc_removed": 0.951736,
+    "rho_shuffled_null": 0.011049,
+    "contain_coeff": 0.169333,
+    "contain_db": -15.425,
+    "stft_db_map_corr": 0.8937
+   },
+   "nulls": {
+    "rhythm_null_pct": 8.721,
+    "rhythm_null_sd_pct": 0.327,
+    "n_bins_above_tip": 7453,
+    "n_bins_above_on_comb": 650,
+    "comb_band_hz": [
+     366.7,
+     887.4
+    ],
+    "comb_harmonics_k": [
+     2,
+     4
+    ],
+    "comb_n_on_bins": 34,
+    "comb_n_off_bins": 40,
+    "comb_null_db": 0.0,
+    "comb_null_measured_white_db": 0.4,
+    "note_ko": "널은 기체마다 다르다 — 상한 위 빈 중 정수배 창에 드는 비율이 박자·상한·자세 수로 정해진다. 빗살 널은 백색 0 dB(실측 +0.4)."
+   },
+   "null_normalised_rhythm": {
+    "base_pct_of_span": 87.67,
+    "thin_pct_of_span": 82.72,
+    "d_pct_of_span": -4.95,
+    "base_over_null": 10.18,
+    "thin_over_null": 9.66,
+    "explain_ko": "널 대비 배수. 1.0 이면 백색과 구별 불가."
+   },
+   "inert_share": {
+    "gamma_amp_used": 0.14147,
+    "gamma_source_ko": "matrice4e 프롭 0.9 mm 사다리의 **실측** 날개선 진폭비",
+    "total_ac_inert_pct": 0.51,
+    "by_band_pct": {
+     "below_on": 1.57,
+     "below_off": 5.32,
+     "above_on": 1.9,
+     "above_off": 3.77
+    },
+    "inert_part_rhythm_pct": 71.28,
+    "inert_part_comb_db": 34.92,
+    "caveat_ko": "두 성분 가정(x_thin = γ·x_prop + x_inert)의 **추정**이다. γ 를 각도평균 슬래브로 바꾸면 몫이 바뀐다 — 아래 gamma_sensitivity 참조.",
+    "gamma_sensitivity": {
+     "slab_45deg": {
+      "gamma_db": -16.65,
+      "total_ac_inert_pct": 0.478
+     },
+     "slab_angle_avg": {
+      "gamma_db": -11.35,
+      "total_ac_inert_pct": 2.494
+     },
+     "measured_m4e_blade_line": {
+      "gamma_db": -16.987,
+      "total_ac_inert_pct": 0.51
+     }
+    }
+   },
+   "canon_projection": {
+    "canon_mm": 0.7955,
+    "measured_at_0p9mm_blade_line_db": -14.506,
+    "ladder_m4e_at_0p9_db": -16.987,
+    "ladder_m4e_at_canon_db": -18.058,
+    "projected_canon_blade_line_db": -15.577,
+    "method_ko": "matrice4e 실측 사다리(0.5·0.9·1.43·2 mm)를 log-두께로 보간한 곡선에 그 기체의 0.9 mm 실측 오프셋을 얹었다. ⚠**추정**이지 측정이 아니다 — matrice4e 만 정본 1.43 mm 를 직접 쟀다(−13.01 dB).",
+    "is_measured": false
+   },
+   "area_census": {
+    "total_cm2": 1803.9,
+    "by_material_cm2": {
+     "plastic": 1009.7,
+     "metal": 403.7,
+     "prop_plastic": 181.2,
+     "camera_assembly": 152.6,
+     "pcb": 56.6
+    },
+    "by_material_pct": {
+     "plastic": 55.97,
+     "metal": 22.38,
+     "prop_plastic": 10.05,
+     "camera_assembly": 8.46,
+     "pcb": 3.14
+    }
+   }
+  },
+  "s1000plus": {
+   "drone_label": "DJI S1000+",
+   "base_arm": "sionna_p4000000000_s1000plus_r15_n8192_d1",
+   "thin_arm": "sionna_p4000000000_s1000plus_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": -30.0,
+   "n_rotors": 8,
+   "blades": 2,
+   "hover_rpm": 4467.0,
+   "prop_dia_mm": 381.0,
+   "f_flash_hz": 148.9,
+   "f_tip_hz_at_el": 1801.9,
+   "n_poses": 8192,
+   "n_missing": [
+    0,
+    0
+   ],
+   "npaths_median": [
+    12749,
+    12749
+   ],
+   "canon_prop_t_chordmean_mm": 1.9887,
+   "handle_prop_mm": 0.9,
+   "handle_shell_mm": 0.75,
+   "handle_over_canon": 0.453,
+   "base": {
+    "dc_power_db": -111.395,
+    "ac_power_db": -133.305,
+    "ac_over_dc": 0.006442315659098476,
+    "rhythm_share_pct": 36.307,
+    "rhythm_null_pct": 10.758,
+    "above_f_tip_pct": 3.6044,
+    "comb_contrast_db": 39.564,
+    "floor_above_tip_db": -147.737,
+    "p_below_on": 1.1853977006328592e-06,
+    "p_below_off": 1.2578440727970302e-09,
+    "p_above_on": 1.611208196265636e-08,
+    "p_above_off": 2.826550525457438e-08,
+    "tip_ceiling_degenerate": false,
+    "near_numeric_floor": false
+   },
+   "thin": {
+    "dc_power_db": -111.542,
+    "ac_power_db": -144.954,
+    "ac_over_dc": 0.00045583002162309714,
+    "rhythm_share_pct": 23.175,
+    "rhythm_null_pct": 10.758,
+    "above_f_tip_pct": 51.9128,
+    "comb_contrast_db": 26.754,
+    "floor_above_tip_db": -147.801,
+    "p_below_on": 3.686201433907012e-08,
+    "p_below_off": 1.2641480616404006e-09,
+    "p_above_on": 9.609556573857647e-09,
+    "p_above_off": 3.185628466925206e-08,
+    "tip_ceiling_degenerate": false,
+    "near_numeric_floor": false
+   },
+   "delta_raw": {
+    "d_ac_power_db": -11.649,
+    "d_dc_power_db": -0.147,
+    "d_floor_above_tip_db": -0.064,
+    "d_rhythm_pp": -13.132,
+    "d_comb_contrast_db": -12.81,
+    "d_above_f_tip_pp": 48.308,
+    "d_blade_line_db": -15.073,
+    "d_offcomb_below_db": 0.022,
+    "d_offcomb_above_db": 0.519,
+    "d_above_on_db": -2.244
+   },
+   "trim": {
+    "k0": {
+     "k_trimmed": 0,
+     "n_kept": 8192,
+     "d_ac_power_db": -11.649,
+     "d_dc_power_db": -0.147,
+     "d_floor_above_tip_db": -0.064,
+     "d_rhythm_pp": -13.132,
+     "d_comb_contrast_db": -12.81,
+     "d_above_f_tip_pp": 48.308,
+     "d_blade_line_db": -15.073,
+     "d_offcomb_below_db": 0.022,
+     "d_offcomb_above_db": 0.519,
+     "rhythm_base_pct": 36.307,
+     "rhythm_thin_pct": 23.175,
+     "comb_base_db": 39.564,
+     "comb_thin_db": 26.754
+    },
+    "k1": {
+     "k_trimmed": 1,
+     "n_kept": 8191,
+     "d_ac_power_db": -11.655,
+     "d_dc_power_db": -0.147,
+     "d_floor_above_tip_db": -0.066,
+     "d_rhythm_pp": -11.872,
+     "d_comb_contrast_db": -11.519,
+     "d_above_f_tip_pp": 48.27,
+     "d_blade_line_db": -15.079,
+     "d_offcomb_below_db": -3.431,
+     "d_offcomb_above_db": 0.462,
+     "rhythm_base_pct": 38.127,
+     "rhythm_thin_pct": 26.255,
+     "comb_base_db": 38.148,
+     "comb_thin_db": 26.629
+    },
+    "k8": {
+     "k_trimmed": 8,
+     "n_kept": 8184,
+     "d_ac_power_db": -11.69,
+     "d_dc_power_db": -0.147,
+     "d_floor_above_tip_db": -0.088,
+     "d_rhythm_pp": -11.84,
+     "d_comb_contrast_db": -7.9,
+     "d_above_f_tip_pp": 48.171,
+     "d_blade_line_db": -15.107,
+     "d_offcomb_below_db": -8.352,
+     "d_offcomb_above_db": 0.424,
+     "rhythm_base_pct": 35.769,
+     "rhythm_thin_pct": 23.929,
+     "comb_base_db": 34.408,
+     "comb_thin_db": 26.508
+    }
+   },
+   "trim_headline_k": 1,
+   "spike_base": {
+    "top1_over_median": 3.65,
+    "top2_over_median": 3.63,
+    "isolation": 1.004,
+    "argmax_pose": 4631
+   },
+   "spike_thin": {
+    "top1_over_median": 5.04,
+    "top2_over_median": 4.9,
+    "isolation": 1.029,
+    "argmax_pose": 2818
+   },
+   "waveform": {
+    "abs_rho_dc_removed": 0.69827,
+    "rho_shuffled_null": 0.011049,
+    "contain_coeff": 0.182624,
+    "contain_db": -14.769,
+    "stft_db_map_corr": 0.7055
+   },
+   "nulls": {
+    "rhythm_null_pct": 10.758,
+    "rhythm_null_sd_pct": 0.379,
+    "n_bins_above_tip": 6693,
+    "n_bins_above_on_comb": 720,
+    "comb_band_hz": [
+     297.8,
+     1801.9
+    ],
+    "comb_harmonics_k": [
+     2,
+     12
+    ],
+    "comb_n_on_bins": 138,
+    "comb_n_off_bins": 132,
+    "comb_null_db": 0.0,
+    "comb_null_measured_white_db": 0.4,
+    "note_ko": "널은 기체마다 다르다 — 상한 위 빈 중 정수배 창에 드는 비율이 박자·상한·자세 수로 정해진다. 빗살 널은 백색 0 dB(실측 +0.4)."
+   },
+   "null_normalised_rhythm": {
+    "base_pct_of_span": 28.63,
+    "thin_pct_of_span": 13.91,
+    "d_pct_of_span": -14.72,
+    "base_over_null": 3.37,
+    "thin_over_null": 2.15,
+    "explain_ko": "널 대비 배수. 1.0 이면 백색과 구별 불가."
+   },
+   "inert_share": {
+    "gamma_amp_used": 0.14147,
+    "gamma_source_ko": "matrice4e 프롭 0.9 mm 사다리의 **실측** 날개선 진폭비",
+    "total_ac_inert_pct": 5.014,
+    "by_band_pct": {
+     "below_on": 1.13,
+     "below_off": 100.0,
+     "above_on": 58.82,
+     "above_off": 100.0
+    },
+    "inert_part_rhythm_pct": 23.23,
+    "inert_part_comb_db": 22.51,
+    "caveat_ko": "두 성분 가정(x_thin = γ·x_prop + x_inert)의 **추정**이다. γ 를 각도평균 슬래브로 바꾸면 몫이 바뀐다 — 아래 gamma_sensitivity 참조.",
+    "gamma_sensitivity": {
+     "slab_45deg": {
+      "gamma_db": -16.65,
+      "total_ac_inert_pct": 5.022
+     },
+     "slab_angle_avg": {
+      "gamma_db": -11.35,
+      "total_ac_inert_pct": 8.126
+     },
+     "measured_m4e_blade_line": {
+      "gamma_db": -16.987,
+      "total_ac_inert_pct": 5.014
+     }
+    }
+   },
+   "canon_projection": {
+    "canon_mm": 1.9887,
+    "measured_at_0p9mm_blade_line_db": -15.073,
+    "ladder_m4e_at_0p9_db": -16.987,
+    "ladder_m4e_at_canon_db": -10.226,
+    "projected_canon_blade_line_db": -8.312,
+    "method_ko": "matrice4e 실측 사다리(0.5·0.9·1.43·2 mm)를 log-두께로 보간한 곡선에 그 기체의 0.9 mm 실측 오프셋을 얹었다. ⚠**추정**이지 측정이 아니다 — matrice4e 만 정본 1.43 mm 를 직접 쟀다(−13.01 dB).",
+    "is_measured": false
+   },
+   "area_census": {
+    "total_cm2": 12544.8,
+    "by_material_cm2": {
+     "plastic": 5201.4,
+     "carbon": 2705.7,
+     "prop_plastic": 2261.1,
+     "metal": 1129.6,
+     "camera_assembly": 972.7,
+     "pcb": 274.3
+    },
+    "by_material_pct": {
+     "plastic": 41.46,
+     "carbon": 21.57,
+     "prop_plastic": 18.02,
+     "metal": 9.0,
+     "camera_assembly": 7.75,
+     "pcb": 2.19
+    }
+   }
+  }
+ },
+ "matrice4e_reference": {
+  "shell_only_control": {
+   "0.5mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.5mm_d1",
+    "d_ac_power_db": 0.003,
+    "d_dc_power_db": -7.132,
+    "d_floor_above_tip_db": -0.001,
+    "d_blade_line_db": 0.003
+   },
+   "0.75mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_d1",
+    "d_ac_power_db": 0.002,
+    "d_dc_power_db": -6.24,
+    "d_floor_above_tip_db": -0.002,
+    "d_blade_line_db": 0.002
+   },
+   "1.5mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell1.5mm_d1",
+    "d_ac_power_db": 0.0,
+    "d_dc_power_db": -4.144,
+    "d_floor_above_tip_db": -0.001,
+    "d_blade_line_db": 0.0
+   }
+  },
+  "prop_thickness_ladder": {
+   "0.5mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.5mm_d1",
+    "d_ac_power_db": -22.075,
+    "d_blade_line_db": -22.085,
+    "d_floor_above_tip_db": -17.396,
+    "d_dc_power_db": -14.587,
+    "slab45_delta_db": -21.71
+   },
+   "0.9mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "d_ac_power_db": -16.986,
+    "d_blade_line_db": -16.987,
+    "d_floor_above_tip_db": -12.556,
+    "d_dc_power_db": -13.813,
+    "slab45_delta_db": -16.65
+   },
+   "1.43mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+    "d_ac_power_db": -13.019,
+    "d_blade_line_db": -13.013,
+    "d_floor_above_tip_db": -8.809,
+    "d_dc_power_db": -12.825,
+    "slab45_delta_db": -12.71
+   },
+   "2mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop2mm_d1",
+    "d_ac_power_db": -10.188,
+    "d_blade_line_db": -10.178,
+    "d_floor_above_tip_db": -6.181,
+    "d_dc_power_db": -11.851,
+    "slab45_delta_db": -9.91
+   },
+   "100mm": {
+    "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_d1",
+    "d_ac_power_db": 0.002,
+    "d_blade_line_db": 0.002,
+    "d_floor_above_tip_db": -0.002,
+    "d_dc_power_db": -6.24,
+    "slab45_delta_db": null
+   }
+  },
+  "props_only_control": {
+   "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+   "d_ac_power_db": 0.191,
+   "d_dc_power_db": -10.903,
+   "d_blade_line_db": 0.151,
+   "d_offcomb_below_db": 0.361,
+   "d_offcomb_above_db": 0.396,
+   "abs_rho_vs_full": 0.9907,
+   "verdict_ko": "matrice4e 는 프롭만 남겨도 움직이는 부분이 전 대역에서 0.7 dB 안으로 재현된다(ρ 0.99) — «AC 는 프롭이 전부» 가 **측정**이다. ⚠같은 대조군이 mini5pro·s1000plus 에는 없다."
+  },
+  "elevation_generality": {
+   "el+0": {
+    "d_ac_power_db": 0.0,
+    "d_blade_line_db": 0.009,
+    "d_dc_power_db": 0.0,
+    "d_rhythm_pp": -0.001
+   },
+   "el-15": {
+    "d_ac_power_db": -13.069,
+    "d_blade_line_db": -14.122,
+    "d_dc_power_db": -15.755,
+    "d_rhythm_pp": -4.361
+   },
+   "el-30": {
+    "d_ac_power_db": -16.986,
+    "d_blade_line_db": -16.987,
+    "d_dc_power_db": -13.813,
+    "d_rhythm_pp": -5.209
+   },
+   "el-60": {
+    "d_ac_power_db": -14.723,
+    "d_blade_line_db": -15.018,
+    "d_dc_power_db": -17.192,
+    "d_rhythm_pp": 0.299
+   }
+  },
+  "note_ko": "⭐셸 단독 팔·프롭 사다리·프롭만 대조군은 **matrice4e 에만** 있다. 다른 두 기체는 결합판(셸0.75+프롭0.9) 한 칸뿐이라 셸과 프롭을 분리할 수 없다. 앙각 일반성은 matrice4e 에서만 확인된다 — 날개선 변화가 −15·−30·−60 에서 −14.1 · −17.0 · −15.0 dB 로 ±1.5 dB 안이라, 단일 −30 점 교차가 적어도 matrice4e 에서는 대표성이 있다."
+ },
+ "null_misread_check": {
+  "question_ko": "matrice4e 의 널(12.65 %)을 다른 기체에 그대로 대면 얼마나 잘못 읽나",
+  "per_airframe": {
+   "matrice4e": {
+    "own_null_pct": 12.646,
+    "borrowed_m4e_null_pct": 12.646,
+    "base_over_own": 6.37,
+    "base_over_borrowed": 6.37,
+    "thin_over_own": 5.95,
+    "thin_over_borrowed": 5.95,
+    "margin_error_pct": 0.0
+   },
+   "mini5pro": {
+    "own_null_pct": 8.721,
+    "borrowed_m4e_null_pct": 12.646,
+    "base_over_own": 10.18,
+    "base_over_borrowed": 7.02,
+    "thin_over_own": 9.66,
+    "thin_over_borrowed": 6.66,
+    "margin_error_pct": -31.0
+   },
+   "s1000plus": {
+    "own_null_pct": 10.758,
+    "borrowed_m4e_null_pct": 12.646,
+    "base_over_own": 3.37,
+    "base_over_borrowed": 2.87,
+    "thin_over_own": 2.15,
+    "thin_over_borrowed": 1.83,
+    "margin_error_pct": -14.9
+   }
+  },
+  "verdict_ko": "이번 세 칸에서는 널을 빌려 써도 판정이 **뒤집히지는 않는다** — 다만 «백색 대비 몇 배인가» 라는 여유가 s1000plus 에서 2.15 → 1.83 배로 15 % 줄어 보이고 mini5pro 에서는 9.66 → 6.66 배로 31 % 줄어 보인다. s1000plus 처럼 원래 여유가 얇은 기체에서 이 오차가 결론을 건드릴 자리다."
+ },
+ "canon_thickness_mm": {
+  "mini5pro": 0.7955,
+  "matrice4e": 1.4302,
+  "s1000plus": 1.9887
+ },
+ "slab_predictions_3p5ghz": {
+  "abs": {
+   "0.5mm": {
+    "normal_db": -30.13,
+    "angle_avg_db": -24.15,
+    "deg45_db": -29.73
+   },
+   "0.75mm": {
+    "normal_db": -26.63,
+    "angle_avg_db": -21.17,
+    "deg45_db": -26.23
+   },
+   "0.796mm": {
+    "normal_db": -26.12,
+    "angle_avg_db": -20.73,
+    "deg45_db": -25.72
+   },
+   "0.9mm": {
+    "normal_db": -25.06,
+    "angle_avg_db": -19.85,
+    "deg45_db": -24.67
+   },
+   "1.43mm": {
+    "normal_db": -21.1,
+    "angle_avg_db": -16.59,
+    "deg45_db": -20.73
+   },
+   "1.5mm": {
+    "normal_db": -20.7,
+    "angle_avg_db": -16.26,
+    "deg45_db": -20.33
+   },
+   "1.989mm": {
+    "normal_db": -18.33,
+    "angle_avg_db": -14.36,
+    "deg45_db": -17.97
+   },
+   "2mm": {
+    "normal_db": -18.28,
+    "angle_avg_db": -14.32,
+    "deg45_db": -17.93
+   },
+   "100mm": {
+    "normal_db": -13.38,
+    "angle_avg_db": -8.5,
+    "deg45_db": -8.02
+   }
+  },
+  "delta_vs_100mm": {
+   "0.5mm": {
+    "normal_delta_db": -16.75,
+    "angle_avg_delta_db": -15.65,
+    "deg45_delta_db": -21.71
+   },
+   "0.75mm": {
+    "normal_delta_db": -13.25,
+    "angle_avg_delta_db": -12.67,
+    "deg45_delta_db": -18.21
+   },
+   "0.796mm": {
+    "normal_delta_db": -12.74,
+    "angle_avg_delta_db": -12.23,
+    "deg45_delta_db": -17.7
+   },
+   "0.9mm": {
+    "normal_delta_db": -11.68,
+    "angle_avg_delta_db": -11.35,
+    "deg45_delta_db": -16.65
+   },
+   "1.43mm": {
+    "normal_delta_db": -7.72,
+    "angle_avg_delta_db": -8.09,
+    "deg45_delta_db": -12.71
+   },
+   "1.5mm": {
+    "normal_delta_db": -7.32,
+    "angle_avg_delta_db": -7.76,
+    "deg45_delta_db": -12.31
+   },
+   "1.989mm": {
+    "normal_delta_db": -4.95,
+    "angle_avg_delta_db": -5.86,
+    "deg45_delta_db": -9.95
+   },
+   "2mm": {
+    "normal_delta_db": -4.9,
+    "angle_avg_delta_db": -5.82,
+    "deg45_delta_db": -9.91
+   }
+  },
+  "note_ko": "ITU-R P.2040 단층 슬래브, plastic εr 2.7·σ 0.02, 편파 전력평균"
+ },
+ "bands": {
+  "source_ko": "⚠격자 산포 밴드는 전부 **우리 커널 · matrice4e**(λ/12↔λ/24)에서 나왔다. mini5pro·s1000plus 에는 자기 격자 밴드가 없어 **빌려 썼다** — 이 갈래의 가장 큰 잣대 구멍이다.",
+  "ac_db_by_el": {
+   "0.0": 3.86,
+   "-15.0": 1.31,
+   "-30.0": 0.37,
+   "-45.0": 0.09,
+   "-60.0": 0.02,
+   "-75.0": 0.1,
+   "-90.0": 5.62
+  },
+  "ac_db_global": 3.861,
+  "floor_db_at_el_minus30": 9.295,
+  "dc_db": 6.613,
+  "rhythm_pp": 21.8,
+  "comb_db_at_el_minus30": 4.6,
+  "comb_db_global": 4.04,
+  "above_ceiling_pp": 12.5549,
+  "seed_sd_db": 1.833,
+  "seed_note_ko": "빌려 온 값(el −15 · 40 m · 4e9)"
+ },
+ "scoring": {
+  "matrice4e": {
+   "headline_uses": "trim k=1 (가장 튄 자세 하나 제외)",
+   "ac_level": {
+    "d_db": -16.987,
+    "band_by_el": 0.37,
+    "band_global": 3.861,
+    "seed_2sd": 3.666,
+    "outside_by_el": true,
+    "outside_global": true,
+    "outside_seed": true
+   },
+   "blade_line": {
+    "d_db": -16.987,
+    "band_by_el": 0.37,
+    "outside": true,
+    "note_ko": "⭐날개선(상한 아래 정수배 자리) — 프롭 손잡이의 직접 표적"
+   },
+   "diffuse_floor": {
+    "d_db": -12.562,
+    "band": 9.295,
+    "outside": true
+   },
+   "dc_level": {
+    "d_db": -13.813,
+    "band": 6.613,
+    "outside": true
+   },
+   "rhythm": {
+    "d_pp": -5.59,
+    "band_pp": 21.8,
+    "outside": false,
+    "null_pct": 12.646,
+    "base_over_null": 6.37,
+    "thin_over_null": 5.95,
+    "d_pct_of_span": -5.97
+   },
+   "comb": {
+    "d_db_raw": -6.98,
+    "d_db_trim1": -3.434,
+    "band_by_el": 4.6,
+    "band_global": 4.04,
+    "outside_by_el": false,
+    "outside_global": false,
+    "both_sides_far_from_null": true,
+    "n_harmonics": 7,
+    "trim_flips_verdict": true
+   },
+   "above_ceiling": {
+    "d_pp": 1.882,
+    "band_pp": 12.5549,
+    "outside": false
+   },
+   "flags": []
+  },
+  "mini5pro": {
+   "headline_uses": "trim k=1 (가장 튄 자세 하나 제외)",
+   "ac_level": {
+    "d_db": -14.996,
+    "band_by_el": 0.37,
+    "band_global": 3.861,
+    "seed_2sd": 3.666,
+    "outside_by_el": true,
+    "outside_global": true,
+    "outside_seed": true
+   },
+   "blade_line": {
+    "d_db": -14.506,
+    "band_by_el": 0.37,
+    "outside": true,
+    "note_ko": "⭐날개선(상한 아래 정수배 자리) — 프롭 손잡이의 직접 표적"
+   },
+   "diffuse_floor": {
+    "d_db": -14.473,
+    "band": 9.295,
+    "outside": true
+   },
+   "dc_level": {
+    "d_db": -15.604,
+    "band": 6.613,
+    "outside": true
+   },
+   "rhythm": {
+    "d_pp": -4.417,
+    "band_pp": 21.8,
+    "outside": false,
+    "null_pct": 8.721,
+    "base_over_null": 10.18,
+    "thin_over_null": 9.66,
+    "d_pct_of_span": -4.95
+   },
+   "comb": {
+    "d_db_raw": -6.428,
+    "d_db_trim1": -6.446,
+    "band_by_el": 4.6,
+    "band_global": 4.04,
+    "outside_by_el": true,
+    "outside_global": true,
+    "both_sides_far_from_null": true,
+    "n_harmonics": 3,
+    "trim_flips_verdict": false
+   },
+   "above_ceiling": {
+    "d_pp": 1.466,
+    "band_pp": 12.5549,
+    "outside": false
+   },
+   "flags": []
+  },
+  "s1000plus": {
+   "headline_uses": "trim k=1 (가장 튄 자세 하나 제외)",
+   "ac_level": {
+    "d_db": -11.655,
+    "band_by_el": 0.37,
+    "band_global": 3.861,
+    "seed_2sd": 3.666,
+    "outside_by_el": true,
+    "outside_global": true,
+    "outside_seed": true
+   },
+   "blade_line": {
+    "d_db": -15.079,
+    "band_by_el": 0.37,
+    "outside": true,
+    "note_ko": "⭐날개선(상한 아래 정수배 자리) — 프롭 손잡이의 직접 표적"
+   },
+   "diffuse_floor": {
+    "d_db": -0.066,
+    "band": 9.295,
+    "outside": false
+   },
+   "dc_level": {
+    "d_db": -0.147,
+    "band": 6.613,
+    "outside": false
+   },
+   "rhythm": {
+    "d_pp": -11.872,
+    "band_pp": 21.8,
+    "outside": false,
+    "null_pct": 10.758,
+    "base_over_null": 3.37,
+    "thin_over_null": 2.15,
+    "d_pct_of_span": -14.72
+   },
+   "comb": {
+    "d_db_raw": -12.81,
+    "d_db_trim1": -11.519,
+    "band_by_el": 4.6,
+    "band_global": 4.04,
+    "outside_by_el": true,
+    "outside_global": true,
+    "both_sides_far_from_null": true,
+    "n_harmonics": 11,
+    "trim_flips_verdict": false
+   },
+   "above_ceiling": {
+    "d_pp": 48.27,
+    "band_pp": 12.5549,
+    "outside": true
+   },
+   "flags": []
+  }
+ },
+ "effect_size_side_by_side": {
+  "note_ko": "앙각 −30° · 손잡이는 세 기체 모두 같다(셸 0.75 · 프롭 0.9 mm). 헤드라인은 솎은 값(k=1), 괄호 값은 생값.",
+  "canon_prop_thickness_mm": {
+   "matrice4e": 1.4302,
+   "mini5pro": 0.7955,
+   "s1000plus": 1.9887
+  },
+  "handle_over_canon": {
+   "matrice4e": 0.629,
+   "mini5pro": 1.131,
+   "s1000plus": 0.453
+  },
+  "prop_dia_mm": {
+   "matrice4e": 274.0,
+   "mini5pro": 152.4,
+   "s1000plus": 381.0
+  },
+  "n_rotors": {
+   "matrice4e": 4,
+   "mini5pro": 4,
+   "s1000plus": 8
+  },
+  "prop_area_pct": {
+   "matrice4e": 17.33,
+   "mini5pro": 10.05,
+   "s1000plus": 18.02
+  },
+  "shell_plastic_area_pct": {
+   "matrice4e": 45.4,
+   "mini5pro": 55.97,
+   "s1000plus": 41.46
+  },
+  "carbon_area_pct": {
+   "matrice4e": 0.0,
+   "mini5pro": 0.0,
+   "s1000plus": 21.57
+  },
+  "d_blade_line_db_trim1": {
+   "matrice4e": -16.987,
+   "mini5pro": -14.506,
+   "s1000plus": -15.079
+  },
+  "d_blade_line_db_raw": {
+   "matrice4e": -16.987,
+   "mini5pro": -14.506,
+   "s1000plus": -15.073
+  },
+  "d_ac_power_db_trim1": {
+   "matrice4e": -16.987,
+   "mini5pro": -14.996,
+   "s1000plus": -11.655
+  },
+  "d_floor_above_tip_db_trim1": {
+   "matrice4e": -12.562,
+   "mini5pro": -14.473,
+   "s1000plus": -0.066
+  },
+  "d_dc_power_db_trim1": {
+   "matrice4e": -13.813,
+   "mini5pro": -15.604,
+   "s1000plus": -0.147
+  },
+  "d_comb_contrast_db_raw": {
+   "matrice4e": -6.98,
+   "mini5pro": -6.428,
+   "s1000plus": -12.81
+  },
+  "d_comb_contrast_db_trim1": {
+   "matrice4e": -3.434,
+   "mini5pro": -6.446,
+   "s1000plus": -11.519
+  },
+  "d_rhythm_pp_trim1": {
+   "matrice4e": -5.59,
+   "mini5pro": -4.417,
+   "s1000plus": -11.872
+  },
+  "d_above_ceiling_pp_trim1": {
+   "matrice4e": 1.882,
+   "mini5pro": 1.466,
+   "s1000plus": 48.27
+  },
+  "offcomb_background_delta_db": {
+   "matrice4e": [
+    -11.486,
+    -11.443
+   ],
+   "mini5pro": [
+    -11.418,
+    -12.442
+   ],
+   "s1000plus": [
+    0.022,
+    0.519
+   ]
+  },
+  "material_inert_ac_pct": {
+   "matrice4e": 0.122,
+   "mini5pro": 0.51,
+   "s1000plus": 5.014
+  },
+  "material_inert_offcomb_pct": {
+   "matrice4e": [
+    5.21,
+    5.28
+   ],
+   "mini5pro": [
+    5.32,
+    3.77
+   ],
+   "s1000plus": [
+    100.0,
+    100.0
+   ]
+  },
+  "rhythm_null_pct": {
+   "matrice4e": 12.646,
+   "mini5pro": 8.721,
+   "s1000plus": 10.758
+  },
+  "rhythm_over_null_base": {
+   "matrice4e": 6.37,
+   "mini5pro": 10.18,
+   "s1000plus": 3.37
+  },
+  "rhythm_over_null_thin": {
+   "matrice4e": 5.95,
+   "mini5pro": 9.66,
+   "s1000plus": 2.15
+  },
+  "abs_rho": {
+   "matrice4e": 0.977496,
+   "mini5pro": 0.951736,
+   "s1000plus": 0.69827
+  },
+  "stft_map_corr": {
+   "matrice4e": 0.8923,
+   "mini5pro": 0.8937,
+   "s1000plus": 0.7055
+  },
+  "projected_canon_blade_line_db": {
+   "matrice4e": -13.012,
+   "mini5pro": -15.577,
+   "s1000plus": -8.312
+  }
+ },
+ "wiring_check": {
+  "question_ko": "mini5pro·s1000plus 에는 el 0 배선 대조군이 없다 — 그러면 s1000plus 의 ΔDC ≈ 0 이 «물리» 인지 «손잡이가 안 걸린 것» 인지 어떻게 아나",
+  "evidence_ko": "손잡이는 확실히 걸렸다 — 같은 팔에서 날개선 전력이 −15.08 dB 내려갔다. set_thickness_mm(shell=0.75, prop=0.9) 은 plastic·plastic_blue·prop_plastic 을 **한 번에** 물리므로, 프롭이 반응했다는 것은 셸도 같은 호출로 얇아졌다는 뜻이다. s1000plus 의 body·canopy·gear·accent 는 전부 DRONE_GROUP_MAT 에서 plastic 이라 손잡이 범위 안에 있다. 그러므로 ΔDC −0.15 dB 는 배선 실패가 아니라 «그 기체의 정지 에코가 플라스틱이 아니다» 는 물리다.",
+  "blade_line_response_db": {
+   "matrice4e": -16.987,
+   "mini5pro": -14.506,
+   "s1000plus": -15.073
+  },
+  "plastic_groups_in_mesh": {
+   "matrice4e": [
+    "accent",
+    "body",
+    "canopy",
+    "gear"
+   ],
+   "mini5pro": [
+    "accent",
+    "body",
+    "canopy"
+   ],
+   "s1000plus": [
+    "accent",
+    "body",
+    "canopy",
+    "gear"
+   ]
+  },
+  "residual_risk_ko": "⚠남는 위험은 «셸이 얇아졌는데 DC 가 안 움직였다» 를 직접 본 것이 아니라는 점이다. 셸 단독 팔이 있으면 한 칸으로 닫힌다."
+ },
+ "metric_caveats": {
+  "comb_harmonic_count_ko": "빗살 대비의 대역(2·f_flash ~ f_tip)에 들어가는 배음 수가 기체마다 다르다 — matrice4e 7 개(253~1102 Hz) · mini5pro **3 개**(367~887 Hz) · s1000plus 11 개(298~1802 Hz). mini5pro 는 정의 최소치(3 개) 바로 위라 이 기체의 빗살 수는 셋 중 가장 약한 통계다 — 판정에 그대로 쓰되 꼬리표를 단다.",
+  "comb_grid_tag_ko": "빗살 대비 절대값은 격자 계단마다 +4.0~5.6 dB 단조 상승한다 — 절대 인용에는 항상 격자 꼬리표를 붙인다.",
+  "band_borrowed_ko": "⚠이 갈래의 모든 밴드는 우리 커널·matrice4e 격자(λ/12↔λ/24)에서 왔다. mini5pro·s1000plus 용 격자 밴드는 존재하지 않는다.",
+  "seed_band_borrowed_ko": "PathSolver 시드 밴드(sd 1.833 dB)도 el −15·40 m 에서 빌려 온 값이다. 다만 이번 비교는 seed=1 로 고정된 짝지은 비교라 표집 요동이 대부분 소거된다."
+ },
+ "verdict": {
+  "headline_ko": "① **«프로펠러가 손잡이» 는 세 기체 모두에서 성립한다.** 날개선(박자 정수배 자리) 전력이 프롭 0.9 mm 에서 matrice4e −16.99 · mini5pro −14.51 · s1000plus −15.08 dB 내려간다 — 셋이 2.5 dB 폭 안에 모이고, 전부 그 앙각의 격자 밴드(0.37 dB)와 시드 밴드(2sd 3.67 dB) 밖이다. 재질 무반응 몫도 날개선에서는 0~1.6 % 뿐이다. ② **«껍데기는 무관» 은 다른 두 기체에서 직접 못 쟀다.** 셸 단독 팔이 matrice4e 에만 착지했고, 결합판 한 칸으로는 셸(0.75 mm, 45° −18.21 dB)과 프롭(0.9 mm, −16.65 dB)의 감쇠가 1.6 dB 밖에 안 벌어져 분리가 원리적으로 불가능하다. ③ **정지 성분(DC) 쪽은 기체마다 완전히 다르다.** ΔDC 는 matrice4e −13.81 · mini5pro −15.60 인데 s1000plus 는 **−0.15 dB**(밴드 6.61 안 — 판정 불가, 짝지은 비교라 사실상 0). s1000plus 의 정지 에코는 플라스틱이 아니라 카본·금속이다(표면적 21.6 % 카본, 두께 손잡이는 카본을 일부러 안 건드린다 — 표피깊이 0.155 mm). ④ **«확산 바닥» 헤드라인은 일반화되지 않는다.** 상한 위 바닥이 matrice4e −12.56 · mini5pro −14.47 dB 인데 s1000plus 는 −0.07 dB(밴드 9.30 안). s1000plus 는 정수배가 아닌 배경이 통째로 재질 무반응(추정 ~100 %)이라, 프롭을 −15 dB 어둡게 해도 배경이 안 따라 내려온다. ⑤ 그래서 s1000plus 만 **스펙트럼의 성격이 바뀐다** — 상한 위 몫 3.60 → 51.91 %(+48.3 %p, 밴드 12.55 밖)·파형 상관 0.698·맵 상관 0.706, 리듬 여유는 자기 널의 3.37 → 2.15 배로 반 토막. matrice4e·mini5pro 는 ρ 0.95~0.98 · 맵 상관 0.89 로 무늬가 그대로다.",
+  "claim_scorecard": {
+   "prop_is_the_handle": {
+    "matrice4e": "성립(측정)",
+    "mini5pro": "성립(측정)",
+    "s1000plus": "성립(측정) — 단 날개선 축에서만"
+   },
+   "shell_is_irrelevant_to_target_axis": {
+    "matrice4e": "성립(측정 — 셸 단독 ΔAC +0.003 dB · ρ 1.0000)",
+    "mini5pro": "판정 불가 — 셸 단독 팔 미착지",
+    "s1000plus": "판정 불가 — 셸 단독 팔 미착지(다만 셸을 얇게 해도 DC 조차 안 움직이니 셸 자체가 이 기체에서 거의 안 보인다)"
+   },
+   "diffuse_floor_drops_with_prop": {
+    "matrice4e": "성립(−12.56 dB, 밴드 9.30 밖)",
+    "mini5pro": "성립(−14.47 dB, 밴드 밖)",
+    "s1000plus": "**반증** — −0.07 dB(밴드 안). 이 기체에서는 프롭이 바닥의 손잡이가 아니다"
+   },
+   "pattern_survives_material_correction": {
+    "matrice4e": "성립(리듬 −5.6 %p·빗살 −3.4 dB, 둘 다 밴드 안 · 맵 상관 0.892)",
+    "mini5pro": "대체로 성립(리듬 −4.4 %p 밴드 안, 빗살 −6.45 dB 는 밴드 밖 · 맵 상관 0.894)",
+    "s1000plus": "**흔들린다** — 빗살 −11.52 dB·상한 위 몫 +48.3 %p(둘 다 밴드 밖)·맵 상관 0.706(격자 바닥 0.6825 바로 위)"
+   }
+  },
+  "effect_size_ordering_ko": "같은 손잡이(0.9 mm)에서 날개선 효과 크기는 matrice4e(−16.99) > s1000plus(−15.08) ≳ mini5pro(−14.51) 순이지만, 이 순서는 **비교로서 의미가 약하다** — 0.9 mm 가 기체마다 자기 정본 두께의 63 % · 45 % · 113 % 로 서로 다른 자리이기 때문이다. 각 기체의 **정본 두께**로 옮기면 순서가 뒤집힌다: mini5pro(0.80 mm) −15.6 · matrice4e(1.43 mm) −13.0 · s1000plus(1.99 mm) −8.3 dB. 즉 날이 얇은 기체일수록 재질 정정으로 더 많이 잃는다. ⚠matrice4e 만 정본 점을 직접 쟀고(−13.01 dB) 나머지 둘은 사다리 보간 + 그 기체의 0.9 mm 오프셋으로 만든 **추정**이다.",
+  "why_s1000plus_differs_ko": "가장 그럴듯한 읽기는 «가려지는 쪽의 재질» 이다. matrice4e 는 프롭만 남겨도 움직이는 부분이 전 대역 0.7 dB 안으로 재현된다(ρ 0.99) — 움직이는 에코가 곧 프롭 자기 에코다. s1000plus 는 큰 프롭 8 장이 넓은 카본 프레임 위를 쓸고 지나가는데, 카본은 두께 손잡이가 손대지 않는 재질이라 그 그림자 변조가 재질 정정에 통째로 무반응으로 남는다. ⚠이건 **추론**이다 — s1000plus 용 «프롭만» 대조군이 없어 확정할 수 없다. 배경이 백색도 아니다(스펙트럼 평탄도 0.09~0.37, 백색 0.56) — 단순 표본잡음으로 설명하는 읽기도 이 수치가 지지하지 않는다.",
+  "outlier_forensics_ko": "세 기체 모두 튀는 자세(이상값) 고립도(최대÷둘째)가 1.00~1.03 이다 — 한 자세만 유별난 것이 아니라 로터 대칭이 만든 **구조적 플래시**라는 뜻이다. 그래도 규약대로 솎아 보면 **matrice4e 의 빗살 대비만 판정이 뒤집힌다**: 생값 −6.98 dB(밴드 4.6 밖)가 가장 튄 자세 하나를 빼면 −3.43 dB(밴드 안)가 된다. mini5pro(−6.43→−6.45)와 s1000plus(−12.81→−11.52)는 안 뒤집힌다. ⭐그래서 material_verdict_0816 의 «빗살 −6.98 dB» 인용은 솎기에 취약한 수다 — 헤드라인은 −3.43 dB(판정 불가)로 적는 것이 규약에 맞다. ⛔[정본 J1 판정 — 2026-08-16] **이 마지막 권고는 기각됐다.** 자세를 «지우는» 솎기는 균일 시간 표본을 깨뜨려 빗살·리듬 잣대 자체를 부순다 — 아무 자세나 하나 지워도 같은 크기로 흔들린다(sd 2.26 dB). 이웃 평균 갈아끼우기(−6.95 dB)와 균일 재표집(−5.78~−6.31 dB)에서는 제자리다. ⇒ 정본 빗살 Δ(el −30 · 프롭 0.9 mm)는 **−6.95 ~ −6.98 dB, 밴드 밖(유의)** 이고, 여기 적힌 −3.43 dB 는 **인용하지 않는다**.",
+  "untested_ko": [
+   "셸 단독 × mini5pro · s1000plus — 미착지. «껍데기는 무관» 의 다른 기체 판정이 여기 걸려 있다.",
+   "프롭만(parts) 대조군 × mini5pro · s1000plus — 미착지. s1000plus 배경의 정체를 못 가른다.",
+   "el 0 배선 대조군 × mini5pro · s1000plus — 미착지(결합판이 −30 에만 있다).",
+   "기체별 격자 산포 밴드 — 없다. 이번 채점은 matrice4e 밴드를 **빌려 썼다**.",
+   "정본 두께 점(mini5pro 0.80 · s1000plus 1.99 mm) 실측 — 미착지. 사다리 보간 추정뿐이다.",
+   "빗각 다른 앙각(−15·−60) × mini5pro · s1000plus — 미착지. 교차는 −30 한 점이다."
+  ],
+  "honest_limits_ko": "이 갈래가 실제로 판정한 것은 «셸 0.75 + 프롭 0.9 결합 정정이 앙각 −30° 에서 기체마다 무엇을 얼마나 바꾸나» 다. «셸 따로 · 프롭 따로» 는 matrice4e 에서만 갈렸다. 세 기체 사이의 비교는 밴드를 빌려 쓴 채로 한 것이라, 밴드 근처의 판정(빗살·리듬)은 밴드가 기체별로 다시 잡히면 바뀔 수 있다.",
+  "outlier_grade_hole_ko": "⚠[적대적 검산] 고립도(최대÷둘째)만으로는 **여럿이 함께 튀는 칸**을 못 잡는다 — H5 갈래의 정면 0° 굴절 × 얇은 칸은 고립도가 1.000 인데 유효 자세 수가 6(8192 중)이고 상위 8 자세가 99.93 % 다. 등급에 유효 자세 수·상위 8 자세 몫을 함께 넣어야 한다."
+ }
+}

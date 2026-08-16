@@ -1,0 +1,1552 @@
+{
+ "_meta": {
+  "generator": "scratchpad/write_h5.py (H5 투과 반대항 판정자 갈래)",
+  "written_at_kst": "2026-08-16 20:07 KST",
+  "question_ko": "굴절만 켠 팔에서 두께를 바꾸면 다 끔 팔과 **다르게** 움직이는가. 예측(H5): 껍데기가 얇아지면 속 금속(배터리·PCB)이 밝아져 굴절 팔은 **덜 어두워진다**.",
+  "gpu_used": "0 — 저장된 원장만 읽는다(sionna.rt·mitsuba 임포트 없음)",
+  "sources": {
+   "outputs/elevation_sweep_md.json": "2026-08-16 19:51 KST",
+   "outputs/elevation_sweep_md.npz": "2026-08-16 19:51 KST",
+   "outputs/material_verdict_0816.json": "2026-08-16 17:00 KST",
+   "outputs/depth_axis_verdict_0816.json": "2026-08-16 19:24 KST"
+  },
+  "n_ledger_rows": 349,
+  "metric_defs_ko": "잣대는 재정의하지 않았다 — 빗살 대비·리듬 몫은 benchmark/build_md_atlas.py 의 comb_contrast_db·rhythm_share 를 그대로 임포트했고, 확산 바닥은 material_verdict_0816 규약(ac_power_db + 10log10(f_tip 밖 몫))을 그대로 썼다.",
+  "conventions_ko": [
+   "레벨(dB)은 전부 정지 성분(DC) 제거 후",
+   "⭐격자 흔들림 밴드는 앙각마다 다르다 — 0° 3.86 · −30° 0.37 dB",
+   "빗살 대비 절대값에는 격자 꼬리표가 필요하다(짝 안의 차이는 자유)",
+   "AC/DC < 1e-11 은 near_numeric_floor 로 적고 물리로 안 읽는다",
+   "밴드 안이면 «판정 불가» — «안 바뀐다» 로 단정하지 않는다",
+   "⭐튀는 자세(이상값) 검사 필수 — 솎기 전/후를 둘 다 싣고 헤드라인은 솎은 값"
+  ],
+  "trim_method_note_ko": "⭐솎기는 **두 방법**을 다 실었다. 자세를 **삭제**하면 표본 간격이 깨져 FFT 잣대(빗살 대비·리듬 몫)가 그것만으로 흔들린다 — 실제로 빗살 DiD 가 −10.9 → −16.0 dB 로 움직였다. 자세를 **이웃 평균으로 갈아 끼우면**(0816 절차의 적대검산 ①) −10.9 로 제자리다. 그래서 헤드라인은 «갈아끼움» 값을 쓰고 «삭제» 값은 함께 싣되 잣대 흔들림으로 읽는다. 요동(AC)은 두 방법이 일치한다(−2.40 ↔ −2.38)."
+ },
+ "inventory": {
+  "landed_cells_ko": "굴절만 × 두께 칸은 **세 칸**뿐이다 — el −30 에 0.9 mm·1.43 mm, el 0 에 0.9 mm. 짝이 되는 다 끔 칸은 넷 다 있다.",
+  "refraction_arms_in_ledger": {
+   "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -60.0,
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_partsnoprop_r15_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_partsprop_r15_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r120_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r15_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -90.0,
+     -75.0,
+     -60.0,
+     -45.0,
+     -30.0,
+     -15.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r15_n8192_az22.5": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r15_n8192_az45": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r15_n8192_az67.5": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm": {
+    "max_depth": 1,
+    "shell_mm": 0.75,
+    "prop_mm": 0.9,
+    "els": [
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop1.43mm": {
+    "max_depth": 1,
+    "shell_mm": 0.75,
+    "prop_mm": 1.43,
+    "els": [
+     -30.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r240_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r30_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_r60_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -60.0,
+     -30.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -90.0,
+     -75.0,
+     -60.0,
+     -45.0,
+     -30.0,
+     -15.0,
+     0.0
+    ]
+   },
+   "sionna_p4000000000_swR1D0E0F1_r15_n8192_d3": {
+    "max_depth": 3,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -30.0
+    ]
+   },
+   "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1": {
+    "max_depth": 1,
+    "shell_mm": 100.0,
+    "prop_mm": 100.0,
+    "els": [
+     -90.0,
+     -75.0,
+     -60.0,
+     -45.0,
+     -30.0,
+     -15.0,
+     0.0
+    ]
+   }
+  },
+  "thickness_arms_in_ledger": [
+   "sionna_p4000000000_mini5pro_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm",
+   "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop1.43mm",
+   "sionna_p4000000000_r15_n8192_shell0.5mm_d1",
+   "sionna_p4000000000_r15_n8192_shell0.75mm_d1",
+   "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.5mm_d1",
+   "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+   "sionna_p4000000000_r15_n8192_shell0.75mm_prop2mm_d1",
+   "sionna_p4000000000_r15_n8192_shell1.5mm_d1",
+   "sionna_p4000000000_s1000plus_r15_n8192_shell0.75mm_prop0.9mm_d1"
+  ],
+  "thickness_arm_depths": [
+   1
+  ],
+  "missing_ko": [
+   "⛔굴절만 × 두께 × **깊이 ≥ 2** — 원장 전체에 없다(두께 팔 11 개가 전부 깊이 1)",
+   "⛔굴절만 × **셸만** 두께(프롭 100 mm 유지) — 없다. 굴절 팔의 두께 칸은 셸·프롭을 **함께** 얇게 했다. 다 끔 팔에는 셸만 칸이 셋 있다(0.5·0.75·1.5).",
+   "⛔굴절만 × 두께 × el −15 · −45 · −60 · −75 · −90 — 없다(각도 확장이 이 갈래엔 안 왔다)",
+   "⛔굴절만 × 두께 × 다른 기체(mini5pro·s1000plus) — 없다",
+   "⛔시드 복제(같은 칸 다른 시드) — 없다"
+  ]
+ },
+ "cells": {
+  "sionna_p4000000000_r15_n8192_d1/el+0": {
+   "arm": "sionna_p4000000000_r15_n8192_d1",
+   "el_deg": 0.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1272.9,
+   "npaths_median": 897,
+   "ledger_level_db": -63.25,
+   "seconds": 7616.4,
+   "ac_power_db": -94.302,
+   "dc_power_db": -63.249,
+   "ac_over_dc": 0.001,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -94.946,
+   "comb_contrast_db": -0.836,
+   "rhythm_share_pct": 13.059,
+   "rhythm_null_pct": 12.533,
+   "above_f_tip_pct": 86.215,
+   "n_eff_poses": 58.8,
+   "top8_energy_pct": 13.7,
+   "top1_over_median": 140.2,
+   "isolation": 1.0,
+   "npaths_shard": {
+    "n_shards": 16,
+    "n": 8192,
+    "median": 897.0,
+    "mean": 881.57,
+    "p10": 800.0,
+    "p90": 938.0,
+    "min": 770.0,
+    "max": 949.0
+   }
+  },
+  "sionna_p4000000000_r15_n8192_d1/el-30": {
+   "arm": "sionna_p4000000000_r15_n8192_d1",
+   "el_deg": -30.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "npaths_median": 1505,
+   "ledger_level_db": -133.97,
+   "seconds": 7543.3,
+   "ac_power_db": -135.664,
+   "dc_power_db": -137.088,
+   "ac_over_dc": 1.388,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -155.408,
+   "comb_contrast_db": 51.989,
+   "rhythm_share_pct": 80.499,
+   "rhythm_null_pct": 12.646,
+   "above_f_tip_pct": 1.0606,
+   "n_eff_poses": 3243.5,
+   "top8_energy_pct": 0.53,
+   "top1_over_median": 3.7,
+   "isolation": 1.001,
+   "npaths_shard": {
+    "n_shards": 16,
+    "n": 8192,
+    "median": 1505.0,
+    "mean": 1496.54,
+    "p10": 1428.1,
+    "p90": 1548.0,
+    "min": 1383.0,
+    "max": 1588.0
+   }
+  },
+  "sionna_p4000000000_onlyrefr_r15_n8192/el+0": {
+   "arm": "sionna_p4000000000_onlyrefr_r15_n8192",
+   "el_deg": 0.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1272.9,
+   "npaths_median": 240,
+   "ledger_level_db": -63.24,
+   "seconds": 8203.7,
+   "ac_power_db": -96.871,
+   "dc_power_db": -63.24,
+   "ac_over_dc": 0.0,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -97.568,
+   "comb_contrast_db": 0.311,
+   "rhythm_share_pct": 13.328,
+   "rhythm_null_pct": 12.533,
+   "above_f_tip_pct": 85.1836,
+   "n_eff_poses": 32.3,
+   "top8_energy_pct": 24.909,
+   "top1_over_median": 255.16,
+   "isolation": 1.0,
+   "npaths_shard": {
+    "n_shards": 16,
+    "n": 8192,
+    "median": 240.0,
+    "mean": 237.64,
+    "p10": 219.0,
+    "p90": 252.0,
+    "min": 201.0,
+    "max": 268.0
+   }
+  },
+  "sionna_p4000000000_onlyrefr_r15_n8192/el-30": {
+   "arm": "sionna_p4000000000_onlyrefr_r15_n8192",
+   "el_deg": -30.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "npaths_median": 382,
+   "ledger_level_db": -137.6,
+   "seconds": 7381.8,
+   "ac_power_db": -141.032,
+   "dc_power_db": -138.987,
+   "ac_over_dc": 0.624,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -150.432,
+   "comb_contrast_db": 37.515,
+   "rhythm_share_pct": 62.068,
+   "rhythm_null_pct": 12.646,
+   "above_f_tip_pct": 11.481,
+   "n_eff_poses": 2528.9,
+   "top8_energy_pct": 0.929,
+   "top1_over_median": 5.7,
+   "isolation": 1.044,
+   "npaths_shard": {
+    "n_shards": 16,
+    "n": 8192,
+    "median": 382.0,
+    "mean": 381.91,
+    "p10": 363.0,
+    "p90": 401.0,
+    "min": 335.0,
+    "max": 428.0
+   }
+  },
+  "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1/el+0": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": 0.0,
+   "shell_mm": 0.75,
+   "prop_mm": 0.9,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1272.9,
+   "npaths_median": 897,
+   "ledger_level_db": -63.25,
+   "seconds": 4993.1,
+   "ac_power_db": -94.302,
+   "dc_power_db": -63.249,
+   "ac_over_dc": 0.001,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -94.947,
+   "comb_contrast_db": -0.832,
+   "rhythm_share_pct": 13.058,
+   "rhythm_null_pct": 12.533,
+   "above_f_tip_pct": 86.212,
+   "n_eff_poses": 58.8,
+   "top8_energy_pct": 13.697,
+   "top1_over_median": 140.21,
+   "isolation": 1.0,
+   "npaths_shard": {
+    "n_shards": 4,
+    "n": 8192,
+    "median": 897.0,
+    "mean": 881.57,
+    "p10": 800.0,
+    "p90": 938.0,
+    "min": 770.0,
+    "max": 949.0
+   }
+  },
+  "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1/el-30": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": -30.0,
+   "shell_mm": 0.75,
+   "prop_mm": 0.9,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "npaths_median": 1505,
+   "ledger_level_db": -149.22,
+   "seconds": 4416.5,
+   "ac_power_db": -152.65,
+   "dc_power_db": -150.901,
+   "ac_over_dc": 0.668,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -167.964,
+   "comb_contrast_db": 45.009,
+   "rhythm_share_pct": 75.29,
+   "rhythm_null_pct": 12.646,
+   "above_f_tip_pct": 2.9418,
+   "n_eff_poses": 3245.5,
+   "top8_energy_pct": 0.625,
+   "top1_over_median": 3.93,
+   "isolation": 1.006,
+   "npaths_shard": {
+    "n_shards": 4,
+    "n": 8192,
+    "median": 1505.0,
+    "mean": 1496.54,
+    "p10": 1428.1,
+    "p90": 1548.0,
+    "min": 1383.0,
+    "max": 1588.0
+   }
+  },
+  "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm/el+0": {
+   "arm": "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm",
+   "el_deg": 0.0,
+   "shell_mm": 0.75,
+   "prop_mm": 0.9,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1272.9,
+   "npaths_median": 16,
+   "ledger_level_db": -63.23,
+   "seconds": 5029.0,
+   "ac_power_db": -104.127,
+   "dc_power_db": -63.231,
+   "ac_over_dc": 0.0,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -104.725,
+   "comb_contrast_db": 0.258,
+   "rhythm_share_pct": 12.166,
+   "rhythm_null_pct": 12.533,
+   "above_f_tip_pct": 87.1389,
+   "n_eff_poses": 6.0,
+   "top8_energy_pct": 99.927,
+   "top1_over_median": 1364.28,
+   "isolation": 1.0,
+   "npaths_shard": {
+    "n_shards": 4,
+    "n": 8192,
+    "median": 16.0,
+    "mean": 15.99,
+    "p10": 12.0,
+    "p90": 20.0,
+    "min": 8.0,
+    "max": 31.0
+   }
+  },
+  "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm/el-30": {
+   "arm": "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm",
+   "el_deg": -30.0,
+   "shell_mm": 0.75,
+   "prop_mm": 0.9,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "npaths_median": 14,
+   "ledger_level_db": -152.77,
+   "seconds": 3699.0,
+   "ac_power_db": -160.416,
+   "dc_power_db": -153.19,
+   "ac_over_dc": 0.189,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -161.546,
+   "comb_contrast_db": 19.603,
+   "rhythm_share_pct": 39.704,
+   "rhythm_null_pct": 12.646,
+   "above_f_tip_pct": 77.0941,
+   "n_eff_poses": 3465.7,
+   "top8_energy_pct": 1.032,
+   "top1_over_median": 4.41,
+   "isolation": 1.014,
+   "npaths_shard": {
+    "n_shards": 4,
+    "n": 8192,
+    "median": 14.0,
+    "mean": 13.72,
+    "p10": 11.0,
+    "p90": 17.0,
+    "min": 9.0,
+    "max": 24.0
+   }
+  },
+  "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1/el-30": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+   "el_deg": -30.0,
+   "shell_mm": 0.75,
+   "prop_mm": 1.43,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "npaths_median": 1505,
+   "ledger_level_db": -146.88,
+   "seconds": 5480.3,
+   "ac_power_db": -148.683,
+   "dc_power_db": -149.913,
+   "ac_over_dc": 1.327,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -164.217,
+   "comb_contrast_db": 45.784,
+   "rhythm_share_pct": 76.66,
+   "rhythm_null_pct": 12.646,
+   "above_f_tip_pct": 2.7958,
+   "n_eff_poses": 3242.9,
+   "top8_energy_pct": 0.622,
+   "top1_over_median": 3.89,
+   "isolation": 1.004,
+   "npaths_shard": {
+    "n_shards": 4,
+    "n": 8192,
+    "median": 1505.0,
+    "mean": 1496.54,
+    "p10": 1428.1,
+    "p90": 1548.0,
+    "min": 1383.0,
+    "max": 1588.0
+   }
+  },
+  "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop1.43mm/el-30": {
+   "arm": "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop1.43mm",
+   "el_deg": -30.0,
+   "shell_mm": 0.75,
+   "prop_mm": 1.43,
+   "max_depth": 1,
+   "range_m": 15.0,
+   "spp": 4000000000,
+   "az_deg": 0.0,
+   "fc_hz": 3500000000.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "npaths_median": 21,
+   "ledger_level_db": -151.98,
+   "seconds": 4283.1,
+   "ac_power_db": -155.274,
+   "dc_power_db": -153.397,
+   "ac_over_dc": 0.649,
+   "near_numeric_floor": false,
+   "floor_above_tip_db": -157.401,
+   "comb_contrast_db": 22.735,
+   "rhythm_share_pct": 41.013,
+   "rhythm_null_pct": 12.646,
+   "above_f_tip_pct": 61.2859,
+   "n_eff_poses": 3958.9,
+   "top8_energy_pct": 0.876,
+   "top1_over_median": 4.61,
+   "isolation": 1.227,
+   "npaths_shard": {
+    "n_shards": 4,
+    "n": 8192,
+    "median": 21.0,
+    "mean": 21.79,
+    "p10": 16.0,
+    "p90": 28.0,
+    "min": 11.0,
+    "max": 42.0
+   }
+  }
+ },
+ "pairs": [
+  {
+   "tag": "shell0.75_prop0.9",
+   "el_deg": 0.0,
+   "f_tip_hz": 1272.9,
+   "arms": {
+    "off_100": "sionna_p4000000000_r15_n8192_d1",
+    "off_thin": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "ref_100": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "ref_thin": "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm"
+   },
+   "npaths_median": {
+    "off_100": 897,
+    "off_thin": 897,
+    "ref_100": 240,
+    "ref_thin": 16
+   },
+   "metrics": {
+    "off_100": {
+     "ac_power_db": -94.302,
+     "dc_power_db": -63.249,
+     "ac_over_dc": 0.001,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -94.946,
+     "comb_contrast_db": -0.836,
+     "rhythm_share_pct": 13.059,
+     "rhythm_null_pct": 12.533,
+     "above_f_tip_pct": 86.215,
+     "n_eff_poses": 58.8,
+     "top8_energy_pct": 13.7,
+     "top1_over_median": 140.2,
+     "isolation": 1.0
+    },
+    "off_thin": {
+     "ac_power_db": -94.302,
+     "dc_power_db": -63.249,
+     "ac_over_dc": 0.001,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -94.947,
+     "comb_contrast_db": -0.832,
+     "rhythm_share_pct": 13.058,
+     "rhythm_null_pct": 12.533,
+     "above_f_tip_pct": 86.212,
+     "n_eff_poses": 58.8,
+     "top8_energy_pct": 13.697,
+     "top1_over_median": 140.21,
+     "isolation": 1.0
+    },
+    "ref_100": {
+     "ac_power_db": -96.871,
+     "dc_power_db": -63.24,
+     "ac_over_dc": 0.0,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -97.568,
+     "comb_contrast_db": 0.311,
+     "rhythm_share_pct": 13.328,
+     "rhythm_null_pct": 12.533,
+     "above_f_tip_pct": 85.1836,
+     "n_eff_poses": 32.3,
+     "top8_energy_pct": 24.909,
+     "top1_over_median": 255.16,
+     "isolation": 1.0
+    },
+    "ref_thin": {
+     "ac_power_db": -104.127,
+     "dc_power_db": -63.231,
+     "ac_over_dc": 0.0,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -104.725,
+     "comb_contrast_db": 0.258,
+     "rhythm_share_pct": 12.166,
+     "rhythm_null_pct": 12.533,
+     "above_f_tip_pct": 87.1389,
+     "n_eff_poses": 6.0,
+     "top8_energy_pct": 99.927,
+     "top1_over_median": 1364.28,
+     "isolation": 1.0
+    }
+   },
+   "d_thickness_off_arm": {
+    "ac_power_db": 0.0,
+    "dc_power_db": 0.0,
+    "floor_above_tip_db": -0.001,
+    "comb_contrast_db": 0.004,
+    "rhythm_share_pct": -0.001,
+    "above_f_tip_pct": -0.003
+   },
+   "d_thickness_ref_arm": {
+    "ac_power_db": -7.256,
+    "dc_power_db": 0.009,
+    "floor_above_tip_db": -7.157,
+    "comb_contrast_db": -0.053,
+    "rhythm_share_pct": -1.162,
+    "above_f_tip_pct": 1.955
+   },
+   "did": {
+    "ac_power_db": -7.256,
+    "dc_power_db": 0.009,
+    "floor_above_tip_db": -7.156,
+    "comb_contrast_db": -0.057,
+    "rhythm_share_pct": -1.161,
+    "above_f_tip_pct": 1.958
+   },
+   "trim": {
+    "drop1": {
+     "worst_poses": [
+      1871
+     ],
+     "did": {
+      "ac_power_db": -7.91,
+      "dc_power_db": 0.009,
+      "floor_above_tip_db": -7.809,
+      "comb_contrast_db": -0.59,
+      "rhythm_share_pct": -0.864,
+      "above_f_tip_pct": 2.005
+     }
+    },
+    "replace1": {
+     "worst_poses": [
+      1871
+     ],
+     "did": {
+      "ac_power_db": -7.91,
+      "dc_power_db": 0.009,
+      "floor_above_tip_db": -7.809,
+      "comb_contrast_db": -0.383,
+      "rhythm_share_pct": -1.086,
+      "above_f_tip_pct": 2.005
+     }
+    },
+    "drop8": {
+     "worst_poses": [
+      1871,
+      2961,
+      1070,
+      4412,
+      828,
+      7397,
+      8026,
+      6781
+     ],
+     "did": {
+      "ac_power_db": -62.756,
+      "dc_power_db": 0.01,
+      "floor_above_tip_db": -63.083,
+      "comb_contrast_db": 18.264,
+      "rhythm_share_pct": 26.036,
+      "above_f_tip_pct": -6.343
+     }
+    },
+    "replace8": {
+     "worst_poses": [
+      1871,
+      2961,
+      1070,
+      4412,
+      828,
+      7397,
+      8026,
+      6781
+     ],
+     "did": {
+      "ac_power_db": -62.765,
+      "dc_power_db": 0.01,
+      "floor_above_tip_db": -63.065,
+      "comb_contrast_db": 18.231,
+      "rhythm_share_pct": 27.586,
+      "above_f_tip_pct": -5.782
+     }
+    }
+   },
+   "innocent_replace40_ac": {
+    "mean": -7.256,
+    "sd": 0.0012,
+    "min": -7.264,
+    "max": -7.256
+   },
+   "split_half_ac": {
+    "A": -3.516,
+    "B": -10.584
+   },
+   "block_bootstrap_ac": {
+    "block": 64,
+    "n": 200,
+    "mean": -7.888,
+    "sd": 4.41,
+    "ci95": [
+     -11.763,
+     -4.304
+    ]
+   },
+   "refraction_switch_effect": {
+    "at_100mm": {
+     "ac_power_db": -97.77,
+     "rel_to_off_db": -3.467,
+     "abs_rho": 0.741596,
+     "contain_coeff": 0.551718
+    },
+    "at_thin": {
+     "ac_power_db": -94.773,
+     "rel_to_off_db": -0.471,
+     "abs_rho": 0.320617,
+     "contain_coeff": 0.103449
+    },
+    "d_ac_db": 2.997
+   },
+   "pose_ratio_ref_over_off_db": {
+    "at_100mm": {
+     "median": -5.164,
+     "p10": -5.519,
+     "p90": -4.827,
+     "frac_ref_brighter_pct": 0.39
+    },
+    "at_thin": {
+     "median": -19.71,
+     "p10": -20.076,
+     "p90": -19.329,
+     "frac_ref_brighter_pct": 0.07
+    }
+   },
+   "bands": {
+    "grid_ac_db": 3.86,
+    "grid_comb_db": 0.1,
+    "grid_rhythm_pp": 11.8,
+    "grid_floor_db_max_abs": 9.295,
+    "pathsolver_rerun_ac_db_diffraction_off": 1.929e-15,
+    "seed_sd_db": 1.833
+   },
+   "readable": false,
+   "readable_note_ko": "⛔읽을 수 없다 — 굴절 얇은 칸의 요동이 사실상 자세 6 개에 몰려 있다(상위 8 자세가 99.93 %). 갈아끼우는 자세 수를 1·8·32 로 바꾸면 DiD 가 −7.9 · −62.8 · −11.9 dB 로 요동친다 — 물리로 읽지 않는다."
+  },
+  {
+   "tag": "shell0.75_prop0.9",
+   "el_deg": -30.0,
+   "f_tip_hz": 1102.4,
+   "arms": {
+    "off_100": "sionna_p4000000000_r15_n8192_d1",
+    "off_thin": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "ref_100": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "ref_thin": "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm"
+   },
+   "npaths_median": {
+    "off_100": 1505,
+    "off_thin": 1505,
+    "ref_100": 382,
+    "ref_thin": 14
+   },
+   "metrics": {
+    "off_100": {
+     "ac_power_db": -135.664,
+     "dc_power_db": -137.088,
+     "ac_over_dc": 1.388,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -155.408,
+     "comb_contrast_db": 51.989,
+     "rhythm_share_pct": 80.499,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 1.0606,
+     "n_eff_poses": 3243.5,
+     "top8_energy_pct": 0.53,
+     "top1_over_median": 3.7,
+     "isolation": 1.001
+    },
+    "off_thin": {
+     "ac_power_db": -152.65,
+     "dc_power_db": -150.901,
+     "ac_over_dc": 0.668,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -167.964,
+     "comb_contrast_db": 45.009,
+     "rhythm_share_pct": 75.29,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 2.9418,
+     "n_eff_poses": 3245.5,
+     "top8_energy_pct": 0.625,
+     "top1_over_median": 3.93,
+     "isolation": 1.006
+    },
+    "ref_100": {
+     "ac_power_db": -141.032,
+     "dc_power_db": -138.987,
+     "ac_over_dc": 0.624,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -150.432,
+     "comb_contrast_db": 37.515,
+     "rhythm_share_pct": 62.068,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 11.481,
+     "n_eff_poses": 2528.9,
+     "top8_energy_pct": 0.929,
+     "top1_over_median": 5.7,
+     "isolation": 1.044
+    },
+    "ref_thin": {
+     "ac_power_db": -160.416,
+     "dc_power_db": -153.19,
+     "ac_over_dc": 0.189,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -161.546,
+     "comb_contrast_db": 19.603,
+     "rhythm_share_pct": 39.704,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 77.0941,
+     "n_eff_poses": 3465.7,
+     "top8_energy_pct": 1.032,
+     "top1_over_median": 4.41,
+     "isolation": 1.014
+    }
+   },
+   "d_thickness_off_arm": {
+    "ac_power_db": -16.986,
+    "dc_power_db": -13.813,
+    "floor_above_tip_db": -12.556,
+    "comb_contrast_db": -6.98,
+    "rhythm_share_pct": -5.209,
+    "above_f_tip_pct": 1.881
+   },
+   "d_thickness_ref_arm": {
+    "ac_power_db": -19.384,
+    "dc_power_db": -14.203,
+    "floor_above_tip_db": -11.114,
+    "comb_contrast_db": -17.912,
+    "rhythm_share_pct": -22.364,
+    "above_f_tip_pct": 65.613
+   },
+   "did": {
+    "ac_power_db": -2.398,
+    "dc_power_db": -0.39,
+    "floor_above_tip_db": 1.442,
+    "comb_contrast_db": -10.932,
+    "rhythm_share_pct": -17.155,
+    "above_f_tip_pct": 63.732
+   },
+   "trim": {
+    "drop1": {
+     "worst_poses": [
+      2184
+     ],
+     "did": {
+      "ac_power_db": -2.393,
+      "dc_power_db": -0.387,
+      "floor_above_tip_db": 1.447,
+      "comb_contrast_db": -14.713,
+      "rhythm_share_pct": -16.239,
+      "above_f_tip_pct": 63.726
+     }
+    },
+    "replace1": {
+     "worst_poses": [
+      2184
+     ],
+     "did": {
+      "ac_power_db": -2.396,
+      "dc_power_db": -0.39,
+      "floor_above_tip_db": 1.446,
+      "comb_contrast_db": -11.005,
+      "rhythm_share_pct": -17.133,
+      "above_f_tip_pct": 63.735
+     }
+    },
+    "drop8": {
+     "worst_poses": [
+      2184,
+      2218,
+      1097,
+      2530,
+      2686,
+      2223,
+      2028,
+      2374
+     ],
+     "did": {
+      "ac_power_db": -2.361,
+      "dc_power_db": -0.394,
+      "floor_above_tip_db": 1.502,
+      "comb_contrast_db": -16.032,
+      "rhythm_share_pct": -13.461,
+      "above_f_tip_pct": 63.615
+     }
+    },
+    "replace8": {
+     "worst_poses": [
+      2184,
+      2218,
+      1097,
+      2530,
+      2686,
+      2223,
+      2028,
+      2374
+     ],
+     "did": {
+      "ac_power_db": -2.383,
+      "dc_power_db": -0.391,
+      "floor_above_tip_db": 1.464,
+      "comb_contrast_db": -10.915,
+      "rhythm_share_pct": -16.978,
+      "above_f_tip_pct": 63.744
+     }
+    }
+   },
+   "innocent_replace40_ac": {
+    "mean": -2.399,
+    "sd": 0.0007,
+    "min": -2.4,
+    "max": -2.397
+   },
+   "split_half_ac": {
+    "A": -3.002,
+    "B": -1.642
+   },
+   "block_bootstrap_ac": {
+    "block": 64,
+    "n": 200,
+    "mean": -2.369,
+    "sd": 0.242,
+    "ci95": [
+     -2.816,
+     -1.868
+    ]
+   },
+   "refraction_switch_effect": {
+    "at_100mm": {
+     "ac_power_db": -139.535,
+     "rel_to_off_db": -3.871,
+     "abs_rho": 0.816902,
+     "contain_coeff": 0.440324
+    },
+    "at_thin": {
+     "ac_power_db": -152.47,
+     "rel_to_off_db": 0.18,
+     "abs_rho": 0.152692,
+     "contain_coeff": 0.062446
+    },
+    "d_ac_db": -12.935
+   },
+   "pose_ratio_ref_over_off_db": {
+    "at_100mm": {
+     "median": -5.806,
+     "p10": -13.723,
+     "p90": 0.576,
+     "frac_ref_brighter_pct": 11.43
+    },
+    "at_thin": {
+     "median": -6.658,
+     "p10": -17.895,
+     "p90": 5.726,
+     "frac_ref_brighter_pct": 24.44
+    }
+   },
+   "bands": {
+    "grid_ac_db": 0.37,
+    "grid_comb_db": 4.6,
+    "grid_rhythm_pp": 21.8,
+    "grid_floor_db_max_abs": 9.295,
+    "pathsolver_rerun_ac_db_diffraction_off": 1.929e-15,
+    "seed_sd_db": 1.833
+   },
+   "readable": true,
+   "readable_note_ko": "읽을 수 있다 — 유효 자세 수 3466 개(8192 중), 튀는 자세 하나가 끄는 칸이 아니다"
+  },
+  {
+   "tag": "shell0.75_prop1.43",
+   "el_deg": -30.0,
+   "f_tip_hz": 1102.4,
+   "arms": {
+    "off_100": "sionna_p4000000000_r15_n8192_d1",
+    "off_thin": "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+    "ref_100": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "ref_thin": "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop1.43mm"
+   },
+   "npaths_median": {
+    "off_100": 1505,
+    "off_thin": 1505,
+    "ref_100": 382,
+    "ref_thin": 21
+   },
+   "metrics": {
+    "off_100": {
+     "ac_power_db": -135.664,
+     "dc_power_db": -137.088,
+     "ac_over_dc": 1.388,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -155.408,
+     "comb_contrast_db": 51.989,
+     "rhythm_share_pct": 80.499,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 1.0606,
+     "n_eff_poses": 3243.5,
+     "top8_energy_pct": 0.53,
+     "top1_over_median": 3.7,
+     "isolation": 1.001
+    },
+    "off_thin": {
+     "ac_power_db": -148.683,
+     "dc_power_db": -149.913,
+     "ac_over_dc": 1.327,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -164.217,
+     "comb_contrast_db": 45.784,
+     "rhythm_share_pct": 76.66,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 2.7958,
+     "n_eff_poses": 3242.9,
+     "top8_energy_pct": 0.622,
+     "top1_over_median": 3.89,
+     "isolation": 1.004
+    },
+    "ref_100": {
+     "ac_power_db": -141.032,
+     "dc_power_db": -138.987,
+     "ac_over_dc": 0.624,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -150.432,
+     "comb_contrast_db": 37.515,
+     "rhythm_share_pct": 62.068,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 11.481,
+     "n_eff_poses": 2528.9,
+     "top8_energy_pct": 0.929,
+     "top1_over_median": 5.7,
+     "isolation": 1.044
+    },
+    "ref_thin": {
+     "ac_power_db": -155.274,
+     "dc_power_db": -153.397,
+     "ac_over_dc": 0.649,
+     "near_numeric_floor": false,
+     "floor_above_tip_db": -157.401,
+     "comb_contrast_db": 22.735,
+     "rhythm_share_pct": 41.013,
+     "rhythm_null_pct": 12.646,
+     "above_f_tip_pct": 61.2859,
+     "n_eff_poses": 3958.9,
+     "top8_energy_pct": 0.876,
+     "top1_over_median": 4.61,
+     "isolation": 1.227
+    }
+   },
+   "d_thickness_off_arm": {
+    "ac_power_db": -13.019,
+    "dc_power_db": -12.825,
+    "floor_above_tip_db": -8.809,
+    "comb_contrast_db": -6.205,
+    "rhythm_share_pct": -3.839,
+    "above_f_tip_pct": 1.735
+   },
+   "d_thickness_ref_arm": {
+    "ac_power_db": -14.242,
+    "dc_power_db": -14.41,
+    "floor_above_tip_db": -6.969,
+    "comb_contrast_db": -14.78,
+    "rhythm_share_pct": -21.055,
+    "above_f_tip_pct": 49.805
+   },
+   "did": {
+    "ac_power_db": -1.223,
+    "dc_power_db": -1.585,
+    "floor_above_tip_db": 1.84,
+    "comb_contrast_db": -8.575,
+    "rhythm_share_pct": -17.216,
+    "above_f_tip_pct": 48.07
+   },
+   "trim": {
+    "drop1": {
+     "worst_poses": [
+      2184
+     ],
+     "did": {
+      "ac_power_db": -1.219,
+      "dc_power_db": -1.583,
+      "floor_above_tip_db": 1.847,
+      "comb_contrast_db": -11.554,
+      "rhythm_share_pct": -15.526,
+      "above_f_tip_pct": 48.065
+     }
+    },
+    "replace1": {
+     "worst_poses": [
+      2184
+     ],
+     "did": {
+      "ac_power_db": -1.22,
+      "dc_power_db": -1.585,
+      "floor_above_tip_db": 1.846,
+      "comb_contrast_db": -8.635,
+      "rhythm_share_pct": -17.189,
+      "above_f_tip_pct": 48.076
+     }
+    },
+    "drop8": {
+     "worst_poses": [
+      2184,
+      2218,
+      1097,
+      2530,
+      2686,
+      2223,
+      2028,
+      2374
+     ],
+     "did": {
+      "ac_power_db": -1.19,
+      "dc_power_db": -1.587,
+      "floor_above_tip_db": 1.9,
+      "comb_contrast_db": -12.158,
+      "rhythm_share_pct": -12.727,
+      "above_f_tip_pct": 48.01
+     }
+    },
+    "replace8": {
+     "worst_poses": [
+      2184,
+      2218,
+      1097,
+      2530,
+      2686,
+      2223,
+      2028,
+      2374
+     ],
+     "did": {
+      "ac_power_db": -1.207,
+      "dc_power_db": -1.587,
+      "floor_above_tip_db": 1.865,
+      "comb_contrast_db": -8.54,
+      "rhythm_share_pct": -17.052,
+      "above_f_tip_pct": 48.075
+     }
+    }
+   },
+   "innocent_replace40_ac": {
+    "mean": -1.224,
+    "sd": 0.001,
+    "min": -1.227,
+    "max": -1.222
+   },
+   "split_half_ac": {
+    "A": -2.32,
+    "B": 0.003
+   },
+   "block_bootstrap_ac": {
+    "block": 64,
+    "n": 200,
+    "mean": -1.209,
+    "sd": 0.232,
+    "ci95": [
+     -1.655,
+     -0.766
+    ]
+   },
+   "refraction_switch_effect": {
+    "at_100mm": {
+     "ac_power_db": -139.535,
+     "rel_to_off_db": -3.871,
+     "abs_rho": 0.816902,
+     "contain_coeff": 0.440324
+    },
+    "at_thin": {
+     "ac_power_db": -149.009,
+     "rel_to_off_db": -0.327,
+     "abs_rho": 0.338626,
+     "contain_coeff": 0.158539
+    },
+    "d_ac_db": -9.474
+   },
+   "pose_ratio_ref_over_off_db": {
+    "at_100mm": {
+     "median": -5.806,
+     "p10": -13.723,
+     "p90": 0.576,
+     "frac_ref_brighter_pct": 11.43
+    },
+    "at_thin": {
+     "median": -5.172,
+     "p10": -15.193,
+     "p90": 6.095,
+     "frac_ref_brighter_pct": 26.5
+    }
+   },
+   "bands": {
+    "grid_ac_db": 0.37,
+    "grid_comb_db": 4.6,
+    "grid_rhythm_pp": 21.8,
+    "grid_floor_db_max_abs": 9.295,
+    "pathsolver_rerun_ac_db_diffraction_off": 1.929e-15,
+    "seed_sd_db": 1.833
+   },
+   "readable": true,
+   "readable_note_ko": "읽을 수 있다 — 유효 자세 수 3959 개(8192 중), 튀는 자세 하나가 끄는 칸이 아니다"
+  }
+ ],
+ "structural_evidence": {
+  "why_ko": "⭐예측이 부르는 물리는 «셸을 뚫고 들어가 → 속 금속에 맞고 → 다시 뚫고 나온다» 다. 그건 상호작용이 **최소 두 번**이다. 그런데 원장의 두께 팔은 하나도 빠짐없이 깊이 1 이다 — 한 번 뚫고 들어가면 되돌아 나올 두 번째 튕김이 아예 없다.",
+  "every_thickness_arm_is_depth1": {
+   "arms": [
+    "sionna_p4000000000_mini5pro_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop0.9mm",
+    "sionna_p4000000000_onlyrefr_r15_n8192_shell0.75mm_prop1.43mm",
+    "sionna_p4000000000_r15_n8192_shell0.5mm_d1",
+    "sionna_p4000000000_r15_n8192_shell0.75mm_d1",
+    "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.5mm_d1",
+    "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+    "sionna_p4000000000_r15_n8192_shell0.75mm_prop1.43mm_d1",
+    "sionna_p4000000000_r15_n8192_shell0.75mm_prop2mm_d1",
+    "sionna_p4000000000_r15_n8192_shell1.5mm_d1",
+    "sionna_p4000000000_s1000plus_r15_n8192_shell0.75mm_prop0.9mm_d1"
+   ],
+   "depths": [
+    1
+   ]
+  },
+  "refraction_switch_only_removes_return": {
+   "what_ko": "두께를 안 건드리고(100 mm) 굴절 스위치만 켜 보면 — 요동이 **어두워지고** 경로 수가 준다. 굴절이 속 반사를 **더해** 준다면 최소 한 칸은 밝아져야 한다.",
+   "table": {
+    "matrice4e/el+0": {
+     "d_ac_db": -2.569,
+     "npaths_off": 897,
+     "npaths_ref": 240
+    },
+    "matrice4e/el-15": {
+     "d_ac_db": -2.892,
+     "npaths_off": 1213,
+     "npaths_ref": 312
+    },
+    "matrice4e/el-30": {
+     "d_ac_db": -5.368,
+     "npaths_off": 1505,
+     "npaths_ref": 382
+    },
+    "matrice4e/el-45": {
+     "d_ac_db": -6.081,
+     "npaths_off": 1885,
+     "npaths_ref": 424
+    },
+    "matrice4e/el-60": {
+     "d_ac_db": -6.403,
+     "npaths_off": 2070,
+     "npaths_ref": 418
+    },
+    "matrice4e/el-75": {
+     "d_ac_db": -9.98,
+     "npaths_off": 2282,
+     "npaths_ref": 400
+    },
+    "matrice4e/el-90": {
+     "d_ac_db": -1.511,
+     "npaths_off": 2357,
+     "npaths_ref": 392
+    },
+    "mini5pro/el+0": {
+     "d_ac_db": -5.852,
+     "npaths_off": 435,
+     "npaths_ref": 119
+    },
+    "mini5pro/el-30": {
+     "d_ac_db": -3.708,
+     "npaths_off": 624,
+     "npaths_ref": 144
+    },
+    "mini5pro/el-60": {
+     "d_ac_db": -7.166,
+     "npaths_off": 862,
+     "npaths_ref": 184
+    },
+    "s1000plus/el+0": {
+     "d_ac_db": 0.159,
+     "npaths_off": 5166,
+     "npaths_ref": 4198
+    },
+    "s1000plus/el-30": {
+     "d_ac_db": -3.502,
+     "npaths_off": 12749,
+     "npaths_ref": 9373
+    },
+    "s1000plus/el-60": {
+     "d_ac_db": -6.453,
+     "npaths_off": 16984,
+     "npaths_ref": 11340
+    }
+   },
+   "n_cells": 13,
+   "n_darker": 12,
+   "n_paths_down": 13,
+   "reads_ko": "13 칸 중 12 칸에서 어두워지고(−1.51 ~ −9.98 dB), 경로 수는 13/13 에서 준다. s1000plus el 0 만 +0.16 dB 인데 그 기체는 열린 프레임이라 뚫을 셸이 없다. ⇒ 깊이 1 에서 굴절 스위치는 **에너지를 내보내는 구멍**이지 속을 비추는 조명이 아니다."
+  },
+  "depth_cross_at_100mm": {
+   "what_ko": "깊이를 3 으로 올리면 속 반사가 살아나는가 — 100 mm 에서 2×2 로 쟀다",
+   "table": {
+    "el-30": {
+     "arms": {
+      "off_d1": "sionna_p4000000000_r15_n8192_d1",
+      "off_d3": "sionna_p4000000000_onlydepth3_r15_n8192",
+      "ref_d1": "sionna_p4000000000_onlyrefr_r15_n8192",
+      "ref_d3": "sionna_p4000000000_swR1D0E0F1_r15_n8192_d3"
+     },
+     "ac_power_db": {
+      "off_d1": -135.664,
+      "off_d3": -135.739,
+      "ref_d1": -141.032,
+      "ref_d3": -140.963
+     },
+     "npaths": {
+      "off_d1": 1505,
+      "off_d3": 1702,
+      "ref_d1": 382,
+      "ref_d3": 399
+     },
+     "depth_gain_off_db": -0.075,
+     "depth_gain_ref_db": 0.069,
+     "interaction_did_db": 0.144
+    }
+   },
+   "reads_ko": "굴절 팔의 깊이 이득은 +0.069 dB(경로 382 → 399), 다 끔 팔은 −0.075 dB. 상호작용 +0.144 dB — 아무 일도 안 일어난다. 다만 이건 100 mm 라 셸이 애초에 안 뚫린다. ⇒ 예측이 필요한 칸은 «얇은 셸 **그리고** 깊이 ≥ 2» 인데, 원장에는 «얇은 셸 × 깊이 1» 과 «100 mm × 깊이 3» 만 있고 둘의 교집합이 없다."
+  },
+  "off_arm_thickness_ladder_el30": {
+   "what_ko": "다 끔 팔 el −30 사다리 — 셸만 손잡이는 요동에 **배선이 없고**(0.00 dB) 프롭 손잡이가 전부다. 그래서 굴절 팔의 두께 칸이 셸·프롭을 함께 얇게 한 것은 사실상 **프롭** 실험이다.",
+   "table": {
+    "prop100_shell100": {
+     "ac_power_db": -135.664,
+     "npaths": 1505
+    },
+    "shell0.5_only": {
+     "ac_power_db": -135.661,
+     "npaths": 1505
+    },
+    "shell0.75_only": {
+     "ac_power_db": -135.662,
+     "npaths": 1505
+    },
+    "shell1.5_only": {
+     "ac_power_db": -135.664,
+     "npaths": 1505
+    },
+    "prop0.5": {
+     "ac_power_db": -157.739,
+     "npaths": 1505
+    },
+    "prop0.9": {
+     "ac_power_db": -152.65,
+     "npaths": 1505
+    },
+    "prop1.43": {
+     "ac_power_db": -148.683,
+     "npaths": 1505
+    },
+    "prop2.0": {
+     "ac_power_db": -145.852,
+     "npaths": 1505
+    }
+   },
+   "shell_only_delta_db": 0.002,
+   "prop_monotone": true
+  }
+ },
+ "prereg_scoring": {
+  "H5_투과_반대항": {
+   "prereg_ko": "굴절 켠 팔은 셸 안쪽 금속이 밝아져(왕복 +6.2 dB) 덜 내려가야",
+   "landed": true,
+   "landed_where_ko": "el −30 에 두 두께 점(0.9 · 1.43 mm), el 0 에 한 점(0.9 mm)",
+   "question1_다르게_움직이나": {
+    "verdict": "예 — 유의",
+    "el_minus30_did_ac_db": {
+     "shell0.75_prop0.9": -2.398,
+     "shell0.75_prop1.43": -1.224
+    },
+    "thresholds_ko": "스스로 잰 문턱: 블록 부트스트랩 95 % 구간 [−2.84, −1.83] · [−1.61, −0.73] — 둘 다 0 을 안 물린다. 빌려 온 격자 밴드 0.37 dB 기준으로도 6.5 배 · 3.3 배 밖. 같은 물리 재실행 문턱은 회절 끈 팔이라 ≈1e-15 dB(두 팔 다 회절 꺼짐).",
+    "robust_ko": "솎기(1·8 자세, 삭제·갈아끼움 넷 다) 뒤에도 −2.36 ~ −2.40 · −1.19 ~ −1.22 로 안 움직인다. 죄 없는 자세 갈아끼우기 40 회의 산포는 sd 0.0007 dB — 솎기 자체는 무해하다.",
+    "caveat_split_half_ko": "⚠**반쪽 나누기는 두 점이 다르다.** 0.9 mm 는 앞·뒤 반쪽이 −3.00 · −1.64 dB 로 둘 다 살아 있지만, 정본 1.43 mm 는 −2.32 · **+0.00** dB 로 뒤 반쪽이 0 이다. 부트스트랩 구간은 여전히 0 을 안 물리지만, 1.43 mm 점은 0.9 mm 점보다 **약하다** 고 적는다 — 자세 절반으로는 안 서는 크기다."
+   },
+   "question2_방향": {
+    "verdict": "⛔예측 반증 — 방향이 반대다",
+    "measured_ko": "굴절 팔이 **덜** 내려가기는커녕 **더** 내려간다. 0.9 mm: 다 끔 −16.99 dB vs 굴절만 −19.38 dB(굴절 팔이 2.40 dB 더 어둡다). 1.43 mm: 다 끔 −13.02 dB vs 굴절만 −14.24 dB(1.22 dB 더 어둡다). 두께 두 점이 단조다 — 얇을수록 더 벌어진다.",
+    "predicted_db": "+6.2 (왕복 투과 이득)",
+    "observed_db": -2.398,
+    "miss_db": -8.6,
+    "channel_ko": "굴절 스위치가 만든 차이(같은 시드 복소 차)는 100 mm 에서 다 끔 팔 대비 −3.87 dB 인데, 얇아지면 절대 요동이 −12.94 dB(0.9) · −9.47 dB(1.43) **더 떨어진다**. 남는 몫(담김계수)은 0.440 → 0.062 로, 굴절 팔이 다 끔 팔 에코의 44 % 만 남기다가 6 % 만 남긴다."
+   },
+   "question3_예측한_물리를_쟀나": {
+    "verdict": "⛔아니다 — 그 물리는 이 칸들에 배선이 없다",
+    "reasons_ko": [
+     "①두께 팔 11 개가 전부 **깊이 1** 이다. 뚫고 들어간 광선이 속 금속에 맞고 되돌아 나오려면 상호작용이 두 번이어야 한다.",
+     "②100 mm 에서 굴절만 켜면 13 칸 중 12 칸이 어두워지고 경로 수가 13/13 에서 준다 — 깊이 1 의 굴절은 **에너지를 흘려보내는 구멍**이다. 얇아지면 더 흘려보내니 더 어두워지는 것은 배선이 강제하는 결과지 표적 물리가 아니다.",
+     "③굴절 팔의 두께 칸은 셸과 프롭을 **함께** 얇게 했는데, el −30 요동은 프롭이 사실상 전부다(다 끔 팔 셸만 손잡이 0.00 dB). 예측은 **셸** 이야기였다 — 셸만 바꾼 굴절 칸은 원장에 없다."
+    ],
+    "honest_ko": "그래서 정직한 문장은 둘이다. ⓐ **문면대로 채점하면 H5 는 반증됐다** — 있는 칸 셋 어디에도 «덜 어두워진다» 는 없고, 반대 방향이 밴드 밖에서 단조로 선다. ⓑ **예측이 부른 기제는 아직 못 쟀다** — 그 기제를 재려면 «얇은 셸 × 깊이 ≥ 2 × 셸만» 칸이 필요한데 원장에 없다. ⓐ 를 «투과 반대항은 존재하지 않는다» 로 넓혀 쓰면 안 된다."
+   },
+   "secondary_metrics": {
+    "floor_did_db": {
+     "shell0.75_prop0.9": 1.441,
+     "shell0.75_prop1.43": 1.84
+    },
+    "floor_verdict_ko": "확산 바닥 DiD 는 +1.44 · +1.84 dB 로 **밴드 안**(격자 바닥 밴드 9.30 dB) — 판정 불가. 부호는 굴절 팔 바닥이 덜 내려가는 쪽이라 예측과 같은 방향이지만 밴드 안이라 인용하지 않는다.",
+    "comb_did_db": {
+     "shell0.75_prop0.9": -11.004,
+     "shell0.75_prop1.43": -8.634
+    },
+    "comb_verdict_ko": "빗살 대비 DiD 는 갈아끼움 기준 −11.00 · −8.63 dB 로 격자 밴드 4.6 dB **밖**(2.4 배 · 1.9 배). 굴절 팔의 무늬가 두께 정정에 더 크게 무너진다. ⚠삭제 방식으로 솎으면 −14.7 ~ −16.0 dB 로 부풀어 — 잣대 흔들림이니 갈아끼움 값을 쓴다.",
+    "rhythm_did_pp": {
+     "shell0.75_prop0.9": -17.133,
+     "shell0.75_prop1.43": -17.189
+    },
+    "rhythm_verdict_ko": "리듬 몫 DiD −17.13 · −17.19 %p 는 밴드 21.8 %p **안** — 판정 불가."
+   },
+   "el0_control": {
+    "verdict": "⛔읽을 수 없다",
+    "why_ko": "굴절 × 얇은 칸의 요동이 사실상 자세 6 개에 몰려 있다(상위 8 자세가 99.93 %). 갈아끼우는 자세를 0·1·8·32 개로 바꾸면 DiD 가 −7.26 · −7.91 · −62.77 · −11.88 dB 로 요동친다. 반면 다 끔 팔은 el 0 에서 두께에 0.000 dB — material_verdict H3 의 «금속 추첨» 판정 그대로다.",
+    "n_eff_poses": 6.0,
+    "top8_energy_pct": 99.927
+   }
+  }
+ },
+ "impacts_ko": {
+  "material_verdict_굴절만_거리_생존": "⚠**방향 진술 철회 필요**. material_verdict_0816 의 headline_impacts 는 «정정(셸 0.75 mm)은 왕복 투과를 −6.35 → −0.13 dB 로 밝게 하므로 굴절 채널 레벨은 **올라가는 쪽**» 이라고 슬래브 수학으로 적었다. 실측은 반대다 — 깊이 1 에서 굴절 팔은 정정 뒤 절대로도(−19.4 dB) 다 끔 대비로도(−2.4 dB) 더 어둡다. «올라가는 쪽» 은 지우고 «깊이 1 실측으로는 내려가는 쪽·깊이 ≥ 2 는 미측정» 으로 바꾼다. ⚠거리 기울기(완만 감쇄) 자체는 재질 곱셈 이득과 무관하므로 안 흔들린다 — 흔들리는 것은 **방향 꼬리표**뿐이다.",
+  "굴절만_레벨_인용": "굴절만 팔 레벨을 인용할 때 «100 mm 꼬리표» 는 유지하되, 이제 «정정하면 더 어두워진다(깊이 1 실측 −19.4 dB · el −30 · 셸 0.75+프롭 0.9)» 를 함께 적는다.",
+  "회절_덮음": "무관 — 이 갈래는 회절을 안 건드린다.",
+  "표적축_서사": "유지 — 굴절 팔에서도 리듬 몫 DiD 는 밴드 안이다. 다만 빗살 대비는 굴절 팔에서 밴드 밖으로 더 무너지므로(−11.0 dB) «무늬는 재질 정정에 강건» 을 **다 끔 팔 기준** 으로 한정해 적는다."
+ },
+ "open_questions_ko": [
+  "⭐«얇은 셸 × 깊이 ≥ 2 × 굴절» 칸 — 투과 반대항을 재려면 이 칸이 있어야 한다. 지금은 없다.",
+  "⭐굴절 팔의 **셸만** 두께 칸(프롭 100 mm 고정) — 지금 결과는 셸이 아니라 프롭 실험이다.",
+  "굴절 × 두께의 앙각 확장(−15 · −45 · −60 · −75 · −90) — el −30 한 각도로만 섰다.",
+  "시드 복제 — DiD 는 네 칸 모두 시드 1 의 짝비교라 시드 편향이 상당 부분 소거될 텐데, 얼마나 소거되는지는 **안 재봤다**(원장에 시드 복제가 없다).",
+  "el 0 을 읽으려면 자세 수를 늘리거나 다른 잣대가 필요하다 — 지금은 자세 6 개짜리 추첨이다.",
+  "⭐정본 1.43 mm 점은 반쪽 나누기의 뒤 반쪽에서 +0.00 dB 다 — 자세를 늘리거나 앙각을 늘려 다시 세워야 «정본에서도 선다» 를 단정할 수 있다."
+ ],
+ "do_not_write_ko": [
+  "⛔«투과 반대항은 없다» — 반증된 것은 **예측의 방향**이고, 기제는 배선이 없어 못 쟀다.",
+  "⛔«재질을 정정하면 굴절 채널이 밝아진다» — 있는 칸 셋 전부 반대다.",
+  "⛔«셸을 얇게 하면 굴절 팔이 어두워진다» — 셸만 바꾼 굴절 칸이 없다. 쟀는지 모르는 것은 셸·프롭을 **함께** 얇게 한 판이다.",
+  "⛔el 0 의 −7.26 dB 를 인용 — 자세 6 개짜리 추첨이라 읽을 수 없다.",
+  "⛔확산 바닥 +1.44 dB 와 리듬 −17.1 %p 를 «유의» 로 인용 — 둘 다 밴드 안이다."
+ ],
+ "verdict_headline_ko": "① **다르게 움직인다 — 유의.** el −30 에서 두께를 100 mm → 0.75/0.9 mm 로 바꾸면 요동이 다 끔 팔 −16.99 dB · 굴절만 팔 −19.38 dB 로 갈린다(차이 −2.40 dB). 정본 프롭 1.43 mm 점에서도 −13.02 vs −14.24(차이 −1.22 dB) 로 같은 부호이고 얇을수록 벌어진다. 블록 부트스트랩 95 % 구간 [−2.84, −1.83]·[−1.61, −0.73] 로 0 을 안 물리고, 튀는 자세를 1·8 개 솎아도(삭제·갈아끼움 넷 다) −2.36 ~ −2.40 으로 안 움직인다. ② **그런데 방향이 예측과 반대다 — H5 는 문면대로 반증.** 예측은 «굴절 팔이 덜 어두워진다» (+6.2 dB 쪽)였는데 실측은 «더 어두워진다»(−2.40 dB). 8.6 dB 를 반대쪽으로 빗나갔다. ③ **다만 예측이 부른 물리는 애초에 못 재는 판이었다.** 뚫고 들어가 속 금속에 맞고 나오려면 상호작용이 두 번인데, 원장의 두께 팔 11 개가 **전부 깊이 1** 이다. 실제로 100 mm 에서 굴절 스위치만 켜면 13 칸 중 12 칸이 어두워지고 경로 수가 13/13 에서 준다 — 깊이 1 의 굴절은 속을 비추는 조명이 아니라 **에너지가 새는 구멍**이다. 그래서 얇아질수록 더 새고 더 어둡다. ④ 세기의 단서: 0.9 mm 점은 앞·뒤 반쪽에서 다 서지만(−3.00 · −1.64 dB), 정본 1.43 mm 점은 뒤 반쪽이 +0.00 dB 라 **약하다**. ⑤ 게다가 굴절 팔의 두께 칸은 셸과 프롭을 **함께** 얇게 했고, el −30 요동은 프롭이 사실상 전부다(다 끔 팔 셸만 손잡이 0.00 dB). 예측은 셸 이야기였으므로 **셸 버전의 H5 는 여전히 미측정**이다. ⑥ 곁가지: 확산 바닥 DiD +1.44 dB·리듬 −17.1 %p 는 밴드 안(판정 불가), 빗살 대비 DiD −11.00 dB 는 밴드(4.6) 밖 — 굴절 팔의 무늬가 두께 정정에 더 크게 무너진다. el 0 칸은 자세 6 개짜리 추첨이라 **읽을 수 없다**. ⑦ 파급: material_verdict 의 «정정하면 굴절 채널이 올라가는 쪽» 이라는 슬래브 추론은 깊이 1 실측에 반증됐으므로 방향 진술을 철회한다."
+}
