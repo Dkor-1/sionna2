@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8/18 덱 이후에 한 실험 — 한 장 색인</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#faf9f7; --surface:#ffffff; --surface-2:#f0efec; --line:#dedcd6;
+  --ink:#131211; --ink-2:#4d4b46; --ink-3:#77746c;
+  /* ⭐대비 — 배지·링크 글자는 배경 대비 4.5:1 이상이어야 읽힌다(2026-08-15 수리:
+     밝은 배경에서 --serious 3.0:1 · --accent 3.9:1 이라 «▲ 잣대 퇴화» 배지가 흐렸다). */
+  --accent:#1c62b8; --accent-soft:#cde2fb;
+  --good:#0a7a0a; --warn:#8a6200; --serious:#b8501c; --critical:#c02626;
+  --shadow: 0 1px 2px rgba(18,17,15,.06), 0 6px 18px rgba(18,17,15,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141413; --surface:#1c1c1a; --surface-2:#262623; --line:#373733;
+    --ink:#f6f5f1; --ink-2:#c3c2b7; --ink-3:#94928a;
+    /* 어두운 배경에서는 반대로 **밝게** — #d03b3b 는 어두운 바탕에서 3.4:1 이었다 */
+    --accent:#6fb0f5; --accent-soft:#184f95;
+    --good:#4cc94c; --warn:#f0c04a; --serious:#f0a070; --critical:#f08b8b;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family: "Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",
+               system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.72; letter-spacing:-.005em;
+}
+.wrap{max-width:1480px; margin:0 auto; padding:0 22px 96px}
+a{color:var(--accent)}
+code,kbd{font-family:"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  font-size:.88em; background:var(--surface-2); padding:.1em .38em; border-radius:5px;
+  word-break:break-all}
+h1{font-size:2.05rem; line-height:1.28; margin:.2em 0 .1em; letter-spacing:-.02em}
+h2{font-size:1.42rem; margin:2.4em 0 .55em; letter-spacing:-.015em;
+   padding-bottom:.3em; border-bottom:2px solid var(--line)}
+h3{font-size:1.06rem; margin:0 0 .25em; letter-spacing:-.01em}
+p{margin:.55em 0}
+.lede{color:var(--ink-2); font-size:1.03rem; max-width:78ch}
+.muted{color:var(--ink-3)}
+.small{font-size:.86rem}
+
+/* ── 위쪽 이동 띠 ─────────────────────────────────────────── */
+.nav{position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--line); margin-bottom:26px}
+.nav .inner{max-width:1480px; margin:0 auto; padding:9px 22px; display:flex; gap:10px;
+  align-items:center; flex-wrap:wrap}
+.nav a{display:inline-block; padding:5px 11px; border-radius:8px; text-decoration:none;
+  color:var(--ink-2); font-size:.9rem; border:1px solid transparent}
+.nav a:hover{background:var(--surface-2); color:var(--ink)}
+.nav a.home{border-color:var(--line); color:var(--ink); font-weight:600}
+.nav a.here{background:var(--accent-soft); color:var(--ink); font-weight:700}
+.nav .sp{flex:1}
+
+/* ── 머리 ─────────────────────────────────────────────────── */
+header.top{padding:26px 0 6px}
+.kicker{color:var(--accent); font-weight:700; font-size:.82rem; letter-spacing:.09em;
+  text-transform:uppercase; margin-bottom:.35em}
+.stats{display:flex; flex-wrap:wrap; gap:10px; margin:20px 0 6px}
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:11px 15px; min-width:104px; box-shadow:var(--shadow)}
+.stat b{display:block; font-size:1.5rem; line-height:1.15; letter-spacing:-.02em}
+.stat span{display:block; color:var(--ink-3); font-size:.79rem}
+
+/* ── 상자 ─────────────────────────────────────────────────── */
+.box{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:18px 20px; margin:16px 0; box-shadow:var(--shadow)}
+.box h3{margin-top:0}
+.note{border-left:4px solid var(--accent); background:var(--surface);
+  border-radius:0 12px 12px 0; padding:14px 18px; margin:14px 0}
+.note.warn{border-left-color:var(--warn)}
+.note.crit{border-left-color:var(--critical)}
+.stale{border-left-color:var(--serious)}
+.grid2{display:grid; gap:16px; grid-template-columns:1fr}
+@media (min-width:900px){ .grid2{grid-template-columns:1fr 1fr} }
+
+/* ── 주제 카드 ────────────────────────────────────────────── */
+.cards{display:grid; gap:18px; grid-template-columns:1fr}
+@media (min-width:720px){ .cards{grid-template-columns:1fr 1fr} }
+@media (min-width:1180px){ .cards{grid-template-columns:1fr 1fr 1fr} }
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;
+  text-decoration:none; color:inherit}
+.card:hover{border-color:var(--accent)}
+.card .thumb{background:var(--surface-2); border-bottom:1px solid var(--line);
+  aspect-ratio:16/9; overflow:hidden; display:flex; align-items:center; justify-content:center}
+.card .thumb img{width:100%; height:100%; object-fit:contain; padding:6px}
+.card .body{padding:14px 16px 16px}
+.card .q{font-weight:700; font-size:1.04rem; margin:.1em 0 .3em; letter-spacing:-.01em}
+.card .n{color:var(--ink-3); font-size:.83rem; margin-top:.5em}
+.card .tag{display:inline-block; font-size:.74rem; letter-spacing:.06em; font-weight:700;
+  color:var(--accent); text-transform:uppercase}
+
+/* ── 그림 ─────────────────────────────────────────────────── */
+.arm{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:18px 20px 20px; margin:22px 0; box-shadow:var(--shadow); scroll-margin-top:70px}
+.arm .name{font-family:"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  font-size:1.0rem; font-weight:600; word-break:break-all; letter-spacing:-.01em}
+.facts{color:var(--ink-2); font-size:.9rem; margin:.35em 0 .1em}
+.facts b{color:var(--ink)}
+.figrow{display:grid; gap:16px; grid-template-columns:1fr; margin-top:14px}
+@media (min-width:1080px){ .figrow{grid-template-columns:var(--cols,1fr 1fr)} }
+figure{margin:0; background:var(--surface-2); border:1px solid var(--line);
+  border-radius:12px; overflow:hidden; display:flex; flex-direction:column}
+figure img{display:block; width:100%; height:auto; background:#fff}
+figure a{display:block; line-height:0}
+figcaption{padding:11px 14px 13px; font-size:.86rem; color:var(--ink-2); line-height:1.6}
+figcaption b{color:var(--ink)}
+.figtitle{font-weight:700; color:var(--ink); font-size:.9rem}
+.zoom{float:right; font-size:.76rem; color:var(--ink-3)}
+
+/* ── 표 ───────────────────────────────────────────────────── */
+.scroll{overflow-x:auto; margin:14px 0 2px; border:1px solid var(--line); border-radius:12px}
+table{border-collapse:collapse; width:100%; font-size:.87rem; background:var(--surface)}
+th,td{padding:7px 11px; text-align:right; white-space:nowrap;
+  border-bottom:1px solid var(--line)}
+th{background:var(--surface-2); color:var(--ink-2); font-weight:600; font-size:.8rem;
+  position:sticky; top:0}
+th:first-child,td:first-child{text-align:left}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface-2)}
+td.el{font-variant-numeric:tabular-nums; font-weight:600}
+td.n{font-variant-numeric:tabular-nums}
+.bar{display:flex; align-items:center; gap:8px; justify-content:flex-end}
+.bar .track{position:relative; width:78px; height:8px; border-radius:4px;
+  background:var(--surface-2); border:1px solid var(--line); overflow:hidden; flex:none}
+.bar .fill{position:absolute; left:0; top:0; bottom:0; background:var(--accent);
+  border-radius:4px}
+.bar .floor{position:absolute; top:-2px; bottom:-2px; width:1px; background:var(--ink-3)}
+.bar .v{font-variant-numeric:tabular-nums; min-width:3.4em}
+.badge{display:inline-block; font-size:.72rem; font-weight:700; padding:1px 7px;
+  border-radius:999px; border:1px solid; margin-right:4px; white-space:nowrap}
+.b-crit{color:var(--critical); border-color:var(--critical)}
+.b-warn{color:var(--serious); border-color:var(--serious)}
+.b-ok{color:var(--ink-3); border-color:var(--line)}
+
+/* ── 이름 읽는 법 ─────────────────────────────────────────── */
+.tok td:first-child{white-space:nowrap; font-family:"JetBrains Mono",monospace;
+  font-size:.84rem; font-weight:600}
+.tok td{white-space:normal; text-align:left}
+.tok td.n{white-space:nowrap; text-align:right}
+.tok th{text-align:left}
+.tok th.n{text-align:right}
+
+ul.find{margin:.4em 0 .2em; padding-left:1.15em}
+ul.find li{margin:.3em 0}
+ol.steps{padding-left:1.2em}
+footer{margin-top:56px; padding-top:18px; border-top:1px solid var(--line);
+  color:var(--ink-3); font-size:.83rem}
+
+/* ── 색인 페이지 전용 ─────────────────────────────────────── */
+.exp{table-layout:fixed}
+.exp td{white-space:normal; text-align:left; vertical-align:top; line-height:1.62}
+.exp th{text-align:left; white-space:normal}
+.exp td:nth-child(1){width:19%}
+.exp td:nth-child(2){width:41%}
+.exp td:nth-child(3){width:21%}
+.exp td:nth-child(4){width:19%}
+.exp .qq{color:var(--ink-3); font-size:.85rem; display:block; margin-top:.25em}
+.exp .nm{font-weight:700; color:var(--ink)}
+.exp code{font-size:.8em}
+.exp ul{margin:.2em 0 0; padding-left:1.05em}
+.grp{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin:2.2em 0 .2em}
+.grp h3{font-size:1.14rem; margin:0}
+.grp .cnt{color:var(--ink-3); font-size:.83rem}
+.seealso{font-size:.86rem}
+.seealso a{display:block; margin:.12em 0}
+.nofig{color:var(--ink-3); font-style:normal}
+</style>
+</head>
+<body>
+<div class="nav"><div class="inner"><a class="home" href="index.html">◇ 대문</a><a class="here" href="00_since_deck.html">00 덱 이후</a><a href="01_base.html">01base</a><a href="02_switch.html">02switch</a><a href="03_airframe.html">03airframe</a><a href="04_azimuth.html">04azimuth</a><a href="05_parts.html">05parts</a><a href="06_range.html">06range</a><a href="07_ptd.html">07ptd</a><a href="08_grid.html">08grid</a><a href="09_planewave.html">09planewave</a><span class="sp"></span></div></div><div class="wrap">
+
+<header class="top">
+  <div class="kicker">since the 8/18 deck</div>
+  <h1>8/18 덱 이후에 한 실험 — 한 장 색인</h1>
+  <p class="lede"><b>8/18 팀미팅 덱(v17, 본론 30 장)에 실린 데까지가 기준선이다.</b>
+  덱은 질문 하나를 끝까지 판다 — «각도를 바꾸면 시뮬레이터가 도는 프로펠러를 그리는가».
+  그 판은 <b>기체 한 대 · 거리 15 m 한 자리 · 잡음 없음 · 재질은 Sionna 기본값</b>에서 멈춰 있다.
+  그 뒤로 <b>실험 30 건</b>이 그 네 칸을 하나씩 열었다. 이 쪽은 <b>«무엇을 물었고 · 답이 무엇이고 ·
+  어느 그림을 열면 보이나»</b> 만 적은 색인이다 — 과학 서술은 하지 않는다.</p>
+  <p class="lede">⭐가장 짧은 요약은 이렇다. <b>덱이 «Future work» 로 올린 세 갈래 중 둘은 이미 답이 나왔다.</b>
+  ②실제 비행 로그 + 수신 잡음 → <b>잡음을 실제로 넣은 거리 프레임</b>과 <b>기동 창 격차 분해</b>로 답했고,
+  ③셸 두께 감도 → <b>진짜 껍데기 두께 실측 정정</b>으로 답했다(덱의 결론은 하나도 안 뒤집혔다).
+  ①반사 깊이 축만 <b>데이터는 다 찼는데 아직 읽지 않았다</b> — 아래 §4 에 그대로 적어 둔다.</p>
+  <div class="stats">
+    <div class="stat"><b>30</b><span>실험</span></div>
+    <div class="stat"><b>6</b><span>묶음</span></div>
+    <div class="stat"><b>20</b><span>그림 있음</span></div>
+    <div class="stat"><b>10</b><span>그림 없음</span></div>
+    <div class="stat"><b>76/76</b><span>계획한 칸 채움</span></div>
+    <div class="stat"><b>08-16</b><span>이 색인 기준일</span></div>
+  </div>
+</header>
+
+<h2 id="baseline">덱 기준선 — «이미 실린 것»의 범위</h2>
+<div class="box">
+  <h3>8/18 덱 v17 이 다루는 것 (본론 30 장)</h3>
+  <ul class="find">
+    <li><b>장면은 하나다</b> — DJI Matrice 4E · 거리 15 m · 3.5 GHz · 앙각 7 점 · 잡음 없음 ·
+        재질은 Sionna 기본값(두께 10 cm 판).</li>
+    <li><b>잣대도 하나다</b> — 날개끝 상한(f_tip, 날개 끝이 낼 수 있는 가장 빠른 도플러) 수평에서
+        1273 Hz. 호버 3800 rpm 은 추정이 아니라 실측 추력계수에서 역산한 값이다.</li>
+    <li><b>1 부 «설정»</b> — PathSolver(Sionna 의 경로 추적기) 스위치 넷의 정의, 그리고
+        <b>공장 기본값은 빗각 여섯 각도에서 에코가 정확히 0</b> 이라는 것(확산 반사가 생존 스위치다).</li>
+    <li><b>2 부 «맵»</b> — 세 엔진 × 일곱 앙각. 핵심은 −30°/−60° 에서 우리 커널과 물리 끔이
+        박자 <b>126.1 대 126.1 Hz</b> 로 붙고, 정면(0°)은 붕괴하고, 직하방(−90°)엔 유령 무늬가 뜬다는 것.</li>
+    <li><b>3 부 «프로펠러만»</b> — 0° 붕괴를 장면 분해로 해부한다. 로터만 남기면 리듬 90 % 인데
+        그 에코가 동체보다 <b>78 dB 약해 익사</b>한다. 익사시키는 것은 139 cm² 금속 거울이다.</li>
+    <li><b>30 장 Future work</b> — ①반사 깊이 축 ②실제 비행 로그 + 수신 잡음 ③셸 두께 감도.</li>
+  </ul>
+  <p class="small muted" style="margin-top:.8em">전문 <code>/workspace/teammeeting_0818/_dump_v17.txt</code>
+  ·  ⭐덱은 <b>표적 축 한 기체 · 한 거리 · 잡음 없음</b>에서 멈춰 있다 — 아래 표가 그 뒤에 채워진 것들이다.</p>
+</div>
+<h2 id="what">덱 이후 한 실험 30 건</h2>
+<p class="lede">묶음 여섯이다. <b>판정</b> 칸의 수는 전부 아래 «근거 원장» 에서 그대로 옮긴 것이고, <b>볼 곳</b> 은 이 폴더 기준 상대경로라 눌러서 바로 열린다. ⚠«그림 없음» 이라고 적힌 줄은 판정이 <b>원장(JSON)이나 문서 표에만</b> 있다는 뜻이다 — 숨기지 않고 적는다.</p>
+<div class="grp"><h3>A · 표적 축 — 재질을 진짜 두께로 고치면</h3><span class="cnt">실험 3 건 · 덱 Future work ③ 에 대한 답</span></div><div class="scroll"><table class="exp"><thead><tr><th>무엇을 물었나</th><th>판정 — 수치</th><th>근거 원장</th><th>볼 곳</th></tr></thead><tbody><tr><td><span class="nm">셸 두께 실측 정정</span><span class="qq">기본 10 cm 판 대신 진짜 껍데기 두께(0.5 / 0.75 / 1.5 mm)로 돌리면 무늬가 달라지나</span></td><td><b>안 달라진다.</b> 앙각 −30° 에서 두께는 <b>가만히 있는 성분(DC)만</b> 낮춘다 — 0.75 mm 에서 DC <b>−6.24 dB</b> 인데 움직이는 부분 <b>+0.00 dB</b> · 바닥 −0.00 dB · 빗살 대비 <b>52.0 dB 그대로</b>(파형 상관 1.0000). 세 두께가 소수점까지 같은 리듬 <b>80.5 %</b> 를 낸다.</td><td><code>outputs/material_verdict_0816.json</code><br>결정서 <code>docs/MATERIAL_CORRECTION.md</code></td><td class="seealso"><a href="01_base.html#arm-sionna_p4000000000_r15_n8192_shell0.75mm_d1">01base · shell 0.75 mm 팔</a><a href="01_base.html#arm-sionna_p4000000000_r15_n8192_shell0.5mm_d1">01base · shell 0.5 mm</a><a href="01_base.html#arm-sionna_p4000000000_r15_n8192_shell1.5mm_d1">01base · shell 1.5 mm</a></td></tr><tr><td><span class="nm">프로펠러 두께 0.9 mm — 진짜 손잡이</span><span class="qq">재질 정정의 손잡이는 껍데기인가 프로펠러인가</span></td><td><b>프로펠러다.</b> 0.9 mm 로 고치면 −30° 에서 움직이는 부분 <b>−16.99 dB</b> · 바닥 −12.56 dB · 빗살 대비 −6.98 dB(52.0 → <b>45.0</b>)로 <b>격자 흔들림 밴드 밖</b>이고, 45° 슬래브 예측과 0.34 dB 차로 맞는다. 반대로 정면(0°)에서는 <b>0.000 dB</b> 꿈쩍도 안 한다 ⇒ 정면을 채우는 것은 플라스틱이 아니라 <b>금속 상자</b>라는 덱의 해석이 손잡이 실험으로 닫혔다.</td><td><code>outputs/material_verdict_0816.json</code><br><span class="small muted">el_minus30.shell0.75_prop0.9mm · el_0_wiring_control</span></td><td class="seealso"><a href="01_base.html#arm-sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1">01base · shell+prop 팔</a></td></tr><tr><td><span class="nm">덱 헤드라인 전수 재채점</span><span class="qq">두께를 고치면 8/18 덱에서 말한 것 중 무엇이 무너지나</span></td><td><b>무너지는 것 없음.</b> 오히려 덱이 «추정» 으로 말한 두 문장이 실측으로 확증됐다 — 「10 cm 판이라 밝게 깔려 있다」는 바닥 실측 <b>−12.56 dB</b> 로 적중했고, 「정면을 덮는 것은 금속」도 확증. 「굴절만 거리 생존」·「회절의 덮음」은 유지되고, 덱 26 장의 <b>«78 dB 익사 간격» 은 오히려 벌어진다</b>(프롭이 −17 dB 더 어두워지므로).</td><td><code>outputs/material_verdict_0816.json</code><br><span class="small muted">headline_impacts_ko 8 항목 · slab_predictions_3p5ghz</span></td><td class="seealso"><span class="nofig">그림 없음 — 원장 표</span></td></tr></tbody></table></div><div class="grp"><h3>B · 표준 프레임 — 계획한 칸을 다 채웠다</h3><span class="cnt">실험 9 건 · 거리 · 방위 · 기체 축이 처음으로 열렸다</span></div><div class="scroll"><table class="exp"><thead><tr><th>무엇을 물었나</th><th>판정 — 수치</th><th>근거 원장</th><th>볼 곳</th></tr></thead><tbody><tr><td><span class="nm">표준 프레임 재고 조사</span><span class="qq">여섯 팔 × 다섯 축으로 채우기로 한 칸이 다 찼나</span></td><td><b>76 칸 중 76 칸 채움 · 실패 0.</b> 12 갈래가 새로 열렸다(PTD 팔 개통 · 굴절만의 앙각/기체/방위/거리/부품 · 우리 방위 4 점 · 거리 240/480 m · 격자 전앙각화 · 깊이 3 잔여). 못 채우는 4 줄은 <b>구조적 이유</b>다 — 격자는 우리 커널 전용 축이라 PathSolver 에 대응물이 아예 없다. 진짜 구멍은 −75° 10 m 레거시 <b>1 칸</b>뿐이다.</td><td><code>outputs/frame_inventory_0816.json</code><br>규약 <code>docs/STANDARD_FRAME.md</code></td><td class="seealso"><a href="index.html">아틀라스 대문 — 팔 115 · 칸 337 · 그림 258</a></td></tr><tr><td><span class="nm">우리 커널 + PTD(모서리 보정) 팔 개통</span><span class="qq">모서리 보정을 켜면 무늬가 바뀌나 — 기체·방위·거리·격자 어디서든</span></td><td><b>안 바뀐다.</b> 확장한 7 칸(기체 2 · 방위 1 · 거리 3 · 격자 1) <b>전부</b> 요동 레벨 차 <b>≤0.02 dB</b> · 리듬 차 ≤0.1 %p · 빗살 차 ≤0.1 dB · 파형 상관 <b>≥0.9999</b>. 모서리 항이 만드는 몫은 ≤0.026 % 로 기본판 최대(0.478 %)보다도 작다. 자세당 1.3 초로 <b>순정의 10 배</b>가 드는데 잣대는 안 움직인다.</td><td><code>outputs/frame_completion_0816.json</code> <span class="small muted">q3_ptd_diff</span><br>앞선 판정 <code>outputs/ptd_level_probe.json</code></td><td class="seealso"><a href="07_ptd.html">07ptd — 그림 10 장</a><a href="07_ptd.html#arm-ours_ptd_r15_n8192_div24">07ptd · 격자 칸</a></td></tr><tr><td><span class="nm">굴절만 팔의 기체 확장</span><span class="qq">공장 기본값에 확산만 켠 판이 다른 기체에서도 무늬를 지키나</span></td><td><b>빗각 생존은 기체 불문이다</b> — mini5pro −30° 리듬 <b>71.0 %</b>, s1000plus −60° <b>65.7 %</b>, matrice4e −15~−90° 57~65 %. <b>단 정면 익사는 기체 불문이 아니다</b> — s1000plus 만 0° 에서 리듬 <b>30.3 %</b> · 빗살 22.0 dB 로 자기 널(10.9 %) 위에 남는다(matrice4e 13.3 % · mini5pro 8.7 % 는 널 그대로).</td><td><code>outputs/frame_completion_0816.json</code><br><span class="small muted">q1_onlyrefr_airframe · verdicts_ko.q1</span></td><td class="seealso"><a href="02_switch.html#arm-sionna_p4000000000_onlyrefr_mini5pro_r15_n8192">02switch · onlyrefr mini5pro</a><a href="02_switch.html#arm-sionna_p4000000000_onlyrefr_s1000plus_r15_n8192">02switch · onlyrefr s1000plus</a><a href="03_airframe.html">03airframe</a></td></tr><tr><td><span class="nm">굴절만 팔의 거리 사다리</span><span class="qq">공장 기본값 판이 멀어져도 무늬를 지키나 (30 · 60 · 120 · 240 m)</span></td><td><b>지킨다.</b> 앙각 −30° 에서 30/60/120/240 m 리듬 <b>63.6 / 69.7 / 66.2 / 68.8 %</b>, 빗살 대비 <b>33.0 → 28.2 dB</b> 로 완만하게만 준다. 정면(0°)은 전 거리에서 익사한다(리듬 12.6 % ≈ 널 12.5, 빗살 0 dB) — ⭐덱이 15 m 한 자리에서 본 정면 붕괴가 <b>거리와 무관한 성질</b>임이 드러났다.</td><td><code>outputs/frame_completion_0816.json</code><br><span class="small muted">matrix.ps_onlyrefr.axes.range</span></td><td class="seealso"><a href="06_range.html">06range</a><a href="02_switch.html#arm-sionna_p4000000000_onlyrefr_r30_n8192">02switch · onlyrefr r30</a><a href="02_switch.html#arm-sionna_p4000000000_onlyrefr_r240_n8192">02switch · onlyrefr r240</a></td></tr><tr><td><span class="nm">우리 커널 거리 240 · 480 m</span><span class="qq">파면이 굽은 15 m 와 평면에 가까운 480 m 가 무늬를 다르게 만드나</span></td><td><b>안 만든다.</b> 15 / 30 / 60 / 120 / 240 / 480 m 에서 −30° 리듬 <b>82.9~83.3 %</b>, 빗살 <b>42.9~43.7 dB</b> 로 사실상 한 값이다. 레벨이 안 변하는 것은 설계상 당연하고(1/R⁴ 은 링크버짓 몫), <b>실질 내용은 파면 곡률이 무늬를 안 비튼다</b>는 것이다.</td><td><code>outputs/frame_completion_0816.json</code><br><span class="small muted">matrix.ours.axes.range — 13 칸</span></td><td class="seealso"><a href="06_range.html#arm-ours_r480_n8192">06range · ours 480 m</a><a href="06_range.html#arm-ours_r240_n8192">06range · ours 240 m</a><a href="09_planewave.html">09planewave</a></td></tr><tr><td><span class="nm">PathSolver 다끔 480 m</span><span class="qq">인용 보류였던 480 m 칸을 다시 돌리면 쓸 수 있게 되나</span></td><td><b>부분 해소 — 원인은 밝혀졌지만 480 m 두 칸은 여전히 인용 못 한다.</b> 정면은 8192 자세 전부 경로가 있는데 요동이 <b>배정밀도 반올림 바닥(1e-12) 아래</b>로 꺼졌고, −30° 는 8192 자세 중 <b>5287 개(64.5 %)가 경로 0 개</b>다(광선 40 억 발로도 안 잡히는 표집 희소성). 다시 돌린다고 메꿔질 성질이 아니다. ⇒ <b>인용 가능 범위를 15~240 m 로 확정</b>(−30° 리듬 78.7~84.1 % · 빗살 40.5~52.0 dB).</td><td><code>outputs/frame_completion_0816.json</code><br><span class="small muted">q2_alloff_480m.ladder · verdict_ko</span></td><td class="seealso"><a href="06_range.html#arm-sionna_p4000000000_r480_n8192_d1">06range · PS 480 m</a><span class="small muted">⚠아틀라스에선 <b>빈칸</b>으로 보인다 — 왜 빈칸인지는 §4 에 적었다</span></td></tr><tr><td><span class="nm">우리 커널 방위 곡선 — 점 하나에서 9 점으로</span><span class="qq">드론을 돌리면 무늬가 어떻게 변하나</span></td><td>−30° 에서 방위 0 / 15 / 22.5 / 30 / 45 / 60 / 67.5 / 75 / 90° 가 리듬 <b>83.3~89.7 %</b>, 빗살 <b>39.9~45.0 dB</b>. 덱은 방위 45° <b>한 점</b>만 갖고 있었는데 이제 곡선이라 «단조인지 주기적인지» 를 물을 수 있다. ⚠우리 팔의 방위 의존은 여전히 <b>격자 흔들림 밴드 안</b>이라 «둔감하다» 가 아니라 <b>«이 격자로는 못 잰다»</b> 가 정확하다.</td><td><code>outputs/frame_completion_0816.json</code><br><span class="small muted">matrix.ours.axes.azimuth — 15 칸</span></td><td class="seealso"><a href="04_azimuth.html">04azimuth — 그림 31 장</a><a href="04_azimuth.html#arm-ours_r15_n8192_az15">04azimuth · az15</a><a href="04_azimuth.html#arm-ours_r15_n8192_az90">04azimuth · az90</a></td></tr><tr><td><span class="nm">mini5pro 물리 켬</span><span class="qq">회절의 «덮음» 이 기체에 상관없이 일어나나</span></td><td><b>상관없다.</b> mini5pro 물리 켬은 −30° 에서 리듬 <b>11.3 %</b>(자기 널 8.7) · 빗살 5.8 dB 로 잡음 수준이다. matrice4e(12.5 % · 6.3 dB) · s1000plus(11.2 % · 4.6 dB)와 같은 자리다 ⇒ <b>세 기체 물리켬 비교가 완성</b>됐고 덱 27 장의 «회절은 덮는다» 가 세 기체 전부에서 선다.</td><td><code>outputs/md_atlas_index.json</code><br><span class="small muted">03airframe · phys_mini5pro 팔</span></td><td class="seealso"><a href="03_airframe.html#arm-sionna_p4000000000_phys_mini5pro_r15_n8192_d1">03airframe · mini5pro 물리켬</a></td></tr><tr><td><span class="nm">별칭 두 팔의 독립 재실행 <span class="badge b-ok">공짜 앵커</span></span><span class="qq">같은 물리를 두 번 돌리면 얼마나 다르게 나오나</span></td><td><b>잣대는 표시 자리까지 같다.</b> 굴절만 팔과 옛 스위치 태그 팔 <b>6 쌍</b>이 비트동일은 아닌데(광선 표집이 비결정적) 요동 레벨 차 <b>0.0 dB</b> · 리듬 차 <b>0.0 %p</b> · 상관 <b>1.0000</b> 이다. 격자 산포 밴드보다 <b>자릿수로 작아서</b>, 팔 사이 차이를 읽을 때 «같은 것을 두 번 재면 이만큼» 의 기준이 된다.</td><td><code>outputs/frame_completion_0816.json</code><br><span class="small muted">alias_rerun_note_ko · alias_bit_identity_checks</span></td><td class="seealso"><span class="nofig">그림 없음 — 원장 한 줄</span></td></tr></tbody></table></div><div class="grp"><h3>C · 잣대와 눈금 — 무엇을 어떻게 잴 것인가</h3><span class="cnt">실험 6 건 · 덱 Future work ② «수신 잡음» 이 여기서 답을 받았다</span></div><div class="scroll"><table class="exp"><thead><tr><th>무엇을 물었나</th><th>판정 — 수치</th><th>근거 원장</th><th>볼 곳</th></tr></thead><tbody><tr><td><span class="nm">잡음을 실제로 넣은 거리 프레임 <span class="badge b-warn">사용자 질문 직답</span></span><span class="qq">수신 잡음을 넣으면 거리별로 어느 엔진이 무엇까지 읽히나</span></td><td><b>물리 켬은 60 m 부터 아무것도 못 읽는다.</b> −30° 빗살 대비 [15/30/60/120 m] — 우리 커널 <b>43/43/39/29 dB</b> 전부 읽힘, 물리 끔 52/42/21/4 dB(120 m 판정 불가), <b>물리 켬 6/3/−0/0 dB 로 60 m 부터 Pd 0.00</b>. 연장선으로 잰 «무늬 읽히는 한계» 는 우리 <b>554 m</b> · 우리+PTD 656 m · 물리끔 641 m · 굴절만 556 m · <b>물리켬 47 m</b>. ⚠함정 각주 — 물리켬을 죽이는 것의 큰 몫은 <b>«동체 받침대»</b> 다. 움직이는 성분에 앵커를 걸면 <b>31.1 dB</b> 를 돌려받는다.</td><td><code>outputs/noise_distance_frame.json</code><br><span class="small muted">headline_ko 12 줄 · read_lines · sensitivity</span></td><td class="seealso"><a href="../outputs/figures/noise_distance_frame.png">그림 · noise_distance_frame.png</a></td></tr><tr><td><span class="nm">맵 눈금 규약 — 무엇을 0 dB 로 잡나</span><span class="qq">패널마다 자기 최댓값으로 밝기를 맞추면 무엇을 잃나</span></td><td><b>세기 차이를 통째로 잃는다.</b> 눈금을 셋으로 갈랐다 — 패널별 최댓값 / 공통 기준 / 잡음 바닥 기준 — 그리고 <b>«잡음 섞인 맵은 패널별 정규화 금지»</b> 를 규약으로 못 박았다. «있다/없다» 막대는 판정하는 그 양의 잡음 분포에서 세우고, 판정 어휘도 통일했다(Pd ≥ 0.9 탐지 · 0.1~0.9 애매 · ≤ 0.1 미탐지). ⇒ 덱 12 장의 ⚠«밝기가 아니라 무늬 모양을 봐야 한다» 단서를 이걸로 대체할 수 있다.</td><td><code>outputs/scaled_maps.json</code><br>규약 정본 <code>docs/MAP_SCALING.md</code></td><td class="seealso"><a href="../outputs/figures/scaled_maps/scaled_three_scales_same_data.png">같은 자료 · 눈금 셋</a><a href="../outputs/figures/scaled_maps/scaled_engines_noise.png">엔진 × 잡음</a><a href="../outputs/figures/scaled_maps/scaled_range_noise.png">거리 × 잡음</a><a href="../outputs/figures/scaled_maps/scaled_anchor_sensitivity.png">앵커 감도</a><span class="small muted">외 2 장 — <code>outputs/figures/scaled_maps/</code></span></td></tr><tr><td><span class="nm">격자 산포 밴드를 전 앙각으로 확장</span><span class="qq">덱이 쓰는 밴드(리듬 21.8 %p · 요동 3.86 dB)가 좁아지나 넓어지나</span></td><td><b>잣대마다 갈린다 — 한 마디 답이 없다.</b> ①빗각(−15~−75°) 요동 산포는 <b>좁아졌다</b>(최대 1.31 dB, 새로 닫은 −60/−75° 는 0.02~0.10 dB) ⇒ 3.86 dB 는 <b>정면 값</b>이었고 빗각에 그대로 대면 과잉 보수다. ②전체 폭은 직하방이 <b>5.62 dB</b> 로 넓혔다. ③리듬 밴드 21.8 %p 는 유지. ④⭐<b>빗살 대비가 격자의 새 민감 잣대</b> — 한 계단마다 +4.0~4.6 dB 단조 상승이라 팔 사이 빗살 비교에 <b>≈5 dB 단서</b>를 새로 달아야 한다(우리 ↔ PathSolver 의 30~50 dB 격차 판정은 안 흔들린다).</td><td><code>outputs/frame_completion_0816.json</code> <span class="small muted">q4_grid_band</span><br>기준 <code>outputs/grid_convergence_check.json</code></td><td class="seealso"><a href="08_grid.html">08grid</a><a href="08_grid.html#arm-ours_r15_n8192_div24">08grid · div24 전앙각</a><a href="08_grid.html#arm-ours_r15_n8192_div48">08grid · div48</a></td></tr><tr><td><span class="nm">반송파 이전 표 3.5 → 5.8 GHz</span><span class="qq">3.5 GHz 에서 잰 판정을 5.8 GHz 에 어디까지 그대로 인용해도 되나</span></td><td><b>닫히는 것은 시간·주파수 축의 눈금</b>(날개끝 상한 · 대역 · 표본율 · 속도축 · 원거리장 경계)이고, <b>안 닫히는 것은 세기와 무늬</b>(σ 절대레벨 · 로브 위치 · 가림이 만드는 복소합 · PO 문턱)다. ⚠<b>경고 하나</b> — 기체 3D 대각(0.776 m)을 D 로 잡으면 5.8 GHz 의 원거리장 경계가 <b>23.32 m</b> 라 <b>지금 쓰는 15 m 가 근거리장으로 넘어간다</b>(수평 폭 기준이면 13.68 m 로 아슬하게 밖). 5.8 GHz 판에는 근거리장 단서를 다시 붙이고 <b>어느 D 인지 명시</b>해야 한다.</td><td><code>outputs/carrier_transition_table.json</code><br><span class="small muted">_meta.headline_ko · caveat_farfield_ko · rows</span></td><td class="seealso"><span class="nofig">그림 없음 — 원장 표</span></td></tr><tr><td><span class="nm">격자 위상 널 배관 <span class="badge b-ok">도구</span></span><span class="qq">격자를 촘촘히 했을 때 변한 몫이 «수렴» 인가 «표본 자리를 다시 굴린 것» 인가 — 가를 도구가 되나</span></td><td><b>도구는 섰다</b> — 게이트 <b>17/17 통과</b>(인자를 안 주면 비트동일, 주면 표본 자리만 옮긴다). 송신점이 같이 움직이는 몫이 표본 이동 위상보다 훨씬 작아 «자리만 바꾼 판» 이라 말할 수 있다. ⚠다만 <b>그 팔을 실제로 돌린 것은 아직 아니라</b>, 위 ③ 의 귀속은 여전히 열려 있다.</td><td><code>outputs/verify_grid_shift.json</code><br>읽는 법 <code>docs/GRID_PHASE_NULL.md</code></td><td class="seealso"><span class="nofig">그림 없음 — 배관만</span></td></tr><tr><td><span class="nm">아틀라스 수리·재생성</span><span class="qq">337 개 칸을 그림으로 한 번에 훑을 수 있게 만들 수 있나</span></td><td><b>만들었다</b> — 주제 9 개 · 팔 115 개 · 칸 337 개 · <b>그림 258 장</b>. 핵심은 두 가지를 그림·표에 못 박은 것이다 — ①<b>수를 낼 자격이 없는 칸은 값을 안 낸다</b>(에코 0 · 자세 덜 참 · 요동이 반올림 바닥 아래), ②<b>백색 널은 기체마다 다르다</b>(matrice4e 12.6 · s1000plus 10.8 · mini5pro 8.7 %).</td><td><code>outputs/md_atlas_index.json</code><br>재검증 <code>outputs/atlas_falsify.json</code></td><td class="seealso"><a href="index.html">◇ 아틀라스 대문 — 여기서 시작</a><a href="README.md">README.md</a><span class="small muted">노트북 <code>reports/A_atlas.ipynb</code></span></td></tr></tbody></table></div><div class="grp"><h3>D · 분석 — 무늬를 «성적» 이라는 다른 언어로 옮기기</h3><span class="cnt">실험 5 건 · 분류 · 탐지 · 파이프라인 격차</span></div><div class="scroll"><table class="exp"><thead><tr><th>무엇을 물었나</th><th>판정 — 수치</th><th>근거 원장</th><th>볼 곳</th></tr></thead><tbody><tr><td><span class="nm">① 기체 분류 첫 실험</span><span class="qq">박자 빗살만 보고 기체 3 종(mini5pro · matrice4e · s1000plus)을 맞힐 수 있나</span></td><td><b>맞힌다.</b> 우리 커널 <b>100 %</b>(112/112 ×3), PathSolver 팔 <b>94.64 %</b>. 섞기 널은 씨앗 5 종에서 0.321~0.345 로 우연(1/3) 수준이라 성적이 우연이 아니다. PathSolver 가 틀리는 자리는 <b>정면(72.9 %)과 직하방(89.6 %) 둘뿐</b> — 덱이 «의아한 양 끝» 이라 부른 바로 그 두 각도다. ⚠제원에서 계산한 템플릿에 맞추는 규칙 분류기이고 잡음이 없으므로 <b>성능으로 인용 금지</b>.</td><td><code>outputs/classify_airframe.json</code><br>반증 <code>outputs/refute_classify_airframe.json</code></td><td class="seealso"><a href="../outputs/figures/classify_confusion.png">그림 · classify_confusion.png</a></td></tr><tr><td><span class="nm">② 거리별 탐지확률 곡선</span><span class="qq">잡음을 교정해서 넣으면 몇 미터에서 반반이 되나</span></td><td>우리 커널 −30° 에서 <b>R50 = 724 m</b>(빗살 잣대) / <b>567 m</b>(대역 잣대). 실측 오경보율 <b>1.1e-3</b>(목표 1e-3)이고 자체검사 <b>7/7 통과</b> — 문턱 교정 루틴은 <b>신호를 인자로 받지도 않는다</b>(누수 없음). ⚠σ 를 문헌 앵커로 재보정한 위의 값이고 <b>재보정은 검증이 아니다</b>. EIRP 30 dBm · NF 5 dB 는 선언값이다.</td><td><code>outputs/detection_curves.json</code><br>적대 재현 <code>outputs/detection_curves_attack_*.json</code></td><td class="seealso"><a href="../outputs/figures/detection_pd_curves.png">그림 · detection_pd_curves.png</a></td></tr><tr><td><span class="nm">③ 기동 창 격차 분해</span><span class="qq">같은 PX4 비행 창에서 우리 커널과 선배 파이프라인의 20 dB 격차는 무엇 때문인가</span></td><td><b>엔진 차이가 아니라 잣대 차이가 가장 크다.</b> 겉보기 <b>20.7 dB</b> 의 최대 항은 <b>바닥 재는 법의 차이 9.0 dB</b> 이고, 같은 법으로 다시 재면 엔진 차이는 <b>11.6 dB</b> 로 준다. 선배 파이프라인 <b>안에서만</b> 가림을 켜고 끄는 것이 <b>31.2 dB</b> 를 움직이고(우리 SBR 은 가림이 내장이라 이건 규약이 아니라 물리다), 블레이드 재질은 1.6 dB 뿐이다. ⚠선배 팔의 350 Hz 선은 박자 정수배가 아니라 <b>로그 표본율 50 Hz 의 정확히 7 배</b> — 데이터·조립 단계 인공물 후보다.</td><td><code>outputs/bridge_cross_precise.json</code><br><span class="small muted">gap_decomposition · artifact_350hz · selftest_ok</span></td><td class="seealso"><a href="../outputs/figures/bridge_cross_maps.png">그림 · bridge_cross_maps.png</a><a href="../outputs/figures/bridge_cross_lines.png">그림 · bridge_cross_lines.png</a></td></tr><tr><td><span class="nm">④ 물리 스위치 → 분류 성적 번역</span><span class="qq">엔진 물리를 켜면 기체 분류 성적을 얼마나 잃고, 왜 잃나</span></td><td><b>24.1 %p 를 잃는다</b>(같은 2 클래스 판에서 굴절만 96.0 % → 물리 켬 71.9 %, 짝 신뢰구간 −46.0~−5.4 %p 로 0 을 안 걸침). 범인은 <b>쐐기 회절</b> 이다 — 빗각에서 바닥을 <b>+30~52 dB</b> 올린다. <b>모서리 회절 팔은 기준과 바닥 차이가 0.0 dB</b> 로 아무것도 안 바꾼다. ⭐그리고 성적이 떨어진 것은 «날개 신호가 사라져서» 가 아니라 «바닥이 올라와 덮여서» 다 — 빗살을 한 번도 안 건드리고 <b>바닥만 물리켬 높이로 올린 가짜 팔이 물리켬 성적을 1.8 %p 안에서 재현</b>한다. 덱 27 장의 «덮는다» 가 성적이라는 다른 언어로 재확인됐다. ⚠물리 켬 성적은 클래스가 갈린다(matrice4e 96.4 % ↔ s1000plus 47.3 %).</td><td><code>outputs/switch_to_classification.json</code><br><span class="small muted">verdict · burial_vs_erasure · single_axis</span></td><td class="seealso"><a href="../outputs/figures/switch_classification.png">그림 · switch_classification.png</a></td></tr><tr><td><span class="nm">로터 흔들림 프리셋 사다리 <span class="badge b-warn">딥러닝 착수 게이트</span></span><span class="qq">로터가 얼마나 흔들리게 설정하느냐가 분류 성적을 좌우하나</span></td><td><b>좌우한다.</b> 프리셋 6 종의 성적 폭이 <b>6.14 %p</b> 인데 씨앗만 바꿔서 생기는 폭은 <b>0.84 %p</b> (<b>7.33 배</b> · p = 0.0015). 그래서 딥러닝에 들어가기 전에 <b>프리셋을 하나로 못 박고 원장을 다시 구워야</b> 한다. ⛔<b>점수 높은 프리셋을 고르면 안 된다</b> — 위쪽 두 판이 잘 나오는 것은 물리가 아니라 초기위상이 정렬돼 데이터가 인위적으로 깨끗해서다. 사다리는 흔들림에 <b>단조롭지 않다</b>(적당히 흩어지면 올라갔다가, 너무 흩어지면 박자 추정이 번져 내려온다).</td><td><code>outputs/rotor_preset_ladder.json</code><br><span class="small muted">verdict · mechanism · robustness</span></td><td class="seealso"><a href="../outputs/figures/rotor_preset_ladder.png">그림 · rotor_preset_ladder.png</a></td></tr></tbody></table></div><div class="grp"><h3>E · 데이터 조사 — 우리 설정값이 실제 비행의 어디쯤인가</h3><span class="cnt">실험 3 건 · ⚠세 건 모두 그림이 없다</span></div><div class="scroll"><table class="exp"><thead><tr><th>무엇을 물었나</th><th>판정 — 수치</th><th>근거 원장</th><th>볼 곳</th></tr></thead><tbody><tr><td><span class="nm">로터 요동 공개데이터 조사</span><span class="qq">우리가 쓰는 야외 프리셋 값이 실제 비행 로그의 어디쯤인가</span></td><td><b>정확히 «가벼운 바람 야외 호버» 자리 — 유지 타당.</b> 원시 로그를 직접 내려받아 통계까지 냈다(DREGON · PX4 Flight Review · NeuroBEM). 공개 눈금은 무풍 벤치 0.1~1.4 % → DJI 무풍 호버 0.5~0.6 % → <b>야외 위치유지 1.4~2.6 %</b> → 과격·강풍 5~10 % 이고 우리 outdoor(시간 흔들림 <b>2.45 %</b>)가 그 안이다. 스펙트럼 모양은 4 개 독립 원천이 만장일치로 <b>«저주파 배회»</b>(백색·정현파 기각). ⭐<b>로터 4 개는 같은 회전수가 아니다</b> — 실기 로그에서 평균 오프셋 0.5~7 %.</td><td>정본 <code>prior_work/rotor_jitter_sources.md</code><br>통계 <code>outputs/rotor_log_traces.json</code><br>원시 사본 <code>prior_work/outputs/rotor_jitter_raw/</code></td><td class="seealso"><span class="nofig">그림 없음 — §4 참조</span></td></tr><tr><td><span class="nm">진짜 DJI 실비행 요동 앵커</span><span class="qq">DJI 기체의 실제 회전수 요동 수치를 구할 수 있나</span></td><td><b>구했다.</b> Mavic 2 Pro <b>18 비행</b>을 기내 녹음으로 회전수까지 복원한 논문(Heutschi 2020)의 표 5 를 PDF 축자 추출과 페이지 렌더 판독으로 <b>이중 대조</b>했다(어긋난 항목 <b>0 건</b>). 무풍 호버 요동 <b>0.5~0.6 %</b>, <b>바람 1 m/s 당 +0.52~1.09 %p</b> 공식까지 나온다. 우리 outdoor 2.45 % 를 이 공식으로 되돌리면 <b>호버 바람 1.46~3.25 m/s</b> 에 해당 ⇒ <b>덮어쓸 이유 없음</b>. ⇒ 관문의 «DJI 수치 없음» 단서를 <b>시간 흔들림 축에서 지울 수 있다</b>(로터별 산포는 음향 추출이라 여전히 못 준다).</td><td><code>outputs/rotor_heutschi2020_table5.json</code><br>원문 사본 <code>prior_work/outputs/rotor_jitter_raw/actasynth.pdf</code></td><td class="seealso"><span class="nofig">그림 없음 — §4 참조</span></td></tr><tr><td><span class="nm">저속 표집 앨리어싱 A/B</span><span class="qq">4 Hz 로 찍은 로그라서 우리 프리셋이 실제보다 작게 잡힌 것 아닌가</span></td><td><b>걱정이 방향부터 틀렸다.</b> 표집을 낮추면(67 → 10 → 4 Hz) 요동 통계가 깎이는 게 아니라 <b>부풀어 오른다</b>(준-호버 구간에서 최대 <b>×1.77</b>). 즉 4 Hz 로 잰 값은 과소가 아니라 <b>상한측</b>이다. ⇒ 정직한 읽기는 «outdoor 2.45 % 는 <b>1.41~2.45 % 대역의 상한측</b>». ⚠앨리어싱 단서는 «닫힘» 이 아니라 <b>«방향 확정 + 크기 상한 확보»</b> 로 좁혀진 것이고, 강등 왜곡 크기는 기체·전자변속기 구조에 달려 있어 그대로 옮기는 데는 불확실이 남는다.</td><td><code>outputs/rotor_log_traces.json</code><br><span class="small muted">aliasing_ab_10hz_20260816 · amendment_20260816</span></td><td class="seealso"><span class="nofig">그림 없음 — §4 참조</span></td></tr></tbody></table></div><div class="grp"><h3>F · 선행연구와 다음 설계 — 딥러닝에 들어가기 전에</h3><span class="cnt">실험 4 건 · ⚠네 건 모두 문서 표라 그림이 없다</span></div><div class="scroll"><table class="exp"><thead><tr><th>무엇을 물었나</th><th>판정 — 수치</th><th>근거 원장</th><th>볼 곳</th></tr></thead><tbody><tr><td><span class="nm">분류 딥러닝 선행연구 39 편</span><span class="qq">드론 마이크로도플러 분류를 딥러닝으로 한 선행연구가 무엇을 어디까지 했나</span></td><td>45 편 수집 → 41 편 판정 → <b>39 편이 원문 검증 통과</b>(분류 논문 29 · 시뮬 앵커 5 · 서베이 5). 불통과 2 편과 미판정 4 편은 <b>본표 밖에 따로</b> 적었다. 우리 첫 분류 실험과의 거리, 빌려올 방법론, 패시브 조명원 분류의 존재 여부까지 다섯 축으로 정리했다.</td><td><code>outputs/md_classification_dl_survey.json</code><br>정본 <code>prior_work/md_classification_dl_survey.md</code></td><td class="seealso"><span class="nofig">그림 없음 — 문서 표</span></td></tr><tr><td><span class="nm">딥러닝 설계의 탑티어 뒷받침 31 편</span><span class="qq">우리 딥러닝 파이프라인의 설계 선택마다 상위 학술지 근거를 댈 수 있나</span></td><td><b>31 편 전부 원문 확인, 제거 0 편.</b> 수치를 옮겨 오는 4 건은 PDF 를 내려받아 축자 대조했다. ⚠<b>정직하게 남긴 것</b> — 우리 선택과 <b>긴장 관계인 3 건</b>(AdamW · Wilson · Raghu)과 설계에 빈칸인 1 건(dropout)은 <b>맞춰 고치지 않고 원장에 그대로</b> 남겼다. 인용 문구를 조심해야 하는 표기 주의 3 건도 따로 적었다.</td><td>정본 <code>prior_work/dl_toptier_anchors.md</code><br>설계 <code>docs/DL_PIPELINE.md</code> 부록 A-2 · B11 · B12</td><td class="seealso"><span class="nofig">그림 없음 — 문서 표</span></td></tr><tr><td><span class="nm">딥러닝 최신성 조사 33 편</span><span class="qq">동일 과제가 아니어도 비슷한 과제의 최신 기법 중 우리에게 쓸 것이 있나</span></td><td>33 편을 셋으로 갈랐다 — <b>«바로 응용 가능» 11 편</b>, 나머지는 «관문 뒤 후보» 또는 «우리 규모엔 부적합». <b>유행이라고 억지로 끼워 넣지 않은 것 자체가 성과</b>다. 허위·서지 오류 0 편이고 기존 앵커 31 편과 중복 0 건. ⛔설계 문서는 이 라운드에 <b>한 글자도 안 건드렸다</b> — 여기까지는 후보 제안이고 반영은 다음 개정 라운드다.</td><td>정본 <code>prior_work/dl_modernity_survey.md</code></td><td class="seealso"><span class="nofig">그림 없음 — 문서 표</span></td></tr><tr><td><span class="nm">다음 큐 설계서 — 후보 23 개 심사</span><span class="qq">다음에 무엇을 어떤 순서로 돌려야 하나</span></td><td>후보 23 개를 세 렌즈로 심사했더니 <b>상위 16 개 중 15 개가 GPU 0 시간</b>(저장된 원장만 다시 읽으면 되는 것들)이었다. 순서 원칙은 <b>«잣대 층 → 헤드라인 정정 층 → 파생 층 → GPU 지출 층»</b>. 이 설계서에서 나온 상위 넷(광선 예산 · 격자 · 방위 · 스위치)이 <b>덱 v14~v17 의 단서 문장들을 만들었고</b>, 프리셋 사다리와 스위치→분류가 그 다음 칸이다.</td><td><code>docs/NEXT_EXPERIMENTS.md</code><br>실행 원장 <code>outputs/switch_factorial.json</code> · <code>grid_convergence_check.json</code> · <code>raybudget_ac_ladder.json</code> · <code>r12_azimuth_harvest.json</code></td><td class="seealso"><a href="../outputs/figures/switch_factorial_abs_db.png">그림 · 스위치 완전요인</a><a href="../outputs/figures/grid_r16_band_and_order.png">그림 · 격자 밴드</a><a href="../outputs/figures/raybudget_ac_ladder.png">그림 · 광선 예산</a><a href="../outputs/figures/r12_gate_levels.png">그림 · 방위 게이트</a></td></tr></tbody></table></div>
+<h2 id="gaps">⚠ 아직 그림이 없는 것 — 정직하게</h2>
+<p class="lede">위 표에서 «그림 없음» 이라고 적은 줄들의 <b>사정</b>이다.
+판정이 있는데 그림이 없는 것과, 판정 자체가 아직 없는 것은 다르다 — 그 둘을 갈라 적는다.</p>
+
+<div class="note crit">
+  <b>1. 반사 깊이 축 — 데이터는 다 찼는데 <u>아직 안 읽었다</u>.</b>
+  덱 30 장이 Future work <b>1 번</b>으로 올린 바로 그 축이다.
+  깊이 3 칸 <b>12 개</b>(스위치 10 태그 + r30 · r120)가 08-16 병합으로 <b>전부 채워졌다</b>.
+  그런데 <b>이 칸들을 읽은 판정 원장이 없다</b> — <code>outputs/switch_factorial.json</code> 은
+  <b>08-15 15:23 KST</b> 판이라 새 칸이 들어오기 <b>전</b>이다. 그림도 없다.
+  ⇒ 덱의 Future work 세 갈래 중 <b>이 하나만 아직 열려 있다</b>. 다음 라운드의 첫 칸이다.
+</div>
+
+<div class="note crit">
+  <b>2. 본편 리포트 11 권(08-15 기준)에 0815 · 0816 판정이 하나도 안 내려앉았다.</b>
+  리포트 재번호는 <b>문서·빌더 층만</b> 끝났고 노트북 재조립이 대기 중이라 <code>reports/</code> 에는
+  옛 이름이 남아 있다.
+  ⇒ <b>지금 판정의 정본은 리포트가 아니라</b> <code>docs/RESUME.md</code> §5 «재인용 금지·꼬리표 강제» 표다.
+  <b>이 색인 페이지가 필요한 이유가 그것이다.</b>
+</div>
+
+<div class="note warn">
+  <b>3. 재질 정정 결과가 리포트에도 덱에도 없다.</b>
+  원장(<code>outputs/material_verdict_0816.json</code>)과 아틀라스 그림
+  (<a href="01_base.html">01base</a> 의 shell · prop 팔 8 장)은 있는데
+  <b>이 판정을 담은 리포트 절이 없고</b>, 덱은 여전히 «Sionna 기본 10 cm 판» 수치로 말한다
+  (덱 10 장 · 26 장 각주가 이걸 <b>예고만</b> 해 둔 상태다).
+</div>
+
+<div class="note warn">
+  <b>4. 그림은 있는데 리포트가 없는 것 — 7 갈래.</b>
+  아래 그림들은 전부 <code>outputs/figures/</code> 에만 있고 <b>어느 리포트 권에도 안 실렸다.</b>
+  <ul class="find">
+    <li>잡음 거리 프레임 <code>noise_distance_frame.png</code></li>
+    <li>맵 눈금 <code>scaled_maps/</code> 6 장</li>
+    <li>기체 분류 <code>classify_confusion.png</code></li>
+    <li>탐지확률 곡선 <code>detection_pd_curves.png</code></li>
+    <li>기동 창 격차 <code>bridge_cross_maps.png</code> · <code>bridge_cross_lines.png</code></li>
+    <li>스위치 → 분류 <code>switch_classification.png</code></li>
+    <li>프리셋 사다리 <code>rotor_preset_ladder.png</code></li>
+  </ul>
+  ⇒ 이것들은 <b>§5 의 그림 판</b>에 모아 두었다 — 리포트가 생기기 전까지는 여기가 유일한 입구다.
+</div>
+
+<div class="note warn">
+  <b>5. 데이터 조사 세 건은 그림이 아예 없다.</b>
+  로터 요동 공개데이터 조사 · Heutschi 표 5 환산 · 앨리어싱 A/B 셋 다 <b>원장과 문서에만</b> 있다.
+  그리기용 빌더가 가리키는 그림(<code>outputs/figures/report07_f13.png</code>)은 <b>08-10 판</b>이라
+  이번 추가분이 안 들어 있다.
+  ⛔원장 자체에 «빌더를 다시 돌리면 DREGON 후보 행이 사라진다» 는 경고가 붙어 있으므로,
+  <b>그림을 다시 굽기 전에 병합 보존을 먼저 확인</b>해야 한다.
+</div>
+
+<div class="note warn">
+  <b>6. 격자 위상 널은 <u>배관만</u> 섰다.</b>
+  게이트 17/17 을 통과했지만 <b>«위상만 옮긴 팔» 을 실제로 돌린 적이 없다.</b>
+  그래서 격자 밴드 실험(C-③)이 «촘촘해서 변한 것» 과 «표본 자리가 달라져 변한 것» 의
+  <b>귀속을 미해결로 승계</b>했다. 그림 없음.
+</div>
+
+<div class="note warn">
+  <b>7. 반송파 이전 표(3.5 → 5.8 GHz)는 그림도 리포트도 없다.</b>
+  특히 <b>«5.8 GHz 에서 15 m 가 근거리장으로 넘어갈 수 있다»</b> 는 경고는
+  이후 <b>모든 5.8 GHz 판에 단서를 강제</b>하는 항목인데 지금 <b>JSON 한 곳에만</b> 있다.
+</div>
+
+<div class="note">
+  <b>8. 별칭 두 팔의 재현성 앵커도 JSON 한 줄로만 있다.</b>
+  요동 0.0 dB · 리듬 0.0 %p · 상관 1.0000 — 팔 사이 차이를 읽을 때
+  «같은 것을 두 번 재면 이만큼» 의 <b>기준선</b>인데 그림도 표도 없다.
+  자주 인용될 수라 어딘가 눈에 보이는 자리에 올려 두는 편이 낫다.
+</div>
+
+<div class="note">
+  <b>9. 480 m 두 칸이 아틀라스에서 «빈칸» 으로 보이는 이유.</b>
+  결과가 <b>«못 쓴다»</b> 라서 그림에 실을 것이 없다.
+  <a href="06_range.html#arm-sionna_p4000000000_r480_n8192_d1">06range 의 PS 480 m 팔</a> 에서
+  정면은 <b>움직이는 것 없음</b>(요동이 반올림 바닥 아래), −30° 는 <b>덜 참</b>(자세 64.5 % 가 경로 0 개)으로
+  값 자리가 비어 있다. <b>결측이 아니라 «수를 낼 자격이 없음» 표시</b>다.
+</div>
+
+<div class="note">
+  <b>10. 선배 PO 팔은 프레임 표에 <u>구조적으로</u> 칸이 없다.</b>
+  앙각 × 방위 × 거리 축이 그 원장(<code>outputs/jihyuck_po/</code> · <code>bridge_cross_precise.json</code>)에
+  <b>애초에 없다</b>. 여섯 팔 비교표에서 한 열이 비어 있는 것은 <b>결측이 아니라 설계상 없는 것</b>이다.
+</div>
+
+<div class="note stale">
+  <b>11. ⭐기록 두 곳의 수치가 어긋나 있었다 — 확인해서 정했다.</b>
+  <code>docs/RESUME.md</code> 0816 §0 은 굴절만 거리 빗살 대비를 «28.9 → 24.5 dB», 우리 커널 480 m 를
+  «39.5 dB» 로 적었다. 그 뒤 병합된 원장은 같은 칸을 <b>«33.0 → 28.2 dB»</b>, <b>«43.7 dB»</b> 로 낸다.
+  <b>확인 결과 최신 병합본이 맞다</b> — <code>frame_completion_0816.json</code>(08-16 <b>17:01</b> KST)과
+  아틀라스 원장 <code>md_atlas_index.json</code>(08-16 <b>16:54</b> KST)이 <b>서로 일치</b>하고,
+  RESUME 의 수는 그 병합 <b>전</b>에 적힌 값이다.
+  ⇒ <b>이 색인과 아틀라스는 병합본 수치를 쓴다.</b> RESUME 의 그 두 줄은 다음 갱신 때 맞추면 된다.
+</div>
+
+<div class="note stale">
+  <b>12. ⭐아틀라스가 두 벌이라 어긋난다 — 이 폴더를 보면 된다.</b>
+  <code>/workspace/sionna/atlas</code>(<b>지금 이 폴더</b>)는 그림 <b>259 장</b>·08-16 16:54 KST 재생성이고,
+  <code>/workspace/team_meeting/atlas</code> 는 <b>159 장</b>·08-16 11:12 KST 이식본이다.
+  ⇒ <b>최신은 이 폴더다.</b> 팀미팅 쪽은 덱과 함께 들고 다니려고 자체완결로 떠 놓은 옛 사본이라,
+  위 표의 새 팔(shell · prop · 방위 9 점 · 240/480 m)이 <b>안 들어 있다</b>.
+</div>
+
+<h2 id="board">리포트가 아직 없는 그림들 — 여기가 입구</h2>
+<p class="lede">§4-4 에서 «그림은 있는데 리포트가 없다» 고 적은 것들이다.
+누르면 원본이 열린다. <b>리포트 절이 생기기 전까지 이 판이 유일한 입구</b>라 여기 모아 둔다.</p>
+<div class="figrow" style="--cols:1fr 1fr"><figure><a href="../outputs/figures/noise_distance_frame.png" title="원본 크기로 열기"><img src="../outputs/figures/noise_distance_frame.png" alt="잡음 거리 프레임" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">잡음 거리 프레임</span><br>수신 잡음을 실제로 넣고 거리별로 <b>어느 엔진이 무엇까지 읽히나</b>. 물리 켬은 60 m 부터 Pd 0.00 이다.</figcaption></figure><figure><a href="../outputs/figures/detection_pd_curves.png" title="원본 크기로 열기"><img src="../outputs/figures/detection_pd_curves.png" alt="거리별 탐지확률 곡선" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">거리별 탐지확률 곡선</span><br>잡음을 교정해 넣었을 때의 탐지확률. 우리 커널 −30° 에서 <b>반반이 되는 거리 R50 = 724 m</b>(빗살 잣대).</figcaption></figure><figure><a href="../outputs/figures/classify_confusion.png" title="원본 크기로 열기"><img src="../outputs/figures/classify_confusion.png" alt="기체 분류 혼동표" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">기체 분류 혼동표</span><br>박자 빗살만 보고 기체 3 종 맞히기. 우리 커널 <b>100 %</b> · PathSolver <b>94.64 %</b>, 틀리는 자리는 정면과 직하방 둘뿐이다.</figcaption></figure><figure><a href="../outputs/figures/switch_classification.png" title="원본 크기로 열기"><img src="../outputs/figures/switch_classification.png" alt="물리 스위치 → 분류 성적" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">물리 스위치 → 분류 성적</span><br>엔진 물리를 켜면 <b>24.1 %p</b> 를 잃는다. 바닥만 올린 가짜 팔이 그 성적을 1.8 %p 안에서 재현한다 — <b>지우는 것이 아니라 덮는 것</b>이라는 증거다.</figcaption></figure><figure><a href="../outputs/figures/rotor_preset_ladder.png" title="원본 크기로 열기"><img src="../outputs/figures/rotor_preset_ladder.png" alt="로터 흔들림 프리셋 사다리" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">로터 흔들림 프리셋 사다리</span><br>프리셋 6 종의 성적 폭 <b>6.14 %p</b> ↔ 씨앗만 바꾼 폭 0.84 %p. 딥러닝 착수 전에 <b>프리셋을 하나로 못 박아야</b> 하는 이유다.</figcaption></figure><figure><a href="../outputs/figures/bridge_cross_maps.png" title="원본 크기로 열기"><img src="../outputs/figures/bridge_cross_maps.png" alt="기동 창 격차 — 맵" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">기동 창 격차 — 맵</span><br>같은 PX4 비행 창에서 우리 커널과 선배 파이프라인을 나란히 놓은 판.</figcaption></figure><figure><a href="../outputs/figures/bridge_cross_lines.png" title="원본 크기로 열기"><img src="../outputs/figures/bridge_cross_lines.png" alt="기동 창 격차 — 선" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">기동 창 격차 — 선</span><br>같은 격차를 선의 언어로. 겉보기 20.7 dB 의 최대 항은 <b>바닥 재는 법의 차이 9.0 dB</b> 다.</figcaption></figure><figure><a href="../outputs/figures/scaled_maps/scaled_three_scales_same_data.png" title="원본 크기로 열기"><img src="../outputs/figures/scaled_maps/scaled_three_scales_same_data.png" alt="맵 눈금 — 같은 자료, 눈금 셋" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">맵 눈금 — 같은 자료, 눈금 셋</span><br>패널별 최댓값 / 공통 기준 / 잡음 바닥 기준. <b>같은 자료가 눈금에 따라 다른 이야기를 한다.</b></figcaption></figure><figure><a href="../outputs/figures/scaled_maps/scaled_engines_noise.png" title="원본 크기로 열기"><img src="../outputs/figures/scaled_maps/scaled_engines_noise.png" alt="맵 눈금 — 엔진 × 잡음" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">맵 눈금 — 엔진 × 잡음</span><br>잡음을 넣은 판에서 세 엔진을 <b>공통 눈금</b>으로 놓은 것.</figcaption></figure><figure><a href="../outputs/figures/scaled_maps/scaled_range_noise.png" title="원본 크기로 열기"><img src="../outputs/figures/scaled_maps/scaled_range_noise.png" alt="맵 눈금 — 거리 × 잡음" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">맵 눈금 — 거리 × 잡음</span><br>거리가 멀어질 때 무늬가 잡음에 잠기는 과정.</figcaption></figure><figure><a href="../outputs/figures/scaled_maps/scaled_anchor_sensitivity.png" title="원본 크기로 열기"><img src="../outputs/figures/scaled_maps/scaled_anchor_sensitivity.png" alt="맵 눈금 — 앵커 감도" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">맵 눈금 — 앵커 감도</span><br>⚠«우리 커널이 낫다» 가 <b>앵커를 어디 거느냐에 의존</b>한다는 것을 보이는 판.</figcaption></figure><figure><a href="../outputs/figures/scaled_maps/scaled_range_common.png" title="원본 크기로 열기"><img src="../outputs/figures/scaled_maps/scaled_range_common.png" alt="맵 눈금 — 거리 공통 기준" loading="lazy" decoding="async"></a><figcaption><span class="figtitle">맵 눈금 — 거리 공통 기준</span><br>잡음 없이 공통 기준만 적용한 거리 판.</figcaption></figure></div>
+
+<h2 id="where">어디를 봐야 하나 — 네 곳뿐이다</h2>
+<div class="grid2">
+  <div class="box">
+    <h3>① 그림은 <b>아틀라스</b></h3>
+    <p><a href="index.html">이 폴더의 <code>index.html</code></a> 에서 시작한다 —
+    주제 9 개 · 팔 115 개 · 칸 337 개 · 그림 258 장이 전부 걸려 있다.
+    위 표의 «볼 곳» 링크는 <b>팔 하나로 바로 뛰는 자리</b>까지 걸어 두었다.</p>
+    <p class="small muted">⚠아틀라스는 <b>원장을 읽어 그림으로 옮긴 판</b>이라 서술은 없다.
+    «이 그림이 왜 그렇게 생겼나» 는 여기 표의 판정 칸을 읽는다.</p>
+  </div>
+  <div class="box">
+    <h3>② 라운드 기록은 <b><code>docs/RESUME.md</code></b></h3>
+    <p>맨 위 <b>0816 절</b>과 그 아래 <b>0815 절</b>이 «무엇을 끝냈고 · 무엇이 돌고 있고 ·
+    무엇이 열려 있나» 의 정본이다. 특히 §5 «재인용 금지 · 꼬리표 강제» 표는
+    <b>어떤 수를 꼬리표 없이 인용해도 되는지</b>를 정한 자리라 인용 전에 먼저 본다.</p>
+    <p class="small muted">⚠위 §4-11 에 적은 대로, 거리 관련 두 줄은 병합 전 값이라
+    이 색인·아틀라스의 수와 다르다.</p>
+  </div>
+  <div class="box">
+    <h3>③ 수치 원장은 <b><code>outputs/*.json</code></b></h3>
+    <p>이 색인의 <b>모든 수</b>가 거기서 그대로 온 것이다. 이번 라운드의 중심은 여섯이다 —
+    <code>frame_inventory_0816.json</code>(재고) ·
+    <code>frame_completion_0816.json</code>(프레임 판정) ·
+    <code>material_verdict_0816.json</code>(재질) ·
+    <code>noise_distance_frame.json</code>(잡음 거리) ·
+    <code>md_atlas_index.json</code>(그림 재고) ·
+    <code>scaled_maps.json</code>(눈금 규약).</p>
+    <p class="small muted">원장에는 «판정» 뿐 아니라 <b>⚠단서와 미착지 항목</b>도 같이 적혀 있다 —
+    수만 떼어 오면 단서가 떨어진다.</p>
+  </div>
+  <div class="box">
+    <h3>④ 과학 서술은 <b><code>reports/</code> 본편</b>
+        <span class="badge b-warn">⚠ 08-15 기준</span></h3>
+    <p>«왜 그런가» 를 길게 쓴 곳은 본편 11 권이다. 다만 <b>08-15 기준이라
+    이 쪽에 적힌 최신 팔이 아직 안 실려 있다</b> — 재질 정정 · 잡음 거리 프레임 ·
+    분석 4 종 · 프리셋 사다리 · 데이터 조사 셋은 <b>리포트에 없다</b>.</p>
+    <p class="small muted">⇒ 그때까지 <b>최신 판정의 정본은 이 색인과 <code>docs/RESUME.md</code></b> 다.
+    리포트와 이 쪽이 어긋나면 <b>이 쪽이 최신</b>이다.</p>
+  </div>
+</div>
+
+<div class="note">
+  <b>한 줄 요약</b> — 덱은 <b>«각도를 바꾸면 도는 프로펠러가 그려지는가»</b> 를 한 기체 · 15 m · 잡음 없이 답했다.
+  그 뒤 30 건은 그 답이 <b>재질을 고쳐도(A) · 기체와 거리와 방위를 바꿔도(B) · 잡음을 넣어도(C)</b>
+  버티는지 확인하고, 무늬를 <b>분류·탐지 성적이라는 다른 언어로 옮겼다(D)</b>.
+  남은 것은 덱 Future work 의 <b>①반사 깊이 축 하나</b>이고, 그 데이터는 <b>이미 채워져 있다</b>.
+</div>
+
+<footer>
+색인 기준일 <b>2026-08-16</b> · 덱 기준선 <code>/workspace/teammeeting_0818/_dump_v17.txt</code>(v17 · 본론 30 장)<br>
+이 쪽은 <b>원장을 읽어 옮긴 색인</b>이다 — 새 수를 계산하지 않았고, 모든 수는 «근거 원장» 칸의 JSON 에서 그대로 왔다.
+수치가 어긋나면 <b>원장이 정본</b>이다.<br>
+그림은 복사하지 않았다 — <code>../outputs/figures/</code> 를 그대로 건다.
+</footer>
+</div>
+</body>
+</html>

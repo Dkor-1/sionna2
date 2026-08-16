@@ -1,0 +1,413 @@
+{
+ "_meta": {
+  "generator": "scratchpad/build_material_verdict.py (재질 정정 판정자 라운드)",
+  "date_kst": "2026-08-16",
+  "question_ko": "셸 두께(0.5/0.75/1.5 mm)·프롭 0.9 mm 팔이 기본(Sionna 100 mm)과 어디서 얼마나 다른가",
+  "inputs": [
+   "/workspace/sionna/outputs/elevation_sweep_md.json",
+   "/workspace/sionna/outputs/elevation_sweep_md.npz",
+   "/workspace/sionna/outputs/grid_convergence_check.json",
+   "outputs/raybudget_seed_ladder.json(밴드 인용)"
+  ],
+  "conventions_ko": "모든 비교는 DC 제거 후(ac_power_db·확산 바닥·빗살 대비·리듬). 확산 바닥 = ac_power_db + 10log10(above_f_tip_frac). 빗살 대비 = build_md_atlas.comb_contrast_db(2·f_flash~f_tip, 정수배÷중간자리). 팔: PathSolver 4e9·물리끔·d1·15 m·matrice4e·seed 1(짝지은 비교). 우리 커널은 두께 개념이 없어 이 축 구조적 N/A(D3 동결).",
+  "prereg_ref": "docs/MATERIAL_CORRECTION.md §2-4 (실제 축이 계획과 다름: 0.5/0.75/1.5, 프롭 0.9 — §판정 참조)"
+ },
+ "slab_predictions_3p5ghz": {
+  "abs": {
+   "0.5mm": {
+    "normal_db": -30.13,
+    "angle_avg_db": -24.15,
+    "deg45_db": -29.73
+   },
+   "0.75mm": {
+    "normal_db": -26.63,
+    "angle_avg_db": -21.17,
+    "deg45_db": -26.23
+   },
+   "0.9mm": {
+    "normal_db": -25.06,
+    "angle_avg_db": -19.85,
+    "deg45_db": -24.67
+   },
+   "1.43mm": {
+    "normal_db": -21.1,
+    "angle_avg_db": -16.59,
+    "deg45_db": -20.73
+   },
+   "1.5mm": {
+    "normal_db": -20.7,
+    "angle_avg_db": -16.26,
+    "deg45_db": -20.33
+   },
+   "100mm": {
+    "normal_db": -13.38,
+    "angle_avg_db": -8.5,
+    "deg45_db": -8.02
+   }
+  },
+  "delta_vs_100mm": {
+   "0.5mm": {
+    "normal_delta_db": -16.75,
+    "angle_avg_delta_db": -15.65,
+    "deg45_delta_db": -21.71
+   },
+   "0.75mm": {
+    "normal_delta_db": -13.25,
+    "angle_avg_delta_db": -12.67,
+    "deg45_delta_db": -18.21
+   },
+   "0.9mm": {
+    "normal_delta_db": -11.68,
+    "angle_avg_delta_db": -11.35,
+    "deg45_delta_db": -16.65
+   },
+   "1.43mm": {
+    "normal_delta_db": -7.72,
+    "angle_avg_delta_db": -8.09,
+    "deg45_delta_db": -12.71
+   },
+   "1.5mm": {
+    "normal_delta_db": -7.32,
+    "angle_avg_delta_db": -7.76,
+    "deg45_delta_db": -12.31
+   }
+  },
+  "note_ko": "ITU-R P.2040 단층 슬래브, plastic εr 2.7·σ 0.02, 편파 전력평균 — §9 재현판과 동일 규약"
+ },
+ "el_minus30": {
+  "base_100mm": {
+   "arm": "sionna_p4000000000_r15_n8192_d1",
+   "el_deg": -30.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -137.088,
+   "ac_power_db": -135.664,
+   "level_db_ledger": -133.97,
+   "rhythm_share_pct": 80.499,
+   "above_f_tip_pct": 1.0606,
+   "beat_hz_track": 127.09,
+   "blade_band_power_db_track": -126.84,
+   "floor_above_tip_db": -155.408,
+   "comb_contrast_db": 51.989
+  },
+  "shell_0.5mm": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.5mm_d1",
+   "el_deg": -30.0,
+   "shell_mm": 0.5,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -144.22,
+   "ac_power_db": -135.661,
+   "level_db_ledger": -136.43,
+   "rhythm_share_pct": 80.485,
+   "above_f_tip_pct": 1.0597,
+   "beat_hz_track": 127.1,
+   "blade_band_power_db_track": -126.91,
+   "floor_above_tip_db": -155.409,
+   "comb_contrast_db": 51.996,
+   "delta_vs_base": {
+    "d_floor_above_tip_db": -0.001,
+    "d_ac_power_db": 0.003,
+    "d_dc_power_db": -7.132,
+    "d_level_db_ledger": -2.46,
+    "d_comb_contrast_db": 0.007,
+    "d_rhythm_share_pct": -0.014,
+    "d_above_f_tip_pct": -0.0009,
+    "d_beat_hz_track": 0.01
+   },
+   "vs_base_waveform": {
+    "abs_rho_dc_removed": 1.0,
+    "stft_db_map_corr_dc_removed": 0.9996
+   }
+  },
+  "shell_0.75mm": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_d1",
+   "el_deg": -30.0,
+   "shell_mm": 0.75,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -143.328,
+   "ac_power_db": -135.662,
+   "level_db_ledger": -136.23,
+   "rhythm_share_pct": 80.49,
+   "above_f_tip_pct": 1.0598,
+   "beat_hz_track": 127.1,
+   "blade_band_power_db_track": -126.9,
+   "floor_above_tip_db": -155.41,
+   "comb_contrast_db": 51.994,
+   "delta_vs_base": {
+    "d_floor_above_tip_db": -0.002,
+    "d_ac_power_db": 0.002,
+    "d_dc_power_db": -6.24,
+    "d_level_db_ledger": -2.26,
+    "d_comb_contrast_db": 0.005,
+    "d_rhythm_share_pct": -0.009,
+    "d_above_f_tip_pct": -0.0008,
+    "d_beat_hz_track": 0.01
+   },
+   "vs_base_waveform": {
+    "abs_rho_dc_removed": 1.0,
+    "stft_db_map_corr_dc_removed": 0.9998
+   }
+  },
+  "shell_1.5mm": {
+   "arm": "sionna_p4000000000_r15_n8192_shell1.5mm_d1",
+   "el_deg": -30.0,
+   "shell_mm": 1.5,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -141.232,
+   "ac_power_db": -135.664,
+   "level_db_ledger": -135.66,
+   "rhythm_share_pct": 80.498,
+   "above_f_tip_pct": 1.0604,
+   "beat_hz_track": 127.09,
+   "blade_band_power_db_track": -126.89,
+   "floor_above_tip_db": -155.409,
+   "comb_contrast_db": 51.989,
+   "delta_vs_base": {
+    "d_floor_above_tip_db": -0.001,
+    "d_ac_power_db": 0.0,
+    "d_dc_power_db": -4.144,
+    "d_level_db_ledger": -1.69,
+    "d_comb_contrast_db": 0.0,
+    "d_rhythm_share_pct": -0.001,
+    "d_above_f_tip_pct": -0.0002,
+    "d_beat_hz_track": 0.0
+   },
+   "vs_base_waveform": {
+    "abs_rho_dc_removed": 1.0,
+    "stft_db_map_corr_dc_removed": 1.0
+   }
+  },
+  "shell0.75_prop0.9mm": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": -30.0,
+   "shell_mm": 0.75,
+   "prop_mm": 0.9,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -150.901,
+   "ac_power_db": -152.65,
+   "level_db_ledger": -149.22,
+   "rhythm_share_pct": 75.29,
+   "above_f_tip_pct": 2.9418,
+   "beat_hz_track": 127.05,
+   "blade_band_power_db_track": -143.93,
+   "floor_above_tip_db": -167.964,
+   "comb_contrast_db": 45.009,
+   "delta_vs_base": {
+    "d_floor_above_tip_db": -12.556,
+    "d_ac_power_db": -16.986,
+    "d_dc_power_db": -13.813,
+    "d_level_db_ledger": -15.25,
+    "d_comb_contrast_db": -6.98,
+    "d_rhythm_share_pct": -5.209,
+    "d_above_f_tip_pct": 1.8812,
+    "d_beat_hz_track": -0.04
+   },
+   "vs_base_waveform": {
+    "abs_rho_dc_removed": 0.9775,
+    "stft_db_map_corr_dc_removed": 0.8923
+   }
+  },
+  "ref_props_only_100mm": {
+   "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+   "el_deg": -30.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -147.991,
+   "ac_power_db": -135.473,
+   "level_db_ledger": -136.97,
+   "rhythm_share_pct": 81.455,
+   "above_f_tip_pct": 1.1785,
+   "beat_hz_track": 127.05,
+   "blade_band_power_db_track": -126.93,
+   "floor_above_tip_db": -154.76,
+   "comb_contrast_db": 51.814
+  },
+  "ref_onlydiffr_100mm": {
+   "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+   "el_deg": -30.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1102.4,
+   "dc_power_db": -95.469,
+   "ac_power_db": -124.745,
+   "level_db_ledger": -95.47,
+   "rhythm_share_pct": 11.701,
+   "above_f_tip_pct": 81.1418,
+   "beat_hz_track": 253.28,
+   "blade_band_power_db_track": -102.16,
+   "floor_above_tip_db": -125.653,
+   "comb_contrast_db": 9.095
+  }
+ },
+ "el_0_wiring_control": {
+  "base_100mm": {
+   "arm": "sionna_p4000000000_r15_n8192_d1",
+   "el_deg": 0.0,
+   "shell_mm": 100.0,
+   "prop_mm": 100.0,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1272.9,
+   "dc_power_db": -63.249,
+   "ac_power_db": -94.302,
+   "level_db_ledger": -63.25,
+   "rhythm_share_pct": 13.059,
+   "above_f_tip_pct": 86.2467,
+   "beat_hz_track": 85.76,
+   "blade_band_power_db_track": -77.19,
+   "floor_above_tip_db": -94.945,
+   "comb_contrast_db": -0.836
+  },
+  "shell0.75_prop0.9mm": {
+   "arm": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1",
+   "el_deg": 0.0,
+   "shell_mm": 0.75,
+   "prop_mm": 0.9,
+   "n_poses": 8192,
+   "n_missing": 0,
+   "f_tip_hz": 1272.9,
+   "dc_power_db": -63.249,
+   "ac_power_db": -94.302,
+   "level_db_ledger": -63.25,
+   "rhythm_share_pct": 13.058,
+   "above_f_tip_pct": 86.2438,
+   "beat_hz_track": 85.75,
+   "blade_band_power_db_track": -77.19,
+   "floor_above_tip_db": -94.945,
+   "comb_contrast_db": -0.832,
+   "delta_vs_base": {
+    "d_floor_above_tip_db": 0.0,
+    "d_ac_power_db": 0.0,
+    "d_dc_power_db": 0.0,
+    "d_level_db_ledger": 0.0,
+    "d_comb_contrast_db": 0.004,
+    "d_rhythm_share_pct": -0.001,
+    "d_above_f_tip_pct": -0.0029,
+    "d_beat_hz_track": -0.01
+   },
+   "vs_base_waveform": {
+    "abs_rho_dc_removed": 1.0,
+    "stft_db_map_corr_dc_removed": 0.9943
+   }
+  }
+ },
+ "bands": {
+  "note_ko": "격자 산포 밴드는 grid_convergence_check.json(우리 커널 λ/12↔λ/24)에서, 확산 바닥 밴드는 MATERIAL_CORRECTION §2-4 규약대로 ac_power_db+10log10(above_f_tip_frac) 합성으로 재계산(여기서 재현). PathSolver 시드 밴드는 raybudget_seed_ladder(4e9, el-15·40m) sd 1.833 dB의 «빌려 온 값» — 시드 복제 팔은 이번 큐에 없었다. ⚠단 이번 비교는 같은 seed=1 짝지은 비교라 표집 요동이 대부분 소거된다(ρ=1.0000이 그 증거).",
+  "floor_above_tip_grid_db": {
+   "per_el": {
+    "+0": -6.363,
+    "-15": -7.014,
+    "-30": -9.295,
+    "-45": -8.127
+   },
+   "max_abs": 9.295,
+   "el_minus30": 9.295
+  },
+  "ac_power_grid_db": 3.861,
+  "dc_power_grid_db": 6.613,
+  "level_grid_db": 6.56,
+  "rhythm_grid_pp": 21.819,
+  "above_f_tip_grid_pp": 12.5549,
+  "beat_grid_hz": 0.152,
+  "stft_map_corr_grid_floor": {
+   "min_4el": 0.6039,
+   "el_minus30": 0.6825
+  },
+  "comb_contrast_band": null,
+  "comb_note_ko": "빗살 대비의 격자 밴드는 사전등록에 없다 — 참고 눈금은 백색잡음 ≈ 0 dB(실측 +0.4).",
+  "seed_borrowed_db": {
+   "sd": 1.833,
+   "2sd": 3.67,
+   "3sd": 5.5,
+   "tag": "빌려 온 값(el-15·40 m·4e9)"
+  }
+ },
+ "prereg_scoring": {
+  "H1_주판정_확산바닥": {
+   "prereg_ko": "100→0.75 mm 셸에서 빗각 확산 바닥 −10~−18 dB, 밴드(9.30 dB) 밖일 것",
+   "measured_shell_only_delta_db": -0.002,
+   "verdict": "판정 불가(사전등록 문면) + 귀속 정정(사후 판독)",
+   "verdict_ko": "사전등록 문면으로는 Δ바닥 −0.002 dB 로 밴드(9.30 dB) 안 — 판정 불가. 그러나 같은 seed 짝지은 비교에서 AC 파형 ρ=1.0000·ΔAC +0.002 dB 라 이것은 «못 잰 것»이 아니라 «셸 손잡이가 AC 에 배선 자체가 없음»(구조적 0)이다. el −30 의 AC 는 프롭이 사실상 전부다(props-only AC −135.47 ≈ 전체 −135.66). H1 이 예측한 −10~−18 dB 창은 **프롭 손잡이**에서 실현됐다 — 프롭 0.9 mm: 바닥 −12.56 dB·AC −16.99 dB(밴드 9.30·시드 3.7 밖, 유의). 즉 H1 의 물리(박막 정정이 빗각 바닥을 두 자릿수 dB 어둡게 한다)는 참, 귀속(셸)은 거짓 — 바닥의 재질은 프롭 플라스틱이다."
+  },
+  "H2_단조성": {
+   "prereg_ko": "두께 순으로 바닥이 단조(0.75<1.5<3.0 예정이었으나 실제 축은 0.5/0.75/1.5)",
+   "verdict": "바닥 축 채점 불가 · DC 축 통과",
+   "verdict_ko": "바닥(AC) 축은 세 점 전부 0.00 dB 라 순서 자체가 없다(위 구조적 0). DC 축에서는 0.5(−7.13) < 0.75(−6.24) < 1.5(−4.14) < 100(0) 로 안 뒤집히고, 단일 셸 몫 s 로 슬래브 모형과 정합(s≈0.74~0.83, 잔차 ≤0.9 dB) — 손잡이가 셸 플라스틱을 옳게 물고 있다는 배선 증거.",
+   "dc_delta_db": {
+    "shell_0.5mm": -7.132,
+    "shell_0.75mm": -6.24,
+    "shell_1.5mm": -4.144
+   },
+   "shell_share_of_dc_fit": "0.74~0.83 (각도평균 슬래브 기준 3점 역산)"
+  },
+  "H3_배선대조군_el0": {
+   "prereg_ko": "el 0 총 레벨이 시드 밴드(빌려 온 3.7 dB) 안 — 금속 거울이라 안 움직여야",
+   "measured_delta_db": {
+    "level": 0.0,
+    "dc": 0.0,
+    "ac": 0.0
+   },
+   "verdict": "통과",
+   "verdict_ko": "셸 0.75+프롭 0.9 결합판인데도 el 0 은 레벨·DC·AC 전부 0.000 dB — 손잡이가 의도 밖 재질(금속)을 안 잡았다. 덤으로 §2-4 의 «방아쇠는 프롭·크기는 금속» 이 실측 확증됐다 — 프롭을 −17 dB 어둡게 해도 el 0 AC(추첨 잡음)가 1/1000 dB 도 안 움직였다."
+  },
+  "H4_표적축_불변": {
+   "prereg_ko": "리듬 몫·f_tip 밖 몫은 밴드 안, STFT 맵 상관은 격자 바닥 위",
+   "measured": {
+    "rhythm_pp_combo": -5.209,
+    "above_f_tip_pp_combo": 1.8812,
+    "stft_map_corr_combo": 0.8923,
+    "beat_hz_delta_combo": -0.04
+   },
+   "verdict": "통과",
+   "verdict_ko": "결합판 기준 리듬 −5.21 %p(밴드 21.8 안)·f_tip 밖 +1.88 %p(밴드 12.6 안)·맵 상관 0.8923(바닥 0.6825 위)·박자 Δ −0.04 Hz(밴드 0.152 안). 박자 구조는 재질 정정에 강건 — 무늬·분류 서사는 산다. 빗살 대비는 −6.98 dB 내려가되(51.99→45.01) 백색 0 dB 대비 +45 dB 로 건재. ⚠빗살 대비는 사전등록 밴드가 없어 참고 판정."
+  },
+  "H5_투과_반대항": {
+   "prereg_ko": "굴절 켠 팔은 셸 안쪽 금속이 밝아져(왕복 +6.2 dB) 덜 내려가야",
+   "verdict": "미착지",
+   "verdict_ko": "굴절만×셸두께 칸이 이번 큐 착지 목록에 없다(굴절만 팔은 전부 100 mm). 투과 반대항은 여전히 슬래브 수학 추론이다 — 굴절 팔 레벨 인용에 100 mm 꼬리표 유지."
+  }
+ },
+ "attribution": {
+  "ko": "el −30 물리끔 d1 에코의 해부(이번 실측): AC(움직이는 부분·확산 바닥·빗살)는 프롭 플라스틱이 사실상 전부(셸 손잡이 0.00 dB·props-only ≈ 전체), DC(정지 성분)는 셸 플라스틱이 약 3/4~4/5 (세 두께 점 역산 s≈0.74~0.83), 나머지는 카본·프롭 정지항. 그래서 «잣대 주의»가 다시 맞았다 — 레벨(DC 포함)로 보면 셸이 −2.3 dB 움직인 것처럼 보이지만 DC 를 걷어내면 셸의 표적 축 기여는 0 이다.",
+  "prop_0p9mm_measured_vs_slab": {
+   "ac_delta_db": -16.986,
+   "slab_pred_delta_db": {
+    "normal_delta_db": -11.68,
+    "angle_avg_delta_db": -11.35,
+    "deg45_delta_db": -16.65
+   },
+   "note_ko": "실측 AC −16.99 dB 는 45° 입사 예측(−16.65)과 0.34 dB 차 — 빗각 기하에서 날면 입사각이 45° 부근에 몰린다는 읽기와 정합. 각도평균 예측(−11.34)보다 가파르다."
+  },
+  "caution_0p9_not_canonical": "⚠0.9 mm 는 D2 정본(matrice4e 시위평균 1.43 mm)이 아니라 민감도 점이다. 45° 열 스케일로 정본 1.43 mm 의 예상 AC 이동은 약 −13 dB(추정·미실측)."
+ },
+ "headline_impacts_ko": {
+  "굴절만_거리_생존": "유지(방향은 강화) — 굴절만 팔은 전부 100 mm 에서 돌았고, 정정(셸 0.75 mm)은 왕복 투과를 −6.35→−0.13 dB 로 밝게 하므로 굴절 채널 레벨은 올라가는 쪽. 거리 기울기는 재질 곱셈 이득과 무관해 «완만 감쇄» 자체는 안 흔들린다. 단 H5 미착지라 이 방향 진술은 슬래브 추론 꼬리표를 단다.",
+  "회절_덮음": "유지(브래킷) — 이 원장 AC 기준 onlydiffr(−124.74) 이 물리끔 바닥(−135.66)보다 +10.9 dB 위. 프롭 정정으로 바닥이 −17.0 dB 더 내려가고 회절 자신의 두께 민감도는 0~−18 dB(쐐기면) 브래킷이라 정정 뒤 간격은 +10.9~+27.9 dB — 어느 끝에서도 덮음은 유지되고 넓어지는 쪽이 개연. ⚠덱 25 장의 «+36 dB» 는 switch_factorial 레벨 기준 수치라 별도 원장 — 여기서 재채점 안 함.",
+  "el0_금속_추첨": "실측 확증 — 프롭 −17 dB 에도 el 0 AC 0.000 dB. §2-4 의 «방아쇠는 프롭·크기는 금속» 이 손잡이 실험으로 닫혔다.",
+  "100mm_때문에_12~13dB_밝게": "실측 확증 — §6 게이트 2 의 추정(12~13 dB)이 바닥 실측 −12.56 dB 로 적중. 이제 추정이 아니라 측정이다(단 0.9 mm 프롭 점 기준).",
+  "drowned_blades_덱24": "강화 — 프롭 에코가 −17 dB 더 어두워지므로 금속 거울 아래 익사 간격은 더 벌어진다. 덱 문구의 값 정정(§4-3)은 그대로 필요.",
+  "절대_판독거리_R50": "보류 유지(D4) — 이번 실측이 프롭 축의 크기를 처음으로 쟀다: PathSolver AC −16.99 dB(0.9 mm). 커널 프롭 정정(−34 % R50 추정)의 방향을 독립 엔진에서 뒷받침. 절대 거리 주장은 게이트 전까지 보류.",
+  "무늬_분류_서사": "유지 — H4 통과. 빗살·리듬·박자 구조는 재질 정정에 강건. 읽히는 «거리»의 절대값만 게이트 대상.",
+  "PS다끔_480m_인용보류": "무관 — 이번 판정과 독립(표집 희소성 문제)."
+ },
+ "verdict_headline_ko": "① 셸 두께 손잡이는 el −30 에서 **DC 만** 움직인다(0.75 mm: DC −6.24 dB·AC +0.00 dB·바닥 −0.00 dB) — 표적 축(확산 바닥·빗살·리듬)은 셸 정정에 완전 불변(ρ=1.0000). ② 실측 0.75 mm 판 vs 기본: 표적 축 차이는 밴드 안(사전등록 문면 «판정 불가»)이나, 짝지은 비교의 구조적 0 이라 «영향 없음» 으로 읽는 것이 정직. DC −6.24 dB 도 격자 DC 밴드(6.61) 안 — 단독으로는 판정 불가, 세 점 단조+슬래브 정합(s≈0.74~0.83)이 방향만 지지. ③ 진짜 손잡이는 프롭이다 — 0.9 mm 에서 AC −16.99 dB·바닥 −12.56 dB·빗살 −6.98 dB(밴드 밖·유의), 45° 슬래브 예측과 0.34 dB 차. 기존 헤드라인 중 뒤집히는 것은 없고(굴절만 생존·회절 덮음 유지), «12~13 dB 밝게 깔림»·«el0 금속 추첨» 두 주장은 실측으로 확증됐다. ④ H5(투과 반대항)·el −60 두께·시드 복제·정본 1.43 mm 프롭 점은 미착지로 남는다."
+}

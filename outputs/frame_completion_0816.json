@@ -1,0 +1,4170 @@
+{
+ "_meta": {
+  "generator": "scratchpad/frame_completion_0816.py (완성표 작성자 에이전트)",
+  "generated_kst": "2026-08-16 17:01:07 (UTC+9)",
+  "runtime_sec": 8.9,
+  "gpu_used": false,
+  "ledger": "outputs/elevation_sweep_md.{json,npz} (2026-08-16 병합본)",
+  "inventory": "outputs/frame_inventory_0816.json (계획 76칸, 76/76 채움·실패 0)",
+  "metric_defs": "benchmark/build_md_atlas.py cell_summary 를 그대로 임포트 — 리듬 몫(상한 위 정수배 몫)·널(칸별 정확 계수)·빗살 대비(상한 아래 on/off 전력비)·요동 절대전력(DC 제거). 정의 재작성 없음.",
+  "conventions_ko": [
+   "레벨(dB) 비교는 전부 정지 성분(DC) 제거 후 — moving_power_db 열만 쓴다",
+   "리듬 몫은 상한 위 한정 잣대라 거리 팔에서 퇴화 — comb_contrast_db 병용",
+   "격자 산포 밴드(리듬 21.8%p·AC 3.86dB) 안의 팔 사이 차이는 판정 불가로 적는다",
+   "널(백색 리듬 몫)은 기체마다 다르다(matrice4e≈12.6·s1000plus≈10.8·mini5pro≈8.7)",
+   "직하방(el −90)은 f_tip=0 으로 상한 잣대 퇴화 — tip_ceiling_degenerate 깃발"
+  ]
+ },
+ "verdicts_ko": {
+  "q1_onlyrefr_airframe": "생존 기체 불문(빗각) — 단 정면 익사는 기체 불문이 아니다(s1000plus 예외)",
+  "q2_alloff_480m": "부분 해소 — 샤드 완결·원인 확정, 인용 보류는 유지(el0 수치바닥·el−30 경로희소)",
+  "q3_ptd_diff": "0 유지 — 확장 7칸 전부 |ΔdB|≤0.02·프린지≤0.026 %",
+  "q4_grid_band": "빗각 AC 밴드는 좁아지고(≤1.31 dB) 전체 폭은 −90° 가 5.62 dB 로 넓힘·리듬 21.8 %p 유지·빗살 대비에 새 격자 단서(≈5 dB)"
+ },
+ "alias_rerun_note_ko": "onlyrefr_{기체} 신규 3앙각 칸과 옛 swR1D0E0F1_{기체}_d1 7앙각 칸은 **같은 물리(R1D0E0F1·d1·spp 4e9)의 독립 재실행**이다 — 비트동일은 아니지만(레이 표집 비결정성) 잣대는 표시 자리까지 일치한다. 아래 d_moving_power_db·d_rhythm_pp 가 그 재실행 산포이고, 격자 산포 밴드보다 자릿수로 작다 — 팔 사이 차이를 읽을 때의 공짜 재현성 앵커.",
+ "alias_bit_identity_checks": [
+  {
+   "a": "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192",
+   "b": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1",
+   "el": 0.0,
+   "bit_identical": false,
+   "d_moving_power_db": 0.0,
+   "d_rhythm_pp": 0.0,
+   "abs_rho_ac": 1.0
+  },
+  {
+   "a": "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192",
+   "b": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1",
+   "el": -30.0,
+   "bit_identical": false,
+   "d_moving_power_db": 0.0,
+   "d_rhythm_pp": 0.0,
+   "abs_rho_ac": 1.0
+  },
+  {
+   "a": "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192",
+   "b": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1",
+   "el": -60.0,
+   "bit_identical": false,
+   "d_moving_power_db": 0.0,
+   "d_rhythm_pp": 0.0,
+   "abs_rho_ac": 1.0
+  },
+  {
+   "a": "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192",
+   "b": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1",
+   "el": 0.0,
+   "bit_identical": false,
+   "d_moving_power_db": 0.0,
+   "d_rhythm_pp": 0.0,
+   "abs_rho_ac": 1.0
+  },
+  {
+   "a": "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192",
+   "b": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1",
+   "el": -30.0,
+   "bit_identical": false,
+   "d_moving_power_db": 0.0,
+   "d_rhythm_pp": 0.0,
+   "abs_rho_ac": 1.0
+  },
+  {
+   "a": "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192",
+   "b": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1",
+   "el": -60.0,
+   "bit_identical": false,
+   "d_moving_power_db": 0.0,
+   "d_rhythm_pp": 0.0,
+   "abs_rho_ac": 1.0
+  }
+ ],
+ "completion_from_inventory": {
+  "planned_cells": 76,
+  "filled": 76,
+  "missing": 0,
+  "structurally_unfillable": [
+   {
+    "cell": "PS다끔/격자 div24 el0·el-30",
+    "queued_lines": 4,
+    "why_ko": "--div 는 sionna 엔진 태그에 안 붙는다(benchmark/elevation_sweep_md.py L356-363 tagp) — 기존 d1 샤드명과 충돌해 «건너뜀». 격자(λ/div PO 적분격자)는 우리 커널 전용 축이라 PathSolver 에 대응물이 없다. 원장 오염은 없음(exists→skip)."
+   },
+   {
+    "cell": "PS굴절만/격자 div24 el0·el-30",
+    "queued_lines": 4,
+    "why_ko": "위와 동일 — onlyrefr 태그에도 _div 가 안 붙어 기존 샤드와 충돌·건너뜀."
+   }
+  ],
+  "true_shard_gaps": [
+   {
+    "engine": "sionna_p4000000000",
+    "el_deg": -75.0,
+    "covered": 2048,
+    "n_poses": 4096,
+    "note_ko": "10 m 레거시 판 — R17 이 이미 제외 처리, 이번 큐 계획 밖"
+   }
+  ]
+ },
+ "matrix": {
+  "ours": {
+   "label": "내 커널 (SBR+PO)",
+   "axes": {
+    "elevation": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 63.3,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 47.8,
+       "moving_power_db": -70.4,
+       "ac_over_dc": 0.02563,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_r15_n8192"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 72.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 40.5,
+       "moving_power_db": -71.05,
+       "ac_over_dc": 0.0104,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 42.9,
+       "moving_power_db": -69.11,
+       "ac_over_dc": 0.274,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_r15_n8192"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 49.7,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 47.1,
+       "moving_power_db": -67.19,
+       "ac_over_dc": 0.1323,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 52.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.4,
+       "moving_power_db": -66.04,
+       "ac_over_dc": 0.7988,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_r15_n8192"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 46.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -57.71,
+       "ac_over_dc": 0.08826,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_r15_n8192"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 64.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -81.56,
+       "ac_over_dc": 9.403e-05,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "engine": "ours_r15_n8192"
+      }
+     ]
+    },
+    "airframe": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 65.9,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 47.5,
+       "moving_power_db": -74.44,
+       "ac_over_dc": 0.0297,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 65.8,
+       "rhythm_null_pct": 8.6,
+       "comb_contrast_db": 35.5,
+       "moving_power_db": -79.6,
+       "ac_over_dc": 0.01044,
+       "beat_hz": 367.6,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.0,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 39.8,
+       "moving_power_db": -77.61,
+       "ac_over_dc": 0.01864,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 72.3,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 46.3,
+       "moving_power_db": -72.62,
+       "ac_over_dc": 0.01598,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 58.8,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -68.34,
+       "ac_over_dc": 0.03677,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 57.5,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -72.32,
+       "ac_over_dc": 0.002909,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 61.3,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -86.18,
+       "ac_over_dc": 0.001426,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "drone": "mini5pro",
+       "engine": "ours_mini5pro_r15_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 52.7,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 38.6,
+       "moving_power_db": -65.73,
+       "ac_over_dc": 0.001451,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 49.4,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 31.8,
+       "moving_power_db": -65.66,
+       "ac_over_dc": 0.002194,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 70.4,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 32.4,
+       "moving_power_db": -65.22,
+       "ac_over_dc": 0.02496,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 49.4,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 41.2,
+       "moving_power_db": -61.48,
+       "ac_over_dc": 0.0348,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 80.6,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 43.7,
+       "moving_power_db": -57.39,
+       "ac_over_dc": 0.04913,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 82.5,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 51.6,
+       "moving_power_db": -54.62,
+       "ac_over_dc": 0.501,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 99.4,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": null,
+       "moving_power_db": -54.93,
+       "ac_over_dc": 0.003714,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "drone": "s1000plus",
+       "engine": "ours_s1000plus_r15_n8192"
+      }
+     ]
+    },
+    "azimuth": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 89.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.0,
+       "moving_power_db": -67.78,
+       "ac_over_dc": 0.06763,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 15,
+       "engine": "ours_r15_n8192_az15"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 61.3,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 46.1,
+       "moving_power_db": -70.03,
+       "ac_over_dc": 0.006147,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 22.5,
+       "engine": "ours_r15_n8192_az22.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 87.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 41.4,
+       "moving_power_db": -69.0,
+       "ac_over_dc": 0.03744,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 22.5,
+       "engine": "ours_r15_n8192_az22.5"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 53.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 53.6,
+       "moving_power_db": -64.84,
+       "ac_over_dc": 0.4792,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 22.5,
+       "engine": "ours_r15_n8192_az22.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 87.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 41.7,
+       "moving_power_db": -69.44,
+       "ac_over_dc": 0.01527,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 30,
+       "engine": "ours_r15_n8192_az30"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 50.3,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.0,
+       "moving_power_db": -69.85,
+       "ac_over_dc": 0.04172,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "ours_r15_n8192_az45"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 86.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 41.3,
+       "moving_power_db": -68.75,
+       "ac_over_dc": 0.3273,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "ours_r15_n8192_az45"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 51.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 53.5,
+       "moving_power_db": -62.61,
+       "ac_over_dc": 0.1207,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "ours_r15_n8192_az45"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 64.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -81.56,
+       "ac_over_dc": 9.403e-05,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "az": 45,
+       "engine": "ours_r15_n8192_az45"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 89.4,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.2,
+       "moving_power_db": -67.51,
+       "ac_over_dc": 0.09457,
+       "beat_hz": 252.2,
+       "n_missing": 0,
+       "flags": [],
+       "az": 60,
+       "engine": "ours_r15_n8192_az60"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 54.7,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 47.8,
+       "moving_power_db": -69.77,
+       "ac_over_dc": 0.01268,
+       "beat_hz": 252.2,
+       "n_missing": 0,
+       "flags": [],
+       "az": 67.5,
+       "engine": "ours_r15_n8192_az67.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 86.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 44.2,
+       "moving_power_db": -67.51,
+       "ac_over_dc": 0.0706,
+       "beat_hz": 252.2,
+       "n_missing": 0,
+       "flags": [],
+       "az": 67.5,
+       "engine": "ours_r15_n8192_az67.5"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 54.1,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 55.4,
+       "moving_power_db": -61.48,
+       "ac_over_dc": 0.05335,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 67.5,
+       "engine": "ours_r15_n8192_az67.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 84.6,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 39.9,
+       "moving_power_db": -68.22,
+       "ac_over_dc": 0.03679,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 75,
+       "engine": "ours_r15_n8192_az75"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 84.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 40.8,
+       "moving_power_db": -68.77,
+       "ac_over_dc": 0.008415,
+       "beat_hz": 254.6,
+       "n_missing": 0,
+       "flags": [],
+       "az": 90,
+       "engine": "ours_r15_n8192_az90"
+      }
+     ]
+    },
+    "range": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 63.6,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.0,
+       "moving_power_db": -70.41,
+       "ac_over_dc": 0.02636,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "ours_r30_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.1,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.4,
+       "moving_power_db": -68.94,
+       "ac_over_dc": 0.2937,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "ours_r30_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 53.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.2,
+       "moving_power_db": -66.05,
+       "ac_over_dc": 0.6685,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "ours_r30_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 63.7,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.1,
+       "moving_power_db": -70.41,
+       "ac_over_dc": 0.02671,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "ours_r60_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.6,
+       "moving_power_db": -68.85,
+       "ac_over_dc": 0.3025,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "ours_r60_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 53.1,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.2,
+       "moving_power_db": -66.05,
+       "ac_over_dc": 0.6063,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "ours_r60_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 63.8,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.2,
+       "moving_power_db": -70.42,
+       "ac_over_dc": 0.02689,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "ours_r120_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 82.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.7,
+       "moving_power_db": -68.81,
+       "ac_over_dc": 0.3064,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "ours_r120_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 53.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.1,
+       "moving_power_db": -66.05,
+       "ac_over_dc": 0.5768,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "ours_r120_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 63.8,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.2,
+       "moving_power_db": -70.42,
+       "ac_over_dc": 0.02697,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 240,
+       "engine": "ours_r240_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 82.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.7,
+       "moving_power_db": -68.79,
+       "ac_over_dc": 0.3083,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 240,
+       "engine": "ours_r240_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 63.8,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.2,
+       "moving_power_db": -70.42,
+       "ac_over_dc": 0.02702,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 480,
+       "engine": "ours_r480_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 82.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.7,
+       "moving_power_db": -68.78,
+       "ac_over_dc": 0.3093,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 480,
+       "engine": "ours_r480_n8192"
+      }
+     ]
+    },
+    "airframe_x_range": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 65.9,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 47.5,
+       "moving_power_db": -74.43,
+       "ac_over_dc": 0.02991,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 30,
+       "engine": "ours_mini5pro_r30_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.0,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 39.7,
+       "moving_power_db": -77.65,
+       "ac_over_dc": 0.01799,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 30,
+       "engine": "ours_mini5pro_r30_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 65.9,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 47.5,
+       "moving_power_db": -74.42,
+       "ac_over_dc": 0.03002,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 60,
+       "engine": "ours_mini5pro_r60_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.0,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 39.7,
+       "moving_power_db": -77.67,
+       "ac_over_dc": 0.01769,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 60,
+       "engine": "ours_mini5pro_r60_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 65.9,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 47.5,
+       "moving_power_db": -74.42,
+       "ac_over_dc": 0.03007,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 120,
+       "engine": "ours_mini5pro_r120_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.1,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 39.7,
+       "moving_power_db": -77.68,
+       "ac_over_dc": 0.01754,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 120,
+       "engine": "ours_mini5pro_r120_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 52.3,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 38.4,
+       "moving_power_db": -65.96,
+       "ac_over_dc": 0.001259,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 30,
+       "engine": "ours_s1000plus_r30_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 73.7,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 33.0,
+       "moving_power_db": -64.53,
+       "ac_over_dc": 0.03305,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 30,
+       "engine": "ours_s1000plus_r30_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 51.3,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 38.1,
+       "moving_power_db": -66.07,
+       "ac_over_dc": 0.001199,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 60,
+       "engine": "ours_s1000plus_r60_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 74.8,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 33.1,
+       "moving_power_db": -64.32,
+       "ac_over_dc": 0.0372,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 60,
+       "engine": "ours_s1000plus_r60_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 50.7,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 37.9,
+       "moving_power_db": -66.11,
+       "ac_over_dc": 0.00118,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 120,
+       "engine": "ours_s1000plus_r120_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 75.3,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 33.2,
+       "moving_power_db": -64.25,
+       "ac_over_dc": 0.03925,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 120,
+       "engine": "ours_s1000plus_r120_n8192"
+      }
+     ]
+    },
+    "airframe_x_azimuth": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 66.9,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 49.1,
+       "moving_power_db": -73.34,
+       "ac_over_dc": 0.009368,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "az": 22.5,
+       "engine": "ours_mini5pro_r15_n8192_az22.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 84.3,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 45.1,
+       "moving_power_db": -75.64,
+       "ac_over_dc": 0.01152,
+       "beat_hz": 367.6,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "az": 22.5,
+       "engine": "ours_mini5pro_r15_n8192_az22.5"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 49.9,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 40.4,
+       "moving_power_db": -64.03,
+       "ac_over_dc": 0.007364,
+       "beat_hz": 297.9,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "az": 22.5,
+       "engine": "ours_s1000plus_r15_n8192_az22.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 75.7,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 35.9,
+       "moving_power_db": -62.77,
+       "ac_over_dc": 0.002774,
+       "beat_hz": 297.9,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "az": 22.5,
+       "engine": "ours_s1000plus_r15_n8192_az22.5"
+      }
+     ]
+    },
+    "grid": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 51.5,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 47.7,
+       "moving_power_db": -74.26,
+       "ac_over_dc": 0.04722,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 72.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 44.6,
+       "moving_power_db": -72.36,
+       "ac_over_dc": 0.005349,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 61.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 47.5,
+       "moving_power_db": -69.48,
+       "ac_over_dc": 0.3637,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 36.8,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 51.7,
+       "moving_power_db": -67.1,
+       "ac_over_dc": 0.08823,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 68.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 49.4,
+       "moving_power_db": -66.06,
+       "ac_over_dc": 0.4466,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 43.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -57.81,
+       "ac_over_dc": 0.08991,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 81.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -87.18,
+       "ac_over_dc": 2.413e-05,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "grid_div": 24,
+       "engine": "ours_r15_n8192_div24"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 55.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 50.2,
+       "moving_power_db": -72.48,
+       "ac_over_dc": 0.005221,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 48,
+       "engine": "ours_r15_n8192_div48"
+      }
+     ]
+    },
+    "material": {
+     "structural_na_ko": "N/A — 우리 커널에 두께 개념 없음(|Γ|·τ 뿐)"
+    }
+   }
+  },
+  "ours_ptd": {
+   "label": "내 커널 + PTD (모서리 회절)",
+   "axes": {
+    "elevation": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 62.9,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.0,
+       "moving_power_db": -70.38,
+       "ac_over_dc": 0.02487,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_ptd_r15_n8192"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 72.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 40.5,
+       "moving_power_db": -71.06,
+       "ac_over_dc": 0.01322,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_ptd_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 42.9,
+       "moving_power_db": -69.12,
+       "ac_over_dc": 0.5175,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_ptd_r15_n8192"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 49.7,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 47.1,
+       "moving_power_db": -67.19,
+       "ac_over_dc": 0.3458,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_ptd_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 52.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.4,
+       "moving_power_db": -66.04,
+       "ac_over_dc": 0.5142,
+       "beat_hz": 254.6,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_ptd_r15_n8192"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 46.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -57.71,
+       "ac_over_dc": 0.1192,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "ours_ptd_r15_n8192"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 64.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -81.56,
+       "ac_over_dc": 8.928e-05,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "engine": "ours_ptd_r15_n8192"
+      }
+     ]
+    },
+    "airframe": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.0,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 39.8,
+       "moving_power_db": -77.61,
+       "ac_over_dc": 0.02054,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "ours_ptd_mini5pro_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 70.4,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 32.4,
+       "moving_power_db": -65.22,
+       "ac_over_dc": 0.03478,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "ours_ptd_s1000plus_r15_n8192"
+      }
+     ]
+    },
+    "azimuth": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 87.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 41.4,
+       "moving_power_db": -69.01,
+       "ac_over_dc": 0.05157,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 22.5,
+       "engine": "ours_ptd_r15_n8192_az22.5"
+      }
+     ]
+    },
+    "range": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.3,
+       "moving_power_db": -68.95,
+       "ac_over_dc": 0.5526,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "ours_ptd_r30_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 82.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.5,
+       "moving_power_db": -68.86,
+       "ac_over_dc": 0.5719,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "ours_ptd_r60_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 82.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.6,
+       "moving_power_db": -68.82,
+       "ac_over_dc": 0.5821,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "ours_ptd_r120_n8192"
+      }
+     ]
+    },
+    "grid": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 61.6,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 47.5,
+       "moving_power_db": -69.5,
+       "ac_over_dc": 0.1563,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "grid_div": 24,
+       "engine": "ours_ptd_r15_n8192_div24"
+      }
+     ]
+    },
+    "material": {
+     "structural_na_ko": "N/A — 우리 커널에 두께 개념 없음"
+    }
+   }
+  },
+  "ps_alloff": {
+   "label": "PathSolver 다 끔 (R0D0E0·확산켬·d1)",
+   "axes": {
+    "elevation": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 13.1,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": -0.8,
+       "moving_power_db": -94.3,
+       "ac_over_dc": 0.000784,
+       "beat_hz": 84.9,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 81.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.4,
+       "moving_power_db": -145.33,
+       "ac_over_dc": 0.002259,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 80.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 52.0,
+       "moving_power_db": -135.66,
+       "ac_over_dc": 0.5812,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 84.1,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 54.1,
+       "moving_power_db": -129.61,
+       "ac_over_dc": 0.2538,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 86.6,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 48.3,
+       "moving_power_db": -129.72,
+       "ac_over_dc": 0.1274,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 95.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -119.73,
+       "ac_over_dc": 0.2005,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 98.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -135.72,
+       "ac_over_dc": 0.01665,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "engine": "sionna_p4000000000_r15_n8192_d1"
+      }
+     ]
+    },
+    "airframe": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 8.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 0.0,
+       "moving_power_db": -97.66,
+       "ac_over_dc": 0.0008234,
+       "beat_hz": 365.2,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 80.4,
+       "rhythm_null_pct": 8.6,
+       "comb_contrast_db": 42.9,
+       "moving_power_db": -156.43,
+       "ac_over_dc": 0.01806,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 88.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 47.0,
+       "moving_power_db": -147.28,
+       "ac_over_dc": 0.06671,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 93.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 53.5,
+       "moving_power_db": -134.18,
+       "ac_over_dc": 0.2461,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 89.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -131.13,
+       "ac_over_dc": 0.1365,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 93.2,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -134.52,
+       "ac_over_dc": 0.04102,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 96.5,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -143.67,
+       "ac_over_dc": 0.003507,
+       "beat_hz": 367.6,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 27.9,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 26.7,
+       "moving_power_db": -141.11,
+       "ac_over_dc": 3.973e-05,
+       "beat_hz": 891.3,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 24.0,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 25.2,
+       "moving_power_db": -138.15,
+       "ac_over_dc": 0.001382,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 36.3,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 39.6,
+       "moving_power_db": -133.3,
+       "ac_over_dc": 0.006401,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 61.5,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 47.0,
+       "moving_power_db": -123.53,
+       "ac_over_dc": 0.01212,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 90.0,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 47.4,
+       "moving_power_db": -120.94,
+       "ac_over_dc": 0.01358,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 18.7,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 23.7,
+       "moving_power_db": -111.62,
+       "ac_over_dc": 0.04675,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 22.6,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": null,
+       "moving_power_db": -107.47,
+       "ac_over_dc": 0.0006634,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_s1000plus_r15_n8192_d1"
+      }
+     ]
+    },
+    "azimuth": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 83.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 52.7,
+       "moving_power_db": -135.19,
+       "ac_over_dc": 0.1688,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 22.5,
+       "engine": "sionna_p4000000000_r15_n8192_az22.5_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 82.0,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 45.3,
+       "moving_power_db": -145.41,
+       "ac_over_dc": 0.003087,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "sionna_p4000000000_r15_n8192_az45_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 84.4,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 53.0,
+       "moving_power_db": -133.57,
+       "ac_over_dc": 0.6621,
+       "beat_hz": 128.5,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "sionna_p4000000000_r15_n8192_az45_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 88.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 56.4,
+       "moving_power_db": -125.65,
+       "ac_over_dc": 0.1641,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "sionna_p4000000000_r15_n8192_az45_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 98.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -135.72,
+       "ac_over_dc": 0.01665,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "az": 45,
+       "engine": "sionna_p4000000000_r15_n8192_az45_d1"
+      }
+     ]
+    },
+    "range": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 12.3,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": -1.3,
+       "moving_power_db": -104.37,
+       "ac_over_dc": 0.0003115,
+       "beat_hz": 143.1,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "range_m": 30,
+       "engine": "sionna_p4000000000_r30_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 80.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 46.8,
+       "moving_power_db": -151.91,
+       "ac_over_dc": 0.2677,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "sionna_p4000000000_r30_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 89.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.2,
+       "moving_power_db": -146.86,
+       "ac_over_dc": 0.1276,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "sionna_p4000000000_r30_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 12.3,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 0.2,
+       "moving_power_db": -115.0,
+       "ac_over_dc": 0.0001085,
+       "beat_hz": 38.8,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "range_m": 60,
+       "engine": "sionna_p4000000000_r60_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 84.1,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 41.2,
+       "moving_power_db": -167.89,
+       "ac_over_dc": 0.7511,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "sionna_p4000000000_r60_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 83.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 43.0,
+       "moving_power_db": -162.2,
+       "ac_over_dc": 0.4138,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "sionna_p4000000000_r60_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 12.5,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": -0.0,
+       "moving_power_db": -125.29,
+       "ac_over_dc": 4.068e-05,
+       "beat_hz": 46.1,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "range_m": 120,
+       "engine": "sionna_p4000000000_r120_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 81.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 40.5,
+       "moving_power_db": -180.62,
+       "ac_over_dc": 0.1397,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "sionna_p4000000000_r120_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 87.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 39.9,
+       "moving_power_db": -173.11,
+       "ac_over_dc": 0.7613,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "sionna_p4000000000_r120_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 92.1,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 54.0,
+       "moving_power_db": -193.59,
+       "ac_over_dc": 2.407e-11,
+       "beat_hz": 506.8,
+       "n_missing": 0,
+       "flags": [
+        "near_numeric_floor"
+       ],
+       "range_m": 240,
+       "engine": "sionna_p4000000000_r240_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 78.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 42.3,
+       "moving_power_db": -192.11,
+       "ac_over_dc": 0.3753,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 240,
+       "engine": "sionna_p4000000000_r240_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": null,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": null,
+       "moving_power_db": null,
+       "ac_over_dc": 6.323e-33,
+       "beat_hz": null,
+       "n_missing": 0,
+       "flags": [
+        "no_motion"
+       ],
+       "range_m": 480,
+       "engine": "sionna_p4000000000_r480_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": null,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": null,
+       "ac_over_dc": 0.8749,
+       "beat_hz": null,
+       "n_missing": 5287,
+       "flags": [
+        "incomplete"
+       ],
+       "range_m": 480,
+       "engine": "sionna_p4000000000_r480_n8192_d1"
+      }
+     ]
+    },
+    "airframe_x_range": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 9.2,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": -0.6,
+       "moving_power_db": -108.01,
+       "ac_over_dc": 0.0003052,
+       "beat_hz": 442.6,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "drone": "mini5pro",
+       "range_m": 30,
+       "engine": "sionna_p4000000000_mini5pro_r30_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 88.6,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 45.3,
+       "moving_power_db": -162.82,
+       "ac_over_dc": 0.1634,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 30,
+       "engine": "sionna_p4000000000_mini5pro_r30_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 87.8,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 43.6,
+       "moving_power_db": -180.22,
+       "ac_over_dc": 7.347e-11,
+       "beat_hz": 549.0,
+       "n_missing": 0,
+       "flags": [
+        "near_numeric_floor"
+       ],
+       "drone": "mini5pro",
+       "range_m": 60,
+       "engine": "sionna_p4000000000_mini5pro_r60_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 87.2,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 45.2,
+       "moving_power_db": -175.09,
+       "ac_over_dc": 0.4061,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 60,
+       "engine": "sionna_p4000000000_mini5pro_r60_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 86.2,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 52.6,
+       "moving_power_db": -187.23,
+       "ac_over_dc": 5.865e-11,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [
+        "near_numeric_floor"
+       ],
+       "drone": "mini5pro",
+       "range_m": 120,
+       "engine": "sionna_p4000000000_mini5pro_r120_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 82.9,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 44.5,
+       "moving_power_db": -188.14,
+       "ac_over_dc": 0.2847,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "range_m": 120,
+       "engine": "sionna_p4000000000_mini5pro_r120_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 37.6,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 29.5,
+       "moving_power_db": -156.02,
+       "ac_over_dc": 8.644e-05,
+       "beat_hz": 743.5,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 30,
+       "engine": "sionna_p4000000000_s1000plus_r30_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 45.6,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 36.2,
+       "moving_power_db": -149.83,
+       "ac_over_dc": 0.00936,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 30,
+       "engine": "sionna_p4000000000_s1000plus_r30_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 46.4,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 29.9,
+       "moving_power_db": -169.66,
+       "ac_over_dc": 0.0001844,
+       "beat_hz": 595.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 60,
+       "engine": "sionna_p4000000000_s1000plus_r60_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 41.3,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 32.9,
+       "moving_power_db": -165.46,
+       "ac_over_dc": 0.002809,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 60,
+       "engine": "sionna_p4000000000_s1000plus_r60_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 54.2,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 25.4,
+       "moving_power_db": -183.36,
+       "ac_over_dc": 0.0005646,
+       "beat_hz": 746.0,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 120,
+       "engine": "sionna_p4000000000_s1000plus_r120_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 49.6,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 23.1,
+       "moving_power_db": -177.98,
+       "ac_over_dc": 0.005935,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "range_m": 120,
+       "engine": "sionna_p4000000000_s1000plus_r120_n8192_d1"
+      }
+     ]
+    },
+    "grid": {
+     "structural_na_ko": "N/A — λ/div PO 적분격자는 우리 커널 전용 축(PathSolver 에 대응물 없음)"
+    },
+    "material": {
+     "note_ko": "⭐셸 두께(0.5/0.75/1.5 mm ↔ 기본 100 mm)는 el −30 에서 **요동(AC)을 0.00 dB 도 안 움직인다**(전부 −135.66 dB) — 움직이는 것은 DC(동체 정지 성분)뿐(−137.1 → −144.2/−143.3/−141.2 dB). 반면 프롭 두께 0.9 mm 는 AC 를 **−16.99 dB** 내린다(−135.66 → −152.65, 리듬 80.5→75.3 %·빗살 52.0→45.0 dB — 무늬는 생존). 원장 level_db(DC 포함)로 셸 효과를 읽으면 AC/DC 잣대 함정에 걸린다 — 재질 정정(MATERIAL_CORRECTION.md)의 마이크로도플러 파급은 프롭 두께 항이 전부다.",
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 80.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 52.0,
+       "moving_power_db": -135.66,
+       "ac_over_dc": 0.8777,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "shell_mm": 0.5,
+       "engine": "sionna_p4000000000_r15_n8192_shell0.5mm_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 80.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 52.0,
+       "moving_power_db": -135.66,
+       "ac_over_dc": 0.8539,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "shell_mm": 0.75,
+       "engine": "sionna_p4000000000_r15_n8192_shell0.75mm_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 80.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 52.0,
+       "moving_power_db": -135.66,
+       "ac_over_dc": 0.7828,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "shell_mm": 1.5,
+       "engine": "sionna_p4000000000_r15_n8192_shell1.5mm_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 13.1,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": -0.8,
+       "moving_power_db": -94.3,
+       "ac_over_dc": 0.0007841,
+       "beat_hz": 84.9,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "shell_mm": 0.75,
+       "prop_mm": 0.9,
+       "engine": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 75.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 45.0,
+       "moving_power_db": -152.65,
+       "ac_over_dc": 0.4006,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "shell_mm": 0.75,
+       "prop_mm": 0.9,
+       "engine": "sionna_p4000000000_r15_n8192_shell0.75mm_prop0.9mm_d1"
+      }
+     ]
+    },
+    "parts": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 89.7,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 48.4,
+       "moving_power_db": -146.68,
+       "ac_over_dc": 0.2335,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "parts": "prop",
+       "engine": "sionna_p4000000000_partsprop_r15_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 81.5,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 51.8,
+       "moving_power_db": -135.47,
+       "ac_over_dc": 0.947,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "parts": "prop",
+       "engine": "sionna_p4000000000_partsprop_r15_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 86.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 48.3,
+       "moving_power_db": -129.55,
+       "ac_over_dc": 0.8068,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "parts": "prop",
+       "engine": "sionna_p4000000000_partsprop_r15_n8192_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 99.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -132.67,
+       "ac_over_dc": 0.002632,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "parts": "prop",
+       "engine": "sionna_p4000000000_partsprop_r15_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": null,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": null,
+       "moving_power_db": null,
+       "ac_over_dc": 7.542e-33,
+       "beat_hz": null,
+       "n_missing": 0,
+       "flags": [
+        "no_motion"
+       ],
+       "parts": "noprop",
+       "engine": "sionna_p4000000000_partsnoprop_r15_n8192_d1"
+      }
+     ]
+    }
+   }
+  },
+  "ps_onlyrefr": {
+   "label": "PathSolver 굴절만 (R1D0E0·확산켬·d1)",
+   "axes": {
+    "elevation": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 13.3,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 0.3,
+       "moving_power_db": -96.87,
+       "ac_over_dc": 0.0004332,
+       "beat_hz": 21.8,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 61.3,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 28.6,
+       "moving_power_db": -148.22,
+       "ac_over_dc": 0.009317,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 62.1,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 37.5,
+       "moving_power_db": -141.03,
+       "ac_over_dc": 0.3844,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 64.9,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 37.1,
+       "moving_power_db": -135.69,
+       "ac_over_dc": 0.512,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 64.0,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 28.9,
+       "moving_power_db": -136.12,
+       "ac_over_dc": 0.2124,
+       "beat_hz": 128.5,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 57.1,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -129.71,
+       "ac_over_dc": 0.1164,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 61.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": null,
+       "moving_power_db": -137.23,
+       "ac_over_dc": 0.1933,
+       "beat_hz": 123.7,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192"
+      }
+     ]
+    },
+    "airframe": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 8.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": -0.8,
+       "moving_power_db": -103.51,
+       "ac_over_dc": 0.0002136,
+       "beat_hz": 522.4,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 71.0,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 36.2,
+       "moving_power_db": -150.99,
+       "ac_over_dc": 0.6114,
+       "beat_hz": 181.4,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 59.2,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -138.29,
+       "ac_over_dc": 0.2259,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "engine": "sionna_p4000000000_onlyrefr_mini5pro_r15_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 30.3,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 22.0,
+       "moving_power_db": -140.95,
+       "ac_over_dc": 4.138e-05,
+       "beat_hz": 746.0,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 36.5,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 30.2,
+       "moving_power_db": -136.81,
+       "ac_over_dc": 0.002806,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 65.7,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 32.5,
+       "moving_power_db": -127.39,
+       "ac_over_dc": 0.002998,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "engine": "sionna_p4000000000_onlyrefr_s1000plus_r15_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 8.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": -0.8,
+       "moving_power_db": -103.51,
+       "ac_over_dc": 0.0002136,
+       "beat_hz": 522.4,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 49.2,
+       "rhythm_null_pct": 8.6,
+       "comb_contrast_db": 28.7,
+       "moving_power_db": -156.78,
+       "ac_over_dc": 0.02917,
+       "beat_hz": 367.6,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 71.0,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 36.2,
+       "moving_power_db": -150.99,
+       "ac_over_dc": 0.6114,
+       "beat_hz": 181.4,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 60.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": 39.3,
+       "moving_power_db": -140.58,
+       "ac_over_dc": 0.2634,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 59.2,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -138.29,
+       "ac_over_dc": 0.2259,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 54.4,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -139.55,
+       "ac_over_dc": 0.064,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 45.7,
+       "rhythm_null_pct": 8.7,
+       "comb_contrast_db": null,
+       "moving_power_db": -144.05,
+       "ac_over_dc": 0.03457,
+       "beat_hz": 183.8,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate"
+       ],
+       "drone": "mini5pro",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_mini5pro_r15_n8192_d1"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 30.3,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 22.0,
+       "moving_power_db": -140.95,
+       "ac_over_dc": 4.138e-05,
+       "beat_hz": 746.0,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -15.0,
+       "rhythm_share_pct": 25.6,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 20.7,
+       "moving_power_db": -138.74,
+       "ac_over_dc": 0.001532,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 36.5,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 30.2,
+       "moving_power_db": -136.81,
+       "ac_over_dc": 0.002806,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -45.0,
+       "rhythm_share_pct": 51.4,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 32.0,
+       "moving_power_db": -129.87,
+       "ac_over_dc": 0.003082,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -60.0,
+       "rhythm_share_pct": 65.7,
+       "rhythm_null_pct": 10.9,
+       "comb_contrast_db": 32.5,
+       "moving_power_db": -127.39,
+       "ac_over_dc": 0.002998,
+       "beat_hz": 147.7,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -75.0,
+       "rhythm_share_pct": 18.4,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": 14.1,
+       "moving_power_db": -114.0,
+       "ac_over_dc": 0.03813,
+       "beat_hz": 150.2,
+       "n_missing": 0,
+       "flags": [],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      },
+      {
+       "el": -90.0,
+       "rhythm_share_pct": 13.5,
+       "rhythm_null_pct": 10.8,
+       "comb_contrast_db": null,
+       "moving_power_db": -115.0,
+       "ac_over_dc": 0.0001177,
+       "beat_hz": 55.7,
+       "n_missing": 0,
+       "flags": [
+        "tip_ceiling_degenerate",
+        "beat_spiky"
+       ],
+       "drone": "s1000plus",
+       "note": "동일 물리(R1D0E0F1·d1) 7앙각판",
+       "engine": "sionna_p4000000000_swR1D0E0F1_s1000plus_r15_n8192_d1"
+      }
+     ]
+    },
+    "azimuth": {
+     "cells": [
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 64.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 37.4,
+       "moving_power_db": -140.46,
+       "ac_over_dc": 0.2899,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "az": 22.5,
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192_az22.5"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 64.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 38.2,
+       "moving_power_db": -140.48,
+       "ac_over_dc": 0.631,
+       "beat_hz": 128.5,
+       "n_missing": 0,
+       "flags": [],
+       "az": 45,
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192_az45"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 63.9,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 39.9,
+       "moving_power_db": -138.86,
+       "ac_over_dc": 0.6096,
+       "beat_hz": 252.2,
+       "n_missing": 0,
+       "flags": [],
+       "az": 67.5,
+       "engine": "sionna_p4000000000_onlyrefr_r15_n8192_az67.5"
+      }
+     ]
+    },
+    "range": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 12.6,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 0.0,
+       "moving_power_db": -108.44,
+       "ac_over_dc": 0.000122,
+       "beat_hz": 55.8,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "range_m": 30,
+       "engine": "sionna_p4000000000_onlyrefr_r30_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 63.6,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 33.0,
+       "moving_power_db": -156.64,
+       "ac_over_dc": 0.3444,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 30,
+       "engine": "sionna_p4000000000_onlyrefr_r30_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 12.6,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": -0.1,
+       "moving_power_db": -121.01,
+       "ac_over_dc": 2.712e-05,
+       "beat_hz": 21.8,
+       "n_missing": 0,
+       "flags": [
+        "beat_spiky"
+       ],
+       "range_m": 60,
+       "engine": "sionna_p4000000000_onlyrefr_r60_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 69.7,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 31.0,
+       "moving_power_db": -169.73,
+       "ac_over_dc": 0.181,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 60,
+       "engine": "sionna_p4000000000_onlyrefr_r60_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 43.9,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 28.5,
+       "moving_power_db": -189.23,
+       "ac_over_dc": 1.639e-11,
+       "beat_hz": 380.7,
+       "n_missing": 0,
+       "flags": [
+        "near_numeric_floor"
+       ],
+       "range_m": 120,
+       "engine": "sionna_p4000000000_onlyrefr_r120_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 66.2,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 28.5,
+       "moving_power_db": -180.91,
+       "ac_over_dc": 0.07368,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 120,
+       "engine": "sionna_p4000000000_onlyrefr_r120_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 56.1,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 24.4,
+       "moving_power_db": -193.91,
+       "ac_over_dc": 2.235e-11,
+       "beat_hz": 506.8,
+       "n_missing": 0,
+       "flags": [
+        "near_numeric_floor"
+       ],
+       "range_m": 240,
+       "engine": "sionna_p4000000000_onlyrefr_r240_n8192"
+      },
+      {
+       "el": -30.0,
+       "rhythm_share_pct": 68.8,
+       "rhythm_null_pct": 12.6,
+       "comb_contrast_db": 28.2,
+       "moving_power_db": -193.18,
+       "ac_over_dc": 0.6525,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "range_m": 240,
+       "engine": "sionna_p4000000000_onlyrefr_r240_n8192"
+      }
+     ]
+    },
+    "grid": {
+     "structural_na_ko": "N/A — 위와 동일(우리 커널 전용 축)"
+    },
+    "material": {
+     "structural_na_ko": "N/A — 이번 큐 계획에 없음(두께 팔은 다끔에서만)"
+    },
+    "parts": {
+     "cells": [
+      {
+       "el": 0.0,
+       "rhythm_share_pct": 53.0,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": 29.4,
+       "moving_power_db": -148.84,
+       "ac_over_dc": 0.9148,
+       "beat_hz": 126.1,
+       "n_missing": 0,
+       "flags": [],
+       "parts": "prop",
+       "engine": "sionna_p4000000000_onlyrefr_partsprop_r15_n8192"
+      },
+      {
+       "el": 0.0,
+       "rhythm_share_pct": null,
+       "rhythm_null_pct": 12.5,
+       "comb_contrast_db": null,
+       "moving_power_db": null,
+       "ac_over_dc": 3.1e-32,
+       "beat_hz": null,
+       "n_missing": 0,
+       "flags": [
+        "no_motion"
+       ],
+       "parts": "noprop",
+       "engine": "sionna_p4000000000_onlyrefr_partsnoprop_r15_n8192"
+      }
+     ]
+    }
+   }
+  },
+  "ps_edgeonly": {
+   "label": "PathSolver 모서리만",
+   "alias_of": "ps_alloff",
+   "note_ko": "≡ PS다끔과 비트동일(모서리 스위치는 회절 게이트 안 — 소스 게이트). 재계산 없음, 표·그림에 «동일 데이터» 각주로 싣는다."
+  },
+  "ps_refr_edge": {
+   "label": "PathSolver 굴절+모서리",
+   "alias_of": "ps_onlyrefr",
+   "note_ko": "≡ PS굴절만과 동일 — 별칭 표기, 재계산 없음."
+  },
+  "senior_po": {
+   "label": "선배 커널 (jihyuck PO)",
+   "note_ko": "별도 원장(outputs/jihyuck_po/ PX4 기동창 grade0-7 + bridge_cross_precise.json). 앙각×방위×거리 프레임 칸이 없는 것이 구조적 정상 — 기동창 시나리오 전용."
+  }
+ },
+ "q1_onlyrefr_airframe": {
+  "question_ko": "굴절만(R1D0E0·확산켬) 생존이 기체 불문인가",
+  "cells": {
+   "matrice4e": [
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 13.3,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": 0.3,
+     "moving_power_db": -96.87,
+     "ac_over_dc": 0.0004332,
+     "beat_hz": 21.8,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ]
+    },
+    {
+     "el": -15.0,
+     "rhythm_share_pct": 61.3,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 28.6,
+     "moving_power_db": -148.22,
+     "ac_over_dc": 0.009317,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 62.1,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 37.5,
+     "moving_power_db": -141.03,
+     "ac_over_dc": 0.3844,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -45.0,
+     "rhythm_share_pct": 64.9,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": 37.1,
+     "moving_power_db": -135.69,
+     "ac_over_dc": 0.512,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -60.0,
+     "rhythm_share_pct": 64.0,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 28.9,
+     "moving_power_db": -136.12,
+     "ac_over_dc": 0.2124,
+     "beat_hz": 128.5,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -75.0,
+     "rhythm_share_pct": 57.1,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": null,
+     "moving_power_db": -129.71,
+     "ac_over_dc": 0.1164,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -90.0,
+     "rhythm_share_pct": 61.8,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": null,
+     "moving_power_db": -137.23,
+     "ac_over_dc": 0.1933,
+     "beat_hz": 123.7,
+     "n_missing": 0,
+     "flags": [
+      "tip_ceiling_degenerate"
+     ]
+    }
+   ],
+   "mini5pro": [
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 8.7,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": -0.8,
+     "moving_power_db": -103.51,
+     "ac_over_dc": 0.0002136,
+     "beat_hz": 522.4,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ]
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 71.0,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": 36.2,
+     "moving_power_db": -150.99,
+     "ac_over_dc": 0.6114,
+     "beat_hz": 181.4,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -60.0,
+     "rhythm_share_pct": 59.2,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": null,
+     "moving_power_db": -138.29,
+     "ac_over_dc": 0.2259,
+     "beat_hz": 183.8,
+     "n_missing": 0,
+     "flags": []
+    }
+   ],
+   "s1000plus": [
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 30.3,
+     "rhythm_null_pct": 10.9,
+     "comb_contrast_db": 22.0,
+     "moving_power_db": -140.95,
+     "ac_over_dc": 4.138e-05,
+     "beat_hz": 746.0,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 36.5,
+     "rhythm_null_pct": 10.8,
+     "comb_contrast_db": 30.2,
+     "moving_power_db": -136.81,
+     "ac_over_dc": 0.002806,
+     "beat_hz": 147.7,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -60.0,
+     "rhythm_share_pct": 65.7,
+     "rhythm_null_pct": 10.9,
+     "comb_contrast_db": 32.5,
+     "moving_power_db": -127.39,
+     "ac_over_dc": 0.002998,
+     "beat_hz": 147.7,
+     "n_missing": 0,
+     "flags": []
+    }
+   ]
+  },
+  "same_physics_7el_swR1D0E0F1": {
+   "mini5pro": [
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 8.7,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": -0.8,
+     "moving_power_db": -103.51,
+     "ac_over_dc": 0.0002136,
+     "beat_hz": 522.4,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ]
+    },
+    {
+     "el": -15.0,
+     "rhythm_share_pct": 49.2,
+     "rhythm_null_pct": 8.6,
+     "comb_contrast_db": 28.7,
+     "moving_power_db": -156.78,
+     "ac_over_dc": 0.02917,
+     "beat_hz": 367.6,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 71.0,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": 36.2,
+     "moving_power_db": -150.99,
+     "ac_over_dc": 0.6114,
+     "beat_hz": 181.4,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -45.0,
+     "rhythm_share_pct": 60.7,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": 39.3,
+     "moving_power_db": -140.58,
+     "ac_over_dc": 0.2634,
+     "beat_hz": 183.8,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -60.0,
+     "rhythm_share_pct": 59.2,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": null,
+     "moving_power_db": -138.29,
+     "ac_over_dc": 0.2259,
+     "beat_hz": 183.8,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -75.0,
+     "rhythm_share_pct": 54.4,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": null,
+     "moving_power_db": -139.55,
+     "ac_over_dc": 0.064,
+     "beat_hz": 183.8,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -90.0,
+     "rhythm_share_pct": 45.7,
+     "rhythm_null_pct": 8.7,
+     "comb_contrast_db": null,
+     "moving_power_db": -144.05,
+     "ac_over_dc": 0.03457,
+     "beat_hz": 183.8,
+     "n_missing": 0,
+     "flags": [
+      "tip_ceiling_degenerate"
+     ]
+    }
+   ],
+   "s1000plus": [
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 30.3,
+     "rhythm_null_pct": 10.9,
+     "comb_contrast_db": 22.0,
+     "moving_power_db": -140.95,
+     "ac_over_dc": 4.138e-05,
+     "beat_hz": 746.0,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -15.0,
+     "rhythm_share_pct": 25.6,
+     "rhythm_null_pct": 10.8,
+     "comb_contrast_db": 20.7,
+     "moving_power_db": -138.74,
+     "ac_over_dc": 0.001532,
+     "beat_hz": 147.7,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 36.5,
+     "rhythm_null_pct": 10.8,
+     "comb_contrast_db": 30.2,
+     "moving_power_db": -136.81,
+     "ac_over_dc": 0.002806,
+     "beat_hz": 147.7,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -45.0,
+     "rhythm_share_pct": 51.4,
+     "rhythm_null_pct": 10.9,
+     "comb_contrast_db": 32.0,
+     "moving_power_db": -129.87,
+     "ac_over_dc": 0.003082,
+     "beat_hz": 147.7,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -60.0,
+     "rhythm_share_pct": 65.7,
+     "rhythm_null_pct": 10.9,
+     "comb_contrast_db": 32.5,
+     "moving_power_db": -127.39,
+     "ac_over_dc": 0.002998,
+     "beat_hz": 147.7,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -75.0,
+     "rhythm_share_pct": 18.4,
+     "rhythm_null_pct": 10.8,
+     "comb_contrast_db": 14.1,
+     "moving_power_db": -114.0,
+     "ac_over_dc": 0.03813,
+     "beat_hz": 150.2,
+     "n_missing": 0,
+     "flags": []
+    },
+    {
+     "el": -90.0,
+     "rhythm_share_pct": 13.5,
+     "rhythm_null_pct": 10.8,
+     "comb_contrast_db": null,
+     "moving_power_db": -115.0,
+     "ac_over_dc": 0.0001177,
+     "beat_hz": 55.7,
+     "n_missing": 0,
+     "flags": [
+      "tip_ceiling_degenerate",
+      "beat_spiky"
+     ]
+    }
+   ]
+  },
+  "survival": {
+   "matrice4e": {
+    "n_oblique": 5,
+    "rhythm_range_pct": [
+     57.1,
+     64.9
+    ],
+    "rhythm_margin_over_null_pp": [
+     44.5,
+     52.4
+    ],
+    "comb_range_db": [
+     28.6,
+     37.5
+    ],
+    "frontal_el0": {
+     "rhythm": 13.3,
+     "comb": 0.3
+    }
+   },
+   "mini5pro": {
+    "n_oblique": 5,
+    "rhythm_range_pct": [
+     49.2,
+     71.0
+    ],
+    "rhythm_margin_over_null_pp": [
+     40.6,
+     62.3
+    ],
+    "comb_range_db": [
+     28.7,
+     39.3
+    ],
+    "frontal_el0": {
+     "rhythm": 8.7,
+     "comb": -0.8
+    }
+   },
+   "s1000plus": {
+    "n_oblique": 5,
+    "rhythm_range_pct": [
+     18.4,
+     65.7
+    ],
+    "rhythm_margin_over_null_pp": [
+     7.6,
+     54.8
+    ],
+    "comb_range_db": [
+     14.1,
+     32.5
+    ],
+    "frontal_el0": {
+     "rhythm": 30.3,
+     "comb": 22.0
+    }
+   }
+  },
+  "verdict_ko": "예 — 빗각(−15°~−75°)에서 세 기체 전부 생존. 리듬 몫이 그 기체의 널을 matrice4e +44.5~+52.4 %p · mini5pro +40.6~+62.3 %p · s1000plus +7.6~+54.8 %p 웃돌고, 빗살 대비도 14.1~39.3 dB(백색 ≈ 0 dB)로 전부 뚜렷하다. ⚠널은 기체마다 다르다(12.5/8.7/10.8) — 리듬 몫 절대값을 기체 사이에 직접 대지 말 것. ⭐덤으로 갈린 것: **정면(0°) 익사는 기체 불문이 아니다** — matrice4e(빗살 +0.3 dB)·mini5pro(−0.8 dB)는 익사하는데 s1000plus 는 정면에서도 산다(리듬 30.3 % > 널 10.9 · 빗살 +22.0 dB). s1000plus 의 최저 칸은 −75°(리듬 18.4 %·+14.1 dB)로 여유가 얇지만 널 위다. mini5pro 의 −60° 이하 빗살 대비 None 은 결측이 아니라 대역이 좁아 정의 불가(f_tip < 3·f_flash)인 구조적 빈칸이다."
+ },
+ "q2_alloff_480m": {
+  "question_ko": "PS다끔 480 m 재실행 — 이전 «덜 참(인용 보류)» 해소 여부 + 거리축 완성",
+  "ladder": {
+   "el+0": [
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 13.1,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": -0.8,
+     "moving_power_db": -94.3,
+     "ac_over_dc": 0.000784,
+     "beat_hz": 84.9,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ],
+     "range_m": 15
+    },
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 12.3,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": -1.3,
+     "moving_power_db": -104.37,
+     "ac_over_dc": 0.0003115,
+     "beat_hz": 143.1,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ],
+     "range_m": 30
+    },
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 12.3,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": 0.2,
+     "moving_power_db": -115.0,
+     "ac_over_dc": 0.0001085,
+     "beat_hz": 38.8,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ],
+     "range_m": 60
+    },
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 12.5,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": -0.0,
+     "moving_power_db": -125.29,
+     "ac_over_dc": 4.068e-05,
+     "beat_hz": 46.1,
+     "n_missing": 0,
+     "flags": [
+      "beat_spiky"
+     ],
+     "range_m": 120
+    },
+    {
+     "el": 0.0,
+     "rhythm_share_pct": 92.1,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": 54.0,
+     "moving_power_db": -193.59,
+     "ac_over_dc": 2.407e-11,
+     "beat_hz": 506.8,
+     "n_missing": 0,
+     "flags": [
+      "near_numeric_floor"
+     ],
+     "range_m": 240
+    },
+    {
+     "el": 0.0,
+     "rhythm_share_pct": null,
+     "rhythm_null_pct": 12.5,
+     "comb_contrast_db": null,
+     "moving_power_db": null,
+     "ac_over_dc": 6.323e-33,
+     "beat_hz": null,
+     "n_missing": 0,
+     "flags": [
+      "no_motion"
+     ],
+     "range_m": 480
+    }
+   ],
+   "el-30": [
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 80.5,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 52.0,
+     "moving_power_db": -135.66,
+     "ac_over_dc": 0.5812,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": [],
+     "range_m": 15
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 80.5,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 46.8,
+     "moving_power_db": -151.91,
+     "ac_over_dc": 0.2677,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": [],
+     "range_m": 30
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 84.1,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 41.2,
+     "moving_power_db": -167.89,
+     "ac_over_dc": 0.7511,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": [],
+     "range_m": 60
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 81.3,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 40.5,
+     "moving_power_db": -180.62,
+     "ac_over_dc": 0.1397,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": [],
+     "range_m": 120
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": 78.7,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": 42.3,
+     "moving_power_db": -192.11,
+     "ac_over_dc": 0.3753,
+     "beat_hz": 126.1,
+     "n_missing": 0,
+     "flags": [],
+     "range_m": 240
+    },
+    {
+     "el": -30.0,
+     "rhythm_share_pct": null,
+     "rhythm_null_pct": 12.6,
+     "comb_contrast_db": null,
+     "moving_power_db": null,
+     "ac_over_dc": 0.8749,
+     "beat_hz": null,
+     "n_missing": 5287,
+     "flags": [
+      "incomplete"
+     ],
+     "range_m": 480
+    }
+   ]
+  },
+  "verdict_ko": "부분 해소 — **샤드는 완결됐지만 480 m 두 칸 다 인용은 여전히 못 한다**, 이유가 규명됐을 뿐이다. ① el 0: 8192/8192 전 자세 경로 있음(n_missing 0)이나 AC/DC 가 배정밀도 반올림 바닥(1e-12) 아래 = no_motion — 프롭 요동이 수치 바닥 밑으로 꺼진 칸이라 잣대 자체가 없다. ② el −30: 8192 자세 전부 계산됐고 5287(64.5 %)이 경로 0 개 — 샤드 갭이 아니라 광선 4e9 로 480 m 빗각에서 표적 경유 경로가 안 잡히는 표집 희소성. «덜 참» 딱지는 «구조적 한계(둘 다 원인 확정)» 로 갈아붙인다 — 재실행으로 메꿔질 성질이 아니다. ⭐다끔 거리축의 인용 가능 범위는 **15~240 m** 로 확정: el −30 리듬 78.7~84.1 % · 빗살 40.5~52.0 dB 완만 감쇄 생존(굴절만과 같은 모양), el 0 은 15~120 m 익사(리듬 ≈ 널 12.5 · 빗살 ≈ 0). ⚠el 0 의 240 m 리듬 92.1 %·빗살 54.0 dB 는 AC/DC ≈ 2.4e-11 — no_motion 문턱의 24배 안(near_numeric_floor)에서 잰 수라 물리로 읽지 말 것(정면 동체 요동이 거리로 줄다 바닥에 닿기 직전의 잔재. 480 m 에선 바닥 아래로 꺼진다 — 같은 현상의 연속)."
+ },
+ "q3_ptd_diff": {
+  "question_ko": "PTD−순정 차분이 기체·방위·거리·격자에서 0 유지인가(프린지 몫 포함)",
+  "pairs": {
+   "elevation": [
+    {
+     "el": 0.0,
+     "level_db_ac": 0.02,
+     "d_rhythm_pp": -0.4,
+     "d_comb_db": 0.2,
+     "fringe_share_pct": 0.478,
+     "fringe_rhythm_pct": 67.5,
+     "rhythm_null_pct": 12.5,
+     "abs_rho_ac": 0.9976,
+     "a": {
+      "el": 0.0,
+      "rhythm_share_pct": 63.3,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 47.8,
+      "moving_power_db": -70.4,
+      "ac_over_dc": 0.02563,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": 0.0,
+      "rhythm_share_pct": 62.9,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 48.0,
+      "moving_power_db": -70.38,
+      "ac_over_dc": 0.02487,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -15.0,
+     "level_db_ac": -0.01,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.025,
+     "fringe_rhythm_pct": 60.1,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -15.0,
+      "rhythm_share_pct": 72.7,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 40.5,
+      "moving_power_db": -71.05,
+      "ac_over_dc": 0.0104,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -15.0,
+      "rhythm_share_pct": 72.7,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 40.5,
+      "moving_power_db": -71.06,
+      "ac_over_dc": 0.01322,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -30.0,
+     "level_db_ac": -0.01,
+     "d_rhythm_pp": -0.1,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.024,
+     "fringe_rhythm_pct": 51.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 42.9,
+      "moving_power_db": -69.11,
+      "ac_over_dc": 0.274,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.2,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 42.9,
+      "moving_power_db": -69.12,
+      "ac_over_dc": 0.5175,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -45.0,
+     "level_db_ac": 0.0,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.0,
+     "fringe_rhythm_pct": 15.1,
+     "rhythm_null_pct": 12.5,
+     "abs_rho_ac": 1.0,
+     "a": {
+      "el": -45.0,
+      "rhythm_share_pct": 49.7,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 47.1,
+      "moving_power_db": -67.19,
+      "ac_over_dc": 0.1323,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -45.0,
+      "rhythm_share_pct": 49.7,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 47.1,
+      "moving_power_db": -67.19,
+      "ac_over_dc": 0.3458,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -60.0,
+     "level_db_ac": 0.0,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.0,
+     "fringe_rhythm_pct": 14.8,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 1.0,
+     "a": {
+      "el": -60.0,
+      "rhythm_share_pct": 52.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 45.4,
+      "moving_power_db": -66.04,
+      "ac_over_dc": 0.7988,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -60.0,
+      "rhythm_share_pct": 52.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 45.4,
+      "moving_power_db": -66.04,
+      "ac_over_dc": 0.5142,
+      "beat_hz": 254.6,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -75.0,
+     "level_db_ac": 0.0,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": null,
+     "fringe_share_pct": 0.0,
+     "fringe_rhythm_pct": 23.4,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 1.0,
+     "a": {
+      "el": -75.0,
+      "rhythm_share_pct": 46.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -57.71,
+      "ac_over_dc": 0.08826,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -75.0,
+      "rhythm_share_pct": 46.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -57.71,
+      "ac_over_dc": 0.1192,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -90.0,
+     "level_db_ac": 0.0,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": null,
+     "fringe_share_pct": 0.0,
+     "fringe_rhythm_pct": 19.0,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 1.0,
+     "a": {
+      "el": -90.0,
+      "rhythm_share_pct": 64.9,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -81.56,
+      "ac_over_dc": 9.403e-05,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": [
+       "tip_ceiling_degenerate"
+      ]
+     },
+     "b": {
+      "el": -90.0,
+      "rhythm_share_pct": 64.9,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -81.56,
+      "ac_over_dc": 8.928e-05,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": [
+       "tip_ceiling_degenerate"
+      ]
+     }
+    }
+   ],
+   "airframe_mini5pro": [
+    {
+     "el": -30.0,
+     "level_db_ac": 0.0,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.0,
+     "fringe_rhythm_pct": 32.9,
+     "rhythm_null_pct": 8.7,
+     "abs_rho_ac": 1.0,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.0,
+      "rhythm_null_pct": 8.7,
+      "comb_contrast_db": 39.8,
+      "moving_power_db": -77.61,
+      "ac_over_dc": 0.01864,
+      "beat_hz": 183.8,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.0,
+      "rhythm_null_pct": 8.7,
+      "comb_contrast_db": 39.8,
+      "moving_power_db": -77.61,
+      "ac_over_dc": 0.02054,
+      "beat_hz": 183.8,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "airframe_s1000plus": [
+    {
+     "el": -30.0,
+     "level_db_ac": 0.0,
+     "d_rhythm_pp": 0.0,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.0,
+     "fringe_rhythm_pct": 11.6,
+     "rhythm_null_pct": 10.8,
+     "abs_rho_ac": 1.0,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 70.4,
+      "rhythm_null_pct": 10.8,
+      "comb_contrast_db": 32.4,
+      "moving_power_db": -65.22,
+      "ac_over_dc": 0.02496,
+      "beat_hz": 147.7,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 70.4,
+      "rhythm_null_pct": 10.8,
+      "comb_contrast_db": 32.4,
+      "moving_power_db": -65.22,
+      "ac_over_dc": 0.03478,
+      "beat_hz": 147.7,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "azimuth_az22.5": [
+    {
+     "el": -30.0,
+     "level_db_ac": -0.01,
+     "d_rhythm_pp": -0.1,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.017,
+     "fringe_rhythm_pct": 44.6,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 87.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 41.4,
+      "moving_power_db": -69.0,
+      "ac_over_dc": 0.03744,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 87.2,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 41.4,
+      "moving_power_db": -69.01,
+      "ac_over_dc": 0.05157,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "range_r30": [
+    {
+     "el": -30.0,
+     "level_db_ac": -0.01,
+     "d_rhythm_pp": -0.1,
+     "d_comb_db": -0.1,
+     "fringe_share_pct": 0.023,
+     "fringe_rhythm_pct": 51.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.1,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 43.4,
+      "moving_power_db": -68.94,
+      "ac_over_dc": 0.2937,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.0,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 43.3,
+      "moving_power_db": -68.95,
+      "ac_over_dc": 0.5526,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "range_r60": [
+    {
+     "el": -30.0,
+     "level_db_ac": -0.01,
+     "d_rhythm_pp": -0.1,
+     "d_comb_db": -0.1,
+     "fringe_share_pct": 0.023,
+     "fringe_rhythm_pct": 51.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.0,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 43.6,
+      "moving_power_db": -68.85,
+      "ac_over_dc": 0.3025,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 82.9,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 43.5,
+      "moving_power_db": -68.86,
+      "ac_over_dc": 0.5719,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "range_r120": [
+    {
+     "el": -30.0,
+     "level_db_ac": -0.01,
+     "d_rhythm_pp": -0.1,
+     "d_comb_db": -0.1,
+     "fringe_share_pct": 0.022,
+     "fringe_rhythm_pct": 51.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 82.9,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 43.7,
+      "moving_power_db": -68.81,
+      "ac_over_dc": 0.3064,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 82.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 43.6,
+      "moving_power_db": -68.82,
+      "ac_over_dc": 0.5821,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "grid_div24": [
+    {
+     "el": -30.0,
+     "level_db_ac": -0.02,
+     "d_rhythm_pp": 0.1,
+     "d_comb_db": 0.0,
+     "fringe_share_pct": 0.026,
+     "fringe_rhythm_pct": 51.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9999,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 61.5,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 47.5,
+      "moving_power_db": -69.48,
+      "ac_over_dc": 0.3637,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 61.6,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 47.5,
+      "moving_power_db": -69.5,
+      "ac_over_dc": 0.1563,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ]
+  },
+  "summary": {
+   "extension_cells": 7,
+   "max_abs_level_db_ac": 0.02,
+   "max_abs_d_rhythm_pp": 0.1,
+   "max_abs_d_comb_db": 0.1,
+   "max_fringe_share_pct": 0.026,
+   "base_7el_max_abs_level_db_ac": 0.02,
+   "base_7el_max_fringe_share_pct": 0.478
+  },
+  "verdict_ko": "예 — 0 유지. 확장 7칸(기체 2·방위 1·거리 3·격자 1, 전부 el −30) 전부에서 PTD−순정이 요동 레벨 |Δ| ≤ 0.02 dB · 리듬 몫 |Δ| ≤ 0.1 %p · 빗살 대비 |Δ| ≤ 0.1 dB · AC 상관 ≥ 0.9999. 프린지 몫(‖Δ_ac‖²/‖E_ac‖²)도 ≤ 0.026 % — 기본판 7앙각의 최대 0.478 %(el 0)보다도 작다. ptd_level_probe 의 «PTD 레벨차는 정지 성분 아티팩트, DC 빼면 0» 판정이 기체·방위·거리·격자 어느 축을 돌려도 그대로 선다. 프린지 성분 자체는 리듬을 가진다(fringe_rhythm 33~51 %, 모서리 항이 로터를 따라 도는 것과 부합)만 크기가 4자리 아래라 팔 전체 잣대를 못 움직인다. ⚠D-8 단서 유지 — 격자 λ/12 는 ptd_edges 권고(λ/20)보다 성겨 **차분(같은 격자끼리)만 공정**하고 PTD 절대값 주장은 격자 의존성을 명시할 것."
+ },
+ "q4_grid_band": {
+  "question_ko": "격자 λ/24 전앙각·λ/48 신규분이 산포 밴드(리듬 21.8%p·AC 3.86dB)를 좁히나 넓히나",
+  "r16_band_reference": {
+   "rhythm_pp": 21.8,
+   "ac_db": 3.86,
+   "source": "outputs/grid_convergence_check.json (el 0~-45)"
+  },
+  "pairs": {
+   "div12_vs_div24": [
+    {
+     "el": 0.0,
+     "level_db_ac": -3.86,
+     "d_rhythm_pp": -11.8,
+     "d_comb_db": -0.1,
+     "fringe_share_pct": 68.215,
+     "fringe_rhythm_pct": 60.3,
+     "rhythm_null_pct": 12.5,
+     "abs_rho_ac": 0.5724,
+     "a": {
+      "el": 0.0,
+      "rhythm_share_pct": 63.3,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 47.8,
+      "moving_power_db": -70.4,
+      "ac_over_dc": 0.02563,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": 0.0,
+      "rhythm_share_pct": 51.5,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 47.7,
+      "moving_power_db": -74.26,
+      "ac_over_dc": 0.04722,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -15.0,
+     "level_db_ac": -1.31,
+     "d_rhythm_pp": 0.1,
+     "d_comb_db": 4.1,
+     "fringe_share_pct": 47.813,
+     "fringe_rhythm_pct": 78.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.7448,
+     "a": {
+      "el": -15.0,
+      "rhythm_share_pct": 72.7,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 40.5,
+      "moving_power_db": -71.05,
+      "ac_over_dc": 0.0104,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -15.0,
+      "rhythm_share_pct": 72.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 44.6,
+      "moving_power_db": -72.36,
+      "ac_over_dc": 0.005349,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -30.0,
+     "level_db_ac": -0.37,
+     "d_rhythm_pp": -21.8,
+     "d_comb_db": 4.6,
+     "fringe_share_pct": 26.634,
+     "fringe_rhythm_pct": 83.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.8632,
+     "a": {
+      "el": -30.0,
+      "rhythm_share_pct": 83.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 42.9,
+      "moving_power_db": -69.11,
+      "ac_over_dc": 0.274,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -30.0,
+      "rhythm_share_pct": 61.5,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 47.5,
+      "moving_power_db": -69.48,
+      "ac_over_dc": 0.3637,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -45.0,
+     "level_db_ac": 0.09,
+     "d_rhythm_pp": -12.9,
+     "d_comb_db": 4.6,
+     "fringe_share_pct": 2.998,
+     "fringe_rhythm_pct": 46.4,
+     "rhythm_null_pct": 12.5,
+     "abs_rho_ac": 0.9852,
+     "a": {
+      "el": -45.0,
+      "rhythm_share_pct": 49.7,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 47.1,
+      "moving_power_db": -67.19,
+      "ac_over_dc": 0.1323,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -45.0,
+      "rhythm_share_pct": 36.8,
+      "rhythm_null_pct": 12.5,
+      "comb_contrast_db": 51.7,
+      "moving_power_db": -67.1,
+      "ac_over_dc": 0.08823,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -60.0,
+     "level_db_ac": -0.02,
+     "d_rhythm_pp": 16.0,
+     "d_comb_db": 4.0,
+     "fringe_share_pct": 1.739,
+     "fringe_rhythm_pct": 43.1,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9914,
+     "a": {
+      "el": -60.0,
+      "rhythm_share_pct": 52.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 45.4,
+      "moving_power_db": -66.04,
+      "ac_over_dc": 0.7988,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -60.0,
+      "rhythm_share_pct": 68.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 49.4,
+      "moving_power_db": -66.06,
+      "ac_over_dc": 0.4466,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -75.0,
+     "level_db_ac": -0.1,
+     "d_rhythm_pp": -2.5,
+     "d_comb_db": null,
+     "fringe_share_pct": 0.275,
+     "fringe_rhythm_pct": 41.4,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9987,
+     "a": {
+      "el": -75.0,
+      "rhythm_share_pct": 46.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -57.71,
+      "ac_over_dc": 0.08826,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -75.0,
+      "rhythm_share_pct": 43.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -57.81,
+      "ac_over_dc": 0.08991,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    },
+    {
+     "el": -90.0,
+     "level_db_ac": -5.62,
+     "d_rhythm_pp": 16.4,
+     "d_comb_db": null,
+     "fringe_share_pct": 86.221,
+     "fringe_rhythm_pct": 50.2,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.3986,
+     "a": {
+      "el": -90.0,
+      "rhythm_share_pct": 64.9,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -81.56,
+      "ac_over_dc": 9.403e-05,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": [
+       "tip_ceiling_degenerate"
+      ]
+     },
+     "b": {
+      "el": -90.0,
+      "rhythm_share_pct": 81.3,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": null,
+      "moving_power_db": -87.18,
+      "ac_over_dc": 2.413e-05,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": [
+       "tip_ceiling_degenerate"
+      ]
+     }
+    }
+   ],
+   "div24_vs_div48": [
+    {
+     "el": -15.0,
+     "level_db_ac": -0.12,
+     "d_rhythm_pp": -17.8,
+     "d_comb_db": 5.6,
+     "fringe_share_pct": 8.347,
+     "fringe_rhythm_pct": 70.7,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.9582,
+     "a": {
+      "el": -15.0,
+      "rhythm_share_pct": 72.8,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 44.6,
+      "moving_power_db": -72.36,
+      "ac_over_dc": 0.005349,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -15.0,
+      "rhythm_share_pct": 55.0,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 50.2,
+      "moving_power_db": -72.48,
+      "ac_over_dc": 0.005221,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ],
+   "div12_vs_div48": [
+    {
+     "el": -15.0,
+     "level_db_ac": -1.43,
+     "d_rhythm_pp": -17.7,
+     "d_comb_db": 9.7,
+     "fringe_share_pct": 35.865,
+     "fringe_rhythm_pct": 71.1,
+     "rhythm_null_pct": 12.6,
+     "abs_rho_ac": 0.8114,
+     "a": {
+      "el": -15.0,
+      "rhythm_share_pct": 72.7,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 40.5,
+      "moving_power_db": -71.05,
+      "ac_over_dc": 0.0104,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     },
+     "b": {
+      "el": -15.0,
+      "rhythm_share_pct": 55.0,
+      "rhythm_null_pct": 12.6,
+      "comb_contrast_db": 50.2,
+      "moving_power_db": -72.48,
+      "ac_over_dc": 0.005221,
+      "beat_hz": 126.1,
+      "n_missing": 0,
+      "flags": []
+     }
+    }
+   ]
+  },
+  "summary": {
+   "old4_max_abs_ac_db": 3.86,
+   "old4_max_abs_rhythm_pp": 21.8,
+   "new3_max_abs_ac_db": 5.62,
+   "new3_max_abs_rhythm_pp": 16.4,
+   "all7_max_abs_ac_db": 5.62,
+   "all7_max_abs_rhythm_pp": 21.8,
+   "oblique_15_75_max_abs_ac_db": 1.31,
+   "oblique_15_75_max_abs_rhythm_pp": 21.8,
+   "comb_step_db_div12_to_24": [
+    -0.1,
+    4.1,
+    4.6,
+    4.6,
+    4.0
+   ],
+   "div48_el15_step": {
+    "d24_minus_d12": {
+     "ac": -1.31,
+     "rhy": 0.1,
+     "comb": 4.1,
+     "rho": 0.7448
+    },
+    "d48_minus_d24": {
+     "ac": -0.12,
+     "rhy": -17.8,
+     "comb": 5.6,
+     "rho": 0.9582
+    },
+    "d48_minus_d12": {
+     "ac": -1.43,
+     "rhy": -17.7,
+     "comb": 9.7,
+     "rho": 0.8114
+    }
+   }
+  },
+  "verdict_ko": "잣대·앙각에 따라 갈린다 — 한 마디 답은 없다. ① **빗각(−15°~−75°)의 요동 레벨 산포는 좁아졌다**: div24−div12 가 최대 1.31 dB(−15°)이고 새로 닫힌 −60°/−75° 는 0.02~0.10 dB 로 사실상 붙는다 — R16 밴드의 3.86 dB 는 정면(0°) 값이었음이 드러났다(빗각에 3.86 을 그대로 대면 과잉 보수). ② **전체 밴드 폭은 넓어졌다**: 직하방(−90°)이 5.62 dB·ρ 0.40 으로 최악 칸 — 단 f_tip=0 퇴화 칸이라 별표를 달고 쓴다. ③ **리듬 몫 밴드 21.8 %p 는 유지**(새 앙각 최대 16.4 %p — 안 넓어짐). 그러나 λ/48 이 −15° 리듬을 −17.8 %p 움직였다 — λ/24 로 «수렴했다» 는 말은 리듬 몫에는 못 쓴다. ④ **빗살 대비는 격자 축의 새 민감 잣대**: 계단마다 +4.0~+4.6 dB(12→24), +5.6 dB(24→48, −15°) 단조 상승 — 팔 사이 빗살 비교에 ≈5 dB 급 격자 단서를 새로 달아야 한다(우리↔PS 의 30~50 dB 격차 판정은 안 흔들림). ⑤ **파형 자체는 수렴 방향**: −15° 에서 계단 크기 1.31→0.12 dB, ρ 0.74→0.96. ⚠귀속 미해결 승계 — 격자 위상 널(--grid-shift) 팔이 이번 큐 계획에 없어 «촘촘해서» 와 «표본 원점이 달라서» 는 아직 못 가른다(docs/GRID_PHASE_NULL.md)."
+ }
+}
