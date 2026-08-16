@@ -1,0 +1,2041 @@
+{
+ "_meta": {
+  "title": "2층 메쉬 결함 — 수리 전 기준선 실측 (결함 크기 + PO σ 대가)",
+  "generated_kst": "2026-08-16 23:46:08",
+  "role": "기준선 측정자 — 고치기 전에 결함마다 크기를 정확히 잰다. 코드 변경 없음, git 미접촉.",
+  "compute": "CPU 전용 (GPU 큐 사용 중이라 금지). 드론 메쉬·PO 커널 전부 CPU numpy.",
+  "python": "/workspace/.venvs/py312/bin/python (PYTHONPATH=src:benchmark)",
+  "정본": "docs/MESH_AUDIT_0816.md §⑤ 2층 (I5 · I4 · m4 · m6 · battery 자기겹침 · I3)",
+  "용어_한줄풀이": {
+   "매몰면(buried face)": "삼각형 중심이 **다른 부품의 솔리드 안**에 들어가 있는 면. 실물이라면 안 보이는 면이다.",
+   "PO": "우리 산란 커널. **가림(그림자)을 안 본다** — 시선을 향한 면이면 묻혀 있어도 그대로 더한다(rcs_po.py:47 이 스스로 선언). 그래서 매몰면 = 이중계상.",
+   "SBR": "기본 산란 엔진(rcs_po.RCS_ENGINE_DEFAULT='sbr'). 광선이 실제로 맞은 첫 지점만 적분하므로 매몰면이 **애초에 안 들어온다**.",
+   "동일평면(coplanar)": "두 부품의 표면이 같은 자리에 겹쳐 있는 것. 어느 면을 먼저 맞는지가 반올림으로 갈린다.",
+   "방위평균 vs 최악방위": "방위평균 = 360° 전력평균의 비. 최악방위 = 방위별 dB 차의 절대값 최대."
+  },
+  "측정_규약": {
+   "점구름": "결함판과 수리판이 **같은 점구름**을 쓴다. 전체 점의 장 E_full 에서 결함 면의 점이 만든 장 E_mask 를 빼면 「그 면을 지운 판」이 정확히 나온다 — 재샘플링이 아니므로 두 판의 차이는 **오직 뺀 면** 때문이다.",
+   "주파수": "3.5 GHz(5G), 점간격 λ/7 = 12.24 mm (rcs_po 기본과 동일)",
+   "방위": "0~358°, 2° 간격 180 방위",
+   "고각": "el 0° · el −30° (감사 §4-1 의 부품분해 표와 같은 두 고각)",
+   "바이스태틱": "β=120°, el −30° — 감사 C5 가 «바이스태틱에서 형상 민감도가 커진다» 고 적었으므로 모노만 재면 유리한 각도만 고른 셈이 된다.",
+   "대역평균": "방위별 dB 는 5G 100 MHz·9점 **대역평균**으로 읽는다. 단일주파수 널은 rcs_po 자신이 «개별적으로는 수치 아티팩트» 라고 선언한 값이라 최악방위가 널을 쫓아간다. 3° 각도창 판도 함께 싣는다.",
+   "부호": "(+) = 결함이 σ 를 **밝게** 만든다(과대계상). (−) = 어둡게.",
+   "재질": "drones.DRONE_GROUP_MAT → materials.MATERIALS 의 |Γ|. ⚠ITU 'metal' 만 Sionna RT 씬(=OptiX/GPU)이 필요해 저장소가 이미 캐시한 3.5 GHz 값 0.9998026802895116 을 썼다(outputs/mesh_compare_material.json :: materials.metal.gamma_po_5g, fc_hz=3.5e9). 나머지는 전부 CPU 로 표에서 나온다."
+  },
+  "판정_밴드": {
+   "무해": "|Δ| < 0.1 dB — 커널 이산화 잡음 수준(감사 C5 의 수렴시험 ≤0.06 dB)보다 겨우 큰 정도",
+   "보임": "0.1 ~ 1.0 dB — 원장에는 적어야 하지만 결론을 안 바꾼다",
+   "결론을_바꿈": ">1 dB — 감사가 «형상 축의 정직한 폭» 이라 부른 ±2.5 dB 와 견줄 만하다",
+   "왜_이_밴드인가": "감사 스스로 형상 축을 1~2 dB, 두께 축을 13~17 dB 로 갈랐다. 그 눈금을 그대로 쓴다 — 새 잣대를 지어내지 않는다."
+  },
+  "회귀_증거": {
+   "내_적분_vs_출하_커널": {
+    "mini5pro": 1.0822664444666156e-14,
+    "mavic4pro": 1.2407222548705067e-14,
+    "matrice4e": 1.2883597709575924e-14,
+    "s1000plus": 5.013215650369978e-14,
+    "phantom4": 1.9751544688399814e-14,
+    "typhoonh480": 2.0376745696374868e-14,
+    "x500v2": 1.7455273901022967e-14,
+    "phantom3": 1.4035909879761966e-14,
+    "m350rtk": 2.477115048882722e-14,
+    "mini2": 9.457999187744814e-15
+   },
+   "뜻": "내가 쓴 PO 적분이 rcs_po.rcs_from_points 와 상대오차 1e-14 (기계정밀도) 안에서 같다. 아래 dB 는 전부 **출하 커널의 답**이다."
+  },
+  "적용_범위_한계": {
+   "SBR_은_안_흔들린다": "기본 엔진 SBR 은 first-hit 만 적분하므로 매몰면 오차가 구조적으로 0 이다. 아래 dB 는 **PO 경로 전용**이다.",
+   "PO_경로를_쓰는_곳": [
+    "src/microdoppler.py:72,75 — microdoppler_series() 의 **프레임(DC) 장**은 po_field_dir(build_frame(spec)) 이다. 즉 PO 마이크로도플러 팔의 DC 준위가 이 오차를 탄다(AC 는 프롭만 남으므로 정의상 안 흔들린다 — 감사 §4-1).",
+    "src/rcs_po.py drone_rcs_pattern(engine='po') — report6 의 두 엔진 대조군",
+    "src/ptd_edges.py PTD 항등검사 · src/viz_verify_po.py · src/viz_mesh_material.py",
+    "benchmark/adv_consequence_0816*.py — 감사 C5 의 형상오차 σ 대가 측정 자체",
+    "감사 §4-1 의 matrice4e 부품분해 표(«가림 없음, 방위평균 σ»)"
+   ],
+   "안_쟀다": [
+    "SBR 로 같은 비교를 돌린 값 — GPU 금지라 이번 라운드에 못 쟀다. SBR 은 구조적으로 0 이어야 하지만 **확인은 못 했다**.",
+    "마이크로도플러 스펙트럼 축(f_tip 밴드 세기) — σ 로만 쟀다.",
+    "회전 자세열에서의 값 — 전부 정지(호버 0 위상) 메쉬다."
+   ]
+  }
+ },
+ "기준선_게이트": {
+  "mesh_check": {
+   "결과": "10/10 통과",
+   "명령": "python src/mesh_check.py",
+   "선언된_예산으로_통과한_것": {
+    "mini2.body 경계모서리": "3 / 예산 3 (I5)",
+    "battery 그룹내 겹침 %": {
+     "mini5pro": 47.8868,
+     "mavic4pro": 48.1201,
+     "phantom4": 49.4624,
+     "mini2": 49.958
+    },
+    "battery 예산": 55.0
+   },
+   "raw": {
+    "mini5pro": {
+     "ok": true,
+     "slivers": 347,
+     "sliver_budget": 382,
+     "groups": {
+      "battery": {
+       "boundary_edges": 0,
+       "budget": 0,
+       "nonmanifold": 0,
+       "overlap_pct": 47.8868,
+       "overlap_budget": 55.0,
+       "watertight": "2/2",
+       "ok": true
+      }
+     }
+    },
+    "mavic4pro": {
+     "ok": true,
+     "slivers": 237,
+     "sliver_budget": 261,
+     "groups": {
+      "battery": {
+       "boundary_edges": 0,
+       "budget": 0,
+       "nonmanifold": 0,
+       "overlap_pct": 48.1201,
+       "overlap_budget": 55.0,
+       "watertight": "2/2",
+       "ok": true
+      }
+     }
+    },
+    "matrice4e": {
+     "ok": true,
+     "slivers": 283,
+     "sliver_budget": 312,
+     "groups": {}
+    },
+    "s1000plus": {
+     "ok": true,
+     "slivers": 580,
+     "sliver_budget": 638,
+     "groups": {}
+    },
+    "phantom4": {
+     "ok": true,
+     "slivers": 245,
+     "sliver_budget": 270,
+     "groups": {
+      "battery": {
+       "boundary_edges": 0,
+       "budget": 0,
+       "nonmanifold": 0,
+       "overlap_pct": 49.4624,
+       "overlap_budget": 55.0,
+       "watertight": "2/2",
+       "ok": true
+      }
+     }
+    },
+    "typhoonh480": {
+     "ok": true,
+     "slivers": 461,
+     "sliver_budget": 508,
+     "groups": {}
+    },
+    "x500v2": {
+     "ok": true,
+     "slivers": 381,
+     "sliver_budget": 420,
+     "groups": {}
+    },
+    "phantom3": {
+     "ok": true,
+     "slivers": 308,
+     "sliver_budget": 339,
+     "groups": {}
+    },
+    "m350rtk": {
+     "ok": true,
+     "slivers": 315,
+     "sliver_budget": 347,
+     "groups": {}
+    },
+    "mini2": {
+     "ok": true,
+     "slivers": 180,
+     "sliver_budget": 198,
+     "groups": {
+      "battery": {
+       "boundary_edges": 0,
+       "budget": 0,
+       "nonmanifold": 0,
+       "overlap_pct": 49.958,
+       "overlap_budget": 55.0,
+       "watertight": "2/2",
+       "ok": true
+      },
+      "body": {
+       "boundary_edges": 3,
+       "budget": 3,
+       "nonmanifold": 0,
+       "overlap_pct": 0.0,
+       "overlap_budget": 0.1,
+       "watertight": "0/1",
+       "ok": true
+      }
+     }
+    }
+   }
+  },
+  "적대시험": {
+   "결과": "16/16 통과",
+   "명령": "python benchmark/adv_mesh_check_faults.py",
+   "뜻": "감사 I6 이 통과시켰던 결함 5종이 지금은 전부 걸린다. 2층 수리 뒤에도 이 수가 유지되어야 한다."
+  },
+  "⚠검사기_사각지대": {
+   "그룹_사이_비다양체": "mesh_check 의 비다양체 모서리 검사는 **그룹 안**만 본다. x500v2 를 그룹별로 재면 accent 0 · arm 0 인데, 두 그룹을 합쳐 웰딩하면 **172개**가 나온다(m4). 지금 아무도 안 본다.",
+   "그룹_사이_매몰": "check_prop_bell_solid 는 prop↔motor 한 쌍만 본다. 나머지 쌍(I3)은 예산도 검사도 없다."
+  }
+ },
+ "결함": {
+  "I5_mini2_body_hole": {
+   "무엇": "mini2 body 셸에 삼각형 1장이 빠진 구멍. 출처는 cadkit.Assembly.add() 의 update_faces(nondegenerate_faces()) — 슬리버 1장을 지우면서 껍질을 열었다.",
+   "몇_기체": "10기체 중 **1기체(mini2)** 뿐. 다른 9기체는 경계모서리 0.",
+   "크기": {
+    "경계_모서리": 3,
+    "경계_모서리_길이_mm": [
+     0.198992,
+     1.135594,
+     0.936603
+    ],
+    "구멍_삼각형_면적_mm2": 4.955864975163015e-06,
+    "body_표면적_mm2": 36298.47,
+    "구멍이_차지하는_비율_pct": 1.3653096119296753e-08,
+    "body_면수": 7757,
+    "면수가_홀수인가": true,
+    "출하_수밀": false,
+    "패치_후_수밀": true,
+    "부피_mm3": {
+     "출하": 285685.260978364,
+     "패치": 285685.2609537743,
+     "주": "⚠trimesh 는 비수밀 메쉬에도 부피를 돌려준다. 두 값이 1e-7 % 안에서 같다 — 즉 «부피가 무효» 라는 문장은 **형식적으로만** 참이고 수치로는 멀쩡하다. 진짜 피해는 부피가 아니라 아래 contains() 다."
+    }
+   },
+   "σ_대가_직접측정": {
+    "방법": "빠진 삼각형을 **되붙여** 같은 커널로 재고 뺐다(대역평균 100 MHz).",
+    "mono_el0": {
+     "azimuth_mean_db": -1.2241703240706563e-10,
+     "worst_az_db": 2.748971945057825e-08,
+     "worst_az_deg": 220.0
+    },
+    "mono_el-30": {
+     "azimuth_mean_db": -9.681577753583508e-10,
+     "worst_az_db": -5.6198020038656074e-08,
+     "worst_az_deg": 244.0
+    },
+    "판정": "**무해** — 1e-10 dB 대. 판정 밴드(0.1 dB) 아래로 9 자릿수. 산란으로는 이 구멍이 없는 것과 같다."
+   },
+   "⭐진짜_피해는_간접이다__직접_쟀다": {
+    "무엇": "구멍 때문에 body 가 비수밀 → trimesh contains() 가 성립 안 함 → **내부판정을 쓰는 모든 검사가 body 를 컨테이너에서 조용히 뺀다.**",
+    "매몰면_비율_pct": {
+     "출하(구멍 있음)": 29.7078,
+     "패치(구멍 메움)": 44.4488,
+     "숨겨진_양_pp": 14.741,
+     "숨겨진_비율_pct_of_true": 33.16
+    },
+    "canopy_매몰_pct_of_canopy": {
+     "출하": 34.05,
+     "패치": 86.35,
+     "감사가_적은_값": 86.35,
+     "일치": "패치판이 감사 부록 A 의 «구멍 메우고 재니 86.35 %» 와 소수 둘째까지 같다."
+    },
+    "⭐레지스트리_순위가_뒤집힌다": "감사 I3 표는 mini2 를 19.36 % 로 **뒤에서 두 번째**에 적었다. 구멍을 메우고 재면 **44.45 % 로 함대 1위**다(2위 mini5pro 41.81 · 3위 matrice4e 40.71).",
+    "σ_로_환산하면": "그 숨겨진 매몰면의 PO 대가는 아래 I3 의 mini2(패치) 칸이다 — 방위평균 mono el0 +3.46 dB · bi β120 +5.25 dB."
+   },
+   "고칠_수_있나": "⭕있다. 슬리버를 **지우지 말고 정점 병합으로 붕괴**시킨다 — 즉 cadkit.Assembly.add() 가 nondegenerate_faces() 로 지우기 전에 merge_vertices (또는 그 슬리버의 짧은 변 0.199 mm 를 한 점으로) 를 먼저 돌린다. 위험: 정점 병합은 **인덱스를 바꾸므로 mini2 의 OBJ·비트동일이 깨진다**. 그리고 병합 허용오차를 크게 잡으면 다른 8기체의 멀쩡한 미세 형상까지 뭉갠다 — 허용오차를 이 슬리버의 최단변(0.199 mm)에 맞춰 좁게 걸 것. 되붙이기(fill_holes)는 더 싸지만 «왜 열렸는지» 를 안 고친다."
+  },
+  "I4_buried_canopy": {
+   "무엇": "canopy 그룹이 body 솔리드 안에 69~100 % 묻혀 있다. SBR 에선 기여가 **정확히 0** 이고(first-hit 못 됨 + 투과 패스에서 셸 제외), PO 에선 그 면적이 통째로 이중계상된다.",
+   "몇_기체": "셸형 7기체 전부. 선언이 있는 것은 phantom3·mini2 둘뿐이고, ⭐**mavic4pro 는 100 % 인데 선언이 없다 — 주력 표적이다.**",
+   "기체별": {
+    "mavic4pro": {
+     "canopy_면수": 2240,
+     "canopy_면적_mm2": 25658.844,
+     "canopy_가_전체_면적에서_차지_pct": 7.7996,
+     "묻힌_면적_mm2": 25658.844,
+     "묻힌_비율_pct_of_canopy": 100.0,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0609,
+       "worst_az_db": -3.753,
+       "worst_az_deg": 256.0,
+       "worst_az_db_3deg_window": 1.769,
+       "p95_abs_db": 1.365,
+       "sigma_with_defect_azmean_dbsm": -16.183,
+       "sigma_repaired_azmean_dbsm": -16.243
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2139,
+       "worst_az_db": 4.789,
+       "worst_az_deg": 266.0,
+       "worst_az_db_3deg_window": -2.752,
+       "p95_abs_db": 1.974,
+       "sigma_with_defect_azmean_dbsm": -18.93,
+       "sigma_repaired_azmean_dbsm": -19.144
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.3879,
+       "worst_az_db": -7.896,
+       "worst_az_deg": 26.0,
+       "worst_az_db_3deg_window": 4.162,
+       "p95_abs_db": 2.903,
+       "sigma_with_defect_azmean_dbsm": -21.99,
+       "sigma_repaired_azmean_dbsm": -22.378
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0609,
+       "worst_az_db": -3.753,
+       "worst_az_deg": 256.0,
+       "worst_az_db_3deg_window": 1.769,
+       "p95_abs_db": 1.365,
+       "sigma_with_defect_azmean_dbsm": -16.183,
+       "sigma_repaired_azmean_dbsm": -16.243
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2139,
+       "worst_az_db": 4.789,
+       "worst_az_deg": 266.0,
+       "worst_az_db_3deg_window": -2.752,
+       "p95_abs_db": 1.974,
+       "sigma_with_defect_azmean_dbsm": -18.93,
+       "sigma_repaired_azmean_dbsm": -19.144
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.3879,
+       "worst_az_db": -7.896,
+       "worst_az_deg": 26.0,
+       "worst_az_db_3deg_window": 4.162,
+       "p95_abs_db": 2.903,
+       "sigma_with_defect_azmean_dbsm": -21.99,
+       "sigma_repaired_azmean_dbsm": -22.378
+      }
+     }
+    },
+    "phantom3": {
+     "canopy_면수": 2240,
+     "canopy_면적_mm2": 9013.237,
+     "canopy_가_전체_면적에서_차지_pct": 3.2427,
+     "묻힌_면적_mm2": 9013.237,
+     "묻힌_비율_pct_of_canopy": 100.0,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0087,
+       "worst_az_db": -1.73,
+       "worst_az_deg": 56.0,
+       "worst_az_db_3deg_window": -0.895,
+       "p95_abs_db": 0.461,
+       "sigma_with_defect_azmean_dbsm": -19.483,
+       "sigma_repaired_azmean_dbsm": -19.491
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": -0.1487,
+       "worst_az_db": 2.315,
+       "worst_az_deg": 224.0,
+       "worst_az_db_3deg_window": -1.437,
+       "p95_abs_db": 0.975,
+       "sigma_with_defect_azmean_dbsm": -18.298,
+       "sigma_repaired_azmean_dbsm": -18.149
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": -0.6678,
+       "worst_az_db": 13.953,
+       "worst_az_deg": 358.0,
+       "worst_az_db_3deg_window": -10.55,
+       "p95_abs_db": 4.126,
+       "sigma_with_defect_azmean_dbsm": -22.766,
+       "sigma_repaired_azmean_dbsm": -22.098
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0087,
+       "worst_az_db": -1.73,
+       "worst_az_deg": 56.0,
+       "worst_az_db_3deg_window": -0.895,
+       "p95_abs_db": 0.461,
+       "sigma_with_defect_azmean_dbsm": -19.483,
+       "sigma_repaired_azmean_dbsm": -19.491
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": -0.1487,
+       "worst_az_db": 2.315,
+       "worst_az_deg": 224.0,
+       "worst_az_db_3deg_window": -1.437,
+       "p95_abs_db": 0.975,
+       "sigma_with_defect_azmean_dbsm": -18.298,
+       "sigma_repaired_azmean_dbsm": -18.149
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": -0.6678,
+       "worst_az_db": 13.953,
+       "worst_az_deg": 358.0,
+       "worst_az_db_3deg_window": -10.55,
+       "p95_abs_db": 4.126,
+       "sigma_with_defect_azmean_dbsm": -22.766,
+       "sigma_repaired_azmean_dbsm": -22.098
+      }
+     }
+    },
+    "phantom4": {
+     "canopy_면수": 2336,
+     "canopy_면적_mm2": 35215.432,
+     "canopy_가_전체_면적에서_차지_pct": 10.2372,
+     "묻힌_면적_mm2": 32699.387,
+     "묻힌_비율_pct_of_canopy": 92.86,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": -0.0527,
+       "worst_az_db": -3.49,
+       "worst_az_deg": 238.0,
+       "worst_az_db_3deg_window": -1.2,
+       "p95_abs_db": 0.844,
+       "sigma_with_defect_azmean_dbsm": -18.268,
+       "sigma_repaired_azmean_dbsm": -18.215
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.0866,
+       "worst_az_db": -6.49,
+       "worst_az_deg": 240.0,
+       "worst_az_db_3deg_window": -3.168,
+       "p95_abs_db": 2.276,
+       "sigma_with_defect_azmean_dbsm": -21.056,
+       "sigma_repaired_azmean_dbsm": -21.142
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.3923,
+       "worst_az_db": -5.737,
+       "worst_az_deg": 338.0,
+       "worst_az_db_3deg_window": 4.843,
+       "p95_abs_db": 4.035,
+       "sigma_with_defect_azmean_dbsm": -21.486,
+       "sigma_repaired_azmean_dbsm": -21.878
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": -0.0773,
+       "worst_az_db": -3.739,
+       "worst_az_deg": 238.0,
+       "worst_az_db_3deg_window": -1.35,
+       "p95_abs_db": 1.141,
+       "sigma_with_defect_azmean_dbsm": -18.268,
+       "sigma_repaired_azmean_dbsm": -18.191
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": -0.0687,
+       "worst_az_db": -6.278,
+       "worst_az_deg": 240.0,
+       "worst_az_db_3deg_window": -4.728,
+       "p95_abs_db": 3.322,
+       "sigma_with_defect_azmean_dbsm": -21.056,
+       "sigma_repaired_azmean_dbsm": -20.987
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.532,
+       "worst_az_db": 10.827,
+       "worst_az_deg": 328.0,
+       "worst_az_db_3deg_window": -6.233,
+       "p95_abs_db": 2.996,
+       "sigma_with_defect_azmean_dbsm": -21.486,
+       "sigma_repaired_azmean_dbsm": -22.018
+      }
+     }
+    },
+    "mini2": {
+     "canopy_면수": 2240,
+     "canopy_면적_mm2": 9813.652,
+     "canopy_가_전체_면적에서_차지_pct": 10.7136,
+     "묻힌_면적_mm2": 8474.009,
+     "묻힌_비율_pct_of_canopy": 86.35,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.3984,
+       "worst_az_db": 4.472,
+       "worst_az_deg": 172.0,
+       "worst_az_db_3deg_window": -3.424,
+       "p95_abs_db": 2.281,
+       "sigma_with_defect_azmean_dbsm": -24.586,
+       "sigma_repaired_azmean_dbsm": -24.984
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2116,
+       "worst_az_db": -8.304,
+       "worst_az_deg": 342.0,
+       "worst_az_db_3deg_window": -5.583,
+       "p95_abs_db": 2.485,
+       "sigma_with_defect_azmean_dbsm": -25.574,
+       "sigma_repaired_azmean_dbsm": -25.785
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.6271,
+       "worst_az_db": 3.13,
+       "worst_az_deg": 200.0,
+       "worst_az_db_3deg_window": 3.051,
+       "p95_abs_db": 2.181,
+       "sigma_with_defect_azmean_dbsm": -19.438,
+       "sigma_repaired_azmean_dbsm": -20.065
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.6343,
+       "worst_az_db": 4.96,
+       "worst_az_deg": 316.0,
+       "worst_az_db_3deg_window": -2.69,
+       "p95_abs_db": 2.273,
+       "sigma_with_defect_azmean_dbsm": -24.586,
+       "sigma_repaired_azmean_dbsm": -25.22
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.354,
+       "worst_az_db": 10.136,
+       "worst_az_deg": 224.0,
+       "worst_az_db_3deg_window": -5.11,
+       "p95_abs_db": 3.085,
+       "sigma_with_defect_azmean_dbsm": -25.574,
+       "sigma_repaired_azmean_dbsm": -25.928
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.7275,
+       "worst_az_db": 3.421,
+       "worst_az_deg": 200.0,
+       "worst_az_db_3deg_window": 3.369,
+       "p95_abs_db": 2.245,
+       "sigma_with_defect_azmean_dbsm": -19.438,
+       "sigma_repaired_azmean_dbsm": -20.165
+      }
+     }
+    },
+    "mini5pro": {
+     "canopy_면수": 2240,
+     "canopy_면적_mm2": 11121.843,
+     "canopy_가_전체_면적에서_차지_pct": 8.4095,
+     "묻힌_면적_mm2": 9467.579,
+     "묻힌_비율_pct_of_canopy": 85.13,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0582,
+       "worst_az_db": 3.099,
+       "worst_az_deg": 126.0,
+       "worst_az_db_3deg_window": 1.125,
+       "p95_abs_db": 0.621,
+       "sigma_with_defect_azmean_dbsm": -19.484,
+       "sigma_repaired_azmean_dbsm": -19.542
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": -0.0036,
+       "worst_az_db": -2.003,
+       "worst_az_deg": 14.0,
+       "worst_az_db_3deg_window": -1.743,
+       "p95_abs_db": 1.191,
+       "sigma_with_defect_azmean_dbsm": -22.679,
+       "sigma_repaired_azmean_dbsm": -22.676
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.4977,
+       "worst_az_db": 6.869,
+       "worst_az_deg": 198.0,
+       "worst_az_db_3deg_window": 3.583,
+       "p95_abs_db": 1.775,
+       "sigma_with_defect_azmean_dbsm": -20.166,
+       "sigma_repaired_azmean_dbsm": -20.664
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.1245,
+       "worst_az_db": -1.655,
+       "worst_az_deg": 236.0,
+       "worst_az_db_3deg_window": -1.561,
+       "p95_abs_db": 1.145,
+       "sigma_with_defect_azmean_dbsm": -19.484,
+       "sigma_repaired_azmean_dbsm": -19.608
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.1582,
+       "worst_az_db": 3.497,
+       "worst_az_deg": 48.0,
+       "worst_az_db_3deg_window": -1.674,
+       "p95_abs_db": 1.295,
+       "sigma_with_defect_azmean_dbsm": -22.679,
+       "sigma_repaired_azmean_dbsm": -22.838
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.5788,
+       "worst_az_db": 6.43,
+       "worst_az_deg": 168.0,
+       "worst_az_db_3deg_window": 4.284,
+       "p95_abs_db": 1.788,
+       "sigma_with_defect_azmean_dbsm": -20.166,
+       "sigma_repaired_azmean_dbsm": -20.745
+      }
+     }
+    },
+    "typhoonh480": {
+     "canopy_면수": 1344,
+     "canopy_면적_mm2": 19186.458,
+     "canopy_가_전체_면적에서_차지_pct": 4.2321,
+     "묻힌_면적_mm2": 14325.122,
+     "묻힌_비율_pct_of_canopy": 74.66,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0445,
+       "worst_az_db": -1.035,
+       "worst_az_deg": 118.0,
+       "worst_az_db_3deg_window": 0.624,
+       "p95_abs_db": 0.473,
+       "sigma_with_defect_azmean_dbsm": -14.163,
+       "sigma_repaired_azmean_dbsm": -14.207
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": -0.0654,
+       "worst_az_db": 2.459,
+       "worst_az_deg": 354.0,
+       "worst_az_db_3deg_window": 2.256,
+       "p95_abs_db": 1.102,
+       "sigma_with_defect_azmean_dbsm": -15.559,
+       "sigma_repaired_azmean_dbsm": -15.494
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": -0.3325,
+       "worst_az_db": 2.68,
+       "worst_az_deg": 310.0,
+       "worst_az_db_3deg_window": 1.881,
+       "p95_abs_db": 1.074,
+       "sigma_with_defect_azmean_dbsm": -18.36,
+       "sigma_repaired_azmean_dbsm": -18.027
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.0483,
+       "worst_az_db": 0.979,
+       "worst_az_deg": 238.0,
+       "worst_az_db_3deg_window": 0.466,
+       "p95_abs_db": 0.36,
+       "sigma_with_defect_azmean_dbsm": -14.163,
+       "sigma_repaired_azmean_dbsm": -14.211
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": -0.0654,
+       "worst_az_db": 2.459,
+       "worst_az_deg": 354.0,
+       "worst_az_db_3deg_window": 2.256,
+       "p95_abs_db": 1.102,
+       "sigma_with_defect_azmean_dbsm": -15.559,
+       "sigma_repaired_azmean_dbsm": -15.494
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": -0.3325,
+       "worst_az_db": 2.68,
+       "worst_az_deg": 310.0,
+       "worst_az_db_3deg_window": 1.881,
+       "p95_abs_db": 1.074,
+       "sigma_with_defect_azmean_dbsm": -18.36,
+       "sigma_repaired_azmean_dbsm": -18.027
+      }
+     }
+    },
+    "matrice4e": {
+     "canopy_면수": 2528,
+     "canopy_면적_mm2": 33614.191,
+     "canopy_가_전체_면적에서_차지_pct": 10.9999,
+     "묻힌_면적_mm2": 23269.561,
+     "묻힌_비율_pct_of_canopy": 69.23,
+     "σ_묻힌_부분만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.1945,
+       "worst_az_db": -2.136,
+       "worst_az_deg": 312.0,
+       "worst_az_db_3deg_window": -1.544,
+       "p95_abs_db": 1.394,
+       "sigma_with_defect_azmean_dbsm": -15.993,
+       "sigma_repaired_azmean_dbsm": -16.187
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.0912,
+       "worst_az_db": -8.103,
+       "worst_az_deg": 298.0,
+       "worst_az_db_3deg_window": -4.014,
+       "p95_abs_db": 3.285,
+       "sigma_with_defect_azmean_dbsm": -21.202,
+       "sigma_repaired_azmean_dbsm": -21.293
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.0121,
+       "worst_az_db": -8.161,
+       "worst_az_deg": 156.0,
+       "worst_az_db_3deg_window": -7.316,
+       "p95_abs_db": 3.157,
+       "sigma_with_defect_azmean_dbsm": -16.766,
+       "sigma_repaired_azmean_dbsm": -16.779
+      }
+     },
+     "σ_canopy_그룹_통째로_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.1941,
+       "worst_az_db": -3.13,
+       "worst_az_deg": 312.0,
+       "worst_az_db_3deg_window": -2.77,
+       "p95_abs_db": 1.845,
+       "sigma_with_defect_azmean_dbsm": -15.993,
+       "sigma_repaired_azmean_dbsm": -16.187
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.5238,
+       "worst_az_db": 14.009,
+       "worst_az_deg": 258.0,
+       "worst_az_db_3deg_window": -10.092,
+       "p95_abs_db": 5.926,
+       "sigma_with_defect_azmean_dbsm": -21.202,
+       "sigma_repaired_azmean_dbsm": -21.726
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.2981,
+       "worst_az_db": -8.536,
+       "worst_az_deg": 156.0,
+       "worst_az_db_3deg_window": -7.837,
+       "p95_abs_db": 3.383,
+       "sigma_with_defect_azmean_dbsm": -16.766,
+       "sigma_repaired_azmean_dbsm": -17.065
+      }
+     }
+    }
+   },
+   "σ_대가_요약": "⭐**작다.** 방위평균으로 |Δ| ≤ 0.73 dB, 대부분 0.1~0.5 dB. 면적은 3~11 % 인데 σ 가 안 따라오는 이유는 두 가지다 — (1) canopy 재질이 plastic |Γ|=0.28 이라 진폭이 금속의 1/3.6, (2) 캐노피는 body 껍질과 거의 같은 곡면이라 위상이 뭉쳐 코히런트 합에서 서로 상쇄·보강이 갈린다(방위별로는 3° 창에서도 ±5 dB 까지 흔들린다).",
+   "고칠_수_있나": "⭕있다. 두 갈래. (a) **묻힌 canopy 를 빼기** — 100 % 묻힌 mavic4pro·phantom3 은 그룹을 통째로 안 붙이면 된다(σ 대가 mavic4pro 방위평균 +0.06~+0.39 dB). (b) **body 와 union** — drone_cad.build_frame_cad 말미의 union 목록에 이미 'canopy' 가 있으나 **다른 그룹과는 union 하지 않는다**(그룹 안에서만 합친다). canopy 를 body 그룹으로 넣거나 union_group 을 그룹쌍으로 넓혀야 한다. 위험: (a)는 렌더·시각화에서 캐노피 색이 사라진다(리포트 그림 파급). (b)는 재질이 둘 다 plastic 이라 물리적으론 무해하지만 **그룹 경계가 사라져 부품별 σ 분해표(감사 §4-1)의 칸이 하나 없어진다**. 부분 매몰(69~93 %)인 기체는 통째로 빼면 안 된다 — 노출부가 실제로 보인다."
+  },
+  "NEW_battery_group_self_overlap": {
+   "무엇": "⭐0층 검사기가 새로 잡은 것. 셸형 공용 경로에서 **배터리 팩 상자와 «마그네슘 구조판» 상자가 서로 파고든다**. 두 상자 모두 'battery' 그룹이고 |Γ|=1(금속)이다.",
+   "어디서_생기나": "drone_cad.py 의 셸형 기본 경로 — box(bl*0.50, bw*0.62, bh*0.55, center=(−0.06bl,0,+0.02bh)) 'battery' 와 box(bl*0.58, bw*0.68, bh*0.08, center=(−0.02bl,0,−0.04bh)) 'battery'(v2 구조판). 판이 팩보다 **넓고 낮아** 서로 상대의 안팎을 오간다.",
+   "자기모순": "같은 파일의 INTERNALS 주석이 «battery·pcb 는 union 목록에 없으니 서로 겹치지 않게 놓는다» 고 스스로 적어 놓았다. **기종별 실측표를 받은 matrice4e·phantom3 만 그 규칙을 지킨다**(겹침 0 %) — 규칙을 어기는 것은 규칙을 적은 공용 경로 쪽이다.",
+   "몇_기체": "4기체 — mini2 · phantom4 · mavic4pro · mini5pro (전부 v2 셸형 공용 경로). matrice4e·phantom3 은 0 %, 열린 프레임(x500v2·s1000plus)은 해당 없음.",
+   "기체별": {
+    "mini2": {
+     "면수": 9,
+     "면적_mm2": 10010.234,
+     "전체_면적_대비_pct": 10.9282,
+     "mesh_check_가_보는_그룹내_겹침_pct": 49.958,
+     "선언된_예산_pct": 55.0,
+     "σ": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.8788,
+       "worst_az_db": 23.072,
+       "worst_az_deg": 6.0,
+       "worst_az_db_3deg_window": -12.681,
+       "p95_abs_db": 8.32,
+       "sigma_with_defect_azmean_dbsm": -24.586,
+       "sigma_repaired_azmean_dbsm": -26.464
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 1.8111,
+       "worst_az_db": -22.62,
+       "worst_az_deg": 18.0,
+       "worst_az_db_3deg_window": -17.239,
+       "p95_abs_db": 11.319,
+       "sigma_with_defect_azmean_dbsm": -25.574,
+       "sigma_repaired_azmean_dbsm": -27.385
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 3.6473,
+       "worst_az_db": 20.092,
+       "worst_az_deg": 24.0,
+       "worst_az_db_3deg_window": 18.893,
+       "p95_abs_db": 11.515,
+       "sigma_with_defect_azmean_dbsm": -19.438,
+       "sigma_repaired_azmean_dbsm": -23.085
+      }
+     }
+    },
+    "phantom4": {
+     "면수": 9,
+     "면적_mm2": 29219.055,
+     "전체_면적_대비_pct": 8.4941,
+     "mesh_check_가_보는_그룹내_겹침_pct": 49.4624,
+     "선언된_예산_pct": 55.0,
+     "σ": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.4764,
+       "worst_az_db": 11.769,
+       "worst_az_deg": 86.0,
+       "worst_az_db_3deg_window": 10.181,
+       "p95_abs_db": 6.268,
+       "sigma_with_defect_azmean_dbsm": -18.268,
+       "sigma_repaired_azmean_dbsm": -19.744
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 1.3685,
+       "worst_az_db": 13.406,
+       "worst_az_deg": 88.0,
+       "worst_az_db_3deg_window": 13.069,
+       "p95_abs_db": 10.789,
+       "sigma_with_defect_azmean_dbsm": -21.056,
+       "sigma_repaired_azmean_dbsm": -22.424
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.4976,
+       "worst_az_db": 10.084,
+       "worst_az_deg": 184.0,
+       "worst_az_db_3deg_window": 9.827,
+       "p95_abs_db": 6.467,
+       "sigma_with_defect_azmean_dbsm": -21.486,
+       "sigma_repaired_azmean_dbsm": -22.984
+      }
+     }
+    },
+    "mavic4pro": {
+     "면수": 7,
+     "면적_mm2": 25401.245,
+     "전체_면적_대비_pct": 7.7213,
+     "mesh_check_가_보는_그룹내_겹침_pct": 48.1201,
+     "선언된_예산_pct": 55.0,
+     "σ": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.0243,
+       "worst_az_db": -15.232,
+       "worst_az_deg": 256.0,
+       "worst_az_db_3deg_window": 7.264,
+       "p95_abs_db": 6.434,
+       "sigma_with_defect_azmean_dbsm": -16.183,
+       "sigma_repaired_azmean_dbsm": -17.207
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.1756,
+       "worst_az_db": 11.955,
+       "worst_az_deg": 336.0,
+       "worst_az_db_3deg_window": 9.478,
+       "p95_abs_db": 5.369,
+       "sigma_with_defect_azmean_dbsm": -18.93,
+       "sigma_repaired_azmean_dbsm": -19.106
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.0165,
+       "worst_az_db": -15.197,
+       "worst_az_deg": 26.0,
+       "worst_az_db_3deg_window": -9.623,
+       "p95_abs_db": 6.523,
+       "sigma_with_defect_azmean_dbsm": -21.99,
+       "sigma_repaired_azmean_dbsm": -23.007
+      }
+     }
+    },
+    "mini5pro": {
+     "면수": 7,
+     "면적_mm2": 11023.887,
+     "전체_면적_대비_pct": 8.3354,
+     "mesh_check_가_보는_그룹내_겹침_pct": 47.8868,
+     "선언된_예산_pct": 55.0,
+     "σ": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.3183,
+       "worst_az_db": -10.135,
+       "worst_az_deg": 126.0,
+       "worst_az_db_3deg_window": 6.926,
+       "p95_abs_db": 5.219,
+       "sigma_with_defect_azmean_dbsm": -19.484,
+       "sigma_repaired_azmean_dbsm": -20.802
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 1.4015,
+       "worst_az_db": 16.229,
+       "worst_az_deg": 10.0,
+       "worst_az_db_3deg_window": 10.333,
+       "p95_abs_db": 5.711,
+       "sigma_with_defect_azmean_dbsm": -22.679,
+       "sigma_repaired_azmean_dbsm": -24.081
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 3.3834,
+       "worst_az_db": 11.88,
+       "worst_az_deg": 164.0,
+       "worst_az_db_3deg_window": 9.727,
+       "p95_abs_db": 8.48,
+       "sigma_with_defect_azmean_dbsm": -20.166,
+       "sigma_repaired_azmean_dbsm": -23.55
+      }
+     }
+    }
+   },
+   "σ_대가_요약": "⭐**보임~결론을 바꿈.** 방위평균 mono el0 +1.02~+1.88 dB · el−30 +0.18~+1.81 dB · 바이스태틱 β120 +1.02~+3.65 dB. 최악방위(3° 창)는 ±9.5~18.9 dB. 금속 |Γ|=1 에 면적이 7.7~10.9 % 라 캐노피(plastic)보다 훨씬 세다.",
+   "고칠_수_있나": "⭕있다. 세 갈래, 위험 순. (a) **두 상자를 안 겹치게 놓기**(matrice4e·phantom3 처럼) — 가장 정직하지만 기종별 실측 치수가 있어야 하고, 없으면 «임의로 옮긴 손잡이» 가 된다. (b) **'battery' 를 union 목록에 넣기** — drone_cad 의 union_group 루프에 한 줄. 가장 싸고 내부 면이 애초에 안 생긴다. ⚠위험: union 은 manifold3d 불리언이라 **정점·면 인덱스가 통째로 바뀌고**, cadkit.union_group 은 지금 `except Exception: pass`(81-82행)라 실패해도 조용하다 — 먼저 그 예외부터 말하게 만들 것. (c) 구조판을 팩 **아래로 내려** 접촉만 시키기 — 형상 근거가 약하다. ⚠어느 쪽이든 σ 가 1~3.6 dB 내려가므로 **기존 σ 결과가 비트동일로 안 남는다.** 그것이 의도된 것임을 시험에 명시할 것."
+  },
+  "m4_x500v2_accent_arm_coplanar": {
+   "무엇": "x500v2 의 accent(모서리 클램프)와 arm 이 정점을 공유하고 표면이 겹친다. 재질이 다르다 — accent=plastic |Γ|0.28, arm=carbon |Γ|0.90.",
+   "몇_기체": "1기체(x500v2). 다른 9기체는 그룹 사이 비다양체 모서리 0.",
+   "크기": {
+    "웰딩_후_공유_정점": 96,
+    "출하_인덱스_기준_공유_정점": 0,
+    "⚠주": "감사는 «정점 96개를 **비트 동일**하게 공유» 라고 적었다. 실측은 **좌표가 같을 뿐 인덱스는 따로**다(출하 인덱스 공유 0개, 좌표 웰딩 후 96개). 결함의 실체는 같다.",
+    "그룹_합쳐_웰딩했을_때_비다양체_모서리": 172,
+    "동일평면_면적_mm2": {
+     "1 µm 안": 5408.505,
+     "10 µm 안": 5408.505,
+     "100 µm 안": 6332.504
+    },
+    "동일평면_면수_1um": 80,
+    "accent_면적_대비_pct": 6.1399,
+    "전체_면적_대비_pct": 1.2402,
+    "accent_가_arm_솔리드_안에_있는_면적_mm2": 9451.12,
+    "그_비율_pct_of_accent": 10.7292,
+    "arm_이_accent_솔리드_안에_있는_면적_mm2": 14274.059,
+    "재질이_뒤집힐_때의_진폭차_db": 10.142
+   },
+   "σ_대가_직접측정": {
+    "accent_in_arm_뺐을_때": {
+     "mono_el0": {
+      "azimuth_mean_db": 0.0771,
+      "worst_az_db": -6.582,
+      "worst_az_deg": 24.0,
+      "worst_az_db_3deg_window": 3.063,
+      "p95_abs_db": 2.789,
+      "sigma_with_defect_azmean_dbsm": -16.923,
+      "sigma_repaired_azmean_dbsm": -17.0
+     },
+     "mono_el-30": {
+      "azimuth_mean_db": -0.0122,
+      "worst_az_db": -1.776,
+      "worst_az_deg": 160.0,
+      "worst_az_db_3deg_window": 1.272,
+      "p95_abs_db": 1.139,
+      "sigma_with_defect_azmean_dbsm": -16.311,
+      "sigma_repaired_azmean_dbsm": -16.299
+     },
+     "bi_b120_el-30": {
+      "azimuth_mean_db": -0.0424,
+      "worst_az_db": -2.253,
+      "worst_az_deg": 162.0,
+      "worst_az_db_3deg_window": -2.001,
+      "p95_abs_db": 0.939,
+      "sigma_with_defect_azmean_dbsm": -15.072,
+      "sigma_repaired_azmean_dbsm": -15.03
+     }
+    },
+    "arm_in_accent_뺐을_때": {
+     "mono_el0": {
+      "azimuth_mean_db": 0.1641,
+      "worst_az_db": -7.983,
+      "worst_az_deg": 26.0,
+      "worst_az_db_3deg_window": -7.217,
+      "p95_abs_db": 3.19,
+      "sigma_with_defect_azmean_dbsm": -16.923,
+      "sigma_repaired_azmean_dbsm": -17.087
+     },
+     "mono_el-30": {
+      "azimuth_mean_db": 0.8188,
+      "worst_az_db": 8.739,
+      "worst_az_deg": 206.0,
+      "worst_az_db_3deg_window": 8.305,
+      "p95_abs_db": 6.575,
+      "sigma_with_defect_azmean_dbsm": -16.311,
+      "sigma_repaired_azmean_dbsm": -17.13
+     },
+     "bi_b120_el-30": {
+      "azimuth_mean_db": 0.5242,
+      "worst_az_db": 13.564,
+      "worst_az_deg": 232.0,
+      "worst_az_db_3deg_window": 5.027,
+      "p95_abs_db": 4.341,
+      "sigma_with_defect_azmean_dbsm": -15.072,
+      "sigma_repaired_azmean_dbsm": -15.596
+     }
+    },
+    "판정": "⭐감사는 «σ 로 얼마인지는 안 쟀다(추측: 면적 비중 1.2 % 라 작을 것)» 라고 적었다. **이제 쟀다 — 추측이 대체로 맞다.** accent_in_arm 쪽은 방위평균 |Δ| ≤ 0.08 dB(무해), arm_in_accent 쪽은 +0.16~+0.82 dB(보임). 합쳐도 방위평균 1 dB 를 안 넘는다. 다만 최악방위 3° 창은 arm_in_accent 가 +8.3 dB(el−30)·+5.0 dB(β120) 라 **방위별로는 결론을 바꿀 수 있다.**",
+    "⚠못_잰_것": "z-fighting 자체는 **PO 에서 안 일어난다**(PO 는 광선을 안 쏘고 두 면을 그냥 둘 다 더한다). 재질이 뒤집히는 사건은 **SBR/Mitsuba 경로에서만** 생기고 그쪽은 GPU 라 이번에 못 쟀다. 위 dB 는 «PO 이중계상» 의 값이지 «재질 뒤집힘» 의 값이 아니다."
+   },
+   "고칠_수_있나": "⭕있다. (a) accent 를 arm 과 **union**(union_group 을 그룹쌍으로), 또는 (b) 클램프를 arm 표면에서 **0.1 mm 이상 띄우기**(X500V2['corner_clamp_r_mm'] 의 안쪽 반경을 키운다). 위험: (b)는 실물 클램프가 실제로 튜브에 **닿아 있다** — 띄우면 형상이 실물에서 멀어진다(0.1 mm 는 λ/857 이라 전파적으로는 무해). (a)는 재질이 달라서 union 하면 **어느 |Γ| 를 줄지 정해야 한다** — 겹친 자리는 carbon 이 물리적으로 맞다(클램프가 튜브를 감싼다)."
+  },
+  "m6_uv_sphere_poles": {
+   "무엇": "geom.uv_sphere 의 북·남극에서 seg 개의 정점이 **같은 좌표에 겹쳐** 쌓인다. 면적 0 삼각형은 없지만(2026-07-01 수정 유효) 인덱스 기준으로 껍질이 안 닫힌다.",
+   "⭐현재_상태": {
+    "weld_poles_인자": "**이미 있다** — geom.uv_sphere(..., weld_poles=False) 가 2026-08-16 에 붙었다. 기본은 꺼짐(비트동일 유지).",
+    "geom.py_죽은_자체점검": "**이미 지워졌다** — `python src/geom.py` 가 returncode 0 로 정상 종료한다(옛 NameError 없음).",
+    "남은_일": "인자를 **호출부에 배선**하는 것뿐. 지금은 아무 호출부도 weld_poles=True 를 안 쓴다."
+   },
+   "몇_기체": "⭐**드론 메쉬에는 0 기체.** 드론 CAD 경로는 cadkit.sphere(=trimesh icosphere)를 쓴다(drone_cad.py 1152·1178·1339·1517·1665). uv_sphere 는 **검증·시각화 표적 전용**이다 — rcs_po.validate 의 금속구(seg90·rings46), rcs_sbr/viz_verify_sbr/viz_report2 의 기준구(seg180·rings90), viz_verify_po 의 수렴시험(seg120·rings60).",
+   "크기": {
+    "seg18_rings10": {
+     "seg": 18,
+     "rings": 10,
+     "tris": 324,
+     "verts_shipped": 198,
+     "verts_welded": 164,
+     "duplicate_pole_vertices": 34,
+     "watertight_shipped": false,
+     "watertight_welded": true,
+     "zero_area_tris": 0
+    },
+    "seg90_rings46": {
+     "seg": 90,
+     "rings": 46,
+     "tris": 8100,
+     "verts_shipped": 4230,
+     "verts_welded": 4052,
+     "duplicate_pole_vertices": 178,
+     "watertight_shipped": false,
+     "watertight_welded": true,
+     "zero_area_tris": 0,
+     "sigma_delta_db_max": 0.0,
+     "sigma_azmean_dbsm": -1.0157
+    },
+    "seg120_rings60": {
+     "seg": 120,
+     "rings": 60,
+     "tris": 14160,
+     "verts_shipped": 7320,
+     "verts_welded": 7082,
+     "duplicate_pole_vertices": 238,
+     "watertight_shipped": false,
+     "watertight_welded": true,
+     "zero_area_tris": 0
+    },
+    "seg180_rings90": {
+     "seg": 180,
+     "rings": 90,
+     "tris": 32040,
+     "verts_shipped": 16380,
+     "verts_welded": 16022,
+     "duplicate_pole_vertices": 358,
+     "watertight_shipped": false,
+     "watertight_welded": true,
+     "zero_area_tris": 0
+    }
+   },
+   "σ_대가_직접측정": {
+    "무엇을_쟀나": "rcs_po.validate 가 실제로 쓰는 seg=90·rings=46 구(r=0.5 m)를 weld_poles=False ↔ True 로 지어 같은 커널로 쟀다(대역평균, 12 방위).",
+    "최대_방위별_차_db": 0.0,
+    "판정": "**정확히 0.000 dB.** 삼각형의 좌표·개수·감김이 그대로고 정점 인덱스만 바뀌므로 PO(면 중심·법선·면적만 본다)에는 **정의상** 아무 일도 안 일어난다. 이것은 «작다» 가 아니라 «없다» 다."
+   },
+   "고칠_수_있나": "⭕있다. 호출부 4곳에 weld_poles=True 를 넣으면 된다. **얻는 것은 σ 가 아니라 위생**이다 — 내보낸 OBJ 가 유효한 솔리드가 되고, trimesh(process=False)로 열어도 수밀이 되고, mesh_check 가 «웰딩해서 못 보는» 상태가 사라진다. 위험: 정점 인덱스가 바뀌어 기존 OBJ 와 바이트 단위로 달라진다. ⚠**우선순위는 낮다** — 드론 메쉬에 안 쓰이므로 표적 σ 에는 어떤 경로로도 영향이 없다."
+  },
+  "I3_buried_faces_general": {
+   "무엇": "부품 간 매몰면 전수. 지금 검사는 prop↔motor 한 쌍뿐이고 나머지 쌍은 아무도 안 본다.",
+   "몇_기체": "10기체 전부. 총 매몰면은 7.99 %(s1000plus) ~ 44.45 %(mini2, 구멍 메운 뒤).",
+   "⭐두_종류로_갈라야_한다": {
+    "설계_의도": "battery·pcb·fc 가 **셸(body/canopy) 안에** 있는 것. rcs_po 문서가 스스로 «반투명 셸을 통과해 내부가 보이는 효과는 셸 |Γ| 축소 + 내부 |Γ|=1 합산으로 1차 근사» 라고 적는다 — **빼면 안 된다.** 빼면 σ 지배 부품이 사라진다(m350rtk mono el0 −6.30 dB, phantom3 −5.73 dB).",
+    "진짜_결함": "그 밖의 모든 매몰면 — 셸 면이 금속 상자 안에 든 것, canopy 가 body 안에 든 것, camera 가 body 안에 든 것, battery 끼리 겹친 것, accent↔arm 등. 이것들은 실물이라면 **보이지 않는 면**이고 PO 가 그대로 더한다.",
+    "⚠이_구분은_내_판단이다": "감사 원장에는 이 구분이 없다. 근거는 rcs_po.py 22-36행과 감사 I3 의 «battery/pcb 투과는 설계 의도» 문장이다. 다르게 가르면 아래 dB 도 달라진다."
+   },
+   "기체별": {
+    "mini5pro": {
+     "총_매몰_면적_pct": 41.814,
+     "총_매몰_면적_mm2": 55300.314,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 8.8942,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 32.9198,
+     "⭐진짜_결함_면적_mm2": 43537.448,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 3.9855,
+       "worst_az_db": 32.909,
+       "worst_az_deg": 162.0,
+       "worst_az_db_3deg_window": 16.683,
+       "p95_abs_db": 11.617,
+       "sigma_with_defect_azmean_dbsm": -19.484,
+       "sigma_repaired_azmean_dbsm": -23.469
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 2.3908,
+       "worst_az_db": 17.166,
+       "worst_az_deg": 284.0,
+       "worst_az_db_3deg_window": 15.104,
+       "p95_abs_db": 10.296,
+       "sigma_with_defect_azmean_dbsm": -22.679,
+       "sigma_repaired_azmean_dbsm": -25.07
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 3.7194,
+       "worst_az_db": -10.914,
+       "worst_az_deg": 198.0,
+       "worst_az_db_3deg_window": -10.53,
+       "p95_abs_db": 8.074,
+       "sigma_with_defect_azmean_dbsm": -20.166,
+       "sigma_repaired_azmean_dbsm": -23.886
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 6.6431,
+       "worst_az_db": 24.848,
+       "worst_az_deg": 190.0,
+       "worst_az_db_3deg_window": 24.416,
+       "p95_abs_db": 18.257,
+       "sigma_with_defect_azmean_dbsm": -19.484,
+       "sigma_repaired_azmean_dbsm": -26.127
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 4.0402,
+       "worst_az_db": 19.029,
+       "worst_az_deg": 80.0,
+       "worst_az_db_3deg_window": 13.581,
+       "p95_abs_db": 11.419,
+       "sigma_with_defect_azmean_dbsm": -22.679,
+       "sigma_repaired_azmean_dbsm": -26.72
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 7.5365,
+       "worst_az_db": 31.037,
+       "worst_az_deg": 228.0,
+       "worst_az_db_3deg_window": 23.799,
+       "p95_abs_db": 16.361,
+       "sigma_with_defect_azmean_dbsm": -20.166,
+       "sigma_repaired_azmean_dbsm": -27.703
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 15,
+       "area_mm2": 11622.396,
+       "pct_of_mesh": 8.788,
+       "pct_of_src_group": 50.4867
+      },
+      "battery_in_battery(self)": {
+       "faces": 7,
+       "area_mm2": 11023.887,
+       "pct_of_mesh": 8.3354,
+       "pct_of_src_group": 47.8868
+      },
+      "camera_in_body": {
+       "faces": 1118,
+       "area_mm2": 7865.371,
+       "pct_of_mesh": 5.9472,
+       "pct_of_src_group": 46.8161
+      },
+      "canopy_in_battery": {
+       "faces": 1130,
+       "area_mm2": 5337.977,
+       "pct_of_mesh": 4.0362,
+       "pct_of_src_group": 47.9954
+      },
+      "pcb_in_battery": {
+       "faces": 10,
+       "area_mm2": 4704.838,
+       "pct_of_mesh": 3.5574,
+       "pct_of_src_group": 97.1009
+      }
+     }
+    },
+    "mavic4pro": {
+     "총_매몰_면적_pct": 37.999,
+     "총_매몰_면적_mm2": 125007.666,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 8.4223,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 29.5768,
+     "⭐진짜_결함_면적_mm2": 97300.431,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 2.2932,
+       "worst_az_db": 15.214,
+       "worst_az_deg": 348.0,
+       "worst_az_db_3deg_window": 10.35,
+       "p95_abs_db": 8.931,
+       "sigma_with_defect_azmean_dbsm": -16.183,
+       "sigma_repaired_azmean_dbsm": -18.476
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2825,
+       "worst_az_db": -8.496,
+       "worst_az_deg": 332.0,
+       "worst_az_db_3deg_window": -7.856,
+       "p95_abs_db": 7.238,
+       "sigma_with_defect_azmean_dbsm": -18.93,
+       "sigma_repaired_azmean_dbsm": -19.213
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.47,
+       "worst_az_db": 14.329,
+       "worst_az_deg": 42.0,
+       "worst_az_db_3deg_window": 12.645,
+       "p95_abs_db": 8.009,
+       "sigma_with_defect_azmean_dbsm": -21.99,
+       "sigma_repaired_azmean_dbsm": -22.46
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 4.0902,
+       "worst_az_db": 21.041,
+       "worst_az_deg": 356.0,
+       "worst_az_db_3deg_window": 15.624,
+       "p95_abs_db": 12.848,
+       "sigma_with_defect_azmean_dbsm": -16.183,
+       "sigma_repaired_azmean_dbsm": -20.273
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.5495,
+       "worst_az_db": -19.958,
+       "worst_az_deg": 166.0,
+       "worst_az_db_3deg_window": -16.405,
+       "p95_abs_db": 7.582,
+       "sigma_with_defect_azmean_dbsm": -18.93,
+       "sigma_repaired_azmean_dbsm": -19.48
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.4724,
+       "worst_az_db": 20.12,
+       "worst_az_deg": 316.0,
+       "worst_az_db_3deg_window": -17.82,
+       "p95_abs_db": 13.069,
+       "sigma_with_defect_azmean_dbsm": -21.99,
+       "sigma_repaired_azmean_dbsm": -22.463
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 17,
+       "area_mm2": 27385.923,
+       "pct_of_mesh": 8.3246,
+       "pct_of_src_group": 51.8799
+      },
+      "battery_in_battery(self)": {
+       "faces": 7,
+       "area_mm2": 25401.245,
+       "pct_of_mesh": 7.7213,
+       "pct_of_src_group": 48.1201
+      },
+      "canopy_in_body": {
+       "faces": 1532,
+       "area_mm2": 17469.088,
+       "pct_of_mesh": 5.3101,
+       "pct_of_src_group": 68.0821
+      },
+      "camera_in_body": {
+       "faces": 1549,
+       "area_mm2": 13794.903,
+       "pct_of_mesh": 4.1933,
+       "pct_of_src_group": 31.5629
+      },
+      "body_in_camera": {
+       "faces": 861,
+       "area_mm2": 13358.763,
+       "pct_of_mesh": 4.0607,
+       "pct_of_src_group": 11.4701
+      }
+     }
+    },
+    "matrice4e": {
+     "총_매몰_면적_pct": 40.7113,
+     "총_매몰_면적_mm2": 124408.024,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 22.0378,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 18.6735,
+     "⭐진짜_결함_면적_mm2": 57063.579,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.1682,
+       "worst_az_db": 15.848,
+       "worst_az_deg": 108.0,
+       "worst_az_db_3deg_window": 5.627,
+       "p95_abs_db": 4.996,
+       "sigma_with_defect_azmean_dbsm": -15.993,
+       "sigma_repaired_azmean_dbsm": -17.161
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.9686,
+       "worst_az_db": 22.514,
+       "worst_az_deg": 180.0,
+       "worst_az_db_3deg_window": 21.773,
+       "p95_abs_db": 11.095,
+       "sigma_with_defect_azmean_dbsm": -21.202,
+       "sigma_repaired_azmean_dbsm": -22.17
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.8181,
+       "worst_az_db": 11.868,
+       "worst_az_deg": 204.0,
+       "worst_az_db_3deg_window": 7.757,
+       "p95_abs_db": 3.559,
+       "sigma_with_defect_azmean_dbsm": -16.766,
+       "sigma_repaired_azmean_dbsm": -17.585
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 6.1085,
+       "worst_az_db": 24.398,
+       "worst_az_deg": 176.0,
+       "worst_az_db_3deg_window": 18.688,
+       "p95_abs_db": 12.434,
+       "sigma_with_defect_azmean_dbsm": -15.993,
+       "sigma_repaired_azmean_dbsm": -22.101
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 2.7943,
+       "worst_az_db": 21.956,
+       "worst_az_deg": 212.0,
+       "worst_az_db_3deg_window": -15.844,
+       "p95_abs_db": 10.636,
+       "sigma_with_defect_azmean_dbsm": -21.202,
+       "sigma_repaired_azmean_dbsm": -23.996
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 7.4423,
+       "worst_az_db": 32.856,
+       "worst_az_deg": 74.0,
+       "worst_az_db_3deg_window": 25.822,
+       "p95_abs_db": 18.511,
+       "sigma_with_defect_azmean_dbsm": -16.766,
+       "sigma_repaired_azmean_dbsm": -24.209
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 16,
+       "area_mm2": 55909.031,
+       "pct_of_mesh": 18.2957,
+       "pct_of_src_group": 94.9462
+      },
+      "canopy_in_body": {
+       "faces": 919,
+       "area_mm2": 12296.03,
+       "pct_of_mesh": 4.0238,
+       "pct_of_src_group": 36.5799
+      },
+      "pcb_in_body": {
+       "faces": 12,
+       "area_mm2": 11435.414,
+       "pct_of_mesh": 3.7421,
+       "pct_of_src_group": 100.0
+      },
+      "canopy_in_battery": {
+       "faces": 963,
+       "area_mm2": 10914.887,
+       "pct_of_mesh": 3.5718,
+       "pct_of_src_group": 32.4711
+      },
+      "camera_in_body": {
+       "faces": 877,
+       "area_mm2": 10740.864,
+       "pct_of_mesh": 3.5148,
+       "pct_of_src_group": 36.4329
+      }
+     }
+    },
+    "s1000plus": {
+     "총_매몰_면적_pct": 7.987,
+     "총_매몰_면적_mm2": 95400.959,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 1.0957,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 6.8913,
+     "⭐진짜_결함_면적_mm2": 82313.449,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.3632,
+       "worst_az_db": 8.505,
+       "worst_az_deg": 152.0,
+       "worst_az_db_3deg_window": 3.335,
+       "p95_abs_db": 4.326,
+       "sigma_with_defect_azmean_dbsm": -10.904,
+       "sigma_repaired_azmean_dbsm": -11.268
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2139,
+       "worst_az_db": -9.862,
+       "worst_az_deg": 122.0,
+       "worst_az_db_3deg_window": -5.27,
+       "p95_abs_db": 5.211,
+       "sigma_with_defect_azmean_dbsm": -12.76,
+       "sigma_repaired_azmean_dbsm": -12.973
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.1452,
+       "worst_az_db": -11.097,
+       "worst_az_deg": 36.0,
+       "worst_az_db_3deg_window": 5.424,
+       "p95_abs_db": 5.509,
+       "sigma_with_defect_azmean_dbsm": -12.247,
+       "sigma_repaired_azmean_dbsm": -13.393
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.3632,
+       "worst_az_db": 8.505,
+       "worst_az_deg": 152.0,
+       "worst_az_db_3deg_window": 3.335,
+       "p95_abs_db": 4.326,
+       "sigma_with_defect_azmean_dbsm": -10.904,
+       "sigma_repaired_azmean_dbsm": -11.268
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2367,
+       "worst_az_db": -10.532,
+       "worst_az_deg": 160.0,
+       "worst_az_db_3deg_window": -5.646,
+       "p95_abs_db": 4.763,
+       "sigma_with_defect_azmean_dbsm": -12.76,
+       "sigma_repaired_azmean_dbsm": -12.996
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.1602,
+       "worst_az_db": -10.26,
+       "worst_az_deg": 72.0,
+       "worst_az_db_3deg_window": 6.771,
+       "p95_abs_db": 6.489,
+       "sigma_with_defect_azmean_dbsm": -12.247,
+       "sigma_repaired_azmean_dbsm": -13.408
+      }
+     },
+     "상위_쌍": {
+      "arm_in_body": {
+       "faces": 357,
+       "area_mm2": 26688.104,
+       "pct_of_mesh": 2.2343,
+       "pct_of_src_group": 10.9709
+      },
+      "body_in_arm": {
+       "faces": 21,
+       "area_mm2": 19631.56,
+       "pct_of_mesh": 1.6436,
+       "pct_of_src_group": 5.5216
+      },
+      "body_in_battery": {
+       "faces": 2,
+       "area_mm2": 16745.84,
+       "pct_of_mesh": 1.402,
+       "pct_of_src_group": 4.7099
+      },
+      "battery_in_body": {
+       "faces": 2,
+       "area_mm2": 13087.51,
+       "pct_of_mesh": 1.0957,
+       "pct_of_src_group": 25.3199
+      },
+      "camera_in_gear": {
+       "faces": 2,
+       "area_mm2": 9006.889,
+       "pct_of_mesh": 0.7541,
+       "pct_of_src_group": 8.8729
+      }
+     }
+    },
+    "phantom4": {
+     "총_매몰_면적_pct": 39.2982,
+     "총_매몰_면적_mm2": 135183.141,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 8.7951,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 30.5031,
+     "⭐진짜_결함_면적_mm2": 104928.6,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.9889,
+       "worst_az_db": 15.87,
+       "worst_az_deg": 86.0,
+       "worst_az_db_3deg_window": 8.879,
+       "p95_abs_db": 6.783,
+       "sigma_with_defect_azmean_dbsm": -18.268,
+       "sigma_repaired_azmean_dbsm": -19.257
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 2.1425,
+       "worst_az_db": 19.439,
+       "worst_az_deg": 106.0,
+       "worst_az_db_3deg_window": 17.103,
+       "p95_abs_db": 11.95,
+       "sigma_with_defect_azmean_dbsm": -21.056,
+       "sigma_repaired_azmean_dbsm": -23.198
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.4771,
+       "worst_az_db": 15.047,
+       "worst_az_deg": 168.0,
+       "worst_az_db_3deg_window": 14.337,
+       "p95_abs_db": 10.278,
+       "sigma_with_defect_azmean_dbsm": -21.486,
+       "sigma_repaired_azmean_dbsm": -21.963
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 3.4789,
+       "worst_az_db": 17.414,
+       "worst_az_deg": 172.0,
+       "worst_az_db_3deg_window": 16.152,
+       "p95_abs_db": 10.473,
+       "sigma_with_defect_azmean_dbsm": -18.268,
+       "sigma_repaired_azmean_dbsm": -21.747
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 4.1465,
+       "worst_az_db": 17.352,
+       "worst_az_deg": 258.0,
+       "worst_az_db_3deg_window": 16.864,
+       "p95_abs_db": 14.647,
+       "sigma_with_defect_azmean_dbsm": -21.056,
+       "sigma_repaired_azmean_dbsm": -25.202
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.4919,
+       "worst_az_db": 16.933,
+       "worst_az_deg": 160.0,
+       "worst_az_db_3deg_window": 15.474,
+       "p95_abs_db": 10.78,
+       "sigma_with_defect_azmean_dbsm": -21.486,
+       "sigma_repaired_azmean_dbsm": -22.978
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 15,
+       "area_mm2": 29854.218,
+       "pct_of_mesh": 8.6787,
+       "pct_of_src_group": 50.5376
+      },
+      "battery_in_battery(self)": {
+       "faces": 9,
+       "area_mm2": 29219.055,
+       "pct_of_mesh": 8.4941,
+       "pct_of_src_group": 49.4624
+      },
+      "camera_in_body": {
+       "faces": 343,
+       "area_mm2": 18783.307,
+       "pct_of_mesh": 5.4604,
+       "pct_of_src_group": 53.7512
+      },
+      "canopy_in_battery": {
+       "faces": 1092,
+       "area_mm2": 17421.906,
+       "pct_of_mesh": 5.0646,
+       "pct_of_src_group": 49.4724
+      },
+      "canopy_in_body": {
+       "faces": 1148,
+       "area_mm2": 15277.481,
+       "pct_of_mesh": 4.4412,
+       "pct_of_src_group": 43.3829
+      }
+     }
+    },
+    "typhoonh480": {
+     "총_매몰_면적_pct": 22.484,
+     "총_매몰_면적_mm2": 101932.066,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 9.1512,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 13.3328,
+     "⭐진짜_결함_면적_mm2": 60444.826,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.6216,
+       "worst_az_db": 8.009,
+       "worst_az_deg": 302.0,
+       "worst_az_db_3deg_window": 5.446,
+       "p95_abs_db": 4.321,
+       "sigma_with_defect_azmean_dbsm": -14.163,
+       "sigma_repaired_azmean_dbsm": -14.785
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.8588,
+       "worst_az_db": 14.623,
+       "worst_az_deg": 204.0,
+       "worst_az_db_3deg_window": 12.965,
+       "p95_abs_db": 8.807,
+       "sigma_with_defect_azmean_dbsm": -15.559,
+       "sigma_repaired_azmean_dbsm": -16.418
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.1477,
+       "worst_az_db": 6.88,
+       "worst_az_deg": 72.0,
+       "worst_az_db_3deg_window": 5.212,
+       "p95_abs_db": 3.809,
+       "sigma_with_defect_azmean_dbsm": -18.36,
+       "sigma_repaired_azmean_dbsm": -19.507
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.9314,
+       "worst_az_db": 11.018,
+       "worst_az_deg": 358.0,
+       "worst_az_db_3deg_window": 9.484,
+       "p95_abs_db": 6.559,
+       "sigma_with_defect_azmean_dbsm": -14.163,
+       "sigma_repaired_azmean_dbsm": -15.094
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 1.1808,
+       "worst_az_db": 15.875,
+       "worst_az_deg": 204.0,
+       "worst_az_db_3deg_window": -14.794,
+       "p95_abs_db": 10.154,
+       "sigma_with_defect_azmean_dbsm": -15.559,
+       "sigma_repaired_azmean_dbsm": -16.74
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 1.7337,
+       "worst_az_db": 14.205,
+       "worst_az_deg": 66.0,
+       "worst_az_db_3deg_window": 11.113,
+       "p95_abs_db": 6.792,
+       "sigma_with_defect_azmean_dbsm": -18.36,
+       "sigma_repaired_azmean_dbsm": -20.093
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 6,
+       "area_mm2": 21938.463,
+       "pct_of_mesh": 4.8392,
+       "pct_of_src_group": 50.0
+      },
+      "pcb_in_body": {
+       "faces": 12,
+       "area_mm2": 19548.777,
+       "pct_of_mesh": 4.312,
+       "pct_of_src_group": 100.0
+      },
+      "canopy_in_body": {
+       "faces": 960,
+       "area_mm2": 14325.122,
+       "pct_of_mesh": 3.1598,
+       "pct_of_src_group": 74.6627
+      },
+      "body_in_battery": {
+       "faces": 552,
+       "area_mm2": 11308.942,
+       "pct_of_mesh": 2.4945,
+       "pct_of_src_group": 6.737
+      },
+      "camera_in_body": {
+       "faces": 10,
+       "area_mm2": 6442.394,
+       "pct_of_mesh": 1.4211,
+       "pct_of_src_group": 9.3255
+      }
+     }
+    },
+    "x500v2": {
+     "총_매몰_면적_pct": 18.1388,
+     "총_매몰_면적_mm2": 79104.251,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 0.0,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 18.1388,
+     "⭐진짜_결함_면적_mm2": 79104.251,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.4029,
+       "worst_az_db": 14.246,
+       "worst_az_deg": 246.0,
+       "worst_az_db_3deg_window": 11.608,
+       "p95_abs_db": 9.281,
+       "sigma_with_defect_azmean_dbsm": -16.923,
+       "sigma_repaired_azmean_dbsm": -18.326
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 2.8198,
+       "worst_az_db": 13.738,
+       "worst_az_deg": 240.0,
+       "worst_az_db_3deg_window": 11.061,
+       "p95_abs_db": 10.372,
+       "sigma_with_defect_azmean_dbsm": -16.311,
+       "sigma_repaired_azmean_dbsm": -19.131
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 3.2767,
+       "worst_az_db": 14.393,
+       "worst_az_deg": 220.0,
+       "worst_az_db_3deg_window": 9.088,
+       "p95_abs_db": 8.382,
+       "sigma_with_defect_azmean_dbsm": -15.072,
+       "sigma_repaired_azmean_dbsm": -18.349
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 1.4029,
+       "worst_az_db": 14.246,
+       "worst_az_deg": 246.0,
+       "worst_az_db_3deg_window": 11.608,
+       "p95_abs_db": 9.281,
+       "sigma_with_defect_azmean_dbsm": -16.923,
+       "sigma_repaired_azmean_dbsm": -18.326
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 2.8198,
+       "worst_az_db": 13.738,
+       "worst_az_deg": 240.0,
+       "worst_az_db_3deg_window": 11.061,
+       "p95_abs_db": 10.372,
+       "sigma_with_defect_azmean_dbsm": -16.311,
+       "sigma_repaired_azmean_dbsm": -19.131
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 3.2767,
+       "worst_az_db": 14.393,
+       "worst_az_deg": 220.0,
+       "worst_az_db_3deg_window": 9.088,
+       "p95_abs_db": 8.382,
+       "sigma_with_defect_azmean_dbsm": -15.072,
+       "sigma_repaired_azmean_dbsm": -18.349
+      }
+     },
+     "상위_쌍": {
+      "gear_cf_in_gear": {
+       "faces": 384,
+       "area_mm2": 20060.691,
+       "pct_of_mesh": 4.6,
+       "pct_of_src_group": 54.8484
+      },
+      "arm_in_accent": {
+       "faces": 605,
+       "area_mm2": 14274.059,
+       "pct_of_mesh": 3.2731,
+       "pct_of_src_group": 30.4569
+      },
+      "accent_in_arm": {
+       "faces": 40,
+       "area_mm2": 9451.12,
+       "pct_of_mesh": 2.1672,
+       "pct_of_src_group": 10.7292
+      },
+      "deck_in_accent": {
+       "faces": 66,
+       "area_mm2": 7820.65,
+       "pct_of_mesh": 1.7933,
+       "pct_of_src_group": 6.4552
+      },
+      "battery_in_deck": {
+       "faces": 3,
+       "area_mm2": 7087.5,
+       "pct_of_mesh": 1.6252,
+       "pct_of_src_group": 31.4302
+      }
+     }
+    },
+    "phantom3": {
+     "총_매몰_면적_pct": 27.5272,
+     "총_매몰_면적_mm2": 76513.517,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 19.2547,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 8.2725,
+     "⭐진짜_결함_면적_mm2": 22993.885,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.5083,
+       "worst_az_db": -3.761,
+       "worst_az_deg": 236.0,
+       "worst_az_db_3deg_window": 3.188,
+       "p95_abs_db": 2.423,
+       "sigma_with_defect_azmean_dbsm": -19.483,
+       "sigma_repaired_azmean_dbsm": -19.991
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.5665,
+       "worst_az_db": -9.404,
+       "worst_az_deg": 224.0,
+       "worst_az_db_3deg_window": -3.894,
+       "p95_abs_db": 2.835,
+       "sigma_with_defect_azmean_dbsm": -18.298,
+       "sigma_repaired_azmean_dbsm": -18.864
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 0.3889,
+       "worst_az_db": 14.525,
+       "worst_az_deg": 336.0,
+       "worst_az_db_3deg_window": -12.6,
+       "p95_abs_db": 8.587,
+       "sigma_with_defect_azmean_dbsm": -22.766,
+       "sigma_repaired_azmean_dbsm": -23.155
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 6.0366,
+       "worst_az_db": 18.548,
+       "worst_az_deg": 102.0,
+       "worst_az_db_3deg_window": 17.058,
+       "p95_abs_db": 14.511,
+       "sigma_with_defect_azmean_dbsm": -19.483,
+       "sigma_repaired_azmean_dbsm": -25.519
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 5.2581,
+       "worst_az_db": -19.89,
+       "worst_az_deg": 224.0,
+       "worst_az_db_3deg_window": -15.5,
+       "p95_abs_db": 11.784,
+       "sigma_with_defect_azmean_dbsm": -18.298,
+       "sigma_repaired_azmean_dbsm": -23.556
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 2.3713,
+       "worst_az_db": -25.652,
+       "worst_az_deg": 10.0,
+       "worst_az_db_3deg_window": -25.015,
+       "p95_abs_db": 13.592,
+       "sigma_with_defect_azmean_dbsm": -22.766,
+       "sigma_repaired_azmean_dbsm": -25.137
+      }
+     },
+     "상위_쌍": {
+      "pcb_in_body": {
+       "faces": 10,
+       "area_mm2": 27448.014,
+       "pct_of_mesh": 9.875,
+       "pct_of_src_group": 98.8142
+      },
+      "battery_in_body": {
+       "faces": 22,
+       "area_mm2": 26071.618,
+       "pct_of_mesh": 9.3798,
+       "pct_of_src_group": 81.0896
+      },
+      "body_in_battery": {
+       "faces": 760,
+       "area_mm2": 9327.056,
+       "pct_of_mesh": 3.3556,
+       "pct_of_src_group": 9.4115
+      },
+      "canopy_in_body": {
+       "faces": 2240,
+       "area_mm2": 9013.237,
+       "pct_of_mesh": 3.2427,
+       "pct_of_src_group": 100.0
+      },
+      "camera_in_body": {
+       "faces": 147,
+       "area_mm2": 1565.85,
+       "pct_of_mesh": 0.5633,
+       "pct_of_src_group": 4.14
+      }
+     }
+    },
+    "m350rtk": {
+     "총_매몰_면적_pct": 29.3285,
+     "총_매몰_면적_mm2": 305281.086,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 20.5088,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 8.8198,
+     "⭐진짜_결함_면적_mm2": 91804.96,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 0.3472,
+       "worst_az_db": 7.336,
+       "worst_az_deg": 336.0,
+       "worst_az_db_3deg_window": 4.48,
+       "p95_abs_db": 3.957,
+       "sigma_with_defect_azmean_dbsm": -5.616,
+       "sigma_repaired_azmean_dbsm": -5.963
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.1454,
+       "worst_az_db": -13.45,
+       "worst_az_deg": 80.0,
+       "worst_az_db_3deg_window": -5.34,
+       "p95_abs_db": 4.456,
+       "sigma_with_defect_azmean_dbsm": -12.31,
+       "sigma_repaired_azmean_dbsm": -12.455
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": -0.151,
+       "worst_az_db": -14.954,
+       "worst_az_deg": 218.0,
+       "worst_az_db_3deg_window": -9.379,
+       "p95_abs_db": 5.494,
+       "sigma_with_defect_azmean_dbsm": -16.588,
+       "sigma_repaired_azmean_dbsm": -16.437
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 7.7526,
+       "worst_az_db": 23.903,
+       "worst_az_deg": 266.0,
+       "worst_az_db_3deg_window": 19.886,
+       "p95_abs_db": 16.148,
+       "sigma_with_defect_azmean_dbsm": -5.616,
+       "sigma_repaired_azmean_dbsm": -13.368
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 0.2869,
+       "worst_az_db": -16.944,
+       "worst_az_deg": 80.0,
+       "worst_az_db_3deg_window": -7.544,
+       "p95_abs_db": 3.802,
+       "sigma_with_defect_azmean_dbsm": -12.31,
+       "sigma_repaired_azmean_dbsm": -12.596
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": -0.7792,
+       "worst_az_db": -18.942,
+       "worst_az_deg": 102.0,
+       "worst_az_db_3deg_window": 10.258,
+       "p95_abs_db": 8.619,
+       "sigma_with_defect_azmean_dbsm": -16.588,
+       "sigma_repaired_azmean_dbsm": -15.809
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 24,
+       "area_mm2": 137159.444,
+       "pct_of_mesh": 13.177,
+       "pct_of_src_group": 100.0
+      },
+      "pcb_in_body": {
+       "faces": 18,
+       "area_mm2": 76316.682,
+       "pct_of_mesh": 7.3318,
+       "pct_of_src_group": 84.5818
+      },
+      "pcb_in_battery": {
+       "faces": 6,
+       "area_mm2": 13911.521,
+       "pct_of_mesh": 1.3365,
+       "pct_of_src_group": 15.4182
+      },
+      "motor_in_prop": {
+       "faces": 240,
+       "area_mm2": 13825.2,
+       "pct_of_mesh": 1.3282,
+       "pct_of_src_group": 27.7801
+      },
+      "gear_cf_in_gear": {
+       "faces": 148,
+       "area_mm2": 11132.826,
+       "pct_of_mesh": 1.0695,
+       "pct_of_src_group": 8.3337
+      }
+     }
+    },
+    "mini2": {
+     "총_매몰_면적_pct": 44.4488,
+     "총_매몰_면적_mm2": 40714.989,
+     "설계의도(셸_투과로_보이는_내부금속)_pct": 11.0577,
+     "⭐진짜_결함(그_밖의_매몰면)_pct": 33.391,
+     "⭐진짜_결함_면적_mm2": 30586.126,
+     "σ_진짜결함만_뺐을_때": {
+      "mono_el0": {
+       "azimuth_mean_db": 3.4569,
+       "worst_az_db": 17.312,
+       "worst_az_deg": 234.0,
+       "worst_az_db_3deg_window": -14.876,
+       "p95_abs_db": 10.142,
+       "sigma_with_defect_azmean_dbsm": -24.586,
+       "sigma_repaired_azmean_dbsm": -28.042
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 3.6578,
+       "worst_az_db": 23.476,
+       "worst_az_deg": 10.0,
+       "worst_az_db_3deg_window": -15.403,
+       "p95_abs_db": 13.477,
+       "sigma_with_defect_azmean_dbsm": -25.574,
+       "sigma_repaired_azmean_dbsm": -29.232
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 5.2521,
+       "worst_az_db": 17.618,
+       "worst_az_deg": 32.0,
+       "worst_az_db_3deg_window": 16.431,
+       "p95_abs_db": 11.009,
+       "sigma_with_defect_azmean_dbsm": -19.438,
+       "sigma_repaired_azmean_dbsm": -24.69
+      }
+     },
+     "σ_매몰면_전부_뺐을_때(⚠참고용_수리안_아님)": {
+      "mono_el0": {
+       "azimuth_mean_db": 6.6956,
+       "worst_az_db": 31.443,
+       "worst_az_deg": 270.0,
+       "worst_az_db_3deg_window": 30.195,
+       "p95_abs_db": 20.112,
+       "sigma_with_defect_azmean_dbsm": -24.586,
+       "sigma_repaired_azmean_dbsm": -31.281
+      },
+      "mono_el-30": {
+       "azimuth_mean_db": 4.9156,
+       "worst_az_db": -26.6,
+       "worst_az_deg": 18.0,
+       "worst_az_db_3deg_window": -21.833,
+       "p95_abs_db": 16.237,
+       "sigma_with_defect_azmean_dbsm": -25.574,
+       "sigma_repaired_azmean_dbsm": -30.489
+      },
+      "bi_b120_el-30": {
+       "azimuth_mean_db": 11.82,
+       "worst_az_db": 26.768,
+       "worst_az_deg": 212.0,
+       "worst_az_db_3deg_window": 23.454,
+       "p95_abs_db": 17.665,
+       "sigma_with_defect_azmean_dbsm": -19.438,
+       "sigma_repaired_azmean_dbsm": -31.258
+      }
+     },
+     "상위_쌍": {
+      "battery_in_body": {
+       "faces": 15,
+       "area_mm2": 10027.069,
+       "pct_of_mesh": 10.9466,
+       "pct_of_src_group": 50.042
+      },
+      "battery_in_battery(self)": {
+       "faces": 9,
+       "area_mm2": 10010.234,
+       "pct_of_mesh": 10.9282,
+       "pct_of_src_group": 49.958
+      },
+      "canopy_in_body": {
+       "faces": 1271,
+       "area_mm2": 5359.739,
+       "pct_of_mesh": 5.8513,
+       "pct_of_src_group": 54.6151
+      },
+      "pcb_in_battery": {
+       "faces": 10,
+       "area_mm2": 4340.408,
+       "pct_of_mesh": 4.7384,
+       "pct_of_src_group": 97.7085
+      },
+      "camera_in_body": {
+       "faces": 126,
+       "area_mm2": 3388.079,
+       "pct_of_mesh": 3.6988,
+       "pct_of_src_group": 55.5698
+      }
+     },
+     "주": "⭐이 줄은 **구멍을 메운 판**이다(I5). 출하 상태로 재면 29.71 % 로 나오는데 그것은 검사가 body 를 못 본 값이다."
+    }
+   },
+   "σ_대가_요약": "⭐진짜 결함만 뺐을 때 방위평균: mono el0 +0.35~+3.99 dB · el−30 +0.15~+3.66 dB · 바이스태틱 β120 −0.15~+5.25 dB. 가장 큰 4기체는 mini2(+3.46/+3.66/+5.25) · mini5pro(+3.99/+2.39/+3.72) · x500v2(+1.40/+2.82/+3.28) · mavic4pro(+2.29/+0.28/+0.47). **주력 표적 두 대(mavic4pro·mini5pro)가 둘 다 밴드 밖이다.**",
+   "고칠_수_있나": "△부분적. 결함의 뿌리는 «그룹 사이에 불리언 union 을 안 한다» 는 것이라 한 줄로 안 끝난다. 갈래: (a) **union 목록을 그룹쌍으로 넓히기**(canopy↔body, accent↔arm, gear_cf↔gear) — 재질이 같은 쌍부터. 위험: 그룹 경계가 사라져 부품별 σ 분해가 안 된다. (b) **매몰면을 빌드 뒤에 지우기**(면 중심이 다른 솔리드 안이면 drop) — 가장 범용이고 재질도 안 건드린다. 위험: **설계 의도(내부 금속)까지 지우면 재앙**이라 셸↔내부 쌍을 반드시 예외로 둬야 한다. 그리고 부분 매몰 면은 면 중심 기준이라 경계에서 들쭉날쭉해진다. (c) **아무것도 안 하고 SBR 만 쓰기** — 이미 그렇다(기본 엔진). PO 를 쓰는 곳에 «가림 없음, 매몰면 X % 이중계상» 을 예산표로 선언. ⚠(a)(b) 둘 다 형상을 바꾸므로 **비트동일이 깨진다.** 그리고 감사 §4-1 의 부품분해 표(PO)를 다시 재야 한다."
+  }
+ },
+ "안_고칠_것_과_이유": {
+  "I3 의 «설계 의도» 부분(셸 안의 battery·pcb·fc)": {
+   "크기": {
+    "mini5pro": 8.8942,
+    "mavic4pro": 8.4223,
+    "matrice4e": 22.0378,
+    "s1000plus": 1.0957,
+    "phantom4": 8.7951,
+    "typhoonh480": 9.1512,
+    "x500v2": 0.0,
+    "phantom3": 19.2547,
+    "m350rtk": 20.5088,
+    "mini2": 11.0577
+   },
+   "σ_로_얼마인가": "빼면 mono el0 기준 −0.00(s1000plus) ~ −6.30 dB(m350rtk) 어두워진다.",
+   "왜_안_고치나": "결함이 아니다. 이것이 저장소의 **셸 투과 1차 근사 모델 자체**다(rcs_po.py 30-36행). 빼면 σ 지배 부품을 지우는 것이 된다."
+  },
+  "m6 uv_sphere 극점 배선": {
+   "크기": "중복 정점 34~358개, σ 대가 **정확히 0.000 dB**",
+   "왜_미루나": "드론 메쉬에 안 쓰인다(검증·시각화 표적 전용). 표적 σ 축에 어떤 경로로도 영향이 없으므로 2층에서 가장 낮은 우선순위다. 인자는 이미 있고 배선만 남았다."
+  },
+  "I5 의 구멍 자체를 «되붙이기» 로 막는 것": {
+   "크기": "σ 대가 1e-10 dB",
+   "왜_안_그러나": "구멍을 메우는 것은 증상이고, 원인은 cadkit 이 슬리버를 **지운다**는 것이다. 되붙이면 같은 자리에 다시 슬리버가 생긴다(그리고 그 슬리버는 m2 의 최소내각 잣대에 걸린다). 정점 병합이 원인 쪽 수리다."
+  },
+  "이_라운드에서 SBR 로 교차확인": {
+   "왜_안_하나": "⛔GPU 금지(큐가 5장 사용 중). SBR 은 first-hit 이라 매몰면 오차가 **구조적으로 0** 이어야 하지만 **확인은 못 했다** — 미해결로 남긴다."
+  }
+ },
+ "모르는_것": {
+  "mini2 매몰면 29.71 % ↔ 감사 I3 표 19.36 %": "내 census 는 나머지 9기체에서 감사 값을 소수 3자리까지 재현한다(41.814·37.999·40.711·7.987·39.298·22.484·18.139·27.527·29.329). mini2 만 10.35 pp 어긋나고 **원인을 못 찾았다.** 둘 다 «구멍 때문에 눈먼» 값이라 어느 쪽도 참값이 아니다 — 참값은 패치판 **44.45 %** 다.",
+  "재질 뒤집힘(m4)의 σ": "PO 에서는 안 일어나는 사건이라 이 커널로는 못 잰다. SBR/Mitsuba 필요 → GPU.",
+  "매몰면 오차의 스펙트럼 축": "마이크로도플러 AC 는 정의상 프롭만 남으므로 안 흔들려야 하지만, **DC 준위가 위 dB 만큼 움직이면 AC/DC 비는 흔들린다.** 안 쟀다.",
+  "부분 매몰 면의 경계": "매몰 판정을 삼각형 **중심**으로 한다. 반쯤 걸친 면은 통째로 들거나 통째로 빠진다 — 큰 상자 면(battery 는 면 6~24장뿐)에서 이 알갱이가 굵다."
+ }
+}

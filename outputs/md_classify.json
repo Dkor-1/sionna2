@@ -1,7 +1,7 @@
 {
  "_meta": {
   "script": "benchmark/md_classify_run.py",
-  "generated": "2026-08-10 15:58:06",
+  "generated": "2026-08-16 13:22:21",
   "question_ko": "호버링 드론을 마이크로도플러만으로 기종을 가를 수 있나",
   "n_rows_total": 12096,
   "features": [
@@ -44,6 +44,11 @@
   "prf_main_hz": 20000.0,
   "window_s": 0.25,
   "cv_ko": "자세 단위 leave-one-aspect-out (시험 자세는 학습에서 한 번도 안 본 기하)",
+  "snr_convention": "v1_pre_2026-08 (unlabelled)",
+  "snr_reference": "ac",
+  "snr_rung": "snr_slow_ac_db (3', AC / blade line only)",
+  "snr_capture": "full_waveform",
+  "snr_note": "the SNR axis below is AC-referenced: p_sig = mean|E-mean(E)|^2, i.e. the blade line alone, NOT total power. Convert with snr_slow_db = snr_slow_ac_db + 10*log10(1+10**(dc_ac_db/10)); each noise row carries its own dc_ac_db. Convention: outputs/snr_convention.json",
   "chance_accuracy": 0.1667,
   "upstream_ledger": "outputs/md_classify_verify.json",
   "data_precondition_ko": "광선 격자를 자세에 못 박고 계산한 위상표를 쓴다. 못 박지 않으면 프로펠러가 bbox 를 흔들어 허위 변조가 얹힌다(기체 6종 실측 1.49~14.64 배, 중앙값 3.3 배). 고정하면 로터 기여의 덧셈이 기계정밀도(1e−15)로 성립한다. 원장: outputs/md_classify_verify.json 의 grid_pinning 절.",
@@ -403,6 +408,10 @@
    "geometry_only": {
     "LDA": 0.7234,
     "RF100": 0.7905
+   },
+   "_snr": {
+    "snr_slow_ac_db": 10.0,
+    "reference": "ac"
    }
   },
   "0": {
@@ -421,6 +430,10 @@
    "geometry_only": {
     "LDA": 0.603,
     "RF100": 0.7396
+   },
+   "_snr": {
+    "snr_slow_ac_db": 0.0,
+    "reference": "ac"
    }
   },
   "-10": {
@@ -439,6 +452,10 @@
    "geometry_only": {
     "LDA": 0.2917,
     "RF100": 0.3623
+   },
+   "_snr": {
+    "snr_slow_ac_db": -10.0,
+    "reference": "ac"
    }
   },
   "-15": {
@@ -457,6 +474,10 @@
    "geometry_only": {
     "LDA": 0.2419,
     "RF100": 0.2604
+   },
+   "_snr": {
+    "snr_slow_ac_db": -15.0,
+    "reference": "ac"
    }
   },
   "-20": {
@@ -475,6 +496,10 @@
    "geometry_only": {
     "LDA": 0.2512,
     "RF100": 0.2396
+   },
+   "_snr": {
+    "snr_slow_ac_db": -20.0,
+    "reference": "ac"
    }
   },
   "-25": {
@@ -493,6 +518,10 @@
    "geometry_only": {
     "LDA": 0.235,
     "RF100": 0.2384
+   },
+   "_snr": {
+    "snr_slow_ac_db": -25.0,
+    "reference": "ac"
    }
   },
   "-30": {
@@ -511,6 +540,10 @@
    "geometry_only": {
     "LDA": 0.2546,
     "RF100": 0.2581
+   },
+   "_snr": {
+    "snr_slow_ac_db": -30.0,
+    "reference": "ac"
    }
   }
  },

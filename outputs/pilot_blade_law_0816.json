@@ -1,0 +1,545 @@
+{
+ "_meta": {
+  "title": "새 블레이드 법칙 파일럿 — 크기 재기",
+  "generated_kst": "2026-08-16T21:28:43",
+  "purpose_ko": "정본은 여전히 legacy 다. 정본을 갈아끼울지 정하려면 «얼마나 큰가» 를 먼저 알아야 하고, 이 파일이 그 크기를 잰다.",
+  "frequency_hz": 3500000000.0,
+  "gamma_prop": 0.25,
+  "gpu_used": false,
+  "kernel": "rcs_po (PO, 가림 없음, 모노스태틱). 프로펠러 1개만.",
+  "scope_caveats_ko": [
+   "모노스태틱만 쟀다 — 감사 §4-2 는 형상 민감도가 바이스태틱에서 더 크다고 측정했다(모노 +0.24 ↔ β=120° +1.29 dB). 여기 숫자는 **하한**이다.",
+   "PO 는 가림을 안 본다. 날끼리의 가림이 빠진다.",
+   "두 법칙 모두 같은 |Γ| 를 쓰므로 차이[dB]에는 재질이 안 들어간다."
+  ],
+  "patched_kst": "2026-08-16 — findings_ko 재작성(실측/면적중립 분류 필터 오류 수정)"
+ },
+ "geometry": {
+  "mini5pro": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 0.7864042400103917,
+    "t_tip_mm": 0.3734788102188319,
+    "planform_area_mm2": 9.899556037002927,
+    "tip_band_area_mm2": 0.4216949308053247,
+    "chord_norm_at_0p70R": 0.5992539987901165,
+    "mesh": {
+     "n_tris": 3188,
+     "area_mm2": 3966.4723015949057,
+     "max_edge_mm": 6.477000217095854,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.21331,
+    "chord_max_source": "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.",
+    "t_chordmean_mm": 0.7627311750770489,
+    "t_tip_mm": 0.46445929059421387,
+    "planform_area_mm2": 10.218392696003983,
+    "tip_band_area_mm2": 0.5037079008111406,
+    "chord_norm_at_0p70R": 0.8864141845705109,
+    "mesh": {
+     "n_tris": 3484,
+     "area_mm2": 3959.708007953818,
+     "max_edge_mm": 6.477000217095854,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -0.17053676735288015,
+    "planform_area_pct": 3.220716745370167,
+    "tip_band_area_pct": 19.44841258802732,
+    "thickness_pct": -3.010292128260894
+   }
+  },
+  "mavic4pro": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.3778931480690972,
+    "t_tip_mm": 0.6536712498681733,
+    "planform_area_mm2": 17.332525882265518,
+    "tip_band_area_mm2": 0.7387215528099176,
+    "chord_norm_at_0p70R": 0.5995883544611248,
+    "mesh": {
+     "n_tris": 3188,
+     "area_mm2": 12180.186861115117,
+     "max_edge_mm": 11.347500274719495,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.181,
+    "chord_max_source": "실측: 정품 1158F 프롭 제품사진 실측(assets/photos/mavic4pro/mavic4pro_c10_propeller_pair_1158F.jpg).",
+    "t_chordmean_mm": 1.134816664106469,
+    "t_tip_mm": 0.6921026425849819,
+    "planform_area_mm2": 15.186164127103385,
+    "tip_band_area_mm2": 0.7459372404984899,
+    "chord_norm_at_0p70R": 0.8832694845622183,
+    "mesh": {
+     "n_tris": 3496,
+     "area_mm2": 10524.428954562603,
+     "max_edge_mm": 11.347500274719495,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -13.593862930284518,
+    "planform_area_pct": -12.383433146107514,
+    "tip_band_area_pct": 0.9767804473993724,
+    "thickness_pct": -17.64117081961414
+   }
+  },
+  "matrice4e": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.4139786864700603,
+    "t_tip_mm": 0.6709906500572452,
+    "planform_area_mm2": 17.790136868565938,
+    "tip_band_area_mm2": 0.7581108939522552,
+    "chord_norm_at_0p70R": 0.5997266641577333,
+    "mesh": {
+     "n_tris": 3188,
+     "area_mm2": 12825.631096597815,
+     "max_edge_mm": 11.64500042796135,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.19,
+    "chord_max_source": "실측: 정품 1157F(표준) 프롭 제품사진 실측. ⚠저소음 1154F 라면 0.212 이고 면적이 +25 % 다 — 우리 기체가 어느 프롭을 쓰는지 저장소에 기록이 없다(감사 판정보류 ?3).",
+    "t_chordmean_mm": 1.2222021300197126,
+    "t_tip_mm": 0.7450701813422197,
+    "planform_area_mm2": 16.360304295707312,
+    "tip_band_area_mm2": 0.8043632777890208,
+    "chord_norm_at_0p70R": 0.8843542139489852,
+    "mesh": {
+     "n_tris": 3500,
+     "area_mm2": 11561.933372469943,
+     "max_edge_mm": 11.64500042796135,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -9.852908715447828,
+    "planform_area_pct": -8.037220755648322,
+    "tip_band_area_pct": 6.1010050384104675,
+    "thickness_pct": -13.562902912568653
+   }
+  },
+  "s1000plus": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.9658279680798867,
+    "t_tip_mm": 0.9350450825691717,
+    "planform_area_mm2": 24.76884368072637,
+    "tip_band_area_mm2": 1.0543597901016621,
+    "chord_norm_at_0p70R": 0.5981258022332661,
+    "mesh": {
+     "n_tris": 3200,
+     "area_mm2": 24774.460530617704,
+     "max_edge_mm": 16.19250088172851,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.21331,
+    "chord_max_source": "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.",
+    "t_chordmean_mm": 1.9076429766263732,
+    "t_tip_mm": 1.1629979350209034,
+    "planform_area_mm2": 25.548258647149865,
+    "tip_band_area_mm2": 1.259470338434189,
+    "chord_norm_at_0p70R": 0.8866844928059796,
+    "mesh": {
+     "n_tris": 3496,
+     "area_mm2": 24734.66941751132,
+     "max_edge_mm": 16.19250088172851,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -0.16061343921983662,
+    "planform_area_pct": 3.146755563038206,
+    "tip_band_area_pct": 19.453563219890047,
+    "thickness_pct": -2.9598211236329774
+   }
+  },
+  "phantom4": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.2385225561431399,
+    "t_tip_mm": 0.5877237851949676,
+    "planform_area_mm2": 15.582509921782862,
+    "tip_band_area_mm2": 0.6640381856885308,
+    "chord_norm_at_0p70R": 0.5997221796125056,
+    "mesh": {
+     "n_tris": 3188,
+     "area_mm2": 9840.153826410873,
+     "max_edge_mm": 10.200000368058681,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.21331,
+    "chord_max_source": "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.",
+    "t_chordmean_mm": 1.200887499502208,
+    "t_tip_mm": 0.7308408279296661,
+    "planform_area_mm2": 16.09126493118448,
+    "tip_band_area_mm2": 0.7931621535403406,
+    "chord_norm_at_0p70R": 0.8863393738034777,
+    "mesh": {
+     "n_tris": 3480,
+     "area_mm2": 9822.942907523846,
+     "max_edge_mm": 10.200000368058681,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -0.17490497801806448,
+    "planform_area_pct": 3.2649105436501458,
+    "tip_band_area_pct": 19.44526243139515,
+    "thickness_pct": -3.038705791368912
+   }
+  },
+  "typhoonh480": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.1881136869534688,
+    "t_tip_mm": 0.5628730585559001,
+    "planform_area_mm2": 14.930861206741087,
+    "tip_band_area_mm2": 0.6368084089003261,
+    "chord_norm_at_0p70R": 0.5988353538416405,
+    "mesh": {
+     "n_tris": 3192,
+     "area_mm2": 9059.408724228362,
+     "max_edge_mm": 9.783500286041726,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.177,
+    "chord_max_source": "실측: Yuneec Typhoon H480 참조 CAD 실측(assets/meshes/reference/prop_cw_assembly_remeshed_v3.stl).",
+    "t_chordmean_mm": 0.956478131222701,
+    "t_tip_mm": 0.5830061838068782,
+    "planform_area_mm2": 12.803917942953554,
+    "tip_band_area_mm2": 0.6285543094577992,
+    "chord_norm_at_0p70R": 0.8825810714532756,
+    "mesh": {
+     "n_tris": 3504,
+     "area_mm2": 7676.432608509152,
+     "max_edge_mm": 9.783500286041726,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -15.265633308061243,
+    "planform_area_pct": -14.245281865102644,
+    "tip_band_area_pct": -1.2961668418889905,
+    "thickness_pct": -19.496076703292754
+   }
+  },
+  "x500v2": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.310648349306689,
+    "t_tip_mm": 0.6225878652393261,
+    "planform_area_mm2": 16.501283837498093,
+    "tip_band_area_mm2": 0.7028374007110905,
+    "chord_norm_at_0p70R": 0.5990885243867595,
+    "mesh": {
+     "n_tris": 3184,
+     "area_mm2": 11016.993892717795,
+     "max_edge_mm": 10.795000070783116,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.21331,
+    "chord_max_source": "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.",
+    "t_chordmean_mm": 1.2712931664821274,
+    "t_tip_mm": 0.7742678781864699,
+    "planform_area_mm2": 17.03086504110074,
+    "tip_band_area_mm2": 0.8395339376725056,
+    "chord_norm_at_0p70R": 0.8864312659661587,
+    "mesh": {
+     "n_tris": 3488,
+     "area_mm2": 10998.343403331068,
+     "max_edge_mm": 10.795000070783116,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -0.16928837002492259,
+    "planform_area_pct": 3.2093333392593903,
+    "tip_band_area_pct": 19.449240581550352,
+    "thickness_pct": -3.002726310637005
+   }
+  },
+  "phantom3": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 1.2385225561431399,
+    "t_tip_mm": 0.5877237851949676,
+    "planform_area_mm2": 15.582509921782862,
+    "tip_band_area_mm2": 0.6640381856885308,
+    "chord_norm_at_0p70R": 0.5997221796125056,
+    "mesh": {
+     "n_tris": 3188,
+     "area_mm2": 9840.153826410873,
+     "max_edge_mm": 10.200000368058681,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.21331,
+    "chord_max_source": "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.",
+    "t_chordmean_mm": 1.200887499502208,
+    "t_tip_mm": 0.7308408279296661,
+    "planform_area_mm2": 16.09126493118448,
+    "tip_band_area_mm2": 0.7931621535403406,
+    "chord_norm_at_0p70R": 0.8863393738034777,
+    "mesh": {
+     "n_tris": 3480,
+     "area_mm2": 9822.942907523846,
+     "max_edge_mm": 10.200000368058681,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -0.17490497801806448,
+    "planform_area_pct": 3.2649105436501458,
+    "tip_band_area_pct": 19.44526243139515,
+    "thickness_pct": -3.038705791368912
+   }
+  },
+  "m350rtk": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 2.752445887518071,
+    "t_tip_mm": 1.3070283783732937,
+    "planform_area_mm2": 34.64598919170548,
+    "tip_band_area_mm2": 1.4759163017321781,
+    "chord_norm_at_0p70R": 0.5993494051534897,
+    "mesh": {
+     "n_tris": 3188,
+     "area_mm2": 48591.76580590535,
+     "max_edge_mm": 22.669500186300812,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.21331,
+    "chord_max_source": "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.",
+    "t_chordmean_mm": 2.6694697657007382,
+    "t_tip_mm": 1.6254055054610823,
+    "planform_area_mm2": 35.76412658237071,
+    "tip_band_area_mm2": 1.7629519168048415,
+    "chord_norm_at_0p70R": 0.8864038581061362,
+    "mesh": {
+     "n_tris": 3484,
+     "area_mm2": 48508.5589218329,
+     "max_edge_mm": 22.669500186300812,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": -0.17123659264578484,
+    "planform_area_pct": 3.227321305442521,
+    "tip_band_area_pct": 19.447960208569427,
+    "thickness_pct": -3.014632265564854
+   }
+  },
+  "mini2": {
+   "legacy": {
+    "chord_max_over_R": 0.25,
+    "chord_max_source": "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)",
+    "t_chordmean_mm": 0.6146352139767062,
+    "t_tip_mm": 0.2915722432711971,
+    "planform_area_mm2": 7.7313115219903885,
+    "tip_band_area_mm2": 0.3295184584403875,
+    "chord_norm_at_0p70R": 0.5995716631704208,
+    "mesh": {
+     "n_tris": 3184,
+     "area_mm2": 2423.6015190532603,
+     "max_edge_mm": 5.061749999254638,
+     "watertight": true
+    }
+   },
+   "dji_mini2": {
+    "chord_max_over_R": 0.262,
+    "chord_max_source": "실측: DJI Mini 2 공식 CAD(assets/meshes/reference/WM161_zhankai_1k.glb) 4로터 평균. 제품사진 독립 측정 0.272 와 ±4 % 안.",
+    "t_chordmean_mm": 0.730624114456153,
+    "t_tip_mm": 0.4427594791080445,
+    "planform_area_mm2": 9.811765217209606,
+    "tip_band_area_mm2": 0.48674991468292134,
+    "chord_norm_at_0p70R": 0.891845022634883,
+    "mesh": {
+     "n_tris": 3480,
+     "area_mm2": 2908.7041904197545,
+     "max_edge_mm": 5.061749999254638,
+     "watertight": true
+    }
+   },
+   "delta": {
+    "surface_area_pct": 20.01577683265323,
+    "planform_area_pct": 26.90945371043094,
+    "tip_band_area_pct": 47.71552312629499,
+    "thickness_pct": 18.87117721892235
+   }
+  }
+ },
+ "sigma_po_monostatic": {
+  "mini2": {
+   "el_-30": {
+    "legacy_dbsm": -52.241779508033886,
+    "dji_mini2_dbsm": -50.90699379813568,
+    "delta_db": 1.334785709898206,
+    "delta_db_fine_grid": 1.334785709898206,
+    "grid_shift_db": 0.0
+   },
+   "el_+0": {
+    "legacy_dbsm": -57.761054654703074,
+    "dji_mini2_dbsm": -56.80255168793599,
+    "delta_db": 0.9585029667670852,
+    "delta_db_fine_grid": 0.9585029667670852,
+    "grid_shift_db": 0.0
+   }
+  },
+  "mini5pro": {
+   "el_-30": {
+    "legacy_dbsm": -49.56635365848476,
+    "dji_mini2_dbsm": -49.62887935560392,
+    "delta_db": -0.06252569711916323,
+    "delta_db_fine_grid": -0.061258575328807297,
+    "grid_shift_db": 0.0012671217903559295
+   },
+   "el_+0": {
+    "legacy_dbsm": -55.89830154986658,
+    "dji_mini2_dbsm": -56.05801036218964,
+    "delta_db": -0.15970881232306056,
+    "delta_db_fine_grid": -0.15970881232306056,
+    "grid_shift_db": 0.0
+   }
+  },
+  "matrice4e": {
+   "el_-30": {
+    "legacy_dbsm": -43.32197839886571,
+    "dji_mini2_dbsm": -43.69703787210169,
+    "delta_db": -0.37505947323597866,
+    "delta_db_fine_grid": -0.385734731182481,
+    "grid_shift_db": 0.01067525794650237
+   },
+   "el_+0": {
+    "legacy_dbsm": -49.01317854259936,
+    "dji_mini2_dbsm": -48.95679262572963,
+    "delta_db": 0.05638591686972916,
+    "delta_db_fine_grid": 0.05234546951871266,
+    "grid_shift_db": 0.004040447351016496
+   }
+  },
+  "m350rtk": {
+   "el_-30": {
+    "legacy_dbsm": -41.164375761115636,
+    "dji_mini2_dbsm": -40.96642356518224,
+    "delta_db": 0.19795219593339652,
+    "delta_db_fine_grid": 0.184132933360587,
+    "grid_shift_db": 0.01381926257280952
+   },
+   "el_+0": {
+    "legacy_dbsm": -42.02700519435307,
+    "dji_mini2_dbsm": -42.06109064321649,
+    "delta_db": -0.034085448863415024,
+    "delta_db_fine_grid": -0.036093337907871614,
+    "grid_shift_db": 0.00200788904445659
+   }
+  }
+ },
+ "triangle_edges": {
+  "mini5pro": {
+   "legacy_max_edge_mm": 6.477000217095854,
+   "legacy_lambda_over": 13.224484349084342,
+   "bound_max_edge_mm": 6.477000217095854,
+   "legacy_tris": 3188,
+   "bound_tris": 3188
+  },
+  "mavic4pro": {
+   "legacy_max_edge_mm": 11.347500274719495,
+   "legacy_lambda_over": 7.54835742906535,
+   "bound_max_edge_mm": 8.494800115475078,
+   "legacy_tris": 3188,
+   "bound_tris": 3260
+  },
+  "matrice4e": {
+   "legacy_max_edge_mm": 11.64500042796135,
+   "legacy_lambda_over": 7.355516088632324,
+   "bound_max_edge_mm": 8.522568785815617,
+   "legacy_tris": 3188,
+   "bound_tris": 3280
+  },
+  "s1000plus": {
+   "legacy_max_edge_mm": 16.19250088172851,
+   "legacy_lambda_over": 5.289793628892274,
+   "bound_max_edge_mm": 8.53720624738317,
+   "legacy_tris": 3200,
+   "bound_tris": 8944
+  },
+  "phantom4": {
+   "legacy_max_edge_mm": 10.200000368058681,
+   "legacy_lambda_over": 8.3975475401186,
+   "bound_max_edge_mm": 8.346530535689714,
+   "legacy_tris": 3188,
+   "bound_tris": 3240
+  },
+  "typhoonh480": {
+   "legacy_max_edge_mm": 9.783500286041726,
+   "legacy_lambda_over": 8.755045279878544,
+   "bound_max_edge_mm": 8.405857292093867,
+   "legacy_tris": 3192,
+   "bound_tris": 3240
+  },
+  "x500v2": {
+   "legacy_max_edge_mm": 10.795000070783116,
+   "legacy_lambda_over": 7.9346908233772915,
+   "bound_max_edge_mm": 8.263154121464252,
+   "legacy_tris": 3184,
+   "bound_tris": 3240
+  },
+  "phantom3": {
+   "legacy_max_edge_mm": 10.200000368058681,
+   "legacy_lambda_over": 8.3975475401186,
+   "bound_max_edge_mm": 8.346530535689714,
+   "legacy_tris": 3188,
+   "bound_tris": 3240
+  },
+  "m350rtk": {
+   "legacy_max_edge_mm": 22.669500186300812,
+   "legacy_lambda_over": 3.7784241953318998,
+   "bound_max_edge_mm": 8.533689939784423,
+   "legacy_tris": 3188,
+   "bound_tris": 9440
+  },
+  "mini2": {
+   "legacy_max_edge_mm": 5.061749999254638,
+   "legacy_lambda_over": 16.922010769519044,
+   "bound_max_edge_mm": 5.061749999254638,
+   "legacy_tris": 3184,
+   "bound_tris": 3184
+  }
+ },
+ "findings_ko": [
+  "**형상**: c_max/R 실측이 있는 4기종(mavic4pro, matrice4e, typhoonh480, mini2)은 프롭 표면적이 -15.3~+20.0 % 움직인다. 나머지 6기종은 실측이 없어 **면적중립**으로 뒀으므로 0.16~0.17 % 안에 머문다 — 즉 «분포만 바꾸고 총량은 안 건드린» 판이다.",
+  "**σ**: 모노스태틱 방위평균으로 두 법칙 차이는 최대 1.33 dB(mini2, el −30)이고 나머지 기종·고각은 전부 0.4 dB 안이다. 감사가 예고한 «형상은 1~2 dB 축» 과 같은 자리에 떨어진다. ⚠ 격자를 λ/7↔λ/16 으로 바꿔도 차이가 0.014 dB 안에서 안 움직인다(이산화 인공물이 아니다).",
+  "**두께**: 같은 라운드의 I1 표(outputs/prop_thickness_by_drone.json)가 보여 주듯 두께 축은 기종 간 4.5 배(수 dB)라 형상보다 훨씬 크다. 순서를 지킬 것.",
+  "**삼각형 크기**: 최장 모서리는 날의 로프트 격자가 아니라 **허브 윗면·아랫면 부채꼴**과 **날 뿌리 마감면**에서 나온다(둘 다 중심→가장자리라 반지름만큼 길다). 그래서 n_sec·n_pts 를 올려도 안 줄어든다 — 실측으로 확인했다. λ 로 묶는 길은 «다 짓고 나서 긴 모서리만 쪼개기» 이고, 그건 형상을 한 점도 안 움직인다.",
+  "⚠ **알려진 흠**: typhoonh480 에 `pitch_law='dji_mini2'` 를 걸면 n_sec=20(출하 값)에서만 불리언 합집합이 경계 모서리 6개를 남긴다(다른 n_sec 은 멀쩡). manifold3d 의 아슬아슬한 접촉 처리 문제로 보이고, 그 법칙은 어차피 기본으로 안 켜진다."
+ ],
+ "runtime_s": 572.1
+}

@@ -379,13 +379,236 @@
    },
    "spec": "Pearson r ≥ 0.95",
    "note_ko": "랜덤과정은 선을 **넓힌다**. 정현파였다면 폭 대신 빗살이 생긴다"
+  },
+  {
+   "id": "G26",
+   "what": "outdoor_v2 (σ_w, τ) 짝이 실측 창-안 rms 사다리 밴드 안",
+   "pass": true,
+   "measured": {
+    "rungs": {
+     "0.25s": {
+      "window_s": 0.25,
+      "pred_pct": 0.4865,
+      "band_pct": [
+       0.4,
+       0.6799999999999999
+      ],
+      "in_band": true,
+      "is_pass_rung": true,
+      "window_mean_fraction_f": 0.95527
+     },
+     "1s": {
+      "window_s": 1.0,
+      "pred_pct": 0.926,
+      "band_pct": [
+       0.89,
+       1.25
+      ],
+      "in_band": true,
+      "is_pass_rung": false,
+      "window_mean_fraction_f": 0.83792
+     },
+     "3s": {
+      "window_s": 3.0,
+      "pred_pct": 1.4253,
+      "band_pct": [
+       1.3299999999999998,
+       1.97
+      ],
+      "in_band": true,
+      "is_pass_rung": false,
+      "window_mean_fraction_f": 0.61599
+     },
+     "20s": {
+      "window_s": 20.0,
+      "pred_pct": 2.1032,
+      "band_pct": [
+       1.97,
+       2.7199999999999998
+      ],
+      "in_band": true,
+      "is_pass_rung": true,
+      "window_mean_fraction_f": 0.1638
+     }
+    },
+    "sigma_w_feasible_pct": [
+     2.1543249313156854,
+     2.9744993975526213
+    ],
+    "all_four_rungs_in_band": true
+   },
+   "spec": "0.25 s·20 s 두 rung 모두 밴드 안",
+   "note_ko": "⭐세 값은 짝이다 — τ 를 옮기면 σ_w 도 옮겨야 같은 관측이 나온다"
+  },
+  {
+   "id": "G26b",
+   "what": "통제 — 현행 τ=0.227 s 로는 **어떤 σ_w 로도** 두 rung 동시 불가",
+   "pass": true,
+   "measured": {
+    "sigma_w_feasible_pct": [
+     1.9925211703819847,
+     1.2750483324385047
+    ],
+    "empty": true,
+    "outdoor_rungs": {
+     "0.25s": {
+      "window_s": 0.25,
+      "pred_pct": 1.3066,
+      "band_pct": [
+       0.4,
+       0.6799999999999999
+      ],
+      "in_band": false,
+      "is_pass_rung": true,
+      "window_mean_fraction_f": 0.71558
+     },
+     "1s": {
+      "window_s": 1.0,
+      "pred_pct": 1.9713,
+      "band_pct": [
+       0.89,
+       1.25
+      ],
+      "in_band": false,
+      "is_pass_rung": false,
+      "window_mean_fraction_f": 0.35261
+     },
+     "3s": {
+      "window_s": 3.0,
+      "pred_pct": 2.2719,
+      "band_pct": [
+       1.3299999999999998,
+       1.97
+      ],
+      "in_band": false,
+      "is_pass_rung": false,
+      "window_mean_fraction_f": 0.14009
+     },
+     "20s": {
+      "window_s": 20.0,
+      "pred_pct": 2.4223,
+      "band_pct": [
+       1.97,
+       2.7199999999999998
+      ],
+      "in_band": true,
+      "is_pass_rung": true,
+      "window_mean_fraction_f": 0.02248
+     }
+    }
+   },
+   "spec": "허용 구간이 비어 있어야 한다(lo > hi)",
+   "note_ko": "«σ 만 손보면 된다» 를 코드가 반증한다 — 고쳐야 하는 것은 τ 다"
+  },
+  {
+   "id": "G27",
+   "what": "만들어 낸 OU 열의 창-안 rms == 닫힌 꼴",
+   "pass": true,
+   "measured": {
+    "rows": {
+     "0.25s": {
+      "measured_pct": 0.4870191567834697,
+      "closed_form_pct": 0.48645095476589795,
+      "rel_err": 0.0011680561257099153,
+      "band_pct": [
+       0.4,
+       0.6799999999999999
+      ]
+     },
+     "1s": {
+      "measured_pct": 0.9266914176141469,
+      "closed_form_pct": 0.9259545020449961,
+      "rel_err": 0.0007958442531714738,
+      "band_pct": [
+       0.89,
+       1.25
+      ]
+     },
+     "3s": {
+      "measured_pct": 1.423230803489312,
+      "closed_form_pct": 1.4252756238399278,
+      "rel_err": -0.0014346841526038379,
+      "band_pct": [
+       1.3299999999999998,
+       1.97
+      ]
+     },
+     "20s": {
+      "measured_pct": 2.0986895561425434,
+      "closed_form_pct": 2.1032110496130385,
+      "rel_err": -0.0021498049239171424,
+      "band_pct": [
+       1.97,
+       2.7199999999999998
+      ]
+     }
+    },
+    "n_ch": 8,
+    "dur_s": 4000.0,
+    "fs_hz": 200.0
+   },
+   "spec": "|rel| ≤ 0.03",
+   "note_ko": "사다리 판정이 «식» 이 아니라 **실제로 만든 열**에서도 성립하는가"
+  },
+  {
+   "id": "G28",
+   "what": "두 길(손잡이 셋 ↔ 유효 산포 하나)이 0.25 s 창에서 같은 수를 내나",
+   "pass": true,
+   "measured": {
+    "analytic": {
+     "sigma_eff_pct": 5.7570274854830545,
+     "preset_static_sigma_pct": 5.7570274854830545,
+     "rel_err": 0.0
+    },
+    "window_mean_spread": {
+     "path_A_three_knobs_rms_pct": 5.00392210151131,
+     "path_B_single_sigma_rms_pct": 4.970769169783629,
+     "predicted_0p866_sigma_eff_pct": 4.985732052713574,
+     "A_over_B": 1.0066695778048218,
+     "n_trial": 1500,
+     "ks_p": 0.8089967205822448,
+     "ks_stat": 0.023333333333333345
+    },
+    "comb_spread_m3_hz": {
+     "path_A": 17.358412364323005,
+     "path_B": 18.37929043951847,
+     "A_over_B": 0.9444549789038421,
+     "std_A": 6.706785300711406,
+     "std_B": 5.4510916988612195,
+     "f_flash_hz": 126.66666666666667,
+     "predicted_m_fflash_0p866_sigma_eff": 18.94578180031158
+    },
+    "residual_in_window_wobble_pct": 0.48645095476589795
+   },
+   "spec": "해석 동일 · 창평균 산포 ±3 % · KS p>0.01 · 빗살 폭 ±10 %",
+   "note_ko": "⭐두 번째 길이 성립하는 이유는 f(0.25 s)=0.955 — 흔들림의 95.5 % 가 그 창에서는 «상수 오프셋» 으로 보이기 때문이다. 창이 길어지면 갈라진다"
+  },
+  {
+   "id": "G29",
+   "what": "새 프리셋을 **안 고른** 판이 2026-08-11 코드와 비트동일",
+   "pass": true,
+   "measured": {
+    "n_presets_checked": 6,
+    "n_rpm_series_cases": 30,
+    "param_mismatch": {},
+    "digest_mismatch": [],
+    "DEFAULT_PRESET": "legacy",
+    "TAU_CTL_S": 0.22736420441699334,
+    "window_mean_variance_fraction(TAU,0.25)": 0.7155771196527009,
+    "new_presets_added": [
+     "outdoor_v2",
+     "outdoor_v2_eff"
+    ]
+   },
+   "spec": "파라미터·rpm 열 digest·기본 프리셋 전부 동결값과 일치",
+   "note_ko": "⭐«인자를 안 주면 예전과 같다» 가 이 저장소의 규약이다. 동결표는 새 프리셋을 넣기 전 코드 사본이 낸 값이다(G29 머리 주석 참조)"
   }
  ],
- "n_pass": 16,
- "n_total": 16,
+ "n_pass": 21,
+ "n_total": 21,
  "_meta": {
   "script": "benchmark/verify_rotor_dynamics.py gates",
-  "generated": "2026-08-11 00:31:19",
+  "generated": "2026-08-16 12:53:58",
   "design": "docs/NOISE_AND_ROTOR_PLAN.md §3-1 · §3-4",
   "module": "src/rotor_dynamics.py"
  }

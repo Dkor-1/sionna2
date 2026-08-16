@@ -1,0 +1,5607 @@
+{
+ "_meta": {
+  "title": "메쉬 인증서 — 치수·외부 기준 대조 (2026-08-16)",
+  "generated_kst": "2026-08-17 01:19 KST",
+  "author_role": "검사 신설자 라운드 — 치수·외부 기준 대조 담당",
+  "policy": "⛔GPU 미사용(CPU only) · ⛔git 미접촉 · ⛔형상 상수 무변경(_SHELL_SHAPE·INTERNALS·GEAR_*·CHORD_*·PITCH_K*·ARM_TIP_Z·envelope_mm 한 글자도 안 건드렸다). 이 라운드가 만든 것은 검사·대조·인증서뿐이다.",
+  "what_ko": "우리 메쉬에서 잰 치수를 **저장소 밖의 참값**(제조사 공식 CAD·공표 제원·제품 사진)과 기체 × 부품 칸마다 견주고, 허용오차를 그 참값의 측정 불확실도에서 유도해 «일치/어긋남/모름» 을 판정한다.",
+  "why_ko": "기존 `mesh_check.check_dimensions` 는 메쉬를 `DroneSpec` 과 견준다. 그런데 DroneSpec 은 **우리가 적은 수**라, «스펙대로 정확히 지은 틀린 기체» 를 원리적으로 통과시킨다(범주 지도 M14). 이 인증서가 그 구멍을 막는다.",
+  "how_to_read_ko": "판정은 넷뿐이다 — «일치»=|잔차| ≤ 허용오차 U · «어긋남»=U 를 넘었다(결함 신고이지 빌드 실패가 아니다) · «기록만»=참값과 우리 잣대의 정의가 달라 견줄 수 없다 · «모름»=외부 참값이 저장소에 없다. ⭐**순환(circularity)** 칸을 반드시 같이 읽을 것: «circular» 는 그 참값에서 상수를 유도해 놓고 다시 그 참값과 견준 행이라, 일치해도 «실물과 맞다» 가 아니라 «값이 메쉬에 실렸다» 는 뜻이다.",
+  "glossary_ko": {
+   "잔차": "우리 메쉬에서 잰 값 − 바깥 참값. (+)면 우리가 크다.",
+   "표준불확도 u": "참값이 얼마나 흔들리는지를 «1 시그마» 로 적은 수[mm].",
+   "확장불확도 U": "U = k·u, k=2. 약 95 % 를 덮는다. 허용오차가 이 U 다.",
+   "근거 등급": "[A] 공식 CAD 직접 · [B] 사진 계측 · [C] 계열 유추 · [D] 대리.",
+   "순환": "참값에서 상수를 유도해 놓고 그 참값과 다시 견주는 것. 독립 증거가 아니다.",
+   "스윕 디스크": "프로펠러가 돌면서 쓸고 지나가는 원반. «프롭 포함» 외형은 이걸로 잰다.",
+   "양성 대조": "일부러 그 결함을 만든 메쉬를 먹여 «걸리는가» 를 보는 시험.",
+   "음성 대조": "손대지 않은 메쉬가 «통과하는가» 를 보는 시험(거짓경보가 아님을 보인다)."
+  },
+  "code": [
+   "src/mesh_dimref.py (검사 본체)",
+   "benchmark/adv_mesh_dimref_faults.py (양성·음성 대조)",
+   "benchmark/mesh_cert_dimension_external_0816.py (이 인증서)"
+  ],
+  "inputs_read": [
+   "assets/meshes/reference/WM161_zhankai_1k.glb (DJI Mini 2 공식 — 이 라운드가 직접 다시 쟀다)",
+   "outputs/meshfix_matrice4e.json (DJI M4T 공식 STEP 추출 랜드마크)",
+   "outputs/x500v2_cad.json (Holybro 공식 STEP 51항목)",
+   "outputs/meshdef_mini2_glb.json (Mini 2 GLB 재실측 원장)",
+   "docs/drone_specs_2026.json (공표 제원 + 1차 출처 검증)",
+   "assets/meshes/reference/SOURCES.md (참조 자산 출처·라이선스·오식별 정정)",
+   "src/drones.py (DroneSpec·기종 note — 공표값의 출처 문장)",
+   "outputs/prop_law_by_airframe_0816.json (프롭 축 등급 행렬 — 여기서는 인용만)",
+   "outputs/mesh_cert_map_0816.json (범주 지도 M6·M8·M14·M15)"
+  ],
+  "env": {
+   "python": "/workspace/.venvs/py312/bin/python",
+   "numpy": "2.5.2",
+   "scipy": "1.18.0",
+   "trimesh": "5.0.0",
+   "gpu_used": false
+  }
+ },
+ "scope": {
+  "covers_ko": [
+   "M6 부품 치수 — 스펙의 수가 아니라 **바깥 참값**과 견준다",
+   "M8 부품 위치·자세 — 로터별 반경/방위/높이차, 부품 위치",
+   "M14 실물 대조 — 공식 CAD·공표·사진",
+   "M15 근거 등급 — 기체 × 부품 행렬"
+  ],
+  "does_not_cover_ko": [
+   "위상(구멍·비다양체·자기교차) — `mesh_check.py` 의 몫",
+   "삼각형 품질·파장 대비 분할 — 다른 축",
+   "재질·전기물성 — 치수 축이 아니다",
+   "프롭 평면형·두께 — `prop_law_by_airframe_0816.json` 의 몫(여기서는 지름만)"
+  ]
+ },
+ "tolerance_policy": {
+  "one_line_ko": "허용오차에 임의 숫자를 쓰지 않는다 — U 는 **참값의 측정 불확실도**에서 유도한다. 유도 문장이 없는 행은 가드가 표에서 막는다.",
+  "formula": "U = k·√(u_ref² + u_def² + u_disc²),  k = 2",
+  "k_why_ko": "k=2 는 이 파일에서 유일하게 «관례로 고른» 수다(GUM 의 확장계수, 약 95 % 포함). 나머지 숫자는 전부 측정에서 나온다.",
+  "u_ref_classes": {
+   "pub_1mm": {
+    "u_mm": 0.2887,
+    "derivation": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "source_file": null
+   },
+   "pub_0p1mm": {
+    "u_mm": 0.0289,
+    "derivation": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "source_file": null
+   },
+   "cad_m4t": {
+    "u_mm": 0.1869,
+    "derivation": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "source_file": "outputs/meshfix_matrice4e.json :: scale_check"
+   },
+   "glb_mini2": {
+    "u_mm": 0.2593,
+    "derivation": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "source_file": "outputs/meshdef_mini2_glb.json :: scale_verification"
+   },
+   "step_x500": {
+    "u_mm": 0.198,
+    "derivation": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "source_file": "outputs/x500v2_cad.json"
+   },
+   "photo": {
+    "u_mm": null,
+    "derivation": "사진 계측은 축척 앵커와 모서리 집기(edge localisation)가 오차를 만든다. 저장소는 사진 유래 값마다 밴드(예: ±15 %)를 선언해 왔으므로, 그 밴드를 균등분포로 보고 u = (밴드 반폭)/√3 로 환산한다. 밴드가 선언 안 된 사진 값은 이 파일이 **참값으로 쓰지 않는다**.",
+    "source_file": null
+   }
+  },
+  "u_def_ko": "«참값의 정의» 와 «우리 잣대의 정의» 가 다를 때 그 차이를 mm 로 선언한다. 행마다 u_def_why 문장이 붙고, 없으면 가드가 막는다. 예: matrice4e 펼침 길이의 참값은 «앞 암 끝 페어링 ↔ 뒤 암 끝 페어링» 인데 우리 잣대는 «motor 그룹 x 폭» 이라 페어링 두께만큼 다르다 ⇒ 0.5 mm.",
+  "u_disc_ko": "다면체로 지은 곡면을 «지름» 으로 잴 때 외접·내접이 달라 생기는 오차. 메쉬에서 직접 잰다(같은 부품의 최대·최소 반경 차/√3). 상자·평면·최댓값 위치를 재는 잣대에는 붙지 않는다(0, 이유를 같이 적는다).",
+  "why_not_percent_ko": "«1 % · 3 %» 같은 비율 잣대를 안 쓴다. 같은 1 % 가 mini2(213 mm)와 m350rtk(895 mm)에서 4 배 다른 엄격도가 되고, 무엇보다 그 수의 근거가 «실측하고 여유를 붙였다» 뿐이기 때문이다.",
+  "per_airframe": {
+   "mini5pro": {
+    "n_rows": 6,
+    "U_min_mm": 0.0577,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.0577,
+    "reference_classes": [
+     "pub_0p1mm",
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_0p1mm": 0.0289,
+     "pub_1mm": 0.2887
+    }
+   },
+   "mavic4pro": {
+    "n_rows": 4,
+    "U_min_mm": 0.0577,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.0577,
+    "reference_classes": [
+     "pub_0p1mm",
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_0p1mm": 0.0289,
+     "pub_1mm": 0.2887
+    }
+   },
+   "matrice4e": {
+    "n_rows": 20,
+    "U_min_mm": 0.0577,
+    "U_max_mm": 10.2191,
+    "U_median_mm": 0.6421,
+    "reference_classes": [
+     "cad_m4t",
+     "photo",
+     "pub_0p1mm",
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "cad_m4t": 0.1869,
+     "photo": "행마다 다름(밴드)",
+     "pub_0p1mm": 0.0289,
+     "pub_1mm": 0.2887
+    }
+   },
+   "s1000plus": {
+    "n_rows": 3,
+    "U_min_mm": 0.5774,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.5774,
+    "reference_classes": [
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_1mm": 0.2887
+    }
+   },
+   "phantom4": {
+    "n_rows": 3,
+    "U_min_mm": 0.0577,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.0577,
+    "reference_classes": [
+     "pub_0p1mm",
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_0p1mm": 0.0289,
+     "pub_1mm": 0.2887
+    }
+   },
+   "typhoonh480": {
+    "n_rows": 4,
+    "U_min_mm": 0.0577,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.5774,
+    "reference_classes": [
+     "pub_0p1mm",
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_0p1mm": 0.0289,
+     "pub_1mm": 0.2887
+    }
+   },
+   "x500v2": {
+    "n_rows": 15,
+    "U_min_mm": 0.396,
+    "U_max_mm": 1.0381,
+    "U_median_mm": 0.396,
+    "reference_classes": [
+     "pub_1mm",
+     "step_x500"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_1mm": 0.2887,
+     "step_x500": 0.198
+    }
+   },
+   "phantom3": {
+    "n_rows": 5,
+    "U_min_mm": 0.0577,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.0577,
+    "reference_classes": [
+     "pub_0p1mm",
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_0p1mm": 0.0289,
+     "pub_1mm": 0.2887
+    }
+   },
+   "m350rtk": {
+    "n_rows": 4,
+    "U_min_mm": 0.5774,
+    "U_max_mm": 0.5774,
+    "U_median_mm": 0.5774,
+    "reference_classes": [
+     "pub_1mm"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "pub_1mm": 0.2887
+    }
+   },
+   "mini2": {
+    "n_rows": 12,
+    "U_min_mm": 0.5185,
+    "U_max_mm": 1.5871,
+    "U_median_mm": 0.5185,
+    "reference_classes": [
+     "glb_mini2"
+    ],
+    "best_grade": "A",
+    "derivation": "행마다 U = k·√(u_ref²+u_def²+u_disc²), k=2. u_ref 는 그 기체의 참값 출처 등급이 정하고(REF_CLASS), u_def 는 «참값의 정의와 우리 잣대의 정의가 얼마나 다른가», u_disc 는 «다면체로 지은 곡면을 재는 오차» 다.",
+    "per_class_u_ref": {
+     "glb_mini2": 0.2593
+    }
+   }
+  }
+ },
+ "reference_assets": {
+  "matrice4-M4T_v2.step": {
+   "what": "DJI Matrice 4T 공식 STEP",
+   "present": true,
+   "note": "⛔깃에 없다(158 MB) — outputs/meshfix_matrice4e.json 이 추출값을 들고 있다",
+   "expected_md5": "51ff9a47fac2c4c7a9d3817d5444f74d",
+   "bytes": 157972937,
+   "md5": "미계산(158 MB — 이 라운드는 읽지 않았다)"
+  },
+  "WM161_zhankai_1k.glb": {
+   "what": "DJI Mini 2 공식 GLB(펼침)",
+   "present": true,
+   "note": "깃에 있다",
+   "expected_md5": "7d391743dd4f5c8bcb60f581f4ee0e94",
+   "bytes": 7707032,
+   "md5": "7d391743dd4f5c8bcb60f581f4ee0e94",
+   "md5_match": true
+  },
+  "x500v2-frame.step": {
+   "what": "Holybro X500 V2 공식 STEP",
+   "present": true,
+   "note": "깃에 있다",
+   "expected_md5": null,
+   "bytes": 24624144
+  },
+  "AIR2216II_Motor_3D.STEP": {
+   "what": "Holybro AIR2216II 모터 단품 STEP",
+   "present": true,
+   "note": "깃에 있다",
+   "expected_md5": null,
+   "bytes": 790229
+  }
+ },
+ "reference_relive": {
+  "why_ko": "«원장에 그렇게 적혀 있다» 와 «내가 자산을 열어 다시 쟀다» 는 다른 주장이다. 저장소에 있는 두 공식 자산은 이 라운드가 직접 다시 쟀다. M4T STEP(158 MB)만 다시 파싱하지 않았고 그 사실을 limits 에 적었다.",
+  "mini2_glb": {
+   "available": true,
+   "file": "assets/meshes/reference/WM161_zhankai_1k.glb",
+   "method": "glTF 노드별 월드 변환 적용 → 축 바꿔치기(X=z, Y=x, Z=y)·×1000 → 프롭 8장(polySurface58/61/80/81/84/89/95/102) 제외",
+   "remeasured": {
+    "props_excluded_span_mm": [
+     159.1127,
+     203.4336,
+     55.9773
+    ],
+    "motor_bell_diagonal_mm": 213.0515,
+    "front_bell_bbox_mm": [
+     18.2028,
+     18.1327,
+     7.1055
+    ],
+    "gimbal_part_bbox_mm": [
+     40.5673,
+     32.2387,
+     34.012
+    ]
+   },
+   "ledger_says": {
+    "props_excluded_span_mm": [
+     159.1127,
+     203.4336,
+     55.9773
+    ],
+    "motor_bell_diagonal_mm": 213.051,
+    "front_bell_bbox_mm": [
+     18.2028,
+     18.1327,
+     7.1055
+    ],
+    "gimbal_part_bbox_mm": [
+     40.567,
+     32.239,
+     34.012
+    ]
+   },
+   "max_abs_difference_mm": 0.00047,
+   "verdict": "재현됨 — 10개 값 전부 원장과 최대 0.0005 mm 안에서 같다. 즉 이 인증서의 mini2 참값은 «원장을 베껴 적은 것» 이 아니라 **이 라운드가 DJI 공식 GLB 를 직접 열어 다시 잰 것**이다. ⚠ 벨 대각은 벨 파트의 bbox 중심으로 쟀다 — 원장은 «벨 축» 이라고 적는데 두 잣대가 이 대칭 부품에서는 같은 점을 준다(차이 0.0005 mm)."
+  },
+  "x500v2_step": {
+   "available": true,
+   "file": "assets/meshes/reference/x500v2-frame.step",
+   "parser": "benchmark/measure_x500v2_cad.py :: Step (저장소 기존 파서)",
+   "method": "STEP 어셈블리 변환을 합성해 부품별 점군을 조립좌표로 옮긴 뒤, 판은 «점이 가장 많이 모인 두 y 레벨»(=상·하면)로, 튜브는 축 위치로, 다리 높이는 폼 최저점으로 잰다",
+   "remeasured": {
+    "plate_thickness_mm": 2.0,
+    "plate_gap_mm": 28.0,
+    "plate_stack_mm": 32.0,
+    "plate_span_across_flats_mm": 143.72,
+    "skid_track_mm": 239.9,
+    "payload_rail_track_mm": 60.0,
+    "payload_rail_length_mm": 250.0,
+    "gear_height_mm": 215.2764,
+    "pm06_bbox_mm": [
+     55.0,
+     11.9902,
+     35.0
+    ]
+   },
+   "ledger_says": {
+    "plate_thickness_mm": 2.0,
+    "plate_gap_mm": 28.0,
+    "plate_stack_mm": 32.0,
+    "plate_span_across_flats_mm": 143.72,
+    "skid_track_mm": 239.91,
+    "payload_rail_track_mm": 60.0,
+    "payload_rail_length_mm": 250.0,
+    "gear_height_mm": 215.28,
+    "pm06_bbox_mm": [
+     55.0,
+     11.99,
+     35.0
+    ]
+   },
+   "abs_difference_mm": {
+    "plate_thickness_mm": 0.0,
+    "plate_gap_mm": 0.0,
+    "plate_stack_mm": 0.0,
+    "plate_span_across_flats_mm": 0.0,
+    "skid_track_mm": 0.01,
+    "payload_rail_track_mm": 0.0,
+    "payload_rail_length_mm": 0.0,
+    "gear_height_mm": 0.0036,
+    "pm06_bbox_mm": 0.0002
+   },
+   "max_abs_difference_mm": 0.01,
+   "verdict": "재현됨 — 9개 값 전부 원장(outputs/x500v2_cad.json)과 최대 0.010 mm 안에서 같다. 즉 x500v2 참값도 «베껴 적은 것» 이 아니라 이 라운드가 제조사 STEP 에서 다시 뽑은 것이다."
+  }
+ },
+ "residual_table": [
+  {
+   "rid": "M5P-01",
+   "key": "mini5pro",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 **포함**)",
+   "measure": "sweep_L",
+   "unit": "mm",
+   "measured": 304.0027,
+   "reference": 304.0,
+   "residual": 0.0027,
+   "residual_pct": 0.0009,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다. 단 rotor_r_mm 이 이 공표 외형에서 유도됐을 수 있어 부분 순환으로 적는다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공식 스펙 페이지 «Unfolded 304×380×91 mm (프로펠러 포함)» — 매뉴얼 PDF 로 교차확인",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "⭐ 프롭 «포함» 이므로 멈춘 날의 bbox 가 아니라 **스윕 디스크** 외형과 견줘야 한다. 우리 잣대는 로터 중심 ± 스윕 반경.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M5P-02",
+   "key": "mini5pro",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 **포함**)",
+   "measure": "sweep_W",
+   "unit": "mm",
+   "measured": 379.9856,
+   "reference": 380.0,
+   "residual": -0.0144,
+   "residual_pct": -0.0038,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "M5P-01 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "같은 공표의 폭",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "M5P-01 과 같은 잣대의 y.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M5P-03",
+   "key": "mini5pro",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 152.4,
+   "reference": 152.4,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `prop_dia_mm` 이 같은 공표에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 매뉴얼 «6028F 152.4×71.1 mm (지름×피치)»",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M5P-04",
+   "key": "mini5pro",
+   "part": "battery",
+   "quantity": "배터리 길이",
+   "measure": "battery_L",
+   "unit": "mm",
+   "measured": 68.9775,
+   "reference": 86.1,
+   "residual": -17.1225,
+   "residual_pct": -19.8868,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⭐**독립**이다 — 우리 배터리 상자는 셸 비율에서 나왔고 이 공표값을 쓴 적이 없다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 매뉴얼 배터리 BWXNN5-2788-7.0 «86.10×54.89×24.85 mm»",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "배터리 팩 바깥치수. 우리 잣대는 battery 그룹의 가장 큰 부품 bbox.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M5P-05",
+   "key": "mini5pro",
+   "part": "battery",
+   "quantity": "배터리 폭",
+   "measure": "battery_W",
+   "unit": "mm",
+   "measured": 45.9541,
+   "reference": 54.89,
+   "residual": -8.9359,
+   "residual_pct": -16.2797,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "M5P-04 와 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "같은 공표",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "M5P-04 와 같은 잣대의 y.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M5P-06",
+   "key": "mini5pro",
+   "part": "battery",
+   "quantity": "배터리 높이",
+   "measure": "battery_H",
+   "unit": "mm",
+   "measured": 32.1712,
+   "reference": 24.85,
+   "residual": 7.3212,
+   "residual_pct": 29.4614,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "M5P-04 와 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "같은 공표",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "M5P-04 와 같은 잣대의 z.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M5P-07",
+   "key": "mini5pro",
+   "part": "gear",
+   "quantity": "착륙다리 길이",
+   "measure": null,
+   "unit": "mm",
+   "measured": null,
+   "reference": null,
+   "residual": null,
+   "residual_pct": null,
+   "tolerance": {
+    "u_ref": null,
+    "u_ref_why": "참값 없음 — 허용오차를 유도할 근거가 없다",
+    "u_def": null,
+    "u_def_why": "참값이 없다.",
+    "u_disc": null,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": null,
+    "k": 2.0,
+    "U": null,
+    "formula": "해당 없음(참값 없음)"
+   },
+   "verdict": "모름",
+   "grade": "B",
+   "ref_class": "photo",
+   "source": "⚠ DJI 는 다리 치수를 공개하지 않는다. 사진 계측 31.0 mm ±15 % 가 저장소의 유일한 근거이고, 그 사진 계측은 **우리 상수 자체**라 외부 참값이 아니다",
+   "source_file": "src/drones.py :: DRONES['mini5pro'].note",
+   "definition": "빈칸으로 남긴다 — 가짜 통과보다 낫다.",
+   "circularity": "circular",
+   "note": "모름 — 외부 참값 없음. 이 칸은 «장담 못 한다» 로 인증서에 실린다.",
+   "error": null
+  },
+  {
+   "rid": "M4P-01",
+   "key": "mavic4pro",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 320.9949,
+   "reference": 328.7,
+   "residual": -7.7051,
+   "residual_pct": -2.3441,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⭐**독립**이다 — 2026-07-30 라운드가 L/W 강제를 **풀었다**(note). 지금 프레임 길이는 «주장» 이 아니라 로터 배치와 짐벌 돌출에서 **지어진** 값이다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 공표 «Unfolded 328.7×390.5×135.2 mm (프로펠러 제외)»",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "프롭 제외 bbox. 우리 잣대도 같다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4P-02",
+   "key": "mavic4pro",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 제외)",
+   "measure": "frame_W",
+   "unit": "mm",
+   "measured": 390.5145,
+   "reference": 390.5,
+   "residual": 0.0145,
+   "residual_pct": 0.0037,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "M4P-01 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "같은 공표의 폭",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "M4P-01 과 같은 잣대의 y.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4P-03",
+   "key": "mavic4pro",
+   "part": "airframe",
+   "quantity": "펼침 높이(프롭 제외)",
+   "measure": "frame_H",
+   "unit": "mm",
+   "measured": 135.2,
+   "reference": 135.2,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `envelope_mm=(None,None,135.2)` 가 강제한다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "같은 공표의 높이",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "M4P-01 과 같은 잣대의 z.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4P-04",
+   "key": "mavic4pro",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 267.0,
+   "reference": 267.0,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `prop_dia_mm` 이 같은 공표에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 부품표 1158F «26.7×14.7 cm»",
+   "source_file": "src/drones.py :: DRONES['mavic4pro'].note",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-01",
+   "key": "matrice4e",
+   "part": "airframe",
+   "quantity": "펼침 길이(암 끝 ↔ 암 끝)",
+   "measure": "motor_span_x",
+   "unit": "mm",
+   "measured": 305.8959,
+   "reference": 307.0,
+   "residual": -1.1041,
+   "residual_pct": -0.3596,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.5,
+    "u_def_why": "우리 잣대는 'motor' 그룹 x 폭(모터 벨 바깥)이고 참값은 암 끝 페어링이다. CAD 에서 둘의 차이는 페어링이 벨을 감싸는 두께이고 그 값은 원장에 없다 ⇒ 0.5 mm 로 선언한다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.5774,
+    "k": 2.0,
+    "U": 1.1547,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI Matrice 4 시리즈 공표 «펼침 307 mm»; 공식 CAD 가 그 정의를 «앞 암 끝 페어링 → 뒤 암 끝 페어링»으로 확정(307.323 mm)",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "⭐정의 주의 — 이 수는 기체 bbox 가 **아니다**. 짐벌·다리를 뺀 암-대-암이다. 메쉬 전체 bbox 로 재면 331.4 mm 라 +7.9 % 로 보이지만 그건 다른 물건을 잰 것이다(감사 I10 ①).",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-02",
+   "key": "matrice4e",
+   "part": "airframe",
+   "quantity": "펼침 폭(앞 모터 마운트 바깥)",
+   "measure": "motor_span_y",
+   "unit": "mm",
+   "measured": 389.7477,
+   "reference": 387.5,
+   "residual": 2.2477,
+   "residual_pct": 0.58,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.5,
+    "u_def_why": "M4E-01 과 같은 이유(페어링 두께 미기록) ⇒ 0.5 mm.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.5008,
+    "k": 2.0,
+    "U": 1.0017,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 공표 387.5 mm; 공식 CAD 가 387.501 mm 로 재현(+0.003 %)",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "앞 모터 마운트 좌↔우 바깥. 우리 잣대는 'motor' 그룹 y 폭이다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-03",
+   "key": "matrice4e",
+   "part": "airframe",
+   "quantity": "높이(접지 → RTK 터렛 꼭대기)",
+   "measure": "frame_H",
+   "unit": "mm",
+   "measured": 149.5,
+   "reference": 149.5,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 이 행은 **순환**이다 — `envelope_mm=(None,None,149.5)` 가 프레임을 그 높이로 강제하므로 일치는 보장돼 있다. 그래도 싣는 이유: 강제가 **풀렸는지**를 감시한다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 공표 149.5 mm; CAD 149.521 mm 로 재현. ⭐이 일치가 «149.5 는 터렛 포함·GNSS 커버 제외» 를 확정",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "접지점 → RTK 터렛 꼭대기. 우리 잣대는 프롭 제외 bbox 높이다(둘이 같은 두 점).",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-04",
+   "key": "matrice4e",
+   "part": "body",
+   "quantity": "셸 앞끝 x",
+   "measure": "shell_nose_x",
+   "unit": "mm",
+   "measured": 159.0097,
+   "reference": 159.01,
+   "residual": -0.0003,
+   "residual_pct": -0.0002,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.3,
+    "u_def_why": "우리 «셸 자르기»(|y| 문턱)가 CAD 의 솔리드 선택과 정확히 같지는 않다. 문턱을 1.0~1.3 배로 흔들었을 때 x 최대가 움직이는 폭이 0.3 mm 안이라 그 값을 쓴다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.3534,
+    "k": 2.0,
+    "U": 0.7069,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 셸 솔리드(기수 상·하)의 우리 좌표 x 최대",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "셸만(암 제외). 우리 잣대는 body 그룹에서 |y| ≤ 1.15×캐노피 반폭인 삼각형의 x 최대.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-05",
+   "key": "matrice4e",
+   "part": "body",
+   "quantity": "셸 뒤끝 x",
+   "measure": "shell_tail_x",
+   "unit": "mm",
+   "measured": -75.5905,
+   "reference": -75.59,
+   "residual": -0.0005,
+   "residual_pct": -0.0007,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.3,
+    "u_def_why": "M4E-04 와 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.3534,
+    "k": 2.0,
+    "U": 0.7069,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 셸 솔리드의 우리 좌표 x 최소",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "M4E-04 와 같은 잣대의 반대쪽.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-06",
+   "key": "matrice4e",
+   "part": "body",
+   "quantity": "셸 배(아래) z",
+   "measure": "shell_belly_z",
+   "unit": "mm",
+   "measured": -34.7418,
+   "reference": -30.81,
+   "residual": -3.9318,
+   "residual_pct": -12.7614,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.3,
+    "u_def_why": "M4E-04 와 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.3534,
+    "k": 2.0,
+    "U": 0.7069,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 셸 하부 커버의 우리 좌표 z 최소",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "셸 아랫면. 우리 잣대는 같은 «셸 자르기» 안의 z 최소.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-07",
+   "key": "matrice4e",
+   "part": "body",
+   "quantity": "셸 등(위) z",
+   "measure": "shell_crown_z",
+   "unit": "mm",
+   "measured": 69.1848,
+   "reference": 69.11,
+   "residual": 0.0748,
+   "residual_pct": 0.1082,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.3,
+    "u_def_why": "M4E-04 와 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.3534,
+    "k": 2.0,
+    "U": 0.7069,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 셸 상부 커버의 우리 좌표 z 최대",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "셸 윗면(RTK 터렛 제외).",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-08",
+   "key": "matrice4e",
+   "part": "gear",
+   "quantity": "접지점 z",
+   "measure": "gear_bottom_z",
+   "unit": "mm",
+   "measured": -59.812,
+   "reference": -59.82,
+   "residual": 0.008,
+   "residual_pct": 0.0134,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.0,
+    "u_def_why": "같은 점을 재므로 정의 차이가 없다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.1869,
+    "k": 2.0,
+    "U": 0.3738,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 발 접지점의 우리 좌표 z",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "다리 맨 아래. 우리 잣대는 gear·gear_cf 그룹의 z 최소.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-09",
+   "key": "matrice4e",
+   "part": "accent",
+   "quantity": "RTK 터렛 꼭대기 z",
+   "measure": "top_z",
+   "unit": "mm",
+   "measured": 89.688,
+   "reference": 89.7,
+   "residual": -0.012,
+   "residual_pct": -0.0134,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.0,
+    "u_def_why": "같은 점을 재므로 정의 차이가 없다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.1869,
+    "k": 2.0,
+    "U": 0.3738,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD RTK 터렛 상단(우리 좌표)",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "프롭 제외 최고점. GNSS 커버(+2.0 mm)는 CAD 도 우리도 안 센다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-10",
+   "key": "matrice4e",
+   "part": "motor",
+   "quantity": "앞 로터 반경",
+   "measure": "rotor0_r",
+   "unit": "mm",
+   "measured": 228.77,
+   "reference": 227.16,
+   "residual": 1.61,
+   "residual_pct": 0.7088,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.0,
+    "u_def_why": "같은 양을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.1869,
+    "k": 2.0,
+    "U": 0.3738,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 앞 모터축 (x 139.49, y 179.28) → r 227.16",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "로터축의 xy 반경. 우리 잣대는 프롭 군집 xy 무게중심의 반경(2날 프롭이라 축 위에 온다).",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-11",
+   "key": "matrice4e",
+   "part": "motor",
+   "quantity": "뒤 로터 반경",
+   "measure": "rotor1_r",
+   "unit": "mm",
+   "measured": 210.36,
+   "reference": 209.92,
+   "residual": 0.44,
+   "residual_pct": 0.2096,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.0,
+    "u_def_why": "같은 양을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.1869,
+    "k": 2.0,
+    "U": 0.3738,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 뒤 모터축 (x −139.49, y 156.87) → r 209.92",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "M4E-10 의 뒤쪽.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-12",
+   "key": "matrice4e",
+   "part": "motor",
+   "quantity": "앞 로터 방위각",
+   "measure": "rotor0_az",
+   "unit": "deg",
+   "measured": 52.45,
+   "reference": 52.115,
+   "residual": 0.335,
+   "residual_pct": 0.6428,
+   "tolerance": {
+    "u_ref": 0.0471,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다) → 반경 227.16 mm 에서 각도로 환산",
+    "u_def": 0.0,
+    "u_def_why": "같은 양을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0471,
+    "k": 2.0,
+    "U": 0.0943,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 앞 모터축 방위각[deg]",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "⚠ 단위가 도(deg)다 — 잔차·허용오차도 도로 읽는다(아래 unit 필드).",
+   "circularity": "independent",
+   "note": "unit=deg. u_ref 는 반경 227 mm 에서 0.187 mm 가 만드는 각도(0.047°)로 환산해 쓴다.",
+   "error": null
+  },
+  {
+   "rid": "M4E-13",
+   "key": "matrice4e",
+   "part": "motor",
+   "quantity": "앞 모터 부품 z 최저(벨 밑동)",
+   "measure": "motor_z0_lo",
+   "unit": "mm",
+   "measured": -8.5089,
+   "reference": -8.51,
+   "residual": 0.0011,
+   "residual_pct": 0.0134,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.0,
+    "u_def_why": "같은 면을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.1869,
+    "k": 2.0,
+    "U": 0.3738,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 앞 벨 z 범위 [−8.51, 8.03] 의 아래끝",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "모터 벨 아랫면. 우리 'motor' 부품에는 나사 포스트가 없어 부품 z 최소가 곧 벨 밑동이다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-14",
+   "key": "matrice4e",
+   "part": "motor",
+   "quantity": "모터 벨 높이",
+   "measure": "motor_h0",
+   "unit": "mm",
+   "measured": 16.2978,
+   "reference": 16.54,
+   "residual": -0.2422,
+   "residual_pct": -1.4642,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 0.0,
+    "u_def_why": "같은 양을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.1869,
+    "k": 2.0,
+    "U": 0.3738,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 앞 벨 z 범위 [−8.51, 8.03] 의 폭 — ⚠**유도값**이다(원장에 16.54 라는 수는 없다)",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "벨 z 폭. 우리 잣대는 'motor' 부품 z 폭.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-15",
+   "key": "matrice4e",
+   "part": "gear",
+   "quantity": "앞 발 반경",
+   "measure": "foot_r_front",
+   "unit": "mm",
+   "measured": 222.5621,
+   "reference": 216.52,
+   "residual": 6.0421,
+   "residual_pct": 2.7906,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 2.0,
+    "u_def_why": "CAD 값은 발의 «접지 자리» 이고 우리 값은 다리 부품 전체의 bbox 중심이라 원뿔이 기울면 둘이 어긋난다. 다리 벌림 20°·높이 53 mm 에서 그 어긋남은 최대 2 mm 다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 2.0087,
+    "k": 2.0,
+    "U": 4.0174,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 앞 발 (x 135.23, y 169.10) → r 216.52",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "발 중심의 xy 반경. 우리 잣대는 gear 부품 중심의 반경.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-16",
+   "key": "matrice4e",
+   "part": "gear",
+   "quantity": "뒤 발 반경",
+   "measure": "foot_r_rear",
+   "unit": "mm",
+   "measured": 210.1395,
+   "reference": 208.54,
+   "residual": 1.5995,
+   "residual_pct": 0.767,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 2.0,
+    "u_def_why": "M4E-15 와 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 2.0087,
+    "k": 2.0,
+    "U": 4.0174,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 뒤 발 (x −139.74, y 154.79) → r 208.54",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "M4E-15 의 뒤쪽.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-17",
+   "key": "matrice4e",
+   "part": "camera",
+   "quantity": "짐벌 폭(좌우)",
+   "measure": "gimbal_W",
+   "unit": "mm",
+   "measured": 74.34,
+   "reference": 59.0,
+   "residual": 15.34,
+   "residual_pct": 26.0,
+   "tolerance": {
+    "u_ref": 5.1095,
+    "u_ref_why": "사진 계측은 축척 앵커와 모서리 집기(edge localisation)가 오차를 만든다. 저장소는 사진 유래 값마다 밴드(예: ±15 %)를 선언해 왔으므로, 그 밴드를 균등분포로 보고 u = (밴드 반폭)/√3 로 환산한다. 밴드가 선언 안 된 사진 값은 이 파일이 **참값으로 쓰지 않는다**. — 이 행의 선언 밴드 ±15.0 % ⇒ u = 59.00×0.150/√3 = 5.110 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의 차이가 크지만 그 크기를 모른다 ⇒ u_def 로 감추지 않고 note 에 적고 informational 로 둔다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 5.1095,
+    "k": 2.0,
+    "U": 10.2191,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "기록만",
+   "grade": "B",
+   "ref_class": "photo",
+   "source": "제품 사진 계측(59×47×52 mm). ⛔ M4T CAD 는 **짐벌이 다른 물건**이라 쓰지 않는다",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "⚠ 우리 잣대는 카메라 그룹 최전방 부품의 bbox 라 크래들·요크까지 센다. 사진 값은 짐벌 몸체만이다 ⇒ 우리가 더 크게 나오는 것이 정상이고, 이 행은 **경보용이 아니라 기록용**이다.",
+   "circularity": "independent",
+   "note": "informational — 정의가 달라 판정하지 않는다. 밴드 ±15 % 는 저장소의 사진 유래 값 관례.",
+   "error": null
+  },
+  {
+   "rid": "M4E-18",
+   "key": "matrice4e",
+   "part": "camera",
+   "quantity": "짐벌 매달린 자리 x",
+   "measure": "gimbal_cx",
+   "unit": "mm",
+   "measured": 148.04,
+   "reference": 148.3,
+   "residual": -0.26,
+   "residual_pct": -0.1753,
+   "tolerance": {
+    "u_ref": 0.1869,
+    "u_ref_why": "DJI M4T 공식 STEP 이 공표 3건을 재현한 잔차의 RMS — 폭 387.501↔387.5(0.001) · 높이 149.521↔149.5(0.021) · 길이 307.323↔307.0(0.323) mm ⇒ u = 0.187 mm. (대각 −1.96 mm 는 «공표 대각의 정의가 다르다» 고 원장이 스스로 표시했으므로 뺐다)",
+    "u_def": 1.0,
+    "u_def_why": "F10 이 코드에 적용되면 이 값은 설계 목표가 되어 순환이 된다. 그래도 «적용됐는가» 를 감시할 값어치가 있어 싣는다. u_def 1.0 mm 는 부품 bbox 중심 ↔ 크래들 부착점의 차이.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 1.0173,
+    "k": 2.0,
+    "U": 2.0346,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "cad_m4t",
+   "source": "공식 CAD 로 정정된 짐벌 **부착 위치**(F10). ⭐위치는 기체 쪽 형상이라 M4T 를 써도 된다",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "짐벌 부품 bbox 중심 x. 규칙: **치수는 금지, 위치는 허용**.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-19",
+   "key": "matrice4e",
+   "part": "battery",
+   "quantity": "배터리 상자 길이",
+   "measure": "battery_L",
+   "unit": "mm",
+   "measured": 145.47,
+   "reference": 145.47,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ F11 이 이미 적용돼 이 값이 코드 상수가 됐다 ⇒ 순환. 회귀 감시용으로만 싣는다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "B",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 공표 배터리(TB4x) 치수에서 온 상자(F11, source='published spec')",
+   "source_file": "outputs/meshfix_matrice4e.json",
+   "definition": "가장 큰 battery 부품의 x 폭.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M4E-20",
+   "key": "matrice4e",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 273.9999,
+   "reference": 274.0,
+   "residual": -0.0001,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `prop_dia_mm=274` 가 같은 공표에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI Matrice 4 시리즈 매뉴얼 p.101 프롭표(1154F 27.4×13.7 cm). 표준 1157F 도 같은 지름",
+   "source_file": "src/drones.py :: DRONES['matrice4e'].note",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "S10-01",
+   "key": "s1000plus",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 1016.0,
+   "reference": 1016.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `envelope_mm=(1016,1016,380)` 이 세 축을 다 강제한다 ⇒ 완전 순환. 강제 감시용.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공표 «펼침 1016×1016×380 mm»",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "프롭 제외 bbox 길이.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "S10-02",
+   "key": "s1000plus",
+   "part": "motor",
+   "quantity": "모터축 대각",
+   "measure": "wheelbase",
+   "unit": "mm",
+   "measured": 1043.5065,
+   "reference": 1045.0,
+   "residual": -1.4935,
+   "residual_pct": -0.1429,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 같은 공표 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공표 휠베이스 1045 mm",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "마주보는 모터축 거리.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "S10-03",
+   "key": "s1000plus",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 381.0,
+   "reference": 381.0,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 같은 공표 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공표 1552 프롭 15 in = 381 mm",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P4-01",
+   "key": "phantom4",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 283.8874,
+   "reference": 289.5,
+   "residual": -5.6126,
+   "residual_pct": -1.9387,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⭐**독립**이다 — phantom4 는 envelope L/W 강제가 없고 rotor_deg 도 45° 고정이라 프레임 길이가 셸·암에서 지어진다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 공표 289.5×289.5×196 mm",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "프롭 제외 bbox 길이.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P4-02",
+   "key": "phantom4",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 제외)",
+   "measure": "frame_W",
+   "unit": "mm",
+   "measured": 283.8874,
+   "reference": 289.5,
+   "residual": -5.6126,
+   "residual_pct": -1.9387,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "P4-01 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "같은 공표",
+   "source_file": "docs/drone_specs_2026.json",
+   "definition": "P4-01 과 같은 잣대의 y.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P4-03",
+   "key": "phantom4",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 240.0,
+   "reference": 240.0,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 같은 공표에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 프롭 치수표 9450 «24×12.7 cm»",
+   "source_file": "src/drones.py :: DRONES['phantom4'].note",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "TY-01",
+   "key": "typhoonh480",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 452.1685,
+   "reference": 457.0,
+   "residual": -4.8315,
+   "residual_pct": -1.0572,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⭐**독립**이다 — envelope 은 높이만 강제하고 L/W 는 안 건다(note).",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "Yuneec 공표 기체 크기 520×457×310 mm(폭 우선 표기; CAD 가 520=좌우·457=전후를 확정)",
+   "source_file": "assets/meshes/reference/SOURCES.md",
+   "definition": "프롭 제외 bbox 길이(전후).",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "TY-02",
+   "key": "typhoonh480",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 제외)",
+   "measure": "frame_W",
+   "unit": "mm",
+   "measured": 517.0,
+   "reference": 520.0,
+   "residual": -3.0,
+   "residual_pct": -0.5769,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "TY-01 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "같은 공표의 좌우",
+   "source_file": "assets/meshes/reference/SOURCES.md",
+   "definition": "TY-01 과 같은 잣대의 y.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "TY-03",
+   "key": "typhoonh480",
+   "part": "airframe",
+   "quantity": "팁 외형(프롭 **포함** 폭)",
+   "measure": "sweep_W",
+   "unit": "mm",
+   "measured": 710.1999,
+   "reference": 711.0,
+   "residual": -0.8001,
+   "residual_pct": -0.1125,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "diagonal 480 과 prop_dia 230.2 가 둘 다 공표/CAD 실측이고, 이 행은 그 둘의 «합» 이 세 번째 공표값과 맞는지를 본다 ⇒ 완전 순환은 아니다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "Yuneec 공표 팁-대-팁 711 mm(480 대각 + 230 프롭으로도 재현)",
+   "source_file": "src/drones.py :: DRONES['typhoonh480'].note",
+   "definition": "프롭 스윕까지 포함한 좌우. 우리 잣대는 스윕 디스크 외형.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "TY-04",
+   "key": "typhoonh480",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 230.1999,
+   "reference": 230.098,
+   "residual": 0.1019,
+   "residual_pct": 0.0443,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `prop_dia_mm=230.2` 가 이 실측에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "B-",
+   "ref_class": "pub_0p1mm",
+   "source": "Yuneec 시뮬레이터 자산(rotors_simulator STL)에서 실측한 프롭 지름 — ⚠제조사 CAD 가 아니다",
+   "source_file": "outputs/reference_props.json",
+   "definition": "프롭 스윕 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-01",
+   "key": "x500v2",
+   "part": "deck",
+   "quantity": "판 한 변",
+   "measure": "plate_span",
+   "unit": "mm",
+   "measured": 143.72,
+   "reference": 143.72,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `plate_mm` 이 이 CAD 값으로 채워져 있다 ⇒ 순환(회귀 감시용).",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 하판 외곽(공표 144)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "판의 마주보는 직선변 사이. 우리 잣대는 deck 그룹의 판 부품 최대 변.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-02",
+   "key": "x500v2",
+   "part": "deck",
+   "quantity": "판 두께",
+   "measure": "plate_t",
+   "unit": "mm",
+   "measured": 2.0,
+   "reference": 2.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "X50-01 과 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 하판 상·하면 차(공표 2)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "판 한 장의 두께.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-03",
+   "key": "x500v2",
+   "part": "deck",
+   "quantity": "판 사이 간격",
+   "measure": "plate_gap",
+   "unit": "mm",
+   "measured": 28.0,
+   "reference": 28.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "X50-01 과 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 하판 윗면 → 상판 아랫면(공표 28)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "두 판의 **마주보는 면 사이 빈 간격**.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-04",
+   "key": "x500v2",
+   "part": "deck",
+   "quantity": "판 스택 총높이",
+   "measure": "plate_stack",
+   "unit": "mm",
+   "measured": 32.0,
+   "reference": 32.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "X50-01 과 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 하판 아랫면 → 상판 윗면",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "판+간격+판.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-05",
+   "key": "x500v2",
+   "part": "motor",
+   "quantity": "모터축 대각(휠베이스)",
+   "measure": "wheelbase",
+   "unit": "mm",
+   "measured": 500.0,
+   "reference": 502.8,
+   "residual": -2.8,
+   "residual_pct": -0.5569,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다. ⭐이 행은 **독립**이다 — 우리 diagonal_mm 은 공표 500 이라 CAD 502.8 과 다른 수이고, 잔차가 그 차이를 그대로 드러낸다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 대각 모터 간격 502.8 mm — ⭐공표 500 은 **반올림**이고 CAD 가 참값이다",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "마주보는 모터축 거리. 우리 잣대는 프롭 군집 중심 사이 최대거리.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-06",
+   "key": "x500v2",
+   "part": "motor",
+   "quantity": "모터 벨 지름",
+   "measure": "motor_od0",
+   "unit": "mm",
+   "measured": 27.7,
+   "reference": 28.0,
+   "residual": -0.3,
+   "residual_pct": -1.0714,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다.",
+    "u_disc": 0.4798,
+    "u_disc_why": "다면체 원통을 지름으로 잴 때 외접·내접이 다르다 — 실측 편차/√3",
+    "u_combined": 0.519,
+    "k": 2.0,
+    "U": 1.0381,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "AIR2216II 모터 단품 STEP 의 최대 반복 원통면(판매페이지 캔 외경 28 과 정합)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "벨 캔 외경. 우리 잣대는 모터 부품의 자기축 최대지름.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-07",
+   "key": "x500v2",
+   "part": "gear",
+   "quantity": "다리 높이(하판 아랫면 → 최저점)",
+   "measure": "gear_h_below_deck",
+   "unit": "mm",
+   "measured": 215.28,
+   "reference": 215.28,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `gear_h_mm=215` 가 코드에 있다 ⇒ 순환(회귀 감시용).",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 하판 아랫면 → 폼 최하점(공표 215 를 CAD 가 재현)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "판 밑에서 접지까지. 우리 잣대는 (판 스택 절반) − (gear 최저 z).",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-08",
+   "key": "x500v2",
+   "part": "gear",
+   "quantity": "좌우 스키드 축 간격",
+   "measure": "skid_track",
+   "unit": "mm",
+   "measured": 239.8824,
+   "reference": 239.91,
+   "residual": -0.0276,
+   "residual_pct": -0.0115,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 좌우 스키드 축 간격. ⚠사진 실측 180 mm 는 시차 오류였다",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "가로 튜브 두 개의 축 사이. 우리 잣대는 x 로 길쭉한 gear 부품 두 개의 y 중심 차.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-10",
+   "key": "x500v2",
+   "part": "arm",
+   "quantity": "암 튜브 외경",
+   "measure": "arm_od",
+   "unit": "mm",
+   "measured": 16.0,
+   "reference": 16.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `arm_od_mm=16.0` 이 이 CAD 에서 왔다 ⇒ 순환(회귀 감시용).",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "Holybro 공표 16 mm; 공식 STEP 의 클램프 보어(뿌리 15.90 · 모터끝 16.00)가 확증. ⚠CAD 튜브 솔리드 자체는 15.4 로 언더사이즈로 그려져 있다(클램프 여유)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "카본 파이프 바깥지름. 우리 잣대는 arm 그룹의 z 폭(수평 튜브라 z 폭 = 지름).",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-11",
+   "key": "x500v2",
+   "part": "deck",
+   "quantity": "페이로드 레일 좌우 간격",
+   "measure": "rail_track",
+   "unit": "mm",
+   "measured": 60.0,
+   "reference": 60.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 레일 위치가 이 CAD 에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 좌우 레일 축 간격",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "레일 두 개의 y 중심 차. 우리 잣대는 deck 그룹에서 «한 축으로만 아주 긴» 부품 둘의 y 중심 차.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-12",
+   "key": "x500v2",
+   "part": "deck",
+   "quantity": "페이로드 레일 길이",
+   "measure": "rail_len",
+   "unit": "mm",
+   "measured": 250.0,
+   "reference": 250.0,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 같은 이유 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 레일 길이(공표 250 과 일치)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "레일 한 개의 x 길이.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-13",
+   "key": "x500v2",
+   "part": "pcb",
+   "quantity": "전원모듈 PCB 길이",
+   "measure": "pcb_L",
+   "unit": "mm",
+   "measured": 55.0,
+   "reference": 55.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `drone_cad` 의 `pm06_mm` 이 이 CAD 에서 왔다(코드 주석이 그렇게 적는다) ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 의 PM06 전원모듈 조립 bbox 55×11.99×35 (CAD 축: x 전방 · y 상방 · z 좌우)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "PCB 앞뒤 길이.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-14",
+   "key": "x500v2",
+   "part": "pcb",
+   "quantity": "전원모듈 PCB 폭",
+   "measure": "pcb_W",
+   "unit": "mm",
+   "measured": 35.0,
+   "reference": 35.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "X50-13 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "같은 CAD bbox 의 좌우(35.0)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "PCB 좌우 폭. ⚠CAD 축이 우리와 달라 z_cad = 좌우다.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-15",
+   "key": "x500v2",
+   "part": "pcb",
+   "quantity": "전원모듈 PCB 두께",
+   "measure": "pcb_H",
+   "unit": "mm",
+   "measured": 5.2,
+   "reference": 11.99,
+   "residual": -6.79,
+   "residual_pct": -56.6305,
+   "tolerance": {
+    "u_ref": 0.198,
+    "u_ref_why": "Holybro X500 V2 공식 STEP 이 공표 4건을 재현한 잔차의 RMS — 판 143.72↔144(−0.28) · 판두께 2.000↔2(0.00) · 판간격 28.000↔28(0.00) · 다리높이 215.28↔215(0.28) mm ⇒ u = 0.198 mm",
+    "u_def": 0.0,
+    "u_def_why": "두 정의의 차(6.8 mm)는 커넥터·스탠드오프 높이이고 그 값을 우리가 따로 재지 않았다 ⇒ u_def 로 감추지 않고 «기록만» 으로 둔다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.198,
+    "k": 2.0,
+    "U": 0.396,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "기록만",
+   "grade": "A",
+   "ref_class": "step_x500",
+   "source": "공식 STEP 의 PM06 **조립 bbox** 상하 11.99 mm(커넥터·스탠드오프 포함)",
+   "source_file": "outputs/x500v2_cad.json",
+   "definition": "⚠**정의가 둘이다** — 같은 CAD 에서 «조립 bbox» 는 11.99 이고 «보드 모서리 bbox» 는 5.19 다(drone_cad.py 의 pm06 주석이 그렇게 적는다). 우리 메쉬는 후자(5.2)를 쓴다. 즉 이 잔차는 결함이 아니라 **다른 물건을 잰 것**이다.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "X50-09",
+   "key": "x500v2",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 254.0,
+   "reference": 254.0,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `prop_dia_mm=254` 가 같은 공표에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "B",
+   "ref_class": "pub_1mm",
+   "source": "Holybro X500 V2 킷 공표 프롭 1045(10×4.5 in = 254 mm). ⚠CAD 에 프롭은 없다",
+   "source_file": "assets/meshes/reference/SOURCES.md",
+   "definition": "10 in 공칭 지름. 우리 잣대는 스윕 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P3-01",
+   "key": "phantom3",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 289.066,
+   "reference": 289.5,
+   "residual": -0.434,
+   "residual_pct": -0.1499,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "rotor_deg 45° 가 이 두 공표 평면치수에서 유도됐다(note) ⇒ 부분 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 치수 도면 «289.5×289.0×185.0 mm, 프로펠러 제외, 높이는 모터 상단→발»",
+   "source_file": "src/drones.py :: DRONES['phantom3'].note",
+   "definition": "프롭 제외 bbox 길이.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P3-02",
+   "key": "phantom3",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 제외)",
+   "measure": "frame_W",
+   "unit": "mm",
+   "measured": 289.066,
+   "reference": 289.0,
+   "residual": 0.066,
+   "residual_pct": 0.0228,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "P3-01 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "같은 도면의 폭",
+   "source_file": "src/drones.py :: DRONES['phantom3'].note",
+   "definition": "P3-01 과 같은 잣대의 y.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P3-03",
+   "key": "phantom3",
+   "part": "motor",
+   "quantity": "모터축 대각",
+   "measure": "wheelbase",
+   "unit": "mm",
+   "measured": 350.0,
+   "reference": 350.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `diagonal_mm=350` 이 같은 공표다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공표 대각 350 mm(Pro/Adv/SE/Standard 공용)",
+   "source_file": "src/drones.py :: DRONES['phantom3'].note",
+   "definition": "마주보는 모터축 거리.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P3-04",
+   "key": "phantom3",
+   "part": "airframe",
+   "quantity": "높이(모터 상단 → 발)",
+   "measure": "motor_top_to_gear_bottom",
+   "unit": "mm",
+   "measured": 175.2617,
+   "reference": 185.0,
+   "residual": -9.7383,
+   "residual_pct": -5.2639,
+   "tolerance": {
+    "u_ref": 0.0289,
+    "u_ref_why": "공표값이 0.1 mm 자리까지 → ±0.05 mm 균등분포 → u = 0.05/√3 = 0.029 mm",
+    "u_def": 0.0,
+    "u_def_why": "참값의 정의를 잣대가 그대로 따라간다. 우리 모터 부품 꼭대기가 실물의 모터 캡 꼭대기와 같은 면인지는 확인됐다(프롭은 그 위에 따로 얹힌다).",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.0289,
+    "k": 2.0,
+    "U": 0.0577,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_0p1mm",
+   "source": "DJI 치수 도면의 높이 185.0 mm — ⭐그 도면이 **모터 상단에서 발까지**를 잰다는 것은 저장소의 픽셀 감사가 확정했다(프롭 위를 기준으로 잡으면 206.4 mm = +11.6 % 가 된다)",
+   "source_file": "src/drones.py :: DRONES['phantom3'].note",
+   "definition": "⭐정의가 bbox 높이와 다르다 — 우리 잣대도 «모터 부품 최고점 − gear 최저점» 으로 맞췄다. envelope_mm 이 강제하는 것은 bbox 높이이지 이 수가 아니므로 이 행은 강제를 안 받는다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "P3-05",
+   "key": "phantom3",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 240.0,
+   "reference": 240.0,
+   "residual": -0.0,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 같은 공표에서 왔다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI E305 추진계 표의 9450 «24×12.7 cm»(phantom4 와 같은 부품번호)",
+   "source_file": "src/drones.py :: DRONES['phantom3'].note",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M35-01",
+   "key": "m350rtk",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 771.0472,
+   "reference": 810.0,
+   "residual": -38.9528,
+   "residual_pct": -4.809,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "rotor_deg 38.65° 가 이 두 공표 평면치수와 895 휠베이스에서 유도됐다(note) ⇒ 부분 순환. 그래도 **잔차는 0 이 아니다** — 유도는 모터축까지이고 bbox 는 암 끝·프롭 허브가 정한다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공표 «펼침(프롭 제외) 810×670 mm»",
+   "source_file": "src/drones.py :: DRONES['m350rtk'].note",
+   "definition": "프롭 제외 bbox 길이.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M35-02",
+   "key": "m350rtk",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 제외)",
+   "measure": "frame_W",
+   "unit": "mm",
+   "measured": 626.3425,
+   "reference": 670.0,
+   "residual": -43.6575,
+   "residual_pct": -6.516,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "M35-01 과 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "같은 공표",
+   "source_file": "src/drones.py :: DRONES['m350rtk'].note",
+   "definition": "M35-01 과 같은 잣대의 y.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M35-03",
+   "key": "m350rtk",
+   "part": "motor",
+   "quantity": "모터축 대각",
+   "measure": "wheelbase",
+   "unit": "mm",
+   "measured": 895.0,
+   "reference": 895.0,
+   "residual": 0.0,
+   "residual_pct": 0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `diagonal_mm=895` 가 같은 공표다 ⇒ 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "pub_1mm",
+   "source": "DJI 공표 휠베이스 895 mm",
+   "source_file": "src/drones.py :: DRONES['m350rtk'].note",
+   "definition": "마주보는 모터축 거리.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "M35-04",
+   "key": "m350rtk",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 533.3999,
+   "reference": 533.4,
+   "residual": -0.0001,
+   "residual_pct": -0.0,
+   "tolerance": {
+    "u_ref": 0.2887,
+    "u_ref_why": "공표값이 1 mm 자리까지 반올림 → 참값은 ±0.5 mm 균등분포 → u = 0.5/√3 = 0.289 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `prop_dia_mm` 이 같은 2차 출처에서 왔다 ⇒ 순환. 등급도 [C] 로 낮춘다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2887,
+    "k": 2.0,
+    "U": 0.5774,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "C",
+   "ref_class": "pub_1mm",
+   "source": "⚠**2차 출처**다 — DJI 는 모델명(2110s)만 공표하고 기하는 안 낸다. 533.4 mm 는 «21×10 in» 이라는 유통사 수치다(기종 note 가 스스로 SECONDARY 라고 적는다)",
+   "source_file": "src/drones.py :: DRONES['m350rtk'].note",
+   "definition": "프롭 공칭 지름.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-01",
+   "key": "mini2",
+   "part": "airframe",
+   "quantity": "펼침 길이(프롭 제외)",
+   "measure": "frame_L",
+   "unit": "mm",
+   "measured": 159.417,
+   "reference": 159.113,
+   "residual": 0.304,
+   "residual_pct": 0.1911,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다. 단 body_l_mm=159 가 셸 비율의 분모라 부분적으로 순환이다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "DJI 공식 GLB(WM161 펼침) 프롭 제외 bbox 길이 — 이 라운드가 GLB 를 다시 열어 재현",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "프롭 8장을 뺀 bbox. 우리 잣대도 프롭 그룹을 뺀 bbox 다.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-02",
+   "key": "mini2",
+   "part": "airframe",
+   "quantity": "펼침 폭(프롭 제외)",
+   "measure": "frame_W",
+   "unit": "mm",
+   "measured": 206.9189,
+   "reference": 203.434,
+   "residual": 3.4849,
+   "residual_pct": 1.7131,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "어긋남",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "같은 GLB 의 프롭 제외 bbox 폭",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "MI2-01 과 같은 잣대의 y 축.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-03",
+   "key": "mini2",
+   "part": "airframe",
+   "quantity": "펼침 높이(프롭 제외)",
+   "measure": "frame_H",
+   "unit": "mm",
+   "measured": 56.0,
+   "reference": 55.977,
+   "residual": 0.023,
+   "residual_pct": 0.0411,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ `envelope_mm=(None,None,56)` 이 높이를 강제한다 ⇒ 순환. 강제가 풀렸는지만 본다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "같은 GLB 의 프롭 제외 bbox 높이",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "MI2-01 과 같은 잣대의 z 축.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-04",
+   "key": "mini2",
+   "part": "motor",
+   "quantity": "모터축 대각(휠베이스)",
+   "measure": "wheelbase",
+   "unit": "mm",
+   "measured": 213.046,
+   "reference": 213.051,
+   "residual": -0.005,
+   "residual_pct": -0.0023,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의가 같다. rotor_r/deg 가 이 CAD 에서 나왔으므로 부분 순환.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 모터 벨 4개의 축 사이 대각(좌우 두 대각의 차 0.0004 mm)",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "마주보는 로터축 거리. 우리 잣대는 프롭 군집 중심 사이 최대거리.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-05",
+   "key": "mini2",
+   "part": "motor",
+   "quantity": "모터 벨 지름",
+   "measure": "motor_od0",
+   "unit": "mm",
+   "measured": 18.2,
+   "reference": 18.203,
+   "residual": -0.003,
+   "residual_pct": -0.0165,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.035,
+    "u_def_why": "GLB 벨의 x·y bbox 가 18.203/18.133 로 0.07 mm 다르다(원통이 다각형으로 구워져 있다) ⇒ 그 절반 0.035 mm 를 정의 불확도로 쓴다.",
+    "u_disc": 0.3152,
+    "u_disc_why": "다면체 원통을 지름으로 잴 때 외접·내접이 다르다 — 실측 편차/√3",
+    "u_combined": 0.4097,
+    "k": 2.0,
+    "U": 0.8193,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 앞 모터 벨 파트(polySurface76) bbox 18.203×18.133",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "벨 최대 지름. 우리 잣대는 모터 부품의 자기축 최대지름 ×2.",
+   "circularity": "partly_circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-06",
+   "key": "mini2",
+   "part": "motor",
+   "quantity": "앞 모터 벨 밑동 z",
+   "measure": "motor_z0_lo",
+   "unit": "mm",
+   "measured": 18.6384,
+   "reference": 18.886,
+   "residual": -0.2476,
+   "residual_pct": -1.3108,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "같은 면을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 앞 벨 밑동 z(우리 프레임)",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "벨 아랫면. 우리 'motor' 부품은 나사 포스트를 **위쪽에** 달고 있어 z 최소는 여전히 벨 밑동이다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-07",
+   "key": "mini2",
+   "part": "motor",
+   "quantity": "앞뒤 벨 밑동 높이차",
+   "measure": "motor_z_sep",
+   "unit": "mm",
+   "measured": 21.2868,
+   "reference": 21.801,
+   "residual": -0.5142,
+   "residual_pct": -2.3587,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "같은 양을 잰다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 앞 벨 밑동 − 뒤 벨 밑동",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "두 로터 평면의 높이차. 우리 잣대도 두 모터 부품 z 최소의 차.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-08",
+   "key": "mini2",
+   "part": "camera",
+   "quantity": "짐벌 상자 길이",
+   "measure": "gimbal_L",
+   "unit": "mm",
+   "measured": 40.571,
+   "reference": 40.567,
+   "residual": 0.004,
+   "residual_pct": 0.0099,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "⛔ 이 기체의 짐벌 인자는 그 파트에서 역산됐다(원장 K10) ⇒ 순환. 값이 메쉬에 실렸는지만 본다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 짐벌 파트(polySurface204) bbox 40.567×32.239×34.012",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "짐벌 몸체 bbox. 우리 잣대는 카메라 그룹 최전방 부품 bbox.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-09",
+   "key": "mini2",
+   "part": "camera",
+   "quantity": "짐벌 상자 폭",
+   "measure": "gimbal_W",
+   "unit": "mm",
+   "measured": 32.24,
+   "reference": 32.239,
+   "residual": 0.001,
+   "residual_pct": 0.0031,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "MI2-08 과 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "같은 파트의 y 폭",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "MI2-08 과 같은 잣대의 y.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-10",
+   "key": "mini2",
+   "part": "camera",
+   "quantity": "짐벌 상자 높이",
+   "measure": "gimbal_H",
+   "unit": "mm",
+   "measured": 34.0529,
+   "reference": 34.012,
+   "residual": 0.0409,
+   "residual_pct": 0.1204,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "MI2-08 과 같은 이유.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "같은 파트의 z 폭",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "MI2-08 과 같은 잣대의 z.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-11",
+   "key": "mini2",
+   "part": "prop",
+   "quantity": "프롭 스윕 지름",
+   "measure": "prop_dia",
+   "unit": "mm",
+   "measured": 119.1,
+   "reference": 119.233,
+   "residual": -0.133,
+   "residual_pct": -0.1116,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.75,
+    "u_def_why": "GLB 에서 날 메쉬 중심이 모터축에서 앞 0.368 · 뒤 1.121 mm 벗어나 있다(원장 C3) ⇒ 그 평균 0.75 mm 를 정의 불확도로 쓴다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.7935,
+    "k": 2.0,
+    "U": 1.5871,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 프롭 날을 **모터축 기준**으로 잰 지름(앞 118.591 · 뒤 119.875 의 평균)",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "⭐ 회전 중심이 모터축이므로 «축 기준» 이 물리적으로 옳은 지름이다(원장 C3). 우리 잣대는 프롭 군집 무게중심 기준이라 축과 0.4~1.1 mm 어긋날 수 있다.",
+   "circularity": "independent",
+   "note": "",
+   "error": null
+  },
+  {
+   "rid": "MI2-12",
+   "key": "mini2",
+   "part": "gear",
+   "quantity": "기체 최저점 z",
+   "measure": "bottom_z",
+   "unit": "mm",
+   "measured": -24.7757,
+   "reference": -24.52,
+   "residual": -0.2557,
+   "residual_pct": -1.0429,
+   "tolerance": {
+    "u_ref": 0.2593,
+    "u_ref_why": "DJI Mini 2 공식 GLB 가 공표 펼침 3축을 재현한 잔차의 RMS — 159.113↔159(0.113) · 203.434↔203(0.434) · 55.977↔56(−0.023) mm ⇒ u = 0.260 mm",
+    "u_def": 0.0,
+    "u_def_why": "정의로 고정된 값이라 잔차가 0 인 것은 당연하다. 독립 증거는 MI2-03 의 세로 span 뿐이다.",
+    "u_disc": 0.0,
+    "u_disc_why": "이 잣대는 상자·평면·최댓값 위치라 삼각형 분할이 값을 바꾸지 않는다(원통을 지름으로 재는 잣대만 u_disc 가 붙는다)",
+    "u_combined": 0.2593,
+    "k": 2.0,
+    "U": 0.5185,
+    "formula": "U = k·√(u_ref² + u_def² + u_disc²), k = 2"
+   },
+   "verdict": "일치",
+   "grade": "A",
+   "ref_class": "glb_mini2",
+   "source": "GLB 프롭 제외 최저점",
+   "source_file": "outputs/meshdef_mini2_glb.json",
+   "definition": "⛔ 원장이 스스로 «이건 정의이지 측정이 아니다» 라고 적었다 — 원점 z 를 이 점으로 **정의**했다.",
+   "circularity": "circular",
+   "note": "",
+   "error": null
+  }
+ ],
+ "summary_by_airframe": {
+  "mini5pro": {
+   "n_rows": 7,
+   "일치": 3,
+   "어긋남": 3,
+   "기록만": 0,
+   "모름": 1
+  },
+  "mavic4pro": {
+   "n_rows": 4,
+   "일치": 3,
+   "어긋남": 1,
+   "기록만": 0,
+   "모름": 0
+  },
+  "matrice4e": {
+   "n_rows": 20,
+   "일치": 13,
+   "어긋남": 6,
+   "기록만": 1,
+   "모름": 0
+  },
+  "s1000plus": {
+   "n_rows": 3,
+   "일치": 2,
+   "어긋남": 1,
+   "기록만": 0,
+   "모름": 0
+  },
+  "phantom4": {
+   "n_rows": 3,
+   "일치": 1,
+   "어긋남": 2,
+   "기록만": 0,
+   "모름": 0
+  },
+  "typhoonh480": {
+   "n_rows": 4,
+   "일치": 0,
+   "어긋남": 4,
+   "기록만": 0,
+   "모름": 0
+  },
+  "x500v2": {
+   "n_rows": 15,
+   "일치": 13,
+   "어긋남": 1,
+   "기록만": 1,
+   "모름": 0
+  },
+  "phantom3": {
+   "n_rows": 5,
+   "일치": 2,
+   "어긋남": 3,
+   "기록만": 0,
+   "모름": 0
+  },
+  "m350rtk": {
+   "n_rows": 4,
+   "일치": 2,
+   "어긋남": 2,
+   "기록만": 0,
+   "모름": 0
+  },
+  "mini2": {
+   "n_rows": 12,
+   "일치": 11,
+   "어긋남": 1,
+   "기록만": 0,
+   "모름": 0
+  }
+ },
+ "assurance_by_airframe": {
+  "read_ko": "«장담» 은 «전부 맞다» 가 아니라 «이 범위는 맞고 이 범위는 모른다» 다. can_state 는 **순환이 아닌 행이 일치한 것**만 센다 — 순환 행의 일치는 «값이 메쉬에 실렸다» 일 뿐이라 실물 장담에 못 쓴다.",
+  "by_key": {
+   "mini5pro": {
+    "n_rows": 6,
+    "n_independent": 3,
+    "n_independent_match": 0,
+    "n_independent_mismatch": 3,
+    "resolution_mm": 0.058,
+    "parts_with_reference": [
+     "airframe",
+     "battery",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "motor",
+     "camera",
+     "gear",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 장담할 수 있는 치수가 **없다**.",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — battery -17.12 mm 어긋남(3행). 외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, motor, camera, gear, pcb, deck, accent."
+   },
+   "mavic4pro": {
+    "n_rows": 4,
+    "n_independent": 2,
+    "n_independent_match": 1,
+    "n_independent_mismatch": 1,
+    "resolution_mm": 0.058,
+    "parts_with_reference": [
+     "airframe",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "motor",
+     "camera",
+     "gear",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 «외부 참값과 이 범위 안에서 같다» 고 장담하는 칸 — airframe ±0.06 mm(1행)",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — airframe -7.71 mm 어긋남(1행). 외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, motor, camera, gear, battery, pcb, deck, accent."
+   },
+   "matrice4e": {
+    "n_rows": 20,
+    "n_independent": 16,
+    "n_independent_match": 9,
+    "n_independent_mismatch": 6,
+    "resolution_mm": 0.707,
+    "parts_with_reference": [
+     "accent",
+     "airframe",
+     "battery",
+     "body",
+     "camera",
+     "gear",
+     "motor",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "canopy",
+     "arm",
+     "pcb",
+     "deck"
+    ],
+    "can_state_ko": "독립 근거로 «외부 참값과 이 범위 안에서 같다» 고 장담하는 칸 — accent ±0.37 mm(1행); airframe ±1.15 mm(1행); body ±0.71 mm(3행); gear ±4.02 mm(2행); motor ±0.37 mm(2행)",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — airframe +2.25 mm 어긋남(1행); body -3.93 mm 어긋남(1행); gear +6.04 mm 어긋남(1행); motor +1.61 mm 어긋남(3행). 외부 참값이 아예 없어 **모름**인 칸 — canopy, arm, pcb, deck."
+   },
+   "s1000plus": {
+    "n_rows": 3,
+    "n_independent": 0,
+    "n_independent_match": 0,
+    "n_independent_mismatch": 0,
+    "resolution_mm": 0.577,
+    "parts_with_reference": [
+     "airframe",
+     "motor",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "camera",
+     "gear",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 장담할 수 있는 치수가 **없다**.",
+    "cannot_state_ko": "외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, camera, gear, battery, pcb, deck, accent."
+   },
+   "phantom4": {
+    "n_rows": 3,
+    "n_independent": 2,
+    "n_independent_match": 0,
+    "n_independent_mismatch": 2,
+    "resolution_mm": 0.058,
+    "parts_with_reference": [
+     "airframe",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "motor",
+     "camera",
+     "gear",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 장담할 수 있는 치수가 **없다**.",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — airframe -5.61 mm 어긋남(2행). 외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, motor, camera, gear, battery, pcb, deck, accent."
+   },
+   "typhoonh480": {
+    "n_rows": 4,
+    "n_independent": 2,
+    "n_independent_match": 0,
+    "n_independent_mismatch": 2,
+    "resolution_mm": 0.577,
+    "parts_with_reference": [
+     "airframe",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "motor",
+     "camera",
+     "gear",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 장담할 수 있는 치수가 **없다**.",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — airframe -4.83 mm 어긋남(2행). 외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, motor, camera, gear, battery, pcb, deck, accent."
+   },
+   "x500v2": {
+    "n_rows": 15,
+    "n_independent": 3,
+    "n_independent_match": 2,
+    "n_independent_mismatch": 1,
+    "resolution_mm": 0.717,
+    "parts_with_reference": [
+     "arm",
+     "deck",
+     "gear",
+     "motor",
+     "pcb",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "airframe",
+     "body",
+     "canopy",
+     "camera",
+     "battery",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 «외부 참값과 이 범위 안에서 같다» 고 장담하는 칸 — gear ±0.40 mm(1행); motor ±1.04 mm(1행)",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — motor -2.80 mm 어긋남(1행). 외부 참값이 아예 없어 **모름**인 칸 — airframe, body, canopy, camera, battery, accent."
+   },
+   "phantom3": {
+    "n_rows": 5,
+    "n_independent": 1,
+    "n_independent_match": 0,
+    "n_independent_mismatch": 1,
+    "resolution_mm": 0.058,
+    "parts_with_reference": [
+     "airframe",
+     "motor",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "camera",
+     "gear",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 장담할 수 있는 치수가 **없다**.",
+    "cannot_state_ko": "독립 근거로 **어긋난다**고 판정된 칸 — airframe -9.74 mm 어긋남(1행). 외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, camera, gear, battery, pcb, deck, accent."
+   },
+   "m350rtk": {
+    "n_rows": 4,
+    "n_independent": 0,
+    "n_independent_match": 0,
+    "n_independent_mismatch": 0,
+    "resolution_mm": 0.577,
+    "parts_with_reference": [
+     "airframe",
+     "motor",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "camera",
+     "gear",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 장담할 수 있는 치수가 **없다**.",
+    "cannot_state_ko": "외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, camera, gear, battery, pcb, deck, accent."
+   },
+   "mini2": {
+    "n_rows": 12,
+    "n_independent": 3,
+    "n_independent_match": 3,
+    "n_independent_mismatch": 0,
+    "resolution_mm": 0.518,
+    "parts_with_reference": [
+     "airframe",
+     "camera",
+     "gear",
+     "motor",
+     "prop"
+    ],
+    "parts_without_reference": [
+     "body",
+     "canopy",
+     "arm",
+     "battery",
+     "pcb",
+     "deck",
+     "accent"
+    ],
+    "can_state_ko": "독립 근거로 «외부 참값과 이 범위 안에서 같다» 고 장담하는 칸 — motor ±0.52 mm(2행); prop ±1.59 mm(1행)",
+    "cannot_state_ko": "외부 참값이 아예 없어 **모름**인 칸 — body, canopy, arm, battery, pcb, deck, accent."
+   }
+  }
+ },
+ "category_map_delta": {
+  "map": "outputs/mesh_cert_map_0816.json",
+  "before_ko": {
+   "M6": "controls.positive = «프롭 지름·전역 배율만 있음 (adv D3)»",
+   "M8": "controls.positive = «프롭↔벨 축만» · 측정: 로터 ±20 mm 상쇄와 카메라 30 mm 이동은 **통과(놓침)**",
+   "M14": "controls.positive = «없음» · 실물 대조는 게이트 밖 일회성",
+   "M15": "«기체 × 부품 등급 행렬은 없다»"
+  },
+  "after_ko": {
+   "M6": "부품 치수 행 다수(짐벌·모터 벨·판·레일·PCB·배터리·다리)에 외부 참값이 붙었고, 양성 대조 ②⑥⑦⑧⑨⑩ 이 «부품 하나만 커짐/짧아짐» 을 실제로 잡는다.",
+   "M8": "로터별 반경·방위·앞뒤 높이차 행이 생겼고, 양성 대조 ③④⑤ 가 «카메라 30 mm 이동» · «로터 +20/−20 mm 상쇄» · «높이차 부호 뒤집기» 를 전부 잡는다. ④는 옛 치수검사가 왜 놓쳤는지(대각 평균 불변)도 같이 보인다.",
+   "M14": "공식 CAD·공표·사진 참값 대조가 코드가 됐고(74행), Mini 2 GLB 는 이 라운드가 직접 다시 쟀다. 근거 파일 대조 가드가 «[A] 라고 적었는데 그 파일에 그 수가 없다» 를 잡는다.",
+   "M15": "기체 × 부품 등급 행렬이 기계가 읽는 형태로 생겼다(grade_matrix)."
+  },
+  "still_missing_ko": [
+   "셸형 기체의 «암만» 재는 잣대가 없다(암이 body 에 불리언 합쳐져 있다).",
+   "canopy·accent 칸은 대부분 외부 참값이 없다.",
+   "공식 CAD 없는 6기체의 부품 치수는 여전히 «모름» 이다 — 사진에서 밴드까지 선언된 값이 드물다."
+  ]
+ },
+ "grade_matrix": {
+  "definitions": {
+   "A": "그 기체의 공식 CAD/공표 제원을 직접 읽었다",
+   "A-": "공식에 준하는 1차 자산이나 한 단계 약하다(제품 뷰어용 자산 등)",
+   "B": "그 기체의 제품 사진을 계측했다",
+   "B-": "사진이지만 자세·축척 근거가 약하다 / 제조사 아닌 시뮬레이터 자산",
+   "C": "같은 계열의 다른 기체에서 유추했다",
+   "D": "다른 물건을 대리로 빌려 썼다",
+   "모름": "외부 참값이 저장소에 없다 — 빈칸으로 남긴다"
+  },
+  "parts": [
+   "airframe",
+   "body",
+   "canopy",
+   "arm",
+   "motor",
+   "prop",
+   "camera",
+   "gear",
+   "battery",
+   "pcb",
+   "deck",
+   "accent"
+  ],
+  "note_ko": "칸의 등급은 «그 칸을 보는 행 중 가장 강한 근거» 다. 행이 하나도 없으면 «모름» 이고, **채우지 않는 것이 규율이다**. independent 는 그 칸의 행 중 순환이 아닌 행의 수다 — 0 이면 «값이 실렸다» 까지만 장담한다.",
+  "prop_column_note_ko": "프롭 칸은 여기서 **지름만** 본다. 평면형·시위·두께의 기체별 등급은 outputs/prop_law_by_airframe_0816.json 의 C_law_by_airframe[*].grade 가 정본이다(A~D + proxy_of).",
+  "matrix": {
+   "mini5pro": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 2,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "M5P-01",
+      "M5P-02"
+     ],
+     "independent": 0
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "M5P-03"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "⚠ DJI 는 다리 치수를 공개하지 않는다. 사진 계측 31.0 mm ±15 % 가 저장소의 유일한 근거이고, 그 사진 계측은 **우리 상수 자체**라 외부 참값이 아니다"
+    },
+    "battery": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "M5P-04",
+      "M5P-05",
+      "M5P-06"
+     ],
+     "independent": 3
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "mavic4pro": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "M4P-01",
+      "M4P-02",
+      "M4P-03"
+     ],
+     "independent": 2
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['mavic4pro'].note",
+     "rids": [
+      "M4P-04"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "matrice4e": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-01",
+      "M4E-02",
+      "M4E-03"
+     ],
+     "independent": 2
+    },
+    "body": {
+     "grade": "A",
+     "n_rows": 4,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-04",
+      "M4E-05",
+      "M4E-06",
+      "M4E-07"
+     ],
+     "independent": 4
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "A",
+     "n_rows": 5,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-10",
+      "M4E-11",
+      "M4E-12",
+      "M4E-13",
+      "M4E-14"
+     ],
+     "independent": 5
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['matrice4e'].note",
+     "rids": [
+      "M4E-20"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "A",
+     "n_rows": 2,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-17",
+      "M4E-18"
+     ],
+     "independent": 1
+    },
+    "gear": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-08",
+      "M4E-15",
+      "M4E-16"
+     ],
+     "independent": 3
+    },
+    "battery": {
+     "grade": "B",
+     "n_rows": 1,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-19"
+     ],
+     "independent": 0
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "outputs/meshfix_matrice4e.json",
+     "rids": [
+      "M4E-09"
+     ],
+     "independent": 1
+    }
+   },
+   "s1000plus": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "S10-01"
+     ],
+     "independent": 0
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "S10-02"
+     ],
+     "independent": 0
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "S10-03"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "phantom4": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 2,
+     "source": "docs/drone_specs_2026.json",
+     "rids": [
+      "P4-01",
+      "P4-02"
+     ],
+     "independent": 2
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['phantom4'].note",
+     "rids": [
+      "P4-03"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "typhoonh480": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "assets/meshes/reference/SOURCES.md",
+     "rids": [
+      "TY-01",
+      "TY-02",
+      "TY-03"
+     ],
+     "independent": 2
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "prop": {
+     "grade": "B-",
+     "n_rows": 1,
+     "source": "outputs/reference_props.json",
+     "rids": [
+      "TY-04"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "x500v2": {
+    "airframe": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "outputs/x500v2_cad.json",
+     "rids": [
+      "X50-10"
+     ],
+     "independent": 0
+    },
+    "motor": {
+     "grade": "A",
+     "n_rows": 2,
+     "source": "outputs/x500v2_cad.json",
+     "rids": [
+      "X50-05",
+      "X50-06"
+     ],
+     "independent": 2
+    },
+    "prop": {
+     "grade": "B",
+     "n_rows": 1,
+     "source": "assets/meshes/reference/SOURCES.md",
+     "rids": [
+      "X50-09"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "A",
+     "n_rows": 2,
+     "source": "outputs/x500v2_cad.json",
+     "rids": [
+      "X50-07",
+      "X50-08"
+     ],
+     "independent": 1
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "outputs/x500v2_cad.json",
+     "rids": [
+      "X50-13",
+      "X50-14",
+      "X50-15"
+     ],
+     "independent": 0
+    },
+    "deck": {
+     "grade": "A",
+     "n_rows": 6,
+     "source": "outputs/x500v2_cad.json",
+     "rids": [
+      "X50-01",
+      "X50-02",
+      "X50-03",
+      "X50-04",
+      "X50-11",
+      "X50-12"
+     ],
+     "independent": 0
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "phantom3": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "src/drones.py :: DRONES['phantom3'].note",
+     "rids": [
+      "P3-01",
+      "P3-02",
+      "P3-04"
+     ],
+     "independent": 1
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['phantom3'].note",
+     "rids": [
+      "P3-03"
+     ],
+     "independent": 0
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['phantom3'].note",
+     "rids": [
+      "P3-05"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "m350rtk": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 2,
+     "source": "src/drones.py :: DRONES['m350rtk'].note",
+     "rids": [
+      "M35-01",
+      "M35-02"
+     ],
+     "independent": 0
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['m350rtk'].note",
+     "rids": [
+      "M35-03"
+     ],
+     "independent": 0
+    },
+    "prop": {
+     "grade": "C",
+     "n_rows": 1,
+     "source": "src/drones.py :: DRONES['m350rtk'].note",
+     "rids": [
+      "M35-04"
+     ],
+     "independent": 0
+    },
+    "camera": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "gear": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   },
+   "mini2": {
+    "airframe": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "outputs/meshdef_mini2_glb.json",
+     "rids": [
+      "MI2-01",
+      "MI2-02",
+      "MI2-03"
+     ],
+     "independent": 0
+    },
+    "body": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "canopy": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "arm": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "motor": {
+     "grade": "A",
+     "n_rows": 4,
+     "source": "outputs/meshdef_mini2_glb.json",
+     "rids": [
+      "MI2-04",
+      "MI2-05",
+      "MI2-06",
+      "MI2-07"
+     ],
+     "independent": 2
+    },
+    "prop": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "outputs/meshdef_mini2_glb.json",
+     "rids": [
+      "MI2-11"
+     ],
+     "independent": 1
+    },
+    "camera": {
+     "grade": "A",
+     "n_rows": 3,
+     "source": "outputs/meshdef_mini2_glb.json",
+     "rids": [
+      "MI2-08",
+      "MI2-09",
+      "MI2-10"
+     ],
+     "independent": 0
+    },
+    "gear": {
+     "grade": "A",
+     "n_rows": 1,
+     "source": "outputs/meshdef_mini2_glb.json",
+     "rids": [
+      "MI2-12"
+     ],
+     "independent": 0
+    },
+    "battery": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "pcb": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "deck": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    },
+    "accent": {
+     "grade": "모름",
+     "n_rows": 0,
+     "why": "이 칸을 보는 외부 참값 행이 없다"
+    }
+   }
+  },
+  "coverage": {
+   "n_cells": 120,
+   "n_with_reference": 37,
+   "n_grade_A": 33,
+   "n_independent_rows": 32,
+   "read_ko": "120 칸 중 외부 참값이 있는 칸은 37 칸이고, 그중 공식 CAD/공표 직접([A]/[A−])이 33 칸이다. 순환이 아닌 «독립» 행은 전부 32 개다."
+  }
+ },
+ "guards": {
+  "m4t_gimbal_rule": {
+   "name": "M4T/M4E 짐벌 규칙",
+   "n_checked": 20,
+   "violations": [],
+   "ok": true,
+   "rule": "matrice4e 짐벌 «치수» 참값에 M4T 공식 CAD 를 쓰지 않는다(짐벌만 다른 기체다). 위치는 허용."
+  },
+  "tolerance_provenance": {
+   "name": "허용오차 유도 강제",
+   "n_checked": 77,
+   "violations": [],
+   "ok": true,
+   "rule": "모든 행은 (a) 아는 ref_class · (b) u_def 유도 문장 · (c) 정의 문장을 가져야 한다."
+  },
+  "reference_provenance": {
+   "name": "근거 파일 대조",
+   "n_rows": 77,
+   "n_confirmed": 76,
+   "n_missing_file": 0,
+   "n_value_not_found": 0,
+   "n_no_reference": 1,
+   "rows": [
+    {
+     "rid": "M4E-01",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      307.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-02",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      387.5
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-03",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      149.5
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-04",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      159.01
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-05",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      -75.59
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-06",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      -30.81
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-07",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      69.11
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-08",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      -59.82
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-09",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      89.7
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-10",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      227.16
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-11",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      209.92
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-12",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      52.115
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-13",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      -8.51
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-14",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      -8.51,
+      8.03
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-15",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      216.52
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-16",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      208.54
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-17",
+     "grade": "B",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      59.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-18",
+     "grade": "A",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      148.3
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-19",
+     "grade": "B",
+     "source_file": "outputs/meshfix_matrice4e.json",
+     "exists": true,
+     "looked_for": [
+      145.47
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4E-20",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      274.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-01",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      159.113
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-02",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      203.434
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-03",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      55.977
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-04",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      213.051
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-05",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      18.203
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-06",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      18.886
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-07",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      21.801
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-08",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      40.567
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-09",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      32.239
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-10",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      34.012
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-11",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      119.233
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "MI2-12",
+     "grade": "A",
+     "source_file": "outputs/meshdef_mini2_glb.json",
+     "exists": true,
+     "looked_for": [
+      -24.52
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-01",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      143.72
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-02",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      2.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-03",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      28.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-04",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      32.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-05",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      502.8
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-06",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      28.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-07",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      215.28
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-08",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      239.91
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-10",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      16.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-11",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      60.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-12",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      250.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-13",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      55.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-14",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      35.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-15",
+     "grade": "A",
+     "source_file": "outputs/x500v2_cad.json",
+     "exists": true,
+     "looked_for": [
+      11.99
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "X50-09",
+     "grade": "B",
+     "source_file": "assets/meshes/reference/SOURCES.md",
+     "exists": true,
+     "looked_for": [
+      254.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-01",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      304.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-02",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      380.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-03",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      152.4
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-04",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      86.1
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-05",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      54.89
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-06",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      24.85
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M5P-07",
+     "grade": "B",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [],
+     "value_found": null,
+     "status": "참값 없음 — 모름 칸"
+    },
+    {
+     "rid": "M4P-01",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      328.7
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4P-02",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      390.5
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4P-03",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      135.2
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M4P-04",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      267.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P3-01",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      289.5
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P3-02",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      289.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P3-03",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      350.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P3-04",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      185.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P3-05",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      240.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P4-01",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      289.5
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P4-02",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      289.5
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "P4-03",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      240.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "TY-01",
+     "grade": "A",
+     "source_file": "assets/meshes/reference/SOURCES.md",
+     "exists": true,
+     "looked_for": [
+      457.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "TY-02",
+     "grade": "A",
+     "source_file": "assets/meshes/reference/SOURCES.md",
+     "exists": true,
+     "looked_for": [
+      520.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "TY-03",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      711.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "TY-04",
+     "grade": "B-",
+     "source_file": "outputs/reference_props.json",
+     "exists": true,
+     "looked_for": [
+      230.098
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M35-01",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      810.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M35-02",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      670.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M35-03",
+     "grade": "A",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      895.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "M35-04",
+     "grade": "C",
+     "source_file": "src/drones.py",
+     "exists": true,
+     "looked_for": [
+      533.4
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "S10-01",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      1016.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "S10-02",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      1045.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    },
+    {
+     "rid": "S10-03",
+     "grade": "A",
+     "source_file": "docs/drone_specs_2026.json",
+     "exists": true,
+     "looked_for": [
+      381.0
+     ],
+     "value_found": true,
+     "status": "확인"
+    }
+   ],
+   "ok": true,
+   "rule": "모든 행의 source_file 은 저장소에 실재해야 하고, [A]/[B] 행의 참값은 그 파일 안에서 다시 찾을 수 있어야 한다. 못 찾으면 인증서에 «미확인» 으로 남는다."
+  }
+ },
+ "controls": {
+  "rule_ko": "검사마다 양성 대조(결함을 심으면 걸린다)와 음성 대조(멀쩡하면 통과)를 둘 다 건다. 이 둘이 없는 검사는 «있다» 고 치지 않는다.",
+  "runner": "benchmark/adv_mesh_dimref_faults.py",
+  "n_total": 31,
+  "n_passed": 31,
+  "exit_code": 0,
+  "detection_floor_ko": "전역 배율 결함은 ×1.002(0.2 %)부터 걸리기 시작하고 ×1.05 에서 전 행이 걸린다. 작은 부품 행이 늦게 걸리는 이유는 U 가 그 부품 크기의 1 % 보다 크기 때문이다 — 선언된 한계다.",
+  "results": [
+   {
+    "tag": "①음성 mini2 원본",
+    "passed": true,
+    "detail": "일치 11행 / 어긋남 1행"
+   },
+   {
+    "tag": "①양성 전역 ×1.01 (1 % 크게)",
+    "passed": true,
+    "detail": "일치→어긋남 3행: ['MI2-01', 'MI2-03', 'MI2-04']"
+   },
+   {
+    "tag": "①양성 탐지 하한 사다리",
+    "passed": true,
+    "detail": "배율→적발행 1.001:0 1.002:1 1.005:2 1.010:3 1.020:8 1.050:11 ⇒ 처음 걸리는 배율 1.002, 전부 걸리는 배율 1.05  (작은 부품 행은 U 가 그 부품 크기의 1 % 보다 커서 늦게 걸린다 — 선언된 한계)"
+   },
+   {
+    "tag": "②양성 짐벌만 ×1.15 (봉투 안에서 커짐)",
+    "passed": true,
+    "detail": "짐벌 3행 중 3행 적발 · 잔차 +6.09, +4.84, +5.15"
+   },
+   {
+    "tag": "②음성 다른 행은 안 흔들림",
+    "passed": true,
+    "detail": "엉뚱하게 뒤집힌 행 0개 []"
+   },
+   {
+    "tag": "③양성 짐벌 +30 mm 앞으로",
+    "passed": true,
+    "detail": "짐벌 위치 x 148.04 → 178.04 (참값 148.3, 허용 ±2.03)"
+   },
+   {
+    "tag": "③음성 이동은 치수 행을 안 건드린다",
+    "passed": true,
+    "detail": "모터 벨 높이 판정 일치 → 일치"
+   },
+   {
+    "tag": "④양성 로터0 +20 / 로터2 −20 mm (평균 불변)",
+    "passed": true,
+    "detail": "앞 로터 반경 228.77 → 248.77 (참값 227.16, 허용 ±0.37)"
+   },
+   {
+    "tag": "④참고 옛 치수검사는 대각 평균만 본다",
+    "passed": true,
+    "detail": "대각 오차 +0.075 % → +0.075 % (거의 그대로)"
+   },
+   {
+    "tag": "⑤양성 앞뒤 로터 높이차 부호 뒤집기",
+    "passed": true,
+    "detail": "앞뒤 벨 밑동 차 +21.29 → -21.29 mm (참값 +21.80)"
+   },
+   {
+    "tag": "⑥양성 다리 20 % 짧게",
+    "passed": true,
+    "detail": "접지점 z -59.81 → -49.19 (참값 −59.82, 허용 ±0.37)"
+   },
+   {
+    "tag": "⑦양성 모터 벨 ×1.10",
+    "passed": true,
+    "detail": "벨 지름 27.70 → 30.47 mm (AIR2216II CAD 28.0, 허용 ±1.13)"
+   },
+   {
+    "tag": "⑧양성 위판 +5 mm 들어올리기",
+    "passed": true,
+    "detail": "간격 28.00 → 33.00 mm (CAD 28.0) · 스택 37.00 (CAD 32.0)"
+   },
+   {
+    "tag": "⑧음성 판 한 변·두께는 그대로",
+    "passed": true,
+    "detail": "한 변 143.72 · 두께 2.00"
+   },
+   {
+    "tag": "⑨양성 로터0 프롭만 ×1.10",
+    "passed": true,
+    "detail": "스윕 지름 평균 119.10 → 122.08 mm (참값 119.23, 허용 ±1.59)"
+   },
+   {
+    "tag": "⑩양성 셸 +5 mm 앞으로",
+    "passed": true,
+    "detail": "앞끝 159.01→164.01 · 뒤끝 -75.59→-70.59 (CAD 159.01 / −75.59)"
+   },
+   {
+    "tag": "⑪음성 현재 표는 규칙을 지킨다",
+    "passed": true,
+    "detail": "위반 []"
+   },
+   {
+    "tag": "⑪양성 짐벌 치수를 M4T CAD 에서 읽으면 걸린다",
+    "passed": true,
+    "detail": "위반 ['XX-01']"
+   },
+   {
+    "tag": "⑪음성 짐벌 «위치» 는 CAD 를 써도 된다",
+    "passed": true,
+    "detail": "위반 []"
+   },
+   {
+    "tag": "⑫음성 현재 표는 전부 유도 문장을 갖는다",
+    "passed": true,
+    "detail": "위반 []"
+   },
+   {
+    "tag": "⑫양성 근거 없는 허용오차는 표에 못 들어온다",
+    "passed": true,
+    "detail": "위반 [('XX-03', 'u_def 유도 문장 없음')]"
+   },
+   {
+    "tag": "⑫양성 밴드 없는 사진 값도 막힌다",
+    "passed": true,
+    "detail": "위반 [('XX-04', '사진 유래인데 밴드 선언 없음')]"
+   },
+   {
+    "tag": "⑬음성 모든 행의 근거 파일이 실재한다",
+    "passed": true,
+    "detail": "확인 76/77 · 파일없음 0 · 값미발견 0"
+   },
+   {
+    "tag": "⑬양성 없는 파일을 근거로 대면 걸린다",
+    "passed": true,
+    "detail": "판정 «파일 없음»"
+   },
+   {
+    "tag": "⑬양성 파일에 없는 수를 «그 파일에서 왔다» 고 하면 걸린다",
+    "passed": true,
+    "detail": "판정 «파일은 있으나 값 미발견»"
+   },
+   {
+    "tag": "⑭양성 참값을 3 mm 흔들면 판정이 뒤집힌다",
+    "passed": true,
+    "detail": "참값 213.05→216.05 에서 잔차 -0.005→-3.005 mm"
+   },
+   {
+    "tag": "⑭음성 되돌리면 판정도 되돌아온다",
+    "passed": true,
+    "detail": "표를 원상복구했다(다른 시험에 오염 없음)"
+   },
+   {
+    "tag": "⑮음성 다시 지어도 잔차가 같다",
+    "passed": true,
+    "detail": "20행 전부 1e-9 mm 안에서 동일"
+   },
+   {
+    "tag": "⑯음성 손대지 않으면 회귀 아님",
+    "passed": true,
+    "detail": "선언 20행 전부 회귀 없음"
+   },
+   {
+    "tag": "⑯양성 다리를 3 mm 내리면 회귀로 걸린다",
+    "passed": true,
+    "detail": "회귀 적발 ['M4E-03', 'M4E-08']"
+   },
+   {
+    "tag": "⑯양성 형상이 바뀌면 메쉬 지문도 바뀐다",
+    "passed": true,
+    "detail": "232be1debd42e82a → cfa8c070feb44117"
+   }
+  ]
+ },
+ "seal": {
+  "what_ko": "지금 잔차를 «선언» 으로 못박는다. 다음 라운드가 형상을 바꾸면 잔차가 이 값에서 벗어나고, `mesh_dimref.check_all(declared=…)` 이 그것을 **회귀** 로 잡는다. 예산 규약은 저장소의 기존 표들과 같은 뜻이다 — «이만큼이 옳다» 가 아니라 «지금 이만큼이다».",
+  "how_to_use_ko": "python -c \"import json,mesh_dimref as M; d=json.load(open('outputs/mesh_cert_dimension_external_0816.json'))['seal']; print(M.check_all(declared=d['declared_residual_mm']))\"",
+  "regression_rule": "|잔차| ≤ max(|선언값|×1.02, |선언값| + U) 이면 회귀 없음",
+  "mesh_fingerprints": {
+   "mini5pro": "788ec22dc5241dab",
+   "mavic4pro": "dbe338ed901e9bf2",
+   "matrice4e": "232be1debd42e82a",
+   "s1000plus": "33815e33a6fd7a63",
+   "phantom4": "6f1ec8be88eddc6a",
+   "typhoonh480": "eac447fd36615525",
+   "x500v2": "ee92fd6b3b222ab3",
+   "phantom3": "b37eb74ab455fe50",
+   "m350rtk": "4a61f37da1a9d0f0",
+   "mini2": "08829834431f5c2f"
+  },
+  "fingerprint_note_ko": "지문이 바뀌었는데 잔차가 그대로면 검사가 눈이 먼 것이고, 지문이 그대로인데 잔차가 바뀌면 검사 코드가 바뀐 것이다.",
+  "declared_residual_mm": {
+   "M5P-01": 0.0027,
+   "M5P-02": -0.0144,
+   "M5P-03": -0.0,
+   "M5P-04": -17.1225,
+   "M5P-05": -8.9359,
+   "M5P-06": 7.3212,
+   "M4P-01": -7.7051,
+   "M4P-02": 0.0145,
+   "M4P-03": 0.0,
+   "M4P-04": -0.0,
+   "M4E-01": -1.1041,
+   "M4E-02": 2.2477,
+   "M4E-03": -0.0,
+   "M4E-04": -0.0003,
+   "M4E-05": -0.0005,
+   "M4E-06": -3.9318,
+   "M4E-07": 0.0748,
+   "M4E-08": 0.008,
+   "M4E-09": -0.012,
+   "M4E-10": 1.61,
+   "M4E-11": 0.44,
+   "M4E-12": 0.335,
+   "M4E-13": 0.0011,
+   "M4E-14": -0.2422,
+   "M4E-15": 6.0421,
+   "M4E-16": 1.5995,
+   "M4E-17": 15.34,
+   "M4E-18": -0.26,
+   "M4E-19": -0.0,
+   "M4E-20": -0.0001,
+   "S10-01": 0.0,
+   "S10-02": -1.4935,
+   "S10-03": -0.0,
+   "P4-01": -5.6126,
+   "P4-02": -5.6126,
+   "P4-03": -0.0,
+   "TY-01": -4.8315,
+   "TY-02": -3.0,
+   "TY-03": -0.8001,
+   "TY-04": 0.1019,
+   "X50-01": 0.0,
+   "X50-02": 0.0,
+   "X50-03": 0.0,
+   "X50-04": 0.0,
+   "X50-05": -2.8,
+   "X50-06": -0.3,
+   "X50-07": -0.0,
+   "X50-08": -0.0276,
+   "X50-10": 0.0,
+   "X50-11": 0.0,
+   "X50-12": -0.0,
+   "X50-13": 0.0,
+   "X50-14": 0.0,
+   "X50-15": -6.79,
+   "X50-09": -0.0,
+   "P3-01": -0.434,
+   "P3-02": 0.066,
+   "P3-03": 0.0,
+   "P3-04": -9.7383,
+   "P3-05": -0.0,
+   "M35-01": -38.9528,
+   "M35-02": -43.6575,
+   "M35-03": 0.0,
+   "M35-04": -0.0001,
+   "MI2-01": 0.304,
+   "MI2-02": 3.4849,
+   "MI2-03": 0.023,
+   "MI2-04": -0.005,
+   "MI2-05": -0.003,
+   "MI2-06": -0.2476,
+   "MI2-07": -0.5142,
+   "MI2-08": 0.004,
+   "MI2-09": 0.001,
+   "MI2-10": 0.0409,
+   "MI2-11": -0.133,
+   "MI2-12": -0.2557
+  }
+ },
+ "findings": {
+  "n_mismatch": 24,
+  "read_ko": "«어긋남» 은 빌드 실패가 아니라 **결함 신고**다. 아래는 큰 것부터이고, 각 행의 circularity 를 같이 읽어야 한다 — 순환 행의 어긋남은 «상수가 메쉬에 안 실렸다» 는 뜻이고, 독립 행의 어긋남은 «실물과 다르다» 는 뜻이다.",
+  "rows": [
+   {
+    "rid": "M5P-06",
+    "key": "mini5pro",
+    "part": "battery",
+    "quantity": "배터리 높이",
+    "measured": 32.1712,
+    "reference": 24.85,
+    "residual": 7.3212,
+    "residual_pct": 29.4614,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "같은 공표"
+   },
+   {
+    "rid": "M5P-04",
+    "key": "mini5pro",
+    "part": "battery",
+    "quantity": "배터리 길이",
+    "measured": 68.9775,
+    "reference": 86.1,
+    "residual": -17.1225,
+    "residual_pct": -19.8868,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "DJI 매뉴얼 배터리 BWXNN5-2788-7.0 «86.10×54.89×24.85 mm»"
+   },
+   {
+    "rid": "M5P-05",
+    "key": "mini5pro",
+    "part": "battery",
+    "quantity": "배터리 폭",
+    "measured": 45.9541,
+    "reference": 54.89,
+    "residual": -8.9359,
+    "residual_pct": -16.2797,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "같은 공표"
+   },
+   {
+    "rid": "M4E-06",
+    "key": "matrice4e",
+    "part": "body",
+    "quantity": "셸 배(아래) z",
+    "measured": -34.7418,
+    "reference": -30.81,
+    "residual": -3.9318,
+    "residual_pct": -12.7614,
+    "U": 0.7069,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "공식 CAD 셸 하부 커버의 우리 좌표 z 최소"
+   },
+   {
+    "rid": "M35-02",
+    "key": "m350rtk",
+    "part": "airframe",
+    "quantity": "펼침 폭(프롭 제외)",
+    "measured": 626.3425,
+    "reference": 670.0,
+    "residual": -43.6575,
+    "residual_pct": -6.516,
+    "U": 0.5774,
+    "grade": "A",
+    "circularity": "partly_circular",
+    "source": "같은 공표"
+   },
+   {
+    "rid": "P3-04",
+    "key": "phantom3",
+    "part": "airframe",
+    "quantity": "높이(모터 상단 → 발)",
+    "measured": 175.2617,
+    "reference": 185.0,
+    "residual": -9.7383,
+    "residual_pct": -5.2639,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "DJI 치수 도면의 높이 185.0 mm — ⭐그 도면이 **모터 상단에서 발까지**를 잰다는 것은 저장소의 픽셀 감사가 확정했다(프롭 위를 기준으로 잡으면 206.4 mm = +11.6 % 가 된다)"
+   },
+   {
+    "rid": "M35-01",
+    "key": "m350rtk",
+    "part": "airframe",
+    "quantity": "펼침 길이(프롭 제외)",
+    "measured": 771.0472,
+    "reference": 810.0,
+    "residual": -38.9528,
+    "residual_pct": -4.809,
+    "U": 0.5774,
+    "grade": "A",
+    "circularity": "partly_circular",
+    "source": "DJI 공표 «펼침(프롭 제외) 810×670 mm»"
+   },
+   {
+    "rid": "M4E-15",
+    "key": "matrice4e",
+    "part": "gear",
+    "quantity": "앞 발 반경",
+    "measured": 222.5621,
+    "reference": 216.52,
+    "residual": 6.0421,
+    "residual_pct": 2.7906,
+    "U": 4.0174,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "공식 CAD 앞 발 (x 135.23, y 169.10) → r 216.52"
+   },
+   {
+    "rid": "M4P-01",
+    "key": "mavic4pro",
+    "part": "airframe",
+    "quantity": "펼침 길이(프롭 제외)",
+    "measured": 320.9949,
+    "reference": 328.7,
+    "residual": -7.7051,
+    "residual_pct": -2.3441,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "DJI 공표 «Unfolded 328.7×390.5×135.2 mm (프로펠러 제외)»"
+   },
+   {
+    "rid": "P4-01",
+    "key": "phantom4",
+    "part": "airframe",
+    "quantity": "펼침 길이(프롭 제외)",
+    "measured": 283.8874,
+    "reference": 289.5,
+    "residual": -5.6126,
+    "residual_pct": -1.9387,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "DJI 공표 289.5×289.5×196 mm"
+   },
+   {
+    "rid": "P4-02",
+    "key": "phantom4",
+    "part": "airframe",
+    "quantity": "펼침 폭(프롭 제외)",
+    "measured": 283.8874,
+    "reference": 289.5,
+    "residual": -5.6126,
+    "residual_pct": -1.9387,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "같은 공표"
+   },
+   {
+    "rid": "MI2-02",
+    "key": "mini2",
+    "part": "airframe",
+    "quantity": "펼침 폭(프롭 제외)",
+    "measured": 206.9189,
+    "reference": 203.434,
+    "residual": 3.4849,
+    "residual_pct": 1.7131,
+    "U": 0.5185,
+    "grade": "A",
+    "circularity": "partly_circular",
+    "source": "같은 GLB 의 프롭 제외 bbox 폭"
+   },
+   {
+    "rid": "TY-01",
+    "key": "typhoonh480",
+    "part": "airframe",
+    "quantity": "펼침 길이(프롭 제외)",
+    "measured": 452.1685,
+    "reference": 457.0,
+    "residual": -4.8315,
+    "residual_pct": -1.0572,
+    "U": 0.5774,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "Yuneec 공표 기체 크기 520×457×310 mm(폭 우선 표기; CAD 가 520=좌우·457=전후를 확정)"
+   },
+   {
+    "rid": "M4E-10",
+    "key": "matrice4e",
+    "part": "motor",
+    "quantity": "앞 로터 반경",
+    "measured": 228.77,
+    "reference": 227.16,
+    "residual": 1.61,
+    "residual_pct": 0.7088,
+    "U": 0.3738,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "공식 CAD 앞 모터축 (x 139.49, y 179.28) → r 227.16"
+   },
+   {
+    "rid": "M4E-12",
+    "key": "matrice4e",
+    "part": "motor",
+    "quantity": "앞 로터 방위각",
+    "measured": 52.45,
+    "reference": 52.115,
+    "residual": 0.335,
+    "residual_pct": 0.6428,
+    "U": 0.0943,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "공식 CAD 앞 모터축 방위각[deg]"
+   },
+   {
+    "rid": "M4E-02",
+    "key": "matrice4e",
+    "part": "airframe",
+    "quantity": "펼침 폭(앞 모터 마운트 바깥)",
+    "measured": 389.7477,
+    "reference": 387.5,
+    "residual": 2.2477,
+    "residual_pct": 0.58,
+    "U": 1.0017,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "DJI 공표 387.5 mm; 공식 CAD 가 387.501 mm 로 재현(+0.003 %)"
+   },
+   {
+    "rid": "TY-02",
+    "key": "typhoonh480",
+    "part": "airframe",
+    "quantity": "펼침 폭(프롭 제외)",
+    "measured": 517.0,
+    "reference": 520.0,
+    "residual": -3.0,
+    "residual_pct": -0.5769,
+    "U": 0.5774,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "같은 공표의 좌우"
+   },
+   {
+    "rid": "X50-05",
+    "key": "x500v2",
+    "part": "motor",
+    "quantity": "모터축 대각(휠베이스)",
+    "measured": 500.0,
+    "reference": 502.8,
+    "residual": -2.8,
+    "residual_pct": -0.5569,
+    "U": 0.396,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "공식 STEP 대각 모터 간격 502.8 mm — ⭐공표 500 은 **반올림**이고 CAD 가 참값이다"
+   },
+   {
+    "rid": "M4E-11",
+    "key": "matrice4e",
+    "part": "motor",
+    "quantity": "뒤 로터 반경",
+    "measured": 210.36,
+    "reference": 209.92,
+    "residual": 0.44,
+    "residual_pct": 0.2096,
+    "U": 0.3738,
+    "grade": "A",
+    "circularity": "independent",
+    "source": "공식 CAD 뒤 모터축 (x −139.49, y 156.87) → r 209.92"
+   },
+   {
+    "rid": "P3-01",
+    "key": "phantom3",
+    "part": "airframe",
+    "quantity": "펼침 길이(프롭 제외)",
+    "measured": 289.066,
+    "reference": 289.5,
+    "residual": -0.434,
+    "residual_pct": -0.1499,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "partly_circular",
+    "source": "DJI 치수 도면 «289.5×289.0×185.0 mm, 프로펠러 제외, 높이는 모터 상단→발»"
+   },
+   {
+    "rid": "S10-02",
+    "key": "s1000plus",
+    "part": "motor",
+    "quantity": "모터축 대각",
+    "measured": 1043.5065,
+    "reference": 1045.0,
+    "residual": -1.4935,
+    "residual_pct": -0.1429,
+    "U": 0.5774,
+    "grade": "A",
+    "circularity": "circular",
+    "source": "DJI 공표 휠베이스 1045 mm"
+   },
+   {
+    "rid": "TY-03",
+    "key": "typhoonh480",
+    "part": "airframe",
+    "quantity": "팁 외형(프롭 **포함** 폭)",
+    "measured": 710.1999,
+    "reference": 711.0,
+    "residual": -0.8001,
+    "residual_pct": -0.1125,
+    "U": 0.5774,
+    "grade": "A",
+    "circularity": "partly_circular",
+    "source": "Yuneec 공표 팁-대-팁 711 mm(480 대각 + 230 프롭으로도 재현)"
+   },
+   {
+    "rid": "TY-04",
+    "key": "typhoonh480",
+    "part": "prop",
+    "quantity": "프롭 스윕 지름",
+    "measured": 230.1999,
+    "reference": 230.098,
+    "residual": 0.1019,
+    "residual_pct": 0.0443,
+    "U": 0.0577,
+    "grade": "B-",
+    "circularity": "circular",
+    "source": "Yuneec 시뮬레이터 자산(rotors_simulator STL)에서 실측한 프롭 지름 — ⚠제조사 CAD 가 아니다"
+   },
+   {
+    "rid": "P3-02",
+    "key": "phantom3",
+    "part": "airframe",
+    "quantity": "펼침 폭(프롭 제외)",
+    "measured": 289.066,
+    "reference": 289.0,
+    "residual": 0.066,
+    "residual_pct": 0.0228,
+    "U": 0.0577,
+    "grade": "A",
+    "circularity": "partly_circular",
+    "source": "같은 도면의 폭"
+   }
+  ]
+ },
+ "limits": [
+  "⭐이 인증서는 **치수 축**만 장담한다. 위상(구멍·비다양체)·삼각형 품질·재질·프롭 평면형은 다른 검사의 몫이고 여기서 장담하지 않는다.",
+  "⭐공식 CAD 가 **없는** 기체가 6종이다(Mavic 4 Pro · Mini 5 Pro · Phantom 3/4 · S1000+ · M350 RTK). 이 기체들의 참값 상한은 «공표 제원 + 사진» 이고, 부품 단위 치수는 대부분 «모름» 으로 남았다 — 빈칸이 가짜 통과보다 낫다.",
+  "⭐**순환 행은 독립 증거가 아니다.** 예: matrice4e 높이 149.5 는 envelope_mm 이 강제하는 값이라 일치가 보장돼 있다. 이 인증서에서 «실물과 맞다» 를 주장할 수 있는 것은 circularity=independent 인 행뿐이다.",
+  "⛔M4T STEP 은 **Matrice 4T** 판이다. 짐벌은 4E 와 다른 물건이라 짐벌 «치수» 참값으로 쓰지 않았다(가드가 코드로 막는다). 짐벌 «위치» 만 CAD 를 썼다.",
+  "⚠셸형 기체는 암이 body 그룹에 불리언 합쳐져 있어 «암만» 재는 잣대가 없다. 암 단면·길이의 외부 대조는 열린 프레임(x500v2)에서만 가능하다.",
+  "⚠**matrice4e 참값만 원장 인용이다.** M4T STEP 은 158 MB 이고 깃에 없어 이 라운드가 다시 파싱하지 않았다 — 그 참값은 outputs/meshfix_matrice4e.json 에서 읽고, 근거 파일 대조 가드로 «그 파일에 그 수가 실제로 있는지» 만 확인했다. 반면 Mini 2 GLB 와 X500 STEP 은 이 라운드가 **직접 다시 열어 재유도**했고(reference_relive), 원장과 각각 0.0005 mm · 0.010 mm 안에서 같았다.",
+  "⚠사진 유래 참값은 밴드가 선언된 것만 썼다. matrice4e 짐벌 치수(59×47×52)는 우리 잣대가 크래들까지 세어 정의가 달라 «기록만» 이다 — 판정하지 않는다.",
+  "⚠«일치» 는 «U 안» 이라는 뜻이고 U 는 참값의 불확실도가 정한다. 참값이 거친 기체(공표 1 mm 반올림)에서는 U 가 크므로 «일치» 의 강도도 그만큼 약하다."
+ ],
+ "headline": "치수 축에 **외부 참값 대조 77행**을 세웠다 — 일치 50 · 어긋남 24 · 기록만 2 · 모름 1. 허용오차는 전부 측정 불확실도에서 유도했고(k=2), 양성·음성 대조 31/31 이 그 검사들이 실제로 잡는다는 것을 보인다. 기체 × 부품 120 칸 중 외부 참값이 있는 칸은 37 칸이다 — 나머지는 «모름» 으로 남겼다."
+}

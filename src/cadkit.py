@@ -31,6 +31,118 @@ from scipy.interpolate import CubicSpline
 from shapely.geometry import Polygon
 from shapely import affinity as _aff
 
+from geom import mesh_fix_enabled          # 2층 수리 스위치(정본은 geom.py 머리말)
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐⭐ 2026-08-16 — **슬리버를 지우지 말고 붕괴시킨다** (감사 §⑤ 2층 I5)
+#
+#  무엇이 문제였나 (실측으로 출처를 특정했다 — 감사·기준선의 지목과 다르다)
+#    `Assembly.add()` 와 `union_group()` 은 둘 다 `update_faces(nondegenerate_faces())`
+#    로 «면적이 사실상 0 인 삼각형» 을 **지운다**. 껍질에서 삼각형을 한 장 지우면 그 자리에
+#    **구멍이 남는다** — 그게 mini2 body 의 경계 모서리 3개다.
+#    ⚠ 실제 발생 지점은 `add()` 가 **아니라** `union_group('body')` 이다. mini2 의 body 로
+#      들어온 파트 10개는 전부 수밀이고 퇴화면이 0 이다. manifold3d 불리언 합집합의 출력
+#      7758면(수밀)에서 needle 삼각형 1장이 생겼고, 그걸 지우면서 열렸다.
+#      (감사 I5·기준선은 이 자리를 `Assembly.add()` 로 적었다 — 여기서 정정한다.)
+#
+#  무엇을 하나 — **모서리 붕괴(edge collapse)**
+#    퇴화면의 **가장 짧은 변**의 두 정점을 하나로 합친다. 그 변을 쓰던 면 2장은 인덱스가
+#    겹쳐 자동으로 사라지고, **껍질은 닫힌 채로 남는다.** 지우기와의 차이가 여기다:
+#      · 지우기 = 면 1장 제거 → 경계 모서리 3개(구멍)
+#      · 붕괴   = 면 2장 제거 + 정점 1개 이동 → 경계 모서리 0(수밀 유지)
+#
+#  ⚠ 안전장치 셋 (감사가 «허용오차를 크게 잡으면 멀쩡한 미세 형상까지 뭉갠다» 고 경고했다)
+#    ① `max_collapse_m` 보다 **긴** 변은 절대 안 붕괴시킨다(기본 0.25 mm — mini2 의 실측
+#       최단변 0.199 mm 바로 위. 전역 `merge_vertices(tol)` 처럼 온 메쉬를 훑지 않는다).
+#       길면 옛 동작(지우기)으로 되돌아가고 그 사실을 기록에 남긴다.
+#    ② 퇴화 **판정 자체는 안 바꾼다** — 같은 `nondegenerate_faces(height)` 를 쓴다.
+#       즉 «무엇이 슬리버인가» 는 예전과 똑같고, «그것을 어떻게 없애는가» 만 바뀐다.
+#    ③ 붕괴가 새 퇴화면을 만들면 다시 돈다(최대 `max_iter` 회). 안 줄면 멈춘다.
+# --------------------------------------------------------------------------- #
+COLLAPSE_LOG: list[dict] = []          # 무엇을 몇 개 붕괴시켰나(원장에 싣는다)
+
+
+def collapse_degenerate_faces(m: trimesh.Trimesh, height: float = 1e-8,
+                              max_collapse_m: float = 2.5e-4, max_iter: int = 8,
+                              tag: str = "") -> trimesh.Trimesh:
+    """퇴화 삼각형을 **지우지 않고 모서리 붕괴로** 없앤다. 껍질이 열리지 않는다.
+
+    height          : 퇴화 판정 잣대. `trimesh.nondegenerate_faces` 와 같은 뜻(기본 1e-8 m).
+    max_collapse_m  : 이보다 긴 변은 안 붕괴시킨다(형상 보호). 넘으면 옛 동작(지우기)으로.
+    반환값은 **새 메쉬**다(원본 불변)."""
+    out = m
+    n_col = n_drop = 0
+    moved = 0.0
+    for _ in range(max_iter):
+        keep = out.nondegenerate_faces(height=height)
+        if bool(keep.all()):
+            break
+        V = np.asarray(out.vertices, float)
+        F = np.asarray(out.faces, np.int64)
+        parent = np.arange(len(V))
+
+        def find(i: int) -> int:
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return int(i)
+
+        too_long = []
+        for fi in np.where(~keep)[0]:
+            f = F[fi]
+            d = [float(np.linalg.norm(V[f[(k + 1) % 3]] - V[f[k]])) for k in range(3)]
+            k = int(np.argmin(d))
+            if d[k] > max_collapse_m:            # 안전장치 ① — 길면 손대지 않는다
+                too_long.append((int(fi), d[k]))
+                continue
+            a, b = find(int(f[k])), find(int(f[(k + 1) % 3]))
+            if a == b:
+                continue
+            lo, hi = (a, b) if a < b else (b, a)  # 낮은 인덱스가 살아남는다(결정론적)
+            parent[hi] = lo
+            moved = max(moved, float(np.linalg.norm(V[hi] - V[lo])))
+        root = np.array([find(i) for i in range(len(V))], np.int64)
+        Fn = root[F]
+        good = ((Fn[:, 0] != Fn[:, 1]) & (Fn[:, 1] != Fn[:, 2]) & (Fn[:, 2] != Fn[:, 0]))
+        n_now = int((~good).sum())
+        if n_now == 0:                            # 붕괴할 게 하나도 없었다 → 옛 동작으로 마무리
+            if too_long:
+                #  ⚠ **조용히 넘어가지 않는다.** 여기로 오면 «수리를 켰는데 구멍이 그대로» 다.
+                #    실측 기준: mini2 의 needle 최단변은 0.199~0.201 mm 이고 상한이 0.25 mm 라
+                #    여유가 약 20 % 뿐이다 — 기체 치수가 커지면 이 경고가 먼저 뜬다.
+                import warnings
+                warnings.warn(
+                    f"cadkit.collapse_degenerate_faces({tag!r}): 퇴화면 {len(too_long)}장의 "
+                    f"최단변이 상한 {max_collapse_m*1000:.3f} mm 를 넘는다"
+                    f"(최소 {min(d for _, d in too_long)*1000:.4f} mm) → **옛 동작(지우기)으로 "
+                    f"되돌아간다. 껍질에 구멍이 남는다.** 상한을 올릴지 판단할 것.",
+                    RuntimeWarning, stacklevel=2)
+                nxt = out.copy()
+                nxt.update_faces(keep)
+                nxt.remove_unreferenced_vertices()
+                n_drop += int((~keep).sum())
+                out = nxt
+            break
+        n_col += n_now
+        nxt = trimesh.Trimesh(vertices=V, faces=Fn[good], process=False)
+        nxt.remove_unreferenced_vertices()
+        out = nxt
+    if n_col or n_drop:
+        COLLAPSE_LOG.append(dict(tag=tag, faces_in=int(len(m.faces)),
+                                 faces_out=int(len(out.faces)),
+                                 collapsed_faces=n_col, dropped_faces=n_drop,
+                                 max_vertex_move_mm=round(moved * 1000.0, 6)))
+    return out
+
+
+def _remove_degenerate(m: trimesh.Trimesh, tag: str) -> trimesh.Trimesh:
+    """퇴화면 처리 한 곳 — 기본은 **예전 그대로 지우기**, `MESH_FIX=i5` 면 **붕괴**."""
+    if mesh_fix_enabled("i5"):
+        return collapse_degenerate_faces(m, tag=tag)
+    m.update_faces(m.nondegenerate_faces())        # 면적 0 삼각형 제거 (옛 동작)
+    return m
+
 
 # --------------------------------------------------------------------------- #
 #  파트 모음 — 그룹별로 trimesh 를 모았다가 geom.Mesh 로 내보낸다
@@ -47,7 +159,7 @@ class Assembly:
         if mesh is None or len(mesh.faces) == 0:
             return self
         m = mesh.copy()
-        m.update_faces(m.nondegenerate_faces())   # 면적 0 삼각형 제거
+        m = _remove_degenerate(m, tag=f"add:{group}")   # 지우기(기본) 또는 붕괴(MESH_FIX=i5)
         m.merge_vertices()
         m.remove_unreferenced_vertices()
         if len(m.faces) == 0:
@@ -80,7 +192,8 @@ class Assembly:
             return self
         try:
             u = trimesh.boolean.union(ms, engine="manifold")
-            u.update_faces(u.nondegenerate_faces())
+            #  ⭐ mini2 body 의 구멍(I5)이 실제로 태어나는 자리는 **여기**다.
+            u = _remove_degenerate(u, tag=f"union:{group}")
             u.merge_vertices(); u.remove_unreferenced_vertices()
             trimesh.repair.fix_normals(u)
             if u.is_watertight and u.volume < 0:

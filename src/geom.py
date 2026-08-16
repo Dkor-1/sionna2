@@ -36,6 +36,68 @@ import numpy as np
 
 
 # --------------------------------------------------------------------------- #
+#  ⭐⭐ 2026-08-16 — **2층 메쉬 수리 스위치** (감사 `docs/MESH_AUDIT_0816.md` §⑤ 2층)
+#
+#  왜 여기 있나: 이 파일은 **의존성이 없는 맨 아래층**이라 geom 도 cadkit 도 검사기도
+#  다 import 할 수 있다. 스위치가 두 군데 있으면 «켰는데 반만 켜지는» 사고가 난다.
+#
+#  ⭐ **기본은 전부 꺼짐** = 예전과 **비트동일**. 켜면 형상이 바뀌고, 그건 의도된 것이다.
+#  켜는 법 (셋 다 같은 곳을 본다 — 환경변수 `MESH_FIX` 가 유일한 진리원):
+#      MESH_FIX=i5 python src/mesh_check.py            ← 환경변수
+#      python src/mesh_check.py --mesh-fix i5,m6       ← 명령줄 인자
+#      from geom import set_mesh_fix; set_mesh_fix("i5")   ← 코드에서
+#  ⚠ 판정은 **호출 시점**에 한다(import 시점이 아니다) — 스크립트가 import 뒤에 켜도 듣는다.
+#
+#  아는 id (수리자가 늘려 간다):
+#    i5       mini2 body 구멍  — 슬리버를 지우는 대신 **모서리 붕괴**로 없앤다 (cadkit)
+#    m6       uv_sphere 극점   — 극의 중복 정점을 **1개로 공유**한다 (geom.uv_sphere)
+#    battery  battery 그룹 자기겹침 — 팩 상자와 v2 구조판 상자가 47.9~50.0 % 파고든 것을
+#             **불리언 합집합**으로 없앤다. 치수는 안 바꾼다 (drone_cad.build_frame_cad)
+#    i3       매몰면 이중계상 — 다른 부품 솔리드 **안**에 든 면을 **PO 적분에서 뺀다**
+#             (rcs_po.drone_rcs_pattern · 마스크는 mesh_buried).
+#             ⚠ 다른 id 와 층이 다르다 — **메쉬(삼각형)는 하나도 안 바꾼다.** 바뀌는 것은
+#               «PO 가 어느 면을 더하는가» 뿐이다. SBR 은 first-hit 이라 애초에 해당 없음.
+#    i4       묻힌 캐노피 — 셸형 기체의 'canopy' 를 'body' 와 **불리언 합집합**해서 껍질을
+#             하나로 만든다(실물이 그렇다: 몰드 셸은 한 장이고 안에 두 번째 껍질이 없다).
+#             완전 매몰(mavic4pro·phantom3)이면 합집합 결과가 곧 body 라 **캐노피만 뺀다**
+#             (body 삼각형은 손도 안 댄다) (drone_cad.build_frame_cad).
+#    m4       x500v2 암 튜브 관통 — 나일론 클램프(accent) **안에 묻힌** 카본 튜브 구간을
+#             불리언 차집합으로 잘라낸다. 치수는 하나도 안 바꾼다 (drone_cad.build_frame_cad).
+#             ⚠ 같은 감사 항목의 «동일평면»(시트 윗면 ↔ 카본판 아랫면)은 **안 고친다** —
+#               실물이 맞닿아 있고, 합치면 재질 경계가 사라진다. 이유·크기는 원장에 있다
+#               (outputs/mesh_layer2_buried_canopy_0816.json).
+# --------------------------------------------------------------------------- #
+MESH_FIX_KNOWN = ("i5", "m6", "battery", "i3", "i4", "m4")
+
+
+def mesh_fix_set() -> set[str]:
+    """지금 켜져 있는 수리 id 집합. 환경변수 `MESH_FIX` 를 **호출할 때마다** 읽는다."""
+    raw = os.environ.get("MESH_FIX", "")
+    return {s.strip().lower() for s in raw.replace(";", ",").split(",") if s.strip()}
+
+
+def mesh_fix_enabled(name: str) -> bool:
+    """수리 `name` 이 켜져 있나. `MESH_FIX=all` 이면 전부 켠다."""
+    on = mesh_fix_set()
+    return bool(on) and (name.lower() in on or "all" in on)
+
+
+def set_mesh_fix(*names: str) -> set[str]:
+    """코드에서 켜기/끄기. 인자가 없으면 **전부 끈다**. 돌려주는 값은 적용된 집합."""
+    flat: list[str] = []
+    for n in names:
+        if n is None:
+            continue
+        if isinstance(n, (list, tuple, set)):
+            flat += [str(x) for x in n]
+        else:
+            flat += [s for s in str(n).replace(";", ",").split(",")]
+    flat = [s.strip().lower() for s in flat if s and s.strip()]
+    os.environ["MESH_FIX"] = ",".join(flat)
+    return set(flat)
+
+
+# --------------------------------------------------------------------------- #
 #  Mesh : 꼭짓점 + 삼각형 + 그룹이름  (이게 전부입니다)
 # --------------------------------------------------------------------------- #
 class Mesh:
@@ -269,10 +331,10 @@ def pyramid(base, height, apex_up=True, center=(0, 0, 0),
 
 
 def uv_sphere(radius, center=(0, 0, 0), seg=18, rings=10, group="sph",
-              weld_poles=False) -> Mesh:
+              weld_poles=None) -> Mesh:
     """구. 짐벌 카메라 공/둥근 부품에 사용.
 
-    ⭐ `weld_poles` (2026-08-16 신설, 감사 m6) — **기본은 False = 예전과 비트동일**.
+    ⭐ `weld_poles` (2026-08-16 신설, 감사 m6) — **기본은 꺼짐 = 예전과 비트동일**.
       극(북/남)에서는 `seg` 개의 정점이 **같은 좌표에 겹쳐서** 쌓인다(seg=90 이면 178개,
       seg=180 이면 358개의 중복 정점). 면적 0 삼각형은 없고(2026-07-01 수정이 유효하다)
       PO 는 면 중심·법선·면적만 보므로 **RF 영향은 0** 이다. 다만 인덱스 기준으로는
@@ -280,7 +342,16 @@ def uv_sphere(radius, center=(0, 0, 0), seg=18, rings=10, group="sph",
       `trimesh(process=False)` 로 열면 `is_watertight=False` 가 된다.
       True 로 주면 극을 **정점 1개로 공유**한다 — 삼각형의 개수·좌표·감김 방향은 그대로고
       정점 수만 2·(seg−1) 개 줄어 껍질이 인덱스 기준으로도 닫힌다.
-      ⚠ 정점 인덱스가 바뀌므로 기존 OBJ 와 바이트 단위로 달라진다. 그래서 기본은 끔이다."""
+      ⚠ 정점 인덱스가 바뀌므로 기존 OBJ 와 바이트 단위로 달라진다. 그래서 기본은 끔이다.
+
+      값 규약 (2026-08-16 배선):
+        None  = 기본. **수리 스위치**를 본다 — `MESH_FIX=m6` 이면 켜지고 아니면 꺼진다.
+                호출부를 하나도 안 고쳐도 스위치 하나로 저장소 전체(uv_sphere 호출 ~30곳)가
+                같이 움직인다.
+        True/False = 호출부가 **명시적으로** 이긴다(스위치를 무시). 회귀 시험이 두 판을
+                     나란히 지어 비교할 때 쓴다."""
+    if weld_poles is None:
+        weld_poles = mesh_fix_enabled("m6")
     m = Mesh(group)
     cx, cy, cz = center
     grid = []
@@ -345,8 +416,45 @@ if __name__ == "__main__":
     print("box tris", b.n_tris(), "bounds", b.bounds())
     p = pyramid_field(4, 3, 0.5, 0.3)
     print("pyramid_field tris", p.n_tris(), "bounds", p.bounds())
-    s0 = uv_sphere(1.0, seg=18, rings=10)
+    s0 = uv_sphere(1.0, seg=18, rings=10, weld_poles=False)
     s1 = uv_sphere(1.0, seg=18, rings=10, weld_poles=True)
     print(f"uv_sphere tris {s0.n_tris()} verts {len(s0.v)}  "
           f"| weld_poles=True tris {s1.n_tris()} verts {len(s1.v)} "
           f"(극점 공유로 정점 {len(s0.v)-len(s1.v)}개 감소, 삼각형은 동일)")
+
+    #  ⭐ m6 의 주장을 여기서 스스로 검사한다.
+    #  ⚠ **2026-08-16 정정** — 예전 문면은 «삼각형 좌표가 그대로다» 였는데 **거짓이다.**
+    #    북극은 φ=0 → sin(0)=0.0 이라 좌표가 정확히 (0,0,+r) 이지만, 남극은 φ=π 이고
+    #    `math.sin(math.pi)` = 1.2246e-16 이라 **정확히 0 이 아니다** — 안 뭉치면 남극
+    #    seg 개 정점이 축에서 1.22e-16·r 만큼 벌어져 서로 다른 좌표를 갖는다.
+    #    그래서 (a) 「같은 좌표에 쌓인 중복 정점」 수를 세면 2·(seg−1) 이 아니라 그 **절반**이고
+    #        (b) weld 는 재인덱싱이 아니라 «남극을 축으로 정확히 스냅» 까지 한다.
+    #    바뀌는 크기는 1.22e-16·r (배정밀도 eps 급)이고, 면적 합은 표시 자릿수 전부 동일하다.
+    T0 = np.array([[s0.v[i] for i in f] for f in s0.f])
+    T1 = np.array([[s1.v[i] for i in f] for f in s1.f])
+    dmax = float(np.abs(T0 - T1).max())
+    ar = lambda T: 0.5 * np.linalg.norm(np.cross(T[:, 1] - T[:, 0], T[:, 2] - T[:, 0]), axis=1)
+    da = abs(float(ar(T1).sum() - ar(T0).sum())) / float(ar(T0).sum())
+    dup0 = len(s0.v) - len(set(s0.v))
+    dup1 = len(s1.v) - len(set(s1.v))
+    print(f"  m6 자체점검: 삼각형 수 {len(s0.f)}={len(s1.f)} · 좌표 최대차 {dmax:.3e} m "
+          f"(= r·{dmax/1.0:.2e}, 배정밀도 eps 급) · 면적합 상대차 {da:.3e} "
+          f"{'✅' if (len(s0.f) == len(s1.f) and dmax < 1e-15 and da < 1e-15) else '❌'}")
+    print(f"  m6 중복정점(좌표가 정확히 같은 것): {dup0} → {dup1}  "
+          f"(북극 seg−1={18-1} 개만 정확히 겹친다. 남극 {18-1} 개는 1.2e-16·r 만큼 벌어져 "
+          f"있어서 «중복» 으로 안 세진다 — 감사 표의 2·(seg−1) 은 «구성상» 의 수다)")
+    #    수리 스위치 배선 점검 — 인자를 안 주면 스위치가 정한다.
+    _keep = os.environ.get("MESH_FIX")
+    try:
+        set_mesh_fix()                       # 전부 끔
+        a = uv_sphere(1.0, seg=18, rings=10)
+        set_mesh_fix("m6")                   # m6 만 켬
+        b_ = uv_sphere(1.0, seg=18, rings=10)
+        print(f"  스위치 배선: MESH_FIX 없음 → verts {len(a.v)} (=끔) · "
+              f"MESH_FIX=m6 → verts {len(b_.v)} (=켬)  "
+              f"{'✅' if (len(a.v), len(b_.v)) == (len(s0.v), len(s1.v)) else '❌'}")
+    finally:
+        if _keep is None:
+            os.environ.pop("MESH_FIX", None)
+        else:
+            os.environ["MESH_FIX"] = _keep

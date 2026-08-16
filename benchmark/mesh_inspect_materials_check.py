@@ -440,7 +440,7 @@ def probe_uv_sphere() -> dict:
     from geom import uv_sphere
     out = {}
     for seg, rings in ((18, 10), (90, 45), (120, 60), (180, 90)):
-        s = uv_sphere(0.05, seg=seg, rings=rings)
+        s = uv_sphere(0.05, seg=seg, rings=rings, weld_poles=False)   # 출하 상태를 잰다
         V = np.asarray(s.v, float)
         F = np.asarray(s.f, int)
         raw = trimesh.Trimesh(vertices=V, faces=F, process=False)
@@ -745,7 +745,10 @@ def selftest_weld_poles() -> dict:
     from geom import uv_sphere
     out = {}
     for seg, rings in ((18, 10), (90, 45), (180, 90)):
-        a = uv_sphere(0.05, seg=seg, rings=rings)
+        #  ⚠ 2026-08-16 — 「수리 전」 판은 **명시적으로** weld_poles=False 로 짓는다.
+        #    인자를 안 주면 이제 수리 스위치(MESH_FIX=m6)를 보므로, 스위치가 켜진 셸에서
+        #    이 자체점검이 «같은 것 둘» 을 비교하며 조용히 통과할 수 있다.
+        a = uv_sphere(0.05, seg=seg, rings=rings, weld_poles=False)
         b = uv_sphere(0.05, seg=seg, rings=rings, weld_poles=True)
         Va, Fa = np.asarray(a.v, float), np.asarray(a.f, int)
         Vb, Fb = np.asarray(b.v, float), np.asarray(b.f, int)

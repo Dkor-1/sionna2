@@ -1,0 +1,3641 @@
+{
+ "_meta": {
+  "title": "매몰면(I3) 전수 검사 · 수리 손잡이 · σ 대가 — 2026-08-16",
+  "generated_kst": "2026-08-17 02:28:38",
+  "role": "감사 docs/MESH_AUDIT_0816.md I3 의 집행 — 수리자 원장",
+  "compute": "전부 CPU. GPU 미사용(큐 사용 중). git 미접촉.",
+  "generator": "benchmark/adv_mesh_buried_faces_0816.py",
+  "airframes": [
+   "mini5pro",
+   "mavic4pro",
+   "matrice4e",
+   "s1000plus",
+   "phantom4",
+   "typhoonh480",
+   "x500v2",
+   "phantom3",
+   "m350rtk",
+   "mini2"
+  ],
+  "용어_한줄풀이": {
+   "매몰면(buried face)": "어떤 부품의 삼각형이 다른 부품 솔리드 **안**에 든 것 — 실물이면 안 보인다.",
+   "PO": "우리 산란 커널 하나(rcs_po). **가림을 안 본다**(자기 선언 rcs_po.py 46-53행) → 매몰면을 그대로 더한다 = 이중계상.",
+   "SBR": "다른 커널(기본 엔진). 광선이 처음 맞은 지점만 적분 → 매몰면 오차가 구조적으로 0.",
+   "설계 의도": "battery·pcb·fc 가 셸(body/canopy) 안에 있는 것. 반투명 셸을 통과해 내부 금속이 보이는 효과를 그렇게 근사하기로 한 것 → **빼면 안 된다**.",
+   "방위평균 vs 최악방위": "방위평균은 360° 전체 σ 의 평균, 최악방위는 한 방위에서의 최대 차. 결론을 바꾸는 것은 보통 방위평균이다."
+  },
+  "측정_규약": {
+   "점구름": "결함판과 수리판이 **같은 점구름**을 쓴다. E_full 에서 뺄 면의 점이 만든 E_drop 을 빼면 그 면을 지운 판이 정확히 나온다 — 재샘플링이 아니므로 차이는 오직 뺀 면 때문이다. 그 값이 mesh_to_points(face_mask=…) 로 다시 깐 판과 같은지도 확인한다(regression.two_paths).",
+   "주파수": "3.5 GHz, 점간격 λ/7 = 12.24 mm (rcs_po 기본과 동일)",
+   "방위": "0~358°, 2° 간격 180 방위",
+   "고각": "el 0° · el −30°",
+   "바이스태틱": "β=120°(el −30°) — 모노만 재면 유리한 각도만 고른 셈이 된다(감사 C5).",
+   "대역평균": "5G 100 MHz·9점. 3° 각도창 판(angular_smooth, 방위 스텝 2° → 실효 4°)과 p95 도 싣는다.",
+   "부호": "(+) = 결함이 σ 를 **밝게** 만든다(과대계상). (−) = 어둡게.",
+   "재질": "drones.DRONE_GROUP_MAT → materials 의 |Γ|. ITU 'metal' 만 Sionna 씬(GPU)이 필요해 저장소 캐시값 0.9998026802895116 를 썼다(outputs/mesh_compare_material.json).",
+   "⚠대역평균의 점구름": "기준선과 같게 **점간격을 fc=3.5 GHz 로 고정**하고 9 주파수를 돌린다. 출하 drone_rcs_pattern_bw 는 주파수마다 λ/7 을 다시 잡지만(±0.7 %) 여기서는 비교의 순수성을 택했다 — 두 판이 같은 점을 써야 차이가 오직 뺀 면 때문이 된다."
+  },
+  "판정_밴드": {
+   "무해": "|Δ| < 0.1 dB",
+   "보임": "0.1~1.0 dB",
+   "결론을_바꿈": "> 1 dB",
+   "왜_이_밴드인가": "감사가 형상 축을 1~2 dB, 두께 축을 13~17 dB 로 갈랐다. 그 눈금을 그대로 쓴다."
+  },
+  "적용_범위": {
+   "PO_전용": "SBR(기본 엔진)은 first-hit 이라 이 오차가 구조적으로 0 이다. ⚠ 이번 라운드에 SBR 로 교차확인은 **못 했다**(GPU 금지).",
+   "PO_를_쓰는_곳": [
+    "src/microdoppler.py:72,75 (프레임 DC 장)",
+    "rcs_po.drone_rcs_pattern(engine='po') — report6 대조군",
+    "src/ptd_edges.py · src/viz_verify_po.py · src/viz_mesh_material.py",
+    "benchmark/adv_consequence_0816*.py",
+    "감사 §4-1 부품분해 표"
+   ],
+   "안_쟀다": [
+    "SBR 교차확인(GPU 금지)",
+    "마이크로도플러 스펙트럼 축(σ 로만 쟀다)",
+    "회전 자세열(전부 정지 호버 0 위상 메쉬)"
+   ]
+  }
+ },
+ "census": {
+  "mini5pro": {
+   "name": "mini5pro",
+   "n_faces": 28556,
+   "total_area_mm2": 132377.8086,
+   "n_parts": 23,
+   "patch_holes": true,
+   "buried_pct": 41.824,
+   "buried_area_mm2": 55365.7465,
+   "design_intent_pct": 8.8858,
+   "defect_pct": 32.9382,
+   "defect_area_mm2": 43602.8808,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "accent": {
+     "faces": 128,
+     "area_mm2": 2836.6435,
+     "buried_faces": 43,
+     "buried_area_mm2": 1046.6995,
+     "buried_pct_of_group": 36.8992,
+     "defect_pct_of_mesh": 0.7907,
+     "design_pct_of_mesh": 0.0
+    },
+    "battery": {
+     "faces": 24,
+     "area_mm2": 23020.7035,
+     "buried_faces": 22,
+     "buried_area_mm2": 22646.2832,
+     "buried_pct_of_group": 98.3735,
+     "defect_pct_of_mesh": 8.3276,
+     "design_pct_of_mesh": 8.7797
+    },
+    "body": {
+     "faces": 8028,
+     "area_mm2": 46296.8247,
+     "buried_faces": 1511,
+     "buried_area_mm2": 7985.1923,
+     "buried_pct_of_group": 17.2478,
+     "defect_pct_of_mesh": 6.0321,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 2146,
+     "area_mm2": 16800.567,
+     "buried_faces": 1356,
+     "buried_area_mm2": 8531.7944,
+     "buried_pct_of_group": 50.7828,
+     "defect_pct_of_mesh": 6.445,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 2240,
+     "area_mm2": 11121.8433,
+     "buried_faces": 1971,
+     "buried_area_mm2": 9467.5785,
+     "buried_pct_of_group": 85.126,
+     "defect_pct_of_mesh": 7.1519,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 1210,
+     "area_mm2": 2733.6148,
+     "buried_faces": 13,
+     "buried_area_mm2": 37.0174,
+     "buried_pct_of_group": 1.3542,
+     "defect_pct_of_mesh": 0.028,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2016,
+     "area_mm2": 8856.4153,
+     "buried_faces": 196,
+     "buried_area_mm2": 805.8739,
+     "buried_pct_of_group": 9.0993,
+     "defect_pct_of_mesh": 0.6088,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 4845.3073,
+     "buried_faces": 12,
+     "buried_area_mm2": 4845.3073,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 3.5541,
+     "design_pct_of_mesh": 0.1061
+    },
+    "prop": {
+     "faces": 12752,
+     "area_mm2": 15865.8892,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 22,
+     "area_mm2": 22646.2832,
+     "pct_of_mesh": 17.1073,
+     "note": ""
+    },
+    "battery_in_battery": {
+     "faces": 7,
+     "area_mm2": 11023.8868,
+     "pct_of_mesh": 8.3276,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 1971,
+     "area_mm2": 9467.5785,
+     "pct_of_mesh": 7.1519,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 1356,
+     "area_mm2": 8531.7944,
+     "pct_of_mesh": 6.445,
+     "note": ""
+    },
+    "canopy_in_battery": {
+     "faces": 1130,
+     "area_mm2": 5337.9766,
+     "pct_of_mesh": 4.0324,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 4845.3073,
+     "pct_of_mesh": 3.6602,
+     "note": ""
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 4704.838,
+     "pct_of_mesh": 3.5541,
+     "note": ""
+    },
+    "battery_in_canopy": {
+     "faces": 4,
+     "area_mm2": 4543.1831,
+     "pct_of_mesh": 3.432,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 15,
+     "area_mm2": 11622.3964,
+     "pct_of_mesh": 8.7797
+    },
+    "battery_in_battery": {
+     "faces": 7,
+     "area_mm2": 11023.8868,
+     "pct_of_mesh": 8.3276
+    },
+    "camera_in_body": {
+     "faces": 1118,
+     "area_mm2": 7866.0341,
+     "pct_of_mesh": 5.9421
+    },
+    "canopy_in_battery": {
+     "faces": 1130,
+     "area_mm2": 5337.9766,
+     "pct_of_mesh": 4.0324
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 4704.838,
+     "pct_of_mesh": 3.5541
+    },
+    "body_in_camera": {
+     "faces": 719,
+     "area_mm2": 4372.6224,
+     "pct_of_mesh": 3.3031
+    },
+    "canopy_in_body": {
+     "faces": 841,
+     "area_mm2": 4129.6019,
+     "pct_of_mesh": 3.1196
+    },
+    "body_in_canopy": {
+     "faces": 364,
+     "area_mm2": 1549.8832,
+     "pct_of_mesh": 1.1708
+    }
+   },
+   "design_intent_pct_partition_rule": 8.8858,
+   "defect_pct_partition_rule": 32.9382,
+   "ambiguous_pct": 12.4241,
+   "ambiguous_faces": 1852,
+   "⭐mesh_state": {
+    "n_faces": 28556,
+    "n_verts": 14324,
+    "sha_verts": "b672e5eacc131aa6",
+    "sha_faces": "1809db0f03319d4a"
+   }
+  },
+  "mavic4pro": {
+   "name": "mavic4pro",
+   "n_faces": 30028,
+   "total_area_mm2": 332897.8658,
+   "n_parts": 22,
+   "patch_holes": true,
+   "buried_pct": 37.3234,
+   "buried_area_mm2": 124248.9119,
+   "design_intent_pct": 8.8275,
+   "defect_pct": 28.496,
+   "defect_area_mm2": 94862.4627,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "battery": {
+     "faces": 24,
+     "area_mm2": 56206.4388,
+     "buried_faces": 24,
+     "buried_area_mm2": 56206.4388,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 8.1705,
+     "design_pct_of_mesh": 8.7134
+    },
+    "body": {
+     "faces": 7758,
+     "area_mm2": 127858.2128,
+     "buried_faces": 553,
+     "buried_area_mm2": 8205.124,
+     "buried_pct_of_group": 6.4174,
+     "defect_pct_of_mesh": 2.4648,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 4030,
+     "area_mm2": 28037.6759,
+     "buried_faces": 2601,
+     "buried_area_mm2": 18842.0526,
+     "buried_pct_of_group": 67.2026,
+     "defect_pct_of_mesh": 5.66,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 2240,
+     "area_mm2": 26698.0635,
+     "buried_faces": 2240,
+     "buried_area_mm2": 26698.0635,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 8.0199,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 1196,
+     "area_mm2": 8236.0633,
+     "buried_faces": 14,
+     "buried_area_mm2": 97.644,
+     "buried_pct_of_group": 1.1856,
+     "defect_pct_of_mesh": 0.0293,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2016,
+     "area_mm2": 25573.6045,
+     "buried_faces": 210,
+     "buried_area_mm2": 2325.8663,
+     "buried_pct_of_group": 9.0948,
+     "defect_pct_of_mesh": 0.6987,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 11567.0595,
+     "buried_faces": 12,
+     "buried_area_mm2": 11567.0595,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 3.3606,
+     "design_pct_of_mesh": 0.114
+    },
+    "prop": {
+     "faces": 12752,
+     "area_mm2": 48720.7474,
+     "buried_faces": 156,
+     "buried_area_mm2": 306.6632,
+     "buried_pct_of_group": 0.6294,
+     "defect_pct_of_mesh": 0.0921,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 24,
+     "area_mm2": 56206.4388,
+     "pct_of_mesh": 16.884,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 2240,
+     "area_mm2": 26698.0635,
+     "pct_of_mesh": 8.0199,
+     "note": ""
+    },
+    "battery_in_battery": {
+     "faces": 7,
+     "area_mm2": 26562.2481,
+     "pct_of_mesh": 7.9791,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 2601,
+     "area_mm2": 18842.0526,
+     "pct_of_mesh": 5.66,
+     "note": ""
+    },
+    "battery_in_canopy": {
+     "faces": 5,
+     "area_mm2": 15029.6959,
+     "pct_of_mesh": 4.5148,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 11567.0595,
+     "pct_of_mesh": 3.4747,
+     "note": ""
+    },
+    "pcb_in_canopy": {
+     "faces": 11,
+     "area_mm2": 11377.268,
+     "pct_of_mesh": 3.4176,
+     "note": ""
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 11187.4765,
+     "pct_of_mesh": 3.3606,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 17,
+     "area_mm2": 29644.1908,
+     "pct_of_mesh": 8.9049
+    },
+    "battery_in_battery": {
+     "faces": 7,
+     "area_mm2": 26562.2481,
+     "pct_of_mesh": 7.9791
+    },
+    "canopy_in_body": {
+     "faces": 1532,
+     "area_mm2": 18400.2522,
+     "pct_of_mesh": 5.5273
+    },
+    "camera_in_body": {
+     "faces": 2494,
+     "area_mm2": 18295.9924,
+     "pct_of_mesh": 5.496
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 11187.4765,
+     "pct_of_mesh": 3.3606
+    },
+    "canopy_in_battery": {
+     "faces": 708,
+     "area_mm2": 8297.8114,
+     "pct_of_mesh": 2.4926
+    },
+    "body_in_camera": {
+     "faces": 309,
+     "area_mm2": 4745.1245,
+     "pct_of_mesh": 1.4254
+    },
+    "body_in_motor": {
+     "faces": 236,
+     "area_mm2": 3364.9428,
+     "pct_of_mesh": 1.0108
+    }
+   },
+   "design_intent_pct_partition_rule": 9.0189,
+   "defect_pct_partition_rule": 28.3045,
+   "ambiguous_pct": 5.51,
+   "ambiguous_faces": 1430,
+   "⭐mesh_state": {
+    "n_faces": 30028,
+    "n_verts": 15058,
+    "sha_verts": "07585eefcaa02978",
+    "sha_faces": "206820d1d039bc48"
+   }
+  },
+  "matrice4e": {
+   "name": "matrice4e",
+   "n_faces": 30566,
+   "total_area_mm2": 304881.7492,
+   "n_parts": 28,
+   "patch_holes": true,
+   "buried_pct": 40.287,
+   "buried_area_mm2": 122827.6275,
+   "design_intent_pct": 21.1685,
+   "defect_pct": 19.1185,
+   "defect_area_mm2": 58288.7346,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "accent": {
+     "faces": 64,
+     "area_mm2": 518.4957,
+     "buried_faces": 47,
+     "buried_area_mm2": 382.0446,
+     "buried_pct_of_group": 73.6833,
+     "defect_pct_of_mesh": 0.1253,
+     "design_pct_of_mesh": 0.0
+    },
+    "battery": {
+     "faces": 24,
+     "area_mm2": 58884.8156,
+     "buried_faces": 14,
+     "buried_area_mm2": 53103.489,
+     "buried_pct_of_group": 90.182,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 17.4177
+    },
+    "body": {
+     "faces": 7808,
+     "area_mm2": 103625.2485,
+     "buried_faces": 1230,
+     "buried_area_mm2": 21539.492,
+     "buried_pct_of_group": 20.7859,
+     "defect_pct_of_mesh": 7.0649,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 2490,
+     "area_mm2": 29481.0473,
+     "buried_faces": 1131,
+     "buried_area_mm2": 11303.3643,
+     "buried_pct_of_group": 38.3411,
+     "defect_pct_of_mesh": 3.7075,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 2528,
+     "area_mm2": 33614.0888,
+     "buried_faces": 1889,
+     "buried_area_mm2": 23297.8611,
+     "buried_pct_of_group": 69.3098,
+     "defect_pct_of_mesh": 7.6416,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 2872,
+     "area_mm2": 8097.2329,
+     "buried_faces": 124,
+     "buried_area_mm2": 958.0862,
+     "buried_pct_of_group": 11.8323,
+     "defect_pct_of_mesh": 0.3142,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2016,
+     "area_mm2": 7922.892,
+     "buried_faces": 221,
+     "buried_area_mm2": 801.9403,
+     "buried_pct_of_group": 10.1218,
+     "defect_pct_of_mesh": 0.263,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 11435.4039,
+     "buried_faces": 12,
+     "buried_area_mm2": 11435.4039,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 3.7508
+    },
+    "prop": {
+     "faces": 12752,
+     "area_mm2": 51302.5244,
+     "buried_faces": 16,
+     "buried_area_mm2": 5.9462,
+     "buried_pct_of_group": 0.0116,
+     "defect_pct_of_mesh": 0.002,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 14,
+     "area_mm2": 53103.489,
+     "pct_of_mesh": 17.4177,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 1888,
+     "area_mm2": 23286.0574,
+     "pct_of_mesh": 7.6377,
+     "note": ""
+    },
+    "battery_in_canopy": {
+     "faces": 4,
+     "area_mm2": 15549.8421,
+     "pct_of_mesh": 5.1003,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 11435.4039,
+     "pct_of_mesh": 3.7508,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 1021,
+     "area_mm2": 11077.9647,
+     "pct_of_mesh": 3.6335,
+     "note": ""
+    },
+    "canopy_in_battery": {
+     "faces": 963,
+     "area_mm2": 10914.8625,
+     "pct_of_mesh": 3.58,
+     "note": ""
+    },
+    "body_in_battery": {
+     "faces": 387,
+     "area_mm2": 7494.4089,
+     "pct_of_mesh": 2.4581,
+     "note": ""
+    },
+    "body_in_camera": {
+     "faces": 328,
+     "area_mm2": 7123.1727,
+     "pct_of_mesh": 2.3364,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 14,
+     "area_mm2": 53103.489,
+     "pct_of_mesh": 17.4177
+    },
+    "canopy_in_body": {
+     "faces": 921,
+     "area_mm2": 12324.3546,
+     "pct_of_mesh": 4.0423
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 11435.4039,
+     "pct_of_mesh": 3.7508
+    },
+    "canopy_in_battery": {
+     "faces": 963,
+     "area_mm2": 10914.8625,
+     "pct_of_mesh": 3.58
+    },
+    "camera_in_body": {
+     "faces": 869,
+     "area_mm2": 10774.5181,
+     "pct_of_mesh": 3.534
+    },
+    "body_in_battery": {
+     "faces": 387,
+     "area_mm2": 7494.4089,
+     "pct_of_mesh": 2.4581
+    },
+    "body_in_camera": {
+     "faces": 320,
+     "area_mm2": 6964.447,
+     "pct_of_mesh": 2.2843
+    },
+    "body_in_canopy": {
+     "faces": 359,
+     "area_mm2": 5885.0074,
+     "pct_of_mesh": 1.9303
+    }
+   },
+   "design_intent_pct_partition_rule": 21.1685,
+   "defect_pct_partition_rule": 19.1185,
+   "ambiguous_pct": 28.3825,
+   "ambiguous_faces": 2321,
+   "⭐mesh_state": {
+    "n_faces": 30566,
+    "n_verts": 15339,
+    "sha_verts": "f016611e145a4bc4",
+    "sha_faces": "458d91f4ea62f527"
+   }
+  },
+  "s1000plus": {
+   "name": "s1000plus",
+   "n_faces": 35374,
+   "total_area_mm2": 1194456.3208,
+   "n_parts": 49,
+   "patch_holes": true,
+   "buried_pct": 7.987,
+   "buried_area_mm2": 95400.9588,
+   "design_intent_pct": 1.0957,
+   "defect_pct": 6.8913,
+   "defect_area_mm2": 82313.4486,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "accent": {
+     "faces": 176,
+     "area_mm2": 24817.6734,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "arm": {
+     "faces": 2304,
+     "area_mm2": 243263.6417,
+     "buried_faces": 357,
+     "buried_area_mm2": 26688.1042,
+     "buried_pct_of_group": 10.9709,
+     "defect_pct_of_mesh": 2.2343,
+     "design_pct_of_mesh": 0.0
+    },
+    "battery": {
+     "faces": 12,
+     "area_mm2": 51688.6269,
+     "buried_faces": 2,
+     "buried_area_mm2": 13087.5103,
+     "buried_pct_of_group": 25.3199,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 1.0957
+    },
+    "body": {
+     "faces": 820,
+     "area_mm2": 355544.2732,
+     "buried_faces": 35,
+     "buried_area_mm2": 36485.0917,
+     "buried_pct_of_group": 10.2618,
+     "defect_pct_of_mesh": 3.0545,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 190,
+     "area_mm2": 101510.349,
+     "buried_faces": 2,
+     "buried_area_mm2": 9006.8892,
+     "buried_pct_of_group": 8.8729,
+     "defect_pct_of_mesh": 0.7541,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 704,
+     "area_mm2": 40349.1047,
+     "buried_faces": 206,
+     "buried_area_mm2": 8941.8023,
+     "buried_pct_of_group": 22.1611,
+     "defect_pct_of_mesh": 0.7486,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear_cf": {
+     "faces": 772,
+     "area_mm2": 74697.8654,
+     "buried_faces": 42,
+     "buried_area_mm2": 1191.5611,
+     "buried_pct_of_group": 1.5952,
+     "defect_pct_of_mesh": 0.0998,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 4784,
+     "area_mm2": 66988.9478,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 37400.1544,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "prop": {
+     "faces": 25600,
+     "area_mm2": 198195.6842,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "arm_in_body": {
+     "faces": 357,
+     "area_mm2": 26688.1042,
+     "pct_of_mesh": 2.2343,
+     "note": ""
+    },
+    "body_in_arm": {
+     "faces": 21,
+     "area_mm2": 19631.5603,
+     "pct_of_mesh": 1.6436,
+     "note": ""
+    },
+    "body_in_battery": {
+     "faces": 2,
+     "area_mm2": 16745.84,
+     "pct_of_mesh": 1.402,
+     "note": ""
+    },
+    "battery_in_body": {
+     "faces": 2,
+     "area_mm2": 13087.5103,
+     "pct_of_mesh": 1.0957,
+     "note": ""
+    },
+    "camera_in_gear": {
+     "faces": 2,
+     "area_mm2": 9006.8892,
+     "pct_of_mesh": 0.7541,
+     "note": ""
+    },
+    "gear_in_gear_cf": {
+     "faces": 170,
+     "area_mm2": 8106.1807,
+     "pct_of_mesh": 0.6787,
+     "note": ""
+    },
+    "gear_cf_in_gear": {
+     "faces": 42,
+     "area_mm2": 1191.5611,
+     "pct_of_mesh": 0.0998,
+     "note": ""
+    },
+    "gear_in_camera": {
+     "faces": 22,
+     "area_mm2": 783.4823,
+     "pct_of_mesh": 0.0656,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "arm_in_body": {
+     "faces": 357,
+     "area_mm2": 26688.1042,
+     "pct_of_mesh": 2.2343
+    },
+    "body_in_arm": {
+     "faces": 21,
+     "area_mm2": 19631.5603,
+     "pct_of_mesh": 1.6436
+    },
+    "body_in_battery": {
+     "faces": 2,
+     "area_mm2": 16745.84,
+     "pct_of_mesh": 1.402
+    },
+    "battery_in_body": {
+     "faces": 2,
+     "area_mm2": 13087.5103,
+     "pct_of_mesh": 1.0957
+    },
+    "camera_in_gear": {
+     "faces": 2,
+     "area_mm2": 9006.8892,
+     "pct_of_mesh": 0.7541
+    },
+    "gear_in_gear_cf": {
+     "faces": 170,
+     "area_mm2": 8106.1807,
+     "pct_of_mesh": 0.6787
+    },
+    "gear_cf_in_gear": {
+     "faces": 42,
+     "area_mm2": 1191.5611,
+     "pct_of_mesh": 0.0998
+    },
+    "gear_in_camera": {
+     "faces": 22,
+     "area_mm2": 783.4823,
+     "pct_of_mesh": 0.0656
+    }
+   },
+   "design_intent_pct_partition_rule": 1.0957,
+   "defect_pct_partition_rule": 6.8913,
+   "ambiguous_pct": 13.3408,
+   "ambiguous_faces": 1076,
+   "⭐mesh_state": {
+    "n_faces": 35374,
+    "n_verts": 17755,
+    "sha_verts": "28a9d61e3d5ad128",
+    "sha_faces": "024d5318cd8233c3"
+   }
+  },
+  "phantom4": {
+   "name": "phantom4",
+   "n_faces": 28594,
+   "total_area_mm2": 334853.2695,
+   "n_parts": 23,
+   "patch_holes": true,
+   "buried_pct": 39.5033,
+   "buried_area_mm2": 132278.2225,
+   "design_intent_pct": 8.7588,
+   "defect_pct": 30.7445,
+   "defect_area_mm2": 102948.969,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "battery": {
+     "faces": 24,
+     "area_mm2": 57158.3111,
+     "buried_faces": 24,
+     "buried_area_mm2": 57158.3111,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 8.4281,
+     "design_pct_of_mesh": 8.6416
+    },
+    "body": {
+     "faces": 7064,
+     "area_mm2": 100766.3735,
+     "buried_faces": 432,
+     "buried_area_mm2": 6174.4718,
+     "buried_pct_of_group": 6.1275,
+     "defect_pct_of_mesh": 1.8439,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 494,
+     "area_mm2": 33885.8014,
+     "buried_faces": 345,
+     "buried_area_mm2": 18344.7958,
+     "buried_pct_of_group": 54.1371,
+     "defect_pct_of_mesh": 5.4785,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 2336,
+     "area_mm2": 33947.4116,
+     "buried_faces": 2240,
+     "buried_area_mm2": 31511.5845,
+     "buried_pct_of_group": 92.8247,
+     "defect_pct_of_mesh": 9.4106,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 3896,
+     "area_mm2": 44690.8756,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2016,
+     "area_mm2": 12304.3076,
+     "buried_faces": 556,
+     "buried_area_mm2": 3086.2015,
+     "buried_pct_of_group": 25.0823,
+     "defect_pct_of_mesh": 0.9217,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 12739.5734,
+     "buried_faces": 12,
+     "buried_area_mm2": 12739.5734,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 3.6873,
+     "design_pct_of_mesh": 0.1172
+    },
+    "prop": {
+     "faces": 12752,
+     "area_mm2": 39360.6153,
+     "buried_faces": 1321,
+     "buried_area_mm2": 3263.2844,
+     "buried_pct_of_group": 8.2907,
+     "defect_pct_of_mesh": 0.9745,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 24,
+     "area_mm2": 57158.3111,
+     "pct_of_mesh": 17.0697,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 2240,
+     "area_mm2": 31511.5845,
+     "pct_of_mesh": 9.4106,
+     "note": ""
+    },
+    "battery_in_battery": {
+     "faces": 9,
+     "area_mm2": 28221.6192,
+     "pct_of_mesh": 8.4281,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 345,
+     "area_mm2": 18344.7958,
+     "pct_of_mesh": 5.4785,
+     "note": ""
+    },
+    "canopy_in_battery": {
+     "faces": 1092,
+     "area_mm2": 16759.9602,
+     "pct_of_mesh": 5.0052,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 12739.5734,
+     "pct_of_mesh": 3.8045,
+     "note": ""
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 12347.0118,
+     "pct_of_mesh": 3.6873,
+     "note": ""
+    },
+    "battery_in_canopy": {
+     "faces": 4,
+     "area_mm2": 7830.3352,
+     "pct_of_mesh": 2.3384,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 15,
+     "area_mm2": 28936.6919,
+     "pct_of_mesh": 8.6416
+    },
+    "battery_in_battery": {
+     "faces": 9,
+     "area_mm2": 28221.6192,
+     "pct_of_mesh": 8.4281
+    },
+    "camera_in_body": {
+     "faces": 344,
+     "area_mm2": 18134.2375,
+     "pct_of_mesh": 5.4156
+    },
+    "canopy_in_battery": {
+     "faces": 1092,
+     "area_mm2": 16759.9602,
+     "pct_of_mesh": 5.0052
+    },
+    "canopy_in_body": {
+     "faces": 1148,
+     "area_mm2": 14751.6243,
+     "pct_of_mesh": 4.4054
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 12347.0118,
+     "pct_of_mesh": 3.6873
+    },
+    "body_in_camera": {
+     "faces": 230,
+     "area_mm2": 3452.2364,
+     "pct_of_mesh": 1.031
+    },
+    "body_in_motor": {
+     "faces": 196,
+     "area_mm2": 2633.343,
+     "pct_of_mesh": 0.7864
+    }
+   },
+   "design_intent_pct_partition_rule": 8.7588,
+   "defect_pct_partition_rule": 30.7445,
+   "ambiguous_pct": 8.1163,
+   "ambiguous_faces": 1510,
+   "⭐mesh_state": {
+    "n_faces": 28594,
+    "n_verts": 14343,
+    "sha_verts": "f3a39b3764bff75e",
+    "sha_faces": "0c913d7032d1b9a9"
+   }
+  },
+  "typhoonh480": {
+   "name": "typhoonh480",
+   "n_faces": 34732,
+   "total_area_mm2": 453353.0723,
+   "n_parts": 29,
+   "patch_holes": true,
+   "buried_pct": 22.484,
+   "buried_area_mm2": 101932.0656,
+   "design_intent_pct": 8.564,
+   "defect_pct": 13.92,
+   "defect_area_mm2": 63106.7865,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "battery": {
+     "faces": 12,
+     "area_mm2": 43876.9253,
+     "buried_faces": 6,
+     "buried_area_mm2": 21938.4627,
+     "buried_pct_of_group": 50.0,
+     "defect_pct_of_mesh": 0.5872,
+     "design_pct_of_mesh": 4.252
+    },
+    "body": {
+     "faces": 10708,
+     "area_mm2": 167862.1068,
+     "buried_faces": 1250,
+     "buried_area_mm2": 19655.2394,
+     "buried_pct_of_group": 11.7092,
+     "defect_pct_of_mesh": 4.3355,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 1340,
+     "area_mm2": 69083.9458,
+     "buried_faces": 11,
+     "buried_area_mm2": 8206.1225,
+     "buried_pct_of_group": 11.8785,
+     "defect_pct_of_mesh": 1.8101,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 1344,
+     "area_mm2": 19186.4584,
+     "buried_faces": 960,
+     "buried_area_mm2": 14325.1215,
+     "buried_pct_of_group": 74.6627,
+     "defect_pct_of_mesh": 3.1598,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 344,
+     "area_mm2": 31680.6878,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear_cf": {
+     "faces": 764,
+     "area_mm2": 32522.2266,
+     "buried_faces": 222,
+     "buried_area_mm2": 8334.8914,
+     "buried_pct_of_group": 25.6283,
+     "defect_pct_of_mesh": 1.8385,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 1056,
+     "area_mm2": 15235.492,
+     "buried_faces": 504,
+     "buried_area_mm2": 7135.9665,
+     "buried_pct_of_group": 46.8378,
+     "defect_pct_of_mesh": 1.574,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 19548.7772,
+     "buried_faces": 12,
+     "buried_area_mm2": 19548.7772,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 4.312
+    },
+    "prop": {
+     "faces": 19152,
+     "area_mm2": 54356.4523,
+     "buried_faces": 1320,
+     "buried_area_mm2": 2787.4844,
+     "buried_pct_of_group": 5.1282,
+     "defect_pct_of_mesh": 0.6149,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 6,
+     "area_mm2": 21938.4627,
+     "pct_of_mesh": 4.8392,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 19548.7772,
+     "pct_of_mesh": 4.312,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 960,
+     "area_mm2": 14325.1215,
+     "pct_of_mesh": 3.1598,
+     "note": ""
+    },
+    "body_in_battery": {
+     "faces": 552,
+     "area_mm2": 11308.9417,
+     "pct_of_mesh": 2.4945,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 11,
+     "area_mm2": 8206.1225,
+     "pct_of_mesh": 1.8101,
+     "note": ""
+    },
+    "body_in_camera": {
+     "faces": 346,
+     "area_mm2": 6975.7639,
+     "pct_of_mesh": 1.5387,
+     "note": ""
+    },
+    "gear_cf_in_gear": {
+     "faces": 102,
+     "area_mm2": 5098.4217,
+     "pct_of_mesh": 1.1246,
+     "note": ""
+    },
+    "motor_in_body": {
+     "faces": 360,
+     "area_mm2": 3739.7435,
+     "pct_of_mesh": 0.8249,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 6,
+     "area_mm2": 21938.4627,
+     "pct_of_mesh": 4.8392
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 19548.7772,
+     "pct_of_mesh": 4.312
+    },
+    "canopy_in_body": {
+     "faces": 960,
+     "area_mm2": 14325.1215,
+     "pct_of_mesh": 3.1598
+    },
+    "body_in_battery": {
+     "faces": 552,
+     "area_mm2": 11308.9417,
+     "pct_of_mesh": 2.4945
+    },
+    "camera_in_body": {
+     "faces": 10,
+     "area_mm2": 6442.3936,
+     "pct_of_mesh": 1.4211
+    },
+    "body_in_camera": {
+     "faces": 302,
+     "area_mm2": 6174.3956,
+     "pct_of_mesh": 1.3619
+    },
+    "gear_cf_in_gear": {
+     "faces": 102,
+     "area_mm2": 5098.4217,
+     "pct_of_mesh": 1.1246
+    },
+    "motor_in_body": {
+     "faces": 360,
+     "area_mm2": 3739.7435,
+     "pct_of_mesh": 0.8249
+    }
+   },
+   "design_intent_pct_partition_rule": 9.1512,
+   "defect_pct_partition_rule": 13.3328,
+   "ambiguous_pct": 21.2419,
+   "ambiguous_faces": 3250,
+   "⭐mesh_state": {
+    "n_faces": 34732,
+    "n_verts": 17424,
+    "sha_verts": "a44dd6ebb5d7531c",
+    "sha_faces": "637fa50b86e070b5"
+   }
+  },
+  "x500v2": {
+   "name": "x500v2",
+   "n_faces": 19030,
+   "total_area_mm2": 436105.8358,
+   "n_parts": 50,
+   "patch_holes": true,
+   "buried_pct": 18.1388,
+   "buried_area_mm2": 79104.2513,
+   "design_intent_pct": 0.0,
+   "defect_pct": 18.1388,
+   "defect_area_mm2": 79104.2513,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "accent": {
+     "faces": 730,
+     "area_mm2": 88088.2078,
+     "buried_faces": 60,
+     "buried_area_mm2": 18213.479,
+     "buried_pct_of_group": 20.6764,
+     "defect_pct_of_mesh": 4.1764,
+     "design_pct_of_mesh": 0.0
+    },
+    "arm": {
+     "faces": 1636,
+     "area_mm2": 46866.4904,
+     "buried_faces": 605,
+     "buried_area_mm2": 14274.0594,
+     "buried_pct_of_group": 30.4569,
+     "defect_pct_of_mesh": 3.2731,
+     "design_pct_of_mesh": 0.0
+    },
+    "battery": {
+     "faces": 12,
+     "area_mm2": 22550.0,
+     "buried_faces": 3,
+     "buried_area_mm2": 7087.5,
+     "buried_pct_of_group": 31.4302,
+     "defect_pct_of_mesh": 1.6252,
+     "design_pct_of_mesh": 0.0
+    },
+    "deck": {
+     "faces": 280,
+     "area_mm2": 121152.3715,
+     "buried_faces": 70,
+     "buried_area_mm2": 13036.6501,
+     "buried_pct_of_group": 10.7605,
+     "defect_pct_of_mesh": 2.9893,
+     "design_pct_of_mesh": 0.0
+    },
+    "fc": {
+     "faces": 12,
+     "area_mm2": 11180.0478,
+     "buried_faces": 2,
+     "buried_area_mm2": 3656.0126,
+     "buried_pct_of_group": 32.7012,
+     "defect_pct_of_mesh": 0.8383,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 368,
+     "area_mm2": 46458.4699,
+     "buried_faces": 6,
+     "buried_area_mm2": 2775.8596,
+     "buried_pct_of_group": 5.9749,
+     "defect_pct_of_mesh": 0.6365,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear_cf": {
+     "faces": 780,
+     "area_mm2": 36574.8225,
+     "buried_faces": 384,
+     "buried_area_mm2": 20060.6907,
+     "buried_pct_of_group": 54.8484,
+     "defect_pct_of_mesh": 4.6,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2464,
+     "area_mm2": 14381.4504,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 4786.0,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "prop": {
+     "faces": 12736,
+     "area_mm2": 44067.9756,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "gear_cf_in_gear": {
+     "faces": 384,
+     "area_mm2": 20060.6907,
+     "pct_of_mesh": 4.6,
+     "note": ""
+    },
+    "arm_in_accent": {
+     "faces": 605,
+     "area_mm2": 14274.0594,
+     "pct_of_mesh": 3.2731,
+     "note": ""
+    },
+    "accent_in_arm": {
+     "faces": 40,
+     "area_mm2": 9451.1196,
+     "pct_of_mesh": 2.1672,
+     "note": ""
+    },
+    "deck_in_accent": {
+     "faces": 66,
+     "area_mm2": 7820.6502,
+     "pct_of_mesh": 1.7933,
+     "note": ""
+    },
+    "battery_in_deck": {
+     "faces": 3,
+     "area_mm2": 7087.5,
+     "pct_of_mesh": 1.6252,
+     "note": ""
+    },
+    "accent_in_battery": {
+     "faces": 8,
+     "area_mm2": 6704.0395,
+     "pct_of_mesh": 1.5373,
+     "note": ""
+    },
+    "deck_in_battery": {
+     "faces": 4,
+     "area_mm2": 5215.9999,
+     "pct_of_mesh": 1.196,
+     "note": ""
+    },
+    "fc_in_deck": {
+     "faces": 2,
+     "area_mm2": 3656.0126,
+     "pct_of_mesh": 0.8383,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "gear_cf_in_gear": {
+     "faces": 384,
+     "area_mm2": 20060.6907,
+     "pct_of_mesh": 4.6
+    },
+    "arm_in_accent": {
+     "faces": 605,
+     "area_mm2": 14274.0594,
+     "pct_of_mesh": 3.2731
+    },
+    "accent_in_arm": {
+     "faces": 40,
+     "area_mm2": 9451.1196,
+     "pct_of_mesh": 2.1672
+    },
+    "deck_in_accent": {
+     "faces": 66,
+     "area_mm2": 7820.6502,
+     "pct_of_mesh": 1.7933
+    },
+    "battery_in_deck": {
+     "faces": 3,
+     "area_mm2": 7087.5,
+     "pct_of_mesh": 1.6252
+    },
+    "accent_in_battery": {
+     "faces": 8,
+     "area_mm2": 6704.0395,
+     "pct_of_mesh": 1.5373
+    },
+    "deck_in_battery": {
+     "faces": 4,
+     "area_mm2": 5215.9999,
+     "pct_of_mesh": 1.196
+    },
+    "fc_in_deck": {
+     "faces": 2,
+     "area_mm2": 3656.0126,
+     "pct_of_mesh": 0.8383
+    }
+   },
+   "design_intent_pct_partition_rule": 0.0,
+   "defect_pct_partition_rule": 18.1388,
+   "ambiguous_pct": 23.4084,
+   "ambiguous_faces": 1485,
+   "⭐mesh_state": {
+    "n_faces": 19030,
+    "n_verts": 9615,
+    "sha_verts": "7b6a749404600247",
+    "sha_faces": "7b2e2475906942b8"
+   }
+  },
+  "phantom3": {
+   "name": "phantom3",
+   "n_faces": 28508,
+   "total_area_mm2": 278160.0561,
+   "n_parts": 21,
+   "patch_holes": true,
+   "buried_pct": 26.2798,
+   "buried_area_mm2": 73099.8911,
+   "design_intent_pct": 18.0132,
+   "defect_pct": 8.2666,
+   "defect_area_mm2": 22994.3073,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "battery": {
+     "faces": 24,
+     "area_mm2": 32151.018,
+     "buried_faces": 20,
+     "buried_area_mm2": 22657.6067,
+     "buried_pct_of_group": 70.4724,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 8.1455
+    },
+    "body": {
+     "faces": 7792,
+     "area_mm2": 99308.9628,
+     "buried_faces": 888,
+     "buried_area_mm2": 11021.7386,
+     "buried_pct_of_group": 11.0984,
+     "defect_pct_of_mesh": 3.9624,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 354,
+     "area_mm2": 37822.3747,
+     "buried_faces": 147,
+     "buried_area_mm2": 1565.8213,
+     "buried_pct_of_group": 4.1399,
+     "defect_pct_of_mesh": 0.5629,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 2240,
+     "area_mm2": 9013.2189,
+     "buried_faces": 2240,
+     "buried_area_mm2": 9013.2189,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 3.2403,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 3318,
+     "area_mm2": 24922.0254,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2016,
+     "area_mm2": 7804.4996,
+     "buried_faces": 432,
+     "buried_area_mm2": 1379.5135,
+     "buried_pct_of_group": 17.6759,
+     "defect_pct_of_mesh": 0.4959,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 27777.3414,
+     "buried_faces": 10,
+     "buried_area_mm2": 27447.9772,
+     "buried_pct_of_group": 98.8143,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 9.8677
+    },
+    "prop": {
+     "faces": 12752,
+     "area_mm2": 39360.6153,
+     "buried_faces": 64,
+     "buried_area_mm2": 14.015,
+     "buried_pct_of_group": 0.0356,
+     "defect_pct_of_mesh": 0.005,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "pcb_in_body": {
+     "faces": 10,
+     "area_mm2": 27447.9772,
+     "pct_of_mesh": 9.8677,
+     "note": ""
+    },
+    "battery_in_body": {
+     "faces": 20,
+     "area_mm2": 22657.6067,
+     "pct_of_mesh": 8.1455,
+     "note": ""
+    },
+    "body_in_battery": {
+     "faces": 759,
+     "area_mm2": 9510.6283,
+     "pct_of_mesh": 3.4191,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 2240,
+     "area_mm2": 9013.2189,
+     "pct_of_mesh": 3.2403,
+     "note": ""
+    },
+    "canopy_in_pcb": {
+     "faces": 356,
+     "area_mm2": 1777.8632,
+     "pct_of_mesh": 0.6392,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 147,
+     "area_mm2": 1565.8213,
+     "pct_of_mesh": 0.5629,
+     "note": ""
+    },
+    "motor_in_body": {
+     "faces": 432,
+     "area_mm2": 1379.5135,
+     "pct_of_mesh": 0.4959,
+     "note": ""
+    },
+    "body_in_motor": {
+     "faces": 84,
+     "area_mm2": 1151.7383,
+     "pct_of_mesh": 0.4141,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "pcb_in_body": {
+     "faces": 10,
+     "area_mm2": 27447.9772,
+     "pct_of_mesh": 9.8677
+    },
+    "battery_in_body": {
+     "faces": 20,
+     "area_mm2": 22657.6067,
+     "pct_of_mesh": 8.1455
+    },
+    "body_in_battery": {
+     "faces": 759,
+     "area_mm2": 9510.6283,
+     "pct_of_mesh": 3.4191
+    },
+    "canopy_in_body": {
+     "faces": 2240,
+     "area_mm2": 9013.2189,
+     "pct_of_mesh": 3.2403
+    },
+    "camera_in_body": {
+     "faces": 147,
+     "area_mm2": 1565.8213,
+     "pct_of_mesh": 0.5629
+    },
+    "motor_in_body": {
+     "faces": 432,
+     "area_mm2": 1379.5135,
+     "pct_of_mesh": 0.4959
+    },
+    "body_in_motor": {
+     "faces": 84,
+     "area_mm2": 1151.7383,
+     "pct_of_mesh": 0.4141
+    },
+    "body_in_pcb": {
+     "faces": 32,
+     "area_mm2": 212.0244,
+     "pct_of_mesh": 0.0762
+    }
+   },
+   "design_intent_pct_partition_rule": 18.0132,
+   "defect_pct_partition_rule": 8.2666,
+   "ambiguous_pct": 8.6893,
+   "ambiguous_faces": 881,
+   "⭐mesh_state": {
+    "n_faces": 28508,
+    "n_verts": 14296,
+    "sha_verts": "5b3654290dc0c4a4",
+    "sha_faces": "2d26976db24bebdb"
+   }
+  },
+  "m350rtk": {
+   "name": "m350rtk",
+   "n_faces": 26216,
+   "total_area_mm2": 1040901.3768,
+   "n_parts": 43,
+   "patch_holes": true,
+   "buried_pct": 29.3285,
+   "buried_area_mm2": 305281.0855,
+   "design_intent_pct": 20.5088,
+   "defect_pct": 8.8198,
+   "defect_area_mm2": 91804.9598,
+   "blind_containers": [],
+   "n_patched_containers": 0,
+   "by_group": {
+    "arm": {
+     "faces": 960,
+     "area_mm2": 62708.2189,
+     "buried_faces": 80,
+     "buried_area_mm2": 1481.8573,
+     "buried_pct_of_group": 2.3631,
+     "defect_pct_of_mesh": 0.1424,
+     "design_pct_of_mesh": 0.0
+    },
+    "battery": {
+     "faces": 24,
+     "area_mm2": 137159.4438,
+     "buried_faces": 24,
+     "buried_area_mm2": 137159.4438,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 13.177
+    },
+    "body": {
+     "faces": 7560,
+     "area_mm2": 329071.2107,
+     "buried_faces": 728,
+     "buried_area_mm2": 20086.5413,
+     "buried_pct_of_group": 6.104,
+     "defect_pct_of_mesh": 1.9297,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 944,
+     "area_mm2": 15817.9407,
+     "buried_faces": 395,
+     "buried_area_mm2": 4972.5005,
+     "buried_pct_of_group": 31.4358,
+     "defect_pct_of_mesh": 0.4777,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 320,
+     "area_mm2": 28194.922,
+     "buried_faces": 160,
+     "buried_area_mm2": 6270.3374,
+     "buried_pct_of_group": 22.2392,
+     "defect_pct_of_mesh": 0.6024,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear_cf": {
+     "faces": 1296,
+     "area_mm2": 133587.7284,
+     "buried_faces": 220,
+     "buried_area_mm2": 12947.5631,
+     "buried_pct_of_group": 9.6922,
+     "defect_pct_of_mesh": 1.2439,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2336,
+     "area_mm2": 49766.6464,
+     "buried_faces": 972,
+     "buried_area_mm2": 23833.2701,
+     "buried_pct_of_group": 47.89,
+     "defect_pct_of_mesh": 2.2897,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 24,
+     "area_mm2": 90228.2026,
+     "buried_faces": 24,
+     "buried_area_mm2": 90228.2026,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 1.3365,
+     "design_pct_of_mesh": 7.3318
+    },
+    "prop": {
+     "faces": 12752,
+     "area_mm2": 194367.0632,
+     "buried_faces": 232,
+     "buried_area_mm2": 8301.3694,
+     "buried_pct_of_group": 4.271,
+     "defect_pct_of_mesh": 0.7975,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 24,
+     "area_mm2": 137159.4438,
+     "pct_of_mesh": 13.177,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 24,
+     "area_mm2": 90228.2026,
+     "pct_of_mesh": 8.6683,
+     "note": ""
+    },
+    "pcb_in_battery": {
+     "faces": 6,
+     "area_mm2": 13911.5207,
+     "pct_of_mesh": 1.3365,
+     "note": ""
+    },
+    "motor_in_prop": {
+     "faces": 240,
+     "area_mm2": 13825.1996,
+     "pct_of_mesh": 1.3282,
+     "note": ""
+    },
+    "gear_cf_in_gear": {
+     "faces": 148,
+     "area_mm2": 11132.8261,
+     "pct_of_mesh": 1.0695,
+     "note": ""
+    },
+    "motor_in_body": {
+     "faces": 732,
+     "area_mm2": 10008.0705,
+     "pct_of_mesh": 0.9615,
+     "note": ""
+    },
+    "body_in_motor": {
+     "faces": 432,
+     "area_mm2": 9391.6696,
+     "pct_of_mesh": 0.9023,
+     "note": ""
+    },
+    "prop_in_motor": {
+     "faces": 232,
+     "area_mm2": 8301.3694,
+     "pct_of_mesh": 0.7975,
+     "note": "check_prop_bell_solid 가 따로 보는 쌍(전용 예산 있음)"
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 24,
+     "area_mm2": 137159.4438,
+     "pct_of_mesh": 13.177
+    },
+    "pcb_in_body": {
+     "faces": 18,
+     "area_mm2": 76316.6819,
+     "pct_of_mesh": 7.3318
+    },
+    "pcb_in_battery": {
+     "faces": 6,
+     "area_mm2": 13911.5207,
+     "pct_of_mesh": 1.3365
+    },
+    "motor_in_prop": {
+     "faces": 240,
+     "area_mm2": 13825.1996,
+     "pct_of_mesh": 1.3282
+    },
+    "gear_cf_in_gear": {
+     "faces": 148,
+     "area_mm2": 11132.8261,
+     "pct_of_mesh": 1.0695
+    },
+    "motor_in_body": {
+     "faces": 732,
+     "area_mm2": 10008.0705,
+     "pct_of_mesh": 0.9615
+    },
+    "body_in_motor": {
+     "faces": 432,
+     "area_mm2": 9391.6696,
+     "pct_of_mesh": 0.9023
+    },
+    "prop_in_motor": {
+     "faces": 232,
+     "area_mm2": 8301.3694,
+     "pct_of_mesh": 0.7975
+    }
+   },
+   "design_intent_pct_partition_rule": 20.5088,
+   "defect_pct_partition_rule": 8.8198,
+   "ambiguous_pct": 20.9612,
+   "ambiguous_faces": 2533,
+   "⭐mesh_state": {
+    "n_faces": 26216,
+    "n_verts": 13194,
+    "sha_verts": "18beed9e4e9b88b6",
+    "sha_faces": "4cfce39c005c9832"
+   }
+  },
+  "mini2": {
+   "name": "mini2",
+   "n_faces": 25823,
+   "total_area_mm2": 91611.584,
+   "n_parts": 18,
+   "patch_holes": true,
+   "buried_pct": 44.4486,
+   "buried_area_mm2": 40720.0453,
+   "design_intent_pct": 10.1739,
+   "defect_pct": 34.2747,
+   "defect_area_mm2": 31399.5651,
+   "blind_containers": [],
+   "n_patched_containers": 1,
+   "by_group": {
+    "battery": {
+     "faces": 24,
+     "area_mm2": 20037.3036,
+     "buried_faces": 24,
+     "buried_area_mm2": 20037.3036,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 11.6981,
+     "design_pct_of_mesh": 10.1739
+    },
+    "body": {
+     "faces": 7757,
+     "area_mm2": 36310.2271,
+     "buried_faces": 400,
+     "buried_area_mm2": 2318.452,
+     "buried_pct_of_group": 6.3851,
+     "defect_pct_of_mesh": 2.5307,
+     "design_pct_of_mesh": 0.0
+    },
+    "camera": {
+     "faces": 294,
+     "area_mm2": 6096.9775,
+     "buried_faces": 150,
+     "buried_area_mm2": 4396.9492,
+     "buried_pct_of_group": 72.1169,
+     "defect_pct_of_mesh": 4.7996,
+     "design_pct_of_mesh": 0.0
+    },
+    "canopy": {
+     "faces": 2240,
+     "area_mm2": 9813.6516,
+     "buried_faces": 1980,
+     "buried_area_mm2": 8474.0088,
+     "buried_pct_of_group": 86.3492,
+     "defect_pct_of_mesh": 9.2499,
+     "design_pct_of_mesh": 0.0
+    },
+    "gear": {
+     "faces": 512,
+     "area_mm2": 1580.0713,
+     "buried_faces": 0,
+     "buried_area_mm2": 0.0,
+     "buried_pct_of_group": 0.0,
+     "defect_pct_of_mesh": 0.0,
+     "design_pct_of_mesh": 0.0
+    },
+    "motor": {
+     "faces": 2248,
+     "area_mm2": 3636.7449,
+     "buried_faces": 363,
+     "buried_area_mm2": 762.3045,
+     "buried_pct_of_group": 20.9612,
+     "defect_pct_of_mesh": 0.8321,
+     "design_pct_of_mesh": 0.0
+    },
+    "pcb": {
+     "faces": 12,
+     "area_mm2": 4442.2019,
+     "buried_faces": 12,
+     "buried_area_mm2": 4442.2019,
+     "buried_pct_of_group": 100.0,
+     "defect_pct_of_mesh": 4.849,
+     "design_pct_of_mesh": 0.0
+    },
+    "prop": {
+     "faces": 12736,
+     "area_mm2": 9694.4061,
+     "buried_faces": 878,
+     "buried_area_mm2": 288.8253,
+     "buried_pct_of_group": 2.9793,
+     "defect_pct_of_mesh": 0.3153,
+     "design_pct_of_mesh": 0.0
+    }
+   },
+   "pairs": {
+    "battery_in_body": {
+     "faces": 24,
+     "area_mm2": 20037.3036,
+     "pct_of_mesh": 21.872,
+     "note": ""
+    },
+    "battery_in_battery": {
+     "faces": 9,
+     "area_mm2": 10010.2341,
+     "pct_of_mesh": 10.9268,
+     "note": ""
+    },
+    "canopy_in_body": {
+     "faces": 1980,
+     "area_mm2": 8474.0088,
+     "pct_of_mesh": 9.2499,
+     "note": ""
+    },
+    "battery_in_canopy": {
+     "faces": 4,
+     "area_mm2": 4687.1036,
+     "pct_of_mesh": 5.1163,
+     "note": ""
+    },
+    "pcb_in_body": {
+     "faces": 12,
+     "area_mm2": 4442.2019,
+     "pct_of_mesh": 4.849,
+     "note": ""
+    },
+    "camera_in_body": {
+     "faces": 150,
+     "area_mm2": 4396.9492,
+     "pct_of_mesh": 4.7996,
+     "note": ""
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 4340.4078,
+     "pct_of_mesh": 4.7378,
+     "note": ""
+    },
+    "pcb_in_canopy": {
+     "faces": 10,
+     "area_mm2": 4340.4078,
+     "pct_of_mesh": 4.7378,
+     "note": ""
+    }
+   },
+   "pairs_partition": {
+    "battery_in_body": {
+     "faces": 15,
+     "area_mm2": 10027.0695,
+     "pct_of_mesh": 10.9452
+    },
+    "battery_in_battery": {
+     "faces": 9,
+     "area_mm2": 10010.2341,
+     "pct_of_mesh": 10.9268
+    },
+    "canopy_in_body": {
+     "faces": 1271,
+     "area_mm2": 5359.7388,
+     "pct_of_mesh": 5.8505
+    },
+    "pcb_in_battery": {
+     "faces": 10,
+     "area_mm2": 4340.4078,
+     "pct_of_mesh": 4.7378
+    },
+    "camera_in_body": {
+     "faces": 126,
+     "area_mm2": 3388.0787,
+     "pct_of_mesh": 3.6983
+    },
+    "canopy_in_battery": {
+     "faces": 709,
+     "area_mm2": 3114.27,
+     "pct_of_mesh": 3.3994
+    },
+    "camera_in_battery": {
+     "faces": 24,
+     "area_mm2": 1008.8706,
+     "pct_of_mesh": 1.1012
+    },
+    "body_in_canopy": {
+     "faces": 183,
+     "area_mm2": 971.0796,
+     "pct_of_mesh": 1.06
+    }
+   },
+   "design_intent_pct_partition_rule": 11.0563,
+   "defect_pct_partition_rule": 33.3923,
+   "ambiguous_pct": 6.9738,
+   "ambiguous_faces": 1753,
+   "⭐mesh_state": {
+    "n_faces": 25823,
+    "n_verts": 12948,
+    "sha_verts": "c8856ee7aca226de",
+    "sha_faces": "0603f1c505eaeea3"
+   }
+  }
+ },
+ "sigma": {
+  "mini5pro": {
+   "n_points": 30603,
+   "n_points_dropped_defect": 6121,
+   "n_points_dropped_all": 6470,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 3.9881,
+      "worst_az_db": 32.302,
+      "worst_az_deg": 162.0,
+      "worst_az_db_3deg_window": 16.608,
+      "p95_abs_db": 11.626,
+      "sigma_with_defect_azmean_dbsm": -19.483,
+      "sigma_repaired_azmean_dbsm": -23.471
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 6.6538,
+      "worst_az_db": 24.877,
+      "worst_az_deg": 190.0,
+      "worst_az_db_3deg_window": 24.336,
+      "p95_abs_db": 18.511,
+      "sigma_with_defect_azmean_dbsm": -19.483,
+      "sigma_repaired_azmean_dbsm": -26.137
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 2.384,
+      "worst_az_db": 17.015,
+      "worst_az_deg": 284.0,
+      "worst_az_db_3deg_window": 15.072,
+      "p95_abs_db": 10.114,
+      "sigma_with_defect_azmean_dbsm": -22.696,
+      "sigma_repaired_azmean_dbsm": -25.08
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 4.0186,
+      "worst_az_db": 19.149,
+      "worst_az_deg": 80.0,
+      "worst_az_db_3deg_window": 13.528,
+      "p95_abs_db": 11.416,
+      "sigma_with_defect_azmean_dbsm": -22.696,
+      "sigma_repaired_azmean_dbsm": -26.715
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 3.7103,
+      "worst_az_db": -10.562,
+      "worst_az_deg": 198.0,
+      "worst_az_db_3deg_window": -10.546,
+      "p95_abs_db": 8.089,
+      "sigma_with_defect_azmean_dbsm": -20.16,
+      "sigma_repaired_azmean_dbsm": -23.871
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 7.5479,
+      "worst_az_db": 30.217,
+      "worst_az_deg": 228.0,
+      "worst_az_db_3deg_window": 24.161,
+      "p95_abs_db": 16.25,
+      "sigma_with_defect_azmean_dbsm": -20.16,
+      "sigma_repaired_azmean_dbsm": -27.708
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    }
+   }
+  },
+  "mavic4pro": {
+   "n_points": 39205,
+   "n_points_dropped_defect": 7694,
+   "n_points_dropped_all": 8494,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 2.4535,
+      "worst_az_db": 16.735,
+      "worst_az_deg": 256.0,
+      "worst_az_db_3deg_window": 12.407,
+      "p95_abs_db": 11.706,
+      "sigma_with_defect_azmean_dbsm": -15.264,
+      "sigma_repaired_azmean_dbsm": -17.717
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 4.5898,
+      "worst_az_db": -17.104,
+      "worst_az_deg": 270.0,
+      "worst_az_db_3deg_window": 16.236,
+      "p95_abs_db": 15.206,
+      "sigma_with_defect_azmean_dbsm": -15.264,
+      "sigma_repaired_azmean_dbsm": -19.854
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 1.5943,
+      "worst_az_db": 20.616,
+      "worst_az_deg": 160.0,
+      "worst_az_db_3deg_window": 8.451,
+      "p95_abs_db": 7.458,
+      "sigma_with_defect_azmean_dbsm": -19.27,
+      "sigma_repaired_azmean_dbsm": -20.864
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.8561,
+      "worst_az_db": 18.564,
+      "worst_az_deg": 182.0,
+      "worst_az_db_3deg_window": 17.629,
+      "p95_abs_db": 11.541,
+      "sigma_with_defect_azmean_dbsm": -19.27,
+      "sigma_repaired_azmean_dbsm": -21.126
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 2.0763,
+      "worst_az_db": 14.998,
+      "worst_az_deg": 8.0,
+      "worst_az_db_3deg_window": 12.202,
+      "p95_abs_db": 8.303,
+      "sigma_with_defect_azmean_dbsm": -22.571,
+      "sigma_repaired_azmean_dbsm": -24.648
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 2.1797,
+      "worst_az_db": 21.326,
+      "worst_az_deg": 22.0,
+      "worst_az_db_3deg_window": 18.09,
+      "p95_abs_db": 13.927,
+      "sigma_with_defect_azmean_dbsm": -22.571,
+      "sigma_repaired_azmean_dbsm": -24.751
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    }
+   }
+  },
+  "matrice4e": {
+   "n_points": 40609,
+   "n_points_dropped_defect": 6035,
+   "n_points_dropped_all": 7567,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 1.2014,
+      "worst_az_db": 15.479,
+      "worst_az_deg": 108.0,
+      "worst_az_db_3deg_window": 5.71,
+      "p95_abs_db": 4.99,
+      "sigma_with_defect_azmean_dbsm": -16.038,
+      "sigma_repaired_azmean_dbsm": -17.239
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 5.2674,
+      "worst_az_db": 11.675,
+      "worst_az_deg": 262.0,
+      "worst_az_db_3deg_window": 11.486,
+      "p95_abs_db": 10.626,
+      "sigma_with_defect_azmean_dbsm": -16.038,
+      "sigma_repaired_azmean_dbsm": -21.305
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.843,
+      "worst_az_db": 17.597,
+      "worst_az_deg": 184.0,
+      "worst_az_db_3deg_window": 13.539,
+      "p95_abs_db": 10.569,
+      "sigma_with_defect_azmean_dbsm": -20.786,
+      "sigma_repaired_azmean_dbsm": -21.629
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 2.4424,
+      "worst_az_db": 18.0,
+      "worst_az_deg": 194.0,
+      "worst_az_db_3deg_window": 15.248,
+      "p95_abs_db": 12.623,
+      "sigma_with_defect_azmean_dbsm": -20.786,
+      "sigma_repaired_azmean_dbsm": -23.228
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.8745,
+      "worst_az_db": -11.955,
+      "worst_az_deg": 210.0,
+      "worst_az_db_3deg_window": 6.974,
+      "p95_abs_db": 4.463,
+      "sigma_with_defect_azmean_dbsm": -16.597,
+      "sigma_repaired_azmean_dbsm": -17.472
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 7.6452,
+      "worst_az_db": 19.431,
+      "worst_az_deg": 110.0,
+      "worst_az_db_3deg_window": 18.71,
+      "p95_abs_db": 15.907,
+      "sigma_with_defect_azmean_dbsm": -16.597,
+      "sigma_repaired_azmean_dbsm": -24.242
+     },
+     "판정": "보임(0.1~1dB)"
+    }
+   }
+  },
+  "s1000plus": {
+   "n_points": 191864,
+   "n_points_dropped_defect": 10718,
+   "n_points_dropped_all": 10990,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.3632,
+      "worst_az_db": 8.505,
+      "worst_az_deg": 152.0,
+      "worst_az_db_3deg_window": 3.335,
+      "p95_abs_db": 4.326,
+      "sigma_with_defect_azmean_dbsm": -10.904,
+      "sigma_repaired_azmean_dbsm": -11.268
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 0.3632,
+      "worst_az_db": 8.505,
+      "worst_az_deg": 152.0,
+      "worst_az_db_3deg_window": 3.335,
+      "p95_abs_db": 4.326,
+      "sigma_with_defect_azmean_dbsm": -10.904,
+      "sigma_repaired_azmean_dbsm": -11.268
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.2139,
+      "worst_az_db": -9.862,
+      "worst_az_deg": 122.0,
+      "worst_az_db_3deg_window": -5.27,
+      "p95_abs_db": 5.211,
+      "sigma_with_defect_azmean_dbsm": -12.76,
+      "sigma_repaired_azmean_dbsm": -12.973
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 0.2367,
+      "worst_az_db": -10.532,
+      "worst_az_deg": 160.0,
+      "worst_az_db_3deg_window": -5.646,
+      "p95_abs_db": 4.763,
+      "sigma_with_defect_azmean_dbsm": -12.76,
+      "sigma_repaired_azmean_dbsm": -12.996
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 1.1452,
+      "worst_az_db": -11.097,
+      "worst_az_deg": 36.0,
+      "worst_az_db_3deg_window": 5.424,
+      "p95_abs_db": 5.509,
+      "sigma_with_defect_azmean_dbsm": -12.247,
+      "sigma_repaired_azmean_dbsm": -13.393
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.1602,
+      "worst_az_db": -10.26,
+      "worst_az_deg": 72.0,
+      "worst_az_db_3deg_window": 6.771,
+      "p95_abs_db": 6.489,
+      "sigma_with_defect_azmean_dbsm": -12.247,
+      "sigma_repaired_azmean_dbsm": -13.408
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    }
+   }
+  },
+  "phantom4": {
+   "n_points": 45182,
+   "n_points_dropped_defect": 6997,
+   "n_points_dropped_all": 7794,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.952,
+      "worst_az_db": 8.471,
+      "worst_az_deg": 124.0,
+      "worst_az_db_3deg_window": 5.542,
+      "p95_abs_db": 5.446,
+      "sigma_with_defect_azmean_dbsm": -18.556,
+      "sigma_repaired_azmean_dbsm": -19.508
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 3.1979,
+      "worst_az_db": 20.41,
+      "worst_az_deg": 172.0,
+      "worst_az_db_3deg_window": 18.195,
+      "p95_abs_db": 10.631,
+      "sigma_with_defect_azmean_dbsm": -18.556,
+      "sigma_repaired_azmean_dbsm": -21.754
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 1.9093,
+      "worst_az_db": 24.848,
+      "worst_az_deg": 266.0,
+      "worst_az_db_3deg_window": 12.875,
+      "p95_abs_db": 11.171,
+      "sigma_with_defect_azmean_dbsm": -21.363,
+      "sigma_repaired_azmean_dbsm": -23.272
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 3.769,
+      "worst_az_db": 20.332,
+      "worst_az_deg": 18.0,
+      "worst_az_db_3deg_window": 15.154,
+      "p95_abs_db": 12.591,
+      "sigma_with_defect_azmean_dbsm": -21.363,
+      "sigma_repaired_azmean_dbsm": -25.132
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.2552,
+      "worst_az_db": -18.753,
+      "worst_az_deg": 216.0,
+      "worst_az_db_3deg_window": 12.626,
+      "p95_abs_db": 10.461,
+      "sigma_with_defect_azmean_dbsm": -21.84,
+      "sigma_repaired_azmean_dbsm": -22.095
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.4132,
+      "worst_az_db": 18.139,
+      "worst_az_deg": 198.0,
+      "worst_az_db_3deg_window": 17.187,
+      "p95_abs_db": 12.324,
+      "sigma_with_defect_azmean_dbsm": -21.84,
+      "sigma_repaired_azmean_dbsm": -23.253
+     },
+     "판정": "보임(0.1~1dB)"
+    }
+   }
+  },
+  "typhoonh480": {
+   "n_points": 75006,
+   "n_points_dropped_defect": 11709,
+   "n_points_dropped_all": 12640,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.8016,
+      "worst_az_db": 13.367,
+      "worst_az_deg": 340.0,
+      "worst_az_db_3deg_window": 9.78,
+      "p95_abs_db": 4.919,
+      "sigma_with_defect_azmean_dbsm": -14.163,
+      "sigma_repaired_azmean_dbsm": -14.965
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 0.9314,
+      "worst_az_db": 11.018,
+      "worst_az_deg": 358.0,
+      "worst_az_db_3deg_window": 9.484,
+      "p95_abs_db": 6.559,
+      "sigma_with_defect_azmean_dbsm": -14.163,
+      "sigma_repaired_azmean_dbsm": -15.094
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.7996,
+      "worst_az_db": 14.623,
+      "worst_az_deg": 204.0,
+      "worst_az_db_3deg_window": 12.965,
+      "p95_abs_db": 9.811,
+      "sigma_with_defect_azmean_dbsm": -15.559,
+      "sigma_repaired_azmean_dbsm": -16.359
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.1808,
+      "worst_az_db": 15.875,
+      "worst_az_deg": 204.0,
+      "worst_az_db_3deg_window": -14.794,
+      "p95_abs_db": 10.154,
+      "sigma_with_defect_azmean_dbsm": -15.559,
+      "sigma_repaired_azmean_dbsm": -16.74
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 1.2803,
+      "worst_az_db": 6.88,
+      "worst_az_deg": 72.0,
+      "worst_az_db_3deg_window": 6.125,
+      "p95_abs_db": 4.279,
+      "sigma_with_defect_azmean_dbsm": -18.36,
+      "sigma_repaired_azmean_dbsm": -19.64
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.7337,
+      "worst_az_db": 14.205,
+      "worst_az_deg": 66.0,
+      "worst_az_db_3deg_window": 11.113,
+      "p95_abs_db": 6.792,
+      "sigma_with_defect_azmean_dbsm": -18.36,
+      "sigma_repaired_azmean_dbsm": -20.093
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    }
+   }
+  },
+  "x500v2": {
+   "n_points": 77982,
+   "n_points_dropped_defect": 30482,
+   "n_points_dropped_all": 30482,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 1.4029,
+      "worst_az_db": 14.246,
+      "worst_az_deg": 246.0,
+      "worst_az_db_3deg_window": 11.608,
+      "p95_abs_db": 9.281,
+      "sigma_with_defect_azmean_dbsm": -16.923,
+      "sigma_repaired_azmean_dbsm": -18.326
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.4029,
+      "worst_az_db": 14.246,
+      "worst_az_deg": 246.0,
+      "worst_az_db_3deg_window": 11.608,
+      "p95_abs_db": 9.281,
+      "sigma_with_defect_azmean_dbsm": -16.923,
+      "sigma_repaired_azmean_dbsm": -18.326
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 2.8198,
+      "worst_az_db": 13.738,
+      "worst_az_deg": 240.0,
+      "worst_az_db_3deg_window": 11.061,
+      "p95_abs_db": 10.372,
+      "sigma_with_defect_azmean_dbsm": -16.311,
+      "sigma_repaired_azmean_dbsm": -19.131
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 2.8198,
+      "worst_az_db": 13.738,
+      "worst_az_deg": 240.0,
+      "worst_az_db_3deg_window": 11.061,
+      "p95_abs_db": 10.372,
+      "sigma_with_defect_azmean_dbsm": -16.311,
+      "sigma_repaired_azmean_dbsm": -19.131
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 3.2767,
+      "worst_az_db": 14.393,
+      "worst_az_deg": 220.0,
+      "worst_az_db_3deg_window": 9.088,
+      "p95_abs_db": 8.382,
+      "sigma_with_defect_azmean_dbsm": -15.072,
+      "sigma_repaired_azmean_dbsm": -18.349
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 3.2767,
+      "worst_az_db": 14.393,
+      "worst_az_deg": 220.0,
+      "worst_az_db_3deg_window": 9.088,
+      "p95_abs_db": 8.382,
+      "sigma_with_defect_azmean_dbsm": -15.072,
+      "sigma_repaired_azmean_dbsm": -18.349
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    }
+   }
+  },
+  "phantom3": {
+   "n_points": 39173,
+   "n_points_dropped_defect": 4215,
+   "n_points_dropped_all": 5411,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.5303,
+      "worst_az_db": -3.775,
+      "worst_az_deg": 236.0,
+      "worst_az_db_3deg_window": 3.209,
+      "p95_abs_db": 2.507,
+      "sigma_with_defect_azmean_dbsm": -19.487,
+      "sigma_repaired_azmean_dbsm": -20.017
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 4.941,
+      "worst_az_db": 17.769,
+      "worst_az_deg": 26.0,
+      "worst_az_db_3deg_window": 16.307,
+      "p95_abs_db": 14.256,
+      "sigma_with_defect_azmean_dbsm": -19.487,
+      "sigma_repaired_azmean_dbsm": -24.428
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.5417,
+      "worst_az_db": -9.172,
+      "worst_az_deg": 224.0,
+      "worst_az_db_3deg_window": -3.984,
+      "p95_abs_db": 2.828,
+      "sigma_with_defect_azmean_dbsm": -18.292,
+      "sigma_repaired_azmean_dbsm": -18.834
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 3.7519,
+      "worst_az_db": 19.078,
+      "worst_az_deg": 86.0,
+      "worst_az_db_3deg_window": 15.389,
+      "p95_abs_db": 11.786,
+      "sigma_with_defect_azmean_dbsm": -18.292,
+      "sigma_repaired_azmean_dbsm": -22.044
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.4127,
+      "worst_az_db": 14.156,
+      "worst_az_deg": 336.0,
+      "worst_az_db_3deg_window": -13.007,
+      "p95_abs_db": 9.14,
+      "sigma_with_defect_azmean_dbsm": -22.733,
+      "sigma_repaired_azmean_dbsm": -23.145
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 1.2982,
+      "worst_az_db": -26.109,
+      "worst_az_deg": 10.0,
+      "worst_az_db_3deg_window": -25.848,
+      "p95_abs_db": 13.611,
+      "sigma_with_defect_azmean_dbsm": -22.733,
+      "sigma_repaired_azmean_dbsm": -24.031
+     },
+     "판정": "보임(0.1~1dB)"
+    }
+   }
+  },
+  "m350rtk": {
+   "n_points": 130343,
+   "n_points_dropped_defect": 9173,
+   "n_points_dropped_all": 14141,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.3472,
+      "worst_az_db": 7.336,
+      "worst_az_deg": 336.0,
+      "worst_az_db_3deg_window": 4.48,
+      "p95_abs_db": 3.957,
+      "sigma_with_defect_azmean_dbsm": -5.616,
+      "sigma_repaired_azmean_dbsm": -5.963
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 7.7526,
+      "worst_az_db": 23.903,
+      "worst_az_deg": 266.0,
+      "worst_az_db_3deg_window": 19.886,
+      "p95_abs_db": 16.148,
+      "sigma_with_defect_azmean_dbsm": -5.616,
+      "sigma_repaired_azmean_dbsm": -13.368
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 0.1454,
+      "worst_az_db": -13.45,
+      "worst_az_deg": 80.0,
+      "worst_az_db_3deg_window": -5.34,
+      "p95_abs_db": 4.456,
+      "sigma_with_defect_azmean_dbsm": -12.31,
+      "sigma_repaired_azmean_dbsm": -12.455
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 0.2869,
+      "worst_az_db": -16.944,
+      "worst_az_deg": 80.0,
+      "worst_az_db_3deg_window": -7.544,
+      "p95_abs_db": 3.802,
+      "sigma_with_defect_azmean_dbsm": -12.31,
+      "sigma_repaired_azmean_dbsm": -12.596
+     },
+     "판정": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": -0.151,
+      "worst_az_db": -14.954,
+      "worst_az_deg": 218.0,
+      "worst_az_db_3deg_window": -9.379,
+      "p95_abs_db": 5.494,
+      "sigma_with_defect_azmean_dbsm": -16.588,
+      "sigma_repaired_azmean_dbsm": -16.437
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": -0.7792,
+      "worst_az_db": -18.942,
+      "worst_az_deg": 102.0,
+      "worst_az_db_3deg_window": 10.258,
+      "p95_abs_db": 8.619,
+      "sigma_with_defect_azmean_dbsm": -16.588,
+      "sigma_repaired_azmean_dbsm": -15.809
+     },
+     "판정": "보임(0.1~1dB)"
+    }
+   }
+  },
+  "mini2": {
+   "n_points": 26832,
+   "n_points_dropped_defect": 4451,
+   "n_points_dropped_all": 4747,
+   "per_geometry": {
+    "mono_el0": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 3.3291,
+      "worst_az_db": 19.376,
+      "worst_az_deg": 58.0,
+      "worst_az_db_3deg_window": 18.157,
+      "p95_abs_db": 13.514,
+      "sigma_with_defect_azmean_dbsm": -24.587,
+      "sigma_repaired_azmean_dbsm": -27.916
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 6.6962,
+      "worst_az_db": 31.398,
+      "worst_az_deg": 270.0,
+      "worst_az_db_3deg_window": 30.182,
+      "p95_abs_db": 20.098,
+      "sigma_with_defect_azmean_dbsm": -24.587,
+      "sigma_repaired_azmean_dbsm": -31.283
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "mono_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 3.1662,
+      "worst_az_db": -24.123,
+      "worst_az_deg": 18.0,
+      "worst_az_db_3deg_window": 21.024,
+      "p95_abs_db": 15.515,
+      "sigma_with_defect_azmean_dbsm": -25.574,
+      "sigma_repaired_azmean_dbsm": -28.741
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 4.914,
+      "worst_az_db": -26.6,
+      "worst_az_deg": 18.0,
+      "worst_az_db_3deg_window": -21.833,
+      "p95_abs_db": 16.244,
+      "sigma_with_defect_azmean_dbsm": -25.574,
+      "sigma_repaired_azmean_dbsm": -30.488
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    },
+    "bi_b120_el-30": {
+     "⭐진짜결함만_뺐을_때": {
+      "azimuth_mean_db": 5.3391,
+      "worst_az_db": 17.586,
+      "worst_az_deg": 32.0,
+      "worst_az_db_3deg_window": 16.365,
+      "p95_abs_db": 11.354,
+      "sigma_with_defect_azmean_dbsm": -19.441,
+      "sigma_repaired_azmean_dbsm": -24.78
+     },
+     "매몰면_전부_뺐을_때(⚠수리안_아님)": {
+      "azimuth_mean_db": 11.8181,
+      "worst_az_db": 26.567,
+      "worst_az_deg": 212.0,
+      "worst_az_db_3deg_window": 23.365,
+      "p95_abs_db": 17.694,
+      "sigma_with_defect_azmean_dbsm": -19.441,
+      "sigma_repaired_azmean_dbsm": -31.259
+     },
+     "판정": "⭐결론을_바꿈(>1dB)"
+    }
+   }
+  }
+ },
+ "budget": {
+  "mini5pro": {
+   "총_매몰_pct": 41.824,
+   "설계의도_pct": 8.8858,
+   "진짜결함_pct": 32.9382,
+   "진짜결함_면적_mm2": 43602.8808,
+   "예산_pct": 36.2,
+   "경계에_걸친_면_pct": 12.4241,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 8.8858,
+   "대안규칙_진짜결함_pct": 32.9382,
+   "예산_안인가": true
+  },
+  "mavic4pro": {
+   "총_매몰_pct": 37.3234,
+   "설계의도_pct": 8.8275,
+   "진짜결함_pct": 28.496,
+   "진짜결함_면적_mm2": 94862.4627,
+   "예산_pct": 32.7,
+   "경계에_걸친_면_pct": 5.51,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 9.0189,
+   "대안규칙_진짜결함_pct": 28.3045,
+   "예산_안인가": true
+  },
+  "matrice4e": {
+   "총_매몰_pct": 40.287,
+   "설계의도_pct": 21.1685,
+   "진짜결함_pct": 19.1185,
+   "진짜결함_면적_mm2": 58288.7346,
+   "예산_pct": 20.6,
+   "경계에_걸친_면_pct": 28.3825,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 21.1685,
+   "대안규칙_진짜결함_pct": 19.1185,
+   "예산_안인가": true
+  },
+  "s1000plus": {
+   "총_매몰_pct": 7.987,
+   "설계의도_pct": 1.0957,
+   "진짜결함_pct": 6.8913,
+   "진짜결함_면적_mm2": 82313.4486,
+   "예산_pct": 7.6,
+   "경계에_걸친_면_pct": 13.3408,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 1.0957,
+   "대안규칙_진짜결함_pct": 6.8913,
+   "예산_안인가": true
+  },
+  "phantom4": {
+   "총_매몰_pct": 39.5033,
+   "설계의도_pct": 8.7588,
+   "진짜결함_pct": 30.7445,
+   "진짜결함_면적_mm2": 102948.969,
+   "예산_pct": 33.6,
+   "경계에_걸친_면_pct": 8.1163,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 8.7588,
+   "대안규칙_진짜결함_pct": 30.7445,
+   "예산_안인가": true
+  },
+  "typhoonh480": {
+   "총_매몰_pct": 22.484,
+   "설계의도_pct": 8.564,
+   "진짜결함_pct": 13.92,
+   "진짜결함_면적_mm2": 63106.7865,
+   "예산_pct": 15.4,
+   "경계에_걸친_면_pct": 21.2419,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 9.1512,
+   "대안규칙_진짜결함_pct": 13.3328,
+   "예산_안인가": true
+  },
+  "x500v2": {
+   "총_매몰_pct": 18.1388,
+   "설계의도_pct": 0.0,
+   "진짜결함_pct": 18.1388,
+   "진짜결함_면적_mm2": 79104.2513,
+   "예산_pct": 20.0,
+   "경계에_걸친_면_pct": 23.4084,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 0.0,
+   "대안규칙_진짜결함_pct": 18.1388,
+   "예산_안인가": true
+  },
+  "phantom3": {
+   "총_매몰_pct": 26.2798,
+   "설계의도_pct": 18.0132,
+   "진짜결함_pct": 8.2666,
+   "진짜결함_면적_mm2": 22994.3073,
+   "예산_pct": 9.2,
+   "경계에_걸친_면_pct": 8.6893,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 18.0132,
+   "대안규칙_진짜결함_pct": 8.2666,
+   "예산_안인가": true
+  },
+  "m350rtk": {
+   "총_매몰_pct": 29.3285,
+   "설계의도_pct": 20.5088,
+   "진짜결함_pct": 8.8198,
+   "진짜결함_면적_mm2": 91804.9598,
+   "예산_pct": 9.8,
+   "경계에_걸친_면_pct": 20.9612,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 0,
+   "대안규칙_설계의도_pct": 20.5088,
+   "대안규칙_진짜결함_pct": 8.8198,
+   "예산_안인가": true
+  },
+  "mini2": {
+   "총_매몰_pct": 44.4486,
+   "설계의도_pct": 10.1739,
+   "진짜결함_pct": 34.2747,
+   "진짜결함_면적_mm2": 31399.5651,
+   "예산_pct": 37.7,
+   "경계에_걸친_면_pct": 6.9738,
+   "못_본_컨테이너": 0,
+   "구멍_메워_살린_컨테이너": 1,
+   "대안규칙_설계의도_pct": 11.0563,
+   "대안규칙_진짜결함_pct": 33.3923,
+   "예산_안인가": true
+  }
+ },
+ "강건성": {
+  "mini5pro": {
+   "jitter_0um": {
+    "buried_pct": 41.824,
+    "defect_pct": 32.9382
+   },
+   "jitter_1um": {
+    "buried_pct": 41.824,
+    "defect_pct": 33.0273
+   },
+   "jitter_10um": {
+    "buried_pct": 41.8291,
+    "defect_pct": 33.0324
+   },
+   "최대_흔들림_pp": 0.0942
+  },
+  "mavic4pro": {
+   "jitter_0um": {
+    "buried_pct": 37.3234,
+    "defect_pct": 28.496
+   },
+   "jitter_1um": {
+    "buried_pct": 37.7327,
+    "defect_pct": 29.6967
+   },
+   "jitter_10um": {
+    "buried_pct": 37.7312,
+    "defect_pct": 29.6953
+   },
+   "최대_흔들림_pp": 1.2007
+  },
+  "matrice4e": {
+   "jitter_0um": {
+    "buried_pct": 40.287,
+    "defect_pct": 19.1185
+   },
+   "jitter_1um": {
+    "buried_pct": 40.2732,
+    "defect_pct": 19.1047
+   },
+   "jitter_10um": {
+    "buried_pct": 40.2709,
+    "defect_pct": 19.1024
+   },
+   "최대_흔들림_pp": 0.0161
+  },
+  "s1000plus": {
+   "jitter_0um": {
+    "buried_pct": 7.987,
+    "defect_pct": 6.8913
+   },
+   "jitter_1um": {
+    "buried_pct": 6.9019,
+    "defect_pct": 6.9019
+   },
+   "jitter_10um": {
+    "buried_pct": 6.8443,
+    "defect_pct": 6.8443
+   },
+   "최대_흔들림_pp": 0.047
+  },
+  "phantom4": {
+   "jitter_0um": {
+    "buried_pct": 39.5033,
+    "defect_pct": 30.7445
+   },
+   "jitter_1um": {
+    "buried_pct": 39.2155,
+    "defect_pct": 30.2598
+   },
+   "jitter_10um": {
+    "buried_pct": 39.2056,
+    "defect_pct": 30.25
+   },
+   "최대_흔들림_pp": 0.4945
+  },
+  "typhoonh480": {
+   "jitter_0um": {
+    "buried_pct": 22.484,
+    "defect_pct": 13.92
+   },
+   "jitter_1um": {
+    "buried_pct": 22.5227,
+    "defect_pct": 13.9587
+   },
+   "jitter_10um": {
+    "buried_pct": 22.5127,
+    "defect_pct": 13.9486
+   },
+   "최대_흔들림_pp": 0.0387
+  },
+  "x500v2": {
+   "jitter_0um": {
+    "buried_pct": 18.1388,
+    "defect_pct": 18.1388
+   },
+   "jitter_1um": {
+    "buried_pct": 18.2907,
+    "defect_pct": 18.2907
+   },
+   "jitter_10um": {
+    "buried_pct": 18.3021,
+    "defect_pct": 18.3021
+   },
+   "최대_흔들림_pp": 0.1633
+  },
+  "phantom3": {
+   "jitter_0um": {
+    "buried_pct": 26.2798,
+    "defect_pct": 8.2666
+   },
+   "jitter_1um": {
+    "buried_pct": 25.9624,
+    "defect_pct": 7.8308
+   },
+   "jitter_10um": {
+    "buried_pct": 25.9592,
+    "defect_pct": 7.8276
+   },
+   "최대_흔들림_pp": 0.439
+  },
+  "m350rtk": {
+   "jitter_0um": {
+    "buried_pct": 29.3285,
+    "defect_pct": 8.8198
+   },
+   "jitter_1um": {
+    "buried_pct": 29.3043,
+    "defect_pct": 8.7956
+   },
+   "jitter_10um": {
+    "buried_pct": 29.3179,
+    "defect_pct": 8.8091
+   },
+   "최대_흔들림_pp": 0.0242
+  },
+  "mini2": {
+   "jitter_0um": {
+    "buried_pct": 44.4486,
+    "defect_pct": 34.2747
+   },
+   "jitter_1um": {
+    "buried_pct": 44.4486,
+    "defect_pct": 34.1814
+   },
+   "jitter_10um": {
+    "buried_pct": 44.4439,
+    "defect_pct": 34.1767
+   },
+   "최대_흔들림_pp": 0.098
+  }
+ },
+ "기준선_재현": {
+  "mini5pro": {
+   "총_매몰_pct": {
+    "mine": 41.824,
+    "baseline": 41.814,
+    "diff_pp": 0.01
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 8.8858,
+    "mine_기준선_규칙": 8.8858,
+    "baseline": 8.8942,
+    "diff_pp_같은_규칙끼리": -0.0084
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 32.9382,
+    "mine_기준선_규칙": 32.9382,
+    "baseline": 32.9198
+   }
+  },
+  "mavic4pro": {
+   "총_매몰_pct": {
+    "mine": 37.3234,
+    "baseline": 37.999,
+    "diff_pp": -0.6756
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 8.8275,
+    "mine_기준선_규칙": 9.0189,
+    "baseline": 8.4223,
+    "diff_pp_같은_규칙끼리": 0.5966
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 28.496,
+    "mine_기준선_규칙": 28.3045,
+    "baseline": 29.5768
+   }
+  },
+  "matrice4e": {
+   "총_매몰_pct": {
+    "mine": 40.287,
+    "baseline": 40.7113,
+    "diff_pp": -0.4243
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 21.1685,
+    "mine_기준선_규칙": 21.1685,
+    "baseline": 22.0378,
+    "diff_pp_같은_규칙끼리": -0.8693
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 19.1185,
+    "mine_기준선_규칙": 19.1185,
+    "baseline": 18.6735
+   }
+  },
+  "s1000plus": {
+   "총_매몰_pct": {
+    "mine": 7.987,
+    "baseline": 7.987,
+    "diff_pp": 0.0
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 1.0957,
+    "mine_기준선_규칙": 1.0957,
+    "baseline": 1.0957,
+    "diff_pp_같은_규칙끼리": 0.0
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 6.8913,
+    "mine_기준선_규칙": 6.8913,
+    "baseline": 6.8913
+   }
+  },
+  "phantom4": {
+   "총_매몰_pct": {
+    "mine": 39.5033,
+    "baseline": 39.2982,
+    "diff_pp": 0.2051
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 8.7588,
+    "mine_기준선_규칙": 8.7588,
+    "baseline": 8.7951,
+    "diff_pp_같은_규칙끼리": -0.0363
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 30.7445,
+    "mine_기준선_규칙": 30.7445,
+    "baseline": 30.5031
+   }
+  },
+  "typhoonh480": {
+   "총_매몰_pct": {
+    "mine": 22.484,
+    "baseline": 22.484,
+    "diff_pp": 0.0
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 8.564,
+    "mine_기준선_규칙": 9.1512,
+    "baseline": 9.1512,
+    "diff_pp_같은_규칙끼리": 0.0
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 13.92,
+    "mine_기준선_규칙": 13.3328,
+    "baseline": 13.3328
+   }
+  },
+  "x500v2": {
+   "총_매몰_pct": {
+    "mine": 18.1388,
+    "baseline": 18.1388,
+    "diff_pp": 0.0
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 0.0,
+    "mine_기준선_규칙": 0.0,
+    "baseline": 0.0,
+    "diff_pp_같은_규칙끼리": 0.0
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 18.1388,
+    "mine_기준선_규칙": 18.1388,
+    "baseline": 18.1388
+   }
+  },
+  "phantom3": {
+   "총_매몰_pct": {
+    "mine": 26.2798,
+    "baseline": 27.5272,
+    "diff_pp": -1.2474
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 18.0132,
+    "mine_기준선_규칙": 18.0132,
+    "baseline": 19.2547,
+    "diff_pp_같은_규칙끼리": -1.2415
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 8.2666,
+    "mine_기준선_규칙": 8.2666,
+    "baseline": 8.2725
+   }
+  },
+  "m350rtk": {
+   "총_매몰_pct": {
+    "mine": 29.3285,
+    "baseline": 29.3285,
+    "diff_pp": 0.0
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 20.5088,
+    "mine_기준선_규칙": 20.5088,
+    "baseline": 20.5088,
+    "diff_pp_같은_규칙끼리": 0.0
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 8.8198,
+    "mine_기준선_규칙": 8.8198,
+    "baseline": 8.8198
+   }
+  },
+  "mini2": {
+   "총_매몰_pct": {
+    "mine": 44.4486,
+    "baseline": 44.4488,
+    "diff_pp": -0.0002
+   },
+   "설계의도_pct": {
+    "mine_내_규칙": 10.1739,
+    "mine_기준선_규칙": 11.0563,
+    "baseline": 11.0577,
+    "diff_pp_같은_규칙끼리": -0.0014
+   },
+   "진짜결함_pct": {
+    "mine_내_규칙": 34.2747,
+    "mine_기준선_규칙": 33.3923,
+    "baseline": 33.391
+   }
+  },
+  "_규칙_차이": "총 매몰 %는 규칙과 무관하고 10기체 전부 소수 4자리까지 같다. 설계의도/진짜결함의 갈림만 규칙에 달렸다 — 기준선은 «첫 컨테이너가 이긴다»(그룹 알파벳 순), 나는 «컨테이너가 **전부** 셸일 때만 설계 의도». 내 규칙이 더 엄하고, 그렇게 고른 이유는 **뺄까 말까** 를 정하는 자리이기 때문이다 — 불투명한 금속 상자 안에도 들어 있는 면은 실물이면 안 보이므로 빼는 것이 맞다. 차이는 3기체에서 0.16~0.88 pp."
+ },
+ "감사_주장_검증": {
+  "질문": "감사 어림 «mavic4pro +38 % · mini5pro +42 %» 가 맞나?",
+  "mavic4pro": {
+   "①_면적_주장은_맞다": "총 매몰 37.3234 % (감사 어림 38 %) · 기준선 원장은 37.999 % 였다(그 사이 다른 수리자가 형상을 바꿨으면 이 수는 새 형상의 값이다 — census.⭐mesh_state 참조).",
+   "②_그러나_그것은_면적_문장이지_σ_문장이_아니다": {
+    "σ_진짜결함만_뺐을_때_dB": {
+     "mono_el0": 2.4535,
+     "mono_el-30": 1.5943,
+     "bi_b120_el-30": 2.0763
+    },
+    "σ_매몰면_전부_뺐을_때_dB": {
+     "mono_el0": 4.5898,
+     "mono_el-30": 1.8561,
+     "bi_b120_el-30": 2.1797
+    },
+    "왜_면적%_와_dB_가_안_붙나": "코히런트 합이라 면적이 아니라 «위상이 맞는 면적» 이 σ 를 정한다. 게다가 셸은 |Γ|=0.28 로 금속의 1/3.6 이다."
+   },
+   "③_수리안으로_뺄_수_있는_면적": "28.496 % (총 매몰에서 설계 의도 8.8275 % 를 뺀 것). 감사의 38/42 % 를 그대로 빼면 셸 속 배터리·PCB 까지 지워져 σ 가 오히려 어두워진다."
+  },
+  "mini5pro": {
+   "①_면적_주장은_맞다": "총 매몰 41.824 % (감사 어림 42 %) · 기준선 원장은 41.814 % 였다(그 사이 다른 수리자가 형상을 바꿨으면 이 수는 새 형상의 값이다 — census.⭐mesh_state 참조).",
+   "②_그러나_그것은_면적_문장이지_σ_문장이_아니다": {
+    "σ_진짜결함만_뺐을_때_dB": {
+     "mono_el0": 3.9881,
+     "mono_el-30": 2.384,
+     "bi_b120_el-30": 3.7103
+    },
+    "σ_매몰면_전부_뺐을_때_dB": {
+     "mono_el0": 6.6538,
+     "mono_el-30": 4.0186,
+     "bi_b120_el-30": 7.5479
+    },
+    "왜_면적%_와_dB_가_안_붙나": "코히런트 합이라 면적이 아니라 «위상이 맞는 면적» 이 σ 를 정한다. 게다가 셸은 |Γ|=0.28 로 금속의 1/3.6 이다."
+   },
+   "③_수리안으로_뺄_수_있는_면적": "32.9382 % (총 매몰에서 설계 의도 8.8858 % 를 뺀 것). 감사의 38/42 % 를 그대로 빼면 셸 속 배터리·PCB 까지 지워져 σ 가 오히려 어두워진다."
+  },
+  "판정": "면적 주장은 **맞다**(재현). 다만 그것을 σ 오차로 읽으면 안 된다 — 그리고 그 면적 중 뺄 수 있는 것은 «진짜 결함» 부분뿐이다."
+ },
+ "안_고칠_것과_이유": {
+  "설계 의도 매몰면(셸 속 battery·pcb·fc)": {
+   "크기_pct": {
+    "mini5pro": 8.8858,
+    "mavic4pro": 8.8275,
+    "matrice4e": 21.1685,
+    "s1000plus": 1.0957,
+    "phantom4": 8.7588,
+    "typhoonh480": 8.564,
+    "x500v2": 0.0,
+    "phantom3": 18.0132,
+    "m350rtk": 20.5088,
+    "mini2": 10.1739
+   },
+   "왜_안_고치나": "rcs_po.py 30-36행이 «반투명 셸을 통과해 내부가 보이는 효과는 셸 |Γ| 축소 + 내부 |Γ|=1 합산으로 1차 근사» 라고 스스로 규정한다. 이것을 빼면 근사 자체가 무너진다 — 참고로 전부 빼면 σ 가 최대 6.3 dB 어두워진다(원장 sigma[*].per_geometry[*].매몰면_전부_뺐을_때).",
+   "대신_한_것": "kind='all' 로 **감도만** 재서 나란히 싣는다."
+  },
+  "메쉬 자체(삼각형)를 안 바꾼다": {
+   "왜": "매몰의 뿌리는 «그룹 사이에 불리언 union 을 안 한다» 인데, 그 수리는 형상·재질 경계를 바꾸는 일이라 담당이 다르다(i4·battery·m4 수리자). 나는 **PO 가 어느 면을 더하는가**만 바꾼다 — 그래서 두 수리가 서로를 안 덮어쓴다.",
+   "겹침_주의": "i4·battery·m4 수리를 켜면 매몰면이 줄어든다(실측: MESH_FIX=battery 에서 mini2 34.27 → 26.50 %). 그때 i3 마스크는 **자동으로 작아진다** — 같은 면을 두 번 빼지 않는다(마스크를 그 메쉬에서 다시 재기 때문)."
+  },
+  "면 중심 판정의 알갱이": {
+   "크기_경계에_걸친_면_pct": {
+    "mini5pro": 12.4241,
+    "mavic4pro": 5.51,
+    "matrice4e": 28.3825,
+    "s1000plus": 13.3408,
+    "phantom4": 8.1163,
+    "typhoonh480": 21.2419,
+    "x500v2": 23.4084,
+    "phantom3": 8.6893,
+    "m350rtk": 20.9612,
+    "mini2": 6.9738
+   },
+   "왜_안_고치나": "부분 매몰 면을 잘라 쪼개면(면 분할) 메쉬가 바뀌고 다른 수리와 충돌한다. 지금은 **면 중심**으로 자르고, 그 알갱이가 얼마인지를 위 수로 선언한다."
+  },
+  "SBR 교차확인": {
+   "왜_안_하나": "GPU 금지 라운드다. SBR 은 first-hit 이라 구조적으로 0 이어야 하지만 **확인은 못 했다**."
+  }
+ },
+ "regression": {
+  "bit_identity": {
+   "_switch_state": [],
+   "mini5pro": {
+    "got": {
+     "n": 30603,
+     "P": "f49dc26ebad40cc3",
+     "N": "c11506569c7a0eba",
+     "dA": "b8da1916bab863a8",
+     "w": "8ea666d92f514831",
+     "s_el0": "850bd9c7ff639a97",
+     "s_el30": "ee9794284e20d251"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 31164,
+     "P": "444442bd0565a7a9",
+     "N": "7ea4edb22076b979",
+     "dA": "8912833644c155eb",
+     "w": "fc7176ae711ec7c0",
+     "s_el0": "43f09a8da1ad4e89",
+     "s_el30": "0d3b0e6dd1a0b9b7"
+    },
+    "mesh_state": {
+     "n_faces": 28556,
+     "n_verts": 14324,
+     "sha_verts": "b672e5eacc131aa6",
+     "sha_faces": "1809db0f03319d4a"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": false,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -3.3238,
+    "bit_identical_vs_pre_edit": false,
+    "mask_all_true_identical": true,
+    "face_idx_max": 28555
+   },
+   "mavic4pro": {
+    "got": {
+     "n": 39205,
+     "P": "f041ddf18e694fdc",
+     "N": "6cbafc86f8d6bb55",
+     "dA": "a946cfe0bb1cc872",
+     "w": "ef60fec06fc91a9b",
+     "s_el0": "eccb30b4b790eb31",
+     "s_el30": "f94b2688c17e47ab"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 38876,
+     "P": "61a667bd68fcf55c",
+     "N": "f025c2f081de3fa1",
+     "dA": "21c4a095b2e1cf0c",
+     "w": "77b6849968bb544f",
+     "s_el0": "2bf296e07ef550a7",
+     "s_el30": "cd07eb644726c089"
+    },
+    "mesh_state": {
+     "n_faces": 30028,
+     "n_verts": 15058,
+     "sha_verts": "07585eefcaa02978",
+     "sha_faces": "206820d1d039bc48"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": false,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -0.7931,
+    "bit_identical_vs_pre_edit": false,
+    "mask_all_true_identical": true,
+    "face_idx_max": 30027
+   },
+   "matrice4e": {
+    "got": {
+     "n": 40609,
+     "P": "5dd64f6aa134e60a",
+     "N": "69278a6bd73fd261",
+     "dA": "cdfba014b5c52658",
+     "w": "34d8f3f97b263dfe",
+     "s_el0": "2979eed1cff2256f",
+     "s_el30": "5c1009d8802881b7"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 40649,
+     "P": "4be806de33696a96",
+     "N": "3558cb0553e3159c",
+     "dA": "6e48d2071e04f6fe",
+     "w": "39337787e0586798",
+     "s_el0": "0d6ee99fceafc073",
+     "s_el30": "fd919f38078f8949"
+    },
+    "mesh_state": {
+     "n_faces": 30566,
+     "n_verts": 15339,
+     "sha_verts": "f016611e145a4bc4",
+     "sha_faces": "458d91f4ea62f527"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": false,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -2.3367,
+    "bit_identical_vs_pre_edit": false,
+    "mask_all_true_identical": true,
+    "face_idx_max": 30565
+   },
+   "s1000plus": {
+    "got": {
+     "n": 191864,
+     "P": "bb23b84fdf61663e",
+     "N": "fa2d1105c54f96f2",
+     "dA": "54efdc62af71dae6",
+     "w": "85035ecefcb45085",
+     "s_el0": "ea922df4d1783242",
+     "s_el30": "ddecb254613af469"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 191864,
+     "P": "bb23b84fdf61663e",
+     "N": "fa2d1105c54f96f2",
+     "dA": "54efdc62af71dae6",
+     "w": "85035ecefcb45085",
+     "s_el0": "ea922df4d1783242",
+     "s_el30": "ddecb254613af469"
+    },
+    "mesh_state": {
+     "n_faces": 35374,
+     "n_verts": 17755,
+     "sha_verts": "28a9d61e3d5ad128",
+     "sha_faces": "024d5318cd8233c3"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": true,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -0.9046,
+    "bit_identical_vs_pre_edit": true,
+    "mask_all_true_identical": true,
+    "face_idx_max": 35373
+   },
+   "phantom4": {
+    "got": {
+     "n": 45182,
+     "P": "b813ba72e3dc6c44",
+     "N": "64b3bb5cc158c867",
+     "dA": "839479d34098dfe2",
+     "w": "34c791bd283e5e83",
+     "s_el0": "c57d7c062246a135",
+     "s_el30": "2948412c86a6986e"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 45534,
+     "P": "39f88ec67c8ce553",
+     "N": "df8df0a3c1ca2c1e",
+     "dA": "c8f57a77a1eaaed2",
+     "w": "6a7a9843dec6c80a",
+     "s_el0": "0954281ef366ef63",
+     "s_el30": "bcc79fb3cbbf8d40"
+    },
+    "mesh_state": {
+     "n_faces": 28594,
+     "n_verts": 14343,
+     "sha_verts": "f3a39b3764bff75e",
+     "sha_faces": "0c913d7032d1b9a9"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": false,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -0.3247,
+    "bit_identical_vs_pre_edit": false,
+    "mask_all_true_identical": true,
+    "face_idx_max": 28593
+   },
+   "typhoonh480": {
+    "got": {
+     "n": 75006,
+     "P": "40949890a759e99f",
+     "N": "0b85ca08311d5922",
+     "dA": "a54be14c6a69ba6b",
+     "w": "d1e1ffe38070cf37",
+     "s_el0": "018e0e8eebf8fce3",
+     "s_el30": "e01c5c700471d809"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 75006,
+     "P": "40949890a759e99f",
+     "N": "0b85ca08311d5922",
+     "dA": "a54be14c6a69ba6b",
+     "w": "d1e1ffe38070cf37",
+     "s_el0": "018e0e8eebf8fce3",
+     "s_el30": "e01c5c700471d809"
+    },
+    "mesh_state": {
+     "n_faces": 34732,
+     "n_verts": 17424,
+     "sha_verts": "a44dd6ebb5d7531c",
+     "sha_faces": "637fa50b86e070b5"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": true,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -0.6678,
+    "bit_identical_vs_pre_edit": true,
+    "mask_all_true_identical": true,
+    "face_idx_max": 34731
+   },
+   "x500v2": {
+    "got": {
+     "n": 77982,
+     "P": "a5cbc3281b80c8d1",
+     "N": "968857091441cea0",
+     "dA": "73230b5a809d9a79",
+     "w": "a0e359e4496ffa49",
+     "s_el0": "cb1d7d85309b0468",
+     "s_el30": "3ce7b846577d4266"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 77982,
+     "P": "a5cbc3281b80c8d1",
+     "N": "968857091441cea0",
+     "dA": "73230b5a809d9a79",
+     "w": "a0e359e4496ffa49",
+     "s_el0": "cb1d7d85309b0468",
+     "s_el30": "3ce7b846577d4266"
+    },
+    "mesh_state": {
+     "n_faces": 19030,
+     "n_verts": 9615,
+     "sha_verts": "7b6a749404600247",
+     "sha_faces": "7b2e2475906942b8"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": true,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -1.9412,
+    "bit_identical_vs_pre_edit": true,
+    "mask_all_true_identical": true,
+    "face_idx_max": 19029
+   },
+   "phantom3": {
+    "got": {
+     "n": 39173,
+     "P": "794017e52263f888",
+     "N": "09a8013ec2ee0bad",
+     "dA": "6a2d1b1e142cf9f0",
+     "w": "bb4c2ea6c8cabd22",
+     "s_el0": "560f5fb4a5320afa",
+     "s_el30": "78a63eed5ea1cbb0"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 39141,
+     "P": "adaebc6896f1012e",
+     "N": "29ac3656393d7b60",
+     "dA": "8c45dea6f37da599",
+     "w": "e28124eaf449cf9f",
+     "s_el0": "273113f3eec7b630",
+     "s_el30": "6bea6162f76783b6"
+    },
+    "mesh_state": {
+     "n_faces": 28508,
+     "n_verts": 14296,
+     "sha_verts": "5b3654290dc0c4a4",
+     "sha_faces": "2d26976db24bebdb"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": false,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -0.9824,
+    "bit_identical_vs_pre_edit": false,
+    "mask_all_true_identical": true,
+    "face_idx_max": 28507
+   },
+   "m350rtk": {
+    "got": {
+     "n": 130343,
+     "P": "93923a6b2951a8b6",
+     "N": "1af9945ae3f2cecd",
+     "dA": "44d5123c8f8b73a3",
+     "w": "9c5b692d24bf7297",
+     "s_el0": "533fb88e4f6d2662",
+     "s_el30": "42b1be55c90bd39c"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 130343,
+     "P": "93923a6b2951a8b6",
+     "N": "1af9945ae3f2cecd",
+     "dA": "44d5123c8f8b73a3",
+     "w": "9c5b692d24bf7297",
+     "s_el0": "533fb88e4f6d2662",
+     "s_el30": "42b1be55c90bd39c"
+    },
+    "mesh_state": {
+     "n_faces": 26216,
+     "n_verts": 13194,
+     "sha_verts": "18beed9e4e9b88b6",
+     "sha_faces": "4cfce39c005c9832"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": true,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -0.4236,
+    "bit_identical_vs_pre_edit": true,
+    "mask_all_true_identical": true,
+    "face_idx_max": 26215
+   },
+   "mini2": {
+    "got": {
+     "n": 26832,
+     "P": "d218b1e2cf4945ad",
+     "N": "516a35e10ea3848d",
+     "dA": "645ce6d8f06c8551",
+     "w": "e729b237dce5fda7",
+     "s_el0": "08db3fe2791d692f",
+     "s_el30": "40a7789aeac7780d"
+    },
+    "pre_edit_baseline_mesh": {
+     "n": 26832,
+     "P": "8d5133f15325c7c1",
+     "N": "4f4b73dbaff0519d",
+     "dA": "a2bd69c9b0bb03d2",
+     "w": "e729b237dce5fda7",
+     "s_el0": "58e06fd618b1812d",
+     "s_el30": "57a13cb710d869b8"
+    },
+    "mesh_state": {
+     "n_faces": 25823,
+     "n_verts": 12948,
+     "sha_verts": "c8856ee7aca226de",
+     "sha_faces": "0603f1c505eaeea3"
+    },
+    "⭐code_identical_vs_pre_edit_body": true,
+    "mesh_state_matches_baseline": false,
+    "handle_off_bit_identical": true,
+    "handle_on_sigma_shift_db_PEC_singlefreq": -2.0963,
+    "bit_identical_vs_pre_edit": false,
+    "mask_all_true_identical": true,
+    "face_idx_max": 25822
+   },
+   "_뜻": {
+    "⭐code_identical_vs_pre_edit_body": "내 코드 변경이 **아무 값도 안 바꾼다**는 증거. 지금 메쉬에 «수정 전 본문 사본» 을 돌려 바이트로 견줬다 — 메쉬가 어떻게 바뀌든 성립한다.",
+    "mesh_state_matches_baseline": "2026-08-16 23:46 기준선과 **같은 메쉬**인가. False 면 다른 수리자가 형상을 바꿨다는 뜻이고, 그러면 이 원장의 census·σ 는 그 새 형상에서 다시 잰 값이다(mesh_state 지문이 어느 형상인지 못 박는다).",
+    "handle_off_bit_identical": "drone_rcs_pattern 에 mesh_fix 를 **안 주면** 손잡이가 아무것도 안 한다(PEC 판으로 확인 — materials=True 는 GPU 필요)."
+   }
+  },
+  "kernel_vs_shipping_rel_err": {
+   "mini5pro": 3.826881636938762e-14,
+   "mavic4pro": 1.5576124555309114e-13,
+   "matrice4e": 6.521382703366931e-14,
+   "s1000plus": 1.3919844342260085e-13,
+   "phantom4": 5.508534837268098e-14,
+   "typhoonh480": 7.5389231610736e-14,
+   "x500v2": 5.896118654673094e-14,
+   "phantom3": 3.514096053260204e-14,
+   "m350rtk": 8.229313276172735e-14,
+   "mini2": 4.0213706265508305e-14
+  },
+  "two_paths": {
+   "n_points_full": 30603,
+   "n_points_repaired": 24482,
+   "max_rel_err": 2.191324972290069e-14,
+   "max_abs_db": 9.546841918877437e-14
+  }
+ },
+ "gates": {},
+ "seconds": 332.7
+}

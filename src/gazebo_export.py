@@ -92,15 +92,21 @@ def _parallel_axis(I_com, mass, d):
     return I_com + mass * (float(d @ d) * np.eye(3) - np.outer(d, d))
 
 
-def inertia_from_mesh(spec, target_mass_kg=None):
+def inertia_from_mesh(spec, target_mass_kg=None, mesh_fix=None):
     """**메쉬에서 질량·CoM·관성텐서를 계산한다.** 총질량을 공식 TOW 로 맞춘다.
 
-    반환: dict(mass, com, I(3x3), per_group, density_scale)"""
+    반환: dict(mass, com, I(3x3), per_group, density_scale)
+
+    mesh_fix : ⭐선택 메쉬 수리 스위치(기본 None = 끔 = 예전 값과 동일).
+        ⚠여기서 중요한 이유: 이 함수는 **부품마다 부피를 따로 재서 더한다.** 두 부품이
+        겹쳐 있으면 겹친 부피가 **두 번** 들어가고, 총질량은 TOW 로 정규화되므로 그 오차는
+        사라지지 않고 **부위별 질량 배분과 관성텐서로** 옮겨간다(감사 I9 축).
+        수리 'battery' 는 겹친 부피를 한 번만 세게 만든다."""
     from drone_cad import build_frame_cad, build_propeller_cad
     from drones import rotor_layout, frame_fit_scale
 
-    A = build_frame_cad(spec)
-    sx, sy, sz = frame_fit_scale(spec)
+    A = build_frame_cad(spec, mesh_fix=mesh_fix)
+    sx, sy, sz = frame_fit_scale(spec, mesh_fix=mesh_fix)
     if (sx, sy, sz) != (1.0, 1.0, 1.0):
         A.scaled(sx, sy, sz)
 

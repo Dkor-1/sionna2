@@ -14,8 +14,25 @@
       ],
       "hover_windows": "7개 (1.2-1.4 s, v<0.3 m/s, |w|<0.35 rad/s), 호버 rpm ~10500",
       "measured": {
-        "static_spread_std_pct": {"all7": [0.25, 0.32, 0.38, 0.54, 0.61, 0.63, 1.06], "median": 0.54},
-        "wobble_amp_pct_quiet4win": {"median": 0.74, "range": [0.61, 1.06]},
+        "static_spread_std_pct": {
+          "all7": [
+            0.25,
+            0.32,
+            0.38,
+            0.54,
+            0.61,
+            0.63,
+            1.06
+          ],
+          "median": 0.54
+        },
+        "wobble_amp_pct_quiet4win": {
+          "median": 0.74,
+          "range": [
+            0.61,
+            1.06
+          ]
+        },
         "wobble_peak_hz_quiet": "0.7-2.2 Hz 지배 (일부 창 10-15 Hz 부성분)",
         "transient_note": "궤적 직전/직후 창은 3.3-6.0% (과도응답, 제외)"
       },
@@ -31,9 +48,21 @@
       "signal": "esc_status.esc_rpm (CAN ESC 실측 rpm) @ 4 Hz, 호버 rpm ~2900",
       "hover_windows": "39개 (3-18 s, 총 239 s, v<0.3 m/s)",
       "measured": {
-        "static_spread_std_pct": {"median": 2.35, "min": 0.79, "max": 5.53},
-        "wobble_lf_amp_pct_0p3to2hz": {"median": 2.52, "p25": 2.0, "p75": 3.81},
-        "wobble_peak_hz": {"median": 0.74, "p25": 0.5, "p75": 1.5}
+        "static_spread_std_pct": {
+          "median": 2.35,
+          "min": 0.79,
+          "max": 5.53
+        },
+        "wobble_lf_amp_pct_0p3to2hz": {
+          "median": 2.52,
+          "p25": 2.0,
+          "p75": 3.81
+        },
+        "wobble_peak_hz": {
+          "median": 0.74,
+          "p25": 0.5,
+          "p75": 1.5
+        }
       },
       "caution": "⚠DJI 아님. 샘플링 4 Hz 라 2 Hz 초과 성분이 접혀 들어와(앨리어싱) 진폭이 과대측정일 수 있음. 야외 바람 미상 - 바람 보정 트림이 정적 산포에 섞임(창마다 패턴 변동). 두 로그는 동일 기체로 추정",
       "verify_snippet": "pyulog 로 esc_status + vehicle_local_position 추출, 스크립트 analyze_px4_esc.py"
@@ -45,8 +74,20 @@
       "signal": "MotorCtrl(type 54) 모터별 PWM 명령 [%] @ 50 Hz + GPS(type 5) 속도. ⚠실측 rpm 아님 - P3 V1 DAT 에 RecMotor(실측 rpm, type 52721) 레코드가 이 펌웨어에는 없음. 파서는 DatCon 소스(BudWalkerJava/DatCon)의 프레임 규격을 그대로 이식해 자작(parse_dji_dat.py): 0x55 프레임, tick%256 XOR, 600 tick/s",
       "hover_windows": "9개 진성 호버 (v<0.3 m/s, PWM>55%, 3-14 s)",
       "measured": {
-        "static_spread_pwm_std_pct": {"median": 5.8, "range": [3.5, 12.0]},
-        "wobble_lf_amp_pwm_pct_0p3to5hz": {"median": 5.3, "range": [3.5, 11.8]},
+        "static_spread_pwm_std_pct": {
+          "median": 5.8,
+          "range": [
+            3.5,
+            12.0
+          ]
+        },
+        "wobble_lf_amp_pwm_pct_0p3to5hz": {
+          "median": 5.3,
+          "range": [
+            3.5,
+            11.8
+          ]
+        },
         "wobble_lf_peak_hz": "0.3-4 Hz (창 다수 0.3-0.9 Hz)",
         "wobble_hf_cmd_pct_5to20hz": "10-33% @ 13-19 Hz (명령 영역 - 로터 관성이 저역통과라 실제 rpm 에는 크게 감쇠되어 나타남)"
       },
@@ -55,13 +96,28 @@
     }
   ],
   "sources_tried_and_failed": [
-    {"name": "MIT Blackbird UAV dataset", "reason": "blackbird-dataset.mit.edu DNS 실패 (호스트 소멸 추정). rosbag 에 모터 rpm 있으나 접근 불가"},
-    {"name": "PX4 Flight Review DShot 쿼드 13종", "reason": "다운로드·검사한 14개 로그 중 12개에 esc_status 없음 (DShot 텔레메트리 배선·설정 드묾). CODEV 2개만 성공"},
-    {"name": "DJI V3 DAT (P4/Mavic Pro, 실측 Motor:Speed 포함)", "reason": "공개 샘플 미발견. NIST CFReDS/VTO 포렌식 이미지는 대용량 칩오프 이미지라 이번 세션에서 미시도. Mavic Air 이후 기종은 DAT 암호화"},
-    {"name": "Kaggle", "reason": "API 자격증명 없음"}
+    {
+      "name": "MIT Blackbird UAV dataset",
+      "reason": "blackbird-dataset.mit.edu DNS 실패 (호스트 소멸 추정). rosbag 에 모터 rpm 있으나 접근 불가"
+    },
+    {
+      "name": "PX4 Flight Review DShot 쿼드 13종",
+      "reason": "다운로드·검사한 14개 로그 중 12개에 esc_status 없음 (DShot 텔레메트리 배선·설정 드묾). CODEV 2개만 성공"
+    },
+    {
+      "name": "DJI V3 DAT (P4/Mavic Pro, 실측 Motor:Speed 포함)",
+      "reason": "공개 샘플 미발견. NIST CFReDS/VTO 포렌식 이미지는 대용량 칩오프 이미지라 이번 세션에서 미시도. Mavic Air 이후 기종은 DAT 암호화"
+    },
+    {
+      "name": "Kaggle",
+      "reason": "API 자격증명 없음"
+    }
   ],
   "comparison_with_ours": {
-    "ours": {"static_spread": "±0.22% (PX4 SITL 유래)", "wobble": "±0.15% @ 2.7 Hz (순수 가정)"},
+    "ours": {
+      "static_spread": "±0.22% (PX4 SITL 유래)",
+      "wobble": "±0.15% @ 2.7 Hz (순수 가정)"
+    },
     "finding": [
       "정적 산포: 실기체 3원천 모두 우리 값보다 큼. 실내 무풍 대칭 레이싱기 0.25-1.06% (중앙 0.54%), 야외 상용기 0.8-5.5% (중앙 2.4%), DJI P3 명령환산 ~2-6%. SITL(0.07-0.29%)은 완전대칭 모델이라 실기체의 CG 오프셋·모터/프롭 개체차·바람 트림이 빠져 있음 - 한 자릿수 과소",
       "흔들림 진폭: 실측 rpm 기준 실내 정온 0.6-1.1% (중앙 0.74%), 야외 2.0-3.8% (중앙 2.5%). 우리 ±0.15% 는 5-17배 과소",
@@ -77,9 +133,23 @@
   "verdict": {
     "decision": "수정 권고 (파라미터 파일은 재계산 중이라 건드리지 않음 - 메인이 반영)",
     "recommended": {
-      "STATIC_SPREAD": {"controlled_indoor": 0.005, "outdoor_default": 0.02, "current": 0.0022, "basis": "실내=NeuroBEM 중앙 0.54% 반올림, 야외=CODEV 중앙 2.4% 하향 반올림"},
-      "WOBBLE_AMP": {"controlled_indoor": 0.008, "outdoor_default": 0.025, "current": 0.0015, "basis": "실내=NeuroBEM 정온 중앙 0.74%, 야외=CODEV 중앙 2.5%"},
-      "WOBBLE_HZ": {"recommended": 1.0, "current": 2.7, "basis": "3원천 지배 주파수 중앙 0.7-1.5 Hz. 0.3-2.2 Hz 대역 서술이 더 정직"},
+      "STATIC_SPREAD": {
+        "controlled_indoor": 0.005,
+        "outdoor_default": 0.02,
+        "current": 0.0022,
+        "basis": "실내=NeuroBEM 중앙 0.54% 반올림, 야외=CODEV 중앙 2.4% 하향 반올림"
+      },
+      "WOBBLE_AMP": {
+        "controlled_indoor": 0.008,
+        "outdoor_default": 0.025,
+        "current": 0.0015,
+        "basis": "실내=NeuroBEM 정온 중앙 0.74%, 야외=CODEV 중앙 2.5%"
+      },
+      "WOBBLE_HZ": {
+        "recommended": 1.0,
+        "current": 2.7,
+        "basis": "3원천 지배 주파수 중앙 0.7-1.5 Hz. 0.3-2.2 Hz 대역 서술이 더 정직"
+      },
       "regime_note": "챔버 정책(야외 사이트 트윈 기본·챔버 통제군)에 맞춰 두 레짐 값을 모두 둘 것을 권고. 마이크로도플러 파급: 흔들림 ±0.15%→0.8~2.5% 면 블레이드 라인 폭이 5-17배 넓어짐 - report11 저속·분해능 논의와 정합 확인 필요"
     }
   },
@@ -88,5 +158,19 @@
     "scripts": "스크래치패드 analyze_neurobem.py, parse_dji_dat.py, analyze_dji.py, analyze_px4_esc.py (세션 스크래치패드, 필요시 재실행으로 재현 가능)",
     "raw_downloads": "NeuroBEM CSV 8편(remotezip 부분추출), DJI FLY000/002/003.DAT(180 MB), PX4 ulog 14편",
     "dat_format_provenance": "DatCon 소스 BudWalkerJava/DatCon: DatFile.java(startOfRecords=128, headerLength=10), DatFileV1.java(clockRate=600), Payload.java(tick%256 XOR, little-endian), MotorCtrl35_54.java(PWM u16/100 @19,21,23,25), GpsGroup.java(velN/E/D f32/100 @20,24,28)"
+  },
+  "superseded_note_20260816": {
+    "status": "보강·일부 반증됨 — 수치는 그대로 두되 아래를 먼저 읽을 것",
+    "successor": "outputs/rotor_log_corpus_0816.json (실기체 52대·호버 2.4 h 코퍼스)",
+    "refuted": [
+      "이 파일 sources[1].caution 의 «샘플링 4 Hz 라 2 Hz 초과 성분이 접혀 들어와 진폭이 과대측정일 수 있음» → 반증. 226 Hz 로그를 4 Hz 로 솎은 짝지은 비교 9건에서 σ_w 중앙 ×0.997(0.964~1.035).",
+      "comparison_with_ours 의 «흔들림 주파수 … 우리 2.7 Hz 는 관측 범위 상단» 서술은 방향은 맞았으나, 새 원장의 OU 코너는 0.20~0.29 Hz 로 현행 f_ctl 0.7 Hz 보다도 낮다.",
+      "verdict.recommended.STATIC_SPREAD outdoor 0.02 → 코퍼스 중앙은 0.043(ddof0)/0.050(ddof1). 이 파일의 권고는 표본 3원천 기준이었다."
+    ],
+    "still_standing": [
+      "«정적 산포·흔들림 모두 우리 값보다 크다»는 방향성은 표본 52대에서도 그대로다.",
+      "«SITL 은 실기체보다 한 자릿수 작다»도 유지."
+    ],
+    "note": "이 파일의 측정 규약은 호버 창 3~18 s 다. 새 코퍼스는 20 s 이상이라 σ_s/σ_w 갈림이 다르다 — 두 원장의 수치를 그냥 나란히 놓으면 안 된다(코퍼스 T2 가 그 차이를 정량화)."
   }
 }

@@ -1,0 +1,1483 @@
+{
+ "_meta": {
+  "title": "battery 그룹 자기겹침 — 수리(불리언 합집합) 전후 실측",
+  "generated_kst": "2026-08-17 00:43:33",
+  "role": "수리자 — 담당 결함 하나만 정밀하게 고치고 전후를 같은 잣대로 잰다.",
+  "defect": "신규(0층 검사기가 잡은 것) — 셸형 공용 경로의 battery 팩 상자 ↔ v2 구조판 상자 자기겹침",
+  "fix": {
+   "switch": "MESH_FIX=battery",
+   "기본": "꺼짐",
+   "방법": "drone_cad.build_frame_cad 의 불리언 union 목록에 'battery' 추가",
+   "치수변경": "없음 — 상자 크기·위치는 한 mm 도 안 건드렸다",
+   "왜_옮기지_않았나": "기종별 실측 치수가 없다. 없는 치수로 상자를 옮기면 «임의로 옮긴 손잡이» 가 된다(감사가 반복해 경고한 함정)."
+  },
+  "compute": "CPU 전용(GPU 금지). PO·메쉬 전부 numpy/trimesh.",
+  "python": "/workspace/.venvs/py312/bin/python (PYTHONPATH=src:benchmark)",
+  "측정_규약": {
+   "주파수": "3.5 GHz, 대역평균 100 MHz·9점",
+   "점간격": "λ/7 = 12.24 mm (rcs_po 기본)",
+   "방위": "0~358°, 2° 간격 180 방위",
+   "고각": "el 0° · el −30°",
+   "바이스태틱": "β=120°, el −30°",
+   "재질": "drones.DRONE_GROUP_MAT → materials. ⚠ITU 'metal' 만 캐시값 0.9998026802895116 (Sionna RT=GPU 필요)",
+   "부호": "(+) = 결함이 σ 를 밝게 만든다(과대계상)",
+   "커널": "모노는 출하 커널 rcs_po.rcs_from_points 그대로. 바이스태틱만 같은 식으로 확장."
+  },
+  "판정_밴드": {
+   "무해": "<0.1 dB",
+   "보임": "0.1~1.0 dB",
+   "결론을_바꿈": ">1 dB"
+  },
+  "적용_범위": "⚠PO 경로 전용. SBR 은 first-hit 이라 매몰면 오차가 구조적으로 0 이다."
+ },
+ "커널_회귀": {
+  "내_바이스태틱_beta0_vs_출하커널_최대상대오차": 0.0,
+  "뜻": "1e-12 이하면 같은 답이다 — 아래 dB 는 출하 커널의 답으로 읽어도 된다."
+ },
+ "인구조사": {
+  "mini5pro": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    28556,
+    28576
+   ],
+   "battery_faces": [
+    24,
+    44
+   ],
+   "battery_area_mm2": [
+    23020.7035,
+    15605.476
+   ],
+   "drone_area_mm2": [
+    132377.8086,
+    124962.5811
+   ],
+   "double_counted_area_mm2_exact": 7415.2275,
+   "double_counted_pct_of_battery_exact": 32.2111,
+   "double_counted_pct_of_drone_exact": 5.6016,
+   "checker_overlap_pct": [
+    47.8868,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    11023.8782,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    93063.5621,
+    81640.8781
+   ],
+   "double_counted_volume_mm3": 11422.684,
+   "double_counted_volume_pct": 12.2741
+  },
+  "mavic4pro": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    30028,
+    30048
+   ],
+   "battery_faces": [
+    24,
+    44
+   ],
+   "battery_area_mm2": [
+    56206.4388,
+    38491.6779
+   ],
+   "drone_area_mm2": [
+    332897.8658,
+    315183.1049
+   ],
+   "double_counted_area_mm2_exact": 17714.7609,
+   "double_counted_pct_of_battery_exact": 31.5173,
+   "double_counted_pct_of_drone_exact": 5.3214,
+   "checker_overlap_pct": [
+    47.2584,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    26562.2637,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    302221.9766,
+    265127.0506
+   ],
+   "double_counted_volume_mm3": 37094.926,
+   "double_counted_volume_pct": 12.2741
+  },
+  "matrice4e": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    30566,
+    30566
+   ],
+   "battery_faces": [
+    24,
+    24
+   ],
+   "battery_area_mm2": [
+    58884.8156,
+    58884.816
+   ],
+   "drone_area_mm2": [
+    304881.7492,
+    304881.7496
+   ],
+   "double_counted_area_mm2_exact": -0.0004,
+   "double_counted_pct_of_battery_exact": -0.0,
+   "double_counted_pct_of_drone_exact": -0.0,
+   "checker_overlap_pct": [
+    0.0,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    0.0,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    476311.1366,
+    476311.1657
+   ],
+   "double_counted_volume_mm3": -0.0291,
+   "double_counted_volume_pct": -0.0
+  },
+  "s1000plus": {
+   "battery_parts_before": 1,
+   "battery_parts_after": 1,
+   "faces_total": [
+    35374,
+    35374
+   ],
+   "battery_faces": [
+    12,
+    12
+   ],
+   "battery_area_mm2": [
+    51688.6269,
+    51688.6269
+   ],
+   "drone_area_mm2": [
+    1194456.3208,
+    1194456.3208
+   ],
+   "double_counted_area_mm2_exact": 0.0,
+   "double_counted_pct_of_battery_exact": 0.0,
+   "double_counted_pct_of_drone_exact": 0.0,
+   "checker_overlap_pct": [
+    0.0,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    0.0,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    721875.0,
+    721875.0
+   ],
+   "double_counted_volume_mm3": 0.0,
+   "double_counted_volume_pct": 0.0
+  },
+  "phantom4": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    28594,
+    28614
+   ],
+   "battery_faces": [
+    24,
+    44
+   ],
+   "battery_area_mm2": [
+    57158.3111,
+    37747.109
+   ],
+   "drone_area_mm2": [
+    334853.2695,
+    315442.0675
+   ],
+   "double_counted_area_mm2_exact": 19411.2021,
+   "double_counted_pct_of_battery_exact": 33.9604,
+   "double_counted_pct_of_drone_exact": 5.7969,
+   "checker_overlap_pct": [
+    49.3745,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    28221.6303,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    457450.9352,
+    401303.0981
+   ],
+   "double_counted_volume_mm3": 56147.8371,
+   "double_counted_volume_pct": 12.2741
+  },
+  "typhoonh480": {
+   "battery_parts_before": 1,
+   "battery_parts_after": 1,
+   "faces_total": [
+    34732,
+    34732
+   ],
+   "battery_faces": [
+    12,
+    12
+   ],
+   "battery_area_mm2": [
+    43876.9253,
+    43876.9253
+   ],
+   "drone_area_mm2": [
+    453353.0723,
+    453353.0723
+   ],
+   "double_counted_area_mm2_exact": 0.0,
+   "double_counted_pct_of_battery_exact": 0.0,
+   "double_counted_pct_of_drone_exact": 0.0,
+   "checker_overlap_pct": [
+    0.0,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    0.0,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    574750.0,
+    574750.0
+   ],
+   "double_counted_volume_mm3": 0.0,
+   "double_counted_volume_pct": 0.0
+  },
+  "x500v2": {
+   "battery_parts_before": 1,
+   "battery_parts_after": 1,
+   "faces_total": [
+    19030,
+    19030
+   ],
+   "battery_faces": [
+    12,
+    12
+   ],
+   "battery_area_mm2": [
+    22550.0,
+    22550.0
+   ],
+   "drone_area_mm2": [
+    436105.8358,
+    436105.8358
+   ],
+   "double_counted_area_mm2_exact": 0.0,
+   "double_counted_pct_of_battery_exact": 0.0,
+   "double_counted_pct_of_drone_exact": 0.0,
+   "checker_overlap_pct": [
+    0.0,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    0.0,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    163125.0,
+    163125.0
+   ],
+   "double_counted_volume_mm3": 0.0,
+   "double_counted_volume_pct": 0.0
+  },
+  "phantom3": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    28508,
+    28508
+   ],
+   "battery_faces": [
+    24,
+    24
+   ],
+   "battery_area_mm2": [
+    32151.018,
+    32151.0159
+   ],
+   "drone_area_mm2": [
+    278160.0561,
+    278160.054
+   ],
+   "double_counted_area_mm2_exact": 0.0021,
+   "double_counted_pct_of_battery_exact": 0.0,
+   "double_counted_pct_of_drone_exact": 0.0,
+   "checker_overlap_pct": [
+    0.0,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    0.0,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    302640.0,
+    302639.9677
+   ],
+   "double_counted_volume_mm3": 0.0323,
+   "double_counted_volume_pct": 0.0
+  },
+  "m350rtk": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    26216,
+    26216
+   ],
+   "battery_faces": [
+    24,
+    24
+   ],
+   "battery_area_mm2": [
+    137159.4438,
+    137159.441
+   ],
+   "drone_area_mm2": [
+    1040901.3768,
+    1040901.374
+   ],
+   "double_counted_area_mm2_exact": 0.0028,
+   "double_counted_pct_of_battery_exact": 0.0,
+   "double_counted_pct_of_drone_exact": 0.0,
+   "checker_overlap_pct": [
+    0.0,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    0.0,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    2340000.0,
+    2339999.9504
+   ],
+   "double_counted_volume_mm3": 0.0496,
+   "double_counted_volume_pct": 0.0
+  },
+  "mini2": {
+   "battery_parts_before": 2,
+   "battery_parts_after": 1,
+   "faces_total": [
+    25823,
+    25843
+   ],
+   "battery_faces": [
+    24,
+    44
+   ],
+   "battery_area_mm2": [
+    20037.3036,
+    13253.663
+   ],
+   "drone_area_mm2": [
+    91611.584,
+    84827.9434
+   ],
+   "double_counted_area_mm2_exact": 6783.6406,
+   "double_counted_pct_of_battery_exact": 33.8551,
+   "double_counted_pct_of_drone_exact": 7.4048,
+   "checker_overlap_pct": [
+    49.958,
+    0.0
+   ],
+   "checker_buried_area_mm2": [
+    10010.2361,
+    0.0
+   ],
+   "battery_volume_mm3": [
+    87277.7925,
+    76565.2546
+   ],
+   "double_counted_volume_mm3": 10712.5379,
+   "double_counted_volume_pct": 12.2741
+  }
+ },
+ "σ": {
+  "mini5pro": {
+   "touched": true,
+   "n_points": [
+    30603,
+    30817
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -19.4828,
+     "sigma_fixed_azmean_dbsm": -19.9727,
+     "azimuth_mean_db": 0.4898,
+     "worst_az_db": 5.5882,
+     "worst_az_deg": 322.0,
+     "worst_az_db_3deg_window": 4.47,
+     "p95_abs_db": 1.6417,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -22.6963,
+     "sigma_fixed_azmean_dbsm": -23.4176,
+     "azimuth_mean_db": 0.7213,
+     "worst_az_db": 5.5901,
+     "worst_az_deg": 350.0,
+     "worst_az_db_3deg_window": 4.5111,
+     "p95_abs_db": 3.1338,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -20.1602,
+     "sigma_fixed_azmean_dbsm": -22.9937,
+     "azimuth_mean_db": 2.8335,
+     "worst_az_db": -10.2392,
+     "worst_az_deg": 198.0,
+     "worst_az_db_3deg_window": -9.9904,
+     "p95_abs_db": 7.4266,
+     "verdict": "결론을바꿈(>1dB)"
+    }
+   }
+  },
+  "mavic4pro": {
+   "touched": true,
+   "n_points": [
+    39205,
+    39655
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -15.2639,
+     "sigma_fixed_azmean_dbsm": -15.7448,
+     "azimuth_mean_db": 0.4809,
+     "worst_az_db": 6.243,
+     "worst_az_deg": 90.0,
+     "worst_az_db_3deg_window": 3.4243,
+     "p95_abs_db": 1.8188,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -19.2702,
+     "sigma_fixed_azmean_dbsm": -19.603,
+     "azimuth_mean_db": 0.3328,
+     "worst_az_db": 6.95,
+     "worst_az_deg": 130.0,
+     "worst_az_db_3deg_window": 4.0313,
+     "p95_abs_db": 3.2543,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -22.5715,
+     "sigma_fixed_azmean_dbsm": -23.9203,
+     "azimuth_mean_db": 1.3488,
+     "worst_az_db": -16.1833,
+     "worst_az_deg": 256.0,
+     "worst_az_db_3deg_window": 11.6889,
+     "p95_abs_db": 8.4913,
+     "verdict": "결론을바꿈(>1dB)"
+    }
+   }
+  },
+  "matrice4e": {
+   "touched": true,
+   "n_points": [
+    40609,
+    40609
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -16.0376,
+     "sigma_fixed_azmean_dbsm": -16.0376,
+     "azimuth_mean_db": -0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 164.0,
+     "worst_az_db_3deg_window": -0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -20.7857,
+     "sigma_fixed_azmean_dbsm": -20.7857,
+     "azimuth_mean_db": -0.0,
+     "worst_az_db": -0.0,
+     "worst_az_deg": 164.0,
+     "worst_az_db_3deg_window": -0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -16.5972,
+     "sigma_fixed_azmean_dbsm": -16.5972,
+     "azimuth_mean_db": 0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 326.0,
+     "worst_az_db_3deg_window": 0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    }
+   }
+  },
+  "s1000plus": {
+   "touched": false,
+   "note": "battery 부품이 1개 — 이 수리가 손댈 것이 없다"
+  },
+  "phantom4": {
+   "touched": true,
+   "n_points": [
+    45182,
+    45747
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -18.5562,
+     "sigma_fixed_azmean_dbsm": -19.1451,
+     "azimuth_mean_db": 0.5889,
+     "worst_az_db": -4.4424,
+     "worst_az_deg": 238.0,
+     "worst_az_db_3deg_window": 2.9217,
+     "p95_abs_db": 2.0751,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -21.3629,
+     "sigma_fixed_azmean_dbsm": -22.1711,
+     "azimuth_mean_db": 0.8082,
+     "worst_az_db": 7.6848,
+     "worst_az_deg": 254.0,
+     "worst_az_db_3deg_window": 6.3003,
+     "p95_abs_db": 4.8324,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -21.8401,
+     "sigma_fixed_azmean_dbsm": -22.1557,
+     "azimuth_mean_db": 0.3156,
+     "worst_az_db": -12.7756,
+     "worst_az_deg": 216.0,
+     "worst_az_db_3deg_window": -10.4687,
+     "p95_abs_db": 6.5897,
+     "verdict": "보임(0.1~1dB)"
+    }
+   }
+  },
+  "typhoonh480": {
+   "touched": false,
+   "note": "battery 부품이 1개 — 이 수리가 손댈 것이 없다"
+  },
+  "x500v2": {
+   "touched": false,
+   "note": "battery 부품이 1개 — 이 수리가 손댈 것이 없다"
+  },
+  "phantom3": {
+   "touched": true,
+   "n_points": [
+    39173,
+    39173
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -19.4871,
+     "sigma_fixed_azmean_dbsm": -19.4871,
+     "azimuth_mean_db": 0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 236.0,
+     "worst_az_db_3deg_window": 0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -18.2921,
+     "sigma_fixed_azmean_dbsm": -18.2921,
+     "azimuth_mean_db": 0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 224.0,
+     "worst_az_db_3deg_window": -0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -22.7326,
+     "sigma_fixed_azmean_dbsm": -22.7326,
+     "azimuth_mean_db": 0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 2.0,
+     "worst_az_db_3deg_window": 0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    }
+   }
+  },
+  "m350rtk": {
+   "touched": true,
+   "n_points": [
+    130343,
+    130343
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -5.6158,
+     "sigma_fixed_azmean_dbsm": -5.6158,
+     "azimuth_mean_db": 0.0,
+     "worst_az_db": -0.0,
+     "worst_az_deg": 196.0,
+     "worst_az_db_3deg_window": 0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -12.3096,
+     "sigma_fixed_azmean_dbsm": -12.3096,
+     "azimuth_mean_db": -0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 174.0,
+     "worst_az_db_3deg_window": 0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -16.588,
+     "sigma_fixed_azmean_dbsm": -16.588,
+     "azimuth_mean_db": 0.0,
+     "worst_az_db": 0.0,
+     "worst_az_deg": 338.0,
+     "worst_az_db_3deg_window": 0.0,
+     "p95_abs_db": 0.0,
+     "verdict": "무해(<0.1dB)"
+    }
+   }
+  },
+  "mini2": {
+   "touched": true,
+   "n_points": [
+    26832,
+    27049
+   ],
+   "sigma": {
+    "mono_el0": {
+     "sigma_defect_azmean_dbsm": -24.587,
+     "sigma_fixed_azmean_dbsm": -25.1144,
+     "azimuth_mean_db": 0.5274,
+     "worst_az_db": 9.5981,
+     "worst_az_deg": 22.0,
+     "worst_az_db_3deg_window": 4.1178,
+     "p95_abs_db": 3.3075,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "mono_el-30": {
+     "sigma_defect_azmean_dbsm": -25.5745,
+     "sigma_fixed_azmean_dbsm": -26.0248,
+     "azimuth_mean_db": 0.4503,
+     "worst_az_db": -18.4682,
+     "worst_az_deg": 18.0,
+     "worst_az_db_3deg_window": -13.4684,
+     "p95_abs_db": 5.1737,
+     "verdict": "보임(0.1~1dB)"
+    },
+    "bi_b120_el-30": {
+     "sigma_defect_azmean_dbsm": -19.4408,
+     "sigma_fixed_azmean_dbsm": -22.009,
+     "azimuth_mean_db": 2.5682,
+     "worst_az_db": 9.6784,
+     "worst_az_deg": 32.0,
+     "worst_az_db_3deg_window": 9.5301,
+     "p95_abs_db": 8.3916,
+     "verdict": "결론을바꿈(>1dB)"
+    }
+   }
+  }
+ },
+ "질량축_감사I9": {
+  "mini2": {
+   "battery_mass_g": [
+    68.651,
+    62.335
+   ],
+   "battery_share_pct": [
+    27.571,
+    25.034
+   ],
+   "com_mm": [
+    [
+     -3.2441,
+     0.0004,
+     3.7766
+    ],
+    [
+     -3.0684,
+     0.0004,
+     3.9717
+    ]
+   ],
+   "Idiag_kgm2": [
+    [
+     0.00023629,
+     0.00029637,
+     0.00048005
+    ],
+    [
+     0.00024291,
+     0.00030279,
+     0.00049182
+    ]
+   ],
+   "total_mass_kg": 0.249
+  },
+  "phantom4": {
+   "battery_mass_g": [
+    319.884,
+    288.839
+   ],
+   "battery_share_pct": [
+    23.18,
+    20.93
+   ],
+   "com_mm": [
+    [
+     2.2886,
+     0.0001,
+     -9.1909
+    ],
+    [
+     2.6634,
+     0.0001,
+     -9.3701
+    ]
+   ],
+   "Idiag_kgm2": [
+    [
+     0.00522952,
+     0.00586925,
+     0.00809261
+    ],
+    [
+     0.00534876,
+     0.0060068,
+     0.00826473
+    ]
+   ],
+   "total_mass_kg": 1.38
+  },
+  "mavic4pro": {
+   "battery_mass_g": [
+    214.19,
+    192.665
+   ],
+   "battery_share_pct": [
+    20.15,
+    18.125
+   ],
+   "com_mm": [
+    [
+     3.2377,
+     0.0,
+     3.7135
+    ],
+    [
+     3.6301,
+     0.0,
+     3.9083
+    ]
+   ],
+   "Idiag_kgm2": [
+    [
+     0.0074442,
+     0.0068291,
+     0.01296069
+    ],
+    [
+     0.00761916,
+     0.00697052,
+     0.01324733
+    ]
+   ],
+   "total_mass_kg": 1.063
+  },
+  "mini5pro": {
+   "battery_mass_g": [
+    52.929,
+    47.671
+   ],
+   "battery_share_pct": [
+    21.18,
+    19.076
+   ],
+   "com_mm": [
+    [
+     8.666,
+     -0.0,
+     0.0926
+    ],
+    [
+     9.1182,
+     -0.0,
+     0.1575
+    ]
+   ],
+   "Idiag_kgm2": [
+    [
+     0.0005227,
+     0.00060967,
+     0.0010198
+    ],
+    [
+     0.00053542,
+     0.00062128,
+     0.00104124
+    ]
+   ],
+   "total_mass_kg": 0.2499
+  }
+ },
+ "소요_초": 233.5,
+ "⭐기준선_예측_vs_실제수리": {
+  "한_줄": "기준선의 예측(+1.02~+3.65 dB)은 **과대**였다. 실제로 합집합으로 고쳐서 재니 +0.32~+2.84 dB 다. 방향은 맞았고 크기가 0.2~1.4 dB 작다.",
+  "왜_다른가": "기준선은 «면 **중심**이 남의 솔리드 안이면 그 면을 통째로 뺀» 판으로 예측했다. 합집합은 **정확히 겹친 만큼만** 잘라낸다. battery 는 상자라 면이 6~24장뿐이라 중심 잣대의 알갱이가 굵고 겹친 면적을 과대로 본다 — 검사기 잣대 47.3~50.0 % ↔ 정확한 잣대 31.5~34.1 %. ⭐기준선 원장 자신이 이 한계를 «모르는 것» 절에 미리 적어 두었다(«battery 는 면이 6~24장뿐이라 알갱이가 특히 굵다») — 그 경고가 맞았다.",
+  "결함판_회귀": "수리 **전** σ 12개 수(4기체×3기하)가 기준선 원장과 소수 3자리까지 같다(B6/B7 적용 전 트리에서). 두 측정이 같은 메쉬·같은 커널을 보고 있다는 뜻이고, 차이는 오직 «수리판을 어떻게 만들었나» 에서 온다.",
+  "기체별": {
+   "mini2": {
+    "mono_el0": {
+     "기준선_예측_db": 1.8788,
+     "실제_수리_db_B6B7전": 0.5275,
+     "실제_수리_db_현재트리": 0.5274,
+     "예측_빼기_실제_db": 1.3513,
+     "결함판σ_dbsm": {
+      "기준선": -24.586,
+      "내_측정_B6B7전": -24.5856,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "mono_el-30": {
+     "기준선_예측_db": 1.8111,
+     "실제_수리_db_B6B7전": 0.4507,
+     "실제_수리_db_현재트리": 0.4503,
+     "예측_빼기_실제_db": 1.3604,
+     "결함판σ_dbsm": {
+      "기준선": -25.574,
+      "내_측정_B6B7전": -25.5739,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "bi_b120_el-30": {
+     "기준선_예측_db": 3.6473,
+     "실제_수리_db_B6B7전": 2.5671,
+     "실제_수리_db_현재트리": 2.5682,
+     "예측_빼기_실제_db": 1.0802,
+     "결함판σ_dbsm": {
+      "기준선": -19.438,
+      "내_측정_B6B7전": -19.4377,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "결론을바꿈(>1dB)",
+      "실제_현재": "결론을바꿈(>1dB)"
+     }
+    }
+   },
+   "phantom4": {
+    "mono_el0": {
+     "기준선_예측_db": 1.4764,
+     "실제_수리_db_B6B7전": 0.6067,
+     "실제_수리_db_현재트리": 0.5889,
+     "예측_빼기_실제_db": 0.8697,
+     "결함판σ_dbsm": {
+      "기준선": -18.268,
+      "내_측정_B6B7전": -18.268,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "mono_el-30": {
+     "기준선_예측_db": 1.3685,
+     "실제_수리_db_B6B7전": 0.82,
+     "실제_수리_db_현재트리": 0.8082,
+     "예측_빼기_실제_db": 0.5485,
+     "결함판σ_dbsm": {
+      "기준선": -21.056,
+      "내_측정_B6B7전": -21.0559,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "bi_b120_el-30": {
+     "기준선_예측_db": 1.4976,
+     "실제_수리_db_B6B7전": 0.4672,
+     "실제_수리_db_현재트리": 0.3156,
+     "예측_빼기_실제_db": 1.0304,
+     "결함판σ_dbsm": {
+      "기준선": -21.486,
+      "내_측정_B6B7전": -21.486,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    }
+   },
+   "mavic4pro": {
+    "mono_el0": {
+     "기준선_예측_db": 1.0243,
+     "실제_수리_db_B6B7전": 0.4236,
+     "실제_수리_db_현재트리": 0.4809,
+     "예측_빼기_실제_db": 0.6007,
+     "결함판σ_dbsm": {
+      "기준선": -16.183,
+      "내_측정_B6B7전": -16.1825,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "mono_el-30": {
+     "기준선_예측_db": 0.1756,
+     "실제_수리_db_B6B7전": 0.4905,
+     "실제_수리_db_현재트리": 0.3328,
+     "예측_빼기_실제_db": -0.3149,
+     "결함판σ_dbsm": {
+      "기준선": -18.93,
+      "내_측정_B6B7전": -18.9301,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "보임(0.1~1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "bi_b120_el-30": {
+     "기준선_예측_db": 1.0165,
+     "실제_수리_db_B6B7전": 0.8363,
+     "실제_수리_db_현재트리": 1.3488,
+     "예측_빼기_실제_db": 0.1802,
+     "결함판σ_dbsm": {
+      "기준선": -21.99,
+      "내_측정_B6B7전": -21.9904,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "결론을바꿈(>1dB)"
+     }
+    }
+   },
+   "mini5pro": {
+    "mono_el0": {
+     "기준선_예측_db": 1.3183,
+     "실제_수리_db_B6B7전": 0.4904,
+     "실제_수리_db_현재트리": 0.4898,
+     "예측_빼기_실제_db": 0.8279,
+     "결함판σ_dbsm": {
+      "기준선": -19.484,
+      "내_측정_B6B7전": -19.4838,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "mono_el-30": {
+     "기준선_예측_db": 1.4015,
+     "실제_수리_db_B6B7전": 0.7227,
+     "실제_수리_db_현재트리": 0.7213,
+     "예측_빼기_실제_db": 0.6788,
+     "결함판σ_dbsm": {
+      "기준선": -22.679,
+      "내_측정_B6B7전": -22.6795,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "보임(0.1~1dB)",
+      "실제_현재": "보임(0.1~1dB)"
+     }
+    },
+    "bi_b120_el-30": {
+     "기준선_예측_db": 3.3834,
+     "실제_수리_db_B6B7전": 2.8404,
+     "실제_수리_db_현재트리": 2.8335,
+     "예측_빼기_실제_db": 0.543,
+     "결함판σ_dbsm": {
+      "기준선": -20.166,
+      "내_측정_B6B7전": -20.1663,
+      "일치": "소수 3자리까지 같다"
+     },
+     "판정": {
+      "기준선": "결론을바꿈(>1dB)",
+      "실제_B6B7전": "결론을바꿈(>1dB)",
+      "실제_현재": "결론을바꿈(>1dB)"
+     }
+    }
+   }
+  }
+ },
+ "측정_시점_두_판": {
+  "왜_두_판인가": "이 라운드는 여러 수리자가 **같은 트리에서 동시에** 일했다. 내 첫 측정 뒤 다른 라인이 셸 스무딩(smooth_iters=0)·외형강제 해제(B6)·다리 스파이크(B7)를 **기본값으로** 적용해 셸형 6기종의 기본 메쉬가 정당하게 바뀌었다. 그래서 같은 수리를 두 트리에서 재고 둘 다 남긴다.",
+  "판1_B6B7_적용_전": {
+   "뜻": "기준선 원장과 **같은 메쉬** — 기준선 비교는 이쪽이 사과-대-사과다.",
+   "σ": {
+    "mini5pro": {
+     "mono_el0": 0.4904,
+     "mono_el-30": 0.7227,
+     "bi_b120_el-30": 2.8404
+    },
+    "mavic4pro": {
+     "mono_el0": 0.4236,
+     "mono_el-30": 0.4905,
+     "bi_b120_el-30": 0.8363
+    },
+    "matrice4e": {
+     "mono_el0": -0.0,
+     "mono_el-30": -0.0,
+     "bi_b120_el-30": 0.0
+    },
+    "phantom4": {
+     "mono_el0": 0.6067,
+     "mono_el-30": 0.82,
+     "bi_b120_el-30": 0.4672
+    },
+    "phantom3": {
+     "mono_el0": 0.0,
+     "mono_el-30": 0.0,
+     "bi_b120_el-30": 0.0
+    },
+    "m350rtk": {
+     "mono_el0": 0.0,
+     "mono_el-30": -0.0,
+     "bi_b120_el-30": 0.0
+    },
+    "mini2": {
+     "mono_el0": 0.5275,
+     "mono_el-30": 0.4507,
+     "bi_b120_el-30": 2.5671
+    }
+   },
+   "인구조사_정확매몰면적_mm2": {
+    "mini5pro": 7415.2275,
+    "mavic4pro": 17287.8099,
+    "matrice4e": -0.0004,
+    "s1000plus": 0.0,
+    "phantom4": 20140.4042,
+    "typhoonh480": 0.0,
+    "x500v2": 0.0,
+    "phantom3": 0.0021,
+    "m350rtk": 0.0028,
+    "mini2": 6783.6406
+   },
+   "질량축": {
+    "mini2": {
+     "battery_mass_g": [
+      68.655,
+      62.337
+     ],
+     "battery_share_pct": [
+      27.572,
+      25.035
+     ],
+     "com_mm": [
+      [
+       -3.2419,
+       0.0004,
+       3.7768
+      ],
+      [
+       -3.0661,
+       0.0004,
+       3.9719
+      ]
+     ],
+     "Idiag_kgm2": [
+      [
+       0.00023629,
+       0.00029635,
+       0.00048003
+      ],
+      [
+       0.00024291,
+       0.00030277,
+       0.0004918
+      ]
+     ],
+     "total_mass_kg": 0.249
+    },
+    "phantom4": {
+     "battery_mass_g": [
+      320.067,
+      289.009
+     ],
+     "battery_share_pct": [
+      23.193,
+      20.943
+     ],
+     "com_mm": [
+      [
+       2.3447,
+       0.0001,
+       -9.2053
+      ],
+      [
+       2.7274,
+       0.0001,
+       -9.385
+      ]
+     ],
+     "Idiag_kgm2": [
+      [
+       0.00537057,
+       0.00603411,
+       0.00839801
+      ],
+      [
+       0.00549271,
+       0.00617525,
+       0.00857658
+      ]
+     ],
+     "total_mass_kg": 1.38
+    },
+    "mavic4pro": {
+     "battery_mass_g": [
+      173.695,
+      155.494
+     ],
+     "battery_share_pct": [
+      16.34,
+      14.628
+     ],
+     "com_mm": [
+      [
+       16.494,
+       0.0,
+       -2.4238
+      ],
+      [
+       17.0821,
+       0.0,
+       -2.4047
+      ]
+     ],
+     "Idiag_kgm2": [
+      [
+       0.00639186,
+       0.00666901,
+       0.01161625
+      ],
+      [
+       0.00651285,
+       0.00676821,
+       0.01180709
+      ]
+     ],
+     "total_mass_kg": 1.063
+    },
+    "mini5pro": {
+     "battery_mass_g": [
+      52.936,
+      47.678
+     ],
+     "battery_share_pct": [
+      21.183,
+      19.079
+     ],
+     "com_mm": [
+      [
+       8.6693,
+       -0.0,
+       0.0935
+      ],
+      [
+       9.1217,
+       -0.0,
+       0.1585
+      ]
+     ],
+     "Idiag_kgm2": [
+      [
+       0.00052276,
+       0.0006095,
+       0.0010197
+      ],
+      [
+       0.00053549,
+       0.00062111,
+       0.00104113
+      ]
+     ],
+     "total_mass_kg": 0.2499
+    }
+   }
+  },
+  "판2_현재_트리": {
+   "뜻": "지금 저장소가 만드는 메쉬. 이 파일의 본문(σ·인구조사·질량축)이 이 판이다.",
+   "소스_sha256_앞16": {
+    "drone_cad.py": "b43cd76a2b2575b2",
+    "drones.py": "26d33b5a2d961966",
+    "cadkit.py": "8e65c43f82bcf429",
+    "geom.py": "60a8f72eca6a9ee3",
+    "mesh_check.py": "e35568ebe37c24c6"
+   }
+  },
+  "두_판의_결론이_같은가": "같다. 수리의 σ 대가는 두 트리에서 모노 +0.33~+0.81 dB · 바이 +0.32~+2.84 dB 이고, 판정 밴드가 바뀐 칸은 mavic4pro 바이스태틱 하나뿐이다(보임 0.84 → 결론을바꿈 1.35). 겹침 비율(정확 잣대 31.5~34.1 %)과 부피 이중계상(12.27 %)은 두 판이 사실상 같다."
+ },
+ "I3_매몰면_census_부수효과": {
+  "뜻": "다른 수리자(I3)가 검사기에 넣은 «전 부품쌍 매몰면» 검사의 수. battery 합집합은 그 census 도 같이 줄인다 — 이 수리가 I3 의 «진짜 결함» 몫을 얼마나 덜어 주는지 보여 준다.",
+  "재현": "python src/mesh_check.py  ↔  MESH_FIX=battery python src/mesh_check.py (현재 트리)",
+  "표": {
+   "m350rtk": {
+    "총_pct": [
+     29.33,
+     29.33
+    ],
+    "설계의도_pct": [
+     20.51,
+     20.51
+    ],
+    "진짜결함_pct": [
+     8.82,
+     8.82
+    ],
+    "진짜결함_감소_pp": 0.0
+   },
+   "matrice4e": {
+    "총_pct": [
+     40.29,
+     40.29
+    ],
+    "설계의도_pct": [
+     21.17,
+     21.17
+    ],
+    "진짜결함_pct": [
+     19.12,
+     19.12
+    ],
+    "진짜결함_감소_pp": 0.0
+   },
+   "mavic4pro": {
+    "총_pct": [
+     37.32,
+     33.8
+    ],
+    "설계의도_pct": [
+     8.83,
+     12.13
+    ],
+    "진짜결함_pct": [
+     28.5,
+     21.67
+    ],
+    "진짜결함_감소_pp": 6.83
+   },
+   "mini2": {
+    "총_pct": [
+     44.45,
+     40.01
+    ],
+    "설계의도_pct": [
+     10.17,
+     13.5
+    ],
+    "진짜결함_pct": [
+     34.27,
+     26.51
+    ],
+    "진짜결함_감소_pp": 7.76
+   },
+   "mini5pro": {
+    "총_pct": [
+     41.82,
+     38.37
+    ],
+    "설계의도_pct": [
+     8.89,
+     12.3
+    ],
+    "진짜결함_pct": [
+     32.94,
+     26.07
+    ],
+    "진짜결함_감소_pp": 6.87
+   },
+   "phantom3": {
+    "총_pct": [
+     26.28,
+     25.26
+    ],
+    "설계의도_pct": [
+     18.01,
+     18.01
+    ],
+    "진짜결함_pct": [
+     8.27,
+     7.24
+    ],
+    "진짜결함_감소_pp": 1.03
+   },
+   "phantom4": {
+    "총_pct": [
+     39.5,
+     35.78
+    ],
+    "설계의도_pct": [
+     8.76,
+     12.09
+    ],
+    "진짜결함_pct": [
+     30.74,
+     23.69
+    ],
+    "진짜결함_감소_pp": 7.05
+   },
+   "s1000plus": {
+    "총_pct": [
+     7.99,
+     7.99
+    ],
+    "설계의도_pct": [
+     1.1,
+     1.1
+    ],
+    "진짜결함_pct": [
+     6.89,
+     6.89
+    ],
+    "진짜결함_감소_pp": 0.0
+   },
+   "typhoonh480": {
+    "총_pct": [
+     22.48,
+     22.48
+    ],
+    "설계의도_pct": [
+     8.56,
+     8.56
+    ],
+    "진짜결함_pct": [
+     13.92,
+     13.92
+    ],
+    "진짜결함_감소_pp": 0.0
+   },
+   "x500v2": {
+    "총_pct": [
+     18.14,
+     18.14
+    ],
+    "설계의도_pct": [
+     0.0,
+     0.0
+    ],
+    "진짜결함_pct": [
+     18.14,
+     18.14
+    ],
+    "진짜결함_감소_pp": 0.0
+   }
+  },
+  "주의": "«설계의도» 칸이 올라가는 것은 결함이 늘어서가 아니다 — 팩과 판이 한 솔리드가 되면서 그 표면의 더 많은 몫이 «셸 안의 금속»(설계 의도)으로 분류되기 때문이다. 총합과 진짜결함이 둘 다 내려간 것이 핵심."
+ },
+ "게이트": {
+  "언제": "본문 재측정과 같은 트리(2026-08-17 KST 초, 소스 sha 는 측정_시점_두_판.판2 참조)",
+  "mesh_check_수리끔": {
+   "명령": "PYTHONPATH=src:benchmark python src/mesh_check.py",
+   "결과": "10/10 통과"
+  },
+  "mesh_check_수리켬": {
+   "명령": "MESH_FIX=battery PYTHONPATH=src:benchmark python src/mesh_check.py",
+   "결과": "10/10 통과",
+   "확인": "battery 겹침 전 기종 0.00 % — 예산이 55 → 0.1 로 **같이 조여진 채로** 통과"
+  },
+  "적대시험_수리끔": {
+   "명령": "PYTHONPATH=src:benchmark python benchmark/adv_mesh_check_faults.py",
+   "결과": "16/16 통과"
+  },
+  "적대시험_수리켬": {
+   "명령": "MESH_FIX=battery PYTHONPATH=src:benchmark python benchmark/adv_mesh_check_faults.py",
+   "결과": "16/16 통과"
+  },
+  "회귀시험": {
+   "명령": "PYTHONPATH=src:benchmark python benchmark/regress_mesh_fix_battery_0816.py",
+   "결과": "R1·R2·R3·R4·R5 통과 (R6 은 참고 출력)"
+  }
+ },
+ "회귀_비트동일_증명": {
+  "주장": "인자를 안 주고 MESH_FIX 도 비어 있으면 10기종 드론 메쉬가 **내 수정 전과 비트동일**이다.",
+  "방법": "`benchmark/regress_mesh_fix_battery_0816.py` 의 R1 이 스스로 한다 — ① 지금 src/ 를 임시 폴더에 복사하고 ② 거기서 **battery 합집합 배선만** 잘라낸다(union 목록을 옛 10-튜플 리터럴로, 합집합 실패 가드 삭제 — 스위치가 꺼졌을 때 동작을 바꿀 수 있는 조각은 그 둘뿐이다) ③ 그 트리를 PYTHONPATH 로 건 별도 프로세스로 지문을 떠서 비교한다.",
+  "지문": "sha256( 꼭짓점 float64 바이트 ‖ 면 인덱스 int64 ‖ 면별 그룹 이름 )",
+  "결과": "10/10 동일",
+  "왜_해시를_박아_두지_않았나": "박아 두면 **다른 라인이 기본 형상을 바꿀 때 같이 빨개진다**. 실제로 이 라운드에 그런 일이 있었다(B6/B7 적용). 시험이 매번 «수정 전 트리» 를 만들어 비교하면 남의 변경과 무관하게 **내 수정의 무해함만** 가려낸다. 2026-08-16 15:20 시점 해시는 참고용으로 스크립트에 남겨 두었다.",
+  "두_번째_증거": "B6/B7 적용 **전** 트리에서 잰 수리 전 σ 12개가 기준선 원장(수리 코드가 하나도 없던 시점)과 소수 3자리까지 같았다. 지문이 «같은 바이트» 를 본다면 이쪽은 «같은 물리» 를 본다.",
+  "켜면_깨진다": "⭐의도된 것이다. 배터리 부품이 2개인 7기체에서 메쉬가 바뀐다 — 겹침이 있던 4기체는 면 24→44 장, 겹침 0. 안 겹치던 3기체(phantom3·matrice4e·m350rtk)는 삼각형 수가 그대로지만 manifold3d 가 좌표를 나노미터급(≤5e-6 mm)으로 다시 찍어 바이트로는 달라진다 — σ 는 0.0000 dB(측정)."
+ },
+ "안_고친_것과_이유": {
+  "battery 상자를 «안 겹치게 옮기기»(갈래 a)": {
+   "크기": "같은 결함(정확 매몰면적 6.8k~20.1k mm²)을 없애는 다른 길",
+   "왜_안_했나": "기종별 실측 치수가 없다. mini2·phantom4·mavic4pro·mini5pro 의 팩·구조판 치수는 셸 비율에서 나온 공용 리터럴이고 1차 출처가 없다. 없는 치수로 상자를 옮기면 그것은 수리가 아니라 «임의로 옮긴 손잡이» 다 — 감사가 반복해서 경고한 함정. ⇒ 실측표(사진·CAD)가 생기면 그때 INTERNALS 에 넣을 것.",
+   "막힌_것": "DJI 는 내부 부품 치수를 공개하지 않는다. 분해사진에 축척 앵커가 있으면 phantom3 처럼 잴 수 있다."
+  },
+  "구조판을 팩 아래로 내려 «접촉만» 시키기(갈래 c)": {
+   "크기": "같음",
+   "왜_안_했나": "형상 근거가 없다. 갈래 (a) 와 같은 이유로 «지어내기» 다."
+  },
+  "'pcb' 그룹도 합집합에 넣기": {
+   "크기": "⭐**결함이 없다** — 10기체 중 9기체가 pcb 부품 1개(구조적으로 자기겹침 불가), m350rtk 만 2개인데 겹침 0.00 %.",
+   "왜_안_했나": "고칠 것이 없다. 넣으면 m350rtk 의 pcb 삼각형만 이유 없이 다시 찍힌다."
+  },
+  "SBR 로 교차확인": {
+   "크기": "미측정",
+   "왜_안_했나": "⛔GPU 금지(큐 5장 사용 중). SBR 은 first-hit 이라 매몰면 오차가 **구조적으로 0** 이어야 하고, 수리는 바깥 껍질을 안 건드리므로 SBR σ 는 안 움직여야 한다 — **확인은 못 했다. 미해결.**"
+  },
+  "기존 σ 원장·리포트 재계산": {
+   "크기": "PO 경로 산출물 전부(감사 §4-1 부품분해표 · microdoppler DC 장 · viz_verify_po 등)",
+   "왜_안_했나": "이 라운드의 담당이 아니다(4층). 수리가 기본 꺼짐이라 기존 산출물은 여전히 **유효**하고, 켜기로 결정하는 순간 다시 재야 한다 — 그 목록은 기준선 원장 `적용_범위_한계.PO_경로를_쓰는_곳` 에 있다."
+  }
+ },
+ "모르는_것": {
+  "SBR 에서의 값": "위와 같음(GPU 금지).",
+  "합집합이 만든 새 모서리의 회절(PTD)": "PO 는 회절을 안 본다. 합집합은 팩·판 교선에 새 모서리를 만드는데 그 모서리가 ptd_edges 경로에서 어떤 기여를 하는지 안 쟀다. 다만 그 모서리는 **셸 안**이라 첫 반사에 안 들어오고, 결함판에도 같은 자리에 두 상자의 모서리가 이미 있었다.",
+  "질량 배분의 참값": "배터리 질량 배분이 2.1~2.5 pp 내려가는 것은 **이중계상이 없어진 것**이라 방향은 확실하다. 그러나 그 배분의 참값은 여전히 모른다 — 밀도표(DENSITY)도 실측이 아니라 대표값이다."
+ },
+ "⚠발견_스위치_어긋남": {
+  "무엇": "수리 스위치가 **인자 경로**와 **환경변수 경로**에서 닿는 범위가 다르다. 인자(mesh_fix=…)는 drone_cad 가 하는 수리(battery·i4·m4)만 켜고, cadkit 의 i5·geom 의 m6·rcs_po 의 i3 는 환경변수 MESH_FIX 만 읽는다. 인자에 남의 id 를 주면 **예외 없이 조용히 안 켜진다.**",
+  "실측": {
+   "방법": "mini2 를 두 경로로 지어 mesh_check 로 잼",
+   "인자_i5_battery": "body 경계모서리 3 · 면 25843 (i5 가 **안 켜졌다**)",
+   "환경변수_i5_battery": "body 경계모서리 0 · 면 25842 (i5 가 켜졌다)"
+  },
+  "내가_한_것": "내 담당 범위 밖이라 남의 배선을 고치지 않았다. 대신 (1) drone_cad·drones 머리말에 «여러 수리를 함께 켤 때는 환경변수를 쓸 것» 을 실측과 함께 못 박았고, (2) 여기 원장에 남긴다.",
+  "권고": "스위치 통합 시 인자 경로가 호출 동안만 공용 스위치를 얹도록 하면 어긋남이 없어진다(단일 스레드 전제). 담당자 합의가 필요해 이 라운드에서는 손대지 않았다.",
+  "주의": "다른 수리자(i4)의 예외 메시지가 «MESH_FIX=i5,i4 … 또는 build_frame_cad(spec, mesh_fix='i5,i4')» 라고 두 경로를 같은 것처럼 적고 있다 — 실측으로는 뒤쪽이 i5 를 안 켠다."
+ }
+}

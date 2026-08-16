@@ -1,0 +1,3369 @@
+{
+ "_meta": {
+  "generator": "benchmark/link_budget_spec.py",
+  "generated_kst": "2026-08-16 23:21:42 (UTC+9)",
+  "role_ko": "«몇 미터에서 보이나» 의 **분모**를 정본으로 만든다 — 상수마다 근거 등급, 규약마다 거리 배수, 그리고 답을 낼 자격이 있는지의 게이트",
+  "gpu_used": false,
+  "gpu_note_ko": "⛔GPU·솔버 임포트 없음. 데이터시트 판독과 저장된 원장 읽기뿐",
+  "datasheet": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+  "inputs": [
+   "outputs/elevation_sweep_md.{json,npz} (잣대 게이트 실측용)",
+   "outputs/noise_distance_frame.json (옮길 잠정 거리)",
+   "outputs/passive_two_channel.json (기준채널 손실 법칙)",
+   "src/sigma_anchor.py (σ 앵커)"
+  ],
+  "grades_ko": {
+   "A": "규격서·물리상수",
+   "B": "문헌·데이터시트 그림 판독",
+   "C": "관행(범위는 안다)",
+   "D": "순수 선언"
+  },
+  "headline_scenario": "active_mono_x410",
+  "elapsed_s": 33.3
+ },
+ "constants": {
+  "physics": {
+   "k_boltz": {
+    "value": 1.380649e-23,
+    "unit": "J/K",
+    "grade": "A",
+    "source": "CODATA (benchmark/link_budget.K_BOLTZ)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "T0": {
+    "value": 290.0,
+    "unit": "K",
+    "grade": "A",
+    "source": "IEEE 기준 잡음온도 290 K (link_budget.T0)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "c0": {
+    "value": 299792458.0,
+    "unit": "m/s",
+    "grade": "A",
+    "source": "정의값",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   }
+  },
+  "target": {
+   "sigma_ref_dbsm": {
+    "value": -13.984212727603522,
+    "unit": "dBsm",
+    "grade": "A",
+    "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+    "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+    "lo": null,
+    "hi": null
+   },
+   "size_corr_db": {
+    "value": 1.9639714910479582,
+    "unit": "dB",
+    "grade": "B",
+    "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+    "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+    "lo": null,
+    "hi": null
+   }
+  },
+  "x410": {
+   "n_rx": {
+    "value": 4,
+    "unit": "ch",
+    "grade": "A",
+    "source": "experiment_x410.X410.n_rx · NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "n_tx": {
+    "value": 4,
+    "unit": "ch",
+    "grade": "A",
+    "source": "experiment_x410.X410.n_tx · NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "max_bw_hz": {
+    "value": 400000000.0,
+    "unit": "Hz",
+    "grade": "A",
+    "source": "채널당 순시대역 400 MHz · NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "adc_bits": {
+    "value": 12,
+    "unit": "bit",
+    "grade": "A",
+    "source": "ADC 12 bit → 동적범위 6.0206·12+1.76 = 74.0 dB · NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "dac_bits": {
+    "value": 14,
+    "unit": "bit",
+    "grade": "A",
+    "source": "DAC 14 bit · NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "max_sample_rate_hz": {
+    "value": 491520000.0,
+    "unit": "S/s",
+    "grade": "A",
+    "source": "최대 I/Q 표본율 · NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "tx_pmax_cw_dbm_3g5": {
+    "value": 22.3,
+    "unit": "dBm",
+    "grade": "B",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 2 (TX Maximum Output Power, 0 dBFS CW, 최대 이득)",
+    "note_ko": "⭐3.5 GHz 판독값. 규정값은 «<23 dBm»[A] 이고 그림이 주파수별 곡선을 준다. 80 % 신뢰구간 막대가 그 자리에서 ±0.7 dB. **정포락선(CW·처프) 파형에서만 쓸 수 있다**",
+    "lo": 21.6,
+    "hi": 23.0
+   },
+   "tx_pavg_ofdm_evm30_dbm_3g5": {
+    "value": 13.0,
+    "unit": "dBm",
+    "grade": "B",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 1 (TX EVM Bathtub, 3.5 GHz 곡선)",
+    "note_ko": "⭐OFDM(5G NR 100 MHz) 을 EVM −30 dB 까지 밀어붙인 **평균 채널전력**. 레이더는 256QAM 급 선형성이 필요 없다(기준신호를 캡처해 정합필터를 걸므로) — 그래서 이 점을 헤드라인 canon 으로 고른다. ⚠선택이며 대안이 아래 둘이다",
+    "lo": 11.0,
+    "hi": 14.0
+   },
+   "tx_pavg_ofdm_evm_knee_dbm_3g5": {
+    "value": 5.0,
+    "unit": "dBm",
+    "grade": "B",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 1 (같은 곡선의 평탄 바닥, EVM ≈ −44 dB)",
+    "note_ko": "통신급 선형성을 지키는 운용점. 여기를 쓰면 canon 보다 **8 dB 손해**",
+    "lo": 0.0,
+    "hi": 5.0
+   },
+   "tx_pmax_cw_dbm_5g8": {
+    "value": 17.0,
+    "unit": "dBm",
+    "grade": "B",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 2, 5.5~6 GHz 구간 판독",
+    "note_ko": "⚠ISM 5.8 GHz 는 그림에서 대역 전환 구간이라 판독 폭이 넓다(±1.5 dB). 실측 캠페인이 ISM 에서 송신하므로(docs/MEASUREMENT_PLAN §0-3) 이 값이 필요하다",
+    "lo": 15.5,
+    "hi": 18.5
+   },
+   "rx_nf_db_3g5": {
+    "value": 6.5,
+    "unit": "dB",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Receiver / Noise figure, 3.1 GHz~6 GHz",
+    "note_ko": "⭐우리 3.5 GHz 가 이 구간 **안**이다. 다른 구간은 500 MHz~3.1 GHz 8 dB · 6~8 GHz 9 dB. 즉 3.5 GHz 는 이 장비가 가장 조용한 대역이다",
+    "lo": null,
+    "hi": null
+   },
+   "rx_gain_range_db": {
+    "value": 60.0,
+    "unit": "dB",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Receiver / Gain range (>500 MHz)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "rx_max_operating_dbm": {
+    "value": 0.0,
+    "unit": "dBm",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Receiver / Maximum operating power",
+    "note_ko": "⭐직접파가 이 값을 넘으면 압축된다 — 패시브 팔의 실질 제약(손상 한계는 >3 GHz 에서 +17 dBm)",
+    "lo": null,
+    "hi": null
+   },
+   "rx_iip3_dbm": {
+    "value": 12.0,
+    "unit": "dBm",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Input IP3, 0 dBm input, full scale",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "tx_pn_1k_dbc_hz": {
+    "value": -91.0,
+    "unit": "dBc/Hz",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Transmitter / 1 kHz offset",
+    "note_ko": "⭐⭐날개끝 1102 Hz·깜빡임 126.7 Hz 가 바로 이 오프셋대다. 규정 조건: «0 dBFS 기저대역으로 0 dBm 출력이 되는 TX 이득 설정에서 측정»",
+    "lo": null,
+    "hi": null
+   },
+   "tx_pn_10k_dbc_hz": {
+    "value": -101.0,
+    "unit": "dBc/Hz",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Transmitter / 10 kHz offset",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "tx_pn_100k_dbc_hz": {
+    "value": -103.0,
+    "unit": "dBc/Hz",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Transmitter / 100 kHz offset",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "tx_noise_density_dbm_hz": {
+    "value": -146.0,
+    "unit": "dBm/Hz",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) Average noise density (23 °C, 10 MHz~8 GHz)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "tx_isolation_db": {
+    "value": null,
+    "unit": "dB",
+    "grade": "D",
+    "source": "⛔미확보 — 능동 모노스태틱에서 송신→수신 격리(안테나 배치·차폐가 정한다)",
+    "note_ko": "⭐이것이 지금 **가장 비싼 미지수**다. phase_noise_floor() 가 이유를 수로 보인다",
+    "lo": null,
+    "hi": null
+   }
+  },
+  "rx_chain": {
+   "grx_dbi": {
+    "value": 10.0,
+    "unit": "dBi",
+    "grade": "C",
+    "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+    "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+    "lo": 8.0,
+    "hi": 17.0
+   },
+   "nf_db": {
+    "value": 6.5,
+    "unit": "dB",
+    "grade": "A",
+    "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+    "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+    "lo": null,
+    "hi": null
+   },
+   "sys_loss_db": {
+    "value": 2.0,
+    "unit": "dB",
+    "grade": "C",
+    "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+    "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+    "lo": 1.0,
+    "hi": 4.0
+   }
+  },
+  "tx_antenna": {
+   "gtx_dbi": {
+    "value": 10.0,
+    "unit": "dBi",
+    "grade": "C",
+    "source": "수신과 같은 급의 패널을 가정(선언)",
+    "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+    "lo": 8.0,
+    "hi": 17.0
+   }
+  },
+  "regulatory": {
+   "can_transmit_3g5": {
+    "value": null,
+    "unit": "bool",
+    "grade": "D",
+    "source": "⛔미확보 — 3.5 GHz(5G n78)는 **면허 대역**이다. 야외 송신 가능 여부·조건",
+    "note_ko": "⭐docs/MEASUREMENT_PLAN §0-3 이 이미 «우리가 송신해도 되는 자리는 ISM 뿐» 이라고 적었다. 그러면 3.5 GHz 능동 팔은 **시뮬 전용**이고, 실측은 ISM 5.8 GHz 다",
+    "lo": null,
+    "hi": null
+   },
+   "ism58_eirp_cap_dbm": {
+    "value": null,
+    "unit": "dBm",
+    "grade": "D",
+    "source": "⛔미확보 — 5.725~5.825 GHz ISM 의 국내 EIRP 상한",
+    "note_ko": "확보하면 ISM 팔의 EIRP 가 «장비 한계» 가 아니라 «규제 한계» 로 바뀔 수 있다",
+    "lo": null,
+    "hi": null
+   }
+  },
+  "metric": {
+   "n_slow": {
+    "value": 8192,
+    "unit": "sample",
+    "grade": "A",
+    "source": "outputs/elevation_sweep_md.npz 열 길이",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "prf_hz": {
+    "value": 19700.0,
+    "unit": "Hz",
+    "grade": "C",
+    "source": "outputs/elevation_sweep_md.json:_meta.prf_hz",
+    "note_ko": "⚠유래는 «로터 자세 표본율»(날개끝 1102 Hz 대비 여유 9배)이다. ⭐그러나 아래 PRF_INVARIANCE 가 보이듯 **CPI 를 고정하면 판독거리는 PRF 에 무관**하다 — 이 상수의 약한 근거가 답을 흔들지 않는다는 뜻이고, 그것을 측정으로 보였다",
+    "lo": null,
+    "hi": null
+   },
+   "cpi_s": {
+    "value": 0.41584,
+    "unit": "s",
+    "grade": "C",
+    "source": "n_slow / prf_hz = 8192 / 19700",
+    "note_ko": "⭐**저장소에서 가장 긴 CPI 다.** report13 규약은 0.1 s, experiment_x410.detection_config 기본은 20 ms — 즉 이 판은 다른 원장보다 관측시간을 4~21 배 길게 쓴다. 그 대가가 아래 CPI_LADDER 다",
+    "lo": null,
+    "hi": null
+   },
+   "f_flash_hz": {
+    "value": 126.66666666666667,
+    "unit": "Hz",
+    "grade": "A",
+    "source": "원장 _meta.f_flash_hz (로터 회전수·날개수)",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "f_tip_hz_el_minus30": {
+    "value": 1102.4,
+    "unit": "Hz",
+    "grade": "A",
+    "source": "원장 rows[ours_r15_n8192, el−30].f_tip_hz",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   },
+   "comb_halfwidth_hz": {
+    "value": 8.0,
+    "unit": "Hz",
+    "grade": "C",
+    "source": "build_md_atlas 표준 레시피 HW_HZ",
+    "note_ko": "",
+    "lo": null,
+    "hi": null
+   }
+  },
+  "legacy_rx_chain": {
+   "eirp_dbm": 30.0,
+   "grx_dbi": 10.0,
+   "nf_db": 5.0,
+   "sys_loss_db": 0.0
+  }
+ },
+ "grade_census": {
+  "A": [
+   "metric.f_flash_hz",
+   "metric.f_tip_hz_el_minus30",
+   "metric.n_slow",
+   "rx.nf_db",
+   "target.sigma_ref_dbsm",
+   "x410.adc_bits",
+   "x410.dac_bits",
+   "x410.max_bw_hz",
+   "x410.max_sample_rate_hz",
+   "x410.n_rx",
+   "x410.n_tx",
+   "x410.rx_gain_range_db",
+   "x410.rx_iip3_dbm",
+   "x410.rx_max_operating_dbm",
+   "x410.rx_nf_db_3g5",
+   "x410.tx_noise_density_dbm_hz",
+   "x410.tx_pn_100k_dbc_hz",
+   "x410.tx_pn_10k_dbc_hz",
+   "x410.tx_pn_1k_dbc_hz"
+  ],
+  "B": [
+   "target.size_corr_db",
+   "x410.tx_pavg_ofdm_evm30_dbm_3g5",
+   "x410.tx_pavg_ofdm_evm_knee_dbm_3g5",
+   "x410.tx_pmax_cw_dbm_3g5",
+   "x410.tx_pmax_cw_dbm_5g8"
+  ],
+  "C": [
+   "metric.comb_halfwidth_hz",
+   "metric.cpi_s",
+   "metric.prf_hz",
+   "rx.grx_dbi",
+   "rx.sys_loss_db",
+   "tx_ant.gtx_dbi"
+  ],
+  "D": [
+   "reg.can_transmit_3g5",
+   "reg.ism58_eirp_cap_dbm",
+   "x410.tx_isolation_db"
+  ]
+ },
+ "scenarios": {
+  "active_mono_x410": {
+   "scenario": "active_mono_x410",
+   "label_ko": "능동 모노스태틱 — X410 이 자기 파형을 쏜다(풀 웨이브폼 캡처)",
+   "label_en": "Active monostatic, X410 self-transmit, full-waveform capture",
+   "geometry": "monostatic",
+   "capture": "full_waveform",
+   "fc_hz": 3500000000.0,
+   "licensing": "licensed_band_sim_only",
+   "waveform_class": "ofdm",
+   "tx_source_ko": "우리 X410 + 10 dBi 패널. 파형을 우리가 만들고 캡처해 정합필터를 건다",
+   "eirp_dbm": 23.0,
+   "prf_hz": 19700.0,
+   "b_hz": 100000000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 3.5232828247845755e-16,
+   "mf_gain_db": 37.06,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 40.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "C",
+    "b": "C",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 23.0,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "P_tx(NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 1 (TX EVM Bathtub, 3.5 GHz 곡선)) + G_tx(수신과 같은 급의 패널을 가정(선언))",
+     "note_ko": "13.0 dBm + 10 dBi. ⭐OFDM 평균전력 기준. ⭐OFDM(5G NR 100 MHz) 을 EVM −30 dB 까지 밀어붙인 **평균 채널전력**. 레이더는 256QAM 급 선형성이 필요 없다(기준신호를 캡처해 정합필터를 걸므로) — 그래서 이 점을 헤드라인 canon 으로 고른다. ⚠선택이며 대안이 아래 둘이다",
+     "lo": 19.0,
+     "hi": 31.0
+    },
+    "prf": {
+     "value": 19700.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "outputs/elevation_sweep_md.json:_meta.prf_hz",
+     "note_ko": "⚠유래는 «로터 자세 표본율»(날개끝 1102 Hz 대비 여유 9배)이다. ⭐그러나 아래 PRF_INVARIANCE 가 보이듯 **CPI 를 고정하면 판독거리는 PRF 에 무관**하다 — 이 상수의 약한 근거가 답을 흔들지 않는다는 뜻이고, 그것을 측정으로 보였다",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 100000000.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "src/microdoppler_nearfield.DECLARED_B_HZ (5G NR 100 MHz)",
+     "note_ko": "X410 은 400 MHz 까지 되므로 400 MHz 팔도 감도표에 있다. ⭐B 는 SNR 식에서 약분되지만 **정합필터 이득 37.1/43.1 dB 라는 가정**으로 남는다",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 19700.0,
+    "need_hz": 2204.8,
+    "ok": true,
+    "fold_factor": 0.11,
+    "why_ko": "접힘 없음"
+   },
+   "note_ko": "⭐덱 헤드라인은 이 팔이다. ⛔그러나 3.5 GHz 는 면허 대역이라 **야외 실측은 이 팔로 못 한다** — 시뮬 전용이다. 실측 능동은 ISM 5.8 GHz 팔로 간다"
+  },
+  "active_mono_x410_cw": {
+   "scenario": "active_mono_x410_cw",
+   "label_ko": "능동 모노스태틱 — X410, 정포락선 파형(처프/CW)",
+   "label_en": "Active monostatic, X410, constant-envelope waveform",
+   "geometry": "monostatic",
+   "capture": "full_waveform",
+   "fc_hz": 3500000000.0,
+   "licensing": "licensed_band_sim_only",
+   "waveform_class": "constant_envelope",
+   "tx_source_ko": "같은 X410 인데 파형만 정포락선 — 데이터시트상 평균전력이 9.3 dB 높다",
+   "eirp_dbm": 32.3,
+   "prf_hz": 19700.0,
+   "b_hz": 100000000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 3.5232828247845755e-16,
+   "mf_gain_db": 37.06,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 40.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "C",
+    "b": "C",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 32.3,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "P_tx(NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 2 (TX Maximum Output Power, 0 dBFS CW, 최대 이득)) + G_tx(수신과 같은 급의 패널을 가정(선언))",
+     "note_ko": "22.3 dBm + 10 dBi. 정포락선이라 백오프가 없다. ⭐3.5 GHz 판독값. 규정값은 «<23 dBm»[A] 이고 그림이 주파수별 곡선을 준다. 80 % 신뢰구간 막대가 그 자리에서 ±0.7 dB. **정포락선(CW·처프) 파형에서만 쓸 수 있다**",
+     "lo": 29.6,
+     "hi": 40.0
+    },
+    "prf": {
+     "value": 19700.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "outputs/elevation_sweep_md.json:_meta.prf_hz",
+     "note_ko": "⚠유래는 «로터 자세 표본율»(날개끝 1102 Hz 대비 여유 9배)이다. ⭐그러나 아래 PRF_INVARIANCE 가 보이듯 **CPI 를 고정하면 판독거리는 PRF 에 무관**하다 — 이 상수의 약한 근거가 답을 흔들지 않는다는 뜻이고, 그것을 측정으로 보였다",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 100000000.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "위와 같음",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 19700.0,
+    "need_hz": 2204.8,
+    "ok": true,
+    "fold_factor": 0.11,
+    "why_ko": "접힘 없음"
+   },
+   "note_ko": "⭐«파형을 고르면 송신전력도 같이 고른 것» 이라는 사실의 상한 팔"
+  },
+  "active_mono_x410_ism58": {
+   "scenario": "active_mono_x410_ism58",
+   "label_ko": "능동 모노스태틱 — ISM 5.8 GHz(실측 캠페인 2층)",
+   "label_en": "Active monostatic, ISM 5.8 GHz (measurement campaign layer 2)",
+   "geometry": "monostatic",
+   "capture": "full_waveform",
+   "fc_hz": 5800000000.0,
+   "licensing": "ism_ok",
+   "waveform_class": "constant_envelope",
+   "tx_source_ko": "우리 X410, ISM 대역. docs/MEASUREMENT_PLAN §0-3 이 정한 실측 자리",
+   "eirp_dbm": 27.0,
+   "prf_hz": 19700.0,
+   "b_hz": 80000000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 3.5232828247845755e-16,
+   "mf_gain_db": 36.09,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 40.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "C",
+    "b": "C",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 27.0,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "P_tx(NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) 그림 2, 5.5~6 GHz 구간 판독) + G_tx(수신과 같은 급의 패널을 가정(선언))",
+     "note_ko": "17.0 dBm + 10 dBi. ISM 이라 면허가 필요 없다. ⚠ISM 5.8 GHz 는 그림에서 대역 전환 구간이라 판독 폭이 넓다(±1.5 dB). 실측 캠페인이 ISM 에서 송신하므로(docs/MEASUREMENT_PLAN §0-3) 이 값이 필요하다",
+     "lo": 23.5,
+     "hi": 35.5
+    },
+    "prf": {
+     "value": 19700.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "outputs/elevation_sweep_md.json:_meta.prf_hz",
+     "note_ko": "⚠유래는 «로터 자세 표본율»(날개끝 1102 Hz 대비 여유 9배)이다. ⭐그러나 아래 PRF_INVARIANCE 가 보이듯 **CPI 를 고정하면 판독거리는 PRF 에 무관**하다 — 이 상수의 약한 근거가 답을 흔들지 않는다는 뜻이고, 그것을 측정으로 보였다",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 80000000.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "ISM span 안에서 쓸 대역(선언)",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 19700.0,
+    "need_hz": 2204.8,
+    "ok": true,
+    "fold_factor": 0.11,
+    "why_ko": "접힘 없음"
+   },
+   "note_ko": "⛔이 팔로는 **이 원장의 미터를 그대로 못 쓴다** — λ 도 σ(f) 도 다르다. 5.8 GHz 원장이 생기기 전까지 거리 인용 금지(comparable=False)"
+  },
+  "active_mono_chamber": {
+   "scenario": "active_mono_chamber",
+   "label_ko": "능동 모노스태틱 — 챔버 저출력",
+   "label_en": "Active monostatic, low-power chamber",
+   "geometry": "monostatic",
+   "capture": "full_waveform",
+   "fc_hz": 3500000000.0,
+   "licensing": "ism_ok",
+   "waveform_class": "ofdm",
+   "tx_source_ko": "챔버 저출력 송신기",
+   "eirp_dbm": 12.0,
+   "prf_hz": 19700.0,
+   "b_hz": 100000000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 3.5232828247845755e-16,
+   "mf_gain_db": 37.06,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 40.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "C",
+    "b": "C",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 12.0,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "benchmark/run_min_cell.EIRP_DBM · microdoppler_nearfield.DECLARED_EIRP_DBM",
+     "note_ko": "챔버 실험 관행값. 저장소 다른 원장(md_range_sweep_mf)이 이 값을 쓴다",
+     "lo": null,
+     "hi": null
+    },
+    "prf": {
+     "value": 19700.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "outputs/elevation_sweep_md.json:_meta.prf_hz",
+     "note_ko": "⚠유래는 «로터 자세 표본율»(날개끝 1102 Hz 대비 여유 9배)이다. ⭐그러나 아래 PRF_INVARIANCE 가 보이듯 **CPI 를 고정하면 판독거리는 PRF 에 무관**하다 — 이 상수의 약한 근거가 답을 흔들지 않는다는 뜻이고, 그것을 측정으로 보였다",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 100000000.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "위와 같음",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 19700.0,
+    "need_hz": 2204.8,
+    "ok": true,
+    "fold_factor": 0.11,
+    "why_ko": "접힘 없음"
+   },
+   "note_ko": "같은 잣대·같은 막대에서 EIRP 만 −11 dB → 거리 ×0.53"
+  },
+  "passive_lte_crs": {
+   "scenario": "passive_lte_crs",
+   "label_ko": "패시브 바이스태틱 — LTE 기지국 CRS(상시 기준신호)",
+   "label_en": "Passive bistatic, LTE CRS always-on pilot",
+   "geometry": "bistatic",
+   "capture": "always_on_pilot",
+   "fc_hz": 1843000000.0,
+   "licensing": "receive_only",
+   "waveform_class": "ofdm",
+   "tx_source_ko": "남의 LTE 기지국. 우리는 받기만 한다",
+   "eirp_dbm": 63.0,
+   "prf_hz": 1000.0,
+   "b_hz": 20000000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 1.788468438976942e-17,
+   "mf_gain_db": 0.0,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 20.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "B",
+    "b": "B",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 63.0,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "benchmark/link_budget.LinkBudget 기본 · docs/REPORT13_SPEC eirp_deploy.lte",
+     "note_ko": "매크로 셀 대표값 ≈2 kW. in-burst peak 규약(REPORT13_SPEC F13)",
+     "lo": null,
+     "hi": null
+    },
+    "prf": {
+     "value": 1000.0,
+     "unit": "Hz",
+     "grade": "B",
+     "source": "src/waveforms.PILOT_RATE_HZ['lte']['CRS']",
+     "note_ko": "CRS 가 매 서브프레임 전대역 송신 → 1 kHz. 3GPP 자원격자에서 나온 값",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 20000000.0,
+     "unit": "Hz",
+     "grade": "B",
+     "source": "src/waveforms.lte_downlink 기본 대역",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 1000.0,
+    "need_hz": 2204.8,
+    "ok": false,
+    "fold_factor": 2.2,
+    "why_ko": "날개끝 1102 Hz 가 ±500 Hz 안으로 접힌다 — 빗살 대비 잣대가 성립하지 않는다"
+   },
+   "note_ko": "⛔이 팔에서는 정합필터 이득이 **0 dB** 다(matched_filter_gain_db 규약). ⭐⭐그리고 더 중요한 것 — 슬로타임 표본율이 1 kHz 라 날개끝 1102 Hz 가 **접힌다**. 즉 이 팔은 «멀어서 안 보인다» 가 아니라 «잣대 자체가 성립 안 한다»"
+  },
+  "passive_nr_ssb": {
+   "scenario": "passive_nr_ssb",
+   "label_ko": "패시브 바이스태틱 — 5G SSB(상시 기준신호)",
+   "label_en": "Passive bistatic, 5G SSB always-on pilot",
+   "geometry": "bistatic",
+   "capture": "always_on_pilot",
+   "fc_hz": 3500000000.0,
+   "licensing": "receive_only",
+   "waveform_class": "ofdm",
+   "tx_source_ko": "남의 5G 기지국(유휴). 우리는 받기만 한다",
+   "eirp_dbm": 47.0,
+   "prf_hz": 50.0,
+   "b_hz": 7200000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 8.942342194884709e-19,
+   "mf_gain_db": 0.0,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 20.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "B",
+    "b": "B",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 47.0,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "docs/REPORT13_SPEC eirp_deploy.nr_idle",
+     "note_ko": "유휴 gNB. 풀로드 65 dBm 은 유휴 G1 에 붙이지 않는다(F2)",
+     "lo": null,
+     "hi": null
+    },
+    "prf": {
+     "value": 50.0,
+     "unit": "Hz",
+     "grade": "B",
+     "source": "src/waveforms.PILOT_RATE_HZ['nr']['PSS'] — SSB 20 ms 버스트",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 7200000.0,
+     "unit": "Hz",
+     "grade": "B",
+     "source": "SSB 240 부반송파 × 30 kHz SCS ≈ 7.2 MHz(협대역)",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 50.0,
+    "need_hz": 2204.8,
+    "ok": false,
+    "fold_factor": 44.1,
+    "why_ko": "날개끝 1102 Hz 가 ±25 Hz 안으로 접힌다 — 빗살 대비 잣대가 성립하지 않는다"
+   },
+   "note_ko": "⭐5G 의 이중고가 그대로 나온다 — 협대역(거리분해능 나쁨) + 50 Hz(속도 접힘). 날개끝 1102 Hz 를 보려면 2205 Hz 가 필요한데 50 Hz 다(44 배 부족)"
+  },
+  "passive_wifi": {
+   "scenario": "passive_wifi",
+   "label_ko": "패시브 바이스태틱 — WiFi VHT-LTF(혼잡 AP)",
+   "label_en": "Passive bistatic, WiFi VHT-LTF (busy AP)",
+   "geometry": "bistatic",
+   "capture": "always_on_pilot",
+   "fc_hz": 5210000000.0,
+   "licensing": "receive_only",
+   "waveform_class": "ofdm",
+   "tx_source_ko": "남의 WiFi AP. 우리는 받기만 한다",
+   "eirp_dbm": 30.0,
+   "prf_hz": 1000.0,
+   "b_hz": 80000000.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0,
+   "cpi_s": 0.41584,
+   "noise_power_w": 1.788468438976942e-17,
+   "mf_gain_db": 0.0,
+   "sigma_ref_dbsm": -13.984212727603522,
+   "range_exponent_db_per_decade": 20.0,
+   "grades": {
+    "eirp": "C",
+    "prf": "C",
+    "b": "B",
+    "grx_dbi": "C",
+    "nf_db": "A",
+    "sys_loss_db": "C",
+    "gtx_dbi": "C",
+    "sigma_ref_dbsm": "A"
+   },
+   "weakest_grade": "C",
+   "declared_constants": [],
+   "absolute_range_quotable": true,
+   "provenance": {
+    "eirp": {
+     "value": 30.0,
+     "unit": "dBm",
+     "grade": "C",
+     "source": "docs/REPORT13_SPEC eirp_deploy.wifi",
+     "note_ko": "실내 AP 대표값(규제 상한 근처)",
+     "lo": null,
+     "hi": null
+    },
+    "prf": {
+     "value": 1000.0,
+     "unit": "Hz",
+     "grade": "C",
+     "source": "src/waveforms.PILOT_RATE_HZ['wifi']['LLTF']",
+     "note_ko": "⚠«혼잡 AP» 대표값이다. 트래픽이 없으면 비콘 9.77 Hz 까지 떨어진다",
+     "lo": null,
+     "hi": null
+    },
+    "b_hz": {
+     "value": 80000000.0,
+     "unit": "Hz",
+     "grade": "B",
+     "source": "802.11ac 80 MHz",
+     "note_ko": "",
+     "lo": null,
+     "hi": null
+    },
+    "grx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "src/rx_noise.RxSpec.grx_dbi (선언값)",
+     "note_ko": "⚠실제로 쓸 안테나가 정해지면 [A] 로 승격된다. 3.5 GHz 상용 패널 8~17 dBi 범위 안",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "nf_db": {
+     "value": 6.5,
+     "unit": "dB",
+     "grade": "A",
+     "source": "NI/Ettus «Ettus USRP X410 Specifications», 문서 378493, 2024-02-06 판. 표는 PDF 텍스트, 그림 1·2 는 600 dpi 렌더 판독 (https://www.farnell.com/datasheets/4146063.pdf · files.ettus.com/manual/page_zbx.html) (3.1~6 GHz 규정 잡음지수)",
+     "note_ko": "⭐2026-08-16 개정: 선언 5 dB[C] → 데이터시트 6.5 dB[A]. ⚠외장 LNA 를 앞에 달면 다시 내려간다(그때는 그 LNA 스펙이 정본)",
+     "lo": null,
+     "hi": null
+    },
+    "sys_loss_db": {
+     "value": 2.0,
+     "unit": "dB",
+     "grade": "C",
+     "source": "케이블·정합·창손실 관행값(SMA 케이블 ~1 dB + 정합/커넥터 ~1 dB)",
+     "note_ko": "⭐2026-08-16 개정: 이전 판의 0 dB[D] 는 물리적으로 불가능해 **낙관 편향**이었다. 2 dB 도 측정값은 아니지만 «0 은 틀렸다» 는 것은 안다 — 실측 전까지 [C]",
+     "lo": 1.0,
+     "hi": 4.0
+    },
+    "gtx_dbi": {
+     "value": 10.0,
+     "unit": "dBi",
+     "grade": "C",
+     "source": "수신과 같은 급의 패널을 가정(선언)",
+     "note_ko": "능동 모노스태틱에서는 EIRP = P_tx + G_tx 다. 이 값이 안 정해지면 EIRP 도 안 정해진다",
+     "lo": 8.0,
+     "hi": 17.0
+    },
+    "target_sigma_ref_dbsm": {
+     "value": -13.984212727603522,
+     "unit": "dBsm",
+     "grade": "A",
+     "source": "src/sigma_anchor.py — Das et al. Table III 원문 PDF 직접 판독",
+     "note_ko": "anchor_mu −15.948 dBsm(phantom3, 방위 선형평균) + 크기보정 +1.964 dB. ⭐fc 3.5 GHz 가 측정 밴드 1.8~18.2 GHz **안**이라 외삽이 아니다",
+     "lo": null,
+     "hi": null
+    },
+    "target_size_corr_db": {
+     "value": 1.9639714910479582,
+     "unit": "dB",
+     "grade": "B",
+     "source": "src/sigma_anchor.size_correction_db — phantom3 → matrice4e",
+     "note_ko": "L² 크기법 가정이 한 겹 낀다(측정이 아니다)",
+     "lo": null,
+     "hi": null
+    }
+   },
+   "doppler_gate": {
+    "prf_hz": 1000.0,
+    "need_hz": 2204.8,
+    "ok": false,
+    "fold_factor": 2.2,
+    "why_ko": "날개끝 1102 Hz 가 ±500 Hz 안으로 접힌다 — 빗살 대비 잣대가 성립하지 않는다"
+   },
+   "note_ko": "반복률은 트래픽 의존이라 범위가 100 배다 — 절대 거리 인용에 가장 부적합"
+  }
+ },
+ "scenario_shifts": {
+  "active_mono_x410": {
+   "d_eirp_db": 0.0,
+   "d_noise_bw_db": -0.0,
+   "d_mf_db": 0.0,
+   "d_total_db": 0.0,
+   "comparable": true,
+   "R_multiplier": 1.0,
+   "note_ko": ""
+  },
+  "active_mono_x410_cw": {
+   "d_eirp_db": 9.3,
+   "d_noise_bw_db": -0.0,
+   "d_mf_db": 0.0,
+   "d_total_db": 9.3,
+   "comparable": true,
+   "R_multiplier": 1.708,
+   "note_ko": ""
+  },
+  "active_mono_x410_ism58": {
+   "d_eirp_db": 4.0,
+   "d_noise_bw_db": -0.0,
+   "d_mf_db": -0.97,
+   "d_total_db": 3.03,
+   "comparable": false,
+   "R_multiplier": null,
+   "note_ko": "반송파가 다르다(3.50 ↔ 5.80 GHz) — λ² 도 σ(f) 도 같이 움직이므로 이 원장의 미터를 못 옮긴다"
+  },
+  "active_mono_chamber": {
+   "d_eirp_db": -11.0,
+   "d_noise_bw_db": -0.0,
+   "d_mf_db": 0.0,
+   "d_total_db": -11.0,
+   "comparable": true,
+   "R_multiplier": 0.5309,
+   "note_ko": ""
+  },
+  "passive_lte_crs": {
+   "d_eirp_db": 40.0,
+   "d_noise_bw_db": 12.94,
+   "d_mf_db": -37.06,
+   "d_total_db": 15.89,
+   "comparable": false,
+   "R_multiplier": null,
+   "note_ko": "기하가 달라 단일 거리 배수로 못 옮긴다 — 바이스태틱은 R1·R2 가 따로다 / 반송파가 다르다(3.50 ↔ 1.84 GHz) — λ² 도 σ(f) 도 같이 움직이므로 이 원장의 미터를 못 옮긴다"
+  },
+  "passive_nr_ssb": {
+   "d_eirp_db": 24.0,
+   "d_noise_bw_db": 25.95,
+   "d_mf_db": -37.06,
+   "d_total_db": 12.9,
+   "comparable": false,
+   "R_multiplier": null,
+   "note_ko": "기하가 달라 단일 거리 배수로 못 옮긴다 — 바이스태틱은 R1·R2 가 따로다"
+  },
+  "passive_wifi": {
+   "d_eirp_db": 7.0,
+   "d_noise_bw_db": 12.94,
+   "d_mf_db": -37.06,
+   "d_total_db": -17.11,
+   "comparable": false,
+   "R_multiplier": null,
+   "note_ko": "기하가 달라 단일 거리 배수로 못 옮긴다 — 바이스태틱은 R1·R2 가 따로다 / 반송파가 다르다(3.50 ↔ 5.21 GHz) — λ² 도 σ(f) 도 같이 움직이므로 이 원장의 미터를 못 옮긴다"
+  }
+ },
+ "legacy_shift": {
+  "scenario": "active_mono_x410",
+  "d_eirp_db": -7.0,
+  "d_nf_db": -1.5,
+  "d_sys_loss_db": -2.0,
+  "d_total_db": -10.5,
+  "R_multiplier": 0.5464,
+  "legacy": {
+   "eirp_dbm": 30.0,
+   "grx_dbi": 10.0,
+   "nf_db": 5.0,
+   "sys_loss_db": 0.0
+  },
+  "canon": {
+   "eirp_dbm": 23.0,
+   "grx_dbi": 10.0,
+   "nf_db": 6.5,
+   "sys_loss_db": 2.0
+  },
+  "note_ko": "⭐공통모드다 — 모든 팔에 **같은 배수**가 걸린다. 팔 사이 순서·배수는 안 바뀌고 절대 미터만 움직인다. 팔마다 다르게 움직이면 코드 버그다"
+ },
+ "restated_provisional": {
+  "shift": {
+   "scenario": "active_mono_x410",
+   "d_eirp_db": -7.0,
+   "d_nf_db": -1.5,
+   "d_sys_loss_db": -2.0,
+   "d_total_db": -10.5,
+   "R_multiplier": 0.5464,
+   "legacy": {
+    "eirp_dbm": 30.0,
+    "grx_dbi": 10.0,
+    "nf_db": 5.0,
+    "sys_loss_db": 0.0
+   },
+   "canon": {
+    "eirp_dbm": 23.0,
+    "grx_dbi": 10.0,
+    "nf_db": 6.5,
+    "sys_loss_db": 2.0
+   },
+   "note_ko": "⭐공통모드다 — 모든 팔에 **같은 배수**가 걸린다. 팔 사이 순서·배수는 안 바뀌고 절대 미터만 움직인다. 팔마다 다르게 움직이면 코드 버그다"
+  },
+  "rows": {
+   "ours": {
+    "read_m_legacy": 554.0,
+    "pd90_m_legacy": 640.0,
+    "read_m_canon": 302.7,
+    "pd90_m_canon": 349.7,
+    "quotable": true,
+    "why_ko": "표준 프레임 세 팔 중 하나"
+   },
+   "ps_off": {
+    "read_m_legacy": 641.0,
+    "pd90_m_legacy": 700.0,
+    "read_m_canon": 350.2,
+    "pd90_m_canon": 382.5,
+    "quotable": true,
+    "why_ko": "표준 프레임 세 팔 중 하나(PathSolver 상한)"
+   },
+   "ps_refr": {
+    "read_m_legacy": 556.0,
+    "pd90_m_legacy": 620.0,
+    "read_m_canon": 303.8,
+    "pd90_m_canon": 338.8,
+    "quotable": true,
+    "why_ko": "표준 프레임 세 팔 중 하나(공장 기본값 + 확산)"
+   },
+   "ours_ptd": {
+    "read_m_legacy": 656.0,
+    "pd90_m_legacy": 753.0,
+    "read_m_canon": null,
+    "pd90_m_canon": null,
+    "quotable": false,
+    "why_ko": "⛔새 축에 안 태운다(자세당 1.3 s = 순정의 10 배, 확장 7 칸 |Δ| ≤ 0.02 dB). 이미 낸 15 m 판만 «모서리 회절 무시 안 했다» 의 답으로"
+   },
+   "ps_phys": {
+    "read_m_legacy": 47.0,
+    "pd90_m_legacy": 63.0,
+    "read_m_canon": null,
+    "pd90_m_canon": null,
+    "quotable": false,
+    "why_ko": "⛔⛔**절대 수치 인용 금지**(STANDARD_FRAME 2026-08-16). 날개끝 위 바닥이 광선 수에 매여 있어(광선 4배에 +6.2~6.9 dB) 정본이 될 수 없다. 쓸 수 있는 것은 정성적 사실 하나뿐 — «회절을 켜면 무늬가 잠긴다». ⭐즉 «47 m» 는 본판에서 **미터로 나오지 않는다**"
+   }
+  },
+  "quoting_rule_ko": "⛔인용 가능한 팔은 표준 프레임 세 팔(ours·ps_off·ps_refr)뿐이다 — docs/STANDARD_FRAME.md 2026-08-16 사용자 확정. 회절 켠 팔은 **미터를 내지 않는다**",
+  "caveat_ko": "⛔이 표는 **예산만** 옮긴 값이다. 재질 정본·판정 막대·자격 게이트가 따로 움직이므로 본판의 최종 수와 다르다 — 예산 축의 예측치일 뿐이다"
+ },
+ "sensitivity": [
+  {
+   "knob_ko": "이전 판 예산으로 되돌리기(EIRP 30·NF 5·손실 0)",
+   "knob_en": "revert to the old budget (EIRP 30, NF 5, loss 0)",
+   "d_snr_db": 10.5,
+   "side": "budget",
+   "R_multiplier": 1.8302,
+   "grade": "D",
+   "note_ko": "⭐저장소에 떠 있는 554/641 m 는 전부 이 예산 위의 수다"
+  },
+  {
+   "knob_ko": "송신 파형: 정포락선 파형(처프/CW)",
+   "knob_en": "waveform: constant envelope (chirp/CW)",
+   "d_snr_db": 9.3,
+   "side": "budget",
+   "R_multiplier": 1.708,
+   "grade": "B",
+   "note_ko": "⭐같은 하드웨어인데 파형이 평균 송신전력을 정한다(데이터시트 그림 1·2)"
+  },
+  {
+   "knob_ko": "송신 파형: 통신급 선형성(EVM 무릎)",
+   "knob_en": "waveform: OFDM at comms-grade linearity",
+   "d_snr_db": -8.0,
+   "side": "budget",
+   "R_multiplier": 0.631,
+   "grade": "B",
+   "note_ko": "⭐같은 하드웨어인데 파형이 평균 송신전력을 정한다(데이터시트 그림 1·2)"
+  },
+  {
+   "knob_ko": "조명원을 바꾼다: EIRP 12 dBm (챔버 저출력)",
+   "knob_en": "different illuminator: EIRP 12 dBm (low-power chamber)",
+   "d_snr_db": -11.0,
+   "side": "budget",
+   "R_multiplier": 0.5309,
+   "grade": "C",
+   "note_ko": "⛔이 EIRP 들은 **남의 송신기**다 — 능동 모노 팔에 그대로 붙이면 시나리오가 섞인다"
+  },
+  {
+   "knob_ko": "조명원을 바꾼다: EIRP 47 dBm (유휴 gNB)",
+   "knob_en": "different illuminator: EIRP 47 dBm (idle gNB)",
+   "d_snr_db": 24.0,
+   "side": "budget",
+   "R_multiplier": 3.9811,
+   "grade": "C",
+   "note_ko": "⛔이 EIRP 들은 **남의 송신기**다 — 능동 모노 팔에 그대로 붙이면 시나리오가 섞인다"
+  },
+  {
+   "knob_ko": "조명원을 바꾼다: EIRP 63 dBm (매크로 셀)",
+   "knob_en": "different illuminator: EIRP 63 dBm (macro cell)",
+   "d_snr_db": 40.0,
+   "side": "budget",
+   "R_multiplier": 10.0,
+   "grade": "C",
+   "note_ko": "⛔이 EIRP 들은 **남의 송신기**다 — 능동 모노 팔에 그대로 붙이면 시나리오가 섞인다"
+  },
+  {
+   "knob_ko": "조명원을 바꾼다: EIRP 65 dBm (풀로드 gNB)",
+   "knob_en": "different illuminator: EIRP 65 dBm (fully loaded gNB)",
+   "d_snr_db": 42.0,
+   "side": "budget",
+   "R_multiplier": 11.2202,
+   "grade": "C",
+   "note_ko": "⛔이 EIRP 들은 **남의 송신기**다 — 능동 모노 팔에 그대로 붙이면 시나리오가 섞인다"
+  },
+  {
+   "knob_ko": "정합필터 이득 없음(상시 기준신호 팔)",
+   "knob_en": "no matched-filter gain (always-on pilot arm)",
+   "d_snr_db": -37.06,
+   "side": "budget",
+   "R_multiplier": 0.1185,
+   "grade": "C",
+   "note_ko": "capture='always_on_pilot' → G_mf 0 dB. ⭐다만 그 팔은 도플러 게이트에서 먼저 걸린다"
+  },
+  {
+   "knob_ko": "대역 400 MHz(X410 최대)",
+   "knob_en": "bandwidth 400 MHz (X410 maximum)",
+   "d_snr_db": 6.02,
+   "side": "budget",
+   "R_multiplier": 1.4142,
+   "grade": "A",
+   "note_ko": "B 는 SNR 에서 약분되지만 G_mf 가정이 37.1 → 43.1 dB 로 커진다"
+  },
+  {
+   "knob_ko": "잡음지수 3 dB",
+   "knob_en": "noise figure 3 dB",
+   "d_snr_db": 3.5,
+   "side": "budget",
+   "R_multiplier": 1.2232,
+   "grade": "C",
+   "note_ko": "정본은 데이터시트 6.5 dB[A]. 3 dB 는 외장 LNA, 8 dB 는 3.1 GHz 아래 대역 값"
+  },
+  {
+   "knob_ko": "잡음지수 8 dB",
+   "knob_en": "noise figure 8 dB",
+   "d_snr_db": -1.5,
+   "side": "budget",
+   "R_multiplier": 0.9173,
+   "grade": "C",
+   "note_ko": "정본은 데이터시트 6.5 dB[A]. 3 dB 는 외장 LNA, 8 dB 는 3.1 GHz 아래 대역 값"
+  },
+  {
+   "knob_ko": "수신이득 8 dBi",
+   "knob_en": "Rx antenna gain 8 dBi",
+   "d_snr_db": -2.0,
+   "side": "budget",
+   "R_multiplier": 0.8913,
+   "grade": "C",
+   "note_ko": "3.5 GHz 상용 패널의 실제 범위. 쓸 안테나가 정해지면 [A]"
+  },
+  {
+   "knob_ko": "수신이득 17 dBi",
+   "knob_en": "Rx antenna gain 17 dBi",
+   "d_snr_db": 7.0,
+   "side": "budget",
+   "R_multiplier": 1.4962,
+   "grade": "C",
+   "note_ko": "3.5 GHz 상용 패널의 실제 범위. 쓸 안테나가 정해지면 [A]"
+  },
+  {
+   "knob_ko": "시스템 손실 1 dB",
+   "knob_en": "system loss 1 dB",
+   "d_snr_db": 1.0,
+   "side": "budget",
+   "R_multiplier": 1.0593,
+   "grade": "C",
+   "note_ko": "정본 2 dB 의 관행 범위"
+  },
+  {
+   "knob_ko": "시스템 손실 4 dB",
+   "knob_en": "system loss 4 dB",
+   "d_snr_db": -2.0,
+   "side": "budget",
+   "R_multiplier": 0.8913,
+   "grade": "C",
+   "note_ko": "정본 2 dB 의 관행 범위"
+  },
+  {
+   "knob_ko": "σ 앵커 +3 dB",
+   "knob_en": "sigma anchor +3 dB",
+   "d_snr_db": 3.0,
+   "side": "budget",
+   "R_multiplier": 1.1885,
+   "grade": "A",
+   "note_ko": "앵커 자체는 [A] 지만 ±3 dB 는 자세·기체 산포 폭"
+  },
+  {
+   "knob_ko": "σ 앵커 −3 dB",
+   "knob_en": "sigma anchor -3 dB",
+   "d_snr_db": -3.0,
+   "side": "budget",
+   "R_multiplier": 0.8414,
+   "grade": "A",
+   "note_ko": "같음"
+  },
+  {
+   "knob_ko": "⭐앵커를 움직이는 성분에(S3)",
+   "knob_en": "anchor on the moving part instead (S3)",
+   "d_snr_db": 31.13,
+   "side": "budget",
+   "R_multiplier": 6.0014,
+   "grade": "C",
+   "note_ko": "회절 켠 팔이 되돌려받는 양(outputs/noise_distance_frame.json:sensitivity). ⛔팔마다 다른 값이라 공통모드가 아니다 — 여기 수는 그 팔의 것이고 인용 대상이 아니다"
+  },
+  {
+   "knob_ko": "⭐기준채널 현실화 ρ_ref 30 dB",
+   "knob_en": "realistic reference channel, rho_ref 30 dB",
+   "d_snr_db": -6.97,
+   "side": "budget",
+   "R_multiplier": 0.4481,
+   "grade": "C",
+   "note_ko": "⭐헤드라인이 쓰는 «이상적 정합필터» 는 ρ_ref = ∞ 다. 현실적인 기준채널(ρ_ref 30 dB)만 돼도 **7 dB**, 20 dB 면 **25 dB** 를 잃는다 — 거리로는 ×0.67 과 ×0.24 다"
+  },
+  {
+   "knob_ko": "⭐기준채널 현실화 ρ_ref 20 dB",
+   "knob_en": "realistic reference channel, rho_ref 20 dB",
+   "d_snr_db": -25.43,
+   "side": "budget",
+   "R_multiplier": 0.0535,
+   "grade": "C",
+   "note_ko": "패시브 팔에만 붙는다(능동 모노는 자기 파형을 안다)"
+  },
+  {
+   "knob_ko": "⭐⭐송신 위상잡음 바닥(격리 40 dB)",
+   "knob_en": "Tx phase-noise floor (Tx-Rx isolation 40 dB)",
+   "d_snr_db": -49.48,
+   "side": "budget",
+   "R_multiplier": 0.0579,
+   "grade": "A",
+   "note_ko": "데이터시트 −91 dBc/Hz @1 kHz. 격리 89 dB 아래면 열잡음이 아니라 이쪽이 바닥이다. ⚠거리상관 상쇄 미포함(상한)"
+  },
+  {
+   "knob_ko": "⭐⭐송신 위상잡음 바닥(격리 60 dB)",
+   "knob_en": "Tx phase-noise floor (Tx-Rx isolation 60 dB)",
+   "d_snr_db": -29.48,
+   "side": "budget",
+   "R_multiplier": 0.1832,
+   "grade": "A",
+   "note_ko": "데이터시트 −91 dBc/Hz @1 kHz. 격리 89 dB 아래면 열잡음이 아니라 이쪽이 바닥이다. ⚠거리상관 상쇄 미포함(상한)"
+  },
+  {
+   "knob_ko": "⭐⭐송신 위상잡음 바닥(격리 80 dB)",
+   "knob_en": "Tx phase-noise floor (Tx-Rx isolation 80 dB)",
+   "d_snr_db": -9.48,
+   "side": "budget",
+   "R_multiplier": 0.5794,
+   "grade": "A",
+   "note_ko": "데이터시트 −91 dBc/Hz @1 kHz. 격리 89 dB 아래면 열잡음이 아니라 이쪽이 바닥이다. ⚠거리상관 상쇄 미포함(상한)"
+  },
+  {
+   "knob_ko": "관측시간 CPI 208 ms (절반)",
+   "knob_en": "observation time CPI 208 ms (half)",
+   "d_snr_db": -1.69,
+   "side": "metric",
+   "R_multiplier": 0.9074,
+   "grade": "A",
+   "note_ko": "⭐측정값 — 잣대 곡선 자체가 바뀐다. 이 원장의 416 ms 는 저장소에서 가장 긴 CPI 다"
+  },
+  {
+   "knob_ko": "관측시간 CPI 104 ms (⭐report13 규약 0.1 s 에 해당)",
+   "knob_en": "observation time CPI 104 ms (the repo's 0.1 s convention)",
+   "d_snr_db": -5.21,
+   "side": "metric",
+   "R_multiplier": 0.741,
+   "grade": "A",
+   "note_ko": "⭐측정값 — 잣대 곡선 자체가 바뀐다. 이 원장의 416 ms 는 저장소에서 가장 긴 CPI 다"
+  },
+  {
+   "knob_ko": "관측시간 CPI 52 ms (report12 T_CPI(52 ms)에 해당)",
+   "knob_en": "observation time CPI 52 ms (the passive-chain T_CPI)",
+   "d_snr_db": -10.86,
+   "side": "metric",
+   "R_multiplier": 0.5352,
+   "grade": "A",
+   "note_ko": "⭐측정값 — 잣대 곡선 자체가 바뀐다. 이 원장의 416 ms 는 저장소에서 가장 긴 CPI 다"
+  },
+  {
+   "knob_ko": "관측시간 CPI 26 ms (⭐X410 detection_config 기본 20 ms 근처)",
+   "knob_en": "observation time CPI 26 ms (near the X410 default 20 ms)",
+   "d_snr_db": -17.14,
+   "side": "metric",
+   "R_multiplier": 0.3728,
+   "grade": "A",
+   "note_ko": "⭐측정값 — 잣대 곡선 자체가 바뀐다. 이 원장의 416 ms 는 저장소에서 가장 긴 CPI 다"
+  },
+  {
+   "knob_ko": "⭐바이스태틱 한 다리만 움직일 때",
+   "knob_en": "bistatic, only one leg moves",
+   "d_snr_db": 0.0,
+   "side": "geometry",
+   "R_multiplier": 1.0,
+   "grade": "A",
+   "note_ko": "같은 ΔSNR 이 거리를 **두 배(dB 기준)** 더 움직인다 — 지수 40 → 20. 이 표의 배수는 헤드라인 기하(모노)의 것이다"
+  }
+ ],
+ "metric_side": {
+  "cpi_ladder": [
+   {
+    "n": 8192,
+    "cpi_ms": 415.8,
+    "df_hz": 2.4,
+    "n_on": 86,
+    "n_off": 94,
+    "bar_p999_db": 2.76,
+    "cross_snr_db": -19.853,
+    "clean_comb_db": 42.93,
+    "d_vs_canon_db": 0.0,
+    "R_mult": 1.0,
+    "label_ko": "정본(이 원장)",
+    "label_en": "canonical, this ledger"
+   },
+   {
+    "n": 4096,
+    "cpi_ms": 207.9,
+    "df_hz": 4.81,
+    "n_on": 44,
+    "n_off": 46,
+    "bar_p999_db": 3.65,
+    "cross_snr_db": -18.165,
+    "clean_comb_db": 43.46,
+    "d_vs_canon_db": 1.688,
+    "R_mult": 0.9082,
+    "label_ko": "절반",
+    "label_en": "half"
+   },
+   {
+    "n": 2048,
+    "cpi_ms": 104.0,
+    "df_hz": 9.62,
+    "n_on": 22,
+    "n_off": 22,
+    "bar_p999_db": 4.56,
+    "cross_snr_db": -14.646,
+    "clean_comb_db": 41.22,
+    "d_vs_canon_db": 5.207,
+    "R_mult": 0.7412,
+    "label_ko": "⭐report13 규약 0.1 s 에 해당",
+    "label_en": "the repo's 0.1 s convention"
+   },
+   {
+    "n": 1024,
+    "cpi_ms": 52.0,
+    "df_hz": 19.24,
+    "n_on": 10,
+    "n_off": 12,
+    "bar_p999_db": 6.02,
+    "cross_snr_db": -8.995,
+    "clean_comb_db": 31.4,
+    "d_vs_canon_db": 10.858,
+    "R_mult": 0.535,
+    "label_ko": "report12 T_CPI(52 ms)에 해당",
+    "label_en": "the passive-chain T_CPI"
+   },
+   {
+    "n": 512,
+    "cpi_ms": 26.0,
+    "df_hz": 38.48,
+    "n_on": 6,
+    "n_off": 6,
+    "bar_p999_db": 8.33,
+    "cross_snr_db": -2.71,
+    "clean_comb_db": 17.6,
+    "d_vs_canon_db": 17.143,
+    "R_mult": 0.372,
+    "label_ko": "⭐X410 detection_config 기본 20 ms 근처",
+    "label_en": "near the X410 default 20 ms"
+   },
+   {
+    "n": 256,
+    "cpi_ms": 13.0,
+    "df_hz": 76.95,
+    "n_on": 2,
+    "n_off": 4,
+    "bar_p999_db": null,
+    "cross_snr_db": null,
+    "clean_comb_db": null,
+    "d_vs_canon_db": null,
+    "R_mult": null,
+    "label_ko": "⛔마스크 붕괴 — 잣대가 **정의되지 않는다**",
+    "label_en": "mask collapses, metric undefined"
+   }
+  ],
+  "prf_invariance": [
+   {
+    "dec": 1,
+    "prf_hz": 19700.0,
+    "n": 8192,
+    "cross_snr_db": -19.853,
+    "expected_shift_db": 0.0,
+    "measured_shift_db": 0.0,
+    "residual_db": 0.0
+   },
+   {
+    "dec": 2,
+    "prf_hz": 9850.0,
+    "n": 4096,
+    "cross_snr_db": -16.568,
+    "expected_shift_db": 3.01,
+    "measured_shift_db": 3.285,
+    "residual_db": 0.275
+   },
+   {
+    "dec": 4,
+    "prf_hz": 4925.0,
+    "n": 2048,
+    "cross_snr_db": -13.944,
+    "expected_shift_db": 6.021,
+    "measured_shift_db": 5.909,
+    "residual_db": -0.112
+   },
+   {
+    "dec": 8,
+    "prf_hz": 2462.5,
+    "n": 1024,
+    "cross_snr_db": -11.098,
+    "expected_shift_db": 9.031,
+    "measured_shift_db": 8.755,
+    "residual_db": -0.276
+   }
+  ],
+  "prf_note_ko": "⭐dec=8 의 PRF 2462.5 Hz 는 도플러 게이트(2·f_tip = 2204.8 Hz) 바로 위다 — 사다리가 물리적 하한에서 정확히 끝난다. 잔차 ≤0.28 dB = 거리 ±0.7 %. ⇒ **PRF 19.7 kHz 의 약한 근거[C]는 «몇 미터» 를 흔들지 않는다.**",
+  "cpi_gate_canon": {
+   "cpi_s": 0.41584,
+   "df_hz": 2.405,
+   "need_separate_hz": 63.333,
+   "need_inside_window_hz": 8.0,
+   "n_harmonics_in_band": 7,
+   "ok": true,
+   "why_ko": "성립"
+  },
+  "cpi_gate_x410_default": {
+   "cpi_s": 0.02,
+   "df_hz": 50.0,
+   "need_separate_hz": 63.333,
+   "need_inside_window_hz": 8.0,
+   "n_harmonics_in_band": 7,
+   "ok": false,
+   "why_ko": "Δf 50.0 Hz 가 빗살 반폭 8 Hz 보다 굵다 — 정수배 칸과 중간 칸이 섞인다"
+  }
+ },
+ "reference_channel": {
+  "law": "loss_dB = 10·log10(1 + 10^((DTR_dB − 2·ρ_ref_dB)/10))",
+  "design_rule_ko": "손실 ≤ 3 dB ⟺ ρ_ref ≥ DTR/2",
+  "fit_mae_db": {
+   "W1_L1": 0.719,
+   "G1": 11.339
+  },
+  "measured_loss_db_by_rho": {
+   "40": 0.633,
+   "30": 6.972,
+   "20": 25.435,
+   "10": 44.899,
+   "0": 57.671
+  },
+  "dtr_db": 65.858,
+  "ref_antenna_gain_needed_db": 14.088,
+  "scope_ko": "⚠W1(WiFi)·L1(LTE) 에서만 평균오차 <1 dB 로 맞는다. G1(5G SSB)는 바닥이 열잡음이 아니라 직접파 잔류라 이 식이 안 맞는다(오차 최대 20 dB)",
+  "what_it_means_ko": "⭐헤드라인이 쓰는 «이상적 정합필터» 는 ρ_ref = ∞ 다. 현실적인 기준채널(ρ_ref 30 dB)만 돼도 **7 dB**, 20 dB 면 **25 dB** 를 잃는다 — 거리로는 ×0.67 과 ×0.24 다"
+ },
+ "phase_noise": {
+  "rows": {
+   "iso40": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 40.0,
+    "leakage_noise_dbm_hz": -118.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 49.48,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 0.0579,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   },
+   "iso50": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 50.0,
+    "leakage_noise_dbm_hz": -128.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 39.48,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 0.103,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   },
+   "iso60": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 60.0,
+    "leakage_noise_dbm_hz": -138.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 29.48,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 0.1832,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   },
+   "iso70": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 70.0,
+    "leakage_noise_dbm_hz": -148.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 19.48,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 0.3258,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   },
+   "iso80": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 80.0,
+    "leakage_noise_dbm_hz": -158.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 9.48,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 0.5794,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   },
+   "iso90": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 90.0,
+    "leakage_noise_dbm_hz": -168.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 0.0,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 1.0,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   }
+  },
+  "headline_ko": "⭐능동 모노스태틱의 바닥은 열잡음이 아닐 수 있다 — 데이터시트 −91 dBc/Hz @1 kHz 가 우리 무늬 자리에 있다"
+ },
+ "panel_audit": {
+  "cells": [
+   {
+    "arm": "ours",
+    "range_m": 15,
+    "el": "el-30",
+    "engine": "ours_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.62,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 30,
+    "el": "el-30",
+    "engine": "ours_r30_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.32,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 60,
+    "el": "el-30",
+    "engine": "ours_r60_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.19,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 120,
+    "el": "el-30",
+    "engine": "ours_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.14,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 240,
+    "el": "el-30",
+    "engine": "ours_r240_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.11,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 480,
+    "el": "el-30",
+    "engine": "ours_r480_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.1,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 15,
+    "el": "el+0",
+    "engine": "ours_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -15.91,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 30,
+    "el": "el+0",
+    "engine": "ours_r30_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -15.79,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 60,
+    "el": "el+0",
+    "engine": "ours_r60_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -15.73,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 120,
+    "el": "el+0",
+    "engine": "ours_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -15.7,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 240,
+    "el": "el+0",
+    "engine": "ours_r240_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -15.69,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 480,
+    "el": "el+0",
+    "engine": "ours_r480_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -15.68,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 15,
+    "el": "el-60",
+    "engine": "ours_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -0.98,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 30,
+    "el": "el-60",
+    "engine": "ours_r30_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -1.75,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 60,
+    "el": "el-60",
+    "engine": "ours_r60_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.17,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours",
+    "range_m": 120,
+    "el": "el-60",
+    "engine": "ours_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.39,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 15,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.36,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 30,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r30_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -5.72,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 60,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r60_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -1.24,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 120,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -8.55,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 240,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r240_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.9086,
+    "ac_over_total_db": -4.26,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 480,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r480_n8192_d1",
+    "n_missing": 5287,
+    "unique_frac": 0.3516,
+    "ac_over_total_db": -0.58,
+    "eligible": false,
+    "fails": [
+     "n_missing=5287",
+     "zeros=5287",
+     "frozen(uniq=35%)"
+    ]
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 15,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -31.06,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 30,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r30_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -35.07,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 60,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r60_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -39.65,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 120,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.9911,
+    "ac_over_total_db": -43.91,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 240,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r240_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.7892,
+    "ac_over_total_db": -106.19,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=79%)",
+     "numeric_floor(AC/total=-106dB)"
+    ]
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 480,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r480_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.0001,
+    "ac_over_total_db": -321.99,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=0%)",
+     "numeric_floor(AC/total=-322dB)"
+    ]
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 15,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -8.95,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 30,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_r30_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -8.94,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 60,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_r60_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -3.83,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 120,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -1.18,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 15,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -4.15,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 30,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_onlyrefr_r30_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -4.63,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 60,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_onlyrefr_r60_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -7.42,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 120,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_onlyrefr_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.9935,
+    "ac_over_total_db": -11.33,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 240,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_onlyrefr_r240_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.4281,
+    "ac_over_total_db": -1.85,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=43%)"
+    ]
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 15,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -33.63,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 30,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r30_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -39.14,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 60,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r60_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.9647,
+    "ac_over_total_db": -45.67,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 120,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.7443,
+    "ac_over_total_db": -107.85,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=74%)",
+     "numeric_floor(AC/total=-108dB)"
+    ]
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 240,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r240_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.2738,
+    "ac_over_total_db": -106.51,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=27%)",
+     "numeric_floor(AC/total=-107dB)"
+    ]
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 15,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -6.73,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours_ptd",
+    "range_m": 15,
+    "el": "el-30",
+    "engine": "ours_ptd_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.86,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours_ptd",
+    "range_m": 30,
+    "el": "el-30",
+    "engine": "ours_ptd_r30_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.58,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours_ptd",
+    "range_m": 60,
+    "el": "el-30",
+    "engine": "ours_ptd_r60_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.43,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours_ptd",
+    "range_m": 120,
+    "el": "el-30",
+    "engine": "ours_ptd_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.35,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours_ptd",
+    "range_m": 15,
+    "el": "el+0",
+    "engine": "ours_ptd_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -16.04,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ours_ptd",
+    "range_m": 15,
+    "el": "el-60",
+    "engine": "ours_ptd_r15_n8192",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -2.89,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 15,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_phys_r15_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -31.13,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 30,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_phys_r30_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -35.37,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 60,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_phys_r60_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -34.88,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 120,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_phys_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.9935,
+    "ac_over_total_db": -41.34,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 15,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_phys_r15_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -32.76,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 30,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_phys_r30_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -40.05,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 60,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_phys_r60_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.9576,
+    "ac_over_total_db": -48.85,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 120,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_phys_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.7388,
+    "ac_over_total_db": -84.84,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=74%)"
+    ]
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 15,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_phys_r15_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -19.95,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 30,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_phys_r30_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -28.85,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 60,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_phys_r60_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 1.0,
+    "ac_over_total_db": -36.58,
+    "eligible": true,
+    "fails": []
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 120,
+    "el": "el-60",
+    "engine": "sionna_p4000000000_phys_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.9272,
+    "ac_over_total_db": -40.99,
+    "eligible": true,
+    "fails": []
+   }
+  ],
+  "n_ineligible": 7,
+  "ineligible": [
+   {
+    "arm": "ps_off",
+    "range_m": 480,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_r480_n8192_d1",
+    "n_missing": 5287,
+    "unique_frac": 0.3516,
+    "ac_over_total_db": -0.58,
+    "eligible": false,
+    "fails": [
+     "n_missing=5287",
+     "zeros=5287",
+     "frozen(uniq=35%)"
+    ]
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 240,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r240_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.7892,
+    "ac_over_total_db": -106.19,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=79%)",
+     "numeric_floor(AC/total=-106dB)"
+    ]
+   },
+   {
+    "arm": "ps_off",
+    "range_m": 480,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_r480_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.0001,
+    "ac_over_total_db": -321.99,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=0%)",
+     "numeric_floor(AC/total=-322dB)"
+    ]
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 240,
+    "el": "el-30",
+    "engine": "sionna_p4000000000_onlyrefr_r240_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.4281,
+    "ac_over_total_db": -1.85,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=43%)"
+    ]
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 120,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r120_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.7443,
+    "ac_over_total_db": -107.85,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=74%)",
+     "numeric_floor(AC/total=-108dB)"
+    ]
+   },
+   {
+    "arm": "ps_refr",
+    "range_m": 240,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_onlyrefr_r240_n8192",
+    "n_missing": 0,
+    "unique_frac": 0.2738,
+    "ac_over_total_db": -106.51,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=27%)",
+     "numeric_floor(AC/total=-107dB)"
+    ]
+   },
+   {
+    "arm": "ps_phys",
+    "range_m": 120,
+    "el": "el+0",
+    "engine": "sionna_p4000000000_phys_r120_n8192_d1",
+    "n_missing": 0,
+    "unique_frac": 0.7388,
+    "ac_over_total_db": -84.84,
+    "eligible": false,
+    "fails": [
+     "frozen(uniq=74%)"
+    ]
+   }
+  ],
+  "a1_shape_drift": {
+   "ours_el-30": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.9977
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.995
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.9933
+    },
+    {
+     "range_m": 240,
+     "rho_ac": 0.9923
+    },
+    {
+     "range_m": 480,
+     "rho_ac": 0.9918
+    }
+   ],
+   "ours_el+0": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.9976
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.9947
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.9928
+    },
+    {
+     "range_m": 240,
+     "rho_ac": 0.9917
+    },
+    {
+     "range_m": 480,
+     "rho_ac": 0.9912
+    }
+   ],
+   "ours_el-60": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.999
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.9978
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.997
+    }
+   ],
+   "ps_off_el-30": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.8319
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.5554
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.5802
+    },
+    {
+     "range_m": 240,
+     "rho_ac": 0.3955
+    }
+   ],
+   "ps_off_el+0": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.4908
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.3236
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.1505
+    }
+   ],
+   "ps_off_el-60": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.787
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.3408
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.3414
+    }
+   ],
+   "ps_refr_el-30": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.527
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.1422
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.0899
+    }
+   ],
+   "ps_refr_el+0": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.2342
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.1243
+    }
+   ],
+   "ours_ptd_el-30": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.9977
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.995
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.9933
+    }
+   ],
+   "ps_phys_el-30": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.1761
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.1107
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.1066
+    }
+   ],
+   "ps_phys_el+0": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.191
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.0015
+    }
+   ],
+   "ps_phys_el-60": [
+    {
+     "range_m": 30,
+     "rho_ac": 0.2706
+    },
+    {
+     "range_m": 60,
+     "rho_ac": 0.0771
+    },
+    {
+     "range_m": 120,
+     "rho_ac": 0.0832
+    }
+   ]
+  },
+  "a1_verdict": {
+   "ours_el-30": {
+    "rho_ac_at_farthest": 0.9918,
+    "farthest_m": 480,
+    "trust_A1": true,
+    "note_ko": "A1 연장선을 그대로 써도 된다"
+   },
+   "ours_el+0": {
+    "rho_ac_at_farthest": 0.9912,
+    "farthest_m": 480,
+    "trust_A1": true,
+    "note_ko": "A1 연장선을 그대로 써도 된다"
+   },
+   "ours_el-60": {
+    "rho_ac_at_farthest": 0.997,
+    "farthest_m": 120,
+    "trust_A1": true,
+    "note_ko": "A1 연장선을 그대로 써도 된다"
+   },
+   "ps_off_el-30": {
+    "rho_ac_at_farthest": 0.3955,
+    "farthest_m": 240,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ps_off_el+0": {
+    "rho_ac_at_farthest": 0.1505,
+    "farthest_m": 120,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ps_off_el-60": {
+    "rho_ac_at_farthest": 0.3414,
+    "farthest_m": 120,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ps_refr_el-30": {
+    "rho_ac_at_farthest": 0.0899,
+    "farthest_m": 120,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ps_refr_el+0": {
+    "rho_ac_at_farthest": 0.1243,
+    "farthest_m": 60,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ours_ptd_el-30": {
+    "rho_ac_at_farthest": 0.9933,
+    "farthest_m": 120,
+    "trust_A1": true,
+    "note_ko": "A1 연장선을 그대로 써도 된다"
+   },
+   "ps_phys_el-30": {
+    "rho_ac_at_farthest": 0.1066,
+    "farthest_m": 120,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ps_phys_el+0": {
+    "rho_ac_at_farthest": 0.0015,
+    "farthest_m": 60,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   },
+   "ps_phys_el-60": {
+    "rho_ac_at_farthest": 0.0832,
+    "farthest_m": 120,
+    "trust_A1": false,
+    "note_ko": "⛔A1 은 «기울기» 로만 읽어라 — 엔진이 그 거리에서 계산한 모양이 15 m 모양과 다르다. 헤드라인 거리는 A2 사다리에서 내야 한다"
+   }
+  },
+  "rule_ko": "⭐n_missing 만으로는 부족하다 — 얼어붙은 칸(전 표본 동일)이 그 검사를 통과한다. 네 조건을 다 본다: n_missing=0 · 0 표본 없음 · 서로 다른 값 ≥90 % · AC/총 > −100 dB(canon near_numeric_floor 규칙)"
+ },
+ "measured": {
+  "arm": "ours_r15_n8192/el-30",
+  "f_tip_hz": 1102.4,
+  "f_flash_hz": 126.66666666666667,
+  "prf0_hz": 19700.0,
+  "n_trial": 300,
+  "n_null": 4000,
+  "seed": 7,
+  "cpi_ladder": [
+   {
+    "ok": true,
+    "n": 8192,
+    "cpi_ms": 415.84,
+    "df_hz": 2.405,
+    "n_on": 86,
+    "n_off": 94,
+    "bar_p999_db": 2.763,
+    "cross_snr_db": -19.853,
+    "clean_comb_db": 42.93,
+    "d_vs_canon_db": 0.0,
+    "R_mult": 1.0
+   },
+   {
+    "ok": true,
+    "n": 4096,
+    "cpi_ms": 207.92,
+    "df_hz": 4.81,
+    "n_on": 44,
+    "n_off": 46,
+    "bar_p999_db": 3.645,
+    "cross_snr_db": -18.165,
+    "clean_comb_db": 43.46,
+    "d_vs_canon_db": 1.688,
+    "R_mult": 0.9074
+   },
+   {
+    "ok": true,
+    "n": 2048,
+    "cpi_ms": 103.96,
+    "df_hz": 9.619,
+    "n_on": 22,
+    "n_off": 22,
+    "bar_p999_db": 4.559,
+    "cross_snr_db": -14.646,
+    "clean_comb_db": 41.22,
+    "d_vs_canon_db": 5.207,
+    "R_mult": 0.741
+   },
+   {
+    "ok": true,
+    "n": 1024,
+    "cpi_ms": 51.98,
+    "df_hz": 19.238,
+    "n_on": 10,
+    "n_off": 12,
+    "bar_p999_db": 6.024,
+    "cross_snr_db": -8.995,
+    "clean_comb_db": 31.4,
+    "d_vs_canon_db": 10.858,
+    "R_mult": 0.5352
+   },
+   {
+    "ok": true,
+    "n": 512,
+    "cpi_ms": 25.99,
+    "df_hz": 38.477,
+    "n_on": 6,
+    "n_off": 6,
+    "bar_p999_db": 8.333,
+    "cross_snr_db": -2.71,
+    "clean_comb_db": 17.6,
+    "d_vs_canon_db": 17.143,
+    "R_mult": 0.3728
+   },
+   {
+    "ok": false,
+    "n": 256,
+    "cpi_ms": 12.99,
+    "df_hz": 76.953,
+    "n_on": 2,
+    "n_off": 4,
+    "d_vs_canon_db": null,
+    "R_mult": null
+   }
+  ],
+  "prf_invariance": [
+   {
+    "ok": true,
+    "n": 8192,
+    "cpi_ms": 415.84,
+    "df_hz": 2.405,
+    "n_on": 86,
+    "n_off": 94,
+    "bar_p999_db": 2.763,
+    "cross_snr_db": -19.853,
+    "clean_comb_db": 42.93,
+    "dec": 1,
+    "prf_hz": 19700.0,
+    "expected_shift_db": 0.0,
+    "measured_shift_db": 0.0,
+    "residual_db": 0.0
+   },
+   {
+    "ok": true,
+    "n": 4096,
+    "cpi_ms": 415.84,
+    "df_hz": 2.405,
+    "n_on": 86,
+    "n_off": 94,
+    "bar_p999_db": 2.834,
+    "cross_snr_db": -16.568,
+    "clean_comb_db": 39.08,
+    "dec": 2,
+    "prf_hz": 9850.0,
+    "expected_shift_db": 3.01,
+    "measured_shift_db": 3.285,
+    "residual_db": 0.275
+   },
+   {
+    "ok": true,
+    "n": 2048,
+    "cpi_ms": 415.84,
+    "df_hz": 2.405,
+    "n_on": 86,
+    "n_off": 94,
+    "bar_p999_db": 2.684,
+    "cross_snr_db": -13.944,
+    "clean_comb_db": 32.13,
+    "dec": 4,
+    "prf_hz": 4925.0,
+    "expected_shift_db": 6.021,
+    "measured_shift_db": 5.909,
+    "residual_db": -0.112
+   },
+   {
+    "ok": true,
+    "n": 1024,
+    "cpi_ms": 415.84,
+    "df_hz": 2.405,
+    "n_on": 86,
+    "n_off": 94,
+    "bar_p999_db": 2.522,
+    "cross_snr_db": -11.098,
+    "clean_comb_db": 15.76,
+    "dec": 8,
+    "prf_hz": 2462.5,
+    "expected_shift_db": 9.031,
+    "measured_shift_db": 8.755,
+    "residual_db": -0.276
+   }
+  ]
+ },
+ "selftest": {
+  "1_noise_matches_ledger": {
+   "ok": true,
+   "legacy_w": 2.4942932229992773e-16,
+   "canon_w": 3.5232828247845755e-16,
+   "canon_minus_legacy_db": 1.5,
+   "note_ko": "이전 판 값은 detection_curves.json·noise_distance_frame.json 과 비트동일, 정본은 데이터시트 NF 6.5 dB 라 정확히 +1.5 dB"
+  },
+  "2_mf_gain": {
+   "ok": true,
+   "full_waveform_db": 37.055,
+   "always_on_pilot_db": 0.0
+  },
+  "3_r_multiplier": {
+   "ok": true,
+   "mono_40db": 10.0,
+   "bistatic_20db": 10.0,
+   "note_ko": "모노 +40 dB = 거리 10 배 · 바이스태틱 한 다리 +20 dB = 10 배"
+  },
+  "4_declared_gate": {
+   "ok": true,
+   "headline_declared": [],
+   "headline_quotable": true,
+   "note_ko": "⭐2026-08-16 개정으로 헤드라인의 [D] 가 0 개가 됐다(EIRP·NF·손실이 전부 데이터시트/관행으로 내려왔다). 게이트는 그대로 살아 있다",
+   "other_arm_blocked_without_flag": false
+  },
+  "5_unresolved_raises": {
+   "ok": true,
+   "still_unresolved": [
+    "tx_isolation_db",
+    "can_transmit_3g5",
+    "ism58_eirp_cap_dbm"
+   ]
+  },
+  "6_doppler_gate": {
+   "ok": true,
+   "rows": {
+    "active_mono_x410": {
+     "prf_hz": 19700.0,
+     "need_hz": 2204.8,
+     "ok": true,
+     "fold_factor": 0.11,
+     "why_ko": "접힘 없음"
+    },
+    "active_mono_x410_cw": {
+     "prf_hz": 19700.0,
+     "need_hz": 2204.8,
+     "ok": true,
+     "fold_factor": 0.11,
+     "why_ko": "접힘 없음"
+    },
+    "active_mono_x410_ism58": {
+     "prf_hz": 19700.0,
+     "need_hz": 2204.8,
+     "ok": true,
+     "fold_factor": 0.11,
+     "why_ko": "접힘 없음"
+    },
+    "active_mono_chamber": {
+     "prf_hz": 19700.0,
+     "need_hz": 2204.8,
+     "ok": true,
+     "fold_factor": 0.11,
+     "why_ko": "접힘 없음"
+    },
+    "passive_lte_crs": {
+     "prf_hz": 1000.0,
+     "need_hz": 2204.8,
+     "ok": false,
+     "fold_factor": 2.2,
+     "why_ko": "날개끝 1102 Hz 가 ±500 Hz 안으로 접힌다 — 빗살 대비 잣대가 성립하지 않는다"
+    },
+    "passive_nr_ssb": {
+     "prf_hz": 50.0,
+     "need_hz": 2204.8,
+     "ok": false,
+     "fold_factor": 44.1,
+     "why_ko": "날개끝 1102 Hz 가 ±25 Hz 안으로 접힌다 — 빗살 대비 잣대가 성립하지 않는다"
+    },
+    "passive_wifi": {
+     "prf_hz": 1000.0,
+     "need_hz": 2204.8,
+     "ok": false,
+     "fold_factor": 2.2,
+     "why_ko": "날개끝 1102 Hz 가 ±500 Hz 안으로 접힌다 — 빗살 대비 잣대가 성립하지 않는다"
+    }
+   },
+   "note_ko": "⭐패시브 상시 기준신호 팔은 «멀어서 안 보이는» 것이 아니라 날개끝이 접혀 **빗살 잣대 자체가 성립하지 않는다**"
+  },
+  "7_x410_consistent": {
+   "ok": true,
+   "dynamic_range_db": 74.0,
+   "unresolved": [
+    "tx_isolation_db"
+   ],
+   "note_ko": "⭐송신전력·잡음지수·위상잡음이 이제 데이터시트에서 왔다. 남은 미확보는 송신→수신 격리 하나이고, 그것이 위상잡음 게이트의 입력이다"
+  },
+  "8_cpi_gate": {
+   "ok": true,
+   "canon": {
+    "cpi_s": 0.41584,
+    "df_hz": 2.405,
+    "need_separate_hz": 63.333,
+    "need_inside_window_hz": 8.0,
+    "n_harmonics_in_band": 7,
+    "ok": true,
+    "why_ko": "성립"
+   },
+   "x410_default_20ms": {
+    "cpi_s": 0.02,
+    "df_hz": 50.0,
+    "need_separate_hz": 63.333,
+    "need_inside_window_hz": 8.0,
+    "n_harmonics_in_band": 7,
+    "ok": false,
+    "why_ko": "Δf 50.0 Hz 가 빗살 반폭 8 Hz 보다 굵다 — 정수배 칸과 중간 칸이 섞인다"
+   },
+   "ladder_collapse_at_ms": 13.0,
+   "note_ko": "⭐experiment_x410.detection_config 기본 T_CPI 20 ms 로는 빗살 잣대가 성립하지 않는다 — 이 원장의 416 ms 는 그 규약과 **다른 규약**이고, 그 사실을 본판이 적어야 한다"
+  },
+  "9_prf_invariance": {
+   "ok": true,
+   "max_residual_db": 0.276,
+   "R_error_pct": 1.6,
+   "rows": [
+    {
+     "dec": 1,
+     "prf_hz": 19700.0,
+     "n": 8192,
+     "cross_snr_db": -19.853,
+     "expected_shift_db": 0.0,
+     "measured_shift_db": 0.0,
+     "residual_db": 0.0
+    },
+    {
+     "dec": 2,
+     "prf_hz": 9850.0,
+     "n": 4096,
+     "cross_snr_db": -16.568,
+     "expected_shift_db": 3.01,
+     "measured_shift_db": 3.285,
+     "residual_db": 0.275
+    },
+    {
+     "dec": 4,
+     "prf_hz": 4925.0,
+     "n": 2048,
+     "cross_snr_db": -13.944,
+     "expected_shift_db": 6.021,
+     "measured_shift_db": 5.909,
+     "residual_db": -0.112
+    },
+    {
+     "dec": 8,
+     "prf_hz": 2462.5,
+     "n": 1024,
+     "cross_snr_db": -11.098,
+     "expected_shift_db": 9.031,
+     "measured_shift_db": 8.755,
+     "residual_db": -0.276
+    }
+   ],
+   "note_ko": "⭐dec=8 의 PRF 2462.5 Hz 는 도플러 게이트(2·f_tip = 2204.8 Hz) 바로 위다 — 사다리가 물리적 하한에서 정확히 끝난다. 잔차 ≤0.28 dB = 거리 ±0.7 %. ⇒ **PRF 19.7 kHz 의 약한 근거[C]는 «몇 미터» 를 흔들지 않는다.**"
+  },
+  "10_phase_noise_gate": {
+   "ok": true,
+   "at_isolation_60db": {
+    "applicable": true,
+    "offset_hz": 1000.0,
+    "pn_dbc_hz": -91.0,
+    "p_tx_conducted_dbm": 13.0,
+    "isolation_db": 60.0,
+    "leakage_noise_dbm_hz": -138.0,
+    "thermal_dbm_hz": -167.48,
+    "excess_over_thermal_db": 29.48,
+    "isolation_for_parity_db": 89.48,
+    "R_multiplier": 0.1832,
+    "caveat_ko": "거리상관 상쇄를 계산에 넣지 않은 **상한**이다. 우리 하드웨어의 상쇄량은 미측정 — 실측 캠페인 1순위"
+   },
+   "note_ko": "⭐격리 60 dB(현실적인 별도 안테나 배치)에서도 위상잡음이 열잡음보다 높다면, 능동 모노 팔의 «몇 미터» 는 열잡음 예산이 말하는 값보다 짧다"
+  },
+  "12_panel_eligibility": {
+   "ok": true,
+   "n_ineligible": 7,
+   "frozen_but_n_missing_zero": [
+    "ps_off_r240_el+0",
+    "ps_off_r480_el+0",
+    "ps_refr_r240_el-30",
+    "ps_refr_r120_el+0",
+    "ps_refr_r240_el+0",
+    "ps_phys_r120_el+0"
+   ],
+   "a1_verdict": {
+    "ours_el-30": true,
+    "ours_el+0": true,
+    "ours_el-60": true,
+    "ps_off_el-30": false,
+    "ps_off_el+0": false,
+    "ps_off_el-60": false,
+    "ps_refr_el-30": false,
+    "ps_refr_el+0": false,
+    "ours_ptd_el-30": true,
+    "ps_phys_el-30": false,
+    "ps_phys_el+0": false,
+    "ps_phys_el-60": false
+   },
+   "note_ko": "⭐ok=True 는 «결함을 찾았다» 는 뜻이다 — n_missing=0 인데 얼어붙은 칸이 실재하므로 본판의 자격 게이트가 그 조건을 반드시 포함해야 한다"
+  },
+  "11_measured_matches_constants": {
+   "ok": true,
+   "max_dev_db": 0.0
+  },
+  "ok": true
+ }
+}

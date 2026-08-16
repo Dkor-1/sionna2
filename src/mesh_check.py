@@ -65,12 +65,26 @@ DEGENERATE_AREA_M2 = 1e-14      # 절대 잣대(옛 기준). 기체 크기에 �
 BOUNDARY_EDGE_BUDGET = {
     "_default": 0,
     #  ↓ 선언된 기존 결함(감사 I5). 2층 수리 대상이라 여기 «지금 상태» 로 박아 둔다.
-    #    mini2 body 는 면 수가 7757(홀수)로, cadkit.Assembly.add() 의 nondegenerate_faces()
-    #    가 슬리버 1장을 지우면서 경계 모서리 3개짜리 구멍이 남았다. 구멍 삼각형 면적은
-    #    4.96e-06 mm² 라 산란에는 영향이 없고, 진짜 피해는 간접이다 — is_watertight=False 라
-    #    부피·contains() 가 무효가 되어 **내부판정을 쓰는 검사가 이 부품을 조용히 건너뛴다.**
+    #    mini2 body 는 면 수가 7757(홀수)로, **`cadkit.union_group('body')`** 의
+    #    nondegenerate_faces() 가 needle 삼각형 1장을 지우면서 경계 모서리 3개짜리 구멍이
+    #    남았다(⚠감사 I5 는 이 자리를 `Assembly.add()` 로 적었는데 실측은 union 쪽이다 —
+    #    body 로 들어온 파트 10개는 전부 수밀·퇴화면 0 이고, 불리언 합집합 출력에서 생긴다).
+    #    구멍 삼각형 면적은 4.95e-06 mm² 라 산란에는 영향이 없고, 진짜 피해는 간접이다 —
+    #    is_watertight=False 라 부피·contains() 가 무효가 되어 **내부판정을 쓰는 검사가
+    #    이 부품을 조용히 건너뛴다.**
     ("mini2", "body"): 3,
 }
+
+#  ⭐ 수리를 켜면 예산도 **같이 조인다** — 안 그러면 «고쳤는데 다시 열려도» 통과한다.
+#    `MESH_FIX=i5` 에서는 모든 (기종, 그룹) 의 경계 모서리 예산이 0 이다.
+BOUNDARY_EDGE_BUDGET_FIXED = {"_default": 0}
+
+
+def _boundary_budget(name: str, grp: str) -> int:
+    """경계 모서리 예산 — 수리 스위치 상태에 따라 표를 갈아 끼운다."""
+    from geom import mesh_fix_enabled
+    tbl = BOUNDARY_EDGE_BUDGET_FIXED if mesh_fix_enabled("i5") else BOUNDARY_EDGE_BUDGET
+    return int(tbl.get((name, grp), tbl["_default"]))
 
 #  ⑶ 슬리버(최소 내각 < 0.5°) 예산 — 기종 전체 개수. 실측 + 10 % 여유.
 #     면적 비중은 0.0001~0.03 % 라 σ 에는 무해하다(감사 m2 가 확인). 감시하는 이유는
@@ -81,6 +95,24 @@ SLIVER_BUDGET = {
     "phantom4": 270, "typhoonh480": 508, "x500v2": 420, "phantom3": 339,
     "m350rtk": 347, "mini2": 198,
 }
+#  ⑶-2 ⭐ 2026-08-16 — **수리를 켰을 때만** 쓰는 슬리버 예산 (감사 §⑤ 2층 i4).
+#     불리언 합집합은 두 껍질이 만나는 **교차곡선을 따라 얇은 삼각형을 남긴다** — CSG 의
+#     성질이지 새로 생긴 결함이 아니다. 그래도 «수리판은 예산을 밑돌면 된다» 는 원칙의
+#     예외이므로 **여기 선언**한다(값·근거를 안 적고 통과시키지 않는다).
+#     실측(2026-08-16, i4 켬 ↔ 끔) — 셸형 7기체 + x500v2:
+#       mavic4pro 239→239 · phantom3 301→301 · phantom4 234→234 (증가 0)
+#       matrice4e 239→261 · mini5pro 235→285 · **mini2 185→215** · **typhoonh480 461→508**
+#       (m4 · x500v2 381→389)
+#     완전 매몰 기체(mavic4pro·phantom3)가 0 인 이유는 그쪽이 불리언을 아예 안 태우기 때문이다.
+#     늘어난 삼각형은 전부 body 씨접합이고 mini2 기준 **면적 합 0.73 mm²** = 표면적의 0.0008 %.
+#     그 대가로 없애는 이중계상은 8,474 mm² 다 — **11,600 배**.
+#     ⚠ 기존 예산을 넘는(또는 여유가 0인) 둘만 선언한다. 나머지는 기존 예산 안이다.
+#     ⚠ 0.1 mm 정점 용접으로 씨접합 슬리버를 78 → 32 장까지 줄일 수는 있으나(실측), 그건 씨접합
+#       **밖의** 정점까지 움직이므로 이 라운드에서는 안 쓴다 — 원장에 측정치만 남긴다.
+SLIVER_BUDGET_MESH_FIX = {
+    ("i4", "mini2"): 240,          # 실측 215 + 약 10 %  (기존 예산 198)
+    ("i4", "typhoonh480"): 560,    # 실측 508 + 약 10 %  (기존 예산 508 — 여유가 0이었다)
+}
 
 #  ⑷ **그룹 안** 부품 겹침 예산 [%] — (기종, 그룹) → 그 그룹 표면적 중 다른 부품 솔리드
 #     안에 파묻힌 비율. `build_frame_cad` 의 불리언 union 목록에 없는 그룹은 겹치면
@@ -89,7 +121,7 @@ SLIVER_BUDGET = {
 #        구조판 상자가 실제로 파고들어 있다(48~50 %). `drone_cad.py` INTERNALS 주석은
 #        «battery·pcb 는 union 목록에 없으니 서로 겹치지 않게 놓는다» 고 적는데,
 #        기종별 실측표를 받은 matrice4e·phantom3 만 그 규칙을 지키고 있다(겹침 0 %).
-#        ⇒ 3층(감사 I3) 수리 대상. 여기서는 **선언**만 한다.
+#        ⇒ 2층 수리 대상(`MESH_FIX=battery`). 아래 55 % 는 **수리 전 상태의 선언**이다.
 GROUP_OVERLAP_BUDGET_PCT = {
     "_default": 0.1,
     ("mini2", "battery"): 55.0,
@@ -98,11 +130,29 @@ GROUP_OVERLAP_BUDGET_PCT = {
     ("phantom4", "battery"): 55.0,
 }
 
+#  ⭐ 수리를 켜면 예산도 **같이 조인다** — 안 그러면 «고쳤는데 다시 겹쳐도» 통과한다.
+#    `MESH_FIX=battery` 에서 'battery' 그룹의 겹침 예산은 기본값(0.1 %)이다. 실측은 0.0 %.
+GROUP_OVERLAP_BUDGET_FIXED = {"_default": 0.1}
+
+
+def _overlap_budget(name: str, grp: str) -> float:
+    """그룹 안 겹침 예산 [%] — 수리 스위치 상태에 따라 표를 갈아 끼운다."""
+    from geom import mesh_fix_enabled
+    tbl = (GROUP_OVERLAP_BUDGET_FIXED
+           if (grp == "battery" and mesh_fix_enabled("battery")) else GROUP_OVERLAP_BUDGET_PCT)
+    return float(tbl.get((name, grp), tbl["_default"]))
+
+
 #  ⑸ 치수 대조 허용오차 [%] — 메쉬에서 잰 값 ↔ DroneSpec 의 수
 DIM_TOL_PCT = {
     "prop_dia": 1.0,        # 실측 전 10기체 −0.000 % (스윕디스크 정규화가 정확히 작동)
     "envelope": 1.0,        # 실측 전 10기체 0.0 % (frame_fit_scale 이 외형을 맞춘다)
-    "diagonal": 3.0,        # 실측 −0.14~+1.98 % (phantom4 +1.98 이 최대)
+    "diagonal": 3.0,        # ⭐ 2026-08-16 갱신: 실측 −0.14~+0.02 % (예외 mini5pro 는 아래 표).
+                            #   최대였던 phantom4 +1.98 % 가 **0.000 %** 로 내려왔다 —
+                            #   L/W 외형 강제를 풀어 축간거리를 공표 350 mm 로 되돌린 결과다
+                            #   (감사 B6 · outputs/mesh_apply_caps_envelope_0816.json).
+                            #   ⚠ 문턱값 3.0 은 **안 내렸다**: 병행 라운드들이 형상 상수를
+                            #     고치는 중이라 지금 조이면 남의 작업을 게이트로 막게 된다.
 }
 #  ↓ 대각선만 기종별 예외가 있다 — spec note 에 이미 선언된 값들.
 DIM_DIAGONAL_TOL_PCT = {
@@ -243,9 +293,8 @@ def check_mesh(mesh, name="mesh") -> dict:
         raw_vol = _raw_signed_volumes_mm3(V, f)
         n_rawneg = int((raw_vol <= 0.0).sum())
         overlap = _group_overlap_pct(comps)
-        be_budget = BOUNDARY_EDGE_BUDGET.get((name, grp), BOUNDARY_EDGE_BUDGET["_default"])
-        ov_budget = GROUP_OVERLAP_BUDGET_PCT.get((name, grp),
-                                                 GROUP_OVERLAP_BUDGET_PCT["_default"])
+        be_budget = _boundary_budget(name, grp)
+        ov_budget = _overlap_budget(name, grp)
         groups[grp] = dict(
             n_faces=int(len(f)), n_parts=len(comps),
             watertight=f"{n_wt}/{len(comps)}",
@@ -265,6 +314,13 @@ def check_mesh(mesh, name="mesh") -> dict:
                 and n_rawneg == 0 and overlap <= ov_budget),
         )
     sl_budget = SLIVER_BUDGET.get(name, SLIVER_BUDGET["_default"])
+    #  ⭐ 수리가 켜져 있으면 그 수리용으로 **선언된** 예산을 쓴다(위 SLIVER_BUDGET_MESH_FIX).
+    #    스위치가 꺼져 있으면 이 줄들은 아무 일도 안 한다 → 기존 판정과 비트동일.
+    from geom import mesh_fix_set
+    for _fid in mesh_fix_set():
+        _v = SLIVER_BUDGET_MESH_FIX.get((_fid, name))
+        if _v is not None:
+            sl_budget = max(sl_budget, _v)
     #  ⚠ 슬리버는 **`ok` 에 넣지 않는다** — 일부러 그렇다.
     #    `check_mesh(...)["ok"]` 는 예전부터 «부품 무결성» 의 뜻으로 쓰여 왔고, 실제로
     #    `benchmark/audit_m350rtk_mesh.py` 는 그 값을 `watertight_all_parts` 라는 이름으로
@@ -578,29 +634,97 @@ def check_prop_bell_solid(spec, verbose=False, mesh=None) -> dict:
     return res
 
 
-def check_all(verbose=True) -> dict:
+#  ⭐⭐ 2026-08-16 — **매몰면 전수 검사**(감사 I3). 위의 그룹 사이 검사는 prop↔motor **한 쌍**
+#     뿐이었다. 나머지 쌍은 검사도 예산도 없었고, 실제로 표면적의 8.0~44.4 % 가 다른 부품
+#     **안**에 들어 있다. PO 는 가림을 안 보므로(rcs_po.py 46-53행 자기선언) 그 면적은 그대로
+#     **이중계상**된다 — 주력 표적에서 σ 방위평균 +2.3(mavic4pro) / +4.0 dB(mini5pro).
+#     엔진은 `mesh_buried.buried_census` 이고, 여기서는 **예산으로 감시**만 한다.
+#
+#  ⚠ 무엇을 예산에 거는가 — **«진짜 결함» 비율**이다(총 매몰이 아니다).
+#     매몰면은 두 종류다(정본 설명은 mesh_buried 머리말):
+#       · 설계 의도 = battery·pcb·fc 가 셸(body/canopy) **안**에 있는 것. 반투명 셸을 통과해
+#         내부 금속이 보이는 효과를 그렇게 1차 근사하기로 한 것이므로 **결함이 아니다**.
+#       · 진짜 결함 = 그 밖의 전부. canopy 가 body 안에, camera 가 body 안에, battery 끼리 겹침 …
+#     아래 값은 2026-08-16 **출하 상태의 실측 + 약 10 % 여유**다. «이만큼이 옳다» 가 아니라
+#     «지금 이만큼이다» 라는 선언이며(PROP_BELL_* 표와 같은 규약), 새로 생기는 매몰은 예산을
+#     넘겨 **실패**한다. 수리(`MESH_FIX=battery` 등)를 켜면 값이 내려가므로 그대로 통과한다.
+#  ⚠ 아래 «실측» 은 **2026-08-16 23:46(2층 수리 전) 출하 메쉬**에서 잰 값이다. 같은 날
+#    다른 수리자들이 형상을 고치면서 기본 메쉬가 움직였고(그때는 6/10 기체), 그 뒤 실측은
+#    ±0.5 pp 안에서 달라진다 — 예산은 여전히 넉넉하다. 어느 형상에서 잰 수인지는 원장
+#    `outputs/mesh_layer2_buried_faces_0816.json` 의 `census[*].⭐mesh_state` 지문이 못 박는다.
+#    ⇒ 2층 수리가 다 끝나면 `benchmark/adv_mesh_buried_faces_0816.py` 를 다시 돌려 이 표를 갱신할 것.
+BURIED_FACE_BUDGET_PCT = {
+    #  _default 를 0.1 로 두는 이유: 새 기체가 들어오면 **선언 없이는 통과 못 하게** 한다.
+    "_default": 0.1,
+    "mini2": 37.7,        # 실측 34.273
+    "mini5pro": 36.2,     # 실측 32.920   ⭐주력 표적
+    "phantom4": 33.6,     # 실측 30.503
+    "mavic4pro": 32.7,    # 실측 29.741   ⭐주력 표적
+    "matrice4e": 20.6,    # 실측 18.674
+    "x500v2": 20.0,       # 실측 18.139
+    "typhoonh480": 15.4,  # 실측 13.920
+    "m350rtk": 9.8,       # 실측 8.820
+    "phantom3": 9.2,      # 실측 8.273
+    "s1000plus": 7.6,     # 실측 6.891
+}
+
+
+def check_buried_faces(spec, mesh=None, verbose=False) -> dict:
+    """**매몰면 전수** — 부품이 다른 부품 솔리드 안에 든 면적을 전 그룹쌍에서 잰다.
+
+    판정은 «진짜 결함» 비율 ≤ BURIED_FACE_BUDGET_PCT. 총 매몰·설계 의도·못 본 컨테이너
+    개수도 같이 싣는다(«못 봄» 을 0 으로 보고하지 않기 위해서다).
+    ⚠ 이 검사는 **PO 경로의 예산**이다. 기본 엔진 SBR 은 first-hit 이라 이 오차가 구조적으로 0."""
+    from drones import build_drone
+    from mesh_buried import buried_census
+    m = mesh if mesh is not None else build_drone(spec)
+    c = buried_census(m, spec.key)
+    lim = BURIED_FACE_BUDGET_PCT.get(spec.key, BURIED_FACE_BUDGET_PCT["_default"])
+    res = dict(key=spec.key, checked=True, buried_pct=c["buried_pct"],
+               design_intent_pct=c["design_intent_pct"], defect_pct=c["defect_pct"],
+               defect_area_mm2=c["defect_area_mm2"], budget_pct=lim,
+               blind_containers=len(c["blind_containers"]),
+               patched_containers=c["n_patched_containers"],
+               top_pairs=list(c["pairs"])[:3],
+               ok=bool(c["defect_pct"] <= lim))
+    if verbose:
+        print(f"  매몰면(전 부품쌍): 총 {c['buried_pct']:.2f} % = 설계의도 "
+              f"{c['design_intent_pct']:.2f} % + ⭐진짜결함 {c['defect_pct']:.2f} % "
+              f"(예산 {lim} %) · 못 본 컨테이너 {len(c['blind_containers'])}개"
+              f"  {'✅' if res['ok'] else '❌'}")
+    return res
+
+
+def check_all(verbose=True, mesh_fix=None) -> dict:
     """DRONES 레지스트리 **전 기종** 전수 검사(기종 수는 len(DRONES)).
     검사 5층: ① 부품별 수밀·경계모서리·winding·법선(부호부피 2종)·퇴화면·슬리버·
                 그룹내 겹침 (check_mesh)
              ② 치수 대조 — 프롭 지름·로터 대각·공식 외형 vs DroneSpec (check_dimensions)
              ③ 손대칭성 — 날 비틀림 방향 vs 로터 회전방향 (check_handedness)
              ④ 프롭↔벨 원통 근사 관통(check_prop_bell — 빠른 회귀 감지)
-             ⑤ 프롭↔벨 솔리드 내부판정(check_prop_bell_solid — 이중계상 면적의 판정 기준)"""
+             ⑤ 프롭↔벨 솔리드 내부판정(check_prop_bell_solid — 이중계상 면적의 판정 기준)
+
+    mesh_fix : ⭐선택 메쉬 수리 스위치(기본 None = 끔 = 출하 메쉬). 켜면 **수리된 메쉬**를
+        검사한다 — 「고치고 나서도 검사기를 통과하는가」를 같은 잣대로 확인하는 통로다.
+        토큰은 `drone_cad.MESH_FIX_TOKENS`. ⚠예산표(BOUNDARY_EDGE_BUDGET·
+        GROUP_OVERLAP_BUDGET_PCT 등)는 **출하 상태의 선언**이므로 수리판은 예산을 밑돌면 된다."""
     from drones import DRONES, build_drone
     out = {}
     for k, s in DRONES.items():
-        m = build_drone(s)
+        m = build_drone(s, mesh_fix=mesh_fix)
         r = check_mesh(m, k)
         dim = check_dimensions(s, mesh=m)
         hnd = check_handedness(s, mesh=m)
         pb = check_prop_bell(s)
         ps = check_prop_bell_solid(s, mesh=m)
+        bf = check_buried_faces(s, mesh=m)
         r["dimensions"] = dim
         r["handedness"] = hnd
         r["prop_bell"] = pb
         r["prop_bell_solid"] = ps
+        r["buried_faces"] = bf
         r["ok"] = bool(r["ok"] and r.get("sliver_ok", True) and dim["ok"] and hnd["ok"]
-                       and pb["ok"] and ps["ok"])
+                       and pb["ok"] and ps["ok"] and bf["ok"])
         out[k] = r
         if verbose:
             print(f"\n[{k}]  {'✅ 통과' if r['ok'] else '❌ 결함'}")
@@ -614,15 +738,17 @@ def check_all(verbose=True) -> dict:
             print(f"  프롭↔벨 관통(솔리드): 삼각형 {ps.get('tris', 0)} · "
                   f"면적 {ps.get('area_mm2', 0)} mm² ({ps.get('area_pct', 0)} %, "
                   f"예산 {ps.get('budget_pct', '-')} %)  {'✅' if ps['ok'] else '❌'}")
+            check_buried_faces(s, mesh=m, verbose=True)
     return out
 
 
-def assert_ok():
+def assert_ok(mesh_fix=None):
     """빌드 파이프라인용 — 결함이 있으면 예외를 던진다(회귀 방지).
 
     배선 위치: `python src/drones.py`(메쉬 내보내기 경로)가 OBJ 를 쓰기 **전에** 부른다.
-    ⚠ 인메모리로 `build_drone()` 을 직접 부르는 경로는 이 게이트를 거치지 않는다."""
-    res = check_all(verbose=False)
+    ⚠ 인메모리로 `build_drone()` 을 직접 부르는 경로는 이 게이트를 거치지 않는다.
+    mesh_fix : check_all 과 같은 뜻(기본 None = 출하 메쉬)."""
+    res = check_all(verbose=False, mesh_fix=mesh_fix)
     bad = {}
     for k, r in res.items():
         if r["ok"]:
@@ -638,6 +764,9 @@ def assert_ok():
         if not r["prop_bell_solid"]["ok"]:
             why.append(f"prop↔bell(solid) {r['prop_bell_solid']['area_pct']} % > "
                        f"{r['prop_bell_solid']['budget_pct']} %")
+        if not r.get("buried_faces", {"ok": True})["ok"]:
+            why.append(f"매몰면(진짜결함) {r['buried_faces']['defect_pct']} % > "
+                       f"{r['buried_faces']['budget_pct']} %")
         bad[k] = why
     if bad:
         raise AssertionError(f"메쉬 검증 실패 — 결함: {bad}\n"
@@ -645,11 +774,43 @@ def assert_ok():
     return True
 
 
+def _cli_mesh_fix(argv) -> str:
+    """`--mesh-fix i5,m6[,battery]` 를 읽어 **두 통로를 한 번에** 켠다.
+
+    2026-08-16 현재 수리 스위치가 두 갈래로 자랐다(정직하게 적는다):
+      · **환경변수 통로** `geom.MESH_FIX` — 호출 시점에 읽으므로 인자를 안 배운 스크립트에도
+        닿는다. `i5`(cadkit 슬리버 붕괴) · `m6`(geom.uv_sphere 극점) · 검사기 예산표가 이걸 본다.
+      · **인자 통로** `drone_cad.MESH_FIX_TOKENS` — `build_drone(spec, mesh_fix=…)` 로 내려간다.
+    이 CLI 는 준 이름을 **환경변수에 그대로 넣고**, 그중 drone_cad 가 아는 토큰만 골라
+    `check_all(mesh_fix=…)` 로도 넘긴다. 모르는 이름은 여기서 **막는다**(조용한 무시 금지)."""
+    from geom import MESH_FIX_KNOWN, set_mesh_fix
+    from drone_cad import MESH_FIX_TOKENS
+    names: list[str] = []
+    for i, a in enumerate(argv):
+        if a == "--mesh-fix" and i + 1 < len(argv):
+            names += argv[i + 1].replace(";", ",").split(",")
+        elif a.startswith("--mesh-fix="):
+            names += a.split("=", 1)[1].replace(";", ",").split(",")
+    names = [s.strip().lower() for s in names if s.strip()]
+    if not names:
+        return ""
+    known = set(MESH_FIX_KNOWN) | set(MESH_FIX_TOKENS) | {"all"}
+    bad = [n for n in names if n not in known]
+    if bad:
+        raise SystemExit(f"⛔ 모르는 --mesh-fix 이름 {bad}. 아는 이름 = {sorted(known)}")
+    set_mesh_fix(names)
+    return ",".join(n for n in names if n in MESH_FIX_TOKENS or n == "all") or None
+
+
 if __name__ == "__main__":
+    fix = _cli_mesh_fix(sys.argv[1:])
     print("=" * 110)
     print("trimesh 메쉬 검증 — 부품(연결요소) 단위 · split(repair=False) · 스펙 대조 포함")
+    if fix or os.environ.get("MESH_FIX"):
+        print(f"⭐ 메쉬 수리 켜짐 — MESH_FIX={os.environ.get('MESH_FIX','')!r} "
+              f"(인자 통로로 넘기는 토큰: {fix!r}). 기본은 꺼짐이고, 켜면 형상이 바뀐다.")
     print("=" * 110)
-    res = check_all()
+    res = check_all(mesh_fix=fix or None)
     n_ok = sum(1 for r in res.values() if r["ok"])
     print(f"\n{'='*110}\n결과: {n_ok}/{len(res)} 통과")
     if n_ok < len(res):

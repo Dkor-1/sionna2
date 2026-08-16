@@ -105,17 +105,32 @@ def _angle_shape(mats, fc, cos_i):
 # --------------------------------------------------------------------------- #
 #  메쉬 → 표면 점구름(point cloud): 위치 r, 법선 n̂, 면적요소 ΔA
 # --------------------------------------------------------------------------- #
-def mesh_to_points(mesh, spacing, gamma=None, return_keys=False):
-    """삼각형들을 spacing[m] 간격 점으로 잘게 나눠 (P, N, dA[, w][, keys]) 를 돌려준다.
+def mesh_to_points(mesh, spacing, gamma=None, return_keys=False,
+                   face_mask=None, return_face_idx=False):
+    """삼각형들을 spacing[m] 간격 점으로 잘게 나눠 (P, N, dA[, w][, keys][, fidx]) 를 돌려준다.
     gamma : 그룹→진폭 반사계수 |Γ| dict. 주면 점별 가중 w 를 **네 번째 값으로 추가 반환**
             (없는 그룹은 1.0=PEC). None(기본)이면 기존과 동일한 3-튜플.
     return_keys : True 면 점별 **그룹 키 배열**(object)을 **마지막 값으로 추가 반환**.
             각도의존 Γ(θ) 경로(rcs_from_points/po_field_dir 의 mats=)가 점별 재질을
             알아야 해서다 — 그룹→재질 키 변환은 point_mat_keys() 가 한다.
-            ⚠ 기본 False: 기존 호출부의 반환 모양·값이 그대로다(비트동일)."""
+            ⚠ 기본 False: 기존 호출부의 반환 모양·값이 그대로다(비트동일).
+    face_mask : ⭐**남길 면** 불리언 배열(길이 = 면 수). False 인 면은 점을 아예 안 깐다.
+            쓰임새는 감사 I3 «매몰면 이중계상» 수리다 — 다른 부품 솔리드 **안**에 든 면을
+            PO 적분에서 뺀다(마스크 출처: `mesh_buried.keep_face_mask`).
+            ⚠ 기본 None = 옛 경로 그대로(**비트동일**). 이 인자를 주면 형상이 바뀌므로
+              기존 σ 결과와 비트동일이 **의도적으로** 깨진다.
+    return_face_idx : True 면 점별 **원본 면 인덱스**(int)를 마지막 값으로 추가 반환.
+            같은 점구름에서 «이 면을 뺀 판» 을 만들 때 쓴다(재샘플링이 아니므로 두 판의
+            차이가 오직 뺀 면 때문임이 보장된다). ⚠ 기본 False = 옛 반환 모양 그대로."""
     V = np.array(mesh.v)
-    Ps, Ns, dAs, Ws, Ks = [], [], [], [], []
+    Ps, Ns, dAs, Ws, Ks, Fi = [], [], [], [], [], []
+    if face_mask is not None:
+        face_mask = np.asarray(face_mask, bool)
+        if len(face_mask) != len(mesh.f):
+            raise ValueError(f"face_mask 길이 {len(face_mask)} ≠ 면 수 {len(mesh.f)}")
     for fi, (ia, ib, ic) in enumerate(mesh.f):
+        if face_mask is not None and not face_mask[fi]:
+            continue
         v0, v1, v2 = V[ia], V[ib], V[ic]
         e1, e2 = v1 - v0, v2 - v0
         nrm = np.cross(e1, e2)
@@ -138,11 +153,15 @@ def mesh_to_points(mesh, spacing, gamma=None, return_keys=False):
             Ws.append(np.full(len(pts), float(gamma.get(mesh.g[fi], 1.0))))
         if return_keys:
             Ks.append(np.full(len(pts), mesh.g[fi], object))
+        if return_face_idx:
+            Fi.append(np.full(len(pts), fi, np.int64))
     out = (np.vstack(Ps), np.vstack(Ns), np.concatenate(dAs))
     if gamma is not None:
         out = out + (np.concatenate(Ws),)
     if return_keys:
         out = out + (np.concatenate(Ks),)
+    if return_face_idx:
+        out = out + (np.concatenate(Fi),)
     return out
 
 
@@ -205,14 +224,53 @@ def po_field_dir(P, N, dA, fc, u, w=None, mats=None):
 #  engine="po" 는 **비교·검증용으로만** 남긴다 (report6 이 두 엔진을 대조한다).
 RCS_ENGINE_DEFAULT = "sbr"
 
+#  ⭐ 메쉬 결함 수리 손잡이의 이름표 — 여기 없는 이름은 **예외**다(오타가 조용히 no-op 이 되는
+#     사고를 막는다). 감사 번호를 그대로 쓴다: docs/MESH_AUDIT_0816.md
+MESH_FIX_KEYS = {
+    "i3": "매몰면(다른 부품 솔리드 안에 든 면) 중 **진짜 결함**만 PO 적분에서 뺀다",
+    "i3_all": "매몰면 **전부** 뺀다 — 설계 의도(셸 속 내부 금속)까지. ⚠감도분석용",
+}
+
+
+def _parse_mesh_fix(mesh_fix) -> set:
+    """mesh_fix 인자 정규화.
+
+    · None(기본) → **공용 스위치**(`geom.mesh_fix_set()` = 환경변수 MESH_FIX)를 읽는다.
+      스위치가 비어 있으면 빈 집합 = 수리 끔 = 옛 경로와 **비트동일**.
+      ⚠ 공용 스위치로 켜지는 것은 "i3" 뿐이다 — "i3_all" 은 수리안이 아니라 감도분석이라
+        `MESH_FIX=all` 로도 안 켜진다. 쓰려면 인자로 **명시**해야 한다.
+    · False/() → 이 호출만 강제로 끔(공용 스위치가 켜져 있어도).
+    """
+    if mesh_fix is None:
+        from geom import mesh_fix_enabled
+        return {"i3"} if mesh_fix_enabled("i3") else set()
+    if mesh_fix is False:
+        return set()
+    if isinstance(mesh_fix, str):
+        items = [s.strip() for s in mesh_fix.split(",") if s.strip()]
+    else:
+        items = [str(s).strip() for s in mesh_fix if str(s).strip()]
+    bad = [s for s in items if s not in MESH_FIX_KEYS]
+    if bad:
+        raise ValueError(f"모르는 mesh_fix 이름 {bad} — 있는 것: {sorted(MESH_FIX_KEYS)}")
+    return set(items)
+
 
 def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials=True,
-                      engine=None):
+                      engine=None, mesh_fix=None):
     """드론 1종의 RCS(az)[m²].
 
       engine="sbr" (기본) : Mitsuba 광선 + PO 적분. **가림 포함**. GPU.
       engine="po"         : 옛 순수 PO(점구름). **가림 없음** — 비교용으로만.
       materials=False     : 전부 PEC(고전 PO) — 재질 민감도 비교용.
+      mesh_fix            : ⭐**메쉬 결함 수리 옵트인**. 기본 None = 끔(옛 결과와 비트동일).
+        · "i3"     — 감사 I3 «매몰면 이중계상» 수리. 다른 부품 솔리드 안에 든 면 중
+                     **진짜 결함**(설계 의도인 셸 속 내부 금속은 남긴다)을 적분에서 뺀다.
+        · "i3_all" — 매몰면을 **전부** 뺀다. ⚠수리안이 아니라 감도분석용이다 —
+                     셸 속 배터리·PCB 까지 사라져 σ 가 최대 6.3 dB 어두워진다.
+        문자열 여러 개는 쉼표(예: "i3")로 준다. 리스트/튜플도 받는다.
+        ⚠ **PO 경로 전용**이다. SBR 은 first-hit 이라 매몰면 오차가 구조적으로 0 이므로
+          engine="sbr" 에 주면 **경고를 내고 무시**한다(조용한 no-op 을 안 만든다).
 
     반환: (sigma[m²], n_points)  — n_points 는 SBR 에선 방위당 광선 수."""
     from drones import DRONES, build_drone, drone_gamma_map, DRONE_GROUP_MAT
@@ -220,8 +278,14 @@ def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials
     spec = DRONES[drone_key]
     mesh = build_drone(spec)
     eng = engine or RCS_ENGINE_DEFAULT
+    fixes = _parse_mesh_fix(mesh_fix)
 
     if eng == "sbr":
+        if fixes:
+            import warnings
+            warnings.warn(f"drone_rcs_pattern(mesh_fix={sorted(fixes)}) 는 PO 전용이라 "
+                          "engine='sbr' 에서는 무시한다 — SBR 은 first-hit 이라 매몰면을 "
+                          "애초에 안 더한다(rcs_po.py 193-205행).", RuntimeWarning, stacklevel=2)
         from rcs_sbr import rcs_sbr_batch, DEFAULT_DIV
         gm = ({g: mat for g, (mat, _) in DRONE_GROUP_MAT.items()} if materials
               else {g: 1.0 for g in DRONE_GROUP_MAT})           # PEC 비교모드
@@ -233,10 +297,19 @@ def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials
         return np.atleast_1d(sig) if np.ndim(az_deg) else sig, n
 
     spacing = spacing or lam / 7.0
+    fmask = None
+    if fixes:
+        from mesh_buried import keep_face_mask
+        if "i3" in fixes:
+            fmask = keep_face_mask(mesh, kind="defect")
+        if "i3_all" in fixes:
+            k = keep_face_mask(mesh, kind="all")
+            fmask = k if fmask is None else (fmask & k)
     if materials:
-        P, N, dA, w = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec))
+        P, N, dA, w = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec),
+                                     face_mask=fmask)
     else:
-        P, N, dA = mesh_to_points(mesh, spacing)
+        P, N, dA = mesh_to_points(mesh, spacing, face_mask=fmask)
         w = None
     return rcs_from_points(P, N, dA, fc, az_deg, el_deg, w=w), len(dA)
 
