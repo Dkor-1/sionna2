@@ -104,7 +104,14 @@ CODE_FILES = ("src/drones.py", "src/drone_cad.py", "src/cadkit.py", "src/geom.py
               "src/mesh_check.py", "src/mesh_topo_check.py", "src/mesh_dimref.py",
               "src/mesh_placement.py", "src/mesh_symmetry.py",
               "src/material_provenance.py", "src/mesh_buried.py",
-              "src/articulated_fast.py", "benchmark/mesh_certify.py")
+              "src/articulated_fast.py", "benchmark/mesh_certify.py",
+              #  ⭐적대 대조 스위트도 봉인한다 — «검사가 잡는다» 의 증명을 담은 코드라
+              #    이것이 조용히 무뎌지면 인증서 전체가 헛것이 된다.
+              "benchmark/adv_mesh_check_faults.py", "benchmark/adv_mesh_topo_faults.py",
+              "benchmark/adv_mesh_dimref_faults.py", "benchmark/adv_mesh_symmetry_faults.py",
+              "benchmark/adv_mesh_placement_0816.py",
+              "benchmark/adv_material_provenance_faults.py",
+              "benchmark/adv_mesh_certify_faults.py")
 
 #  ⑸ 문 — 메쉬(또는 메쉬에서 나온 파일)가 프로세스 밖으로 나가는 호출.
 WRITER_ATTRS = {"write_obj", "write_obj_per_group", "export", "export_stl",
@@ -168,14 +175,6 @@ def _is_jsonable(v) -> bool:
         return True
     except (TypeError, ValueError):
         return False
-
-
-def _fmt(v, nd=3):
-    if v is None:
-        return "—"
-    if isinstance(v, float):
-        return f"{v:.{nd}f}"
-    return str(v)
 
 
 # =========================================================================== #
@@ -565,6 +564,34 @@ def scan_doors() -> dict:
 # =========================================================================== #
 #  4. 인증서 · 코드 지문
 # =========================================================================== #
+#  판정이 «나쁜 쪽» 인가 — 매트릭스가 쓰는 낱말 그대로
+_BAD_VERDICT = ("어긋남", "실패", "위반", "결함", "사각지대")
+
+
+def snapshot_matrix_verdicts() -> dict:
+    """⭐인증 매트릭스 450칸의 **판정과 값**. 검사기가 조용히 무뎌지면 여기서 걸린다
+    (형상 지문은 그대로인데 판정만 뒤집히는 경우가 그렇다)."""
+    p = os.path.join(ROOT, CERTS["matrix"][0])
+    try:
+        j = json.load(open(p, encoding="utf-8"))
+    except (OSError, ValueError):
+        return dict(missing=True, cells={}, n_checks=0)
+    cells = {}
+    for cid, row in (j.get("matrix") or {}).items():
+        cell = {}
+        for k, c in (row or {}).items():
+            if not isinstance(c, dict):
+                continue
+            v = c.get("value")
+            cell[k] = dict(v=c.get("verdict"),
+                           x=round(v, 9) if isinstance(v, float) else _jsonify(v),
+                           b=_jsonify(c.get("budget")))
+        cells[cid] = cell
+    n_cell = sum(len(v) for v in cells.values())
+    return dict(n_checks=len(cells), n_cells=n_cell, cells=cells, sha=_sha_json(cells),
+                source=CERTS["matrix"][0])
+
+
 def snapshot_certs() -> dict:
     out = {}
     for name, (rel, path) in CERTS.items():
@@ -626,8 +653,12 @@ LIMITS_KO = [
     "코드 지문(파일 sha)으로만 잡힌다 — «어디가» 바뀌었는지는 못 말한다.",
     "디스크 자산 대조는 assets/meshes/drones/<key>/ 만 본다. _scene/ 같은 파생물은 "
     "매번 새로 쓰이므로 대조 대상이 아니다.",
+    "위상 인증서 지문(32자)은 봉인 대조에서 **다시 계산하지 않는다**(기체당 ~12초). "
+    "그 축은 `--full` 의 fleet 단계(mesh_topo_check.check_seal)가 맡는다.",
+    "매트릭스 판정 축은 **파일에 적힌 판정**을 굳힌 것이다 — 그 판정이 지금도 맞는지는 "
+    "`--full` 로 다시 찍어야 안다.",
     "골든은 **한 기계·한 파이썬**에서 재현된다는 전제다. 부동소수 차이가 나는 환경에서는 "
-    "지문이 달라질 수 있다(같은 컨테이너에서 3회 재현은 확인했다).",
+    "지문이 달라질 수 있다(같은 컨테이너에서 독립 빌드 4회 재현 확인).",
 ]
 
 
@@ -656,6 +687,7 @@ def build_golden(keys=None, jobs=5, verbose=True) -> dict:
         references=snapshot_refs(),
         shape_constants=snapshot_shape_consts(),
         doors=scan_doors(),
+        matrix_verdicts=snapshot_matrix_verdicts(),
         certificates=snapshot_certs(),
         code_fingerprints=snapshot_code(),
         update_procedure_ko=UPDATE_PROCEDURE_KO,
@@ -874,6 +906,33 @@ def diff_golden(old: dict, new: dict) -> list[dict]:
             f"{dn.get('n_consumer_calls')} 곳으로 바뀌었다",
             ["  (막을 수 없는 경로다 — 늘어난 것 자체는 결함이 아니고, 규율의 대상이다)"])
 
+    # ---------- ⑤-b 매트릭스 450칸의 판정 ---------------------------------- #
+    mo = (old.get("matrix_verdicts") or {}).get("cells", {})
+    mn = (new.get("matrix_verdicts") or {}).get("cells", {})
+    flips, moves, worse = [], [], False
+    for cid in sorted(set(mo) | set(mn)):
+        ro, rn = mo.get(cid) or {}, mn.get(cid) or {}
+        for k in sorted(set(ro) | set(rn)):
+            a, b = ro.get(k) or {}, rn.get(k) or {}
+            if a == b:
+                continue
+            if a.get("v") != b.get("v"):
+                bad = any(w in str(b.get("v")) for w in _BAD_VERDICT)
+                worse |= bad and not any(w in str(a.get("v")) for w in _BAD_VERDICT)
+                flips.append(f"  {'⛔' if bad else '  '} {cid} {k}: "
+                             f"{a.get('v')} → {b.get('v')}  (값 {a.get('x')} → {b.get('x')})")
+            else:
+                d, p = _num_delta(a.get("x"), b.get("x"))
+                if d is None or abs(d) > 1e-9:
+                    moves.append(f"  {cid} {k}: 값 {a.get('x')} → {b.get('x')}"
+                                 + (f" ({p:+.2f} %)" if p is not None and abs(p) < 1e9 else ""))
+    if flips:
+        add(RED if worse else ORANGE, "매트릭스",
+            f"인증 매트릭스의 판정이 {len(flips)}칸 뒤집혔다"
+            + ("  ⛔통과 → 실패가 있다" if worse else ""), flips[:20])
+    if moves:
+        add(YELLOW, "매트릭스", f"판정은 같은데 잰 값이 {len(moves)}칸 달라졌다", moves[:15])
+
     # ---------- ⑥ 인증서 --------------------------------------------------- #
     for name in sorted(set(old.get("certificates", {})) | set(new.get("certificates", {}))):
         co = old.get("certificates", {}).get(name) or {}
@@ -996,14 +1055,15 @@ def render_gates(doors: dict) -> str:
 #  6. 단계 실행기 — 지도 · 검사 · 대조 · 매트릭스 · 봉인
 # =========================================================================== #
 #  (초) 는 2026-08-16 이 기계(192코어, 다른 작업과 공유)에서 잰 실측이다.
+#  실측 = 2026-08-16 · 192코어 공용기(다른 작업과 공유) · `--jobs 6` 에서 잰 값이다.
 STAGES = [
-    ("map",      "범주 지도 ↔ 매트릭스 덮임 확인", 1),
-    ("golden",   "골든 봉인 대조(이 파일)", 30),
-    ("raw",      "기체별 전 검사 원자료 10개 (mesh_cert_matrix_run_one)", 70),
-    ("fleet",    "함대 검사 + 인증서 봉인 대조 (mesh_cert_matrix_fleet)", 45),
-    ("controls", "적대 대조 6스위트 (양성·음성 184건)", 40),
-    ("matrix",   "매트릭스 표 생성 (make_mesh_cert_matrix + html)", 30),
-    ("certs",    "⚠인증서 5종 재발급 — 형상이 바뀐 뒤에만 (기본 꺼짐)", 900),
+    ("map",      "범주 지도 ↔ 매트릭스 덮임 확인", 0.1),
+    ("raw",      "기체별 전 검사 원자료 10개 (mesh_cert_matrix_run_one)", 126),
+    ("fleet",    "함대 검사 + 위상·재질 봉인 대조 (mesh_cert_matrix_fleet)", 121),
+    ("controls", "적대 대조 6스위트 (양성·음성 184건)", 34),
+    ("matrix",   "매트릭스 표 생성 (make_mesh_cert_matrix + html)", 5),
+    ("golden",   "골든 봉인 대조(이 파일)", 9),
+    ("certs",    "⚠인증서 5종 재발급 — 형상이 바뀐 뒤에만 (기본 꺼짐 · 미측정)", None),
 ]
 DEFAULT_FULL = ("map", "raw", "fleet", "controls", "matrix", "golden")
 
@@ -1017,6 +1077,10 @@ def _run(cmd, log=None, cwd=ROOT):
     if log:
         with open(log, "w", encoding="utf-8") as fh:
             r = subprocess.run(cmd, cwd=cwd, env=_ENV, stdout=fh, stderr=subprocess.STDOUT)
+        #  ⭐ 나가는 값도 파일로 남긴다 — 매트릭스 생성기가 `<이름>.exit` 를 읽어
+        #    «대조가 진짜 통과했나» 를 표에 싣는다(안 남기면 그 칸이 «모름» 이 된다).
+        with open(os.path.splitext(log)[0] + ".exit", "w", encoding="utf-8") as fh:
+            fh.write(f"{r.returncode}\n")
     else:
         r = subprocess.run(cmd, cwd=cwd, env=_ENV)
     return dict(cmd=" ".join(cmd[1:]), rc=r.returncode, sec=round(time.time() - t, 1),
@@ -1165,10 +1229,8 @@ def cmd_verify(jobs=5, keys=None, update_reason=None, quiet=False, out_json=None
             return dict(ok=False, exit=3, reason="부분 실행")
         return _write_golden(new, update_reason, old=old, findings=findings, text=text)
 
-    res = dict(ok=code == 0, exit=code, n_findings=len(findings),
-               findings=[{k: v for k, v in f.items() if k != "lines"} | {"lines": f["lines"]}
-                         for f in findings],
-               report_text=text, partial=partial)
+    res = dict(ok=code == 0, exit=code, n_findings=len(findings), findings=findings,
+               report_text=text.splitlines(), partial=partial)
     if out_json:
         json.dump(_jsonify(res), open(out_json, "w", encoding="utf-8"),
                   ensure_ascii=False, indent=1)
@@ -1227,9 +1289,10 @@ def main(argv=None):
     if a.list:
         print("단계         실측(초)  하는 일")
         for n, d, s in STAGES:
-            print(f"  {n:10s} {s:7d}  {d}")
+            print(f"  {n:10s} {('미측정' if s is None else f'{s:7.1f}'):>7s}  {d}")
         print(f"\n  기본(--full) = {', '.join(DEFAULT_FULL)}  ≈ "
-              f"{sum(s for n, _, s in STAGES if n in DEFAULT_FULL)} 초")
+              f"{sum(s for n, _, s in STAGES if n in DEFAULT_FULL and s):.0f} 초"
+              f"  (봉인 대조만이면 {dict((n, s) for n, _, s in STAGES)['golden']:.0f} 초)")
         return 0
     if a.how:
         print("=" * 100)

@@ -186,7 +186,9 @@ def p13(G):
     n = copy.deepcopy(G)
     fp = n["certificates"]["dimension"]["fingerprints"]
     k = sorted(fp)[0]
-    fp[k] = dict(fp[k], sha256_16="ffffffffffffffff")
+    #  인증서마다 지문을 담는 그릇이 다르다 — 치수는 문자열, 대칭·배치는 dict 다
+    fp[k] = (dict(fp[k], sha256_16="ffffffffffffffff") if isinstance(fp[k], dict)
+             else "ffffffffffffffff")
     f = _find(MC.check_certs_live(n), kind="인증서유효", sev=RED, needle="다른 메쉬")
     return f is not None, (f["lines"][0].strip() if f else "못 잡음")
 
@@ -198,6 +200,50 @@ def p14(G):
         ["benchmark/new_reader.py::trimesh.load('assets/meshes/drones/x/x__prop.obj')"]
     f = _find(MC.diff_golden(G, n), kind="자산독자", sev=ORANGE, needle="new_reader")
     return f is not None, (f["what"] if f else "못 잡음")
+
+
+@case("P15", "positive", "⭐매트릭스 — 통과가 실패로 뒤집히면 🔴 인가(검사기가 무뎌지는 자리)")
+def p15(G):
+    n = copy.deepcopy(G)
+    cells = n["matrix_verdicts"]["cells"]
+    cid = "A1" if "A1" in cells else sorted(cells)[0]
+    k = sorted(cells[cid])[0]
+    cells[cid][k] = dict(cells[cid][k], v="⚠어긋남")
+    f = _find(MC.diff_golden(G, n), kind="매트릭스", sev=RED, needle="통과 → 실패가 있다")
+    return f is not None, (f["lines"][0].strip() if f else "못 잡음")
+
+
+@case("P16", "positive", "매트릭스 — 판정은 같은데 잰 값만 움직이면 🟡 로 알려 주는가")
+def p16(G):
+    n = copy.deepcopy(G)
+    cells = n["matrix_verdicts"]["cells"]
+    for cid in sorted(cells):
+        for k, c in sorted(cells[cid].items()):
+            if isinstance(c.get("x"), (int, float)) and c["x"]:
+                cells[cid][k] = dict(c, x=c["x"] * 1.5)
+                f = _find(MC.diff_golden(G, n), kind="매트릭스", sev=YELLOW, needle="잰 값이")
+                return f is not None, (f["lines"][0].strip() if f else "못 잡음")
+    return False, "값이 있는 칸을 못 찾음"
+
+
+@case("E1", "positive", "⭐끝에서 끝까지 — **진짜로 다시 빌드한** 메쉬가 다르면 잡는가")
+def e1(G):
+    """손으로 고친 JSON 이 아니라 **빌더를 다시 돌려** 만든 스냅샷으로 견준다.
+    프롭 지름 선언값을 2 % 흔든 스펙을 **인메모리로만** 끼워 넣는다(파일 무변경)."""
+    import dataclasses
+    import drones
+    key = "mini2"
+    orig = drones.DRONES[key]
+    try:
+        drones.DRONES[key] = dataclasses.replace(orig, prop_dia_mm=orig.prop_dia_mm * 1.02)
+        snap = MC.snapshot_one(key)
+    finally:
+        drones.DRONES[key] = orig                    # 반드시 되돌린다
+    n = copy.deepcopy(G)
+    n["airframes"][key] = snap
+    f = _find(MC.diff_golden(G, n), kind="형상", sev=RED, needle="치수 prop_dia")
+    ln = [x for x in (f["lines"] if f else []) if "prop_dia" in x]
+    return bool(ln), (ln[0].strip() if ln else "못 잡음")
 
 
 # --------------------------------------------------------------------------- #
