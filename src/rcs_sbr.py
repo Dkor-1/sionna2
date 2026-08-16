@@ -899,6 +899,62 @@ def grid_ref_from(meshes, fc: float, spacing=None, pad=1.15) -> GridRef:
                    spacing=float(d), fc=float(fc), pad=float(pad), n_mesh=len(items))
 
 
+def grid_ref_shift(ref, shift, u, spacing=None) -> GridRef:
+    """⭐**격자 위상 널** — 같은 판을 반 칸(또는 지정 비율)만 **옆으로** 민다.
+
+        gref  = grid_ref_from(poses, FC, spacing=d)
+        grefS = grid_ref_shift(gref, 0.5, u)          # 같은 격자, 반 칸 옆
+        E     = sbr_field(mesh, gmat, FC, u, spacing=d, grid_ref=grefS)
+
+    ■ 왜 필요한가 — 「촘촘해서」와 「어디를 찍었나」를 가른다
+      격자를 λ/12 → λ/24 로 조였더니 값이 변했다. 그런데 조이면 **셀 크기**와 **찍는 자리**가
+      한꺼번에 바뀌므로, 변한 몫이 해상도의 것인지 표본 자리의 것인지 알 수 없다.
+      이 함수는 **찍는 자리만** 바꾼다 — d 도 n 도 Rout 도 광선 수 n² 도 그대로다.
+      그래서 원판과 이동판의 차이는 전부 «어디를 찍었나» 의 몫이고, 그 크기가 λ/12↔λ/24
+      차이와 비슷하면 «촘촘함» 은 산 것이 없다는 뜻이 된다.
+      (읽는 법은 `docs/GRID_PHASE_NULL.md`.)
+
+    ■ 어느 쪽으로 미나 — **광선 평면 안에서만**(û 에 수직)
+      광선은 ctr + Rout·û 평면에서 −û 로 쏘고, 가로축은 `_grid_basis(û)` 의 (e1, e2) 다.
+      · (e1, e2) 로 밀면 → **표본점이 실제로 옮겨진다.** 이것이 재려는 것이다.
+      · û 로 밀면 → 광선의 «선» 은 그대로라 부딪는 점이 안 변하고 위상원점만 e^{−j2kδ} 로
+        통째로 돈다. 얼린 판에서는 모든 자세에 **같은 상수**라 마이크로도플러에는 영향이 0 이고,
+        구면파(range_m)에서는 송신점 p_tx = ctr + R·û 가 δ 만큼 움직여 «거리를 바꾼 판» 이
+        되어 버린다. 그래서 û 성분은 **넣지 않는다** — 순수 대조를 위해서다.
+      ⚠ (e1, e2) 는 û 가 정하므로 **방향마다 판이 다르다** — 앙각 루프 **안**에서 부르라.
+
+    shift : 셀 몇 개만큼 미나(칸 단위, 실제 이동거리는 s·d [m]).
+      · 스칼라 s → (s, s). 반 칸 0.5 는 셀 대각선의 절반으로, **같은 간격의 격자 중
+        원판에서 가장 먼 배치**다(체크무늬 자리). 위상 널에는 이걸 쓴다.
+      · (s1, s2) 로 두 가로축을 따로 줄 수도 있다(대칭 표적에서 대각 이동이 특별한 자리일까
+        의심될 때 쓸 비대칭 판).
+      · **0 이면 받은 판을 그대로 돌려준다 — 비트 동일이다.**
+      ⭐s = 1.0 은 «자기 자신» 이다(격자가 한 칸 미끄러져 자기 위에 겹친다). 가장자리 한 줄만
+        다르고 그 줄은 표적 밖이라 값이 거의 그대로 나와야 한다 — **배선 검사**에 쓰라.
+
+    ⚠ 덮개는 옮긴 쪽으로 |s|·d 만큼 깎인다. 얼린 판은 pad 1.15 + 3d 여유로 만들어져 반 칸은
+      통상 남고도 남지만(실측은 `docs/GRID_PHASE_NULL.md`), 모자라면 커널이 첫 자세에서
+      예외를 던진다(GRID_REF_CHECK) — 조용히 틀리지 않는다.
+      ⛔여유를 벌겠다고 n 을 키우면 «크기까지 바꾼 판» 이라 대조가 깨진다. 크기는 손대지 않는다.
+    """
+    s = np.asarray(shift, float).ravel()
+    if s.size == 1:
+        s = np.array([float(s[0]), float(s[0])], float)
+    if s.size != 2 or not np.all(np.isfinite(s)):
+        raise ValueError(f"grid_ref_shift: shift 는 s 또는 (s1, s2) 여야 한다 — 받은 것 {shift!r}")
+    if not np.any(s):                       # 0 = 아무것도 안 한다 → **받은 것 그대로**
+        return ref
+    g = as_grid_ref(ref)
+    if not spacing and g.spacing is None and g.fc is None:
+        raise ValueError("grid_ref_shift: 칸 크기를 모른다 — spacing 을 주거나 "
+                         "grid_ref 에 spacing/fc 가 실린 판을 넘겨라(이동량 = 칸 × d).")
+    d = float(spacing) if spacing else (
+        g.spacing if g.spacing else C0 / float(g.fc) / DEFAULT_DIV)
+    u = np.asarray(u, float); u = u / np.linalg.norm(u)
+    e1, e2 = _grid_basis(u)                 # 커널이 광선을 깔 때 쓰는 바로 그 가로축
+    return g._replace(ctr=np.asarray(g.ctr, float) + (s[0] * e1 + s[1] * e2) * d)
+
+
 #  ── ⭐ 하류 슬로타임 경로가 공유하는 스위치 + 판 만들기 ─────────────────────── #
 #  왜 스위치인가: 전후 비교를 **같은 코드**로 돌릴 수 있어야 「얼리니 이렇게 달라졌다」가
 #  증거가 된다. SIONNA2_FREEZE_GRID=0 이면 하류가 grid_ref=None 을 넘기므로 옛 값과

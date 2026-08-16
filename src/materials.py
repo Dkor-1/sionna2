@@ -187,9 +187,91 @@ def gamma_po(mat_key: str, fc: float = 3.5e9) -> float:
 gamma_normal = gamma_bulk
 
 
+# --------------------------------------------------------------------------- #
+#  ⭐ 셸 두께 손잡이 (2026-08-15 신설) — 비-ITU 재질이 Sionna 에 두께를 넘길 수 있게
+# --------------------------------------------------------------------------- #
+#  ■ 무엇이 결함이었나
+#    아래 `make_material()` 의 **비-ITU 분기**가 `thickness` 를 안 넘겼다. 그래서 Sionna 의
+#    상수 기본값 **0.1 m(=10 cm)** 이 쓰였다
+#    (`sionna/rt/constants.py:80  DEFAULT_THICKNESS = 0.1`,
+#     `sionna/rt/radio_materials/radio_material.py:94·134`).
+#    드론 셸은 실제로 **1~3 mm** 다 — 즉 지금까지 모든 PathSolver 팔이 «10 cm 플라스틱 판»
+#    위에서 반사·굴절을 계산했다. ITU 분기는 원래 두께를 넘기고 있었으므로
+#    금속·콘크리트(metal·camera_assembly·pcb·concrete_*)는 해당 없다.
+#
+#  ■ 두께가 바꾸는 것 — 굴절만이 아니다
+#    Sionna 는 «지정 두께의 단층 슬래브» 로 **반사 R 과 투과 T 를 같이** 낸다
+#    (ITU-R P.2040 식 43·44, `sionna/rt/utils/electromagnetics.py:60-112`).
+#    CPU 실측(`benchmark/slab_thickness_check.py` · `outputs/slab_thickness_check.json`):
+#      플라스틱 셸 정반사 |R| — 100 mm −13.38 dB · 3 mm −14.97 · 2 mm −18.28 · 1 mm −24.16 dB
+#      즉 2 mm 로 고치면 **−4.90 dB**(수직) · **−5.82 dB**(각도평균) 움직인다.
+#    탄소섬유는 표피깊이가 0.155 mm 라 1 mm 도 이미 여러 표피깊이 — 두께를 **안 탄다**
+#    (0.5 mm↔100 mm 차이 0.00 dB). 그래서 손잡이를 carbon 에는 안 건다.
+#
+#  ■ ⚠**두께에는 출처가 없다** (docs/RETRACTION_LOG.md A3)
+#    A3 이 «진짜 출처 없는 건 셸 두께» 라고 적어 뒀다 — DJI 는 부품 두께를 공개하지 않는다.
+#    그러므로 1·2·3 mm 는 측정값이 아니라 **민감도 축**이고, 결과는 «두께 d 를 가정하면»
+#    이라는 조건문으로만 인용한다. 1↔3 mm 사이에서만 |R| 이 **9.19 dB** 갈리므로
+#    단일값을 못 박는 것은 그 자체로 지어내기다.
+#
+#  ■ 기본은 **안 건드린다** — 비트동일
+#    아무도 손잡이를 안 쓰면 예전과 **똑같이** thickness 를 안 넘긴다(=Sionna 기본 0.1 m).
+#    그래야 옛 샤드·리포트 수치가 그대로 재현된다. 고친 값으로 돌리려면 **명시적으로**
+#    켜고, 그 판은 파일명 꼬리표(_shell2mm 등)로 옛 샤드와 갈라 놓는다.
+#
+#  ■ 우리 커널(rcs_sbr)에는 두께 개념이 없다
+#    우리 셸은 |Γ|=gamma_po('plastic')=0.28 과 τ=1−|Γ|²=−0.71 dB 뿐이다. 그러니 이 손잡이는
+#    **Sionna 팔 전용**이다. (참고로 τ 는 1~3 mm 슬래브의 두 번 통과 손실 −0.10~−0.47 dB 와
+#     0.24~0.61 dB 안에서 만난다 — 투과 축은 애초에 결함이 아니었다.)
+THICKNESS_KNOBS: dict[str, tuple[str, ...]] = {
+    "shell": ("plastic", "plastic_blue"),   # 동체·캐노피·착륙장치·식별색
+    "prop":  ("prop_plastic",),             # 프로펠러 — 셸보다 얇다(표적 축을 가르는 손잡이)
+}
+_THICKNESS_M: dict[str, float] = {}         # 재질키 → 두께[m]. **비어 있으면 예전 그대로.**
+
+
+def set_thickness_mm(shell: float | None = None, prop: float | None = None,
+                     **extra: float) -> dict[str, float]:
+    """⭐비-ITU 재질의 두께를 **밀리미터**로 정한다. 안 부르면 아무 일도 안 일어난다.
+
+        set_thickness_mm(shell=2.0)          # plastic·plastic_blue → 2 mm
+        set_thickness_mm(shell=2.0, prop=1.0)
+        set_thickness_mm()                   # 전부 되돌린다(=Sionna 기본 0.1 m)
+
+    `extra` 로 재질 키를 직접 줄 수도 있다(예: `carbon=1.0`) — 다만 carbon 은 두께를
+    안 타므로 보통 필요 없다. 돌려주는 값은 «재질키 → 두께[m]» 현재 표다.
+    ⚠ ITU 재질(metal·concrete·camera_assembly·pcb)은 MATERIALS 의 자기 두께를 쓰므로
+      여기서 안 건드린다 — 건드리려 하면 예외다."""
+    _THICKNESS_M.clear()
+    for knob, val in (("shell", shell), ("prop", prop)):
+        if val is None:
+            continue
+        if float(val) <= 0:
+            raise ValueError(f"set_thickness_mm({knob}={val}): 두께는 양수여야 한다")
+        for k in THICKNESS_KNOBS[knob]:
+            _THICKNESS_M[k] = float(val) * 1e-3
+    for k, val in extra.items():
+        spec = _spec(k)                                  # 모르는 키는 여기서 죽는다
+        if "itu" in spec:
+            raise ValueError(f"set_thickness_mm: {k!r} 는 ITU 재질이다 — 두께는 "
+                             f"MATERIALS[{k!r}]['thickness'] 에 있다. 손잡이는 비-ITU 전용.")
+        if float(val) <= 0:
+            raise ValueError(f"set_thickness_mm({k}={val}): 두께는 양수여야 한다")
+        _THICKNESS_M[k] = float(val) * 1e-3
+    return dict(_THICKNESS_M)
+
+
+def thickness_state() -> dict[str, float]:
+    """지금 걸린 두께 표(재질키 → m). 비어 있으면 «예전 그대로»(Sionna 기본 0.1 m)."""
+    return dict(_THICKNESS_M)
+
+
 def make_material(mat_key: str, name: str, color=None) -> rt.RadioMaterial:
     """재질 키 → Sionna RadioMaterial 인스턴스 (전파 시뮬레이션용).
-    color 는 렌더 표시용일 뿐 전파물성과 무관하다."""
+    color 는 렌더 표시용일 뿐 전파물성과 무관하다.
+
+    ⭐두께: `set_thickness_mm()` 으로 켠 재질만 `thickness` 를 넘긴다. 안 켜면 **인자를
+      아예 안 넘겨** 예전 호출과 비트동일하다(=Sionna DEFAULT_THICKNESS 0.1 m)."""
     c = tuple(float(x) for x in color) if color is not None else None
     spec = MATERIALS.get(mat_key)
     if spec is None:                                    # 알 수 없는 키 → 회색 플라스틱
@@ -198,11 +280,14 @@ def make_material(mat_key: str, name: str, color=None) -> rt.RadioMaterial:
     if "itu" in spec:
         return rt.ITURadioMaterial(name=name, itu_type=spec["itu"],
                                    thickness=spec.get("thickness", 0.02), color=c)
+    kw = {}
+    if mat_key in _THICKNESS_M:                          # ⭐켰을 때만 넘긴다
+        kw["thickness"] = _THICKNESS_M[mat_key]
     return rt.RadioMaterial(name=name,
                             relative_permittivity=spec["eps_r"],
                             conductivity=spec["sigma"],
                             scattering_coefficient=spec["S"],
-                            color=c)
+                            color=c, **kw)
 
 
 def table(fc: float = 3.5e9) -> str:

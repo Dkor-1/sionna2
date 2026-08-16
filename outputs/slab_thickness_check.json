@@ -1,0 +1,1729 @@
+{
+ "_meta": {
+  "generator": "benchmark/slab_thickness_check.py",
+  "question_ko": "셸 두께 1·2·3 mm 와 Sionna 기본값 10 cm 가 반사·투과에서 몇 dB 갈리나",
+  "formula_source": "sionna/rt/utils/electromagnetics.py:60-112 (ITU-R P.2040 식 43·44) 를 넘파이로 옮김 — GPU·mitsuba 미사용",
+  "defect": "src/materials.py:make_material() 비-ITU 분기가 thickness 를 안 넘겨 sionna/rt/constants.py:80 DEFAULT_THICKNESS=0.1 m 가 쓰인다",
+  "provenance_ko": "⚠**두께는 출처가 없는 값이다** — docs/RETRACTION_LOG.md A3 이 «진짜 출처 없는 건 셸 두께» 라고 적어 뒀다. DJI 는 부품 두께를 공개하지 않는다. 그러므로 1·2·3 mm 는 **측정값이 아니라 민감도 축**이고, 결과는 «두께 d 를 가정하면» 이라는 조건문으로만 인용한다.",
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085657,
+  "ours_convention": {
+   "gamma_po_shell": 0.28,
+   "gamma_po_prop": 0.25,
+   "tau_shell": 0.9216,
+   "tau_shell_db": -0.709,
+   "note_ko": "우리 커널에는 두께 개념이 없다 — |Γ| 와 τ 만 있다"
+  },
+  "band_source": "outputs/grid_convergence_check.json (AC 3.86 dB)",
+  "selftest_failed": 0
+ },
+ "selftest": [
+  {
+   "check": "d→0 이면 |R|→0",
+   "got": 0.0,
+   "want": 0.0,
+   "tol": 1e-05,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "d→0 이면 |T|→1",
+   "got": 1.0,
+   "want": 1.0,
+   "tol": 1e-05,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "d→∞ 이면 |R|→벌크 프레넬",
+   "got": 0.243687,
+   "want": 0.243687,
+   "tol": 0.0001,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "d→∞ 이면 |T|→0",
+   "got": 0.0,
+   "want": 0.0,
+   "tol": 1e-06,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "θ=0 에서 |R_TE|=|R_TM|",
+   "got": 0.121894,
+   "want": 0.121894,
+   "tol": 1e-09,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "θ=0 에서 |T_TE|=|T_TM|",
+   "got": 0.985236,
+   "want": 0.985236,
+   "tol": 1e-09,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "무손실 판 |R|²+|T|²=1",
+   "got": 1.0,
+   "want": 1.0,
+   "tol": 1e-09,
+   "unit": "",
+   "pass_": true
+  },
+  {
+   "check": "우리 τ(=1−0.28²) [dB]",
+   "got": -0.709151,
+   "want": -0.71,
+   "tol": 0.01,
+   "unit": "dB",
+   "pass_": true
+  },
+  {
+   "check": "|R| 최대 두께 ≈ λ/(4√εr) [mm]",
+   "got": 12.935996,
+   "want": 13.032319,
+   "tol": 0.2,
+   "unit": "mm",
+   "pass_": true
+  }
+ ],
+ "verdict": {
+  "band_ac_db": 3.86,
+  "delta_R_2mm_vs_100mm_normal_db": -4.899,
+  "delta_R_2mm_vs_100mm_angleavg_db": -5.817,
+  "delta_twoway_T_2mm_vs_100mm_db": 4.409,
+  "span_1mm_to_3mm_R_db": 9.188,
+  "carbon_delta_R_2mm_vs_100mm_db": 0.0,
+  "buy_gpu": true,
+  "verdict_ko": "⭐**GPU 를 산다.** 셸 정반사가 2 mm 로 고치면 수직입사 -4.90 dB · 각도평균 -5.82 dB 움직이는데, ⓪ 격자 흔들림 밴드 3.86 dB **밖**이다. 게다가 1↔3 mm 안에서만 +9.19 dB 가 갈리므로 두께는 단일값이 아니라 **민감도 축**이어야 한다.",
+  "tau_gap_1_3mm_db": [
+   0.611,
+   0.451,
+   0.239
+  ],
+  "ours_gamma_angleavg_db": -8.279,
+  "tau_note_ko": "우리 커널 τ(−0.71 dB)는 «셸을 들어갔다 나오는» 두 번 통과를 뜻한다. 1~3 mm 슬래브의 두 번 통과 손실은 -0.10 ~ -0.47 dB 라 τ 와 0.24~0.61 dB 차이다 — **투과 축은 결함이 아니다**(우리 τ 가 조금 짜다). 반대로 **100 mm 판**의 두 번 통과는 -4.67 dB 라 τ 와 3.96 dB 어긋난다 — 지금 PathSolver 팔은 셸 안쪽(배터리·PCB)을 우리 커널보다 그만큼 어둡게 보고 있다.",
+  "ours_gamma_note_ko": "⚠**우리 커널도 같은 방향으로 세다.** 셸 |Γ|=0.28 에 각도 모양을 얹은 각도평균이 -8.28 dB 인데, 슬래브는 1 mm -19.09 · 2 mm -14.32 · 3 mm -11.74 · 100 mm -8.50 dB 다. 즉 우리 «대표 실효값» 은 **두꺼운 판(벌크)에 해당**하고, 2 mm 를 믿는다면 우리 커널이 +6.04 dB 세게 반사하고 있다. ⚠이건 이번 라운드의 산출이 아니라 **다음 라운드로 넘기는 열린 항목**이다 — gamma_po 를 건드리면 앵커·리포트 전부가 흔들린다. 지금 적어 두는 이유는 «PathSolver 만 오염됐다» 고 읽히면 안 되기 때문이다.",
+  "carbon_note_ko": "탄소섬유는 두께를 안 타는 게 맞다 — σ=3000 S/m 의 표피깊이가 0.155 mm 라 1 mm 도 이미 여러 표피깊이다. 그래서 arm·deck·gear_cf 는 손잡이가 필요 없다."
+ },
+ "table_shell_normal_incidence": [
+  {
+   "thickness_mm": 0.5,
+   "R_db": -30.134,
+   "R_abs": 0.031139,
+   "two_way_T_db": -0.041,
+   "d_over_lambda": 0.00584,
+   "delta_R_vs_100mm_db": -16.753,
+   "delta_twoway_T_vs_100mm_db": 4.626,
+   "delta_R_vs_ours_db": -19.077,
+   "delta_twoway_T_vs_ours_tau_db": 0.668
+  },
+  {
+   "thickness_mm": 1.0,
+   "R_db": -24.158,
+   "R_abs": 0.06196,
+   "two_way_T_db": -0.098,
+   "d_over_lambda": 0.01167,
+   "delta_R_vs_100mm_db": -10.777,
+   "delta_twoway_T_vs_100mm_db": 4.569,
+   "delta_R_vs_ours_db": -13.101,
+   "delta_twoway_T_vs_ours_tau_db": 0.611
+  },
+  {
+   "thickness_mm": 2.0,
+   "R_db": -18.28,
+   "R_abs": 0.121894,
+   "two_way_T_db": -0.258,
+   "d_over_lambda": 0.02335,
+   "delta_R_vs_100mm_db": -4.899,
+   "delta_twoway_T_vs_100mm_db": 4.409,
+   "delta_R_vs_ours_db": -7.223,
+   "delta_twoway_T_vs_ours_tau_db": 0.451
+  },
+  {
+   "thickness_mm": 3.0,
+   "R_db": -14.97,
+   "R_abs": 0.178439,
+   "two_way_T_db": -0.47,
+   "d_over_lambda": 0.03502,
+   "delta_R_vs_100mm_db": -1.589,
+   "delta_twoway_T_vs_100mm_db": 4.197,
+   "delta_R_vs_ours_db": -3.913,
+   "delta_twoway_T_vs_ours_tau_db": 0.239
+  },
+  {
+   "thickness_mm": 5.0,
+   "R_db": -11.138,
+   "R_abs": 0.277407,
+   "two_way_T_db": -0.995,
+   "d_over_lambda": 0.05837,
+   "delta_R_vs_100mm_db": 2.243,
+   "delta_twoway_T_vs_100mm_db": 3.672,
+   "delta_R_vs_ours_db": -0.081,
+   "delta_twoway_T_vs_ours_tau_db": -0.286
+  },
+  {
+   "thickness_mm": 100.0,
+   "R_db": -13.381,
+   "R_abs": 0.21426,
+   "two_way_T_db": -4.667,
+   "d_over_lambda": 1.16744,
+   "delta_R_vs_100mm_db": 0.0,
+   "delta_twoway_T_vs_100mm_db": 0.0,
+   "delta_R_vs_ours_db": -2.324,
+   "delta_twoway_T_vs_ours_tau_db": -3.958
+  }
+ ],
+ "angle_averaged": {
+  "plastic": {
+   "0.5mm": {
+    "R_db": -24.148,
+    "twoway_T_db": -0.078
+   },
+   "1mm": {
+    "R_db": -19.094,
+    "twoway_T_db": -0.194
+   },
+   "2mm": {
+    "R_db": -14.321,
+    "twoway_T_db": -0.491
+   },
+   "3mm": {
+    "R_db": -11.738,
+    "twoway_T_db": -0.836
+   },
+   "5mm": {
+    "R_db": -8.845,
+    "twoway_T_db": -1.569
+   },
+   "100mm": {
+    "R_db": -8.504,
+    "twoway_T_db": -6.352
+   }
+  },
+  "prop_plastic": {
+   "0.5mm": {
+    "R_db": -24.148,
+    "twoway_T_db": -0.078
+   },
+   "1mm": {
+    "R_db": -19.094,
+    "twoway_T_db": -0.194
+   },
+   "2mm": {
+    "R_db": -14.321,
+    "twoway_T_db": -0.491
+   },
+   "3mm": {
+    "R_db": -11.738,
+    "twoway_T_db": -0.836
+   },
+   "5mm": {
+    "R_db": -8.845,
+    "twoway_T_db": -1.569
+   },
+   "100mm": {
+    "R_db": -8.504,
+    "twoway_T_db": -6.352
+   }
+  },
+  "carbon": {
+   "0.5mm": {
+    "R_db": -0.129,
+    "twoway_T_db": -104.638
+   },
+   "1mm": {
+    "R_db": -0.128,
+    "twoway_T_db": -160.572
+   },
+   "2mm": {
+    "R_db": -0.128,
+    "twoway_T_db": -272.4
+   },
+   "3mm": {
+    "R_db": -0.128,
+    "twoway_T_db": -384.228
+   },
+   "5mm": {
+    "R_db": -0.128,
+    "twoway_T_db": -600.0
+   },
+   "100mm": {
+    "R_db": -0.128,
+    "twoway_T_db": -600.0
+   }
+  },
+  "absorber": {
+   "0.5mm": {
+    "R_db": -16.728,
+    "twoway_T_db": -2.169
+   },
+   "1mm": {
+    "R_db": -12.51,
+    "twoway_T_db": -3.922
+   },
+   "2mm": {
+    "R_db": -8.858,
+    "twoway_T_db": -6.85
+   },
+   "3mm": {
+    "R_db": -7.071,
+    "twoway_T_db": -9.346
+   },
+   "5mm": {
+    "R_db": -5.315,
+    "twoway_T_db": -13.692
+   },
+   "100mm": {
+    "R_db": -4.739,
+    "twoway_T_db": -208.92
+   }
+  }
+ },
+ "rows": [
+  {
+   "material": "plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 0.0,
+   "R_abs": 0.031139,
+   "R_db": -30.134,
+   "T_abs": 0.997639,
+   "T_db_oneway": -0.021,
+   "T_db_twoway": -0.041
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 30.0,
+   "R_abs": 0.030425,
+   "R_db": -30.335,
+   "T_abs": 0.997604,
+   "T_db_oneway": -0.021,
+   "T_db_twoway": -0.042
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 45.0,
+   "R_abs": 0.032618,
+   "R_db": -29.731,
+   "T_abs": 0.997388,
+   "T_db_oneway": -0.023,
+   "T_db_twoway": -0.045
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 60.0,
+   "R_abs": 0.043918,
+   "R_db": -27.147,
+   "T_abs": 0.996505,
+   "T_db_oneway": -0.03,
+   "T_db_twoway": -0.061
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 75.0,
+   "R_abs": 0.087354,
+   "R_db": -21.174,
+   "T_abs": 0.991911,
+   "T_db_oneway": -0.071,
+   "T_db_twoway": -0.141
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 85.0,
+   "R_abs": 0.250758,
+   "R_db": -12.015,
+   "T_abs": 0.956896,
+   "T_db_oneway": -0.383,
+   "T_db_twoway": -0.765
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.06196,
+   "R_db": -24.158,
+   "T_abs": 0.994351,
+   "T_db_oneway": -0.049,
+   "T_db_twoway": -0.098
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.060531,
+   "R_db": -24.36,
+   "T_abs": 0.994325,
+   "T_db_oneway": -0.049,
+   "T_db_twoway": -0.099
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.064804,
+   "R_db": -23.768,
+   "T_abs": 0.993769,
+   "T_db_oneway": -0.054,
+   "T_db_twoway": -0.109
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.086903,
+   "R_db": -21.219,
+   "T_abs": 0.991216,
+   "T_db_oneway": -0.077,
+   "T_db_twoway": -0.153
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.170094,
+   "R_db": -15.386,
+   "T_abs": 0.977191,
+   "T_db_oneway": -0.2,
+   "T_db_twoway": -0.401
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.436929,
+   "R_db": -7.192,
+   "T_abs": 0.881113,
+   "T_db_oneway": -1.099,
+   "T_db_twoway": -2.199
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.121894,
+   "R_db": -18.28,
+   "T_abs": 0.985236,
+   "T_db_oneway": -0.129,
+   "T_db_twoway": -0.258
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.119061,
+   "R_db": -18.485,
+   "T_abs": 0.98535,
+   "T_db_oneway": -0.128,
+   "T_db_twoway": -0.256
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.126921,
+   "R_db": -17.929,
+   "T_abs": 0.983832,
+   "T_db_oneway": -0.142,
+   "T_db_twoway": -0.283
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.168017,
+   "R_db": -15.493,
+   "T_abs": 0.976138,
+   "T_db_oneway": -0.21,
+   "T_db_twoway": -0.42
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.313038,
+   "R_db": -10.088,
+   "T_abs": 0.934935,
+   "T_db_oneway": -0.584,
+   "T_db_twoway": -1.169
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.647336,
+   "R_db": -3.777,
+   "T_abs": 0.737925,
+   "T_db_oneway": -2.64,
+   "T_db_twoway": -5.28
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.178439,
+   "R_db": -14.97,
+   "T_abs": 0.973301,
+   "T_db_oneway": -0.235,
+   "T_db_twoway": -0.47
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.174289,
+   "R_db": -15.175,
+   "T_abs": 0.973691,
+   "T_db_oneway": -0.232,
+   "T_db_twoway": -0.463
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.184718,
+   "R_db": -14.67,
+   "T_abs": 0.971033,
+   "T_db_oneway": -0.255,
+   "T_db_twoway": -0.511
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.240251,
+   "R_db": -12.387,
+   "T_abs": 0.95694,
+   "T_db_oneway": -0.382,
+   "T_db_twoway": -0.765
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.422412,
+   "R_db": -7.485,
+   "T_abs": 0.886968,
+   "T_db_oneway": -1.042,
+   "T_db_twoway": -2.084
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.755428,
+   "R_db": -2.436,
+   "T_abs": 0.629,
+   "T_db_oneway": -4.027,
+   "T_db_twoway": -8.054
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.277407,
+   "R_db": -11.138,
+   "T_abs": 0.944353,
+   "T_db_oneway": -0.497,
+   "T_db_twoway": -0.995
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.271178,
+   "R_db": -11.335,
+   "T_abs": 0.945489,
+   "T_db_oneway": -0.487,
+   "T_db_twoway": -0.974
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.283525,
+   "R_db": -10.948,
+   "T_abs": 0.940871,
+   "T_db_oneway": -0.529,
+   "T_db_twoway": -1.059
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.353982,
+   "R_db": -9.02,
+   "T_abs": 0.914923,
+   "T_db_oneway": -0.772,
+   "T_db_twoway": -1.545
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.563075,
+   "R_db": -4.989,
+   "T_abs": 0.801656,
+   "T_db_oneway": -1.92,
+   "T_db_twoway": -3.84
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.861785,
+   "R_db": -1.292,
+   "T_abs": 0.479244,
+   "T_db_oneway": -6.389,
+   "T_db_twoway": -12.778
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.21426,
+   "R_db": -13.381,
+   "T_abs": 0.764426,
+   "T_db_oneway": -2.333,
+   "T_db_twoway": -4.667
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.348405,
+   "R_db": -9.158,
+   "T_abs": 0.724629,
+   "T_db_oneway": -2.798,
+   "T_db_twoway": -5.595
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.397283,
+   "R_db": -8.018,
+   "T_abs": 0.696575,
+   "T_db_oneway": -3.141,
+   "T_db_twoway": -6.281
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.390558,
+   "R_db": -8.166,
+   "T_abs": 0.67771,
+   "T_db_oneway": -3.379,
+   "T_db_twoway": -6.758
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.409469,
+   "R_db": -7.756,
+   "T_abs": 0.616299,
+   "T_db_oneway": -4.204,
+   "T_db_twoway": -8.408
+  },
+  {
+   "material": "plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.606673,
+   "R_db": -4.341,
+   "T_abs": 0.41922,
+   "T_db_oneway": -7.551,
+   "T_db_twoway": -15.102
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 0.0,
+   "R_abs": 0.031139,
+   "R_db": -30.134,
+   "T_abs": 0.997639,
+   "T_db_oneway": -0.021,
+   "T_db_twoway": -0.041
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 30.0,
+   "R_abs": 0.030425,
+   "R_db": -30.335,
+   "T_abs": 0.997604,
+   "T_db_oneway": -0.021,
+   "T_db_twoway": -0.042
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 45.0,
+   "R_abs": 0.032618,
+   "R_db": -29.731,
+   "T_abs": 0.997388,
+   "T_db_oneway": -0.023,
+   "T_db_twoway": -0.045
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 60.0,
+   "R_abs": 0.043918,
+   "R_db": -27.147,
+   "T_abs": 0.996505,
+   "T_db_oneway": -0.03,
+   "T_db_twoway": -0.061
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 75.0,
+   "R_abs": 0.087354,
+   "R_db": -21.174,
+   "T_abs": 0.991911,
+   "T_db_oneway": -0.071,
+   "T_db_twoway": -0.141
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 0.5,
+   "theta_deg": 85.0,
+   "R_abs": 0.250758,
+   "R_db": -12.015,
+   "T_abs": 0.956896,
+   "T_db_oneway": -0.383,
+   "T_db_twoway": -0.765
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.06196,
+   "R_db": -24.158,
+   "T_abs": 0.994351,
+   "T_db_oneway": -0.049,
+   "T_db_twoway": -0.098
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.060531,
+   "R_db": -24.36,
+   "T_abs": 0.994325,
+   "T_db_oneway": -0.049,
+   "T_db_twoway": -0.099
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.064804,
+   "R_db": -23.768,
+   "T_abs": 0.993769,
+   "T_db_oneway": -0.054,
+   "T_db_twoway": -0.109
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.086903,
+   "R_db": -21.219,
+   "T_abs": 0.991216,
+   "T_db_oneway": -0.077,
+   "T_db_twoway": -0.153
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.170094,
+   "R_db": -15.386,
+   "T_abs": 0.977191,
+   "T_db_oneway": -0.2,
+   "T_db_twoway": -0.401
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 1.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.436929,
+   "R_db": -7.192,
+   "T_abs": 0.881113,
+   "T_db_oneway": -1.099,
+   "T_db_twoway": -2.199
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.121894,
+   "R_db": -18.28,
+   "T_abs": 0.985236,
+   "T_db_oneway": -0.129,
+   "T_db_twoway": -0.258
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.119061,
+   "R_db": -18.485,
+   "T_abs": 0.98535,
+   "T_db_oneway": -0.128,
+   "T_db_twoway": -0.256
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.126921,
+   "R_db": -17.929,
+   "T_abs": 0.983832,
+   "T_db_oneway": -0.142,
+   "T_db_twoway": -0.283
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.168017,
+   "R_db": -15.493,
+   "T_abs": 0.976138,
+   "T_db_oneway": -0.21,
+   "T_db_twoway": -0.42
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.313038,
+   "R_db": -10.088,
+   "T_abs": 0.934935,
+   "T_db_oneway": -0.584,
+   "T_db_twoway": -1.169
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 2.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.647336,
+   "R_db": -3.777,
+   "T_abs": 0.737925,
+   "T_db_oneway": -2.64,
+   "T_db_twoway": -5.28
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.178439,
+   "R_db": -14.97,
+   "T_abs": 0.973301,
+   "T_db_oneway": -0.235,
+   "T_db_twoway": -0.47
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.174289,
+   "R_db": -15.175,
+   "T_abs": 0.973691,
+   "T_db_oneway": -0.232,
+   "T_db_twoway": -0.463
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.184718,
+   "R_db": -14.67,
+   "T_abs": 0.971033,
+   "T_db_oneway": -0.255,
+   "T_db_twoway": -0.511
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.240251,
+   "R_db": -12.387,
+   "T_abs": 0.95694,
+   "T_db_oneway": -0.382,
+   "T_db_twoway": -0.765
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.422412,
+   "R_db": -7.485,
+   "T_abs": 0.886968,
+   "T_db_oneway": -1.042,
+   "T_db_twoway": -2.084
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 3.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.755428,
+   "R_db": -2.436,
+   "T_abs": 0.629,
+   "T_db_oneway": -4.027,
+   "T_db_twoway": -8.054
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.277407,
+   "R_db": -11.138,
+   "T_abs": 0.944353,
+   "T_db_oneway": -0.497,
+   "T_db_twoway": -0.995
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.271178,
+   "R_db": -11.335,
+   "T_abs": 0.945489,
+   "T_db_oneway": -0.487,
+   "T_db_twoway": -0.974
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.283525,
+   "R_db": -10.948,
+   "T_abs": 0.940871,
+   "T_db_oneway": -0.529,
+   "T_db_twoway": -1.059
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.353982,
+   "R_db": -9.02,
+   "T_abs": 0.914923,
+   "T_db_oneway": -0.772,
+   "T_db_twoway": -1.545
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.563075,
+   "R_db": -4.989,
+   "T_abs": 0.801656,
+   "T_db_oneway": -1.92,
+   "T_db_twoway": -3.84
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 5.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.861785,
+   "R_db": -1.292,
+   "T_abs": 0.479244,
+   "T_db_oneway": -6.389,
+   "T_db_twoway": -12.778
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.21426,
+   "R_db": -13.381,
+   "T_abs": 0.764426,
+   "T_db_oneway": -2.333,
+   "T_db_twoway": -4.667
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.348405,
+   "R_db": -9.158,
+   "T_abs": 0.724629,
+   "T_db_oneway": -2.798,
+   "T_db_twoway": -5.595
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.397283,
+   "R_db": -8.018,
+   "T_abs": 0.696575,
+   "T_db_oneway": -3.141,
+   "T_db_twoway": -6.281
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.390558,
+   "R_db": -8.166,
+   "T_abs": 0.67771,
+   "T_db_oneway": -3.379,
+   "T_db_twoway": -6.758
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.409469,
+   "R_db": -7.756,
+   "T_abs": 0.616299,
+   "T_db_oneway": -4.204,
+   "T_db_twoway": -8.408
+  },
+  {
+   "material": "prop_plastic",
+   "thickness_mm": 100.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.606673,
+   "R_db": -4.341,
+   "T_abs": 0.41922,
+   "T_db_oneway": -7.551,
+   "T_db_twoway": -15.102
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 0.5,
+   "theta_deg": 0.0,
+   "R_abs": 0.988629,
+   "R_db": -0.099,
+   "T_abs": 0.001277,
+   "T_db_oneway": -57.878,
+   "T_db_twoway": -115.756
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 0.5,
+   "theta_deg": 30.0,
+   "R_abs": 0.988514,
+   "R_db": -0.1,
+   "T_abs": 0.001302,
+   "T_db_oneway": -57.706,
+   "T_db_twoway": -115.412
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 0.5,
+   "theta_deg": 45.0,
+   "R_abs": 0.987959,
+   "R_db": -0.105,
+   "T_abs": 0.001423,
+   "T_db_oneway": -56.936,
+   "T_db_twoway": -113.872
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 0.5,
+   "theta_deg": 60.0,
+   "R_abs": 0.985879,
+   "R_db": -0.124,
+   "T_abs": 0.001842,
+   "T_db_oneway": -54.695,
+   "T_db_twoway": -109.391
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 0.5,
+   "theta_deg": 75.0,
+   "R_abs": 0.977123,
+   "R_db": -0.201,
+   "T_abs": 0.003384,
+   "T_db_oneway": -49.412,
+   "T_db_twoway": -98.824
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 0.5,
+   "theta_deg": 85.0,
+   "R_abs": 0.940154,
+   "R_db": -0.536,
+   "T_abs": 0.009192,
+   "T_db_oneway": -40.732,
+   "T_db_twoway": -81.464
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 1.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.98867,
+   "R_db": -0.099,
+   "T_abs": 5.1e-05,
+   "T_db_oneway": -85.847,
+   "T_db_twoway": -171.695
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 1.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.988556,
+   "R_db": -0.1,
+   "T_abs": 5.2e-05,
+   "T_db_oneway": -85.675,
+   "T_db_twoway": -171.351
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 1.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.988003,
+   "R_db": -0.105,
+   "T_abs": 5.7e-05,
+   "T_db_oneway": -84.906,
+   "T_db_twoway": -169.812
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 1.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.98593,
+   "R_db": -0.123,
+   "T_abs": 7.4e-05,
+   "T_db_oneway": -82.665,
+   "T_db_twoway": -165.33
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 1.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.977203,
+   "R_db": -0.2,
+   "T_abs": 0.000135,
+   "T_db_oneway": -77.381,
+   "T_db_twoway": -154.763
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 1.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.940342,
+   "R_db": -0.534,
+   "T_abs": 0.000367,
+   "T_db_oneway": -68.699,
+   "T_db_twoway": -137.398
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 2.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.98867,
+   "R_db": -0.099,
+   "T_abs": 0.0,
+   "T_db_oneway": -141.76,
+   "T_db_twoway": -283.519
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 2.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.988556,
+   "R_db": -0.1,
+   "T_abs": 0.0,
+   "T_db_oneway": -141.588,
+   "T_db_twoway": -283.177
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 2.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.988003,
+   "R_db": -0.105,
+   "T_abs": 0.0,
+   "T_db_oneway": -140.819,
+   "T_db_twoway": -281.639
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 2.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.98593,
+   "R_db": -0.123,
+   "T_abs": 0.0,
+   "T_db_oneway": -138.579,
+   "T_db_twoway": -277.158
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 2.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.977203,
+   "R_db": -0.2,
+   "T_abs": 0.0,
+   "T_db_oneway": -133.295,
+   "T_db_twoway": -266.591
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 2.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.940342,
+   "R_db": -0.534,
+   "T_abs": 1e-06,
+   "T_db_oneway": -124.613,
+   "T_db_twoway": -249.226
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 3.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.98867,
+   "R_db": -0.099,
+   "T_abs": 0.0,
+   "T_db_oneway": -197.672,
+   "T_db_twoway": -395.344
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 3.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.988556,
+   "R_db": -0.1,
+   "T_abs": 0.0,
+   "T_db_oneway": -197.501,
+   "T_db_twoway": -395.002
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 3.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.988003,
+   "R_db": -0.105,
+   "T_abs": 0.0,
+   "T_db_oneway": -196.732,
+   "T_db_twoway": -393.465
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 3.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.98593,
+   "R_db": -0.123,
+   "T_abs": 0.0,
+   "T_db_oneway": -194.493,
+   "T_db_twoway": -388.985
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 3.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.977203,
+   "R_db": -0.2,
+   "T_abs": 0.0,
+   "T_db_oneway": -189.209,
+   "T_db_twoway": -378.419
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 3.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.940342,
+   "R_db": -0.534,
+   "T_abs": 0.0,
+   "T_db_oneway": -180.527,
+   "T_db_twoway": -361.054
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 5.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.98867,
+   "R_db": -0.099,
+   "T_abs": 0.0,
+   "T_db_oneway": -309.497,
+   "T_db_twoway": -618.993
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 5.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.988556,
+   "R_db": -0.1,
+   "T_abs": 0.0,
+   "T_db_oneway": -309.327,
+   "T_db_twoway": -618.653
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 5.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.988003,
+   "R_db": -0.105,
+   "T_abs": 0.0,
+   "T_db_oneway": -308.559,
+   "T_db_twoway": -617.118
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 5.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.98593,
+   "R_db": -0.123,
+   "T_abs": 0.0,
+   "T_db_oneway": -306.32,
+   "T_db_twoway": -612.64
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 5.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.977203,
+   "R_db": -0.2,
+   "T_abs": 0.0,
+   "T_db_oneway": -301.037,
+   "T_db_twoway": -602.075
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 5.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.940342,
+   "R_db": -0.534,
+   "T_abs": 0.0,
+   "T_db_oneway": -292.355,
+   "T_db_twoway": -584.71
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 100.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.98867,
+   "R_db": -0.099,
+   "T_abs": 0.0,
+   "T_db_oneway": -6000.0,
+   "T_db_twoway": -12000.0
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 100.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.988556,
+   "R_db": -0.1,
+   "T_abs": 0.0,
+   "T_db_oneway": -6000.0,
+   "T_db_twoway": -12000.0
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 100.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.988003,
+   "R_db": -0.105,
+   "T_abs": 0.0,
+   "T_db_oneway": -6000.0,
+   "T_db_twoway": -12000.0
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 100.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.98593,
+   "R_db": -0.123,
+   "T_abs": 0.0,
+   "T_db_oneway": -6000.0,
+   "T_db_twoway": -12000.0
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 100.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.977203,
+   "R_db": -0.2,
+   "T_abs": 0.0,
+   "T_db_oneway": -6000.0,
+   "T_db_twoway": -12000.0
+  },
+  {
+   "material": "carbon",
+   "thickness_mm": 100.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.940342,
+   "R_db": -0.534,
+   "T_abs": 0.0,
+   "T_db_oneway": -6000.0,
+   "T_db_twoway": -12000.0
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 0.5,
+   "theta_deg": 0.0,
+   "R_abs": 0.101722,
+   "R_db": -19.852,
+   "T_abs": 0.898453,
+   "T_db_oneway": -0.93,
+   "T_db_twoway": -1.86
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 0.5,
+   "theta_deg": 30.0,
+   "R_abs": 0.102891,
+   "R_db": -19.752,
+   "T_abs": 0.897386,
+   "T_db_oneway": -0.94,
+   "T_db_twoway": -1.881
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 0.5,
+   "theta_deg": 45.0,
+   "R_abs": 0.110199,
+   "R_db": -19.156,
+   "T_abs": 0.893607,
+   "T_db_oneway": -0.977,
+   "T_db_twoway": -1.954
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 0.5,
+   "theta_deg": 60.0,
+   "R_abs": 0.136027,
+   "R_db": -17.327,
+   "T_abs": 0.881082,
+   "T_db_oneway": -1.1,
+   "T_db_twoway": -2.199
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 0.5,
+   "theta_deg": 75.0,
+   "R_abs": 0.219754,
+   "R_db": -13.161,
+   "T_abs": 0.838233,
+   "T_db_oneway": -1.533,
+   "T_db_twoway": -3.065
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 0.5,
+   "theta_deg": 85.0,
+   "R_abs": 0.421811,
+   "R_db": -7.498,
+   "T_abs": 0.733275,
+   "T_db_oneway": -2.695,
+   "T_db_twoway": -5.389
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 1.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.18452,
+   "R_db": -14.679,
+   "T_abs": 0.815649,
+   "T_db_oneway": -1.77,
+   "T_db_twoway": -3.54
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 1.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.185923,
+   "R_db": -14.613,
+   "T_abs": 0.814112,
+   "T_db_oneway": -1.786,
+   "T_db_twoway": -3.573
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 1.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.196001,
+   "R_db": -14.155,
+   "T_abs": 0.809454,
+   "T_db_oneway": -1.836,
+   "T_db_twoway": -3.672
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 1.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.231827,
+   "R_db": -12.697,
+   "T_abs": 0.795129,
+   "T_db_oneway": -1.991,
+   "T_db_twoway": -3.982
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 1.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.34065,
+   "R_db": -9.354,
+   "T_abs": 0.750679,
+   "T_db_oneway": -2.491,
+   "T_db_twoway": -4.982
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 1.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.566895,
+   "R_db": -4.93,
+   "T_abs": 0.639408,
+   "T_db_oneway": -3.884,
+   "T_db_twoway": -7.769
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 2.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.310468,
+   "R_db": -10.16,
+   "T_abs": 0.68872,
+   "T_db_oneway": -3.239,
+   "T_db_twoway": -6.478
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 2.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.311205,
+   "R_db": -10.139,
+   "T_abs": 0.686778,
+   "T_db_oneway": -3.264,
+   "T_db_twoway": -6.527
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 2.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.321271,
+   "R_db": -9.863,
+   "T_abs": 0.683004,
+   "T_db_oneway": -3.312,
+   "T_db_twoway": -6.623
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 2.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.359313,
+   "R_db": -8.891,
+   "T_abs": 0.673473,
+   "T_db_oneway": -3.434,
+   "T_db_twoway": -6.867
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 2.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.474923,
+   "R_db": -6.468,
+   "T_abs": 0.641539,
+   "T_db_oneway": -3.856,
+   "T_db_twoway": -7.711
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 2.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.711869,
+   "R_db": -2.952,
+   "T_abs": 0.500878,
+   "T_db_oneway": -6.005,
+   "T_db_twoway": -12.011
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 3.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.400427,
+   "R_db": -7.95,
+   "T_abs": 0.595689,
+   "T_db_oneway": -4.5,
+   "T_db_twoway": -8.999
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 3.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.400058,
+   "R_db": -7.958,
+   "T_abs": 0.59336,
+   "T_db_oneway": -4.534,
+   "T_db_twoway": -9.067
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 3.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.407763,
+   "R_db": -7.792,
+   "T_abs": 0.59071,
+   "T_db_oneway": -4.573,
+   "T_db_twoway": -9.145
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 3.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.440814,
+   "R_db": -7.115,
+   "T_abs": 0.58615,
+   "T_db_oneway": -4.64,
+   "T_db_twoway": -9.28
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 3.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.550617,
+   "R_db": -5.183,
+   "T_abs": 0.56114,
+   "T_db_oneway": -5.019,
+   "T_db_twoway": -10.037
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 3.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.783212,
+   "R_db": -2.122,
+   "T_abs": 0.39683,
+   "T_db_oneway": -8.028,
+   "T_db_twoway": -16.056
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 5.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.513787,
+   "R_db": -5.784,
+   "T_abs": 0.466373,
+   "T_db_oneway": -6.625,
+   "T_db_twoway": -13.251
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 5.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.511393,
+   "R_db": -5.825,
+   "T_abs": 0.462808,
+   "T_db_oneway": -6.692,
+   "T_db_twoway": -13.384
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 5.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.51418,
+   "R_db": -5.778,
+   "T_abs": 0.460309,
+   "T_db_oneway": -6.739,
+   "T_db_twoway": -13.478
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 5.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.535934,
+   "R_db": -5.418,
+   "T_abs": 0.458667,
+   "T_db_oneway": -6.77,
+   "T_db_twoway": -13.54
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 5.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.631157,
+   "R_db": -3.997,
+   "T_abs": 0.432337,
+   "T_db_oneway": -7.284,
+   "T_db_twoway": -14.567
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 5.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.839335,
+   "R_db": -1.521,
+   "T_abs": 0.265496,
+   "T_db_oneway": -11.519,
+   "T_db_twoway": -23.038
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 100.0,
+   "theta_deg": 0.0,
+   "R_abs": 0.549001,
+   "R_db": -5.209,
+   "T_abs": 9e-06,
+   "T_db_oneway": -100.904,
+   "T_db_twoway": -201.808
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 100.0,
+   "theta_deg": 30.0,
+   "R_abs": 0.550185,
+   "R_db": -5.19,
+   "T_abs": 7e-06,
+   "T_db_oneway": -102.915,
+   "T_db_twoway": -205.83
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 100.0,
+   "theta_deg": 45.0,
+   "R_abs": 0.556014,
+   "R_db": -5.098,
+   "T_abs": 6e-06,
+   "T_db_oneway": -105.005,
+   "T_db_twoway": -210.011
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 100.0,
+   "theta_deg": 60.0,
+   "R_abs": 0.578201,
+   "R_db": -4.758,
+   "T_abs": 4e-06,
+   "T_db_oneway": -107.259,
+   "T_db_twoway": -214.518
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 100.0,
+   "theta_deg": 75.0,
+   "R_abs": 0.661504,
+   "R_db": -3.589,
+   "T_abs": 3e-06,
+   "T_db_oneway": -109.837,
+   "T_db_twoway": -219.673
+  },
+  {
+   "material": "absorber",
+   "thickness_mm": 100.0,
+   "theta_deg": 85.0,
+   "R_abs": 0.831951,
+   "R_db": -1.598,
+   "T_abs": 2e-06,
+   "T_db_oneway": -115.094,
+   "T_db_twoway": -230.187
+  }
+ ]
+}

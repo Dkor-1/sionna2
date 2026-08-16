@@ -93,6 +93,106 @@ def rule_spp(rng_m: float) -> int:
     return int(round(1_000_000 * (rng_m / 3.0) ** 2))
 
 
+#  ⭐**셸 두께 정정 축** (R2, 2026-08-15 신설)
+#  ■ 무엇이 결함이었나
+#    `src/materials.py:make_material()` 의 비-ITU 분기가 `thickness` 를 안 넘겨서 Sionna 기본값
+#    **0.1 m(=10 cm)** 이 쓰였다(`sionna/rt/constants.py:80`). 드론 셸은 실제로 1~3 mm 다.
+#    두께는 굴절뿐 아니라 **정반사 계수도** 바꾸므로(ITU-R P.2040 단층 슬래브) 이 오염은
+#    굴절 팔이 아니라 **모든 PathSolver 팔**에 걸려 있었다.
+#  ■ CPU 로 먼저 재 봤다 — `benchmark/slab_thickness_check.py`
+#    플라스틱 셸 정반사 |R|: 100 mm −13.38 dB · 3 mm −14.97 · 2 mm −18.28 · 1 mm −24.16 dB.
+#    2 mm 로 고치면 수직입사 **−4.90 dB** · 각도평균 **−5.82 dB** 움직인다 → ⓪ 격자 밴드
+#    3.86 dB **밖**이라 GPU 를 살 값어치가 있다. 1↔3 mm 안에서만 9.19 dB 가 갈리므로
+#    **단일값이 아니라 민감도 축(1·2·3 mm)** 으로 돌린다(두께는 출처가 없다 — RETRACTION_LOG A3).
+#  ■ 탄소섬유는 손잡이가 없다 — 표피깊이 0.155 mm 라 1 mm 도 이미 여러 표피깊이(0.00 dB 차이).
+#  ■ 우리 커널에는 두께가 없다(|Γ|·τ 뿐) → 이 인자는 **PathSolver 팔 전용**이다.
+def _tag_thickness(shell_mm: float, prop_mm: float) -> str:
+    """⭐셸/프롭 두께 꼬리표. **0 이면 빈 문자열** — 안 주면 기존 샤드와 이름이 같다(비트동일).
+    예: shell 2 mm → `_shell2mm` · prop 1 mm → `_prop1mm` (둘 다면 이어 붙는다)."""
+    return ("" if not shell_mm else f"_shell{shell_mm:g}mm") \
+        + ("" if not prop_mm else f"_prop{prop_mm:g}mm")
+
+
+def thickness(a) -> tuple[float, float, str]:
+    """`--shell-mm`·`--prop-mm` → (셸 mm, 프롭 mm, 꼬리표). 안 주면 (0, 0, "") 라 아무 일도
+    없다 — `materials.set_thickness_mm()` 을 **부르지 않으므로** 예전과 비트동일하다."""
+    sh = float(getattr(a, "shell_mm", 0.0) or 0.0)
+    pr = float(getattr(a, "prop_mm", 0.0) or 0.0)
+    # ⛔단위 사고를 **양쪽에서** 막는다. 0.002(m) 를 그대로 치면 0.002 mm(=2 µm)가 되고,
+    #   100 을 치면 «지금 돌고 있는 잘못된 판» 을 일부러 재현하는 셈이라 둘 다 죽인다.
+    #   창은 0.1~20 mm — 드론 셸(1~3 mm)과 그 언저리만 허용한다.
+    for nm, v in (("--shell-mm", sh), ("--prop-mm", pr)):
+        if v == 0.0:
+            continue                     # 안 준 것 — 아무 일도 안 일어난다(비트동일)
+        if not (0.1 <= v <= 20.0):
+            raise SystemExit(
+                f"⛔ {nm} 단위는 **mm** 다(셸 1~3 mm, 허용 0.1~20). 받은 값 {v!r} 은 범위 밖. "
+                f"· 0.002 처럼 작으면 **미터를 그대로 친 것**이다(0.002 m = 2 mm → '2' 라고 쓴다). "
+                f"· 100 처럼 크면 Sionna 기본값 판을 재현하려는 것인데, 그건 인자를 **아예 빼면** "
+                f"된다(그게 기존 샤드다).")
+    return sh, pr, _tag_thickness(sh, pr)
+
+
+def parse_grid_shift(text) -> tuple:
+    """`--grid-shift` 를 (e1 칸, e2 칸, 꼬리표) 로 푼다 — **0 이면 꼬리표가 없다.**
+
+        ""  · "0" · "0,0"  →  (0.0, 0.0, "")            ⭐기존 샤드 이름과 같아진다
+        "0.5"              →  (0.5, 0.5, "_shift0.5")
+        "0.5,0.25"         →  (0.5, 0.25, "_shift0.5x0.25")
+
+    칸 단위다(실제 이동거리 = 칸 × 격자간격 d). 꼬리표가 안 붙는 자리가 곧 «인자를 안 주면
+    비트 동일» 이라는 철칙의 배선이다 — 값이 0 이면 아래 run() 이 판을 아예 안 옮긴다."""
+    t = str(text or "").strip().replace("x", ",")
+    if not t:
+        return 0.0, 0.0, ""
+    parts = [p for p in t.split(",") if p.strip() != ""]
+    try:
+        v = [float(p) for p in parts]
+    except ValueError:
+        v = []
+    if len(v) not in (1, 2):
+        raise SystemExit(f"⛔ --grid-shift 형식: <칸수> 또는 <e1칸>,<e2칸> (받은 값 {text!r})")
+    s1, s2 = (v[0], v[0]) if len(v) == 1 else (v[0], v[1])
+    if s1 == 0.0 and s2 == 0.0:
+        return 0.0, 0.0, ""
+    return s1, s2, (f"_shift{s1:g}" if s1 == s2 else f"_shift{s1:g}x{s2:g}")
+
+
+# ═══ 반송파 ═════════════════════════════════════════════════════════════════
+#  ⭐**안 주면 기존과 비트동일**이 이 배관의 유일한 규약이다(--div·--parts·--az-deg 와 같다).
+#    3.5 GHz 로 접히면 모듈 상수 FC 를 **그대로** 돌려주고 꼬리표도 안 붙인다 → 파일 이름이
+#    옛 샤드와 같아 이미 계산한 것을 그대로 건너뛴다.
+#  ⚠파장이 바뀌면 따라 바뀌는 것(전수):
+#    · 격자 간격 d = λ/div  → run() 이 fc 로 다시 잰다. **div 는 12 로 둔다**(λ/12 규약 유지).
+#    · 얼린 격자 판 gref    → 같은 d 로 다시 만든다(칸 수 n 이 ∝1/λ 로 는다).
+#    · 우리 커널 sbr_field  → 파수 k·재질 |Γ| 를 fc 로 계산한다.
+#    · PathSolver scene.frequency → 재질 슬래브 계수가 두께/λ 로 바뀐다.
+#    · 위상 exp(−j2πfc·τ)  → 도플러가 여기서 나온다.
+#    · f_tip = 2·(2π f_rev R)/λ·cos(el) → 병합 쪽 f_tip_at 이 팔 이름의 꼬리표로 읽는다.
+#  ⚠안 바뀌는 것: f_flash(= 날개 수 × 회전수) · 광선 예산 규칙 (R/3)²×1M · 기하(가림·앙각).
+def carrier(a) -> tuple[float, str]:
+    """`--fc-ghz` → (fc[Hz], 파일명 꼬리표). 안 주면 규약값 3.5 GHz 라 꼬리표가 없다.
+
+    꼬리표는 **MHz** 로 적는다 — 5.8 GHz → `_fc5800`. (docs/NEXT_EXPERIMENTS.md 의 표기)"""
+    ghz = float(getattr(a, "fc_ghz", 0.0) or FC / 1e9)
+    if not (0.1 <= ghz <= 300.0):
+        # ⛔설계서 옛 표기 «--fc 5.8e9» 를 그대로 치는 사고를 여기서 잡는다(5.8e9 GHz 가 된다).
+        raise SystemExit(f"⛔ --fc-ghz 는 **GHz** 다(예: 5.8). 받은 값 {ghz!r} 은 범위 밖이다.")
+    fc = ghz * 1e9
+    if abs(fc - FC) <= 1.0:              # 1 Hz 안이면 규약값 — 상수를 그대로 써서 비트동일
+        return FC, ""
+    return fc, f"_fc{fc / 1e6:g}"
+
+
+def carrier_of(arm: str) -> float:
+    """병합 쪽 — 팔(파일) 이름의 `_fc<MHz>` 꼬리표에서 반송파를 읽는다. 없으면 규약값.
+
+    ⚠`_parts...` 꼬리표에 그룹 이름 `fc`(비행제어기)가 섞일 수 있어 **숫자를 반드시** 요구한다
+      (`_partsfc` 는 안 걸린다)."""
+    m = re.search(r"_fc(\d+(?:\.\d+)?)", arm)
+    return FC if not m else float(m.group(1)) * 1e6
+
+
 # ═══ 계산 ═══════════════════════════════════════════════════════════════════
 def run(a) -> None:
     from gpu import pick
@@ -132,20 +232,41 @@ def run(a) -> None:
     # ⭐평면파는 range_m=None 으로 넘긴다(rcs_sbr:1090 «None 이면 평면파»).
     #   PathSolver 는 실제 기하를 쓰므로 이 스위치가 없다 — 우리 팔 전용이다.
     plane = bool(getattr(a, "plane_wave", False))
+    # ⭐반송파도 인자로 받는다. 3.5 GHz 면 상수 FC 를 그대로 써서 기존 샤드와 비트동일하다.
+    fc, tagfc = carrier(a)
+    # ⭐셸/프롭 두께. 안 주면 (0,0,"") 라 재질을 아예 안 건드린다 → 기존 샤드와 비트동일.
+    shell_mm, prop_mm, tagth = thickness(a)
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
         + ("_pw" if plane else "") \
-        + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}")
+        + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
+        + tagfc + tagth
+
+    if tagth and a.engine in ("ours", "ours_free"):
+        raise SystemExit("⛔ --shell-mm/--prop-mm 은 PathSolver 팔 전용이다 — 우리 커널에는 "
+                         "두께 개념이 없다(셸은 |Γ|=gamma_po 와 τ=1−|Γ|² 뿐이다). "
+                         "그대로 두면 이름만 바뀌고 내용이 같은 샤드가 생겨 원장이 거짓말을 한다. "
+                         "우리 커널 쪽 두께 감도가 필요하면 materials.MATERIALS['plastic']"
+                         "['gamma_po'] 를 바꾸는 별도 축으로 설계할 것.")
+
+    # ⭐격자 **위상 널** — 같은 격자를 반 칸 옆으로 옮겨 다시 잰다(칸 단위).
+    #   안 주면 (0,0,"") 라 판을 아예 안 옮기고 꼬리표도 없다 → 기존 샤드와 비트동일.
+    sh1, sh2, tagsh = parse_grid_shift(getattr(a, "grid_shift", ""))
+    if tagsh and a.engine == "sionna":
+        raise SystemExit("⛔ --grid-shift 는 우리 커널 전용이다 — PathSolver 는 표면 격자를 "
+                         "안 쓴다(광선을 Rx 에서 쏘고 경로를 찾는다). 옮길 격자가 없다.")
 
     if a.engine in ("ours", "ours_free"):
-        from rcs_sbr import sbr_field, grid_ref_from
+        from rcs_sbr import sbr_field, grid_ref_from, grid_ref_margin, grid_ref_shift
         gm = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
         #: ⭐격자 간격 λ/div. div 를 안 주면 규약값 12 라 기존 샤드와 비트동일하다.
         div = int(getattr(a, "div", 0) or DIV)
-        d = (2.998e8 / FC) / div
-        gref = grid_ref_from([fp.pose(ph[i]) for i in range(0, n, max(1, n // 64))],
-                             FC, spacing=d)
+        #: ⚠간격은 **λ/div** 라 반송파를 옮기면 저절로 따라 줄어든다 — div 12 를 유지하면
+        #   5.8 GHz 판도 같은 λ/12 규약이라 R16 격자 밴드를 그대로 인용할 수 있다.
+        d = (2.998e8 / fc) / div
+        probes = [fp.pose(ph[i]) for i in range(0, n, max(1, n // 64))]
+        gref = grid_ref_from(probes, fc, spacing=d)
         # ⭐가림 대조군 — 동체의 **면만** 뺀다. 정점(mv.v)은 그대로 둬서 bbox·광선격자가
         #   같으므로 «동체가 막느냐» 하나만 다른 단일축이 된다(report15b 의 blade_free 규약).
         prop_only = (a.engine == "ours_free")
@@ -154,17 +275,26 @@ def run(a) -> None:
             f_keep, g_keep = fp.f[keep], fp.g[keep]
         for el in els:
             tagd = ("_ptd" if a.ptd else "") + tagr \
-                + ("" if not getattr(a, "div", 0) else f"_div{div}")
+                + ("" if not getattr(a, "div", 0) else f"_div{div}") + tagsh
             f = f"{SHD}/{a.engine}{tagd}_el{el:+.0f}_{a.shard:02d}.npz"
             if os.path.exists(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
             u = los(az, el)
+            #: ⭐가로축 (e1,e2) 는 û 가 정하므로 판을 **앙각마다** 옮긴다. 크기(d·n·Rout)는
+            #   그대로고 원점만 움직인다 — 안 주면 gref 그 객체를 그대로 쓴다(비트동일).
+            gref_el = grid_ref_shift(gref, (sh1, sh2), u) if tagsh else gref
+            if tagsh:
+                mgn = min(grid_ref_margin(m_, u, gref_el, spacing=d)["margin_min_m"]
+                          for m_ in probes)
+                print(f"  격자 위상 널 el{el:+.0f}: {sh1:g}·{sh2:g} 칸 = "
+                      f"{np.hypot(sh1, sh2)*d*1e3:.2f} mm 이동 · n={gref_el.n} (안 바뀜) · "
+                      f"남은 덮개 여유 {mgn*1e3:+.2f} mm ({mgn/d:+.2f} 칸)", flush=True)
             E = np.zeros(idx.size, complex); t0 = time.time()
             for j, i in enumerate(idx):
                 mv = fp.pose(ph[int(i)])
                 if prop_only:
                     mv.f, mv.g = f_keep, g_keep          # 정점은 그대로 — bbox 보존
-                E[j] = sbr_field(mv, gm, FC, u, spacing=d, grid_ref=gref,
+                E[j] = sbr_field(mv, gm, fc, u, spacing=d, grid_ref=gref_el,
                                  range_m=(None if plane else rng_m), ptd=bool(a.ptd))
                 if j and j % 128 == 0:
                     e = time.time() - t0
@@ -184,6 +314,15 @@ def run(a) -> None:
     # ── Sionna PathSolver ───────────────────────────────────────────────────
     import report15_probe as RP
     from drones import drone_colors
+    # ⭐셸 두께 정정 — **켰을 때만** 재질에 두께를 물린다(안 켜면 materials 가 예전처럼
+    #   thickness 를 아예 안 넘겨 Sionna 기본 0.1 m → 옛 샤드와 비트동일).
+    #   재질은 아래 build_scene 이 자세마다 새로 만드므로 여기서 한 번 걸어 두면 전부 적용된다.
+    if tagth:
+        import materials as _M
+        _st = _M.set_thickness_mm(shell=(shell_mm or None), prop=(prop_mm or None))
+        print("  ⭐두께 정정: " + " · ".join(f"{k} {v*1e3:g} mm" for k, v in _st.items())
+              + "  (안 준 비-ITU 재질은 Sionna 기본 100 mm 그대로 — carbon 은 표피깊이 "
+                "0.155 mm 라 두께를 안 탄다)", flush=True)
     spp = int(a.spp) if a.spp else rule_spp(rng_m)
     # ⭐깊이는 물리 스위치와 분리한다. --max-depth 를 안 주면 옛 규칙 그대로다.
     mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else (3 if a.physics else 1)
@@ -251,7 +390,7 @@ def run(a) -> None:
             parts = [RP.Part(name=f"{spec.key}_{g}_{i%2}", obj=p,
                              mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
                      for g, p in paths_obj.items()]
-            sc = RP.build_scene(parts, fc=FC)
+            sc = RP.build_scene(parts, fc=fc)
             RP.place(sc, az=az, el=el, rng=rng_m, baseline=0.0)
             p = RP.rt.PathSolver()(
                 sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
@@ -265,7 +404,7 @@ def run(a) -> None:
                 aa = np.zeros(0)
             if aa.size:
                 hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)
-                E[j] = complex(np.sum(aa[hit] * np.exp(-1j * 2 * np.pi * FC * tau[hit])))
+                E[j] = complex(np.sum(aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])))
                 npaths[j] = int(hit.sum())
             RP.drop_scratch(dd)
             if j and j % 128 == 0:
@@ -297,7 +436,9 @@ def f_tip_at(el_deg: float, arm: str = "") -> float:
             key = k
             break
     spec = DRONES[key]
-    lam = 2.998e8 / FC
+    # ⚠반송파도 팔 이름에서 읽는다 — 한 원장에 3.5 GHz 팔과 5.8 GHz 팔이 함께 살기 때문이다.
+    #   꼬리표가 없으면 규약값 FC 라 옛 팔의 값은 한 비트도 안 바뀐다.
+    lam = 2.998e8 / carrier_of(arm)
     R = spec.prop_dia_mm / 2000.0
     f_rev = float(getattr(spec, "hover_rpm", 6000.0)) / 60.0
     return 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(el_deg))
@@ -402,6 +543,29 @@ def analyse() -> None:
             prov["az_deg"] = float(m_az.group(1)) if m_az else float(TJ.get("az_deg", 0.0))
             prov["grid_div"] = int(m_div.group(1)) if m_div else (
                 DIV if eng.startswith("ours") else None)
+            #: ⭐격자 위상 널 — 격자를 **몇 칸 옆으로 옮겨** 잰 판인가(칸 단위, [e1, e2]).
+            #   꼬리표가 없으면 원판이라 [0,0] 이다. PathSolver 팔에는 격자가 없어 None.
+            m_sh = re.search(r"_shift(-?\d+(?:\.\d+)?)(?:x(-?\d+(?:\.\d+)?))?", eng)
+            prov["grid_shift_cells"] = (
+                [float(m_sh.group(1)), float(m_sh.group(2) or m_sh.group(1))] if m_sh
+                else ([0.0, 0.0] if eng.startswith("ours") else None))
+            #: ⭐셸·프롭 두께 [mm] — 꼬리표가 없는 PathSolver 팔은 **100 mm**(Sionna 기본값)다.
+            #   그 100 은 «안 정한 값» 이 아니라 **실제로 그 판 위에서 계산된 값**이라 반드시
+            #   싣는다(정정 이전 모든 sionna 수치에 붙는 단서다). 우리 커널에는 두께가 없다 → None.
+            m_th = re.search(r"_shell(\d+(?:\.\d+)?)mm", eng)
+            m_tp = re.search(r"_prop(\d+(?:\.\d+)?)mm", eng)
+            _ours = eng.startswith("ours")
+            prov["shell_mm"] = None if _ours else (
+                float(m_th.group(1)) if m_th else 100.0)
+            prov["prop_mm"] = None if _ours else (
+                float(m_tp.group(1)) if m_tp else 100.0)
+            #: ⭐반송파 — 꼬리표가 없으면 규약값 3.5 GHz. f_tip 은 이미 이 값으로 잡혀 있다.
+            fc_arm = carrier_of(eng)
+            prov["fc_hz"] = fc_arm
+            # ⭐«덱 고정 대역» 은 −15°·3.5 GHz 에서 잰 자리다. 반송파를 옮긴 팔에는 **λ 비로
+            #   늘려서** 같은 물리적 자리를 가리키게 한다(R23② 판정 규약). 3.5 GHz 면 ×1.0 이라
+            #   옛 값과 비트동일하다.
+            ftd = ft_deck if fc_arm == FC else ft_deck * (fc_arm / FC)
             rows.append(dict(
                 engine=eng, el_deg=el, cos_el=round(float(np.cos(np.radians(el))), 4),
                 f_tip_hz=round(ft, 1), n_poses=len(E), n_missing=miss,
@@ -410,8 +574,8 @@ def analyse() -> None:
                 level_db=round(float(20 * np.log10(np.mean(np.abs(E)) + 1e-300)), 2),
                 # ⭐(a) 앙각마다 대역을 다시 잡는다 — 정본
                 track=band_metrics(E, 0.35 * ft, max(ft, 1e-6)),
-                # (b) 덱의 −15° 대역 고정 — 어디서 무너지나
-                fixed=band_metrics(E, 0.35 * ft_deck, ft_deck)))
+                # (b) 덱의 −15° 대역 고정 — 어디서 무너지나 (반송파를 옮긴 팔은 λ 비로 늘린다)
+                fixed=band_metrics(E, 0.35 * ftd, ftd)))
 
     if not rows:
         raise SystemExit(f"⛔ {SHD} 에 샤드가 없다")
@@ -444,11 +608,32 @@ def analyse() -> None:
                          "구면파로 조명하고 PathSolver 는 실제 기하를 쓴다. ⚠같은 원장에 "
                          "10 m 옛 팔이 함께 사니 행의 `range_m` 열로 갈라 읽는다."),
         "sionna_spp_primary": 4_000_000_000,
-        "fc_hz": FC, "prf_hz": prf, "f_flash_hz": ffl,
+        # ⛔이 원장은 **반송파도 하나가 아니다.** 행마다 fc_hz 를 실었으니 그 열을 읽어라.
+        "fc_hz": FC,
+        "fc_note_ko": ("⭐`fc_hz` 는 옛 판(3.5 GHz)의 **기본값**일 뿐이다 — 반송파는 **행마다** "
+                       "`fc_hz` 열에 있다. λ 가 바뀌면 f_tip·격자 간격·원거리장 경계가 함께 "
+                       "바뀐다(격자는 λ/12 규약을 유지하므로 칸이 촘촘해진다). 두 반송파의 값을 "
+                       "나란히 놓을 때는 반드시 그 열로 갈라 읽고, 어느 항이 λ 비로 닫히고 어느 "
+                       "항이 안 닫히는지는 outputs/carrier_transition_table.json 을 인용한다."),
+        "carriers_present_hz": sorted({r["fc_hz"] for r in rows}),
+        "prf_hz": prf, "f_flash_hz": ffl,
         "elevations_deg": list(ELS), "drone": TJ.get("drone"),
         "rotor_ko": "덱과 같은 결정론 패턴(OU 프리셋 아님) — 축을 하나만 바꾼다",
         "rpm_per_rotor": TJ.get("rpm_per_rotor"),
         "grid_ko": "얼린 격자(자세 합집합 bbox), λ/12",
+        "grid_shift_ko": ("⭐행의 `grid_shift_cells` 는 «같은 격자를 몇 칸 옆으로 옮겨 쟀나» 다"
+                          "(칸 단위 [e1,e2], 원판은 [0,0]). 격자 간격·칸 수·광선 수는 그대로고 "
+                          "표본을 찍는 자리만 다르다 — `grid_div` 와 짝지어 읽어야 «촘촘해서» 와 "
+                          "«어디를 찍어서» 를 가를 수 있다. 읽는 법은 docs/GRID_PHASE_NULL.md"),
+        "thickness_note_ko": ("⛔**두께 단서(정정 이전 판)** — 행의 `shell_mm`·`prop_mm` 이 "
+                              "**100.0** 인 PathSolver 팔은 Sionna 기본값 0.1 m(=10 cm) 슬래브 "
+                              "위에서 계산된 값이다. 드론 셸은 실제로 1~3 mm 이고, 두께는 굴절만이 "
+                              "아니라 **정반사 계수도** 바꾼다(ITU-R P.2040 단층 슬래브). CPU 실측 "
+                              "outputs/slab_thickness_check.json: 셸 정반사가 100 mm 대비 2 mm 에서 "
+                              "−4.90 dB(수직)·−5.82 dB(각도평균) 로, ⓪ 격자 밴드 3.86 dB **밖**이다. "
+                              "⚠두께 자체는 **출처가 없다**(RETRACTION_LOG A3) — 1·2·3 mm 는 "
+                              "측정값이 아니라 민감도 축이다. 우리 커널에는 두께 개념이 없어 "
+                              "(|Γ|·τ 뿐) ours 팔은 None 이다."),
         "ours_illumination_ko": "우리 팔은 행의 range_m 으로 구면파 조명 — 행마다 다르다",
         "spp_note_ko": "광선 수는 행의 spp 열에 있다 — 규칙값 (R/3)²×1M 을 --spp 로 덮은 팔이 많다",
         "band_track_ko": "⭐정본 — 앙각마다 그 앙각의 f_tip 으로 0.35~1.0 배",
@@ -542,6 +727,45 @@ def main() -> None:
                          "상한 위 누설이 격자 표본화에서 오는지 가르는 축이다 — 촘촘하게 "
                          "하면 내려가야 한다. 계산량은 대략 DIV² 로 는다. "
                          "0 이 아니면 파일명에 _div<N> 이 붙는다. (PathSolver 에는 없는 축)")
+    ap.add_argument("--fc-ghz", type=float, default=FC / 1e9,
+                    help="⭐반송파 [GHz]. 기본 3.5 는 지금까지의 모든 판이 쓴 값이라 "
+                         "**안 주면 기존 샤드와 비트동일**이고 꼬리표도 안 붙는다. "
+                         "5.8 을 주면 파일명에 _fc5800 이 붙어 옛 샤드와 안 섞인다. "
+                         "⚠λ 가 바뀌면 격자 간격(λ/div)·얼린 격자 칸 수·f_tip·원거리장 경계가 "
+                         "함께 바뀐다 — **--div 는 12 로 두어야** λ/12 규약이 유지돼 R16 격자 "
+                         "밴드를 그대로 인용할 수 있다. 무엇이 λ 비로 닫히고 무엇이 안 닫히는지는 "
+                         "outputs/carrier_transition_table.json (R23①) 을 볼 것. "
+                         "⛔단위는 GHz 다 — 설계서 옛 표기 «--fc 5.8e9» 를 그대로 치면 죽는다.")
+    ap.add_argument("--grid-shift", "--grid-phase", default="",
+                    help="⭐**격자 위상 널** — 같은 λ/DIV 격자를 반 칸(0.5) 옆으로 옮겨 다시 잰다. "
+                         "칸 단위이고 스칼라면 두 가로축에 같이, «0.5,0.25» 면 따로 준다. "
+                         "안 주면(또는 0) 판을 안 옮기고 꼬리표도 안 붙어 **기존 샤드와 비트동일**. "
+                         "격자 간격·칸 수·광선 수는 **안 바뀐다** — 표본을 찍는 자리만 바뀐다. "
+                         "그래서 --div 로 촘촘히 했을 때의 변화가 «촘촘해서» 인지 «원점이 달라서» "
+                         "인지를 이 인자로만 가를 수 있다. 이동판과 원판의 차이가 λ/12↔λ/24 차이와 "
+                         "비슷하면 그 변화는 해상도가 아니라 표본 자리의 몫이다(그러면 더 촘촘한 "
+                         "격자를 사는 것은 낭비다). ⭐1.0 은 격자가 자기 위에 겹치는 배선 검사용이다. "
+                         "우리 커널 전용(PathSolver 에는 표면 격자가 없다). "
+                         "파일명에 _shift<칸수> 가 붙는다. 읽는 법 docs/GRID_PHASE_NULL.md")
+    ap.add_argument("--shell-mm", type=float, default=0.0,
+                    help="⭐드론 **셸 두께 [mm]** — plastic·plastic_blue(동체·캐노피·착륙장치·"
+                         "식별색)를 이 두께의 슬래브로 만든다. 0 이면 아무것도 안 건드려 "
+                         "**기존 샤드와 비트동일**(=Sionna 기본값 100 mm 가 그대로 쓰인다). "
+                         "⛔지금까지의 모든 PathSolver 수치는 그 100 mm 판 위의 값이다 — "
+                         "두께는 굴절만이 아니라 **정반사도** 바꾼다(ITU-R P.2040 단층 슬래브). "
+                         "CPU 실측(outputs/slab_thickness_check.json): 셸 정반사가 100 mm 대비 "
+                         "3 mm −1.6 · 2 mm −4.9 · 1 mm −10.8 dB. ⭐두께에는 **출처가 없으니"
+                         "**(RETRACTION_LOG A3) 한 값을 못 박지 말고 1·2·3 mm 를 **민감도 축**"
+                         "으로 돌린다. ⚠기준선 팔도 반드시 같은 두께로 함께 낸다 — 2 mm 굴절을 "
+                         "100 mm 기준선과 겨루면 지금보다 나쁜 비교다. 파일명에 _shell<N>mm.")
+    ap.add_argument("--prop-mm", type=float, default=0.0,
+                    help="⭐**프로펠러 두께 [mm]** — prop_plastic 만 바꾼다. --shell-mm 과 갈라 둔 "
+                         "이유는 «표적 축(마이크로도플러)이 안 움직이는 판» 을 하나 확보하기 "
+                         "위해서다(셸만 고치고 날개는 그대로 두는 팔). 0 이면 안 건드린다"
+                         "(비트동일). 날개는 셸보다 얇다는 것이 우리 |Γ| 표의 방향이므로 "
+                         "보통 셸보다 작은 값을 준다. 파일명에 _prop<N>mm. "
+                         "⚠carbon(암·데크)에는 손잡이가 없다 — 표피깊이 0.155 mm 라 0.5 mm 든 "
+                         "100 mm 든 반사가 같다(실측 0.00 dB).")
     ap.add_argument("--parts", default="",
                     help="쉼표 구분 그룹 필터(예: prop) — Sionna 가지 전용. 장면에 그 "
                          "그룹 부품만 넣는다(0° 붕괴 기전 검증: 기근이냐 익사냐). "

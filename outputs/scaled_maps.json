@@ -1,0 +1,1924 @@
+{
+ "_meta": {
+  "generator": "benchmark/build_scaled_maps.py",
+  "generated": "2026-08-15T18:16:43",
+  "question_ko": "맵을 «패널별 최댓값» 이 아닌 눈금으로 다시 그려 세기를 되살린다",
+  "gpu_ko": "GPU·솔버 호출 없음 — 저장된 원장만 읽은 CPU 작업",
+  "provisional_ko": "⚠절대 세기는 **잠정**이다 — 셸 두께·커널 반사율 정정이 진행 중이라 잡음 기준 판의 절대 dB 는 통째로 움직일 수 있다. 이 그림이 주장하는 것은 판 사이의 **차이**다",
+  "provisional": true,
+  "scales": {
+   "per_panel_peak": "draw(mode='peak', ref=None) — 0 dB = 그 패널의 최댓값",
+   "common_ref": "draw(mode='peak', ref=스칼라) — 0 dB = 지정한 한 판의 최댓값",
+   "over_noise": "draw(mode='over_noise', noise_rms=…) — 0 dB = 측정한 잡음 바닥"
+  },
+  "source": {
+   "ledger_json": "outputs/elevation_sweep_md.json",
+   "ledger_npz": "outputs/elevation_sweep_md.npz",
+   "drone": "matrice4e",
+   "fc_hz": 3500000000.0,
+   "prf_hz": 19700.0,
+   "f_flash_hz": 126.66666666666667,
+   "n_poses": 8192
+  },
+  "stft": {
+   "module": "src/md_mapstyle.flash_spec",
+   "periods": 0.45,
+   "nperseg": 70,
+   "hop": 2,
+   "zero_pad": 8,
+   "window": "hann",
+   "df_hz": 281.43,
+   "dt_ms": 3.553
+  },
+  "display": {
+   "t_window_ms": [
+    20.0,
+    80.0
+   ],
+   "f_window": "|f| <= 2.05 f_tip",
+   "note_ko": "표시만 자른다 — 모든 잣대는 전 구간에서 쟀다"
+  },
+  "colour": {
+   "peak_vmin_db": -40.0,
+   "peak_vmax_db": 0.0,
+   "noise_vmin_db": -6.0,
+   "noise_vmax_db": 50.0,
+   "noise_vmax_note_ko": "규약 기본은 40 이지만 거리 사다리 하나가 36 dB 를 먹어 50 으로 넓혔다(build_md_noise_range_fig 선례)",
+   "dead_below_db": 0.0,
+   "dead_note_ko": "잡음 바닥 아래는 무채색으로 죽인다 — 그게 이 그림의 요점"
+  },
+  "budget": {
+   "eirp_dbm": 30.0,
+   "rx_gain_dbi": 10.0,
+   "nf_db": 5.0,
+   "capture": "full_waveform",
+   "noise_w_per_sample": 2.4942932229992773e-16,
+   "source": "benchmark/detection_curves.EIRP_DBM (같은 선언값)"
+  },
+  "anchor": {
+   "sigma_ref_dbsm": -13.984212727603522,
+   "provenance": {
+    "anchor": "das_phantom3_mono",
+    "f_ghz": 3.5,
+    "anchor_mu_dbsm": -15.94818421865148,
+    "size_corr_db": 1.9639714910479582,
+    "size_corr": {
+     "corr_db": 1.9639714910479582
+    },
+    "convention": "azimuth linear-mean (sigma_anchor §규약)",
+    "note": "재보정(re-levelling)이지 검증이 아니다"
+   },
+   "baseline": "all_el_mean",
+   "baseline_ko": "엔진당 하나 — 7 앙각을 모은 ⟨σ_kernel⟩(15 m 판)을 σ_ref 에 맞춘다. 문헌 앵커 자체가 자세 평균이라 결이 같다",
+   "differs_from_detection_curves_ko": "⚠benchmark/detection_curves.py 는 el −30° 한 자세에 건다. 거기서는 엔진 하나·자세 하나씩만 보고하므로 옳다. 이 그림은 자세와 엔진을 함께 놓으므로 한 자세에 걸면 그 자세가 정의상 같아진다(실측: el −30 에서 네 팔이 +57/+60/+58 dB 로 붙는다). 두 원장의 절대 dB 를 나란히 인용하려면 이 차이를 먼저 환산해야 한다 — 오프셋은 sensitivity.rows",
+   "c_anchor": {
+    "ours_r15_n8192": 1.5293699287550206,
+    "sionna_p4000000000_r15_n8192_d1": 344.7619835194614,
+    "sionna_p4000000000_onlyrefr_r15_n8192": 344.2087053279062,
+    "sionna_p4000000000_onlydiffr_r15_n8192": 211.81213100529948
+   },
+   "c_anchor_db": {
+    "ours_r15_n8192": 1.845,
+    "sionna_p4000000000_r15_n8192_d1": 25.375,
+    "sionna_p4000000000_onlyrefr_r15_n8192": 25.368,
+    "sionna_p4000000000_onlydiffr_r15_n8192": 23.26
+   },
+   "variants": {
+    "ours_r15_n8192": {
+     "all_el_mean": 1.5293699287550206,
+     "_n_el_pooled": 7.0,
+     "el-30_mean": 52.07030119796651,
+     "el0_mean": 6.558407795751929,
+     "el-30_median": 72.65524521749376
+    },
+    "sionna_p4000000000_r15_n8192_d1": {
+     "all_el_mean": 344.7619835194614,
+     "_n_el_pooled": 7.0,
+     "el-30_mean": 499597849.4539553,
+     "el0_mean": 49.25270274695624,
+     "el-30_median": 660789397.9849157
+    },
+    "sionna_p4000000000_onlyrefr_r15_n8192": {
+     "all_el_mean": 344.2087053279062,
+     "_n_el_pooled": 7.0,
+     "el-30_mean": 1137269091.7040536,
+     "el0_mean": 49.17281377773829,
+     "el-30_median": 1603424692.4351823
+    },
+    "sionna_p4000000000_onlydiffr_r15_n8192": {
+     "all_el_mean": 211.81213100529948,
+     "_n_el_pooled": 7.0,
+     "el-30_mean": 82092.82772522802,
+     "el0_mean": 37.7335831235029,
+     "el-30_median": 81615.91446007119
+    }
+   },
+   "els_pooled_deg": [
+    0.0,
+    -15.0,
+    -30.0,
+    -45.0,
+    -60.0,
+    -75.0,
+    -90.0
+   ]
+  },
+  "band": {
+   "blade": "0.35..1.0 x f_tip(el), 하한은 3 빈 이상",
+   "body": "|f| <= 0.5 f_flash"
+  },
+  "related_ledgers": {
+   "note_ko": "⚠잡음 기준 원장이 셋이고 **앵커 범위가 서로 다르다** — 절대 dB 를 그냥 나란히 인용하면 안 된다. 고르는 법과 환산은 docs/MAP_SCALING.md §4-b",
+   "items": [
+    {
+     "json": "outputs/detection_curves.json",
+     "anchor_scope": "엔진마다 el −30° 판",
+     "answers_ko": "이 팔은 몇 m 까지 탐지되나(R50)"
+    },
+    {
+     "json": "outputs/noise_distance_frame.json",
+     "anchor_scope": "(팔, 앙각)마다 그 팔의 15 m 판",
+     "answers_ko": "거리를 늘리면 무엇이 먼저 안 읽히나",
+     "cross_check_ko": "⭐그쪽 자가검사 3(거리 지수 p = 0.02 우리 · 2.008 PathSolver el 0°)과 이쪽 SC3·SC5(산포 0.30 dB · 잔차 0.07 dB)가 **독립적으로 같은 사실**을 쟀다"
+    },
+    {
+     "json": "outputs/scaled_maps.json",
+     "anchor_scope": "엔진마다 7 앙각 평균",
+     "answers_ko": "같은 평균 RCS 를 줬을 때 무늬가 자세에 따라 어떻게 무너지나"
+    }
+   ]
+  },
+  "forbidden_ko": "⚠①② 에서 엔진 사이 절대 세기 비교 금지(우리 E 는 면적 차원, PathSolver 계수는 무차원). ③ 은 둘 다 σ 로 환산 뒤 잡음으로 나눠 무차원이라 열린다 — 대신 앵커 선택이 결론을 흔든다(sensitivity)",
+  "figures_dir": "outputs/figures/scaled_maps"
+ },
+ "noise_floor": {
+  "rms": 0.14730912564831417,
+  "only_max_over_rms_db": 10.479,
+  "only_max_theory_db": 11.655,
+  "probe": "unit-variance circular complex Gaussian, same STFT",
+  "meaning_ko": "잡음만 있는 맵의 **화소** 최댓값 — 색역·설명용 참고값",
+  "not_a_decision_bar_ko": "⛔판정 막대가 아니다. 판정량은 시간평균·잡음차감을 거치므로 막대는 decision_bar 에 있는 값을 쓴다(약 17 dB 아래)"
+ },
+ "decision_bar": {
+  "what_ko": "⭐빨강/초록을 가르는 막대 — **판정량 자체**의 귀무분포에서 세웠다",
+  "statistic": "src/md_mapstyle.line_level_over_noise_db",
+  "statistic_ko": "블레이드 대역 빈들의 시간평균 전력에서 잡음 몫을 빼고 남은 최댓값",
+  "rule": "noise-only 99.9th percentile (Pfa = 0.001) of that same statistic",
+  "rule_ko": "잡음만 20000 회를 **같은 STFT·같은 대역 마스크**로 통과시켜 만든 분포의 (1−0.001) 분위수. Pfa 목표는 detection_curves 와 같다",
+  "n_trial": 20000,
+  "pfa": 0.001,
+  "seed": 20260916,
+  "noise_rms_used": 0.14730912564831417,
+  "rms_across_null_trials": {
+   "mean": 0.1463812097991614,
+   "std": 0.000814663173566604
+  },
+  "per_mask": {
+   "blade_el+0": {
+    "bar_db": -6.1015669941453075,
+    "pfa": 0.001,
+    "p50_db": -12.530336722829164,
+    "p90_db": -9.017930797536053,
+    "p99_db": -7.2276668208311925,
+    "max_db": -4.957371629548476,
+    "mean_db": -18.374049310738723,
+    "std_db": 15.605514736902844,
+    "n_bins": 26,
+    "n_trial": 20000,
+    "statistic": "md_mapstyle.line_level_over_noise_db (time-averaged, noise-subtracted, max over the masked bins)"
+   },
+   "body_el+0": {
+    "bar_db": -7.142035703738667,
+    "pfa": 0.001,
+    "p50_db": -60.0,
+    "p90_db": -11.128267159680817,
+    "p99_db": -8.26588148658497,
+    "max_db": -5.485832757740669,
+    "mean_db": -39.373444044381074,
+    "std_db": 22.7010847939916,
+    "n_bins": 3,
+    "n_trial": 20000,
+    "statistic": "md_mapstyle.line_level_over_noise_db (time-averaged, noise-subtracted, max over the masked bins)"
+   },
+   "blade_el-30": {
+    "bar_db": -6.235724872757143,
+    "pfa": 0.001,
+    "p50_db": -13.563436738733948,
+    "p90_db": -9.394678407741548,
+    "p99_db": -7.380902415418895,
+    "max_db": -5.195130568502584,
+    "mean_db": -22.23777893319167,
+    "std_db": 18.633664148190512,
+    "n_bins": 16,
+    "n_trial": 20000,
+    "statistic": "md_mapstyle.line_level_over_noise_db (time-averaged, noise-subtracted, max over the masked bins)"
+   },
+   "body_el-30": {
+    "bar_db": -7.142035703738667,
+    "pfa": 0.001,
+    "p50_db": -60.0,
+    "p90_db": -11.128267159680817,
+    "p99_db": -8.26588148658497,
+    "max_db": -5.485832757740669,
+    "mean_db": -39.373444044381074,
+    "std_db": 22.7010847939916,
+    "n_bins": 3,
+    "n_trial": 20000,
+    "statistic": "md_mapstyle.line_level_over_noise_db (time-averaged, noise-subtracted, max over the masked bins)"
+   }
+  },
+  "masks": {
+   "0.0": {
+    "f_tip_hz": 1272.9,
+    "band_lo_hz": 844.3,
+    "band_hi_hz": 1272.9,
+    "blade_bins": 26,
+    "body_bins": 3
+   },
+   "-30.0": {
+    "f_tip_hz": 1102.4,
+    "band_lo_hz": 844.3,
+    "band_hi_hz": 1102.4,
+    "blade_bins": 16,
+    "body_bins": 3
+   }
+  },
+  "mask_note_ko": "⚠마스크가 넓을수록 최댓값 통계라 막대가 올라간다 — el 마다 f_tip 이 달라 빈 수가 달라지므로 막대를 따로 세운다",
+  "verdict_rule_ko": "막대 넘김을 한 판으로 정하지 않는다 — 같은 신호에 잡음을 400 회 다시 태워 Pd 를 재고 Pd≥0.9 탐지 · 0.1<Pd<0.9 애매 · Pd≤0.1 미탐지 (noise_distance_frame 판정 어휘와 동일)",
+  "mc_trials": 400
+ },
+ "crosscheck": {
+  "what_ko": "세 원장의 앵커가 다르다는 사실과, 환산 후 서로 검산이 되는지의 **실측 결과**",
+  "anchor_offset_db": {
+   "value": 15.321,
+   "meaning_ko": "detection_curves(el −30° 앵커) 가 이 원장(7 앙각 평균 앵커)보다 이만큼 높다 — 거리로는 10^(Δ/40) = 2.416 배",
+   "range_factor": 2.4156,
+   "sigma_ref_dbsm": -13.984
+  },
+  "anchors": [
+   {
+    "ledger": "outputs/scaled_maps.json",
+    "anchor_scope_en": "per engine, mean over all 7 elevations of the 15 m ledger",
+    "anchor_scope_ko": "엔진마다 7 앙각 평균",
+    "c_anchor_db_ours": 1.845,
+    "offset_vs_this_ledger_db": 0.0,
+    "decision_statistic": "line_level_over_noise_db (max over blade-band bins of the time-averaged, noise-subtracted power)",
+    "bar_rule": "noise-only 99.9th percentile of that same statistic (20000 trials)"
+   },
+   {
+    "ledger": "outputs/detection_curves.json",
+    "anchor_scope_en": "per engine, the el -30 deg panel of the 15 m ledger",
+    "anchor_scope_ko": "엔진마다 el −30° 판",
+    "c_anchor_db_ours": 17.166,
+    "offset_vs_this_ledger_db": 15.321,
+    "decision_statistic": "comb energy (f_flash harmonics) and total blade-band energy, DC removed",
+    "bar_rule": "(1-Pfa) quantile of 30000 noise-only trials, Pfa = 1e-3"
+   },
+   {
+    "ledger": "outputs/noise_distance_frame.json",
+    "anchor_scope_en": "per (arm, elevation), that arm's own 15 m panel",
+    "anchor_scope_ko": "(팔, 앙각)마다 그 팔의 15 m 판",
+    "c_anchor_db_ours": 17.166,
+    "offset_vs_this_ledger_db": 15.321,
+    "offset_note_ko": "el −30° 에서는 detection_curves 와 **같은 수**다 (엔진당 앵커 = (팔,앙각) 앵커). 다른 앙각에서는 갈라진다",
+    "decision_statistic": "comb_contrast_db (comb contrast) and rhythm share",
+    "bar_rule": "read_lines: null mean + grid-shake band 3.861 dB (readable), null mean + 2 sigma (undecidable)",
+    "read_lines_minus30": {
+     "readable_db": 3.843,
+     "undecidable_db": 1.713,
+     "null_mean_db": -0.0176,
+     "null_std_db": 0.8653,
+     "n_trial": 0
+    }
+   }
+  ],
+  "read_lines_transfer": {
+   "question_ko": "noise_distance_frame 의 read_lines(3.84 / 1.71 dB)를 이 그림의 막대로 그대로 쓸 수 있나",
+   "answer_ko": "⛔못 쓴다 — **다른 통계량의 막대**다. read_lines 는 빗살 대비(comb_contrast_db)의 막대이고, 이 그림이 판정하는 양은 블레이드 대역의 선 레벨(line_level_over_noise_db)이다.",
+   "why_ko": [
+    "빗살 대비는 «빗살 칸 / 빗살 아닌 칸» 비율이라 잡음만 넣으면 귀무평균이 정의상 ≈0 dB 다(실측 −0.018 dB). 선 레벨은 잡음 몫을 빼고 남은 것이라 귀무 중앙값이 −13 dB 대다. 두 수의 dB 는 서로 다른 자에 찍힌 눈금이다.",
+    "read_lines 의 readable 은 Pfa 분위수가 아니라 «격자 흔들림 밴드»(3.861 dB) 이고, undecidable 은 평균+2σ(가우스면 Pfa ≈ 2.3 %)다. 이 그림은 detection_curves 와 맞추려고 Pfa = 1e-3 분위수를 쓴다.",
+    "⭐다만 **방법은 같다** — 판정하는 그 양을 잡음만으로 여러 번 재서 막대를 세운다. noise_distance_frame 은 자기 통계량에 대해 그것을 제대로 했고, 이 파일은 그 방법을 자기 통계량에 대해 다시 해야 했다."
+   ],
+   "transferable_ko": "옮길 수 있는 것은 **수가 아니라 방법**이다."
+  },
+  "r50_rows": [
+   {
+    "el_deg": 0.0,
+    "dc_arm": "ours_el+0",
+    "dc_statistic": "band",
+    "dc_r50_m": 547.7,
+    "dc_anchor_db": 17.166,
+    "converted_to_this_anchor_m": 226.7,
+    "this_ledger_r50_measured_m": 228.8,
+    "this_ledger_r50_predicted_m": 230.0,
+    "deviation_pct": 0.91,
+    "apples_to_apples": true
+   },
+   {
+    "el_deg": 0.0,
+    "dc_arm": "ours_el+0",
+    "dc_statistic": "comb",
+    "dc_r50_m": 688.9,
+    "dc_anchor_db": 17.166,
+    "converted_to_this_anchor_m": 285.2,
+    "this_ledger_r50_measured_m": 228.8,
+    "this_ledger_r50_predicted_m": 230.0,
+    "deviation_pct": -19.77,
+    "apples_to_apples": false
+   },
+   {
+    "el_deg": -30.0,
+    "dc_arm": "ours_el-30",
+    "dc_statistic": "band",
+    "dc_r50_m": 567.1,
+    "dc_anchor_db": 17.166,
+    "converted_to_this_anchor_m": 234.8,
+    "this_ledger_r50_measured_m": 231.7,
+    "this_ledger_r50_predicted_m": 234.1,
+    "deviation_pct": -1.3,
+    "apples_to_apples": true
+   },
+   {
+    "el_deg": -30.0,
+    "dc_arm": "ours_el-30",
+    "dc_statistic": "comb",
+    "dc_r50_m": 723.7,
+    "dc_anchor_db": 17.166,
+    "converted_to_this_anchor_m": 299.6,
+    "this_ledger_r50_measured_m": 231.7,
+    "this_ledger_r50_predicted_m": 234.1,
+    "deviation_pct": -22.67,
+    "apples_to_apples": false
+   }
+  ],
+  "r50_by_el": [
+   {
+    "el_deg": 0.0,
+    "bar_db": -6.102,
+    "clean_line_15m_db": 41.321,
+    "r50_measured_m": 228.8,
+    "r50_predicted_m": 230.0,
+    "predicted_from": "R = 15 m x 10^((clean 15 m line - bar)/40), i.e. 1/R^4",
+    "curve": [
+     {
+      "R_m": 120.0,
+      "pd": 1.0,
+      "stat_mean_db": 5.186,
+      "snr_sample_db": 8.235
+     },
+     {
+      "R_m": 150.0,
+      "pd": 1.0,
+      "stat_mean_db": 1.204,
+      "snr_sample_db": 4.359
+     },
+     {
+      "R_m": 180.0,
+      "pd": 1.0,
+      "stat_mean_db": -1.958,
+      "snr_sample_db": 1.191
+     },
+     {
+      "R_m": 210.0,
+      "pd": 0.885,
+      "stat_mean_db": -4.767,
+      "snr_sample_db": -1.487
+     },
+     {
+      "R_m": 235.0,
+      "pd": 0.38,
+      "stat_mean_db": -6.701,
+      "snr_sample_db": -3.441
+     },
+     {
+      "R_m": 260.0,
+      "pd": 0.105,
+      "stat_mean_db": -8.7,
+      "snr_sample_db": -5.197
+     },
+     {
+      "R_m": 290.0,
+      "pd": 0.025,
+      "stat_mean_db": -10.717,
+      "snr_sample_db": -7.094
+     },
+     {
+      "R_m": 320.0,
+      "pd": 0.0075,
+      "stat_mean_db": -13.494,
+      "snr_sample_db": -8.804
+     },
+     {
+      "R_m": 360.0,
+      "pd": 0.0025,
+      "stat_mean_db": -15.143,
+      "snr_sample_db": -10.85
+     },
+     {
+      "R_m": 420.0,
+      "pd": 0.0,
+      "stat_mean_db": -15.801,
+      "snr_sample_db": -13.528
+     }
+    ],
+    "n_trial_per_point": 400
+   },
+   {
+    "el_deg": -30.0,
+    "bar_db": -6.236,
+    "clean_line_15m_db": 41.497,
+    "r50_measured_m": 231.7,
+    "r50_predicted_m": 234.1,
+    "predicted_from": "R = 15 m x 10^((clean 15 m line - bar)/40), i.e. 1/R^4",
+    "curve": [
+     {
+      "R_m": 120.0,
+      "pd": 1.0,
+      "stat_mean_db": 5.355,
+      "snr_sample_db": -0.763
+     },
+     {
+      "R_m": 150.0,
+      "pd": 1.0,
+      "stat_mean_db": 1.476,
+      "snr_sample_db": -4.639
+     },
+     {
+      "R_m": 180.0,
+      "pd": 1.0,
+      "stat_mean_db": -1.794,
+      "snr_sample_db": -7.807
+     },
+     {
+      "R_m": 210.0,
+      "pd": 0.9,
+      "stat_mean_db": -4.694,
+      "snr_sample_db": -10.484
+     },
+     {
+      "R_m": 235.0,
+      "pd": 0.4425,
+      "stat_mean_db": -6.617,
+      "snr_sample_db": -12.438
+     },
+     {
+      "R_m": 260.0,
+      "pd": 0.1225,
+      "stat_mean_db": -8.379,
+      "snr_sample_db": -14.195
+     },
+     {
+      "R_m": 290.0,
+      "pd": 0.045,
+      "stat_mean_db": -11.092,
+      "snr_sample_db": -16.092
+     },
+     {
+      "R_m": 320.0,
+      "pd": 0.005,
+      "stat_mean_db": -14.815,
+      "snr_sample_db": -17.802
+     },
+     {
+      "R_m": 360.0,
+      "pd": 0.005,
+      "stat_mean_db": -16.012,
+      "snr_sample_db": -19.848
+     },
+     {
+      "R_m": 420.0,
+      "pd": 0.0,
+      "stat_mean_db": -19.846,
+      "snr_sample_db": -22.526
+     }
+    ],
+    "n_trial_per_point": 400
+   }
+  ],
+  "agreement_ko": "⭐사과-대-사과는 detection_curves 의 **band**(대역 에너지) 팔이다 — 우리 잣대도 블레이드 대역의 세기이기 때문이다. comb 팔은 f_flash 정수배만 모으는 더 센 검출기라 같은 앵커에서 더 멀리 간다(약 +28 %).",
+  "worst_band_deviation_pct": 1.3,
+  "ok": true
+ },
+ "corrections": [
+  {
+   "id": "C1_wrong_bar",
+   "date": "2026-08-15",
+   "severity": "critical",
+   "what_ko": "빨강/초록 판정 막대로 «잡음만 있는 맵의 **화소** 최댓값»(+10.5 dB)을 썼다.",
+   "why_wrong_ko": "판정하는 양은 «시간평균·잡음차감된 블레이드 선 레벨»(line_level_over_noise_db)인데 막대는 다른 통계량에서 나왔다. 두 양은 같은 잡음에서도 값이 다르다 — 시간평균이 잡음의 요동을 누르고 잡음 몫을 빼기까지 하므로 선 레벨의 귀무분포는 훨씬 낮다.",
+   "evidence_ko": "같은 STFT·같은 마스크로 잡음만 20000 회 통과시켜 판정량 자체의 분포를 재니 Pfa 0.001 분위수가 el+0 -6.10 dB · el-30 -6.24 dB 다(귀무 중앙값은 el+0 -12.5 · el-30 -13.6 dB). 옛 막대가 el+0 +16.6 · el-30 +16.7 dB 만큼 높았다.",
+   "was": {
+    "rule": "peak pixel of a noise-only map",
+    "value_db": 10.479,
+    "implied_pfa_ko": "사실상 0 — 이 막대를 넘는 잡음 시행이 없다"
+   },
+   "now": {
+    "rule": "noise-only 99.9th percentile of the same statistic",
+    "value_db": {
+     "el+0": -6.102,
+     "el-30": -6.236
+    },
+    "pfa": 0.001,
+    "n_trial": 20000,
+    "verdict_ko": "막대 넘김 한 판이 아니라 Pd(400 회)로 판정"
+   },
+   "consequence_ko": "빨간 칸 5 개(거리 사다리 120 m 두 칸 · el −30° PathSolver 세 칸)가 전부 오판이었다. 새 막대로 다시 구우면 판정이 바뀐다.",
+   "flipped_cells": [
+    {
+     "figure": "scaled_range_noise",
+     "engine": "ours_r15_n8192",
+     "el_deg": 0.0,
+     "range_m": 120.0,
+     "blade_line_over_noise_db": 5.504,
+     "old_verdict": "not detected (wrong bar)",
+     "new_verdict": "detected",
+     "pd_at_bar": 1.0
+    },
+    {
+     "figure": "scaled_range_noise",
+     "engine": "ours_r15_n8192",
+     "el_deg": -30.0,
+     "range_m": 120.0,
+     "blade_line_over_noise_db": 5.877,
+     "old_verdict": "not detected (wrong bar)",
+     "new_verdict": "detected",
+     "pd_at_bar": 1.0
+    },
+    {
+     "figure": "scaled_engines_noise",
+     "engine": "sionna_p4000000000_r15_n8192_d1",
+     "el_deg": -30.0,
+     "range_m": 15.0,
+     "blade_line_over_noise_db": -2.181,
+     "old_verdict": "not detected (wrong bar)",
+     "new_verdict": "detected",
+     "pd_at_bar": 1.0
+    },
+    {
+     "figure": "scaled_engines_noise",
+     "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+     "el_deg": -30.0,
+     "range_m": 15.0,
+     "blade_line_over_noise_db": -4.026,
+     "old_verdict": "not detected (wrong bar)",
+     "new_verdict": "marginal",
+     "pd_at_bar": 0.2525
+    },
+    {
+     "figure": "scaled_engines_noise",
+     "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+     "el_deg": -30.0,
+     "range_m": 15.0,
+     "blade_line_over_noise_db": 1.687,
+     "old_verdict": "not detected (wrong bar)",
+     "new_verdict": "detected",
+     "pd_at_bar": 1.0
+    }
+   ],
+   "headline_change_ko": "«120 m 는 판정 불가» 는 틀렸다. 이 잣대로 재면 Pd=0.5 사거리가 el +0° 228.8 m · el -30° 231.7 m 다."
+  },
+  {
+   "id": "C2_crosscheck_claimed_but_not_done",
+   "date": "2026-08-15",
+   "severity": "process",
+   "what_ko": "docs/MAP_SCALING.md §7 이 «detection_curves 의 R50 과 서로 검산이 된다» 고 써 놓고 실제로 맞춰 보지 않았다.",
+   "why_wrong_ko": "검산했다면 막대가 17 dB 어긋난 것이 그 자리에서 드러났다. «검산된다» 는 문장은 검산을 **수행한 결과**가 있을 때만 쓴다.",
+   "now": {
+    "rule": "crosscheck_ledgers() 가 앵커 오프셋을 환산해 R50 을 실제로 대조하고 그 표를 원장·문서에 싣는다",
+    "anchor_offset_db": 15.321,
+    "worst_band_deviation_pct": 1.3,
+    "ok": true
+   }
+  },
+  {
+   "id": "C3_read_lines_not_transferable",
+   "date": "2026-08-15",
+   "severity": "clarification",
+   "what_ko": "«noise_distance_frame 의 read_lines(3.84 / 1.71 dB)를 가져다 썼어야 했다» 는 지적을 검토했다.",
+   "finding_ko": "⛔그 수는 못 가져온다 — **다른 통계량**(빗살 대비 comb_contrast_db)의 막대다. 가져올 수 있는 것은 수가 아니라 **방법**(판정량 자체의 귀무분포에서 막대를 세운다)이고, 이번 정정이 그 방법을 따랐다.",
+   "detail": {
+    "question_ko": "noise_distance_frame 의 read_lines(3.84 / 1.71 dB)를 이 그림의 막대로 그대로 쓸 수 있나",
+    "answer_ko": "⛔못 쓴다 — **다른 통계량의 막대**다. read_lines 는 빗살 대비(comb_contrast_db)의 막대이고, 이 그림이 판정하는 양은 블레이드 대역의 선 레벨(line_level_over_noise_db)이다.",
+    "why_ko": [
+     "빗살 대비는 «빗살 칸 / 빗살 아닌 칸» 비율이라 잡음만 넣으면 귀무평균이 정의상 ≈0 dB 다(실측 −0.018 dB). 선 레벨은 잡음 몫을 빼고 남은 것이라 귀무 중앙값이 −13 dB 대다. 두 수의 dB 는 서로 다른 자에 찍힌 눈금이다.",
+     "read_lines 의 readable 은 Pfa 분위수가 아니라 «격자 흔들림 밴드»(3.861 dB) 이고, undecidable 은 평균+2σ(가우스면 Pfa ≈ 2.3 %)다. 이 그림은 detection_curves 와 맞추려고 Pfa = 1e-3 분위수를 쓴다.",
+     "⭐다만 **방법은 같다** — 판정하는 그 양을 잡음만으로 여러 번 재서 막대를 세운다. noise_distance_frame 은 자기 통계량에 대해 그것을 제대로 했고, 이 파일은 그 방법을 자기 통계량에 대해 다시 해야 했다."
+    ],
+    "transferable_ko": "옮길 수 있는 것은 **수가 아니라 방법**이다."
+   }
+  }
+ ],
+ "figures": [
+  "outputs/figures/scaled_maps/scaled_range_common.png",
+  "outputs/figures/scaled_maps/scaled_azimuth_common.png",
+  "outputs/figures/scaled_maps/scaled_range_noise.png",
+  "outputs/figures/scaled_maps/scaled_engines_noise.png",
+  "outputs/figures/scaled_maps/scaled_three_scales_same_data.png",
+  "outputs/figures/scaled_maps/scaled_anchor_sensitivity.png"
+ ],
+ "panels": [
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_raw",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "peak_minus_ref_db": 0.0,
+   "mean_level_minus_ref_db": 0.0,
+   "ref_is": "ours_raw @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_raw",
+   "el_deg": 0.0,
+   "range_m": 30.0,
+   "peak_minus_ref_db": -0.096,
+   "mean_level_minus_ref_db": -0.14,
+   "ref_is": "ours_raw @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_raw",
+   "el_deg": 0.0,
+   "range_m": 60.0,
+   "peak_minus_ref_db": -0.142,
+   "mean_level_minus_ref_db": -0.21,
+   "ref_is": "ours_raw @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_raw",
+   "el_deg": 0.0,
+   "range_m": 120.0,
+   "peak_minus_ref_db": -0.165,
+   "mean_level_minus_ref_db": -0.24,
+   "ref_is": "ours_raw @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_radar",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "peak_minus_ref_db": 0.0,
+   "mean_level_minus_ref_db": 0.0,
+   "ref_is": "ours_radar @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_radar",
+   "el_deg": 0.0,
+   "range_m": 30.0,
+   "peak_minus_ref_db": -12.137,
+   "mean_level_minus_ref_db": -0.14,
+   "ref_is": "ours_radar @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_radar",
+   "el_deg": 0.0,
+   "range_m": 60.0,
+   "peak_minus_ref_db": -24.225,
+   "mean_level_minus_ref_db": -0.21,
+   "ref_is": "ours_radar @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "ours_radar",
+   "el_deg": 0.0,
+   "range_m": 120.0,
+   "peak_minus_ref_db": -36.289,
+   "mean_level_minus_ref_db": -0.24,
+   "ref_is": "ours_radar @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "sionna_off",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "peak_minus_ref_db": 0.0,
+   "mean_level_minus_ref_db": 0.0,
+   "ref_is": "sionna_off @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "sionna_off",
+   "el_deg": 0.0,
+   "range_m": 30.0,
+   "peak_minus_ref_db": -6.072,
+   "mean_level_minus_ref_db": -6.06,
+   "ref_is": "sionna_off @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "sionna_off",
+   "el_deg": 0.0,
+   "range_m": 60.0,
+   "peak_minus_ref_db": -12.119,
+   "mean_level_minus_ref_db": -12.1,
+   "ref_is": "sionna_off @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_range_common",
+   "row": "sionna_off",
+   "el_deg": 0.0,
+   "range_m": 120.0,
+   "peak_minus_ref_db": -18.152,
+   "mean_level_minus_ref_db": -18.13,
+   "ref_is": "sionna_off @ R=15 m peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": 0.0,
+   "az_deg": 0.0,
+   "peak_minus_ref_db": 0.0,
+   "mean_level_minus_ref_db": 0.0,
+   "ref_is": "ours az 0 deg, el +0 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": 0.0,
+   "az_deg": 22.5,
+   "peak_minus_ref_db": 6.615,
+   "mean_level_minus_ref_db": 6.61,
+   "ref_is": "ours az 0 deg, el +0 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": 0.0,
+   "az_deg": 45.0,
+   "peak_minus_ref_db": -0.882,
+   "mean_level_minus_ref_db": -1.65,
+   "ref_is": "ours az 0 deg, el +0 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": 0.0,
+   "az_deg": 67.5,
+   "peak_minus_ref_db": 3.566,
+   "mean_level_minus_ref_db": 3.71,
+   "ref_is": "ours az 0 deg, el +0 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": -30.0,
+   "az_deg": 0.0,
+   "peak_minus_ref_db": 0.0,
+   "mean_level_minus_ref_db": 0.0,
+   "ref_is": "ours az 0 deg, el -30 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": -30.0,
+   "az_deg": 22.5,
+   "peak_minus_ref_db": 7.753,
+   "mean_level_minus_ref_db": 9.21,
+   "ref_is": "ours az 0 deg, el -30 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": -30.0,
+   "az_deg": 45.0,
+   "peak_minus_ref_db": 0.782,
+   "mean_level_minus_ref_db": -0.64,
+   "ref_is": "ours az 0 deg, el -30 deg peak"
+  },
+  {
+   "figure": "scaled_azimuth_common",
+   "el_deg": -30.0,
+   "az_deg": 67.5,
+   "peak_minus_ref_db": 6.732,
+   "mean_level_minus_ref_db": 7.92,
+   "ref_is": "ours az 0 deg, el -30 deg peak"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 41.317,
+   "body_line_over_noise_db": 60.891,
+   "snr_sample_db": 44.359,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 47.418,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 41.321,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 30.0,
+   "blade_line_over_noise_db": 29.268,
+   "body_line_over_noise_db": 48.719,
+   "snr_sample_db": 32.187,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 35.369,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 29.262,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 60.0,
+   "blade_line_over_noise_db": 17.2,
+   "body_line_over_noise_db": 36.616,
+   "snr_sample_db": 20.084,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 23.302,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 17.213,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 120.0,
+   "blade_line_over_noise_db": 5.504,
+   "body_line_over_noise_db": 24.506,
+   "snr_sample_db": 8.013,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 11.606,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 5.131,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 41.5,
+   "body_line_over_noise_db": 50.776,
+   "snr_sample_db": 35.361,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 47.736,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 41.497,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 30.0,
+   "blade_line_over_noise_db": 29.833,
+   "body_line_over_noise_db": 38.497,
+   "snr_sample_db": 23.189,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 36.069,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 29.855,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 60.0,
+   "blade_line_over_noise_db": 18.033,
+   "body_line_over_noise_db": 26.351,
+   "snr_sample_db": 11.107,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 24.269,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 18.003,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_range_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 120.0,
+   "blade_line_over_noise_db": 5.877,
+   "body_line_over_noise_db": 14.234,
+   "snr_sample_db": -0.948,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 12.113,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 6.056,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 41.318,
+   "body_line_over_noise_db": 60.891,
+   "snr_sample_db": 44.359,
+   "sigma_mean_anchored_dbsm": -20.307,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 47.42,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 41.322,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "sionna_p4000000000_r15_n8192_d1",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 35.141,
+   "body_line_over_noise_db": 75.765,
+   "snr_sample_db": 59.132,
+   "sigma_mean_anchored_dbsm": -5.533,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 41.243,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 35.141,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 34.79,
+   "body_line_over_noise_db": 75.766,
+   "snr_sample_db": 59.132,
+   "sigma_mean_anchored_dbsm": -5.533,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 40.891,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 34.789,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+   "el_deg": 0.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 34.243,
+   "body_line_over_noise_db": 74.806,
+   "snr_sample_db": 58.174,
+   "sigma_mean_anchored_dbsm": -6.492,
+   "bar_db": -6.102,
+   "margin_over_bar_db": 40.344,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 34.242,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "ours_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 41.503,
+   "body_line_over_noise_db": 50.775,
+   "snr_sample_db": 35.361,
+   "sigma_mean_anchored_dbsm": -29.305,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 47.739,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 41.497,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "sionna_p4000000000_r15_n8192_d1",
+   "el_deg": -30.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": -2.181,
+   "body_line_over_noise_db": 2.608,
+   "snr_sample_db": -10.93,
+   "sigma_mean_anchored_dbsm": -75.595,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 4.055,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": -1.454,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": -4.026,
+   "body_line_over_noise_db": 0.349,
+   "snr_sample_db": -14.509,
+   "sigma_mean_anchored_dbsm": -79.175,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 2.21,
+   "pd_at_bar": 0.2525,
+   "stat_mean_db": -7.864,
+   "verdict": "marginal"
+  },
+  {
+   "figure": "scaled_engines_noise",
+   "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+   "el_deg": -30.0,
+   "range_m": 15.0,
+   "blade_line_over_noise_db": 1.687,
+   "body_line_over_noise_db": 41.43,
+   "snr_sample_db": 24.798,
+   "sigma_mean_anchored_dbsm": -39.868,
+   "bar_db": -6.236,
+   "margin_over_bar_db": 7.923,
+   "pd_at_bar": 1.0,
+   "stat_mean_db": 1.882,
+   "verdict": "detected"
+  },
+  {
+   "figure": "scaled_three_scales_same_data",
+   "el_deg": -30.0,
+   "ranges_m": [
+    15.0,
+    120.0
+   ],
+   "ref_common_is": "ours R=15 m peak",
+   "noise_scale_cells": [
+    {
+     "range_m": 15.0,
+     "el_deg": -30.0,
+     "blade_line_over_noise_db": 41.5,
+     "bar_db": -6.236,
+     "pd_at_bar": 1.0,
+     "verdict": "detected"
+    },
+    {
+     "range_m": 120.0,
+     "el_deg": -30.0,
+     "blade_line_over_noise_db": 5.877,
+     "bar_db": -6.236,
+     "pd_at_bar": 1.0,
+     "verdict": "detected"
+    }
+   ]
+  }
+ ],
+ "sensitivity": {
+  "what_ko": "앵커를 다르게 걸면 «블레이드 대역 선이 잡음 위 몇 dB» 가 어떻게 바뀌나",
+  "method_ko": "앵커는 곱셈 상수라 잣대를 정확히 평행이동시킨다 — 잡음 없는 맵에서 재고 변형별 오프셋을 더한다",
+  "common_mode_offsets_db": {
+   "sigma_ref_plus_3": "+3.0 (모든 팔 동일 — 비교 불변)",
+   "sigma_ref_minus_3": "-3.0 (모든 팔 동일 — 비교 불변)",
+   "eirp_63_dBm": "+33.0 (모든 팔 동일)",
+   "eirp_12_dBm": "-18.0 (모든 팔 동일)",
+   "note_ko": "이 넷은 그림을 통째로 옆으로 민다 — 어떤 비교도 안 바꾼다. 결론을 흔드는 것은 **앵커를 어느 자세에 거나** 하나뿐이다"
+  },
+  "verdict_ko": "⚠el −30° 에서 «우리 커널이 PathSolver 보다 낫다» 는 **앵커에 의존한다** — el −30° 에 앵커를 걸면 네 팔이 정의상 붙는다. 앵커와 무관하게 참인 문장은 아래 aspect_contrast 다(엔진 안에서 상수가 약분된다)",
+  "aspect_contrast": [
+   {
+    "engine": "ours_r15_n8192",
+    "el_from": 0.0,
+    "el_to": -30.0,
+    "drop_db": -0.176,
+    "spread_across_anchors_db": 0.0,
+    "anchor_invariant": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_from": 0.0,
+    "el_to": -30.0,
+    "drop_db": 36.467,
+    "spread_across_anchors_db": 0.0,
+    "anchor_invariant": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_from": 0.0,
+    "el_to": -30.0,
+    "drop_db": 41.762,
+    "spread_across_anchors_db": 0.0,
+    "anchor_invariant": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_from": 0.0,
+    "el_to": -30.0,
+    "drop_db": 32.323,
+    "spread_across_anchors_db": 0.0,
+    "anchor_invariant": true
+   }
+  ],
+  "rows": [
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": 41.321,
+    "body_line_over_noise_db": 60.891,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 47.423,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 15.321,
+    "blade_line_over_noise_db": 56.642,
+    "body_line_over_noise_db": 76.211,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 62.744,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": 6.323,
+    "blade_line_over_noise_db": 47.644,
+    "body_line_over_noise_db": 67.213,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 53.746,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 16.768,
+    "blade_line_over_noise_db": 58.089,
+    "body_line_over_noise_db": 77.658,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 64.19,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": 41.497,
+    "body_line_over_noise_db": 50.776,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 47.733,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 15.321,
+    "blade_line_over_noise_db": 56.818,
+    "body_line_over_noise_db": 66.096,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 63.054,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": 6.323,
+    "blade_line_over_noise_db": 47.82,
+    "body_line_over_noise_db": 57.099,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 54.056,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "ours_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 16.768,
+    "blade_line_over_noise_db": 58.265,
+    "body_line_over_noise_db": 67.543,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 64.5,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": 0.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": 35.14,
+    "body_line_over_noise_db": 75.765,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 41.242,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": 0.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 61.611,
+    "blade_line_over_noise_db": 96.751,
+    "body_line_over_noise_db": 137.376,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 102.853,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": 0.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": -8.451,
+    "blade_line_over_noise_db": 26.689,
+    "body_line_over_noise_db": 67.314,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 32.791,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": 0.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 62.825,
+    "blade_line_over_noise_db": 97.965,
+    "body_line_over_noise_db": 138.59,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 104.067,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": -30.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": -1.327,
+    "body_line_over_noise_db": 3.003,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 4.909,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": -30.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 61.611,
+    "blade_line_over_noise_db": 60.284,
+    "body_line_over_noise_db": 64.614,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 66.52,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": -30.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": -8.451,
+    "blade_line_over_noise_db": -9.778,
+    "body_line_over_noise_db": -5.448,
+    "bar_db": -6.236,
+    "margin_over_bar_db": -3.542,
+    "above_bar_in_expectation": false
+   },
+   {
+    "engine": "sionna_p4000000000_r15_n8192_d1",
+    "el_deg": -30.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 62.825,
+    "blade_line_over_noise_db": 61.498,
+    "body_line_over_noise_db": 65.828,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 67.734,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": 34.788,
+    "body_line_over_noise_db": 75.766,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 40.889,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 65.19,
+    "blade_line_over_noise_db": 99.978,
+    "body_line_over_noise_db": 140.956,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 106.08,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": -8.451,
+    "blade_line_over_noise_db": 26.337,
+    "body_line_over_noise_db": 67.315,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 32.438,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 66.682,
+    "blade_line_over_noise_db": 101.47,
+    "body_line_over_noise_db": 142.448,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 107.572,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": -6.974,
+    "body_line_over_noise_db": 0.442,
+    "bar_db": -6.236,
+    "margin_over_bar_db": -0.738,
+    "above_bar_in_expectation": false
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 65.19,
+    "blade_line_over_noise_db": 58.216,
+    "body_line_over_noise_db": 65.632,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 64.452,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": -8.451,
+    "blade_line_over_noise_db": -15.425,
+    "body_line_over_noise_db": -8.009,
+    "bar_db": -6.236,
+    "margin_over_bar_db": -9.189,
+    "above_bar_in_expectation": false
+   },
+   {
+    "engine": "sionna_p4000000000_onlyrefr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 66.682,
+    "blade_line_over_noise_db": 59.708,
+    "body_line_over_noise_db": 67.124,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 65.944,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": 34.242,
+    "body_line_over_noise_db": 74.806,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 40.344,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 25.884,
+    "blade_line_over_noise_db": 60.126,
+    "body_line_over_noise_db": 100.689,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 66.227,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": -7.492,
+    "blade_line_over_noise_db": 26.75,
+    "body_line_over_noise_db": 67.314,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 32.851,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": 0.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 25.858,
+    "blade_line_over_noise_db": 60.1,
+    "body_line_over_noise_db": 100.664,
+    "bar_db": -6.102,
+    "margin_over_bar_db": 66.202,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "all_el_mean",
+    "anchor_offset_db": 0.0,
+    "blade_line_over_noise_db": 1.919,
+    "body_line_over_noise_db": 41.428,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 8.155,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el-30_mean",
+    "anchor_offset_db": 25.884,
+    "blade_line_over_noise_db": 27.803,
+    "body_line_over_noise_db": 67.312,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 34.038,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el0_mean",
+    "anchor_offset_db": -7.492,
+    "blade_line_over_noise_db": -5.573,
+    "body_line_over_noise_db": 33.936,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 0.663,
+    "above_bar_in_expectation": true
+   },
+   {
+    "engine": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "el_deg": -30.0,
+    "variant": "el-30_median",
+    "anchor_offset_db": 25.858,
+    "blade_line_over_noise_db": 27.777,
+    "body_line_over_noise_db": 67.287,
+    "bar_db": -6.236,
+    "margin_over_bar_db": 34.013,
+    "above_bar_in_expectation": true
+   }
+  ]
+ },
+ "existing_figure_scales": {
+  "what_ko": "저장소의 draw() 호출을 정적으로 분류한 목록 — MAP_SCALING.md 표의 근거",
+  "tally": {
+   "per_panel_peak": 33,
+   "common_ref": 8,
+   "over_noise": 2
+  },
+  "files_by_scale": {
+   "per_panel_peak": [
+    "benchmark/bridge_cross_precise.py",
+    "benchmark/build_5g_fig.py",
+    "benchmark/build_bistatic_md_fig.py",
+    "benchmark/build_ch1_elevation_figs.py",
+    "benchmark/build_dc_modspec.py",
+    "benchmark/build_deck0811_range_figs.py",
+    "benchmark/build_deck0811_result_figs.py",
+    "benchmark/build_deck0811_result_figs_frozen.py",
+    "benchmark/build_deck_maps.py",
+    "benchmark/build_el15_stft_check.py",
+    "benchmark/build_flash_zoom.py",
+    "benchmark/build_jihyuck_stft.py",
+    "benchmark/build_md_atlas.py",
+    "benchmark/build_md_compare_fig.py",
+    "benchmark/build_physics_vs_deck_fig.py",
+    "benchmark/build_raybudget_40m_fig.py",
+    "benchmark/build_switch_grid_figs.py",
+    "benchmark/build_three_engine_fig.py",
+    "benchmark/build_three_engine_ranges_fig.py",
+    "benchmark/probe_prf_effect.py",
+    "benchmark/r12_azimuth_harvest.py",
+    "benchmark/verify_raybudget_40m.py",
+    "src/viz_md_range.py",
+    "src/viz_report1.py"
+   ],
+   "common_ref": [
+    "benchmark/build_report00_microdoppler.py",
+    "benchmark/build_report07_figs.py",
+    "benchmark/build_report15b_figs.py",
+    "benchmark/passive_two_channel_md.py",
+    "benchmark/report15_verdict_build.py",
+    "benchmark/sbr_grid_convergence_md.py"
+   ],
+   "over_noise": [
+    "benchmark/build_md_noise_range_fig.py"
+   ]
+  },
+  "files_mixed": [
+   "benchmark/build_passive_figs3.py",
+   "benchmark/verify_noise_injection.py"
+  ],
+  "figures_written": {
+   "benchmark/bridge_cross_precise.py": [
+    "FIG_LINES",
+    "FIG_MAPS"
+   ],
+   "benchmark/build_5g_fig.py": [
+    "f\"{FIGDIR}/report07_f10.{ext}\""
+   ],
+   "benchmark/build_bistatic_md_fig.py": [
+    "f\"{FIGDIR}/report07b_g2.{ext}\""
+   ],
+   "benchmark/build_ch1_elevation_figs.py": [],
+   "benchmark/build_dc_modspec.py": [
+    "out"
+   ],
+   "benchmark/build_deck0811_range_figs.py": [
+    "f\"{FIG}/deck0811_band_ranges.{e}\"",
+    "f\"{FIG}/deck0811_maps_ranges.{e}\"",
+    "f\"{FIG}/deck0811_seed40.{e}\""
+   ],
+   "benchmark/build_deck0811_result_figs.py": [
+    "f\"{FIG}/deck0811_r1.{ext}\"",
+    "f\"{FIG}/deck0811_r2.{ext}\""
+   ],
+   "benchmark/build_deck0811_result_figs_frozen.py": [
+    "f\"{FIG}/deck0811_r1_frozen.{ext}\"",
+    "f\"{FIG}/deck0811_r2_frozen.{ext}\""
+   ],
+   "benchmark/build_deck_maps.py": [
+    "out"
+   ],
+   "benchmark/build_el15_stft_check.py": [
+    "out"
+   ],
+   "benchmark/build_flash_zoom.py": [
+    "f\"{ROOT}/outputs/figures/report07_f8.{e}\""
+   ],
+   "benchmark/build_jihyuck_stft.py": [
+    "out"
+   ],
+   "benchmark/build_md_atlas.py": [
+    "path"
+   ],
+   "benchmark/build_md_compare_fig.py": [
+    "out"
+   ],
+   "benchmark/build_md_noise_range_fig.py": [
+    "f\"{FIG}/md_noise_vs_range.{e}\""
+   ],
+   "benchmark/build_passive_figs3.py": [
+    "f\"{outdir}/passive_f3.pdf\"",
+    "png"
+   ],
+   "benchmark/build_physics_vs_deck_fig.py": [
+    "OUTP"
+   ],
+   "benchmark/build_raybudget_40m_fig.py": [
+    "OUT_PNG",
+    "OUT_PNG.replace(\".png\"",
+    "OUT_SIDE",
+    "OUT_STRIP"
+   ],
+   "benchmark/build_report00_microdoppler.py": [],
+   "benchmark/build_report07_figs.py": [
+    "f\"{FIGDIR}/{stem}.{ext}\""
+   ],
+   "benchmark/build_report15b_figs.py": [
+    "f\"{FIGDIR}/{stem}.{ext}\""
+   ],
+   "benchmark/build_switch_grid_figs.py": [
+    "out"
+   ],
+   "benchmark/build_three_engine_fig.py": [
+    "f\"{FIGDIR}/report07_f5.{ext}\""
+   ],
+   "benchmark/build_three_engine_ranges_fig.py": [
+    "f\"{ROOT}/outputs/figures/report07_f12.{ext}\""
+   ],
+   "benchmark/passive_two_channel_md.py": [],
+   "benchmark/probe_prf_effect.py": [
+    "f\"{ROOT}/outputs/figures/probe_prf_effect.png\""
+   ],
+   "benchmark/r12_azimuth_harvest.py": [],
+   "benchmark/report15_verdict_build.py": [],
+   "benchmark/sbr_grid_convergence_md.py": [
+    "os.path.join(FIGD"
+   ],
+   "benchmark/verify_noise_injection.py": [],
+   "benchmark/verify_raybudget_40m.py": [
+    "OUT_PNG",
+    "OUT_PNG.replace(\".png\""
+   ],
+   "src/viz_md_range.py": [],
+   "src/viz_report1.py": []
+  },
+  "calls": [
+   {
+    "file": "benchmark/bridge_cross_precise.py",
+    "line": 528,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_5g_fig.py",
+    "line": 108,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_bistatic_md_fig.py",
+    "line": 80,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_ch1_elevation_figs.py",
+    "line": 277,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_dc_modspec.py",
+    "line": 90,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck0811_range_figs.py",
+    "line": 93,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck0811_result_figs.py",
+    "line": 189,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck0811_result_figs.py",
+    "line": 278,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck0811_result_figs_frozen.py",
+    "line": 240,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck0811_result_figs_frozen.py",
+    "line": 351,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck_maps.py",
+    "line": 79,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck_maps.py",
+    "line": 330,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck_maps.py",
+    "line": 384,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck_maps.py",
+    "line": 432,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_deck_maps.py",
+    "line": 531,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_el15_stft_check.py",
+    "line": 76,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_flash_zoom.py",
+    "line": 62,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_jihyuck_stft.py",
+    "line": 108,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_md_atlas.py",
+    "line": 503,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_md_compare_fig.py",
+    "line": 113,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_md_noise_range_fig.py",
+    "line": 156,
+    "scale": "over_noise"
+   },
+   {
+    "file": "benchmark/build_passive_figs3.py",
+    "line": 196,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/build_passive_figs3.py",
+    "line": 338,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_passive_figs3.py",
+    "line": 355,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_physics_vs_deck_fig.py",
+    "line": 144,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_raybudget_40m_fig.py",
+    "line": 140,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_report00_microdoppler.py",
+    "line": 188,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/build_report07_figs.py",
+    "line": 141,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/build_report15b_figs.py",
+    "line": 75,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/build_switch_grid_figs.py",
+    "line": 127,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_three_engine_fig.py",
+    "line": 72,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/build_three_engine_ranges_fig.py",
+    "line": 80,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/passive_two_channel_md.py",
+    "line": 922,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/probe_prf_effect.py",
+    "line": 196,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/r12_azimuth_harvest.py",
+    "line": 415,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/report15_verdict_build.py",
+    "line": 371,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/sbr_grid_convergence_md.py",
+    "line": 848,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/verify_noise_injection.py",
+    "line": 123,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "benchmark/verify_noise_injection.py",
+    "line": 128,
+    "scale": "common_ref"
+   },
+   {
+    "file": "benchmark/verify_noise_injection.py",
+    "line": 178,
+    "scale": "over_noise"
+   },
+   {
+    "file": "benchmark/verify_raybudget_40m.py",
+    "line": 266,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "src/viz_md_range.py",
+    "line": 129,
+    "scale": "per_panel_peak"
+   },
+   {
+    "file": "src/viz_report1.py",
+    "line": 863,
+    "scale": "per_panel_peak"
+   }
+  ]
+ },
+ "selfcheck": {
+  "SC1_shape_preserved": {
+   "what": "peak / common / noise 세 눈금의 dB 판은 상수만큼만 다르다(=모양이 보존된다)",
+   "peak_vs_common_all_db": 5.2835e-07,
+   "peak_vs_common_in_colour_range_db": 4.62e-10,
+   "peak_vs_noise_all_db": 5.27723e-07,
+   "peak_vs_noise_in_colour_range_db": 4.62e-10,
+   "argmax_same": true,
+   "note_ko": "맵 전체의 미세 편차는 draw() 의 +1e-12 방어값 때문이고 색역 안에서는 0 이다",
+   "ok": true
+  },
+  "SC2_clipping_is_where_shape_is_lost": {
+   "what": "자르기 전에는 같지만, 색역 밖으로 나간 화소는 눈금마다 다르다",
+   "peak_own_clipped_frac": 0.3615,
+   "noise_clipped_frac": 0.0146,
+   "note": "이것이 «세 눈금이 같은 그림이 아니다» 의 진짜 이유다 — 데이터가 아니라 색역이 자른다"
+  },
+  "SC3_kernel_has_no_spreading": {
+   "what": "커널 E 의 평균레벨이 거리에 불변이어야 1/R⁴ 을 새로 얹는 것이 이중계상이 아니다",
+   "level_db_by_range": {
+    "15.0": -64.03,
+    "30.0": -64.23,
+    "60.0": -64.31,
+    "120.0": -64.33
+   },
+   "spread_db": 0.3,
+   "ok": true
+  },
+  "SC4_radar_equation_slope": {
+   "what": "레이더식을 얹으면 −40log10(R/15) [dB] 이어야 한다(모양은 안 바뀐다)",
+   "measured_minus_predicted_db": {
+    "15.0": 0.0,
+    "30.0": -0.13,
+    "60.0": -0.1713,
+    "120.0": -0.1855
+   },
+   "ok": true
+  },
+  "SC5_pathsolver_carries_1_over_path": {
+   "what": "PathSolver 계수는 «펼친 경로 길이» 로 1/d 확산을 이미 품는다 — 레이더식 1/R² (진폭)이 아니다",
+   "level_db_by_range": {
+    "15.0": -63.25,
+    "30.0": -69.31,
+    "60.0": -75.35,
+    "120.0": -81.38
+   },
+   "residual_vs_minus20log10R_db": {
+    "15.0": 0.0,
+    "30.0": -0.039,
+    "60.0": -0.059,
+    "120.0": -0.068
+   },
+   "ok": true,
+   "consequence": "그래서 이 팔에 1/R⁴ 을 또 얹으면 이중계상이다 — 잡음 기준 **거리** 사다리는 우리 팔에만 그렸고, 엔진 비교는 거리를 15 m 로 고정했다"
+  },
+  "SC6_anchor_removes_kernel_units": {
+   "what": "E 에 임의 상수를 곱해도 앵커를 다시 걸면 잡음 기준 맵이 같다",
+   "max_abs_diff": 3.410605131648481e-13,
+   "ok": true
+  },
+  "SC7_noise_floor": {
+   "what": "잡음 전용 맵의 화소 최댓값은 rms 위 10log10(ln N) 근처여야 한다 (⛔이 값은 판정 막대가 아니다 — SC8 참조)",
+   "measured_db": 10.479,
+   "theory_db": 11.655,
+   "ok": true
+  },
+  "SC8_bar_is_from_the_statistics_own_null": {
+   "what": "판정 막대는 판정량(line_level_over_noise_db) 자체의 귀무분포 분위수여야 한다",
+   "shortcut_vs_md_mapstyle_db": 0.0,
+   "bars_db": {
+    "blade_el+0": -6.102,
+    "blade_el-30": -6.236
+   },
+   "null_trials": 20000,
+   "pfa": 0.001,
+   "pixel_peak_bar_would_be_db": 10.479,
+   "pixel_peak_is_higher_by_db": {
+    "blade_el+0": 16.58,
+    "blade_el-30": 16.715
+   },
+   "why_ko": "«화소 최댓값» 은 시간평균도 잡음차감도 안 한 다른 통계량이라 같은 잡음에서 17 dB 가량 높다 — 그것을 막대로 쓰면 실제 Pfa 가 1e-3 이 아니라 0 에 가깝다",
+   "ok": true
+  },
+  "SC9_crosschecked_against_detection_curves": {
+   "what": "이 그림의 R50 을 detection_curves 의 R50 과 앵커 환산해 실제로 맞춰 봤다",
+   "anchor_offset_db": 15.321,
+   "worst_band_deviation_pct": 1.3,
+   "rows": [
+    {
+     "el_deg": 0.0,
+     "dc_statistic": "band",
+     "converted_to_this_anchor_m": 226.7,
+     "this_ledger_r50_measured_m": 228.8,
+     "deviation_pct": 0.91
+    },
+    {
+     "el_deg": -30.0,
+     "dc_statistic": "band",
+     "converted_to_this_anchor_m": 234.8,
+     "this_ledger_r50_measured_m": 231.7,
+     "deviation_pct": -1.3
+    }
+   ],
+   "ok": true
+  },
+  "all_ok": true
+ },
+ "runtime_s": 2307.0
+}

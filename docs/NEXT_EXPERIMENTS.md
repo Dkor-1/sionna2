@@ -124,7 +124,7 @@ R16 이 같은 커널·같은 자세·같은 기하에서 **격자만** λ/12 �
 | 14 | **R8 표현 겨루기 (A3·A2 만)** | 표현 교체가 백본 교체보다 버나 | **0** (A1 은 1~2) | 계획서 «성공의 정의» 승계 — 87.9 % 초과는 성공이 아니다. ① typhoonh480 F1 0.6464 유의 상승 ② no_flash 대응 팔이 0.8530 초과 ③ 0 dB 에서 0.8403 초과. 셋 다 아니면 «손 특징으로 충분» | R6 (하드 게이트) | 7.0 |
 | 15 | ✅ **R15 나딧 평면파 수확** (R16 안에서 부수 완료) | 직하방 잔여가 근거리장 곡률인가 | **0** (남은 λ/24 지출 0.13) | 사전등록 — **AC 절대전력과 DC 를 따로** 싣고, 문턱은 R16 밴드. (문서에 «≈3 dB» 로 어림했던 것을 실측 밴드로 대체: **AC 3.86 dB · AC/DC 2.91 dB**.) → ✅**판정 불가**: 평면파−구면파 차이가 AC −0.65 dB · AC/DC −1.27 dB 로 둘 다 **밴드 안**이다. RESUME 의 예측 「수치 0 으로 떨어진다」가 틀렸다는 기록이 산출물. ⚠el −90 에는 λ/24 짝이 없어 밴드를 **가져다 쓴 것**이다(큐 D 블록이 그 자리를 직접 잰다) ⟶ `grid_convergence_check.json` §appendix_r15_nadir | R16 ✅ | 7.0 |
 | 16 | **R21 rpm 중첩 시험** ⚠**렌즈 갈림** | 분류가 회전수 읽기인가 | **0** (CPU 반나절) | ⚠아래 «갈림» 절 참조. 진행 시: **누수 검사 팔 필수**(라벨 지우고 α 를 맞히게 해서 복원되면 그 특징은 rpm 자유가 아니다), 리샘플은 **위상 영역**에서(α>1 은 저역통과), 널은 «덮개율 기반 상수 예측» | 없음 | 6.7 |
-| 17 | **R2 셸 두께 정정** ⬆**값어치 올랐다** | 굴절 축 대조가 10 cm 판 위에서 벌어지나 | **CPU 먼저 → 6~10** | ⭐**CPU 슬래브 재계산부터**(수 초). 2 mm 왕복 손실이 우리 τ(−0.71 dB)와 몇 dB 안인지가 GPU 를 살지 말지를 그 자리에서 정한다. GPU 판정은 **경로 중앙값이 아니라 DC 제거 절대 레벨 변화가 슬래브 예측과 맞는가**, 그리고 그 변화가 ⓪ 밴드(3.86 dB) 밖인가. ⭐R13 이 값어치를 올렸다 — 굴절 R 만이 원래 시계열을 **다른 것으로 바꾸는 축**(담김계수 중앙값 0.52)이고 회절·모서리·확산은 얹기만 한다(≈1.0). 두께는 그 «바꾸는 축» 의 유일한 손잡이다 | CPU 슬래브 | 7.3 |
+| 17 | **R2 셸 두께 정정** ⬆**값어치 올랐다** · ✅**CPU 끝 → GPU 산다** | 굴절 축 대조가 10 cm 판 위에서 벌어지나 | **CPU 0(수 초) → GPU 6~10** | ✅**CPU 슬래브 나왔다**(`outputs/slab_thickness_check.json`): 2 mm 정정이 셸 정반사를 **−4.90 dB**(수직)·**−5.82 dB**(각도평균), 왕복 투과를 **+4.41 dB** 움직인다 — 둘 다 ⓪ 밴드(3.86 dB) **밖**이라 **GPU 를 산다**. ⭐투과 축은 애초에 결함이 아니었다(1~3 mm 왕복 손실 −0.10~−0.47 dB 로 우리 τ −0.71 dB 와 0.24~0.61 dB 차이) — **움직이는 것은 반사 축**이고, 그래서 굴절 팔뿐 아니라 **기준선 팔도 같은 두께로** 내야 한다. ⭐1↔3 mm 안에서만 9.19 dB 가 갈리므로 **단일값 금지, 민감도 축**으로 돌린다(두께는 출처 없음 — A3). GPU 판정은 **경로 중앙값이 아니라 DC 제거 절대 레벨 변화가 슬래브 예측과 맞는가**, 그리고 그 변화가 ⓪ 밴드(3.86 dB) 밖인가. ⭐R13 이 값어치를 올렸다 — 굴절 R 만이 원래 시계열을 **다른 것으로 바꾸는 축**(담김계수 중앙값 0.52)이고 회절·모서리·확산은 얹기만 한다(≈1.0). 두께는 그 «바꾸는 축» 의 유일한 손잡이다 | CPU 슬래브 | 7.3 |
 | 18 | ⚠ **R1 회절 spp-**내리는**사다리 — 재검토** | 회절이 물리인가 추정기 잡음인가 | **≈1.3 (보류)** | ⛔**발주 보류. R17 이 전제를 무너뜨렸다** — 사전등록문 「바닥이 1/spp 를 따라가고(4 배 줄이면 +6 dB) 빗살 선은 불변」에서 **앞 절반이 이미 거짓**이다. 물리끔 팔에서 상한 위 바닥은 광선 수에 불변이었다(−0.07 dB/옥타브). 그러니 예산 축으로는 «잡음이냐» 를 못 가른다. ⭐남은 판별력은 **회절 팔에서도 같은 불변이 성립하는가** 한 가지뿐이다 — 성립하면 «회절이 얹는 −126 dB 바닥은 광선 표집 잡음이 아니라 결정론적 항» 이 되고, 그때 비로소 R1 은 «물리냐» 질문에 답한다. 재설계 전에는 큐 B 블록을 붙이지 않는다 | R13 ✅, R17 ✅ | 5.3 → **재검토** |
 | 19 | **R4 λ/48 el −15 + 격자 위상 널** | 격자 계단이 단조로 수렴하나 | **≈4 + 0.26** | ✅R16 판독으로 **자리가 하나로 좁혀졌다** — 통과선 0.03 기준으로 el 0(0.0152) · −30(0.0136) · −45(0.0027) 은 λ/24 에서 이미 통과, **el −15 만 0.0463 으로 남았다**. 문턱은 ⓪ 밴드로 적는다: λ/48 과 λ/24 의 차이가 **날개끝 밖 몫 12.55 %p · AC 3.86 dB** 안이면 «판정 불가» 로 찍고 λ/96 을 사지 않는다. **위상 널**(같은 λ/12, 원점만 이동)이 없으면 «촘촘해서» 인지 «원점이 달라서» 인지 귀속이 안 된다 | R16 ✅ | 5.7 |
 | 20 | **R9 Stage 1 가산성 관문** | 위상표 방식이 PathSolver 에서 성립하나 | **≈6** | 잔차/신호 < −20 dB 통과 · > −6 dB 폐기(Stage 2 취소) · 그 사이는 spp 사다리에서 √spp 로 주는지로 가른다 | 프로펠러 큐 종료 | 6.7 |
@@ -335,7 +335,7 @@ CVD·WSP 는 «승인 대기 팔» 로만 적어 둔다.
 
 | 인자 | 어디에 | 꼬리표 | 게이트 |
 |---|---|---|---|
-| `--shell-mm` / `--prop-mm` | `src/materials.py:203-205` 비-ITU 분기가 `thickness` 를 넘기게 + 스윕 인자 | `_t2mm` | 안 주면 기존 샤드와 **비트동일** |
+| ✅ `--shell-mm` / `--prop-mm` | `src/materials.py` `set_thickness_mm()` 신설 + 비-ITU 분기가 **켰을 때만** `thickness` 를 넘긴다 + 스윕 인자 | `_shell2mm` / `_prop1mm` | ✅**통과** — `benchmark/selftest_shell_mm.py` (가짜 sionna.rt 로 호출 인자를 들여다본다, GPU 0). 안 주면 `thickness` 인자를 **아예 안 넘겨** 예전 호출과 같고 꼬리표도 없다. 기존 66 팔 이름과 겹침 0 |
 | `--fc` | `elevation_sweep_md.py:77` 상수 → 인자 (사용처 8 곳: 146·148·167·254·268·300·447) | `_fc5800` | 안 주면 기존 샤드와 **비트동일** |
 | `--grid-phase` | 우리 커널 격자 원점 이동(밀도 대 위상 대조군) | `_gp` | 안 주면 비트동일 |
 
@@ -348,6 +348,39 @@ CVD·WSP 는 «승인 대기 팔» 로만 적어 둔다.
 100 mm 기준선과 겨루는 셈이라 지금보다 나쁜 비교가 된다 ⇒ **기준선 팔을 같은 두께로 반드시 함께** 낸다.
 그리고 `prop_plastic`·`carbon` 도 비-ITU 라 프로펠러까지 같이 바뀐다 — `--shell-mm` 과 `--prop-mm` 을 갈라
 **표적 축이 안 움직이는 판**을 하나 확보한다. 리포트에는 «정정 이전 모든 sionna 수치에 두께 단서» 배너.
+
+✅**CPU 슬래브 먼저 냈다 (2026-08-15, 수 초)** ⟶ `benchmark/slab_thickness_check.py` ·
+`outputs/slab_thickness_check.json`. Sionna 설치본의 식(ITU-R P.2040 43·44,
+`sionna/rt/utils/electromagnetics.py:60-112`)을 그대로 넘파이로 옮겨 풀었다(자가검사 9/9 통과:
+d→0 이면 R→0·T→1, d→∞ 면 벌크 프레넬, 무손실 판 에너지 보존).
+
+| 셸 두께 | d/λ | 정반사 R [dB] | 왕복 투과 T [dB] | ΔR vs 100 mm | 각도평균 R [dB] |
+|---|---|---|---|---|---|
+| 1 mm | 0.012 | −24.16 | −0.10 | **−10.78** | −19.09 |
+| 2 mm | 0.023 | −18.28 | −0.26 | **−4.90** | −14.32 |
+| 3 mm | 0.035 | −14.97 | −0.47 | **−1.59** | −11.74 |
+| **100 mm (지금 판)** | 1.167 | −13.38 | −4.67 | 0.00 | −8.50 |
+
+⭐**판정: GPU 를 산다.** 2 mm 정정이 셸 정반사를 수직입사 **−4.90 dB** · 각도평균 **−5.82 dB** 움직이는데
+⓪ 밴드(3.86 dB) **밖**이다. 왕복 투과도 −4.67 → −0.26 dB 로 **+4.41 dB** 움직여 밴드 밖이다
+(셸 안쪽 배터리·PCB 기여가 그만큼 밝아진다).
+⚠**단, 이 dB 는 «플라스틱 면 하나» 의 몫**이다. 총 에코에는 금속·카본도 섞이므로 시계열 레벨이 얼마나
+움직일지는 플라스틱 지분이 정한다 — 그게 바로 GPU 판이 재는 것이다. 사전 등록 판정은 그대로:
+**DC 제거 절대 레벨 변화가 슬래브 예측 방향(반사↓·투과↑)과 맞는가**, 그리고 ⓪ 밴드 밖인가.
+
+⭐**단일값 금지 — 1·2·3 mm 민감도 축으로 돌린다.** 두께는 **여전히 출처가 없다**(RETRACTION_LOG A3,
+DJI 미공개). 그런데 1↔3 mm 안에서만 정반사가 **9.19 dB** 갈린다 — 그 구간은 사분파 두께
+λ/(4√εr)=13.0 mm 의 **한참 아래**라 |R| 이 두께에 거의 비례해 가파르게 는다. 한 값을 못 박으면 그 자체가
+지어내기이므로, 결과는 항상 «두께 d 를 가정하면» 조건문으로 인용한다.
+
+✅**carbon 은 손잡이가 필요 없다** — σ=3000 S/m 의 표피깊이가 0.155 mm 라 0.5 mm 든 100 mm 든 반사가
+**같다(0.00 dB)**. 암·데크·카본 착륙장치는 이 정정에 안 흔들린다. 그래서 손잡이는 셸(plastic·plastic_blue)과
+프롭(prop_plastic) 둘뿐이다.
+
+⚠**우리 커널도 같은 방향으로 세다(열린 항목).** 셸 |Γ|=0.28 에 각도 모양을 얹은 각도평균이 −8.28 dB 로,
+2 mm 슬래브(−14.32)보다 **+6.04 dB** 세고 100 mm 슬래브(−8.50)에 가깝다. 즉 «PathSolver 만 오염» 이 아니라
+우리 실효값도 **두꺼운 판에 해당**한다. ⛔이번 라운드에서 `gamma_po` 를 건드리지 않는다(앵커·리포트 전부가
+흔들린다) — 다음 라운드 후보로 적어 둔다.
 
 **R9 Stage 1 · `benchmark/verify_pathsolver_additivity.py`** — 스윕이 아니라 새 스크립트. 로터 하나씩 돌린 표로
 합성한 E 와 네 로터 동시 참값을 비교, spp 사다리(1e6·1.78e8·4e9)로 잔차가 광선으로 주는지 함께. 1 기체 ·
@@ -418,7 +451,7 @@ CVD·WSP 는 «승인 대기 팔» 로만 적어 둔다.
   R23① 전이표 → R19 비행 프로파일 ← R16
                            │
 [층 5 · GPU 지출]  ⛔프로펠러 전수 큐가 빈 뒤
-  (CPU 슬래브) → R2 셸 두께        ← 기준선 팔 동반 필수 (⬆R13 이 값어치를 올렸다)
+  ✅CPU 슬래브 ─→ R2 셸 두께        ← 기준선 팔 동반 필수 · 1·2·3 mm 민감도 축 (⓪ 밴드 밖 확인됨)
   ✅R13·R17 ────→ ⚠R1 회절 spp-내림 사다리 — **전제가 깨졌다. 재설계 전 발주 금지**
   ✅R16 ────────→ R4 λ/48 el−15 + 위상 널 (자리가 el −15 하나로 좁혀졌다)
   R12 ─────────→ R5 방위 확장(우리 팔)
@@ -493,7 +526,15 @@ CVD·WSP 는 «승인 대기 팔» 로만 적어 둔다.
    «판정 불가» 가 잠정으로 남는다.
 
 ```text
-# ── A. R2 셸 두께 (선행: --shell-mm 배관 + 비트동일 게이트 + CPU 슬래브 계산) ── el −30, ≈8 GPU-h
+# ── A. R2 셸 두께 ── el −30 · ✅선행 전부 끝났다(--shell-mm 배관 · 비트동일 게이트 · CPU 슬래브)
+#   ✅CPU 판정: 2 mm 정정이 셸 정반사 −4.90 dB(수직)·−5.82 dB(각도평균), 왕복 투과 +4.41 dB 를 움직인다
+#   → ⓪ 밴드(3.86 dB) 밖이라 **산다**. 표는 outputs/slab_thickness_check.json
+#   ⚠--prop-mm 은 **일부러 안 준다** — 프로펠러를 100 mm 그대로 두면 마이크로도플러(표적 축)가
+#     안 움직여서, 레벨 변화를 «셸» 하나에 귀속할 수 있다. 프롭 축이 궁금하면 별도 팔로 낸다.
+#   ⚠기준선 팔(물리끔)을 **같은 두께로 함께** 낸다 — 2 mm 굴절을 100 mm 기준선과 겨루면 더 나쁜 비교다.
+#   대조군은 이미 있다: sionna_p4000000000_r15_n8192_d1 ↔ ..._onlyrefr_r15_n8192 (둘 다 100 mm 판)
+
+# A1. 2 mm — 헤드라인 짝(기준선 + 굴절만) ── ≈8 GPU-h · 새 이름 ..._shell2mm_d1 / ..._onlyrefr_..._shell2mm
 --engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 0 --nshards 8
 --engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 1 --nshards 8
 --engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 2 --nshards 8
@@ -502,14 +543,36 @@ CVD·WSP 는 «승인 대기 팔» 로만 적어 둔다.
 --engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 5 --nshards 8
 --engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 6 --nshards 8
 --engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 7 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 0 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 1 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 2 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 3 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 4 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 5 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 6 --nshards 8
---engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 2.0 --shard 7 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 0 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 1 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 2 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 3 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 4 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 5 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 6 --nshards 8
+--engine sionna --only refr --spp 4000000000 --range-m 15 --n-poses 8192 --els=-30 --shell-mm 2.0 --shard 7 --nshards 8
+
+# A2. 민감도 축 1·3 mm — 기준선 팔만 ── ≈8 GPU-h
+#   ⭐두께는 출처가 없다(RETRACTION_LOG A3). 1↔3 mm 안에서만 정반사가 9.19 dB 갈리므로 한 값을 못 박지
+#     않고 기울기를 잰다. 예측: 레벨이 1 mm < 2 mm < 3 mm 순으로 오르고, 그 간격이 슬래브 표
+#     (ΔR = −10.78 / −4.90 / −1.59 dB vs 100 mm)와 같은 방향·차수인가로 채점한다.
+#   ⛔A1 이 먼저다 — A1 결과가 ⓪ 밴드 안이면 A2 는 사지 않는다.
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 0 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 1 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 2 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 3 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 4 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 5 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 6 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 1.0 --shard 7 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 0 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 1 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 2 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 3 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 4 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 5 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 6 --nshards 8
+--engine sionna --spp 4000000000 --range-m 15 --n-poses 8192 --max-depth 1 --els=-30 --shell-mm 3.0 --shard 7 --nshards 8
 
 # ── B. ⛔보류 — R1 회절 spp-내리는 사다리 ── el −30, ≈1.3 GPU-h
 # ⛔선행이던 R13·R17 판독이 났고, 그 결과가 이 블록의 전제를 깼다(물리끔 팔에서 상한 위 바닥이

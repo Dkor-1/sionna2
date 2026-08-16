@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>07ptd · 모서리 보정이 무늬를 바꾸나</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#faf9f7; --surface:#ffffff; --surface-2:#f0efec; --line:#dedcd6;
+  --ink:#131211; --ink-2:#4d4b46; --ink-3:#77746c;
+  /* ⭐대비 — 배지·링크 글자는 배경 대비 4.5:1 이상이어야 읽힌다(2026-08-15 수리:
+     밝은 배경에서 --serious 3.0:1 · --accent 3.9:1 이라 «▲ 잣대 퇴화» 배지가 흐렸다). */
+  --accent:#1c62b8; --accent-soft:#cde2fb;
+  --good:#0a7a0a; --warn:#8a6200; --serious:#b8501c; --critical:#c02626;
+  --shadow: 0 1px 2px rgba(18,17,15,.06), 0 6px 18px rgba(18,17,15,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141413; --surface:#1c1c1a; --surface-2:#262623; --line:#373733;
+    --ink:#f6f5f1; --ink-2:#c3c2b7; --ink-3:#94928a;
+    /* 어두운 배경에서는 반대로 **밝게** — #d03b3b 는 어두운 바탕에서 3.4:1 이었다 */
+    --accent:#6fb0f5; --accent-soft:#184f95;
+    --good:#4cc94c; --warn:#f0c04a; --serious:#f0a070; --critical:#f08b8b;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family: "Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",
+               system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.72; letter-spacing:-.005em;
+}
+.wrap{max-width:1480px; margin:0 auto; padding:0 22px 96px}
+a{color:var(--accent)}
+code,kbd{font-family:"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  font-size:.88em; background:var(--surface-2); padding:.1em .38em; border-radius:5px;
+  word-break:break-all}
+h1{font-size:2.05rem; line-height:1.28; margin:.2em 0 .1em; letter-spacing:-.02em}
+h2{font-size:1.42rem; margin:2.4em 0 .55em; letter-spacing:-.015em;
+   padding-bottom:.3em; border-bottom:2px solid var(--line)}
+h3{font-size:1.06rem; margin:0 0 .25em; letter-spacing:-.01em}
+p{margin:.55em 0}
+.lede{color:var(--ink-2); font-size:1.03rem; max-width:78ch}
+.muted{color:var(--ink-3)}
+.small{font-size:.86rem}
+
+/* ── 위쪽 이동 띠 ─────────────────────────────────────────── */
+.nav{position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--line); margin-bottom:26px}
+.nav .inner{max-width:1480px; margin:0 auto; padding:9px 22px; display:flex; gap:10px;
+  align-items:center; flex-wrap:wrap}
+.nav a{display:inline-block; padding:5px 11px; border-radius:8px; text-decoration:none;
+  color:var(--ink-2); font-size:.9rem; border:1px solid transparent}
+.nav a:hover{background:var(--surface-2); color:var(--ink)}
+.nav a.home{border-color:var(--line); color:var(--ink); font-weight:600}
+.nav a.here{background:var(--accent-soft); color:var(--ink); font-weight:700}
+.nav .sp{flex:1}
+
+/* ── 머리 ─────────────────────────────────────────────────── */
+header.top{padding:26px 0 6px}
+.kicker{color:var(--accent); font-weight:700; font-size:.82rem; letter-spacing:.09em;
+  text-transform:uppercase; margin-bottom:.35em}
+.stats{display:flex; flex-wrap:wrap; gap:10px; margin:20px 0 6px}
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:11px 15px; min-width:104px; box-shadow:var(--shadow)}
+.stat b{display:block; font-size:1.5rem; line-height:1.15; letter-spacing:-.02em}
+.stat span{display:block; color:var(--ink-3); font-size:.79rem}
+
+/* ── 상자 ─────────────────────────────────────────────────── */
+.box{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:18px 20px; margin:16px 0; box-shadow:var(--shadow)}
+.box h3{margin-top:0}
+.note{border-left:4px solid var(--accent); background:var(--surface);
+  border-radius:0 12px 12px 0; padding:14px 18px; margin:14px 0}
+.note.warn{border-left-color:var(--warn)}
+.note.crit{border-left-color:var(--critical)}
+.stale{border-left-color:var(--serious)}
+.grid2{display:grid; gap:16px; grid-template-columns:1fr}
+@media (min-width:900px){ .grid2{grid-template-columns:1fr 1fr} }
+
+/* ── 주제 카드 ────────────────────────────────────────────── */
+.cards{display:grid; gap:18px; grid-template-columns:1fr}
+@media (min-width:720px){ .cards{grid-template-columns:1fr 1fr} }
+@media (min-width:1180px){ .cards{grid-template-columns:1fr 1fr 1fr} }
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;
+  text-decoration:none; color:inherit}
+.card:hover{border-color:var(--accent)}
+.card .thumb{background:var(--surface-2); border-bottom:1px solid var(--line);
+  aspect-ratio:16/9; overflow:hidden; display:flex; align-items:center; justify-content:center}
+.card .thumb img{width:100%; height:100%; object-fit:contain; padding:6px}
+.card .body{padding:14px 16px 16px}
+.card .q{font-weight:700; font-size:1.04rem; margin:.1em 0 .3em; letter-spacing:-.01em}
+.card .n{color:var(--ink-3); font-size:.83rem; margin-top:.5em}
+.card .tag{display:inline-block; font-size:.74rem; letter-spacing:.06em; font-weight:700;
+  color:var(--accent); text-transform:uppercase}
+
+/* ── 그림 ─────────────────────────────────────────────────── */
+.arm{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:18px 20px 20px; margin:22px 0; box-shadow:var(--shadow); scroll-margin-top:70px}
+.arm .name{font-family:"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  font-size:1.0rem; font-weight:600; word-break:break-all; letter-spacing:-.01em}
+.facts{color:var(--ink-2); font-size:.9rem; margin:.35em 0 .1em}
+.facts b{color:var(--ink)}
+.figrow{display:grid; gap:16px; grid-template-columns:1fr; margin-top:14px}
+@media (min-width:1080px){ .figrow{grid-template-columns:var(--cols,1fr 1fr)} }
+figure{margin:0; background:var(--surface-2); border:1px solid var(--line);
+  border-radius:12px; overflow:hidden; display:flex; flex-direction:column}
+figure img{display:block; width:100%; height:auto; background:#fff}
+figure a{display:block; line-height:0}
+figcaption{padding:11px 14px 13px; font-size:.86rem; color:var(--ink-2); line-height:1.6}
+figcaption b{color:var(--ink)}
+.figtitle{font-weight:700; color:var(--ink); font-size:.9rem}
+.zoom{float:right; font-size:.76rem; color:var(--ink-3)}
+
+/* ── 표 ───────────────────────────────────────────────────── */
+.scroll{overflow-x:auto; margin:14px 0 2px; border:1px solid var(--line); border-radius:12px}
+table{border-collapse:collapse; width:100%; font-size:.87rem; background:var(--surface)}
+th,td{padding:7px 11px; text-align:right; white-space:nowrap;
+  border-bottom:1px solid var(--line)}
+th{background:var(--surface-2); color:var(--ink-2); font-weight:600; font-size:.8rem;
+  position:sticky; top:0}
+th:first-child,td:first-child{text-align:left}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface-2)}
+td.el{font-variant-numeric:tabular-nums; font-weight:600}
+td.n{font-variant-numeric:tabular-nums}
+.bar{display:flex; align-items:center; gap:8px; justify-content:flex-end}
+.bar .track{position:relative; width:78px; height:8px; border-radius:4px;
+  background:var(--surface-2); border:1px solid var(--line); overflow:hidden; flex:none}
+.bar .fill{position:absolute; left:0; top:0; bottom:0; background:var(--accent);
+  border-radius:4px}
+.bar .floor{position:absolute; top:-2px; bottom:-2px; width:1px; background:var(--ink-3)}
+.bar .v{font-variant-numeric:tabular-nums; min-width:3.4em}
+.badge{display:inline-block; font-size:.72rem; font-weight:700; padding:1px 7px;
+  border-radius:999px; border:1px solid; margin-right:4px; white-space:nowrap}
+.b-crit{color:var(--critical); border-color:var(--critical)}
+.b-warn{color:var(--serious); border-color:var(--serious)}
+.b-ok{color:var(--ink-3); border-color:var(--line)}
+
+/* ── 이름 읽는 법 ─────────────────────────────────────────── */
+.tok td:first-child{white-space:nowrap; font-family:"JetBrains Mono",monospace;
+  font-size:.84rem; font-weight:600}
+.tok td{white-space:normal; text-align:left}
+.tok td.n{white-space:nowrap; text-align:right}
+.tok th{text-align:left}
+.tok th.n{text-align:right}
+
+ul.find{margin:.4em 0 .2em; padding-left:1.15em}
+ul.find li{margin:.3em 0}
+ol.steps{padding-left:1.2em}
+footer{margin-top:56px; padding-top:18px; border-top:1px solid var(--line);
+  color:var(--ink-3); font-size:.83rem}
+</style>
+</head>
+<body>
+<div class="nav"><div class="inner"><a class="home" href="index.html">◇ 대문</a><a href="01_base.html">01base</a><a href="02_switch.html">02switch</a><a href="03_airframe.html">03airframe</a><a href="04_azimuth.html">04azimuth</a><a href="05_parts.html">05parts</a><a href="06_range.html">06range</a><a href="07_ptd.html" class="here">07ptd</a><a href="08_grid.html">08grid</a><a href="09_planewave.html">09planewave</a><span class="sp"></span><a href="06_range.html">← 06range</a><a href="08_grid.html">08grid →</a></div></div>
+<div class="wrap">
+
+
+<header class="top">
+  <div class="kicker">07 · PTD edges · 주제 7 / 9</div>
+  <h1>모서리 보정이 무늬를 바꾸나</h1>
+  <p class="lede">우리 커널의 모서리 회절 보정(PTD — 날카로운 모서리에서 새어 나오는 파를 더해 주는 보정)을 켠 판이다.</p>
+  <div class="stats">
+    <div class="stat"><b>1</b><span>팔</span></div>
+    <div class="stat"><b>7</b><span>칸</span></div>
+    <div class="stat"><b>2</b><span>그림</span></div>
+  </div>
+  <div class="note"><b>⭐ 핵심 발견</b>
+    <ul class="find"><li>팔이 하나뿐이라 앙각으로 읽는다 — 리듬 몫이 −75° 의 <b>46.3 %</b> 에서 −30° 의 <b>83.2 %</b> 까지 움직인다(그 칸의 백색잡음 값 12.6~12.6 %).</li><li>박자(날개가 시선을 지나가는 빠르기)를 잰 팔 1 개 중 <b>1 개</b>가 자기 기체의 예측 박자 ±2 % 안에 든다.</li><li>한 축만 다른 짝(<code>ours_ptd_r15_n8192</code> ↔ <code>ours_r15_n8192</code>)을 같은 앙각 6 칸에서 빼면 리듬 몫 차이가 가장 큰 곳이 <b>0.4 %p</b>(평균 -0.1 %p) — 격자 흔들림 밴드 21.8 %p 안이라 <b>판정 불가</b>. 뺀 칸 1 개(잣대 퇴화 · 수를 낼 자격 없음)는 셈에서 제외했다.</li></ul>
+    <p class="small muted">전부 <code>outputs/md_atlas_index.json</code> 과 원장에서 계산한 수다.
+    «격자 흔들림 밴드»는 리듬 몫 21.8 %p — 그 안의 차이는 판정하지 않는다.</p>
+  </div>
+</header>
+
+
+
+<h2>팔마다 — 맵 · 대역 에너지 · 수치</h2>
+<p class="lede">왼쪽이 <b>마이크로도플러 맵</b>(가로 시간 · 세로 도플러), 오른쪽이
+<b>블레이드 대역 에너지</b>(점선이 예측 박자의 정수배)다. 그림을 클릭하면 원본 크기로 열린다.
+읽는 법이 헷갈리면 <a href="index.html#howto">대문의 «어떻게 읽나»</a> 로 돌아가면 된다.</p>
+<section class="arm" id="arm-ours_ptd_r15_n8192"><h3 class="name">ours_ptd_r15_n8192</h3><p class="facts">엔진 <b>우리 커널</b>(SBR+PO, 가림 있음) · 거리 15 m · 자세 8,192 개 · 격자 λ/12 · 모서리 보정(PTD) <b>켬</b> · 표적 DJI Matrice 4E · 박자 126.667 Hz</p><p class="facts">↔ <b>한 축만 다른 짝 팔</b> <a href="01_base.html#arm-ours_r15_n8192"><code>ours_r15_n8192</code></a> 같은 앙각 6 칸에서 리듬 몫 차이는 최대 0.4 %p(평균 -0.1 %p) — 격자 흔들림 밴드 21.8 %p 안이라 <b>판정 불가</b>. 뺀 칸 1 개(잣대 퇴화·수를 낼 자격 없음).</p><div class="figrow" style="--cols:4.08fr 2.12fr"><figure><a href="../outputs/figures/atlas/07ptd__ours_ptd_r15_n8192__map.png" title="원본 크기로 열기"><img src="../outputs/figures/atlas/07ptd__ours_ptd_r15_n8192__map.png" alt="① 마이크로도플러 맵" loading="lazy" decoding="async" width="4069" height="998"></a><figcaption><span class="zoom">클릭 → 원본 4069×998 px</span><span class="figtitle">① 마이크로도플러 맵</span><br>가로가 <b>시간</b>, 세로가 <b>도플러 주파수</b>(움직이는 것 때문에 되돌아온 신호의 주파수가 밀린 양)다. 위줄은 받은 그대로, 아래줄은 <b>가만히 있는 부분(정지 성분)을 뺀</b> 판이다. 흰 점선이 <b>날개끝 상한</b> — 날개가 만들 수 있는 가장 빠른 도플러이고, 그 위에 무엇이 있으면 날개 말고 다른 것이다. <b>규칙적으로 되풀이되는 밝은 세로 줄무늬</b>가 날개가 시선을 지나갈 때의 번쩍임이다. ⚠패널마다 <b>자기 최댓값</b>으로 밝기를 맞추므로 패널끼리 밝기는 비교하지 않는다 — 모양만 읽는다. 이 팔의 날개끝 상한은 0° 에서 <b>1273 Hz</b> 다.</figcaption></figure><figure><a href="../outputs/figures/atlas/07ptd__ours_ptd_r15_n8192__band.png" title="원본 크기로 열기"><img src="../outputs/figures/atlas/07ptd__ours_ptd_r15_n8192__band.png" alt="② 블레이드 대역 에너지" loading="lazy" decoding="async" width="1948" height="917"></a><figcaption><span class="zoom">클릭 → 원본 1948×917 px</span><span class="figtitle">② 블레이드 대역 에너지</span><br>날개 대역 — 날개끝 상한의 <b>0.35~1.0 배</b> 띠(상한 <b>아래</b>다) — 의 힘이 시간에 따라 오르내리는 <b>리듬</b>을 주파수로 편 그림이다. 가로가 리듬의 빠르기[Hz], 세로가 그 세기다. <b>점선이 예측 박자의 정수배</b> — 점선 자리에 뾰족한 봉우리가 서면 날개가 그 박자로 규칙적으로 지나간다는 뜻이고, 봉우리 없이 뭉개져 있으면 그냥 잡음이다. 왼쪽은 넓게, 오른쪽은 첫 봉우리 부근을 확대한 판이다. 색은 앙각(위에서 내려다본 각)이다. 이 팔의 예측 박자는 <b>126.667 Hz</b> 다.</figcaption></figure></div><div class="scroll"><table><thead><tr><th>앙각</th><th>날개끝 상한<br>f_tip [Hz]</th><th>리듬 몫 [%]<br><span class="muted">상한 <b>위</b>만 · 선=그 칸의 백색잡음</span></th><th>그 칸<br>백색잡음 [%]</th><th>상한 위 에너지<br>[%]</th><th>빗살 대비 [dB]<br><span class="muted">상한 <b>아래</b></span></th><th>박자 [Hz]</th><th>박자÷예측</th><th>움직이는 전력<br>[dB]</th><th>움직이는 몫<br>[%]</th><th>자세 수</th><th>원장 레벨<br>[dB]</th><th>표시</th></tr></thead><tbody><tr><td class="el">0°</td><td class="n">1273</td><td><span class="bar"><span class="track"><span class="fill" style="width:62.9%"></span><span class="floor" style="left:12.5%" title="이 칸의 백색잡음 값 12.5 %"></span></span><span class="v">62.9</span></span></td><td class="n">12.5</td><td class="n">2.7</td><td class="n">+48.0</td><td class="n">126.1</td><td class="n">0.995</td><td class="n">−70.38</td><td class="n">2.49</td><td class="n">8,192</td><td class="n">−54.39</td><td><span class="badge b-ok">정상</span></td></tr><tr><td class="el">−15°</td><td class="n">1230</td><td><span class="bar"><span class="track"><span class="fill" style="width:72.7%"></span><span class="floor" style="left:12.6%" title="이 칸의 백색잡음 값 12.6 %"></span></span><span class="v">72.7</span></span></td><td class="n">12.6</td><td class="n">17.2</td><td class="n">+40.5</td><td class="n">126.1</td><td class="n">0.995</td><td class="n">−71.06</td><td class="n">1.32</td><td class="n">8,192</td><td class="n">−52.30</td><td><span class="badge b-ok">정상</span></td></tr><tr><td class="el">−30°</td><td class="n">1102</td><td><span class="bar"><span class="track"><span class="fill" style="width:83.2%"></span><span class="floor" style="left:12.6%" title="이 칸의 백색잡음 값 12.6 %"></span></span><span class="v">83.2</span></span></td><td class="n">12.6</td><td class="n">10.7</td><td class="n">+42.9</td><td class="n">126.1</td><td class="n">0.995</td><td class="n">−69.12</td><td class="n">51.8</td><td class="n">8,192</td><td class="n">−67.48</td><td><span class="badge b-ok">정상</span></td></tr><tr><td class="el">−45°</td><td class="n">900</td><td><span class="bar"><span class="track"><span class="fill" style="width:49.7%"></span><span class="floor" style="left:12.5%" title="이 칸의 백색잡음 값 12.5 %"></span></span><span class="v">49.7</span></span></td><td class="n">12.5</td><td class="n">1.8</td><td class="n">+47.1</td><td class="n">126.1</td><td class="n">0.995</td><td class="n">−67.19</td><td class="n">34.6</td><td class="n">8,192</td><td class="n">−63.34</td><td><span class="badge b-ok">정상</span></td></tr><tr><td class="el">−60°</td><td class="n">636</td><td><span class="bar"><span class="track"><span class="fill" style="width:52.8%"></span><span class="floor" style="left:12.6%" title="이 칸의 백색잡음 값 12.6 %"></span></span><span class="v">52.8</span></span></td><td class="n">12.6</td><td class="n">1.8</td><td class="n">+45.4</td><td class="n">254.6</td><td class="n">2.010</td><td class="n">−66.04</td><td class="n">51.4</td><td class="n">8,192</td><td class="n">−63.63</td><td><span class="badge b-ok">정상</span></td></tr><tr><td class="el">−75°</td><td class="n">330</td><td><span class="bar"><span class="track"><span class="fill" style="width:46.3%"></span><span class="floor" style="left:12.6%" title="이 칸의 백색잡음 값 12.6 %"></span></span><span class="v">46.3</span></span></td><td class="n">12.6</td><td class="n">0.2</td><td class="n">—</td><td class="n">126.1</td><td class="n">0.995</td><td class="n">−57.71</td><td class="n">11.9</td><td class="n">8,192</td><td class="n">−48.68</td><td><span class="badge b-ok">정상</span></td></tr><tr><td class="el">−90°</td><td class="n">0</td><td><span class="bar"><span class="track"><span class="fill" style="width:64.9%"></span><span class="floor" style="left:12.6%" title="이 칸의 백색잡음 값 12.6 %"></span></span><span class="v">64.9</span></span></td><td class="n">12.6</td><td class="n">100.0</td><td class="n">—</td><td class="n">126.1</td><td class="n">0.995</td><td class="n">−81.56</td><td class="n">0.0089</td><td class="n">8,192</td><td class="n">−41.07</td><td><span class="badge b-warn">▲ 잣대 퇴화</span><span class="badge b-warn">↺ 대역 빌림</span></td></tr></tbody></table></div><p class="small muted">표 읽는 법 — ⭐<b>리듬 몫</b>은 <b>날개끝 상한 «위»만</b> 재는 수다. 막대 안 세로선은 <b>그 칸의</b> 백색잡음 값이고(팔마다 다르다 — 옆 열에 적었다), 그보다 낮다고 «날개가 없다»는 뜻이 <b>아니다</b>. 그 판단은 <b>빗살 대비</b>와 함께 한다 — 그것은 상한 <b>아래</b>(날개가 실제로 사는 자리)에서 «정수배 자리 ÷ 그 사이 자리» 전력비이고 백색잡음이 0 dB 다. <b>상한 위 에너지</b>는 움직이는 힘 중 몇 %가 상한 위에 있나로, 리듬 몫이 낮은 까닭이 «위가 조용해서»인지 «위가 잡동사니로 가득 차서»인지를 가른다. <b>박자÷예측</b>이 1.00 이면 예측한 자리에 봉우리가 섰다는 뜻이고 2.00 이면 두 배 자리다 — ⚡튐 딱지가 붙은 칸의 박자는 회전이 아니라 튄 자세 몇 개의 간격이다. <b>움직이는 전력</b>과 <b>원장 레벨</b>은 dB 라 <b>같은 팔 안에서만</b> 비교한다. 박자는 <b>전 구간</b>으로 재고 맵 그림은 20~80 ms 창만 그린다.</p></section>
+
+<footer>만든 것 <code>benchmark/build_atlas_gallery.py</code> · 재료 <code>outputs/md_atlas_index.json</code>(그림 구운 시각 2026-08-15 23:41 KST) · 원장 <code>outputs/elevation_sweep_md.json</code> · 갤러리 새로 구운 시각 2026-08-15 23:46 KST<br>그림은 <b>복사하지 않았다</b> — <code>../outputs/figures/atlas/</code> 를 그대로 건다. 그림이 늘면 <code>build_md_atlas.py</code> → <code>build_atlas_gallery.py</code> 순으로 다시 돌린다.</footer>
+</div>
+</body>
+</html>

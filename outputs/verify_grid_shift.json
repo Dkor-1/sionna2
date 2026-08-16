@@ -1,0 +1,537 @@
+{
+ "_meta": {
+  "generator": "benchmark/verify_grid_shift.py",
+  "question_ko": "--grid-shift(격자 위상 널) 배선이 «안 주면 비트동일 · 주면 옮기기만» 을 지키나",
+  "gpu_used": false,
+  "fc_hz": 3500000000.0,
+  "range_m": 15.0,
+  "n_poses": 8192,
+  "drone": "matrice4e",
+  "elevations_deg": [
+   0.0,
+   -15.0,
+   -30.0,
+   -45.0,
+   -60.0,
+   -75.0,
+   -90.0
+  ],
+  "divs": [
+   12,
+   24,
+   48
+  ],
+  "how_to_read_ko": "docs/GRID_PHASE_NULL.md",
+  "purity_ko": "구면파 판에서는 송신점 p_tx=ctr+R·û 도 같이 옮겨진다. 그 몫(tx_move_phase_pp_deg)이 표본 이동이 만드는 위상(sample_move_phase_deg)보다 훨씬 작아야 «표본 자리만 바꾼 판» 이라고 말할 수 있다 — 이 게이트가 그 비를 잰다.",
+  "dither_xref_ko": "outputs/report2_waveform_rcs.json 의 sbr_validation.dither 는 같은 «격자 정렬이 값을 흔든다» 를 PEC 구에서 잰 것이다. 다만 그 판은 pad 를 흔들어 Rout·n 이 같이 바뀐 것이고(정렬은 덤으로 바뀐다), --grid-shift 는 n 을 고정하고 원점만 옮긴다 — 더 순수한 같은 축이다."
+ },
+ "checks": [
+  {
+   "check": "격자 간격 d · 칸 수 n · 광선 수 n² · Rout 이 안 변한다",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "이동은 광선 평면 안에서만 (û 성분 = 0)",
+   "passed": true,
+   "detail": "최대 |Δctr·û| = 1.23e-18 m"
+  },
+  {
+   "check": "이동 거리 = √(s1²+s2²)·d",
+   "passed": true,
+   "detail": "최대 오차 8.67e-19 m"
+  },
+  {
+   "check": "이동량이 (e1, e2) 성분 그대로",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "반 칸 이동판이 모든 앙각·모든 격자에서 표적을 덮는다",
+   "passed": true,
+   "detail": "가장 빠듯한 자리도 여유 16.4 칸"
+  },
+  {
+   "check": "송신점 이동(불순물) ≪ 표본 이동(재려는 것)",
+   "passed": true,
+   "detail": "가장 나쁜 자리도 21 배 (불순물 최대 2.00°)"
+  },
+  {
+   "check": "빈 값·0 은 꼬리표가 없다",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "값을 주면 _shift 꼬리표",
+   "passed": true,
+   "detail": "(0.5, 0.25, '_shift0.5x0.25')"
+  },
+  {
+   "check": "형식이 틀리면 죽는다(SystemExit)",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "인자 없음 → 이름이 옛 샤드와 글자 그대로 같다",
+   "passed": true,
+   "detail": "['ours_r15_n8192_el-15_00.npz']"
+  },
+  {
+   "check": "그 이름의 샤드가 원장에 실제로 있다",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "--grid-shift 0 → 이름·격자 모두 인자 없음과 동일",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "--grid-shift 0.5 → _shift0.5 꼬리표(옛 샤드와 안 섞인다)",
+   "passed": true,
+   "detail": "['ours_r15_n8192_shift0.5_el-15_00.npz']"
+  },
+  {
+   "check": "이동판이 커널에 넘긴 격자: 칸 수·Rout 동일",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "이동판이 커널에 넘긴 격자: 원점만 반 칸 대각 이동",
+   "passed": true,
+   "detail": "|Δctr| = 5.047 mm"
+  },
+  {
+   "check": "자세가 바뀌어도 판은 그대로다(얼림이 안 풀렸다)",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "check": "PathSolver 팔에서는 거부한다(격자가 없다)",
+   "passed": true,
+   "detail": ""
+  }
+ ],
+ "coverage": [
+  {
+   "div": 12,
+   "el_deg": 0.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 12,
+   "el_deg": -15.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 12,
+   "el_deg": -30.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 12,
+   "el_deg": -45.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 12,
+   "el_deg": -60.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 12,
+   "el_deg": -75.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 12,
+   "el_deg": -90.0,
+   "spacing_mm": 7.1381,
+   "n": 124,
+   "margin0_mm": 120.653,
+   "margin0_cells": 16.9,
+   "margin_half_mm": 117.084,
+   "margin_half_cells": 16.4,
+   "margin_one_mm": 113.515,
+   "margin_one_cells": 15.9
+  },
+  {
+   "div": 24,
+   "el_deg": 0.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 24,
+   "el_deg": -15.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 24,
+   "el_deg": -30.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 24,
+   "el_deg": -45.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 24,
+   "el_deg": -60.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 24,
+   "el_deg": -75.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 24,
+   "el_deg": -90.0,
+   "spacing_mm": 3.569,
+   "n": 242,
+   "margin0_mm": 111.73,
+   "margin0_cells": 31.31,
+   "margin_half_mm": 109.946,
+   "margin_half_cells": 30.81,
+   "margin_one_mm": 108.161,
+   "margin_one_cells": 30.31
+  },
+  {
+   "div": 48,
+   "el_deg": 0.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  },
+  {
+   "div": 48,
+   "el_deg": -15.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  },
+  {
+   "div": 48,
+   "el_deg": -30.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  },
+  {
+   "div": 48,
+   "el_deg": -45.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  },
+  {
+   "div": 48,
+   "el_deg": -60.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  },
+  {
+   "div": 48,
+   "el_deg": -75.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  },
+  {
+   "div": 48,
+   "el_deg": -90.0,
+   "spacing_mm": 1.7845,
+   "n": 478,
+   "margin0_mm": 107.269,
+   "margin0_cells": 60.11,
+   "margin_half_mm": 106.377,
+   "margin_half_cells": 59.61,
+   "margin_one_mm": 105.484,
+   "margin_one_cells": 59.11
+  }
+ ],
+ "purity": [
+  {
+   "div": 12,
+   "el_deg": 0.0,
+   "tx_move_phase_pp_deg": 1.2802,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 33.1
+  },
+  {
+   "div": 12,
+   "el_deg": -15.0,
+   "tx_move_phase_pp_deg": 1.3853,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 30.6
+  },
+  {
+   "div": 12,
+   "el_deg": -30.0,
+   "tx_move_phase_pp_deg": 1.5698,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 27.0
+  },
+  {
+   "div": 12,
+   "el_deg": -45.0,
+   "tx_move_phase_pp_deg": 1.7402,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 24.4
+  },
+  {
+   "div": 12,
+   "el_deg": -60.0,
+   "tx_move_phase_pp_deg": 1.8793,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 22.6
+  },
+  {
+   "div": 12,
+   "el_deg": -75.0,
+   "tx_move_phase_pp_deg": 1.9712,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 21.5
+  },
+  {
+   "div": 12,
+   "el_deg": -90.0,
+   "tx_move_phase_pp_deg": 2.0019,
+   "sample_move_phase_deg": 42.4264,
+   "ratio": 21.2
+  },
+  {
+   "div": 24,
+   "el_deg": 0.0,
+   "tx_move_phase_pp_deg": 0.6401,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 33.1
+  },
+  {
+   "div": 24,
+   "el_deg": -15.0,
+   "tx_move_phase_pp_deg": 0.6926,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 30.6
+  },
+  {
+   "div": 24,
+   "el_deg": -30.0,
+   "tx_move_phase_pp_deg": 0.7849,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 27.0
+  },
+  {
+   "div": 24,
+   "el_deg": -45.0,
+   "tx_move_phase_pp_deg": 0.87,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 24.4
+  },
+  {
+   "div": 24,
+   "el_deg": -60.0,
+   "tx_move_phase_pp_deg": 0.9396,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 22.6
+  },
+  {
+   "div": 24,
+   "el_deg": -75.0,
+   "tx_move_phase_pp_deg": 0.9856,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 21.5
+  },
+  {
+   "div": 24,
+   "el_deg": -90.0,
+   "tx_move_phase_pp_deg": 1.001,
+   "sample_move_phase_deg": 21.2132,
+   "ratio": 21.2
+  },
+  {
+   "div": 48,
+   "el_deg": 0.0,
+   "tx_move_phase_pp_deg": 0.3201,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 33.1
+  },
+  {
+   "div": 48,
+   "el_deg": -15.0,
+   "tx_move_phase_pp_deg": 0.3463,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 30.6
+  },
+  {
+   "div": 48,
+   "el_deg": -30.0,
+   "tx_move_phase_pp_deg": 0.3924,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 27.0
+  },
+  {
+   "div": 48,
+   "el_deg": -45.0,
+   "tx_move_phase_pp_deg": 0.435,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 24.4
+  },
+  {
+   "div": 48,
+   "el_deg": -60.0,
+   "tx_move_phase_pp_deg": 0.4698,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 22.6
+  },
+  {
+   "div": 48,
+   "el_deg": -75.0,
+   "tx_move_phase_pp_deg": 0.4928,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 21.5
+  },
+  {
+   "div": 48,
+   "el_deg": -90.0,
+   "tx_move_phase_pp_deg": 0.5005,
+   "sample_move_phase_deg": 10.6066,
+   "ratio": 21.2
+  }
+ ],
+ "dither_reference": [
+  {
+   "div": 8,
+   "spread_db": 5.284
+  },
+  {
+   "div": 12,
+   "spread_db": 1.373
+  },
+  {
+   "div": 16,
+   "spread_db": 1.782
+  },
+  {
+   "div": 24,
+   "spread_db": 0.342
+  }
+ ],
+ "passed": true
+}
