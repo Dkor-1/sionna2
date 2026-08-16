@@ -1,0 +1,7076 @@
+{
+ "_meta": {
+  "generator": "benchmark/free_harvest_pose_ladder_0816.py",
+  "written_at_kst": "2026-08-16 22:36 KST",
+  "question_ko": "날개끝 상한 **위** 빗살은 자세 격자(=시간 표집 격자)의 산물인가, 진짜 구조인가 — 자세 8,192 ↔ 32,768 사다리",
+  "backlog_rank": 3,
+  "round_id": "R24",
+  "gpu_used": false,
+  "reads_only": [
+   "outputs/elevation_sweep_md.json",
+   "outputs/elevation_sweep_md.npz",
+   "outputs/outlier_census_0816.json",
+   "outputs/depth_axis_verdict_0816.json"
+  ],
+  "ledger_state": {
+   "n_rows": 411,
+   "ledger_json_mtime_kst": "2026-08-16 22:16 KST"
+  },
+  "prf_hz": 19700.0,
+  "window": "hann",
+  "rhythm_halfwidth_hz": 8.0,
+  "what_n_poses_changes_ko": "자세는 t=i/PRF 로 찍는다(PRF 19,700 Hz 고정) — **자세 수 = 기록 길이**이지 표집률이 아니다. 4 배는 분해능 4 배(2.405→0.601 Hz)와 새 시간 1.25 s 를 함께 준다. 이 판은 영채움 팔(Z)로 그 둘을 가른다.",
+  "grid_confound_ko": "⚠우리 커널 팔은 64 개 probe 자세의 합집합 bbox 위에 격자를 얼린다(elevation_sweep_md.py:265, step=n//64). n 이 바뀌면 probe 자세가 달라져 **얼린 격자도 바뀐다** — 이 짝은 완전한 단일축이 아니다. PathSolver 팔에는 격자가 없어 그 짝이 격자 없는 대조군이다.",
+  "rotor_spread": {
+   "rpm_per_rotor": [
+    3808.36,
+    3791.64,
+    3795.402,
+    3804.598
+   ],
+   "blades": 2,
+   "blade_pass_hz": [
+    126.9453,
+    126.388,
+    126.5134,
+    126.8199
+   ],
+   "spread_hz": 0.5573,
+   "k_window_break": 28.7,
+   "note_ko": "k 번째 배음에서 로터 산포는 k×0.557 Hz 로 벌어진다 — k≳29(≈3.6 kHz)부터 창(±8 Hz)을 넘는다. 그 위에서 리듬 몫이 내려가는 것은 **정상**이고 격자의 산물이 아니다."
+  },
+  "metric_defs_ko": {
+   "rhythm_pct": "상한 위 에너지 중 박자 정수배(±8 Hz)에 붙은 몫 [%] — 정본",
+   "rhythm_null_pct": "⭐백색이면 나오는 값 [%] — 팔마다 다르다(이 판은 전부 matrice4e)",
+   "above_ceiling_pct": "움직이는 에너지 중 상한 위 몫 [%]",
+   "comb_db": "상한 **아래** 빗살 대비 [dB] (백색 널 ≈ 0)",
+   "above_comb_db": "⭐보조 신설 — 상한 **위** 빗살 대비 [dB]. 창 안 ÷ 창 사이라 «빈이 몇 개 드는가» 장부에 덜 걸린다. **정본 아님**",
+   "moving_power_db": "⭐정지 성분(DC) 제거 후 레벨 [dB] — 판정은 이 값으로",
+   "ledger_level_db_raw_dc_kept": "⛔원장 `level_db` 는 DC 를 **안 뺀** 값이다 — 규약상 이 판정에 쓰지 않는다. 참고로만 싣는다"
+  },
+  "arms_ko": {
+   "A_n8192": "n=8192 팔 그대로 — 기준선",
+   "B_n32768_head8192": "n=32768 팔의 앞 8,192 자세 — 같은 자세·같은 분해능, 격자만 다르다",
+   "C_n32768_full": "n=32768 팔 전체 — 분해능 4 배 + 새 시간 1.25 s",
+   "Z_n8192_zeropad32768": "⭐A 를 영채움해 32,768 — 분해능만 4 배(새 정보 0)",
+   "Zb_head8192_zeropad32768": "B 의 영채움 판 — C 와 짝",
+   "quarters": "⭐C 를 8,192 씩 네 토막 — 같은 n 에서의 «구간 산포»"
+  },
+  "decision_rule_ko": "|C − A| 가 네 토막 산포(span) 안이면 **판정 불가**. 밖이면 «움직였다» 로만 적고, 그 움직임이 영채움(Z)으로 재현되면 원인은 **분해능 장부**이지 자세 수가 가져온 새 정보가 아니다.",
+  "bands": {
+   "level_db_by_el": {
+    "0.0": 3.86,
+    "-15.0": 1.31,
+    "-30.0": 0.37,
+    "-45.0": 0.09,
+    "-60.0": 0.02,
+    "-75.0": 0.1,
+    "-90.0": 5.62
+   },
+   "rhythm_pp_by_el": {
+    "0.0": 11.8,
+    "-15.0": 0.1,
+    "-30.0": 21.8,
+    "-45.0": 12.9,
+    "-60.0": 16.0,
+    "-75.0": 2.5,
+    "-90.0": 16.4
+   },
+   "comb_db_by_el": {
+    "0.0": 0.1,
+    "-15.0": 4.1,
+    "-30.0": 4.6,
+    "-45.0": 4.6,
+    "-60.0": 4.0,
+    "-75.0": null,
+    "-90.0": null
+   },
+   "rhythm_pp_global": 21.8,
+   "comb_db_global": 4.04,
+   "above_pp_global": 12.5549,
+   "comb_null_db": 3.0,
+   "seed_sd_db": 1.833,
+   "source": "benchmark/depth_axis_verdict_0816.py (2026-08-16 정정본 · frame_completion_0816.q4_grid_band)",
+   "scope_warning_ko": "⚠격자 산포 밴드는 **우리 커널(SBR+PO)의 λ/12↔λ/24 격자 축**에서 잰 값이다. PathSolver 팔에는 격자가 없어 **가져다 쓰는** 밴드다 — 그 짝에는 시드 산포(sd 1.833 dB)를 함께 놓고 읽는다."
+  },
+  "new_elevation_band_warning_ko": "이 판의 앙각은 0·−30·−60 뿐이라 −52·−68·−82 처럼 밴드가 없는 새 앙각을 쓰지 않는다 — **빌린 값이 없다**.",
+  "gate_bit_identical": [
+   {
+    "cell": "ours_r15_n8192/el+0",
+    "bit_identical": true,
+    "atlas_rhythm": 63.336581,
+    "here_rhythm": 63.336581,
+    "atlas_comb_db": 47.819036,
+    "here_comb_db": 47.819036
+   },
+   {
+    "cell": "ours_r15_n8192/el-30",
+    "bit_identical": true,
+    "atlas_rhythm": 83.306067,
+    "here_rhythm": 83.306067,
+    "atlas_comb_db": 42.929875,
+    "here_comb_db": 42.929875
+   },
+   {
+    "cell": "ours_r15_n32768/el-60",
+    "bit_identical": true,
+    "atlas_rhythm": 46.014846,
+    "here_rhythm": 46.014846,
+    "atlas_comb_db": 52.597707,
+    "here_comb_db": 52.597707
+   },
+   {
+    "cell": "sionna_p4000000000_r15_n8192_d1/el-30",
+    "bit_identical": true,
+    "atlas_rhythm": 80.498707,
+    "here_rhythm": 80.498707,
+    "atlas_comb_db": 51.988668,
+    "here_comb_db": 51.988668
+   }
+  ],
+  "gate_pass": true,
+  "gate_ftip": [
+   {
+    "cell": "ours_r15_n8192/el+0",
+    "ledger_f_tip_hz": 1272.9,
+    "recomputed_f_tip_hz": 1272.914,
+    "diff_hz": 0.014,
+    "ok": true
+   },
+   {
+    "cell": "ours_r15_n32768/el+0",
+    "ledger_f_tip_hz": 1272.9,
+    "recomputed_f_tip_hz": 1272.914,
+    "diff_hz": 0.014,
+    "ok": true
+   },
+   {
+    "cell": "ours_r15_n8192/el-30",
+    "ledger_f_tip_hz": 1102.4,
+    "recomputed_f_tip_hz": 1102.376,
+    "diff_hz": -0.024,
+    "ok": true
+   },
+   {
+    "cell": "ours_r15_n32768/el-30",
+    "ledger_f_tip_hz": 1102.4,
+    "recomputed_f_tip_hz": 1102.376,
+    "diff_hz": -0.024,
+    "ok": true
+   },
+   {
+    "cell": "ours_r15_n8192/el-60",
+    "ledger_f_tip_hz": 636.5,
+    "recomputed_f_tip_hz": 636.457,
+    "diff_hz": -0.043,
+    "ok": true
+   },
+   {
+    "cell": "ours_r15_n32768/el-60",
+    "ledger_f_tip_hz": 636.5,
+    "recomputed_f_tip_hz": 636.457,
+    "diff_hz": -0.043,
+    "ok": true
+   },
+   {
+    "cell": "sionna_p4000000000_r15_n8192_d1/el-30",
+    "ledger_f_tip_hz": 1102.4,
+    "recomputed_f_tip_hz": 1102.376,
+    "diff_hz": -0.024,
+    "ok": true
+   },
+   {
+    "cell": "sionna_p4000000000_r15_n32768_d1/el-30",
+    "ledger_f_tip_hz": 1102.4,
+    "recomputed_f_tip_hz": 1102.376,
+    "diff_hz": -0.024,
+    "ok": true
+   }
+  ],
+  "gate_ftip_pass": true,
+  "provenance": {
+   "source_mtimes_kst": {
+    "src/rcs_sbr.py": "2026-08-15 22:33 KST",
+    "src/articulated_fast.py": "2026-08-11 09:05 KST",
+    "src/drones.py": "2026-08-16 21:08 KST",
+    "src/materials.py": "2026-08-16 21:01 KST",
+    "benchmark/elevation_sweep_md.py": "2026-08-16 22:03 KST"
+   },
+   "shards": {
+    "ours_r15_n8192/el+0": {
+     "n_shards": 16,
+     "first": "2026-08-13 16:37 KST",
+     "last": "2026-08-13 16:41 KST"
+    },
+    "ours_r15_n32768/el+0": {
+     "n_shards": 4,
+     "first": "2026-08-16 05:49 KST",
+     "last": "2026-08-16 07:14 KST"
+    },
+    "ours_r15_n8192/el-30": {
+     "n_shards": 16,
+     "first": "2026-08-13 16:39 KST",
+     "last": "2026-08-13 16:44 KST"
+    },
+    "ours_r15_n32768/el-30": {
+     "n_shards": 4,
+     "first": "2026-08-16 06:01 KST",
+     "last": "2026-08-16 07:38 KST"
+    },
+    "ours_r15_n8192/el-60": {
+     "n_shards": 16,
+     "first": "2026-08-13 16:42 KST",
+     "last": "2026-08-13 16:44 KST"
+    },
+    "ours_r15_n32768/el-60": {
+     "n_shards": 4,
+     "first": "2026-08-16 06:11 KST",
+     "last": "2026-08-16 07:03 KST"
+    },
+    "sionna_p4000000000_r15_n8192_d1/el-30": {
+     "n_shards": 16,
+     "first": "2026-08-13 15:53 KST",
+     "last": "2026-08-13 16:01 KST"
+    },
+    "sionna_p4000000000_r15_n32768_d1/el-30": {
+     "n_shards": 8,
+     "first": "2026-08-16 06:47 KST",
+     "last": "2026-08-16 07:36 KST"
+    }
+   },
+   "warning_ko": "⚠**두 팔은 사흘 떨어져 계산됐다**(8,192 팔 2026-08-13 저녁 KST · 32,768 팔 2026-08-16 새벽 KST). 그 사이에 `src/rcs_sbr.py` 가 손질됐다(현재 시각 2026-08-15 22:33 KST — 32,768 팔이 돌기 약 7 시간 전). git 를 못 쓰니 무엇이 바뀌었는지는 여기서 말할 수 없다. 대신 두 가지로 **크기를 가둔다** — (1) PathSolver 짝은 앞 8,192 자세가 기계정밀도(≈5e−16)로 **같다** → PathSolver 경로에는 그 사이 바뀐 것이 없다. (2) 우리 커널 짝은 정지 성분을 뺀 AC 전력이 앞 8,192 자세에서 0.02 dB 안쪽으로 같다 → 커널 손질과 얼린 격자 변화를 합쳐도 이 판의 모든 밴드 안이다.",
+   "drone_spec_check_ko": "`src/drones.py` 는 두 팔보다 나중에 손질됐지만(2026-08-16), f_tip 을 원장 값과 대조하면 반올림 차이(≤0.05 Hz)뿐이라 이 판이 쓰는 제원은 안 바뀌었다 — gate_ftip 참조."
+  }
+ },
+ "headline": {
+  "answer_ko": "진짜 구조",
+  "answer_en": "real structure, not a pose-grid artifact",
+  "n_cells": 4,
+  "n_rhythm_outside_band": 0,
+  "n_reading_flipped": 0,
+  "rhythm_over_null_range": [
+   3.66,
+   6.77
+  ],
+  "zeropad_max_abs_rhythm_shift_pp": 0.195,
+  "verdict_ko": "⭐**진짜 구조다 — 자세 격자의 산물이 아니다.** 자세를 4 배(8,192→32,768) 늘려도 상한 위 빗살은 네 칸 모두 살아 있다(리듬 몫이 백색 널의 3.7~6.8 배, 상한 위 빗살 대비 15.5~22.3 dB). 리듬 몫의 움직임은 네 칸 전부 프로젝트의 격자 산포 밴드 **안**이라 «움직였다» 고도 말할 수 없다(밴드 밖 0/4). 읽기가 뒤집힌 칸 0/4. ⭐분해능만 4 배로 만든 영채움 팔은 리듬 몫을 최대 0.20 %p 밖에 안 움직였다 — 이 잣대는 «빈을 몇 개 세나» 라는 장부에 걸려 있지 않다.",
+  "caveats_ko": [
+   "⚠단일축이 아니다 — 우리 커널 팔은 n 이 바뀌면 probe 자세가 달라져 **얼린 격자도** 바뀐다(elevation_sweep_md.py:265). 그래서 문턱을 격자 산포 밴드로 잡았다. 격자가 없는 PathSolver 짝이 같은 방향을 가리키는 것이 이 교란의 반증이다.",
+   "⚠짝이 네 칸뿐이다(우리 커널 el 0·−30·−60 · PathSolver el −30). 앙각 축은 세 점, 엔진 축은 한 점에서만 겹친다.",
+   "⚠«자세 수» 는 표집률이 아니라 **기록 길이**다. 이 판은 «자세 격자가 촘촘한가» 가 아니라 «자세 격자가 짧은가» 를 물었다. PRF 자체를 바꾼 사다리는 원장에 없다.",
+   "⚠above_comb_db 는 이 판에서 **신설한 보조 잣대**다 — 프로젝트 밴드가 없어 «밴드 안» 판정을 못 한다. 정본 판정은 리듬 몫·상한 위 몫으로 했다."
+  ],
+  "supporting": {
+   "zeropad_resolution_only_max_pp": 0.195,
+   "decimation_stride4_above_comb_db": [
+    13.48,
+    20.62,
+    10.775,
+    19.132
+   ],
+   "decimation_any_alias_fold_on_comb": false,
+   "surface_grid_div24_above_comb_db": [
+    16.157,
+    15.595,
+    17.864
+   ],
+   "surface_grid_div24_rhythm_move_pp": [
+    11.852,
+    21.819,
+    15.914
+   ],
+   "pose_count_rhythm_move_pp": [
+    0.35,
+    2.316,
+    6.833,
+    2.042
+   ],
+   "pose_vs_surface_grid_ko": "⭐자세 수는 리듬 몫을 0.35~6.83 %p 움직이고, **표면 격자**(λ/12→λ/24)는 같은 칸을 11.9~21.8 %p 움직인다. 즉 이 잣대를 흔드는 것은 자세 격자가 아니라 표면 격자다 — 그런데 표면 격자를 흔들어도 **상한 위 빗살 자체는 안 사라진다**(대비 15.6~17.9 dB, 백색 널 0 dB).",
+   "pathsolver_bit_identity": [
+    4.866e-16
+   ],
+   "outlier_all_normal": true,
+   "outlier_max_abs_replace_one": 0.065,
+   "suspects_cleared_ko": "«격자» 라는 이름의 용의자 셋이 모두 기각됐다 — 광선 수(R17) · 자세 격자(이 판) · 표면 격자(교차검사). 격자가 **아예 없는** PathSolver 도 같은 빗살을 낸다."
+  }
+ },
+ "summary": [
+  {
+   "cell": "ours el+0",
+   "rhythm_8192": 63.337,
+   "rhythm_32768": 62.987,
+   "rhythm_zeropad": 63.532,
+   "rhythm_null": 12.533,
+   "rhythm_quarter_span": 7.782,
+   "rhythm_band_pp": 11.8,
+   "above_comb_db_8192": 18.788,
+   "above_comb_db_32768": 19.767,
+   "above_comb_db_zeropad": 18.551,
+   "above_ceiling_8192": 2.7027,
+   "above_ceiling_32768": 3.4622,
+   "comb_db_8192": 47.819,
+   "comb_db_32768": 47.892,
+   "moving_power_8192": -70.402,
+   "moving_power_32768": -70.861,
+   "reading_flipped": false,
+   "verdict": {
+    "rhythm_pct": "판정 불가 (밴드·산포 안)",
+    "above_ceiling_pct": "판정 불가 (밴드·산포 안)",
+    "comb_db": "판정 불가 (밴드·산포 안)",
+    "above_comb_db": "밴드·산포 밖 — 움직였다",
+    "moving_power_db": "판정 불가 (밴드·산포 안)"
+   }
+  },
+  {
+   "cell": "ours el-30",
+   "rhythm_8192": 83.306,
+   "rhythm_32768": 85.622,
+   "rhythm_zeropad": 83.316,
+   "rhythm_null": 12.646,
+   "rhythm_quarter_span": 3.988,
+   "rhythm_band_pp": 21.8,
+   "above_comb_db_8192": 21.303,
+   "above_comb_db_32768": 22.304,
+   "above_comb_db_zeropad": 21.294,
+   "above_ceiling_8192": 10.617,
+   "above_ceiling_32768": 13.5392,
+   "comb_db_8192": 42.93,
+   "comb_db_32768": 42.836,
+   "moving_power_8192": -69.11,
+   "moving_power_32768": -68.983,
+   "reading_flipped": false,
+   "verdict": {
+    "rhythm_pct": "판정 불가 (밴드·산포 안)",
+    "above_ceiling_pct": "판정 불가 (밴드·산포 안)",
+    "comb_db": "판정 불가 (밴드·산포 안)",
+    "above_comb_db": "판정 불가 (밴드·산포 안)",
+    "moving_power_db": "판정 불가 (밴드·산포 안)"
+   }
+  },
+  {
+   "cell": "ours el-60",
+   "rhythm_8192": 52.848,
+   "rhythm_32768": 46.015,
+   "rhythm_zeropad": 52.716,
+   "rhythm_null": 12.58,
+   "rhythm_quarter_span": 4.88,
+   "rhythm_band_pp": 16.0,
+   "above_comb_db_8192": 16.189,
+   "above_comb_db_32768": 15.469,
+   "above_comb_db_zeropad": 16.225,
+   "above_ceiling_8192": 1.76,
+   "above_ceiling_32768": 0.979,
+   "comb_db_8192": 45.356,
+   "comb_db_32768": 52.598,
+   "moving_power_8192": -66.042,
+   "moving_power_32768": -64.355,
+   "reading_flipped": false,
+   "verdict": {
+    "rhythm_pct": "판정 불가 (밴드·산포 안)",
+    "above_ceiling_pct": "판정 불가 (밴드·산포 안)",
+    "comb_db": "판정 불가 (밴드·산포 안)",
+    "above_comb_db": "판정 불가 (밴드·산포 안)",
+    "moving_power_db": "판정 불가 (밴드·산포 안)"
+   }
+  },
+  {
+   "cell": "PathSolver el-30",
+   "rhythm_8192": 80.499,
+   "rhythm_32768": 82.541,
+   "rhythm_zeropad": 80.529,
+   "rhythm_null": 12.646,
+   "rhythm_quarter_span": 4.322,
+   "rhythm_band_pp": 21.8,
+   "above_comb_db_8192": 21.451,
+   "above_comb_db_32768": 21.959,
+   "above_comb_db_zeropad": 21.267,
+   "above_ceiling_8192": 1.0606,
+   "above_ceiling_32768": 0.8497,
+   "comb_db_8192": 51.989,
+   "comb_db_32768": 55.077,
+   "moving_power_8192": -135.664,
+   "moving_power_32768": -134.57,
+   "reading_flipped": false,
+   "verdict": {
+    "rhythm_pct": "판정 불가 (밴드·산포 안)",
+    "above_ceiling_pct": "판정 불가 (밴드·산포 안)",
+    "comb_db": "판정 불가 (밴드·산포 안)",
+    "above_comb_db": "판정 불가 (밴드·산포 안)",
+    "moving_power_db": "판정 불가 (밴드·산포 안)"
+   }
+  }
+ ],
+ "cross_checks": {
+  "surface_grid_div12_vs_div24": [
+   {
+    "elevation_deg": 0.0,
+    "arm_div12": "ours_r15_n8192",
+    "arm_div24": "ours_r15_n8192_div24",
+    "rhythm_pct": [
+     63.337,
+     51.485
+    ],
+    "rhythm_null_pct": 12.533,
+    "above_comb_db": [
+     18.788,
+     16.157
+    ],
+    "above_ceiling_pct": [
+     2.7027,
+     1.5174
+    ],
+    "comb_db": [
+     47.819,
+     47.714
+    ],
+    "d_rhythm_pp": -11.852,
+    "band_rhythm_pp": 11.8
+   },
+   {
+    "elevation_deg": -30.0,
+    "arm_div12": "ours_r15_n8192",
+    "arm_div24": "ours_r15_n8192_div24",
+    "rhythm_pct": [
+     83.306,
+     61.487
+    ],
+    "rhythm_null_pct": 12.646,
+    "above_comb_db": [
+     21.303,
+     15.595
+    ],
+    "above_ceiling_pct": [
+     10.617,
+     1.3611
+    ],
+    "comb_db": [
+     42.93,
+     47.546
+    ],
+    "d_rhythm_pp": -21.819,
+    "band_rhythm_pp": 21.8
+   },
+   {
+    "elevation_deg": -60.0,
+    "arm_div12": "ours_r15_n8192",
+    "arm_div24": "ours_r15_n8192_div24",
+    "rhythm_pct": [
+     52.848,
+     68.762
+    ],
+    "rhythm_null_pct": 12.58,
+    "above_comb_db": [
+     16.189,
+     17.864
+    ],
+    "above_ceiling_pct": [
+     1.76,
+     0.4651
+    ],
+    "comb_db": [
+     45.356,
+     49.409
+    ],
+    "d_rhythm_pp": 15.914,
+    "band_rhythm_pp": 16.0
+   }
+  ],
+  "note_ko": "⭐표면 격자를 두 배 촘촘하게 해도(λ/12→λ/24) 상한 위 빗살이 그대로면, 빗살은 **표면 격자**의 산물도 아니다. 여기에 격자가 아예 없는 PathSolver 짝까지 같은 방향이면 «격자» 라는 이름의 용의자는 셋 다 기각된다 — 광선 수(R17) · 자세 격자(이 판) · 표면 격자(이 교차검사)."
+ },
+ "cells": [
+  {
+   "pair": "ours",
+   "elevation_deg": 0.0,
+   "arm_8192": "ours_r15_n8192",
+   "arm_32768": "ours_r15_n32768",
+   "cell_8192": "ours_r15_n8192/el+0",
+   "cell_32768": "ours_r15_n32768/el+0",
+   "drone": "matrice4e",
+   "f_flash_hz": 126.6667,
+   "f_tip_hz": 1272.91,
+   "n_poses": [
+    8192,
+    32768
+   ],
+   "record_s": [
+    0.4158,
+    1.6634
+   ],
+   "bin_hz": [
+    2.4048,
+    0.6012
+   ],
+   "flash_cycles": [
+    52.7,
+    210.7
+   ],
+   "ledger_n_missing": [
+    0,
+    0
+   ],
+   "ledger_level_db_raw_dc_kept": [
+    -54.54,
+    -54.52
+   ],
+   "pose_overlap": {
+    "head_equals_8192_bitwise": false,
+    "coherence": 0.99997016,
+    "max_rel_pose_diff": 0.05578,
+    "mean_level_diff_db_dc_kept": 0.033,
+    "ac_level_diff_db_dc_removed": 0.008,
+    "note_ko": "자세 시각은 t=i/PRF 라 앞 8,192 자세는 **같은 시각·같은 로터 위상**이다. 그래도 값이 다르면 그 차이는 **얼린 격자**(우리 커널) 또는 **광선 표집**(PathSolver)에서 온 것이지 자세 수에서 온 것이 아니다.",
+    "dc_warning_ko": "⚠mean_level_diff_db_dc_kept 는 DC 를 **안 뺀** 값이다(원장 level_db 와 같은 정의). 판정에는 옆의 ac_level_diff_db_dc_removed 를 쓴다 — 프로젝트에서 세 번 재발한 AC/DC 함정이다."
+   },
+   "arms": {
+    "A_n8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 63.337,
+     "rhythm_null_pct": 12.533,
+     "above_ceiling_pct": 2.7027,
+     "comb_db": 47.819,
+     "above_comb_db": 18.788,
+     "moving_power_db": -70.402,
+     "ac_over_dc": 0.026304,
+     "rhythm_degenerate": false
+    },
+    "B_n32768_head8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 63.453,
+     "rhythm_null_pct": 12.533,
+     "above_ceiling_pct": 2.7107,
+     "comb_db": 48.307,
+     "above_comb_db": 19.061,
+     "moving_power_db": -70.394,
+     "ac_over_dc": 0.026148,
+     "rhythm_degenerate": false
+    },
+    "C_n32768_full": {
+     "n": 32768,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 62.987,
+     "rhythm_null_pct": 12.519,
+     "above_ceiling_pct": 3.4622,
+     "comb_db": 47.892,
+     "above_comb_db": 19.767,
+     "moving_power_db": -70.861,
+     "ac_over_dc": 0.023478,
+     "rhythm_degenerate": false
+    },
+    "Z_n8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 63.532,
+     "rhythm_null_pct": 12.519,
+     "above_ceiling_pct": 2.7029,
+     "comb_db": 47.981,
+     "above_comb_db": 18.551,
+     "moving_power_db": -70.402,
+     "ac_over_dc": 0.026304,
+     "rhythm_degenerate": false
+    },
+    "Zb_head8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 63.499,
+     "rhythm_null_pct": 12.519,
+     "above_ceiling_pct": 2.7109,
+     "comb_db": 48.514,
+     "above_comb_db": 18.77,
+     "moving_power_db": -70.394,
+     "ac_over_dc": 0.026148,
+     "rhythm_degenerate": false
+    }
+   },
+   "quarters": [
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 63.453,
+     "rhythm_null_pct": 12.533,
+     "above_ceiling_pct": 2.7107,
+     "comb_db": 48.307,
+     "above_comb_db": 19.061,
+     "moving_power_db": -70.394,
+     "ac_over_dc": 0.026148,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 61.746,
+     "rhythm_null_pct": 12.533,
+     "above_ceiling_pct": 2.4143,
+     "comb_db": 48.13,
+     "above_comb_db": 18.423,
+     "moving_power_db": -70.107,
+     "ac_over_dc": 0.027842,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 60.461,
+     "rhythm_null_pct": 12.533,
+     "above_ceiling_pct": 3.9269,
+     "comb_db": 47.085,
+     "above_comb_db": 18.106,
+     "moving_power_db": -72.495,
+     "ac_over_dc": 0.016148,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 55.671,
+     "rhythm_null_pct": 12.533,
+     "above_ceiling_pct": 3.8202,
+     "comb_db": 47.139,
+     "above_comb_db": 18.394,
+     "moving_power_db": -70.827,
+     "ac_over_dc": 0.023684,
+     "rhythm_degenerate": false
+    }
+   ],
+   "quarter_scatter": {
+    "rhythm_pct": {
+     "n": 4,
+     "min": 55.671,
+     "max": 63.453,
+     "span": 7.782,
+     "mean": 60.333,
+     "sd": 3.341
+    },
+    "above_ceiling_pct": {
+     "n": 4,
+     "min": 2.414,
+     "max": 3.927,
+     "span": 1.513,
+     "mean": 3.218,
+     "sd": 0.768
+    },
+    "comb_db": {
+     "n": 4,
+     "min": 47.085,
+     "max": 48.307,
+     "span": 1.222,
+     "mean": 47.665,
+     "sd": 0.643
+    },
+    "above_comb_db": {
+     "n": 4,
+     "min": 18.106,
+     "max": 19.061,
+     "span": 0.955,
+     "mean": 18.496,
+     "sd": 0.403
+    },
+    "moving_power_db": {
+     "n": 4,
+     "min": -72.495,
+     "max": -70.107,
+     "span": 2.388,
+     "mean": -70.956,
+     "sd": 1.068
+    }
+   },
+   "deltas": {
+    "rhythm_pct": {
+     "C_minus_A": -0.35,
+     "Z_minus_A": 0.195,
+     "C_minus_Z": -0.545,
+     "B_minus_A": 0.116,
+     "C_minus_B": -0.466,
+     "quarter_span": 7.782
+    },
+    "above_ceiling_pct": {
+     "C_minus_A": 0.76,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": 0.759,
+     "B_minus_A": 0.008,
+     "C_minus_B": 0.752,
+     "quarter_span": 1.513
+    },
+    "comb_db": {
+     "C_minus_A": 0.073,
+     "Z_minus_A": 0.162,
+     "C_minus_Z": -0.089,
+     "B_minus_A": 0.488,
+     "C_minus_B": -0.415,
+     "quarter_span": 1.222
+    },
+    "above_comb_db": {
+     "C_minus_A": 0.979,
+     "Z_minus_A": -0.237,
+     "C_minus_Z": 1.216,
+     "B_minus_A": 0.273,
+     "C_minus_B": 0.706,
+     "quarter_span": 0.955
+    },
+    "moving_power_db": {
+     "C_minus_A": -0.459,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": -0.459,
+     "B_minus_A": 0.008,
+     "C_minus_B": -0.467,
+     "quarter_span": 2.388
+    }
+   },
+   "cell_reading_ko": "리듬 몫 63.3 → 63.0 % (백색 널 12.5 %). 움직임 -0.35 %p 중 분해능 장부 몫은 +0.20 %p 뿐이고 나머지는 **새로 본 1.25 s** 다 — 네 토막이 각각 63.5, 61.7, 60.5, 55.7 % 라 같은 n 에서도 구간마다 7.8 %p 흔들린다. 자세를 늘려 얻는 것은 **다른 답이 아니라 덜 흔들리는 답**이다.",
+   "verdict_by_metric": {
+    "rhythm_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -0.35,
+     "band": 11.8,
+     "band_source": "GRID_BAND_RHYTHM_PP_BY_EL",
+     "span": 7.782,
+     "threshold_used": 11.8,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "above_ceiling_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 0.76,
+     "band": 12.5549,
+     "band_source": "GRID_BAND_ABOVE_PP_GLOBAL(전앙각 최대)",
+     "span": 1.513,
+     "threshold_used": 12.555,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 0.073,
+     "band": 0.1,
+     "band_source": "GRID_BAND_COMB_DB_BY_EL",
+     "span": 1.222,
+     "threshold_used": 1.222,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "above_comb_db": {
+     "verdict": "밴드·산포 밖 — 움직였다",
+     "delta": 0.979,
+     "band": null,
+     "band_source": null,
+     "span": 0.955,
+     "threshold_used": 0.955,
+     "inside_band": null,
+     "inside_quarter_span": false
+    },
+    "moving_power_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -0.459,
+     "band": 3.86,
+     "band_source": "GRID_BAND_AC_DB",
+     "span": 2.388,
+     "threshold_used": 3.86,
+     "inside_band": true,
+     "inside_quarter_span": true
+    }
+   },
+   "reading": {
+    "rhythm_over_null_8192": 5.05,
+    "rhythm_over_null_32768": 5.03,
+    "rhythm_null_pct": 12.533,
+    "comb_reading_8192": "빗살 있음",
+    "comb_reading_32768": "빗살 있음",
+    "above_comb_reading_8192": "상한 위 빗살 있음",
+    "above_comb_reading_32768": "상한 위 빗살 있음",
+    "near_numeric_floor": false,
+    "reading_flipped": false
+   },
+   "harmonic_curve": {
+    "n8192": [
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 29.58,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 27.97,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 23.07,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 24.56,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 20.22,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 23.91,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 26.4,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 31.9,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 27.7,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 28.93,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 25.67,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 23.01,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 22.63,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 24.66,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 19.33,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 22.8,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 25.62,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 25.42,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 24.62,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 27.06,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 26.52,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 24.92,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 21.02,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 22.37,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 23.79,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 20.79,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 22.65,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 20.6,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 20.64,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 16.51,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 20.92,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 20.22,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 13.82,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 12.36,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 13.41,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 13.92,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 15.28,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 14.17,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 12.52,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 7.99,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 10.65,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 11.89,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 6.81,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 7.8,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 5.21,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 12.16,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 2.79,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 6.86,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 8.24,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 4.01,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 6.79,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 5.03,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 4.57,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 4.57,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 7.29,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.9,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 4.39,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 3.38,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 1.14,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 4.86,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "n32768": [
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 31.38,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 29.07,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 24.4,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 24.44,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 24.8,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 26.55,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 23.84,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 29.28,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 26.05,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 27.87,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 26.67,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 23.53,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 25.55,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 24.65,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 21.57,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 21.98,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 25.77,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 26.58,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 24.03,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 23.88,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 21.47,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 23.79,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 19.25,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 19.87,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 20.39,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 16.99,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 21.2,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 20.62,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 22.29,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 19.93,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 21.68,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 20.48,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 14.65,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 16.69,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 16.18,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 14.45,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 15.11,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 12.49,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 15.06,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 10.84,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 10.42,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 9.74,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 6.85,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 4.39,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 5.49,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 6.49,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 1.91,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 4.19,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 5.33,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 3.39,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 3.13,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 5.36,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 1.18,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 0.32,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 5.1,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 4.22,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": -0.02,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 0.27,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": -2.55,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 1.59,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "zeropad": [
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 29.8,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 28.84,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 23.27,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 24.19,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 20.49,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 23.82,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 25.79,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 31.15,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 27.42,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 28.82,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 25.7,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 23.19,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 22.47,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 24.87,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 19.27,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 22.54,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 25.52,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 24.88,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 24.61,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 27.25,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 26.37,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 25.24,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 21.13,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 22.7,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 23.43,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 20.79,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 22.58,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 20.8,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 20.77,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 16.82,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 21.25,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 20.46,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 13.8,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 13.24,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 13.51,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 13.67,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 16.38,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 14.06,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 12.28,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 9.52,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 11.32,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 11.57,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 8.96,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 8.45,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 4.59,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 10.71,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 4.28,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 6.15,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 7.68,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 5.06,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 6.2,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 4.45,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 5.7,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 4.35,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 6.29,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 5.02,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 4.12,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 3.67,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 0.59,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 2.95,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "reach": {
+     "n8192": {
+      "k_last": 70,
+      "f_hz": 8866.7,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 19.77
+     },
+     "n32768": {
+      "k_last": 66,
+      "f_hz": 8360.0,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 19.56
+     },
+     "zeropad": {
+      "k_last": 68,
+      "f_hz": 8613.3,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 19.87
+     },
+     "rotor_break_k": 28.7,
+     "note_ko": "⭐빗살의 «끝» 이 두 자세 수에서 같고 로터 산포가 창을 넘는 자리(k≈29)와 맞물리면, 빗살을 끝내는 것은 **로터**이지 표집이 아니다."
+    }
+   },
+   "decimation_probe": {
+    "rows": [
+     {
+      "stride": 1,
+      "prf_hz": 19700.0,
+      "n": 32768,
+      "nyquist_hz": 9850.0,
+      "rhythm_pct": 62.987,
+      "rhythm_null_pct": 12.519,
+      "above_comb_db": 19.767,
+      "above_ceiling_pct": 3.4622,
+      "comb_db": 47.892,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 19700.0,
+        "offset_from_comb_hz": 60.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 2,
+      "prf_hz": 9850.0,
+      "n": 16384,
+      "nyquist_hz": 4925.0,
+      "rhythm_pct": 58.895,
+      "rhythm_null_pct": 12.314,
+      "above_comb_db": 17.349,
+      "above_ceiling_pct": 3.2279,
+      "comb_db": 45.032,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 4,
+      "prf_hz": 4925.0,
+      "n": 8192,
+      "nyquist_hz": 2462.5,
+      "rhythm_pct": 46.126,
+      "rhythm_null_pct": 12.231,
+      "above_comb_db": 13.48,
+      "above_ceiling_pct": 1.8785,
+      "comb_db": 34.344,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 4925.0,
+        "offset_from_comb_hz": 15.0,
+        "lands_in_window": false
+       },
+       {
+        "m": 2,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     }
+    ],
+    "note_ko": "자세를 솎아 **격자를 성기게** 만든 파생 탐침. 접힘(alias)은 126.667 Hz 의 정수배 자리에 안 떨어진다(4925÷126.667=38.88) — 솎아도 빗살이 그 자리에 서 있으면 원래 있던 선이다."
+   },
+   "outlier": {
+    "census_8192": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0152,
+     "top1_over_median": 4.549,
+     "dominance": {
+      "rhythm_pct": 0.038,
+      "comb_db": 0.0,
+      "moving_power_db": 2.749,
+      "above_ceiling_pct": 0.074
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "census_32768": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0019,
+     "top1_over_median": 4.281,
+     "dominance": {
+      "rhythm_pct": 0.404,
+      "comb_db": 3.134,
+      "moving_power_db": 1.009,
+      "above_ceiling_pct": 0.221
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "probe_B_head8192": {
+     "argmax_pose": 1562,
+     "isolation": 1.004,
+     "top1_over_median": 4.5395,
+     "replace_one": {
+      "rhythm_pct": 0.001,
+      "comb_db": -0.014,
+      "above_comb_db": -0.002,
+      "moving_power_db": -0.001,
+      "above_ceiling_pct": 0.0001
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.097,
+      "comb_db": 0.58,
+      "above_comb_db": 0.038,
+      "moving_power_db": 0.001,
+      "above_ceiling_pct": 0.004
+     },
+     "dominance": {
+      "rhythm_pct": 0.01,
+      "comb_db": 0.024,
+      "above_comb_db": 0.053,
+      "moving_power_db": 1.0,
+      "above_ceiling_pct": 0.025
+     },
+     "n_control": 12
+    },
+    "probe_C_full": {
+     "argmax_pose": 10635,
+     "isolation": 1.0019,
+     "top1_over_median": 4.2812,
+     "replace_one": {
+      "rhythm_pct": 0.006,
+      "comb_db": -0.065,
+      "above_comb_db": -0.029,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": -0.0001
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.005,
+      "comb_db": 0.046,
+      "above_comb_db": 0.004,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0005
+     },
+     "dominance": {
+      "rhythm_pct": 1.2,
+      "comb_db": 1.413,
+      "above_comb_db": 7.25,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.2
+     },
+     "n_control": 12
+    },
+    "probe_A_8192": {
+     "argmax_pose": 1562,
+     "isolation": 1.0152,
+     "top1_over_median": 4.5492,
+     "replace_one": {
+      "rhythm_pct": 0.001,
+      "comb_db": 0.0,
+      "above_comb_db": -0.003,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0001
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.005,
+      "comb_db": 0.061,
+      "above_comb_db": 0.019,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0003
+     },
+     "dominance": {
+      "rhythm_pct": 0.2,
+      "comb_db": 0.0,
+      "above_comb_db": 0.158,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.333
+     },
+     "n_control": 12
+    }
+   }
+  },
+  {
+   "pair": "ours",
+   "elevation_deg": -30.0,
+   "arm_8192": "ours_r15_n8192",
+   "arm_32768": "ours_r15_n32768",
+   "cell_8192": "ours_r15_n8192/el-30",
+   "cell_32768": "ours_r15_n32768/el-30",
+   "drone": "matrice4e",
+   "f_flash_hz": 126.6667,
+   "f_tip_hz": 1102.38,
+   "n_poses": [
+    8192,
+    32768
+   ],
+   "record_s": [
+    0.4158,
+    1.6634
+   ],
+   "bin_hz": [
+    2.4048,
+    0.6012
+   ],
+   "flash_cycles": [
+    52.7,
+    210.7
+   ],
+   "ledger_n_missing": [
+    0,
+    0
+   ],
+   "ledger_level_db_raw_dc_kept": [
+    -64.03,
+    -63.22
+   ],
+   "pose_overlap": {
+    "head_equals_8192_bitwise": false,
+    "coherence": 0.996595112,
+    "max_rel_pose_diff": 0.1367,
+    "mean_level_diff_db_dc_kept": 0.831,
+    "ac_level_diff_db_dc_removed": 0.014,
+    "note_ko": "자세 시각은 t=i/PRF 라 앞 8,192 자세는 **같은 시각·같은 로터 위상**이다. 그래도 값이 다르면 그 차이는 **얼린 격자**(우리 커널) 또는 **광선 표집**(PathSolver)에서 온 것이지 자세 수에서 온 것이 아니다.",
+    "dc_warning_ko": "⚠mean_level_diff_db_dc_kept 는 DC 를 **안 뺀** 값이다(원장 level_db 와 같은 정의). 판정에는 옆의 ac_level_diff_db_dc_removed 를 쓴다 — 프로젝트에서 세 번 재발한 AC/DC 함정이다."
+   },
+   "arms": {
+    "A_n8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 83.306,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 10.617,
+     "comb_db": 42.93,
+     "above_comb_db": 21.303,
+     "moving_power_db": -69.11,
+     "ac_over_dc": 0.377388,
+     "rhythm_degenerate": false
+    },
+    "B_n32768_head8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 83.199,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 10.579,
+     "comb_db": 43.691,
+     "above_comb_db": 21.441,
+     "moving_power_db": -69.096,
+     "ac_over_dc": 0.303,
+     "rhythm_degenerate": false
+    },
+    "C_n32768_full": {
+     "n": 32768,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 85.622,
+     "rhythm_null_pct": 12.625,
+     "above_ceiling_pct": 13.5392,
+     "comb_db": 42.836,
+     "above_comb_db": 22.304,
+     "moving_power_db": -68.983,
+     "ac_over_dc": 0.310836,
+     "rhythm_degenerate": false
+    },
+    "Z_n8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 83.316,
+     "rhythm_null_pct": 12.625,
+     "above_ceiling_pct": 10.6171,
+     "comb_db": 43.101,
+     "above_comb_db": 21.294,
+     "moving_power_db": -69.11,
+     "ac_over_dc": 0.377388,
+     "rhythm_degenerate": false
+    },
+    "Zb_head8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 83.237,
+     "rhythm_null_pct": 12.625,
+     "above_ceiling_pct": 10.579,
+     "comb_db": 43.793,
+     "above_comb_db": 21.404,
+     "moving_power_db": -69.096,
+     "ac_over_dc": 0.303,
+     "rhythm_degenerate": false
+    }
+   },
+   "quarters": [
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 83.199,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 10.579,
+     "comb_db": 43.691,
+     "above_comb_db": 21.441,
+     "moving_power_db": -69.096,
+     "ac_over_dc": 0.303,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 87.187,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 15.7995,
+     "comb_db": 41.731,
+     "above_comb_db": 22.661,
+     "moving_power_db": -69.103,
+     "ac_over_dc": 0.301916,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 84.127,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 11.6856,
+     "comb_db": 42.877,
+     "above_comb_db": 21.733,
+     "moving_power_db": -68.816,
+     "ac_over_dc": 0.323541,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 85.334,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 16.4098,
+     "comb_db": 40.517,
+     "above_comb_db": 22.024,
+     "moving_power_db": -68.922,
+     "ac_over_dc": 0.314908,
+     "rhythm_degenerate": false
+    }
+   ],
+   "quarter_scatter": {
+    "rhythm_pct": {
+     "n": 4,
+     "min": 83.199,
+     "max": 87.187,
+     "span": 3.988,
+     "mean": 84.962,
+     "sd": 1.722
+    },
+    "above_ceiling_pct": {
+     "n": 4,
+     "min": 10.579,
+     "max": 16.41,
+     "span": 5.831,
+     "mean": 13.618,
+     "sd": 2.917
+    },
+    "comb_db": {
+     "n": 4,
+     "min": 40.517,
+     "max": 43.691,
+     "span": 3.174,
+     "mean": 42.204,
+     "sd": 1.382
+    },
+    "above_comb_db": {
+     "n": 4,
+     "min": 21.441,
+     "max": 22.661,
+     "span": 1.22,
+     "mean": 21.965,
+     "sd": 0.522
+    },
+    "moving_power_db": {
+     "n": 4,
+     "min": -69.103,
+     "max": -68.816,
+     "span": 0.287,
+     "mean": -68.984,
+     "sd": 0.14
+    }
+   },
+   "deltas": {
+    "rhythm_pct": {
+     "C_minus_A": 2.316,
+     "Z_minus_A": 0.01,
+     "C_minus_Z": 2.306,
+     "B_minus_A": -0.107,
+     "C_minus_B": 2.423,
+     "quarter_span": 3.988
+    },
+    "above_ceiling_pct": {
+     "C_minus_A": 2.922,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": 2.922,
+     "B_minus_A": -0.038,
+     "C_minus_B": 2.96,
+     "quarter_span": 5.831
+    },
+    "comb_db": {
+     "C_minus_A": -0.094,
+     "Z_minus_A": 0.171,
+     "C_minus_Z": -0.265,
+     "B_minus_A": 0.761,
+     "C_minus_B": -0.855,
+     "quarter_span": 3.174
+    },
+    "above_comb_db": {
+     "C_minus_A": 1.001,
+     "Z_minus_A": -0.009,
+     "C_minus_Z": 1.01,
+     "B_minus_A": 0.138,
+     "C_minus_B": 0.863,
+     "quarter_span": 1.22
+    },
+    "moving_power_db": {
+     "C_minus_A": 0.127,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": 0.127,
+     "B_minus_A": 0.014,
+     "C_minus_B": 0.113,
+     "quarter_span": 0.287
+    }
+   },
+   "cell_reading_ko": "리듬 몫 83.3 → 85.6 % (백색 널 12.6 %). 움직임 +2.32 %p 중 분해능 장부 몫은 +0.01 %p 뿐이고 나머지는 **새로 본 1.25 s** 다 — 네 토막이 각각 83.2, 87.2, 84.1, 85.3 % 라 같은 n 에서도 구간마다 4.0 %p 흔들린다. 자세를 늘려 얻는 것은 **다른 답이 아니라 덜 흔들리는 답**이다.",
+   "verdict_by_metric": {
+    "rhythm_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 2.316,
+     "band": 21.8,
+     "band_source": "GRID_BAND_RHYTHM_PP_BY_EL",
+     "span": 3.988,
+     "threshold_used": 21.8,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "above_ceiling_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 2.922,
+     "band": 12.5549,
+     "band_source": "GRID_BAND_ABOVE_PP_GLOBAL(전앙각 최대)",
+     "span": 5.831,
+     "threshold_used": 12.555,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -0.094,
+     "band": 4.6,
+     "band_source": "GRID_BAND_COMB_DB_BY_EL",
+     "span": 3.174,
+     "threshold_used": 4.6,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "above_comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 1.001,
+     "band": null,
+     "band_source": null,
+     "span": 1.22,
+     "threshold_used": 1.22,
+     "inside_band": null,
+     "inside_quarter_span": true
+    },
+    "moving_power_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 0.127,
+     "band": 0.37,
+     "band_source": "GRID_BAND_AC_DB",
+     "span": 0.287,
+     "threshold_used": 0.37,
+     "inside_band": true,
+     "inside_quarter_span": true
+    }
+   },
+   "reading": {
+    "rhythm_over_null_8192": 6.59,
+    "rhythm_over_null_32768": 6.77,
+    "rhythm_null_pct": 12.646,
+    "comb_reading_8192": "빗살 있음",
+    "comb_reading_32768": "빗살 있음",
+    "above_comb_reading_8192": "상한 위 빗살 있음",
+    "above_comb_reading_32768": "상한 위 빗살 있음",
+    "near_numeric_floor": false,
+    "reading_flipped": false
+   },
+   "harmonic_curve": {
+    "n8192": [
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 26.34,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 24.18,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 30.71,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 33.41,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 35.87,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 35.75,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 25.25,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 25.26,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 31.07,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 31.59,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 29.72,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 26.13,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 18.21,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 17.99,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 19.97,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 22.81,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 22.64,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 21.91,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 24.81,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 17.45,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 16.31,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 13.94,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 18.19,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 17.88,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 13.62,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 12.16,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 14.53,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 8.24,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 12.6,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 9.3,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 12.21,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 10.07,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 10.8,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 15.58,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 7.32,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 11.88,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 7.68,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 7.99,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 7.99,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 11.19,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 6.36,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 5.15,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 9.58,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 9.56,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 5.58,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 8.48,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 11.59,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 9.86,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 4.56,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 4.95,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 3.11,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": -2.12,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 0.1,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 4.57,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": -2.22,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 2.48,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 6.0,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.4,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 4.79,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 2.47,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 4.15,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 3.28,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "n32768": [
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 31.78,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 29.88,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 30.24,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 30.98,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 32.1,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 32.96,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 29.2,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 29.09,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 30.23,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 28.87,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 26.62,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 27.82,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 23.45,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 22.9,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 22.17,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 23.33,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 22.48,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 21.26,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 24.25,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 21.73,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 19.22,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 13.49,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 16.38,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 17.25,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 14.76,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 12.51,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 12.74,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 6.45,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 13.5,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 11.72,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 13.58,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 7.76,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 9.83,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 13.92,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 8.1,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 13.0,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 9.64,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 8.46,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 7.98,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 11.73,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 8.84,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 9.18,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 7.87,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 8.48,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 6.12,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 6.64,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 6.68,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 4.34,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 4.56,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": -2.09,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": -0.0,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": -0.17,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": -3.05,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": -4.38,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": -3.42,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": -0.54,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 4.89,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.33,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 2.61,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 2.11,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 4.16,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 3.87,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "zeropad": [
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 26.69,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 24.61,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 30.55,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 33.76,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 36.03,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 35.49,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 25.51,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 25.36,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 30.87,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 31.93,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 29.85,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 25.79,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 18.54,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 18.18,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 19.91,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 22.92,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 22.94,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 22.12,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 24.79,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 17.27,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 16.6,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 13.57,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 18.08,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 18.18,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 13.52,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 12.51,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 13.95,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 8.24,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 12.52,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 9.87,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 12.58,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 10.42,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 10.57,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 15.69,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 7.44,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 12.04,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 7.91,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 7.82,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 8.12,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 11.22,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 5.93,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 6.92,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 8.89,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 8.99,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 7.19,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 10.36,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 11.27,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 10.11,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 5.58,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 4.48,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 3.15,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": -1.05,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": -0.3,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 2.47,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": -0.3,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 2.27,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 6.72,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.94,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 4.23,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 1.85,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 3.49,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 2.33,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "reach": {
+     "n8192": {
+      "k_last": 70,
+      "f_hz": 8866.7,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 11.73
+     },
+     "n32768": {
+      "k_last": 57,
+      "f_hz": 7220.0,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 12.12
+     },
+     "zeropad": {
+      "k_last": 59,
+      "f_hz": 7473.3,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 11.65
+     },
+     "rotor_break_k": 28.7,
+     "note_ko": "⭐빗살의 «끝» 이 두 자세 수에서 같고 로터 산포가 창을 넘는 자리(k≈29)와 맞물리면, 빗살을 끝내는 것은 **로터**이지 표집이 아니다."
+    }
+   },
+   "decimation_probe": {
+    "rows": [
+     {
+      "stride": 1,
+      "prf_hz": 19700.0,
+      "n": 32768,
+      "nyquist_hz": 9850.0,
+      "rhythm_pct": 85.622,
+      "rhythm_null_pct": 12.625,
+      "above_comb_db": 22.304,
+      "above_ceiling_pct": 13.5392,
+      "comb_db": 42.836,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 19700.0,
+        "offset_from_comb_hz": 60.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 2,
+      "prf_hz": 9850.0,
+      "n": 16384,
+      "nyquist_hz": 4925.0,
+      "rhythm_pct": 87.025,
+      "rhythm_null_pct": 12.566,
+      "above_comb_db": 20.785,
+      "above_ceiling_pct": 13.2184,
+      "comb_db": 40.476,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 4,
+      "prf_hz": 4925.0,
+      "n": 8192,
+      "nyquist_hz": 2462.5,
+      "rhythm_pct": 82.59,
+      "rhythm_null_pct": 12.95,
+      "above_comb_db": 20.62,
+      "above_ceiling_pct": 12.5817,
+      "comb_db": 32.278,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 4925.0,
+        "offset_from_comb_hz": 15.0,
+        "lands_in_window": false
+       },
+       {
+        "m": 2,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     }
+    ],
+    "note_ko": "자세를 솎아 **격자를 성기게** 만든 파생 탐침. 접힘(alias)은 126.667 Hz 의 정수배 자리에 안 떨어진다(4925÷126.667=38.88) — 솎아도 빗살이 그 자리에 서 있으면 원래 있던 선이다."
+   },
+   "outlier": {
+    "census_8192": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0072,
+     "top1_over_median": 7.333,
+     "dominance": {
+      "rhythm_pct": 0.215,
+      "comb_db": 0.514,
+      "moving_power_db": 0.777,
+      "above_ceiling_pct": 0.308
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "census_32768": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0159,
+     "top1_over_median": 5.279,
+     "dominance": {
+      "rhythm_pct": 0.026,
+      "comb_db": 0.014,
+      "moving_power_db": 0.753,
+      "above_ceiling_pct": 0.0
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "probe_B_head8192": {
+     "argmax_pose": 2845,
+     "isolation": 1.0155,
+     "top1_over_median": 7.4325,
+     "replace_one": {
+      "rhythm_pct": 0.018,
+      "comb_db": 0.003,
+      "above_comb_db": 0.0,
+      "moving_power_db": -0.002,
+      "above_ceiling_pct": -0.0015
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.01,
+      "comb_db": 0.113,
+      "above_comb_db": 0.023,
+      "moving_power_db": 0.001,
+      "above_ceiling_pct": 0.0016
+     },
+     "dominance": {
+      "rhythm_pct": 1.8,
+      "comb_db": 0.027,
+      "above_comb_db": 0.0,
+      "moving_power_db": 2.0,
+      "above_ceiling_pct": 0.938
+     },
+     "n_control": 12
+    },
+    "probe_C_full": {
+     "argmax_pose": 2845,
+     "isolation": 1.0159,
+     "top1_over_median": 5.2786,
+     "replace_one": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.003,
+      "comb_db": 0.024,
+      "above_comb_db": 0.014,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.001
+     },
+     "dominance": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    },
+    "probe_A_8192": {
+     "argmax_pose": 2689,
+     "isolation": 1.0072,
+     "top1_over_median": 7.3333,
+     "replace_one": {
+      "rhythm_pct": 0.013,
+      "comb_db": -0.045,
+      "above_comb_db": -0.024,
+      "moving_power_db": -0.002,
+      "above_ceiling_pct": 0.0037
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.018,
+      "comb_db": 0.17,
+      "above_comb_db": 0.037,
+      "moving_power_db": 0.001,
+      "above_ceiling_pct": 0.012
+     },
+     "dominance": {
+      "rhythm_pct": 0.722,
+      "comb_db": 0.265,
+      "above_comb_db": 0.649,
+      "moving_power_db": 2.0,
+      "above_ceiling_pct": 0.308
+     },
+     "n_control": 12
+    }
+   }
+  },
+  {
+   "pair": "ours",
+   "elevation_deg": -60.0,
+   "arm_8192": "ours_r15_n8192",
+   "arm_32768": "ours_r15_n32768",
+   "cell_8192": "ours_r15_n8192/el-60",
+   "cell_32768": "ours_r15_n32768/el-60",
+   "drone": "matrice4e",
+   "f_flash_hz": 126.6667,
+   "f_tip_hz": 636.46,
+   "n_poses": [
+    8192,
+    32768
+   ],
+   "record_s": [
+    0.4158,
+    1.6634
+   ],
+   "bin_hz": [
+    2.4048,
+    0.6012
+   ],
+   "flash_cycles": [
+    52.7,
+    210.7
+   ],
+   "ledger_n_missing": [
+    0,
+    0
+   ],
+   "ledger_level_db_raw_dc_kept": [
+    -65.56,
+    -64.49
+   ],
+   "pose_overlap": {
+    "head_equals_8192_bitwise": false,
+    "coherence": 0.996879335,
+    "max_rel_pose_diff": 0.0811,
+    "mean_level_diff_db_dc_kept": -0.329,
+    "ac_level_diff_db_dc_removed": -0.018,
+    "note_ko": "자세 시각은 t=i/PRF 라 앞 8,192 자세는 **같은 시각·같은 로터 위상**이다. 그래도 값이 다르면 그 차이는 **얼린 격자**(우리 커널) 또는 **광선 표집**(PathSolver)에서 온 것이지 자세 수에서 온 것이 아니다.",
+    "dc_warning_ko": "⚠mean_level_diff_db_dc_kept 는 DC 를 **안 뺀** 값이다(원장 level_db 와 같은 정의). 판정에는 옆의 ac_level_diff_db_dc_removed 를 쓴다 — 프로젝트에서 세 번 재발한 AC/DC 함정이다."
+   },
+   "arms": {
+    "A_n8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 52.848,
+     "rhythm_null_pct": 12.58,
+     "above_ceiling_pct": 1.76,
+     "comb_db": 45.356,
+     "above_comb_db": 16.189,
+     "moving_power_db": -66.042,
+     "ac_over_dc": 3.971027,
+     "rhythm_degenerate": false
+    },
+    "B_n32768_head8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 52.312,
+     "rhythm_null_pct": 12.58,
+     "above_ceiling_pct": 1.7131,
+     "comb_db": 45.647,
+     "above_comb_db": 16.23,
+     "moving_power_db": -66.06,
+     "ac_over_dc": 5.807683,
+     "rhythm_degenerate": false
+    },
+    "C_n32768_full": {
+     "n": 32768,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 46.015,
+     "rhythm_null_pct": 12.561,
+     "above_ceiling_pct": 0.979,
+     "comb_db": 52.598,
+     "above_comb_db": 15.469,
+     "moving_power_db": -64.355,
+     "ac_over_dc": 8.531904,
+     "rhythm_degenerate": false
+    },
+    "Z_n8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 52.716,
+     "rhythm_null_pct": 12.561,
+     "above_ceiling_pct": 1.7529,
+     "comb_db": 46.035,
+     "above_comb_db": 16.225,
+     "moving_power_db": -66.042,
+     "ac_over_dc": 3.971027,
+     "rhythm_degenerate": false
+    },
+    "Zb_head8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 52.21,
+     "rhythm_null_pct": 12.561,
+     "above_ceiling_pct": 1.7057,
+     "comb_db": 46.05,
+     "above_comb_db": 16.272,
+     "moving_power_db": -66.06,
+     "ac_over_dc": 5.807683,
+     "rhythm_degenerate": false
+    }
+   },
+   "quarters": [
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 52.312,
+     "rhythm_null_pct": 12.58,
+     "above_ceiling_pct": 1.7131,
+     "comb_db": 45.647,
+     "above_comb_db": 16.23,
+     "moving_power_db": -66.06,
+     "ac_over_dc": 5.807683,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 51.16,
+     "rhythm_null_pct": 12.58,
+     "above_ceiling_pct": 1.5058,
+     "comb_db": 50.186,
+     "above_comb_db": 15.789,
+     "moving_power_db": -66.033,
+     "ac_over_dc": 5.804635,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 47.432,
+     "rhythm_null_pct": 12.58,
+     "above_ceiling_pct": 0.7963,
+     "comb_db": 53.129,
+     "above_comb_db": 15.282,
+     "moving_power_db": -63.563,
+     "ac_over_dc": 10.267657,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 47.658,
+     "rhythm_null_pct": 12.58,
+     "above_ceiling_pct": 0.653,
+     "comb_db": 54.125,
+     "above_comb_db": 15.501,
+     "moving_power_db": -62.757,
+     "ac_over_dc": 12.184108,
+     "rhythm_degenerate": false
+    }
+   ],
+   "quarter_scatter": {
+    "rhythm_pct": {
+     "n": 4,
+     "min": 47.432,
+     "max": 52.312,
+     "span": 4.88,
+     "mean": 49.641,
+     "sd": 2.467
+    },
+    "above_ceiling_pct": {
+     "n": 4,
+     "min": 0.653,
+     "max": 1.713,
+     "span": 1.06,
+     "mean": 1.167,
+     "sd": 0.521
+    },
+    "comb_db": {
+     "n": 4,
+     "min": 45.647,
+     "max": 54.125,
+     "span": 8.478,
+     "mean": 50.772,
+     "sd": 3.804
+    },
+    "above_comb_db": {
+     "n": 4,
+     "min": 15.282,
+     "max": 16.23,
+     "span": 0.948,
+     "mean": 15.7,
+     "sd": 0.41
+    },
+    "moving_power_db": {
+     "n": 4,
+     "min": -66.06,
+     "max": -62.757,
+     "span": 3.303,
+     "mean": -64.603,
+     "sd": 1.699
+    }
+   },
+   "deltas": {
+    "rhythm_pct": {
+     "C_minus_A": -6.833,
+     "Z_minus_A": -0.132,
+     "C_minus_Z": -6.701,
+     "B_minus_A": -0.536,
+     "C_minus_B": -6.297,
+     "quarter_span": 4.88
+    },
+    "above_ceiling_pct": {
+     "C_minus_A": -0.781,
+     "Z_minus_A": -0.007,
+     "C_minus_Z": -0.774,
+     "B_minus_A": -0.047,
+     "C_minus_B": -0.734,
+     "quarter_span": 1.06
+    },
+    "comb_db": {
+     "C_minus_A": 7.242,
+     "Z_minus_A": 0.679,
+     "C_minus_Z": 6.563,
+     "B_minus_A": 0.291,
+     "C_minus_B": 6.951,
+     "quarter_span": 8.478
+    },
+    "above_comb_db": {
+     "C_minus_A": -0.72,
+     "Z_minus_A": 0.036,
+     "C_minus_Z": -0.756,
+     "B_minus_A": 0.041,
+     "C_minus_B": -0.761,
+     "quarter_span": 0.948
+    },
+    "moving_power_db": {
+     "C_minus_A": 1.687,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": 1.687,
+     "B_minus_A": -0.018,
+     "C_minus_B": 1.705,
+     "quarter_span": 3.303
+    }
+   },
+   "cell_reading_ko": "리듬 몫 52.8 → 46.0 % (백색 널 12.6 %). 움직임 -6.83 %p 중 분해능 장부 몫은 -0.13 %p 뿐이고 나머지는 **새로 본 1.25 s** 다 — 네 토막이 각각 52.3, 51.2, 47.4, 47.7 % 라 같은 n 에서도 구간마다 4.9 %p 흔들린다. 자세를 늘려 얻는 것은 **다른 답이 아니라 덜 흔들리는 답**이다.",
+   "verdict_by_metric": {
+    "rhythm_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -6.833,
+     "band": 16.0,
+     "band_source": "GRID_BAND_RHYTHM_PP_BY_EL",
+     "span": 4.88,
+     "threshold_used": 16.0,
+     "inside_band": true,
+     "inside_quarter_span": false
+    },
+    "above_ceiling_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -0.781,
+     "band": 12.5549,
+     "band_source": "GRID_BAND_ABOVE_PP_GLOBAL(전앙각 최대)",
+     "span": 1.06,
+     "threshold_used": 12.555,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 7.242,
+     "band": 4.0,
+     "band_source": "GRID_BAND_COMB_DB_BY_EL",
+     "span": 8.478,
+     "threshold_used": 8.478,
+     "inside_band": false,
+     "inside_quarter_span": true
+    },
+    "above_comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -0.72,
+     "band": null,
+     "band_source": null,
+     "span": 0.948,
+     "threshold_used": 0.948,
+     "inside_band": null,
+     "inside_quarter_span": true
+    },
+    "moving_power_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 1.687,
+     "band": 0.02,
+     "band_source": "GRID_BAND_AC_DB",
+     "span": 3.303,
+     "threshold_used": 3.303,
+     "inside_band": false,
+     "inside_quarter_span": true
+    }
+   },
+   "reading": {
+    "rhythm_over_null_8192": 4.2,
+    "rhythm_over_null_32768": 3.66,
+    "rhythm_null_pct": 12.58,
+    "comb_reading_8192": "빗살 있음",
+    "comb_reading_32768": "빗살 있음",
+    "above_comb_reading_8192": "상한 위 빗살 있음",
+    "above_comb_reading_32768": "상한 위 빗살 있음",
+    "near_numeric_floor": false,
+    "reading_flipped": false
+   },
+   "harmonic_curve": {
+    "n8192": [
+     {
+      "k": 6,
+      "f_hz": 760.0,
+      "contrast_db": 29.9,
+      "rotor_spread_hz": 3.34
+     },
+     {
+      "k": 7,
+      "f_hz": 886.7,
+      "contrast_db": 19.6,
+      "rotor_spread_hz": 3.9
+     },
+     {
+      "k": 8,
+      "f_hz": 1013.3,
+      "contrast_db": 17.99,
+      "rotor_spread_hz": 4.46
+     },
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 12.79,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 18.6,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 18.74,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 20.25,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 24.1,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 21.3,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 13.63,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 11.37,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 19.91,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 24.52,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 23.12,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 22.01,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 17.79,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 16.6,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 22.03,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 17.41,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 17.92,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 19.53,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 19.42,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 14.65,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 14.38,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 19.63,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 21.48,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 20.26,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 13.76,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 13.63,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 14.62,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 15.23,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 22.33,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 14.75,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 15.98,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 17.04,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 17.26,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 17.2,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 11.45,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 13.63,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 14.23,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 7.19,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 9.03,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 15.06,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 5.35,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 10.93,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 11.6,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 4.57,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 1.86,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 7.11,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 11.38,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 10.59,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 10.33,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 7.19,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 12.41,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 8.12,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 4.92,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 4.42,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 1.07,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 4.19,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 4.18,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.66,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 4.67,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 0.22,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 0.66,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": -2.84,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "n32768": [
+     {
+      "k": 6,
+      "f_hz": 760.0,
+      "contrast_db": 23.24,
+      "rotor_spread_hz": 3.34
+     },
+     {
+      "k": 7,
+      "f_hz": 886.7,
+      "contrast_db": 18.87,
+      "rotor_spread_hz": 3.9
+     },
+     {
+      "k": 8,
+      "f_hz": 1013.3,
+      "contrast_db": 21.35,
+      "rotor_spread_hz": 4.46
+     },
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 20.13,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 16.11,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 15.19,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 15.91,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 18.69,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 18.86,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 17.48,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 18.1,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 21.4,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 24.95,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 20.69,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 19.34,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 17.91,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 19.76,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 25.42,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 20.24,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 19.35,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 20.17,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 20.72,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 15.25,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 16.5,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 16.86,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 19.53,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 18.38,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 13.56,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 15.14,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 13.6,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 12.42,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 18.95,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 14.51,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 15.52,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 18.08,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 17.49,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 17.19,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 12.27,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 15.8,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 14.07,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 7.78,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 12.35,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 15.89,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 6.6,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 13.41,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 12.94,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 7.84,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 2.99,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 5.78,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 9.48,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 4.66,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 4.93,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 0.46,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 3.56,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 7.78,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 3.16,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 3.87,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": -3.64,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": -1.2,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 0.11,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 4.74,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 5.56,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": -0.05,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 0.22,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": -2.15,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "zeropad": [
+     {
+      "k": 6,
+      "f_hz": 760.0,
+      "contrast_db": 29.63,
+      "rotor_spread_hz": 3.34
+     },
+     {
+      "k": 7,
+      "f_hz": 886.7,
+      "contrast_db": 19.46,
+      "rotor_spread_hz": 3.9
+     },
+     {
+      "k": 8,
+      "f_hz": 1013.3,
+      "contrast_db": 17.66,
+      "rotor_spread_hz": 4.46
+     },
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 13.02,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 18.75,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 18.55,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 20.52,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 24.16,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 21.09,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 13.35,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 11.03,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 19.6,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 24.99,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 23.44,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 21.72,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 17.54,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 16.33,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 22.41,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 17.47,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 17.95,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 19.56,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 19.22,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 14.56,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 15.47,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 19.19,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 20.96,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 20.7,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 13.99,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 13.86,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 14.29,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 15.48,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 22.33,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 15.28,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 15.82,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 17.16,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 16.84,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 17.2,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 11.32,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 14.12,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 13.85,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 7.07,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 10.17,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 14.98,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 4.94,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 12.03,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 11.42,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 4.1,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 4.4,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 10.65,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 11.05,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 10.49,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 11.99,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 6.7,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 11.19,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 9.73,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 4.52,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 4.39,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 3.95,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 3.7,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 3.61,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.99,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 4.46,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 1.87,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 1.27,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": -3.93,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "reach": {
+     "n8192": {
+      "k_last": 67,
+      "f_hz": 8486.7,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 14.38
+     },
+     "n32768": {
+      "k_last": 62,
+      "f_hz": 7853.3,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 15.25
+     },
+     "zeropad": {
+      "k_last": 67,
+      "f_hz": 8486.7,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 14.29
+     },
+     "rotor_break_k": 28.7,
+     "note_ko": "⭐빗살의 «끝» 이 두 자세 수에서 같고 로터 산포가 창을 넘는 자리(k≈29)와 맞물리면, 빗살을 끝내는 것은 **로터**이지 표집이 아니다."
+    }
+   },
+   "decimation_probe": {
+    "rows": [
+     {
+      "stride": 1,
+      "prf_hz": 19700.0,
+      "n": 32768,
+      "nyquist_hz": 9850.0,
+      "rhythm_pct": 46.015,
+      "rhythm_null_pct": 12.561,
+      "above_comb_db": 15.469,
+      "above_ceiling_pct": 0.979,
+      "comb_db": 52.598,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 19700.0,
+        "offset_from_comb_hz": 60.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 2,
+      "prf_hz": 9850.0,
+      "n": 16384,
+      "nyquist_hz": 4925.0,
+      "rhythm_pct": 41.052,
+      "rhythm_null_pct": 12.434,
+      "above_comb_db": 12.742,
+      "above_ceiling_pct": 0.9497,
+      "comb_db": 50.568,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 4,
+      "prf_hz": 4925.0,
+      "n": 8192,
+      "nyquist_hz": 2462.5,
+      "rhythm_pct": 34.465,
+      "rhythm_null_pct": 12.543,
+      "above_comb_db": 10.775,
+      "above_ceiling_pct": 0.7436,
+      "comb_db": 41.25,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 4925.0,
+        "offset_from_comb_hz": 15.0,
+        "lands_in_window": false
+       },
+       {
+        "m": 2,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     }
+    ],
+    "note_ko": "자세를 솎아 **격자를 성기게** 만든 파생 탐침. 접힘(alias)은 126.667 Hz 의 정수배 자리에 안 떨어진다(4925÷126.667=38.88) — 솎아도 빗살이 그 자리에 서 있으면 원래 있던 선이다."
+   },
+   "outlier": {
+    "census_8192": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0187,
+     "top1_over_median": 3.602,
+     "dominance": {
+      "rhythm_pct": 0.006,
+      "comb_db": 0.001,
+      "moving_power_db": 2.286,
+      "above_ceiling_pct": 0.001
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "census_32768": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0131,
+     "top1_over_median": 2.898,
+     "dominance": {
+      "rhythm_pct": 0.013,
+      "comb_db": 0.08,
+      "moving_power_db": 1.335,
+      "above_ceiling_pct": 0.022
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "probe_B_head8192": {
+     "argmax_pose": 173,
+     "isolation": 1.0051,
+     "top1_over_median": 3.5694,
+     "replace_one": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.029,
+      "comb_db": 0.185,
+      "above_comb_db": 0.043,
+      "moving_power_db": 0.001,
+      "above_ceiling_pct": 0.0008
+     },
+     "dominance": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    },
+    "probe_C_full": {
+     "argmax_pose": 29189,
+     "isolation": 1.0131,
+     "top1_over_median": 2.8983,
+     "replace_one": {
+      "rhythm_pct": 0.0,
+      "comb_db": -0.004,
+      "above_comb_db": 0.0,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.021,
+      "comb_db": 0.029,
+      "above_comb_db": 0.014,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0003
+     },
+     "dominance": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.138,
+      "above_comb_db": 0.0,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    },
+    "probe_A_8192": {
+     "argmax_pose": 173,
+     "isolation": 1.0187,
+     "top1_over_median": 3.6015,
+     "replace_one": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": -0.001,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.021,
+      "comb_db": 0.121,
+      "above_comb_db": 0.06,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0004
+     },
+     "dominance": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    }
+   }
+  },
+  {
+   "pair": "PathSolver",
+   "elevation_deg": -30.0,
+   "arm_8192": "sionna_p4000000000_r15_n8192_d1",
+   "arm_32768": "sionna_p4000000000_r15_n32768_d1",
+   "cell_8192": "sionna_p4000000000_r15_n8192_d1/el-30",
+   "cell_32768": "sionna_p4000000000_r15_n32768_d1/el-30",
+   "drone": "matrice4e",
+   "f_flash_hz": 126.6667,
+   "f_tip_hz": 1102.38,
+   "n_poses": [
+    8192,
+    32768
+   ],
+   "record_s": [
+    0.4158,
+    1.6634
+   ],
+   "bin_hz": [
+    2.4048,
+    0.6012
+   ],
+   "flash_cycles": [
+    52.7,
+    210.7
+   ],
+   "ledger_n_missing": [
+    0,
+    0
+   ],
+   "ledger_level_db_raw_dc_kept": [
+    -133.97,
+    -133.41
+   ],
+   "pose_overlap": {
+    "head_equals_8192_bitwise": false,
+    "coherence": 1.0,
+    "max_rel_pose_diff": 4.866e-16,
+    "mean_level_diff_db_dc_kept": 0.0,
+    "ac_level_diff_db_dc_removed": 0.0,
+    "note_ko": "자세 시각은 t=i/PRF 라 앞 8,192 자세는 **같은 시각·같은 로터 위상**이다. 그래도 값이 다르면 그 차이는 **얼린 격자**(우리 커널) 또는 **광선 표집**(PathSolver)에서 온 것이지 자세 수에서 온 것이 아니다.",
+    "dc_warning_ko": "⚠mean_level_diff_db_dc_kept 는 DC 를 **안 뺀** 값이다(원장 level_db 와 같은 정의). 판정에는 옆의 ac_level_diff_db_dc_removed 를 쓴다 — 프로젝트에서 세 번 재발한 AC/DC 함정이다."
+   },
+   "arms": {
+    "A_n8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 80.499,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 1.0606,
+     "comb_db": 51.989,
+     "above_comb_db": 21.451,
+     "moving_power_db": -135.664,
+     "ac_over_dc": 1.388043,
+     "rhythm_degenerate": false
+    },
+    "B_n32768_head8192": {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 80.499,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 1.0606,
+     "comb_db": 51.989,
+     "above_comb_db": 21.451,
+     "moving_power_db": -135.664,
+     "ac_over_dc": 1.388043,
+     "rhythm_degenerate": false
+    },
+    "C_n32768_full": {
+     "n": 32768,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 82.541,
+     "rhythm_null_pct": 12.625,
+     "above_ceiling_pct": 0.8497,
+     "comb_db": 55.077,
+     "above_comb_db": 21.959,
+     "moving_power_db": -134.57,
+     "ac_over_dc": 1.788326,
+     "rhythm_degenerate": false
+    },
+    "Z_n8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 80.529,
+     "rhythm_null_pct": 12.625,
+     "above_ceiling_pct": 1.0606,
+     "comb_db": 52.39,
+     "above_comb_db": 21.267,
+     "moving_power_db": -135.664,
+     "ac_over_dc": 1.388043,
+     "rhythm_degenerate": false
+    },
+    "Zb_head8192_zeropad32768": {
+     "n": 8192,
+     "nfft": 32768,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 80.529,
+     "rhythm_null_pct": 12.625,
+     "above_ceiling_pct": 1.0606,
+     "comb_db": 52.39,
+     "above_comb_db": 21.267,
+     "moving_power_db": -135.664,
+     "ac_over_dc": 1.388043,
+     "rhythm_degenerate": false
+    }
+   },
+   "quarters": [
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 80.499,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 1.0606,
+     "comb_db": 51.989,
+     "above_comb_db": 21.451,
+     "moving_power_db": -135.664,
+     "ac_over_dc": 1.388043,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 84.221,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 0.8835,
+     "comb_db": 54.637,
+     "above_comb_db": 22.19,
+     "moving_power_db": -134.157,
+     "ac_over_dc": 1.96606,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 79.899,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 0.7265,
+     "comb_db": 54.621,
+     "above_comb_db": 21.188,
+     "moving_power_db": -133.912,
+     "ac_over_dc": 2.078981,
+     "rhythm_degenerate": false
+    },
+    {
+     "n": 8192,
+     "nfft": 8192,
+     "prf_hz": 19700.0,
+     "rhythm_pct": 82.937,
+     "rhythm_null_pct": 12.646,
+     "above_ceiling_pct": 1.398,
+     "comb_db": 51.725,
+     "above_comb_db": 22.132,
+     "moving_power_db": -134.751,
+     "ac_over_dc": 1.72025,
+     "rhythm_degenerate": false
+    }
+   ],
+   "quarter_scatter": {
+    "rhythm_pct": {
+     "n": 4,
+     "min": 79.899,
+     "max": 84.221,
+     "span": 4.322,
+     "mean": 81.889,
+     "sd": 2.035
+    },
+    "above_ceiling_pct": {
+     "n": 4,
+     "min": 0.727,
+     "max": 1.398,
+     "span": 0.671,
+     "mean": 1.017,
+     "sd": 0.288
+    },
+    "comb_db": {
+     "n": 4,
+     "min": 51.725,
+     "max": 54.637,
+     "span": 2.912,
+     "mean": 53.243,
+     "sd": 1.604
+    },
+    "above_comb_db": {
+     "n": 4,
+     "min": 21.188,
+     "max": 22.19,
+     "span": 1.002,
+     "mean": 21.74,
+     "sd": 0.498
+    },
+    "moving_power_db": {
+     "n": 4,
+     "min": -135.664,
+     "max": -133.912,
+     "span": 1.752,
+     "mean": -134.621,
+     "sd": 0.779
+    }
+   },
+   "deltas": {
+    "rhythm_pct": {
+     "C_minus_A": 2.042,
+     "Z_minus_A": 0.03,
+     "C_minus_Z": 2.012,
+     "B_minus_A": 0.0,
+     "C_minus_B": 2.042,
+     "quarter_span": 4.322
+    },
+    "above_ceiling_pct": {
+     "C_minus_A": -0.211,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": -0.211,
+     "B_minus_A": 0.0,
+     "C_minus_B": -0.211,
+     "quarter_span": 0.671
+    },
+    "comb_db": {
+     "C_minus_A": 3.088,
+     "Z_minus_A": 0.401,
+     "C_minus_Z": 2.687,
+     "B_minus_A": 0.0,
+     "C_minus_B": 3.088,
+     "quarter_span": 2.912
+    },
+    "above_comb_db": {
+     "C_minus_A": 0.508,
+     "Z_minus_A": -0.184,
+     "C_minus_Z": 0.692,
+     "B_minus_A": 0.0,
+     "C_minus_B": 0.508,
+     "quarter_span": 1.002
+    },
+    "moving_power_db": {
+     "C_minus_A": 1.094,
+     "Z_minus_A": 0.0,
+     "C_minus_Z": 1.094,
+     "B_minus_A": 0.0,
+     "C_minus_B": 1.094,
+     "quarter_span": 1.752
+    }
+   },
+   "cell_reading_ko": "리듬 몫 80.5 → 82.5 % (백색 널 12.6 %). 움직임 +2.04 %p 중 분해능 장부 몫은 +0.03 %p 뿐이고 나머지는 **새로 본 1.25 s** 다 — 네 토막이 각각 80.5, 84.2, 79.9, 82.9 % 라 같은 n 에서도 구간마다 4.3 %p 흔들린다. 자세를 늘려 얻는 것은 **다른 답이 아니라 덜 흔들리는 답**이다.",
+   "verdict_by_metric": {
+    "rhythm_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 2.042,
+     "band": 21.8,
+     "band_source": "GRID_BAND_RHYTHM_PP_BY_EL",
+     "span": 4.322,
+     "threshold_used": 21.8,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "above_ceiling_pct": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": -0.211,
+     "band": 12.5549,
+     "band_source": "GRID_BAND_ABOVE_PP_GLOBAL(전앙각 최대)",
+     "span": 0.671,
+     "threshold_used": 12.555,
+     "inside_band": true,
+     "inside_quarter_span": true
+    },
+    "comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 3.088,
+     "band": 4.6,
+     "band_source": "GRID_BAND_COMB_DB_BY_EL",
+     "span": 2.912,
+     "threshold_used": 4.6,
+     "inside_band": true,
+     "inside_quarter_span": false
+    },
+    "above_comb_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 0.508,
+     "band": null,
+     "band_source": null,
+     "span": 1.002,
+     "threshold_used": 1.002,
+     "inside_band": null,
+     "inside_quarter_span": true
+    },
+    "moving_power_db": {
+     "verdict": "판정 불가 (밴드·산포 안)",
+     "delta": 1.094,
+     "band": 0.37,
+     "band_source": "GRID_BAND_AC_DB",
+     "span": 1.752,
+     "threshold_used": 1.752,
+     "inside_band": false,
+     "inside_quarter_span": true
+    }
+   },
+   "reading": {
+    "rhythm_over_null_8192": 6.37,
+    "rhythm_over_null_32768": 6.53,
+    "rhythm_null_pct": 12.646,
+    "comb_reading_8192": "빗살 있음",
+    "comb_reading_32768": "빗살 있음",
+    "above_comb_reading_8192": "상한 위 빗살 있음",
+    "above_comb_reading_32768": "상한 위 빗살 있음",
+    "near_numeric_floor": false,
+    "reading_flipped": false
+   },
+   "harmonic_curve": {
+    "n8192": [
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 33.8,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 32.04,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 34.87,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 27.86,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 30.79,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 29.91,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 27.77,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 28.47,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 28.98,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 26.99,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 27.41,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 23.91,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 21.39,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 23.45,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 23.82,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 24.13,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 26.13,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 19.91,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 17.01,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 18.19,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 23.08,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 23.27,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 15.03,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 11.73,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 16.2,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 14.52,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 13.35,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 14.88,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 19.28,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 18.32,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 12.59,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 8.68,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 12.13,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 15.39,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 11.03,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 8.34,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 8.02,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 6.85,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 7.85,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 13.65,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 6.69,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 6.77,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 11.86,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 14.08,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 6.54,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 5.55,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 11.08,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 12.76,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 1.88,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 12.92,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 5.23,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 2.84,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 0.76,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 7.45,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 0.74,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 5.78,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 2.61,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 4.31,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 2.18,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 3.89,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 0.24,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 1.54,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "n32768": [
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 33.92,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 34.15,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 33.84,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 29.42,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 30.91,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 27.58,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 29.28,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 26.68,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 24.82,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 27.32,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 26.92,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 25.2,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 25.25,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 22.42,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 22.88,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 21.92,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 25.47,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 20.35,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 20.72,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 19.75,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 21.46,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 19.1,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 12.46,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 13.19,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 14.47,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 12.21,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 12.35,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 14.12,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 19.04,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 18.67,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 11.69,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 10.16,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 14.17,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 14.97,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 13.67,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 12.87,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 9.03,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 8.61,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 11.36,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 15.21,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 6.31,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 8.73,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 12.13,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 11.55,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 5.23,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 3.83,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 3.57,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 5.09,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": -0.55,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 3.01,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": -1.01,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 0.74,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": -0.52,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": -0.43,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 0.22,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 2.14,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 3.65,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 3.34,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": -1.34,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 2.68,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 1.74,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 2.35,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "zeropad": [
+     {
+      "k": 9,
+      "f_hz": 1140.0,
+      "contrast_db": 34.48,
+      "rotor_spread_hz": 5.02
+     },
+     {
+      "k": 10,
+      "f_hz": 1266.7,
+      "contrast_db": 32.28,
+      "rotor_spread_hz": 5.57
+     },
+     {
+      "k": 11,
+      "f_hz": 1393.3,
+      "contrast_db": 34.52,
+      "rotor_spread_hz": 6.13
+     },
+     {
+      "k": 12,
+      "f_hz": 1520.0,
+      "contrast_db": 27.79,
+      "rotor_spread_hz": 6.69
+     },
+     {
+      "k": 13,
+      "f_hz": 1646.7,
+      "contrast_db": 30.92,
+      "rotor_spread_hz": 7.25
+     },
+     {
+      "k": 14,
+      "f_hz": 1773.3,
+      "contrast_db": 29.56,
+      "rotor_spread_hz": 7.8
+     },
+     {
+      "k": 15,
+      "f_hz": 1900.0,
+      "contrast_db": 27.53,
+      "rotor_spread_hz": 8.36
+     },
+     {
+      "k": 16,
+      "f_hz": 2026.7,
+      "contrast_db": 27.86,
+      "rotor_spread_hz": 8.92
+     },
+     {
+      "k": 17,
+      "f_hz": 2153.3,
+      "contrast_db": 28.44,
+      "rotor_spread_hz": 9.47
+     },
+     {
+      "k": 18,
+      "f_hz": 2280.0,
+      "contrast_db": 27.31,
+      "rotor_spread_hz": 10.03
+     },
+     {
+      "k": 19,
+      "f_hz": 2406.7,
+      "contrast_db": 27.66,
+      "rotor_spread_hz": 10.59
+     },
+     {
+      "k": 20,
+      "f_hz": 2533.3,
+      "contrast_db": 23.76,
+      "rotor_spread_hz": 11.15
+     },
+     {
+      "k": 21,
+      "f_hz": 2660.0,
+      "contrast_db": 21.67,
+      "rotor_spread_hz": 11.7
+     },
+     {
+      "k": 22,
+      "f_hz": 2786.7,
+      "contrast_db": 23.49,
+      "rotor_spread_hz": 12.26
+     },
+     {
+      "k": 23,
+      "f_hz": 2913.3,
+      "contrast_db": 23.73,
+      "rotor_spread_hz": 12.82
+     },
+     {
+      "k": 24,
+      "f_hz": 3040.0,
+      "contrast_db": 23.74,
+      "rotor_spread_hz": 13.38
+     },
+     {
+      "k": 25,
+      "f_hz": 3166.7,
+      "contrast_db": 25.5,
+      "rotor_spread_hz": 13.93
+     },
+     {
+      "k": 26,
+      "f_hz": 3293.3,
+      "contrast_db": 20.09,
+      "rotor_spread_hz": 14.49
+     },
+     {
+      "k": 27,
+      "f_hz": 3420.0,
+      "contrast_db": 16.69,
+      "rotor_spread_hz": 15.05
+     },
+     {
+      "k": 28,
+      "f_hz": 3546.7,
+      "contrast_db": 17.83,
+      "rotor_spread_hz": 15.61
+     },
+     {
+      "k": 29,
+      "f_hz": 3673.3,
+      "contrast_db": 23.43,
+      "rotor_spread_hz": 16.16
+     },
+     {
+      "k": 30,
+      "f_hz": 3800.0,
+      "contrast_db": 22.75,
+      "rotor_spread_hz": 16.72
+     },
+     {
+      "k": 31,
+      "f_hz": 3926.7,
+      "contrast_db": 14.21,
+      "rotor_spread_hz": 17.28
+     },
+     {
+      "k": 32,
+      "f_hz": 4053.3,
+      "contrast_db": 12.32,
+      "rotor_spread_hz": 17.83
+     },
+     {
+      "k": 33,
+      "f_hz": 4180.0,
+      "contrast_db": 16.1,
+      "rotor_spread_hz": 18.39
+     },
+     {
+      "k": 34,
+      "f_hz": 4306.7,
+      "contrast_db": 14.46,
+      "rotor_spread_hz": 18.95
+     },
+     {
+      "k": 35,
+      "f_hz": 4433.3,
+      "contrast_db": 13.45,
+      "rotor_spread_hz": 19.51
+     },
+     {
+      "k": 36,
+      "f_hz": 4560.0,
+      "contrast_db": 15.09,
+      "rotor_spread_hz": 20.06
+     },
+     {
+      "k": 37,
+      "f_hz": 4686.7,
+      "contrast_db": 19.21,
+      "rotor_spread_hz": 20.62
+     },
+     {
+      "k": 38,
+      "f_hz": 4813.3,
+      "contrast_db": 18.16,
+      "rotor_spread_hz": 21.18
+     },
+     {
+      "k": 39,
+      "f_hz": 4940.0,
+      "contrast_db": 12.41,
+      "rotor_spread_hz": 21.74
+     },
+     {
+      "k": 40,
+      "f_hz": 5066.7,
+      "contrast_db": 8.74,
+      "rotor_spread_hz": 22.29
+     },
+     {
+      "k": 41,
+      "f_hz": 5193.3,
+      "contrast_db": 12.4,
+      "rotor_spread_hz": 22.85
+     },
+     {
+      "k": 42,
+      "f_hz": 5320.0,
+      "contrast_db": 15.39,
+      "rotor_spread_hz": 23.41
+     },
+     {
+      "k": 43,
+      "f_hz": 5446.7,
+      "contrast_db": 10.9,
+      "rotor_spread_hz": 23.97
+     },
+     {
+      "k": 44,
+      "f_hz": 5573.3,
+      "contrast_db": 8.21,
+      "rotor_spread_hz": 24.52
+     },
+     {
+      "k": 45,
+      "f_hz": 5700.0,
+      "contrast_db": 7.98,
+      "rotor_spread_hz": 25.08
+     },
+     {
+      "k": 46,
+      "f_hz": 5826.7,
+      "contrast_db": 6.75,
+      "rotor_spread_hz": 25.64
+     },
+     {
+      "k": 47,
+      "f_hz": 5953.3,
+      "contrast_db": 8.11,
+      "rotor_spread_hz": 26.19
+     },
+     {
+      "k": 48,
+      "f_hz": 6080.0,
+      "contrast_db": 13.72,
+      "rotor_spread_hz": 26.75
+     },
+     {
+      "k": 49,
+      "f_hz": 6206.7,
+      "contrast_db": 6.3,
+      "rotor_spread_hz": 27.31
+     },
+     {
+      "k": 50,
+      "f_hz": 6333.3,
+      "contrast_db": 7.32,
+      "rotor_spread_hz": 27.87
+     },
+     {
+      "k": 51,
+      "f_hz": 6460.0,
+      "contrast_db": 11.93,
+      "rotor_spread_hz": 28.42
+     },
+     {
+      "k": 52,
+      "f_hz": 6586.7,
+      "contrast_db": 13.48,
+      "rotor_spread_hz": 28.98
+     },
+     {
+      "k": 53,
+      "f_hz": 6713.3,
+      "contrast_db": 8.21,
+      "rotor_spread_hz": 29.54
+     },
+     {
+      "k": 54,
+      "f_hz": 6840.0,
+      "contrast_db": 7.87,
+      "rotor_spread_hz": 30.1
+     },
+     {
+      "k": 55,
+      "f_hz": 6966.7,
+      "contrast_db": 10.64,
+      "rotor_spread_hz": 30.65
+     },
+     {
+      "k": 56,
+      "f_hz": 7093.3,
+      "contrast_db": 12.5,
+      "rotor_spread_hz": 31.21
+     },
+     {
+      "k": 57,
+      "f_hz": 7220.0,
+      "contrast_db": 5.1,
+      "rotor_spread_hz": 31.77
+     },
+     {
+      "k": 58,
+      "f_hz": 7346.7,
+      "contrast_db": 12.08,
+      "rotor_spread_hz": 32.33
+     },
+     {
+      "k": 59,
+      "f_hz": 7473.3,
+      "contrast_db": 5.09,
+      "rotor_spread_hz": 32.88
+     },
+     {
+      "k": 60,
+      "f_hz": 7600.0,
+      "contrast_db": 4.63,
+      "rotor_spread_hz": 33.44
+     },
+     {
+      "k": 61,
+      "f_hz": 7726.7,
+      "contrast_db": 0.49,
+      "rotor_spread_hz": 34.0
+     },
+     {
+      "k": 62,
+      "f_hz": 7853.3,
+      "contrast_db": 5.9,
+      "rotor_spread_hz": 34.55
+     },
+     {
+      "k": 63,
+      "f_hz": 7980.0,
+      "contrast_db": 2.1,
+      "rotor_spread_hz": 35.11
+     },
+     {
+      "k": 64,
+      "f_hz": 8106.7,
+      "contrast_db": 5.05,
+      "rotor_spread_hz": 35.67
+     },
+     {
+      "k": 65,
+      "f_hz": 8233.3,
+      "contrast_db": 3.24,
+      "rotor_spread_hz": 36.23
+     },
+     {
+      "k": 66,
+      "f_hz": 8360.0,
+      "contrast_db": 4.65,
+      "rotor_spread_hz": 36.78
+     },
+     {
+      "k": 67,
+      "f_hz": 8486.7,
+      "contrast_db": 0.86,
+      "rotor_spread_hz": 37.34
+     },
+     {
+      "k": 68,
+      "f_hz": 8613.3,
+      "contrast_db": 2.81,
+      "rotor_spread_hz": 37.9
+     },
+     {
+      "k": 69,
+      "f_hz": 8740.0,
+      "contrast_db": 0.2,
+      "rotor_spread_hz": 38.46
+     },
+     {
+      "k": 70,
+      "f_hz": 8866.7,
+      "contrast_db": 0.7,
+      "rotor_spread_hz": 39.01
+     }
+    ],
+    "reach": {
+     "n8192": {
+      "k_last": 68,
+      "f_hz": 8613.3,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 13.5
+     },
+     "n32768": {
+      "k_last": 58,
+      "f_hz": 7346.7,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 13.03
+     },
+     "zeropad": {
+      "k_last": 66,
+      "f_hz": 8360.0,
+      "null_db": 3.0,
+      "need_consecutive": 3,
+      "median_contrast_db": 13.46
+     },
+     "rotor_break_k": 28.7,
+     "note_ko": "⭐빗살의 «끝» 이 두 자세 수에서 같고 로터 산포가 창을 넘는 자리(k≈29)와 맞물리면, 빗살을 끝내는 것은 **로터**이지 표집이 아니다."
+    }
+   },
+   "decimation_probe": {
+    "rows": [
+     {
+      "stride": 1,
+      "prf_hz": 19700.0,
+      "n": 32768,
+      "nyquist_hz": 9850.0,
+      "rhythm_pct": 82.541,
+      "rhythm_null_pct": 12.625,
+      "above_comb_db": 21.959,
+      "above_ceiling_pct": 0.8497,
+      "comb_db": 55.077,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 19700.0,
+        "offset_from_comb_hz": 60.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 2,
+      "prf_hz": 9850.0,
+      "n": 16384,
+      "nyquist_hz": 4925.0,
+      "rhythm_pct": 83.151,
+      "rhythm_null_pct": 12.566,
+      "above_comb_db": 19.511,
+      "above_ceiling_pct": 0.8266,
+      "comb_db": 52.356,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     },
+     {
+      "stride": 4,
+      "prf_hz": 4925.0,
+      "n": 8192,
+      "nyquist_hz": 2462.5,
+      "rhythm_pct": 77.963,
+      "rhythm_null_pct": 12.95,
+      "above_comb_db": 19.132,
+      "above_ceiling_pct": 0.7542,
+      "comb_db": 44.359,
+      "alias_folds": [
+       {
+        "m": 1,
+        "fold_hz": 4925.0,
+        "offset_from_comb_hz": 15.0,
+        "lands_in_window": false
+       },
+       {
+        "m": 2,
+        "fold_hz": 9850.0,
+        "offset_from_comb_hz": 30.0,
+        "lands_in_window": false
+       }
+      ],
+      "any_fold_lands_on_comb": false
+     }
+    ],
+    "note_ko": "자세를 솎아 **격자를 성기게** 만든 파생 탐침. 접힘(alias)은 126.667 Hz 의 정수배 자리에 안 떨어진다(4925÷126.667=38.88) — 솎아도 빗살이 그 자리에 서 있으면 원래 있던 선이다."
+   },
+   "outlier": {
+    "census_8192": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0014,
+     "top1_over_median": 3.704,
+     "dominance": {
+      "rhythm_pct": 0.131,
+      "comb_db": 0.04,
+      "moving_power_db": 0.491,
+      "above_ceiling_pct": 0.028
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "census_32768": {
+     "grade": "정상",
+     "gradeable": true,
+     "isolation": 1.0021,
+     "top1_over_median": 2.993,
+     "dominance": {
+      "rhythm_pct": 0.003,
+      "comb_db": 0.002,
+      "moving_power_db": 2.031,
+      "above_ceiling_pct": 0.0
+     },
+     "census_rows": 349,
+     "census_written": "2026-08-16 19:55 KST"
+    },
+    "probe_B_head8192": {
+     "argmax_pose": 2652,
+     "isolation": 1.0014,
+     "top1_over_median": 3.704,
+     "replace_one": {
+      "rhythm_pct": 0.001,
+      "comb_db": -0.003,
+      "above_comb_db": -0.012,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.009,
+      "comb_db": 0.09,
+      "above_comb_db": 0.017,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0007
+     },
+     "dominance": {
+      "rhythm_pct": 0.111,
+      "comb_db": 0.033,
+      "above_comb_db": 0.706,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    },
+    "probe_C_full": {
+     "argmax_pose": 31837,
+     "isolation": 1.0021,
+     "top1_over_median": 2.9926,
+     "replace_one": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.002,
+      "comb_db": 0.012,
+      "above_comb_db": 0.009,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0001
+     },
+     "dominance": {
+      "rhythm_pct": 0.0,
+      "comb_db": 0.0,
+      "above_comb_db": 0.0,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    },
+    "probe_A_8192": {
+     "argmax_pose": 2652,
+     "isolation": 1.0014,
+     "top1_over_median": 3.704,
+     "replace_one": {
+      "rhythm_pct": 0.001,
+      "comb_db": -0.003,
+      "above_comb_db": -0.012,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0
+     },
+     "innocent_control_max_abs": {
+      "rhythm_pct": 0.009,
+      "comb_db": 0.09,
+      "above_comb_db": 0.017,
+      "moving_power_db": 0.0,
+      "above_ceiling_pct": 0.0007
+     },
+     "dominance": {
+      "rhythm_pct": 0.111,
+      "comb_db": 0.033,
+      "above_comb_db": 0.706,
+      "moving_power_db": null,
+      "above_ceiling_pct": 0.0
+     },
+     "n_control": 12
+    }
+   }
+  }
+ ]
+}
