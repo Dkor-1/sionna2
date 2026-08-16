@@ -39,49 +39,83 @@ from cadkit import (Assembly, loft, spline_sections, superellipse, rounded_rect,
 
 
 # --------------------------------------------------------------------------- #
-#  ⭐⭐ 2026-08-16 — 메쉬 결함 **수리 스위치** (감사 §⑤ 2층)
+#  ⭐⭐ 2026-08-16 — 메쉬 결함 **수리 스위치** 중 이 파일이 담당하는 것 (감사 §⑤ 2층)
 # --------------------------------------------------------------------------- #
-#  규약(이 라운드의 핵심): **수리는 선택 인자로 넣고 기본은 끈다.**
-#    · 인자를 안 주면 전 기종 메쉬가 **비트동일**이다 — 기존 σ 원장·리포트가 안 낡는다.
-#    · 인자를 주면 형상이 실제로 바뀐다(그래서 비트동일이 깨진다). 그것이 **의도된 것**이며
-#      회귀 시험이 두 방향을 다 증명한다(benchmark/regress_mesh_fix_battery_0816.py).
-#  ⚠ 모르는 토큰은 **조용히 무시하지 않는다** — 즉시 ValueError.
-#    (이 저장소가 반복해서 물린 함정이 «조용한 폴백» 이다. materials._spec 와 같은 규약.)
-#  ⭐ 수리를 새로 추가하는 사람에게: 여기 토큰 한 줄 + 실제 수리 코드를 넣고,
-#    «기본 끔 · 인자 주면 켜짐» 두 방향을 시험으로 증명할 것.
+#  ⭐ **스위치의 정본은 `geom.py` 머리말**이다(환경변수 `MESH_FIX`). 스위치가 두 군데 있으면
+#    «켰는데 반만 켜지는» 사고가 나므로, 여기서는 그 스위치를 **읽기만** 하고 새로 만들지 않는다.
+#      MESH_FIX=battery python src/mesh_check.py        ← 공용 스위치(전역)
+#      build_frame_cad(spec, mesh_fix='battery')        ← 호출 단위 명시(전역 스위치와 무관)
+#      build_frame_cad(spec, mesh_fix=False)            ← 이 호출만 강제로 끔
+#  ⭐ 기본(인자 없음 · 환경변수 없음) = **꺼짐** = 예전 메쉬와 **비트동일**.
+#    켜면 형상이 실제로 바뀌므로 비트동일이 깨진다 — 그것이 **의도된 것**이고, 두 방향을
+#    회귀 시험이 증명한다(benchmark/regress_mesh_fix_battery_0816.py).
+#  ⚠ 명시 호출에서 **아무도 모르는 id** 를 주면 즉시 ValueError — 오타를 조용히 무시하면
+#    «수리를 켠 줄 알았는데 안 켜진» 결과가 원장에 들어간다(materials._spec 와 같은 규약).
 MESH_FIX_TOKENS = {
-    "battery_union": (
-        "'battery' 그룹의 부품들을 불리언 합집합으로 하나로 만든다. 셸형 공용 경로에서 "
+    "battery": (
+        "'battery' 그룹의 부품들을 불리언 합집합으로 **하나로** 만든다. 셸형 공용 경로에서 "
         "배터리 팩 상자와 v2 구조판 상자가 서로 파고들어(mini2 49.96 % · phantom4 49.46 % · "
         "mavic4pro 48.12 % · mini5pro 47.89 %) 그 매몰면을 PO 가 이중계상한다 — PO 는 가림을 "
         "안 보기 때문이다(rcs_po.py 가 스스로 선언). 치수는 **하나도 안 바꾼다**(기종별 실측 "
         "치수가 없으므로 상자를 옮기는 것은 «지어내기» 다). 합집합은 겹친 자리의 내부 면만 없앤다."),
+    "i4": (
+        "묻힌 캐노피(감사 I4) — 셸형 기체의 'canopy' 를 'body' 와 **불리언 합집합**해 껍질을 "
+        "하나로 만든다. 실물 근거: DJI 매뉴얼 그림(mavic4pro m02 · phantom4 공식 정면)이 "
+        "몰드 셸 **한 장**을 보여 주고 배터리는 셸 윤곽에 맞춰 뒤에서 꽂힌다 — 셸 안에 "
+        "두 번째 닫힌 껍질은 실물에 없다. 코드 주석도 phantom3·mini2 에서 «솟은 캐노피가 "
+        "없는데 공용 경로가 무조건 붙인다» 고 스스로 선언한다. 묻힌 비율은 mavic4pro·phantom3 "
+        "100 % · phantom4 92.7 % · mini2 86.4 % · mini5pro 86.2 % · typhoonh480 74.6 % · "
+        "matrice4e 69.2 %. ⭐완전 매몰이면 합집합 결과가 곧 body 이므로 **캐노피 그룹만 빼고 "
+        "body 삼각형은 안 건드린다**(그래야 수리의 σ 변화가 캐노피만의 것이 된다). 부분 노출은 "
+        "합집합해서 **노출부만** 남긴다 — 통째로 빼면 실루엣이 바뀐다. 대가: 그 기체의 "
+        "'canopy' 그룹이 사라져 부품별 σ 분해표의 칸이 하나 없어진다(재질은 둘 다 plastic 이라 "
+        "|Γ| 는 안 바뀐다)."),
+    "m4": (
+        "x500v2 암 튜브 관통(감사 m4의 절반) — 나일론 클램프('accent') 솔리드 **안에 묻힌** "
+        "카본 암 튜브('arm') 구간을 불리언 차집합으로 잘라낸다(14,274 mm²). 근거: 열린 프레임은 "
+        "`shell_groups=()` 라 SBR 이 나일론을 **불투명**으로 보고 그 안의 튜브를 절대 못 맞힌다 "
+        "— 수리는 PO 기하를 기본 엔진이 보는 것과 같게 만든다. 치수는 하나도 안 바꾼다. "
+        "⛔같은 감사 항목의 «동일평면 5,409 mm²»(나일론 시트 윗면 z=4 ↔ 카본판 아랫면 z=4)는 "
+        "**안 고친다** — 제조사 STEP(y_step 20.0/22.0)이 둘이 맞닿아 있다고 말하므로 0.1 mm "
+        "띄우기는 실물에서 멀어지고 PO 이중계상도 안 없어지며, 합치면 재질 경계(carbon 0.90 ↔ "
+        "plastic 0.28, 10.14 dB)가 사라져 없애는 오차보다 큰 오차가 생긴다(원장에 측정치 있음)."),
 }
 
 
 def normalize_mesh_fix(mesh_fix=None) -> frozenset:
-    """수리 스위치 정규화 — None/False(기본) → 빈 집합. 'a,b' · ('a','b') · 'all' 을 받는다.
+    """지금 켜져 있는 **이 파일 담당** 수리 id 집합.
 
-    반환은 frozenset 이라 캐시 키로 그대로 쓸 수 있다(drones.frame_fit_scale)."""
-    if mesh_fix is None or mesh_fix is False:
+    mesh_fix=None(기본)이면 공용 스위치(`geom.mesh_fix_set()` = 환경변수 MESH_FIX)를 읽는다.
+    명시로 주면 그것만 본다 — False/() 는 «이 호출만 강제로 끔».
+    반환이 frozenset 이라 캐시 키로 그대로 쓸 수 있다(drones.frame_fit_scale)."""
+    from geom import mesh_fix_set, MESH_FIX_KNOWN     # 스위치 정본
+    if mesh_fix is None:                              # 전역 스위치를 따른다
+        toks, strict = mesh_fix_set(), False
+    elif mesh_fix is False:
         return frozenset()
-    if mesh_fix is True:
-        return frozenset(MESH_FIX_TOKENS)
-    toks = ([t for t in str(mesh_fix).replace(",", " ").split()]
-            if isinstance(mesh_fix, str) else [str(t).strip() for t in mesh_fix])
+    elif mesh_fix is True:
+        toks, strict = {"all"}, False
+    else:
+        toks = ([t for t in str(mesh_fix).replace(";", ",").replace(",", " ").split()]
+                if isinstance(mesh_fix, str) else [str(t) for t in mesh_fix])
+        strict = True
     out = set()
     for t in toks:
+        t = t.strip().lower()
         if not t:
             continue
         if t == "all":
             out.update(MESH_FIX_TOKENS)
             continue
-        if t not in MESH_FIX_TOKENS:
+        if t in MESH_FIX_TOKENS:
+            out.add(t)
+            continue
+        #  다른 파일 담당 id(i5·m6 …)는 여기선 할 일이 없다 — 조용히 지나간다.
+        if strict and t not in MESH_FIX_KNOWN:
             raise ValueError(
-                f"drone_cad: 모르는 mesh_fix 토큰 {t!r}. 아는 토큰 = "
-                f"{sorted(MESH_FIX_TOKENS)} (+ 'all'). ⛔오타를 조용히 무시하면 "
-                f"«수리를 켠 줄 알았는데 안 켜진» 결과가 원장에 들어간다.")
-        out.add(t)
+                f"drone_cad: 아무도 모르는 mesh_fix id {t!r}. 아는 id = "
+                f"{sorted(set(MESH_FIX_KNOWN) | set(MESH_FIX_TOKENS))} (+ 'all'). "
+                f"⛔오타를 조용히 무시하면 «수리를 켠 줄 알았는데 안 켜진» 결과가 원장에 들어간다.")
     return frozenset(out)
 
 
@@ -116,9 +150,29 @@ def _prop_hub(r, h, seg=28):
 #    assets/meshes/reference/WM161_zhankai_1k.glb (DJI Mini 2 공식 3D 모델) 안에 **날 8장 +
 #    허브 4개**가 실재한다(디스크 지름 118.4~119.7 mm ↔ 공칭 4726F 119.4 mm, −0.9~+0.3 %).
 #    ⇒ 이 법칙이 3DR Solo 를 대리 기준으로 삼은 **근거 자체가 무너졌다**.
-#    ⇒ 감사 결과(docs/MESH_AUDIT_0816.md): Solo 는 참조 넷 중 **유일한 이상치**다. 시위 분포가
-#      외곽에서 실물보다 27~39 % 좁아 날 면적이 −29 %(−2.97 dB), 날개끝 밴드는 −3.1~−3.6 dB 다.
-#      피치 기준 반경도 0.5R 로 잡혀 있는데 표준·실물은 0.75R 이고, 팁이 실물보다 뾰족하다.
+#    ⇒ 감사 결과(docs/MESH_AUDIT_0816.md) — ⭐**아래는 2026-08-16 적대 검증(독립 3잣대 재측정)이
+#      정정한 판이다.** 감사 원문의 네 수·문구는 무너졌고 나머지는 살아남았다.
+#      · **살아남음(가장 튼튼한 숫자)**: 외곽이 좁다 — **0.60~0.96R 면적비 0.66 = −3.66 dB**
+#        (세 독립 잣대가 0.5 % 안에서 일치). 시위 정점이 안쪽(우리 0.31R ↔ DJI 0.45R).
+#        피치 기준 반경이 다르다(우리 0.63R ↔ DJI 국소피치 최대 0.73R·표준 규약 0.75R,
+#        외곽 비틀림 폭 9.58° ↔ 5.68°). c_max/R 이 실물마다 0.177~0.273 으로 1.54 배 —
+#        단일 상수 0.25 는 근거가 없다. ⭐스윕각 인공물 반증을 시도했으나 **실패**했다
+#        (cosΛ 보정해도 시위비 0.6514 → 0.6499) — 시위 비교는 잣대 인공물이 아니다.
+#      · ⛔**무너짐 ①** «날 면적 −29 %(−2.97 dB)» → **−20~−22 %(−2.0~−2.2 dB)** 다. 공통 반경
+#        창에서 세 잣대가 0.781/0.784/0.787 로 맞고, 감사 자신의 면적표(0.7893)와도 맞는다.
+#        재현이 안 된 것은 0.710 하나뿐이었다. ⇒ **총면적 대신 위 외곽 밴드 값을 인용할 것.**
+#      · ⛔**무너짐 ②** «DJI 날은 0.175R 부터라 우리 뿌리 여유를 빼야 한다» — 거짓. DJI 날은
+#        **0.034R** 까지 있고 0.175R 아래 면적이 우리보다 **더** 많다(13.6 % ↔ 10.0 %).
+#      · ⛔**무너짐 ③** «Solo 는 유일한 이상치» → 참조 CAD 3종이 **2:1 로 갈린다**. 정규화 시위
+#        @0.70R: 1345 **0.4896** · Solo 0.5754 ↔ Yuneec 0.8669 · DJI Mini2 0.8638.
+#        **1345 가 Solo 보다 더 뿌리 편중형**이다(감사 표에 1345 행이 빠져 있었다).
+#        정확한 진술: «참조 CAD 는 뿌리 편중형 2 : 늦은 정점형 1 로 갈리고 **DJI 는 늦은 정점형**».
+#      · ⛔**무너짐 ④** «c_max/R 은 크기와 반비례» — 스피어만 **−0.05**(무상관). 같은 크기급
+#        안에서도 0.1769~0.2726 로 전 범위를 덮는다. ⇒ **크기에서 보간하면 안 된다** — 프롭마다 실측.
+#      · ⚠파급: mini2 note 의 «뒤 로터 코닝 틸트» 는 **회전축을 안 기울이고 잰 인공물일 수 있다**
+#        (참 로터축은 월드 +y 가 아니라 앞 2.97°·뒤 5.00° 기울어져 있다 — 모터축·프롭너트 두
+#        부품이 0.012° 안에서 일치). `prop_pitch_in` 2.6 을 다시 쓰기 전에 재검사할 것.
+#      팁이 실물보다 뾰족하다는 항목은 유지된다.
 #    ⇒ **1차 앵커를 DJI Mini 2 공식 CAD 로 교체해야 한다.** 교체 전까지 이 법칙으로 낸
 #      절대 세기·기종 간 비교에는 위 오차 크기를 꼬리표로 단다. 권고값은 감사 문서 §L 참조.
 #    ⚠ 여전히 참인 것: 세 참조 CAD 는 계측 스캔이 아니라 시뮬레이터용이고, 절대 σ 앵커는
@@ -508,9 +562,14 @@ OPEN_FC_FRAC = (0.59, 0.30, 0.54)
 #  기종별 근거 없음 — docs/MESH_METHOD.md §7.7 이 "σ 지배 부품인데 전부 손조정"이라고 적어 둔
 #  바로 그 자리다). 여기에 기종 키가 있으면 그 대신 **mm 실측 상자**를 쓴다.
 #  형식: (그룹, (Lx, Ly, Lz)[mm], (cx, cy, cz)[mm])  — 좌표는 z=0 = 암 허브 평면, +x = 기수.
-#  ⚠ 'battery'·'pcb' 그룹은 `build_frame_cad` 말미의 불리언 union 목록에 **없다**(전 기종 공통
-#    미해결 항목). 그래서 이 표의 상자들은 **서로 겹치지 않게** 놓는다 — 겹치면 파묻힌 면이
-#    그대로 남아 PO/SBR 이 헛센다.
+#  ⚠ 'battery'·'pcb' 그룹은 `build_frame_cad` 말미의 불리언 union 목록에 **기본으로는 없다**.
+#    그래서 이 표의 상자들은 **서로 겹치지 않게** 놓는다 — 겹치면 파묻힌 면이 그대로 남아
+#    PO 가 그 면적을 이중계상한다(PO 는 가림을 안 본다. SBR 은 first-hit 이라 무관).
+#  ⭐ 2026-08-16 — 공용 비율상자 경로(이 표에 없는 셸형 기종)는 그 규칙을 **안 지키고 있었다**:
+#    배터리 팩 상자와 v2 구조판 상자가 47.9~50.0 % 겹친다(mini2·phantom4·mavic4pro·mini5pro).
+#    ⇒ 선택 수리 `MESH_FIX=battery`(=mesh_fix='battery') 가 'battery' 를 union 목록에 넣어 그 이중계상을
+#      없앤다(치수는 그대로). 기본은 꺼져 있고, 이 표를 받은 두 기종(phantom3·matrice4e)은
+#      애초에 안 겹치므로 켜도 상자 두 개가 그대로 남는다.
 INTERNALS = {
     #  ⭐⭐ Phantom 3 — 분해사진 실측. 이 기체의 내부 상수는 지금까지 전부 phantom4 상속이었다.
     #  (1) 인텔리전트 플라이트 배터리 (PH3-4480 mAh-15.2 V) — **금속 파우치 다발 + 하드케이스**
@@ -2115,6 +2174,109 @@ def _gear_motor_legs(r_motor, angs, z_arm, h, w, spread, taper=0.55, n_pts=16, n
 
 
 # --------------------------------------------------------------------------- #
+#  ⭐⭐ 2026-08-16 — 2층 메쉬 수리 (감사 §⑤ 2층 I4 · m4). **선택**이고 기본은 꺼져 있다.
+# --------------------------------------------------------------------------- #
+def _boolean(op, meshes, what: str):
+    """불리언 한 번 — **조용한 실패 금지**. 실패하면 즉시 죽는다.
+
+    `cadkit.union_group` 은 실패해도 형상을 그대로 두고 경고만 남긴다(옛 동작 보존). 그러나
+    **수리를 명시적으로 켠** 호출에서 그 경고를 놓치면 «고쳤다고 믿는 안 고친 메쉬» 가 원장에
+    들어간다 — 이 저장소가 반복해서 물린 함정이라 여기서는 예외로 막는다."""
+    fn = trimesh.boolean.union if op == "union" else trimesh.boolean.difference
+    try:
+        r = fn(meshes, engine="manifold")
+    except Exception as exc:
+        raise RuntimeError(f"drone_cad 메쉬수리: {what} — 불리언 {op} 실패 "
+                           f"({type(exc).__name__}: {exc}).") from exc
+    if r is None or len(r.faces) == 0:
+        raise RuntimeError(f"drone_cad 메쉬수리: {what} — 불리언 {op} 이 빈 메쉬를 냈다.")
+    r.update_faces(r.nondegenerate_faces())
+    r.merge_vertices(); r.remove_unreferenced_vertices()
+    trimesh.repair.fix_normals(r)            # cadkit.Assembly.add 와 같은 정리 규약
+    if r.is_watertight and r.volume < 0:
+        r.invert()
+    return r
+
+
+def _fix_i4_canopy(A, key: str) -> dict:
+    """**감사 I4 — 묻힌 캐노피.** 'canopy' 를 'body' 와 합쳐 껍질을 하나로 만든다.
+
+    ■ 왜 «빼기» 가 아니라 «합치기» 인가 (물리 판정, 2026-08-16)
+      실물 소비자기의 상단은 **몰드 셸 한 장**이고 배터리는 그 윤곽에 맞춰 뒤에서 꽂힌다
+      (DJI Mavic 4 Pro 매뉴얼 1.2 Overview 그림 12~16번 · Phantom 4 공식 정면 사진).
+      즉 **셸 안에 두 번째 닫힌 껍질은 실물에 없다.** 이 저장소의 코드 주석도 phantom3·mini2
+      에서 «솟은 캐노피가 없는데 셸형 공용 경로가 무조건 붙인다» 고 스스로 선언한다.
+      ⇒ 옳은 상태는 «캐노피가 없다» 가 아니라 «바깥 껍질이 한 장이다». 합집합이 그것이고,
+        완전 매몰이면 합집합 결과가 곧 body 라 두 판정이 **같은 형상**으로 만난다.
+
+    ■ 완전 매몰이면 body 를 안 건드린다
+      union 을 태우면 manifold 가 body 를 다시 삼각분할해 «수리의 σ 변화» 에 재이산화가
+      섞인다. 부피가 같으면(=캐노피가 body 안) 합집합 결과는 원래 body 와 같은 형상이므로
+      **원래 body 를 그대로 두고 캐노피만 뺀다** → 그 기체의 body 는 비트동일이다.
+
+    ■ 대가(선언)
+      그 기체의 'canopy' 그룹이 사라진다 → 감사 §4-1 부품별 σ 분해표의 칸이 하나 없어진다.
+      재질은 body·canopy 둘 다 'plastic' 이라 |Γ| 는 바뀌지 않는다(그래서 합쳐도 재질 모순이
+      안 생긴다 — x500v2 의 accent↔arm 과 다른 점이다)."""
+    body, can = A.parts.get("body"), A.parts.get("canopy")
+    if not body or not can:
+        return {}
+    #  ⚠ 선행 수리 의존성(선언) — 불리언은 **닫힌 솔리드**를 요구한다. mini2 body 는 감사 I5 의
+    #    구멍(경계 모서리 3개) 때문에 비수밀이라 이 수리가 **단독으로는 못 돈다**. 조용히
+    #    건너뛰지 않고 여기서 죽인다 — «켰는데 안 걸린» 결과가 원장에 들어가면 안 된다.
+    for m in body:
+        if not m.is_watertight:
+            raise RuntimeError(
+                f"drone_cad 메쉬수리 i4(key={key!r}): 'body' 파트가 **비수밀**이라 불리언을 "
+                f"태울 수 없다(감사 I5 의 구멍). 수리 i5 를 **같이** 켤 것 — "
+                f"예) MESH_FIX=i5,i4 … 또는 build_frame_cad(spec, mesh_fix='i5,i4').")
+    b = body[0] if len(body) == 1 else _boolean("union", body, f"{key} body")
+    c = can[0] if len(can) == 1 else _boolean("union", can, f"{key} canopy")
+    u = _boolean("union", [b, c], f"{key} body∪canopy")
+    v_b, v_u = float(b.volume), float(u.volume)
+    buried = abs(v_u - v_b) <= 1e-9 * abs(v_b)          # 캐노피가 body 안에 완전히 들어 있다
+    A.parts.pop("canopy")
+    if not buried:
+        A.parts["body"] = [u]
+    return dict(mode="drop" if buried else "union",
+                body_faces_before=int(len(b.faces)), canopy_faces_before=int(len(c.faces)),
+                body_faces_after=int(len(b.faces) if buried else len(u.faces)),
+                vol_body_mm3=round(v_b * 1e9, 6), vol_union_mm3=round(v_u * 1e9, 6))
+
+
+def _fix_m4_arm_clamp(A, key: str) -> dict:
+    """**감사 m4 — x500v2 암 튜브 관통.** 나일론 클램프 안에 묻힌 카본 튜브 구간을 잘라낸다.
+
+    ■ 무엇이 결함인가
+      코너 클램프(r 65.15~93.15)와 팁 칼라(r 191.4~221.0)는 **속이 찬 상자**로 지어져 있어
+      암 튜브(⌀16, r 67.15~229.15)가 그 상자를 관통한다. 두 솔리드가 같은 부피를 동시에
+      차지하는 **간섭(interference)** 이고, 실물 클램프는 튜브를 **감쌀 뿐 차지하지 않는다.**
+
+    ■ 왜 튜브 쪽을 자르나 (arm − accent)
+      열린 프레임은 `shell_groups=()` 라(drones.py x500v2) SBR 이 나일론을 **불투명**으로
+      본다 — 클램프 안의 튜브 면은 기본 엔진에서 **절대 맞을 수 없는 면**이다. 반대로
+      클램프에 구멍(bore)을 뚫으면 튜브 표면과 **맞닿은 나일론 안쪽 벽**이 새로 생겨
+      PO 면적이 오히려 는다. 그래서 PO 기하를 기본 엔진이 보는 것과 같게 만드는 쪽을 고른다.
+      치수는 하나도 안 바꾼다 — 자르는 도구가 클램프 자신의 형상이다.
+
+    ■ 안 고치는 것(선언)
+      같은 감사 항목의 **동일평면 5,409 mm²**(나일론 시트 윗면 z=4 ↔ 카본판 아랫면 z=4)는
+      실물이 **맞닿아 있는 것**이다(제조사 STEP y_step 20.0/22.0). 0.1 mm 띄우면 실물에서
+      멀어지면서 PO 이중계상은 그대로고, 두 그룹을 합치면 재질 경계(carbon 0.90 ↔ plastic
+      0.28 = 10.14 dB)가 사라져 없애려는 오차보다 큰 오차가 생긴다. 크기·σ 는 원장에 남긴다."""
+    arm, acc = A.parts.get("arm"), A.parts.get("accent")
+    if not arm or not acc:
+        return {}
+    a = arm[0] if len(arm) == 1 else _boolean("union", arm, f"{key} arm")
+    c = acc[0] if len(acc) == 1 else _boolean("union", acc, f"{key} accent")
+    t = _boolean("difference", [a, c], f"{key} arm−accent")
+    A.parts["arm"] = [t]
+    return dict(arm_faces_before=int(len(a.faces)), arm_faces_after=int(len(t.faces)),
+                arm_area_mm2_before=round(float(a.area) * 1e6, 3),
+                arm_area_mm2_after=round(float(t.area) * 1e6, 3))
+
+
+# --------------------------------------------------------------------------- #
 #  프레임 (프로펠러 제외) — 기종별
 # --------------------------------------------------------------------------- #
 def build_frame_cad(spec, mesh_fix=None) -> "trimesh.Trimesh":
@@ -2122,7 +2284,7 @@ def build_frame_cad(spec, mesh_fix=None) -> "trimesh.Trimesh":
 
     mesh_fix : ⭐선택 수리 스위치(기본 None = **끔** = 예전 메쉬와 비트동일).
         토큰 목록·뜻은 `MESH_FIX_TOKENS`, 정규화는 `normalize_mesh_fix`.
-        예) build_frame_cad(spec, mesh_fix='battery_union')."""
+        예) build_frame_cad(spec, mesh_fix='battery')."""
     from drones import motor_angles, motor_radii, DRONE_GROUP_MAT   # 순환 import 회피용 지연
 
     fix = normalize_mesh_fix(mesh_fix)
@@ -3060,25 +3222,35 @@ def build_frame_cad(spec, mesh_fix=None) -> "trimesh.Trimesh":
     #    빠지면 겹친 파트의 내부 면이 남아 PO/SBR 이 헛센다 — 예외는 안 난다.
     union_groups = ["body", "arm", "motor", "camera", "gear", "canopy", "accent",
                     "deck", "gear_cf", "fc"]
-    #  ⭐⭐ 2026-08-16 (감사 §⑤ 2층 수리, 선택) — mesh_fix='battery_union' 일 때만 'battery' 를 더한다.
+    #  ⭐⭐ 2026-08-16 (감사 §⑤ 2층 수리, 선택) — 수리 'battery' 가 켜졌을 때만 'battery' 를 더한다.
     #    왜 기본이 아닌가: 형상이 실제로 바뀌므로(내부 면이 사라진다) 기존 σ 원장이 낡는다.
     #    왜 상자를 옮기지 않고 합치는가: 기종별 실측 치수가 없다. 없는 치수를 지어내 상자를
     #    옮기면 «임의로 옮긴 손잡이» 가 되지만, 합집합은 **치수를 하나도 안 바꾸고**
     #    겹친 자리의 이중계상만 없앤다. 실측표를 받은 matrice4e·phantom3 은 애초에 안 겹치므로
     #    합쳐도 상자 두 개가 그대로 남는다(면 24장 유지 — 이 수리는 그 둘을 안 건드린다).
-    if "battery_union" in fix:
+    if "battery" in fix:
         union_groups.append("battery")
     for g in union_groups:
         A.union_group(g)
     #  ⚠ 조용한 실패 금지 — union_group 은 실패해도 «형상 그대로» 두고 경고만 남긴다(cadkit).
     #    수리를 **명시적으로 켠** 호출에서 그 경고를 놓치면 «고쳤다고 믿는 안 고친 메쉬» 가
     #    원장에 들어간다. 부품이 2개 이상 남아 있으면 합집합이 안 된 것이므로 여기서 죽인다.
-    if "battery_union" in fix and len(A.parts.get("battery", ())) > 1:
+    if "battery" in fix and len(A.parts.get("battery", ())) > 1:
         raise RuntimeError(
-            f"drone_cad.build_frame_cad(key={key!r}, mesh_fix='battery_union'): "
+            f"drone_cad.build_frame_cad(key={key!r}, mesh_fix='battery'): "
             f"'battery' 합집합이 실패했다 — 부품 {len(A.parts['battery'])}개가 그대로 남았다. "
             f"cadkit.Assembly.UNION_FAILURES 를 볼 것. (겹친 면이 PO 에서 이중계상된 채로 "
             f"«수리됨» 이라고 원장에 실리는 것을 막는다.)")
+
+    #  ⭐⭐ 2026-08-16 (감사 §⑤ 2층) — **그룹 사이** 수리. 위 루프는 그룹 **안**만 합치므로
+    #    묻힌 캐노피(I4)·클램프 관통(m4)처럼 두 그룹에 걸친 결함은 여기서 따로 고친다.
+    #    ⚠ 순서: 그룹 안 합집합이 끝난 뒤여야 각 그룹이 솔리드 하나다.
+    #    ⚠ 둘 다 **켠 호출에서만** 돈다 → 인자 없으면 위에서 만든 메쉬가 그대로 나간다(비트동일).
+    A.mesh_fix_log = {}
+    if "i4" in fix:
+        A.mesh_fix_log["i4"] = _fix_i4_canopy(A, key)
+    if "m4" in fix and key == "x500v2":
+        A.mesh_fix_log["m4"] = _fix_m4_arm_clamp(A, key)
 
     return A
 
