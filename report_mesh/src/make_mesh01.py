@@ -255,7 +255,7 @@ md(
 f"- **{drone_label('mini5pro')}** — 실측 캠페인의 표적이다 ← 출처: `README.md` 실측 계획.",
 "  형상 근거는 사진 계측이고, **셸 높이의 1차 출처가 없다**는 한계를 그대로 안고 있다(§4.4).",
 f"- **{drone_label('matrice4e')}** — 공식 CAD 대조가 끝난 기체다. DJI Matrice 4T 공식 STEP 으로",
-f"  형상 상수 {n_fixes}건을 정정했고 **{LAND['verdict'].split('.')[0]}**",
+f"  형상 상수 {n_fixes}건을 정정했고 {LAND['verdict'].split('.')[0]}이다.",
 "  ← 출처: `outputs/mesh_inspect_body_arms_0816.json` `meshfix_matrice4e_landed`.",
 "",
 "![wireframe mini5pro](outputs/figures/wireframe_mini5pro.png)",

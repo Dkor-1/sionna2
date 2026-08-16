@@ -290,6 +290,10 @@ def fig_dims():
     labels, offs, meas = [], [], []
     for key in ORDER:
         for chk, v in C[key]["checks"].items():
+            #  ⚠ 공표값이 없는 항목(예: prop_disc_L/W — 회전 원반 외곽은 «잰 값» 만 있다)은
+            #     이 «공표 vs 실측» 막대에 올릴 짝이 없다. 조용히 넣지 말고 건너뛴다.
+            if "official" not in v:
+                continue
             labels.append(f"{NAME[key]}\n{chk}")
             offs.append(v["official"])
             meas.append(v["measured"])
@@ -509,97 +513,123 @@ def fig_pipeline_map():
     a re-check against the same CAD reads as "the fix landed", not as independent
     scoring. The scan (Phantom 4) never enters the build — that one is independent.
     """
-    fig, ax = plt.subplots(figsize=(14.4, 8.4))
-    ax.set_xlim(0, 14.4)
-    ax.set_ylim(0, 12.2)
+    fig, ax = plt.subplots(figsize=(14.8, 9.2))
+    ax.set_xlim(0, 14.9)
+    ax.set_ylim(0, 12.9)
     ax.set_axis_off()
-
-    def box(x, y, w, h, text, fc="#eef3fa", ec="C0", fs=8.4):
-        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, lw=1.4))
-        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fs)
-
-    def arrow(x0, y0, x1, y1, color="0.35", lw=1.3, style="->", ls="-"):
-        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
-                    arrowprops=dict(arrowstyle=style, lw=lw, color=color, linestyle=ls))
-
-    def band(y, label):
-        ax.text(0.06, y, label, ha="left", va="center", fontsize=9.5,
-                color="0.35", rotation=90, fontweight="bold")
 
     RED = "#c0392b"
 
-    # ── ① sources ─────────────────────────────────────────────────────────
-    band(10.9, "① sources")
-    box(0.7, 10.05, 4.0, 1.7,
-        "Manufacturer spec sheets\n(published L/W/H, prop dia, diagonal)\n"
-        "-> docs/drone_research.json -> docs/SPECS.md\nall 10 airframes",
-        fc="#fdf3e7", ec="C1")
-    box(5.1, 10.05, 4.5, 1.7,
-        "Official manufacturer CAD\nDJI Matrice 4T STEP - DJI Mini 2 GLB\n"
-        "Holybro X500 v2 STEP\n(3 airframes only)",
-        fc="#fdf3e7", ec="C1")
-    box(10.0, 10.05, 3.7, 1.7,
-        "Real-unit 3D scan + third-party CAD\nPhantom 4 scan (CC-BY)\n"
-        "Typhoon H480 / Solo (Apache-2.0)\nscoring only",
-        fc="#fdf3e7", ec="C1")
+    def box(x, y, w, h, text, fc="#eef3fa", ec="C0", fs=8.4, tag=None, tag_c="0.35"):
+        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, lw=1.4))
+        ty = y + h / 2 + (0.20 if tag else 0.0)
+        ax.text(x + w / 2, ty, text, ha="center", va="center", fontsize=fs)
+        if tag:
+            ax.text(x + w / 2, y + 0.22, tag, ha="center", va="center",
+                    fontsize=8.0, color=tag_c, fontweight="bold")
 
-    # ── ② build ───────────────────────────────────────────────────────────
-    band(7.55, "② build")
-    box(0.7, 6.75, 4.6, 1.9,
+    def arrow(x0, y0, x1, y1, color="0.35", lw=1.3, ls="-"):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="->", lw=lw, color=color, linestyle=ls))
+
+    def route(pts, color="0.35", lw=1.3, ls="-"):
+        """Polyline with a single arrowhead on the last leg — keeps arrows out of boxes."""
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        ax.plot(xs[:-1], ys[:-1], color=color, lw=lw, ls=ls, solid_capstyle="round")
+        arrow(pts[-2][0], pts[-2][1], pts[-1][0], pts[-1][1], color=color, lw=lw, ls=ls)
+
+    def band(y, label):
+        ax.text(0.05, y, label, ha="left", va="center", fontsize=9.5,
+                color="0.35", rotation=90, fontweight="bold")
+
+    #  column x/width shared by every row, so no box ever sits under an arrow
+    CX, CW = (0.65, 5.20, 9.75), (4.25, 4.25, 3.95)
+
+    def col(i, y, h, *a, **kw):
+        box(CX[i], y, CW[i], h, *a, **kw)
+
+    # ── (1) sources ───────────────────────────────────────────────────────
+    band(11.68, "(1) sources")
+    col(0, 10.75, 1.85,
+        "Manufacturer spec sheets\n(published L/W/H, prop dia, diagonal)\n"
+        "-> docs/SPECS.md    all 10 airframes",
+        fc="#fdf3e7", ec="C1", tag="FEEDS THE BUILD", tag_c=RED)
+    col(1, 10.75, 1.85,
+        "Official manufacturer CAD\nDJI Matrice 4T STEP - DJI Mini 2 GLB\n"
+        "Holybro X500 v2 STEP  (3 airframes)",
+        fc="#fdf3e7", ec="C1", tag="FEEDS THE BUILD  +  ALSO SCORES", tag_c=RED)
+    col(2, 10.75, 1.85,
+        "Real-unit 3D scan + third-party CAD\nPhantom 4 scan (CC-BY)\n"
+        "Typhoon H480 / Solo (Apache-2.0)",
+        fc="#fdf3e7", ec="C1", tag="SCORING ONLY")
+
+    # ── reading rule gets its own band, so no caption floats over a box ───
+    ax.add_patch(plt.Rectangle((0.65, 8.35), 13.05, 1.30, facecolor="#fff6f4",
+                               edgecolor=RED, lw=1.2, linestyle=(0, (4, 2))))
+    ax.text(7.18, 9.00,
+            "HOW TO READ A MATCH:  official CAD feeds the build for Matrice 4E and Mini 2, "
+            "and the same CAD scores them\n"
+            "=> that agreement reads as \"the correction landed\", NOT as independent scoring.  "
+            "The Phantom 4 scan never enters the build - that one is independent.",
+            ha="center", va="center", fontsize=8.6, color=RED)
+
+    # ── (2) build ─────────────────────────────────────────────────────────
+    band(6.82, "(2) build")
+    col(0, 5.95, 1.75,
         "Parametric CAD build\nsrc/drones.py (DroneSpec)\n"
-        "src/drone_cad.py + src/cadkit.py\ntrimesh + manifold3d (loft/sweep/boolean)")
-    box(5.7, 6.75, 3.7, 1.9,
+        "src/drone_cad.py + src/cadkit.py\ntrimesh + manifold3d")
+    col(1, 5.95, 1.75,
         "Per-part OBJ export\n1 part = 1 OBJ = 1 material\nassets/meshes/drones/<key>/")
-    box(9.8, 6.75, 3.9, 1.9,
+    col(2, 5.95, 1.75,
         "Radio materials\nsrc/materials.py\nSionna slab (eps_r, sigma)\n"
         "PO kernel |Gamma| (differs by design)")
 
-    # ── ③ checkers ────────────────────────────────────────────────────────
-    band(4.15, "③ checkers")
-    box(0.7, 3.15, 4.1, 2.0,
+    # ── (3) checkers ──────────────────────────────────────────────────────
+    band(3.65, "(3) checkers")
+    col(0, 2.75, 1.80,
         "src/mesh_check.py  (ship gate)\n10 checks + declared budgets\n"
         "wired to `python src/drones.py`\nMESH_GATE=off disables it",
         fc="#eefaef", ec="C2")
-    box(5.2, 3.15, 4.2, 2.0,
+    col(1, 2.75, 1.80,
         "report_mesh/src/verify_mesh_suite.py\nA geometry  B symmetry  C dims\n"
         "D volume  E materials  F overlap\nG scan  H PO conv.  I SBR (GPU)",
         fc="#eefaef", ec="C2")
-    box(9.8, 3.15, 3.9, 2.0,
+    col(2, 2.75, 1.80,
         "special checkers (2026-08-16)\ngimbal / sensors gates A-D\n"
         "internal-metal containment\nmaterial assignment audit",
         fc="#eefaef", ec="C2")
 
-    # ── ④ ledgers ─────────────────────────────────────────────────────────
-    band(1.1, "④ ledgers")
-    box(0.7, 0.35, 13.0, 1.5,
+    # ── (4) ledgers ───────────────────────────────────────────────────────
+    band(1.05, "(4) ledgers")
+    box(0.65, 0.35, 13.05, 1.40,
         "report_mesh/outputs/mesh_verify.json   +   outputs/mesh_inspect_*_0816.json   "
         "+   outputs/meshfix_matrice4e.json\n"
         "every number in mesh01-08 is injected from these files - none is typed by hand",
         fc="#f5eefa", ec="C4", fs=8.6)
 
-    # ── arrows ────────────────────────────────────────────────────────────
-    arrow(2.7, 10.05, 2.7, 8.65)                       # spec -> build
-    # ⭐ official CAD -> build (this is the arrow that used to be missing)
-    arrow(6.4, 10.05, 4.3, 8.65, color=RED, lw=2.2)
-    ax.text(5.05, 9.42, "shape constants\n(Matrice 4E, Mini 2)", ha="center", va="center",
+    # ── arrows — all vertical inside a column, or in the right-hand channel ─
+    arrow(2.10, 10.75, 2.10, 9.65)                                   # specs -> rule band
+    arrow(2.10, 8.35, 2.10, 7.70, color=RED, lw=2.0)                 # -> build
+    arrow(6.60, 10.75, 6.60, 9.65, color=RED, lw=2.0)                # official CAD -> rule
+    route([(6.60, 8.35), (6.60, 7.88), (3.10, 7.88), (3.10, 7.70)],
+          color=RED, lw=2.0)                                          # -> parametric build
+    ax.text(4.85, 8.11, "shape constants", ha="center", va="center",
             fontsize=8.2, color=RED, fontweight="bold")
-    # official CAD -> checkers (same file also scores)
-    arrow(8.8, 10.05, 11.4, 5.15, color=RED, lw=1.5, ls=(0, (4, 2)))
-    ax.text(10.75, 7.9, "same CAD also scores\n=> reads as 'the fix landed',\n"
-            "not as independent scoring", ha="center", va="center", fontsize=7.8, color=RED)
-    # scan / third-party CAD -> checkers only
-    arrow(11.6, 10.05, 7.6, 5.15)
-    ax.text(9.15, 6.05, "scan never enters the build\n(independent scoring)",
-            ha="center", va="center", fontsize=7.8, color="0.3")
 
-    arrow(5.3, 7.7, 5.7, 7.7)
-    arrow(9.4, 7.7, 9.8, 7.7)
-    arrow(2.6, 6.75, 2.6, 5.15)
-    arrow(7.0, 6.75, 7.0, 5.15)
-    arrow(11.7, 6.75, 11.7, 5.15)
-    arrow(2.75, 3.15, 3.4, 1.85)
-    arrow(7.3, 3.15, 7.2, 1.85)
-    arrow(11.75, 3.15, 11.0, 1.85)
+    #  scan / third-party CAD -> checkers only, routed in the clear right channel
+    route([(13.70, 11.60), (14.35, 11.60), (14.35, 4.55), (13.70, 4.55)])
+    ax.text(14.55, 8.05, "scoring only", ha="center", va="center", fontsize=8.0,
+            color="0.35", rotation=90)
+
+    arrow(4.90, 6.75, 5.20, 6.75)
+    arrow(9.45, 6.75, 9.75, 6.75)
+    arrow(2.10, 5.95, 2.10, 4.55)
+    arrow(6.60, 5.95, 6.60, 4.55)
+    arrow(11.10, 5.95, 11.10, 4.55)
+    arrow(2.10, 2.75, 2.10, 1.75)
+    arrow(6.60, 2.75, 6.60, 1.75)
+    arrow(11.10, 2.75, 11.10, 1.75)
 
     ax.set_title("Mesh pipeline: what feeds the build, what only scores it, "
                  "and where every number is written down", fontsize=12.8)

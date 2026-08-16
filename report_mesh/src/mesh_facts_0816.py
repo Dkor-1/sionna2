@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RM = os.path.abspath(os.path.join(HERE, ".."))            # report_mesh/
@@ -262,7 +263,9 @@ def engine_divergence_table() -> str:
     rows = ["| 재질 키 | Sionna 경로 | Sionna \\|Γ\\| | PO \\|Γ\\| | 차이 [dB] | 왜 다른가 |",
             "|---|---|---|---|---|---|"]
     for k, v in MAT["engine_divergence"].items():
-        why = v["declared_reason"].split(".")[0].strip()
+        #  ⚠ 문장 끝의 마침표로만 자른다. 그냥 split(".") 하면 «εr 2.7» 의 소수점에서 잘려
+        #     괄호가 안 닫힌 조각(«…εr 2»)이 표에 실린다(2026-08-16 적대검증에서 발견).
+        why = re.split(r"(?<!\d)\.(?!\d)", v["declared_reason"])[0].strip()
         rows.append(f"| `{k}` | {v['sionna_side']} | {v['gamma_sionna_normal']:.5f} "
                     f"| {v['gamma_po']:.5f} | {v['divergence_dB']:+.2f} | {why} |")
     return "\n".join(rows)

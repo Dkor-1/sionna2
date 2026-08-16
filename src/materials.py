@@ -266,15 +266,42 @@ def thickness_state() -> dict[str, float]:
     return dict(_THICKNESS_M)
 
 
-def make_material(mat_key: str, name: str, color=None) -> rt.RadioMaterial:
+#  ⭐ 2026-08-16 — `make_material()` 의 **조용한 폴백** 기록. 아래 설명 참조.
+UNKNOWN_KEY_FALLBACKS: list[dict] = []
+
+
+def make_material(mat_key: str, name: str, color=None, strict: bool = False) -> rt.RadioMaterial:
     """재질 키 → Sionna RadioMaterial 인스턴스 (전파 시뮬레이션용).
     color 는 렌더 표시용일 뿐 전파물성과 무관하다.
 
     ⭐두께: `set_thickness_mm()` 으로 켠 재질만 `thickness` 를 넘긴다. 안 켜면 **인자를
-      아예 안 넘겨** 예전 호출과 비트동일하다(=Sionna DEFAULT_THICKNESS 0.1 m)."""
+      아예 안 넘겨** 예전 호출과 비트동일하다(=Sionna DEFAULT_THICKNESS 0.1 m).
+
+    ⭐ **모르는 키**(2026-08-16, 감사 라운드에서 실측):
+      이 파일 머리말은 «|Γ|·(εr,σ) 를 내는 경로는 전부 여기서 막는다» 고 적는데,
+      정작 이 함수만 예외였다 — `gamma_po('nylon')` 은 KeyError 로 죽지만
+      `make_material('nylon', …)` 은 **경고 한 줄 없이 plastic(εr 2.7, σ 0.02)** 을 돌려줬다.
+      즉 Sionna 쪽만 조용히 플라스틱으로 흐를 수 있었다.
+      · `strict=False`(기본) — **숫자는 예전과 완전히 같다.** 다만 이제 조용하지 않다:
+        경고를 띄우고 `UNKNOWN_KEY_FALLBACKS` 에 기록을 남긴다.
+      · `strict=True`  — `gamma_po` 와 **같은 규약**으로 즉시 예외를 던진다.
+      (현재 저장소에는 모르는 키를 넘기는 호출부가 **0 건**이다 — 전수 확인. 그래서 기본을
+       바꾸지 않아도 아무것도 안 잃고, 새로 생기는 오타는 이제 보인다.)"""
     c = tuple(float(x) for x in color) if color is not None else None
     spec = MATERIALS.get(mat_key)
     if spec is None:                                    # 알 수 없는 키 → 회색 플라스틱
+        if strict:
+            _spec(mat_key)                              # gamma_po 와 같은 예외 문면
+        import warnings
+        rec = dict(mat_key=str(mat_key), name=str(name), fell_back_to="plastic")
+        UNKNOWN_KEY_FALLBACKS.append(rec)
+        warnings.warn(
+            f"materials.make_material: 모르는 재질 키 {mat_key!r}(name={name!r}) → "
+            f"**plastic 으로 조용히 흐른다**(εr 2.7, σ 0.02, |Γ|=0.244). "
+            f"의도한 값이 아니면 Sionna 쪽만 틀린 재질로 돈다 — PO 쪽 gamma_po({mat_key!r}) 는 "
+            f"예외를 던진다. 아는 키 = {sorted(MATERIALS)}. "
+            f"완전도체를 원하면 재질 문자열이 아니라 float 1.0 을 쓸 것.",
+            RuntimeWarning, stacklevel=2)
         spec = MATERIALS["plastic"]
         c = c or (0.6, 0.6, 0.6)
     if "itu" in spec:

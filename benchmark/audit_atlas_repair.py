@@ -256,7 +256,9 @@ def d7_spiky() -> dict:
         defect="자세 몇 개가 통째로 튄 칸의 «박자» 를 진짜 박자와 같은 서식으로 적었다"
                "(예측의 0.19x 같은 값)",
         fix="spike_ratio = |AC| 최대÷중앙 을 칸마다 싣고 100 을 넘으면 beat_spiky 를 세운다. "
-            "그림 구석에 «(spiky)», 표에 «⚡ 튐 N배» 배지, 목차에 «⚠튐»",
+            "그림 구석에 «(spiky)», 표에 «⚡ 큰 자세 N배» 배지, 목차에 그 절. "
+            "⚠이 잣대는 «얼마나 큰가» 만 잰다 — «자세 하나가 헤드라인을 끄나» 는 "
+            "cell_summary 의 outlier_grade·one_pose_moves_headline(«⚑ 튐» 배지)이 잰다",
         before=dict(flagged=0),
         after=dict(flagged=len(rows),
                    worst=[dict(cell=n, spike=round(s, 1), beat_hz=b, beat_over_flash=r)

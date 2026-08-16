@@ -934,8 +934,8 @@ def main():
     c = sub.add_parser("build"); c.set_defaults(fn=cmd_build)
     #  ⭐ 로터 랜덤성 — opt-in. 기본(빈 문자열)이면 현행과 비트동일이다.
     c.add_argument("--rotor-preset", default="",
-                   help="src/rotor_dynamics.PRESETS 이름(legacy/sitl/indoor/outdoor/lit_iid). "
-                        "기본 '' = 현행 모델 그대로(비트동일)")
+                   help="src/rotor_dynamics.PRESETS 이름(legacy/sitl/indoor/outdoor/lit_iid/"
+                        "⭐outdoor_v2/outdoor_v2_eff). 기본 '' = 현행 모델 그대로(비트동일)")
     c.add_argument("--rotor-seed", type=int, default=SEED)
     c.add_argument("--tag", default="", help="산출 접미사(기본: 프리셋명)")
     c.add_argument("--overwrite", action="store_true")

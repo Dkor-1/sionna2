@@ -268,14 +268,31 @@ def pyramid(base, height, apex_up=True, center=(0, 0, 0),
     return m
 
 
-def uv_sphere(radius, center=(0, 0, 0), seg=18, rings=10, group="sph") -> Mesh:
-    """구. 짐벌 카메라 공/둥근 부품에 사용."""
+def uv_sphere(radius, center=(0, 0, 0), seg=18, rings=10, group="sph",
+              weld_poles=False) -> Mesh:
+    """구. 짐벌 카메라 공/둥근 부품에 사용.
+
+    ⭐ `weld_poles` (2026-08-16 신설, 감사 m6) — **기본은 False = 예전과 비트동일**.
+      극(북/남)에서는 `seg` 개의 정점이 **같은 좌표에 겹쳐서** 쌓인다(seg=90 이면 178개,
+      seg=180 이면 358개의 중복 정점). 면적 0 삼각형은 없고(2026-07-01 수정이 유효하다)
+      PO 는 면 중심·법선·면적만 보므로 **RF 영향은 0** 이다. 다만 인덱스 기준으로는
+      껍질이 안 닫혀 있어, 내보낸 OBJ 가 유효한 솔리드가 아니고
+      `trimesh(process=False)` 로 열면 `is_watertight=False` 가 된다.
+      True 로 주면 극을 **정점 1개로 공유**한다 — 삼각형의 개수·좌표·감김 방향은 그대로고
+      정점 수만 2·(seg−1) 개 줄어 껍질이 인덱스 기준으로도 닫힌다.
+      ⚠ 정점 인덱스가 바뀌므로 기존 OBJ 와 바이트 단위로 달라진다. 그래서 기본은 끔이다."""
     m = Mesh(group)
     cx, cy, cz = center
     grid = []
     for i in range(rings + 1):
         phi = math.pi * i / rings           # 0..pi (위->아래)
         row = []
+        if weld_poles and i in (0, rings):
+            # 극은 좌표가 하나뿐이다 — 정점 1개를 만들어 그 인덱스를 seg 번 재사용한다.
+            z = radius * math.cos(phi)
+            vi = m.add_vertex(cx, cy, cz + z)
+            grid.append([vi] * seg)
+            continue
         for j in range(seg):
             th = 2 * math.pi * j / seg
             x = radius * math.sin(phi) * math.cos(th)
@@ -321,9 +338,15 @@ def pyramid_field(u_len, v_len, pitch, height, group="absorber") -> Mesh:
 
 if __name__ == "__main__":
     # 자체 점검: 도형 몇 개 만들어 삼각형 수와 바운딩박스 출력
+    #  ⚠ 2026-08-16 — 예전 마지막 두 줄이 **존재하지 않는 `blade()`** 를 불러서
+    #    `python src/geom.py` 가 NameError 로 죽었다(감사 m6 별건). 그 자리에
+    #    실제로 있는 프리미티브 점검을 넣는다.
     b = box(1, 2, 3)
     print("box tris", b.n_tris(), "bounds", b.bounds())
     p = pyramid_field(4, 3, 0.5, 0.3)
     print("pyramid_field tris", p.n_tris(), "bounds", p.bounds())
-    bl = blade(0.12, 0.025, 0.003)
-    print("blade tris", bl.n_tris())
+    s0 = uv_sphere(1.0, seg=18, rings=10)
+    s1 = uv_sphere(1.0, seg=18, rings=10, weld_poles=True)
+    print(f"uv_sphere tris {s0.n_tris()} verts {len(s0.v)}  "
+          f"| weld_poles=True tris {s1.n_tris()} verts {len(s1.v)} "
+          f"(극점 공유로 정점 {len(s0.v)-len(s1.v)}개 감소, 삼각형은 동일)")

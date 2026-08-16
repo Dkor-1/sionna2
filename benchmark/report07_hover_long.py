@@ -84,7 +84,12 @@ def main():
     ap.add_argument("--el", type=float, default=-15.0)
     ap.add_argument("--preset", default=rd.DEFAULT_PRESET, choices=list(PRESETS),
                     help="로터 랜덤성 프리셋 — legacy(기본, 옛 식 비트동일) / "
-                         "legacy_outdoor(옛 outdoor) / sitl·indoor·outdoor(OU 판) / lit_iid")
+                         "legacy_outdoor(옛 outdoor) / sitl·indoor·outdoor(OU 판) / lit_iid / "
+                         #  ⚠ argparse 는 help 문자열에 %-포맷을 건다 — 퍼센트 기호는
+                         #    반드시 %% 로 적어야 한다(안 그러면 `--help` 가 죽는다).
+                         "⭐outdoor_v2(2026-08-16 실측 코퍼스 52대 재보정: τ 1.8 s·σ_s 5.3 %%·"
+                         "σ_w 2.3 %%) / outdoor_v2_eff(그 판을 0.25 s 창의 유효 산포 하나로 "
+                         "접은 것 — 0.25 s 전용)")
     ap.add_argument("--seed", type=int, default=SEED,
                     help="난수 시드 — 정적 산포·흔들림·초기위상 추첨. legacy 는 결정론이라 무관")
     ap.add_argument("--tau-motor", type=float, default=None,

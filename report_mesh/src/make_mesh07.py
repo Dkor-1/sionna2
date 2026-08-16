@@ -18,8 +18,10 @@ V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="ut
 # ---------------------------------------------------------------- 수치 준비
 #  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 → **원장 meta.drones**(= DRONES 레지스트리 전수)에서
 #     유도. 표시명은 drones.drone_label. 예전엔 목록에 없는 기종이 표에서 조용히 빠졌다.
+sys.path.insert(0, HERE)
 from drones import drone_label            # noqa: E402
 from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+import mesh_facts_0816 as MF          # noqa: E402  (2026-08-16 원장 공용 로더)
 ORDER = ledger_order(V)
 NAME = {k: drone_label(k) for k in ORDER}
 A = V["A_geometry"]; B = V["B_symmetry"]; Fo = V["F_overlap"]
@@ -40,6 +42,14 @@ all_ok = all(A[k]["ok"] for k in ORDER)
 fr95 = {k: B[k]["frame_only"]["chamfer_mm"]["p95"] for k in ORDER}
 fu95 = {k: B[k]["full"]["chamfer_mm"]["p95"] for k in ORDER}
 ovp = {k: Fo[k]["overlap_pct_of_volume"] for k in ORDER}
+
+#  ⚠ 2026-08-16 (적대검증): §7 끝 문장이 «가장 큰 S1000+» 로 손타이핑돼 있었다 — 실제 함대에서
+#     프롭이 가장 큰 기체는 m350rtk(533.4 mm)이고, x500v2 는 프롭이 커도 full p95 가 최저다.
+#     단조 관계가 아니므로 세 기체를 원장·스펙에서 뽑아 문장에 주입하고 반례를 함께 적는다.
+from drones import DRONES                      # noqa: E402
+_prop_big = max(ORDER, key=lambda k: DRONES[k].prop_dia_mm)
+_prop_small = min(ORDER, key=lambda k: DRONES[k].prop_dia_mm)
+_sym_low = min(ORDER, key=lambda k: fu95[k])
 
 s1k = A["s1000plus"]
 mav_batt_ov = Fo["mavic4pro"]["pairs"][0]           # battery–body 가 항상 1위
@@ -62,14 +72,18 @@ cells = []
 cells.append(md(
     "# mesh07 — 검증 ① 기하 품질: 삼각형이 건강한가",
     "",
-    "> ⚠ **이 노트북은 생성물이다.** 수정은 `src/make_mesh07.py` 에서 하라.",
-    "> 본문의 모든 수치는 `outputs/mesh_verify.json` (생성기: `report_mesh/src/verify_mesh_suite.py`)에서 읽어 넣었다 — 손으로 적은 숫자는 없다.",
+    *MF.head_md(
+        "mesh07",
+        f"드론 {len(ORDER)}종의 삼각형이 기하학적으로 건강한가 — 그리고 «통과» 라는 말이 "
+        "지금 정확히 무엇을 뜻하는가.",
+        ["verify", "materials", "body_arms", "audit"]),
     "",
-    f"**한 줄 요약** — 드론 {len(ORDER)}종·삼각형 {tot_faces:,}장·부위(그룹) {tot_groups}개·닫힌 부품 {tot_parts}개를 전수 검사한 결과, "
-    f"watertight {n_wt}/{tot_parts} 통과, 안쪽 법선 {tot_inward}건, 퇴화면 {tot_degen}장, "
-    f"중복/미사용 꼭짓점 {tot_dup}/{tot_unused}개 — **기하 결함 0**. "
-    "좌우비대칭·부위겹침처럼 '결함처럼 보이는 것'은 왜 결함이 아닌지까지 수치로 공개한다. "
-    "← 출처: mesh_verify.json §A_geometry·§B_symmetry·§F_overlap",
+    f"**한 줄 요약** — 드론 {len(ORDER)}종·삼각형 {tot_faces:,}장·부위(그룹) {tot_groups}개·"
+    f"닫힌 부품 {tot_parts}개를 전수 검사했다. 수밀 {n_wt}/{tot_parts}, 안쪽 법선 {tot_inward}건, "
+    f"winding 불일치 {tot_badwind}건. "
+    "⭐ **«통과» 는 «0» 이 아니라 «선언된 예산 안» 이라는 뜻**이고, 이 편은 그 예산이 무엇인지와 "
+    "지금 예산을 쓰고 있는 항목이 무엇인지를 함께 적는다. "
+    "좌우비대칭·부위겹침처럼 '결함처럼 보이는 것'은 왜 결함이 아닌지도 수치로 공개한다.",
     "",
     "## 용어 풀이 (이 리포트에 나오는 말)",
     "",
@@ -147,8 +161,17 @@ cells.append(md(
     "uv_sphere 등)를 제공하는 컨테이너 계층이다 ← 출처: src/drone_cad.py 모듈 docstring,",
     "src/drones.py build_frame()/build_propeller()(CAD 단일 경로). 검사를 **쌓는 코드 자신**에게",
     "맡기면 같은 가정을 두 번 믿게 된다 — 생성기가 \"이쪽이 바깥\"이라고 믿는 방향을 검사기도 그대로",
-    "물려받으면, 둘 다 틀려도 아무도 모른다. 그래서 검사는 완성된 삼각형 소프(soup)만 보고 판정하는,",
-    "**생성 논리와 독립인 잣대**(trimesh 의 watertight·winding·부호부피)로 한다.",
+    "물려받으면, 둘 다 틀려도 아무도 모른다. 그래서 검사의 뼈대는 완성된 삼각형만 보고 판정하는",
+    "**생성 논리와 독립인 잣대**(trimesh 의 수밀·winding·부호부피)다.",
+    "",
+    "⚠ **다만 «삼각형만 본다» 가 전부는 아니다.** 지금 검사기는 스펙 대조도 한다 —",
+    "프롭 지름·로터 대각·공표 외형을 `DroneSpec` 의 수와 맞춰 보고(치수 검사), 로터별 날 비틀림",
+    "방향이 회전방향과 맞는지 본다(손대칭성 검사 — **좌우 뒤집힌 기체를 잡는 장치**).",
+    "삼각형만 보는 검사는 «단위를 1000 배 틀린 메쉬» 나 «거울상 기체» 를 통과시키기 때문이다.",
+    "",
+    "**검사기는 하나가 아니다** — 다섯이고 역할이 다르다:",
+    "",
+    MF.checker_table(),
     "",
     "도구별 채택 이유와 대안:",
     "",
@@ -160,8 +183,33 @@ cells.append(md(
     "| **manifold3d** | 겹침 검사(F)의 불리언 교집합 | trimesh 기본 불리언 백엔드(Blender/OpenSCAD)는 외부 프로그램 설치가 필요하고 느리다. manifold 는 pip 휠 하나로 붙는 수치적으로 견고한 전용 엔진 ← 출처: verify_mesh_suite.py sec_F_overlap() 257행 `engine=\"manifold\"` |",
     "",
     "판정 기준도 코드에 그대로 있다: 부품이 닫혔는가(`is_watertight`), 닫힌 부품의 **부호있는 부피가",
-    "양수**인가(음수 = 법선이 안쪽 = 뒤집힌 부품), winding 일관성, 넓이 1e-14 m² 미만 퇴화면 개수",
-    "← 출처: src/mesh_check.py check_mesh().",
+    "양수**인가(음수 = 법선이 안쪽 = 뒤집힌 부품), winding 일관성, 퇴화면 개수",
+    "← 출처: src/mesh_check.py `check_mesh()`.",
+    "",
+    "### 2.1 ⭐ 검사기는 자기가 보는 것을 고치지 않는다",
+    "",
+    "이 편에서 가장 중요한 규약이다. `trimesh.split()` 은 지금 판에서 **수리(repair)가 기본으로**",
+    "**켜져 있다** — 그냥 부르면 구멍 뚫린 부품을 조용히 메운 사본을 돌려주고, 그 사본은 당연히",
+    "«수밀» 로 나온다. 확인은 세 줄이면 된다(아래 셀).",
+    "",
+    "⇒ 이 저장소의 검사 경로는 **모든 `split` 에 `repair=False` 를 명시**하고, 수밀 여부를 참/거짓",
+    "하나로 뭉개는 대신 **경계 모서리 수**를 함께 싣는다",
+    "← 출처: `src/mesh_check.py` `_split()`·`_edge_defects()` · `report_mesh/src/verify_mesh_suite.py` 머리말.",
+    "",
+    "**구별할 것 — 웰딩은 유지한다.** 웰딩(`process=True`)은 같은 자리의 중복 «정점» 을 합치는 것이라",
+    "새 형상을 만들지 않는다. 우리 `geom.Mesh` 는 프리미티브마다 정점을 따로 쌓으므로, 웰딩 없이는",
+    "멀쩡한 부품도 전부 «비수밀» 로 나온다. 반면 수리는 없는 «삼각형» 을 짓는 일이라 검사기가 하면 안 된다.",
+))
+
+cells.append(cc(
+    "# 검사기가 «수리한 사본» 을 보면 어떻게 되나 — 삼각형 1장 뺀 상자로 확인",
+    "import trimesh",
+    "b = trimesh.creation.box()",
+    "holed = trimesh.Trimesh(vertices=b.vertices, faces=b.faces[:-1], process=True)",
+    "for kw in [{}, {\"repair\": False}]:",
+    "    c = holed.split(only_watertight=False, **kw)[0]",
+    "    tag = \"split 기본값\" if not kw else \"split(repair=False)\"",
+    "    print(f\"{tag:20s} 면 {len(c.faces):3d}  수밀 {str(c.is_watertight):5s}  부피 {abs(c.volume):.3f}\")",
 ))
 
 # ---------------------------------------------------------------- 5. 코드: 메타
@@ -193,8 +241,29 @@ cells.append(md(
     "3. **법선 방향 판정의 전제** — \"바깥을 향한다\"는 말은 안/밖이 있어야 성립한다. 닫힌 부품이라야",
     "   부호있는 부피의 부호로 안팎 뒤집힘을 기계적으로 잡을 수 있다 ← 출처: mesh_check.py check_mesh()(부호부피 판정).",
     "",
-    f"**결과: {len(ORDER)}종 전 기체, 전 부위, {n_wt}/{tot_parts} 부품 watertight 통과** ← 출처: mesh_verify.json",
+    f"**결과: {n_wt}/{tot_parts} 부품 수밀** ← 출처: mesh_verify.json",
     "§A_geometry 각 드론 groups.watertight (아래 코드 셀이 그대로 집계한다).",
+    "",
+    "### 3.1 «구멍 없음» 은 예산으로 선언한다",
+    "",
+    "출하 게이트가 쓰는 잣대는 «수밀 참/거짓» 이 아니라 **경계 모서리 수**다 — 삼각형 하나만 쓰는",
+    "모서리를 세는 것이라, 구멍이 몇 개인지·얼마나 큰지가 숫자로 남는다. **원칙은 0** 이고,",
+    "예외는 예산 표에 이름을 적어 선언한다:",
+    "",
+    MF.budget_table(),
+    "",
+    "← 출처: `src/mesh_check.py` 예산 표.",
+    "",
+    f"지금 예산을 쓰고 있는 항목은 **하나**다 — mini2 셸에 경계 모서리 3개(= 삼각형 정확히 1장이",
+    "빠진 구멍, 넓이 약 0.35 mm² = λ²/21000)가 있다. 발생 자리는 불리언 합집합 **뒤** 의 퇴화면",
+    f"제거 단계다: 합집합 결과 "
+    f"{MF.MAT['mini2_body_hole']['per_drone']['mini2'][0]['union_faces']}면·수밀에서 넓이",
+    f"{MF.MAT['mini2_body_hole']['per_drone']['mini2'][0]['dropped_area_mm2']:.2e} mm² 슬리버 1장을",
+    "지우면서 열린다 ← 출처: `outputs/mesh_inspect_materials_check_0816.json` `mini2_body_hole`.",
+    "",
+    "**산란 자체에는 영향이 없다**(표면적 비중이 1e-8 % 급). 진짜 피해는 간접이다 —",
+    "이 부품은 **안/밖 판정(`contains`)이 정의되지 않아서**, 내부 판정을 쓰는 검사가 이 부품을",
+    "조용히 건너뛴다. 실제로 «내부 금속이 셸 안에 있나» 검사가 이 기체에서만 **UNKNOWN** 이다(§8.2).",
 ))
 
 cells.append(cc(
@@ -253,23 +322,42 @@ cells.append(md(
 
 # ---------------------------------------------------------------- 8. 퇴화면 등
 cells.append(md(
-    "## 5. 퇴화면 · 중복 꼭짓점 · 미사용 꼭짓점 — 셋 다 0",
+    "## 5. 퇴화면 · 중복 꼭짓점 · 미사용 꼭짓점",
     "",
     "나머지 잔병 세 가지도 훑는다:",
     "",
-    "- **퇴화면**(넓이 0 삼각형): 법선을 계산할 수 없고(0으로 나누기), 레이트레이서에 따라 NaN 을",
-    "  퍼뜨린다. 기준은 넓이 1e-14 m² 미만 ← 출처: src/mesh_check.py DEGENERATE_AREA_M2. 구·회전체의 극점처럼",
-    "  삼각형이 한 점으로 모이는 자리에서 생기기 쉬운 유형이다(§4).",
+    "- **퇴화면**: 넓이가 사실상 0 인 삼각형. 법선을 계산할 수 없고(0 으로 나누기), 레이트레이서에",
+    "  따라 NaN 을 퍼뜨린다.",
     "- **중복 꼭짓점**(같은 자리 점 2개, 1 nm 격자 기준): 파일 용량 낭비이자, 이웃 관계가 끊긴",
-    "  '가짜 틈'의 씨앗 ← 출처: verify_mesh_suite.py sec_A_geometry() 101~102행.",
+    "  '가짜 틈'의 씨앗 ← 출처: verify_mesh_suite.py `sec_A_geometry()`.",
     "- **미사용 꼭짓점**(어떤 삼각형도 참조 안 함): 무해하지만 지저분함의 지표 — 생성 코드가 헛손질을",
-    "  했다는 뜻이다 ← 출처: 같은 함수 103행.",
+    "  했다는 뜻이다 ← 출처: 같은 함수.",
     "",
     f"**결과: {len(ORDER)}종 합계 퇴화면 {tot_degen}장, 중복 {tot_dup}개, 미사용 {tot_unused}개** ← 출처:",
     "mesh_verify.json §A_geometry (degenerate·dup_vertices·unused_vertices, 아래 셀에서 확인).",
     "",
-    "0 이 당연해 보이지만, 자동 생성 CAD 에서 셋 다 0 은 생성기가 꼭짓점을 **한 치 낭비 없이**",
-    "재사용하고 있다는 뜻이다 — 인터넷에서 받은 모델은 이 검사를 거의 통과하지 못한다.",
+    "### 5.1 ⭐ «퇴화면 0» 은 어느 자로 잰 0 인가",
+    "",
+    "**자가 둘이고, 답이 다르다.** 이 구별을 안 적으면 위의 0 이 과장된다.",
+    "",
+    "| 자 | 무엇을 세나 | 함대 결과 |",
+    "|---|---|---|",
+    "| **절대** — 면적 < 1e-14 m² | 진짜 넓이 0 | **0장** |",
+    "| **상대** — 최소 내각 < 0.5° | 아주 가늘고 긴 삼각형(슬리버) | 기종당 수백 장 |",
+    "",
+    "절대 잣대는 **기체 크기에 따라 뜻이 달라진다** — 같은 1e-14 m² 가 Mini 2 에서는 큰 삼각형이고",
+    "S1000+ 에서는 먼지다. 그래서 지금 게이트는 상대 잣대를 **겸용**하고, 슬리버 개수를 기종별",
+    "예산으로 선언한다(§3.1 의 `SLIVER_BUDGET`).",
+    "",
+    "**σ 에는 무해하다** — 슬리버가 차지하는 면적 비중이 0.0001~0.03 % 다. 그런데도 세는 이유는,",
+    "슬리버는 **법선이 수치적으로 불안정**한데 우리 PO 의 조명 판정이 `n̂·û > 0` 이기 때문이다.",
+    "⚠ 그 부호가 실제로 흔들리는지는 **아직 안 쟀다** — 지금은 감시만 하고 있다.",
+    "",
+    "**중복 꼭짓점도 같은 성격의 단서가 하나 있다.** 범용 프리미티브 `geom.uv_sphere` 는 극점",
+    "자리에 정점이 세그먼트 수만큼 겹친다(넓이 0 삼각형은 **0장** — 이 축은 깨끗하다).",
+    "출하 인덱스 그대로는 그 구가 수밀이 아니고, 합쳐 보면 수밀이다. 선택 인자",
+    "`uv_sphere(..., weld_poles=True)` 가 삼각형을 하나도 안 바꾸고 그 정점만 줄인다(기본은 꺼짐)",
+    "← 출처: `outputs/mesh_inspect_materials_check_0816.json` `uv_sphere`·`selftest_weld_poles`.",
 ))
 
 cells.append(cc(
@@ -309,9 +397,13 @@ cells.append(md(
     "",
     "← 출처: mesh_verify.json §A_geometry (edge_mm, edge_vs_lam52, tri_min_angle_deg).",
     "",
-    f"엣지의 95%가 λ 의 {min(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}~"
-    f"{max(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}배, 즉 **반파장 이하**다.",
-    "곡면(몸체·캐노피·프로펠러)은 파장 대비 충분히 잘게 쪼개져 있다.",
+    f"엣지의 95 % 가 λ 의 {min(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}~"
+    f"{max(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}배 구간에 있다.",
+    "곡면(몸체·캐노피)은 파장 대비 충분히 잘게 쪼개져 있다.",
+    "",
+    "⏳ **프로펠러의 삼각형 크기는 이 표에 섞어 읽으면 안 된다.** 프롭은 로터 1개당 삼각형 수가",
+    "고정인데 프롭 지름은 기체마다 4배 이상 벌어져서, 큰 기체일수록 프롭 삼각형이 성기다.",
+    "**이 축의 정본은 기체별 프로펠러 정본화 라운드**이므로 여기서는 자리만 남기고 값은 적지 않는다.",
     "",
     f"**현재 한계 — 최장 엣지는 λ 를 넘는다** (예: S1000+ 최장 {A['s1000plus']['edge_mm']['max']:.0f} mm"
     f" = {A['s1000plus']['edge_vs_lam52']['max_over_lam']:.1f}λ ← 출처: 같은 JSON). 이 긴 엣지들은",
@@ -374,9 +466,13 @@ cells.append(md(
     "박아 놨다: \"full 의 큰 p95 는 결함이 아니라 프로펠러 물리다. 기체 대칭성은 frame_only 로",
     "판정한다\" ← 출처: verify_mesh_suite.py 137~139행.",
     "",
-    "값의 크기도 앞뒤가 맞는다: 전체 p95 가 프로펠러가 클수록(=날개가 휩쓰는 반경이 클수록) 커진다 —",
-    f"가장 작은 Mini 5 Pro 가 {fu95['mini5pro']:.0f} mm, 가장 큰 S1000+ 가 {fu95['s1000plus']:.0f} mm.",
-    "비대칭의 원천이 날개라는 방증이다.",
+    "**크기의 방향도 대체로 앞뒤가 맞는다** — 프로펠러가 클수록(=날개가 휩쓰는 반경이 클수록) 전체 p95 가 커지는",
+    f"경향이 있다: 프롭이 가장 큰 {NAME[_prop_big]}({DRONES[_prop_big].prop_dia_mm:g} mm)가 {fu95[_prop_big]:.0f} mm 로 최대,",
+    f"가장 작은 {NAME[_prop_small]}({DRONES[_prop_small].prop_dia_mm:g} mm)가 {fu95[_prop_small]:.0f} mm 다.",
+    "⚠ 다만 **단조 관계는 아니다** —",
+    f"{NAME[_sym_low]} 는 프롭이 {DRONES[_sym_low].prop_dia_mm:g} mm 나 되는데 전체 p95 가 {fu95[_sym_low]:.1f} mm 로 함대 최저다.",
+    "장착 위상(base_ang)이 로터마다 어떻게 놓이느냐가 프롭 크기만큼 세게 실리기 때문이다.",
+    "그래서 이 열은 «프롭이 대칭을 깨는 정도» 의 참고값이지 «프롭 크기의 자» 가 아니다.",
 ))
 
 cells.append(cc(
@@ -433,9 +529,70 @@ cells.append(md(
     "2. **프로펠러는 돌아야 한다.** 마이크로도플러 시뮬레이션은 프로펠러 메쉬를 매 프레임 회전시킨다.",
     "   몸체와 한 덩어리면 관절이 죽는다 ← 출처: src/drones.py build_propeller() 302~304행 docstring",
     "   (\"pose_articulated 가 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다\")·pose_articulated() 353~357행.",
-    "3. **묻힌 표면은 어차피 전파가 못 본다.** SBR 은 광선이 처음 맞는 면만 반사에 넣으므로, 몸체 속에",
-    "   묻힌 배터리 표면은 자동으로 가려진다(occlusion). 이 가림 메커니즘 자체가 본편 시리즈",
-    "   [report07](../report07.ipynb) 의 주제다.",
+    "3. **묻힌 표면을 SBR 은 자동으로 거른다.** 광선이 처음 맞는 면만 반사에 넣으므로 몸체 속에",
+    "   묻힌 배터리 표면은 가려진다(occlusion). ⚠ **PO 는 그렇지 않다** — §8.3 에서 따로 다룬다.",
+))
+
+# ---------------------------------------------------------------- 11b. 겹침을 어떤 자로
+cells.append(md(
+    "### 8.2 부피 % 는 이 질문에 맞는 자가 아니다",
+    "",
+    "위 표의 «총부피 대비 %» 는 읽기 쉽지만, 답하려는 질문과 어긋난다. **산란은 부피가 아니라**",
+    "**표면에서 난다.** 자를 세 번 갈아 보면 순위가 바뀐다:",
+    "",
+    "| 자 | 무엇을 세나 | 왜 부족한가 |",
+    "|---|---|---|",
+    "| ① 부피 % | 교차 부피 ÷ 전체 부피 | 산란은 표면에서 난다 |",
+    "| ② 표면적 % | 다른 부품 속에 묻힌 면적 비율 | 금속 1 cm² 와 플라스틱 1 cm² 를 같게 센다 |",
+    "| ③ **재질 가중 + 담는 쪽의 불투명 여부** | A·\\|Γ\\|² 로 세고, **유전체 셸 안**은 빼고 "
+    "**불투명 부품 안**만 센다 | 지금 쓰는 자 |",
+    "",
+    "③ 이 맞는 이유는 물리에 있다. 금속 상자가 **플라스틱 셸 안**에 있는 것은 결함이 아니라 설계다 —",
+    "전파는 셸을 투과해 그 금속을 본다(우리 SBR 이 정확히 그렇게 계산한다). 진짜 이중계상은",
+    "**불투명한 부품 안**에 묻힌 면이다.",
+    "",
+    "### 8.3 ⭐ 그런데 우리 PO 경로에는 가림이 없다",
+    "",
+    "`src/rcs_po.py` 는 자기 docstring 에서 **자기차폐(self-shadowing)와 다중반사를 무시한다**고",
+    "선언한다. 즉 §8.1 의 «묻힌 면은 전파가 못 본다» 는 **SBR 경로의 성질**이고, PO 경로에서는",
+    "묻힌 면이 그대로 면적에 더해진다.",
+    "",
+    "그 크기를 ③ 의 자로 재면 이렇다:",
+    "",
+    MF.po_overcount_table(ORDER),
+    "",
+    "← 출처: `outputs/mesh_inspect_materials_check_0816.json` `fleet.*`.",
+    "",
+    "**캐노피는 특히 죽은 무게다.** 상단 캐노피는 여러 기체에서 셸 안에 69~100 % 묻혀 있어,",
+    "SBR 기여가 **정확히 0** 이다(first-hit 이 될 수 없고, 투과 패스에서는 셸이 제외된다).",
+    "재질이 플라스틱이라 PO 쪽 과대도 작다 — 빼도 방위평균 σ 가 0.03~0.09 dB 밖에 안 움직인다",
+    "← 출처: 같은 파일 `rf_estimates.buried_canopy`.",
+    "",
+    "⇒ **결론 문장은 이렇게 써야 한다**: 겹침은 설계이고 SBR 은 그것을 옳게 처리한다.",
+    "PO 로 절대 σ 를 낼 때는 위 표의 dB 만큼 밝은 쪽으로 치우친다.",
+))
+
+# ---------------------------------------------------------------- 11c. 지금 남은 결함
+cells.append(md(
+    "## 8.4 기하 축에서 지금 남은 결함",
+    "",
+    "이 편이 다루는 축(기하)에서 현재 메쉬가 안고 있는 어긋남을 있는 그대로 적는다.",
+    "크기를 함께 적어, 어느 결론이 흔들리고 어느 결론이 안 흔들리는지 독자가 판단할 수 있게 한다.",
+    "",
+    MF.defect_table(),
+    "",
+    "← 출처: `outputs/mesh_inspect_body_arms_0816.json` `findings` · "
+    "`outputs/mesh_inspect_gimbal_sensors_0816.json` `_summary` · "
+    "`outputs/mesh_inspect_materials_check_0816.json` `findings`.",
+    "",
+    "**dB 를 읽는 법** — 위 표의 dB 는 대부분 **평판극한 상한**이다. «같은 크기 평판이라면 최대",
+    "이만큼» 이라는 뜻이지 커널이 계산한 σ 가 아니다. 크기 감각을 주는 자로만 쓸 것.",
+    "",
+    "### 지금 «모른다» 고 선언한 것",
+    "",
+    *MF.unresolved_list(),
+    "",
+    "⭐ **빈칸이 가짜 값보다 낫다.** 위 항목들은 값을 채워 넣는 대신 비워 두었다.",
 ))
 
 cells.append(cc(
@@ -460,26 +617,35 @@ cells.append(md(
     "   다른 리포트에서 다뤄진다.",
     "2. **물리 계산이 수렴한다는 보증이 아니다.** 건강한 메쉬 위에서도 적분 점간격·광선 간격이 성기면",
     "   RCS 는 흔들린다 — 그래서 §H(PO 수렴)·§I(SBR 세분화 불변)를 따로 돌린다.",
-    "3. **겹침 32%가 무해하다는 것은 SBR 가림에 의존한 결론이다.** 광선추적이 아닌 도구(예: 표면적을",
-    "   그대로 적분하는 나이브한 PO)로 이 메쉬를 쓰면 묻힌 표면이 이중 계산될 수 있다. 우리",
-    "   파이프라인은 조명 판정·가림으로 처리하지만, 메쉬를 **다른 파이프라인에 이식할 때는** 이 점을",
-    "   알고 써야 한다(그래서 §8 에 수치를 전부 공개했다).",
-    "4. **슬리버 삼각형(최소각 ~1°)은 우리 용도에 무해할 뿐**, 유한요소 등 삼각형 품질에 민감한",
-    "   도구에는 재메싱이 필요하다.",
+    "3. **«겹침이 무해하다» 는 SBR 경로에서만 참이다.** 우리 **PO 커널이 바로 그 «가림 없는 PO»**",
+    "   다 — 자기차폐·다중반사를 무시한다고 스스로 선언한다. 이식 문제가 아니라 **우리 경로의",
+    "   현재 성질**이고, 크기는 §8.3 의 표에 있다.",
+    "4. **슬리버 삼각형은 우리 용도에 무해할 뿐**(면적 비중 0.0001~0.03 %), 유한요소 등 삼각형",
+    "   품질에 민감한 도구에는 재메싱이 필요하다. 그리고 그 슬리버의 **법선 부호가 실제로",
+    "   흔들리는지는 안 쟀다**(§5.1).",
+    "5. **검사기가 아직 못 보는 것들이 있다** — 아래 목록.",
+    "",
+    "**이 검사가 아직 못 보는 것:**",
+    "",
+    *[f"- {b}" for b in MF.BLIND_SPOTS],
     "",
     "요약 판정:",
     "",
     "| 검사 | 결과 | 판정 |",
     "|---|---|---|",
-    f"| watertight (부품 {tot_parts}개) | {n_wt}/{tot_parts} | 통과 |",
-    f"| 안쪽 법선 | {tot_inward}건 (부호부피 회귀 장치 `assert_ok` — 메쉬 내보내기 경로에 배선) | 통과 |",
-    f"| winding 불일치 / 퇴화면 / 중복점 / 미사용점 | {tot_badwind} / {tot_degen} / {tot_dup} / {tot_unused} | 통과 |",
+    f"| 수밀 (부품 {tot_parts}개) | {n_wt}/{tot_parts} | **예산 안** (선언된 예외 1건 — mini2 셸) |",
+    f"| 안쪽 법선 | {tot_inward}건. 부호부피를 두 번 잰다 — trimesh 로 한 번, "
+    "**trimesh 를 전혀 안 거치고 출하 인덱스에서** 손으로 한 번 | 통과 |",
+    f"| winding 불일치 / 퇴화면(절대) / 중복점 / 미사용점 | {tot_badwind} / {tot_degen} / {tot_dup} / {tot_unused} | 통과 |",
+    "| 퇴화면(상대 — 최소 내각 <0.5°) | 기종당 수백 장 | **예산 안** (기종별 선언) |",
     f"| 엣지 p95 vs λ({LAM:.1f} mm) | {min(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}~"
-    f"{max(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}λ | 통과(반파장 이하) |",
+    f"{max(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}λ | 통과 (⏳ 프롭 축은 별도) |",
     f"| 좌우대칭(기체만 p95) | ≤ {max(fr95.values()):.1f} mm (샘플링 한계 안) | 통과 |",
-    f"| 부위 겹침 | {min(ovp.values()):.2f}~{max(ovp.values()):.1f}% — 조립식 의도 겹침, 전량 공개 | 이상 없음 |",
+    "| 부위 겹침 | 설계된 겹침. SBR 은 옳게 처리, PO 는 §8.3 만큼 밝게 | 공개됨 |",
+    "| 부착·치수·재질 배정 | §8.4 의 결함 지도 | **일부 미해결 — 선언됨** |",
     "",
-    f"← 출처: mesh_verify.json §A_geometry·§B_symmetry·§F_overlap 집계(전체 판정 all_ok={all_ok}).",
+    f"← 출처: mesh_verify.json §A_geometry·§B_symmetry·§F_overlap 집계(전체 판정 all_ok={all_ok}) · "
+    "2026-08-16 원장 4종.",
 ))
 
 # ---------------------------------------------------------------- 13. 재현
@@ -487,18 +653,25 @@ cells.append(md(
     "## 10. 재현 방법 · 다음 리포트",
     "",
     "```bash",
-    "# 1) 검증 스위트 실행 → outputs/mesh_verify.json 갱신 (GPU 없으면 --skip-sbr)",
-    "~/.venvs/py312/bin/python report_mesh/src/verify_mesh_suite.py --skip-sbr",
+    "PY=/workspace/.venvs/py312/bin/python",
+    "cd /workspace/sionna",
+    "",
+    "# 1) 원장 재생성 → outputs/mesh_verify.json (GPU 없으면 --skip-sbr)",
+    "PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_suite.py --skip-sbr",
     "",
     "# 2) 그림 재생성 (triangle_quality / symmetry_chamfer / overlap_matrix / wireframe_* 등)",
-    "~/.venvs/py312/bin/python report_mesh/src/viz_mesh_reports.py",
+    "PYTHONPATH=src:benchmark $PY report_mesh/src/viz_mesh_reports.py",
     "",
     "# 3) 이 노트북 재생성",
-    "~/.venvs/py312/bin/python report_mesh/src/make_mesh07.py",
+    "PYTHONPATH=src:benchmark $PY report_mesh/src/make_mesh07.py",
     "",
-    "# (참고) 빠른 기하 검사만 — 회귀 장치와 동일 코드",
-    "~/.venvs/py312/bin/python src/mesh_check.py",
+    "# (참고) 출하 게이트와 같은 코드로 빠른 전수 검사만",
+    "PYTHONPATH=src:benchmark $PY src/mesh_check.py",
     "```",
+    "",
+    "⭐ **순서를 지켜야 한다.** 생성기는 원장이 레지스트리와 다르면 **일부러 멈춘다** —",
+    "리포트가 틀린 기체 수를 조용히 쓰는 것보다 낫다는 규약이다",
+    "← 출처: `report_mesh/src/mesh_ledger.py` `ledger_order()`.",
     "",
     "삼각형이 건강함을 확인했으니, 다음 질문은 \"그래서 **실물과 맞는가**\"다.",
     "",

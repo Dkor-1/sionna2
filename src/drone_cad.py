@@ -234,6 +234,19 @@ BLADE_LAWS = {
         chord_max_mode="per_drone", pitch_default="legacy",
         source="DJI Mini 2 공식 CAD 실측 평면형 + 기종별 c_max/R + 뭉툭한 팁"
                "(감사 C4·I2·I8 을 한 묶음으로). 피치는 legacy 그대로다."),
+    #  ⭐⭐ 2026-08-16 — **기체마다 그 기체의 프롭**. 위 둘과 무엇이 다른가:
+    #    `legacy`·`dji_mini2` 는 **곡선이 하나**다. 기종을 바꿔도 같은 곡선을 배율만 달리해
+    #    쓴다 — 즉 «모든 드론에 같은 프로펠러» 다. 이 판은 곡선 자체를 레지스트리
+    #    (`drones.PROP_LAW_0816`)에서 기체별로 꺼내 쓴다. 10기종에 서로 다른 곡선 8개가 걸린다
+    #    (phantom4·x500v2 는 근거가 없어 phantom3 의 9450 을 **대리**로 빌린다 — 등급 [C]·[D]).
+    "per_airframe": dict(
+        chord_rr=CHORD_RR_DJI_MINI2, chord_frac=CHORD_FRAC_DJI_MINI2, tip_refine=3,
+        chord_max_mode="per_airframe", pitch_default="legacy",
+        source="기체별 순정 프롭 실측(2026-08-16). 곡선·c_max/R 둘 다 그 기체의 프롭에서 온다 — "
+               "출처·등급은 `drones.PROP_LAW_0816` 와 outputs/prop_law_by_airframe_0816.json. "
+               "⚠ 레지스트리에 그 기체의 곡선이 없으면 위 dji_mini2 곡선으로 되돌아간다("
+               "그때는 «대리를 쓰고 있다» 는 뜻이므로 `resolve_chord_profile` 의 출처 문자열을 "
+               "산출물에 같이 적을 것). 피치는 legacy 그대로다."),
 }
 
 PITCH_LAWS = {
@@ -261,11 +274,40 @@ def resolve_chord_max_over_r(spec, blade_law: str = "legacy") -> tuple[float, st
     if blade_law == "legacy":
         return float(CHORD_MAX_OVER_R), "drone_cad.CHORD_MAX_OVER_R (전 기종 공통 0.25)"
     key = getattr(spec, "key", None)
+    if blade_law == "per_airframe":
+        #  ⭐ 그 기체의 순정 프롭에서 잰 값. **설계 시위 축**이다(사진 유래면 다리 ×1.031 포함).
+        w = getattr(spec, "prop_law_cmax_over_r", None)
+        if w is not None:
+            g = getattr(spec, "prop_law_grade", "?")
+            m = getattr(spec, "prop_law_model", "?")
+            return float(w), f"기체별 실측 [{g}] {m} — drones.PROP_LAW_0816"
+        #  없으면 아래의 dji_mini2 경로로 흘려보낸다(= 대리). 그 사실이 문자열에 남는다.
     if key in CHORD_MAX_OVER_R_MEASURED:
         val, why = CHORD_MAX_OVER_R_MEASURED[key]
         return float(val), f"실측: {why}"
     return (float(CHORD_MAX_OVER_R_AREA_NEUTRAL),
             "실측 없음 → 면적중립값(legacy 와 ∫c dr 이 같아지는 값). 실물 주장 아님.")
+
+
+def resolve_chord_profile(spec, blade_law: str = "legacy"):
+    """이 기체·이 판에서 쓸 **평면형**(시위 분포)과 그 출처 한 줄.
+
+    돌려주는 것: `(chord_rr, chord_frac, 출처문자열)`. `chord_rr` 가 None 이면
+    «판의 공용 곡선을 쓴다» 는 뜻이라 `_blade` 가 예전 그대로 동작한다.
+
+    ⭐ 이 함수가 있는 이유: c_max/R(한 수)만 기종별로 바꾸고 곡선을 공용으로 두면
+    «통통한 정도만 다른 같은 프로펠러» 가 된다. 봉우리 위치가 기종마다 0.29R(1157F)
+    ~0.55R(1158F) 로 벌어지는데 그건 배율로 흉내 낼 수 없다."""
+    if blade_law != "per_airframe":
+        return None, None, f"BLADE_LAWS['{blade_law}'] 공용 곡선"
+    rr = getattr(spec, "prop_law_chord_rr", None)
+    fr = getattr(spec, "prop_law_chord_frac", None)
+    if rr is None or fr is None:
+        return (None, None,
+                "⚠ 이 기체의 평면형이 레지스트리에 없다 → dji_mini2 공용 곡선으로 대리")
+    g = getattr(spec, "prop_law_grade", "?")
+    m = getattr(spec, "prop_law_model", "?")
+    return tuple(rr), tuple(fr), f"기체별 실측 [{g}] {m} — drones.PROP_LAW_0816"
 
 
 def blade_law_tag(blade_law: str = "legacy", pitch_law=None, max_edge_m=None) -> str:
@@ -343,7 +385,8 @@ def _airfoil(chord, thick_ratio=0.10, pts=40, camber_m=CAMBER_M, camber_p=CAMBER
 
 def _blade(R, root_frac=0.14, chord_max=CHORD_MAX_OVER_R, pitch_deg=20.0, twist_deg=13.0,
            sweep_frac=0.10, n_sec=22, n_pts=36, pitch_m=None,
-           law="legacy", pitch_law=None, tip_refine=None):
+           law="legacy", pitch_law=None, tip_refine=None,
+           chord_rr=None, chord_frac=None):
     """**진짜 익형 프로펠러 블레이드 1장** — 로프트(테이퍼 + 워시아웃 트위스트 + 시미터 스윕).
     +x = 스팬. 익형 단면을 스팬을 따라 회전(피치)·축소(테이퍼)·후퇴(스윕)시키며 잇는다.
       chord_max : **R 에 대한 비율**(0.26 = 최대시위 0.26·R). ⚠ 절대길이를 넣지 말 것.
@@ -354,12 +397,17 @@ def _blade(R, root_frac=0.14, chord_max=CHORD_MAX_OVER_R, pitch_deg=20.0, twist_
       pitch_law : 피치 분포 판 이름 — `PITCH_LAWS` 참조. None 이면 그 판의 기본값(둘 다 legacy).
       tip_refine: 마지막 로프트 구간을 몇 등분할지(감사 I8). None 이면 판의 기본값
                   (legacy 1 = 안 쪼갬 → 비트동일 / dji_mini2 3).
+      chord_rr / chord_frac : ⭐2026-08-16 추가 — **이 기체 하나만의 평면형**을 직접 넘긴다.
+                  둘 다 주면 `law` 의 곡선 대신 이것을 쓴다(판은 팁 세분 등 나머지만 정한다).
+                  **둘 다 None 이 기본** → 예전 그대로. `PROP_LAW_0816` 참조.
     ⚠ 인자를 안 주면 **비트 단위로 예전과 같은 메쉬**가 나온다. 회귀 증명:
       `benchmark/regress_blade_law_bitidentical.py`."""
     from shapely import affinity as aff
     lw = BLADE_LAWS[law]
     pw = PITCH_LAWS[pitch_law or lw["pitch_default"]]
     n_ref = int(lw["tip_refine"] if tip_refine is None else tip_refine)
+    c_rr = lw["chord_rr"] if chord_rr is None else tuple(chord_rr)
+    c_fr = lw["chord_frac"] if chord_frac is None else tuple(chord_frac)
     r0 = root_frac * R
     xs = np.linspace(r0, R, n_sec)
     if n_ref > 1:
@@ -373,7 +421,7 @@ def _blade(R, root_frac=0.14, chord_max=CHORD_MAX_OVER_R, pitch_deg=20.0, twist_
     rr = xs / R                                                      # ⭐ r/R (tt 가 아니다)
 
     # 시위 분포 — **r/R 기준** 실측 곡선. 옛 코드는 tt 에 걸어 피크가 0.396R 이었다.
-    c = np.interp(rr, lw["chord_rr"], lw["chord_frac"]) * float(chord_max) * R
+    c = np.interp(rr, c_rr, c_fr) * float(chord_max) * R
     if pitch_m is not None:
         # 국소 기하피치 분포 k(r/R) 를 곱한다 — 실물 프롭은 정피치가 아니다.
         k = np.interp(rr, pw["rr"], pw["k"])
@@ -2978,7 +3026,9 @@ def build_propeller_cad(spec, n_sec=22, blade_law: str = "legacy", pitch_law=Non
 
     ⭐ 2026-08-16 — 감사 3층을 **갈아끼울 수 있는 판**으로 붙였다(원본은 하나도 안 바꿨다):
       blade_law        : 'legacy'(기본, 예전 그대로) / 'dji_mini2'(실물 평면형 + 기종별
-                         c_max/R + 뭉툭한 팁). `BLADE_LAWS` 참조.
+                         c_max/R + 뭉툭한 팁) / ⭐'per_airframe'(**그 기체의 순정 프롭** —
+                         평면형과 c_max/R 을 둘 다 `drones.PROP_LAW_0816` 에서 꺼낸다).
+                         `BLADE_LAWS` 참조.
       pitch_law        : None(=판의 기본 'legacy') / 'dji_mini2'. ⚠기본으로 안 켜진다(감사 I7).
       max_edge_m       : 삼각형 최장 모서리 상한[m]. 주면 다 짓고 나서 긴 모서리만 쪼갠다
                          (형상 불변, 감사 m5). `lambda_m` 과 둘 중 하나만 주면 된다.
@@ -2990,6 +3040,7 @@ def build_propeller_cad(spec, n_sec=22, blade_law: str = "legacy", pitch_law=Non
     P = float(spec.prop_pitch_in or 5.0) * 0.0254          # 피치[inch] → [m]
     hub_r = R * 0.085
     chord_max, _chord_max_src = resolve_chord_max_over_r(spec, blade_law)
+    _c_rr, _c_fr, _profile_src = resolve_chord_profile(spec, blade_law)
     if max_edge_m is None and lambda_m is not None:
         max_edge_m = float(lambda_m) / float(edge_over_lambda)
 
@@ -2999,7 +3050,8 @@ def build_propeller_cad(spec, n_sec=22, blade_law: str = "legacy", pitch_law=Non
         # 블레이드 생크가 허브에 물려 하나의 솔리드다. 떨어뜨리면 공중에 뜬 루트 모서리가
         # 생겨 산란에 가짜로 기여한다(간극이 λ/20~λ/8 수준이라 무시할 크기가 아니다).
         return _blade(Rb, root_frac=0.070, chord_max=chord_max, pitch_m=P, n_sec=n_sec,
-                      law=blade_law, pitch_law=pitch_law)
+                      law=blade_law, pitch_law=pitch_law,
+                      chord_rr=_c_rr, chord_frac=_c_fr)
 
     # ⭐ **스윕디스크 정규화** (2026-07-28 수정)
     #   제조사가 말하는 "직경" 은 프롭이 쓸고 지나가는 **원의 지름**이다. 그런데 스키미터 스윕

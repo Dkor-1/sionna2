@@ -17,6 +17,8 @@ V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="ut
 # drones.py 는 numpy/geom 만 필요(가벼움). materials.py 는 sionna 를 import 하므로 여기선 안 부른다
 # — 대신 벌크 프레넬은 materials.gamma_bulk 와 **같은 공식**(materials.py:127-132)을 그대로 재현해 계산.
 from drones import DRONES, DRONE_GROUP_MAT, MATERIAL_COLOR, drone_label
+sys.path.insert(0, HERE)
+import mesh_facts_0816 as MF  # noqa: E402  (2026-08-16 원장 공용 로더)
 
 EM = V["E_materials"]
 from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
@@ -86,7 +88,12 @@ cells = []
 cells.append(md(
     "# mesh06 — 색이 곧 재질: 부위별 전파 재질 입히기",
     "",
-    "> ⚠ **이 노트북은 생성물이다.** 수정은 `src/make_mesh06.py` 에서 할 것.",
+    *MF.head_md(
+        "mesh06",
+        "부위마다 어떤 전파 재질을 배정했고, 그 배정 중 무엇이 근거를 갖고 "
+        "무엇이 아직 **출처 없는 대표값**인가.",
+        ["verify", "materials", "internal", "internal_check", "gimbal",
+         "material_correction"]),
     "",
     f"**한 줄 요약** — 드론 3D 메쉬의 부위 그룹 {len(DRONE_GROUP_MAT)}개마다 전파 재질과",
     f"진폭 반사계수 |Γ|@{FC_GHZ:g} GHz 를 배정하고, **렌더 색을 재질과 1:1 로 묶어**",
@@ -181,7 +188,8 @@ cells.append(md(
     "",
     "몇 가지 눈여겨볼 점:",
     "",
-    f"- **`arm`(탄소섬유, \\|Γ\\|={GM['arm']:.2f})은 S1000+ 에만 있다.** 나머지 기종의 접이식/일체형",
+    f"- **`arm`(탄소섬유, \\|Γ\\|={GM['arm']:.2f})은 열린 프레임 {len(PRESENCE['arm'])}종에만 있다"
+    f"({'·'.join(DRONES[k].name for k in PRESENCE['arm'])}).** 나머지 기종의 접이식/일체형",
     "  암은 플라스틱 셸의 연장이라 `body` 그룹으로 들어간다. 코드의 규칙 그대로 —",
     "  \"셸형 암(arm_style≠carbon)은 build_frame 이 'body' 그룹으로 넣으므로 자동으로",
     "  플라스틱이 적용된다\" ← 출처: `src/drones.py:197-202` (`drone_gamma_map` docstring).",
@@ -423,6 +431,13 @@ cells.append(md(
 ))
 
 # --- 13. §6 커버리지 검증 --------------------------------------------------------------
+#  ⚠ 2026-08-16 (적대검증): 아래 문장이 «S1000+ 만 10개 · Mavic 4 Pro 는 7개» 로 손타이핑돼
+#     있었다 — 원장은 X500 V2 도 10개, Mavic 4 Pro 는 8개다. 원장에서 읽는다.
+_gcount = {k: len(EM[k]["groups"]) for k in ORDER}
+_g_min, _g_max = min(_gcount.values()), max(_gcount.values())
+_g_max_who = "·".join(DRONES[k].name for k in ORDER if _gcount[k] == _g_max)
+_g_min_who = "·".join(DRONES[k].name for k in ORDER if _gcount[k] == _g_min)
+
 cov_rows = []
 for k in ORDER:
     e = EM[k]
@@ -448,8 +463,58 @@ cells.append(md(
     *cov_rows,
     "",
     f"**{len(ORDER)}종 모두 누락 0개, all_covered=True** ← 출처: `outputs/mesh_verify.json` §E_materials",
-    "(uncovered·all_covered 필드). 기종마다 그룹 구성이 다른 것(예: S1000+ 만 10개 전부,",
-    "Mavic 4 Pro 는 7개)은 §2.1 에서 본 대로 기체 구조의 차이 — 검사는 '있는 그룹'만 따진다.",
+    f"(uncovered·all_covered 필드). 기종마다 그룹 수가 {_g_min}~{_g_max}개로 갈리는 것"
+    f"(가장 많은 쪽 {_g_max_who} · 가장 적은 쪽 {_g_min_who})은 §2.1 에서 본 대로 기체 구조의 차이 —"
+    " 검사는 '있는 그룹'만 따진다.",
+))
+
+# --- 13b. §6.5 두 계산 경로의 |Γ| 는 설계상 다르다 -------------------------------------
+cells.append(md(
+    "## 6.5 ⭐ 같은 재질인데 숫자가 둘이다 — 두 계산 경로가 다른 값을 쓴다",
+    "",
+    "우리는 산란을 두 경로로 계산한다. **Sionna 재질**(광선엔진이 쓰는 (εr, σ) 슬래브)과",
+    "**PO 커널의 \\|Γ\\|**(면적분이 쓰는 실효 반사계수)다. 둘은 **일부러 다른 값**이고,",
+    "그 갈림을 적어 두는 것이 정직한 서술이다:",
+    "",
+    MF.engine_divergence_table(),
+    "",
+    "← 출처: `outputs/mesh_inspect_materials_check_0816.json` `engine_divergence`"
+    f" (fc = {FC_GHZ:g} GHz, 수직입사).",
+    "",
+    "**왜 갈리나** — Sionna 쪽은 «반무한 벌크» 프레넬 값이고, PO 쪽은 «얇은 판의 앞뒷면 간섭까지",
+    "넣은 실효값» 이다. 드론 셸은 두께 **0.75 mm** 급이라 그 차이가 실재한다",
+    "← 출처: `docs/MATERIAL_CORRECTION.md`(셸 정본 두께 = 제조사 공식 CAD 벽 두께 실측의 중앙값).",
+    "",
+    "⚠ **현재의 한계** — 우리 PO 커널에는 **두께라는 개념이 없다.** \\|Γ\\| 하나를 상수로 받는다.",
+    "즉 PO 경로는 «두꺼운 판» 극한으로 계산하고, 두께는 그 상수를 고를 때 한 번만 반영된다.",
+    "이 한계는 지금 그대로 있고, 값은 발표까지 동결돼 있다.",
+    "",
+    "⏳ **프로펠러의 두께 규약은 기체별 프로펠러 정본화 라운드가 정본이다** — 이 절에서는",
+    "값을 적지 않는다. 지금 확실한 것만: 프로펠러 재질은 셸과 **같은 플라스틱**이고,",
+    "다른 것은 재질이 아니라 **두께**다.",
+))
+
+# --- 13c. §6.6 함대 전체 배정표 --------------------------------------------------------
+cells.append(md(
+    "## 6.6 함대 전체 배정표 — 그룹마다 무엇이 들어 있나",
+    "",
+    "기체 하나가 아래 그룹을 전부 쓰지는 않는다(열린 프레임 기체에는 셸이 없고, 접이식에는",
+    "데크가 없다). 면적은 10종 합계 실측이다:",
+    "",
+    MF.assignment_table(),
+    "",
+    "← 출처: `outputs/mesh_inspect_materials_check_0816.json` `assignment_audit`.",
+    "⚠ 표시는 «배정 자체를 다시 봐야 하는 칸» 이다 — §7 의 한계 목록 참조.",
+    "",
+    "### 내부 금속이 정말 셸 «안» 에 있나",
+    "",
+    "재질 배정이 옳아도, 그 금속이 **어디에 있는지**가 다르면 계산이 달라진다. 우리 SBR 은",
+    "**셸을 맞은 광선만** 내부를 투과로 본다 — 금속 상자가 셸 밖으로 나와 있으면 그 상자는",
+    "«내부 산란체» 가 아니라 그냥 겉면이 된다.",
+    "",
+    MF.internal_metal_table(ORDER, drone_label),
+    "",
+    "← 출처: `outputs/mesh_internal_metal_check_0816.json`.",
 ))
 
 # --- 14. §7 요약 + 한계 ----------------------------------------------------------------
@@ -467,9 +532,23 @@ cells.append(md(
     "",
     "**한계(반증 가능성을 위해 기록):**",
     "",
-    "- 실효 \\|Γ\\|(0.28/0.25/0.90/0.85/0.80)는 **실측이 아니라 물리 논거를 단 대표값**이다.",
-    "  특히 박막 간섭은 두께·입사각에 따라 0.1~0.45 를 오가므로(← `materials.py:73-74`)",
+    "- 실효 \\|Γ\\| 는 **실측이 아니라 물리 논거를 단 대표값**이다.",
+    "  특히 박막 간섭은 두께·입사각에 따라 0.1~0.45 를 오가므로(← `materials.py`)",
     "  단일 대표값은 근사다.",
+    "- ⭐ **`camera_assembly` 의 0.85 는 출처가 없다** — 저장소가 스스로 그렇게 적는다",
+    "  (← `docs/MATERIAL_SOURCES.md` §6-4). 그 값을 유전체로 바꿔 보면 방위평균 σ 가",
+    "  el 0/−30/−60° 에서 −2.2…+0.1 dB 움직이는데 **바로 아래(나디르)에서는 −6.5…+2.7 dB**",
+    "  로 훨씬 크게 움직인다 ← `outputs/mesh_inspect_gimbal_sensors_0816.json`",
+    "  `_summary.gate_D_dielectric_swing_db`. 원인은 짐벌을 매다는 **방진판이 수평 평판**이라",
+    "  바로 아래 방향에 정반사가 서기 때문이다.",
+    "- ⭐ **배터리는 팩 외피 6면 전부를 금속으로 둔 상한값이다.** 실물 팩은 플라스틱 케이스 안에",
+    "  셀 스택이 들어 있어 되쏘는 금속면이 더 작다. 크기는 1~3 dB 급이고 **미해결로 선언돼 있다**",
+    "  ← `outputs/mesh_inspect_internal_metal_0816.json` `battery_material`.",
+    "- ⭐ **s1000plus 의 카본 센터플레이트가 `plastic` 그룹에 들어 있다** — 판 2장만 세도",
+    "  body 합집합 전 면적의 상당 부분이고, 면 반사율로는 carbon 0.90 ↔ plastic 0.28 =",
+    "  **10.14 dB** 차이다 ← `outputs/mesh_inspect_materials_check_0816.json` `findings` A1.",
+    "- **`drone_gamma_map(spec, fc)` 이 `spec` 을 안 쓴다.** 지금은 재질이 기체와 무관해서",
+    "  맞지만, 기종별 재질(위 카본 판 같은)이 생기는 순간 **조용히 틀린 답**을 준다.",
     "- 탄소섬유의 **이방성(방향에 따라 도전율이 다름)은 무시**했다 ← `src/materials.py:22`.",
     "- Semkin 실측은 26–40 GHz, 우리는 3.5 GHz — 재질 차이의 '방향'은 이전 가능하지만 절대값",
     "  비교엔 3~10 dB 보정이 필요하다 ← `refs/drone_papers/Semkin_2020_..._IEEE_Access.md`.",

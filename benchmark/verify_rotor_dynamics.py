@@ -18,6 +18,12 @@ verify_rotor_dynamics.py — 로터 랜덤성 **게이트 + 효과 측정** (202
   G21 위상 적분 무결성 — d θ/dt·60/360 == rpm_t (rel ≤ 1e-12)
   G22 초기위상 분포 — KS 검정 vs U(0, 360/blades), p > 0.01
   G23 선폭 예측 — m 차 조화의 폭 ∝ m·f_flash·σ_w (상관 ≥ 0.95)
+  ⭐2026-08-16 새 프리셋 `outdoor_v2` 와 함께 넷을 더 얹었다:
+  G26 사다리 검산(닫힌 꼴) — (σ_w, τ) 짝이 실측 창-안 rms 밴드 안. **통제**: 현행 τ=0.227 s 는
+      어떤 σ_w 로도 두 rung 을 동시에 못 맞춘다(«σ_w 만 손보면 된다» 를 반증)
+  G27 사다리 몬테카를로 — 실제로 만든 OU 열의 창-안 rms 가 닫힌 꼴과 ±3 %
+  G28 ⭐**두 길이 같은 수를 내나** — (σ_s,σ_w,τ) 세 손잡이 판 vs 유효 산포 하나(σ_eff) 판
+  G29 ⭐**비트동일 회귀** — 새 프리셋을 **안 고른** 판이 2026-08-11 코드와 한 비트도 안 다르다
 
 **B. 효과** — «켜면 무엇이 달라지나» (⭐이쪽이 본론이다)
   E1 반창 스펙트럼 상관(`half_corr`) — report15b 가 «시간에 따라 변한다» 를 재는 그 지표
@@ -54,6 +60,40 @@ TAB_DIR = os.path.join(OUT, "md_classify_tables")
 def _g(gid, what, ok, measured, spec, note=""):
     return {"id": gid, "what": what, "pass": bool(ok),
             "measured": measured, "spec": spec, "note_ko": note}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  ⭐ G29 용 **동결표** — 2026-08-16 새 프리셋을 넣기 **전**의 코드가 낸 값이다.
+#     만드는 법: 그날 손대기 전의 `src/rotor_dynamics.py` 사본을 따로 불러
+#     같은 (rpm0, n_rotors, n_t, prf, seed) 로 `rpm_series` 를 돌리고 그 float64
+#     바이트의 sha256 앞 16 자를 적었다(사본 md5 c7d63aaabff9808eded0ee781522aa28).
+#     ⛔여기가 깨지면 «인자를 안 주면 예전과 같다» 는 약속이 깨진 것이다.
+_FROZEN_CASES = [(3800.0, 4, 39400, 19700.0, 0), (3800.0, 4, 39400, 19700.0, 7),
+                 (5500.0, 4, 5000, 20000.0, 4242), (9200.0, 6, 20000, 20000.0, 11),
+                 (1500.0, 8, 800, 200.0, 3)]
+_FROZEN_RPM_SHA16 = {
+    "legacy": ["f04349f3a4923ebb", "f04349f3a4923ebb", "8a32c8383e2ad789",
+               "b6bf2bcc570fc2e1", "46f8df05fbd48a55"],
+    "legacy_outdoor": ["5fe070de65bfc1b9", "5fe070de65bfc1b9", "a541d7862c6dd15b",
+                       "65982ff19fdeb9c0", "a3afe828be63d4fc"],
+    "sitl": ["4ff4e7d6a07eed05", "9483d3ec5281359f", "3e780e02dc7873b7",
+             "06947bca39146947", "d8d459ef6626567c"],
+    "indoor": ["9ad919cb0c7dd1e8", "176a9828ebc3f623", "fe19e27d0d50b31e",
+               "68c377da115b0a47", "9efeb8832f3f804a"],
+    "outdoor": ["0c9f613a23a17330", "3cb61ebb032e73e0", "daf7831e590ba63d",
+                "e1e6dbaf29f1edd1", "e4e26b2ba970e4e1"],
+    "lit_iid": ["82292de1a1d794dc", "ec71aed7672143e2", "fab01d11f97d6889",
+                "f3a899684706d4b6", "aa3ae81cb42faa0f"],
+}
+#: 같은 날 원장(`outputs/rotor_jitter_model.json`, 2026-08-11 생성)이 적어 둔 파라미터.
+_FROZEN_PARAMS = {
+    "legacy": (0.0022, 0.0, 0.22736420441699334, False),
+    "legacy_outdoor": (0.02, 0.0, 0.22736420441699334, False),
+    "sitl": (0.0022, 0.0, 0.22736420441699334, True),
+    "indoor": (0.0054, 0.0065, 0.22736420441699334, True),
+    "outdoor": (0.0235, 0.0245, 0.22736420441699334, True),
+    "lit_iid": (0.0099, 0.0, 0.22736420441699334, True),
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -252,8 +292,177 @@ def gates() -> dict:
                 g23, "Pearson r ≥ 0.95",
                 "랜덤과정은 선을 **넓힌다**. 정현파였다면 폭 대신 빗살이 생긴다"))
 
+    G += gates_v2()
+
     return {"gates": G,
             "n_pass": sum(1 for g in G if g["pass"]), "n_total": len(G)}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  ⭐ A-2. 새 프리셋 `outdoor_v2` 게이트 (2026-08-16)
+# ═══════════════════════════════════════════════════════════════════════════
+def _in_window_rms_measured(e, prf, window_s):
+    """만들어 낸 열의 **창-안 rms** — 창평균을 뺀 뒤의 rms(겹치지 않는 창)."""
+    m = int(round(window_s * prf))
+    k = e.shape[0] // m
+    x = e[:k * m].reshape(k, m, -1)
+    return float(np.sqrt(((x - x.mean(axis=1, keepdims=True)) ** 2).mean()))
+
+
+def _window_mean_spread(jit, n_trial, window_s=0.25, prf=20000.0, n_rot=4, seed=2026):
+    """0.25 s 창 하나가 **실제로 보는** 로터 간 산포 — 창평균 rpm 의 로터간 std(ddof0).
+
+    ⭐이것이 빗살 폭을 정하는 양이다. 손잡이 셋 판이든 유효 산포 하나 판이든
+      이 값이 같으면 «같은 수를 낸다» 는 뜻이다."""
+    n_t = int(round(prf * window_s))
+    rng = np.random.default_rng(seed)
+    out = np.empty(n_trial)
+    for i in range(n_trial):
+        rpm, _ = rd.rpm_series(1.0, n_rot, n_t, prf, jit, rng)
+        out[i] = rpm.mean(axis=0).std()
+    return out
+
+
+def _comb_spread_hz(E, prf, f_flash, m, half_frac=0.40):
+    """m 차 조화 구역의 2차 모멘트 [Hz] — «빗살이 얼마나 굵어졌나»."""
+    ac = np.asarray(E) - np.mean(E)
+    n = len(ac)
+    P = np.abs(np.fft.fft(ac * np.hanning(n))) ** 2
+    f = np.fft.fftfreq(n, 1.0 / prf)
+    sel = np.abs(np.abs(f) - m * f_flash) <= half_frac * f_flash
+    p = np.maximum(P[sel] - np.median(P[sel]), 0.0)
+    if p.sum() <= 0:
+        return float("nan")
+    fl = np.abs(f[sel])
+    mu = (fl * p).sum() / p.sum()
+    return float(np.sqrt(((fl - mu) ** 2 * p).sum() / p.sum()))
+
+
+def _comb_spread_arm(jit, n_seed=24, window_s=0.25, prf=20000.0, m=3,
+                     key="matrice4e", ai=6, rpm0=3800.0):
+    """위상표로 합성한 빗살 폭 [Hz] 평균 (GPU 불필요)."""
+    import md_classify_dataset as mcd
+    E_ref, fine, dirs = _load_tab(key, ai)
+    ff = 2.0 * rpm0 / 60.0
+    n_t = int(round(prf * window_s))
+    vals = []
+    for s in range(n_seed):
+        rng = np.random.default_rng(5000 + s)
+        rpm, _ = rd.rpm_series(rpm0, len(dirs), n_t, prf, jit, rng)
+        p0 = rd.initial_phase_deg(len(dirs), jit, rng, mcd.PHASE_PERIOD_DEG)
+        vals.append(_comb_spread_hz(mcd.synth(E_ref, fine, dirs, rpm, p0, prf, n_t),
+                                    prf, ff, m))
+    return float(np.nanmean(vals)), float(np.nanstd(vals)), ff
+
+
+def gates_v2() -> list:
+    """`outdoor_v2` · `outdoor_v2_eff` 전용 게이트 넷. 나머지 게이트와 독립이다."""
+    import hashlib
+    from scipy.stats import ks_2samp
+
+    G = []
+    v2 = rd.PRESETS["outdoor_v2"]
+    eff = rd.PRESETS["outdoor_v2_eff"]
+
+    # ── G26 · 사다리 검산(닫힌 꼴) + 통제 ───────────────────────────────────
+    lc = rd.ladder_check(v2)
+    ctrl = rd.ladder_check(rd.PRESETS["outdoor"])
+    G.append(_g("G26", "outdoor_v2 (σ_w, τ) 짝이 실측 창-안 rms 사다리 밴드 안", lc["pass"],
+                {"rungs": lc["rungs"], "sigma_w_feasible_pct": lc["sigma_w_feasible_pct"],
+                 "all_four_rungs_in_band": all(r["in_band"] for r in lc["rungs"].values())},
+                "0.25 s·20 s 두 rung 모두 밴드 안",
+                "⭐세 값은 짝이다 — τ 를 옮기면 σ_w 도 옮겨야 같은 관측이 나온다"))
+    G.append(_g("G26b", "통제 — 현행 τ=0.227 s 로는 **어떤 σ_w 로도** 두 rung 동시 불가",
+                ctrl["sigma_w_feasible_empty"],
+                {"sigma_w_feasible_pct": ctrl["sigma_w_feasible_pct"],
+                 "empty": ctrl["sigma_w_feasible_empty"],
+                 "outdoor_rungs": ctrl["rungs"]},
+                "허용 구간이 비어 있어야 한다(lo > hi)",
+                "«σ 만 손보면 된다» 를 코드가 반증한다 — 고쳐야 하는 것은 τ 다"))
+
+    # ── G27 · 사다리 몬테카를로 ─────────────────────────────────────────────
+    fs = 200.0
+    e = rd.ou_process(int(4000.0 * fs), 1.0 / fs, v2.wobble_sigma, v2.tau_ctl_s,
+                      np.random.default_rng(5), n_ch=8)
+    rows, ok27 = {}, True
+    for T in sorted(rd.LADDER_ANCHORS):
+        meas = _in_window_rms_measured(e, fs, T)
+        pred = rd.in_window_rms(v2.wobble_sigma, v2.tau_ctl_s, T)
+        rel = meas / pred - 1.0
+        ok27 &= abs(rel) <= 0.03
+        rows[f"{T:g}s"] = {"measured_pct": 100.0 * meas, "closed_form_pct": 100.0 * pred,
+                           "rel_err": rel, "band_pct": [100.0 * b
+                                                        for b in rd.LADDER_ANCHORS[T]]}
+    G.append(_g("G27", "만들어 낸 OU 열의 창-안 rms == 닫힌 꼴", ok27,
+                {"rows": rows, "n_ch": 8, "dur_s": 4000.0, "fs_hz": fs},
+                "|rel| ≤ 0.03",
+                "사다리 판정이 «식» 이 아니라 **실제로 만든 열**에서도 성립하는가"))
+
+    # ── G28 · ⭐두 길이 같은 수를 내나 ──────────────────────────────────────
+    se = rd.sigma_eff(v2, rd.SIGMA_EFF_WINDOW_S)
+    d_an = abs(eff.static_sigma / se - 1.0)
+    a = _window_mean_spread(v2, 1500)
+    b = _window_mean_spread(eff, 1500, seed=2027)
+    rms_a, rms_b = float(np.sqrt((a ** 2).mean())), float(np.sqrt((b ** 2).mean()))
+    pred_rms = float(np.sqrt(0.75) * se)      # 로터 4개 · 창평균 몫 → 0.866·σ_eff
+    ks = ks_2samp(a, b)
+    sp_a, sd_a, ff = _comb_spread_arm(v2)
+    sp_b, sd_b, _ = _comb_spread_arm(eff)
+    ok28 = (d_an <= 1e-12 and abs(rms_a / rms_b - 1.0) <= 0.03
+            and abs(rms_a / pred_rms - 1.0) <= 0.05 and ks.pvalue > 0.01
+            and abs(sp_a / sp_b - 1.0) <= 0.10)
+    G.append(_g("G28", "두 길(손잡이 셋 ↔ 유효 산포 하나)이 0.25 s 창에서 같은 수를 내나", ok28,
+                {"analytic": {"sigma_eff_pct": 100.0 * se,
+                              "preset_static_sigma_pct": 100.0 * eff.static_sigma,
+                              "rel_err": d_an},
+                 "window_mean_spread": {
+                     "path_A_three_knobs_rms_pct": 100.0 * rms_a,
+                     "path_B_single_sigma_rms_pct": 100.0 * rms_b,
+                     "predicted_0p866_sigma_eff_pct": 100.0 * pred_rms,
+                     "A_over_B": rms_a / rms_b, "n_trial": int(a.size),
+                     "ks_p": float(ks.pvalue), "ks_stat": float(ks.statistic)},
+                 "comb_spread_m3_hz": {
+                     "path_A": sp_a, "path_B": sp_b, "A_over_B": sp_a / sp_b,
+                     "std_A": sd_a, "std_B": sd_b, "f_flash_hz": ff,
+                     "predicted_m_fflash_0p866_sigma_eff":
+                         3.0 * ff * np.sqrt(0.75) * se},
+                 "residual_in_window_wobble_pct": 100.0 * rd.in_window_rms(
+                     v2.wobble_sigma, v2.tau_ctl_s, rd.SIGMA_EFF_WINDOW_S)},
+                "해석 동일 · 창평균 산포 ±3 % · KS p>0.01 · 빗살 폭 ±10 %",
+                "⭐두 번째 길이 성립하는 이유는 f(0.25 s)=0.955 — 흔들림의 95.5 % 가 "
+                "그 창에서는 «상수 오프셋» 으로 보이기 때문이다. 창이 길어지면 갈라진다"))
+
+    # ── G29 · ⭐비트동일 회귀 (새 프리셋을 안 고른 판) ──────────────────────
+    bad_p = {k: {"now": (rd.PRESETS[k].static_sigma, rd.PRESETS[k].wobble_sigma,
+                         rd.PRESETS[k].tau_ctl_s, rd.PRESETS[k].random_phase),
+                 "frozen": v}
+             for k, v in _FROZEN_PARAMS.items()
+             if (rd.PRESETS[k].static_sigma, rd.PRESETS[k].wobble_sigma,
+                 rd.PRESETS[k].tau_ctl_s, rd.PRESETS[k].random_phase) != v}
+    bad_h = []
+    for k, hs in _FROZEN_RPM_SHA16.items():
+        for (rpm0, nr, n_t, prf, seed), h in zip(_FROZEN_CASES, hs):
+            r, _ = rd.rpm_series(rpm0, nr, n_t, prf, k, np.random.default_rng(seed))
+            got = hashlib.sha256(np.ascontiguousarray(r, np.float64).tobytes()).hexdigest()[:16]
+            if got != h:
+                bad_h.append({"preset": k, "case": [rpm0, nr, n_t, prf, seed],
+                              "frozen": h, "now": got})
+    f025 = rd.window_mean_variance_fraction(rd.TAU_CTL_S, 0.25)
+    ok29 = (not bad_p and not bad_h and rd.DEFAULT_PRESET == "legacy"
+            and rd.TAU_CTL_S == 0.22736420441699334
+            and abs(f025 - 0.7155771196527009) < 1e-15)
+    G.append(_g("G29", "새 프리셋을 **안 고른** 판이 2026-08-11 코드와 비트동일", ok29,
+                {"n_presets_checked": len(_FROZEN_PARAMS),
+                 "n_rpm_series_cases": len(_FROZEN_PARAMS) * len(_FROZEN_CASES),
+                 "param_mismatch": bad_p, "digest_mismatch": bad_h,
+                 "DEFAULT_PRESET": rd.DEFAULT_PRESET, "TAU_CTL_S": rd.TAU_CTL_S,
+                 "window_mean_variance_fraction(TAU,0.25)": f025,
+                 "new_presets_added": [k for k in rd.PRESETS
+                                       if k not in _FROZEN_PARAMS]},
+                "파라미터·rpm 열 digest·기본 프리셋 전부 동결값과 일치",
+                "⭐«인자를 안 주면 예전과 같다» 가 이 저장소의 규약이다. 동결표는 "
+                "새 프리셋을 넣기 전 코드 사본이 낸 값이다(G29 머리 주석 참조)"))
+    return G
 
 
 def _linewidth_gate():
@@ -613,6 +822,26 @@ def model_ledger() -> dict:
                       "(대역 rms × √2)이다. OU 의 파라미터는 진폭이 아니라 σ 이므로 두 번 고친다.",
             "anchors": anchors},
         "presets": rd.preset_table(),
+        #  ⭐2026-08-16 — 새 프리셋 `outdoor_v2` 의 근거. 기존 항목은 위 표 그대로다.
+        "ladder_2026_08_16": {
+            "why_ko": "마이크로도플러가 실제로 보는 양은 σ_w 도 τ 도 아니라 «창 T 안에서 "
+                      "회전수가 얼마나 흔들려 보이는가»(창-안 rms) 하나다. 그래서 τ 를 "
+                      "옮기면 σ_w 도 같이 옮겨야 같은 관측이 나온다 — **세 값은 짝이다.**",
+            "formula": "rms(T) = sigma_w * sqrt(1 - f(T,tau));  "
+                       "sigma_eff(T) = sqrt(sigma_s^2 + sigma_w^2 * f(T,tau))",
+            "anchors_pct": {f"{k:g}s": [100.0 * v[0], 100.0 * v[1]]
+                            for k, v in rd.LADDER_ANCHORS.items()},
+            "anchors_source": rd.LADDER_SOURCE,
+            "pass_rungs_s": list(rd.LADDER_HARD_RUNGS),
+            "checks": {n: rd.ladder_check(n) for n in ("outdoor", "outdoor_v2")},
+            "sigma_eff_pct_at_0p25s": {
+                n: 100.0 * rd.sigma_eff(n, rd.SIGMA_EFF_WINDOW_S)
+                for n in ("legacy", "indoor", "outdoor", "outdoor_v2", "outdoor_v2_eff")},
+            "gate": "benchmark/verify_rotor_dynamics.py G26·G26b·G27·G28·G29",
+            "ripple": "benchmark/rotor_outdoor_v2_ripple.py → "
+                      "outputs/rotor_outdoor_v2_ripple.json",
+            "default_unchanged_ko": "기본 프리셋은 여전히 legacy 다. 인자를 안 주면 "
+                                    "예전과 비트동일이고 G29 가 그것을 지킨다."},
         "window_mean_variance_fraction": {
             "formula": "(2T/Tw)*(1 - (T/Tw)*(1-exp(-Tw/T)))", "table": wmf,
             "consequence_ko": "0.25 s 창(분류 헤드라인)에서는 흔들림 분산의 71.6 % 가 "
