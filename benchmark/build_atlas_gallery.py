@@ -942,9 +942,15 @@ def stale_banner() -> str:
             "<code>build_md_atlas.py</code> 를 먼저 돌리고 이 갤러리를 다시 구워야 최신이 된다.</div>")
 
 
-def nav_bar(here: str, prev=None, nxt=None) -> str:
+#: 손으로 쓴 색인 페이지(생성기가 안 만든다) — 대문 nav 와 대문 첫 블록에서 건다.
+SINCE_DECK = "00_since_deck.html"
+
+
+def nav_bar(here: str, prev=None, nxt=None, *, since_deck: bool = False) -> str:
     parts = ['<div class="nav"><div class="inner">',
              '<a class="home" href="index.html">◇ 대문</a>']
+    if since_deck:
+        parts.append(f'<a href="{SINCE_DECK}">00 덱 이후</a>')
     for tkey, _t in TOPICS:
         cls = ' class="here"' if tkey == here else ""
         parts.append(f'<a href="{page_name(tkey)}"{cls}>{esc(tkey)}</a>')
@@ -1227,6 +1233,13 @@ def build_index() -> str:
 
     body = f"""
 {stale_banner()}
+<div class="note" style="margin-top:22px">
+  <b>⭐먼저 볼 것 — <a href="{SINCE_DECK}">8/18 덱 이후에 한 실험 (한 장 색인)</a></b><br>
+  <span class="small">덱에 실린 데까지가 기준선이고, 그 뒤 <b>실험 30 건</b>이 무엇을 물어 무엇으로 답했는지를
+  «물음 / 판정 / 근거 원장 / 볼 곳» 네 칸으로 한 장에 모았다. 이 갤러리의 어느 그림이
+  어느 실험의 답인지도 거기서 이어진다.</span>
+</div>
+
 <header class="top">
   <div class="kicker">micro-doppler atlas</div>
   <h1>드론 마이크로도플러 아틀라스 — 그림으로 넘겨 보기</h1>
@@ -1379,12 +1392,156 @@ def build_index() -> str:
   </ul>
 </div>
 """
-    return page("드론 마이크로도플러 아틀라스", nav_bar("index"), body)
+    return page("드론 마이크로도플러 아틀라스", nav_bar("index", since_deck=True), body)
 
 
 # ═══════════════════════════════════════════════════════════════════════════ #
 #  9. 주제 페이지
 # ═══════════════════════════════════════════════════════════════════════════ #
+#: 주제 페이지에 덧붙이는 절 — 팔 목록 위, 요약 그림 아래에 들어간다.
+#  ⚠팔 하나로는 안 되는 이야기(축 하나를 통째로 읽은 판정)를 여기에 싣는다.
+DEPTH_LEDGER = os.path.join(ROOT, "outputs", "depth_axis_verdict_0816.json")
+
+
+def _depth_numbers() -> dict | None:
+    """깊이 축 판정 원장에서 인용할 수를 **그때그때 계산한다**(손으로 안 적는다)."""
+    if not os.path.exists(DEPTH_LEDGER):
+        return None
+    d = json.load(open(DEPTH_LEDGER, encoding="utf-8"))
+    ps = d["pairs"]
+
+    def hl(p, k):
+        return p["trim"][f"k{p['trim_headline_k']}"][k]
+
+    std = [p for p in ps if p["in_standard_frame"]]
+    diff_on = [p for p in ps if p["switches"]["D"] and p["depths"] == [1, 3]]
+    # 빗살 대비는 정면(0°)만 그 앙각 밴드 안에서 크게 움직인다 — 빗각·거리만 따로 센다.
+    obl = [p for p in std if p["el_deg"] != 0.0
+           and hl(p, "d_comb_contrast_db") is not None]
+    lv = [hl(p, "d_moving_power_db") for p in diff_on]
+    forensic = d["outlier_forensics"]["el60_case"]
+    return {
+        "n_pairs": len(ps),
+        "n13": sum(1 for p in ps if p["depths"] == [1, 3]),
+        "n12": sum(1 for p in ps if p["depths"] == [1, 2]),
+        "n_std": len(std),
+        "std_rhy": max(abs(hl(p, "d_rhythm_pp")) for p in std),
+        "std_comb": max(abs(hl(p, "d_comb_contrast_db")) for p in obl),
+        "n_obl": len(obl),
+        "lv_lo": min(lv), "lv_hi": max(lv),
+        "band30": d["null_bands"]["grid_dispersion_ac_db_by_el"]["-30.0"],
+        "n_moves": sum(1 for p in ps if p["moves_the_reading"]),
+        # ⚠«밴드 밖» 은 두 갈래다 — 실제로 큰 것과, 그 앙각 밴드가 극도로 좁아 밖으로 찍힌 것.
+        "n_level_real": sum(1 for p in ps if p["level_outside_band"]
+                            and abs(hl(p, "d_moving_power_db")) >= 0.5),
+        "n_level_thin": sum(1 for p in ps if p["level_outside_band"]
+                            and abs(hl(p, "d_moving_power_db")) < 0.5),
+        "n_inside": sum(1 for p in ps if not p["level_outside_band"]),
+        # ⚠«경로가 늘 수 있는 짝»만 센다 — 확산 끈 칸은 두 깊이 모두 경로 8 개라 늘 자리가 없다.
+        "npaths_lo": d["answers"]["a"]["npaths_ratio_where_paths_grow"]["min"],
+        "npaths_hi": d["answers"]["a"]["npaths_ratio_where_paths_grow"]["max"],
+        "npaths_n": d["answers"]["a"]["npaths_ratio_where_paths_grow"]["n"],
+        "pose": forensic.get("argmax_pose", 3399),
+        "n_poses": max(p["n_poses"] for p in ps),
+        "ladder": d["bounce_ladder"]["third_over_second"],
+    }
+
+
+def topic_extra(slug: str) -> str:
+    """주제 페이지의 덧붙임 절. 지금은 «switch» 하나뿐이다."""
+    if slug != "switch":
+        return ""
+    n = _depth_numbers()
+    if n is None:
+        return ""
+    f1, _ = img_block(
+        "outputs/figures/depth_axis_0816.png",
+        "깊이 짝 22 개 전부 — 각자 자기 밴드에 대고",
+        "왼쪽 세 열이 잣대 셋(요동 절대전력 · 리듬 몫 · 빗살 대비)이고 <b>회색 띠가 그 줄의 "
+        "격자 산포 밴드</b>다. <b>띠 안이면 판정 불가</b>이고, 띠가 판보다 넓으면 그 줄은 "
+        "판 전체가 회색이 된다. ⭐<b>띠의 폭은 앙각마다 다르다</b> — 왼쪽 아래 판이 그 폭이다"
+        f"(0° 3.86 dB ↔ −60° 0.02 dB). 오른쪽 열은 깊이 3 이 실제로 더 찾은 경로 수다 — "
+        f"경로가 늘 수 있는 짝 {n['npaths_n']} 개에서 "
+        f"{n['npaths_lo']:.3f}~{n['npaths_hi']:.3f} 배이고 줄어든 짝은 없다"
+        "(확산 끈 칸은 두 깊이 모두 경로 8 개라 늘 자리가 없어 <code>8→8</code> 로 적힌다).")
+    f2, _ = img_block(
+        "outputs/figures/depth_axis_maps_0816.png",
+        "같은 칸 · 두 깊이 — 맵으로 보면",
+        "표준 프레임 팔(PS 다 끔 · 확산만)의 깊이 1(위)과 깊이 3(아래)을 나란히 놓은 것이다. "
+        "<b>무늬가 같다</b>는 것이 위 그림의 «판독이 안 바뀐다»를 눈으로 확인해 준다. "
+        "⚠맵은 <b>패널마다 자기 최댓값</b>으로 밝기를 맞추므로 <b>패널 사이 절대 레벨은 "
+        "이 그림 밖</b>이다 — 레벨 물음은 위 그림이 답한다. "
+        "직하방(−90°)은 <b>뺐다</b> — 그 칸은 날개끝 상한이 0 Hz 라 맵의 세로 눈금이 "
+        "무너진다(원장에서도 판정에 안 실은 칸이다).")
+
+    return f"""
+<h2 id="depth">반사 깊이 축 — 깊이 1 과 깊이 3 이 같은 것을 읽나</h2>
+<p class="lede">이 주제의 팔 목록에는 <b>깊이 3</b> 팔이 여럿 있다
+(<code>…_d3</code> · <code>onlydepth3</code>). 그 팔들은 <b>같은 조건 · 깊이 1</b> 팔과 짝을
+이루는데, 저장된 칸을 전수 조사해 <b>짝 {n['n_pairs']} 개</b>(깊이 1↔3 {n['n13']} · 1↔2 {n['n12']})를
+나란히 읽은 판정이 <b>08-16</b> 에 나왔다.
+8/18 덱 30 장 «Future work» <b>1 번</b>이 바로 이 축이다.</p>
+
+<div class="note crit">
+  <b>⭐판정 — «우리 규약(깊이 1)에 대해서는 닫힌다. 축 전체로는 아직 안 닫힌다.»</b>
+  <ul class="find">
+    <li><b>닫힌 것</b> — 표준 프레임이 싣는 두 팔(PS 다 끔 · PS 굴절만)에서 깊이 1↔3 은
+      <b>판독이 같다</b>. 짝 {n['n_std']} 개 전부 리듬 몫 차 <b>≤{n['std_rhy']:.2f} %p</b> 이고,
+      빗살 대비 차는 빗각·거리 {n['n_obl']} 칸에서 <b>≤{n['std_comb']:.2f} dB</b> 다.
+      앙각 넷(0 · −30 · −60 · −90°)과 거리 셋(15 · 30 · 120 m)을 덮는다.
+      ⇒ <b>큐에서 깊이 3 을 표준 팔에 다시 태울 이유가 없다.</b></li>
+    <li><b>안 닫힌 것</b> — <b>회절을 켠 조합</b>에서는 깊이 3 이 요동 절대전력을
+      <b>+{n['lv_lo']:.2f}~+{n['lv_hi']:.2f} dB</b> 올린다(−30° 격자 밴드 {n['band30']:.2f} dB 의
+      4~6 배이고 튄 자세를 빼도 그대로다). 그 팔의 <b>절대 레벨 인용에는 «깊이 1 한정»
+      꼬리표</b>가 필요하다. «깊이는 죽은 축»이라고는 쓰면 안 된다.</li>
+    <li><b>얹힌 항의 정체는 회절 스위치 하나가 가른다</b> — 회절을 끄면 깊이가 얹는 항이
+      <b>날개 박자를 갖고</b>(리듬 몫 52~85 %) 원 신호보다 16~23 dB 아래다 = 진짜 다중 반사
+      표적 에코. 회절을 켜면 1.4~4.3 dB 아래로 크지만 <b>백색</b>이다(11~12 % = 널).
+      ⇒ «작은 표적엔 다중 경로가 안 생긴다»는 <b>틀렸다</b> — 생기고, 다만 우리가 쓰는
+      팔에서 그것은 −16~−23 dB 짜리 곁가지라 판독을 못 바꾼다.</li>
+    <li>⛔<b>철회</b> — 08-15 판의 «−60° 에서 깊이 3 이 리듬을 무너뜨린다»(86.6 → 32.4 %)는
+      <b>자세 {thousands(n['n_poses'])} 개 중 하나</b>(#{n['pose']}) 때문이었다. 그 자세만 빼면
+      두 판이 <b>85.5 ↔ 85.2 %</b> 로 일치한다.
+      <code>outputs/switch_factorial.json</code> 의 <code>B_failures</code> 첫 줄
+      (<code>R0D0E0F1</code> · el −60 · 12.74 dB · −54.25 %p)은 <b>인용하면 안 된다</b>.</li>
+  </ul>
+  <p class="small muted">밴드 안이면 «안 바뀐다»가 아니라 <b>«판정 불가»</b>로 적는다.
+  짝 {n['n_pairs']} 개를 그렇게 채점하면 — <b>판독을 바꾼 짝 {n['n_moves']} 개</b> ·
+  레벨이 실제로 움직인 짝 {n['n_level_real']} 개(전부 회절 켠 조합) ·
+  밴드가 극도로 좁아 밖으로 찍혔을 뿐인 짝 {n['n_level_thin']} 개(차이가 0.5 dB 미만) ·
+  밴드 안 {n['n_inside']} 개다.</p>
+</div>
+
+<div class="figrow" style="--cols:1fr">{f1}</div>
+<div class="figrow" style="--cols:1fr">{f2}</div>
+
+<div class="note warn">
+  <b>⚠ 이 판정이 기대고 있는 것 — 정직하게</b>
+  <ul class="find">
+    <li>밴드는 <b>우리 커널(SBR+PO)의 격자 축</b>에서 잰 것을 <b>빌려 쓴 것</b>이다.
+      여기 짝은 전부 PathSolver 팔이고 <b>PathSolver 자신의 깊이-3 산포는 안 잰 값</b>이다.
+      그래서 밴드에 안 기대는 잣대(얹힌 항의 리듬 몫 대 <b>백색 널</b> — 널은 칸마다 정확히
+      셀 수 있다)를 헤드라인으로 썼다.</li>
+    <li>회절 켠 조합의 <b>+2 dB 가 물리인지 경로 표집의 부산물인지 못 가른다</b>.
+      얹힌 항이 백색이라는 것과 <b>튕김 사다리가 안 줄어든다</b>는 것
+      (세 번째 튕김이 두 번째의 <b>{n['ladder']:.1f} 배</b>를 더한다) 두 단서는 표집 쪽을
+      가리키지만, 깊이 3 에서 <b>광선 사다리도 시드 복제도 안 돌려 봤다</b>.</li>
+    <li>깊이 3 칸이 <b>없는 자리</b> — 앙각 −15 / −45 / −75° · 거리 60 / 240 / 480 m ·
+      기체 <code>mini5pro</code> · <code>s1000plus</code> · 방위 15~90°.
+      거리 축 깊이 짝은 «PS 다 끔 · −30°» 한 줄뿐이다.</li>
+    <li>−60° 밴드 <b>0.02 dB</b> 는 극도로 좁아 0.06 dB 짜리 차이도 «밖»으로 찍힌다.
+      그 폭에 <b>물리적 의미를 붙이면 안 된다</b>. 정면 0° 와 직하방 −90° 는 원장 깃발이
+      달린 칸이라(익사 · 상한 퇴화) 판정에 안 실었다.</li>
+  </ul>
+  <p class="small muted">원장 <code>outputs/depth_axis_verdict_0816.json</code> ·
+  그림 재생성 <code>benchmark/build_depth_axis_fig.py</code> ·
+  같은 원장의 요약 판
+  <a href="../outputs/figures/depth_axis_verdict_0816.png">depth_axis_verdict_0816.png</a> ·
+  색인 <a href="{SINCE_DECK}#gaps">00 덱 이후 §4</a></p>
+</div>
+"""
+
+
 def build_topic(i: int, tkey: str, tinfo: dict) -> str:
     slug = tkey[2:]
     prev = TOPICS[i - 1][0] if i > 0 else None
@@ -1425,6 +1582,8 @@ def build_topic(i: int, tkey: str, tinfo: dict) -> str:
 
 {cmp_html}
 
+{topic_extra(slug)}
+
 <h2>팔마다 — 맵 · 대역 에너지 · 수치</h2>
 <p class="lede">왼쪽이 <b>마이크로도플러 맵</b>(가로 시간 · 세로 도플러), 오른쪽이
 <b>블레이드 대역 에너지</b>(점선이 예측 박자의 정수배)다. 그림을 클릭하면 원본 크기로 열린다.
@@ -1440,6 +1599,41 @@ def build_topic(i: int, tkey: str, tinfo: dict) -> str:
 def md_uscore(s: str) -> str:
     """⚠마크다운은 `_x_` 를 기울임으로 읽는다 — 원장 문구의 밑줄이 그대로 보이게 막는다."""
     return s.replace("_", "\\_")
+
+
+def readme_extra(slug: str) -> list[str]:
+    """`topic_extra()` 의 마크다운 판 — 같은 수를 같은 원장에서 읽는다."""
+    if slug != "switch":
+        return []
+    n = _depth_numbers()
+    if n is None:
+        return []
+    return [
+        "**⭐ 반사 깊이 축 — 깊이 1 과 깊이 3 이 같은 것을 읽나** "
+        "(8/18 덱 «Future work» 1 번)",
+        "",
+        f"짝 {n['n_pairs']} 개(깊이 1↔3 {n['n13']} · 1↔2 {n['n12']})를 전수 조사한 판정: "
+        "**우리 규약(깊이 1)에 대해서는 닫히고, 축 전체로는 아직 안 닫힌다.**",
+        "",
+        f"- **닫힌 것** — 표준 프레임 두 팔의 깊이 짝 {n['n_std']} 개 전부 리듬 몫 차 "
+        f"**≤{n['std_rhy']:.2f} %p**, 빗각·거리 {n['n_obl']} 칸에서 빗살 대비 차 "
+        f"**≤{n['std_comb']:.2f} dB**. 큐에서 깊이 3 을 표준 팔에 다시 태울 이유가 없다.",
+        f"- **안 닫힌 것** — 회절 켠 조합에서 깊이 3 이 요동 절대전력을 "
+        f"**+{n['lv_lo']:.2f}~+{n['lv_hi']:.2f} dB** 올린다"
+        f"(−30° 밴드 {n['band30']:.2f} dB 의 4~6 배). 그 팔의 절대 레벨 인용에는 "
+        "«깊이 1 한정» 꼬리표가 필요하다.",
+        f"- ⛔**철회** — «−60° 에서 깊이 3 이 리듬을 무너뜨린다»(08-15)는 자세 "
+        f"{thousands(n['n_poses'])} 개 중 하나(#{n['pose']}) 때문이었다. "
+        "`outputs/switch_factorial.json` 의 `B_failures` 첫 줄은 인용 금지.",
+        "",
+        f"![깊이 축 판정]({rel('outputs/figures/depth_axis_0816.png')})",
+        "",
+        f"![깊이 1 대 3 맵]({rel('outputs/figures/depth_axis_maps_0816.png')})",
+        "",
+        "원장 `outputs/depth_axis_verdict_0816.json` · "
+        "재생성 `benchmark/build_depth_axis_fig.py`",
+        "",
+    ]
 
 
 def md_escape(s: str) -> str:
@@ -1465,11 +1659,18 @@ def build_readme() -> str:
     A = L.append
     A("# 드론 마이크로도플러 아틀라스 — 보기 쉬운 판")
     A("")
+    A(f"> ⭐**먼저 볼 것 — [`{SINCE_DECK}`]({SINCE_DECK}) · 8/18 덱 이후에 한 실험 (한 장 색인)**")
+    A("> 덱에 실린 데까지가 기준선이고, 그 뒤 **실험 30 건**이 무엇을 물어 무엇으로 답했는지를")
+    A("> «물음 / 판정 / 근거 원장 / 볼 곳» 네 칸으로 한 장에 모았다.")
+    A("> 이 갤러리의 어느 그림이 어느 실험의 답인지도 거기서 이어진다.")
+    A("")
     A(f"실험 원장에 쌓인 **팔 {META['n_arms']} 개 · 칸 {total_cells} 개**를 두 종류의 그림 — "
       "**마이크로도플러 맵**과 **블레이드 대역 에너지** — 으로 전부 구워 놓은 갤러리다.")
     A("")
     A("| 어디로 | 무엇 |")
     A("|---|---|")
+    A(f"| [`{SINCE_DECK}`]({SINCE_DECK}) | ⭐**덱 이후 색인** — 실험 30 건 · "
+      "물음/판정/원장/볼 곳 · 아직 그림 없는 것 |")
     A("| [`index.html`](index.html) | **대문** — 읽는 법 · 주제 카드 9 장 · 이름 읽는 법 · 주의 |")
     for tkey, tinfo in TOPICS:
         slug = tkey[2:]
@@ -1539,6 +1740,8 @@ def build_readme() -> str:
         for f in topic_findings(tkey, tinfo):
             A(f"- {md_escape(f)}")
         A("")
+        for line in readme_extra(slug):
+            A(line)
         th = thumb_for(tinfo)
         A(f"![{tkey} 요약]({rel(th)})")
         A("")
