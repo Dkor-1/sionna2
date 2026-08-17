@@ -418,6 +418,74 @@ def mechanism_row():
     print(f"  ✅ {out}")
 
 
+def props_band(el=-90.0, stem=None):
+    """⭐프로펠러만 · **한 앙각**의 블레이드 대역 전력 변조 스펙트럼 (사용자 지시 2026-08-17).
+
+    덱 v23 이 «0° 말고 −90° 도 보고 싶다» 고 해서 `props_compare` 의 선그림 절만 떼어
+    앙각을 인자로 받게 한 것이다. 굽는 것: `deck_be_props3_el<앙각>.png`.
+
+    ⚠**−90° 는 날개 천장이 0 Hz 라 블레이드 대역이 정의되지 않는다.** 다른 −90° 판과
+    같은 규약으로 **0° 의 대역을 빌려** 재고, 그 사실을 패널 제목에 적는다. 곡선마다
+    자기 최대값 기준이라 **절대량은 이 그림 밖**이다.
+    """
+    P_ARMS = [
+        ("ours_free_r15_n8192", "Our kernel", "#c62828"),
+        ("sionna_p4000000000_partsprop_r15_n8192_d1", "Sionna, physics off", "#8e9aab"),
+        ("sionna_p4000000000_phys_partsprop_r15_n8192_d1", "Sionna, physics on", "#1565c0"),
+    ]
+    FT0 = float(ROW[(ARMS[0][0], 0.0)]["f_tip_hz"])          # 0° 천장(빌려 쓰는 대역)
+    borrowed = abs(float(ROW[(ARMS[0][0], el)]["f_tip_hz"])) < 1.0
+    Es = {a: np.asarray(Z[f"{a}/el{el:+.0f}"], complex) for a, _n, _c in P_ARMS}
+
+    def modspec(E):
+        nper = max(8, int(round(0.45 * PRF / FFL)))
+        nfft = 8 * nper
+        w = np.hanning(nper + 1)[:-1]
+        from numpy.lib.stride_tricks import sliding_window_view
+        frm = sliding_window_view(E, nper)[::2]
+        S = np.abs(np.fft.fft(frm * w, n=nfft, axis=1)).T / w.sum()
+        f = np.fft.fftshift(np.fft.fftfreq(nfft, 1.0 / PRF))
+        S = np.fft.fftshift(S, axes=0)
+        m = (np.abs(f) >= 0.35 * FT0) & (np.abs(f) <= FT0)
+        g = (S ** 2)[m, :].sum(axis=0)
+        n = g.size
+        Y = np.abs(np.fft.rfft((g - g.mean()) * np.hanning(n))) ** 2
+        return np.fft.rfftfreq(n, 2.0 / PRF), Y
+
+    fig, ax = plt.subplots(1, 2, figsize=(26.0, 9.0), sharey=True)
+    for j, (lo, hi) in enumerate(((100.0, 1000.0), (0.0, 420.0))):
+        a = ax[j]
+        for arm, nm, col in P_ARMS:
+            fr, Y = modspec(Es[arm])
+            m = (fr >= lo) & (fr <= hi)
+            a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()), color=col,
+                   label=SHORT.get(nm, nm), **LINE_STYLE[nm])
+        for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
+            a.axvline(k * FFL, color="0.35", ls="--", lw=1.2, zorder=1)
+        a.set_xlim(lo, hi)
+        if hi > 500:
+            a.set_xticks(np.arange(200, hi + 1, 200))
+        a.set_ylim(-52, 4)
+        a.set_title("wide, 100 to 1,000 Hz" if j == 0 else "zoom, first three lines",
+                    pad=8)
+        a.set_xlabel("modulation rate [Hz]")
+        a.grid(alpha=0.25)
+        a.set_axisbelow(True)
+        if j == 0:
+            a.set_ylabel("line level [dB]")
+            opaque_legend(a, fontsize=17, loc="lower right", framealpha=0.95)
+    fig.subplots_adjust(top=0.845, bottom=0.115, left=0.055, right=0.985, wspace=0.05)
+    fig.text(0.5, 0.935,
+             f"propellers only at {el:+.0f}{chr(176)}, dashed lines mark {FFL:.1f} Hz "
+             f"and its multiples, the rate the blades should make"
+             + (f"   (band borrowed from 0{chr(176)})" if borrowed else ""),
+             ha="center", fontsize=19, color="0.35")
+    out = f"{FIG}/{stem or f'deck_be_props3_el{el:+.0f}'}.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
 def props_compare():
     """⭐프로펠러만 3엔진 비교(덱 v13, 사용자 지시 2026-08-15) — 0°, 로터는 계속 회전.
 
