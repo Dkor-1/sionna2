@@ -5,7 +5,11 @@ mesh02 — "도구 상자: 어떤 파이썬 라이브러리를 왜 골랐나, �
 모든 수치는 원장에서 읽어 f-string 으로 주입한다(손 숫자 금지).
 라이브러리 버전은 생성 시점에 실제 설치 환경(importlib.metadata)에서 읽는다.
 ⭐ 소스 **행 번호는 `inspect` 로 자동 주입**한다 — 손으로 적으면 다음 편집에서 곧바로 낡는다.
-⏳ 프로펠러 축(날 법칙·기종별 두께·λ 대비 삼각형 크기)은 기체별 프로펠러 정본화 라운드가 정본.
+
+⭐ 2026-08-17 정본 판 — 기하 수치는 **정본 원장**에서 읽는다:
+     report_mesh/outputs/mesh_verify_canon_0817.json   (A/B/C/D/F/G, 같은 잣대)
+     report_mesh/outputs/mesh_canon_0817.json          (스위치·예산·재질가중 매몰)
+   공용 로더는 report_mesh/src/mesh_canon_0817.py.
 """
 import inspect
 import json, os, sys
@@ -24,17 +28,19 @@ VER = {p: _im.version(p) for p in ["numpy", "trimesh", "manifold3d", "shapely", 
 # ---- JSON 수치 꺼내기 -------------------------------------------------------------
 from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
 import mesh_facts_0816 as F            # noqa: E402  (2026-08-16 원장 공용 로더)
+import mesh_canon_0817 as C            # noqa: E402  (⭐정본 판 원장 로더)
+from drones import drone_label         # noqa: E402  (표에 쓰는 사람이 읽는 이름)
 DR = ledger_order(V)                       # = DRONES 레지스트리 전수
-A = V["A_geometry"]
+A = C.A                                    # ⭐정본 판 A 절
 mav = A["mavic4pro"]
 n_faces_total = sum(A[k]["n_faces"] for k in DR)
 n_verts_total = sum(A[k]["n_verts"] for k in DR)
 all_ok = all(A[k]["ok"] for k in DR)
 dup_total = sum(A[k]["dup_vertices"] for k in DR)
 unused_total = sum(A[k]["unused_vertices"] for k in DR)
-engine = V["meta"]["mesh_engine"]
-fc = V["meta"]["fc_ghz"]
-lam_mm = V["meta"]["lam_hi_mm"]
+engine = C.VMETA["mesh_engine"]
+fc = C.VMETA["fc_ghz"]
+lam_mm = C.VMETA["lam_hi_mm"]
 _sbr = V.get("I_sbr_subdiv", {})
 sub = _sbr.get("subdivision_invariance")
 SBR_STALE = bool(_sbr.get("stale"))
@@ -61,11 +67,25 @@ CK["Assembly.check"] = L(_ck.Assembly, "check")
 DC = {n: L(_dc, n) for n in ["_motor_bell", "_airfoil", "_blade", "_body_folding",
                              "_canopy", "_arm_folding", "_gimbal_hasselblad"]}
 GM_ = {n: L(_gm, n) for n in ["Mesh", "box", "cylinder", "pyramid", "pyramid_field",
-                              "uv_sphere"]}
+                              "uv_sphere", "mesh_fix_set", "blade_law_canon",
+                              "mesh_fix_enabled", "set_mesh_fix"]}
 GM_["write_obj_per_group"] = L(_gm.Mesh, "write_obj_per_group")   # Mesh 의 메서드다
 
+
+def LV(mod, name) -> int:
+    """모듈 **변수**의 정의 행 번호 — 함수가 아니라 상수라 `inspect` 대신 소스를 훑는다."""
+    src, base = inspect.getsourcelines(mod)
+    for i, line in enumerate(src):
+        if line.startswith(name + " ="):
+            return i + 1
+    raise KeyError(name)
+
+
+GM_["MESH_FIX_CANON"] = LV(_gm, "MESH_FIX_CANON")
+GM_["BLADE_LAW_CANON"] = LV(_gm, "BLADE_LAW_CANON")
+
 # ---- 겹침 — 부피 % 가 아니라 재질 가중(A·|Γ|²) + 담는 쪽의 불투명 여부 -------------
-OVL = {k: F.MAT["fleet"][k] for k in DR}
+OVL = {k: C.MW[k] for k in DR}
 ovl_worst = max(DR, key=lambda k: OVL[k]["po_overcount_opaque_dB"])
 ovl_best = min(DR, key=lambda k: OVL[k]["po_overcount_opaque_dB"])
 
@@ -91,12 +111,21 @@ md(
     "mesh02",
     "이 드론들을 만드는 도구는 무엇이고, 그 도구로 만든 것을 무엇이 검사하며, "
     "그 검사가 아직 못 보는 것은 무엇인가.",
-    ["verify", "materials", "body_arms", "audit"]),
+    ["materials", "body_arms", "audit"],
+    extra=[(C.VERIFY_CANON_REL, "⭐**정본 판** 기하 검증 A·B·C·D·F·G"),
+           (C.LEDGER_REL, "⭐**정본 판** 스위치·예산 스냅샷·재질 가중 매몰면"),
+           ("docs/MESH_CERTIFICATE.md",
+            "메쉬 인증서 — 검사 체계가 무엇을 장담하고 무엇은 못 하는가"),
+           ("report_mesh/outputs/mesh_verify.json",
+            "기하 검증 스위트 A~I — H·I(GPU 절)는 아직 이쪽만 있다")]),
 "",
 f"**한 줄 요약** — 드론 {len(DR)}기의 CAD 메쉬(총 삼각형 {n_faces_total:,}개)는 딱 5개 라이브러리",
 "(numpy · shapely · trimesh · manifold3d · scipy) 위에서 만들어지고, 결과는 경량 컨테이너",
 "(`src/geom.py` 의 `Mesh`)에 담겨 뒷단 파이프라인으로 흘러간다.",
 "이 편에서는 **각 도구가 무엇을 하고, 왜 그것을 골랐고, 어떤 방식으로 쓰는지**를 하나씩 뜯어본다.",
+"",
+f"⭐ **이 편이 설명하는 메쉬는 «정본 판»이다** — 파일명 꼬리표 `{C.TAG}`. 어떤 기본값이",
+"그 판을 정하는지는 §0.2 에 있다.",
 "",
 "| 용어 | 한 줄 풀이 |",
 "|---|---|",
@@ -112,6 +141,12 @@ f"**한 줄 요약** — 드론 {len(DR)}기의 CAD 메쉬(총 삼각형 {n_face
 "| 법선(normal) | 면이 바라보는 수직 방향 화살표 — 안/밖 구분과 전자기 계산의 기준 |",
 "| 퇴화 삼각형(degenerate) | 세 점이 겹치거나 일직선이라 **넓이가 0**인 불량 삼각형 |",
 "| PO / SBR | 물리광학 / 슈팅&바운싱 레이 — 이 메쉬를 소비하는 레이더 반사(RCS) 계산법 |",
+"| 정본(canon) 판 | 지금 기본으로 지어지는 형상. 스위치를 아무것도 안 주면 이 판이 나온다(§0.2) |",
+"| 파일명 꼬리표 | 산출물 이름 끝에 붙는 표시. 어느 판에서 계산한 결과인지 이름만으로 갈린다 |",
+"| 예산(budget) | 검사가 «이만큼까지는 통과» 로 선언해 둔 값. «옳다» 가 아니라 «지금 이만큼이다» (§8.2) |",
+"| 매몰면(buried face) | 다른 부품 **속**에 들어가 실물이라면 안 보이는 삼각형. PO 는 가림을 안 보므로 두 번 센다 |",
+"| 양성 대조 | 일부러 결함을 심어 «검사가 정말 무는가» 를 보는 시험. 음성 대조(멀쩡한 표본에 0)의 짝이다 |",
+"| 골든 봉인 | 오늘 형상의 지문을 떠 두고 내일과 대조하는 장치. 지키는 것은 «안 바뀜» 이지 «옳음» 이 아니다 |",
 ),
 
 # ────────────────────────────────────────────────────────────────── 2. §0 큰 그림
@@ -127,7 +162,7 @@ md(
 "   scipy 로 로프트·스윕·회전체·불리언·검증을 수행한다. 실제 드론 형상(눈물방울 동체, 익형",
 "   프로펠러)은 이 층 위의 `src/drone_cad.py` 가 만든다.",
 "",
-f"메쉬 엔진은 `\"{engine}\"` 단일 경로다 ← 출처: mesh_verify.json `meta.mesh_engine`,",
+f"메쉬 엔진은 `\"{engine}\"` 단일 경로다 ← 출처: `{C.VERIFY_CANON_REL}` `_meta.mesh_engine`,",
 "src/drones.py (`_build_frame_raw` — \"CAD(trimesh+manifold3d 로프트/불리언) 단일 경로\").",
 "즉 **모양을 계산하는 본체는 cadkit(라이브러리) 층**이고, geom.Mesh 는 결과를 담아",
 "뒷단 파이프라인(장면 구성·RCS·마이크로도플러)으로 넘기는 **공용 컨테이너**다",
@@ -174,6 +209,31 @@ code(
 "for pkg in [\"numpy\", \"trimesh\", \"manifold3d\", \"shapely\", \"scipy\"]:",
 "    print(f\"{pkg:12s} {im.version(pkg)}\")",
 ),
+
+# ── §0.2 정본 판을 정하는 기본값 ────────────────────────────────────────────
+md(
+"### 0.2 ⭐ 어느 «판» 을 짓는지는 두 기본값이 정한다",
+"",
+"이 편의 결론은 «도구는 능력을 주지만 **기본값이 규약을 정하지는 않는다**» 다(§10).",
+"그러니 지금 기본값이 무엇인지부터 적는다. 형상의 판(version)을 고르는 스위치가 둘 있고,",
+"둘 다 **의존성이 없는 맨 아래층**인 `src/geom.py` 한 곳에 있다 — 스위치가 두 군데 있으면",
+"«켰는데 반만 켜지는» 사고가 나기 때문이다 ← 출처: `src/geom.py` 스위치 블록 머리말.",
+"",
+C.switch_table(),
+"",
+"| 무엇 | 어디 |",
+"|---|---|",
+f"| `MESH_FIX_CANON` (정본 수리 목록) | src/geom.py:{GM_['MESH_FIX_CANON']} |",
+f"| `BLADE_LAW_CANON` (정본 날 법칙) | src/geom.py:{GM_['BLADE_LAW_CANON']} |",
+f"| `mesh_fix_set()` / `mesh_fix_enabled()` | src/geom.py:{GM_['mesh_fix_set']}, "
+f"{GM_['mesh_fix_enabled']} |",
+f"| `blade_law_canon()` | src/geom.py:{GM_['blade_law_canon']} |",
+f"| `set_mesh_fix()` (코드에서 켜기) | src/geom.py:{GM_['set_mesh_fix']} |",
+"",
+"(행 번호는 이 노트북을 만들 때 소스에서 직접 읽는다 — 손으로 적지 않는다.)",
+"",
+*C.switch_note()),
+
 
 # ────────────────────────────────────────────────────────────────── 4. §1 numpy
 md(
@@ -225,8 +285,14 @@ f"| src/geom.py:{GM_['uv_sphere']} |",
 "| `translate` / `rotate` / `scale` | 4×4 변환 행렬 | src/geom.py |",
 f"| `write_obj_per_group` | 그룹별 .obj 저장 — \"OBJ 1개 = Sionna 재질 1개\" 규약 "
 f"| src/geom.py:{GM_['write_obj_per_group']} |",
+f"| `mesh_fix_set` / `blade_law_canon` | ⭐**어느 판을 지을지**를 돌려주는 두 함수(§0.2) "
+f"| src/geom.py:{GM_['mesh_fix_set']}, {GM_['blade_law_canon']} |",
 "",
 "(행 번호는 이 노트북을 만들 때 `inspect` 로 소스에서 직접 읽는다 — 손으로 적지 않는다.)",
+"",
+"⭐ **왜 판 스위치가 하필 이 파일에 있나** — geom.py 는 의존성이 없는 맨 아래층이라 cadkit 도",
+"drone_cad 도 검사기도 전부 import 할 수 있다. 진리원이 하나여야 «반만 켜지는» 사고가 안 난다",
+"← 출처: `src/geom.py` 스위치 블록 머리말.",
 "",
 "⚠ **`uv_sphere` 의 극점에 대해 정확히 적는다.** 넓이 0 삼각형은 **0개**가 맞다.",
 "다만 극점 자리에 정점이 세그먼트 수만큼 **겹쳐** 있어, 출하 인덱스 그대로는 그 구가",
@@ -364,13 +430,24 @@ f"**어떻게** — 두 군데서 쓴다 ← 출처: src/cadkit.py:{CK['Assembly
 "   — «안전한 후퇴» 가 아니라 **조용한 실패**다. 합집합이 안 된 그룹은 내부 면이 그대로",
 "   남고, PO 는 가림을 안 보므로 그 면적을 이중으로 센다.",
 "2. **manifold 로 끝나지 않는다.** 합집합 **결과 자체는 수밀**인데, 그 뒤 우리 코드가",
-"   퇴화면을 지우는 단계에서 구멍이 날 수 있다. 지금 mini2 셸이 그 상태다 —",
-f"   합집합 결과 {F.MAT['mini2_body_hole']['per_drone']['mini2'][0]['union_faces']}면·수밀에서",
-f"   넓이 {F.MAT['mini2_body_hole']['per_drone']['mini2'][0]['dropped_area_mm2']:.2e} mm² 슬리버",
-f"   {F.MAT['mini2_body_hole']['per_drone']['mini2'][0]['dropped']}장을 지우며 경계 모서리",
-f"   {F.MAT['mini2_body_hole']['per_drone']['mini2'][0]['boundary_after']}개가 열린다.",
-f"   같은 자리에서 typhoonh480 은 {F.MAT['mini2_body_hole']['per_drone']['typhoonh480'][0]['dropped']}장을",
-"   지우고도 수밀이 유지된다 ← 출처: `outputs/mesh_inspect_materials_check_0816.json` `mini2_body_hole`.",
+"   퇴화면(아주 가느다란 삼각형)을 지우는 단계에서 구멍이 날 수 있다. 삼각형을 그냥 지우면",
+"   그 자리에 테두리(경계 모서리)가 남기 때문이다.",
+"   그래서 정본에서는 지우는 대신 **모서리 붕괴**(collapse)로 없앤다 — 짧은 변의 두 끝점을",
+"   하나로 합쳐 삼각형을 «접어» 버리는 방식이라 구멍이 안 생긴다",
+f"   ← 출처: `src/geom.py` 수리 `i5`(정본, §0.2) · `outputs/mesh_layer2_holes_poles_0816.json`.",
+"",
+f"   지금 상태: mini2 셸(body 그룹)은 면 {A['mini2']['groups']['body']['n_faces']:,}장 ·",
+f"   부품 {A['mini2']['groups']['body']['n_parts']}개 ·",
+f"   수밀 {A['mini2']['groups']['body']['watertight']} ·",
+f"   경계 모서리 **{A['mini2']['groups']['body']['boundary_edges']}개**다",
+f"   ← 출처: `{C.VERIFY_CANON_REL}` `A_geometry.mini2.groups.body`.",
+f"   함대 전체로도 경계 모서리는 "
+f"**{sum(g['boundary_edges'] for k in DR for g in A[k]['groups'].values())}개** —",
+"   즉 구멍이 하나도 없다.",
+"",
+"   ⭐ **그래도 «합집합만 하면 안전하다» 로 읽지 말 것.** 붕괴는 정점을 0.2 mm 옮긴다.",
+"   그 정도 이동이 허용되는 이유는 그 자리가 «이웃이 3개뿐인 불리언 부산물» 이라는 것을",
+"   따로 확인했기 때문이지, 일반적으로 안전해서가 아니다.",
 ),
 
 # ── §5.1 겹침을 어떤 자로 재나 ──────────────────────────────────────────────
@@ -390,14 +467,24 @@ md(
 "③ 이 맞는 이유: 금속 상자가 **플라스틱 셸 안**에 있는 것은 결함이 아니라 설계다 —",
 "전파는 셸을 투과해 그 금속을 본다. 진짜 이중계상은 **불투명한 부품 안**에 묻힌 면이다.",
 "",
-F.po_overcount_table(DR),
+C.buried_table(DR, drone_label),
 "",
-"← 출처: `outputs/mesh_inspect_materials_check_0816.json` `fleet.*`.",
-f"함대에서 가장 큰 것이 {ovl_worst}({OVL[ovl_worst]['po_overcount_opaque_dB']:+.2f} dB), 가장 작은 것이",
-f"{ovl_best}({OVL[ovl_best]['po_overcount_opaque_dB']:+.2f} dB)다.",
+f"← 출처: 면적 자(앞 네 열)는 `{C.VERIFY_CANON_REL}` `buried_faces`(검사기 "
+"`mesh_check.check_buried_faces`), 재질 가중 자(뒤 두 열)는",
+f"`{C.LEDGER_REL}` `material_weighted`(fc = 3.5 GHz).",
+"",
+f"함대에서 가장 큰 것이 {drone_label(ovl_worst)}"
+f"({OVL[ovl_worst]['po_overcount_opaque_dB']:+.2f} dB), 가장 작은 것이",
+f"{drone_label(ovl_best)}({OVL[ovl_best]['po_overcount_opaque_dB']:+.2f} dB)다.",
 "",
 "⭐ **이 표가 주는 교훈**: «묻힌 면적이 40 %» 라는 문장과 «PO 가 0.5 dB 과대» 라는 문장은",
 "같은 사실의 두 얼굴이고, **결정을 내릴 때 쓸 것은 뒤쪽**이다. 앞쪽만 보면 우선순위를 잘못 잡는다.",
+"",
+"⚠ **이 검사는 자기가 이름 붙인 결함에 대해 실패할 수 없다.** 잣대가 «전체 표면적 대비 비율»",
+"이라, 부품 하나를 통째로 셸 속에 밀어 넣어도 예산을 못 넘고 값이 거꾸로 가기도 한다",
+"(mini5pro 실측: 착륙다리를 통째로 묻으면 +1.59 pp, 모터를 묻으면 **−1.48 pp**).",
+"지금 이 예산이 하는 일은 «오늘보다 나빠지지 않았다» 의 감시뿐이다",
+f"← 출처: `{C.CERT_DOC}` §1-③.",
 ),
 code(
 "# 불리언 합집합 데모 — 반쯤 겹친 상자 두 개를 하나의 껍질로 녹인다",
@@ -487,7 +574,7 @@ f"| — | 팔(arm) 단면 (`_arm_folding` drone_cad.py:{DC['_arm_folding']}) |",
 f"| `spline_sections` (:{CK['spline_sections']}) | 매끈하게 보간된 단면열 | scipy CubicSpline ×3 "
 f"| **제어점 사이 넘침** — 셸 배 3.93 mm·반폭 +7.6 %(§6.1) | 동체 제어점 6개→단면 24~30장 |",
 f"| `loft` (:{CK['loft']}) | 단면열을 이은 곡면 껍질 | 단면 등간격 재샘플 후 옆면 결합+앞뒤 캡 "
-f"| — | 동체·캐노피·⏳프로펠러 날 |",
+f"| — | 동체·캐노피·프로펠러 날 |",
 f"| `sweep` (:{CK['sweep']}) | 경로를 따라 민 관 | 접선 + 최소회전 프레임 "
 f"| — | 접이식 팔·착륙다리 |",
 f"| `revolve` (:{CK['revolve']}) | 회전체 | (r,z) 프로파일을 z 축 둘레로 회전, r=0 은 꼭짓점으로 접음 "
@@ -525,15 +612,17 @@ f"| 2. + canopy/battery lid | 같은 로프트 조합(더 납작한 돔) | drone
 f"| 3. + motors | `revolve` — 아웃러너 모터 벨 회전체 | drone_cad.py:{DC['_motor_bell']} `_motor_bell` |",
 "| 4. + internal battery & PCB | `box` (trimesh.creation.box 래퍼) — 반투명으로 내장 표시 | drone_cad.py `INTERNALS` |",
 f"| 5. + gimbal camera | `box`+`cyl` — 3렌즈 짐벌 블록 | drone_cad.py:{DC['_gimbal_hasselblad']} `_gimbal_hasselblad` |",
-f"| 6. + propellers | ⏳ 익형 단면을 비틀며 `loft` | drone_cad.py:{DC['_airfoil']} `_airfoil` · "
+f"| 6. + propellers | 익형 단면을 비틀며 `loft` (평면형은 기체마다 다르다 — §0.2) | drone_cad.py:{DC['_airfoil']} `_airfoil` · "
 f"{DC['_blade']} `_blade` |",
 "",
 "(접이식 기종의 팔은 `sweep` 으로 만들어 body 그룹에 합쳐지므로 단계 1 에 이미 포함돼 있다.",
-f"Mavic 4 Pro 의 최종 그룹은 {mav['n_groups']}개: {mav_groups} ← 출처: mesh_verify.json",
-"`A_geometry.mavic4pro.groups`.)",
+f"Mavic 4 Pro 의 최종 그룹은 {mav['n_groups']}개: {mav_groups}",
+f"← 출처: `{C.VERIFY_CANON_REL}` `A_geometry.mavic4pro.groups`.)",
 "",
 f"이렇게 조립된 Mavic 4 Pro 는 정점 {mav['n_verts']:,}개 · 삼각형 {mav['n_faces']:,}개다",
-"← 출처: mesh_verify.json `A_geometry.mavic4pro`.",
+f"— 그중 프로펠러가 {C.VC['prop_triangles']['mavic4pro']['n_faces']:,}장"
+f"({C.VC['prop_triangles']['mavic4pro']['share_pct']:.1f} %)이다",
+f"← 출처: `{C.VERIFY_CANON_REL}` `A_geometry.mavic4pro`·`prop_triangles`.",
 ),
 
 # ────────────────────────────────────────────────────────────────── 13. §8 검증
@@ -557,23 +646,25 @@ md(
 "",
 "← 출처: `src/mesh_check.py` 머리말이 정확히 이 구별을 규약으로 적는다.",
 "",
-"### 8.2 지금의 10 검사",
+f"### 8.2 지금의 {len(C.CHECKS)} 검사",
 "",
-F.checks_table(),
+C.checks_table(),
 "",
 "1~7 은 **부품(연결요소) 단위**로 돈다. 드론은 프리미티브의 합집합이라 전체 메쉬는 원래",
 "수밀이 아니고, 의미 있는 검사는 부품별 검사이기 때문이다.",
 "",
 "**«통과» 는 «0» 이 아니라 «선언된 예산 안» 이다:**",
 "",
-F.budget_table(),
+C.budget_table(),
 "",
 "예산 표는 «이만큼이 옳다» 가 아니라 **«지금 이만큼이다» 라는 선언**이다.",
 "그래서 새로 생기는 결함은 예산을 넘겨 **실패한다** — 숨기지 않으면서 회귀를 막는 방식이다.",
 "",
+*C.budget_note(),
+"",
 "### 8.3 게이트가 어디에 걸려 있나 — 범위를 정확히",
 "",
-F.checker_table(),
+C.checker_table(),
 "",
 "출하 게이트는 `python src/drones.py`(부위별 OBJ 내보내기) **한 문**에 걸려 있다. 단서 셋:",
 "",
@@ -584,7 +675,24 @@ F.checker_table(),
 "",
 "### 8.4 아직 못 보는 것",
 "",
-*[f"- {b}" for b in F.BLIND_SPOTS],
+*[f"- {b}" for b in C.blind_spots()],
+"",
+"뒤의 둘은 **인증서 라운드가 새로 찾은 것**이라 조금 더 풀어 적는다.",
+"",
+"1. **검사한 물건과 출하한 물건이 다르다.** 검사는 메모리 배열에서 돌고, 파일은 그 뒤에 쓰인다.",
+"   `geom.Mesh.write_obj` 가 좌표를 `%.6f`(미터 단위 소수 6자리 = **1 µm 격자**)로 반올림하므로,",
+"   그 반올림이 정점 몇 쌍을 정확히 같은 자리로 붙일 수 있다. 되읽어 같은 검사를 먹이면",
+"   matrice4e·mini2 의 파일이 **실패한다**(면적 0 삼각형 6장 · 비다양체 모서리 6개).",
+"   최대 좌표 이동은 0.50 µm — 3.5 GHz 파장의 6백만분의 일이라 산란에는 아무 영향이 없다.",
+"   무너지는 것은 크기가 아니라 **주장**이다: «퇴화면 0 장» 이 출하물에 대해서는 참이 아니다.",
+"   ⚠ 이 경로는 실제로 쓰인다 — `scene_build.drone_parts()` 가 Sionna/Mitsuba 에 먹일 OBJ 를",
+"   같은 writer 로 쓴다.",
+"2. **부품이 통째로 사라져도 아무도 못 본다.** mini5pro 에서 canopy(표면적 8.4 %)와",
+"   gear(2.1 %)를 지워 봤더니 검사 10계열과 바깥 참값 7행이 전부 조용했다. 좌우 짝을",
+"   **한쪽만** 지우면 대칭 검사가 울지만, 그룹 **전체**를 지우면 대칭이 유지돼 조용하다.",
+"   메쉬 안에 «이 그룹이 이만큼 있어야 한다» 는 정보가 없기 때문이다.",
+"",
+f"← 출처: `{C.CERT_DOC}` §1-① · §3.2.",
 "",
 "### 8.5 ⭐ 검사기를 만들 때의 규율 — 양성 대조부터 통과시켜라",
 "",
@@ -604,21 +712,46 @@ F.checker_table(),
 "`outputs/mesh_inspect_body_arms_0816.json` `retracted_by_this_round`",
 "(잣대를 갈면서 값이 바뀐 항목의 이력은 `docs/RETRACTION_LOG.md` 가 맡는다).",
 "",
+"⭐ **이 규율이 함대 규모로 확장돼 있다.** 인증서 라운드가 결함을 일부러 심어 검사가 무는지를",
+"전수로 돌렸다:",
+"",
+"| 무엇 | 지금 값 |",
+"|---|---|",
+f"| 적대 대조(양성·음성) | **{C.CERT['controls_ok']}/{C.CERT['controls']}** 통과, "
+f"{C.CERT['n_suites']}스위트 |",
+f"| 봉인기(`{C.CERT_SEAL}`) 자체 적대 시험 | **21/21**(양성 17 · 음성 4) |",
+f"| 인증 매트릭스 | {C.CERT['n_cells']}칸 중 **실패 {C.CERT['n_fail']}** |",
+f"| 양성 대조가 **아직 없는** 축 | 여섯 — A7(프롭↔벨 원통 근사) · V7·Z1·Z3(인증서 지문 봉인) "
+"· G1(분절·자세 재현) · W1(검사기 사각지대 자기신고) |",
+"",
+f"← 출처: `{C.CERT_DOC}` §0·§1-② · `outputs/mesh_cert_matrix_0816.json` `summary`.",
+"⭐ 마지막 줄이 규율의 핵심이다 — **«없다» 를 «없다» 라고 적는 것**. 양성 대조가 없는 축의",
+"«통과» 는 «결함을 심어도 안 울 수 있다» 는 뜻이라 다른 축의 통과와 무게가 다르다.",
+"",
 "**지금 상태의 사실들** — 위 규율을 지킨 잣대로 잰 값이다:",
 "",
-f"- 드론 {len(DR)}기 전부 검사 통과. 중복 정점 {dup_total}개 · 미사용 정점 {unused_total}개",
-"  ← 출처: `mesh_verify.json` `A_geometry.*`.",
+f"- 드론 {len(DR)}기 전부 검사 통과. 중복 정점 {dup_total}개 · 미사용 정점 {unused_total}개 ·",
+f"  경계 모서리 {sum(g['boundary_edges'] for k in DR for g in A[k]['groups'].values())}개",
+f"  ← 출처: `{C.VERIFY_CANON_REL}` `A_geometry.*`.",
 "- **자기교차 0 건** · **안쪽을 향하는 법선 0 개**(전 기체·전 그룹, trimesh 수리를 전혀 거치지",
 "  않고 출하 인덱스에서 손계산한 부호부피가 모두 양수) · **프롭 스윕 지름 오차 −0.000 %**",
 "  ← 출처: `docs/MESH_AUDIT_0816.md` §③.",
 ),
 code(
-"# 예산 표를 직접 읽어 본다 — «통과» 가 «0» 이 아니라 «선언된 예산 안» 이라는 뜻",
+"# 지금 어느 판이고, 그 판에 어떤 예산이 걸리는지 직접 읽어 본다",
 "import os, sys",
 "sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), \"..\", \"src\")))",
-"import mesh_check as MC",
-"print(\"경계 모서리 예산 :\", MC.BOUNDARY_EDGE_BUDGET)",
-"print(\"슬리버 예산     :\", MC.SLIVER_BUDGET)",
+"import geom, mesh_check as MC",
+"",
+"print(\"메쉬 수리(정본) :\", sorted(geom.mesh_fix_set()))",
+"print(\"날 법칙(정본)   :\", geom.blade_law_canon())",
+"print()",
+"# ⭐ 예산 표는 «법칙별» 로 갈려 있다 — 지금 걸리는 쪽을 본다",
+"print(\"경계 모서리 예산 :\", MC.BOUNDARY_EDGE_BUDGET_FIXED",
+"      if geom.mesh_fix_enabled(\"i5\") else MC.BOUNDARY_EDGE_BUDGET)",
+"print(\"슬리버 예산(법칙):\", MC.SLIVER_BUDGET_BLADE_LAW)",
+"print(\"프롭↔벨(법칙)   :\", MC.PROP_BELL_SOLID_AREA_PCT_BLADE_LAW)",
+"print(\"매몰면 예산      :\", MC.BURIED_FACE_BUDGET_PCT)",
 "print(\"치수 허용오차   :\", MC.DIM_TOL_PCT, \"| 대각 예외\", MC.DIM_DIAGONAL_TOL_PCT)",
 ),
 
@@ -630,7 +763,7 @@ md(
 "**결과가 낡는다.** 그래서 «지금 고칠 준비» 와 «지금 고치기» 를 분리하는 규약을 쓴다:",
 "",
 "1. 고칠 자리를 **선택 인자**로 뚫는다.",
-"2. **기본값은 옛 동작**으로 둔다.",
+"2. **처음에는 기본값을 옛 동작**으로 둔다(근거가 설 때까지).",
 "3. 편집 전후 소스를 각각 불러 메쉬를 짓고 **지문**을 비교한다 —",
 "   sha256(float32 정점 + int32 삼각형). 전 기종 비트동일이면 통과.",
 "",
@@ -646,6 +779,26 @@ md(
 "← 출처: `outputs/mesh_inspect_body_arms_0816.json` `code_changes`·",
 "`outputs/mesh_inspect_materials_check_0816.json` `code_changes`.",
 "",
+"### ⭐ 그리고 «착지» 라는 넷째 단계가 있다",
+"",
+"위 3단계는 **고칠 준비**까지다. 준비만 하고 끝나면 리포트는 영원히 옛 형상을 설명한다.",
+f"그래서 근거가 선 것은 **기본값을 옮긴다** — 지금 `{', '.join(C.FIXES)}` 와 날 법칙",
+f"`{C.LAW}` 가 그 상태다(§0.2). 방향이 뒤집혔다는 뜻이다:",
+"",
+"| | 준비 단계 | 착지 뒤(지금) |",
+"|---|---|---|",
+"| 아무 인자도 안 주면 | 옛 동작 | **정본** 동작 |",
+"| 스위치를 주면 | 새 동작을 켠다 | **옛 동작으로 되돌린다**(`MESH_FIX=none BLADE_LAW=legacy`) |",
+"| 비트동일 시험이 지키는 것 | «아직 안 바뀌었다» | «옛 판을 그대로 되살릴 수 있다» |",
+"",
+f"⭐ **착지에는 이름표가 따라와야 한다.** 산출물 파일 이름에 `{C.TAG}` 를 붙인다 —",
+"안 붙이면 계산기가 옛 판 결과를 그대로 재사용하고, 재계산이 «건너뜀» 으로 끝난다.",
+"두 판이 이름만으로 갈리게 하는 것이 규약이다",
+"← 출처: `benchmark/elevation_sweep_md.py` 꼬리표 블록.",
+"",
+"⭐ **예산도 같이 갈라진다.** 예산 표는 «그 형상에서 잰 스냅샷» 이라, 형상이 바뀌면 표를",
+"덮어쓰는 대신 **법칙을 키에 넣어 따로 선언한다**(§8.2). 덮어쓰면 두 판을 같은 자로 못 잰다.",
+"",
 "### 도구가 «모른다» 를 말하게 만들기",
 "",
 "재질을 얻는 경로가 둘인데, 한쪽만 모르는 키를 막고 있었다. 지금은 양쪽 다 말한다:",
@@ -658,17 +811,20 @@ md(
 "경계하는 실패 방식이다 — **빈칸이 가짜 값보다 낫다.**",
 ),
 code(
-"# mesh_verify.json 에서 전 기종의 기하 검증 요약 읽기 — 본문 수치의 원천",
+"# 정본 원장에서 전 기종의 기하 검증 요약 읽기 — 본문 수치의 원천",
 "import json, os",
-"V = json.load(open(os.path.join(\"outputs\", \"mesh_verify.json\"), encoding=\"utf-8\"))",
+"P = os.path.join(\"outputs\", \"mesh_verify_canon_0817.json\")",
+"V = json.load(open(P, encoding=\"utf-8\"))",
+"print(\"판(꼬리표) :\", V[\"_meta\"][\"file_tag\"], \"|\", V[\"_meta\"][\"mesh_fix\"],",
+"      V[\"_meta\"][\"blade_law\"])",
 "print(f\"{'드론':12s} {'정점':>8s} {'삼각형':>8s} {'그룹':>4s}  검증\")",
-"for k in V[\"meta\"][\"drones\"]:",
+"for k in V[\"_meta\"][\"drones\"]:",
 "    g = V[\"A_geometry\"][k]",
 "    ok = \"PASS\" if g[\"ok\"] else \"FAIL\"",
 "    print(f\"{k:12s} {g['n_verts']:8,d} {g['n_faces']:8,d} {g['n_groups']:4d}  {ok}\"",
 "          f\"  (중복정점 {g['dup_vertices']}, 미사용 {g['unused_vertices']})\")",
-"tot_v = sum(V['A_geometry'][k]['n_verts'] for k in V['meta']['drones'])",
-"tot_f = sum(V['A_geometry'][k]['n_faces'] for k in V['meta']['drones'])",
+"tot_v = sum(V['A_geometry'][k]['n_verts'] for k in V['_meta']['drones'])",
+"tot_f = sum(V['A_geometry'][k]['n_faces'] for k in V['_meta']['drones'])",
 "print(f\"{'합계':12s} {tot_v:8,d} {tot_f:8,d}\")",
 ),
 
@@ -715,10 +871,12 @@ md(
 "",
 f"이 도구 상자로 만든 결과물: 드론 {len(DR)}기, 정점 {n_verts_total:,}개 · 삼각형 {n_faces_total:,}개,",
 f"검사 결과 {'전 기종 통과' if all_ok else '일부 실패'}(«선언된 예산 안» 이라는 뜻 — §8.2)",
-"← 출처: mesh_verify.json `A_geometry`.",
+f"← 출처: `{C.VERIFY_CANON_REL}` `A_geometry`.",
+f"이 수는 **정본 판**(`MESH_FIX={','.join(C.FIXES)}` · `BLADE_LAW={C.LAW}`, 꼬리표 `{C.TAG}`)의 것이다.",
 "",
 "**이 편의 한 줄** — 도구는 능력을 주지만 **기본값이 규약을 정하지는 않는다.**",
-"검사기가 무엇을 보는지는 우리가 명시해야 하고, 못 보는 것은 적어 둬야 한다.",
+"기본값은 **우리가** 정하고(§0.2), 정한 뒤에는 그 사실을 이름표로 못 박는다(§8-2).",
+"검사기가 무엇을 보는지도 우리가 명시해야 하고, 못 보는 것은 적어 둬야 한다(§8.4).",
 "",
 *([
 "",
@@ -738,12 +896,22 @@ f"{abs(sub['azavg_dbsm']['diff']):.1e} dB) ← 출처: mesh_verify.json `I_sbr_s
 "PY=/workspace/.venvs/py312/bin/python",
 "cd /workspace/sionna",
 "",
-"# 1) 원장 재생성 — 이것부터. 생성기는 원장이 레지스트리와 다르면 일부러 멈춘다.",
-"PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_suite.py --skip-sbr   # GPU 없이 A~H",
+"# 0) 지금 어느 판인가 — 아무것도 안 주면 정본이다",
+"PYTHONPATH=src $PY -c \"import geom; print(geom.mesh_fix_set(), geom.blade_law_canon())\"",
+"",
+"# 1) 정본 원장 재생성 — 이것부터. 전부 CPU. 원장이 레지스트리와 다르면 일부러 멈춘다.",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_canon_0817.py   # A·B·C·D·F·G",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/mesh_canon_0817.py         # 스위치·예산·매몰",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_suite.py --skip-sbr   # H 절(옛 원장)",
 "# 2) 그림 재생성",
 "PYTHONPATH=src:benchmark $PY report_mesh/src/viz_mesh_reports.py",
 "# 3) 이 노트북 재생성",
 "PYTHONPATH=src:benchmark $PY report_mesh/src/make_mesh02.py",
+"# 4) 회귀 봉인 — 형상이 그대로인가 (약 9 초 · 전체 약 295 초)",
+"PYTHONPATH=src:benchmark $PY benchmark/mesh_certify.py",
+"PYTHONPATH=src:benchmark $PY benchmark/mesh_certify.py --full --jobs 6",
+"# 5) 옛 판을 되살릴 때 (비트동일) — 산출물 이름에 꼬리표가 안 붙는다",
+"MESH_FIX=none BLADE_LAW=legacy PYTHONPATH=src:benchmark $PY <스크립트>",
 "```",
 "",
 "**다음 편** → mesh03: 모든 숫자와 모델의 출처 — 공식 제원·공식 CAD·실기체 스캔·타사 CAD 와",

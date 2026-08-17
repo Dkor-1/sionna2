@@ -31,6 +31,33 @@ import prep_cad_scan                            # noqa: E402  (docstring·상수
 sys.path.insert(0, HERE)
 import mesh_facts_0816 as MF                    # noqa: E402  (2026-08-16 원장 공용 로더)
 
+# ---- ⭐정본 스위치 — 여덟 편이 같은 문장을 쓰도록 공용 로더에서 받는다 -------------
+#  2026-08-17 부터 `src/geom.py` 의 두 상수가 기본값이다. 이 편은 «무엇을 쓰고 있나» 를
+#  선언만 하고, 값의 뜻은 mesh01(지도)·mesh05(프로펠러)·mesh07(검사)이 맡는다.
+import mesh_canon_0817 as CAN                   # noqa: E402  (정본 판 원장 로더 — 8편 공용)
+BLADE_LAW = CAN.LAW                             # 'per_airframe'
+MESH_FIX_ON = ",".join(CAN.FIXES)               # 'battery,i5'
+FILE_TAG = CAN.TAG                              # '_mfixbatteryi5_blperairframe'
+
+# ---- ⭐기체별 프로펠러 법칙 원장 (정본의 1차 자료 장부) --------------------------
+PROP_LAW = json.load(open(os.path.join(ROOT, "outputs",
+                                       "prop_law_by_airframe_0816.json"), encoding="utf-8"))
+CLAW = PROP_LAW["C_law_by_airframe"]            # 기체 → {prop, grade, source, ledger, …}
+PROP_GAPS = PROP_LAW["F_gaps"]                  # 원장이 스스로 적은 구멍 목록
+
+# ---- ⭐바깥 참값 대조(인증서 치수 축) — 이 편의 «진리원» 표에 들어간다 -------------
+DIMREF = json.load(open(os.path.join(ROOT, "outputs",
+                                     "mesh_cert_dimension_external_0816.json"), encoding="utf-8"))
+_DR_ROWS = DIMREF["residual_table"]
+DR_N = len(_DR_ROWS)
+DR_IND = sum(1 for r in _DR_ROWS if r.get("circularity") == "independent")
+DR_IND_A = sum(1 for r in _DR_ROWS
+               if r.get("circularity") == "independent" and r.get("grade") == "A")
+DR_MISMATCH = DIMREF["findings"]["n_mismatch"]
+DR_NO_INDEP = sorted(k for k in ORDER
+                     if not any(r["key"] == k and r.get("circularity") == "independent"
+                                for r in _DR_ROWS))
+
 # ---- 원문 문서 로드 -------------------------------------------------------------
 SPECS_MD = open(os.path.join(ROOT, "docs", "SPECS.md"), encoding="utf-8").read()
 SOURCES_MD = open(os.path.join(ROOT, "assets", "meshes", "reference", "SOURCES.md"),
@@ -157,6 +184,53 @@ _PHOTO_CNT = {k: len([f for f in os.listdir(os.path.join(_PHOTO_ROOT, k))
 PHOTO_N = sum(_PHOTO_CNT.values())
 PHOTO_ROWS = [f"| {DRONES[k].name} | `assets/photos/{k}/` | {_PHOTO_CNT[k]} |"
               for k in sorted(PHOTO_DIRS, key=lambda k: -_PHOTO_CNT[k])]
+#  ⭐사진 폴더의 출처 문서 유무 — 폴더를 봐서 적는다(손으로 안 적음).
+#    출처 문서가 없으면 «그 사진이 어느 기체의 무슨 컷인지» 를 되짚을 근거가 없다.
+PHOTO_NO_SRC = [k for k in PHOTO_DIRS
+                if not os.path.exists(os.path.join(_PHOTO_ROOT, k, "SOURCES.md"))]
+
+
+# ---- 기체별 프로펠러 1차 자료 장부 (원장 그대로) ---------------------------------
+def _cell(s: str) -> str:
+    """표 칸에 안전하게 넣는다 — 파이프는 표를 깨고, 줄바꿈은 행을 쪼갠다."""
+    return " ".join(str(s).replace("|", "/").split())
+
+
+def prop_source_rows():
+    """`prop_law_by_airframe_0816.json` C_law_by_airframe → 출처 장부 표.
+
+    ⭐이 편이 적는 것은 **자료의 출처와 등급**까지다. 평면형 수치(c_max/R·시위 절점)는
+      mesh05(프로펠러 편)가 정본이라 여기 두 번 적지 않는다.
+    """
+    rows = []
+    for k in ORDER:
+        c = CLAW[k]
+        proxy = ("" if not c.get("proxy_of")
+                 else f" · ⛔**대리**({DRONES[c['proxy_of']].name} 의 프롭을 대신 세운다)")
+        rows.append(f"| {DRONES[k].name} | {_cell(c['prop'])} "
+                    f"| **[{c['grade'].replace('-', '−')}]**{proxy} "
+                    f"| ±{c['uncertainty_pct']:g} % | {_cell(c['source'])} |")
+    return "\n".join(rows)
+
+
+PROP_SOURCE_TABLE = prop_source_rows()
+
+
+def prop_grade_groups() -> str:
+    """등급 → 그 등급인 기체들. 한 줄에 10기체를 늘어놓지 않으려고 묶는다."""
+    by = {}
+    for k in ORDER:
+        by.setdefault(CLAW[k]["grade"], []).append(k)
+    order = ["A", "A-", "B", "B-", "C", "D"]
+    return " · ".join(f"**[{g.replace('-', '−')}]** " + "·".join(by[g])
+                      for g in order if g in by)
+
+
+PROP_GRADE_GROUPS = prop_grade_groups()
+PROP_GAP_LINES = [f"- {g}" for g in PROP_GAPS]
+_UNC = [CLAW[k]["uncertainty_pct"] for k in ORDER]
+PROP_UNC_MIN, PROP_UNC_MAX = min(_UNC), max(_UNC)
+PROP_PROXY = [k for k in ORDER if CLAW[k].get("proxy_of")]
 Q_SOURCES_WARN = quote(SOURCES_MD, "⚠️ **제조사 공식 CAD 는",
                        "**채점 전용**입니다.")
 Q_SOURCES_UNIT = quote(SOURCES_MD, "**단위**: STL 은 mm 단위",
@@ -213,7 +287,15 @@ md("# mesh03 — 자료 수집: 모든 숫자와 모델은 어디서 왔나",
        "mesh03",
        f"표적 {len(ORDER)}종의 모든 숫자와 형상이 어느 자료에서 왔고, "
        "그중 무엇이 **제작에 들어갔고** 무엇이 **채점만 하는가**.",
-       ["verify", "sources", "body_arms", "meshfix_m4e", "audit"]),
+       ["verify", "sources", "body_arms", "meshfix_m4e", "audit"],
+       extra=[
+           ("outputs/prop_law_by_airframe_0816.json",
+            "⭐기체별 프로펠러 법칙의 1차 자료 — 프롭 모델명·근거 등급·불확실도·남은 구멍"),
+           ("outputs/mesh_cert_dimension_external_0816.json",
+            f"바깥 참값 대조 {DR_N}행(우리 수가 아니라 **저장소 밖** 참값과 견준 표)"),
+           ("docs/MESH_CERTIFICATE.md",
+            "메쉬 인증서 — 무엇을 장담하고 무엇은 장담 못 하는가(판정 «조건부 장담»)"),
+       ]),
    "",
    f"**한 줄 요약** — 우리 드론 메쉬 {len(ORDER)}종에 들어간 **모든 입력 자료의 출처 장부**다:",
    "① 제조사 공표 제원(웹 조사→독립 검증 2단계), ② **제조사 공식 CAD 3종**(Matrice 4T STEP ·",
@@ -271,14 +353,28 @@ md("## 0. 왜 출처만 다루는 리포트가 따로 있나",
    "| C | 제조사 공식 CAD 3종 (Matrice 4T STEP · Mini 2 GLB · X500 V2 STEP) "
    "| ✅ **그 기체에 한해 형상 상수를 읽는다**(§3.2) | `assets/meshes/reference/SOURCES.md` |",
    f"| D | Phantom 4 실기체 3D 스캔({RES_MM} mm) · 로보틱스 저장소의 실물 CAD "
-   "| ⛔ 스캔은 채점 전용 · ⏳ 참조 프로펠러는 날 법칙의 입력이었다 "
+   "| ⛔ 스캔은 채점 전용 · 참조 프로펠러 셋 중 **Yuneec 것만 그 기체(Typhoon H480)의 제작 입력**, "
+   "나머지 둘은 교차검증 "
    "| `assets/meshes/cad/SOURCE.txt` · `SOURCES.md` · `outputs/reference_props.json` |",
    "",
    "⭐ **핵심 원칙을 정확히 적으면 이렇다.** 표적 메쉬는 **공표 제원(A)에서 파라메트릭으로 생성**하고,",
    "공표 숫자가 안 정하는 형상은 **사진(B)** 이 정하며, **공식 CAD 가 있는 기체에 한해 그 CAD(C)에서",
-   "형상 상수를 읽는다.** 나머지(D)는 채점 쪽이다 — 다만 **참조 프로펠러 3종은 날 법칙의 입력으로",
-   "제작에 들어갔다**(⏳ 그 법칙의 정본은 기체별 프로펠러 정본화 라운드다).",
+   "형상 상수를 읽는다.** 나머지(D)는 채점 쪽이다.",
    "← 출처: `assets/meshes/reference/SOURCES.md` 머리말 · 본 편 §3.2.",
+   "",
+   f"⭐ **프로펠러 자료의 지위가 여기서 갈린다.** 지금 프로펠러는 **기체마다 그 기체의 순정 프롭**이다",
+   f"(정본 날 법칙 `BLADE_LAW_CANON=\"{BLADE_LAW}\"`, `src/geom.py`). 그래서 참조 프로펠러 3종",
+   "(3DR Solo · PX4 1345 · Yuneec H480)은 **«10기종 공용 평면형»이 아니다**:",
+   "",
+   "- **Yuneec H480 프롭**은 Typhoon H480 **자신의** 프롭이라 그 기체의 1차 자료다(등급 [A−]).",
+   "- **3DR Solo · PX4 1345** 는 지금 **어느 기체의 형상도 정하지 않는다** — 실물 프롭끼리 얼마나",
+   "  다른지 견주는 **교차검증 자료**다.",
+   "- 사진이 못 주는 구간(뿌리 안쪽·팁 바깥)을 이어 붙이는 **기준곡선은 Mini 2 공식 GLB** 다 —",
+   "  저장소에서 **스팬 전체가 [A] 인 유일한 프롭**이기 때문이고, 이어 붙인 구간의 등급은 그래서",
+   "  [D](뿌리)·[C](팁)로 따로 적힌다 ← 출처: `outputs/prop_law_by_airframe_0816.json`",
+   "  `B_reference_curve_mini2_A` · 각 기체의 `segment_grade`.",
+   "",
+   "기체별 1차 자료는 §3.1.2 의 장부가 전부 적는다.",
    "",
    "«전부 검증 전용» 이라고 쓰면 짧고 깔끔하지만 지금 상태와 다르다. 그 차이가 «독립 채점» 이라는",
    "말의 무게를 정하므로, 이 편은 층마다 위 열을 붙여 둔다.",
@@ -444,6 +540,20 @@ md("## 1.5 ⭐ 사진층 — 공표 숫자가 **안 정하는** 형상은 어디
    "- **밴드가 붙는다.** 사진 계측값은 대개 ±15 % 대의 폭을 함께 선언한다.",
    "- 기체별로 사진의 질이 다르다 — FCC 정투영(자 포함)이 있는 기체와 제품컷 3장뿐인 기체가 같은",
    "  [B] 등급 안에 있다.",
+   "",
+   "⭐ **사진층에 지금 뚫려 있는 구멍 셋** — 프로펠러 1차 자료를 정리하면서 드러난 것이고,",
+   "그대로 적어 둔다(← 출처: `outputs/prop_law_by_airframe_0816.json` 각 기체 `caveat_ko`):",
+   "",
+   f"- **출처 문서가 없는 폴더가 {len(PHOTO_NO_SRC)}개다** — "
+   + ", ".join(f"`assets/photos/{k}/`" for k in PHOTO_NO_SRC)
+   + " 에 `SOURCES.md` 가 없다. 나머지 폴더는 전부 있다. 출처 문서가 없으면 «이 컷이 어디서 왔고"
+     " 정말 그 기체인가» 를 되짚을 근거가 사진 자체밖에 없다.",
+   "- **Mini 5 Pro 사진은 기체 동일성이 미확정이다.** 같은 묶음으로 들어온 «mavic 4 pro_1/_4.png»"
+   " 는 대조 결과 **다른 기종**(Mavic 3 계열)으로 확인됐다. 그래서 이 기체의 프롭 평면형 등급이"
+   f" **[{CLAW['mini5pro']['grade']}]**(±{CLAW['mini5pro']['uncertainty_pct']:g} %)에 머문다.",
+   "- **Phantom 4 폴더는 다른 기체다** — Phantom 4 **Pro+ V2.0**(프롭 9455S)이다. 거기서 재면"
+   " «고침» 이 아니라 새 오류가 되므로, 이 기체의 프롭은 재지 않고 Phantom 3 의 9450 을"
+   " **대리**로 세운다(§3.1.2).",
    ),
 
 # 8 ── §2 실기체 스캔 --------------------------------------------------------------
@@ -607,10 +717,19 @@ md("## 3. 실물·공식 CAD — 어디서, 어떤 라이선스로, 그리고 �
    "1635~1691 삼각형뿐이라 ±10 % 로 읽어야 한다** ← 출처: `docs/MESH_AUDIT_0816.md` 부록 C.",
    "mini2 를 «형상 근거 등급이 가장 높은 기체» 로 세우는 것도 이 한계와 함께 읽을 것.",
    "",
-   "⏳ **이 실물 날에서 무엇을 법칙으로 삼을지는 이 편이 정하지 않는다** — 기체별 프로펠러 정본화",
-   "라운드가 정본이다. 여기서는 «그 자료가 저장소에 있다» 는 출처 사실까지만 적는다.",
+   "⭐ **이 날이 지금 하는 일 두 가지.** 출처 장부로서 여기까지 적는다 —",
+   "무엇을 어떤 값으로 썼는지의 정본은 mesh05(프로펠러 편)다.",
    "",
-   "### 3.1 로보틱스 저장소의 실물 CAD — 대부분은 채점자, 프로펠러 셋만은 제작의 입력",
+   f"1. **Mini 2 자신의 날의 1차 근거**다 — 등급 **[{CLAW['mini2']['grade']}]**"
+   f"(불확실도 ±{CLAW['mini2']['uncertainty_pct']:g} %), 두께는 이 함대에서 **절대값[mm]으로"
+   f" 잰 유일한 프롭**이다({_cell(CLAW['mini2']['t_note_ko'])}).",
+   "2. **다른 기체의 사진이 못 주는 구간을 채우는 기준곡선**이다(뿌리 안쪽·팁 바깥). 이유는 하나 —",
+   "   저장소에서 **스팬 전체가 [A] 인 프롭이 이것뿐**이라서다. 그 구간은 [D]/[C] 로 따로 적힌다.",
+   "",
+   "← 출처: `outputs/prop_law_by_airframe_0816.json` `C_law_by_airframe.mini2` ·"
+   " `B_reference_curve_mini2_A`.",
+   "",
+   "### 3.1 로보틱스 저장소의 실물 CAD — 채점자 · 그리고 프로펠러 자료",
    "",
    "**CAD 가 공개된 실물 드론**을 로보틱스 시뮬레이터 저장소에서 가져왔다.",
    "이 저장소들을 고른 이유: (1) **실제 판매 제품**의 형상이고, (2) PX4/ETH 취리히가",
@@ -622,12 +741,16 @@ md("## 3. 실물·공식 CAD — 어디서, 어떤 라이선스로, 그리고 �
    "← 출처: `assets/meshes/reference/SOURCES.md` 첫 표(원문 그대로) — 파일 실물은"
    " `assets/meshes/reference/` 에 있다",
    "",
-   "⏳ **이 표의 프로펠러 셋은 «채점자» 가 아니다.** `solo_prop_*.stl`(3DR Solo) ·",
-   "`1345_prop_cw.stl`(PX4) · Typhoon H480 프롭 어셈블리는 실제로 **날 법칙의 입력**으로",
-   "제작에 들어갔다. 측정 원장이 따로 있다 — `outputs/reference_props.json`",
-   "(디스크 지름 1345 **346.66** · Solo **253.82** · Yuneec **230.10** mm, 반경 36 스테이션에서",
-   "시위·두께·비틀림을 잰 표). ⛔ 그 측정에서 어떤 상수를 뽑아 쓸지는 **기체별 프로펠러 정본화",
-   "라운드가 정본**이므로 이 편은 자료의 존재와 출처까지만 적는다.",
+   "⭐ **이 표의 프로펠러 셋은 지위가 서로 다르다.** 셋 다 실측 원장이 있다 —",
+   "`outputs/reference_props.json`(디스크 지름 1345 **346.66** · Solo **253.82** ·",
+   "Yuneec **230.10** mm, 반경 36 스테이션에서 시위·두께·비틀림을 잰 표). 지금 쓰이는 자리는:",
+   "",
+   "- **Typhoon H480 프롭 어셈블리** — 그 기체 **자신의** 프롭이다. Typhoon H480 평면형의 1차 자료"
+   f"(등급 **[{CLAW['typhoonh480']['grade'].replace('-', '−')}]**, §3.1.2).",
+   "- **3DR Solo · PX4 1345** — **어느 표적 기체의 형상도 정하지 않는다.** 실물 프롭이 서로 얼마나",
+   "  다른지 견주는 교차검증 자료다. 실제로 이 셋은 한 덩어리가 아니다 — **1345·Solo 는 뿌리 편중형,",
+   "  DJI 계열은 정점이 바깥쪽**이라 «참조 프롭 하나를 대표로 쓴다» 가 성립하지 않는다",
+   "  ← 출처: `outputs/mesh_adversarial_verdict_0816.json`.",
    "",
    "⚠ 그 원장이 스스로 붙여 둔 단서 둘도 함께 읽어야 한다 ← 출처: 같은 파일 `meta`:",
    "",
@@ -646,6 +769,37 @@ md("## 3. 실물·공식 CAD — 어디서, 어떤 라이선스로, 그리고 �
    "← 출처: `assets/meshes/reference/SOURCES.md`",
    ),
 
+# 11b ── §3.1.2 기체별 프로펠러 1차 자료 장부 -------------------------------------
+md(f"## 3.1.2 ⭐ 기체별 프로펠러의 1차 자료 — {len(ORDER)}기체 출처 장부",
+   "",
+   "프로펠러는 **기체마다 그 기체의 순정 프롭**이다. 그래서 «프롭 자료» 라는 한 칸이 아니라",
+   f"기체 {len(ORDER)}줄이 필요하다. 아래가 그 장부다 — 어느 파일에서 왔고, 등급이 얼마이며,",
+   "얼마나 흔들리는지까지.",
+   "",
+   "| 기체 | 프롭 모델 | 등급 | 불확실도 | 1차 자료(파일·무엇을 봤나) |",
+   "|---|---|---|---|---|",
+   PROP_SOURCE_TABLE,
+   "",
+   "← 출처: `outputs/prop_law_by_airframe_0816.json` `C_law_by_airframe`"
+   "(`prop`·`grade`·`uncertainty_pct`·`source`). 평면형 수치(최대시위 c_max/R·시위 정점 위치)와"
+   " 그 값이 무엇을 바꾸는지는 **mesh05(프로펠러 편)** 가 정본이다 — 여기서 두 번 적지 않는다.",
+   "",
+   f"⚠ **불확실도가 ±{PROP_UNC_MIN:g} % 에서 ±{PROP_UNC_MAX:g} % 까지 벌어진다.** 같은 표에 있다고",
+   "같은 무게가 아니다. 특히 **대리로 세운 자리가 둘**이다 — "
+   + " · ".join(f"**{DRONES[k].name}**(← {DRONES[CLAW[k]['proxy_of']].name} 의 프롭)"
+               for k in PROP_PROXY)
+   + ". 자체 측정이 하나도 없다는 뜻이므로, 이 두 기체의 프롭 형상은 «잰 값» 이 아니라",
+   "**«같은 급이라고 본 값»** 으로 읽어야 한다.",
+   "",
+   "원장이 스스로 적어 둔 구멍을 그대로 옮긴다 (← 같은 파일 `F_gaps`):",
+   "",
+   *PROP_GAP_LINES,
+   "",
+   "⭐ **빈칸을 채우지 않는 것이 규율이다.** 위 목록의 «두께 8기종 빈칸» 은 게을러서가 아니라",
+   "사진으로는 **원리적으로** 못 재기 때문이다(겉보기 높이는 시위와 두께가 섞인 값이고 앞항이",
+   "훨씬 크다). 값을 지어내는 대신 비워 두고, 그 사실을 여기 적는다.",
+   ),
+
 # 12 ── §3.1 검증 전용 원칙 -------------------------------------------------------
 md("## 3.2 ⭐ 참조 자료가 실제로 제작에 들어간 자리 — 세 군데",
    "",
@@ -659,14 +813,18 @@ md("## 3.2 ⭐ 참조 자료가 실제로 제작에 들어간 자리 — 세 군
    "| **[A] 공식 CAD 직접** |",
    "| ② | **mini2 전 형상 상수** | DJI 공식 GLB(WM161 펼침) 실측 — 셸 6 스테이션 중 가운데 4개가 "
    "GLB 와 0.5 % 안. `shape_source=\"manufacturer_cad\"` 로 선언돼 있다 | **[A] 공식 CAD 직접** |",
-   "| ③ | ⏳ **프로펠러 날 법칙** | 실물 참조 프로펠러 측정에서 유도된 상수들 | ⏳ |",
+   "| ③ | **프로펠러 날 평면형 — 기체마다 따로** | 그 기체 순정 프롭의 실측(공식 3D · 제품사진 · "
+   "시뮬레이터 자산). 뿌리·팁의 못 잰 구간만 Mini 2 [A] 곡선으로 잇는다 "
+   f"| **기체마다 다르다** — {PROP_GRADE_GROUPS} (§3.1.2) |",
    "",
    "← 출처: ①은 `outputs/meshfix_matrice4e.json` + `outputs/mesh_inspect_body_arms_0816.json` "
    "`meshfix_matrice4e_landed`(착지 검증) · ②는 같은 파일 `per_drone.mini2` · "
-   "③은 `src/drone_cad.py` 블레이드 법칙 머리말.",
+   "③은 `outputs/prop_law_by_airframe_0816.json` `C_law_by_airframe` + `src/geom.py` "
+   f"`BLADE_LAW_CANON=\"{BLADE_LAW}\"`.",
    "",
-   "⏳ **③ 은 기체별 프로펠러 정본화 라운드가 정본이다.** 이 편에서는 자리만 잡고 값은 적지 않는다 —",
-   "그 라운드가 날 시위 분포·기종별 두께·팁 형상을 다시 정하는 중이라, 여기 숫자를 적으면 두 곳이 갈린다.",
+   "⭐ **③ 이 이 표에서 가장 조심할 칸이다.** ①② 는 한 기체에 한 근거지만, ③ 은 **기체마다 근거가",
+   "다르다** — 공식 3D([A]) 부터 근거 0([D] 대리)까지 한 표 안에 있다. 그래서 «프로펠러는 실물"
+   f" 측정에서 왔다» 라고 뭉뚱그리면 {len(PROP_PROXY)}기체가 과장된다.",
    "",
    "**그래서 «독립 채점» 이라는 말은 이렇게 써야 한다:**",
    "",
@@ -722,7 +880,8 @@ md("## 4. 원본 갤러리 — 다운로드한 그대로",
    " 주는 영향**을 보는 대조군으로만 등장한다.",
    "",
    "그림 제목이 다시 한 번 원칙을 말한다 — *\"Downloaded ORIGINALS, shown as received — scoring",
-   "references, not build inputs\"*. ⚠ 프로펠러 참조 셋만은 예외다(§3.1).",
+   "references, not build inputs\"*. ⚠ 예외는 **Typhoon H480 프롭** 하나다 — 그 기체는 자기",
+   "프롭이 여기 있어 평면형의 1차 자료가 된다(§3.1·§3.1.2).",
    "",
    "← 그림 생성: `report_mesh/src/viz_mesh_reports.py` `fig_originals()` —",
    "스캔은 npz 에서 직접, CAD 2종은 `mesh_compare.load_reference()`/`typhoon_h480_real()` 로"
@@ -779,8 +938,24 @@ md("## 6. 정리 — 무엇의 진리원(source of truth)이 어디인가",
    "| 실기체 스캔의 출처·라이선스·전처리 | `assets/meshes/cad/SOURCE.txt` + `src/prep_cad_scan.py` | 파생물 기록 |",
    "| 실물·공식 CAD 의 출처·라이선스 | `assets/meshes/reference/SOURCES.md` | 제작 근거 + 채점자 |",
    "| matrice4e 정정 14건의 측정값·근거 | `outputs/meshfix_matrice4e.json` | 원본 CAD 없이도 읽힌다 |",
-   "| 참조 프로펠러 3종의 측정 | `outputs/reference_props.json` | ⏳ 날 법칙의 입력 |",
+   "| 참조 프로펠러 3종의 측정 | `outputs/reference_props.json` | Typhoon H480 의 1차 자료 + 교차검증 |",
+   "| **기체별 프롭의 모델명·등급·불확실도·구멍** | `outputs/prop_law_by_airframe_0816.json` "
+   "| §3.1.2 장부의 원본 |",
+   "| **저장소 «밖»의 참값과 견준 결과** | `outputs/mesh_cert_dimension_external_0816.json` "
+   f"(검사 본체 `src/mesh_dimref.py::REFS`) | {DR_N}행 — 우리가 적은 수가 아니라 남의 수와 견준다 |",
+   "| **무엇을 장담하고 무엇은 못 하는가** | `docs/MESH_CERTIFICATE.md` | 판정 «조건부 장담» |",
    "| 메쉬 측정치(이 시리즈의 수치) | `report_mesh/outputs/mesh_verify.json` | 검증 스위트 출력 |",
+   "",
+   "⭐ **출처 장부가 반드시 함께 읽어야 하는 축이 하나 더 있다 — «바깥 참값».** 위 표의 대부분은",
+   "«우리가 무엇을 보고 적었나» 를 말하지만, 그 값이 실물과 맞는지는 다른 문제다. 인증서의 치수 축이",
+   f"그 자리를 맡는다: 참값 **{DR_N}행** 중 **{DR_IND}행**만이 «순환이 아닌»(우리 상수를 우리가 다시",
+   f"읽은 것이 아닌) 독립 행이고, 그중 {DR_IND_A}행이 공식 CAD·공표 직접이다. 그리고 지금",
+   f"**{DR_MISMATCH}행이 어긋나 있다**(자세한 것은 mesh08).",
+   "",
+   "⛔ **독립 참값이 한 줄도 없는 기체가 둘이다** — "
+   + " · ".join(DRONES[k].name for k in DR_NO_INDEP)
+   + ". 이 둘의 «치수가 맞다» 는 말은 **우리 수를 우리가 다시 읽은 것**이라는 뜻이다"
+     " ← 출처: `docs/MESH_CERTIFICATE.md` §3.3.",
    "",
    "이번 편의 요점 세 가지:",
    "",
@@ -790,8 +965,8 @@ md("## 6. 정리 — 무엇의 진리원(source of truth)이 어디인가",
    "   공식 외형과의 일관성으로 재유도했다.",
    "2. 자료는 **층마다 지위가 다르다** — 공표 제원과 사진은 전 기체의 제작 입력이고, 공식 CAD 는"
    "   가진 기체(matrice4e·mini2·x500v2)에서 제작에 들어가며, **실기체 스캔만이 제작에 한 번도"
-   "   안 들어간 진짜 독립 채점자**다. ⏳ 참조 프로펠러 3종은 날 법칙의 입력이었고, 그 법칙의"
-   "   정본은 기체별 프로펠러 정본화 라운드가 정한다.",
+   "   안 들어간 진짜 독립 채점자**다. 프로펠러는 **기체마다 자기 자료**를 갖고(§3.1.2), 참조"
+   "   프로펠러 셋 중 Typhoon H480 것만 그 기체의 1차 자료이며 나머지 둘은 교차검증 자료다.",
    "3. 라이선스도 층마다 다르다 — 스캔은 CC-BY, 로보틱스 저장소는 Apache-2.0·BSD-3,"
    "   **DJI·Holybro 배포물은 공개 라이선스가 없어 파일을 재배포하지 않는다**(§5).",
    "   모든 다운로드물 옆에 출처 문서를 두어, 누구든 같은 자료를 같은 조건으로 다시 구할 수 있다.",
@@ -806,13 +981,23 @@ md("---",
    "# 이 노트북 재생성",
    "/workspace/.venvs/py312/bin/python report_mesh/src/make_mesh03.py",
    "",
-   "# 본문 수치의 원천 재생성(검증 스위트 → mesh_verify.json, 그림 포함)",
-   "/workspace/.venvs/py312/bin/python report_mesh/src/verify_mesh_suite.py",
+   "# 정본 판 원장 재생성(이 시리즈 수치의 기본 — 스위치를 안 주면 정본이다)",
+   "/workspace/.venvs/py312/bin/python report_mesh/src/verify_mesh_canon_0817.py",
+   "/workspace/.venvs/py312/bin/python report_mesh/src/mesh_canon_0817.py",
+   "",
+   "# 그림 재생성",
    "/workspace/.venvs/py312/bin/python report_mesh/src/viz_mesh_reports.py",
    "",
    "# 스캔 원본이 필요하면 (154 MB, 저장소 밖):",
    CURL,
    "```",
+   "",
+   "⭐ **어느 판을 말하는 원장인가.** 이 편이 인용하는 프롭 등급·자료는 **정본 판**의 것이다.",
+   "지금 기본으로 켜져 있는 스위치는 이렇다:",
+   "",
+   CAN.switch_table(),
+   "",
+   *CAN.switch_note(),
    "",
    "**다음 편** → `mesh04_*.ipynb`: 여기서 수집한 스펙이 실제로 어떻게 3D 메쉬가 되는지 —",
    "파라메트릭 CAD 생성 파이프라인으로 넘어간다.",

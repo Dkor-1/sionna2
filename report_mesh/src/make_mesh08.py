@@ -2,8 +2,9 @@
 """make_mesh08.py — mesh08 ipynb 생성기. ⚠ 이 파일이 소스다.
 
 mesh08 — "검증 ② 실물·물리 — 진짜 드론과 물리학에 얼마나 가까운가"
-mesh_verify.json 의 C(치수)/D(부피)/G(스캔)/H(PO 수렴)/I(SBR 이중검사)를 해설한다.
-모든 수치는 mesh_verify.json 에서 f-string 주입(손숫자 금지, 하우스 규약).
+⭐정본 판 원장 `outputs/mesh_verify_canon_0817.json` 의 C(치수)/D(부피)/G(스캔) 과
+옛 판 원장 `outputs/mesh_verify.json` 의 H(PO 수렴)/I(SBR 이중검사)를 해설한다.
+모든 수치는 두 원장에서 f-string 주입(손숫자 금지, 하우스 규약). 세대는 절마다 밝힌다.
 배정 그림: dims_check.png, scan_overlay.png, convergence.png
 """
 import json, os, sys
@@ -12,21 +13,36 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RM = os.path.abspath(os.path.join(HERE, ".."))
 ROOT = os.path.abspath(os.path.join(RM, ".."))
 sys.path.insert(0, os.path.join(ROOT, "src"))
-V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
+#  ⭐ 2026-08-17 — 원장이 둘이다. **정본 판**(지금 기본으로 지어지는 메쉬)에서 다시 잰 C·D·G 는
+#     `mesh_verify_canon_0817.json`, 물리 수렴(H·I)은 아직 옛 원장 `mesh_verify.json` 뿐이다.
+#     세대를 섞지 않도록 이 파일 안에서도 변수를 갈라 둔다(V = 정본, V0 = 옛 판).
+V = json.load(open(os.path.join(RM, "outputs", "mesh_verify_canon_0817.json"), encoding="utf-8"))
+V0 = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
+CANON_LEDGER = "report_mesh/outputs/mesh_verify_canon_0817.json"
+#  같은 라운드의 재질·형상 축 원장(다른 스크립트가 같은 정본 판을 잰 것). 축간거리는 «지어진
+#  메쉬에 자를 댄» 값이라 이 편의 C 절(로터 배치 좌표)과 자가 다르다 — 둘 다 적는다.
+PEER_LEDGER = "report_mesh/outputs/mesh_canon_0817.json"
+PEER = json.load(open(os.path.join(RM, "outputs", "mesh_canon_0817.json"), encoding="utf-8"))
+WB_MESH = {k: v["wheelbase_mm"] for k, v in PEER["per_drone"].items()}
+WB_MESH_ERR = {k: v["diagonal_err_pct"] for k, v in PEER["per_drone"].items()}
+OLD_LEDGER = "report_mesh/outputs/mesh_verify.json"
 
 from drones import DRONES  # noqa: E402  (스펙 숫자는 DroneSpec 에서 — 하우스 규약 허용)
+import geom as GEOM        # noqa: E402  (정본 스위치의 단일 진리원)
 
 C = V["C_dims"]; D = V["D_volume"]; G = V["G_scan"]
-H = V["H_po_convergence"]; I = V["I_sbr_subdiv"]
-META = V["meta"]
+H = V0["H_po_convergence"]; I = V0["I_sbr_subdiv"]      # ⚠ 옛 세대 — §4·§5 가 그렇게 밝힌다
+META = V["_meta"]
 
 #  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 → 원장 meta.drones(= DRONES 레지스트리 전수) 유도.
 sys.path.insert(0, HERE)
 from drones import drone_label            # noqa: E402
 from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
 import mesh_facts_0816 as MF          # noqa: E402  (2026-08-16 원장 공용 로더)
-ORDER = ledger_order(V)
+ORDER = ledger_order({"meta": V["_meta"]}, CANON_LEDGER)   # 원장↔레지스트리 일치 강제
 NAME = {k: drone_label(k) for k in ORDER}
+FIXES = ", ".join(f"`{x}`" for x in GEOM.MESH_FIX_CANON)
+TAG = META["file_tag"]
 
 #  ⭐ 어느 축이 «강제된 값» 이고 어느 축이 «따라나온 값» 인지 — 스펙에서 직접 읽는다.
 #     (envelope_mm 의 축이 None 이면 그 축은 강제되지 않는다 = 진짜 교차검증)
@@ -34,7 +50,7 @@ FORCED = {k: tuple(a is not None for a in (DRONES[k].envelope_mm or (None, None,
           for k in ORDER}
 lw_forced = [k for k in ORDER if FORCED[k][0] or FORCED[k][1]]
 lw_free = [k for k in ORDER if not (FORCED[k][0] or FORCED[k][1])]
-SBR_STALE = bool(V.get("I_sbr_subdiv", {}).get("stale"))
+SBR_STALE = bool(V0.get("I_sbr_subdiv", {}).get("stale"))
 
 C0 = 299_792_458.0
 LAM35 = C0 / (META["fc_ghz"] * 1e9) * 1e3          # 검증 주파수 파장 [mm] ← meta.fc_ghz
@@ -49,11 +65,38 @@ hm, hp = H["mavic4pro"], H["phantom4"]
 PO_NULL_MAX = max(hm["per_angle_absdiff_db"]["max"], hp["per_angle_absdiff_db"]["max"])
 SUB = I["subdivision_invariance"]; RAY = I["ray_spacing_convergence"]
 s2c, c2s = G["scan_to_cad_mm"], G["cad_to_scan_mm"]
-#  ⭐ 축간거리(=마주보는 로터 거리)와 그 오차는 **같은 잣대로** 낸다.
-#     C_dims 의 diagonal 은 로터 배치 좌표에서, body_arms 의 wheelbase 는 지어진 메쉬에서
-#     잰 값이라 mini5pro 에서 0.7 mm 갈린다 — 섞어 쓰면 % 가 안 맞는다.
-WB_MM = {k: MF.BODY["per_drone"][k]["wheelbase_mm"] for k in ORDER}
-WB_ERR = {k: (WB_MM[k] / DRONES[k].diagonal_mm - 1.0) * 100.0 for k in ORDER}
+#  ⭐ 축간거리(=마주보는 로터 거리)는 **한 자로만** 인용한다. 이 편은 정본 판 C 절(로터 배치
+#     좌표에서 잰 값)을 쓴다. 지어진 메쉬에서 자로 재는 다른 잣대(동체·팔 원장 `wheelbase_mm`)는
+#     mini5pro 에서 0.7 mm 쯤 갈리고, 그 원장은 아직 2026-08-16 세대라 여기서 섞지 않는다.
+WB_MM = {k: C[k]["checks"]["diagonal"]["measured"] for k in ORDER}
+WB_ERR = {k: C[k]["checks"]["diagonal"]["err_pct"] for k in ORDER}
+
+
+#  ⭐ 공용 표(mesh_facts_0816)는 여덟 편이 함께 쓴다. 정본에서 **해소된 줄**만 이 편에서 걸러 낸다.
+_SETTLED = ("셸에 삼각형 1장 구멍", "L/W 강제가 남아 축간거리가 부푼다")
+
+
+def defect_table_canon() -> str:
+    keep = [ln for ln in MF.defect_table().splitlines()
+            if not any(s in ln for s in _SETTLED)]
+    keep = [ln.replace("프롭 장착 높이가 함께 움직인다 ⏳",
+                       "프롭 장착 높이가 함께 움직인다 — 엔진을 고쳐야 하는 자리라 미뤄 두었다")
+            for ln in keep]
+    return "\n".join(keep)
+
+
+def unresolved_canon() -> list[str]:
+    out = []
+    for ln in MF.unresolved_list():
+        if "프로펠러 축 전부" in ln:
+            out.append(
+                "- **프로펠러 날의 두께** — 날의 평면형(시위 분포·정점 위치·팁)은 기체마다 정본이 "
+                "정해졌지만(mesh05), **두께는 여전히 모른다.** 사진으로는 원리적으로 못 잰다 — "
+                "겉보기 높이가 «시위 × sin(피치) + 두께 × cos(피치)» 라 앞항이 두께의 다섯 배쯤 "
+                "되기 때문이다. 실측 근거가 있는 기체는 mini2(공식 CAD) 하나뿐이다.")
+            continue
+        out.append(ln)
+    return out
 
 
 def md(*lines):
@@ -76,9 +119,41 @@ md(
     "mesh08",
     "우리 메쉬가 실물·공표 제원과 얼마나 맞는가 — 그리고 그 «맞음» 중 어디까지가 "
     "**맞춰 놓은 것**이고 어디부터가 **독립 검증**인가.",
-    ["verify", "body_arms", "gimbal", "internal", "meshfix_m4e", "sources"]),
+    ["body_arms", "gimbal", "internal", "meshfix_m4e", "sources"],
+    extra=[(CANON_LEDGER,
+            "⭐**정본 판** 원장 — 치수(C)·부피(D)·실기체 스캔(G)은 여기서 나온다"),
+           (OLD_LEDGER,
+            "옛 판(2026-08-16 13:15) 원장 — 이 편에서는 **물리 수렴(H·I)만** 인용한다"),
+           ("docs/MESH_CERTIFICATE.md",
+            "메쉬 인증서 — 실물 충실도와 완전성은 «장담 못 함» 으로 선언된 축이다"),
+           ("src/mesh_dimref.py — REFS 표",
+            "바깥 참값 77행 — 우리 수가 아닌 값과의 대조(공식 CAD·공표 제원·사진 계측)")]),
 "",
-f"**한 줄 요약** — 우리가 만든 드론 메쉬 {len(ORDER)}종을 (1) 공식 치수, (2) 무게·부피 물리, (3) 실기체 3D 스캔, (4) PO 수치 수렴, (5) SBR 이중 검사의 다섯 잣대로 재봤다. 치수는 최악 {max(worst.values()):.1f}% 이내, 실기체 스캔과는 표면 중앙값 {s2c['p50']:.1f} mm, 수치 해상도를 두 배로 올려도 방위평균 RCS 는 ±{max(abs(hm['azavg_dbsm']['diff']), abs(hp['azavg_dbsm']['diff']), abs(RAY['azavg_dbsm']['diff'])):.1f} dB 안에서 버틴다 — 단, 개별 널(null) 각도는 최대 {PO_NULL_MAX:.0f} dB 까지 흔들리므로 믿을 것과 조심할 것을 끝에 명확히 가른다. ← 출처: 본문 전 수치 `report_mesh/outputs/mesh_verify.json` C/D/G/H/I 섹션",
+f"**한 줄 요약** — 우리가 만든 드론 메쉬 {len(ORDER)}종을 (1) 공식 치수, (2) 무게·부피 물리, (3) 실기체 3D 스캔, (4) PO 수치 수렴, (5) SBR 이중 검사의 다섯 잣대로 재봤다. 치수는 최악 {max(worst.values()):.2f}%(사다리꼴 로터 배치인 Mini 5 Pro 의 «대각» 한 항목, §1), 실기체 스캔과는 표면 중앙값 {s2c['p50']:.1f} mm, 수치 해상도를 두 배로 올려도 방위평균 RCS 는 ±{max(abs(hm['azavg_dbsm']['diff']), abs(hp['azavg_dbsm']['diff']), abs(RAY['azavg_dbsm']['diff'])):.1f} dB 안에서 버틴다 — 단, 개별 널(null) 각도는 최대 {PO_NULL_MAX:.0f} dB 까지 흔들리므로 믿을 것과 조심할 것을 끝에 명확히 가른다. ⭐그리고 **«실물과 같은가» 는 이 저장소가 장담하지 못하는 축**이다 — 바깥 참값 77행 중 24행이 지금 어긋나 있고(§1.6), 기체 두 대는 독립 참값이 아예 없다.",
+"",
+"## ⭐ 어느 판을 잰 수인가 — 정본 판",
+"",
+"| 무엇 | 지금 값 | 뜻 |",
+"|---|---|---|",
+f"| 메쉬 수리 기본값 `MESH_FIX_CANON` | {FIXES} | `battery` = 배터리 팩 상자와 구조판이 서로 파고들던 자리를 불리언 합집합으로 한 몸으로 만든다(**치수는 안 바꾼다**). `i5` = mini2 셸을 닫는다 |",
+f"| 날 법칙 기본값 `BLADE_LAW_CANON` | `{GEOM.BLADE_LAW_CANON}` | 기체마다 **그 기체의 순정 프로펠러** 평면형(정본은 mesh05) |",
+f"| 파일명 꼬리표 | `{TAG}` | 계산 결과 파일 이름에 판이 박힌다 — 옛 판 조각을 새 판 계산이 조용히 재사용하는 사고를 막는다 |",
+"| 옛 판 재현 | `MESH_FIX=none BLADE_LAW=legacy` | 전환 직전 판을 **비트동일**로 다시 만든다 |",
+"",
+f"← 출처: `src/geom.py` `MESH_FIX_CANON`·`BLADE_LAW_CANON` · 원장 `{CANON_LEDGER}` `_meta`.",
+"",
+"⚠ **§4·§5(물리 수렴)만 세대가 다르다.** 그 두 절은 GPU/장시간 계산이 필요해 이 라운드에서 다시 "
+"재지 않았고, 옛 원장의 수를 그대로 싣는다. 두 절의 **결론**(적분 격자·광선 밀도가 답을 안 "
+"흔든다)은 계산기의 성질이라 형상 세대와 무관하지만, **면 수·절대 σ 는 다른 절과 나란히 인용하면 "
+"안 된다.** 각 절에 그 단서를 다시 적어 둔다.",
+"",
+"⚠ 그림은 전환 직전 판에서 구운 것이다 — 이 라운드는 그림을 새로 굽지 않았다. 모양과 결론은 "
+"그대로지만, 절대 수치는 본문 표가 정본이다.",
+"",
+"⭐ **같은 판을 두 측정기가 따로 쟀고 수가 같다** — 이 편의 원장과 재질 축 원장"
+"(`report_mesh/outputs/mesh_canon_0817.json`)은 서로 다른 스크립트인데 겹치는 항목(삼각형 "
+"301,506장 · 꼭짓점 151,327개 · 닫힌 부품 302개 · 슬리버 3,784장)이 전부 일치한다. "
+"한쪽이 실수했다면 여기서 갈렸을 것이다.",
 "",
 "앞 편(mesh07)이 \"삼각형이 **기하학적으로** 건강한가\"(watertight·법선·대칭·겹침)를 물었다면, 이번 편은 한 단계 위의 질문이다 — **\"그래서 이게 진짜 DJI 드론과, 그리고 전자기 물리와 얼마나 가까운가?\"**",
 "",
@@ -120,25 +195,32 @@ md(
 "| 4 | PO 점간격 수렴 | **자기 자신(격자 2배)** | `H_po_convergence` |",
 "| 5 | SBR 이중 검사 | **자기 자신(삼각형 4배·광선 2배)** | `I_sbr_subdiv` |",
 "",
-f"검증 기준 주파수는 {META['fc_ghz']:.1f} GHz(5G NR, 파장 {LAM35:.1f} mm), 메쉬 엔진은 `{META['mesh_engine']}` 이다. ← 출처: mesh_verify.json `meta` 섹션·`verify_mesh_suite.py`(FC 정의)",
+f"검증 기준 주파수는 {META['fc_ghz']:.1f} GHz(5G NR, 파장 {LAM35:.1f} mm), 메쉬 엔진은 `{META['mesh_engine']}` 이다. ← 출처: 정본 판 원장 `_meta` 섹션·`verify_mesh_suite.py`(FC 정의)",
 ),
 
 # ── 2. 셋업 코드 ─────────────────────────────────────────────────────────
 code(
 """# 셋업 — 증거 JSON 로드 (이 리포트의 모든 숫자가 여기서 나온다)
+#   V  = 정본 판 원장 (치수 C · 부피 D · 스캔 G)
+#   V0 = 옛 판 원장 (물리 수렴 H · I 만 인용 — 세대가 다르다는 것을 변수 이름으로 못 박는다)
 import json, os, sys
 sys.path.insert(0, os.path.abspath("../src"))          # 저장소 src/ (DroneSpec 등)
 
-with open("outputs/mesh_verify.json", encoding="utf-8") as f:
+with open("outputs/mesh_verify_canon_0817.json", encoding="utf-8") as f:
     V = json.load(f)
+with open("outputs/mesh_verify.json", encoding="utf-8") as f:
+    V0 = json.load(f)
 
 from drones import drone_label            # 표적 목록·표시명의 단일 출처
-ORDER = list(V["meta"]["drones"])          # = DRONES 레지스트리 전수(개수 하드코딩 없음)
+ORDER = list(V["_meta"]["drones"])         # = DRONES 레지스트리 전수(개수 하드코딩 없음)
 NAME = {k: drone_label(k) for k in ORDER}
 
 print("검증 대상 :", ", ".join(NAME[k] for k in ORDER))
-print(f"기준 주파수: {V['meta']['fc_ghz']:.1f} GHz  |  메쉬 엔진: {V['meta']['mesh_engine']}")
-print("이번 편 섹션:", ", ".join(k for k in V if k.startswith(("C_", "D_", "G_", "H_", "I_"))))"""
+print(f"기준 주파수: {V['_meta']['fc_ghz']:.1f} GHz  |  메쉬 엔진: {V['_meta']['mesh_engine']}")
+print("정본 스위치:", V["_meta"]["mesh_fix"], "·", V["_meta"]["blade_law"],
+      "· 꼬리표", V["_meta"]["file_tag"])
+print("정본 판 섹션:", ", ".join(k for k in V if k.startswith(("C_", "D_", "G_"))))
+print("옛 판에서만 :", ", ".join(k for k in V0 if k.startswith(("H_", "I_"))))"""
 ),
 
 # ── 실제 제품 사진 대조(눈으로) ───────────────────────────────────────────
@@ -179,25 +261,38 @@ f"| 강제 없음 | {', '.join(NAME[k] for k in lw_free if not any(FORCED[k])) o
 f"**부류 ② — 직접 먹인 값(프로펠러 지름).** 스펙 지름을 파라메트릭 날에 직접 넣고,",
 "빌드가 **회전 원반 지름을 정규화**한다. 그래서 오차가 사실상 0 이다",
 f"(함대 최악 {max(abs(v) for v in prop_err.values()):.5f} %) — 이 값은 «맞다» 가 아니라",
-"«맞춰 놓았다» 로 읽어야 한다. ⏳ 날의 **모양**(시위 분포·두께·팁)은 지름과 다른 축이고,",
-"그 축의 정본은 기체별 프로펠러 정본화 라운드다.",
+"«맞춰 놓았다» 로 읽어야 한다. 날의 **모양**(시위 분포·정점 위치·팁)은 지름과 다른 축이고,",
+"정본 판에서는 기체마다 그 기체의 순정 프로펠러 평면형을 쓴다 — 그 축의 정본은 mesh05 다.",
+"⚠ 지름을 정규화하는 과정에서 스팬이 0.991~0.992 배로 살짝 줄어든다(팁이 공표 지름을 안 넘게",
+"하는 **의도된** 보정)는 것도 그 편이 적는다.",
 "",
 "**부류 ③ — 대각(축간거리).** 예전에는 이 값이 «외형을 맞춘 결과로 따라나온» 교차검증이었다.",
 "**지금은 아니다** — L/W 강제가 대부분 풀리면서, 로터를 어디에 놓을지가 대각을 **정하는** 값이",
 "됐다. 실제로 여러 기체에서 축간거리가 공표 대각과 소수점까지 같다. 즉 부류 ③ 은 이제",
 "«맞춰 놓은 값» 쪽이다.",
 "",
-"두 기체만 예외이고, 둘 다 이유가 선언돼 있다:",
+f"대각이 공표값과 어긋나는 기체는 지금 **{len([k for k in ORDER if abs(diag_err[k]) > 0.5])}대**뿐이고,",
+"둘 다 이유가 선언돼 있다:",
 "",
-f"- **{NAME['phantom4']}** — 세 축을 전부 강제하는 기체라, 공표 외형 상자와 공표 대각이 동시에",
-f"  성립하지 않는다. 외형을 우선한 대가로 축간거리가 {diag_err['phantom4']:+.2f} % 다.",
-f"- **{NAME['mini5pro']}** — 로터가 정사각형이 아니라 **사다리꼴**로 놓인다. 공표 대각",
+f"- **{NAME['mini5pro']}** ({diag_err['mini5pro']:+.2f} %) — 로터가 정사각형이 아니라 "
+"**사다리꼴**로 놓인다. 공표 대각",
 f"  {DRONES['mini5pro'].diagonal_mm:.0f} mm 는 암 두께·모터 비례식의 스케일로만 쓰이고, 마주 보는",
-f"  로터 거리는 {WB_MM['mini5pro']:.2f} mm 다"
-f"({WB_ERR['mini5pro']:+.2f} %). 스펙 `note` 가 이미 그렇게 선언한다.",
+f"  로터 거리는 {WB_MM['mini5pro']:.2f} mm 다. 스펙 `note` 가 이미 그렇게 선언한다.",
+f"- **{NAME['mini2']}** ({diag_err['mini2']:+.2f} %) — **자에 따라 답이 갈리는 자리**다. 로터 "
+f"**배치 좌표**로 재면 {WB_MM['mini2']:.2f} mm({diag_err['mini2']:+.2f} %)이고, 지어진 "
+f"**메쉬**에 자를 대면 {WB_MESH['mini2']:.2f} mm({WB_MESH_ERR['mini2']:+.2f} %)다. 두 자가 "
+f"{abs(WB_MM['mini2'] - WB_MESH['mini2']):.1f} mm 갈리고, 어느 쪽도 허용 오차(3 %) 안이다.",
 "",
-"⚠ **인용 사고 주의** — Mini 5 Pro 의 로터 간격을 쓸 때 «대각 275 mm» 를 쓰면 9.7 % 틀린다.",
-"축간거리를 인용할 것.",
+f"⚠ **인용 사고 주의** — {NAME['mini5pro']} 의 로터 간격을 쓸 때 «대각 "
+f"{DRONES['mini5pro'].diagonal_mm:.0f} mm» 를 쓰면 {abs(diag_err['mini5pro']):.1f} % 틀린다. "
+"마주 보는 로터 거리를 인용할 것.",
+"",
+f"⚠ **자가 둘이라는 것도 같이 알아야 한다.** 위 값은 **로터 배치 좌표**에서 잰 축간거리다"
+f"(정본 판 C 절). **지어진 메쉬**에 자를 대고 재는 다른 잣대도 있고(`{PEER_LEDGER}` 의 "
+f"`wheelbase_mm`, mesh04 가 싣는다) 둘은 {NAME['mini2']} 에서 "
+f"{abs(WB_MM['mini2'] - WB_MESH['mini2']):.1f} mm · {NAME['mini5pro']} 에서 "
+f"{abs(WB_MM['mini5pro'] - WB_MESH['mini5pro']):.2f} mm 갈린다. 나머지 기체는 소수점 아래에서 "
+"만난다. 한 문장 안에서 두 자를 섞지 말 것.",
 "",
 "**그래서 이 절의 정직한 요약은 이렇다.** 치수 표의 작은 오차는 «우리 메쉬가 실물과 맞다» 의",
 "증거가 아니라 «맞추기로 한 축은 맞췄고, 안 맞춘 축도 크게 어긋나지 않았다» 의 증거다.",
@@ -230,13 +325,67 @@ f"> {MF.BODY['meshfix_matrice4e_landed']['verdict']}",
 "← 출처: `docs/MESH_AUDIT_0816.md` §⑧ · `outputs/meshfix_matrice4e.json` `_meta.variant_warning`.",
 "",
 "남은 어긋남 중 명세가 **엔진 변경이 필요하다며 미뤄 둔 것**이 있다 — 로터면 높이(F19~F21).",
-"지금 메쉬의 로터면은 CAD 보다 18.5 mm(0.216 λ @3.5 GHz) 위에 있다. ⏳ 이것을 고치면 프로펠러",
-"장착 높이가 함께 움직이므로, 기체별 프로펠러 정본화 라운드와 조율해야 한다.",
+"지금 메쉬의 로터면은 CAD 보다 18.5 mm(0.216 λ @3.5 GHz) 위에 있다. 이것을 고치면 프로펠러",
+"장착 높이가 함께 움직이므로, 엔진을 고치는 라운드가 맡는 자리로 남겨 두었다.",
+"",
+"**이 CAD 대조가 얼마나 날카로운가.** 인증서가 그 잣대에 경계 시험을 걸어 봤다 — 허용오차의",
+"0.9배 어긋남은 «일치», 1.1배는 «어긋남» 으로 갈리고, 실제 분해능은 **0.07 mm** 다(6/6 통과).",
+f"대조 행은 {NAME['matrice4e']} 에 대해 16행이고, **그중 6행은 지금 어긋나 있다**(§1.6).",
+"← 출처: `docs/MESH_CERTIFICATE.md` §2 G9 · §1②.",
+),
+
+# ── §1.6 바깥 참값 ────────────────────────────────────────────────────────
+md(
+"### 1.6 ⭐ 바깥 참값 — «우리 수가 아닌 값» 과 대조하면 어떻게 되나",
+"",
+"§1 의 치수표는 대부분 **우리가 맞춰 놓은 축**이었다. 그러면 «맞춰 놓지 않은 값» 과 대조하면",
+"어떻게 되는가? 그 대조를 모아 둔 것이 `src/mesh_dimref.py` 의 참값표(`REFS`)다 — 공식 CAD,",
+"공표 제원, 제품 사진 계측처럼 **바깥에서 온 수** 77행이다. 지금 결과를 그대로 옮긴다.",
+"",
+"| 판정 | 행 수 |",
+"|---|---|",
+"| 일치 | 50 |",
+"| **어긋남** | **24** |",
+"| 기록만(판정 면제) | 2 |",
+"| 참값 없음(모름) | 1 |",
+"",
+"어긋난 쪽에서 큰 것부터:",
+"",
+"| 기체 | 무엇 | 참값 | 잰 값 | 오차 |",
+"|---|---|---|---|---|",
+"| m350rtk | 펼침 폭 | 670.0 mm | 626.3 mm | **−6.5 %** |",
+"| m350rtk | 펼침 길이 | 810.0 mm | 771.0 mm | **−4.8 %** |",
+"| mini5pro | 배터리 높이 | 24.85 mm | 32.17 mm | **+29.5 %** |",
+"| mini5pro | 배터리 길이 | 86.10 mm | 68.98 mm | **−19.9 %** |",
+"| phantom3 | 높이(모터 상단→발) | 185.0 mm | 175.3 mm | −5.3 % |",
+"| matrice4e | 셸 배(아래) z | −30.81 mm | −34.74 mm | −12.8 % |",
+"| mavic4pro | 펼침 길이 | 328.7 mm | 321.0 mm | −2.3 % |",
+"",
+"**그리고 더 중요한 것은 «대조할 참값이 아예 없는 자리» 다.**",
+"",
+"| 무엇 | 지금 |",
+"|---|---|",
+"| 독립 참값이 0행인 기체 | **s1000plus · m350rtk** — 이 둘의 «치수가 맞다» 는 우리 상수를 우리가 다시 읽은 것이다 |",
+"| 주력 표적의 독립 행 수 | mini5pro 3행 · mavic4pro 2행 (공식 CAD 가 있는 기체는 matrice4e 하나뿐, 15행) |",
+"| 기체 × 부품 120칸 | 등급이 붙은 칸 37 · 그중 **독립 근거가 있는 칸 15** (나머지 83칸은 «모름») |",
+"| 짐벌 | 구속하는 바깥 검사가 **없다**(matrice4e 짐벌 폭은 사진 계측 대비 +26 %, 판정 면제) |",
+"| 셸 두께·내부 배선·안테나 | 잣대가 없어 참값도 검사도 없다 |",
+"",
+"← 출처: `docs/MESH_CERTIFICATE.md` §3.3·§4 · `src/mesh_dimref.py` `REFS`(77행) · "
+"`outputs/mesh_cert_matrix_0816.json` `grade_matrix`(120칸).",
+"",
+"⭐ **읽는 법.** 등급([A] 공식 CAD 직접 · [B] 사진 계측 · [C] 계열 유추 · [D] 대리)은 **출처의 질**",
+"이지 «검증됐다» 가 아니다. 77행의 등급만 보면 A 가 71행이라 «71행이 검증됐다» 로 읽히지만,",
+"별도 축인 **순환성**(우리 수로 우리를 검증하는가)을 같이 보면 독립인 행은 **32행**이다.",
+"",
+f"⚠ 위 수치는 인증서 발행 시점(2026-08-17 03:26)의 판에서 잰 것이다. 그 뒤 정본 전환으로 형상이",
+"바뀌었으므로 **행마다의 값은 다시 찍어야 한다**(§6.7). 다시 찍어도 안 바뀌는 것은 구조다 —",
+"참값이 0행인 기체가 둘이라는 사실, 120칸 중 독립 근거가 15칸이라는 사실은 형상과 무관하다.",
 ),
 
 # ── 4. 치수 표 코드 ──────────────────────────────────────────────────────
 code(
-"""# §1 치수 대조 — 전 기종 전 항목 (공식 vs 메쉬 실측)  ← mesh_verify.json C_dims
+"""# §1 치수 대조 — 전 기종 전 항목 (공식 vs 메쉬 실측)  ← 정본 판 원장 C_dims
 C = V["C_dims"]
 print(f"{'드론':<12} {'항목':<9} {'공식[mm]':>9} {'실측[mm]':>9} {'오차[%]':>8}")
 print("-" * 52)
@@ -261,7 +410,7 @@ md(
 #   기종이 늘면 문장이 조용히 일부만 말했다.
 f"왼쪽: {len(ORDER)}종 × 전 항목의 공식(회색) vs 실측(파랑) 막대 — 눈으로 봐도 겹친다. 오른쪽: 드론별 최악 오차. "
 f"{len(ORDER)}종 모두 **2% 가이드선 아래**다: " + " · ".join(f"{NAME[k]} {worst[k]:.2f}%" for k in ORDER) + ". "
-"← 출처: mesh_verify.json `C_dims.*.worst_err_pct`, 그림 `report_mesh/src/viz_mesh_reports.py` `fig_dims()`",
+"← 출처: 정본 판 원장 `C_dims.*.worst_err_pct`, 그림 `report_mesh/src/viz_mesh_reports.py` `fig_dims()`",
 "",
 "### 공식값과 '추정'값의 구분 — 주의",
 "",
@@ -275,7 +424,7 @@ f"| Matrice 4E | {C['matrice4e']['checks']['diagonal']['official']:.1f} mm | **�
 f"| S1000+ | {C['s1000plus']['checks']['diagonal']['official']:.0f} mm | **공식** | DJI 공식 1045 mm ← 출처: docs/SPECS.md 'S1000+' |",
 f"| Phantom 4 | {C['phantom4']['checks']['diagonal']['official']:.0f} mm | **공식** | DJI 공식 350 mm(모터-모터, 프롭 제외) ← 출처: docs/SPECS.md 'Phantom 4', DJI Quick Start Guide v1.2 |",
 "",
-f"Phantom 4 의 대각 {diag_err['phantom4']:+.2f}% 는 공식 외형 상자(289.5×289.5×196)와 공식 대각(350)을 **동시에** 정확히 만족시키기 어려워 외형을 우선한 타협이고, Matrice 4E 의 {diag_err['matrice4e']:+.2f}% 도 같은 종류다. 파장 {LAM35:.0f} mm 짜리 전파 입장에서 {abs(C['phantom4']['checks']['diagonal']['measured'] - C['phantom4']['checks']['diagonal']['official']):.0f} mm 어긋남은 파장의 {abs(C['phantom4']['checks']['diagonal']['measured'] - C['phantom4']['checks']['diagonal']['official']) / LAM35 * 100:.0f}% 수준이다. ← 출처: mesh_verify.json `C_dims.phantom4/matrice4e.checks.diagonal`, 외형 우선 원칙은 `src/drones.py` envelope-fit 주석",
+f"⭐ **{NAME['phantom4']} 는 지금 공표 대각과 축간거리가 소수점까지 같다**({diag_err['phantom4']:+.2f} %). 이 기체는 높이만 공표값에 맞추고 L/W 는 자유라, 로터를 공표 대각 그대로 놓을 수 있기 때문이다 — 대신 «맞다» 가 아니라 «맞춰 놓았다» 로 읽어야 한다(부류 ③). 남은 어긋남은 {NAME['matrice4e']} {diag_err['matrice4e']:+.2f} % · {NAME['s1000plus']} {diag_err['s1000plus']:+.2f} % 처럼 소수점 자리이고, 파장 {LAM35:.0f} mm 짜리 전파 입장에서는 {abs(C['matrice4e']['checks']['diagonal']['measured'] - C['matrice4e']['checks']['diagonal']['official']):.1f} mm 급 어긋남이 파장의 1 % 미만이다. ← 출처: 정본 판 원장 `C_dims.*.checks.diagonal`, 외형 우선 원칙은 `src/drones.py` envelope-fit 주석",
 ),
 
 # ── 6. §2 부피→밀도 설명 ─────────────────────────────────────────────────
@@ -289,7 +438,7 @@ md(
 
 # ── 7. 밀도 표 코드 ──────────────────────────────────────────────────────
 code(
-"""# §2 부피·암시밀도 — 전 기종  ← mesh_verify.json D_volume
+"""# §2 부피·암시밀도 — 전 기종  ← 정본 판 원장 D_volume
 D = V["D_volume"]
 print(f"{'드론':<12} {'부피[cm3]':>10} {'공식무게[g]':>11} {'암시밀도[g/cm3]':>15}")
 print("-" * 52)
@@ -308,7 +457,7 @@ print("참고(일반 물성 상식): 발포폼 ~0.03 / ABS 플라스틱 ~1.05 / 
 md(
 "### 읽기 — 왜 S1000+ 만 두 줄인가",
 "",
-f"소비자 쿼드 4종은 {min(D[k]['implied_density_g_cm3'] for k in ['mini5pro','mavic4pro','matrice4e','phantom4']):.2f}~{max(D[k]['implied_density_g_cm3'] for k in ['mini5pro','mavic4pro','matrice4e','phantom4']):.2f} g/cm³ — \"플라스틱 셸 + 빈 속을 솔리드로 근사한 물체\"로 전부 타당한 범위다. Mini/Mavic 이 {D['mini5pro']['implied_density_g_cm3']:.2f} 수준으로 가장 낮은 것은 접이식 경량 기체(빈 공간 비율이 큼)와 일치하고, Matrice 4E({D['matrice4e']['implied_density_g_cm3']:.2f})는 같은 크기급에서 배터리·센서가 더 눌러 담긴 엔터프라이즈 기체라는 사실과 방향이 맞는다. ← 출처: mesh_verify.json `D_volume.*.implied_density_g_cm3`",
+f"소비자 쿼드 4종은 {min(D[k]['implied_density_g_cm3'] for k in ['mini5pro','mavic4pro','matrice4e','phantom4']):.2f}~{max(D[k]['implied_density_g_cm3'] for k in ['mini5pro','mavic4pro','matrice4e','phantom4']):.2f} g/cm³ — \"플라스틱 셸 + 빈 속을 솔리드로 근사한 물체\"로 전부 타당한 범위다. Mini/Mavic 이 {D['mini5pro']['implied_density_g_cm3']:.2f} 수준으로 가장 낮은 것은 접이식 경량 기체(빈 공간 비율이 큼)와 일치하고, Matrice 4E({D['matrice4e']['implied_density_g_cm3']:.2f})는 같은 크기급에서 배터리·센서가 더 눌러 담긴 엔터프라이즈 기체라는 사실과 방향이 맞는다. ← 출처: 정본 판 원장 `D_volume.*.implied_density_g_cm3`",
 "",
 f"**S1000+ 는 무게의 정의가 두 개다**: DroneSpec 의 `weight_g={DRONES['s1000plus'].weight_g:.0f}` 은 대표 **이륙중량(TOW, 페이로드 포함)** 이고, 기체 자중(airframe)은 4400 g 이다(권장 TOW 6.0~11.0 kg). ← 출처: docs/SPECS.md 'S1000+'(기체 자중 4400 g 절), `src/drones.py` weight_g 주석, `verify_mesh_suite.py`(병기 로직). 그래서:",
 "",
@@ -317,7 +466,9 @@ f"- 자중 기준 {D['s1000plus']['implied_density_airframe_g_cm3']:.2f} g/cm³ 
 "",
 "한 값만 적으면 어느 쪽이든 독자를 속이게 되므로 **둘을 병기**한다. 그리고 분명히 해 두면: 이 검사는 \"자릿수가 틀리지 않았다\" 수준의 스모크 테스트지 정밀 검증이 아니다 — 정밀한 형상 검증은 다음 절의 실기체 스캔이 맡는다.",
 "",
-f"⚠ **두 기체는 위에 적은 기준선(1 g/cm³)을 넘는다** — {NAME['mini2']} {D['mini2']['implied_density_g_cm3']:.2f} · {NAME['x500v2']} {D['x500v2']['implied_density_g_cm3']:.2f} g/cm³. 원인은 스케일이 아니라 **부피로 셀 것이 적다는 것**이다: 메쉬 부피가 {D['mini2']['total_cm3']:.0f} cm³({NAME['mini2']} — 함대에서 가장 작은 접이식 셸)·{D['x500v2']['total_cm3']:,.0f} cm³({NAME['x500v2']} — 셸이 없는 열린 프레임이라 판·튜브만 부피가 된다)인데 무게는 배터리·페이로드를 포함한 공표 이륙중량이다. ⇒ 이 잣대는 그 두 기체에서 «단위·자릿수» 만 보증하고 밀도값 자체는 뜻이 약하다. ← 출처: mesh_verify.json `D_volume`",
+f"⚠ **위 표에서 기준선(1 g/cm³)을 넘는 줄은 둘이다** — {NAME['s1000plus']} 의 TOW 줄 {D['s1000plus']['implied_density_g_cm3']:.2f}(자중 줄 {D['s1000plus']['implied_density_airframe_g_cm3']:.2f} 가 모델 검증용 잣대라는 것은 바로 위에 적었다)과 **{NAME['x500v2']} {D['x500v2']['implied_density_g_cm3']:.2f} g/cm³** 이다. {NAME['x500v2']} 는 따로 붙는 설명이 없으므로 여기서 적는다: 원인은 스케일이 아니라 **부피로 셀 것이 적다는 것**이다 — 메쉬 부피가 {D['x500v2']['total_cm3']:,.0f} cm³ 인데(셸이 없는 열린 프레임이라 판·튜브만 부피가 된다) 무게는 배터리·페이로드를 포함한 공표 이륙중량이다. ⇒ 이 잣대는 그 기체에서 «단위·자릿수» 만 보증하고 밀도값 자체는 뜻이 약하다. ← 출처: 정본 판 원장 `D_volume`",
+"",
+f"⚠ **부피는 «닫힌 부품» 에서만 세어진다.** 이 표의 부피는 부위별로 닫힌(수밀) 조각들의 부피 합이고, 열린 껍질은 부피가 정의되지 않아 **합계에서 빠진다**(mesh07 §3 의 전제). {NAME['mini2']} 처럼 셸이 곧 부피의 대부분인 기체에서는 그 차이가 밀도를 배로 흔든다 — 정본 판은 그 셸이 닫혀 있어 {D['mini2']['total_cm3']:.0f} cm³ · {D['mini2']['implied_density_g_cm3']:.2f} g/cm³ 로 나온다. 다른 판에서 잰 밀도표를 이 표와 나란히 놓지 말 것.",
 ),
 
 # ── 9. §3 스캔 대조 배경 ─────────────────────────────────────────────────
@@ -326,7 +477,7 @@ md(
 "",
 "치수 대조는 '자로 잰 몇 개의 길이'만 본다. 이번엔 **실제 팬텀 4 한 대를 0.4 mm 해상도로 3D 스캔한 데이터**와 우리 파라메트릭 CAD 의 **표면 전체**를 점 대 점으로 비교한다. 표적 중 팬텀 4 만 가능한 이유는 간단하다 — 라이선스가 확인된 실기체 스캔이 공개된 기종이 팬텀 4 뿐이었다.",
 "",
-f"**스캔 출처** — \"DJI PHANTOM 4 HI RES SCAN\", Thingiverse thing:1456295, 작성자 NeverDun(Eamon McQuaide), 라이선스 **CC-BY**(저작자표시 필수, 여기서 표시함). 원본 STL 은 154 MB·3.09M 삼각형이라 저장소에 넣지 않고 archive.org 미러에서 내려받아 전처리한다. ← 출처: mesh_verify.json `G_scan.source`, `src/prep_cad_scan.py` docstring, 다운로드 URL 포함), `assets/meshes/cad/SOURCE.txt`",
+f"**스캔 출처** — \"DJI PHANTOM 4 HI RES SCAN\", Thingiverse thing:1456295, 작성자 NeverDun(Eamon McQuaide), 라이선스 **CC-BY**(저작자표시 필수, 여기서 표시함). 원본 STL 은 154 MB·3.09M 삼각형이라 저장소에 넣지 않고 archive.org 미러에서 내려받아 전처리한다. ← 출처: 정본 판 원장 `G_scan.source`, `src/prep_cad_scan.py` docstring, 다운로드 URL 포함), `assets/meshes/cad/SOURCE.txt`",
 "",
 "**전처리 파이프라인** (`src/prep_cad_scan.py`) — 왜 이렇게 했는지가 각 단계에 있다:",
 "",
@@ -344,7 +495,7 @@ md(""),  # placeholder — 아래에서 교체
 
 # placeholder 교체: chamfer 수치 코드 셀
 cells[-1] = code(
-"""# §3 스캔 chamfer 수치  ← mesh_verify.json G_scan
+"""# §3 스캔 chamfer 수치  ← 정본 판 원장 G_scan
 G = V["G_scan"]
 print(f"스캔 점 {G['n_scan']:,}개  vs  CAD 표면 점 {G['n_cad']:,}개   "
       f"(z-shift {G['z_shift_mm']:+.0f} mm 정렬 후)")
@@ -368,7 +519,7 @@ f"왼쪽: CAD(파랑)와 실기체 스캔(빨강) 오버레이 — 실루엣이 
 "### 두 방향의 비대칭이 말해주는 것",
 "",
 f"- **스캔→CAD: p50 {s2c['p50']:.1f} mm, p90 {s2c['p90']:.1f} mm** — \"실물 표면의 절반은 우리 모델에서 {s2c['p50']:.1f} mm 안에 상대를 찾는다\". 이것이 형상 충실도의 본 지표다. 중앙값 {s2c['p50']:.1f} mm 는 기준 주파수 {META['fc_ghz']:.1f} GHz 파장({LAM35:.0f} mm)의 약 1/{LAM35 / s2c['p50']:.0f} — 전파 입장에서 '표면이 거의 같은 자리에 있다'고 말할 수 있는 크기다.",
-f"- **CAD→스캔: p50 {c2s['p50']:.1f} mm 로 2배쯤 크다** — 이건 모델이 나빠서가 아니라 **스캔에 구멍이 있어서**다. 실기체 스캔은 기체를 세워 놓고 돌려 찍기 때문에 **바닥면(동체 하부)이 스캔되지 않았고**, 그 자리의 CAD 점들은 짝을 찾아 멀리 헤매게 된다. 비다양체·부유 링 아티팩트(~0.8%)도 스캔 쪽 잡음이다. ← 출처: `src/prep_cad_scan.py` 주의 절, mesh_verify.json `G_scan.cad_to_scan_mm`",
+f"- **CAD→스캔: p50 {c2s['p50']:.1f} mm 로 2배쯤 크다** — 이건 모델이 나빠서가 아니라 **스캔에 구멍이 있어서**다. 실기체 스캔은 기체를 세워 놓고 돌려 찍기 때문에 **바닥면(동체 하부)이 스캔되지 않았고**, 그 자리의 CAD 점들은 짝을 찾아 멀리 헤매게 된다. 비다양체·부유 링 아티팩트(~0.8%)도 스캔 쪽 잡음이다. ← 출처: `src/prep_cad_scan.py` 주의 절, 정본 판 원장 `G_scan.cad_to_scan_mm`",
 "",
 "방향 있는 chamfer 를 **둘 다** 공개하는 이유가 이것이다: 좋은 쪽 하나만 보여주면 스캔 구멍이 모델 결함으로 둔갑하거나(역방향만 볼 때), 모델 결함이 숨는다(순방향만 볼 때).",
 ),
@@ -379,13 +530,18 @@ md(
 "",
 "여기서부터는 \"모양\"이 아니라 \"계산\"의 검증이다. PO 는 표면을 점(작은 거울 조각)으로 덮고 반사를 위상까지 합산한다(`src/rcs_po.py` `mesh_to_points`, `:144` `drone_rcs_pattern`). 점 간격이 성기면 위상 합산이 부정확해진다 — 그럼 몇이면 충분한가? **수렴 검사**로 답한다: 간격을 λ/10 에서 λ/20 으로 **절반**(점 개수 4배)으로 줄였는데 결과가 그대로면, 답은 격자가 아니라 물리가 정한 것이다. 모눈종이 칸을 반으로 줄여 넓이를 다시 쟀는데 값이 같다면 처음 모눈도 충분했던 것과 같다.",
 "",
-f"Mavic 4 Pro 와 Phantom 4, 방위 {hm['n_az']}개(5° 간격)·고도 {hm['el_deg']:.0f}°·{hm['fc_ghz']:.1f} GHz 에서 쟀다. ← 출처: `report_mesh/src/verify_mesh_suite.py` `sec_H_po_convergence()`, 수치는 mesh_verify.json `H_po_convergence`",
+f"Mavic 4 Pro 와 Phantom 4, 방위 {hm['n_az']}개(5° 간격)·고도 {hm['el_deg']:.0f}°·{hm['fc_ghz']:.1f} GHz 에서 쟀다. ← 출처: `report_mesh/src/verify_mesh_suite.py` `sec_H_po_convergence()`, 수치는 ⚠옛 판 원장 `H_po_convergence`",
+"",
+"⚠ **이 절만 세대가 다르다.** 아래 수는 2026-08-16 판 메쉬에서 잰 것이고, 이 라운드는 다시 재지",
+"않았다. **결론은 그대로 유효하다** — 여기서 확인하는 것은 «점을 얼마나 촘촘히 찍는가» 라는",
+"적분기의 성질이지 형상의 성질이 아니기 때문이다. 다만 **절대 σ 값을 §1~§3 의 정본 판 수치와",
+"나란히 인용하지 말 것.** 다시 재려면 `verify_mesh_suite.py` 를 돌린다(§재현).",
 ),
 
 # ── 13. H 수치 코드 ──────────────────────────────────────────────────────
 code(
-"""# §4 PO 점간격 수렴 λ/10 → λ/20  ← mesh_verify.json H_po_convergence
-H = V["H_po_convergence"]
+"""# §4 PO 점간격 수렴 λ/10 → λ/20  ← ⚠옛 판 원장 mesh_verify.json H_po_convergence
+H = V0["H_po_convergence"]
 for key, h in H.items():
     a = h["azavg_dbsm"]; d = h["per_angle_absdiff_db"]
     print(f"[{NAME[key]}]  ({h['n_az']} 방위, el={h['el_deg']:.0f}°, {h['fc_ghz']:.1f} GHz)")
@@ -418,23 +574,20 @@ f"**① 세분화 ×4 불변** — 삼각형을 4배로 쪼개도(faces {SUB['fa
 "",
 f"**② 광선 간격 λ/12 → λ/24** — 이쪽이 SBR 의 **진짜 수치 놉**이다(광선을 몇 개 쏘는가). 2배 조밀하게 해도 방위평균 이동 {RAY['azavg_dbsm']['diff']:+.2f} dB, 개별 각도 평균 {RAY['per_angle_absdiff_db']['mean']:.1f} dB(최대 {RAY['per_angle_absdiff_db']['max']:.1f} dB, 역시 널) — PO 의 점간격 검사와 같은 등급으로 수렴한다.",
 "",
-f"둘을 나눠 놓지 않으면 \"메쉬를 잘게 하니 결과가 변하더라\" 같은 관찰이 **형상 문제인지 광선 밀도 문제인지** 구분할 수 없게 된다. 측정은 Mavic 4 Pro, 방위 {I['n_az']}개, GPU 에서 {I['runtime_s']:.1f} 초. ← 출처: mesh_verify.json `I_sbr_subdiv`",
-*([
+f"둘을 나눠 놓지 않으면 \"메쉬를 잘게 하니 결과가 변하더라\" 같은 관찰이 **형상 문제인지 광선 밀도 문제인지** 구분할 수 없게 된다. 측정은 Mavic 4 Pro, 방위 {I['n_az']}개, GPU 에서 {I['runtime_s']:.1f} 초. ← 출처: ⚠옛 판 원장 `I_sbr_subdiv`",
 "",
-"⚠ **이 절만 원장 세대가 다르다.** GPU 없이 원장을 갱신할 때 이 절을 지우지 않고 직전 원장에서",
-"**이월**했고, 원장 자신이 `stale: true` 로 그렇게 표시한다. 즉 위의 면 수는 이 편의 다른",
-"절(§1~§4)이 쓰는 메쉬 세대와 다를 수 있다.",
+"⚠ **이 절은 이 편에서 가장 오래된 수다.** GPU 가 필요해 원장을 갱신할 때마다 직전 판에서",
+"**이월**되어 왔고" + (", 옛 판 원장 자신이 `stale: true` 로 그렇게 표시한다" if SBR_STALE else "") + ". 즉 위의 면 수는 정본 판(§1~§3)과 다른 세대다.",
 "",
 "⇒ **읽는 법**: 이 절의 결론(«테셀레이션에 숨은 의존이 없다», «광선 간격이 수렴한다»)은",
-"파이프라인의 성질이라 그대로 유효하다. 그러나 **면 수·σ 절대값을 다른 절의 수치와 나란히",
+"계산기의 성질이라 그대로 유효하다. 그러나 **면 수·σ 절대값을 다른 절의 수치와 나란히",
 "인용하지 말 것.** 다시 재려면 GPU 에서 `verify_mesh_suite.py` 를 `--skip-sbr` 없이 돌린다.",
-] if SBR_STALE else []),
 ),
 
 # ── 16. I 수치 코드 ──────────────────────────────────────────────────────
 code(
-"""# §5 SBR 이중 검사  ← mesh_verify.json I_sbr_subdiv
-I = V["I_sbr_subdiv"]
+"""# §5 SBR 이중 검사  ← ⚠옛 판 원장 mesh_verify.json I_sbr_subdiv
+I = V0["I_sbr_subdiv"]
 sub, ray = I["subdivision_invariance"], I["ray_spacing_convergence"]
 print(f"대상 {NAME[I['drone']]} · 방위 {I['n_az']}개 · {I['fc_ghz']:.1f} GHz · "
       f"GPU {I['runtime_s']:.1f}s")
@@ -452,11 +605,15 @@ print(f"   방위평균 이동 {ray['azavg_dbsm']['diff']:+.2f} dB · "
 md(
 "## 6. 종합 판정 — 무엇을 믿고, 무엇을 조심할 것인가",
 "",
-"다섯 잣대를 한 표로 모으면 이 메쉬·RCS 파이프라인의 **신뢰 경계**가 나온다. 아래 수치는 전부 이 편에서 나온 것의 재인용이다 (← 출처: mesh_verify.json C/D/G/H/I).",
+"다섯 잣대를 한 표로 모으면 이 메쉬·RCS 파이프라인의 **신뢰 경계**가 나온다. 아래 수치는 전부 이 편에서 나온 것의 재인용이다 (← 출처: 정본 판 원장 C/D/G · ⚠옛 판 원장 H/I).",
 "",
 "### 믿어도 되는 것",
 "",
-f"- **순서 (드론 간 상대 비교)** — 치수 최악 {max(worst.values()):.1f}% · 스캔 p50 {s2c['p50']:.1f} mm 수준의 형상 충실도면 \"S1000+ > Mavic > Mini\" 같은 기종 간 RCS 서열은 형상 오차로 뒤집히지 않는다.",
+f"- **순서 (드론 간 상대 비교)** — 기종 간 크기 차이는 수십 cm 급인데, 우리 메쉬의 어긋남은 "
+  f"실기체 스캔 대비 표면 중앙값 {s2c['p50']:.1f} mm · 바깥 참값 대비 최대 −6.5 % 다. "
+  "이 폭으로는 \"S1000+ > Mavic > Mini\" 같은 기종 간 RCS 서열이 뒤집히지 않는다. "
+  "⚠ 치수표의 0.00 % 는 근거가 아니다 — 대각을 뺀 항목은 전부 **강제·정규화된 축**이라 "
+  "구성상 0 이다(§1).",
 f"- **규모 (방위평균 dBsm 의 자릿수)** — 수치 해상도를 2배로 올렸을 때 방위평균 이동이 PO {hm['azavg_dbsm']['diff']:+.2f}/{hp['azavg_dbsm']['diff']:+.2f} dB, SBR {RAY['azavg_dbsm']['diff']:+.2f} dB. 계산 격자가 결론을 흔들지 않는다.",
 "- **평균·분포 통계** — 방위평균, 백분위수, 히스토그램. 널이 흔들려도 이 통계들은 안정적이었다.",
 "",
@@ -470,12 +627,17 @@ f"- **«{NAME['mavic4pro']}·{NAME['mini5pro']} 의 세로 치수»** — 두 �
 "  **전 부품 세로 늘리기**로 맞춘다(§6.5). 세로 방향 실루엣을 쓰는 주장에는 이 꼬리표가 붙는다.",
 "- **절대 σ 를 인용할 때의 두 단서** — 배터리는 팩 **외피 전체**를 금속으로 본 상한값이고,",
 "  카메라 조립품의 반사계수 0.85 는 **출처가 없는 값**이다(나디르에서 총 σ 를 수 dB 움직인다).",
+"- ⭐**«실물과 같다» 자체가 장담되지 않는 축이다** — 바깥 참값 77행 중 24행이 어긋나 있고"
+  "(최대 −6.5 %), s1000plus·m350rtk 는 독립 참값이 0행이며, 기체×부품 120칸 중 독립 근거가"
+  " 있는 칸은 15칸이다(§1.6).",
+"- ⭐**있어야 할 부품이 다 있는지는 아무도 안 본다** — 그룹 하나가 통째로 사라져도 검사 10계열이"
+  " 전부 조용하다(인증서 §3.2). 이 편의 «치수가 맞다» 는 있는 부품에 대한 문장이다.",
 "",
 "### 6.5 실물 충실도에서 지금 남은 결함",
 "",
 "이 편의 주제가 «실물과 얼마나 맞나» 이므로, 지금 안 맞는 자리를 크기와 함께 적는다.",
 "",
-MF.defect_table(),
+defect_table_canon(),
 "",
 "← 출처: `outputs/mesh_inspect_body_arms_0816.json` `findings` · "
 "`outputs/mesh_inspect_gimbal_sensors_0816.json` `_summary` · "
@@ -486,9 +648,49 @@ MF.defect_table(),
 "",
 "### 6.6 지금 «모른다» 고 선언한 것",
 "",
-*MF.unresolved_list(),
+*unresolved_canon(),
 "",
 "⭐ **빈칸이 가짜 값보다 낫다.** 위 항목들은 값을 채워 넣는 대신 비워 두었다.",
+"",
+"### 6.7 ⭐ 인증서의 판정 — 무엇이 장담되고, 지금 봉인은 어떤 상태인가",
+"",
+"이 편의 다섯 잣대는 하나의 문서로 묶여 있다 — `docs/MESH_CERTIFICATE.md`. 판정은",
+"**«조건부 장담»** 이고, 조건은 두 줄로 요약된다:",
+"",
+"> **자기 무결성**(메쉬가 스스로 앞뒤가 맞는가)과 **회귀**(어제와 같은가)는 장담한다.  \n"
+"> **실물 충실도**(실제 기체와 같은가)와 **완전성**(있어야 할 것이 다 있는가)은 장담하지 못한다.",
+"",
+"이 편이 다루는 축은 정확히 **장담 못 하는 쪽**이다. 그래서 §1 은 «맞춘 축과 안 맞춘 축» 을",
+"가르고, §1.6 은 바깥 참값 77행을 그대로 펴 보이고, §3 은 제작에 한 번도 안 들어간 실기체",
+"스캔만을 독립 증거로 인정한다.",
+"",
+"**검사의 눈금** — «얼마나 작은 어긋남까지 보는가» 도 인증서가 실측해 두었다:",
+"",
+"| 축 | 실효 문턱 | 뜻 |",
+"|---|---|---|",
+"| 바깥 참값 | **0.07 mm** | 이 축이 가장 날카롭다(경계 대조 6/6) |",
+"| 회귀(골든 지문) | **1 nm** | 사실상 비트 단위 |",
+"| 좌우 비대칭 | 한쪽 단차 0.16 mm 통과 · 0.30 mm 실패 | 예산 숫자(0.15 mm)보다 실효 문턱이 높다 |",
+"| 매몰(면적 이중계상) | 표면적 3.3 % 이상 새로 묻혀야 | 부품 하나를 통째로 묻어도 안 걸린다 |",
+"| 원시값(NaN·Inf) | 잡히지만 절반은 **예외로 죽는다** | 판정문이 아니라 스택트레이스가 나온다 |",
+"",
+"← 출처: `docs/MESH_CERTIFICATE.md` §0·§3.4.",
+"",
+"**그리고 지금 봉인은 «다른 메쉬» 를 가리킨다.** 인증서는 자기가 어느 형상에 대한 것인지를",
+"지문으로 못 박고, 지문이 달라지면 장담이 끝난다고 스스로 선언한다(§5 무효 조건 1·6).",
+"정본 전환이 그 조건이다 — 지금 대조를 돌리면 **형상 동일 0/10 · 인증서 재발급 필요**로 나온다.",
+"바뀐 자리는 의도한 자리 그대로이고(기체마다 프로펠러 면이 늘었다), 프롭 지름 같은 공표 치수는",
+"소수점까지 그대로다. 정본 판 자체는 전수 검사를 10/10 통과한다(mesh07).",
+"",
+"⇒ 한 줄로: **검사는 통과, 봉인은 재발급 대기.** 이 편의 §1.6 표(어긋난 24행 등)는 인증서 발행",
+"시점의 판에서 잰 수이므로, 재봉인 때 함께 다시 찍어야 한다. 반대로 «독립 참값이 0행인 기체가",
+"둘» 같은 **구조적 사실은 형상과 무관하게 그대로다.**",
+"",
+"```bash",
+"# 봉인 대조(형상이 어제와 같은가) · 재봉인은 형상 라운드가 다 끝난 뒤에",
+"PYTHONPATH=src:benchmark python benchmark/mesh_certify.py",
+"PYTHONPATH=src:benchmark python benchmark/mesh_certify.py --update --reason \"…\"",
+"```",
 "",
 "### 기존 리포트와의 연결",
 "",
@@ -507,8 +709,17 @@ md(
 "PY=/workspace/.venvs/py312/bin/python",
 "cd /workspace/sionna",
 "",
-"# 1) 원장 재생성 (A~I 전 절; I 는 GPU 필요 — 없으면 --skip-sbr 로 이월된다)",
+"# 1) 정본 판 원장 재생성 → report_mesh/outputs/mesh_verify_canon_0817.json",
+"#    (치수 C·부피 D·스캔 G + 기하 A·대칭 B·겹침 F. CPU 만 쓰고 약 85 초)",
+"PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_canon_0817.py",
+"",
+"# 1b) 물리 수렴(H·I)까지 다시 재려면 옛 원장 스위트를 돌린다 — I 는 GPU 필요",
+"#     (GPU 가 없으면 --skip-sbr 로 I 절이 직전 판에서 이월된다)",
 "PYTHONPATH=src:benchmark $PY report_mesh/src/verify_mesh_suite.py",
+"",
+"# 1c) 옛 판을 비트동일하게 재현해서 같은 잣대를 걸어 본다",
+"MESH_FIX=none BLADE_LAW=legacy PYTHONPATH=src:benchmark $PY src/mesh_check.py",
+"",
 "# 2) 그림 재생성",
 "PYTHONPATH=src:benchmark $PY report_mesh/src/viz_mesh_reports.py",
 "# 3) 이 노트북 재생성",

@@ -69,7 +69,79 @@ SHORT = {k: _SHORT_OVERRIDE.get(k, drone_label(k)) for k in ORDER}
 MAT_KO = {"prop_plastic": "프로펠러 플라스틱(얇은 날개)", "plastic": "플라스틱(ABS/PC)", "carbon": "탄소섬유(CFRP)", "metal": "금속(ITU)",
           "camera_assembly": "카메라 조립품", "pcb": "PCB(FR-4+구리)"}
 
-A_M4E = V["A_geometry"]["matrice4e"]
+# --------------------------------------------------------- 정본 스위치(코드에서 읽는다)
+import geom as _GEOM                          # noqa: E402  (정본 수리·날 법칙의 유일한 자리)
+CANON_FIX = tuple(sorted(_GEOM.mesh_fix_set()))
+CANON_LAW = _GEOM.blade_law_canon()
+CANON_FIX_S = ",".join(CANON_FIX) if CANON_FIX else "none"
+
+# --------------------------------------------------------- 정본 판 원장 (2026-08-17)
+#  ⭐ 재질 원장(2026-08-16 13:15 세대)은 정본 전환 **이전** 메쉬에서 나왔다. 면적처럼 형상이
+#     정하는 값은 **정본 판 원장**에서 읽고, 재질 규칙(배정·|Γ|)만 옛 원장에서 읽는다.
+#     ⚠ 원장의 스위치가 지금 스위치와 다르면 여기서 죽는다 — 다른 판의 수를 싣지 않으려고.
+import numpy as np                             # noqa: E402
+from drones import build_drone                 # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "benchmark"))
+from mesh_internal_metal_check import check_drone   # noqa: E402  (원장을 만든 그 함수)
+
+CANON = json.load(open(os.path.join(RM, "outputs", "mesh_canon_0817.json"), encoding="utf-8"))
+_CM = CANON["_meta"]
+assert tuple(sorted(_CM["mesh_fix"])) == CANON_FIX and _CM["blade_law"] == CANON_LAW, (
+    f"정본 원장({_CM['mesh_fix']}·{_CM['blade_law']})이 지금 스위치와 다르다 — "
+    f"report_mesh/src/mesh_canon_0817.py 를 다시 돌릴 것")
+CAN = {k: dict(faces=v["n_faces"], verts=v["n_verts"], groups=v["n_groups"])
+       for k, v in CANON["per_drone"].items()}
+AREA_CANON = {}                                 # 그룹 → 함대 합계 면적 [mm²] (정본 판)
+for _k, _v in CANON["material_weighted"].items():
+    for _g, _x in _v["groups"].items():
+        AREA_CANON[_g] = AREA_CANON.get(_g, 0.0) + float(_x["area_mm2"])
+
+#  ⭐ «정본 전환만의 몫» 을 정확히 가르려면 옛 판도 같은 자로 재야 한다(추측 금지).
+#     스위치는 호출 시점에 환경변수를 읽으므로 잠깐 옛 판으로 돌려 짓고 되돌린다.
+_env_bak = (os.environ.get("MESH_FIX"), os.environ.get("BLADE_LAW"))
+os.environ["MESH_FIX"], os.environ["BLADE_LAW"] = "none", "legacy"
+AREA_LEGACY = {}
+for _k in ORDER:
+    _m = build_drone(DRONES[_k])
+    _V = np.asarray(_m.v, float)
+    _F = np.asarray(_m.f, int)
+    _G = np.asarray(_m.g)
+    _a = np.linalg.norm(np.cross(_V[_F[:, 1]] - _V[_F[:, 0]],
+                                 _V[_F[:, 2]] - _V[_F[:, 0]]), axis=1) / 2.0 * 1e6
+    for _g in set(_G):
+        AREA_LEGACY[_g] = AREA_LEGACY.get(_g, 0.0) + float(_a[_G == _g].sum())
+for _name, _val in zip(("MESH_FIX", "BLADE_LAW"), _env_bak):
+    if _val is None:
+        os.environ.pop(_name, None)
+    else:
+        os.environ[_name] = _val
+assert _GEOM.mesh_fix_set() == set(CANON_FIX) and _GEOM.blade_law_canon() == CANON_LAW
+#  정본 전환으로 **실제로** 움직인 그룹만 고른다(0.05 % 이상).
+MOVED = sorted((g for g in AREA_CANON
+                if abs(AREA_CANON[g] - AREA_LEGACY[g]) / AREA_LEGACY[g] > 5e-4),
+               key=lambda g: -abs(AREA_CANON[g] - AREA_LEGACY[g]))
+
+#  커버리지 표는 «그룹 라벨» 축이라 형상이 바뀌어도 안 움직여야 한다 — 정본 판에서 확인한다.
+#  (`drone_gamma_map` 은 Sionna 씬을 열어 GPU 를 요구하므로 부르지 않는다. 여기서 보는 것은
+#   «메쉬에 실재하는 그룹 라벨이 배정표 키로 덮이는가» 뿐이고, 그것이 커버리지 검사의 정의다.)
+GROUPS_CANON = {k: sorted(CANON["per_drone"][k]["groups"]) for k in ORDER}
+GROUPS_CANON_SAME = all(GROUPS_CANON[k] == list(EM[k]["groups"]) for k in ORDER)
+UNCOVERED_CANON = sorted({g for k in ORDER for g in GROUPS_CANON[k]
+                          if not any(g == kk or g.startswith(kk + "_")
+                                     for kk in DRONE_GROUP_MAT)})
+
+#  «내부 금속이 정말 셸 안인가» — 판정은 정본 원장에서 읽고, «얼마나 나왔나» 는 원장을 만든
+#  그 함수로 여기서 재서 덧붙인다(판정이 어긋나면 assert 로 멈춘다).
+INTMETAL = {k: check_drone(k) for k in ORDER}
+for _k in ORDER:
+    assert INTMETAL[_k]["verdict"] == CANON["internal_metal"][_k]["verdict"], (
+        f"{_k}: 내부금속 판정이 원장과 다르다 — 원장을 다시 만들 것")
+_IM_MEAN = {"PASS": "금속 상자가 전부 셸 안에 있다",
+            "FAIL": "금속 상자의 일부가 셸 **밖**으로 나와 있다",
+            "N/A": "설계상 열린 프레임이라 «셸 안» 이라는 물음이 성립하지 않는다",
+            "UNKNOWN": "셸이 닫혀 있지 않아 안/밖 판정 자체가 정의되지 않는다"}
+
+A_M4E = dict(n_faces=CAN["matrice4e"]["faces"], n_groups=CAN["matrice4e"]["groups"])
 
 def md(*lines):
     src = "\n".join(lines).splitlines(keepends=True)
@@ -93,7 +165,16 @@ cells.append(md(
         "부위마다 어떤 전파 재질을 배정했고, 그 배정 중 무엇이 근거를 갖고 "
         "무엇이 아직 **출처 없는 대표값**인가.",
         ["verify", "materials", "internal", "internal_check", "gimbal",
-         "material_correction"]),
+         "material_correction"],
+        extra=[("docs/MESH_CERTIFICATE.md",
+                "메쉬 인증서 — 재질 라벨 축(G10)은 장담, 재질 **물성값의 옳음**은 범위 밖(§3.6)")]),
+    "",
+    f"> ⚠ **원장 세대와 정본 설정** — 지금 메쉬는 `MESH_FIX_CANON = ({CANON_FIX_S})` · "
+    f"`BLADE_LAW_CANON = \"{CANON_LAW}\"` 로 지어진다(← `src/geom.py`). 위 원장들은 그 전환 "
+    f"**이전** 세대라, 이 편에서 **형상이 정하는 값(면 수·면적·«금속이 셸 안인가» 판정)은 이 "
+    f"정본 판에서 다시 잰 원장** `report_mesh/outputs/mesh_canon_0817.json` 에서 읽고 그렇게 "
+    f"표시한다. "
+    f"재질 규칙 자체(배정표·\\|Γ\\|·두 엔진 갈림)는 정본 전환과 무관하므로 원장 그대로다.",
     "",
     f"**한 줄 요약** — 드론 3D 메쉬의 부위 그룹 {len(DRONE_GROUP_MAT)}개마다 전파 재질과",
     f"진폭 반사계수 |Γ|@{FC_GHZ:g} GHz 를 배정하고, **렌더 색을 재질과 1:1 로 묶어**",
@@ -312,8 +393,10 @@ cells.append(md(
     "![matrice4e wireframe](outputs/figures/wireframe_matrice4e.png)",
     "",
     f"*그림 2 — {DRONES['matrice4e'].name} 메쉬(삼각형 {A_M4E['n_faces']:,}개, 그룹 {A_M4E['n_groups']}개",
-    "← 출처: `mesh_verify.json` §A_geometry). 왼쪽: 색=재질 셰이딩, 가운데: 와이어프레임,",
-    "오른쪽: 상면도. 그림 생성: `report_mesh/src/viz_mesh_reports.py`.*",
+    f"← 출처: `report_mesh/outputs/mesh_canon_0817.json`, 정본 판). 왼쪽: 색=재질 셰이딩, 가운데: 와이어프레임,",
+    "오른쪽: 상면도. 그림 생성: `report_mesh/src/viz_mesh_reports.py`.",
+    "⚠ 그림 자체는 정본 전환 이전 판으로 구워졌다 — **색 규칙과 그룹 구성**을 보는 그림이라 "
+    "그 축은 그대로지만, 프로펠러의 폭 분포는 지금 메쉬와 다르다(mesh05 §5c).*",
     "",
     f"이 기종에 실재하는 그룹은 {A_M4E['n_groups']}개 — {m4e_groups}",
     "← 출처: `mesh_verify.json` §E_materials matrice4e.groups. 색을 읽어보면:",
@@ -391,7 +474,8 @@ cells.append(md(
     "(DJI 공식 CAD 벽 두께 중앙값 0.704 mm 실측), 민감도 축은 0.75 / 1.5 / 3.0 mm 다 "
     "← `docs/MATERIAL_CORRECTION.md` D1. 위 표의 `plastic` note 문면은 그보다 두꺼운 대(1~3 mm)를 "
     "가정한 서술이 남아 있다 — **채택한 대표값 0.28 은 그대로 쓰고, 두께를 인용할 때는 "
-    "정본 0.75 mm 를 쓸 것.** ⏳ 프로펠러 두께 규약은 기체별 프로펠러 정본화 라운드가 정본이다.",
+    "정본 0.75 mm 를 쓸 것.** 프로펠러 두께는 §6.5 에 적는다(전 기종 공용 상수이고 실측 근거가 "
+    "있는 기체가 둘뿐이다).",
 ))
 
 # --- 11. code: 프레넬 직접 계산 --------------------------------------------------------
@@ -473,6 +557,21 @@ cells.append(md(
     f"(uncovered·all_covered 필드). 기종마다 그룹 수가 {_g_min}~{_g_max}개로 갈리는 것"
     f"(가장 많은 쪽 {_g_max_who} · 가장 적은 쪽 {_g_min_who})은 §2.1 에서 본 대로 기체 구조의 차이 —"
     " 검사는 '있는 그룹'만 따진다.",
+    "",
+    f"⭐ **정본 판에서 다시 확인했다** — 이 노트북을 생성할 때 정본 설정으로 {len(ORDER)}기체를 "
+    f"다시 지어 그룹 라벨을 모아 보면, 위 표와 그룹 구성이 "
+    f"{'완전히 같고' if GROUPS_CANON_SAME else '**달라졌고**'} 배정표가 못 덮는 라벨은 "
+    f"{len(UNCOVERED_CANON)}개다. 즉 **정본 전환은 «어느 부위가 있는가» 를 바꾸지 않았다** — "
+    f"바뀐 것은 그 부위의 크기(면적·삼각형 수)뿐이다(§6.6).",
+    "",
+    "⭐ **이 축은 인증서가 밖에서 한 번 더 조인다** — «그룹 라벨이 세 재질표에 모두 있고, 모르는",
+    "재질이 조용히 기본값으로 흘러가는 자리가 없다» 를 10/10 으로 장담하고, 일부러 라벨을 망가뜨린",
+    "**양성 대조 39/39** 로 «검사가 실제로 문다» 는 것까지 보였다",
+    "← 출처: `docs/MESH_CERTIFICATE.md` §2 G10(`adv_material_provenance_faults`).",
+    "",
+    "⛔ 반대로 인증서가 **선을 긋는 자리**도 그대로 옮긴다: «재질 물성값(εr·tanδ)의 옳음은 이",
+    "인증서의 범위 밖» 이다 ← 같은 문서 §3.6. 즉 **여기서 보증되는 것은 «빠진 라벨이 없다»** 이고,",
+    "**«그 값이 실물과 같다» 는 보증이 아니다.** 그 축의 한계는 §7 에 모아 적는다.",
 ))
 
 # --- 13b. §6.5 두 계산 경로의 |Γ| 는 설계상 다르다 -------------------------------------
@@ -496,9 +595,18 @@ cells.append(md(
     "즉 PO 경로는 «두꺼운 판» 극한으로 계산하고, 두께는 그 상수를 고를 때 한 번만 반영된다.",
     "이 한계는 지금 그대로 있고, 값은 발표까지 동결돼 있다.",
     "",
-    "⏳ **프로펠러의 두께 규약은 기체별 프로펠러 정본화 라운드가 정본이다** — 이 절에서는",
-    "값을 적지 않는다. 지금 확실한 것만: 프로펠러 재질은 셸과 **같은 플라스틱**이고,",
-    "다른 것은 재질이 아니라 **두께**다.",
+    "**프로펠러의 두께는 어디에 있나** — 프로펠러 재질은 셸과 **같은 플라스틱**이고, 다른 것은",
+    "재질이 아니라 **두께**다(그래서 실효 \\|Γ\\| 만 0.28 → 0.25 로 낮춘 대표값을 쓴다). 그 두께의",
+    "현재 상태를 못 박아 둔다:",
+    "",
+    f"- 정본 날 법칙(`BLADE_LAW_CANON = \"{CANON_LAW}\"`)은 프로펠러의 **평면형(위에서 본 폭 분포)만**",
+    "  기체별로 바꿨다. **두께 상수는 안 건드렸다** — `TC_ROOT`=0.095 → `TC_TIP`=0.065 가",
+    f"  {len(ORDER)}기종 **공용**이다 ← `src/drone_cad.py`.",
+    "- 두께에 실측 근거가 있는 기체는 **둘뿐**이다(mini2 [A] 시위가중 평균 0.478 mm · typhoonh480",
+    "  [A−] 두께비 t/c 0.086~0.128). 나머지 8기체는 빈칸이고, 사진으로는 원리적으로 못 잰다",
+    "  ← `outputs/prop_law_by_airframe_0816.json` §F · 형상 쪽 설명은 mesh05 §6.5.",
+    "- ⇒ 프롭 \\|Γ\\|=0.25 라는 **한 상수**가 두께 축을 통째로 대신하고 있다. 우리 PO 커널에",
+    "  두께 개념이 없으므로(위 문단) 이 상수를 바꾸는 것 말고는 두께 감도를 볼 길이 없다.",
 ))
 
 # --- 13c. §6.6 함대 전체 배정표 --------------------------------------------------------
@@ -513,15 +621,52 @@ cells.append(md(
     "← 출처: `outputs/mesh_inspect_materials_check_0816.json` `assignment_audit`.",
     "⚠ 표시는 «배정 자체를 다시 봐야 하는 칸» 이다 — §7 의 한계 목록 참조.",
     "",
+    f"⭐ **면적 열의 세대** — 위 면적은 2026-08-16 13:15 원장 세대다. 정본 설정"
+    f"(`MESH_FIX={CANON_FIX_S}` · `BLADE_LAW={CANON_LAW}`)으로 다시 지어 재면 "
+    f"**{len(MOVED)}개 그룹**이 움직인다. 옛 판(`MESH_FIX=none BLADE_LAW=legacy`)도 같은 자로 "
+    f"지어 재서 «정본 전환만의 몫» 을 갈라 적는다:",
+    "",
+    "| 그룹 | 옛 원장 [cm²] | 옛 판 실측 [cm²] | 정본 판 원장 [cm²] | 정본 전환만의 몫 | 무엇이 바꿨나 |",
+    "|---|---|---|---|---|---|",
+    *[f"| `{g}` | {MF.MAT['assignment_audit'][g]['total_area_mm2'] / 100:,.0f} "
+      f"| {AREA_LEGACY[g] / 100:,.0f} | **{AREA_CANON[g] / 100:,.0f}** "
+      f"| {100 * (AREA_CANON[g] - AREA_LEGACY[g]) / AREA_LEGACY[g]:+.1f} % | {why} |"
+      for g, why in [  # noqa: E501
+          ("prop", "정본 날 법칙 — 기체마다 그 기체의 평면형이라 대부분의 프롭이 옛 판보다 "
+                   "홀쭉해졌다(mesh05 §5c). 삼각형 수는 오히려 늘었다(팁을 더 촘촘히 깐다)"),
+          ("battery", "정본 메쉬 수리 `battery` — 팩 상자와 구조판이 서로 파고들던 것을 "
+                      "합집합으로 없애, **두 번 세어지던 면적**이 사라졌다"),
+      ]],
+    "",
+    f"나머지 {len(DRONE_GROUP_MAT) - len(MOVED)}개 그룹은 옛 판과 정본 판의 면적이 **같다** "
+    f"(위와 같은 자로 확인). 그런데 표의 `camera` 처럼 **원장과 지금 빌드가 다른 칸**이 더 있는데, "
+    f"그것은 정본 전환이 아니라 그 사이의 **치수 적용 라운드**에서 온 차이다 — 면적을 인용할 때는 "
+    f"어느 세대인지 밝힐 것.",
+    "",
     "### 내부 금속이 정말 셸 «안» 에 있나",
     "",
     "재질 배정이 옳아도, 그 금속이 **어디에 있는지**가 다르면 계산이 달라진다. 우리 SBR 은",
     "**셸을 맞은 광선만** 내부를 투과로 본다 — 금속 상자가 셸 밖으로 나와 있으면 그 상자는",
     "«내부 산란체» 가 아니라 그냥 겉면이 된다.",
     "",
-    MF.internal_metal_table(ORDER, drone_label),
+    "| 기체 | 판정 | 셸 밖으로 나온 금속면 | 무엇을 뜻하나 |",
+    "|---|---|---|---|",
+    *[f"| {drone_label(k)} | **{INTMETAL[k]['verdict']}** | "
+      + (" · ".join("`%s#%d` %.2f cm² (그 상자 겉면의 %.1f %%)"
+                    % (b["group"], b["comp"], b["counted_outside_area_cm2"],
+                       b["counted_outside_frac"] * 100)
+                    for b in INTMETAL[k].get("boxes", []) if not b["pass"])
+         if any(not b["pass"] for b in INTMETAL[k].get("boxes", [])) else "—")
+      + f" | {_IM_MEAN[INTMETAL[k]['verdict']]} |" for k in ORDER],
     "",
-    "← 출처: `outputs/mesh_internal_metal_check_0816.json`.",
+    f"↑ 판정은 정본 판 원장 `report_mesh/outputs/mesh_canon_0817.json` §internal_metal "
+    f"(`MESH_FIX={CANON_FIX_S}` · `BLADE_LAW={CANON_LAW}`), «얼마나 나왔나» 는 그 원장을 만든 "
+    "그 함수 `benchmark/mesh_internal_metal_check.py` `check_drone`(0.5 mm 격자)로 이 노트북 "
+    "생성 시점에 덧붙여 잰 값이다 — 판정이 원장과 어긋나면 생성기가 멈춘다.",
+    "",
+    "⭐ **Mini 2 가 «판정 불가» 에서 벗어났다.** 정본 수리 `i5` 가 셸을 닫아 안/밖 판정이 "
+    "성립하고, 그 결과가 **FAIL** 이다 — 배터리 상자의 일부가 셸 밖으로 나와 있다. "
+    "즉 셸이 열려 있던 동안 이 기체는 «통과» 도 «실패» 도 아닌 **모르는 상태**였다.",
 ))
 
 # --- 14. §7 요약 + 한계 ----------------------------------------------------------------
@@ -551,6 +696,17 @@ cells.append(md(
     "- ⭐ **배터리는 팩 외피 6면 전부를 금속으로 둔 상한값이다.** 실물 팩은 플라스틱 케이스 안에",
     "  셀 스택이 들어 있어 되쏘는 금속면이 더 작다. 크기는 1~3 dB 급이고 **미해결로 선언돼 있다**",
     "  ← `outputs/mesh_inspect_internal_metal_0816.json` `battery_material`.",
+    "  ⭐ 다만 «상한» 의 뜻이 좁아졌다 — 정본 수리 `battery` 가 켜져 있어 **팩 상자와 구조판이",
+    "  서로 파고들어 같은 면적을 두 번 세던 몫은 이제 없다**(4기체, 겹침 47.9~50.0 % → 0 %;",
+    f"  함대 `battery` 면적이 옛 판 {AREA_LEGACY['battery'] / 100:,.0f} → 정본 "
+    f"{AREA_CANON['battery'] / 100:,.0f} cm², "
+    f"{100 * (AREA_CANON['battery'] - AREA_LEGACY['battery']) / AREA_LEGACY['battery']:+.1f} %)",
+    "  ← `src/geom.py` `MESH_FIX_CANON`.",
+    "  남은 상한성은 «6면 전부 금속» 이라는 재질 가정 하나다.",
+    "- ⭐ **인증서가 이 편의 경계를 명시한다** — 라벨 축(빠진 재질 없음)은 장담하지만,",
+    "  «재질 물성값(εr·tanδ)의 옳음 · 커널(PO·SBR)의 옳음» 은 **인증서의 범위 밖**이라고",
+    "  적혀 있다 ← `docs/MESH_CERTIFICATE.md` §3.6. 즉 이 편의 표가 보증하는 것은 «배정이",
+    "  일관되고 빠짐이 없다» 까지이고, 값 자체의 실물 충실도는 별도 축이다.",
     "- ⭐ **s1000plus 의 카본 센터플레이트가 `plastic` 그룹에 들어 있다** — 판 2장만 세도",
     "  body 합집합 전 면적의 상당 부분이고, 면 반사율로는 carbon 0.90 ↔ plastic 0.28 =",
     "  **10.14 dB** 차이다 ← `outputs/mesh_inspect_materials_check_0816.json` `findings` A1.",
@@ -568,12 +724,17 @@ cells.append(md(
     "## 재현 방법",
     "",
     "```bash",
+    "# 1) 정본 판 원장(mesh_canon_0817.json) 재생성 — 면 수·면적·내부금속 판정이 여기서 온다",
+    "cd /workspace/sionna",
+    "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \\",
+    "    report_mesh/src/mesh_canon_0817.py",
+    "",
     "cd /workspace/sionna/report_mesh",
-    "# 1) 검증 수치(mesh_verify.json) 재생성",
+    "# 2) 재질 원장(mesh_verify.json §E_materials) 재생성",
     "/workspace/.venvs/py312/bin/python src/verify_mesh_suite.py",
-    "# 2) 그림(material_legend.png, wireframe_matrice4e.png 등) 재생성",
+    "# 3) 그림(material_legend.png, wireframe_matrice4e.png 등) 재생성",
     "/workspace/.venvs/py312/bin/python src/viz_mesh_reports.py",
-    "# 3) 이 노트북 재생성 (⚠ 본문 수정은 반드시 이 파일에서)",
+    "# 4) 이 노트북 재생성 (⚠ 본문 수정은 반드시 이 파일에서)",
     "/workspace/.venvs/py312/bin/python src/make_mesh06.py",
     "```",
     "",
