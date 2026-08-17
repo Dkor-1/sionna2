@@ -1,3 +1,87 @@
+# ⭐⭐재개 지점 — 2026-08-17 밤 (다른 PC 로 옮기는 중)
+
+> 이 블록이 **가장 최신**이다. 아래 옛 블록보다 먼저 읽는다.
+
+## 0. 지금 도는 것 — 세션 끊겨도 산다
+
+| 무엇 | 상태 |
+|---|---|
+| **정본 메쉬 앙각 빈 칸 41 칸 채우기** | 돌는 중. 드라이버 PPID=1(`setsid nohup`), 워커 3, **GPU 2·3 만** |
+
+```bash
+# ① 드라이버가 사나 (PPID 가 1 이어야 세션 무관)
+ps -eo pid,ppid,etimes,cmd | grep '[r]un_gaps_0817'
+# ② 워커가 도나 — ⭐CPU 누적(times) ≥ 경과(etimes) 면 진짜 계산 중
+ps -eo pid,etimes,times,cmd | grep '[e]levation_sweep_md'
+# ③ 산출이 느나
+ls /workspace/sionna/outputs/elev_sweep_shards/*mfix*.npz | wc -l   # 2026-08-17 23:46 에 264
+```
+
+**죽었으면 그냥 다시 띄운다** — 이미 난 샤드는 건너뛴다.
+
+```bash
+cd /workspace/sionna
+setsid nohup bash runners/run_gaps_0817.sh runners/jobs_0817.txt 3 /tmp/gaps_0817.log \
+  > /tmp/gaps_driver.log 2>&1 < /dev/null &
+```
+
+⛔**OptiX 환경변수 두 개가 없으면 워커가 즉시 죽는다**(`rt.load_scene()` 에서 터지고, 재질
+조회 때문에 **우리 커널 팔도 같이** 막힌다). `runners/run_gaps_0817.sh` 안에 이미 들어 있다:
+
+```bash
+export DRJIT_LIBOPTIX_PATH=/workspace/.venvs/optix/libnvoptix.so.1
+export LD_LIBRARY_PATH=/workspace/.venvs/optix:$LD_LIBRARY_PATH
+```
+
+⛔**자동 kill 금지.** 감시는 보고만 하고, 죽이는 것은 근거 확인 후 수동으로.
+
+## 1. 왜 이 줄을 샀나
+
+「전면 재계산」이 끝났다고 했지만 실제로는 기체·팔마다 앙각 구멍이 있었다. 이대로 판정을
+돌리면 **기체 비교가 각도마다 표본이 달라 결론이 흔들린다.**
+
+| 기체 | 우리 커널 | 물리 끔 | 굴절만 |
+|---|---|---|---|
+| matrice4e | ✅ 10 | 7 (−15·−45·−75 빠짐) | 9 (−90 빠짐) |
+| mavic4pro | 7 (−52·−68·−82 빠짐) | 7 (같음) | 5 |
+| mini5pro | 7 (같음) | 7 (같음) | 5 |
+| s1000plus | 7 (같음) | 5 | **3** |
+
+## 2. 다 나면 할 일 (순서 고정)
+
+1. `~/.venvs/py312/bin/python benchmark/elevation_sweep_md.py --merge` — ⛔자동 아님, 직접
+2. **판정 재실행** — 재질·프레임 완성표·분류·탐지곡선·아틀라스 (계획표 8/18 칸)
+3. **잡음 본판 + SNR 눈금** (8/19 칸) — ⚠링크버짓 D 급 상수(EIRP·손실·capture)가 아직 없고
+   X410 스펙시트에 송신전력·안테나이득·NF 가 없다. 그것부터 구해야 시작된다
+
+⚠**빈 칸이 채워지기 전에는 분류·완성표를 돌리지 않는다** — 표본이 각도마다 다르면 깨진다.
+
+## 3. 8/18 덱 — 끝났다
+
+**v23 이 최종**이고 `team_meeting`(0518b84)·`sionna/decks`(2d83a59) 양쪽에 있다. 더 손대지 않는다.
+v22(사용자 판)를 **직접 편집**해서 만든 것이라 빌더로 다시 지으면 안 된다 —
+파워포인트에서 한 편집이 날아간다. 수리 스크립트는
+`/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/make_v23.py`.
+
+## 4. 이번 세션에서 확정한 사실 (다시 재지 말 것)
+
+- ⭐**Ziganshin OJAP 게재 확정**(Crossref `journal-article`, DOI `10.1109/OJAP.2026.3717211`).
+  ⚠쪽 `1-1`·권 미배정 = **Early Access** 라 권·쪽 인용 금지, DOI 로만.
+  ⇒ novelty 서술은 «메쉬 확장은 심사 통과 사례가 없다» 가 **아니라** «있으나 자동차·PEC·정지체».
+- ⭐**보관함 심링크가 사라져 있었다**(옛 경로 하드코딩 127 개). 복구해 뒀다 —
+  `/data/public/sionna_jeong` → `/data/public/sionna/sionna_jeong`,
+  `/data/public/jeong` → `/data/public/sionna/jeong`. 컨테이너가 새로 뜨면 또 확인.
+- ⭐**«Body echo removed» 와 «Propellers only» 는 다른 실험이다.** 앞은 같은 데이터의 후처리
+  (평균 빼기), 뒤는 동체 메쉬를 뺀 **새 시뮬**. 0° 리듬 몫이 13.1 % 대 89.7 % 로 갈린다.
+  ⭐우리 커널에서만 둘이 **같다**(상관 1.000) — 가림 계산이 없어 동체가 상수라서다.
+- ⭐**확산 산란의 정체**: 광선 수를 늘리는 스위치가 아니라 **수신기와 악수하게 해주는**
+  스위치다. 소스 `sb_candidate_generator.py`: `valid = los_visible & diffuse & target_incident_side`
+  — 확산 충돌에서만 수신기로 선을 긋는다. 정반사 체인은 image method(정확한 거울 기하)를
+  통과해야 해서 드론에서는 거의 0. 실측 경로 중앙값 0°/−30°/−60° = **897·1505·2070(확산 켬)
+  대 3·0·0(공장 기본)**, 시간은 1.3~1.4 배뿐(광선 수가 고정이라).
+
+---
+
 > 📌 2026-08-16 재편 라운드: 리포트 번호를 **본편 11권 + 별편 8편** 위계로 개편(옛→새 환산은 `docs/RESTRUCT_PLAN.md` §1 표가 정본) — 이 문서의 옛 번호 참조는 새 표기로 갱신했고, 아래 본문의 «리포트 N» 은 전부 새 번호다.
 
 # ⭐⭐⭐진행 중인 계획 — 「표적을 실물에 맞추고 다시 잰다」 (2026-08-16 사용자 확정)
