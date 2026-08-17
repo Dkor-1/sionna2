@@ -39,8 +39,10 @@
 
 정산으로 뒤집힌 것(자세한 원장은 `outputs/prior_settled_*.json` 4개 · survey JSON 의
 `contradictions`): Clutter-Aware ISAC 은 **Sionna 를 쓴다**(pw04 의 제외 항목을 삭제하고
-표2 행으로 편입) · md-rt 는 **광선발사기를 개조**했다 · Ziganshin 저널판은 **OJAP 투고
-프리프린트** · OpenISAC 은 **프리프린트** · LAMBDA 의 **CADFEKO 는 원문에 두 번 명시** ·
+표2 행으로 편입) · md-rt 는 **광선발사기를 개조**했다 · ⭐Ziganshin 저널판은 **2026-08-17 부로
+OJAP 게재 확정**(DOI `10.1109/OJAP.2026.3717211`, Crossref `journal-article` · 단 쪽 `1-1`
+= **Early Access** 이므로 권·쪽 인용 금지 — 자세히는 `po_refinement_survey.md` §4.1) ·
+OpenISAC 은 **프리프린트** · LAMBDA 의 **CADFEKO 는 원문에 두 번 명시** ·
 Sionna RT 1차 사료 2편은 등급 **[W]→[P](=`PRIMARY`)** · Wypich & Zielinski 는 **원문 미확보**
 로 강등 · Ezuma/Güvenç 앵커 3행의 `VERIFIED` 제거.
 

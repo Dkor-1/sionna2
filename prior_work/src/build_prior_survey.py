@@ -411,7 +411,7 @@ H8_PRONGS = [
 NEAR_MISS = [
     dict(rank=1, paper="Rzewuski (NATO STO 2021)", gap_ko="엔진 한 칸 — 광선엔진 대신 FDTD 로 풀었다",
          why_ko="같은 최종물: WiFi 대역 드론 바이스태틱 σ → 패시브 커버리지 → 실측 검출 50 m"),
-    dict(rank=2, paper="Ziganshin 학회판(게재) + 저널판(프리프린트)", gap_ko="표적 종류 하나 — 차량이다",
+    dict(rank=2, paper="Ziganshin 학회판(EuCAP 2025 게재) + 저널판(OJAP 게재, Early Access)", gap_ko="표적 종류 하나 — 차량이다",
          why_ko="메쉬 산란을 Sionna 안에서 계산하고 바이스태틱 실측·FEKO MLFMM 과 맞댄다"),
     dict(rank=3, paper="Clutter-Aware ISAC (Proc. IEEE 2026)", gap_ko="검증 한 칸 — 41쪽에 `validat*` 0회, dBsm 0회",
          why_ko="게재본이고 UAV 메쉬가 실제로 Sionna 안에 있다"),
@@ -602,7 +602,9 @@ CONTRADICTIONS = [
          fixed_in=["prior_work/src/pw04_data.py", "src/make_report01_prior.py"]),
     dict(id="H7", verdict="REFUTED (쓰인 대로)", topic_ko="Ziganshin·Sagitta·LAMBDA·OpenISAC 은 프리프린트뿐",
          settled_ko="Ziganshin 학회판은 EuCAP 2025 게재본이고, Sagitta 는 ICCS 2026 채택본의 확장판이다. "
-                    "프리프린트만인 것은 Ziganshin 저널판 · LAMBDA · OpenISAC 이다",
+                    "프리프린트만인 것은 LAMBDA · OpenISAC 이다. ⭐2026-08-17 갱신: Ziganshin 저널판도 "
+                    "OJAP 게재 확정(DOI 10.1109/OJAP.2026.3717211, Crossref journal-article). "
+                    "단 쪽이 1-1 이라 Early Access 이고 권·쪽 인용은 아직 불가",
          fixed_in=["prior_work/sionna_sensing_survey.md"]),
     dict(id="N-01", verdict="REFUTED (이번 라운드 신규)", topic_ko="FWA 협동센싱(2605.07623)의 게재 주장 위치",
          settled_ko="채택 문장이 **PDF 본문 p.1 에 있다** — \"This work has been partly accepted by IEEE ICC "

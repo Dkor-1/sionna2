@@ -263,6 +263,14 @@ matrice4e 는 **DJI 공식 CAD(M4T_v2.step, 158 MB)로 동체를 지었고 폭 �
 
 ## 4. ⚠ 미해결 선언 (지금 열려 있는 것만)
 
+0. ⚠**`prior_work/src/build_prior_survey.py` 가 안 돈다** (2026-08-17 확인, **내 편집과 무관한 선재 결함**).
+   `anchor_block()` 이 `rcs_anchor.json` 의 `literature.mu_eps.multiband_phantom3` 를 읽는데 그 키가 없다 —
+   `84ed913`(«Phantom 3 재제작») 에서 앵커가 `das_phantom3_mono` · `yuan_phantom3_{azplane,top,bottom}` 으로
+   갈렸는데 이 소비자를 안 고쳤다. ⇒ **pw01~pw04 노트북과 `outputs/prior_work_survey.json` 은 그 커밋
+   이후로 재생성된 적이 없다.** 고칠 때 σ 앵커를 건드리게 되므로 병합·판정이 끝난 뒤에 손댄다.
+   그 전까지 선행연구 정본은 **마크다운**(`prior_work/README.md` · `po_refinement_survey.md`)이고,
+   노트북은 옛 판이다.
+
 1. ⭐**«회절이 왜 리듬을 지우는가» 는 잘못된 질문이었다.** 회절은 **지우지 않고 덮는다** — 켠 시계열이
    끈 시계열을 계수 ≈1 로 품고 있고, 원래 빗살은 새 바닥보다 **21.5 dB**(다섯 쌍에서 16.5~22.6 dB)
    아래에 잠긴다. 남은 질문은 하나로 좁혀졌다 — **상한 위로 새는 그 회절 항이 물리인가 추정기

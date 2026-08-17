@@ -260,13 +260,19 @@ arXiv:2604.05991** — **[원문 정독]**
 |---|---|
 | 소속 | TU Ilmenau (EMS/ThIMo) + Univ. of Bologna (DEI) |
 | 판본 | **v1 2026-04-07**, **v2 2026-07-02** (arXiv 목록에서 확인) |
-| 상태 | 논문 첫 장 각주 축자: *"This is a **preprint version of a manuscript submitted to** the IEEE Open Journal of Antennas and Propagation."* / arXiv journal-ref **없음** (2026-08-11 확인) ⇒ **투고 상태이지 게재 확정 아님** |
+| 상태 | ⭐**2026-08-17 갱신 — 게재 확정.** Crossref 원장이 DOI `10.1109/OJAP.2026.3717211` 을 **`type: journal-article`**, container `IEEE Open Journal of Antennas and Propagation`, 저자 6인(Ziganshin·Vitucci·Kotterman·Thoma·Schneider·Degli-Esposti), 연도 2026 으로 등록. ⇒ **심사 통과한 저널 논문**이다.<br>⚠단 **쪽이 `1-1` 이고 권 배정이 없다** — IEEE 의 **Early Access** 표시다. 그러므로 «Vol. 7, pp. 1–13» 으로 인용하면 안 된다(팀 주간보고 2026-08-17 이 그렇게 적었으나 Crossref 와 불일치). 호가 붙을 때까지 **DOI 로만** 인용한다.<br>구 기록(2026-08-11): arXiv 각주 *"preprint version of a manuscript submitted to…"* · journal-ref 없음 ⇒ 그 시점엔 투고 상태였다. |
 | 보관함 사본 | `papers_isac_sionna/2604.05991__…pdf` 와 `paper_sionna_Ray_0723/Ray-Based Simulation…pdf` 는 **md5 동일** (`cb5c0f0c…`) — 같은 파일이 두 이름으로 있는 것이지 회의판/저널판이 아니다 |
 | 코드 | `github.com/AinurZiga/sionna-RT-reflectivity` (Sionna-RT **v0.19** 기반) |
 | 선행판 | Ziganshin et al., *Ray-based simulation of multistatic scattering from target objects in ISAC*, **EuCAP 2025** — **[원문]** (보관함에 있음) |
 
-> ⚠ 메모리의 «Ziganshin 저널판↔회의판 반드시 구별» 규칙을 여기에 적용하면: **이 논문은 아직
-> 저널판이 없다.** 회의판은 별건(EuCAP 2025)이고 내용이 다르다(구 12.8λ, facet 7.5λ/1.0λ 두 종만).
+> ⚠ 메모리의 «Ziganshin 저널판↔회의판 반드시 구별» 규칙을 여기에 적용하면: **이제 저널판이
+> 있다**(OJAP, Early Access, DOI 위 참조). 회의판은 여전히 별건(EuCAP 2025)이고 내용이 다르다
+> (구 12.8λ, facet 7.5λ/1.0λ 두 종만). 두 판을 섞어 인용하지 않는다.
+>
+> ⭐**이 변화가 우리 novelty 서술에 미치는 영향** — 이제 «표적을 메쉬로 놓고 산란을 확장한
+> 심사 통과 연구는 없다» 고 쓰면 **거짓**이다. 참인 진술은: **심사 통과한 확장은 존재하나
+> 표적이 자동차·PEC 단일재질·정지체이고, 회전 로터·부품별 이종재질·마이크로도플러로는
+> 확장되지 않았다.** 우리 자리는 «최초의 메쉬 확장» 이 아니라 «그 확장이 안 간 축» 이다.
 
 ### 4.2 무엇을 고치나 · 얼마나 좋아지나 · 비용
 
