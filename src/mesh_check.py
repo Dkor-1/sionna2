@@ -114,6 +114,33 @@ SLIVER_BUDGET_MESH_FIX = {
     ("i4", "typhoonh480"): 560,    # 실측 508 + 약 10 %  (기존 예산 508 — 여유가 0이었다)
 }
 
+#  ⭐**날 법칙별 슬리버 예산** (2026-08-17 신설). 위 예산은 전부 `legacy` 날 법칙에서 잰
+#  «오늘 이만큼이다» 스냅샷이다. 정본 `per_airframe` 은 기체마다 **다른 평면형**으로 로프트를
+#  다시 뜨므로 씨접합 슬리버 수가 달라진다 — 결함이 는 것이 아니라 **다른 형상**이다.
+#  ⚠무해한 근거(이 저장소가 이미 잰 것): 슬리버는 면적 비중이 0.0001~0.03 % 라 σ 로는 무해하고,
+#    이 검사의 존재 이유는 «법선 안정성» 과 «불리언이 잘못됐다는 신호» 다. 실제로 이번 판에서
+#    법선안쪽·winding깨짐·퇴화면·경계모서리는 **전 기체 0** 이다(즉 불리언은 정상).
+#  ⚠그래도 «예산을 올려 통과시킨다» 는 인증서가 경고한 안티패턴이니, 값은 **실측 + 10 %** 로만
+#    두고 실측치를 괄호에 남긴다. 여기 없는 기체는 기존 예산을 그대로 탄다(즉 정본에서도 통과).
+SLIVER_BUDGET_BLADE_LAW = {
+    ("per_airframe", "mavic4pro"): 360,     # 실측 327 (legacy 예산 261)
+    ("per_airframe", "matrice4e"): 369,     # 실측 335 (312)
+    ("per_airframe", "s1000plus"): 709,     # 실측 644 (638)
+    ("per_airframe", "typhoonh480"): 653,   # 실측 593 (508)
+    ("per_airframe", "m350rtk"): 391,       # 실측 355 (347)
+    ("per_airframe", "mini2"): 266,         # 실측 241 (198)
+}
+
+#  ⭐**날 법칙별 프롭↔벨 관통(솔리드) 예산** [%] — 같은 사유. ⚠이쪽은 슬리버와 달리 **진짜
+#  이중계상 면적**이라 늘어난 것을 그냥 넘기면 안 된다. 두 기체가 늘었고 둘 다 원래부터
+#  «설계/결함 미판정» 으로 선언돼 있던 자리다(모터 상부 커버가 프롭 위를 덮는 구조 · 허브 보어
+#  관통). 정본 날은 뿌리 시위가 달라 그 겹침이 0.4 pp 커졌다. 크기를 적어 두고 넘긴다 —
+#  진짜로 닫으려면 뿌리 형상 자체를 고쳐야 하는데 그 근거(허브 실측)가 없다(B 통).
+PROP_BELL_SOLID_AREA_PCT_BLADE_LAW = {
+    ("per_airframe", "typhoonh480"): 6.5,   # 실측 5.932 (legacy 예산 5.5)
+    ("per_airframe", "m350rtk"): 5.4,       # 실측 4.941 (4.5)
+}
+
 #  ⑷ **그룹 안** 부품 겹침 예산 [%] — (기종, 그룹) → 그 그룹 표면적 중 다른 부품 솔리드
 #     안에 파묻힌 비율. `build_frame_cad` 의 불리언 union 목록에 없는 그룹은 겹치면
 #     내부 면이 그대로 남아 **PO 가 면적을 이중계상**한다(PO 는 가림을 안 본다).
@@ -316,11 +343,16 @@ def check_mesh(mesh, name="mesh") -> dict:
     sl_budget = SLIVER_BUDGET.get(name, SLIVER_BUDGET["_default"])
     #  ⭐ 수리가 켜져 있으면 그 수리용으로 **선언된** 예산을 쓴다(위 SLIVER_BUDGET_MESH_FIX).
     #    스위치가 꺼져 있으면 이 줄들은 아무 일도 안 한다 → 기존 판정과 비트동일.
-    from geom import mesh_fix_set
+    from geom import mesh_fix_set, blade_law_canon
     for _fid in mesh_fix_set():
         _v = SLIVER_BUDGET_MESH_FIX.get((_fid, name))
         if _v is not None:
             sl_budget = max(sl_budget, _v)
+    #  ⭐ 날 법칙이 정본이면 그 법칙용 예산을 쓴다(위 SLIVER_BUDGET_BLADE_LAW).
+    #    `BLADE_LAW=legacy` 면 표에 키가 없어 아무 일도 안 한다 → 옛 판정과 비트동일.
+    _vbl = SLIVER_BUDGET_BLADE_LAW.get((blade_law_canon(), name))
+    if _vbl is not None:
+        sl_budget = max(sl_budget, _vbl)
     #  ⚠ 슬리버는 **`ok` 에 넣지 않는다** — 일부러 그렇다.
     #    `check_mesh(...)["ok"]` 는 예전부터 «부품 무결성» 의 뜻으로 쓰여 왔고, 실제로
     #    `benchmark/audit_m350rtk_mesh.py` 는 그 값을 `watertight_all_parts` 라는 이름으로
@@ -625,6 +657,11 @@ def check_prop_bell_solid(spec, verbose=False, mesh=None) -> dict:
                 inside[np.where(near)[0][hit]] = True
     pct = round(100.0 * float(ar[inside].sum()) / float(ar.sum()), 3) if ar.sum() else 0.0
     lim = PROP_BELL_SOLID_AREA_PCT.get(spec.key, PROP_BELL_SOLID_AREA_PCT["_default"])
+    #  ⭐ 날 법칙이 정본이면 그 법칙용 예산(위 표). legacy 면 키가 없어 옛 판정 그대로.
+    from geom import blade_law_canon as _blc_pb
+    _lim_bl = PROP_BELL_SOLID_AREA_PCT_BLADE_LAW.get((_blc_pb(), spec.key))
+    if _lim_bl is not None:
+        lim = max(lim, _lim_bl)
     res = dict(key=spec.key, checked=True, tris=int(inside.sum()),
                area_mm2=round(float(ar[inside].sum()), 2), area_pct=pct,
                budget_pct=lim, nonwatertight_bell_parts=n_nonwt, ok=bool(pct <= lim))

@@ -236,12 +236,24 @@ def run(a) -> None:
     fc, tagfc = carrier(a)
     # ⭐셸/프롭 두께. 안 주면 (0,0,"") 라 재질을 아예 안 건드린다 → 기존 샤드와 비트동일.
     shell_mm, prop_mm, tagth = thickness(a)
+    # ⭐⭐**메쉬 수리 꼬리표** (2026-08-17 신설). 2026-08-16 에 정본 수리(battery·i5)를 기본으로
+    #   켰는데 파일 이름이 그대로라, 러너가 **옛 메쉬로 낸 샤드를 그대로 재사용**했다(작업이 3~4 초
+    #   «건너뜀» 으로 끝나 재계산이 통째로 무효였다). 재질 두께(`tagth`)와 같은 규약으로 못 박는다:
+    #     · 수리를 끄면(`MESH_FIX=none`) 꼬리표 없음 → 옛 샤드와 이름이 같아 비트동일.
+    #     · 켜면 `_mfix<수리id 사전순>` — 어떤 판인지 이름만 봐도 읽힌다.
+    from geom import mesh_fix_set as _mfs, blade_law_canon as _blc         # noqa: E402
+    _fixes = sorted(_mfs())
+    tagmf = "" if not _fixes else "_mfix" + "".join(_fixes)
+    # ⭐날 법칙도 같은 규약 — 옛 판(legacy)이면 꼬리표 없음(비트동일), 정본이면 이름에 박힌다.
+    _law = _blc()
+    tagmf += "" if _law == "legacy" else "_bl" + _law.replace("_", "")
+
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
-        + tagfc + tagth
+        + tagfc + tagth + tagmf
 
     if tagth and a.engine in ("ours", "ours_free"):
         raise SystemExit("⛔ --shell-mm/--prop-mm 은 PathSolver 팔 전용이다 — 우리 커널에는 "

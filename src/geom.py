@@ -91,6 +91,24 @@ MESH_FIX_KNOWN = ("i5", "m6", "battery", "i3", "i4", "m4")
 #      값을 키우면 실측을 지운다. 구멍의 자리만 재서 원장에 남겼다(59 %/72 % 가 암·모터·프롭 z).
 MESH_FIX_CANON = ("battery", "i5")
 
+#: ⭐⭐**정본 날 법칙** (2026-08-17 확정) — 환경변수를 안 주면 이 값이 쓰인다.
+#  `per_airframe` = 기체마다 **그 기체의 진짜 프로펠러**(모델명까지 확정: matrice4e 1157F ·
+#  mavic4pro 1158F · mini5pro 6028F · mini2 4726F · s1000plus 1552 …). 옛 `legacy` 는
+#  **10기종 전부가 3DR Solo 하나의 날 모양**을 쓰던 판이다.
+#  근거(적대 검증 판결, outputs/mesh_adv_*_0816.json): 방향은 정당 — 외곽이 실물보다 좁다
+#  (0.60~0.96R 면적비 0.66 = **−3.66 dB**, 세 독립 잣대가 0.5 % 안에서 일치) · 시위 정점이
+#  안쪽(0.31R ↔ 0.45R) · 피치 기준 반경이 다름 · c_max/R 이 실물마다 1.54 배.
+#  «측정법 인공물» 반증을 시도했으나 **실패**했다(cosΛ 보정해도 0.6514 → 0.6499).
+#  지어진 메쉬 검증: **45쌍 중 42쌍이 1 % 넘게 구별**(최대 66.5 %) — 이제 기체마다 다른 프롭이다.
+#  ⚠등급은 칸마다 다르다([A] mini2 공식 CAD · [B] 사진 계측 · [C] 유추 · [D] 대리 x500v2·phantom4).
+#  ⛔`BLADE_LAW=legacy` 로 옛 판을 그대로 재현할 수 있다(비트동일).
+BLADE_LAW_CANON = "per_airframe"
+
+
+def blade_law_canon() -> str:
+    """지금 쓸 날 법칙. 환경변수 `BLADE_LAW` 를 호출할 때마다 읽는다(안 주면 정본)."""
+    return (os.environ.get("BLADE_LAW") or BLADE_LAW_CANON).strip().lower()
+
 
 def mesh_fix_set() -> set[str]:
     """지금 켜져 있는 수리 id 집합.

@@ -3409,7 +3409,7 @@ def build_frame_cad(spec, mesh_fix=None) -> "trimesh.Trimesh":
     return A
 
 
-def build_propeller_cad(spec, n_sec=22, blade_law: str = "legacy", pitch_law=None,
+def build_propeller_cad(spec, n_sec=22, blade_law: str | None = None, pitch_law=None,
                         max_edge_m=None, lambda_m=None, edge_over_lambda: float = 10.0) -> Assembly:
     """프로펠러 1개 — **진짜 익형** 블레이드 + 허브. **모델별로 다르다**(반경·날개수·피치).
 
@@ -3435,6 +3435,9 @@ def build_propeller_cad(spec, n_sec=22, blade_law: str = "legacy", pitch_law=Non
     R = spec.prop_dia_mm / 1000.0 / 2.0
     P = float(spec.prop_pitch_in or 5.0) * 0.0254          # 피치[inch] → [m]
     hub_r = R * 0.085
+    # ⭐None 이면 **정본**(geom.BLADE_LAW_CANON = 'per_airframe'). `BLADE_LAW=legacy` 로 옛 판 재현.
+    from geom import blade_law_canon as _blc                            # noqa: E402
+    blade_law = (blade_law or _blc())
     chord_max, _chord_max_src = resolve_chord_max_over_r(spec, blade_law)
     _c_rr, _c_fr, _profile_src = resolve_chord_profile(spec, blade_law)
     if max_edge_m is None and lambda_m is not None:

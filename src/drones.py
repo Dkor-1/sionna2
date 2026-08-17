@@ -1668,7 +1668,7 @@ def _mirror_y(m: Mesh) -> Mesh:
 
 
 def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False,
-                    blade_law: str = "legacy", pitch_law=None,
+                    blade_law: str | None = None, pitch_law=None,
                     max_edge_m=None, lambda_m=None, edge_over_lambda: float = 10.0) -> Mesh:
     """프로펠러 1개 — **진짜 익형(NACA-4, 캠버 포함)** 로프트 블레이드 + 허브 (CAD 단일 경로).
     n 은 블레이드 스팬 분할 힌트(마이크로도플러는 크게 줘서 단면을 촘촘히).
