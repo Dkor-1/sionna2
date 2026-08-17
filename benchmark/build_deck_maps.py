@@ -59,6 +59,26 @@ ARMS = [
 SHORT = {"Our kernel": "Ours", "Sionna, physics off": "Physics off",
          "Sionna, physics on": "Physics on"}
 
+#: ⭐**물리 켬 곡선은 연하게 그린다** (사용자 지시 2026-08-17: «너무 난잡해서 보기 힘들어»).
+#  이 팔은 선이 서지 않고 바닥이 출렁이는 것이 판정 내용이라, 곡선 하나가 화면의 절반을
+#  덮으면서 **정작 봐야 할 빨강·회색 빗살을 가린다**. 그래서 굵기를 줄이고 투명하게,
+#  그리고 뒤로 보낸다 — 지우는 것이 아니라 뒤로 물리는 것이라 판정은 그대로 선다.
+#  ⚠범례 표본만은 불투명하게 되돌린다(연한 선은 범례에서 안 보인다).
+LINE_STYLE = {
+    "Our kernel":          dict(lw=2.0, alpha=1.00, zorder=4),
+    "Sionna, physics off": dict(lw=2.0, alpha=1.00, zorder=3),
+    "Sionna, physics on":  dict(lw=1.1, alpha=0.38, zorder=2),
+}
+
+
+def opaque_legend(a, **kw):
+    """범례를 그리되 표본선은 불투명·굵게 — 연한 곡선도 범례에서는 보이게."""
+    leg = a.legend(**kw)
+    for h in leg.legend_handles:
+        h.set_alpha(1.0)
+        h.set_linewidth(2.6)
+    return leg
+
 #: 잘라 볼 구간 — 앞쪽 20 ms 를 건너뛰고 60 ms. 플래시가 여러 번 지나가는 길이다.
 T0, TSPAN = 0.020, 0.060
 
@@ -282,9 +302,9 @@ def band_energy_spectrum(pairs=(((0.0, -30.0), "a"), ((-60.0, -90.0), "b"))):
                     for arm, nm in ARMS[:narm]:
                         fr, Y, borrowed = modspec(arm, el)
                         m = (fr >= lo) & (fr <= hi)
-                        a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()), lw=2.0,
+                        a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()),
                                color=cols[[x[0] for x in ARMS].index(arm)],
-                               label=SHORT[nm])
+                               label=SHORT[nm], **LINE_STYLE[nm])
                     for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
                         a.axvline(k * FFL, color="0.35", ls="--", lw=1.2, zorder=1)
                     a.set_xlim(lo, hi)
@@ -299,7 +319,7 @@ def band_energy_spectrum(pairs=(((0.0, -30.0), "a"), ((-60.0, -90.0), "b"))):
                     a.set_axisbelow(True)
                     if j == 0:
                         a.set_ylabel("line level [dB]")
-                        a.legend(fontsize=17, loc="lower right", framealpha=0.95)
+                        opaque_legend(a, fontsize=17, loc="lower right", framealpha=0.95)
                 fig.subplots_adjust(top=0.845, bottom=0.115, left=0.055, right=0.985,
                                     wspace=0.05)
                 fig.text(0.5, 0.935, f"dashed lines mark {FFL:.1f} Hz and its "
@@ -473,8 +493,8 @@ def props_compare():
         for arm, nm, col in P_ARMS:
             fr, Y = modspec(Es[arm])
             m = (fr >= lo) & (fr <= hi)
-            a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()), lw=2.0, color=col,
-                   label=SHORT.get(nm, nm))
+            a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()), color=col,
+                   label=SHORT.get(nm, nm), **LINE_STYLE[nm])
         for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
             a.axvline(k * FFL, color="0.35", ls="--", lw=1.2, zorder=1)
         a.set_xlim(lo, hi)
@@ -488,7 +508,7 @@ def props_compare():
         a.set_axisbelow(True)
         if j == 0:
             a.set_ylabel("line level [dB]")
-            a.legend(fontsize=17, loc="lower right", framealpha=0.95)
+            opaque_legend(a, fontsize=17, loc="lower right", framealpha=0.95)
     fig.subplots_adjust(top=0.845, bottom=0.115, left=0.055, right=0.985, wspace=0.05)
     fig.text(0.5, 0.935, f"propellers only at 0{chr(176)}, dashed lines mark "
                          f"{FFL:.1f} Hz and its multiples, the rate the blades "
