@@ -42,35 +42,40 @@ DRONES = ["matrice4e", "mavic4pro", "mini5pro", "s1000plus"]
 ARMS = ["ours", "ps_off", "refr"]
 ARM_KO = {"ours": "우리 커널", "ps_off": "물리 끔", "refr": "굴절만"}
 
-
-def classify(engine: str):
-    """원장의 engine 태그 → (팔, 기체). 방위 팔은 None (표준 프레임 밖)."""
-    if "az" in engine:
-        return None
-    drone = next((d for d in DRONES if d in engine), "matrice4e")
-    if engine.startswith("ours"):
-        arm = "ours"
-    elif "onlyrefr" in engine:
-        arm = "refr"
-    else:
-        arm = "ps_off"
-    return arm, drone
+#: ⭐⭐팔 이름을 **정확히 짓고 그 이름만 인정한다** (2026-08-18).
+#   느슨하게 «sionna 로 시작하면 물리 끔» 으로 세면 **광선 수가 다른 팔이 같은 칸으로 센다**.
+#   실제로 그런 일이 났다 — `--spp` 를 안 준 판이 규칙값 2.5e7(경로 중앙값 5 개)로 돌아
+#   `sionna_r15_n8192_…`(p 토큰 없음) 이라는 **다른 팔**을 만들었는데, 정본 팔은
+#   `sionna_p4000000000_…_d1`(경로 중앙값 1416 개)이다. 느슨한 세기는 그것을 «칸이 찼다» 로
+#   읽어 **게이트가 거짓 통과**한다. 그래서 여기서는 이름을 조립해서 대조한다.
+def arm_engine(arm: str, drone: str) -> str:
+    """(팔, 기체) → 원장의 engine 문자열 (정본 팔 이름)."""
+    d = "" if drone == "matrice4e" else f"_{drone}"
+    body = f"{d}_r15_n8192_{TAG}"
+    if arm == "ours":
+        return f"ours{body}"
+    if arm == "ps_off":
+        return f"sionna_p4000000000{body}_d1"
+    if arm == "refr":
+        return f"sionna_p4000000000_onlyrefr{body}"
+    raise ValueError(arm)
 
 
 def main() -> None:
     t0 = time.time()
     rows = json.load(open(LEDGER, encoding="utf-8"))["rows"]
 
+    want = {arm_engine(a, d): (a, d) for a in ARMS for d in DRONES}
     have = collections.defaultdict(set)
+    stray = collections.Counter()
     for r in rows:
         e = r["engine"]
-        if TAG not in e:
+        if TAG not in e or r.get("range_m") != 15.0 or r.get("n_poses") != 8192:
             continue
-        if r.get("range_m") != 15.0 or r.get("n_poses") != 8192:
-            continue
-        w = classify(e)
-        if w:
-            have[w].add(int(round(r["el_deg"])))
+        if e in want:
+            have[want[e]].add(int(round(r["el_deg"])))
+        elif "az" not in e and "div" not in e:
+            stray[e] += 1        # 표준 프레임 조건인데 이름이 안 맞는 팔 — 보고만 한다
 
     cells, missing = [], []
     for arm in ARMS:
@@ -93,6 +98,11 @@ def main() -> None:
               f"{c['missing_el_deg'] if c['missing_el_deg'] else '—'}")
     print("✅ 빈칸 0 — 판정을 돌려도 된다" if complete else
           "⛔ 빈칸이 남았다 — 분류·완성표를 돌리면 각도마다 표본이 달라진다")
+    if stray:
+        print("⚠표준 프레임 조건인데 **정본 팔 이름이 아닌** 팔이 원장에 있다 "
+              "(칸으로 세지 않았다):")
+        for e, n in stray.most_common():
+            print(f"    {e}  ({n} 칸)")
 
     doc = {
         "_meta": {
@@ -114,6 +124,12 @@ def main() -> None:
                     "빈칸 남음 — docs/RESUME.md 규칙에 따라 분류·완성표를 돌리지 않는다"),
         "cells": cells,
         "missing": missing,
+        "canonical_arm_names": {f"{a}|{d}": arm_engine(a, d)
+                                for a in ARMS for d in DRONES},
+        "stray_arms_not_counted": dict(stray),
+        "stray_note_ko": ("표준 프레임 조건(r15·n8192·정본 메쉬)인데 정본 팔 이름이 아닌 팔. "
+                          "광선 수(--spp)나 깊이(--max-depth)가 다르면 이름이 달라지고 "
+                          "**다른 팔**이다 — 칸으로 세지 않는다."),
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
