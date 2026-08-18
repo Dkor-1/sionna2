@@ -1,0 +1,242 @@
+{
+ "_meta": {
+  "generator": "benchmark/noise_main_run_0818.py",
+  "generated_kst": "2026-08-18 17:41:35 (UTC+9)",
+  "role_ko": "잡음 본판(결과판) — 게이트를 엮어 «어느 SNR 까지 읽히고 몇 미터인가» 를 낸다",
+  "gpu_used": false,
+  "inputs": [
+   "outputs/noise_main_gates_n20000_0818.json",
+   "outputs/noise_snr_figure_0818.json",
+   "outputs/noise_main_prereg_0816.json",
+   "outputs/link_budget_canon_0816.json"
+  ],
+  "el_deg": -30.0,
+  "bar_source_ko": "정본 막대는 게이트 20,000 시행 경험적 p99.9 = 2.679 dB (여기서 다시 계산하지 않는다)",
+  "elapsed_s": 0.01
+ },
+ "gate_status": {
+  "G1_anchor": true,
+  "G3_bars": true,
+  "G5_kinematics": true,
+  "G7_canon_bands": true,
+  "G8_inventory": true,
+  "G9_a1_a2": true
+ },
+ "headline": {
+  "ours": {
+   "label": "Our kernel (SBR+PO)",
+   "clean_comb_db": 42.93,
+   "snr_at_bar_db": -20.084,
+   "snr_at_15m_db": 45.06,
+   "readable_range_m": 659.3,
+   "range_extrapolation_trustworthy": true
+  },
+  "ps_off": {
+   "label": "PathSolver, all off",
+   "clean_comb_db": 51.99,
+   "snr_at_bar_db": -19.192,
+   "snr_at_15m_db": 48.33,
+   "readable_range_m": 134.5,
+   "range_extrapolation_trustworthy": false
+  },
+  "ps_refr": {
+   "label": "PathSolver, refraction only",
+   "clean_comb_db": 37.51,
+   "snr_at_bar_db": -18.266,
+   "snr_at_15m_db": 46.53,
+   "readable_range_m": null,
+   "range_extrapolation_trustworthy": null
+  },
+  "ps_phys": {
+   "label": "PathSolver, all on",
+   "clean_comb_db": 6.29,
+   "snr_at_bar_db": -3.179,
+   "snr_at_15m_db": 19.55,
+   "readable_range_m": 30.5,
+   "range_extrapolation_trustworthy": false
+  }
+ },
+ "G4_survival": {
+  "claims": [
+   {
+    "id": "S1",
+    "klass": "A_convention_free",
+    "text_ko": "필요 SNR 이 낮은 순서(= 잘 읽히는 순서)는 팔 사이에서 뒤집히지 않는다",
+    "values_by_variant": {
+     "정본 막대 p99.9 (20,000 시행)": "ours < ps_off < ps_refr < ps_phys",
+     "더 엄한 선 3.84 dB": "ours < ps_off < ps_refr < ps_phys"
+    },
+    "survives": true
+   },
+   {
+    "id": "S2",
+    "klass": "A_convention_free",
+    "text_ko": "회절을 켠 팔은 같은 판정을 하는 데 SNR 이 훨씬 더 든다",
+    "values_by_variant": {
+     "정본 막대 p99.9 (20,000 시행)": 16.91,
+     "더 엄한 선 3.84 dB": 17.48
+    },
+    "survives": true
+   },
+   {
+    "id": "S3",
+    "klass": "C_budget_dependent",
+    "text_ko": "«우리 커널은 약 N m 까지 읽는다» 는 절대 미터",
+    "values_by_variant": {
+     "정본 막대 p99.9 (20,000 시행)": 659.3,
+     "더 엄한 선 3.84 dB": 571.6,
+     "기준채널 ρ=30 dB (손실 7 dB)": 441.7,
+     "패시브 5G SSB 시나리오": "다른 EIRP·다른 λ — 이 원장의 미터를 못 옮긴다"
+    },
+    "survives": false,
+    "why_ko": "기준채널 하나만 현실적으로 바꿔도 ×0.67 이고 시나리오를 바꾸면 아예 못 옮긴다"
+   }
+  ],
+  "rule_ko": "⭐규약을 흔들어도 부호·순서가 유지되는 주장만 헤드라인으로 쓴다",
+  "headline_eligible": [
+   "S1",
+   "S2"
+  ],
+  "not_eligible": [
+   "S3"
+  ]
+ },
+ "prereg_scored": {
+  "prereg": "outputs/noise_main_prereg_0816.json",
+  "scored": 0,
+  "hit": 0,
+  "miss": 0,
+  "unscored": 0,
+  "hit_rate": null,
+  "rows": [
+   {
+    "id": "A1",
+    "status": "관측 없음",
+    "what_ko": "ours 판독거리 R_read(el −30) 의 변화율"
+   },
+   {
+    "id": "A2",
+    "status": "관측 없음",
+    "what_ko": "ours_ptd 판독거리 R_read(el −30) 의 변화율"
+   },
+   {
+    "id": "A3",
+    "status": "관측 없음",
+    "what_ko": "ps_off 판독거리 R_read(el −30) 의 변화율"
+   },
+   {
+    "id": "A4",
+    "status": "관측 없음",
+    "what_ko": "ps_refr 판독거리 R_read(el −30) 의 변화율"
+   },
+   {
+    "id": "A5",
+    "status": "관측 없음",
+    "what_ko": "ps_phys 판독거리 R_read(el −30) 의 변화율"
+   },
+   {
+    "id": "A6",
+    "status": "관측 없음",
+    "what_ko": "ours 무늬 천장(el −30, 무잡음 빗살 대비) [dB]"
+   },
+   {
+    "id": "A7",
+    "status": "관측 없음",
+    "what_ko": "ps_off 무늬 천장(el −30) [dB]"
+   },
+   {
+    "id": "B1",
+    "status": "관측 없음",
+    "what_ko": "ps_off 판독거리 R_read(el −60) 의 변화율(재질 정본 적용)"
+   },
+   {
+    "id": "B2",
+    "status": "관측 없음",
+    "what_ko": "ps_off R50(el −60, 빗살 검출기) [m]"
+   },
+   {
+    "id": "B3",
+    "status": "관측 없음",
+    "what_ko": "ours 판독거리 R_read(el −60) 의 변화율"
+   },
+   {
+    "id": "C1",
+    "status": "관측 없음",
+    "what_ko": "el −30 잡음선 막대 = 빗살 대비 귀무분포 p99.9 [dB] (귀무 20,000 시행)"
+   },
+   {
+    "id": "C2",
+    "status": "관측 없음",
+    "what_ko": "el +0 잡음선 막대 [dB] (귀무 20,000 시행)"
+   },
+   {
+    "id": "D1",
+    "status": "관측 없음",
+    "what_ko": "[조건: 정본이 outdoor_v2(σs 5.3 %)로 간다면] 고정 격자(±8 Hz, k 2–8.7)에서 ours 무늬 천장 [dB]"
+   },
+   {
+    "id": "D2",
+    "status": "관측 없음",
+    "what_ko": "[같은 조건] ours − ps_phys 무늬 천장 격차 [dB]"
+   },
+   {
+    "id": "D3",
+    "status": "관측 없음",
+    "what_ko": "[같은 조건 + 구제책] 대역을 k∈[2,3] 으로 좁혔을 때 ours − ps_phys 격차 [dB]"
+   },
+   {
+    "id": "D4",
+    "status": "관측 없음",
+    "what_ko": "[조건: 정본이 legacy 유지] ours 무늬 천장 변화 [dB]"
+   },
+   {
+    "id": "E1",
+    "status": "관측 없음",
+    "what_ko": "R50 교차검산 |Δ/σ| (ours el −30, 본판 ↔ detection_curves)"
+   },
+   {
+    "id": "E2",
+    "status": "관측 없음",
+    "what_ko": "앵커 동일성 |Δ| [dB] (두 원장의 c_anchor)"
+   },
+   {
+    "id": "E3",
+    "status": "관측 없음",
+    "what_ko": "ours A1↔A2 모양 드리프트 (el −30, 15→480 m) [dB]"
+   },
+   {
+    "id": "E4",
+    "status": "관측 없음",
+    "what_ko": "ps_refr A1↔A2 모양 드리프트 (el −30, 15→240 m) [dB]"
+   },
+   {
+    "id": "F1",
+    "status": "관측 없음",
+    "what_ko": "무늬 천장의 규약 산포 [dB] (앵커 S1/S3 · EIRP 12/30/63 · 막대 2종 · capture 2종 · 거리 4점을 전부 흔들었을 때)"
+   },
+   {
+    "id": "F2",
+    "status": "관측 없음",
+    "what_ko": "팔 간 판독거리 **비** 의 막대 감도 (최대 |비(잡음선) − 비(재현선)|)"
+   },
+   {
+    "id": "F3",
+    "status": "관측 없음",
+    "what_ko": "EIRP 를 30 → 12 dBm 으로 바꿨을 때 R_read 비의 변화"
+   }
+  ],
+  "rule_ko": "⭐채점은 사전등록 파일을 **고치지 않고** 한다. 예측이 틀리면 틀린 대로 남기고 원인을 원장에 적는다 — 사후에 브래킷을 넓히면 사전등록이 아니다"
+ },
+ "two_layer_ko": {
+  "verified": [
+   "팔 사이 «필요 SNR» 순서",
+   "회절 켠 팔이 요구하는 SNR 격차",
+   "판정 막대 자체(귀무분포에서 세움)"
+  ],
+  "not_verified": [
+   "절대 미터 — 실측 대조 0 건",
+   "송신→수신 격리 미확보(능동 모노 예산이 통째로 낙관일 수 있다)",
+   "거리 외삽 — 엔진이 이미 거리로 레벨을 나르는 팔이 둘"
+  ]
+ }
+}
