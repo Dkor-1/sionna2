@@ -1,0 +1,135 @@
+{
+ "_meta": {
+  "generator": "benchmark/diffraction_mechanism_0818.py",
+  "generated_kst": "2026-08-18 12:12:36 (UTC+9)",
+  "question_ko": "회절을 켜면 왜 리듬이 사라지나 — 물리·수식",
+  "gpu_used": false,
+  "inputs": [
+   "outputs/elev_sweep_shards/*.npz"
+  ],
+  "setup_ko": "matrice4e · 3.5 GHz · 15 m · 자세 8192 · 앙각 -30.0° · PRF 19700 Hz · f_tip 1101.6 Hz · f_flash 126.67 Hz",
+  "elapsed_s": 0.69
+ },
+ "q1_additive_or_transforming": {
+  "a_abs": 1.0431,
+  "a_phase_deg": 0.57,
+  "kept_power_frac": 0.088,
+  "added_power_frac": 0.912,
+  "added_over_specular_db": 10.52,
+  "dc_rise_db": 41.62,
+  "ac_rise_db": 10.92,
+  "reading_ko": "담김계수가 1 근처면 회절은 **얹는 축**이다 — 원래 시계열을 그대로 두고 위에 새 항을 더한다. 바꾸는 축이면 a 가 1 에서 크게 벗어난다."
+ },
+ "q2_is_the_added_term_white": {
+  "closed_form": {
+   "above_tip_pct": 88.82,
+   "above_tip_formula": "(PRF/2 − f_tip)/(PRF/2)",
+   "rhythm_pct": 12.63,
+   "rhythm_formula": "2·hw/f_flash"
+  },
+  "white_control_20runs": {
+   "above_tip_pct": [
+    88.85,
+    0.4
+   ],
+   "rhythm_pct": [
+    12.79,
+    0.44
+   ],
+   "lag1": 0.0096
+  },
+  "measured_added_term": {
+   "above_tip_pct": 89.06,
+   "rhythm_pct": 11.56,
+   "lag1": 0.0225,
+   "ac_db": -125.15
+  },
+  "verdict_ko": "얹힌 항의 두 수가 **닫힌 식과 백색 대조군에 같이 앉으면** 그 항은 슬로우타임에서 백색이다 — 즉 도플러 정보가 없다."
+ },
+ "q3_ray_budget_ladder": [
+  {
+   "arm": "sionna_p1000000000_swR1D1E1F1_r15_n8192_d1",
+   "rays": 1000000000.0,
+   "max_depth": 1,
+   "n_missing": 0,
+   "ac_db": -131.85,
+   "above_tip_pct": 82.42,
+   "lag1": 0.059
+  },
+  {
+   "arm": "sionna_p4000000000_phys_r15_n8192_d1",
+   "rays": 4000000000.0,
+   "max_depth": 1,
+   "n_missing": 0,
+   "ac_db": -126.6,
+   "above_tip_pct": 85.79,
+   "lag1": 0.0358,
+   "vs_prev": {
+    "ray_ratio": 4.0,
+    "d_ac_db": 5.25,
+    "expected_if_sampling_noise_db": -6.02,
+    "expected_if_incoherent_sum_db": 6.02
+   }
+  },
+  {
+   "arm": "sionna_phys",
+   "rays": 11111111.0,
+   "max_depth": 3,
+   "n_missing": 0,
+   "ac_db": -136.58,
+   "above_tip_pct": 69.91,
+   "lag1": 0.5738
+  },
+  {
+   "arm": "sionna_p250000000_phys",
+   "rays": 250000000.0,
+   "max_depth": 3,
+   "n_missing": 0,
+   "ac_db": -127.28,
+   "above_tip_pct": 81.96,
+   "lag1": 0.0734,
+   "vs_prev": {
+    "ray_ratio": 22.5,
+    "d_ac_db": 9.3,
+    "expected_if_sampling_noise_db": -13.52,
+    "expected_if_incoherent_sum_db": 13.52
+   }
+  },
+  {
+   "arm": "sionna_p4000000000_swR1D1E1F1_r15_n8192_d3",
+   "rays": 4000000000.0,
+   "max_depth": 3,
+   "n_missing": 0,
+   "ac_db": -124.42,
+   "above_tip_pct": 86.29,
+   "lag1": 0.0254,
+   "vs_prev": {
+    "ray_ratio": 16.0,
+    "d_ac_db": 2.86,
+    "expected_if_sampling_noise_db": -12.04,
+    "expected_if_incoherent_sum_db": 12.04
+   }
+  }
+ ],
+ "arms": {
+  "specular_only": {
+   "above_tip_pct": 1.06,
+   "rhythm_pct": 80.5,
+   "lag1": 0.9907,
+   "ac_db": -135.66
+  },
+  "diffraction_on": {
+   "above_tip_pct": 81.05,
+   "rhythm_pct": 11.7,
+   "lag1": 0.0668,
+   "ac_db": -124.74
+  },
+  "added_term": {
+   "above_tip_pct": 89.06,
+   "rhythm_pct": 11.56,
+   "lag1": 0.0225,
+   "ac_db": -125.15
+  }
+ },
+ "figure": "outputs/figures/diffraction_mechanism.png"
+}

@@ -1,0 +1,257 @@
+{
+ "_meta": {
+  "generator": "benchmark/adv_switch_grid_0818.py",
+  "generated_kst": "2026-08-18 12:19:33 (UTC+9)",
+  "role_ko": "리포트 5-2 결과를 반증하려는 시험 — 잣대를 다시 구현해서 대조한다",
+  "gpu_used": false,
+  "elapsed_s": 0.34,
+  "gate": "7/7"
+ },
+ "arms": {
+  "Our kernel": {
+   "arm": "ours_r15_n8192",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "all off": {
+   "arm": "sionna_p4000000000_r15_n8192_d1",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "refraction only": {
+   "arm": "sionna_p4000000000_onlyrefr_r15_n8192",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "edge only": {
+   "arm": "sionna_p4000000000_onlyedge_r15_n8192",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "diffraction only": {
+   "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "diffraction + edge": {
+   "arm": "sionna_p4000000000_swR0D1E1F1_r15_n8192_d1",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "refraction + diffraction": {
+   "arm": "sionna_p4000000000_swR1D1E0F1_r15_n8192_d1",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  },
+  "all on": {
+   "arm": "sionna_p4000000000_phys_r15_n8192_d1",
+   "n_missing": 0,
+   "n_shards": 16,
+   "n_poses": 8192
+  }
+ },
+ "tests": {
+  "V1_metric_reimplemented": {
+   "pass_": true,
+   "worst_diff_pp": 0.044,
+   "rows": {
+    "Our kernel": {
+     "independent": 83.31,
+     "ledger": 83.3,
+     "diff_pp": 0.006,
+     "comb_over_floor_db": 15.37
+    },
+    "all off": {
+     "independent": 80.5,
+     "ledger": 80.5,
+     "diff_pp": 0.001,
+     "comb_over_floor_db": 14.55
+    },
+    "refraction only": {
+     "independent": 62.07,
+     "ledger": 62.1,
+     "diff_pp": 0.032,
+     "comb_over_floor_db": 10.53
+    },
+    "edge only": {
+     "independent": 80.5,
+     "ledger": 80.5,
+     "diff_pp": 0.001,
+     "comb_over_floor_db": 14.55
+    },
+    "diffraction only": {
+     "independent": 11.7,
+     "ledger": 11.7,
+     "diff_pp": 0.001,
+     "comb_over_floor_db": -0.38
+    },
+    "diffraction + edge": {
+     "independent": 11.67,
+     "ledger": 11.7,
+     "diff_pp": 0.027,
+     "comb_over_floor_db": -0.4
+    },
+    "refraction + diffraction": {
+     "independent": 12.33,
+     "ledger": 12.3,
+     "diff_pp": 0.033,
+     "comb_over_floor_db": -0.12
+    },
+    "all on": {
+     "independent": 12.46,
+     "ledger": 12.5,
+     "diff_pp": 0.044,
+     "comb_over_floor_db": -0.08
+    }
+   },
+   "rule_ko": "독립 구현과 원장이 0.15 %p 안에서 같아야 한다"
+  },
+  "V2_no_missing_poses": {
+   "pass_": true,
+   "offenders": {},
+   "per_arm": {
+    "Our kernel": 0,
+    "all off": 0,
+    "refraction only": 0,
+    "edge only": 0,
+    "diffraction only": 0,
+    "diffraction + edge": 0,
+    "refraction + diffraction": 0,
+    "all on": 0
+   }
+  },
+  "V3_two_ledgers_agree": {
+   "pass_": true,
+   "worst_diff_pp": 0.04,
+   "rows": {
+    "all off": {
+     "factorial": 80.5,
+     "grid": 80.5,
+     "diff_pp": 0.0
+    },
+    "refraction only": {
+     "factorial": 62.07,
+     "grid": 62.1,
+     "diff_pp": 0.03
+    },
+    "edge only": {
+     "factorial": 80.5,
+     "grid": 80.5,
+     "diff_pp": 0.0
+    },
+    "diffraction only": {
+     "factorial": 11.7,
+     "grid": 11.7,
+     "diff_pp": 0.0
+    },
+    "diffraction + edge": {
+     "factorial": 11.67,
+     "grid": 11.7,
+     "diff_pp": 0.03
+    },
+    "refraction + diffraction": {
+     "factorial": 12.33,
+     "grid": 12.3,
+     "diff_pp": 0.03
+    },
+    "all on": {
+     "factorial": 12.46,
+     "grid": 12.5,
+     "diff_pp": 0.04
+    }
+   }
+  },
+  "V4_edge_is_a_noop": {
+   "pass_": true,
+   "bit_identical": false,
+   "diff_power_db": -308.8,
+   "correlation": 1.0,
+   "n_poses_differing": 7887,
+   "claim_ko": "«모서리만» 은 «다 끔» 과 **기계 정밀도 안**에서 같아야 한다 (모서리 후보 생성이 회절 스위치 안에 있으므로). ⛔«비트 단위로 같다» 는 과장이다 — 96 % 자세가 마지막 자리에서 다르다"
+  },
+  "V5_E_noop_consequence": {
+   "pass_": true,
+   "correlation": 0.9868,
+   "d_rhythm_pp": 0.2,
+   "claim_ko": "E 가 무동작이면 «굴절+회절» 과 «다 켬» 이 붙어야 한다"
+  },
+  "V6_peak_position": {
+   "pass_": true,
+   "peaks_hz": {
+    "Our kernel": 126.1,
+    "all off": 126.1,
+    "refraction only": 126.1,
+    "edge only": 126.1,
+    "diffraction only": 126.1,
+    "diffraction + edge": 126.1,
+    "refraction + diffraction": 126.1,
+    "all on": 126.1
+   },
+   "predicted_hz": 126.67
+  },
+  "V7_shard_replica_line": {
+   "pass_": true,
+   "replica_hz": 1231.25,
+   "rise_db": {
+    "Our kernel": 7.5,
+    "all off": 9.9,
+    "refraction only": 12.7,
+    "edge only": 9.9,
+    "diffraction only": 8.6,
+    "diffraction + edge": 8.7,
+    "refraction + diffraction": 7.9,
+    "all on": 7.4
+   },
+   "rule_ko": "결측 샤드가 있으면 PRF/16 = 1231.2 Hz 에 없는 선이 선다. 정상이면 25 dB 아래"
+  },
+  "V8_white_null": {
+   "null_pct_mean": 12.68,
+   "null_99pct_band": [
+    11.61,
+    14.4
+   ],
+   "rows": {
+    "Our kernel": {
+     "rhythm_pct": 83.3,
+     "inside_white_null": false
+    },
+    "all off": {
+     "rhythm_pct": 80.5,
+     "inside_white_null": false
+    },
+    "refraction only": {
+     "rhythm_pct": 62.1,
+     "inside_white_null": false
+    },
+    "edge only": {
+     "rhythm_pct": 80.5,
+     "inside_white_null": false
+    },
+    "diffraction only": {
+     "rhythm_pct": 11.7,
+     "inside_white_null": true
+    },
+    "diffraction + edge": {
+     "rhythm_pct": 11.7,
+     "inside_white_null": true
+    },
+    "refraction + diffraction": {
+     "rhythm_pct": 12.3,
+     "inside_white_null": true
+    },
+    "all on": {
+     "rhythm_pct": 12.5,
+     "inside_white_null": true
+    }
+   },
+   "reading_ko": "귀무 안에 들어오면 «무늬가 없다» 로 읽는다 — 회절 켠 네 팔이 그래야 한다"
+  }
+ }
+}

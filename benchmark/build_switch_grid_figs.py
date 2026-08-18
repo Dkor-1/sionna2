@@ -209,6 +209,21 @@ if __name__ == "__main__":
         print(f"  {nm:26s} 결측 {miss:4d} · 리듬 {doc[nm]['rhythm_share_pct']:5.1f} % · "
               f"1차선 {doc[nm]['h1_over_floor_db']:6.1f} dB @ {doc[nm]['h1_peak_hz']:.1f} Hz")
 
+    # ⭐⭐2026-08-18: 결측 자세를 **말없이 0 으로 두고 그리지 않는다.**
+    #   load() 는 빠진 자세를 0 으로 남긴다. 샤드는 성큼성큼(stride) 나뉘므로 한 장이 없으면
+    #   0 이 **규칙적인 간격**으로 박히고, 그것은 시계열에 주기 창을 곱한 것과 같아
+    #   스펙트럼에 없는 구조를 만든다. 실제로 그런 그림이 나갔다 — «굴절+회절» 팔이
+    #   512 자세(샤드 1 장, 간격 16) 결측인 채 그려져 리듬 몫이 12.33 → 13.2 % 로 부풀고
+    #   1 차 선이 9.7 dB 로 눌렸다(docs/SWITCH_GRID_HOLE_0818.md).
+    holed = {nm: d["n_missing"] for nm, d in doc.items() if d["n_missing"]}
+    if holed and os.environ.get("ALLOW_MISSING_POSES") != "1":
+        print("\n⛔ 결측 자세가 있는 팔이 있다 — 그림을 만들지 않는다:")
+        for nm, k in holed.items():
+            print(f"     {nm}: {k} 자세 (0 으로 남아 주기 무늬를 만든다)")
+        print("   샤드를 마저 돌리고 다시 실행한다. "
+              "그래도 강행하려면 ALLOW_MISSING_POSES=1 을 준다(그림에 꼬리표가 필요하다).")
+        raise SystemExit(1)
+
     maps(data, False, "swgrid_maps")
     maps(data, True, "swgrid_maps_dc")
     band(data, 100.0, 1000.0, "swgrid_be_wide")
