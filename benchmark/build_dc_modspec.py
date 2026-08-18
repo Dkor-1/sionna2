@@ -148,7 +148,7 @@ def band_grid(drop_dc, stem, rec):
         a.set_xlim(0, 420)
         a.set_ylim(-50, 4)
         a.set_title("looking level" if el == 0 else
-                    f"{abs(el):.0f}" + chr(176) + " below level", pad=8)
+                    "looking up from " + f"{abs(el):.0f}" + chr(176) + " below", pad=8)
         a.set_xlabel("modulation rate [Hz]")
         a.grid(alpha=0.25)
         a.set_axisbelow(True)

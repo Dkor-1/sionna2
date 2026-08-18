@@ -270,7 +270,7 @@ def main() -> None:
     fig.subplots_adjust(top=0.865, bottom=0.10, left=0.055, right=0.945,
                         hspace=0.22, wspace=0.08)
     fig.text(0.5, 0.945, f"static clutter cancelled by projecting out Doppler within "
-                         f"{FCUT:.0f} Hz of zero, every run at 30{chr(176)} below level, "
+                         f"{FCUT:.0f} Hz of zero, every run looking up from 30{chr(176)} below the drone, "
                          "each panel scaled to its own peak",
              ha="center", fontsize=19, color="0.35")
     cax = fig.add_axes([0.953, 0.10, 0.008, 0.765])
