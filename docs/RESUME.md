@@ -1,39 +1,53 @@
-# ⭐⭐재개 지점 — 2026-08-18 아침 (PC 이전 뒤 이어받음)
+# ⭐⭐재개 지점 — 2026-08-18 오후 (세션 끊김 대비 갱신)
 
 > 이 블록이 **가장 최신**이다. 아래 옛 블록보다 먼저 읽는다.
 
-## 0. 지금 도는 것 — 세션 끊겨도 산다
+## 0. 지금 도는 것 — 세션 끊겨도 산다 (08-18 14:20 KST 기준)
 
 | 무엇 | 상태 |
 |---|---|
-| **정본 메쉬 앙각 빈 칸 41 칸 채우기** | 돌는 중. 드라이버 PPID=1(`setsid nohup`), 워커 3, **GPU 2·3 만** |
+| **표준 프레임 빈칸 + 격자 잣대 + 로터 사다리** | 돌는 중. 드라이버 PPID=1, 워커 3, GPU 2·3 |
+| 진행 | 큐 64 줄 중 **START 34 · DONE 31**(무해화 `--help` 18 줄 포함) |
+| 남은 계산 | **68.6 워커-시간 ÷ 3 = 약 23 h** → 완료 예정 **08-19 낮 12~13 시 KST** |
+| GPU 정책 감시기 | 살아 있음(PPID=1). ⚠새 하한 규약은 **재기동 때** 적용 |
+
+⭐**세션이 끊겨도 계산은 안 멈춘다** — 드라이버·워커·감시기 전부 PPID=1 이다.
+⛔**세션과 함께 죽는 것은 Monitor 알림뿐**이다. 재개하면 다시 걸어야 실패를 놓치지 않는다.
 
 ```bash
 # ① 드라이버가 사나 (PPID 가 1 이어야 세션 무관)
-ps -eo pid,ppid,etimes,cmd | grep '[r]un_gaps_0817'
-# ② 워커가 도나 — ⭐CPU 누적(times) ≥ 경과(etimes) 면 진짜 계산 중
-ps -eo pid,etimes,times,cmd | grep '[e]levation_sweep_md'
-# ③ 산출이 느나
-ls /workspace/sionna/outputs/elev_sweep_shards/*mfix*.npz | wc -l   # 08-17 23:46 UTC 에 264
+ps -eo pid,ppid,etimes,args --no-headers | grep '[r]un_gaps_0817.sh'
+# ② 워커가 도나 — ⭐CPU 누적 ≥ 경과 면 진짜 계산 중
+ps -eo pid,etimes,times,args --no-headers | grep '[e]levation_sweep_md.py --engine'
+# ③ 큐 위치
+SP=/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad
+grep -aoE 'START #[0-9]+' $SP/gaps_0817b.log | tail -1; grep -ac 'DONE  #' $SP/gaps_0817b.log
+# ④ 산출이 느나 — ⭐이름으로 본다(개수만 보면 «다른 팔» 을 못 잡는다)
+ls outputs/elev_sweep_shards/sionna_p4000000000_*mfix*.npz | wc -l
 ```
 
-**죽었으면 그냥 다시 띄운다** — 이미 난 샤드는 건너뛴다.
+**죽었으면 다시 띄운다** — 이미 난 샤드는 건너뛴다. ⛔**OptiX 환경변수 두 개**가 없으면 즉사한다
+(`runners/run_gaps_0817.sh` 안에 있다).
 
 ```bash
 cd /workspace/sionna
-setsid nohup bash runners/run_gaps_0817.sh runners/jobs_0817.txt 3 /tmp/gaps_0817.log \
-  > /tmp/gaps_driver.log 2>&1 < /dev/null &
+setsid nohup bash runners/run_gaps_0817.sh <job파일> 3 /tmp/gaps.log > /dev/null 2>&1 < /dev/null &
 ```
 
-⛔**OptiX 환경변수 두 개가 없으면 워커가 즉시 죽는다**(`rt.load_scene()` 에서 터지고, 재질
-조회 때문에 **우리 커널 팔도 같이** 막힌다). `runners/run_gaps_0817.sh` 안에 이미 들어 있다:
+⚠**실행 중인 큐 파일은 스크래치패드에 있다**: `$SP/jobs_0817.txt`(64 줄).
+저장소 사본: `runners/jobs_0817.txt`(30 줄, 옛 판) · `runners/jobs_0818_fixed.txt`(24) ·
+`runners/jobs_0818_rotor.txt`(10). ⛔컨테이너가 새로 뜨면 스크래치패드가 사라지므로
+그때는 저장소 사본 셋을 이어 붙여 다시 만든다.
 
-```bash
-export DRJIT_LIBOPTIX_PATH=/workspace/.venvs/optix/libnvoptix.so.1
-export LD_LIBRARY_PATH=/workspace/.venvs/optix:$LD_LIBRARY_PATH
-```
+⛔**자동 kill 금지.** 감시는 보고만. (그리고 이 환경에서는 `kill` 이 권한 차단된다 —
+줄여야 하면 큐 파일의 안 뜬 줄을 **제자리에서 같은 길이로** `--help` 로 덮는다.)
 
-⛔**자동 kill 금지.** 감시는 보고만 하고, 죽이는 것은 근거 확인 후 수동으로.
+## 0-b. 끊긴 뒤 바로 할 것
+
+1. **Monitor 다시 걸기** — `gaps_0817b.log` 의 `DONE #`·`ALL DONE`·`Traceback` 감시
+2. 큐가 끝났으면 → `bash runners/run_verdicts_0818.sh 0` (병합 + 빈칸 게이트) → `… all`
+3. 아직이면 → 3 장(잡음) CPU 작업 계속 (§6). ⚠무거운 렌더는 큐 끝난 뒤 —
+   CPU 를 뺏으면 GPU 큐가 **2.5 배** 느려진다(실측)
 
 ## 1. 왜 이 줄을 샀나
 
