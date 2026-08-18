@@ -54,6 +54,14 @@ EL = -30.0                       # 헤드라인 앙각
 SCN = CANON["_meta"]["headline_scenario"]
 SC = CANON["scenarios"][SCN]
 
+#: ⭐⭐프레임의 SNR 은 **옛 예산**으로 계산돼 있다(`noise_distance_frame.py:120` EIRP 30 dBm ·
+#   NF 5 · 손실 0). 정본 시나리오는 EIRP 23 · NF 6.5 · 손실 2 다. 그대로 그리면 제목(정본)과
+#   데이터(옛 판)가 **10.5 dB** 어긋난다 — 거리로는 ×1.83 이다.
+#   정본이 이미 그 보정을 계산해 뒀다(`link_budget_canon_0816.legacy_shift`): 공통모드라
+#   **모든 팔에 같은 값**이 걸리고 팔 사이 순서는 안 바뀐다.
+LEG = CANON["legacy_shift"]
+SNR_SHIFT_DB = float(LEG["d_total_db"])            # −10.5 dB (옛 → 정본)
+
 ARMS = [("ours", "Our kernel (SBR+PO)", "#c62828"),
         ("ps_off", "PathSolver, all off", "#1565c0"),
         ("ps_refr", "PathSolver, refraction only", "#2e7d32"),
@@ -120,7 +128,7 @@ def crossing(curve, bar):
 
 def range_at_snr(cells, snr_db):
     """거리 칸의 (log10 R, SNR) 직선을 맞춰 그 SNR 이 되는 거리 [m]."""
-    pts = [(np.log10(c["range_m"]), c["by_convention"]["S1"]["snr_ac_db"])
+    pts = [(np.log10(c["range_m"]), c["by_convention"]["S1"]["snr_ac_db"] + SNR_SHIFT_DB)
            for c in cells if c.get("by_convention", {}).get("S1")]
     if len(pts) < 2:
         return None, None
@@ -161,7 +169,11 @@ def main():
                              f"{dp:.2f} 벌어진다. 엔진 자체가 거리에 따라 레벨을 나르고 있어 "
                              f"레이다식을 한 번 더 얹으면 이중 계상이다"),
             snr_at_bar_db=xs, snr_law_db_per_decade=(law[0] if law else None),
-            snr_at_15m_db=c15["by_convention"]["S1"]["snr_ac_db"],
+            snr_at_15m_db=round(c15["by_convention"]["S1"]["snr_ac_db"] + SNR_SHIFT_DB, 2),
+            snr_shift_applied_db=SNR_SHIFT_DB,
+            snr_shift_why_ko=("프레임은 옛 예산(EIRP 30·NF 5·손실 0)으로 잰 SNR 이다. "
+                              "정본 시나리오(23·6.5·2)로 옮기려면 −10.5 dB — 공통모드라 "
+                              "팔 사이 순서는 안 바뀌고 절대 미터만 ×0.55 로 움직인다"),
             readable_range_m=rng,
             ranges_in_ledger=[c["range_m"] for c in cs],
             note_ko=("빗살 대비가 귀무 막대를 뚫는 SNR 과, 그 SNR 이 되는 거리. "
@@ -207,8 +219,8 @@ def main():
 
     for key, label, col in ARMS:
         cs = cells_for(key)
-        pts = [(c["range_m"], c["by_convention"]["S1"]["snr_ac_db"]) for c in cs
-               if c.get("by_convention", {}).get("S1")]
+        pts = [(c["range_m"], c["by_convention"]["S1"]["snr_ac_db"] + SNR_SHIFT_DB)
+               for c in cs if c.get("by_convention", {}).get("S1")]
         if len(pts) < 2:
             continue
         ax[1].plot([p[0] for p in pts], [p[1] for p in pts], "o-", lw=2.0, color=col,
@@ -239,6 +251,7 @@ def main():
                          "(hollow = the range extrapolation is not trustworthy "
                          "for that arm)", ha="center", fontsize=10.5, color="0.45")
     fig.text(0.5, 0.015,
+             "SNR shifted by "+f"{SNR_SHIFT_DB:+.1f} dB"+" to the headline budget.   "
              "verified: the ordering between arms and the SNR a pattern needs.   "
              "not verified: the absolute metres — no field comparison yet, "
              "and transmit-to-receive isolation is unmeasured.",
