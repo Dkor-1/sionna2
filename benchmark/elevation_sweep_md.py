@@ -223,7 +223,27 @@ def run(a) -> None:
         rpms = base * rel
         print(f"  ⚠로터 {n_rot} 개 — 원장 배열({rpms.size if rpms.size!=n_rot else 4} 개)과 달라 "
               f"{spec.key} 호버 {base:.0f} rpm 에 원장 산포를 얹어 만든다", flush=True)
-    ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)
+    #: ⭐로터 프리셋 축(2026-08-18 신설) — 안 주면 **비트동일**(1 차원 상수 rpm 경로).
+    #   주면 `src/rotor_dynamics.rpm_series()` 가 (n, n_rotors) rpm 열을 만들고
+    #   `rotor_phases` 가 그것을 적분한다(θ=ω·t 가 성립 안 하므로 cumsum 경로).
+    #   ⚠**프리셋은 원장 산포를 «더하는» 것이 아니라 «갈아끼운다»** — 프리셋 자신이
+    #     로터별 정지 산포(static_offsets)를 만들기 때문에, 원장 산포를 남기면 두 번 센다.
+    #     그래서 rpm0 는 원장 배열의 **평균**만 물려준다.
+    rot_diag = None
+    _rp = getattr(a, "rotor_preset", "")
+    if _rp:
+        from rotor_dynamics import get as _rget, rpm_series, initial_phase_deg
+        _jit = _rget(_rp)
+        _rng = np.random.default_rng(int(getattr(a, "rotor_seed", 0)))
+        _rpm_t, rot_diag = rpm_series(float(np.mean(rpms)), n_rot, n, prf, _jit, _rng)
+        _b = initial_phase_deg(n_rot, _jit, _rng, 360.0 / float(getattr(spec, "blades", 2)))
+        ph = rotor_phases(np.arange(n) / prf, _rpm_t, fp.dirs, base_deg=_b, dt=1.0 / prf)
+        print(f"  ⭐로터 프리셋 {_rp} — {rot_diag.get('mode')} · "
+              f"정지 산포 σ {getattr(_jit, 'static_sigma', 0):.4f} · "
+              f"흔들림 σ {getattr(_jit, 'wobble_sigma', 0):.4f} · 씨앗 "
+              f"{int(getattr(a, 'rotor_seed', 0))}", flush=True)
+    else:
+        ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)
     els = tuple(float(x) for x in a.els.split(',') if x.strip()) or ELS
     idx = np.arange(a.shard, n, a.nshards)
     os.makedirs(SHD, exist_ok=True)
@@ -253,6 +273,8 @@ def run(a) -> None:
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
+        + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
+        + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
         + tagfc + tagth + tagmf
 
     if tagth and a.engine in ("ours", "ours_free"):
@@ -289,6 +311,9 @@ def run(a) -> None:
             tagd = ("_ptd" if a.ptd else "") + tagr \
                 + ("" if not getattr(a, "div", 0) else f"_div{div}") + tagsh
             f = f"{SHD}/{a.engine}{tagd}_el{el:+.0f}_{a.shard:02d}.npz"
+            if getattr(a, "dry_run", False):
+                print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
+                      f"{os.path.basename(f)}", flush=True); continue
             if os.path.exists(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
             u = los(az, el)
@@ -373,6 +398,9 @@ def run(a) -> None:
                    if getattr(a, "parts", "") else "")
                 + tagr + ("" if not getattr(a, "max_depth", 0) else f"_d{mdep}"))
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
+        if getattr(a, "dry_run", False):
+            print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
+                  f"{os.path.basename(f)}", flush=True); continue
         if os.path.exists(f) and not a.overwrite:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
         E = np.zeros(idx.size, complex); npaths = np.zeros(idx.size, int)
@@ -741,6 +769,22 @@ def main() -> None:
                     help="⭐방위각 [°]. 비우면 원장값(report07_three_engines:_meta.az_deg). "
                          "지금까지 모든 판이 방위 한 자리에서만 잰 것이라 «다른 방위에서도 "
                          "같은 결론이 서는가» 를 시험한 적이 없다. 파일명에 _az<N> 이 붙는다.")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="⭐**만들 샤드 이름만 찍고 끝낸다** — 솔버를 안 돈다. "
+                         "2026-08-18 교훈: «rc=0» 도 «샤드 수가 늘었다» 도 성공 증거가 "
+                         "아니다. 큐를 짜면 먼저 이걸로 **기대한 팔 이름이 나오는지** 본다 "
+                         "(인자 하나를 빠뜨리면 조용히 **다른 팔**이 만들어진다).")
+    ap.add_argument("--rotor-preset", default="",
+                    help="⭐로터 요동 프리셋 이름 (src/rotor_dynamics.PRESETS): legacy · "
+                         "indoor · outdoor · outdoor_v2 …. **안 주면 기존과 비트동일**"
+                         "(로터마다 상수 rpm). 주면 정지 산포와 시간 흔들림이 있는 rpm 열로 "
+                         "바뀌고 파일명에 _rot<이름> 이 붙는다. "
+                         "⚠프리셋은 원장 산포를 더하는 게 아니라 **갈아끼운다** — 프리셋이 "
+                         "로터별 산포를 스스로 만들기 때문이다(두 번 세면 안 된다). "
+                         "⛔산포를 키우면 빗살 격자가 어긋난다 — 잣대부터 다시 정의할 것"
+                         "(noise_main_gates G5).")
+    ap.add_argument("--rotor-seed", type=int, default=0,
+                    help="로터 프리셋의 난수 씨앗. 0 이면 꼬리표가 안 붙는다.")
     ap.add_argument("--div", type=int, default=0,
                     help="⭐우리 커널의 표면 격자 간격을 λ/DIV 로 정한다. 0 이면 규약값 12. "
                          "상한 위 누설이 격자 표본화에서 오는지 가르는 축이다 — 촘촘하게 "
