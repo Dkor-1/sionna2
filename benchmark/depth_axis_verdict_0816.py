@@ -449,6 +449,15 @@ def main() -> None:
                     # ── 밴드 대조 (⭐헤드라인은 솎은 판) ───────────────────
                     band = GRID_BAND_AC_DB.get(el)
                     row["grid_band_ac_db_at_el"] = band
+                    # ⭐2026-08-18: 밴드가 **없는** 앙각에서 조용히 «안 유의» 로 넘어가지 않는다.
+                    #   레벨 판정 밴드는 λ/12↔λ/24 격자 사다리에서 나오는데, 새로 채운 앙각
+                    #   (−52·−68·−82)에는 그 사다리가 없다. band is None 이면 sig_lv 가 무조건
+                    #   False 가 되어 «잣대가 없다» 가 «차이가 없다» 로 읽힌다 — 그것을 막는다.
+                    row["level_band_missing"] = band is None
+                    if band is None:
+                        row["level_verdict_ko"] = (
+                            "⛔판정 불가 — 이 앙각에는 격자 산포 밴드가 없다(λ/24 판이 없어 "
+                            "잣대를 못 만든다). ⚠«안 유의» 와 **다르다**")
                     row["grid_band_rhythm_pp"] = GRID_BAND_RHYTHM_PP_GLOBAL
                     row["grid_band_comb_db"] = GRID_BAND_COMB_DB_GLOBAL
                     row["grid_band_above_ceiling_pp"] = GRID_BAND_ABOVE_PP_GLOBAL
