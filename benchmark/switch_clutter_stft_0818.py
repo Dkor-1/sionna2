@@ -152,6 +152,53 @@ def metrics(x):
         lag1=round(float(abs(np.vdot(ac[:-1], ac[1:])) / np.vdot(ac, ac).real), 4))
 
 
+def band_eca(data, lo, hi, stem):
+    """블레이드 대역 에너지 — 클러터 소거를 **먼저 걸고** 나서 스펙트럼으로 만든다.
+
+    배치는 기존 빌더 band() 와 같게 둔다(우리 커널을 옅게 깔고 조합 하나만 진하게).
+    잣대 식은 build_switch_grid_figs.modspec 을 **그대로 가져다 쓴다** — 정본은 구현이
+    하나여야 한다(다시 짜면 두 그림이 다른 잣대를 쓰게 된다).
+    """
+    import build_switch_grid_figs as B                                  # noqa: E402
+    fr0, Y0 = B.modspec(cs_eca(data[ARMS[0][0]]))
+    m0 = (fr0 >= lo) & (fr0 <= hi)
+    ref_db = 10 * np.log10(Y0[m0] / Y0[m0].max())
+    fig, ax = plt.subplots(2, 4, figsize=(27.0, 9.6), sharex=True, sharey=True)
+    for i, (arm, nm) in enumerate(ARMS):
+        a = ax[i // 4, i % 4]
+        if i:
+            a.plot(fr0[m0], ref_db, color="#c62828", lw=1.2, alpha=0.35, label="Our kernel")
+        fr, Y = B.modspec(cs_eca(data[arm]))
+        m = (fr >= lo) & (fr <= hi)
+        a.plot(fr[m], 10 * np.log10(Y[m] / Y[m].max()),
+               color="#c62828" if not i else "#1565c0", lw=1.8, label=nm)
+        for k in range(max(1, int(np.ceil(lo / FFL))), int(hi / FFL) + 1):
+            a.axvline(k * FFL, color="0.35", ls="--", lw=1.0, zorder=1)
+        a.set_xlim(lo, hi)
+        if hi > 500:
+            a.set_xticks(np.arange(200, hi + 1, 200))
+        a.set_ylim(-52, 4)
+        a.set_title(nm, pad=7)
+        a.grid(alpha=0.25)
+        a.set_axisbelow(True)
+        if i % 4 == 0:
+            a.set_ylabel("line level [dB]")
+        if i // 4 == 1:
+            a.set_xlabel("modulation rate [Hz]")
+        if i == 1:
+            a.legend(fontsize=13, loc="lower right", framealpha=0.95)
+    fig.subplots_adjust(top=0.865, bottom=0.10, left=0.055, right=0.985,
+                        hspace=0.22, wspace=0.06)
+    fig.text(0.5, 0.945, "after cancelling static clutter, blade band power over time turned "
+                         f"into a spectrum, dashed lines mark {FFL:.1f} Hz and its multiples, "
+                         "the faint red curve repeats our kernel for reference",
+             ha="center", fontsize=18, color="0.35")
+    out = f"{FIG}/{stem}.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  ✅ {out}")
+
+
 def main() -> None:
     t0 = time.time()
     data, table = {}, {}
@@ -204,7 +251,10 @@ def main() -> None:
     print(f"  A3 봉우리 자리가 움직인 팔: {moved if moved else '없음'}")
 
     # ── 그림 ────────────────────────────────────────────────────────────
+    skip_maps = "--skip-maps" in sys.argv
     n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    if skip_maps:
+        print("\n(맵은 건너뛴다 — 대역 에너지 그림만)")
     fig, ax = plt.subplots(2, 4, figsize=(27.0, 9.6), sharex=True, sharey=True)
     for i, (arm, nm) in enumerate(ARMS):
         a = ax[i // 4, i % 4]
@@ -227,8 +277,13 @@ def main() -> None:
     cb = fig.colorbar(ax[0, 0].collections[0], cax=cax)
     cb.set_label("dB below the brightest point in that panel", fontsize=16)
     p = f"{FIG}/swgrid_maps_eca.png"
-    fig.savefig(p, dpi=150)
+    if not skip_maps:
+        fig.savefig(p, dpi=150)
     plt.close(fig)
+
+    print("\n═══ 대역 에너지 (클러터 소거 뒤) ═══")
+    band_eca(data, 100.0, 1000.0, "swgrid_be_wide_eca")
+    band_eca(data, 0.0, 420.0, "swgrid_be_zoom_eca")
 
     doc = {"_meta": {
         "generator": "benchmark/switch_clutter_stft_0818.py",
@@ -240,7 +295,9 @@ def main() -> None:
         "f_cut_hz": FCUT,
         "methods_ko": {k: l for k, l, _f in CS},
         "elapsed_s": round(time.time() - t0, 2),
-    }, "cells": table, "adversarial": adv, "figure": "outputs/figures/swgrid_maps_eca.png"}
+    }, "cells": table, "adversarial": adv, "figures": ["outputs/figures/swgrid_maps_eca.png",
+                "outputs/figures/swgrid_be_wide_eca.png",
+                "outputs/figures/swgrid_be_zoom_eca.png"]}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
     print(f"\nsaved {OUT}\nsaved {p}")
