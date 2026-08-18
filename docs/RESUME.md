@@ -65,10 +65,16 @@ export LD_LIBRARY_PATH=/workspace/.venvs/optix:$LD_LIBRARY_PATH
 
 ## 3. 8/18 덱 — 끝났다
 
-**v23 이 최종**이고 `team_meeting`(0518b84)·`sionna/decks`(2d83a59) 양쪽에 있다. 더 손대지 않는다.
+**v23 이 최종**이고 `team_meeting`(36bdc57)·`sionna/decks`(77f5dbcc) 양쪽에 있다. 더 손대지 않는다.
 v22(사용자 판)를 **직접 편집**해서 만든 것이라 빌더로 다시 지으면 안 된다 —
-파워포인트에서 한 편집이 날아간다. 수리 스크립트는
-`/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/make_v23.py`.
+파워포인트에서 한 편집이 날아간다. 수리 스크립트는 스크래치패드(`/tmp`)에 있어 사라질 참이라
+저장소로 옮겼다: `teammeeting_0818/make_0818_v23_repair.py`.
+
+⭐**2026-08-18 정리(사용자 지시 «v23 빼고 다 삭제»)** — 옛 판을 세 곳에서 지웠다:
+`teammeeting_0818/` 폴더 **417 → 76 MB**(옛 pptx 20 · 슬라이드 json 20 · 미리보기 11 · 덤프;
+⛔이 폴더는 git 밖이라 복구 불가) · `team_meeting` 저장소 v11~v22 열두 개 · `sionna/decks` v20·v21.
+**남긴 것**: v23 본체와 그 미리보기 · 빌더 py · 대본 `SCRIPT_v19/20/21.md` · 템플릿 · `assets/`·`figs/` ·
+`parts_ftip.json`. 저장소 쪽 옛 판은 **히스토리에 그대로** 있어 되살릴 수 있다.
 
 ## 4. 이번 세션에서 확정한 사실 (다시 재지 말 것)
 
