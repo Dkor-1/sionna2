@@ -76,6 +76,18 @@ def null_bar_db(el=EL):
         if f"{el:+.0f}" in FRAME["null_control"] else FRAME["null_control"][str(int(el))]
     cc = n["comb_contrast_db"]
     bar = cc["mean"] + 3.090 * cc["std"]
+    n_trial = n["n_trial"]
+    # ⭐정본은 게이트가 20,000 시행으로 **경험적** p99.9 를 낸 값이다(2026-08-18).
+    #   있으면 그것을 쓰고, 위 정규 근사는 검산용으로만 남긴다.
+    try:
+        G = json.load(open(os.path.join(ROOT, "outputs",
+                                        "noise_main_gates_n20000_0818.json"), encoding="utf-8"))
+        b = G["G3_bars"][f"el_minus{abs(int(el))}"]
+        bar_canon, n_trial = float(b["bar_noise_db"]), int(b["n_null"])
+        approx_err = round(abs(bar - bar_canon), 3)
+        bar = bar_canon
+    except Exception:
+        bar_canon, approx_err = None, None
     # 검산 — 정규 근사가 p95 를 얼마나 맞히나
     p95_pred = cc["mean"] + 1.645 * cc["std"]
     # ⚠원장에는 **선이 둘** 있다. 사전등록이 정한 막대는 p99.9 이고,
@@ -84,7 +96,10 @@ def null_bar_db(el=EL):
     rl = FRAME.get("read_lines", {}).get(str(int(el)), {})
     return dict(bar_db=round(bar, 3), mean=cc["mean"], std=cc["std"],
                 p95_ledger=cc["p95"], p95_normal_approx=round(p95_pred, 3),
-                p95_err_db=round(abs(p95_pred - cc["p95"]), 3), n_trial=n["n_trial"],
+                p95_err_db=round(abs(p95_pred - cc["p95"]), 3), n_trial=n_trial,
+                canon_source=("게이트 20,000 시행 경험적 p99.9" if bar_canon is not None
+                              else "정규 근사(20,000 판 없음)"),
+                normal_approx_minus_canon_db=approx_err,
                 rule_ko="⭐정본 막대 = 빗살 대비 귀무분포 p99.9 (사전등록 규칙, 정규 근사 mean+3.090σ)",
                 frame_readable_db=rl.get("readable_db"),
                 frame_undecidable_db=rl.get("undecidable_db"),
@@ -172,14 +187,18 @@ def main():
         if xs is not None:
             ax[0].plot([xs], [bar], "o", ms=7, color=col, zorder=5)
     ax[0].axhline(bar, color="k", ls="--", lw=1.6)
-    ax[0].text(ax[0].get_xlim()[0], bar, f"  decision bar {bar:.1f} dB "
-               f"(noise-only p99.9, {nb['n_trial']} trials)",
-               va="bottom", fontsize=10)
+    x1 = ax[0].get_xlim()[1]
+    ax[0].annotate(f"decision bar {bar:.2f} dB\n(noise only, p99.9, "
+                   f"{nb['n_trial']:,} trials)", xy=(x1, bar), xytext=(-8, 8),
+                   textcoords="offset points", ha="right", va="bottom", fontsize=9.5,
+                   bbox=dict(fc="white", ec="0.7", alpha=0.9, pad=2.5))
     if nb.get("frame_readable_db") is not None:
         ax[0].axhline(nb["frame_readable_db"], color="0.45", ls=":", lw=1.4)
-        ax[0].text(ax[0].get_xlim()[0], nb["frame_readable_db"],
-                   f"  stricter line {nb['frame_readable_db']:.1f} dB (ledger read_lines)",
-                   va="bottom", fontsize=9, color="0.45")
+        ax[0].annotate(f"stricter line {nb['frame_readable_db']:.2f} dB",
+                       xy=(x1, nb["frame_readable_db"]), xytext=(-8, -14),
+                       textcoords="offset points", ha="right", va="top",
+                       fontsize=9, color="0.45",
+                       bbox=dict(fc="white", ec="none", alpha=0.85, pad=1.5))
     ax[0].set_xlabel("per-sample SNR of the moving part [dB]")
     ax[0].set_ylabel("comb contrast [dB]")
     ax[0].set_title("how much SNR the pattern needs", pad=7)
@@ -196,8 +215,16 @@ def main():
                    label=label)
         xs, rng = rows[key]["snr_at_bar_db"], rows[key]["readable_range_m"]
         if xs is not None and rng:
-            ax[1].plot([rng], [xs], "*", ms=15, color=col, zorder=5)
+            ok = rows[key].get("range_extrapolation_trustworthy")
+            # ⛔거리 외삽을 못 믿는 팔은 별을 비워 그린다(엔진이 이미 거리로 레벨을 나른다)
+            ax[1].plot([rng], [xs], "*", ms=16, color=col, zorder=5,
+                       mfc=(col if ok else "none"), mew=1.8)
     ax[1].set_xscale("log")
+    from matplotlib.ticker import FixedLocator, NullLocator, FixedFormatter
+    tk = [15, 30, 60, 120, 250, 500, 1000]
+    ax[1].xaxis.set_major_locator(FixedLocator(tk))
+    ax[1].xaxis.set_major_formatter(FixedFormatter([str(t) for t in tk]))
+    ax[1].xaxis.set_minor_locator(NullLocator())      # 로그 보조 눈금이 겹쳐 읽힌다
     ax[1].set_xlabel("range [m]")
     ax[1].set_ylabel("per-sample SNR of the moving part [dB]")
     ax[1].set_title("and how far that SNR reaches", pad=7)
@@ -205,15 +232,18 @@ def main():
     ax[1].legend(fontsize=9.5, loc="lower left")
 
     fig.suptitle(f"{SC['label_en']}  ·  EIRP {SC['eirp_dbm']:.0f} dBm  ·  "
-                 f"CPI {SC['cpi_s']*1e3:.0f} ms  ·  elevation {EL:.0f}"
-                 f"{chr(176)}   —   stars mark where the pattern stops being readable",
-                 fontsize=13, color="0.3")
+                 f"CPI {SC['cpi_s']*1e3:.0f} ms  ·  looking up from "
+                 f"{abs(EL):.0f}{chr(176)} below the drone",
+                 fontsize=13.5, color="0.3")
+    fig.text(0.5, 0.905, "stars mark where the pattern stops being readable   "
+                         "(hollow = the range extrapolation is not trustworthy "
+                         "for that arm)", ha="center", fontsize=10.5, color="0.45")
     fig.text(0.5, 0.015,
              "verified: the ordering between arms and the SNR a pattern needs.   "
              "not verified: the absolute metres — no field comparison yet, "
              "and transmit-to-receive isolation is unmeasured.",
              ha="center", fontsize=10.5, color="0.45")
-    fig.tight_layout(rect=(0, 0.045, 1, 0.93))
+    fig.tight_layout(rect=(0, 0.045, 1, 0.895))
     p = f"{FIG}/noise_snr_panels.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -283,7 +313,8 @@ def _maps():
         a.set_title("no noise" if s is None else f"SNR {s:.0f} dB", pad=7)
         a.set_xlabel("time [ms]")
     ax[0].set_ylabel("Doppler [Hz]")
-    fig.suptitle("the same run as noise is added — each panel scaled to its own peak",
+    fig.suptitle("the same run as noise is added, looking up from 30" + chr(176) +
+                 " below the drone — each panel scaled to its own peak",
                  fontsize=14, color="0.35")
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     p = f"{FIG}/noise_snr_maps.png"
