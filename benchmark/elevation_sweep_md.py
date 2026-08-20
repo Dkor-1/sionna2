@@ -72,6 +72,17 @@ for _p in (os.path.join(ROOT, "src"), HERE):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+# ⭐⭐**스레드 캡을 코드로 못 박는다** (2026-08-20). 환경변수만으로는 **안 걸린다** —
+#   `DRJIT_NUM_THREADS`·`MI_NUM_THREADS` 는 drjit 1.3.1 · mitsuba 3.8.0 에 **없는 이름**이다
+#   (패키지 전체 grep 0 건). 실측: env 로 2 를 걸어도 dr.thread_count() 가 **192** 이고,
+#   병렬 작업 한 번에 프로세스 스레드가 **200 개**로 뛴다. 랩 서버를 마비시킨 그 경로다.
+#   ⭐여기(워커 본체)에 있어야 **어느 런처로 띄우든** 걸린다.
+try:
+    from thread_guard import apply as _thread_apply
+    _TG = _thread_apply(int(os.environ.get("OMP_NUM_THREADS", "2")), verbose=False)
+except Exception as _e:                                                  # noqa: BLE001
+    _TG = {"err": str(_e)[:120]}
+
 import numpy as np                                                      # noqa: E402
 
 FC, RANGE_M = 3.5e9, 10.0          # ⭐사용자 지시(2026-08-11) — 구면 반경 10 m 고정
@@ -193,10 +204,43 @@ def carrier_of(arm: str) -> float:
     return FC if not m else float(m.group(1)) * 1e6
 
 
+
+
+def require_cuda_variant() -> None:
+    """⛔**GPU 가 안 열렸는데 조용히 CPU 로 도는 것**을 막는다 (2026-08-20 신설).
+
+    Sionna 는 CUDA 초기화가 실패하면 **예외도 경고도 없이** `llvm_ad_mono_polarized` 로
+    떨어진다(실측). 그 상태로 생산을 돌리면 **GPU 판과 똑같은 이름의 샤드**를 CPU 로 써서
+    원장에 두 엔진이 섞인다 — 나중에 구별할 방법이 없다.
+    ⇒ 생산 진입점에서 변종을 확인하고, CUDA 가 아니면 **멈춘다**.
+
+    ⭐탈출구: 정말 CPU 로 돌려야 하면 `SIONNA2_ALLOW_CPU=1` 을 준다(그때는 본인 책임).
+    """
+    if os.environ.get("SIONNA2_ALLOW_CPU") == "1":
+        return
+    try:
+        import mitsuba as mi
+        v = mi.variant() or ""
+    except Exception as e:                                      # noqa: BLE001
+        raise SystemExit(f"⛔ Mitsuba 를 못 불러왔다: {e}")
+    if not v.startswith("cuda"):
+        raise SystemExit(
+            f"⛔ Mitsuba 변종이 {v!r} 다 — GPU 가 안 열려 **CPU 로 떨어졌다**.\n"
+            f"   이대로 돌리면 GPU 판과 **같은 이름**의 샤드를 CPU 로 써서 원장이 섞인다.\n"
+            f"   · nvidia-smi 가 되는지, /dev/nvidia* 가 열리는지 확인할 것\n"
+            f"   · 정말 CPU 로 돌리려면 SIONNA2_ALLOW_CPU=1 (원장 오염은 본인 책임)")
+
+
 # ═══ 계산 ═══════════════════════════════════════════════════════════════════
 def run(a) -> None:
     from gpu import pick
     pick(verbose=False)
+    # ⛔⛔**조기 건너뛰기(A14)를 철회했다** (2026-08-20 15:5x). 파일 이름을 별표로 좁혔더니
+    #   `*` 가 _sw…·_d1/_d2·_rot…·_div…·_parts… 를 **전부 삼켜서**, 만들어야 할 샤드를
+    #   «이미 있다» 고 오판했다. 실제 피해: 15:29~15:38 에 10 줄이 rc=0 «성공» 으로 넘어가고
+    #   **샤드 32 칸**이 안 났다(≈20 워커-시간). 정확한 이름은 앙각 루프 안(`:492`·`:387`)이
+    #   본 코드와 같은 조각으로 만들므로, 그 검사만 남긴다.
+    #   ⇒ 되살리려면 **이름 조립을 함수 하나로 빼서 둘이 같은 코드를 부르게** 해야 한다.
     from articulated_fast import FastPoser, rotor_phases
     from drones import DRONES, DRONE_GROUP_MAT
 
@@ -245,6 +289,16 @@ def run(a) -> None:
     else:
         ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)
     els = tuple(float(x) for x in a.els.split(',') if x.strip()) or ELS
+    # ⛔**앙각은 정수여야 한다** (2026-08-20 잠복 버그 차단). 파일 이름이 `_el{el:+.0f}_` 라
+    #   −52.5 를 주면 **−52 로 뭉개져** 진짜 −52 샤드와 조용히 섞인다. 병합은 이름에서
+    #   앙각을 읽으므로 두 칸이 한 칸으로 합쳐진다 — 원장이 거짓말을 하게 된다.
+    #   ⇒ 소수 앙각이 정말 필요하면 **이름 규약부터** 바꿔야 한다(그러면 옛 샤드와 갈린다).
+    _bad = [e for e in els if abs(e - round(e)) > 1e-9]
+    if _bad:
+        raise SystemExit(
+            f"⛔ 앙각 {_bad} 는 정수가 아니다. 파일 이름이 `_el{{el:+.0f}}_` 라 소수점이 "
+            f"잘려 다른 앙각 샤드와 **조용히 섞인다**(예: −52.5 → `_el-52_`). "
+            f"소수 앙각을 쓰려면 이름 규약을 먼저 바꿀 것.")
     idx = np.arange(a.shard, n, a.nshards)
     os.makedirs(SHD, exist_ok=True)
     # ⭐거리·깊이는 인자로 받는다. 기본값이면 꼬리표가 안 붙어 기존 샤드 이름과 같다.
@@ -277,7 +331,7 @@ def run(a) -> None:
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
         + tagfc + tagth + tagmf
 
-    if tagth and a.engine in ("ours", "ours_free"):
+    if tagth and a.engine in ("ours", "ours_free", "ours_gpu"):
         raise SystemExit("⛔ --shell-mm/--prop-mm 은 PathSolver 팔 전용이다 — 우리 커널에는 "
                          "두께 개념이 없다(셸은 |Γ|=gamma_po 와 τ=1−|Γ|² 뿐이다). "
                          "그대로 두면 이름만 바뀌고 내용이 같은 샤드가 생겨 원장이 거짓말을 한다. "
@@ -291,7 +345,7 @@ def run(a) -> None:
         raise SystemExit("⛔ --grid-shift 는 우리 커널 전용이다 — PathSolver 는 표면 격자를 "
                          "안 쓴다(광선을 Rx 에서 쏘고 경로를 찾는다). 옮길 격자가 없다.")
 
-    if a.engine in ("ours", "ours_free"):
+    if a.engine in ("ours", "ours_free", "ours_gpu"):
         from rcs_sbr import sbr_field, grid_ref_from, grid_ref_margin, grid_ref_shift
         gm = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
         #: ⭐격자 간격 λ/div. div 를 안 주면 규약값 12 라 기존 샤드와 비트동일하다.
@@ -304,6 +358,15 @@ def run(a) -> None:
         # ⭐가림 대조군 — 동체의 **면만** 뺀다. 정점(mv.v)은 그대로 둬서 bbox·광선격자가
         #   같으므로 «동체가 막느냐» 하나만 다른 단일축이 된다(report15b 의 blade_free 규약).
         prop_only = (a.engine == "ours_free")
+        # ⭐GPU 커널 — 옛 커널(rcs_sbr)을 **그대로 둔 채** 나란히 쓴다.
+        #   산출 이름이 `ours_gpu…` 로 갈리므로 두 원장이 절대 안 섞인다.
+        #   ⛔K=1 로 못 박혀 있다(적대적 검증: K≥2 는 값이 --nshards 를 탄다).
+        _gpu = None
+        if a.engine == "ours_gpu":
+            if a.ptd:
+                raise SystemExit("⛔ --engine ours_gpu 는 PTD 를 아직 안 옮겼다 — "
+                                 "--ptd 는 --engine ours 로 돌릴 것.")
+            from rcs_sbr_gpu import BatchSBR
         if prop_only:
             keep = np.asarray(fp.g) == "prop"
             f_keep, g_keep = fp.f[keep], fp.g[keep]
@@ -327,12 +390,20 @@ def run(a) -> None:
                       f"{np.hypot(sh1, sh2)*d*1e3:.2f} mm 이동 · n={gref_el.n} (안 바뀜) · "
                       f"남은 덮개 여유 {mgn*1e3:+.2f} mm ({mgn/d:+.2f} 칸)", flush=True)
             E = np.zeros(idx.size, complex); t0 = time.time()
+            if a.engine == "ours_gpu":
+                # ⭐GPU 커널은 씬·광선다발을 **앙각마다 한 번** 짓고 자세만 갈아 넣는다.
+                #   (광선은 보는 방향에만 매인다 — 생산 루프는 앙각 고정이라 사실상 공짜)
+                _gpu = BatchSBR(fp.pose(ph[int(idx[0])]), gm, fc, K=1, spacing=d,
+                                grid_ref=gref_el, penetrate=True, angle_gamma=True)
             for j, i in enumerate(idx):
                 mv = fp.pose(ph[int(i)])
                 if prop_only:
                     mv.f, mv.g = f_keep, g_keep          # 정점은 그대로 — bbox 보존
-                E[j] = sbr_field(mv, gm, fc, u, spacing=d, grid_ref=gref_el,
-                                 range_m=(None if plane else rng_m), ptd=bool(a.ptd))
+                if _gpu is not None:
+                    E[j] = _gpu.field([mv], u, range_m=(None if plane else rng_m))[0]
+                else:
+                    E[j] = sbr_field(mv, gm, fc, u, spacing=d, grid_ref=gref_el,
+                                     range_m=(None if plane else rng_m), ptd=bool(a.ptd))
                 if j and j % 128 == 0:
                     e = time.time() - t0
                     print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
@@ -350,6 +421,7 @@ def run(a) -> None:
 
     # ── Sionna PathSolver ───────────────────────────────────────────────────
     import report15_probe as RP
+    require_cuda_variant()          # ⭐GPU 가 안 열렸으면 여기서 멈춘다
     from drones import drone_colors
     # ⭐셸 두께 정정 — **켰을 때만** 재질에 두께를 물린다(안 켜면 materials 가 예전처럼
     #   thickness 를 아예 안 넘겨 Sionna 기본 0.1 m → 옛 샤드와 비트동일).
@@ -397,6 +469,8 @@ def run(a) -> None:
                 + (f"_parts{str(a.parts).replace(',', '').replace('-', 'no')}"
                    if getattr(a, "parts", "") else "")
                 + tagr + ("" if not getattr(a, "max_depth", 0) else f"_d{mdep}"))
+        # ⭐--inmem 은 정점·면이 비트 동일이라 꼬리표를 **안 붙인다**(붙이면 옛 샤드를 못 잇는다).
+        #   ⛔대신 아래 cfg 메타에 기록해 «어느 길로 났는지» 를 남긴다.
         f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
         if getattr(a, "dry_run", False):
             print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
@@ -405,18 +479,44 @@ def run(a) -> None:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
         E = np.zeros(idx.size, complex); npaths = np.zeros(idx.size, int)
         t0 = time.time()
+        # ⭐A3 — 솔버 객체를 자세마다 새로 만들지 않는다(인자가 루프 상수다).
+        _solver = RP.rt.PathSolver()
+        # ⭐인메모리 경로 — 자세가 바뀌어도 안 변하는 것(면·그룹·재번호표)을 한 번만 짓는다.
+        #   `FastPoser` 가 자세마다 **같은** f·g 객체를 돌려주므로 구조적으로 안전하다
+        #   (`src/articulated_fast.py:120-126, 147`).
+        _lay = _mesh_cache = _par_cache = None
+        if getattr(a, "inmem", False):
+            from mesh_inmem import InMemGroups
+            _mv0 = fp.pose(ph[int(idx[0])])
+            _lay = InMemGroups(_mv0.f, _mv0.g)
+            # ⭐A2 — `mi.Mesh` 를 자세마다 새로 만들지 않는다. 면 연결은 안 변하므로
+            #   **한 번 만들고 정점만 갈아 끼운다**. 이름도 고정한다(옛 코드의 `{i%2}` 는
+            #   OBJ 파일이 두 벌 번갈아 쓰이던 시절의 유물이라 인메모리엔 필요 없다).
+            _mesh_cache, _par_cache = {}, {}
+            for g in _lay.names:
+                _m, _pp = _lay.make_mesh(RP.mi, _mv0.v, g, name=f"{spec.key}_{g}")
+                _mesh_cache[g], _par_cache[g] = _m, _pp
         for j, i in enumerate(idx):
             i = int(i)
-            m = fp.pose(ph[i]).to_mesh()
+            if _lay is not None:
+                mv = fp.pose(ph[i])
+                paths_obj = {g: None for g in _lay.names}
+                for g in _lay.names:
+                    _lay.update_vertices(RP.mi, _par_cache[g], mv.v, g)
+                mi_meshes = _mesh_cache
+                dd = None
+            else:
+                mi_meshes = None
+                m = fp.pose(ph[i]).to_mesh()
             # ⭐프로세스마다 다른 폴더를 쓴다 (2026-08-11 결함 정정).
             #   전에는 이름에 앙각·샤드만 들어 있어서, **광선 예산이 다른 두 실행**을
             #   동시에 띄우면 같은 폴더를 썼다. 자세마다 drop_scratch 로 지우므로
             #   한쪽이 읽는 중에 다른 쪽이 지워 «OBJ file not found» 로 터졌다
             #   (el 0 사다리에서 샤드 7 개 손실). PID 를 넣으면 어떤 동시 실행과도 안 겹친다.
-            dd = os.path.join(RP.SCRATCH,
-                              f"elev_{spec.key}_e{el:+.0f}s{a.shard}"
-                              f"_p{spp}_pid{os.getpid()}_{i%2}")
-            paths_obj = m.write_obj_per_group(dd, spec.key)
+                dd = os.path.join(RP.SCRATCH,
+                                  f"elev_{spec.key}_e{el:+.0f}s{a.shard}"
+                                  f"_p{spp}_pid{os.getpid()}_{i%2}")
+                paths_obj = m.write_obj_per_group(dd, spec.key)
             if getattr(a, "parts", ""):
                 ps_ = str(a.parts)
                 if ps_.startswith("-"):                  # -prop → prop 만 뺀 나머지 전부
@@ -427,26 +527,39 @@ def run(a) -> None:
                     paths_obj = {g: p for g, p in paths_obj.items() if g in keepg}
                 if not paths_obj:
                     raise SystemExit(f"⛔ --parts {a.parts}: 남는 그룹이 없다")
-            parts = [RP.Part(name=f"{spec.key}_{g}_{i%2}", obj=p,
-                             mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
+            parts = [RP.Part(name=(f"{spec.key}_{g}" if mi_meshes is not None
+                                   else f"{spec.key}_{g}_{i%2}"), obj=(p or ""),
+                             mat_key=DRONE_GROUP_MAT[g][0], color=cols[g],
+                             mi_mesh=(None if mi_meshes is None else mi_meshes[g]))
                      for g, p in paths_obj.items()]
             sc = RP.build_scene(parts, fc=fc)
             RP.place(sc, az=az, el=el, rng=rng_m, baseline=0.0)
-            p = RP.rt.PathSolver()(
+            p = _solver(
                 sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
                 # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
                 #   깊이는 --max-depth 로 따로 준다(안 주면 옛 규칙 3/1).
                 max_depth=mdep, **sw,
                 samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS, seed=1)
             try:
-                aa, tau, _, O = RP.unpack(p)
+                aa, tau, _, O = RP.unpack(p, want_doppler=False)
             except ValueError:
                 aa = np.zeros(0)
             if aa.size:
                 hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)
-                E[j] = complex(np.sum(aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])))
+                _t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])
+                if getattr(a, "det", False):
+                    # ⭐순서를 못 박는다 — PathSolver 가 돌려주는 경로 **순서**가 매번 달라서
+                    #   같은 코드로도 합이 갈린다(실측 4 판 4 종류). 정렬하면 고정된다.
+                    # ⚠지연만으로는 모자라다 — **지연이 똑같은 경로 쌍**이 있으면 그 둘의
+                    #   앞뒤를 못 가른다(실측: 512 자세 중 1 개가 마지막 비트에서 갈렸다).
+                    #   그래서 지연 → 실수부 → 허수부 순으로 열쇠를 겹쳐 완전히 결정한다.
+                    _hv = _t
+                    _ord = np.lexsort((_hv.imag, _hv.real, tau[hit]))
+                    _t = _t[_ord]
+                E[j] = complex(np.sum(_t))
                 npaths[j] = int(hit.sum())
-            RP.drop_scratch(dd)
+            if dd is not None:
+                RP.drop_scratch(dd)
             if j and j % 128 == 0:
                 e = time.time() - t0
                 print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
@@ -490,8 +603,22 @@ def analyse() -> None:
     per = auto_periods(prf, ffl)
     ft_deck = float(TJ["f_tip_hz"])                 # −15° 의 f_tip (덱 대역의 기준)
 
+    # ⭐**같은 STFT 를 두 번 돌지 않는다** (2026-08-20). 행마다 `track` 과 `fixed` 두 번
+    #   부르는데 인자(E·prf·ffl·per)가 **완전히 같다** — 대역(lo·hi)만 다르고 그건 STFT
+    #   **뒤에만** 쓰인다. 병합 1 회에 −16~27 s. ⛔값은 안 바뀐다(같은 입력 → 같은 출력).
+    _stft_cache = {}
+
+    def _stft(E):
+        k = id(E)
+        v = _stft_cache.get(k)
+        if v is None:
+            v = flash_spec(np.asarray(E, complex), prf, ffl, per)
+            _stft_cache.clear()          # 한 행만 붙잡는다 — 메모리가 안 늘게
+            _stft_cache[k] = v
+        return v
+
     def band_metrics(E, lo, hi):
-        f, t, S, _ = flash_spec(np.asarray(E, complex), prf, ffl, per)
+        f, t, S, _ = _stft(E)
         b = (np.abs(f) >= lo) & (np.abs(f) <= hi)
         if b.sum() < 2:
             return dict(n_bins=int(b.sum()), beat_hz=None, h1_over_h2_db=None,
@@ -522,19 +649,24 @@ def analyse() -> None:
     rows, series = [], {}
     # ⭐샤드 폴더에 실제로 있는 팔을 전부 집는다 — --spp 로 낸 것은
     #   sionna_p250000000_... 처럼 예산 꼬리표가 붙어 이름이 고정되지 않는다.
-    engines = sorted({os.path.basename(f).rsplit("_el", 1)[0]
-                      for f in glob.glob(f"{SHD}/*_el*.npz")},
+    # ⭐**샤드 폴더를 한 번만 훑는다** (2026-08-20). 전에는 팔×앙각마다 glob 를 다시 돌아
+    #   **3,146 회**(그중 2,380 회가 헛방)였다 — 7.87 s → 5.6 ms (1,400 배).
+    #   ⛔파일 목록과 정렬 순서는 옛 `sorted(glob(...))` 와 **완전히 같다**(766 칸 0 불일치 확인).
+    _all = sorted(glob.glob(f"{SHD}/*_el*.npz"))
+    _by = {}
+    for _f in _all:
+        _b = os.path.basename(_f)
+        _m = re.search(r"^(.*)_el([+-]\d+(?:\.\d+)?)_\d+\.npz$", _b)
+        if _m:
+            _by.setdefault((_m.group(1), float(_m.group(2))), []).append(_f)
+    engines = sorted({k[0] for k in _by},
                      key=lambda e: (not e.startswith("ours"), e))
     # ⭐앙각도 **디스크에서 읽는다** — 상수 ELS 만 돌면 −52·−68·−82 처럼 규약 밖 각도로
     #   돌린 완결 칸이 영원히 원장에 못 들어온다(2026-08-16 에 34 칸이 그렇게 묶여 있었다).
-    els_on_disk = sorted({float(m.group(1))
-                          for f in glob.glob(f"{SHD}/*_el*.npz")
-                          if (m := re.search(r"_el([+-]\d+(?:\.\d+)?)_\d+\.npz$",
-                                              os.path.basename(f)))},
-                         reverse=True)
+    els_on_disk = sorted({k[1] for k in _by}, reverse=True)
     for eng in engines:
         for el in (els_on_disk or ELS):
-            fs = sorted(glob.glob(f"{SHD}/{eng}_el{el:+.0f}_*.npz"))
+            fs = _by.get((eng, float(el)), [])       # ⭐한 번 훑어 만든 사전에서 꺼낸다
             if not fs:
                 continue
             E = None; secs = 0.0; npa = []; cfg = None
@@ -618,7 +750,13 @@ def analyse() -> None:
                 f_tip_hz=round(ft, 1), n_poses=len(E), n_missing=miss,
                 seconds=round(secs, 1), **prov,
                 npaths_median=int(np.median(np.concatenate(npa))) if npa else None,
-                level_db=round(float(20 * np.log10(np.mean(np.abs(E)) + 1e-300)), 2),
+                # ⛔**결측 자세(0)를 평균에서 뺀다** (2026-08-20 정정). 예전에는 안 채워진
+                #   자세의 0 이 그대로 평균에 들어가 레벨을 낮췄다 — 원장 766 행 중 **52 행**이
+                #   틀렸고 최악은 **−24.08 dB** 였다. `n_missing` 은 이미 세고 있었는데
+                #   평균만 그걸 안 봤다. (정정 기록: docs/RETRACTION_LOG.md)
+                level_db=round(float(20 * np.log10(
+                    (np.abs(E[E != 0]).mean() if miss and (E != 0).any()
+                     else np.abs(E).mean()) + 1e-300)), 2),
                 # ⭐(a) 앙각마다 대역을 다시 잡는다 — 정본
                 track=band_metrics(E, 0.35 * ft, max(ft, 1e-6)),
                 # (b) 덱의 −15° 대역 고정 — 어디서 무너지나 (반송파를 옮긴 팔은 λ 비로 늘린다)
@@ -627,7 +765,8 @@ def analyse() -> None:
     if not rows:
         raise SystemExit(f"⛔ {SHD} 에 샤드가 없다")
     # ⭐부호 표식 — 샤드가 이미 정정본(R28)이므로 정정기가 다시 손대면 안 된다.
-    np.savez_compressed(OUTN, phase_sign_v2=np.array([1], np.int8), **series)
+    # ⭐압축을 뺀다 — 2.9 s 아끼고 파일은 76.6 → 87.5 MiB (비트동일)
+    np.savez(OUTN, phase_sign_v2=np.array([1], np.int8), **series)
     json.dump({"_meta": {
         "generator": "benchmark/elevation_sweep_md.py",
         "question_ko": "거리 대신 앙각을 바꾸면 마이크로도플러가 어떻게 변하나",
@@ -714,9 +853,12 @@ def main() -> None:
                     help="⭐우리 팔의 **모서리 회절(PTD 프린지)** 을 켠다. 기본은 ptd=False 라 "
                          "두 팔 다 모서리 회절이 없었다.")
     ap.add_argument("--engine", default="ours",
-                    choices=("ours", "ours_free", "sionna"),
+                    # ⭐ours_gpu — SBR+PO 를 GPU 로 옮긴 판(src/rcs_sbr_gpu.py, 2026-08-20).
+                    #   옛 ours 와 **나란히** 산다. 이름이 `ours_gpu…` 로 갈려 원장이 안 섞인다.
+                    #   ⛔PTD·바이스태틱·다중반사·jitter 는 안 옮겼다 — 그 팔은 ours 로.
+                    choices=("ours", "ours_free", "ours_gpu", "sionna"),
                     help="ours=동체 포함(가림 있음) · ours_free=⭐동체 **면만** 빼서 "
-                         "가림을 없앤 대조군(정점은 그대로라 bbox·광선격자 동일) · sionna")
+                         "가림을 없앤 대조군(정점은 그대로라 bbox·광선격자 동일) · ⭐ours_gpu=같은 물리를 GPU 로 옮긴 판(옛 ours 와 나란히 산다) · sionna")
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--nshards", type=int, default=1)
     ap.add_argument("--els", default="",
@@ -769,6 +911,22 @@ def main() -> None:
                     help="⭐방위각 [°]. 비우면 원장값(report07_three_engines:_meta.az_deg). "
                          "지금까지 모든 판이 방위 한 자리에서만 잰 것이라 «다른 방위에서도 "
                          "같은 결론이 서는가» 를 시험한 적이 없다. 파일명에 _az<N> 이 붙는다.")
+    ap.add_argument("--inmem", action="store_true",
+                    help="⭐**메쉬를 디스크 안 거치고 바로 올린다** (2026-08-20). "
+                         "지금은 자세마다 정점을 텍스트 OBJ 로 썼다가 다시 파싱해 올린다 "
+                         "— 자세당 63 ms 인데 진짜 GPU 전송은 0.02 ms 다. 이 인자를 주면 "
+                         "그 우회로를 뺀다. 정점·면은 OBJ 판과 **비트 동일**하다"
+                         "(`%.6f` 반올림·정점 재번호 순서를 그대로 흉내낸다. "
+                         "benchmark/mesh_inmem.py 로 81 건 대조 완료). "
+                         "⛔안 주면 옛 길 그대로라 기존 샤드와 비트 동일하다.")
+    ap.add_argument("--det", action="store_true",
+                    help="⭐**재현 가능하게 만든다** (2026-08-20). PathSolver 는 같은 씬·같은 "
+                         "시드로 두 번 풀어도 **경로가 담기는 순서**가 달라진다(GPU 가 수만 "
+                         "스레드로 병렬 수집하므로). 값 자체는 같지만 순서가 다르면 부동소수점 "
+                         "합이 마지막 자리에서 갈린다 — 실측: 같은 코드 4 판에서 E 가 4 종류. "
+                         "이 인자를 주면 **지연 기준으로 정렬한 뒤** 더해서 항상 같은 값이 "
+                         "나온다(실측 4 판 전부 비트 동일, 지연 동률 0 건). "
+                         "⛔안 주면 옛 방식 그대로다 — 기존 샤드와 같은 길.")
     ap.add_argument("--dry-run", action="store_true",
                     help="⭐**만들 샤드 이름만 찍고 끝낸다** — 솔버를 안 돈다. "
                          "2026-08-18 교훈: «rc=0» 도 «샤드 수가 늘었다» 도 성공 증거가 "

@@ -37,11 +37,19 @@ from materials import make_material
 
 @dataclass
 class Part:
-    """장면에 올릴 물체 하나."""
+    """장면에 올릴 물체 하나.
+
+    ⭐`obj` 대신 `mi_mesh` 를 주면 **디스크를 안 거친다**(2026-08-20).
+      Sionna `rt.SceneObject` 가 `mi_mesh=` 를 직접 받는다(`sionna/rt/scene_object.py:67-76`).
+      정점·면은 `benchmark/mesh_inmem.InMemGroups` 가 OBJ 와 **비트 동일**하게 만든다
+      (`%.6f` 반올림과 정점 재번호 순서를 그대로 흉내낸다 — 실측 81 건 전부 일치).
+      ⛔둘 중 하나만 준다. 안 주면 옛 길(OBJ) 그대로다.
+    """
     name: str                       # 고유 이름
-    obj: str                        # OBJ 파일 경로
+    obj: str                        # OBJ 파일 경로 (mi_mesh 를 주면 "" 로 둔다)
     mat_key: str                    # 재질키 (materials.make_material 참고)
     color: tuple = (0.7, 0.7, 0.7)  # 표시색 RGB
+    mi_mesh: object = None          # ⭐메모리 메쉬(mi.Mesh) — 주면 obj 를 안 읽는다
     position: tuple = (0., 0., 0.)  # OBJ 좌표 기준 **평행이동 벡터** [m] (0이면 그대로)
     orientation: tuple = (0., 0., 0.)  # 오일러 회전 [rad] (Sionna 관례)
     scaling: float = 1.0            # 단일 배율
@@ -58,7 +66,11 @@ def build_scene(parts: list[Part], fc: float = 3.5e9) -> rt.Scene:
     objs = []
     for p in parts:
         mat = make_material(p.mat_key, name=f"mat_{p.name}", color=p.color)
-        o = rt.SceneObject(fname=p.obj, name=p.name, radio_material=mat)
+        # ⭐메모리 메쉬가 있으면 파일을 안 읽는다 — OBJ 텍스트 왕복(자세당 63 ms)이 사라진다
+        if getattr(p, "mi_mesh", None) is not None:
+            o = rt.SceneObject(mi_mesh=p.mi_mesh, name=p.name, radio_material=mat)
+        else:
+            o = rt.SceneObject(fname=p.obj, name=p.name, radio_material=mat)
         objs.append((o, p))
     scene.edit(add=[o for o, _ in objs])
     for o, p in objs:

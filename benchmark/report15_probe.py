@@ -181,14 +181,22 @@ def drop_scratch(d):
 # --------------------------------------------------------------------------- #
 #  경로 → **베이스밴드 등가** 복소 진폭  h = Σ a·exp(−j2πf τ)
 # --------------------------------------------------------------------------- #
-def unpack(paths):
-    """(a[P], tau[P], dop[P], obj[depth,P]) — 1×1 안테나 가정. a 는 **패스밴드** 계수."""
+def unpack(paths, *, want_doppler: bool = True):
+    """(a[P], tau[P], dop[P], obj[depth,P]) — 1×1 안테나 가정. a 는 **패스밴드** 계수.
+
+    ⭐`want_doppler=False` 면 도플러를 **안 내려받는다**(2026-08-20). 자세 루프는
+      도플러를 받아서 **버리기만** 한다(`elevation_sweep_md.py` 는 aa·tau·O 만 쓴다).
+      기본값은 True 라 기존 호출부 12 곳은 그대로다.
+    """
     ar = np.asarray(paths.a[0]); ai = np.asarray(paths.a[1])
     a = (ar + 1j * ai).reshape(-1, ar.shape[-1])[0]
     P = a.shape[0]
     tau = np.asarray(paths.tau, dtype=np.float64).reshape(-1, P)[0] if P else np.zeros(0)
-    dop = np.asarray(paths.doppler).reshape(-1)
-    dop = dop[:P] if dop.shape[0] >= P else np.zeros(P)
+    if want_doppler:
+        dop = np.asarray(paths.doppler).reshape(-1)
+        dop = dop[:P] if dop.shape[0] >= P else np.zeros(P)
+    else:
+        dop = np.zeros(0)
     O = np.asarray(paths.objects)[:, 0, 0, :] if P else np.zeros((0, 0), int)
     return a, tau, dop, O
 
