@@ -1,0 +1,19 @@
+블레이드 번호,매핑 위치 (PX4 기준),X (+X=좌측),Y (+Y=전방),Z (높이)
+Blade 1,Front-Right (우측 전방),−0.116 m,+0.118 m,0.072 m
+Blade 2,Back-Left (좌측 후방),+0.116 m,−0.118 m,0.072 m
+Blade 3,Front-Left (좌측 전방),+0.116 m,+0.118 m,0.072 m
+Blade 4,Back-Right (우측 후방),−0.116 m,−0.118 m,0.072 m
+
+블레이드 1, 2 --> 반시계(CCW)
+블레이드 3, 4 --> 시계(CW)
+
+# 블레이드 오프셋 설정 (m)
+blade_offsets = {
+    "blade_1": [-0.116,  0.118, 0.072], # FR
+    "blade_2": [ 0.116, -0.118, 0.072], # BL
+    "blade_3": [ 0.116,  0.118, 0.072], # FL
+    "blade_4": [-0.116, -0.118, 0.072]  # BR
+}
+
+# 시뮬레이션에서 블레이드 위치 지정 시
+# scene.get_object("blade_1").position = drone_body.position + blade_offsets["blade_1"]
