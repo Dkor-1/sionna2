@@ -4,7 +4,7 @@
 #   _mfixbatteryi5_blperairframe 이 붙고, 이미 난 샤드는 스크립트가 건너뛴다.
 # ⛔GPU 2·3 만 쓴다(0·1·4 는 외부가 쓰는 중). 워커 3.
 cd /workspace/sionna
-export CUDA_VISIBLE_DEVICES=2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4
 export PYTHONPATH=src:benchmark
 # ⭐OptiX — 이걸 빼면 rt.load_scene() 에서 죽는다(우리 커널 팔도 재질 조회에 쓴다)
 export DRJIT_LIBOPTIX_PATH=/workspace/.venvs/optix/libnvoptix.so.1

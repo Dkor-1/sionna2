@@ -64,16 +64,16 @@ DWELL_S = 180           # ⭐등급을 바꾼 뒤 최소 이만큼 유지한다
 POLL_S = 30
 
 RAM_FLOOR_GB = 6        # ⭐우리 천장이 **32 GiB** 다. 60 은 천장보다 커서 «영구 정지» 지뢰였다
-MAX_TOTAL = 8           # 목표 배분의 **예산** 상한(투입 차단선이 아니다)
+MAX_TOTAL = int(os.environ.get("SIONNA2_MAX_TOTAL", "8"))   # 목표 배분의 **예산** 상한(투입 차단선이 아니다)
 #: ⭐전체 상한 8 — 12 CPU 에서 처리량이 6~10 에서 평평하고, 12 에서는 load 16.6 으로
 #   할당(12)을 넘었다(2026-08-20 2 회 측정). 8 이면 부하 11~12 로 할당 안에 든다.
 #: ⭐워커 하나가 띄울 스레드 수. 무방비면 numpy(BLAS)만으로 64 개가 뜬다(실측).
 #   2 로 걸면 sionna 로드 뒤에도 6 개다. 10 워커 × 6 = 60 스레드 ≈ 12 CPU 에 맞는다.
-THREADS_PER_WORKER = 2
+THREADS_PER_WORKER = int(os.environ.get("SIONNA2_THREADS", "2"))
 #: ⛔**절대 넘지 않는 선** — 고아 포함 실제 총 워커 수. MAX_TOTAL 은 «배분 예산» 일 뿐이라
 #   고아가 있으면 그것을 넘어선다(실측: 고아 30 개 + 신규 6 개 = 36 개, 예산은 8 이었다).
 #   0819 «전역 상한이 신규 투입을 통째로 막아 GPU 0 이 굶었다» 사고를 피하려고 둘을 가른다.
-HARD_TOTAL = 12
+HARD_TOTAL = int(os.environ.get("SIONNA2_HARD_TOTAL", "12"))
 #: ⛔**절대 안 쓸 카드** — 환경변수 SIONNA2_EXCLUDE_GPUS="0,3" 으로 준다.
 #   사용자가 «저 카드는 빼라» 고 하면 여기로 막는다. 규약(남의 점유)과 무관하게 0 이 된다.
 EXCLUDE = {int(x) for x in os.environ.get("SIONNA2_EXCLUDE_GPUS", "").replace(" ", "").split(",") if x.isdigit()}
@@ -136,6 +136,13 @@ def ram_free_gb() -> float:
         cur = int(open("/sys/fs/cgroup/memory.current").read())
         if mx != "max":
             return (int(mx) - cur) / 2 ** 30
+        # ⭐천장이 «max» 로 풀린 상자 — 2026-08-24 컨테이너 재시작 뒤 그렇게 되었다.
+        #   그러면 아래 fail-closed 0.0 이 걸려 감독자가 **영구 정지**한다(실측).
+        #   호스트 meminfo 로 물러서면 브레이크가 사라지므로(위 주석의 버그 ②③),
+        #   운영자가 SIONNA2_RAM_GB 로 «우리 몫» 을 명시하게 한다.
+        budget = os.environ.get("SIONNA2_RAM_GB", "").strip()
+        if re.fullmatch(r"\d+(\.\d+)?", budget or ""):
+            return float(budget) - cur / 2 ** 30
     except Exception:                                          # noqa: BLE001
         pass
     return 0.0            # ⛔못 재면 막는 쪽
@@ -164,7 +171,14 @@ def cgroup_cpus() -> float:
     return 2.0
 
 
-CPUS = cgroup_cpus()
+#: ⭐cgroup 제한이 «max» 로 풀린 상자에서 운영자가 «우리가 쓸 CPU» 를 직접 준다.
+#   2026-08-24: 컨테이너 재시작 뒤 cpu.max·memory.max 가 둘 다 «max» 가 되었다.
+#   그러면 cgroup_cpus() 가 fail-small 로 2.0 을 내는데, 그 값이면 브레이크가 너무
+#   조여 워커 1~2 개에서 영구 정지한다. 그렇다고 호스트 64 를 쓰면 공유 서버를
+#   잡아먹는다. ⇒ 환경변수 SIONNA2_CPUS 로 «우리 몫» 을 명시한다.
+#   ⛔안 주면 예전과 **똑같이** cgroup_cpus() 로 물러선다 — 기본 동작 불변.
+_CPUS_ENV = os.environ.get("SIONNA2_CPUS", "").strip()
+CPUS = float(_CPUS_ENV) if re.fullmatch(r"\d+(\.\d+)?", _CPUS_ENV or "") else cgroup_cpus()
 
 
 _CPU_PREV = {"t": 0.0, "usec": 0}
@@ -421,11 +435,14 @@ class Sup:
 
     def loop(self):
         # ⭐종료 신호를 받으면 **워커를 두고 가지 않는다** — 오늘 고아 사고의 직접 원인이다.
-        stop = {"v": False}
+        stop = {"v": 0}          # ⭐계수기 — 두 번째 신호가 배수의 탈출구다
 
         def _bye(sig, frm):                                    # noqa: ARG001
-            stop["v"] = True
-            self.log(f"  신호 {sig} 받음 — 새로 안 띄우고 돌던 워커를 기다린다")
+            stop["v"] += 1
+            if stop["v"] == 1:
+                self.log(f"  신호 {sig} 받음 — 새로 안 띄우고 돌던 워커를 기다린다")
+            else:
+                self.log(f"  ⛔신호 {sig} 두 번째 — 배수를 끊고 나간다(워커는 계속 돈다)")
         for _sig in (signal.SIGTERM, signal.SIGINT):
             try:
                 signal.signal(_sig, _bye)
@@ -441,14 +458,35 @@ class Sup:
             time.sleep(POLL_S)
 
         if stop["v"] and self.procs:
-            self.log(f"  종료 중 — 워커 {len(self.procs)} 개가 끝나기를 기다린다")
-            for _pid, tup in list(self.procs.items()):
-                p = tup[3] if len(tup) > 3 else None
-                if p is not None:
-                    try:
-                        p.wait(timeout=3600)
-                    except Exception:                          # noqa: BLE001
-                        pass
+            # ⛔⛔**여기가 고아를 만들던 자리다** (2026-08-24 감사).
+            #   옛 판은 자식마다 `p.wait(timeout=3600)` 을 **순차로** 걸고 TimeoutExpired 를
+            #   통째로 삼켰다. 워커 하나가 149 분(앙각 2 개면 약 5 시간) 도는 이 저장소에서
+            #   그 상한은 **항상 워커보다 짧다** — 자식 3 개면 3 시간 뒤 감독자가 먼저 나가고
+            #   워커는 ppid=1 로 남는다. 실측(2026-08-24): 17:20 배수 시작 → 20:20 감독자 종료
+            #   → 워커는 21:42 종료. **82 분간 고아.** 바로 위 주석이 «워커를 두고 가지
+            #   않는다» 고 선언한 그 함수가 두고 갔다.
+            # ⇒ 시계가 아니라 **워커가 끝나는 것**을 기다린다. 스스로 포기하지 않는다.
+            #   ⛔무한 대기는 아니다 — **두 번째 종료 신호**가 탈출구다(운영자가 정말 급할 때).
+            #   그 경로로 나갈 때는 버리고 가는 pid↔잡 대응을 파일로 남겨 입양 가능하게 한다.
+            self.log(f"  종료 중 — 워커 {len(self.procs)} 개가 끝나기를 기다린다 "
+                     f"(⛔kill 안 한다. 정말 급하면 종료 신호를 한 번 더 준다)")
+            while self.procs and stop["v"] < 2:
+                self.reap()
+                if not self.procs:
+                    break
+                time.sleep(POLL_S)
+            if self.procs:
+                orph = os.path.join(os.path.dirname(self.log_path or "."),
+                                    "orphans_handoff.txt")
+                try:
+                    with open(orph, "a", encoding="utf-8") as fh:
+                        fh.write(f"# {time.strftime('%m-%d %H:%M:%S')} 두 번째 신호로 배수를 "
+                                 f"끊었다 — 아래 워커는 관리자 없이 남는다\n")
+                        for pid, tup in self.procs.items():
+                            fh.write(f"pid={pid} job={tup[1] if len(tup) > 1 else '?'}\n")
+                    self.log(f"  ⛔워커 {len(self.procs)} 개를 두고 나간다 — 대응표 {orph}")
+                except Exception as e:                         # noqa: BLE001
+                    self.log(f"  ⛔대응표를 못 남겼다: {type(e).__name__}")
             self.reap()
         self.log(f"== 종료 ({self.n_launched} 줄 실행 · 실패 {self.n_failed} · "
                  f"큐 {self.i}/{len(self.jobs)}) ==")

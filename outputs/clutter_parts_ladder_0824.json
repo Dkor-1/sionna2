@@ -1,0 +1,1036 @@
+{
+ "_meta": {
+  "generator": "benchmark/clutter_parts_ladder_0824.py",
+  "generated_kst": "2026-08-24 17:39:12 (UTC+9)",
+  "role_ko": "클러터를 지우면 동체에 묻힌 날개 리듬이 돌아오나 — 통짜 날것 · 통짜 제거후 · 프로펠러 단독을 앙각 사다리로 나란히 놓는다",
+  "why_ko": "8/18 덱 23 번: 프로펠러 단독은 리듬 90 % 인데 el 0 에서 동체보다 78 dB 아래라 묻힌다",
+  "gpu_used": false,
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "f_cut_hz": 100.0,
+  "hw_hz": 8.0,
+  "f_tip_by_el": {
+   "+0": 1272.02,
+   "-30": 1101.6,
+   "-60": 636.01,
+   "-90": 0.0
+  },
+  "ftip_note_ko": "f_tip(el) = 1101.6/cos(30°)·cos(el). el −90 에서 0 이 되어 «상한 위» 가 전체가 된다 ⇒ 그 칸은 metric_valid=false 로 표시하고 수치를 내지 않는다",
+  "methods_ko": {
+   "raw": "무처리",
+   "mean": "평균 빼기(도플러 0 Hz 한 칸)",
+   "eca": "ECA 부분공간 소거 |f| ≤ 100 Hz",
+   "mti3": "3-펄스 MTI"
+  },
+  "a4_note_ko": "몫과 절대 dB 를 함께 낸다 — 클러터를 지우면 분모가 줄어 몫은 자동으로 오른다",
+  "elapsed_s": 0.41
+ },
+ "cells": {
+  "+0": {
+   "Our kernel": {
+    "arm": "ours_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -70.4,
+     "n_above_tip": 7135,
+     "above_tip_pct": 2.7,
+     "metric_valid": true,
+     "rhythm_pct": 63.36,
+     "comb_over_floor_db": 10.81
+    },
+    "mean": {
+     "ac_db": -70.4,
+     "n_above_tip": 7135,
+     "above_tip_pct": 2.7,
+     "metric_valid": true,
+     "rhythm_pct": 63.36,
+     "comb_over_floor_db": 10.81
+    },
+    "eca": {
+     "ac_db": -70.4,
+     "n_above_tip": 7135,
+     "above_tip_pct": 2.7,
+     "metric_valid": true,
+     "rhythm_pct": 63.36,
+     "comb_over_floor_db": 10.81
+    },
+    "mti3": {
+     "ac_db": -79.74,
+     "n_above_tip": 7135,
+     "above_tip_pct": 97.48,
+     "metric_valid": true,
+     "rhythm_pct": 28.82,
+     "comb_over_floor_db": 4.5
+    }
+   },
+   "Sionna physics off": {
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -94.3,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.23,
+     "metric_valid": true,
+     "rhythm_pct": 13.08,
+     "comb_over_floor_db": 0.2
+    },
+    "mean": {
+     "ac_db": -94.3,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.23,
+     "metric_valid": true,
+     "rhythm_pct": 13.08,
+     "comb_over_floor_db": 0.2
+    },
+    "eca": {
+     "ac_db": -94.34,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.96,
+     "metric_valid": true,
+     "rhythm_pct": 13.08,
+     "comb_over_floor_db": 0.2
+    },
+    "mti3": {
+     "ac_db": -86.59,
+     "n_above_tip": 7135,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 12.94,
+     "comb_over_floor_db": 0.15
+    }
+   },
+   "diffraction only": {
+    "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -93.05,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.39,
+     "metric_valid": true,
+     "rhythm_pct": 14.27,
+     "comb_over_floor_db": 0.64
+    },
+    "mean": {
+     "ac_db": -93.05,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.39,
+     "metric_valid": true,
+     "rhythm_pct": 14.27,
+     "comb_over_floor_db": 0.64
+    },
+    "eca": {
+     "ac_db": -93.08,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.99,
+     "metric_valid": true,
+     "rhythm_pct": 14.27,
+     "comb_over_floor_db": 0.64
+    },
+    "mti3": {
+     "ac_db": -85.3,
+     "n_above_tip": 7135,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 12.91,
+     "comb_over_floor_db": 0.14
+    }
+   },
+   "Sionna physics on": {
+    "arm": "sionna_p4000000000_phys_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -94.84,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.43,
+     "metric_valid": true,
+     "rhythm_pct": 14.02,
+     "comb_over_floor_db": 0.55
+    },
+    "mean": {
+     "ac_db": -94.84,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.43,
+     "metric_valid": true,
+     "rhythm_pct": 14.02,
+     "comb_over_floor_db": 0.55
+    },
+    "eca": {
+     "ac_db": -94.87,
+     "n_above_tip": 7135,
+     "above_tip_pct": 86.98,
+     "metric_valid": true,
+     "rhythm_pct": 14.02,
+     "comb_over_floor_db": 0.55
+    },
+    "mti3": {
+     "ac_db": -87.15,
+     "n_above_tip": 7135,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 13.35,
+     "comb_over_floor_db": 0.3
+    }
+   },
+   "propellers only (off)": {
+    "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -146.68,
+     "n_above_tip": 7135,
+     "above_tip_pct": 8.15,
+     "metric_valid": true,
+     "rhythm_pct": 89.72,
+     "comb_over_floor_db": 17.84
+    },
+    "mean": {
+     "ac_db": -146.68,
+     "n_above_tip": 7135,
+     "above_tip_pct": 8.15,
+     "metric_valid": true,
+     "rhythm_pct": 89.72,
+     "comb_over_floor_db": 17.84
+    },
+    "eca": {
+     "ac_db": -146.68,
+     "n_above_tip": 7135,
+     "above_tip_pct": 8.15,
+     "metric_valid": true,
+     "rhythm_pct": 89.72,
+     "comb_over_floor_db": 17.84
+    },
+    "mti3": {
+     "ac_db": -157.02,
+     "n_above_tip": 7135,
+     "above_tip_pct": 97.45,
+     "metric_valid": true,
+     "rhythm_pct": 32.55,
+     "comb_over_floor_db": 5.26
+    }
+   },
+   "propellers only (on)": {
+    "arm": "sionna_p4000000000_phys_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -119.05,
+     "n_above_tip": 7135,
+     "above_tip_pct": 80.04,
+     "metric_valid": true,
+     "rhythm_pct": 12.69,
+     "comb_over_floor_db": 0.05
+    },
+    "mean": {
+     "ac_db": -119.05,
+     "n_above_tip": 7135,
+     "above_tip_pct": 80.04,
+     "metric_valid": true,
+     "rhythm_pct": 12.69,
+     "comb_over_floor_db": 0.05
+    },
+    "eca": {
+     "ac_db": -119.08,
+     "n_above_tip": 7135,
+     "above_tip_pct": 80.58,
+     "metric_valid": true,
+     "rhythm_pct": 12.69,
+     "comb_over_floor_db": 0.05
+    },
+    "mti3": {
+     "ac_db": -111.71,
+     "n_above_tip": 7135,
+     "above_tip_pct": 99.98,
+     "metric_valid": true,
+     "rhythm_pct": 11.83,
+     "comb_over_floor_db": -0.3
+    }
+   },
+   "body only": {
+    "arm": "sionna_p4000000000_partsnoprop_r15_n8192_d1",
+    "kind": "body",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -384.45,
+     "n_above_tip": 7135,
+     "above_tip_pct": 75.49,
+     "metric_valid": true,
+     "rhythm_pct": 13.42,
+     "comb_over_floor_db": 0.33
+    },
+    "mean": {
+     "ac_db": -385.05,
+     "n_above_tip": 7135,
+     "above_tip_pct": 87.07,
+     "metric_valid": true,
+     "rhythm_pct": 13.42,
+     "comb_over_floor_db": 0.33
+    },
+    "eca": {
+     "ac_db": -387.02,
+     "n_above_tip": 7135,
+     "above_tip_pct": 88.3,
+     "metric_valid": true,
+     "rhythm_pct": 12.86,
+     "comb_over_floor_db": 0.12
+    },
+    "mti3": {
+     "ac_db": -377.19,
+     "n_above_tip": 7135,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 13.15,
+     "comb_over_floor_db": 0.23
+    }
+   }
+  },
+  "-30": {
+   "Our kernel": {
+    "arm": "ours_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -69.11,
+     "n_above_tip": 7275,
+     "above_tip_pct": 10.62,
+     "metric_valid": true,
+     "rhythm_pct": 83.31,
+     "comb_over_floor_db": 15.37
+    },
+    "mean": {
+     "ac_db": -69.11,
+     "n_above_tip": 7275,
+     "above_tip_pct": 10.62,
+     "metric_valid": true,
+     "rhythm_pct": 83.31,
+     "comb_over_floor_db": 15.37
+    },
+    "eca": {
+     "ac_db": -69.11,
+     "n_above_tip": 7275,
+     "above_tip_pct": 10.62,
+     "metric_valid": true,
+     "rhythm_pct": 83.31,
+     "comb_over_floor_db": 15.37
+    },
+    "mti3": {
+     "ac_db": -75.89,
+     "n_above_tip": 7275,
+     "above_tip_pct": 98.67,
+     "metric_valid": true,
+     "rhythm_pct": 21.44,
+     "comb_over_floor_db": 2.75
+    }
+   },
+   "Sionna physics off": {
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -135.66,
+     "n_above_tip": 7275,
+     "above_tip_pct": 1.06,
+     "metric_valid": true,
+     "rhythm_pct": 80.5,
+     "comb_over_floor_db": 14.55
+    },
+    "mean": {
+     "ac_db": -135.66,
+     "n_above_tip": 7275,
+     "above_tip_pct": 1.06,
+     "metric_valid": true,
+     "rhythm_pct": 80.5,
+     "comb_over_floor_db": 14.55
+    },
+    "eca": {
+     "ac_db": -135.66,
+     "n_above_tip": 7275,
+     "above_tip_pct": 1.06,
+     "metric_valid": true,
+     "rhythm_pct": 80.5,
+     "comb_over_floor_db": 14.55
+    },
+    "mti3": {
+     "ac_db": -152.12,
+     "n_above_tip": 7275,
+     "above_tip_pct": 94.1,
+     "metric_valid": true,
+     "rhythm_pct": 22.11,
+     "comb_over_floor_db": 2.92
+    }
+   },
+   "diffraction only": {
+    "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -124.74,
+     "n_above_tip": 7275,
+     "above_tip_pct": 81.05,
+     "metric_valid": true,
+     "rhythm_pct": 11.7,
+     "comb_over_floor_db": -0.38
+    },
+    "mean": {
+     "ac_db": -124.74,
+     "n_above_tip": 7275,
+     "above_tip_pct": 81.05,
+     "metric_valid": true,
+     "rhythm_pct": 11.7,
+     "comb_over_floor_db": -0.38
+    },
+    "eca": {
+     "ac_db": -124.78,
+     "n_above_tip": 7275,
+     "above_tip_pct": 81.8,
+     "metric_valid": true,
+     "rhythm_pct": 11.7,
+     "comb_over_floor_db": -0.38
+    },
+    "mti3": {
+     "ac_db": -117.24,
+     "n_above_tip": 7275,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 11.87,
+     "comb_over_floor_db": -0.32
+    }
+   },
+   "Sionna physics on": {
+    "arm": "sionna_p4000000000_phys_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -126.6,
+     "n_above_tip": 7275,
+     "above_tip_pct": 85.79,
+     "metric_valid": true,
+     "rhythm_pct": 12.46,
+     "comb_over_floor_db": -0.08
+    },
+    "mean": {
+     "ac_db": -126.6,
+     "n_above_tip": 7275,
+     "above_tip_pct": 85.79,
+     "metric_valid": true,
+     "rhythm_pct": 12.46,
+     "comb_over_floor_db": -0.08
+    },
+    "eca": {
+     "ac_db": -126.64,
+     "n_above_tip": 7275,
+     "above_tip_pct": 86.69,
+     "metric_valid": true,
+     "rhythm_pct": 12.46,
+     "comb_over_floor_db": -0.08
+    },
+    "mti3": {
+     "ac_db": -118.98,
+     "n_above_tip": 7275,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 12.69,
+     "comb_over_floor_db": 0.02
+    }
+   },
+   "propellers only (off)": {
+    "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -135.47,
+     "n_above_tip": 7275,
+     "above_tip_pct": 1.18,
+     "metric_valid": true,
+     "rhythm_pct": 81.45,
+     "comb_over_floor_db": 14.82
+    },
+    "mean": {
+     "ac_db": -135.47,
+     "n_above_tip": 7275,
+     "above_tip_pct": 1.18,
+     "metric_valid": true,
+     "rhythm_pct": 81.45,
+     "comb_over_floor_db": 14.82
+    },
+    "eca": {
+     "ac_db": -135.47,
+     "n_above_tip": 7275,
+     "above_tip_pct": 1.18,
+     "metric_valid": true,
+     "rhythm_pct": 81.45,
+     "comb_over_floor_db": 14.82
+    },
+    "mti3": {
+     "ac_db": -151.73,
+     "n_above_tip": 7275,
+     "above_tip_pct": 94.57,
+     "metric_valid": true,
+     "rhythm_pct": 21.96,
+     "comb_over_floor_db": 2.89
+    }
+   },
+   "propellers only (on)": {
+    "arm": "sionna_p4000000000_phys_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -130.53,
+     "n_above_tip": 7275,
+     "above_tip_pct": 81.15,
+     "metric_valid": true,
+     "rhythm_pct": 14.18,
+     "comb_over_floor_db": 0.58
+    },
+    "mean": {
+     "ac_db": -130.53,
+     "n_above_tip": 7275,
+     "above_tip_pct": 81.15,
+     "metric_valid": true,
+     "rhythm_pct": 14.18,
+     "comb_over_floor_db": 0.58
+    },
+    "eca": {
+     "ac_db": -130.56,
+     "n_above_tip": 7275,
+     "above_tip_pct": 81.91,
+     "metric_valid": true,
+     "rhythm_pct": 14.18,
+     "comb_over_floor_db": 0.58
+    },
+    "mti3": {
+     "ac_db": -123.2,
+     "n_above_tip": 7275,
+     "above_tip_pct": 99.99,
+     "metric_valid": true,
+     "rhythm_pct": 13.62,
+     "comb_over_floor_db": 0.37
+    }
+   }
+  },
+  "-60": {
+   "Our kernel": {
+    "arm": "ours_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -66.04,
+     "n_above_tip": 7663,
+     "above_tip_pct": 1.76,
+     "metric_valid": true,
+     "rhythm_pct": 52.85,
+     "comb_over_floor_db": 8.91
+    },
+    "mean": {
+     "ac_db": -66.04,
+     "n_above_tip": 7663,
+     "above_tip_pct": 1.76,
+     "metric_valid": true,
+     "rhythm_pct": 52.85,
+     "comb_over_floor_db": 8.91
+    },
+    "eca": {
+     "ac_db": -66.06,
+     "n_above_tip": 7663,
+     "above_tip_pct": 1.76,
+     "metric_valid": true,
+     "rhythm_pct": 52.85,
+     "comb_over_floor_db": 8.91
+    },
+    "mti3": {
+     "ac_db": -77.65,
+     "n_above_tip": 7663,
+     "above_tip_pct": 99.86,
+     "metric_valid": true,
+     "rhythm_pct": 19.17,
+     "comb_over_floor_db": 2.17
+    }
+   },
+   "Sionna physics off": {
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -129.72,
+     "n_above_tip": 7663,
+     "above_tip_pct": 3.31,
+     "metric_valid": true,
+     "rhythm_pct": 86.61,
+     "comb_over_floor_db": 16.53
+    },
+    "mean": {
+     "ac_db": -129.72,
+     "n_above_tip": 7663,
+     "above_tip_pct": 3.31,
+     "metric_valid": true,
+     "rhythm_pct": 86.61,
+     "comb_over_floor_db": 16.53
+    },
+    "eca": {
+     "ac_db": -129.73,
+     "n_above_tip": 7663,
+     "above_tip_pct": 3.31,
+     "metric_valid": true,
+     "rhythm_pct": 86.61,
+     "comb_over_floor_db": 16.53
+    },
+    "mti3": {
+     "ac_db": -144.11,
+     "n_above_tip": 7663,
+     "above_tip_pct": 99.51,
+     "metric_valid": true,
+     "rhythm_pct": 21.98,
+     "comb_over_floor_db": 2.92
+    }
+   },
+   "diffraction only": {
+    "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -123.53,
+     "n_above_tip": 7663,
+     "above_tip_pct": 70.83,
+     "metric_valid": true,
+     "rhythm_pct": 13.46,
+     "comb_over_floor_db": 0.34
+    },
+    "mean": {
+     "ac_db": -123.53,
+     "n_above_tip": 7663,
+     "above_tip_pct": 70.83,
+     "metric_valid": true,
+     "rhythm_pct": 13.46,
+     "comb_over_floor_db": 0.34
+    },
+    "eca": {
+     "ac_db": -123.57,
+     "n_above_tip": 7663,
+     "above_tip_pct": 71.56,
+     "metric_valid": true,
+     "rhythm_pct": 13.46,
+     "comb_over_floor_db": 0.34
+    },
+    "mti3": {
+     "ac_db": -117.28,
+     "n_above_tip": 7663,
+     "above_tip_pct": 100.0,
+     "metric_valid": true,
+     "rhythm_pct": 12.32,
+     "comb_over_floor_db": -0.11
+    }
+   },
+   "Sionna physics on": {
+    "arm": "sionna_p4000000000_phys_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -125.88,
+     "n_above_tip": 7663,
+     "above_tip_pct": 86.72,
+     "metric_valid": true,
+     "rhythm_pct": 14.95,
+     "comb_over_floor_db": 0.87
+    },
+    "mean": {
+     "ac_db": -125.88,
+     "n_above_tip": 7663,
+     "above_tip_pct": 86.72,
+     "metric_valid": true,
+     "rhythm_pct": 14.95,
+     "comb_over_floor_db": 0.87
+    },
+    "eca": {
+     "ac_db": -125.93,
+     "n_above_tip": 7663,
+     "above_tip_pct": 87.75,
+     "metric_valid": true,
+     "rhythm_pct": 14.95,
+     "comb_over_floor_db": 0.87
+    },
+    "mti3": {
+     "ac_db": -118.59,
+     "n_above_tip": 7663,
+     "above_tip_pct": 100.0,
+     "metric_valid": true,
+     "rhythm_pct": 12.48,
+     "comb_over_floor_db": -0.04
+    }
+   },
+   "propellers only (off)": {
+    "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -129.55,
+     "n_above_tip": 7663,
+     "above_tip_pct": 3.08,
+     "metric_valid": true,
+     "rhythm_pct": 85.97,
+     "comb_over_floor_db": 16.29
+    },
+    "mean": {
+     "ac_db": -129.55,
+     "n_above_tip": 7663,
+     "above_tip_pct": 3.08,
+     "metric_valid": true,
+     "rhythm_pct": 85.97,
+     "comb_over_floor_db": 16.29
+    },
+    "eca": {
+     "ac_db": -129.56,
+     "n_above_tip": 7663,
+     "above_tip_pct": 3.08,
+     "metric_valid": true,
+     "rhythm_pct": 85.97,
+     "comb_over_floor_db": 16.29
+    },
+    "mti3": {
+     "ac_db": -143.99,
+     "n_above_tip": 7663,
+     "above_tip_pct": 99.55,
+     "metric_valid": true,
+     "rhythm_pct": 21.93,
+     "comb_over_floor_db": 2.91
+    }
+   },
+   "propellers only (on)": {
+    "arm": "sionna_p4000000000_phys_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -129.06,
+     "n_above_tip": 7663,
+     "above_tip_pct": 75.49,
+     "metric_valid": true,
+     "rhythm_pct": 19.14,
+     "comb_over_floor_db": 2.16
+    },
+    "mean": {
+     "ac_db": -129.06,
+     "n_above_tip": 7663,
+     "above_tip_pct": 75.49,
+     "metric_valid": true,
+     "rhythm_pct": 19.14,
+     "comb_over_floor_db": 2.16
+    },
+    "eca": {
+     "ac_db": -129.09,
+     "n_above_tip": 7663,
+     "above_tip_pct": 76.0,
+     "metric_valid": true,
+     "rhythm_pct": 19.14,
+     "comb_over_floor_db": 2.16
+    },
+    "mti3": {
+     "ac_db": -122.51,
+     "n_above_tip": 7663,
+     "above_tip_pct": 100.0,
+     "metric_valid": true,
+     "rhythm_pct": 12.99,
+     "comb_over_floor_db": 0.16
+    }
+   }
+  },
+  "-90": {
+   "Our kernel": {
+    "arm": "ours_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -81.56,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mean": {
+     "ac_db": -81.56,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "eca": {
+     "ac_db": -81.57,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mti3": {
+     "ac_db": -76.16,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    }
+   },
+   "Sionna physics off": {
+    "arm": "sionna_p4000000000_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -135.72,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mean": {
+     "ac_db": -135.72,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "eca": {
+     "ac_db": -135.73,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mti3": {
+     "ac_db": -144.25,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    }
+   },
+   "diffraction only": {
+    "arm": "sionna_p4000000000_onlydiffr_r15_n8192",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -109.44,
+     "n_above_tip": 8191,
+     "above_tip_pct": 99.99,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mean": {
+     "ac_db": -109.44,
+     "n_above_tip": 8191,
+     "above_tip_pct": 99.99,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "eca": {
+     "ac_db": -109.48,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mti3": {
+     "ac_db": -101.7,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    }
+   },
+   "Sionna physics on": {
+    "arm": "sionna_p4000000000_phys_r15_n8192_d1",
+    "kind": "whole",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -118.37,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mean": {
+     "ac_db": -118.37,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "eca": {
+     "ac_db": -118.42,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mti3": {
+     "ac_db": -110.81,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    }
+   },
+   "propellers only (off)": {
+    "arm": "sionna_p4000000000_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -132.67,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mean": {
+     "ac_db": -132.67,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "eca": {
+     "ac_db": -132.69,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mti3": {
+     "ac_db": -144.13,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    }
+   },
+   "propellers only (on)": {
+    "arm": "sionna_p4000000000_phys_partsprop_r15_n8192_d1",
+    "kind": "prop",
+    "n_missing_poses": 0,
+    "n_poses": 8192,
+    "raw": {
+     "ac_db": -122.57,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mean": {
+     "ac_db": -122.57,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "eca": {
+     "ac_db": -122.63,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    },
+    "mti3": {
+     "ac_db": -115.32,
+     "n_above_tip": 8191,
+     "above_tip_pct": 100.0,
+     "metric_valid": false,
+     "rhythm_pct": null,
+     "comb_over_floor_db": null
+    }
+   }
+  }
+ },
+ "missing": [
+  {
+   "el": -30.0,
+   "arm": "sionna_p4000000000_partsnoprop_r15_n8192_d1",
+   "name": "body only"
+  },
+  {
+   "el": -60.0,
+   "arm": "sionna_p4000000000_partsnoprop_r15_n8192_d1",
+   "name": "body only"
+  },
+  {
+   "el": -90.0,
+   "arm": "sionna_p4000000000_partsnoprop_r15_n8192_d1",
+   "name": "body only"
+  }
+ ],
+ "decomposition": {
+  "+0": {
+   "n": 8192,
+   "n_missing_poses": {
+    "whole": 0,
+    "body": 0,
+    "prop": 0
+   },
+   "total_db": {
+    "whole": -63.25,
+    "body": -63.23,
+    "prop": -140.36,
+    "body_plus_prop": -63.23,
+    "residual": -94.27
+   },
+   "ac_db": {
+    "whole": -94.3,
+    "body": -384.45,
+    "prop": -146.68,
+    "body_plus_prop": -146.68,
+    "residual": -94.3
+   },
+   "body_over_prop_db": 77.13,
+   "whole_ac_over_prop_ac_db": 52.38,
+   "residual_ac_equals_whole_ac": true,
+   "verdict_ko": "통짜의 흔들림이 전부 교차항이면 정지-클러터 제거로는 못 푼다"
+  },
+  "-30": null,
+  "-60": null,
+  "-90": null
+ }
+}

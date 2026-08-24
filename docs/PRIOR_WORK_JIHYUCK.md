@@ -602,7 +602,7 @@ seed 42 로 셔플해 **타임라인과 탈상관**시키고, `blade_angles × (
 
 ### 7-A. ⭐ 8/11 팀미팅 덱 3부 — «설계 제안» 에서 «이미 있는 구현» 으로
 
-현재 원고: `/workspace/teammeeting_0811/teammeeting_slides_0811_v1.json`
+현재 원고: `/workspace/team_meeting/teammeeting_0811/teammeeting_slides_0811_v1.json`
 
 **슬라이드 10 (PART 3 divider) 노트** — 현재 *"이건 결과가 아니라 설계 요청입니다"*.
 → 고칠 문구:

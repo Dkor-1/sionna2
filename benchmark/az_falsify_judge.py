@@ -329,7 +329,7 @@ payload = {
     "independent_po_arbiter": arb,
     "corrections": [
         {
-            "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+            "file": "/workspace/team_meeting/teammeeting_0818/make_0818_v14.py",
             "line": "461-464 (Two puzzles 슬라이드 발표자 노트, Q&A 대비)",
             "now_ko": "«돌리면 0° 에서 PathSolver 의 에코 자체가 25~51 dB 사라집니다. … "
                       "우리 커널은 방위에 둔감합니다(레벨차 3 dB 안).»",
@@ -344,7 +344,7 @@ payload = {
                       "가만히 있는 부분이 +18 dB 움직여 문장 자체가 반례를 갖는다.",
         },
         {
-            "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+            "file": "/workspace/team_meeting/teammeeting_0818/make_0818_v14.py",
             "line": "587 (The drowned blades 슬라이드 노트)",
             "now_ko": "«광선을 더 쏘면 깜빡임은 줄 수 있지만 이미 40 억 발이고 …»",
             "fix_ko": "«광선을 더 쏘면 깜빡임은 오히려 커집니다 — 1100 만 발에서 40 억 발로 가면 "
@@ -356,7 +356,7 @@ payload = {
                       "올라간다» 라고 적어 두었다 — 덱이 자기 원장과 어긋나 있다.",
         },
         {
-            "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+            "file": "/workspace/team_meeting/teammeeting_0818/make_0818_v14.py",
             "line": "585 (및 파일 머리 31행 요약)",
             "now_ko": "«정체는 회전하는 프롭이 동체의 가림을 자세마다 흔들면서 생기는 "
                       "표본화 깜빡임»",
@@ -369,7 +369,7 @@ payload = {
                       "51 µs 만에 딴 값이 되는 움직임은 이 드론에 없다.",
         },
         {
-            "file": "/workspace/teammeeting_0818/make_0818_v14.py",
+            "file": "/workspace/team_meeting/teammeeting_0818/make_0818_v14.py",
             "line": "591-593 (Propellers only 슬라이드 ⚠범위 노트)",
             "now_ko": "«익사시키는 그 동체 에코 자체가 정면 정반사라, 45° 돌리면 25~51 dB "
                       "사라집니다»",
