@@ -53,3 +53,17 @@ MagicMock/
 
 # 2026-08-24 — 컨테이너 이관 중 만든 원본 백업(로컬 전용)
 *.bak-0824
+
+# 워커 stdout/stderr — *.log 와 같은 성격인데 확장자가 규칙을 비껴간다(2026-08-27).
+#  진행률(«3840/4096 46.4분»)만 담아 재현 가능하므로 outputs/partial 예외에 해당하지 않는다.
+*.log.workerout
+*.log.workererr
+
+# 큐 지킴이 상태 파일 — 어느 잡 파일을 띄웠는지 표시만 한다(로컬 전용).
+runners/logs/queue_chain_done.txt
+
+# ⭐원장 파형 배열 — 2026-08-27 에 100 MB(GitHub 한도)를 넘어 추적에서 뺐다.
+#  샤드에서 70 초면 다시 만든다:  PYTHONPATH=src:benchmark python benchmark/elevation_sweep_md.py --merge
+#  run_verdicts_0818.sh 0 층이 어차피 먼저 돌리므로 새 clone 도 판정층만 돌리면 생긴다.
+#  ⚠인용 근거인 elevation_sweep_md.**json**(545 KB)은 그대로 추적한다 — 빠지는 건 파형뿐이다.
+outputs/elevation_sweep_md.npz

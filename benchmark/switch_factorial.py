@@ -90,8 +90,22 @@ EQUIV = {
     "sionna_p4000000000_stockdef_r15_n8192":
         ("R1D0E0F0", 3, "--stock 순정 기본값 — 굴절 켬 · 확산 끔 · 깊이 3"),
 }
-SW_RE = re.compile(r"^sionna_p4000000000_sw(R[01]D[01]E[01]F[01])_r15_n8192_d(\d)$")
-REF_ARMS = {"ours_r15_n8192": "우리 커널 (SBR+PO, 스위치·깊이 개념 없음)"}
+#: ⭐2026-08-27 확장 — 기체 토큰과 정본 메쉬 꼬리표를 받는다.
+#  옛 이름(`..._r15_n8192_d1`)도 그대로 잡히므로 기존 판독은 안 깨진다.
+#  ⛔로터 프리셋(`_rotoutdoor_v2`)은 **일부러 안 받는다** — 요인표에 로터 열이 없어
+#    섞이면 축차이가 로터 효과와 뒤엉킨다.
+SW_RE = re.compile(
+    r"^sionna_p4000000000_sw(R[01]D[01]E[01]F[01])"
+    r"(?:_(?:mavic4pro|mini5pro|s1000plus))?"
+    r"_r15_n8192(?:_mfixbatteryi5_blperairframe)?_d(\d)$")
+REF_ARMS = {
+    "ours_r15_n8192": "우리 커널 (SBR+PO, 스위치·깊이 개념 없음)",
+    #: ⭐정본 메쉬 판 — 덱 매트릭스가 쓰는 이름(2026-08-27 추가)
+    "ours_r15_n8192_mfixbatteryi5_blperairframe": "우리 커널 (정본 메쉬)",
+    "ours_mavic4pro_r15_n8192_mfixbatteryi5_blperairframe": "우리 커널 · mavic4pro",
+    "ours_mini5pro_r15_n8192_mfixbatteryi5_blperairframe": "우리 커널 · mini5pro",
+    "ours_s1000plus_r15_n8192_mfixbatteryi5_blperairframe": "우리 커널 · s1000plus",
+}
 ELS = (0.0, -15.0, -30.0, -45.0, -60.0, -75.0, -90.0)
 
 
@@ -232,7 +246,8 @@ def main() -> None:
         c = combo_of(arm)
         is_ref = arm in REF_ARMS
         # 다른 기체(mini5pro·s1000plus)는 f_tip 이 달라 완전요인 표와 나란히 못 놓는다.
-        other = ("mini5pro" in arm) or ("s1000plus" in arm)
+        # ⭐mavic4pro 가 빠져 있었다(2026-08-27) — 기체 넷이 다 들어와야 한다.
+        other = any(k in arm for k in ("mavic4pro", "mini5pro", "s1000plus"))
         if not (c or is_ref or (other and "_sw" in arm)):
             continue
         ft = float(r["f_tip_hz"])

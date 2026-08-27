@@ -39,7 +39,10 @@ from md_mapstyle import auto_periods, flash_spec, draw                 # noqa: E
 
 FIG = os.path.join(ROOT, "outputs", "figures")
 SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
-EL = -30.0
+#: ⭐앙각은 환경변수로 연다(2026-08-27) — 다섯 팔 매트릭스가 el 0·−30·−60·−90 넷을 쓴다.
+#  기본 −30 은 정본 산출 이름을 그대로 쓰고, 다른 앙각은 접미사를 붙여 덮어쓰지 않는다.
+EL = float(os.environ.get("SWGRID_EL", "-30.0"))
+SUF = "" if abs(EL + 30.0) < 1e-9 else f"_el{EL:+.0f}"
 
 TJ = json.load(open(f"{ROOT}/outputs/report07_three_engines.json"))["_meta"]
 PRF = float(TJ["prf_hz"])
@@ -50,14 +53,11 @@ PERIODS = auto_periods(PRF, FFL)
 #: 표시 순서 — 왼쪽 위가 기준(우리 커널), 그 다음 «끈 것부터 켠 것 순».
 #  이름은 청중용(스위치 이니셜이 아니라 말로).
 ARMS = [
-    ("ours_r15_n8192",                              "Our kernel"),
-    ("sionna_p4000000000_r15_n8192_d1",             "all off"),
-    ("sionna_p4000000000_onlyrefr_r15_n8192",       "refraction only"),
-    ("sionna_p4000000000_onlyedge_r15_n8192",       "edge only"),
-    ("sionna_p4000000000_onlydiffr_r15_n8192",      "diffraction only"),
-    ("sionna_p4000000000_swR0D1E1F1_r15_n8192_d1",  "diffraction + edge"),
-    ("sionna_p4000000000_swR1D1E0F1_r15_n8192_d1",  "refraction + diffraction"),
-    ("sionna_p4000000000_phys_r15_n8192_d1",        "all on"),
+    ("ours_r15_n8192_mfixbatteryi5_blperairframe",                              "Our kernel"),
+    ("sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",  "all off (diffuse only)"),
+    ("sionna_p4000000000_swR1D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",  "refraction"),
+    ("sionna_p4000000000_swR0D1E1F1_r15_n8192_mfixbatteryi5_blperairframe_d2",  "diffraction"),
+    ("sionna_p4000000000_swR1D1E1F1_r15_n8192_mfixbatteryi5_blperairframe_d2",  "refraction + diffraction"),
 ]
 T0, TSPAN = 0.020, 0.060
 
@@ -115,32 +115,56 @@ def rhythm_share(E, hw=8.0):
     return float(100.0 * P[above & on].sum() / P[above].sum())
 
 
-def maps(data, drop_dc, stem):
+def maps(data, drop_dc, stem, shared=False):
+    """스펙트로그램 격자.
+
+    shared=False (기본) — 패널마다 **자기 최대값**으로 0 dB. 무늬 비교용이지만
+                          ⚠팔 사이 **레벨 차이가 그림에서 사라진다**.
+    shared=True  — ⭐**전 패널 공통 기준**(모든 팔의 최대값). 찍힌 그대로의 세기가
+                   보인다. 색역은 가장 약한 팔까지 담기게 자동으로 넓힌다.
+    """
     n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
-    fig, ax = plt.subplots(2, 4, figsize=(27.0, 9.6), sharex=True, sharey=True)
-    for i, (arm, nm) in enumerate(ARMS):
-        a = ax[i // 4, i % 4]
+    # ⭐한 번에 다 계산해 두고(공통 기준을 알아야 그릴 수 있다) 그린다.
+    specs = []
+    for arm, nm in ARMS:
         E = data[arm][n0:n0 + nz]
         if drop_dc:
             E = E - E.mean()
         f, t, S, _ = flash_spec(E, PRF, FFL, PERIODS)
-        draw(a, t, f, S, FT30)
+        specs.append((nm, f, t, S))
+    ref = vmin = None
+    if shared:
+        ref = max(float(S.max()) for _, _, _, S in specs)
+        peaks = [20 * np.log10(float(S.max()) / (ref + 1e-30) + 1e-30)
+                 for _, _, _, S in specs]
+        vmin = float(np.floor((min(peaks) - 12.0) / 10.0) * 10.0)
+    nc = len(ARMS) if len(ARMS) <= 5 else 4
+    nr = int(np.ceil(len(ARMS) / nc))
+    fig, ax = plt.subplots(nr, nc, figsize=(5.4 * nc, 4.8 * nr + 0.9),
+                           sharex=True, sharey=True, squeeze=False)
+    for i, (nm, f, t, S) in enumerate(specs):
+        a = ax[i // nc, i % nc]
+        draw(a, t, f, S, FT30, ref=ref, vmin=vmin)
         a.set_ylim(-2000, 2000)
         a.set_title(nm, pad=7)
-        if i % 4 == 0:
+        if i % nc == 0:
             a.set_ylabel("Doppler [Hz]")
-        if i // 4 == 1:
+        if i // nc == nr - 1:
             a.set_xlabel("time [ms]")
+    for j in range(len(specs), nr * nc):        # 남는 칸은 지운다
+        ax[j // nc, j % nc].axis("off")
     fig.subplots_adjust(top=0.865, bottom=0.10, left=0.055, right=0.945,
                         hspace=0.22, wspace=0.08)
     fig.text(0.5, 0.945, ("body echo removed, " if drop_dc else "")
              + "every run looking up from 30" + chr(176) + " below the drone, "
-             "each panel scaled to its own peak",
+             + ("one shared scale " + chr(8212) + " panel brightness is the real level"
+                if shared else "each panel scaled to its own peak"),
              ha="center", fontsize=19, color="0.35")
     cax = fig.add_axes([0.953, 0.10, 0.008, 0.765])
     cb = fig.colorbar(ax[0, 0].collections[0], cax=cax)
-    cb.set_label("dB below the brightest point in that panel", fontsize=16)
-    out = f"{FIG}/{stem}.png"
+    cb.set_label("dB below the brightest point across all panels" if shared
+                 else "dB below the brightest point in that panel", fontsize=16)
+    out = f"{FIG}/{stem}{SUF}.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
     print(f"  ✅ {out}")
@@ -183,7 +207,7 @@ def band(data, lo, hi, stem):
                          f"dashed lines mark {FFL:.1f} Hz and its multiples, "
                          "the faint red curve repeats our kernel for reference",
              ha="center", fontsize=18, color="0.35")
-    out = f"{FIG}/{stem}.png"
+    out = f"{FIG}/{stem}{SUF}.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
     print(f"  ✅ {out}")
@@ -226,6 +250,9 @@ if __name__ == "__main__":
 
     maps(data, False, "swgrid_maps")
     maps(data, True, "swgrid_maps_dc")
+    # ⭐찍힌 그대로의 세기가 보이는 판 (2026-08-27 추가) — 팔 사이 레벨 차이가 살아 있다.
+    maps(data, False, "swgrid_maps_shared", shared=True)
+    maps(data, True, "swgrid_maps_dc_shared", shared=True)
     band(data, 100.0, 1000.0, "swgrid_be_wide")
     band(data, 0.0, 420.0, "swgrid_be_zoom")
 
@@ -241,6 +268,6 @@ if __name__ == "__main__":
         "h1_ko": "블레이드 대역 전력 변조 스펙트럼의 1 차 선 — 국소 바닥 위 dB 와 봉우리 위치",
         "el_deg": EL, "f_tip_hz": round(FT30, 1), "f_flash_hz": FFL,
     }, "cells": doc}
-    p = f"{ROOT}/outputs/switch_grid.json"
+    p = f"{ROOT}/outputs/switch_grid{SUF}.json"
     json.dump(out, open(p, "w"), ensure_ascii=False, indent=1)
     print(f"  ✅ {p}")

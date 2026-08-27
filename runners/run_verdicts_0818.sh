@@ -44,7 +44,9 @@ do3() { run "3 탐지곡선"             $PY benchmark/detection_curves.py
 do4() { run "4 재질정본"             $PY benchmark/canon_0816/build_material_canon.py &&
 #      ⛔빌더가 덧칠분을 지운다 — 적대적 검산 세션이 넣은 adversarial_recheck 블록·DC 밴드 정정이
 #        build_material_canon.py 산출에는 없다(2026-08-18 실측). 반드시 이어서 덧칠을 다시 올린다.
-        run "4b 적대검산 덧칠"       $PY benchmark/canon_0816/fix_canon.py; }
+        run "4b 적대검산 덧칠"       $PY benchmark/canon_0816/fix_canon.py
+#      ⛔기체 갈래 원장도 재생성 때마다 손 덧칠이 지워진다(2026-08-27 실측) — 정본만 고치면 모자란다.
+        run "4c 기체갈래 덧칠"       $PY benchmark/canon_0816/fix_canon_airframes.py; }
 do5() { run "5 잡음 사전등록"        $PY benchmark/canon_0816/make_prereg.py; }
 do6() { run "6 아틀라스 목차"        $PY benchmark/build_atlas_toc.py
         run "6 아틀라스 그림"        $PY benchmark/build_md_atlas.py
