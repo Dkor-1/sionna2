@@ -1,0 +1,56 @@
+{
+ "_meta": {
+  "generator": "benchmark/worker_scaling_0819.py",
+  "generated_kst": "2026-08-19 15:15:21 (UTC+9)",
+  "role_ko": "카드 한 장에 워커를 몇 개 올려야 전체 처리량이 가장 큰가 — 실측",
+  "gpu": "2",
+  "n_poses_per_worker": 64,
+  "arm": "--engine sionna --spp 4000000000 --sw R1D0E0F1 --max-depth 2 --range-m 15 --els=-30 --shard 0 --nshards 1",
+  "method_ko": "생산 워커를 SIGSTOP 으로 재우고 잰 뒤 SIGCONT — 작업 손실 없음",
+  "caveat_ko": "자세 수가 작아 커널 컴파일 비용이 상대적으로 크다. 절대 처리량보다 **워커 수 사이의 비교**를 읽어야 한다"
+ },
+ "levels": [
+  {
+   "n_workers": 16,
+   "wall_s": 287.7,
+   "n_poses_total": 1144,
+   "throughput_pose_per_s": 3.976,
+   "per_worker_pose_per_s": 0.2485,
+   "all_ok": true,
+   "vs_first_x": 1.0,
+   "efficiency_pct": 100.0
+  },
+  {
+   "n_workers": 24,
+   "wall_s": 183.1,
+   "n_poses_total": 1812,
+   "throughput_pose_per_s": 9.898,
+   "per_worker_pose_per_s": 0.4124,
+   "all_ok": true,
+   "vs_first_x": 2.489,
+   "efficiency_pct": 166.0
+  },
+  {
+   "n_workers": 32,
+   "wall_s": 199.9,
+   "n_poses_total": 2544,
+   "throughput_pose_per_s": 12.728,
+   "per_worker_pose_per_s": 0.3978,
+   "all_ok": true,
+   "vs_first_x": 3.201,
+   "efficiency_pct": 160.1
+  },
+  {
+   "n_workers": 48,
+   "wall_s": 430.3,
+   "n_poses_total": 4200,
+   "throughput_pose_per_s": 9.762,
+   "per_worker_pose_per_s": 0.2034,
+   "all_ok": true,
+   "vs_first_x": 2.455,
+   "efficiency_pct": 81.9
+  }
+ ],
+ "best_n_workers": 32,
+ "reading_ko": "전체 처리량이 가장 큰 지점은 워커 32 개다"
+}
