@@ -50,7 +50,7 @@ ARMS = [("①all off (diffuse only)", "R0D0E0F1"),
         ("④refraction+diffraction", "R1D1E1F1"),
         ("⑤ours (SBR+PO)",          None)]          # None = --engine ours
 KS = [(1, ""), (2, "_prf39400"), (4, "_prf78800")]
-ELS = [0.0, -30.0]
+ELS = [0.0, -30.0, -60.0, -90.0]
 N_PEAKS = 10                    # 상위 몇 봉우리의 폭을 볼 것인가
 RNG = np.random.default_rng(20260828)
 
