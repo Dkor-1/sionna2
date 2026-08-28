@@ -247,7 +247,11 @@ def run(a) -> None:
     drone_key = str(getattr(a, "drone", "") or TJ.get("drone", "matrice4e"))
     spec = DRONES[drone_key]
     fp = FastPoser(spec)
-    prf = float(TJ["prf_hz"])
+    # ⭐자세 «표집률» 을 인자로 덮어쓴다 (2026-08-27 신설).
+    #   ⛔--n-poses 는 «촘촘함» 이 아니라 «기록 길이» 다 — 자세 간격 dt=1/prf 는 n 과 무관하다.
+    #   블레이드 통과당 자세 수를 늘리려면 이쪽을 올려야 한다. 안 주면 원장값이라 동작 불변.
+    _prf_arg = float(getattr(a, "prf", 0.0) or 0.0)
+    prf = _prf_arg if _prf_arg > 0 else float(TJ["prf_hz"])
     # ⭐자세 수는 인자로 덮어쓸 수 있다. 기본은 원장값이라 기존 동작과 같다.
     n = int(getattr(a, "n_poses", 0) or TJ["n"])
     #: ⭐방위는 인자로 덮어쓸 수 있다. 안 주면 원장값이라 기존 동작과 같다.
@@ -325,6 +329,7 @@ def run(a) -> None:
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
+        + ("" if _prf_arg <= 0 else f"_prf{prf:g}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
@@ -896,6 +901,10 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--prf", type=float, default=0.0,
+                    help="⭐자세 표집률 [Hz]. 안 주면 원장값(19700). ⛔--n-poses 로는 "
+                         "촘촘해지지 않는다(그건 기록 길이다) — 블레이드 통과당 자세 수를 "
+                         "늘리려면 이 인자를 쓴다. 파일명에 _prf<Hz> 가 붙는다.")
     ap.add_argument("--n-poses", type=int, default=0,
                     help="⭐슬로타임 자세 수. 0 이면 원장값(report07_three_engines:_meta.n = 4096). "
                          "박자 FFT 분해능 = prf/n 이라 4096 은 4.89 Hz 이고, h1/h2 판별창(±18 Hz)에 "
