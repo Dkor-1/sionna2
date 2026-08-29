@@ -920,14 +920,20 @@ def main() -> None:
                     help="⭐방위각 [°]. 비우면 원장값(report07_three_engines:_meta.az_deg). "
                          "지금까지 모든 판이 방위 한 자리에서만 잰 것이라 «다른 방위에서도 "
                          "같은 결론이 서는가» 를 시험한 적이 없다. 파일명에 _az<N> 이 붙는다.")
-    ap.add_argument("--inmem", action="store_true",
-                    help="⭐**메쉬를 디스크 안 거치고 바로 올린다** (2026-08-20). "
-                         "지금은 자세마다 정점을 텍스트 OBJ 로 썼다가 다시 파싱해 올린다 "
-                         "— 자세당 63 ms 인데 진짜 GPU 전송은 0.02 ms 다. 이 인자를 주면 "
-                         "그 우회로를 뺀다. 정점·면은 OBJ 판과 **비트 동일**하다"
-                         "(`%.6f` 반올림·정점 재번호 순서를 그대로 흉내낸다. "
-                         "benchmark/mesh_inmem.py 로 81 건 대조 완료). "
-                         "⛔안 주면 옛 길 그대로라 기존 샤드와 비트 동일하다.")
+    #: ⭐**2026-08-29 착지 — 이제 기본값이다.** 되돌리려면 `--no-inmem`.
+    #  준비 단계(2026-08-20)에는 옵트인이었는데 착지를 안 해서, 8/27~28 큐가
+    #  전부 이걸 빠뜨린 채 자세당 62 ms 를 헛되이 썼다. 저장소 관례대로
+    #  (`report_mesh/src/make_mesh02.py:791`) 기본을 새 동작으로 두고 옛 길을 스위치로 남긴다.
+    #  ⚠정점·면은 OBJ 판과 **비트 동일**(A 층)이지만 객체 «이름» 이 달라진다
+    #    (`{key}_{g}` 대 `{key}_{g}_{i%2}`). 솔버 산출은 **자연 산포 안**(B 층)으로
+    #    판정됐다 — `outputs/adv_refute_hashlottery_0824.json`. `docs/EQUIVALENCE_GATES.md` 참조.
+    ap.add_argument("--inmem", dest="inmem", action="store_true", default=True,
+                    help="메쉬를 디스크 안 거치고 바로 올린다. ⭐**이제 기본값**이라 "
+                         "이 인자는 아무 효과가 없다(옛 잡 파일 호환용). "
+                         "옛 OBJ 왕복 길로 되돌리려면 --no-inmem.")
+    ap.add_argument("--no-inmem", dest="inmem", action="store_false",
+                    help="⛔옛 길 — 자세마다 정점을 텍스트 OBJ 로 썼다가 되읽는다"
+                         "(자세당 62 ms). 회귀 대조용으로만 쓴다.")
     ap.add_argument("--det", action="store_true",
                     help="⭐**재현 가능하게 만든다** (2026-08-20). PathSolver 는 같은 씬·같은 "
                          "시드로 두 번 풀어도 **경로가 담기는 순서**가 달라진다(GPU 가 수만 "
