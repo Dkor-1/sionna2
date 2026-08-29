@@ -1,7 +1,7 @@
 {
  "_meta": {
   "generator": "benchmark/prf_ladder_0828.py",
-  "question_ko": "PathSolver 섬광 폭이 자세 격자를 따라 내려가나(격자 산물), 아니면 각도로 수렴하나(물리)",
+  "question_ko": "관측된 좁은 섬광 폭이 자세 표집 격자를 따라 내려가나, 아니면 각도로 버티나. ⛔어느 엔진이 현실에 가까운지는 묻지 않는다.",
   "gpu_used": false,
   "prf0_hz": 19700.0,
   "f_flash_hz": 126.66666666666667,
@@ -12,9 +12,11 @@
    "k8": 0.1447
   },
   "metric_ko": "θ_half = 상위 봉우리 반진폭 폭 중앙값 × 자세당 회전각. ⛔3σ 문턱 런길이는 쓰지 않는다 — 하한이 1 자세라 내려갈 자리가 없다.",
-  "decision_rule_ko": "p ≥ 0.75 폭이 표집에 딸린다 · p ≤ 0.25 폭이 각도로 수렴한다 · 그 사이 이 표집으로는 해상 못 한다",
+  "decision_rule_ko": "⭐먼저 네 k 전부 폭이 하한(2 자세)이면 D. 이 잣대로는 폭을 못 쟀다 — 그때 p 는 적합이 아니라 항등식이라 읽지 않는다. 그 다음 p ≥ 0.75 폭이 표집에 딸린다 · p ≤ 0.25 폭이 각도로 수렴한다 · 그 사이 이 표집으로는 해상 못 한다",
+  "width_floor_ko": "반진폭 폭 탐색의 하한은 2 자세다(국소최대 하나와 양옆). 하한에 붙으면 θ_half ∝ 1/k 가 잔차 0 으로 자동 성립해 p=1 이 된다. 2026-08-29 검증에서 옛 A 판정 10 칸이 전부 이 경우였다.",
+  "not_symmetric_ko": "⚠A/D 칸과 B 칸은 같은 종류의 대상이 아니다 — 이웃 낙차가 각각 −18~−54 dB(고립 스파이크)와 −0.06~−0.8 dB(연속 곡선)다. 한 p 축이 두 가지를 얹고 있으니 엔진 간 우열로 읽지 마라.",
   "scope_ko": "⛔이 잣대는 «어느 엔진이 현실에 가까운가» 를 말하지 않는다. 재는 것은 표집 의존성 하나뿐이다. A 가 틀렸다는 뜻이 아니고(실제 정반사가 정말 좁을 수 있다), B 가 맞다는 뜻도 아니다(우리 커널도 근사이고, 매끄러움이 «덜 잡아서» 일 수 있다 — 0827 ee61028). 현실성 판정에는 실측 대조가 필요하다.",
-  "aperture_limit_ko": "개구 한계: 프로펠러 반경 0.137 m → 17.91° · 기체 대각 0.439 m → 5.59°(최악 하한). θ_half 가 5.59° 보다 좁게 수렴하면 «폭은 있으나 개구보다 좁다» 다.",
+  "aperture_limit_ko": "개구 한계: 프로펠러 반경 0.137 m → 17.91° · 기체 대각 0.439 m → 5.59°(최악 하한). θ_half 가 5.59° 보다 좁게 수렴하면 «폭은 있으나 개구보다 좁다» 다. ⛔«그러니 더 넓어야 한다» 는 현실성 판정이라 이 잣대가 못 한다. ⚠이 하한은 우리 커널에도 그대로 댄다 — ⑤/el−90 도 5.59° 보다 좁다.",
   "n_ledger_rows": 1037
  },
  "white_null": {
@@ -915,7 +917,27 @@
  "verdicts": {
   "①all off (diffuse only)/el+0": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -47.06,
+    -48.07,
+    -46.57,
+    -48.12
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -925,7 +947,27 @@
   },
   "②refraction/el+0": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -49.97,
+    -52.84,
+    -53.29,
+    -52.83
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -935,7 +977,27 @@
   },
   "③diffraction/el+0": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -33.48,
+    -35.97,
+    -35.8,
+    -34.36
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -945,7 +1007,27 @@
   },
   "④refraction+diffraction/el+0": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -34.37,
+    -35.16,
+    -32.64,
+    -33.63
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -956,6 +1038,26 @@
   "⑤ours (SBR+PO)/el+0": {
    "p": 0.034,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    9.0,
+    17.5,
+    36.0,
+    66.0
+   ],
+   "neighbour_drop_db": [
+    -0.5,
+    -0.18,
+    -0.17,
+    -0.31
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     10.4162,
     10.1269,
@@ -966,6 +1068,26 @@
   "①all off (diffuse only)/el-30": {
    "p": 0.063,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    55.5,
+    111.0,
+    206.0,
+    394.0
+   ],
+   "neighbour_drop_db": [
+    -0.41,
+    -0.24,
+    -0.1,
+    -0.16
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     64.2335,
     64.2335,
@@ -976,6 +1098,26 @@
   "②refraction/el-30": {
    "p": 0.329,
    "verdict_ko": "C. 이 표집으로는 해상 못 한다",
+   "floor_pinned": false,
+   "width_poses": [
+    11.5,
+    23.0,
+    33.0,
+    48.0
+   ],
+   "neighbour_drop_db": [
+    -1.57,
+    -1.33,
+    -0.98,
+    -0.73
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     13.3096,
     13.3096,
@@ -985,7 +1127,27 @@
   },
   "③diffraction/el-30": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -28.44,
+    -23.53,
+    -23.93,
+    -27.05
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -995,7 +1157,27 @@
   },
   "④refraction+diffraction/el-30": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -32.2,
+    -30.28,
+    -30.28,
+    -30.33
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -1006,6 +1188,26 @@
   "⑤ours (SBR+PO)/el-30": {
    "p": 0.05,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    9.0,
+    17.0,
+    32.0,
+    65.5
+   ],
+   "neighbour_drop_db": [
+    -0.59,
+    -0.41,
+    -0.44,
+    -0.44
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     10.4162,
     9.8376,
@@ -1016,6 +1218,26 @@
   "①all off (diffuse only)/el-60": {
    "p": 0.007,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    50.0,
+    101.0,
+    199.5,
+    395.5
+   ],
+   "neighbour_drop_db": [
+    -0.22,
+    -0.11,
+    -0.1,
+    -0.06
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     57.868,
     58.4467,
@@ -1026,6 +1248,26 @@
   "②refraction/el-60": {
    "p": 0.322,
    "verdict_ko": "C. 이 표집으로는 해상 못 한다",
+   "floor_pinned": false,
+   "width_poses": [
+    19.0,
+    30.0,
+    57.0,
+    73.5
+   ],
+   "neighbour_drop_db": [
+    -1.92,
+    -1.17,
+    -1.04,
+    -0.85
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     21.9898,
     17.3604,
@@ -1035,7 +1277,27 @@
   },
   "③diffraction/el-60": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -20.65,
+    -20.45,
+    -19.79,
+    -20.11
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -1045,7 +1307,27 @@
   },
   "④refraction+diffraction/el-60": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -25.61,
+    -28.69,
+    -28.16,
+    -28.95
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -1056,6 +1338,26 @@
   "⑤ours (SBR+PO)/el-60": {
    "p": 0.021,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    31.0,
+    61.0,
+    120.0,
+    237.5
+   ],
+   "neighbour_drop_db": [
+    -0.43,
+    -0.3,
+    -0.16,
+    -0.14
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     35.8782,
     35.2995,
@@ -1066,6 +1368,26 @@
   "①all off (diffuse only)/el-90": {
    "p": -0.012,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    13.5,
+    25.5,
+    54.5,
+    108.5
+   ],
+   "neighbour_drop_db": [
+    -0.81,
+    -0.51,
+    -0.42,
+    -0.2
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     15.6244,
     14.7563,
@@ -1076,6 +1398,26 @@
   "②refraction/el-90": {
    "p": 0.36,
    "verdict_ko": "C. 이 표집으로는 해상 못 한다",
+   "floor_pinned": false,
+   "width_poses": [
+    3.0,
+    3.5,
+    6.0,
+    11.0
+   ],
+   "neighbour_drop_db": [
+    -6.6,
+    -5.31,
+    -3.87,
+    -1.99
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     3.4721,
     2.0254,
@@ -1085,7 +1427,27 @@
   },
   "③diffraction/el-90": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -49.47,
+    -23.33,
+    -54.02,
+    -46.57
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -1095,7 +1457,27 @@
   },
   "④refraction+diffraction/el-90": {
    "p": 1.0,
-   "verdict_ko": "A. 폭이 표집에 딸린다",
+   "verdict_ko": "D. 이 잣대로는 폭을 못 쟀다 — 하한 2 자세에 붙어 있다",
+   "floor_pinned": true,
+   "width_poses": [
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "neighbour_drop_db": [
+    -20.1,
+    -27.51,
+    -32.21,
+    -18.25
+   ],
+   "in_white_null": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": false,
    "theta_half_deg": [
     2.3147,
     1.1574,
@@ -1106,6 +1488,26 @@
   "⑤ours (SBR+PO)/el-90": {
    "p": 0.249,
    "verdict_ko": "B. 폭이 각도로 수렴한다",
+   "floor_pinned": false,
+   "width_poses": [
+    2.0,
+    3.0,
+    6.0,
+    9.0
+   ],
+   "neighbour_drop_db": [
+    -9.87,
+    -5.46,
+    -2.39,
+    -1.4
+   ],
+   "in_white_null": [
+    true,
+    false,
+    false,
+    false
+   ],
+   "near_threshold": true,
    "theta_half_deg": [
     2.3147,
     1.736,
