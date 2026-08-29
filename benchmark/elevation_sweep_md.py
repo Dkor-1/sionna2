@@ -330,6 +330,7 @@ def run(a) -> None:
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
         + ("" if _prf_arg <= 0 else f"_prf{prf:g}") \
+        + ("" if not int(getattr(a, "rep", 0)) else f"_rep{int(a.rep)}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
@@ -901,6 +902,12 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--rep", type=int, default=0,
+                    help="⭐되풀이 판 번호. **파일 이름에만** _rep<N> 을 붙이고 물리는 "
+                         "아무것도 안 바꾼다 — 같은 칸을 여러 판 돌려 «자연 산포» 를 재려고 "
+                         "있다(docs/EQUIVALENCE_GATES.md B 층은 ≥6 판을 요구한다). "
+                         "PathSolver 는 결정적이지 않으므로(#1175) 판마다 값이 갈린다. "
+                         "⛔우리 커널은 결정적이라 되풀이해도 같은 값이 나와야 한다.")
     ap.add_argument("--prf", type=float, default=0.0,
                     help="⭐자세 표집률 [Hz]. 안 주면 원장값(19700). ⛔--n-poses 로는 "
                          "촘촘해지지 않는다(그건 기록 길이다) — 블레이드 통과당 자세 수를 "
