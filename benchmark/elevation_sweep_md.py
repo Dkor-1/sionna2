@@ -99,6 +99,43 @@ def los(az_deg: float, el_deg: float) -> np.ndarray:
     return np.array([np.cos(e) * np.cos(a), np.cos(e) * np.sin(a), np.sin(e)])
 
 
+#: ⭐**실외 환경 축** (2026-08-31 신설) — 지금까지 장면에는 드론밖에 없었다
+#  ■ 왜 — `build_scene` 은 빈 씬에 드론 부품만 넣는다. 그래서 우리가 «클러터» 라고 부르며
+#    걷어낸 것은 전부 **드론 자신의 동체**였다. 환경 클러터는 한 번도 없었다.
+#  ■ 기하 — 드론이 원점이고 레이다는 `rng·sin(el)` 깊이에 온다(report15_probe.place).
+#    ⛔그러니 **지면은 그보다 더 아래**여야 한다. 안 그러면 레이다가 땅속에 들어간다.
+#    15 m·el −90 이면 −15 m 이므로 비행고도를 **20 m** 로 잡아 여유를 둔다.
+#  ■ ⛔실외만 쓴다(사용자 지시 2026-08-31). 실내 챔버는 이 축에 넣지 않는다.
+ENV_SPECS = {
+    "outdoor01": dict(
+        dir=f"{ROOT}/assets/meshes/outdoor01", alt_m=20.0,
+        parts=[("ground", "concrete_dark", (0.42, 0.40, 0.37)),
+               ("bldg_a", "concrete_light", (0.78, 0.80, 0.84)),
+               ("bldg_b", "concrete_light", (0.78, 0.80, 0.84)),
+               ("bldg_c", "concrete_light", (0.78, 0.80, 0.84)),
+               ("bldg_d", "concrete_light", (0.78, 0.80, 0.84)),
+               ("pole_a", "metal", (0.45, 0.47, 0.50)),
+               ("pole_b", "metal", (0.45, 0.47, 0.50))]),
+}
+
+
+def env_parts(Part, key: str):
+    """환경 부품 목록. 지면이 드론 **아래** 오도록 통째로 내린다."""
+    if key not in ENV_SPECS:
+        raise SystemExit(f"⛔ 모르는 환경: {key} — 아는 것 {list(ENV_SPECS)}")
+    spec = ENV_SPECS[key]
+    dz = -float(spec["alt_m"])
+    out = []
+    for nm, mat, col in spec["parts"]:
+        f = os.path.join(spec["dir"], f"{nm}.obj")
+        if not os.path.exists(f):
+            raise SystemExit(f"⛔ 환경 메쉬가 없다: {f} — "
+                             f"benchmark/make_outdoor_scene_0831.py 를 먼저 돌려라")
+        out.append(Part(name=f"env_{nm}", obj=f, mat_key=mat, color=col,
+                        position=(0.0, 0.0, dz)))
+    return out
+
+
 def rule_spp(rng_m: float) -> int:
     """(R/3)² × 1M — 덱과 같은 광선 규칙."""
     return int(round(1_000_000 * (rng_m / 3.0) ** 2))
@@ -246,7 +283,7 @@ def run(a) -> None:
 
     drone_key = str(getattr(a, "drone", "") or TJ.get("drone", "matrice4e"))
     spec = DRONES[drone_key]
-    fp = FastPoser(spec)
+    fp = FastPoser(spec, prop_scale=float(getattr(a, "prop_scale", 1.0) or 1.0))
     # ⭐자세 «표집률» 을 인자로 덮어쓴다 (2026-08-27 신설).
     #   ⛔--n-poses 는 «촘촘함» 이 아니라 «기록 길이» 다 — 자세 간격 dt=1/prf 는 n 과 무관하다.
     #   블레이드 통과당 자세 수를 늘리려면 이쪽을 올려야 한다. 안 주면 원장값이라 동작 불변.
@@ -331,6 +368,9 @@ def run(a) -> None:
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
         + ("" if _prf_arg <= 0 else f"_prf{prf:g}") \
         + ("" if not int(getattr(a, "rep", 0)) else f"_rep{int(a.rep)}") \
+        + ("" if not getattr(a, "env", "") else f"_env{a.env}") \
+        + ("" if abs(float(getattr(a, "prop_scale", 1.0) or 1.0) - 1.0) < 1e-9
+           else f"_ps{float(a.prop_scale):g}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
@@ -538,6 +578,9 @@ def run(a) -> None:
                              mat_key=DRONE_GROUP_MAT[g][0], color=cols[g],
                              mi_mesh=(None if mi_meshes is None else mi_meshes[g]))
                      for g, p in paths_obj.items()]
+            # ⭐실외 환경 축 — 주면 드론 부품 뒤에 환경을 얹는다
+            if getattr(a, "env", ""):
+                parts = parts + env_parts(RP.Part, a.env)
             sc = RP.build_scene(parts, fc=fc)
             RP.place(sc, az=az, el=el, rng=rng_m, baseline=0.0)
             p = _solver(
@@ -902,6 +945,15 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--prop-scale", dest="prop_scale", type=float, default=1.0,
+                    help="⭐프롭 **크기만** 바꾼다(허브 위치·동체·회전수 고정). "
+                         "「프롭이 크면 정면에서도 박자가 보인다」를 확인하는 대조축이다. "
+                         "⚠박자 주파수는 안 변하고 f_tip 은 배율에 비례한다 — 판독에서 "
+                         "곱해 줘야 한다. 파일명에 _ps<배율> 이 붙는다.")
+    ap.add_argument("--env", type=str, default="",
+                    help="⭐실외 환경 이름(outdoor01). 주면 지면·건물·기둥을 장면에 얹고 "
+                         "파일명에 _env<이름> 이 붙는다. ⛔안 주면 지금까지와 같은 "
+                         "**자유공간**이다 — 빈 씬에 드론 부품만 들어간다.")
     ap.add_argument("--rep", type=int, default=0,
                     help="⭐되풀이 판 번호. **파일 이름에만** _rep<N> 을 붙이고 물리는 "
                          "아무것도 안 바꾼다 — 같은 칸을 여러 판 돌려 «자연 산포» 를 재려고 "

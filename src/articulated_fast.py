@@ -90,8 +90,19 @@ class FastPoser:
       로터만 도는 정지비행에서는 하나로 충분하다.
     """
 
-    def __init__(self, spec, body_rpy=(0.0, 0.0, 0.0), body_pos=(0.0, 0.0, 0.0)):
+    def __init__(self, spec, body_rpy=(0.0, 0.0, 0.0), body_pos=(0.0, 0.0, 0.0),
+                 prop_scale=1.0):
+        """⭐`prop_scale` — **프롭만** 키우거나 줄인다(2026-08-31 신설).
+
+        로터별 로컬 정점은 **허브가 원점**이므로 여기에 배율을 곱하면 **허브 위치와 기체는
+        그대로 두고 날개만** 커진다. 「프롭이 크면 정면에서도 박자가 보인다」를 확인하려면
+        프롭 크기 **하나만** 움직여야 하는데, 기체를 바꾸면 회전수·로터 수·동체가 같이 바뀐다.
+
+        ⚠회전수는 그대로이므로 **박자 주파수(날수×회전수)는 안 변하고, 팁속도와 f_tip 은
+          배율에 비례해 변한다.** 판독에서 f_tip 에 배율을 곱해 줘야 한다.
+        """
         self.spec = spec
+        self.prop_scale = float(prop_scale)
         roll, pitch, yaw = body_rpy
         B = (translate(*[float(x) for x in body_pos])
              @ rotate("z", yaw) @ rotate("y", pitch) @ rotate("x", roll))
@@ -115,7 +126,7 @@ class FastPoser:
 
         for rot in self.rl:
             src = prop_ccw if rot["dir"] > 0 else prop_cw
-            pv = np.asarray(src.v, float)
+            pv = np.asarray(src.v, float) * self.prop_scale
             cx, cy, cz = rot["center"]
             self._rotor_slices.append((base, base + len(pv)))
             self._rotor_local.append(np.c_[pv, np.ones(len(pv))])
