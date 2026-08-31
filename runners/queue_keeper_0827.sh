@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 큐 지킴이 — 감독자가 없으면 사슬의 다음 잡 파일을 띄운다. 큐가 마르지 않게 한다.
 # ⛔사슬에 적힌 파일만 띄운다. 감독자가 돌고 있으면 아무것도 안 한다.
-CHAIN=/workspace/sionna/runners/queue_chain_0830.txt
+CHAIN=/workspace/sionna/runners/queue_chain_0831.txt
 LOG=/workspace/sionna/runners/logs/queue_keeper_0827.log
-DONE=/workspace/sionna/runners/logs/queue_chain_0830_done.txt
+DONE=/workspace/sionna/runners/logs/queue_chain_0831_done.txt
 cd /workspace/sionna
 export PYTHONPATH=src:benchmark
 export DRJIT_LIBOPTIX_PATH=/workspace/.venvs/optix/libnvoptix.so.1

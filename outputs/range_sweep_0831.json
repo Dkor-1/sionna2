@@ -1,0 +1,704 @@
+{
+ "_meta": {
+  "generator": "benchmark/range_sweep_0831.py",
+  "gpu_used": false,
+  "question_ko": "가까이에서 본 순위 뒤집힘이 멀리서도 그대로인가",
+  "metric_ko": "h1_over_floor_db — build_switch_grid_figs 와 같은 계산. 국소 바닥 위 솟음이라 눈금과 무관하다.",
+  "scope_ko": "⛔el −90 은 뺀다(f_tip=0 이라 잣대가 정의되지 않는다). ⛔절대 세기를 거리끼리 견주지 않는다 — 자유공간 감쇠가 그대로 들어간다.",
+  "confound_ko": "⛔⛔**두 엔진이 거리에 대해 대등하지 않다.** PathSolver 팔은 전 거리에 --spp 4e9 로 고정해 돌렸는데, 표적이 가리는 입체각이 1/r² 로 줄어 표적에 닿는 광선이 15 m 214,134 개에서 90 m 5,948 개로 떨어진다(3 %). 집 규칙 rule_spp=(R/3)²×1M 에 견주면 여유가 15 m 160 배에서 90 m 4.4 배로 36 배 줄어든다. 우리 커널(rcs_sbr)은 표면 격자를 표집하므로 거리로 성기어지지 않는다. ⇒ «스톡 엔진의 박자가 멀어지며 흐려진다» 를 **물리라고 말할 수 없다** — 광선 예산이 준 것과 갈라내지 못했다. 가르려면 spp 를 r² 로 올려 다시 돌려야 한다.",
+  "star_ko": "* 표시는 봉우리가 f_flash 가 아닌 칸 — 그 dB 는 박자 값이 아니다.",
+  "ranges_m": [
+   15,
+   30,
+   45,
+   60,
+   90
+  ],
+  "els_deg": [
+   0.0,
+   -30.0,
+   -60.0
+  ],
+  "n_missing_cells": 0
+ },
+ "cells": {
+  "①all off (diffuse only)/r15/el+0": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 9.51,
+   "h1_peak_hz": 140.65,
+   "peak_is_beat": false
+  },
+  "①all off (diffuse only)/r30/el+0": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 10.03,
+   "h1_peak_hz": 113.97,
+   "peak_is_beat": false
+  },
+  "①all off (diffuse only)/r45/el+0": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 45,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 8.39,
+   "h1_peak_hz": 116.4,
+   "peak_is_beat": false
+  },
+  "①all off (diffuse only)/r60/el+0": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 4.92,
+   "h1_peak_hz": 111.55,
+   "peak_is_beat": false
+  },
+  "①all off (diffuse only)/r90/el+0": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 90,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 39.17,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r15/el+0": {
+   "arm": "②refraction",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 5.75,
+   "h1_peak_hz": 111.55,
+   "peak_is_beat": false
+  },
+  "②refraction/r30/el+0": {
+   "arm": "②refraction",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 6.31,
+   "h1_peak_hz": 128.52,
+   "peak_is_beat": true
+  },
+  "②refraction/r45/el+0": {
+   "arm": "②refraction",
+   "range_m": 45,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 4.67,
+   "h1_peak_hz": 111.55,
+   "peak_is_beat": false
+  },
+  "②refraction/r60/el+0": {
+   "arm": "②refraction",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 4.68,
+   "h1_peak_hz": 111.55,
+   "peak_is_beat": false
+  },
+  "②refraction/r90/el+0": {
+   "arm": "②refraction",
+   "range_m": 90,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 30.32,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r15/el+0": {
+   "arm": "③diffraction",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 23.6,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r30/el+0": {
+   "arm": "③diffraction",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 7.39,
+   "h1_peak_hz": 113.97,
+   "peak_is_beat": false
+  },
+  "③diffraction/r45/el+0": {
+   "arm": "③diffraction",
+   "range_m": 45,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 3.39,
+   "h1_peak_hz": 135.8,
+   "peak_is_beat": false
+  },
+  "③diffraction/r60/el+0": {
+   "arm": "③diffraction",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 5.4,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r90/el+0": {
+   "arm": "③diffraction",
+   "range_m": 90,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 16.56,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r15/el+0": {
+   "arm": "④refraction+diffraction",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 24.21,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r30/el+0": {
+   "arm": "④refraction+diffraction",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 5.41,
+   "h1_peak_hz": 128.52,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r45/el+0": {
+   "arm": "④refraction+diffraction",
+   "range_m": 45,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 4.48,
+   "h1_peak_hz": 118.82,
+   "peak_is_beat": false
+  },
+  "④refraction+diffraction/r60/el+0": {
+   "arm": "④refraction+diffraction",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 9.57,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r90/el+0": {
+   "arm": "④refraction+diffraction",
+   "range_m": 90,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 16.63,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r15/el+0": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 15,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 63.98,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r30/el+0": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 30,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 64.05,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r45/el+0": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 45,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 64.03,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r60/el+0": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 60,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 64.04,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r90/el+0": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 90,
+   "el_deg": 0.0,
+   "h1_over_floor_db": 63.99,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r15/el-30": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 64.61,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r30/el-30": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 57.79,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r45/el-30": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 45,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.32,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r60/el-30": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 52.33,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r90/el-30": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 90,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.74,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r15/el-30": {
+   "arm": "②refraction",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 49.45,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r30/el-30": {
+   "arm": "②refraction",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 45.86,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r45/el-30": {
+   "arm": "②refraction",
+   "range_m": 45,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 43.93,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r60/el-30": {
+   "arm": "②refraction",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 36.66,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r90/el-30": {
+   "arm": "②refraction",
+   "range_m": 90,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 35.42,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r15/el-30": {
+   "arm": "③diffraction",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 12.63,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r30/el-30": {
+   "arm": "③diffraction",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 12.0,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r45/el-30": {
+   "arm": "③diffraction",
+   "range_m": 45,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 19.23,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r60/el-30": {
+   "arm": "③diffraction",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 7.55,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r90/el-30": {
+   "arm": "③diffraction",
+   "range_m": 90,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 20.96,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r15/el-30": {
+   "arm": "④refraction+diffraction",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 10.97,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r30/el-30": {
+   "arm": "④refraction+diffraction",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 5.38,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r45/el-30": {
+   "arm": "④refraction+diffraction",
+   "range_m": 45,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 13.5,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r60/el-30": {
+   "arm": "④refraction+diffraction",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 4.74,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r90/el-30": {
+   "arm": "④refraction+diffraction",
+   "range_m": 90,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 34.98,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r15/el-30": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 15,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.28,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r30/el-30": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 30,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.64,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r45/el-30": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 45,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.7,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r60/el-30": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 60,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.74,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r90/el-30": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 90,
+   "el_deg": -30.0,
+   "h1_over_floor_db": 54.81,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r15/el-60": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 60.79,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r30/el-60": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 55.95,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r45/el-60": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 45,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 47.91,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r60/el-60": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 45.47,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "①all off (diffuse only)/r90/el-60": {
+   "arm": "①all off (diffuse only)",
+   "range_m": 90,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 43.59,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r15/el-60": {
+   "arm": "②refraction",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 38.0,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r30/el-60": {
+   "arm": "②refraction",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 43.11,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r45/el-60": {
+   "arm": "②refraction",
+   "range_m": 45,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 39.52,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r60/el-60": {
+   "arm": "②refraction",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 24.96,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "②refraction/r90/el-60": {
+   "arm": "②refraction",
+   "range_m": 90,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 26.13,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r15/el-60": {
+   "arm": "③diffraction",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 20.51,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r30/el-60": {
+   "arm": "③diffraction",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 22.07,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r45/el-60": {
+   "arm": "③diffraction",
+   "range_m": 45,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 21.04,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r60/el-60": {
+   "arm": "③diffraction",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 22.03,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "③diffraction/r90/el-60": {
+   "arm": "③diffraction",
+   "range_m": 90,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 15.32,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r15/el-60": {
+   "arm": "④refraction+diffraction",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 17.39,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r30/el-60": {
+   "arm": "④refraction+diffraction",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 28.08,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r45/el-60": {
+   "arm": "④refraction+diffraction",
+   "range_m": 45,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 21.73,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r60/el-60": {
+   "arm": "④refraction+diffraction",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 24.97,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "④refraction+diffraction/r90/el-60": {
+   "arm": "④refraction+diffraction",
+   "range_m": 90,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 4.22,
+   "h1_peak_hz": 140.65,
+   "peak_is_beat": false
+  },
+  "⑤ours (SBR+PO)/r15/el-60": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 15,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 57.76,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r30/el-60": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 30,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 57.73,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r45/el-60": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 45,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 57.59,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r60/el-60": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 60,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 57.56,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  },
+  "⑤ours (SBR+PO)/r90/el-60": {
+   "arm": "⑤ours (SBR+PO)",
+   "range_m": 90,
+   "el_deg": -60.0,
+   "h1_over_floor_db": 57.54,
+   "h1_peak_hz": 126.1,
+   "peak_is_beat": true
+  }
+ },
+ "rank_by_range": {
+  "r15/el+0": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 63.98,
+   "n_valid": 3
+  },
+  "r30/el+0": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 64.05,
+   "n_valid": 3
+  },
+  "r45/el+0": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 64.03,
+   "n_valid": 1
+  },
+  "r60/el+0": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 64.04,
+   "n_valid": 3
+  },
+  "r90/el+0": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 63.99,
+   "n_valid": 5
+  },
+  "r15/el-30": {
+   "winner": "①all off (diffuse only)",
+   "value_db": 64.61,
+   "n_valid": 5
+  },
+  "r30/el-30": {
+   "winner": "①all off (diffuse only)",
+   "value_db": 57.79,
+   "n_valid": 5
+  },
+  "r45/el-30": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 54.7,
+   "n_valid": 5
+  },
+  "r60/el-30": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 54.74,
+   "n_valid": 5
+  },
+  "r90/el-30": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 54.81,
+   "n_valid": 5
+  },
+  "r15/el-60": {
+   "winner": "①all off (diffuse only)",
+   "value_db": 60.79,
+   "n_valid": 5
+  },
+  "r30/el-60": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 57.73,
+   "n_valid": 5
+  },
+  "r45/el-60": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 57.59,
+   "n_valid": 5
+  },
+  "r60/el-60": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 57.56,
+   "n_valid": 5
+  },
+  "r90/el-60": {
+   "winner": "⑤ours (SBR+PO)",
+   "value_db": 57.54,
+   "n_valid": 4
+  }
+ },
+ "missing": []
+}
