@@ -33,5 +33,5 @@ while :; do
     sleep 60
     setsid nohup bash runners/guard_0827.sh >/dev/null 2>&1 &
   fi
-  sleep 120
+  sleep 30
 done
