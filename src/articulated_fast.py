@@ -91,7 +91,7 @@ class FastPoser:
     """
 
     def __init__(self, spec, body_rpy=(0.0, 0.0, 0.0), body_pos=(0.0, 0.0, 0.0),
-                 prop_scale=1.0, frame_scale=1.0):
+                 prop_scale=1.0, frame_scale=1.0, body_scale=1.0):
         """⭐`prop_scale` — **프롭만** 키우거나 줄인다(2026-08-31 신설).
 
         로터별 로컬 정점은 **허브가 원점**이므로 여기에 배율을 곱하면 **허브 위치와 기체는
@@ -113,6 +113,13 @@ class FastPoser:
         #      prop=k, frame=1  →  ⛔k>1.02 에서 겹친다. 줄이는 쪽으로만 쓴다
         #  ■ ⚠회전수 고정이므로 **박자 주파수는 불변**이고 f_tip 은 prop_scale 에만 비례한다.
         self.frame_scale = float(frame_scale)
+        #: ⭐`body_scale` — **동체만** 키우거나 줄인다(허브 위치·프롭 고정, 2026-08-31 신설).
+        #  ■ 왜 — 우리 이야기의 기전은 「정면에서 동체 정반사가 거울이 되어 날개를 묻는다」인데
+        #    **그걸 직접 시험한 적이 없다.** 동체만 줄여서 날개가 드러나면 기전이 확인된다.
+        #  ■ frame_scale 은 동체와 허브를 **함께** 움직이므로 이 축이 안 된다. 그래서 갈랐다.
+        #    실제 동체 배율 = frame_scale × body_scale, 허브 = frame_scale.
+        #  ■ ⚠동체를 키우면 팔(arm)이 프롭과 만날 수 있다 — 큰 배율은 기하를 확인하고 쓸 것.
+        self.body_scale = float(body_scale)
         roll, pitch, yaw = body_rpy
         B = (translate(*[float(x) for x in body_pos])
              @ rotate("z", yaw) @ rotate("y", pitch) @ rotate("x", roll))
@@ -126,7 +133,7 @@ class FastPoser:
         # ── 정점·면·그룹을 한 번만 이어붙인다 (pose_articulated 와 같은 순서) ──
         # ⭐frame_scale — Mesh 를 새로 만들지 않고 **정점 배열만** 키운다
         #   (Mesh.__init__ 서명이 (v,f,g) 가 아니라 실패했다. 2026-08-31)
-        v_blocks = [np.asarray(frame.v, float) * self.frame_scale]
+        v_blocks = [np.asarray(frame.v, float) * (self.frame_scale * self.body_scale)]
         f_blocks = [np.asarray(frame.f, np.int64)]
         g_blocks = [np.asarray(frame.g, dtype=object)]
         base = len(frame.v)

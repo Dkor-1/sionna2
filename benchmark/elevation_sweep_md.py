@@ -284,7 +284,8 @@ def run(a) -> None:
     drone_key = str(getattr(a, "drone", "") or TJ.get("drone", "matrice4e"))
     spec = DRONES[drone_key]
     fp = FastPoser(spec, prop_scale=float(getattr(a, "prop_scale", 1.0) or 1.0),
-                   frame_scale=float(getattr(a, "frame_scale", 1.0) or 1.0))
+                   frame_scale=float(getattr(a, "frame_scale", 1.0) or 1.0),
+                   body_scale=float(getattr(a, "body_scale", 1.0) or 1.0))
     # ⭐자세 «표집률» 을 인자로 덮어쓴다 (2026-08-27 신설).
     #   ⛔--n-poses 는 «촘촘함» 이 아니라 «기록 길이» 다 — 자세 간격 dt=1/prf 는 n 과 무관하다.
     #   블레이드 통과당 자세 수를 늘리려면 이쪽을 올려야 한다. 안 주면 원장값이라 동작 불변.
@@ -374,6 +375,8 @@ def run(a) -> None:
            else f"_ps{float(a.prop_scale):g}") \
         + ("" if abs(float(getattr(a, "frame_scale", 1.0) or 1.0) - 1.0) < 1e-9
            else f"_fs{float(a.frame_scale):g}") \
+        + ("" if abs(float(getattr(a, "body_scale", 1.0) or 1.0) - 1.0) < 1e-9
+           else f"_bs{float(a.body_scale):g}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
@@ -948,6 +951,11 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--body-scale", dest="body_scale", type=float, default=1.0,
+                    help="⭐**동체만** 키우거나 줄인다(허브·프롭 고정). 우리 기전 가설 "
+                         "「정면에서 동체 거울이 날개를 묻는다」를 직접 시험하는 축이다 — "
+                         "동체를 줄여서 날개가 드러나면 기전이 확인된다. "
+                         "파일명에 _bs<배율> 이 붙는다.")
     ap.add_argument("--frame-scale", dest="frame_scale", type=float, default=1.0,
                     help="⭐**동체와 로터 허브 위치**를 함께 키운다. --prop-scale 과 짝지어 쓴다 — "
                          "둘 다 k 면 «기체 전체를 k 배»(겹침 없음), frame 만 k 면 «프레임만 벌림». "
