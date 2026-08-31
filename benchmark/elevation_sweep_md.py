@@ -283,7 +283,8 @@ def run(a) -> None:
 
     drone_key = str(getattr(a, "drone", "") or TJ.get("drone", "matrice4e"))
     spec = DRONES[drone_key]
-    fp = FastPoser(spec, prop_scale=float(getattr(a, "prop_scale", 1.0) or 1.0))
+    fp = FastPoser(spec, prop_scale=float(getattr(a, "prop_scale", 1.0) or 1.0),
+                   frame_scale=float(getattr(a, "frame_scale", 1.0) or 1.0))
     # ⭐자세 «표집률» 을 인자로 덮어쓴다 (2026-08-27 신설).
     #   ⛔--n-poses 는 «촘촘함» 이 아니라 «기록 길이» 다 — 자세 간격 dt=1/prf 는 n 과 무관하다.
     #   블레이드 통과당 자세 수를 늘리려면 이쪽을 올려야 한다. 안 주면 원장값이라 동작 불변.
@@ -371,6 +372,8 @@ def run(a) -> None:
         + ("" if not getattr(a, "env", "") else f"_env{a.env}") \
         + ("" if abs(float(getattr(a, "prop_scale", 1.0) or 1.0) - 1.0) < 1e-9
            else f"_ps{float(a.prop_scale):g}") \
+        + ("" if abs(float(getattr(a, "frame_scale", 1.0) or 1.0) - 1.0) < 1e-9
+           else f"_fs{float(a.frame_scale):g}") \
         + ("_pw" if plane else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
@@ -945,6 +948,11 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--frame-scale", dest="frame_scale", type=float, default=1.0,
+                    help="⭐**동체와 로터 허브 위치**를 함께 키운다. --prop-scale 과 짝지어 쓴다 — "
+                         "둘 다 k 면 «기체 전체를 k 배»(겹침 없음), frame 만 k 면 «프레임만 벌림». "
+                         "⛔prop 만 키우면 이웃 프롭이 관통한다(matrice4e 는 틈이 5.9 mm 뿐). "
+                         "파일명에 _fs<배율> 이 붙는다.")
     ap.add_argument("--prop-scale", dest="prop_scale", type=float, default=1.0,
                     help="⭐프롭 **크기만** 바꾼다(허브 위치·동체·회전수 고정). "
                          "「프롭이 크면 정면에서도 박자가 보인다」를 확인하는 대조축이다. "

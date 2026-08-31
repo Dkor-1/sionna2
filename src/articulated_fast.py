@@ -91,7 +91,7 @@ class FastPoser:
     """
 
     def __init__(self, spec, body_rpy=(0.0, 0.0, 0.0), body_pos=(0.0, 0.0, 0.0),
-                 prop_scale=1.0):
+                 prop_scale=1.0, frame_scale=1.0):
         """⭐`prop_scale` — **프롭만** 키우거나 줄인다(2026-08-31 신설).
 
         로터별 로컬 정점은 **허브가 원점**이므로 여기에 배율을 곱하면 **허브 위치와 기체는
@@ -103,6 +103,16 @@ class FastPoser:
         """
         self.spec = spec
         self.prop_scale = float(prop_scale)
+        #: ⭐`frame_scale` — **동체와 로터 허브 위치**를 함께 키운다(2026-08-31 신설).
+        #  ■ 왜 — `prop_scale` 만 키우면 이웃 프롭이 서로 관통한다. 실측: matrice4e 는
+        #    허브 간격 279.9 mm 에 프롭 반경 137.0 mm 라 **틈이 5.9 mm 뿐**이다.
+        #    x1.4 면 −103.7 mm, x2.0 이면 −268.1 mm 로 날개가 서로 뚫고 지나간다.
+        #  ■ ⇒ 두 손잡이를 짝지어 쓴다:
+        #      prop=k, frame=k  →  **기체 전체를 k 배** (겹침 없음. «크기» 축)
+        #      prop=1, frame=k  →  프레임만 벌린다 (프롭 고정. «간격» 축)
+        #      prop=k, frame=1  →  ⛔k>1.02 에서 겹친다. 줄이는 쪽으로만 쓴다
+        #  ■ ⚠회전수 고정이므로 **박자 주파수는 불변**이고 f_tip 은 prop_scale 에만 비례한다.
+        self.frame_scale = float(frame_scale)
         roll, pitch, yaw = body_rpy
         B = (translate(*[float(x) for x in body_pos])
              @ rotate("z", yaw) @ rotate("y", pitch) @ rotate("x", roll))
@@ -114,7 +124,9 @@ class FastPoser:
         self.rl = rotor_layout(spec)
 
         # ── 정점·면·그룹을 한 번만 이어붙인다 (pose_articulated 와 같은 순서) ──
-        v_blocks = [np.asarray(frame.v, float)]
+        # ⭐frame_scale — Mesh 를 새로 만들지 않고 **정점 배열만** 키운다
+        #   (Mesh.__init__ 서명이 (v,f,g) 가 아니라 실패했다. 2026-08-31)
+        v_blocks = [np.asarray(frame.v, float) * self.frame_scale]
         f_blocks = [np.asarray(frame.f, np.int64)]
         g_blocks = [np.asarray(frame.g, dtype=object)]
         base = len(frame.v)
@@ -127,7 +139,7 @@ class FastPoser:
         for rot in self.rl:
             src = prop_ccw if rot["dir"] > 0 else prop_cw
             pv = np.asarray(src.v, float) * self.prop_scale
-            cx, cy, cz = rot["center"]
+            cx, cy, cz = (np.asarray(rot["center"], float) * self.frame_scale)
             self._rotor_slices.append((base, base + len(pv)))
             self._rotor_local.append(np.c_[pv, np.ones(len(pv))])
             self._rotor_const.append(B @ translate(cx, cy, cz))

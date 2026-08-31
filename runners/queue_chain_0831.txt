@@ -3,3 +3,12 @@
 #   sb_candidate_generator.py:110 `sampler.seed(seed, num_samples)` 가 TypeError 를 던진다.
 #   4e9 가 이미 천장의 0.9 배다. ⇒ 「광선을 r² 로 올려 거리 교란을 가른다」는 설계는 막혀 있다.
 runners/jobs_0831_merged2.txt
+
+# ⭐2026-08-31 추가 — 깨진 prop-scale 대조를 고친 판.
+#  ■ 왜 — prop 만 키우면 이웃 프롭이 관통한다(matrice4e 틈 5.9 mm → x1.4 에서 −103.7 mm).
+#    x1.4·x2.0 의 낮은 dB 는 «프롭 크기 무관» 이 아니라 «관통면이 서로를 가림» 일 수 있다.
+#  ■ ⇒ frame_scale 을 신설해 허브·동체를 함께 키운다. 세 축이 갈린다:
+#      prop=frame=k  기체 전체를 k 배      ← 「크기가 설명하나」
+#      frame=k only  프레임만 벌림          ← 「프롭이냐 프레임이냐」
+#      prop=0.7 only 프롭만 줄임(이미 있음) ← 겹침 없는 유일한 prop-only 점
+runners/jobs_0901_scale.txt
