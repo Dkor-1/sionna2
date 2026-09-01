@@ -231,8 +231,7 @@ def plot_arms(d):
     fig.subplots_adjust(top=0.790, bottom=0.165, left=0.060, right=0.985)
     fig.text(0.5, 0.955, "diffraction puts a ceiling on the pattern",
              ha="center", fontsize=25, color="#141926", weight="bold")
-    fig.text(0.5, 0.902, "the two diffraction arms stop at 10-11 dB and stay there. "
-             "The other three are still climbing",
+    fig.text(0.5, 0.902, "two arms flatten at 10-11 dB, three are still climbing",
              ha="center", fontsize=18, color="#C81E3C", weight="bold")
     fig.text(0.5, 0.860, f"matrice4e {chr(183)} 15 m {chr(183)} el {EL:+.0f}{chr(176)} "
              f"{chr(183)} complex white gaussian added to the stored time series "
