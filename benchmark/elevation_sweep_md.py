@@ -106,6 +106,9 @@ def los(az_deg: float, el_deg: float) -> np.ndarray:
 #    ⛔그러니 **지면은 그보다 더 아래**여야 한다. 안 그러면 레이다가 땅속에 들어간다.
 #    15 m·el −90 이면 −15 m 이므로 비행고도를 **20 m** 로 잡아 여유를 둔다.
 #  ■ ⛔실외만 쓴다(사용자 지시 2026-08-31). 실내 챔버는 이 축에 넣지 않는다.
+#: 기본 씬을 쓸 때 드론이 뜨는 높이[m] — 레이다가 rng·sin(el) 깊이에 오므로 그보다 커야 한다
+ENV_BUILTIN_ALT = 25.0
+
 ENV_SPECS = {
     "outdoor01": dict(
         dir=f"{ROOT}/assets/meshes/outdoor01", alt_m=20.0,
@@ -117,6 +120,48 @@ ENV_SPECS = {
                ("pole_a", "metal", (0.45, 0.47, 0.50)),
                ("pole_b", "metal", (0.45, 0.47, 0.50))]),
 }
+
+
+def build_scene_builtin(RP, parts, name: str, fc: float):
+    """⭐엔비디아 기본 씬 안에 드론을 넣는다 (2026-09-01 신설).
+
+    ■ 왜 — 우리가 만든 120×120 m 콘크리트 평면은 **매끄러운 거울**이라 최악에 가깝다.
+      실제 도시 장면에서도 같은 일이 나는지 보려면 남의 씬으로 갈아 끼워 봐야 한다.
+    ■ 기하 — 스윕은 드론이 **원점**이고 레이다가 `rng·sin(el)` 깊이에 오는 규약이다.
+      기본 씬은 자기 좌표를 갖고 있으므로 **씬을 드론 아래로 내려** 그 규약을 지킨다.
+      내리는 양은 `ENV_BUILTIN_ALT` — 레이다가 땅속에 안 들어갈 만큼이다.
+    ⚠재질·기하는 그 씬이 정한 것을 그대로 쓴다(우리가 고른 것이 아니다).
+    """
+    from sionna.rt import load_scene, scene as _S
+    import mitsuba as _mi
+    if not hasattr(_S, name):
+        raise SystemExit(f"⛔ 모르는 기본 씬: {name} — 아는 것 "
+                         f"{[n for n in dir(_S) if not n.startswith('_')]}")
+    sc = load_scene(getattr(_S, name))
+    sc.frequency = fc
+    sc.tx_array = RP.rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso",
+                                    polarization="V")
+    sc.rx_array = RP.rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso",
+                                    polarization="V")
+    #: ⛔씬을 통째로 옮기지 않는다 — 이름 없는 물체가 있는 씬(simple_street_canyon)에서
+    #   `SceneObject.position` 설정이 `KeyError: no-name-1.vertex_positions` 로 죽는다.
+    #   ⇒ **씬은 그대로 두고 드론을 그 위로 올린다.** 레이다도 같은 중심에 매인다.
+    ctr = (0.0, 0.0, float(ENV_BUILTIN_ALT))
+    from materials import make_material
+    objs = []
+    for p in parts:
+        mat = make_material(p.mat_key, name=f"mat_{p.name}", color=p.color)
+        o = (RP.rt.SceneObject(mi_mesh=p.mi_mesh, name=p.name, radio_material=mat)
+             if getattr(p, "mi_mesh", None) is not None
+             else RP.rt.SceneObject(fname=p.obj, name=p.name, radio_material=mat))
+        objs.append(o)
+    sc.edit(add=objs)
+    #: 얹은 **드론 부품만** 올린다(씬 물체는 안 건드린다)
+    for o in objs:
+        _c = o.position
+        o.position = _mi.Point3f(float(_c.x[0]) + ctr[0], float(_c.y[0]) + ctr[1],
+                                 float(_c.z[0]) + ctr[2])
+    return sc, ctr
 
 
 def env_parts(Part, key: str):
@@ -370,7 +415,10 @@ def run(a) -> None:
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
         + ("" if _prf_arg <= 0 else f"_prf{prf:g}") \
         + ("" if not int(getattr(a, "rep", 0)) else f"_rep{int(a.rep)}") \
-        + ("" if not getattr(a, "env", "") else f"_env{a.env}") \
+        + ("" if not getattr(a, "env", "")
+           else "_env" + str(a.env).replace(":", "-")) \
+        + ("" if float(getattr(a, "env_scat", -1.0)) < 0
+           else f"_S{float(a.env_scat):g}") \
         + ("" if abs(float(getattr(a, "prop_scale", 1.0) or 1.0) - 1.0) < 1e-9
            else f"_ps{float(a.prop_scale):g}") \
         + ("" if abs(float(getattr(a, "frame_scale", 1.0) or 1.0) - 1.0) < 1e-9
@@ -602,13 +650,37 @@ def run(a) -> None:
                              mi_mesh=(None if mi_meshes is None else mi_meshes[g]))
                      for g, p in paths_obj.items()]
             # ⭐실외 환경 축 — 주면 드론 부품 뒤에 환경을 얹는다.
+            #   ⭐`--env sionna:<이름>` 이면 우리 메쉬 대신 **엔비디아 기본 씬**을 쓴다
+            #     (simple_street_canyon · munich · etoile · florence · san_francisco …).
+            #     그때는 드론을 그 씬 **안에** 넣는다 — 씬을 먼저 열고 부품을 edit(add) 한다.
             #   ⛔이건 **PathSolver 씬**에만 붙는다 — 아래 우리 커널 분기는 sbr_field 에
             #     드론 메쉬만 넘기므로 환경이 도달하지 않는다. 그래서 --engine ours 에
             #     --env 를 주면 위에서 거부한다(2026-09-01).
-            if getattr(a, "env", ""):
-                parts = parts + env_parts(RP.Part, a.env)
-            sc = RP.build_scene(parts, fc=fc)
-            RP.place(sc, az=az, el=el, rng=rng_m, baseline=0.0)
+            _envn = getattr(a, "env", "")
+            _ctr = (0.0, 0.0, 0.0)
+            if _envn.startswith("sionna:"):
+                sc, _ctr = build_scene_builtin(RP, parts, _envn.split(":", 1)[1], fc)
+            else:
+                if _envn:
+                    parts = parts + env_parts(RP.Part, _envn)
+                sc = RP.build_scene(parts, fc=fc)
+            #: ⭐거칠기 — 환경 재질의 **산란계수 S** 를 갈아 끼운다(ITU-R P.2040 계열).
+            #  S=0 이면 완벽한 거울(정반사가 한 방향으로 몰린다), S→1 이면 확산으로 흩어진다.
+            #  ⚠우리 콘크리트 기본값이 **S=0.0**(src/materials.py:69·72)이라 지금 지면은
+            #    거울이다 — 실제 흙·풀·자갈은 그보다 거칠다. 그 차이를 재는 축이다.
+            _S = float(getattr(a, "env_scat", -1.0))
+            if _envn and _S >= 0.0:
+                _n = 0
+                for _nm, _ob in sc.objects.items():
+                    if _envn.startswith("sionna:") or str(_nm).startswith("env_"):
+                        try:
+                            _ob.radio_material.scattering_coefficient = _S
+                            _n += 1
+                        except Exception:
+                            pass
+                if j == 0 and el == els[0]:
+                    print(f"  ⭐환경 거칠기 S={_S:g} — 물체 {_n} 개에 걸었다", flush=True)
+            RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0)
             p = _solver(
                 sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
                 # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
@@ -982,6 +1054,11 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--env-scat", dest="env_scat", type=float, default=-1.0,
+                    help="⭐환경 재질의 **산란계수 S**(거칠기). 0 이면 완벽한 거울, 1 이면 "
+                         "완전 확산이다(ITU-R P.2040 계열 — 에너지를 정반사와 확산으로 가른다). "
+                         "⚠우리 콘크리트 기본값이 S=0.0 이라 지금 지면은 거울이다. "
+                         "안 주면(−1) 재질 기본값 그대로. 파일명에 _S<값> 이 붙는다.")
     ap.add_argument("--body-scale", dest="body_scale", type=float, default=1.0,
                     help="⭐**동체만** 키우거나 줄인다(허브·프롭 고정). 우리 기전 가설 "
                          "「정면에서 동체 거울이 날개를 묻는다」를 직접 시험하는 축이다 — "

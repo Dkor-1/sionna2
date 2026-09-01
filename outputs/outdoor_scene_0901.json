@@ -1,0 +1,135 @@
+{
+ "_meta": {
+  "generator": "benchmark/outdoor_scene_0901.py",
+  "gpu_used": false,
+  "generated_ko": "2026-09-01",
+  "question_ko": "실외 장면(지면·건물)을 넣으면 날개 박자가 살아남나, 그리고 정지 클러터 제거로 되돌릴 수 있나",
+  "metric_ko": "포락 자기상관 ρ(1 지연). 잡음 −0.06~+0.07 · 박자 +0.92~+0.99. ⛔dB(봉우리÷바닥)는 몇 자세짜리 낙차 임펄스열에도 큰 값을 주므로 쓰지 않는다.",
+  "arm_ko": "스톡 엔진 ①다끔(R0D0E0F1) · matrice4e · 15 m · 자세 8,192 · 광선 4e9 · 깊이 2. 실외 팔은 파일명에 _envoutdoor01 이 붙는다.",
+  "env_ko": "assets/meshes/outdoor01 — 지면 120×120 m 콘크리트 · 건물 넷 9~24 m · 금속 기둥 둘. 드론 고도 20 m(레이다가 rng·sin(el) 깊이에 오므로 15 m·el −90 의 −15 m 보다 지면이 아래여야 한다).",
+  "ours_absent_ko": "⛔우리 커널은 이 비교에 없다 — --env 는 build_scene(PathSolver 씬)에만 붙고 sbr_field 는 자세 잡힌 드론 메쉬만 받는다. 그 상태로 난 샤드 6 개는 자유공간과 상대차 1e−16 이라 2026-09-01 에 지웠고, --engine ours 에 --env 를 주면 이제 거부한다.",
+  "removal_ko": "benchmark/clutter_parts_ladder_0824.cs_eca — DFT 격자에서 |f| ≤ fcut 투영 소거. 정본 100 Hz",
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "fcut_hz": 100.0,
+  "lam_m": 0.085657,
+  "grid_spacing_m": 0.007138,
+  "grid_div": 12,
+  "fresnel_r1_m": 0.802,
+  "range_m": 15.0
+ },
+ "cells": {
+  "el+0": {
+   "el_deg": 0.0,
+   "rho_free": 0.0214,
+   "rho_outdoor": 0.0187,
+   "rho_removed": 0.0376,
+   "level_free_db": -63.24,
+   "level_outdoor_db": -62.83,
+   "d_level_db": 0.41,
+   "corr_removed_vs_free": 0.9021,
+   "ac_left_pct": 99.1,
+   "rho_free_removed": 0.0412
+  },
+  "el-30": {
+   "el_deg": -30.0,
+   "rho_free": 0.974,
+   "rho_outdoor": 0.0047,
+   "rho_removed": 0.0388,
+   "level_free_db": -133.05,
+   "level_outdoor_db": -79.47,
+   "d_level_db": 53.58,
+   "corr_removed_vs_free": 0.0228,
+   "ac_left_pct": 98.7,
+   "rho_free_removed": 0.9868
+  },
+  "el-60": {
+   "el_deg": -60.0,
+   "rho_free": 0.9917,
+   "rho_outdoor": 0.0021,
+   "rho_removed": 0.0273,
+   "level_free_db": -119.6,
+   "level_outdoor_db": -74.47,
+   "d_level_db": 45.13,
+   "corr_removed_vs_free": 0.0271,
+   "ac_left_pct": 98.9,
+   "rho_free_removed": 0.9788
+  }
+ },
+ "notch_ladder": {
+  "el-30": {
+   "fcut5": {
+    "rho": 0.0055,
+    "corr_vs_free": 0.0226
+   },
+   "fcut20": {
+    "rho": 0.0104,
+    "corr_vs_free": 0.0226
+   },
+   "fcut60": {
+    "rho": 0.0267,
+    "corr_vs_free": 0.0227
+   },
+   "fcut100": {
+    "rho": 0.0388,
+    "corr_vs_free": 0.0228
+   },
+   "fcut120": {
+    "rho": 0.04,
+    "corr_vs_free": 0.0228
+   }
+  },
+  "el-60": {
+   "fcut5": {
+    "rho": 0.0036,
+    "corr_vs_free": 0.027
+   },
+   "fcut20": {
+    "rho": 0.0085,
+    "corr_vs_free": 0.027
+   },
+   "fcut60": {
+    "rho": 0.0174,
+    "corr_vs_free": 0.0272
+   },
+   "fcut100": {
+    "rho": 0.0273,
+    "corr_vs_free": 0.0271
+   },
+   "fcut120": {
+    "rho": 0.0303,
+    "corr_vs_free": 0.0268
+   }
+  }
+ },
+ "grid_cost": {
+  "drone_only": {
+   "R_max_m": 0.28,
+   "R_out_m": 0.343,
+   "n": 97,
+   "points": 9409,
+   "vs_drone": 1.0
+  },
+  "ground_120m": {
+   "R_max_m": 84.853,
+   "R_out_m": 97.602,
+   "n": 27347,
+   "points": 747858409,
+   "vs_drone": 79483.3
+  },
+  "patch_2m": {
+   "R_max_m": 1.414,
+   "R_out_m": 1.648,
+   "n": 462,
+   "points": 213444,
+   "vs_drone": 22.7
+  },
+  "patch_5m": {
+   "R_max_m": 3.536,
+   "R_out_m": 4.087,
+   "n": 1146,
+   "points": 1313316,
+   "vs_drone": 139.6
+  }
+ }
+}
