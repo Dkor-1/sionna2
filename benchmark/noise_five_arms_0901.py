@@ -97,41 +97,10 @@ def main():
         print(f"  {lab:<24} 최대 {max(ys):>6.1f} dB · 필요 SNR "
               f"{'—' if need[lab] is None else f'{need[lab]:+.1f} dB'}")
 
-    # ── 그림
-    fig, ax = plt.subplots(figsize=(13.6, 7.4))
-    for lab, bits, col in ARMS:
-        ax.plot(SNRS, curves[lab], "-", color=col, lw=3.0,
-                label=lab.split("(")[0].strip()[1:])
-        if need[lab] is not None:
-            ax.plot([need[lab]], [bar], "o", ms=11, color=col, mec="white", mew=2,
-                    zorder=6)
-    ax.axhline(bar, color="#141926", lw=2.0, ls=(0, (6, 4)))
-    ax.text(SNRS[-1], bar + 1.2, f"decision bar {bar:.2f} dB "
-            f"(noise only, {N_TRIAL:,} trials, p99.9)",
-            ha="right", fontsize=15, color="#141926", weight="bold")
-    ax.set_xlabel("per-sample SNR of the moving part [dB]")
-    ax.set_ylabel("comb contrast [dB]")
-    ax.set_xlim(SNRS[0], SNRS[-1])
-    ax.grid(True, color="#D5D5D5", lw=0.8)
-    ax.set_axisbelow(True)
-    for s in ("top", "right"):
-        ax.spines[s].set_visible(False)
-    ax.legend(fontsize=17, frameon=False, loc="upper left")
-    fig.subplots_adjust(top=0.80, bottom=0.115, left=0.075, right=0.985)
-    fig.text(0.5, 0.955, "how much SNR each arm needs before the pattern reads",
-             ha="center", fontsize=23, color="#141926", weight="bold")
-    fig.text(0.5, 0.905, "diffraction costs about 10 dB of SNR, and caps the contrast",
-             ha="center", fontsize=18, color="#C81E3C", weight="bold")
-    fig.text(0.5, 0.865, f"matrice4e · 15 m · el {EL:+.0f}{chr(176)} · noise added to the "
-             f"stored time series (no GPU) · dots mark where each arm crosses the bar",
-             ha="center", fontsize=14, color="#5E5E5E")
-    fig.text(0.008, 0.012, "verified: the ordering between arms and the SNR a pattern "
-             "needs.   not verified: absolute metres - no field comparison yet",
-             ha="left", fontsize=13, color="#5E5E5E")
-    p = f"{FIG}/vol_noise_five_arms.png"
-    fig.savefig(p, dpi=140)
-    plt.close(fig)
-    print(f"  ✅ {p}")
+    d = dict(snr_db=[float(v) for v in SNRS], curves=curves,
+             snr_needed_db=need, bar_db=bar)
+    plot_arms(d)
+
 
     # ── ⓑ 무늬가 녹는 과정 — 같은 판에 잡음만 올린다 (덱 12 장)
     #    ⚠옛 그림은 **정본 메쉬 이전** 팔(ours_r15_n8192)을 썼다 — 덱의 나머지와 판이 달랐다.
@@ -186,6 +155,105 @@ def main():
     print(f"  ✅ {OUT}")
 
 
+def plot_arms(d):
+    """⭐13 장 그림 — «천장» 하나만 말한다.
+
+    ⛔옛 판은 두 말을 겹쳤다: «필요 SNR 이 얼마인가»(왼쪽 아래, 점 다섯이 겹쳐
+       읽히지도 않았다) + «천장이 있다»(오른쪽). 청중은 어느 쪽을 보는지 몰랐다.
+       가로축에 링크버짓 앵커가 없으니 «−20 dB 가 몇 미터인가» 도 답이 없다.
+       ⇒ 앵커 없이도 서는 사실 하나로 좁힌다: **회절을 켜면 무늬에 천장이 생기고,
+         SNR 을 더 줘도 안 올라간다.** 기울기(dB/dB)로 재서 오른쪽 판에 세운다.
+    """
+    x = np.asarray(d["snr_db"], float)
+    bar = float(d.get("bar_db") or d["_meta"]["bar_db"])   # 원장은 _meta 밑에 둔다
+    sel = x >= x[-1] - 10.0                       # 마지막 10 dB — «깨끗한 끝»
+    slope = {k: float(np.polyfit(x[sel], np.asarray(v, float)[sel], 1)[0])
+             for k, v in d["curves"].items()}
+
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(15.2, 7.4),
+                                 gridspec_kw=dict(width_ratios=[2.35, 1.0], wspace=0.42))
+    #: ⭐오른쪽에 여백을 내고 **곡선 끝에 바로** 이름을 붙인다 — 화살표가 곡선을 덮었다
+    xr = x[-1] + 9.0
+    ax.axvspan(x[-1] - 10.0, x[-1], color="#EEF1F5", zorder=0)
+    ax.text(x[-1] - 5.0, 46.2, "the clean end", ha="center", fontsize=13,
+            color="#7A8494", style="italic")
+    for lab, bits, col in ARMS:
+        y = np.asarray(d["curves"][lab], float)
+        ax.plot(x, y, "-", color=col, lw=3.2, zorder=4,
+                label=lab.split("(")[0].strip()[1:])
+    ax.axhline(bar, color="#141926", lw=1.6, ls=(0, (6, 4)), zorder=3)
+    ax.text(x[0] + 1.0, bar + 1.4, f"decision bar {bar:.1f} dB", fontsize=13,
+            color="#5E5E5E")
+
+    ax.plot([x[-1], xr - 6.6], [40.1, 40.1], "-", color="#1F3350", lw=1.2, zorder=5)
+    ax.text(x[-1] + 1.2, 41.6, "still\nclimbing", fontsize=16, color="#1F3350",
+            weight="bold", va="center", linespacing=1.15)
+    ax.plot([x[-1], xr - 6.6], [10.6, 10.6], "-", color="#C81E3C", lw=1.2, zorder=5)
+    ax.text(x[-1] + 1.2, 12.2, "flat - more\nSNR buys\nnothing", fontsize=16,
+            color="#C81E3C", weight="bold", va="bottom", linespacing=1.15)
+
+    ax.set_xlabel("per-sample SNR of the moving part [dB]   (a sweep, not a range)",
+                  fontsize=14)
+    ax.set_ylabel("comb contrast [dB]", fontsize=14)
+    ax.set_xlim(x[0], xr); ax.set_ylim(-1.5, 48.0)
+    ax.set_xticks([-40, -30, -20, -10, 0, 10, 20])
+    ax.grid(True, color="#D5D5D5", lw=0.8); ax.set_axisbelow(True)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    ax.legend(fontsize=15, frameon=False, loc="upper left")
+
+    #: ⭐오른쪽 — 같은 사실을 한 눈금으로. 0 이면 천장을 친 것이다.
+    labs = [a[0] for a in ARMS][::-1]
+    short = {a[0]: a[0].split("(")[0].strip().replace("refraction+diffraction",
+                                                      "refr+diffr") for a in ARMS}
+    ypos = np.arange(len(labs))
+    bx.barh(ypos, [slope[l] for l in labs],
+            color=[dict((a[0], a[2]) for a in ARMS)[l] for l in labs], height=0.60)
+    for yi, l in zip(ypos, labs):
+        bx.text(slope[l] + 0.04, yi, f"{slope[l]:.2f}", va="center", fontsize=17,
+                color="#141926", weight="bold")
+    bx.set_yticks(ypos)
+    bx.set_yticklabels([short[l] for l in labs], fontsize=15)
+    bx.set_ylim(-0.65, len(labs) - 0.35)
+    bx.set_xlim(0, 1.22)
+    bx.set_xticks([0, 0.5, 1.0])
+    bx.set_xlabel("dB of contrast gained\nper dB of SNR", fontsize=14)
+    bx.set_title("what one more dB buys", fontsize=17, color="#141926",
+                 weight="bold", pad=12)
+    bx.axvline(0.0, color="#141926", lw=1.2)
+    bx.grid(True, axis="x", color="#D5D5D5", lw=0.8); bx.set_axisbelow(True)
+    for sp in ("top", "right", "left"):
+        bx.spines[sp].set_visible(False)
+    bx.annotate("0 = ceiling reached", xy=(0.03, 1.5), xytext=(0.34, 1.5),
+                fontsize=14, color="#C81E3C", weight="bold", va="center",
+                arrowprops=dict(arrowstyle="-|>", color="#C81E3C", lw=1.8))
+
+    fig.subplots_adjust(top=0.790, bottom=0.165, left=0.060, right=0.985)
+    fig.text(0.5, 0.955, "diffraction puts a ceiling on the pattern",
+             ha="center", fontsize=25, color="#141926", weight="bold")
+    fig.text(0.5, 0.902, "the two diffraction arms stop at 10-11 dB and stay there. "
+             "The other three are still climbing",
+             ha="center", fontsize=18, color="#C81E3C", weight="bold")
+    fig.text(0.5, 0.860, f"matrice4e {chr(183)} 15 m {chr(183)} el {EL:+.0f}{chr(176)} "
+             f"{chr(183)} complex white gaussian added to the stored time series "
+             f"(no GPU) {chr(183)} 400 trials per point",
+             ha="center", fontsize=14, color="#5E5E5E")
+    fig.text(0.008, 0.012, "verified: the ordering between arms.   not verified: "
+             "absolute range - this axis is a sweep with no link budget behind it",
+             ha="left", fontsize=13, color="#5E5E5E")
+    p = f"{FIG}/vol_noise_five_arms.png"
+    fig.savefig(p, dpi=140)
+    plt.close(fig)
+    print(f"  ✅ {p}")
+
+
 if __name__ == "__main__":
     print("═══ 잡음 · 다섯 팔 ═══")
-    main()
+    # ⭐--replot : 곡선은 원장에 이미 있다 — 다시 안 돌리고 그림만 새로 낸다.
+    #   (한 판이 33 SNR × 5 팔 × 400 시행이라 재실행이 아깝다)
+    if "--replot" in sys.argv:
+        _d = json.load(open(OUT, encoding="utf-8"))
+        plot_arms(_d)          # ⚠plot_arms 가 스스로 저장하고 닫는다 — 여기서 또 저장하면
+        print("  (원장 재사용 · 시뮬 안 돌림)")   #   gcf() 가 빈 캔버스라 덮어써 버린다
+    else:
+        main()
