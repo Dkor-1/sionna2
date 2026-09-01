@@ -82,6 +82,41 @@ def F(k, f=None, u=""):
     return num(None, (J_FIX, f"F4_linkbudget.{k}"), f, u)
 
 
+#: |sinc| 의 −3 dB 전폭 ÷ 첫 널 간격 = 0.885893 (|sinc(x)| = 1/√2 의 해 x = 0.442946 의 2배).
+#  ⛔원장 값이 아니라 **닫힌형 상수**다. 원장의 `dR_ratio` 는 분자가 −3 dB 전폭이고 분모가
+#  첫 널 간격 c/B_ref(편 47 규약)이라 **규약이 섞여 있어서**, 스펙트럼이 완전히 평탄한
+#  이상적 파형도 이 눈금에서는 88.6 % 로 읽힌다. 편 49 의 「89 · 92 · 94 %」 중 88.6 %p 는
+#  파형이 아니라 폭의 정의가 만든 바닥이다 — 그래서 이 상수를 본문에 함께 싣는다.
+SINC_3DB_OVER_NULL = 0.885893
+
+
+#: ⚠아래 네 함수가 내는 숫자는 **원장에서 그 자리에서 나눈 파생값**이라 출처 태그가 안 붙는다
+#  (§5.6-1 권고에 걸린다). 나누는 두 항은 전부 `A()` 로 본문 표에 태그와 함께 실려 있으므로
+#  독자가 복원할 수 있다 — 손으로 친 숫자는 하나도 없다.
+def null_ratio(k: str) -> str:
+    """첫 널 ÷ c/B_ref — 측정과 닫힌형을 **같은 첫 널 규약**으로 맞댄 비."""
+    return "%.3f" % (fetch((J_AMB, f"waveforms.{k}.range_null_m"))
+                     / fetch((J_AMB, f"waveforms.{k}.dR_theory_m")))
+
+
+def null_excess(k: str) -> str:
+    """그 비가 1 에서 벗어난 몫 — 측정 주엽이 닫힌형보다 얼마나 넓은가."""
+    return "%+.1f%%" % (100 * (fetch((J_AMB, f"waveforms.{k}.range_null_m"))
+                               / fetch((J_AMB, f"waveforms.{k}.dR_theory_m")) - 1))
+
+
+def null_step(k: str) -> str:
+    """그 몫을 읽을 수 있는 한계 — 널 탐색 격자눈금(`meta.rb_grid_m`) ÷ c/B_ref."""
+    return "%.1f%%" % (100 * fetch((J_AMB, "meta.rb_grid_m"))[2]
+                       / fetch((J_AMB, f"waveforms.{k}.dR_theory_m")))
+
+
+def sinc_excess(k: str) -> str:
+    """−3 dB 비에서 정의가 만든 바닥을 뺀 **파형 고유분**."""
+    return "%+.1f%%" % (100 * (fetch((J_AMB, f"waveforms.{k}.dR_ratio"))
+                               / SINC_3DB_OVER_NULL - 1))
+
+
 def fig(no: int, stem: str, question: str) -> list[str]:
     return [f"![{stem}]({FIG}/{stem}.png)", "", caption(no, question)]
 
@@ -604,16 +639,23 @@ def r49():
                 f"모호함수와 검출기 거리도플러 출력은 최대 "
                 f"{L('detector_af_max_err_db.value', '{:.3f}', 'dB')} 안에서 같다 "
                 f"({L('detector_af_max_err_db.n_cases', '{:.0f}')}개 경우, −45 dB 이상 셀).",
-                f"거리 주엽은 $c/B_{{ref}}$ 예측의 "
+                f"거리 주엽의 **−3 dB 전폭**은 $c/B_{{ref}}$ 의 "
                 f"{A('wifi_G1.dR_ratio', '{:.0%}')}(WiFi) · "
                 f"{A('lte_G1.dR_ratio', '{:.0%}')}(LTE) · "
-                f"{A('nr_G1.dR_ratio', '{:.0%}')}(5G) 다.",
+                f"{A('nr_G1.dR_ratio', '{:.0%}')}(5G) 인데, 이 눈금은 이상적 평탄 스펙트럼도 "
+                f"{SINC_3DB_OVER_NULL:.1%} 로 읽는 **혼합 규약**이다 — 같은 첫 널 규약끼리 "
+                f"맞대면 {null_ratio('wifi_G1')}(WiFi) · {null_ratio('lte_G1')}(LTE) · "
+                f"{null_ratio('nr_G1')}(5G) 배다.",
                 f"도플러 주엽은 여섯 경우 모두 $1/T_{{CPI}}$ 의 "
                 f"{A('wifi_G1.dF_ratio', '{:.2f}')}배 근처이고, 이 배수는 파형이 아니라 "
                 f"slow-time Hann 창이 정한다(`src/passive_process.py:142`).",
-                f"부엽과 ±PRF 레플리카는 표준마다 다르다 — 2D 부엽 최대가 "
-                f"LTE {A('lte_G1.psl_2d_db', '{:.1f}')} · 5G {A('nr_G1.psl_2d_db', '{:.1f}', 'dB')} 이고, "
-                f"레플리카는 WiFi {A('wifi_G1.doppler_replica_db', '{:.2f}')} · "
+                f"**검출기 거리창**(`benchmark/geometry.py:143` `RB_WINDOW_M = 60.0`, "
+                f"|Rb| ≤ 60 m) 안의 2D 부엽 최대는 "
+                f"WiFi {A('wifi_G1.psl_chamber_db', '{:.1f}')} · "
+                f"LTE {A('lte_G1.psl_chamber_db', '{:.1f}')} · "
+                f"5G {A('nr_G1.psl_chamber_db', '{:.1f}', 'dB')} 다 — 지연축을 프레임 전체로 "
+                f"열면 세 값의 순위가 바뀐다. 레플리카는 "
+                f"WiFi {A('wifi_G1.doppler_replica_db', '{:.2f}')} · "
                 f"LTE {A('lte_G1.doppler_replica_db', '{:.2f}', 'dB')} 다.",
             ],
             method=[
@@ -622,6 +664,15 @@ def r49():
                  "검출기는 `src/passive_process.py:133`"),
                 ("대조 방식",
                  "표준 × 점유 경우마다 −45 dB 이상 셀의 최대 편차를 재고 그 최대값을 싣는다"),
+                ("부엽을 재는 거리창",
+                 "`psl_chamber_db`·`isl_chamber_db` 는 |Rb| ≤ 60 m 안에서 잡는다 — 검출기가 "
+                 "실제로 세우는 RD 맵의 거리축이 `benchmark/geometry.py:143` "
+                 "`RB_WINDOW_M = 60.0` → `src/passive_process.py:141` 의 `RP[:, :n_range]` 로 "
+                 "Rb ∈ [0, 60) m 이기 때문이다"),
+                ("전역 `psl_2d_db` 를 본문 결과에 안 싣는 이유",
+                 "그것은 프레임 한 주기 전체(km 단위 순환 지연축)에서 잡은 값이라 검출기 화면 "
+                 "밖의 봉우리가 정한다 — `benchmark/verify_ambiguity.py:286` 의 주석이 그렇게 "
+                 "적어 뒀다. 표에는 두 창을 나란히 싣는다"),
                 ("슬로타임 창",
                  "프레임과 프레임 사이 축에 Hann 창을 씌운다 — 도플러 주엽의 배수를 정하는 것이 "
                  "이 창이다(`src/passive_process.py:142`)"),
@@ -649,15 +700,38 @@ def r49():
            "단일축으로 잰다."),
 
         md("## 주엽 — 닫힌형과 대조", "",
-           f"거리 주엽(응답에서 가장 높이 솟은 가운데 봉우리)은 $c/B_{{ref}}$ 예측의 "
-           f"{A('wifi_G1.dR_ratio', '{:.0%}')}(WiFi) · {A('lte_G1.dR_ratio', '{:.0%}')}(LTE) · "
-           f"{A('nr_G1.dR_ratio', '{:.0%}')}(5G) 다.", "",
+           f"거리 주엽(응답에서 가장 높이 솟은 가운데 봉우리)의 **−3 dB 전폭**은 "
+           f"$c/B_{{ref}}$ 의 {A('wifi_G1.dR_ratio', '{:.0%}')}(WiFi) · "
+           f"{A('lte_G1.dR_ratio', '{:.0%}')}(LTE) · {A('nr_G1.dR_ratio', '{:.0%}')}(5G) 다.", "",
+           f"⚠ **이 비는 규약이 섞여 있다.** 분자는 −3 dB 전폭이고, 분모 $c/B_{{ref}}$ 는 첫 널 "
+           f"간격이다(편 47 의 규약). 스펙트럼이 완전히 평탄한 이상적 파형도 이 눈금에서는 "
+           f"{SINC_3DB_OVER_NULL:.1%}($|\\mathrm{{sinc}}|$ 의 −3 dB 전폭)로 읽힌다. 세 값에서 그 "
+           f"바닥을 뺀 파형 고유분은 {sinc_excess('wifi_G1')} · {sinc_excess('lte_G1')} · "
+           f"{sinc_excess('nr_G1')} 다.", "",
            f"도플러 주엽은 여섯 경우 모두 $1/T_{{CPI}}$ 의 {A('wifi_G1.dF_ratio', '{:.2f}')}배 "
            f"근처이고, 이 배수는 파형이 아니라 **slow-time Hann 창**(프레임과 프레임 사이 축에 "
            f"씌워 가장자리를 깎는 창)이 정한다."),
 
+        md("## 같은 규약끼리 — 첫 널 대 첫 널", "",
+           "규약을 맞춰 **첫 널끼리** 대면 LTE·5G 에서 부호가 뒤집힌다 — 측정 주엽이 닫힌형보다 "
+           "**넓다**. 세 경우 모두 `range_null_found` 가 참이다.", "",
+           table(["기준신호", "측정 첫 널", "닫힌형 $c/B_{ref}$", "비", "초과분", "널 격자눈금"],
+                 [["WiFi VHT-LTF", A("wifi_G1.range_null_m", "{:.2f}", "m"),
+                   A("wifi_G1.dR_theory_m", "{:.2f}", "m"), null_ratio("wifi_G1"),
+                   null_excess("wifi_G1"), null_step("wifi_G1")],
+                  ["LTE CRS", A("lte_G1.range_null_m", "{:.2f}", "m"),
+                   A("lte_G1.dR_theory_m", "{:.2f}", "m"), null_ratio("lte_G1"),
+                   null_excess("lte_G1"), null_step("lte_G1")],
+                  ["5G SSB", A("nr_G1.range_null_m", "{:.2f}", "m"),
+                   A("nr_G1.dR_theory_m", "{:.2f}", "m"), null_ratio("nr_G1"),
+                   null_excess("nr_G1"), null_step("nr_G1")]]), "",
+           f"⚠ WiFi 의 초과분 {null_excess('wifi_G1')} 은 널 탐색 격자눈금 "
+           f"{null_step('wifi_G1')} 보다 작다 — 이 격자에서 WiFi 의 초과분은 유의하지 않다. "
+           f"LTE {null_excess('lte_G1')} · 5G {null_excess('nr_G1')} 는 눈금의 수십 배 밖이고, "
+           f"무엇이 그 초과분을 만드는지는 이 편의 밖이다 — 다음 단계 표에 올린다."),
+
         md(*fig(1, "report03_f6_af_mainlobe",
-                "측정한 모호함수 주엽이 닫힌형 예측과 몇 % 안에서 맞는가?")),
+                "−3 dB 전폭으로 잰 주엽은 첫 널 규약의 닫힌형과 몇 % 안에서 맞는가?")),
 
         md("## 부엽과 도플러 레플리카", "",
            "주엽 밖으로 새는 에너지는 두 가지로 나타난다. **부엽**은 강한 표적이 평면 다른 곳의 "
@@ -666,16 +740,24 @@ def r49():
            "표의 마지막 열 «프레임 내 시간점유» 는 **에너지가 실려 있는 표본 수 ÷ 프레임 전체 "
            "표본 수** 다(`benchmark/verify_ambiguity.py:260`). 프레임 내내 신호가 있으면 "
            "온전한 몫이 되고, 앞쪽에 뭉칠수록 작아진다.", "",
-           table(["기준신호", "2D 부엽 최대", "±PRF 레플리카", "프레임 내 시간점유"],
-                 [["WiFi VHT-LTF", A("wifi_G1.psl_2d_db", "{:.1f}", "dB"),
+           table(["기준신호", "2D 부엽 최대 — 검출기 창 (Rb ≤ 60 m)",
+                  "같은 값 — 프레임 전체 지연축", "±PRF 레플리카", "프레임 내 시간점유"],
+                 [["WiFi VHT-LTF", A("wifi_G1.psl_chamber_db", "{:.1f}", "dB"),
+                   A("wifi_G1.psl_2d_db", "{:.1f}", "dB"),
                    A("wifi_G1.doppler_replica_db", "{:.2f}", "dB"),
                    A("wifi_G1.ref_time_duty", "{:.1%}")],
-                  ["LTE CRS", A("lte_G1.psl_2d_db", "{:.1f}", "dB"),
+                  ["LTE CRS", A("lte_G1.psl_chamber_db", "{:.1f}", "dB"),
+                   A("lte_G1.psl_2d_db", "{:.1f}", "dB"),
                    A("lte_G1.doppler_replica_db", "{:.2f}", "dB"),
                    A("lte_G1.ref_time_duty", "{:.1%}")],
-                  ["5G SSB", A("nr_G1.psl_2d_db", "{:.1f}", "dB"),
+                  ["5G SSB", A("nr_G1.psl_chamber_db", "{:.1f}", "dB"),
+                   A("nr_G1.psl_2d_db", "{:.1f}", "dB"),
                    A("nr_G1.doppler_replica_db", "{:.2f}", "dB"),
-                   A("nr_G1.ref_time_duty", "{:.1%}")]])),
+                   A("nr_G1.ref_time_duty", "{:.1%}")]]), "",
+           "⚠ **두 열이 다른 것이 이 표의 요점이다.** 값도 세 표준의 순위도 지연축을 어디까지 "
+           "여느냐가 정한다 — 검출기 창 안에서는 WiFi 가 가장 낮고, 프레임 전체에서는 5G 가 "
+           "가장 낮다. 검출기 화면에 찍히는 것은 왼쪽 열이다. 두 창 사이의 사다리는 다음 단계 "
+           "표에 올린다."), 
 
         md("## 레플리카를 정하는 것은 점유율이 아니다", "",
            "레플리카의 세기를 정하는 것은 **에너지가 프레임 안에 얼마나 퍼져 있는가**다. "
@@ -686,7 +768,14 @@ def r49():
            "물리 반복률로 다시 세운다."),
 
         md(*fig(2, "report03_f7_af_sidelobe",
-                "각 기준신호는 표적 에너지를 부엽과 도플러 레플리카에 얼마나 남기는가?")),
+                "프레임 전체 지연축에서 각 기준신호는 표적 에너지를 부엽과 도플러 레플리카에 "
+                "얼마나 남기는가?"), "",
+           f"⚠ (a) 의 막대는 `psl_2d_db`·`isl_2d_db` — **프레임 한 주기 전체**의 값이다"
+           f"(`src/make_report03_illuminators.py:640`). 검출기 창(|Rb| ≤ 60 m) 안의 적분부엽은 "
+           f"WiFi {A('wifi_G1.isl_chamber_db', '{:.1f}')} · "
+           f"LTE {A('lte_G1.isl_chamber_db', '{:.1f}')} · "
+           f"5G {A('nr_G1.isl_chamber_db', '{:.1f}', 'dB')} 로, 전역값"
+           f"(LTE {A('lte_G1.isl_2d_db', '{:+.1f}', 'dB')})과 크기도 순위도 다르다."),
 
         next_steps([
             (f"`benchmark/run_min_cell.py:74` 의 `frame_len()` 을 물리 SSB 주기"
@@ -694,6 +783,13 @@ def r49():
              f"검출기 프레임률({A('nr_G1.physical.prf_model_hz', '{:.0f}', 'Hz')})과 "
              f"{A('nr_G1.physical.ratio', '{:.0f}')}배 벌어진 이 편의 표가 한 규약 위에 선다",
              "`benchmark/verify_ambiguity.py:108`"),
+            ("거리창을 30~240 m 로 흔들어 PSL·ISL 사다리를 원장에 적는다",
+             "부엽 최대와 세 표준의 순위가 창의 함수인지가 수치로 확정된다",
+             "`benchmark/verify_ambiguity.py:287`"),
+            ("첫 널이 닫힌형보다 멀리 나오는 몫을 기준신호의 실효 점유대역으로 갈라 잰다",
+             f"LTE {null_excess('lte_G1')} · 5G {null_excess('nr_G1')} 의 초과분이 "
+             f"$B_{{ref}}$ 의 정의에서 오는지가 확정된다",
+             "`src/waveforms.py:237`"),
             ("부엽 최대를 표적 두 개가 있는 장면에서 다시 잰다",
              "강한 표적이 약한 표적을 덮는 거리가 수치로 확정된다",
              "`benchmark/verify_ambiguity.py`"),
@@ -798,7 +894,7 @@ def r50():
 #  논문 조각 — 옛 report03 의 §0(c2) + 논문 부록(c21)
 # =========================================================================== #
 def write_paper_doc() -> str:
-    nb = os.path.join(_ROOT, "report03_illuminators.ipynb")
+    nb = os.path.join(_ROOT, "archive", "legacy_reports", "report03_illuminators.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
     if len(cells) <= 21:

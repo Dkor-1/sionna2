@@ -81,6 +81,7 @@ SPP = "outputs/report15_attack_spp_ladder.json"
 SGC = "outputs/sbr_grid_convergence.json"       # 격자 사다리 — 생산·위상고정·얼림
 FSL = "outputs/freeze_signal_loss.json"         # ⭐렌즈 B — 얼리기가 «신호» 도 깎았나
 FPS = "outputs/freeze_plate_sensitivity.json"   # ⭐판 한 장에 절대 dB 가 얼마나 걸리나
+SER = "outputs/report15b_series.npz"            # ⭐슬로타임 복소열 원본 — 잣대를 stride 로 흔든다
 OOB = "outputs/outofband_power.json"            # ⭐대역밖 전력의 잣대(절대·평활 없음)
 BFL = "outputs/report15_blade_flash_ladder.json"  # ⭐프롭 정반사 — 예산 축과 앙각 축
 
@@ -1027,6 +1028,72 @@ def blocks_40() -> list:
     NOSE = "cells.matrice4e/nose"
     SIDE = "cells.matrice4e/belly_side"
 
+    # ── 이 편이 나눠 쓰는 두 잣대 ──────────────────────────────────────────
+    #  변조 **폭**       = 두 팔 dB 열의 표준편차 차 (`modulation_std_db`)
+    #  변조 **깊이 p-p** = 같은 열의 max−min 차     (`occlusion_ptp_db`)
+    #  아래 도구는 원본 열(`SER`)을 stride 로만 솎아 두 잣대가 표본수에 어떻게 걸리는지를
+    #  인쇄한다 — 판도 자세도 로터도 안 건드리고, 난수도 안 쓴다(흔드는 손잡이는 stride 하나).
+    import numpy as _np
+
+    _NT_ = int(fetch((MDB, LEAD + ".physics.n_t")))
+
+    def _ser(cell: str, arm: str):
+        """그 칸·그 팔의 슬로타임 dB 열 — 원장 숫자가 나온 바로 그 열이다."""
+        E = _np.asarray(fetch((SER, f"{cell[len('cells.'):]}/{arm}/E")))
+        return 20 * _np.log10(_np.maximum(_np.abs(E), 1e-30))
+
+    def _ptp(x) -> float:
+        return float(_np.max(x) - _np.min(x))
+
+    def _sdv(x) -> float:
+        return float(_np.std(x))
+
+    def _thin(cell: str, stride: int, stat) -> list:
+        """stride 로만 솎은 F−G — 위상 stride 개의 값."""
+        F, G = _ser(cell, "F_blade_occ"), _ser(cell, "G_blade_free")
+        return [stat(F[p::stride]) - stat(G[p::stride]) for p in range(stride)]
+
+    def _lad(cell: str, stride: int, stat) -> str:
+        """사다리 한 칸 — «뽑기 중앙값 (그 뽑기들의 p-p)»."""
+        v = _thin(cell, stride, stat)
+        return f"{_np.median(v):+.2f} (p-p {_ptp(v):.2f})"
+
+    def _lad_ko(cell: str, stride: int, stat) -> str:
+        """산문용 사다리 한 칸 — «중앙값 X dB · 뽑기 p-p Y dB»."""
+        v = _thin(cell, stride, stat)
+        return f"중앙값 {_np.median(v):+.2f} dB · 뽑기 p-p {_ptp(v):.2f} dB"
+
+    def _val(cell: str, stat) -> float:
+        """솎지 않은 전체 열의 F−G."""
+        return stat(_ser(cell, "F_blade_occ")) - stat(_ser(cell, "G_blade_free"))
+
+    def _full(cell: str, stat) -> str:
+        return f"{_val(cell, stat):+.2f}"
+
+    def _span(stat) -> str:
+        """사다리 네 칸(솎기 셋 + 전체) **중앙값**이 옮겨 간 폭 — 칸마다 한 수."""
+        out = []
+        for _, k in _CELLS:
+            m = [float(_np.median(_thin(k, s, stat))) for s in _STR] + [_val(k, stat)]
+            out.append(f"{max(m) - min(m):.2f}")
+        return " · ".join(out)
+
+    def _sd_gap(cell: str) -> float:
+        """변조 폭 차 — 원장 두 키의 차다(손으로 적은 값이 아니다)."""
+        return (fetch((MDB, f"{cell}.arms.F_blade_occ.modulation_std_db"))
+                - fetch((MDB, f"{cell}.arms.G_blade_free.modulation_std_db")))
+
+    _CELLS = [("코 쪽", NOSE), ("배 쪽", LEAD), ("배 옆", SIDE)]
+    _STR = (40, 8, 2)                       # 흔드는 손잡이 — 솎기 간격 하나뿐이다
+    _NS = [_NT_ // s for s in _STR]         # 그 간격이 남기는 표본수(손으로 안 적는다)
+    _SDG = {k: f"{_sd_gap(k):+.2f} dB" for _, k in _CELLS}
+    _SDG_SRC = (f"`{MDB} : cells.*.arms."
+                + "{F_blade_occ, G_blade_free}.modulation_std_db` 의 차")
+    _NT = _n(LEAD + ".physics.n_t", MDB, "{:,.0f}", "표본")
+    #: 배 옆 F 팔의 깊이에서 «가장 깊은 한 표본» 을 뺀 뒤와, 그 한 표본이 내는 몫.
+    _F1 = _ptp(_np.sort(_ser(SIDE, "F_blade_occ"))[1:])
+    _F1_CUT = _ptp(_ser(SIDE, "F_blade_occ")) - _F1
+
     return [
         header(
             num=40,
@@ -1038,21 +1105,23 @@ def blocks_40() -> list:
                 f"드러나고, 아래에서 보는 자세에서 가림이 문다.",
 
                 f"코 쪽(앙각 {_n(NOSE + '.el_deg', MDB, '{:.0f}', '도')})의 가림 효과는 변조 "
-                f"깊이 {_n(NOSE + '.findings.occlusion_ptp_db', MDB, '{:+.2f}', 'dB')} · 레벨 "
-                f"{_n(NOSE + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 다.",
+                f"폭 {_SDG[NOSE]} · 레벨 "
+                f"{_n(NOSE + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 다 — 변조 "
+                f"폭은 두 팔 dB 열의 표준편차 차(`modulation_std_db`)다.",
 
-                f"배 쪽(앙각 {_L('el_deg', '{:.0f}', '도')})에서는 "
-                f"{_L('findings.occlusion_ptp_db', '{:+.2f}', 'dB')} · "
+                f"배 쪽(앙각 {_L('el_deg', '{:.0f}', '도')})에서는 {_SDG[LEAD]} · "
                 f"{_L('findings.occlusion_level_db', '{:+.2f}', 'dB')}, 배 옆(방위 "
-                f"{_n(SIDE + '.az_deg', MDB, '{:.0f}', '도')})에서는 "
-                f"{_n(SIDE + '.findings.occlusion_ptp_db', MDB, '{:+.2f}', 'dB')} · "
-                f"{_n(SIDE + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 다.",
+                f"{_n(SIDE + '.az_deg', MDB, '{:.0f}', '도')})에서는 {_SDG[SIDE]} · "
+                f"{_n(SIDE + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 다 — 세 칸이 "
+                f"서로 다른 값을 낸다.",
 
-                f"⚠ 세 자세의 dB 는 판 선택 위에 있다 — 판을 반 칸 옮기면 변조 깊이가 판 셋에서 "
-                f"{_n('verdict.occlusion_ptp_plate_ptp_db', FPS, '{:.2f}', 'dB')} p-p 로 "
-                f"흩어지고, 원장은 «레벨 차가 판 선택을 견디는가» 에 "
+                f"⚠ 세 자세의 dB 는 판 한 장과 표본수 위에 있다 — 판을 반 칸 옮기면 레벨 차가 "
+                f"판 셋에서 {_n('verdict.occlusion_level_plate_ptp_db', FPS, '{:.2f}', 'dB')} "
+                f"p-p 로 흩어지고, 원장은 «레벨 차가 판 선택을 견디는가» 에 "
                 f"{_n('verdict.occlusion_level_survives_plate_choice', FPS)} 라고 적는다. "
-                f"이 편이 세우는 것은 **가림이 자세에 따라 다르게 문다**는 존재다.",
+                f"⛔ 변조 깊이 p-p 는 판을 그대로 두고 표본만 {_NS[0]:,} 개로 솎아도 배 옆에서 "
+                f"{_lad_ko(SIDE, _STR[0], _ptp)} 로 흔들린다. 이 편이 세우는 것은 **가림이 "
+                f"자세에 따라 다르게 문다**는 존재다.",
 
                 f"자유공간 바이스태틱의 이등분선 앙각은 전 구간 음수라 우리는 드론 배를 본다 — "
                 f"자세 스윕이 그 문장에 독립적인 근거를 붙였다.",
@@ -1072,13 +1141,22 @@ def blocks_40() -> list:
                 ("⭐얼린 광선 격자",
                  "세 칸의 여섯 팔이 모두 로터 한 바퀴의 합집합 경계상자로 만든 판 한 장을 "
                  "쓴다. 그래야 프레임 사이 위상차가 표적의 운동만 담는다"),
+                ("⭐두 잣대",
+                 "변조 **폭** = 두 팔 dB 열의 표준편차 차(`modulation_std_db`), 변조 **깊이 "
+                 "p-p** = 같은 열의 max−min 차(`occlusion_ptp_db`). 흔드는 손잡이는 솎기 간격 "
+                 f"하나다 — {_NS[0]:,} 표본으로 솎을 때와 {_NT} 전부일 때 사이에서 사다리 "
+                 f"중앙값이 깊이 p-p 는 코 쪽·배 쪽·배 옆 {_span(_ptp)} dB, 변조 폭은 "
+                 f"{_span(_sdv)} dB 옮겨 간다(본문 표가 뽑기 산포까지 인쇄한다)"),
                 ("⚠ 부호와 크기를 인용하는 범위",
-                 "자세를 고정한 채 판만 반 칸 옮겨도 가림 dB 의 부호가 갈린다(변조 깊이 판 셋 "
-                 "p-p " + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
+                 "자세를 고정한 채 판만 반 칸 옮겨도 가림 dB 의 부호가 갈린다(레벨 차 판 셋 "
+                 "p-p " + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+                 + " · 변조 깊이 판 셋 p-p "
+                 + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
                  + " · 레벨 차가 판 선택을 견디는가 = "
                  + _n("verdict.occlusion_level_survives_plate_choice", FPS)
                  + "). 이 절은 **가림이 자세에 따라 다르게 문다**는 존재를 쓰고, 부호와 크기는 "
-                 "판 앙상블 평균 뒤로 미룬다"),
+                 "판 앙상블 평균 뒤로 미룬다. ⚠ 판 재실행 원장은 변조 폭을 판마다 적어 두지 "
+                 "않았으므로, 변조 폭이 판 선택을 견디는지는 이 원장으로 정할 수 없다"),
             ],
             prereq=[("앞 편", ref("md-occlusion", "가림 축") + " — 칸마다 도는 단일축")],
             repro=REPRO_15B,
@@ -1095,24 +1173,33 @@ def blocks_40() -> list:
            "라벨이 아래 표와 같은 세대가 되고, 그때 이 자리에 들어온다."),
 
         md("## 세 자세의 값", "",
-           table(["자세", "방위", "앙각", "가림 · 변조 깊이", "가림 · 레벨"], [
+           table(["자세", "방위", "앙각", "가림 · 변조 폭",
+                  "가림 · 변조 깊이 p-p ⚠", "가림 · 레벨"], [
                ["코 쪽",
                 _n(NOSE + ".az_deg", MDB, "{:.0f}", "°"),
                 _n(NOSE + ".el_deg", MDB, "{:.0f}", "°"),
+                _SDG[NOSE],
                 _n(NOSE + ".findings.occlusion_ptp_db", MDB, "{:+.2f}", "dB"),
                 _n(NOSE + ".findings.occlusion_level_db", MDB, "{:+.2f}", "dB")],
                ["배 쪽 ⭐",
                 _L("az_deg", "{:.0f}", "°"), _L("el_deg", "{:.0f}", "°"),
+                _SDG[LEAD],
                 _L("findings.occlusion_ptp_db", "{:+.2f}", "dB"),
                 _L("findings.occlusion_level_db", "{:+.2f}", "dB")],
                ["배 옆",
                 _n(SIDE + ".az_deg", MDB, "{:.0f}", "°"),
                 _n(SIDE + ".el_deg", MDB, "{:.0f}", "°"),
+                _SDG[SIDE],
                 _n(SIDE + ".findings.occlusion_ptp_db", MDB, "{:+.2f}", "dB"),
                 _n(SIDE + ".findings.occlusion_level_db", MDB, "{:+.2f}", "dB")],
            ]), "",
-           "세 줄이 서로 다른 값을 낸다 — **가림이 자세에 따라 다르게 문다**는 것이 이 편의 "
-           "내용이고, 그 dB 의 부호와 크기는 아래 절이 판 앙상블 평균 뒤로 미룬다.", "",
+           f"변조 폭 열은 두 팔 dB 열의 표준편차 차이고({_SDG_SRC}), 세 열 모두 그 자세의 "
+           f"슬로타임 {_NT} 전부로 잰 값이다. 세 줄이 서로 다른 값을 낸다 — **가림이 자세에 "
+           f"따라 다르게 문다**는 것이 이 편의 내용이고, 그 dB 의 부호와 크기는 아래 절이 판 "
+           f"앙상블 평균 뒤로 미룬다.", "",
+           "⚠ **변조 깊이 p-p 열의 쓰임은 «그 자세에서 한 표본이 얼마나 깊이 떨어지나» 까지다** "
+           "— 자세끼리의 비교는 변조 폭 열이 맡는다. 그 이유는 아래 «두 잣대를 표본수로 "
+           "흔들었다» 절이 사다리로 인쇄한다.", "",
            "마이크로도플러는 프레임 사이 위상차로 재는 양이라, 광선 격자가 프레임마다 "
            "움직이면 그 움직임이 표적 운동과 같은 자리에 실린다. 그래서 커널은 자세 전체에 "
            "한 격자를 고정하고(`grid_ref`), **이 표는 그 얼린 판으로 다시 난 원장에서 나왔다** "
@@ -1120,22 +1207,51 @@ def blocks_40() -> list:
            "⚠ 메쉬 지문(`mesh_provenance`)은 도장 스크립트를 돌린 다음 세대부터 이 원장에 "
            "실린다. 지문이 찍히면 표가 어떤 메쉬 세대에서 났는지까지 자기가 말한다."),
 
+        md("## 두 잣대를 표본수로 흔들었다", "",
+           table(["잣대 · 칸"] + [f"{n:,} 표본" for n in _NS] + [f"{_NT_:,} 표본(원장)"],
+                 [[f"변조 깊이 p-p · {nm}"]
+                  + [_lad(k, s, _ptp) for s in _STR] + [_full(k, _ptp)]
+                  for nm, k in _CELLS]
+                 + [[f"변조 폭 · {nm}"]
+                    + [_lad(k, s, _sdv) for s in _STR] + [_full(k, _sdv)]
+                    for nm, k in _CELLS]), "",
+           f"같은 기록을 stride 로만 솎았다 — 판도 자세도 로터도 그대로이고, 흔든 손잡이는 "
+           f"솎기 간격 하나다. 칸의 값은 «위상 stride 개 뽑기의 중앙값 (그 뽑기들의 p-p)» 이고 "
+           f"마지막 열이 원장이 쓴 {_NT} 전부다. 판 사이 차이는 아래 절이 따로 잰다.", "",
+           f"⭐ 사다리 네 칸의 **중앙값**이 옮겨 간 폭은 깊이 p-p 가 코 쪽·배 쪽·배 옆 "
+           f"{_span(_ptp)} dB 이고(코 쪽과 배 옆은 부호까지 바뀐다), 같은 사다리에서 변조 폭은 "
+           f"{_span(_sdv)} dB 다. ⛔ 깊이 p-p 가 무엇을 읽는지는 배 옆 칸이 보여 준다 — F 팔의 변조 깊이 "
+           f"{_n(SIDE + '.arms.F_blade_occ.modulation_ptp_db', MDB, '{:.2f}', 'dB')} 가운데 "
+           f"{_F1_CUT:.2f} dB 를 {_NT} 중 **가장 깊은 한 표본**이 낸다(그 한 표본을 빼면 "
+           f"{_F1:.2f} dB 다)."),
+
         md("## 판 한 장이 그 dB 의 부호를 정한다", "",
            "판의 중심만 **반 칸** 옮긴 같은 크기의 판으로 같은 자세를 다시 태우면 가림 dB 가 "
-           "판마다 이렇게 갈린다 — 세 판(P0 · 반 칸 둘)의 값이다.", "",
-           table(["칸", "가림 · 변조 깊이 (판 셋)", "가림 · 레벨 (판 셋)"],
+           "판마다 이렇게 갈린다 — 세 판(P0 · 반 칸 둘)의 값이다. ⚠ 이 재실행은 생산 슬로타임 "
+           f"열을 stride {_n('_meta.stride', FPS, '{:.0f}')} 로 솎은 "
+           f"{_n('cells.matrice4e/belly.n_pose', FPS, '{:,.0f}', '표본')} 판이라, 위 표"
+           f"({_NT})와는 표본수가 다른 추정치다.", "",
+           table(["칸", "가림 · 변조 깊이 p-p (판 셋)", "가림 · 레벨 (판 셋)"],
                  [[f"`{k}`",
                    " / ".join(_n(f"cells.{k}.findings.occlusion_ptp_db.values[{i}]",
                                  FPS, "{:+.2f}") for i in range(3)),
                    " / ".join(_n(f"cells.{k}.findings.occlusion_level_db.values[{i}]",
                                  FPS, "{:+.2f}") for i in range(3))]
                   for k in fetch((FPS, "cells"))]), "",
-           "⭐ 한 자세 안에서 부호가 갈린다. 변조 깊이의 판 셋 흩어짐 "
-           + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
-           + " p-p 가 위 세 자세의 크기를 삼키고, 원장은 «레벨 차가 판 선택을 견디는가» 에 "
+           "⭐ 한 자세 안에서 부호가 갈린다. 레벨 차의 판 셋 흩어짐 "
+           + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " p-p 가 위 세 자세의 레벨 크기를 삼키고, 원장은 «레벨 차가 판 선택을 견디는가» 에 "
            + _n("verdict.occlusion_level_survives_plate_choice", FPS)
            + " 라고 적는다"
            + f" ⟨{FPS} : verdict.how_to_read_ko⟩.", "",
+           "⛔ 깊이 p-p 열의 판 셋 흩어짐 "
+           + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " p-p 를 «반 칸 옮기면 가림 효과가 그만큼 바뀐다» 로 읽지 않는다. 세 판이 같은 "
+           "슬로타임 표본을 쓰므로(`benchmark/adv_freeze_plate_sensitivity.py` 의 "
+           "`idx = np.arange(0, n_t, stride)` 한 줄을 세 판이 공유한다) 그 흩어짐이 판에서 온 "
+           "것은 맞다. 같은 통계량은 판을 하나도 안 옮기고 어느 표본을 뽑느냐만 바꿔도 배 쪽에서 "
+           + f"{_lad_ko(LEAD, _STR[0], _ptp)} 로 흔들리는데, 뽑기 수(판 셋 · 위상 {_STR[0]}가지)가 "
+           + f"달라 두 p-p 의 크기 비교는 이 원장 밖이다.", "",
            "⇒ 이 편이 세우는 것은 **가림이 자세에 따라 다르게 문다**는 존재이고, 그 dB 의 "
            "부호와 크기는 판 앙상블 평균(오프셋 여러 판의 평균)이 낸다. 기전은 "
            + ref("kernel-what", "커널이 하는 일") + " 이 잰다."),
@@ -1155,6 +1271,9 @@ def blocks_40() -> list:
             ("Mini 5 Pro 의 프롭·벨 겹침을 정리하고 같은 세 칸을 다시 돌린다",
              "두 기체의 자세 의존이 같은 잣대 위에 올라온다",
              "`src/drone_cad.py` 메쉬 정정 → 이 편 재실행"),
+            ("판 재실행을 솎기 없이 돌리고 판마다 `modulation_std_db` 를 적는다",
+             "변조 폭이 판 선택을 견디는지가 같은 표본수 위에서 판정된다",
+             "`benchmark/adv_freeze_plate_sensitivity.py` — stride 1 · 표준편차 기록 추가"),
         ]),
     ]
 

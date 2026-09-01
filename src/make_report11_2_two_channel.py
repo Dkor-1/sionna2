@@ -110,11 +110,35 @@ G1_CEIL = E1["G1"]["sinr_ceiling_db"]
 G1_TGT = E1["G1"]["sinr_target_db"]
 PFA_WL = [SUM[m]["pfa_emp_by_arm"][a] for m in ("W1", "L1") for a in SUM[m]["pfa_emp_by_arm"]]
 PFA_G1 = list(SUM["G1"]["pfa_emp_by_arm"].values())
-# DTR 민감도 스윕이 쓴 ρ_ref 한 칸 · 그리고 설계 규칙(ρ_ref ≥ DTR/2)을 스스로 확인해 주는 칸
+# DTR 민감도 스윕이 쓴 ρ_ref 한 칸 · 그리고 설계 규칙(ρ_ref ≥ DTR/2)의 등호가 앉는 칸
+# ⛔ 이 스윕은 **DTR 세 칸 · ρ_ref 한 칸**이다. 아래 파생값은 그 격자를 문장이 스스로
+#    말하게 하려고 둔다 — 기울기는 칸마다 다르고, 격자의 아래끝이 경험식의 «무릎»
+#    (DTR = 2ρ_ref)이라 거기서 곡선이 눕는다. 평균 기울기 하나로 요약하면 그 꺾임이 사라지고,
+#    ρ_ref = DTR/2 자리의 3 dB 는 식의 등호라 «측정으로 확인» 되는 값이 아니다.
 DTR_SENS_ARM = next(a for a in DTRS[("W1", DTR_AXIS[0])] if a.startswith("refSNR"))
 DTR_SENS_RHO = DTRS[("W1", DTR_AXIS[0])][DTR_SENS_ARM]["axis_value"]
 DTR_CHECK = min(DTR_AXIS, key=lambda d: abs(d / 2 - DTR_SENS_RHO))
 DTR_DROP_HI, DTR_DROP_LO = max(DTR_AXIS), min(DTR_AXIS)
+
+
+def dtr_loss(m: str, d: float) -> float:
+    return DTRS[(m, d)][DTR_SENS_ARM]["loss_db"]
+
+
+def dtr_law(d: float) -> float:
+    """경험식이 이 칸에 주는 값 — ρ_ref = DTR/2 면 지수가 정확히 0 이라 10log10(2) 다."""
+    return 10 * math.log10(1 + 10 ** ((d - 2 * DTR_SENS_RHO) / 10))
+
+
+DTR_DOWN = sorted(DTR_AXIS, reverse=True)
+DTR_STEPS = list(zip(DTR_DOWN, DTR_DOWN[1:]))
+DTR_SLOPE = {m: [(dtr_loss(m, hi) - dtr_loss(m, lo)) / (hi - lo) for hi, lo in DTR_STEPS]
+             for m in MODES}
+DTR_RESID = {m: [dtr_loss(m, d) - dtr_law(d) for d in DTR_DOWN] for m in MODES}
+DTR_K = {m: sorted({r["K"] for d in DTR_AXIS for r in DTRS[(m, d)].values()}) for m in MODES}
+DTR_KNEE = 2 * DTR_SENS_RHO          # 경험식의 무릎이 앉는 DTR — 이 격자의 아래끝이다
+DTR_LAW_3DB = dtr_law(DTR_CHECK)     # = 10log10(2) — 설계 규칙이 «정의상» 내놓는 값
+DTR_RESID_WL = max(abs(r) for m in ("W1", "L1") for r in DTR_RESID[m])
 SECONDS = (sum(b["seconds"] for k in ("E1", "E1b", "E1c", "E1_dtr_sensitivity")
                for b in J[k]) + WM["seconds_run"] + NM["seconds_run"])
 
@@ -540,20 +564,53 @@ cells = [
            f"**{SUM[m]['loss_db_by_refsnr']['+20']:.2f} dB / Pd "
            f"{SUM[m]['pd_by_refsnr']['+20']:.2f}**" for m in MODES) + " |",
        "",
-       f"⭐ **거의 dB 대 dB 다.** {SH['W1']} 에서 DTR 을 {DTR_DROP_HI:.0f} → "
-       f"{DTR_DROP_LO:.0f} dB 로 {DTR_DROP_HI - DTR_DROP_LO:.0f} dB 깎으면 손실이 "
-       f"{DTRS[('W1', DTR_DROP_HI)][DTR_SENS_ARM]['loss_db']:.1f} → "
-       f"{DTRS[('W1', DTR_DROP_LO)][DTR_SENS_ARM]['loss_db']:.1f} dB 로 "
-       f"{DTRS[('W1', DTR_DROP_HI)][DTR_SENS_ARM]['loss_db'] - DTRS[('W1', DTR_DROP_LO)][DTR_SENS_ARM]['loss_db']:.1f} dB "
-       "내려가고, 검출이 되살아난다. 즉 이 편의 손실 수치는 «기준채널이 나쁘다» 만의 함수가 "
-       "아니라 **감시안테나가 직접파를 얼마나 죽였는가**의 함수이기도 하다. 실측 설계에서 두 "
-       "손잡이는 **독립**이다.", "",
-       f"⭐ 이 표가 절 3 의 설계 규칙(ρ_ref ≥ DTR/2)을 스스로 확인해 준다 — DTR "
-       f"{DTR_CHECK:.0f} dB 칸은 ρ_ref = {DTR_SENS_RHO:.0f} dB 가 정확히 DTR/2 인 자리이고, "
-       f"거기서 잰 손실이 "
-       f"{SH['W1']} {DTRS[('W1', DTR_CHECK)][DTR_SENS_ARM]['loss_db']:.2f} dB · "
-       f"{SH['L1']} {DTRS[('L1', DTR_CHECK)][DTR_SENS_ARM]['loss_db']:.2f} dB 로 "
-       "**3 dB 근처**다."),
+       f"⭐ **DTR 은 둘째 손잡이다 — 다만 «dB 대 dB» 는 격자 위쪽에서만이다.** 이 표는 "
+       f"**DTR {'·'.join(f'{d:.0f}' for d in sorted(DTR_AXIS))} dB {len(DTR_AXIS)} 칸 × "
+       f"ρ_ref {DTR_SENS_RHO:.0f} dB 한 칸**을 팔당 "
+       f"{'/'.join(str(k) for k in DTR_K['W1'])} 트라이얼로 잰 것이다. {SH['W1']} 에서 DTR 을 "
+       f"{DTR_DROP_HI:.0f} → {DTR_DROP_LO:.0f} dB 로 {DTR_DROP_HI - DTR_DROP_LO:.0f} dB 깎으면 "
+       f"손실이 {dtr_loss('W1', DTR_DROP_HI):.1f} → {dtr_loss('W1', DTR_DROP_LO):.1f} dB 로 "
+       f"내려간다. 그러나 **기울기는 칸마다 다르다** — "
+       + " · ".join(f"{hi:.0f}→{lo:.0f} dB 에서 {SH['W1']} {sw:.2f} · {SH['L1']} {sl:.2f} dB/dB"
+                    for (hi, lo), sw, sl in zip(DTR_STEPS, DTR_SLOPE["W1"], DTR_SLOPE["L1"]))
+       + f" 다. 아래쪽 칸에서 꺾이는 것은 잡음이 아니라 **경험식의 무릎**이다 — 이 격자의 "
+       f"아래끝 DTR {DTR_DROP_LO:.0f} dB 가 정확히 2ρ_ref = {DTR_KNEE:.0f} dB 라 거기서 곡선이 "
+       f"{DTR_LAW_3DB:.2f} dB 로 눕는다. ⛔ 그러므로 «DTR 을 1 dB 깎으면 손실 1 dB 를 "
+       f"돌려받는다» 는 **DTR ≫ 2ρ_ref 인 쪽에서만** 읽는다. DTR {DTR_DROP_LO:.0f} dB 아래는 "
+       f"**안 쟀다** — 더 깎아서 남은 {DTR_LAW_3DB:.2f} dB 보다 더 벌 수 있는지는 이 편이 "
+       f"모른다. {SH['G1']} 행은 기울기가 "
+       + "·".join(f"{s:.2f}" for s in DTR_SLOPE["G1"])
+       + f" dB/dB 로 아예 다른 물건이다(천장 {G1_CEIL:.1f} dB). 이 표에서 확실한 것은 하나다 "
+       "— 이 편의 손실 수치는 «기준채널이 나쁘다» 만의 함수가 아니라 **감시안테나가 직접파를 "
+       "얼마나 죽였는가**의 함수이기도 하고, 실측 설계에서 두 손잡이는 **독립**이다.", "",
+       f"⚠ **«검출이 되살아난다» 도 {len(DTR_AXIS)} 칸짜리 진술이다.** {SH['W1']} 의 Pd 는 DTR "
+       + " → ".join(f"{d:.0f} dB {DTRS[('W1', d)][DTR_SENS_ARM]['pd']:.2f}" for d in DTR_DOWN)
+       + f" 인데 팔당 {DTR_K['W1'][0]} 트라이얼이라 Pd 눈금 자체가 "
+       f"{1.0/DTR_K['W1'][0]:.2f} 다. Pd 가 0.5 를 가로지르는 자리는 **DTR "
+       f"{DTR_DOWN[0] - DTR_DOWN[1]:.0f} dB 폭 한 칸 안**으로만 안다 — 그 안 어디인지는 "
+       "안 쟀다.", "",
+       f"⚠ **이 표는 절 3 의 설계 규칙(ρ_ref ≥ DTR/2)을 «확인» 하지 못한다 — 그 자리는 "
+       f"경험식의 등호 자리라 값이 정의상 나온다.** ρ_ref 가 DTR/2 면 식의 지수가 정확히 "
+       f"0 이라 loss = 10log₁₀(1+10⁰) = **{DTR_LAW_3DB:.2f} dB** 이고, 설계 규칙은 그 등호를 "
+       f"«{LAW['design_rule']}» 로 옮겨 적은 것이다. DTR {DTR_CHECK:.0f} dB 칸"
+       f"(ρ_ref = {DTR_SENS_RHO:.0f} dB 가 정확히 DTR/2 인 자리)에서 «3 dB 가 나왔다» 는 "
+       "그래서 규칙의 검증이 아니다.", "",
+       f"이 칸이 실제로 재는 것은 하나다 — **ρ 축에서 맞춘 식이 DTR 축에서도 같은 "
+       f"DTR − 2ρ_ref 꼴로 움직이는가.** 잰 값과 식의 차이는 "
+       + " · ".join(f"{SH[m]} " + "/".join(f"{r:+.2f}" for r in DTR_RESID[m])
+                    for m in ("W1", "L1"))
+       + f" dB(DTR {'/'.join(f'{d:.0f}' for d in DTR_DOWN)} dB 순), 즉 {len(DTR_AXIS)} 칸 전부 "
+       f"절댓값 {DTR_RESID_WL:.2f} dB 안이다. ⛔ 다만 그 차이는 같은 식이 ρ 축에서 이미 내는 "
+       f"평균절대오차 **{LAW['fit_mae_db_W1_L1']:.2f} dB** 보다 작다 — 이 격자로는 규칙의 "
+       f"3 dB 를 그 오차보다 좁게 못 박는다. 그리고 이것은 **ρ_ref 한 칸 · DTR "
+       f"{len(DTR_AXIS)} 칸 · 팔당 {DTR_K['W1'][0]} 트라이얼 · {SH['W1']}·{SH['L1']} 두 "
+       f"파형**의 진술이다. 같은 {len(DTR_AXIS)} 칸에서 {SH['G1']} 의 차이는 "
+       + "/".join(f"{r:+.2f}" for r in DTR_RESID["G1"])
+       + " dB 라 규칙이 거기까지 가지 않는다.", "",
+       "⚠ **왜 2ρ_ref 인지는 모른다.** 원장이 그 자리에 적어 둔 그대로 — 이 식은 유도된 "
+       "것이 아니라 **맞춰 본** 것이고, 1차 이론 추정(잔류 = dpi²σ_n²)은 이 기울기를 "
+       "재현하지 못한다(절 3 의 적용범위 문장). 그러므로 «ρ_ref ≥ DTR/2» 는 **잰 격자 안에서 "
+       "성립한 경험 규칙**이지 물리에서 나온 문턱이 아니다."),
 
     md("## 절 3. ⭐ ρ 는 자유 파라미터가 아니다", "",
        "절 2 의 사다리는 ρ_ref 를 **가정**해 훑은 것이다. 그런데 같은 링크버짓 안에서는 "

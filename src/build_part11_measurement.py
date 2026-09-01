@@ -557,7 +557,12 @@ def blocks_71() -> list:
                 "두 기체에서 함께 찾았다.",
             results=[
                 f"두 기체를 함께 만족시키는 최대 서브밴드는 "
-                f"{D.num('point_target_max_bw_MHz', fmt='{:.0f}', unit='MHz')} 다.",
+                f"{D.num('point_target_max_bw_MHz', fmt='{:.0f}', unit='MHz')} 다 — 여유가 더 "
+                f"빠듯한 것은 Matrice 4E 행이고, 그 행의 판정은 D_bbox 를 07-30 세대"
+                f"({ML.num('stale_table_drift.rows.matrice4e.D_bbox_printed_m', fmt='{:.4f}', unit='m')})"
+                f"로 재든 07-31 메쉬 개편 이후"
+                f"({ML.num('stale_table_drift.rows.matrice4e.D_bbox_current_m', fmt='{:.3f}', unit='m')})"
+                f"로 재든 표의 네 대역에서 같다.",
 
                 f"peak |s|² 를 σ 로 쓰려면 표적이 **한 거리빈 안**에 들어와야 한다 — "
                 f"조건은 ΔR = c/2B > D_bbox 다.",
@@ -576,7 +581,10 @@ def blocks_71() -> list:
                 ("점표적 조건",
                  "ΔR = c/2B 가 기체 최대치수 D_bbox 보다 커야 한다 — 그래야 표적이 한 거리빈에 든다"),
                 ("D_bbox",
-                 "프로펠러를 포함한 수평 최대치수. 원거리장에서 채택한 env 정의와 구별한다"),
+                 "프로펠러를 포함한 수평 최대치수. 원거리장에서 채택한 env 정의와 구별한다. "
+                 "이 편의 표는 `outputs/measurement_plan.json` 07-30 생성 위에 서 있고, "
+                 "07-31 메쉬 개편 이후 원장은 같은 정의에 다른 값을 준다"
+                 "⟨outputs/measurement_layers.json : stale_table_drift⟩"),
                 ("게이팅과 평가",
                  "앵커는 6차 Kaiser 창으로 CIR 을 게이팅한 뒤 주파수축으로 되돌린다"
                  "⟨outputs/measurement_layers.json : gate_wide_evaluate_narrow.anchor_quote⟩. "
@@ -599,7 +607,33 @@ def blocks_71() -> list:
                     ("Mini 5 Pro", "mini5pro_ok"), ("여유", "mini5pro_margin_m")],
                    fmt={"B_MHz": "{:.0f} MHz", "dR_m": "{:.3f} m",
                         "matrice4e_margin_m": "{:+.3f} m",
-                        "mini5pro_margin_m": "{:+.3f} m"})),
+                        "mini5pro_margin_m": "{:+.3f} m"}), "",
+
+           # ⛔ 세대 꼬리표는 `measurement_layers.json : stale_table_drift._rule` 의 지시다.
+           #    부호 붙은 여유(m)와 드리프트(mm)를 크기로 견주는 문장은 리뷰가 거짓으로
+           #    잡았다. 그래서 비교는 전부 같은 단위(m)의 세 값 — ΔR · 인쇄된 D_bbox ·
+           #    개편 이후 D_bbox — 의 대소로만 적는다. 어느 세대가 옳은지는 정하지 않는다.
+           f"⚠ 이 표의 D_bbox 는 `outputs/measurement_plan.json` 07-30 생성 — 07-31 메쉬 개편 "
+           f"**이전** 값이다. 같은 정의(프로펠러 포함 수평 최대치수)를 개편 이후 원장으로 다시 "
+           f"재면 Mini 5 Pro 는 "
+           f"{ML.num('stale_table_drift.rows.mini5pro.D_bbox_current_m', fmt='{:.3f}', unit='m')}, "
+           f"Matrice 4E 는 "
+           f"{ML.num('stale_table_drift.rows.matrice4e.D_bbox_current_m', fmt='{:.3f}', unit='m')} "
+           f"이고, 뒤엣것은 " + ref("three-layers", "세 층") + " 의 원거리장 표가 이미 싣는 값이다.", "",
+
+           f"⛔ 그래서 {D.num('point_target[0].B_MHz', fmt='{:.0f}', unit='MHz')} · Mini 5 Pro "
+           f"칸은 **이 표로 판정되지 않는다** — 이 칸의 ΔR "
+           f"{D.num('point_target[0].dR_m', fmt='{:.3f}', unit='m')} 가 인쇄된 D_bbox "
+           f"{ML.num('stale_table_drift.rows.mini5pro.D_bbox_printed_m', fmt='{:.3f}', unit='m')} "
+           f"와 개편 이후 D_bbox "
+           f"{ML.num('stale_table_drift.rows.mini5pro.D_bbox_current_m', fmt='{:.3f}', unit='m')} "
+           f"사이에 들어앉아, 어느 세대로 재느냐가 «퍼짐» 과 «점표적» 을 가른다. 어느 쪽이 옳은지는 "
+           f"이 원장으로 정할 수 없고, 재측정이 정한다. 반면 Matrice 4E 는 두 세대 D_bbox "
+           f"({ML.num('stale_table_drift.rows.matrice4e.D_bbox_printed_m', fmt='{:.4f}', unit='m')} · "
+           f"{ML.num('stale_table_drift.rows.matrice4e.D_bbox_current_m', fmt='{:.3f}', unit='m')}) 가 "
+           f"둘 다 이 ΔR 보다 크고 {D.num('point_target[1].B_MHz', fmt='{:.0f}', unit='MHz')} 의 ΔR "
+           f"{D.num('point_target[1].dR_m', fmt='{:.3f}', unit='m')} 보다 작아, 머리기사 "
+           f"{D.num('point_target_max_bw_MHz', fmt='{:.0f}', unit='MHz')} 는 두 세대에서 같다."),
 
         md("## 게이팅은 넓게, 평가는 좁게", "",
            f"게이팅(되돌아온 신호에서 필요한 시간 구간만 창으로 잘라내기)은 넓게, 평가는 좁게 "

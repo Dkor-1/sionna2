@@ -58,6 +58,12 @@ SURVEY = "outputs/prior_work_survey.json"
 #: 평판 스윕의 원자료(`EVD : A_plate_size_sweep.source_path` 가 가리키는 그 파일).
 #: 격자 축(변 · 예산 · 시드 · 깊이)은 여기서 읽는다.
 FCT = "outputs/facet_mechanism.json"
+#: 드론 **면 수 사다리**의 원자료. 사다리의 격자 축(자세 · 예산 · 시드 · 깊이)은 여기서
+#: 읽는다 — 평판 스윕(`FCT`)의 깊이를 드론 사다리의 깊이로 대신 쓰지 않기 위해서다.
+FCN = "outputs/facet_count.json"
+#: 같은 사다리의 **적대검증 원장**(2026-08-03). 어느 숫자가 어느 창에서 나왔는지와
+#: `must_not_say` · 실루엣 대조군을 여기서 읽는다.
+ATK = "outputs/facet_attack.json"
 
 #: 편은 `reports/` 아래 산다 — 그림 경로도 거기 기준이다.
 FIG = "../outputs/figures"
@@ -70,6 +76,10 @@ ITEM_COLS = [("실험 유형", "label_en"), ("칸", "zone"), ("왜 그런지", "
 
 #: `report00_decision_map.json:items` 안에서 마이크로도플러 행의 자리(순서 고정).
 MD_ITEM = 7
+
+#: 같은 목록에서 메쉬 예산 행(Z4)의 자리. 그 행의 dB 를 편 06 에서 철회하므로 행 이름을
+#: 손으로 적지 않고 원장에서 뽑는다.
+Z4_ITEM = 10
 
 #: 면 수 사다리에서 **형상 판정을 통과하는 마지막 단**. 원장이 `shape_ok_per_level` 로
 #: 들고 있으므로 여기서 손으로 세지 않는다 — 판이 바뀌면 이 인덱스도 따라 바뀐다.
@@ -545,14 +555,29 @@ def report_05_size_sweep():
                 f"{_n('A_plate_size_sweep.numbers.rt_minus_image_source_max_abs_db', EVD, '{:.4f}', 'dB')} "
                 f"안에서 맞는다 — **엔진은 자기가 푸는 문제를 정확히 푼다**.",
 
-                f"같은 실험을 기체 메쉬로 옮기면 삼각형을 "
-                f"{_n('B_facet_count_sweep.numbers.n_tri_span_decades', EVD, '{:.2f}')} decade 깎는 "
-                f"동안 진폭이 계단으로 떨어진다 — 면 2→1 계단이 "
-                f"{_n('B_facet_count_sweep.numbers.step_2to1_facet_db', EVD, '{:+.2f}', 'dB')} 로 "
-                f"닫힌형 20·log₁₀(1/2) 에 붙고, 면 1→0 계단이 "
-                f"{_n('B_facet_count_sweep.numbers.step_1to0_facet_db', EVD, '{:+.2f}', 'dB')} 여서 "
-                f"합이 "
-                f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 다.",
+                f"같은 실험을 기체 메쉬로 옮겨 삼각형을 "
+                f"{_n('B_facet_count_sweep.numbers.n_tri_span_decades', EVD, '{:.2f}')} decade 깎으면, "
+                f"실루엣이 살아 있는 단 전부에서 정반사 경로가 존재하는 자세는 "
+                f"{_n('B_facet_count_sweep.numbers.spec_n_aspects', EVD, '{:.0f}')}자세 중 "
+                f"{_n('B_facet_count_sweep.numbers.spec_n_aspects_nonzero_per_level[0]', EVD, '{:.0f}')}"
+                f"개(az {_n('B_facet_count_sweep.numbers.hot_aspect.az_deg', EVD, '{:.0f}', '°')} · el "
+                f"{_n('B_facet_count_sweep.numbers.hot_aspect.el_deg', EVD, '{:.0f}', '°')} · spp "
+                f"{_n('B_facet_count_sweep.numbers.spec_probe_spp', EVD, '{:,.0f}')} · 깊이 "
+                f"{_n('meta.max_depth', FCN, '{:.0f}')})이고, 그 자세의 정반사 경로 수는 "
+                f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[0]', EVD, '{:.0f}')}→"
+                f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[3]', EVD, '{:.0f}')} 로 준다.",
+
+                f"⭐ 그 구간의 **정반사 전용** 값은 "
+                f"{_n('B_facet_count_sweep.numbers.spec_coh_db_per_level[0]', EVD, '{:.4f}', 'dB')} → "
+                f"{_n('B_facet_count_sweep.numbers.spec_coh_db_per_level[3]', EVD, '{:.4f}', 'dB')} 이고, "
+                f"1경로값에 20·log₁₀(2) 를 더하면 2경로값과 잔차 "
+                f"{_n('attack_4_defect_vs_misuse.C3_tessellation_non_invariance.evidence.drone_link.residual_db', ATK, '{:.1e}', 'dB')} "
+                f"로 같다 — 닫힌형 20·log₁₀(1/2) = "
+                f"{_n('B_facet_count_sweep.numbers.theoretical_step_two_to_one_facet_db', EVD, '{:+.2f}', 'dB')} "
+                f"와 같은 **항등식**이고, 적대검증 원장은 여기서 사라진 것을 산란체가 아니라 "
+                f"**중복 복사본**으로 읽는다. ⛔ 형상 판정에서 떨어지는 마지막 단(정반사 경로 "
+                f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[-1]', EVD, '{:.0f}')}개)의 "
+                f"계단은 이 편에서 폐기한다.",
 
                 f"반대 방향도 같은 뿌리다 — 같은 평판을 쪼개기만 해도 코히어런트 전력이 "
                 f"{_n('H_tessellation_changes_the_answer.numbers.max_inflation_db', EVD, '{:.2f}', 'dB')} "
@@ -624,16 +649,54 @@ def report_05_size_sweep():
            f"존재하는 자세는 "
            f"{_n('B_facet_count_sweep.numbers.spec_n_aspects_nonzero_per_level[0]', EVD, '{:.0f}')}"
            f"개다.", "",
-           f"그 한 자세에서 진폭은 기여 면 개수를 따라 계단으로 떨어진다. 면 2→1 계단이 "
-           f"{_n('B_facet_count_sweep.numbers.step_2to1_facet_db', EVD, '{:+.2f}', 'dB')} 로 닫힌형 "
-           f"20·log₁₀(1/2) = "
+           f"그 한 자세에서 스톡 솔버가 내놓는 **정반사 경로 수**는 "
+           f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[0]', EVD, '{:.0f}')}→"
+           f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[3]', EVD, '{:.0f}')} 로 줄고, "
+           f"정반사만 남긴 코히어런트 값은 "
+           f"{_n('B_facet_count_sweep.numbers.spec_coh_db_per_level[0]', EVD, '{:.4f}', 'dB')} → "
+           f"{_n('B_facet_count_sweep.numbers.spec_coh_db_per_level[3]', EVD, '{:.4f}', 'dB')} 로 "
+           f"내려간다. 1경로값에 20·log₁₀(2) 를 더하면 2경로값과 잔차 "
+           f"{_n('attack_4_defect_vs_misuse.C3_tessellation_non_invariance.evidence.drone_link.residual_db', ATK, '{:.1e}', 'dB')} "
+           f"로 같다 — 닫힌형 20·log₁₀(1/2) = "
            f"{_n('B_facet_count_sweep.numbers.theoretical_step_two_to_one_facet_db', EVD, '{:+.2f}', 'dB')} "
-           f"에 붙고, 면 1→0 계단이 "
-           f"{_n('B_facet_count_sweep.numbers.step_1to0_facet_db', EVD, '{:+.2f}', 'dB')} 다. "
-           f"둘을 합한 "
-           f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 가 사다리 "
-           f"전체의 붕괴폭이고, ⚠ 그 뒤 계단은 형상 판정에서 떨어지는 마지막 단에서 일어난다 — "
-           f"**실루엣이 유지되는 구간 안에서 면 수만으로 움직인 몫은 앞 계단이다.**", "",
+           f"와 같은 **항등식**이다.", "",
+           f"⚠ 적대검증 원장은 이 자리를 금지 문장 목록에 올려 뒀다 — "
+           f"{_n('must_not_say[5]', ATK)} (원장이 그 기전에 붙인 한정: "
+           f"{_n('attack_4_defect_vs_misuse.C3_tessellation_non_invariance.hedges[3]', ATK)})", "",
+           f"⛔ 가장 성긴 "
+           f"{_n('B_facet_count_sweep.numbers.n_tri_per_level[-1]', EVD, '{:.0f}')}개 판에서는 정반사 "
+           f"경로가 "
+           f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[-1]', EVD, '{:.0f}')}개이고 정반사 "
+           f"코히어런트 값이 "
+           f"{num(None, (EVD, 'B_facet_count_sweep.numbers.spec_coh_db_per_level[-1]'), if_null='`null`')} "
+           f"이다. 그 단에 남는 coh_db 는 확산(diffuse_reflection=True)을 켠 실행의 값이고, 원장은 "
+           f"그런 값을 물리량으로 인용하는 것을 `must_not_say` 에 올린다 — 근거가 된 예산 스윕에서 "
+           f"같은 "
+           f"{_n('E_diffuse_workaround_fails.numbers.budget_convergence[2].n_tri', EVD, '{:.0f}')}개 "
+           f"판이 spp "
+           f"{_n('E_diffuse_workaround_fails.numbers.budget_convergence[2].spp_lo', EVD, '{:,.0f}')} → "
+           f"{_n('E_diffuse_workaround_fails.numbers.budget_convergence[2].spp_hi', EVD, '{:,.0f}')} 에 "
+           f"{_n('E_diffuse_workaround_fails.numbers.budget_convergence[2].coh_drift_db', EVD, '{:.2f}', 'dB')} "
+           f"움직였다. 다만 그 스윕의 창은 el "
+           f"{_n('meta.el_deg', FCN, '{:.0f}', '°')} 의 방위 두 개 · 시드 두 개 평균이라 여기 한 "
+           f"자세(az {_n('B_facet_count_sweep.numbers.hot_aspect.az_deg', EVD, '{:.0f}', '°')} · el "
+           f"{_n('B_facet_count_sweep.numbers.hot_aspect.el_deg', EVD, '{:.0f}', '°')})는 그 창 밖이고, "
+           f"원장이 그 자세에 대해 들고 있는 행은 spp "
+           f"{_n('B_facet_count_sweep.numbers.hot_spp', EVD, '{:,.0f}')} 하나뿐이라 마지막 단의 계단 "
+           f"크기는 이 편에서 비워 둔다.", "",
+           f"⭐ 면 수 축에서 이 편이 인쇄하는 것은 여기까지다. 형상 판정을 통과하는 구간에서 생산 "
+           f"설정 총에코는 "
+           f"{_n('attack_1_shape.killer_counter_evidence.table[3].decimation_factor', ATK, '{:.1f}')}배 "
+           f"데시메이션에 "
+           f"{_n('attack_1_shape.killer_counter_evidence.table[3].d_incoh_mean_db', ATK, '{:+.3f}', 'dB')} "
+           f"± {_n('attack_1_shape.killer_counter_evidence.table[3].d_incoh_sd_db', ATK, '{:.3f}', 'dB')} "
+           f"움직이고(같은 방위·같은 시드끼리 짝지은 차), 그 이동은 실루엣 면적비 "
+           f"{_n('attack_1_shape.killer_counter_evidence.table[3].silhouette_ratio_mean', ATK, '{:.3f}')} "
+           f"로 예측한 "
+           f"{_n('attack_1_shape.killer_counter_evidence.table[3].predicted_from_silhouette_db', ATK, '{:+.3f}', 'dB')} "
+           f"와 잔차 "
+           f"{_n('attack_1_shape.killer_counter_evidence.table[3].residual_db', ATK, '{:.3f}', 'dB')} "
+           f"로 맞는다. 움직인 것은 면 수가 아니라 남은 형상이다.", "",
            f"⚠ 나머지 자세가 빈 이유는 따로 있다. 같은 자세에 확산을 켜면 표적경유 경로가 자세당 "
            f"{_n('B_facet_count_sweep.numbers.hot_n_paths_min', EVD, '{:.0f}')}개 넘게 잡힌다. "
            f"비어 있는 것은 광선이 아니라 **거울 조건을 만족하는 삼각형**이다."),
@@ -729,16 +792,22 @@ def report_06_decision_table():
 
         md("## 왼쪽 절반 — 표적 항이 답에 남는 칸", "",
            table_from(f"{DEC}:items", ITEM_COLS, order=LEFT_HALF), "",
-           f"⚠ Z4 행의 "
-           f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 는 두 몫으로 "
-           f"갈린다. 실루엣이 유지되는 구간(`shape_ok` = "
-           f"{_n(f'B_facet_count_sweep.numbers.shape_ok_per_level[{LAST_SHAPE_OK}]', EVD)})의 몫은 면 "
-           f"2→1 계단 "
-           f"{_n('B_facet_count_sweep.numbers.step_2to1_facet_db', EVD, '{:+.2f}', 'dB')} 이고, "
-           f"{_n('B_facet_count_sweep.numbers.step_1to0_facet_db', EVD, '{:+.2f}', 'dB')} 는 형상 "
-           f"판정에서 떨어지는 마지막 단(`shape_ok` = "
-           f"{_n('B_facet_count_sweep.numbers.shape_ok_per_level[-1]', EVD)})의 몫이다. "
-           f"그 분해가 {ref('size-sweep')} 다."),
+           f"⛔ Z4 행 «{_n(f'items[{Z4_ITEM}].label_en', DEC)}» 의 «왜 그런지» 칸에 적힌 "
+           f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 는 이 편에서 "
+           f"철회한다 — 그 값의 마지막 계단은 형상 판정에서 떨어지는 단(`shape_ok` = "
+           f"{_n('B_facet_count_sweep.numbers.shape_ok_per_level[-1]', EVD)})에서 나왔고, 그 단은 "
+           f"정반사 경로가 "
+           f"{_n('B_facet_count_sweep.numbers.spec_paths_per_level[-1]', EVD, '{:.0f}')}개라 그 자리에 "
+           f"들어간 값은 확산을 켠 coh_db 다. 형상 판정을 통과하는 구간(`shape_ok` = "
+           f"{_n(f'B_facet_count_sweep.numbers.shape_ok_per_level[{LAST_SHAPE_OK}]', EVD)})에서 남는 "
+           f"것은 정반사 경로 수 2→1 의 항등식 "
+           f"{_n('B_facet_count_sweep.numbers.theoretical_step_two_to_one_facet_db', EVD, '{:+.2f}', 'dB')} "
+           f"이고, 원장은 그것을 중복 복사본 하나가 사라진 값으로 읽는다. **Z4 를 세우는 근거는 이 "
+           f"dB 가 아니라 «실루엣이 살아 있는 단 전부에서 정반사 채널이 "
+           f"{_n('B_facet_count_sweep.numbers.spec_n_aspects', EVD, '{:.0f}')}자세 중 az "
+           f"{_n('B_facet_count_sweep.numbers.hot_aspect.az_deg', EVD, '{:.0f}', '°')} · el "
+           f"{_n('B_facet_count_sweep.numbers.hot_aspect.el_deg', EVD, '{:.0f}', '°')} 한 자세에만 "
+           f"있다» 는 사실이다** — 그 근거를 재는 자리가 {ref('size-sweep')} 다."),
 
         md("## ⚠ 단서 하나 — 조명 방향이 둘이면 칸이 바뀐다", "",
            "소거 논증은 표적이 **한 방향에서** 조명될 때의 것이다. 다중경로에서는 직접파와 바닥 "
