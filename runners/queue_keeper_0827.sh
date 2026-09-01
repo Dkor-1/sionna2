@@ -31,6 +31,12 @@ while :; do
     SIONNA2_MAX_TOTAL=9 setsid nohup $V runners/worker_supervisor.py "$NEXT" \
       "runners/logs/sup_${B}.log" >/dev/null 2>&1 &
     sleep 60
+    # 감시견을 띄우기 전에 **옛것을 죽인다**. 안 그러면 잡을 띄울 때마다 하나씩 쌓인다
+    #   (2026-09-01 에 3 개까지 누적된 것을 발견). 관찰만 하므로 해는 없지만 전수조사에서
+    #   «고아» 로 오독되고 로그가 여러 벌로 겹친다.
+    for _g in $(pgrep -x -f 'bash runners/guard_0827.sh' 2>/dev/null); do
+      kill "$_g" 2>/dev/null || true
+    done
     setsid nohup bash runners/guard_0827.sh >/dev/null 2>&1 &
   fi
   sleep 30
