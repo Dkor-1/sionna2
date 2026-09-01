@@ -120,9 +120,8 @@ def main():
     fig.subplots_adjust(top=0.80, bottom=0.115, left=0.075, right=0.985)
     fig.text(0.5, 0.955, "how much SNR each arm needs before the pattern reads",
              ha="center", fontsize=23, color="#141926", weight="bold")
-    fig.text(0.5, 0.905, "turning diffraction on costs about 10 dB of SNR, and caps the "
-             "contrast at a quarter of what the others reach",
-             ha="center", fontsize=17, color="#C81E3C", weight="bold")
+    fig.text(0.5, 0.905, "diffraction costs about 10 dB of SNR, and caps the contrast",
+             ha="center", fontsize=18, color="#C81E3C", weight="bold")
     fig.text(0.5, 0.865, f"matrice4e · 15 m · el {EL:+.0f}{chr(176)} · noise added to the "
              f"stored time series (no GPU) · dots mark where each arm crosses the bar",
              ha="center", fontsize=14, color="#5E5E5E")
