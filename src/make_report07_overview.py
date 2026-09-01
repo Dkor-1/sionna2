@@ -34,7 +34,10 @@ _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 sys.path.insert(0, _HERE)
 
 FIG = os.path.join(_ROOT, "outputs", "figures")
-OUT = os.path.join(_ROOT, "report07_microdoppler.ipynb")
+# ⛔산출 자리를 archive 로 옮겼다(2026-09-02 정리) — 이 빌더는 옛 세대다
+#   (make_report08_microdoppler.py 서두: 「산출물 report07_microdoppler.ipynb 는 더 쓰지 않는다」).
+#   최상위에 다시 쓰면 리포트가 wheel·옛 노트북에 묻히는 문제가 되살아난다.
+OUT = os.path.join(_ROOT, "archive", "legacy_reports", "report07_microdoppler.ipynb")
 
 MDB = json.load(open(f"{_ROOT}/outputs/report15b_microdoppler.json"))
 TRI = json.load(open(f"{_ROOT}/outputs/report07_three_engines.json"))
