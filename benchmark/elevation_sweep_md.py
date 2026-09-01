@@ -648,6 +648,17 @@ def f_tip_at(el_deg: float, arm: str = "") -> float:
     #   꼬리표가 없으면 규약값 FC 라 옛 팔의 값은 한 비트도 안 바뀐다.
     lam = 2.998e8 / carrier_of(arm)
     R = spec.prop_dia_mm / 2000.0
+    # ⛔**프롭 배율 꼬리표를 읽는다** (2026-08-31 적대 검증이 잡았다).
+    #   전에는 `_ps<k>` 를 안 봐서 네 배율이 전부 x1.0 대역(446~1273 Hz)으로 읽혔다 —
+    #   원장 18 행의 f_tip_hz 가 모두 같은 값이었다. 대역이 배율을 안 따라가면
+    #   「프롭을 키웠는데 박자가 안 는다」가 **잣대 탓인지 물리 탓인지 못 가른다.**
+    #   ⚠f_tip 은 팁속도라 **프롭 지름에만** 비례한다 — frame/body 배율은 안 걸린다.
+    _m = re.search(r"_ps([0-9.]+)", arm)
+    if _m:
+        try:
+            R *= float(_m.group(1))
+        except ValueError:
+            pass
     f_rev = float(getattr(spec, "hover_rpm", 6000.0)) / 60.0
     return 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(el_deg))
 

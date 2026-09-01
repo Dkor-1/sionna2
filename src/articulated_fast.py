@@ -118,7 +118,12 @@ class FastPoser:
         #    **그걸 직접 시험한 적이 없다.** 동체만 줄여서 날개가 드러나면 기전이 확인된다.
         #  ■ frame_scale 은 동체와 허브를 **함께** 움직이므로 이 축이 안 된다. 그래서 갈랐다.
         #    실제 동체 배율 = frame_scale × body_scale, 허브 = frame_scale.
-        #  ■ ⚠동체를 키우면 팔(arm)이 프롭과 만날 수 있다 — 큰 배율은 기하를 확인하고 쓸 것.
+        #  ■ ⛔**팔·모터·다리는 줄이지 않는다.** 처음엔 frame 정점 전체에 곱했는데, frame 에
+        #    팔과 모터가 들어 있어서 body=0.4 에서 모터 최대반경이 242 → 97 mm 로 줄고
+        #    허브는 219.6 mm 에 그대로 남아 **프롭이 123 mm 떨어져 허공에 떴다**
+        #    (2026-08-31 적대 검증이 잡았다). 그래서 **비구조 산란면**에만 건다.
+        #  ■ ⚠줄이면 동체와 팔 사이에 틈이 생긴다 — 이 축은 「동체 산란면적을 줄이면
+        #    날개가 드러나나」를 묻는 **모형 실험**이지 실기 형상이 아니다. 발표에 그렇게 적는다.
         self.body_scale = float(body_scale)
         roll, pitch, yaw = body_rpy
         B = (translate(*[float(x) for x in body_pos])
@@ -133,7 +138,22 @@ class FastPoser:
         # ── 정점·면·그룹을 한 번만 이어붙인다 (pose_articulated 와 같은 순서) ──
         # ⭐frame_scale — Mesh 를 새로 만들지 않고 **정점 배열만** 키운다
         #   (Mesh.__init__ 서명이 (v,f,g) 가 아니라 실패했다. 2026-08-31)
-        v_blocks = [np.asarray(frame.v, float) * (self.frame_scale * self.body_scale)]
+        _fv = np.asarray(frame.v, float) * self.frame_scale
+        if abs(self.body_scale - 1.0) > 1e-12:
+            #: ⛔팔·모터·다리(motor/gear/arm)는 **빼고** 비구조 산란면만 줄인다.
+            #   두 무리에 걸친 정점은 건드리지 않는다(경계가 찢어진다).
+            _fg = np.asarray(frame.g, dtype=object)
+            _ff = np.asarray(frame.f, np.int64)
+            _keep = {"motor", "gear", "arm", "leg"}
+            _bodyish = np.zeros(len(_fv), bool)
+            _struct = np.zeros(len(_fv), bool)
+            for _i, _gname in enumerate(_fg):
+                _t = _struct if str(_gname).lower() in _keep else _bodyish
+                _t[_ff[_i]] = True
+            _sel = _bodyish & ~_struct
+            _fv[_sel] *= self.body_scale
+            self.body_scaled_verts = int(_sel.sum())
+        v_blocks = [_fv]
         f_blocks = [np.asarray(frame.f, np.int64)]
         g_blocks = [np.asarray(frame.g, dtype=object)]
         base = len(frame.v)
