@@ -594,7 +594,18 @@ def save_figure(fig, stem: str, dpi: int = 400, formats: Sequence[str] = ("pdf",
             "saved": _dt.datetime.now().strftime("%Y-%m-%d %H:%M")}
     payload = _payload(meta)
 
-    out: dict = {"audit": audit, "caption": caption}
+    # ⭐저장 직전에 **겹침**을 잡는다(사용자 지시 2026-09-02 — 「legend 같은거에 의한
+    #   겹침 없게끔」). 렌더된 PNG 를 보고 찾는 것은 신뢰할 수 없고, 이 시점에는
+    #   matplotlib 이 모든 artist 의 화면 좌표 상자를 알고 있다.
+    #   ⛔기본은 경고만 낸다 — 겹침 판정에 거짓양성이 있고(반투명 범례를 일부러 자료 위에
+    #     두는 판이 있다) 빌더를 멈추면 그림이 아예 안 나온다. FIGCHECK_STRICT=1 이면 던진다.
+    try:
+        from figcheck import warn as _figwarn
+        _overlaps = _figwarn(fig, os.path.basename(str(stem)))
+    except ImportError:
+        _overlaps = []
+
+    out: dict = {"audit": audit, "caption": caption, "overlaps": _overlaps}
     for f in fmts:
         path = f"{p}.{f}"
         if f == "png":
