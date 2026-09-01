@@ -398,6 +398,23 @@ def run(a) -> None:
                          "안 쓴다(광선을 Rx 에서 쏘고 경로를 찾는다). 옮길 격자가 없다.")
 
     if a.engine in ("ours", "ours_free", "ours_gpu"):
+        # ⛔⛔**우리 커널에는 --env 를 줄 수 없다** (2026-09-01).
+        #  ■ 왜 — 아래 sbr_field 는 `mv`(자세 잡힌 **드론 메쉬**)만 받는다. 환경 부품은
+        #    PathSolver 씬(build_scene)에만 붙으므로 여기까지 오지 않는다.
+        #    그런데 파일 이름에는 `_env<이름>` 이 그대로 붙어서, **자유공간 데이터가
+        #    실외 데이터 행세를 한다.** 실제로 그런 샤드 6 개가 났고 지웠다
+        #    (ours 실외 vs 자유공간 상대차 1e−16 = float64 엡실론).
+        #  ■ 되게 하려면 — 격자가 표적 bbox 로 정해지므로 지면 120×120 m 를 통째로 넣으면
+        #    격자점이 9,409 → 7.5 억(79,483 배)이 된다. 대신 **정반사점 둘레 제1 프레넬 존**
+        #    (15 m·3.5 GHz 에서 반경 80 cm)만큼의 지면 조각을 주면 23 배로 감당된다.
+        #    그 설계 전에는 조용히 틀린 이름을 만들지 말고 **막는다.**
+        if getattr(a, "env", ""):
+            raise SystemExit(
+                f"⛔ --engine {a.engine} 에는 --env 를 줄 수 없다 — 우리 커널은 "
+                f"sbr_field(mv, ...) 로 **드론 메쉬만** 받아 환경이 도달하지 않는다. "
+                f"그런데 파일 이름에는 _env{a.env} 가 붙어 자유공간 데이터가 실외 행세를 "
+                f"한다. 되게 하려면 정반사점 둘레 프레넬 존만큼의 지면 조각을 메쉬에 "
+                f"합치는 설계가 먼저다(격자가 bbox 로 정해지므로 온 지면은 79,483 배다).")
         from rcs_sbr import sbr_field, grid_ref_from, grid_ref_margin, grid_ref_shift
         gm = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
         #: ⭐격자 간격 λ/div. div 를 안 주면 규약값 12 라 기존 샤드와 비트동일하다.
@@ -584,7 +601,10 @@ def run(a) -> None:
                              mat_key=DRONE_GROUP_MAT[g][0], color=cols[g],
                              mi_mesh=(None if mi_meshes is None else mi_meshes[g]))
                      for g, p in paths_obj.items()]
-            # ⭐실외 환경 축 — 주면 드론 부품 뒤에 환경을 얹는다
+            # ⭐실외 환경 축 — 주면 드론 부품 뒤에 환경을 얹는다.
+            #   ⛔이건 **PathSolver 씬**에만 붙는다 — 아래 우리 커널 분기는 sbr_field 에
+            #     드론 메쉬만 넘기므로 환경이 도달하지 않는다. 그래서 --engine ours 에
+            #     --env 를 주면 위에서 거부한다(2026-09-01).
             if getattr(a, "env", ""):
                 parts = parts + env_parts(RP.Part, a.env)
             sc = RP.build_scene(parts, fc=fc)
