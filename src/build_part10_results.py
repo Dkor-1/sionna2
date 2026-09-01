@@ -85,6 +85,73 @@ PHI90_VERDICT = ("세 팔(W1·L1·G1) 모두 φ=90° 가 최솟값"
                  if _PHI_MIN_ALL else "φ=90° 가 최솟값인 팔과 아닌 팔이 섞인 상태")
 TAE = "Q1_normalisation.recomputed_spread_db_by_matching_estimator"
 
+#: M1 을 3GPP 규정대로(σ_S 를 경로마다 뽑아) 돌린 분기 — 편 65 가 인용한다.
+Q5R = "Q5_shape_vs_aspect_dependence.evidence[4].result"
+#: M1 의 자세분산. 정규화 (b) 의 다섯 앙상블 전부에서 0 이다 — M1 이 눈금이라 그렇다.
+M1_STD = "summary.E0_freespace.b_matched_mean.per_model.M1.snr_spread_std_db.max"
+#: p10 정규화의 «순서 계수». 셀 수가 아니라 이 두 계수가 «M1 이 마지막» 을 담은 원장이다.
+P10_ORD = "Q1_normalisation.circular_diagnostic_p10.order_counts"
+
+# ── «근거리 SNR 천장» 은 SNR(d) 의 봉우리가 아니라 valid 게이트를 적용한 뒤 남은 격자의
+#    argmax 다(`src/freespace_link.py:637`). 그 칸을 원장 배열에서 직접 찾아 게이트 상수
+#    의존 · 격자 눈금 · 앙각을 함께 싣는다. ⛔ 손으로 적은 숫자는 쓰지 않는다. ──────────── #
+_D_GRID = list(FS.get("solve.W1.d_grid_m"))
+_SNR_D = list(FS.get("solve.W1.snr_d_db"))
+_BETA_D = list(FS.get("solve.W1.beta_deg"))
+_EL_D = list(FS.get("solve.W1.el_look_deg"))
+_N_D = len(_D_GRID)
+_I_GATE = next(i for i, b in enumerate(_BETA_D) if b <= _BETA_MAX)   # 게이트가 열리는 첫 칸
+assert abs(_SNR_D[_I_GATE] - float(FS.get("solve.W1.snr_ceiling_db"))) < 1e-9, (
+    "게이트 첫 칸과 원장의 snr_ceiling_db 가 갈라졌다 — 아래 산문을 다시 쓸 것")
+_D_STEP_PCT = (_D_GRID[_I_GATE + 1] / _D_GRID[_I_GATE] - 1.0) * 100.0
+_CEIL_BY_GATE = " · ".join(
+    f"{g:.0f}° → {_SNR_D[next(i for i, b in enumerate(_BETA_D) if b <= g)]:.2f} dB"
+    for g in (88.0, _BETA_MAX, 95.0, 100.0))
+
+# ── 클램프 비율의 분모는 **게이트 이전** d 격자 전체다(`benchmark/phi_sweep.py:152`).
+#    게이트 뒤에 몇 칸이 남는지는 φ=90° 면 solve 배열로 직접 세고, 다른 방위는 원장이 싣는
+#    두 비율의 포함배제 하한까지가 이 원장으로 정해지는 자리다. ───────────────────────── #
+_N_VALID = round(PH.get("geometry.rows[18].beta_gate_frac") * _N_D)
+_N_CLAMP = sum(1 for e in _EL_D if e < D["el_grid_min"])
+_N_CLAMP_GATED = sum(1 for i, e in enumerate(_EL_D)
+                     if e < D["el_grid_min"] and i >= _I_GATE)
+_D_CLAMP_MAX = max(x for x, e in zip(_D_GRID, _EL_D) if e < D["el_grid_min"])
+_N_CLAMP_PHI0 = round(PH.get("geometry.rows[0].frac_el_outside_sigma_grid") * _N_D)
+_N_C0_GATED_MIN = max(0, _N_CLAMP_PHI0 + _N_VALID - _N_D)            # 포함배제 하한
+_KEY_C0 = f"{J_PH} : geometry.rows[0].frac_el_outside_sigma_grid"
+
+# ── 문턱 차의 잣대 — 두 SNR90 은 K 시행의 Pd 곡선을 SNR 격자에서 보간해 뽑은 값이고,
+#    원장이 Wilson 띠와 dopoff 칸들을 함께 싣는다. 차는 그 잣대와 나란히 놓는다.
+#    ⚠ 두 반폭의 quadrature 는 **차에 대한 신뢰구간이 아니라 눈금**이다. ─────────────── #
+_THR_OFF = {m: FS.get(f"threshold.S_G.{m}.1.dopoff") for m in ("W1", "L1")}
+_THR_DOP = int(_THR_OFF["W1"]["3"]["dopoff_bins"])
+assert (abs(_THR_OFF["W1"]["3"]["snr90_db"]
+            - float(DV.get("threshold.snr90_shared_db"))) < 1e-9
+        and abs(_THR_OFF["L1"]["3"]["snr90_db"]
+                - float(DV.get("threshold.l1_own_snr90_db"))) < 1e-9), (
+    "표의 두 SNR90 이 dopoff 3빈 칸의 값과 갈라졌다 — 아래 산문을 다시 쓸 것")
+_THR_K = FS.num("threshold.S_G.W1.1.dopoff.3.K", None, "{:.0f}")
+_THR_GRID = list(FS.get("threshold.S_G.W1.1.dopoff.3.snr_grid_db"))
+_THR_GRID_STEP = _THR_GRID[1] - _THR_GRID[0]
+_THR_QUAD = math.hypot(*(0.5 * (_THR_OFF[m]["3"]["snr90_hi_db"]
+                                - _THR_OFF[m]["3"]["snr90_lo_db"])
+                         for m in ("W1", "L1")))
+_THR_DELTA = float(DV.get("threshold.l1_delta_db"))
+_THR_L1_LO = min(v["snr90_db"] for v in _THR_OFF["L1"].values())
+_THR_L1_HI = max(v["snr90_db"] for v in _THR_OFF["L1"].values())
+_THR_N_OFF = len(_THR_OFF["L1"])
+_KEY_L1 = f"{J_FS} : threshold.S_G.L1.1.dopoff.*.snr90_db"
+_KEY_QUAD = f"{J_FS} : threshold.S_G.*.1.dopoff.3.snr90_lo_db/hi_db"
+
+
+def _thr_r90_pct(delta_db: float) -> float:
+    """문턱 차 [dB] → R90 차 [%]. `make_report05_results.derived()` 와 같은 식이다."""
+    return (10 ** (-delta_db / (10 * D["n_local"])) - 1.0) * 100.0
+
+
+_THR_R90_LO = _thr_r90_pct(_THR_DELTA + _THR_QUAD)
+_THR_R90_HI = _thr_r90_pct(_THR_DELTA - _THR_QUAD)
+
 # 표 밑 «출처» 줄용(태그 통째)과 `dnum()` 안에 넣을 알맹이용을 나눠 둔다 —
 # dnum 이 이미 ⟨…⟩ 를 씌우므로 통째를 넘기면 태그가 겹쳐 들어가 출처가 안 열린다.
 KEY_R = f"{J_FS} : " + CELL.format(d="*", m="*") + ".R90_C50_m"
@@ -206,6 +273,73 @@ CPI_T_MAX = max(float(r["T_cpi_s"]) for r in _CPI_ROWS)
 # 칸 수를 말로 쓸 때도 센 값을 쓴다 — 스윕이 칸을 더하면 문장이 같이 따라간다.
 CPI_SPAN_KO = f"{CPI_N_ROWS}칸"
 CPI_NOTE_MIN, CPI_NOTE_MAX = f"{CPI_SPAN_KO} 최소", f"{CPI_SPAN_KO} 최대"
+
+# ⛔ 그 배수의 «폭» 이 무엇 위에 서 있는지는 원장 자신이 답한다 — 분모 `blind_hard_W1` 은
+#    헤딩 격자 psi_n_fine 위의 **칸 수**이고, 다섯 칸에서 38·18·6·2·2 로 내려간다. 뒤 두 칸의
+#    분모는 2칸이라 한 칸(=1/psi_n)만 달라져도 배수가 2/3배~2배로 갈린다. 그래서 이 격자가
+#    정하는 것은 칸 수이고, 배수의 폭은 격자를 올려 다시 세어야 정해진다. 칸 수는 원장에서 센다.
+CPI_PSI_N = int(fetch((J_CG, "meta.psi_n_fine")))
+CPI_CELLS_W1 = [int(round(float(r["blind_hard_W1"]) * CPI_PSI_N)) for r in _CPI_ROWS]
+CPI_CELLS_G1 = [int(round(float(r["blind_hard_G1"]) * CPI_PSI_N)) for r in _CPI_ROWS]
+CPI_CELLS_W1_KO = "·".join(str(n) for n in CPI_CELLS_W1)
+CPI_CELLS_G1_KO = "·".join(str(n) for n in CPI_CELLS_G1)
+CPI_W1_MIN_CELLS = min(CPI_CELLS_W1)
+CPI_CELL_FRAC = 1.0 / CPI_PSI_N
+# 마지막 두 칸이 같은 칸 수에 머무는지도 원장이 정한다 — 아니면 그 절은 문장에서 사라진다.
+CPI_W1_TIE_KO = (f", WiFi 열은 마지막 두 칸에서 같은 {CPI_CELLS_W1[-1]}칸에 머문다"
+                 if len(CPI_CELLS_W1) > 1 and CPI_CELLS_W1[-1] == CPI_CELLS_W1[-2] else "")
+
+# ── 패리티 CPI 는 «칸 수가 같아지는 자리» 로 읽힌 값이다 ───────────────────────────── #
+# `parity_cpi()` 는 blind_hard_G1(T) ≤ 목표(기준 CPI 에서의 WiFi 블라인드율) 를 T 격자에서
+# 읽고, 그 판정은 `≤` 다 — 두 값이 같은 정수 칸 수면 등호로 통과한다. 원장이 그 자리에 서 있다.
+PARITY_T_W = float(fetch((J_CG, "cost_of_long_cpi.required_cpi_s.to_WiFi_parity")))
+PARITY_TGT_CELLS = int(round(float(fetch((J_CG, "parity.hard.to_WiFi_parity.target")))
+                             * CPI_PSI_N))
+_PAR_ROW = [i for i, r in enumerate(_CPI_ROWS)
+            if abs(float(r["T_cpi_s"]) - PARITY_T_W) < 1e-9]
+PARITY_G1_CELLS = CPI_CELLS_G1[_PAR_ROW[0]] if _PAR_ROW else None
+PARITY_EDGE_KO = (
+    f"5G 의 눈먼 칸 수({PARITY_G1_CELLS}칸)와 목표인 CPI {CPI_T_MIN:.1f} s 의 WiFi 칸 수"
+    f"({PARITY_TGT_CELLS}칸)가 **같은 정수**라 `≤` 판정이 등호로 통과한 자리다"
+    f"(5G 쪽이 한 칸 = {CPI_CELL_FRAC:.4f} 만 더 컸으면 이 CPI 는 통과 목록에서 빠진다)"
+    if PARITY_G1_CELLS == PARITY_TGT_CELLS else
+    f"5G 의 눈먼 칸 수는 {PARITY_G1_CELLS}칸이고 목표는 {PARITY_TGT_CELLS}칸이다")
+
+# 거리·속도 지도에서 패리티를 허용하는 칸 중 «가장 여유가 얇은» 칸 — 여유를 %로 든다.
+_CM_OK = [c for c in fetch((J_CG, "cost_of_long_cpi.coherence_map_d_v"))
+          if bool(c.get("WiFi_parity_feasible"))]
+_CM_TIGHT = min(_CM_OK, key=lambda c: float(c["T_coh_s"]))
+CM_TIGHT_KO = (f"{float(_CM_TIGHT['d_m']) / 1000.0:.1f} km · "
+               f"{float(_CM_TIGHT['speed_ms']):.0f} m/s")
+CM_TIGHT_TCOH = float(_CM_TIGHT["T_coh_s"])
+CM_TIGHT_MARGIN_PCT = (CM_TIGHT_TCOH / PARITY_T_W - 1.0) * 100.0
+
+# ── R90 규약 — 원장이 «단일 헤딩 solve» 라 적고, 헤딩 축은 형제 키가 따로 든다. ───────── #
+R90_N_CELLS = len(DRONES) * len(MODES)
+_R90_EPSI = [float(fetch((J_FS, CELL.format(d=d, m=m) + ".E_psi_Pd_at_R90")))
+             for d in DRONES for m in MODES]
+R90_EPSI_MIN, R90_EPSI_MAX = min(_R90_EPSI), max(_R90_EPSI)
+R90_EPSI_G1_MAX = max(float(fetch((J_FS, CELL.format(d=d, m="G1") + ".E_psi_Pd_at_R90")))
+                      for d in DRONES)
+R90_T_CPI_S = (float(fetch((J_DV, "r90.doppler.5G.M")))
+               / float(fetch((J_DV, "r90.doppler.5G.prf"))))
+R90_GUARD_HARD_HZ = float(fetch((J_DV, "r90.doppler.5G.guard_hz"))) * 1.5 / 2.5
+# ⛔ 아래 한 줄만 원장 밖이다 — 2026-09-01 재계산:
+#      freespace_scene._fd_of_heading(ψ=0, φ=90°, d=각 칸의 R90_C50_m, L=500 m, alt=60 m,
+#      v=5 m/s) 의 |f_d| 최대가 3.05e-4 Hz(15칸 전부)이고,
+#      blind_fractions(ψ=[0], T=0.1 s) 는 15칸 전부 blind_hard = blind_declared = 1.0 이다.
+#    인쇄하는 것은 그 최대보다 **큰** 쪽으로 잡은 상한 한 낱말뿐이라 서식이 값을 깎지 않는다.
+R90_FD0_BOUND_KO = "1 mHz"
+
+# ── 취약성 상관 — 세 상관을 다 싣고 인과는 세우지 않는다. ─────────────────────────── #
+CORR_N = len(fetch((J_SS, "size_vs_fragility.by_drone")))
+# ⛔ p 값과 순위상관은 원장에 없다 — 원장의 size_vs_fragility.by_drone 5행에서 scipy.stats 로
+#    직접 낸 값이다(2026-09-01):
+#      크기(extent_m) vs 단일자세 문턱 : pearson -0.618 p=0.266 / spearman -0.900 p=0.037
+#      σ 로브 산포 vs 단일자세 문턱     : pearson -0.315 p=0.606 / spearman -0.100 p=0.873
+#      크기 vs σ 로브 산포              : pearson +0.091 p=0.884 / spearman +0.200 p=0.747
+CORR_P = dict(extent_flip=0.27, spread_flip=0.61, extent_spread=0.88)
+CORR_RHO = dict(extent_flip=(-0.90, 0.04), spread_flip=(-0.10, 0.87))
 
 # ── 자세평균 판의 뒤집힘 문턱 — 기체별 최댓값은 원장의 by_drone 에서 센다. ──────────── #
 ASP_FLIP = {k: float(v["smallest_flip_span_db"])
@@ -379,18 +513,64 @@ def r56():
            f"{PH.num('geometry.rows[18].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=90°) ~ "
            f"{PH.num('geometry.rows[0].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=0°) 가 "
            f"경계 행으로 클램프됐다 — 격자 밖 값을 가장자리 값으로 눌러 붙였다는 뜻이다.", "",
-           "근거리 SNR 천장이 그 조회 위에 서므로, 확장된 앙각 격자 위에서 다시 푸는 일을 "
-           "다음 단계에 건다.", "",
-           f"그 천장 {FS.num('solve.W1.snr_ceiling_db', None, '{:.2f}', 'dB')} 은 `d` = "
-           f"{FS.num('solve.W1.snr_peak_d_m', None, '{:.0f}', 'm')} 에서 서고, 그 자리는 위 표의 "
-           f"β = 45° 지점보다 안쪽이라 게이트 안 · 상반성 창 밖이다."),
+           f"이 두 비율의 분모는 **게이트 이전** `d` 격자 {_N_D}칸 전체다"
+           f"(`benchmark/phi_sweep.py:152` 의 `np.mean(el < -20.0)`). 같은 격자에서 β 게이트가 "
+           f"남기는 칸은 "
+           + dnum(_N_VALID, "{:.0f}", "칸", f"{J_PH} : geometry.rows[18].beta_gate_frac",
+                  f"×{_N_D}칸, 72방위가 모두 같은 값")
+           + f" 이고, 헤드라인 방위 φ=90° 의 클램프 칸은 `d` ≤ "
+           + dnum(_D_CLAMP_MAX, "{:.0f}", "m", f"{J_FS} : solve.W1.el_look_deg",
+                  "el<격자최솟값 마지막 칸")
+           + f" 로 게이트가 빼는 앞 {_I_GATE}칸 안에 모두 들어간다 — 그 {_N_VALID}칸에 남는 클램프 "
+           f"칸은 "
+           + dnum(_N_CLAMP_GATED, "{:.0f}", "칸", f"{J_FS} : solve.W1.el_look_deg",
+                  "el<격자최솟값 ∧ β게이트 통과")
+           + " 이다.", "",
+           f"φ=0° 쪽 클램프 {_N_CLAMP_PHI0}칸이 게이트 어느 쪽에 놓이는지는 이 원장이 방위별 "
+           f"인덱스 없이 비율만 싣는 자리라, 두 비율의 포함배제로 "
+           f"게이트 뒤 하한 "
+           + dnum(_N_C0_GATED_MIN, "{:.0f}", "칸", _KEY_C0,
+                  f"×{_N_D}칸 + 유효 {_N_VALID}칸 − {_N_D}칸(포함배제)")
+           + " 까지가 정해진다 — 그 방위의 정확한 개수는 앙각 격자를 넓혀 다시 푸는 쪽에서 읽는다."),
+
+        md("## 그 «천장» 은 게이트가 열리는 첫 칸의 값이다", "",
+           f"{FS.num('solve.W1.snr_ceiling_db', None, '{:.2f}', 'dB')} 은 SNR(`d`) 의 봉우리가 "
+           f"아니라 valid 게이트를 적용한 뒤 남은 격자의 argmax 다(`src/freespace_link.py:637`). "
+           f"이 배치에서 그 argmax 는 β 게이트가 열리는 첫 칸이다 — {_N_D}칸 중 "
+           f"{_I_GATE + 1}번째, `d` = "
+           + FS.num("solve.W1.snr_peak_d_m", None, "{:.0f}", "m") + ", β = "
+           + dnum(_BETA_D[_I_GATE], "{:.2f}", "°", f"{J_FS} : solve.W1.beta_deg", "게이트 첫 칸")
+           + f" 로 게이트({BETA_GATE_DEG}°) 안 · 상반성 창(β ≤ 45°) 밖이다.", "",
+           f"그래서 이 값은 게이트 상수 `BETA_VALID_MAX_DEG` 가 서 있는 자리의 함수다 — 상수를 "
+           f"옮기면 {_CEIL_BY_GATE} 로 따라 움직인다"
+           f"⟨{J_FS} : solve.W1.snr_d_db → β 게이트 상수를 옮겨 첫 칸 재선택⟩. 그 첫 칸의 이웃 "
+           "눈금은 "
+           + dnum(_D_STEP_PCT, "{:.2f}", "%", f"{J_FS} : solve.W1.d_grid_m",
+                  "게이트 첫 칸 이웃 간격")
+           + " 다.", "",
+           f"그 칸의 앙각은 el = "
+           + dnum(_EL_D[_I_GATE], "{:.2f}", "°", f"{J_FS} : solve.W1.el_look_deg", "게이트 첫 칸")
+           + " 로 σ 격자(0 ~ "
+           + dnum(D["el_grid_min"], "{:.0f}", "°", f"{J_SG_USED} : meta.el_deg", "최솟값")
+           + ") 안쪽이고, 클램프 칸은 `d` ≤ "
+           + dnum(_D_CLAMP_MAX, "{:.0f}", "m", f"{J_FS} : solve.W1.el_look_deg",
+                  "el<격자최솟값 마지막 칸")
+           + " 에서 끝나 이 칸(`d` = "
+           + FS.num("solve.W1.snr_peak_d_m", None, "{:.0f}", "m")
+           + ")과 격자 위에서 떨어져 있다 — 앙각 격자를 넓히는 일이 이 값을 옮기는지는 다시 "
+           "풀어야 안다."),
 
         next_steps([
             ("앙각을 확장한 σ 격자 위에서 R90 과 SNR 천장을 다시 푼다",
-             "φ 축에서 "
-             + PH.num("geometry.rows[18].frac_el_outside_sigma_grid", None, "{:.1%}") + " ~ "
+             "헤드라인 방위 φ=90° 는 R90 해에 들어오는 클램프 칸이 "
+             + dnum(_N_CLAMP_GATED, "{:.0f}", "칸", f"{J_FS} : solve.W1.el_look_deg",
+                    "el<격자최솟값 ∧ β게이트 통과")
+             + " 이라 값이 그대로 서고, 클램프가 "
              + PH.num("geometry.rows[0].frac_el_outside_sigma_grid", None, "{:.1%}")
-             + " 이던 클램프 조회가 격자 안으로 들어오고, 근거리 SNR 천장이 격자 위에 선다",
+             + " 인 φ=0° 쪽에서 게이트 뒤에 남는 칸(포함배제 하한 "
+             + dnum(_N_C0_GATED_MIN, "{:.0f}", "칸", _KEY_C0,
+                    f"×{_N_D}칸 + 유효 {_N_VALID}칸 − {_N_D}칸(포함배제)")
+             + ")의 개수와 그 칸들의 값이 확정된다",
              "`src/experiment_freespace_sigma.py` → `--stage solve`"),
             ("β > 45° 의 출사 가시성·대칭화 잔차를 다시 잰다",
              "바이스태틱 유효창의 폭이 확정된다",
@@ -558,10 +738,16 @@ def r58():
                 + f" 다 — 프레임 {FS.num('waveforms.G1.M', 5, '{:.0f}')}개짜리 도플러 축이 그만큼 좁다.",
                 f"세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 = "
                 f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 공유한다.",
-                f"그 선택의 크기는 작다 — LTE 자기 문턱은 "
+                f"그 선택의 크기 — 같은 dopoff {_THR_DOP}빈에서 LTE 자기 문턱은 "
                 f"{DV.num('threshold.l1_own_snr90_db', None, '{:.2f}', 'dB')} 로 공유 문턱과 "
                 f"{DV.num('threshold.l1_delta_db', None, '{:+.3f}', 'dB')} 차이이고, R90 에 주는 차는 "
-                f"{DV.num('threshold.l1_range_shift_pct', None, '{:+.2f}', '%')} 다.",
+                f"{DV.num('threshold.l1_range_shift_pct', None, '{:+.2f}', '%')} 다. 그 차를 두 "
+                f"Wilson 반폭의 quadrature(제곱합의 제곱근) "
+                + dnum(_THR_QUAD, "{:.3f}", "dB", _KEY_QUAD, "두 반폭의 제곱합의 제곱근")
+                + " 만큼 흔들면 R90 차는 "
+                + dnum(_THR_R90_LO, "{:+.2f}", "", _KEY_QUAD, "차+눈금을 R90 로 환산") + " ~ "
+                + dnum(_THR_R90_HI, "{:+.2f}", "%", _KEY_QUAD, "차−눈금을 R90 로 환산")
+                + " 로 옮겨 다닌다.",
             ],
             method=[
                 ("문턱 잡는 법",
@@ -611,14 +797,39 @@ def r58():
            f"세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 = "
            f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 공유한다"
            f"(`src/experiment_freespace_range.py:856`). 그 선택의 크기는 이렇다.", "",
-           table(["모드", "자기 문턱 SNR90", "공유 문턱과의 차", "R90 에 주는 차"],
+           table(["모드", f"자기 문턱 SNR90 (dopoff {_THR_DOP}빈)", "공유 문턱과의 차",
+                  "R90 에 주는 차"],
                  [["WiFi", DV.num("threshold.snr90_shared_db", None, "{:.2f}", "dB"),
                    "기준", "기준"],
                   ["LTE", DV.num("threshold.l1_own_snr90_db", None, "{:.2f}", "dB"),
                    DV.num("threshold.l1_delta_db", None, "{:+.3f}", "dB"),
                    DV.num("threshold.l1_range_shift_pct", None, "{:+.2f}", "%")],
                   ["5G", f"dopoff 격자 {DV.num('threshold.g1_total_cells', None, '{:.0f}')}칸이 "
-                         f"M={DV.num('threshold.g1_M', None, '{:.0f}')} 의 도플러 축 밖", "—", "—"]])),
+                         f"M={DV.num('threshold.g1_M', None, '{:.0f}')} 의 도플러 축 밖", "—", "—"]]),
+           "",
+           f"«차» 두 열은 dopoff {_THR_DOP}빈 한 자리에서 잰 값이다. 두 SNR90 은 K={_THR_K} "
+           f"시행의 Pd 곡선을 SNR 격자({_THR_GRID_STEP:.0f} dB 눈금 {len(_THR_GRID)}점)에서 "
+           f"보간해 뽑았고(`src/freespace_detect.py:1124`), 원장이 함께 싣는 Wilson 띠가 W1 ["
+           + FS.num("threshold.S_G.W1.1.dopoff.3.snr90_lo_db", None, "{:.2f}") + ", "
+           + FS.num("threshold.S_G.W1.1.dopoff.3.snr90_hi_db", None, "{:.2f}") + "] · L1 ["
+           + FS.num("threshold.S_G.L1.1.dopoff.3.snr90_lo_db", None, "{:.2f}") + ", "
+           + FS.num("threshold.S_G.L1.1.dopoff.3.snr90_hi_db", None, "{:.2f}")
+           + "] dB 로 서로 겹친다. 두 반폭을 quadrature(제곱합의 제곱근)로 합친 "
+           + dnum(_THR_QUAD, "{:.3f}", "dB", _KEY_QUAD, "두 반폭의 제곱합의 제곱근")
+           + " 을 차에 얹으면 "
+           + dnum(_THR_DELTA - _THR_QUAD, "{:+.3f}", "", _KEY_QUAD, "차 − quadrature 눈금")
+           + " ~ "
+           + dnum(_THR_DELTA + _THR_QUAD, "{:+.3f}", "dB", _KEY_QUAD, "차 + quadrature 눈금")
+           + " 로 0 을 품는 폭이 된다.", "",
+           f"dopoff 칸도 자유변수다. 원장이 싣는 {_THR_N_OFF}칸"
+           f"({'·'.join(sorted(_THR_OFF['L1'], key=float))}빈) 안에서 LTE 자기 "
+           f"문턱은 "
+           + dnum(_THR_L1_LO, "{:.2f}", "", _KEY_L1, f"{_THR_N_OFF}칸 최솟값") + " ~ "
+           + dnum(_THR_L1_HI, "{:.2f}", "dB", _KEY_L1, f"{_THR_N_OFF}칸 최댓값")
+           + " 로 흔들리고, 8빈 칸에서는 "
+           + dnum(_THR_OFF["L1"]["8"]["snr90_db"], "{:.2f}", "dB", _KEY_L1, "dopoff 8빈")
+           + " 로 공유 문턱 아래에 서 부호가 뒤집힌다 — 이 표의 «차» 두 열이 갖는 부호는 dopoff "
+           "칸이 정한다."),
 
         md(*fig(1, PF["detector"],
                 "교정된 오경보율 위에서 세 파형이 요구하는 SNR 은 몇 dB 인가?")),
@@ -770,7 +981,7 @@ def r60():
                 + " ~ "
                 + DV.num("r90.span_comparable_max_km", None, "{:.2f}", "km")
                 + f" 다 — 원키 `R90_C50_m`⟨{KEY_R}⟩ 에 앵커 Δσ⟨{KEY_A}⟩ 를 R90 근방 국소 지수로 "
-                + f"옮긴 값이다.",
+                + f"옮긴 값이고, **공칭 헤딩 ψ=0 한 점**에서 푼 거리다⟨{J_DV} : r90.definition⟩.",
                 "밴드 순서는 기체마다 바뀐다 — 그 순서를 만드는 것은 자세별 로브 구조이고, 앵커는 "
                 "밴드별 스칼라를 옮기면서 밴드 평균 레벨은 그대로 둔다.",
                 f"자세를 평균하면 다섯 기체가 한 순위 "
@@ -778,13 +989,20 @@ def r60():
                 f"{SS.num('ranking_consensus.single_aspect_n_distinct', None, '{:.0f}')}가지 순위가 나온다.",
                 f"아래 km 열은 **순위를 읽는 표**로 쓴다 — 공통모드 σ 오차 ±10 dB 가 이 열 전체를 "
                 f"{SS.num('common_mode.abs_range_shift_at_10db_pct.minus10', None, '{:+.1f}', '%')} ~ "
-                f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} 옮긴다.",
+                f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} "
+                f"옮긴다. ⚠ 같은 리프의 형제 키 `E_psi_Pd_at_R90` 는 그 거리에서의 헤딩 평균 "
+                f"검출확률을 {R90_N_CELLS}칸에서 {R90_EPSI_MIN:.2f} ~ {R90_EPSI_MAX:.2f}(5G 다섯 칸은 "
+                f"전부 {R90_EPSI_G1_MAX:.1f}) 로 적으므로, 이 km 열은 **한 헤딩의 도달거리**로 읽는다.",
             ],
             method=[
+                # ⛔ 옛 정의는 «P_d 가 0.9 로 떨어지는 거리» 였지만, 이 해가 통과시키는 유효 게이트는
+                #    β 와 원거리장 둘이고 헤딩 축은 형제 키가 따로 든다 — 원장이 그렇게 적는다.
                 ("R90 정의",
-                 "**검출확률 $P_d$ 가 0.9 로 떨어지는 거리**다 — 거리축 `d` 는 송·수신 기선의 "
-                 "중점에서 표적까지의 수평거리다. 공칭 헤딩 ψ=0 의 σ 로 SNR(d) 를 만들고, 유효 "
-                 "게이트를 통과한 칸에서 교정 문턱과의 **최외곽 하강교차**를 찾는다"),
+                 "**공칭 헤딩 ψ=0 한 점**의 σ 로 만든 SNR(d) 가 교정 문턱과 **최외곽 하강교차**하는 "
+                 "수평거리 `d` 다 — 거리축은 송·수신 기선의 중점에서 표적까지의 수평거리이고, 해를 "
+                 f"찾는 칸을 고르는 유효 게이트는 β ≤ {BETA_GATE_DEG}° 와 원거리장 둘이다"
+                 f"⟨{J_DV} : r90.definition⟩. 헤딩 축은 같은 리프의 형제 키 `coverage_ceiling` · "
+                 "`E_psi_Pd_at_R90` 가 따로 든다"),
                 ("앵커 전이",
                  "Δσ 를 R90 근방 국소 지수로 1차 전이한다 — `src/freespace_scene.py:56`"),
                 ("순위를 읽는 표",
@@ -799,9 +1017,22 @@ def r60():
         ),
 
         md("## R90 이 무엇인가", "",
-           "**검출확률이 0.9 로 떨어지는 거리**다. 거리축은 송신국과 수신국을 잇는 기선의 "
-           "중점에서 표적까지의 수평거리이고, 그 축에서 문턱을 마지막으로 아래로 뚫는 자리가 "
-           "R90 이다.", "",
+           # ⛔ 규약(공칭 헤딩 한 점 · 게이트 둘)을 정의 자리에 그대로 적는다 — 원장이 그렇게 적는다.
+           "**공칭 헤딩 ψ=0 한 점**의 σ 로 만든 SNR(d) 가 교정 문턱을 마지막으로 아래로 뚫는 "
+           "수평거리다. 거리축은 송신국과 수신국을 잇는 기선의 중점에서 표적까지의 수평거리이고, "
+           f"해를 찾는 칸을 고르는 유효 게이트는 β ≤ {BETA_GATE_DEG}° 와 원거리장 둘이다"
+           f"⟨{J_DV} : r90.definition⟩.", "",
+           f"⛔ 키 이름의 `C50` 은 스펙 §2.3 의 커버리지 백분위(P_ψ[Pd≥0.9] ≥ 0.50)를 가리키지만, 이 "
+           f"실행이 그 자리에 적은 값은 단일 헤딩 solve 의 거리다 — 원장의 `key_note` 가 그렇게 적고 "
+           f"있다⟨{J_DV} : r90.key_note⟩. 헤딩 축은 형제 키가 따로 든다: `E_psi_Pd_at_R90` 는 "
+           f"{R90_N_CELLS}칸에서 {R90_EPSI_MIN:.2f} ~ {R90_EPSI_MAX:.2f} 이고, 5G 다섯 칸은 전부 "
+           f"{R90_EPSI_G1_MAX:.1f} 다.", "",
+           f"⚠ 그 ψ=0 은 이 권의 헤드라인 방위 φ=90° 에서 도플러가 0 인 헤딩이다 — 2026-09-01 "
+           f"재계산으로 |f_d(ψ=0)| 는 {R90_N_CELLS}칸 전부 {R90_FD0_BOUND_KO} 아래이고, CPI "
+           f"{R90_T_CPI_S:.1f} s 의 가드 반폭은 선언 2.5빈 "
+           + DV.num("r90.doppler.5G.guard_hz", None, "{:.0f}", "Hz")
+           + f" · 검출기 적용 1.5빈 {R90_GUARD_HARD_HZ:.0f} Hz 다. 이 표는 그 가드를 끄고 푼 거리이고, "
+           f"가드를 켜고 세는 몫은 위의 형제 키 쪽에 있다.", "",
            "표의 오른쪽 끝 «앵커 비교가능성» 은 그 기체의 σ 를 앵커 기체(Phantom 3)에서 "
            "얼마나 곧장 옮길 수 있나를 세 낱말로 적은 것이다.", "",
            table(["값", "무슨 뜻인가"],
@@ -826,6 +1057,17 @@ def r60():
            f"헤드라인이 드는 {D['n_cells_comp']}칸은 비교가능 기체 "
            f"{len(D['comparable'])}대 × 세 밴드다 — `{D['X_name']}` 의 세 칸은 "
            f"`not_comparable` 이라 폭에서 뺐고, 표에는 그대로 싣는다.", "",
+           # ⛔ 형제 키가 이 표의 km 열이 무엇을 재는 거리인지를 정한다 — 같은 자리에 나란히 싣는다.
+           f"⛔ 위 {R90_N_CELLS}칸은 전부 **공칭 헤딩 ψ=0 한 점**에서 푼 거리다. 헤딩 축을 함께 세는 "
+           f"형제 키는 밴드별 `blind_heading_frac` (WiFi "
+           + DV.num("r90.blind_heading_frac_by_mode.WiFi", None, "{:.3f}") + " · LTE "
+           + DV.num("r90.blind_heading_frac_by_mode.LTE", None, "{:.2f}") + " · 5G "
+           + DV.num("r90.blind_heading_frac_by_mode.5G", None, "{:.1f}")
+           + ") 와 5G 의 `coverage_ceiling` "
+           + DV.num("r90.coverage_ceiling_by_mode.5G", None, "{:.1f}")
+           + f", 그리고 칸별 `E_psi_Pd_at_R90` ({R90_EPSI_MIN:.2f} ~ {R90_EPSI_MAX:.2f}) 다 — 이 km "
+           + "열은 그 한 헤딩의 도달거리로 읽고, 헤딩 축을 CPI 로 되찾는 몫은 "
+           + ref("cpi-sweep", short=True) + " 가 든다.", "",
            SRC_R + " · " + SRC_A),
 
         md("## 이 표가 서 있는 두 규약", "",
@@ -927,9 +1169,17 @@ def r61():
                        ASP_NOTE_MAX)
                 + f" 이고, 현실 봉투는 "
                 f"{SS.num('differential.realistic_span_db', None, '{:.2f}', 'dB')} 다.",
-                f"취약성을 정하는 것은 기체 크기가 아니라 밴드 간 σ 로브 산포다 — 크기와 뒤집힘 "
-                f"문턱의 상관은 "
-                f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')} 다.",
+                # ⛔ n=5 에서 «산포가 정한다» 는 세울 수 없다 — 기각하는 쪽(크기)의 상관이 채택하는
+                #    쪽(산포)보다 오히려 강하다. 세 상관을 다 싣고 인과는 세우지 않는다.
+                f"작은 기체가 더 취약하다는 예상은 뒤집힌다 — 가장 작은 "
+                f"{SS.num('size_vs_fragility.smallest_airframe', None)} 가 단일자세·자세평균 양쪽에서 "
+                f"가장 견고하다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 "
+                f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 밴드 간 σ "
+                f"로브 산포 쪽 "
+                f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')}, 두 "
+                f"열 사이는 "
+                f"{SS.num('size_vs_fragility.corr_extent_vs_sigma_spread', None, '{:+.2f}')} 이고, 기체 "
+                f"{CORR_N} 대의 상관계수라 어느 열이 취약성을 정하는지는 이 표본으로 정할 수 없다.",
                 f"σ 격자를 블레이드 형상 갱신본으로 바꾸는 것만으로 R90 이 최대 "
                 + dnum(D["stale_max_pct"], "{:.1f}", "%",
                        f"{J_SS} : staleness_and_mesh_update.by_drone",
@@ -986,14 +1236,24 @@ def r61():
                    + dnum(D["mc_p2db_max"], "{:.2f}", "", f"{J_SS} : monte_carlo_per_band_error",
                           "5기체 최대")]])),
 
-        md("## 취약성을 정하는 것은 크기가 아니다", "",
+        # ⛔ 옛 제목 «취약성을 정하는 것은 크기가 아니다» 는 바로 아래 인용한 상관 자신이 부정한다.
+        #    제목을 관측으로 내리고, 세 상관을 나란히 싣고, 원인은 표본을 늘린 뒤로 미룬다.
+        md("## 작은 기체가 더 취약하다는 예상은 뒤집힌다", "",
            f"가장 작은 {SS.num('size_vs_fragility.smallest_airframe', None)}(전장 "
            f"{SS.num('size_vs_fragility.by_drone.mini5pro.extent_m', None, '{:.3f}', 'm')}, LTE 에서 "
            f"D/λ = {SS.num('size_vs_fragility.by_drone.mini5pro.D_over_lambda_lte', None, '{:.2f}')})"
-           f" 가 가장 견고하다.", "",
-           f"크기와 뒤집힘 문턱의 상관은 "
-           f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')} 다 — "
-           f"취약성을 정하는 것은 **밴드 간 σ 로브 산포**다."),
+           f" 가 단일자세·자세평균 양쪽에서 가장 견고하다.", "",
+           f"단일자세 뒤집힘 문턱은 최대 치수 열과 밴드 간 σ 로브 산포 열 둘 다에 걸린다 — 상관은 "
+           f"크기 쪽 {SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 산포 쪽 "
+           f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')} 로 크기 "
+           f"쪽이 더 강하고, 두 열 사이 상관은 "
+           f"{SS.num('size_vs_fragility.corr_extent_vs_sigma_spread', None, '{:+.2f}')} 다.", "",
+           f"⚠ 기체가 {CORR_N} 대라 이 세 수는 서술용이다 — 같은 5행에서 순위상관을 내면 크기-문턱이 "
+           f"{CORR_RHO['extent_flip'][0]:+.2f}(p={CORR_RHO['extent_flip'][1]:.2f}), 산포-문턱이 "
+           f"{CORR_RHO['spread_flip'][0]:+.2f}(p={CORR_RHO['spread_flip'][1]:.2f}) 로 갈리고, 피어슨 "
+           f"p 는 각각 {CORR_P['extent_flip']:.2f} · {CORR_P['spread_flip']:.2f} 다(⛔ p 와 순위상관은 "
+           f"원장 밖의 재계산값이다). 원장 `size_vs_fragility.finding` 은 산포를 단독 원인으로 들지만, "
+           f"이 편은 세 상관계수를 그대로 읽고 원인은 표본을 늘린 뒤로 미룬다."),
 
         md(*fig(1, PF["robust"],
                 "σ 오차가 공통모드일 때와 밴드별일 때 순위는 각각 어디까지 버티는가?")),
@@ -1020,9 +1280,10 @@ def r61():
             ("형상 정정 후 메쉬로 σ 민감도를 다시 돌린다",
              "뒤집힘 문턱의 하한이 현재 메쉬 위에 서고, 위 표의 차분 행이 갱신된다",
              "`benchmark/sigma_sensitivity.py`"),
-            ("밴드 간 σ 로브 산포를 기체 특성으로 정량화한다",
-             "어느 기체가 왜 견고한지가 크기가 아닌 양으로 설명된다",
-             ref("materials", short=True)),
+            # ⛔ 옛 문장은 «산포가 정한다» 를 이미 참으로 놓고 있었다. 표본 수로 다시 적는다.
+            (f"기체 수를 {CORR_N} 대 위로 늘려 크기·산포·문턱 세 열의 상관을 다시 낸다",
+             "추정량(피어슨·순위상관)에 따라 갈리는 지금의 상관이 하나의 값으로 좁혀진다",
+             "`benchmark/sigma_sensitivity.py`"),
         ]),
     ]
 
@@ -1057,6 +1318,12 @@ def r62():
                 + dnum(CPI_RATIO_MAX, "{:.1f}", "",
                        f"{J_CG} : equal_cpi_penalty[*].ratio_G1_over_W1", CPI_NOTE_MAX)
                 + "배 로 남는다 — 이것이 이 대가를 구조로 만드는 첫 번째 사실이다.",
+                # ⛔ 그 «폭» 은 물리가 아니라 헤딩 격자의 칸 수다 — 분모가 두 칸까지 내려간다.
+                f"⚠ 그 폭은 헤딩 격자 {CPI_PSI_N}점 위의 **칸 수**에서 나온다 — 분모 "
+                f"`blind_hard_W1` 이 {CPI_SPAN_KO}에서 {CPI_CELLS_W1_KO} 칸이고, 가장 작은 칸에서 "
+                f"{CPI_W1_MIN_CELLS}칸까지 내려간다. 그 칸에서는 분모가 한 칸(={CPI_CELL_FRAC:.4f})만 "
+                f"달라져도 배수가 2/3배~2배로 갈린다 — 이 격자가 정하는 것은 칸 수이고, 배수의 폭은 "
+                f"이 격자로 정하지 못한다.",
                 f"1.5빈 규약에서 LTE 도 CPI ≤ "
                 f"{CG.num('structural.two_mechanisms.observed.L1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
                 f" 에서 전 헤딩 블라인드가 된다 — 5G 만의 성질이 아니라 CPI 가 짧을 때의 성질이다.",
@@ -1132,7 +1399,15 @@ def r62():
                    CG.num(f"equal_cpi_penalty[{i}].blind_hard_G1", None, "{:.3f}"),
                    CG.num(f"equal_cpi_penalty[{i}].ratio_G1_over_W1", None, "{:.1f}") + "배",
                    CG.num(f"equal_cpi_penalty[{i}].ratio_G1_over_L1", None, "{:.1f}") + "배"]
-                  for i in range(CPI_N_ROWS)])),
+                  for i in range(CPI_N_ROWS)]),
+           "",
+           # ⛔ 표의 블라인드 열은 실수가 아니라 격자 위의 «칸 수» 다. 그 칸 수를 그대로 적는다.
+           f"⛔ 두 블라인드 열은 헤딩 격자 {CPI_PSI_N}점 위의 **칸 수**다 — WiFi 열이 "
+           f"{CPI_CELLS_W1_KO} 칸, 5G 열이 {CPI_CELLS_G1_KO} 칸이다. 두 열 다 CPI 와 함께 칸 수가 "
+           f"내려가고{CPI_W1_TIE_KO}. 5G/WiFi 열의 분모는 가장 작은 칸에서 {CPI_W1_MIN_CELLS}칸이라 "
+           f"한 칸(={CPI_CELL_FRAC:.4f})만 달라져도 그 칸의 배수가 2/3배~2배로 갈린다 — 이 격자가 "
+           f"정하는 것은 칸 수이고, 배수의 폭과 그 아래 WiFi 열의 움직임은 격자를 올려 다시 세어야 "
+           f"정해진다."),
 
         md("## 두 번째 사실 — 접힘 비율은 CPI 와 무관하다", "",
            f"5G 의 alias 비율 "
@@ -1181,7 +1456,14 @@ def r63():
                 f"거리·속도 격자 "
                 f"{CG.num('cost_of_long_cpi.coherence_map_summary.n_cells', None, '{:.0f}')}칸 중 "
                 f"{CG.num('cost_of_long_cpi.coherence_map_summary.n_WiFi_parity_feasible', None, '{:.0f}')}"
-                f"칸이 WiFi 패리티를 허용한다.",
+                f"칸이 WiFi 패리티를 허용한다 — 그중 여유가 가장 얇은 칸은 {CM_TIGHT_KO} 로, "
+                f"코히어런스 한계 {CM_TIGHT_TCOH:.2f} s 가 필요 CPI "
+                f"{CG.num('cost_of_long_cpi.required_cpi_s.to_WiFi_parity', None, '{:.2f}', 's')} 보다 "
+                f"{CM_TIGHT_MARGIN_PCT:.0f} % 높다.",
+                # ⛔ 그 필요 CPI 는 칸 수 두 개가 같아지는 자리에서 등호로 읽힌 값이다.
+                f"⚠ 그 필요 CPI 는 헤딩 격자 {CPI_PSI_N}점의 눈먼 **칸 수**를 견줘 읽은 값이다 — "
+                f"{PARITY_EDGE_KO}. 여유 {CM_TIGHT_MARGIN_PCT:.0f} % 인 칸이 통과 쪽에 남는지는 이 "
+                f"원장으로 정할 수 없다.",
             ],
             method=[
                 ("모호속도",
@@ -1207,7 +1489,11 @@ def r63():
            f"커버리지를 WiFi 수준으로 올리는 CPI 는 "
            f"{CG.num('cost_of_long_cpi.required_cpi_s.to_WiFi_parity', None, '{:.2f}', 's')}, LTE "
            f"수준은 {CG.num('cost_of_long_cpi.required_cpi_s.to_LTE_parity', None, '{:.2f}', 's')} "
-           f"이고 그 대가는 재방문 시간이다."),
+           f"이고 그 대가는 재방문 시간이다.", "",
+           # ⛔ 그 필요 CPI 가 어디서 왔는지 — `parity_cpi()` 는 칸 수 두 개를 `≤` 로 견준다.
+           f"⛔ WiFi 패리티 CPI 는 `parity_cpi()` 가 헤딩 격자 {CPI_PSI_N}점의 눈먼 **칸 수**를 `≤` "
+           f"로 견줘 읽은 값이다 — {PARITY_EDGE_KO}. 그래서 이 원장이 정하는 것은 «칸 수가 같아지는 "
+           f"자리» 다."),
 
         md("## 패리티의 대가", "",
            table(["패리티 목표 (5 m/s)", "필요 CPI", "SSB 버스트", "헤드라인 CPI 대비 경과", "거리워크",
@@ -1221,7 +1507,15 @@ def r63():
                           "{:.3f}") + "빈",
                    CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.snr_gain_db_if_coherent", None,
                           "{:.2f}", "dB")]
-                  for nm, k in (("LTE 수준", "v5_LTE_parity"), ("WiFi 수준", "v5_WiFi_parity"))])),
+                  for nm, k in (("LTE 수준", "v5_LTE_parity"), ("WiFi 수준", "v5_WiFi_parity"))]),
+           "",
+           # ⛔ WiFi 행의 «10.00배 · 10.00 dB» 는 필요 CPI 가 정확히 1.00 s 로 읽힌 데서 나온다.
+           f"⛔ WiFi 행의 경과·이득이 딱 떨어지는 것은 그 행의 필요 CPI 가 헤드라인 CPI "
+           f"{CPI_T_MIN:.1f} s 의 "
+           + CG.num("cost_of_long_cpi.at_required_cpi.v5_WiFi_parity.elapsed_vs_headline",
+                    None, "{:.0f}")
+           + f"배로 읽혔기 때문이다 — {PARITY_EDGE_KO}. 두 열은 그 CPI "
+           f"에서 따라 나오는 산수다(경과 = T / 헤드라인 CPI, 코히어런트 이득 = 10log₁₀ 그 배수)."),
 
         md("## 그 길이 막히는 자리", "",
            f"패리티 CPI 가 코히어런스 한계 안에 머무는 구간은 "
@@ -1232,7 +1526,13 @@ def r63():
            f"거리·속도 격자 "
            f"{CG.num('cost_of_long_cpi.coherence_map_summary.n_cells', None, '{:.0f}')}칸 중 "
            f"{CG.num('cost_of_long_cpi.coherence_map_summary.n_WiFi_parity_feasible', None, '{:.0f}')}"
-           f"칸이 WiFi 패리티를 허용한다 — 그 밖의 칸에서는 CPI 로 메우는 길이 닫힌다."),
+           f"칸이 WiFi 패리티를 허용한다 — 그 밖의 칸에서는 CPI 로 메우는 길이 닫힌다.", "",
+           # ⛔ 통과하는 칸의 가장자리가 필요 CPI 가 등호로 읽힌 자리 바로 옆에 있다.
+           f"⛔ 통과하는 칸 중 여유가 가장 얇은 것은 {CM_TIGHT_KO} 로, 코히어런스 한계 "
+           f"{CM_TIGHT_TCOH:.4f} s 가 필요 CPI "
+           f"{CG.num('cost_of_long_cpi.required_cpi_s.to_WiFi_parity', None, '{:.2f}', 's')} 보다 "
+           f"{CM_TIGHT_MARGIN_PCT:.1f} % 높을 뿐이다. 그 필요 CPI 는 {PARITY_EDGE_KO} — 그래서 이 한 "
+           f"칸이 통과 쪽에 남는지는 격자를 올려 다시 세어야 정해진다."),
 
         md(*fig(1, PF["cpi"],
                 "5G 의 눈먼 헤딩 비율은 CPI 와 표적 속도에 따라 어떻게 움직이는가?")),
@@ -1257,14 +1557,23 @@ def r64():
             num=64,
             title="σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다",
             did="같은 표적·같은 기하·같은 σ 로 묶은 벤치에서 Pd = 0.5 에 필요한 출력 SNR 을 재고, "
-                "상시 기준 제약이 무는 대가를 표준마다 dB 로 적었다.",
+                "두 점유 등급 사이의 요구 SNR 차를 표준마다 dB 로 적었다.",
             results=[
                 f"WiFi 는 상시 기준(등급 1)에서 "
                 f"{DV.num('always_on_cost.W.snr50_g1', None, '{:.2f}', 'dB')}, 세션 기준(등급 3)에서 "
-                f"{DV.num('always_on_cost.W.snr50_g3', None, '{:.2f}', 'dB')} 라 상시 제약의 대가가 "
+                f"{DV.num('always_on_cost.W.snr50_g3', None, '{:.2f}', 'dB')} 라 두 등급의 차가 "
                 f"{DV.num('always_on_cost.W.cost_db', None, '{:+.2f}', 'dB')} 다.",
-                f"LTE 의 대가는 {DV.num('always_on_cost.L.cost_db', None, '{:+.2f}', 'dB')}, 5G 는 "
-                f"{DV.num('always_on_cost.G.cost_db', None, '{:+.2f}', 'dB')} 다.",
+                "⛔ 그 차는 기준신호 대역의 몫이 아니다 — W1·W3 의 기준신호 대역은 "
+                + RX.num("modes.W1.ref_bw_mhz", None, "{:.2f}", "MHz") + " ↔ "
+                + RX.num("modes.W3.ref_bw_mhz", None, "{:.2f}", "MHz") + " 로 같고, 데이터 점유가 "
+                + RX.num("modes.W1.occupancy", None, "{:.1%}") + " → "
+                + RX.num("modes.W3.occupancy", None, "{:.1%}") + " 로 갈린다.",
+                f"LTE 의 차는 {DV.num('always_on_cost.L.cost_db', None, '{:+.2f}', 'dB')}, 5G 는 "
+                f"{DV.num('always_on_cost.G.cost_db', None, '{:+.2f}', 'dB')} 다 — 셋 다 K = "
+                f"{DV.num('rx_gain.K', None, '{:.0f}')} 몬테카를로 SNR50 두 값의 차이고, 이 원장의 "
+                f"표준편차 {DV.num('rx_gain.snr50_mc_sigma_db', None, '{:.3f}', 'dB')} 는 벤치 전 "
+                f"모드·전 N 의 최댓값이라(`src/make_report05_results.py:290`) 모드 쌍별 유의성은 이 "
+                f"원장 밖에 있다.",
                 f"이 축은 σ 와 무관하다 — 표적·기하·σ 를 한 값으로 묶었으므로 여기서 읽는 것은 "
                 f"파형 축 하나의 상대 비교다.",
                 f"벤치 배치는 단일 반송파 {DV.num('bench.fc_ghz', None, '{:.1f}', 'GHz')} · "
@@ -1275,8 +1584,12 @@ def r64():
                 ("무엇을 고정했나",
                  "9모드 전부에 단일 반송파·단일 기하·단일 σ 를 쓴다 — `src/experiment_x410.py:101`"),
                 ("무엇을 읽나",
-                 "기준신호 대역과 프레임 수가 정하는 파형 축 하나다. 그래서 이 순서는 σ 를 곱하기 "
-                 "앞에서 이미 정해진다"),
+                 "기준신호 대역 · 프레임 수 · 데이터 점유가 함께 정하는 파형 축 하나다. 그래서 이 "
+                 "순서는 σ 를 곱하기 앞에서 이미 정해진다"),
+                ("상관 기준 규약",
+                 "기지 기준신호가 아니라 그 모드의 **송신파형 전체**를 상관 기준으로 쓴다 — "
+                 "`src/experiment_detection.py:145` 의 `ref_cpi = np.tile(block, b * M)`, 규약은 "
+                 "같은 파일 `:124` 주석에 «full-waveform capture 상한» 으로 적혀 있다"),
                 ("다른 절과의 관계",
                  "이 스윕은 자유공간 배치와 **다른 배치**에서 돈다 — 절대 SNR 을 그 배치의 거리와 "
                  "같은 축에 놓는 일은 다음 단계에 있다"),
@@ -1286,10 +1599,12 @@ def r64():
         ),
 
         md("## 기준신호 대역과 점유 등급이 만드는 축", "",
-           "같은 표적·같은 기하·같은 검출기에서 Pd = 0.5 에 필요한 출력 SNR 은 기준신호 대역과 "
-           "프레임 수가 정한다. 이 축은 σ 와 무관하게 세 파형의 순서를 정한다."),
+           "같은 표적·같은 기하·같은 검출기에서 Pd = 0.5 에 필요한 출력 SNR 은 기준신호 대역 · "
+           "프레임 수 · 데이터 점유가 정한다. 이 축은 σ 와 무관하게 세 파형의 순서를 정한다.", "",
+           "⚠ 상시(등급 1) ↔ 세션(등급 3) 사이에서 셋 중 무엇이 갈리는지는 표준마다 다르다 — "
+           "아래 표의 차이 열은 그래서 표준마다 다른 입력을 잰다."),
 
-        md(table(["표준", "상시 기준(등급 1)", "세션 기준(등급 3)", "상시 제약의 대가",
+        md(table(["표준", "상시 기준(등급 1)", "세션 기준(등급 3)", "등급 1 − 등급 3",
                   "거리분해능 대비"],
                  [[nm,
                    DV.num(f"always_on_cost.{c}.snr50_g1", None, "{:.2f}", "dB"),
@@ -1297,7 +1612,21 @@ def r64():
                    DV.num(f"always_on_cost.{c}.cost_db", None, "{:+.2f}", "dB"),
                    DV.num(f"always_on_cost.{c}.dr_g1_m", None, "{:.2f}", "m") + " ↔ "
                    + DV.num(f"always_on_cost.{c}.dr_g3_m", None, "{:.2f}", "m")]
-                  for nm, c in (("WiFi", "W"), ("LTE", "L"), ("5G NR", "G"))])),
+                  for nm, c in (("WiFi", "W"), ("LTE", "L"), ("5G NR", "G"))]),
+           "",
+           f"⛔ 차이 열은 표준마다 다른 입력을 잰다 — 두 등급 사이에서 갈린 입력이 행마다 다르다. "
+           f"5G 는 기준신호 대역이 {RX.num('modes.G1.ref_bw_mhz', None, '{:.1f}', 'MHz')} → "
+           f"{RX.num('modes.G3.ref_bw_mhz', None, '{:.2f}', 'MHz')} 로 갈리고, LTE 는 대역이 "
+           f"{RX.num('modes.L1.ref_bw_mhz', None, '{:.3f}', 'MHz')} → "
+           f"{RX.num('modes.L3.ref_bw_mhz', None, '{:.3f}', 'MHz')} 이고 기준신호가 "
+           f"{RX.num('modes.L1.ref_name')} → {RX.num('modes.L3.ref_name')} 로 바뀌며, "
+           f"WiFi 는 두 등급이 "
+           f"{RX.num('modes.W1.ref_bw_mhz', None, '{:.2f}', 'MHz')} 로 같다.", "",
+           "⚠ 데이터 점유는 송신파형 자체를 바꾸고, 이 벤치는 그 송신파형 전체를 상관 기준으로 "
+           "쓴다(`src/experiment_detection.py:145`). "
+           + ref("cost-ledger", short=True) + " 는 「데이터 심볼 자체는 수신기가 내용을 몰라 "
+           "정합필터 템플릿이 못 된다」 고 적었다 — 두 편의 규약이 갈린 자리이고, 어느 쪽이 "
+           "야외에서 서는지는 실측 몫이다."),
 
         md("## 이 스윕이 서 있는 배치", "",
            f"이 스윕은 자유공간 배치와 **다른 배치**에서 돈다 — X410 벤치"
@@ -1332,7 +1661,8 @@ def r65():
             results=[
                 f"세 모형은 자세무관 평판 σ "
                 f"{TM.num('protocol.operating_point.sigma_reference_dbsm', None, '{:.2f}', 'dBsm')}"
-                f"(3GPP, M1) · 정육면체(M2) · 우리 SBR+PO 격자(M3, {M3_STAMP}) 다.",
+                f"(3GPP TR 38.901 RCS model 1 의 σ_M 상수, M1 — 확률항 σ_S 는 우리가 평균에 "
+                f"얼렸다) · 정육면체(M2) · 우리 SBR+PO 격자(M3, {M3_STAMP}) 다.",
                 f"자세 앙상블은 셀당 "
                 f"{TM.num('statistics.n_aspect_realisations_per_cell', None, '{:.0f}')}자세 전수, "
                 f"(기체×밴드) 셀은 "
@@ -1344,8 +1674,12 @@ def r65():
                 f"{TA.num('Q3_staleness.argmax_argmin_counts.E0_freespace.argmin_counts.M1', None, '{:.0f}')}"
                 f"개로 전수다.",
                 f"크기는 **추정량이 정한다** — 검출기가 읽는 p10 에서 맞추면 낙차가 "
-                f"{TA.num(f'{TAE}.p10.spread_mean', None, '{:.2f}', 'dB')} 로 줄고 세 팔의 순서가 "
-                f"뒤집혀 M1 이 가장 어려운 팔이 된다.",
+                f"{TA.num(f'{TAE}.p10.spread_mean', None, '{:.2f}', 'dB')} 로 줄어든다. ⛔ 이때 "
+                f"M1 이 «가장 어려운 팔» 로 올라서는 것은 M1 의 자세분산이 "
+                f"{TM.num(M1_STD, None, '{:.1f}', 'dB')} 라 어느 분위수로 맞춰도 M1 이 같은 값인 "
+                f"산술이고, p10 순서 계수는 `M3<M2<M1` "
+                f"{TA.num(f'{P10_ORD}.M3<M2<M1', None, '{:.0f}')}셀 · `M2<M3<M1` "
+                f"{TA.num(f'{P10_ORD}.M2<M3<M1', None, '{:.0f}')}셀 둘뿐이다.",
                 f"각 다양성이 낙차를 줄인다 — 각 다양성이 0 인 자유공간에서 "
                 f"{TM.num('verdicts.Q3_environment_dependence.pure_pattern_spread_db_by_env.E0_freespace', None, '{:.2f}', 'dB')}"
                 f", 가장 큰 앙상블에서 "
@@ -1373,17 +1707,30 @@ def r65():
         md("## 표적만 세 모형으로 갈아끼운다", "",
            f"같은 기하·같은 검출기·같은 동작점에서 표적만 셋으로 갈아끼운다 — 자세무관 평판 σ "
            f"{TM.num('protocol.operating_point.sigma_reference_dbsm', None, '{:.2f}', 'dBsm')}"
-           f"(3GPP, M1) · 정육면체(M2) · 우리 SBR+PO 격자(M3).", "",
+           f"(3GPP TR 38.901 RCS model 1 의 σ_M 상수, M1) · 정육면체(M2) · "
+           f"우리 SBR+PO 격자(M3).", "",
            f"M3 팔이 선 판을 함께 찍는다 — {M3_STAMP}. σ 격자의 신원은 "
            f"「{TM.num('staleness.what_is_stale', None)}」 다. M1 은 3GPP 표값 상수이고 M2 는 "
            f"현재 메쉬 bbox 로 잡은 모서리라, 이 판 표시는 M3 열에만 붙는다.", "",
+           f"⚠ M1 의 «평평함» 은 절반만 3GPP 다 — TR 38.901 은 σ_M 과 함께 로그정규 σ_S 를 주고 "
+           f"그것을 경로마다 뽑는데, 헤드라인은 그것을 평균(=1)에 얼렸다. "
+           f"원장이 규정대로 다시 뽑으니 M1 도 "
+           f"{TA.num(f'{Q5R}.m1_penalty_if_drawn_db', None, '{:.2f}', 'dB')} 를 물어 M3−M1 이 "
+           f"{TA.num(f'{Q5R}.m3_minus_m1_frozen_db', None, '{:.2f}', 'dB')} → "
+           f"{TA.num(f'{Q5R}.m3_minus_m1_live_db', None, '{:.2f}', 'dB')} 로, 3모형 낙차가 "
+           f"{TA.num(f'{Q5R}.spread_frozen_mean_db', None, '{:.2f}', 'dB')} → "
+           f"{TA.num(f'{Q5R}.spread_live_mean_db', None, '{:.2f}', 'dB')} 로 내려간다.", "",
+           f"⛔ M1 열은 측정이 아니라 **눈금**이다 — 동작점 A_ref 를 «평판 "
+           f"{TM.num('protocol.operating_point.sigma_reference_dbsm', None, '{:.2f}', 'dBsm')} 이 "
+           f"앙상블평균 Pd = 0.9 에 정확히 앉도록» 정의했고, 원장이 그 자리에 «it is the ruler, "
+           f"not a result» 라고 적었다⟨{J_TM} : protocol.operating_point.definition⟩.", "",
            f"자세 앙상블은 셀당 "
            f"{TM.num('statistics.n_aspect_realisations_per_cell', None, '{:.0f}')}자세 전수, "
            f"(기체×밴드) 셀은 {TM.num('statistics.n_drone_band_cells', None, '{:.0f}')}개이고, "
            f"자세평균을 맞춘 뒤 남는 **요구 추가이득**을 추정량별로 적는다(재현편차 "
            f"{TA.num('meta.reproduction.E0_extra_gain_max_abs_dev_db', None, '{:.2f}', 'dB')})."),
 
-        md(table(["무엇을 맞추나", "M1 평판 [dB]", "M2 정육면체 [dB]",
+        md(table(["무엇을 맞추나", "M1 평판 [dB] — 눈금(동작점 정의)", "M2 정육면체 [dB]",
                   f"M3 우리 SBR+PO 격자 [dB] ({M3_STAMP_PLAIN})"],
                  [[nm,
                    TA.num(f"{TAE}.{k}.per_model_extra_gain_db.M1", None, "{:+.2f}"),
@@ -1392,7 +1739,11 @@ def r65():
                   for nm, k in (("선형평균 — 이 실험의 규약", "mean_lin"),
                                 ("중앙값", "median"),
                                 ("dB 평균", "mean_db"),
-                                ("p10 — 검출기가 읽는 분위수", "p10"))])),
+                                ("p10 — 검출기가 읽는 분위수", "p10"))]),
+           "",
+           f"⛔ M1 열의 네 개 +0.00 은 네 번의 독립 확인이 아니라 같은 항등식 하나다 — 원장이 "
+           f"재계산한 추정량 일곱 갈래(무정규화·선형평균·중앙값·dB 평균·p10·p95·최대) 전부에서 "
+           f"M1 이 부동소수 잡음까지 같은 값이다⟨{J_TA} : {TAE}⟩."),
 
         md("## 낙차의 소유자는 정육면체다", "",
            f"자유공간에서 최대가 M2 인 셀이 "
@@ -1415,9 +1766,18 @@ def r65():
            f" 다."),
 
         md("## 크기는 추정량이 정한다", "",
-           f"⚠ 검출기가 읽는 p10 에서 맞추면 낙차가 "
-           f"{TA.num(f'{TAE}.p10.spread_mean', None, '{:.2f}', 'dB')} 로 줄고 세 팔의 순서가 뒤집혀 "
-           f"M1 이 가장 어려운 팔이 된다.", "",
+           f"⚠ 낙차의 크기는 레벨을 무엇으로 맞추느냐가 정한다 — 선형평균 "
+           f"{TA.num(f'{TAE}.mean_lin.spread_mean', None, '{:.2f}', 'dB')} · 중앙값 "
+           f"{TA.num(f'{TAE}.median.spread_mean', None, '{:.2f}', 'dB')} · dB 평균 "
+           f"{TA.num(f'{TAE}.mean_db.spread_mean', None, '{:.2f}', 'dB')} · p10 "
+           f"{TA.num(f'{TAE}.p10.spread_mean', None, '{:.2f}', 'dB')} 다. 헤드라인은 선형평균 "
+           f"일치를 쓴다.", "",
+           f"⛔ p10 에서 M1 이 «가장 어려운 팔» 로 올라서는 것은 분산 0 의 산술이다 — M1 의 "
+           f"자세분산이 {TM.num(M1_STD, None, '{:.1f}', 'dB')} 라 M1 은 p10 에서도 "
+           f"{TA.num(f'{TAE}.p10.per_model_extra_gain_db.M1', None, '{:+.2f}', 'dB')} 인데 M2 는 "
+           f"{TA.num(f'{TAE}.p10.per_model_extra_gain_db.M2', None, '{:+.2f}', 'dB')} · M3 는 "
+           f"{TA.num(f'{TAE}.p10.per_model_extra_gain_db.M3', None, '{:+.2f}', 'dB')} 로 내려간다. "
+           f"이 정규화는 순환적이라 정본이 되지 못한다.", "",
            f"문턱은 잡음전력 기지 이상문턱이고 CA-CFAR 문턱은 세 팔에 같은 오프셋을 주므로, "
            f"교정표는 세 팔의 절대 소요이득만 옮긴다(⟨{J_TM} : protocol.pfa_convention⟩)."),
 
@@ -1429,6 +1789,12 @@ def r65():
            "다음 단계에 있다."),
 
         next_steps([
+            ("M1 을 3GPP 규정대로 σ_S 를 뽑아 돌린 M1c 분기를 정본으로 세운다",
+             "M3−M1 이 "
+             + TA.num(f"{Q5R}.m3_minus_m1_frozen_db", None, "{:.2f}", "dB") + " 인지 "
+             + TA.num(f"{Q5R}.m3_minus_m1_live_db", None, "{:.2f}", "dB")
+             + " 인지가 우리 규약이 아니라 표준 규정으로 정해진다",
+             "`scratchpad/tm_result.py`"),
             ("표적모형 민감도의 M3 팔을 재생성 격자(형상 정정 + Γ(θ) 켠 커널)로 다시 푼다",
              "우리 팔의 요구 추가이득 "
              + TA.num("Q3_staleness.m3_own_number.base_db", None, "{:.2f}", "dB")
@@ -1548,7 +1914,7 @@ def r66():
 #  논문 조각 — 옛 report05 c23
 # =========================================================================== #
 def write_paper_doc() -> str:
-    nb = os.path.join(_ROOT, "report05_results.ipynb")
+    nb = os.path.join(_ROOT, "archive", "legacy_reports", "report05_results.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
     if len(cells) <= 23:

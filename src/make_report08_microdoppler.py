@@ -100,6 +100,16 @@ PRB = _opt(f"{_ROOT}/outputs/probe_8m_anomaly.json")
 # ⭐ 얼린 판으로 원장을 다시 낸 **전후 비교표** — 이 편의 «광선 격자를 어디에 매나» 절이 읽는다.
 #   27 열을 같은 잣대(레벨 · 변조 깊이 · 대역밖 절대 전력 · 진폭 상관)로 잰 원장이다.
 FBA = _opt(f"{_ROOT}/outputs/freeze_before_after.json")
+# ⛔ 적대적 감사 두 장 — «얼린 판 한 장» 에 절대 dB 가 얼마나 걸려 있나.
+#   FPS: 광선 수·간격·판 크기를 그대로 두고 생산 판(P0) 과 중심을 격자 **반 칸**씩 옮긴
+#        같은 크기 판 둘 — 모두 3 장(자세는 솎았다).
+#        타당성 게이트가 붙어 있다 — 생산 판 P0 가 생산 원장과 붙어야 이 흩어짐이 판 오프셋이다.
+#   FZF: 같은 얼림을 반 칸 옆에서 다시 얼린 쌍(F1 «운 좋은 오프셋일 뿐» 반증 실험).
+#   ⭐없으면 본문은 아무것도 단정하지 않는다 — 헬퍼가 «재계산 대기» 로 적고 빌드는 산다.
+FPS = _opt(f"{_ROOT}/outputs/freeze_plate_sensitivity.json")
+FPSC = ((FPS or {}).get("cells") or {}).get("matrice4e/belly")
+FPSF = (FPSC or {}).get("findings")
+FZF = _opt(f"{_ROOT}/outputs/sbr_grid_freeze_falsify.json")
 # ⭐표시 규약(조각 길이·hop·패딩)의 정본은 코드다 — 본문에 손으로 적지 않고 거기서 읽는다.
 from md_mapstyle import (ARM_PO, ARM_SBR, ARM_SIONNA, FLASH_HOP,   # noqa: E402
                          FLASH_PAD, auto_periods)
@@ -403,11 +413,16 @@ def _grid_anchor_cell():
     # ④ 교차 확인 — 판을 어디에 잡든 같은가 / 스위치를 끄면 옛 원장인가
     out += ["### 이 판을 믿을 근거 두 가지", ""]
     if row and (pc := row.get("plate_choice_check")):
-        out += [f"**① 판의 위치에 둔하다.** 같은 «얼림» 을 다른 봉투로 잡은 판"
+        out += [f"**① 봉투를 다르게 잡아도 이 열은 거의 안 바뀐다.** 같은 «얼림» 을 다른 봉투로 잡은 판"
                 f"(`{pc['vs'].split('::')[-1]}` — 자세 {TM['n']:,} 개 전부의 합집합)과 견주면 진폭 "
                 f"상관 {pc['amp_corr']:.3f} · 레벨 차 {pc['level_db_delta']:+.3f} dB 다. "
                 f"얼림↔안얼림이 {row['amp_corr']:.3f} 인 것과 나란히 놓으면, 차이를 만든 것은 "
-                "판의 **위치**가 아니라 판이 **움직였다는 사실**이다.", ""]
+                "**봉투 선택**이 아니라 판이 **움직였다는 사실**이다.", "",
+                "⚠ **이 항이 흔든 축은 봉투다.** 두 판이 무엇으로 갈리는지는 원장이 스스로 "
+                f"적는다 — «{pc['note_ko']}» 그 문장이 적는 차이는 **봉투**이고, 격자 **중심**을 "
+                "**반 칸** 옮기면 어떻게 되는지는 이 항이 재지 않았다. 그래서 ① 이 세우는 것은 «봉투를 몇 등분해 잡느냐가 이 "
+                "열을 안 바꾼다» 까지이고, «판의 위치가 결과를 안 바꾼다» 가 아니다 — 그 축은 "
+                "아래 절이 따로 잰다.", ""]
     if ogate.get("rows"):
         n_ok = sum(1 for v in ogate["rows"].values() if v.get("bit_identical"))
         out += [f"**② 스위치를 끄면 옛 원장이 그대로 선다.** 재계산기에서 얼리기를 끄고"
@@ -435,6 +450,9 @@ def _grid_anchor_cell():
                 f"순수 PO 는 점구름 적분이라 광선 격자 밖에 있고, PathSolver 는 경로가 성기다"
                 + (f"(자세당 중앙값 {TRR['R3']['paths_median']:.0f} 가닥)." if TRR else ".")
                 + " 그러므로 이 절의 심판은 **우리 두 팔끼리**다.", ""]
+
+    # ④-b 근거 ①·② 가 닿지 않는 축 — 판의 **위치**
+    out += _plate_position_para()
 
     # ⑤ 대가
     out += ["### 대가", "",
@@ -564,6 +582,121 @@ def _seed_para() -> list:
            "자세·거리에 딸린다). " if s8 else ". ")
         + f"반면 Σ&#124;a_p&#124;² 의 기울기는 {min(i3):+.2f}~{max(i3):+.2f} 로 평평하다. "
           "거리마다 다른 광선 수를 준 이 표는 거리마다 다른 부풀림을 섞고 있다.", ""]
+
+
+def _occlusion_plate_para() -> list:
+    """F↔G «가림만» 축의 두 dB 가 얼린 판 한 장에 얼마나 걸려 있나 — 판 3 장으로 잰다."""
+    if FPSF is None or FPSC is None:
+        return [f"⛔ 이 축의 두 dB 는 인용값이 아니다 — 판 오프셋 감사 원장이 없다({PENDING}).",
+                ""]
+    lv, pp = FPSF["occlusion_level_db"], FPSF["occlusion_ptp_db"]
+    _p0 = ((FPS or {}).get("verdict") or {}).get("p0_vs_production_max_abs_db")
+    _gate = PENDING if _p0 is None else f"{_p0:.2f} dB"
+    return [
+        f"⛔ **원장이 적은 두 자리는 레벨 {FND['occlusion_level_db']:+.2f} dB · 변조 깊이 "
+        f"{FND['occlusion_ptp_db']:+.2f} dB 이고, 둘 다 인용값이 아니다.** 광선 수·간격·판 "
+        f"크기를 그대로 두고 생산 판(P0)과 중심을 격자 반 칸"
+        f"({FPSC['spacing_m']*1e3/2:.2f} mm)씩 옮긴 같은 크기 판 둘 — 모두 "
+        f"{len(FPSC['plates'])} 장에서 같은 축을 다시 재면 레벨 차가 "
+        + " / ".join(f"{v:+.2f}" for v in lv["values"])
+        + f" dB(p-p {lv['ptp']:.2f}) · 깊이 차가 "
+        + " / ".join(f"{v:+.2f}" for v in pp["values"])
+        + f" dB(p-p {pp['ptp']:.2f}) 다"
+          "⟨`outputs/freeze_plate_sensitivity.json` : "
+          "`cells[matrice4e/belly].findings`⟩.", "",
+        "⚠ **두 축을 갈라 적는다.** 레벨 축은 판 셋에서 **부호가 갈리고** 흩어짐"
+        f"(p-p {lv['ptp']:.2f} dB)이 세 값의 평균({lv['mean']:+.2f} dB)보다 크다 — 이 셋으로는 "
+        "그 축이 0 과 다른지도 정할 수 없다. 깊이 축은 세 판 모두 절댓값이 원장 값"
+        f"({abs(FND['occlusion_ptp_db']):.2f} dB)보다 크지만 **여기서도 부호가 갈린다**. 즉 이 "
+        "원장으로 정해지는 것은 크기도 부호도 아니다.", "",
+        "⚠ 두 팔이 같은 판을 써도 **기하가 달라**(막는 팔은 동체가 있고 안 막는 팔은 동체 면이 "
+        "없다) 판 오프셋 편향이 F−G 에서 공통모드로 빠진다는 보장이 없다 — 두 원장이 그 가정을 "
+        "각각 적어 둔다(`report15b_microdoppler.json` : `…occlusion_plate_caveat_ko` / "
+        "`freeze_plate_sensitivity.json` : "
+        f"`verdict.common_mode_ko`). 판 시험은 자세를 {FPSC['n_pose']} 개로 솎아 쟀고, 생산 판"
+        f"(P0)이 생산 원장과 최대 {_gate} 안에서 붙는 것을 게이트로 확인했다 — 그러므로 위 "
+        "흩어짐은 배선 차이가 아니라 **판 오프셋**을 잰 것이다. ⭐크기를 쓰려면 오프셋 여러 "
+        "판의 **앙상블 평균**이 먼저다.", ""]
+
+
+def _plate_position_para() -> list:
+    """① 이 흔든 것은 봉투다 — 판의 **위치**를 반 칸 옮긴 시험은 따로 있고 답이 다르다."""
+    _pc = ((((FBA or {}).get("ledgers") or {}).get("report07_three_engines/sbr") or {})
+           .get("plate_choice_check"))
+    head = ["### 판의 **위치**는 따로 흔들어야 한다", ""]
+    if FZF is None or FPSC is None or FPSF is None or _pc is None:
+        return head + [f"⚠ 그 축을 흔든 원장이 아직 없다 — {PENDING}.", ""]
+    m, fz, fh = FZF["_meta"], FZF["rows"]["froz"], FZF["rows"]["froz_half"]
+    g, v = FZF["regression_gate_froz"], FZF["verdict"]
+    d = fh["level_db"] - fz["level_db"]
+    ar = FPSC["arms"]
+    return head + [
+        "⛔ **위 ① 이 견준 두 판은 봉투가 다른 판이고, 중심을 격자 반 칸 옮긴 판이 아니다 — "
+        f"반 칸 옮기면 절대 레벨이 그만큼 둔하지 않다.** 같은 자세(az {m['az_deg']:.0f}° / el "
+        f"{m['el_deg']:.0f}°)·같은 판 크기에서 중심만 격자 반 칸"
+        f"({m['spacing_m']*1e3/2:.2f} mm) 옮겨 다시 얼리면 레벨이 {fz['level_db']:.2f} → "
+        f"{fh['level_db']:.2f} dB({d:+.2f} dB) 로 간다⟨`outputs/sbr_grid_freeze_falsify.json` : "
+        f"`rows.froz` ↔ `rows.froz_half` · 자세 {int(m['nt']):,} 개 · 재현 게이트 "
+        f"{g['n_bit_identical']}/{g['n']} 비트 동일⟩. ① 의 레벨 차는 자세 {TM['n']:,} 개 열에서 "
+        f"{_pc['level_db_delta']:+.3f} dB 였다 — **자세 수도 흔든 축도 다르므로 두 수를 비로 "
+        "읽지 말고 나란히만 읽는다.** 생산 판과 반 칸 오프셋 판을 합친 "
+        f"{len(FPSC['plates'])} 장(자세 {FPSC['n_pose']} 개)으로 넓히면 이 팔의 절대 레벨이 "
+        f"p-p {ar['A_sbr_locked']['level_db']['ptp']:.2f} dB 흩어진다"
+        "⟨`outputs/freeze_plate_sensitivity.json`⟩.", "",
+        "⭐ **그래도 이 쌍에서 서는 것이 하나 있다 — 대역밖 절대 전력의 방향.** 반 칸 옮겨 다시 "
+        "얼린 판의 대역밖 절대 전력은 얼린 판보다 "
+        f"{v['F1_lucky_draw']['froz_half_over_froz_db']:+.2f} dB 이고, 자세마다 판을 다시 정하던 "
+        f"생산 판은 {v['prod_over_froz_db']:+.2f} dB 다 — «얼린 격자가 운 좋은 오프셋을 뽑았을 "
+        "뿐» 이라는 반증가설(F1)을 원장이 반증으로 적는다"
+        f"(`verdict.F1_lucky_draw.falsified = {str(v['F1_lucky_draw']['falsified']).lower()}`). "
+        "⚠ 이것은 **한 자세·판 두 장**에서 **대역밖 전력 하나**에 대해 선 것이다.", "",
+        "⛔ **이것을 «절대 dB 만 흔들리고 팔끼리의 비교는 산다» 로 일반화하지 마라 — 판 감사 "
+        "원장에서는 오히려 반대다.** 같은 판 3 장에서 팔의 절대 레벨 흩어짐은 "
+        f"`A_sbr_locked` {ar['A_sbr_locked']['level_db']['ptp']:.2f} dB · `F_blade_occ`(막음) "
+        f"{ar['F_blade_occ']['level_db']['ptp']:.2f} dB · `G_blade_free`(안 막음) "
+        f"{ar['G_blade_free']['level_db']['ptp']:.2f} dB 인데, 두 팔의 **차** F−G 는 p-p "
+        f"{FPSF['occlusion_level_db']['ptp']:.2f} dB 로 그 셋보다 크다. 뺄셈이 판 오프셋을 "
+        "공통모드로 지운다는 보장이 없다는 뜻이고, 원장도 그 가정을 정리가 아니라 검사 대상으로 "
+        "적는다(`freeze_plate_sensitivity.json` : `verdict.common_mode_ko`).", ""]
+
+
+def _resid_para() -> list:
+    """«남는 몫» 은 Sionna 팔의 절대 레벨을 물려받는다 — 시드·광선 수로 흔들어 본다."""
+    ana = (PRB or {}).get("prior_probe_reanalysis") or {}
+    runs = (PRB or {}).get("runs_512pose") or {}
+    _sbr = (TRI.get("levels_db") or {}).get("sbr")
+    ck = next((k for k in ana if k.startswith("ctrl_same_spp")), None)
+    bk = next((k for k in runs if k.startswith("LEDGER_R3")), None)
+    shk = [k for k in sorted(runs) if "_R3_" in k and not k.startswith("LEDGER_")]
+    if (RESID_DB is None or _sbr is None or bk is None or not shk
+            or ck is None or "R3" not in (ana.get(ck) or {})):
+        return [f"⛔ 이 몫을 인용하지 마라 — 시드·광선 수를 흔든 원장이 없다({PENDING}).", ""]
+
+    def _res(lvl):
+        return lvl - _sbr - CONV_DB
+
+    npose = PRB["_meta"]["n_slowtime"]
+    base, big = runs[bk]["db_of_mean_abs"], ana[ck]["R3"]["db_of_mean_abs"]
+    vals = [_res(runs[k]["db_of_mean_abs"]) for k in shk] + [_res(big)]
+    _spp = ((TRI.get("engines") or {}).get("sionna") or {}).get("spp")
+    return [
+        "⛔ **그 남는 몫을 «프롭 정반사 0 칸» 의 크기로 인용하지 마라.** 뺄셈의 한쪽이 Sionna "
+        "팔의 **절대 레벨**인데, 위 «추첨 한 장» 절이 밝힌 대로 그 레벨은 시드 한 장이고 광선 "
+        f"수에 수렴하지 않는다. 같은 기하·같은 자세열(앞 {npose} 자세 · {RANGE_M:.0f} m · az "
+        f"{TM['az_deg']:.0f}° / el {TM['el_deg']:.0f}°"
+        + (f" · spp {_spp/1e6:.1f}M" if _spp else "") + ")에서 시드만 바꾸면 이 몫이 "
+        + " · ".join(f"{_res(runs[k]['db_of_mean_abs']):+.1f} dB(`{k}`)" for k in shk)
+        + f" 다. 세 거리를 같은 광선 수 {ck.rsplit('_', 1)[-1]} 로 다시 푼 대조군에서는 "
+          f"{_res(big):+.1f} dB(레벨 {base:.1f} → {big:.1f} dB)이고, **그 대조군의 자세열은 "
+          f"원장이 적지 않는다**. 즉 이 값들은 **{min(vals):+.1f} ~ "
+          f"{max(vals):+.1f} dB · 폭 {max(vals) - min(vals):.1f} dB** 다"
+          "⟨`outputs/probe_8m_anomaly.json` : `runs_512pose` · "
+          f"`prior_probe_reanalysis.{ck}`⟩. 자세를 솎은 탓은 아니다 — 같은 잣대로 원장 팔의 앞 "
+          f"{npose} 자세는 {_res(base):+.1f} dB 라 전 자세 값과 "
+          f"{abs(_res(base) - RESID_DB):.2f} dB 차다.", "",
+        "⇒ 이 몫으로 말할 수 있는 것은 **부호와 «작지 않다» 까지**다. 정반사 0 칸이 그중 얼마를 "
+        "먹고 확산 경로 진폭의 정규화가 얼마를 먹는지는 **아직 모른다** — 가르려면 광선 수를 "
+        "올린 판에서 시드 여러 장의 앙상블이 먼저다.", ""]
 
 # ── 셀 도구 ─────────────────────────────────────────────────────────────────
 _SEEN: dict[str, list[str]] = {}
@@ -831,12 +964,19 @@ _SRC_08_2 = [
      "자 흔들림 실측(검증판)과 «대가» 표"),
     ("freeze_before_after.json", "`ledgers` · `summary` · `additivity` · `off_switch_gate`",
      "얼리기 전후 27 열과 가산성 검사"),
+    ("freeze_plate_sensitivity.json",
+     "`cells[matrice4e/belly].{arms,findings}` · `verdict`",
+     "⛔판 오프셋 감사 — 생산 판과 중심을 반 칸씩 옮긴 판이 절대 레벨·F↔G 축을 얼마나 흔드나"),
+    ("sbr_grid_freeze_falsify.json",
+     "`_meta` · `rows.{froz,froz_half}` · `regression_gate_froz` · `verdict`",
+     "판 **위치**를 반 칸 흔든 시험(F1 반증)"),
     ("report15_verdict.json", "`sionna` · `po` · `tail_excess`",
      "절 «…겹치고 위에서 갈린다» 의 두 팔과 꼬리 초과"),
     ("report15_verdict_po_grid.json", "`meta.baseline_m` · `meta.engine`",
      "그 절의 기하(기선)와 대조군 커널"),
-    ("report15b_microdoppler.json", "`cells[matrice4e/belly].findings`",
-     "가림만 떼어낸 축(F ↔ G)의 실측"),
+    ("report15b_microdoppler.json",
+     "`cells[matrice4e/belly].findings` · `…occlusion_plate_caveat_ko`",
+     "가림만 떼어낸 단일축(F ↔ G) — 두 dB 는 판 오프셋에 걸려 **인용값이 아니다**"),
     ("report15_blade_flash_ladder.json", "`_meta` · `budget_axis` · `elevation_axis` · `verdict`",
      "정반사 «0 칸» 의 예산·앙각 시험"),
     ("report00_microdoppler.json", "`specular_census` · `rows[matrice4e].farfield_m`",
@@ -902,11 +1042,11 @@ def build_08_2():
            "⭐ 셋째 열은 **물리적으로 불가능한 상태**다. 오직 «가림이 얼마나 바꾸나» 를 재는 "
            "대조군으로만 쓴다. ⚠«드론 일부만 그린 것» 이 아니다 — 동체도 프로펠러도 다 들어간다.", "",
            "⚠ **둘째와 셋째는 가림 말고 이산화 방식도 다르다**(광선 격자 ↔ 점구름). "
-           "그래서 둘의 차이가 «가림만» 의 값은 아니다. 가림만 떼어낸 깨끗한 축은 "
+           "그래서 둘의 차이가 «가림만» 의 값은 아니다. 가림만 떼어낸 단일축은 "
            "`report15b` 의 F(동체 Γ=0 — 막되 산란 안 함) ↔ G(동체 면만 제거, 정점은 남겨 "
-           "광선 격자 동일) 이고, 이 편의 자세(배 쪽)에서 그 실측은 레벨 "
-           f"{FND['occlusion_level_db']:+.2f} dB · 변조 깊이 {FND['occlusion_ptp_db']:+.2f} dB 다 "
-           "— 같은 값을 [06_3](06_3_pattern.ipynb) 이 그림과 함께 낸다."),
+           "광선 격자 동일) 이고, 이 편의 자세(배 쪽)에서 그 축의 두 dB 는 **얼린 광선 판 한 "
+           "장에 걸려 있다** — 같은 축의 그림은 [06_3](06_3_pattern.ipynb) 이 낸다.", "",
+           *_occlusion_plate_para()),
 
         md("## 세 엔진을 같은 격자에, 거리 3 / 8 / 15 m (거리축은 Sionna 열만)", "",
            "**시나리오** — 같은 기체·자세·주파수·PRF·로터별 회전수로 세 엔진을 돌리고 거기에 "
@@ -1054,9 +1194,10 @@ def build_08_2():
            "⚠⚠ **패널 사이의 레벨 차를 그대로 읽으면 안 된다.** 두 팔이 내는 양의 **단위가 "
            "다르다** — Sionna 는 1/R² 를 두 번 먹은 **수신 전력장**을 주고, 우리 커널은 표적의 "
            f"**산란 진폭**[m²]을 준다. {RANGE_M:.0f} m 에서 그 환산항만 −20log₁₀(4πR²) = "
-           f"**{CONV_DB:.1f} dB** 다. 원장의 실측 격차 {num(GAP_DB)} dB 에서 환산을 빼면 남는 것은 "
-           f"**{num(RESID_DB)} dB** 이고, 그것이 «프롭 정반사 경로가 0 칸» 으로 설명해야 할 "
-           "몫이다. 단위가 다른 두 수의 차를 물리량으로 인용하지 마라."),
+           f"**{CONV_DB:.1f} dB** 다. 원장의 실측 격차 {num(GAP_DB)} dB 에서 환산을 빼면 "
+           f"**{num(RESID_DB)} dB** 가 남는다. 단위가 다른 두 수의 차를 물리량으로 인용하지 "
+           "마라.", "",
+           *_resid_para()),
 
         md("## 스톡 PathSolver 와 가림 없는 대조군이 날개끝 아래에서 겹치고 위에서 갈린다", "",
            embed("report07_f2"), "",
@@ -1259,7 +1400,12 @@ def build_08_3():
 def build_08_4():
     _CUR[0] = "06_4"
     # ⭐ §1 의 «거리 비용» 을 **두 팔에서 실제로 잰** 원장 셋 — 그림 f9 (c) 가 같은 값을 그린다.
-    #    자세 수가 셋 다 4096 이라 «자세당 벽시계 초» 로 바로 견준다. 없는 칸은 지어내지 않는다.
+    #    ⛔ 2026-09-01 감사 — 자세 수는 셋 다 4096 이지만, 그렇다고 «자세당 벽시계 초» 로 바로
+    #    견줄 수 있는 것은 아니다. S 팔 3 · 15 m 는 샤드 없는 한 프로세스의 time.time() 한
+    #    구간이고(`benchmark/report07_three_engine_ranges.py`), S 팔 40 m 와 B 팔 세 칸은
+    #    샤드로 쪼개 돈 초의 **합**이다. 원장은 그 합만 담아 안의 산포를 감추므로, 아래
+    #    _shard_rows 가 원본 샤드에서 산포를 직접 읽어 본문에 같이 적는다. 없는 칸은
+    #    지어내지 않는다.
     _DK = _opt(f"{_ROOT}/outputs/deck_ours_by_range.json")
     _TER = _opt(f"{_ROOT}/outputs/report07_three_engine_ranges.json")
     _R40 = _opt(f"{_ROOT}/outputs/report07_range40_raybudget.json")
@@ -1307,6 +1453,77 @@ def build_08_4():
     _big_poses = _NOL if _bignp is None else f"{_bignp:,} 개"
     _minus = (lambda v, f="{:.0f}": f.format(v).replace("-", "−"))
 
+    # ⛔ 위 «자세당 초» 안의 산포 — 원장이 담은 것은 샤드 초의 **합** 뿐이라 샤드 하나하나를
+    #    원본 npz 에서 직접 읽는다. 파일 목록도 손으로 적지 않고 원장의 `rows[*].shards` 를
+    #    쓴다. 하나라도 못 읽으면 빈 목록을 돌려 본문이 «원장 없음» 으로 물러난다.
+    def _shard_rows(rel_paths):
+        """샤드마다 (자세당 초, 자세 수)."""
+        try:
+            import numpy as _np
+        except Exception:
+            return []
+        out = []
+        for _rp in rel_paths:
+            _f = f"{_ROOT}/outputs/{_rp}"
+            if not os.path.exists(_f):
+                return []
+            _z = _np.load(_f)
+            _k = set(_z.files)
+            _n = int(_z["idx"].size) if "idx" in _k else 0
+            if not _n:
+                return []
+            if "secs" in _k:                                  # ours_range_shards 규약
+                _s = float(_z["secs"])
+            elif "meta" in _k and _z["meta"].size >= 6:       # range40 규약 — meta[5] = 초
+                _s = float(_z["meta"][5])
+            else:
+                return []
+            out.append((_s / _n, _n))
+        return out
+
+    _rows_B = {k: _shard_rows([f"ours_range_shards/R{k}_{i:02d}.npz" for i in range(8)])
+               for k in ("3", "15", "40")}
+    _rows_S40 = _shard_rows(_rule[0]["shards"]) if (_R40 and _rule) else []
+    _rows_S4G = sum((_shard_rows(r["shards"]) for r in (_huge if _R40 else [])), [])
+
+    def _spp(rows):
+        return sorted(r[0] for r in rows)
+
+    def _npo(*rows):
+        """샤드별 자세 수 — 다 같으면 «512 개», 갈리면 «683·682 개»."""
+        _u = sorted({r[1] for rs in rows for r in rs}, reverse=True)
+        return _NOL if not _u else "·".join(f"{x:,}" for x in _u) + " 개"
+
+    _sh_B = {k: _spp(v) for k, v in _rows_B.items()}
+    _sh_S40, _sh_S4G = _spp(_rows_S40), sorted(_spp(_rows_S4G))
+
+    def _span(v, fmt="{:.3f}"):
+        return _NOL if not v else f"{fmt.format(v[0])}~{fmt.format(v[-1])} s"
+
+    def _fold(v):
+        return _NOL if not v or not v[0] else f"{v[-1] / v[0]:.1f} 배"
+
+    def _pairs(num, den, fmt="{:.2f}"):
+        """두 팔의 샤드를 하나씩 짝지은 비의 폭 — 1 배를 가로지르면 순서가 안 정해진다."""
+        if not num or not den:
+            return _NOL
+        _rr = sorted(a / b for a in num for b in den)
+        return f"{fmt.format(_rr[0])}~{fmt.format(_rr[-1])} 배"
+
+    _nsh = (lambda v: _NOL if not v else f"{len(v)} 샤드")
+    _npair = (lambda a, b: _NOL if not a or not b else f"{len(a) * len(b):,} 짝")
+    _pair03 = _pairs(_sh_B["3"], [_ps[0]] if _ps[0] else [])
+    _pair15 = _pairs(_sh_B["15"], [_ps[1]] if _ps[1] else [])
+    _pair40 = _pairs(_sh_B["40"], _sh_S40)
+    _pair_bud = _pairs(_sh_S4G, _sh_S40, "{:.1f}")
+    _pair_4g_b = _pairs(_sh_S4G, _sh_B["40"], "{:.1f}")
+    _band = None if None in _our else (max(_our) - min(_our))
+    _band_s = _NOL if _band is None else f"{_band:.3f} s"
+    _band_x = (f"{(_sh_B['15'][-1] - _sh_B['15'][0]) / _band:.1f} 배"
+               if (_band and _sh_B["15"]) else _NOL)
+    _our_one = _NOL if None in _our else f"{sum(_our) / len(_our):.1f} s"
+    _gr_sbr = TRI["engines"]["sbr"]["grid_ref"]
+
     # ⭐ 편 끝의 «## 출처» — 06_3·06_5 와 같은 규약. 파일이 디스크에 있는지까지 확인해 적고,
     #    «팔» 칸으로 어느 엔진이 그 값을 냈는지를 못 박는다.
     _src_08_4 = [
@@ -1320,11 +1537,18 @@ def build_08_4():
          "`_meta.{n,grid_note_ko}` · `ranges.{R3,R15}.{spp,seconds}`", "S",
          "§1 비용표 3 · 15 m"),
         ("report07_range40_raybudget.json",
-         "`_meta.range_m` · `rows[*].{spp,seconds,n_poses}`", "S",
-         "§1 비용표 40 m 두 예산"),
+         "`_meta.range_m` · `rows[*].{spp,seconds,n_poses,shards}`", "S",
+         "§1 비용표 40 m 두 예산 · ⛔ 산포를 읽을 샤드 파일 목록"),
+        ("range40_178M", "위 `rows[*].shards` 가 가리키는 `*.npz` : `meta[5]`(초) ÷ "
+         "`idx.size` — 40 m 규칙값 시드당 여덟 샤드 중 여섯", "S", "§1 ⛔ S 팔 샤드 산포"),
+        ("range40_shards", "같은 목록의 나머지 — 규칙값의 남은 두 샤드와 4,000M 발 "
+         "시드당 여섯 샤드(⚠ 이 디렉터리는 목록 밖 파일도 담는다)", "S",
+         "§1 ⛔ S 팔 샤드 산포"),
         ("deck_ours_by_range.json",
          "`_meta.{drone,az_deg,el_deg,fc_hz,prf_hz,n}` · `ranges.{3,15,40}.cpu_seconds`",
          "B", "§1 비용표 우리 팔 · 그림 f9 (c)"),
+        ("ours_range_shards", "`R{3,15,40}_*.npz`(거리마다 여덟) : `secs` ÷ `idx.size`",
+         "B", "§1 ⛔ B 팔 샤드 산포"),
         ("report00_microdoppler.json", "`rows[matrice4e].farfield_m`", "해",
          "§1 원거리장 경계"),
         ("report15_probe.json",
@@ -1417,15 +1641,55 @@ def build_08_4():
            + (f"{(100/40)**2:.1f}" if RBT is None else
               f"{(100/RBT['_meta']['range_m'])**2:.1f}")
            + " 배가 필요하다. 그 규칙은 **광선 수**의 규칙이므로, 비용은 따로 잰다.", "",
-           "⭐ **비용을 두 팔에서 실제로 쟀다** — 아래는 자세당 벽시계 초다. 세 원장이 같은 판이라 "
-           "바로 견줄 수 있다(" + _cost_setup + "). 그림 f9 (c) 가 이 표를 그린다.", "",
+           "⭐ **비용을 두 팔에서 실제로 쟀다** — 아래는 자세당 초다. **설정**은 세 원장이 "
+           "같다(" + _cost_setup + "). 그림 f9 (c) 가 이 표를 그린다.", "",
            "| 어느 팔 | 광선 예산 | 3 m | 15 m | 40 m | 원장 |",
            "|---|---|---|---|---|---|",
            _cost_rows, "",
-           "⭐ **정본 서술** — 가까운 거리에서 최소 예산이면 PathSolver 가 싸고, 멀어지거나 예산을 "
-           f"올리면 우리 커널이 싸다. 40 m 에서 광선을 {_r_rays} 배 올리면 자세당 초가 "
-           f"{_r_budget} 배로 뛴다 — 자세 {_big_poses}를 쌓으면 한 판이 {_big_hours}이다. "
-           f"우리 팔은 3 → 40 m 를 {_our_span} 폭 안에서 돈다.", "",
+           "⛔ **설정이 같다고 초까지 바로 견줄 수 있는 것은 아니다 — 이 표의 초는 칸마다 "
+           "다르게 잰 값이다.** S 팔 3 · 15 m 는 샤드 없이 **한 프로세스**가 잰 벽시계 한 "
+           "구간이고(`benchmark/report07_three_engine_ranges.py`), S 팔 40 m 두 칸과 B 팔 "
+           "세 칸은 **샤드로 쪼개 돈 초의 합**이다 — «자세당 벽시계 초» 가 아니라 «자세당 "
+           "샤드 초 합» 이다. 그 합 안의 산포는 원장이 감추므로 샤드 기록을 직접 연다. B 팔 "
+           f"40 m 는 샤드마다 {_span(_sh_B['40'])} 로 {_fold(_sh_B['40'])} 흔들리고"
+           f"(3 m {_span(_sh_B['3'])} · {_fold(_sh_B['3'])} · 15 m {_span(_sh_B['15'])} · "
+           f"{_fold(_sh_B['15'])}), 같은 40 m 의 S 팔 규칙값은 {_span(_sh_S40)}"
+           f"({_fold(_sh_S40)})이다. **이 네 줄은 샤드마다 자세 수가 같고**"
+           f"(자세 {_npo(_rows_B['3'], _rows_B['15'], _rows_B['40'], _rows_S40)}씩), B 팔은 "
+           "얼린 격자라 자세당 연산까지 같은데도 이만큼 갈린다. (같은 40 m 의 4,000M 발 "
+           f"{_nsh(_sh_S4G)}는 자세 수가 {_npo(_rows_S4G)}로 갈려 자세당으로 나눠 적으면 "
+           f"{_span(_sh_S4G, '{:.2f}')} · {_fold(_sh_S4G)}다.) ⚠ **무엇이 이 흔들림을 "
+           "만들었는지는 이 원장으로 정할 수 없다** — 샤드마다 시각 기록이 없다. 그림 "
+           "f9 (c) 의 막대도 같은 초를 그린 것이라 같은 주의가 붙는다.", "",
+           "⭐ **이 절이 확정하는 것 ① — 예산 축.** 40 m 에서 **같은 팔·같은 원장 안에서** "
+           f"광선을 {_r_rays} 배 올리면 자세당 초가 {_r_budget} 배로 뛴다 — 자세 "
+           f"{_big_poses}를 쌓으면 한 판이 {_big_hours}이다. 이 배수는 두 예산의 샤드를 "
+           f"어떻게 짝지어도({_npair(_sh_S4G, _sh_S40)} 전수) {_pair_bud} 안에 있다 — "
+           "1 배에서 멀찍이 떨어져 있어 위 ⛔ 의 흔들림으로는 안 뒤집힌다.", "",
+           "⚠ **이 절이 확정하지 못하는 것 — 거리별 두 팔의 순서.** 위 ⛔ 대로 두 팔의 초는 "
+           "다르게 잰 값이라, 남은 폭을 샤드 짝짓기로 적어 두는 데까지만 간다 — B/S 비가 "
+           f"3 m {_pair03} · 15 m {_pair15} · 40 m 규칙 예산 {_pair40}다"
+           f"(3 · 15 m 는 S 쪽이 샤드 없는 **한 수**라 B 팔 {_nsh(_sh_B['3'])}를 그 한 수에 "
+           f"대 본 것이고, 40 m 는 {_npair(_sh_B['40'], _sh_S40)} 전수다). **15 m 와 40 m "
+           "는 1 배를 가로지른다 — 어느 팔이 싼지 이 원장으로는 정할 수 없다.** 모든 짝이 "
+           "1 배 위에 서는 것은 3 m 하나뿐이라, 여기서 적을 수 있는 말은 «최소 예산·가까운 "
+           "거리에서는 PathSolver 가 싸다» 까지다(여유의 크기는 확정 못 한다). 15 · 40 m 의 "
+           "순서는 두 팔을 같은 부하에서 다시 재기 전에는 **판정 불가**다. ⚠ "
+           "`docs/RETRACTION_LOG.md` R26 의 정본 서술 «… 멀어지거나 예산을 올리면 우리 "
+           "커널이 싸다» 가운데 **«멀어지거나» 쪽 절반**이 여기서 내려간다 — R26 은 원장 "
+           "합계만 인용하고 이 샤드 산포는 적지 않는다. 남는 것은 «예산을 올리면» 쪽이다.", "",
+           "⭐ **이 절이 확정하는 것 ② — 우리 팔은 거리에 비용이 안 걸린다. 잰 게 아니라 "
+           "구조다.** `benchmark/deck_ours_by_range.py` 가 `grid_ref_from` 으로 **얼린 격자 "
+           "한 벌**을 자세 합집합에서 한 번 만들어 세 거리가 그대로 쓴다. 그래서 "
+           "`rcs_sbr._grid_for` 가 돌려주는 (ctr, Rout, n) 이 세 거리에서 같고 광선 격자도 "
+           "같다. `range_m` 은 `rcs_sbr.sbr_field` 의 위상 "
+           "exp() 안의 값 하나만 바꾼다 — 자세당 연산 수가 같다. ⚠ 그러므로 원장의 "
+           f"{' / '.join(_sc(v) for v in _our)} 는 거리의 함수가 **아니다.** 그 폭"
+           f"({_our_span} · 최대−최소 {_band_s})이 무엇의 함수인지는 위 ⛔ 대로 이 원장으로 "
+           f"정할 수 없고, 크기만 적어 두면 같은 거리 **안**에서 {_nsh(_sh_B['15'])}(자세 "
+           f"{_npo(_rows_B['15'])}씩 · 얼린 격자라 일이 같은 자세들)의 자세당 초가 15 m 에서 "
+           f"{_span(_sh_B['15'])} 로 흩어지고, 그 산포가 거리 간 폭의 {_band_x}다. 인용할 "
+           f"때는 **자세당 ≈{_our_one} 한 수**로 쓴다.", "",
            "⚠ **거리축을 다시 푼 팔을 밝힌다.** 이 절의 스윕과 06_2 의 거리 표에서 세 거리를 다시 "
            "푼 광선 팔은 **PathSolver 하나**다 — `report07_three_engine_ranges.json` 의 "
            "`_meta.grid_note_ko` 가 sbr·po 열을 3 m 원장에서 그대로 옮긴다고 적는다. 우리 팔의 "
@@ -1436,10 +1700,15 @@ def build_08_4():
            "출처 `report15_probe.json`) 밖에서는 무늬가 거리에 **불변**이고 수신 레벨만 1/R² 로 "
            f"내려간다. ⚠ 같은 2D²/λ 를 이 스윕 원장은 D 를 조금 달리 잡아 "
            f"{RGM['farfield_boundary_m']:.2f} m 로 적는다 — 이 편은 앞의 한 값으로 쓴다.", "",
-           "⭐ 그러므로 원거리 마이크로도플러에서 팔을 고르는 잣대는 **예산**이다 — 40 m 규칙 "
-           f"예산에서 PathSolver 는 자세당 {_sc(_ps[2])} 로 우리 팔({_sc(_our[2])}) 아래에 "
-           f"있고, 같은 거리에서 예산을 {_r_rays} 배로 올리면 {_sc(_big, '{:.2f} s')} 로 우리 "
-           f"팔의 {_r_ours40} 배가 된다."),
+           "⭐ 그러므로 원거리 마이크로도플러에서 팔을 고르는 잣대는 **예산**이다 — 거리가 "
+           f"아니다. 40 m 에서 광선을 {_r_rays} 배(규칙값 → 4,000M 발) 올리면 PathSolver 는 "
+           f"자세당 {_sc(_big, '{:.2f} s')} 가 되어 우리 팔({_sc(_our[2])})의 {_r_ours40} "
+           f"배다 — 샤드를 어떻게 짝지어도({_npair(_sh_S4G, _sh_B['40'])} 전수) "
+           f"{_pair_4g_b} 안이라 1 배를 안 가로지른다. ⛔ 반대로 **40 m 규칙 예산에서의 두 "
+           "팔 순서는 철회한다** — 옛 문장은 «PathSolver "
+           f"{_sc(_ps[2])} 가 우리 팔 {_sc(_our[2])} 아래» 였지만 그 두 수는 다르게 잰 "
+           f"값이고, 샤드 짝짓기로는 {_pair40}로 흩어져 1 배를 가로지른다. 이 눈금에서 "
+           "확실한 것은 **예산 축 하나**다."),
 
         md("## 같은 채널에 5G 파형을 실제로 태우면", "",
            "**시나리오** — 채널은 **B 팔**(우리 SBR+PO · `rcs_sbr.sbr_field`)이 낸 06_3 의 "
@@ -1592,9 +1861,10 @@ def build_08_4():
            "**원장 없음 두 자리** — 부록 표의 f0c 경로 수(렌더가 stdout 으로만 적는다) · "
            "얼린 판 위의 5G 채널(§2 의 열은 얼기 전 판이다). 둘 다 본문에 «원장 없음»·«얼기 전 "
            "판» 으로 적었고 그 자리의 수치는 인용에서 뺐다.", "",
-           "⚠ **두 절은 다른 축을 잰다** — §1 은 광선 비용(**S**·**B** 두 팔의 자세당 벽시계 "
-           "초 · 같은 자세 수), §2 는 조명원 반복률(**B** 팔 채널 하나)이다. 두 절의 절대 "
-           "수치를 섞어 읽으면 어긋난다."),
+           "⚠ **두 절은 다른 축을 잰다** — §1 은 광선 비용(**S**·**B** 두 팔의 자세당 초 · "
+           "같은 자세 수), §2 는 조명원 반복률(**B** 팔 채널 하나)이다. 두 절의 절대 수치를 "
+           "섞어 읽으면 어긋난다. ⛔ §1 의 초는 칸마다 다르게 잰 값이다 — 두 팔의 순서는 "
+           "§1 의 ⛔ 블록이 적은 폭 안에서만 읽어라."),
     ]
     write("06_4", "sampling", c)
 

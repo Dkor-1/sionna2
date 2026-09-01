@@ -26,6 +26,7 @@ build_part03_target_mesh.py — 부 3 「표적 메쉬」 → 편 15~17
 """
 from __future__ import annotations
 
+import math
 import os
 import sys
 
@@ -117,6 +118,91 @@ _RMS_CELLS = [(PH4, "d_sigma_rms_db"), (RCAD, "typhoon.d_sigma_rms_db"),
               (COM, "m600.d_sigma_rms_db")]
 _RMS_LO, _RMS_HI = (min(_RMS_CELLS, key=lambda sk: float(fetch(sk))),
                     max(_RMS_CELLS, key=lambda sk: float(fetch(sk))))
+
+
+def _cmp_stats(src: str, pre: str = "") -> dict:
+    """대조 원장 하나의 방위 배열에서 **격자와 짝짓기의 몫**을 다시 잰다.
+
+    ⚠ Δ 방위평균 σ 와 자세별 RMS 는 «방위 격자가 몇 칸이냐 · 두 메쉬를 어떻게 짝지었느냐» 에
+       걸려 있다. 그 크기를 본문에 숫자로 적으려면 값이 필요한데, 손으로 적으면 원장이 움직일 때
+       조용히 틀어진다. 그래서 원장의 `az` · `sigma_ours` · `sigma_real` · `bbox_*` 배열만으로
+       계산한다 — **난수를 쓰지 않으므로 매 실행 같은 값이 나온다.**
+
+    원장이 이미 가진 값(`d_sigma_db` · `d_sigma_rms_db`)은 여기서 만들지 않는다. 본문은 그 둘을
+    `_n()` 으로 원장에서 그대로 인용한다."""
+    az = [float(v) for v in fetch((src, pre + "az"))]
+    so = [float(v) for v in fetch((src, pre + "sigma_ours"))]
+    sr = [float(v) for v in fetch((src, pre + "sigma_real"))]
+    n = len(az)
+
+    def db(x):
+        return 10.0 * math.log10(x)
+
+    def avg(x):
+        return sum(x) / len(x)
+
+    def dlt(o, r):
+        return db(avg(o)) - db(avg(r))
+
+    def rms(o):
+        return math.sqrt(avg([(db(o[i]) - db(sr[i])) ** 2 for i in range(n)]))
+
+    def ac1(x):
+        """이웃 칸 lag-1 자기상관 — 칸 하나가 옆 칸을 얼마나 예측하는가."""
+        y = [db(v) for v in x]
+        m = avg(y)
+        y = [v - m for v in y]
+        return sum(y[i] * y[i - 1] for i in range(n)) / sum(v * v for v in y)
+
+    #  ① 방위 칸 재표본 — 칸 하나씩 빼고 Δ 를 다시 낸 잭나이프 표준오차.
+    jk = [dlt(so[:i] + so[i + 1:], sr[:i] + sr[i + 1:]) for i in range(n)]
+    jm = avg(jk)
+    se = math.sqrt((n - 1) / n * sum((v - jm) ** 2 for v in jk))
+    #  ② 짝짓기 — 우리 쪽 방위열을 한 칸씩 돌려 가며 RMS 를 다시 낸다(회전 널 전수).
+    #     관측값은 회전 0 이라 이 목록 안에 들어 있고, 그 순위가 곧 우리 짝짓기의 자리다.
+    rl = [rms(so[k:] + so[:k]) for k in range(n)]
+    sl = sorted(rl)
+    #  ③ 로브 폭의 눈금 λ/2D — D 는 실물 메쉬 bbox 의 수평 최대 변.
+    bb = [float(v) for v in fetch((src, pre + "bbox_real_mm"))]
+    bo = [float(v) for v in fetch((src, pre + "bbox_ours_mm"))]
+    lam = 299792458.0 / float(fetch((src, pre + "fc")))
+    #  ④ az 가 60° 의 배수인 칸 — 60° 주기가 격자 칸에 정확히 떨어지는 자리다.
+    on = [i for i, a in enumerate(az) if a % 60.0 == 0.0]
+    return dict(
+        n=n, step=az[1] - az[0], se=se,
+        lobe=math.degrees(lam / (2.0 * max(bb[0], bb[1]) / 1000.0)),
+        roll_lo=sl[0], roll_hi=sl[-1],
+        roll_rank=sum(1 for v in rl if v < rl[0]) + 1,
+        ac_real=ac1(sr), ac_ours=ac1(so),
+        d_even=dlt(so[0::2], sr[0::2]), d_odd=dlt(so[1::2], sr[1::2]),
+        arg_real=az[max(range(n), key=lambda i: sr[i])],
+        arg_ours=az[max(range(n), key=lambda i: so[i])],
+        bbox_rel=100.0 * max(abs(o - r) / r for o, r in zip(bo, bb)),
+        sym_flat=100.0 * len(on) / n,
+        sym_ours=100.0 * sum(so[i] for i in on) / sum(so),
+        sym_real=100.0 * sum(sr[i] for i in on) / sum(sr))
+
+
+#: 세 대조를 같은 순서(Phantom 4 · Typhoon · M600)로 세워 둔다 — 본문은 이 순서로만 인용한다.
+_CS_ORDER = (("Phantom 4", "phantom4"), ("Typhoon", "typhoon"), ("M600", "m600"))
+_CS = {"phantom4": _cmp_stats(PH4), "typhoon": _cmp_stats(RCAD, "typhoon."),
+       "m600": _cmp_stats(COM, "m600.")}
+
+
+def _cs(key: str, fmt: str = "{:.1f}", sep: str = "·") -> str:
+    """세 대조의 같은 항목을 그 순서대로 잇는다."""
+    return sep.join(fmt.format(_CS[k][key]) for _, k in _CS_ORDER)
+
+
+def _cs_rng(lo: str, hi: str, fmt: str = "{:.1f}") -> str:
+    """세 대조의 «lo~hi» 범위를 기체 이름과 함께 잇는다."""
+    return " · ".join(f"{nm} {fmt.format(_CS[k][lo])}~{fmt.format(_CS[k][hi])}"
+                      for nm, k in _CS_ORDER)
+
+
+#: 여섯 패턴(세 대조 × 실물·우리)의 이웃 칸 lag-1 자기상관 범위.
+_AC_LO = min(v[k] for v in _CS.values() for k in ("ac_real", "ac_ours"))
+_AC_HI = max(v[k] for v in _CS.values() for k in ("ac_real", "ac_ours"))
 
 #: CAD 어셈블리 중 **우리 기체에 대응하는** 것 — maps_to 가 «—» 가 아닌 항목.
 _CAD_MAPPED = [a["maps_to"] for a in fetch((DER, "cad.assemblies"))
@@ -299,15 +385,19 @@ def report_16_mesh_vs_real():
                 f"(치수 {_n('cad.n_vs_published', DER, '{:.0f}', '개')}, 독립) 다.",
 
                 f"실물 유래 메쉬와의 Δ 방위평균 σ 는 "
-                f"{_n('d_sigma_db', PH4, '{:+.2f}')} · "
-                f"{_n('typhoon.d_sigma_db', RCAD, '{:+.2f}')} · "
-                f"{_n('m600.d_sigma_db', COM, '{:+.2f}', 'dB')} 이고, 자세별 RMS 는 세 대조 "
+                f"{_n('d_sigma_db', PH4, '{:+.1f}')} · "
+                f"{_n('typhoon.d_sigma_db', RCAD, '{:+.1f}')} · "
+                f"{_n('m600.d_sigma_db', COM, '{:+.1f}', 'dB')} 이고, 자세별 RMS 는 세 대조 "
                 f"전체에서 {_n(_RMS_LO[1], _RMS_LO[0], '{:.1f}')}~"
                 f"{_n(_RMS_HI[1], _RMS_HI[0], '{:.1f}', 'dB')} 다 — 양쪽 메쉬를 전부 PEC 로 "
-                f"덮고 껍데기 형상만 맞댄 값이다.",
+                f"덮고 껍데기 형상만 맞댄 값이고, 방위 {_naz(PH4)}·"
+                f"{_naz(RCAD, 'typhoon.az')}·{_naz(COM, 'm600.az')}칸을 하나씩 빼는 잭나이프 "
+                f"표준오차가 {_cs('se')} dB 다. 인용은 소수 첫째 자리까지로 정한다.",
 
-                f"⭐ 이 세 자가 σ 의 **인용 단위**를 정한다 — 방위평균과 로브 위치로 인용하고, "
-                f"널 깊이는 자세별 RMS 열에 그 크기가 그대로 적혀 있다.",
+                f"⭐ 이 세 자가 σ 의 **인용 단위**를 정한다 — 인용 단위는 **Δ 방위평균 σ** "
+                f"하나이고 소수 첫째 자리까지다. 로브 위치와 널 깊이는 인용 단위에서 뺐다: "
+                f"방위 격자가 {_cs('step')}° 이고, 두 메쉬의 방위 칸을 첨자 순서로 짝짓는다. "
+                f"그 둘을 다시 재는 일은 다음 단계 표에 세웠다.",
             ],
             method=[
                 ("사진 정합", "카메라 자세·원근·배율·위치와 로터별 프로펠러 위상을 맞춘 뒤 겹친다 "
@@ -315,7 +405,8 @@ def report_16_mesh_vs_real():
                 ("IoU 의 눈금", "같은 메쉬로 만든 가짜 사진을 같은 파이프라인에 넣어 자기복제 "
                               "상한을 잰다 — 그 값이 이 검사가 낼 수 있는 최고점이다"),
                 ("CAD 의 바닥", "제조사 CAD 와 자사 발행 제원이 서로 갈리는 폭을 함께 잰다 — "
-                              "그 폭 아래로는 이 검사가 아무것도 못 가른다"),
+                              "그 폭 아래로는 이 검사가 아무것도 못 가른다. 원장이 "
+                              "`floor_caveat` 를 단 항목은 그 폭을 인용할 때 따로 표시한다"),
                 ("CAD 열의 지위", "x500v2 메쉬는 그 CAD 치수표로 지었다 — CAD 열은 설계 의도가 "
                                 "메쉬로 실현됐는지의 검사이고, 독립 눈금은 발행 제원 열과 "
                                 "제조사 CAD↔제원 간극이다 ⟨" + DER + " : cad.note⟩"),
@@ -324,7 +415,18 @@ def report_16_mesh_vs_real():
                                 "로 덮고(`src/mesh_compare.py` `sigma_pec()`) Phantom 4 는 "
                                 "프롭·짐벌을 뺀 채(`src/compare_phantom_scan.py`) "
                                 f"el {_n('el', PH4, '{:.0f}', '°')} · {_ghz(PH4, 'fc')} · 방위 "
-                                f"{_naz(PH4)}·{_naz(RCAD, 'typhoon.az')}칸에서 잰다"),
+                                f"{_naz(PH4)}·{_naz(RCAD, 'typhoon.az')}·"
+                                f"{_naz(COM, 'm600.az')}칸에서 잰다"),
+                ("Typhoon 대조의 부위와 정합", "참조는 `main_body_remeshed_v3.stl` 한 개이고, 우리 "
+                                          "쪽은 `build_frame_cad` 가 내는 여덟 그룹 전부다"
+                                          "(body·canopy·motor·camera·gear·gear_cf·battery·pcb "
+                                          "— 프롭만 뺀다). `benchmark/compare_real_cad.py` "
+                                          "`ours_body_only()` 가 그 STL 의 bbox 를 우리 spec 의 "
+                                          "`envelope_mm` 으로 주입한 뒤 축별로 `A.scaled(...)` 를 "
+                                          "한 번 더 걸어 우리 외형을 참조에 맞춘다 — 두 쪽이 같은 "
+                                          "부위인지는 다음 단계에서 확인한다"),
+                ("요각", "두 메쉬의 방위 칸을 첨자 순서로 짝짓는다 — 우리 짝짓기가 회전 널의 "
+                       "어디쯤인지를 결과와 함께 적는다"),
             ],
             repro=_repro([_DERIVE_CMD, "PYTHONPATH=src python src/viz_mesh_photo.py"],
                          [DER, PH4, RCAD, COM],
@@ -374,27 +476,61 @@ def report_16_mesh_vs_real():
                    f"(치수 {_n('cad.n_vs_cad', DER, '{:.0f}', '개')}, 설계 의도 실현) · 발행 "
                    f"제원 대비 {_n('cad.worst_vs_published_pct', DER, '{:.2f}', '%')} "
                    f"(치수 {_n('cad.n_vs_published', DER, '{:.0f}', '개')}, 독립)",
-                   f"독립 눈금 — 제조사 CAD ↔ 자사 발행 제원이 "
-                   f"{_n('cad.floor_pct', DER, '{:.2f}', '%')} 까지 갈린다"],
+                   f"독립 눈금 — 제조사 CAD ↔ 자사 발행 제원 간극은 `floor_caveat` 가 달린 "
+                   f"{_n('cad.floor_aircraft', DER)} 「{_n('cad.floor_dim', DER)}」 에서 "
+                   f"{_n('cad.floor_pct', DER, '{:.2f}', '%')}, 그 항목을 뺀 나머지에서 최대 "
+                   f"{_n('cad.floor_second_pct', DER, '{:.2f}', '%')}"
+                   f"({_n('cad.floor_second_aircraft', DER)} "
+                   f"「{_n('cad.floor_second_dim', DER)}」) 다"],
                   ["실물 유래 메쉬",
                    f"{_n('name_real', PH4)} 스캔(프롭·짐벌 제외) · "
-                   f"{_n('typhoon.name_real', RCAD)} · {_n('m600.name_real', COM)} — 양쪽 전부 "
-                   f"PEC",
+                   f"{_n('typhoon.name_real', RCAD)} — 참조는 동체 STL 한 개, 우리 쪽은 프롭만 뺀 "
+                   f"여덟 그룹 · {_n('m600.name_real', COM)} — 양쪽 전부 PEC",
                    f"Δ 방위평균 σ (B) · el {_n('el', PH4, '{:.0f}', '°')} · "
-                   f"{_ghz(PH4, 'fc')} · 방위 {_naz(PH4)}·{_naz(RCAD, 'typhoon.az')}칸",
-                   f"{_n('d_sigma_db', PH4, '{:+.2f}')} · "
-                   f"{_n('typhoon.d_sigma_db', RCAD, '{:+.2f}')} · "
-                   f"{_n('m600.d_sigma_db', COM, '{:+.2f}', 'dB')}",
+                   f"{_ghz(PH4, 'fc')} · 방위 {_naz(PH4)}·{_naz(RCAD, 'typhoon.az')}·"
+                   f"{_naz(COM, 'm600.az')}칸",
+                   f"{_n('d_sigma_db', PH4, '{:+.1f}')} · "
+                   f"{_n('typhoon.d_sigma_db', RCAD, '{:+.1f}')} ⚠ · "
+                   f"{_n('m600.d_sigma_db', COM, '{:+.1f}', 'dB')} ⛔",
+                   f"**방위 격자 자체** — 칸 하나씩 빼는 잭나이프 표준오차 {_cs('se')} dB. "
                    f"자세별 RMS {_n(_RMS_LO[1], _RMS_LO[0], '{:.1f}')}~"
-                   f"{_n(_RMS_HI[1], _RMS_HI[0], '{:.1f}', 'dB')}"]]), "",
+                   f"{_n(_RMS_HI[1], _RMS_HI[0], '{:.1f}', 'dB')} 는 요각 정합 전의 값이다"]]), "",
            f"⚠ 2행의 지위는 원장이 그대로 적는다. {_n('cad.note', DER)}", "",
+           f"⚠ 2행의 바닥은 두 값을 함께 든다 — 큰 쪽 "
+           f"{_n('cad.floor_pct', DER, '{:.2f}', '%')} 에는 원장이 단서를 달아 두었고"
+           f"(`floor_caveat`: {_n('cad.floor_caveat', DER)}), 그 기체는 maps_to 가 «—» 라 우리 "
+           f"함대 밖이다. 공표 치수의 정의를 확인하는 일은 다음 단계 표에 세웠다.", "",
+           f"⚠ 3행 Typhoon 의 {_n('typhoon.d_sigma_db', RCAD, '{:+.1f}', 'dB')} 는 **외형을 "
+           f"참조에 맞춘 뒤**의 값이다 — `ours_body_only()` 가 참조 STL 의 bbox 를 우리 spec 에 "
+           f"주입하고 축별 배율을 한 번 더 건다. 그 자국이 원장에 남아 있다: 우리 bbox 와 참조 "
+           f"bbox 의 최대 상대차가 Phantom 4 {_CS['phantom4']['bbox_rel']:.1f}% · Typhoon "
+           f"{_CS['typhoon']['bbox_rel']:.0e}% · M600 {_CS['m600']['bbox_rel']:.1f}% 다. 정합을 "
+           f"끈 채로 다시 돌리는 일은 다음 단계 표에 세웠다.", "",
+           f"⛔ 3행 M600 의 {_n('m600.d_sigma_db', COM, '{:+.1f}', 'dB')} 는 방위 격자와 함께 "
+           f"움직인다 — 같은 스윕을 한 칸씩 걸러 둘로 나누면 Δ 가 "
+           f"{_CS['m600']['d_even']:+.1f} 와 {_CS['m600']['d_odd']:+.1f} dB 로 갈린다"
+           f"(Phantom 4 {_CS['phantom4']['d_even']:+.1f}/{_CS['phantom4']['d_odd']:+.1f} · "
+           f"Typhoon {_CS['typhoon']['d_even']:+.1f}/{_CS['typhoon']['d_odd']:+.1f} dB). az 가 "
+           f"60° 의 배수인 칸은 격자의 {_cs('sym_flat')}% 인데, σ 합에서 그 칸이 차지하는 몫은 "
+           f"우리 쪽 {_cs('sym_ours')}% · 실물 쪽 {_cs('sym_real')}% 다.", "",
            f"⚠ 3행은 재질을 지운 정규화다 — 양쪽 메쉬를 전부 PEC 로 덮고 껍데기 형상만 맞댔으므로, "
            f"절 3 의 재질 가중 |Γ| 표·Σ|Γ|A 와는 다른 눈금 위에 선다."),
 
         md("## 이 표가 σ 의 인용 단위를 정한다", "",
-           "**방위평균**과 **로브**(방위를 돌릴 때 σ 가 솟는 봉우리) 위치로 인용하고, "
-           "**널 깊이**(그 봉우리 사이에서 σ 가 꺼지는 골이 얼마나 깊은지)는 메쉬 세부에 걸리므로 "
-           "자세별 RMS 열에 그 크기가 그대로 적혀 있다.", "",
+           "인용 단위는 **Δ 방위평균 σ** 하나이고, 소수 첫째 자리까지다. **로브**(방위를 돌릴 때 "
+           "σ 가 솟는 봉우리) **위치**와 **널 깊이**(그 봉우리 사이에서 σ 가 꺼지는 골의 깊이)는 "
+           "인용 단위에서 뺐다 — 아래 두 줄이 그 근거를 숫자로 적는다.", "",
+           f"⛔ **로브 위치** — 방위 격자는 {_cs('step')}° 이고, 로브 폭의 눈금 λ/2D 는 "
+           f"{_cs('lobe')}° 다(D = 실물 메쉬 bbox 의 수평 최대 변, {_ghz(PH4, 'fc')}). 이웃 칸 "
+           f"lag-1 자기상관은 여섯 패턴 전체에서 {_AC_LO:+.2f}~{_AC_HI:+.2f} 이고, 최대 σ 방위는 "
+           f"실물 {_cs('arg_real', '{:g}')}° 대 우리 {_cs('arg_ours', '{:g}')}° 다.", "",
+           f"⛔ **널 깊이** — 두 메쉬의 방위 칸을 첨자 순서로 짝짓는다. 우리 쪽 방위열을 한 칸씩 "
+           f"돌려 가며 자세별 RMS 를 다시 내면 {_cs_rng('roll_lo', 'roll_hi')} dB 사이를 오가고, "
+           f"회전 0 인 우리 짝짓기는 그 회전 널에서 "
+           f"{_CS['phantom4']['roll_rank']}/{_CS['phantom4']['n']} · "
+           f"{_CS['typhoon']['roll_rank']}/{_CS['typhoon']['n']} · "
+           f"{_CS['m600']['roll_rank']}/{_CS['m600']['n']} 번째다. 요각 정합은 다음 단계 표에 "
+           f"있다.", "",
            f"IoU 에는 눈금이 붙어 있다 — 표 오른쪽 끝의 **자기복제 상한**은 같은 메쉬로 만든 가짜 "
            f"사진을 같은 파이프라인에 넣었을 때 나오는 값, 즉 이 검사가 낼 수 있는 최고점이다. "
            f"그 값이 {_n('photo.ceiling_min', DER, '{:.3f}')}~"
@@ -412,9 +548,23 @@ def report_16_mesh_vs_real():
             ("실물 스캔 대조를 실측 대상 두 기체로 넓힌다",
              "Δ 방위평균 σ 의 크기가 우리 1차 표적에서도 같은 범위인지가 확정된다",
              ref("sim-vs-meas", short=True)),
-            ("자세별 RMS 를 널 깊이 인용 규약의 문턱으로 굳힌다",
-             "어느 자세 해상도까지 σ 를 인용해도 되는지가 숫자로 확정된다",
-             ref("anchor-ledger", short=True)),
+            ("두 메쉬의 요각을 맞춘 뒤 자세별 RMS 를 다시 낸다",
+             f"정합 뒤의 값이 널 깊이 인용 규약의 문턱으로 확정된다 — 지금 값은 회전 널 "
+             f"{_cs_rng('roll_lo', 'roll_hi')} dB 안에 있다",
+             "`src/mesh_compare.py` · `src/compare_phantom_scan.py`"),
+            ("M600 대조를 방위 격자를 반 칸 밀고 조밀하게 해서 다시 돌린다",
+             f"{_n('m600.d_sigma_db', COM, '{:+.1f}', 'dB')} 중 격자의 몫과 두 메쉬의 밝기 차 "
+             f"몫이 갈린다",
+             "`benchmark/compare_community.py`"),
+            ("Typhoon 대조를 외형 강제 정합 없이 한 번 더 돌리고, 참조 STL 이 우리 여덟 그룹과 "
+             "같은 부위인지 확인한다",
+             f"{_n('typhoon.d_sigma_db', RCAD, '{:+.1f}', 'dB')} 중 제원에서 지은 메쉬의 몫이 "
+             f"확정된다",
+             "`benchmark/compare_real_cad.py` `ours_body_only()`"),
+            ("Astro 「Motor-axis diagonal」 의 공표 치수 정의를 확인한다",
+             f"CAD 바닥의 {_n('cad.floor_pct', DER, '{:.2f}', '%')} 가 실제 간극인지 치수 정의 "
+             f"차이인지가 갈린다",
+             "`src/viz_cad_compare.py` `SPEC_VS_CAD`"),
             ("형상 정정 후 메쉬로 사진 IoU 를 다시 잰다",
              "정정이 외형 일치도를 얼마나 옮겼는지가 확정된다",
              "`src/viz_mesh_photo.py`"),

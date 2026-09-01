@@ -31,6 +31,8 @@ import json
 import os
 import sys
 
+import numpy as np      # ⛔깊이 p-p 는 표본 수 N 에 딸려 자란다 — 그 딸림을 재서 본문에 적는다
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
@@ -84,6 +86,9 @@ FPS = "outputs/freeze_plate_sensitivity.json"   # ⭐판 한 장에 절대 dB �
 SER = "outputs/report15b_series.npz"            # ⭐슬로타임 복소열 원본 — 잣대를 stride 로 흔든다
 OOB = "outputs/outofband_power.json"            # ⭐대역밖 전력의 잣대(절대·평활 없음)
 BFL = "outputs/report15_blade_flash_ladder.json"  # ⭐프롭 정반사 — 예산 축과 앙각 축
+DEP = "outputs/report07_depth_robust.json"      # ⭐깊이를 두 자로(p-p·p5~p95) — 06_2 와 같은 규약
+SER = "outputs/report15b_series.npz"            # 재계산의 슬로타임 복소열 — 깊이의 N 딸림을 잰다
+TRZ = "outputs/report07_three_engines.npz"      # 세 엔진의 슬로타임 복소열 (같은 용도)
 
 OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
@@ -129,6 +134,51 @@ def _oob_pct(label: str) -> str:
 
 def _L(key: str, fmt: str | None = None, unit: str = "") -> str:
     return _n(f"{LEAD}.{key}", MDB, fmt, unit)
+
+
+#: 헤드라인 칸의 계열 키 앞머리 — 원장 키에서 `cells.` 접두만 뗀 것이다.
+LEAD_SER = LEAD.removeprefix("cells.")
+
+
+def _win() -> dict:
+    """헤드라인 칸이 **실제로 돌린 창** — 원장에 적힌 이름값과 다르다.
+
+    ⛔ `benchmark/report15b_microdoppler_recompute.py:119` 는
+       `n_t = int(min(MAX_SAMPLES, round(prf * dur)))` 이고 `MAX_SAMPLES = 6000`(같은 파일 105)
+       인데, 같은 함수가 `duration_s` · `doppler_resolution_hz` · `bins_to_ftip` 은 **자르기 전**
+       이름값(`dur = N_FLASH_PERIODS/f_flash`, `f_flash/N_FLASH_PERIODS`)으로 적는다(121-123).
+       matrice4e 세 칸은 요청이 9,954 표본이라 상한에 걸렸고, 그래서 그 세 키는 돌아간 적 없는
+       창의 값이다. 여기서 원장의 `n_t` · `prf` · `f_tip` · `f_flash` 로 돌아간 창을 다시 낸다 —
+       나온 칸 간격은 저장된 스펙트럼 축(`outputs/report15b_series.npz : */spec_f`)과 같다.
+    """
+    prf = float(fetch((MDB, f"{LEAD}.physics.prf")))
+    n_t = float(fetch((MDB, f"{LEAD}.physics.n_t")))
+    dur, res = n_t / prf, prf / n_t
+    dur_nom = float(fetch((MDB, f"{LEAD}.physics.duration_s")))
+    return dict(dur=dur, res=res,
+                bins=float(fetch((MDB, f"{LEAD}.physics.f_tip"))) / res,
+                periods=dur * float(fetch((MDB, f"{LEAD}.physics.f_flash"))),
+                dur_nom=dur_nom, req_n=int(round(prf * dur_nom)),
+                periods_nom=float(fetch((MDB, "_meta.n_flash_periods"))))
+
+
+def _shrink(src: str, key: str, n_sub: int) -> dict:
+    """같은 창을 **등간격으로 솎아** N 개만 쓴 깊이의 중앙값 — 씨앗이 없다(오프셋 전부의 중앙값).
+
+    ⛔ 새 지표가 아니다. p-p(max−min)가 표본 수 N 에 딸려 자라는지를 **재서 본문에 적기 위한**
+      것이고, 본문이 인용하는 자는 원장의 `p5p95_db` · `modulation_std_db` 다.
+    """
+    db = 20.0 * np.log10(np.abs(np.asarray(fetch((src, key)))) + 1e-30)
+    k = len(db) // int(n_sub)
+    sub = [db[o::k][:int(n_sub)] for o in range(k)]
+    return dict(ptp=float(np.median([np.ptp(s) for s in sub])),
+                p5p95=float(np.median([np.percentile(s, 95) - np.percentile(s, 5)
+                                       for s in sub])),
+                std=float(np.median([s.std() for s in sub])))
+
+
+def _shrink_arm(arm: str, n_sub: int) -> dict:
+    return _shrink(SER, f"{LEAD_SER}/{arm}/E", n_sub)
 
 
 def _n_pending(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
@@ -255,6 +305,7 @@ def blocks_34() -> list:
 #  편 35 — 슬로타임 복소열  ⭐문체 본보기
 # =========================================================================== #
 def blocks_35() -> list:
+    _W = _win()      # ⛔돌아간 창. 원장의 duration_s·doppler_resolution_hz 는 요청값이다
     return [
         header(
             num=35,
@@ -270,12 +321,17 @@ def blocks_35() -> list:
                 f"{_L('physics.f_flash', '{:.1f}', 'Hz')} 다.",
 
                 f"표본율 {_L('physics.prf', '{:.0f}', 'Hz')} 로 "
-                f"{_L('physics.n_t', '{:.0f}', '개')} 를 이어 붙여 창 길이 "
-                f"{_L('physics.duration_s', '{:.3f}', 's')} 를 얻었다.",
+                f"{_L('physics.n_t', '{:,.0f}', '개')} 를 이어 붙여 창 길이 "
+                f"{_W['dur']:.3f} s 를 얻었다 — 블레이드 {_W['periods']:.1f} 주기다"
+                f"(원장의 `physics.n_t` ÷ `physics.prf`).",
 
-                f"그 창이 주는 도플러 분해능은 "
-                f"{_L('physics.doppler_resolution_hz', '{:.2f}', 'Hz')} 이고, 날개끝까지 "
-                f"{_L('physics.bins_to_ftip', '{:.0f}', '칸')} 이 든다.",
+                f"그 창이 주는 도플러 분해능은 {_W['res']:.2f} Hz 이고, 날개끝까지 "
+                f"{_W['bins']:.0f} 칸이 든다. ⛔ 원장의 `duration_s`"
+                f"({_L('physics.duration_s', '{:.3f}', 's')}) · `doppler_resolution_hz` · "
+                f"`bins_to_ftip` 은 «{_W['periods_nom']:.0f} 블레이드 주기» 요청값"
+                f"({_W['req_n']:,} 표본)으로 적혀 있으니 그대로 인용하지 마라 — matrice4e 세 칸이 "
+                f"`MAX_SAMPLES = 6000` 상한에 잘렸다"
+                f"(`benchmark/report15b_microdoppler_recompute.py:105,119`).",
 
                 f"조립을 싸게 만든 것은 `src/articulated_fast.py` 다 — 드론을 한 번 짓고 "
                 f"위상마다 행렬곱만 한다.",
@@ -288,7 +344,10 @@ def blocks_35() -> list:
                  "`src/articulated_fast.py` — 드론을 한 번 짓고 위상마다 행렬곱만 한다. "
                  "정점 배열이 옛 함수와 비트 단위로 같다"),
                 ("도플러 분해능",
-                 "창에 든 블레이드 주기 수가 정한다. 표본 수를 늘려도 안 좋아진다"),
+                 "돌아간 창의 길이가 정한다 — `physics.n_t` ÷ `physics.prf` = "
+                 f"{_W['dur']:.3f} s 이고 칸 간격은 그 역수 {_W['res']:.2f} Hz 다. ⛔ 원장의 "
+                 "`doppler_resolution_hz` 는 자르기 전 요청 창의 값이라, 이 편은 그 자리에 "
+                 "돌아간 창의 값을 적는다"),
                 ("헤드라인 기체 선택",
                  "DJI Matrice 4E — 프롭·벨 겹침이 0.01 % 로 정리됐고 1차 실측 표적이다"),
             ],
@@ -315,15 +374,32 @@ def blocks_35() -> list:
            ])),
 
         md("## 창이 분해능을 정한다", "",
-           table(["무엇을", "값"], [
-               ["표본율", _L("physics.prf", "{:.0f}", "Hz")],
-               ["표본 수", _L("physics.n_t", "{:.0f}", "개")],
-               ["창 길이", _L("physics.duration_s", "{:.3f}", "s")],
-               ["도플러 분해능", _L("physics.doppler_resolution_hz", "{:.2f}", "Hz")],
-               ["날개끝까지 든 칸 수", _L("physics.bins_to_ftip", "{:.0f}", "칸")],
+           table(["무엇을", "⭐돌아간 창", "⛔원장에 적힌 요청값"], [
+               ["표본율", _L("physics.prf", "{:.0f}", "Hz"), "같음"],
+               ["표본 수", _L("physics.n_t", "{:,.0f}", "개"),
+                f"{_W['req_n']:,} 개 — `MAX_SAMPLES = 6000` 에서 잘렸다"],
+               ["창 길이", f"{_W['dur']:.3f} s (블레이드 {_W['periods']:.1f} 주기)",
+                _L("physics.duration_s", "{:.3f}", "s")
+                + f" — `duration_s` ({_W['periods_nom']:.0f} 주기)"],
+               ["도플러 분해능", f"{_W['res']:.2f} Hz",
+                _L("physics.doppler_resolution_hz", "{:.2f}", "Hz")
+                + " — `doppler_resolution_hz`"],
+               ["날개끝까지 든 칸 수", f"{_W['bins']:.0f} 칸",
+                _L("physics.bins_to_ftip", "{:.0f}", "칸") + " — `bins_to_ftip`"],
            ]), "",
            "분해능은 «창에 든 블레이드 주기 수» 가 정한다. 같은 창 안에서 표본을 촘촘히 해도 "
-           "칸이 좁아지지 않으므로, 능선을 가르려면 창을 늘린다."),
+           "칸이 좁아지지 않으므로, 능선을 가르려면 창을 늘린다.", "",
+           f"⛔ **본문이 쓰는 것은 가운데 열이다.** 오른쪽 열은 스크립트가 "
+           f"«{_W['periods_nom']:.0f} 블레이드 주기» 를 요청해 계산한 이름값이고, 실제 실행은 "
+           f"요청 {_W['req_n']:,} 표본이 `MAX_SAMPLES = 6000` 안전 상한에 걸려 "
+           f"{_W['periods']:.1f} 주기에서 끊겼다 — `n_t` 만 상한을 타고 `duration_s` · "
+           f"`doppler_resolution_hz` · `bins_to_ftip` 셋은 자르기 전 값으로 남는다"
+           f"(`benchmark/report15b_microdoppler_recompute.py:105,119,121-123`). 가운데 열의 "
+           f"{_W['res']:.2f} Hz 는 저장된 스펙트럼 축의 칸 간격과 같다"
+           f"(`outputs/report15b_series.npz : {LEAD_SER}/B_sbr_spread/spec_f`).", "",
+           "⚠ 이 어긋남은 **matrice4e 세 칸에만** 있다 — mini5pro 세 칸은 "
+           + _n("cells.mini5pro/belly.physics.n_t", MDB, "{:,.0f}", "표본")
+           + " 이라 상한 아래이고, 그 칸의 원장 값 셋은 돌아간 창과 0.01 % 안에서 같다."),
 
         md("## 전처리를 어떻게 했는가", "",
            "마이크로도플러 그림은 전처리가 답을 바꾼다. 그래서 규약을 적어 둔다.", "",
@@ -361,6 +437,10 @@ def blocks_35() -> list:
 def blocks_36() -> list:
     T = "tail_excess.by_airframe"
     G = "geometric_phase_reference.by_airframe"
+    #: ⛔ p-p 가 표본 수에 딸리는지를 재서 표 아래에 적는다 — 같은 계열, 등간격 솎기.
+    #  전체 열 길이는 원장에서 든다 — 하드코딩하지 않는다.
+    _NFULL = int(fetch((DEP, "engines_meta.n")))
+    _S64, _S512, _SFULL = (_shrink(TRZ, "sionna", n) for n in (64, 512, _NFULL))
 
     return [
         header(
@@ -465,17 +545,37 @@ def blocks_36() -> list:
            f"{_n('_meta.blade_periods', TRI, '{:.0f}')} 블레이드 주기. 이 그림과 표는 "
            f"**belly · 앙각 {_n('_meta.el_deg', TRI, '{:.0f}', '°')} · "
            f"{_n('_meta.range_m', TRI, '{:.0f}', 'm')} 한 칸**이다.", "",
-           table(["팔", "무엇으로 쟀나", "변조 p-p", "전체 전력 중 날개끝 밖", "무늬"], [
-               ["S", ARM_SIONNA, _n("ptp_db.sionna", TRI, "{:.1f}", "dB"),
+           table(["팔", "무엇으로 쟀나", "깊이 p-p ⛔", "깊이 p5~p95 ⭐", "비",
+                  "전체 전력 중 날개끝 밖", "무늬"], [
+               ["S", ARM_SIONNA, _n("engines.sionna.ptp_db", DEP, "{:.1f}", "dB"),
+                _n("engines.sionna.p5p95_db", DEP, "{:.1f}", "dB"),
+                _n("engines.sionna.ptp_over_p5p95", DEP, "{:.1f}", "배"),
                 _oob_pct("sionna"),
                 "얼룩이 대역을 채우고 날개끝 주파수 밖에도 남는다"],
-               ["B", ARM_SBR, _n("ptp_db.sbr", TRI, "{:.1f}", "dB"), _oob_pct("sbr"),
+               ["B", ARM_SBR, _n("engines.sbr.ptp_db", DEP, "{:.1f}", "dB"),
+                _n("engines.sbr.p5p95_db", DEP, "{:.1f}", "dB"),
+                _n("engines.sbr.ptp_over_p5p95", DEP, "{:.1f}", "배"),
+                _oob_pct("sbr"),
                 "빗살이 또렷하다 — ⚠순수 PO 보다는 여전히 "
                 + _n("three_engines_ranking.new_P_out_absolute.sbr_over_po_db", OOB,
                      "{:.0f}", "dB") + " 위다"],
-               ["P", ARM_PO, _n("ptp_db.po", TRI, "{:.1f}", "dB"), _oob_pct("po"),
+               ["P", ARM_PO, _n("engines.po.ptp_db", DEP, "{:.1f}", "dB"),
+                _n("engines.po.p5p95_db", DEP, "{:.1f}", "dB"),
+                _n("engines.po.ptp_over_p5p95", DEP, "{:.1f}", "배"),
+                _oob_pct("po"),
                 "빗살이 가장 좁고 날개끝에서 절벽처럼 잘린다"],
            ]), "",
+           "⛔ **p-p 열을 물리량으로 인용하지 마라 — 특히 S 의 "
+           + _n("engines.sionna.ptp_db", DEP, "{:.1f}", "dB")
+           + " 는 표본 N 개의 max−min 이라 N 에 딸려 자란다:** 같은 "
+           + _n("engines_meta.n", DEP, "{:,.0f}", "표본") + " 열을 등간격으로 솎아 재면 S 의 "
+           + f"p-p 중앙값이 N=64 {_S64['ptp']:.1f} → 512 {_S512['ptp']:.1f} → {_NFULL:,} "
+             f"{_SFULL['ptp']:.1f} dB 로 **전체 열까지 계속 자라고**, 같은 솎기의 p5~p95 는 "
+             f"{_S64['p5p95']:.1f} → {_SFULL['p5p95']:.1f} dB 로 붙어 있다. 최솟값 자세 하나만 "
+             "빼도 S 의 p-p 가 " + _n("engines.sionna.ptp_db_drop1", DEP, "{:.1f}", "dB")
+           + " 로 내려간다. ⭐ 그래서 이 절이 깊이를 인용할 때 쓰는 자는 "
+             "**p5~p95 열**이고, p-p 열과 «비» 열은 «이상치 몇 개가 폭을 정하는가» 를 보는 "
+             "자로 읽는다.", "",
            f"⭐ 셋 다 (a) 0 도플러 동체 선, (b) 블레이드 통과율 간격 능선, "
            f"(c) 날개끝 주파수 근처 감쇠를 낸다 — **구조가 일치한다**. "
            f"날개끝 주파수 안에서 스펙트럼 코사인이 "
@@ -759,6 +859,11 @@ def blocks_37() -> list:
 #  편 38 — 가림
 # =========================================================================== #
 def blocks_38() -> list:
+    #: ⛔ 블레이드 채널의 p-p 가 표본 수에 딸리는지 — 같은 창, 등간격 솎기.
+    #  창의 표본 수는 원장(`physics.n_t`)에서 든다 — 하드코딩하지 않는다.
+    _NARM = int(fetch((MDB, f"{LEAD}.physics.n_t")))
+    _F60, _FFULL = _shrink_arm("F_blade_occ", 60), _shrink_arm("F_blade_occ", _NARM)
+    _G60, _GFULL = _shrink_arm("G_blade_free", 60), _shrink_arm("G_blade_free", _NARM)
     return [
         header(
             num=38,
@@ -769,15 +874,18 @@ def blocks_38() -> list:
                 f"⭐ 이 축은 **SBR 팔(B)에서만 선다** — 순수 PO 팔(P)은 모든 면이 항상 "
                 f"기여하는 설계라 «막느냐» 라는 스위치가 그 팔의 밖에 있다.",
 
-                f"동체가 막으면 변조 깊이와 레벨이 **함께 움직인다** — 막는 열(F)의 깊이는 "
-                f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')}, 안 막는 열(G)은 "
-                f"{_L('arms.G_blade_free.modulation_ptp_db', '{:.2f}', 'dB')} 다"
-                f"({_L('name')} · 배 쪽 한 칸).",
+                f"동체가 막으면 변조 깊이와 레벨이 **함께 움직인다** — 막는 열(F)의 깊이 "
+                f"표준편차는 {_L('arms.F_blade_occ.modulation_std_db', '{:.2f}', 'dB')}, 안 막는 "
+                f"열(G)은 {_L('arms.G_blade_free.modulation_std_db', '{:.2f}', 'dB')} 다"
+                f"({_L('name')} · 배 쪽 한 칸 · {_L('physics.n_t', '{:,.0f}', '표본')}).",
 
                 f"⛔ 그 움직임의 **dB 크기는 판 선택 위에 있다** — 격자 판을 반 칸 옮기면 레벨 "
                 f"차가 {_n('verdict.occlusion_level_plate_ptp_db', FPS, '{:.2f}', 'dB')}, 깊이 "
-                f"차가 {_n('verdict.occlusion_ptp_plate_ptp_db', FPS, '{:.2f}', 'dB')} 흔들려 "
-                f"원장 값을 넘는다. 두 열의 절대 레벨도 판 셋 사이 "
+                f"**p-p** 차가 {_n('verdict.occlusion_ptp_plate_ptp_db', FPS, '{:.2f}', 'dB')} "
+                f"흔들려 같은 p-p 자로 잰 원장 값"
+                f"(`findings.occlusion_ptp_db` = "
+                f"{_L('findings.occlusion_ptp_db', '{:+.2f}', 'dB')}) 을 넘는다 — ⚠ 판 축은 "
+                f"p-p 로만 재어 두었다. 두 열의 절대 레벨도 판 셋 사이 "
                 f"{_n('verdict.abs_level_plate_ptp_db', FPS, '{:.2f}', 'dB')} p-p 라 같은 규칙 "
                 f"아래 둔다 — 이 편은 크기 대신 **존재**를 세운다.",
 
@@ -816,7 +924,11 @@ def blocks_38() -> list:
            "막지 않는 열**을 가리킨다. 오른쪽 두 열이 이 표를 읽는 법을 정한다 — 판 셋 "
            "흩어짐보다 작은 칸은 본문 밖에 둔다.", "",
            table(["무엇을", "막는 열 (F)", "안 막는 열 (G)", "차이 (F−G)", "판 셋 p-p"], [
-               ["변조 깊이",
+               ["변조 깊이 std ⭐",
+                _L("arms.F_blade_occ.modulation_std_db", "{:.2f}", "dB"),
+                _L("arms.G_blade_free.modulation_std_db", "{:.2f}", "dB"),
+                "⛔ 본문 밖", "⚠ 판 원장은 `ptp_db`·`level_db` 만 든다"],
+               ["변조 깊이 p-p ⛔",
                 _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB"),
                 _L("arms.G_blade_free.modulation_ptp_db", "{:.2f}", "dB"),
                 "⛔ 본문 밖",
@@ -839,7 +951,15 @@ def blocks_38() -> list:
            + " 안에 들고, 팔별 절대 레벨은 판 한 장의 서브셀 오프셋에 "
            + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB")
            + " p-p 로 걸린다. 얼린 복소장은 **무늬의 모양**을 내고, 절대 σ 는 디더를 켠 정적 "
-           "경로가 낸다."),
+           "경로가 낸다.", "",
+           "⛔ **p-p 두 칸은 표본 수 위에도 있다** — 같은 창을 등간격으로 솎아 N 을 "
+           + _L("physics.n_t", "{:,.0f}") + " 에서 60 으로 줄이면 F 의 p-p 가 "
+           + f"{_FFULL['ptp']:.1f} → {_F60['ptp']:.1f} dB, G 가 {_GFULL['ptp']:.1f} → "
+             f"{_G60['ptp']:.1f} dB 로 내려가는데, 같은 솎기의 std 는 {_FFULL['std']:.2f} → "
+             f"{_F60['std']:.2f} dB · {_GFULL['std']:.2f} → {_G60['std']:.2f} dB 로 붙어 있다. "
+             "⭐ 그래서 이 절이 깊이를 인용할 때 쓰는 자는 std 다. ⚠ 그 std 가 판 한 장에 얼마나 "
+             f"걸리는지는 이 원장이 답하지 않는다 — 판 원장(`{FPS}`)은 팔마다 `ptp_db` 와 "
+             "`level_db` 만 든다."),
 
         md("## 여섯 칸의 부호는 갈린다", "",
            "위 표는 한 칸이다. 같은 원장의 여섯 칸을 전부 늘어놓으면 레벨 차의 **부호가 칸마다 "
@@ -921,6 +1041,14 @@ def blocks_39() -> list:
     _GAP = f"{_gap:.2f} dB"
     _GAP_SRC = (f"`{MDB} : {LEAD}.arms." + "{B_sbr_spread, F_blade_occ}.level_db` 의 차")
 
+    #: ⛔ «아홉 배» 는 p-p 로 잰 값이고, p-p 는 표본 수 N 에 딸린다. 두 자로 다시 잰다.
+    _B60 = _shrink_arm("B_sbr_spread", 60)
+    _F60 = _shrink_arm("F_blade_occ", 60)
+    _R_STD = (fetch((MDB, f"{LEAD}.arms.F_blade_occ.modulation_std_db"))
+              / fetch((MDB, f"{LEAD}.arms.B_sbr_spread.modulation_std_db")))
+    _R_PTP = (fetch((MDB, f"{LEAD}.arms.F_blade_occ.modulation_ptp_db"))
+              / fetch((MDB, f"{LEAD}.arms.B_sbr_spread.modulation_ptp_db")))
+
     return [
         header(
             num=39,
@@ -928,10 +1056,11 @@ def blocks_39() -> list:
             did="같은 얼린 판·같은 자세·같은 로터 회전수에서 전체 드론 채널과 프로펠러 채널을 "
                 "따로 재어 변조 깊이를 맞댔다.",
             results=[
-                f"전체 드론 채널의 변조 깊이는 "
-                f"{_L('arms.B_sbr_spread.modulation_ptp_db', '{:.2f}', 'dB')} 인데, 같은 칸의 "
+                f"전체 드론 채널의 변조 깊이 표준편차는 "
+                f"{_L('arms.B_sbr_spread.modulation_std_db', '{:.2f}', 'dB')} 인데, 같은 칸의 "
                 f"프로펠러 채널은 "
-                f"{_L('arms.F_blade_occ.modulation_ptp_db', '{:.2f}', 'dB')} 다.",
+                f"{_L('arms.F_blade_occ.modulation_std_db', '{:.2f}', 'dB')} 다"
+                f"({_L('physics.n_t', '{:,.0f}', '표본')} 한 창).",
 
                 f"프로펠러 채널의 레벨은 전체 채널보다 **{_GAP}** 아래다({_GAP_SRC}) — 동체가 "
                 f"그만큼 밝다. ⛔ 절대 레벨 두 수는 판 선택 위에 있어 본문 밖이고, 차는 판 셋 "
@@ -953,8 +1082,10 @@ def blocks_39() -> list:
                 ("어느 팔인가",
                  "두 열 다 **B** = " + ARM_SBR + " 이다. «동체를 막느냐» 라는 스위치는 이 팔 "
                  "쪽에만 있고, 순수 PO 팔은 이 축의 밖에 선다"),
-                ("변조 깊이",
-                 "슬로타임 |h| 의 최대−최소 [dB]. 동체 정적 반사가 크면 이 값이 눌린다"),
+                ("변조 깊이 — 두 자",
+                 "슬로타임 |h| [dB] 의 표준편차(std ⭐)와 최대−최소(p-p ⛔). 동체 정적 반사가 "
+                 "크면 두 값이 다 눌린다. 이 편이 인용하는 자는 std 다 — p-p 는 표본 수 N 에 "
+                 "딸려 자란다"),
                 ("동체:날개 비",
                  "DC(정적 성분) 대 AC(변조 성분) 의 비. 이 값이 클수록 동체가 덮는다"),
                 ("절대 레벨을 어디에 두나",
@@ -979,9 +1110,11 @@ def blocks_39() -> list:
         md("## 두 채널의 값", "",
            f"둘 다 **B** = {ARM_SBR} 이고, 로터 회전수는 두 열이 같다(흩뜨린 판).", "",
            table(["무엇을", "전체 드론 채널 (B_sbr_spread)", "프로펠러 채널 (F_blade_occ)"], [
-               ["변조 깊이",
-                _L("arms.B_sbr_spread.modulation_ptp_db", "{:.2f}", "dB"),
-                _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB")],
+               ["변조 깊이 — std ⭐ / p-p ⛔",
+                _L("arms.B_sbr_spread.modulation_std_db", "{:.2f}") + " / "
+                + _L("arms.B_sbr_spread.modulation_ptp_db", "{:.2f}", "dB"),
+                _L("arms.F_blade_occ.modulation_std_db", "{:.2f}") + " / "
+                + _L("arms.F_blade_occ.modulation_ptp_db", "{:.2f}", "dB")],
                ["레벨 (절대)", "⛔ 본문 밖 — 판 셋 p-p "
                 + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB"),
                 "⛔ 본문 밖 — 같은 이유"],
@@ -993,9 +1126,17 @@ def blocks_39() -> list:
                 _L("arms.B_sbr_spread.half_window_spectrum_corr", "{:.4f}"),
                 _L("arms.F_blade_occ.half_window_spectrum_corr", "{:.4f}")],
            ]), "",
-           f"⭐ 프로펠러 채널의 변조는 전체 채널보다 **아홉 배 넘게** 깊고, 레벨은 반대로 "
-           f"**{_GAP}** 아래다({_GAP_SRC}). 두 줄을 같이 읽으면 **동체가 밝아서 변조를 눌렀다** "
-           "가 나온다.", "",
+           f"⭐ 프로펠러 채널의 변조가 전체 채널보다 **깊고**, 레벨은 반대로 **{_GAP}** "
+           f"아래다({_GAP_SRC}). 두 줄을 같이 읽으면 **동체가 밝아서 변조를 눌렀다** 가 나온다 "
+           f"— 이 편이 세우는 것은 이 **방향**이다.", "",
+           f"⛔ **몇 배인가는 이 원장으로 정하지 못한다 — 자와 표본 수에 딸린다.** "
+           f"{_L('physics.n_t', '{:,.0f}', '표본')} 한 창에서 std 로 {_R_STD:.1f} 배 · p-p 로 "
+           f"{_R_PTP:.1f} 배이고, 같은 창을 등간격으로 솎아 N 을 60 으로 줄이면 std 는 "
+           f"{_F60['std'] / _B60['std']:.1f} 배로 붙지만 p-p 는 "
+           f"{_F60['ptp'] / _B60['ptp']:.1f} 배로 내려간다. ⚠ 판 축은 `ptp_db` 로만 재어 두었다 "
+           f"— 판 원장(`{FPS}`)은 팔마다 `ptp_db` 와 `level_db` 만 들고, 그 `ptp_db` 는 판 셋에서 "
+           + _n(f"{LEAD}.arms.F_blade_occ.ptp_db.ptp", FPS, "{:.2f}", "dB")
+           + " 흔들린다.", "",
            "⛔ 절대 레벨 두 수는 원장에 있고 본문 밖이다 — 얼린 팔의 절대 레벨은 격자 판 한 "
            "장의 서브셀 오프셋에 걸리고, 절대 σ 는 디더를 켠 정적 경로가 낸다. 이 편이 쓰는 "
            f"것은 **차**이고, 그 차 {_GAP} 는 판 흩어짐의 여섯 배다."),
@@ -1003,7 +1144,11 @@ def blocks_39() -> list:
         md("## 그래서 무엇이 어려운가", "",
            "전기적으로 보면 블레이드 폭은 우리 대역에서 파장의 한 자릿수 분율이다. 그런데도 "
            "SBR 팔이 낸 프로펠러 채널의 변조 자체는 "
-           + _L("arms.F_blade_occ.modulation_ptp_db", "{:.1f}", "dB") + " 로 깊다.", "",
+           + _L("arms.F_blade_occ.modulation_std_db", "{:.2f}", "dB") + "(std) · "
+           + _L("arms.F_blade_occ.modulation_ptp_db", "{:.1f}", "dB")
+           + "(p-p) 로, 전체 드론 채널의 "
+           + _L("arms.B_sbr_spread.modulation_std_db", "{:.2f}", "dB")
+           + "(std) 보다 깊다.", "",
            "어려운 것은 «블레이드가 약하다» 가 아니라 **«동체와 블레이드를 가르는 일»** 이다. "
            "검출 축에서 정적 성분을 지우는 이유가 여기 있고, 그 노치가 호버 표적의 동체까지 "
            "지우는 대가도 여기서 나온다.", "",

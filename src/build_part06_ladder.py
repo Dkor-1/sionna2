@@ -67,6 +67,9 @@ VK = "outputs/report16_verify_kernel.json"
 VD = "outputs/report16_verify_detector.json"
 VT = "outputs/report16_verify_tautology.json"
 RMF = "outputs/report16_rung_mesh_full.json"    # 사다리 기준선 — 엔진 계약이 여기 적혀 있다
+RSE = "outputs/report16_rung_sphere_eqvol.json"   # ⛔ 구 «널» 의 바닥 원장 — 분할 수렴열 네 판이 여기 있다
+MSE = "outputs/report16_metric_sphere_eqvol.json"  # ⛔ 12 칸 풀(2 대역 × 3 기체 × 2 파면) — 규약별로 갈라 읽는다
+RB = "outputs/report16_base.json"                 # ⛔ 점 간격 세분 대조군(refine_x4)이 여기 있다
 P3V2 = "outputs/p3_validation_v2.json"          # 구 대조군 — 어느 부피를 골랐나가 갈리는 곳
 P3O = "outputs/p3_ours_v2.json"                 # ①② 축의 상류 — 팔(B)과 기체(Phantom 3)가 여기 적혀 있다
 
@@ -398,10 +401,12 @@ def blocks_32() -> list:
             did="교정 사다리에서 진짜 CAD 대비 오차를 방위별로 짝지어 빼고 «단순화의 값» 을 "
                 "네 구간으로 갈랐다.",
             results=[
-                f"**낭떠러지** — 날개를 회전대칭 원판으로 바꾸면 검출 단면적이 "
+                f"**낭떠러지** — 날개를 회전대칭 원판으로 바꾸면 검출 단면적 오차가 "
                 f"{_n(P + '.mini2.disc.sigma_ac_peak_err_db', '{:+.2f}', 'dB')} · "
-                f"{_n(P + '.matrice4e.disc.sigma_ac_peak_err_db', '{:+.2f}', 'dB')} "
-                f"무너진다. 모양이 거칠어서가 아니라 «돌려도 안 바뀌는 물체» 라서다.",
+                f"{_n(P + '.matrice4e.disc.sigma_ac_peak_err_db', '{:+.2f}', 'dB')} 다. "
+                f"회전대칭체의 참 변조는 정확히 0 이므로 이 두 수가 재는 것은 낭떠러지의 «깊이» "
+                f"가 아니라 **메쉬가 우리 점구름의 수치 바닥보다 얼마나 위인가**이고, 그래서 "
+                f"부호까지만 인용한다.",
 
                 f"**공짜 구간** — 도는 부품의 삼각형을 절반으로 줄이면 검출 단면적이 "
                 f"{_n(P + '.mini2.mesh_half_tri.sigma_ac_peak_err_db', '{:+.2f}', 'dB')} · "
@@ -415,12 +420,13 @@ def blocks_32() -> list:
                 f"템플릿 손실은 "
                 f"{_n(P + '.matrice4e.slab.template_loss_db', '{:.2f}', 'dB')} 다.",
 
-                f"메쉬와 구의 시간 변조 간격 "
-                f"{_n(A3 + '.modulation_gap_mesh_minus_sphere_db.min', '{:.1f}')}~"
-                f"{_n(A3 + '.modulation_gap_mesh_minus_sphere_db.max', '{:.1f}', 'dB')} 중 "
+                f"«디테일 0 인 평판» 이 «메쉬 − 구» 간격의 "
                 f"{_n(A3 + '.but_how_much_of_that_gap_is_cad_precision.share_bought_by_detail_free_slab.matrice4e', '{:.0%}')}~"
                 f"{_n(A3 + '.but_how_much_of_that_gap_is_cad_precision.share_bought_by_detail_free_slab.mini2', '{:.0%}')} "
-                f"를 «디테일 0 인 평판» 이 이미 산다.",
+                f"를 이미 산다 — 남는 «CAD 정밀도 단독 몫»(메쉬 − 평판)은 "
+                f"{_n(A3 + '.but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.mini2', '{:.2f}')}~"
+                f"{_n(A3 + '.but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.matrice4e', '{:.2f}', 'dB')} "
+                f"다. ⛔ 간격 자체의 크기는 구 널의 격자 바닥이 정하므로 하한으로만 쓴다.",
 
                 f"⚠ «공짜» 는 **도는 부품에 한정된 진술**이다 — 동체까지 깎으면 AC 상대 변화가 "
                 f"{_n(FB + '.rows.mini2.ac_relative_difference_frame_decimation.max', '{:.1e}')} "
@@ -478,9 +484,25 @@ def blocks_32() -> list:
            + _n(P + ".matrice4e.mesh_half_tri.sigma_ac_peak_err_db", "{:+.2f}", "dB")
            + ", 템플릿 손실이 "
            + _n(P + ".matrice4e.mesh_half_tri.template_loss_db", "{:.2f}", "dB")
-           + " 움직인다. 방위에 따른 흔들림 "
+           + " 움직인다. 잣대는 **같은 양**의 방위 산포다 — 검출 단면적 자체가 방위 "
+           + _n(LC + ".mesh_full.sigma_ac_peak_dbsm.n", "{:.0f}", "점")
+           + " 사이에서 Mini 2 "
+           + _n("ladder_C_matched_flight.mini2.mesh_full.sigma_ac_peak_dbsm.sd", "{:.2f}", "dB")
+           + " · Matrice 4E "
+           + _n(LC + ".mesh_full.sigma_ac_peak_dbsm.sd", "{:.2f}", "dB")
+           + " 흔들리는데, 방위를 짝지어 뺀 이 차이의 표준편차는 그 "
+           + _n(LC + ".mesh_half_tri.paired_vs_mesh.d_sigma_ac_peak_db.n", "{:.0f}", "점")
+           + " 에서 "
+           + _n("ladder_C_matched_flight.mini2.mesh_half_tri.paired_vs_mesh."
+                "d_sigma_ac_peak_db.sd", "{:.3f}", "dB")
+           + " · "
+           + _n(LC + ".mesh_half_tri.paired_vs_mesh.d_sigma_ac_peak_db.sd", "{:.3f}", "dB")
+           + " 다. ⚠ 잣대로 "
            + _n(A3 + ".azimuth_sd_db.mesh_max", "{:.2f}", "dB")
-           + " 에 묻히는 크기라 실측이 가르는 범위 밖이다.",
+           + " 를 쓰던 자리다 — 그것은 다른 양(방위별 총 RCS)의 방위 사이 표준편차를 "
+           + _n("level_vs_modulation.modulation_gap_db.n", "{:.0f}", "칸", src=MSE)
+           + " 짜리 풀에서 최대로 잡은 값이고, 그 최댓값이 나온 행은 mavic4pro 인데 이 절은 "
+             "mini2 · matrice4e 를 다룬다.",
            "- **싼 구간 — 날개를 평판으로.** 스팬·두께·부피가 같은 평판 두 장이면 검출 단면적이 "
            "한 자릿수 dB 안에 든다. «변조가 있나 없나» 만 보는 검출기라면 충분하고, 파형을 "
            "본뜨는 검출기라면 이미 비싸다.",
@@ -491,17 +513,44 @@ def blocks_32() -> list:
            + " 뿐이라 템플릿 손실이 "
            + _n(P + ".matrice4e.sph_blade_rg.template_loss_db", "{:.2f}", "dB")
            + " 다 — **레벨이 맞았다고 신호가 맞은 것이 아니다**.",
-           "- **낭떠러지 — 회전대칭.** 원판으로 바꾸면 검출 단면적이 "
+           "- **낭떠러지 — 회전대칭.** 원판으로 바꾸면 검출 단면적 오차가 "
            + _n(P + ".matrice4e.disc.sigma_ac_peak_err_db", "{:+.2f}", "dB")
-           + " 무너진다. 이것만은 어떤 커널 결함에도 안 흔들리는 기하학이다."),
+           + " 다. 어떤 커널 결함에도 안 흔들리는 것은 **부호**다 — 회전대칭이면 변조가 "
+             "원리적으로 0 이라 오차는 음수다. **자릿수는 우리 격자가 정한다**: "
+             "원판 팔의 AC 중 운동학이 허용하는 대역에 남는 몫은 Mini 2 "
+           + _n("ladder_C_matched_flight.mini2.disc.in_band_ac_frac.mean", "{:.4f}")
+           + " · Matrice 4E "
+           + _n(LC + ".disc.in_band_ac_frac.mean", "{:.4f}")
+           + " 이고(첨두 차수 중앙값 "
+           + _n("ladder_C_matched_flight.mini2.disc.peak_order.median", "{:.0f}")
+           + " · "
+           + _n(LC + ".disc.peak_order.median", "{:.0f}")
+           + "), 같은 팔에서 점 간격을 1/4 로 줄이면(점 "
+           + _n("point_density_control.deltas.mini2|disc.pts_coarse", "{:.0f}", src=RB)
+           + "→"
+           + _n("point_density_control.deltas.mini2|disc.pts_fine", "{:.0f}", src=RB)
+           + " · "
+           + _n("point_density_control.deltas.matrice4e|disc.pts_coarse", "{:.0f}", src=RB)
+           + "→"
+           + _n("point_density_control.deltas.matrice4e|disc.pts_fine", "{:.0f}", src=RB)
+           + ") 동체:날개 비가 "
+           + _n("point_density_control.deltas.mini2|disc.delta.dc_ac_db", "{:+.2f}", "dB",
+                src=RB)
+           + " · "
+           + _n("point_density_control.deltas.matrice4e|disc.delta.dc_ac_db", "{:+.2f}", "dB",
+                src=RB)
+           + " 움직인다. ⛔ 그래서 이 값은 부호까지만 인용한다."),
 
         md("## 사다리의 순서는 삼각형 수가 아니라 보존량이 정한다", "",
            "감싸는 상자(C)가 평판(D)보다 오차가 큰 것은 «형상 정보가 더 적어서» 가 아니라 "
            "부피를 안 지켜서다. 즉 «단순화의 값» 을 정하는 것은 삼각형 수가 아니라 "
            "**무엇을 보존했는가**(회전대칭 깨짐 → 스팬 → 부피 → 두께 순)다.", "",
-           "⭐ 한 줄로: **«모양이 있느냐 없느냐» 는 50 dB 대를 가르지만, «모양이 얼마나 "
-           "정밀하냐» 는 한 자릿수 dB 안에서 논다.** 지도교수의 지적은 앞쪽이 아니라 뒤쪽을 "
-           "겨눈 것이고, 뒤쪽에서는 지적이 맞는다."),
+           "⭐ 한 줄로: **«모양이 있느냐 없느냐» 는 우리가 잴 수 있는 바닥 끝까지 가르고, "
+           "«모양이 얼마나 정밀하냐» 는 한 자릿수 dB 안에서 논다.** 지도교수의 지적은 앞쪽이 "
+           "아니라 뒤쪽을 겨눈 것이고, 뒤쪽에서는 지적이 맞는다.", "",
+           "⛔ 앞쪽에 자릿수를 붙이는 것은 우리 격자다 — 회전대칭 팔(구·원판)의 참 변조가 "
+           "정확히 0 이라 그 자리에 남는 값은 점 간격이 정한 바닥이다. 앞쪽에서 확실한 것은 "
+           "부호와 «뒤쪽과 자릿수가 다르다» 까지다."),
 
         md("## 지도교수 지적에 답한다 — 네 축", "",
            table(["축", "팔", "기체", "무엇을 쟀나", "결과"], [
@@ -521,14 +570,13 @@ def blocks_32() -> list:
                 + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.bounding_box",
                      "{:+.2f}", "dB")],
                ["③ 시간 변조", "P — 순수 PO (가림 X)", "Mini 2 · Matrice 4E",
-                "메쉬 − 구 간격",
-                _n(A3 + ".modulation_gap_mesh_minus_sphere_db.min", "{:.1f}") + "~"
-                + _n(A3 + ".modulation_gap_mesh_minus_sphere_db.max", "{:.1f}", "dB")
-                + " 중 CAD 정밀도 단독 몫은 "
+                "메쉬 − 구 간격 — **하한만**",
+                "간격의 크기는 구 널의 격자 바닥이 정한다(바로 아래 ⛔ 절). 그 간격에서 "
+                "CAD 정밀도 단독 몫은 "
                 + _n(A3 + ".but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.mini2",
                      "{:.2f}") + "~"
                 + _n(A3 + ".but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.matrice4e",
-                     "{:.2f}", "dB")],
+                     "{:.2f}", "dB") + " 다"],
                ["④ 단순화의 값", "P — 순수 PO (가림 X)", "Mini 2 · Matrice 4E",
                 "교정 사다리", "위 두 표가 그 답이다"],
            ]), "",
@@ -554,6 +602,54 @@ def blocks_32() -> list:
            "",
            "⭐ 그래서 다시 잡아야 할 방향은 «정밀도» 가 아니라 «무엇이 도는가» 다"
            "(" + ref("ladder-three", "사다리가 셋이었다") + ")."),
+
+        md("## ⛔ ③ 의 분모가 무엇인지 — 구 팔의 값은 격자가 정한다", "",
+           "이 편의 규약(반송파 "
+           + _n("po_validity.production_band_ghz", "{:.2f}", "GHz")
+           + " · 구면파 · 방위 " + _n("protocol.n_az", "{:.0f}", "점") + " 평균)에서 "
+             "«메쉬 − 구» 는 Mini 2 "
+           + _n("level_vs_modulation.rows.main|mini2|spherical.modulation_gap_db",
+                "{:.1f}", src=MSE)
+           + " · Matrice 4E "
+           + _n("level_vs_modulation.rows.main|matrice4e|spherical.modulation_gap_db",
+                "{:.1f}", "dB", src=MSE)
+           + " 다. 분모에 서는 구 팔의 값은 경도 분할 수(seg)를 따라간다. 운동학이 허용하는 "
+             "대역에 남는 AC 몫은 Mini 2 "
+           + _n("null_is_numerical.interpretability.mini2.sphere_in_band_ac_frac",
+                "{:.3f}", src=RSE)
+           + " · Matrice 4E "
+           + _n("null_is_numerical.interpretability.matrice4e.sphere_in_band_ac_frac",
+                "{:.3f}", src=RSE)
+           + " 인데 같은 표에서 메쉬는 "
+           + _n("null_is_numerical.interpretability.mini2.mesh_in_band_ac_frac",
+                "{:.3f}", src=RSE)
+           + " 이다.", "",
+           "seg 를 흔들면 그 바닥이 어디로 가는지 원장이 네 판을 적어 둔다 — Mini 2 는 seg "
+           + _n("null_is_numerical.convergence.mini2.refine_x0.5.seg", "{:.0f}", src=RSE)
+           + " 에서 "
+           + _n("null_is_numerical.convergence.mini2.refine_x0.5."
+                "in_band_ac_over_dc_db.mean", "{:.2f}", src=RSE)
+           + " · seg "
+           + _n("null_is_numerical.convergence.mini2.refine_x1.seg", "{:.0f}", src=RSE)
+           + " 에서 "
+           + _n("null_is_numerical.convergence.mini2.refine_x1."
+                "in_band_ac_over_dc_db.mean", "{:.2f}", src=RSE)
+           + " · seg "
+           + _n("null_is_numerical.convergence.mini2.refine_x2.seg", "{:.0f}", src=RSE)
+           + " 에서 "
+           + _n("null_is_numerical.convergence.mini2.refine_x2."
+                "in_band_ac_over_dc_db.mean", "{:.2f}", src=RSE)
+           + " · seg "
+           + _n("null_is_numerical.convergence.mini2.refine_x4.seg", "{:.0f}", src=RSE)
+           + " 에서 "
+           + _n("null_is_numerical.convergence.mini2.refine_x4."
+                "in_band_ac_over_dc_db.mean", "{:.2f}", "dB", src=RSE)
+           + " 다. 네 판을 그대로 싣는다 — 이 편이 여기서 쓰는 것은 «구 팔의 값이 seg 와 "
+             "함께 움직인다» 까지다.",
+           "",
+           "⛔ 그래서 ③ 은 **하한**으로만 쓴다. 회전대칭체의 참 변조가 정확히 0 이라 구 팔의 참값이 "
+           "−∞ 쪽이고, 잰 값은 우리 점구름이 멈춘 자리다. 평판이 산 몫(%)도 같은 이유로 "
+           "하한이다 — 분자·분모가 같은 바닥을 빼고 있어서 바닥이 내려갈수록 그 몫은 커진다."),
 
         md("## 자기반증 — 이 «공짜» 가 어디까지 참인가", "",
            f"이 커널에서 동체는 AC 에 정확히 0 을 기여한다. 동체를 아무리 깎아도 마이크로도플러 "
@@ -667,13 +763,28 @@ def blocks_33() -> list:
         md("## 일곱 가지", "",
            table_from(f"{SYN}:why_premature",
                       [("#", "id"), ("무엇이 문제인가", "claim_ko"), ("숫자", "number_ko")]), "",
-           "P1 이 드는 «메쉬 − 구» 간격은 기체별 집계이고, 방위 극값까지 펴면 "
+           "P1 이 드는 «메쉬 − 구» 간격은 헤드라인 규약(반송파 "
+           + _n(PO + ".production_band_ghz", "{:.2f}", "GHz") + " · 구면파 · 방위 "
+           + _n("protocol.n_az", "{:.0f}", "점") + " 평균 · mini2 · matrice4e)에서 "
+           + _n("level_vs_modulation.rows.main|mini2|spherical.modulation_gap_db",
+                "{:.1f}", src=MSE) + "~"
+           + _n("level_vs_modulation.rows.main|matrice4e|spherical.modulation_gap_db",
+                "{:.1f}", "dB", src=MSE) + " 이고, 원장의 "
+           + _n("level_vs_modulation.modulation_gap_db.n", "{:.0f}", "칸", src=MSE)
+           + " 을 한 통에 넣으면 "
            + _n("professor_answer.axis3_time_modulation.modulation_gap_mesh_minus_sphere_db.min",
                 "{:.1f}") + "~"
            + _n("professor_answer.axis3_time_modulation.modulation_gap_mesh_minus_sphere_db.max",
                 "{:.1f}", "dB")
-           + " 다 — 같은 대조를 두 규약으로 읽은 것이다("
-           + ref("ladder-answer", "형상 축의 값") + " 이 뒤 규약을 쓴다)."),
+           + " 가 된다. 넓어진 축은 **대역과 파면**이다 — 그 풀은 두 대역("
+           + _n(PO + ".production_band_ghz", "{:.2f}") + " · "
+           + _n(PO + ".blade_knee_ghz", "{:.2f}", "GHz")
+           + ") × 세 기체 × 두 파면이고 각 행이 이미 방위 평균이다"
+             "(`benchmark/report16_metric_sphere_eqvol.py` 의 `level_vs_modulation()` 이 "
+             "per-az 평균끼리 뺀다). 상한 행은 `hi|matrice4e|plane` — 바로 위 P6 이 «판정이 "
+             "뒤집히는 대역» 이라 적은 그 대역의 평면파 대조군이다("
+           + ref("ladder-answer", "형상 축의 값") + " 이 헤드라인 규약을 쓰고 이 대조를 "
+             "하한으로만 쓴다)."),
 
         md("## 치명적인 둘", "",
            "**P2 — 커널이 가림(그늘)을 안 본다.** 커널 렌즈가 깊이버퍼 그늘을 넣어 보니, 이 "
@@ -702,7 +813,8 @@ def blocks_33() -> list:
         md("## 그래서 어디까지 인용해도 되나", "",
            table(["주장", "인용 범위"], [
                ["회전대칭 표적의 변조는 정확히 0 이다", "그대로 인용 — 계산이 아니라 기하학"],
-               ["모양의 유무가 50 dB 대를 가른다", "부호와 자릿수까지"],
+               ["모양의 유무가 큰 간격을 가른다",
+                "**부호만** — 크기는 구·원판 팔의 격자 바닥이 정하는 하한이다"],
                ["도는 부품의 삼각형 절반은 공짜다", "부호와 자릿수까지 · 도는 부품에 한정"],
                ["평판 근사는 한 자릿수 dB 다", "부호와 자릿수까지 · 가림 재계산 전"],
                ["«정육면체 대 메쉬» 차이", "교정 사다리 값만 · 있는 그대로의 값은 운동학이 섞임"],

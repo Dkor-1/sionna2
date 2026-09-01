@@ -12,12 +12,16 @@ build_report18_switch_grid.py — 리포트 5-2 «물리 스위치 격자» 조�
 이 보고서는 리포트 5 «엔진의 물리 스위치» 의 **별편**이다(외부 빌더 — 엄격 규약 빌더를
 안 탄다). 부모의 단일축 귀속을 7 조합 전수 격자로 완결한다.
 
-원장 두 개를 쓴다.
+원장 네 개를 쓴다.
   · outputs/switch_factorial.json (R13) — 몫이 아니라 **절대 dB** 로 다시 읽은 판.
-    회절이 리듬을 지우는지 덮는지, 축이 «바꾸는 축» 인지 «얹는 축» 인지, 깊이 축이
-    살아 있는지가 여기서 나온다. 리듬 몫·바닥·빗살 솟음·빠진 자세는 전부 이 원장.
+    회절이 리듬을 지우는지 덮는지, 축이 «바꾸는 축» 인지 «얹는 축» 인지가 여기서
+    나온다. 리듬 몫·바닥·빗살 솟음·빠진 자세는 전부 이 원장.
   · outputs/switch_grid.json — 아래 네 그림(맵·대역 에너지)을 만든 원장. 1 차 선과
     봉우리 위치 두 열만 여기서 읽는다.
+  · outputs/depth_axis_verdict_0816.json — ⛔깊이 절의 정본. R13 의 −60° 실패 쌍을
+    «자세 하나의 튐» 으로 철회했고, 표준 프레임 짝의 트림(k1) 채점을 들고 있다.
+  · outputs/rhythm_share_knob_audit_0825.json — ⚠리듬 몫이 타는 자유 파라미터(빗살
+    반폭)의 흔들기 폭. 깊이 절에서 절대값 인용을 막는 데만 쓴다.
 
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_report18_switch_grid.py
 """
@@ -120,15 +124,47 @@ LIFT_LO = min(a["a_min"] for a in LIFT)
 LIFT_HI = max(a["a_max"] for a in LIFT)
 
 # ── 깊이 축 ────────────────────────────────────────────────────────────────
+#: ⛔철회 원장 — outputs/depth_axis_verdict_0816.json 이 R13 의 −60° 쌍(B_failures 첫
+#:   줄)을 «자세 하나의 튐» 으로 철회했다(closure.retractions_ko · do_not_write_ko).
+DA = json.load(open(f"{ROOT}/outputs/depth_axis_verdict_0816.json", encoding="utf-8"))
+DA_OF = DA["outlier_forensics"]
+DA_SC = DA["scorecard"]
+OUT60 = DA_OF["el60_case"]
+TRIM60 = OUT60["drop_one_pose"]
+#: 회절 켠 팔의 재실행 문턱 — 같은 물리를 두 이름으로 독립 재실행한 폭.
+RERUN = DA["null_bands"]["pathsolver_repeatability"]["diffraction_on"]["band_ac_db"]
+#: 표준 프레임이 싣는 두 팔(PS 다 끔 · PS 굴절만)의 깊이 짝. 채점은 원장 규약대로
+#: «가장 튄 자세 1 개를 뺀» k1 판으로 한다(scorecard.band_rule_ko 마지막 줄).
+SF = [p for p in DA["pairs"] if p["in_standard_frame"]]
+SF_RHY = max(abs(p["trim"]["k1"]["d_rhythm_pp"]) for p in SF)
+#: 빗살 대비는 «값이 잡히는 빗각·거리 칸» 에서만 잰다 — 판 밖 −90° 는 값 자체가 없고
+#: 정면 0° 는 이 범위 밖이다(closure.closed_part_ko 가 못 박아 둔 범위).
+SF_CMB = [p["trim"]["k1"]["d_comb_contrast_db"] for p in SF if p["el_deg"] < 0.0]
+SF_CMB_OBL = [c for c in SF_CMB if c is not None]
+SF_CMB_HI = max(abs(c) for c in SF_CMB_OBL)
+SF_C0 = next(p["trim"]["k1"]["d_comb_contrast_db"] for p in SF if p["el_deg"] == 0.0)
+SF_EL = sorted({p["el_deg"] for p in SF}, reverse=True)
+SF_RG = sorted({p["range_m"] for p in SF})
+#: ⚠리듬 몫이 타는 자유 파라미터(빗살 반폭)의 기하학적 바닥 — 흔들기 폭을 함께 적는다.
+HWF = json.load(open(f"{ROOT}/outputs/rhythm_share_knob_audit_0825.json",
+                     encoding="utf-8"))["기하학적_바닥_2hw_over_fflash"]
+HW_LO, HW_HI = HWF["hw=2.0"], HWF["hw=32.0"]
+
 BF = V["B_failures"]
-BF_PLATE = [b for b in BF if b["el_deg"] == EL]
-BF_OTHER = [b for b in BF if b["el_deg"] != EL]
+#: ⛔철회된 −60° 쌍을 뺀 «살아 있는» 실패 쌍. 개수를 인쇄할 때는 이쪽을 쓴다.
+BF_LIVE = [b for b in BF
+           if not (b["combo"] == "R0D0E0F1" and b["el_deg"] == -60.0)]
+BF_PLATE = [b for b in BF_LIVE if b["el_deg"] == EL]
 #: 판 위 실패 쌍의 «세 열 전부» 폭 — 세기 최대치와 바닥 차의 최소치를 함께 훑는다.
 PL_SPAN = [v for b in BF_PLATE for v in (b["max_abs_level_db"], b["d_above_floor_db"])]
 PL_LO, PL_HI = min(PL_SPAN), max(PL_SPAN)
 D60 = next(p for p in F["depth_pairs"]
            if p["combo"] == "R0D0E0F1" and p["el_deg"] == -60.0 and p["depths"] == [1, 3])
 D60_1, D60_3 = FC[D60["d1"]], FC[D60["dN"]]
+#: 튐 자세의 둘째 대비 — 고립도 = 최대 ÷ 둘째(outlier_forensics.isolation_def_ko).
+P60_TOP2 = OUT60["pose_over_median_dN"] / OUT60["isolation_dN"]
+ROT60_TXT = " · ".join(f"{r:.2f}"
+                       for r in OUT60["rotor_symmetry_partners_over_median"][1:])
 
 
 #: 순정 기본값의 «에코 0» 칸 — 돌렸는데 경로가 0 이라는 증거.
@@ -204,9 +240,12 @@ nb.cells = [
        f"{C['refraction only']['h1_peak_hz']:.1f} Hz 로 그대로다.",
        f"6. **봉우리 위치는 여덟 팔 전부 {C['all on']['h1_peak_hz']:.1f} Hz** — 예측 "
        f"{M['f_flash_hz']:.1f} Hz 의 자리다. 위치가 아니라 **선명도**가 갈린다.",
-       f"7. ⚠**깊이 축은 아직 살아 있다** — 깊이 1↔3 을 견준 "
-       f"{V['B_n_pairs_1to3']} 쌍 중 {len(BF)} 쌍이 문턱 밖이다. 깊이 축을 큐에서 뺄 수 "
-       f"없다 — 아래 «깊이» 절.",
+       f"7. ⚠**사전등록 문턱 밖에 남은 것은 회절 켠 조합의 절대 레벨 하나다** — 깊이 "
+       f"1↔3 을 견준 {V['B_n_pairs_1to3']} 쌍 중 문턱 밖은 판 위({ang(EL)}) R1D1** "
+       f"{len(BF_LIVE)} 쌍(깊이 3 에서 세 열 전부 +{PL_LO:.1f}~+{PL_HI:.1f} dB)이고, "
+       f"그 +2 dB 의 기전은 아직 안 세워졌다. ⛔전 판이 여기 함께 적었던 «판 밖 −60° 의 "
+       f"리듬 붕괴» 는 그 칸 자세 {OUT60['n_poses']:,} 개 중 하나가 만든 값이라 "
+       f"**철회했다**(2026-08-16) — 아래 «깊이» 절.",
        "",
        "### 잣대 — 무엇을 재나 (쉬운 말)",
        "- **상한 위** — 날개 끝이 낼 수 있는 최고 도플러(f_tip) **위쪽** 자리. 몸통은 "
@@ -387,28 +426,82 @@ nb.cells = [
        "⟨outputs/switch_factorial.json : verdict.C_edge_is_noop_ko⟩ "
        "⟨outputs/switch_factorial.json : verdict.F_diffuse_keeps_it_alive_ko⟩"),
 
-    md("## 깊이 — 종결하려 했으나 살아 있다",
+    md("## 깊이 — 판 밖 −60° 반례는 철회했다, 남은 것은 판 위 +2 dB 하나다",
        "",
        f"사전등록한 문턱은 «깊이 1↔3 쌍 전부에서 세기 차 < 2 dB 이고 리듬 차 < 3 %p 면 "
        f"깊이 축 종결» 이었다. 실측은 견줄 수 있는 쌍이 {V['B_n_pairs_1to3']} 쌍"
        f"(판 위 {V['B_n_pairs_1to3_on_plate']} 쌍) + 두 판 모두 경로가 0 이라 견줄 것이 "
-       f"없는 죽은 쌍 {V['B_n_dead_pairs']} 쌍이고, 그중 **{len(BF)} 쌍이 문턱 밖**이다.",
+       f"없는 죽은 쌍 {V['B_n_dead_pairs']} 쌍이다. 이 원장(R13)은 {len(BF)} 쌍을 문턱 "
+       f"밖에 적었는데 그중 −60° 한 쌍은 뒤 원장이 **철회**했으므로(아래 2 번), 남는 "
+       f"것은 **{len(BF_LIVE)} 쌍**이다. 아래 1·2 번 값은 15 m · 자세 "
+       f"{D60_1['n_poses']:,} 개 생값 · 광선 4×10⁹ 발 · PRF {FM['prf_hz']:,.0f} Hz · "
+       f"빗살 반폭 ±{FM['comb_half_width_hz']:.0f} Hz 한 설정에서 잰 것이다(«자세를 뺀» "
+       f"값은 가장 튄 자세 1 개 또는 8 개를 뺀 판이다).",
        "",
        f"1. **판 위({ang(EL)})** — R1D1** 칸 "
        f"{len(BF_PLATE)} 개가 깊이 3 에서 세 열 전부 +{PL_LO:.1f}~+{PL_HI:.1f} dB 다. "
-       f"2 dB 밴드 바로 밖이다.",
-       f"2. **판 밖(−60°)** — R0D0E0F1 은 움직이는 성분의 세기가 "
-       f"{D60['d_ac_db']:+.2f} dB 로 «같은데», 상한 위 바닥만 "
+       f"2 dB 밴드 바로 밖이다. 가장 튄 자세 1 개·8 개를 빼도 그대로이고, 그 팔의 재실행 "
+       f"문턱(같은 물리를 두 이름으로 독립 재실행한 폭) {RERUN:.2f} dB 의 "
+       f"{PL_LO / RERUN:.0f}~{PL_HI / RERUN:.0f} 배라 **차이 자체는 실재한다.** "
+       f"⚠다만 **그 +2 dB 의 기전은 모른다** — «회절 항이 깊이를 타고 한 번 더 얹힌 "
+       f"것» 은 후보일 뿐이고, 깊이 3 에서 광선 사다리도 시드 복제도 아직 안 돌렸다. "
+       f"물리인지 경로 표집의 부산물인지 이 원장으로는 못 가른다.",
+       f"2. ⛔**판 밖(−60°) 은 반례가 아니었다 — 자세 하나다(2026-08-16 철회).** "
+       f"«세기는 {D60['d_ac_db']:+.2f} dB 로 같은데 상한 위 바닥만 "
        f"{D60['d_above_floor_db']:+.1f} dB 오르고 리듬 몫이 "
        f"{D60_1['rhythm_share_pct']:.1f} → {D60_3['rhythm_share_pct']:.1f} %"
-       f"({abs(D60['d_rhythm_pp']):.0f} %p 낙차)로 무너진다. 세기 하나로는 안 보이던 "
-       f"자리다.",
+       f"(낙차 {abs(D60['d_rhythm_pp']):.2f} %p)로 무너진다» 는 그 칸 자세 "
+       f"{OUT60['n_poses']:,} 개 중 **#{OUT60['culprit_pose_index']} 하나**가 만든 "
+       f"값이다. 그 자세의 움직이는 성분 |AC| 는 중앙값의 "
+       f"{OUT60['pose_over_median_dN']:.1f} 배인데 둘째 자세는 {P60_TOP2:.2f} 배뿐이고"
+       f"(고립도 = 최대÷둘째 = {OUT60['isolation_dN']:.2f} — 이 원장 "
+       f"{DA_OF['n_cells']} 칸의 고립도 중앙값은 {DA_OF['isolation_median']:.3f} 다), "
+       f"깊이 1 판의 같은 칸은 고립도 {OUT60['isolation_d1']:.3f} 로 평범하다. 경로 수도 "
+       f"정상이고({OUT60['npaths_at_pose']:,} ≈ 중앙값 "
+       f"{OUT60['npaths_median_dN']:,.0f}), 로터 4 회 대칭 짝 셋도 {ROT60_TXT} 배로 안 "
+       f"튄다. **그 자세 하나만 빼면** 두 판이 리듬 {TRIM60['rhythm_d1_pct']:.2f} ↔ "
+       f"{TRIM60['rhythm_dN_pct']:.2f} %(차 {TRIM60['d_rhythm_pp']:+.2f} %p) · 세기 차 "
+       f"{TRIM60['d_moving_power_db']:+.3f} dB 로 붙는다. 원장은 이 판정을 세 방법"
+       f"(이웃 평균으로 갈아 끼우기 · 죄 없는 자세를 빼는 대조검사 · 그 자세가 다른 어느 "
+       f"칸에서도 안 튄다는 전 칸 훑음)으로 각각 확인해 뒀다. ⚠**왜 그 자세가 튀는지는 "
+       f"모른다** — 이웃도 대칭 짝도 경로 수도 정상이라 구조적 정반사 플래시로는 안 "
+       f"읽힌다.",
        "",
-       f"⛔**깊이 축 종결 불가** — 큐에서 `--max-depth 3` 를 빼지 않는다. 그리고 깊이는 "
-       f"«세기를 옮기는 축» 이 아니라 **«상한 위 바닥을 올리는 축»** 이므로, 깊이 팔을 "
-       f"발주할 때 읽을 잣대는 세기 하나가 아니라 세 열이다.",
+       f"⛔**여기서 «깊이는 상한 위 바닥을 올리는 축» 이라고는 못 쓴다** — 전 판이 그렇게 "
+       f"쓴 근거는 위 2 번 하나였다. 표준 프레임이 싣는 두 팔(PS 다 끔 · PS 굴절만)의 "
+       f"깊이 짝 {len(SF)} 개는, 가장 튄 자세 1 개를 뺀 값으로 리듬 몫 차가 최대 "
+       f"{SF_RHY:.2f} %p 이고, 빗살 대비 차는 값이 잡히는 빗각·거리 "
+       f"{len(SF_CMB_OBL)} 칸에서 최대 {SF_CMB_HI:.2f} dB 다"
+       f"(앙각 {len(SF_EL)} 개 {' · '.join(ang(e) for e in SF_EL)}, 거리 "
+       f"{'·'.join(f'{r:.0f}' for r in SF_RG)} m). ⚠**빗살 대비의 이 범위에 정면 0° 는 "
+       f"안 든다** — 그 칸은 {SF_C0:+.2f} dB 로 범위 밖이고, 판 밖 −90° 는 빗살 대비 값 "
+       f"자체가 없다. 그리고 «작다» 라고 쓰는 근거는 격자 밴드가 아니라 관측값과 "
+       f"≈0 인 재실행 문턱이다 — 밴드는 «판정 불가» 만 말한다"
+       f"(원장 scorecard.wording_rule_ko).",
        "",
-       "⟨outputs/switch_factorial.json : verdict.B_* · depth_pairs⟩"),
+       f"밴드로도 채점해 뒀다. **정본(전역)** 밴드로는 깊이 쌍 "
+       f"{DA_SC['n_pairs_total']} 개 중 판독을 바꾼 쌍이 "
+       f"{DA_SC['n_moves_the_reading']} 개다. ⚠전역 밴드는 앙각별 밴드보다 넓어 «안 "
+       f"바뀐다» 쪽에 유리하다고 원장이 스스로 적어 뒀다"
+       f"(scorecard.band_rule_caveat_ko) — **앙각별 밴드로 채점하면 "
+       f"{DA_SC['n_moves_the_reading_by_el_band']} 개**다. 둘 다 정면 0° 의 빗살 대비 "
+       f"칸이고, 양쪽 판이 다 백색 널 자리라 «빗살 없음» 이라는 읽기 자체는 안 바뀐다.",
+       "",
+       f"⚠**리듬 몫 자체가 자유 파라미터 하나를 탄다.** 빗살 반폭을 ±2 → ±32 Hz 로 "
+       f"흔들면 이 잣대의 기하학적 바닥(= 2·hw/f_flash, 백색 대조군이 앉는 자리)이 "
+       f"{HW_LO:.1f} → {HW_HI:.1f} % 로 옮겨 간다. 위 값들은 "
+       f"±{FM['comb_half_width_hz']:.0f} Hz 한 값에서 잰 **두 판의 차**로만 쓴다 — "
+       f"리듬 몫의 절대값을 다른 문서로 들고 나가지 않는다.",
+       "",
+       f"⇒ 이 원장으로 확실한 것은 둘이다. ①**표준 프레임의 두 팔에서는 깊이 1 과 3 의 "
+       f"판독이 같다** — 큐의 표준 팔에 `--max-depth 3` 을 다시 태울 이유가 없다. "
+       f"②**회절을 켠 조합의 절대 레벨을 인용할 때만 «깊이 1 한정» 꼬리표를 단다.** "
+       f"「깊이 축이 통째로 살아 있다」도 「죽었다」도 이 원장으로는 못 쓴다.",
+       "",
+       "⟨outputs/switch_factorial.json : verdict.B_* · depth_pairs⟩ "
+       "⟨outputs/depth_axis_verdict_0816.json : outlier_forensics.el60_case · "
+       "pairs[].in_standard_frame·trim.k1 · scorecard · closure.retractions_ko⟩ "
+       "⟨outputs/rhythm_share_knob_audit_0825.json : 기하학적_바닥_2hw_over_fflash⟩"),
 
     md("## 곁가지 — 순정 공장 기본값은 빗각에서 에코가 정확히 0",
        "",
@@ -445,8 +538,13 @@ nb.cells = [
        f"{AX['R']['a_min']:.2f}~{AX['R']['a_max']:.2f} 라 «얹는» 것이 아니라 «바꾸는» "
        f"것이다. 물을 것은 «Sionna 의 유전체 셸 투과가 우리 커널의 투과 규약과 왜 "
        f"다른가» 다.",
-       f"4. ⚠**깊이 축은 종결하지 않는다** — {len(BF)} 쌍이 문턱 밖이다. 큐의 "
-       f"`--max-depth 3` 를 유지하고, 깊이 팔은 세기가 아니라 세 열로 읽는다.",
+       f"4. ⚠**깊이 축 — 표준 팔은 닫혔고, 문턱 밖에는 회절 켠 조합의 레벨만 남았다.** "
+       f"문턱 밖은 판 위 R1D1** {len(BF_LIVE)} 쌍(세 열 전부 "
+       f"+{PL_LO:.1f}~+{PL_HI:.1f} dB)뿐이고 "
+       f"그 기전은 안 세워졌다. 표준 팔에서는 `--max-depth 3` 를 뺀다. ⛔전 판이 근거로 "
+       f"든 «−60° 리듬 붕괴» 는 자세 하나의 튐이라 **철회했다**(2026-08-16) — 그 숫자를 "
+       f"근거로 한 깊이 재발주(docs/NEXT_EXPERIMENTS.md ⑦ R26)는 취소하고, 다시 물으려면 "
+       f"판 위 +2 dB 쪽을 **깊이 3 광선 사다리**로 묻는다.",
        "5. ⇒ 다음 작업 제안: (a) 상한 위로 새는 회절 항이 물리인지 계산 흔들림인지 "
        "가르기 — 같은 칸을 광선 수를 내리며 재서 바닥이 광선 수를 따라가는지 본다, "
        "(b) 회절 경로만 뽑아 그 도플러 분포를 직접 보기 — 왜 리듬이 없는가의 기전, "

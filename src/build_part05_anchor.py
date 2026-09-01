@@ -131,17 +131,25 @@ def report_24_anchor_mode():
                 f"({_n('anchor.correction_min_drone', DER)} @ "
                 f"{_n('anchor.correction_min_band', DER)}) 다.",
 
-                f"정렬 후 "
+                f"⚠ 정렬 후 "
                 f"{_n('anchor_modes.n_airframes', DER, '{:.0f}', '기종')} 기울기가 모두 "
-                f"{_n('anchor.slope_after_db_per_ghz', DER, '{:.3f}', 'dB/GHz')} 위에 서고, 기종 간 "
-                f"산포는 "
-                f"{_n('anchor.slope_after_spread_db_per_ghz', DER, '{:.1e}', 'dB/GHz')} 다.",
+                f"{_n('anchor.slope_after_db_per_ghz', DER, '{:.3f}', 'dB/GHz')} 에 서고 기종 간 "
+                f"산포가 "
+                f"{_n('anchor.slope_after_spread_db_per_ghz', DER, '{:.1e}', 'dB/GHz')} 인 것은 "
+                f"관측이 아니라 **정의**다 — `{_n('anchor_modes.production_mode', DER)}` 은 밴드 "
+                f"비가중 평균 레벨을 축으로 회전만 시키므로 정렬 후 기울기가 앵커 기울기 "
+                f"{_n('literature.mu_eps.das_phantom3_mono.mu_a', ANC, '{:.3f}', 'dB/GHz')}(Das) 와 "
+                f"항등적으로 같아진다 ⟨{DER} : anchor_modes.definition⟩. 이 산포는 부동소수 "
+                f"반올림 자리다.",
 
-                f"레벨이동 절대 최대는 "
-                f"{_n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')}, 재보정 후 정규화 "
-                f"각패턴 변화는 "
-                f"{_n('anchor.shape_invariance_max_abs_db', DER, '{:.1e}', 'dB')} 다 — 주파수 눈금만 "
-                f"측정에서 오고 레벨과 모양은 그대로다.",
+                f"⚠ 레벨이동 절대 최대 "
+                f"{_n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')} 도 같은 항등식의 "
+                f"구현 검산이다 — 정의상 0 인 것은 세 밴드 **평균** Δ 이고, 밴드별 Δ 는 위 2번 "
+                f"범위다. 함께 실린 정규화 각패턴 변화 "
+                f"{_n('anchor.shape_invariance_max_abs_db', DER, '{:.1e}', 'dB')} 는 "
+                f"`src/sigma_anchor.py` 가 생산 모드가 아니라 `level_and_slope_L2` 에서, LTE "
+                f"{_n('bands_ghz.LTE', DER, '{:.3f}', 'GHz')} 한 밴드의 el=0 격자 120 방위에서만 "
+                f"잰 값이다.",
 
                 f"레벨까지 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택 하나가 기체당 최대 "
                 f"{_n('anchor_modes.size_law_spread_max_db', DER, '{:.2f}', 'dB')} 를 정한다.",
@@ -214,7 +222,15 @@ def report_24_anchor_mode():
            f"{_n('anchor.correction_min_db', DER, '{:+.2f}', 'dB')}"
            f"({_n('anchor.correction_min_drone', DER)} @ "
            f"{_n('anchor.correction_min_band', DER)}) 다. 레벨이동 열은 기체 "
-           f"{_n('anchor_modes.n_airframes', DER, '{:.0f}', '종')} 의 세 밴드 평균 Δ 다."),
+           f"{_n('anchor_modes.n_airframes', DER, '{:.0f}', '종')} 의 세 밴드 평균 Δ 다.", "",
+           f"⚠ **`{_n('anchor_modes.production_mode', DER)}` 행의 평균 레벨이동 "
+           f"«{_n('anchor_modes.rows[0].mean_shift_range_db', DER)}» 은 잰 값이 아니라 모드의 "
+           f"정의다** — 원장이 그렇게 적어 둔다 ⟨{DER} : anchor_modes.definition⟩. 이 모드는 목표를 "
+           f"`target = μ_anchor + (mean(μ_our) − mean(μ_anchor))` 로 잡으므로"
+           f"(`src/sigma_anchor.py` 의 `relevel()`) 세 밴드 평균 Δ 가 항등적으로 0 이고, 바로 위의 "
+           f"{_n('anchor.correction_max_db', DER, '{:+.2f}')} ~ "
+           f"{_n('anchor.correction_min_db', DER, '{:+.2f}', 'dB')} 가 그 0 을 이루는 밴드별 "
+           f"성분이다."),
 
         md("## 왜 기울기만 받나", "",
            f"레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택이 기체에 따라 최대 "
@@ -229,14 +245,23 @@ def report_24_anchor_mode():
                  [["A(f) 기울기", "주파수 의존성", "**측정**(Das)",
                    "μ 기울기 " + _n('literature.mu_eps.das_phantom3_mono.mu_a', ANC, '{:.2f}', 'dB/GHz')],
                   ["A(f) 레벨", "절대 레벨", "**우리 SBR+PO 커널(B) 출력**",
-                   "`" + _n('anchor_modes.production_mode', DER) + "` 의 레벨이동 절대 최대 "
-                   + _n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')],
+                   "설계 — `" + _n('anchor_modes.production_mode', DER)
+                   + "` 이 밴드 평균 레벨을 보존한다. 레벨이동 절대 최대 "
+                   + _n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')
+                   + " 는 그 항등식의 구현 검산"],
                   ["B₁(φ,θ)", "자세에 따른 모양", "**기하**(B — 광선 가림 + 셸 투과 + PO)",
-                   "재보정 후 정규화 패턴 변화 "
-                   + _n('anchor.shape_invariance_max_abs_db', DER, '{:.1e}', 'dB')],
+                   "설계 — 보정이 밴드별 스칼라 곱이다. 정규화 패턴 변화 "
+                   + _n('anchor.shape_invariance_max_abs_db', DER, '{:.1e}', 'dB')
+                   + " 는 `level_and_slope_L2` · LTE "
+                   + _n('bands_ghz.LTE', DER, '{:.3f}', 'GHz') + " 한 밴드에서 잰 검산"],
                   ["B₂", "자세 요동의 분포족", "기하(B)",
                    "문헌 적합 RMSE " + _n('literature.fit_rmse_db.AAV', ANC, '{:.2f}', 'dB')
-                   + " 가 기준선"]])),
+                   + " 가 기준선"]]), "",
+           f"⚠ **넷째 열은 셋째 열의 증거가 아니다.** A(f) 레벨·B₁ 두 행의 숫자는 재보정이 레벨과 "
+           f"각패턴을 건드리지 않도록 짜였다는 설계의 구현 검산이고, 그 두 행의 «어디서» 도 잰 "
+           f"결과가 아니라 이 편이 고른 설계다. 원장도 그렇게 적는다 — 측정에서 받는 것은 "
+           f"«{_n('anchor.from_measurement', DER)}» 하나이고, "
+           f"«{_n('anchor.from_ours', DER)}» 는 우리 커널에서 온다."),
 
         md("## 이 표가 서 있는 사슬 세대", "",
            f"⚠ **생산 앵커 원장과 위 문단의 우리 기울기는 σ 사슬의 서로 다른 세대다.** 생산 원장은 "

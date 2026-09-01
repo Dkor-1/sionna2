@@ -26,6 +26,7 @@ build_part09_detector.py — 부 9 「검출기」 5편(51~55)을 짓는다
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 
@@ -156,6 +157,26 @@ RATIO = {b: v + "배" for b, v in _ratio_raw.items()}
 _RATIO_F = {b: float(fetch(f"{CFAR}:{_row(b, 'dpi_eca', 'op')}.ratio")) for b, _e, _l in WFS}
 RATIO_LO = f"{min(_RATIO_F.values()):.2f}"
 RATIO_HI = f"{max(_RATIO_F.values()):.2f}"
+#: ⛔ 사다리의 칸별 몫 — 손으로 적지 않고 원장 ratio 네 개에서 바로 계산한다. 대조군 셋이
+#  모두 `mode="noise"` 에서 돌기 때문에(`benchmark/verify_cfar.py:695`) 두 항이 되돌리는
+#  구간은 «둘 다 제거 → 잡음 맵» 까지이고, «잡음 맵 → 전체 사슬» 은 어떤 대조군도 끄지 않는다.
+_W_F = float(fetch(f"{CFAR}:{_white_row()}.ratio"))
+_N_F = float(fetch(f"{CFAR}:{_row('NR100', 'noise', 'op')}.ratio"))
+_B_F = float(fetch(f"{CFAR}:{_ctrl_row('control_whitened_mf_rect_NR100')}.ratio"))
+_D_F = _RATIO_F["NR100"]
+GAP_TWO = f"{10 * math.log10(_N_F / _B_F):+.2f}"      # 대조군 둘이 되돌린 몫
+GAP_REST = f"{10 * math.log10(_D_F / _N_F):+.2f}"     # 아무 대조군도 끄지 않는 몫
+GAP_ALL = f"{10 * math.log10(_D_F / _W_F):+.2f}"      # 백색 맵 대비 전체 초과
+REST_PCT = f"{100 * math.log10(_D_F / _N_F) / math.log10(_D_F / _W_F):.0f}"
+X_REST = f"{_D_F / _N_F:.2f}"
+NOISE_R = num(None, f"{CFAR}:{_row('NR100', 'noise', 'op')}.ratio", "{:.2f}")
+HITS_N = num(None, f"{CFAR}:{_row('NR100', 'noise', 'op')}.hits", "{:,.0f}")
+HITS_D = num(None, f"{CFAR}:{_row('NR100', 'dpi_eca', 'op')}.hits", "{:,.0f}")
+CELLS_OP = num(None, f"{CFAR}:{_row('NR100', 'dpi_eca', 'op')}.cells", "{:,.0f}")
+RHO_N = num(None, f"{CFAR}:chain.NR100.noise.whiteness.rho_range[0]", "{:.2f}")
+RHO_D = num(None, f"{CFAR}:chain.NR100.dpi_eca.whiteness.rho_range[0]", "{:.2f}")
+EFF_N = num(None, f"{CFAR}:chain.NR100.noise.whiteness.eff_indep_frac_2d", "{:.2f}")
+EFF_D = num(None, f"{CFAR}:chain.NR100.dpi_eca.whiteness.eff_indep_frac_2d", "{:.2f}")
 CALIB = {b: num(None, f"{CFAR}:{_calib(b, 1e-4)}.pfa_nominal_needed", "{:.2e}")
          for b, _e, _l in WFS}
 DNR = {e: num(None, f"{ECA}:meta.setups[{_setup(e)}].dnr_db", "{:.1f}", "dB")
@@ -176,11 +197,35 @@ TX_DEPTH = {e: num(None, f"{ECA}:{_s3(e)}.depth_tx_dpi_db", "{:.2f}", "dB")
             for _b, e, _l in WFS}
 RD_OFF = {e: num(None, f"{ECA}:{_s3(e)}.rd_offzero_peak_over_nfloor_db", "{:.1f}", "dB")
           for _b, e, _l in WFS}
+#: ⛔ RD_OFF 를 «잰 값» 으로 읽지 않으려면 형제 키 둘이 함께 있어야 한다 — 시간영역에 남은
+#  잔류(RESID)와, 그 잔류가 RD 맵의 0-도플러 행에 서기는 하는지(RD_ZD).
+RD_ZD = {e: num(None, f"{ECA}:{_s3(e)}.rd_zerodop_peak_over_nfloor_db", "{:.1f}", "dB")
+         for _b, e, _l in WFS}
+RESID = {e: num(None, f"{ECA}:{_s3(e)}.resid_over_noise_db", "{:.1f}", "dB")
+         for _b, e, _l in WFS}
+#: 비-0도플러 열이 0-도플러 열의 상수 평행이동이라는 것은 원장 아홉 줄이 스스로 보인다.
+#  그 상수와 줄별 폭·잔류 구간을 손으로 적지 않고 아홉 줄에서 바로 계산한다.
+_S3_ROWS = fetch(f"{ECA}:S3_pilot_vs_tx")
+_GAPS = [r["rd_zerodop_peak_over_nfloor_db"] - r["rd_offzero_peak_over_nfloor_db"]
+         for r in _S3_ROWS]
+N_S3 = f"{len(_GAPS)}"
+GAP_ZD = f"{sum(_GAPS) / len(_GAPS):.2f}"
+GAP_SPAN = f"{max(_GAPS) - min(_GAPS):.2f}"
+RESID_LO = f"{min(r['resid_over_noise_db'] for r in _S3_ROWS):+.1f}"
+RESID_HI = f"{max(r['resid_over_noise_db'] for r in _S3_ROWS):+.1f}"
 #: 다중경로의 출처 — 실측이 아니라 레이 트레이싱이라는 것을 원장에서 직접 읽는다.
 CLUTTER_SRC = num(None, f"{ECA}:meta.setups[{_setup('5G NR 100MHz')}].clutter_src")
 FD3DB = num(None, f"{ECA}:{_s4('5G NR 100MHz', 48)}.fd_3db_over_dfd", "{:.3f}")
 M48 = num(None, f"{ECA}:{_s4('WiFi 80MHz', 48)}.M", "{:.0f}")
 V3 = {e: num(None, f"{ECA}:{_s4(e, 48)}.v_3db_ms", "{:.2f}", "m/s") for _b, e, _l in WFS}
+#: ⛔ 속도 문턱은 λ 혼자 정하지 않는다 — 프레임 수를 48 로 고정하면 프레임 길이가 달라
+#  T_cpi 가 갈린다. 규약이 만든 순서를 드러내려고 λ · T_cpi 와, 5G 만 프레임 96개로 잡아
+#  CPI 를 맞춘 판을 함께 읽는다. 무차원 상수도 M 에 딸리므로 M=16·96 을 둔다.
+FD3DB_16 = num(None, f"{ECA}:{_s4('5G NR 100MHz', 16)}.fd_3db_over_dfd", "{:.3f}")
+FD3DB_96 = num(None, f"{ECA}:{_s4('5G NR 100MHz', 96)}.fd_3db_over_dfd", "{:.3f}")
+LAM = {e: num(None, f"{ECA}:{_s4(e, 48)}.lam_m", "{:.4f}", "m") for _b, e, _l in WFS}
+TCPI48 = {e: num(None, f"{ECA}:{_s4(e, 48)}.T_cpi_ms", "{:.0f}", "ms") for _b, e, _l in WFS}
+V3_96 = {e: num(None, f"{ECA}:{_s4(e, 96)}.v_3db_ms", "{:.2f}", "m/s") for _b, e, _l in WFS}
 RANK1 = num(None, f"{OBS}:summary.snapshot_fim_rank", "{:.0f}")
 RANK2 = num(None, f"{OBS}:summary.fix_2rx_rank", "{:.0f}")
 RMS2 = num(None, f"{OBS}:summary.fix_2rx_pos_rms_m", "{:.2f}", "m")
@@ -310,10 +355,13 @@ def r52():
                 f"그 합성에서 바닥을 정하는 것은 탭 수가 아니라 환경이다 — 탭 1~96 스윕에서 깊이가 "
                 f"포화한다. 직접파를 송신 파형 전체로 합성하면 같은 격자의 깊이가 5G "
                 f"{TX_DEPTH['5G NR 100MHz']} 다.",
-                f"대가는 0-도플러 노치다. 3 dB 손실 지점은 $f_d/\\Delta f_d$ = {FD3DB} 이고 "
-                f"세 파형이 같다.",
+                f"대가는 0-도플러 노치다. 3 dB 손실 지점은 $f_d/\\Delta f_d$ = {FD3DB} 로 "
+                f"세 파형이 같고, 그 무차원 상수는 M 이 정한다 — M = 16 · 48 · 96 에서 "
+                f"{FD3DB_16} · {FD3DB} · {FD3DB_96} 다.",
                 f"프레임 {M48}개에서 속도 문턱은 WiFi {V3['WiFi 80MHz']} · LTE {V3['LTE 20MHz']} · "
-                f"5G {V3['5G NR 100MHz']} 다 — 그보다 빠른 표적이 무는 노치 손실은 3 dB 아래다.",
+                f"5G {V3['5G NR 100MHz']} 다 — 그보다 빠른 표적이 무는 노치 손실은 3 dB 아래다. "
+                f"⚠ 같은 프레임 수에서 $T_{{CPI}}$ 는 {TCPI48['WiFi 80MHz']} · "
+                f"{TCPI48['LTE 20MHz']} · {TCPI48['5G NR 100MHz']} 로 갈린다.",
                 f"정적 산란체는 ECA 뒤에서 죽은 파라미터다 — 클러터를 "
                 f"{num(None, f'{ECA}:{_clutter_max()}.scale', '{:.0f}')}배까지 키워도 SCR 변화폭은 "
                 f"{num(None, f'{ECA}:S5_clutter_dead.scr_span_db', '{:.1e}', 'dB')} 다.",
@@ -353,20 +401,44 @@ def r52():
            "**환경이 정하는 몫**이다.", "",
            f"두 열 모두 직접파를 기준신호로 합성한 판이다(`benchmark/verify_eca.py:146,147`). "
            f"헤드라인 사슬은 직접파를 송신 파형 전체(파일럿+데이터)로 합성하고"
-           f"(`benchmark/run_min_cell.py:164`), 그 판의 깊이는 WiFi {TX_DEPTH['WiFi 80MHz']} · "
-           f"LTE {TX_DEPTH['LTE 20MHz']} · 5G {TX_DEPTH['5G NR 100MHz']} 다 — 데이터 잔류가 "
-           f"0-도플러 행에 앉으므로 RD 맵의 비-0도플러 첨두는 잡음 플로어 대비 WiFi "
-           f"{RD_OFF['WiFi 80MHz']} · LTE {RD_OFF['LTE 20MHz']} · "
-           f"5G {RD_OFF['5G NR 100MHz']} 다."),
+           f"(`benchmark/run_min_cell.py:164`), 그 판의 **시간영역** 깊이는 WiFi "
+           f"{TX_DEPTH['WiFi 80MHz']} · LTE {TX_DEPTH['LTE 20MHz']} · "
+           f"5G {TX_DEPTH['5G NR 100MHz']} 다 — 남은 잔류는 열잡음(var=1)보다 WiFi "
+           f"{RESID['WiFi 80MHz']} · LTE {RESID['LTE 20MHz']} · "
+           f"5G {RESID['5G NR 100MHz']} 크다.", "",
+           f"⚠ 그 잔류가 RD 맵 어디에 서는지는 파형마다 갈린다. 0-도플러 행의 첨두가 잡음 "
+           f"플로어 위로 서는 것은 LTE 한 파형이고({RD_ZD['LTE 20MHz']}), WiFi·5G 는 같은 "
+           f"행에서 {RD_ZD['WiFi 80MHz']} · {RD_ZD['5G NR 100MHz']} 다. ⛔ 그 두 수는 크기가 "
+           f"아니라 «이 격자에서는 RD 맵에 서지 않았다» 는 표시로 읽고, 왜 LTE 만 남는지는 이 "
+           f"원장 밖의 물음으로 둔다.", "",
+           f"⛔ 비-0도플러 첨두(WiFi {RD_OFF['WiFi 80MHz']} · LTE {RD_OFF['LTE 20MHz']} · "
+           f"5G {RD_OFF['5G NR 100MHz']})는 0-도플러 첨두를 상수만큼 평행이동한 값이다 — 원장 "
+           f"{N_S3}줄 전부에서 두 값의 차가 {GAP_ZD} dB 이고 줄별 폭은 {GAP_SPAN} dB 다. "
+           f"잔류가 {RESID_LO} ~ {RESID_HI} dB 로 갈리는 {N_S3}줄에서 그 차가 같으므로, 이 열이 "
+           f"0-도플러 열에 더해 싣는 것은 «0-도플러 행 세 개를 지웠다» 는 규약이다"
+           f"(`benchmark/verify_eca.py:249`) — 사슬의 운용 마스크는 한 행이다"
+           f"(`benchmark/verify_cfar.py:315`)."),
 
         md(*fig(1, "f2_eca_depth", "ECA 소거 깊이의 바닥을 정하는 것은 무엇인가?")),
 
         md("## 대가 — 0-도플러 노치", "",
            f"ECA 는 지연만 다른 성분을 함께 지운다. 느리게 움직이는 표적은 그 성분과 구분되지 "
            f"않으므로 같이 깎인다. 3 dB 손실 지점은 $f_d/\\Delta f_d$ = {FD3DB} 이고 세 파형이 "
-           f"같다 — 속도 문턱은 $\\lambda$ 가 가른다.", "",
-           table(["파형", "3 dB 속도 문턱 (프레임 " + M48 + "개)"],
-                 [[label, V3[ename]] for _b, ename, label in WFS])),
+           f"같다 — 속도 문턱은 $\\lambda$ 와 $\\Delta f_d(=1/T_{{CPI}})$ 둘이 가른다.", "",
+           table(["파형", "$\\lambda$", "$T_{CPI}$ (프레임 " + M48 + "개)",
+                  "3 dB 속도 문턱 (프레임 " + M48 + "개)"],
+                 [[label, LAM[ename], TCPI48[ename], V3[ename]]
+                  for _b, ename, label in WFS]),
+           "",
+           f"⚠ 프레임 수를 {M48}개로 고정하면 세 파형의 CPI 가 갈린다 — 프레임 길이가 달라 "
+           f"$T_{{CPI}}$ 가 {TCPI48['WiFi 80MHz']} · {TCPI48['LTE 20MHz']} · "
+           f"{TCPI48['5G NR 100MHz']} 다. 이 표에서 5G 문턱이 LTE 보다 높은 것은 CPI 가 "
+           f"절반이기 때문이고, $\\lambda$ 는 5G({LAM['5G NR 100MHz']})가 "
+           f"LTE({LAM['LTE 20MHz']})보다 짧다.", "",
+           f"5G 만 프레임 96개로 잡아 CPI 를 {TCPI48['WiFi 80MHz']} 로 맞추면 문턱은 "
+           f"WiFi {V3['WiFi 80MHz']} · 5G {V3_96['5G NR 100MHz']} · LTE {V3['LTE 20MHz']} 로 "
+           f"$\\lambda$ 순서가 된다. ⛔ 이 표의 세 수는 파형이 정한 물리 문턱이 아니라 프레임 "
+           f"수 규약과 함께 정해진 값이다."),
 
         md(*fig(2, "f3_eca_notch", "ECA 가 클러터와 함께 지우는 표적의 속도는 얼마인가?")),
 
@@ -501,7 +573,10 @@ def r54():
             results=[
                 f"CA-CFAR 는 훈련셀이 서로 독립이라고 가정한다. 사슬은 slow-time Hann 창으로 "
                 f"도플러축 셀을 묶는다 — Hann 을 rect 창으로 바꾸면 5G 배율이 {RECT} 로 내려온다.",
-                f"거리축 항까지 끄면 {BOTH} 로 눈금이 1 로 돌아온다 — 두 항이 배율의 전부다.",
+                f"거리축 항까지 끄면 {BOTH} 로 **잡음 맵**의 눈금이 1 로 돌아온다 — 두 항이 "
+                f"되돌리는 구간은 잡음 맵까지({GAP_TWO} dB)다. 운용 형상 전체 사슬의 "
+                f"{_ratio_raw['NR100']} 는 잡음 맵({NOISE_R})보다 ×{X_REST}({GAP_REST} dB) 크고, "
+                f"대조군 셋은 모두 `mode=\"noise\"` 에서 돌았다(`benchmark/verify_cfar.py:695`).",
                 f"형상이 배율을 정한다 — 같은 파형이 운용 창에서 {RATIO['NR100']}, 넓은 창"
                 f"({N_WIDE} 빈)에서 {WIDE_NR}배다.",
                 f"그래서 교정표는 형상마다 다시 잰다. `check_detector_config()`"
@@ -528,8 +603,11 @@ def r54():
 
         md("## 원인 — 셀 상관", "",
            "CA-CFAR 는 훈련셀이 서로 독립이라고 가정한다. 사슬은 slow-time Hann 창으로 도플러축 "
-           "셀을 묶고, 정합필터로 거리축 셀을 묶는다. 대조군이 그 두 항을 원인으로 확정한다"
-           "(5G NR, 명목 1e-4).", "",
+           "셀을 묶고, 정합필터로 거리축 셀을 묶는다. 대조군이 그 두 항을 **잡음 맵에 대해** "
+           "원인으로 확정한다(5G NR, 명목 1e-4).", "",
+           "⚠ 아래 표에서 가운데 네 줄은 모두 `mode=\"noise\"` 판이고"
+           "(`benchmark/verify_cfar.py:695`), 마지막 줄만 DPI+ECA 를 지난다 — 그 단계를 끄는 "
+           "대조군은 이 원장 밖이다.", "",
            table(["조건", "경험/명목"],
                  [["이상적 백색 맵", W_RATIO],
                   ["잡음 맵 (Hann + 정합필터)",
@@ -546,7 +624,16 @@ def r54():
            f"«상관이 있다» 만으로는 원인 지목이 서지 않는다. 항을 하나씩 꺼서 눈금이 1 로 "
            f"돌아오는 것을 보여야 확정된다. Hann 을 rect 로 바꾸면 {RECT}, 백색화 정합필터까지 "
            f"끄면 {BOTH} 다.", "",
-           "그 사다리가 위 표이고, 마지막 줄과 첫 줄 사이의 간격이 곧 두 항의 몫이다."),
+           f"그 사다리가 위 표다. «둘 다 제거»({BOTH})와 «잡음 맵»({NOISE_R}) 사이의 "
+           f"{GAP_TWO} dB 가 두 항의 몫이고, 백색 맵({W_RATIO})에서 전체 사슬"
+           f"({_ratio_raw['NR100']})까지의 전체 초과는 {GAP_ALL} dB 다.", "",
+           f"⛔ 잡음 맵에서 전체 사슬까지의 {GAP_REST} dB(×{X_REST}, 전체 초과의 {REST_PCT} %)는 "
+           f"대조군 셋이 지나지 않은 DPI+ECA 단계 쪽에 있다 — 셋 다 `mode=\"noise\"` 로 돌았다"
+           f"(`benchmark/verify_cfar.py:695`). 표본은 히트 {HITS_N} → {HITS_D}, "
+           f"셀 {CELLS_OP} 개다.", "",
+           f"원장이 그 단계에 대해 적어 두는 것은 두 수다 — 거리축 lag-1 상관이 잡음 맵 "
+           f"{RHO_N} 에서 전체 사슬 {RHO_D} 로 오르고, 2D 유효독립분율이 {EFF_N} → {EFF_D} 로 "
+           f"떨어진다. ⚠ 그 항을 끄는 대조군이 이 원장에 없으므로 원인 지목은 여기서 멈춘다."),
 
         md("## 형상 규약 — 교정표가 성립하는 조건", "",
            f"거리창은 ECA 탭 안에 두고, 0-도플러 행 {ZDN}개를 마스킹한다. "
@@ -711,7 +798,7 @@ def r55():
 #  논문 조각 — 옛 report04 c22
 # =========================================================================== #
 def write_paper_doc() -> str:
-    nb = os.path.join(_ROOT, "report04_detector.ipynb")
+    nb = os.path.join(_ROOT, "archive", "legacy_reports", "report04_detector.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
     if len(cells) <= 22:
