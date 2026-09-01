@@ -23,6 +23,25 @@
 대체하지 않는다. ⛔판정 배지·네모 상자를 그림 안에 넣지 않는다. 그림은 곡선으로 말하고
 판정은 발표자가 말한다.
 
+## ⛔팀미팅은 이 저장소에서 관리하지 않는다
+
+발표 자료(덱·대본·발표용 그림)는 **`/workspace/team_meeting/` 에서만** 만들고 보관한다.
+이 저장소에 `.pptx` · 덱 계획 문서 · 덱 전용 빌더를 두지 않는다.
+2026-09-02 에 `decks/`(56 MB) · `teammeeting_0811/` · `DECK_0827_PLAN.md` 를 옮겼다 —
+사용자 지시: 「시오나 디렉토리 내에 팀미팅 내용은 내부에서 다 없애버려」.
+
+⚠**이름에 `deck` 이 들어갔다고 팀미팅 자산인 것은 아니다.** 다음은 **분석 자산이라 남긴다**:
+
+| 남긴 것 | 왜 |
+|---|---|
+| `benchmark/build_deck_maps.py` | `structure_bars` 가 **리듬 몫 창 반폭 8 Hz 정의의 정본**이다 — `build_md_atlas.py` · `build_atlas_toc.py` · `src/rx_noise.py` 가 이 정의를 인용한다 |
+| `benchmark/deck_facts.py` · `deck_ours_by_range.py` · `build_deck0811_*.py` · `build_physics_vs_deck_fig.py` | sionna 스크립트·리포트 빌더가 부른다 |
+| `outputs/deck*.json` | **원장**이다. 리포트 3 편(05 · 06_2 · 06_4)이 각주로 인용한다 |
+| `docs/DECK_FACTS.md` | 덱이 인용하는 숫자의 **원장 대조표** — 검증 기록이다 |
+
+⇒ 가르는 기준은 이름이 아니라 **누가 쓰나**다. 리포트나 분석이 쓰면 남기고,
+발표에만 쓰면 `/workspace/team_meeting/` 으로 보낸다.
+
 ## 그 밖의 상시 규약
 
 | 문서 | 무엇 |

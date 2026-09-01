@@ -407,17 +407,28 @@ def report_18_kernel_what():
            f"판 하나를 잡아 {_N_POSE} 자세에 그대로 쓰면 그 대역밖 절대 전력이 "
            f"λ/12 에서 {_n('freeze_verdict.gains_db.12', OOB, '{:.1f}')} · λ/32 에서 "
            f"{_n('freeze_verdict.gains_db.32', OOB, '{:.1f}', 'dB')} 내려간다. "
-           f"⭐ 격자 사다리의 세 팔(생산 · 위상고정 · 얼림 ⟨{SGC} : _meta.arms⟩)을 예측 기울기 "
-           f"≈ −2 ⟨{SGC} : _meta.prediction⟩ 에 맞대면, div ≥ 12 에서 잰 기울기가 생산 "
-           f"{_n('convergence.prod.slope_ge12', OOB, '{:.2f}')}"
-           f"(R² {_n('convergence.prod.r2_ge12', OOB, '{:.3f}')}) · 위상고정 "
-           f"{_n('convergence.phase.slope_ge12', OOB, '{:.2f}')}"
-           f"(R² {_n('convergence.phase.r2_ge12', OOB, '{:.3f}')}) · 얼림 "
-           f"{_n('convergence.froz.slope_ge12', OOB, '{:.2f}')}"
-           f"(R² {_n('convergence.froz.r2_ge12', OOB, '{:.3f}')}) 다 — 예측 위에 서는 것은 "
-           f"위상고정과 얼림 둘이고, 얼린 팔이 적합도와 절대 바닥(λ/12 에서 P_out "
+           # ⛔옛 문장은 「div ≥ 12」 창으로 자른 기울기로 팔을 갈랐는데, **창이 판정을 만들고
+           #   있었다**(적대 검증 2026-09-01 · docs/AUDIT_REPORTS_0901.md). 사다리는
+           #   [8,12,16,24,32] 다섯 칸이고 같은 원장에 slope_full 이 나란히 있다:
+           #     생산 ge12 −0.56 ↔ 전체 −2.20 · 위상고정 −2.33 ↔ −3.85 · 얼림 −2.19 ↔ −2.21
+           #   손잡이를 흔들면(칸 하나씩 빼기 · 이웃칸 국소 기울기) 폭이 이렇다:
+           #     생산 2.31 / 7.40 · 위상고정 2.00 / 9.50 · **얼림 0.08 / 0.50**
+           #   ⇒ 어느 창으로 잘라도 −2 위에 서는 팔은 **얼림 하나뿐**이다. 그렇게 적는다.
+           f"⭐ 격자 사다리 다섯 칸(λ/8 · λ/12 · λ/16 · λ/24 · λ/32 ⟨{SGC} : _meta.arms⟩)의 "
+           f"세 팔을 예측 기울기 ≈ −2 ⟨{SGC} : _meta.prediction⟩ 에 맞대면, **어느 창으로 "
+           f"잘라도 예측 위에 서는 팔은 얼림 하나뿐이다.** 얼린 팔은 사다리 전체에서 "
+           f"{_n('convergence.froz.slope_full', OOB, '{:.2f}')}"
+           f"(R² {_n('convergence.froz.r2_full', OOB, '{:.3f}')}) 이고 칸을 하나씩 빼도 "
+           f"−2.19 ~ −2.27(폭 0.08), 이웃칸 국소 기울기도 −1.94 ~ −2.44(폭 0.50) 안에 머문다. "
+           f"⚠**나머지 두 팔에는 지수라고 부를 것이 없다** — 생산은 창에 따라 "
+           f"{_n('convergence.prod.slope_ge12', OOB, '{:.2f}')}(div ≥ 12) 에서 "
+           f"{_n('convergence.prod.slope_full', OOB, '{:.2f}')}(전체) 사이를 오가고 칸을 "
+           f"하나 빼면 폭이 2.31, 국소 기울기 폭은 7.40 이다. 위상고정도 "
+           f"{_n('convergence.phase.slope_ge12', OOB, '{:.2f}')} ↔ "
+           f"{_n('convergence.phase.slope_full', OOB, '{:.2f}')} 로 폭 2.00 · 국소 9.50 이다. "
+           f"절대 바닥에서는 얼린 팔이 앞선다(λ/12 에서 P_out "
            f"{_n('convergence.froz.P_out_per_div.12', OOB, '{:.1e}')} 대 위상고정 "
-           f"{_n('convergence.phase.P_out_per_div.12', OOB, '{:.1e}')})에서 앞선다. 생산 격자는 "
+           f"{_n('convergence.phase.P_out_per_div.12', OOB, '{:.1e}')}). 생산 격자는 "
            f"λ/12 → λ/32 로 촘촘히 해도 "
            f"{_n('convergence.prod.drop_db_div12_to_div32', OOB, '{:.1f}', 'dB')} 만 내려간다 — "
            f"바닥의 지배 원인이 광선 밀도가 아니라는 뜻이다.", "",

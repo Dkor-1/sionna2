@@ -30,7 +30,9 @@
 | `archive/legacy_reports/` | 2026-08-16 재편 **이전** 노트북 8 개. 읽지 마라 — `reports/` 가 새 것이다 |
 | `work/` | 임시 작업(`scratchpad`, `scratchpad_verify`) |
 | `prior_work/` · `refs/` · `jihyuck/` | 선행연구·참고자료 |
-| `decks/` · `atlas/` · `teammeeting_0811/` | 발표 산출물 |
+| `atlas/` | 마이크로도플러 아틀라스(분석 산출물) |
+
+⛔**발표 자료는 여기 없다** — `/workspace/team_meeting/` 에서만 관리한다(`CLAUDE.md`).
 
 ⛔**노트북을 손으로 고치지 않는다.** `reports/*.ipynb` 는 전부 생성물이다 —
 `src/build_part*.py` 를 고치고 `src/build_volumes.py` 를 다시 돌린다.
