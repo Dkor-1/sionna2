@@ -31,6 +31,7 @@
 | [`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md) | 주장 게이트 (위) |
 | [`docs/EQUIVALENCE_GATES.md`](docs/EQUIVALENCE_GATES.md) | 「같음」 판정 3 층. ⛔솔버 산출물에 «비트 동일» 을 요구하지 않는다 |
 | [`docs/DECK_FACTS.md`](docs/DECK_FACTS.md) | 덱이 인용하는 숫자의 원장 대조표 |
+| [`docs/AUDIT_REPORTS_0901.md`](docs/AUDIT_REPORTS_0901.md) | ⭐레포트 24권 적대 검증 — **확인 59 건(fatal 5), 살아 있음 49**. 인용 전에 해당 권을 확인한다 |
 
 - 확산반사(F)는 **모든 팔에서 항상 켠다.** 비교축은 다섯 팔뿐이다
 - 「우리 커널이 맞고 PathSolver 가 틀렸다」로 **결론짓지 않는다** — 둘 다 근사, 현실성 판정은 실측 몫
