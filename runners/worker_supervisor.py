@@ -125,6 +125,27 @@ def tier_cap(ext_mb: float) -> int:
     return TIERS[-1][1]
 
 
+def _reclaimable_bytes() -> int:
+    """⭐`memory.current` 안에서 **압력이 오면 돌려줄 수 있는** 몫 [B].
+
+    cgroup v2 의 `memory.current` 는 익명 메모리(anon)뿐 아니라 **파일 캐시(file)** 도 센다.
+    파일 캐시는 커널이 필요할 때 버리므로 «남이 잡고 있는 메모리» 가 아니다.
+    ⛔이걸 안 빼면 캐시가 찰수록 여유가 0 으로 수렴해 감독자가 **영구 정지**한다
+      (2026-09-02 에 실제로 2.5 시간 멈췄다 — anon 1.38 GiB 인데 여유를 3.5 GiB 로 읽었다).
+
+    ⚠보수적으로 **inactive_file 만** 뺀다. active_file 은 최근에 쓰인 캐시라 회수하면
+      느려질 수 있고, 여기서 한 번에 다 빼면 브레이크가 헐거워진다.
+    """
+    try:
+        for ln in open("/sys/fs/cgroup/memory.stat"):
+            k, v = ln.split()
+            if k == "inactive_file":
+                return int(v)
+    except Exception:
+        pass
+    return 0
+
+
 def ram_free_gb() -> float:
     """⭐**우리 cgroup** 의 여유 [GiB]. `/proc/meminfo` 는 **호스트** 라 32 GiB 천장을 못 본다.
 
@@ -134,6 +155,12 @@ def ram_free_gb() -> float:
     try:
         mx = open("/sys/fs/cgroup/memory.max").read().strip()
         cur = int(open("/sys/fs/cgroup/memory.current").read())
+        # ⛔**`memory.current` 는 파일 캐시를 포함한다** — 그것을 «쓰는 중» 으로 세면
+        #   캐시가 찰수록 여유가 0 으로 수렴해 감독자가 영원히 멈춘다.
+        #   실측(2026-09-02 10:37): current 20.50 GiB 중 anon 1.38 · file 17.87 GiB 였고,
+        #   감독자는 여유 3.5 GiB 로 읽어 **2.5 시간 동안 워커를 하나도 안 띄웠다.**
+        #   파일 캐시는 메모리 압력이 오면 회수되므로 여유로 친다 — 회수 못 하는 것만 뺀다.
+        cur = cur - _reclaimable_bytes()
         if mx != "max":
             return (int(mx) - cur) / 2 ** 30
         # ⭐천장이 «max» 로 풀린 상자 — 2026-08-24 컨테이너 재시작 뒤 그렇게 되었다.
