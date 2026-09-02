@@ -149,7 +149,7 @@ def main():
                         "붙고 sbr_field 는 자세 잡힌 드론 메쉬만 받는다. 그 상태로 난 샤드 6 개는 "
                         "자유공간과 상대차 1e−16 이라 2026-09-01 에 지웠고, "
                         "--engine ours 에 --env 를 주면 이제 거부한다."),
-        removal_ko=f"benchmark/clutter_parts_ladder_0824.cs_eca — DFT 격자에서 |f| ≤ fcut 투영 소거. 정본 {FCUT:g} Hz",
+        removal_ko=f"benchmark/clutter_parts_ladder_0824.cs_eca — 느린시간 DFT 에서 |f| ≤ fcut 칸을 0 으로 두는 **직각 노치**. 정본 {FCUT:g} Hz",
         prf_hz=float(PRF), f_flash_hz=float(FFL), fcut_hz=float(FCUT),
         lam_m=round(lam, 6), grid_spacing_m=round(d, 6), grid_div=int(DEFAULT_DIV),
         fresnel_r1_m=round(R1, 3), range_m=r_m),

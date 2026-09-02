@@ -7,7 +7,7 @@ Clutter서베이 §V-C 차용. 무향실 ECA(1D slow-time)로는 도플러퍼짐
   · 조향 v = d(f_D)⊗a(θ)  (시간⊗공간)
   · MVDR-STAP 가중 w = R⁻¹v / (vᴴR⁻¹v),  출력 SCNR = vᴴR⁻¹v   (클레어보이언트 상한)
   · RMB(Reed-Mallett-Brennan) 표본공분산 + 대각로딩/저계수(스냅샷 부족 대비)
-  · 비교: 1D slow-time(시간만, ECA 계열) SCNR ↔ 2D STAP SCNR
+  · 비교: 1D slow-time(시간만, 도플러 0 Hz 노치) SCNR ↔ 2D STAP SCNR
 
 ⚠ vᴴR⁻¹v 는 **클레어보이언트(참 R)** 상한이다. 실측은 R̂(훈련셀)로 손실이 생긴다(RMB 규칙 Ntr≥2NM).
 
