@@ -967,7 +967,17 @@ def analyse() -> None:
                        "항이 안 닫히는지는 outputs/carrier_transition_table.json 을 인용한다."),
         "carriers_present_hz": sorted({r["fc_hz"] for r in rows}),
         "prf_hz": prf, "f_flash_hz": ffl,
+        # ⛔`elevations_deg` 는 이 **스크립트의 설계 격자**다 — 원장이 실제로 담은 각이
+        #   아니다. 원장은 병합으로 자라서 뒤에 붙은 탐침 각을 함께 싣는다.
+        #   ⭐둘을 가르지 않으면 이 값을 읽는 쪽이 표를 설계 점과 탐침 각으로 섞는다
+        #     (2026-09-02 리포트 16 조각 78 에서 실제로 그랬다).
         "elevations_deg": list(ELS), "drone": TJ.get("drone"),
+        "elevations_present_deg": sorted({float(r["el_deg"]) for r in rows},
+                                         reverse=True),
+        "elevations_note_ko": ("`elevations_deg` = 설계 격자(이 스크립트 기본값), "
+                               "`elevations_present_deg` = 원장에 실제로 있는 각의 합집합. "
+                               "팔마다 덮은 각이 다르니 «몇 점을 쟀나» 는 행의 `el_deg` 를 "
+                               "팔로 갈라 세어야 한다."),
         "rotor_ko": "덱과 같은 결정론 패턴(OU 프리셋 아님) — 축을 하나만 바꾼다",
         "rpm_per_rotor": TJ.get("rpm_per_rotor"),
         "grid_ko": "얼린 격자(자세 합집합 bbox), λ/12",

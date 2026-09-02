@@ -511,6 +511,11 @@ _ROWS78 = S.get("rows")          # ⚠각주 색인이 이 순서를 쓰므로 *
 #  함께 살지만, 표와 세는 수는 15 m 행만 본다(행 색인은 위 전체 배열 기준을 유지).
 R78_PRIMARY = float(S.get("_meta.range_m_primary"))
 N78_EL = len(S.get("_meta.elevations_deg"))
+#: ⭐설계 앙각 집합. 이 조각의 표는 **스윕 규약** 을 싣는 자리라 설계 점만 보인다.
+#  ⚠원장은 그 뒤로 다른 일을 하며 각을 더 받았다(−15° 이상 추적 · 깊은 낙차 탐침 등).
+#    `_idx78()` 이 그것을 걸러 내지 않으면 표가 설계 점과 탐침 각을 말없이 섞는다 —
+#    2026-09-02 에 실제로 그래서 표가 15 줄로 자라 규약(12 줄)을 깼다.
+DESIGN_ELS78 = {float(e) for e in S.get("_meta.elevations_deg")}
 #: 앙각 7 점을 다 덮은 세 팔 — 재설계판의 주력이다.
 #  A_OURS  우리 커널(SBR+PO)   A_OFF  PathSolver 물리 끔   A_ON  PathSolver 물리 켬
 A_OURS = "ours_r15_n8192"
@@ -568,9 +573,20 @@ REPRO_78 = dict(
     note="`--merge` 는 샤드 폴더 `outputs/elev_sweep_shards/` 를 읽어 원장 두 개를 다시 쓴다")
 
 
-def _idx78(engine: str) -> list[int]:
-    """한 팔의 행 번호를 원장 순서대로. ⚠병합마다 밀리므로 **찾아서** 만든다."""
-    return [i for i, r in enumerate(_ROWS78) if r.get("engine") == engine]
+def _idx78(engine: str, design_only: bool = True) -> list[int]:
+    """한 팔의 행 번호를 원장 순서대로. ⚠병합마다 밀리므로 **찾아서** 만든다.
+
+    ⭐기본은 **설계 앙각만**이다 — 이 조각이 못 박는 것은 스윕 «규약» 이고, 원장이 뒤에
+      받은 탐침 각은 그 규약의 일부가 아니다. 전부 보려면 design_only=False."""
+    return [i for i, r in enumerate(_ROWS78)
+            if r.get("engine") == engine
+            and (not design_only or float(r["el_deg"]) in DESIGN_ELS78)]
+
+
+def _n_probe78(engine: str) -> int:
+    """그 팔이 설계 격자 **밖**에 가진 앙각이 몇 개인지 — 손으로 세지 않는다."""
+    return len({float(_ROWS78[i]["el_deg"]) for i in _idx78(engine, design_only=False)}
+               - DESIGN_ELS78)
 
 
 def _idx78_rest() -> list[int]:
@@ -750,7 +766,13 @@ def blocks_78() -> list:
            f"{S.num(f'{r_ours90}.f_tip_hz', fmt='{:.1f}', unit='Hz')} 로 간다. 그것은 cos(el) "
            f"열에 앙각 0° 값을 곱한 수와 같고, 원장에서 앙각 0° 를 가진 여섯 팔이 전부 같은 "
            f"값을 싣는다 — 이 열은 앙각 하나의 함수다. 이 표에서 이 판이 잰 열은 "
-           f"`빠진 자세` 하나이고, 일곱 행 모두 0 이라 우리 커널의 일곱 점을 그대로 인용한다."),
+           f"`빠진 자세` 하나이고, {N78_EL} 행 모두 0 이라 우리 커널의 {N78_EL} 점을 "
+           f"그대로 인용한다.", "",
+           f"⚠**표는 설계 {N78_EL} 점만 싣는다.** 같은 원장은 그 뒤로 다른 물음을 쫓으며 "
+           f"각을 더 받았다 — 우리 커널과 PathSolver 물리 끔 팔에 각각 "
+           f"{_n_probe78(A_OURS)} 개, 물리 켬 팔에 {_n_probe78(A_ON)} 개다. 그 각들은 "
+           f"이 조각이 못 박는 **규약**의 일부가 아니라 뒤에 붙은 탐침이라 표에서 뺐다 — "
+           f"원장에는 그대로 있고 행의 `el_deg` 로 읽는다."),
 
         md(_tab78(_idx78(A_OURS),
                   [("앙각 [°]", "el_deg"), ("cos(el)", "cos_el"),
