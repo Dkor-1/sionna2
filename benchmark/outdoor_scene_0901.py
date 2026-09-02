@@ -61,6 +61,49 @@ def lvl(E):
     return float(20 * np.log10(np.abs(np.asarray(E)).mean()))
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════ #
+#  ⭐빗살 SNR — ρ 를 대신하는 잣대 (2026-09-02 신설)
+# ═══════════════════════════════════════════════════════════════════════════ #
+def comb_block(Z, els=ELS):
+    """⭐ρ 는 «리듬» 이 아니라 «매끄러움» 을 잰다(docs/RHO_IS_SMOOTHNESS_0902.md).
+    여기서는 **빗살 하모닉 SNR** 로 다시 낸다. 낙차를 **안 메운 원본**과,
+    깊은 낙차(r<0.1, 솔버 인공물)를 메운 판, 그리고 **무작위 자세를 같은 수만큼**
+    메운 대조군을 함께 낸다 — 보간 자체의 몫을 빼려고."""
+    import comb_snr as C
+    from clutter_parts_ladder_0824 import PRF
+    rng = np.random.default_rng(0)
+    out = {}
+    for el in els:
+        row = {}
+        for tag, env in (("free", False), ("outdoor", True)):
+            k = arm(el, env)
+            if k not in Z:
+                continue
+            E = np.asarray(Z[k])
+            a = np.abs(E); med = float(np.median(a))
+            bad = np.where(a / med < 0.1)[0] if med > 0 else np.zeros(0, int)
+            good = np.setdiff1d(np.arange(E.size), bad)
+            def fill(idx):
+                R = E.copy()
+                if len(idx) and len(good) > 1:
+                    R[idx] = (np.interp(idx, good, E[good].real)
+                              + 1j * np.interp(idx, good, E[good].imag))
+                return R
+            def snr(x):
+                v = C.comb_snr(np.asarray(x), PRF, el, arm=k)
+                return None if v is None else round(float(v), 2)
+            ctl = [snr(fill(rng.choice(good[(good > 0) & (good < E.size - 1)],
+                                       len(bad), replace=False))) for _ in range(5)] \
+                if len(bad) else []
+            row[tag] = dict(n_deep=int(len(bad)),
+                            comb_raw=snr(E),
+                            comb_repaired=snr(fill(bad)) if len(bad) else snr(E),
+                            comb_random_ctl=[c for c in ctl if c is not None])
+        out[f"el{el:+.0f}"] = row
+    return out
+
+
 def main():
     from clutter_parts_ladder_0824 import cs_eca, PRF, FFL, FCUT
     from rcs_sbr import DEFAULT_DIV
@@ -107,6 +150,17 @@ def main():
         notch[f"el{el:+.0f}"] = row
         print(line)
 
+    # ── ⭐빗살 SNR (ρ 대체)
+    comb = comb_block(Z)
+    print("\n═══ 빗살 하모닉 SNR — 인공물을 빼면 날개 박자가 보이나 ═══")
+    print(f"{'앙각':>5}{'자유 원본':>11}{'실외 원본':>11}{'실외 인공물뺌':>14}{'무작위 대조':>13}{'깊은낙차':>9}")
+    for k, v in comb.items():
+        o = v.get("outdoor", {}); f_ = v.get("free", {})
+        c = o.get("comb_random_ctl") or []
+        print(f"{k:>5}{str(f_.get('comb_raw')):>11}{str(o.get('comb_raw')):>11}"
+              f"{str(o.get('comb_repaired')):>14}"
+              f"{(f'{np.mean(c):.1f}' if c else '—'):>13}{o.get('n_deep',0):>9}")
+
     # ── 격자 비용 — 왜 우리 커널이 못 들어가나
     lam = 2.998e8 / 3.5e9
     d = lam / DEFAULT_DIV
@@ -138,7 +192,10 @@ def main():
         generated_ko="2026-09-01",
         question_ko=("실외 장면(지면·건물)을 넣으면 날개 박자가 살아남나, "
                      "그리고 정지 클러터 제거로 되돌릴 수 있나"),
-        metric_ko=("포락 자기상관 ρ(1 지연). 잡음 −0.06~+0.07 · 박자 +0.92~+0.99. "
+        metric_ko=(
+            "⛔ρ(포락 자기상관)는 «리듬» 이 아니라 «매끄러움» 을 잰다 — 직선·계단·붉은잡음이 "
+            "전부 «박자» 칸(0.92~0.99)에 든다(docs/RHO_IS_SMOOTHNESS_0902.md, 2026-09-02). "
+            "⭐정본 잣대는 **빗살 하모닉 SNR** 이다(백색잡음 2,000 판 영분포 p99 ≈ 8.4). 옛 설명: ""포락 자기상관 ρ(1 지연). 잡음 −0.06~+0.07 · 박자 +0.92~+0.99. "
                    "⛔dB(봉우리÷바닥)는 몇 자세짜리 낙차 임펄스열에도 큰 값을 주므로 쓰지 않는다."),
         arm_ko=("스톡 엔진 ①다끔(R0D0E0F1) · matrice4e · 15 m · 자세 8,192 · "
                 "광선 4e9 · 깊이 2. 실외 팔은 파일명에 _envoutdoor01 이 붙는다."),
@@ -153,7 +210,7 @@ def main():
         prf_hz=float(PRF), f_flash_hz=float(FFL), fcut_hz=float(FCUT),
         lam_m=round(lam, 6), grid_spacing_m=round(d, 6), grid_div=int(DEFAULT_DIV),
         fresnel_r1_m=round(R1, 3), range_m=r_m),
-        cells=cells, notch_ladder=notch, grid_cost=G)
+        cells=cells, notch_ladder=notch, grid_cost=G, comb=comb)
     json.dump(doc, open(OUT, "w"), ensure_ascii=False, indent=1)
     print(f"\n✅ {OUT}")
 

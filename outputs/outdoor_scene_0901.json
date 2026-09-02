@@ -4,7 +4,7 @@
   "gpu_used": false,
   "generated_ko": "2026-09-01",
   "question_ko": "실외 장면(지면·건물)을 넣으면 날개 박자가 살아남나, 그리고 정지 클러터 제거로 되돌릴 수 있나",
-  "metric_ko": "포락 자기상관 ρ(1 지연). 잡음 −0.06~+0.07 · 박자 +0.92~+0.99. ⛔dB(봉우리÷바닥)는 몇 자세짜리 낙차 임펄스열에도 큰 값을 주므로 쓰지 않는다.",
+  "metric_ko": "⛔ρ(포락 자기상관)는 «리듬» 이 아니라 «매끄러움» 을 잰다 — 직선·계단·붉은잡음이 전부 «박자» 칸(0.92~0.99)에 든다(docs/RHO_IS_SMOOTHNESS_0902.md, 2026-09-02). ⭐정본 잣대는 **빗살 하모닉 SNR** 이다(백색잡음 2,000 판 영분포 p99 ≈ 8.4). 옛 설명: 포락 자기상관 ρ(1 지연). 잡음 −0.06~+0.07 · 박자 +0.92~+0.99. ⛔dB(봉우리÷바닥)는 몇 자세짜리 낙차 임펄스열에도 큰 값을 주므로 쓰지 않는다.",
   "arm_ko": "스톡 엔진 ①다끔(R0D0E0F1) · matrice4e · 15 m · 자세 8,192 · 광선 4e9 · 깊이 2. 실외 팔은 파일명에 _envoutdoor01 이 붙는다.",
   "env_ko": "assets/meshes/outdoor01 — 지면 120×120 m 콘크리트 · 건물 넷 9~24 m · 금속 기둥 둘. 드론 고도 20 m(레이다가 rng·sin(el) 깊이에 오므로 15 m·el −90 의 −15 m 보다 지면이 아래여야 한다).",
   "ours_absent_ko": "⛔우리 커널은 이 비교에 없다 — --env 는 build_scene(PathSolver 씬)에만 붙고 sbr_field 는 자세 잡힌 드론 메쉬만 받는다. 그 상태로 난 샤드 6 개는 자유공간과 상대차 1e−16 이라 2026-09-01 에 지웠고, --engine ours 에 --env 를 주면 이제 거부한다.",
@@ -130,6 +130,68 @@
    "n": 1146,
    "points": 1313316,
    "vs_drone": 139.6
+  }
+ },
+ "comb": {
+  "el+0": {
+   "free": {
+    "n_deep": 0,
+    "comb_raw": 3.15,
+    "comb_repaired": 3.15,
+    "comb_random_ctl": []
+   },
+   "outdoor": {
+    "n_deep": 0,
+    "comb_raw": 4.4,
+    "comb_repaired": 4.4,
+    "comb_random_ctl": []
+   }
+  },
+  "el-30": {
+   "free": {
+    "n_deep": 73,
+    "comb_raw": 59.62,
+    "comb_repaired": 59.16,
+    "comb_random_ctl": [
+     59.62,
+     59.62,
+     59.62,
+     59.62,
+     59.62
+    ]
+   },
+   "outdoor": {
+    "n_deep": 74,
+    "comb_raw": 4.3,
+    "comb_repaired": 59.66,
+    "comb_random_ctl": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ]
+   }
+  },
+  "el-60": {
+   "free": {
+    "n_deep": 0,
+    "comb_raw": 51.82,
+    "comb_repaired": 51.82,
+    "comb_random_ctl": []
+   },
+   "outdoor": {
+    "n_deep": 84,
+    "comb_raw": 2.45,
+    "comb_repaired": 16.53,
+    "comb_random_ctl": [
+     2.45,
+     2.45,
+     2.45,
+     2.45,
+     2.45
+    ]
+   }
   }
  }
 }
