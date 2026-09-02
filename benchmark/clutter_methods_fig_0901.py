@@ -28,6 +28,19 @@ from md_mapstyle import auto_periods, flash_spec, draw                 # noqa: E
 INK, GRAY, ACC, NAVY = "#141926", "#5E5E5E", "#C81E3C", "#1F3864"
 ORANGE = "#E07B39"
 DEG, MINUS = chr(176), chr(8722)
+#: ⭐**다섯 팔 축으로 옮겼다**(사용자 지시 2026-09-02 — 「저거 팔 별로 다 보여주는 방향」).
+#  ⛔옛 판은 `sionna_p4000000000_r15_n8192_d1` — 옛 「엔진 셋」 틀의 팔이라 **다섯 팔 중
+#    어느 것도 아니었고 깊이도 1** 이었다. 덱 2 부(다섯 팔)는 깊이 2 인데 3 부만 깊이 1 이라
+#    같은 것을 두 이름으로 부르게 됐다.
+#  ⭐프롭 단독 대조는 다섯 팔에 없다(`partsprop` 은 옛 틀에만 있다) — 그래서 목표 열은
+#    **자유공간 팔**(드론 몸통 없이 프로펠러만 도는 판)이 아니라, 같은 팔의 **el −30 판**을
+#    쓰지 않는다. 대신 «필터 전» 을 목표로 놓고 필터가 무엇을 지우는지 본다.
+MESH = "mfixbatteryi5_blperairframe"
+FIVE = [("ours",        f"ours_r15_n8192_{MESH}"),
+        ("all off",     f"sionna_p4000000000_swR0D0E0F1_r15_n8192_{MESH}_d2"),
+        ("refraction",  f"sionna_p4000000000_swR1D0E0F1_r15_n8192_{MESH}_d2"),
+        ("diffraction", f"sionna_p4000000000_swR0D1E1F1_r15_n8192_{MESH}_d2"),
+        ("both",        f"sionna_p4000000000_swR1D1E1F1_r15_n8192_{MESH}_d2")]
 ARM_W = "sionna_p4000000000_r15_n8192_d1"
 ARM_P = "sionna_p4000000000_partsprop_r15_n8192_d1"
 PERIODS = auto_periods(PRF, FFL)
@@ -51,7 +64,7 @@ def mti(x, k=3):
 #: ⛔행 이름은 짧아야 한다 — 길면 위아래 이름끼리 겹친다(2026-09-01)
 METHODS = [("no filter", lambda x: x),
            ("mean\nsubtracted", lambda x: x - x.mean()),
-           ("ECA notch\n100 Hz", eca),
+           ("notch\n100 Hz", eca),
            ("MTI\n3-pulse", lambda x: mti(x, 3))]
 ELS = (0.0, -30.0)
 
@@ -67,25 +80,32 @@ def build(el, fname, sub):
     """⭐각도 하나 = 그림 하나. 16 판을 한 장에 넣으면 슬라이드에서 눈금이 안 읽힌다
        (사용자 지적 2026-09-01). 4 방식 x [STFT · 에너지] = 8 판이면 두 배로 커진다."""
     W, P = load(ARM_W, el)[0], load(ARM_P, el)[0]
-    fig, ax = plt.subplots(len(METHODS), 2, figsize=(13.6, 2.75 * len(METHODS)),
-                           gridspec_kw=dict(width_ratios=[1.0, 1.0], wspace=0.17))
+    # ⭐열 셋 — 프로펠러 단독(목표) · 전체 드론 · 에너지(사용자 지시 2026-09-02:
+    #   「저 상태를 프로펠러만 돌린거랑 비교해야하지않을까」). 같은 필터를 양쪽에 건다.
+    fig, ax = plt.subplots(len(METHODS), 3, figsize=(19.6, 2.25 * len(METHODS)),
+                           gridspec_kw=dict(width_ratios=[1.0, 1.0, 1.15], wspace=0.13))
     for r, (nm, fn) in enumerate(METHODS):
         y = fn(W)
-        a = ax[r, 0]
-        f_, t_, S_, _ = flash_spec(np.asarray(y)[:NZ], PRF, FFL, PERIODS)
-        draw(a, t_, f_, S_, f_tip(el))
-        a.set_ylim(-2000, 2000)
-        a.tick_params(labelsize=14, labelbottom=(r == len(METHODS) - 1))
-        a.set_ylabel(nm, fontsize=16, weight="bold", color=INK, linespacing=1.4)
-        if r == len(METHODS) - 1:
-            a.set_xlabel("time [ms]", fontsize=16)
-        if r == 0:
-            a.set_title("time-frequency", fontsize=19, color=INK, weight="bold", pad=9)
-        b = ax[r, 1]
+        yp = fn(P)                                   # 목표에도 같은 필터
+        for ci, (dat, ttl) in enumerate(((yp, "propellers only"), (y, "whole drone"))):
+            a = ax[r, ci]
+            f_, t_, S_, _ = flash_spec(np.asarray(dat)[:NZ], PRF, FFL, PERIODS)
+            draw(a, t_, f_, S_, f_tip(el))
+            a.set_ylim(-2000, 2000)
+            a.tick_params(labelsize=14, labelbottom=(r == len(METHODS) - 1))
+            if ci == 0:
+                a.set_ylabel(nm, fontsize=16, weight="bold", color=INK, linespacing=1.4)
+            else:
+                a.set_yticklabels([])
+            if r == len(METHODS) - 1:
+                a.set_xlabel("time [ms]", fontsize=16)
+            if r == 0:
+                a.set_title(ttl, fontsize=19, color=INK, weight="bold", pad=9)
+        b = ax[r, 2]
         fr, Yp = psd(P)
         _, Yw = psd(y)
         b.plot(fr, Yw, color=NAVY, lw=1.0, alpha=0.9,
-               label="whole drone, filtered" if r == 0 else None)
+               label="whole drone" if r == 0 else None)
         b.plot(fr, Yp, color=ORANGE, lw=1.1,
                label="propellers only" if r == 0 else None)
         for sgn in (-1, 1):
@@ -101,15 +121,65 @@ def build(el, fname, sub):
         b.grid(True, color="#E8E8E8", lw=0.6); b.set_axisbelow(True)
         for sp in ("top", "right"):
             b.spines[sp].set_visible(False)
-    fig.subplots_adjust(top=0.870, bottom=0.115, left=0.108, right=0.988, hspace=0.20)
-    h, l = ax[0, 1].get_legend_handles_labels()
-    fig.legend(h, l, loc="lower center", bbox_to_anchor=(0.5, 0.005),
-               fontsize=16, frameon=False, ncol=2)
-    fig.text(0.5, 0.962, f"four ways to remove the steady echo   {chr(183)}   "
-             f"el {el:+.0f}{DEG}", ha="center", fontsize=25, color=INK, weight="bold")
-    fig.text(0.5, 0.918, sub, ha="center", fontsize=17, color=ACC, weight="bold")
+    # ⛔하단 문구를 뺐다(사용자 2026-09-02 — 「그림이 너무 작다」). 범례는 제목 줄에 붙인다.
+    fig.subplots_adjust(top=0.862, bottom=0.082, left=0.092, right=0.990, hspace=0.16)
+    h, l = ax[0, 2].get_legend_handles_labels()
+    # ⛔범례가 «energy» 열 제목을 덮었다 — 머리글 줄 오른쪽 빈 자리로 올린다
+    fig.legend(h, l, loc="upper right", bbox_to_anchor=(0.995, 0.995),
+               fontsize=15, frameon=False, ncol=2)
+    fig.text(0.34, 0.962, f"four ways to remove the steady echo   {chr(183)}   "
+             f"el {el:+.0f}{DEG}", ha="center", fontsize=24, color=INK, weight="bold")
+    fig.text(0.34, 0.912, sub, ha="center", fontsize=16, color=ACC, weight="bold")
     p = f"{ROOT}/outputs/figures/{fname}"
     fig.savefig(p, dpi=132, bbox_inches="tight"); plt.close(fig)
+    print(f"  ✅ {p}")
+
+
+def build_five(el, fname, sub):
+    """⭐다섯 팔 x [필터 없음 · ECA · MTI] — 3 부를 2 부와 같은 축에 올린다.
+
+    ⛔방식을 넷에서 셋으로 줄였다(사용자 승인 ⓐ). 「평균빼기」는 ECA 와 사실상 같고
+       (0 Hz 한 칸 vs ±100 Hz), 「필터 없음」은 목표 열 노릇을 겸한다.
+       5 팔 x 4 방식 x 3 열 = 60 판은 한 쪽에 못 넣는다.
+    """
+    import numpy as np
+    Z = np.load(f"{ROOT}/outputs/elevation_sweep_md.npz")
+    METH = [("no filter", lambda x: x),
+            ("notch\n100 Hz", eca),
+            ("MTI\n3-pulse", lambda x: mti(x, 3))]
+    fig, ax = plt.subplots(len(METH), len(FIVE),
+                           figsize=(3.75 * len(FIVE), 3.05 * len(METH)))
+    for c, (nm, key) in enumerate(FIVE):
+        k = f"{key}/el{el:+.0f}"
+        if k not in Z.files:
+            print(f"  ⚠ 없음 {k}"); continue
+        E = np.asarray(Z[k])
+        for r, (mn, fn) in enumerate(METH):
+            a = ax[r, c]
+            y = fn(E)
+            f_, t_, S_, _ = flash_spec(np.asarray(y)[:NZ], PRF, FFL, PERIODS)
+            draw(a, t_, f_, S_, f_tip(el))
+            a.set_ylim(-2000, 2000)
+            a.tick_params(labelsize=12, labelbottom=(r == len(METH) - 1))
+            if r == 0:
+                a.set_title(nm, fontsize=18, color=INK, weight="bold", pad=9)
+            if r == len(METH) - 1:
+                a.set_xlabel("time [ms]", fontsize=14)
+            if c == 0:
+                a.set_ylabel("Doppler [Hz]", fontsize=13)
+            else:
+                a.set_yticklabels([])
+    # ⭐행 이름은 왼쪽 여백에 한 번(덱 배치 규약 2026-09-02)
+    # ⛔행 이름이 y 축 이름과 겹쳤다 — 여백을 넓히고 더 왼쪽으로
+    fig.subplots_adjust(top=0.842, bottom=0.085, left=0.135, right=0.990,
+                        hspace=0.17, wspace=0.06)
+    for r, (mn, _f) in enumerate(METH):
+        bx = ax[r, 0].get_position()
+        fig.text(0.072, bx.y0 + bx.height / 2, mn, ha="right", va="center",
+                 fontsize=17, weight="bold", color=INK, linespacing=1.3)
+    # ⛔그림 제목·부제 삭제(라벨 검증 2026-09-02) — 슬라이드 제목·결론바가 이미 말한다.
+    p = f"{ROOT}/outputs/figures/{fname}"
+    fig.savefig(p, dpi=126, bbox_inches="tight"); plt.close(fig)
     print(f"  ✅ {p}")
 
 
@@ -118,6 +188,10 @@ def main():
           "the notch reveals the streaks - it does not remove them")
     build(-30.0, "clutter_methods_el30.png",
           "MTI drops the whole-drone curve 30-50 dB below the target")
+    build_five(0.0, "clutter_five_el0.png",
+               "the notch reveals the streaks; MTI takes the blade rate with them")
+    build_five(-30.0, "clutter_five_el30.png",
+               "MTI flattens every arm; the notch leaves all five as they were")
 
 
 def _old_main():
@@ -171,14 +245,13 @@ def _old_main():
     h, l = ax[0, 1].get_legend_handles_labels()
     fig.legend(h, l, loc="upper right", bbox_to_anchor=(0.988, 0.912),
                fontsize=15, frameon=False, ncol=2)
-    fig.text(0.5, 0.962, "four ways to remove the steady echo",
+    fig.text(0.34, 0.962, "four ways to remove the steady echo",
              ha="center", fontsize=24, color=INK, weight="bold")
     fig.text(0.5, 0.912, f"matrice4e {chr(183)} 15 m {chr(183)} PathSolver, extra physics "
              f"off {chr(183)} dashed = blade-tip frequency",
              ha="center", fontsize=16, color=GRAY)
-    fig.text(0.008, 0.012, f"MTI removes the steady echo, and the blade rate with it - "
-             f"126.7 Hz is 0.64 % of the 19.7 kHz PRF, so a 3-pulse canceller sits "
-             f"55.7 dB down there", ha="left", fontsize=14, color=ACC, weight="bold")
+    # ⛔각주를 지웠다(사용자 지시 2026-09-02) — 결론바가 같은 말을 하고 있고,
+    #   0.64 % · 55.7 dB 는 발표자 노트에 있다. 그림에 변명을 적지 않는다.
     p = f"{ROOT}/outputs/figures/clutter_methods_0901.png"
     fig.savefig(p, dpi=132, bbox_inches="tight"); plt.close(fig)
     print(f"  ✅ {p}")

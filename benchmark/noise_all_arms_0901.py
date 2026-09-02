@@ -45,7 +45,7 @@ MINUS = chr(8722)
 
 #: ⛔행 이름은 짧게 — "refraction+diffraction" 은 옆 행 이름과 겹쳤다
 ARMS = [("all off", "R0D0E0F1"), ("refraction", "R1D0E0F1"),
-        ("diffraction", "R0D1E1F1"), ("refr+diffr", "R1D1E1F1"),
+        ("diffraction", "R0D1E1F1"), ("both", "R1D1E1F1"),
         ("ours", None)]
 LV = [None, 20.0, 10.0, 3.0, 0.0]
 
@@ -99,9 +99,7 @@ def main():
     fig.text(0.5, 0.888, "SNR is measured against each arm's own moving part   "
              f"{chr(183)}   each panel scaled to its own peak",
              ha="center", fontsize=13, color="#5E5E5E")
-    fig.text(0.008, 0.008, "not a strength comparison between engines - our kernel's field "
-             "carries no 1/r spreading, so the two are on different scales",
-             ha="left", fontsize=12, color="#5E5E5E")
+    # ⛔각주 삭제(2026-09-02) — 「엔진끼리 세기를 견주는 게 아니다」는 노트에 있다.
     p = f"{FIG}/vol_noise_all_arms.png"
     fig.savefig(p, dpi=125)
     plt.close(fig)

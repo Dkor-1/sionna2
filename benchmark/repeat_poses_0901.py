@@ -124,9 +124,7 @@ def main():
     fig.subplots_adjust(top=0.815, bottom=0.125, left=0.055, right=0.988)
     fig.text(0.5, 0.955, "the same run, six times",
              ha="center", fontsize=24, color="#141926", weight="bold")
-    fig.text(0.5, 0.905, f"identical code, seed and machine   {chr(183)}   "
-             f"{len(ever)} poses out of 8,192 ever differ",
-             ha="center", fontsize=18, color="#C81E3C", weight="bold")
+    # ⛔빨간줄 삭제(라벨 검증) — 슬라이드 리드·결론바가 같은 말을 한다.
     fig.text(0.5, 0.862, f"matrice4e {chr(183)} 15 m {chr(183)} el {MINUS}30{DEG} "
              f"{chr(183)} refraction+diffraction {chr(183)} 4e9 rays {chr(183)} depth 2",
              ha="center", fontsize=14, color="#5E5E5E")
