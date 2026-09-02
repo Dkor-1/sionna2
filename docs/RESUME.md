@@ -42,17 +42,49 @@
 - 덱 v4 JSON: 84 → 83 · 노트 3 장에 「0 Hz 가 왜 안 비나」 추가
 - ⇒ **원본(.py)에는 오기가 남아 있지 않다**(grep 확인)
 
+
+## ⭐2026-09-02 후반 — 노치의 STFT 가시성 (적대 검증 완료)
+
+사용자 질문: 「노치로 100 Hz 까지 죽였으면 STFT 의 도플러 0 이 흐릿해져야 하는 것 아닌가?」
+적대 검증 4 갈래를 돌렸고 **내 첫 설명 중 셋이 틀렸다**.
+
+⛔틀렸던 것 → ✅맞는 값
+- 한나 창 첫 영점 528 Hz · 주엽 1,055 Hz → **562.9 Hz · 1,125.7 Hz**(= 2·PRF/70, 4·PRF/70).
+  제로패딩 격자의 마지막 비영점 칸에서 멈춘 실수. 노치/주엽 19 % → **17.5 %**
+- 「STFT 가 200 Hz 노치를 물리적으로 못 본다」 → **과장**. 도플러 0 줄이 판 최댓값(−0.02 dB)
+  에서 **13.9 dB 아래**로 내려간다. 못 하는 것은 **깊은 골**을 그리는 것뿐
+- 「0 Hz 를 밝히는 것은 날개 신호」 → ⛔**아니다. 낙차다.** 낙차 58 자세를 메우면 그 줄이
+  **36.9 dB** 내려간다 ⇒ 남은 것의 **98.6 % 가 낙차**
+
+✅확정된 값 (el 0 · sionna_p4000000000_r15_n8192_d1)
+```
+노치는 걸렸다            5.636 → 1.39e-18   (|f| ≤ 100 Hz, 83 칸)
+그리는 58 ms 구간 에너지   99.92 % 제거
+날개 끝 대역             판 최댓값보다 19.2 dB 아래 → 판 최댓값 자리 (대비 +19 dB)
+창 70 표본(3.55 ms)     주엽 1,126 Hz · 0 Hz 는 제 최댓값보다 −1.74 dB
+창 512 표본(26 ms)      주엽   154 Hz · 0 Hz 는 제 최댓값보다 −44.70 dB
+```
+⇒ **노치는 작동하고 그림을 크게 바꾸지만, 짧은 창에서 «구멍» 으로 그려지지 않는다.**
+   짧은 창은 오류가 아니라 **의도된 선택**이다(FLASH_PERIODS_SHARP = 0.45,
+   2026-08-10 「시간 해상도를 더 높여달라」). 긴 창은 플래시를 잃는다.
+
+기록한 곳: `benchmark/clutter_parts_ladder_0824.cs_eca` 독스트링 ·
+덱 부록 «Seeing the notch»(`team_meeting/teammeeting_0903/bake_notch_window.py`).
+
+## ✅후반에 끝낸 것
+- 레포트 12 — 원장(`outputs/outdoor_scene_0901.json`) 재생성 + 재빌드. 오기 0
+- 덱 v10 → **26 장**(부록 «Seeing the notch» 추가). commit + push 완료
+- ⭐**sionna 푸시 뚫림** — 안 올라간 커밋 안에 `.whl` 59 개(2.72 GB)가 있어 서버가 500 을
+  던지고 있었다. `git filter-branch` 로 그 구간에서 걷어내 **30.83 MiB** 로 푸시됨.
+  원본은 `refs/original/refs/heads/main`(09343249) 에 남아 있다.
+  ⚠`.gitignore` 에 `*.whl` 이 이미 있는데도 들어갔다 — 정리 커밋 때 경로가 달랐던 듯
+
 ## ⚠바로 다음에 할 것
-1. ⭐**노트북 2 권 재빌드** — 원본은 고쳤지만 노트북에 옛 글이 박혀 있다:
-   - `reports/05_2_switch-grid.ipynb`  ← `benchmark/switch_clutter_stft_0818.py`
-   - `reports/12_outdoor-scene.ipynb`  ← `src/build_report12_outdoor.py`
-   ⛔노트북을 손으로 고치지 않는다. 빌더 → `src/build_volumes.py` 순서.
-   ```
-   PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_report12_outdoor.py
-   ```
-2. **덱 v10 재빌드** — v4 JSON 을 고쳤으므로 `_out_0903_v10.pptx` 를 다시 낸다
-   (`/workspace/team_meeting/teammeeting_0903/`)
-3. 나머지 ECA 언급 레포트 14 권은 **대부분 진짜 ECA(패시브 바이스태틱)라 정상**이다 —
+1. ⭐**`reports/05_2_switch-grid.ipynb` 재빌드** — 원본(`switch_clutter_stft_0818.py`)은
+   고쳤지만 노트북에 「ECA 계열 부분공간 소거」가 박혀 있다. ⚠빌더
+   `src/build_report18_switch_grid.py` 가 **내 패치 이전부터 깨져 있다**(KeyError 'edge only' —
+   ORDER 이름이 `switch_factorial.json` 과 안 맞는다). 그것부터 고쳐야 한다.
+2. 나머지 ECA 언급 레포트 14 권은 **대부분 진짜 ECA(패시브 바이스태틱)라 정상**이다 —
    `cs_eca` 를 쓰는 레포트는 **12 뿐**이었다. 05_2 는 자체 노치 구현.
 
 ## 그 밖 미결 (발표와 무관 · 다음 주)
