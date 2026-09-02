@@ -122,16 +122,12 @@ def main():
     print(f"  15 짝 · 짝마다 다른 자세 {min(n_pair)}~{max(n_pair)} 개 · "
           f"한 번이라도 다른 자세 {len(ever)} 개 · 최대 상대차 {100*worst:.1f} %")
     fig.subplots_adjust(top=0.815, bottom=0.125, left=0.055, right=0.988)
-    fig.text(0.5, 0.955, "the same run, six times",
-             ha="center", fontsize=24, color="#141926", weight="bold")
+    # ⛔그림 제목 삭제(라벨 검증) — 슬라이드 제목이 같은 말을 한다.
     # ⛔빨간줄 삭제(라벨 검증) — 슬라이드 리드·결론바가 같은 말을 한다.
     fig.text(0.5, 0.862, f"matrice4e {chr(183)} 15 m {chr(183)} el {MINUS}30{DEG} "
              f"{chr(183)} refraction+diffraction {chr(183)} 4e9 rays {chr(183)} depth 2",
              ha="center", fontsize=14, color="#5E5E5E")
-    fig.text(0.008, 0.012, f"over all 15 pairs: {min(n_pair)}-{max(n_pair)} poses differ "
-             f"per pair, largest single-pose difference {100*worst:.1f} %   "
-             f"{chr(183)}   NVlabs/sionna discussion #1175",
-             ha="left", fontsize=12, color="#5E5E5E")
+    # ⛔11쪽 각주(15짝·14.6%·#1175 — 노트에 있다) 삭제(라벨 검증 2026-09-02)
     p = f"{ROOT}/outputs/figures/repeat_poses_0901.png"
     fig.savefig(p, dpi=130); plt.close(fig)
     print(f"  ✅ {p}")

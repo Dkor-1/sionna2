@@ -96,9 +96,7 @@ def main():
     fig.text(0.5, 0.921, f"matrice4e {chr(183)} 15 m {chr(183)} el {MINUS}30{DEG} "
              f"{chr(183)} complex white gaussian added to the stored series",
              ha="center", fontsize=15, color="#C81E3C", weight="bold")
-    fig.text(0.5, 0.888, "SNR is measured against each arm's own moving part   "
-             f"{chr(183)}   each panel scaled to its own peak",
-             ha="center", fontsize=13, color="#5E5E5E")
+    # ⛔부록 부제(SNR 기준 설명 — 노트에 있다) 삭제(라벨 검증 2026-09-02)
     # ⛔각주 삭제(2026-09-02) — 「엔진끼리 세기를 견주는 게 아니다」는 노트에 있다.
     p = f"{FIG}/vol_noise_all_arms.png"
     fig.savefig(p, dpi=125)
