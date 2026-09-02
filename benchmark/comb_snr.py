@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import re
 import os
 import sys
 
@@ -48,8 +49,26 @@ PERIODS, HOP, PAD = 0.45, 2, 8               # 검증에서 쓴 STFT 설정
 N_NULL = 60
 
 
-def f_tip(el):
-    return FTIP0 * np.cos(np.radians(float(el)))
+FC0_HZ = 3.5e9                               # 정본 반송파 — FTIP0 가 이 값에서 나왔다
+
+
+def carrier_of(arm: str) -> float:
+    """팔 이름의 `_fc<MHz>` 꼬리표에서 반송파 [Hz]. 없으면 정본 3.5 GHz.
+
+    ⚠`_partsfc`(비행제어기 그룹) 에 안 걸리도록 **숫자를 반드시** 요구한다
+      (`elevation_sweep_md.carrier_of` 와 같은 규칙)."""
+    m = re.search(r"_fc(\d+(?:\.\d+)?)", arm or "")
+    return FC0_HZ if not m else float(m.group(1)) * 1e6
+
+
+def f_tip(el, arm=""):
+    """⭐날개 끝 도플러 [Hz] — **반송파에 비례한다**(f_tip = 2 v_tip / λ = 2 v_tip fc / c).
+
+    ⛔**2026-09-02 결함**: 여기 반송파 항이 없었다. FTIP0 는 3.5 GHz 원장에서 왔는데
+      `--fc-ghz` 판(5.8 / 10 / 24 GHz)을 그대로 읽으면 대역이 최대 6.9 배 어긋나
+      **모든 칸이 «빗살 안 보임» 으로 거짓 판정**된다. 팔 이름에서 반송파를 읽어 곱한다.
+    """
+    return FTIP0 * np.cos(np.radians(float(el))) * (carrier_of(arm) / FC0_HZ)
 
 
 def load(arm, el):
@@ -79,9 +98,9 @@ def _stft(E, prf):
     return np.fft.fftshift(f), np.fft.fftshift(S, axes=0), nper
 
 
-def band_g(E, prf, el):
+def band_g(E, prf, el, arm=""):
     """블레이드 대역 전력 g(t) 와 그 표본율."""
-    ft = f_tip(el)
+    ft = f_tip(el, arm)
     if ft <= 1e-6:
         return None, None
     f, S, nper = _stft(E, prf)
@@ -91,13 +110,13 @@ def band_g(E, prf, el):
     return (S ** 2)[m, :].sum(axis=0), prf / HOP
 
 
-def comb_snr(E, prf, el, guard=3):
+def comb_snr(E, prf, el, guard=3, arm=""):
     """① 느린시간 FFT — 블레이드 대역 안의 f_flash 조화선 대 바닥 [dB]."""
     n = E.size
     x = (E - E.mean()) * np.hanning(n)
     X = np.abs(np.fft.fft(x)) ** 2
     f = np.fft.fftfreq(n, 1 / prf); df = prf / n
-    ft = f_tip(el)
+    ft = f_tip(el, arm)
     band = (np.abs(f) >= 0.35 * ft) & (np.abs(f) <= ft)
     on = np.zeros(n, bool); harms = []
     k = 1
