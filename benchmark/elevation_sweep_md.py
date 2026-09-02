@@ -426,6 +426,7 @@ def run(a) -> None:
         + ("" if abs(float(getattr(a, "body_scale", 1.0) or 1.0) - 1.0) < 1e-9
            else f"_bs{float(a.body_scale):g}") \
         + ("_pw" if plane else "") \
+        + ("_det" if getattr(a, "det", False) else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \

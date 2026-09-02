@@ -335,6 +335,33 @@ _PROBE_MAXPATHS = int(os.environ.get("PROBE_MAXPATHS", "0")) or None
 #  PROBE_DPHASE  — 목표 자세의 **모든 로터 위상**에 더할 미소각 [deg]
 #  PROBE_DXYZ    — 드론 정점 전체를 평행이동 [m]
 #  PROBE_PHASE_FROM — 목표 자세 자리에서 **다른 자세의 위상**을 쓴다(기하만 바꿔치기)
+#: ⭐ADVERSARIAL 렌즈 (2026-09-02) — PROBE_SALT
+#  Sionna 의 경면연쇄 중복제거 해시에 **상수 하나만** 섞는다(XOR).
+#  해시 값의 소비처는 sb_candidate_generator.py:485-498 의 통 번호 하나뿐이라
+#  (`counter_ind = path_target_hash % spec_counter_size` → `new_specular`),
+#  이 손잡이는 기하·표본·표 크기·경로 상한을 **하나도** 건드리지 않는다.
+#  통 배정만 바뀌는데도 경로가 돌아오면, 손실 지점은 중복제거 문(門)으로 확정된다.
+_PROBE_SALT = int(os.environ.get("PROBE_SALT", "0") or 0)
+
+
+def _apply_hash_salt() -> None:
+    """PlaneHasher/EdgeHasher 반환 해시에 PROBE_SALT 를 XOR 한다(과정 내 한정)."""
+    if not _PROBE_SALT:
+        return
+    import mitsuba as mi                                          # noqa: PLC0415
+    from sionna.rt.utils import hashing as _H                     # noqa: PLC0415
+    salt = mi.UInt64(_PROBE_SALT & 0xFFFFFFFFFFFFFFFF)
+    for cls in (_H.PlaneHasher, _H.EdgeHasher):
+        if getattr(cls, "_salted", False):
+            continue
+        orig = cls.__call__
+        def _call(self, *a, _orig=orig, **k):                     # noqa: ANN001
+            return _orig(self, *a, **k) ^ salt
+        cls.__call__ = _call
+        cls._salted = True
+    print(f"    \u2b50ADVERSARIAL: \ud574\uc2dc \uc18c\uae08 PROBE_SALT={_PROBE_SALT}", flush=True)
+
+
 _PROBE_DPHASE = float(os.environ.get("PROBE_DPHASE", "0") or 0.0)
 _PROBE_DXYZ = float(os.environ.get("PROBE_DXYZ", "0") or 0.0)
 _PROBE_PHASE_FROM = (int(os.environ["PROBE_PHASE_FROM"])
@@ -715,6 +742,7 @@ def run(a) -> None:
 
     # ── Sionna PathSolver ───────────────────────────────────────────────────
     import report15_probe as RP
+    _apply_hash_salt()              # ⭐ADVERSARIAL 렌즈: 중복제거 해시에만 소금
     require_cuda_variant()          # ⭐GPU 가 안 열렸으면 여기서 멈춘다
     from drones import drone_colors
     # ⭐셸 두께 정정 — **켰을 때만** 재질에 두께를 물린다(안 켜면 materials 가 예전처럼
