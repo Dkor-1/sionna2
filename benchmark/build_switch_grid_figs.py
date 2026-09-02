@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-build_switch_grid_figs.py — **물리 스위치 7 조합**의 STFT 맵·대역 에너지 그림과 원장.
+build_switch_grid_figs.py — **다섯 팔**의 STFT 맵·대역 에너지 그림과 원장.
 
 사용자 지시(2026-08-15): 「물리 스위치 7 조합 결과 STFT 마이크로도플러 맵을 토대로 다음
 작업을 정한다 — 맵 결과물들과 blade band energy 를 다 실어서 읽기 편하게, 팀미팅 때
@@ -13,7 +13,7 @@ build_switch_grid_figs.py — **물리 스위치 7 조합**의 STFT 맵·대역 
 
 굽는 것
     outputs/switch_grid.json                   조합별 수치(보고서가 인용)
-    outputs/figures/swgrid_maps.png            STFT 맵 — 우리 커널 + 7 조합 (2×4)
+    outputs/figures/swgrid_maps.png            STFT 맵 — 우리 커널 + 스위치 네 조합
     outputs/figures/swgrid_maps_dc.png         같은 판, 정지 성분 제거
     outputs/figures/swgrid_be_wide.png         대역 에너지 100~1,000 Hz (조합당 패널)
     outputs/figures/swgrid_be_zoom.png         대역 에너지 0~420 Hz
@@ -171,14 +171,22 @@ def maps(data, drop_dc, stem, shared=False):
 
 
 def band(data, lo, hi, stem):
-    """조합당 패널 — 7 곡선을 한 축에 겹치면 안 읽힌다(덱에서 실측). 우리 커널을 옅게 깔아
-    기준으로 삼고, 각 패널에 그 조합 하나만 진하게 얹는다."""
+    """조합당 패널 — 곡선을 한 축에 겹치면 안 읽힌다(덱에서 실측). 우리 커널을 옅게 깔아
+    기준으로 삼고, 각 패널에 그 조합 하나만 진하게 얹는다.
+
+    ⭐판 크기는 ARMS 길이를 따라간다 — 예전에 2×4 로 못 박아 두어 다섯 팔일 때 빈 축
+      셋이 그대로 그려졌다. maps() 와 같은 규칙을 쓴다."""
     fr0, Y0 = modspec(data[ARMS[0][0]])
     m0 = (fr0 >= lo) & (fr0 <= hi)
     ref_db = 10 * np.log10(Y0[m0] / Y0[m0].max())
-    fig, ax = plt.subplots(2, 4, figsize=(27.0, 9.6), sharex=True, sharey=True)
+    nc = len(ARMS) if len(ARMS) <= 5 else 4
+    nr = int(np.ceil(len(ARMS) / nc))
+    fig, ax = plt.subplots(nr, nc, figsize=(5.4 * nc, 4.8 * nr + 0.9),
+                           sharex=True, sharey=True, squeeze=False)
+    for a in ax.ravel()[len(ARMS):]:
+        a.set_axis_off()                      # ⛔빈 축은 그리지 않는다
     for i, (arm, nm) in enumerate(ARMS):
-        a = ax[i // 4, i % 4]
+        a = ax[i // nc, i % nc]
         if i:
             a.plot(fr0[m0], ref_db, color="#c62828", lw=1.2, alpha=0.35,
                    label="Our kernel")
@@ -195,9 +203,9 @@ def band(data, lo, hi, stem):
         a.set_title(nm, pad=7)
         a.grid(alpha=0.25)
         a.set_axisbelow(True)
-        if i % 4 == 0:
+        if i % nc == 0:
             a.set_ylabel("line level [dB]")
-        if i // 4 == 1:
+        if i // nc == nr - 1:
             a.set_xlabel("modulation rate [Hz]")
         if i == 1:
             a.legend(fontsize=13, loc="lower right", framealpha=0.95)
@@ -258,7 +266,7 @@ if __name__ == "__main__":
 
     out = {"_meta": {
         "generator": "benchmark/build_switch_grid_figs.py",
-        "purpose_ko": "물리 스위치 7 조합 + 우리 커널, 앙각 −30° 한 자리 비교",
+        "purpose_ko": "다섯 팔(우리 커널 + 스위치 네 조합), 앙각 −30° 한 자리 비교",
         "setup_ko": "matrice4e · 3.5 GHz · 15 m · 자세 8192 · 광선 4e9 · 깊이 1 · 확산 켬",
         "excluded_ko": "101(굴절+모서리)은 소스 구조상 100 과 동일해 계산하지 않았다 — "
                        "모서리회절 후보 생성이 회절 스위치 안에 있다"
