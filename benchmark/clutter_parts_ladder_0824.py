@@ -121,7 +121,22 @@ def load(arm: str, el: float):
             pass
     if E is None:
         return None, -1
-    return E, int((~seen).sum())
+    miss = int((~seen).sum())
+    if miss:
+        # ⛔⛔**조용히 반쪽을 돌려주지 않는다**(2026-09-02 사용자 지적).
+        #   샤드 하나가 없으면 그 자세들이 **0 인 채로 남고**, 부르는 쪽이 두 번째 반환값을
+        #   버리면 «절반이 0 인 기록» 을 정상으로 착각한다. 실측: 기록 1,491 개 중 27 개가
+        #   구멍이 있었고(26 개는 정확히 50 %), 그중 하나는 다섯 팔 정본
+        #   `sionna_p4000000000_swR1D0E0F1_..._d2 el-15` 였다. 0 은 «측정값 0» 이 아니라
+        #   «측정 안 됨» 이므로 |E| 통계·낙차 세기·상관이 전부 틀어진다.
+        import warnings
+        warnings.warn(f"⛔{arm} el{el:+.0f}: 자세 {miss}/{E.size} 개가 안 채워졌다"
+                      f"({100*miss/E.size:.1f}%) — 샤드가 모자란다. E 의 그 자리는 0 이다.",
+                      RuntimeWarning, stacklevel=2)
+        if os.environ.get("SHARD_STRICT"):
+            raise RuntimeError(f"{arm} el{el:+.0f}: 자세 {miss}/{E.size} 개 결손 "
+                               f"(SHARD_STRICT 가 켜져 있다)")
+    return E, miss
 
 
 def cs_mean(x):
