@@ -595,6 +595,10 @@ def run(a) -> None:
         if os.path.exists(f) and not a.overwrite:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
         E = np.zeros(idx.size, complex); npaths = np.zeros(idx.size, int)
+        # ⭐**돌려받은 경로 수를 따로 적는다**(2026-09-02). `npaths` 는 NO_OBJ 마스크를
+        #   통과해 «남은» 수라, 경로가 하나 빠졌을 때 그것이 **PathSolver 가 못 찾은 것**인지
+        #   **우리 마스크가 버린 것**인지 서명이 똑같아 못 가른다. 두 수를 다 적으면 갈린다.
+        nret = np.zeros(idx.size, int)
         t0 = time.time()
         # ⭐A3 — 솔버 객체를 자세마다 새로 만들지 않는다(인자가 루프 상수다).
         _solver = RP.rt.PathSolver()
@@ -705,13 +709,14 @@ def run(a) -> None:
                     _t = _t[_ord]
                 E[j] = complex(np.sum(_t))
                 npaths[j] = int(hit.sum())
+                nret[j] = int(aa.size)          # ⭐마스크 «전» 수
             if dd is not None:
                 RP.drop_scratch(dd)
             if j and j % 128 == 0:
                 e = time.time() - t0
                 print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
                       f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
-        np.savez_compressed(f, idx=idx, E=E, npaths=npaths,
+        np.savez_compressed(f, idx=idx, E=E, npaths=npaths, nret=nret,
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
                             # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
