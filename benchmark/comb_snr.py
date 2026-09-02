@@ -61,6 +61,25 @@ def carrier_of(arm: str) -> float:
     return FC0_HZ if not m else float(m.group(1)) * 1e6
 
 
+def blade_of(arm: str) -> float:
+    """⭐팔 이름에서 **그 기체의 날개 박자** [Hz] — `blades × hover_rpm / 60`.
+
+    ⛔**2026-09-02 결함**: `F0` 를 원장의 matrice4e 값(126.67 Hz) 하나로 고정하고 있었다.
+      기체마다 박자가 다른데(s1000plus 149 · mavic4pro 120 · mini5pro 183 Hz) 전부
+      126.67 Hz 에서 재고 있어 **matrice4e 아닌 기체의 판정이 전부 무효**였다.
+      실제로 s1000plus 는 그림에서 149/298/447 Hz 에 봉우리가 뚜렷한데 SNR 6.7 로 나왔다.
+    """
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "src"))
+        from drones import DRONES
+    except Exception:                                          # noqa: BLE001
+        return F0
+    for k, sp in DRONES.items():
+        if f"_{k}_" in (arm or ""):
+            return float(getattr(sp, "prop_blades", 2)) * float(sp.hover_rpm) / 60.0
+    return F0
+
+
 def f_tip(el, arm=""):
     """⭐날개 끝 도플러 [Hz] — **반송파에 비례한다**(f_tip = 2 v_tip / λ = 2 v_tip fc / c).
 
@@ -68,7 +87,8 @@ def f_tip(el, arm=""):
       `--fc-ghz` 판(5.8 / 10 / 24 GHz)을 그대로 읽으면 대역이 최대 6.9 배 어긋나
       **모든 칸이 «빗살 안 보임» 으로 거짓 판정**된다. 팔 이름에서 반송파를 읽어 곱한다.
     """
-    return FTIP0 * np.cos(np.radians(float(el))) * (carrier_of(arm) / FC0_HZ)
+    return (FTIP0 * np.cos(np.radians(float(el))) * (carrier_of(arm) / FC0_HZ)
+            * (blade_of(arm) / F0))
 
 
 def load(arm, el):
@@ -111,7 +131,11 @@ def band_g(E, prf, el, arm=""):
 
 
 def comb_snr(E, prf, el, guard=3, arm=""):
-    """① 느린시간 FFT — 블레이드 대역 안의 f_flash 조화선 대 바닥 [dB]."""
+    """① 느린시간 FFT — 블레이드 대역 안의 f_flash 조화선 대 바닥 [dB].
+
+    ⭐`arm` 을 주면 그 기체의 **날개 박자**와 **반송파**를 쓴다(둘 다 팔 이름에서 읽는다).
+    """
+    F0 = blade_of(arm)
     n = E.size
     x = (E - E.mean()) * np.hanning(n)
     X = np.abs(np.fft.fft(x)) ** 2
