@@ -328,9 +328,42 @@ _PROBE_OUT = os.environ.get("PROBE_OUT", "/tmp/probe_drop.json")
 #  0 이면 목표 자세만 찬 상태에서 푼다. 재사용되는 것(솔버 객체 A3 · 인메모리 메쉬 A2)에
 #  **이전 자세의 상태가 쌓이는지**를 이 손잡이로 가른다.
 _PROBE_WARM = int(os.environ.get("PROBE_WARM", "0"))
+#: ⭐해시 통 수 — `spec_counter_size = max(max_num_paths_per_src, 1e6)` 이라
+#  이 값이 곧 Sionna 의 중복제거 해시 통 수다. 키우면 충돌이 줄어야 한다.
+_PROBE_MAXPATHS = int(os.environ.get("PROBE_MAXPATHS", "0")) or None
+#: ⭐GEOMETRY 렌즈 손잡이 (2026-09-02, 스크래치 사본 전용)
+#  PROBE_DPHASE  — 목표 자세의 **모든 로터 위상**에 더할 미소각 [deg]
+#  PROBE_DXYZ    — 드론 정점 전체를 평행이동 [m]
+#  PROBE_PHASE_FROM — 목표 자세 자리에서 **다른 자세의 위상**을 쓴다(기하만 바꿔치기)
+_PROBE_DPHASE = float(os.environ.get("PROBE_DPHASE", "0") or 0.0)
+_PROBE_DXYZ = float(os.environ.get("PROBE_DXYZ", "0") or 0.0)
+_PROBE_PHASE_FROM = (int(os.environ["PROBE_PHASE_FROM"])
+                     if os.environ.get("PROBE_PHASE_FROM") else None)
+
+# ⛔⛔SCOPE 렌즈 안전장치 (2026-09-02) — 재현기 모드에서는 **절대** 샤드를 안 쓴다.
+#   probe 는 목표 자세만 채우므로 저장하면 생산 샤드가 0 으로 덮인다.
+if _PROBE_POSE is not None:
+    def _refuse_savez(*_a, **_k):                                  # noqa: ANN001
+        raise SystemExit("⛔ PROBE_POSE 모드에서는 샤드를 저장하지 않는다")
+    np.savez_compressed = _refuse_savez                            # type: ignore
+
+
+def _probe_phase(ph, i):
+    """자세 i 에 쓸 위상 벡터 — 렌즈 손잡이를 반영한다."""
+    src = i if _PROBE_PHASE_FROM is None or i != _PROBE_POSE else _PROBE_PHASE_FROM
+    q = np.array(ph[src], float)
+    if _PROBE_DPHASE and i == _PROBE_POSE:
+        q = q + _PROBE_DPHASE
+    if (src != i) or (_PROBE_DPHASE and i == _PROBE_POSE):
+        print(f"    ⭐GEOM 렌즈: 자세 {i} 에 위상 src={src} dphase={_PROBE_DPHASE:g} 적용",
+              flush=True)
+    return q
 
 
 def _probe_one(RP, sc, diffuse, mdep, sw, spp, fc, pose, el, solver=None):
+    global _PROBE_MAXPATHS
+    if _PROBE_MAXPATHS is None:
+        _PROBE_MAXPATHS = RP.MAX_PATHS
     """같은 장면을 `PROBE_REPS` 번 풀고 판마다 기록한다.
 
     ⭐가르려는 것 — 경로가
@@ -345,7 +378,7 @@ def _probe_one(RP, sc, diffuse, mdep, sw, spp, fc, pose, el, solver=None):
         sv = RP.rt.PathSolver() if _PROBE_FRESH else solver
         p = sv(sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
                max_depth=mdep, **sw, samples_per_src=spp,
-               max_num_paths_per_src=RP.MAX_PATHS, seed=1)
+               max_num_paths_per_src=_PROBE_MAXPATHS, seed=1)
         aa, tau, _, O = RP.unpack(p, want_doppler=False)
         hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)
         t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])
@@ -374,6 +407,75 @@ def _probe_one(RP, sc, diffuse, mdep, sw, spp, fc, pose, el, solver=None):
         print("  ⇒ ⭐돌려받은 수 자체가 다르다 — **솔버가 경로를 안 돌려줬다**")
     else:
         print("  ⇒ 이번 판들에서는 안 흔들렸다 — 판 수를 늘리거나 다른 자세를 본다")
+
+
+# ═══════════════════════════════════════════════════════════════════════════ #
+#  ⭐PATH-CONTENT 렌즈 (2026-09-02) — 자세마다 **경로 하나하나**를 통째로 적는다.
+#    묻는 것: 4404 에서 이웃과 «같은 경로가 작아진» 것인가, «다른 경로 집합» 인가.
+# ═══════════════════════════════════════════════════════════════════════════ #
+_PROBE_DUMP = [int(x) for x in os.environ.get("PROBE_DUMP", "").replace(" ", "").split(",") if x]
+_PROBE_DUMP_DIR = os.environ.get("PROBE_DUMP_DIR", "/tmp/pathdump")
+
+
+def _probe_dump(RP, sc, diffuse, mdep, sw, spp, fc, pose, el, solver):
+    """한 자세를 풀고 경로별 (a, tau, objects, interactions, vertices) 를 npz 로 적는다."""
+    global _PROBE_MAXPATHS
+    if _PROBE_MAXPATHS is None:
+        _PROBE_MAXPATHS = RP.MAX_PATHS
+    import numpy as _np
+    p = solver(sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
+               max_depth=mdep, **sw, samples_per_src=spp,
+               max_num_paths_per_src=_PROBE_MAXPATHS, seed=1)
+    aa, tau, _, O = RP.unpack(p, want_doppler=False)
+    d = dict(a_re=aa.real.astype("<f8"), a_im=aa.imag.astype("<f8"),
+             tau=tau.astype("<f8"), obj=_np.asarray(O).astype("<i8"))
+    for nm in ("interactions", "primitives"):
+        try:
+            v = _np.asarray(getattr(p, nm))
+            d[nm] = v.reshape(v.shape[0], -1)[:, -aa.size:] if aa.size else v.reshape(0)
+        except Exception as e:                                     # noqa: BLE001
+            print(f"    ({nm} 못 읽음: {e})", flush=True)
+    for nm in ("theta_t", "phi_t", "theta_r", "phi_r"):
+        try:
+            d[nm] = _np.asarray(getattr(p, nm)).reshape(-1)[:aa.size].astype("<f8")
+        except Exception:                                          # noqa: BLE001
+            pass
+    try:
+        vx = _np.asarray(p.vertices)                    # (depth, ..., P, 3)
+        d["vertices"] = vx.reshape(vx.shape[0], -1, 3)[:, -aa.size:, :].astype("<f8")
+    except Exception as e:                                         # noqa: BLE001
+        print(f"    (vertices 못 읽음: {e})", flush=True)
+    # ⭐물체 id → 이름표. 자세마다 같아야 정상이다(이것부터 확인한다).
+    try:
+        names = {int(o.object_id): str(n) for n, o in sc.objects.items()}
+        d["oid"] = _np.array(sorted(names), dtype="<i8")
+        d["oname"] = _np.array([names[k] for k in sorted(names)])
+    except Exception as e:                                         # noqa: BLE001
+        print(f"    (object_id 못 읽음: {e})", flush=True)
+    # ⭐송수신 위치 — 몸통·레이다가 정말 안 움직였는지 확인하는 축
+    try:
+        d["tx"] = _np.array([_np.asarray(t.position).reshape(-1) for t in sc.transmitters.values()], "<f8")
+        d["rx"] = _np.array([_np.asarray(r.position).reshape(-1) for r in sc.receivers.values()], "<f8")
+    except Exception:                                              # noqa: BLE001
+        pass
+    # ⭐장면 기하 지문 — 자세의 정점이 정말 0.044° 만 움직였는지
+    try:
+        import mitsuba as _mi
+        bb = sc.mi_scene.bbox()
+        d["bbox"] = _np.array([list(bb.min), list(bb.max)], "<f8")
+    except Exception:                                              # noqa: BLE001
+        pass
+    hit = (O != RP.NO_OBJ).any(axis=0) if O.size else _np.zeros(aa.size, bool)
+    t = aa[hit] * _np.exp(-1j * 2 * _np.pi * fc * tau[hit])
+    E = complex(_np.sum(t))
+    d["E"] = _np.array([E.real, E.imag])
+    d["meta"] = _np.array([pose, el, aa.size, int(hit.sum()), fc, spp, mdep], "<f8")
+    os.makedirs(_PROBE_DUMP_DIR, exist_ok=True)
+    f = os.path.join(_PROBE_DUMP_DIR, f"pose{pose}_el{el:+.0f}.npz")
+    _np.savez_compressed(f, **d)
+    print(f"  ⭐dump pose={pose}: n_ret={aa.size} n_hit={int(hit.sum())} "
+          f"|E|={abs(E):.6e}  incoh={_np.sqrt(_np.sum(_np.abs(aa[hit])**2)):.6e} "
+          f"max|a|={_np.abs(aa).max() if aa.size else 0:.6e} → {f}", flush=True)
 
 
 def run(a) -> None:
@@ -556,7 +658,7 @@ def run(a) -> None:
             if getattr(a, "dry_run", False):
                 print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
                       f"{os.path.basename(f)}", flush=True); continue
-            if os.path.exists(f) and not a.overwrite:
+            if os.path.exists(f) and not a.overwrite and _PROBE_POSE is None:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
             u = los(az, el)
             #: ⭐가로축 (e1,e2) 는 û 가 정하므로 판을 **앙각마다** 옮긴다. 크기(d·n·Rout)는
@@ -575,7 +677,10 @@ def run(a) -> None:
                 _gpu = BatchSBR(fp.pose(ph[int(idx[0])]), gm, fc, K=1, spacing=d,
                                 grid_ref=gref_el, penetrate=True, angle_gamma=True)
             for j, i in enumerate(idx):
-                mv = fp.pose(ph[int(i)])
+                if _PROBE_POSE is not None and not (
+                        _PROBE_POSE - _PROBE_WARM <= int(i) <= _PROBE_POSE):
+                    continue
+                mv = fp.pose(_probe_phase(ph, int(i)))
                 if prop_only:
                     mv.f, mv.g = f_keep, g_keep          # 정점은 그대로 — bbox 보존
                 if _gpu is not None:
@@ -583,6 +688,16 @@ def run(a) -> None:
                 else:
                     E[j] = sbr_field(mv, gm, fc, u, spacing=d, grid_ref=gref_el,
                                      range_m=(None if plane else rng_m), ptd=bool(a.ptd))
+                if _PROBE_POSE is not None and int(i) == _PROBE_POSE:
+                    import json as _js
+                    print(f"  ⭐OURS probe pose {i} el{el:+.0f}: "
+                          f"|E|={abs(E[j]):.6e}  E={E[j]!r}", flush=True)
+                    with open(_PROBE_OUT, "w") as _fh:
+                        _js.dump(dict(engine=a.engine, pose=int(i), el=float(el),
+                                      absE=float(abs(E[j])), re=float(E[j].real),
+                                      im=float(E[j].imag)), _fh, indent=1)
+                    print(f"\n✅ {_PROBE_OUT}", flush=True)
+                    return
                 if j and j % 128 == 0:
                     e = time.time() - t0
                     print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
@@ -685,7 +800,11 @@ def run(a) -> None:
                     _PROBE_POSE - _PROBE_WARM <= i <= _PROBE_POSE):
                 continue     # ⭐재현기: 목표 자세와 그 앞 «달굼» 구간만 짓는다
             if _lay is not None:
-                mv = fp.pose(ph[i])
+                mv = fp.pose(_probe_phase(ph, i))
+                if _PROBE_DXYZ and i == _PROBE_POSE:
+                    mv = type(mv)(mv.v + _PROBE_DXYZ, mv.f, mv.g)
+                    print(f"    ⭐GEOM 렌즈: 자세 {i} 정점 전체 +{_PROBE_DXYZ:g} m",
+                          flush=True)
                 paths_obj = {g: None for g in _lay.names}
                 for g in _lay.names:
                     _lay.update_vertices(RP.mi, _par_cache[g], mv.v, g)
@@ -693,7 +812,7 @@ def run(a) -> None:
                 dd = None
             else:
                 mi_meshes = None
-                m = fp.pose(ph[i]).to_mesh()
+                m = fp.pose(_probe_phase(ph, i)).to_mesh()
             # ⭐프로세스마다 다른 폴더를 쓴다 (2026-08-11 결함 정정).
             #   전에는 이름에 앙각·샤드만 들어 있어서, **광선 예산이 다른 두 실행**을
             #   동시에 띄우면 같은 폴더를 썼다. 자세마다 drop_scratch 로 지우므로
@@ -751,6 +870,11 @@ def run(a) -> None:
                     print(f"  ⭐환경 거칠기 S={_S:g} — 물체 {_n} 개에 걸었다", flush=True)
             RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0)
             # ══════════════════ 재현기 모드 ══════════════════
+            if _PROBE_DUMP and i in _PROBE_DUMP:
+                _probe_dump(RP, sc, diffuse, mdep, sw, spp, fc, i, el, _solver)
+                if i >= max(_PROBE_DUMP):
+                    return
+                continue
             if _PROBE_POSE is not None and i == _PROBE_POSE:
                 _probe_one(RP, sc, diffuse, mdep, sw, spp, fc, i, el,
                            solver=_solver)
