@@ -32,9 +32,12 @@ from md_mapstyle import auto_periods, flash_spec, draw                 # noqa: E
 
 PERIODS = auto_periods(PRF, FFL)
 NZ = int(round(0.058 * PRF))
-ENGINES = [("Our kernel",  "ours_r15_n8192"),
-           ("Physics off", "sionna_p4000000000_r15_n8192_d1"),
-           ("Physics on",  "sionna_p4000000000_phys_r15_n8192_d1")]
+#: (표시명, 전체 드론 팔, 프로펠러 단독 팔) — 목표 열을 함께 놓아야 «되찾았나» 를 눈으로 본다
+ENGINES = [("Our kernel",  "ours_r15_n8192", "ours_free_r15_n8192"),
+           ("Physics off", "sionna_p4000000000_r15_n8192_d1",
+                           "sionna_p4000000000_partsprop_r15_n8192_d1"),
+           ("Physics on",  "sionna_p4000000000_phys_r15_n8192_d1",
+                           "sionna_p4000000000_phys_partsprop_r15_n8192_d1")]
 
 INK, GRAY, ACC, NAVY = "#141926", "#5E5E5E", "#C81E3C", "#1F3864"
 DEG, MINUS = chr(176), chr(8722)
@@ -194,19 +197,23 @@ def fig_where():
 # ═══ B — 무시하면 줄무늬가 사라진다 ═════════════════════════════════════════
 def fig_stft(el=0.0):
     """⭐**같은 그림을 전/후로.** 필터·창·눈금이 전부 같고 차이는 「58 자세를 무시했나」 하나다."""
-    fig, ax = plt.subplots(len(ENGINES), 2, figsize=(17.0, 8.4),
+    # ⭐열 셋 — 목표(프로펠러 단독)를 왼쪽에 놓는다(사용자 지시 2026-09-02).
+    #   「무시하니 왼쪽과 같아졌다」가 눈으로 보여야 이 장이 선다.
+    fig, ax = plt.subplots(len(ENGINES), 3, figsize=(19.6, 7.6),
                            sharex=True, sharey=True)
-    for r, (eng, arm) in enumerate(ENGINES):
+    for r, (eng, arm, parm) in enumerate(ENGINES):
         W = load(arm, el)[0]
+        P = load(parm, el)[0]
         R, bad = fill(W)
-        for c, (E, ttl) in enumerate(((W, "as recorded"),
-                                      (R, "with those poses ignored"))):
+        for c, (E, ttl) in enumerate(((P, "propellers only"),
+                                      (W, "whole drone, as recorded"),
+                                      (R, "whole drone, those poses ignored"))):
             a = ax[r, c]
             f_, t_, S_, _ = flash_spec(cs_eca(np.asarray(E))[:NZ], PRF, FFL, PERIODS)
             draw(a, t_, f_, S_, f_tip(el))
             a.set_ylim(-2000, 2000)
             if r == 0:
-                a.set_title(ttl, fontsize=20, color=INK, weight="bold", pad=10)
+                a.set_title(ttl, fontsize=18, color=INK, weight="bold", pad=10)
             a.tick_params(labelsize=14, labelbottom=(r == len(ENGINES) - 1))
             if r == len(ENGINES) - 1:
                 a.set_xlabel("time [ms]", fontsize=16)
@@ -214,16 +221,17 @@ def fig_stft(el=0.0):
                 a.set_ylabel("Doppler [Hz]", fontsize=15)
             else:
                 a.set_yticklabels([])
+            if c == 2:
                 a.text(0.985, 0.05, f"{len(bad)} poses", transform=a.transAxes,
                        ha="right", va="bottom", fontsize=15, color="white",
                        weight="bold")
         print(f"     {eng:<12} drops {len(bad)}")
     # ⛔행 이름이 y 축 이름과 겹친다 — 여백을 넓히고 더 왼쪽으로
-    fig.subplots_adjust(top=0.885, bottom=0.085, left=0.185, right=0.988,
+    fig.subplots_adjust(top=0.878, bottom=0.090, left=0.145, right=0.990,
                         hspace=0.15, wspace=0.05)
-    for r, (eng, _a) in enumerate(ENGINES):
+    for r, (eng, *_a) in enumerate(ENGINES):
         bx = ax[r, 0].get_position()
-        fig.text(0.108, bx.y0 + bx.height / 2, eng, ha="right", va="center",
+        fig.text(0.088, bx.y0 + bx.height / 2, eng, ha="right", va="center",
                  fontsize=18, weight="bold", color=INK)
     p = f"{OUT}/drops_stft.png"
     fig.savefig(p, dpi=126, bbox_inches="tight")
