@@ -63,6 +63,7 @@
 | [`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md) | 주장 게이트 (위) |
 | [`docs/EQUIVALENCE_GATES.md`](docs/EQUIVALENCE_GATES.md) | 「같음」 판정 3 층. ⛔솔버 산출물에 «비트 동일» 을 요구하지 않는다 |
 | [`docs/DECK_FACTS.md`](docs/DECK_FACTS.md) | 덱이 인용하는 숫자의 원장 대조표 |
+| [`docs/SIONNA_NONDETERMINISM_0902.md`](docs/SIONNA_NONDETERMINISM_0902.md) | ⭐공개 논의(#1175 등)와 **우리 관측을 가른다** — #1175 은 회절 wedge(RadioMapSolver)라 `diffraction=False` 로 사라지지만, **우리 것은 회절을 꺼도 난다**(PathSolver 후보 생성기). ⛔`rr_depth`·`deterministic` 은 2.0.1 PathSolver 에 **없다** |
 | [`docs/DEEP_DROP_0902.md`](docs/DEEP_DROP_0902.md) | ⭐**깊은 낙차 = 한 자세에서 경로 하나를 «비결정적으로» 잃는 현상.** 같은 설정 재실행에서 낙차 여부가 뒤집힌다(154 자세). 빠지는 것은 **고정된 복소 상수 하나**이고 \|E\| 가 정확히 (N−1)/N 로 떨어진다. ⛔**누구 탓인지는 아직 안 갈렸다** — 우리 하네스의 NO_OBJ 마스크가 용의선상에 있다 |
 | [`docs/RHO_IS_SMOOTHNESS_0902.md`](docs/RHO_IS_SMOOTHNESS_0902.md) | ⛔**ρ(포락 자기상관)는 리듬이 아니라 «매끄러움» 을 잰다.** 직선·계단·붉은잡음이 전부 「박자」 칸(0.92~0.99)에 든다. ρ 하나로 박자를 판정하지 않는다 — **빗살 하모닉 SNR 을 함께 낸다** |
 | [`docs/AUDIT_REPORTS_0901.md`](docs/AUDIT_REPORTS_0901.md) | ⭐레포트 24권 적대 검증 — **확인 59 건(fatal 5), 살아 있음 49**. 인용 전에 해당 권을 확인한다 |

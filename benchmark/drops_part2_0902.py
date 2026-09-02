@@ -83,10 +83,11 @@ def fig_record(el=0.0):
     ax.plot(t[:n], r[:n], "-o", ms=2.5, lw=0.9, color="#7A8494")
     inw = bad[bad < n]
     ax.plot(t[inw], r[inw], "o", ms=10, color=ACC, zorder=5)
+    # ⭐«정확히 2/3» 을 **강조하지 않는다**(2026-09-02 사용자 지시). 이 장이 말할 것은
+    #   「몇 자세가 확 튄다」와 「그것이 그림을 망친다」 둘뿐이다. 정확한 비는 발표자 노트로.
     ax.axhline(1.0, color="0.6", lw=1.0, ls=(0, (5, 4)))
-    ax.axhline(2 / 3, color=ACC, lw=1.2, ls=(0, (5, 4)))
     ax.text(t[n - 1], 1.012, "usual size", ha="right", fontsize=15, color=GRAY)
-    ax.text(t[n - 1], 0.678, "two thirds of it", ha="right", fontsize=15,
+    ax.text(t[n - 1], 0.635, "a few poses drop", ha="right", fontsize=15,
             color=ACC, weight="bold")
     ax.set_ylim(0.60, 1.06)
     ax.set_xlim(0, t[n - 1])
@@ -112,7 +113,8 @@ def fig_record(el=0.0):
     bx.set_axisbelow(True)
     for s in ("top", "right"):
         bx.spines[s].set_visible(False)
-    bx.annotate(f"{len(bad)} poses", xy=(2 / 3, 60), xytext=(0.76, 900),
+    # ⭐**개수도 강조하지 않는다**(2026-09-02 사용자 지시). 막대 둘이 보이면 그만이다.
+    bx.annotate("these", xy=(float(np.median(r[bad])), 60), xytext=(0.78, 900),
                 fontsize=16, color=ACC, weight="bold",
                 arrowprops=dict(arrowstyle="-|>", color=ACC, lw=2.0))
 
