@@ -100,12 +100,18 @@ def _disp(no: str) -> str:
     위계 번호("01_2")는 `int()` 에 넣으면 ValueError 다 — 표시 지점은 전부 이 함수를 쓴다.
     """
     h, _, t = no.partition("_")
-    return str(int(h)) + (f"-{t}" if t else "")
+    #: ⭐도감처럼 **숫자가 아닌 번호**("A")도 있다 — 그대로 보여 준다.
+    head = str(int(h)) if h.isdigit() else h
+    return head + (f"-{t}" if t else "")
 
 
 def _no_key(no: str) -> tuple[int, int]:
-    """권 번호의 수치 정렬 키 — "01"→(1,0), "01_2"→(1,2). 동률 판정 등 계산용이다."""
+    """권 번호의 수치 정렬 키 — "01"→(1,0), "01_2"→(1,2). 동률 판정 등 계산용이다.
+
+    ⭐숫자가 아닌 번호("A" — 도감)는 **맨 뒤**로 보낸다."""
     h, _, t = no.partition("_")
+    if not h.isdigit():
+        return (10_000, ord(h[0]) if h else 0)
     return (int(h), int(t) if t else 0)
 
 
@@ -242,6 +248,27 @@ EXTERNAL = [
                  "실외 장면 — 지면과 벽이 서면 무엇이 달라지나")],
          #: parts 가 비어 있어 실제로 덧붙는 것은 없다 — 경로만 유효하면 된다.
          append_to="12_outdoor-scene.ipynb", parts=[], headline=None),
+
+    #: ⭐도감 — 앙각 스윕 원장의 **모든 팔**을 그림으로 편 재고 목록.
+    #  ⛔2026-09-03 까지 편성 밖이라 지도·목차 어디에도 안 걸렸고, 08-24 판이 그대로
+    #    남아 «팔 122 · 칸 349» 를 인쇄하고 있었다(실제 445 · 1433). 다시 굽고 등록했다.
+    #  그림이 962 장이라 한 파일이 너무 무거워 **주제마다 편을 나눴다**(A~I).
+    dict(no="A", title="도감 — 원장의 모든 팔을 그림으로",
+         thesis="앙각 스윕 원장이 담은 팔 전부를 STFT 맵과 대역 에너지로 펴 둔 **재고 목록**이다. 판정하지 않는다 — 어느 팔이 무엇을 담고 있는지 찾아보는 자리다.",
+         builder="benchmark/build_atlas_toc.py (그림은 benchmark/build_md_atlas.py)",
+         files=[
+                ("A_atlas.ipynb", "도감 지도 — 읽는 법 · 편 목록 · 이름 규약 · 주의"),
+                ("A_atlas_A.ipynb", "기본 엔진 — 엔진·광선예산·자세수, ⚠거리도 10 m·15 m 로 섞여 있다"),
+                ("A_atlas_B.ipynb", "스위치 — 굴절·회절·모서리·확산을 켜고 끈 조합"),
+                ("A_atlas_C.ipynb", "기체 3 종 — 박자가 기체마다 다르다"),
+                ("A_atlas_D.ipynb", "방위 — 정면 말고 45° 에서 본 판"),
+                ("A_atlas_E.ipynb", "부품 분해 — 프로펠러만 / 동체만"),
+                ("A_atlas_F.ipynb", "거리 — 15 m 아닌 판(30 m)"),
+                ("A_atlas_G.ipynb", "PTD — 모서리 보정을 켠 판"),
+                ("A_atlas_H.ipynb", "격자 — λ/12 대신 더 촘촘한 격자"),
+                ("A_atlas_I.ipynb", "평면파 — 구면파 대신 평면파로 조명한 판"),
+         ],
+         append_to="A_atlas.ipynb", parts=[], headline=None),
 ]
 
 

@@ -56,8 +56,15 @@ GRID = json.load(open(GRID_P, encoding="utf-8"))
 META = IDX["_meta"]
 ROWS = {(r["engine"], float(r["el_deg"])): r for r in LED["rows"]}
 
-#: 원장 7 점 격자 — 「그 팔에 없는 앙각」을 셀 때의 기준
-FULL_ELS = [0.0, -15.0, -30.0, -45.0, -60.0, -75.0, -90.0]
+#: ⭐**설계 격자** — 「그 팔에 없는 앙각」을 셀 때의 기준. 원장 _meta 가 정본이다.
+#  ⛔전에는 이 목록을 손으로 박아 뒀다. 원장이 앙각을 더 받아도 안 따라오므로,
+#    조각 78 에서 잡은 병(설계 점과 나중에 붙은 탐침 각이 표에서 섞임)이 여기서도 난다.
+DESIGN_ELS = [float(e) for e in LED["_meta"]["elevations_deg"]]
+#: ⚠원장이 **실제로** 담은 앙각의 합집합 — 설계 격자보다 넓다(뒤에 붙은 탐침 각).
+#  «몇 점을 쟀나» 를 말할 때는 이쪽을, «무엇이 빠졌나» 를 말할 때는 설계 격자를 쓴다.
+PRESENT_ELS = sorted({float(r["el_deg"]) for r in LED["rows"]}, reverse=True)
+#: 결측 계산의 기준은 설계 격자다 — 탐침 각을 «빠졌다» 고 세면 안 된다.
+FULL_ELS = DESIGN_ELS
 
 
 # ═══════════════════════════════════════════════════════════════════════════ #
@@ -742,7 +749,11 @@ def build() -> NB:
     nb.md(*lines)
 
     # ── ② 주제별 절 ───────────────────────────────────────────────────────
+    #: ⭐주제마다 «어느 셀에서 시작하나» 를 적어 둔다 — main() 이 여기서 편을 가른다.
+    #  ⛔셀 내용을 뒤져 «## 절» 을 찾는 방식은 안 쓴다. 제목 글자가 바뀌면 조용히 깨진다.
+    nb.marks = []
     for i, (tk, t) in enumerate(TOPICS, start=S_TOPIC0):
+        nb.marks.append((tk, t["label_ko"], i, len(nb.cells)))
         ncell = sum(len(a["cells"]) for a in t["arms"].values())
         nb.md(
             "---", "",
@@ -783,6 +794,8 @@ def build() -> NB:
                       f"`{arm}` — 날개 대역 전력이 뛰는 리듬의 스펙트럼. 세로 점선이 "
                       f"예측 박자 {a['f_flash_hz']:g} Hz 의 정수배다.")
             nb.md(*arm_table(arm))
+
+    nb.marks.append((None, None, None, len(nb.cells)))   # 주제 절이 끝난 자리
 
     # ── ③ 이름 읽는 법 ────────────────────────────────────────────────────
     rows = []
@@ -975,8 +988,8 @@ def build() -> NB:
         f"### {n_warn}.11 ⭐아직 **못 고친 것** — 알고 쓰라고 적어 둔다",
         "",
         f"- **덜 찬 칸 {len(INCOMPLETE)} 개의 참값** — 원장을 다시 병합해야 나온다. 이 문서는 "
-        "원장을 읽기만 한다. 세 칸 중 둘은 자세가 뭉텅이로 빠져 «0 을 걷어내고 다시 재는» "
-        "길도 없다(균일 표본이 아니다).",
+        f"원장을 읽기만 한다. 그 가운데 {max(0, len(INCOMPLETE) - 1)} 칸은 자세가 뭉텅이로 "
+        "빠져 «0 을 걷어내고 다시 재는» 길도 없다(균일 표본이 아니다).",
         "- **주제 분류(`topic_of`)가 아직 이름 토막으로 거리를 본다** — 그래서 `_r` 토막이 "
         f"없는 10 m 옛 팔이 «기본 엔진» 주제에 남아 있다. 원장 `range_m` 으로 바꾸면 그 팔들이 "
         "거리 주제로 옮겨가 그림 파일 이름이 전부 바뀌므로, 주제를 다시 짤 때 함께 고친다 — "
@@ -1056,8 +1069,9 @@ def build() -> NB:
             "앉아 그 대역의 에너지를 거의 다 차지하고, 그래서 리듬 몫이 0 % 로 주저앉는다 — "
             "**물리가 아니라 결측 자국**이다. 맵에는 날개 무늬가 또렷한데 구석에 «0 %» 가 "
             "적히는 모순이 그렇게 생겼다(2026-08-15 정정 전 판이 그랬다).", "",
-            "⚠**«0 을 빼고 다시 재면 되지 않나»** — 안 된다. 세 칸 가운데 빠진 자리가 균일한 "
-            "칸은 하나뿐이고(한 칸 걸러 하나), 나머지 둘은 자세가 뭉텅이로 빠져 "
+            f"⚠**«0 을 빼고 다시 재면 되지 않나»** — 안 된다. 덜 찬 {len(INCOMPLETE)} 칸 "
+            "가운데 빠진 자리가 균일한 칸은 하나뿐이고(한 칸 걸러 하나), 나머지 "
+            f"{max(0, len(INCOMPLETE) - 1)} 칸은 자세가 뭉텅이로 빠져 "
             "(4 개 중 2·3번째, 8 개 중 5~8번째) **균일 표본이 아니다** — 그런 자료의 "
             "스펙트럼은 정의되지 않는다. 고치는 길은 하나뿐이다: **원장을 다시 병합한다.**", "",
             "| 팔 | 앙각 | 들어온 자세 | 빠진 자세 | 거리 |", "|---|---|---|---|---|"]
@@ -1144,18 +1158,66 @@ def build() -> NB:
     return nb
 
 
-def main():
-    t0 = time.time()
-    nb = build()
-    doc = {"cells": nb.cells,
+#: 편 꼬리 — 주제 순서대로 A · B · C …  (사용자 지시 2026-09-03: 「A,B,C 이런식으로 쪼개서」)
+SUFFIX = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def _cell(*lines) -> dict:
+    """NB.md 와 같은 모양의 마크다운 셀 하나 — 편을 이을 때 쓴다."""
+    txt = '\n'.join(lines)
+    return {"cell_type": "markdown", "metadata": {},
+            "source": [l + '\n' for l in txt.split('\n')]}
+
+
+def _write(path: str, cells: list) -> int:
+    doc = {"cells": cells,
            "metadata": {"kernelspec": {"display_name": "py312", "language": "python",
                                        "name": "py312"},
                         "language_info": {"name": "python"}},
            "nbformat": 4, "nbformat_minor": 5}
-    with open(OUT, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
-    print(f"✅ {os.path.relpath(OUT, ROOT)}  셀 {len(nb.cells)} · 그림 {nb.fig} 장 "
-          f"· {time.time()-t0:.1f} 초")
+    return len(cells)
+
+
+def main():
+    """⭐한 권이 아니라 **지도 + 주제별 편**으로 낸다.
+
+    ⛔전에는 전부 한 파일이었다 — 그림 수백 장이 한 노트북에 들어가 열기도 무거웠고,
+      한 주제만 보려는 사람이 전체를 받아야 했다. 주제 경계는 build() 가 marks 에 적어 준다.
+    """
+    t0 = time.time()
+    nb = build()
+    marks = getattr(nb, "marks", [])
+    if not marks:
+        print("⛔주제 경계가 없다 — 나눌 수 없다")
+        raise SystemExit(1)
+
+    head_end, tail_start = marks[0][3], marks[-1][3]
+    made = []
+    for n, (tk, label, sec, start) in enumerate(marks[:-1]):
+        end = marks[n + 1][3]
+        suf = SUFFIX[n]
+        fn = f"A_atlas_{suf}.ipynb"
+        head = _cell(f"# 도감 {suf} — {label}", "",
+                     "[← 도감 지도](A_atlas.ipynb) 로 돌아간다. "
+                     f"이 편은 도감의 **절 {sec}** 하나다 — 주제마다 파일을 나눴다.")
+        n_cells = _write(os.path.join(ROOT, "reports", fn),
+                         [head] + nb.cells[start:end])
+        made.append((suf, label, fn, n_cells))
+
+    guide = _cell(
+        "## 이 도감은 여러 편으로 나뉜다", "",
+        "| 편 | 주제 | 파일 |", "|---|---|---|",
+        *[f"| {suf} | {label} | [{fn}]({fn}) |" for suf, label, fn, _ in made], "",
+        "⭐그림이 수백 장이라 한 파일에 담으면 열기가 무겁다. "
+        "주제 하나만 볼 사람이 전체를 받지 않아도 되게 나눴다(2026-09-03).")
+    n_head = _write(OUT, nb.cells[:head_end] + [guide] + nb.cells[tail_start:])
+
+    print(f"✅ {os.path.relpath(OUT, ROOT)}  셀 {n_head} (지도)")
+    for suf, label, fn, n in made:
+        print(f"   ✅ reports/{fn}  셀 {n:3d} · {label}")
+    print(f"   그림 {nb.fig} 장 · {time.time()-t0:.1f} 초")
 
 
 if __name__ == "__main__":
