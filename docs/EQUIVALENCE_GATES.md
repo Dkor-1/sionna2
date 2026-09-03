@@ -11,9 +11,13 @@
 
 ## 0. 왜 한 잣대로 안 되나
 
-**PathSolver 는 결정적이지 않다.** 벤더가 인정했고(NVlabs/sionna Discussion #1175 —
-회절 웨지 중복제거 해시 테이블 삽입 순서가 이후 무작위 웨지 표집에 영향),
-우리도 직접 쟀다 — **같은 코드·같은 씨앗(seed=1 하드코딩)·같은 기계로 돌린
+**PathSolver 는 결정적이지 않다.** ⚠근거를 정확히 적는다(2026-09-03 정정) —
+NVlabs/sionna Discussion #1175 는 **`RadioMapSolver`** 의 회절 웨지 표집 사례이고
+(`docs/SIONNA_NONDETERMINISM_0902.md` §1 이 「우리가 잡은 것은 #1175 이 아니다」로 갈랐다),
+**PathSolver** 쪽 근거는 벤더 인정이 아니라 ⓐ 후보 생성기 서문이 적어 둔 «해시 충돌로 후보
+유실»(`sb_candidate_generator.py:43-45·55-57`)과 ⓑ 우리 실측이다.
+같은 설정 재실행에서 우리 커널은 6/6 비트 동일인데 PathSolver 는 네 팔 12 칸 전부 안 맞는다
+(`outputs/true_repeat_0903.json`). 옛 판도 함께 쟀다 — **같은 코드·같은 씨앗(seed=1 하드코딩)·같은 기계로 돌린
 옛↔옛 15 쌍의 상대차 중앙값 8.187e-4** (`outputs/adv_refute_hashlottery_0824.json`).
 
 ⇒ 솔버 산출물에 비트 동일을 걸면 **아무것도 못 고친다.** 규약이 아니라 족쇄가 된다.

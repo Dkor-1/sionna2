@@ -827,6 +827,7 @@ M1 눈금(+0.00 dB), slope_only 항등식, bbox 강제 정합, 「21/21 전수�
 
 **A-1. 0827 2부 전체 — PathSolver 비결정성이 리포트에 없다.**
 25편에서 `비결정`·`#1175`·`재실행 문턱` 검색 결과 **0회**. 원장은 있다 — `outputs/depth_axis_verdict_0816.json : null_bands.pathsolver_repeatability` (회절 끔 1.9e-15 dB / 회절 켬 8~26 자세, |E| 최대 23 %, 요동 0.072 dB, 비트차 1666~7067 자세).
+  ⛔**그 원장 값은 2026-09-03 에 갈아탔다** — E0↔E1 짝이라 «모서리는 무동작» 을 가정해야 했고 7 쌍 중 4 쌍이 확산 끔(F0) 팔이었다. 지금 인용할 것은 진짜 재실행 `outputs/true_repeat_0903.json` 이다(`docs/DEEP_DROP_0902.md` ⓐ).
 가장 아픈 자리: `reports/02_2_stock-engine.ipynb` 셀에서 **바로 그 해시 테이블 코드를 인용한다** — 「면 해시로 만든 경로 지문의 카운터를 원자적으로 올리고 `samples_counter == 0` 인 광선만 저장한다(`sb_candidate_generator.py:484-498`)」. 확인했다: 설치된 sionna **2.0.1** 의 그 줄이 `dr.scatter_inc` 이고 주석에 race condition 이 적혀 있다. 리포트는 기전을 정확히 적고 **결과(같은 입력 다른 답)를 안 적었다.** 그래서 회절 켠 팔의 dB 를 유효숫자 셋으로 적지 말라는 0827 규약도 리포트에 없다.
 
 **A-2. 튕김 사다리 비감쇠 — 어느 리포트에도 없다.**
