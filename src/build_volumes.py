@@ -274,12 +274,9 @@ COMPANIONS = {
                      "덮는다(빗각 −15°~−75°)",
                 builder="src/build_report18_switch_grid.py")],
     "06": [dict(vol="06_6")],
-    "08": [dict(file="08_2_two_channel.ipynb",
-                label="8-2",
-                title="기준채널이 현실이면 얼마를 잃는가",
-                what="8 권의 사슬을 한 줄도 안 고치고, 기준신호를 «송신 파형 그대로» 에서 "
-                     "«잡음·다중경로가 섞인 측정 신호» 로 바꿔 손실을 잰다",
-                builder="src/make_report11_2_two_channel.py")],
+    # ⛔8-2 «기준채널이 현실이면 얼마를 잃는가» 는 2026-09-03 에 편성에서 내렸다 —
+    #   동작점이 챔버 바이스태틱이라 «환경은 실외만» 규약 밖이다. 값이 그 기하의 함수라
+    #   낱말만 지워서는 안 되므로 권째로 archive/chamber_0903/ 로 옮겼다.
     "10": [dict(vol="10_2")],
 }
 
@@ -289,7 +286,7 @@ COMPANIONS = {
 ASSEMBLED_BY = "src/build_volumes.py (조각 조립)"
 
 #: 별편 총수 — 편성이 바뀔 때 **뜻을 정하고** 함께 고치는 자리다(아래 import assert 가 강제).
-N_COMPANIONS = 8
+N_COMPANIONS = 7
 
 
 def _comp_no(c: dict) -> str:

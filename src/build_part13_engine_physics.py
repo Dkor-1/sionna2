@@ -218,7 +218,8 @@ def blocks_83() -> list:
                  "`benchmark/diag_physics_paths.py:35`~`42` 가 자세·광선 예산·거리를 고정하고 "
                  "스위치 하나씩만 바꿔 여섯 판을 돌린 원장"),
                 ("경로 수를 읽는 법",
-                 "같은 엔진이 PEC 구와 챔버 판에서 낸 경로 수 — `outputs/rt_no_rcs_verify.json`"),
+                 "같은 엔진이 PEC 구에서 낸 경로 수 — `outputs/rt_no_rcs_verify.json`. "
+                 f"⛔실내 통제 기하에서 낸 짝은 내렸다(`archive/chamber_0903/`)"),
             ],
             repro=dict(
                 cmd="PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
@@ -317,9 +318,12 @@ def blocks_83() -> list:
            f"위해서다. 같은 엔진이 반지름 "
            f"{RT.num('C_pec_sphere[0].r', 0.3, '{:.1f}', 'm')} 짜리 금속 구에 광선 "
            f"{RT.num('C_pec_sphere[0].spp', 1000000, '{:,.0f}', '발')} 을 쏘아 얻은 표적 "
-           f"경로는 {RT.num('C_pec_sphere[0].n_paths', 0, '{:.0f}', '개')} 이고, 챔버 판의 "
-           f"표적 근처 경로 {RT.num('D_chamber_paths.n_near', 12, '{:.0f}', '개')} 중 진짜 "
-           f"에코는 {RT.num('D_chamber_paths.n_true', 1, '{:.0f}', '개')} 다.", "",
+           f"경로는 {RT.num('C_pec_sphere[0].n_paths', 0, '{:.0f}', '개')} 다 — 해석해가 "
+           f"있는 과녁인데도 표적 경로가 하나도 안 돌아온다.", "",
+           f"⛔**여기 함께 적었던 «표적 근처 경로 12 개 중 진짜 에코 1 개» 는 내렸다**"
+           f"(2026-09-03). 그 수는 **실내 통제 기하**에서 낸 것이라 이 판의 «환경은 실외만» "
+           f"규약 밖이다 — 낱말이 아니라 값이 그 기하의 함수다. 원장과 함께 "
+           f"`archive/chamber_0903/` 에 옮겨 뒀고, 실외 판에서 다시 내야 쓸 수 있다.", "",
            f"경로 수와 레벨이 갈라지는 자리도 이 표 안에 있다 — 전부 켠 판은 경로 중앙값 "
            f"{DP.num(npm.format('전부 켬 (--physics)'), 6, '{:.0f}', '개')} 로 회절만 켠 판의 "
            f"{DP.num(npm.format(diff), 14, '{:.0f}', '개')} 보다 적은데 레벨은 같다.", "",
