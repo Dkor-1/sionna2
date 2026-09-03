@@ -17,6 +17,7 @@ for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done
 PYTHONPATH=src $PY src/make_reports_index.py     # 색인·이 문서·논문 목차
 PYTHONPATH=src $PY src/make_readme.py            # README
 PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
+PYTHONPATH=src $PY benchmark/check_row_pointers.py  # 각주 rows[N] 이 아직 그 팔·앙각인가
 ```
 
 기계용 사본은 [`outputs/reports_index.json`](../outputs/reports_index.json) 이다.
