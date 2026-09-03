@@ -1,0 +1,53 @@
+{
+ "_meta": {
+  "generator": "benchmark/thread_ladder_0903.py",
+  "question_ko": "스레드 수만 바꿨을 때 흔들림 발생률이 어떻게 되나",
+  "reads_ko": "스레드 1 에서 발생률이 0 이면 원인은 **병렬 축약 순서**다. 1 에서도 흔들리면 순서가 아니다. ⛔판정은 여기 적지 않는다.",
+  "mitsuba_variant": "llvm_ad_mono_polarized",
+  "native_thread_count": 192,
+  "scene_ko": "합성 평판 576 장(삼각형 1152) · 산란 0.7 · 회절 끔 · 깊이 2 · 씨앗 고정",
+  "samples_per_src": 40000000,
+  "buckets": 2000000
+ },
+ "rows": [
+  {
+   "threads": 1,
+   "n_reps": 40,
+   "mode_paths": 8059,
+   "n_off": 0,
+   "rate_off": 0.0,
+   "paths_seen": [
+    8059
+   ],
+   "max_dev_db": 0.0,
+   "sec_per_rep": 3.0
+  },
+  {
+   "threads": 2,
+   "n_reps": 40,
+   "mode_paths": 8058,
+   "n_off": 1,
+   "rate_off": 0.025,
+   "paths_seen": [
+    8058,
+    8059
+   ],
+   "max_dev_db": 1.41667,
+   "sec_per_rep": 1.0
+  },
+  {
+   "threads": 192,
+   "n_reps": 40,
+   "mode_paths": 8059,
+   "n_off": 14,
+   "rate_off": 0.35,
+   "paths_seen": [
+    8057,
+    8058,
+    8059
+   ],
+   "max_dev_db": 3.08419,
+   "sec_per_rep": 1.7
+  }
+ ]
+}
