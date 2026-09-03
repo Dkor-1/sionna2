@@ -64,7 +64,14 @@ def amp(d: dict) -> np.ndarray:
 def describe(d: dict, k: int) -> str:
     """경로 하나의 정체 — 물체 이름·상호작용·정점을 사람 말로."""
     names = {int(i): str(n) for i, n in zip(d["oid"], d["oname"])} if "oid" in d else {}
-    KIND = {0: "없음", 1: "정반사", 2: "확산", 3: "굴절", 4: "회절", 5: "모서리회절"}
+    #: ⭐설치본에서 읽는다 — 손으로 적었더니 틀렸다(굴절 4·회절 8 인데 3·4 로 적었다).
+    try:
+        from sionna.rt.constants import InteractionType as _IT
+        KO = {"NONE": "없음", "SPECULAR": "정반사", "DIFFUSE": "확산",
+              "REFRACTION": "굴절", "DIFFRACTION": "회절"}
+        KIND = {int(getattr(_IT, n)): KO.get(n, n) for n in dir(_IT) if n.isupper()}
+    except Exception:
+        KIND = {0: "없음", 1: "정반사", 2: "확산", 4: "굴절", 8: "회절"}
     out = []
     for dep in range(d["obj"].shape[0]):
         o = int(d["obj"][dep, k])
