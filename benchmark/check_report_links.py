@@ -153,6 +153,11 @@ def check() -> dict:
             pairs = (_FOOT_ROW.findall(t) if is_ledger else _PROV.findall(t))
             for jf, key in pairs:
                 n_prov += 1
+                if is_ledger:
+                    # ⭐각주 «출처» 표는 report_style._md_escape_cell 이 «|» 를 «\|» 로 바꿔
+                    #   써 넣은 것이다. 되읽을 때 풀지 않으면 «main\|mini2\|spherical» 처럼
+                    #   원장에 없는 키가 되어 **오탐**이 난다(2026-09-03 에 10 건).
+                    jf, key = jf.replace(r"\|", "|"), key.replace(r"\|", "|")
                 try:
                     RS._resolve_cite(jf, key)
                 except Exception as e:                       # noqa: BLE001

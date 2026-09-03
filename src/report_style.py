@@ -1119,6 +1119,21 @@ def _resolve_cite(path: str, key: str) -> str:
     doc = load_json(path)                       # 파일이 없으면 여기서 터진다
     if "*" in base:
         return "(여러 칸)"
+    # ⭐한 태그가 **여러 칸**을 가리키는 두 표기 — « · » 로 이은 여러 키, «[]» 로 가리킨 배열
+    #   전체. 값은 하나로 못 적지만, **키가 실재하는지는 전부 검사한다**(그냥 통과시키면
+    #   태그가 낡아도 안 잡힌다).
+    if " · " in base or "[]" in base:
+        for seg in base.split(" · "):
+            seg = seg.strip()
+            if not seg or "*" in seg:
+                continue
+            head, _, tail = seg.partition("[]")
+            node = _walk(doc, head, [])[0] if head else doc
+            if tail:                             # «pairs[].필드» — 첫 원소에서 이어 걷는다
+                if not hasattr(node, "__len__") or isinstance(node, dict) or not len(node):
+                    raise ContractError(f"«{head}[]» 가 비었거나 배열이 아니다")
+                _walk(node[0], tail.lstrip("."), [])
+        return "(여러 칸)"
     v = _foot_value(_walk(doc, base, [])[0])
     return f"{v} (파생)" if base != key.strip() else v
 

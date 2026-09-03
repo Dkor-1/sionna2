@@ -550,7 +550,7 @@ nb.cells = [
        "",
        "⟨outputs/switch_factorial.json : verdict.B_* · depth_pairs⟩ "
        "⟨outputs/depth_axis_verdict_0816.json : outlier_forensics.el60_case · "
-       "pairs[].in_standard_frame·trim.k1 · scorecard · closure.retractions_ko⟩ "
+       "pairs[].in_standard_frame · pairs[].trim.k1 · scorecard · closure.retractions_ko⟩ "
        "⟨outputs/rhythm_share_knob_audit_0825.json : 기하학적_바닥_2hw_over_fflash⟩"),
 
     md("## 곁가지 — 순정 공장 기본값은 빗각에서 에코가 정확히 0",
