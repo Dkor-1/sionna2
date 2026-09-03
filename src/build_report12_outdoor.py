@@ -29,6 +29,29 @@ J = json.load(open(f"{ROOT}/outputs/outdoor_scene_0901.json", encoding="utf-8"))
 M, C, NL, G = J["_meta"], J["cells"], J["notch_ladder"], J["grid_cost"]
 #: ⭐빗살 하모닉 SNR — ρ 를 대신하는 정본 잣대(2026-09-02). 원장이 함께 낸다.
 COMB = J.get("comb", {})
+#: ⭐낙차를 세는 **두 자**. 어느 쪽도 정본이라 부르지 않는다 — 나란히 싣고 사람이 고른다.
+DR = J.get("drop_rules", {})
+
+
+def _dr(el: str, scene: str, k: str):
+    return (DR.get(el, {}).get(scene, {}) or {}).get(k)
+
+
+def drop_table() -> str:
+    """장면 × 앙각마다 두 자가 각각 몇 개를 세는지, 그리고 MAD 자가 아예 못 잡는 칸은 어디인지."""
+    rows = ["| 장면 · 앙각 | 비율 자 (\|E\| < 중앙값×0.1) | MAD 자 (k = 10) | MAD 문턱 ÷ 중앙값 |",
+            "|---|---|---|---|"]
+    for el in ("el+0", "el-30", "el-60"):
+        for sc, ko in (("free", "자유공간"), ("outdoor", "실외")):
+            if not _dr(el, sc, "n_ratio") and _dr(el, sc, "n_ratio") is None:
+                continue
+            thr = _dr(el, sc, "thr_mad_k10_over_median")
+            dead = _dr(el, sc, "mad_k10_threshold_is_negative")
+            mark = " ⛔못 잡는다" if dead else ""
+            rows.append(f"| {ko} {el.replace('el', '').replace('-', '−')}° | "
+                        f"{_dr(el, sc, 'n_ratio')} | {_dr(el, sc, 'n_mad_k10')} | "
+                        f"{thr:+.3f}{mark} |".replace("-", "−"))
+    return "\n".join(rows)
 
 
 def _ctl(k):
@@ -268,8 +291,21 @@ md(f"""> ### 한 일
    {A00['rho_free_good']:+.4f}
    {an('el +0 자유공간 · 낙차 36 자세를 뺀 8,156 자세의 ρ', f"{A00['rho_free_good']:+.4f}")} 다.
    ⇒ **정면이 되는지 안 되는지 이 원장은 말하지 않는다.**
-5. ⚠**낙차의 기전은 모른다.** 아는 것만 적는다 — 자유공간 팔 el −30°·−60° 에는 같은 규칙으로
-   센 낙차가 **0 개**이고 {an('el −30/−60 자유공간 · 같은 규칙(k = 10)으로 센 낙차 자세 수', 0)},
+5. ⚠**낙차의 기전은 모르고, «몇 개» 는 자에 따라 갈린다.**
+
+{drop_table()}
+
+   ⛔**전 판은 여기서 «자유공간 빗각에는 0 개» 라고만 적었다 — 그것은 자의 성질이었다.**
+   MAD 자는 그 기록의 **흩어짐**을 기준 삼는데, 자유공간 빗각은 흩어짐이 커서 문턱
+   (중앙값 − 10×MAD)이 **0 아래로 내려간다**. \|E\| 가 음수보다 작을 수는 없으니 그 자는
+   거기서 **구조적으로 아무것도 못 잡는다.** 실외 칸에서는 문턱이 중앙값의 0.99 배라 잘 돈다.
+   ⇒ 두 자가 어긋나는 것이 아니라, 한 자가 그 자리에서 **꺼져 있었다.**
+
+   ⭐그래서 앙각마다 이렇게 갈린다 —
+   **el −60° 는 두 자 모두 자유공간 0 · 실외 84 개**라 «실외에서 생긴다» 가 선다.
+   ⛔**el −30° 는 못 세운다** — 실제로 도는 자(비율)로 재면 자유공간에도 73 개가 있어
+   실외 74 개와 사실상 같다. 이 자리에서 «실외 특유» 라고 쓰지 않는다.
+
    실외 팔 el −30° 의 {A30['n_bad']} 개 중 {A30['n_shared']} 개는 el −60° 와 **같은 자세 번호**다
    {an('실외 el −30 ∩ el −60 낙차 자세 번호 교집합 크기', A30['n_shared'])}.
    자세만의 문제도, 앙각만의 문제도 아니다 — 그 이상은 이 원장으로 못 정한다.

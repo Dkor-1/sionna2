@@ -63,6 +63,50 @@ def lvl(E):
 
 
 # ═══════════════════════════════════════════════════════════════════════════ #
+#  ⭐낙차를 세는 두 규칙 — 둘 다 낸다 (2026-09-03 신설)
+# ═══════════════════════════════════════════════════════════════════════════ #
+def drop_rules(Z, els=ELS):
+    """⛔«낙차 몇 개» 는 **어느 자로 재느냐에 따라 갈린다.** 이 원장은 둘 다 적는다.
+
+    자유공간 el −30° 를 두 규칙으로 세면 0 개와 73 개가 나온다. 본문이 한쪽만 쓰고
+    «같은 규칙으로 셌다» 라고만 적으면, 읽는 사람은 다른 쪽 수를 볼 방법이 없다
+    (2026-09-03 에 실제로 그랬다 — 「자유공간 빗각에는 낙차 0 개」가 그 자리다).
+
+    ratio  |E| 가 중앙값의 10 % 아래   — 빗살 SNR 블록이 쓰는 자
+    mad    |E| 가 중앙값에서 MAD 의 k 배 아래 — 본문 절 2 가 쓰는 자(k=10 이 정본)
+
+    ⚠두 자는 성질이 다르다. ratio 는 **중앙값 대비 절대 비율**이라 흩어짐과 무관하고,
+      mad 는 **그 기록의 흩어짐**을 기준 삼는다. 그래서 매끄러운 기록에서는 MAD 가 작아
+      문턱이 중앙값에 붙고, 흩어진 기록에서는 문턱이 0 아래로 내려가 아무것도 안 잡힌다.
+      어느 쪽이 옳다고 이 함수가 정하지 않는다 — 둘을 나란히 적어 사람이 고르게 한다.
+    """
+    out = {}
+    for el in els:
+        row = {}
+        for tag, env in (("free", False), ("outdoor", True)):
+            k = arm(el, env)
+            if k not in Z:
+                continue
+            a = np.abs(np.asarray(Z[k]))
+            med = float(np.median(a))
+            mad = float(np.median(np.abs(a - med)))
+            cell = dict(n_poses=int(a.size), median=med, mad=mad,
+                        ratio_rule_ko="|E| < 중앙값 × 0.1",
+                        mad_rule_ko="|E| < 중앙값 − k × MAD")
+            cell["n_ratio"] = int(np.sum(a / med < 0.1)) if med > 0 else 0
+            for kk in (5, 8, 10, 15, 20, 30):
+                thr = med - kk * mad
+                cell[f"n_mad_k{kk}"] = int(np.sum(a < thr))
+                cell[f"thr_mad_k{kk}_over_median"] = round(thr / med, 4) if med > 0 else None
+            #: ⭐문턱이 0 아래로 내려가면 그 자는 **구조적으로 아무것도 못 잡는다.**
+            cell["mad_k10_threshold_is_negative"] = bool(med - 10 * mad <= 0)
+            row[tag] = cell
+        if row:
+            out[f"el{el:+.0f}"] = row
+    return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════ #
 #  ⭐빗살 SNR — ρ 를 대신하는 잣대 (2026-09-02 신설)
 # ═══════════════════════════════════════════════════════════════════════════ #
 def comb_block(Z, els=ELS):
@@ -210,7 +254,7 @@ def main():
         prf_hz=float(PRF), f_flash_hz=float(FFL), fcut_hz=float(FCUT),
         lam_m=round(lam, 6), grid_spacing_m=round(d, 6), grid_div=int(DEFAULT_DIV),
         fresnel_r1_m=round(R1, 3), range_m=r_m),
-        cells=cells, notch_ladder=notch, grid_cost=G, comb=comb)
+        cells=cells, notch_ladder=notch, grid_cost=G, comb=comb, drop_rules=drop_rules(Z))
     json.dump(doc, open(OUT, "w"), ensure_ascii=False, indent=1)
     print(f"\n✅ {OUT}")
 
