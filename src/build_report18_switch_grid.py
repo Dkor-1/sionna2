@@ -65,14 +65,29 @@ def fac(name):
     raise KeyError(f"{name} ({arm}) 의 el{EL:+.0f} 칸이 R13 원장에 없다")
 
 
-def facc(combo, depth=1):
+#: 이 편의 표가 서 있는 판 — 그림 원장 다섯 팔이 전부 이 메쉬 · 이 깊이다.
+CANON_MESH = "mfixbatteryi5_blperairframe"
+CANON_DEPTH = 2
+
+
+def facc(combo, depth=CANON_DEPTH, allow_old=False):
     """⭐R13 원장을 «조합 비트» 로 곧장 찾는다 — 그림 원장에 없는 팔도 읽으려고.
 
-    이름이 아니라 R/D/E/F 비트로 짚기 때문에 두 원장의 어휘가 엉킬 자리가 없다."""
+    이름이 아니라 R/D/E/F 비트로 짚기 때문에 두 원장의 어휘가 엉킬 자리가 없다.
+
+    ⛔기본은 **표와 같은 판**이다(정본 메쉬 · 깊이 2). 2026-09-02 에 이 기본이 깊이 1 이라
+      본문이 옛 메쉬 칸을 짚었고, 같은 쪽 안에서 «굴절만» 이 62.1 %(본문)와 58.67 %(표)로
+      갈렸다. 판을 섞으면 표와 글이 조용히 어긋난다.
+    ⚠옛 판에만 있는 팔(모서리만 R0D0E1F1)을 읽을 때만 allow_old=True 로 명시하고,
+      **본문에도 그 한 줄이 다른 판임을 적는다.**"""
     k = f"{combo}_d{depth}/el{EL:+.0f}"
     if k not in FC:
         raise KeyError(f"{k} 가 R13 원장에 없다")
-    return FC[k]
+    v = FC[k]
+    if not allow_old and CANON_MESH not in v["arm"]:
+        raise KeyError(f"{k} 는 옛 메쉬({v['arm']})다 — 표와 다른 판이라 본문에 쓰면 안 된다. "
+                       f"정말 쓰려면 allow_old=True 로 밝히고 본문에도 적어라")
+    return v
 
 
 def md(*lines):
@@ -104,7 +119,10 @@ WHITE = CTRL["white_share_pct_mean"]
 WBAND = F["selfcheck"]["white_control"]["band"]
 
 # ── 모서리 무동작 시험 — 다 끔 ↔ 모서리만, 함께 가진 수치가 몇 개나 같나 ────
-_A, _B = facc("R0D0E0F1"), facc("R0D0E1F1")
+#: ⚠모서리만 켠 팔은 **옛 판(깊이 1)에만** 있다. 짝도 같은 판에서 잡아야 뜻이 선다.
+_A = facc("R0D0E0F1", depth=1, allow_old=True)
+_B = facc("R0D0E1F1", depth=1, allow_old=True)
+OLD_ARM_KO = "깊이 1 · 메쉬 전 세대"
 _NUM = [k for k in _A if k in _B
         and isinstance(_A[k], (int, float)) and not isinstance(_A[k], bool)
         and k not in ("ledger_row", "seconds")]      # ⛔장부 기록·벽시계는 물리가 아니다
@@ -255,9 +273,10 @@ nb.cells = [
        f"것으로 만들고(담김계수 {AX['R']['a_min']:.2f}~{AX['R']['a_max']:.2f}), 회절 D · "
        f"모서리 E · 확산 F 는 원래 것을 남긴 채 위에 새 항을 더한다"
        f"(≈{LIFT_LO:.2f}~{LIFT_HI:.2f}).",
-       f"4. **모서리회절 스위치는 혼자서는 아무것도 안 한다** — 그것만 켠 칸은 다 끈 칸과 "
-       f"리듬 {facc('R0D0E1F1')['rhythm_share_pct']:.2f} %, 바닥 "
-       f"{facc('R0D0E1F1')['above_floor_db']:.1f} dB 로 같다. 두 칸이 함께 가진 물리 수치 "
+       f"4. **모서리회절 스위치는 혼자서는 아무것도 안 한다** — ⚠이 한 줄만 **다른 판**"
+       f"({OLD_ARM_KO})에서 읽는다. 모서리만 켠 팔이 그 판에만 있기 때문이다. 같은 판의 "
+       f"«다 끔» 과 견주면 리듬 {_B['rhythm_share_pct']:.2f} %, 바닥 "
+       f"{_B['above_floor_db']:.1f} dB 로 같다. 두 칸이 함께 가진 물리 수치 "
        f"{N_SAME + N_DIFF} 개 가운데 {N_SAME} 개가 비트단위로 같고, 남은 {N_DIFF} 개도 "
        f"배정밀도 끝자리 차이(Δ = {ULP_GAP:.1e})다 — 갈리는 것은 원장 줄번호와 벽시계뿐. "
        f"모서리회절 후보를 만드는 자리가 회절 스위치 안에 있기 때문이다.",

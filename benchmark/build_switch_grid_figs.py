@@ -59,6 +59,16 @@ ARMS = [
     ("sionna_p4000000000_swR0D1E1F1_r15_n8192_mfixbatteryi5_blperairframe_d2",  "diffraction"),
     ("sionna_p4000000000_swR1D1E1F1_r15_n8192_mfixbatteryi5_blperairframe_d2",  "refraction + diffraction"),
 ]
+#: ⭐판 문자열은 **팔 이름에서 뽑는다.** 2026-09-02 까지 «깊이 1» 이라고 손으로 적혀 있었는데
+#  실제 Sionna 팔은 전부 _d2 였다 — 리포트 머리말이 그 문자열을 그대로 인용하므로 3 개월간
+#  틀린 판을 광고하고 있었다. 손으로 적은 수는 팔이 바뀌면 안 따라온다.
+_DEPTHS = sorted({int(a.rsplit("_d", 1)[1]) for a, _ in ARMS if a.rsplit("_d", 1)[-1].isdigit()})
+_DEPTH_KO = ("깊이 " + "·".join(str(d) for d in _DEPTHS)) if _DEPTHS else "깊이 미상"
+_MESH_KO = ("정본 메쉬(mfixbatteryi5_blperairframe)"
+            if all("mfixbatteryi5_blperairframe" in a for a, _ in ARMS) else "메쉬 섞임 ⚠")
+SETUP_KO = ("matrice4e · 3.5 GHz · 15 m · 자세 8192 · 광선 4e9 · "
+            f"{_DEPTH_KO} · 확산 켬 · {_MESH_KO}")
+
 T0, TSPAN = 0.020, 0.060
 
 plt.rcParams.update({
@@ -267,7 +277,7 @@ if __name__ == "__main__":
     out = {"_meta": {
         "generator": "benchmark/build_switch_grid_figs.py",
         "purpose_ko": "다섯 팔(우리 커널 + 스위치 네 조합), 앙각 −30° 한 자리 비교",
-        "setup_ko": "matrice4e · 3.5 GHz · 15 m · 자세 8192 · 광선 4e9 · 깊이 1 · 확산 켬",
+        "setup_ko": SETUP_KO,
         "excluded_ko": "101(굴절+모서리)은 소스 구조상 100 과 동일해 계산하지 않았다 — "
                        "모서리회절 후보 생성이 회절 스위치 안에 있다"
                        "(sb_candidate_generator.py:338)",
