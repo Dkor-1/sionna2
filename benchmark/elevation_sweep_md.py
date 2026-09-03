@@ -600,6 +600,16 @@ def run(a) -> None:
         #   통과해 «남은» 수라, 경로가 하나 빠졌을 때 그것이 **PathSolver 가 못 찾은 것**인지
         #   **우리 마스크가 버린 것**인지 서명이 똑같아 못 가른다. 두 수를 다 적으면 갈린다.
         nret = np.zeros(idx.size, int)
+        #: ⭐**같은 줄이 여러 번 적히는 자리**(2026-09-03).
+        #  정면(el 0°)에서 목록에 **완전히 같은 항목**이 여러 번 들어온다 — 같은 물체·같은
+        #  삼각형·같은 진폭·같은 지연. 결맞음 합이라 그 수만큼 곱해진다
+        #  (matrice4e 3 · mini5pro 2 · mavic4pro 4 — outputs/copies_id_0903.json).
+        #  ⛔어느 쪽이 옳은지 우리는 모른다 — 그래서 **두 값을 다 적는다.**
+        #    E        지금까지 하던 대로 목록을 그대로 다 더한 값
+        #    E_dedup  같은 줄을 한 번만 센 합
+        #    n_dup    그렇게 지워진 줄 수 (0 이면 중복이 없었다)
+        E_dedup = np.zeros(idx.size, complex)
+        n_dup = np.zeros(idx.size, int)
         t0 = time.time()
         # ⭐A3 — 솔버 객체를 자세마다 새로 만들지 않는다(인자가 루프 상수다).
         _solver = RP.rt.PathSolver()
@@ -711,6 +721,22 @@ def run(a) -> None:
                 E[j] = complex(np.sum(_t))
                 npaths[j] = int(hit.sum())
                 nret[j] = int(aa.size)          # ⭐마스크 «전» 수
+                #: ⭐같은 줄을 한 번만 센 합 — 열쇠는 «물체·삼각형·진폭·지연» 넷이다.
+                #  ⚠삼각형까지 넣는 까닭 — 대칭 기하에서 **서로 다른 경로**가 우연히 같은
+                #    진폭·지연을 가질 수 있다. 그것까지 지우면 진짜 신호를 버린다.
+                try:
+                    _pr = np.asarray(p.primitives)[:, 0, 0, :]
+                except Exception:                              # noqa: BLE001
+                    _pr = None
+                _ah = aa[hit]
+                _cols = [_ah.real, _ah.imag, tau[hit]]
+                if O.size:
+                    _cols += [O[d][hit].astype(float) for d in range(O.shape[0])]
+                if _pr is not None and _pr.size:
+                    _cols += [_pr[d][hit].astype(float) for d in range(_pr.shape[0])]
+                _u, _first = np.unique(np.stack(_cols, axis=1), axis=0, return_index=True)
+                E_dedup[j] = complex(np.sum(_t[np.sort(_first)]))
+                n_dup[j] = int(_t.size - _first.size)
             if dd is not None:
                 RP.drop_scratch(dd)
             if j and j % 128 == 0:
@@ -718,6 +744,7 @@ def run(a) -> None:
                 print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
                       f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
         np.savez_compressed(f, idx=idx, E=E, npaths=npaths, nret=nret,
+                            E_dedup=E_dedup, n_dup=n_dup,
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
                             # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
