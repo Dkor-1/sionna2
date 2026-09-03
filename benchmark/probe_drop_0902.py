@@ -824,6 +824,9 @@ def run(a) -> None:
                 _mesh_cache[g], _par_cache[g] = _m, _pp
         for j, i in enumerate(idx):
             i = int(i)
+            #: ⭐덤프 모드는 **목표 자세만** 푼다 — 앞 자세를 다 푸느라 몇 시간 버리지 않게.
+            if _PROBE_DUMP and i not in _PROBE_DUMP:
+                continue
             if _PROBE_POSE is not None and not (
                     _PROBE_POSE - _PROBE_WARM <= i <= _PROBE_POSE):
                 continue     # ⭐재현기: 목표 자세와 그 앞 «달굼» 구간만 짓는다
