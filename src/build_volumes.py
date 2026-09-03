@@ -229,7 +229,26 @@ EXTERNAL = [
          append_to="06_3_pattern.ipynb",
          parts=["34", "35", "36", "37", "38", "39"],
          headline="36"),
+
+    #: ⭐한 파일짜리 외부 권 — 이 스크립트가 **짓지 않고 자리만 잡아 준다.**
+    #  ⛔2026-09-03 까지 편성에 없어서 지도(01_map)·목차(README)·색인 어디에도 안 걸렸다.
+    #    그동안 셋 다 «노트북 23 개» 라고 적었는데 디스크에는 25 개가 있었다.
+    dict(no="12", title="실외 장면 — 지면과 벽이 서면 무엇이 달라지나",
+         thesis="자유공간에서 세운 판정이 **지면과 건물이 있는 자리**에서도 서는지 묻는다. "
+                "실외 기록의 날개 박자는 솔버 인공물에 가려 있었고, 그 인공물의 정체는 "
+                "지면 거울 반사였다.",
+         builder="src/build_report12_outdoor.py",
+         files=[("12_outdoor-scene.ipynb",
+                 "실외 장면 — 지면과 벽이 서면 무엇이 달라지나")],
+         #: parts 가 비어 있어 실제로 덧붙는 것은 없다 — 경로만 유효하면 된다.
+         append_to="12_outdoor-scene.ipynb", parts=[], headline=None),
 ]
+
+
+def _split_vols():
+    """**분권** — 그림 무게로 여러 편에 나눈 한 권. 나뉜 것이 정의라 files 가 둘 이상이다.
+    ⛔한 파일짜리 외부 권(12)을 여기 세면 «1 편으로 나뉜다» 같은 말이 생긴다."""
+    return [e for e in EXTERNAL if len(e["files"]) > 1]
 
 # --------------------------------------------------------------------------- #
 #  권에 딸린 별편 — 편성 지위의 **정본**이다. {부모 번호: [별편…]}
@@ -811,7 +830,7 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
             f"다시 재는(변주) 편이고, 번호가 «부모번호-K» 다. 지금 {_n_companions()} 편이 "
             f"{hosts}에 붙어 있다.\n"
             "\n"
-            f"⭐**분권과 지위가 다르다.** {' · '.join(_disp(e['no']) for e in EXTERNAL)} 권의 "
+            f"⭐**분권과 지위가 다르다.** {' · '.join(_disp(e['no']) for e in _split_vols())} 권의 "
             "여러 편은 그림 무게 때문에 나눈 **한 권의 장**이라 번호가 «권-편» 이고, 별편은 "
             "따로 선 문서라 번호가 «부모-K» 다. 6-6 만 파일 이름이 분권 꼬리(_6)를 잇는데 "
             "— 앞자리 _1~_5 가 이미 분권이라 비켜 간 것이고 — 지위는 별편이다.\n"
@@ -996,7 +1015,7 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
         "volumes": (f"reports/ 의 권이 사람이 읽는 문서다 — 본편 {len(_trunk_nos())} 권과 "
                     f"별편 {_n_companions()} 편. 한 권이 한 파일이고, "
                     + " · ".join(f"{_disp(e['no'])} 권만 그림이 무거워 "
-                                 f"{len(e['files'])} 편으로 나뉜다(분권)" for e in EXTERNAL)
+                                 f"{len(e['files'])} 편으로 나뉜다(분권)" for e in _split_vols())
                     + (". 별편은 부모 권 물음의 심화·지원·변주이고 번호가 «부모번호_K» 다"
                        f"({', '.join(c['file'] for no in sorted(COMPANIONS) for c in _companions(no))})."
                        if COMPANIONS else ".")),
@@ -1047,7 +1066,7 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
               "별편은 **부모 권 물음의 심화·지원·변주**다 — 번호가 «부모번호-K» 이고, 부모를 "
               "읽은 뒤에 여는 글이다. "
               + " · ".join(f"{_disp(e['no'])} 권의 {_kor(len(e['files']))} 편"
-                           for e in EXTERNAL)
+                           for e in _split_vols())
               + "은 이것과 달리 그림 무게로 나눈 **분권**(한 권의 장)이다. "
               "6-6 만 파일 이름이 분권 꼬리를 잇고 지위는 별편이다.",
               "",

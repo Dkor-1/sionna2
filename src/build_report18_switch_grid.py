@@ -99,22 +99,47 @@ def ang(x):
     return f"{x:.0f}°".replace("-", "−")
 
 
-# ── 헤드라인 쌍: 판 위(−30°)의 «꼬리표 없는 기본» 칸에서 회절만 켠 짝 ──────────
+# ── 덮개 시험의 헤드라인 쌍 ────────────────────────────────────────────────
+#: ⚠**옛 판(깊이 1 · 메쉬 전 세대)이다.** 덮개 시험(담김계수)은 그 판에서만 돌았고
+#  `diffraction_on_plate_el30` · `diffraction_burial` 에 깊이 2 쌍이 아예 없다.
+#  ⛔그래서 이 쌍의 수를 **결과 1 처럼 표와 나란히 놓는 자리에 쓰면 안 된다** —
+#    표는 정본 판(깊이 2)이라 같은 양이 두 값을 갖게 된다(2026-09-03 에 실제로 그랬다).
+#    이 쌍은 «덮개 시험» 절에서만, 판을 밝히고 쓴다.
 PAIR = next(p for p in F["diffraction_on_plate_el30"]
             if p["off"] == "R0D0E0F1_d1/el-30")
 OFF, ON = FC[PAIR["off"]], FC[PAIR["on"]]
+OLD_PLATE_KO = "깊이 1 · 메쉬 전 세대"
 BURIAL = next(b for b in F["diffraction_burial"]
               if b["pair"] == f"{PAIR['off']} → {PAIR['on']}")
 BUR_LO = min(b["burial_depth_db"] for b in F["diffraction_burial"])
 BUR_HI = max(b["burial_depth_db"] for b in F["diffraction_burial"])
 
-# ── 판 위 깊이 1 칸들의 리듬 몫 범위 — 회절 든 칸 ↔ 안 든 칸 ─────────────────
-D1 = [v for v in FC.values()
-      if v["el_deg"] == EL and v["depth"] == 1 and not v["zero_echo"]]
-ON_SH = [v["rhythm_share_pct"] for v in D1 if v["diffraction"]]
-OFF_SH = [v["rhythm_share_pct"] for v in D1 if not v["diffraction"]]
+# ── 결과 1 이 서는 판 = **표와 같은 판** (정본 메쉬 · 깊이 2) ─────────────────
+#: ⛔전 판은 여기서 depth==1 을 박아 두어, 결과 1 이 옛 메쉬 칸을 읽었다. 그래서 같은 쪽에서
+#   리듬 범위가 «11.6~12.5 %» 인데 표에는 12.90·13.20 이 실려 **범위가 표를 안 품었다.**
+#   판을 하나로 묶는다 — 아래 네 칸이 곧 표의 Sionna 네 행이다.
+CANON = [v for v in FC.values()
+         if v["el_deg"] == EL and v.get("depth") == CANON_DEPTH
+         and CANON_MESH in v["arm"] and not v["zero_echo"]]
+assert len(CANON) == 4, f"정본 판 칸이 4 개가 아니다: {len(CANON)}"
+#: ⭐**결과 1 과 표가 같은 판에 서 있나** — 빌드 때마다 확인한다.
+#  표는 fac(격자 팔) 로, 결과 1 은 CANON 으로 칸을 집는다. 두 길이 같은 네 칸에 닿아야 한다.
+#  ⛔이 검사가 없어서 2026-09-02·09-03 두 번 연달아 같은 쪽이 두 말을 했다.
+_TAB = {fac(nm)["arm"] for nm in ORDER if not fac(nm)["arm"].startswith("ours")}
+_RES = {v["arm"] for v in CANON}
+assert _TAB == _RES, ("결과 1 과 표가 다른 판을 짚는다 —\n"
+                      f"  표만 가진 것: {sorted(_TAB - _RES)}\n"
+                      f"  결과 1 만 가진 것: {sorted(_RES - _TAB)}")
+ON_SH = [v["rhythm_share_pct"] for v in CANON if v["diffraction"]]
+OFF_SH = [v["rhythm_share_pct"] for v in CANON if not v["diffraction"]]
 lo_on, hi_on = min(ON_SH), max(ON_SH)
 lo_off, hi_off = min(OFF_SH), max(OFF_SH)
+#: 같은 판에서 읽은 «회절을 켜면» 의 바닥·빗살. 표의 행과 글자 그대로 같아야 한다.
+_C_OFF = min((v for v in CANON if not v["diffraction"]), key=lambda v: v["above_floor_db"])
+_C_ON = max((v for v in CANON if v["diffraction"]), key=lambda v: v["above_floor_db"])
+FLOOR_OFF, FLOOR_ON = _C_OFF["above_floor_db"], _C_ON["above_floor_db"]
+COMB_OFF, COMB_ON = _C_OFF["comb_over_floor_db"], _C_ON["comb_over_floor_db"]
+D_FLOOR = FLOOR_ON - FLOOR_OFF
 WHITE = CTRL["white_share_pct_mean"]
 WBAND = F["selfcheck"]["white_control"]["band"]
 
@@ -258,10 +283,8 @@ nb.cells = [
        "",
        "### 결과",
        f"1. ⭐**회절 스위치 하나가 경계선이다** — 회절을 켜면 상한 위 **바닥이 "
-       f"{PAIR['d_above_floor_db']:+.1f} dB**({OFF['above_floor_db']:.1f} → "
-       f"{ON['above_floor_db']:.1f} dB) 오르고, 빗살 선의 바닥 위 솟음은 "
-       f"{OFF['comb_over_floor_db']:+.1f} dB → {ON['comb_over_floor_db']:+.1f} dB 로 "
-       f"무너진다. 리듬 몫이 {lo_on:.1f}~{hi_on:.1f} %(백색 = {WHITE:.1f})로 떨어진 것은 "
+       f"{D_FLOOR:+.1f} dB**({FLOOR_OFF:.1f} → {FLOOR_ON:.1f} dB) 오르고, 빗살 선의 바닥 "
+       f"위 솟음은 {COMB_OFF:+.1f} dB → {COMB_ON:+.1f} dB 로 무너진다. 리듬 몫이 {lo_on:.1f}~{hi_on:.1f} %(백색 = {WHITE:.1f})로 떨어진 것은 "
        f"분자가 준 것이 아니라 **분모가 커진 것**이다. 회절이 없는 칸은 "
        f"{lo_off:.1f}~{hi_off:.1f} %.",
        f"2. ⭐**회절이 얹는 것은 리듬 없는 에코다** — 회절을 켠 시계열은 끈 시계열을 계수 "

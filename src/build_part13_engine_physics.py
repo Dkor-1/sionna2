@@ -1123,8 +1123,8 @@ def blocks_87() -> list:
 
         md("## 네 계단은 자세당 광선 수 하나만 흔든다", "",
            "팔 이름이 곧 예산이다. `sionna` 는 광선 규칙 (R/3)² × 1M 을 그대로 쓴 팔이고 "
-           "10 m 에서 " + _n("_meta.sionna_spp_primary", "{:,.0f}", "발")
-           + " 이다(`benchmark/elevation_sweep_md.py:89`). 꼬리에 숫자가 붙은 팔"
+           "10 m 에서 " + _n(f"{_L0[0]}.spp", "{:,.0f}", "발")
+           + " 이다(`benchmark/elevation_sweep_md.py:184` `rule_spp()`). 꼬리에 숫자가 붙은 팔"
            "(`sionna_p250000000` 등)은 그 수를 직접 준 것이다.", "",
            "네 계단 모두 자세 " + _n(f"{_L0[0]}.n_poses", "{:,.0f}", "개")
            + " 가 채워져 있다 — 부분 병합 행은 이 절에서 제외한다."),
