@@ -1,0 +1,106 @@
+{
+ "무엇": "저장소 전수조사 — 문서·레포트·코드를 한 줄씩 훑어 과잉 결론을 찾는다",
+ "언제": "2026-09-04",
+ "왜": "앞선 판(w70eyfnmb)은 표본이었다. 사용자가 진짜 전수를 요청했다.",
+ "샤드": {
+  "만드는_법": "CUDA_VISIBLE_DEVICES='' python3 work/sweep_0904/make_shards.py",
+  "어디": "work/sweep_0904/shards  (.gitignore — 18 MB)",
+  "검산": "마지막 줄이 '✅ 손실 없음' 이어야 한다",
+  "ranges": {
+   "A_발행면": [
+    0,
+    63
+   ],
+   "B_코드": [
+    64,
+    147
+   ],
+   "C_원장": [
+    148,
+    250
+   ],
+   "D_미조사": [
+    251,
+    270
+   ],
+   "E_영문": [
+    271,
+    307
+   ]
+  },
+  "n_shards": 308,
+  "n_ko_lines": 223975,
+  "n_files": 1639
+ },
+ "물결": [
+  {
+   "이름": "1 발행면+미조사",
+   "ranges": [
+    [
+     0,
+     63
+    ],
+    [
+     251,
+     270
+    ]
+   ],
+   "샤드": 84,
+   "상태": "돌는 중",
+   "run_id": "wf_0d449f5c-c1c",
+   "task_id": "wvmaiv2pn",
+   "결과파일": "work/sweep_0904/findings_wave1.json (아직 없음)"
+  },
+  {
+   "이름": "2 코드+원장",
+   "ranges": [
+    [
+     64,
+     147
+    ],
+    [
+     148,
+     250
+    ]
+   ],
+   "샤드": 187,
+   "상태": "대기",
+   "결과파일": "work/sweep_0904/findings_wave2.json"
+  },
+  {
+   "이름": "3 영문",
+   "ranges": [
+    [
+     271,
+     307
+    ]
+   ],
+   "샤드": 37,
+   "상태": "대기",
+   "결과파일": "work/sweep_0904/findings_wave3.json"
+  }
+ ],
+ "워크플로": {
+  "스크립트": "work/sweep_0904/sweep_workflow.js",
+  "부르는_법": "Workflow({scriptPath:'work/sweep_0904/sweep_workflow.js', args:{ranges:[[0,63],[251,270]]}})",
+  "단계": "읽기(medium) → 적대적 재검증(high). 확인자는 기각 쪽이다"
+ },
+ "다음_할_일": [
+  "물결 1 결과가 오면 건마다 grep 으로 원문 재확인 · 원장 재계산",
+  "빌더에서 고친다(노트북 손대지 않는다) · 치환은 하나하나 따로 확인",
+  "재빌드 → 관문 셋(check_report_links · check_row_pointers · check_retracted) → commit+push",
+  "물결 2 · 물결 3 을 같은 방식으로"
+ ],
+ "관문": [
+  "benchmark/check_report_links.py",
+  "benchmark/check_row_pointers.py",
+  "benchmark/check_retracted.py (2026-09-04 신설)"
+ ],
+ "지뢰": [
+  "make_report11_2_two_channel.py 는 챔버 편을 되살린다(SIONNA_ALLOW_CHAMBER 로 막았다)",
+  "geometry_grid.py / geometry_benchmark.py 는 입력이 깨져 지금 못 돈다",
+  "git checkout 으로 시험 되돌리면 같은 파일의 내 정정도 날아간다",
+  "조사 에이전트에게 빌더를 돌리게 하지 않는다 — 읽기만",
+  "python 은 /workspace/.venvs/py312/bin/python (~/.venvs 아니다)"
+ ]
+}
