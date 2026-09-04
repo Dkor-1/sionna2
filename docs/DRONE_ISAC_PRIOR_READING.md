@@ -173,7 +173,7 @@ multiband 와 mono3d 의 Phantom 3 는 **같은 측정 캠페인**이다. 직접
 | mini5pro | 5500 | 2 | **183.3** | **없음**(β 불변, 실측 확인) |
 | mavic4pro | 3600 | 2 | **120.0** | 없음 |
 | matrice4e | 3800 | 2 | **126.7** | 없음 |
-| s1000plus | 3600 | 2 | **120.0** | 없음 |
+| s1000plus | 4467 | 2 | **148.9** | 없음 ⛔옛 값 3600 rpm · 120.0 Hz 는 2026-07-28 에 정정됐다(`src/drones.py:451` · `outputs/report1.json`) |
 | phantom4 | 5500 | 2 | **183.3** | 없음 |
 
 → **지문 두 눈금 중 flash 는 안전하다.** 조건 표기 없이 인용해도 된다.
@@ -198,7 +198,7 @@ R1 = 18.748 m   R2 = 18.608 m   L = 15.075 m
 | mini5pro | 43.89 | 989.8 Hz | **932.7 Hz** |
 | mavic4pro | 50.33 | 1135.1 Hz | **1069.6 Hz** |
 | matrice4e | 54.52 | 1229.6 Hz | **1158.6 Hz** |
-| s1000plus | 71.82 | 1619.7 Hz | **1526.3 Hz** |
+| s1000plus | 71.82 | 2009.8 Hz | **1526.3 Hz** | ⛔옛 f_tip 1619.7 Hz 는 3600 rpm 판이다 |
 | phantom4 | 69.12 | 1558.8 Hz | **1468.8 Hz** |
 
 > md-props §III-C: *"the maximum Doppler spread is observed in the monostatic case, while in forward configuration almost no Doppler spread is present"* — 실측 Fig.6 로 확인됨(β→180° 에서 소멸).

@@ -78,7 +78,11 @@ cells = [
         "| 드론 **RCS·마이크로도플러** (`rcs_sbr/po`) | **RadarSimPy**(메쉬RCS) + **openEMS**(full-wave 앵커) 교차검증 | 도입 예정 |",
         "| **추적**(future work) | **Stone Soup**(EKF/UKF·바이스태틱 custom 측정모델) | future work |",
         "| **실측**(X410) | **OpenISAC**(OTA 바이스태틱) + **GNU Radio**(SigMF I/Q 통일) | 실측 단계 |",
-        "| **파형/채널** | **Sionna PHY**(이미 NMSE −135 dB 검증) | 유지 |",
+        #: ⛔«NMSE −135 dB 검증» 은 **자기일치 바닥**이다 — 같은 구현으로 넣고 뺀 값이라
+        #  부동소수점 한계를 재는 것이지 «현실과 맞다» 를 재는 것이 아니다. 한 격자 칸에서
+        #  잰 값이기도 하다(2026-09-04 정정).
+        "| **파형/채널** | **Sionna PHY**(자기일치 바닥 NMSE −135 dB — ⚠같은 구현으로 "
+        "넣고 뺀 값이라 float 한계를 재는 것이지 현실 대조가 아니다) | 유지 |",
         "| 표적/배경 분리 `h=h_bg+h_target` | NIST 5GNRad·3GPP 와 동일 구조임을 report12 §2c 로 명시 | 반영됨 |",
         "",
         "**5단계 로드맵**(선행이 권한 순서, 우리 상황 맞춤):",

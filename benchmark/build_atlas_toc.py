@@ -4,8 +4,11 @@ build_atlas_toc.py — 마이크로도플러 아틀라스의 **목차 노트북*
 
 무엇을 만드나
 ------------
-`benchmark/build_md_atlas.py` 가 원장 `outputs/elevation_sweep_md.{json,npz}` 의 팔 54 개 ·
-칸 220 개를 그림 122 장으로 구웠고, 산출 목록을 `outputs/md_atlas_index.json` 에 남겼다.
+`benchmark/build_md_atlas.py` 가 원장 `outputs/elevation_sweep_md.{json,npz}` 의 팔과 칸을
+그림으로 구웠고, 산출 목록을 `outputs/md_atlas_index.json` 에 남겼다.
+⛔**개수를 여기 적지 않는다**(2026-09-04) — 전 판의 «팔 54 · 칸 220 · 그림 122» 는 색인이
+다시 구워지면서 낡아 갔다(지금 `_meta` 는 팔 445 · 칸 1433 · 그림 961 이다). 세는 것은
+`_meta` 다.
 이 파일은 그 색인을 읽어 **사람이 찾아보는 문서** `reports/A_atlas.ipynb` 를 만든다.
 
   ① 머리        — 이 문서가 무엇이고, 그림 두 종류(맵 · 대역 에너지)를 어떻게 읽나
@@ -202,7 +205,7 @@ TOKEN_TABLE = [
      "`E` 모서리 회절 · `F` 확산 반사, `1` 이 켬. 예 `swR1D0E0F1` = 굴절 + 확산 반사. "
      "⚠소스 실측으로 `E` 는 `D=1` 일 때만 뜻이 있다. "
      "⭐**이 네 비트에 정반사·직선경로(LOS)는 없다** — 생성기가 `los=True, "
-     "specular_reflection=True` 를 하드코딩하므로 둘은 54 팔 전부에서 **항상 켜져 있다**. "
+     "specular_reflection=True` 를 하드코딩하므로 둘은 **모든 팔에서 항상 켜져 있다**. "
      "그러니 `swR0D0E0F0` 도 «전부 끔» 이 아니다",
      "—", lambda t, a: any(x.startswith("sw") and len(x) == 10 for x in t)),
     ("`stockdef`", "PathSolver 를 **순정 기본값 그대로** — 굴절 켬 · 회절 끔 · "

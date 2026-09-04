@@ -1188,7 +1188,9 @@ def blocks_82() -> list:
                  "커널을 CPU 로 재현해 격자·근접장·가림을 한 축씩 갈라 남는 전력의 몫으로 "
                  "나눈다. 세 갈래가 직교하지 않으므로 이 나눗셈은 어림이다"),
                 ("각도 예산",
-                 "재질·가림·격자 없는 평면 패싯 PO 대리모형의 원거리장 값이다. 각도 의존만 "
+                 "⛔전 판은 «재질·가림·격자 없는 평면 패싯 PO 대리모형의 원거리장 값» "
+                 "이었는데 그 열은 원장이 반증했다(2026-09-04). 지금은 **커널을 그대로 "
+                 "재현한 값**이다(`refute_nadir_mechanism_final.json : … .replica`). 각도 의존만 "
                  "읽고 절대 레벨은 SBR 원장 쪽을 쓴다"),
                 ("판",
                  f"matrice4e 1기 · 3.5 GHz · 거리 "
@@ -1317,22 +1319,31 @@ def blocks_82() -> list:
            "⚠나딧은 그 사다리 밖이다 — 사다리의 앙각은 0~−60 이고, 나딧은 f_tip 이 0 이라 "
            "«상한 위» 라는 자리 자체가 사라진다. 이 절이 확정한 것은 위상 축 하나다."),
 
-        md("## 사각지대는 반각 몇 도짜리 원뿔이다", "",
+        md("## 나딧에서 몇 도 기울면 변조가 얼마나 돌아오나", "",
            *_fig82(2, "ch1_nadir_cone",
                    "호버 중인 기체가 나딧에서 몇 도 기울면 프로펠러 변조가 돌아오는가?"),
            "호버링하는 기체는 바람과 자세 제어로 늘 몇 도 기운다. 그 몇 도가 아래 표의 어느 "
            "줄에 앉느냐가 프로펠러 무늬를 볼지 말지를 정한다."),
 
-        md("### 각도 예산 — 원거리장 기하가 주는 표", "",
-           table_from("outputs/verify_nadir_flash.json:C_D_geometry.offnadir_farfield",
+        #: ⛔2026-09-04 (2차) — 이 자리는 `C_D_geometry.offnadir_farfield` 표를 찍고 있었다.
+        #  그 열은 **가림도 격자도 없는 원거리장 대리모형**이고 원장이 스스로 반증했다
+        #  (`refute_nadir_mechanism_final.json : VERDICTS.claim5_… = 반증됨`, 키 이름부터
+        #  `old_proxy`). 1 차 정정이 제목과 결과 목록에만 닿고 **이 표는 그대로**였다 —
+        #  정정을 아래에만 쌓는 버릇 그 자체다. 커널 재현판(`replica`)으로 갈아 끼운다.
+        md("### 각도 예산 — 커널을 그대로 재현한 표", "",
+           table_from("outputs/refute_nadir_mechanism_final.json:"
+                      "VERDICTS.claim5_blind_cone_is_very_narrow.evidence.replica",
                       [("나딧에서 벗어난 각 [°]", "off_nadir_deg"),
-                       ("변조 AC/DC [dB]", "ac_over_dc_db")],
-                      fmt={"off_nadir_deg": "{:.1f}", "ac_over_dc_db": "{:.2f}"}), "",
-           "10 m 재현기로 같은 각도를 훑으면 0° 에서 "
-           f"{RN.num('R4d_null_width.cpu_replica.-90.0.sph10_ac_over_dc_db', fmt='{:.2f}', unit='dB')}, "
-           "5° 에서 "
+                       ("변조 AC/DC [dB]", "sph10_ac_over_dc_db")],
+                      fmt={"off_nadir_deg": "{:.1f}", "sph10_ac_over_dc_db": "{:.2f}"}), "",
+           "⛔**전 판이 여기 실었던 «원거리장 기하가 주는 표»(0.5° −55.85 · 5° −11.88 dB)는 "
+           "철회한다** — 가림도 격자도 없는 대리모형이라 나딧에서 정확히 0(−305 dB)에서 "
+           "출발하고, 그래서 어떤 각도든 «급격한 회복» 으로 찍힌다. 위 표는 커널을 그대로 "
+           "재현한 값이고 **완만하게** 찬다 — 나딧 "
+           f"{RN.num('R4d_null_width.cpu_replica.-90.0.sph10_ac_over_dc_db', fmt='{:.2f}', unit='dB')} "
+           "에서 5° "
            f"{RN.num('R4d_null_width.cpu_replica.-85.0.sph10_ac_over_dc_db', fmt='{:.2f}', unit='dB')} "
-           "다 — 격자 잡음 바닥 위로 각도 항이 올라오는 자리가 그 사이에 있다."),
+           "로. 격자 잡음 바닥 위로 각도 항이 올라오는 자리가 그 사이에 있다."),
 
         md("## 탐지로 옮기면 — 에코는 커지고 블레이드 선만 무너진다", "",
            "나딧에서 몸체 반사는 "

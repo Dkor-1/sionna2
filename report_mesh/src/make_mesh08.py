@@ -58,6 +58,17 @@ LAM52 = META["lam_hi_mm"]                           # 최고 대역 파장 [mm] 
 
 # 자주 쓰는 수치 미리 꺼내기 (전부 JSON)
 worst = {k: C[k]["worst_err_pct"] for k in ORDER}
+
+#: ⛔2026-09-04 — 「N종 **모두** 2% 가이드선 아래다」는 손으로 박은 단정이라, 값이
+#  올라가도 문장이 안 따라왔다(Mini 5 Pro 9.46 % 인데 «모두 아래» 라고 적고 있었다).
+#  세는 것은 코드가 한다.
+_OVER2 = [k for k in ORDER if worst[k] > 2.0]
+_GUIDE = (f"{len(ORDER) - len(_OVER2)}종이 **2% 가이드선 아래**이고, "
+          + (f"⚠**{len(_OVER2)}종은 위**다"
+             f"({' · '.join(f'{NAME[k]} {worst[k]:.2f}%' for k in _OVER2)}). "
+             if _OVER2 else "")
+          + "전 기종: "
+          + " · ".join(f"{NAME[k]} {worst[k]:.2f}%" for k in ORDER) + ". ")
 diag_err = {k: C[k]["checks"]["diagonal"]["err_pct"] for k in ORDER}
 prop_err = {k: C[k]["checks"]["prop_dia"]["err_pct"] for k in ORDER}
 hm, hp = H["mavic4pro"], H["phantom4"]
@@ -409,7 +420,7 @@ md(
 # ⚠ 기종 열거는 **ORDER 에서 조립**한다 — 예전엔 다섯 기종을 손으로 나열해
 #   기종이 늘면 문장이 조용히 일부만 말했다.
 f"왼쪽: {len(ORDER)}종 × 전 항목의 공식(회색) vs 실측(파랑) 막대 — 눈으로 봐도 겹친다. 오른쪽: 드론별 최악 오차. "
-f"{len(ORDER)}종 모두 **2% 가이드선 아래**다: " + " · ".join(f"{NAME[k]} {worst[k]:.2f}%" for k in ORDER) + ". "
++ _GUIDE +
 "← 출처: 정본 판 원장 `C_dims.*.worst_err_pct`, 그림 `report_mesh/src/viz_mesh_reports.py` `fig_dims()`",
 "",
 "### 공식값과 '추정'값의 구분 — 주의",

@@ -214,7 +214,7 @@ F12 `refrate_law_f3_matrix.pdf` · F13 `refrate_law_f4_design_rule.pdf` (네 장
 | (c) 빔 스위핑 | 아니다 | 등이득·동위상 상한을 줘도 버스트 개구가 50 Hz 알리아스를 0.14 dB 만 누른다 |
 | (d) 긴 CPI·모션보상 | **부분** | 검출 블라인드는 되살린다(0.733→0.064). alias_frac 은 0.858 고정 |
 | (e) 멀티스태틱 | **부분** | 모호 부피 1.01e-01(N=1) → 1.55e-04(N=4). 도플러 1빈 오차에서 2.68e-02 로 되돌아가고 유령 192개 |
-| (f) 밴드·반송파집성 | **부분** | λ 는 6.25배(n28)에서 멈춘다. CA-CRT 는 두 프론트엔드를 요구한다 |
+| (f) 밴드·반송파집성 | **부분** | λ 축만으로는 못 넘는다(⚠배수는 어느 밴드 짝을 고르냐로 갈리므로 크기를 인용하지 않는다 — 원장 `outputs/vmax_hardening.json`). CA-CRT 는 두 프론트엔드를 요구한다 |
 
 ### IV. Detection Chain
 
@@ -396,7 +396,9 @@ F12 `refrate_law_f3_matrix.pdf` · F13 `refrate_law_f4_design_rule.pdf` (네 장
 | # | 절 | 공격 | 답 |
 |---|---|---|---|
 | D13 | III-A | "PO 는 few-λ 표적에서 부정확하다 — 드론이 바로 그 크기다" | PO **모델 자체의** 간극을 정확 Mie 기준해로 따로 쟀다 — kr ≥ 9.06 에서 1 dB, kr ≥ 15.16 에서 0.5 dB 안이다. 21조합 중 1개가 그 문턱 아래이고 그 자리를 §4 앵커가 잡는다 ⟨`report02_derived.json : po_floor`⟩ |
-| D14 | III-A | "Sionna 에도 SBR 이 있으니 엔진 기여는 이미 그 안에 있다" | 기술보고서(v1.2 · 59쪽)에 SBR 은 48회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0회 · `radar cross section` 0회다 — **더한 것은 표면적분과 σ 출력**이다 ⟨`prior_settled_sionna.json : word_counts_rerun_this_session`⟩ |
+| D14 | III-A | "Sionna 에도 SBR 이 있으니 엔진 기여는 이미 그 안에 있다" | 기술보고서(v1.2 · 59쪽)에 SBR 이라는 낱말이 여러 번 나오고 우리도 그 엔진을 그대로 쓴다.
+⚠**낱말이 몇 번 나오는지는 근거가 아니다** — 우리가 실제로 대조한 것은 `physical optics`
+쪽이 0 회라는 것이고(편 01), 이 줄에 쓰인 «48회» 는 여러 판을 합친 수라 앵커로 쓰지 않는다. 같은 문서에서 `physical optics` 0회 · `radar cross section` 0회다 — **더한 것은 표면적분과 σ 출력**이다 ⟨`prior_settled_sionna.json : word_counts_rerun_this_session`⟩ |
 | D15 | III-A | "가림 차이가 이산화 잡음일 수 있다" | λ/7↔λ/12 이산화 바닥이 최대 0.071 dB 이고 7기체 전부에서 가림이 그 위에 있다 ⟨`report02_derived.json : occlusion.floor_max_db`⟩ |
 | D16 | III-A·V | "β > 45° 에서 상반성이 크게 깨진다면 엔진 자체를 믿기 어렵다" | 출사 가림을 켜면 위반 최대 9.69 → 8.24 dB 로 내려간다. 논문은 β ≤ 45° 만 쓰고(그 범위 rms 2.57 dB), 창을 넓히는 일을 다음 단계로 둔다 ⟨`sbr_defect_fixes.json : d2_exit_vis_effect_on_reciprocity`⟩ |
 | D17 | IV | "배율은 CFAR 구현이 틀린 흔적이다" | 문턱 상수가 이론식과 7.6e-16 안에서 같고, 백색 맵 500,000장에서 경험/명목 = 0.997 로 눈금이 1 에 선다 ⟨`verify_cfar.json : alpha_audit` · `white.48x24`⟩ |
