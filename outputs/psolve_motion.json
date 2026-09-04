@@ -1,676 +1,1000 @@
 {
-  "meta": {
-    "generated": "2026-08-03",
-    "task": "P3 (target MOTION in a ray tracer) + P8 (BISTATIC scattering and reciprocity) - what each paper DID about the two blockers we hit, not what each paper is about.",
-    "axis": "OUR problems are the columns. Every row says whether the problem was ON THAT PAPER'S PATH; 'they did not do X' is recorded only with that flag set.",
-    "evidence_rule": "Every claim about a paper carries pdf_path + page + verbatim quote. Anything produced by pattern matching is under 'machine_census' and labelled a machine count. Papers not opened page-by-page are listed under 'not_opened' and are never used as evidence.",
-    "corpora_used": [
-      "PRIMARY: outputs/reflib_sweep_sionna.json - 140 PDFs, all 140 text-extracted and pattern-scanned this session; 16 opened and read for this task",
-      "SECONDARY (ray-engine members only): outputs/reflib_sweep_venues.json 41 resolvable PDFs + /data/public/sionna_jeong/papers_isac_sionna/new_0731/*.pdf + .../paper_sionna_Ray_0723/*.pdf - 213 unique PDFs in the combined scan",
-      "OUR OWN CODE/OUTPUTS: src/microdoppler.py, src/experiment_freespace_sigma.py, outputs/report13_sigma_grid.json, outputs/sbr_defect_fixes.json, installed sionna 2.0.1 source"
+ "meta": {
+  "generated": "2026-08-03",
+  "task": "P3 (target MOTION in a ray tracer) + P8 (BISTATIC scattering and reciprocity) - what each paper DID about the two blockers we hit, not what each paper is about.",
+  "axis": "OUR problems are the columns. Every row says whether the problem was ON THAT PAPER'S PATH; 'they did not do X' is recorded only with that flag set.",
+  "evidence_rule": "Every claim about a paper carries pdf_path + page + verbatim quote. Anything produced by pattern matching is under 'machine_census' and labelled a machine count. Papers not opened page-by-page are listed under 'not_opened' and are never used as evidence.",
+  "corpora_used": [
+   "PRIMARY: outputs/reflib_sweep_sionna.json - 140 PDFs, all 140 text-extracted and pattern-scanned this session; 16 opened and read for this task",
+   "SECONDARY (ray-engine members only): outputs/reflib_sweep_venues.json 41 resolvable PDFs + /data/public/sionna_jeong/papers_isac_sionna/new_0731/*.pdf + .../paper_sionna_Ray_0723/*.pdf - 213 unique PDFs in the combined scan",
+   "OUR OWN CODE/OUTPUTS: src/microdoppler.py, src/experiment_freespace_sigma.py, outputs/report13_sigma_grid.json, outputs/sbr_defect_fixes.json, installed sionna 2.0.1 source"
+  ],
+  "scope_note": "The drone-sensing corpus was NOT mined wholesale for P1-P8. Only its members that operate a ray/asymptotic EM engine, or that Ziganshin himself cites as the route to micro-Doppler, were opened; each such row is flagged corpus=secondary with the reason."
+ },
+ "counts": {
+  "pdfs_text_extracted_this_session": 213,
+  "sionna_corpus_pdfs_scanned": 140,
+  "papers_opened_and_quoted_for_this_task": 17,
+  "rows_in_papers_array": 20,
+  "rows_read_partially_machine_census_only": 3,
+  "cited_works_NOT_IN_ARCHIVE_and_NOT_OPENED": 5,
+  "P3_papers_where_the_SOLVER_ITSELF_represents_rotation": 0,
+  "P3_papers_that_re_posed_a_ROTATING_PROPELLER_inside_a_ray_tracer": 1,
+  "P3_papers_that_re_posed_geometry_per_snapshot_inside_Sionna_RT_translation_only": 2,
+  "P3_papers_that_re_posed_a_rotating_propeller_in_a_NON_ray_engine_opened_by_us": 1,
+  "P8_papers_that_computed_bistatic_scattering_in_a_ray_engine": 1,
+  "P8_documents_stating_a_reciprocity_condition_on_a_scattering_kernel": 2,
+  "P8_papers_that_ran_a_reciprocity_check_on_their_own_kernel": 0
+ },
+ "machine_census": {
+  "label": "MACHINE COUNT - regex over the PyMuPDF text layer of the stated PDF set. Not a reading. Used only to decide what to open.",
+  "sionna_corpus_140_pdfs": {
+   "micro_doppler_gt0_files": 6,
+   "micro_doppler_gt0_unique_works": 5,
+   "micro_doppler_files": [
+    "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf (40)",
+    "2601.03535__openisac.pdf (21)",
+    "2604.05991__ziganshin_curved-body-scattering.pdf (2)",
+    "2602.10537__clutter-aware-isac_ARXIV-v2 (2) and its published twin Clutter-Aware_..._Proc_IEEE.pdf (1) - SAME WORK",
+    "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf (1)"
+   ],
+   "rotor_propeller_blade_gt0_unique_works": 4,
+   "apply_doppler_gt0_files": [
+    "2303.11103__sionna-rt-founding.pdf (2)",
+    "2503.12177__open-wireless-dt-oai-sionna-rt.pdf (1)"
+   ],
+   "reciproc_gt0_files": 11,
+   "reciproc_meaning_after_reading": "10 of the 11 are 'reciprocal filter' (passive-radar range compression / OFDM de-randomization) or 'channel reciprocity' (DL/UL). Exactly ONE is scattering-kernel reciprocity: 2605.31267.",
+   "bistatic_top": [
+    "openisac 52",
+    "clutter-aware-isac 16",
+    "ziganshin journal 10",
+    "effective-roughness 5"
+   ]
+  },
+  "combined_213_pdfs": {
+   "documents_where_reciprocity_is_about_a_SCATTERING_KERNEL": 2,
+   "which": [
+    "2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+    "bilkent_thesis__ptd-implementation-rcs.pdf"
+   ]
+  }
+ },
+ "our_problem_state": {
+  "P3": {
+   "engine_limit_verified_locally": {
+    "file": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene_object.py",
+    "lines": "267-283",
+    "fact": "SceneObject.velocity setter asserts dr.width(v)==1 with the message 'Only a single velocity vector must be provided' and stores it as a Mitsuba 'rawconstant' texture attribute. One rigid vector per object; there is no per-face or per-vertex velocity field."
+   },
+   "our_two_engines": {
+    "analytic_PO": "src/microdoppler.py::microdoppler_series - rotates the LOOK direction backwards instead of the blade (v(t)=Rz(-theta(t))u), fully vectorized, CW and CCW propellers built as mirror images, frame is a constant field E_frame.",
+    "SBR": "src/microdoppler.py::microdoppler_sbr - pose_articulated() rebuilds the mesh at each rotor phase; table of n_phase=240 complex fields over the period 360/n_blades (=480 phases per full turn for a 2-blade prop), then linear interpolation in slow time. Comment in file: 'phi별 복소장 테이블 (여기서만 광선을 쏜다)'."
+   },
+   "status": "workaround, cost paid outside the tracer; no engine-side representation of rotation."
+  },
+  "P8": {
+   "our_check": "src/experiment_freespace_sigma.py::multistatic_check - sigma(i->s) vs sigma(s->i), RMS over 24 azimuths, beta in {0,15,30,45,60,75,90}.",
+   "our_numbers_report13_sigma_grid": {
+    "source": "outputs/report13_sigma_grid.json, 5 drones x 3 bands = 15 cells per beta",
+    "reciprocity_rms_db_mean_by_beta": {
+     "0": 0.0,
+     "15": 2.82,
+     "30": 3.87,
+     "45": 3.65,
+     "60": 4.16,
+     "75": 5.34,
+     "90": 5.69
+    },
+    "reciprocity_rms_db_max_by_beta": {
+     "15": 4.61,
+     "30": 8.01,
+     "45": 5.8,
+     "60": 7.51,
+     "75": 10.6,
+     "90": 7.03
+    },
+    "delta_sigma_mean_db_by_beta": {
+     "15": -0.38,
+     "30": -1.17,
+     "45": -0.41,
+     "60": -0.99,
+     "75": -1.9,
+     "90": -2.15
+    },
+    "honesty_note": "The beta<=45 window is not a clean cutoff in our own data: reciprocity RMS is already 2.8 dB at beta=15 and only rises to 5.7 dB at beta=90. The window is a claim-scope choice, not a measured knee."
+   },
+   "our_canonical_check": {
+    "source": "outputs/sbr_defect_fixes.json::d2_reciprocity_plate",
+    "target": "PEC flat plate 0.08x0.08 m (0.93 lambda) at 3.5 GHz",
+    "prediction_string_in_file": "10log10(sigma(i,s)/sigma(s,i)) = -20log10(cos beta)",
+    "residual_db_at_beta_5_10_15": [
+     -0.032,
+     0.147,
+     -0.005
     ],
-    "scope_note": "The drone-sensing corpus was NOT mined wholesale for P1-P8. Only its members that operate a ray/asymptotic EM engine, or that Ziganshin himself cites as the route to micro-Doppler, were opened; each such row is flagged corpus=secondary with the reason."
-  },
-
-  "counts": {
-    "pdfs_text_extracted_this_session": 213,
-    "sionna_corpus_pdfs_scanned": 140,
-    "papers_opened_and_quoted_for_this_task": 17,
-    "rows_in_papers_array": 20,
-    "rows_read_partially_machine_census_only": 3,
-    "cited_works_NOT_IN_ARCHIVE_and_NOT_OPENED": 5,
-    "P3_papers_where_the_SOLVER_ITSELF_represents_rotation": 0,
-    "P3_papers_that_re_posed_a_ROTATING_PROPELLER_inside_a_ray_tracer": 1,
-    "P3_papers_that_re_posed_geometry_per_snapshot_inside_Sionna_RT_translation_only": 2,
-    "P3_papers_that_re_posed_a_rotating_propeller_in_a_NON_ray_engine_opened_by_us": 1,
-    "P8_papers_that_computed_bistatic_scattering_in_a_ray_engine": 1,
-    "P8_documents_stating_a_reciprocity_condition_on_a_scattering_kernel": 2,
-    "P8_papers_that_ran_a_reciprocity_check_on_their_own_kernel": 0
-  },
-
-  "machine_census": {
-    "label": "MACHINE COUNT - regex over the PyMuPDF text layer of the stated PDF set. Not a reading. Used only to decide what to open.",
-    "sionna_corpus_140_pdfs": {
-      "micro_doppler_gt0_files": 6,
-      "micro_doppler_gt0_unique_works": 5,
-      "micro_doppler_files": [
-        "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf (40)",
-        "2601.03535__openisac.pdf (21)",
-        "2604.05991__ziganshin_curved-body-scattering.pdf (2)",
-        "2602.10537__clutter-aware-isac_ARXIV-v2 (2) and its published twin Clutter-Aware_..._Proc_IEEE.pdf (1) - SAME WORK",
-        "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf (1)"
-      ],
-      "rotor_propeller_blade_gt0_unique_works": 4,
-      "apply_doppler_gt0_files": ["2303.11103__sionna-rt-founding.pdf (2)", "2503.12177__open-wireless-dt-oai-sionna-rt.pdf (1)"],
-      "reciproc_gt0_files": 11,
-      "reciproc_meaning_after_reading": "10 of the 11 are 'reciprocal filter' (passive-radar range compression / OFDM de-randomization) or 'channel reciprocity' (DL/UL). Exactly ONE is scattering-kernel reciprocity: 2605.31267.",
-      "bistatic_top": ["openisac 52", "clutter-aware-isac 16", "ziganshin journal 10", "effective-roughness 5"]
+    "reading": "our violation follows a closed-form PO obliquity law on a canonical plate - it behaves like the documented PO defect, not like a coding error."
+   },
+   "exit_visibility_effect": {
+    "source": "outputs/sbr_defect_fixes.json::d2_exit_vis_effect_on_reciprocity",
+    "rms_with_exit_vis_db": [
+     0.0,
+     0.79,
+     1.57,
+     2.57,
+     1.67,
+     2.84,
+     4.02
+    ],
+    "rms_without_exit_vis_db": [
+     0.0,
+     1.36,
+     2.72,
+     2.36,
+     2.22,
+     1.83,
+     6.11
+    ],
+    "worst_with_db": 8.24,
+    "worst_without_db": 9.69
+   }
+  }
+ },
+ "papers": [
+  {
+   "row": 1,
+   "key": "md-rt",
+   "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+   "authors": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao, S. Xu (Shanghai Univ. / XJTLU)",
+   "venue": "2025 IEEE 25th Int. Conf. Communication Technology (ICCT), pp. 359-364",
+   "status": "PUBLISHED",
+   "doi_in_pdf": "10.1109/ICCT67417.2025.11374154",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "pages": 6,
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "WORKED AROUND - and it is the SAME workaround as ours. ⭐ CORRECTS OUR OWN PRIOR NOTE.",
+    "method": "Per-snapshot re-pose inside Sionna RT. The analytic rigid-body formula is their VALIDATION REFERENCE, not their simulation method. Propeller is a Blender mesh; scene is re-emitted and the target position/velocity updated each step.",
+    "quotes": [
+     {
+      "page": 3,
+      "q": "In summary, the simulation process includes: ... (4) Emit rays toward the target and calculate the channel frequency response; (5) Update the target's velocity and position, then repeat step 4;"
+     },
+     {
+      "page": 3,
+      "q": "In the physical modeling, both built-in objects in Sionna and rotor models created in Blender are employed."
+     },
+     {
+      "page": 4,
+      "q": "In this section, we validate the accuracy of the Sionna RT framework for simulating rotational micro-Doppler effects. The simulated results are compared with the analytical formulas derived in Section II using identical target models and micromotion parameters."
+     },
+     {
+      "page": 2,
+      "q": "fD = 2f/c [V + omega x r]_radial (7) where V corresponds to the Doppler frequency shift caused by translation, omega x r corresponds to the Micro-Doppler caused by rotation."
+     },
+     {
+      "page": 3,
+      "q": "Table I. Parameters Setup ... Number of OFDM symbols 2048 / OFDM symbol duration 50us / Rotating propellers 1 / Blades per propeller 2 / Propeller radius 10.55cm / Propeller material Wood"
+     }
+    ],
+    "cost_they_paid": "2048 OFDM symbols x 50 us = 102.4 ms of slow time, i.e. 2048 re-pose + re-trace iterations. They also had to MODIFY THE LAUNCHER: spherical -> conical Fibonacci sampling aimed at the target, because with a fixed ray budget the hit count falls to zero with range and the spectrogram develops gaps.",
+    "launcher_quote": {
+     "page": 2,
+     "q": "Under the condition of a fixed number of rays, as the distance between the target and the transmitter gradually increases, the number of rays that collide with the target gradually decreases until it approaches zero. At this point, Doppler frequency shifts can no longer be detected."
     },
-    "combined_213_pdfs": {
-      "documents_where_reciprocity_is_about_a_SCATTERING_KERNEL": 2,
-      "which": ["2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf", "bilkent_thesis__ptd-implementation-rcs.pdf"]
+    "what_they_did_NOT_do": "No runtime is reported anywhere in the paper (grep: 'runtime' 0, 'simulation time' 0, 'GPU' 0, 'seconds' 0). No Sionna version is stated. No absolute level: 'dBsm' 0 times, 'absolut' 0 times. Only ridge geometry and envelope shape are claimed.",
+    "internal_inconsistency_noticed": "Table I gives propeller radius 10.55 cm; Sec. IV-B says 'a blade length of 1.055 meters'. Factor 10. Flagged, not resolved."
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - the task is monostatic.",
+    "evidence": [
+     {
+      "page": 2,
+      "q": "the transmitter and receiver remain stationary at origin Q of the transmitter coordinate system (U, V, W)"
+     },
+     {
+      "page": 2,
+      "q": "fD = 2f/c ... (factor 2 = monostatic round trip)"
+     }
+    ],
+    "note": "The word 'bistatic' appears twice: once describing prior work [10], once in a reference title. No bistatic geometry is simulated."
+   }
+  },
+  {
+   "row": 2,
+   "key": "sionna-rt-technical-report",
+   "title": "Sionna RT: Technical Report (v2 / document Version 1.2)",
+   "authors": "F. Ait Aoudia, J. Hoydis, M. Nimier-David, B. Nicolet, S. Cammerer, A. Keller (NVIDIA)",
+   "venue": "arXiv:2504.21719v2, vendor technical report",
+   "status": "PREPRINT",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+   "pages": 59,
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "⭐ THE VENDOR STATES BOTH ROUTES AND THE VALIDITY BOUND OF THE CHEAP ONE. This is the single most useful citation for our P3 chapter.",
+    "quotes": [
+     {
+      "page": 28,
+      "section": "3.3.2 Doppler Shifts",
+      "q": "The impact of moving scene objects on the paths can be simulated in two ways. The first approach involves moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step. While this method provides the highest accuracy, it is computationally expensive. However, when trajectory lengths are small (not exceeding a few wavelengths), a more efficient approach may be used. In this alternative method, we assign a velocity vector v^(o) in R^3 to each object o and compute the time evolution by accumulating Doppler shifts along the propagation paths."
+     },
+     {
+      "page": 28,
+      "q": "Figure 22: Each object as well as the source and target has an associated velocity vector that contributes to the total Doppler shift."
+     }
+    ],
+    "why_it_matters_for_us": "The vendor's own text says (a) re-posing and re-tracing per step is the ACCURATE route - which is exactly what pose_articulated() does, so our method is the documented high-accuracy path, not a hack; and (b) the one-velocity-vector shortcut is valid only for 'trajectory lengths ... not exceeding a few wavelengths'. A 10.55 cm blade tip at ~6000 rpm travels ~0.066 m in 1 ms; at 3.5 GHz (lambda=8.6 cm) that is already ~0.8 lambda per millisecond and the tip path is curved, so a rotor blade blows the stated bound within one OFDM slot. We now have a quantitative, vendor-sourced reason for re-posing.",
+    "term_counts_in_this_document": {
+     "physical optics": 0,
+     "RCS": 0,
+     "dBsm": 0,
+     "SBR": 44,
+     "micro-Doppler": 0
     }
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - the document has no target signature at all; 'target' means a path endpoint. 'bistatic' 0, 'reciproc' 0."
+   }
   },
-
-  "our_problem_state": {
-    "P3": {
-      "engine_limit_verified_locally": {
-        "file": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/scene_object.py",
-        "lines": "267-283",
-        "fact": "SceneObject.velocity setter asserts dr.width(v)==1 with the message 'Only a single velocity vector must be provided' and stores it as a Mitsuba 'rawconstant' texture attribute. One rigid vector per object; there is no per-face or per-vertex velocity field."
-      },
-      "our_two_engines": {
-        "analytic_PO": "src/microdoppler.py::microdoppler_series - rotates the LOOK direction backwards instead of the blade (v(t)=Rz(-theta(t))u), fully vectorized, CW and CCW propellers built as mirror images, frame is a constant field E_frame.",
-        "SBR": "src/microdoppler.py::microdoppler_sbr - pose_articulated() rebuilds the mesh at each rotor phase; table of n_phase=240 complex fields over the period 360/n_blades (=480 phases per full turn for a 2-blade prop), then linear interpolation in slow time. Comment in file: 'phi별 복소장 테이블 (여기서만 광선을 쏜다)'."
-      },
-      "status": "workaround, cost paid outside the tracer; no engine-side representation of rotation."
-    },
-    "P8": {
-      "our_check": "src/experiment_freespace_sigma.py::multistatic_check - sigma(i->s) vs sigma(s->i), RMS over 24 azimuths, beta in {0,15,30,45,60,75,90}.",
-      "our_numbers_report13_sigma_grid": {
-        "source": "outputs/report13_sigma_grid.json, 5 drones x 3 bands = 15 cells per beta",
-        "reciprocity_rms_db_mean_by_beta": {"0": 0.0, "15": 2.82, "30": 3.87, "45": 3.65, "60": 4.16, "75": 5.34, "90": 5.69},
-        "reciprocity_rms_db_max_by_beta": {"15": 4.61, "30": 8.01, "45": 5.80, "60": 7.51, "75": 10.60, "90": 7.03},
-        "delta_sigma_mean_db_by_beta": {"15": -0.38, "30": -1.17, "45": -0.41, "60": -0.99, "75": -1.90, "90": -2.15},
-        "honesty_note": "The beta<=45 window is not a clean cutoff in our own data: reciprocity RMS is already 2.8 dB at beta=15 and only rises to 5.7 dB at beta=90. The window is a claim-scope choice, not a measured knee."
-      },
-      "our_canonical_check": {
-        "source": "outputs/sbr_defect_fixes.json::d2_reciprocity_plate",
-        "target": "PEC flat plate 0.08x0.08 m (0.93 lambda) at 3.5 GHz",
-        "prediction_string_in_file": "10log10(sigma(i,s)/sigma(s,i)) = -20log10(cos beta)",
-        "residual_db_at_beta_5_10_15": [-0.032, 0.147, -0.005],
-        "reading": "our violation follows a closed-form PO obliquity law on a canonical plate - it behaves like the documented PO defect, not like a coding error."
-      },
-      "exit_visibility_effect": {
-        "source": "outputs/sbr_defect_fixes.json::d2_exit_vis_effect_on_reciprocity",
-        "rms_with_exit_vis_db": [0.0, 0.79, 1.57, 2.57, 1.67, 2.84, 4.02],
-        "rms_without_exit_vis_db": [0.0, 1.36, 2.72, 2.36, 2.22, 1.83, 6.11],
-        "worst_with_db": 8.24,
-        "worst_without_db": 9.69
-      }
-    }
+  {
+   "row": 3,
+   "key": "sionna-rt-founding",
+   "title": "Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling",
+   "venue": "2023 IEEE GLOBECOM Workshops (GC Wkshps), pp. 317-321",
+   "status": "PUBLISHED",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "The founding paper's Doppler API is about TX/RX velocities, not scene-object motion.",
+    "quotes": [
+     {
+      "page": 3,
+      "q": "The class method paths.apply_doppler() (line 2) can simulate the temporal evolution of the CIRs based on arbitrary velocity vectors of all transmitters and receivers."
+     },
+     {
+      "page": 3,
+      "q": "1 # Compute time-evolution depending on mobility  2 paths.apply_doppler(sampling_frequency=1e6, 3 num_time_steps=14, 4 tx_velocities = [3,0,0])"
+     }
+    ],
+    "note": "Per-object velocity arrives later (1.0+ overhaul, documented in row 2). Useful for dating the capability, not for solving rotation."
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET."
+   }
   },
-
-  "papers": [
-    {
-      "row": 1,
-      "key": "md-rt",
-      "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
-      "authors": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao, S. Xu (Shanghai Univ. / XJTLU)",
-      "venue": "2025 IEEE 25th Int. Conf. Communication Technology (ICCT), pp. 359-364",
-      "status": "PUBLISHED",
-      "doi_in_pdf": "10.1109/ICCT67417.2025.11374154",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
-      "pages": 6,
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "WORKED AROUND - and it is the SAME workaround as ours. ⭐ CORRECTS OUR OWN PRIOR NOTE.",
-        "method": "Per-snapshot re-pose inside Sionna RT. The analytic rigid-body formula is their VALIDATION REFERENCE, not their simulation method. Propeller is a Blender mesh; scene is re-emitted and the target position/velocity updated each step.",
-        "quotes": [
-          {"page": 3, "q": "In summary, the simulation process includes: ... (4) Emit rays toward the target and calculate the channel frequency response; (5) Update the target's velocity and position, then repeat step 4;"},
-          {"page": 3, "q": "In the physical modeling, both built-in objects in Sionna and rotor models created in Blender are employed."},
-          {"page": 4, "q": "In this section, we validate the accuracy of the Sionna RT framework for simulating rotational micro-Doppler effects. The simulated results are compared with the analytical formulas derived in Section II using identical target models and micromotion parameters."},
-          {"page": 2, "q": "fD = 2f/c [V + omega x r]_radial (7) where V corresponds to the Doppler frequency shift caused by translation, omega x r corresponds to the Micro-Doppler caused by rotation."},
-          {"page": 3, "q": "Table I. Parameters Setup ... Number of OFDM symbols 2048 / OFDM symbol duration 50us / Rotating propellers 1 / Blades per propeller 2 / Propeller radius 10.55cm / Propeller material Wood"}
-        ],
-        "cost_they_paid": "2048 OFDM symbols x 50 us = 102.4 ms of slow time, i.e. 2048 re-pose + re-trace iterations. They also had to MODIFY THE LAUNCHER: spherical -> conical Fibonacci sampling aimed at the target, because with a fixed ray budget the hit count falls to zero with range and the spectrogram develops gaps.",
-        "launcher_quote": {"page": 2, "q": "Under the condition of a fixed number of rays, as the distance between the target and the transmitter gradually increases, the number of rays that collide with the target gradually decreases until it approaches zero. At this point, Doppler frequency shifts can no longer be detected."},
-        "what_they_did_NOT_do": "No runtime is reported anywhere in the paper (grep: 'runtime' 0, 'simulation time' 0, 'GPU' 0, 'seconds' 0). No Sionna version is stated. No absolute level: 'dBsm' 0 times, 'absolut' 0 times. Only ridge geometry and envelope shape are claimed.",
-        "internal_inconsistency_noticed": "Table I gives propeller radius 10.55 cm; Sec. IV-B says 'a blade length of 1.055 meters'. Factor 10. Flagged, not resolved."
-      },
-      "P8": {
-        "on_their_path": false,
-        "verdict": "NEVER MET - the task is monostatic.",
-        "evidence": [
-          {"page": 2, "q": "the transmitter and receiver remain stationary at origin Q of the transmitter coordinate system (U, V, W)"},
-          {"page": 2, "q": "fD = 2f/c ... (factor 2 = monostatic round trip)"}
-        ],
-        "note": "The word 'bistatic' appears twice: once describing prior work [10], once in a reference title. No bistatic geometry is simulated."
-      }
-    },
-
-    {
-      "row": 2,
-      "key": "sionna-rt-technical-report",
-      "title": "Sionna RT: Technical Report (v2 / document Version 1.2)",
-      "authors": "F. Ait Aoudia, J. Hoydis, M. Nimier-David, B. Nicolet, S. Cammerer, A. Keller (NVIDIA)",
-      "venue": "arXiv:2504.21719v2, vendor technical report",
-      "status": "PREPRINT",
-      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
-      "pages": 59,
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "⭐ THE VENDOR STATES BOTH ROUTES AND THE VALIDITY BOUND OF THE CHEAP ONE. This is the single most useful citation for our P3 chapter.",
-        "quotes": [
-          {"page": 28, "section": "3.3.2 Doppler Shifts", "q": "The impact of moving scene objects on the paths can be simulated in two ways. The first approach involves moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step. While this method provides the highest accuracy, it is computationally expensive. However, when trajectory lengths are small (not exceeding a few wavelengths), a more efficient approach may be used. In this alternative method, we assign a velocity vector v^(o) in R^3 to each object o and compute the time evolution by accumulating Doppler shifts along the propagation paths."},
-          {"page": 28, "q": "Figure 22: Each object as well as the source and target has an associated velocity vector that contributes to the total Doppler shift."}
-        ],
-        "why_it_matters_for_us": "The vendor's own text says (a) re-posing and re-tracing per step is the ACCURATE route - which is exactly what pose_articulated() does, so our method is the documented high-accuracy path, not a hack; and (b) the one-velocity-vector shortcut is valid only for 'trajectory lengths ... not exceeding a few wavelengths'. A 10.55 cm blade tip at ~6000 rpm travels ~0.066 m in 1 ms; at 3.5 GHz (lambda=8.6 cm) that is already ~0.8 lambda per millisecond and the tip path is curved, so a rotor blade blows the stated bound within one OFDM slot. We now have a quantitative, vendor-sourced reason for re-posing.",
-        "term_counts_in_this_document": {"physical optics": 0, "RCS": 0, "dBsm": 0, "SBR": 44, "micro-Doppler": 0}
-      },
-      "P8": {"on_their_path": false, "verdict": "NEVER MET - the document has no target signature at all; 'target' means a path endpoint. 'bistatic' 0, 'reciproc' 0."}
-    },
-
-    {
-      "row": 3,
-      "key": "sionna-rt-founding",
-      "title": "Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling",
-      "venue": "2023 IEEE GLOBECOM Workshops (GC Wkshps), pp. 317-321",
-      "status": "PUBLISHED",
-      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "The founding paper's Doppler API is about TX/RX velocities, not scene-object motion.",
-        "quotes": [
-          {"page": 3, "q": "The class method paths.apply_doppler() (line 2) can simulate the temporal evolution of the CIRs based on arbitrary velocity vectors of all transmitters and receivers."},
-          {"page": 3, "q": "1 # Compute time-evolution depending on mobility  2 paths.apply_doppler(sampling_frequency=1e6, 3 num_time_steps=14, 4 tx_velocities = [3,0,0])"}
-        ],
-        "note": "Per-object velocity arrives later (1.0+ overhaul, documented in row 2). Useful for dating the capability, not for solving rotation."
-      },
-      "P8": {"on_their_path": false, "verdict": "NEVER MET."}
-    },
-
-    {
-      "row": 4,
-      "key": "van3twin",
-      "title": "VaN3Twin: full-stack V2X Network Digital Twin with Sionna RT in the loop",
-      "authors": "R. Pegurri et al.",
-      "venue": "arXiv:2505.14184",
-      "status": "PREPRINT",
-      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "WORKED AROUND (translation only) - and they published the price of per-snapshot re-tracing in Sionna, which is the number our P3 chapter needs.",
-        "method": "Meshes are mapped one-to-one to vehicles and re-positioned per snapshot; a re-trace is triggered only when a vehicle has moved beyond a coherence-derived threshold.",
-        "quotes": [
-          {"page": 4, "q": "This synchronization ensures that the propagation environment faithfully reflects the time-varying geometry and kinematics of the vehicular network ... To limit the computational cost of ray tracing scene updates, synchronization is performed only if the vehicle has moved beyond a minimum threshold distance delta_d_min, defined as: delta_d_min = max( delta_d_0, v_vn(t) * tau_coh )"},
-          {"page": 12, "q": "the mean cost of a full ray tracing snapshot increases predictably with the number of active vehicles, rising from 168.56 ms (5 vehicles) to 446.25 ms (60 vehicles), with the 95th percentile increasing from 204.14 ms to 847.61 ms"},
-          {"page": 12, "q": "the cache-hit ratio increases monotonically, reaching 99.58% with 60 vehicles"},
-          {"page": 12, "q": "Experiments were conducted on a workstation ... NVIDIA GeForce RTX 3090 GPU ... Sionna RT v1.2.0"}
-        ],
-        "usable_by_us": "168-446 ms per full Sionna RT snapshot on an RTX 3090 gives an order-of-magnitude anchor for what 240 rotor-phase re-poses would cost if we ran them through Sionna RT rather than our own SBR. Their threshold trick (re-trace only past a coherence distance) is NOT applicable to a blade: the blade tip crosses the threshold every sample."
-      },
-      "P8": {"on_their_path": false, "verdict": "NEVER MET - propagation only, no target signature."}
-    },
-
-    {
-      "row": 5,
-      "key": "open-wireless-dt",
-      "title": "Open Wireless Digital Twin (OAI + Sionna RT)",
-      "venue": "arXiv:2503.12177",
-      "status": "PREPRINT (machine-classified in the sweep; opened for this task)",
-      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "WORKED AROUND, and they name the exact failure mode of snapshotting - phase discontinuity between snapshots.",
-        "quotes": [
-          {"page": 8, "q": "it should be noted that this study does not account for time variations within the 100 ms intervals; consequently, the phase values show discontinuous transitions in each snapshot. This indicates that our study did not consider the Doppler effect."},
-          {"page": 11, "q": "the CIR snapshot interval should, in principle, be no larger than Tf. An efficient approach is to compute snapshots every approximately 20 ms (not exceeding several times Tf) and then use Sionna RT's apply_doppler() function to interpolate the Doppler-affected CIR at a finer time resolution."},
-          {"page": 3, "q": "(a) It does not model channels varying on time scales shorter than the Doppler period"}
-        ],
-        "usable_by_us": "The hybrid they recommend - coarse re-trace + apply_doppler interpolation between - is the natural cheap version of our phase table. Our microdoppler_sbr already does the same shape (240 traced phases + linear interpolation in slow time); their warning about inter-snapshot phase discontinuity is the hazard to test for in our table."
-      },
-      "P8": {"on_their_path": false, "verdict": "NEVER MET. Its one 'reciprocity' hit is UL/DL channel reciprocity, not scattering."}
-    },
-
-    {
-      "row": 6,
-      "key": "openisac",
-      "title": "OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC",
-      "venue": "arXiv:2601.03535v2",
-      "status": "PREPRINT",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
-      "pages": 16,
-      "corpus": "sionna (role=CITE_ONLY)",
-      "opened": true,
-      "P3": {
-        "on_their_path": false,
-        "verdict": "NEVER MET, TASK DIFFERED - they MEASURED micro-Doppler on hardware instead of simulating it. This is the paper the user probably remembers as 'micro-Doppler in Sionna'; it is not. Sionna is cited once, as a tool they position AGAINST.",
-        "quotes": [
-          {"page": 14, "q": "Fig. 13 illustrates the monostatic micro-Doppler spectrogram of a hovering Mavic Air 3S. The zero-Doppler return represents quasi-static scattering from the UAV body. Symmetric, equidistant ridges correspond to the rotating rotor blades."},
-          {"page": 2, "q": "NVIDIA Sionna and the Sionna Research Kit are also important open-source tools for wireless communication research, including ray-tracing-based channel modeling and SDR-enabled communication prototyping [19]. However, they primarily target communication-system simulation and prototyping rather than a complete end-to-end ISAC sensing pipeline."},
-          {"page": 15, "q": "reference [19] ... 'Sionna,' https://nvlabs.github.io/sionna/, 2022, version 2.0.1"}
-        ],
-        "hardware": "BS = Luowave USRP-LW X310 + horn antennas + external OCXO; UE = TQTT Tiny B210. fc 3.1 GHz, B 50 MHz, N=1024, STFT window 256 hop 64. Platform claims support up to USRP X400-series."
-      },
-      "P8": {
-        "on_their_path": true,
-        "verdict": "⭐ THE ONLY EMPIRICAL MONOSTATIC-vs-BISTATIC MICRO-DOPPLER CONSISTENCY STATEMENT IN THE CORPUS. Not a reciprocity check, but a real cross-geometry observation on a real drone.",
-        "quotes": [
-          {"page": 15, "q": "We further validate the bistatic sensing performance using a Mavic Air 3S as the target. Fig. 16a displays the micro-Doppler spectrum of a hovering UAV, clearly exhibiting the characteristic symmetric blade ridges consistent with monostatic observations (Fig. 13)."},
-          {"page": 1, "q": "OpenISAC utilizes orthogonal frequency division multiplexing (OFDM) waveform and implements crucial sensing functionalities, including both monostatic and bistatic delay-Doppler sensing."},
-          {"page": 15, "q": "the improvement is close to 0 dB near zero clock error, about 10-14 dB around +/-0.25 ppm, and about 17-22 dB around +/-0.5 ppm"}
-        ],
-        "caution": "Their single 'reciproc' hit is a 'proximate reciprocal filter with circular correlation (PRF-CC)' on p.6 - range compression, NOT electromagnetic reciprocity. Do not cite it as such."
-      }
-    },
-
-    {
-      "row": 7,
-      "key": "ziganshin-journal",
-      "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
-      "authors": "A. Ziganshin, E. M. Vitucci, S. J. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thomae",
-      "venue": "arXiv:2604.05991v2, 2 Jul 2026 - NO venue header, NO DOI in the PDF",
-      "status": "PREPRINT (journal version; do NOT merge with the EuCAP 2025 conference paper, row 8)",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
-      "pages": 11,
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "⭐ EXPLICITLY DECLINED - micro-Doppler is future work item 4, and he points at Costa (row 12) as the way to do it.",
-        "quotes": [
-          {"page": 9, "q": "4) Modeling of time-varying substructures (micro-Doppler) [34]."},
-          {"page": 11, "q": "[34] H. C. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, and R. S. Thomae, 'Modeling micro-doppler signature of multi-propeller drones in distributed ISAC,' IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, 2025."}
-        ],
-        "reading": "The one author in the corpus who prints dBsm from a Sionna-based pipeline did not attempt rotation, and pointed at an ANALYTIC thin-wire model rather than at his own ray framework. That is the strongest evidence that expressing rotation inside a ray engine is genuinely unsolved in this literature."
-      },
-      "P8": {
-        "on_their_path": true,
-        "verdict": "COMPUTED BISTATIC, DID NOT CHECK RECIPROCITY. 'reciproc' appears 0 times in 11 pages.",
-        "quotes": [
-          {"page": 5, "q": "The object is illuminated under either plane-wave or near-field conditions, while observation points are placed on a circular trajectory around the object. The bistatic angle is defined between the incident and observation directions. The region opposite to the incident direction corresponds to the shadow region."},
-          {"page": 7, "q": "1) Comparison Against Bistatic Measurements: The measurements were performed using the BIRA bistatic reflectivity setup [4] with frequency range 2-18 GHz. A small vehicle, Mitsubishi i-MiEV, depicted in Fig. 6a, was illuminated from the side, and the field was recorded over a wide angular range with 1 degree resolution."},
-          {"page": 9, "q": "The agreement with bistatic measurements in the backscattering region and with full-wave MLFMM simulations in the shadow region confirms that the proposed approach can capture the dominant scattering and blockage effects of complex vehicular objects."},
-          {"page": 2, "q": "Extension of a practical RT framework with advanced diffraction mechanisms, including vertex diffraction and higher-order diffraction interactions."}
-        ],
-        "what_he_validated_instead": "Against external references (BIRA bistatic measurement; MLFMM in the shadow region), i.e. he bought his credibility with EXTERNAL DATA rather than with an internal symmetry check. That is a template we can copy but it does not give us a reciprocity standard.",
-        "usable_by_us": "His validity split is quotable: fine meshes for backscatter, coarse for shadow - 'no universal discretization strategy exists' (p.1)."
-      }
-    },
-
-    {
-      "row": 8,
-      "key": "ziganshin-eucap",
-      "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
-      "venue": "2025 19th European Conference on Antennas and Propagation (EuCAP), pp. 1-5",
-      "status": "PUBLISHED (this is the conference version; it carries the runtime sentence, the journal preprint does not)",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
-      "pages": 5,
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "EXPLICITLY DEFERRED, same as the journal version.",
-        "quotes": [
-          {"page": 5, "q": "The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation."}
-        ]
-      },
-      "P8": {
-        "on_their_path": true,
-        "verdict": "MULTISTATIC BY TITLE; defines the quantity as a bistatic transfer function rather than an RCS; no reciprocity or symmetry test.",
-        "quotes": [
-          {"page": 1, "q": "The reflectivity function describes the bistatic complex-valued polarimetric input/output transfer function (conversion of an incident wave into a scattered wave) for an extended target at an arbitrary distance. This is a key difference compared to Radar Cross-Section (RCS), which is a real-valued [far-field quantity]"}
-        ],
-        "usable_by_us": "This sentence is the cleanest published justification for reporting a bistatic complex reflectivity instead of a scalar RCS - directly relevant to how we should phrase our own multistatic claim."
-      }
-    },
-
-    {
-      "row": 9,
-      "key": "effective-roughness-polarimetric",
-      "title": "Super-Resolution Experimental Validation and Polarimetric Extension of the Effective Roughness Diffuse Scattering Models",
-      "venue": "arXiv:2605.31267",
-      "status": "PREPRINT",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
-      "pages": 14,
-      "corpus": "sionna (role=CITE_ONLY_BUT_LOAD_BEARING)",
-      "opened": true,
-      "P8": {
-        "on_their_path": true,
-        "verdict": "⭐⭐ THE EXTERNAL RECIPROCITY STANDARD WE ASKED FOR. It states the reciprocity condition on a scattering pattern as a formula, names the model family that violates it, and names the fix - and it says Sionna RT ships the family.",
-        "quotes": [
-          {"page": 3, "q": "While this model captures the directional spreading of diffuse scattering around the specular direction, it does not satisfy reciprocity, i.e., invariance of the scattering response when the incident and observation directions are interchanged [27]."},
-          {"page": 3, "q": "To ensure physical consistency, the reciprocity condition must be satisfied, which can be expressed as f(k_s, k_i)/F(k_i) * cos(theta_i) = f(k_i, k_s)/F(k_s) * cos(theta_s).   (5)"},
-          {"page": 3, "q": "The reciprocal effective roughness (RER) model satisfies this condition by modifying the directive pattern as [8] f_RER(k_s,k_i) = sqrt(cos(theta_s)) * ((1+cos(psi))/2)^alpha_R.   (6) This formulation preserves the ER lobe structure while ensuring reciprocity through the inclusion of the sqrt(cos(theta_s)) factor."},
-          {"page": 2, "q": "The popularity of the model is supported by its integration in several ray tracing (RT) tools, including NVIDIA's Sionna RT [21], Remcom's Wireless InSite [22], and Siradel's Volcano [23]."}
-        ],
-        "chain_of_citations_for_us": [
-          "[27] J. G. Van Bladel, Electromagnetic Fields, 2nd ed., IEEE Press/Wiley 2007 - the reciprocity principle itself",
-          "[7] V. Degli-Esposti, F. Fuschini, E. M. Vitucci, G. Falciasecca, IEEE TAP 55(1) 2007 - the ORIGINAL non-reciprocal ER directive model",
-          "[8] E. M. Vitucci, N. Cenni, F. Fuschini, V. Degli-Esposti, 'A reciprocal heuristic model for diffuse scattering from walls and surfaces', IEEE TAP 71(7) 2023, pp. 6072-6083 - the RER fix",
-          "[9] G. Melloni, E. M. Vitucci, V. Degli-Esposti, S. Berweger, J. Chuang, C. Gentile, N. Golmie, 'A computationally efficient reciprocal effective roughness model for diffuse scattering', arXiv:2605.17988, 2026 - G-RER (NOT IN OUR ARCHIVE, see not_opened)"
-        ],
-        "we_verified_against_the_installed_engine": {
-          "file": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/radio_materials/scattering_pattern.py",
-          "lines": "202-440",
-          "fact": "Sionna 2.0.1 ships LambertianPattern, BackscatteringPattern and DirectivePattern, all documented as 'from :cite:p:`Degli-Esposti07`'. The __call__ of BackscatteringPattern computes v_r = (0.5*(1+cos_psi_r))^alpha_r and v_i = (0.5*(1+cos_psi_i))^alpha_i with a normalisation over cos_theta_i. There is NO sqrt(cos theta_o) factor anywhere in the file.",
-          "conclusion": "Sionna's own diffuse-scattering kernel is the NON-reciprocal ER variant, not RER/G-RER. So 'our kernel violates reciprocity' is not a peculiarity of our PO layer - the stock engine we build on has the same property in its diffuse term, and the literature fix is a one-line sqrt(cos theta_s) reweighting plus renormalisation."
-        }
-      },
-      "P3": {"on_their_path": false, "verdict": "NEVER MET - static material samples on a turntable."}
-    },
-
-    {
-      "row": 10,
-      "key": "bilkent-ptd-thesis",
-      "title": "Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations",
-      "authors": "Alper Kursat Ozturk (MSc thesis, Bilkent University, Dept. of Electrical and Electronics Engineering)",
-      "venue": "MSc thesis, July 2002",
-      "status": "THESIS",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
-      "pages": 72,
-      "corpus": "secondary (opened because it is the only document in 213 PDFs that states a reciprocity property OF PO ITSELF)",
-      "opened": true,
-      "P8": {
-        "on_their_path": true,
-        "verdict": "⭐⭐ THE SINGLE MOST IMPORTANT SENTENCE FOR OUR P8 CHAPTER. It says our defect is the textbook defect of PO, and that the remedy is the SAME remedy P4 needs.",
-        "quotes": [
-          {"page": 70, "q": "PO theory also includes erroneous contribution due to abrupt discontinuities of current at the shadow boundaries of the surface. PO approximation is also expected to be inaccurate in the regions where the GO current does not produce the dominant scattering (e.g. deep shadow regions). Furthermore, fields in the PO approximation do not satisfy reciprocity except in the direction of specular reflection. PO becomes more inaccurate if the target surface contains edges. PTD is used to overcome this discrepancy."},
-          {"page": 70, "q": "In fact, PTD is the superposition of the PO field (originating from the smooth surface) and the field of the equivalent currents on the edge (edge-diffracted field)."},
-          {"page": 70, "q": "The accuracy of the PO method depends on the size of the meshes. Triangles with area = 0.005 lambda^2 are used for meshing."}
-        ],
-        "why_this_closes_a_loop": "P4 (band slope 0.74-1.70 dB/GHz vs measured 0.175-0.315, mechanism = missing frequency-independent edge term) and P8 (reciprocity violated off-specular) are THE SAME MISSING TERM. Adding PTD/edge currents is one fix that pays both. Our own plate check independently reproduces the PO obliquity law -20log10(cos beta) with residuals of 0.03-0.15 dB, which is what a correct PO implementation with the known defect should do.",
-        "caution": "This is a 2002 MSc thesis, not a peer-reviewed article. Cite it as a secondary/textbook-level statement and back it with a primary source (Ufimtsev PTD, or McNamara/Pistorius/Malherbe UTD) before it goes in a paper. Its mesh criterion 0.005 lambda^2 per triangle is also a usable external number for our discretisation defence."
-      },
-      "P3": {"on_their_path": false, "verdict": "NEVER MET - static RCS."}
-    },
-
-    {
-      "row": 11,
-      "key": "sagitta-sbr",
-      "title": "Sagitta - GPU/MPI Shooting-and-Bouncing-Rays with BVH for far-field scattering",
-      "venue": "arXiv:2604.09243 (extended version of a paper accepted at ICCS 2026)",
-      "status": "PREPRINT (conference acceptance stated in the PDF)",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
-      "pages": 14,
-      "corpus": "sionna-corpus member by archive placement; the PDF itself mentions Sionna 0 times",
-      "opened": true,
-      "P8": {
-        "on_their_path": true,
-        "verdict": "⭐ DECLINED BISTATIC ON PURPOSE, AND NAMED THE EXACT REASON WE ALREADY IMPLEMENTED. Best positioning quote in the whole sweep.",
-        "quotes": [
-          {"page": 4, "footnote": 1, "q": "A bistatic scattering calculation would require a visibility function to account for shadow regions between the reflection points and the final receiver. In a monostatic configuration this can be omitted, since the predominantly scattering surfaces are by assumption visible to the co-located launcher and receiver."},
-          {"page": 1, "q": "We validate against analytical Mie solutions for a perfectly electrically conducting (PEC) sphere and demonstrate applicability to a complex aircraft geometry for monostatic radar cross-section prediction."},
-          {"page": 10, "q": "A total of 30,000 x 30,000 rays are launched from a 90 x 90 m grid, with an average computation time of 616.12 ms in FP32 per angular position with a total sweep time of ~27 minutes on 8 LUMI nodes."}
-        ],
-        "our_side_of_that_sentence": "We DID cast the second shadow ray. src/make_report02_target.py:1768 - 'for a bistatic pair a second shadow ray is cast from every hit point toward the [receiver]'; outputs/sbr_defect_fixes.json::d2_exit_vis_effect_on_reciprocity shows what it buys: reciprocity RMS at beta=90 falls 6.11 -> 4.02 dB, worst case 9.69 -> 8.24 dB. So a published SBR paper says bistatic needs exit visibility, we implemented exit visibility, and we measured that it partially repairs reciprocity. That triangle is publishable as-is.",
-        "note": "Sagitta reports no reciprocity check either; its two 'reciproc' hits are references to Taygur & Eibert's bidirectional ray tracing (URSI AT-RASC 2018; IEEE TAP 66(12) 2018), which USES the reciprocity theorem for antenna coupling - it is not a check of a scattering kernel."
-      },
-      "P3": {"on_their_path": false, "verdict": "NEVER MET - static aircraft, angular sweeps only ('rotat' 0 hits)."}
-    },
-
-    {
-      "row": 12,
-      "key": "costa-jsteap",
-      "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
-      "authors": "H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thomae (TU Ilmenau)",
-      "venue": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, vol. 1, 2025 (p.220 footer)",
-      "status": "PUBLISHED",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
-      "pages": 14,
-      "corpus": "secondary (opened because Ziganshin cites it as HIS route to micro-Doppler - it is on the Sionna group's own path)",
-      "opened": true,
-      "P3_and_P8_jointly": {
-        "on_their_path": true,
-        "verdict": "⭐ THE ONLY BISTATIC MICRO-DOPPLER MODEL IN THE SET THAT IS VALIDATED AGAINST A CONTROLLED BISTATIC MEASUREMENT. It is ANALYTIC, not ray traced: 'ray trac' 0 hits, 'Sionna' 0 hits, 'reciproc' 0 hits.",
-        "method_quotes": [
-          {"page": 3, "q": "Such a math model was presented in [40] ... This bistatic range is R_P^(b)(t) ~= R_O - A_B l cos(omega t + phi_B), (6) where A_B = sqrt(4 cos(beta/2)^2 - (cos beta_T + cos beta_R)^2)"},
-          {"page": 3, "q": "Two important things to note are that, in this formulation, there is no restriction about the relative position between the rotation plane and the Tx / Rx positions, and that R_O is also time-dependent if the target is moving."},
-          {"page": 3, "q": "Since the range resolution in the direction of the bistatic bisector is given by delta_R = c/[2B cos(beta/2)] [39] when a low signal bandwidth B is used, the range resolution is finer than the target dimensions"}
-        ],
-        "validation_quotes": [
-          {"page": 11, "q": "The reflectivity of Ironman Drone is measured with wide bandwidth (5.78 GHz:10 MHz:8.22 GHz) for multiple bistatic angle constellations (10 deg : 5 deg : 180 deg) in HH polarization."},
-          {"page": 11, "q": "for micro-Doppler analysis purposes, in order to provide reference speed, it is desirable to have full control over the rotors' rotation, which is not feasible with most standard commercial drones. Therefore, a custom-built system was assembled, allowing us to remotely set the propeller's angular velocities. ... a Tarot IRON MAN 650 mechanical structure ... Carbon fiber propellers were used in the measurements."},
-          {"page": 12, "table": "TABLE I", "q": "Setup 1 / Setup 2: OFDM-based; central frequency 3.7 GHz / 7 GHz; bandwidth 200 MHz / 2.46 GHz; rotating propellers 1 / 2; blades per propeller 2 / 2; propeller radius 16.55 cm; rotation speed 1500 rpm / 1500 and 2000 rpm"},
-          {"page": 9, "q": "Fig. 8 ... mean squared error (MSE) and Pearson correlation coefficient between frequency domain micro-Doppler signatures of models and measurement (1 propeller with Gaussian body, 16384 symbols, subsampling = 8)  [swept over Bistatic Angle 30-180 deg]"}
-        ],
-        "their_survey_of_how_others_did_rotation_IN_EM_SOLVERS": {
-          "page": 2,
-          "q": "[12] describes an application of Physical Optics (PO) and the Method of Equivalent Currents (MEC) to calculate the time-varying Radar Cross-Section (RCS) of a helicopter rotor. [13] combines PO simulation from CAD models in different positions to generate the time-varying reflectivity of a propelled aircraft. [14] utilizes the Method of Moments (MoM) as well as the Physical Optics method to simulate the micro-Doppler of a multi-propeller drone with 512 discrete propeller positions. Similarly, [15] uses a hybrid Finite Element Method (FEM) and MoM scheme, and also considers 512 different uniformly spaced propeller positions through 360 deg ... [16] employs multiple full-wave Electromagnetic (EM) simulations of a multi-propeller drone to create the returns from half of the full rotation of all propellers.",
-          "why_it_matters_for_us": "⭐ 512 discrete propeller positions over 360 deg is an established, twice-repeated sampling choice in the EM-solver literature. Our microdoppler_sbr uses n_phase=240 over the 180 deg period of a 2-blade prop = 480 equivalent positions per full turn. We are within 7% of the published convention and can now cite it instead of defending 240 from first principles.",
-          "their_reason_for_rejecting_that_route": {"page": 2, "q": "These methods have the advantage of taking into account the complex structures of the objects and reproducing effects such as diffraction and shadowing. However, they are extremely time-consuming and hard to implement. As a consequence, using these methods to generate a large amount of data to train machine learning algorithms becomes unfeasible."}
-        },
-        "their_criticism_that_lands_on_US": {
-          "page": 10,
-          "q": "This model also has another considerable advantage when compared to CAD-based EM simulation methods. It can easily reproduce the drone fast movements and rotations, with 3D velocity and 3D angular changes, which appear in practical scenarios, while vibration can be included with (46). ... These ranges and vectors can be independently recalculated for every slow-time instant t using any movement model. Hence, the proposed model enables the simulation of arbitrary target movements and complex trajectories, that can include varying accelerations and body rotation, which is not feasible with CAD-based EM simulations.",
-          "our_answer": "Our phase table is indexed by a SINGLE scalar phi = omega t because an n-blade rotor is invariant under 360/n rotation, so arbitrary rpm profiles are free (we resample the table). What is NOT free for us is arbitrary BODY attitude - each new body_rpy needs a new table. Costa's criticism is therefore half-true against us and should be stated that way, not dodged."
-        },
-        "their_honest_limitation_we_should_quote": {"page": 9, "q": "it is unfeasible to perform static reflectivity measurements for all possible geometric constellations, i.e., all possible combinations of bistatic angles."},
-        "error_bound_they_derived": {"page": 12, "q": "the upper bound of the error in the calculation of the bistatic range is given by Err <= l^2/2 * (1/R_T + 1/R_R) ... we used l = 0.1655 m and R_T = R_R = 3.43 m. This case results in an error of range with upper bound of Err <= 8 mm, which represents a relative error of RErr <= 0.12% of the bistatic range."},
-        "convention_flag_for_us": "Costa uses delta_R = c/[2B cos(beta/2)] (resolution ALONG THE BISECTOR). Our reports use delta_R_b = c/B (resolution in the bistatic range SUM). These are different quantities and both can be right; but report12 and report04 should say which one they mean, because a reviewer who knows Willis will check."
-      }
-    },
-
-    {
-      "row": 13,
-      "key": "costa-radarconf24",
-      "title": "Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC",
-      "venue": "IEEE RadarConf 2024 (conference version of row 12; single propeller)",
-      "status": "PUBLISHED",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
-      "corpus": "secondary",
-      "opened": "PARTIAL - machine-scanned only (48 bistatic, 38 micro-Doppler, 45 rotor hits); the journal version (row 12) supersedes it and was read instead",
-      "note": "Recorded so the pair is not merged by mistake, the same trap as Ziganshin's two documents."
-    },
-
-    {
-      "row": 14,
-      "key": "jees2021-mom",
-      "title": "Dynamic RCS Estimation according to Drone Movement Using the MoM and Far-Field Approximation",
-      "authors": "Dong-Yeob Lee, Jae-In Lee, Dong-Wook Seo (Korea Maritime and Ocean University)",
-      "venue": "Journal of Electromagnetic Engineering and Science, vol. 21, no. 4, pp. 322-328, Sep. 2021, doi 10.26866/jees.2021.4.r.40",
-      "status": "PUBLISHED",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
-      "pages": 7,
-      "corpus": "secondary (opened because it is the only paper found that OPTIMISES the per-phase re-pose loop, which is exactly our cost problem)",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "⭐⭐ SOLVED THE COST OF PER-PHASE RE-POSING, WITH THE SAME THREE TRICKS WE USE, AND PUBLISHED THE SPEEDUP AND THE ACCURACY PENALTY. This is the closest external precedent to src/microdoppler.py that exists in our archives.",
-        "quotes": [
-          {"page": 2, "q": "Even though the propellers rotate, the shape of the propellers does not change; only the incident and scattered angles change. Therefore, using the relative angle between a rotating propeller and the incident field, mesh generation can be done just once along with the construction of the impedance and admittance matrices."},
-          {"page": 2, "q": "we reversely rotate the incident angle of the incident field in the rotation direction of the propeller instead of rotating the propeller, and its effect reflects on the excitation vector"},
-          {"page": 3, "q": "Because of their mirror-image symmetric characteristics, the co-polarized components of the electric fields scattered from CW and CCW propellers are the same, and the cross-polarized components have a phase difference of 180 deg."},
-          {"page": 3, "q": "E_P1^s(t) ~= sum_{n=1}^{4} E_Tn^s(t; theta_P1, phi_P1) * exp(-j 2 k . r_n)  (4)"},
-          {"page": 4, "table": "Table 1. Calculation time for rotating propeller", "q": "Conventional 20:01:12   Proposed 00:07:40"},
-          {"page": 4, "q": "The electric fields scattered from a single propeller rotating once a second were calculated at 0.1 deg intervals for one second."},
-          {"page": 5, "q": "the NRMSDs are less than 2%, and the proposed method accurately estimates the dynamic RCSs of the four propellers"},
-          {"page": 5, "q": "This discrepancy seems to be due to the assumption that there is no coupling among the propellers for high-speed computation."},
-          {"page": 2, "q": "it is assumed that the quasi-static mode is established on a frame-by-frame basis with sampling intervals instead of a time-continuous model [11]"}
-        ],
-        "mapping_to_our_code": {
-          "their_trick_1_reuse_the_operator": "impedance matrix built once -> our sbr_field is re-run per phase, but our PO engine (microdoppler_series) builds the point cloud once and only rotates the look vector",
-          "their_trick_2_rotate_the_source_not_the_object": "identical to src/microdoppler.py docstring: 'v(t)=Rz(-theta(t))u 는 블레이드를 돌리는 대신 시선을 반대로 돌린 등가표현'",
-          "their_trick_3_CW_CCW_mirror_and_far_field_phase_sum": "identical to microdoppler_series building build_propeller(mirror=True) and summing rotors with exp(j2k c u)",
-          "their_sampling": "0.1 deg over 360 deg = 3600 phases; ours = 240 over the 360/n_blades period",
-          "their_price": "157x wall-clock (20:01:12 -> 00:07:40) at NRMSD < 2% versus the un-optimised MoM and versus MLFMM",
-          "what_we_can_now_write": "an external, peer-reviewed number for what the rotate-the-source equivalence costs in accuracy (<2% NRMSD) and buys in time (~157x), instead of asserting it ourselves"
-        }
-      },
-      "P8": {"on_their_path": false, "verdict": "NEVER MET - monostatic backscatter only ('bistatic' 1 hit, in prose)."}
-    },
-
-    {
-      "row": 15,
-      "key": "das-wcl-multiband-bistatic",
-      "title": "Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling",
-      "authors": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti (Oulu / QUB)",
-      "venue": "IEEE Wireless Communications Letters, vol. 15, 2026, pp. 3731-3735",
-      "status": "PUBLISHED",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
-      "pages": 5,
-      "corpus": "secondary (measurement anchor)",
-      "opened": true,
-      "P8": {
-        "on_their_path": true,
-        "verdict": "⭐ MEASURED THE BISTATIC-ANGLE DEPENDENCE OF DRONE RCS AND PUT A NUMBER ON IT. Not a reciprocity check ('reciproc' 0 hits), but the best external bound available for how much beta is allowed to matter.",
-        "quotes": [
-          {"page": 1, "q": "This letter develops 3GPP-compliant statistical RCS models for autonomous aerial vehicles (AAVs) using monostatic and bistatic measurements acquired across multiple frequency bands (1.8 GHz-27 GHz) and bistatic angles (0:15:90 deg) in both anechoic far-field and controlled indoor near-field environments."},
-          {"page": 3, "q": "The monostatic mean RCS is consistently higher than its bistatic counterparts, reflecting stronger backscatter when TX and RX are co-located. The lower bistatic values are likely due to directional scattering, reduced specular contributions, and aspect-dependent structural and material responses of the AAV, although isolating the contribution of each factor remains challenging."},
-          {"page": 5, "q": "Changing from monostatic to bistatic (90 deg) geometry increases the mean path-loss by only about 1-2 dB, indicating that frequency- and platform-dependent RCS variations dominate over bistatic-angle effects in this setting."},
-          {"page": 2, "q": "A metallic cylinder with radius 5.5 cm, height 30 cm, and known RCS sigma_Cal = 2.8 dBsm is placed at the center of the turntable"},
-          {"page": 2, "q": "the TX is fixed, whereas the RX is moved over bistatic angles theta_b = 0:15:90 deg ... K = 360 corresponding to the number of azimuth measurements"}
-        ],
-        "APPLES_TO_APPLES_WITH_OUR_NUMBER": {
-          "theirs": "mono -> bistatic 90 deg costs 1-2 dB of angle-averaged mean RCS (DJI Phantom 2, Phantom 3, Mini 2, M350 RTK, 1.8-27 GHz)",
-          "ours": "outputs/report13_sigma_grid.json delta_sigma_mean_db at beta=90 = -2.15 dB, averaged over 5 airframes x 3 bands (LTE 1.8 / NR 3.5 / WiFi 5.2 GHz), 24 azimuths each",
-          "verdict": "AGREES within its own spread. This is the first quantitative external corroboration our multistatic kernel has. Caveats before we publish it: (a) their bands go to 27 GHz and ours stop at 5.2 GHz; (b) their beta grid is 0:15:90 like ours by coincidence, but their averaging is over 360 azimuth points and ours over 24; (c) angle-averaged mean is a much weaker statistic than the per-aspect pattern - agreement here does NOT validate our per-aspect sigma."
-        }
-      },
-      "P3": {
-        "on_their_path": true,
-        "verdict": "ON THE PATH AND EXPLICITLY DECLINED, WITH THE REASON STATED - the cleanest 'they didn't, and here is why' in the set.",
-        "quote": {"page": 2, "q": "The motion of AAV rotor blades can introduce RCS fluctuations through micro-Doppler effects [8], which are typically captured using coherent radar measurements and time-frequency processing [9]. This effect is not considered here because the proposed model focuses on RCS amplitude statistics, while the measurement system provides quasi-static AAV backscatter characterization and does not resolve rotor-induced micro-Doppler [6], [8]. Micro-Doppler can be incorporated in future extensions by augmenting the proposed RCS amplitude model with a Doppler term driven by rotor kinematics."}
-      }
-    },
-
-    {
-      "row": 16,
-      "key": "clutter-aware-isac",
-      "title": "Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions",
-      "venue": "Proceedings of the IEEE, vol. 114, no. 1, Jan 2026, DOI 10.1109/JPROC.2026.3675476 (arXiv:2602.10537v2 is the same work)",
-      "status": "PUBLISHED (both copies present in the archive; do not double-count)",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
-      "pages": 41,
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": false,
-        "verdict": "NEVER MET - 'micro-Doppler' appears once, as an environment descriptor in a clutter table ('Indoor: LoS-dominant; sparse multipath; micro-Doppler' driven by human motion), not as a target signature they compute.",
-        "quote": {"page": 17, "q": "These multipath components generally experience only micro-Doppler effects, primarily driven by limited human motion."}
-      },
-      "P8": {
-        "on_their_path": true,
-        "verdict": "BISTATIC/MULTISTATIC ARE HANDLED AT THE SIGNAL-MODEL LEVEL ONLY - a substitution of steering vectors, with no scattering kernel and therefore nothing to check for reciprocity.",
-        "quotes": [
-          {"page": 6, "q": "Remark 1 (Extensions to bistatic and multistatic scenarios). The model in (8)-(14) is presented for a monostatic BS with co-located transmit and sensing receive arrays. The same formulation extends to bistatic and multistatic operation when the illuminator and the sensing receiver are at different locations."},
-          {"page": 6, "q": "For notational clarity, we proceed with the monostatic notation in the following derivations, noting that the same stacking operations apply in bistatic and multistatic settings after substituting the corresponding steering vectors and delays."},
-          {"page": 24, "q": "Replacing the steering vector in (94)-(95) by v_n^bi(theta_T, theta_R, f_D) yields the corresponding waveform-aware bistatic/multistatic STAP weights and SCNR."}
-        ],
-        "caution": "Their two 'reciproc' hits are 'reciprocal filtering (RF)' de-randomization on p.8. Not electromagnetic reciprocity."
-      }
-    },
-
-    {
-      "row": 17,
-      "key": "lambda",
-      "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
-      "venue": "arXiv:2607.03826v1",
-      "status": "PREPRINT",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
-      "pages": 20,
-      "corpus": "sionna (role=TARGET_INJECTED_EXTERNAL)",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "WORKED AROUND FOR BODY MOTION ONLY - trajectories are evolved frame by frame, but rotor rotation never enters the EM chain; angular velocity appears only as a recorded IMU field.",
-        "quotes": [
-          {"page": 7, "q": "trajectories are generated using a Markov-chain maneuvering model inspired by maneuvering-target dynamics [29]. The model switches among constant-velocity, constant-acceleration, coordinated-turn, and Singer-style dynamics ... The UAV state is then evolved frame by frame according to the sampled motion mode, process noise, and boundary constraints."},
-          {"page": 11, "q": "imu/ UAV inertial states imu_000000.json, linear acceleration, angular velocity, orientation"}
-        ],
-        "reading": "Angular velocity is GROUND TRUTH METADATA, not an EM input. A reader skimming for 'angular velocity' would wrongly score this as a rotation model."
-      },
-      "P8": {"on_their_path": false, "verdict": "NEVER MET - 'bistatic' 0 hits; RCS is injected from CADFEKO into a Sionna RT propagation scene."}
-    },
-
-    {
-      "row": 18,
-      "key": "zhang-m350",
-      "title": "A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis (DJI M350 among targets)",
-      "venue": "arXiv:2505.20673 (IEEE JSAC vol. 44 pp. 702-716, 2026 per citation in row 15)",
-      "status": "PREPRINT copy in archive",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
-      "corpus": "sionna",
-      "opened": true,
-      "P3": {
-        "on_their_path": true,
-        "verdict": "DECLINED BY EXPERIMENTAL DESIGN - a turntable in 5 deg steps is a quasi-static measurement; rotor motion is absent.",
-        "quote": {"page": 6, "q": "The sensing target is placed in the center of an automated turntable, which rotates 360 deg in increments of 5 deg. ... Target Rotation Angle [0, 360 deg], Step 5 deg ... Sensing Mode Monostatic"}
-      },
-      "P8": {"on_their_path": true, "verdict": "MONOSTATIC ONLY ('Sensing Mode Monostatic' in their parameter table). No bistatic geometry, no reciprocity."}
-    },
-
-    {
-      "row": 19,
-      "key": "wei-uav-rotor-md-isac",
-      "title": "UAV's Rotor Micro-Doppler Feature Extraction Using Integrated Sensing and Communication Signal: Algorithm Design and Testbed Evaluation",
-      "venue": "arXiv:2408.16415 (cited as [20] by Costa)",
-      "status": "PREPRINT",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal.pdf",
-      "corpus": "secondary",
-      "opened": "PARTIAL - machine census only (142 micro-Doppler, 120 rotor, 0 ray-tracing, 0 Sionna, 0 bistatic hits)",
-      "P3": {"on_their_path": false, "verdict": "NEVER MET IN A RAY TRACER - zero ray-tracing terms in the whole document; it is an ISAC-signal + testbed extraction paper. Costa (row 12, p.2) summarises it as 'Only [20] discusses ISAC and OFDM, but only in monostatic geometry.'"},
-      "P8": {"on_their_path": false, "verdict": "monostatic per Costa's characterisation; 'bistatic' 0 hits in our scan."},
-      "honesty_flag": "NOT READ PAGE BY PAGE. The two statements above rest on a machine count plus Costa's published characterisation, and are labelled as such."
-    },
-
-    {
-      "row": 20,
-      "key": "monte-carlo-sbr-farfield",
-      "title": "Monte-Carlo SBR far-field scattering (MECA / surface equivalence principle)",
-      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
-      "corpus": "secondary",
-      "opened": "PARTIAL - machine census (78 ray-tracing hits, 0 reciprocity, 0 bistatic, 0 rotor) plus one located quote",
-      "quote_located": {"q": "MECA extends this idea to dielectric surfaces using the surface equivalence principle. On the boundary between any two homogeneous regions, the electric, J, and magnetic, M, currents along the boundary can [be] found using J = n x H and M = E x n."},
-      "P3": {"on_their_path": false, "verdict": "NEVER MET - no motion."},
-      "P8": {"on_their_path": true, "verdict": "A RAY ENGINE THAT DID NOT CHECK RECIPROCITY (0 hits). Recorded as a lead: MECA with both J and M currents is the standard way to make a PO-class kernel behave better off-specular, and would be the next thing to read for P4/P8."},
-      "honesty_flag": "NOT READ PAGE BY PAGE."
-    }
-  ],
-
-  "answers": {
-    "P3": {
-      "did_anyone_express_rotation_INSIDE_the_engine": "NO. Across 140 Sionna-corpus PDFs plus 73 more from the secondary corpora, not one paper gives a rotating body a representation inside the tracer - no split-into-many-objects trick, no per-face velocity field, no time-varying transform evaluated by the solver. Sionna's own technical report (row 2, p.28) offers exactly two options and the accurate one is 'moving objects in small incremental steps ... and recomputing the propagation paths at each step'. Nobody beat that.",
-      "who_re_posed_per_snapshot": [
-        "md-rt, ICCT 2025 (row 1) - INSIDE Sionna RT, 2048 OFDM symbols, Blender rotor mesh, plus a modified conical launcher. The only paper in the corpus that traced a rotating drone propeller.",
-        "VaN3Twin (row 4) - inside Sionna RT, translation only, with a published per-snapshot cost of 168-446 ms on an RTX 3090.",
-        "Open Wireless DT (row 5) - inside Sionna RT, translation only, and it warns that snapshotting alone leaves phase discontinuities between snapshots.",
-        "jees2021 MoM (row 14) and, per Costa's survey, refs [12]-[16] (PO+MEC helicopter rotor; PO on CAD at many positions; MoM+PO 512 positions; FEM/MoM 512 positions; full-wave over half a turn) - re-posed geometry in NON-ray engines. THESE ARE THE REAL PRECEDENT FOR pose_articulated()."
-      ],
-      "correction_to_our_own_record": "⭐ Our memory note says md-rt 'derives micro-Doppler analytically from rigid-body angular velocity'. That is HALF WRONG and should be fixed. The analytic omega x r formula is their VALIDATION REFERENCE (p.4: 'The simulated results are compared with the analytical formulas derived in Section II'); the simulation itself is a re-pose-and-re-trace loop in Sionna RT (p.3, steps 4-5). md-rt is therefore not a counterexample to our approach - it is the same approach, published, in the same engine.",
-      "who_computed_micro_Doppler_in_Sionna_at_all": "Exactly one work: md-rt (ICCT 2025). OpenISAC has 21 micro-Doppler mentions but measures them on USRP hardware and cites Sionna only to say it is not an ISAC sensing pipeline. Ziganshin mentions micro-Doppler twice, both as future work. Clutter-Aware ISAC mentions it once, about human motion in indoor clutter. That is the whole list.",
-      "what_we_can_now_claim_that_we_could_not_before": [
-        "Our per-phase re-pose is the route the vendor documents as the accurate one, and the one-velocity-vector shortcut is documented as valid only for trajectories of a few wavelengths - a rotor tip exceeds that inside one OFDM slot.",
-        "Our n_phase=240 over the 360/n_blades period (=480 per full turn) sits beside a twice-published convention of 512 positions per 360 deg.",
-        "The rotate-the-source-instead-of-the-object equivalence, the CW/CCW mirror relation and the far-field per-rotor phase sum - all three of our optimisations - are a published method (JEES 2021) with a measured 157x speedup and <2% NRMSD penalty."
-      ]
-    },
-    "P8": {
-      "who_computed_bistatic_scattering_in_a_ray_engine": "One: Ziganshin (rows 7-8), in both documents. Sagitta (row 11) is a ray engine that deliberately stayed monostatic and said in a footnote that bistatic would require the exit-visibility function. Everything else labelled 'bistatic' in the corpus is a signal model or a measurement, not a ray-traced scattering kernel.",
-      "did_anyone_check_reciprocity_or_symmetry": "NO ONE checked their own kernel. Zero papers in 213 PDFs report a reciprocity or symmetry test on a scattering computation they performed. Ziganshin, the only bistatic ray-tracing author, has 0 occurrences of 'reciproc' in 11 pages; he bought credibility with EXTERNAL data instead (BIRA bistatic measurement 2-18 GHz, MLFMM in the shadow region).",
-      "external_standards_that_DO_exist": [
-        "⭐ 2605.31267 (row 9): the reciprocity condition written as an equation for a scattering pattern, f(k_s,k_i)/F(k_i) cos(theta_i) = f(k_i,k_s)/F(k_s) cos(theta_s), the identification of the classical ER directive model as NON-reciprocal, and the RER fix (a sqrt(cos theta_s) factor, Vitucci et al. IEEE TAP 71(7) 2023). It also states that Sionna RT ships the ER family - and we verified in the installed 2.0.1 source that Sionna's DirectivePattern has no sqrt(cos theta_o) factor, i.e. it is the NON-reciprocal variant.",
-          "⭐ Bilkent MSc thesis 2002 (row 10) p.70: 'fields in the PO approximation do not satisfy reciprocity except in the direction of specular reflection ... PTD is used to overcome this discrepancy.' This says our violation is the expected behaviour of PO and that P4 and P8 share one cure.",
-        "Das, IEEE WCL 15 (2026) (row 15): measured drone RCS at bistatic angles 0:15:90 deg, 1.8-27 GHz; going to beta=90 costs only 1-2 dB of angle-averaged mean RCS."
-      ],
-      "our_window_in_that_light": {
-        "our_stated_window": "beta <= 45 deg",
-        "our_own_data": "reciprocity RMS is 2.82 dB already at beta=15 and 5.69 dB at beta=90 (15 drone-band cells); the mean Delta sigma at beta=90 is -2.15 dB",
-        "external_comparison": "Das measures 1-2 dB from mono to beta=90 on real airframes; our -2.15 dB agrees. So the ANGLE-AVERAGED LEVEL is in family. The reciprocity RMS is a different and larger error, and no external paper bounds it, because no one measured it.",
-        "recommended_reframing": "Stop presenting beta<=45 as a measured knee. Present it as: (i) PO is known not to be reciprocal off specular (Bilkent/PTD literature); (ii) our plate check reproduces the closed-form obliquity law -20log10(cos beta) to within 0.03-0.15 dB, so the kernel behaves as PO should; (iii) exit visibility, which Sagitta says bistatic requires and which we implemented, cuts the drone-level violation from 6.11 to 4.02 dB RMS at beta=90; (iv) the residual is the missing edge term, and PTD is the named remedy for both P4 and P8."
-      },
-      "cheapest_next_experiments_suggested_by_the_literature": [
-        "Apply the RER sqrt(cos theta_s) reweighting + renormalisation to any diffuse term we take from Sionna, and re-run multistatic_check. The literature says this makes the pattern exactly reciprocal; our harness already measures whether it does.",
-        "Symmetrise: outputs/sbr_defect_fixes.json already stores sigma_sym (geometric mean of the two directions) with rms_sym_db = 0 by construction. A reciprocity-enforcing symmetrised kernel is one line and is defensible under Van Bladel; state it as a modelling choice, not as physics.",
-        "Add a PTD/edge term on the airframe silhouette and check BOTH the band slope (P4) and the reciprocity RMS (P8) move together. If they do, that is a single-mechanism result worth a figure."
-      ]
-    }
+  {
+   "row": 4,
+   "key": "van3twin",
+   "title": "VaN3Twin: full-stack V2X Network Digital Twin with Sionna RT in the loop",
+   "authors": "R. Pegurri et al.",
+   "venue": "arXiv:2505.14184",
+   "status": "PREPRINT",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "WORKED AROUND (translation only) - and they published the price of per-snapshot re-tracing in Sionna, which is the number our P3 chapter needs.",
+    "method": "Meshes are mapped one-to-one to vehicles and re-positioned per snapshot; a re-trace is triggered only when a vehicle has moved beyond a coherence-derived threshold.",
+    "quotes": [
+     {
+      "page": 4,
+      "q": "This synchronization ensures that the propagation environment faithfully reflects the time-varying geometry and kinematics of the vehicular network ... To limit the computational cost of ray tracing scene updates, synchronization is performed only if the vehicle has moved beyond a minimum threshold distance delta_d_min, defined as: delta_d_min = max( delta_d_0, v_vn(t) * tau_coh )"
+     },
+     {
+      "page": 12,
+      "q": "the mean cost of a full ray tracing snapshot increases predictably with the number of active vehicles, rising from 168.56 ms (5 vehicles) to 446.25 ms (60 vehicles), with the 95th percentile increasing from 204.14 ms to 847.61 ms"
+     },
+     {
+      "page": 12,
+      "q": "the cache-hit ratio increases monotonically, reaching 99.58% with 60 vehicles"
+     },
+     {
+      "page": 12,
+      "q": "Experiments were conducted on a workstation ... NVIDIA GeForce RTX 3090 GPU ... Sionna RT v1.2.0"
+     }
+    ],
+    "usable_by_us": "168-446 ms per full Sionna RT snapshot on an RTX 3090 gives an order-of-magnitude anchor for what 240 rotor-phase re-poses would cost if we ran them through Sionna RT rather than our own SBR. Their threshold trick (re-trace only past a coherence distance) is NOT applicable to a blade: the blade tip crosses the threshold every sample."
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - propagation only, no target signature."
+   }
   },
-
-  "not_opened": [
-    {"what": "Pouliguen et al., 'Calculation and analysis of electromagnetic scattering by helicopter rotating blades', IEEE TAP 50(10) 2002", "why_it_matters": "PO+MEC time-varying RCS of a rotor - the oldest precedent for our exact method", "status": "NOT IN ARCHIVE, NOT OPENED - known only through Costa's summary (row 12, p.2)"},
-    {"what": "Schroeder et al., SPIE Target and Background Signatures II vol. 9997, 2016 - MoM+PO, 512 discrete propeller positions", "status": "NOT IN ARCHIVE, NOT OPENED - the '512 positions' figure comes from Costa's sentence, not from the source"},
-    {"what": "Speirs et al., EuRAD 2018 - FEM/MoM, 512 uniformly spaced positions through 360 deg", "status": "NOT IN ARCHIVE, NOT OPENED - same provenance caveat"},
-    {"what": "Vitucci, Cenni, Fuschini, Degli-Esposti, 'A reciprocal heuristic model for diffuse scattering from walls and surfaces', IEEE TAP 71(7) 2023, 6072-6083", "why_it_matters": "the primary source for the RER fix we would apply", "status": "NOT IN ARCHIVE, NOT OPENED - reached only via row 9's citation [8]"},
-    {"what": "Melloni et al., arXiv:2605.17988, 'A computationally efficient reciprocal effective roughness model for diffuse scattering', 2026", "why_it_matters": "G-RER, the cheap reciprocal form", "status": "NOT IN ARCHIVE, NOT OPENED - reached only via row 9's citation [9]"}
-  ],
-
-  "cautions": [
-    "Two document pairs must never be merged: Ziganshin EuCAP 2025 (published, carries the runtime sentence) vs arXiv:2604.05991v2 (preprint, does not); Costa RadarConf24 (single propeller) vs JSTEAP 2025 (multi-propeller, measured). Both pairs are physically present in the archive as separate files.",
-    "Clutter-Aware ISAC also exists twice (Proc. IEEE PDF and arXiv:2602.10537v2). The micro-Doppler machine count of 6 files is 5 unique works for this reason.",
-    "'Reciprocal filter' is the dominant meaning of 'reciproc' in this literature (passive-radar range compression, OFDM de-randomization). Ten of the eleven hits in the Sionna corpus are that, or DL/UL channel reciprocity. Only one is scattering reciprocity. Any future keyword search must apply this filter or it will produce exactly the kind of false count this workflow exists to prevent.",
-    "Rows 13, 19 and 20 were NOT read page by page and say so. Their P3/P8 entries rest on machine counts plus, where noted, a published characterisation by another author.",
-    "The Das (row 15) agreement is on an ANGLE-AVERAGED mean over 360 azimuths at 1.8-27 GHz versus our 24 azimuths at 1.8-5.2 GHz. It corroborates the level trend with bistatic angle. It does NOT validate our per-aspect pattern and must not be written up as if it did."
-  ]
+  {
+   "row": 5,
+   "key": "open-wireless-dt",
+   "title": "Open Wireless Digital Twin (OAI + Sionna RT)",
+   "venue": "arXiv:2503.12177",
+   "status": "PREPRINT (machine-classified in the sweep; opened for this task)",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "WORKED AROUND, and they name the exact failure mode of snapshotting - phase discontinuity between snapshots.",
+    "quotes": [
+     {
+      "page": 8,
+      "q": "it should be noted that this study does not account for time variations within the 100 ms intervals; consequently, the phase values show discontinuous transitions in each snapshot. This indicates that our study did not consider the Doppler effect."
+     },
+     {
+      "page": 11,
+      "q": "the CIR snapshot interval should, in principle, be no larger than Tf. An efficient approach is to compute snapshots every approximately 20 ms (not exceeding several times Tf) and then use Sionna RT's apply_doppler() function to interpolate the Doppler-affected CIR at a finer time resolution."
+     },
+     {
+      "page": 3,
+      "q": "(a) It does not model channels varying on time scales shorter than the Doppler period"
+     }
+    ],
+    "usable_by_us": "The hybrid they recommend - coarse re-trace + apply_doppler interpolation between - is the natural cheap version of our phase table. Our microdoppler_sbr already does the same shape (240 traced phases + linear interpolation in slow time); their warning about inter-snapshot phase discontinuity is the hazard to test for in our table."
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET. Its one 'reciprocity' hit is UL/DL channel reciprocity, not scattering."
+   }
+  },
+  {
+   "row": 6,
+   "key": "openisac",
+   "title": "OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC",
+   "venue": "arXiv:2601.03535v2",
+   "status": "PREPRINT",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+   "pages": 16,
+   "corpus": "sionna (role=CITE_ONLY)",
+   "opened": true,
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET, TASK DIFFERED - they MEASURED micro-Doppler on hardware instead of simulating it. This is the paper the user probably remembers as 'micro-Doppler in Sionna'; it is not. Sionna is cited once, as a tool they position AGAINST.",
+    "quotes": [
+     {
+      "page": 14,
+      "q": "Fig. 13 illustrates the monostatic micro-Doppler spectrogram of a hovering Mavic Air 3S. The zero-Doppler return represents quasi-static scattering from the UAV body. Symmetric, equidistant ridges correspond to the rotating rotor blades."
+     },
+     {
+      "page": 2,
+      "q": "NVIDIA Sionna and the Sionna Research Kit are also important open-source tools for wireless communication research, including ray-tracing-based channel modeling and SDR-enabled communication prototyping [19]. However, they primarily target communication-system simulation and prototyping rather than a complete end-to-end ISAC sensing pipeline."
+     },
+     {
+      "page": 15,
+      "q": "reference [19] ... 'Sionna,' https://nvlabs.github.io/sionna/, 2022, version 2.0.1"
+     }
+    ],
+    "hardware": "BS = Luowave USRP-LW X310 + horn antennas + external OCXO; UE = TQTT Tiny B210. fc 3.1 GHz, B 50 MHz, N=1024, STFT window 256 hop 64. Platform claims support up to USRP X400-series."
+   },
+   "P8": {
+    "on_their_path": true,
+    "verdict": "⭐ THE ONLY EMPIRICAL MONOSTATIC-vs-BISTATIC MICRO-DOPPLER CONSISTENCY STATEMENT IN THE CORPUS. Not a reciprocity check, but a real cross-geometry observation on a real drone.",
+    "quotes": [
+     {
+      "page": 15,
+      "q": "We further validate the bistatic sensing performance using a Mavic Air 3S as the target. Fig. 16a displays the micro-Doppler spectrum of a hovering UAV, clearly exhibiting the characteristic symmetric blade ridges consistent with monostatic observations (Fig. 13)."
+     },
+     {
+      "page": 1,
+      "q": "OpenISAC utilizes orthogonal frequency division multiplexing (OFDM) waveform and implements crucial sensing functionalities, including both monostatic and bistatic delay-Doppler sensing."
+     },
+     {
+      "page": 15,
+      "q": "the improvement is close to 0 dB near zero clock error, about 10-14 dB around +/-0.25 ppm, and about 17-22 dB around +/-0.5 ppm"
+     }
+    ],
+    "caution": "Their single 'reciproc' hit is a 'proximate reciprocal filter with circular correlation (PRF-CC)' on p.6 - range compression, NOT electromagnetic reciprocity. Do not cite it as such."
+   }
+  },
+  {
+   "row": 7,
+   "key": "ziganshin-journal",
+   "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+   "authors": "A. Ziganshin, E. M. Vitucci, S. J. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thomae",
+   "venue": "arXiv:2604.05991v2, 2 Jul 2026 - NO venue header, NO DOI in the PDF",
+   "status": "PREPRINT (journal version; do NOT merge with the EuCAP 2025 conference paper, row 8)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "pages": 11,
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "⭐ EXPLICITLY DECLINED - micro-Doppler is future work item 4, and he points at Costa (row 12) as the way to do it.",
+    "quotes": [
+     {
+      "page": 9,
+      "q": "4) Modeling of time-varying substructures (micro-Doppler) [34]."
+     },
+     {
+      "page": 11,
+      "q": "[34] H. C. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, and R. S. Thomae, 'Modeling micro-doppler signature of multi-propeller drones in distributed ISAC,' IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, 2025."
+     }
+    ],
+    "reading": "The one author in the corpus who prints dBsm from a Sionna-based pipeline did not attempt rotation, and pointed at an ANALYTIC thin-wire model rather than at his own ray framework. That is the strongest evidence that expressing rotation inside a ray engine is genuinely unsolved in this literature."
+   },
+   "P8": {
+    "on_their_path": true,
+    "verdict": "COMPUTED BISTATIC, DID NOT CHECK RECIPROCITY. 'reciproc' appears 0 times in 11 pages.",
+    "quotes": [
+     {
+      "page": 5,
+      "q": "The object is illuminated under either plane-wave or near-field conditions, while observation points are placed on a circular trajectory around the object. The bistatic angle is defined between the incident and observation directions. The region opposite to the incident direction corresponds to the shadow region."
+     },
+     {
+      "page": 7,
+      "q": "1) Comparison Against Bistatic Measurements: The measurements were performed using the BIRA bistatic reflectivity setup [4] with frequency range 2-18 GHz. A small vehicle, Mitsubishi i-MiEV, depicted in Fig. 6a, was illuminated from the side, and the field was recorded over a wide angular range with 1 degree resolution."
+     },
+     {
+      "page": 9,
+      "q": "The agreement with bistatic measurements in the backscattering region and with full-wave MLFMM simulations in the shadow region confirms that the proposed approach can capture the dominant scattering and blockage effects of complex vehicular objects."
+     },
+     {
+      "page": 2,
+      "q": "Extension of a practical RT framework with advanced diffraction mechanisms, including vertex diffraction and higher-order diffraction interactions."
+     }
+    ],
+    "what_he_validated_instead": "Against external references (BIRA bistatic measurement; MLFMM in the shadow region), i.e. he bought his credibility with EXTERNAL DATA rather than with an internal symmetry check. That is a template we can copy but it does not give us a reciprocity standard.",
+    "usable_by_us": "His validity split is quotable: fine meshes for backscatter, coarse for shadow - 'no universal discretization strategy exists' (p.1)."
+   }
+  },
+  {
+   "row": 8,
+   "key": "ziganshin-eucap",
+   "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+   "venue": "2025 19th European Conference on Antennas and Propagation (EuCAP), pp. 1-5",
+   "status": "PUBLISHED (this is the conference version; it carries the runtime sentence, the journal preprint does not)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "pages": 5,
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "EXPLICITLY DEFERRED, same as the journal version.",
+    "quotes": [
+     {
+      "page": 5,
+      "q": "The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation."
+     }
+    ]
+   },
+   "P8": {
+    "on_their_path": true,
+    "verdict": "MULTISTATIC BY TITLE; defines the quantity as a bistatic transfer function rather than an RCS; no reciprocity or symmetry test.",
+    "quotes": [
+     {
+      "page": 1,
+      "q": "The reflectivity function describes the bistatic complex-valued polarimetric input/output transfer function (conversion of an incident wave into a scattered wave) for an extended target at an arbitrary distance. This is a key difference compared to Radar Cross-Section (RCS), which is a real-valued [far-field quantity]"
+     }
+    ],
+    "usable_by_us": "This sentence is the cleanest published justification for reporting a bistatic complex reflectivity instead of a scalar RCS - directly relevant to how we should phrase our own multistatic claim."
+   }
+  },
+  {
+   "row": 9,
+   "key": "effective-roughness-polarimetric",
+   "title": "Super-Resolution Experimental Validation and Polarimetric Extension of the Effective Roughness Diffuse Scattering Models",
+   "venue": "arXiv:2605.31267",
+   "status": "PREPRINT",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+   "pages": 14,
+   "corpus": "sionna (role=CITE_ONLY_BUT_LOAD_BEARING)",
+   "opened": true,
+   "P8": {
+    "on_their_path": true,
+    "verdict": "⭐⭐ THE EXTERNAL RECIPROCITY STANDARD WE ASKED FOR. It states the reciprocity condition on a scattering pattern as a formula, names the model family that violates it, and names the fix - and it says Sionna RT ships the family.",
+    "quotes": [
+     {
+      "page": 3,
+      "q": "While this model captures the directional spreading of diffuse scattering around the specular direction, it does not satisfy reciprocity, i.e., invariance of the scattering response when the incident and observation directions are interchanged [27]."
+     },
+     {
+      "page": 3,
+      "q": "To ensure physical consistency, the reciprocity condition must be satisfied, which can be expressed as f(k_s, k_i)/F(k_i) * cos(theta_i) = f(k_i, k_s)/F(k_s) * cos(theta_s).   (5)"
+     },
+     {
+      "page": 3,
+      "q": "The reciprocal effective roughness (RER) model satisfies this condition by modifying the directive pattern as [8] f_RER(k_s,k_i) = sqrt(cos(theta_s)) * ((1+cos(psi))/2)^alpha_R.   (6) This formulation preserves the ER lobe structure while ensuring reciprocity through the inclusion of the sqrt(cos(theta_s)) factor."
+     },
+     {
+      "page": 2,
+      "q": "The popularity of the model is supported by its integration in several ray tracing (RT) tools, including NVIDIA's Sionna RT [21], Remcom's Wireless InSite [22], and Siradel's Volcano [23]."
+     }
+    ],
+    "chain_of_citations_for_us": [
+     "[27] J. G. Van Bladel, Electromagnetic Fields, 2nd ed., IEEE Press/Wiley 2007 - the reciprocity principle itself",
+     "[7] V. Degli-Esposti, F. Fuschini, E. M. Vitucci, G. Falciasecca, IEEE TAP 55(1) 2007 - the ORIGINAL non-reciprocal ER directive model",
+     "[8] E. M. Vitucci, N. Cenni, F. Fuschini, V. Degli-Esposti, 'A reciprocal heuristic model for diffuse scattering from walls and surfaces', IEEE TAP 71(7) 2023, pp. 6072-6083 - the RER fix",
+     "[9] G. Melloni, E. M. Vitucci, V. Degli-Esposti, S. Berweger, J. Chuang, C. Gentile, N. Golmie, 'A computationally efficient reciprocal effective roughness model for diffuse scattering', arXiv:2605.17988, 2026 - G-RER (NOT IN OUR ARCHIVE, see not_opened)"
+    ],
+    "we_verified_against_the_installed_engine": {
+     "file": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/radio_materials/scattering_pattern.py",
+     "lines": "202-440",
+     "fact": "Sionna 2.0.1 ships LambertianPattern, BackscatteringPattern and DirectivePattern, all documented as 'from :cite:p:`Degli-Esposti07`'. The __call__ of BackscatteringPattern computes v_r = (0.5*(1+cos_psi_r))^alpha_r and v_i = (0.5*(1+cos_psi_i))^alpha_i with a normalisation over cos_theta_i. There is NO sqrt(cos theta_o) factor anywhere in the file.",
+     "conclusion": "Sionna's own diffuse-scattering kernel is the NON-reciprocal ER variant, not RER/G-RER. So 'our kernel violates reciprocity' is not a peculiarity of our PO layer - the stock engine we build on has the same property in its diffuse term, and the literature fix is a one-line sqrt(cos theta_s) reweighting plus renormalisation."
+    }
+   },
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - static material samples on a turntable."
+   }
+  },
+  {
+   "row": 10,
+   "key": "bilkent-ptd-thesis",
+   "title": "Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations",
+   "authors": "Alper Kursat Ozturk (MSc thesis, Bilkent University, Dept. of Electrical and Electronics Engineering)",
+   "venue": "MSc thesis, July 2002",
+   "status": "THESIS",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
+   "pages": 72,
+   "corpus": "secondary (opened because it is the only document in 213 PDFs that states a reciprocity property OF PO ITSELF)",
+   "opened": true,
+   "P8": {
+    "on_their_path": true,
+    "verdict": "⭐⭐ THE SINGLE MOST IMPORTANT SENTENCE FOR OUR P8 CHAPTER. It says our defect is the textbook defect of PO, and that the remedy is the SAME remedy P4 needs.",
+    "quotes": [
+     {
+      "page": 70,
+      "q": "PO theory also includes erroneous contribution due to abrupt discontinuities of current at the shadow boundaries of the surface. PO approximation is also expected to be inaccurate in the regions where the GO current does not produce the dominant scattering (e.g. deep shadow regions). Furthermore, fields in the PO approximation do not satisfy reciprocity except in the direction of specular reflection. PO becomes more inaccurate if the target surface contains edges. PTD is used to overcome this discrepancy."
+     },
+     {
+      "page": 70,
+      "q": "In fact, PTD is the superposition of the PO field (originating from the smooth surface) and the field of the equivalent currents on the edge (edge-diffracted field)."
+     },
+     {
+      "page": 70,
+      "q": "The accuracy of the PO method depends on the size of the meshes. Triangles with area = 0.005 lambda^2 are used for meshing."
+     }
+    ],
+    "why_this_closes_a_loop": "P4 (band slope 0.74-1.70 dB/GHz vs measured 0.175-0.315, mechanism = missing frequency-independent edge term) and P8 (reciprocity violated off-specular) are THE SAME MISSING TERM. Adding PTD/edge currents is one fix that pays both. Our own plate check independently reproduces the PO obliquity law -20log10(cos beta) with residuals of 0.03-0.15 dB, which is what a correct PO implementation with the known defect should do. ⛔**대조 불가**(2026-09-04) — 측정 기울기 0.175~0.315 는 전부 **1.8~18.2 GHz 전대역 적합**이고 6 GHz 위 적합은 없다. 같은 구간에서 재면 우리 0.435 대 Das 0.210 = 2.07배다(`docs/ENGINE_VALIDATION.md` §1).",
+    "caution": "This is a 2002 MSc thesis, not a peer-reviewed article. Cite it as a secondary/textbook-level statement and back it with a primary source (Ufimtsev PTD, or McNamara/Pistorius/Malherbe UTD) before it goes in a paper. Its mesh criterion 0.005 lambda^2 per triangle is also a usable external number for our discretisation defence."
+   },
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - static RCS."
+   }
+  },
+  {
+   "row": 11,
+   "key": "sagitta-sbr",
+   "title": "Sagitta - GPU/MPI Shooting-and-Bouncing-Rays with BVH for far-field scattering",
+   "venue": "arXiv:2604.09243 (extended version of a paper accepted at ICCS 2026)",
+   "status": "PREPRINT (conference acceptance stated in the PDF)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "pages": 14,
+   "corpus": "sionna-corpus member by archive placement; the PDF itself mentions Sionna 0 times",
+   "opened": true,
+   "P8": {
+    "on_their_path": true,
+    "verdict": "⭐ DECLINED BISTATIC ON PURPOSE, AND NAMED THE EXACT REASON WE ALREADY IMPLEMENTED. Best positioning quote in the whole sweep.",
+    "quotes": [
+     {
+      "page": 4,
+      "footnote": 1,
+      "q": "A bistatic scattering calculation would require a visibility function to account for shadow regions between the reflection points and the final receiver. In a monostatic configuration this can be omitted, since the predominantly scattering surfaces are by assumption visible to the co-located launcher and receiver."
+     },
+     {
+      "page": 1,
+      "q": "We validate against analytical Mie solutions for a perfectly electrically conducting (PEC) sphere and demonstrate applicability to a complex aircraft geometry for monostatic radar cross-section prediction."
+     },
+     {
+      "page": 10,
+      "q": "A total of 30,000 x 30,000 rays are launched from a 90 x 90 m grid, with an average computation time of 616.12 ms in FP32 per angular position with a total sweep time of ~27 minutes on 8 LUMI nodes."
+     }
+    ],
+    "our_side_of_that_sentence": "We DID cast the second shadow ray. src/make_report02_target.py:1768 - 'for a bistatic pair a second shadow ray is cast from every hit point toward the [receiver]'; outputs/sbr_defect_fixes.json::d2_exit_vis_effect_on_reciprocity shows what it buys: reciprocity RMS at beta=90 falls 6.11 -> 4.02 dB, worst case 9.69 -> 8.24 dB. So a published SBR paper says bistatic needs exit visibility, we implemented exit visibility, and we measured that it partially repairs reciprocity. That triangle is publishable as-is.",
+    "note": "Sagitta reports no reciprocity check either; its two 'reciproc' hits are references to Taygur & Eibert's bidirectional ray tracing (URSI AT-RASC 2018; IEEE TAP 66(12) 2018), which USES the reciprocity theorem for antenna coupling - it is not a check of a scattering kernel."
+   },
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - static aircraft, angular sweeps only ('rotat' 0 hits)."
+   }
+  },
+  {
+   "row": 12,
+   "key": "costa-jsteap",
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "authors": "H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thomae (TU Ilmenau)",
+   "venue": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, vol. 1, 2025 (p.220 footer)",
+   "status": "PUBLISHED",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+   "pages": 14,
+   "corpus": "secondary (opened because Ziganshin cites it as HIS route to micro-Doppler - it is on the Sionna group's own path)",
+   "opened": true,
+   "P3_and_P8_jointly": {
+    "on_their_path": true,
+    "verdict": "⭐ THE ONLY BISTATIC MICRO-DOPPLER MODEL IN THE SET THAT IS VALIDATED AGAINST A CONTROLLED BISTATIC MEASUREMENT. It is ANALYTIC, not ray traced: 'ray trac' 0 hits, 'Sionna' 0 hits, 'reciproc' 0 hits.",
+    "method_quotes": [
+     {
+      "page": 3,
+      "q": "Such a math model was presented in [40] ... This bistatic range is R_P^(b)(t) ~= R_O - A_B l cos(omega t + phi_B), (6) where A_B = sqrt(4 cos(beta/2)^2 - (cos beta_T + cos beta_R)^2)"
+     },
+     {
+      "page": 3,
+      "q": "Two important things to note are that, in this formulation, there is no restriction about the relative position between the rotation plane and the Tx / Rx positions, and that R_O is also time-dependent if the target is moving."
+     },
+     {
+      "page": 3,
+      "q": "Since the range resolution in the direction of the bistatic bisector is given by delta_R = c/[2B cos(beta/2)] [39] when a low signal bandwidth B is used, the range resolution is finer than the target dimensions"
+     }
+    ],
+    "validation_quotes": [
+     {
+      "page": 11,
+      "q": "The reflectivity of Ironman Drone is measured with wide bandwidth (5.78 GHz:10 MHz:8.22 GHz) for multiple bistatic angle constellations (10 deg : 5 deg : 180 deg) in HH polarization."
+     },
+     {
+      "page": 11,
+      "q": "for micro-Doppler analysis purposes, in order to provide reference speed, it is desirable to have full control over the rotors' rotation, which is not feasible with most standard commercial drones. Therefore, a custom-built system was assembled, allowing us to remotely set the propeller's angular velocities. ... a Tarot IRON MAN 650 mechanical structure ... Carbon fiber propellers were used in the measurements."
+     },
+     {
+      "page": 12,
+      "table": "TABLE I",
+      "q": "Setup 1 / Setup 2: OFDM-based; central frequency 3.7 GHz / 7 GHz; bandwidth 200 MHz / 2.46 GHz; rotating propellers 1 / 2; blades per propeller 2 / 2; propeller radius 16.55 cm; rotation speed 1500 rpm / 1500 and 2000 rpm"
+     },
+     {
+      "page": 9,
+      "q": "Fig. 8 ... mean squared error (MSE) and Pearson correlation coefficient between frequency domain micro-Doppler signatures of models and measurement (1 propeller with Gaussian body, 16384 symbols, subsampling = 8)  [swept over Bistatic Angle 30-180 deg]"
+     }
+    ],
+    "their_survey_of_how_others_did_rotation_IN_EM_SOLVERS": {
+     "page": 2,
+     "q": "[12] describes an application of Physical Optics (PO) and the Method of Equivalent Currents (MEC) to calculate the time-varying Radar Cross-Section (RCS) of a helicopter rotor. [13] combines PO simulation from CAD models in different positions to generate the time-varying reflectivity of a propelled aircraft. [14] utilizes the Method of Moments (MoM) as well as the Physical Optics method to simulate the micro-Doppler of a multi-propeller drone with 512 discrete propeller positions. Similarly, [15] uses a hybrid Finite Element Method (FEM) and MoM scheme, and also considers 512 different uniformly spaced propeller positions through 360 deg ... [16] employs multiple full-wave Electromagnetic (EM) simulations of a multi-propeller drone to create the returns from half of the full rotation of all propellers.",
+     "why_it_matters_for_us": "⭐ 512 discrete propeller positions over 360 deg is an established, twice-repeated sampling choice in the EM-solver literature. Our microdoppler_sbr uses n_phase=240 over the 180 deg period of a 2-blade prop = 480 equivalent positions per full turn. We are within 7% of the published convention and can now cite it instead of defending 240 from first principles.",
+     "their_reason_for_rejecting_that_route": {
+      "page": 2,
+      "q": "These methods have the advantage of taking into account the complex structures of the objects and reproducing effects such as diffraction and shadowing. However, they are extremely time-consuming and hard to implement. As a consequence, using these methods to generate a large amount of data to train machine learning algorithms becomes unfeasible."
+     }
+    },
+    "their_criticism_that_lands_on_US": {
+     "page": 10,
+     "q": "This model also has another considerable advantage when compared to CAD-based EM simulation methods. It can easily reproduce the drone fast movements and rotations, with 3D velocity and 3D angular changes, which appear in practical scenarios, while vibration can be included with (46). ... These ranges and vectors can be independently recalculated for every slow-time instant t using any movement model. Hence, the proposed model enables the simulation of arbitrary target movements and complex trajectories, that can include varying accelerations and body rotation, which is not feasible with CAD-based EM simulations.",
+     "our_answer": "Our phase table is indexed by a SINGLE scalar phi = omega t because an n-blade rotor is invariant under 360/n rotation, so arbitrary rpm profiles are free (we resample the table). What is NOT free for us is arbitrary BODY attitude - each new body_rpy needs a new table. Costa's criticism is therefore half-true against us and should be stated that way, not dodged."
+    },
+    "their_honest_limitation_we_should_quote": {
+     "page": 9,
+     "q": "it is unfeasible to perform static reflectivity measurements for all possible geometric constellations, i.e., all possible combinations of bistatic angles."
+    },
+    "error_bound_they_derived": {
+     "page": 12,
+     "q": "the upper bound of the error in the calculation of the bistatic range is given by Err <= l^2/2 * (1/R_T + 1/R_R) ... we used l = 0.1655 m and R_T = R_R = 3.43 m. This case results in an error of range with upper bound of Err <= 8 mm, which represents a relative error of RErr <= 0.12% of the bistatic range."
+    },
+    "convention_flag_for_us": "Costa uses delta_R = c/[2B cos(beta/2)] (resolution ALONG THE BISECTOR). Our reports use delta_R_b = c/B (resolution in the bistatic range SUM). These are different quantities and both can be right; but report12 and report04 should say which one they mean, because a reviewer who knows Willis will check."
+   }
+  },
+  {
+   "row": 13,
+   "key": "costa-radarconf24",
+   "title": "Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC",
+   "venue": "IEEE RadarConf 2024 (conference version of row 12; single propeller)",
+   "status": "PUBLISHED",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+   "corpus": "secondary",
+   "opened": "PARTIAL - machine-scanned only (48 bistatic, 38 micro-Doppler, 45 rotor hits); the journal version (row 12) supersedes it and was read instead",
+   "note": "Recorded so the pair is not merged by mistake, the same trap as Ziganshin's two documents."
+  },
+  {
+   "row": 14,
+   "key": "jees2021-mom",
+   "title": "Dynamic RCS Estimation according to Drone Movement Using the MoM and Far-Field Approximation",
+   "authors": "Dong-Yeob Lee, Jae-In Lee, Dong-Wook Seo (Korea Maritime and Ocean University)",
+   "venue": "Journal of Electromagnetic Engineering and Science, vol. 21, no. 4, pp. 322-328, Sep. 2021, doi 10.26866/jees.2021.4.r.40",
+   "status": "PUBLISHED",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+   "pages": 7,
+   "corpus": "secondary (opened because it is the only paper found that OPTIMISES the per-phase re-pose loop, which is exactly our cost problem)",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "⭐⭐ SOLVED THE COST OF PER-PHASE RE-POSING, WITH THE SAME THREE TRICKS WE USE, AND PUBLISHED THE SPEEDUP AND THE ACCURACY PENALTY. This is the closest external precedent to src/microdoppler.py that exists in our archives.",
+    "quotes": [
+     {
+      "page": 2,
+      "q": "Even though the propellers rotate, the shape of the propellers does not change; only the incident and scattered angles change. Therefore, using the relative angle between a rotating propeller and the incident field, mesh generation can be done just once along with the construction of the impedance and admittance matrices."
+     },
+     {
+      "page": 2,
+      "q": "we reversely rotate the incident angle of the incident field in the rotation direction of the propeller instead of rotating the propeller, and its effect reflects on the excitation vector"
+     },
+     {
+      "page": 3,
+      "q": "Because of their mirror-image symmetric characteristics, the co-polarized components of the electric fields scattered from CW and CCW propellers are the same, and the cross-polarized components have a phase difference of 180 deg."
+     },
+     {
+      "page": 3,
+      "q": "E_P1^s(t) ~= sum_{n=1}^{4} E_Tn^s(t; theta_P1, phi_P1) * exp(-j 2 k . r_n)  (4)"
+     },
+     {
+      "page": 4,
+      "table": "Table 1. Calculation time for rotating propeller",
+      "q": "Conventional 20:01:12   Proposed 00:07:40"
+     },
+     {
+      "page": 4,
+      "q": "The electric fields scattered from a single propeller rotating once a second were calculated at 0.1 deg intervals for one second."
+     },
+     {
+      "page": 5,
+      "q": "the NRMSDs are less than 2%, and the proposed method accurately estimates the dynamic RCSs of the four propellers"
+     },
+     {
+      "page": 5,
+      "q": "This discrepancy seems to be due to the assumption that there is no coupling among the propellers for high-speed computation."
+     },
+     {
+      "page": 2,
+      "q": "it is assumed that the quasi-static mode is established on a frame-by-frame basis with sampling intervals instead of a time-continuous model [11]"
+     }
+    ],
+    "mapping_to_our_code": {
+     "their_trick_1_reuse_the_operator": "impedance matrix built once -> our sbr_field is re-run per phase, but our PO engine (microdoppler_series) builds the point cloud once and only rotates the look vector",
+     "their_trick_2_rotate_the_source_not_the_object": "identical to src/microdoppler.py docstring: 'v(t)=Rz(-theta(t))u 는 블레이드를 돌리는 대신 시선을 반대로 돌린 등가표현'",
+     "their_trick_3_CW_CCW_mirror_and_far_field_phase_sum": "identical to microdoppler_series building build_propeller(mirror=True) and summing rotors with exp(j2k c u)",
+     "their_sampling": "0.1 deg over 360 deg = 3600 phases; ours = 240 over the 360/n_blades period",
+     "their_price": "157x wall-clock (20:01:12 -> 00:07:40) at NRMSD < 2% versus the un-optimised MoM and versus MLFMM",
+     "what_we_can_now_write": "an external, peer-reviewed number for what the rotate-the-source equivalence costs in accuracy (<2% NRMSD) and buys in time (~157x), instead of asserting it ourselves"
+    }
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - monostatic backscatter only ('bistatic' 1 hit, in prose)."
+   }
+  },
+  {
+   "row": 15,
+   "key": "das-wcl-multiband-bistatic",
+   "title": "Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling",
+   "authors": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti (Oulu / QUB)",
+   "venue": "IEEE Wireless Communications Letters, vol. 15, 2026, pp. 3731-3735",
+   "status": "PUBLISHED",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "pages": 5,
+   "corpus": "secondary (measurement anchor)",
+   "opened": true,
+   "P8": {
+    "on_their_path": true,
+    "verdict": "⭐ MEASURED THE BISTATIC-ANGLE DEPENDENCE OF DRONE RCS AND PUT A NUMBER ON IT. Not a reciprocity check ('reciproc' 0 hits), but the best external bound available for how much beta is allowed to matter.",
+    "quotes": [
+     {
+      "page": 1,
+      "q": "This letter develops 3GPP-compliant statistical RCS models for autonomous aerial vehicles (AAVs) using monostatic and bistatic measurements acquired across multiple frequency bands (1.8 GHz-27 GHz) and bistatic angles (0:15:90 deg) in both anechoic far-field and controlled indoor near-field environments."
+     },
+     {
+      "page": 3,
+      "q": "The monostatic mean RCS is consistently higher than its bistatic counterparts, reflecting stronger backscatter when TX and RX are co-located. The lower bistatic values are likely due to directional scattering, reduced specular contributions, and aspect-dependent structural and material responses of the AAV, although isolating the contribution of each factor remains challenging."
+     },
+     {
+      "page": 5,
+      "q": "Changing from monostatic to bistatic (90 deg) geometry increases the mean path-loss by only about 1-2 dB, indicating that frequency- and platform-dependent RCS variations dominate over bistatic-angle effects in this setting."
+     },
+     {
+      "page": 2,
+      "q": "A metallic cylinder with radius 5.5 cm, height 30 cm, and known RCS sigma_Cal = 2.8 dBsm is placed at the center of the turntable"
+     },
+     {
+      "page": 2,
+      "q": "the TX is fixed, whereas the RX is moved over bistatic angles theta_b = 0:15:90 deg ... K = 360 corresponding to the number of azimuth measurements"
+     }
+    ],
+    "APPLES_TO_APPLES_WITH_OUR_NUMBER": {
+     "theirs": "mono -> bistatic 90 deg costs 1-2 dB of angle-averaged mean RCS (DJI Phantom 2, Phantom 3, Mini 2, M350 RTK, 1.8-27 GHz)",
+     "ours": "outputs/report13_sigma_grid.json delta_sigma_mean_db at beta=90 = -2.15 dB, averaged over 5 airframes x 3 bands (LTE 1.8 / NR 3.5 / WiFi 5.2 GHz), 24 azimuths each",
+     "verdict": "AGREES within its own spread. This is the first quantitative external corroboration our multistatic kernel has. Caveats before we publish it: (a) their bands go to 27 GHz and ours stop at 5.2 GHz; (b) their beta grid is 0:15:90 like ours by coincidence, but their averaging is over 360 azimuth points and ours over 24; (c) angle-averaged mean is a much weaker statistic than the per-aspect pattern - agreement here does NOT validate our per-aspect sigma."
+    }
+   },
+   "P3": {
+    "on_their_path": true,
+    "verdict": "ON THE PATH AND EXPLICITLY DECLINED, WITH THE REASON STATED - the cleanest 'they didn't, and here is why' in the set.",
+    "quote": {
+     "page": 2,
+     "q": "The motion of AAV rotor blades can introduce RCS fluctuations through micro-Doppler effects [8], which are typically captured using coherent radar measurements and time-frequency processing [9]. This effect is not considered here because the proposed model focuses on RCS amplitude statistics, while the measurement system provides quasi-static AAV backscatter characterization and does not resolve rotor-induced micro-Doppler [6], [8]. Micro-Doppler can be incorporated in future extensions by augmenting the proposed RCS amplitude model with a Doppler term driven by rotor kinematics."
+    }
+   }
+  },
+  {
+   "row": 16,
+   "key": "clutter-aware-isac",
+   "title": "Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions",
+   "venue": "Proceedings of the IEEE, vol. 114, no. 1, Jan 2026, DOI 10.1109/JPROC.2026.3675476 (arXiv:2602.10537v2 is the same work)",
+   "status": "PUBLISHED (both copies present in the archive; do not double-count)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+   "pages": 41,
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - 'micro-Doppler' appears once, as an environment descriptor in a clutter table ('Indoor: LoS-dominant; sparse multipath; micro-Doppler' driven by human motion), not as a target signature they compute.",
+    "quote": {
+     "page": 17,
+     "q": "These multipath components generally experience only micro-Doppler effects, primarily driven by limited human motion."
+    }
+   },
+   "P8": {
+    "on_their_path": true,
+    "verdict": "BISTATIC/MULTISTATIC ARE HANDLED AT THE SIGNAL-MODEL LEVEL ONLY - a substitution of steering vectors, with no scattering kernel and therefore nothing to check for reciprocity.",
+    "quotes": [
+     {
+      "page": 6,
+      "q": "Remark 1 (Extensions to bistatic and multistatic scenarios). The model in (8)-(14) is presented for a monostatic BS with co-located transmit and sensing receive arrays. The same formulation extends to bistatic and multistatic operation when the illuminator and the sensing receiver are at different locations."
+     },
+     {
+      "page": 6,
+      "q": "For notational clarity, we proceed with the monostatic notation in the following derivations, noting that the same stacking operations apply in bistatic and multistatic settings after substituting the corresponding steering vectors and delays."
+     },
+     {
+      "page": 24,
+      "q": "Replacing the steering vector in (94)-(95) by v_n^bi(theta_T, theta_R, f_D) yields the corresponding waveform-aware bistatic/multistatic STAP weights and SCNR."
+     }
+    ],
+    "caution": "Their two 'reciproc' hits are 'reciprocal filtering (RF)' de-randomization on p.8. Not electromagnetic reciprocity."
+   }
+  },
+  {
+   "row": 17,
+   "key": "lambda",
+   "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+   "venue": "arXiv:2607.03826v1",
+   "status": "PREPRINT",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "pages": 20,
+   "corpus": "sionna (role=TARGET_INJECTED_EXTERNAL)",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "WORKED AROUND FOR BODY MOTION ONLY - trajectories are evolved frame by frame, but rotor rotation never enters the EM chain; angular velocity appears only as a recorded IMU field.",
+    "quotes": [
+     {
+      "page": 7,
+      "q": "trajectories are generated using a Markov-chain maneuvering model inspired by maneuvering-target dynamics [29]. The model switches among constant-velocity, constant-acceleration, coordinated-turn, and Singer-style dynamics ... The UAV state is then evolved frame by frame according to the sampled motion mode, process noise, and boundary constraints."
+     },
+     {
+      "page": 11,
+      "q": "imu/ UAV inertial states imu_000000.json, linear acceleration, angular velocity, orientation"
+     }
+    ],
+    "reading": "Angular velocity is GROUND TRUTH METADATA, not an EM input. A reader skimming for 'angular velocity' would wrongly score this as a rotation model."
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - 'bistatic' 0 hits; RCS is injected from CADFEKO into a Sionna RT propagation scene."
+   }
+  },
+  {
+   "row": 18,
+   "key": "zhang-m350",
+   "title": "A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis (DJI M350 among targets)",
+   "venue": "arXiv:2505.20673 (IEEE JSAC vol. 44 pp. 702-716, 2026 per citation in row 15)",
+   "status": "PREPRINT copy in archive",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+   "corpus": "sionna",
+   "opened": true,
+   "P3": {
+    "on_their_path": true,
+    "verdict": "DECLINED BY EXPERIMENTAL DESIGN - a turntable in 5 deg steps is a quasi-static measurement; rotor motion is absent.",
+    "quote": {
+     "page": 6,
+     "q": "The sensing target is placed in the center of an automated turntable, which rotates 360 deg in increments of 5 deg. ... Target Rotation Angle [0, 360 deg], Step 5 deg ... Sensing Mode Monostatic"
+    }
+   },
+   "P8": {
+    "on_their_path": true,
+    "verdict": "MONOSTATIC ONLY ('Sensing Mode Monostatic' in their parameter table). No bistatic geometry, no reciprocity."
+   }
+  },
+  {
+   "row": 19,
+   "key": "wei-uav-rotor-md-isac",
+   "title": "UAV's Rotor Micro-Doppler Feature Extraction Using Integrated Sensing and Communication Signal: Algorithm Design and Testbed Evaluation",
+   "venue": "arXiv:2408.16415 (cited as [20] by Costa)",
+   "status": "PREPRINT",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal.pdf",
+   "corpus": "secondary",
+   "opened": "PARTIAL - machine census only (142 micro-Doppler, 120 rotor, 0 ray-tracing, 0 Sionna, 0 bistatic hits)",
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET IN A RAY TRACER - zero ray-tracing terms in the whole document; it is an ISAC-signal + testbed extraction paper. Costa (row 12, p.2) summarises it as 'Only [20] discusses ISAC and OFDM, but only in monostatic geometry.'"
+   },
+   "P8": {
+    "on_their_path": false,
+    "verdict": "monostatic per Costa's characterisation; 'bistatic' 0 hits in our scan."
+   },
+   "honesty_flag": "NOT READ PAGE BY PAGE. The two statements above rest on a machine count plus Costa's published characterisation, and are labelled as such."
+  },
+  {
+   "row": 20,
+   "key": "monte-carlo-sbr-farfield",
+   "title": "Monte-Carlo SBR far-field scattering (MECA / surface equivalence principle)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+   "corpus": "secondary",
+   "opened": "PARTIAL - machine census (78 ray-tracing hits, 0 reciprocity, 0 bistatic, 0 rotor) plus one located quote",
+   "quote_located": {
+    "q": "MECA extends this idea to dielectric surfaces using the surface equivalence principle. On the boundary between any two homogeneous regions, the electric, J, and magnetic, M, currents along the boundary can [be] found using J = n x H and M = E x n."
+   },
+   "P3": {
+    "on_their_path": false,
+    "verdict": "NEVER MET - no motion."
+   },
+   "P8": {
+    "on_their_path": true,
+    "verdict": "A RAY ENGINE THAT DID NOT CHECK RECIPROCITY (0 hits). Recorded as a lead: MECA with both J and M currents is the standard way to make a PO-class kernel behave better off-specular, and would be the next thing to read for P4/P8."
+   },
+   "honesty_flag": "NOT READ PAGE BY PAGE."
+  }
+ ],
+ "answers": {
+  "P3": {
+   "did_anyone_express_rotation_INSIDE_the_engine": "NO. Across 140 Sionna-corpus PDFs plus 73 more from the secondary corpora, not one paper gives a rotating body a representation inside the tracer - no split-into-many-objects trick, no per-face velocity field, no time-varying transform evaluated by the solver. Sionna's own technical report (row 2, p.28) offers exactly two options and the accurate one is 'moving objects in small incremental steps ... and recomputing the propagation paths at each step'. Nobody beat that.",
+   "who_re_posed_per_snapshot": [
+    "md-rt, ICCT 2025 (row 1) - INSIDE Sionna RT, 2048 OFDM symbols, Blender rotor mesh, plus a modified conical launcher. The only paper in the corpus that traced a rotating drone propeller.",
+    "VaN3Twin (row 4) - inside Sionna RT, translation only, with a published per-snapshot cost of 168-446 ms on an RTX 3090.",
+    "Open Wireless DT (row 5) - inside Sionna RT, translation only, and it warns that snapshotting alone leaves phase discontinuities between snapshots.",
+    "jees2021 MoM (row 14) and, per Costa's survey, refs [12]-[16] (PO+MEC helicopter rotor; PO on CAD at many positions; MoM+PO 512 positions; FEM/MoM 512 positions; full-wave over half a turn) - re-posed geometry in NON-ray engines. THESE ARE THE REAL PRECEDENT FOR pose_articulated()."
+   ],
+   "correction_to_our_own_record": "⭐ Our memory note says md-rt 'derives micro-Doppler analytically from rigid-body angular velocity'. That is HALF WRONG and should be fixed. The analytic omega x r formula is their VALIDATION REFERENCE (p.4: 'The simulated results are compared with the analytical formulas derived in Section II'); the simulation itself is a re-pose-and-re-trace loop in Sionna RT (p.3, steps 4-5). md-rt is therefore not a counterexample to our approach - it is the same approach, published, in the same engine.",
+   "who_computed_micro_Doppler_in_Sionna_at_all": "Exactly one work: md-rt (ICCT 2025). OpenISAC has 21 micro-Doppler mentions but measures them on USRP hardware and cites Sionna only to say it is not an ISAC sensing pipeline. Ziganshin mentions micro-Doppler twice, both as future work. Clutter-Aware ISAC mentions it once, about human motion in indoor clutter. That is the whole list.",
+   "what_we_can_now_claim_that_we_could_not_before": [
+    "Our per-phase re-pose is the route the vendor documents as the accurate one, and the one-velocity-vector shortcut is documented as valid only for trajectories of a few wavelengths - a rotor tip exceeds that inside one OFDM slot.",
+    "Our n_phase=240 over the 360/n_blades period (=480 per full turn) sits beside a twice-published convention of 512 positions per 360 deg.",
+    "The rotate-the-source-instead-of-the-object equivalence, the CW/CCW mirror relation and the far-field per-rotor phase sum - all three of our optimisations - are a published method (JEES 2021) with a measured 157x speedup and <2% NRMSD penalty."
+   ]
+  },
+  "P8": {
+   "who_computed_bistatic_scattering_in_a_ray_engine": "One: Ziganshin (rows 7-8), in both documents. Sagitta (row 11) is a ray engine that deliberately stayed monostatic and said in a footnote that bistatic would require the exit-visibility function. Everything else labelled 'bistatic' in the corpus is a signal model or a measurement, not a ray-traced scattering kernel.",
+   "did_anyone_check_reciprocity_or_symmetry": "NO ONE checked their own kernel. Zero papers in 213 PDFs report a reciprocity or symmetry test on a scattering computation they performed. Ziganshin, the only bistatic ray-tracing author, has 0 occurrences of 'reciproc' in 11 pages; he bought credibility with EXTERNAL data instead (BIRA bistatic measurement 2-18 GHz, MLFMM in the shadow region).",
+   "external_standards_that_DO_exist": [
+    "⭐ 2605.31267 (row 9): the reciprocity condition written as an equation for a scattering pattern, f(k_s,k_i)/F(k_i) cos(theta_i) = f(k_i,k_s)/F(k_s) cos(theta_s), the identification of the classical ER directive model as NON-reciprocal, and the RER fix (a sqrt(cos theta_s) factor, Vitucci et al. IEEE TAP 71(7) 2023). It also states that Sionna RT ships the ER family - and we verified in the installed 2.0.1 source that Sionna's DirectivePattern has no sqrt(cos theta_o) factor, i.e. it is the NON-reciprocal variant.",
+    "⭐ Bilkent MSc thesis 2002 (row 10) p.70: 'fields in the PO approximation do not satisfy reciprocity except in the direction of specular reflection ... PTD is used to overcome this discrepancy.' This says our violation is the expected behaviour of PO and that P4 and P8 share one cure.",
+    "Das, IEEE WCL 15 (2026) (row 15): measured drone RCS at bistatic angles 0:15:90 deg, 1.8-27 GHz; going to beta=90 costs only 1-2 dB of angle-averaged mean RCS."
+   ],
+   "our_window_in_that_light": {
+    "our_stated_window": "beta <= 45 deg",
+    "our_own_data": "reciprocity RMS is 2.82 dB already at beta=15 and 5.69 dB at beta=90 (15 drone-band cells); the mean Delta sigma at beta=90 is -2.15 dB",
+    "external_comparison": "Das measures 1-2 dB from mono to beta=90 on real airframes; our -2.15 dB agrees. So the ANGLE-AVERAGED LEVEL is in family. The reciprocity RMS is a different and larger error, and no external paper bounds it, because no one measured it.",
+    "recommended_reframing": "Stop presenting beta<=45 as a measured knee. Present it as: (i) PO is known not to be reciprocal off specular (Bilkent/PTD literature); (ii) our plate check reproduces the closed-form obliquity law -20log10(cos beta) to within 0.03-0.15 dB, so the kernel behaves as PO should; (iii) exit visibility, which Sagitta says bistatic requires and which we implemented, cuts the drone-level violation from 6.11 to 4.02 dB RMS at beta=90; (iv) the residual is the missing edge term, and PTD is the named remedy for both P4 and P8."
+   },
+   "cheapest_next_experiments_suggested_by_the_literature": [
+    "Apply the RER sqrt(cos theta_s) reweighting + renormalisation to any diffuse term we take from Sionna, and re-run multistatic_check. The literature says this makes the pattern exactly reciprocal; our harness already measures whether it does.",
+    "Symmetrise: outputs/sbr_defect_fixes.json already stores sigma_sym (geometric mean of the two directions) with rms_sym_db = 0 by construction. A reciprocity-enforcing symmetrised kernel is one line and is defensible under Van Bladel; state it as a modelling choice, not as physics.",
+    "Add a PTD/edge term on the airframe silhouette and check BOTH the band slope (P4) and the reciprocity RMS (P8) move together. If they do, that is a single-mechanism result worth a figure."
+   ]
+  }
+ },
+ "not_opened": [
+  {
+   "what": "Pouliguen et al., 'Calculation and analysis of electromagnetic scattering by helicopter rotating blades', IEEE TAP 50(10) 2002",
+   "why_it_matters": "PO+MEC time-varying RCS of a rotor - the oldest precedent for our exact method",
+   "status": "NOT IN ARCHIVE, NOT OPENED - known only through Costa's summary (row 12, p.2)"
+  },
+  {
+   "what": "Schroeder et al., SPIE Target and Background Signatures II vol. 9997, 2016 - MoM+PO, 512 discrete propeller positions",
+   "status": "NOT IN ARCHIVE, NOT OPENED - the '512 positions' figure comes from Costa's sentence, not from the source"
+  },
+  {
+   "what": "Speirs et al., EuRAD 2018 - FEM/MoM, 512 uniformly spaced positions through 360 deg",
+   "status": "NOT IN ARCHIVE, NOT OPENED - same provenance caveat"
+  },
+  {
+   "what": "Vitucci, Cenni, Fuschini, Degli-Esposti, 'A reciprocal heuristic model for diffuse scattering from walls and surfaces', IEEE TAP 71(7) 2023, 6072-6083",
+   "why_it_matters": "the primary source for the RER fix we would apply",
+   "status": "NOT IN ARCHIVE, NOT OPENED - reached only via row 9's citation [8]"
+  },
+  {
+   "what": "Melloni et al., arXiv:2605.17988, 'A computationally efficient reciprocal effective roughness model for diffuse scattering', 2026",
+   "why_it_matters": "G-RER, the cheap reciprocal form",
+   "status": "NOT IN ARCHIVE, NOT OPENED - reached only via row 9's citation [9]"
+  }
+ ],
+ "cautions": [
+  "Two document pairs must never be merged: Ziganshin EuCAP 2025 (published, carries the runtime sentence) vs arXiv:2604.05991v2 (preprint, does not); Costa RadarConf24 (single propeller) vs JSTEAP 2025 (multi-propeller, measured). Both pairs are physically present in the archive as separate files.",
+  "Clutter-Aware ISAC also exists twice (Proc. IEEE PDF and arXiv:2602.10537v2). The micro-Doppler machine count of 6 files is 5 unique works for this reason.",
+  "'Reciprocal filter' is the dominant meaning of 'reciproc' in this literature (passive-radar range compression, OFDM de-randomization). Ten of the eleven hits in the Sionna corpus are that, or DL/UL channel reciprocity. Only one is scattering reciprocity. Any future keyword search must apply this filter or it will produce exactly the kind of false count this workflow exists to prevent.",
+  "Rows 13, 19 and 20 were NOT read page by page and say so. Their P3/P8 entries rest on machine counts plus, where noted, a published characterisation by another author.",
+  "The Das (row 15) agreement is on an ANGLE-AVERAGED mean over 360 azimuths at 1.8-27 GHz versus our 24 azimuths at 1.8-5.2 GHz. It corroborates the level trend with bistatic angle. It does NOT validate our per-aspect pattern and must not be written up as if it did."
+ ]
 }

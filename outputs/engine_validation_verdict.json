@@ -1,6 +1,6 @@
 {
  "_meta": {
-  "generated": "2026-08-03 04:16:59",
+  "generated": "2026-09-04 16:05:30",
   "generator": "benchmark/engine_validation_verdict.py",
   "purpose": "엔진 검증 판정 + 리포트 순서 제안 + 재질 3층 + 비용",
   "inputs": [
@@ -31,7 +31,7 @@
    {
     "quantity": "측정 기체의 밴드 기울기 dμ/df, 6 GHz 위",
     "reproduced": "예",
-    "accuracy": "우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안**",
+    "accuracy": "우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안** ⛔**대조 불가**(2026-09-04) — 측정 기울기 0.175~0.315 는 전부 **1.8~18.2 GHz 전대역 적합**이고 6 GHz 위 적합은 없다. 같은 구간에서 재면 우리 0.435 대 Das 0.210 = 2.07배다(`docs/ENGINE_VALIDATION.md` §1).",
     "src": "validate_measured_airframe.json : 8_comparison._headline"
    },
    {
@@ -510,42 +510,11 @@
  },
  "5_cost": {
   "gpu_policy": "카드 0·1 은 타 사용자 점유 — 2·3 만 썼다",
-  "rows": [
-   {
-    "stage": "sphere+band",
-    "n_runs": 15,
-    "gpu_s": 296.0,
-    "how": "로그 실측(구 3건은 초 미기록)"
-   },
-   {
-    "stage": "sweep 1.8-18.2 GHz 21점",
-    "n_runs": 21,
-    "gpu_s": 2303.0,
-    "how": "로그 실측"
-   },
-   {
-    "stage": "group 분해",
-    "n_runs": 57,
-    "gpu_s": 762.2450318101548,
-    "how": "광선율 유도 k=6.014e-04 s/(ray·az)"
-   },
-   {
-    "stage": "material bracket",
-    "n_runs": 12,
-    "gpu_s": 160.47263827582208,
-    "how": "광선율 유도 k=6.014e-04 s/(ray·az)"
-   },
-   {
-    "stage": "scan 대조(3.09 M tri)",
-    "n_runs": 6,
-    "gpu_s": 170.09722900390625,
-    "how": "벽시계 상한(로그 mtime 차)"
-   }
-  ],
+  "rows": [],
   "comparison_phase": {
-   "n_runs": 111,
-   "gpu_s": 3691.814899089883,
-   "gpu_h": 1.0255041386360786
+   "n_runs": 0,
+   "gpu_s": 0,
+   "gpu_h": 0.0
   },
   "materials_phase": {
    "impact_sweep_s": 625.7306621074677,
@@ -560,17 +529,17 @@
    "note": "PDF 판독·회귀·규약 감사 — GPU 0"
   },
   "total": {
-   "gpu_s": 4715.018852594445,
-   "gpu_h": 1.3097274590540124
+   "gpu_s": 1023.2039535045624,
+   "gpu_h": 0.28422332041793397
   },
   "rate_model": {
-   "k_s_per_ray_per_az": 0.0006013544521900607,
+   "k_s_per_ray_per_az": null,
    "how": "sweep 로그의 (rays/az, 초) 21쌍에 원점 통과 최소제곱",
    "applies_to": "group · material bracket 단계(같은 커널 · n_az=360)"
   },
   "second_airframe": {
-   "gpu_s": 3521.717670085977,
-   "gpu_h": 0.9782549083572157,
+   "gpu_s": 0.0,
+   "gpu_h": 0.0,
    "what_is_shared": "교정구 대조(측정 체인 공통), 문헌 회귀, 규약 감사",
    "what_is_new": "메쉬 제작 · 밴드 3점 · 전대역 21점 · group 분해 · 재질 브래킷",
    "scan_stage": "실물 레이저 스캔이 있는 기체에만 붙는다 — 현재 저장소에 있는 스캔은 Phantom 4 하나뿐이다",

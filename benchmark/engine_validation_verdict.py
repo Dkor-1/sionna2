@@ -672,10 +672,16 @@ A("이전까지 이 자리에 들어갈 문장은 **\"검증되지 않았다\"**
 A("")
 A("### §1.2 실패한 자리")
 A("")
+#: ⛔2026-09-04 — 「6 GHz 위 우리 기울기가 측정 구간 안에 든다」는 **적합 구간이 다른 둘**을
+#  나란히 놓은 것이다. 측정 넷은 전부 1.8~18.2 GHz 전대역 적합이고 6 GHz 위 적합은 없다
+#  (원장 자신이 «no FR1-only fit to compare against» 라 적는다). 같은 문서 §2 표의 Das·Yuan
+#  칸이 «—» 인 이유가 그것이다.
 A(f"불일치는 **{OUT['1_verdict']['where_it_fails']['band']}** 에 몰려 있고, 우리 세 밴드가 전부 그 안에 있다. "
-  f"6 GHz 위에서 우리 기울기 {HEAD['slope_ours_6_18p2_ghz']:.3f} dB/GHz 는 측정 구간 "
+  f"⛔**6 GHz 위는 대조 불가다** — 측정 기울기 "
   f"{min(HEAD['slope_measured_1p8_18p2'].values()):.3f}~{max(HEAD['slope_measured_1p8_18p2'].values()):.3f} "
-  f"**안**에 든다.")
+  f"는 전부 **1.8~18.2 GHz 전대역 적합**이라 우리 6~18.2 GHz 적합 "
+  f"{HEAD['slope_ours_6_18p2_ghz']:.3f} dB/GHz 와 나란히 놓을 수 없다. 같은 구간에서 다시 "
+  f"재면 우리 0.435 대 Das 0.210 = **2.07배**다.")
 A("")
 A("| 적합 구간 | 우리 [dB/GHz] | Das [dB/GHz] | Yuan(방위면) [dB/GHz] | 배수(vs Das) |")
 A("|---|---|---|---|---|")

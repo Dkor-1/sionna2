@@ -1220,9 +1220,11 @@ def analyse() -> None:
         "spp_note_ko": "광선 수는 행의 spp 열에 있다 — 규칙값 (R/3)²×1M 을 --spp 로 덮은 팔이 많다",
         "band_track_ko": "⭐정본 — 앙각마다 그 앙각의 f_tip 으로 0.35~1.0 배",
         "band_fixed_ko": "덱의 −15° 대역(430~1229 Hz) 고정 — 앙각이 내려가면 비어 간다",
+        #: ⛔`elevation_sweep_md.py` 와 같은 정정(2026-09-04).
         "prediction_ko": "f_flash 는 앙각과 무관(126.67 Hz), f_tip 만 cos(el) 로 줄어든다. "
-                         "직하방(−90°)에서는 날개 속도가 시선에 수직이라 마이크로도플러가 "
-                         "원리적으로 사라진다."},
+                         "직하방(−90°)에서는 **날개끝 도플러 폭 f_tip 이 0 으로 간다.** "
+                         "⛔«마이크로도플러가 원리적으로 사라진다» 는 철회했다 — el −90 에서 "
+                         "f_flash 선(127.5 Hz)은 두 엔진 기록에 남는다."},
         "rows": rows}, open(OUT, "w"), ensure_ascii=False, indent=1)
 
     print(f"\n═══ 앙각 스윕 · R = {RANGE_M:.0f} m · 예측 f_flash {ffl:.2f} Hz ═══\n")

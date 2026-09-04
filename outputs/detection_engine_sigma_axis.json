@@ -6,22 +6,37 @@
   "house_rule": "손으로 지어낸 수치 0 개 — 모든 숫자에 파일::키 를 적는다.",
   "stance": "«PO 가 유리하다» 를 반증하려 시작했다. 아래 3절이 그 반증 시도이고, 4절이 그것이 어디까지 성공했는지다."
  },
-
  "1_pathsolver_absolute_sigma": {
   "question": "PathSolver 의 경로 진폭에서 절대 sigma 를 낼 수 있나",
   "verdict": "낼 수 없다. 진폭이 sigma 의 함수가 아니라는 것이 세 실험으로 직접 측정돼 있다.",
   "E1_specular_carries_zero_sigma": {
    "src": "outputs/rt_no_rcs_verify.json :: A_plate",
    "what": "금속 평판 변 0.2 -> 4.0 m (sigma +4.378 -> +56.419 dBsm, 52.04 dB 변화)",
-   "rt_amplitude_ratio_db": [-7.913447361792892, -7.913448005571883, -7.913448649350921, -7.913449293130007, -7.913448005571883],
+   "rt_amplitude_ratio_db": [
+    -7.913447361792892,
+    -7.913448005571883,
+    -7.913448649350921,
+    -7.913449293130007,
+    -7.913448005571883
+   ],
    "rt_ratio_spread_db": 1.8e-06,
    "image_source_theory_db": -7.882198020828888,
    "reading": "sigma 가 52 dB 움직이는 동안 RT 진폭은 1.8e-06 dB 움직였다. 정반사 채널은 무한거울 image-source 장이고 sigma 정보가 0 이다."
   },
   "E2_diffuse_measures_S_not_sigma": {
    "src": "outputs/rt_no_rcs_verify.json :: B_sphere_S",
-   "S_to_ratio_db": {"0.2": -56.5611317187382, "0.5": -46.75439123238241, "0.9": -41.72413330670438, "1.0": -40.797536157323655},
-   "dev_from_theory_db": {"0.2": -12.794844704508403, "0.5": -2.9881042181526087, "0.9": 2.042153707525422, "1.0": 2.9687508569061443},
+   "S_to_ratio_db": {
+    "0.2": -56.5611317187382,
+    "0.5": -46.75439123238241,
+    "0.9": -41.72413330670438,
+    "1.0": -40.797536157323655
+   },
+   "dev_from_theory_db": {
+    "0.2": -12.794844704508403,
+    "0.5": -2.9881042181526087,
+    "0.9": 2.042153707525422,
+    "1.0": 2.9687508569061443
+   },
    "reading": "같은 금속구에서 산란계수 S 만 0.2->1.0 으로 올리면 진폭이 15.76 dB 이동한다. 이론값에 맞추려면 S≈0.85 가 필요 — RT diffuse 로 sigma 를 맞추는 것은 우리가 고른 S 를 되읽는 순환이다."
   },
   "E3_pec_sphere_zero_paths": {
@@ -32,60 +47,113 @@
   "E4_drone_vs_po_linkbudget": {
    "src": "outputs/rt_target_verify.json :: drone",
    "po_expected_ratio_db": -48.935852003162175,
-   "rt_dev_from_po_db": [-22.38181878989163, -22.38181878989163, -19.999622182389565, -21.46489811134975, -16.4240603532373, -22.266499380731794, -42.12213054431933],
+   "rt_dev_from_po_db": [
+    -22.38181878989163,
+    -22.38181878989163,
+    -19.999622182389565,
+    -21.46489811134975,
+    -16.4240603532373,
+    -22.266499380731794,
+    -42.12213054431933
+   ],
    "null_rows": 1,
-   "spread_db": 25.698070191082032,
+   "spread_db": 25.69807019108203,
    "reading": "드론 에코가 PO 링크버짓보다 16.4~42.1 dB 낮고 시드/spp/씬에 따라 25.7 dB 흩어진다. 한 조합은 경로 0 개(null)."
   },
   "E5_seed_spread_at_detection_ranges": {
    "R8m_same_spp_7.1M": {
     "src": "outputs/probe_8m_anomaly.json :: runs_512pose (A/B/C)",
-    "level_db": [-117.95848776100557, -135.95832858915708, -121.42989076970974],
+    "level_db": [
+     -117.95848776100557,
+     -135.95832858915708,
+     -121.42989076970974
+    ],
     "spread_db": 17.999840828151505,
-    "beat_over_f_flash": [3.0177926080947577, 1.0063039176950397, 0.9991508812238585],
+    "beat_over_f_flash": [
+     3.0177926080947577,
+     1.0063039176950397,
+     0.9991508812238585
+    ],
     "seed_per_pose_beat_over_f_flash": 3.155789589340921,
     "reading": "같은 씬/같은 spp 에서 시드만 바꾸면 절대 레벨이 18.0 dB 흩어지고, 4 회 중 2 회는 블레이드선 주파수를 3 배 조화로 잘못 짚는다."
    },
    "R40m_spp_178M": {
     "src": "outputs/report07_range40.json :: seeds",
-    "level_db": [-158.94761179761306, -156.3439884628333, -150.93966543218082],
+    "level_db": [
+     -158.94761179761306,
+     -156.3439884628333,
+     -150.93966543218082
+    ],
     "spread_db": 8.007946365432247,
-    "beat_dev_pct": [99.9522885396009, -0.12035525667820635, 1.158608335327212],
+    "beat_dev_pct": [
+     99.9522885396009,
+     -0.12035525667820635,
+     1.158608335327212
+    ],
     "reading": "spp 를 (40/3)^2 배(178M)로 올려도 시드 3 개가 8.01 dB 흩어지고 1/3 시드가 블레이드선을 2 배로 틀린다."
    }
   },
   "E6_violates_radar_range_law": {
    "src": "outputs/probe_8m_anomaly.json :: prior_probe_reanalysis.ctrl_same_spp_25M",
    "note": "spp 를 25M 로 고정하고 거리만 바꾼 통제군. 모노스태틱에서 |h| ∝ R^-2 이므로 3->R 의 낙차는 40log10(R/3) 이어야 한다.",
-   "R3_to_R8": {"observed_drop_db": 28.210308247864205, "radar_law_db": 17.04, "excess_db": 11.17, "paths_median": [205.0, 27.0]},
-   "R3_to_R15": {"observed_drop_db": 48.26456306501201, "radar_law_db": 27.96, "excess_db": 20.31, "paths_median": [205.0, 6.0]},
+   "R3_to_R8": {
+    "observed_drop_db": 28.210308247864205,
+    "radar_law_db": 17.04,
+    "excess_db": 11.17,
+    "paths_median": [
+     205.0,
+     27.0
+    ]
+   },
+   "R3_to_R15": {
+    "observed_drop_db": 48.26456306501201,
+    "radar_law_db": 27.96,
+    "excess_db": 20.31,
+    "paths_median": [
+     205.0,
+     6.0
+    ]
+   },
    "reading": "낙차의 초과분이 경로수 붕괴(205 -> 27 -> 6)와 함께 온다. 절대 레벨이 표적 물리가 아니라 광선예산의 함수다 — sigma 로 환산할 자격이 없다."
   },
   "what_pathsolver_DOES_do_well": {
    "src": "outputs/report15_verdict.json :: conclusion",
-   "geometric_phase_agreement": {"mini2_median_cosine": 0.963905, "matrice4e_median_cosine": 0.871428},
+   "geometric_phase_agreement": {
+    "mini2_median_cosine": 0.963905,
+    "matrice4e_median_cosine": 0.871428
+   },
    "seed_noise_of_level_in_diffuse_mode_db": 0.189946,
    "self_stated_caveat_ko": "기하 위상 기준은 산란 물리를 뺀 위상만의 기준이다. Sionna 가 그것과 맞는다는 것은 위상을 옳게 추적한다는 뜻이지 산란 진폭이 옳다는 뜻이 아니다. 절대 sigma 는 여전히 우리 PO 커널이 담당한다.",
    "reading": "PathSolver 는 회전 기하의 왕복 위상(= 무늬)을 잘 따라간다. 그것은 축 (3)/(4) 의 자산이지 축 (1) 의 자산이 아니다."
   }
  },
-
  "2_our_kernel_absolute_sigma_credit": {
   "reference_solution_accuracy": {
    "src": "outputs/sbr_kr_sweep.json :: summary_div16",
    "max_abs_db_vs_analytic_po": 0.2005726178588444,
    "max_abs_db_vs_exact_mie": 6.729111994408728,
    "std_pct_vs_mie_kr_ge30": 1.834374210222452,
-   "kr_range": [1.0, 100.0],
+   "kr_range": [
+    1.0,
+    100.0
+   ],
    "reading": "커널의 **수치** 오차(과녁=해석 PO)는 0.20 dB. 그러나 **물리** 오차(과녁=정확 Mie)는 kr 1~100 에서 최대 6.73 dB 이고 kr>=30 에서만 잦아든다."
   },
   "calibration_sphere_against_the_measurement_chain": {
    "src": "outputs/engine_validation_verdict.json :: 1_verdict.mechanism.in_house_control",
-   "dev_vs_exact_mie_db": {"LTE 1.843 GHz": -0.8511794043608774, "5G 3.5 GHz": -0.37484212539172646, "WiFi 5.21 GHz": -0.4198079012506746},
+   "dev_vs_exact_mie_db": {
+    "LTE 1.843 GHz": -0.8511794043608774,
+    "5G 3.5 GHz": -0.37484212539172646,
+    "WiFi 5.21 GHz": -0.4198079012506746
+   },
    "reading": "측정 논문 자신의 교정 표준(PEC 구 r=17.8 cm)에서 우리 절대 스케일은 0.375~0.851 dB 안. 스케일 자체는 문제가 아니다."
   },
   "reproducibility": {
-   "src": ["outputs/freeze_before_after.json :: off_switch_gate", "outputs/das_fleet_attack.json :: Q1_theta_b.numerical_verification_in_artifact", "outputs/das_fleet_attack.json :: Q3_existing_airframes"],
+   "src": [
+    "outputs/freeze_before_after.json :: off_switch_gate",
+    "outputs/das_fleet_attack.json :: Q1_theta_b.numerical_verification_in_artifact",
+    "outputs/das_fleet_attack.json :: Q3_existing_airframes"
+   ],
    "recompute_bit_identical_rows": 6,
    "max_abs_diff": 0.0,
    "monostatic_vs_multistatic_path_max_db": 9.24e-14,
@@ -93,12 +161,16 @@
    "reading": "우리 커널은 결정론적이다 — 같은 장면이 비트 단위로 같은 답을 준다. Pd 를 말할 자격의 전제(축 2)를 PathSolver 는 몬테카를로라 원리적으로 못 준다."
   }
  },
-
  "3_refutation_attempt_how_wrong_our_sigma_can_be": {
   "goal": "«우리 sigma 가 더 믿을 만하다» 를 깨려고 우리 쪽 최대 오차를 모았다.",
   "R1_fleet_anchor_FAILS": {
    "src": "outputs/das_fleet_validation.json :: prereg_judgement",
-   "DL0_db": {"phantom3": -1.469546268476721, "phantom2": -7.191752671532553, "mini2": -0.5077105059559628, "m350rtk": 9.075993970359912},
+   "DL0_db": {
+    "phantom3": -1.469546268476721,
+    "phantom2": -7.191752671532553,
+    "mini2": -0.5077105059559628,
+    "m350rtk": 9.075993970359912
+   },
    "P3_spread_db": 16.267746641892465,
    "prereg_threshold_db": 6.0,
    "verdict": "NOT_VALIDATED (P3 산포)",
@@ -109,23 +181,55 @@
   },
   "R2_a_dumb_sphere_beats_us_on_level": {
    "src": "outputs/das_fleet_validation.json :: box_control",
-   "sphere_eqvol_DL_db": {"phantom3": -2.591749953852597, "phantom2": -11.466749953852604, "mini2": -0.024115541857781864, "m350rtk": 0.7238500461474103},
-   "ours_DL_db": {"phantom3": -1.469546268476721, "phantom2": -7.191752671532553, "mini2": -0.5077105059559628, "m350rtk": 9.075993970359912},
-   "sphere_wins_on_abs_level": ["mini2", "m350rtk"],
+   "sphere_eqvol_DL_db": {
+    "phantom3": -2.591749953852597,
+    "phantom2": -11.466749953852604,
+    "mini2": -0.024115541857781864,
+    "m350rtk": 0.7238500461474103
+   },
+   "ours_DL_db": {
+    "phantom3": -1.469546268476721,
+    "phantom2": -7.191752671532553,
+    "mini2": -0.5077105059559628,
+    "m350rtk": 9.075993970359912
+   },
+   "sphere_wins_on_abs_level": [
+    "mini2",
+    "m350rtk"
+   ],
    "reading": "부피등가 PEC 구(sigma=pi a^2, 각도의존 0, 주파수의존 0)가 4 기체 중 2 기체에서 우리보다 절대 레벨이 정확하다. 우리 커널의 값어치는 레벨 하나가 아니라 레벨+기울기+방위산포의 묶음(score)에서만 나온다."
   },
   "R3_single_airframe_band_failure": {
    "src": "outputs/engine_validation_verdict.json :: 1_verdict.table + .mechanism.airframe_gap",
-   "abs_level_gap_db": {"WiFi 5.21 GHz": 0.0, "5G 3.5 GHz": -1.197338623223125, "LTE 1.843 GHz": -4.431483343844803},
-   "vs_geometry_matched_row_db": {"5G 3.5 GHz": -4.6, "LTE 1.843 GHz": -7.66},
-   "band_slope_1p8_to_6ghz": {"ours_db_per_ghz": 1.540, "das": 0.210, "yuan": 0.315},
-   "reading": "우리가 실제로 쓰는 대역(1.8~6 GHz)에서 밴드 의존이 재현되지 않는다. 6 GHz 위에서는 0.264 vs 측정 0.175~0.315 로 구간 안."
+   "abs_level_gap_db": {
+    "WiFi 5.21 GHz": 0.0,
+    "5G 3.5 GHz": -1.197338623223125,
+    "LTE 1.843 GHz": -4.431483343844803
+   },
+   "vs_geometry_matched_row_db": {
+    "5G 3.5 GHz": -4.6,
+    "LTE 1.843 GHz": -7.66
+   },
+   "band_slope_1p8_to_6ghz": {
+    "ours_db_per_ghz": 1.54,
+    "das": 0.21,
+    "yuan": 0.315
+   },
+   "reading": "우리가 실제로 쓰는 대역(1.8~6 GHz)에서 밴드 의존이 재현되지 않는다. 6 GHz 위에서는 0.264 vs 측정 0.175~0.315 로 구간 안. ⛔**대조 불가**(2026-09-04) — 측정 기울기 0.175~0.315 는 전부 **1.8~18.2 GHz 전대역 적합**이고 6 GHz 위 적합은 없다. 같은 구간에서 재면 우리 0.435 대 Das 0.210 = 2.07배다(`docs/ENGINE_VALIDATION.md` §1)."
   },
   "R4_ray_grid_dither": {
    "src": "outputs/report2_waveform_rcs.json :: sbr_validation.dither (단일격자 p-p, 구 r=0.5 m @3.5 GHz)",
-   "spread_db_by_div": {"8": 5.284270838913799, "12": 1.3734745431514732, "16": 1.7821516012275314, "24": 0.3422091164711472},
+   "spread_db_by_div": {
+    "8": 5.284270838913799,
+    "12": 1.3734745431514732,
+    "16": 1.7821516012275314,
+    "24": 0.3422091164711472
+   },
    "post_jitter_residual": "미측정 — viz_report2 가 spread_prod/avg_err_prod 로 기록하도록 바뀌었으나 JSON 이 재생성되지 않았다(grep 결과 outputs 에 키 0 건). 정직한 상한은 단일격자 값이다.",
-   "production_divs": {"das_fleet_sigma": 16, "microdoppler_slowtime": 12},
+   "production_divs": {
+    "das_fleet_sigma": 16,
+    "microdoppler_slowtime": 12
+   },
    "reading": "생산 sigma 는 jitter=2 로 2x2 서브셀 평균을 하므로 잔차는 이보다 작지만, **얼마나 작은지 저장소에 숫자가 없다**."
   },
   "R5_frozen_arm_cannot_be_quoted_for_absolute_level": {
@@ -174,7 +278,6 @@
    "reading": "기하 이상화와 방위섹터 규약을 둘 다 실측 보정해도 기울기 잔차 0.65 dB/GHz 가 남고, 남은 유일한 기전이 없는 항(PTD 모서리 회절)이다."
   }
  },
-
  "4_where_the_refutation_succeeded_and_failed": {
   "succeeded": [
    "«우리 sigma 는 믿을 만하다» 는 깨졌다. 유일한 다기체 실측 대조가 NOT_VALIDATED 이고 최악 기체가 9.08 dB(거리 x1.69) 틀린다. 형상 증거가 있는 두 기체만 1.47 dB 안이고, 우리 생산 5 기체 중 실측 sigma 로 검증된 것은 0 대다.",
@@ -188,7 +291,6 @@
    "«거리만 늘리면 수렴한다» 도 아니다 — spp 고정 통제군에서 낙차가 레이다 법칙보다 R=8 m 에서 11.17 dB, R=15 m 에서 20.31 dB 더 크다(경로수 205->27->6)."
   ]
  },
-
  "5_verdict_axis1": {
   "who_wins": "ours",
   "one_line_ko": "PathSolver 는 절대 sigma 를 내지 못한다(경쟁 상대가 아니다). 우리 SBR+PO 가 이기지만 «정확해서» 가 아니라 «유일하게 sigma 라는 양을 내고 결정론적이어서» 다 — 그 sigma 의 검증 상태는 NOT_VALIDATED 이고 최악 9.08 dB 다.",

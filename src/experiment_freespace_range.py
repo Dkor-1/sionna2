@@ -75,7 +75,12 @@ CANON_REF = "full_waveform_capture"       # 기준채널 정본
 #  발표된 검지 수치가 전부 그 한 컷에서 나왔다. φ=90° 는 베이스라인의 **수직이등분선**이라
 #  R1≈R2 가 **구조적으로** 성립한다 — 기하 차이가 나타날 수 없는 유일한 방위다.
 #  실측(outputs/geometry_grid.json:range_normalisation.N2_equal_R2.by_phi):
-#    확산항 차 |20log10(R2/R1)| = **0.118 dB @ φ=90°** vs **23.17 dB @ φ=180°**.
+#    확산항 차 |20log10(R2/R1)| = **0.118 dB @ φ=90°** vs 23.17 dB @ φ=180°.
+#  ⛔**뒤엣값은 RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측) — 그
+#    23.17 dB 는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고 단일
+#    d 칸 값이다. φ 의존은 사실상 없다: R90 span 0.48 %(≤0.083 dB)이고 **φ=90° 가 세 팔
+#    모두 최소**다. ⇒ 아래 «수리 방침» 은 그대로 유효하지만(한 컷만 보고한 것은 결함이다),
+#    그 결함의 **크기**를 23.17 dB 로 말하지 않는다.
 #  수리 방침: 리터럴을 지우고 (a) 헤드라인 값은 `freespace_scene.PHI_HEADLINE_DEG`(=90.0)
 #  단일 진리원으로, (b) φ 를 **스윕 축**으로 승격(`stage_phi_sweep`, `--stage phi`).
 #  φ=90° 는 기본값으로 **그대로 남는다** — 옛 숫자를 언제든 재현·대조할 수 있어야 한다.
@@ -566,7 +571,7 @@ def stage_phi_sweep(sig_json, modes=("W1", "L1", "G1"), drone="mini5pro",
     """⭐ **장면방위 φ 를 스윕한다** — D-A(φ=90° 단일 컷) 의 수리이자 계량.
 
     왜: φ=90° 는 베이스라인의 수직이등분선이라 R1≈R2 가 **구조적으로** 성립한다. 확산항
-    차 |20log10(R2/R1)| 는 거기서 0.118 dB 뿐이고 φ 를 쓸면 23.17 dB 까지 벌어진다
+    차 |20log10(R2/R1)| 는 거기서 0.118 dB 뿐이다. ⛔«φ 를 쓸면 23.17 dB 까지 벌어진다» 는 RETRACTION_LOG R14 가 무효화했다 — φ 의존은 사실상 없고(R90 span 0.48 %) φ=90° 가 세 팔 모두 최소다
     (outputs/geometry_grid.json:range_normalisation.N2_equal_R2.by_phi). 즉 **기하 차이가
     나타날 수 없는 유일한 방위**에서 발표 수치 전부가 나왔다.
 
@@ -1038,7 +1043,9 @@ def main(argv=None):
     out["meta"]["phi_note"] = (
         "phi is a swept axis (stage_phi_sweep / --stage phi); 90 deg is the reproducible "
         "special case where R1~=R2 holds structurally, so no geometry difference can appear "
-        "there (spread term 0.118 dB at phi=90 vs 23.17 dB across phi).")
+        "there (spread term 0.118 dB at phi=90). RETRACTED (R14, 2026-08-03): the "
+       "'23.17 dB across phi' figure was invalidated by a 72-point measured sweep - "
+       "phi dependence is negligible (R90 span 0.48 %) and phi=90 is the MINIMUM.")
 
     t0 = time.time()
     snr90 = None
