@@ -1036,10 +1036,12 @@ def build_corrections(cells, refs, d_main, verdict, burial, rep, p13, dead_pairs
         out.append(dict(
             where="docs/RESUME.md · «모서리회절·다중반사는 영향 0» (물리 단일축 표 아래 요약)",
             old="모서리회절·다중반사는 영향 0.",
+            #: ⚠리듬 몫 «%p» 는 창 반폭 hw·f_above 를 타므로 크기를 인용하지 않는다(R29).
+            #  살아남는 근거는 **상한 위 바닥** 쪽이다.
             new=f"모서리회절은 영향 0(회절이 꺼져 있으면 무동작). **다중반사는 영향 0 이 아니다** "
                 f"— 레벨로는 안 보이지만(−60° 에서 AC 차 +0.09 dB) 상한 위 바닥을 "
-                f"{b60['d_above_floor_db']:+.1f} dB 올리고 리듬 몫을 {b60['d_rhythm_pp']:+.1f} %p "
-                f"깎는다.",
+                f"{b60['d_above_floor_db']:+.1f} dB 올린다. ⚠리듬 몫도 함께 움직이지만 그 "
+                f"**크기는 인용하지 않는다**(R29 — 창 반폭 hw·f_above 를 탄다).",
             why_ko="옛 결론은 레벨 하나로 잰 것이다. 세 열로 갈라 보니 깊이는 바닥을 올린다.",
             evidence="outputs/switch_factorial.json · depth_pairs[combo=R0D0E0F1, el=-60]"))
     return out

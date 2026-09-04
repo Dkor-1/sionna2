@@ -130,6 +130,16 @@ RETRACTED: list = [
      "「통제된 Pfa 위의 조명원 비교는 시뮬 쪽이 값싸다」",
      ()),
 
+    #: ⭐R29 는 «90 %» 만이 아니라 **리듬 몫의 크기 전체**를 내렸다. 가장 자주 되살아나는
+    #  것이 격자 밴드 «21.8 %p» 다 — 그 위에 판정 문턱을 세우는 자리가 여럿 있었다.
+    (r"21\.8\s*%p",
+     r"리듬|rhythm|밴드|band",
+     "R29 — 리듬 몫 크기는 창 반폭 hw·f_above 를 탄다. «λ/12 한정» 꼬리표로는 부족하다 "
+     "(격자보다 분석 손잡이가 더 크게 흔든다). 순서만 읽는다",
+     ("outputs/depth_axis_verdict_0816.json", "outputs/grid_convergence_check.json",
+      "benchmark/depth_axis_verdict_0816.py", "benchmark/build_atlas_gallery.py",
+      "benchmark/build_atlas_toc.py")),
+
     (r"리듬\s*90\s*%|리듬이\s*90\s*%",
      None,
      "R29 — 창 반폭 hw 2/8/32 Hz 로 같은 데이터가 9.9/63.4/90.0 % 로 움직인다. "

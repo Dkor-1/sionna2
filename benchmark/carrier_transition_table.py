@@ -18,6 +18,8 @@ carrier_transition_table.py — **R23① 반송파 전이표**: 3.5 GHz 판정�
 ■ 왜 격자는 λ/12 를 유지하나
 격자 간격은 코드가 `λ/div` 로 잡는다(`elevation_sweep_md.py`). div 를 12 로 두면 5.8 GHz 판도
 **같은 λ/12 규약**이라 R16 이 잰 격자 밴드(AC 3.86 dB · 리듬 몫 21.8 %p · 날개끝 밖 몫 12.55 %p)를
+⛔R29 — 리듬 몫의 **크기는 인용하지 않는다**(창 반폭 hw 2/8/32 Hz 로 같은 데이터가 9.9/63.4/90.0 %). «λ/12 한정» 꼬리표로는 부족하다 — 격자보다 분석 손잡이가 더 크게 흔든다. 순서만 읽는다.
+
 그대로 판정 문턱으로 쓸 수 있다. div 를 손대면 밴드를 다시 재야 한다.
 
     PYTHONPATH=src:benchmark python benchmark/carrier_transition_table.py
@@ -234,7 +236,8 @@ meta = dict(
     fc_ref_hz=FC0, fc_new_hz=FC1, f_ratio=FC1 / FC0, lambda_ratio=FC0 / FC1,
     grid_div=DIV, range_m=R_M, prf_hz=PRF, n_poses=N_POSES,
     c_used_by_code=C_CODE,
-    grid_rule_ko="⭐격자는 λ/12 를 유지한다 — 그래야 R16 격자 밴드(AC 3.86 dB · 리듬 몫 21.8 %p · "
+    grid_rule_ko="⛔R29 — 리듬 몫의 **크기는 인용하지 않는다**(창 반폭 hw 2/8/32 Hz 로 같은 데이터가 9.9/63.4/90.0 %). «λ/12 한정» 꼬리표로는 부족하다 — 격자보다 분석 손잡이가 더 크게 흔든다. 순서만 읽는다."
+                 "⭐격자는 λ/12 를 유지한다 — 그래야 R16 격자 밴드(AC 3.86 dB · 리듬 몫 21.8 %p · "
                  "날개끝 밖 몫 12.55 %p)를 5.8 GHz 판정 문턱으로 그대로 쓸 수 있다. "
                  "div 를 손대면 밴드를 다시 재야 한다.",
     headline_ko="⭐닫히는 것은 **시간·주파수 축의 눈금**(f_tip·대역·표본율·속도축·원거리장 경계)이고, "
