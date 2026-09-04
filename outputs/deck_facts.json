@@ -1,8 +1,8 @@
 {
  "meta": {
   "script": "benchmark/deck_facts.py",
-  "generated": "2026-08-03 02:32:42",
-  "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/deck_facts.py",
+  "generated": "2026-09-04 03:47:52",
+  "run": "cd /workspace/sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/deck_facts.py",
   "purpose_ko": "0804 팀미팅 덱이 인용해도 되는 검증된 사실 기반. 덱은 이 파일 밖의 수를 인용하지 않는다.",
   "evidence_rule_ko": "(a) 내가 직접 연 PDF 의 축자 문장 또는 (b) 디스크 JSON 에서 우리가 계산한 재현 가능한 수. 나머지는 UNVERIFIED.",
   "house_rules_ko": "인용은 지면·게재상태·연도를 달고 다닌다. 프리프린트는 arXiv ID 를 단다. Ziganshin 회의판(게재)과 저널판(프리프린트)을 절대 섞지 않는다. 모든 개수 주장은 코퍼스 이름을 단다.",
@@ -23,7 +23,7 @@
    "outputs/report02_derived.json",
    "outputs/reflib_sweep_venues.json"
   ],
-  "runtime_s": 2.8389534950256348
+  "runtime_s": 1.7062761783599854
  },
  "position": {
   "one_sentence_ko": "우리는 새 물리를 주장하지 않는다 — 우리는 드론 기체 메시에서 재질 가중 산란을 계산하고, 그 σ 를 세 기하·세 조명원 격자에 넣어, 이미 알려진 무모호 속도 한계(Abratkiewicz, IEEE JSTARS 2023, eq.16)를 네 표준에 걸쳐 하나의 규약으로 평가하며 교정된 검출성능까지 잇는다. 우리가 연 26편 중 이 여섯 축을 동시에 채운 것은 없고, 우리도 회절과 로터 두 축은 비어 있다.",
@@ -736,13 +736,13 @@
    "claim_en": "The installed Sionna 2.0.1 rt package contains zero occurrences of 'rcs' or 'radar_cross_section' - there is no scattering integral and no sigma output.",
    "grade": "computed-by-us (한 줄로 재현)",
    "source": {
-    "command": "grep -rio '\\brcs\\b' /home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt --include=*.py | wc -l",
+    "command": "grep -rio '\\brcs\\b' /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt --include=*.py | wc -l",
     "json": "outputs/deck_facts.json : recomputed.sionna_installed",
     "corroborating": "benchmark/verify_rt_no_rcs.py · outputs/psolve_diffraction.json : sionna_stock_D"
    },
    "numbers": {
     "version": "2.0.1",
-    "rt_dir": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
+    "rt_dir": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
     "rcs_word_hits": 0,
     "radar_cross_section_hits": 0,
     "diffract_hits": 550
@@ -771,8 +771,8 @@
    "id": "F23",
    "rank": 23,
    "tier": "엔진",
-   "claim_ko": "우리 RCS 커널(src/rcs_sbr.py + src/rcs_po.py)에는 diffract·PTD·UTD·creeping·fringe 가 0회 나온다 — 회절항이 전혀 없다. 이것이 우리 행의 빈칸이다.",
-   "claim_en": "Our RCS kernel contains 0 occurrences of diffract/PTD/UTD/creeping/fringe - there is no edge term of any kind.",
+   "claim_ko": "우리 RCS 커널(src/rcs_sbr.py + src/rcs_po.py)에는 diffract·PTD·UTD·creeping·fringe 가 36회 나온다 — 회절항이 전혀 없다. 이것이 우리 행의 빈칸이다.",
+   "claim_en": "Our RCS kernel contains 36 occurrences of diffract/PTD/UTD/creeping/fringe - there is no edge term of any kind.",
    "grade": "computed-by-us (한 줄로 재현)",
    "source": {
     "command": "grep -cEi 'diffract|\\bPTD\\b|\\bUTD\\b|creeping|fringe' src/rcs_sbr.py src/rcs_po.py",
@@ -780,10 +780,10 @@
    },
    "numbers": {
     "hits_by_file": {
-     "src/rcs_sbr.py": 0,
-     "src/rcs_po.py": 0
+     "src/rcs_sbr.py": 35,
+     "src/rcs_po.py": 1
     },
-    "total_hits": 0
+    "total_hits": 36
    },
    "attack": "그러면 결과를 믿을 수 없는 것 아닌가.",
    "answer": "영향의 크기를 우리가 계산했다(F24). 회절항 부재가 밴드 기울기 초과의 가장 유력한 물리적 후보이지만, 우리 자체 산술은 그것만으로 전부를 설명하기 어렵다고 말한다 — 우리 유효 지수는 2 가 아니라 0.55~1.27 이라 PO 적분이 이미 단일 평판이 아니다. 그래서 PTD 는 **수정이 아니라 진단으로 먼저** 붙일 계획이다."
@@ -792,7 +792,7 @@
    "id": "F24",
    "rank": 24,
    "tier": "엔진",
-   "claim_ko": "우리 σ 의 주파수 기울기는 실측 앵커보다 가파르다 — 3밴드 적합 7기체에서 0.74~1.70 dB/GHz, 22점 el=0 적합에서 0.96~1.54 dB/GHz 이고, 실측 센서스는 0.07~0.315 dB/GHz 다 (Das 0.210 대비 3.5~8.1배). 단 순수 f² 평판 한계는 2.681 dB/GHz 이므로 우리는 그 사이에 있다.",
+   "claim_ko": "우리 σ 의 주파수 기울기는 실측 앵커보다 가파르다 — 3밴드 적합 7기체에서 -0.08~2.00 dB/GHz, 22점 el=0 적합에서 0.17~1.57 dB/GHz 이고, 실측 센서스는 0.07~0.315 dB/GHz 다 (Das 0.210 대비 -0.4~9.5배). 단 순수 f² 평판 한계는 2.681 dB/GHz 이므로 우리는 그 사이에 있다.",
    "claim_en": "Our band slope is steeper than measurement but below the pure-f^2 plate limit: ours 0.74-1.70 dB/GHz (3-band) vs measured 0.07-0.315, with the plate limit at 2.681.",
    "grade": "computed-by-us",
    "source": {
@@ -803,30 +803,26 @@
    },
    "numbers": {
     "fit_A_3band_7airframes_db_per_ghz": {
-     "matrice4e": 0.9358698306274642,
-     "mavic4pro": 1.3110883410656062,
-     "mini5pro": 1.5170442793984567,
-     "phantom4": 1.6994008126771427,
-     "s1000plus": 1.6037946605260234,
-     "typhoonh480": 1.1932246730776375,
-     "x500v2": 0.7419970017631432
+     "mini5pro": 1.2757108456969408,
+     "mavic4pro": -0.0844509267461361,
+     "matrice4e": 0.23322388401605645,
+     "s1000plus": 0.5963837817463704,
+     "phantom4": 2.00425680950296
     },
     "fit_A_range": [
-     0.7419970017631432,
-     1.6994008126771427
+     -0.0844509267461361,
+     2.00425680950296
     ],
     "fit_B_22point_el0_7airframes_db_per_ghz": {
-     "matrice4e": 1.1640230434425125,
-     "mavic4pro": 0.9586804798404873,
-     "mini5pro": 1.0666157392172597,
-     "phantom4": 1.4105233519468743,
-     "s1000plus": 1.5421589150245456,
-     "typhoonh480": 1.3178556981757104,
-     "x500v2": 1.0407900979670541
+     "mini5pro": 1.056442568449755,
+     "mavic4pro": 0.16893618546560166,
+     "matrice4e": 0.4987784025453701,
+     "s1000plus": 0.6197283123313657,
+     "phantom4": 1.5662724168069113
     },
     "fit_B_range": [
-     0.9586804798404873,
-     1.5421589150245456
+     0.16893618546560166,
+     1.5662724168069113
     ],
     "fit_B_n_points": [
      22
@@ -850,8 +846,8 @@
     ],
     "pure_f2_plate_limit_db_per_ghz": 2.681,
     "ratio_fitA_over_das": [
-     3.533319056014968,
-     8.092384822272109
+     -0.40214727021969576,
+     9.54408004525219
     ]
    },
    "attack": "두 개의 서로 다른 범위(0.74~1.70 과 0.96~1.54)를 내놓았다. 어느 것이 맞는가.",
@@ -940,7 +936,7 @@
    "id": "F27",
    "rank": 27,
    "tier": "엔진",
-   "claim_ko": "⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립하고, 거기서 두 기하의 확산항 차는 0.118 dB 뿐이지만 φ 를 쓸면 최대 23.17 dB 로 벌어진다.",
+   "claim_ko": "⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립한다. ⛔**전 판이 여기 적은 «φ 를 쓸면 최대 23.17 dB» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03 φ 실측 스윕 72 점) — 그 수는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고, R90 동작점에서는 **≤1.20 dB** (d 중앙값 ≤3.10 dB)다. 두 기하의 확산항 차는 φ=90° 에서 0.118 dB 다. 남은 축은 «φ 한 컷으로만 보고했다» 는 보고 범위이지 위험의 크기가 아니다.",
    "claim_en": "Every detection result to date sits at scene azimuth phi=90 deg, where R1~=R2 structurally: the geometry difference is 0.118 dB there and up to 23.17 dB across phi.",
    "grade": "computed-by-us",
    "source": {
@@ -1018,7 +1014,7 @@
    "claim_en": "Sionna's PathSolver defaults are diffraction=False and edge_diffraction=False - the capability exists and ships off by default.",
    "grade": "computed-by-us (설치본 소스 직접 확인)",
    "source": {
-    "code": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:154-155",
+    "code": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:154-155",
     "verbatim": "diffraction: bool = False,  /  edge_diffraction: bool = False,",
     "command": "grep -n 'diffraction' <sionna.rt>/path_solvers/path_solver.py"
    },
@@ -1074,7 +1070,7 @@
    "id": "G3",
    "title_ko": "인용 커버리지 — 81개 지면 엔트리 중 축자 인용은 8건",
    "was": "엔트리 81건 중 축자 인용 8건, 출력 전반에 UNVERIFIED 마커 다수.",
-   "status_now": "⚠ 부분적으로만 개선. 넓은 코퍼스의 인용 커버리지는 그대로다(PDF 가 디스크에 있는 엔트리 41건). outputs 전체의 UNVERIFIED 마커는 오히려 676개로 늘었다 — 검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.",
+   "status_now": "⚠ 부분적으로만 개선. 넓은 코퍼스의 인용 커버리지는 그대로다(PDF 가 디스크에 있는 엔트리 41건). outputs 전체의 UNVERIFIED 마커는 오히려 784개로 늘었다 — 검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.",
    "what_changed": "⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 UNVERIFIED 는 0 이고 인용 80건이 매 빌드 재대조된다. 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.",
    "honest_statement_ko": "'우리 문헌 조사가 검증되었다' 고 말하면 안 된다. '덱이 인용하는 26행은 검증되었고, 배후의 81개 엔트리 대부분은 서지 수준이다' 가 참이다.",
    "attack": "그럼 배후 코퍼스의 결론(H8 등)은 어떻게 믿는가.",
@@ -1094,7 +1090,7 @@
    "id": "G5",
    "title_ko": "φ=90° 단일 방위 — 발표된 모든 검출 결과가 한 컷이다",
    "was": "src/experiment_freespace_range.py:322,773 의 phi_deg=90.0 에서 모든 결과가 나왔다.",
-   "status_now": "⚠ 그대로 열려 있다. 크기는 이번에 계량되었다 — φ=90° 에서 기하 차 0.118 dB, φ 를 쓸면 최대 23.17 dB.",
+   "status_now": "⛔**R14 가 무효화했다**(2026-08-03). φ 를 실제로 쓸어보니(0~355°, 72 점) φ 의존은 사실상 없다 — R90 span 0.48 %(≤0.083 dB)이고 **φ=90° 가 세 팔 모두 최소**다. ⛔전 판의 «링크버짓 축만 φ 에 매달린다» 는 **반대**였다. 남는 것은 «한 컷만 보고했다» 는 보고 범위뿐이다. 옛 기록 — φ=90° 에서 기하 차 0.118 dB, φ 를 쓸면 최대 23.17 dB.",
    "correction_of_our_own_wording": "⭐ '하드코딩' 이 아니라 **기본 인자**다. 결함은 코드가 아니라 보고에 있다 — φ 스윕을 보고한 적이 없다.",
    "evidence": {
     "json": "outputs/geometry_grid.json : traps[T1b] · range_normalisation.*.absmax_over_phi_db",
@@ -1243,30 +1239,26 @@
   },
   "band_slope": {
    "fit_A_3band_7airframes_db_per_ghz": {
-    "matrice4e": 0.9358698306274642,
-    "mavic4pro": 1.3110883410656062,
-    "mini5pro": 1.5170442793984567,
-    "phantom4": 1.6994008126771427,
-    "s1000plus": 1.6037946605260234,
-    "typhoonh480": 1.1932246730776375,
-    "x500v2": 0.7419970017631432
+    "mini5pro": 1.2757108456969408,
+    "mavic4pro": -0.0844509267461361,
+    "matrice4e": 0.23322388401605645,
+    "s1000plus": 0.5963837817463704,
+    "phantom4": 2.00425680950296
    },
    "fit_A_range": [
-    0.7419970017631432,
-    1.6994008126771427
+    -0.0844509267461361,
+    2.00425680950296
    ],
    "fit_B_22point_el0_7airframes_db_per_ghz": {
-    "matrice4e": 1.1640230434425125,
-    "mavic4pro": 0.9586804798404873,
-    "mini5pro": 1.0666157392172597,
-    "phantom4": 1.4105233519468743,
-    "s1000plus": 1.5421589150245456,
-    "typhoonh480": 1.3178556981757104,
-    "x500v2": 1.0407900979670541
+    "mini5pro": 1.056442568449755,
+    "mavic4pro": 0.16893618546560166,
+    "matrice4e": 0.4987784025453701,
+    "s1000plus": 0.6197283123313657,
+    "phantom4": 1.5662724168069113
    },
    "fit_B_range": [
-    0.9586804798404873,
-    1.5421589150245456
+    0.16893618546560166,
+    1.5662724168069113
    ],
    "fit_B_n_points": [
     22
@@ -1290,8 +1282,8 @@
    ],
    "pure_f2_plate_limit_db_per_ghz": 2.681,
    "ratio_fitA_over_das": [
-    3.533319056014968,
-    8.092384822272109
+    -0.40214727021969576,
+    9.54408004525219
    ]
   },
   "cfar": {
@@ -1504,17 +1496,17 @@
   },
   "sionna_installed": {
    "version": "2.0.1",
-   "rt_dir": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
+   "rt_dir": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
    "rcs_word_hits": 0,
    "radar_cross_section_hits": 0,
    "diffract_hits": 550
   },
   "our_kernel_diffraction": {
    "hits_by_file": {
-    "src/rcs_sbr.py": 0,
-    "src/rcs_po.py": 0
+    "src/rcs_sbr.py": 35,
+    "src/rcs_po.py": 1
    },
-   "total_hits": 0
+   "total_hits": 36
   },
   "diffraction_census": {
    "corpus_A_217_pdfs": {
@@ -1606,8 +1598,8 @@
     "U": 1
    }
   },
-  "unverified_markers_in_outputs": 676,
-  "unverified_marker_files_scanned": 115
+  "unverified_markers_in_outputs": 784,
+  "unverified_marker_files_scanned": 705
  },
  "self_check": {
   "method_ko": "모든 헤드라인 숫자는 빌드가 상류 JSON 에서 다시 계산해 기록값과 대조한다. 인용문은 정규화 후 PDF 페이지 텍스트에 실제로 들어 있는지 재대조한다.",
@@ -1669,13 +1661,13 @@
    },
    {
     "id": "F24.band3_keys",
-    "passed": true,
-    "detail": "3밴드 적합 기체 7종, 범위 0.7420~1.6994 (기록값 0.7420~1.6994)"
+    "passed": false,
+    "detail": "3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043)"
    },
    {
     "id": "F24.two_fits",
     "passed": true,
-    "detail": "3밴드 적합 [0.7419970017631432, 1.6994008126771427] vs 22점 el0 적합 [0.9586804798404873, 1.5421589150245456]"
+    "detail": "3밴드 적합 [-0.0844509267461361, 2.00425680950296] vs 22점 el0 적합 [0.16893618546560166, 1.5662724168069113]"
    },
    {
     "id": "V6.runtime",
@@ -1739,8 +1731,8 @@
    },
    {
     "id": "F23.kernel",
-    "passed": true,
-    "detail": "우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 0회"
+    "passed": false,
+    "detail": "우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 36회"
    },
    {
     "id": "F14b.census",
@@ -1823,7 +1815,10 @@
     "detail": "Chen 2024 전문의 'PRF' 출현 0회 — '같은 기호로 냈다' 는 우리 서술의 반례"
    }
   ],
-  "problems": []
+  "problems": [
+   "F24.band3_keys: 3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043)",
+   "F23.kernel: 우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 36회"
+  ]
  },
  "counts": {
   "facts": 32,
@@ -1840,8 +1835,8 @@
   "gaps_closed": 2,
   "do_not_say": 15,
   "checks_total": 42,
-  "checks_passed": 42,
-  "checks_failed": 0,
+  "checks_passed": 40,
+  "checks_failed": 2,
   "quotes_rechecked": 13
  }
 }

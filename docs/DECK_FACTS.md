@@ -1,11 +1,11 @@
 # DECK_FACTS — 0804 팀미팅 덱이 인용해도 되는 사실 기반
 
-생성 2026-08-03 02:32:42 · 생성기 `benchmark/deck_facts.py` · 런타임 2.8 s
+생성 2026-09-04 03:47:52 · 생성기 `benchmark/deck_facts.py` · 런타임 1.7 s
 
 > **증거 규칙**  한 주장은 (a) 내가 직접 연 PDF 의 축자 문장이거나, (b) 디스크의 JSON 에서 우리가 계산했고 재현 가능하거나, 둘 중 하나다. 나머지는 UNVERIFIED 로 라벨하거나 뺀다.
 > 인용은 매 빌드 PDF 페이지 텍스트에 재대조된다. 개수 주장은 **코퍼스 이름을 달고 다닌다**.
 
-**사실 32건**(축자 인용 9 · 우리 계산 22 · SECONDHAND 1 · UNVERIFIED 0) · **철회 10건** · **열린 구멍 7건** · 자체검사 42/42 통과 (인용 재대조 13건)
+**사실 32건**(축자 인용 9 · 우리 계산 22 · SECONDHAND 1 · UNVERIFIED 0) · **철회 10건** · **열린 구멍 7건** · 자체검사 40/42 통과 (인용 재대조 13건)
 
 ⚠ SECONDHAND ['F30'] — 다른 라운드가 연 PDF 의 인용에 기댄다. 슬라이드에 올리기 전 원문을 직접 열 것.
 
@@ -427,17 +427,17 @@
 - **⭐ 예상 공격** — 그럼 PathSolver(diffraction=True) 를 드론에 켜면 되지 않는가.
 - **우리 답** — 켜도 σ 는 안 나온다 — 여전히 경로 계수만 나오고, D 가 먹일 산란적분이 없다(F21). 그리고 테셀레이션된 드론 셸에서 Sionna 의 쐐기 각도는 인접 면 법선 두 개로 읽히므로, 메시를 조밀하게 하면 각도가 바뀐다 — 드론의 성질이 아니라 우리 메싱의 성질이 된다.
 
-#### F23 · 우리 RCS 커널(src/rcs_sbr.py + src/rcs_po.py)에는 diffract·PTD·UTD·creeping·fringe 가 0회 나온다 — 회절항이 전혀 없다. 이것이 우리 행의 빈칸이다.
+#### F23 · 우리 RCS 커널(src/rcs_sbr.py + src/rcs_po.py)에는 diffract·PTD·UTD·creeping·fringe 가 36회 나온다 — 회절항이 전혀 없다. 이것이 우리 행의 빈칸이다.
 
 - **등급** `computed-by-us (한 줄로 재현)`
-- **EN** Our RCS kernel contains 0 occurrences of diffract/PTD/UTD/creeping/fringe - there is no edge term of any kind.
+- **EN** Our RCS kernel contains 36 occurrences of diffract/PTD/UTD/creeping/fringe - there is no edge term of any kind.
 - **command** `grep -cEi 'diffract|\bPTD\b|\bUTD\b|creeping|fringe' src/rcs_sbr.py src/rcs_po.py`
 - **json** `outputs/psolve_diffraction.json : our_p4_state_verified`
-- **수치** `{"hits_by_file": {"src/rcs_sbr.py": 0, "src/rcs_po.py": 0}, "total_hits": 0}`
+- **수치** `{"hits_by_file": {"src/rcs_sbr.py": 35, "src/rcs_po.py": 1}, "total_hits": 36}`
 - **⭐ 예상 공격** — 그러면 결과를 믿을 수 없는 것 아닌가.
 - **우리 답** — 영향의 크기를 우리가 계산했다(F24). 회절항 부재가 밴드 기울기 초과의 가장 유력한 물리적 후보이지만, 우리 자체 산술은 그것만으로 전부를 설명하기 어렵다고 말한다 — 우리 유효 지수는 2 가 아니라 0.55~1.27 이라 PO 적분이 이미 단일 평판이 아니다. 그래서 PTD 는 **수정이 아니라 진단으로 먼저** 붙일 계획이다.
 
-#### F24 · 우리 σ 의 주파수 기울기는 실측 앵커보다 가파르다 — 3밴드 적합 7기체에서 0.74~1.70 dB/GHz, 22점 el=0 적합에서 0.96~1.54 dB/GHz 이고, 실측 센서스는 0.07~0.315 dB/GHz 다 (Das 0.210 대비 3.5~8.1배). 단 순수 f² 평판 한계는 2.681 dB/GHz 이므로 우리는 그 사이에 있다.
+#### F24 · 우리 σ 의 주파수 기울기는 실측 앵커보다 가파르다 — 3밴드 적합 7기체에서 -0.08~2.00 dB/GHz, 22점 el=0 적합에서 0.17~1.57 dB/GHz 이고, 실측 센서스는 0.07~0.315 dB/GHz 다 (Das 0.210 대비 -0.4~9.5배). 단 순수 f² 평판 한계는 2.681 dB/GHz 이므로 우리는 그 사이에 있다.
 
 - **등급** `computed-by-us`
 - **EN** Our band slope is steeper than measurement but below the pure-f^2 plate limit: ours 0.74-1.70 dB/GHz (3-band) vs measured 0.07-0.315, with the plate limit at 2.681.
@@ -445,7 +445,7 @@
 - **json_ours_B** `outputs/rcs_anchor.json : drones[*].regression.el0.a (22점 조밀 적합, 7기체)`
 - **json_measured** `outputs/psolve_diffraction.json : our_p4_state_verified.measured_slope_census`
 - **anchors** `Das (IEEE WCL 15:3731-3735, 2026, 게재) 0.210 · Yuan/mono3d θ=90° 0.315 dB/GHz`
-- **수치** `{"fit_A_3band_7airframes_db_per_ghz": {"matrice4e": 0.9358698306274642, "mavic4pro": 1.3110883410656062, "mini5pro": 1.5170442793984567, "phantom4": 1.6994008126771427, "s1000plus": 1.6037946605260234, "typhoonh480": 1.1932246730776375, "x500v2": 0.7419970017631432}, "fit_A_range": [0.7419970017631432, 1.6994008126771427], "fit_B_22point_el0_7airframes_db_per_ghz": {"matrice4e": 1.1640230434425125, "mavic4pro": 0.9586804798404873, "mini5pro": 1.0666157392172597, "phantom4": 1.4105233519468743, "s1000plus": 1.5421589150245456, "typhoonh480": 1.3178556981757104, "x500v2": 1.0407900979670541}, "fit_B_range": [0.9586804798404873, 1.5421589150245456], "fit_B_n_points": [22], "measured_anchor_db_per_ghz": {"das_phantom3_mono": 0.21, "yuan_azplane": 0.315}, "measured_slope_census_db_per_ghz": [0.21, 0.21, 0.07, 0.17, 0.315, 0.231, 0.175], "measured_census_range": [0.07, 0.315], "pure_f2_plate_limit_db_per_ghz": 2.681, "ratio_fitA_over_das": [3.533319056014968, 8.092384822272109]}`
+- **수치** `{"fit_A_3band_7airframes_db_per_ghz": {"mini5pro": 1.2757108456969408, "mavic4pro": -0.0844509267461361, "matrice4e": 0.23322388401605645, "s1000plus": 0.5963837817463704, "phantom4": 2.00425680950296}, "fit_A_range": [-0.0844509267461361, 2.00425680950296], "fit_B_22point_el0_7airframes_db_per_ghz": {"mini5pro": 1.056442568449755, "mavic4pro": 0.16893618546560166, "matrice4e": 0.4987784025453701, "s1000plus": 0.6197283123313657, "phantom4": 1.5662724168069113}, "fit_B_range": [0.16893618546560166, 1.5662724168069113], "fit_B_n_points": [22], "measured_anchor_db_per_ghz": {"das_phantom3_mono": 0.21, "yuan_azplane": 0.315}, "measured_slope_census_db_per_ghz": [0.21, 0.21, 0.07, 0.17, 0.315, 0.231, 0.175], "measured_census_range": [0.07, 0.315], "pure_f2_plate_limit_db_per_ghz": 2.681, "ratio_fitA_over_das": [-0.40214727021969576, 9.54408004525219]}`
 - ⚠ 어떤 적합을 인용하든 캡션에 밴드 수·점 수·고도각을 밝힌다. ⚠ 능력 매트릭스 그림의 회절 칸은 같은 22점 적합을 **DJI 쿼드 4종으로만** 잘라 '+0.96~+1.40 dB/GHz' 로 적는다 — 7기체 전체로는 +0.96~+1.54 다. 두 그림을 나란히 놓으면 차이가 보이므로, 한 발표 안에서는 한쪽 범위만 쓴다.
 - **⭐ 예상 공격** — 두 개의 서로 다른 범위(0.74~1.70 과 0.96~1.54)를 내놓았다. 어느 것이 맞는가.
 - **우리 답** — 둘 다 맞고 **다른 적합**이다 — 하나는 세 밴드 3점 회귀(1.843/3.5/5.21 GHz), 하나는 1.8~6.0 GHz 22점 조밀 회귀(el=0). 슬라이드에는 하나만 올리고 캡션에 적합 방식을 적는다. 이런 종류의 혼선이 이 프로젝트에서 실제로 정정을 부른 적이 있어서, 규약을 적는 것을 규칙으로 만들었다.
@@ -468,7 +468,7 @@
 - **⭐ 예상 공격** — 백색잡음에서의 Pfa 교정은 실제 클러터에서 의미가 없다.
 - **우리 답** — 맞다 — 그래서 백색 교정과 체인(전 처리사슬) 교정을 따로 냈다. 백색은 α 구현 감사용이고, 실제 오경보 판정은 체인 맵에서 한다. 그리고 우리 챔버는 semi-anechoic 이라 정적 클러터가 ECA 로 삼중 차단되고, 진짜 위협은 표적경유 바닥유령이라는 별도 축이다.
 
-#### F27 · ⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립하고, 거기서 두 기하의 확산항 차는 0.118 dB 뿐이지만 φ 를 쓸면 최대 23.17 dB 로 벌어진다.
+#### F27 · ⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립한다. ⛔**전 판이 여기 적은 «φ 를 쓸면 최대 23.17 dB» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03 φ 실측 스윕 72 점) — 그 수는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고, R90 동작점에서는 **≤1.20 dB** (d 중앙값 ≤3.10 dB)다. 두 기하의 확산항 차는 φ=90° 에서 0.118 dB 다. 남은 축은 «φ 한 컷으로만 보고했다» 는 보고 범위이지 위험의 크기가 아니다.
 
 - **등급** `computed-by-us`
 - **EN** Every detection result to date sits at scene azimuth phi=90 deg, where R1~=R2 structurally: the geometry difference is 0.118 dB there and up to 23.17 dB across phi.
@@ -558,7 +558,7 @@
 ### G3. 인용 커버리지 — 81개 지면 엔트리 중 축자 인용은 8건
 
 - **이전** — 엔트리 81건 중 축자 인용 8건, 출력 전반에 UNVERIFIED 마커 다수.
-- **지금** — ⚠ 부분적으로만 개선. 넓은 코퍼스의 인용 커버리지는 그대로다(PDF 가 디스크에 있는 엔트리 41건). outputs 전체의 UNVERIFIED 마커는 오히려 676개로 늘었다 — 검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.
+- **지금** — ⚠ 부분적으로만 개선. 넓은 코퍼스의 인용 커버리지는 그대로다(PDF 가 디스크에 있는 엔트리 41건). outputs 전체의 UNVERIFIED 마커는 오히려 784개로 늘었다 — 검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.
 - **무엇이 바뀌었는가** — ⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 UNVERIFIED 는 0 이고 인용 80건이 매 빌드 재대조된다. 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.
 - **정직한 문장** — '우리 문헌 조사가 검증되었다' 고 말하면 안 된다. '덱이 인용하는 26행은 검증되었고, 배후의 81개 엔트리 대부분은 서지 수준이다' 가 참이다.
 - **⭐ 예상 공격** — 그럼 배후 코퍼스의 결론(H8 등)은 어떻게 믿는가.
@@ -576,7 +576,7 @@
 ### G5. φ=90° 단일 방위 — 발표된 모든 검출 결과가 한 컷이다
 
 - **이전** — src/experiment_freespace_range.py:322,773 의 phi_deg=90.0 에서 모든 결과가 나왔다.
-- **지금** — ⚠ 그대로 열려 있다. 크기는 이번에 계량되었다 — φ=90° 에서 기하 차 0.118 dB, φ 를 쓸면 최대 23.17 dB.
+- **지금** — ⛔**R14 가 무효화했다**(2026-08-03). φ 를 실제로 쓸어보니(0~355°, 72 점) φ 의존은 사실상 없다 — R90 span 0.48 %(≤0.083 dB)이고 **φ=90° 가 세 팔 모두 최소**다. ⛔전 판의 «링크버짓 축만 φ 에 매달린다» 는 **반대**였다. 남는 것은 «한 컷만 보고했다» 는 보고 범위뿐이다. 옛 기록 — φ=90° 에서 기하 차 0.118 dB, φ 를 쓸면 최대 23.17 dB.
 - **우리 표현 정정** — ⭐ '하드코딩' 이 아니라 **기본 인자**다. 결함은 코드가 아니라 보고에 있다 — φ 스윕을 보고한 적이 없다.
 - **근거** — `{"json": "outputs/geometry_grid.json : traps[T1b] · range_normalisation.*.absmax_over_phi_db", "code": "src/experiment_freespace_range.py:322,773"}`
 - **정직한 문장** — 기하 축의 결론은 φ 를 쓸기 전까지 잠정이다. 슬라이드에 '단일 방위' 를 명시한다.
@@ -616,8 +616,8 @@
 | `V5.zero` | ✅ | 밴드별 |모노-바이β0| = {'wifi': 0.0, 'lte': 0.0, 'nr': 0.0} |
 | `V2.po` | ✅ | max|dB| vs 해석 PO = 0.200573 |
 | `V3.level` | ✅ | 7기체 레벨 이동 최대 |4.74e-15| dB |
-| `F24.band3_keys` | ✅ | 3밴드 적합 기체 7종, 범위 0.7420~1.6994 (기록값 0.7420~1.6994) |
-| `F24.two_fits` | ✅ | 3밴드 적합 [0.7419970017631432, 1.6994008126771427] vs 22점 el0 적합 [0.9586804798404873, 1.5421589150245456] |
+| `F24.band3_keys` | ❌ | 3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043) |
+| `F24.two_fits` | ✅ | 3밴드 적합 [-0.0844509267461361, 2.00425680950296] vs 22점 el0 적합 [0.16893618546560166, 1.5662724168069113] |
 | `V6.runtime` | ✅ | 몬테카를로 런타임 2716.7 s |
 | `V7.dbsm` | ✅ | Sionna 로 dBsm 을 인쇄한 논문 1편 |
 | `V7.target` | ✅ | 씬에 표적을 세운 고유 저작 6편 |
@@ -630,7 +630,7 @@
 | `G5.phi` | ✅ | φ 최대 확산차 23.168839470105702 |
 | `F21.no_rcs` | ✅ | sionna.rt 2.0.1: 'rcs' 0회 · 'radar_cross_section' 0회 |
 | `F22.has_diffraction` | ✅ | sionna.rt 2.0.1: 'diffract*' 550회 (있다 — 회절이 없다고 말하면 안 된다) |
-| `F23.kernel` | ✅ | 우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 0회 |
+| `F23.kernel` | ❌ | 우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 36회 |
 | `F14b.census` | ✅ | reference_library.json 텍스트의 'wedge' 0회는 유지된다 |
 | `Q.A2` | ✅ | A2 조각 대조: The Doppler range is limited by T... |
 | `Q.A4` | ✅ | A4 조각 대조: one can obtain the maximum unambiguous bistatic velocity of... |
@@ -648,4 +648,6 @@
 | `REC.phantom` | ✅ | Taylor & Poullin 표적은 Phantom 4 다 — 전문에 'Phantom 3' 문자열이 없다(outputs/deepread_reconcile.json 의 'DJI Phantom 3' 기재는 정정 대상) |
 | `R10.prf` | ✅ | Chen 2024 전문의 'PRF' 출현 0회 — '같은 기호로 냈다' 는 우리 서술의 반례 |
 
-실패 0건.
+**실패한 검사**
+- ❌ F24.band3_keys: 3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043)
+- ❌ F23.kernel: 우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 36회

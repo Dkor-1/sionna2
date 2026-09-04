@@ -62,7 +62,7 @@
 
 | 절 | 제목 | 조각 |
 |---|---|---|
-| 1 | 게재본 중 드론 메쉬에서 산란을 계산한 것은 0편이다 | `_parts/08_census-published.ipynb` |
+| 1 | 전문 판정한 게재본 중 드론 메쉬 산란을 엔진 안에서 «검증» 한 것은 0편이다 | `_parts/08_census-published.ipynb` |
 | 2 | 프리프린트는 따로 세고, Ziganshin 은 두 판을 구별해 인용한다 | `_parts/09_census-preprint.ipynb` |
 | 3 | 표적 서명을 어디서 조달했는지가 그 논문이 낼 수 있는 주장의 크기를 정한다 | `_parts/10_procurement.ipynb` |
 | 4 | 조달처 일곱 갈래 R1~R7 을 전수로 적었다 | `_parts/11_procurement-catalog.ipynb` |
@@ -143,7 +143,7 @@
 | 1 | 앙각 7 점을 15 m 한 자리에서 광선 40 억 발로 재고, 77 행이 모두 완결이다 | `_parts/78_el-sweep-design.ipynb` |
 | 2 | −75° 에서 추적 대역 몫은 고정 대역보다 38.55 dB 크고, 그 차이를 만든 것은 대역을 어디에 놓았는가 하나다 | `_parts/79_el-band-tracking.ipynb` |
 | 3 | 물리 상한 위 누설은 우리 팔(λ/12 격자) 0.22~17.18 %, 스톡 PathSolver 0.81~96.17 % 이고, 물리를 켜면 여섯 앙각이 전부 78 % 위다 | `_parts/80_el-above-tip-limit.ipynb` |
-| 4 | 나딧 잔여 −38.31 dB 의 64 % 는 광선 격자 표본화 잡음이고, 5° 만 기울면 −11.88 dB 로 열린다 | `_parts/82_el-nadir-floor.ipynb` |
+| 4 | 나딧 잔여의 64 % 는 광선 격자 표본화 잡음이고, 널은 나딧 −49.18 dB 에서 10° −23.73 dB 로 완만히 차는 얕은 웅덩이다 | `_parts/82_el-nadir-floor.ipynb` |
 | 5 | el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다 | `_parts/87_budget-not-physics.ipynb` |
 
 ### 권 [5 «엔진의 물리 스위치 — 켜면 무엇이 달라지나»](05_engine-physics.ipynb)

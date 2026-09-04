@@ -903,8 +903,13 @@ def blocks_78() -> list:
 #  ⚠ 이 구역은 조각 82 전용이다. 다른 절을 맡은 사람은 여기를 건드리지 않는다.
 # =========================================================================== #
 #: 계획의 제목을 이 라운드에서 늘려 잡았다 — 노트북 H1 과 샤드가 **글자 하나까지** 같아야 한다.
-TITLE_82 = ("나딧 잔여 −38.31 dB 의 64 % 는 광선 격자 표본화 잡음이고, "
-            "5° 만 기울면 −11.88 dB 로 열린다")
+#: ⛔전 제목은 «5° 만 기울면 −11.88 dB 로 열린다» 였다. 그 수는 **가림도 격자도 없는
+#  원거리장 대리모형**의 값이고, 원장이 스스로 반증했다 —
+#  `outputs/refute_nadir_mechanism_final.json : VERDICTS.claim5_… .verdict = 반증됨(REFUTED)`.
+#  커널을 그대로 재현하면 나딧 −49.2 → 1° −47.0 → 2° −44.1 → 5° −32.5 → 10° −23.7 dB 로
+#  **완만하게** 찬다. «아주 좁은 원뿔» 이 아니라 «10° 규모로 회복되는 얕은 웅덩이» 다.
+TITLE_82 = ("나딧 잔여의 64 % 는 광선 격자 표본화 잡음이고, "
+            "널은 나딧 −49.18 dB 에서 10° −23.73 dB 로 완만히 차는 얕은 웅덩이다")
 REG["el-nadir-floor"] = ("82", TITLE_82)
 
 #: 조각 82 의 원장 — 전부 읽기 전용. (W · S 는 위에서 이미 열렸다)
@@ -936,14 +941,20 @@ def _assert_title_numbers_82() -> None:
 
     (제목은 `num()` 을 못 쓴다. 원장이 바뀌면 여기서 빌드가 멈춘다.)
     """
+    #: ⛔전 판은 `C_D_geometry.offnadir_farfield`(−11.88 dB @5°)를 가리켰다. 그 열은
+    #  **가림도 격자도 없는 원거리장 대리모형**이고, 원장이 스스로 반증했다
+    #  (`refute_nadir_mechanism_final.json : VERDICTS.claim5_… = 반증됨(REFUTED)`,
+    #   그 안에서 옛 열의 키 이름부터 `old_proxy` 다).
+    #  ⭐**커널을 그대로 재현한 `replica` 열**로 옮긴다 — 나딧 −49.18 → 10° −23.73 dB.
+    RF = json.load(open(f"{_ROOT}/outputs/refute_nadir_mechanism_final.json",
+                        encoding="utf-8"))
+    _rep = RF["VERDICTS"]["claim5_blind_cone_is_very_narrow"]["evidence"]["replica"]
     want = [
-        format(abs(float(NF.get("B_decomposition.ours/el-90.ac_over_dc_db"))), ".2f"),
         format(100.0 * float(
             RN.get("R5_detection.nadir_ac_split.grid_sampling_noise_fraction")), ".0f"),
-        format(abs(float(
-            NF.get("C_D_geometry.offnadir_farfield.-85.0.ac_over_dc_db"))), ".2f"),
-        format(float(NF.get("C_D_geometry.offnadir_farfield.-85.0.off_nadir_deg")),
-               ".0f"),
+        format(abs(float(_rep["-90.0"]["sph10_ac_over_dc_db"])), ".2f"),
+        format(abs(float(_rep["-80.0"]["sph10_ac_over_dc_db"])), ".2f"),
+        format(float(_rep["-80.0"]["off_nadir_deg"]), ".0f"),
     ]
     missing = [w for w in want if w not in TITLE_82]
     if missing:

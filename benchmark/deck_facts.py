@@ -1207,8 +1207,8 @@ def build_facts(R: dict) -> list[dict]:
         rank=27,
         tier="엔진",
         claim_ko="⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 "
-        f"R₁≈R₂ 가 구조적으로 성립하고, 거기서 두 기하의 확산항 차는 0.118 dB 뿐이지만 φ 를 쓸면 "
-        f"최대 {R['phi_sensitivity']['absmax_over_phi_db']:.2f} dB 로 벌어진다.",
+        f"R₁≈R₂ 가 구조적으로 성립한다. ⛔**전 판이 여기 적은 «φ 를 쓸면 최대 23.17 dB» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03 φ 실측 스윕 72 점) — 그 수는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고, R90 동작점에서는 **≤1.20 dB** (d 중앙값 ≤3.10 dB)다. 두 기하의 확산항 차는 φ=90° 에서 0.118 dB 다. 남은 축은 "
+        f"«φ 한 컷으로만 보고했다» 는 보고 범위이지 위험의 크기가 아니다.",
         claim_en=f"Every detection result to date sits at scene azimuth phi=90 deg, where R1~=R2 "
         f"structurally: the geometry difference is 0.118 dB there and up to "
         f"{R['phi_sensitivity']['absmax_over_phi_db']:.2f} dB across phi.",
@@ -1654,7 +1654,7 @@ def build_gaps(R: dict) -> list[dict]:
             "id": "G5",
             "title_ko": "φ=90° 단일 방위 — 발표된 모든 검출 결과가 한 컷이다",
             "was": "src/experiment_freespace_range.py:322,773 의 phi_deg=90.0 에서 모든 결과가 나왔다.",
-            "status_now": "⚠ 그대로 열려 있다. 크기는 이번에 계량되었다 — φ=90° 에서 기하 차 0.118 dB, "
+            "status_now": "⛔**R14 가 무효화했다**(2026-08-03). φ 를 실제로 쓸어보니(0~355°, 72 점) φ 의존은 사실상 없다 — R90 span 0.48 %(≤0.083 dB)이고 **φ=90° 가 세 팔 모두 최소**다. ⛔전 판의 «링크버짓 축만 φ 에 매달린다» 는 **반대**였다. 남는 것은 «한 컷만 보고했다» 는 보고 범위뿐이다. 옛 기록 — φ=90° 에서 기하 차 0.118 dB, "
             f"φ 를 쓸면 최대 {R['phi_sensitivity']['absmax_over_phi_db']:.2f} dB.",
             "correction_of_our_own_wording": "⭐ '하드코딩' 이 아니라 **기본 인자**다. 결함은 코드가 아니라 보고에 있다 — "
             "φ 스윕을 보고한 적이 없다.",
