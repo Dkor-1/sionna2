@@ -60,7 +60,7 @@
 - `/data/public/jeong/papers/{5G,LTE,Wifi}/` — 패시브 드론 검출 PDF **21편** [P]
 - `/data/public/sionna_jeong/papers_isac_sionna/` — ISAC/Sionna PDF **27편** [P]
 - `refs/drone_papers/*.md` — Li&Ling·Ezuma·Semkin·Quevedo·DTMB **5편 전부 [N]**
-  (전 디스크 검색 결과 이 5편의 PDF 는 존재하지 않는다)
+  ⛔**정정(2026-09-04) — 이 문장은 거짓이었다.** 5 편 중 **Ezuma·Semkin 은 디스크에 있다** — `papers_isac_sionna/new_0731/` 에 1911.05926 · 2102.11954(Ezuma), ieeeaccess2020_semkin · 2112.09774(Semkin) 네 편이 있고, 그 폴더는 이 문서가 [P] 로 부르는 바로 그 아카이브다. 실제로 없는 것은 Li & Ling · Quevedo · DTMB **3 편**이다. ⇒ Ezuma·Semkin 의 [N] 등급은 **재판정 대상**이다.
 - `prior_work/outputs/prior_work.json` — 14편, 대부분 grade `WEB`/`SOURCE` [W]
 
 ---
