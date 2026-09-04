@@ -936,6 +936,12 @@ REPRO_82 = dict(
          "mitsuba·sionna 를 import 하지 않는다")
 
 
+#: ⭐커널 재현판 — 반증된 원거리장 대리모형 대신 이 열을 쓴다.
+_REP = json.load(open(f"{_ROOT}/outputs/refute_nadir_mechanism_final.json",
+                      encoding="utf-8"))["VERDICTS"][
+    "claim5_blind_cone_is_very_narrow"]["evidence"]["replica"]
+
+
 def _assert_title_numbers_82() -> None:
     """제목의 세 숫자는 손으로 친 자리다 — 원장에서 다시 읽어 **대조**한다.
 
@@ -1125,14 +1131,20 @@ def blocks_82() -> list:
                 f"{RN.num('R5_detection.nadir_ac_split.grid_sampling_noise_fraction', fmt='{:.1%}')}"
                 f" 가 광선 격자 표본화 잡음이다.",
 
-                f"나딧에서 "
-                f"{NF.num('C_D_geometry.offnadir_farfield.-89.5.off_nadir_deg', fmt='{:.1f}', unit='°')}"
-                f" 벗어나면 "
-                f"{NF.num('C_D_geometry.offnadir_farfield.-89.5.ac_over_dc_db', fmt='{:.2f}', unit='dB')}, "
-                f"{NF.num('C_D_geometry.offnadir_farfield.-85.0.off_nadir_deg', fmt='{:.0f}', unit='°')}"
-                f" 에서 "
-                f"{NF.num('C_D_geometry.offnadir_farfield.-85.0.ac_over_dc_db', fmt='{:.2f}', unit='dB')}"
-                f" 로 변조가 돌아온다 — 사각지대는 좁은 원뿔이다.",
+                f"⛔**널이 «좁은 원뿔» 이라는 읽기는 철회한다**(2026-09-04) — 원장이 "
+                f"스스로 반증했다(`refute_nadir_mechanism_final.json : "
+                f"VERDICTS.claim5_blind_cone_is_very_narrow` = 반증됨). 전 판이 든 "
+                f"«0.5° 에서 −55.85 dB · 5° 에서 −11.88 dB» 는 가림도 격자도 없는 "
+                f"**원거리장 대리모형**의 값이고(그 원장 안에서 키 이름부터 `old_proxy` 다), "
+                f"그 모형은 나딧에서 정확히 0(−305 dB)에서 출발하므로 어떤 각도든 "
+                f"«급격한 회복» 으로 찍힌다. "
+                f"⭐**커널을 그대로 재현하면 완만하다** — 나딧 "
+                f"{abs(_REP['-90.0']['sph10_ac_over_dc_db']):.2f} dB 에서 1° "
+                f"{abs(_REP['-89.0']['sph10_ac_over_dc_db']):.2f} · 2° "
+                f"{abs(_REP['-88.0']['sph10_ac_over_dc_db']):.2f} · 5° "
+                f"{abs(_REP['-85.0']['sph10_ac_over_dc_db']):.2f} · 10° "
+                f"{abs(_REP['-80.0']['sph10_ac_over_dc_db']):.2f} dB 로 찬다(전부 −). "
+                f"즉 «좁은 원뿔» 이 아니라 **10° 규모로 회복되는 얕은 웅덩이**다.",
 
                 f"생산 격자에서 재면 이 잔여는 10 m "
                 f"{RN.num('R4b_cpu_kernel_replica.range_sweep_ac_over_dc_db.10', fmt='{:.2f}', unit='dB')} "
