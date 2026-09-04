@@ -989,11 +989,16 @@ def main():
             "정규화 아래서 기하 기여가 정확히 0 이 되므로, 두 기하의 차이는 DPI·기준채널·σ 경로·"
             "PRF 통제권 넷으로 **완전히 분해된다**. ⑶ 모노 팔은 새 RCS 계산이 0 이다 — 우리 σ 격자가 "
             "이미 모노스태틱 후방산란이고 바이 팔이 그것의 이등분선 근사였기 때문이다. "
-            "⑷ ⚠ 기하 축의 링크버짓 크기는 장면방위 φ 에 강하게 매달린다 — 헤드라인 φ=90° 에서 "
-            f"{norm['N3_equal_scene_range']['by_phi']['phi_90']['delta_db_absmax']:.3g} dB, "
-            f"φ 를 쓸면 {norm['N3_equal_scene_range']['absmax_over_phi_db']:.3g} dB. "
-            "지금까지의 결과가 전부 φ=90° 단일 방위였다는 것이 이 단계가 찾아낸 "
-            "가장 큰 재계산 항목이다."),
+            "⑷ ⛔**전 판의 «기하 축의 링크버짓 크기는 장면방위 φ 에 강하게 매달린다» 는 "
+            "RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측). φ 의존은 "
+            "사실상 없다 — R90 span 0.48 %(≤0.083 dB) · 자세평균 0.83 % 이고 **φ=90° 가 세 "
+            "팔 모두 최소**다. 그때 인용하던 큰 수는 φ 가 아니라 **스윕하지 않은 고도차 "
+            "Δz = 35 m** 의 성질이었고 단일 d 칸 값이다(R90 동작점 ≤1.20 dB · d 중앙값 "
+            "≤3.10 dB). 남는 것은 «지금까지의 결과가 전부 φ=90° 단일 방위였다» 는 **보고 "
+            "범위**뿐이지 위험의 크기가 아니다. "
+            f"(옛 기록 — φ=90° "
+            f"{norm['N3_equal_scene_range']['by_phi']['phi_90']['delta_db_absmax']:.3g} dB · "
+            f"φ 전체 {norm['N3_equal_scene_range']['absmax_over_phi_db']:.3g} dB)"),
         configurations_and_grid=grid,
         axis_independence=ax,
         range_normalisation=norm,

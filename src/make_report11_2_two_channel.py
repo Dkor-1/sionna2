@@ -13,6 +13,12 @@ make_report11_2_two_channel.py — 리포트 8-2 「기준채널이 현실이면
 
     PYTHONPATH=src python src/make_report11_2_two_channel.py
 """
+#: ⛔⛔ **2026-09-04 — 이 빌더는 기본으로 쓰지 않는다.**
+#  산출물 `reports/08_2_two_channel.ipynb` 는 **실내 통제 기하(챔버 바이스태틱)** 판이고,
+#  사용자 지시(2026-09-03) 「챔버 관련 내용은 아카이브로 넘기고 없애버려」에 따라
+#  `archive/chamber_0903/reports/` 로 내려갔다. 그런데 이 빌더를 돌리면 그 파일이
+#  `reports/` 로 **되살아난다** — 2026-09-04 에 실제로 그랬고 손으로 지웠다.
+#  ⇒ 되살리려면 `SIONNA_ALLOW_CHAMBER=1` 을 명시해야 한다.
 from __future__ import annotations
 
 import base64
@@ -24,6 +30,13 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 sys.path.insert(0, _HERE)
+
+if not os.environ.get("SIONNA_ALLOW_CHAMBER"):
+    raise SystemExit(
+        "⛔ 챔버 편은 2026-09-03 에 archive/chamber_0903/ 로 내렸다(사용자 지시).\n"
+        "   이 빌더를 돌리면 reports/08_2_two_channel.ipynb 가 되살아난다.\n"
+        "   정말 되살리려면: SIONNA_ALLOW_CHAMBER=1 PYTHONPATH=src python "
+        "src/make_report11_2_two_channel.py")
 
 FIG = os.path.join(_ROOT, "outputs", "figures")
 OUT = os.path.join(_ROOT, "reports", "08_2_two_channel.ipynb")

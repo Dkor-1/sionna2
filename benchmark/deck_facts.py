@@ -483,14 +483,35 @@ def recompute() -> dict:
     for f in ("src/rcs_sbr.py", "src/rcs_po.py"):
         s = raw(os.path.join(ROOT, f))
         kern_hits[f] = len(re.findall(r"diffract|\bPTD\b|\bUTD\b|creeping|fringe", s, re.I))
+    #: ⛔2026-09-04 — 전 판은 「낱말이 0 회 나온다」로 재고, 문장은 「전혀 없다」로 굳은 채
+    #  개수만 0 → 36 으로 갈렸다. 그래서 **근거가 결론을 반증하는 문장**이 인용 가능 목록에
+    #  남고 자가검사는 ❌ 였다. 낱말이 아니라 **생산 경로의 상태**를 잰다.
+    _sbr = raw(os.path.join(ROOT, "src/rcs_sbr.py"))
+    _ptd_default_off = bool(re.search(r"def\s+rcs_sbr_batch\([^)]*\bptd=False\b",
+                                      _sbr, re.S))
+    _attach_callers = []
+    for _dp, _, _fs in os.walk(ROOT):
+        if any(x in _dp for x in (".git", "archive", "__pycache__")):
+            continue
+        for _f in _fs:
+            if not _f.endswith(".py") or _f in ("ptd_edges.py", "deck_facts.py"):
+                continue
+            _s = raw(os.path.join(_dp, _f))
+            if re.search(r"^(?!\s*#).*attach_to_sbr_field\s*\(", _s, re.M):
+                _attach_callers.append(os.path.relpath(os.path.join(_dp, _f), ROOT))
     R["our_kernel_diffraction"] = {
         "hits_by_file": kern_hits,
         "total_hits": sum(kern_hits.values()),
+        "note_ko": "⚠이 개수는 «모서리항이 있다» 는 뜻이 아니다 — 대부분 PTD 배선의 주석·인자다.",
+        "ptd_default_off": _ptd_default_off,
+        "attach_to_sbr_field_callers": sorted(_attach_callers),
     }
     check(
         "F23.kernel",
-        sum(kern_hits.values()) == 0,
-        f"우리 RCS 커널의 회절/PTD/UTD/creeping/fringe 출현 {sum(kern_hits.values())}회",
+        _ptd_default_off and not _attach_callers,
+        f"생산 커널의 σ 경로에 모서리항이 붙지 않는다 — rcs_sbr_batch 의 ptd 기본값이 "
+        f"{'False' if _ptd_default_off else '⛔False 가 아니다'} 이고 "
+        f"ptd_edges.attach_to_sbr_field 호출처 {len(_attach_callers)}곳",
     )
 
     # ── 회절 문헌 센서스 (코퍼스를 반드시 밝힌다) ───────────────────────
@@ -1121,13 +1142,20 @@ def build_facts(R: dict) -> list[dict]:
         id="F23",
         rank=23,
         tier="엔진",
-        claim_ko=f"우리 RCS 커널(src/rcs_sbr.py + src/rcs_po.py)에는 diffract·PTD·UTD·creeping·fringe 가 "
-        f"{R['our_kernel_diffraction']['total_hits']}회 나온다 — 회절항이 전혀 없다. 이것이 우리 행의 빈칸이다.",
-        claim_en=f"Our RCS kernel contains {R['our_kernel_diffraction']['total_hits']} occurrences of "
-        "diffract/PTD/UTD/creeping/fringe - there is no edge term of any kind.",
+        #: ⛔2026-09-04 — 전 문장은 「diffract·PTD·… 가 36회 **나온다** — 회절항이 **전혀
+        #  없다**」로, 근거가 결론을 반증하는 꼴이었다. 낱말은 실제로 있다(PTD 배선의
+        #  주석·인자). 없는 것은 **생산 σ 경로에 붙은 모서리항**이다.
+        claim_ko="우리 생산 RCS 커널(src/rcs_sbr.py + src/rcs_po.py)의 σ 계산 경로에는 "
+        "모서리항이 붙은 적이 없다 — PTD 배선은 있으나 `rcs_sbr_batch` 의 기본값이 "
+        "`ptd=False` 이고, `src/ptd_edges.py` 의 `attach_to_sbr_field` 는 아직 한 번도 "
+        "실행된 적이 없다(RETRACTION_LOG R13 (a)). 이것이 우리 행의 빈칸이다.",
+        claim_en="Our production RCS kernel has never had an edge term in its sigma path: the PTD "
+        "wiring exists but rcs_sbr_batch defaults to ptd=False and ptd_edges.attach_to_sbr_field "
+        "has never been executed.",
         grade="computed-by-us (한 줄로 재현)",
         source={
-            "command": "grep -cEi 'diffract|\\bPTD\\b|\\bUTD\\b|creeping|fringe' src/rcs_sbr.py src/rcs_po.py",
+            "command": "grep -n 'def rcs_sbr_batch' -A6 src/rcs_sbr.py   # ptd=False 기본값\n"
+                       "grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py",
             "json": "outputs/psolve_diffraction.json : our_p4_state_verified",
         },
         numbers=R["our_kernel_diffraction"],
@@ -1209,9 +1237,13 @@ def build_facts(R: dict) -> list[dict]:
         claim_ko="⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 "
         f"R₁≈R₂ 가 구조적으로 성립한다. ⛔**전 판이 여기 적은 «φ 를 쓸면 최대 23.17 dB» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03 φ 실측 스윕 72 점) — 그 수는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고, R90 동작점에서는 **≤1.20 dB** (d 중앙값 ≤3.10 dB)다. 두 기하의 확산항 차는 φ=90° 에서 0.118 dB 다. 남은 축은 "
         f"«φ 한 컷으로만 보고했다» 는 보고 범위이지 위험의 크기가 아니다.",
-        claim_en=f"Every detection result to date sits at scene azimuth phi=90 deg, where R1~=R2 "
-        f"structurally: the geometry difference is 0.118 dB there and up to "
-        f"{R['phi_sensitivity']['absmax_over_phi_db']:.2f} dB across phi.",
+        claim_en="Every detection result to date sits at scene azimuth phi=90 deg, where R1~=R2 "
+        "structurally; the geometry difference is 0.118 dB there. RETRACTED: the figure "
+        "previously quoted here as the spread 'across phi' was invalidated by RETRACTION_LOG "
+        "R14 (2026-08-03, measured sweep over phi 0-355 deg, 72 points). It is a property of "
+        "the un-swept height offset dz = 35 m, not of phi; over phi the R90 span is 0.48 % "
+        "(<=0.083 dB) and phi=90 deg is the MINIMUM for all three arms. What remains is the "
+        "reporting scope - one cut - not the size of a risk.",
         grade="computed-by-us",
         source={
             "json": "outputs/geometry_grid.json : range_normalisation.*.absmax_over_phi_db · traps[T1b]",

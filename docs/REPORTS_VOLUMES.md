@@ -1,4 +1,9 @@
-# 리포트 편성 — 본편 11권 + 별편 8편 (파일 23)
+# 리포트 편성 — 본편 13권 + 별편 7편 (파일 33)
+
+> ⛔**2026-09-04 정정.** 이 문서의 «11권 + 별편 8편 · 파일 23 · 조각 87» 은 디스크와 셋
+> 어긋나 있었다. 현행 값은 `outputs/volumes_index.json` 의 `_meta` 가 센다 —
+> n_volumes **13** · n_companions **7** · n_notebooks **33** · n_parts_placed **87**
+> (디스크 조각 88, 대체된 것 1). ⛔개수를 손으로 적지 않는다.
 
 이 문서는 `reports/` 아래가 **왜 이런 모양인가**와 **어떻게 다시 만드나**를 적는다.
 사람이 읽는 목차는 [`reports/README.md`](../reports/README.md) 이고, 기계용 색인은
@@ -23,10 +28,11 @@ reports/
   …
   11_measurement.ipynb
   _parts/                        ← ⛔ 사람이 읽는 문서가 **아니다**
-    NN_slug.ipynb                   (조각 층 — 번호는 권 번호와 무관, 87 편 배치)
+    NN_slug.ipynb                   (조각 층 — 번호는 권 번호와 무관.
+                                     개수는 `ls reports/_parts/*.ipynb | wc -l` 로 센다)
 ```
 
-세 지위가 있고, 파일은 합쳐서 **23개**다 (본편 11권 = 파일 15 + 별편 8편).
+세 지위가 있고, 파일 수는 `ls reports/*.ipynb | wc -l` 로 센다(2026-09-04 현재 **33**).
 
 | 지위 | 무엇 | 파일명 | 산문 표기 |
 |---|---|---|---|
@@ -55,7 +61,7 @@ reports/
 | 05 engine-physics | 물리 스위치 | 05_2 switch-grid — 단일축 귀속을 7조합 전수 격자로 완결 |
 | 06_1~06_5 (분권) | 마이크로도플러 | 06_6 microdoppler-limits — 무엇이 무늬를 흐리나(06_3 과 쌍대) |
 | 07 illuminators | 디텍션·조명원 | — (뒤 본편 두 권이 소비하는 자원 선언이라 본편) |
-| 08 detector | 디텍션·사슬 | 08_2 two_channel — 사슬 그대로, 기준신호만 현실화 |
+| 08 detector | 디텍션·사슬 | — (⛔`08_2 two_channel` 은 2026-09-03 에 `archive/chamber_0903/` 로 옮겼다 — 실내 통제 기하에서 낸 판이라 **그 안의 수는 인용하지 않는다**. 빌더 `src/make_report11_2_two_channel.py` 는 `src/` 에 남아 있다) |
 | 09 observability | 디텍션·기하 | — (10 의 전제라 본편) |
 | 10 results | 디텍션·결과 | 10_2 robustness — 결론이 무엇에 기대나(감도분석) |
 | 11 measurement | 실측 | — |
@@ -180,8 +186,8 @@ PYTHONPATH=src python benchmark/check_report_links.py
 
 | 봐야 하는 것 | 어디서 / 기대값 |
 |---|---|
-| 편성 불변량 | `_meta`: n_volumes=**11**(본편) · n_companions=**8** · n_notebooks=**23** · n_parts_placed=**87** |
-| 파일 수 | `ls reports/*.ipynb \| wc -l` = **23** |
+| 편성 불변량 | `_meta`: n_volumes=**13**(본편) · n_companions=**7** · n_notebooks=**33** · n_parts_placed=**87** (디스크 조각 88 · 대체 1) |
+| 파일 수 | `ls reports/*.ipynb \| wc -l` = **33** |
 | 권의 지위·부모 | `volumes[].kind`("trunk"/"companion")·`parent`·`no_disp` |
 | 권마다 셀·각주·그림 수 | `volumes[].cells/footnotes/figures` |
 | 어느 조각이 어느 권 몇 절인가 | `parts` (또는 1 권 절 1 의 환산표) |

@@ -63,8 +63,28 @@ SHARD_PART_NAME = "앙각·물리 스위치"
 #  자세 8192 개를 λ/24 로 다시 깐 네 앙각(0·−15·−30·−45)은 0.27~4.63 % 다.
 #  `outputs/grid_convergence_check.json` 의 `prereg_verdict` 가 이 인용에 «λ/12 한정»
 #  꼬리표를 강제해 뒀다(2026-08-15) — 제목에서 격자를 떼지 마라.
-TITLE_80 = ("물리 상한 위 누설은 우리 팔(λ/12 격자) 0.22~17.18 %, 스톡 PathSolver "
-            "0.81~96.17 % 이고, 물리를 켜면 여섯 앙각이 전부 78 % 위다")
+#: ⛔2026-09-04 — 전 제목은 «스톡 PathSolver 0.81~96.17 %» 였다. 그것은 한 팔의 폭이
+#  아니라 **물리 끈 팔(0.81~86.22 %)과 물리 켠 팔(78.09~96.17 %)의 합집합**이다. 이 권
+#  전체가 그 스위치를 축으로 갈라 읽는 판이고 본문(결과 3·4)은 두 팔을 갈라 적는데
+#  제목에서만 합쳐 있었다. 제목은 `outputs/volumes_index.json` 에 홀로 실려 인용된다.
+def _wb80() -> dict:
+    """`above_f_tip_frac` 을 팔별로 모아 [min, max] % 로 준다 — 손으로 치지 않는다."""
+    W = json.load(open(f"{_ROOT}/outputs/wideband_energy_r15.json", encoding="utf-8"))
+    by: dict = {}
+    for k, v in W["cells"].items():
+        f = v.get("above_f_tip_frac")
+        if f is not None:
+            by.setdefault(k.rsplit("/", 1)[0], []).append(100.0 * float(f))
+    return {a: (min(x), max(x)) for a, x in by.items()}
+
+
+_WB80 = _wb80()
+_OURS80 = _WB80["ours_r15_n8192"]
+_OFF80 = _WB80["sionna_p4000000000_r15_n8192_d1"]
+_ON80 = _WB80["sionna_p4000000000_phys_r15_n8192_d1"]
+TITLE_80 = (f"물리 상한 위 누설은 우리 팔(λ/12 격자) {_OURS80[0]:.2f}~{_OURS80[1]:.2f} %, "
+            f"스톡 PathSolver 물리 끔 {_OFF80[0]:.2f}~{_OFF80[1]:.2f} % 이고, 물리를 켜면 "
+            f"여섯 앙각이 전부 {int(_ON80[0])} % 위다")
 EXTRA = {"el-above-tip-limit": ("80", TITLE_80)}
 
 
@@ -219,10 +239,13 @@ def _assert_title_numbers() -> None:
     def f(arm: str, el: float) -> float:
         return float(W.get(f"cells.{arm}/el{el:+.0f}.above_f_tip_frac"))
 
-    ours = [f(K_OURS, e) for e in ELS]
-    path = [f(a, e) for a in (K_OFF, K_ON) for e in ELS]
-    want = [format(min(ours), ".2%"), format(max(ours), ".2%"),
-            format(min(path), ".2%"), format(max(path), ".2%")]
+    #: ⛔전 판의 이 관문 자신이 `K_OFF` 와 `K_ON` 을 한 통에 부어 «0.81~96.17 %» 를
+    #  정답으로 요구했다 — 제목이 물리 스위치를 가로지른 원인이 여기다. 팔별로 대조한다.
+    def rng(arm: str) -> list:
+        v = [f(arm, e) for e in ELS]
+        return [format(min(v), ".2%"), format(max(v), ".2%")]
+
+    want = rng(K_OURS) + rng(K_OFF) + [format(min(f(K_ON, e) for e in ELS), ".0%")]
     missing = [w for w in want if w.rstrip("%") not in TITLE_80]
     if missing:
         raise ContractError(
@@ -1384,6 +1407,30 @@ TITLE_79 = (
 REG["el-band-tracking"] = ("79", TITLE_79)
 
 
+#: ⛔2026-09-04 — 아래 두 폭은 «29.64 dB · 28.11 dB» 로 손으로 박혀 있었다. 그 값들은
+#  10 m 옛 원장(`outputs/ch1_elevation_figdata.json` 29.63 · 28.11)의 것이고, 이 권이 쓰는
+#  15 m 판에서는 **30.79 dB · 20.87 dB** 다 — 반송파 쪽이 7.2 dB 틀렸다. 같은 문단이
+#  원장에서 뽑은 −0.78 dB 를 인쇄한 뒤 옛 0.17 dB 를 말하고 있었다. 손으로 치지 않는다.
+_ELS79 = ("+0", "-15", "-30", "-45", "-60", "-75")   # f_tip 이 살아 있는 여섯 앙각
+
+
+def _span79(F, key: str, key_lo: str | None = None) -> str:
+    """여섯 앙각에 걸친 폭(max−min) [dB] — 원장에서 계산한다."""
+    v = []
+    for e in _ELS79:
+        hi = F.get(f"cells.ours/el{e}.{key}")
+        if hi is None:
+            continue
+        x = float(hi)
+        if key_lo is not None:
+            x -= float(F.get(f"cells.ours/el{e}.{key_lo}"))
+        v.append(x)
+    what = f"{key} 의 여섯 앙각 max−min" if key_lo is None else \
+           f"{key} − {key_lo} 의 여섯 앙각 max−min"
+    return (f"{max(v) - min(v):.2f} dB ⟨outputs/ch1_elevation_figdata_r15.json : "
+            f"cells.ours/el* → {what}⟩")
+
+
 def blocks_79() -> list:
     FJ79 = "outputs/ch1_elevation_figdata_r15.json"
     F79 = from_json(FJ79)                                    # 앙각별 대역 몫 · 반송파 몫
@@ -1553,7 +1600,9 @@ def blocks_79() -> list:
            f"{F79.num('cells.ours/el-90.comb_snr_db[23]', fmt='{:.1f}', unit='dB')} ~ "
            f"{F79.num('cells.ours/el-90.comb_snr_db[20]', fmt='{:.1f}', unit='dB')} 로 서 "
            f"있다. 이 잣대가 −90° 에서 재는 것은 «대역이 비었나» 라기보다 «블레이드만의 "
-           f"초과분이 있나» 이고, 그 초과분은 0.17 dB 안에서 0 이다."),
+           f"초과분이 있나» 이고, 그 초과분은 "
+           f"{gapdb('cells.ours/el-90.share_fixed_db', 'cells.ours/el-90.share_fixed_oob_db')} "
+           f"안에서 0 이다."),
 
         md(*fig79(1, "ch1_f4_bandenergy_r15",
                   "앙각을 내리면 프로펠러 대역 에너지가 정말 주는가?"), "",
@@ -1585,8 +1634,10 @@ def blocks_79() -> list:
            f"{F79.num('cells.ours/el-15.share_track_db', fmt='{:+.2f}', unit='dB')} 와 −60° 의 "
            f"{F79.num('cells.ours/el-60.share_track_db', fmt='{:+.2f}', unit='dB')} 사이, 폭 "
            f"{F79.num('gates.G6_ours_track_share_span_db', fmt='{:.1f}', unit='dB')} 안에 "
-           f"흩어진다. 그 폭은 잣대를 바꾸면 달라진다 — 기준띠 위 여유로는 29.64 dB, 반송파 "
-           f"기준으로는 28.11 dB 다. 앙각이 내려가는 동안 몫은 단조롭지 않다: −15°, −30°, "
+           f"흩어진다. 그 폭은 잣대를 바꾸면 달라진다 — 기준띠 위 여유로는 "
+           f"{_span79(F79, 'share_track_db', 'share_track_oob_db')}, 반송파 기준으로는 "
+           f"{_span79(F79, 'share_track_rel_carrier_db')} 다. 앙각이 내려가는 동안 몫은 "
+           f"단조롭지 않다: −15°, −30°, "
            f"−45°, −60° 가 각각 "
            f"{F79.num('cells.ours/el-30.share_track_db', fmt='{:+.2f}', unit='dB')} 와 "
            f"{F79.num('cells.ours/el-45.share_track_db', fmt='{:+.2f}', unit='dB')} 를 사이에 "

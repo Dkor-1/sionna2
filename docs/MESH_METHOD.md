@@ -163,7 +163,16 @@ Phantom 3 함의는 §7 에 적는다.
 - **피치축은 시위 30 % 지점** (`P[:,0] -= chord*0.30`)
 
 **(b) 시위 분포** — `CHORD_RR`/`CHORD_FRAC` 15점 표를 **r/R** 기준으로 보간, `CHORD_MAX_OVER_R = 0.25`.
-근거: 참조 프롭 3종 원통단면 실측(`outputs/reference_props.json`, `benchmark/measure_reference_props.py`)
+⛔⛔**2026-08-16 정정 — 아래 근거는 무너졌다**(`src/drone_cad.py:152~190` · `docs/MESH_AUDIT_0816.md`).
+2026-08-07 에 들어온 `assets/meshes/reference/WM161_zhankai_1k.glb`(**DJI Mini 2 공식 3D 모델**)
+안에 날 8장 + 허브 4개가 실재한다(디스크 지름 118.4~119.7 mm ↔ 공칭 119.4 mm).
+⇒ **3DR Solo 를 대리 기준으로 삼은 근거 자체가 무너졌다.** 참조 CAD 는 뿌리 편중형 2
+(1345 0.4896 · Solo 0.5754) : 늦은 정점형 2(Yuneec 0.8669 · **DJI Mini 2 0.8638**) 로 갈리고
+**DJI 는 늦은 정점형**이다 — Solo 는 «유일한 이상치» 가 아니었다.
+⇒ **1차 앵커를 DJI Mini 2 공식 CAD 로 교체해야 한다.** 교체 전까지 이 법칙으로 낸
+절대 세기·기종 간 비교에는 오차 꼬리표를 단다.
+
+근거: 참조 프롭 3종(+DJI Mini 2 공식 CAD) 원통단면 실측(`outputs/reference_props.json`, `benchmark/measure_reference_props.py`)
 — Holybro 1345 · 3DR Solo · Yuneec Typhoon H480. 곡선 자체는 **Solo 측정치**다.
 
 **(c) 비틀림(트위스트)** — 정피치가 아니다.
@@ -273,7 +282,7 @@ sagitta p50 이 0.003~0.075 mm(λ 의 10⁻⁴ 급)이므로 곡률 근사 자�
 | 상수 | 값 | 등급 | 영향 |
 |---|---|---|---|
 | `CHORD_RR` / `CHORD_FRAC` | 15점 표 | M (Solo) | 시위 분포 |
-| `CHORD_MAX_OVER_R` | 0.25 | **D/H** | Solo 0.273 · 1345 0.225 의 **중간을 택한 값** |
+| `CHORD_MAX_OVER_R` | 0.25 | **D/H** | ⛔**근거 없음**(2026-08-16) — 실물 c_max/R 이 **0.177~0.273 으로 1.54 배** 갈리고 크기와 **무상관**(스피어만 −0.05)이다. 단일 상수 0.25 에는 근거가 없고, 크기에서 보간해도 안 된다 — 프롭마다 실측해야 한다 |
 | `PITCH_RR` / `PITCH_K` | 16점 표 | M (Solo) | 국소 피치 → 트위스트 |
 | `TC_ROOT` / `TC_TIP` | 0.095 / 0.065 | **D** | 실측 대역 안에서 고른 값 |
 | `CAMBER_M` / `CAMBER_P` | 0.05 / 0.50 | **D** | 실측 4.37~8.32 % 중 5 % 채택, p 는 셋 다 ≈0.50 |

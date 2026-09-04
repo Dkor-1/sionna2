@@ -206,12 +206,18 @@ def main() -> int:
          "badges": [("size span a path solver misses:",
                      "evidence:_meta.headline.po_sigma_span_db", "{:.1f}", "dB")],
          "why_ko": "검출 거리는 σ 에 직접 걸린다. 크기를 40배 바꿔도 경로 진폭이 안 움직이는 도구로는 못 낸다."},
+        #: ⛔2026-09-04 — 이 칸은 «facet sweep 49.0 dB» 배지를 그림에 인쇄했다. 리포트 02-2 와
+        #  조각 06 이 그 수를 철회했다 — 마지막 계단은 `shape_ok` = 아니오인 단에서 나왔고
+        #  그 단은 정반사 경로가 **0 개**라 값이 확산 채널로 갈아탔다. 형상 판정을 통과하는
+        #  구간에서 관측된 정반사 계단은 2→1 의 −6.02 dB 하나다. ⛔CLAUDE.md 「그림」 절이
+        #  판정 배지 자체를 금하기도 한다 — 배지를 뺀다.
         {"id": "I11", "zone": "Z4", "label_en": "Mesh fidelity budget for a drone target",
-         "note_en": "specular-only echo collapses with facets",
-         "evidence": "evidence:_meta.headline.drone_collapse_db",
-         "badges": [("collapse over the facet sweep:",
-                     "evidence:_meta.headline.drone_collapse_db", "{:.1f}", "dB")],
-         "why_ko": "실루엣이 유지돼도 정반사 채널만으로는 49 dB 가 무너진다 — 면적분이 있어야 메쉬 예산을 잴 수 있다."},
+         "note_en": "specular path count steps the amplitude",
+         "evidence": "evidence:B_facet_count_sweep.numbers.step_2to1_facet_db",
+         "badges": [],
+         "why_ko": "형상 판정을 통과하는 구간에서 정반사 경로가 2 → 1 로 줄면 진폭이 "
+                   "−6.02 dB 로 계단을 진다(해석값 −6.02). 면적분이 있어야 메쉬 예산을 "
+                   "잴 수 있다. ⛔옛 «49.02 dB 붕괴» 는 리포트 02-2 가 철회했다."},
     ]
 
     # 배지를 값+출처로 확정한다(여기서 예외가 나면 근거가 없는 것이다).

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-make_reports_index.py — 편 78개의 색인·재현·논문 목차를 짓는다
+make_reports_index.py — 지어진 편 전부의 색인·재현·논문 목차를 짓는다
 ==========================================================================================
 재구성으로 편이 8 → 78 이 되면서 «어느 편이 무엇을 쓰고 무엇을 내는가» 를 사람이 외울 수
 없게 됐다. 그래서 세 문서를 **노트북에서 직접 읽어** 만든다 — 손으로 적은 사본을 두지 않는다.
@@ -12,7 +12,8 @@ make_reports_index.py — 편 78개의 색인·재현·논문 목차를 짓는�
 
 ⭐ 재현 정보의 정본은 **노트북의 여는 블록**이다(`header(repro=…)` 가 찍은 그 표).
    샤드가 아니라 노트북을 읽는 이유는 하나다 — 샤드는 빌더마다 담는 것이 다르지만
-   여는 블록은 `report_style.header()` 가 강제하므로 78편 전부에 같은 모양으로 있다.
+   여는 블록은 `report_style.header()` 가 강제하므로 **지어진 편 전부**에 같은 모양으로
+   있다. ⛔개수를 손으로 적지 않는다 — 세는 것은 `report_registry.REPORTS` 다.
 
 실행
     cd /workspace/sionna
@@ -78,7 +79,11 @@ def scan(anchor: str, rec: dict) -> dict | None:
 
     return dict(no=rec["no"], anchor=anchor, part=rec["part"],
                 part_name=PARTS.get(rec["part"], {}).get("name", ""),
-                title=rec["title"], file=f"reports/{rec['file']}",
+                #: ⛔2026-09-04 — 전 판은 `f"reports/{rec['file']}"` 로 손수 붙여, 조각이
+                #  `reports/_parts/` 로 옮겨 간 뒤 docs/REPRODUCE.md 의 링크 78 개가 **전부**
+                #  죽어 있었다(디스크 대조: 78/78 없음). 경로는 레지스트리에서 받는다.
+                title=rec["title"],
+                file=os.path.relpath(os.path.join(REPORT_DIR, rec["file"]), ROOT),
                 md_cells=sum(1 for c in cells if c["cell_type"] == "markdown"),
                 figures=sorted(set(figs)),
                 evidence=sorted(set(cites)) or sorted(set(out)),

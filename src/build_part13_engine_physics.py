@@ -72,9 +72,13 @@ REG.update(EXTRA_PARTS)
 #  `el-above-tip-limit`(권 4 절 3)이다. 계획 JSON 은 손대지 않고 여기서만 이름을 맞춘다.
 #  같은 이유로 계획의 조각 81 `el-beat-vs-tip` 은 이 라운드에 지어지지 않았다 — 그 앵커로
 #  링크를 걸면 없는 파일을 가리키므로, 이 파일은 그 자리를 조각 80 으로 보낸다.
-REG["el-above-tip-limit"] = ("80", "물리 상한 위 누설은 우리 팔 0.26~15.65 %, "
-                                   "스톡 PathSolver 두 예산 5.12~87.02 % 이고, "
-                                   "그 위 끝은 평평한 스펙트럼이 받는 점수다")
+#: ⛔2026-09-04 — 여기 손으로 적혀 있던 «우리 팔 0.26~15.65 % · 스톡 두 예산 5.12~87.02 %»
+#  는 **철회된 10 m 원장**(`outputs/wideband_energy.json`)의 값이고, 정본이 강제하는
+#  «λ/12» 꼬리표도 떼어져 있었다. 조각 80 을 실제로 짓는 것은 `build_part12_elevation.py`
+#  이므로 **그 제목을 가져온다** — 같은 앵커의 제목 사본을 두 파일이 각자 들지 않는다.
+from build_part12_elevation import TITLE_80 as _TITLE_80        # noqa: E402
+
+REG["el-above-tip-limit"] = ("80", _TITLE_80)
 
 
 def ref(anchor: str, short: str | None = None) -> str:
@@ -265,6 +269,8 @@ def blocks_83() -> list:
            f"`engine=\"sionna_phys\"` {n_arm('sionna_phys')[0]} 행이고 그중 "
            f"{n_arm('sionna_phys')[1]} 행이 `n_missing = 0` 인 완결 행이다"
            + count_tag("engine=sionna_phys 행 수와 그중 n_missing=0 인 행 수") + ".", "",
+           "⚠**이 문턱은 «결측» 만 본다.** 2026-08-16 재판정에서 그 팔의 el −15° 행이 "
+           "떨어진 사유는 결측이 아니라 **튐**으로 바뀌었다 — " + BADGE_86, "",
            "그래서 축마다 성립 범위가 다르다.", "",
            "- **다중반사** — 기준 실행에서는 두 팔 다 끔이라 사과-대-사과다. `--physics` 판에서는 "
            "PathSolver 만 깊이 3 이 되고, 우리 팔은 스윕이 부르는 1 차 히트 커널에 "
@@ -416,6 +422,16 @@ REPRO_86 = dict(
          "`outputs/elevation_sweep_md.json` 의 `n_missing` 이 정한다")
 
 
+#: ⛔2026-09-04 — `RETRACTION_LOG` 가 「그 행 인용 금지」라 적은 칸이 이 편에 네 자리로
+#  인쇄되는데 편 전체에 «튐»·«#3195» 문자열이 0 건이었다. 인쇄되는 자리마다 붙인다.
+BADGE_86 = (
+    "⛔**`sionna_phys` el −15° 행은 인용 금지다**(`RETRACTION_LOG.md` 2026-08-16) — 그 칸은 "
+    "자세 **4,096 개 중 #3195 하나가 요동 전력의 91.6 %** 를 쥔 튐 칸이다. 솎으면 같은 칸의 "
+    "빗살 대비가 **7.55 → 23.83 dB**(+16.27), 리듬 몫이 **17.7 → 47.6 %** 로 올라간다"
+    "⟨outputs/outlier_recheck_0816.json⟩. 방향(«물리를 켜면 빗살이 지워진다»)은 광선 250M "
+    "물리 켬 팔이 따로 받쳐 주지만, **11.1M 행이 보여 준 «지워짐» 의 절반쯤은 자세 하나**였다.")
+
+
 def blocks_86() -> list:
     return [
         header(
@@ -440,7 +456,7 @@ def blocks_86() -> list:
                 f"{PVD.num('cells.sionna_phys/el-15.corr_with_ours_db_map', fmt='{:.4f}')} · "
                 f"광선 250M 에 물리 켬 "
                 f"{PVD.num('cells.sionna_p250000000_phys/el-15.corr_with_ours_db_map', fmt='{:.4f}')}"
-                f" 다.",
+                f" 다. " + BADGE_86,
 
                 f"빗살 간격은 {len(_CORR_CELLS) + 1} 판이 모두 "
                 f"{PVD.num('cells.ours/el-15.comb_spacing_hz', fmt='{:.2f}', unit='Hz')} 이고 "
@@ -510,6 +526,7 @@ def blocks_86() -> list:
                      [("판", None), ("우리 팔과의 상관", "corr_with_ours_db_map")],
                      key_col="판", fmt={"corr_with_ours_db_map": "{:.4f}"},
                      order=_CORR_ORDER), "",
+           BADGE_86, "",
            "⚠ 이 상관은 **패널마다 자기 최대값으로 정규화한 dB 맵**끼리 잰 값이다"
            "⟨outputs/physics_vs_deck.json : _meta.normalisation_ko⟩. 두 팔의 절대 레벨은 "
            "이 표에 들어 있지 않다 — 레벨 축은 "
@@ -608,6 +625,7 @@ def blocks_86() -> list:
            + PVD.num("cells.sionna_p250000000_phys/el-15.corr_with_ours_db_map",
                      fmt="{:.4f}")
            + " 이 그 평평함의 점수다.", "",
+           BADGE_86, "",
            "`line_snr_db` 는 팔마다 **자기 대역외 바닥**에 대한 비다. 바닥이 다르면 여덟 "
            "칸이 통째로 평행이동하므로, 비교되는 것은 한 팔 안의 **모양**이다."),
 
@@ -826,7 +844,10 @@ def blocks_88() -> list:
                 f" · "
                 f"{_S88_PD.num('cells.sionna_p250000000_phys/el-15.corr_with_ours_db_map', fmt='{:.4f}')}"
                 f" 이고, 자리가 빈 팔은 "
-                f"{_S88_PD.num('_meta.missing_arms[0]')} 하나다"],
+                f"{_S88_PD.num('_meta.missing_arms[0]')} 하나다. "
+                f"⛔**앞의 `sionna_phys` 값은 인용 금지다** — 자세 4,096 개 중 #3195 하나가 "
+                f"요동 전력의 91.6 % 를 쥔 튐 칸이다(RETRACTION_LOG 2026-08-16). 솎으면 "
+                f"빗살 대비 7.55 → 23.83 dB · 리듬 몫 17.7 → 47.6 %"],
                ["PathSolver 의 경로 진폭은 표적 σ 와 독립이다",
                 f"평판 σ "
                 f"{_S88_RT.num('A_plate[0].sigma_dbsm', fmt='{:.2f}', unit='dBsm')} → "

@@ -9,7 +9,7 @@
 
 결과
   절대 레벨 -23.23 / -19.65 / -16.86 dBsm — 발표된 봉투 대비 -4.43 / -1.20 dB 와 봉투 안.
-  밴드 기울기는 6 GHz 위에서 0.264 dB/GHz 로 측정 구간 0.175~0.315(**우리 대역과 겹치는 4행**) 안에 들고,
+  밴드 기울기는 ⛔**6 GHz 위 측정값이 없어 대조가 안 된다**(측정은 전부 1.8~18.2 GHz 전대역 적합이다). 같은 구간에서 재면 우리 0.435 로 **2.07배(Das)** 이고,
   1.8~6 GHz 에서 1.540 로 벗어난다.
   교정구는 정확 Mie 대비 0.851 dB 안 — 절대 스케일은 맞는다.
 
@@ -37,7 +37,7 @@
 |---|---|---|---|
 | 교정 표적의 절대 σ (PEC 구 r = 17.8 cm, Yuan 자신의 교정 표준) | 예 | 정확 Mie 대비 0.375~0.851 dB, ka = 6.88~19.44 | validate_measured_airframe.json : 2_calibration_sphere |
 | 해석 PO 구 (커널 자체 수렴) | 예 | kr 1~100 · 입사 48방향에서 최대 0.2006 dB | sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po |
-| 측정 기체의 밴드 기울기 dμ/df, 6 GHz 위 | 예 | 우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안** | validate_measured_airframe.json : 8_comparison._headline |
+| 측정 기체의 밴드 기울기 dμ/df, 6 GHz 위 | ⛔**대조 불가** | **6 GHz 위 측정 기울기가 없다** — Das·Yuan 은 전부 **1.8~18.2 GHz 전대역 적합**이다(`sigma_anchor.SLOPE_CENSUS`). 같은 구간에서 재면 우리 0.435 로 **2.07배(Das) · 1.38배(Yuan)** 다. ⛔전 판의 「우리 0.264 vs 측정 0.175~0.315 — 측정 구간 안」은 **적합 구간이 다른 둘을 나란히 놓은 것**이라 2026-09-04 에 내렸다 | validate_measured_airframe.json : 8_comparison.B_band_slope.fitting_interval_matters |
 | 방위 산포 ε (Das Table III 와 같은 양) | 부분 | 밴드별 차 -1.30~+1.16 dB. 측정은 세 밴드에서 5.22~5.32 dB 로 거의 평평하고 우리는 밴드마다 움직인다 | validate_measured_airframe.json : 8_comparison.C_azimuth_pattern_shape |
 | 절대 σ 레벨, 5.21 GHz | 예 | -16.86 dBsm — 발표된 봉투 [-18.10, -14.51] **안** | validate_measured_airframe.json : 8_comparison.A_absolute_level |
 | 절대 σ 레벨, 3.5 GHz | 아니오 | -19.65 dBsm — 봉투 최근접변 대비 -1.20 dB, 기하정합 행 대비 -4.60 dB | validate_measured_airframe.json : 8_comparison.A_absolute_level |
@@ -54,9 +54,9 @@
 
 ### §1.2 실패한 자리
 
-불일치는 **1.8~6 GHz** 에 몰려 있고, 우리 세 밴드가 전부 그 안에 있다. 6 GHz 위에서 우리 기울기 0.264 dB/GHz 는 측정 구간 0.175~0.315 **안**에 든다.
+불일치는 **1.8~6 GHz** 에 몰려 있고, 우리 세 밴드가 전부 그 안에 있다. ⛔**6 GHz 위는 대조 불가다** — 측정 기울기가 전부 1.8~18.2 GHz 전대역 적합이라(아래 표의 Das·Yuan 칸이 «—» 인 이유가 그것이다) 우리 6~18.2 GHz 적합 0.264 와 나란히 놓을 수 없다. 같은 구간에서 재면 0.435 대 0.210(Das) = **2.07배**다 — 이 문서 자신이 70 행에서 그 실수를 이미 자백한다.
 
-> ⚠ **구간 표기 규율(RETRACTION_LOG A11).** `0.175~0.315` 는 `sigma_anchor.SLOPE_CENSUS` 중
+> ⚠ **구간 표기 규율(RETRACTION_LOG A11).** ⛔범위를 안 밝히면 인용 금지다 — `0.175~0.315` 는 `sigma_anchor.SLOPE_CENSUS` 중
 > **우리 대역과 겹치는 4행**(전부 Phantom 3, 한 측정의 네 통계)이다. **전 기체 7행 총람은 0.07~0.315**
 > 이고 하한 `0.07` 은 das_mini2 의 **21~27 GHz** 값이라 우리 세 밴드 비교에 넣으면 외삽이다.
 > 두 구간 다 옳고, **범위를 안 밝히면 둘 다 틀린 인용**이 된다.
@@ -65,7 +65,7 @@
 |---|---|---|---|---|
 | 1.8~18.2 GHz (논문 구간과 동일) | 0.435 | 0.210 | 0.315 | 2.07× |
 | 1.8~6 GHz | 1.540 | — | — | — |
-| 6~18.2 GHz | 0.264 | — | — | 1.26× |
+| 6~18.2 GHz | 0.264 | — | — | ⛔**계산하지 않는다** — 분모가 다른 구간(1.8~18.2 GHz)의 적합이라 배수가 뜻을 갖지 않는다 |
 | 1.843~5.21 GHz (3점) | 1.891 | — | — | 9.01× |
 
 ⭐ 타당성 단계가 예상한 "6.7~9.5배"는 우리 좁은대역 적합을 논문의 넓은대역 적합과 비교한 결과였다. 같은 구간에서 다시 재면 2.07배(Das)· 1.38배(Yuan)다 ⟨`validate_measured_airframe.json : 8_comparison.B_band_slope.fitting_interval_matters`⟩. 우리 μ(f) 는 직선이 아니다(전대역 적합 R² = 0.738).

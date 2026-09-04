@@ -509,8 +509,14 @@ def verdict(spread: float, *, slug: str | None = None) -> str:
     if slug == "grid":
         return (f"⚠이 짝이 바로 <b>밴드 {RHY_BAND:.1f} %p 를 정의한 짝</b>이다 — "
                 "자기 자신과 대는 자리라 판정 대상이 아니다")
-    return (f"격자 흔들림 밴드 {RHY_BAND:.1f} %p 밖이라 <b>차이가 살아 있다</b>" if spread > RHY_BAND
-            else f"격자 흔들림 밴드 {RHY_BAND:.1f} %p 안이라 <b>판정 불가</b>")
+    #: ⚠2026-09-04 — 이 밴드는 **격자 축**만 잰다. RETRACTION_LOG R29 가 실측으로 보였듯
+    #  분석 손잡이가 더 크게 흔든다(창 반폭 hw 2/8/32 Hz → 같은 데이터가 9.9/63.4/90.0 %,
+    #  `f_above` 를 함수 기본값으로 두면 63.4 → 98.9 %). 크기는 인용하지 않는다.
+    R29 = ("<br>⚠이 잣대는 격자 축만 잰다 — 분석 손잡이(창 반폭 hw · f_above)에 더 크게 "
+           "흔들린다(RETRACTION_LOG R29: hw 2/8/32 Hz 로 같은 데이터가 9.9/63.4/90.0 %). "
+           "<b>크기는 인용하지 않는다 — 순서만 읽는다.</b>")
+    return (f"격자 흔들림 밴드 {RHY_BAND:.1f} %p 밖이다{R29}" if spread > RHY_BAND
+            else f"격자 흔들림 밴드 {RHY_BAND:.1f} %p 안이라 <b>판정 불가</b>{R29}")
 
 
 def engine_of(arm: str) -> str:
@@ -633,9 +639,14 @@ def topic_findings(tkey: str, tinfo: dict) -> list[str]:
             # ⭐양 끝 두 팔이 «한 축만» 다른 팔인지 확인한다 — 거리·광선 예산이 함께
             #   다르면 이 폭은 «엔진 차이» 가 아니다(2026-08-15 수리).
             cl, ch = arms[lo[0]]["cells"][el_star], arms[hi[0]]["cells"][el_star]
+            #: ⛔2026-09-04 — 이 목록에 «기체» 가 없어서 s1000plus ↔ mini5pro 처럼
+            #  **잣대 자체가 다른**(f_tip 1801.9 ↔ 887.4 Hz) 두 팔의 리듬 몫을 빼 놓고
+            #  꼬리표 없이 «차이가 살아 있다» 를 달았다. 팔 메타에 `airframe` 키가 있다.
             diff = [n for n, k in (("거리", "range_m"), ("광선 예산", "spp"),
                                    ("자세 수", "n_poses"), ("반사 깊이", "max_depth"))
                     if cl.get(k) != ch.get(k)]
+            if arms[lo[0]].get("airframe") != arms[hi[0]].get("airframe"):
+                diff.insert(0, "기체")
             warn = (f" ⚠양 끝 두 팔은 {' · '.join(diff)}도 다르다 — 이 폭을 «엔진 차이»로 "
                     "읽으면 안 된다." if diff else "")
             out.append(
@@ -1092,7 +1103,8 @@ def outlier_note(n_move: int, n_under: int, n_dom: int, li: str) -> str:
     return f"""
 <div class="note crit">
   <b>6. ⭐자세 <u>하나</u>가 헤드라인을 끄는 칸이 {n_move} 개 있다 — 그 칸은 수보다 자세를 먼저 봐라.</b>
-  <p>2026-08-16 에 «{MINUS}60{DEG} 에서 반사 깊이 3 이면 리듬 몫이 86.6 → 32.4 % 로 무너진다»는
+  <p>⛔<b>철회됨</b> — 2026-08-16 에 «{MINUS}60{DEG} 에서 반사 깊이 3 이면 리듬 몫이
+  86.6 → 32.4 % 로 무너진다»는
   판정이 <b>자세 8,192 개 중 하나</b> 때문이었다. 그 자세를 이웃 평균으로 갈아 끼우면 두 판이
   85.5 대 85.2 % 로 같다. 그래서 <b>튐 진단을 모든 칸에 상시로</b> 돌린다.</p>
   <p>재는 법은 이렇다 — 그 칸에서 가장 큰 자세 <b>하나</b>를 이웃 평균으로 갈아 끼우고
@@ -1373,8 +1385,8 @@ def build_index() -> str:
 <header class="top">
   <div class="kicker">micro-doppler atlas</div>
   <h1>드론 마이크로도플러 아틀라스 — 그림으로 넘겨 보기</h1>
-  <p class="lede">실험 원장에 쌓인 <b>팔 {META['n_arms']} 개 · 칸 {total_cells} 개</b>를 두 종류의 그림
-  — <b>마이크로도플러 맵</b>과 <b>블레이드 대역 에너지</b> — 으로 전부 구워 놓은 갤러리다.
+  <p class="lede">색인이 가리키는 <b>팔 {META['n_arms']} 개 · 칸 {total_cells} 개</b>를 두 종류의 그림
+  — <b>마이크로도플러 맵</b>과 <b>블레이드 대역 에너지</b> — 으로 구운 갤러리다.
   주제 카드를 눌러 들어가면 팔마다 그림 두 장과 앙각별 수치 표가 나란히 있다.
   그림을 클릭하면 원본 크기로 열린다.</p>
   <div class="stats">
@@ -1849,8 +1861,10 @@ def build_readme() -> str:
     A("> «물음 / 판정 / 근거 원장 / 볼 곳» 네 칸으로 한 장에 모았다.")
     A("> 이 갤러리의 어느 그림이 어느 실험의 답인지도 거기서 이어진다.")
     A("")
-    A(f"실험 원장에 쌓인 **팔 {META['n_arms']} 개 · 칸 {total_cells} 개**를 두 종류의 그림 — "
-      "**마이크로도플러 맵**과 **블레이드 대역 에너지** — 으로 전부 구워 놓은 갤러리다.")
+    #: ⛔«전부» 는 색인 세대에 매달린 말이다 — 색인이 다시 구워지면 대문이 곧 거짓이 된다.
+    A(f"색인(`outputs/md_atlas_index.json`, 구운 시각 {META.get('built_at', '?')})이 "
+      f"가리키는 **팔 {META['n_arms']} 개 · 칸 {total_cells} 개**를 두 종류의 그림 — "
+      "**마이크로도플러 맵**과 **블레이드 대역 에너지** — 으로 구운 갤러리다.")
     A("")
     A("| 어디로 | 무엇 |")
     A("|---|---|")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-facet_count_0903.py — 0° 낙차의 «벌 수 N» 이 메쉬의 무엇을 따라가나.
+facet_count_0903.py — 0° 낙차의 «같은 줄이 적히는 횟수 N» 이 메쉬의 무엇을 따라가나.
 
 여기까지 갈린 것
     · el 0° 낙차 깊이가 기체마다 **정수 N 의 (N−1)/N 자리**에 극도로 좁게 뭉친다
@@ -8,8 +8,18 @@ facet_count_0903.py — 0° 낙차의 «벌 수 N» 이 메쉬의 무엇을 따�
     · matrice4e 자세 47 의 경로 목록에는 진폭·지연·정점이 **똑같은**
       «정반사 → camera» 항목이 **셋** 있었고, 그 합이 곧 |E| 였다.
 
-⭐물음 — 그 «벌 수» 가 메쉬의 무엇인가.
-   가설 ⓐ 정반사가 일어나는 면이 **삼각형 N 장**으로 쪼개져 있어 장마다 한 벌씩 나온다
+⚠⚠**낙차를 잰 팔과 경로 목록을 덤프한 팔이 서로 다르다**(2026-09-04 확인). 위 «자세 47» 의
+   목록(|E| 6.896568e−04 · 같은 줄 3 번)은 **정본 메쉬 팔**
+   (`sionna_p4000000000_r15_n8192_mfixbatteryi5_blperairframe_d1_el+0`)의 것이고, 그 팔에서
+   자세 47 은 **낙차가 아니다**(|E|/중앙 = 1.0000 — 세 줄이 다 있다). 2/3 로 떨어지는 것은
+   **메쉬 보정 안 한 팔**(`sionna_p4000000000_r15_n8192_d1_el+0`, |E| 4.597513e−04 · 비
+   0.6667)에서다. ⇒ 「깊이가 정확히 2/3」과 「같은 줄이 3 번」은 **다른 팔에서 나온 두
+   사실**이고, «셋 중 하나가 빠진 목록» 은 **아직 한 번도 관측된 적이 없다**(추론이다).
+   ⚠단, 「어떤 자세에서 사본 하나가 빠진다」는 결론 자체는 자세 32,768 개를 직접 세어
+   따로 받쳐 뒀다(CLAUDE.md) — 여기서 고치는 것은 **이 스크립트의 근거 서술**이다.
+
+⭐물음 — 그 «적히는 횟수» 가 메쉬의 무엇인가.
+   가설 ⓐ 정반사가 일어나는 면이 **삼각형 N 장**으로 쪼개져 있어 장마다 한 번씩 적힌다
    가설 ⓑ 시선에 수직인 **평행 면이 N 겹** 있다(앞뒤 판·덮개 등)
    가설 ⓒ 메쉬와 무관하고 솔버 안의 무엇이다
 
@@ -37,7 +47,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "outputs", "facet_count_0903.json")
 
-#: el 0 에서 읽은 벌 수 (outputs/el0_copies_0903.json 의 뭉치는 자리)
+#: el 0 에서 읽은 «적히는 횟수» (outputs/el0_copies_0903.json 의 뭉치는 자리)
+#  ⚠**고른 규칙을 적는다**(2026-09-04) — 그 원장에는 한 기체에서 N 이 여러 값으로 나오는
+#  팔이 섞여 있다(matrice4e 에서 1·2·3·4·6·7·8·9). 여기 쓴 셋은 **깊이 산포(depth_iqr)가
+#  거의 0 이라 (N−1)/N 자리에 좁게 뭉치는, 회절 끈 PathSolver 팔**에서 읽은 값이다.
+#  ⛔회절 켠 팔(0.764·0.571 처럼 정수 자리가 아니다)과 우리 커널 팔에는 이 읽기를 쓰지 않는다.
 N_SEEN = {"mini5pro": 2, "matrice4e": 3, "mavic4pro": 4}
 
 
@@ -67,7 +81,7 @@ def main() -> None:
     rows = []
     for af, Nseen in sorted(N_SEEN.items()):
         d = os.path.join(ROOT, "assets", "meshes", "drones", af)
-        print(f"═══ {af} — el 0° 에서 읽은 벌 수 N = {Nseen} ═══")
+        print(f"═══ {af} — el 0° 에서 읽은 «적히는 횟수» N = {Nseen} ═══")
         best = []
         for p in sorted(glob.glob(os.path.join(d, "*.obj"))):
             V, F = read_obj(p)
@@ -100,7 +114,7 @@ def main() -> None:
                              area_cm2=round(tot_area * 1e4, 2)))
         print()
 
-    print("═══ 벌 수 N 과 메쉬 수의 대조 ═══")
+    print("═══ 적히는 횟수 N 과 메쉬 수의 대조 ═══")
     print(f"  {'기체':12s} {'N(관측)':>7s} {'가장 큰 부품':22s} {'정면삼각형':>9s} "
           f"{'평면수':>6s} {'최대평면 삼각형':>13s}")
     for x in rows:
@@ -109,7 +123,7 @@ def main() -> None:
 
     json.dump({"_meta": {
         "generator": "benchmark/facet_count_0903.py",
-        "question_ko": "el 0° 낙차의 «벌 수 N» 이 메쉬의 무엇을 따라가나",
+        "question_ko": "el 0° 낙차의 «같은 줄이 적히는 횟수 N» 이 메쉬의 무엇을 따라가나",
         "N_seen_ko": "outputs/el0_copies_0903.json 의 낙차 깊이에서 읽은 값",
         "geometry_ko": "시선은 x 축 — 법선이 ±x 와 0.999 이상 나란한 삼각형만 센다",
         "reads_ko": "⛔판정은 여기 적지 않는다 — 표를 보고 사람이 쓴다(주장 게이트 ⓑ).",

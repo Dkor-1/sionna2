@@ -525,9 +525,14 @@ def _headline() -> list[tuple[str, str, str]]:
          + num(None, ("outputs/das_fleet_validation.json", "prereg_judgement.verdict")),
          "fleet-prereg"),
 
+        #: ⛔2026-09-04 — 이 줄은 «운용 형상» 으로만 적혀 실외로 읽혔다. 값을 낸
+        #  `benchmark/verify_cfar.py` 는 `geometry.chamber_window`(semi-anechoic 챔버 내부
+        #  바이스태틱 배치)를 쓴다. `archive/chamber_0903/README.md` 가 「⛔여기 있는 수를
+        #  인용하지 않는다」고 적었는데 원본이 `outputs/` 에 남아 첫 화면까지 올라와 있었다.
         ("**CFAR 를 경험 Pfa 로 교정했다** — GPU 몬테카를로로 오경보 셀을 직접 세었다",
          num(None, (CFR, "meta.runtime_s"), "{:,.0f}", "s") + ", 명목 1e-4 에서 배율을 "
-         "형상마다 다시 잰다", "cfar-calib"),
+         "형상마다 다시 잰다. ⚠**실내 통제 기하**(`benchmark/geometry.py`)에서 잰 값이다 — "
+         "실외 판에서 다시 내기 전에는 인용하지 않는다", "cfar-calib"),
 
         ("**세 파형을 한 표적·한 검출기로 비교했다** — 점유·대역·PRF·λ² 를 dB 원장으로 닫았다",
          "점유 " + num(None, (LED, "occupancy_cost.value_db"), "{:.1f}", "dB"), "cost-ledger"),
