@@ -1576,9 +1576,9 @@ def blocks(J):
                 "🔵 우리 (`src/rcs_sbr.py:184`)"],
                ["셸 투과", "얇은 유전체 셸 뒤 금속(배터리·PCB)의 코히런트 합",
                 "🔵 우리 (동 `penetrate=True`)"]]), "",
-        f"**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 "
-        f"{PS.num(f'{WC}.SBR or shooting-and-bouncing', fmt='{:.0f}')}회 나오고 우리도 그 "
-        f"엔진을 그대로 부른다. 같은 문서에서 `physical optics` "
+        f"**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2 · 59쪽)에 `SBR` 은 "
+        f"{from_json('outputs/prior_work_survey.json').num('engine.technical_report.term_counts.sbr', fmt='{:.0f}')}"
+        f"회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` "
         f"{PS.num(f'{WC}.physical optics', fmt='{:.0f}')}회 · `radar cross section` "
         f"{PS.num(f'{WC}.radar cross section', fmt='{:.0f}')}회 · `surface current` "
         f"{PS.num(f'{WC}.surface current', fmt='{:.0f}')}회이고, 거친 면은 정규화 산란패턴을 "

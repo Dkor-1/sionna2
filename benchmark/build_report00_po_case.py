@@ -491,7 +491,11 @@ def section2() -> dict:
                         "integration.\" — Monte-Carlo SBR (UMD), arXiv:2511.07586 p.7",
         "sagitta": "SagittaSBR(arXiv:2604.09243)은 독립 SBR+PO RCS 솔버이고 코드를 공개했다.",
         "how_to_write_it": "'우리는 이렇게 했다' 가 아니라 '이 구조가 이 문제의 표준 대응이고, "
-                           "우리는 그것을 **부품별 재질을 가진 드론**에 처음 적용했다'.",
+                           "우리는 그것을 **부품별 재질을 가진 드론**에 적용했다 — "
+                           "⚠«처음» 이라고는 쓰지 않는다. 보유 아카이브(고유 218편) 안에서 "
+                           "선례를 못 찾았다는 것이 우리가 말할 수 있는 전부다"
+                           "(RETRACTION_LOG R12: 코퍼스 안의 미발견을 문헌의 부재로 "
+                           "말하지 않는다)'.",
         "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §5",
     }
     s["what_our_kernel_does_not_do"] = [

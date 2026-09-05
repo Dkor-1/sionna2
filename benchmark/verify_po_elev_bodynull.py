@@ -47,20 +47,53 @@ def delta(a, b, key):
     return round(ser[a][key] - ser[b][key], 2)
 
 
+# P_dc 는 «동체» 가 아니다 — 도는 블레이드도 자세평균 DC 를 가진다.
+# 같은 자세열·같은 얼린 격자로 body 면/prop 면의 DC 를 갈라 다시 잰 원장이
+# outputs/verify_po_elev_dcsplit.json 이고, 이름표는 거기서 뽑는다(손으로 치지 않는다).
+D = json.load(open(f"{ROOT}/outputs/verify_po_elev_dcsplit.json"))
+R60 = D["rows"]["el-60"]
+
+
+def _dcvec(row):
+    return 10 ** (row["P_dc_db"] / 20) * np.exp(1j * np.deg2rad(row["dc_phase_deg"]))
+
+
+vsum_db = round(float(20 * np.log10(abs(_dcvec(R60["body"]) + _dcvec(R60["prop"])))), 2)
+
 mech = {
     "el-60_vs_el-15": dict(
-        dP_dc_db=delta(-60, -15, "P_dc_db"),      # 동체(정적)
-        dP_ac_db=delta(-60, -15, "P_ac_db"),      # 블레이드(변조)
-        note_ko="동체가 −26.9 dB 무너지고 블레이드는 +5.4 dB 오른다 — 붕괴가 5 배 크다"),
+        dP_dc_db=delta(-60, -15, "P_dc_db"),
+        dP_ac_db=delta(-60, -15, "P_ac_db"),
+        dc_split_el60=dict(body_db=R60["body"]["P_dc_db"],
+                           body_phase_deg=R60["body"]["dc_phase_deg"],
+                           prop_db=R60["prop"]["P_dc_db"],
+                           prop_phase_deg=R60["prop"]["dc_phase_deg"],
+                           phase_diff_deg=R60["dc_phase_diff_deg"],
+                           vector_sum_db=vsum_db,
+                           production_db=R60["total_production"]["P_dc_db"]),
+        note_ko=(
+            f"−15° 대비 −60° 에서 DC 가 {delta(-60, -15, 'P_dc_db'):+.1f} dB 내려간다"
+            f"(AC 는 {delta(-60, -15, 'P_ac_db'):+.1f} dB). 원인은 동체 DC"
+            f"({R60['body']['P_dc_db']:.2f} dB ∠{R60['body']['dc_phase_deg']:+.1f}°)가 "
+            f"프로펠러 DC({R60['prop']['P_dc_db']:.2f} dB ∠"
+            f"{R60['prop']['dc_phase_deg']:+.1f}°)와 같은 크기까지 내려와"
+            f"({R60['body_minus_prop_dc_db']:+.2f} dB 차) 위상차 "
+            f"{R60['dc_phase_diff_deg']:.1f}° 로 거의 역위상 상쇄하기 때문이다 — 두 벡터를 "
+            f"더하면 {vsum_db:.1f} dB 로 생산 DC "
+            f"{R60['total_production']['P_dc_db']:.1f} dB 를 거의 재현한다"
+            f"(verify_po_elev_dcsplit.json · verify_po_elev_rebuttal.json §0). "
+            f"⛔P_dc 를 «동체» 라고 부르면 안 된다 — 도는 블레이드도 DC 를 가지고, "
+            f"이 앙각에서는 프로펠러가 DC 의 주역이다."),
+    ),
     "el-30_vs_el-15": dict(
         dP_dc_db=delta(-30, -15, "P_dc_db"),
         dP_ac_db=delta(-30, -15, "P_ac_db"),
-        note_ko="동체 −13.1 dB · 블레이드 +2.3 dB — 여기서도 붕괴가 지배"),
+        note_ko=(
+            f"−15° 대비 −30° 에서 DC {delta(-30, -15, 'P_dc_db'):+.1f} dB · "
+            f"AC {delta(-30, -15, 'P_ac_db'):+.1f} dB. ⛔이 앙각은 body/prop 분리를 "
+            f"재지 않았다 — DC 의 주역이 동체인지 프로펠러인지 말할 수 없다."),
+    ),
 }
-for k in mech:
-    mech[k]["note_ko"] = (
-        f"동체(P_dc) {mech[k]['dP_dc_db']:+.1f} dB · 블레이드(P_ac) {mech[k]['dP_ac_db']:+.1f} dB "
-        f"— 동체 붕괴가 {abs(mech[k]['dP_dc_db'])/max(abs(mech[k]['dP_ac_db']), 1e-9):.1f} 배 크다")
 
 verdict = {
     "_meta": {
@@ -82,7 +115,7 @@ verdict = {
                            "0/−15/−45 와 **같은** 규약이므로 이 전환은 이번 이상의 원인이 아니다.",
     },
     # ─────────────────────────────────────────────────────────────────────────
-    "B_기제_동체붕괴이지_블레이드증가가_아니다": mech,
+    "B_기제_DC가_무너진다_블레이드가_세진게_아니다": mech,
     "B_표": [dict(el_deg=k, P_dc_db=v["P_dc_db"], P_ac_db=v["P_ac_db"],
                  ac_over_dc_db=v["ac_over_dc_db"],
                  min_abs_over_mean=v["min_abs_over_mean"],

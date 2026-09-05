@@ -187,7 +187,8 @@ def _checks_table():
                    f"{msym.MASS_RULER_AGREE_REL:.0e}",
             gating=True, kind="불변량",
             not_gated="질량·관성의 **크기**는 판정에 안 쓴다 — 감사 I9(메쉬 부피×밀도 질량이 "
-                      "공표 TOW 의 1.1~5.2 배)가 선언된 결함이기 때문이다. 원장에는 싣는다.",
+                      "공표 TOW 의 1.1~5.0 배 · 원장 mass_over_tow 1.0955~5.023)가 선언된 "
+                      "결함이기 때문이다. 원장에는 싣는다.",
         ),
         dict(
             id="S5", map_cell="M13 파생량", name="투영면적(σ 의 1차 결정자)",

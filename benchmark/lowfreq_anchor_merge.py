@@ -108,6 +108,23 @@ def _null_guarded(pl, deg=3.0):
 def analyse():
     sph, pl, mom, slp = _load("sphere"), _load("plate"), _load("mom"), _load("slope")
     ptd, mf, jt = _load("ptd"), _load("momfine"), _load("jitter")
+
+    #  ⚠ **jitter=3 은 이 검증에서만 쓰는 규약이다.** 드론 생산 호출의 기본은 jitter=2 이다
+    #    (`src/rcs_sbr.py::rcs_sbr_batch` 의 기본값 — 같은 파일이 "생산 호출은 jitter=2(기본)
+    #    이고 여기선 3" 이라고 적어 둔다). 그래서 (커널 − 해석 PO) 상한은 두 규약을 **따로**
+    #    인쇄한다. J=3 값에 '생산 규약' 이라는 이름을 붙이면 실제 생산보다 낙관적인 수가 된다.
+    def _worst_lam12_vs_po(j):
+        if jt is None:
+            return None
+        vals = [abs(r["vs_po_db"]) for r in jt["rows"]
+                if r["jitter"] == j and r["grid"] == "lam/12"]
+        return float(max(vals)) if vals else None
+
+    j2_lam12 = _worst_lam12_vs_po(2)
+    j3_lam12 = _worst_lam12_vs_po(3)
+    j2_txt = f"{j2_lam12:.2f}" if j2_lam12 is not None else "미측정"
+    j3_txt = f"{j3_lam12:.2f}" if j3_lam12 is not None else "미측정"
+
     missing = [n for n, v in (("sphere", sph), ("plate", pl), ("mom", mom), ("slope", slp)) if v is None]
     if missing:
         raise SystemExit(f"조각이 없다: {missing} — 먼저 해당 모드를 실행할 것")
@@ -208,7 +225,10 @@ def analyse():
                  "그대로 남고, 그 크기는 해석 PO−Mie 간극과 같다 — 즉 저 ka 오차는 표본화가 아니라 "
                  "PO 모델 자체다."),
         precision_note=("정확히 말하면: 격자를 조여서 **살 수 있는 것은 (커널 − 해석 PO) 뿐**이고 "
-                        "생산 규약(jitter=3)에서 그 항은 λ/12 에서 이미 ≤0.2 dB 다. "
+                        f"이 검증이 쓴 규약(jitter=3)에서 그 항은 λ/12 에서 이미 ≤{j3_txt} dB 다. "
+                        f"⚠ jitter=3 은 **검증 규약**이고 드론 생산 호출의 기본은 jitter=2 다 — "
+                        f"생산 규약에서는 같은 항이 λ/12 에서 최대 {j2_txt} dB 이므로, ≤{j3_txt} dB "
+                        "를 생산 규약의 값으로 읽으면 안 된다. "
                         "(해석 PO − Mie) 는 격자가 건드리지 못한다. 아래 adversarial_jitter_control "
                         "참조 — 단일격자(jitter=1)로 재면 격자 정련이 최대 1.35 dB 를 벌지만, "
                         "그 이득은 정확히 PO 바닥에서 멈춘다."))
@@ -237,10 +257,16 @@ def analyse():
                       "수렴한 것인가, 아니면 격자위상 평균(jitter)이 격자 오차를 지운 것인가?"),
             worst_abs_vs_analytic_po_db=dict(jitter1=jt["worst_abs_j1_vs_po_db"],
                                              jitter3=jt["worst_abs_j3_vs_po_db"]),
+            worst_abs_at_lam12_vs_analytic_po_db=dict(jitter1=_worst_lam12_vs_po(1),
+                                                      jitter2=j2_lam12, jitter3=j3_lam12),
+            convention_note=("jitter=3 은 이 검증의 규약이다. 드론 생산 호출의 기본은 jitter=2 "
+                             "(src/rcs_sbr.py::rcs_sbr_batch) — 두 값을 따로 싣는다."),
             answer=("**jitter 가 일을 하고 있다** — λ/12 단일격자(J=1)는 해석 PO 에서 최대 "
-                    f"{jt['worst_abs_j1_vs_po_db']:.2f} dB 떨어져 있고 생산 규약 J=3 은 "
-                    f"{jt['worst_abs_j3_vs_po_db']:.2f} dB 다. 그래서 '격자는 아무 상관 없다' 가 "
-                    "아니라 **'생산 규약이 격자 오차를 이미 처리한다'** 가 정확한 진술이다."),
+                    f"{jt['worst_abs_j1_vs_po_db']:.2f} dB 떨어져 있고 이 검증이 쓴 J=3 은 "
+                    f"{jt['worst_abs_j3_vs_po_db']:.2f} dB 다. ⚠ J=3 은 **검증 규약**이고 드론 "
+                    f"생산 호출의 기본은 J=2 이며, 그 규약에서 같은 상한은 {j2_txt} dB 다. "
+                    "그래서 '격자는 아무 상관 없다' 가 아니라 **'격자위상 평균이 격자 오차를 "
+                    "대부분 처리하고, 얼마나 처리하는지는 J 에 달려 있다'** 가 정확한 진술이다."),
             but=("⭐ 그래도 결론은 안 바뀐다. 규칙을 **J=1 로 다시 채점해도** 저 ka 평균 개선은 "
                  f"{j1_imp:.3f} dB (비율 {j1_frac:.3f}) 로 판정이 {j1_verdict} 이다 — 격자 정련이 "
                  "버는 것은 (커널−해석PO) 뿐이고, 그 이득은 정확히 PO−Mie 바닥에서 멈춘다."),
@@ -505,10 +531,13 @@ def analyse():
         "⚠ 정면입사만 참값과 나란히 놓았다. 경사입사는 PO 닫힌형과만 비교했다(oblique 항목).",
         "⚠ 우리 PO 면적분은 **스칼라**라 편파가 없다. TM/TE 참값의 중간 어디쯤이라고 말할 근거가 "
         "없으며, 이 라운드는 그 간극을 재기만 하고 고치지 않는다.",
-        "⚠ 커널 규약은 생산과 같지만(jitter=3, penetrate=False, max_bounce=1) 구·판은 볼록이라 "
-        "다중반사가 원래 없다 — 이 검증은 다중반사 경로를 재지 않는다.",
-        "⚠ **격자 정련이 산 것은 (커널−해석PO) 뿐이다.** 생산 규약(jitter=3)에서 그 항은 λ/12 에서 "
-        "이미 ≤0.2 dB 라 '격자를 조여도 안 움직인다' 로 보인다. 단일격자(jitter=1)로 재면 정련이 "
+        "⚠ 이 검증의 커널 규약은 penetrate=False · max_bounce=1 로 생산과 같지만 격자위상 평균은 "
+        "**jitter=3** 이고 드론 생산 호출의 기본은 **jitter=2** 다(src/rcs_sbr.py::rcs_sbr_batch). "
+        "게다가 구·판은 볼록이라 다중반사가 원래 없다 — 이 검증은 다중반사 경로를 재지 않는다.",
+        f"⚠ **격자 정련이 산 것은 (커널−해석PO) 뿐이다.** 검증 규약(jitter=3)에서 그 항은 λ/12 에서 "
+        f"이미 ≤{j3_txt} dB 라 '격자를 조여도 안 움직인다' 로 보인다. 생산 규약(jitter=2)에서는 같은 "
+        f"항이 λ/12 에서 최대 {j2_txt} dB 다 — ≤{j3_txt} dB 는 생산 규약의 값이 아니다. "
+        "단일격자(jitter=1)로 재면 정련이 "
         "최대 1.35 dB 를 벌지만 정확히 PO−Mie 바닥에서 멈추고, 규칙을 J=1 로 재채점해도 판정은 "
         "그대로다(sphere.adversarial_jitter_control). 즉 정확한 진술은 '격자는 무관하다' 가 아니라 "
         "'격자로 살 수 있는 것에 상한이 있고 그 상한이 간극보다 훨씬 작다' 이다.",

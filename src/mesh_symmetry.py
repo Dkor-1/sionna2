@@ -798,7 +798,9 @@ def check_mass_inertia(spec, mesh=None, verbose=False) -> dict:
 
     무엇을 **안 판정**하나 — 질량·관성의 **크기**다. 이유를 적어 둔다(감사 I9):
       메쉬 body 는 속이 꽉 찬 솔리드인데 밀도는 ABS 벌크값이라, 메쉬 부피×밀도 질량이
-      공표 이륙중량의 **1.1~5.2 배**다. `gazebo_export` 는 총질량을 TOW 로 일괄 정규화하므로
+      공표 이륙중량의 **1.1~5.0 배**다(원장 `mass_over_tow` 1.0955~5.023 — 13 기종,
+      outputs/mesh_cert_matrix_raw_0816/*.json. ⛔예전 표기 «5.2 배» 는 현 원장 밖이라 내렸다).
+      `gazebo_export` 는 총질량을 TOW 로 일괄 정규화하므로
       절대질량은 맞고 **배분만** 치우친다. 그건 이 라운드가 고칠 것이 아니라 **선언할 것**이다.
       ⇒ 아래 `mass_over_tow` 는 원장에 싣되 판정에는 안 쓴다."""
     from drones import build_drone

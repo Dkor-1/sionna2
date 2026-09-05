@@ -1094,7 +1094,14 @@ def main():
             what_does_not_enter=dict(
                 sigma="RCS 는 유도 사슬 어디에도 없다",
                 cpi=("CPI 는 도플러 빈폭 1/T 를 정할 뿐 무모호 구간 +-PRF/2 를 못 바꾼다 — "
-                     "V3 에서 빈폭이 50배 변해도 접힘비율이 불변임을 실측했다"),
+                     "V3 에서 도플러 빈폭이 {a:g}→{b:g} Hz 로 {r:g}배 변해도 접힘비율은 "
+                     "{f:.4f} 로 {n}행 모두 같았다").format(
+                         a=ver["V3_cpi_independence"]["bin_hz_span"][0],
+                         b=ver["V3_cpi_independence"]["bin_hz_span"][1],
+                         r=(ver["V3_cpi_independence"]["bin_hz_span"][0]
+                            / ver["V3_cpi_independence"]["bin_hz_span"][1]),
+                         f=ver["V3_cpi_independence"]["distinct_alias_fracs"][0],
+                         n=len(ver["V3_cpi_independence"]["rows"])),
                 bandwidth="기준신호 대역(거리분해능)과 반복률(속도모호)은 서로 독립이다",
                 power="송신전력·경로손실은 검출확률을 바꾸지 종횡비를 안 바꾼다"),
             verification=ver,

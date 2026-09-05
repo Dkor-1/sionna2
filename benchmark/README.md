@@ -77,7 +77,7 @@ P_n    = k·T0·F·B                             (열잡음, B=대역폭 → 공
 - **CPI 시간 고정(30 ms)**: 프레임률이 다른 파형끼리 도플러분해능을 맞춰 비교.
 
 ## 로드맵 A~D — report5 에서 전부 구현됨 (`run_matrix.py`)
-- **A. 점유 공정성** ✅ G1/G2/G3 × EIRP 스윕 → 'G1 은 ~18 dB 더 비싸다'로 정량화
+- **A. 점유 공정성** ✅ G1/G2/G3 × EIRP 스윕 → 같은 Pd(=0.5)를 내는 데 G1 이 EIRP 를 약 **18 dB** 더 쓴다. EIRP 격자 눈금이 6 dB 라 이 18 은 격자점 차이이고, 참값은 **12~24 dB** 구간 안에 있다(구간 내 Pd 선형보간은 16.4 dB). mavic4pro · radial · 5G NR 100 MHz(`wf=nr100`) · 60 시행, 매트릭스 한 칸의 값이다 — 원장 `outputs/report03_illuminators.json::occupancy_cost`, 원자료 `outputs/report5_results.json:A_occupancy.rows`. ⚠ 이 격차에는 기준신호 대역(7.2 → 98.28 MHz)과 점유율이 **함께** 들어 있어 «점유만»의 값이 아니다 — 점값으로 떼어 인용하지 않는다.
 - **B. 3축 매트릭스** ✅ 신호×드론(radial) → Pd/SCR/위치오차 히트맵 + `bench_matrix.csv`
 - **C. 어려운 시나리오** ✅ hover=완전 블라인드(ECA 부분공간), tangential=마진이 흡수함을 측정
 - **D. RT 검증** ✅ 자유공간 클러터≈0 + 챔버 잔향 실측 vs 가정 + RT 채널 셀 재실행

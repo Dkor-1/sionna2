@@ -709,13 +709,31 @@ def analyze(make_fig=True):
     # ⭐격자를 얼렸을 때의 값·비용 (권고의 핵심)
     reco_freeze = None
     if r12 is not None:
+        # ⛔철회: 여기 있던 «extra_cost = "0 — 얼린 격자 n₀ 는 생산 격자가 자세마다 오가는
+        #   범위 안에 있다"» 는 「범위 안」을 「추가 비용 0」으로 건너뛴 말이었다. 적대검증
+        #   (benchmark/sbr_grid_freeze_review.py R7 · outputs/sbr_grid_freeze_review.json)이
+        #   세어 보니 얼린 격자는 자세 **평균** 보다 광선을 더 쏜다 — 손으로 옮기지 않고 여기서 다시 센다.
+        _z12 = np.load(os.path.join(SCRATCH, "div012.npz"))
+        _n0_froz = int(np.ceil(2 * float(np.asarray(_z12["Rout0"]).ravel()[0])
+                               / float(np.asarray(_z12["d"]).ravel()[0])))
+        _rays_prod_mean = float(np.mean(keep[12]["n_grid"].astype(float) ** 2))
+        _froz_over_prod = _n0_froz ** 2 / _rays_prod_mean
         reco_freeze = dict(
             div=12, oob_prod=r12["prod_frac_power_beyond_ftip"],
             oob_froz=r12["froz_frac_power_beyond_ftip"],
             gain_db=freeze_gain_12,
             floor_gain_db=float(r12["froz_floor_rel_db"] - r12["prod_floor_rel_db"]),
             level_shift_db=float(r12["froz_level_db"] - r12["prod_level_db"]),
-            extra_cost="0 — 얼린 격자 n₀ 는 생산 격자가 자세마다 오가는 범위 안에 있다",
+            extra_cost=(f"광선 {_froz_over_prod:.3f} 배 — 얼린 격자 n₀={_n0_froz} 는 생산 격자가 "
+                        f"자세마다 오가는 범위({r12['n_grid_min']}~{r12['n_grid_max']}) 안에 "
+                        f"있지만, 자세평균 √{_rays_prod_mean:.0f}≈{_rays_prod_mean ** 0.5:.0f} "
+                        f"보다는 +{100 * (_froz_over_prod - 1):.1f} % 더 쏜다"),
+            extra_cost_retracted=("⛔«0 — 범위 안에 있다» 는 철회한다. 「범위 안」과 「추가 비용 0」은 "
+                                  "다른 말이고, 적대검증(sbr_grid_freeze_review.py R7)이 자세평균 "
+                                  "대비 광선을 더 쏜다고 셌다 — 크기는 froz_over_prod_rays 참조."),
+            froz_rays=int(_n0_froz ** 2),
+            prod_rays_mean=_rays_prod_mean,
+            froz_over_prod_rays=_froz_over_prod,
             n0_vs_prod_range=[r12["n_grid_min"], r12["n_grid_max"]])
     # PO 바닥까지 가려면 필요한 div (측정된 기울기로 외삽)
     need_div = need_div_froz = None

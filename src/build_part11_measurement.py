@@ -1432,7 +1432,15 @@ def _part_name(part: int) -> str:
 
 def write_shard(no: str, anchor: str, rep: dict, part: int) -> None:
     meta = _plan_meta(anchor)
-    title = REG[anchor][1]
+    #: ⛔`REG[anchor][1]` 은 **계획 JSON** 의 제목이다. 이 빌더가 노트북에 실제로 찍는
+    #  제목과 갈릴 수 있고, 2026-09-05 에 실제로 갈렸다(편 72·76). `report_registry` 는
+    #  **지어진 노트북의 H1** 을 먼저 읽으므로(`_built_title`) 색인만 옛 제목으로 남았다.
+    #  ⇒ 같은 자리를 본다 — 노트북이 있으면 그 H1 이 정본이다.
+    try:
+        from report_registry import _built_title            # noqa: PLC0415
+        title = _built_title(f"{no}_{anchor}.ipynb") or REG[anchor][1]
+    except Exception:
+        title = REG[anchor][1]
     short = title.split("—")[0].split(",")[0].strip()
     if len(short) > 26:
         short = short[:25].rstrip() + "…"

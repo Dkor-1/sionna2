@@ -532,7 +532,8 @@ def fig7_hybrid(J):
         ax.text(1.75, y, t, va="center", fontsize=10.5, color=INK)
 
     _cap(fig, "Neither engine is a fallback for the other. Sionna RT gives geometry, delay and Doppler exactly (section 2 verifies it to 0.00 dB) but carries no target sigma (section 3 proves it five ways).\n"
-               "SBR gives sigma (validated against analytic plate -0.01 dB and metal sphere +0.39 dB) but knows nothing about the room. The passive-radar chain needs both.")
+               "SBR gives sigma but knows nothing about the room. That sigma is scored, not 'validated against an analytic solution': the flat plate (4 pi A^2 / lam^2) is PO graded by PO -- an identity with no diagnostic power -- and the metal sphere sits within 0.2544 dB of the analytic PO target over kr 1-100 on the production lam/12 grid (0.2006 dB at lam/16).\n"
+               "The one external check is exact Mie: 0.375-0.851 dB. The old +0.39 dB sphere figure was read against the pi r^2 asymptote at a single grid phase and is not quoted any more (outputs/audit_rcs_kernel.json, docs/ARCHIVE.md G-2). The passive-radar chain needs both.")
     return _save(fig, "report3_f7_hybrid")
 
 

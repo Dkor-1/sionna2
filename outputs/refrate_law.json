@@ -1,10 +1,10 @@
 {
  "meta": {
   "script": "benchmark/refrate_law.py",
-  "generated": "2026-07-31T06:29:55",
+  "generated": "2026-09-05T06:28:53",
   "question": "패시브 바이스태틱의 무모호 반경속도를 정하는 것은 무엇인가 — 그리고 그것이 실제 조명원·실제 기체에 무엇을 하는가",
   "smoke": false,
-  "runtime_s": 4.503315210342407,
+  "runtime_s": 3.327014684677124,
   "repo_functions_used": [
    "freespace_scene.fs_params",
    "freespace_scene.target_pos",
@@ -40,7 +40,7 @@
   "geometry_assumption": "표적은 수평비행(roll=pitch=0)이고 속도는 수평면 안에 있다. 그래서 delta 는 이등분선의 앙각과 헤딩이 함께 만든다 — 지상 TX/RX + 공중 표적이면 cos(delta) 는 이등분선 앙각의 코사인만큼 자동으로 1보다 작아지고, v_max 는 그만큼 커진다.",
   "what_does_not_enter": {
    "sigma": "RCS 는 유도 사슬 어디에도 없다",
-   "cpi": "CPI 는 도플러 빈폭 1/T 를 정할 뿐 무모호 구간 +-PRF/2 를 못 바꾼다 — V3 에서 빈폭이 50배 변해도 접힘비율이 불변임을 실측했다",
+   "cpi": "CPI 는 도플러 빈폭 1/T 를 정할 뿐 무모호 구간 +-PRF/2 를 못 바꾼다 — V3 에서 도플러 빈폭이 25→0.2 Hz 로 125배 변해도 접힘비율은 0.8576 로 8행 모두 같았다",
    "bandwidth": "기준신호 대역(거리분해능)과 반복률(속도모호)은 서로 독립이다",
    "power": "송신전력·경로손실은 검출확률을 바꾸지 종횡비를 안 바꾼다"
   },
@@ -1098,6 +1098,108 @@
       "verification": "not_published"
      }
     }
+   },
+   "phantom3": {
+    "drone": "phantom3",
+    "weight_g": 1280.0,
+    "max_speed_ms": 16.0,
+    "regimes": {
+     "hover": {
+      "v_ms": 0.0,
+      "provenance": "definition (station keeping; manufacturers publish hovering accuracy, not a hover speed)"
+     },
+     "normal_mode": {
+      "v_ms": null,
+      "provenance": null,
+      "verification": null
+     },
+     "tracking": {
+      "v_ms": null,
+      "provenance": null,
+      "verification": null
+     },
+     "scene_slow": {
+      "v_ms": 5.0,
+      "provenance": "src/freespace_scene.py : FS_SPEED[0] — the speed every detection result in this project is computed at"
+     },
+     "scene_fast": {
+      "v_ms": 15.0,
+      "provenance": "src/freespace_scene.py : FS_SPEED[1]"
+     },
+     "max": {
+      "v_ms": 16.0,
+      "provenance": "src/drones.py : DroneSpec.max_speed_ms (sourced in docs/drone_research.json)",
+      "verification": "spec_sheet"
+     }
+    }
+   },
+   "m350rtk": {
+    "drone": "m350rtk",
+    "weight_g": 6470.0,
+    "max_speed_ms": 23.0,
+    "regimes": {
+     "hover": {
+      "v_ms": 0.0,
+      "provenance": "definition (station keeping; manufacturers publish hovering accuracy, not a hover speed)"
+     },
+     "normal_mode": {
+      "v_ms": null,
+      "provenance": null,
+      "verification": null
+     },
+     "tracking": {
+      "v_ms": null,
+      "provenance": null,
+      "verification": null
+     },
+     "scene_slow": {
+      "v_ms": 5.0,
+      "provenance": "src/freespace_scene.py : FS_SPEED[0] — the speed every detection result in this project is computed at"
+     },
+     "scene_fast": {
+      "v_ms": 15.0,
+      "provenance": "src/freespace_scene.py : FS_SPEED[1]"
+     },
+     "max": {
+      "v_ms": 23.0,
+      "provenance": "src/drones.py : DroneSpec.max_speed_ms (sourced in docs/drone_research.json)",
+      "verification": "spec_sheet"
+     }
+    }
+   },
+   "mini2": {
+    "drone": "mini2",
+    "weight_g": 249.0,
+    "max_speed_ms": 16.0,
+    "regimes": {
+     "hover": {
+      "v_ms": 0.0,
+      "provenance": "definition (station keeping; manufacturers publish hovering accuracy, not a hover speed)"
+     },
+     "normal_mode": {
+      "v_ms": null,
+      "provenance": null,
+      "verification": null
+     },
+     "tracking": {
+      "v_ms": null,
+      "provenance": null,
+      "verification": null
+     },
+     "scene_slow": {
+      "v_ms": 5.0,
+      "provenance": "src/freespace_scene.py : FS_SPEED[0] — the speed every detection result in this project is computed at"
+     },
+     "scene_fast": {
+      "v_ms": 15.0,
+      "provenance": "src/freespace_scene.py : FS_SPEED[1]"
+     },
+     "max": {
+      "v_ms": 16.0,
+      "provenance": "src/drones.py : DroneSpec.max_speed_ms (sourced in docs/drone_research.json)",
+      "verification": "spec_sheet"
+     }
+    }
    }
   },
   "scene_speeds": {
@@ -1341,11 +1443,107 @@
       "intervals_spanned": 15,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 4.669897332774129,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 14.009691998322385,
+      "intervals_spanned": 15,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 14.94367146487721,
+      "intervals_spanned": 15,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 4.669897332774129,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 14.009691998322385,
+      "intervals_spanned": 15,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 21.48152773076099,
+      "intervals_spanned": 22,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 4.669897332774129,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 14.009691998322385,
+      "intervals_spanned": 15,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 1.07068735,
+      "ratio": 14.94367146487721,
+      "intervals_spanned": 15,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "nr_prs": {
     "cells": {
@@ -1580,11 +1778,107 @@
       "intervals_spanned": 4,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 1.1674743331935322,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 3.502422999580596,
+      "intervals_spanned": 4,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 3.7359178662193027,
+      "intervals_spanned": 4,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 1.1674743331935322,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 3.502422999580596,
+      "intervals_spanned": 4,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 5.370381932690248,
+      "intervals_spanned": 6,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 1.1674743331935322,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 3.502422999580596,
+      "intervals_spanned": 4,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 4.2827494,
+      "ratio": 3.7359178662193027,
+      "intervals_spanned": 4,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "nr_prs_max": {
     "cells": {
@@ -1819,11 +2113,107 @@
       "intervals_spanned": 2,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 0.46698973327741283,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 1.4009691998322387,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 1.494367146487721,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 0.46698973327741283,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 1.4009691998322387,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 2.148152773076099,
+      "intervals_spanned": 3,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 0.46698973327741283,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 1.4009691998322387,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 10.7068735,
+      "ratio": 1.494367146487721,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 15,
-    "frac_unambiguous": 0.5172413793103449
+    "n_cells": 41,
+    "n_unambiguous": 21,
+    "frac_unambiguous": 0.5121951219512195
    },
    "lte_crs": {
     "cells": {
@@ -2058,10 +2448,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.12295172549003884,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.3688551764701165,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.3934455215681243,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.12295172549003884,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.3688551764701165,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.5655779372541787,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.12295172549003884,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.3688551764701165,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 40.66636706456864,
+      "ratio": 0.3934455215681243,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "lte_crs_sym": {
@@ -2297,10 +2783,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.03073793137250971,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.09221379411752913,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.09836138039203107,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.03073793137250971,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.09221379411752913,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.14139448431354468,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.03073793137250971,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.09221379411752913,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 162.66546825827456,
+      "ratio": 0.09836138039203107,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "lte_prs": {
@@ -2536,11 +3118,107 @@
       "intervals_spanned": 60,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 19.672276078406217,
+      "intervals_spanned": 20,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 59.01682823521865,
+      "intervals_spanned": 60,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 62.95128345089989,
+      "intervals_spanned": 63,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 19.672276078406217,
+      "intervals_spanned": 20,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 59.01682823521865,
+      "intervals_spanned": 60,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 90.4924699606686,
+      "intervals_spanned": 91,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 19.672276078406217,
+      "intervals_spanned": 20,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 59.01682823521865,
+      "intervals_spanned": 60,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.254164794153554,
+      "ratio": 62.95128345089989,
+      "intervals_spanned": 63,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "wifi_vhtltf": {
     "cells": {
@@ -2775,11 +3453,107 @@
       "intervals_spanned": 2,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 0.3475737871964744,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 1.0427213615894233,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 1.1122361190287182,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 0.3475737871964744,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 1.0427213615894233,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 1.5988394211037824,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 0.3475737871964744,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 1.0427213615894233,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 14.385434644913628,
+      "ratio": 1.1122361190287182,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 17,
-    "frac_unambiguous": 0.5862068965517241
+    "n_cells": 41,
+    "n_unambiguous": 23,
+    "frac_unambiguous": 0.5609756097560976
    },
    "wifi_vhtltf_lo": {
     "cells": {
@@ -3014,11 +3788,107 @@
       "intervals_spanned": 105,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 34.75737871964744,
+      "intervals_spanned": 35,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 104.27213615894233,
+      "intervals_spanned": 105,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 111.22361190287182,
+      "intervals_spanned": 112,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 34.75737871964744,
+      "intervals_spanned": 35,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 104.27213615894233,
+      "intervals_spanned": 105,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 159.88394211037823,
+      "intervals_spanned": 160,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 34.75737871964744,
+      "intervals_spanned": 35,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 104.27213615894233,
+      "intervals_spanned": 105,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.14385434644913628,
+      "ratio": 111.22361190287182,
+      "intervals_spanned": 112,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "wifi_beacon": {
     "cells": {
@@ -3253,11 +4123,107 @@
       "intervals_spanned": 107,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 35.59155580891898,
+      "intervals_spanned": 36,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 106.77466742675695,
+      "intervals_spanned": 107,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 113.89297858854074,
+      "intervals_spanned": 114,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 35.59155580891898,
+      "intervals_spanned": 36,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 106.77466742675695,
+      "intervals_spanned": 107,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 163.7211567210273,
+      "intervals_spanned": 164,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 35.59155580891898,
+      "intervals_spanned": 36,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 106.77466742675695,
+      "intervals_spanned": 107,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.14048276020423464,
+      "ratio": 113.89297858854074,
+      "intervals_spanned": 114,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "wifi_beacon24": {
     "cells": {
@@ -3492,11 +4458,107 @@
       "intervals_spanned": 50,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 16.648103935956918,
+      "intervals_spanned": 17,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 49.94431180787076,
+      "intervals_spanned": 50,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 53.27393259506214,
+      "intervals_spanned": 54,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 16.648103935956918,
+      "intervals_spanned": 17,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 49.94431180787076,
+      "intervals_spanned": 50,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 76.58127810540184,
+      "intervals_spanned": 77,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 16.648103935956918,
+      "intervals_spanned": 17,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 49.94431180787076,
+      "intervals_spanned": 50,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 0.30033450170868387,
+      "ratio": 53.27393259506214,
+      "intervals_spanned": 54,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "dvbt_scattered": {
     "cells": {
@@ -3731,10 +4793,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.17932405757852654,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.5379721727355796,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.5738369842512849,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.17932405757852654,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.5379721727355796,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.8248906648612221,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.17932405757852654,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.5379721727355796,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 27.882483072916667,
+      "ratio": 0.5738369842512849,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "dvbt_continual": {
@@ -3970,10 +5128,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.044831014394631635,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.1344930431838949,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.14345924606282123,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.044831014394631635,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.1344930431838949,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.20622266621530552,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.044831014394631635,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.1344930431838949,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 111.52993229166667,
+      "ratio": 0.14345924606282123,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "dab_phaseref": {
@@ -4209,11 +5463,107 @@
       "intervals_spanned": 5,
       "unambiguous": false,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 1.4089747381169941,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 4.226924214350983,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 4.508719161974382,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 1.4089747381169941,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 4.226924214350983,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 6.4812837953381734,
+      "intervals_spanned": 7,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 1.4089747381169941,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 4.226924214350983,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 3.548679663825758,
+      "ratio": 4.508719161974382,
+      "intervals_spanned": 5,
+      "unambiguous": false,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 7,
-    "frac_unambiguous": 0.2413793103448276
+    "n_cells": 41,
+    "n_unambiguous": 10,
+    "frac_unambiguous": 0.24390243902439024
    },
    "dtmb_pn420": {
     "cells": {
@@ -4448,10 +5798,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.02468374304466325,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.07405122913398976,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.0789879777429224,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.02468374304466325,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.07405122913398976,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.11354521800545095,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.02468374304466325,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.07405122913398976,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 202.56247162162163,
+      "ratio": 0.0789879777429224,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "dtmb_pn945": {
@@ -4687,10 +6133,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.02776921092524616,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.08330763277573848,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.08886147496078771,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.02776921092524616,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.08330763277573848,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.12773837025613233,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.02776921092524616,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.08330763277573848,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 180.05553033033033,
+      "ratio": 0.08886147496078771,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "fm_batch1ms": {
@@ -4926,10 +6468,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.006671281903963041,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.020013845711889123,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.02134810209268173,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.006671281903963041,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.020013845711889123,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.03068789675822999,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.006671281903963041,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.020013845711889123,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 749.481145,
+      "ratio": 0.02134810209268173,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "fm_batch10ms": {
@@ -5165,10 +6803,106 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.0667128190396304,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.20013845711889122,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.2134810209268173,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.0667128190396304,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.20013845711889122,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.3068789675822999,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.0667128190396304,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.20013845711889122,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 74.9481145,
+      "ratio": 0.2134810209268173,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 29,
+    "n_cells": 41,
+    "n_unambiguous": 41,
     "frac_unambiguous": 1.0
    },
    "nr_recon": {
@@ -5404,11 +7138,107 @@
       "intervals_spanned": 1,
       "unambiguous": true,
       "caveat": null
+     },
+     "phantom3/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "phantom3/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.23349486663870642,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.7004845999161193,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "phantom3/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.7471835732438605,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "m350rtk/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.23349486663870642,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.7004845999161193,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "m350rtk/max": {
+      "v_ms": 23.0,
+      "v_max_ms": 21.413747,
+      "ratio": 1.0740763865380496,
+      "intervals_spanned": 2,
+      "unambiguous": false,
+      "caveat": null
+     },
+     "mini2/hover": {
+      "v_ms": 0.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.0,
+      "intervals_spanned": 0,
+      "unambiguous": true,
+      "caveat": "v=0 은 모호가 없지만 검출도 없다 — f_d=0 이라 0-도플러 가드가 지운다. 이 법칙은 빠른 표적의 상한을 정할 뿐 호버를 구제하지 않는다. 호버는 반복률과 무관하게 모든 조명원에서 블라인드다 ⟨outputs/cpi_guard_sweep.json : speed_sweep.0.1.*[speed_ms=0] → blind_hard = 1.0⟩."
+     },
+     "mini2/scene_slow": {
+      "v_ms": 5.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.23349486663870642,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/scene_fast": {
+      "v_ms": 15.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.7004845999161193,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
+     },
+     "mini2/max": {
+      "v_ms": 16.0,
+      "v_max_ms": 21.413747,
+      "ratio": 0.7471835732438605,
+      "intervals_spanned": 1,
+      "unambiguous": true,
+      "caveat": null
      }
     },
-    "n_cells": 29,
-    "n_unambiguous": 28,
-    "frac_unambiguous": 0.9655172413793104
+    "n_cells": 41,
+    "n_unambiguous": 39,
+    "frac_unambiguous": 0.9512195121951219
    }
   },
   "by_drone": {
@@ -5689,6 +7519,168 @@
    "x500v2": {
     "max_speed_ms": null,
     "note": "published max speed unavailable"
+   },
+   "phantom3": {
+    "max_speed_ms": 16.0,
+    "unambiguous_ambient_illuminators": [
+     "dvbt_scattered",
+     "lte_crs",
+     "dvbt_continual",
+     "lte_crs_sym",
+     "dtmb_pn945",
+     "dtmb_pn420"
+    ],
+    "aliasing_ambient_illuminators": [
+     "wifi_beacon",
+     "wifi_vhtltf_lo",
+     "wifi_beacon24",
+     "nr_ssb",
+     "dab_phaseref",
+     "wifi_vhtltf"
+    ],
+    "n_unambiguous": 6,
+    "n_aliasing": 6,
+    "required_prf_hz_by_carrier": {
+     "FM broadcast band 87.5-108 MHz": {
+      "fc_hz": 100000000.0,
+      "required_prf_hz": 21.34810209268173,
+      "required_max_ref_period_ms": 46.8425715625
+     },
+     "DVB-T UHF band IV/V (470-694 MHz)": {
+      "fc_hz": 600000000.0,
+      "required_prf_hz": 128.0886125560904,
+      "required_max_ref_period_ms": 7.807095260416666
+     },
+     "LTE band 3 downlink (1805-1880 MHz)": {
+      "fc_hz": 1843000000.0,
+      "required_prf_hz": 393.4455215681243,
+      "required_max_ref_period_ms": 2.54164794153554
+     },
+     "802.11 2.4 GHz channel 6 centre frequency 2.437 GHz": {
+      "fc_hz": 2437000000.0,
+      "required_prf_hz": 520.2532479986537,
+      "required_max_ref_period_ms": 1.9221408109355766
+     },
+     "5G NR band n78 mid-band (3.3-3.8 GHz)": {
+      "fc_hz": 3500000000.0,
+      "required_prf_hz": 747.1835732438606,
+      "required_max_ref_period_ms": 1.3383591875
+     },
+     "802.11ac 80 MHz channel 42, U-NII-1, centre 5.210 GHz": {
+      "fc_hz": 5210000000.0,
+      "required_prf_hz": 1112.2361190287181,
+      "required_max_ref_period_ms": 0.8990896653071018
+     }
+    },
+    "scope": "ambient fixed-repetition illuminators only (continuous references excluded)"
+   },
+   "m350rtk": {
+    "max_speed_ms": 23.0,
+    "unambiguous_ambient_illuminators": [
+     "dvbt_scattered",
+     "lte_crs",
+     "dvbt_continual",
+     "lte_crs_sym",
+     "dtmb_pn945",
+     "dtmb_pn420"
+    ],
+    "aliasing_ambient_illuminators": [
+     "wifi_beacon",
+     "wifi_vhtltf_lo",
+     "wifi_beacon24",
+     "nr_ssb",
+     "dab_phaseref",
+     "wifi_vhtltf"
+    ],
+    "n_unambiguous": 6,
+    "n_aliasing": 6,
+    "required_prf_hz_by_carrier": {
+     "FM broadcast band 87.5-108 MHz": {
+      "fc_hz": 100000000.0,
+      "required_prf_hz": 30.68789675822999,
+      "required_max_ref_period_ms": 32.58613673913043
+     },
+     "DVB-T UHF band IV/V (470-694 MHz)": {
+      "fc_hz": 600000000.0,
+      "required_prf_hz": 184.12738054937992,
+      "required_max_ref_period_ms": 5.4310227898550725
+     },
+     "LTE band 3 downlink (1805-1880 MHz)": {
+      "fc_hz": 1843000000.0,
+      "required_prf_hz": 565.5779372541787,
+      "required_max_ref_period_ms": 1.7681029158508104
+     },
+     "802.11 2.4 GHz channel 6 centre frequency 2.437 GHz": {
+      "fc_hz": 2437000000.0,
+      "required_prf_hz": 747.8640439980647,
+      "required_max_ref_period_ms": 1.3371414336943142
+     },
+     "5G NR band n78 mid-band (3.3-3.8 GHz)": {
+      "fc_hz": 3500000000.0,
+      "required_prf_hz": 1074.0763865380495,
+      "required_max_ref_period_ms": 0.9310324782608695
+     },
+     "802.11ac 80 MHz channel 42, U-NII-1, centre 5.210 GHz": {
+      "fc_hz": 5210000000.0,
+      "required_prf_hz": 1598.8394211037823,
+      "required_max_ref_period_ms": 0.625453680213636
+     }
+    },
+    "scope": "ambient fixed-repetition illuminators only (continuous references excluded)"
+   },
+   "mini2": {
+    "max_speed_ms": 16.0,
+    "unambiguous_ambient_illuminators": [
+     "dvbt_scattered",
+     "lte_crs",
+     "dvbt_continual",
+     "lte_crs_sym",
+     "dtmb_pn945",
+     "dtmb_pn420"
+    ],
+    "aliasing_ambient_illuminators": [
+     "wifi_beacon",
+     "wifi_vhtltf_lo",
+     "wifi_beacon24",
+     "nr_ssb",
+     "dab_phaseref",
+     "wifi_vhtltf"
+    ],
+    "n_unambiguous": 6,
+    "n_aliasing": 6,
+    "required_prf_hz_by_carrier": {
+     "FM broadcast band 87.5-108 MHz": {
+      "fc_hz": 100000000.0,
+      "required_prf_hz": 21.34810209268173,
+      "required_max_ref_period_ms": 46.8425715625
+     },
+     "DVB-T UHF band IV/V (470-694 MHz)": {
+      "fc_hz": 600000000.0,
+      "required_prf_hz": 128.0886125560904,
+      "required_max_ref_period_ms": 7.807095260416666
+     },
+     "LTE band 3 downlink (1805-1880 MHz)": {
+      "fc_hz": 1843000000.0,
+      "required_prf_hz": 393.4455215681243,
+      "required_max_ref_period_ms": 2.54164794153554
+     },
+     "802.11 2.4 GHz channel 6 centre frequency 2.437 GHz": {
+      "fc_hz": 2437000000.0,
+      "required_prf_hz": 520.2532479986537,
+      "required_max_ref_period_ms": 1.9221408109355766
+     },
+     "5G NR band n78 mid-band (3.3-3.8 GHz)": {
+      "fc_hz": 3500000000.0,
+      "required_prf_hz": 747.1835732438606,
+      "required_max_ref_period_ms": 1.3383591875
+     },
+     "802.11ac 80 MHz channel 42, U-NII-1, centre 5.210 GHz": {
+      "fc_hz": 5210000000.0,
+      "required_prf_hz": 1112.2361190287181,
+      "required_max_ref_period_ms": 0.8990896653071018
+     }
+    },
+    "scope": "ambient fixed-repetition illuminators only (continuous references excluded)"
    }
   },
   "ambient_fixed_prf": [
