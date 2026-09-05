@@ -93,7 +93,7 @@
    "snr_sample_db": "rung 1: per Rx sample, BEFORE the matched filter, over B",
    "gain_mf_db": "rung 2: 10log10(B/PRF), one PRI correlation, full-waveform only",
    "gain_stft_db": "rung 4: 10log10(nperseg)+window loss, ONE STFT frame",
-   "warning": "three ~37 dB quantities exist and are different: gain_mf (36.99 dB), whole-CPI coherent integration over 5000 slow-time samples (36.99 dB, 35.23 dB with a Hann window) and the flash_spec map frame (70 samples, 16.69 dB). Never write one number called 'SNR'."
+   "warning": "three ~37 dB quantities exist and are different: gain_mf (36.99 dB), whole-CPI coherent integration over this ledger's own n_t slow-time samples — ⛔the literal '5000 samples / 36.99 / 35.23 dB' is stale: this run has n_t = 6144, giving 37.88 dB and 36.12 dB with a Hann window (= the gain_stft_db actually stored here). 10log10(5000) = 36.99 also happened to equal gain_mf, so the old warning printed the same number twice while saying the three differ and the flash_spec map frame (70 samples, 16.69 dB). Never write one number called 'SNR'."
   },
   "farfield_rule": "R_ff = 2 D^2 / lambda, D = mesh bbox max horizontal extent (radar_scene.target_extent)",
   "runtime_s": 2825.6

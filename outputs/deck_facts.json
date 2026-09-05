@@ -1,7 +1,7 @@
 {
  "meta": {
   "script": "benchmark/deck_facts.py",
-  "generated": "2026-09-04 04:51:55",
+  "generated": "2026-09-05 02:28:04",
   "run": "cd /workspace/sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/deck_facts.py",
   "purpose_ko": "0804 팀미팅 덱이 인용해도 되는 검증된 사실 기반. 덱은 이 파일 밖의 수를 인용하지 않는다.",
   "evidence_rule_ko": "(a) 내가 직접 연 PDF 의 축자 문장 또는 (b) 디스크 JSON 에서 우리가 계산한 재현 가능한 수. 나머지는 UNVERIFIED.",
@@ -23,7 +23,7 @@
    "outputs/report02_derived.json",
    "outputs/reflib_sweep_venues.json"
   ],
-  "runtime_s": 0.38266611099243164
+  "runtime_s": 2.4522929191589355
  },
  "position": {
   "one_sentence_ko": "우리는 새 물리를 주장하지 않는다 — 우리는 드론 기체 메시에서 재질 가중 산란을 계산하고, 그 σ 를 세 기하·세 조명원 격자에 넣어, 이미 알려진 무모호 속도 한계(Abratkiewicz, IEEE JSTARS 2023, eq.16)를 네 표준에 걸쳐 하나의 규약으로 평가하며 교정된 검출성능까지 잇는다. 우리가 연 26편 중 이 여섯 축을 동시에 채운 것은 없고, 우리도 회절과 로터 두 축은 비어 있다.",
@@ -732,16 +732,20 @@
    "id": "F21",
    "rank": 21,
    "tier": "엔진",
-   "claim_ko": "설치된 Sionna ? 의 rt 파이썬 소스에는 'rcs' 라는 단어가 ?회, 'radar_cross_section' 이 ?회 나온다 — 즉 산란적분도 σ 출력도 없다. 우리 파이프라인이 존재하는 이유가 이 한 줄이다.",
-   "claim_en": "The installed Sionna ? rt package contains zero occurrences of 'rcs' or 'radar_cross_section' - there is no scattering integral and no sigma output.",
+   "claim_ko": "설치된 Sionna 2.0.1 의 rt 파이썬 소스에는 'rcs' 라는 단어가 0회, 'radar_cross_section' 이 0회 나온다 — 즉 산란적분도 σ 출력도 없다. 우리 파이프라인이 존재하는 이유가 이 한 줄이다.",
+   "claim_en": "The installed Sionna 2.0.1 rt package contains zero occurrences of 'rcs' or 'radar_cross_section' - there is no scattering integral and no sigma output.",
    "grade": "computed-by-us (한 줄로 재현)",
    "source": {
-    "command": "grep -rio '\\brcs\\b' <sionna.rt> --include=*.py | wc -l",
+    "command": "grep -rio '\\brcs\\b' /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt --include=*.py | wc -l",
     "json": "outputs/deck_facts.json : recomputed.sionna_installed",
     "corroborating": "benchmark/verify_rt_no_rcs.py · outputs/psolve_diffraction.json : sionna_stock_D"
    },
    "numbers": {
-    "error": "No module named 'sionna'"
+    "version": "2.0.1",
+    "rt_dir": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
+    "rcs_word_hits": 0,
+    "radar_cross_section_hits": 0,
+    "diffract_hits": 550
    },
    "attack": "'Sionna 는 RCS 를 못 낸다' 는 말은 예전에 우리가 틀렸다고 정정한 주장 아닌가.",
    "answer": "맞다 — 그래서 문장을 좁혔다. 틀린 문장은 '광선추적은 RCS 를 못 낸다' 였다(SBR 은 낸다). 참인 문장은 '**Sionna 기본 solver 에 산란적분 단계가 없다**' 뿐이고, 그것이 위 grep 이 보여주는 것이다. Sionna 는 경로 계수를 내지 σ 를 내지 않는다."
@@ -792,7 +796,7 @@
    "rank": 24,
    "tier": "엔진",
    "claim_ko": "우리 σ 의 주파수 기울기는 실측 앵커보다 가파르다 — 3밴드 적합 7기체에서 -0.08~2.00 dB/GHz, 22점 el=0 적합에서 0.17~1.57 dB/GHz 이고, 실측 센서스는 0.07~0.315 dB/GHz 다 (Das 0.210 대비 -0.4~9.5배). 단 순수 f² 평판 한계는 2.681 dB/GHz 이므로 우리는 그 사이에 있다.",
-   "claim_en": "Our band slope is steeper than measurement but below the pure-f^2 plate limit: ours 0.74-1.70 dB/GHz (3-band) vs measured 0.07-0.315, with the plate limit at 2.681.",
+   "claim_en": "Our band slope spans -0.08 to 2.00 dB/GHz (3-band fit at el=0, outputs/report02_derived.json, 5 airframes) against a measured census of 0.07-0.315 dB/GHz, and stays below the pure-f^2 plate limit of 2.681 dB/GHz. NOTE: this is not 'every airframe is steeper than measurement' - at least one airframe sits BELOW the measured census floor. A different ledger (outputs/sigma_anchor.json, 7 airframes, linear azimuth-mean mu) gives 0.74-1.70 dB/GHz for the same nominal 3-band fit; say which ledger you mean.",
    "grade": "computed-by-us",
    "source": {
     "json_ours_A": "outputs/report02_derived.json : band_slope (3밴드 1.843/3.5/5.21 GHz, 7기체)",
@@ -1013,7 +1017,7 @@
    "claim_en": "Sionna's PathSolver defaults are diffraction=False and edge_diffraction=False - the capability exists and ships off by default.",
    "grade": "computed-by-us (설치본 소스 직접 확인)",
    "source": {
-    "code": "<sionna.rt>/path_solvers/path_solver.py:154-155",
+    "code": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:154-155",
     "verbatim": "diffraction: bool = False,  /  edge_diffraction: bool = False,",
     "command": "grep -n 'diffraction' <sionna.rt>/path_solvers/path_solver.py"
    },
@@ -1494,7 +1498,11 @@
    ]
   },
   "sionna_installed": {
-   "error": "No module named 'sionna'"
+   "version": "2.0.1",
+   "rt_dir": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
+   "rcs_word_hits": 0,
+   "radar_cross_section_hits": 0,
+   "diffract_hits": 550
   },
   "our_kernel_diffraction": {
    "hits_by_file": {
@@ -1719,8 +1727,13 @@
    },
    {
     "id": "F21.no_rcs",
-    "passed": false,
-    "detail": "sionna import 실패: No module named 'sionna'"
+    "passed": true,
+    "detail": "sionna.rt 2.0.1: 'rcs' 0회 · 'radar_cross_section' 0회"
+   },
+   {
+    "id": "F22.has_diffraction",
+    "passed": true,
+    "detail": "sionna.rt 2.0.1: 'diffract*' 550회 (있다 — 회절이 없다고 말하면 안 된다)"
    },
    {
     "id": "F23.kernel",
@@ -1734,68 +1747,68 @@
    },
    {
     "id": "Q.A2",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "A2 조각 대조: The Doppler range is limited by T..."
    },
    {
     "id": "Q.A4",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "A4 조각 대조: one can obtain the maximum unambiguous bistatic velocity of..."
    },
    {
     "id": "Q.A6",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "A6 조각 대조: describes how many times the velocity is aliased..."
    },
    {
     "id": "Q.A9",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "A9 조각 대조: The cooperative target was a car..."
    },
    {
     "id": "Q.A10",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "A10 조각 대조: drones whose reflectivity is significantly lower than the ca..."
    },
    {
     "id": "Q.A7",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "A7 조각 대조: The default, and most often used, SSB periodicity is 20 ms..."
    },
    {
     "id": "Q.C4",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "C4 조각 대조: the maximum unambiguous Doppler frequency is 50 Hz..."
    },
    {
     "id": "Q.C9",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "C9 조각 대조: resulting in Doppler blur..."
    },
    {
     "id": "Q.C11",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "C11 조각 대조: a rotating target experimental model employing a stepper mot..."
    },
    {
     "id": "Q.TR47",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "TR47 조각 대조: is implemented in Sionna..."
    },
    {
     "id": "Q.TAY28",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "TAY28 조각 대조: The highest SNR is obtained by using all the symbols..."
    },
    {
     "id": "Q.TAY29",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "TAY29 조각 대조: the ideal gain one could expect would be of 10 log..."
    },
    {
     "id": "Q.TAY.p4",
-    "passed": false,
-    "detail": "PDF 추출 실패: __ERR__No module named 'fitz'"
+    "passed": true,
+    "detail": "TAY.p4 조각 대조: a DJI Phantom 4 drone evolving above the surveillance antenn..."
    },
    {
     "id": "REC.phantom",
@@ -1809,21 +1822,7 @@
    }
   ],
   "problems": [
-   "F24.band3_keys: 3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043)",
-   "F21.no_rcs: sionna import 실패: No module named 'sionna'",
-   "Q.A2: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.A4: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.A6: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.A9: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.A10: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.A7: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.C4: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.C9: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.C11: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.TR47: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.TAY28: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.TAY29: PDF 추출 실패: __ERR__No module named 'fitz'",
-   "Q.TAY.p4: PDF 추출 실패: __ERR__No module named 'fitz'"
+   "F24.band3_keys: 3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043)"
   ]
  },
  "counts": {
@@ -1840,9 +1839,9 @@
   "open_gaps": 7,
   "gaps_closed": 2,
   "do_not_say": 15,
-  "checks_total": 41,
-  "checks_passed": 26,
-  "checks_failed": 15,
+  "checks_total": 42,
+  "checks_passed": 41,
+  "checks_failed": 1,
   "quotes_rechecked": 13
  }
 }

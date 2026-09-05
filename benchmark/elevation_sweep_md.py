@@ -385,16 +385,23 @@ def run(a) -> None:
     else:
         ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)
     els = tuple(float(x) for x in a.els.split(',') if x.strip()) or ELS
-    # ⛔**앙각은 정수여야 한다** (2026-08-20 잠복 버그 차단). 파일 이름이 `_el{el:+.0f}_` 라
-    #   −52.5 를 주면 **−52 로 뭉개져** 진짜 −52 샤드와 조용히 섞인다. 병합은 이름에서
-    #   앙각을 읽으므로 두 칸이 한 칸으로 합쳐진다 — 원장이 거짓말을 하게 된다.
-    #   ⇒ 소수 앙각이 정말 필요하면 **이름 규약부터** 바꿔야 한다(그러면 옛 샤드와 갈린다).
-    _bad = [e for e in els if abs(e - round(e)) > 1e-9]
-    if _bad:
-        raise SystemExit(
-            f"⛔ 앙각 {_bad} 는 정수가 아니다. 파일 이름이 `_el{{el:+.0f}}_` 라 소수점이 "
-            f"잘려 다른 앙각 샤드와 **조용히 섞인다**(예: −52.5 → `_el-52_`). "
-            f"소수 앙각을 쓰려면 이름 규약을 먼저 바꿀 것.")
+    # ⭐**2026-09-05 — 이름 규약을 `:+.0f` 에서 `:+g` 로 바꿨다.**
+    #   전 판은 «앙각은 정수여야 한다» 로 막았다(2026-08-20). 막은 이유는 물리가 아니라
+    #   **이름이 잘려 −52.5 가 진짜 −52 샤드와 조용히 섞이는 것** 하나였고, 주석 자신이
+    #   «소수 앙각이 정말 필요하면 이름 규약부터 바꿔야 한다» 고 적어 두었다.
+    #   ⇒ 정면 창의 폭(N=3 이 az 0·el 0 한 점에서만 난다 — 그 점이 얼마나 좁은가)을
+    #     재려면 0.05°~0.7° 가 필요하다. 그래서 규약을 바꾼다.
+    #   ⭐**옛 샤드와 안 갈린다** — `:+g` 는 정수에서 `:+.0f` 와 **글자가 같다**
+    #     (+0 · −15 · −30 · −90 · +15 전부 확인). 소수만 새로 살아난다(−0.5 → `_el-0.5_`).
+    #   ⛔막던 것은 그대로 막는다 — 이름이 **겹치는지**를 직접 본다.
+    _seen: dict = {}
+    for e in els:
+        k = f"{e:+g}"
+        if k in _seen and abs(_seen[k] - e) > 1e-9:
+            raise SystemExit(
+                f"⛔ 앙각 {_seen[k]} 와 {e} 가 파일 이름에서 같은 `_el{k}_` 가 된다 — "
+                f"두 칸이 한 칸으로 조용히 섞인다. 앙각을 갈라 주거나 이름 규약을 고칠 것.")
+        _seen[k] = e
     idx = np.arange(a.shard, n, a.nshards)
     os.makedirs(SHD, exist_ok=True)
     # ⭐거리·깊이는 인자로 받는다. 기본값이면 꼬리표가 안 붙어 기존 샤드 이름과 같다.
@@ -505,7 +512,7 @@ def run(a) -> None:
         for el in els:
             tagd = ("_ptd" if a.ptd else "") + tagr \
                 + ("" if not getattr(a, "div", 0) else f"_div{div}") + tagsh
-            f = f"{SHD}/{a.engine}{tagd}_el{el:+.0f}_{a.shard:02d}.npz"
+            f = f"{SHD}/{a.engine}{tagd}_el{el:+g}_{a.shard:02d}.npz"
             if getattr(a, "dry_run", False):
                 print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
                       f"{os.path.basename(f)}", flush=True); continue
@@ -518,7 +525,7 @@ def run(a) -> None:
             if tagsh:
                 mgn = min(grid_ref_margin(m_, u, gref_el, spacing=d)["margin_min_m"]
                           for m_ in probes)
-                print(f"  격자 위상 널 el{el:+.0f}: {sh1:g}·{sh2:g} 칸 = "
+                print(f"  격자 위상 널 el{el:+g}: {sh1:g}·{sh2:g} 칸 = "
                       f"{np.hypot(sh1, sh2)*d*1e3:.2f} mm 이동 · n={gref_el.n} (안 바뀜) · "
                       f"남은 덮개 여유 {mgn*1e3:+.2f} mm ({mgn/d:+.2f} 칸)", flush=True)
             E = np.zeros(idx.size, complex); t0 = time.time()
@@ -538,7 +545,7 @@ def run(a) -> None:
                                      range_m=(None if plane else rng_m), ptd=bool(a.ptd))
                 if j and j % 128 == 0:
                     e = time.time() - t0
-                    print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
+                    print(f"    el{el:+g} sh{a.shard}: {j}/{idx.size} "
                           f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
             np.savez_compressed(f, idx=idx, E=E,
                                 meta=np.array([el, a.shard, a.nshards, n, prf,
@@ -547,7 +554,7 @@ def run(a) -> None:
                                 #   평면파는 range_m 을 NaN 으로 적어 «무한거리» 를 표시한다.
                                 cfg=np.array([np.nan if plane else rng_m,
                                               np.nan, np.nan, 0.0]))
-            print(f"  ✅ {a.engine} el{el:+.0f} sh{a.shard} · {idx.size} 자세 · "
+            print(f"  ✅ {a.engine} el{el:+g} sh{a.shard} · {idx.size} 자세 · "
                   f"{(time.time()-t0)/60:.1f}분", flush=True)
         return
 
@@ -603,7 +610,7 @@ def run(a) -> None:
                 + tagr + ("" if not getattr(a, "max_depth", 0) else f"_d{mdep}"))
         # ⭐--inmem 은 정점·면이 비트 동일이라 꼬리표를 **안 붙인다**(붙이면 옛 샤드를 못 잇는다).
         #   ⛔대신 아래 cfg 메타에 기록해 «어느 길로 났는지» 를 남긴다.
-        f = f"{SHD}/sionna{tagp}_el{el:+.0f}_{a.shard:02d}.npz"
+        f = f"{SHD}/sionna{tagp}_el{el:+g}_{a.shard:02d}.npz"
         if getattr(a, "dry_run", False):
             print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
                   f"{os.path.basename(f)}", flush=True); continue
@@ -660,7 +667,7 @@ def run(a) -> None:
             #   한쪽이 읽는 중에 다른 쪽이 지워 «OBJ file not found» 로 터졌다
             #   (el 0 사다리에서 샤드 7 개 손실). PID 를 넣으면 어떤 동시 실행과도 안 겹친다.
                 dd = os.path.join(RP.SCRATCH,
-                                  f"elev_{spec.key}_e{el:+.0f}s{a.shard}"
+                                  f"elev_{spec.key}_e{el:+g}s{a.shard}"
                                   f"_p{spp}_pid{os.getpid()}_{i%2}")
                 paths_obj = m.write_obj_per_group(dd, spec.key)
             if getattr(a, "parts", ""):
@@ -755,7 +762,7 @@ def run(a) -> None:
                 RP.drop_scratch(dd)
             if j and j % 128 == 0:
                 e = time.time() - t0
-                print(f"    el{el:+.0f} sh{a.shard}: {j}/{idx.size} "
+                print(f"    el{el:+g} sh{a.shard}: {j}/{idx.size} "
                       f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
         np.savez_compressed(f, idx=idx, E=E, npaths=npaths, nret=nret,
                             E_dedup=E_dedup, n_dup=n_dup,
@@ -767,7 +774,7 @@ def run(a) -> None:
                                           float(sw["refraction"]),
                                           float(sw["diffraction"]),
                                           float(sw["edge_diffraction"])]))
-        print(f"  ✅ sionna el{el:+.0f} sh{a.shard} · {idx.size} 자세 · "
+        print(f"  ✅ sionna el{el:+g} sh{a.shard} · {idx.size} 자세 · "
               f"{(time.time()-t0)/60:.1f}분", flush=True)
 
 
@@ -887,7 +894,7 @@ def analyse() -> None:
                     cfg = np.asarray(z["cfg"], float)
             miss = int((E == 0).sum())
             ft = f_tip_at(el, eng)
-            series[f"{eng}/el{el:+.0f}"] = E
+            series[f"{eng}/el{el:+g}"] = E
             if cfg is not None:
                 # ⚠우리 팔은 깊이·광선 예산 개념이 없어 NaN 으로 적는다 → None 으로 읽는다.
                 #   평면파 팔은 range_m 도 NaN 이다(무한거리).

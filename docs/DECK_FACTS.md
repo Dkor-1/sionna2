@@ -1,11 +1,11 @@
 # DECK_FACTS — 0804 팀미팅 덱이 인용해도 되는 사실 기반
 
-생성 2026-09-04 04:51:55 · 생성기 `benchmark/deck_facts.py` · 런타임 0.4 s
+생성 2026-09-05 02:28:04 · 생성기 `benchmark/deck_facts.py` · 런타임 2.5 s
 
 > **증거 규칙**  한 주장은 (a) 내가 직접 연 PDF 의 축자 문장이거나, (b) 디스크의 JSON 에서 우리가 계산했고 재현 가능하거나, 둘 중 하나다. 나머지는 UNVERIFIED 로 라벨하거나 뺀다.
 > 인용은 매 빌드 PDF 페이지 텍스트에 재대조된다. 개수 주장은 **코퍼스 이름을 달고 다닌다**.
 
-**사실 32건**(축자 인용 9 · 우리 계산 22 · SECONDHAND 1 · UNVERIFIED 0) · **철회 10건** · **열린 구멍 7건** · 자체검사 26/41 통과 (인용 재대조 13건)
+**사실 32건**(축자 인용 9 · 우리 계산 22 · SECONDHAND 1 · UNVERIFIED 0) · **철회 10건** · **열린 구멍 7건** · 자체검사 41/42 통과 (인용 재대조 13건)
 
 ⚠ SECONDHAND ['F30'] — 다른 라운드가 연 PDF 의 인용에 기댄다. 슬라이드에 올리기 전 원문을 직접 열 것.
 
@@ -404,14 +404,14 @@
 - **⭐ 예상 공격** — 그럼 절대 σ 는 아무 검증도 안 받은 것 아닌가.
 - **우리 답** — 그렇다. 그것이 정확히 우리 매트릭스에서 진폭 검증이 FULL 이 아니라 PARTIAL 인 이유다. 절대 레벨은 해석 PO 구까지만 검증되었고 측정에 앵커되지 않았다. 우리는 절대 σ 판정을 보류한다.
 
-#### F21 · 설치된 Sionna ? 의 rt 파이썬 소스에는 'rcs' 라는 단어가 ?회, 'radar_cross_section' 이 ?회 나온다 — 즉 산란적분도 σ 출력도 없다. 우리 파이프라인이 존재하는 이유가 이 한 줄이다.
+#### F21 · 설치된 Sionna 2.0.1 의 rt 파이썬 소스에는 'rcs' 라는 단어가 0회, 'radar_cross_section' 이 0회 나온다 — 즉 산란적분도 σ 출력도 없다. 우리 파이프라인이 존재하는 이유가 이 한 줄이다.
 
 - **등급** `computed-by-us (한 줄로 재현)`
-- **EN** The installed Sionna ? rt package contains zero occurrences of 'rcs' or 'radar_cross_section' - there is no scattering integral and no sigma output.
-- **command** `grep -rio '\brcs\b' <sionna.rt> --include=*.py | wc -l`
+- **EN** The installed Sionna 2.0.1 rt package contains zero occurrences of 'rcs' or 'radar_cross_section' - there is no scattering integral and no sigma output.
+- **command** `grep -rio '\brcs\b' /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt --include=*.py | wc -l`
 - **json** `outputs/deck_facts.json : recomputed.sionna_installed`
 - **corroborating** `benchmark/verify_rt_no_rcs.py · outputs/psolve_diffraction.json : sionna_stock_D`
-- **수치** `{"error": "No module named 'sionna'"}`
+- **수치** `{"version": "2.0.1", "rt_dir": "/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt", "rcs_word_hits": 0, "radar_cross_section_hits": 0, "diffract_hits": 550}`
 - **⭐ 예상 공격** — 'Sionna 는 RCS 를 못 낸다' 는 말은 예전에 우리가 틀렸다고 정정한 주장 아닌가.
 - **우리 답** — 맞다 — 그래서 문장을 좁혔다. 틀린 문장은 '광선추적은 RCS 를 못 낸다' 였다(SBR 은 낸다). 참인 문장은 '**Sionna 기본 solver 에 산란적분 단계가 없다**' 뿐이고, 그것이 위 grep 이 보여주는 것이다. Sionna 는 경로 계수를 내지 σ 를 내지 않는다.
 
@@ -441,7 +441,7 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 #### F24 · 우리 σ 의 주파수 기울기는 실측 앵커보다 가파르다 — 3밴드 적합 7기체에서 -0.08~2.00 dB/GHz, 22점 el=0 적합에서 0.17~1.57 dB/GHz 이고, 실측 센서스는 0.07~0.315 dB/GHz 다 (Das 0.210 대비 -0.4~9.5배). 단 순수 f² 평판 한계는 2.681 dB/GHz 이므로 우리는 그 사이에 있다.
 
 - **등급** `computed-by-us`
-- **EN** Our band slope is steeper than measurement but below the pure-f^2 plate limit: ours 0.74-1.70 dB/GHz (3-band) vs measured 0.07-0.315, with the plate limit at 2.681.
+- **EN** Our band slope spans -0.08 to 2.00 dB/GHz (3-band fit at el=0, outputs/report02_derived.json, 5 airframes) against a measured census of 0.07-0.315 dB/GHz, and stays below the pure-f^2 plate limit of 2.681 dB/GHz. NOTE: this is not 'every airframe is steeper than measurement' - at least one airframe sits BELOW the measured census floor. A different ledger (outputs/sigma_anchor.json, 7 airframes, linear azimuth-mean mu) gives 0.74-1.70 dB/GHz for the same nominal 3-band fit; say which ledger you mean.
 - **json_ours_A** `outputs/report02_derived.json : band_slope (3밴드 1.843/3.5/5.21 GHz, 7기체)`
 - **json_ours_B** `outputs/rcs_anchor.json : drones[*].regression.el0.a (22점 조밀 적합, 7기체)`
 - **json_measured** `outputs/psolve_diffraction.json : our_p4_state_verified.measured_slope_census`
@@ -520,7 +520,7 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 
 - **등급** `computed-by-us (설치본 소스 직접 확인)`
 - **EN** Sionna's PathSolver defaults are diffraction=False and edge_diffraction=False - the capability exists and ships off by default.
-- **code** `<sionna.rt>/path_solvers/path_solver.py:154-155`
+- **code** `/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:154-155`
 - **verbatim** `diffraction: bool = False,  /  edge_diffraction: bool = False,`
 - **command** `grep -n 'diffraction' <sionna.rt>/path_solvers/path_solver.py`
 - **⭐ 예상 공격** — 그러면 켜고 다시 돌리면 되는 것 아닌가.
@@ -629,38 +629,25 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 | `F12.unverified` | ✅ | UNVERIFIED 0/234, 인용 재대조 80/80 |
 | `F11.alias` | ✅ | 접힘비율 5G 0.861 / WiFi 0 / LTE 0 |
 | `G5.phi` | ✅ | φ 최대 확산차 23.168839470105702 |
-| `F21.no_rcs` | ❌ | sionna import 실패: No module named 'sionna' |
+| `F21.no_rcs` | ✅ | sionna.rt 2.0.1: 'rcs' 0회 · 'radar_cross_section' 0회 |
+| `F22.has_diffraction` | ✅ | sionna.rt 2.0.1: 'diffract*' 550회 (있다 — 회절이 없다고 말하면 안 된다) |
 | `F23.kernel` | ✅ | 생산 커널의 σ 경로에 모서리항이 붙지 않는다 — rcs_sbr_batch 의 ptd 기본값이 False 이고 ptd_edges.attach_to_sbr_field 호출처 0곳 |
 | `F14b.census` | ✅ | reference_library.json 텍스트의 'wedge' 0회는 유지된다 |
-| `Q.A2` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.A4` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.A6` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.A9` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.A10` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.A7` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.C4` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.C9` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.C11` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.TR47` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.TAY28` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.TAY29` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
-| `Q.TAY.p4` | ❌ | PDF 추출 실패: __ERR__No module named 'fitz' |
+| `Q.A2` | ✅ | A2 조각 대조: The Doppler range is limited by T... |
+| `Q.A4` | ✅ | A4 조각 대조: one can obtain the maximum unambiguous bistatic velocity of... |
+| `Q.A6` | ✅ | A6 조각 대조: describes how many times the velocity is aliased... |
+| `Q.A9` | ✅ | A9 조각 대조: The cooperative target was a car... |
+| `Q.A10` | ✅ | A10 조각 대조: drones whose reflectivity is significantly lower than the ca... |
+| `Q.A7` | ✅ | A7 조각 대조: The default, and most often used, SSB periodicity is 20 ms... |
+| `Q.C4` | ✅ | C4 조각 대조: the maximum unambiguous Doppler frequency is 50 Hz... |
+| `Q.C9` | ✅ | C9 조각 대조: resulting in Doppler blur... |
+| `Q.C11` | ✅ | C11 조각 대조: a rotating target experimental model employing a stepper mot... |
+| `Q.TR47` | ✅ | TR47 조각 대조: is implemented in Sionna... |
+| `Q.TAY28` | ✅ | TAY28 조각 대조: The highest SNR is obtained by using all the symbols... |
+| `Q.TAY29` | ✅ | TAY29 조각 대조: the ideal gain one could expect would be of 10 log... |
+| `Q.TAY.p4` | ✅ | TAY.p4 조각 대조: a DJI Phantom 4 drone evolving above the surveillance antenn... |
 | `REC.phantom` | ✅ | Taylor & Poullin 표적은 Phantom 4 다 — 전문에 'Phantom 3' 문자열이 없다(outputs/deepread_reconcile.json 의 'DJI Phantom 3' 기재는 정정 대상) |
 | `R10.prf` | ✅ | Chen 2024 전문의 'PRF' 출현 0회 — '같은 기호로 냈다' 는 우리 서술의 반례 |
 
 **실패한 검사**
 - ❌ F24.band3_keys: 3밴드 적합 기체 5종, 범위 -0.0845~2.0043 (기록값 -0.0845~2.0043)
-- ❌ F21.no_rcs: sionna import 실패: No module named 'sionna'
-- ❌ Q.A2: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.A4: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.A6: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.A9: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.A10: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.A7: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.C4: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.C9: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.C11: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.TR47: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.TAY28: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.TAY29: PDF 추출 실패: __ERR__No module named 'fitz'
-- ❌ Q.TAY.p4: PDF 추출 실패: __ERR__No module named 'fitz'

@@ -1174,8 +1174,18 @@ def build_facts(R: dict) -> list[dict]:
         f"실측 센서스는 {R['band_slope']['measured_census_range'][0]:.2f}~{R['band_slope']['measured_census_range'][1]:.3f} dB/GHz 다 "
         f"(Das 0.210 대비 {R['band_slope']['ratio_fitA_over_das'][0]:.1f}~{R['band_slope']['ratio_fitA_over_das'][1]:.1f}배). "
         f"단 순수 f² 평판 한계는 {R['band_slope']['pure_f2_plate_limit_db_per_ghz']:.3f} dB/GHz 이므로 우리는 그 사이에 있다.",
-        claim_en="Our band slope is steeper than measurement but below the pure-f^2 plate limit: "
-        "ours 0.74-1.70 dB/GHz (3-band) vs measured 0.07-0.315, with the plate limit at 2.681.",
+        claim_en=(
+            f"Our band slope spans "
+            f"{R['band_slope']['fit_A_range'][0]:.2f} to "
+            f"{R['band_slope']['fit_A_range'][1]:.2f} dB/GHz "
+            f"(3-band fit at el=0, outputs/report02_derived.json, "
+            f"{len(R['band_slope'].get('ours_db_per_ghz', {})) or 5} airframes) against a "
+            f"measured census of 0.07-0.315 dB/GHz, and stays below the pure-f^2 plate limit "
+            f"of {R['band_slope']['pure_f2_plate_limit_db_per_ghz']:.3f} dB/GHz. "
+            f"NOTE: this is not 'every airframe is steeper than measurement' - at least one "
+            f"airframe sits BELOW the measured census floor. A different ledger "
+            f"(outputs/sigma_anchor.json, 7 airframes, linear azimuth-mean mu) gives "
+            f"0.74-1.70 dB/GHz for the same nominal 3-band fit; say which ledger you mean."),
         grade="computed-by-us",
         source={
             "json_ours_A": "outputs/report02_derived.json : band_slope (3밴드 1.843/3.5/5.21 GHz, 7기체)",

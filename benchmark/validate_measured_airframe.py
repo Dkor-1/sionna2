@@ -785,10 +785,22 @@ def stage_report():
                                   "is a rounded pouch and a real ESC board is populated and "
                                   "partly shadowed by wiring.")),
         where_the_disagreement_lives=dict(
-            headline=("⭐⭐ ABOVE ~6 GHz OUR BAND DEPENDENCE AGREES WITH THE MEASUREMENT. "
-                      "The whole disagreement is confined to 1.8-6 GHz — which is exactly "
-                      "our operating band, and exactly where the target is electrically "
-                      "small."),
+            #: ⛔2026-09-05 — 전 판은 "ABOVE ~6 GHz OUR BAND DEPENDENCE AGREES WITH THE
+            #  MEASUREMENT" 였다. 그 대조는 성립하지 않는다: 측정 넷은 **전부 1.8~18.2 GHz
+            #  전대역 단일 적합**이고 6~18.2 GHz 부분 적합은 발표된 적이 없다. 같은 파일
+            #  875~877 행이 바로 그 짝짓기를 "AN ARTEFACT OF COMPARING OUR NARROW-BAND
+            #  SLOPE WITH THEIR WIDE-BAND SLOPE" 라 부른다 — 한 파일이 두 판정을 담고 있었다.
+            headline=("⛔ RETRACTED 2026-09-05 — ABOVE ~6 GHz THE COMPARISON DOES NOT HOLD: "
+                      "our 6-18.2 GHz sub-band "
+                      "fit (0.264 dB/GHz) sits inside the measured 0.175-0.315 dB/GHz range, "
+                      "but every one of those measured slopes is a SINGLE FIT OVER "
+                      "1.8-18.2 GHz — the measurement publishes no 6-18.2 GHz sub-fit. "
+                      "Placing a sub-band fit next to a whole-interval fit is the same "
+                      "artefact this file names below (fitting_interval_matters). "
+                      "Over the SAME interval ours is 0.435 vs Das 0.210 = 2.07x. "
+                      "The disagreement we can actually measure is confined to 1.8-6 GHz — "
+                      "exactly our operating band, and exactly where the target is "
+                      "electrically small."),
             ours_slope_1p8_6_ghz=float(lsq(f_sw[f_sw <= 6.0], mu_sw[f_sw <= 6.0])["slope_db_per_ghz"]),
             ours_slope_6_18p2_ghz=float(lsq(f_sw[f_sw >= 6.0], mu_sw[f_sw >= 6.0])["slope_db_per_ghz"]),
             measured_slope=meas,
@@ -1037,9 +1049,12 @@ def stage_report():
             f"interval the ratio is {fitfull['slope_db_per_ghz']/meas['das_phantom3_1p8_18p2']:.1f}x "
             f"against Das and "
             f"{fitfull['slope_db_per_ghz']/meas['yuan_azplane_1p8_18p2']:.1f}x against Yuan, "
-            f"and above 6 GHz our slope is {hi6:.3f} dB/GHz against their 0.21-0.315 — i.e. "
-            "INSIDE their range. The steepness is a low-frequency artefact, not a global "
-            "band law."),
+            f"and above 6 GHz our sub-band fit is {hi6:.3f} dB/GHz, which falls between "
+            f"their 0.21-0.315 — but ⚠ that is NOT an agreement: every measured slope is a "
+            f"SINGLE FIT OVER 1.8-18.2 GHz and the measurement publishes no 6-18.2 GHz "
+            f"sub-fit, so this is the very narrow-band-vs-wide-band pairing this same "
+            f"paragraph calls an artefact. The steepness we can actually measure is a "
+            f"low-frequency effect, not a global band law."),
         exponent_ours=float(p_ours_full_fit), exponent_measured=p_meas,
         absolute_scale_is_fine=(
             "our SBR reproduces Yuan's own calibration sphere to "

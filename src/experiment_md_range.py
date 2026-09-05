@@ -405,10 +405,16 @@ def main():
                 snr_sample_db="rung 1: per Rx sample, BEFORE the matched filter, over B",
                 gain_mf_db="rung 2: 10log10(B/PRF), one PRI correlation, full-waveform only",
                 gain_stft_db="rung 4: 10log10(nperseg)+window loss, ONE STFT frame",
-                warning="three ~37 dB quantities exist and are different: gain_mf (36.99 dB), "
-                        "whole-CPI coherent integration over 5000 slow-time samples (36.99 dB, "
-                        "35.23 dB with a Hann window) and the flash_spec map frame (70 samples, "
-                        "16.69 dB). Never write one number called 'SNR'."),
+                warning=(
+                    f"three ~37 dB quantities exist and are different: gain_mf "
+                    f"(10log10(B/PRF)); whole-CPI coherent integration over this run's "
+                    f"n_t = {N_T} slow-time samples ({10 * np.log10(N_T):.2f} dB, "
+                    f"{10 * np.log10(N_T) - 1.76:.2f} dB with a Hann window); and the "
+                    f"flash_spec map frame (70 samples, 16.69 dB). "
+                    f"Never write one number called 'SNR'. "
+                    f"⛔The old literal '5000 samples / 36.99 / 35.23 dB' was stale and, "
+                    f"worse, 10log10(5000) = 36.99 equalled gain_mf - so the warning printed "
+                    f"the same number twice while saying the three differ.")),
             farfield_rule="R_ff = 2 D^2 / lambda, D = mesh bbox max horizontal extent (radar_scene.target_extent)",
             runtime_s=round(time.time() - t0, 1),
         ),
