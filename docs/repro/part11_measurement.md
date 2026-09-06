@@ -4,12 +4,12 @@
 
 | 편 | 앵커 | 무엇을 만드나 | 출력 | 소요 |
 |---|---|---|---|---|
-| 67 | `hardware` | X410 의 12-bit ADC 동적범위가 직접파 제거의 천장이다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
+| 67 | `hardware` | 12-bit ADC 동적범위 74.01 dB 는 직접파 제거에 거는 상한 하나다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 68 | `sigma-checklist` | 교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 69 | `site-geometry` | 가장 보수적인 D 정의로도 세션 거리 하나가 두 기체 세 밴드를 덮는다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 70 | `calibration-sphere` | 구가 σ 를 절대량으로 만들고, 반경 17.8 cm 를 고른다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
-| 71 | `subband` | 표적을 한 거리빈에 넣는 최대 대역은 200 MHz 다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
-| 72 | `attitude` | 각도표본을 λ/4D 로 잡아 앵커 문헌의 고정 2° 보다 촘촘하게 간다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
+| 71 | `subband` | 두 기체(Matrice 4E · Mini 5 Pro)를 함께 한 거리빈에 넣는 최대 대역은 200 MHz 다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
+| 72 | `attitude` | 가장 촘촘한 요구 1.38° 를 세션 간격으로 채택해 앵커 문헌의 고정 2° 보다 촘촘하게 간다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 73 | `three-layers` | σ(f) 레인지·파형축·비행검출로 층을 나눈다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 74 | `sim-vs-meas` | 캠페인이 결판내는 양은 절대값이 아니라 순위다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 75 | `decision-matrix` | 주장마다 판정 범위를 결판·사슬확인·캠페인 밖으로 적었다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |

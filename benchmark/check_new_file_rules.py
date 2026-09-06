@@ -17,8 +17,13 @@ check_new_file_rules.py — **새로 만든 파일이 다시 못 굽는 꼴이 �
     ⓒ 레포 밖 쓰기     `/data/…` 같은 저장소 밖 경로에 **쓰기**로 연다.
     ⓓ 안 적힌 필수 인자 argparse 에 `required=True` 인데 독스트링에 그 인자가 없다.
                       재빌드 때 usage 만 뱉고 죽는다(rc=2 로 셋이 걸렸다).
-    ⓔ 출처 없는 원장   outputs/*.json 을 쓰면서 `_meta.generator` 를 안 넣는다.
-                      나중에 누가 이 수를 다시 낼지 알 수 없게 된다.
+    ⓔ 못 굽는 원장     outputs/*.json 에 `_meta.generator` 가 없거나, 있는데 그 스크립트가
+                      **레포에 없다**. 전수조사 900 건의 근본 원인 가운데 **148 건**이 이것이다
+                      — 정정이 되돌아올 자리가 없어 옛 수가 문서로 계속 흘러간다.
+    ⓕ 자리표시자      발행되는 산문에 `TBD`·`nan`·`???` 가 남았다. 수가 채워지기 전에 결론
+                      문장을 먼저 확정한 자리다.
+
+전문: `docs/NEW_FILE_RULES.md` (900 건 → 근본 원인 16 가지)
 
 ⛔여기서 문장의 옳고 그름은 안 본다 — 그건 check_retracted.py · CLAIM_GATE 의 몫이다.
 ⛔오탐이 한 건이라도 나면 아무도 안 쓴다. 규칙마다 면제를 좁게 달았다.
@@ -145,8 +150,73 @@ def load_baseline() -> set:
         return set(json.load(f).get("known", []))
 
 
+#: ⓕ 발행되는 산문에 남으면 안 되는 자리표시자. 좁게 잡는다 — 오탐이 나면 관문이 죽는다.
+PLACEHOLDER = re.compile(r"\b(TBD|TODO_FILL|FIXME_NUM|\?\?\?|nan\s*(dB|%|배))\b")
+#: 원장의 «누가 나를 구웠나» 를 적는 자리. 이 가운데 하나는 있어야 한다.
+GEN_KEYS = ("generator", "producer", "builder", "generated_by", "made_by")
+
+
+_PY_NAMES: set = set()
+
+
+def _repo_py_names() -> set:
+    """레포 안 모든 .py 의 **파일 이름**. 경로를 짧게 적은 생성기를 오탐하지 않으려고 쓴다."""
+    if not _PY_NAMES:
+        for dp, dns, fns in os.walk(ROOT):
+            dns[:] = [d for d in dns if d not in SKIP_DIRS and not d.startswith(".")]
+            _PY_NAMES.update(f for f in fns if f.endswith(".py"))
+    return _PY_NAMES
+
+
+def check_ledgers(out: list) -> None:
+    """ⓔⓕ outputs/*.json 이 **다시 구워지는가**와 자리표시자."""
+    import json                                            # noqa: PLC0415
+    od = os.path.join(ROOT, "outputs")
+    for dp, dns, fns in os.walk(od):
+        dns[:] = sorted(d for d in dns if d not in SKIP_DIRS and not d.startswith("."))
+        for fn in sorted(fns):
+            if not fn.endswith(".json"):
+                continue
+            p = os.path.join(dp, fn)
+            rel = os.path.relpath(p, ROOT)
+            try:
+                if os.path.getsize(p) > MAX_BYTES:
+                    continue
+                with io.open(p, encoding="utf-8") as f:
+                    doc = json.load(f)
+            except (OSError, ValueError, UnicodeDecodeError):
+                continue
+            if not isinstance(doc, dict):
+                continue
+            meta = doc.get("_meta")
+            meta = meta if isinstance(meta, dict) else {}
+            gen = next((str(meta[k]) for k in GEN_KEYS if k in meta), "")
+            if not gen:
+                out.append((rel, 1, "ⓔ못 굽는 원장", "_meta.generator 없음",
+                            "이 원장을 다시 구울 스크립트 경로를 _meta.generator 에 적어라"))
+            else:
+                #: ⚠경로를 짧게 적은 것(«report_style.py» 처럼 src/ 를 뺀 것)은 위반이 아니다.
+                #  이름으로도 못 찾을 때만 잡는다 — 오탐이 한 건 나면 관문이 죽는다.
+                for m in re.finditer(r"[\w./-]+\.py", gen):
+                    nm = m.group(0)
+                    if os.path.exists(os.path.join(ROOT, nm.lstrip("/"))) or os.path.exists(nm):
+                        continue
+                    if os.path.basename(nm) in _repo_py_names():
+                        continue
+                    out.append((rel, 1, "ⓔ못 굽는 원장", f"{nm} 가 레포에 없다",
+                                "실재하는 경로로 고쳐라 — 없으면 이 원장은 영영 못 굽는다"))
+            #: 산문 필드의 자리표시자만 본다(수치 필드는 안 본다)
+            for k, v in meta.items():
+                if isinstance(v, str):
+                    m = PLACEHOLDER.search(v)
+                    if m:
+                        out.append((rel, 1, "ⓕ자리표시자", f"_meta.{k} 에 {m.group(0)}",
+                                    "수가 채워진 뒤에 문장을 쓴다 — 수 없는 결론은 안 내보낸다"))
+
+
 def main() -> int:
     out: list = []
+    check_ledgers(out)
     for p in files():
         rel = os.path.relpath(p, ROOT)
         try:

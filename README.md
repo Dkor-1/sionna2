@@ -120,7 +120,7 @@
 | [6-6 «마이크로도플러 — 무엇이 그 무늬를 흐리나»](reports/06_6_microdoppler-limits.ipynb) | 6 | 자세·보정·광선 예산·표본율 네 가지가 무늬를 지운다. 각각을 단일축으로 갈라 얼마나 지우는지 잰다 |
 | [10-2 «결론이 무엇에 기대고 있나 — 강건성과 하드웨어»](reports/10_2_robustness.ipynb) | 10 | 표적 모형·수신 소자·장비를 바꿔 넣어 결론이 어디서 흔들리는지 본다 |
 
-셀 2896개 · 각주 2446개 · 그림 1045장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.
+셀 2896개 · 각주 2447개 · 그림 1045장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.
 
 ### 권 1 «이 연구가 묻는 것과 답한 방식»
 
@@ -464,7 +464,7 @@ R90 과 순위가 이 연구의 정량 결론이다. 적분시간·잔류·σ �
 
 ```bash
 cd /workspace/sionna
-PY=~/.venvs/py312/bin/python
+PY=/workspace/.venvs/py312/bin/python
 
 # ① 조각 빌더 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장 · 수 초)
 for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done
@@ -497,7 +497,7 @@ PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py
 
 | | |
 |---|---|
-| Python | `~/.venvs/py312/bin/python` (3.12) — 이 한 env 로 전부 실행 |
+| Python | `/workspace/.venvs/py312/bin/python` (3.12) — 이 한 env 로 전부 실행 |
 | 핵심 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 (OptiX GPU) · torch · numpy · trimesh + manifold3d |
 | 노트북 커널 | `py312` |
 | 실행 규약 | `PYTHONPATH=src:benchmark` 를 반드시 준다 |
@@ -507,7 +507,7 @@ PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py
 - **권 제목은 물음, 절 제목은 답이다.** 절 제목은 «…다» 로 끝나는 평서문이고, 물음표로 끝나는 절 제목은 `src/report_style.py` 가 막는다.
 - **숫자는 손으로 치지 않는다.** 전부 `num()` 이 JSON 을 열어 값을 대조하고, 화면에는
   각주 `[^n]` 으로 찍힌다. 절 끝 «출처» 표의 값은 표를 만들 때 JSON 을 **다시 열어**
-  채운 것이다(왕복 검사). 지금 본편 13권·별편 7편에 각주 2446개와 그림 1045장이 실려 있다.
+  채운 것이다(왕복 검사). 지금 본편 13권·별편 7편에 각주 2447개와 그림 1045장이 실려 있다.
 - **본문을 고칠 곳은 조각 빌더다.** 조각(`reports/_parts/`)과 권(`reports/`)은 둘 다 생성물이라, 손으로 고치면 다음 빌드에서 사라진다.
 - **논문 문장과 재현 절차는 리포트 밖에 산다** — 사용자 지시다. [`docs/paper/`](docs/paper/README.md) 와 [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 - 각 절은 `한 일 / 결과 / 방법 / 재현` 으로 열고 `다음 단계` 표로 닫는다. «다음 단계» 는 한계 목록이 아니라 앞을 보는 행동이다.

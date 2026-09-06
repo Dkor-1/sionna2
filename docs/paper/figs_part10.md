@@ -25,4 +25,4 @@
 **Fig. (63-1)** The 5G always-on-reference penalty as a CPI sweep: the blind-heading fraction falls with CPI under both guard conventions, and the CPI needed for parity with LTE or WiFi is bounded by the coherent-integration limit of the moving target.
 
 <!-- from: 편 66 rx-elements · 그림 1 · outputs/figures/report05_pf5_multirx.png -->
-**Fig. (66-1)** Multi-receiver gain measured against the idealised coherent bound of 10 log10 N, which holds for thermal noise alone under perfect steering; the measured excess comes from the N-independent cancellation residual.
+**Fig. (66-1)** Multi-receiver gain against the idealised coherent bound of 10 log10 N, which holds for thermal noise alone under perfect steering. Across the nine waveform modes the measured gain departs from that bound by -0.11 to +0.47 dB: the three LTE modes never rise above it, and the largest shortfall is a 5G NR mode. An N-independent cancellation residual would raise the gain above the bound in this way, but no controlled comparison here isolates that cause.

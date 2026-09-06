@@ -25,7 +25,7 @@
    "contour_error": "symmetric distance between the two outlines, mean and 95th percentile, converted to mm by the fitted scale.",
    "blobs": "connected components of the disagreement larger than 0.6 % of the union, attributed to the mesh part that occupies (mesh-only) or lies nearest (photo-only) that area.",
    "search": "two branches. The headline fit keeps the viewing direction within 20 deg of the aspect declared by eye for that photograph, so the mesh is graded at the angle the photograph was actually taken from. A second, unconstrained fit sweeps azimuth over the full circle and elevation -36 to +90 deg; free_iou_gain is how much IoU the camera buys by leaving the declared aspect, and a large gain is a shape difference, not a pose ambiguity.",
-   "calibration": "every airframe is also fitted against an exact copy of its own mesh, so each one has its own ceiling: matrice4e 0.883, mavic4pro 0.917, mini5pro 0.956, phantom4 0.920, s1000plus 0.864, typhoonh480 0.933, x500v2 0.957. The ceiling is not 1.0 because arms and blades are a few pixels wide, which makes IoU steep. _meta.metric_calibration holds the sensitivity table per airframe.",
+   "calibration": "every airframe is also fitted against an exact copy of its own mesh, so each one has its own ceiling: matrice4e 0.879, mavic4pro 0.869, mini5pro 0.929, phantom4 0.880, s1000plus 0.895, typhoonh480 0.936, x500v2 0.960. The ceiling is not 1.0 because arms and blades are a few pixels wide, which makes IoU steep. _meta.metric_calibration holds the sensitivity table per airframe.",
    "limits": "orthographic-plus-single-q camera, no lens distortion, no articulation other than propeller phase (gimbal pitch, arm fold and landing-gear state stay as built).",
    "free_branch": "the unconstrained fit is re-measured at the same point density as the headline, so the two IoUs are on one scale. free_fit.iou_search_grid keeps the coarser search value."
   },
@@ -45,48 +45,48 @@
       20.0,
       150.0
      ],
-     "scale_px_per_m": 903.350742037372
+     "scale_px_per_m": 971.3897792167929
     },
     "recovered": {
-     "azim": 24.0,
-     "elev": 17.75,
-     "roll": -3.6875,
-     "q": 0.29250000000000004,
+     "azim": 24.125,
+     "elev": 18.25,
+     "roll": -3.375,
+     "q": 0.298125,
      "phases": [
-      40.0,
-      109.5,
-      22.0,
-      149.0
+      41.5,
+      114.0,
+      20.0,
+      155.0
      ],
-     "scale_px_per_m": 900.3861810886956
+     "scale_px_per_m": 966.0312441781201
     },
-    "recovered_iou": 0.9557820833052049,
-    "recovered_contour_mean_mm": 0.36377056632047516,
-    "pose_error_deg": 0.9840136885008912,
-    "scale_error_pct": -0.3281738543758017,
+    "recovered_iou": 0.9288910989557434,
+    "recovered_contour_mean_mm": 0.5600553505970424,
+    "pose_error_deg": 0.8683471797202891,
+    "scale_error_pct": -0.551635929605232,
     "sensitivity": {
-     "same_pose_other_sample": 0.9960271251455579,
+     "same_pose_other_sample": 0.9964093357271095,
      "pose_off_deg": {
-      "0.5": 0.9531218563476628,
-      "1.0": 0.90707877676642,
-      "2.0": 0.8267879548306148,
-      "3.0": 0.7647736226437966,
-      "5.0": 0.6754017162932673
+      "0.5": 0.9523928997051998,
+      "1.0": 0.9079600465714811,
+      "2.0": 0.8254694835680751,
+      "3.0": 0.7643424036281179,
+      "5.0": 0.6780456236854878
      },
      "scale_off_pct": {
-      "0.5": 0.9746374367622259,
-      "1.0": 0.9500099449711595,
-      "2.0": 0.9017937219730942,
-      "4.0": 0.8191163210099188
+      "0.5": 0.97189488940702,
+      "1.0": 0.9457234806287907,
+      "2.0": 0.8982878352490421,
+      "4.0": 0.8128300190989777
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9672639094705645,
-      "10.0": 0.9569870894374206,
-      "20.0": 0.9499833721316927
+      "5.0": 0.9799252738901906,
+      "10.0": 0.9649771317586617,
+      "20.0": 0.9564920131767046
      }
     },
-    "reading": "An exact copy of the mesh scores 0.956 here. One degree of pose error takes it to 0.907 and one percent of scale error to 0.950: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 37.5
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.996 - that is the ceiling of this metric. The fit the search recovered scores 0.929, at a pose error of 0.87 deg and a scale error of -0.55 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.908 and one percent of scale error to 0.946: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 20.5
    },
    "mavic4pro": {
     "airframe": "mavic4pro",
@@ -102,48 +102,48 @@
       20.0,
       150.0
      ],
-     "scale_px_per_m": 535.5997411071155
+     "scale_px_per_m": 536.5963551311686
     },
     "recovered": {
-     "azim": 24.25,
-     "elev": 18.25,
-     "roll": -3.28125,
-     "q": 0.28875000000000006,
+     "azim": 23.5,
+     "elev": 19.0,
+     "roll": -3.0,
+     "q": 0.26625000000000004,
      "phases": [
       40.0,
-      115.0,
+      116.0,
       20.0,
-      154.5
+      -9.5
      ],
-     "scale_px_per_m": 533.4977579353223
+     "scale_px_per_m": 535.6069014553109
     },
-    "recovered_iou": 0.9165018677213799,
-    "recovered_contour_mean_mm": 1.033278027551519,
-    "pose_error_deg": 0.7553547363215695,
-    "scale_error_pct": -0.39245410527053437,
+    "recovered_iou": 0.8691428571428571,
+    "recovered_contour_mean_mm": 18.249920065401597,
+    "pose_error_deg": 1.7387882831210513,
+    "scale_error_pct": -0.18439440864554957,
     "sensitivity": {
-     "same_pose_other_sample": 0.9972648533657499,
+     "same_pose_other_sample": 0.9971828897620283,
      "pose_off_deg": {
-      "0.5": 0.9483320978502594,
-      "1.0": 0.8991548074839268,
-      "2.0": 0.8104089219330854,
-      "3.0": 0.7450720116811574,
-      "5.0": 0.648342004638626
+      "0.5": 0.9414228963524738,
+      "1.0": 0.8922223002880629,
+      "2.0": 0.8057288522170792,
+      "3.0": 0.7423007246376812,
+      "5.0": 0.6479400749063671
      },
      "scale_off_pct": {
-      "0.5": 0.9708448288718217,
-      "1.0": 0.9437856829161178,
-      "2.0": 0.8950757039762275,
-      "4.0": 0.8079163357161768
+      "0.5": 0.9723052255666497,
+      "1.0": 0.9453387708378049,
+      "2.0": 0.8939498346196252,
+      "4.0": 0.8026154738130516
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9631254181845216,
-      "10.0": 0.9382914867140034,
-      "20.0": 0.9152897034418068
+      "5.0": 0.9603220658639199,
+      "10.0": 0.93604568165596,
+      "20.0": 0.9106867013059964
      }
     },
-    "reading": "An exact copy of the mesh scores 0.917 here. One degree of pose error takes it to 0.899 and one percent of scale error to 0.944: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 23.3
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.997 - that is the ceiling of this metric. The fit the search recovered scores 0.869, at a pose error of 1.74 deg and a scale error of -0.18 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.892 and one percent of scale error to 0.945: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 20.5
    },
    "matrice4e": {
     "airframe": "matrice4e",
@@ -159,48 +159,48 @@
       20.0,
       150.0
      ],
-     "scale_px_per_m": 535.78976202195
+     "scale_px_per_m": 544.9675857014171
     },
     "recovered": {
-     "azim": 24.5,
-     "elev": 18.5,
-     "roll": -3.5625,
-     "q": 0.2737500000000001,
+     "azim": 25.5,
+     "elev": 17.5,
+     "roll": -5.0,
+     "q": 0.30937499999999996,
      "phases": [
       40.0,
-      114.0,
+      104.5,
       20.0,
-      37.5
+      140.0
      ],
-     "scale_px_per_m": 536.1996713298003
+     "scale_px_per_m": 545.7727845633054
     },
-    "recovered_iou": 0.8828147930730849,
-    "recovered_contour_mean_mm": 18.928747656464875,
-    "pose_error_deg": 0.6895506286658604,
-    "scale_error_pct": 0.07650562532277583,
+    "recovered_iou": 0.8792160820926908,
+    "recovered_contour_mean_mm": 1.6925356619012577,
+    "pose_error_deg": 0.6904798509517803,
+    "scale_error_pct": 0.14775169808531885,
     "sensitivity": {
-     "same_pose_other_sample": 0.9958578099111312,
+     "same_pose_other_sample": 0.9970551490273069,
      "pose_off_deg": {
-      "0.5": 0.9485120801414261,
-      "1.0": 0.8971969316796903,
-      "2.0": 0.8084655361050328,
-      "3.0": 0.7361275088547816,
-      "5.0": 0.63671826625387
+      "0.5": 0.9443672973442111,
+      "1.0": 0.8948878015859626,
+      "2.0": 0.799791783454793,
+      "3.0": 0.7336416184971098,
+      "5.0": 0.6279254550707888
      },
      "scale_off_pct": {
-      "0.5": 0.9740529320186819,
-      "1.0": 0.9480037815431605,
-      "2.0": 0.9026897620053513,
-      "4.0": 0.8191967234773417
+      "0.5": 0.9747980330172111,
+      "1.0": 0.9508762842096176,
+      "2.0": 0.9052587646076795,
+      "4.0": 0.8216241589735566
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9664101805267831,
-      "10.0": 0.9457624644134608,
-      "20.0": 0.9324577861163227
+      "5.0": 0.963730117112393,
+      "10.0": 0.9456849728424864,
+      "20.0": 0.9210150407528779
      }
     },
-    "reading": "An exact copy of the mesh scores 0.883 here. One degree of pose error takes it to 0.897 and one percent of scale error to 0.948: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 20.9
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.997 - that is the ceiling of this metric. The fit the search recovered scores 0.879, at a pose error of 0.69 deg and a scale error of +0.15 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.895 and one percent of scale error to 0.951: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 20.6
    },
    "s1000plus": {
     "airframe": "s1000plus",
@@ -220,52 +220,52 @@
       20.0,
       150.0
      ],
-     "scale_px_per_m": 270.864389188489
+     "scale_px_per_m": 270.6810093480849
     },
     "recovered": {
-     "azim": 26.0,
+     "azim": 25.375,
      "elev": 18.0,
-     "roll": -4.4375,
-     "q": 0.320625,
+     "roll": -4.15625,
+     "q": 0.310625,
      "phases": [
       40.0,
       -16.0,
       -2.0,
       150.0,
       40.0,
-      -11.0,
-      21.5,
-      150.0
+      -12.0,
+      -12.5,
+      -9.5
      ],
-     "scale_px_per_m": 270.1873877370746
+     "scale_px_per_m": 270.76053486699766
     },
-    "recovered_iou": 0.8636613523914238,
-    "recovered_contour_mean_mm": 7.142733675230953,
-    "pose_error_deg": 0.9510553635691181,
-    "scale_error_pct": -0.24994110648606238,
+    "recovered_iou": 0.8945641198249747,
+    "recovered_contour_mean_mm": 25.655373398939794,
+    "pose_error_deg": 0.3566461328251021,
+    "scale_error_pct": 0.029379792510852987,
     "sensitivity": {
-     "same_pose_other_sample": 0.9941067247921208,
+     "same_pose_other_sample": 0.9944737289576603,
      "pose_off_deg": {
-      "0.5": 0.9194062329991451,
-      "1.0": 0.8547649396415986,
-      "2.0": 0.7387608878898567,
-      "3.0": 0.6528473195807464,
-      "5.0": 0.5244496516001727
+      "0.5": 0.9227235438884331,
+      "1.0": 0.8520532828879955,
+      "2.0": 0.7397381850454848,
+      "3.0": 0.6436383774055102,
+      "5.0": 0.533842937410166
      },
      "scale_off_pct": {
-      "0.5": 0.950533082470994,
-      "1.0": 0.9064171122994652,
-      "2.0": 0.8319725907566701,
-      "4.0": 0.7110917732110583
+      "0.5": 0.9564423794905833,
+      "1.0": 0.9151088451889617,
+      "2.0": 0.8284848484848485,
+      "4.0": 0.7209318793372044
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9608371650547012,
-      "10.0": 0.9525386313465783,
-      "20.0": 0.9563840734584026
+      "5.0": 0.9622546972860125,
+      "10.0": 0.9593536565050808,
+      "20.0": 0.9621585498287528
      }
     },
-    "reading": "An exact copy of the mesh scores 0.864 here. One degree of pose error takes it to 0.855 and one percent of scale error to 0.906: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 24.0
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.994 - that is the ceiling of this metric. The fit the search recovered scores 0.895, at a pose error of 0.36 deg and a scale error of +0.03 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.852 and one percent of scale error to 0.915: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 23.7
    },
    "phantom4": {
     "airframe": "phantom4",
@@ -281,48 +281,48 @@
       20.0,
       150.0
      ],
-     "scale_px_per_m": 619.1233982208403
+     "scale_px_per_m": 626.8411875608725
     },
     "recovered": {
-     "azim": 25.5,
-     "elev": 18.0,
-     "roll": -4.8125,
-     "q": 0.3168750000000001,
+     "azim": 25.875,
+     "elev": 18.25,
+     "roll": -5.28125,
+     "q": 0.3450000000000001,
      "phases": [
-      38.5,
-      104.0,
-      -9.5,
-      143.5
+      37.5,
+      101.5,
+      -2.0,
+      138.5
      ],
-     "scale_px_per_m": 619.9768083275568
+     "scale_px_per_m": 626.4643262957144
     },
-    "recovered_iou": 0.919975301018833,
-    "recovered_contour_mean_mm": 1.0035434438954247,
-    "pose_error_deg": 0.4755281140608939,
-    "scale_error_pct": 0.13784168215398296,
+    "recovered_iou": 0.879786340175249,
+    "recovered_contour_mean_mm": 1.6277500638988318,
+    "pose_error_deg": 0.8683471797198693,
+    "scale_error_pct": -0.06012069287032462,
     "sensitivity": {
-     "same_pose_other_sample": 0.9960151680699274,
+     "same_pose_other_sample": 0.9970612662109499,
      "pose_off_deg": {
-      "0.5": 0.963358392823299,
-      "1.0": 0.9296473067625364,
-      "2.0": 0.8695756413330137,
-      "3.0": 0.8177222545031958,
-      "5.0": 0.735647456125782
+      "0.5": 0.9651993980436419,
+      "1.0": 0.9319245933957615,
+      "2.0": 0.8696376509787589,
+      "3.0": 0.8176837005421618,
+      "5.0": 0.7353393367010762
      },
      "scale_off_pct": {
-      "0.5": 0.9724805465932814,
-      "1.0": 0.9470087593961608,
-      "2.0": 0.9000600240096038,
-      "4.0": 0.816
+      "0.5": 0.9723860926321074,
+      "1.0": 0.9459559276129509,
+      "2.0": 0.8980952380952381,
+      "4.0": 0.8127754532775453
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9854795567443638,
-      "10.0": 0.9767706097714935,
-      "20.0": 0.9506188118811881
+      "5.0": 0.9854439592430859,
+      "10.0": 0.9772812853018702,
+      "20.0": 0.9508640305024291
      }
     },
-    "reading": "An exact copy of the mesh scores 0.920 here. One degree of pose error takes it to 0.930 and one percent of scale error to 0.947: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 21.1
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.997 - that is the ceiling of this metric. The fit the search recovered scores 0.880, at a pose error of 0.87 deg and a scale error of -0.06 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.932 and one percent of scale error to 0.946: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 21.0
    },
    "typhoonh480": {
     "airframe": "typhoonh480",
@@ -340,13 +340,13 @@
       40.0,
       110.0
      ],
-     "scale_px_per_m": 644.0827965425742
+     "scale_px_per_m": 644.1616293730852
     },
     "recovered": {
      "azim": 24.5,
-     "elev": 18.125,
+     "elev": 18.0,
      "roll": -3.75,
-     "q": 0.30000000000000004,
+     "q": 0.294375,
      "phases": [
       40.0,
       24.0,
@@ -355,35 +355,35 @@
       40.0,
       110.5
      ],
-     "scale_px_per_m": 643.4682763696475
+     "scale_px_per_m": 644.5309100587807
     },
-    "recovered_iou": 0.9333754446623891,
-    "recovered_contour_mean_mm": 4.592663260570007,
-    "pose_error_deg": 0.4915194137716044,
-    "scale_error_pct": -0.09541012059715026,
+    "recovered_iou": 0.936399085652817,
+    "recovered_contour_mean_mm": 4.624570959362473,
+    "pose_error_deg": 0.4755281140608939,
+    "scale_error_pct": 0.05732733352261654,
     "sensitivity": {
-     "same_pose_other_sample": 0.9956447452175953,
+     "same_pose_other_sample": 0.9955181311965231,
      "pose_off_deg": {
-      "0.5": 0.9587876001576251,
-      "1.0": 0.9232280927835051,
-      "2.0": 0.8535469107551488,
-      "3.0": 0.7937928351240535,
-      "5.0": 0.7023789198110523
+      "0.5": 0.9609242156503184,
+      "1.0": 0.922069866144303,
+      "2.0": 0.8527083071509363,
+      "3.0": 0.7900524035985824,
+      "5.0": 0.6993196494464945
      },
      "scale_off_pct": {
-      "0.5": 0.9686862706400895,
-      "1.0": 0.939853505856539,
-      "2.0": 0.8846977076030648,
-      "4.0": 0.7929374927519425
+      "0.5": 0.9684238604914808,
+      "1.0": 0.9406352324819909,
+      "2.0": 0.8831393519974835,
+      "4.0": 0.790885585003232
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9732255285307178,
-      "10.0": 0.964911700509293,
-      "20.0": 0.967741935483871
+      "5.0": 0.9724807634152078,
+      "10.0": 0.9655276483015325,
+      "20.0": 0.9698614435492027
      }
     },
-    "reading": "An exact copy of the mesh scores 0.933 here. One degree of pose error takes it to 0.923 and one percent of scale error to 0.940: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 22.9
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.996 - that is the ceiling of this metric. The fit the search recovered scores 0.936, at a pose error of 0.48 deg and a scale error of +0.06 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.922 and one percent of scale error to 0.941: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 22.8
    },
    "x500v2": {
     "airframe": "x500v2",
@@ -399,48 +399,48 @@
       20.0,
       150.0
      ],
-     "scale_px_per_m": 477.94090926977117
+     "scale_px_per_m": 478.2250370859244
     },
     "recovered": {
-     "azim": 25.0,
+     "azim": 24.875,
      "elev": 18.0,
-     "roll": -4.25,
-     "q": 0.30187500000000006,
+     "roll": -4.15625,
+     "q": 0.3,
      "phases": [
       40.0,
       108.0,
       20.0,
       147.5
      ],
-     "scale_px_per_m": 479.0358273733409
+     "scale_px_per_m": 478.0818912333894
     },
-    "recovered_iou": 0.957419250384522,
-    "recovered_contour_mean_mm": 0.47565950628408626,
-    "pose_error_deg": 1.2074182697257333e-06,
-    "scale_error_pct": 0.22909068513148334,
+    "recovered_iou": 0.9599400678179955,
+    "recovered_contour_mean_mm": 0.44829758558130206,
+    "pose_error_deg": 0.11888206228889422,
+    "scale_error_pct": -0.029932739073479375,
     "sensitivity": {
-     "same_pose_other_sample": 0.9950306443597814,
+     "same_pose_other_sample": 0.9943159074533664,
      "pose_off_deg": {
-      "0.5": 0.9499716668015866,
-      "1.0": 0.9062153163152054,
-      "2.0": 0.8224547039648245,
-      "3.0": 0.7587597126521038,
-      "5.0": 0.6585974890753971
+      "0.5": 0.9521749390387793,
+      "1.0": 0.9060387215734481,
+      "2.0": 0.8249870934434693,
+      "3.0": 0.7579794813337133,
+      "5.0": 0.656020977610435
      },
      "scale_off_pct": {
-      "0.5": 0.965492042871062,
-      "1.0": 0.9351579282361365,
-      "2.0": 0.8725930436106248,
-      "4.0": 0.7705740950226244
+      "0.5": 0.9672672908962153,
+      "1.0": 0.9339033972729374,
+      "2.0": 0.8743986381466953,
+      "4.0": 0.7743441834912786
      },
      "one_prop_phase_off_deg": {
-      "5.0": 0.9633034987794955,
-      "10.0": 0.93719961550785,
-      "20.0": 0.9124901806755695
+      "5.0": 0.9626160868880844,
+      "10.0": 0.9380085238279736,
+      "20.0": 0.9139007308160779
      }
     },
-    "reading": "An exact copy of the mesh scores 0.957 here. One degree of pose error takes it to 0.906 and one percent of scale error to 0.935: arms and blades a few pixels wide make this metric steep.",
-    "runtime_s": 26.3
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.994 - that is the ceiling of this metric. The fit the search recovered scores 0.960, at a pose error of 0.12 deg and a scale error of -0.03 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.906 and one percent of scale error to 0.934: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other.",
+    "runtime_s": 20.9
    }
   },
   "excluded": [

@@ -60,6 +60,7 @@
 | 문서 | 무엇 |
 |---|---|
 | [`docs/RESUME.md`](docs/RESUME.md) | 재개 지점 — 세션 시작 때 먼저 읽는다 |
+| [`docs/NEW_FILE_RULES.md`](docs/NEW_FILE_RULES.md) | ⭐⭐**새 파일·새 메모를 만들기 전에 읽는다.** 전수조사 900 건을 근본 원인으로 묶은 **16 가지**와, 저장하기 전 훑을 **여덟 줄**. 관문은 `benchmark/check_new_file_rules.py`(기준선 뒤로 새 것만 막는다) |
 | [`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md) | 주장 게이트 (위) |
 | [`docs/EQUIVALENCE_GATES.md`](docs/EQUIVALENCE_GATES.md) | 「같음」 판정 3 층. ⛔솔버 산출물에 «비트 동일» 을 요구하지 않는다 |
 | [`docs/DECK_FACTS.md`](docs/DECK_FACTS.md) | 덱이 인용하는 숫자의 원장 대조표 |
@@ -72,6 +73,9 @@
 - 확산반사(F)는 **모든 팔에서 항상 켠다.** 비교축은 다섯 팔뿐이다
 - 「우리 커널이 맞고 PathSolver 가 틀렸다」로 **결론짓지 않는다** — 둘 다 근사, 현실성 판정은 실측 몫
 - CPU 전용 작업은 `CUDA_VISIBLE_DEVICES=""` 로 띄운다
+- 파이썬은 **`/workspace/.venvs/py312/bin/python`** 이다 — ⛔`~/.venvs` 는 이 기계에 없다
+- ⛔**죽는 경로를 소스에 박지 않는다** — `/tmp/…/scratchpad/…` 는 세션이 끝나면 사라져
+  그 빌더를 영영 못 굽게 만든다. 입력이 필요하면 저장소 안으로 옮기고 커밋한다
 - ⛔⛔**말을 지어내지 않는다**(사용자 지시 2026-09-03). 새 낱말·약칭·기호를 그 자리에서
   만들어 쓰지 않는다 — 레포트·문서·커밋·**사용자에게 하는 말** 전부에 걸린다.
   · 쓸 말이 마땅치 않으면 **풀어서 쓴다**(「벌」 ✗ → 「같은 줄이 몇 번 적히나」 ✓)

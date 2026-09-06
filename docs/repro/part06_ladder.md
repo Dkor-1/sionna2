@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | 30 | `ladder-three` | 사다리가 하나가 아니라 셋이었다 — 여섯 단이 서로 다른 운동학을 쓰고 있었다 | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
 | 31 | `ladder-calibrated` | 몸통은 진짜 CAD, 프로펠러만 갈아 끼운 교정 사다리가 답할 자격이 있는 유일한 축이다 | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
-| 32 | `ladder-answer` | 모양의 유무는 수십 dB 를 가르고, 모양의 정밀도는 한 자릿수 dB 안에서 논다 | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
+| 32 | `ladder-answer` | 모양의 유무는 부호가 확실하고(자릿수는 우리 격자가 정한다), 모양의 정밀도는 한 자릿수 dB 안에서 논다 | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
 | 33 | `ladder-premature` | 이 답을 아직 결론이라고 부를 수 없는 이유가 일곱 가지이고, 그중 둘이 치명적이다 | `outputs/report16_verify_tautology.json`, `outputs/report16_verify_kernel.json`, `outputs/report16_verify_detector.json`, `outputs/report16_synthesis.json` | 약 40 분 (GPU 1장 — 커널 렌즈의 가림 재계산이 대부분) |
 
 ## 명령
@@ -14,15 +14,15 @@
 ### 편 30 `ladder-three`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py
 ```
 
 ### 편 33 `ladder-premature`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_tautology.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_kernel.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_detector.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_tautology.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_kernel.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_detector.py
 ```
 
 

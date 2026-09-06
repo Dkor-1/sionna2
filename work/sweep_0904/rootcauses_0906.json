@@ -1,0 +1,239 @@
+{
+ "rules": [
+  {
+   "cause": "발행되는 수를 원장에서 읽지 않고 사람이 자판으로 쳐서 문장·독스트링·캡션·라벨에 박았다 — 원장이 다시 돌아도 그 수는 따라오지 않고, 같은 파일 안에서도 두 값으로 갈린다",
+   "n_total": 152,
+   "rule": "새 파일에 적는 모든 수는 원장 키에서 f-string 으로 찍는다 — 손으로 친 숫자(예시로 드는 수·표본수·라벨의 파라미터 포함)는 문장에 넣지 않는다",
+   "why": "benchmark/mesh_cert_symmetry_derived_0816.py:239 「부피×밀도 질량이 공표 TOW 의 1.1~5.0 배다(감사 I9, 이 라운드가 재확인)」 — 같은 파일 190행과 원장은 5.2(5503/1063=5.18)인데 «재확인» 이라는 재보증까지 붙어 나갔다. 같은 꼴로 src/report_registry.py:39 「본편 11 권 + 별편 8 편, 곧 노트북 23 개다」가 디스크의 33 개·정본 13권/7편과 갈렸다",
+   "mechanical": true,
+   "check_how": "빌더 .py 의 f 접두사 없는 문자열 리터럴에서 `[-+]?\\d+(\\.\\d+)?\\s*(dB|dBsm|%p|%|mm|m|Hz|GHz|배|편|권|칸|기체|개)` 히트 → 실패(상수 정의 줄만 예외). f-string 뒤에 붙은 리터럴 꼬리 `f\"[^\"]*\\{[^}]+\\}[^\"]*\\d+\\.\\d+` 도 실패. 원장 산문 필드의 수가 같은 JSON 의 수치 필드 어디에도 없으면(rel_tol 1e-3) 경고, 한 파일에서 같은 이름·같은 단위의 양이 두 값이면 실패. 개수·대소·단조는 len()·max()·sorted() + assert 로 뒷받침"
+  },
+  {
+   "cause": "원장 JSON·수기 문서를 레포 안 스크립트 없이 손으로 쓰거나 생성기를 없는 경로(scratchpad·/tmp)로 적었고, 근거로 건 파일:줄·§ 도 실재하지 않았다 — 정정이 되돌아올 자리가 없다",
+   "n_total": 148,
+   "rule": "outputs/ 에는 레포 안 실재 스크립트가 한 명령으로 다시 굽는 파일만 두고(_meta.generator 에 그 경로), 문서에 거는 모든 참조(파일·줄·절·빌더)는 적는 자리에서 실재를 확인한다 — 못 하면 그 수는 적지 않고 notes/ 로 보낸다",
+   "why": "outputs/reference_library.json 의 meta.builder 가 가리키는 두 파일이 레포 전체 find 에서 없는데, 그 원장에서만 나온 「표준 관행」·「유일한 게재 논문」·「이 라이브러리에 없다」 세 건이 docs/REFERENCE_LIBRARY.md 로 그대로 흘러갔다. docs/EXPERIMENT_BACKLOG.md:247 은 이미 삭제된 .bak 판의 RESUME.md:386 을 근거로 든다",
+   "mechanical": true,
+   "check_how": "outputs/**.json 마다 `_meta.(generator|producer|builder|generated_by)` ① 존재 ② 그 안의 모든 `\\S+\\.py` 가 repo_root 기준 실재 ③ `^(scratchpad/|/tmp/|/home/|/Users/)` 아님 ④ 그 스크립트가 이 JSON 경로를 여는지(grep) — 하나라도 깨지면 UNBUILDABLE 목록에 넣고 그 파일을 인용한 src·benchmark·docs·reports 줄을 실패로. 문서 쪽은 `([A-Za-z0-9_./-]+\\.(md|py|json|ipynb))(:(\\d+))?` 실재·행수 이내와 `§[\\d.]+` 헤딩 존재를 대조"
+  },
+  {
+   "cause": "훑은 모집단·범위를 안 적고 「없다·유일·처음·가장·전부·아무도」로 문장을 닫았다 — 우리가 읽은 몇 편의 미발견이 문헌 전체의 부재로 올라갔다",
+   "n_total": 139,
+   "rule": "「없다·0 편·유일·최초·가장·전부·아무도」는 같은 문장에 센 모집단(무엇을 몇 편·몇 칸·어떤 검색어·언제까지)과 안 본 구멍을 적을 때만 쓴다 — 못 적으면 「우리가 훑은 N 안에서는 못 찾았다」로 낮춘다",
+   "why": "docs/REFERENCE_LIBRARY.md:107 「표적 산란을 스스로 계산하고 그 위에 검출을 세운 드론 논문이 없다」 — 실제로는 라이브러리 94편·정독 64편 안의 공백인데 범위구가 없다. outputs/reflib_sweep_sionna.json:1471 은 「…가 이 분야의 기본값이다」라고 적지만 같은 파일 counts 는 1/137 이다",
+   "mechanical": true,
+   "check_how": "`(없다|없음|전무|0\\s*편|유일|처음|최초|가장|최고|제일|전부|모두|아무도|어디서도|한 번도|표준 관행|only|never|nobody|the first)` 히트 문장(마침표 단위)에 모집단 토큰 `(\\d+\\s*(편|건|칸|기체|종|점|papers)|아카이브|코퍼스|우리가 (훑|찾|읽|센)|범위에서|\\d+\\s*/\\s*\\d+|as of \\d{4})` 이 없으면 실패. 제목·⭐·headline*/tldr/claim 필드에서는 예외 없이 실패. 같은 파일에 counts·n_papers 키가 있으면 그 값 병기를 강제. 면제는 ⛔/⚠ 로 시작하는 정정 줄과 인용부호 안 남의 문장뿐"
+  },
+  {
+   "cause": "값·판정을 내려 놓고 그 문구가 사는 다른 자리(빌더 f-string·쌍둥이 md·요약표·절 제목·주석)를 따라가지 않아, 재빌드하면 철회된 문장이 되살아났다",
+   "n_total": 114,
+   "rule": "값이나 문장을 내릴 때는 그 문자열을 레포 전수 grep 해 나온 자리를 같은 커밋에서 전부 고치거나 ⛔+날짜를 박은 뒤에만 «내렸다» 고 적고, 새 문장을 쓰기 전에 RETRACTION_LOG 와 ⛔ 목록을 문자열로 먼저 대조한다",
+   "why": "reports/_parts/82_el-nadir-floor.ipynb c10:1 「## 사각지대는 반각 몇 도짜리 원뿔이다」 — 같은 파일 c0 이 2026-09-04 에 ⛔로 철회했고 빌더 주석(src/build_part12_elevation.py:925~932)에도 철회가 적혔는데 제목 문자열(:1320)만 안 고쳐 재빌드마다 되살아난다. atlas/00_since_deck.html:253 의 「세 두께가 소수점까지 같은 리듬 80.5 % 를 낸다」도 R29(docs/RETRACTION_LOG.md:1318)가 내린 값인데 꼬리표가 없다",
+   "mechanical": true,
+   "check_how": "RETRACTION_LOG 항목마다 «내린 문구»를 따옴표 필드로 필수 등록 → 원장의 `⛔|must_fix|인용 금지|refuted_ko` 문구와 합쳐 banned_strings.json → `grep -rF -n` 전수 → 히트 줄 ±3 줄에 `⛔|⚠|철회|정정|R\\d+|20\\d\\d-\\d\\d-\\d\\d` 가 없으면 실패. 생성물만 고치고 src/**.py·benchmark/**.py 리터럴에 같은 문자열이 남으면 «재빌드 부활» 로 별도 실패. 산출 JSON 의 self_check 에 passed=false 가 하나라도 있으면 빌더를 비0 종료"
+  },
+  {
+   "cause": "같은 판정 문장을 여러 자리(신판·옛 빌더·생성물 노트북·쌍둥이 md·한/영 짝·계획 JSON 사본)에 손으로 복제해 두어, 한 곳을 고쳐도 나머지가 옛 문면으로 남았다",
+   "n_total": 110,
+   "rule": "같은 문장을 두 곳에 두지 않는다 — 문면은 한 곳(원장 키 또는 빌더 상수)을 정본으로 정하고 나머지는 그것을 읽어 찍으며, 부득이한 복제본에는 「출처: 파일#키」를 달고 한정어·⚠ 를 양쪽에 똑같이 넣는다",
+   "why": "outputs/paper_kit.json 의 「취약성을 정하는 것은 기체 크기가 아니라 밴드 간 σ 로브 산포다」가 같은 파일 5785·5794·5803·5812·13529 다섯 자리에 있고, 현행 빌더 src/build_part10_results.py:1239 는 이미 「⛔ 옛 제목」으로 반대 문면을 쓴다 — 인용하는 쪽이 어느 판을 옮길지 갈린다",
+   "mechanical": true,
+   "check_how": "src·benchmark·outputs·docs·reports·atlas·prior_work 전수에서 40자 이상(또는 12어절 이상) 한글 문장을 공백·숫자·조사·강조기호 정규화 후 해시해 2곳 이상이면 실패로 목록화(중복 문면 대장). `src/build_part*.py` ↔ `src/make_report*.py`, `prior_work/src/make_pw*.py` ↔ `prior_work/*.ipynb`, HTML 렌더 ↔ readme 렌더 짝은 무조건 검사. `*_ko`/`*_en`, `headline_*`/`verdict` 짝은 숫자 토큰 집합과 한정어 토큰 수가 같아야 통과. 예외는 원장에서 주입되는 f-string 한 곳"
+  },
+  {
+   "cause": "안 돌린 판·안 잰 양·시뮬 출력·우리 커널 자체검산을 「실측·측정됨·검증됨·독립·확증」이라 부르거나, 옆 값·추론으로 메우고 잰 것처럼 단정했다",
+   "n_total": 99,
+   "rule": "「실측·측정·계측·measured·검증됨·독립」은 외부 계측기·문헌 측정곡선에만 쓰고, 우리 출력은 「원장 재계산(파일:키)」·「우리 커널 계산」·「자기일치 바닥」으로 부르며, 안 돌린 조건은 「아직 안 쟀다」를 같은 문장에 적는다",
+   "why": "outputs/das_fleet_ours.json:43 「평판 실측이 β≤60° 에서 0.3 dB 안으로 그 예측과 맞는다」 — 인용한 outputs/sbr_defect_fixes.json 은 우리 SBR 로 돌린 PEC 평판 자체검산이고, 이 저장소의 실기 계측 대조는 0 건이다. reports/12_outdoor-scene.ipynb c9:14 「제거는 박자를 되찾는다」가 인용한 comb_repaired 키는 노치(cs_eca)를 아예 거치지 않는다",
+   "mechanical": true,
+   "check_how": "`(실측|측정된|측정으로 확인|계측|검증(됐|되었|완료)|확증|\\bmeasured\\b)` 히트 줄의 근거 경로가 outputs/*.json·benchmark/*.py 이면 실패(실기 계측 화이트리스트는 현재 0 건). 원장 confidence 가 medium|low 이거나 값에 「미확정·추론·못 찾」이 있는 키에 «확인» 도장이면 실패. `_meta.env.gpu == false` 인 파일이 GPU 엔진 결과를 단정하면 실패. 동사↔키 대응표(제거·노치·ECA ↔ comb_repaired/fill 금지)로 위배를 잡고, 「독립·따로 쟀」은 두 빌더의 import 그래프가 겹치면 실패"
+  },
+  {
+   "cause": "제목·머리기사·한 줄 요약·그림 캡션·표 칸 같은 짧은 층을 본문과 따로 손으로 써서, 조건과 ⚠·한정어는 떨어지고 본문에 없던 최상급·인과가 새로 붙었다 — 청중이 유일하게 읽는 줄이 본문보다 세다",
+   "n_total": 83,
+   "rule": "제목·머리기사·한 줄 요약·그림 캡션은 새로 쓰지 않고 본문에서 가장 약한 문장을 그대로 잘라 오며, 조건(기체·앙각·거리·밴드·표본 수)과 한정어가 안 들어가는 수·판정은 그 자리에 올리지 않는다",
+   "why": "src/build_part12_elevation.py:934(TITLE_82) 「나딧 잔여의 64 % 는 광선 격자 표본화 잡음이고」 — 원장 outputs/refute_nadir_mechanism_final.json 의 caveat_ko 는 «이 나눗셈은 어림이고 64 % 는 하한» 이라 적었고 값은 10 m 판인데, 제목엔 하한도 거리도 없다. 이 제목이 README·색인 여섯 곳에 본문 없이 홀로 실린다",
+   "mechanical": true,
+   "check_how": "얼굴 문자열만 추출: `^#{1,4} `, 문서 첫 40 줄, «한 줄 요약/TL;DR» 블록, 노트북 md 셀 첫 줄, 표 첫 열, 키 `^(headline\\w*|title|one_line|so_what|reading|verdict|summary|answer|paper_caption|replace_with|citable\\w*|can_write\\w*)$`, 빌더의 `TITLE_\\w+`·`set_title|suptitle|supxlabel|fig\\.text|annotate` 인자. ① 본문 어느 문장의 부분문자열도 아니면 «새로 쓴 요약» 표시 ② 수치가 있는데 조건 토큰 2개 미만이면 실패 ③ 같은 파일에 ⚠·⛔·한정어가 있는데 얼굴에는 없으면 실패 ④ 최상급·전칭·인과·「A 가 아니라 B 다」가 얼굴에 있으면 실패"
+  },
+  {
+   "cause": "관찰을 판정으로 굳히는 닫는 낱말(뿐·유일·완전·절대·불가능·정답·검증된·A 가 아니라 B 다)과 도구 우열 판정을 썼다 — 실측 대조 0 건인데 우리 근사가 채점자로 섰다",
+   "n_total": 83,
+   "rule": "닫는 낱말과 도구·방법을 주어로 한 우열·불가능 판정은 쓰지 않는다 — 「이 설정(기체·앙각·거리·팔)에서 본 것은 …까지다」로 적고, 구현 한계는 「현재 구현으로는」으로, 판정은 발표자 노트로 내린다",
+   "why": "docs/PRIOR_WORK_COMPARISON.md:197 「Ziganshin 의 HH/VV 편파 분리. **물리적으로 불가능**하다: `grep -ci polari` = 0」 — 우리 구현이 스칼라라는 사실을 물리의 성질로 승격했다. docs/RETRACTION_LOG.md:1058 「⇒ 탐지 축에서 PathSolver 는 경쟁자가 아니다」도 같은 꼴로, 상시 규약 「시오나가 틀렸다고 하지 않는다」 정면 위반이다",
+   "mechanical": true,
+   "check_how": "금칙어 정규식을 커밋 훅에서 차단: `뿐이(다|고)|유일(한|하게)|완전(한|히)|절대 (못|안)|불가능|정답|검증된|틀렸다|이긴다|보다 낫다|앞선다|우월|경쟁자가 아니|[^.]{2,30}(이|가) 아니라 [^.]{2,30}다` + 엔진 전용 `(Sionna|스톡|PathSolver|SBR|PO|우리 커널)[^.]{0,40}(틀리|부정확|과대|과소|못 (낸|한|따라)|불가능|지배력이 없)`. 문자열 '물리적으로 불가능' 은 조건 유무와 무관하게 무조건 실패(→ '현재 구현으로는'). 예외는 인용부호 안 남의 말과, 대조 짝(밴드·참값·반례 칸)과 원장 경로가 같은 문장에 있는 경우"
+  },
+  {
+   "cause": "수를 적으면서 그 수를 낳은 칸(기체·앙각·방위·거리·주파수·표본 수·판)을 문장에서 떼어, 한 칸에서 잰 값이 조건 없는 상수·물리처럼 읽히게 했다 (폭이 있는 값은 최댓값이 대표값으로 굳었다)",
+   "n_total": 82,
+   "rule": "수가 든 문장에는 그 수를 낳은 칸(기체·앙각·방위·거리·주파수·표본 수)과 원장 키를 같은 문장에 붙이고, 폭이 있으면 원장의 min/max 를 그대로 폭으로 적는다 — 못 붙이면 그 수는 쓰지 않는다",
+   "why": "outputs/outofband_power.json:922 「⭐격자를 얼리면 대역밖 절대 전력이 λ/12 에서 13.1 dB, λ/32 에서 20.1 dB 내려간다」 — 같은 파일 _meta 는 matrice4e·az 0°·el −15°·3.5 GHz·PRF 19700 한 칸인데, 조건 없이 reports/02_kernel.ipynb 로 그대로 옮겨졌다. docs/STANDARD_FRAME.md:60 「PathSolver 최선의 판(빗살 52 dB)」도 거리축을 흔들면 40.5~52.0 dB 로 움직인다",
+   "mechanical": true,
+   "check_how": "`[-+]?\\d+(\\.\\d+)?\\s*(dB|dBsm|%p|%|배|m/s|Hz|kHz|GHz|ms|m)\\b` 가 든 문장에 조건 토큰이 하나도 없으면 차단. 조건 토큰 = 기체명(src/drones.py DRONES 키에서 자동 생성) | `el\\s*[-−+]?\\d|앙각` | `az|방위` | `\\d+\\s*m\\b|거리` | `GHz|MHz` | `n\\s*=\\s*\\d|\\d+\\s*(칸|자세|점|셀|편|종|판)`. 원장 JSON 은 `headline*/verdict*/so_what*/reading/text_ko` 값에만 걸면 오탐이 적다. 원장에 min/max 가 함께 있는 키를 한쪽 끝만 인용하면 실패"
+  },
+  {
+   "cause": "그 변수를 껐다 켠 대조군 없이 원인·기전·반사실을 관측처럼 단정했다 — 잰 양 한 줄에서 「무엇 때문이다 / A 가 아니라 B 다」로 곧장 건너뛰었다",
+   "n_total": 76,
+   "rule": "「때문이다·탓이다·우연이 아니다·였다면·A 가 아니라 B 다」는 그 원인을 껐다 켠 대조 팔이 같은 원장에 있을 때만 쓴다 — 없으면 관측과 해석을 두 문장으로 갈라 「…로 읽는다 — 원인은 아직 안 쟀다(후보 기전)」로 적는다",
+   "why": "src/build_report18_switch_grid.py:462 「정면에서는 … 유한한 광선으로 재느라 생긴 계산 흔들림이 상한 위를 백색으로 채워 놨기 때문이다」 — 이 판(15 m·자세 8192·el 0)에는 광선 수를 내려 본 짝이 0 개다. benchmark/das_fleet_ours.py:512 도 같은 파일 357행이 「일 수 있고」로 적은 것을 「그것은 …이다」로 굳혔다",
+   "mechanical": true,
+   "check_how": "`때문이다|탓이다|덕분|라서 |우연이 아니|였다면|이었다면|의 성질이다|기전(은|이)|원인(은|이)|이 아니라 .{0,20}(다|이다)|because|caused by|driven by` 히트 → 같은 원장에 대조 키 `(control|null|ablation|swap|_off\\b|with_|without_|run_id|대조)` 가 없으면 실패(문구를 「후보 기전」으로 강제). 반사실 어미(`였다면|이었다면`)는 근거가 붙어 있어도 사람 검토 큐 — 대조군이 실제로 지어졌는지는 기계가 못 본다. 집계값 줄(`중앙값|평균`)에 `n=|칸 중|산포` 가 없으면 경고"
+  },
+  {
+   "cause": "자유 파라미터(창 반폭 hw·격자 div·광선 예산·문턱·가드 폭·분모 정의)가 정하는 수를 손잡이 없이 물리량처럼 적고, 검출 바닥·널·문턱 아래를 「없다·불변·0·비트 동일」로 닫았다",
+   "n_total": 63,
+   "rule": "수를 쓰기 전에 그 수를 만든 손잡이를 한 칸 흔들어 보고, 결론이 바뀌면 크기를 쓰지 않는다 — 쓸 때는 손잡이 값을 같은 줄에 적고, 바닥·널·문턱 아래는 「이 잣대로는 못 읽는다(바닥·문턱 값 병기)」로만 적는다",
+   "why": "benchmark/r12_azimuth_harvest.py:606 이 리듬 몫 63 % 를 「익사하지 않는다」 판정 근거로 썼는데, 같은 손잡이에서 hw 2 Hz 면 9.9 %, f_above 를 기본값으로 두면 98.9 % 다(docs/RETRACTION_LOG.md:1318 R29). benchmark/report15_null_control_v2_append.py:24 는 ptp 0.0045 dB 를 「변조가 0 이다」로 적었다",
+   "mechanical": true,
+   "check_how": "원장 항목에 `knobs`(hw·f_above·div·spp·seed·budget·THRESH·PROM·HALF_WIDTH·가드) 와 `shaken`(흔든 폭) 필수 — 산문이 그 항목을 인용하면서 knobs 를 안 적으면 실패. 등급·자격 문자열(`A_convention_free|headline_eligible`)은 리터럴 금지, knobs_varied 차집합이 빌 때만 부여. 분모 퇴화(`f_tip==0|cos(el)==0|n_independent==1|is_saturated`)면 배수 출력 차단. 널·바닥: `(p99\\.?9?|분위|null|바닥|floor|SNR\\s*\\d|p\\s*=|\\de-0\\d)` 와 `(없다|불변|죽은 파라미터|0 ?개|정확히 0|비트 동일|무시가능|못 넘는다)` 가 같은 문장이면 실패(「못 읽는다·검출 바닥 아래」 병기 시 통과)"
+  },
+  {
+   "cause": "한 칸(기체 1·앙각 1·자세 1·논문 1·점 2~3 개)에서 본 것을 부류·도구·분야 전체의 성질이나 법칙·경향으로 올렸다",
+   "n_total": 57,
+   "rule": "문장의 주어를 표본과 같은 크기로 쓴다 — 기체 1 대면 그 기체 이름으로 적고, 점 3 개 이하이거나 차이가 산포 안이면 경향어(일수록·비례·단조·정하는 것은)를 쓰지 않고 값만 나열한다",
+   "why": "benchmark/adv_rf_layer_0816.py:279-282 「el −30 에서는 n≈0.9 라 20log10 은 정확히 2배 과대」 — 같은 원장 K2b 는 기체마다 1.802 / 1.654 / 0.881 / −1.197 인데 matrice4e 한 대 값을 기체 표시 없이 일반화했다. benchmark/sigma_sensitivity.py:652 는 기체 다섯 대·자기 상관계수 +0.091 위에 「취약성을 정하는 것은 …이다」를 세웠다",
+   "mechanical": true,
+   "check_how": "원장 항목마다 `drones`·`n_samples` 필드를 필수로 두고, `n_samples==1 or len(drones)==1` 인데 인용 산문에 복수 주어 `(모든|전 기체|기체별로|공통 성질|들은|every|all|분야|문헌 전반)` 이 있으면 무조건 실패. 경향어 `(일수록|비례|반비례|단조|커질수록|줄어들수록|경향|법칙|정하는 것은|지배한다)` 는 근거 점 수 ≥ 4 이고 상관계수 |r| ≥ 0.5 일 때만 통과. 결론 필드에 전칭어가 있으면 그 산출물의 축 길이(cells·rows·기체 수)를 함께 인쇄하도록 강제하고 그 수가 1~2 면 실패"
+  },
+  {
+   "cause": "원장·원문이 값에 붙여 둔 한정(caveat·note·n·confidence·범위·예외·⚠·인용 금지)을 옮기지 않고 값만 인용했다 — 단서를 값과 따로 두어 꼬리표가 떨어져 나갔다",
+   "n_total": 46,
+   "rule": "원장 키나 남의 문장을 인용하면 그 값에 달린 한정(caveat·note·n·confidence·범위·예외·⚠)을 같은 문장에 함께 옮긴다 — 「다른 절 참조」로 대신하지 않고, 조건을 떼거나 말을 보태면 인용부호를 빼고 우리 판정으로 표시한다",
+   "why": "docs/S2R_JEPA_POSITION.md:171 「Trinh 2026 이 배경 정렬 하나로 chance 50 % → 97 % 를 만들었다」 — 같은 문서 §9 가 «확인 전 인용 금지» 라 적어 두었지만 값 자리에는 표시가 없고, docs/SIM2REAL_PLAN.md:294 가 그대로 물려받았다. outputs/psolve_adopt.json:830 은 「616 ms」를 옮기며 같은 파일 433행의 «LUMI 8노드(MI250X 32장)» 를 벗겨 냈다",
+   "mechanical": true,
+   "check_how": "원장 값은 형제 키가 아니라 값 객체 안(`{\"value\":…, \"caveat\":…}`)에 단서를 두도록 규약화하고, `caveat|note|note_ko|warning|but|limits|confidence|precision|held_fixed|_what` 를 가진 키를 인용한 문장에 그 문면의 핵심 낱말(하한|상한|어림|예외|한정|미확정|⚠|⛔)이 없으면 실패. 인용부호(«…»/「…」/\"…\") 안 문자열은 원문 quote 필드와 공백·조사 정규화 후 완전 일치 대조 — 불일치면 차단. 남의 수가 든 줄에는 하드웨어·표적 토큰 최소 하나 필수"
+  },
+  {
+   "cause": "축(단위·기체·앙각·밴드·적합 구간·지표 정의·창·표본 독립성)이 다른 두 수를 한 문장·한 표 행에 나란히 놓고 ✅·「범위 안·일치·N 배」로 판정했다",
+   "n_total": 45,
+   "rule": "뺄셈·범위·배수·「범위 안·일치」는 축이 모두 같은 칸끼리만 하고, 하나라도 다르면 「대조 불가」와 그 이유를 적는다 — 밴드·적합구간·지표 정의·표본 독립성 네 칸을 먼저 채운다",
+   "why": "docs/INJECTION_PRECEDENT.md:153 「밴드 기울기 6-18.2 GHz | ✅ 0.264 dB/GHz — 실측 0.21~0.315 범위 안」 — 우리는 6~18.2 GHz 부분적합, 문헌은 1.8~18.2 GHz 전대역 단일 적합이라 같은 구간에서 재면 2.07 배다. outputs/deck0811_redundancy.json:77 「레벨차 60 dB 는 확정」도 면적분[m²]과 자유공간손실 포함 채널진폭을 뺀 값이다",
+   "mechanical": true,
+   "check_how": "원장의 모든 수치 항목에 축 태그(`unit, drone, el_deg, band, fit_range, arm, window, metric, n`) 필수. 두 수를 잇는 산문(`대|vs|보다|→|차이|같은 크기|배|범위 안|일치|✅|INSIDE|steeper`)이 태그가 다른 두 키를 인용하면 실패. 비교 문장에 구간 표기 `[0-9.]+\\s*[-–~]\\s*[0-9.]+\\s*GHz` 와 표본 표기 `\\d+\\s*(기체|점|편)` 가 둘 다 없으면 실패. 「그중」으로 잇는 앞뒤 수의 단위 명사(칸·행·편·팔)가 다르면 실패, 합산 키(`or|plus|합계|total|_and_`)를 단독 명사로 인용해도 실패. margin/ratio 는 value·budget 을 같은 튜플로 받는 함수로만 만들고 분모 퇴화 시 배수 출력 차단"
+  },
+  {
+   "cause": "상시 규약(환경은 실외만·챔버 금지·우리끼리 쓰는 말 금지)을 새로 쓴 발표 문단·용어풀이에 그대로 어겼다",
+   "n_total": 10,
+   "rule": "새 파일·발표 문단·용어풀이에 챔버·실내 통제 기하를 우리 설정으로 쓰지 않고, 우리끼리 쓰는 말·줄임말을 만들지 않는다 — 도구는 환경이 아니라 하는 일로 그 자리에서 한 줄에 푼다",
+   "why": "prior_work/src/make_pw03.py:105 「우리는 NVIDIA Sionna RT 로 챔버 전파를 담보하고(선행 Deterministic-Modeling·SimART 와 같은 용례)」 — 바로 다음 줄 헤더가 스스로 «§4. 정직한 한 문단 (외부에 말할 때)» 라 밝힌 발표용 자리이고, 귀속한 선행 두 편도 원장상 실외 사례라 «같은 용례» 가 성립하지 않는다",
+   "mechanical": true,
+   "check_how": "`grep -rn '챔버|무반향|anechoic' <신규·변경 파일>` → 우리 설정을 서술하는 문장(주어 `우리|본 연구|our_row`)이면 실패. 발표 자리(제목·한 줄 요약·용어풀이 표·«외부에 말할 때» 절)에서는 문헌 출처가 있어도 실패, 문헌 설명 인용은 같은 줄에 `arXiv|doi|[A-Z][a-z]+ 20\\d\\d` 가 있을 때만 통과. 조어 금지 사전과 도구 이름(Sionna·PathSolver·SBR·PO)을 발표 자리에서 grep 해, 같은 줄에 한 줄 풀이가 없으면 실패"
+  },
+  {
+   "cause": "수가 채워지거나 검산되기 전에 결론 문장을 먼저 확정해, 자리표시자·실패한 계수가 결론과 함께 발간됐다",
+   "n_total": 6,
+   "rule": "결론 문장은 그 안의 수가 채워지고 검산된 뒤에 쓴다 — `{}`·`?`·TBD·nan 이 남거나 계수·수집이 실패하면 그 문장을 아예 내보내지 않는다(수 없는 결론 금지)",
+   "why": "docs/DECK_FACTS.md:407 (benchmark/deck_facts.py:1100) 「'rcs' 라는 단어가 ?회, 'radar_cross_section' 이 ?회 나온다 — 즉 산란적분도 σ 출력도 없다」 — 같은 항목 numbers 는 {\"error\": \"No module named 'sionna'\"} 인데 부재 판정 문장은 남았고 등급이 computed-by-us 라 청중은 이번 실행에서 센 것으로 읽는다",
+   "mechanical": true,
+   "check_how": "빌드 후 `grep -nE '\\{[A-Za-z_0-9.]+\\}|%\\.?[0-9]*[dfs]|\\?\\s*(회|개|dB|%|Hz)|TBD|N/?A|None|nan|\\{\\}' outputs/*.json docs/*.md reports/**/*.ipynb` 히트가 0 이어야 통과. `numbers` 에 `error` 키가 있는 항목의 claim 은 발행 금지. 손으로 한 환산(「N 분의 일·N 배」)은 옆 괄호에 계산식이 있어야 통과하고, 파장·주파수가 한 줄에 같이 있으면 λ=c/f 로 자동 재계산해 오차 10 % 초과 시 실패"
+  }
+ ],
+ "checkable": [
+  {
+   "name": "손숫자·자리표시자 게이트",
+   "what": "발행되는 수가 원장에서 f-string 으로 오지 않았거나, 자리표시자가 남았거나, 같은 양이 파일 안에서 두 값이면 실패",
+   "pattern": "① 빌더 리터럴 `(^|[^fF])[\"'][^\"']*[-+]?\\d+(\\.\\d+)?\\s*(dB|dBsm|%p|%|mm|m|Hz|GHz|배|편|권|칸|기체|개)` ② f-string 리터럴 꼬리 `f\"[^\"]*\\{[^}]+\\}[^\"]*\\d+\\.\\d+` ③ 자리표시자 `\\{[A-Za-z_0-9.]+\\}|%\\.?\\d*[dfs]|\\?\\s*(회|개|dB|%|Hz)|TBD|N/?A|nan|\\{\\}` ④ 산문 필드 수치가 같은 JSON 수치 필드와 rel_tol 1e-3 로도 안 맞으면 경고 ⑤ 한 파일에서 같은 이름·같은 단위의 양이 두 값이면 실패 ⑥ `\\d+\\s*(권|편|개|종|셀|행|기체|배)` 리터럴은 빌더에서 금지(len()·max() 강제) ⑦ ast 로 뽑은 모듈·함수 docstring 에 `\\d+(\\.\\d+)?\\s*(dB|%|배|Hz|mm|m)\\b` 가 있으면 실패",
+   "scope": "src/**.py · benchmark/**.py · runners/**.py 의 문자열 리터럴과 docstring, outputs/**.json 산문 필드, docs/*.md, reports/**/*.ipynb md 셀, atlas/*.html",
+   "exempt": "상수 정의 줄(`^[A-Z_]+\\s*=`), 인용부호 안 남의 문장, 단위 없는 정수(버전·연도·인덱스), 원장 값을 f-string 으로 주입한 자리"
+  },
+  {
+   "name": "원장 재생성·참조 실재 게이트",
+   "what": "원장을 다시 구울 스크립트와 문서가 건 참조 대상이 실제로 있는지",
+   "pattern": "outputs/**.json 마다 `_meta.(generator|producer|builder|generated_by)` ① 존재 ② 안의 모든 `\\S+\\.py` 가 repo_root 기준 실재 ③ `^(scratchpad/|/tmp/|/home/|/Users/)` 아님 ④ 그 스크립트가 이 JSON 경로를 여는지(`json.dump|open(...,'w')|write_text` 인자 grep). 문서 쪽은 `([A-Za-z0-9_./-]+\\.(md|py|json|ipynb))(:(\\d+))?` 의 파일 실재·줄 번호가 행수 이내, `§[\\d.]+` 에 해당하는 헤딩 존재. 대문의 「빌더:」 줄도 같은 검사",
+   "scope": "outputs/**.json 전수(현재 707 개), docs/*.md, atlas/*.html, reports/**/*.ipynb, prior_work/**",
+   "exempt": "archive/ 아래 보존판, 외부 URL·arXiv 식별자, hand_written:true + generated_by:null 을 명시하고 outputs/ 밖(notes/·docs/)에 있는 수기 조사 파일"
+  },
+  {
+   "name": "부재·최상급 모집단 게이트",
+   "what": "부재·최상급 주장에 센 모집단과 안 본 구멍이 같은 문장에 있는지",
+   "pattern": "히트 `(없다|없음|전무|0\\s*편|유일|처음|최초|가장|최고|제일|전부|모두|하나도|아무도|어디서도|한 번도|표준 관행|기본값이다|\\bonly\\b|never|nobody|the first)` → 같은 문장(마침표 단위)에 모집단 토큰 `(\\d+\\s*(편|건|칸|기체|종|점|papers|documents)|아카이브|코퍼스|보관함|우리가 (훑|찾|읽|센)|범위에서|\\d+\\s*/\\s*\\d+|as of \\d{4}|검색어)` 이 없으면 실패. 「더 읽어도 안 나온다」류 `More reading will not|더 읽어도` 는 무조건 실패. 같은 파일에 `counts|corpus_counts|n_papers` 키가 있으면 그 값 병기 강제",
+   "scope": "전 파일. 제목(`^#{1,4} `)·⭐·**굵게**·`headline*/tldr*/claim/verdict` 필드에서는 예외 없이 실패. 저장소 전체로는 히트가 너무 많으므로 신규·변경 파일 diff 에만 건다",
+   "exempt": "⛔·⚠ 로 시작하는 정정 줄, 인용부호 안 남의 문장, 「우리가 찾은 범위에서는 못 찾았다」로 이미 낮춘 문장"
+  },
+  {
+   "name": "철회 전수 grep (check_retracted 확장)",
+   "what": "내린 값·문구가 표시 없이 다른 자리에 살아 있거나 빌더 리터럴로 부활하는지",
+   "pattern": "RETRACTION_LOG.md 의 «내린 문구» 따옴표 필드 + 원장의 `⛔|must_fix|인용 금지|refuted_ko|proposed_patch` 안 인용부호 문구로 banned_strings.json 을 만들고 `grep -rF -n -f banned_strings.json .` → 히트 줄 ±3 줄에 `⛔|⚠|철회|정정|R\\d+|20\\d\\d-\\d\\d-\\d\\d` 가 없으면 실패. 생성물(reports/**.ipynb, *.md)을 고쳤는데 같은 문자열이 src/**.py·benchmark/**.py 리터럴에 남아 있으면 «재빌드 부활» 로 실패. 산출 JSON 의 `self_check[].passed == false` 가 하나라도 있으면 빌더 비0 종료",
+   "scope": "src · benchmark · outputs · docs · reports · atlas · prior_work 전수",
+   "exempt": "비판 대상으로 인용한 자리(기존 SKIP_FILES)만 — 감사자 자신의 처방 문장·요약표에는 면제를 주지 않는다"
+  },
+  {
+   "name": "중복 문면 대장",
+   "what": "같은 판정 문장이 두 곳 이상에 복제돼 한쪽만 고쳐질 위험",
+   "pattern": "40자 이상(또는 12어절 이상) 한글 문장을 공백·숫자·조사·강조기호 제거로 정규화해 해시 → 2곳 이상이면 실패 목록. 사본들 사이에 한정어 토큰 수(`⚠|⛔|\\d+\\s*[-–~]\\s*\\d+|median|±|n\\s*=|as of`)가 다르면 가중. `*_ko`/`*_en`, `headline_*`/`verdict`/`two_sentence_*` 짝은 숫자 토큰 집합이 같아야 통과",
+   "scope": "src/**.py, benchmark/**.py, outputs/**.json, docs/*.md, reports/**/*.ipynb md 셀, atlas/*.html, prior_work/** — 특히 `src/build_part*.py` ↔ `src/make_report*.py`, `prior_work/src/make_pw*.py` ↔ `prior_work/*.ipynb`, HTML 렌더 ↔ readme 렌더 짝",
+   "exempt": "「출처: <경로>#<키>」 주석이 달린 복제본, 원장에서 주입되는 f-string 한 곳"
+  },
+  {
+   "name": "실측 낱말·출처 등급 게이트",
+   "what": "시뮬·자체검산·안 돌린 판을 실측·검증·독립이라 부르는 자리",
+   "pattern": "① `(실측|측정된|측정으로 확인|계측|검증(됐|되었|완료)|확증|\\bmeasured\\b|독립|따로 쟀|방어된다)` 히트 줄의 근거 경로가 `outputs/.*\\.json|benchmark/.*\\.py` 이면 실패(실기 계측 화이트리스트 현재 0 건) ② 인용한 키의 `confidence` 가 medium|low 이거나 값에 `미확정|추론|못 찾` 이 있는데 «확인·검증» 도장이면 실패 ③ `_meta.env.gpu == false` 인 원장이 SBR·PathSolver 결과를 단정하면 실패 ④ 동사↔키 대응표: 문장에 `제거|노치|ECA|클러터 제거` 가 있는데 인용 키가 `comb_repaired|fill|repaired` 면 실패 ⑤ 「독립·따로 쟀」은 두 빌더의 import 그래프가 같은 모듈을 공유하면 실패",
+   "scope": "전 파일(빌더 문자열·원장 산문 필드·docs·노트북·그림 캡션)",
+   "exempt": "같은 문장에 외부 출처 토큰(`arXiv|doi|IEEE|EuCAP|[A-Z][a-z]+ 20\\d\\d|X410|문헌`)이 있는 문헌 측정 인용"
+  },
+  {
+   "name": "얼굴 문장 게이트 (제목·머리기사·캡션)",
+   "what": "홀로 인용되는 짧은 층이 본문보다 세거나 조건·⚠ 를 떨어뜨렸는지",
+   "pattern": "대상 추출: `^#{1,4} `, 문서 첫 40 줄, «한 줄 요약/세 줄 요약/TL;DR» 블록, 노트북 md 셀 첫 줄, 표 첫 열, 키 `^(headline\\w*|title|one_line|so_what|reading|verdict|summary|answer|conclusion|paper_caption|replace_with|citable\\w*|can_write\\w*|highlights|purpose)(_ko|_en)?$`, 빌더의 `TITLE_\\w+` 상수와 `set_title|suptitle|supxlabel|fig\\.text|annotate` 인자. 판정: ① 그 값이 본문 어느 문장의 부분문자열도 아니면 «새로 쓴 요약» 표시 ② 수치 `[-+]?\\d+(\\.\\d+)?\\s*(dB|dBsm|%p|%|GHz|MHz|Hz|배|m)` 가 있는데 조건 토큰이 2개 미만이면 실패 ③ 같은 파일·같은 원장에 `[⚠⛔]` 나 한정어(하한|상한|어림|예외|아직|유보|가설)가 있는데 얼굴 값에는 없으면 실패 ④ 얼굴에 `(가장|유일|전부|모두|둘 다|불가능|가 아니라|때문이다|cannot|never|only)` 가 있으면 실패",
+   "scope": "docs/*.md, reports/**/*.ipynb, outputs/**.json 발행 키, src/**.py·benchmark/**.py 의 제목·그림 문자열, atlas/*.html",
+   "exempt": "원장의 caveat 문자열을 같은 f-string 으로 함께 실은 얼굴, 본문 문장을 글자 그대로 잘라 온 얼굴"
+  },
+  {
+   "name": "닫는 낱말·엔진 판정 금칙어",
+   "what": "관찰을 판정으로 굳히는 낱말과 도구 우열·불가능 판정",
+   "pattern": "`뿐이(다|고)|유일(한|하게)|완전(한|히)|절대 (못|안|불)|불가능|정답|검증된|틀렸다|이긴다|보다 낫다|앞선다|우월|경쟁자가 아니|못 (잰다|한다|만든다)|[^.。]{2,30}(이|가) 아니라 [^.。]{2,30}다` + 엔진 전용 `(Sionna|스톡|PathSolver|SBR|PO|우리 커널|UTD)[^.。]{0,40}(틀리|부정확|과대|과소|못 (낸|한|만드|따라)|불가능|지배력이 없)` 와 `우리 (커널|PO|SBR)[^.。]{0,25}(맞|정확하|유리|우월|앞선)`. 문자열 '물리적으로 불가능' 은 조건 유무와 무관하게 무조건 실패(→ '현재 구현으로는')",
+   "scope": "빌더 문자열 리터럴, 원장 산문 필드, md 제목·본문, 그림 얼굴 문자열 — 커밋 훅에서 차단",
+   "exempt": "인용부호 안 남의 말, 같은 문장에 대조 짝(밴드·참값·반례 칸)과 원장 경로가 함께 있는 문장, 「현재 구현으로는」으로 적힌 한계"
+  },
+  {
+   "name": "조건 토큰 게이트 (숫자에 칸 붙이기)",
+   "what": "수를 낳은 칸(기체·앙각·거리·주파수·표본)이 같은 문장에 있는지",
+   "pattern": "`[-+]?\\d+(\\.\\d+)?\\s*(dB|dBsm|%p|%|배|m/s|Hz|kHz|GHz|ms|m)\\b` 가 든 문장에 조건 토큰이 하나도 없으면 차단. 조건 토큰 = 기체명(src/drones.py DRONES 키에서 자동 생성: matrice4e|mavic4pro|mini2|mini5pro|phantom3|phantom4|s1000plus|typhoonh480|m350rtk|x500v2) | `el\\s*[-−+]?\\d|앙각` | `az|방위` | `\\d+\\s*m\\b|거리` | `GHz|MHz` | `n\\s*=\\s*\\d|\\d+\\s*(칸|자세|점|셀|편|종|판)`. 원장에 min/max 가 함께 실린 키를 한쪽 끝만 인용하면 실패. 발행 키 문자열이 `_meta` 를 참조하는 f-string 인지도 함께 본다",
+   "scope": "outputs/**.json 의 `headline*/verdict*/so_what*/reading/finding/note/title/text_ko` 값, docs/*.md, reports/**/*.ipynb md 셀, 빌더 인쇄 문자열",
+   "exempt": "설정값을 나열하는 표·상수 정의, 축 이름·단위 설명 문장, 조건이 그 표의 열 이름으로 이미 붙은 행"
+  },
+  {
+   "name": "대조 팔 게이트 (인과·반사실)",
+   "what": "원인·기전·반사실을 대조군 없이 단정한 자리",
+   "pattern": "`때문이다|탓이다|덕분|라서 |우연이 아니|였다면|이었다면|의 성질이다|기전(은|이)|원인(은|이)|이 아니라 .{0,20}(다|이다)|덮[고는]|묻는다|because|caused by|driven by|is set by` 히트 → 같은 원장에 대조 키 `(control|null|ablation|swap|_off\\b|with_|without_|run_id|SIONNA2_\\w+=0|대조)` 가 없으면 실패(문구를 「후보 기전」으로 강제). 집계 줄(`중앙값|평균|방위평균`)에 `n=|칸 중|\\d+/\\d+|산포|sd` 가 없으면 경고",
+   "scope": "outputs/**.json 산문 필드, src/**.py·benchmark/**.py 인쇄 문자열, docs/*.md, 그림 제목",
+   "exempt": "「후보 기전·유력 가설·대조 없음·다음 실험」이 같은 문장에 있는 경우. 반사실 어미(`였다면|이었다면`)는 근거가 붙어 있어도 통과시키지 말고 사람 검토 큐로 — 대조군이 실제로 지어졌는지는 기계가 못 본다"
+  },
+  {
+   "name": "손잡이·바닥 게이트",
+   "what": "자유 파라미터가 정하는 수를 손잡이 없이 쓰거나, 널·바닥을 부재로 적은 자리",
+   "pattern": "① 원장 항목에 `knobs`(hw|f_above|div|spp|seed|budget|THRESH|PROM|HALF_WIDTH|guard) 와 `shaken`(흔든 폭) 필수 — 인용 산문이 knobs 를 안 적으면 실패 ② 등급·자격 문자열(`A_convention_free|규약 무관|headline_eligible|can_write`)이 리터럴이면 실패(knobs_varied 차집합에서 계산) ③ 분모 퇴화(`f_tip==0|cos(el)==0|n_independent==1|is_saturated|identically_zero`)면 배수 출력 차단 ④ `(p99\\.?9?|분위|null|널|바닥|floor|SNR\\s*\\d|p\\s*=|\\de-0\\d|변화폭)` 와 `(없다|없음|불변|죽은 파라미터|영향이 없다|0\\s*개|정확히 0|비트 동일|무시가능|못 넘는다)` 가 같은 문장이면 실패 ⑤ 짝 규칙표: `0\\.201` 줄에 `0\\.254` 없으면 실패, 리듬 몫 `\\d+\\s*%` 줄에 `hw` 없으면 실패",
+   "scope": "outputs/**.json, benchmark/**.py, src/**.py, docs/*.md, 발표 문단",
+   "exempt": "「이 잣대로는 못 읽는다·검출 바닥 아래(바닥·문턱 값 병기)」로 적은 문장, 손잡이 스윕 자체를 보고하는 표"
+  },
+  {
+   "name": "표본-주어 크기 게이트",
+   "what": "한 칸 표본을 부류·도구·분야로 넓히거나 점 3개로 경향을 읽은 자리",
+   "pattern": "원장 항목에 `drones`·`n_samples` 필수. `n_samples==1 or len(drones)==1` 인데 인용 산문에 복수 주어 `(모든|전 기체|기체별로|공통 성질|들은|분야|문헌 전반|어느 대역에서도|예외 없이|원리적으로|every|all)` 이면 무조건 실패. 경향어 `(일수록|비례|반비례|단조|커질수록|줄어들수록|경향|법칙|정하는 것은|지배한다|축이다)` 는 근거 점 수 ≥ 4 이고 상관계수 |r| ≥ 0.5 일 때만 통과. 전칭어가 있으면 그 산출물의 축 길이(cells·rows·기체 수)를 함께 인쇄하도록 강제하고 1~2 면 실패",
+   "scope": "outputs/**.json 발행 필드, docs/*.md, 빌더 문자열, 그림 캡션",
+   "exempt": "표본 기체 이름을 주어로 쓴 문장, 「가설 생성」이라 밝히고 n 과 상관계수를 같은 줄에 실은 문장"
+  },
+  {
+   "name": "caveat 동행 게이트",
+   "what": "원장·원문이 값에 붙인 한정이 인용과 함께 움직였는지",
+   "pattern": "① 원장에서 `caveat|note|note_ko|warning|but|limits|confidence|precision|held_fixed|_what|elevation_caveat` 를 가진 키를 인용한 문장에 그 문면의 핵심 낱말(`하한|상한|어림|예외|한정|미확정|범위|n\\s*=|⚠|⛔`)이 없으면 실패 ② 한 문서 안에서 「미검증|확인 전 인용 금지|인용 금지」가 걸린 수치 토큰이 표시 없이 다른 줄에 나오면 실패(파일 내 self-check) ③ 인용부호(«…»/「…」/\"…\") 안 문자열을 원장·원문 quote 필드와 공백·조사 정규화 후 완전 일치 대조 — 불일치면 차단 ④ 남의 수(`논문|arXiv|et al`)가 든 줄에 하드웨어·표적 토큰(`GPU|노드|MI250X|무향|모노스태틱|패시브|사람|차량`) 최소 하나 필수",
+   "scope": "outputs/**.json, docs/*.md, reports/**/*.ipynb, prior_work/**, 빌더 문자열",
+   "exempt": "caveat 문자열을 값과 같은 줄에 함께 인쇄한 자리"
+  },
+  {
+   "name": "축 일치 게이트 (비교·범위·배수)",
+   "what": "잣대가 다른 두 수를 나란히 놓고 판정 배지를 붙인 자리",
+   "pattern": "원장 수치 항목에 축 태그(`unit, drone, el_deg, band, fit_range, arm, window, metric, n`) 필수. ① 두 수를 잇는 산문(`대|vs|보다|→|차이|같은 크기|배|범위 안|일치|합격|✅|INSIDE|steeper|agrees with`)이 태그가 다른 두 키를 인용하면 실패 ② 비교 문장에 구간 `[0-9.]+\\s*[-–~]\\s*[0-9.]+\\s*GHz` 와 표본 표기 `\\d+\\s*(기체|점|편|airframes)` 가 둘 다 없으면 실패 ③ 「그중」으로 잇는 앞뒤 수의 단위 명사(칸·행·편·팔·기체·비행)가 다르면 실패 ④ 합산 키(`or|plus|합계|total|_and_`) 값을 단독 명사로 인용하면 실패 ⑤ margin/ratio 는 value·budget 을 같은 튜플로 받는 함수로만 만들고 분모가 0·포화면 배수 출력 차단 ⑥ 등급 `[N]`·UNSOURCED·「원문 미확보」가 붙은 행이 판정 칸에 쓰이면 실패",
+   "scope": "outputs/**.json, docs/*.md, 표 생성 함수(src/**.py·benchmark/**.py), atlas/*.html 표",
+   "exempt": "「대조 불가」와 그 이유를 적은 행, 축 태그가 모두 일치하는 쌍"
+  },
+  {
+   "name": "상시 규약 grep (실외만·조어 금지)",
+   "what": "챔버·실내 통제 기하를 우리 설정으로 쓰거나 우리끼리 쓰는 말을 푼 적 없이 쓴 자리",
+   "pattern": "`챔버|무반향|anechoic` 히트가 우리 설정을 서술하는 문장(주어 `우리|본 연구|our_row`)이면 실패. 발표 자리(제목·한 줄 요약·용어풀이 표·«외부에 말할 때» 절)에서는 문헌 출처가 있어도 실패. 도구 이름 `(Sionna|PathSolver|SBR|PO)` 이 발표 자리에 나오는데 같은 줄에 한 줄 풀이가 없으면 실패. 조어 금지 사전(우리끼리 만든 줄임말)을 산출물·덱·독스트링 전체에 건다. 손으로 적은 편성 수 `본편 \\d+ *권|별편 \\d+ *편|노트북 \\d+` 는 outputs/volumes_index.json._meta 와 대조해 불일치면 실패",
+   "scope": "신규·변경 파일 전수 — 특히 prior_work/**, reports/**, atlas/**, report_mesh/src/**, docs 의 발표용 절",
+   "exempt": "문헌 설명으로 인용하며 같은 줄에 출처(`arXiv|doi|[A-Z][a-z]+ 20\\d\\d`)가 있는 자리(단, 발표 자리는 제외)"
+  }
+ ]
+}

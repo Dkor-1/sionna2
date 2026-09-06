@@ -7,7 +7,7 @@
 
 ```bash
 cd /workspace/sionna
-PY=~/.venvs/py312/bin/python
+PY=/workspace/.venvs/py312/bin/python
 ```
 
 노트북만 다시 조립하려면(계산 없음 · 수 초):
@@ -34,7 +34,7 @@ PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
 
 | 편 | 명령 | 출력 | 소요 |
 |---|---|---|---|
-| [01](../reports/_parts/01_stock-says.ipynb) stock-says | `~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/build_part01_stock_engine.py` | `outputs/prior_work_survey.json` | 약 1분 (CPU 만 쓴다) |
+| [01](../reports/_parts/01_stock-says.ipynb) stock-says | `/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/build_part01_stock_engine.py` | `outputs/prior_work_survey.json` | 약 1분 (CPU 만 쓴다) |
 | [02](../reports/_parts/02_engine-paths.ipynb) engine-paths | `PYTHONPATH=src python src/build_part01_stock_engine.py` | `outputs/report00_sionna_anatomy.json`<br>`outputs/report00_sionna_probe.json`<br>`outputs/report00_evidence.json` | 약 1분 (GPU 0장 — JSON 읽기다) |
 | [03](../reports/_parts/03_engine-amplitude.ipynb) engine-amplitude | `PYTHONPATH=src python src/figs_report00.py`<br>`PYTHONPATH=src python src/build_part01_stock_engine.py` | `outputs/report00_sionna_anatomy.json`<br>`outputs/report00_sionna_probe.json` | 약 1분 (GPU 0장) |
 | [04](../reports/_parts/04_eight-factors.ipynb) eight-factors | `PYTHONPATH=src python src/figs_report00.py`<br>`PYTHONPATH=src python src/build_part01_stock_engine.py` | `outputs/report00_sionna_anatomy.json`<br>`outputs/report00_evidence.json`<br>`outputs/report00_po_case.json` | 약 1분 (GPU 0장) |
@@ -46,12 +46,12 @@ PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
 
 | 편 | 명령 | 출력 | 소요 |
 |---|---|---|---|
-| [08](../reports/_parts/08_census-published.ipynb) census-published | `~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/figs_report01.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 근거 5 s [^19] · 나머지 각 수 초 · CPU 만 쓴다 |
-| [09](../reports/_parts/09_census-preprint.ipynb) census-preprint | `~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 약 1분 (CPU 만 쓴다) |
-| [10](../reports/_parts/10_procurement.ipynb) procurement | `~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/figs_report01.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 약 1분 (CPU 만 쓴다) |
-| [11](../reports/_parts/11_procurement-catalog.ipynb) procurement-catalog | `~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 약 1분 (CPU 만 쓴다) |
+| [08](../reports/_parts/08_census-published.ipynb) census-published | `/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/figs_report01.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 근거 5 s [^19] · 나머지 각 수 초 · CPU 만 쓴다 |
+| [09](../reports/_parts/09_census-preprint.ipynb) census-preprint | `/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 약 1분 (CPU 만 쓴다) |
+| [10](../reports/_parts/10_procurement.ipynb) procurement | `/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/figs_report01.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 약 1분 (CPU 만 쓴다) |
+| [11](../reports/_parts/11_procurement-catalog.ipynb) procurement-catalog | `/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json` | 약 1분 (CPU 만 쓴다) |
 | [12](../reports/_parts/12_injection.ipynb) injection | `PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/injection_archive.json`<br>`outputs/injection_classification_audit.json`<br>`outputs/injection_verdict.json`<br>`outputs/injection_validation_hunt.json` | 약 1분 (CPU 만 쓴다 — 다른 워크플로의 원장을 읽는다) |
-| [13](../reports/_parts/13_where-we-stand.ipynb) where-we-stand | `~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/figs_report01.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json`<br>`outputs/sbr_kr_sweep.json`<br>`outputs/verify_cfar.json`<br>`outputs/s2r_prior.json` | 약 1분 (CPU 만 쓴다) |
+| [13](../reports/_parts/13_where-we-stand.ipynb) where-we-stand | `/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py`<br>`PYTHONPATH=src python src/report01_paper_facts.py`<br>`PYTHONPATH=src python src/figs_report01.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/prior_work_survey.json`<br>`outputs/report01_paper.json`<br>`outputs/sbr_kr_sweep.json`<br>`outputs/verify_cfar.json`<br>`outputs/s2r_prior.json` | 약 1분 (CPU 만 쓴다) |
 | [14](../reports/_parts/14_borrowed.ipynb) borrowed | `PYTHONPATH=src python benchmark/build_report00_po_case.py`<br>`PYTHONPATH=src python src/build_part02_prior_work.py` | `outputs/report00_po_case.json` | 약 1분 (GPU 0장 — JSON 읽기다) |
 
 ## 부 3 — 표적 메쉬
@@ -88,10 +88,10 @@ PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
 
 | 편 | 명령 | 출력 | 소요 |
 |---|---|---|---|
-| [30](../reports/_parts/30_ladder-three.ipynb) ladder-three | `PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
-| [31](../reports/_parts/31_ladder-calibrated.ipynb) ladder-calibrated | `PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
-| [32](../reports/_parts/32_ladder-answer.ipynb) ladder-answer | `PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
-| [33](../reports/_parts/33_ladder-premature.ipynb) ladder-premature | `PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_tautology.py`<br>`PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_kernel.py`<br>`PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_detector.py`<br>`PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_verify_tautology.json`<br>`outputs/report16_verify_kernel.json`<br>`outputs/report16_verify_detector.json`<br>`outputs/report16_synthesis.json` | 약 40 분 (GPU 1장 — 커널 렌즈의 가림 재계산이 대부분) |
+| [30](../reports/_parts/30_ladder-three.ipynb) ladder-three | `PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
+| [31](../reports/_parts/31_ladder-calibrated.ipynb) ladder-calibrated | `PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
+| [32](../reports/_parts/32_ladder-answer.ipynb) ladder-answer | `PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_synthesis.json` | 약 3 초 (CPU — 저장된 위상표 후처리) |
+| [33](../reports/_parts/33_ladder-premature.ipynb) ladder-premature | `PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_tautology.py`<br>`PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_kernel.py`<br>`PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_detector.py`<br>`PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py` | `outputs/report16_verify_tautology.json`<br>`outputs/report16_verify_kernel.json`<br>`outputs/report16_verify_detector.json`<br>`outputs/report16_synthesis.json` | 약 40 분 (GPU 1장 — 커널 렌즈의 가림 재계산이 대부분) |
 
 ## 부 7 — 마이크로도플러
 
