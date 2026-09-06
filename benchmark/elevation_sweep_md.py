@@ -129,6 +129,19 @@ ENV_SPECS = {
                ("pole_b", "metal", (0.45, 0.47, 0.50))]),
 }
 
+#: ⭐**지면만 / 건물·기둥만** — 같은 메쉬에서 부품만 갈라 쓴다(2026-09-07 신설).
+#  ■ 왜 — 사용자가 물었다: 「지면이 벽보다 큰 영향을 끼치나?」 지금까지 실외는 지면·건물·
+#    기둥이 **한 덩어리**라 그 물음에 답할 수 없었다. 같은 장면에서 부품만 빼면 갈린다.
+#  ⚠고도(alt_m)와 재질·색은 outdoor01 과 **글자 그대로 같게** 둔다 — 하나라도 다르면
+#    「지면 때문인지 설정이 달라서인지」를 다시 못 가린다.
+_O1 = ENV_SPECS["outdoor01"]
+ENV_SPECS["outdoor01_ground"] = dict(
+    dir=_O1["dir"], alt_m=_O1["alt_m"],
+    parts=[p for p in _O1["parts"] if p[0] == "ground"])
+ENV_SPECS["outdoor01_bldg"] = dict(
+    dir=_O1["dir"], alt_m=_O1["alt_m"],
+    parts=[p for p in _O1["parts"] if p[0] != "ground"])
+
 
 def build_scene_builtin(RP, parts, name: str, fc: float):
     """⭐엔비디아 기본 씬 안에 드론을 넣는다 (2026-09-01 신설).
@@ -172,12 +185,19 @@ def build_scene_builtin(RP, parts, name: str, fc: float):
     return sc, ctr
 
 
+#: ⭐드론이 지면 위로 뜬 높이 [m] 를 잡 줄에서 덮어쓴다(`--env-alt`). 0 이면 항목의 기본값.
+#  ■ 왜 — 정지 클러터의 크기가 σ=|Γ|²/(4π(2h)²) 로 **높이의 제곱에 반비례**한다면(2026-09-06
+#    측정), 드론이 높이 뜰수록 클러터 대 표적 비가 좋아져야 한다. 그것을 재는 축이다.
+#  ⚠리스트로 두는 까닭 — `env_parts` 는 인자를 늘리면 부르는 자리를 다 고쳐야 한다.
+_ENV_ALT = [0.0]
+
+
 def env_parts(Part, key: str):
     """환경 부품 목록. 지면이 드론 **아래** 오도록 통째로 내린다."""
     if key not in ENV_SPECS:
         raise SystemExit(f"⛔ 모르는 환경: {key} — 아는 것 {list(ENV_SPECS)}")
     spec = ENV_SPECS[key]
-    dz = -float(spec["alt_m"])
+    dz = -float(_ENV_ALT[0] if _ENV_ALT[0] else spec["alt_m"])
     out = []
     for nm, mat, col in spec["parts"]:
         f = os.path.join(spec["dir"], f"{nm}.obj")
@@ -439,6 +459,8 @@ def run(a) -> None:
                 + ("" if int(getattr(a, "ground_spread", 1)) else "_nospread")) \
         + ("" if float(getattr(a, "env_scat", -1.0)) < 0
            else f"_S{float(a.env_scat):g}") \
+        + ("" if not float(getattr(a, "env_alt", 0.0) or 0.0)
+           else f"_alt{float(a.env_alt):g}") \
         + ("" if abs(float(getattr(a, "prop_scale", 1.0) or 1.0) - 1.0) < 1e-9
            else f"_ps{float(a.prop_scale):g}") \
         + ("" if abs(float(getattr(a, "frame_scale", 1.0) or 1.0) - 1.0) < 1e-9
@@ -474,6 +496,12 @@ def run(a) -> None:
     #  TypeError 로 죽는다. 규약값 4e9 는 그 바로 아래다.
     #  2026-09-06 에 0906 발주의 `--spp 16000000000` 여섯 줄이 전부 이것으로 죽었고,
     #  감독자 로그에는 «rc=1» 만 남아 이유를 알 수 없었다. GPU 슬롯을 태우기 전에 막는다.
+    #: 드론 고도 덮어쓰기 — 환경 부품을 만들기 **전에** 걸어야 한다.
+    if float(getattr(a, "env_alt", 0.0) or 0.0):
+        if not getattr(a, "env", ""):
+            raise SystemExit("⛔ --env-alt 는 --env 와 함께 준다 — 환경이 없으면 지면도 없다.")
+        _ENV_ALT[0] = float(a.env_alt)
+
     _SPP_CEIL = 4_294_967_295
     if int(getattr(a, "spp", 0) or 0) > _SPP_CEIL:
         raise SystemExit(
@@ -1188,6 +1216,11 @@ def main() -> None:
                          "구면파와의 차이가 근접장 곡률의 몫이므로, 나딧 잔여가 «근접장 탓이냐 "
                          "격자 churn 탓이냐» 를 가르는 단일축이 된다(RESUME 미해결 4번). "
                          "파일명에 _pw 가 붙는다.")
+    ap.add_argument("--env-alt", dest="env_alt", type=float, default=0.0,
+                    help="⭐드론이 지면 위로 뜬 높이 [m]. 0 이면 환경 항목의 기본값(outdoor01 은 20). "
+                         "정지 클러터가 높이의 제곱에 반비례하는지를 재는 축이다. "
+                         "⚠레이다는 거리·sin(앙각) 깊이에 오므로 그보다 높아야 한다. "
+                         "파일명에 _alt<값> 이 붙는다.")
     ap.add_argument("--env-scat", dest="env_scat", type=float, default=-1.0,
                     help="⭐환경 재질의 **산란계수 S**(거칠기). 0 이면 완벽한 거울, 1 이면 "
                          "완전 확산이다(ITU-R P.2040 계열 — 에너지를 정반사와 확산으로 가른다). "
