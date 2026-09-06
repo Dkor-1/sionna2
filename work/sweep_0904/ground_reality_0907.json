@@ -1,0 +1,1142 @@
+{
+ "surveys": [
+  {
+   "topic": "실측된 소형 멀티로터 드론의 레이더 단면적(σ) — 이 저장소의 문헌 원장·PDF 로 확인한 것 (앙각 의존성과 하한에 초점)",
+   "findings": [
+    {
+     "claim": "우리 대역(1.8~18.2 GHz)에서 소형 쿼드(DJI Phantom 3, 대각 35 cm, 높이 20 cm)를 실제로 잰 것은 **한 캠페인뿐**이다 — Yuan·Yu·Li·Fan, EuCAP 2025, 무향실 CATR 원거리장, VV 편파, 방위 −90°:2°:90°. Das(IEEE WCL 2026) 의 Phantom 3 행은 같은 원자료의 재분석이라 «독립 앵커 2 건» 이 아니다.",
+     "evidence": "PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf p.2 축자 «the device-under-test (DUT), is the DJI Phantom 3 … horizontal diagonal of 35 cm and a height of 20 cm» · docs/RETRACTION_LOG.md:107 (A2) · docs/ANCHOR_SUBBAND.md:227~228 · docs/DRONE_ISAC_PRIOR_READING.md:106~108",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐**앙각(내려다보는 각) 의존성을 잰 실측이 있다 — 그리고 값은 2 dB 급이다.** Yuan 은 «세 앙각 면»(방위면 θ=90°, 위 θ=0°, 아래 θ=180°)을 쟀고, 3.5 GHz 에서 세 면의 평균 σ 는 −15.05 / −17.11 / −16.51 dBsm 이다. 최대차 **2.07 dB**.",
+     "evidence": "같은 PDF p.2 축자 «Three UAV elevation sides including the azimuth plane, top, and bottom, were considered … θ = {90°, 0°, 180°}» · p.4 축자 «{0.315, −16.15, 0.0045, 0.07}, {0.231, −17.92, 0.0024, 0.06}, and {0.175, −17.12, 0.0019, 0.07} for θ = 90°, θ = 0°, and θ = 180°» · outputs/rcs_anchor.json literature.mu_eps.{yuan_phantom3_azplane,_top,_bottom} · outputs/prior_settled_anchor.json items[21]",
+     "confidence": "확인"
+    },
+    {
+     "claim": "논문 자신이 그 차이를 «약간»(slightly) 이라고 쓴다 — 앙각을 바꿔도 평균이 조금 움직인다는 것이 실측 저자의 표현이다.",
+     "evidence": "같은 PDF p.3 축자 «the averaged RCS values at θ = 90° are slightly larger than those at θ = 0° and θ = 180°»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐**앙각을 통째로 훑은 실측도 하나 있다 — 그리고 그 이유가 정확히 «지상 레이더가 드론을 올려다보는 상황» 이다.** Semkin 외(IEEE Access 2020, 26~40 GHz, 무향실, 거리 5.8 m)는 기체마다 **아래 반구 전체**(θ ∈ [−90°,90°], φ ∈ [0°,180°], 1° 스텝)를 쟀다.",
+     "evidence": "PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf p.4 축자 «Angular ranges were set to θ ∈ [−90°, 90°] and φ ∈ [0°, 180°] with steps of 1°. For each UAV, the bottom hemisphere was measured. In this way, we replicate the realistic scenario when the UAV is illuminated by a radar station located on the ground.» · 그림 캡션 p.7·p.8 «Monostatic RCS of drones … with respect to the azimuth and elevation angles» · outputs/capability_matrix.json:2318",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐**그 아래 반구 전체를 훑어도 각도별 산포는 «수십 dB» 가 아니라 표준편차 5.0~6.8 dB 다.** 기체 13행(편파 포함)×8 주파수 어디에서도 std 가 이 띠를 벗어나지 않는다. 반구 평균 μ 는 −19.5 ~ −6.1 dBsm, 각도 최댓값은 최대 +25.0 dBsm.",
+     "evidence": "같은 PDF Table 2 (p.12) — 텍스트 레이어가 없어 5배 렌더해 판독 (렌더본 /tmp/claude-0/-workspace/8ed65148-4553-4ebc-8477-9670ae39b001/scratchpad/semkin_table2*.png). 본문 p.11 축자 «The standard deviation of the RCS is not impacted by the drone model and the operating frequency. For all the considered scenarios, σ is approximately 6 dB.» + «Each data point of the PDF corresponds to the RCS value at a certain monostatic angle.»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "그 반구 지도의 색눈금 자체가 **−20 ~ +10 dBsm** 이고 지도가 그 안에서 채워진다 — 바닥에 눌어붙은 영역이 없다.",
+     "evidence": "같은 PDF Fig.5(p.7)·Fig.6(p.8) 렌더 판독 (/tmp/.../scratchpad/semkin_fig5.png). ⚠ 이것은 축자 인용이 아니라 그림 판독이다 — 눈금 라벨만 읽었고 화소값은 안 쟀다",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "⭐**σ 가 −80 dBsm 아래로 떨어진 실측 보고는 이 저장소 어디에도 없다.** 실측에 귀속된 최저값은 −40 dBsm(각도별 원시값)이다. 저장소 전체를 dBsm 정규식으로 훑어 −40 dBsm 이하를 전수로 뽑았고, 그 아래로 내려간 것은 전부 (ⓐ)계산이거나 (ⓑ)우리 시뮬 산출물이다.",
+     "evidence": "Yuan PDF p.3 축자 «the overall RCS values range from −40 dBsm to 5 dBsm» · 저장소 전수 스캔(docs/*.md · prior_work/*.md · outputs/prior*.json · outputs/deepread*.json · outputs/reference_library.json): −40 dBsm 아래 실측 0 건",
+     "confidence": "확인"
+    },
+    {
+     "claim": "«−60 dBsm» 이 저장소에 하나 있지만 그것은 **측정이 아니라 FDTD 계산**이다 — Rzewuski 외(NATO STO 2021)가 Parrot AR.Drone 2.0(폴리프로필렌)을 QuickWave-3D 로 계산한 DVB-T 대역 값이다.",
+     "evidence": "docs/REFERENCE_LIBRARY.md:742 축자 «For DVB-T frequencies the RCS characteristics varies from -60dBsm to -20dBsm» + 같은 카드 p.4 축자 «were computed with a finite-difference time-domain (FDTD) method … QuickWave-3D» · outputs/prior_settled_h8.json 동일 인용",
+     "confidence": "확인"
+    },
+    {
+     "claim": "기하를 크게 흔든 실측(바이스태틱각 0°→90°)에서도 변화폭은 4~5 dB 다. Das 가 **이 논문에서 새로 잰 유일한 기체**인 Phantom 2 에서 일곱 각도 사이 산포는 3.75~4.92 dB 였다. 나머지 세 기체(Phantom 3/Mini 2/M350)의 바이스태틱 열은 0.62~0.63 dB 이고 기울기·ε 이 각도에 완전 불변이라 독립 측정으로 못 쓴다.",
+     "evidence": "outputs/sigma_anchor.json sources.das.table3 (Table III 렌더 판독분) + table1 밴드로 직접 계산 · docs/DRONE_ISAC_PRIOR_READING.md:334 «실측 바이스태틱은 Phantom 2 열 하나뿐» · docs/HOW_OTHERS_SOLVED_IT.md:29 «모노→90° 는 평균 1–2 dB»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐**3GPP 는 소형 UAV 에 자세 의존성을 아예 주지 않는다** — σ_M = −12.81 dBsm 상수, 각도항 σ_D ≡ 1, 주파수 무관. 유일한 각도항은 바이스태틱각의 −3·sin(β/2) 하나다. 그 근거 원장(R1-2504948)에는 측정 기고 7 건이 들어 있다.",
+     "evidence": "prior_work/isac_standard_scenarios.md:200 (Table 7.9.2.1-1) · :218 «주파수별 분기 없음» · :236~ 검증 원장 표(Huawei 4.9 GHz, Ericsson 3.8 GHz, BUPT/CMCC 24·28 GHz, NIST 28.5 GHz 등 Measurement 7 행) · outputs/isac_standard_scenarios.json F15/F16/F17",
+     "confidence": "확인"
+    },
+    {
+     "claim": "그 −12.81 dBsm 을 독립 실측이 1 dB 안에서 재현했고, 그 측정이 보고한 **각도 요동의 크기(로그정규 B2)는 3.065 dB** 다.",
+     "evidence": "outputs/reference_library.json master_table azim_inf_rcs_arxiv25 quotes p.2·p.6 «A = -12.81 dBsm, B1 = 0 dB, and B2 = 3.74 dB» / «small-sized UAVs yield A = -13.57 dBsm and B2 = 3.065 dB» (PDF /data/public/.../new_0731/2505.08754__3gpp-rcs-indoor-factory-targets.pdf, 등급 P, ⚠PREPRINT, 25~28 GHz)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐**「내려다볼수록 어두워진다」를 지지하는 실측은 이 저장소에 없다 — 오히려 반대 방향의 실측이 하나 있다.** Ritchie·Horne·Peters(UCL, DJI Spark, 10.25 GHz, 무향실)는 앙각 0~80°(20° 간격)+90° 를 직접 쟀고, 직하방 90° 에서 로터 변조선이 «중간 앙각보다 오히려 더 세다» 고 적는다. ⚠ 다만 지표가 σ 가 아니라 HERM 선 세기다.",
+     "evidence": "docs/NADIR_DOPPLER_REALWORLD.md:83~91 축자 «HERM lines are clearly visible at 90° elevation angle for all polarisations … they are of higher intensity than for mid-range elevation angles» (UCL Discovery eprint 10139175). ⚠ 앙각별 수치표는 저장소에 없다 — 문장만 있다",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "⭐**지면이 있는 조건에서 드론 σ 를 잰 보고는 이 저장소에 0 건이다.** 절대 σ 를 낸 실측 3~4 편은 전부 무향실이고, 야외에서 재는 논문들은 σ 를 재지 않고 σ 를 **가정**한다(Saur −17 dBsm, Wang GBS −10 dBsm). 그러니 「지면이 σ 를 얼마나 바꾸나」는 문헌으로 답할 수 없는 물음이다.",
+     "evidence": "docs/DRONE_ISAC_PRIOR_READING.md:538 «md-* 는 무향실+배경차감이라 지면 반사가 없다. 실측 3편은 무향실» · docs/HOW_OTHERS_SOLVED_IT.md:138 «무향실은 0/26 — 감지 논문은 밖에서 재고 무향실은 RCS 앵커 논문의 도구다» · outputs/reference_library.json master_table saur_uav_isac_arxiv26.headline_numbers.assumed_target_rcs_dBsm = −17, wang_gbs_lawn_arxiv26.assumed_uav_rcs_dBsm = −10.0",
+     "confidence": "확인"
+    },
+    {
+     "claim": "우리 지면 갈래 자신도 실측 대조가 0 건이라고 원장이 명시한다 — 지금 통과한 게이트는 «저장소의 2선 모델과 자기일치» 뿐이다.",
+     "evidence": "outputs/verify_ground_kernel.json _meta.caution_ko 축자 «⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 **자기일치** 한다는 것만 잰다. 실측 대조는 0 건이다.» (2026-09-06 10:20 생성)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "방위 한 평면만 잰 실측은 여럿 있고 값이 −11.7 ~ −17.1 dBsm 대에 몰린다 — Ezuma 외(15 GHz VV, 상용 6기종). ⚠ 앙각 컷은 없다.",
+     "evidence": "outputs/reference_library.json master_table ezuma_rcs_stats_arxiv21 quotes p.24 축자 (M600 −11.67 / M100 −14.69 / zx5 −14.39 / Mavic Pro −17.06 / Inspire 1 −14.24 / P4P −15.02 dBsm) · PDF 2102.11954 전문 grep: elevation 컷 언급 0 회 (aspect angle 만) · outputs/deepread_w2.json:300 «⚠ 고도각(elevation) 컷은 없다 - 방위 한 평면뿐»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⚠ **인용 금지 목록**: 이 저장소에서 가장 어두운 드론 σ 로 자주 언급돼 온 Li & Ling 2017 (Phantom 2 aspect-peak −27.5 dBsm) 과 Quevedo 2019 는 **PDF 가 디스크에 없다** — 등급 [N]. 메모(refs/drone_papers/*.md)만 있고, 그 메모의 수치를 원장에 박은 것이 이미 REFUTED 로 판정돼 있다.",
+     "evidence": "outputs/prior_settled_anchor.json items E1/E2/E3 «No PDF exists (E1), so nothing here can be VERIFIED under our own rule» · refs/drone_papers/Li_Ling_2017_*.md · refs/drone_papers/Quevedo_2019_*.md · find /data/public -iname '*quevedo*' → .md 만, PDF 없음",
+     "confidence": "확인"
+    },
+    {
+     "claim": "(보너스 — 문헌이 아니라 우리 쪽) 이 저장소에는 **σ 가 −100 dBsm 급으로 내려간 값을 「물리적 깊이」가 아니라 「이산화 바닥」으로 판정한 전례가 두 건** 있다. ①원판 대조군 −101.62 dBsm 이 점밀도를 4 배로 하자 −137.27 dBsm 으로 35.65 dB 더 내려갔다(같은 조건 CAD 메쉬는 0.03 dB 만 움직임). ②이면각 a=0.30 m 에서 1회반사 σ 가 −118.33 dBsm 으로 붕괴했는데 이웃 a=0.40 은 −7.76 dBsm 이었다(110 dB 도약) — 「수렴이 아니라 그 격자에서의 우연한 상쇄」로 정리됐다.",
+     "evidence": "docs/AUDIT_REPORTS_0901.md:435 · docs/RETRACTION_LOG.md:229~230 · outputs/report16_base_tables.npz · outputs/sbr_defect_fixes.json d3_multibounce_phase.rows",
+     "confidence": "확인"
+    }
+   ],
+   "numbers": [
+    {
+     "what": "DJI Phantom 3 방위면(θ=90°) 평균 σ @3.5 GHz",
+     "value": "−15.05 dBsm",
+     "conditions": "모노스태틱 · 무향실 CATR 원거리장 · VV 편파 · 로터 정지 · 방위 −90°:2°:90° · μ(f)=0.315f−16.15 에서 산출 · 논문 규약(«the mean value in dBsm»)",
+     "source": "Yuan 외 EuCAP 2025 PDF p.4 축자 · outputs/rcs_anchor.json literature.mu_eps.yuan_phantom3_azplane"
+    },
+    {
+     "what": "같은 기체 «위»(θ=0°) 평균 σ @3.5 GHz",
+     "value": "−17.11 dBsm",
+     "conditions": "위와 같은 조건 · μ(f)=0.231f−17.92",
+     "source": "같은 PDF p.4 · outputs/rcs_anchor.json literature.mu_eps.yuan_phantom3_top"
+    },
+    {
+     "what": "같은 기체 «아래»(θ=180°) 평균 σ @3.5 GHz",
+     "value": "−16.51 dBsm",
+     "conditions": "위와 같은 조건 · μ(f)=0.175f−17.12",
+     "source": "같은 PDF p.4 · outputs/rcs_anchor.json literature.mu_eps.yuan_phantom3_bottom"
+    },
+    {
+     "what": "⭐실측 앙각 세 면 사이의 최대차",
+     "value": "2.07 dB @3.5 GHz (1.93 dB @1.843 · 2.21 dB @5.21 · 3.52 dB @18.2 GHz)",
+     "conditions": "세 면은 방위면/위/아래 뿐 — 연속 스윕이 아니다. 내가 논문 계수로 직접 계산 (논문에는 이 차이가 수치로 인쇄돼 있지 않다)",
+     "source": "Yuan 계수 3쌍에서 산술. 계수 자체는 PDF p.4 축자"
+    },
+    {
+     "what": "⭐아래 반구 **전체**에서의 각도별 σ 표준편차",
+     "value": "5.0 ~ 6.8 dB (13 행 × 8 주파수 전부)",
+     "conditions": "θ ∈ [−90°,90°], φ ∈ [0°,180°], 1° 스텝 · 26~40 GHz · 무향실 · 거리 5.8 m · 기체 9 종 + 배터리 · 로터 정지",
+     "source": "Semkin 외 IEEE Access 2020 Table 2 (p.12, 렌더 판독) + 본문 p.11 축자 «σ is approximately 6 dB»"
+    },
+    {
+     "what": "같은 반구 평균 σ 의 기체별 폭",
+     "value": "−19.5 dBsm (Parrot HH @26 GHz) ~ −6.1 dBsm (DJI M100 VV @40 GHz)",
+     "conditions": "위와 같은 조건 · μ 는 반구 전체 각도에 대한 평균(⚠ dB평균/선형평균 규약을 논문이 명시하지 않는다)",
+     "source": "Semkin Table 2 렌더 판독"
+    },
+    {
+     "what": "같은 반구에서의 각도별 최댓값",
+     "value": "최대 +25.0 dBsm (M100 VV @40 GHz) · 기체별로 −1.3 ~ +25.0",
+     "conditions": "위와 같은 조건",
+     "source": "Semkin Table 2 렌더 판독"
+    },
+    {
+     "what": "DJI Phantom 4 Pro 반구 평균 σ (HH)",
+     "value": "−16.4 dBsm @26 GHz → −12.3 dBsm @40 GHz",
+     "conditions": "위와 같은 조건 · std 5.2~5.6 dB",
+     "source": "Semkin Table 2 렌더 판독"
+    },
+    {
+     "what": "⭐이 저장소 문헌에서 **실측으로 보고된 최저 σ**",
+     "value": "−40 dBsm",
+     "conditions": "각도별 원시값의 하한 · Phantom 3 · 1.8~18.2 GHz · 세 앙각 면 전부 합쳐서 · 상한은 +5 dBsm",
+     "source": "Yuan 외 EuCAP 2025 PDF p.3 축자 «the overall RCS values range from −40 dBsm to 5 dBsm»"
+    },
+    {
+     "what": "Das 가 이 논문에서 새로 잰 유일한 기체(Phantom 2)의 바이스태틱각 0°→90° 산포",
+     "value": "3.75 ~ 4.92 dB",
+     "conditions": "밴드 11~26 GHz 안의 세 점(11 / 18.5 / 26 GHz)에서 계수로 계산 · ⚠근거리장 2.6 m · 통제된 비무향 실내",
+     "source": "outputs/sigma_anchor.json sources.das.table3.phantom2 + table1.phantom2 로 직접 계산"
+    },
+    {
+     "what": "Das 의 Phantom 3 / Mini 2 / M350 바이스태틱각 0°→90° 산포",
+     "value": "0.62 ~ 0.63 dB",
+     "conditions": "⚠일곱 각도 칸에서 기울기와 ε 이 완전 불변이라 독립 측정으로 쓰면 안 된다고 원장이 적는다",
+     "source": "outputs/sigma_anchor.json sources.das.table3 로 계산 · docs/DRONE_ISAC_PRIOR_READING.md:334"
+    },
+    {
+     "what": "3GPP 소형 UAV 표준 σ 와 그 각도 의존성",
+     "value": "σ_M = −12.81 dBsm · σ_D ≡ 1 (각도 의존 없음) · σ_S 표준편차 3.74 dB",
+     "conditions": "TR 38.901 V19.4.0 §7.9.2.1 RCS model 1 · 표적 0.3×0.4×0.2 m · **주파수 무관** · 모노=바이 같은 값 · 각도항은 −3·sin(β/2) 하나뿐",
+     "source": "prior_work/isac_standard_scenarios.md:200·218·224 · outputs/isac_standard_scenarios.json F15/F16/F17"
+    },
+    {
+     "what": "독립 실측이 재현한 3GPP 값과 각도 요동 크기",
+     "value": "A = −13.57 dBsm · B2 = 3.065 dB",
+     "conditions": "25~28 GHz · 실내 · 소형 UAV(DJI Mavic 2 Pro) · ⚠PREPRINT · ⚠우리 대역으로 옮기면 Semkin 0.25 dB/GHz 를 무시하게 된다",
+     "source": "Azim 외 arXiv:2505.08754 p.6 축자 (outputs/reference_library.json azim_inf_rcs_arxiv25)"
+    },
+    {
+     "what": "Ezuma 상용 6 기종 방위평균 σ",
+     "value": "−11.67 ~ −17.06 dBsm",
+     "conditions": "15 GHz · VV 편파 · 콤팩트 레인지 · 방위 한 평면(앙각 컷 없음) · PEC 구 교정 · ⚠PREPRINT",
+     "source": "Ezuma 외 arXiv:2102.11954 p.24 축자"
+    },
+    {
+     "what": "Yuan 의 정규화 σ 백분위 (요동의 깊이)",
+     "value": "양호: P10 −8.5 / P1 −18.5 · 열악: P10 −10 / P1 −20 (평균 대비 dB)",
+     "conditions": "**평균 전력으로 정규화한 값**이지 절대 σ 가 아니다. 열악 케이스는 지수분포 이론값 −9.77 / −19.98 과 일치 = Swerling I/II",
+     "source": "Yuan PDF p.2·p.5 축자 · outputs/rcs_anchor.json literature.percentiles_norm · docs/DRONE_ISAC_PRIOR_READING.md:350"
+    },
+    {
+     "what": "위 백분위를 절대값으로 옮기면 (우리 산술, 논문에 없음)",
+     "value": "P1 ≈ −35.0 dBsm",
+     "conditions": "3.5 GHz 방위면 평균 −15.05 dBsm 에 열악 조건 P1 −20 dB 를 더한 것. ⚠논문이 인쇄한 값이 아니라 내가 두 수를 합친 것이다",
+     "source": "Yuan p.4(평균) + p.5(백분위) 조합 — 파생값임을 반드시 밝힐 것"
+    },
+    {
+     "what": "실측이 아닌 계산으로 나온 가장 어두운 드론 σ",
+     "value": "−60 dBsm",
+     "conditions": "DVB-T 대역 · Parrot AR.Drone 2.0(폴리프로필렌) · **FDTD(QuickWave-3D) 계산** — 측정 아님. 같은 논문 WiFi 대역은 −40 ~ 0 dBsm, 평균 −20",
+     "source": "Rzewuski 외 NATO STO-MP-MSG-SET-183 (2021) p.5 축자 · docs/REFERENCE_LIBRARY.md:742"
+    },
+    {
+     "what": "(우리 쪽 전례) 원판 대조군 σ 가 점밀도에 따라 움직인 폭",
+     "value": "−101.62 → −137.27 dBsm (Δ −35.65 dB), 같은 조건 CAD 메쉬는 0.03 dB",
+     "conditions": "matrice4e · 24 방위 전력평균 · 점밀도 4 배 · 「깊이가 아니라 우리 점구름의 이산화 바닥」으로 판정됨",
+     "source": "docs/AUDIT_REPORTS_0901.md:435 · outputs/report16_base_tables.npz"
+    }
+   ],
+   "cannot_answer": [
+    "우리 −99.9 dBsm 이 왜 나오는가 — 이건 문헌 몫이 아니다. 다만 이 저장소에는 σ 가 −100 dBsm 급으로 내려간 값을 「물리 깊이」가 아니라 「이산화 바닥」으로 판정한 전례가 두 건 있다(AUDIT_REPORTS_0901.md:435 · RETRACTION_LOG.md:229). 같은 진단(점밀도·격자를 흔들어 값이 따라 움직이는가)을 −99.9 에도 걸어 보기 전에는 문헌으로 반박할 수도 옹호할 수도 없다.",
+    "**지면이 있는 조건에서 잰 드론 σ** — 저장소에 0 건이다. 절대 σ 를 낸 실측은 전부 무향실(배경 코히런트 차감 + 레인지게이팅)이고, 야외에서 실제로 나는 드론을 다룬 논문들은 σ 를 **가정**한다(Saur −17 dBsm, Wang GBS −10 dBsm). 그러니 「환경이 +53 dB 를 더한다」도 「자유공간이 무너졌다」도 실측 문헌으로는 판정할 수 없다.",
+    "**연속 앙각 스윕의 dBsm 곡선 수치** — Semkin 은 아래 반구를 1° 로 다 쟀지만 저장소가 가진 수치는 반구 통계(μ·std·max)뿐이고, 앙각별 곡선은 그림(Fig.5/6)으로만 있다. 화소값을 뽑아 곡선을 복원한 적이 없다.",
+    "**3GPP 대형 UAV 의 6 섹터 σ_D 값** — 저장소에는 섹터 이름(Left/Back/Right/Front/Bottom/Roof)과 σ_M=−5.85 dBsm, σ_σS=2.50 dB 만 있고 Bottom·Roof 의 실제 σ_D 수치가 없다. 「아래에서 볼 때 몇 dB 다른가」를 규격으로 답하려면 TR 38.901 Table 7.9.2.1-2 를 직접 열어야 한다.",
+    "**Ritchie 의 앙각별 HERM 세기 수치** — docs/NADIR_DOPPLER_REALWORLD.md 에 축자 문장만 있고 앙각별 dB 표가 없다. 「90° 가 중간 앙각보다 세다」의 **크기**를 못 적는다.",
+    "**Semkin 의 μ 가 dB 평균인지 선형평균인지** — 논문이 명시하지 않고(«PDF 의 평균» 이라고만), 우리 원장에도 규약 기록이 없다. Yuan·Das 사이에도 같은 규약 문제로 3.2~3.6 dB 가 벌어져 있다(DRONE_ISAC_PRIOR_READING.md §2-2). 절대값을 나란히 놓을 때 이 폭이 하한 불확도다.",
+    "**사용자가 준 −30.9 / −30.5 dBsm 이 문헌과 사과-대-사과인지** — 그 수가 방위평균인지 단일 방위인지, 어느 기체인지 이 조사에서 확인하지 못했다. 참고로 같은 대각 350 mm 급에서 문헌 방위평균은 −15 ~ −18.5 dBsm 대라 el +0° 값조차 실측 앵커보다 12~16 dB 아래다 — 다만 규약이 다르면 이 비교는 성립하지 않으므로 헤드라인으로 쓰기 전에 정의부터 맞춰야 한다.",
+    "**Li & Ling 2017 · Quevedo 2019 의 수치** — PDF 가 디스크에 없어 등급 [N] 이고 원장이 이미 인용 금지로 판정했다(prior_settled_anchor.json E1~E3). 특히 Quevedo 메모가 적은 「편파·앙각에 따라 −20 ~ −4.6 dBsm」 은 근거를 확인할 수 없다."
+   ]
+  },
+  {
+   "topic": "지면 반사·다중경로가 실제로 얼마나 큰가 — 저장소가 스스로 적은 수와 조건 (2-ray F⁴ 범위 · 실측 유무 · 스침각 의존)",
+   "findings": [
+    {
+     "claim": "ⓐ 저장소가 인용하는 평면지면 2-ray 진폭인자 범위는 F⁴ ∈ [−20, +11.5] dB (왕복 거리로 0.32~1.94배) 하나뿐이다. 코드·스펙·원장 주석 전부 같은 문장을 돌려쓴다.",
+     "evidence": "docs/REPORT13_SPEC.md:22 · :105 · :310 · :612 / src/freespace_link.py:909 / src/experiment_freespace_range.py:528 / benchmark/verify_freespace.py:280",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ 그 범위의 출처는 **외부 문헌이 아니라 저장소 자신의 내부 반증 심사(REFUTE[1] 항목 R1)** 다. 판정문이 «물리적으로 옳다» 라고만 적혀 있고 인용 문헌이 붙어 있지 않다. 스펙 서두는 «★ 표시한 것만 직접 확인한 값이고 나머지는 선언값» 이라고 규정하는데, 이 범위에는 ★가 없다.",
+     "evidence": "docs/REPORT13_SPEC.md:11(★ 규약) · :22(R1 판정문) · :310(§8.8, ★는 다른 항목에 붙어 있다)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ 지면 상수도 선언값이다 — 스펙이 쓰는 습토(ε_r=15·σ=0.005)는 코드가 스스로 «출처 문서 없음» 이라고 적어 둔다. 높이(송신 25 m·수신 3 m·표적 60/120 m)도 «선언값, 근거문서 없음».",
+     "evidence": "src/freespace_link.py:854-855 (GROUND_FS3_SOIL source=\"REPORT13_SPEC.md §8.8 (declared, no source doc)\") · docs/REPORT13_SPEC.md:122",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ 게이트가 실제로 잰 값은 인용 범위와 다르다 — 최대 +10.54 dB, 최소 −36.88 dB. 즉 «−20 dB» 라는 하한은 지켜지는 수가 아니고, 코드도 하한을 강제하지 않는다(널은 −∞ 로 내려가는 게 정상이라고 주석에 적혀 있다). 묶여 있는 것은 상한뿐이다.",
+     "evidence": "outputs/verify_freespace.json : checks.ground_2ray_check.{f4_db_max=10.5387, f4_db_min=−36.8818} · benchmark/verify_freespace.py:302-305(주석) · :305(판정식 6.0 ≤ f4_hi ≤ 12.5 and f4_lo < −6.0)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐ 위쪽(보강간섭)은 «수십 dB» 가 될 수 없다. 평면지면 2-ray 의 물리 천장은 두 다리 모두 F=2 일 때 40·log10(2) = +12.04 dB 이고, 저장소는 인용 +11.5 · 실측(계산) 최대 +10.54 · 게이트 실패선 +12.5 dB 로 세 겹으로 그 천장을 확인해 둔다.",
+     "evidence": "benchmark/verify_freespace.py:302(«물리 천장 ~+12») · :310(breaks_if «F⁴ 가 +12.5 dB 초과면 FAIL») · outputs/verify_freespace.json f4_db_max=10.5387 · 재계산 40log10(2)=12.04",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐ 아래쪽(파괴간섭 널)은 수십 dB 가 가능하다. 다만 그것은 좁은 프린지 한 칸의 값이지 «환경이 더하는 몫» 이 아니다.",
+     "evidence": "outputs/verify_freespace.json f4_db_min=−36.88 (조건: 지상거리 20~5000 m 400점 로그격자) · benchmark/verify_freespace.py:303-304",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ 스침각이 작을 때(멀리·낮게 볼 때)만 지면이 크다 — ψ→0 에서 두 편파 모두 반사계수가 −1 로 가서 상쇄가 깊어진다고 코드 주석이 적는다. 재계산으로 확인: 3.5 GHz·습토·수직편파에서 |Γ| 는 ψ=0.5° 0.932 → ψ=10° 0.180 → ψ=68° 0.566.",
+     "evidence": "src/freespace_link.py:865 · 재계산 CUDA_VISIBLE_DEVICES=\"\" PYTHONPATH=src /workspace/.venvs/py312/bin/python (freespace_link.fresnel_gamma, ε_r=15·σ=0.005·pol=v·fc=3.5e9)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ 내려다보는 기하(스침각 큼)에서는 지면 몫이 작다. 우리 문제와 같은 조건(3.5 GHz · 거리 15 m · 표적 고도 20 m · 앙각 −30°)에서 반사점 스침각은 68.2°, 콘크리트 |Γ|=0.3685 이고, 저장소 커널이 직접 잰 **지면 포함 총합 ÷ 직접항 = −3.73 dB** 다. 수십 dB 가 아니라 4 dB 안쪽이다.",
+     "evidence": "outputs/verify_ground_kernel.json : gates.G7_지면항_기여.{total_over_direct_db=−3.7312, psi_deg=68.213, gamma_abs=0.368522, spread_ratio=0.428571} (생성 2026-09-06 10:20, benchmark/verify_ground_kernel.py:60-64 기하)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ 근거리 내려다보기에서 지면 몫이 더 작아지는 까닭은 **두 경로의 구면 확산 차이** 다. 지면 경로가 더 길어 진폭이 R/R_img 배로 줄고, 15 m·20 m 기하에서 그 비는 15/35 = 0.4286 이다. 이 항을 빼면 지면 몫이 이 기하에서 약 7 dB 과대평가된다고 코드가 명시한다. 확산을 넣은 유효 상한/하한을 재계산하면 +2.55 / −2.99 dB 로, 저장소가 실제로 잰 −3.73 dB 와 같은 자리수다.",
+     "evidence": "src/rcs_sbr.py:1522-1526 (spread 설명 · «약 7 dB 과대평가») · outputs/verify_ground_kernel.json spread_ratio=0.428571 · 재계산 |Γ|·a=0.158 → 40log10(1±0.158)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐ 결론 방향: 「환경(지면)이 +53 dB 를 더한다」는 읽기는 저장소가 가진 어떤 지면 수와도 맞지 않는다. 저장소의 평면지면 상한은 +12 dB 이고, 우리 기하에서 실제로 잰 값은 −3.7 dB 다. 두 값 모두 +53 dB 와 40 dB 이상 벌어진다. 다만 이것은 **평면지면만** 의 이야기이고, 건물 4·기둥 2 가 든 장면에는 이 상한이 그대로 적용되지 않는다.",
+     "evidence": "outputs/verify_freespace.json f4_db_max=10.5387 · benchmark/verify_freespace.py:310 (+12.5 dB 실패선) · outputs/verify_ground_kernel.json G7 −3.7312 dB · src/rcs_sbr.py:1515-1520 (평면·무한·균질·정반사만, 건물 없음)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓒ **지면 다중경로 깊이를 실측으로 보고한 문헌은 저장소 안에 0 건이다.** 지면 커널 게이트 자체가 원장 머리에 «실측 대조는 0 건» 이라고 적어 둔다.",
+     "evidence": "outputs/verify_ground_kernel.json : _meta.caution_ko «⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 자기일치 한다는 것만 잰다. 실측 대조는 0 건이다.»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓒ 저장소가 읽은 드론 레이더 실측 문헌은 전부 무향실(또는 컴팩트레인지)이라 지면 반사가 애초에 없다. 문헌 정리 문서가 «md-* 는 무향실+배경차감이라 지면 반사가 없다. 실측 3편은 무향실» 이라고 직접 적는다. refs/drone_papers 의 5편 요약(Ezuma 컴팩트레인지 15/25 GHz · Li&Ling VNA 턴테이블 3–6 GHz · Semkin 무향실 26–40 GHz · Quevedo X밴드 실외 추적 · DTMB 패시브)에도 지면 반사/다중경로 수치는 0 건이다.",
+     "evidence": "docs/DRONE_ISAC_PRIOR_READING.md:538 · refs/drone_papers/*.md 전수 grep (ground|multipath|outdoor|지면|다중경로) 히트 1건이며 그 1건은 Semkin 의 «anechoic» 표기",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓒ 표적 경유 다중경로를 다룬 문헌 2편(Mazhar, IET Radar Sonar Navig. 2016, 10(1) 140–145 / Rabaste·Poullin, IEEE Radar Conf. 2015, 1660–1665)이 이름과 서지까지 확인돼 있으나 **원문 PDF 가 코퍼스에 없다**. 그래서 그들이 깊이를 수로 보고했는지는 «미확인» 이다.",
+     "evidence": "docs/PRIOR_WORK_COMPARISON.md:626-634 «두 원문 PDF 는 우리 코퍼스에 없다(미확인)»",
+     "confidence": "미확인"
+    },
+    {
+     "claim": "ⓒ 저장소가 가진 단 하나의 «지면 반사 깊이 대 독립계산» 대조는 실측이 아니라 시뮬끼리다 — 그리고 실외가 아닌 실내 바닥이다. 그 값은 직접파 대비 −14.7 dB (입사각 46°·|Γ|=0.255·확산 −2.8 dB) 이고, Sionna RT 가 찾은 탭과 거울상+프레넬 닫힌형이 지연 0.0 ns · 진폭 0.02 dB 로 맞았다. 표적을 거쳐 오는 갈래는 진짜 에코 대비 −18.1 dB(입사각 57°).",
+     "evidence": "docs/VERIFY_CLUTTER.md:50-56(표) · :63 «지연 0.0 ns, 진폭 −0.02 dB 로 일치» · :131-135(표적 경유 −18.1 dB) · docs/ARCHIVE.md:14",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ/ⓓ 지면 재질을 바꾸면 스침각에 따라 방향이 뒤집힌다 — 콘크리트(ε_r 5.24·σ 0.1231@3.5 GHz) 대 습토(15·0.005) 의 |Γ|_V 차이는 ψ=3° 에서 1.37 dB, ψ=30° 에서 9.57 dB 이고 **부호가 반대** 다. 에코는 F₁²F₂² 라 이 차이가 최대 4배(dB) 로 벌어진다고 코드가 적는다. 나는 두 값을 저장소 함수로 재계산해 소수 둘째자리까지 그대로 재현했다.",
+     "evidence": "src/freespace_link.py:871-873 · 재계산 20log10(|Γ|_conc/|Γ|_soil) = +1.37 dB(ψ=3°) · −9.57 dB(ψ=30°)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "주의 — 원장에 실린 F⁴ 세 값(+9.77 · +4.25 · +11.04 dB)은 «분포» 가 아니라 **프린지 한 점** 이다. 스펙은 p10/p50/p90 분포를 산출하라고 적었지만 실제 원장에는 sensitivity.ground_2ray 키가 없고, 파형별로 지면 반사점 스침각 0.36~0.37° 인 한 지점의 단일 값만 있다. 이 값을 «지면이 주는 이득» 으로 인용하면 안 된다.",
+     "evidence": "outputs/report13_freespace.json : solve.{W1,L1,G1}.fs3_ground.F4_db = 9.7721 / 4.2494 / 11.0366, grazing_deg 0.3712/0.3707/0.3596 · 같은 파일에 «ground_2ray» 문자열 0회(grep -c) · 설계는 docs/REPORT13_SPEC.md:310(«F⁴ 분포 … p10·p90») · :504(스키마 예시) · 계산 위치 src/experiment_freespace_range.py:495-498",
+     "confidence": "확인"
+    },
+    {
+     "claim": "주의 — 이 2-ray 수가 전제하는 지면은 «평평·무한·균질, 거칠기 없음, 정반사뿐, 반사점 하나, 지면-표적-지면 3회 이상 없음» 이다. 저장소는 또, 공개 장면의 지면이 «완전 평면 + 콘크리트(삼각형 2개)» 라서 그대로 쓰면 바닥 반사 수치가 부풀려진다고 스스로 경고한다.",
+     "evidence": "src/rcs_sbr.py:1515-1520 · prior_work/sionna_scenes_survey.md:116-119 «완벽한 거울 + 콘크리트를 그대로 쓰면 우리 바닥유령 수치가 부풀려진다»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "실측 계획 쪽에서는 지면 반사를 «세기» 가 아니라 «경로차» 로만 다룬다 — 2hH/R 로 0.3~6.0 m, 27개 설계 격자 중 200 MHz 눈금에서 21개(78%)가 분리된다. 이 비율은 대역에 강하게 의존한다(400 MHz 96% · 100 MHz 48%). 저장소 어디에도 그 지면 갈래의 dB 세기를 실측으로 적은 곳은 없다.",
+     "evidence": "docs/MEASUREMENT_PLAN.md:192-197(§1-5) · :434-460(§D 표) · outputs/report06_derived.json : ground_bounce_{n_geom=27, sep_frac_200MHz=0.7778, min_m=0.3, max_m=6.0} · docs/AUDIT_REPORTS_0901.md:308(400 MHz 96% · 100 MHz 48%)",
+     "confidence": "확인"
+    }
+   ],
+   "numbers": [
+    {
+     "what": "2-ray 전력배율 F⁴ 의 저장소 인용 범위",
+     "value": "[−20, +11.5] dB (왕복 거리 0.32~1.94배)",
+     "conditions": "평면·무한·균질 지면 · 습토 ε_r=15·σ=0.005(선언값, 출처문서 없음) · 3.5 GHz · 수직편파 · 다리마다 F, 에코는 F₁²F₂². 외부 문헌 인용 없음 — 내부 반증 심사 R1 의 판정문이다",
+     "source": "docs/REPORT13_SPEC.md:22 · :105 · :310 · :612 / src/freespace_link.py:909"
+    },
+    {
+     "what": "게이트가 실제로 잰 F⁴ 최대",
+     "value": "+10.54 dB",
+     "conditions": "h_t=60 m · h_rx=3 m · 지상거리 20~5000 m 를 400점 로그격자 · 3.5 GHz · 습토 · 수직편파 · 두 다리 동일 근사. 스침각 0.72°~72.4° 를 훑은 값의 최대",
+     "source": "outputs/verify_freespace.json : checks.ground_2ray_check.f4_db_max (생성 2026-08-24)"
+    },
+    {
+     "what": "게이트가 실제로 잰 F⁴ 최소(널)",
+     "value": "−36.88 dB",
+     "conditions": "같은 스윕. 좁은 프린지 한 칸의 파괴간섭 값이며, 코드가 하한을 강제하지 않는다고 명시한다",
+     "source": "outputs/verify_freespace.json : checks.ground_2ray_check.f4_db_min · benchmark/verify_freespace.py:303-305"
+    },
+    {
+     "what": "평면지면 2-ray 의 물리 천장",
+     "value": "+12.04 dB (= 40·log10 2)",
+     "conditions": "두 다리 모두 |Γ|=1 이고 보강간섭일 때. 저장소 게이트는 +12.5 dB 를 넘으면 FAIL 로 잡는다",
+     "source": "benchmark/verify_freespace.py:302 (주석 «물리 천장 ~+12») · :305 · :310 / 재계산 40log10(2)"
+    },
+    {
+     "what": "우리 문제와 같은 기하에서 지면이 실제로 바꾼 양",
+     "value": "−3.73 dB (지면 포함 총합 ÷ 직접항)",
+     "conditions": "3.5 GHz · 거리 15 m · 표적 고도 20 m · 앙각 −30° · 작은 금속 껍질 0.03 m · 콘크리트 지면 · 수직편파 · 반사점 스침각 68.213° · |Γ|=0.3685 · 확산비 0.4286. ⛔이 값은 «지면 모델이 현실을 맞춘다» 가 아니라 «저장소 2선 모델과 자기일치» 만 뜻한다",
+     "source": "outputs/verify_ground_kernel.json : gates.G7_지면항_기여.total_over_direct_db (생성 2026-09-06)"
+    },
+    {
+     "what": "같은 기하에서 확산차를 넣은 F⁴ 상한/하한 (재계산)",
+     "value": "+2.55 dB / −2.99 dB",
+     "conditions": "|Γ|=0.3685 에 확산비 R/R_img = 15/35 = 0.4286 을 곱한 유효 0.158 로 40log10(1±0.158). 확산차를 빼면 +5.45/−7.99 dB 이고, 코드는 그 경우 «약 7 dB 과대평가» 라고 적는다",
+     "source": "재계산(freespace_link.fresnel_gamma, ε_r=5.24·σ=0.1231·pol=v·fc=3.5e9) · src/rcs_sbr.py:1525 · outputs/verify_ground_kernel.json spread_ratio=0.428571"
+    },
+    {
+     "what": "스침각별 |Γ|_V (재계산)",
+     "value": "ψ=0.5° 0.932 · 3° 0.653 · 10° 0.180 · 30° 0.330 · 68.2° 0.566 · 90° 0.590 (습토) / ψ=68.2° 0.3685 (콘크리트)",
+     "conditions": "3.5 GHz · 수직편파. 콘크리트 68.2° 값은 원장의 gamma_abs=0.368522 와 일치한다. ψ→0 에서 두 편파 모두 −1 로 가서 상쇄가 깊어진다",
+     "source": "재계산 CUDA_VISIBLE_DEVICES=\"\" PYTHONPATH=src /workspace/.venvs/py312/bin/python — src/freespace_link.py:860-885 fresnel_gamma · src/freespace_link.py:865"
+    },
+    {
+     "what": "스침각별 F⁴ 천장 / 널 바닥 (재계산, 확산차 없음)",
+     "value": "ψ=0.5° +11.44/−46.80 · 3° +8.73/−18.40 · 10° +2.87/−3.44 · 30° +4.96/−6.97 · 68.2° +7.80/−14.52 dB",
+     "conditions": "습토 ε_r=15·σ=0.005 · 3.5 GHz · 수직편파 · 두 다리 같은 F 로 40log10(1±|Γ|). 콘크리트면 68.2° 에서 +5.45/−7.98 dB. 널 바닥은 위상이 정확히 맞은 한 점의 값이지 평균이 아니다",
+     "source": "재계산(freespace_link.fresnel_gamma)"
+    },
+    {
+     "what": "원장에 실린 파형별 F⁴ (단일 점)",
+     "value": "+9.77 / +4.25 / +11.04 dB (W1 / L1 / G1)",
+     "conditions": "⚠분포가 아니라 프린지 한 점이다. 반사점 스침각 0.371° / 0.371° / 0.360°, 행로차 0.037 m. 송신 25 m · 수신 3 m · 표적 60 또는 120 m · 평가 거리는 각 파형의 커버리지 거리 한 점. 설계가 요구한 p10/p50/p90 분포는 원장에 없다",
+     "source": "outputs/report13_freespace.json : solve.{W1,L1,G1}.fs3_ground · 계산 src/experiment_freespace_range.py:495-498"
+    },
+    {
+     "what": "실내 바닥 반사 대 독립 닫힌형 계산의 일치도 (실외 아님, 실측 아님)",
+     "value": "직접파 대비 −14.7 dB · 지연 19.3 ns · 두 계산 차이 0.02 dB",
+     "conditions": "입사각 46°(법선 기준, 즉 스침각 44°) · 콘크리트 ε_r=5.24 · |Γ|=0.255 · 확산손실 −2.8 dB. Sionna RT 가 찾은 탭과 거울상+프레넬 닫힌형의 대조이며 **둘 다 계산값**이다. 표적을 거쳐 오는 갈래는 진짜 에코 대비 −18.1 dB(입사각 57°)",
+     "source": "docs/VERIFY_CLUTTER.md:50-63 · :131-135 · docs/ARCHIVE.md:14"
+    },
+    {
+     "what": "지면 재질을 바꿨을 때 |Γ|_V 차이 (콘크리트 − 습토)",
+     "value": "ψ=3° +1.37 dB · ψ=30° −9.57 dB (부호가 반대)",
+     "conditions": "3.5 GHz · 수직편파 · 콘크리트 ε_r 5.24·σ 0.1231 대 습토 15·0.005. 에코는 F₁²F₂² 라 dB 로 최대 4배까지 벌어진다",
+     "source": "src/freespace_link.py:871-873 (저장소가 적은 값) · 나의 재계산이 소수 둘째자리까지 일치"
+    },
+    {
+     "what": "지면 반사 갈래의 경로차 (실측 계획 표)",
+     "value": "0.3 ~ 6.0 m",
+     "conditions": "2hH/R · 안테나 높이 h∈{1.5,2,3} m × 표적 높이 H∈{5,10,20} m × 지상거리 R∈{20,30,50} m 의 27개 격자(가중 없는 열거, 부지 확률 아님). 200 MHz 눈금에서 21/27 = 78% 가 분리, 400 MHz 96%, 100 MHz 48%",
+     "source": "outputs/report06_derived.json : ground_bounce* · docs/MEASUREMENT_PLAN.md:434-460 · docs/AUDIT_REPORTS_0901.md:308"
+    },
+    {
+     "what": "지면 다중경로 깊이를 실측으로 보고한 문헌 수",
+     "value": "0 건",
+     "conditions": "저장소의 문헌 원장·PDF·요약 전수. 드론 레이더 실측 문헌은 전부 무향실/컴팩트레인지라 지면 반사가 없다. 표적 다중경로를 다룬 2편(Mazhar 2016 · Rabaste 2015)은 서지만 있고 원문이 코퍼스에 없다",
+     "source": "outputs/verify_ground_kernel.json : _meta.caution_ko «실측 대조는 0 건이다» · docs/DRONE_ISAC_PRIOR_READING.md:538 · docs/PRIOR_WORK_COMPARISON.md:626-634 · refs/drone_papers/*.md 전수 grep"
+    }
+   ],
+   "cannot_answer": [
+    "왜 자유공간 −30° 에서 −99.9 dBsm 이 나오는가 — 그 값을 만든 계산의 원장을 이 일에서 열지 않았다. 내가 말할 수 있는 것은 «지면이 +53 dB 를 더한다» 는 읽기가 저장소의 어떤 지면 수와도 40 dB 이상 어긋난다는 것뿐이다.",
+    "건물 4 + 기둥 2 가 든 장면에서 σ 가 얼마나 올라가야 «정상» 인가 — 저장소의 지면 수는 전부 **평면·무한·균질 지면 하나만** 있는 닫힌형이다(src/rcs_sbr.py:1515-1520). 다중 산란체가 있는 실외 장면의 지면 몫을 따로 뗀 원장은 못 찾았다.",
+    "Sionna PathSolver 의 실외 지면 결과가 이 2-ray 닫힌형과 맞는지 — 저장소의 대조 게이트(benchmark/verify_ground_kernel.py)는 **우리 SBR 커널 대 2-ray** 이지 PathSolver 대 2-ray 가 아니다. 실내 바닥 건(docs/VERIFY_CLUTTER.md)만 RT 대 닫힌형 대조이고, 그것은 실외가 아니다.",
+    "실측으로 지면 다중경로가 몇 dB 인가 — 저장소 문헌에 0 건이다. 이 물음에 «문헌이 이렇게 말한다» 로 답할 근거가 없다. 답하려면 원문 2편(Mazhar 2016 · Rabaste 2015)을 새로 구해야 한다.",
+    "수평편파·거친 지면·초목/아스팔트 지면에서의 크기 — 저장소 커널은 수직/수평 갈래를 갖지만 실외 수는 전부 수직편파로만 냈고, 거칠기(확산 산란)는 커널에 아예 없다. 지면 재질도 «Sionna 지면 재질 3종(very_dry/medium_dry/wet_ground)을 쓰는 씬이 하나도 없고, 아스팔트·초목은 ITU 목록에 없어 출처 문헌도 없다»(prior_work/sionna_scenes_survey.md:130-131).",
+    "F⁴ 의 프린지 평균(즉 «거리를 훑었을 때 평균적으로 몇 dB 인가») — 설계는 p10/p50/p90 을 내라고 적었지만 원장에는 그 키가 없다. 지금 있는 것은 파형마다 한 점씩 세 개뿐이다."
+   ]
+  },
+  {
+   "topic": "자유공간 σ 가 앙각에서 −99.9 dBsm 로 무너지는 까닭 — 코드·메쉬·기존 원장에서 찾은 것 (읽기 전용, GPU 미사용)",
+   "findings": [
+    {
+     "claim": "사용자가 낸 σ 표는 이 저장소의 기존 팔과 **같은 현상**이다. 원장의 자유공간 PathSolver 팔 level_db 에 32.2~33.1 dB 를 더하면 여섯 칸이 전부 사용자 σ 가 된다(오프셋 폭 0.88 dB). 즉 새 수가 아니라 이미 저장소에 있던 낙차다.",
+     "evidence": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_r15_n8192_mfixbatteryi5_blperairframe_d1].level_db = el 0 −63.24 · −15 −119.64 · −30 −132.51 · −45 −129.82 · −60 −119.23 · −75 −115.83 (15 m · 광선 4e9 · 깊이 1 · 자세 8,192). 사용자 σ 와의 차 = +32.34 / +32.24 / +32.61 / +33.12 / +32.33 / +33.03 dB",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "⭐**순정 기본값 PathSolver(확산 끔)는 앙각 0° 말고는 표적 경로를 단 하나도 못 만든다.** 광선 40 억 발 · 자세 8,192 개 · 여섯 앙각 전부 «경로 0 개»다. 지금 자유공간 값이 0 이 아닌 것은 오로지 확산 채널 덕이다.",
+     "evidence": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_stockdef_r15_n8192]: el 0 → npaths_median 3 · n_missing 0 · level_db −63.25 / el −15·−30·−45·−60·−75·−90 → npaths_median **0** · n_missing **8192/8192** · level_db −6000.0. --stock 의 뜻은 benchmark/elevation_sweep_md.py:1146-1150 «refraction=True · diffraction=False · edge=False · max_depth=3 · diffuse=False»",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐앙각 0° 의 «정상» 값 자체가 **경로 한 개를 세 번 적은 것**이다. 985 개 경로 중 983 개는 합에 사실상 기여하지 않는다.",
+     "evidence": "outputs/copies_id_0903.json rows[1..3] (matrice4e_el0 · pose46~48): n_paths 985 · top_abs_a 2.2983e−4 · abs_E 6.8966e−4 · n_copies 3 · E_over_copy 3.0007 · tau_spread_ps 0.0 · phase_spread_deg 0.0. 그리고 docs/GATES_0902.md «E3» — 같은 수 N 이 az 0° 에서 3, az 0.5° 에서 벌써 9",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐원인 변수는 «앙각»도 «방위»도 아니고 **정확한 거울각에서 벗어났는가**다. 방위를 하나도 안 돌리고 앙각만 15° 내려도, 앙각을 안 내리고 방위만 45° 돌린 것과 같은 자리로 떨어진다(차이 1.5 dB 안).",
+     "evidence": "outputs/az_falsify_verdict.json::axis_is_not_azimuth — ps_physoff az0·el0 DC −63.25 / az0·el−15 DC −118.88 / az45·el0 DC −120.32. 그 파일의 reading_ko 가 그대로 «원인 변수는 「방위 45°」가 아니라 「정확한 거울각에서 벗어났나」다» 라고 적는다",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐메쉬에서 이유가 그대로 보인다 — 시선과 법선이 맞는 면적이 **앙각 0° 에만** 있다. 빗각(−15·−30·−45·−60)에서는 0.5° 안에 맞는 면적이 사실상 0 이고, −90° 에서 다시 살아난다. 이 순서가 사용자 σ 표의 순서와 그대로 맞는다.",
+     "evidence": "outputs/az_falsify_specular.json::cells (matrice4e · 30,662 삼각형 · 전체 0.30559 m²) 0.5° 안 정렬면적: az0_el+0 0.013935 m²(4.56 %) · el−15 **0.0** · el−30 **0.0** · el−45 4.3e−5 · el−60 **0.0** · el−75 1.2e−4 · el−90 0.059466(19.46 %). 내가 정본 부품 OBJ(assets/meshes/drones/matrice4e/matrice4e__*.obj, 31,766 삼각형 · 3010.5 cm²)로 따로 재계산한 값도 같은 모양이다 — el 0 123.66 cm²(4.11 %) · −15 0.00 · −30 0.00 · −45 0.21 · −60 0.00 · −75 0.69 · −90 306.30(10.17 %)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "앙각을 내려도 경로 **수는 오히려 는다.** 무너지는 것은 수가 아니라 합이다 — 서로 지우는 잔여만 남는다.",
+     "evidence": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2]: el 0 npaths_median 1015 · level −63.24 / el −30 1564 · −133.05 / el −60 2137 · −119.60 / el −90 2343 · −110.33. d1 팔도 같다(934→1191→1416→1813→2001→2205)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "확산 반사(F 비트)는 켜져 있지만, **σ 를 지는 금속 부위에서는 산란계수가 정확히 0** 이라 채울 것이 없다. 확산이 채우는 것은 플라스틱·카본뿐이고 그 크기는 우리가 고른 S 의 함수다.",
+     "evidence": "src/materials.py:30 «ITU 재질의 산란계수(S)는 전부 **0** 이다(순수 정반사)»; 같은 파일 55·58·65·69·72 줄 S=0.0 (metal · camera_assembly · pcb · concrete_light · concrete_dark). make_material 의 ITU 갈래(src/materials.py:307-309)는 scattering_coefficient 를 아예 안 넘기고, sionna/rt/radio_materials/itu_material.py:77 의 기본값이 0.0 이다. outputs/report3_rt.json::C_metal — S_by_group motor/camera/battery/pcb = 0.0, body/canopy/gear/prop = 0.2 · metal_share_pct 111.95",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐저장소가 이 한계를 **이미 스스로 적어 두었다.** 「곡면의 정반사점을 못 잡는다(디스코볼 문제)」 · 「금속 표적에선 확산 채널이 원천적으로 비어 있다」 · 「path solver 에 산란적분 단계가 없다」 세 문장이 문서에 그대로 있다.",
+     "evidence": "docs/VERIFY_RT_VS_PO.md §5 (1)(2)(3). 같은 말이 src/rcs_po.py:6-20 과 src/materials.py:29-32 에도 있다. §5 는 «\"곡면에서 정반사는 원리적으로 불가능\"이라고까지 말하면 안 된다 … 정확한 표현은 「저확률 + 잡혀도 진폭 무의미」» 라는 단서도 함께 붙여 두었다",
+     "confidence": "확인"
+    },
+    {
+     "claim": "정반사 경로가 잡혀도 그 진폭에는 RCS 정보가 없다 — 무한평면 거울장이라 표적 크기에 안 변한다. 그리고 물리적으로 옳은 PEC 금속구는 광선을 아무리 부어도 경로가 0 개다.",
+     "evidence": "docs/VERIFY_RT_VS_PO.md §4[A] — 금속 평판 변 0.2→4 m(σ 52 dB 변화)인데 RT 진폭비 전부 −7.91 dB · 산포 0.00 dB. §4[C] 및 outputs/report3_rt.json::E_sphere — PEC 구 r 0.3·1.0 m, 광선 1M/10M/100M/400M 전 조건 n_paths **0**; 같은 자리 0.6 m 평판은 광선 1M 으로 경로 1 개(−7.91 dB)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "같은 메쉬를 **면적분**으로 풀면 앙각 붕괴가 없다. 즉 −99.9 는 표적의 성질이 아니라 푸는 방법의 성질이다.",
+     "evidence": "outputs/az_falsify_po.json::po_vs_observed (numpy 평면파 PO, 두 엔진 코드 미사용) az0: el 0 −45.03 · el −30 −49.51 · el −60 −42.75 · el −90 −35.40 dB — 앙각 폭 14.1 dB. outputs/report13_sigma_grid.matrice4e.json (우리 SBR 커널 · div 16 · 3.5 GHz · 방위 120 점) 방위 선형평균 σ: el 0 −20.89 → el −20 −20.70 dBsm, 0~−20° 폭 **1.19 dB**. outputs/elevation_sweep_md.json rows[engine=ours_r15_n8192_mfixbatteryi5_blperairframe] level_db 도 −53.53(el 0) ~ −41.83(el −90) 로 10 앙각 폭 16 dB 다",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐실측에서는 이런 낙차가 안 난다. 이 저장소가 가진 유일한 앙각 분해 실측 앵커는 세 고도측면 사이 σ 차이가 3.5 GHz 에서 **2.06 dB** 다.",
+     "evidence": "src/sigma_anchor.py:116-133 YUAN (Z. Yuan et al., EuCAP 2025, doi 10.23919/EuCAP63536.2025.10999912 · DJI Phantom 3 · VV · CATR 무향실 · 금속구 교정). μ=a·f+b, θ=90/0/180 → 3.5 GHz 에서 −15.05 / −17.11 / −16.51 dBsm. docs/REFERENCE_LIBRARY.md:1046-1059 에 §IV 원문 인용까지 있고 PDF 도 있다",
+     "confidence": "확인"
+    },
+    {
+     "claim": "실외에서 «되살아난» 것은 드론이 아니라 **환경 자신의 정지 반사**로 보인다. 실외가 더한 것은 거의 전부 가만히 있는 부분이고, 드론 거울이 켜진 앙각 0° 칸에서는 환경 항이 오히려 20 dB 아래다.",
+     "evidence": "src/build_report12_outdoor.py:114-134 AUD — el −30 env_dc_db **+53.68** · env_ac_db −16.04 / el −60 +45.23 · −17.43 / el 0 **−20.24** · −16.48 (정의: 20log10(|mean(O−F)|/mean|F|)). outputs/elephant_id_0903.json::cells — 실외 칸에서 가장 센 경로의 path_len_m = **39.99999 m**(15 m 기하에서 드론 왕복은 30 m) ⇒ 레이다 자신의 지면 반사",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "모서리 회절을 켜면 낙차가 크게 메워진다 — 즉 «메쉬가 매끄러워 되돌릴 것이 없다» 축이 실제로 크기를 가진다. 다만 이 조합은 표준 프레임 밖이다.",
+     "evidence": "outputs/elevation_sweep_md.json 같은 메쉬·같은 광선: el −30 −133.05(swR0D0E0F1_d2) → −97.82(swR0D1E1F1_d2) **+35.2 dB**; el −90 −110.33 → −66.25 **+44.1 dB**. ⚠D1 조합이 docs/STANDARD_FRAME.md 밖(별도 트랙)이라는 것은 docs/NEXT_EXPERIMENTS.md 의 «R2 의 --physics 팔» 줄에 적혀 있다",
+     "confidence": "확인"
+    },
+    {
+     "claim": "광선을 더 쏘아 고칠 수 있는 것이 아니다 — 낙차 값이 판을 다시 돌려도 똑같고, 프롭·동체 크기를 흔들어도 3 dB 안에서만 움직인다.",
+     "evidence": "outputs/elevation_sweep_md.json el −30: swR0D0E0F1_d2 원판과 rep1~rep5 다섯 판이 전부 level_db **−133.05** · npaths_median 1564 로 같다. 같은 앙각의 프롭 배율·동체 배율 팔 −135.97(ps0.7_fs0.7) · −134.48(ps0.7) · −132.62(bs0.6) · −132.1(ps1.4). docs/NEXT_EXPERIMENTS.md:11 R17 «날개끝 상한 위는 광선 수에 불변»",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "«드론 아랫면 모델이 성기다» 는 **반증**된다. 아랫면 면적은 전체의 24 % 고 삼각형도 8 천 개가 넘는다. 없는 것은 면적이 아니라 «빗각에서 시선을 정면으로 마주 보는 법선» 이다.",
+     "evidence": "내가 정본 부품 OBJ 를 직접 재서 — 법선이 −z 에서 26° 안인 면적 721.5 cm² / 전체 3010.5 cm² = 23.97 %, 삼각형 8,417 개(prop 223.6 · battery 184.1 · body 131.6 · canopy 82.5 · pcb 49.8 · camera 40.8 cm²). 파일: /workspace/sionna/assets/meshes/drones/matrice4e/matrice4e__*.obj",
+     "confidence": "확인"
+    },
+    {
+     "claim": "실물에 있는 잔디테일(나사·체결구)은 우리 메쉬에 없다. 저장소는 그것을 «결함이 아니라 적분 격자와 맞는 선택» 이라고 적어 두었다 — 그 논리는 우리 커널용이고, PathSolver 에는 해당하지 않는다.",
+     "evidence": "src/viz_cad_compare.py:39-43 «d=7.14 mm 보다 작은 나사산·와셔는 광선이 못 본다. 제조사 CAD 면적의 30–40 % 가 그 아래에 있다. 우리가 그걸 안 만든 것은 결함이 아니라 적분 격자와 맞는 선택이다». outputs/mesh_compare_cad.json — 제조사 Holybro X500 V2 CAD 는 244 인스턴스·51 부품종이고 그중 **체결구 인스턴스 160 개 · 33,853.8 mm²**; 우리 x500v2 메쉬는 18,816 삼각형·48 파트·428,648 mm² 다. matrice4e 는 area_frac_below_ray_spacing 0.670 · area_frac_sharp_edge 0.402",
+     "confidence": "확인"
+    },
+    {
+     "claim": "λ/12 광선 격자는 이 낙차의 원인이 아니다. 그 격자는 우리 커널 전용이고, PathSolver 팔은 표면 격자를 안 쓴다. (다만 우리 커널의 앙각 0° 레벨은 λ/12 에서 따로 못 쓴다.)",
+     "evidence": "benchmark/elevation_sweep_md.py:464 «⛔--grid-shift 는 우리 커널 전용이다 — PathSolver 는 표면 격자를 …». docs/GATES_0902.md «B1» — 우리 커널 el 0 은 격자를 반 칸 옮기면 −11.91 dB 움직이고(다른 앙각은 0.5~0.7 dB), λ/24 면 +1.45 dB 로 줄어든다",
+     "confidence": "확인"
+    },
+    {
+     "claim": "드론 아랫면에 아무리 면적이 있어도, 15 m 거리에서 삼각형(중앙값 7.0 mm) 안에 정반사점이 들어오려면 법선이 시선과 백분의 몇 도 안으로 맞아야 한다 — el −90 에서 정렬면적이 10 % 나 되는데도 순정 팔 경로가 0 인 것과 맞는다.",
+     "evidence": "삼각형 크기 중앙값 7.012 mm 는 outputs/mesh_compare_cad.json::ours.matrice4e.facets.LTE.facet_mm_count.p50, 거리 15 m 는 원장 _meta.range_m_primary. 두 수로 내가 한 산수(s/2R ≈ 0.013°)이며 **저장소에 이 값을 잰 원장은 없다**",
+     "confidence": "미확인"
+    }
+   ],
+   "numbers": [
+    {
+     "what": "자유공간 PathSolver 팔의 앙각별 level_db (사용자 σ 표의 원본으로 보이는 팔)",
+     "value": "el 0 −63.24 · −15 −119.64 · −30 −132.51 · −45 −129.82 · −60 −119.23 · −75 −115.83 dB",
+     "conditions": "matrice4e 정본 메쉬 mfixbatteryi5_blperairframe · 3.5 GHz · 15 m · 방위 0° · 광선 4e9 · 깊이 1 · 자세 8,192 · 결측 0 · 확산 켬 · 굴절·회절 끔. level_db ≜ 20log10(mean|E|) 이고 σ 가 아니다 — 사용자 σ 와는 +32.2~33.1 dB 오프셋으로 이어진다",
+     "source": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_r15_n8192_mfixbatteryi5_blperairframe_d1].level_db"
+    },
+    {
+     "what": "순정 기본값 PathSolver 의 앙각별 경로 수",
+     "value": "el 0 → 3 개 · el −15/−30/−45/−60/−75/−90 → **0 개** (결측 자세 8,192/8,192, level_db −6000)",
+     "conditions": "같은 15 m · 광선 4e9 · 자세 8,192 · 깊이 3 · **확산 끔**(refraction=True · diffraction/edge=False). 앙각마다 5,100~5,800 초를 계산하고도 0 이다",
+     "source": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_stockdef_r15_n8192].{npaths_median, n_missing, level_db}"
+    },
+    {
+     "what": "확산 켠 팔의 앙각별 경로 수 — 앙각을 내릴수록 는다",
+     "value": "el 0 1015 · −30 1564 · −60 2137 · −90 2343 개 (같은 팔의 level 은 −63.24 → −133.05 → −119.60 → −110.33 dB)",
+     "conditions": "swR0D0E0F1 · 깊이 2 · 15 m · 광선 4e9 · 정본 메쉬 · 자세 8,192",
+     "source": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2].{npaths_median, level_db}"
+    },
+    {
+     "what": "앙각 0° 에서 |E| 를 만드는 것 — 같은 경로 세 벌",
+     "value": "경로 985 개 · 가장 센 경로 |a| 2.2983e−4 · 전체 |E| 6.8966e−4 · 같은 줄 3 벌 · |E| ÷ 한 벌 = 3.0007 (지연 산포 0.0 ps · 위상 산포 0.0°)",
+     "conditions": "matrice4e · el 0° · 자세 46·47·48 세 개를 덤프한 결과. mini5pro 는 2 벌, mavic4pro 는 4 벌. ⛔어느 쪽이 옳은지는 저장소가 «모른다» 고 적어 두었다",
+     "source": "outputs/copies_id_0903.json::rows"
+    },
+    {
+     "what": "시선과 법선이 0.5° 안으로 맞는 면적(= 거울반사가 생길 조건) — 방위 0°",
+     "value": "el 0 0.013935 m²(4.56 %) · −15 0.0 · −30 0.0 · −45 4.3e−5 · −60 0.0 · −75 1.2e−4 · −90 0.059466 m²(19.46 %)",
+     "conditions": "matrice4e · 삼각형 30,662 · 전체 면적 0.30559 m² · GPU 미사용 기하 계산. 2° 로 넓혀도 el −15·−30 은 0.0 다",
+     "source": "outputs/az_falsify_specular.json::cells.*.aligned_area_m2_within_0.5deg"
+    },
+    {
+     "what": "같은 것을 정본 부품 OBJ 에서 내가 다시 잰 값",
+     "value": "el 0 123.66 cm²(4.11 %) · −15 0.00 · −30 0.00 · −45 0.21 · −60 0.00(2° 로 넓히면 3.80) · −75 0.69 · −90 306.30 cm²(10.17 %)",
+     "conditions": "assets/meshes/drones/matrice4e/matrice4e__*.obj 9 개 합본 · 삼각형 31,766 · 전체 3010.5 cm² · 정지 자세 한 개 · 방위 0°. 원장(30,662 삼각형)과 메쉬 판이 달라 el 0 값이 4.11 % ↔ 4.56 % 로 갈린다",
+     "source": "내 계산(읽기 전용, CPU). 원장 대조는 outputs/az_falsify_specular.json"
+    },
+    {
+     "what": "드론 아랫면 면적 — «성기다» 의 반증",
+     "value": "법선이 −z 에서 26° 안인 면적 721.5 cm² = 전체 3010.5 cm² 의 23.97 % · 삼각형 8,417 개",
+     "conditions": "matrice4e 정본 부품 OBJ · 정지 자세 한 개. 부위별 prop 223.6 · battery 184.1 · body 131.6 · canopy 82.5 · pcb 49.8 · camera 40.8 cm²",
+     "source": "내 계산(읽기 전용, CPU) — assets/meshes/drones/matrice4e/matrice4e__*.obj"
+    },
+    {
+     "what": "드론 부위별 산란계수 S — 확산이 어디를 채우고 어디를 못 채우나",
+     "value": "motor · camera · battery · pcb = **0.0** / body · canopy · gear · prop = 0.20 · arm(carbon) = 0.30. 그리고 실외 지면(concrete)도 **0.0**",
+     "conditions": "3.5 GHz. ITU 재질은 Sionna 기본값 0.0 을 그대로 받는다(우리가 안 넘긴다). PO 기준으로 금속 부위가 σ 의 111.95 % 를 진다(el 15° · 방위 36 점)",
+     "source": "src/materials.py:30·55·58·65·69·72 · src/materials.py:307-309 · sionna/rt/radio_materials/itu_material.py:77 · outputs/report3_rt.json::C_metal.{S_by_group, metal_share_pct}"
+    },
+    {
+     "what": "광선추적 정반사에 RCS 정보가 없다는 실측",
+     "value": "금속 평판 변 0.2 → 4 m 로 σ 를 52 dB 바꿔도 RT 진폭비 −7.91 dB **불변**(산포 0.00 dB, 이론 image-source −7.88 dB)",
+     "conditions": "챔버 기하 · 3.5 GHz · spp 1M · 확산 끔 · 깊이 1",
+     "source": "docs/VERIFY_RT_VS_PO.md §4[A]"
+    },
+    {
+     "what": "PEC 금속구에서 경로가 아예 안 생긴다(디스코볼 문제)",
+     "value": "반지름 0.3 m · 1.0 m, 광선 1M / 10M / 100M / 400M — 여덟 조건 전부 표적 경로 **0 개**. 같은 자리 0.6 m 평판은 광선 1M 으로 경로 1 개(−7.91 dB)",
+     "conditions": "확산 끔 · 깊이 1 · 3.5 GHz. 구의 이론 σ 는 −5.49 / +4.97 dBsm 인데 잡히는 것이 없다",
+     "source": "outputs/report3_rt.json::E_sphere.{rows, control_plate} · docs/VERIFY_RT_VS_PO.md §4[C]"
+    },
+    {
+     "what": "같은 메쉬를 면적분으로 풀었을 때의 앙각 의존 — 붕괴가 없다",
+     "value": "독립 PO 심판(numpy 평면파, 엔진 코드 미사용) 방위 0°: el 0 −45.03 · −30 −49.51 · −60 −42.75 · −90 −35.40 dB → 앙각 폭 **14.1 dB**",
+     "conditions": "matrice4e 30,662 삼각형 · 삼각형당 36 조각 · 3.5 GHz · 그림자 무시. ⚠원장 스스로 «그림자를 무시하므로 절대 σ 는 못 믿는다» 고 적는다 — 비율만 쓴다",
+     "source": "outputs/az_falsify_po.json::po_vs_observed.*.po_az0_db"
+    },
+    {
+     "what": "우리 SBR 커널의 σ 앙각 의존",
+     "value": "방위 선형평균 σ = el 0 −20.89 → −20° −20.70 dBsm, 0~−20° 폭 **1.19 dB**(중앙값 −23.75 → −22.43)",
+     "conditions": "matrice4e · 3.5 GHz(대역폭 100 MHz, 3 주파수) · 방위 120 점 · div 16 · 1-bounce · penetrate. ⚠원장의 quote_policy 가 «percentiles/coverage only; NO null-min/sigma-min/aspect-peak/point value» 라 최소·점값은 인용하지 않는다. 앙각도 −20° 까지만 있다",
+     "source": "outputs/report13_sigma_grid.matrice4e.json::sigma.grid.matrice4e['5G NR 3.5 GHz'].sigma_dbsm (내가 방위 선형평균으로 요약)"
+    },
+    {
+     "what": "실측 앵커의 고도측면별 σ — 실제 실험에서는 2 dB 다",
+     "value": "3.5 GHz 에서 θ=90(방위면) −15.05 · θ=0(위에서) −17.11 · θ=180(아래에서) −16.51 dBsm → **폭 2.06 dB**(세 측면 선형평균 −16.13 dBsm)",
+     "conditions": "DJI **Phantom 3**(수평대각 35 cm) · VV 편파 · CATR 무향실 · 금속구 r=17.8 cm 교정 · 배경 차감 + 6차 Kaiser 게이팅 · 1.8~18.2 GHz 선형적합 · 방위 −90:2:90 **평균값**. ⚠기체가 matrice4e 가 아니고, 방위 평균이라 방위별 널은 지워진 값이며, Das 논문과 같은 원자료다(독립 2 건 아님)",
+     "source": "src/sigma_anchor.py:116-133 YUAN['abcd'] · docs/REFERENCE_LIBRARY.md:1046-1059 (Yuan et al., EuCAP 2025, doi 10.23919/EuCAP63536.2025.10999912)"
+    },
+    {
+     "what": "실외가 더하는 것의 정체 — 거의 전부 «가만히 있는 부분»",
+     "value": "el −30 환경항 정지분 **+53.68 dB** · 움직이는 분 −16.04 dB / el −60 +45.23 · −17.43 / el 0 **−20.24** · −16.48",
+     "conditions": "자유공간 팔 대비. 정의 20log10(|mean(O−F)|/mean|F|). ⚠분모를 |mean F| 로 바꾸면 el −30 이 +55.33 이 된다 — 정의를 섞지 말 것. 원장 밖의 값이라 outdoor_scene_0901.json 에는 아직 안 실려 있다",
+     "source": "src/build_report12_outdoor.py:114-134 AUD['el-30','el-60','el+0'].{env_dc_db, env_ac_db}"
+    },
+    {
+     "what": "실외 팔에서 가장 센 경로의 길이",
+     "value": "path_len_m = 39.99999 m (지연 133.43 ns)",
+     "conditions": "15 m 기하에서 드론 왕복은 30 m 다 ⇒ 레이다 자신의 지면 반사. ⚠**자세 두 개를 덤프한 결과**다(ref_pose 14·16 / drop_pose 15)",
+     "source": "outputs/elephant_id_0903.json::cells"
+    },
+    {
+     "what": "모서리 회절을 켰을 때 메워지는 양",
+     "value": "el −30 −133.05 → **−97.82** dB (+35.2) · el −90 −110.33 → **−66.25** dB (+44.1)",
+     "conditions": "같은 정본 메쉬 · 15 m · 광선 4e9 · 깊이 2 · 자세 8,192. swR0D0E0F1 → swR0D1E1F1. ⚠D1 조합은 표준 프레임 밖(별도 트랙)이라 헤드라인에 못 쓴다",
+     "source": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_sw{R0D0E0F1,R0D1E1F1}_r15_n8192_mfixbatteryi5_blperairframe_d2].level_db"
+    },
+    {
+     "what": "낙차가 광선·판·모양 흔들기에 안 움직인다",
+     "value": "el −30 에서 원판과 재실행 rep1~rep5 여섯 판 전부 −133.05 dB · 경로 1564 개로 **같다**. 프롭·동체 배율을 흔든 팔도 −135.97 ~ −132.10 dB(폭 3.9 dB)",
+     "conditions": "광선 4e9 · 깊이 2 · 15 m · 정본 메쉬. ps0.7_fs0.7 / ps0.7 / bs0.6 / ps1.4 팔",
+     "source": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_swR0D0E0F1_r15_n8192_rep{1..5}_...] 및 _ps*/_bs* 팔"
+    },
+    {
+     "what": "메쉬가 실물 CAD 대비 안 갖고 있는 것",
+     "value": "제조사 Holybro X500 V2 CAD = 244 인스턴스 · 51 부품종 · 면적 576,790 mm² 이고 그중 **체결구 인스턴스 160 개 · 33,854 mm²**. 우리 x500v2 메쉬 = 18,816 삼각형 · 48 파트 · 428,649 mm². matrice4e 는 광선 간격(7.14 mm) 아래 면적 비율 0.670 · 진짜 모서리 면적 비율 0.402",
+     "conditions": "3.5 GHz 기준. 제조사 CAD 는 치수 대조용으로만 읽었고 기하를 복사하지 않았다",
+     "source": "outputs/mesh_compare_cad.json::{official_cad.holybro_x500v2, ours.x500v2, ours.matrice4e.facets.LTE} · src/viz_cad_compare.py:39-43"
+    }
+   ],
+   "cannot_answer": [
+    "사용자 표의 σ 환산식이 무엇인지 — 이 저장소에 그 σ 표 자체가 **없다**(못 찾았다). 원장 level_db 와 32.2~33.1 dB 의 일정한 차로 이어지는 것까지만 확인했고, 그 32.6 dB 가 어디서 오는지는 못 갈랐다. 참고로 저장소가 쓰는 환산식(outputs/az_falsify_ours.json::_meta.sigma_from_ps = (4π)³R⁴/λ²·|a|²)으로 el 0 을 바꾸면 +38.1 dBsm 이 나온다 — 사용자 값 −30.9 와 69 dB 어긋난다",
+    "«−99.9 dBsm 이 얼마나 틀렸나» 의 절대 판정 — 실측 앵커 없이는 못 한다. docs/VERIFY_RT_VS_PO.md 부록이 «PO 의 절대 RCS 불확실도: 모른다 · 드론의 진짜 RCS: RT 도 PO 도 독립 검증해주지 않는다» 라고 못 박아 두었다",
+    "matrice4e 를 앙각 분해로 잰 실측 — **없다.** 앵커는 Phantom 3(35 cm) 한 기체 · 한 측정체인(Southeast Univ. CATR)뿐이고, Das 와 Yuan 은 같은 원자료다(src/sigma_anchor.py::SOURCE_RELATION). 그리고 그 값은 방위 평균이라 «한 방위에서 앙각을 내리면 어떻게 되나» 는 그 앵커로 답할 수 없다",
+    "실측에서 «한 방위 · 한 앙각» 의 깊은 널이 몇 dB 까지 파이는가 — 저장소의 실측 원장은 방위 평균과 산포(ε)만 갖고 있고 각별 곡선을 안 갖고 있다. Yuan ε 는 선형 진폭 산포(0.068~0.086)이고 Das ε 는 dB 영역 표준편차(5.2~5.7 dB)라 **나란히 놓으면 안 된다**(src/sigma_anchor.py::EPS_UNITS)",
+    "el −90° 에서 정렬면적이 10~19 % 나 되는데 순정 팔 경로가 왜 0 인가 — 정확한 정반사점 허용각을 잰 원장이 **없다**. 내가 삼각형 크기(7.0 mm)와 거리(15 m)로 한 산수(≈0.013°)는 원장이 아니다",
+    "«금속구가 아니라 실제 드론에서 곡면 정반사가 왜 13/13 전부 0 인지» 의 정량 모형 — docs/VERIFY_RT_VS_PO.md 부록이 스스로 «설명은 없다» 고 적어 두었다",
+    "−30° 널의 «가림·투과 물리» 대 «광선격자 공통 편향» 을 못 가른다 — outputs/verify_po_elev_bodynull.json::D_아티팩트_시험_격자사다리.conclusion_ko 가 «이번 라운드로는 둘을 못 가른다, 가림·투과를 끈 커널 대조군이 필요하다» 고 적었고 그 대조군은 아직 없다",
+    "실외 되살아남이 «지면을 거쳐 드론에 닿은 경로» 인지 «레이다 자신의 지면 반사» 인지의 전수 판정 — 자세 두 개 덤프(outputs/elephant_id_0903.json)와 환경항 DC/AC 비(build_report12_outdoor.py AUD) 두 갈래 증거뿐이고, 실외 팔의 경로 목록을 전수로 분류한 원장은 못 찾았다",
+    "우리 커널(SBR+PO) 값과 PathSolver 값을 같은 눈금에서 견주는 것 — docs/CH1_ELEVATION_FINDINGS.md §1 이 «정규화가 달라 −54 대 −125 dB 로 벌어져 있다, 나란히 놓지 않는다» 고 금지해 두었다. 그래서 이 답에서도 두 팔의 level_db 를 빼지 않았다"
+   ]
+  },
+  {
+   "topic": "저장소가 이미 적어 둔 것 — 앙각별 σ · 절대 σ 인용 가능성 · 실측 대조 건수 · 「환경이 레벨을 올린다」",
+   "findings": [
+    {
+     "claim": "⭐질문의 여섯+세 수는 새 현상이 아니다 — 원장 `outputs/elevation_sweep_md.json` 의 `level_db` 에 상수 하나만 더한 값이다. 겹치는 아홉 칸에서 오프셋이 32.31~33.39 dB 로 일정하다.",
+     "evidence": "outputs/elevation_sweep_md.json rows, engine=sionna_p4000000000_swR0D0E0F1_r15_n8192_(rep1_)mfixbatteryi5_blperairframe_d2 : el 0/−15/−30/−45/−60/−75 = −63.24 / −119.71 / −133.05 / −130.09 / −119.60 / −115.71 dB (오프셋 32.34/32.31/33.15/33.39/32.70/32.91) · engine=..._envoutdoor01_... : el 0/−30/−60 = −62.83 / −79.47 / −74.47 dB (오프셋 32.33/32.37/32.37)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⭐⭐그 오프셋 32.34 dB 는 **우리 SBR+PO 팔의 σ 환산 상수**(σ = 4π|E|²/λ², E 가 면적 차원 [m²])다. PathSolver 팔은 무차원 채널계수라 저장소 코드가 **다른 상수**(σ = (4π)³R⁴|a|²/λ², 15 m 에서 +101.36 dB)를 쓰도록 갈라 놓았다. 두 상수 차이가 정확히 **69.03 dB** 다. 즉 σ 축 자체가 저장소 규약과 69 dB 어긋나 있을 수 있다(파이프라인 코드를 못 봐서 귀속은 단정 못 한다).",
+     "evidence": "benchmark/az_falsify_ours.py:25 `K_OURS = 4*np.pi/LAM**2  # σ = K|E|² , E [m²]` · :30 `def k_ps(R): return (4*np.pi)**3 * R**4 / LAM**2` · :67 `K = K_OURS if kind == \"ours\" else k_ps(R)` · benchmark/az_falsify_judge.py:55-59 `sigma_dbsm_from_level = level_db + 10log10((4π)³R⁴/λ²)`. 산술: 10log10(4π/λ²)=32.337 · 10log10((4π)³·15⁴/λ²)=101.365 · 차 69.028 (λ=0.0856550 m @3.5 GHz)",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "저장소 규약대로 환산하면 읽기가 뒤집힌다 — **빗각이 무너진 것이 아니라 el 0 과 실외 칸이 물리적으로 불가능한 쪽**이 된다. 자유공간 빗각은 −31.7 ~ −14.3 dBsm 로 저장소가 가진 소형드론 실측 봉투 안에 든다.",
+     "evidence": "level_db + 101.365: 자유공간 el 0 **+38.1** · −15 −18.3 · −30 −31.7 · −45 −28.7 · −60 −18.2 · −75 −14.3 dBsm / 실외 el 0 **+38.5** · −30 **+21.9** · −60 **+26.9** dBsm. 실측 봉투: refs/drone_papers/Li_Ling_2017…md (3–6 GHz aspect-peak −27.5 ~ −13.7 dBsm) · Ezuma_2019 (−15.0 / −12.4 dBsm) · Semkin_2020 (−16.8 ~ −6.6 dBsm) · Quevedo_2019 (−20 ~ −4.6 dBsm)",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "ⓐ **절대 σ 인용은 금지돼 있다.** 사전등록 판정이 NOT_VALIDATED 이고, 부피등가 PEC 통제군이 4 기체 중 3 에서 우리를 이긴다. 한 문장 판정: 「모양은 믿을 만하고 절대 σ(dBsm)·거기서 나온 절대 탐지거리·널 깊이·가림 dB 는 아니다」",
+     "evidence": "docs/AUDIT_PO_TRUST.md:25 · :94 (`das_fleet_validation.json::prereg_judgement.verdict = \"NOT_VALIDATED (P3 산포)\"`, `P3_spread_db` 문턱 6.0) · :310-313 한 문장 판정 · outputs/das_fleet_validation.json prereg_judgement.P3_spread_db = 16.2025 · box_control._summary.beats_best_control",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓐ **PathSolver 의 레벨은 σ 가 아니다 — 저장소가 «검증」 등급으로 못 박았다.** 금속 평판 변을 0.2→4.0 m 로 키워 σ 를 +52.04 dBsm 바꿔도 되돌아오는 비는 소수 다섯째 자리까지 그대로다. 면적이 Sionna 정반사 진폭식에 안 들어간다. PEC 구는 6/6 조합에서 표적 경로 0 개다.",
+     "evidence": "docs/AUDIT_PO_TRUST.md:141-142 「PathSolver 는 σ 를 안 잰다 ✅검증」 · 「엔진 비교: 레벨 −51.5 vs −117.1 dB ❌비교 자체가 성립 안 함 — Sionna 레벨은 σ 가 아니다」 · outputs/rt_no_rcs_verify.json A_plate[0..4].ratio_db = −7.913447 ~ −7.913449 (sigma_dbsm 4.378→56.4) · C_pec_sphere[0..5].n_paths = 0 · docs/RETRACTION_LOG.md:1066-1069",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓐ **두 팔의 level_db 를 나란히 놓는 것도 이미 금지다** — 정규화가 달라 −54 대 −125 dB 로 벌어져 있고, 원장 자신이 「ours 열은 산란 면적분 E [m²], sionna 열은 채널 h [무차원] · 팔 사이 절대 레벨 비교 금지」를 머리에 달고 있다.",
+     "evidence": "docs/CH1_ELEVATION_FINDINGS.md:49-50 · outputs/verify_elevation_sionna_el0.json `_meta.units_warning_ko` · docs/RETRACTION_LOG.md:1026-1040 I1(얼린 팔 절대 레벨 인용 금지, `abs_level_plate_ptp_db` = 3.452 dB)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ **「앙각별 절대 레벨·널 깊이」는 명시적으로 «못 선다» 로 판정돼 있다** (우리 SBR+PO 팔). 격자 판 3 장 산포가 동체 DC 15.05 dB, 널 깊이 31.89 dB 다.",
+     "evidence": "docs/AUDIT_PO_TRUST.md:136 「앙각: 앙각별 절대 레벨·널 깊이 | B | ❌못 선다 | 격자 산포 15.05 / 31.89 dB」 · :72 표(el −60 P_dc 15.05 dB) · :87 (verify_po_elev_gridladder.json::verdict 31.89 / 22.44 dB)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ **「앙각: 우리 vs PathSolver」는 «아직» 으로 유보돼 있고, 그 이유가 바로 이 현상이다** — 「sionna 팔 레벨이 −59.65 ~ −148.28 dB 로 **90 dB 흔들리고**, el=0 은 물리 상한을 27 dB 초과」.",
+     "evidence": "docs/AUDIT_PO_TRUST.md:137 · :324 「Sionna el=0 의 σ = 2,931 m²(물리 상한 5.8 m² 를 27 dB 초과)의 기전」(미해결 목록)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ⭐**같은 모양을 저장소가 이미 한 번 판정했다 — 그리고 «아티팩트» 라고 부른 쪽은 빗각이 아니라 el 0 이다.** 10 m 판 sionna 팔 레벨은 el 0 −59.65 · el −15~−90 −124.8~−135.45 dB 로 65~76 dB 벌어지고, 판정은 「Sionna PathSolver 의 무한평면 정반사(면 크기 무시) + 같은 경로 3벌 중복」이다. 카메라 렌즈판 42 삼각형(면적 0.0015615 m²)이 시선에 |n·û| = 1.000000000 로 정확히 수직인 자리이고, **앙각을 0.25° 만 틀면 정반사 사본이 0 개가 되고 레벨이 −126.98 dB 로 내려간다.**",
+     "evidence": "outputs/verify_elevation_sionna_el0.json : `_meta.verdict_ko` · `A_ledger_reread.sionna_level_db` (el+0 −59.65 / el−15 −124.8 / el−30 −135.45 / el−45 −125.92 / el−60 −127.86 / el−75 −127.6 / el−90 −130.29) · `B_mechanism_pathdump.el0_spp11111111.dominant` (count 3, object matrice4e_camera, |a| 동일) · `amplitude_law.implied_gamma` 0.99983 (λ/(4πd) 와 소수 4자리 일치) · `C_knife_edge` (el −0.25° → level −126.98, specular_copies 0) · `which_plane.n_triangles` 42 · `area_m2` 0.0015615",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ 그 아티팩트의 크기까지 원장에 있다 — **el 0 의 σ 등가는 참 PO 평판값보다 +48.9 ~ +58.4 dB 크다**(개구를 어떻게 잡느냐에 따라 +39.0 ~ +58.5 dB). 원인의 73 dB 는 재질이 아니라 「면적이 진폭식에 없다」는 엔진의 성질이고, 재질(PEC 카메라)은 12 dB 어치다.",
+     "evidence": "outputs/verify_elevation_sionna_el0.json `B_mechanism_pathdump.sigma_equivalent_m2` : from_one_copy 325.3 m²(+25.12 dBsm) · from_three_copies 2927.0 m²(+34.66 dBsm) · true_PO_plate_4piA2_over_lambda2 0.004176 m²(−23.79 dBsm) · overestimate_db_one_copy 48.9 / three_copies 58.4. outputs/verify_elevation_lensB_el0.json `D_headline_magnitude_is_soft.overestimate_db` (39.0~58.5) · `E_our_material_choice_is_not_the_cause.finding_ko`",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⛔**그러나 저장소는 빗각 레벨이 옳은지는 판정한 적이 없다고 스스로 적어 놓았다** — 「다른 앙각들의 절대 레벨(−125~−135 dB)이 물리적으로 옳은지는 검증하지 않았다. 이번에 판정한 것은 el=0 칸 하나다.」 그러니 「자유공간 값이 무너졌다」도 「빗각이 맞다」도 저장소 근거로는 못 세운다.",
+     "evidence": "outputs/verify_elevation_sionna_el0.json `H_unknown_ko`[2]",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓒ **우리 자신의 실측은 0 건이다.** 「실측 데이터가 0건이다. 우리 σ 는 전부 계산값이다」가 저장소의 자기 서술이다. 상시 문구 「검증: 팔 사이 순서 · 미검증: 절대값 — 실측 대조 0 건」이 여섯 문서에 박혀 있다.",
+     "evidence": "docs/DRONE_ISAC_PRIOR_READING.md §7-2 표 #1 · docs/CLAIM_GATE.md:91 · docs/LINK_BUDGET.md:345 · docs/NOISE_MAIN_RUN_SPEC.md:268 · docs/PAPER_DRAFT.md:225 · docs/PRIOR_WORK_COMPARISON.md:94 · docs/NEW_FILE_RULES.md:126",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓒ **문헌 실측과의 대조는 두 묶음뿐이고, 둘 다 el = 0 평면 · 무향실 · 지면 없음이다.** ① 함대 28 쌍(4 기체 × 7 바이스태틱각, Das IEEE WCL 2026) — 판정 NOT_VALIDATED. ② Phantom 3 3 밴드 절대 σ(우리 SBR+PO 커널) — 5.21 GHz 만 봉투 안, 3.5 GHz −1.20 dB · 1.843 GHz −4.43 dB 미달. **앙각별 실측 대조 0 건 · 지면이 있는 실측 대조 0 건.**",
+     "evidence": "outputs/das_fleet_spec.json `comparison_plan.geometry_rule` (\"…표적 좌표계, el=0\") · `conditions_by_airframe.{phantom3,mini2,m350rtk}.environment_literal = \"Anechoic\"` · `_meta.what` (28 쌍) · outputs/das_fleet_validation.json prereg_judgement.verdict · docs/ENGINE_VALIDATION.md:41-43 · docs/MESH_VALIDATION.md §6.1 표(「규약 μ(f)=10log10(mean_az σ_lin), **el=0**」)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ ⭐**「환경을 넣으면 레벨이 오른다」는 이미 원장에 있고, 값까지 거의 같다** — el 0 **+0.41 dB** · el −30 **+53.58 dB** · el −60 **+45.13 dB**. 질문의 표(+0.4 / +52.8 / +44.8)와 같은 수다.",
+     "evidence": "outputs/outdoor_scene_0901.json `cells.el+0.d_level_db` = 0.41 · `cells.el-30.d_level_db` = 53.58 · `cells.el-60.d_level_db` = 45.13 (level_free_db −63.24 / −133.05 / −119.60, level_outdoor_db −62.83 / −79.47 / −74.47)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ ⭐⭐**그리고 그 +53 dB 의 정체가 이미 갈려 있다 — 표적이 아니라 레이다 자신의 지면 거울 반사다.** 낙차 자세마다 빠지는 그 경로는 `env_ground` 단일 정반사이고, 송신·수신이 같은 자리에서 지면으로 내려갔다 돌아오는 40 m 경로다 — **드론을 거치지 않는다.** 리포트 12 는 λ/(4πd) 대비로 |Γ| = 0.3929 ⇒ ε_r = 5.26 을 뽑아 ITU 콘크리트 5.24 와 맞췄다.",
+     "evidence": "reports/12_outdoor-scene.ipynb cell 0 ⓒ · cell 5 표 · docs/DEEP_DROP_0902.md:474-535 (경로 덤프: |a| 6.711507e−05 · 지연 133.426 ns · 경로 길이 40.000 m · 정반사→env_ground @(+10.61,+10.61,−20.00) · 송신≡수신) · outputs/elephant_id_0903.json",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ **오른 것은 «정지 성분» 이라는 것도 빼서 직접 확인돼 있다** — 환경 항 O−F 는 상대표준편차 2.05e−04 로 사실상 상수이고, 그 **변동(AC)은 드론 변조보다 16.04 dB(el −30) · 17.43 dB(el −60) 작다.** 즉 환경은 표적 σ 를 올린 것이 아니라 0 도플러 클러터를 얹은 것이다.",
+     "evidence": "reports/12_outdoor-scene.ipynb cell 5 표 · cell 7 출처표 [^4][^5][^6] (elevation_sweep_md.npz, 낙차 제외 자세: |mean(O−F)|/mean|F| = +53.68 / +45.23 / −20.24 dB · AC(O−F)/AC(F) = −16.04 / −17.43 / −16.48 dB) · cell 6 「이 절이 고정한 것 ①②」",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓓ **평면 지면이 물리적으로 얹을 수 있는 몫은 저장소 자신이 F⁴ ∈ [−20, +11.5] dB 로 못 박아 두었다**(거리 0.32~1.94 배). 실제 계산값은 4.25 / 9.77 / 11.04 dB 다. **+53 dB 는 그 봉투 밖이고**, 그래서 그 +53 dB 를 「지면이 표적을 밝게 했다」로 읽을 근거가 저장소 안에 없다.",
+     "evidence": "docs/REPORT13_SPEC.md:22 · :105 · :310 · :612 (R1 판정, 「상한선」 철회 · FS-3 2-ray) · outputs/report13_freespace.json `solve.{W1,L1,G1}.fs3_ground.F4_db` = 9.7721 / 4.2494 / 11.0366 (grazing 0.36~0.37°)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "⛔**질문의 실외 표 여섯 칸 중 세 칸(el −15 · −45 · −75)은 원장에 대응 행이 아예 없다.** 저장소의 실외(`envoutdoor01`) 팔은 네 물리 조합 전부에서 **el 0 · −30 · −60 세 앙각만** 존재한다.",
+     "evidence": "outputs/elevation_sweep_md.json — 'envoutdoor' 를 포함한 행 전수 12 개(swR0D0E0F1 / R0D1E1F1 / R1D0E0F1 / R1D1E1F1 × el 0/−30/−60, 전부 r15·d2)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "저장소의 실측 문헌 중 **지면 반사가 실제로 수신 전력을 흔든 것을 잰 것은 한 편**이다 — Demissie 2024 야외 LTE450 실측이 CUT 최대전력의 «진동» 을 「직접경로 + 1 개 반사의 간섭」으로 읽는다. **다만 그 dB 크기는 우리 원장에 적혀 있지 않다.** 나머지 드론 RCS 실측 5 편은 전부 무향실·컴팩트레인지라 지면이 없다.",
+     "evidence": "docs/PRIOR_WORK_COMPARISON.md:896 (Demissie 외, 2024 International Radar Conference (RADAR), DOI 10.1109/RADAR58436.2024.10993905, DJI M210) · :933-934 「야외 실측조차 자유공간이 아니다」 · refs/drone_papers/ 5 편(Li&Ling VNA 턴테이블 · Ezuma 컴팩트레인지 · Semkin 무향실 · Quevedo X-band FMCW · DTMB 패시브) · docs/DRONE_ISAC_PRIOR_READING.md §7-1 #3 「md-* 는 무향실+배경차감이라 지면 반사가 없다. 실측 3편은 무향실」",
+     "confidence": "확인"
+    },
+    {
+     "claim": "참고 — **자유공간 빗각의 «깊은 낙차» 는 이미 별건으로 조사됐고, 저장소는 그것을 결함이 아니라 «날개가 지나가며 가리는 것» 으로 읽는다**(낙차 45 칸 중 42 칸이 자유공간, 블록 간격이 날개 박자 주기 155.53 자세의 1.00 배). 다만 이는 자세별 낙차 이야기이고, **자세 평균 레벨(질문의 표)은 낙차를 빼도 거의 안 움직인다**(+53.67 / +45.21 dB).",
+     "evidence": "docs/DEEP_DROP_0902.md:537-560 (자유공간 el −15 블록 간격 155.0 = 예상 155.53 의 1.00 배 · 위상 쏠림 6.0) · outputs/drop_blocks_0903.json · reports/12_outdoor-scene.ipynb cell 2 결과 1 [^3]",
+     "confidence": "확인"
+    }
+   ],
+   "numbers": [
+    {
+     "what": "자유공간 팔 자세평균 레벨 (질문의 σ 표의 원본)",
+     "value": "el 0 −63.24 · −15 −119.71 · −30 −133.05 · −45 −130.09 · −60 −119.60 · −75 −115.71 dB",
+     "conditions": "스톡 PathSolver · 다 끔 R0D0E0F1 · matrice4e 정본 메쉬 · 3.5 GHz · 15 m · az 0° · 깊이 2 · 자세 8,192 · 광선 4e9 · 확산 켬. ⛔이 값은 무차원 채널계수의 20log10 이지 σ 가 아니다",
+     "source": "outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_swR0D0E0F1_r15_n8192(_rep1)_mfixbatteryi5_blperairframe_d2].level_db"
+    },
+    {
+     "what": "실외 팔(지면 120×120 m 콘크리트 + 건물 4 + 금속 기둥 2) 자세평균 레벨",
+     "value": "el 0 −62.83 · −30 −79.47 · −60 −74.47 dB",
+     "conditions": "같은 팔에 `_envoutdoor01` · **el 0 / −30 / −60 세 칸만 존재한다**. 드론 고도 20 m",
+     "source": "outputs/elevation_sweep_md.json · outputs/outdoor_scene_0901.json cells.*.level_outdoor_db"
+    },
+    {
+     "what": "실외−자유공간 레벨 차",
+     "value": "el 0 **+0.41** · el −30 **+53.58** · el −60 **+45.13** dB (낙차 자세를 빼고 재도 +53.67 / +45.21)",
+     "conditions": "위와 같은 칸. ⭐이 차의 정체는 표적 σ 상승이 아니라 레이다 자신의 지면 거울 반사(0 도플러 정지 클러터)다",
+     "source": "outputs/outdoor_scene_0901.json cells.{el+0,el-30,el-60}.d_level_db · reports/12_outdoor-scene.ipynb cell 7 [^3]"
+    },
+    {
+     "what": "환경 항 O−F 의 성질 — 상수인가 변조인가",
+     "value": "|mean(O−F)| ÷ mean|F| = +53.68 / +45.23 / −20.24 dB · AC(O−F) ÷ AC(F) = **−16.04 / −17.43 / −16.48 dB** · |O−F| 상대표준편차 2.05e−04 / 1.92e−04 / 0.71e−04",
+     "conditions": "el −30 / −60 / 0 · 낙차 자세를 뺀 자세에서. ⚠이 아홉 값은 outdoor_scene_0901.json 에 아직 안 담겨 있고 npz 에서 잰 것이다",
+     "source": "reports/12_outdoor-scene.ipynb cell 5 표 · cell 7 [^4][^5][^6][^19] (outputs/elevation_sweep_md.npz)"
+    },
+    {
+     "what": "평면 지면이 물리적으로 얹을 수 있는 몫 (2-ray 전파계수 F⁴)",
+     "value": "봉투 **[−20, +11.5] dB** (거리 0.32~1.94 배) · 실제 계산값 **9.77 / 4.25 / 11.04 dB**",
+     "conditions": "FS-3 닫힌형 동반 사다리 · ε_r=15 · σ=0.005 · per-leg F=|1+Γ(ψ)e^{−jkΔ}| · 스침각 0.36~0.37° · W1/L1/G1 세 모드",
+     "source": "docs/REPORT13_SPEC.md:22·105·310·612 · outputs/report13_freespace.json solve.{W1,L1,G1}.fs3_ground.F4_db"
+    },
+    {
+     "what": "PathSolver el 0 아티팩트의 크기",
+     "value": "σ 등가 325.3 m²(1벌, +25.12 dBsm) · 2927.0 m²(3벌, +34.66 dBsm) ↔ 참 PO 평판 0.004176 m²(−23.79 dBsm) ⇒ **과대 +48.9 / +58.4 dB** (개구 정의를 넓히면 +39.0 ~ +58.5 dB)",
+     "conditions": "matrice4e · 10 m · az 0 · el 0 · 자세 0 경로 덤프 · 카메라 렌즈판 42 삼각형 0.0015615 m² · 3 벌 중복. 앙각 −0.25° 로 틀면 정반사 사본 0 개, 레벨 −126.98 dB",
+     "source": "outputs/verify_elevation_sionna_el0.json B_mechanism_pathdump.sigma_equivalent_m2 · C_knife_edge · outputs/verify_elevation_lensB_el0.json D_headline_magnitude_is_soft"
+    },
+    {
+     "what": "10 m 판 PathSolver 앙각별 레벨 (같은 모양의 선례)",
+     "value": "el 0 −59.65 · −15 −124.80 · −30 −135.45 · −45 −125.92 · −60 −127.86 · −75 −127.60 · −90 −130.29 dB",
+     "conditions": "matrice4e · 4,096 자세 · az 0 · 깊이 1 · 2026-08-11. 판정 = 「아티팩트(무한평면 정반사 + 3벌 중복)」이며 **판정 대상은 el 0 칸 하나뿐**",
+     "source": "outputs/verify_elevation_sionna_el0.json A_ledger_reread.sionna_level_db · _meta.verdict_ko · H_unknown_ko[2]"
+    },
+    {
+     "what": "PathSolver 가 σ 에 반응하지 않는다는 직접 시험",
+     "value": "평판 변 0.2 → 4.0 m (σ +52.04 dBsm) 에서 ratio_db −7.913447 → −7.913449, p-p **1.9e−06 dB** · PEC 구 6/6 조합에서 표적 경로 **0 개**",
+     "conditions": "챔버 기하 L=15.07 m · β=47.6° · 2026-07 원장. 「면적이 Sionna 정반사 진폭식에 안 들어간다」",
+     "source": "outputs/rt_no_rcs_verify.json A_plate · C_pec_sphere"
+    },
+    {
+     "what": "절대 σ 사전등록 판정",
+     "value": "**NOT_VALIDATED (P3 산포)** · 잔차 산포 **16.20 dB**(문턱 6.0) · 4 기체 중 4 dB 안에 드는 것 2 · 부피등가 PEC 통제군이 4 중 3 에서 우리를 이긴다",
+     "conditions": "우리 SBR+PO 커널 · 4 기체 × 7 바이스태틱각 28 쌍 · Das IEEE WCL 2026 실측 대조 · **el = 0 평면 · 무향실**. ⚠AUDIT_PO_TRUST 는 16.268 로 적었는데 현재 원장은 16.2025 다(옛 판)",
+     "source": "outputs/das_fleet_validation.json prereg_judgement · docs/AUDIT_PO_TRUST.md:94-99"
+    },
+    {
+     "what": "우리 커널의 앙각별 절대 레벨 격자 산포 (그래서 못 쓴다)",
+     "value": "동체 DC **15.05 dB**(el −60) · 널 깊이 **31.89 dB**(el −60) · **22.44 dB**(el −31) · 얼린 판 절대 레벨 3.452 dB · el 0 반 칸 이동 **−11.91 dB**",
+     "conditions": "matrice4e · az 0 · 10 m · 격자 판 3~6 장(λ/12 · λ/12 반셀 · λ/16). λ/24 로 촘촘히 하면 el 0 이동이 +1.45 dB 로 준다",
+     "source": "docs/AUDIT_PO_TRUST.md:72·87·136 · outputs/verify_po_elev_tsladder.json lattice_spread · outputs/verify_po_elev_gridladder.json verdict · outputs/freeze_plate_sensitivity.json verdict.abs_level_plate_ptp_db · docs/GATES_0902.md B1"
+    },
+    {
+     "what": "문헌 실측 대비 Phantom 3 절대 σ (유일한 절대 레벨 대조)",
+     "value": "1.843 GHz −23.23(봉투 대비 −4.43 dB) · 3.5 GHz −19.65(−1.20 dB) · 5.21 GHz −16.86 dBsm(봉투 **안**)",
+     "conditions": "우리 SBR+PO 커널 · 앵커 끔 · div=16 · n_az=720 · 방위평균 · el=0 · Das/Yuan 같은 원자료 1 건. **기체 1 종 · 측정 체인 1 개**",
+     "source": "docs/ENGINE_VALIDATION.md:11·41-43 · outputs/validate_measured_airframe.json 8_comparison.A_absolute_level"
+    },
+    {
+     "what": "저장소가 가진 소형 드론 RCS 실측 봉투",
+     "value": "Li&Ling 3–6 GHz aspect-peak −27.5 ~ −13.7 dBsm · Ezuma 15/25 GHz 방위평균 −15.03 / −12.40 dBsm · Semkin 26–40 GHz 평균 −16.8 ~ −6.6 dBsm · Quevedo X-band 평균 −20 ~ −4.6 dBsm",
+     "conditions": "전부 무향실·컴팩트레인지·VNA 턴테이블. **앙각 미상 또는 el≈0 방위컷**. 지면 없음. 우리 밴드(1.8~6 GHz)와 겹치는 것은 Li&Ling 하나",
+     "source": "refs/drone_papers/{Li_Ling_2017…, Ezuma_2019…, Semkin_2020…, Quevedo_2019…}.md · docs/PRIOR_WORK_COMPARISON.md:532"
+    },
+    {
+     "what": "두 팔의 σ 환산 상수 (질문의 σ 축을 되짚는 데 필요)",
+     "value": "우리 SBR+PO(E [m²]) **+32.337 dB** = 10log10(4π/λ²) · PathSolver(무차원 a, 15 m) **+101.365 dB** = 10log10((4π)³R⁴/λ²) · 차 **69.028 dB**",
+     "conditions": "λ = 0.0856550 m @3.5 GHz. 질문의 표는 원장 level_db + 32.31~33.39 dB 다",
+     "source": "benchmark/az_falsify_ours.py:25·30·67 · benchmark/az_falsify_judge.py:55-59"
+    }
+   ],
+   "cannot_answer": [
+    "**앙각별 σ 의 참값** — 저장소에 앙각을 바꿔 가며 잰 드론 RCS 실측이 0 건이다. 가진 실측 5~6 편이 전부 무향실·컴팩트레인지의 el≈0 방위컷이고, 그중 앙각을 조건으로 적은 것은 Quevedo 한 줄(«prop motion/pol/el 에 따라 −20 ~ −4.6 dBsm»)뿐이라 dB-대-각도 곡선이 없다.",
+    "**자유공간 빗각 레벨(−115~−133 dB)이 물리적으로 옳은지** — 저장소가 스스로 「검증하지 않았다」고 적어 두었다(verify_elevation_sionna_el0.json H_unknown_ko[2]). 그러니 「자유공간이 무너졌다」도 「빗각이 맞다」도 저장소 근거로는 못 세운다.",
+    "**실외 el −15 · −45 · −75 의 σ** — 원장에 대응 행이 아예 없다. `envoutdoor01` 팔은 네 물리 조합 전부에서 el 0 · −30 · −60 세 칸뿐이다. 질문의 그 세 수는 2026-09-07 새 실행이고 이 저장소로는 검산 못 한다.",
+    "**질문의 σ 표가 어떤 코드로 환산됐는지** — 파이프라인을 못 봤다. 확인한 것은 「원장 level_db + 32.31~33.39 dB」라는 산술 사실과, 그 32.34 dB 가 저장소 코드에서 **PathSolver 가 아니라 우리 SBR+PO 팔**에 붙는 상수라는 것뿐이다.",
+    "**지면이 실제 실험에서 드론 수신 전력을 몇 dB 바꾸는가** — 저장소에 그 dB 를 실은 실측 원장이 없다. 가장 가까운 것이 Demissie 2024 야외 LTE450 실측의 「CUT 전력 진동 = 직접경로+반사 간섭」이라는 **정성 서술** 한 줄이고, 진폭은 우리 원장에 안 적혀 있다.",
+    "**드론 σ 의 «물리 상한 5.8 m²»의 출처** — docs/AUDIT_PO_TRUST.md:324 와 outputs/audit_po_trust.json 에 같은 문장으로만 있고, 그 5.8 을 계산한 원장 키를 **못 찾았다.**",
+    "**자유공간 빗각 «깊은 낙차» 의 기전** — 저장소가 미해결로 남겨 두었다(DEEP_DROP_0902.md 「다음 1. 깊은 전멸의 기작 — 왜 그 자세에서 모든 경로 진폭이 57 dB 내려가나」).",
+    "**우리 SBR+PO 커널의 실외 판** — 존재하지 않는다. `--env` 는 PathSolver 씬에만 붙고, `--engine ours` 에 `--env` 를 주면 거부한다(outdoor_scene_0901.json `_meta.ours_absent_ko`). 그래서 「실외에서 두 엔진이 갈리는가」는 이 저장소로 못 묻는다."
+   ]
+  },
+  {
+   "topic": "실외 샤드의 −47 dBsm 은 드론의 에코인가, 지면이 그냥 되쏜 것인가 — 자유공간 짝과 나란히 읽은 수 (Sionna PathSolver · matrice4e 정본 메쉬 · 3.5 GHz · 15 m · 8192 자세)",
+   "findings": [
+    {
+     "claim": "프롬프트의 σ 표를 샤드에서 그대로 재현했다. 쓰인 식은 σ = (4π/λ²)·|E|², λ = c/3.5 GHz, 8192 자세 평균이다. 자유공간 −30.90 / −87.37 / −99.89 / −96.65 / −86.92 / −82.81, 실외 −30.49 / −49.38 / −47.10 / −44.59 / −42.09 / −39.93 dBsm.",
+     "evidence": "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192[_envoutdoor01]_mfixbatteryi5_blperairframe_d2_el{+0,-15,-30,-45,-60,-75}_{00,01}.npz — 키 E, 각 팔 8192 자세(샤드 2 개)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓐ 경로 수로는 설명이 안 된다. 실외의 자세당 경로 수는 자유공간보다 10.7~33.6 % 많을 뿐이다(el −30: 중앙값 1564 → 1893, +21.0 %). 같은 칸에서 전력은 52.79 dB 오른다.",
+     "evidence": "같은 샤드의 npaths 키. el+0 1015→1124(+10.7%) · el−15 1314→1543(+17.4%) · el−30 1564→1893(+21.0%) · el−45 1943→2427(+24.9%) · el−60 2137→2705(+26.6%) · el−75 2318→3098(+33.6%)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓒ 실외 팔에서 |E| 는 자세를 8192 개 돌려도 거의 안 움직인다. el −30 에서 8192 자세 중 8118 개(99.10 %)의 |E| 최대/최소 폭이 0.047 dB 다. 나머지 74 개(0.90 %)는 |E| 가 중앙값의 10 % 아래로 떨어지는 «낙차» 자세다. 같은 칸 자유공간은 낙차를 뺀 뒤에도 폭이 27.84 dB 이고, 중앙값의 ±1 % 안에 드는 자세가 3.02 % 뿐이다.",
+     "evidence": "위 샤드의 E. 낙차 자는 outputs/outdoor_scene_0901.json 규약(benchmark/outdoor_scene_0901.py:88 «|E| < 중앙값 × 0.1»). 실외 낙차 수 el−15 60 · el−30 74 · el−45 83 · el−60 84 · el−75 82; 실외 정상 자세 |E| 폭 0.018 / 0.047 / 0.054 / 0.986 / 0.106 dB",
+     "confidence": "확인"
+    },
+    {
+     "claim": "ⓑ 낙차 74 자세를 뺀 el −30 실외에서, 자세가 바뀌어도 안 변하는 성분(자세평균)은 σ −47.06 dBsm, 자세에 따라 변하는 성분은 σ −103.78 dBsm 이다. 둘의 비 56.73 dB — 변하는 몫이 총전력의 0.0002 % 다. 다섯 앙각에서 이 비는 46.6~63.7 dB 다.",
+     "evidence": "위 샤드. DC = 정상 자세 E 의 복소평균, AC = E − DC. el−15 −49.34/−112.99(63.65 dB) · el−30 −47.06/−103.78(56.73) · el−45 −44.55/−98.41(53.86) · el−60 −42.05/−88.66(46.62) · el−75 −39.89/−90.33(50.44)",
+     "confidence": "확인"
+    },
+    {
+     "claim": "그 «안 변하는 성분» 의 크기는, 드론이 전혀 안 들어가는 닫힌식 — 라디오가 자기 바로 밑 지면을 때리고 돌아오는 거울반사 σ = |Γ|²/(4π·(2h)²), h = 20 − 15·sin|el| — 과 다섯 앙각에서 0.09 dB 안에 맞는다. 예측 폭 9.32 dB 를 실측이 9.45 dB 로 따라간다.",
+     "evidence": "예측/실측[dBsm]: el−15 −49.25/−49.34(−0.09) · el−30 −47.04/−47.06(−0.01) · el−45 −44.56/−44.55(+0.01) · el−60 −42.02/−42.05(−0.03) · el−75 −39.93/−39.89(+0.04). 기하 출처: benchmark/elevation_sweep_md.py:120-130(outdoor01 alt_m=20.0) · :175-189(환경을 −20 m 로 내림) · benchmark/make_outdoor_scene_0831.py:74(지면 120×120 m 평면) · benchmark/report15_probe.py:129-140(라디오 = 원점 + 15 m·û). |Γ|=0.393857 은 src/materials.py:68-73(ITU concrete·두께 0.30 m)과 outputs/report1.json:239(εr 5.24 · σ 0.1231 S/m @3.5 GHz)로 내가 다시 계산한 단층 슬래브 수직입사 값",
+     "confidence": "확인"
+    },
+    {
+     "claim": "el 0° 만 예외다 — 거기서는 거울 예측이 −51.13 dBsm 으로 실측 −30.49 보다 20.64 dB 아래다. 즉 el 0° 에서는 지면이 아니라 드론이 지배한다(자유공간 −30.90 → 실외 −30.49, 차 +0.41 dB).",
+     "evidence": "같은 샤드 · 같은 닫힌식. el+0 예측 −51.13, 실외 DC −30.49",
+     "confidence": "확인"
+    },
+    {
+     "claim": "저장소가 이미 갖고 있는 경로 단위 증거가 같은 곳을 가리킨다. el 0·az45·실외 자세 14 에서 가장 큰 경로 하나의 |a| = 6.711507e−05 이고 경로 길이가 39.99999747 m — 라디오 지면고 20.000 m 의 정확히 2 배다. 같은 닫힌식 |Γ|·λ/(4π·40) = 6.711525e−05 로, 비가 1.00000(−0.000 dB)이다. 그 한 경로가 그 자세 |E| = 6.775105e−05 의 전력 98.13 % 다.",
+     "evidence": "outputs/elephant_id_0903.json : cells[0] top_abs_a=6.711506816587436e-05, path_len_m=39.99999747474095. 그 자세의 |E| 는 샤드 sionna_..._envoutdoor01_az45_..._el+0_00.npz idx=14 에서 6.775105e−05 로 일치",
+     "confidence": "확인"
+    },
+    {
+     "claim": "낙차 자세에서 «사라지는 고정 복소 상수» 도 같은 거울이다. 저장소 문서가 적어 둔 |D| 는 실외 el −30/−45/−60/−75 에서 1.073854e−4 / 1.428976e−4 / 1.914889e−4 / 2.435621e−4 이고, 같은 닫힌식이 1.073844e−4 / 1.428988e−4 / 1.914947e−4 / 2.435633e−4 — 네 앙각 모두 0.0003 dB 안이다. el 0 의 상수 2.298323e−4 는 안 맞고(+10.69 dB), 그 문서가 «자유공간 팔에서도 같은 값» 이라고 따로 적어 둔 것이다.",
+     "evidence": "docs/DEEP_DROP_0902.md §ⓑ 표(«빠지는 것은 고정된 복소 상수 하나다»). 같은 문서가 el −30 에서 |D|/|E| = 1.0018 이라고 적는다 — 내 샤드 계산도 1.073854e−4 / 1.071896e−4 = 1.00183",
+     "confidence": "확인"
+    },
+    {
+     "claim": "실외 총합에서 그 거울 상수를 크기로 뺀 나머지는 1.958e−7 이고, 그것만으로 σ 를 내면 −101.83 dBsm — 같은 칸 자유공간 총 σ −99.89 dBsm 과 1.94 dB 차이다. 즉 실외에서 드론이 실을 수 있는 몫은 자유공간 값보다 크지 않다.",
+     "evidence": "실외 el−30 정상 자세 |E| 중앙값 1.071896e−4, docs/DEEP_DROP_0902.md 의 |D| 1.073854e−4, 차 1.958e−7 → 10log10((4π/λ²)·|차|²) = −101.83 dBsm",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "방위를 돌려도 실외 값은 거의 안 움직이고, 자유공간 값은 크게 움직인다. el −30 실외 자세평균 az0/45/90 = −47.06 / −46.34 / −46.20 dBsm(거울 예측 −47.04 대비 −0.01 / +0.70 / +0.84 dB). 같은 칸 자유공간은 −99.89 / −99.20 / −86.00 dBsm 로 13.89 dB 갈린다.",
+     "evidence": "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192[_envoutdoor01][_az45|_az90]_mfixbatteryi5_blperairframe_d2_el-30_*.npz",
+     "confidence": "확인"
+    },
+    {
+     "claim": "같은 메쉬·같은 거리·같은 σ 식으로 우리 면적분 커널은 앙각 여섯에서 −21.14 / −18.67 / −25.55 / −23.98 / −20.34 / −14.56 dBsm 을 낸다(폭 11.0 dB). PathSolver 자유공간과의 차는 el 0° 에서 9.76 dB, 나머지 다섯 앙각에서 66.58~74.35 dB 다.",
+     "evidence": "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el*_{00,01}.npz (각 8192 자세) 대 위 sionna 자유공간 팔. ⚠두 엔진의 E 정규화가 같다는 보장은 이 저장소에서 못 찾았다(아래 σ 식 항목)",
+     "confidence": "부분확인"
+    },
+    {
+     "claim": "σ[dBsm] 이라는 이름표는 이 팔에 대해 저장소 규약이 아니다. (4π/λ²)|E|² 를 쓰는 코드는 전부 우리 면적분 커널 쪽이고, PathSolver 팔의 원장은 level_db = 20log10(mean|E|) 로만 적는다. 두 값의 차는 상수 32.337 dB 다. 그리고 PathSolver 의 경로 계수 a 에는 1/(4πL) 퍼짐이 이미 들어 있다 — 위 거울 경로가 |Γ|·λ/(4π·40) 과 여섯 자리까지 같은 것이 그 증거다.",
+     "evidence": "benchmark/elevation_sweep_md.py:1002 (level_db=20log10…) · benchmark/outdoor_scene_0901.py:66 (lvl(E)) 대 benchmark/adv_rf_layer_0816.py:114 · benchmark/build_report00_po_case.py:451 («σ = (4π/λ²)·|E|²», 우리 커널). 10log10(4π/λ²) = 32.337 dB",
+     "confidence": "확인"
+    },
+    {
+     "claim": "실외 팔의 수는 재실행에 흔들리지 않는다 — 원판·rep1·rep2·rep3 네 판이 el −30 에서 자세평균 −47.06 dBsm · 변동분 −103.78 dBsm · 낙차 74 개로 전부 같다.",
+     "evidence": "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192[_rep1|_rep2|_rep3]_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_*.npz (씨앗 seed=1 이 benchmark/elevation_sweep_md.py:758 에 박혀 있다)",
+     "confidence": "확인"
+    }
+   ],
+   "numbers": [
+    {
+     "what": "실외 팔에서 자세가 바뀌어도 안 변하는 성분의 σ (el −30)",
+     "value": "−47.06 dBsm",
+     "conditions": "Sionna PathSolver · swR0D0E0F1(확산만 켬) · 깊이 2 · 광선 4e9 · matrice4e 정본 메쉬 · 3.5 GHz · 15 m · az 0 · 8192 자세 중 낙차 74 개를 뺀 8118 자세의 복소평균. σ = (4π/λ²)|E|² (이 식의 성격은 findings 마지막 항목 참조)",
+     "source": "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_{00,01}.npz"
+    },
+    {
+     "what": "드론이 안 들어가는 지면 거울반사 닫힌식의 예측 σ (el −30)",
+     "value": "−47.04 dBsm",
+     "conditions": "σ = |Γ|²/(4π·(2h)²), h = 20 − 15·sin|el| = 12.500 m, 2h = 25.000 m, |Γ| = 0.393857 (ITU concrete εr 5.24 · σ 0.1231 S/m @3.5 GHz · 두께 0.30 m 단층 슬래브 · 수직입사)",
+     "source": "닫힌식은 내 계산. 입력은 benchmark/elevation_sweep_md.py:120-130,175-189 · benchmark/make_outdoor_scene_0831.py:74 · benchmark/report15_probe.py:129-140 · src/materials.py:68-73 · outputs/report1.json:239"
+    },
+    {
+     "what": "예측과 실측의 차 — 다섯 앙각",
+     "value": "−0.09 / −0.01 / +0.01 / −0.03 / +0.04 dB (el −15 / −30 / −45 / −60 / −75)",
+     "conditions": "위 두 항목과 같은 조건. 이 구간에서 예측이 9.32 dB 움직이는 동안 실측이 9.45 dB 움직인다",
+     "source": "위 샤드 여섯 쌍 + 같은 닫힌식"
+    },
+    {
+     "what": "실외 팔에서 자세에 따라 변하는 성분의 σ (el −30)",
+     "value": "−103.78 dBsm",
+     "conditions": "같은 8118 자세, E − 복소평균. 총전력의 0.0002 %. 안 변하는 성분과의 비 56.73 dB",
+     "source": "위 샤드"
+    },
+    {
+     "what": "자유공간 짝의 총 σ (el −30)",
+     "value": "−99.89 dBsm",
+     "conditions": "같은 팔에서 _envoutdoor01 만 뺀 것. 8192 자세 전부",
+     "source": "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-30_{00,01}.npz"
+    },
+    {
+     "what": "자세당 경로 수 — 자유공간 → 실외 (중앙값)",
+     "value": "el+0 1015→1124(+10.7%) · el−15 1314→1543(+17.4%) · el−30 1564→1893(+21.0%) · el−45 1943→2427(+24.9%) · el−60 2137→2705(+26.6%) · el−75 2318→3098(+33.6%)",
+     "conditions": "npaths 키 = 물체를 하나라도 스친 경로 수(benchmark/elevation_sweep_md.py:764-776). 같은 칸에서 σ 는 el −30 기준 52.79 dB 오른다",
+     "source": "위 열두 샤드"
+    },
+    {
+     "what": "실외 팔에서 |E| 가 8192 자세 내내 움직인 폭 (el −30)",
+     "value": "0.047 dB (낙차 74 자세 제외 · 8118/8192 = 99.10 %)",
+     "conditions": "낙차 자 = |E| < 중앙값 × 0.1 (benchmark/outdoor_scene_0901.py:88 규약). 앙각별 폭 0.018 / 0.047 / 0.054 / 0.986 / 0.106 dB",
+     "source": "위 샤드"
+    },
+    {
+     "what": "같은 잣대로 잰 자유공간 팔의 |E| 폭 (el −30)",
+     "value": "27.84 dB (낙차 73 자세 제외). 중앙값 ±1 % 안에 드는 자세 3.02 %",
+     "conditions": "위와 같은 낙차 규약",
+     "source": "위 자유공간 샤드"
+    },
+    {
+     "what": "실외 최대 경로 하나의 |a| 와 경로 길이 (el 0 · az45 · 자세 14)",
+     "value": "|a| = 6.711507e−05, 경로 길이 39.99999747 m",
+     "conditions": "닫힌식 |Γ|·λ/(4π·40 m) = 6.711525e−05 → 비 1.00000. 그 자세 |E| = 6.775105e−05 의 전력 98.13 %. 40.000 m 는 라디오 지면고 20.000 m 의 2 배",
+     "source": "outputs/elephant_id_0903.json cells[0] · 샤드 sionna_..._envoutdoor01_az45_..._el+0_00.npz idx=14"
+    },
+    {
+     "what": "낙차 자세에서 사라지는 고정 복소 상수 |D| 대 거울 닫힌식",
+     "value": "el−30 1.073854e−4 대 1.073844e−4 · el−45 1.428976e−4 대 1.428988e−4 · el−60 1.914889e−4 대 1.914947e−4 · el−75 2.435621e−4 대 2.435633e−4 (모두 0.0003 dB 안)",
+     "conditions": "|D| 는 저장소 문서가 이미 적어 둔 실측값, 오른쪽은 |Γ|·λ/(4π·2h). el 0 의 상수 2.298323e−4 는 안 맞는다(+10.69 dB) — 그 문서가 «자유공간 팔에서도 같은 값» 이라 적은 것",
+     "source": "docs/DEEP_DROP_0902.md §ⓑ 표"
+    },
+    {
+     "what": "같은 메쉬·거리·식으로 잰 우리 면적분 커널의 σ",
+     "value": "−21.14 / −18.67 / −25.55 / −23.98 / −20.34 / −14.56 dBsm (el +0 / −15 / −30 / −45 / −60 / −75)",
+     "conditions": "자유공간 · r15 · 8192 자세 · mfixbatteryi5_blperairframe. PathSolver 자유공간과의 차는 el 0 에서 9.76 dB, 나머지 다섯에서 66.58~74.35 dB. ⚠두 엔진 E 의 정규화가 같다는 근거는 이 저장소에서 못 찾았다",
+     "source": "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el*_{00,01}.npz"
+    },
+    {
+     "what": "이 저장소가 가진 3~6 GHz 드론 RCS 실측 값 (참고 눈금)",
+     "value": "DJI Phantom 2 −27.5 dBsm · 3DR Solo −24.2 dBsm · DJI Inspire 1 −13.7 dBsm (모두 방위 봉우리값), 자세 산포 약 14 dB",
+     "conditions": "Li & Ling 2017, IEEE AWPL · VNA 턴테이블 · 구 교정 S11 · 표적 하나만 놓고 잰 것(지면 없음) · 기체가 우리 것과 다르다",
+     "source": "refs/drone_papers/Li_Ling_2017_Radar_Signatures_Small_Consumer_Drones_IEEE_AWPL.md"
+    },
+    {
+     "what": "σ 이름표 환산 상수",
+     "value": "10log10(4π/λ²) = 32.337 dB @3.5 GHz",
+     "conditions": "PathSolver 팔의 원장은 level_db = 20log10(mean|E|) 만 적는다. 프롬프트의 σ[dBsm] = level_db + 32.337",
+     "source": "benchmark/elevation_sweep_md.py:1002 · benchmark/outdoor_scene_0901.py:66 · benchmark/build_report00_po_case.py:451"
+    }
+   ],
+   "cannot_answer": [
+    "실제 실험에서 지면이 같은 일을 하느냐 — 이 저장소가 가진 드론 RCS 실측 문헌 다섯 편(Li·Ling 2017 VNA 턴테이블 3~6 GHz · Ezuma 2019 compact range 15/25 GHz · Semkin 2020 26~40 GHz · Quevedo 2019 X 밴드 FMCW · DTMB 패시브)은 전부 표적만 따로 놓고 잰 것이다. docs/DRONE_ISAC_PRIOR_READING.md:538 이 실측 세 편은 배경차감 조건이라 지면 반사가 아예 없다고 적어 둔다. 지면 위 드론 RCS 를 실측한 문헌은 이 저장소에서 못 찾았다.",
+    "샤드에서 경로를 물체별로 못 가른다 — npz 에 남는 것은 idx · E · npaths · nret · E_dedup · n_dup 뿐이고 경로별 물체·삼각형 열은 저장되지 않는다(benchmark/elevation_sweep_md.py:800-810). 그래서 «지면만 스친 경로가 몇 개고 전력이 얼마인가» 를 직접 세지 못했다. 경로 단위 증거는 저장소가 이미 떠 둔 덤프 한 칸(outputs/elephant_id_0903.json, el 0·az45·자세 3 개)과 docs/DEEP_DROP_0902.md 의 상수 표뿐이다.",
+    "거칠기 S 축으로는 교차검증을 못 했다 — envoutdoor01_S0.3 / S0.7 판은 자세당 경로 수 중앙값이 1,984,858 / 1,999,977 로 상한 2,000,000(benchmark/report15_probe.py:99)에 붙어 잘려 있다. 그 판의 −22.06 / −33.54 dB 낙폭은 잘린 목록에서 나온 수라 거울 성분의 (1−S²) 감쇠와 견줄 수 없다.",
+    "자유공간 값이 왜 −87~−100 dBsm 까지 내려가느냐의 기전은 이 데이터만으로 못 정한다 — 경로별 물체·삼각형이 안 남아서 «면이 정확히 시선에 수직일 때만 값이 선다» 같은 읽기를 이 샤드로는 확인할 수 없다. 확인한 것은 그 값이 우리 면적분 커널과 앙각 다섯에서 66.6~74.4 dB 갈린다는 사실뿐이다.",
+    "σ = (4π/λ²)|E|² 가 PathSolver 의 경로 계수에 맞는 환산인지 이 저장소는 정하지 않는다 — 그 식을 쓰는 코드는 전부 우리 면적분 커널 쪽이고, PathSolver 팔의 원장은 level_db 만 적는다. 계수 a 가 1/(4πL) 퍼짐을 이미 담고 있다는 것은 거울 경로에서 여섯 자리로 확인했지만, 그러면 어떤 환산이 옳은지에 대한 근거 문서는 못 찾았다.",
+    "실외 팔의 «안 변하는 성분» 안에 드론(에어프레임)의 몫이 얼마나 섞였는지는 크기만으로 못 가른다. 크기가 거울 닫힌식과 0.01~0.09 dB 안에 맞는다는 것은 확인했으나, 직각으로 더해진 성분은 크기 일치만으로 배제되지 않는다."
+   ]
+  }
+ ],
+ "verdicts": [
+  {
+   "claim": "우리 대역(1.8~18.2 GHz)에서 소형 쿼드(DJI Phantom 3, 대각 35 cm, 높이 20 cm)를 실제로 잰 것은 한 캠페인뿐이다 — Yuan·Yu·Li·Fan, EuCAP 2025, 무향실 CATR 원거리장, VV 편파, 방위 −90°:2°:90°. Das(IEEE WCL 2026)의 Phantom 3 행은 같은 원자료의 재분석이라 «독립 앵커 2건»이 아니다.",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "실측",
+   "correction": "■ 맞는 절반 — 인용 자체는 전부 원문에 있다 (내가 PDF 를 직접 열어 확인)\n\n1) Yuan PDF p.2 §II-A 축자: «The sensing target, referred to as the device-under-test (DUT), is the DJI Phantom 3, featuring four symmetrical rotors with a horizontal diagonal of 35 cm and a height of 20 cm.» 주장의 말줄임은 «featuring four symmetrical rotors with a» 만 건너뛰었고 문맥 왜곡 없다. 같은 쪽에서 1.8–18.2 GHz · 2801 점 · φ=[−90°:2°:90°] · θ={90°,0°,180°} · «vertically polarized directional antennas»(=VV) · «A compact antenna test range (CATR) scheme … to assess the far-field RCS» 도 전부 확인된다. 교정체는 반경 17.8 cm 금속구(σ=−10 dBsm), 배경차감+6차 Kaiser 레인지게이팅 — **틀림없는 실측**이다.\n\n2) «Das 는 독립 재현이 아니다» 도 맞다. 우리 문서(docs/RETRACTION_LOG.md:107 A2 · docs/ANCHOR_SUBBAND.md:227~228 · docs/FLEET_VALIDATION.md:429~431)를 넘어 Das PDF 원문에서 직접 확인했다 — p.3731 축자: «The DJI Phantom 2 dataset is newly measured in this work, whereas the RCS data for the DJI Mini 2, Phantom 3, and M350 RTK were obtained from [7] and are further processed and analyzed here». p.3735 ACKNOWLEDGMENT 축자: «The authors would like to thank Prof. Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.» (docs/DRONE_ISAC_PRIOR_READING.md:108 의 인용과 글자 단위로 일치). Das Table I(p.3732) Phantom 3 열 = 35 cm×20 cm · 1.8–18.2 GHz · 2801 점 · −90°≤φ(=2°)≤90° · Far-field · Anechoic — Yuan §II-A 와 완전히 같다. ⭐다만 Das 가 대는 출처는 [7] = Wang·Zhang·Ren·Fan·Yuan·Wang, China Commun. 2025 이지 Yuan EuCAP 2025 자체가 아니다. «같은 그룹·같은 원자료» 는 서고, «Yuan 논문의 재분석» 이라고 못 박으면 반 발짝 과하다.\n\n■ 틀린 절반 — «한 캠페인뿐» 은 이 저장소 안에서 무너진다\n\n(a) **Ezuma 외, arXiv:1911.05926(2019), PDF 디스크에 있음** (/data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf). NC State, 콤팩트레인지 무향실 + Keysight E8362B VNA + 12인치 PEC 구 교정, 방위 φ∈[0°,360°] 2° 스텝, **15 GHz 와 25 GHz**. 15 GHz 는 1.8~18.2 GHz **안**이다. 동반 논문 arXiv:2102.11954 는 소형 상용 6기종(DJI Phantom 4 Pro 350 mm 포함)의 15 GHz **VV** 평균 σ 를 −11.67~−17.06 dBsm 로 표로 준다(docs/REFERENCE_LIBRARY.md:1063~1077 · docs/DRONE_SPECS.md:118). 완전히 독립된 그룹·챔버·교정체다.\n\n(b) **Das 의 Phantom 2 는 신규 실측이고 같은 크기다.** Das Table I(p.3732): Phantom 2 치수 **35 cm × 20 cm — Phantom 3 와 동일**, 11–26 GHz(⟶ 11~18.2 GHz 가 겹침), 2001 점, 근거리장 2.6 m, 통제 비무향 실내. 측정 체인이 오울루로 갈린다(docs/FLEET_VALIDATION.md:430). 즉 「35×20 cm 쿼드」 기준으로 보면 대역 안 캠페인은 최소 2 건이다.\n\n(c) **Ezuma 논문 p.1 이 또 하나를 지목한다** — 축자: «In [8], RCS is measured in the H-H plane in an anechoic chamber at a frequency of **2.4 GHz and 24 GHz** … the average RCS of the **DJI Phantom 3** drone is about −13 dBsm at 24 GHz». 2.4 GHz 는 우리 운용대역 한복판이다. 그 [8] 원문은 이 저장소에 없지만, **Phantom 3 조차 «한 번만 재어졌다» 고 말하면 안 된다**는 근거로는 충분하다.\n\n(d) Li & Ling, IEEE AWPL 2017 — 3–6 GHz VNA 구보정, Phantom 2 −27.5 · 3DR Solo −24.2 · Inspire 1 −13.7 dBsm(peak) (docs/DRONE_SPECS.md:117). 우리 대역 정중앙이다. 단 등급 [N]·PDF 디스크 부재라 2차 정보다. Quevedo 외, IET RSN 2019, X대역 8.75 GHz FMCW, Phantom 4 −20~−4.6 dBsm 도 대역 안이다(docs/DRONE_SPECS.md:121, 원장뿐 PDF 없음).\n\n■ 대역 이름표도 틀렸다\n«우리 대역(1.8~18.2 GHz)» 은 Yuan 의 **측정 대역**이지 우리 대역이 아니다. 이 저장소가 스스로 적은 우리 대역은 docs/REFERENCE_LIBRARY.md:110 «우리 대역(1.8-5.2 GHz)», docs/FLEET_VALIDATION.md:433 «우리 운용대역(1.8–6.0 GHz)» 이다. 앵커의 대역을 우리 대역이라 부르면 «그 앵커만 전 구간을 덮는다» 는 결론이 정의상 보장돼 버린다 — 스스로에게 유리한 순환이다.\n\n■ 살아남는 정확한 문장\n«Phantom 3 를 1.8–18.2 GHz 전 구간·무향실 원거리장으로 훑은 캠페인은 이 저장소 안에 Yuan 하나뿐이고, Das 의 Phantom 3 행은 그 원자료를 Wei Fan 그룹에서 받아 재가공한 것이라 독립 재현이 아니다.» — 여기까지만 서고, 「대역 안 소형 쿼드 실측이 하나뿐」 은 서지 않는다.\n\n■ ⭐사용자 질문(«지면 효과가 실제 실험에서 일어나느냐»)에 대해서는 — **이 저장소에 답할 실측이 하나도 없다**\n- 실측 앵커 3편은 전부 무향실이다. docs/DRONE_ISAC_PRIOR_READING.md:538 축자: «md-* 는 무향실+배경차감이라 **지면 반사가 없다**. 실측 3편은 무향실». Ezuma·Semkin·Azim 도 전부 챔버다. 즉 **지면이 있는 조건에서 드론 σ 를 잰 원장 항목이 없다.**\n- 앙각도 안 맞는다. docs/DRONE_ISAC_PRIOR_READING.md:123 인용 mono3d §II-A: «Three UAV elevation sides including the azimuth plane, top, and bottom, were considered» → θ={90°,0°,180°} 뿐. unified-rcs 는 «elevation angle fixed at 90°». docs/DRONE_ISAC_PRIOR_READING.md:337: «문헌 실측은 전부 수평면(el=0°)».\n  ⟹ 문제의 −15°/−30°/−45°/−60°/−75° 행은 **문헌 대응점이 0 개**다. 자유공간 −99.9 dBsm 도, 실외 −47.1 dBsm 도, 실측으로는 맞다 틀렸다 어느 쪽도 말할 수 없다. 「환경이 +53 dB 를 더한다」 를 실측으로 뒷받침하려는 시도는 이 저장소 안에서는 출발점 자체가 없다.\n\n■ 부가 경고 두 개\n- docs/REFERENCE_LIBRARY.md:1059·1764 에는 아직 «같은 DJI Phantom 3 를 대상으로 한 **두 편의 무향실 측정**(Das, Yuan)» 이라는 초안 문장이 살아 있다. RETRACTION_LOG A2 와 정면으로 어긋난다 — 인용 전에 정리 필요.\n- 우리 앵커 곡선은 Yuan 의 2801 점 원자료가 아니라 **Fig.5(a) 폴리라인을 699 점으로 읽어낸 디지타이즈**다(docs/ANCHOR_SUBBAND.md:216~219). 실측 파생이긴 하나 원자료가 아니며, 원자료는 아직 확보 못 했다(같은 문서 «남는 구멍» 4번)."
+  },
+  {
+   "claim": "Yuan 은 «세 앙각 면»(방위면 θ=90°, 위 θ=0°, 아래 θ=180°)을 실측했고, 3.5 GHz 에서 세 면의 평균 σ 는 −15.05 / −17.11 / −16.51 dBsm, 최대차 2.07 dB 다 → 즉 «앙각 의존성을 잰 실측이 있고 값은 2 dB 급» 이다.",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "실측",
+   "correction": "■ 원문·원장 대조 결과 — 인용은 진짜다\nPDF 를 직접 열어 텍스트층을 뽑아 확인했다.\n  PDF: /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf\n  (추출본: /tmp/claude-0/-workspace/8ed65148-4553-4ebc-8477-9670ae39b001/scratchpad/yuan.txt)\nⓐ p.2 §II-A 축자 (추출본 144–146행): \"The rotation spans from −90° to 90° (given the UAV's symmetry) in increments of 2°, i.e., ϕ = [−90°:2°:90°]. Three UAV elevation sides including the azimuth plane, top, and bottom, were considered in the measurements, i.e, θ = {90°, 0°, 180°}.\" → 있다.\nⓑ p.4 §IV 축자 (추출본 335–338행): \"{0.315, −16.15, 0.0045, 0.07}, {0.231, −17.92, 0.0024, 0.06}, and {0.175, −17.12, 0.0019, 0.07} for θ = 90°, θ = 0°, and θ = 180°\" → 있다.\nⓒ 수도 맞는다. μ=a·f+b 에 f=3.5 를 넣으면 −15.0475 / −17.1115 / −16.5075, 최대차 2.064 dB. outputs/rcs_anchor.json:114 / :141 / :168 이 그 값을 그대로 들고 있고, outputs/prior_settled_anchor.json:371–381(B2)·:404–413(B4) 가 이미 VERIFIED 로 정산해 두었다.\nⓓ **실측이다.** 무향실 CATR·VNA·금속구(반경 17.8 cm, σ=−10 dBsm) 교정·배경차감·거리게이팅 (추출본 121–205행). 시뮬 출력이 아니다.\nⓔ 논문 자신도 같은 방향을 축자로 적는다 — p.3 §III (추출본 222행): \"the averaged RCS values at θ = 90° are slightly larger than those at θ = 0° and θ = 180°.\"\n\n■ 그러나 세 군데가 틀렸거나 과하다 — 이 근거로 우리 표를 반박하면 안 된다\n\n1) ⭐**«2 dB» 는 실측값이 아니라 회귀직선을 읽은 값이다. 실측은 3.16 dB 다.**\n   Yuan 이 공표한 것은 1.8~18.2 GHz **전대역** 직선계수 (a,b) 뿐이고, 3.5 GHz 값은 그 직선에 3.5 를 대입한 것이다. 논문 스스로 p.4 에서 \"albeit at the expense of some errors\" · \"despite some deviations\" 라고 적는다.\n   이 저장소에는 Fig.5 의 **측정 곡선을 PDF 벡터경로에서 복원**하는 스크립트가 이미 있다 — /workspace/sionna/benchmark/verify_comparability_yuan.py. 돌려 보았다 (자기검증: 눈금잔차 0.0022 dB, 복원한 회귀직선이 공표계수와 Δa≈0.000~0.0005·Δb≈+0.09~0.15 dB → 복원 정확도 0.15 dB 급).\n     3.5 GHz 실측 방위평균 : θ90 −12.68 / θ0 −15.84 / θ180 −14.79 dBsm → **최대차 3.16 dB** (공표직선은 2.06 dB)\n     우리 밴드 1.9~5.21 GHz 안에서 세 면 최대차 : 최소 0.51 · 중앙 2.24 · **최대 5.75 dB**\n     전대역 1.9~18.0 GHz : 최소 0.51 · 중앙 3.08 · 최대 5.75 dB\n   또 공표직선끼리도 2 dB 로 고정이 아니다 — 세 기울기가 달라서 1.8 GHz 1.92 dB → 5.21 GHz 2.21 dB → 18.2 GHz 3.52 dB 로 벌어진다.\n   → «2 dB 급» 은 «몇 dB 급» 으로 고쳐 써야 한다. 「2.07 dB」라는 한 자리 숫자로 못 박으면 실측을 잘못 옮기는 것이다.\n\n2) ⭐⭐**Yuan 은 «앙각 의존성» 을 잰 게 아니다 — 자세 세 개를 쟀다. 우리 표의 −15°~−75° 에는 실측점이 하나도 없다.**\n   θ = 90/0/180 은 옆에서·위에서·아래에서 본 **세 자세**다 (Fig.1 은 DUT 를 θ∈{0°,90°,180°} 로 다시 놓는 그림이다). 우리 표의 앙각 −15/−30/−45/−60/−75 에 대응하는 측정은 **0 개**다. 겹치는 것은 우리 +0° 행(θ=90) 하나뿐이고, 가장 가까운 이웃인 θ=0(위에서)조차 우리 −75° 에서 15° 떨어져 있다.\n   → 「앙각 의존성을 잰 실측이 있다」는 과잉이다. 정직하게 쓰면 **「우리 스윕의 두 끝을 실측이 감싸는데, 그 두 끝 사이가 몇 dB 밖에 안 벌어진다」** 이다. 그 사이가 어떻게 생겼는지는 이 실측이 말해 주지 않는다.\n\n3) ⭐⭐⭐**Yuan 은 무향실이다 — 사용자가 물은 «지면» 에 대해 아무 말도 못 한다.**\n   배경차감(Eq.1)과 거리게이팅으로 지면·주변 산란을 **일부러 지운** 자료다. 그러므로 이 근거는 우리 표의 **자유공간 칸에만** 걸 수 있고, 실외 칸(+53 dB 어쩌고)에는 걸 수 없다.\n   저장소 자신도 같은 말을 한다 — outputs/verify_ground_kernel.json:6 : \"⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 … **실측 대조는 0 건이다**.\"\n   → 사용자의 «실제 실험에서 그런 현상이 일어나느냐» 에 대한 정직한 답은 «이 저장소가 가진 실측으로는 답할 수 없다» 이다.\n\n■ 반박에 쓸 수 있는 더 센 실측 문장 (2 dB 말고 이것을 써라)\n   p.3 §III 축자 (추출본 221행): \"the overall RCS values range from **−40 dBsm to 5 dBsm**\".\n   91 방위 × 2801 주파수 × 세 면 전부를 통틀어 가장 낮게 찍힌 값이 −40 dBsm 이다. 우리 −99.9 dBsm 은 그보다 **60 dB** 아래다. 「−99.9 는 말이 안 된다」를 실측으로 받치려면 세 면 사이 2 dB 가 아니라 이 −40 dBsm 바닥을 인용하는 편이 옳다.\n   ⚠단 논문은 장비의 동적범위·잡음바닥을 **적지 않는다**(추출본에서 \"dynamic range\"·\"noise floor\"·\"SNR\" 문자열 0 건). 그러므로 −40 dBsm 이 표적의 바닥인지 측정의 바닥인지 논문만으로는 못 가른다. 이 단서를 빼고 쓰면 안 된다.\n\n■ 함께 붙여야 할 비교가능성 단서 (빠뜨리면 사과-대-오렌지)\n  ⓐ **기체가 다르다.** Yuan = DJI Phantom 3(대각 35 cm·높이 20 cm, p.2 §II-A). 우리 정본 메쉬 = DJI Mavic 4 Pro (refs/drone_papers/Li_Ling_2017_...md:14 가 우리 현행값 출처를 rcs.drones.**mavic4pro** 로 못 박는다).\n  ⓑ **통계량이 다르다.** Yuan 의 세 수는 각 주파수에서 **91 개 방위각의 평균**이다 (p.4: \"The fitting considers the RCS values across various azimuth angles at a given frequency and elevation side\"). 우리 표가 한 자세 값이면 나란히 놓을 수 없다.\n  ⓒ **평균의 규약을 논문이 안 밝힌다.** outputs/prior_settled_anchor.json:433–446 (B7, verdict **UNVERIFIED**): \"Yuan never defines its mean statistic beyond 'the mean value in dBsm'\" · \"our 'linear azimuth mean' label rests on … OUR back-calculation … not on any sentence.\" rcs_anchor.json:111 이 붙여 둔 \"linear azimuth mean (10log10 E[σ])\" 라벨은 우리 추론이지 원문이 아니다.\n  ⓓ Yuan 은 모노스태틱 전용 — 바이스태틱은 명시적 future work 다 (prior_settled_anchor.json:482–491, B11).\n  ⓔ 앞선 세대 정산이 이미 경고한다 — prior_settled_anchor.json 의 anchor_health_today.coverage: \"One airframe, one laboratory, monostatic only, VV only, **one elevation cut**\".\n  ⓕ Das 와 Yuan 은 독립 2 건이 아니다 — 같은 Southeast Univ. CATR 원자료다 (rcs_anchor.json:181 source_relation).\n\n■ 한 줄\n  인용문·수·원장은 전부 진짜고 실측도 맞다. 그런데 ⓐ「2.07 dB」는 회귀직선을 읽은 수이고 실측은 3.16 dB(우리 밴드 안 최대 5.75 dB), ⓑ 그것은 «앙각 의존성» 이 아니라 «자세 셋» 이며 우리 −15°~−75° 에는 실측점이 0 개, ⓒ 무향실이라 사용자가 물은 지면 이야기에는 아예 쓸 수 없다. 세 단서를 달지 않고 이 근거를 내세우면 «시뮬 출력을 실측이라 부른 전과» 와 같은 종류의 잘못을 저지르는 것이다."
+  },
+  {
+   "claim": "「논문 자신이 그 차이를 «약간»(slightly)이라고 쓴다 — 앙각을 바꿔도 평균이 조금 움직인다는 것이 실측 저자의 표현이다」 (근거: Yuan 외 EuCAP 2025, p.3 축자 \"the averaged RCS values at θ = 90° are slightly larger than those at θ = 0° and θ = 180°\")",
+   "verdict": "맞다",
+   "is_measured": "실측",
+   "correction": "반박을 시도했으나 핵심은 뒤집히지 않았다. 확인한 것:\n\n[1] 인용은 축자로 존재한다. PDF /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf 를 열어 텍스트를 뽑았다(전 5쪽). p.3 III절: \"Fig. 3 illustrates the measured UAV RCS. It is observed that the overall RCS values range from −40 dBsm to 5 dBsm, and the averaged RCS values at θ = 90° are slightly larger than those at θ = 0° and θ = 180°.\" 같은 문장이 p.5 결론에도 다시 나온다. 저장소 원장 사본은 /workspace/sionna/outputs/validation_feasibility.json:199.\n\n[2] 실측이다 — 시뮬이 섞이지 않았다. 무향실 + CATR + 2포트 VNA + 반경 17.8 cm 금속구(σ_Cal = −10 dBsm) 교정, 배경차감 → 6차 Kaiser 게이팅. PDF 전문에서 FEKO·CST·full-wave·ray 는 0회, \"simulat\" 2회는 둘 다 남의 논문 참조([13] Xie 의 RCS simulation)다. 저장소 판정도 같다: /workspace/sionna/docs/REFERENCE_LIBRARY.md:1053 「엔진 / 실측 — 실측」.\n\n[3] 「앙각」이라는 말은 우리가 붙인 게 아니라 논문 자신의 말이다. Fig.3 캡션: \"UAV RCS versus the frequency and azimuth angle for different elevation angles, i.e., (a) θ = 90°, (b) θ = 0°, and (c) θ = 180°.\"\n\n[4] «약간» 이 몇 dB 인지 독립 재계산했다. 저장소 도구 /workspace/sionna/benchmark/verify_comparability_yuan.py 로 Fig.5 의 'Measured' 곡선을 PDF 벡터경로에서 직접 복원해 재계산(축 눈금 잔차 0.002 dB, 재회귀 계수가 공표 a,b 를 재현):\n  · 3.5 GHz 실측곡선: θ=90° −12.68 / θ=0° −15.84 / θ=180° −14.79 dBsm → 최대-최소 3.16 dB\n  · 1.8–18.2 GHz 전 구간 앙각 간 벌어짐: 최소 0.57 · 최대 5.72 · 평균 3.06 dB\n  · 공표 회귀식(μ = a·f + b)으로는 3.5 GHz 에서 −15.05 / −17.11 / −16.51 dBsm, 전 구간 1.92~3.52 dB\n저장소 원장의 수치와도 맞는다: validation_feasibility.json §3e 「Yuan's own theta=90 and theta=0 differ by 2.065 dB on average over our bands」. 즉 «slightly» = 대략 2~3 dB 이고, 우리 자유공간 표의 0°→−75° 51.9 dB, −30° 의 −99.9 dBsm 과 같은 자리에 놓을 수 없다. Yuan 이 측정한 **단일 시선** RCS 조차 −40 dBsm 이 바닥이다 — −99.9 는 그 바닥보다 60 dB 아래다.\n\n⚠ 다만 이 인용만으로 사용자 물음에 다 답했다고 하면 안 된다. 세 가지 한계:\n\n(a) **Yuan 은 무향실이다. 지면이 없다.** p.2 \"conducted in an anechoic chamber\". 그러므로 이 인용은 「자유공간 값이 무너진 것이 진짜 현상」쪽만 반박하고, 「지면이 +53 dB 를 더하느냐」는 **한 글자도 답하지 못한다**. 지면 효과를 실측으로 뒷받침하는 문헌은 이번에 못 찾았다.\n\n(b) **앙각을 3점만 쟀다.** θ = {90°(방위면), 0°(위), 180°(아래)} 뿐이고 각 점마다 방위 91점(−90:2:90)이다. 우리 −15/−30/−45/−60/−75° 는 Yuan 규약으로 θ=105~165° 인데 **하나도 측정된 적이 없다**. Yuan 은 우리 스윕을 «양끝에서 감쌀» 뿐 «훑지» 않는다. 그래서 중간 앙각의 좁고 깊은 널을 배제하지는 못한다 — 그리고 우리 저장소가 이미 그 널을 스스로 진단해 두었다: /workspace/sionna/outputs/verify_po_elev_bodynull.json 은 동체 패턴의 깊은 널이 3 dB 폭 1.0~2.5° 이고 −31.0°·−60.0° 에 앉아 있으며(C_널은_얇다), 그 **깊이**가 광선격자 6판에서 22.4~31.9 dB 흔들린다고 적는다(D_아티팩트_시험). 즉 «−99.9 는 못 믿는다»는 결론은 Yuan 없이도 우리 안에서 독립적으로 나온다.\n\n(c) **Yuan 은 \"averaged\" 를 어떻게 냈는지 안 적는다.** §IV 는 μ = a·f + b 를 \"the mean value in dBsm\" 이라고만 하고, dB영역 평균인지 선형영역 평균인지 말하지 않는다. 저장소도 그렇게 기록한다: REFERENCE_LIBRARY.md:1685 「RCS 평균: Das 는 방위 선형평균(III-1 절), **Yuan 은 정의 미상**」. 두 규약 차이는 2.5068 dB 로 «slightly» 자체와 같은 크기다. 따라서 \"2.07 dB\" 를 소수 둘째 자리까지 확정값처럼 인용하지 말고 \"2~3 dB 급\" 으로 써라.\n\n정리하면 — 인용은 진짜고, 실측이고, 문맥을 왜곡하지 않으며, 수도 원장과 맞는다. 쓸 수 있는 문장은 이 정도다: 「실물 소형 쿼드로터를 무향실에서 잰 측정은, 방위면·위·아래 세 면의 방위평균 RCS 가 서로 2~3 dB 밖에 안 다르다고 보고한다(Yuan 외, EuCAP 2025, p.3). 단일 시선 값의 전체 범위도 −40~+5 dBsm 이다.」 여기에 「그러므로 지면이 +53 dB 를 더한다/안 더한다」를 붙이면 안 된다 — 그 실험은 존재하지 않는다."
+  },
+  {
+   "claim": "「앙각을 통째로 훑은 실측이 하나 있다 — Semkin 외(IEEE Access 2020, 26~40 GHz, 무향실, 5.8 m)가 기체마다 아래 반구 전체(θ∈[−90°,90°], φ∈[0°,180°], 1° 스텝)를 쟀고, 그 이유가 정확히 '지상 레이더가 드론을 올려다보는 상황'이다」 — 그리고 이것을 «지면 효과가 실제 실험에서도 일어나느냐»는 물음의 답으로 내놓는 것.",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "섞임",
+   "correction": "■ 인용 자체는 축자로 맞다 (pdftotext 로 독립 재추출해 확인)\n\nPDF /data/public/sionna/sionna_jeong/papers_isac_sionna/new_0731/ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf\n· p.4(지면 48960, II-B절) 축자: \"First, the object is rotated in the azimuth plane (θ-axis), then it is rolled around the center axis (φ-axis). Angular ranges were set to θ ∈ [−90◦, 90◦] and φ ∈ [0◦, 180◦] with steps of 1◦. For each UAV, the bottom hemisphere was measured. In this way, we replicate the realistic scenario when the UAV is illuminated by a radar station located on the ground.\" → 주장이 옮긴 문장 그대로. 문맥 왜곡 없음.\n· p.4 축자: \"measurements were performed in an anechoic chamber at Aalto University, Finland\" / \"The distance R between the test antennas and the OUT is 5.8 m.\"\n· p.7 그림5 캡션 축자: \"Monostatic RCS of drones from the Group I, with respect to the azimuth and elevation angles. Left(right) column corresponds to measurements at 28(38) GHz.\" p.8 그림6은 Group II 로 같은 문장.\n· /workspace/sionna/outputs/capability_matrix.json:2318 에 그림6 캡션이 그대로 들어 있다. 확인.\n· 원장 /workspace/sionna/outputs/reference_library.json:3421 도 \"Aalto 무향실 · band=26-40 GHz · range_m=5.8\" 로 일치.\n\n■ 그런데 이 논문은 사용자의 물음에 답하지 못한다 — 여기가 결정적이다\n\n측정 장소가 **무향실**이다. 지면도 건물도 기둥도 없는, 반사를 없애려고 만든 방이다. \"지상 레이더가 올려다보는 상황을 재현한다\"는 문장은 **보는 방향**(아래 반구)만 재현했다는 뜻이지, 지면 반사를 넣었다는 뜻이 아니다. 논문 p.4 축자 근거: \"To ensure that the only reflections present were from the target, measurements were performed in an anechoic chamber\" — 표적 말고는 아무 반사도 없게 하려고 그 방을 썼다고 스스로 적는다.\n\n그러니 이 측정은 우리 표의 «실외» 열이 아니라 **«자유공간» 열에 대응하는 실측**이다. 「환경이 +53 dB 를 더한다」도, 「지면이 왜 큰 영향을 줘」도 이 논문으로는 지지도 반박도 못 한다. 이 문헌을 그 물음의 답으로 내놓으면 과잉 결론이다.\n\n■ 실측/시뮬 가르기 (지시받은 대로)\n\n· 반구 훑기(그림 4~7, 10~12) = **실측**. VNA + 표준이득 혼(Tx) / 이중편파 Vivaldi 혼(Rx), 28·38 GHz. 캡션이 \"corresponds to measurements at 28(38) GHz\" 로 명시.\n· ⚠ 그런데 같은 논문에서 **앙각 곡선처럼 생긴 그림 9**(\"Simulated RCS signatures of different drone parts and full drone model\", RCS vs Theta, φ=0°·45°)는 **CST Microwave Studio 적분방정식 솔버 시뮬**이다. PEC 재질, 프로펠러를 평면으로 근사(p.9 축자: \"The propellers are assumed to be flat in order to simplify the model\"). 우리 표와 가장 비슷하게 생긴 그림이 하필 시뮬 쪽이다 — 이걸 실측으로 옮기면 정확히 이 저장소가 저지른 적 있는 그 실수가 된다.\n· 교정 육면체(그림 3b)도 측정 + CST 광선추적 시뮬 비교다.\n→ 논문 전체는 섞임. 주장이 가리킨 반구 훑기만 놓고 보면 실측.\n\n■ 주장이 빠뜨린 조건들 (인용해도 그대로 우리 표 옆에 놓을 수 없다)\n\n1) 대역: 26~40 GHz. 우리는 3.5 GHz — 7~11배. 저장소 자체 원장이 이미 금지한다. reference_library.json:6528 「드론 RCS 실측은 대부분 15 GHz 이상이다(Semkin 26-40 …). 우리 대역(1.8-5.2 GHz)을 직접 덮는 것은 Das(1.8-27 GHz) 와 Costa(5.78-8.22 GHz) 정도다.」 Semkin cautions 항목도 「26-40 GHz 측정이다 … 인용은 하되 외삽은 하지 말 것.」\n2) 원거리장이 아니다: p.6 축자 \"obtained results are presented for the near-field (NF) or semi-far-field, depending on the frequency and the measured object\" + \"the measurements were performed only for one Tx polarization and only for bottom hemisphere, which complicates the NF to FF transformation and is not in a scope of this paper.\" 거리 5.8 m vs 우리 15 m.\n3) 모노스태틱이 아니라 **quasi-monostatic**이다. p.3 축자 \"we perform quasi-monostatic RCS measurements\". 원장도 \"sub\":\"quasi-mono\" (reference_library.json:3419).\n4) ⚠ 「앙각」이라는 말은 논문 문장이 아니다. 논문은 θ 를 **azimuth plane 축**이라 부르고(p.4), 그림 캡션은 두 축을 묶어 \"azimuth and elevation angles\" 라고만 한다 — 어느 쪽이 앙각인지 논문이 지정하지 않는다. 아래 반구 전체를 덮으니 「올려다보는 모든 방향을 덮었다」는 맞지만, 「θ = 앙각」은 주장 쪽 해석이다.\n5) ⚠ 게다가 축 방향이 우리와 반대로 보인다. p.6 축자 \"The strongest reflections are obtained when the battery is illuminated from θ = 0°\" + \"The strongest reflection is observed when the larger face of the battery is illuminated\" 로 읽으면 Semkin θ=0° 는 배 바닥을 정면으로 보는 방향, 즉 **우리 표의 −90°** 쪽이고, θ=±90° 가 우리 0° 쪽이다. (이 대응은 내가 읽은 것이지 논문이 적은 것이 아니다.) 뒤집지 않고 나란히 놓으면 모든 점이 어긋난다.\n\n■ 숫자 대조: −99.9 dBsm 은 이 논문 어디에도 없다\n\n· 그림 5·6 색눈금 하한이 −20 dBsm, 그림 11·12(28 GHz 측정 확률밀도)는 대략 −50 ~ +20 dBsm 이고 최빈값은 −10 ~ −15 dBsm 부근.\n· p.2 서론 축자: \"typical RCS value for drones are from −15 to −20 dBsm in the X-band and smaller than −20 dBsm at 30-37 GHz.\"\n· −60 dBsm 까지 내려가는 유일한 곡선은 **시뮬**인 그림 9의 배터리 단독이다.\n→ 즉 「−99.9 dBsm 은 실측 드론 RCS 로 나온 적 없는 수」라는 데는 이 논문이 힘을 보탠다. 다만 26~40 GHz 값이고, **우리 자유공간 값이 왜 무너졌는지는 한마디도 말해주지 않는다.**\n\n■ 「하나 있다」의 배타성 — 이 원장 안에서는 맞다\n\n원장의 RCS 앵커 문헌(reference_library.json master_table, geom=\"E\") 을 전부 훑었다. 앙각을 연속으로 훑은 실측은 Semkin 뿐이다.\n· Yuan(EuCAP 2025)은 제목이 \"Mono-Static **3D** UAV RCS\" 지만, PDF /data/public/sionna/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf p.2 축자로 \"Three UAV elevation sides including the azimuth plane, top, and bottom, were considered in the measurements, i.e, θ = {90°, 0°, 180°}\" — 앙각은 **세 면뿐**이고 2° 간격으로 훑는 것은 방위각이다. 이쪽은 1.8~18.2 GHz 라 우리 3.5 GHz 를 덮는데, 그 대신 앙각을 안 훑는다.\n· Das(WCL 2026)는 0~90° **바이스태틱각**이지 앙각이 아니다(reference_library.json:3292).\n단, 「세상에 하나」가 아니라 「이 저장소 원장 안에서 하나」로만 적어야 한다.\n\n■ 사용자 물음에 대한 정직한 답\n\n이 원장에 실린 드론 RCS 실측은 Das·Zhang·Semkin·Azim·Costa·Yuan·Ezuma 전부 무향실 / 실내 / 콤팩트레인지다. **지면 반사가 들어간 야외 드론 RCS 실측은 이 저장소에서 못 찾았다.** 그러니 「실제 실험에서도 지면이 그런 영향을 주느냐」에 문헌으로 답할 근거가 우리에겐 지금 없다. Semkin 을 그 자리에 세우면 안 된다 — 그건 지면을 없앤 방에서 잰 값이다.\n\n그리고 −99.9 dBsm 쪽 의심은 문헌이 아니라 우리 쪽에서 풀어야 한다. 실측이 −50 dBsm 아래로 안 내려간다는 사실은 「자유공간 값이 무너졌다」는 읽기와 같은 방향을 가리킨다."
+  },
+  {
+   "claim": "저장소가 인용하는 평면지면 2-ray 진폭인자 범위는 F⁴ ∈ [−20, +11.5] dB (왕복 거리로 0.32~1.94배) 하나뿐이고, 코드·스펙·원장 주석이 전부 같은 문장을 돌려쓴다. (근거: docs/REPORT13_SPEC.md:22·105·310·612 / src/freespace_link.py:909 / src/experiment_freespace_range.py:528 / benchmark/verify_freespace.py:280)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 맞는 절반 — 인용 7 줄은 전부 실재하고 왜곡도 없다\n7 개 파일:줄을 모두 열었다. 인용 문구가 그대로 있다.\n· docs/REPORT13_SPEC.md:22 «F⁴∈[−20,+11.5]dB» (REFUTE[1] R1 판정칸)\n· :105 FS-3 사다리표 «자유공간이 상한 아님(F⁴∈[−20,+11.5]dB)»\n· :310 §8.8 «\"F⁴∈[−20,+11.5]dB, 거리 0.32~1.94배\" 명기»\n· :612 §15-2 «평면지면만으로 F⁴∈[−20,+11.5]dB(거리 0.32~1.94배)»\n· src/freespace_link.py:909 «★스펙 인용 범위 F⁴∈[−20,+11.5] dB = 거리 0.32~1.94배»\n· src/experiment_freespace_range.py:528 note=\"…F4 in [-20,+11.5] dB\" (원장에 3 번 박힌다)\n· benchmark/verify_freespace.py:280 «스펙 인용범위 [−20, +11.5] dB(거리 0.32~1.94배)»\n같은 문장을 돌려쓴다는 관찰도 맞다. src/freespace_link.py:518 에도 «F⁴ = +11.5 dB … → 1.94» 가 한 번 더 있다.\n\n■ 틀린 절반 — «하나뿐» 이 아니다. 저장소가 **직접 계산해 원장에 적은 수**가 따로 있고, 인용범위와 다르다\n\n① outputs/verify_freespace.json : f4_db_min = **−36.88**, f4_db_max = **+10.54**\n   같은 파일 benchmark/verify_freespace.py:295~301 이 실제로 돌려 낸 수다. 인용범위 [−20,+11.5] 를 **양쪽 다** 벗어난다.\n   그리고 :302~305 는 인용범위를 게이트로 쓰지도 않는다 — 실제 관문은 `6.0 ≤ f4_hi ≤ 12.5 and f4_lo < −6.0` 이고, 주석이 «하한은 파괴간섭 널이라 −∞ 로 내려가는 게 정상이므로 바닥을 강제하지 않는다» 라고 적는다. 즉 **−20 은 저장소가 믿는 하한이 아니다.**\n\n② outputs/verify_ground_kernel.json G7 : total_over_direct_db = **−3.73 dB**\n   ⭐scope_ko = «3.5 GHz · 거리 15.0 m · 고도 20.0 m · 앙각 −30.0°» — **지금 문제의 그 기하다.** ψ=68.2°, |Γ|=0.369, spread_ratio=0.4286.\n   여기서 지면이 더하는 몫은 수십 dB 가 아니라 **−3.7 dB** 다.\n\n③ docs/REPORT13_SPEC.md:504 : ground_2ray F4_db = {p10:−8, p50:2.2, p90:9.6} — 또 다른 세 수(선언 스키마 값).\n\n④ 저장소가 스스로 «그 인용범위를 이 기하에 쓰면 안 된다» 고 적어 놓았다 — src/rcs_sbr.py:1503~1528\n   «`two_ray_F` 의 F 는 **점 표적**용 스칼라 배율이다 … 크기가 있는 표적에서는 그 각도의 산란 패턴이 직접 경로와 다르다» / «⛔안 넣으면 지면 몫이 이 기하에서 **약 7 dB 과대평가**된다(고도 20 m · 거리 15 m · 앙각 −30°)» / «`two_ray_F` 는 두 경로의 확산이 같다고 본다(d ≫ 높이인 **스침 기하**의 표준 가정)».\n   실제로 [−20,+11.5] 를 낸 기하는 h_t=60 m·h_rx=3 m·지상거리 20~5000 m 이고(verify_freespace.py:298), report13 원장의 grazing_deg 는 **0.36~0.37°** 다. 지금 문제의 ψ=68° 와 다른 세상이다.\n\n⑤ «0.32~1.94배» 환산은 n=4 를 쓴 것인데, src/freespace_link.py:520 이 «⚠ S1: `n` 은 4 가 아니라 `n_local()` … 4 를 쓰면 d 축 근거리에서 최대 40배 틀린다» 라고 같은 파일에서 경고한다. 거리 배율 두 수는 그 경고를 밟고 있다.\n\n■ 실측인가 — **아니다. 실측이 0 건이다** (물어본 핵심)\n· benchmark/verify_ground_kernel.py:154 caution_ko : «⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 **자기일치** 한다는 것만 잰다. **실측 대조는 0 건이다.**»\n· docs/REPORT13_SPEC.md:105 FS-3 = «닫힌형 동반, GPU 0회» — 솔버 시뮬도 아니고 numpy 닫힌형 계산이다.\n· docs/DRONE_ISAC_PRIOR_READING.md:538 : «md-* 는 무향실+배경차감이라 지면 반사가 없다. **실측 3편은 무향실**»\n⇒ 이 저장소의 문헌 원장 안에서 «지면 반사가 드론 검지에 이만큼 한다» 를 실측으로 받쳐주는 편은 **못 찾았다.** [−20,+11.5] 의 출처는 사내 적대검증 라운드 REFUTE[1] R1 이고, 문헌 인용은 어디에도 안 붙어 있다.\n\n■ 물리 검산 (자유 파라미터 흔들기)\n|Γ|≤1 이면 F=|1+Γe^{−jkΔ}|≤2 → F⁴ ≤ +12.04 dB. verify_freespace.py:302 도 «물리 천장 ~+12» 라 적는다. 즉 상한 쪽은 물리에 갇혀 있고, **평면지면 2-ray 가 더할 수 있는 최대는 +12 dB 다.** 지금 문제의 자유공간↔실외 낙차 **+53 dB** (−99.9 → −47.1) 는 이 기전으로 설명이 안 된다 — 4 배 넘게 모자란다. 저장소 자신의 그 기하 원장(−3.73 dB)과는 15 배 어긋난다.\n\n■ 그래서 사용자 물음에 정직한 답\n«지면이 왜 큰 영향을 줘?» → 이 저장소 안에서는 **지면이 그렇게 큰 영향을 준다는 근거가 없다.** 평면지면 2-ray 의 물리 천장이 +12 dB 이고, 같은 기하(15 m·고도 20 m·el −30°)에서 저장소가 직접 잰 값은 −3.7 dB 다. +53 dB 는 지면으로 설명되지 않으므로, «환경이 더한다» 보다 **자유공간 −99.9 dBsm 쪽이 무너진 것**이라는 읽기가 저장소 원장과 더 맞는다.\n«실제 실험에서 일어나느냐?» → **이 저장소에는 실측 대조가 0 건**이다(verify_ground_kernel.py:154). 문헌 원장의 실측 3편은 전부 무향실이라 지면 반사가 애초에 없다(DRONE_ISAC_PRIOR_READING.md:538). 답을 실측으로 하려면 이 저장소 밖 문헌을 새로 조사해야 한다 — 기억으로 채우지 않았다."
+  },
+  {
+   "claim": "「F⁴∈[−20,+11.5] dB(거리 0.32~1.94배)」 범위의 출처는 외부 문헌이 아니라 저장소 자신의 내부 반증 심사(REFUTE[1] 항목 R1)다. 판정문에는 «물리적으로 옳다» 라고만 적혀 있고 인용 문헌이 없으며, 스펙 서두가 «★ 표시한 것만 직접 확인한 값» 이라고 규정하는데 이 범위에는 ★가 없다. (근거: docs/REPORT13_SPEC.md:11 · :22 · :310)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용 세 줄은 전부 실재하고 문맥 왜곡도 없다 (직접 확인)\n\n  · docs/REPORT13_SPEC.md:11 — «★ = 이번 조사에서 저장소 코드/JSON/읽기전용 스모크로 직접 확인한 값. 나머지는 선언값이며 그렇게 표기한다.» ✓ 그대로 있다.\n  · docs/REPORT13_SPEC.md:22 — «R1 \"상한선 거짓, 지면반사 최대 1.94배 증가\" | **수용(부분)** | 물리적으로 옳다(저각 다중로브 F⁴∈[−20,+11.5]dB).» ✓ 그대로 있다. 인용 문헌 없음.\n  · docs/REPORT13_SPEC.md:310 (§8.8) — ★가 붙어 있지만 «★4경로 el차≤1.37°·β차≤1°→σ격자 재사용» 에 붙은 것이고, F⁴ 범위에는 안 붙어 있다. ✓ 주장대로다.\n\n■ 「외부 문헌이 아니다」는 맞다 — 오히려 주장보다 더 강하게 확인된다\n\n  · docs/REPORT13_SPEC.md 전체에서 doi/DOI/arXiv/IEEE/\"et al\" 일치 건수 = **0**. 651줄 문서에 인용 문헌이 하나도 없다.\n  · REFUTE[1]~[4] 는 별도 문서가 아니라 이 문서 자기 안의 절이다(:18 / :32 / :47 / :58). 저장소에 REFUTE 원본 파일은 못 찾았다.\n  · 결정적: outputs/verify_freespace.json:260 이 FS-3 지면상수(ε_r=15, σ=0.005)에 대해 스스로 «\"source\": \"REPORT13_SPEC.md §8.8 (declared, no source doc)\"» 라고 적어 놓았다. 저장소 자신이 근거문서 없음을 명시한다.\n  · docs/REPORT13_SPEC.md:614 도 «**Mavic4Pro·Matrice4E 실측RCS 문헌 없음.**» 이라고 인정한다.\n\n■ 주장이 과한 부분 (그래서 「부분적으로」) — ★가 아예 없지는 않다\n\n  docs/REPORT13_SPEC.md:612 에 같은 범위가 ★와 함께 나온다:\n      «★R1로 정정: 자유공간은 상한도 하한도 아니다. 평면지면만으로 F⁴∈[−20,+11.5]dB(거리 0.32~1.94배) 변조(FS-3).»\n  즉 :22/:105/:310 에는 ★가 없지만 :612 에는 R1 에 ★가 붙어 있다. 「이 범위에는 ★가 없다」는 단정은 그대로 쓰면 안 된다.\n\n■ 주장이 놓친, 더 무거운 문제 (회의적 읽기를 오히려 강화한다)\n\n  이 범위는 「선언값이라 검증 안 됐다」가 아니라 **나중에 계산됐는데 계산값과 안 맞는다**.\n  · benchmark/verify_freespace.py:294-303 이 2-ray F⁴ 를 닫힌형으로 계산한다(ε_r=15, σ=0.005, h_t=60 m, h_rx=3 m, 3.5 GHz, 지상거리 20~5000 m).\n  · 그 결과 outputs/verify_freespace.json:247-248 →  f4_db_min = **−36.88**,  f4_db_max = **+10.54**.\n  · 스펙이 인용하는 −20 / +11.5 어느 쪽도 재현되지 않는다. 상한은 +10.5 로 1 dB 낮고, 하한 −20 dB 는 실제로 −36.9 까지 내려간다.\n  · 그런데 게이트는 통과한다. verify_freespace.py:303 이 `range_ok = bool(6.0 <= f4_hi <= 12.5 and f4_lo < -6.0)` 라, [6, 12.5] dB 아무 값이나 통과시킨다 — 「+11.5」를 검정하지 않는다.\n  · −20 dB 바닥은 물리가 아니라 임의 선언이다. verify_freespace.py:301-302 주석이 직접 그렇게 말한다: «하한은 파괴간섭 널이라 −∞ 로 내려가는 게 정상이므로 바닥을 강제하지 않는다.»\n  · +11.5 의 정체는 문헌이 아니라 교과서 항등식이다. |Γ|→1 이면 F=2, F⁴=F₁²F₂²=16=+12.04 dB 가 천장이고, verify_freespace.py:300 주석도 «물리 천장 ~+12» 라고 적는다.\n\n■ 실측이냐 시뮬이냐 — **둘 다 아니다. 닫힌형 해석해다**\n\n  실측은 전혀 아니다. Sionna PathSolver 실행도 아니다. docs/REPORT13_SPEC.md:22 가 FS-3 를 «**닫힌형** 동반 사다리(σ격자 재사용·**GPU 0회**)» 라고 규정한다. 커널은 src/freespace_link.py:498 `two_ray_F` = |1+Γ(ψ)e^{−jkΔ}| 공식 한 줄이고, 지면상수는 선언값이다. 네 축 중에는 「시뮬」이 가장 가깝지만, 정확히는 **선언 상수에 교과서 공식을 대입한 계산값**이라고 불러야 한다.\n  참고로 실제 동작점 산출값은 outputs/report13_freespace.json 의 `solve.{W1,L1,G1}.fs3_ground.F4_db` = **+9.77 / +4.25 / +11.04 dB** (grazing ≈0.37°). 인용 범위 안이지만 −20 근처는 어디에도 없다.\n\n■ 지금 문제와의 연결 (참고)\n\n  R1 의 F⁴ 는 최대 ±11.5 dB 규모다. 프롬프트의 −99.9 → −47.1 dBsm, 즉 **+53 dB** 차이를 이 항으로 설명할 수 없다. R1 을 「환경이 +53 dB 를 더한다」의 근거로 끌어오면 두 자릿수 dB 를 넘겨짚는 것이다. 이 저장소 안에서는 지면 다중경로의 **실외 실측** 근거를 못 찾았다 — docs/MEASUREMENT_PLAN.md:192 §1-5 «야외 지면반사(유령) 분리» 는 앞으로 재겠다는 **계획**이지 잰 값이 아니다."
+  },
+  {
+   "claim": "ⓑ 지면 상수도 선언값이다 — 스펙이 쓰는 습토(ε_r=15·σ=0.005)는 코드가 스스로 «출처 문서 없음»이라고 적어 둔다. 높이(송신 25 m·수신 3 m·표적 60/120 m)도 «선언값, 근거문서 없음». (근거: src/freespace_link.py:854-855 · docs/REPORT13_SPEC.md:122)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용 자체는 정확하다 (두 줄 모두 그 줄 번호에 그대로 있다)\n· /workspace/sionna/src/freespace_link.py:854-855 — `GROUND_FS3_SOIL = dict(eps_r=15.0, sigma=0.005, sigma_model=\"flat (declared)\", source=\"REPORT13_SPEC.md §8.8 (declared, no source doc)\")`. 문맥 왜곡 없음.\n· /workspace/sionna/docs/REPORT13_SPEC.md:122 — «높이는 **배치 파라미터**(선언값, 근거문서 없음)», 그 높이는 :118 의 `FS_TX=(0,0,25) FS_RX=(L,0,3) FS_ALT∈{60,120}`. 숫자 일치.\n· 스펙 §8.8(:309-310)도 «ε_r=15·σ=0.005» 만 적고 출처 문헌을 달지 않았다 — 코드의 \"no source doc\" 주석은 정직하다.\n\n■ 그러나 이 주장은 **지금 문제의 σ 표를 지배하지 않는다** — 세 겹으로 빗나간다.\n1) 자유공간에는 지면이 없다. −99.9 dBsm(자유공간 −30°)은 지면 상수로는 설명이 안 된다. 정작 «말이 안 된다»고 지목된 그 수에 이 주장은 닿지 못한다.\n2) 실외 칸의 지면은 **습토가 아니라 콘크리트다.** outdoor01 씬의 지면은 120×120 m 콘크리트 판(benchmark/make_outdoor_scene_0831.py:13, :74, :93 `mat_key=\"concrete_dark\"`)이고, 그 재질은 ITU 'concrete'다(src/materials.py:71-73). `GROUND_FS3_SOIL` 이 코드에 닿는 통로는 `src/rcs_sbr.py:1461-1467` 의 `ground_eps_sigma(ground=\"soil\")` 하나뿐이고 기본값은 `GROUND_DEFAULT = \"concrete\"`(src/rcs_sbr.py:1451)다. 게다가 그 통로는 PathSolver 가 아니라 **우리 커널의 평평한 지면 거울상 팔**(`sbr_field_ground`)이며, 그 함수 주석이 스스로 «**건물·기둥은 없다**»라고 적는다(src/rcs_sbr.py:1516 부근).\n3) 25/3/60/120 m 는 **다른 실험의 기하**다 — 리포트13 FS-3 바이스태틱 링크버짓용이다. 문제의 앙각 σ 표(15 m)의 실외 팔은 드론을 지면 위 `alt_m=20.0` 에 놓고(benchmark/elevation_sweep_md.py:122), 평평지면 팔의 `--ground-alt` 기본값도 20.0 이다(:1186). 25/3/60/120 은 이 표 어디에도 들어가지 않는다.\n\n■ 실측/시뮬 — 전부 시뮬이다. 습토 상수도, 높이도, σ 표도 선언값과 시뮬 출력이다. 저장소가 인용하는 «+53 dB»의 출처는 outputs/outdoor_scene_0901.json 의 el−30 칸 `d_level_db: 53.58`(`level_free_db: -133.05` vs `level_outdoor_db: -79.47`)인데, 이 역시 시뮬 레벨 dB이고 σ[dBsm]도 아니다. 사용자가 물은 «실제 실험에서 그런 일이 일어나느냐»에 답할 **실측 지면 다중경로 자료는 이 저장소에서 못 찾았다** — prior_work/*.md 요약과 refs/drone_papers 를 훑었으나 그런 실측 원장은 없었다. (참고: 저장소가 «실측»이라 부르는 자리 둘은 RF 가 아니다 — elevation_sweep_md.py:1072 의 «CPU 실측»은 실행시간, outputs/matrice4e_photo_measure.json 의 measured 는 사진 치수다.)\n\n■ 부수 확인 — freespace_link.py:848 주석이 콘크리트 상수 위치를 `benchmark/geometry.py:92-100` 이라 적었으나 실제 상수는 :88-89 이고 :92-100 은 `_fresnel_floor` 다. 값(5.24 / 0.1231)은 맞다.\n\n■ 남는 것 — 이 주장이 살아 있는 범위는 «리포트13 FS-3 동반 사다리의 지면·높이는 근거문서 없는 선언값이다» 까지다. 지금의 σ 표(PathSolver 자유공간 vs outdoor01)에 대한 설명으로 인용하면 왜곡이다."
+  },
+  {
+   "claim": "ⓑ 게이트가 실제로 잰 값은 인용 범위와 다르다 — 최대 +10.54 dB, 최소 −36.88 dB. 즉 «−20 dB» 라는 하한은 지켜지는 수가 아니고, 코드도 하한을 강제하지 않는다(널은 −∞ 로 내려가는 게 정상이라고 주석에 적혀 있다). 묶여 있는 것은 상한뿐이다.",
+   "verdict": "맞다",
+   "is_measured": "시뮬",
+   "correction": "반박을 시도했으나 실패했다. 인용한 줄과 수가 파일에 그대로 있고, 독립 재계산에서도 살아남았다.\n\n■ 확인된 것 (전부 파일:줄)\n· outputs/verify_freespace.json:247-248 — \"f4_db_min\": -36.881789719056435, \"f4_db_max\": 10.538692132386267. 인용치 −36.8818 / 10.5387 과 일치.\n· benchmark/verify_freespace.py:305 — range_ok = bool(6.0 <= f4_hi <= 12.5 and f4_lo < -6.0). 판정식 인용이 글자까지 정확하다. 하한(floor)은 정말 없다.\n· benchmark/verify_freespace.py:303 — \"하한은 파괴간섭 널이라 −∞ 로 내려가는 게 정상이므로 바닥을 강제하지 않는다\". 주석 인용도 정확.\n· 인용 범위 [−20, +11.5] dB(거리 0.32~1.94배)의 출처: benchmark/verify_freespace.py:280 · docs/REPORT13_SPEC.md:22, :310, :612 · src/freespace_link.py:911-913.\n· 핵심 — outputs/verify_freespace.json:244,249 는 \"ok\": true, \"f4_range_ok\": true 다. 잰 최소값이 인용 하한 −20 보다 17 dB 아래인데도 게이트가 **통과**로 찍힌다. 주장의 요지가 정확히 이것이다.\n\n■ 내가 시도한 반박과 그 결과\n「−36.88 은 400 점 격자에 우연히 걸린 표본이라 물리값이 아니다」로 깨보려 했다. src/freespace_link.py 를 직접 불러 격자를 400 → 4,000 → 40,000 → 400,000 으로 올려 재계산했더니 최소가 −36.88 → −37.82 → −37.82 → −37.82 로 수렴했다(최대는 10.5387 → 10.5447 로 안정). 즉 −20 dB 하한이 안 지켜지는 것은 격자 잡음이 아니라 견고한 사실이다. 반박 실패.\n\n■ 시뮬/실측 판정 — **완전한 시뮬(닫힌형 해석식)**. 실측 아니다.\n· src/freespace_link.py:858-940 의 fresnel_gamma / two_ray_F / two_ray_path_diff / two_ray_f4_db 는 전부 프레넬 반사계수와 F=|1+Γe^{−jkΔ}| 를 그대로 적은 해석식이다. 계측기도 레이트레이싱도 없다.\n· verify_freespace.json:6 \"runtime_s\": 0.34 — 12 개 검사 전체가 0.34 초다. 측정일 수 없다.\n· 게다가 R1 게이트의 이름값인 fresnel_equiv 검사는 우리 구현 두 개(src/freespace_link.fresnel_gamma ↔ benchmark/geometry._fresnel_floor)를 서로 맞춰본 **자기일관성** 검사다(max|Δ|Γ|| = 6.66e-16). 외부 무엇과도 대조하지 않았다.\n· 지면 상수의 출처도 저장소가 스스로 이렇게 적어 놓았다 — verify_freespace.json:259 \"source\": \"REPORT13_SPEC.md §8.8 (declared, no source doc)\". ε_r=15·σ=0.005 는 선언값이고 근거 문서가 없다.\n\n■ 주장에 붙일 잔가지 (요지는 안 흔들린다)\n1. 「인용 범위와 다르다」는 절반만 맞다 — 최대 +10.54 는 인용 상한 +11.5 **안쪽**이다. 어긋난 것은 하한 하나뿐이다. 다만 주장 본문이 뒤이어 「하한은 지켜지는 수가 아니고 묶여 있는 것은 상한뿐」이라고 스스로 정확히 좁히므로 실질 오류는 아니다.\n2. 줄 번호 — 주석은 302-304 줄이고 305 줄은 주석이 아니라 판정식이다. 「302-305(주석)」은 한 줄 넘겼다.\n3. 「묶여 있는 것은 상한뿐」은 엄밀히는 f4_lo 에도 제약이 있다(< −6.0, 널이 충분히 깊은지). 없는 것은 **바닥(floor)** 이다. 주장의 괄호 설명은 이 점을 정확히 적었다.\n4. 이름 — docs/CLAIM_GATE.md:22-23 에서 ⓐ/ⓑ 는 「사실 뒷받침 / 과잉 결론」이라는 **검토 축**이지 코드 게이트 이름이 아니다. 이 코드 게이트의 이름은 verify_freespace.json:31 의 \"ground_2ray_fresnel_equiv (R1)\" 이다.\n5. 문서가 코드보다 넓게 말한다 — verify_freespace.py:280 은 「F⁴ 가 스펙 인용범위 [−20, +11.5] dB 를 넘지 않는지 본다」고 적었지만 305 줄은 위쪽만 본다. 주장을 오히려 **강화**하는 불일치다.\n\n■ ⛔이 수를 지금 문제(−99.9 dBsm)에 갖다 붙이면 안 된다 — 기하가 다른 것이다.\n게이트의 2-ray 는 benchmark/verify_freespace.py:296-298 에서 h_t=60 m · h_rx=3 m · 지상거리 20~5000 m 로 잰다. 사용자가 물은 것은 15 m 거리, 앙각 0°~−75° 의 드론 σ 다. 마스트↔단말 링크와 드론 RCS 는 같은 설정이 아니므로, −36.88 dB 널이나 [−20, +11.5] 범위는 자유공간 −99.9 dBsm 이 말이 되는지에 대해 **아무것도 말해주지 않는다**. 「지면이 왜 큰 영향을 주나 / 실제 실험에서 그런 일이 있나」의 답으로 이 게이트를 인용하면 그 자체가 ⓑ 위반이다.\n\n■ 못 찾은 것\n[−20, +11.5] dB 를 뒷받침하는 **실측 문헌이나 실험 기록을 이 저장소에서 못 찾았다**. REPORT13_SPEC.md:22 는 「물리적으로 옳다」고만 적고 출처를 달지 않았고, 저장소 스스로 지면 상수를 \"declared, no source doc\" 로 표시한다. 그러므로 이 범위는 실측 대조가 아니라 선언된 해석 범위다."
+  },
+  {
+   "claim": "순정 기본값 PathSolver(확산 끔)는 앙각 0° 말고는 표적 경로를 단 하나도 못 만든다 — 광선 40억 발·자세 8,192개·여섯 앙각 전부 「경로 0개」이며, 지금 자유공간 값이 0이 아닌 것은 오로지 확산 채널 덕이다. (근거: outputs/elevation_sweep_md.json rows[engine=sionna_p4000000000_stockdef_r15_n8192], --stock 정의는 benchmark/elevation_sweep_md.py:1146-1150)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용은 한 자도 안 틀렸다(전부 열어서 확인)\n· outputs/elevation_sweep_md.json:27577-27805 — engine \"sionna_p4000000000_stockdef_r15_n8192\" 7행. el 0.0 → npaths_median 3 · n_missing 0 · level_db −63.25. el −15·−30·−45·−60·−75·−90 → npaths_median 0 · n_missing 8192 · level_db −6000.0 · band_power_db −Infinity. n_poses 8192 · spp 4000000000 · range_m 15.0 · max_depth 3 · fc_hz 3.5e9 — 전부 주장대로다.\n· benchmark/elevation_sweep_md.py:1146-1150 도움말 문구 그대로 있고, 실제 구현 :624-627 이 그것과 일치한다(sw=refraction True·diffraction False·edge_diffraction False / mdep=3 / diffuse=False).\n· 「순정 기본값」이라는 말도 참이다 — 저장소 밖 원본으로 독립 확인: /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/path_solver.py:146-157 의 __call__ 기본값이 max_depth=3 · specular_reflection=True · diffuse_reflection=False · refraction=True · diffraction=False · edge_diffraction=False 다.\n· spp 가 광선 수라는 읽기도 맞다(:758 samples_per_src=spp, 원장 _meta \"광선 수는 행의 spp 열에 있다\").\n\n■ 그런데 ⓑ 결론이 과하다 — 「오로지 확산 덕」은 원장이 직접 반박한다\nstockdef 은 «확산 끔» 이 아니라 R1D0E0F0·깊이3 이다 — 굴절 켬 · 회절 끔 · 모서리 끔 · 확산 끔. 네 축 중 확산 하나로 이름 붙이면 회절이 함께 꺼져 있다는 사실이 가려진다. 같은 원장의 단일축 행들(el −30°, 확산 F 는 전부 끔):\n· :27808 swR0D0E0F0_d1 → 0 개 · n_missing 8192 · −6000.0\n· :27847 swR0D0E0F0_d3 → 0 개 · 8192 · −6000.0\n· :41107 swR1D0E0F0_d1 → 0 개 · 8192 · −6000.0\n· :34477 swR0D1E0F0_d1 → **8 개 · n_missing 0 · −95.53**\n· :34516 swR0D1E0F0_d3 → 8 개 · 0 · −95.54\n· :34594/:34633 swR0D1E1F0_d1/d3 → 8 개 · 0 · −95.53/−95.54\n· :46762/:46801 swR1D1E0F0_d1/d3 → 8 개 · 0 · −95.52/−95.53\n· :46918/:46957 swR1D1E1F0_d1/d3 → 8 개 · 0 · −95.52/−95.53\n⇒ 확산을 끈 채로도 **회절만 켜면 −30°에서 경로가 선다**. 0/비0 을 가르는 축은 확산 F 가 아니라 회절 D 다. 「자유공간 값이 0 이 아닌 것은 오로지 확산 덕」은 틀렸다 — 정확히는 「회절도 끄고 확산도 끈 조합에서만 0 이 된다」.\n저장소가 이미 그렇게 써 놨다: outputs/switch_factorial.json:249 «확산 F 도 끄고 회절 D 도 끄면 빗각(−30°)에서 경로가 0 개다 — 에코가 아예 없다(굴절 켜도 마찬가지). 순정 기본값(stockdef=R1D0E0F0·d3)이 여기 걸린다.» :248 은 확산의 몫에 「회절이 꺼져 있으면」이라는 단서를 달아 놨는데, 주장은 그 단서를 떼고 인용한 꼴이다.\n\n■ 눈금이 다르다 — level_db 는 σ[dBsm] 이 아니다\n문제의 σ 표(자유공간 0° −30.9 / −30° −99.9)와 이 원장의 level_db 는 다른 수다. stockdef el 0 은 −63.25 이고, 기본 팔 sionna_p4000000000_r15_n8192_d1(:24970-24988)의 −30° 는 −133.97 이다. 2026-09-07 σ 표(자유 −30.9/−87.4/−99.9/−96.7/−86.9/−82.8 · 실외 −30.5/−49.4/−47.1/−44.6/−42.1/−39.9)는 **이 저장소에서 못 찾았다** — outputs/*.json 를 전수로 훑어도 그 조합이 있는 파일이 없다. 그래서 「stockdef 이 0 이므로 지금 σ 표의 자유공간 값은 확산이 만든 것」이라는 연결은 파일로 못 잇는다: σ 표를 낸 팔이 어느 스위치 조합인지 확인할 근거가 없고, stockdef 은 σ 표의 팔이 될 수 없다(σ 표는 여섯 앙각 전부 유한값인데 stockdef 은 다섯 앙각이 −6000 이다).\n\n■ 덤 — 0°에서 확산은 0 dB 다\n:27595 stockdef el 0(경로 3개·확산 끔)의 level_db −63.25 는 :24823 기본 팔 el 0(경로 897개·확산 켬)과 소수점까지 같다. 정면에서는 확산 894 경로가 레벨에 아무것도 안 보탠다. 「확산이 값을 떠받친다」는 그림은 빗각에서만 성립하고, 빗각에서도 회절이 대체할 수 있다(위 표).\n\n■ 실측/시뮬\n전부 **시뮬**이다. 인용된 것은 시뮬 원장 행과 소스 코드뿐이고, 이 주장을 받치는 측정은 저장소에 0 건이다. 지면 갈래에 대해 저장소가 직접 써 놓은 단서: outputs/verify_ground_kernel.json:_meta.caution_ko «⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 자기일치 한다는 것만 잰다. **실측 대조는 0 건이다.**» 사용자의 물음(「실제 실험에서 그런 현상이 일어나느냐」)에 이 원장으로 답할 수 있는 것은 없다.\n⚠경고하신 전과도 확인했다 — benchmark/elevation_sweep_md.py:1130 «(2026-08-11 실측)», :1141 «⚠소스 실측» 은 둘 다 시뮬 출력·소스 코드 읽기를 «실측» 이라 부른 자리다. 이 낱말을 근거로 삼으면 안 된다.\n\n■ 정리\n전반부(stockdef 이 0°말고 경로 0)는 원장·소스·Sionna 원본까지 세 겹으로 확인되는 사실이다. 후반부(「오로지 확산 덕」)는 같은 원장의 단일축 행이 반증한다 — 회절 D 가 진짜 축이고, 0 이 되려면 D 와 F 가 **둘 다** 꺼져야 한다. 그리고 이 결과를 σ 표의 −99.9 dBsm 에 연결할 근거는 저장소에서 못 찾았다."
+  },
+  {
+   "claim": "앙각 0° 의 «정상» 값 자체가 경로 한 개를 세 번 적은 것이고, 985 개 경로 중 983 개는 합에 사실상 기여하지 않는다 — 근거로 outputs/copies_id_0903.json rows[1..3] (matrice4e_el0 · pose46~48) 과 docs/GATES_0902.md «E3»(N 이 az 0° 에서 3, az 0.5° 에서 9)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 실측인가 — **전부 시뮬이다. 실측은 한 줄도 없다.**\n  outputs/copies_id_0903.json 의 `_meta.generator` 는 benchmark/copies_id_0903.py 이고, 그 스크립트는\n  경로 덤프 `pose*_el*.npz` 를 읽는다(copies_id_0903.py:58, 49). 덤프를 낸 팔 이름은\n  `sionna_p4000000000_r15_n8192_mfixbatteryi5_blperairframe_d1_el+0`(copies_id_0903.py:11~12) —\n  솔버 설정이다. outputs/el0_copies_0903.json · outputs/hit_triangle_0903.json 도 같은 계통이다.\n  ⇒ 이 주장으로 «실제 실험에서도 그런가» 에는 한 글자도 답할 수 없다.\n  저장소에서 찾은 유일한 **실측** RCS 정박점은 문헌뿐이다 — docs/REFERENCE_LIBRARY.md:924·1009\n  (arXiv 2505.08754, 「실측」으로 분류, 소형 UAV 평균 A = −12.81 dBsm). 자세별 값이 아니라 평균이라\n  −30.9 / −99.9 를 직접 판정하지는 못한다.\n  ⚠질문에 나온 σ 표(−30.9 / −87.4 / −99.9 …, 2026-09-07)는 **저장소에서 못 찾았다.** 파일로 검증 불가.\n\n■ 인용 자체는 있다 — 그리고 주장이 댄 것보다 더 세게 받쳐진다\n  · outputs/copies_id_0903.json:22~60 에 rows[1..3] 이 그대로 있다. matrice4e_el0 ·\n    pose46/47/48_el+0.npz · n_copies 3 · E_over_copy 3.0007 · top_abs_a 2.298327062101821e−4 ·\n    tau_spread_ps 0.0 · phase_spread_deg 0.0 · vertex_spread_mm 0.0.\n  · 「같은 줄 3 개」가 정말 **같은 삼각형**이라는 것은 다른 원장이 닫아 준다 —\n    docs/DEEP_DROP_0902.md:674~682(물체 id 4,4,4 · 삼각형 id 93 ×3 · 종류 1) 과\n    outputs/hit_triangle_0903.json(matrice4e_camera · obj_id 4 · prim_id 93 · 넓이 0.0187 cm²).\n    DEEP_DROP_0902.md:683 은 「완전히 같은 항목이 N 번 목록에 들어 있고, 결맞음으로 더해져\n    |E| 가 N 배가 된다. 중복제거가 진 자리다」로 적는다. ⇒ **「한 줄을 세 번 적었다」는 맞다.**\n  · GATES_0902.md 인용문도 글자 그대로다 — 표 12·14 줄, 문장 19 줄.\n\n■ 그런데 틀린 곳·과한 곳이 넷이다\n\n ① **수가 안 맞는다.** 985 − 3 = **982** 이지 983 이 아니다. 게다가 n_paths 는 세 줄이 각각\n    **985 / 983 / 981** 이다(:12, :38, :51). 주장이 쓴 「985 개 중 983 개」는 1 번 줄의 경로 수와\n    2 번 줄의 경로 수를 한 문장에 섞은 것이다.\n\n ② **「기여하지 않는다」는 원장에 없는 말이고, 저장소가 그 잔여를 실제로 쓴다.**\n    원장이 주는 것은 |E| 와 세 줄의 결맞음 합뿐이다. 거기서 계산하면 pose46 은\n    |E| 6.896554e−4 − 3×|a| 6.894981e−4 = **+1.57e−7(+0.023 %)**, 나머지 경로의 크기는\n    최대로 잡아도 1.47e−5(|E| 의 **2.14 %**, −33.4 dB) 다. 「1 차로는 무시할 만하다」까지가 정확한 말이다.\n    ⛔그리고 DEEP_DROP_0902.md:796~798 은 그 잔여를 **잰 값으로 쓴다** — 「남는 차(+0.037 · +0.017)는\n    나머지 약 1,500 개의 약한 경로가 함께 더해지기 때문이다」. 같은 문서가 낙차 깊이 0.37054 / 0.68390 이\n    1/3 · 2/3 에서 벗어난 이유로 그 약한 경로들을 든다. ⇒ 「사실상 기여하지 않는다」를 그대로 쓰면\n    같은 원장 계열과 어긋난다.\n\n ③ ⭐**이 원장은 앙각 0° 밖에 없다 — 문제의 −99.9 dBsm 에 대해 아무 말도 못 한다.**\n    copies_id_0903.json 다섯 줄의 파일명이 전부 `pose*_el+0.npz` 다. el −15/−30/−45/−60/−75 줄은 **없다.**\n    반대로 docs/DEEP_DROP_0902.md:698~708(ⓓ)은 **4° 만 벗어나면 중복이 사라진다**고 적는다 —\n    el 0° 벌 3 · |E|÷한 줄 3.000(정반사→camera 삼각형 93), el −4° 1 · 18.1, el −8° 1 · 7.6,\n    el −15° 1 · 27.8(전부 확산→gear), 그리고 :708 「4° 만 벗어나면 그 정반사 자체가 없어진다」.\n    ⇒ 중복 세 번은 **el 0 전용 현상**이라 el −30 의 붕괴를 설명할 수 없다.\n    ⚠단, 이 ⓓ 표의 −4/−8/−15 행을 받쳐 줄 원장 파일은 **못 찾았다**(문서에만 있다).\n    크기도 안 맞는다 — ×3 결맞음은 **9.54 dB** 다. 자유공간 el 0 −30.9 dBsm 에서 그걸 빼도 −40.4 dBsm 이고,\n    −99.9 까지는 아직 **약 59.5 dB** 가 남는다. 주장은 자기가 겨눈 구멍을 못 메운다.\n    (환경 +53 dB 읽기에 대해서도 마찬가지다 — 중복은 자유공간·실외 양쪽 el 0 에 똑같이 얹히고,\n     el −30 에는 아예 없으므로 두 열의 차를 건드리지 않는다.)\n\n ④ ⭐**E3 는 글자대로 인용됐지만 축이 다르고, 방향이 거꾸로다.**\n    GATES_0902.md:8 이 표의 조건을 「**el 0** · 다 끔 · 깊이 2 · matrice4e」로 못박는다 — 여섯 행이 전부\n    el 0 이고 바뀌는 것은 **방위(az)** 다. 앙각에 대해서는 한 마디도 안 한다.\n    그리고 N 은 az 0 에서 **3**, 나머지에서 **9~10** 이다. 「N = 한 줄을 N 번 적은 것」으로 읽으면\n    비스듬한 방위가 **더 심한** 중복이 되므로, E3 는 「0° 만 셈이 부풀었다」를 받쳐 주지 않는다.\n    문서 자신의 읽기도 :20~21 「az = 0 은 대칭 기하라 특별한 칸」이고, :22~26 에 2026-09-04 정정이 붙어\n    같은 표의 옛 읽기를 이미 반증했다(45° 의 낙차 15 < az 0° 의 36) — 살아남은 문장은\n    「N 이 az 0 에서만 3, 나머지는 9~10」 하나뿐이라고 적혀 있다.\n    ⚠덧붙여 **E3 의 N 열은 원장으로 재현이 안 된다.** 낙차 개수 36/707/845/442/259/15 는\n    outputs/el0_copies_0903.json 의 `…swR0D0E0F1_r15_n8192[_az…]_mfixbatteryi5_blperairframe_d2` 팔들과\n    정확히 맞는데, 같은 줄들의 depth_median 은 0.66675 / 0.86454 / 0.85338 / 0.87542 / 0.88593 / 0.89364\n    (⇒ N 3/7/7/8/9/9) 라서 GATES 표의 0.6667/0.8928/0.8983/0.8976/0.8885/0.8951(⇒ 3/9/10/10/9/10) 과\n    az 0 행 말고는 **안 맞는다.** 0.8928 등을 내는 파일은 저장소에서 **못 찾았다.**\n\n■ 그리고 저장소가 이 결론을 명시적으로 막아 뒀다\n  docs/DEEP_DROP_0902.md:722~723 — 「⛔«시오나가 N 배 크게 낸다» 로 쓰지 않는다. 그 N 줄이\n  물리적으로 옳은지(각각 다른 광선관의 정당한 몫인지) 이 관측은 답하지 않는다. 우리가 잰 것은\n  «같은 줄이 N 개이고, 하나가 흔들린다» 다.」  같은 문서 :767 — 「⛔**1 배가 옳은지 N 배가 옳은지\n  우리는 모른다**」. ⇒ 「el 0 의 정상 값은 세 번 적은 것이다」처럼 **부풀었다는 판정**으로 쓰면\n  이 두 줄을 어긴다. benchmark/copies_id_0903.py:26 도 「⛔판정하지 않는다」로 같은 말을 한다.\n  (참고로 그 스크립트 :10~18 에 2026-09-04 경고가 있다 — 낙차를 잰 팔과 목록을 덤프한 팔이 서로 달라\n   「깊이가 정확히 2/3」과 「같은 줄이 3 번」은 **다른 팔에서 나온 두 사실**이다. 다만 rows[1..3] 의\n   목록 자체는 정본 메쉬 자유공간 15 m 팔의 것이 맞다.)\n\n■ 살아남는 문장 (이렇게만 쓸 수 있다)\n  「시뮬 안에서, 앙각 0°·정본 메쉬·자유공간 15 m 팔의 자세 46~48 은 카메라 삼각형 하나의 정반사가\n   목록에 **세 번 똑같이** 들어가 있고(지연·위상·첫 정점이 0 폭), 그 셋이 결맞음으로 더해져 |E| 가\n   한 줄의 3.0007 배가 된다. 나머지 ~982 개 경로의 몫은 |E| 의 2 % 아래다. 이 중복이 물리적으로\n   옳은지 아닌지는 아직 안 갈렸고, **앙각 4° 만 벗어나면 중복 자체가 없어지므로 −15°~−75° 의\n   자유공간 값이 왜 무너지는지는 이 관측으로 설명되지 않는다.**」\n  ⇒ 사용자의 물음(「지면이 왜? 실제 실험에서도 그러냐」)에 대한 정직한 답은,\n     이 주장으로는 **못 답한다**는 것이다 — 근거가 전부 앙각 0° 시뮬이고, 실측은 0 건이다."
+  },
+  {
+   "claim": "원인 변수는 「앙각」도 「방위」도 아니고 «정확한 거울각에서 벗어났는가»다. 방위를 하나도 안 돌리고 앙각만 15° 내려도, 앙각을 안 내리고 방위만 45° 돌린 것과 같은 자리로 떨어진다(차이 1.5 dB 안). 근거: outputs/az_falsify_verdict.json::axis_is_not_azimuth (ps_physoff az0·el0 DC −63.25 / az0·el−15 DC −118.88 / az45·el0 DC −120.32).",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용 자체는 진짜다(왜곡 없음)\n· outputs/az_falsify_verdict.json:338 이 \"axis_is_not_azimuth\" 블록이고, :363 reading_ko 가 주장이 옮긴 문장 그대로다 — 「…원인 변수는 「방위 45°」가 아니라 「정확한 거울각에서 벗어났나」다.」\n· 세 수도 그대로 있다(:340-360): ps_physoff_az0_el0 dc_db −63.25 / az0_el−15 −118.88 / az45_el0 −120.32. 차 1.44 dB.\n· 원장 대조도 맞다 — outputs/elevation_sweep_md.json 의 engine \"sionna_p4000000000_r15_n8192_d1\" 행: el 0.0 → level_db −63.25, el −15.0 → −118.88; engine \"…_az45_d1\" el 0.0 → −120.31(심판이 npz 에서 다시 잰 값 −120.32 와 0.01 차).\n· 빌더는 benchmark/az_falsify_judge.py:82-93(axis 딕트 + reading_ko f-string). 문구가 손글씨가 아니라 값에서 생성된다.\n\n■ ⭐실측 아니다 — 전부 시뮬이다\n· benchmark/az_falsify_judge.py:8 「⛔GPU 안 씀 — sionna.rt·mitsuba 임포트 없음. 저장된 원장(json/npz)만 읽는다」, :16 NPZ = outputs/elevation_sweep_md.npz.\n· 그 npz 는 benchmark/elevation_sweep_md.py 가 Sionna PathSolver 로 돌린 결과다(원장 행: spp 4000000000, max_depth 1, physics false, range_m 15.0, drone matrice4e, fc 3.5 GHz).\n· az_falsify_verdict.json 전체에 「실측」 이라는 낱말은 0 건이다(grep -c = 0). 즉 파일은 스스로를 실측이라 부르지 않는다 — 실측으로 읽는 것은 인용하는 쪽의 잘못이 된다.\n· 사용자의 물음(«실제 실험에서 그런 현상이 있냐»)에 이 근거는 아무 답도 못 한다. 지면 쪽 실측 대조가 0 건임을 이 저장소가 스스로 적어 뒀다 — outputs/verify_ground_kernel.json:_meta.caution_ko 「⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 … 실측 대조는 0 건이다.」\n\n■ ⭐반박 1 — 「15°」는 문턱이 아니다. 4° 면 이미 다 무너진다\n같은 팔(sionna_p4000000000_r15_n8192_d1)의 더 촘촘한 앙각 사다리를 outputs/elevation_sweep_md.json 에서 직접 뽑았다(level_db):\n  0° −63.25 / −4° −128.57 / −8° −127.56 / −11° −125.37 / −15° −118.88 / −30° −133.97 / −45° −124.17 / −52° −123.67 / −60° −120.90 / −68° −116.51 / −75° −113.16 / −82° −115.31 / −90° −117.98\n→ 낙차는 −4° 에서 이미 −65.3 dB 로 완결된다. 「앙각만 15° 내려도」는 15° 가 필요한 양처럼 읽히지만, 실제 거울칸 폭은 4° 보다 좁다. 이 대목은 주장을 죽이지 않고 오히려 세게 만들지만, 문면은 틀렸다.\n\n■ ⭐반박 2 — 「1.5 dB 안」은 열두 점 중 하나를 고른 값이다\n거울각을 벗어난 바닥은 −113.16 ~ −133.97 dB 로 ~21 dB 흩어진다. az45·el0(−120.31)은 그 산포 **안**에 있고, el−15(−118.88)가 하필 가장 가까운 점이다. el−30 을 골랐으면 −133.97 vs −120.31 = 13.7 dB 차다. 그러므로 살아남는 진술은 «둘이 1.5 dB 안에서 같다» 가 아니라 «거울칸을 벗어나면 둘 다 50~70 dB 아래의 같은 바닥대(약 −113~−134 dB)로 떨어진다» 다. 1.5 dB 는 인용하지 않는 편이 낫다.\n\n■ ⭐반박 3 — 물리(굴절·회절·모서리회절) 켠 팔에서는 등식이 깨진다\n같은 원장, engine \"sionna_p4000000000_phys_r15_n8192_d1\"/\"…_phys_…_az45_d1\":\n  az0 el0 −62.08 · az0 el−15 −93.82 · az45 el0 −100.56\n→ az0·el−15 와 az45·el0 이 **6.7 dB** 벌어진다. 「1.5 dB 안」은 physics=false(정반사만·깊이 1) 팔에서만 성립한다. 주장은 이 조건을 안 달고 있다.\n\n■ ⭐반박 4 — 인용된 az45 팔에 이 파일이 스스로 단서를 달아 놨다\n· :69 「az45 팔을 돌린 작업본이 커밋되지 않았다(--az-deg 커밋은 6 시간 뒤). 코드 텍스트 대조는 불가」 — 세 수 중 하나의 출처가 코드로 확인 불가다.\n· :66 「⭐div=12 격자의 45° 공진 … az45 팔은 λ/24 또는 반칸 어긋내기로 다시 재기 전에는 인용 금지다」. 이 공진은 우리 커널의 λ/12 격자 결함이라 Sionna 팔(ps_physoff)에는 안 걸릴 가능성이 높지만, 문면이 「az45 팔」로만 적혀 범위가 모호하다. 저장소 자체 감사가 이 금지를 az45 팔 인용 전반에 적용해 별건으로 올려놨다 — work/sweep_0904/findings_wave2.json:1828-1838.\n· 같은 감사가 이 파일의 다른 두 문장도 이미 지적해 뒀다(:400-410 리듬 몫 94 % 재인용 = RETRACTION_LOG R29 위반, :1815-1826 「프로펠러 에코는 방위에 안 변한다」= 자기모순·el0 한 칸 편식). 이 파일을 인용할 때는 그 두 건이 미해결임을 안다.\n\n■ ⭐반박 5 — 지금 문제(σ 표)와 다른 판이고, 방향도 반대로 읽고 있다\n· 인용된 수는 2026-08-15 심판판(_meta.date_kst)의 level_db(Sionna 채널계수 레벨, 자유공간·지면 없음·건물 없음 팔)이다. 문제에 실린 2026-09-07 σ[dBsm] 표(−30.9 / −99.9 / 실외 −47.1 …)는 이 파일 어디에도 없다. 두 표를 나란히 놓으려면 «다른 실행·다른 양» 임을 반드시 적어야 한다.\n· 더 중요한 것: 이 파일의 자체 판정은 「자유공간 값이 무너졌다」가 아니라 **「거울칸 값이 비물리적으로 높다」**다. :533 「그 σ 를 환산하면 15 m 에서 +38.1 dBsm(약 6,500 m²)이다 … 물리 상한보다 25 dB 위다」, :36 「az0·el0 값 자체가 물리 상한보다 25 dB 높은 비물리 값이다」. 즉 저장소의 읽기는 «바닥이 무너졌다» 가 아니라 «꼭대기가 가짜고, 그 아래 있던 진짜 약한 에코가 드러났다» 이며 대체 문장까지 :39 에 박아 뒀다 — 「거울각을 벗어나면 PathSolver 의 정면 특이점이 꺼지고, 그 아래 있던 프로펠러 에코가 그대로 드러난다」. 지금 문제문이 «−99.9 가 말이 안 되니 자유공간이 무너진 것» 이라고 읽은 방향과 어긋난다.\n· 기전 뒷받침은 있다(:34): 시선에 마주 선 면적 139.35 cm² → 0.19 cm², 평판식 예측 낙차 −57.3 dB 대 원장 정지성분 낙차 −57.07 dB, 0.3 dB 안에서 일치. 다만 이것도 해석식+시뮬이지 실측이 아니다.\n\n■ 그래서 살릴 수 있는 문장 (제안)\n「자유공간·정반사만 켠 PathSolver 시뮬에서는, 시선이 드론의 축정렬 상자면에 정확히 마주 서는 한 칸(방위 0°·앙각 0°)에서만 큰 정지 에코가 나오고 그 칸을 4° 만 벗어나도 55~70 dB 아래의 바닥대(−113~−134 dB)로 떨어진다. 방위 45° 는 그 칸을 벗어나는 한 가지 방법일 뿐이다. ⚠물리(회절)를 켠 팔에서는 그 바닥대가 다르게 나오고(앙각 −15° 대 방위 45° 가 6.7 dB 차), 이 대비를 실측으로 확인한 적은 이 저장소에 0 건이다.」\n\n■ 못 찾은 것\n· 앙각/거울각 이탈에 따른 드론 RCS 급락을 실제로 잰 **실측** 자료 — 저장소 안에서 못 찾았다. outputs/audit_rcs_anchors.json 에는 elevation·ground 관련 항목이 :70 \"ground_truth_references_not_measurements\" 하나뿐이고, outputs/measurement_layers.json 에는 「지면/ground」 언급이 0 건이다.\n· 문제문에 실린 2026-09-07 σ 표의 원장 파일 — outputs/ 에서 못 찾았다(−49.4/−47.1 조합을 담은 파일 없음)."
+  },
+  {
+   "claim": "⭐메쉬에서 이유가 그대로 보인다 — 시선과 법선이 맞는 면적이 앙각 0°에만 있고, 빗각(−15·−30·−45·−60)에서는 0.5° 안에 맞는 면적이 사실상 0, −90°에서 다시 살아난다. 이 순서가 사용자 σ 표의 순서와 그대로 맞는다. (근거: outputs/az_falsify_specular.json::cells, 그리고 정본 부품 OBJ 재계산)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용은 정확하다 (확인됨)\noutputs/az_falsify_specular.json 에 그 줄이 실제로 있다. n_tris 30662(:6) · total_area_m2 0.30559(:7) · az0_el+0 0.013935(:12) · el−15 0.0(:20) · el−30 0.0(:28) · el−45 4.3e−05(:36) · el−60 0.0(:44) · el−75 0.00012(:52) · el−90 0.059466(:60). 분율 4.56 %·19.46 % 도 파일과 맞는다. 숫자를 지어내지 않았다.\n내가 정본 부품 OBJ 9개를 직접 세어보니 31,766 삼각형 · 3010.49 cm² — 주장이 적은 «31,766 · 3010.5 cm²» 와 정확히 일치한다. 주장이 적은 el0 123.66 cm²(4.11 %) · −45 0.21 · −75 0.69 · −90 306.30(10.17 %) 도 **한쪽면만**(n·u ≥ cos tol) 셀 때 소수점까지 재현된다.\n\n■ ⛔그러나 결정적 문장 «이 순서가 사용자 σ 표의 순서와 그대로 맞는다» 는 **틀렸다**\n주장이 고른 0.5° 에서 빗각 넷 중 셋(−15·−30·−60)이 **정확히 0.0 으로 동점**인데, 그 셋의 σ 는 −87.4 · −99.9 · −86.9 로 **13 dB 나 벌어져 있다**. 동점이 13 dB 를 설명할 수는 없다.\n더 나쁜 것은 부호가 뒤집힌 짝이다:\n  · el −60 : 정렬면적 **0.0** 인데 σ = **−86.9**(빗각 중 두 번째로 밝다)\n  · el −45 : 정렬면적 **0.43 cm²**(빗각 중 두 번째로 크다)인데 σ = **−96.7**(빗각 중 두 번째로 어둡다)\n즉 0.5° 에서 면적이 있는 두 칸(−45·−75) 가운데 −45 가 순서를 정반대로 준다. 두 순서는 맞지 않는다.\n\n■ ⭐허용각은 자유 파라미터다 — 흔들면 결론이 바뀐다 (memory: 머리기사 숫자는 흔들어 보고)\n같은 메쉬·같은 계산에서 허용각만 바꾼 순서 비교(내 재계산):\n  0.5° → 면적순 [0, −75, −45, −15, −30, −60] · σ순 [0, −75, −60, −15, −45, −30] → **불일치**\n  2.0° → 불일치(−15/−45 뒤바뀜)\n  5.0° → 불일치(−15/−45 뒤바뀜)\n  10.0° → **일치**\n주장은 «순서가 맞는다» 는 말을 하필 그 말이 깨지는 0.5° 에서 했다. 순서가 맞는 값은 10° 하나뿐이고, 그건 더 이상 «거울반사 조건» 이라 부를 수 있는 각이 아니다.\n\n■ 두 수 묶음은 같은 양이 아니다 — «같은 모양이다» 는 과장이다\n  · 원장(script:62 `np.abs(c) >= t`)은 **양면**(|n·u|), 주장의 재계산은 **한쪽면**(n·u). 규약이 다르다.\n  · 같은 양면 규약으로 정본 OBJ 를 재면 el0 = 219.73 cm²(7.30 %) · el−90 = 594.78 cm²(19.76 %) 이다. 주장이 적은 4.11 % / 10.17 % 와 el−90 에서 **1.9 배** 차이가 난다.\n  · 메쉬도 다르다. 원장은 30,662 삼각형 · 0.30559 m², 정본 OBJ 는 31,766 삼각형 · 0.301049 m².\n  · 구체적 차이: 원장의 el0 139.35 cm² = battery 65.71 + camera 68.28 + pcb 5.36 으로 **body 기여가 0** 이다. 정본 OBJ 를 직접 세면 body 가 80.38 cm² 를 더 낸다(219.73 cm²). 헤드라인 수가 58 % 커진다.\n\n■ 원장이 낡았다 (제일 큰 문제)\n  · outputs/az_falsify_specular.json  mtime 2026-08-24 04:36\n  · 정본 부품 OBJ 9개                  mtime 2026-09-05 06:31  (12일 **뒤**)\n  · 생성 스크립트                       mtime 2026-09-06 03:54  (어제)\nJSON:8 의 note_ko 는 아직 «우리 커널은 표면 전체를 위상적분하므로 그 특이점이 없다» 라고 적고 있는데, 지금 스크립트 az_falsify_specular.py:48-49 는 그 문장을 **명시적으로 철회**했다(\"⛔먼저 적었던 «우리 커널은 그 특이점이 없다» 는 단정은 내렸다\"). 원장은 철회된 문장을 담은 채 한 번도 다시 돌지 않았다.\n\n■ 파일의 목적이 다르다\naz_falsify_specular.py:2 의 제목은 «**az0·el0 칸이 왜 혼자 튀나**» 이고, 결론 절 flat_plate_prediction 은 az 0° 대 az 45°(둘 다 el 0°)의 **방위** 낙차 −57.31 dB 를 다룬다. 앙각 이야기가 아니다. cells 에 앙각 행이 있으니 인용 자체는 가능하지만, 이 파일의 결론을 앙각 결론으로 옮겨 읽으면 안 된다.\n\n■ −90° 는 사용자 σ 표에 아예 없다\n사용자 표는 +0 · −15 · −30 · −45 · −60 · −75 여섯 행뿐이다. «−90°에서 다시 살아난다 … 표와 맞는다» 는 대조할 상대가 없어 **검증 불가**다.\n\n■ ⭐실측이 아니다 — 시뮬조차 아니고 «CAD 메쉬 도형 세기» 다\naz_falsify_specular.py:9-15 의 임포트는 json·os·sys·numpy 와 drones·articulated_fast 뿐이다. 전자기 솔버를 한 번도 안 돌리고, 측정 데이터를 한 줄도 안 읽는다. 삼각형 법선과 시선의 각도를 세는 순수 도형 계산이다. σ 표 자체도 Sionna PathSolver 출력(시뮬)이다.\n\n■ 사용자 질문에 답하지 못한다\n사용자는 «지면이 왜 큰 영향을 줘? **실제 실험**에서 그런 현상이 일어나느냐» 를 물었다. 이 근거에는 지면·건물·기둥이 **한 글자도 없다** — 자유공간 메쉬 도형만 있다. 그리고 이 저장소의 문헌 원장 docs/DRONE_ISAC_PRIOR_READING.md:538 이 스스로 적어 놓았다: «md-* 는 **무향실+배경차감이라 지면 반사가 없다**. 실측 3편은 무향실». refs/drone_papers 에 있는 측정 문헌 셋(Ezuma 2019 compact range 15/25 GHz, Semkin 2020 26–40 GHz quasi-monostatic R=5.8 m, Li&Ling 2017, Quevedo 2019)은 전부 지면 반사가 없는 조건이다.\n⇒ **이 저장소에는 «지면이 σ 를 이만큼 바꾼다» 를 보인 실측 근거가 없다. 못 찾았다.** 이건 이미 알려진 빈칸으로 §7-1 3번 항목에 적혀 있다.\n\n■ 참고로 저장소에 이미 다른 설명이 있고, 그쪽이 이 주장과 충돌한다\ndocs/DEEP_DROP_0902.md 는 깊은 낙차를 «N 개의 같은 기여 중 하나가 빠진다»(matrice4e 는 정확히 2/3 로 떨어짐)로 설명하고, ⓒ 절에서 «**기하도 아니고 회전도 아니다**» 라고 못 박는다(Rayleigh 검정 p = 0.44/0.41/0.44, el 0). 그리고 «el −30 에서는 |D|/|E| = 1.0018 — **잃은 경로가 곧 전체 장**» 이라 적는다. 빗각에서 장 전체가 사실상 경로 하나라는 이 관찰이 −99.9 dBsm 에 훨씬 가까운 설명이고, 주장의 «면적 순서» 서사와 같은 자리를 놓고 다툰다.\n\n■ 남길 수 있는 것 / 버려야 하는 것\n남길 것 — «el 0° 와 el −90° 에만 시선에 맞는 큰 평면이 있고, 빗각에는 사실상 없다» 는 방향은 원장과 내 독립 재계산 양쪽에서 참이다. el 0 은 배터리·카메라·기판(원장) 또는 여기에 동체까지(정본 OBJ), el −90 은 배터리가 지배한다.\n버릴 것 — ⓐ «순서가 σ 표와 그대로 맞는다»(0.5°에서 반증됨), ⓑ 0.5° 를 헤드라인 각으로 쓰는 것(흔들면 결론이 바뀐다), ⓒ 두 수 묶음이 «같은 모양» 이라는 말(규약도 메쉬도 다르고 −90 은 1.9배 차이), ⓓ 이 근거로 지면 질문이나 «실제 실험» 질문에 답하는 것.\n다시 세우려면 — 정본 OBJ 로 원장을 새로 돌리고(양면 규약 고정), 허용각 0.5·2·5·10° 를 **전부** 함께 싣고, σ 와의 상관을 순위상관 하나로 적어야 한다. 그전에는 이 근거를 발표 자리에 올리면 안 된다."
+  },
+  {
+   "claim": "질문의 여섯+세 수는 새 현상이 아니라 원장 outputs/elevation_sweep_md.json 의 level_db 에 상수 하나만 더한 값이고, 겹치는 아홉 칸에서 오프셋이 32.31~33.39 dB 로 일정하다.",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 맞은 부분 — 인용한 줄은 실제로 있고, 수도 정확하다\n· outputs/elevation_sweep_md.json:31279·31318·31357·31396·31435·31474 (engine=sionna_p4000000000_swR0D0E0F1_r15_n8192_rep1_mfixbatteryi5_blperairframe_d2) el 0/−15/−30/−45/−60/−75 의 level_db = −63.24 / −119.71 / −133.05 / −130.09 / −119.60 / −115.71. 인용과 한 자도 안 틀린다.\n· 같은 파일 :29914·29953·29992 (…_envoutdoor01_…) el 0/−30/−60 = −62.83 / −79.47 / −74.47. 역시 그대로다.\n· 내가 다시 뺀 오프셋도 32.34/32.31/33.15/33.39/32.70/32.91 과 32.33/32.37/32.37 로 인용과 같다.\n· 따라서 「이 표는 새로 잰 게 아니라 이미 있는 시오나 앙각 스윕 팔이다」라는 뼈대는 옳다.\n\n■ 틀린 부분 ① — 「level_db + 상수」가 아니다. 산식이 다르다\nbenchmark/elevation_sweep_md.py:1002-1004 에서 level_db = 20·log10( mean|E| ) — 진폭의 평균이다. 그런데 질문의 σ 는 전력의 평균을 쓴다:\n    σ[dBsm] = 10·log10( mean|E|² ) + 10·log10(4π/λ²)\n샤드(outputs/elev_sweep_shards/…_el±NN_0*.npz 의 E 배열)로 직접 다시 계산했더니 열두 칸이 전부 ≤0.05 dB 로 맞았다:\n    자유공간 −30.90 / −87.37 / −99.89 / −96.65 / −86.92 / −82.81 (질문: −30.9 −87.4 −99.9 −96.7 −86.9 −82.8)\n    실외     −30.49 / −49.38 / −47.10 / −44.59 / −42.09 / −39.93 (질문: −30.5 −49.4 −47.1 −44.6 −42.1 −39.9)\n\n■ 틀린 부분 ② — 「일정하다」가 아니다. 그 흔들림이 바로 산식 차이다\n자유공간 여섯 칸의 오프셋은 32.31→33.39, 폭 1.08 dB 다. σ 를 0.1 dB 로 적었으니 반올림 여유는 ±0.05 dB뿐 — 1.08 dB 는 그보다 20 배 크다. 즉 상수가 아니다. 그 1.08 dB 는 진폭평균과 전력평균의 차(칸별로 0.00/0.03/0.82/1.05/0.36/0.58 dB)와 정확히 같다. 실외 세 칸이 0.04 dB 안에 든 것은 거기선 그 차가 거의 0 이라서지, 상수여서가 아니다.\n\n■ 틀린 부분 ③ — 상수는 「아무 상수」가 아니다\n32.337 dB = 10·log10(4π/λ²), λ = c/3.5 GHz = 0.085655 m. RCS 정의에 붙는 표준 환산 계수다. 「상수 하나만 더했다」는 표현은 이걸 임의의 보정처럼 들리게 한다.\n\n■ 틀린 부분 ④ — 「아홉 칸」으로 좁힐 필요가 없었다\n원장 JSON 에 envoutdoor01 의 −15/−45/−75 행이 없을 뿐, 샤드는 있다(outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-15/-45/-75_0*.npz). 그래서 아홉이 아니라 열두 칸 전부가 재현된다.\n\n■ 실측이냐 — 아니다. 양쪽 다 시뮬이다\n질문의 표도, 반박의 근거도 모두 benchmark/elevation_sweep_md.py 가 만든 Sionna PathSolver 출력이다(engine 이름이 전부 sionna_…, _meta.generator 도 그 파일). 이 저장소에서 「지면이 이런 영향을 준다」를 실제 실험으로 보인 자료는 못 찾았다. 사용자의 «실제 실험에서도 그러냐» 는 물음에는 이 반박도, 질문의 표도 답을 주지 못한다.\n\n■ 정작 중요한 것 — 반박이 놓친 대목\n사용자의 의심(«−99.9 dBsm 은 말이 안 된다, 무너진 건 자유공간 쪽») 이 파일로 뒷받침된다. 질문의 열두 칸은 전부 swR0D0E0F1 팔이다 — 원장 행의 switches 를 보면 refraction=false, diffraction=false, edge_diffraction=false, diffuse=true 이고 max_depth=2 다. 즉 **회절이 꺼진 팔**이다. 회절을 켠 팔(swR0D1E1F1 / swR1D1E1F1)로 같은 샤드 산식을 돌리면:\n    자유공간 el −30° : −99.9 → −65.4 dBsm (약 35 dB 올라온다)\n    「환경이 더한 값」 el −30° : 52.8 dB → 19.1 dB\n    el −45° : 52.1 dB → 6.7 dB, el −75° : 42.9 dB → 8.7 dB\n그러니 «환경이 +53 dB 를 더한다» 는 읽기는 팔 하나(회절 끈 판)에서만 나오는 수다. 회절을 켜면 그 몫이 7~32 dB 로 줄어든다. 시오나가 틀렸다는 말이 아니라, 회절·모서리회절을 끄고 깊이 2 로 자른 근사에서는 정반사가 안 잡히는 앙각의 자유공간 값이 바닥으로 내려간다는 뜻이다."
+  },
+  {
+   "claim": "「절대 σ(dBsm) 인용은 금지돼 있다 — 사전등록 판정이 NOT_VALIDATED 이고 부피등가 PEC 통제군이 4 기체 중 3 에서 우리를 이긴다. 한 문장 판정: 모양은 믿을 만하고 절대 σ·절대 탐지거리·널 깊이·가림 dB 는 아니다」 (근거: docs/AUDIT_PO_TRUST.md:25 · :94 · :310-313, outputs/das_fleet_validation.json)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "섞임",
+   "correction": "【인용 자체는 전부 실재한다 — 반박 실패】\n· docs/AUDIT_PO_TRUST.md:25 · :94 · :98 · :310-313 은 인용대로 있다.\n· outputs/das_fleet_validation.json:2464 `\"verdict\": \"NOT_VALIDATED (P3 산포)\"` ✅\n· 같은 파일 :2415 `P3_spread_db = 16.20252430056858` · :2416 `P3_spread_within_6db=false` ✅ — 주장이 적은 16.2025 가 원장과 정확히 맞는다.\n· 문턱 6.0 은 계산 전 봉인이다 — outputs/das_fleet_prereg.json:1292 「max(DL(0))-min(DL(0)) <= 6.0 dB」 · :1321 「P3 실패면 나머지가 다 통과해도 '검증' 이라 말하지 않는다」. 파일 시각도 순서가 맞다(prereg 09-03 00:44 → validation 09-06 08:09).\n· :3446-3451 `box_control._summary.beats_best_control` = phantom3 true / phantom2 false / mini2 false / m350rtk false ✅ (마진 −4.708 / −0.484 / −8.287 dB).\n\n【그래도 고쳐야 할 네 곳】\n① ⭐**엔진이 다르다.** 이 근거는 우리 자체 커널(`rcs_sbr`, benchmark/das_fleet_sigma.py:66 `from rcs_sbr import rcs_sbr_multistatic`, div=16·max_bounce=1)의 절대 σ 에 대한 판정이다. 지금 문제의 −99.9 dBsm 표는 **Sionna PathSolver** 팔이다. 그 팔을 직접 막는 원장은 따로 있고 더 세다 — docs/AUDIT_PO_TRUST.md:141 「PathSolver 는 σ 를 안 잰다 ✅검증」 · :142 「레벨 −51.5 vs −117.1 dB — ❌ 비교 자체가 성립 안 함, Sionna 레벨은 σ 가 아니다」. 원장 outputs/rt_no_rcs_verify.json `A_plate` 5 행을 직접 열어 재계산했다: 평판 변 0.2→4.0 m 로 σ 를 4.378→56.419 dBsm(**+52.041**) 바꿔도 `ratio_db` 가 −7.913447~−7.913449(p-p **1.93e−06 dB**)로 꿈쩍하지 않는다. ⇒ −99.9 dBsm 을 「σ 가 무너졌다」로 읽는 것 자체가 성립하지 않는다. 근거를 함대검증에서 이 원장으로 바꿔 대라.\n② **「모양은 믿을 만하다」는 절반이 이미 철회됐다.** 주장이 그대로 옮긴 :310-313 한 문장 판정은 갱신이 안 된 판이다 — 같은 문서 :12 끝에 「⛔격자와 표본을 안 붙인 «모양은 믿을 만하다» 는 내린다(2026-09-06)」가 있다. 인용하려면 「λ/48 수렴격자·matrice4e 한 기체·az 0° 한 단면에서」를 반드시 붙인다(생산격자 λ/12 는 파형 ρ 0.9956 까지만 참).\n③ **「인용 금지」는 지금 너무 세다.** 더 새 문서(outputs/engine_validation_verdict.json, 09-06 09:15 · docs/ENGINE_VALIDATION.md:41-43)가 절대 σ 를 **숫자로** 내놓고 프로젝트가 쓸 문장까지 정해 놨다 — 「5.21 GHz −16.86 dBsm 은 발표된 봉투 [−18.10,−14.51] **안**, 3.5 GHz −19.65 dBsm 은 봉투 최근접변 대비 −1.20 dB, 1.843 GHz −23.23 dBsm 은 −4.43 dB」. 판정은 여전히 \"FAILED\"(1_verdict.status)이고 §1.6 은 「우리 절대 σ 가 옳다는 것 [은 못 세운다]」라고 못 박지만, **정확한 문장은 「인용 금지」가 아니라 「기체 1종·측정체인 1개 대조이고 결손의 크기·부호를 함께 적을 때만」** 이다. 특히 문제의 3.5 GHz 는 −1.20 dB 결손이 적혀 있는 칸이다.\n④ 주장이 인용한 문서 자체에 원장과 안 맞는 수가 셋 있다(주장의 잘못은 아니다): :13·:25·:95·:157 의 산포 **16.268/16.27 dB** → 원장은 16.2025(16.268 은 옛 판 outputs/audit_po_trust.json:201 에만 있다. docs/HARVEST_AUDIT_AND_RAYBUDGET.md:98 이 「내가 직접 열어 확인」이라며 같은 옛 수를 옮겼다) · :96 m350rtk **+9.08** → 원장 9.0108 · :99 마진 **−8.35** → 원장 −8.287 · :97 「최선 6.75 dB」 → 원장 `alternative_convention_v2_ruler.db_domain_drop_gradeC` 6.6505. 전부 판정을 안 바꾸는 크기지만(둘 다 6.0 문턱의 2.5 배 이상), 발표에 박을 때는 원장 수로 쓴다.\n\n【실측이냐 — 섞임】\n· 우리 쪽 σ 는 **전부 시뮬**(rcs_sbr PO 커널)이다.\n· 대조 상대는 **남의 실측 논문**이다 — S. Das 외, IEEE WCL 15, 3731–3735 (2026) Table III(docs/FLEET_VALIDATION.md:4-5).\n· ⚠그 상대의 28 셀 중 **21 셀은 측정이 아니다** — docs/FLEET_VALIDATION.md:126 「D = 측정이 아니다 — 그 21 셀은 θb=0 적합에 씌운 해석 taper(−0.6153·sin²θb)」 · :243. 진짜 실측 바이스태틱은 Phantom 2 하나뿐이고(:259) 그것은 근거리장 2.6 m·비무향 실내홀이다(:267).\n· 다만 **판정을 가른 P3 산포는 θb=0 모노스태틱 칸에서 나오고 그 칸들은 측정에서 온 값**이다(등급 A/B/B−/C). 그래서 「NOT_VALIDATED」 자체는 시뮬-대-실측 대조의 결과다.\n· ⭐사용자의 원 질문(지면 효과가 실제 실험에서 나느냐)에 대해서는: 이 저장소의 지면 갈래 게이트가 스스로 적어 놨다 — outputs/verify_ground_kernel.json `_meta.caution_ko` 「⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 자기일치 한다는 것만 잰다. **실측 대조는 0 건이다.**」 지면 효과를 뒷받침할 실측은 **못 찾았다**."
+  },
+  {
+   "claim": "ⓐ PathSolver 의 레벨은 σ 가 아니다 — 저장소가 «검증» 등급으로 못 박았다. 금속 평판 변을 0.2→4.0 m 로 키워 σ 를 +52.04 dBsm 바꿔도 되돌아오는 비는 소수 다섯째 자리까지 그대로다. 면적이 Sionna 정반사 진폭식에 안 들어간다. PEC 구는 6/6 조합에서 표적 경로 0 개다. (근거: docs/AUDIT_PO_TRUST.md:141-142 · outputs/rt_no_rcs_verify.json · docs/RETRACTION_LOG.md:1066-1069)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용은 한 줄도 틀리지 않았다 (전부 열어서 대조함)\n· docs/AUDIT_PO_TRUST.md:141 = 「**엔진 비교: PathSolver 는 σ 를 안 잰다** | — | ✅ 검증 | σ 를 +52.04 dBsm 바꿔도 `ratio_db` p-p 1.9e−06 dB」 — 글자 그대로 있다. :142 도 그대로.\n· outputs/rt_no_rcs_verify.json A_plate: side 0.2→4.0, sigma_dbsm 4.378245→56.419445 (차 +52.0412), ratio_db −7.913447361792892 ~ −7.913449293130007 (p-p 1.85e−06 dB). 「소수 다섯째 자리까지 같다」 맞다(여섯째에서 갈린다).\n· C_pec_sphere: r 0.3/1.0/3.0 × spp 1e6/1.6e7 = 6/6 전부 n_paths 0. 맞다.\n· RETRACTION_LOG 의 그 대목은 **1067-1069**이다(1065 가 절 제목). 인용문 자체는 정확.\n· 문맥 왜곡 없음. docs/VERIFY_RT_VS_PO.md:44-60 이 같은 실험을 더 자세히 싣고 있고, 내가 독립으로 잰 프레넬 1존 반경 0.8947 m 대비 0.2 m 평판(반대각 0.1414 m)은 **6.3 배 작다** — 그런데도 무한거울 image-source 값 −7.88 dB 가 나온다. 「유한개구 보정 없음」은 사실이다.\n\n■ 그런데 **실측이 아니다 — 전부 시뮬이다**\n이 세 실험은 Sionna 를 돌려 Sionna 의 행동을 관찰한 것이다. 물리 계측은 0 건이다.\n⚠저장소가 이걸 실측으로 부르는 전과가 여기서도 나온다 — docs/VERIFY_RT_VS_PO.md:11 의 표 머리가 「| 채널 | 진폭 법칙 | σ 의존성 | **실측** |」이고, RETRACTION_LOG.md:1067 은 「**측정 결과**다」라고 쓴다. 둘 다 시뮬 출력이다.\n확증: outputs/engine_validation_verdict.json — 실외 레인지의 지면반사 분리까지 「already_designed … **The design exists; the measurement does not.**」 · docs/AUDIT_REPORTS_0901.md:850 「둘 다 근사이고 **실측 대조는 0 건이다**」 · outputs/verify_ground_kernel.json `_meta.caution_ko` 「이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 … **실측 대조는 0 건이다**」.\n\n■ 과하게 넓힌 곳 셋\n1. **표본이 한 점이다.** benchmark/verify_rt_no_rcs.py:26-29 의 2026-09-06 자기정정: 「표본은 **주파수 한 점·기하 한 배치**다」. 챔버 바이스태틱(L=15.07 · R1≈R2≈18.7 m · max_depth=1). 문제의 드론 표는 다른 배치(15 m · spp 4e9 · depth 2 · 실외 메쉬)다. 옮겨 붙이는 건 **추론**이지 측정이 아니다.\n2. **「PEC 구 경로 0」을 법칙으로 쓰면 안 된다.** 같은 문서가 스스로 반례를 단다 — 「메쉬 자세를 무작위로 돌리면 … 수 % 확률로 정반사 경로를 만든다. 정확한 표현은 **«저확률 + 잡혀도 진폭 무의미»**」.\n3. 「시오나가 틀렸다」로 미끄러지면 안 된다(AUDIT_REPORTS_0901.md:850). 맞는 문장은 「그 양은 σ 가 아니다」까지다.\n\n■ ⭐그리고 이 주장은 **사용자가 물은 것에 답하지 않는다.** 내가 원장을 다시 재서 답을 찾았다\n(1) **문제의 σ 표는 이 저장소에 없다.** −30.9 / −99.9 같은 수는 어디에도 없다. 대신 내가 outputs/elev_sweep_shards 의 원본 E 장에서 직접 재니 (자유공간 / 실외, 레벨 dB):\n  +0° −63.24 / −62.83 · −15° −119.71 / −81.75 · −30° −133.05 / −79.47 · −45° −130.09 / −76.98 · −60° −119.60 / −74.47 · −75° −115.71 / −72.31 (각 8,192 자세, 팔 `sionna_p4000000000_swR0D0E0F1_r15_n8192[_envoutdoor01]_mfixbatteryi5_blperairframe_d2`).\n  outputs/outdoor_scene_0901.json 이 그중 셋을 `d_level_db` 0.41 / 53.58 / 45.13 으로 싣고 있다.\n  ⇒ **주어진 σ[dBsm] 표는 이 레벨에 상수 ≈ +32.36 dB 를 더한 것**이다(12 칸 전부 +32.31~+33.39 로 일치). 상수를 더해도 레벨은 σ 가 되지 않는다. 그래서 「−99.9 dBsm 은 물리적으로 말이 안 된다」는 **범주 착오**다 — 그건 dBsm 이 아니다. 다만 상수 이동은 모양을 안 바꾸므로, 「+53」과 「자유공간 붕괴」 두 읽기는 **σ 딱지를 떼도 그대로 남는다.** 주장 ⓐ 는 딱지를 지울 뿐 현상을 설명하지 못한다.\n\n(2) **「지면이 왜 큰 영향을 줘」의 진짜 답 — 이 판의 지면은 «거울»이다.**\n  benchmark/elevation_sweep_md.py:1163 「⚠우리 콘크리트 기본값이 **S=0.0** 이라 **지금 지면은 거울이다**」. src/build_report12_outdoor.py:232 도 이미 「그 정체가 **지면 거울 반사**(ε_r = 5.26 ≈ ITU 콘크리트)」라고 갈랐다. 즉 +53 dB 는 드론의 온전한 결맞음 거울상이 하나 더 붙은 값이고, 이건 [A] 가 「면적·σ 를 안 타는 무한거울장」이라고 밝힌 바로 그 채널이다. 두 발견은 **같은 기전**이다.\n\n(3) **⭐그 +53 dB 는 머리기사로 쓰면 안 된다 — 손잡이를 흔드니 무너진다.** 내가 el −30° 실외에서 지면 거칠기 S 만 흔들었다:\n  S=기본(0.0) −79.47 dB · S=0.3 **−101.53** · S=0.7 **−113.01**\n  ⇒ 「환경 이득」이 +53.6 → +31.5 → +20.0 dB 로 **33.5 dB** 움직인다. S 는 출처 없는 자유 파라미터다.\n  반대로 씨앗은 범인이 아니다 — rep1/2/3 되풀이 판은 비트는 달라도 레벨이 **−79.474584 dB 로 소수 여섯째까지 같다**. 스위치(굴절·회절·모서리)는 0.81 dB, 방위(az 0/45/90)는 0.97 dB 안이다.\n\n(4) **「실제 실험에서 그런 일이 일어나느냐」 — 이 저장소로는 답할 수 없다.** 드론 대상 지면반사·앙각 실측이 0 건이다(위 세 원장). 2선 지면 모델과의 자기일치 게이트(outputs/verify_ground_kernel.json, G4 상대차 1.4e−16)는 있지만 그 파일 스스로 「현실을 맞춘다를 말하지 않는다」고 못 박는다. 사용자에게 할 정직한 말은 **「지면 거울 반사로 레벨이 크게 오르는 것 자체는 교과서 2선 모델과 모양이 같지만, 우리 판은 지면을 완전거울(S=0)로 놓은 결과이고, 거칠기를 조금만 주면 33 dB 가 날아간다. 실측 대조는 우리한테 0 건이다」** 이다."
+  },
+  {
+   "claim": "두 팔의 level_db 를 나란히 놓는 것은 이미 금지다 — 정규화가 달라 −54 대 −125 dB 로 벌어져 있고, 원장 자신이 「ours 열은 산란 면적분 E [m²], sionna 열은 채널 h [무차원] · 팔 사이 절대 레벨 비교 금지」를 머리에 달고 있다. 근거: docs/CH1_ELEVATION_FINDINGS.md:49-50 · outputs/verify_elevation_sionna_el0.json _meta.units_warning_ko · docs/RETRACTION_LOG.md:1026-1040 I1(abs_level_plate_ptp_db = 3.452 dB). ⇒ 그러므로 −99.9 대 −47.1 의 σ 표는 읽으면 안 된다.",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 인용은 셋 다 진짜다 — 줄까지 확인했다\n· docs/CH1_ELEVATION_FINDINGS.md:49-50 축자로 있다: 「⛔ 안 쓴 것: 얼린 팔의 절대 레벨(상설 규칙 I1, 판 흩어짐 3.452 dB) · 우리 팔과 Sionna 팔의 level_db 나란히 놓기(정규화가 달라 −54 대 −125 dB 로 벌어져 있다).」\n· outputs/verify_elevation_sionna_el0.json `_meta.units_warning_ko` 축자로 있다.\n· docs/RETRACTION_LOG.md:1026(제목)~1041, `abs_level_plate_ptp_db` = 3.452 dB 는 1034 줄.\n· 수도 원장과 맞는다: outputs/elevation_sweep_md.json 의 ours el 0°/r10 = −54.37 dB, verify_elevation_sionna_el0.json `A_ledger_reread.sionna_level_db[\"el-15\"]` = −124.8 dB → 「−54 대 −125」 맞다.\n\n■ 그런데 이 규칙은 지금 표에 닿지 않는다. 네 곳에서 어긋난다.\n① **표는 두 팔이 아니다.** 우리 커널은 `--env` 를 아예 거부한다 — benchmark/elevation_sweep_md.py:492-499 가 `raise SystemExit(⛔ --engine {ours} 에는 --env 를 줄 수 없다 …)` 다. 그러니 「실외」 열은 원리적으로 Sionna 팔밖에 될 수 없고, 자유공간 열도 같은 Sionna 팔이다. 저장소 안의 대응 행이 그걸 보여준다(outputs/elevation_sweep_md.json):\n   자유공간 `sionna_p4000000000_swR0D0E0F1_r15_n8192_rotoutdoor_v2_mfixbatteryi5_blperairframe_d2` → el 0/−30/−60 = −63.24 / −132.42 / −119.30 dB\n   실외    `sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2` → −62.83 / −79.47 / −74.47 dB\n   차 = +0.41 / +52.95 / +44.83 dB. 문제의 표(+0.4 / +52.8 / +44.8)와 같은 수다. **한 팔 안의 비교**다.\n② **인용이 문맥을 자른다.** 그 `units_warning_ko` 의 바로 다음 절이 「…팔 사이 절대 레벨 비교 금지 — **아래는 전부 sionna 팔 안에서의 비교다**」 다. 원장 자신이 팔 **안**의 레벨 비교를 하고 있고, 지금 표가 바로 그것이다.\n③ **I1 은 Sionna 얘기가 아니다.** RETRACTION_LOG.md:1028 이 지목한 대상은 `src/rcs_sbr.py::sbr_field_bistatic` — 디더를 끈 **우리** 얼린 SBR 팔이다. 1040 줄은 오히려 「절대 σ 는 정적(jitter) 경로에서」라고 절대 σ 를 허용한다. Sionna 대 Sionna 차에 3.452 dB 를 들이대는 것은 범위 밖이다.\n④ **금지가 전면 금지도 아니다.** 같은 문서 44 줄은 「⭐눈금에 무관해서 우리 팔과 PathSolver 팔을 나란히 놓을 수 있다」(대역 몫 잣대)라고 팔 사이 비교를 명시적으로 허용한다.\n\n■ 다만 이 표에 진짜 단위 문제는 있다 — 주장이 겨눈 곳은 아니다\n자유공간·실외 두 열의 dBsm 값은 위 level_db 에 **일정한 +32.33~32.52 dB** 를 더한 것이다. 10·log10(4π/λ²) = **32.337 dB**(λ = 0.0856549 m) 와 같다. 이건 우리 커널의 σ = 4π/λ²·|E|² 공식(benchmark/az_falsify_plate.py:105 · benchmark/verify_phase_sign.py:45)을 **Sionna 의 무차원 h 에 그대로 씌운 것**이다 — 인용된 `units_warning_ko` 가 금지하는 바로 그 짓이다. ⇒ 「dBsm」 이라는 딱지는 못 받친다. 그러나 **같은 상수를 두 열에 똑같이 더했으므로 +53 dB 차이도 −99.9 대 −30.9 의 대비도 하나도 안 변한다.** 즉 이 주장으로는 문제가 없어지지 않는다.\n\n■ 저장소가 이미 갖고 있는 진짜 반박은 따로 있다 (docs/AUDIT_REPORTS_0901.md:76·97·98, 확신도 high)\n· 실외 기록은 총 에너지의 **99.093 %(el −30°) · 98.966 %(el −60°) 가 DC(정지) 성분**이다. 올라간 +53 dB 는 드론의 산란이 커진 게 아니라 **지면·건물 4·기둥 2 의 정지 에코가 같은 기록에 얹힌 것**이다 — RCS 가 아니라 클러터다.\n· 결정적으로, 실외 팔의 낙차 자세(8,192 중 74 개)에서 되돌아온 장은 **자유공간 장과 같다**: |O[bad]| 평균 2.415e-07 대 |F[bad]| 평균 2.408e-07, 비 1.00, 상관 0.987. 환경 항은 드론 항 **위에 더해진 상수 받침대**라는 뜻이다.\n· 자유공간 열의 el 0° 값도 깨끗하지 않다. outputs/verify_elevation_sionna_el0.json 판정: **아티팩트** — 카메라 렌즈판의 **무한평면 정반사가 3벌 중복**되어 코히런트로 더해진다(`dominant.count` = 3, |a|·τ 소수 4자리까지 동일, 3벌에서 +9.5 dB), |E| 는 4,096 자세에서 상대편차 2.456e-4 로 사실상 상수. ⇒ 자유공간 열의 위쪽 끝은 부풀려 있고 아래쪽 끝은 확산 경로만 남은 자리다. 두 끝 다 σ 로 읽을 물건이 아니다.\n\n■ 사용자 물음(「실제 실험에서 그런 현상이 일어나느냐」)에 대한 정직한 답 — **실측은 0 건이다**\n· outputs/verify_ground_kernel.json `_meta.caution_ko`: 「⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 **자기일치** 한다는 것만 잰다. **실측 대조는 0 건이다.**」\n· 이 저장소의 유일한 외부 측정 앵커는 DJI Phantom 3 한 대의 모노스태틱 RCS 측정 한 건(docs/MEASUREMENT_PLAN.md:20-22, Das IEEE WCL 2026 / Yuan EuCAP 2025 — 같은 원자료)이고, 그건 앙각·지면 다중경로 실험이 아니다. 우리 기체 실측 캠페인은 **아직 계획**이다(docs/ENGINE_VALIDATION.md:287).\n· ⛔이 저장소는 시뮬 출력을 「실측」 이라 부르는 전과가 있다 — docs/CH1_ELEVATION_FINDINGS.md:55·62 의 「예측 대 실측」 에서 실측 열은 outputs/ch1_elevation_figdata.json `_meta.inputs`(elevation_sweep_md.json/.npz) 즉 시뮬이고, docs/VERIFY_CLUTTER.md:15·75 는 아예 「Sionna RT (실측)」 이라 적는다. 그러니 이 표 어디서 「실측」 을 봐도 액면대로 받으면 안 된다.\n\n■ 못 찾은 것\n문제에 적힌 σ 표 자체(−30.9 / −87.4 / −99.9 / −96.7 / −86.9 / −82.8 · −30.5 / −49.4 / −47.1 / −44.6 / −42.1 / −39.9)는 저장소 어디에도 **못 찾았다**(.json/.md/.txt/.log/.py/.ipynb 전수 스캔, vendor·.git 제외). 오늘 날짜는 2026-09-06 이고 표는 09-07 로 적혀 있다. 위에 옮긴 el 0/−30/−60 세 점만 원장에 있고, −15°/−45°/−75° 의 자유공간·실외 짝은 이 저장소에 **없다**."
+  },
+  {
+   "claim": "프롬프트의 σ[dBsm] 표(자유공간 −30.90/−87.37/−99.89/−96.65/−86.92/−82.81, 실외 −30.49/−49.38/−47.10/−44.59/−42.09/−39.93)를 outputs/elev_sweep_shards/ 의 sionna_p4000000000_swR0D0E0F1_r15_n8192[_envoutdoor01]_mfixbatteryi5_blperairframe_d2_el{...}_{00,01}.npz 에서 σ=(4π/λ²)·|E|², λ=c/3.5GHz, 8192 자세 평균으로 그대로 재현했다.",
+   "verdict": "맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 재현 결과 — 12 개 수가 0.01 dB 안에서 전부 일치했다. 반박 못 했다.\n  자유공간 −30.90 / −87.37 / −99.89 / −96.65 / −86.92 / −82.81\n  실외     −30.49 / −49.38 / −47.10 / −44.59 / −42.09 / −39.93\n  파일 24 개 모두 존재. 샤드 00·01 의 idx 는 겹침 0, 합집합이 정확히 0..8191(=8192 자세).\n  키는 idx·E·npaths·meta·cfg. 식 꼴은 /workspace/sionna/src/rcs_po.py:203 `(4*np.pi/lam**2)*np.abs(E)**2` 과 같다.\n\n■ 실측/시뮬 — **100 % 시뮬**. 실측은 한 방울도 없다.\n  파일 접두 `sionna_` = 엔진 선택지 \"sionna\"(/workspace/sionna/benchmark/elevation_sweep_md.py:1120), 곧 Sionna PathSolver(:57, :735 `RP.build_scene`).\n\n■ 청구에서 덜 적힌 것 3 가지(틀린 건 아니나 그대로 인용하면 오해가 난다)\n 1) 「8192 자세 평균」은 **전력 평균**(10log10(mean|E|²))이다. dB 평균으로 하면 값이 달라진다 —\n    자유공간 el −30 은 −99.89 가 아니라 −101.83, el −45 는 −96.65 가 아니라 −99.23 이 된다.\n 2) 「3.5 GHz」는 npz 안에 안 적혀 있다. 코드 기본값 FC=3.5e9(elevation_sweep_md.py:96)이고\n    파일명에 `_fc` 꼬리표가 없어서 기본값이 쓰인 것(carrier_of, :288-294). 데이터에 찍힌 값이 아니라 **추론**이다.\n 3) 파일명의 `p4000000000` 은 주파수 4 GHz 가 아니라 **광선 예산 spp=4e9** 다.\n    cfg=[거리, 깊이, spp, physics, R, D, E] (benchmark/switch_factorial.py:197) → cfg=[15, 2, 4e9, 0,0,0,0].\n\n■ ⭐머리기사로 쓰기 전에 흔들어 본 결과 — **실외 행은 자유 파라미터에 안 버틴다**\n  실외 지면 재질의 산란계수 기본값이 S=0.0, 곧 **완벽한 거울**이다\n  (elevation_sweep_md.py:736-739 주석이 「우리 콘크리트 기본값이 S=0.0 이라 지금 지면은 거울이다」라고 못 박아 놓았다).\n  같은 칸을 S 만 바꿔 돌린 샤드가 이미 저장소에 있고, 값이 이렇게 무너진다:\n      el +0  : S기본 −30.49 → S0.3 −68.00 → S0.7 −77.21\n      el −30 : S기본 −47.10 → S0.3 −69.20 → S0.7 −80.67\n  레이다 방위만 바꿔도: el +0 az45 −51.06 · az90 −46.58 (기본 −30.49 대비 16~21 dB).\n  되풀이판 rep1·rep2 는 rep0 과 0.01 dB 까지 같다(재현성은 문제 없음).\n  ⇒ 「환경이 +53 dB 를 더한다」는 읽기는 거울 지면 + 특정 방위라는 한 점에서만 성립한다.\n\n■ 두 팔의 «모양»이 아예 다르다 (프롬프트의 의심을 뒷받침한다)\n  실외: 8192 자세의 중앙값과 상위 1 % 가 0.03 dB 안에 붙어 있다(el −30 중앙 −47.06 · p99 −47.04).\n        자세를 아무리 돌려도 값이 안 변한다 = 드론이 아니라 **장면 자신의 반향**이 지배한다.\n  자유공간: 산포가 있다(el −30 중앙 −101.39 · p90 −95.84 · p99 −94.07, 상위 1 % 가 에너지의 4 %).\n  두 팔 모두 |E|=0 인 자세는 0.0 % 이고 경로 수 중앙값은 1015~3098 이다 —\n  즉 −99.9 는 「솔버가 아무것도 못 냈다」가 아니라 **깊은 간섭 상쇄**의 결과다.\n\n■ ⛔사용자의 진짜 물음(「실제 실험에서 그런 현상이 나느냐」)에 대해서는 — **이 저장소에서 근거를 못 찾았다.**\n  refs/drone_papers/ 에 있는 문헌은 5 편뿐이고(Li&Ling 2017 · Ezuma 2019 · Semkin 2020 · Quevedo 2019 · DTMB Mavic3),\n  그 안에서 multipath / ground reflection / 지면 반사 를 grep 하면 **한 건도 안 걸린다**.\n  즉 「지면이 드론 RCS 를 이만큼 바꾼다」는 실측 문헌은 이 저장소에 없다.\n  다만 같은 문헌들이 적은 **실측 소형드론 RCS 대역**은 −28 ~ −4.6 dBsm 이다\n  (Li&Ling: Phantom2 −27.5 · Inspire1 −13.7 / Ezuma: P4Pro −15.03@15GHz / Semkin: Mavic Pro −16.8 / Quevedo: P4 −20~−4.6).\n  −99.9 dBsm 은 그 실측 포락선보다 **70 dB 이상 아래**다 — 프롬프트의 「말이 안 된다」는 감은 문헌 원장과 어긋나지 않는다.\n\n■ 저장소가 이미 남긴 관련 경고 (인용, 왜곡 없음)\n  /workspace/sionna/docs/AUDIT_REPORTS_0901.md:78 — 실외 팔의 ρ 는 8,192 자세 중 74 개(0.90 %)·92 개(1.12 %)의\n    **솔버 낙차**가 만든 것이고 「정적인 장면에서 지면·건물 전체가 한 자세만 사라졌다 돌아오는 것은 물리가 아니다」.\n  /workspace/sionna/docs/DEEP_DROP_0902.md:493 — 「**자유공간 쪽 기전은 아직 모른다**」.\n  ⇒ 자유공간 저앙각이 왜 무너지는지는 이 저장소도 아직 설명을 못 달았다.\n\n■ 참고 — 프롬프트가 말한 «+53 dB» 의 출처는 outputs/outdoor_scene_0901.json 의 cells/el-30/d_level_db = 53.58 이다.\n  단 그 원장의 level_free_db(−133.05)는 내가 샤드에서 낸 값(−99.89 − 32.34 = −132.23)과 0.8 dB 어긋난다 —\n  같은 팔의 같은 칸인데 값이 안 맞으므로, 그 원장 수를 그대로 인용하기 전에 한 번 더 맞춰 봐야 한다."
+  },
+  {
+   "claim": "ⓐ 경로 수로는 설명이 안 된다 — 실외의 자세당 경로 수는 자유공간보다 10.7~33.6 % 많을 뿐인데(el −30: 중앙값 1564 → 1893, +21.0 %) 같은 칸에서 전력은 52.79 dB 오른다. 근거는 같은 샤드의 npaths 키(el+0 1015→1124 · −15 1314→1543 · −30 1564→1893 · −45 1943→2427 · −60 2137→2705 · −75 2318→3098).",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 수는 전부 맞다 — 하나도 안 틀렸다. 내가 파일에서 직접 다시 냈다.\n  자리: /workspace/sionna/outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192[_envoutdoor01_]mfixbatteryi5_blperairframe_d2_el{+0,-15,-30,-45,-60,-75}_{00,01}.npz (팔마다 샤드 2개 × 4096 = 자세 8192개, npz 키 idx/E/npaths/meta/cfg).\n  npaths 중앙값 자유공간→실외 = 1015→1124(+10.74%) · 1314→1543(+17.43%) · 1564→1893(+21.04%) · 1943→2427(+24.91%) · 2137→2705(+26.58%) · 2318→3098(+33.65%). 인용문의 여섯 쌍과 소수점까지 같다(맨 끝만 33.65 → 인용은 33.6, 반올림이면 33.7).\n  el −30 전력차 = 10log10(mean|E|²_실외 / mean|E|²_자유) = +52.79 dB. 정확히 재현된다.\n  원장 교차확인: /workspace/sionna/outputs/elevation_sweep_md.json 의 두 행(engine=…_d2, engine=…_envoutdoor01_…_d2)이 npaths_median 1015/1124(el 0) · 1564/1893(el −30) · 2137/2705(el −60)을 그대로 갖고 있다. el −15/−45/−75 행은 이 원장에 없어 샤드에서 직접 냈다.\n  ⭐σ 표와 같은 칸이 맞다: 인용된 σ 표의 실외−자유 차(+0.4 / 38.0 / 52.8 / 52.1 / 44.8 / 42.9 dB)가 내가 이 팔에서 낸 mean|E|² 차(+0.41 / 37.99 / 52.79 / 52.06 / 44.83 / 42.88)와 여섯 줄 다 0.01 dB 안에서 같다. 즉 σ 표도 이 샤드에서 나왔다.\n\n■ 그런데 인용이 문맥을 왜곡한다 — 세 가지.\n\n① 「경로 수로는 설명이 안 된다」는 참이지만 **아무것도 가르지 못한다.** 아무도 전력이 경로 수에 비례한다고 말하지 않았다. 받는 것은 복소 진폭의 결맞음 합이라 강한 경로 하나가 수십 dB를 만든다. 이 문장은 «환경이 더했다» 도 «자유공간이 무너졌다» 도 지지하지 않는다. 허수아비를 눕힌 것이다.\n\n② ⭐**두 팔의 «전력» 은 같은 것이 아니다.** 경로 채택 마스크가 /workspace/sionna/benchmark/elevation_sweep_md.py:764 에서 `hit = (O != RP.NO_OBJ).any(axis=0)` — **아무 물체나 한 번이라도 맞은 경로는 다 넣는다.** 실외 팔의 물체에는 드론뿐 아니라 지면·건물 4·기둥 2 가 들어 있다(같은 파일 120-129행 ENV_SPECS[\"outdoor01\"], 드론 고도 20 m). 그래서 실외 E 에는 드론을 안 거친 지면·건물 반사가 그대로 섞인다.\n  내가 잰 것: el −30 에서 실외 기록의 **99.09 %가 DC(정지 성분)** 다. DC 자체가 자유공간 −134.71 dB → 실외 −79.47 dB 로 **+55.23 dB** 오른다. 드론 몸통의 정지 몫은 늘어날 수가 없으니 이 55 dB는 사실상 전부 환경이다. (내 DC 몫 99.093 / 98.966 / 99.948 %(el −30/−60/+0)는 docs/AUDIT_REPORTS_0901.md:97 의 이미 적힌 값과 소수 셋째 자리까지 같다.)\n  → 「환경이 +53 dB 를 더한다」도 「경로 수로는 설명이 안 된다」도, 그 53 dB 를 **드론 에코**로 읽는 순간 틀린다. 드론과 무관한 정지 클러터가 기록을 덮은 것이다. 참고로 이 지면은 120×120 m 매끄러운 콘크리트 거울이라 «최악에 가깝다» 고 같은 파일 136-138행이 스스로 적어 뒀다.\n\n③ 샤드 세대가 섞였다. el+0 자유공간 샤드는 2026-09-06 재실행판(키 8개: nret·E_dedup·n_dup 있음)인데 짝인 el+0 실외 샤드는 2026-08-31 옛판(키 5개)이다. 자유공간 안에서도 −15/−45/−75 는 09-02 판(키 6개), −30/−60 은 08-24 옛판이다. el 0 에는 «같은 줄이 여러 번 들어와 결맞음 합이 그 수만큼 곱해지는» 결함이 실제로 있었고 그래서 E_dedup 가 생겼다(elevation_sweep_md.py:657-664). npaths 비교는 그래도 서겠지만, +0 줄의 «+0.41 dB» 를 두 세대 짝으로 인용하면 안 된다.\n\n■ 못 찾은 것\n  σ 표의 **절댓값**을 만드는 파일·식은 못 찾았다. 4πR²·mean|E|²(R=15) 로 놓으면 열두 칸 전부가 인용값보다 정확히 2.14~2.22 dB 높다(상수 차). 차이(위 ⓐ)는 완전히 맞지만 −99.9 라는 절대 눈금이 어디서 나왔는지는 이 저장소에서 확인 못 했다. 인용된 σ 표 자체가 담긴 파일도 못 찾았다.\n\n■ 실측인가 — ⛔아니다. 전부 시뮬이다.\n  npaths·E 는 Sionna PathSolver(굴절·회절·모서리회절 끔, 정반사·확산 켬 — elevation_sweep_md.py:754, 팔 이름 swR0D0E0F1) 출력이다. 기하도 준-모노스태틱(송수신 0.20 m 간격, benchmark/report15_probe.py:98,129-142)이라 엄밀한 모노스태틱 σ도 아니다. 저장소는 «우리 실측 없음» 을 스스로 적어 뒀다(docs/PRIOR_WORK_COMPARISON.md 「실측 검지거리 스펙트럼」 행).\n  사용자 물음(«실제 실험에서 그런 현상이 나느냐»)에 이 숫자들은 답이 못 된다. 이 저장소 문헌 원장에서 지면 반사를 **실측으로** 다룬 항목은 하나 찾았다 — docs/PRIOR_WORK_COMPARISON.md:936-937 및 :896, Demissie 외 2024 RADAR(LTE450, DJI M210): 실측 CUT 전력이 진동하고 그것을 «직접경로 + 반사 1개의 간섭» 으로 해석한다. 즉 «야외 실측조차 자유공간이 아니다» 는 것까지가 원장이 받쳐 주는 전부이고, **자유공간 대비 50 dB 대의 낙차를 실측으로 보인 문헌은 이 저장소에서 못 찾았다.**"
+  },
+  {
+   "claim": "ⓒ 실외 팔에서 |E| 는 자세를 8192 개 돌려도 거의 안 움직인다. el −30 에서 8192 자세 중 8118 개(99.10 %)의 |E| 최대/최소 폭이 0.047 dB 다. 나머지 74 개(0.90 %)는 |E| 가 중앙값의 10 % 아래로 떨어지는 «낙차» 자세다. 같은 칸 자유공간은 낙차를 뺀 뒤에도 폭이 27.84 dB 이고, 중앙값의 ±1 % 안에 드는 자세가 3.02 % 뿐이다. (근거: 위 샤드의 E, 낙차 자는 outputs/outdoor_scene_0901.json 규약 benchmark/outdoor_scene_0901.py:88 «|E| < 중앙값 × 0.1». 실외 낙차 수 el−15 60 · el−30 74 · el−45 83 · el−60 84 · el−75 82; 실외 정상 자세 |E| 폭 0.018 / 0.047 / 0.054 / 0.986 / 0.106 dB)",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 먼저 팔을 특정했다 (주장에 안 적혀 있다)\n문제의 σ 표는 **swR0D0E0F1** 팔이다. 샤드에서 σ=10log10(4πR²·mean|E|²) 로 다시 내면 12 칸 전부가 표와 **일정하게 2.14~2.22 dB** 차이다(자유공간 el+0 −28.72 vs 표 −30.9, el−30 −97.72 vs −99.9, el−75 −80.64 vs −82.8; 실외도 같은 오프셋). 정규화 상수만 다른 같은 수다. 샤드: outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192{_envoutdoor01}_mfixbatteryi5_blperairframe_d2_el{±NN}_{00,01}.npz (4096+4096=8192).\n\n■ 숫자는 **여섯 줄 모두 그대로 나왔다** (내가 샤드에서 직접 다시 냈다)\n  · 실외 el−30: 낙차 74 개, 남은 8118 개 = **99.10 %**, 폭 **0.047 dB** — 정확히 일치\n  · 74/8192 = 0.903 % → «0.90 %» 일치\n  · 자유공간 el−30: 낙차 73 개 뺀 뒤 폭 **27.844 dB** → «27.84» 일치\n  · 실외 낙차 수 60 / 74 / 83 / 84 / 82 (el−15/−30/−45/−60/−75) — **다섯 개 모두 일치**\n  · 실외 정상 자세 폭 0.018 / 0.047 / 0.054 / 0.986 / 0.106 dB — **다섯 개 모두 일치**\n  · 원장 대조도 맞다: outputs/outdoor_scene_0901.json /drop_rules/el-30/outdoor/n_ratio=74, /el-60/outdoor/n_ratio=84, /el-30/free/n_ratio=73.\n숫자 조작·왜곡은 **없다**. 반박 시도는 여기서 실패했다.\n\n■ 고쳐야 할 것 넷\n\n① **머리기사 첫 문장이 el 0° 를 조용히 뺐다.** «실외 팔에서 |E| 는 거의 안 움직인다» 는 통문장인데, 실외 **el +0° 는 낙차 0 개에 폭 3.302 dB** 다 — 인용한 0.047 dB 의 70 배다. 주장이 나열한 근거는 el−15 부터 시작한다. 이 «얼어붙음» 은 실외 팔의 성질이 아니라 **빗각(el ≤ −15°)의 성질**이다. 그리고 자유공간 σ 가 멀쩡한 칸(−30.5 dBsm)이 바로 그 el 0° 다.\n\n② **손잡이를 흔들면 절반이 무너진다** (원장의 실외 팔 넷을 같은 자로 다시 냈다, 낙차 뺀 폭 dB):\n    swR0D0E0F1  el+0 3.302 / −15 0.018 / −30 0.047 / −45 0.054 / −60 0.986 / −75 0.106\n    swR1D0E0F1  el+0 8.627 / −15 0.021 / −30 0.038 / −45 0.036 / −60 0.978 / −75 0.046\n    swR0D1E1F1  el+0 6.354 / −15 **8.514** / −30 **20.110** / −45 **7.493** / −60 1.325 / −75 **7.987**\n    swR1D1E1F1  el+0 6.357 / −15 **7.717** / −30 **0.695** / −45 **7.137** / −60 0.835 / −75 **6.648**\n  D1E1(회절·모서리 켠) 두 팔에서는 낙차가 el−15/−45/−75 에 0~1 개뿐이고 폭이 7~20 dB 다. «얼어붙음» 은 **D0E0 팔에서만** 나온다. 자유공간 붕괴도 같다 — 자유공간 el−30 σ 는 D0E0 에서 −97.7, D1E1 에서 **−63.3**(내 눈금), 34 dB 차다. 즉 −99.9 dBsm 도 «시뮬의 결과» 가 아니라 **스위치 설정 하나의 결과**다.\n\n③ **파일:줄 인용이 틀렸다.** benchmark/outdoor_scene_0901.py:88 은 독스트링 닫는 `\"\"\"` 다. «|E| < 중앙값 × 0.1» 문자열은 **:100** (`ratio_rule_ko=`), 실제 세는 코드는 **:102** (`int(np.sum(a / med < 0.1))`), 같은 자를 쓰는 빗살 블록은 :135 다(설명 문장은 :81). 문자열 자체는 실재하니 지어낸 인용은 아니고, 줄 번호만 12 줄 어긋났다.\n\n④ **el−15/−45/−75 는 그 JSON 에 없다.** benchmark/outdoor_scene_0901.py:42 가 `ELS = [0.0, -30.0, -60.0]` 이라, outputs/outdoor_scene_0901.json 에도 outputs/elevation_sweep_md.npz 에도 이 팔은 el 0/−30/−60 세 칸뿐이다. 다섯 칸짜리 낙차 수·폭은 **원시 샤드에서 새로 낸 수**다(내가 재현했으니 값은 맞다). 주장이 «위 샤드의 E» 라고 적어 거짓은 아니지만, JSON 을 열어 확인하려는 사람은 셋만 찾는다 — 한 줄 밝혀 두는 게 낫다. 부수적으로 «중앙값 ±1 % 3.02 %» 의 분모는 **낙차 뺀 8119** 다(245/8119=3.018 %). 전체 8192 로 재면 2.99 % 다. 분모가 안 적혀 있다.\n\n■ 실측이냐 — **아니다. 전부 시뮬이다. 실측은 0 건이다.**\nE 배열은 Sionna 광선추적(PathSolver) 출력 npz 다. 저장소 스스로 못 박아 두었다:\n  · docs/NEW_FILE_RULES.md:104 — 「이 저장소의 실기 계측 대조는 **0 건**이다」, 그리고 시뮬 출력을 «실측» 이라 부른 **전과**를 그 줄에 실명으로 적어 두었다(outputs/das_fleet_ours.json:43).\n  · outputs/verify_ground_kernel.json `_meta.caution_ko` — 「이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 — 저장소의 2선 모델과 자기일치 한다는 것만 잰다. **실측 대조는 0 건이다**」\n따라서 이 주장은 사용자의 «실제 실험에서 그런 현상이 일어나느냐» 에 **답을 못 한다**. 답하려면 「아직 안 쟀다」를 같은 문장에 적어야 한다.\n\n■ 덧 — 이 관찰의 물리적 읽기 (주장에는 없지만 사용자 물음에 직결)\n실외 el−30 의 |E| 중앙값은 1.0719e−4, 같은 칸 자유공간은 2.0580e−7 — **54.3 dB 차**다(el−60 은 44.5 dB). 그리고 docs/DEEP_DROP_0902.md 가 낙차에서 빠지는 «고정 복소 상수» 를 envoutdoor el−30 에 대해 |D| = 1.073854e−4 로 적어 두었는데, 이는 중앙값과 사실상 같은 크기다. 즉 실외 기록은 **자세와 무관한 경로 하나가 통째로 지배**하고, 낙차는 그 경로가 통째로 빠지는 자세다. 그래서 |E| 가 «안 움직인다» — 표적이 안정된 게 아니라 **표적 몫이 장면 반사 아래 묻혀 있는 것**이다. σ_실외 로 적힌 −47.1 dBsm 은 드론이 아니라 장면을 재고 있을 가능성이 크다. 이 읽기는 주장 ⓒ 와 모순되지 않지만, ⓒ 를 「환경이 σ 를 안정시킨다」로 옮겨 적으면 그 순간 틀린 말이 된다."
+  },
+  {
+   "claim": "ⓑ 낙차 74 자세를 뺀 el −30 실외에서 자세평균(DC) σ = −47.06 dBsm, 자세에 따라 변하는 성분(AC) σ = −103.78 dBsm, 둘의 비 56.73 dB (변하는 몫이 총전력의 0.0002 %). 다섯 앙각(el −15/−30/−45/−60/−75)에서 이 비가 46.6~63.7 dB 다. 근거로 el−15 −49.34/−112.99(63.65) · el−30 −47.06/−103.78(56.73) · el−45 −44.55/−98.41(53.86) · el−60 −42.05/−88.66(46.62) · el−75 −39.89/−90.33(50.44) 을 든다.",
+   "verdict": "부분적으로 맞다",
+   "is_measured": "시뮬",
+   "correction": "■ 재현된 것 — 두 칸은 소수 둘째 자리까지 정확하다\n원장 /workspace/sionna/outputs/elevation_sweep_md.npz, 팔 `sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2` 를 CPU 로 직접 다시 쟀다.\n · el−30: 낙차 74 자세, DC −47.06 dBsm, AC −103.79 dBsm, 비 56.73 dB\n · el−60: 낙차 84 자세, DC −42.05 dBsm, AC −88.66 dBsm, 비 46.62 dB\n낙차 74 는 outputs/outdoor_scene_0901.json 의 drop_rules.el-30.outdoor.n_ratio = 74 · src/build_report12_outdoor.py:110 의 n_bad=74 와도 맞는다. 「0.0002 %」 산수도 맞다(10^−5.673 = 2.12×10⁻⁶ = 0.00021 %).\nσ 눈금 주석: 문제문의 표는 10log10(4πR²·mean|E|²) − 2.185 dB 다(내가 확인한 9 칸 전부 ±0.04 dB 안). 상수라 모든 차·비에서 지워진다.\n\n■ 틀린 것 ① — 「다섯 앙각」이 안 선다. 실외 샤드는 세 앙각뿐이다\n저장소 파일 전수 검색에서 실외 장면 키(`envoutdoor01`)는 12 개뿐이고 앙각은 el +0 · −30 · −60 밖에 없다. **el −15 · −45 · −75 의 실외 샤드는 이 저장소에 없다.** 원장의 샤드 1,433 개를 전부 훑어 같은 규칙으로 DC/AC 비를 계산해도 63.65 · 53.86 · 50.44 를 내는 샤드가 하나도 없다(56.73 과 46.62 는 위 두 칸에서만 나온다). 즉 다섯 중 셋은 근거를 못 찾았다.\n게다가 그 세 칸의 AC(−112.99 · −98.41 · −90.33)는 **같은 앙각의 자유공간 AC**(−113.15 · −98.50 · −90.71)와 0.09~0.38 dB 안에 붙어 있다. 그런데 실외 샤드가 실제로 있는 el−60 에서 그 대입은 7.2 dB 틀린다(자유 −95.83 ↔ 실외 −88.66). 「실외 AC ≈ 자유공간 AC」는 이 데이터가 스스로 반증한다. → 「46.6~63.7 dB」는 잰 두 칸(46.6 · 56.7)과 못 찾은 세 칸을 한 범위로 묶은 것이다.\n\n■ 틀린 것 ② — 머리기사 숫자가 손잡이 두 개에 매달린다\nⓐ 낙차 74 자세를 빼는 것이 결과 그 자체다. 자세 8,192 개 전부로 재면 비가 20.39 dB(변하는 몫 0.91 %)다. 0.90 % 의 자세를 빼면 56.73 dB(0.0002 %)가 된다 — 36.34 dB, 4,300 배 움직인다. src/build_report12_outdoor.py:110 이 이미 그 이유를 적어 뒀다: 그 74 자세가 포락 AC 전력의 **99.09 %** 다.\nⓑ 스위치 팔을 바꾸면 같은 칸에서 36.78~60.47 dB 로 갈린다 — R0D0E0F1 56.73 · R0D1E1F1 36.78 · R1D0E0F1 60.47 · R1D1E1F1 43.15 (R=굴절 D=쐐기회절 E=모서리회절 F=확산, benchmark/switch_factorial.py:708). 회절을 켜면 변하는 몫이 0.02 % 로 100 배 커진다. 폭 23.7 dB.\n저장소가 같은 함정을 이미 경고했다 — src/build_report12_outdoor.py:99 「⚠분모를 |mean F| 로 바꾸면 el −30° 가 +55.33 dB 다 — 정의를 섞지 말 것」.\n\n■ 틀린 것 ③ — 「안 변하는 성분」은 드론이 아니라 지면 거울 반사이고, 실제 레이다가 지우는 몫이다\nel−30 에서 실외−자유 차이 항은 크기의 상대표준편차가 2.05×10⁻⁴ 인 **상수**이고 자유공간 몫보다 53.68 dB 크다(src/build_report12_outdoor.py:117). 리포트 12 결론 2 는 그 정지 성분을 빼면 el−30 실외의 날개 박자가 자유공간과 사실상 같아진다고 적는다. 따라서 「변하는 몫이 총전력의 0.0002 %」는 정지 클러터를 안 지운 날것의 비이고, 검출이 읽는 수가 아니다.\n\n■ 실측이냐 — 아니다. 전부 시뮬이고, 이 저장소에 실측은 0 건이다\n · 이 샤드의 engine 은 sionna(광선추적 경로 솔버), 광선 4×10⁹ · 깊이 2 · 자세 8,192(outputs/elevation_sweep_md.json rows).\n · outputs/verify_ground_kernel.json _meta.caution_ko: 「⛔이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 … **실측 대조는 0 건이다**」.\n · docs/NEW_FILE_RULES.md:19 · :104 「이 저장소의 실기 계측 대조는 0 건이다」.\n · 문헌 원장도 못 받쳐 준다 — docs/DRONE_ISAC_PRIOR_READING.md:538 「md-* 는 무향실+배경차감이라 **지면 반사가 없다.** 실측 3편은 무향실」. 즉 저장소가 가진 드론 RCS 실측은 전부 무향실이라 지면 반사가 원리적으로 들어올 수 없다. 야외 지면반사 분리는 docs/MEASUREMENT_PLAN.md §1-5 에 **계획**으로만 있다.\n · ⚠이름 함정: benchmark/rotor_ladder_measured_0818.py 는 제목에 「**실측**」이 붙고 팔 이름이 outdoor·outdoor_v2 지만, 그 「실측」은 「식이 아니라 실제로 돌린 시계열」이라는 뜻이고 outdoor 는 **로터 회전수 요동 프리셋 이름**이다(같은 파일 54~56 줄). `_rotoutdoor*` 샤드를 실외 장면으로 읽으면 안 된다. 실외 장면은 `_envoutdoor01` 하나뿐이다(src/rcs_sbr.py:1516 — 지면 + 건물 4 + 기둥 2).\n\n■ 지면 모델 자체의 한계(인용 전에 붙일 것)\nsrc/rcs_sbr.py:1514~1519 — 지면은 평평·무한·균질이고 거칠기(확산 산란)가 없다, 정반사뿐이다. 지면-드론-지면 3 회 이상 경로도 없다. 「안 변하지 않는 큰 성분」을 만든 것이 바로 그 이상적 거울면이다.\n\n■ 사용자 물음에 대한 정직한 답\n「지면이 왜 큰 영향을 주나 / 실제 실험에서도 그러나」 — 이 저장소 안에는 그 현상을 실제 계측으로 확인한 자료가 **0 건**이다. 답할 수 있는 데까지는: 지면 정반사가 정지 성분을 크게 올린다는 것은 우리 시뮬 세 앙각(el 0·−30·−60)에서만 관측됐고, el 0 에서는 오히려 환경 항이 드론보다 20.24 dB **작다**(src/build_report12_outdoor.py:132 env_dc_db=−20.24) — 앙각마다 부호가 뒤집힌다."
+  }
+ ],
+ "answer": {
+  "answer_ko": "「지면이 왜 그렇게 큰 영향을 주나 / 실제 실험에서도 그런 일이 일어나나」에 대한 답 — 결론을 세우지 않고, 잰 것·문헌·어긋난 자리·모르는 것으로 갈라 적는다.\n\n용어 한 줄씩: Sionna PathSolver = 광선을 쏘아 송수신 사이 경로를 찾아 주는 상용 전파 추적기. 우리 커널(SBR+PO) = 표면을 격자로 잘라 위상까지 더하는 우리 자체 면적분 계산기. σ(RCS) = 표적이 되돌리는 세기를 면적[m²]으로 환산한 값.\n\n━━ ① 우리 시뮬이 낸 수 (내가 원자료에서 직접 다시 냈다)\n\n파일: outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192[_envoutdoor01]_mfixbatteryi5_blperairframe_d2_el{±NN}_{00,01}.npz (앙각마다 자세 8,192개). 식은 10log10((4π/λ²)·mean|E|²), λ=c/3.5GHz.\n  앙각    자유공간   실외    차\n   +0°   −30.90   −30.49   +0.41\n  −15°   −87.37   −49.38  +37.99\n  −30°   −99.89   −47.10  +52.79\n  −45°   −96.65   −44.59  +52.06\n  −60°   −86.92   −42.09  +44.83\n  −75°   −82.81   −39.93  +42.88   [dBsm 딱지는 ③에서 따로 다툰다]\n사용자가 준 표와 12칸 전부 0.01 dB 안에서 같다. 즉 새로 잰 현상이 아니라 이미 저장소에 있던 팔이다.\n\n그 «+53 dB» 의 정체에 대해 저장소가 이미 갈라 둔 것:\n· 실외에서 가장 센 경로 하나는 길이 39.99999 m 이고(outputs/elephant_id_0903.json), 이는 라디오 지면고 20 m 의 정확히 2배다 — **드론을 거치지 않는, 레이다 자신의 지면 거울반사**다. 그 경로의 |a|=6.711507e−05 는 닫힌식 |Γ|·λ/(4π·40 m)=6.711525e−05 와 여섯 자리까지 같다.\n· 드론이 한 글자도 안 들어가는 닫힌식 σ=|Γ|²/(4π(2h)²), h=20−15·sin|el| 이 실외 «자세 평균 성분」을 다섯 앙각에서 0.01~0.09 dB 안으로 맞춘다.\n· 실외 기록의 총전력 중 자세가 바뀌어도 안 변하는 몫이 99 % 대이고(el −30 에서 변하는 몫과의 비 56.73 dB), 그 환경 항의 변동은 드론 변조보다 16~17 dB 작다(src/build_report12_outdoor.py:114-134). 즉 올라간 것은 표적 에코가 아니라 0 도플러 정지 클러터다.\n· el 0° 만 예외다 — 거기서는 거울 닫힌식 예측(−51.13)이 실측 실외값(−30.49)보다 20.6 dB 낮고, 환경 항이 오히려 드론보다 20.24 dB 작다.\n\n⭐그리고 이 표는 손잡이 두 개에 매달려 있다 (내가 같은 샤드로 직접 확인):\n· 회절 스위치. 지금 표는 회절·모서리회절을 끈 팔(swR0D0E0F1)이다. 켠 팔(swR0D1E1F1)로 같은 식을 돌리면 자유공간이 −30.45 / −60.37 / **−65.47** / −51.00 / −73.82 / −52.84 dBsm 이 되고, 「환경이 더한 몫」은 +0.56 / 7.45 / **19.13** / 6.67 / 31.49 / 8.90 dB 로 줄어든다. el −30 기준 자유공간이 34 dB 올라오고 낙차가 34 dB 사라진다.\n· 지면 거칠기. 이 판의 콘크리트 지면은 산란계수 S=0.0, 곧 완전 거울이다(benchmark/elevation_sweep_md.py:1163 이 스스로 «지금 지면은 거울이다» 라고 적어 둔다). S 만 바꾼 판이 이미 있고, el −30 실외가 −47.10 → S0.3 −69.20 → S0.7 −80.67 로 내려간다 — 「환경이 더한 몫」이 +52.8 → +22.1 → +2.1 dB 다.\n반대로 씨앗·재실행에는 안 흔들린다(rep1~rep5 가 소수 여섯째까지 같다).\n\n━━ ② 실측 문헌이 말하는 수 (이 저장소의 PDF·원장에서 확인한 것만)\n\n· DJI Phantom 3(대각 35 cm), 무향실 CATR 원거리장, VV, 1.8~18.2 GHz — Yuan 외 EuCAP 2025. 세 «자세 면»(옆·위·아래)의 방위평균 σ 는 3.5 GHz 에서 −15.05 / −17.11 / −16.51 dBsm(공표 회귀직선), 최대차 2.06 dB. 저장소의 디지타이즈 복원 스크립트(benchmark/verify_comparability_yuan.py)로 곡선을 되살리면 3.5 GHz 실측 최대차는 3.16 dB, 우리 밴드 안 최대 5.75 dB 다.\n· 같은 논문 p.3 축자: «the overall RCS values range from −40 dBsm to 5 dBsm». 91 방위 × 2801 주파수 × 세 면을 통틀어 가장 낮게 찍힌 값이 −40 dBsm 이다. ⚠논문이 장비 동적범위·잡음바닥을 안 적어서, −40 이 표적의 바닥인지 측정의 바닥인지 논문만으로는 못 가른다.\n· Semkin 외 IEEE Access 2020(26~40 GHz, 무향실, 5.8 m)는 기체마다 **아래 반구 전체**(1° 스텝)를 쟀고, 그 동기가 축자로 «지상 레이더가 올려다보는 상황의 재현» 이다. 각도별 σ 표준편차가 5.0~6.8 dB, 반구 평균 −19.5 ~ −6.1 dBsm, 각도 최댓값 최대 +25.0 dBsm.\n· Ezuma 외(15 GHz, VV, 콤팩트레인지) 상용 6기종 방위평균 −11.67 ~ −17.06 dBsm.\n· 3GPP TR 38.901 소형 UAV: σ_M = −12.81 dBsm 상수이고 **각도 의존 항이 아예 없다**(σ_D ≡ 1). 독립 실측 재현이 A=−13.57 dBsm, 각도 요동 3.065 dB.\n· 실측으로 −80 dBsm 아래가 보고된 예는 이 저장소에 0 건이다. 자주 인용돼 온 «−60 dBsm»(Rzewuski, NATO STO 2021)은 **FDTD 계산**이지 측정이 아니다.\n\n⭐그리고 사용자가 물은 바로 그것 — **지면이 있는 조건에서 드론 σ 를 잰 문헌은 이 저장소에 0 건이다.** 절대 σ 를 낸 실측은 전부 무향실이고(배경 코히런트 차감 + 레인지게이팅으로 지면 반사를 일부러 지운다), 야외에서 드론을 다루는 논문들은 σ 를 **가정**한다(Saur −17 dBsm, Wang −10 dBsm). Semkin 도 무향실이라 «올려다보는 방향» 만 재현했지 지면을 넣은 게 아니다. 가장 가까운 것이 Demissie 외 2024 야외 LTE450 실측의 «수신 전력 진동을 직접경로+반사 1개의 간섭으로 읽는다» 는 **정성 서술 한 줄**이고, 그 dB 크기는 우리 원장에 안 적혀 있다.\n저장소의 지면 갈래 게이트 자신도 머리에 적어 둔다 — outputs/verify_ground_kernel.json: «이 게이트는 «지면 모델이 현실을 맞춘다» 를 말하지 않는다 … **실측 대조는 0 건이다**».\n\n━━ ③ 둘이 어긋나는 자리와 그 크기\n\nⓐ 우리 자유공간 빗각 −99.9 는, 실측에 귀속된 최저값 −40 dBsm 보다 **약 60 dB 아래**다. 실측 문헌 어디에도 그 근처의 수가 없다.\nⓑ 앙각을 훑은 실측 두 건이 보고하는 산포는 «수십 dB» 가 아니다 — Yuan 세 면 2.1~3.2 dB(우리 밴드 안 최대 5.75), Semkin 아래 반구 전체 표준편차 5~7 dB. 우리 표의 자유공간 앙각 폭은 69.0 dB 다(회절 켠 팔에서는 43.4 dB). 3GPP 는 소형 UAV 에 각도 의존을 아예 주지 않는다.\nⓒ ⭐**σ 라는 이름표 자체가 어긋난다.** 이 팔의 원장은 σ 가 아니라 level_db = 20log10(mean|E|) 만 적는다. 위 표의 눈금은 우리 면적분 커널용 상수 10log10(4π/λ²)=+32.337 dB 를 붙인 것이고, 저장소 코드가 PathSolver 채널계수에 붙이라고 갈라 놓은 상수는 10log10((4π)³R⁴/λ²)=+101.365 dB 다(benchmark/az_falsify_ours.py:25·30·67). 둘의 차가 69.03 dB 다. 후자를 쓰면 el 0 자유공간이 **+38.1 dBsm** 이 되어 물리 상한을 크게 넘는다. **어느 상수를 골라도 el 0 이 실측 봉투(−11.7 ~ −18.5 dBsm) 밖으로 나간다** — 아래로 16 dB, 또는 위로 50 dB.\nⓓ 그리고 저장소는 el 0 칸을 이미 «아티팩트» 로 판정해 두었다 — 카메라 렌즈판 42 삼각형의 무한평면 정반사가 목록에 세 벌 들어가 코히런트로 더해진 것이고, 참 PO 평판값 대비 +48.9~+58.4 dB 과대다(outputs/verify_elevation_sionna_el0.json). 앙각을 0.25° 만 틀면 그 사본이 0 개가 되고 레벨이 −127 dB 로 내려간다. 즉 표의 두 끝(밝은 el 0 과 어두운 빗각)이 서로 다른 이유로 둘 다 σ 로 읽기 어렵다.\nⓔ 같은 저장소가 PathSolver 는 σ 에 반응하지 않는다는 것을 직접 시험해 놨다 — 금속 평판 변을 0.2→4.0 m 로 키워 σ 를 +52.04 dBsm 바꿔도 돌아오는 비가 −7.913447 → −7.913449 로 소수 다섯째까지 그대로다. PEC 금속구는 6/6 조합에서 표적 경로 0 개다.\nⓕ 지면 몫의 크기끼리도 어긋난다. 평면지면 2선 모델의 물리 천장은 40log10(2)=+12.04 dB 이고, 저장소가 우리와 같은 기하(15 m·고도 20 m·앙각 −30°)에서 직접 잰 지면 몫은 **−3.73 dB** 다. +53 dB 는 그 어느 쪽과도 40 dB 이상 벌어진다 — 다만 그 닫힌식은 평면·무한·균질 지면 하나만 있는 모델이라 건물 4·기둥 2 가 든 장면에 그대로 적용되지 않는다.\n\n━━ ④ 우리가 모르는 것 (여기가 제일 중요하다)\n\n· **지면이 실제 실험에서 드론 수신 전력을 몇 dB 바꾸는가 — 모른다.** 이 저장소에 그 dB 를 실은 실측이 0 건이다. 그러므로 「환경이 +53 dB 를 더한다」도 「자유공간이 무너졌다」도 **실측으로는 어느 쪽도 판정할 수 없다.**\n· 자유공간 빗각 레벨(−87 ~ −100)이 물리적으로 옳은지 — 저장소가 스스로 «검증하지 않았다» 고 적어 두었다(outputs/verify_elevation_sionna_el0.json H_unknown_ko[2]). 판정한 것은 el 0 한 칸뿐이다.\n· 실외의 «안 변하는 성분» 안에 드론 몫이 얼마나 섞였는지 — 크기가 지면 거울 닫힌식과 0.01~0.09 dB 안에 맞는다는 것까지만 확인했다. 직각으로 더해진 성분은 크기 일치만으로 배제되지 않는다. 샤드에 경로별 물체가 안 남아 있어 «지면만 스친 경로가 몇 개고 전력이 얼마인가» 를 세지 못했다.\n· 위 표의 σ 환산이 어느 코드에서 나왔는지 — 파이프라인을 못 봤다. 확인한 것은 「원장 level_db + 32.34 dB」라는 산술 사실뿐이다.\n· matrice4e 를 앙각 분해로 잰 실측 — 없다. 앵커는 Phantom 3 한 기체·측정 체인 하나뿐이고, Das 와 Yuan 은 같은 원자료다(독립 2 건이 아니다).\n· 우리 절대 σ 가 옳은지 — 함대 대조 판정이 NOT_VALIDATED(잔차 산포 16.20 dB, 문턱 6.0)이고, 부피등가 PEC 통제군이 4 기체 중 3 에서 우리를 이긴다.\n\n한 줄로: 우리 시뮬 안에서 실외가 더한 것의 정체는 «드론을 거치지 않는 레이다 자신의 지면 거울반사» 로 이미 갈려 있고, 그 크기는 회절 스위치와 지면 거칠기 두 손잡이에 20~46 dB 매달려 있다. 실측 문헌 쪽은 앙각을 훑어도 산포가 2~7 dB 이고 −40 dBsm 아래로 내려간 예가 없지만, **지면이 있는 조건에서 드론 σ 를 잰 실측은 이 저장소에 하나도 없다.** 그래서 「지면이 크다」도 「지면은 안 크다」도 지금 자료로는 세울 수 없다.",
+  "my_error_ko": "앞서 실외−자유공간 차를 «환경이 +25 dB(그리고 뒤에 +53 dB)를 더한다» 로 읽은 것은 네 군데에서 틀렸다.\n\n① **주체를 잘못 붙였다.** 그 차의 지배 성분은 드론의 에코가 아니라 라디오가 자기 바로 밑 지면을 때리고 돌아오는 거울반사다. 실외에서 가장 센 경로의 길이가 39.99999 m = 라디오 지면고 20 m 의 정확히 2배이고, 드론이 한 글자도 안 들어가는 닫힌식 σ=|Γ|²/(4π(2h)²) 이 실외의 자세평균 성분을 다섯 앙각에서 0.01~0.09 dB 안으로 맞춘다. 즉 «표적이 밝아진 것» 이 아니라 «0 도플러 정지 클러터가 같은 기록에 얹힌 것» 이다. 실제로 그 환경 항의 변동분은 드론 변조보다 16~17 dB 작다.\n\n② **기준선을 검사하지 않고 차이만 인용했다.** 그 차의 크기는 분모(자유공간 빗각 값)가 정하는데, 그 자유공간 값은 회절·모서리회절을 끈 팔의 값이다. 회절을 켜면 같은 칸의 자유공간이 −99.89 → −65.47 dBsm 로 34 dB 올라오고 «환경이 더한 몫» 이 52.79 → 19.13 dB 로 줄어든다. 자유 파라미터 하나로 머리기사가 34 dB 움직이는 수를 머리기사로 썼다.\n\n③ **지면 손잡이를 안 흔들었다.** 이 판의 지면은 산란계수 S=0.0, 곧 완전 거울이다. S 를 0.3 / 0.7 로 주면 실외 el −30 이 −47.10 → −69.20 → −80.67 dBsm 로 내려가고 «환경 몫» 이 +52.8 → +22.1 → +2.1 dB 가 된다. S 는 출처 문서가 없는 선언값이다.\n\n④ **없는 눈금을 붙였다.** 그 수는 σ[dBsm] 이 아니다. 이 팔의 원장은 level_db = 20log10(mean|E|) 만 적고, 우리가 붙인 +32.337 dB 는 우리 면적분 커널용 상수다. 저장소 코드가 PathSolver 계수에 붙이라고 갈라 둔 상수는 +101.365 dB 로 69.03 dB 다르다. 게다가 저장소는 이미 «PathSolver 는 σ 를 안 잰다» 를 직접 시험해 뒀다(평판 σ 를 52 dB 바꿔도 진폭비가 1.9e−06 dB 만 움직임). σ 라고 부른 순간 「−99.9 는 물리적으로 말이 안 된다」와 「+53 dB」 둘 다 범주가 어긋난 문장이 된다. ⚠단, 상수는 두 열에 똑같이 더해지므로 딱지를 떼도 차이와 대비 자체는 그대로 남는다 — 눈금을 고친다고 문제가 없어지지는 않는다.\n\n⑤ (범위 잘못) 그 «+53 dB» 는 앙각 −15~−75 에서만 나오고 el 0 에서는 부호가 뒤집힌다(환경 항이 드론보다 20.24 dB 작다). 앙각 하나를 빼고 통문장으로 말한 것도 잘못이다.",
+  "what_to_measure": [
+   {
+    "what": "실외 팔의 경로를 «드론을 스쳤나 / 지면·건물만 스쳤나» 로 갈라, 각 갈래가 지는 전력 비율을 앙각 여섯 칸에서 센다",
+    "how": "지금 샤드(npz)에는 idx·E·npaths 만 남고 경로별 물체·삼각형이 안 남는다(benchmark/elevation_sweep_md.py:800-810). 이미 있는 경로 덤프 스크립트(benchmark/elephant_id_0903.py · benchmark/copies_id_0903.py)를 본으로, 자세를 8,192 개 전부가 아니라 앙각마다 32~64 개만 골라 경로별 (object_id, 경로길이, |a|) 을 덤프한다. 분류 규칙: 경로가 드론 메쉬 파트(matrice4e__*) 를 한 번이라도 스쳤나 / 경로길이가 2h(=2×(20−15·sin|el|)) 와 λ/4 안에 드나. 앙각 +0/−15/−30/−45/−60/−75 × 방위 0/45/90. 분석 자체는 CPU 로: CUDA_VISIBLE_DEVICES=\"\" /workspace/.venvs/py312/bin/python",
+    "why": "지금 «실외 −47 dBsm 은 지면이다» 를 받치는 것은 ⓐ자세 두 개의 경로 덤프와 ⓑ크기가 닫힌식과 0.01~0.09 dB 안에 맞는다는 두 갈래뿐이다. 크기 일치는 직각으로 더해진 드론 몫을 배제하지 못한다. 물체별로 전력을 갈라야 «환경이 더한 것이냐, 드론이 무너진 것이냐» 가 처음으로 데이터로 갈린다. GPU 도 몇 자세면 되니 가장 싸고 가장 크게 가른다."
+   },
+   {
+    "what": "이 팔의 값을 dBsm 으로 부를 수 있는지 — 교정 표적으로 확인한다",
+    "how": "같은 팔·같은 거리(15 m)·같은 스위치로 σ 가 이론적으로 알려진 표적을 넣고 같은 식으로 환산해 본다: 금속 구 r=0.3 m(광학영역 σ=πr²=−5.49 dBsm), r=1.0 m(+4.97 dBsm), 금속 평판 변 0.5·1.0·2.0 m. 두 환산 상수(우리 커널용 +32.337 dB, PathSolver 용 +101.365 dB) 를 둘 다 적어 어느 쪽이 이론값에 붙는지 본다. 저장소에 이미 같은 시험의 선례가 있다(outputs/rt_no_rcs_verify.json A_plate·C_pec_sphere).",
+    "why": "기대되는 결과가 «구는 경로 0 개, 평판은 크기를 바꿔도 진폭비 불변» 이라면, 그 자체가 답이다 — 이 팔의 출력은 어떤 상수를 붙여도 σ 가 아니고, 그러면 −99.9 dBsm 도 −47.1 dBsm 도 실측 봉투와 견줄 자격이 없다. 반대로 이론값에 붙는 상수가 나오면 그때 처음으로 문헌과 나란히 놓을 수 있다. 이 한 칸이 안 닫히면 아래의 모든 비교가 이름표 없는 수가 된다."
+   },
+   {
+    "what": "머리기사 숫자(+53 dB)를 자유 파라미터 두 개로 흔들어, 흔들림 폭을 함께 싣는다",
+    "how": "① 지면 거칠기 S = 0.0 / 0.1 / 0.3 / 0.7 을 앙각 여섯 칸 전부에 대해(지금은 el 0·−30 두 칸만 있고, 그 판은 자세당 경로 수가 상한 2,000,000 에 붙어 잘려 있다 — benchmark/report15_probe.py:99 의 상한을 올리거나 자세 수를 줄여 잘림을 없앤 뒤 다시 돌린다). ② 스위치 팔 R0D0E0F1 / R0D1E1F1 / R1D1E1F1 을 자유공간·실외 짝으로 여섯 앙각 전부. ③ 지면 재질을 콘크리트 말고 습토·마른땅으로도 한 판. 결과는 «환경 몫» 을 한 표에 폭과 함께 적는다.",
+    "why": "내가 이미 확인한 것만으로도 회절 스위치가 34 dB, 거칠기가 30 dB 넘게 이 수를 움직인다. 저장소 규약(머리기사 숫자는 흔들어 보고)에 따르면 이 폭을 안 적은 +53 dB 는 발표에 못 쓴다. 그리고 폭을 적어 두면 「지면이 크다」는 읽기가 어느 설정에서만 사는지가 드러난다."
+   },
+   {
+    "what": "자유공간 빗각의 −87~−100 이 «표적의 물리» 인지 «푸는 방법의 바닥» 인지 가른다",
+    "how": "저장소에 −100 dBsm 급을 «이산화 바닥» 으로 판정한 전례가 두 건 있다(docs/AUDIT_REPORTS_0901.md:435 · docs/RETRACTION_LOG.md:229). 같은 진단을 건다: ① 메쉬 세밀도를 흔든다 — 정본 메쉬를 한 단계 세분(subdivide)한 판과 한 단계 성긴 판으로 같은 여섯 앙각을 돌려 빗각 값이 따라 움직이는지 본다(광선 수는 이미 불변임이 확인됐으므로 광선 축은 다시 안 흔든다). ② 우리 면적분 커널을 같은 여섯 앙각으로 확장한다 — 지금 σ 격자는 −20° 까지뿐이다(outputs/report13_sigma_grid.matrice4e.json). 커널 쪽은 앙각 폭이 11~16 dB 로 붕괴가 없으므로, 같은 메쉬에서 두 방법의 앙각 곡선을 나란히 놓으면 «표적이냐 방법이냐» 가 갈린다. ③ 격자 간격 λ/12 · λ/24 · λ/48 사다리를 함께 싣는다(el 0 이 반 칸 이동에 −11.91 dB 움직인 전례가 있다).",
+    "why": "−99.9 를 «물리적으로 말이 안 된다» 고 말하려면 그것이 표적의 성질이 아니라는 것을 보여야 하는데, 지금 근거는 «면적분으로 풀면 붕괴가 없다» 하나뿐이고 두 엔진의 E 정규화가 같다는 보장을 저장소에서 못 찾았다. 세밀도·격자 축에서 값이 따라 움직이면 «바닥», 안 움직이면 «표적» 쪽으로 무게가 실린다."
+   },
+   {
+    "what": "⭐실제 실험 — 같은 기체를 지면 위에서와 지면 몫을 지운 조건에서 각각 재서 지면이 더하는 dB 를 처음으로 잰다",
+    "how": "설계는 이미 있다(docs/MEASUREMENT_PLAN.md §1-5, outputs/report06_derived.json ground_bounce*). 안테나 높이 h ∈ {1.5, 2, 3} m × 표적 높이 H ∈ {5, 10, 20} m × 지상거리 R ∈ {20, 30, 50} m 의 27 격자에서 지면 반사 경로차는 2hH/R = 0.3~6.0 m 이고, 대역 400 MHz 면 27 개 중 96 %(200 MHz 면 78 %, 100 MHz 면 48 %)가 지연에서 분리된다. 그러므로 ⓐ 대역 400 MHz 이상으로 잡아 직접파와 지면 갈래를 레인지게이팅으로 분리해 각각의 세기를 dB 로 적고, ⓑ 같은 기하에서 정반사점에 흡수체를 깔았을 때와 안 깔았을 때를 짝으로 재고, ⓒ 같은 자리에서 σ 가 알려진 교정체(금속 구)를 함께 재서 절대 눈금을 세우고, ⓓ 앙각을 −15/−30/−45/−60/−75 로 훑는다(드론을 고도 H 에 매달거나 정지비행). 우리 밴드(3.5 GHz)에서 우리 기체로.",
+    "why": "사용자가 물은 것이 정확히 이것이고, **이 저장소에 답할 실측이 0 건이다.** 문헌의 절대 σ 실측은 전부 무향실이라 지면 반사가 원리적으로 없고, 야외 논문들은 σ 를 가정만 한다. ⓐ가 지면 갈래의 dB 를, ⓑ가 그것이 정말 지면 때문인지를, ⓒ가 σ 눈금을, ⓓ가 앙각 의존을 준다. 이 넷이 있어야 「환경이 얼마를 더하나」와 「빗각에서 얼마나 어두워지나」 둘 다에 실측으로 답할 수 있다."
+   },
+   {
+    "what": "지면 다중경로 깊이를 수로 보고한 문헌이 정말 없는지, 코퍼스 밖에서 확인한다",
+    "how": "서지만 있고 원문이 없는 두 편을 구한다 — Mazhar, IET Radar Sonar Navig. 2016, 10(1) 140–145 / Rabaste·Poullin, IEEE Radar Conf. 2015, 1660–1665 (docs/PRIOR_WORK_COMPARISON.md:626-634). 그리고 Demissie 외 2024 RADAR(LTE450, DJI M210, DOI 10.1109/RADAR58436.2024.10993905)의 원문에서 «CUT 전력 진동» 의 진폭이 수로 적혀 있는지 확인한다. 덧붙여 Ezuma 논문 p.1 이 지목한 [8](2.4·24 GHz 무향실 Phantom 3)과 Yuan 의 2801 점 원자료(지금 우리 앵커는 Fig.5(a) 를 699 점으로 디지타이즈한 것이다)도 구한다.",
+    "why": "「지면 위 드론 σ 실측은 0 건」 이라는 문장은 지금 «이 저장소 안에서» 만 서는 문장이다. 밖에 있는지 확인하지 않고 «세상에 없다» 로 말하면 그 자체가 과잉 결론이다. 그리고 한 편이라도 dB 를 실은 것이 나오면 위 ⑤번 실측을 설계할 때 기대값이 생긴다."
+   }
+  ],
+  "do_not_claim": [
+   "«환경(지면)이 드론의 σ 를 +53 dB(또는 +25 dB) 올린다» — 그 차의 지배 성분은 드론을 거치지 않는 레이다 자신의 지면 거울반사(경로길이 40.00 m = 라디오 지면고 20 m 의 2배)이고, 자세가 바뀌어도 안 변하는 0 도플러 정지 클러터다. 표적 σ 의 상승으로 옮겨 적으면 안 된다.",
+   "«−99.9 dBsm» · «−47.1 dBsm» 을 조건 없이 σ[dBsm] 이라 부르는 것 — 이 팔의 원장은 level_db = 20log10(mean|E|) 만 적는다. 붙인 +32.337 dB 는 우리 면적분 커널용 상수이고, 저장소 코드가 PathSolver 계수에 붙이라고 갈라 둔 상수(+101.365 dB)와 69.03 dB 다르다. 게다가 저장소는 «PathSolver 는 σ 를 안 잰다» 를 직접 시험해 뒀다(평판 σ 를 52 dB 바꿔도 진폭비 1.9e−06 dB 변화, PEC 구는 6/6 조합에서 경로 0 개).",
+   "«−99.9 dBsm 은 물리적으로 말이 안 된다는 것을 실측이 증명한다» — 앙각 −15~−75 에 대응하는 실측점이 문헌에 0 개다. 가장 가까운 것이 Yuan 의 «전 구간 −40 dBsm ~ +5 dBsm» 인데, 논문이 동적범위·잡음바닥을 안 적어서 −40 이 표적의 바닥인지 측정의 바닥인지도 못 가른다.",
+   "«자유공간 값이 무너진 것이 진짜 현상이다» 를 판정으로 세우는 것 — 저장소가 스스로 «빗각 절대 레벨이 물리적으로 옳은지는 검증하지 않았다» 고 적어 두었다(outputs/verify_elevation_sionna_el0.json H_unknown_ko[2]). 판정된 것은 el 0 한 칸뿐이다.",
+   "«실측이 앙각 의존성을 쟀고 그 값은 2 dB 다» — Yuan 이 잰 것은 옆·위·아래 세 자세이지 앙각 스윕이 아니고, 2.07 dB 는 공표 회귀직선을 읽은 값이다. 저장소의 복원 스크립트로 실측 곡선을 되살리면 3.5 GHz 에서 3.16 dB, 우리 밴드 안 최대 5.75 dB 다.",
+   "Semkin(26~40 GHz) 을 «지면 효과의 실측 근거» 로 내놓는 것 — 무향실이다. 논문이 «표적 말고는 아무 반사도 없게 하려고» 그 방을 썼다고 축자로 적는다. «지상 레이더가 올려다보는 상황» 은 보는 방향만 재현했다는 뜻이다. 대역도 7~11 배 차이라 외삽 금지가 원장에 이미 적혀 있다.",
+   "«실측으로 −60 dBsm 이 보고된 적 있다» — Rzewuski(NATO STO 2021)의 −60 dBsm 은 QuickWave-3D FDTD **계산**이지 측정이 아니다.",
+   "Li & Ling 2017 · Quevedo 2019 의 수치 인용 — PDF 가 디스크에 없어 등급 [N] 이고, 원장이 이미 인용 금지(REFUTED)로 판정했다(outputs/prior_settled_anchor.json E1~E3).",
+   "«Das 와 Yuan 이 독립 실측 두 건» — 같은 Southeast Univ. CATR 원자료다. Das 가 이 논문에서 새로 잰 것은 Phantom 2 하나뿐이다.",
+   "우리 절대 σ 를 문헌 절대 σ 와 사과-대-사과로 나란히 놓는 것 — 기체가 다르고(우리 matrice4e / 앵커 Phantom 3), 통계 규약이 다르며(문헌은 91 방위 평균, 그 평균이 dB 평균인지 선형평균인지 논문이 안 밝힌다), 함대 대조 판정이 NOT_VALIDATED(잔차 산포 16.20 dB, 문턱 6.0)다.",
+   "«평면지면 2선 모델의 F⁴ ∈ [−20, +11.5] dB» 를 문헌 근거처럼 인용하는 것 — 외부 인용이 붙어 있지 않은 내부 선언이고, 같은 저장소의 계산 게이트가 낸 값은 −36.88 / +10.54 dB 다. 지면 상수(ε_r=15·σ=0.005)도 코드가 스스로 «출처 문서 없음» 이라 적는다.",
+   "«시뮬 값이 지면 몫을 얼마로 준다» 를 그 팔의 설정 없이 말하는 것 — 회절 스위치를 켜면 el −30 의 «환경 몫» 이 52.79 → 19.13 dB, 지면 거칠기 S 를 0.3/0.7 로 주면 52.8 → 22.1 → 2.1 dB 로 바뀐다. 설정과 폭을 안 적은 한 자리 숫자는 못 쓴다.",
+   "«이 저장소에 지면 위 드론 σ 실측이 없으므로 세상에 없다» — 확인한 것은 이 저장소 코퍼스 안뿐이다. 밖은 안 뒤졌다.",
+   "«우리 커널이 맞고 Sionna 가 틀렸다» — 둘 다 근사이고, 현실성 판정은 실측 몫이다. 두 팔의 level_db 를 같은 눈금에서 빼는 것도 저장소가 이미 금지했다(정규화가 다르다).",
+   "실외 el −15 · −45 · −75 를 outputs/elevation_sweep_md.json 이 갖고 있다고 말하는 것 — 그 원장의 실외 팔은 el 0 · −30 · −60 세 칸뿐이고, 나머지 셋은 샤드(npz)에서만 나온다.",
+   "«실측 대조를 거쳤다» 는 표현 전반 — 이 저장소의 실기 계측 대조는 0 건이다. 코드 주석·문서에 있는 «실측» 이라는 낱말 여럿(예: 실행시간 측정, 사진 치수, 시뮬 시계열)은 RF 계측이 아니다."
+  ]
+ }
+}
