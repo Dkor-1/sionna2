@@ -1,137 +1,67 @@
-# 재개 지점 — 2026-09-02 (세션 끊김 대비)
+# ⭐지금 상태 — 2026-09-06 (일) 밤
 
-## ⭐지금 하던 것 — 「ECA 라 부르던 것은 사실 0 Hz 노치」 정정
+> 세션이 끊기면 이 파일부터. 덱은 `/workspace/team_meeting/teammeeting_0910/RESUME_0910.md`.
+> 파이썬은 **/workspace/.venvs/py312/bin/python**. CPU 일은 앞에 `CUDA_VISIBLE_DEVICES=""`.
 
-사용자 지적으로 시작. 저장소에 `eca` 가 **둘**인데 서로 다른 물건이었다.
+## 0. 한 줄
+전수조사 끝(900/900) · 새 파일 규약 끝 · 09-10 덱 초안 끝(v6) · **GPU 큐 셋이 돌고 넷째가 사슬로 대기**.
+지금 도는 사람 일은 없다. 큐 결과가 오면 덱 5 쪽을 «두 팔»→«다섯 팔» 로 올리는 것이 다음 손질.
 
-| | 무엇 | 기준채널 | 우리 앙각 스윕에 맞나 |
-|---|---|---|---|
-| `src/passive_process.eca(surv, ref, n_taps)` | **진짜 ECA** — 기준채널 지연 복사본의 부분공간에 투영해 뺀다. 패시브 바이스태틱 | 필요 | ⛔안 맞다(기준채널 없음) |
-| `benchmark/clutter_parts_ladder_0824.cs_eca(x, fcut)` | **도플러 0 Hz 노치** — DFT 에서 \|f\| ≤ fcut 칸을 0 으로 | 없음 | ✅맞다 |
-
-⭐우리 기하는 **모노스태틱**이다(`elevation_sweep_md.py` 의 `baseline=0.0`).
-⇒ **연산은 맞고 이름이 틀렸다.** 0 Hz 노치는 모노스태틱 CW 정지클러터 제거의 정석이다.
-
-### 실측 (el 0 · matrice4e · 8,192 자세 · PRF 19,700)
+## 1. 큐 — 감독자 셋 + 사슬 하나
 ```
-도플러 격자          2.40479 Hz  (= 19700/8192)
-|f| ≤ 100 Hz         83 칸       (k = 0…41 과 -1…-41)
-                     83/8192 = 1.013 %  ·  비DC 82/8191 = 1.001 %
-날개 박자 126.7 Hz   노치 가장자리보다 26.7 Hz 위 — 신호를 안 건드린다
-몸통 상수            6.879e-04 → 3.2e-23   (100.0000 % 제거)
-낙차 58 자세 변동 몫  99.3 % → 98.4 %       (거의 안 지워진다)
+  jobs_0906.txt  큐 93/122   jobs_0907.txt  큐 3/118    jobs_0908.txt  큐 2/78   
+  jobs_0909.txt  대기 — runners/chain_0909_after_0908.sh 가 0908 이 78/78 된 뒤 30 분 지나 띄운다
 ```
-⛔**내가 어제 「84 칸」이라 썼는데 83 이 맞다.** 레포트 12 가 처음부터 83 으로 맞게 적고 있었다.
-   고친 곳: `clutter_parts_ladder_0824.py` 독스트링 · 덱 v4 JSON 노트 3 장.
+| 발주 | 물음 |
+|---|---|
+| 0906 | 정면 겹침 창 — 방위·앙각 사다리 · 기체 · 거리 · 광선 예산 · 깊이 3 · 두꺼운 자세 |
+| 0907 | ⓖ축 위 기준점(4e9) · 빈 구간 · 벼랑 좁히기 · **각도냐 가로 거리냐(30·60·120 m)** · 기체 크기 배율 · 재현 · 깊이 3 |
+| 0908 | ⭐**굴절 켠 두 팔 근축**(→덱 5 쪽 다섯 팔) · 끊긴 칸 · 0.7° 씨앗 · 0.05°/0.07° 재현 · 예산별 창 폭 |
+| 0909 | **실외 클러터 다각도** — 지면 거칠기 S · 남의 씬 · 거리 · 깊이 · 방위 · 넷 팔 되풀이 |
 
-### 「STFT 에서 도플러 0 이 왜 안 비나」 (사용자 질문 · 측정 완료)
-⓵ **STFT 는 다른 창으로 다시 본다** — 노치는 기록 전체(8,192점, 격자 2.40 Hz)에서 걸었는데
-   STFT 창은 560 점이라 칸 간격 **35.2 Hz**. 노치 폭 ±100 Hz 안에 STFT 칸이 **5 개**뿐.
-⓶ **임펄스는 대역 전체에 퍼져 있다** — 낙차만 남긴 신호의 \|f\|≤100 Hz 평균 대 500~2000 Hz
-   평균이 **2.1 dB** 차. 거의 평평 → 0 Hz 둘레만 도려내는 노치에 안 걸린다.
-⚠**낙차를 지우면 0 Hz 칸이 −4.5 → −0.1 dB 로 오히려 밝아진다**(판 최댓값이 같이 내려가서).
-   ⇒ 낙차는 원인의 **일부**지 전부가 아니다. 「낙차가 0 Hz 를 채운다」로 결론짓지 말 것.
-⇒ 답: **「0 Hz 가 비어야 한다」는 노치를 건 그 DFT 에서만 참이다.**
-
-## ✅이번 세션에 끝낸 것
-- `benchmark/outdoor_scene_0901.py` 방법표: 「투영 소거」 → 「직각 노치」
-- `src/build_report12_outdoor.py`: 「ECA 계열 부분공간 소거」 → 「도플러 0 Hz 노치」
-- `benchmark/switch_clutter_stft_0818.py`: ⓑ 팔 이름·독스트링 2 곳
-- `src/report14_stap.py`: 비교 라벨
-- `clutter_parts_ladder_0824.py` 독스트링 84 → 83
-- 덱 v4 JSON: 84 → 83 · 노트 3 장에 「0 Hz 가 왜 안 비나」 추가
-- ⇒ **원본(.py)에는 오기가 남아 있지 않다**(grep 확인)
-
-
-## ⭐2026-09-02 후반 — 노치의 STFT 가시성 (적대 검증 완료)
-
-사용자 질문: 「노치로 100 Hz 까지 죽였으면 STFT 의 도플러 0 이 흐릿해져야 하는 것 아닌가?」
-적대 검증 4 갈래를 돌렸고 **내 첫 설명 중 셋이 틀렸다**.
-
-⛔틀렸던 것 → ✅맞는 값
-- 한나 창 첫 영점 528 Hz · 주엽 1,055 Hz → **562.9 Hz · 1,125.7 Hz**(= 2·PRF/70, 4·PRF/70).
-  제로패딩 격자의 마지막 비영점 칸에서 멈춘 실수. 노치/주엽 19 % → **17.5 %**
-- 「STFT 가 200 Hz 노치를 물리적으로 못 본다」 → **과장**. 도플러 0 줄이 판 최댓값(−0.02 dB)
-  에서 **13.9 dB 아래**로 내려간다. 못 하는 것은 **깊은 골**을 그리는 것뿐
-- 「0 Hz 를 밝히는 것은 날개 신호」 → ⛔**아니다. 낙차다.** 낙차 58 자세를 메우면 그 줄이
-  **36.9 dB** 내려간다 ⇒ 남은 것의 **98.6 % 가 낙차**
-
-✅확정된 값 (el 0 · sionna_p4000000000_r15_n8192_d1)
+확인:
+```bash
+cd /workspace/sionna
+for f in 0906 0907 0908 0909; do printf "$f "; tail -1 runners/logs/sup_jobs_$f.log 2>/dev/null | grep -oE "큐 [0-9/]+ · 워커 [0-9]+"; echo; done
+ps -eo pid,args | grep "[w]orker_supervisor" | grep -v "bash -c"      # 감독자 목록
+ps -eo args | grep -c "[e]levation_sweep_md.py"                       # 워커 수 (정상 8~9)
+cat runners/logs/chain_0909.log 2>/dev/null                            # 사슬이 0909 를 띄웠나
 ```
-노치는 걸렸다            5.636 → 1.39e-18   (|f| ≤ 100 Hz, 83 칸)
-그리는 58 ms 구간 에너지   99.92 % 제거
-날개 끝 대역             판 최댓값보다 19.2 dB 아래 → 판 최댓값 자리 (대비 +19 dB)
-창 70 표본(3.55 ms)     주엽 1,126 Hz · 0 Hz 는 제 최댓값보다 −1.74 dB
-창 512 표본(26 ms)      주엽   154 Hz · 0 Hz 는 제 최댓값보다 −44.70 dB
+⛔**감독자가 죽었으면** — 잡 파일은 시작 때 한 번만 읽으므로 그냥 다시 띄우면 된다(끝난 샤드는 건너뛴다):
+```bash
+setsid nohup /workspace/.venvs/py312/bin/python runners/worker_supervisor.py runners/jobs_09XX.txt runners/logs/sup_jobs_09XX.log > runners/logs/sup_jobs_09XX.boot 2>&1 < /dev/null &
 ```
-⇒ **노치는 작동하고 그림을 크게 바꾸지만, 짧은 창에서 «구멍» 으로 그려지지 않는다.**
-   짧은 창은 오류가 아니라 **의도된 선택**이다(FLASH_PERIODS_SHARP = 0.45,
-   2026-08-10 「시간 해상도를 더 높여달라」). 긴 창은 플래시를 잃는다.
+⛔죽일 때 `pgrep -f` 를 쓰면 같은 명령줄에 그 이름이 있는 순간 제 셸이 죽는다(exit 144) — PID 를 뽑아 숫자로.
+⛔워커가 4 로 줄고 감독자 로그에 «⛔대기: CPU 사용률» 이면 **남의 세션** 프로세스가 CPU 를 먹는 것이다 — 건드리지 않고 기다린다.
+새 발주는 `runners/filter_jobs.sh` 로 줄마다 NEW·DONE·STALE 을 가른 뒤 넣는다(make_jobs_0907 머리말).
 
-기록한 곳: `benchmark/clutter_parts_ladder_0824.cs_eca` 독스트링 ·
-덱 부록 «Seeing the notch»(`team_meeting/teammeeting_0903/bake_notch_window.py`).
+## 2. 목요일(09-10) 덱
+`teammeeting_0910/_out_0910_v6.pptx` 9 쪽 — 끝. 자세한 것은 `teammeeting_0910/RESUME_0910.md`.
+큐 0908 ⓐ 가 오면 `bake_window.py` 의 `ARMS` 에 두 팔을 더하고 v7. 새 판은 새 번호.
 
-## ✅후반에 끝낸 것
-- 레포트 12 — 원장(`outputs/outdoor_scene_0901.json`) 재생성 + 재빌드. 오기 0
-- 덱 v10 → **26 장**(부록 «Seeing the notch» 추가). commit + push 완료
-- ⭐**sionna 푸시 뚫림** — 안 올라간 커밋 안에 `.whl` 59 개(2.72 GB)가 있어 서버가 500 을
-  던지고 있었다. `git filter-branch` 로 그 구간에서 걷어내 **30.83 MiB** 로 푸시됨.
-  원본은 `refs/original/refs/heads/main`(09343249) 에 남아 있다.
-  ⚠`.gitignore` 에 `*.whl` 이 이미 있는데도 들어갔다 — 정리 커밋 때 경로가 달랐던 듯
+## 3. 전수조사 — 끝
+900/900 찾고 고침 · 재빌드 58/58 · 관문 넷 통과 · `work/sweep_0904/`(STATE.json · findings · specs).
+관문:
+```bash
+for g in check_retracted check_stale_titles check_row_pointers check_new_file_rules; do printf "$g "; CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/$g.py >/dev/null 2>&1 && echo ✅ || echo ⛔; done
+```
+⛔**CPU 로 못 돈 빌더 둘 — 사용자 몫** (재빌드 58 개 가운데):
+- `benchmark/report16_base.py` — CPU 로 돌리면 멈춘다(900s ×2 · 3600s 에서도 CPU 0.2%). GPU 탐침 대기로 보인다.
+  `PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/report16_base.py`
+- `src/experiment_md_range.py` — 프로세스 11 개로 14 코어를 먹어 큐를 막는다. 독스트링 한 줄 고침이라 급하지 않다.
+  `cd /workspace/sionna && PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_md_range.py` (큐가 빈 때)
+- `src/make_report02_target.py` — `assert worst < 5e-3` 원장 표류, 전수조사 이전부터.
 
+## 4. 새 파일 규약
+`docs/NEW_FILE_RULES.md` (900 건 → 16 가지 + 저장 전 여덟 줄) · 관문 `benchmark/check_new_file_rules.py`(기준선 688, 줄어들기만).
 
-## ⛔2026-09-02 저녁 — ρ 잣대가 무너졌다 (적대 검증)
+## 5. 이번에 새로 만든 원장 (덱 숫자의 출처)
+- `outputs/front_window_0906.json` — 정면 창: 팔마다 «겹친 자세 비율»과 중앙값. 방위 0.10↔0.15° · 앙각 0.15↔0.20°.
+- `outputs/front_repeat_0906.json` — 0°/0.2° 짝: 확산만 팔 0° 에서 되풀이 지우면 폭 9.5402 → 0.0063 dB, 상관 0.999990; 0.2° 는 두 배열 비트 동일.
+⛔«정확히 3 배» 금지(최대 2.9992) · «솔버가 틀렸다» 금지 · 리듬 몫 크기 금지(R29) · 챔버 금지.
 
-실외 환경메쉬 판정에 4 갈래 검증을 걸었고 **3 갈래가 실질 반박**했다. 전문:
-[`docs/RHO_IS_SMOOTHNESS_0902.md`](RHO_IS_SMOOTHNESS_0902.md)
-
-⛔**ρ 는 매끄러움 검출기다.** 직선(0.9996) · 계단(0.9996) · AR(1) 붉은잡음(0.9748) ·
-   띠제한 잡음(0.9975) 이 전부 레포트 12 의 「박자 0.92~0.99」 칸에 든다.
-⛔**내가 쓴 실외 표에서 40 칸 중 12 칸이 거짓음성**이었다. 빗살 하모닉 SNR 로 다시 보면
-   회절 팔도 −30/−45/−75° 에서 박자가 **있다**(SNR 32~127, p<0.0005). −60° 도 있다(121.3).
-   ⭐**0° 만 정말로 빗살이 없다**(SNR 2.4, p=0.14).
-⛔**「자세의 몇 %」 는 잣대가 아니다.** 변동 몫으로 보면 실외 74 자세가 **99.09 %**,
-   자유 2,954 자세가 **36.92 %** — 실외 수리가 더 과격하다.
-✅**살아남은 것**: 보간 인공물 의심은 기각. 실외 마스크의 인공물 바닥은 −0.011~+0.020 이다.
-
-⇒ 앞으로 ρ 단독 판정 금지. **빗살 하모닉 SNR 병기** + 100 Hz 고역통과 뒤 잔존 확인.
-
-
-## ⭐2026-09-02 밤 — 관문 셋 결과 · 덱 v14
-
-**덱**: `team_meeting/teammeeting_0903/_out_0903_v14.pptx` (21 쪽) ·
-JSON `teammeeting_slides_0903_v7.json`. 전 페이지 영어 대본, 구분자·표지는 노트 비움.
-
-**관문 셋 완료** → [`GATES_0902.md`](GATES_0902.md)
-- E3: N 이 az 0 에서 3, az 0.5° 에서 9 ⇒ **az 0 은 대칭 기하라 특별한 칸**.
-  ⚠낙차 개수는 방위에 **단조롭지 않다** — 0° 36 · 0.5~2° 442~845 로 뛰었다가
-  22.5° 259 · **45° 15** 로 내려온다. ⛔「az 0 이 인공물이 가장 적었다」는 그 표
-  자신의 마지막 줄에 반증된다(45° 가 더 적다). 확실한 것은 N 이 az 0 에서만 3 이라는 것뿐.
-- B1: 격자 반 칸 이동이 el 0 만 **−11.91 dB**(다른 앙각 0.5~0.7). λ/24 면 +1.45 dB.
-  ⇒ **우리 커널 el 0 의 «레벨·폭» 은 λ/12 에서 인용 금지.**
-- B2: λ/12 의 ps 사다리 비단조가 λ/24 에서 사라진다 ⇒ 격자 churn 이었다.
-- ✅빗살 SNR 은 네 격자 판에서 51.3/52.9/54.5/53.1 로 같다 ⇒ 「0° 에서 우리 커널만
-  줄무늬」는 **정성 주장이라 안전**하다.
-
-**도구 결함 둘을 고쳤다**
-- `comb_snr.f_tip` 에 **반송파 항**이 없었다(24 GHz 판이 6.86 배 어긋남)
-- `comb_snr` 이 **모든 기체를 matrice4e 박자(126.67 Hz)로** 재고 있었다
-  → `blade_of(arm)` 신설. s1000plus 가 6.7(바닥) → **33.1** 로 바뀐다.
-
-## ⚠바로 다음에 할 것
-1. ⭐**`reports/05_2_switch-grid.ipynb` 재빌드** — 원본(`switch_clutter_stft_0818.py`)은
-   고쳤지만 노트북에 「ECA 계열 부분공간 소거」가 박혀 있다. ⚠빌더
-   `src/build_report18_switch_grid.py` 가 **내 패치 이전부터 깨져 있다**(KeyError 'edge only' —
-   ORDER 이름이 `switch_factorial.json` 과 안 맞는다). 그것부터 고쳐야 한다.
-2. 나머지 ECA 언급 레포트 14 권은 **대부분 진짜 ECA(패시브 바이스태틱)라 정상**이다 —
-   `cs_eca` 를 쓰는 레포트는 **12 뿐**이었다. 05_2 는 자체 노치 구현.
-
-## 그 밖 미결 (발표와 무관 · 다음 주)
-- Part 1(슬라이드 3/4/5)은 아직 **깊이 1**, Part 3 는 깊이 2 — `partsprop` 이 깊이 1 에만 있다
-- 빌더 2 개가 **내 패치 이전부터** 깨져 있다: `build_report18_switch_grid.py`(KeyError 'edge only') ·
-  `build_part12_elevation.py`(ContractError)
-- 레포트 감사 serious 41 / minor 13 미적용 — `docs/AUDIT_REPORTS_0901.md`
-- 레포트 12 를 `src/build_volumes.py` 의 `VOLUMES` 에 등록
-- 낙차 2/3 기작 **미상** · el −60 은 낙차를 메워도 \|corr\| 0.39 (둘째 원인 있음) ·
-  el −15 는 0°/−30° 어느 쪽과도 다름(산포 0.146 · 낙차 0 개)
-- 큐 `runners/jobs_0902_resume.txt` — 다음 주 몫
+## 6. 열린 조사 (세션 안에서만 산다)
+클러터 실험 설계 조사가 워크플로로 돌고 있었다(run `wf_a265209d-c0e`, 스크립트
+`~/.claude/projects/-workspace-sionna/…/workflows/scripts/clutter-experiment-design-wf_a265209d-c0e.js`).
+끊겼으면 journal.jsonl 을 보고, 0909 발주(72 줄)에 없는 손잡이만 0909b 로 붙인다. 없으면 그만둔다.
+⛔우리 커널은 `--env` 를 거부한다(elevation_sweep_md.py:484) — 실외 «다섯 팔» 은 넷까지.
