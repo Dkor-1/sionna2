@@ -1240,6 +1240,14 @@ _HEAD_RE = re.compile(r"^#{2,4}\s+(.+?)\s*$", re.M)
 _FACT_RE = re.compile(
     r"([-+]?\d[\d,.eE+\-]*\s*(?:[%°]|[A-Za-zµΩ·/]{0,10})?)\s*"
     r"⟨\s*([^:⟩]+?\.(?:json|npz))\s*:\s*([^⟩]+?)\s*⟩")
+#: ⭐**각주 꼴**도 읽는다 — `report_style.build_notebook` 은 `⟨파일 : 키⟩` 태그를 지을 때
+#  본문에서 걷어내고 `[^n]` 과 «출처» 표로 바꾼다. 그래서 태그만 찾던 옛 규칙은 **지금 규약으로
+#  지은 노트북에서 수치를 하나도 못 뽑는다**(2026-09-06 자기검사가 그 자리에서 멈춰 있었다).
+#  `outputs/paper_kit.json` 의 571 건은 전부 옛 꼴 노트북에서 온 것이다.
+_SRC_ROW_RE = re.compile(
+    r"^\|\s*\[\^(\d+)\]\s*\|\s*`([^`]+?\.(?:json|npz))`\s*\|\s*`([^`]+?)`\s*\|", re.M)
+_FOOT_RE = re.compile(
+    r"([-+]?\d[\d,.eE+\-]*\s*(?:[%°]|[A-Za-zµΩ·/]{0,10})?)\s*\[\^(\d+)\]")
 _DID_RE = re.compile(r"###\s*한 일\s*\n>\s*\*\*(.+?)\*\*", re.S)
 _RESULTS_RE = re.compile(r"###\s*결과\s*\n(.*?)(?=\n#{2,4}\s|\Z)", re.S)
 _REPRO_RE = re.compile(r"###\s*재현\s*\n+```bash\n(.*?)```", re.S)
@@ -1298,6 +1306,12 @@ def _scan_notebook(nb: str) -> dict:
                  "did": None, "results": [], "repro": None}
     heading = None
     seen_fact: set[tuple] = set()
+    #: 각주 번호 → (파일, 키). «출처» 표는 본문 뒤에 오므로 **먼저 한 번 훑는다.**
+    foot: dict[str, tuple[str, str]] = {}
+    for c in cells:
+        if c.get("cell_type") == "markdown":
+            for n, f, k in _SRC_ROW_RE.findall(_text(c)):
+                foot[n] = (f, k)
     fig_marks: dict[str, dict] = {}          # `figure_md()` 가 남긴 표지(경로 → payload)
 
     for i, c in enumerate(cells):
@@ -1365,14 +1379,19 @@ def _scan_notebook(nb: str) -> dict:
                 "paper_caption": mark.get("paper_caption") or _pdf_caption(pdf),
                 "vector_pdf": os.path.relpath(pdf, ROOT) if os.path.exists(pdf) else None,
             })
-        for m in _FACT_RE.finditer(t):
-            val, src, key = m.group(1), m.group(2), m.group(3)
+        hits = [(m.group(1), m.group(2), m.group(3), m.start()) for m in _FACT_RE.finditer(t)]
+        if foot and "<!--rs:sources-->" not in t:
+            for m in _FOOT_RE.finditer(t):
+                fk = foot.get(m.group(2))
+                if fk:
+                    hits.append((m.group(1), fk[0], fk[1], m.start()))
+        for val, src, key, _st in hits:
             sig = (src, key.strip(), val.strip())
             if sig in seen_fact:
                 continue
             seen_fact.add(sig)
             # 문맥 = 그 수치가 놓인 줄(표의 행이면 그 행) — 원고에 옮길 때 뜻을 잃지 않게
-            line = t[:m.start()].split("\n")[-1] + t[m.start():].split("\n")[0]
+            line = t[:_st].split("\n")[-1] + t[_st:].split("\n")[0]
             out["facts"].append({"cell": i, "report": stem, "value": val.strip(),
                                  "source": src, "key": key.strip(),
                                  "heading": heading,
@@ -1509,11 +1528,19 @@ def _selftest() -> int:                                          # noqa: C901
     OKMAP = dict(section="V. Results",
                  claim="세 조명원을 같은 표적·같은 검출기·교정된 Pfa 위에서 비교했다.",
                  evidence=["그림 3", "outputs/report05_derived.json:r90.span_comparable_min_km"])
+    #: ⛔옛 태그는 `: modes` 였는데 그 원장에 그런 최상위 키가 없다 — 자기검사가
+    #  「출처를 다시 열 수 없다」로 멈춰 이 편을 못 굽게 했다(2026-09-06).
+    #  ⚠그 오류에 막혀 **왕복 검사는 여기까지 와 본 적이 없었다.** 태그를 고치니
+    #  두 번째 것이 드러났다 — 수치 추출기가 옛 `⟨태그⟩` 꼴만 찾아서, **지금 규약으로
+    #  지은 노트북**(태그가 `[^n]` 각주로 바뀐다)에서는 수치를 하나도 못 뽑고 있었다.
+    #  ⇒ 추출기를 각주 꼴까지 읽도록 넓혔다(`_SRC_ROW_RE`·`_FOOT_RE`).
+    #  ⛔이 방어선 행에는 값을 두지 않는다 — 수치는 본문 셀이 나르고, 여기 값을 넣으면
+    #    같은 수가 두 번 잡힌다.
     OKROW = ("교정 문턱 위에서 세 파형의 검출거리를 비교했다.",
              "그림 3 · outputs/verify_cfar.json:calibration",
              "σ 절대값이 미검증인데 거리 비교가 성립하는가",
-             "σ 오차는 세 밴드 공통이라 순위에서 상쇄되고 절대거리만 오차/4 dB 움직인다 "
-             "⟨outputs/sigma_anchor.json : modes⟩")
+             "σ 오차는 세 밴드 공통이라 순위에서 상쇄되고 절대거리만 기준점 폭 안에서 움직인다 "
+             "⟨outputs/sigma_anchor.json : anchor_sensitivity._spread_db⟩")
     OKMETHOD = ("We computed the target scattering with a GPU shooting-and-bouncing-rays solver "
                 "in Sionna 2.0.1 on Python 3.12, integrating physical optics over the first-hit "
                 "lit surface of a per-part material mesh, sweeping kr from 1 to 100 at 21 points "

@@ -207,7 +207,11 @@ def defect_table() -> str:
     fit_mv = BODY["per_drone"]["mavic4pro"]["fit"][2]
     sh_m5 = BODY["per_drone"]["mini5pro"]["shell_h_mm"]
     sh_mv = BODY["per_drone"]["mavic4pro"]["shell_h_mm"]
-    cam = g["gate_A_fail"][0]
+    #: ⚠이 목록은 **빌 수 있다** — 그 결함이 수리되면 문이 통과하고 0 개가 된다
+    #  (2026-09-06: mavic4pro 짐벌이 착륙발보다 아래이던 것이 수리돼 0 이 됐고,
+    #   `[0]` 을 그대로 꺼내던 이 줄이 IndexError 로 세 편을 못 굽게 만들었다).
+    #  이 표는 「지금 이렇다」만 적는 규칙이므로, 통과한 결함은 **줄이 빠진다.**
+    cam = g["gate_A_fail"][0] if g["gate_A_fail"] else None
     wb_p4 = BODY["per_drone"]["phantom4"]["wheelbase_mm"]
     plate = MAT["s1000plus_center_plate"]
     #  게이트 B(뜬 짐벌 조각) · 게이트 C(선언 치수 대비 실제 크기) — 전부 원장에서 뽑는다
@@ -226,10 +230,11 @@ def defect_table() -> str:
         f"{sh_m5['table']:.2f} / {sh_mv['table']:.2f} mm 가 메쉬에서 "
         f"{sh_m5['delivered']:.2f} / {sh_mv['delivered']:.2f} mm 로 나온다 "
         f"| 평판극한 σ 상한 +2.27 / +2.62 dB (방위평균, el 0°) |",
-        f"| 짐벌이 착륙발보다 아래 | mavic4pro | 카메라 최저점이 발보다 "
-        f"{abs(cam['camera_below_gear_mm']):.2f} mm 아래. 발을 바닥으로 놓고 같은 규칙을 풀면 "
-        f"세로 배율이 {cam['sz_now']:.4f} → {cam['sz_if_bottom_were_the_feet']:.4f} "
-        f"({cam['vertical_scale_error_pct']:.2f} %) | 위 세로 배율의 **원인** — 예산 구멍을 가린다 |",
+        *([] if cam is None else [
+            f"| 짐벌이 착륙발보다 아래 | mavic4pro | 카메라 최저점이 발보다 "
+            f"{abs(cam['camera_below_gear_mm']):.2f} mm 아래. 발을 바닥으로 놓고 같은 규칙을 풀면 "
+            f"세로 배율이 {cam['sz_now']:.4f} → {cam['sz_if_bottom_were_the_feet']:.4f} "
+            f"({cam['vertical_scale_error_pct']:.2f} %) | 위 세로 배율의 **원인** — 예산 구멍을 가린다 |"]),
         f"| 뜬 파트(기체에 안 닿는 부품) | phantom4 · phantom3 · m350rtk · x500v2 "
         f"| 착륙아치 8.3~8.5 / 13.7~13.8 mm · 프롭 허브 6.0 mm · 레일 4.0 mm "
         f"| 간극 0.05~0.16 λ @3.5 GHz — 면적은 그대로고 가림·다중반사·위상이 바뀐다 |",

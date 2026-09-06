@@ -186,7 +186,8 @@ USED = _trace_builders()
 
 #  짐벌 검사기 게이트 A/B/C — 원장에서 그대로 읽는다(손숫자 금지).
 _GSUM = MF.GIMBAL["_summary"]
-_GA = _GSUM["gate_A_fail"][0]
+#: ⛔`_GA = _GSUM["gate_A_fail"][0]` 은 **아무 데도 안 쓰이면서** 이 편을 못 굽게 했다 —
+#  그 결함이 수리돼 목록이 비자 IndexError 로 죽었다(2026-09-06). 죽은 줄이라 걷는다.
 _GC = _GSUM["gate_C_over_declared"]
 _GB_FLOAT = sorted({x["drone"] for x in _GSUM["gate_B_floating"]}, key=KEYS.index)
 _GB_SWAL = sorted({x["drone"] for x in _GSUM["gate_B_swallowed"]}, key=KEYS.index)
