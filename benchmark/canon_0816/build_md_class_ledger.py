@@ -12,8 +12,10 @@ import re
 
 MD = "/workspace/sionna/prior_work/md_classification_dl_survey.md"
 OUT = "/workspace/sionna/outputs/md_classification_dl_survey.json"
-REC = ("/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/"
-       "scratchpad/survey_recovered.json")
+#: ⛔옛 정의는 **죽은 임시 경로**를 가리켰다 — 그 세션이 끝나면 다시 못 굽는다.
+#  복구본은 이미 저장소 안에 들어와 있고(산출 원장의 _meta.recovery.recovered_file 이
+#  그 경로를 적고 있다), 빌더만 옛 자리를 보고 있었다.
+REC = "/workspace/sionna/prior_work/outputs/md_classification_dl_survey_recovered.json"
 
 COLS = ["paper", "year", "method", "input_representation", "data", "accuracy", "link"]
 

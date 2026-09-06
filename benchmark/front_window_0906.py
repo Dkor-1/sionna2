@@ -52,7 +52,15 @@ CANON = re.compile(
 
 
 def group_files() -> dict[tuple[str, float, float], list[str]]:
-    """표준 배치 샤드를 (팔, 방위, 앙각) 으로 묶는다 — 파일을 아직 안 연다."""
+    """표준 배치 샤드를 (팔, 방위, 앙각) 으로 묶는다 — 파일을 아직 안 연다.
+
+    ⚠**광선 예산(spp)은 칸을 가르지 않는다.** 사다리의 칸들은 4e9 로 샀는데
+      기준점인 축 위(방위 0·고도 0)는 4e9 샤드가 **옛 세대라 겹침을 안 적었고**,
+      1e8·1e9 만 남아 있다. 예산을 칸의 열쇠에 넣으면 기준점이 사다리에서
+      **빠져 버린다.** 그래서 묶기는 하되 칸마다 `spp` 를 함께 적어 드러낸다.
+      (예산이 N 을 바꾸지 않는다는 것은 0.1e9→3.0004 · 1e9→2.9999 · 4e9→2.9972 로
+       따로 쟀다. 그래도 섞였다는 사실 자체는 숨기지 않는다.)
+    """
     g: dict[tuple[str, float, float], list[str]] = collections.defaultdict(list)
     for p in sorted(glob.glob(os.path.join(SHD, "*.npz"))):
         m = CANON.match(os.path.basename(p))
@@ -64,7 +72,7 @@ def group_files() -> dict[tuple[str, float, float], list[str]]:
 
 def measure(paths: list[str]):
     """한 칸(팔·방위·앙각)의 자세를 전부 모아 ① 과 ② 를 낸다."""
-    E, D = [], []
+    E, D, spp = [], [], set()
     for p in paths:
         try:
             z = np.load(p)
@@ -74,6 +82,9 @@ def measure(paths: list[str]):
             continue          # 옛 세대 샤드 — 겹침을 안 적었다
         E.append(np.abs(z["E"]))
         D.append(np.abs(z["E_dedup"]))
+        m = CANON.match(os.path.basename(p))
+        if m:
+            spp.add(int(m["spp"]))
     if not E:
         return None
     e = np.concatenate(E)
@@ -88,6 +99,8 @@ def measure(paths: list[str]):
         r_max=round(float(r.max()), 1),
         n_poses=int(ok.sum()),
         n_shards=len(paths),
+        spp=sorted(spp),          #: ⚠이 칸이 어느 광선 예산에서 왔는지
+        db_vs_dedup=round(20.0 * float(np.log10(np.median(r))), 3),
     )
 
 
@@ -131,6 +144,11 @@ def main() -> int:
             "N_ko": "r 의 중앙값 — 일어난다면 몇 줄로 적히나. ⚠혼합이라 오르내린다",
             "warning_ko": "⚠N 만 보면 창이 켜졌다 꺼졌다 하는 것처럼 보인다. 판단은 share_pct 로 한다",
             "scope_ko": "표준 배치만 — 15 m · 깊이 2 · mfixbatteryi5_blperairframe · 팔마다 따로",
+            "spp_ko": "⚠광선 예산은 칸을 가르지 않는다 — 칸마다 spp 로 적었다."
+                      " 사다리 칸은 4e9 인데 축 위 기준점은 1e8·1e9 뿐이다"
+                      "(4e9 축 위 샤드는 옛 세대라 겹침을 안 적었다)",
+            "db_vs_dedup_ko": "20·log10(N) — 겹쳐 적힌 만큼 필드가 커진 크기(dB)."
+                              " 축 위는 +9.542 dB, 곧 정확히 3 배다",
             "on_threshold": ON,
             "min_poses": MIN_POSES,
             "n_cells": len(cells),
