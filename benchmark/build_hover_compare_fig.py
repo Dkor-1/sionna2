@@ -5,9 +5,18 @@ build_hover_compare_fig.py — ⭐산포 **프리셋 비교** 2패널: 실내-�
 왜 이 그림인가 (2026-08-10)
 ---------------------------
 로터 산포 ±0.22 % 는 선배 PX4 SITL 실측이지만, SITL 은 **대칭-이상 조건의 하한**이다.
-웹 실측 앵커(outputs/rotor_rpm_web_anchor.json)의 야외 실기체는 산포 ~2 %·흔들림 2.5 % 다.
+야외 프리셋의 앵커는 **한 기체**다 — outputs/rotor_rpm_web_anchor.json 의 sources[1]
+(CODEV AQUILA V3, PX4 v1.12.3 · ⚠DJI 아님)의 야외 호버 창 39 개(3~18 s, 총 239 s):
+  · 정적 산포   sources[1].measured.static_spread_std_pct        중앙 2.35 % (0.79~5.53)
+  · 저주파 흔들림 sources[1].measured.wobble_lf_amp_pct_0p3to2hz  중앙 2.52 % (p25 2.0 · p75 3.81)
+⚠ 이것을 «야외 실기체» 일반으로 읽지 않는다. 같은 원장이 스스로 단 단서 — 야외 바람 미상이라
+**바람 보정 트림이 정적 산포에 섞인다**(창마다 패턴이 변한다) — 가 그대로 살아 있다.
+⛔ 같은 원장의 «4 Hz 샘플링 앨리어싱으로 흔들림 진폭 과대» 단서는 더 인용하지 않는다:
+   뒤 원장 outputs/rotor_log_corpus_0816.json 을 낸 superseded_note_20260816.refuted[0] 이
+   짝지은 비교 9 건(226 Hz → 4 Hz 솎음)에서 σ_w 중앙 ×0.997 로 반증했다.
+   표본을 넓힌 값을 쓸 자리에서는 그 코퍼스(실기체 52 대·호버 2.4 h)를 본다.
 실증이 야외이므로([[실측=외부]]) 두 프리셋을 나란히 보여 정직하게 답한다:
-  «야외 산포에서는 능선 빗살이 어긋나 뭉개진다 — 그래서 **플래시(시간축 사건)** 로 읽어야 한다.»
+  «이 프리셋에서는 능선 빗살이 어긋난다 — 그래서 **플래시(시간축 사건)** 로 읽어야 한다.»
 이것이 시간분해능-우선 표시 규약(md_mapstyle)의 물리적 근거이기도 하다.
 
 읽는 것: outputs/report07_hover_long.{npz,json} (sitl) · outputs/report07_hover_long_outdoor.{npz,json}

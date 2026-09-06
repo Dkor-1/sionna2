@@ -608,7 +608,9 @@ def blocks_86() -> list:
            + PVD.num("cells.sionna/el-15.line_snr_db.4x", fmt="{:.2f}", unit="dB")
            + ")에 서고, 최고−최저가 8.15 dB 로 우리 팔 18.60 dB 의 절반보다 작다. 상관 "
            + PVD.num("cells.sionna/el-15.corr_with_ours_db_map", fmt="{:.4f}")
-           + " 의 정체가 이 **덜 굴곡짐**이다."),
+           + " 과 이 **덜 굴곡짐**이 함께 간다 — 그 상관값이 굴곡 차이에서 오는지는 "
+           "널을 재기 전까지 미상이다(다음 단계). ⛔먼저 적었던 「그 상관값의 정체가 이 덜 "
+           "굴곡짐이다」는 널을 재기 전이라 확인된 적이 없어 내렸다."),
 
         md("물리를 켠 두 팔은 사다리 자체가 낮다 — 여덟 칸이 "
            + PVD.num("cells.sionna_phys/el-15.line_snr_db.7x", fmt="{:.2f}") + "~"
@@ -1189,8 +1191,9 @@ def blocks_87() -> list:
            + " 오른다 — 같은 구간에서 가만히 있는 몫은 "
            + AC87.num("headline.ladder_a_360x_change_db.el+0.dc_power_db",
                       fmt="{:+.2f}", unit="dB") + " 다.", "",
-           "⭐**날개끝 상한 위**의 내용물은 광선 수에 불변이다. 정반사가 꺼지는 세 앙각"
-           "(−15·−45·−60)에서 같은 360 배가 상한 위 바닥을 el −15 에서 "
+           "⭐**물리를 끈 이 10 m 사다리(깊이 1)** 안에서는, 정반사가 꺼지는 세 앙각"
+           "(−15·−45·−60)의 **날개끝 상한 위**가 광선 수에 불변이다 — 같은 360 배가 상한 위 "
+           "바닥을 el −15 에서 "
            + AC87.num("headline.ladder_a_360x_change_db.el-15.floor_above_db", fmt="{:+.2f}")
            + " · el −45 에서 "
            + AC87.num("headline.ladder_a_360x_change_db.el-45.floor_above_db",
@@ -1202,6 +1205,16 @@ def blocks_87() -> list:
            + " 에서 el −45 의 "
            + AC87.num("headline.ladder_a_360x_change_db.el-45.ac_below_tip_db",
                       fmt="{:+.2f}", unit="dB") + " 까지 오른다.", "",
+           "⚠이 «불변» 의 범위는 거기까지다 — 물리를 켠 두 계단(같은 22.5 배)에서는 같은 "
+           "상한 위 바닥이 el −15 에서 "
+           + AC87.num("ladder_a_physics_on.clean_two_rungs_delta[1].d_floor_db",
+                      fmt="{:+.2f}", unit="dB")
+           + " 올라가고(" + ref("physics-above-limit", "상한 위 에너지 몫")
+           + "), 물리를 꺼도 정반사가 사는 el 0 은 같은 360 배에 "
+           + AC87.num("headline.ladder_a_360x_change_db.el+0.floor_above_db",
+                      fmt="{:+.2f}", unit="dB")
+           + " 올라간다. 그러니 이 문장을 «광선 예산은 상한 위에 영향이 없다» 로 옮기면 "
+           "틀린다.", "",
            "⚠이 «불변» 은 **절대 세기**로 읽은 값이다. 신호 대 바닥의 **대비**로 읽으면 상한 "
            "아래 에코가 광선 2 배마다 "
            + AC87.num("regressions.ladder_a.ac_below_tip_db__excl_el0.slope_db_per_octave",
@@ -1828,7 +1841,10 @@ def blocks_85() -> list:
            f"날개끝 속도가 정하는 도플러 상한은 f_tip = "
            f"{W.num('_meta.f_tip_el0_hz', 1272.9, '{:.1f}', 'Hz')} × cos(앙각) 이다. "
            f"시선 방향으로 가장 빠른 점이 날개끝이므로 그보다 높은 주파수는 블레이드가 "
-           f"닿는 자리 밖이고, 거기 담긴 전력은 전부 엔진이 만든 인공물이다.", "",
+           f"닿는 자리 밖이다. 다만 그 자리의 참값은 0 보다 크다 — 회전 날개의 위상변조 "
+           f"측대역이 상한 위로 이어져 이상적인 날개도 작은 양수를 남긴다("
+           + ref("el-above-tip-limit", "상한 위 누설")
+           + "). 그래서 이 절은 그 자리의 큰 값을 엔진이 만든 몫으로 읽는다.", "",
            f"관찰 상한은 나이퀴스트 "
            f"{W.num('_meta.nyquist_hz', 9850.0, '{:.0f}', 'Hz')} 라, 앙각 0° 에서는 f_tip "
            f"위로 {span:.1f} 배(= 9850 ÷ 1272.9) 폭의 자리를 들여다본다. 그 자리에 무엇이 "
@@ -1939,8 +1955,11 @@ def blocks_85() -> list:
                    f"{FB.num('selftest.max_abs_diff_frac', 0.0)} · 행 "
                    f"{FB.num('selftest.n_rows_compared', 23, '{:.0f}')} 불일치 "
                    f"{FB.num('selftest.n_row_mismatches', 0, '{:.0f}')}"],
-                  ["f_tip 위 에너지는 엔진이 만든 인공물이다", "운동학 정의",
+                  ["f_tip(el) 의 위치는 운동학이 정한다", "운동학 정의",
                    "f_tip = 날개끝 속도 / (λ/2) × cos(앙각)"],
+                  ["⛔f_tip 위 전력의 참값이 0 이다", "미상 — τ 계산 전",
+                   ref("el-above-tip-limit", "상한 위 누설")
+                   + " 다음 단계 첫 줄이 이상적 날개의 꼬리 τ 를 원장에 싣는다"],
                   ["경로 집합이 자세마다 깜빡여 그 에너지를 만든다", "기제 후보 — 게이트 없음",
                    ref("budget-not-physics", "예산 사다리")]])),
 
@@ -2007,7 +2026,14 @@ def blocks_85() -> list:
 # --------------------------------------------------------------------------- #
 def write_shard(no: str, anchor: str, rep: dict, evidence: list[str],
                 figures: list[str] | None = None) -> None:
-    title = REG[anchor][1]
+    #: ⛔`REG[anchor][1]` 은 **계획 JSON** 의 제목이라 이 빌더가 노트북에 찍는 제목과
+    #  갈릴 수 있다. `report_registry` 는 지어진 노트북의 H1 을 먼저 읽으므로(`_built_title`)
+    #  색인만 옛 제목으로 남는다 — 2026-09-05·06 에 실제로 그랬다. 같은 자리를 본다.
+    try:
+        from report_registry import _built_title            # noqa: PLC0415
+        title = _built_title(f"{no}_{anchor}.ipynb") or REG[anchor][1]
+    except Exception:
+        title = REG[anchor][1]
     short = title.split("—")[0].split(",")[0].strip()
     if len(short) > 26:
         short = short[:25].rstrip() + "…"

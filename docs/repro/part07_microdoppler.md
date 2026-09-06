@@ -11,7 +11,7 @@
 | 38 | `md-occlusion` | 동체가 날개를 가리면 변조 깊이와 레벨이 함께 바뀐다 | `outputs/report15b_microdoppler.json`, `outputs/report15b_series.npz` | 약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔) |
 | 39 | `md-blade-vs-body` | 블레이드 신호는 약하지 않다 — 동체 정적 반사가 덮고 있을 뿐이다 | `outputs/report15b_microdoppler.json`, `outputs/report15b_series.npz` | 약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔) |
 | 40 | `md-attitude` | 지상 레이더는 기체를 아래에서 보므로 가림이 무는 자세가 우리 자세다 | `outputs/report15b_microdoppler.json`, `outputs/report15b_series.npz` | 약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔) |
-| 41 | `md-calibration` | 판정 잣대를 널 팔 15 칸과 이상 점산란자로 먼저 교정했다 | `outputs/report15_null_control.json`, `outputs/report15_verdict_geomref.json`, `outputs/report15_verdict.json`, `outputs/report15_attack_stats.json` | 약 35 분 (GPU 1장 — 널 팔 20 개) |
+| 41 | `md-calibration` | 문턱은 널 팔이 교정했고, 가장자리 시험은 아직 교정되지 않았다 | `outputs/report15_null_control.json`, `outputs/report15_verdict_geomref.json`, `outputs/report15_verdict.json`, `outputs/report15_attack_stats.json` | 약 35 분 (GPU 1장 — 널 팔 20 개) |
 | 42 | `md-ray-budget` | 두 기체가 갈리는 이유는 메쉬 품질이 아니라 표적 크기 대비 광선예산이다 | `outputs/report15_attack_spp_ladder.json`, `outputs/report15_attack_stats.json` | 약 36 분 (GPU 1장 — 사다리 전량 재추적) |
 | 43 | `md-prf` | 상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다 | `outputs/md_range_sweep.json` | 약 12 분 (GPU 1장) |
 

@@ -102,11 +102,11 @@
 | **C x LTE** | Dan 2019, Geng 2020, Taylor 2023/2025, Sun 2022/2025, Demissie 2024, Ji 2026 |
 | **C x 5G** | Ai 2021, Maksymiuk 2022/2023/2025, Jopanya 2025, Lin 2023, Huang 2026(업링크) |
 
-### 2.0.1 문헌 전체를 관통하는 다섯 공백
+### 2.0.1 이 라이브러리를 관통하는 다섯 공백
 
-- 1) 표적 산란을 스스로 계산하고 그 위에 검출을 세운 드론 논문이 없다. Sionna 계열은 표적을 큐보이드·정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나(Clutter-Aware, CellSense, 2605.07623) 상용 솔버로 나간다(LAMBDA). RCS 를 실제로 찍은 유일한 Sionna 게재 논문은 표적이 차량이다(Ziganshin, EuCAP 2025).
+- 1) 이 라이브러리 94편(원문 정독 64편 — `outputs/reference_library.json` 의 `counts.master_rows` · `counts.grade_P_pdf_read`) 안에는 표적 산란을 스스로 계산하고 그 위에 검출을 세운 드론 논문이 없다. Sionna 계열은 표적을 큐보이드·정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나(Clutter-Aware, CellSense, 2605.07623) 상용 솔버로 나간다(LAMBDA). RCS 를 실제로 찍은 유일한 Sionna 게재 논문은 표적이 차량이다(Ziganshin, EuCAP 2025).
 - 2) 패시브 드론 코퍼스에서 무모호 속도를 자기 시스템에 대해 계산한 논문은 Geng(2020) 하나뿐이고, 그것도 시뮬레이션이며 규약이 전폭이다. Jopanya(2025)는 식을 쓰지만 축이 버스트 내부 심볼이다.
-- 3) CFAR 오경보율은 거의 전부 설계값(nominal)으로만 보고된다. 실제 달성치를 잰 것은 He(2512.24889) 뿐이며 그마저 표적이 드론이 아니다.
+- 3) **이 라이브러리에서 원문을 연 64편 안에서는** CFAR 오경보율이 거의 전부 설계값(nominal)으로만 보고되고, 실제 달성치를 잰 것은 He(2512.24889) 하나이며 그마저 표적이 드론이 아니다. (64 = `outputs/reference_library.json` 의 `counts.grade_P_pdf_read`, 이 문서 머리글의 «94편 중 64편 원문 개봉» 과 같은 수다. ⛔ 2026-09-06 범위 축소 — 이전에는 범위 없이 «실제 달성치를 잰 것은 He(2512.24889) 뿐» 이라고 적었다. 패시브·CFAR 문헌 전체를 훑은 적이 없어 위 2)·5) 와 같은 범위 표기를 붙인다.)
 - 4) 드론 RCS 실측은 대부분 15 GHz 이상이다(Semkin 26-40, Ezuma 15/25, Zhang 10-36, Azim 25-28). 우리 대역(1.8-5.2 GHz)을 직접 덮는 것은 Das(1.8-27 GHz) 와 Costa(5.78-8.22 GHz 반사도) 정도다.
 - 5) config B(패시브 준-모노스태틱)의 순수 사례가 여전히 드물다. 명시적 근거가 있는 것은 Martelli(2017) 와 Demissie(2024) 둘뿐이고, 후자는 그 용어를 쓰지 않는다.
 
@@ -1342,7 +1342,7 @@
 - **표적 표현** — ⭐ 없다 - 이 문서들에서 'target' 은 경로의 끝점을 뜻한다
 - **엔진 / 실측** — 도구 자체
 - **무엇을 무엇에 대해 검증했나** — 해당 없음 ↔ 해당 없음
-- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4
+- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4 ⚠ 이 48 은 'SBR' 단독 계수가 아니라 'sbr'(대소문자 무시) 45 + 'shooting and bouncing' 3 의 합이다(대소문자 구분 'SBR' 만이면 44 — 같은 문서 F10 항목).
 - **우리와의 관계** — Sionna 계보의 출발점(0.8.0, RT 없음). 우리 report01 의 근거 문서.
 - ⚠ ⭐ (b) 는 v0.14(TensorFlow) 아키텍처 서술이라 우리가 돌리는 2.0.1 과 다르다. EM 세부는 (c) 기술보고서를 인용할 것.
 - ⚠ (c) 는 벤더 기술보고서다. 동료심사 문헌이 아니다.
@@ -1360,7 +1360,7 @@
 - **표적 표현** — ⭐ 없다 - 이 문서들에서 'target' 은 경로의 끝점을 뜻한다
 - **엔진 / 실측** — 도구 자체
 - **무엇을 무엇에 대해 검증했나** — 해당 없음 ↔ 해당 없음
-- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4
+- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4 ⚠ 이 48 은 'SBR' 단독 계수가 아니라 'sbr'(대소문자 무시) 45 + 'shooting and bouncing' 3 의 합이다(대소문자 구분 'SBR' 만이면 44 — 같은 문서 F10 항목).
 - **우리와의 관계** — Sionna RT 의 원전 회의 논문. 우리가 쓰는 광선추적기의 출처.
 - ⚠ ⭐ (b) 는 v0.14(TensorFlow) 아키텍처 서술이라 우리가 돌리는 2.0.1 과 다르다. EM 세부는 (c) 기술보고서를 인용할 것.
 - ⚠ (c) 는 벤더 기술보고서다. 동료심사 문헌이 아니다.
@@ -1378,7 +1378,7 @@
 - **표적 표현** — ⭐ 없다 - 이 문서들에서 'target' 은 경로의 끝점을 뜻한다
 - **엔진 / 실측** — 도구 자체
 - **무엇을 무엇에 대해 검증했나** — 해당 없음 ↔ 해당 없음
-- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4
+- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4 ⚠ 이 48 은 'SBR' 단독 계수가 아니라 'sbr'(대소문자 무시) 45 + 'shooting and bouncing' 3 의 합이다(대소문자 구분 'SBR' 만이면 44 — 같은 문서 F10 항목).
 - **우리와의 관계** — ⭐ 우리 report01·06 의 근거 문서 — Sionna 가 무엇을 하고 무엇을 안 하는지(SBR 있음 / PO 표면적분·RCS 출력 없음)의 1차 출처.
 - ⚠ ⭐ (b) 는 v0.14(TensorFlow) 아키텍처 서술이라 우리가 돌리는 2.0.1 과 다르다. EM 세부는 (c) 기술보고서를 인용할 것.
 - ⚠ (c) 는 벤더 기술보고서다. 동료심사 문헌이 아니다.
@@ -1433,7 +1433,7 @@
 
 아카이브 고유 PDF **218편** 중 **140편**이 본문에서 Sionna 를 언급하고 **137편**이 실제로 돌린다. 역할별로는 전파만 **118편**, 표적을 씬 안에 둔 것 **7편**, 엔진을 고친 것 **3편**이며, **Sionna 에서 dBsm 을 실제로 찍은 논문은 1편**뿐이다. Sionna 버전을 밝힌 논문은 18편, 안 밝힌 논문이 122편이다.
 
-> **엔진 사실.** Sionna RT technical report 에서 SBR 48회, physical optics 0회, radar cross section 0회(outputs/prior_settled_sionna.json). 'Sionna 는 SBR 이 없다'는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다.
+> **엔진 사실.** Sionna RT technical report(59쪽)에서 SBR 48회, physical optics 0회, radar cross section 0회(원장 `outputs/prior_settled_sionna.json` 의 `word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p` → 키 이름이 그대로 `SBR or shooting-and-bouncing` 이다). ⚠ 이 48 은 'SBR' 이라는 약자만 센 값이 아니라 'sbr'(대소문자 무시) 45회 + 'shooting and bouncing' 3회의 합이며, 대소문자를 구분한 'SBR' 만이면 44회다(같은 문서 F10 항목의 계수와 판정 참조). 'Sionna 는 SBR 이 없다'는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다.
 
 아래는 전파만 다루는 다수를 걷어내고 **역할이 구별되는 논문 + 정독한 논문**만 남긴 것이다.
 
@@ -1769,9 +1769,9 @@ Sionna(또는 동급 GPU 광선엔진) 시뮬레이션 AND 드론이 센싱 표�
 - ⚠ Das 와 Yuan 은 같은 기체(Phantom 3)를 재고도 세 대역에서 3.23-3.59 dB 어긋난다. Zhang 의 금속구 교정도 이론 대비 2 dB 가까이 벌어진다. 우리 ±2-3 dB 허용치의 근거이자 상한이다.
 - ⚠ Wang(5G-A GBS)의 링크버짓은 UAV RCS 를 -10 dBsm 으로 가정하는데 출처가 없고 Semkin 계열보다 7-10 dB 낙관적이다.
 
-### RW3. 광선추적·시뮬레이션 표적 시그니처 — 계산은 하되 검증은 하지 않는다
+### RW3. 광선추적·시뮬레이션 표적 시그니처 — 계산은 하되, 드론 표적의 진폭은 검증되지 않았다
 
-**논지** — Sionna 계열은 드론을 큐보이드·금속 정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나 상용 솔버로 나간다. 표적 산란 진폭을 계산하고 그것을 무엇엔가 대고 검증한 논문은 이 라이브러리에 없다.
+**논지** — Sionna 계열은 드론을 큐보이드·금속 정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나 상용 솔버로 나간다. 표적 산란 진폭을 계산하고 그것을 무엇엔가 대고 검증한 사례 자체는 아래 표 안에 있다 — 차량(Ziganshin, EuCAP 2025: PO/MLFMM 상용 솔버 대조), PEC 구(Sagitta, arXiv:2604.09243: Mie 해), SBR+PTD 예측기(Kirik & Ozdemir, Sigma 2019: 해석해·실측·상용 솔버 3단계), 프로펠러 한 장(Lee 외, JEES 2021: 상용 솔버), 실내 장면(RadarTwin, arXiv:2606.28396: 실측 짝지음). 다만 이들 표적은 모두 드론이 아니다. **드론 기체를 표적으로 산란 진폭까지 검증한 논문**은 이 라이브러리(수록 94편 · 스캔한 아카이브 고유 PDF 218편 — `outputs/reference_library.json` 의 `counts.master_rows` 와 `counts.sionna_corpus_scanned_pdfs`) 안에는 없다. ⛔ 종전 문장 「표적 산란 진폭을 계산하고 그것을 무엇엔가 대고 검증한 논문은 이 라이브러리에 없다」 는 표적 조건과 코퍼스 범위가 빠져 바로 아래 표와 어긋났으므로 내렸다.
 
 | 인용키 | 게재처 · 연 | 등급 | 그대로 쓸 수 있는 한 문장 |
 |---|---|---|---|
@@ -1859,7 +1859,7 @@ Sionna(또는 동급 GPU 광선엔진) 시뮬레이션 AND 드론이 센싱 표�
 | `cellsense_arxiv26` | arXiv 2606.07900 2026 | P | 셀룰러 ISAC 패시브 센싱을 Sionna 씬과 실측 시제기로 함께 평가한 사례가 있으나 표적은 사람을 대신한 큐보이드이며(Kumar 외, arXiv:2606.07900), 오경보율도 CFAR 임계 교정이 아니라 검출 비율로 정의된다. |
 | `taylor_lte_pbr_taes25` | IEEE Trans. Aerosp. Electron. Syst. 2025 | P | LTE 패시브 실측에서 관측된 드론의 바이스태틱 속도는 13 m/s 안팎에 머물며(Taylor & Poullin, IEEE TAES 2025), 이는 상시 기준신호만으로 얻는 무모호 속도와 직접 비교되는 값이다. |
 | `zhang_cyclostationary_taes26` | IEEE Trans. Aerosp. Electron. Syst. 2026 | B | 패시브 레이더의 약한 표적 에코를 순환정상성 통계로 검출하는 대안도 제시되어 있다(Zhang 외, IEEE TAES 2026). |
-| `pang_mfs_taes25` | IEEE Trans. Aerosp. Electron. Syst. 2025 | B | 패시브 레이더 기반 UAV 검출의 최신 신호처리 베이스라인은 운동 특징 분리 모델 계열이다(Pang 외, IEEE TAES 61(5), 2025). |
+| `pang_mfs_taes25` | IEEE Trans. Aerosp. Electron. Syst. 2025 | B | 이 라이브러리에서 확인된 패시브 레이더 기반 UAV 검출의 최근 신호처리 계열 하나는 운동 특징 분리 모델이다(Pang 외, IEEE TAES 61(5), 2025; 서지만 확인·본문 미독). ⛔ 2026-09-06 범위 축소 — 이전에는 «패시브 레이더 기반 UAV 검출의 **최신** 신호처리 베이스라인은 운동 특징 분리 모델 계열이다» 였다. 본문 미독·인용문 0건인 등급 B 한 행으로 분야 전체의 «최신 베이스라인» 을 확정할 수 없고, 바로 위 Zhang(IEEE TAES 2026) 행이 그 «최신» 을 흔든다. |
 | `saur_uav_isac_arxiv26` | arXiv 2605.23561 2026 | P | 개조하지 않은 상용 5G FR2 하드웨어로 도심에서 UAV 를 검출한 PoC 가 보고되어 있다(Saur 외, Nokia Bell Labs, 2026). |
 
 - ⚠ Pfa 의 정의가 문헌마다 다르다 — 설계값 / '검출 중 오검출 비율'(CellSense) / 달성치(He). 나란히 놓기 전에 정의를 열로 표시할 것.
@@ -1876,7 +1876,7 @@ Sionna(또는 동급 GPU 광선엔진) 시뮬레이션 AND 드론이 센싱 표�
 | `milani_fusion_rs21` | Remote Sens. 2021 | P | WiFi 대역에서는 표적 자신의 방사를 듣는 방출 기반 측위와 반사를 보는 패시브 레이더를 한 시스템에서 융합한 사례도 있다(Milani 외, Remote Sensing 13(18):3556, 2021). |
 | `chen_event_rotation_sensys26` | Proc. 24th ACM Conf. Embedded Network… 2026 | B | 프로펠러 회전을 드론 센싱의 1차 정보원으로 삼는 관점은 2026년 SenSys 에서 RF 계열과 이벤트 카메라 계열 양쪽으로 동시에 제기되었다(Chen 외, pp.746-760). |
 | `wu_miros_infocom26` | Proc. IEEE Conf. Computer Communicati… 2026 | B | 비인가 AAV 측위를 레이더와 비전의 다중 시점 융합으로 푸는 접근이 2026년 INFOCOM 에 제시되었다(Wu 외). |
-| `lam_6d_drone_infocom25` | Proc. IEEE Conf. Computer Communicati… 2025 | B | 드론을 다루는 mmWave 연구의 상당수는 드론이 협조적으로 자기 위치를 구하는 문제를 풀며(Lam 외, IEEE INFOCOM 2025), 비협조 침입자 검출과는 문제 설정이 반대다. |
+| `lam_6d_drone_infocom25` | Proc. IEEE Conf. Computer Communicati… 2025 | B | 드론을 다루는 mmWave 연구 중에는 드론이 협조적으로 자기 위치를 구하는 계열이 있고(Lam 외, IEEE INFOCOM 2025), 이는 비협조 침입자 검출과 문제 설정이 반대다. |
 
 - ⚠ 이 문단의 논문들은 우리 2x3 격자에 들어가지 않는다. 격자 밖이라는 사실 자체를 적어야 격자가 임의적으로 보이지 않는다.
 

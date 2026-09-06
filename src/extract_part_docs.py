@@ -26,7 +26,10 @@ import re
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
-RPT = os.path.join(_ROOT, "reports")
+#: ⭐경로 수리 — 편 노트북은 reports/ 밑이 아니라 reports/_parts/ 로 옮겨졌다. 옛 경로
+#: os.path.join(_ROOT, "reports") 로는 _repro_row 가 FileNotFoundError 로 죽어 docs/repro/*.md
+#: 가 아예 재생성되지 않았고, 그 사이 편 39·41·42 의 제목 정정이 문서에 못 들어왔다.
+RPT = os.path.join(_ROOT, "reports", "_parts")
 
 PARTS = {
     "part06_ladder": ("부 6 · 표적 사다리", [

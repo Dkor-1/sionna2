@@ -23,7 +23,19 @@
 
 1. **RCS 가 원래 모노스태틱이 생산 경로다** — `rcs_sbr_batch` 가 모노다.
    바이스태틱은 상반성 위반 때문에 β≤45° 로 제한돼 있다.
-   ⭐ 즉 **새로 얹는 모노 축이 우리 물리 중 가장 잘 검증된 부분 위에 선다.**
+   ⭐ 즉 **새로 얹는 모노 축은 우리 생산 경로 그대로다** — β=0 이라 이등분선 근사가 정의상
+   정확히 성립해(Δσ ≡ 0) 새 RCS 계산이 필요 없다.
+   근거: `outputs/report13_sigma_grid.<기체>.json : multistatic.<기체>.<대역>."0"` 의
+   `dsigma_rms_db` · `dsigma_p95_db` 가 둘 다 0.0 이다(⛔병합판 `report13_sigma_grid.json` 에는
+   multistatic 블록이 없다 — `meta.multistatic_regenerated` = false).
+   ⛔ **정정(2026-09-06) — 「가장 잘 검증된」 은 아니다.** Δσ≡0 은 β=0 에서 두 경로가 같은
+   방향을 읽는다는 **정의상의 항등식**이지 σ 가 맞다는 증거가 아니다. 실제 검증 상태는:
+   외부 참값 대조가 정확 Mie 구 **세 점**뿐이고(0.375~0.851 dB, r=0.178 m·ka 6.88~19.44 —
+   `docs/RETRACTION_LOG.md :: R9`, `outputs/audit_po_trust.json` 이 인용), 기체 σ 의 사전등록
+   함대 판정은 **NOT_VALIDATED** 다(`outputs/das_fleet_validation.json : prereg_judgement` —
+   `verdict` = "NOT_VALIDATED (P3 산포)", `P3_spread_db` ≈ 16.27 dB / 봉인 문턱 6.0,
+   예측 산포는 1.0 이었다). 여기서 **P3 는 Phantom 3 가 아니라 사전등록 합격조건 3번**이다.
+   실측 대조는 **0 건**이다. 이 축을 고르는 근거는 「검증도」가 아니라 「추가 계산 없음」이다.
 2. **선행 대조군이 생긴다** — LaSen(SenSys '26 게재)이 **모노스태틱 + PDSCH** 다.
    같은 축에 올려놓고 비교할 수 있다.
 3. **부정적 결과가 설계공간 지도로 바뀐다** — "5G 패시브는 안 된다" 가 아니라

@@ -19,7 +19,15 @@ from __future__ import annotations
 
 import os
 
+from report_style import from_json
+
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+#: 캡션에 박히는 숫자는 손으로 치지 않는다 — 원장에서 읽어 f-string 으로 넣는다.
+#: `outputs/report05_derived.json : rx_gain.excess_min_db` · `.excess_max_db`
+_DV = from_json("outputs/report05_derived.json")
+_EXC_MIN = float(_DV.get("rx_gain.excess_min_db"))
+_EXC_MAX = float(_DV.get("rx_gain.excess_max_db"))
 
 #: (편 번호, 앵커, 편 안의 그림 번호, PNG 이름, 영문 논문 캡션)
 #: 출처 — `src/make_report05_results.py` 의 `figure_md(..., paper_caption=…)`
@@ -47,10 +55,19 @@ CAPTIONS = [
      "The 5G always-on-reference penalty as a CPI sweep: the blind-heading fraction falls "
      "with CPI under both guard conventions, and the CPI needed for parity with LTE or "
      "WiFi is bounded by the coherent-integration limit of the moving target."),
+    # ⛔ 옛 캡션 「the measured excess comes from the N-independent cancellation
+    #    residual」은 내렸다(2026-09-06) — 부호가 갈리는 값을 한 방향 사실로 눌러 적고
+    #    원인까지 단정했다. 원장을 다시 세면 LTE 세 모드는 상한 위로 올라간 적이 없고,
+    #    가장 낮은 값은 5G NR 모드다(`outputs/report05_derived.json : rx_gain.*` ·
+    #    모드별 원본은 `outputs/detection_rx_sweep.json : modes.*.curves.*.snr50`).
     ("66", "rx-elements", 1, "report05_pf5_multirx",
-     "Multi-receiver gain measured against the idealised coherent bound of 10 log10 N, "
-     "which holds for thermal noise alone under perfect steering; the measured excess "
-     "comes from the N-independent cancellation residual."),
+     "Multi-receiver gain against the idealised coherent bound of 10 log10 N, which "
+     "holds for thermal noise alone under perfect steering. Across the nine waveform "
+     f"modes the measured gain departs from that bound by {_EXC_MIN:+.2f} to "
+     f"{_EXC_MAX:+.2f} dB: the three LTE modes never rise above it, and the largest "
+     "shortfall is a 5G NR mode. An N-independent cancellation residual would raise "
+     "the gain above the bound in this way, but no controlled comparison here "
+     "isolates that cause."),
 ]
 
 

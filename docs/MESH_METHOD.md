@@ -261,8 +261,17 @@ union 목록은 `("body","arm","motor","camera","gear","canopy","accent","deck",
 즉 **삼각형 수는 EM 적분 밀도가 아니라 "곡면을 얼마나 정확히 닮았는가"(sagitta)와 능선 위치를 정한다.**
 sagitta p50 이 0.003~0.075 mm(λ 의 10⁻⁴ 급)이므로 곡률 근사 자체는 충분하고,
 실제 리스크는 **평평한 큰 판(s1000plus 카본판, x500v2 데크)에서 facet 가 λ/10 을 넘는 것**인데
-이건 런타임 재샘플링이 흡수한다. 위상 예산 초과 면적은 phantom4 기준 0.0 이다
-(`area_frac_phase_over_budget`).
+런타임 재샘플링이 이를 **대부분** 흡수한다 — 다만 전부는 아니다.
+
+⛔ ~~이건 런타임 재샘플링이 흡수한다. 위상 예산 초과 면적은 phantom4 기준 0.0 이다(`area_frac_phase_over_budget`).~~
+— 2026-09-06 정정: 그 0.0 은 일곱 기체 × 세 밴드 가운데 0 이 나오는 칸 하나만 골라 쓴 값이었다.
+같은 원장의 같은 키를 밴드별로 다 읽으면(`outputs/mesh_compare_cad.json` →
+`ours/<기체>/facets/<밴드>/area_frac_phase_over_budget`, 위상 예산 22.5°, 밴드는 `bands` 절의
+LTE 1.843 GHz · 5G 3.5 GHz · WiFi 5.21 GHz) — **5G 에서 phantom4 · x500v2 · mini5pro ·
+mavic4pro · matrice4e 는 0.0 이지만 s1000plus 는 0.0019(0.19 %) · typhoonh480 은
+0.0092(0.92 %)** 이고, WiFi 밴드에서는 phantom4 도 0.0013(0.13 %)이다.
+즉 여기서 지목한 **큰 평판 기체에서는 완전히 흡수되지 않는다** — s1000plus 와 typhoonh480 은
+따로 봐야 한다.
 
 메쉬 건전성 검사는 `src/mesh_check.py` 가 **부품(연결요소) 단위**로 한다: watertight · winding 일관성 ·
 법선 바깥(부호 부피 > 0) · 퇴화면. 전체 드론은 원래 watertight 가 아니므로 전체 검사는 의미가 없다.

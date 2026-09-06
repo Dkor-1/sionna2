@@ -135,13 +135,23 @@ def blocks_67() -> list:
     return [
         header(
             num=67,
-            title="X410 의 12-bit ADC 동적범위가 직접파 제거의 천장이다",
+            title=f"12-bit ADC 동적범위 {M.get('hw.dynamic_range_db'):.2f} dB 는 직접파 "
+                  f"제거에 거는 상한 하나다",
             did="보유 장비 USRP X410 의 공식 사양을 한 곳에서 읽어 세션이 무엇에 묶이는지를 "
                 "항목마다 수치로 고정했다.",
             results=[
+                #: ⛔2026-09-06 — 전 제목·전 첫 줄은 «이 값이 직접파 제거의 천장이다» 였다.
+                #  사양에서 계산한 한 축을 유일한 상한으로 단정한 말이라 내렸다. 같은 원장이
+                #  «여유가 0 dB 아래로 내려가야 ADC 가 묶는다» 고 정의하는데 그 여유가 아직
+                #  +19.2 dB 이고, 바닥을 환경이 정한다는 관측은 편 52 에 있다.
                 f"12-bit ADC(아날로그 신호를 숫자로 바꾸는 변환기)의 동적범위는 "
-                f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} 이고, 이 값이 "
-                f"직접파 제거의 천장이다.",
+                f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} 이고, 이것이 직접파 "
+                f"제거에 거는 상한 하나다 — 사양에서 계산한 값이다. 여유(= 동적범위 − DNR)의 "
+                f"최소는 {M.num('adc.headroom_db_min', fmt='{:.1f}', unit='dB')} 이고, 원장 "
+                f"정의대로 이 여유가 0 dB 아래로 내려가야 ADC 가 묶는다"
+                f"⟨outputs/report06_measurement.json : adc.definition⟩ — 그 DNR 은 자유공간 시뮬 "
+                f"기하에서 나온 값이라, 지금 이 판에서 ADC 는 묶는 자리가 아니다. 실제 바닥은 "
+                f"직접파를 받아 재야 갈린다(" + ref("eca", "소거 깊이의 바닥") + ").",
 
                 f"세 파형 중 여유가 가장 좁은 것은 `{M.get('adc.worst_waveform')}` 이고 "
                 f"{M.num('adc.headroom_db_min', fmt='{:.1f}', unit='dB')} 다 — 점유대역이 좁아 "
@@ -446,9 +456,11 @@ def blocks_70() -> list:
                 f"예산 {D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} "
                 f"안에 든 세션만 자료로 쓴다.",
 
-                f"⭐ 이 구가 캠페인에서 값어치가 가장 크다 — 지금 우리 SBR+PO 커널 출력인 **절대 레벨을 "
-                f"측정에 앵커한다**(생산 모드의 평균 레벨이동 "
-                f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}).",
+                f"⭐ 이 구가 닫는 축은 계산으로 못 닫는다 — 지금 우리 SBR+PO 커널 출력인 "
+                f"**절대 레벨을 측정에 앵커하는** 장치다(생산 모드의 평균 레벨이동 "
+                f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}). "
+                f"⛔「캠페인에서 값어치가 가장 크다」 는 순위 최상급이라 내린다 — 캠페인 항목을 "
+                f"서로 견줄 눈금이 이 저장소에 없다.",
 
                 f"채택 반경에서 우리 정확 Mie σ 는 **πr² 광학 점근** "
                 f"{D.num('layers.cal_pir2_dbsm', fmt='{:.2f}', unit='dBsm')} 대비 밴드에 따라 "
@@ -523,7 +535,7 @@ def blocks_70() -> list:
            f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위에 있다 — "
            f"앵커와 견줄 때 이 항을 먼저 되돌린다."),
 
-        md("## 이 구가 값어치가 가장 큰 이유 두 가지", "",
+        md("## 이 구가 닫는 축 — 계산으로는 닫히지 않는 이유 두 가지", "",
            "절대 레벨만 보면 모양을 안 닮은 구도 부피를 맞게 골라 넣으면 우리 메쉬와 같은 자리에 "
            "온다 — 그 부피는 결과를 보고 고를 수 있는 값이라, 메쉬 부피로 잡은 구는 도로 우리보다 "
            "나쁘다(" + ref("box-sphere-control", "구·상자 대조") + ").", "",
@@ -551,8 +563,8 @@ def blocks_71() -> list:
     return [
         header(
             num=71,
-            title=f"표적을 한 거리빈에 넣는 최대 대역은 "
-                  f"{D.get('point_target_max_bw_MHz'):.0f} MHz 다",
+            title=f"두 기체(Matrice 4E · Mini 5 Pro)를 함께 한 거리빈에 넣는 최대 "
+                  f"대역은 {D.get('point_target_max_bw_MHz'):.0f} MHz 다",
             did="순시대역을 서브밴드로 쪼개 거리분해능이 기체 최대치수보다 커지는 최대 대역을 "
                 "두 기체에서 함께 찾았다.",
             results=[

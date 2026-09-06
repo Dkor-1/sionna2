@@ -100,7 +100,16 @@ for i, (a, _) in enumerate(ARMS):
         print(f"  {a:7s} ↔ {b:7s}  스펙트럼 코사인 {float(shapes[a] @ shapes[b]):.4f}")
 out = {"cosine_in_ftip": {f"{a}_vs_{b}": float(shapes[a] @ shapes[b])
                           for i, (a, _) in enumerate(ARMS) for b, _ in ARMS[i + 1:]},
-       "note_ko": "1 에 가까우면 세 엔진이 같은 무늬를 낸다 = 우리 맵이 맞다"}
+       # ⭐ 판정 문자열이 원장에 남으므로 «어떤 한 칸에서 잰 것인가» 를 같이 저장한다(2026-09-06).
+       "config": {"drone": M["drone"], "name": M["name"], "az_deg": M["az_deg"],
+                  "el_deg": M["el_deg"], "range_m": M["range_m"], "fc_hz": M["fc_hz"],
+                  "prf_hz": M["prf_hz"], "n_slowtime": M["n"], "f_tip_hz": M["f_tip_hz"]},
+       "note_ko": (f"1 에 가까우면 f_tip({M['f_tip_hz']:.0f} Hz) 안에서 세 엔진의 스펙트럼 "
+                   f"모양이 같다는 뜻이다 — {M['name']} · az {M['az_deg']:.0f}° · "
+                   f"el {M['el_deg']:.0f}° · {M['range_m']:g} m · 슬로타임 {M['n']} 칸, "
+                   "이 설정 한 칸에서만. ⛔ «= 우리 맵이 맞다» 는 옛 문구는 내렸다: 코사인은 "
+                   "모양이 닮았는지만 재고, 실측과 대조한 건수는 0 이라 어느 엔진이 맞고 "
+                   "틀린지는 이 수로 정할 수 없다.")}
 J["verdict"] = out
 json.dump(J, open(f"{ROOT}/outputs/report07_three_engines.json", "w"),
           ensure_ascii=False, indent=1)

@@ -3105,7 +3105,7 @@
    "engine": "",
    "validated": "",
    "relevance_ko": "INFOCOM 계보에서 드론+mmWave 의 대표. 문제 방향이 반대(자기위치 vs 침입자 검출) — related-work 에서 '협조적 vs 비협조적' 축을 가를 때 쓴다.",
-   "related_work_sentence_ko": "드론을 다루는 mmWave 연구의 상당수는 드론이 협조적으로 자기 위치를 구하는 문제를 풀며(Lam 외, IEEE INFOCOM 2025), 비협조 침입자 검출과는 문제 설정이 반대다.",
+   "related_work_sentence_ko": "드론을 다루는 mmWave 연구 중에는 드론이 협조적으로 자기 위치를 구하는 계열이 있고(Lam 외, IEEE INFOCOM 2025), 이는 비협조 침입자 검출과 문제 설정이 반대다.",
    "rw_source": "override(이 라운드 작성)",
    "authors_display": "Maisy Lam and Laura Dodds and Aline Eid and Jimmy G. Hester and Fadel Adib",
    "headline_numbers": {},
@@ -5180,7 +5180,7 @@
    "COMPETING_ENGINE": "A different ray engine that benchmarks against Sionna.",
    "CITE_ONLY": "Sionna named in prose or bibliography only; no simulation run."
   },
-  "capability_fact_ko": "Sionna RT technical report 에서 SBR 48회, physical optics 0회, radar cross section 0회(outputs/prior_settled_sionna.json). 'Sionna 는 SBR 이 없다'는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다.",
+  "capability_fact_ko": "Sionna RT technical report(59쪽)에서 SBR 48회, physical optics 0회, radar cross section 0회(원장 `outputs/prior_settled_sionna.json` 의 `word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p` → 키 이름이 그대로 `SBR or shooting-and-bouncing` 이다). ⚠ 이 48 은 'SBR' 이라는 약자만 센 값이 아니라 'sbr'(대소문자 무시) 45회 + 'shooting and bouncing' 3회의 합이며, 대소문자를 구분한 'SBR' 만이면 44회다(같은 문서 F10 항목의 계수와 판정 참조). 'Sionna 는 SBR 이 없다'는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다.",
   "rows": [
    {
     "id": "2303.11103",
@@ -6522,7 +6522,7 @@
   "C x 5G": "Ai 2021, Maksymiuk 2022/2023/2025, Jopanya 2025, Lin 2023, Huang 2026(업링크)"
  },
  "five_gaps_across_the_literature": [
-  "1) 표적 산란을 스스로 계산하고 그 위에 검출을 세운 드론 논문이 없다. Sionna 계열은 표적을 큐보이드·정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나(Clutter-Aware, CellSense, 2605.07623) 상용 솔버로 나간다(LAMBDA). RCS 를 실제로 찍은 유일한 Sionna 게재 논문은 표적이 차량이다(Ziganshin, EuCAP 2025).",
+  "1) 이 라이브러리 94편(원문 정독 64편 — counts.master_rows · counts.grade_P_pdf_read) 안에는 표적 산란을 스스로 계산하고 그 위에 검출을 세운 드론 논문이 없다. Sionna 계열은 표적을 큐보이드·정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나(Clutter-Aware, CellSense, 2605.07623) 상용 솔버로 나간다(LAMBDA). RCS 를 실제로 찍은 유일한 Sionna 게재 논문은 표적이 차량이다(Ziganshin, EuCAP 2025).",
   "2) 패시브 드론 코퍼스에서 무모호 속도를 자기 시스템에 대해 계산한 논문은 Geng(2020) 하나뿐이고, 그것도 시뮬레이션이며 규약이 전폭이다. Jopanya(2025)는 식을 쓰지만 축이 버스트 내부 심볼이다.",
   "3) CFAR 오경보율은 거의 전부 설계값(nominal)으로만 보고된다. 실제 달성치를 잰 것은 He(2512.24889) 뿐이며 그마저 표적이 드론이 아니다.",
   "4) 드론 RCS 실측은 대부분 15 GHz 이상이다(Semkin 26-40, Ezuma 15/25, Zhang 10-36, Azim 25-28). 우리 대역(1.8-5.2 GHz)을 직접 덮는 것은 Das(1.8-27 GHz) 와 Costa(5.78-8.22 GHz 반사도) 정도다.",
@@ -6858,8 +6858,8 @@
   },
   {
    "id": "RW3",
-   "heading": "광선추적·시뮬레이션 표적 시그니처 — 계산은 하되 검증은 하지 않는다",
-   "thesis_ko": "Sionna 계열은 드론을 큐보이드·금속 정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나 상용 솔버로 나간다. 표적 산란 진폭을 계산하고 그것을 무엇엔가 대고 검증한 논문은 이 라이브러리에 없다.",
+   "heading": "광선추적·시뮬레이션 표적 시그니처 — 계산은 하되, 드론 표적의 진폭은 검증되지 않았다",
+   "thesis_ko": "Sionna 계열은 드론을 큐보이드·금속 정육면체·단순화 메시로 놓고 산란은 스톡에 맡기거나 상용 솔버로 나간다. 표적 산란 진폭을 계산하고 그것을 무엇엔가 대고 검증한 사례 자체는 아래 표 안에 있다 — 차량(Ziganshin, EuCAP 2025: PO/MLFMM 상용 솔버 대조), PEC 구(Sagitta, arXiv:2604.09243: Mie 해), SBR+PTD 예측기(Kirik & Ozdemir, Sigma 2019: 해석해·실측·상용 솔버 3단계), 프로펠러 한 장(Lee 외, JEES 2021: 상용 솔버), 실내 장면(RadarTwin, arXiv:2606.28396: 실측 짝지음). 다만 이들 표적은 모두 드론이 아니다. **드론 기체를 표적으로 산란 진폭까지 검증한 논문**은 이 라이브러리(수록 94편 · 스캔한 아카이브 고유 PDF 218편 — `outputs/reference_library.json` 의 `counts.master_rows` 와 `counts.sionna_corpus_scanned_pdfs`) 안에는 없다. ⛔ 종전 문장 「표적 산란 진폭을 계산하고 그것을 무엇엔가 대고 검증한 논문은 이 라이브러리에 없다」 는 표적 조건과 코퍼스 범위가 빠져 바로 아래 표와 어긋났으므로 내렸다.",
    "guards_ko": [
     "⚠ 'Sionna 에는 SBR 이 없다' 는 거짓이다. 기술보고서 59쪽 전문에 'SBR' 44회(대소문자 구분)와 'shooting and bouncing' 3회가 나온다. 없는 것은 표면전류 PO 적분과 RCS 출력이다('physical optics' 0회 · 'radar cross section' 0회 — F10). ⚠ 종전 기록의 '48회' 는 두 표현을 합친 대소문자 무시 계수다.",
     "⚠ md-rt(Li 외)가 바꾼 것은 광선 샘플러(구면→원뿔)이지 산란 모델이 아니다. '엔진을 고쳤다' 로 뭉뚱그리면 부정확하다.",
@@ -7656,7 +7656,7 @@
      "year": 2025,
      "status": "PUBLISHED — IEEE INFOCOM 2025",
      "grade": "B",
-     "sentence_ko": "드론을 다루는 mmWave 연구의 상당수는 드론이 협조적으로 자기 위치를 구하는 문제를 풀며(Lam 외, IEEE INFOCOM 2025), 비협조 침입자 검출과는 문제 설정이 반대다.",
+     "sentence_ko": "드론을 다루는 mmWave 연구 중에는 드론이 협조적으로 자기 위치를 구하는 계열이 있고(Lam 외, IEEE INFOCOM 2025), 이는 비협조 침입자 검출과 문제 설정이 반대다.",
      "cautions": []
     }
    ]

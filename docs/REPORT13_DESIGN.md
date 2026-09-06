@@ -218,7 +218,7 @@ WiFi 배치현실(30 dBm) × pilot-only 는 유효범위 밖으로 떨어진다 
 - SNR 축 정의를 **mean 규약**으로 통일한다. ★확인: `experiment_detection.measure_single_snr:232` 는 `median(rd²)` 를 쓰고 잡음셀 전력은 지수분포라 `median = ln2·mean` → **report12 축 = 닫힌형(mean) + 1.59 dB**. 빼먹으면 모든 거리가 `10^(1.59/40) = 9.6%` 낙관된다. `meta.detector.snr_convention` 과 **모든 그림 캡션에 "which SNR"** 을 반복 표기하고 변환값을 JSON 에 남긴다.
 - K = 4000(`SIONNA2_DET_K`), snr_grid 1 dB 간격, Pd 마다 Wilson 95% CI, `snr90_lo/hi` 도 보간해 기록.
 - `SNR50` 도 낸다(report12 접속점). ★report12 측정 SNR90−SNR50 = W1 2.88 / L1 2.45 / G1 2.76 dB → 거리비 1.15~1.17배. 이 환산표를 본문에 넣는다.
-- **왜 Pd 0.9 인가**: 문헌에 통일 규약이 없다(Pd 0.74/0.78/0.8, POD 24~78%). 우리가 정한 기준이라고 쓰고, MathWorks 예제처럼 "최소검출 SNR 12 dB 가정"은 **하지 않는다**(측정한다)는 점을 대비축으로 쓴다.
+- **왜 Pd 0.9 인가**: 우리가 읽은 범위 — `docs/HOW_OTHERS_SOLVED_IT.md` 의 감지 26편(같은 문서 L134 가 그 범위를 정의한다)과 `docs/PRIOR_WORK_COMPARISON.md` 의 선례표 — 안에서 Pd 기준이 0.74/0.78/0.8 로 갈렸고 POD 는 24~78 % 였다. **그 범위 안에서 통일 규약을 찾지 못했다.** ⛔«문헌에 통일 규약이 없다» 는 범위 없는 부재증명이라 내렸다 — 코퍼스 안의 미발견을 문헌의 부재로 읽는 꼴이고, `docs/REBUILD_2026-07-30.md` L50 이 같은 꼴을 R12 의 이름으로 이미 내린 자리다. ⚠ POD 24~78 % 를 낸 F11(`docs/PRIOR_WORK_COMPARISON.md` L1084)은 표적이 차량이라 드론 선례표에서 이미 강등된 항목이다. 우리가 정한 기준이라고 쓰고, MathWorks 예제처럼 "최소검출 SNR 12 dB 가정"은 **하지 않는다**(측정한다)는 점을 대비축으로 쓴다.
 
 ### 2.2 2층 — 헤딩·기하에 대한 결정론 (도플러 가시성)
 
@@ -294,7 +294,7 @@ fc   : 각 반송파 ±1.5% 3점(n_f=3)   각도평활 3°
 ```
 
 - **div=16 으로 report2 와 맞춘다**(★report2 meta: `sbr_div=16, az_step=1.0, n_f=5, el_deg=15`). div 12 로 낮추면 report02/08/12 와 σ 비교가능성이 조용히 깨진다. 대신 `n_f` 를 5→3, az 를 1°→3° 로 줄여 비용을 상쇄하고, 한 슬라이스(mavic4pro @3.5 GHz, el=−15°)를 div=12/24 로 재계산해 `grid_check.delta_db` 에 남긴다.
-- **`rcs_sbr()`(다중반사)는 쓰지 않는다** — `penetrate`·`jitter` 인자가 없어 같은 조건에서 −3 dB 낮게 나온다. 다중반사 실익은 −0.32~+0.18 dB(`report6_sbr.json`).
+- **`rcs_sbr()`(다중반사)는 쓰지 않는다** — `penetrate`·`jitter` 를 못 넘겨 **같은 조건 비교가 성립하지 않는다.** `outputs/report6_sbr.json` 의 `compare`(fc 3.5 GHz · el=15° · az 36점 · 5기종)에서 `mb1_el15`(=`rcs_sbr(max_bounce=1)`) − `sbr_el15`(=`rcs_sbr_batch`) 는 **+1.53 ~ −5.28 dB**(평균 −2.53 · 폭 6.81)로 기종마다 부호까지 갈린다(s1000plus 만 +1.53). ⛔이전 판의 «같은 조건에서 −3 dB 낮게 나온다» 는 이 산포의 평균을 고정 오프셋처럼 읽히게 해서 내렸다. 다중반사 자체의 실익은 같은 원장 `compare.*.multibounce_db`(mb3−mb1) 로 **+0.36 ~ +0.95 dB** 다. ⛔이전 판이 그 자리에 적은 «−0.32~+0.18 dB» 는 다중반사가 아니라 `envelope.*.d_el15`(메쉬 높이 정합 전후 σ 차)라 내렸다.
 - **캐시**: ★`rcs_sbr._scene_for` 의 `_SCENE_CACHE` 키는 이미 `(key, fc_MHz, exclude)` 이고 씬은 el 무관이다 — visual-first 의 "cache_key 에 el 을 넣어라"는 **오진이며, 넣으면 같은 씬을 9배로 만들어 GPU 메모리만 낭비한다.** σ 값 캐시는 `channel._sig_key`(az·el·fc·메쉬지문 포함)가 이미 유일화한다.
 - **프리필**: 새 워커를 짜지 말고 **`channel.sbr_sigma_prefill()` / `channel._prefill_worker` 를 그대로 재사용**한다 — ★그 함수 안에 `gpu.pick`/`budget_mb` NameError 우회가 이미 들어 있다(`benchmark/channel.py:167-173`). mitsuba import **전에** 호출.
 - **조회 규약(정본 단일화)**: `channel.look_angles(u1, u2, az_span_deg=8.0, n_az=5)` 이등분선 + ±4°/5점 **선형 m² 평균**. report12 관례(감시배열→표적 방위·el=0 단일자세, σ=−27.96 dBsm=널 근처, `docs/AUDIT_FINDINGS_0722.md` 지적항목)는 **쓰지 않고**, 같은 기하에서 두 규약의 σ 차이를 표로 낸다(`verify.sigma_convention_delta_db`).

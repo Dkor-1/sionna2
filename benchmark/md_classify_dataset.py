@@ -414,7 +414,9 @@ def synth(E_ref, fine, dirs, rpms, p0, prf, n_t):
     ⭐ `rpms` 는 **1차원**(로터별 상수, 현행) 또는 **2차원 (n_t, n_rotors)**(시간에 따라
       흔들리는 rpm, `rotor_dynamics.rpm_series()` 산출)이다. 2차원이면 위상이 적분이 된다.
       ⭐⭐ 위상표는 **각도의 함수** ΔE_k(φ_k) 라 rpm 이 시간에 따라 변해도 표를 다시 만들
-        필요가 없다 — 그래서 로터 랜덤성 개선에 GPU 가 한 톨도 안 든다.
+        필요가 없다 — 그래서 **이 팔의** 로터 랜덤성 개선에는 GPU 가 안 든다(SBR 재호출 없음).
+        ⛔«로터 랜덤성 개선에 GPU 가 한 톨도 안 든다» 는 범위를 좁혔다: 호버 맵 팔
+        (report07_hover_long.py --preset outdoor)은 GPU 를 쓴다.
     ⛔ 1차원 경로는 이 확장 전과 비트동일이다(게이트 verify_rotor_dynamics.py G6)."""
     import numpy as np
     from articulated_fast import rotor_phases        # 위상 계산은 커널 하나만 쓴다

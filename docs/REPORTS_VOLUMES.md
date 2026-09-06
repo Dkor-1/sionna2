@@ -79,7 +79,7 @@ reports/
 |---|---|
 | `VOLUMES` | 조각을 조립하는 16권 — 본편 10 (01·02·03·04·05·07·08·09·10·11) + **조립 별편 6** (01_2·02_2·02_3·03_2·06_6·10_2) |
 | `EXTERNAL` | 6 권 분권 5파일 — 다른 빌더가 만들고, 여기서는 주소 후처리만 |
-| `COMPANIONS` | 별편 8편의 {부모: [별편…]} 등재 — 조립 별편 6은 VOLUMES 포인터, 외부 별편 2(05_2·08_2)는 빌더 명시 |
+| `COMPANIONS` | 별편의 {부모: [별편…]} 등재 — 총수는 손으로 적지 않는다. `src/build_volumes.py` 의 `N_COMPANIONS`(같은 파일 assert 가 편성과 어긋나면 빌드를 멈춘다)가 정본이다. 조립 별편 6은 VOLUMES 포인터, 외부 별편 1(05_2)은 빌더 명시. ⛔외부 별편 08_2 는 2026-09-03 에 편성에서 내려 `archive/chamber_0903/` 로 옮겼다 — 이유는 §2 참조, **그 안의 수는 인용하지 않는다** |
 
 외부 빌더 4개 (⭐스크립트 이름의 숫자는 **역사 층**이라 개명하지 않는다 — 산출물 번호가 정본):
 
@@ -87,7 +87,7 @@ reports/
 |---|---|
 | `src/make_report08_microdoppler.py` | `06_1_scene` ~ `06_4_sampling` |
 | `src/make_report07b_bistatic.py` | `06_5_bistatic` |
-| `src/make_report11_2_two_channel.py` | `08_2_two_channel` (별편 8-2) |
+| `src/make_report11_2_two_channel.py` | ⛔`08_2_two_channel` (별편 8-2) — **산출물은 2026-09-03 에 `archive/chamber_0903/` 로 내려갔다**(§2 와 같은 이유). 빌더만 `src/` 에 남아 있고, 그 판의 수는 인용하지 않는다 |
 | `src/build_report18_switch_grid.py` | `05_2_switch-grid` (별편 5-2) |
 
 ⭐ **분량 상한은 두지 않는다.** 옛 셀 수 상한(`report_style.MAX_MD_CELLS`)은 폐지됐고(`None`),

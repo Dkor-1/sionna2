@@ -1403,11 +1403,21 @@ def build_blocks(D: dict):
         "",
         figure_md(PF["multirx"], 7,
                   "수신소자를 늘렸을 때 얻는 감도는 이상적 코히어런트 상한에 얼마나 붙는가?",
-                  paper_caption="Multi-receiver gain measured against the idealised "
-                                "coherent bound of 10 log10 N, which holds for thermal "
-                                "noise alone under perfect steering; the measured "
-                                "excess comes from the N-independent cancellation "
-                                "residual.",
+                  # ⛔ 옛 캡션 「the measured excess comes from the N-independent
+                  #    cancellation residual」은 내렸다(2026-09-06) — 부호가 갈리는 값을
+                  #    한 방향 사실로 눌러 적고 원인까지 단정했다. 원장을 다시 세면 LTE
+                  #    세 모드는 상한 위로 올라간 적이 없고 가장 낮은 값은 5G NR 모드다.
+                  paper_caption=(
+                      "Multi-receiver gain against the idealised coherent bound of "
+                      "10 log10 N, which holds for thermal noise alone under perfect "
+                      "steering. Across the nine waveform modes the measured gain "
+                      "departs from that bound by "
+                      f"{DV.get('rx_gain.excess_min_db'):+.2f} to "
+                      f"{DV.get('rx_gain.excess_max_db'):+.2f} dB: the three LTE modes "
+                      "never rise above it, and the largest shortfall is a 5G NR mode. "
+                      "An N-independent cancellation residual would raise the gain "
+                      "above the bound in this way, but no controlled comparison here "
+                      "isolates that cause."),
                   report="report05_results"),
     ))
 

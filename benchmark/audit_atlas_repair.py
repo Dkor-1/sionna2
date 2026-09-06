@@ -448,10 +448,13 @@ def cross_doc_alias() -> dict:
 def limits() -> dict:
     """못 고친 것 — 갤러리·목차 양쪽에도 적혀 있다."""
     return [
-        dict(what="덜 찬 칸 3 개의 **참값**",
+        dict(what=f"덜 찬 칸 {len(flag('incomplete'))} 개의 **참값**",
              why="원장을 고치는 일이라 이 수리의 범위 밖이다(원장은 실험 큐가 지금도 쓰는 "
-                 "파일이고, 세 칸 중 둘은 자세가 뭉텅이로 빠져 균일 표본이 아니라 "
-                 "데시메이션으로도 못 살린다)",
+                 "파일이고, 그 가운데 자세가 뭉텅이로 빠진 칸은 0 을 걷어내고 다시 재는 "
+                 "길이 없다 — 어느 칸이 그런지는 이 파일의 "
+                 "defects_fixed.D1_incomplete_cells.zero_pattern.*.uniform_stride 가 "
+                 "false 인 칸이다. ⛔«덜 찬 칸 3 개 · 세 칸 중 둘» 은 덜 찬 칸이 3 개이던 "
+                 "때의 수라 내렸다)",
              where_written="갤러리 06range 헤드라인 · 대문 주의 5·6 · 목차 §14.1b · §13.10",
              next_step="스윕 쪽에서 `outputs/elev_sweep_shards/` 를 다시 병합한 뒤 "
                        "build_md_atlas --force → toc → gallery 순으로 다시 굽는다"),

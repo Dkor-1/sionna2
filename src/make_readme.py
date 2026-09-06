@@ -198,9 +198,10 @@ def build() -> str:
     A(f"보고서는 **본편 {n_vol}권 · 별편 {n_comp}편 · 절 {n_sec}개** 다. **한 권이 물음 하나를"
       " 들고, 절 제목이 그 절의")
     A("결론 문장**이다 — 목차를 읽는 것이 결론을 읽는 것이다. 사람이 읽는 문서는")
-    A("`reports/NN_slug.ipynb` 이고, " + " · ".join(
-        f"{_vd(v)}권만 그림이 무거워 {len(v['files'])}편으로 나뉜다" for v in n_split)
-      + ("." if n_split else "")
+    A("`reports/NN_slug.ipynb` 이고, "
+      + ("그림이 무거워 나눈 권은 " + " · ".join(
+            f"{_vd(v)}권({len(v['files'])}편)" for v in n_split) + " 이다."
+         if n_split else "")
       + (" **별편**은 부모 권의 물음에 딸린 답(심화·지원·변주)이고 번호가 부모-K 다."
          " 그림 무게로 나뉜 **분권**은 한 권의 장일 뿐이라 별편과 지위가 다르다."
          " 별편은 부모 권의 목차에 적어 두었다." if n_comp else ""))

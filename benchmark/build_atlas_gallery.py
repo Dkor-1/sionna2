@@ -1209,11 +1209,18 @@ MAP_CAP = ("가로가 <b>시간</b>, 세로가 <b>도플러 주파수</b>(움직
 # ⚠2026-08-15 정정 — 옛 문구는 이 띠를 «상한 위» 라고 적었다. **틀렸다**: 날개 대역은
 #   상한의 0.35~1.0 배, 즉 상한 **아래**의 띠다(`build_md_atlas.modspec_curve`).
 #   같은 페이지의 «리듬 몫은 상한 위» 와 헷갈리면 두 그림이 같은 자리를 본다고 오해한다.
+# ⚠2026-09-06 정정 — 옛 문구는 «봉우리 없이 뭉개져 있으면 그냥 잡음이다» 였다. ⛔내린다:
+#   봉우리가 안 서는 까닭에는 앙각(−90° 는 대역을 0° 에서 빌린다) · 창 길이 · 자세 결측도 있어
+#   그림 한 장으로 «잡음» 이라 판정할 수 없다. 이 저장소가 «안 보인다» 를 말하는 조건은
+#   리듬 몫과 짝 잣대(상한 아래 빗살 대비)가 **함께** 널일 때다(같은 페이지 용어표).
 BAND_CAP = ("날개 대역 — 날개끝 상한의 <b>0.35~1.0 배</b> 띠(상한 <b>아래</b>다) — 의 힘이 "
             "시간에 따라 오르내리는 <b>리듬</b>을 주파수로 편 그림이다. "
             "가로가 리듬의 빠르기[Hz], 세로가 그 세기다. <b>점선이 예측 박자의 정수배</b> — "
             "점선 자리에 뾰족한 봉우리가 서면 날개가 그 박자로 규칙적으로 지나간다는 뜻이고, "
-            "봉우리 없이 뭉개져 있으면 그냥 잡음이다. 왼쪽은 넓게, 오른쪽은 첫 봉우리 부근을 확대한 판이다. "
+            "봉우리 없이 뭉개져 있으면 <b>이 그림에서는 박자가 읽히지 않는다</b>는 뜻이다 — "
+            "«리듬이 없다» 고 말하려면 짝 잣대(상한 <b>아래</b> 빗살 대비)까지 함께 널이어야 한다(용어표 참고). "
+            "봉우리가 안 서는 까닭에는 앙각(−90° 는 대역을 0° 에서 빌린다) · 창 길이 · 자세 결측도 있다. "
+            "왼쪽은 넓게, 오른쪽은 첫 봉우리 부근을 확대한 판이다. "
             "색은 앙각(위에서 내려다본 각)이다.")
 
 
@@ -1306,6 +1313,31 @@ def n_figs(tinfo: dict) -> int:
 
 def n_cells(tinfo: dict) -> int:
     return sum(len(a["cells"]) for a in tinfo["arms"].values())
+
+
+def blocky_incomplete_ko(inc_cells: int) -> str:
+    """덜 찬 칸 가운데 «0 이 뭉텅이로 박혀 못 살리는» 칸이 몇 개인가 — 한 문장으로 돌려준다.
+
+    무늬를 재는 것은 `benchmark/audit_atlas_repair.py` 다. 원장 npz 의 0 자리 간격을 보고
+    `outputs/atlas_falsify.json` 의 `D1_incomplete_cells.zero_pattern.*.uniform_stride` 에
+    남긴다(True = «한 칸 걸러 하나» 로 균일하게 빠짐 = 0 을 걷어내고 다시 잴 수 있음).
+    이 갤러리는 npz 를 안 읽으므로 그 원장을 그대로 센다. 원장의 칸 수가 지금 색인과
+    다르면(=낡았으면) 수를 내지 않고 «아직 못 셌다» 로 적는다.
+    """
+    p = os.path.join(ROOT, "outputs", "atlas_falsify.json")
+    try:
+        zp = (json.load(open(p, encoding="utf-8"))["defects_fixed"]
+              ["D1_incomplete_cells"]["zero_pattern"])
+    except (OSError, KeyError, ValueError, TypeError):
+        zp = None
+    if not isinstance(zp, dict) or len(zp) != inc_cells:
+        return ("뭉텅이로 빠진 칸이 몇 개인지는 아직 못 셌다 — outputs/atlas_falsify.json 이 "
+                "지금 색인보다 낡았다(benchmark/audit_atlas_repair.py 를 먼저 돌린다)")
+    bad = sum(1 for v in zp.values() if not v.get("uniform_stride"))
+    return (f"그 가운데 자세가 뭉텅이로 빠져 «0 을 걷어내고 다시 재는» 길이 없는 칸이 {bad} 개, "
+            f"«한 칸 걸러 하나» 로 균일하게 빠져 걷어내고 다시 잴 수 있는 칸이 "
+            f"{inc_cells - bad} 개다(무늬 출처 outputs/atlas_falsify.json 의 "
+            "D1_incomplete_cells.zero_pattern.*.uniform_stride)")
 
 
 def build_index() -> str:
@@ -1521,8 +1553,9 @@ def build_index() -> str:
   <b>7. 아직 못 고친 것 — 알고 쓰라고 적어 둔다.</b>
   <ul class="find">
     <li><b>덜 찬 칸 {inc_cells} 개의 참값</b> — 원장을 다시 병합해야 나온다. 이 갤러리는 원장을
-        읽기만 하므로 여기서는 못 고친다. 세 칸 중 둘은 자세가 <b>뭉텅이로</b> 빠져 있어
-        «0 을 걷어내고 다시 재는» 길도 없다(균일 표본이 아니다).</li>
+        읽기만 하므로 여기서는 못 고친다. {blocky_incomplete_ko(inc_cells)}.
+        ⛔«세 칸 중 둘»이라고 적던 옛 문구는 내렸다 — 덜 찬 칸이 3 개이던 때의 수라
+        지금의 {inc_cells} 개와 어긋났다.</li>
     <li><b>주제 분류는 아직 이름 토막으로 거리를 본다</b> — 그래서 <code>_r</code> 토막이 없는
         10 m 옛 팔이 «기본 엔진» 주제에 남아 있다. 원장 <code>range_m</code> 으로 바꾸면 그 팔들이
         거리 주제로 옮겨가 그림 파일 이름이 전부 바뀌므로, 주제를 다시 짤 때 함께 고친다.
@@ -1952,8 +1985,17 @@ def build_readme() -> str:
             rs = []
             for el in els:
                 c = a["cells"].get(cell_key(float(el)))
-                rs.append("—" if not c or c.get("rhythm_share_pct") is None
-                          else f"{c['rhythm_share_pct']:.0f}")
+                if not c or c.get("rhythm_share_pct") is None:
+                    rs.append("—")
+                    continue
+                # ⛔정수 반올림이 «천장에 닿았다» 를 만들지 않게 — 창 반폭 8 Hz 정의에서
+                #  100 은 도달 불가인데 99.5 이상이 «100» 으로 찍히면 닿은 칸이 있다고 읽힌다.
+                v = float(c["rhythm_share_pct"])
+                txt = "99+" if v >= 99.5 else f"{v:.0f}"
+                # 4 장 1 번이 약속한 «▲ 잣대 퇴화» 를 md 표에도 실제로 단다(전에는 HTML 판에만 있었다).
+                if c.get("tip_ceiling_degenerate"):
+                    txt += "▲"
+                rs.append(txt)
             eltxt = " ".join(deg_txt(float(e)).replace(DEG, "") for e in els)
             A(f"| `{arm}` | {md_escape(' · '.join(arm_facts(arm)))} | {eltxt} | {' '.join(rs)} | "
               f"[맵]({rel(a['figures']['map'])}) · [대역]({rel(a['figures']['band'])}) |")
@@ -2001,12 +2043,16 @@ def build_readme() -> str:
     A("")
     A("### 아직 못 고친 것")
     A("")
-    A(f"- **덜 찬 칸 {inc_cells} 개의 참값** — 원장 재병합이 필요하다. 세 칸 중 둘은 자세가 "
-      "뭉텅이로 빠져 «0 을 걷어내고 다시 재는» 길도 없다(균일 표본이 아니다).")
+    A(f"- **덜 찬 칸 {inc_cells} 개의 참값** — 원장 재병합이 필요하다. "
+      f"{blocky_incomplete_ko(inc_cells)}. "
+      "⛔«세 칸 중 둘» 이라고 적던 옛 문구는 내렸다 — 덜 찬 칸이 3 개이던 때의 수라 "
+      f"지금의 {inc_cells} 개와 어긋났다.")
     A("- **주제 분류가 아직 이름 토막으로 거리를 본다** — `_r` 토막이 없는 10 m 옛 팔이 "
       "«기본 엔진» 주제에 남아 있다. 안전장치는 위의 거리 표와 그림 속 거리 라벨이다.")
     A("- **맵은 패널마다 자기 최댓값으로 밝기를 맞춘다** — 거리·세기는 그림에서 못 읽는다.")
-    A("- **리듬 몫의 창 반폭은 8 Hz 고정** — 정의를 유지한 대가로 100 은 도달 불가다.")
+    A("- **리듬 몫의 창 반폭은 8 Hz 고정** — 정의를 유지한 대가로 100 은 도달 불가다. "
+      "그래서 2 장 표는 99.5 이상을 «99+» 로 찍는다 — 정수 반올림 탓에 «천장에 닿은 칸이 "
+      f"있다» 로 읽히지 않게 한 것이다. 표의 «▲» 는 {MINUS}90{DEG} 잣대 퇴화 칸이다(4 장 1 번).")
     A("- **박자는 전 구간, 맵은 20~80 ms** — 같은 상자의 두 수가 다른 구간에서 나왔다.")
     A("")
     A("---")

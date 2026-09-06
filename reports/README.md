@@ -38,7 +38,7 @@
 | [6-6 «마이크로도플러 — 무엇이 그 무늬를 흐리나»](06_6_microdoppler-limits.ipynb) | 6 권 | 자세·보정·광선 예산·표본율 네 가지가 무늬를 지운다. 각각을 단일축으로 갈라 얼마나 지우는지 잰다 | `src/build_volumes.py (조각 조립)` |
 | [10-2 «결론이 무엇에 기대고 있나 — 강건성과 하드웨어»](10_2_robustness.ipynb) | 10 권 | 표적 모형·수신 소자·장비를 바꿔 넣어 결론이 어디서 흔들리는지 본다 | `src/build_volumes.py (조각 조립)` |
 
-셀 2896 개 · 각주 2423 개 · 그림 1045 개.
+셀 2896 개 · 각주 2440 개 · 그림 1045 개.
 
 ## 각 권에 어느 조각이 들어갔나
 
@@ -79,7 +79,7 @@
 | 절 | 제목 | 조각 |
 |---|---|---|
 | 1 | 가림 판정은 Sionna 광선엔진이 하고, 면적분은 우리 커널이 한다 | `_parts/18_kernel-what.ipynb` |
-| 2 | 스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고, 런타임의 96.9% 는 호스트가 쓴다 | `_parts/19_kernel-vs-stock.ipynb` |
+| 2 | 스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고, 우리 커널 런타임의 96.9% 는 호스트가 쓴다 | `_parts/19_kernel-vs-stock.ipynb` |
 | 3 | 수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다 | `_parts/20_bistatic-exit.ipynb` |
 | 4 | 해석 PO 구 대비 구현오차는 kr 전 구간에서 λ/16 격자 0.201 dB · 생산 λ/12 격자 0.254 dB 안이다 | `_parts/21_kernel-vs-reference.ipynb` |
 | 5 | PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서 떨어지는지가 보인다 | `_parts/22_po-knee.ipynb` |
@@ -143,7 +143,7 @@
 | 1 | 앙각 7 점을 15 m 한 자리에서 광선 40 억 발로 재고, 77 행이 모두 완결이다 | `_parts/78_el-sweep-design.ipynb` |
 | 2 | −75° 에서 추적 대역 몫은 고정 대역보다 38.55 dB 크고, 그 차이를 만든 것은 대역을 어디에 놓았는가 하나다 | `_parts/79_el-band-tracking.ipynb` |
 | 3 | 물리 상한 위 누설은 우리 팔(λ/12 격자) 0.22~17.18 %, 스톡 PathSolver 물리 끔 0.81~86.22 % 이고, 물리를 켜면 여섯 앙각이 전부 78 % 위다 | `_parts/80_el-above-tip-limit.ipynb` |
-| 4 | 나딧 잔여의 64 % 는 광선 격자 표본화 잡음이고, 널은 나딧 −49.18 dB 에서 10° −23.73 dB 로 완만히 차는 얕은 웅덩이다 | `_parts/82_el-nadir-floor.ipynb` |
+| 4 | 나딧 잔여의 적어도 64 %(어림 삼분할의 하한 · 10 m 자세 4096 판)가 광선 격자 표본화 잡음이고, 널은 나딧 −49.18 dB 에서 10° −23.73 dB 로 완만히 차는 얕은 웅덩이다 | `_parts/82_el-nadir-floor.ipynb` |
 | 5 | el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다 | `_parts/87_budget-not-physics.ipynb` |
 
 ### 권 [5 «엔진의 물리 스위치 — 켜면 무엇이 달라지나»](05_engine-physics.ipynb)
@@ -202,7 +202,7 @@
 
 | 절 | 제목 | 조각 |
 |---|---|---|
-| 1 | 상시이면서 내용을 미리 아는 신호는 표준마다 하나씩 있다 | `_parts/44_illuminators.ipynb` |
+| 1 | 상관에 걸 상시 기준신호는 표준마다 여럿이고, 대역이 가장 넓은 것을 하나씩 골랐다 | `_parts/44_illuminators.ipynb` |
 | 2 | 5G 는 좁고 드물다 — 두 배의 대가를 치른다 | `_parts/45_5g-double-cost.ipynb` |
 | 3 | 여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다 | `_parts/46_cost-ledger.ipynb` |
 | 4 | 바이스태틱 거리 분해능은 c/B, 잡음대역은 √(B/fs) 로 고정한다 | `_parts/47_range-convention.ipynb` |
@@ -217,7 +217,7 @@
 | 1 | 수신 → ECA → 거리도플러 → CFAR, 사슬의 형상은 파형이 정한다 | `_parts/51_chain.ipynb` |
 | 2 | 탭을 1~96 으로 늘려도 소거 깊이가 포화하고, 그 대가가 0-도플러 노치다 | `_parts/52_eca.ipynb` |
 | 3 | 실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다 | `_parts/53_cfar-calib.ipynb` |
-| 4 | 그 배율의 원인은 셀 상관이고, 교정표는 형상마다 다시 재야 한다 | `_parts/54_cfar-why.ipynb` |
+| 4 | 잡음 맵까지의 배율은 셀 상관이 만들고, 나머지 +0.87 dB 는 아직 못 갈랐다 — 교정표는 형상마다 다시 잰다 | `_parts/54_cfar-why.ipynb` |
 
 ### 권 [9 «관측가능성과 기하 — 어디에 서야 보이나»](09_observability.ipynb)
 
@@ -251,7 +251,7 @@
 | 1 | σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다 | `_parts/64_sigma-free-axis.ipynb` |
 | 2 | 평판·큐브·우리 격자를 같은 동작점에서 갈아끼우면 요구 이득이 이만큼 달라진다 | `_parts/65_target-model-swap.ipynb` |
 | 3 | 코히어런트 배열이득은 10log₁₀N 상한에 -0.11~+0.47 dB 로 붙는다 | `_parts/66_rx-elements.ipynb` |
-| 4 | X410 의 12-bit ADC 동적범위가 직접파 제거의 천장이다 | `_parts/67_hardware.ipynb` |
+| 4 | 12-bit ADC 동적범위 74.01 dB 는 직접파 제거에 거는 상한 하나다 | `_parts/67_hardware.ipynb` |
 | 5 | 교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다 | `_parts/68_sigma-checklist.ipynb` |
 
 ### 권 [11 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](11_measurement.ipynb)
@@ -260,7 +260,7 @@
 |---|---|---|
 | 1 | 가장 보수적인 D 정의로도 세션 거리 하나가 두 기체 세 밴드를 덮는다 | `_parts/69_site-geometry.ipynb` |
 | 2 | 구가 σ 를 절대량으로 만들고, 반경 17.8 cm 를 고른다 | `_parts/70_calibration-sphere.ipynb` |
-| 3 | 표적을 한 거리빈에 넣는 최대 대역은 200 MHz 다 | `_parts/71_subband.ipynb` |
+| 3 | 두 기체(Matrice 4E · Mini 5 Pro)를 함께 한 거리빈에 넣는 최대 대역은 200 MHz 다 | `_parts/71_subband.ipynb` |
 | 4 | 가장 촘촘한 요구 1.38° 를 세션 간격으로 채택해 앵커 문헌의 고정 2° 보다 촘촘하게 간다 | `_parts/72_attitude.ipynb` |
 | 5 | σ(f) 레인지·파형축·비행검출로 층을 나눈다 | `_parts/73_three-layers.ipynb` |
 | 6 | 캠페인이 결판내는 양은 절대값이 아니라 순위다 | `_parts/74_sim-vs-meas.ipynb` |
@@ -268,7 +268,7 @@
 
 ### 권 [12 «실외 장면 — 지면과 벽이 서면 무엇이 달라지나»](12_outdoor-scene.ipynb)
 
-그림이 무거워 **1 편**으로 나뉜다 — 별편이 아니라 **분권**, 곧 한 권의 장이다(빌더 `src/build_report12_outdoor.py`).
+한 파일짜리 권이다 — 분권이 아니라, 조각 조립 대신 다른 빌더가 짓는다(빌더 `src/build_report12_outdoor.py`).
 
 | 편 | 무엇에 답하나 |
 |---|---|

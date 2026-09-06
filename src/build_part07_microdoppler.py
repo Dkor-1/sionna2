@@ -531,9 +531,18 @@ def blocks_36() -> list:
                 _n(T + ".matrice4e.po_tail_max_db_median", VRD, "{:.2f}", "dB"),
                 _n(T + ".matrice4e.geometry_tail_max_db_median", VRD, "{:.2f}", "dB")],
            ]), "",
-           "Sionna 의 꼬리가 PO·기하 기준보다 뚜렷하게 높게 남는다. 그 꼬리는 블레이드가 만든 "
-           "것이 아니므로, 가장자리를 자동으로 찾는 검출기는 물리적이지 않은 자리를 가장자리라고 "
-           "보고한다. 그 꼬리의 원인은 "
+           "Sionna 의 꼬리가 PO·기하 기준보다 **중앙값에서** 높게 남는다 — ⚠칸마다 그런 것은 "
+           "아니다: 기하 기준을 넘지 않는 칸이 "
+           + " · ".join(
+               "%s %d 칸" % (_a, sum(
+                   1 for _c in fetch((VRD, "tail_excess.by_cell")).values()
+                   if _c["drone"] == _a
+                   and _c["sionna_tail"]["max_db"] <= _c["geometry_tail"]["max_db"]))
+               for _a in fetch((VRD, T)))
+           + f"이다(기체마다 {_n(T + '.mini2.n_cells', VRD, '{:.0f}', '칸')} 중 — "
+             f"⟨{VRD} : tail_excess.by_cell⟩ 을 칸별로 센 것이다). "
+           + "그 초과분이 **무엇에서 오는지는 아직 안 쟀다** — 가장자리를 자동으로 찾는 "
+             "검출기는 그 초과분까지 가장자리로 읽을 수 있고, 원인은 "
            + ref("md-ray-budget", "광선예산") + " 이 잰다."),
 
         md("## 세 엔진을 같은 격자에 태우면", "",
@@ -1665,8 +1674,13 @@ def blocks_42() -> list:
            "경로수 인구조사의 판정은 «" + _n("path_count_census.verdict_ko", VRD)
            + "» 이다 — 확산 채널은 위상에 따라 매끄럽게 변하고, 정반사 채널은 대부분의 칸이 "
            "통째로 비어 있다.", "",
-           "오른쪽 아래에서 Matrice 4E 의 «hot» 자세만 거리와 함께 무너진다 — 그 자세의 "
-           "경로수가 가장 적기 때문이다.", "",
+           "오른쪽 아래에서 Matrice 4E 의 «hot» 자세가 거리와 함께 무너진다 — 그 자세는 "
+           "경로수도 가장 적다(1 · 3 · 10 m 세 거리 모두에서 최소, 확산·프롭 두 채널 다 — "
+           "`outputs/report15_verdict.json` 의 `path_count_census.diffuse`). "
+           "⛔ 둘을 잇는 시험(경로수를 맞춰 다시 풀기)은 아래 «하네스의 표본 상한» 때문에 "
+           "아직 못 했다 — 여기서는 두 사실을 나란히 적을 뿐 인과로 읽지 않는다. "
+           "(옛 문장은 «그 자세의 경로수가 가장 적기 때문이다» 로 인과를 단정했다 — "
+           "2026-09-06 에 내렸다.)", "",
            "⚠ **이 편의 «예산» 은 확산 채널의 이야기다 — 정반사 채널의 «0 칸» 까지 같은 축으로 "
            "읽지 마라.** 그 «0» 은 예산 축과 앙각 축을 따로 열어 별도로 시험했고 답이 기체마다 "
            "갈렸다. Matrice 4E: "
@@ -1895,7 +1909,16 @@ def _part_name(part: int) -> str:
 
 def write_shard(no: str, anchor: str, rep: dict, part: int) -> None:
     meta = _plan_meta(anchor)
-    title = REG[anchor][1]
+    #: ⛔`REG[anchor][1]` 은 **계획 JSON** 의 제목이다. 이 빌더가 노트북에 실제로 찍는
+    #  제목과 갈릴 수 있고, 2026-09-05·06 에 실제로 갈렸다. `report_registry` 는 **지어진
+    #  노트북의 H1** 을 먼저 읽으므로(`_built_title`) 색인만 옛 제목으로 남는다.
+    #  ⇒ 같은 자리를 본다 — 노트북이 있으면 그 H1 이 정본이다.
+    #  (이 함수는 다섯 빌더에 같은 사본으로 들어 있다 — 고칠 때 다 같이 고친다.)
+    try:
+        from report_registry import _built_title            # noqa: PLC0415
+        title = _built_title(f"{no}_{anchor}.ipynb") or REG[anchor][1]
+    except Exception:
+        title = REG[anchor][1]
     short = title.split("—")[0].split(",")[0].strip()
     if len(short) > 26:
         short = short[:25].rstrip() + "…"

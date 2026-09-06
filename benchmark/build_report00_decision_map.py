@@ -185,7 +185,14 @@ def main() -> int:
          "badges": [("sphere vs plate:",
                      "evidence:C_same_material_different_shape.numbers.shape_gap_db",
                      "{:.2f}", "dB")],
-         "why_ko": "같은 재질·같은 정면면적에서도 모양만으로 31 dB 가 갈린다 — 반사계수로는 못 가른다."},
+         "why_ko": (
+             f"같은 재질·같은 정면면적 "
+             f"{fetch(B, 'evidence:C_same_material_different_shape.numbers.frontal_area_m2'):.4f}"
+             f" m² 에서 "
+             f"{fetch(B, 'evidence:C_same_material_different_shape.numbers.fc_hz') / 1e9:.1f}"
+             f" GHz 정면입사로 구와 평판을 비교하면 "
+             f"{fetch(B, 'evidence:C_same_material_different_shape.numbers.shape_gap_db'):.2f}"
+             f" dB 갈린다(각도·밴드가 바뀌면 값이 달라진다) — 반사계수로는 못 가른다.")},
         {"id": "I8", "zone": "Z3", "label_en": "Micro-Doppler modulation shape",
          "note_en": "needs complex E per part",
          "evidence": "anatomy:item9_verdict.cannot_do[3]", "badges": [],

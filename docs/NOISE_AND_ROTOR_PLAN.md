@@ -633,7 +633,10 @@ g_stft_db, snr_map_ac_db, fd_edge_hz, fd_edge_n_valid, pd_est`
    **빗살로 가른다**. Physics of Fluids 33:127107 (2021) 이 음향 쪽에서 같은 말을 한다 —
    *"a **random process** was applied to reflect the RPM fluctuation effects … the **collapse of
    the phase effect** due to the RPM fluctuation of each rotor"*.
-   ⇒ 우리 그림의 «가늘고 선명한 빗살» 은 **값이 작아서** 생긴 것이다.
+   ⇒ 우리 그림의 «가늘고 선명한 빗살» 은 ⓐ 모형이 결정론적 정현파 한 톤이고 ⓑ 지금 값
+   (0.15 %)이 작기 때문일 **가능성이 높다** — §2-5 의 예측이고 G23·G24 로 확인한다.
+   ⛔«값이 작아서 생긴 것이다» 라는 단정은 내렸다: σ_w 를 키우면 빗살이 어떻게 달라지는지
+   아직 안 봤고, 위 인용의 근거는 크기가 아니라 **모양**(랜덤과정 대 정현파) 차이다.
 3. **초기 위상은 무작위화한다.** `[조사]` Costa (arXiv:2504.05168) *"propellers usually have
    **random initial azimuth angles (φ₀ₚ = 𝒰(0, 2π))**"*, Cai (RADAR 2019) *"random angle shift"*.
    우리 내부 기록(`docs/PRIOR_WORK_JIHYUCK.md:378-382`)도 이미 같은 권고를 했다.
@@ -737,7 +740,10 @@ a = exp(-dt/T);   ε[n+1] = a·ε[n] + σ_w·sqrt(1 - a²)·N(0,1)
 
 ⭐ **가장 중요한 설계 판단**: `md_classify_dataset` 의 **위상표 분해가 흔들림과 호환된다.**
 표는 `ΔE_k(φ_k)` — **각도의 함수**다. rpm 이 시간에 따라 변해도 «어떤 각도인가» 만 바뀌므로
-표를 다시 만들 필요가 **없다**. 즉 **로터 랜덤성 개선에 GPU 가 한 톨도 안 든다.**
+표를 다시 만들 필요가 **없다**. 즉 **분류 팔(`md_classify_dataset`)의 로터 랜덤성 개선에는
+GPU 가 안 든다** — SBR 호출 수가 안 늘기 때문이다. ⛔«로터 랜덤성 개선에 GPU 가 한 톨도 안
+든다» 는 문장은 범위를 좁혔다: 2 s 호버 맵(§4 #10 `report07_hover_long.py --preset outdoor`)은
+GPU 약 5 분이 그대로 남는다.
 
 ## 2-5. 파급 예측 — 반증 가능한 형태로 `[신규]`
 

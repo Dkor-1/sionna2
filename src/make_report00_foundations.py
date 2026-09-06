@@ -431,7 +431,8 @@ def blocks():
                 f"2-bounce 최대 {_n('s3_validation.layer4_dihedral_multibounce.max_abs_err_2bounce_db', POC, '{:.3f}', 'dB')}"],
                ["+", "상반성 σ(û_i,û_s)=σ(û_s,û_i)", "정리 위반 = 모형오차",
                 f"기체 최악 {_n('s3_validation.layer5_reciprocity_selfcheck.drone_worst_violation_db', POC, '{:.2f}', 'dB')} "
-                f"(같은 검사를 인쇄한 선행 0편)"],
+                f"(같은 자기검사를 인쇄한 선행은 훑은 "
+                f"{_n('s5_prior_work.nobody_solved_these[1].corpus_count', POC)})"],
            ])),
 
         md("### ⚠ 한계는 정면으로 — PO 무릎과 우리 세 밴드", "",

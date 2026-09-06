@@ -811,8 +811,18 @@ def blocks_33() -> list:
            f"{_n(PO + '.blade_width_over_lambda', '{:.3f}')} 배에 그쳐 문턱에 "
            f"{_n(PO + '.shortfall_x', '{:.2f}')} 배 모자란다.", "",
            f"동체는 {_n(PO + '.body_knee_ghz', '{:.2f}', 'GHz')} 부터 유효하므로 통과한다. "
-           f"⭐ 즉 **마이크로도플러를 만드는 바로 그 부품이 우리 커널이 가장 약한 부품**이다. "
+           f"⭐ 즉 **마이크로도플러를 만드는 바로 그 부품이 문턱 아래에 있다** — 날개 폭 "
+           f"{_n(PO + '.blade_width_mm', '{:.2f}', 'mm')} 는 "
+           f"{_n(PO + '.production_band_ghz', '{:.2f}', 'GHz')} 에서 문턱에 "
+           f"{_n(PO + '.shortfall_x', '{:.2f}')} 배 모자란다. "
            f"이 부의 모든 마이크로도플러 숫자는 그 사실을 안고 읽는다.", "",
+           f"⛔예전에 이 자리에 적었던 «우리 커널이 **가장 약한** 부품» 이라는 최상급은 "
+           f"내린다 — 같은 문턱을 부품 폭으로 옮기면 모터·캐노피·PCB 의 무릎이 프로펠러의 "
+           f"{_n(PO + '.blade_knee_ghz', '{:.2f}', 'GHz')} 보다 위여서, 프로펠러는 문턱에서 "
+           f"가장 먼 부품이 아니다(부품별 무릎 일곱 값은 `outputs/audit_rcs_kernel.json : "
+           f"q4_honesty_of_limits.few_lambda_is_quantified_not_folklore.component_knee_ghz` "
+           f"에 있다). 남는 사실은 하나다 — **마이크로도플러를 내는 그 부품이 문턱 아래에 "
+           f"있다**.", "",
            f"PO 유효 무릎 자체의 근거는 {ref('po-knee', 'PO 무릎을 부품 폭으로')} 에 있다."),
 
         md("## 그래서 어디까지 인용해도 되나", "",
@@ -872,7 +882,16 @@ def _part_name(part: int) -> str:
 
 def write_shard(no: str, anchor: str, rep: dict, part: int) -> None:
     meta = _plan_meta(anchor)
-    title = REG[anchor][1]
+    #: ⛔`REG[anchor][1]` 은 **계획 JSON** 의 제목이다. 이 빌더가 노트북에 실제로 찍는
+    #  제목과 갈릴 수 있고, 2026-09-05·06 에 실제로 갈렸다. `report_registry` 는 **지어진
+    #  노트북의 H1** 을 먼저 읽으므로(`_built_title`) 색인만 옛 제목으로 남는다.
+    #  ⇒ 같은 자리를 본다 — 노트북이 있으면 그 H1 이 정본이다.
+    #  (이 함수는 다섯 빌더에 같은 사본으로 들어 있다 — 고칠 때 다 같이 고친다.)
+    try:
+        from report_registry import _built_title            # noqa: PLC0415
+        title = _built_title(f"{no}_{anchor}.ipynb") or REG[anchor][1]
+    except Exception:
+        title = REG[anchor][1]
     short = title.split("—")[0].split(",")[0].strip()
     if len(short) > 26:
         short = short[:25].rstrip() + "…"

@@ -804,9 +804,19 @@ def section5() -> dict:
 
     b4 = {"what": "모노스태틱에서 출사 가시성 함수를 생략해도 되는 근거",
           "from": "SagittaSBR 각주 1 (원문 인용이 src/rcs_sbr.py:538-542 주석에 그대로 실려 있다)",
-          "where_in_our_repo": "src/rcs_sbr.py rcs_sbr_multistatic(exit_vis=…)",
-          "what_it_bought": "바이스태틱에만 그림자광선을 1발 더 쏘는 설계의 근거. 모노에서 정확한 "
-                            "no-op 임을 실측으로 확인했다."}
+          "where_in_our_repo": "src/rcs_sbr.py rcs_sbr_multistatic(exit_vis=…)"}
+    # ⛔«실측으로 확인했다» 는 철회한다(2026-09-06) — 이 저장소에는 실측 대조가 0 건이고,
+    #   이 확인은 우리 커널의 출사 가시성을 켜고 끈 **계산 대조**다. 값은 원장에서 읽는다.
+    _by4 = fetch(f"{DF}:d4_exit_visibility.by_drone")
+    _noop4 = max(float(v["monostatic_noop_max_abs_db"]) for v in _by4.values())
+    putc(b4, "monostatic_noop_max_abs_db", _noop4,
+         f"max over {DF}:d4_exit_visibility.by_drone.*.monostatic_noop_max_abs_db "
+         f"(기체 {len(_by4)}기)")
+    b4["what_it_bought"] = (
+        "바이스태틱에만 그림자광선을 1발 더 쏘는 설계의 근거. 모노(β=0)에서 정확한 no-op 임을 "
+        f"**우리 계산으로** 확인했다 — 출사 가시성을 켜고 끈 σ 의 차가 기체 {len(_by4)}기 "
+        f"전부에서 {_noop4:.3e} dB 다. ⛔«실측으로 확인했다» 는 철회한다(2026-09-06): 이 "
+        "저장소에는 실측 대조가 0 건이다.")
     put(b4, "exit_vis_note", f"{DF}:d4_exit_visibility.note")
     borrowed.append(b4)
 

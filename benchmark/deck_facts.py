@@ -1236,9 +1236,20 @@ def build_facts(R: dict) -> list[dict]:
         source={"json": "outputs/verify_cfar.json : meta · alpha_audit"},
         numbers=R["cfar"],
         attack="백색잡음에서의 Pfa 교정은 실제 클러터에서 의미가 없다.",
-        answer="맞다 — 그래서 백색 교정과 체인(전 처리사슬) 교정을 따로 냈다. 백색은 α 구현 감사용이고, "
-        "실제 오경보 판정은 체인 맵에서 한다. 그리고 우리 챔버는 semi-anechoic 이라 정적 클러터가 "
-        "ECA 로 삼중 차단되고, 진짜 위협은 표적경유 바닥유령이라는 별도 축이다.",
+        # ⛔2026-09-06 정정 — 이 답에서 「우리 챔버는 semi-anechoic」·「표적경유 바닥유령」을 뺐다.
+        #   ⓐ 환경 서사가 «환경이 정적 클러터를 막아 준다» 로 읽혔고(실제로 걷어내는 것은 처리사슬이다),
+        #   ⓑ 청중에게 풀어 준 적 없는 말이었다. 대신 ECA 사영·0-도플러 마스킹이 걷어내는 양을
+        #   outputs/verify_eca.json 에서 f-string 으로 뽑아 적는다.
+        answer=f"맞다 — 그래서 백색 교정과 체인(전 처리사슬) 교정을 따로 냈다. 백색은 α 구현 감사용이고, "
+        f"실제 오경보 판정은 처리사슬 전체를 통과시킨 체인 맵에서 한다. 정적 클러터에 대해서는 "
+        f"ECA 사영이 세 파형에서 잔차를 클러터 대비 "
+        f"{min(s['resid_frac_db'] for s in J('verify_eca')['S5_clutter_dead']['projection']):.1f}~"
+        f"{max(s['resid_frac_db'] for s in J('verify_eca')['S5_clutter_dead']['projection']):.1f} dB 로 "
+        f"남기고(outputs/verify_eca.json : S5_clutter_dead.projection.resid_frac_db), 그 뒤 0-도플러 행 "
+        f"마스킹이 남은 정지 성분을 지운다 — 클러터 진폭을 "
+        f"{max(s['scale'] for s in J('verify_eca')['S5_clutter_dead']['sweep']):.0f} 배까지 키워도 SCR 이 "
+        f"{J('verify_eca')['S5_clutter_dead']['scr_span_db']:.1e} dB 밖에 안 움직인다"
+        f"(같은 원장 : S5_clutter_dead.scr_span_db).",
     )
     add(
         id="F27",

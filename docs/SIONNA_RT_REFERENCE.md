@@ -619,7 +619,7 @@ Figure 23 (p29) 캡션: "The majority of sample directions exhibit low gain, ind
 
 | 항목 | 값 | 출처 |
 |---|---|---|
-| PO 커널 대 해석 PO 최대 편차 | **0.201 dB** (kr 1–100, 21점, 입사 48방향) | ⟨`outputs/sbr_kr_sweep.json`⟩ |
+| PO 커널 대 해석 PO 최대 편차 | **0.201 dB** (⚠ div=16 **정밀격자** 값. 생산 기본 div=12 는 **0.254 dB**. kr 1–100, 21점, 입사 48방향) ⚠ 이 자의 과녁은 **해석 PO** 라 수치수렴 자다 — 같은 스윕의 **정확 Mie 대비 최악은 6.729 dB**(kr=1). 그리고 아래 행의 서브셀 오프셋 산포 1.373~5.284 dB 보다 작은 수다 | ⟨`outputs/sbr_kr_sweep.json` : `summary_div16.max_abs_db_vs_po` 0.2006 · `summary_div12.max_abs_db_vs_po` 0.2544 · `summary_div16.max_abs_db_vs_mie` 6.7291⟩ · 병기 근거 `docs/RETRACTION_LOG.md:234` · 생산 격자 `src/rcs_sbr.py:96` `DEFAULT_DIV = 12` |
 | 서브셀 오프셋 산포 λ/8 · λ/12 · λ/16 | **5.284 · 1.373 · 1.782 dB** (단조 수렴 아님) | ⟨`outputs/report2_waveform_rcs.json` : sbr_validation.dither⟩ |
 | 평판 변 0.2→4 m (σ 52 dB 변화) 시 RT 진폭비 | **−7.91 dB 불변** (산포 0.00 dB), 이론 image-source −7.88 dB | `docs/VERIFY_RT_VS_PO.md` §4[A], `benchmark/verify_rt_no_rcs.py` |
 | 확산 S 0.2→1.0 시 진폭비 이동 | **+15.8 dB** (S² 법칙) — 이론값에 맞추려면 S ≈ 0.85 | `docs/VERIFY_RT_VS_PO.md` |

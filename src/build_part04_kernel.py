@@ -9,7 +9,7 @@ build_part04_kernel.py — 부 4 「산란 커널」 → 편 18~23
 
     18 kernel-what          가림 판정은 Sionna 광선엔진이 하고, 면적분은 우리 커널이 한다
     19 kernel-vs-stock      스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고,
-                            런타임의 96.9% 는 호스트가 쓴다
+                            우리 커널 런타임의 96.9% 는 호스트가 쓴다
     20 bistatic-exit        수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다
     21 kernel-vs-reference  해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다
     22 po-knee              PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서
@@ -228,9 +228,16 @@ def report_18_kernel_what():
                 f"«가림 효과» 라고 부르기 위해 건 필요조건을 일곱 기체가 전부 통과한다 "
                 f"⟨{MCM} : airframes.mini5pro.sigma.caveat⟩.",
 
-                f"금속 4그룹만 남긴 메쉬의 방위평균 σ 가 전체의 "
+                f"`{_n('meta.drone', R3RT)}` · "
+                f"{float(fetch((R3RT, 'meta.fc'))) / 1e9:.1f} GHz · 고각 "
+                f"{_n('C_metal.el_deg', R3RT, '{:.0f}', '°')} · 방위 "
+                f"{_n('C_metal.n_az', R3RT, '{:.0f}', '칸')} 에서, 금속 "
+                f"{len(fetch((R3RT, 'C_metal.metal_groups')))}그룹"
+                f"(`{'` · `'.join(fetch((R3RT, 'C_metal.metal_groups')))}`)만 남긴 메쉬의 "
+                f"방위평균 σ 가 전체의 "
                 f"{_n('C_metal.metal_share_pct', R3RT, '{:.0f}', '%')} 다 — 코히런트 합이라 "
-                f"100 % 를 넘는다.",
+                f"100 % 를 넘는다. 한 기체·한 밴드·한 고각에서 잰 수이고, 커널 일반의 "
+                f"성질로 읽지 않는다.",
 
                 f"그 광선 격자를 자세마다 다시 정의하면 로터 사이에 가짜 결합이 생긴다 — "
                 f"가산성 잔차가 격자를 얼렸을 때 "
@@ -296,9 +303,14 @@ def report_18_kernel_what():
            f"{ref_part(1)} 가 인자 목록까지 해부했다.", "",
            f"ITU `metal` 의 산란계수 S = "
            f"{_n('C_metal.itu_metal_S', R3RT, '{:.1f}')} 이라 스톡 산란 모델이 금속에서 내놓는 "
-           f"항은 0 이고, 우리 σ 는 면적분에서 창발한다. 금속 4그룹(모터·배터리·PCB·카메라)만 "
-           f"남긴 메쉬의 방위평균 σ 는 전체의 "
-           f"{_n('C_metal.metal_share_pct', R3RT, '{:.0f}', '%')} 다."),
+           f"항은 0 이고, 우리 σ 는 면적분에서 창발한다. `{_n('meta.drone', R3RT)}` · "
+           f"{float(fetch((R3RT, 'meta.fc'))) / 1e9:.1f} GHz · 고각 "
+           f"{_n('C_metal.el_deg', R3RT, '{:.0f}', '°')} · 방위 "
+           f"{_n('C_metal.n_az', R3RT, '{:.0f}', '칸')} 에서, 금속 "
+           f"{len(fetch((R3RT, 'C_metal.metal_groups')))}그룹"
+           f"(`{'` · `'.join(fetch((R3RT, 'C_metal.metal_groups')))}`)만 남긴 메쉬의 방위평균 "
+           f"σ 는 전체의 "
+           f"{_n('C_metal.metal_share_pct', R3RT, '{:.0f}', '%')} 다 — 그 한 표본의 수다."),
 
         md("## PO 적분이 실제로 올라타는 면은 어디까지인가", "",
            *_fig(1, "mesh_compare_material_shadow",
@@ -562,7 +574,8 @@ def report_19_kernel_vs_stock():
         header(
             num=19,
             title="스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고, "
-                  f"런타임의 {_lit('answer.cost_structure.host_side_pct', RUN, '{:.1f}')}% 는 "
+                  f"우리 커널 런타임의 "
+                  f"{_lit('answer.cost_structure.host_side_pct', RUN, '{:.1f}')}% 는 "
                   "호스트가 쓴다",
             did="같은 메쉬를 스톡 경로 솔버에 그대로 넣고 경로 수·진폭·런타임을 우리 커널과 "
                 "같은 카드에서 나란히 쟀다.",
@@ -608,7 +621,8 @@ def report_19_kernel_vs_stock():
                 ("평판 대조군", "닫힌형 무한거울 진폭이 있는 평판에서 판 크기만 키운다 — "
                             "경로 진폭이 면적을 보는지가 여기서 갈린다"),
                 ("런타임", "같은 카드에서 스톡 PathSolver 와 우리 per-pose 를 나란히 재고, "
-                        "비용을 호스트/GPU 단계로 쪼갠다"),
+                        "**우리 per-pose 비용만** 호스트/GPU 단계로 쪼갠다 — 스톡 팔에는 "
+                        "단계분해가 없다"),
             ],
             repro=_repro(["PYTHONPATH=src python benchmark/facet_count.py",
                           "PYTHONPATH=src python benchmark/runtime_benchmark.py"],
@@ -662,7 +676,8 @@ def report_19_kernel_vs_stock():
            f"이 대조가 통제하는 것은 하드웨어다 ⟨{RUN} : answer.same_card_control.caveat⟩. 사다리는 "
            f"자릿수를 놓는 것이고 같은 양을 잰 속도비는 그 뒤의 일이다 "
            f"⟨{RUN} : answer.what_the_measurement_does_NOT_support[2]⟩.", "",
-           f"그 비용의 {_n('answer.cost_structure.host_side_pct', RUN, '{:.1f}', '%')} 가 "
+           f"⚠ 단계 쪼개기는 **B 팔(우리 per-pose)에서만** 잰다 — 스톡 팔은 한 덩어리로 잰다. "
+           f"B 팔 비용의 {_n('answer.cost_structure.host_side_pct', RUN, '{:.1f}', '%')} 가 "
            f"호스트에 있고 GPU 광선추적은 "
            f"{_n('production_per_pose.stage_pct_median_over_configs.rt_trace', RUN, '{:.1f}', '%')} "
            f"다. PO 단계가 "
@@ -936,7 +951,8 @@ def report_21_kernel_vs_reference():
                   ["+", "상반성 정리", "정리 위반 = 모형오차",
                    "기체 최악 "
                    + _n('s3_validation.layer5_reciprocity_selfcheck.drone_worst_violation_db', POC, '{:.2f}', 'dB')
-                   + " (같은 검사를 인쇄한 선행 0편)"]])),
+                   + " (⛔«같은 검사를 인쇄한 선행 0편» 철회 — 무엇을 몇 편 읽고 0 이라"
+                     " 했는지 대조 코퍼스가 저장소에 없다)"]])),
 
         md("## 이면각 — 오목부에서 오는 항", "",
            f"**이면각**은 두 평판이 90° 로 맞붙은 표준 형상이고, **PEC** 는 전기를 완벽히 통하는 "

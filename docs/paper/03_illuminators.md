@@ -21,7 +21,7 @@
 
 ## §0. 논문이 이 편에서 가져가는 것 — **σ 와 무관하게 정확한 양**
 
-이 편의 수치는 표적 산란을 곱하기 **앞** 단계에서 닫힌다. 그래서 σ 절대레벨이 X dB 움직여도 세 조명원의 **순위와 격차는 그대로**이고, 움직이는 것은 절대 검출거리뿐이다.
+이 편의 수치는 표적 산란을 곱하기 **앞** 단계에서 닫힌다. 그래서 σ 절대레벨이 세 밴드에 **공통으로** X dB 움직이면 세 조명원의 **순위와 격차는 그대로**이고, 움직이는 것은 절대 검출거리뿐이다 ⟨outputs/sigma_sensitivity.json : common_mode.order_invariant_everywhere = true⟩. ⚠ 다만 세 조명원은 서로 다른 반송파(L1 1.843 · G1 3.5 · W1 5.21 GHz ⟨outputs/sigma_sensitivity.json : _meta.band_fc_ghz⟩)에 있어, σ 가 밴드마다 **다르게** 움직이는 **차분** 오차에는 이 보존이 성립하지 않는다 — 뒤집힘이 시작되는 가장 좁은 폭이 0.61 dB 이고, 현실 차분폭 5.01 dB 안에서 5기체 중 3기체의 순위가 뒤집힌다 ⟨outputs/sigma_sensitivity.json : differential.smallest_flip_span_db_overall · differential.realistic_span_db · differential.n_drones_flipping_inside_realistic⟩.
 
 | 양 | 크기 | 지위 | 어디서 |
 |---|---|---|---|

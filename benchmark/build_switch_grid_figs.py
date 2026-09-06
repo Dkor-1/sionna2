@@ -290,6 +290,20 @@ if __name__ == "__main__":
                      "백색잡음 13, 이상 로터 100",
         "h1_ko": "블레이드 대역 전력 변조 스펙트럼의 1 차 선 — 국소 바닥 위 dB 와 봉우리 위치",
         "el_deg": EL, "f_tip_hz": round(FT30, 1), "f_flash_hz": FFL,
+        # ⭐FT30 퇴화 표시(2026-09-05) — 앙각 −90°(바로 아래를 봄)에서는 시선 방향 팁 도플러가
+        #  0 으로 퇴화한다(FT30 ∝ cos EL. f_tip 1228.7 Hz / cos(−15°) × cos(−90°) ≈ 7.8e-14 Hz).
+        #  그러면 rhythm_share() 의 «상한 위»(|f| ≥ FT30)가 DC 를 뺀 **전 대역**이 되어 분모가
+        #  달라지고, modspec() 의 블레이드 대역 창 [0.35·FT30, FT30] 은 비어서 1 차 선이 NaN 이
+        #  된다(el−90 원장의 h1_over_floor_db 다섯 칸이 전부 NaN 인 이유). 즉 이 칸의 몫[%]은
+        #  다른 앙각 칸과 **같은 눈금이 아니다** — 표를 가로로 읽기 전에 원장이 먼저 말하게 한다.
+        #  수는 손으로 적지 않고 FT30 에서 뽑는다(앙각이 바뀌면 문장도 따라온다).
+        **({"degenerate_ko":
+            f"⚠f_tip={FT30:.3g} Hz — 앙각 "
+            f"{format(EL, '+.0f').replace('-', '−')}° 에서 cos 이 0 이라 «상한 위» 가 DC 를 뺀 "
+            f"전 대역이 된다. 이 칸의 rhythm_share_pct 는 다른 앙각 칸과 같은 눈금이 아니므로 "
+            f"가로로 비교하거나 인용하지 않는다. 블레이드 대역 창 "
+            f"[{0.35 * FT30:.3g}, {FT30:.3g}] Hz 도 비어 h1_over_floor_db 는 NaN 이다."}
+           if FT30 < 1.0 else {}),
     }, "cells": doc}
     p = f"{ROOT}/outputs/switch_grid{SUF}.json"
     json.dump(out, open(p, "w"), ensure_ascii=False, indent=1)

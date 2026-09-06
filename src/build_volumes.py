@@ -742,14 +742,20 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "고칠 일이 생기면 조각이 아니라 그 조각을 만든 빌더를 고친다.\n"
         f"3. 조각 사이 상호참조 ⟨{INDEX_REL} : _meta.n_crossrefs⟩ 개는 «리포트 N 절 M» 주소로 "
         "다시 쓰였고, 각주는 편 단위로 다시 번호가 매겨졌다.\n"
-        + "".join(
-            f"4. 한 권이 한 파일인 것이 규칙이고, **{_disp(ex['no'])} 권만 그림이 무거워 "
-            f"{_kor(len(ex['files']))} 편**이다 — 파일이 커지면 열리지 않기 때문이지 "
-            f"메시지가 {_kor(len(ex['files']))} 개여서가 아니다. 이 나눔은 **분권**이라 "
-            "별편과 지위가 다르다."
-            + (f" 별편은 따로 {_n_companions()} 편이고, 번호가 «부모번호-K» 다.\n"
-               if COMPANIONS else "\n")
-            for ex in EXTERNAL)
+        # ⛔EXTERNAL 마다 «N 권만 그림이 무거워 …» 을 한 줄씩 찍던 반복은 내렸다 —
+        #   같은 셀에 «…만» 이 셋이라 규칙이 읽히지 않았고, 파일이 하나뿐인 12 권까지
+        #   «그림이 무거워 나뉜 권» 으로 소개됐다. 분권은 파일이 둘 이상인 권만이다.
+        + "4. 한 권이 한 파일인 것이 규칙이고, 그림이 무거워 나눈 권은 "
+        + " · ".join(f"**{_disp(ex['no'])} 권({_kor(len(ex['files']))} 편)**"
+                     for ex in EXTERNAL if len(ex["files"]) > 1)
+        + f" {_kor(sum(1 for ex in EXTERNAL if len(ex['files']) > 1))} 권이다 — "
+          "파일이 커지면 열리지 않기 때문이지 메시지가 여럿이어서가 아니다. "
+          "이 나눔은 **분권**이라 별편과 지위가 다르다. "
+        + "".join(f"{_disp(ex['no'])} 권은 한 파일이고, 조각 조립이 아니라 다른 빌더가 "
+                  "짓는다 — 분권이 아니다. "
+                  for ex in EXTERNAL if len(ex["files"]) == 1)
+        + (f"별편은 따로 {_n_companions()} 편이고, 번호가 «부모번호-K» 다.\n"
+           if COMPANIONS else "\n")
         + "5. 읽는 목적이 셋이면 순서도 셋이다 — **빨리 훑기**(본편마다 결론 절 하나씩) · "
         "**왜 믿을 수 있나**(검증·대조·반증 절만) · **다시 돌리기**(리포트를 안 읽고 명령만 본다). "
         "논문 문장과 재현 절차는 리포트 밖에 산다 — [`docs/paper/`](../docs/paper/README.md) 와 "
@@ -835,17 +841,26 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         rows = "\n".join(f"| [{f}]({f}) | {t} |" for f, t in ex["files"])
         n_files = len(ex["files"])
         cells.append(_cell(
-            f"## {_disp(ex['no'])} 권은 {_kor(n_files)} 편이다 — 분권\n"
-            "\n"
-            "한 권이 한 파일인 것이 이 저장소의 규칙인데, 이 권만 예외다. 애니메이션과 "
-            "스펙트로그램이 노트북 안에 그림으로 박혀 있어 한 파일에 담으면 열리지 않는다. "
-            f"**나누는 축은 분량이 아니라 물음**이라, {_kor(n_files)} 편이 각각 하나씩 답한다.\n"
-            "\n"
+            # ⛔«이 권만 예외다» 를 EXTERNAL 마다 찍던 판은 내렸다 — 예외가 셋이 되면
+            #   규칙이 읽히지 않고, 파일이 하나인 12 권까지 분권으로 소개된다.
+            (f"## {_disp(ex['no'])} 권은 {_kor(n_files)} 편이다 — 분권\n"
+             "\n"
+             "한 권이 한 파일인 것이 이 저장소의 규칙이고, 그림이 무거워 나눈 권만 여기서 "
+             "갈린다. 그림이 노트북 안에 박혀 있어 한 파일에 담으면 열리지 않기 때문이다. "
+             f"**나누는 축은 분량이 아니라 물음**이라, {_kor(n_files)} 편이 각각 하나씩 "
+             "답한다.\n"
+             if n_files > 1 else
+             f"## {_disp(ex['no'])} 권은 한 파일이다 — 분권이 아니다\n"
+             "\n"
+             "한 권이 한 파일인 것이 이 저장소의 규칙이고, 이 권은 그 규칙대로 한 파일이다. "
+             "다만 조각을 조립해 짓지 않고 **다른 빌더가 통째로 짓는다**.\n")
+            + "\n"
             "| 편 | 무엇에 답하나 |\n"
             "|---|---|\n" + rows + "\n"
-            "\n"
-            f"옛 부 7 조각(회전수·가림·동체 대 날개)은 `{ex['append_to']}` 뒤에 절로 이어 붙어 "
-            "있다 — 무늬를 정하는 것이 무엇인가라는 같은 물음에 답하기 때문이다."))
+            + ("\n"
+               f"옛 부 7 조각(회전수·가림·동체 대 날개)은 `{ex['append_to']}` 뒤에 절로 이어 "
+               "붙어 있다 — 무늬를 정하는 것이 무엇인가라는 같은 물음에 답하기 때문이다."
+               if ex["parts"] else "")))
 
     if COMPANIONS:
         rows = "\n".join(
@@ -1129,9 +1144,11 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
             L += [f"[리포트 {_disp(par)} «{pe['title']}»]({pe['files'][0][0]}) 의 **별편**이다.",
                   ""]
         if e["external"]:
-            L += [f"그림이 무거워 **{len(e['files'])} 편**으로 나뉜다 — 별편이 아니라 **분권**, "
-                  "곧 한 권의 장이다"
-                  f"(빌더 `{next(x['builder'] for x in EXTERNAL if x['no'] == no)}`).", "",
+            L += [(f"그림이 무거워 **{len(e['files'])} 편**으로 나뉜다 — 별편이 아니라 "
+                   "**분권**, 곧 한 권의 장이다"
+                   if len(e["files"]) > 1 else
+                   "한 파일짜리 권이다 — 분권이 아니라, 조각 조립 대신 다른 빌더가 짓는다")
+                  + f"(빌더 `{next(x['builder'] for x in EXTERNAL if x['no'] == no)}`).", "",
                   "| 편 | 무엇에 답하나 |", "|---|---|"]
             L += [f"| [{f}]({f}) | {t} |" for f, t in e["files"]]
             L += ["", f"아래 절은 이 스크립트가 `{b['append_to']}` 뒤에 이어 붙인 것이다.", ""]

@@ -894,10 +894,15 @@ md(
 "같아진다는 보장이 없다 — 파라메트릭 비율(body_frac·body_lw 등)은 실루엣용이지 치수 보증용이",
 "아니기 때문이다.",
 "",
-"이게 왜 중요한가 — 챔버 기하(낮은 앙각 el≈15°)에서는 **높이가 측면 투영면적을 지배**하고,",
-"평판 극한에서 RCS 는 σ ∝ (투영면적)² 이므로, 높이가 수십 % 어긋나면 σ 가 수 dB 단위로",
-"틀어진다. 즉 모양이 예뻐도 크기가 틀리면 탐지 확률 계산이 통째로 틀린다(← 출처:",
-"src/drones.py envelope fit 절 주석).",
+"이게 왜 중요한가 — 낮은 앙각으로 볼 때는 **높이가 측면 투영면적을 지배**하고, 평판 극한",
+"근사에서 RCS 는 σ ∝ (투영면적)² 이므로 높이 오차가 σ 로 증폭된다(← 출처: src/drones.py",
+"envelope fit 절 주석). 다만 이 제곱 증폭은 평판극한이 주는 **상한**이지 커널이 실제로 잰",
+"값이 아니다 — 이 편은 σ 를 한 번도 계산하지 않는다. 크기가 σ 에 실제로 얼마나 옮겨붙는지는",
+"mesh07~08 이 답한다.",
+"",
+"⛔ 옛 문구의 «챔버 기하(el≈15°)» 와 «높이가 수십 % 어긋나면 σ 가 수 dB 틀어진다 → 탐지 확률",
+"계산이 통째로 틀린다» 는 내렸다: 다루는 환경은 실외뿐이고, 탐지 확률은 이 편이 계산한 적이",
+"없는 양이다.",
 "",
 "**규약** (`frame_fit_scale`, src/drones.py): 실루엣은 그대로 두고, 완성된 프레임의",
 "바운딩박스를 재서 **공식 envelope_mm 과 같아지도록 축별 배율 (sx, sy, sz)** 를 곱한다.",
@@ -1061,7 +1066,12 @@ f"1. **고정암 X자** — `fixed_arm={ph.fixed_arm}`, `rotor_deg={ph.rotor_deg
 f"2. **일체형 착륙다리** — `gear={ph.gear!r}` → `_gear_arch`(뒤집힌 U 자 아치 다리 2개 + 바닥 레일).",
 "   다리가 아래로 길게 뻗어, 접이식 소형기엔 없는 수직 구조물이 생긴다. 이게 높이 "
 + f"{ph.envelope_mm[2]:g} mm(공표 대각 {ph.diagonal_mm:g} mm 의 "
-+ f"{ph.envelope_mm[2] / ph.diagonal_mm:.2f} 배 — 소비자 쿼드 중 가장 높은 비율)의 이유다.",
++ f"{ph.envelope_mm[2] / ph.diagonal_mm:.2f} 배)의 이유다. 이 비는 높이·대각이 모두 공표된 "
++ f"4로터 {sum(1 for _q in KEYS if len(DRONES[_q].rotor_deg or ()) == 4 and (DRONES[_q].envelope_mm or (None, None, None))[2])} 종 중 가장 크다 — "
++ f"다만 이 함대 {len(KEYS)} 종 전체로 보면 6로터 {NAME['typhoonh480']} 가 "
++ f"{DRONES['typhoonh480'].envelope_mm[2] / DRONES['typhoonh480'].diagonal_mm:.2f} 로 더 높다. "
++ "⛔ 옛 문구 「소비자 쿼드 중 가장 높은 비율」은 내렸다 — 대조한 기종 목록도 조사 시점도 "
++ "없었고, 여기서 말할 수 있는 표본은 이 함대(src/drones.py DRONES)뿐이다.",
 f"3. **함몰 짐벌** — `gimbal_style={ph.gimbal_style!r}`. 같은 `_gimbal_hanging` 을 쓰되 동체에 바짝",
 "   붙인다(cx 를 0.62 배로). 기수 아래 작은 비전센서 2개도 붙는다"
 "   (← `src/drone_cad.py` phantom4 짐벌 분기).",

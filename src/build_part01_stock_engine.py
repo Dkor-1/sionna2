@@ -874,8 +874,11 @@ def report_07_why_po():
                 f"우리 구현에서 PO 적분은 광선캐스팅의 "
                 f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배다. "
                 f"프리프린트로 공개된 유일한 GPU 커널 분해는 같은 캐스케이드를 광선발사의 "
+                f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_MI250X_fp32', POC, '{:.1%}')} "
+                f"(MI250X 1 GCD fp32) ~ "
                 f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_A100_fp32', POC, '{:.1%}')} "
-                f"로 적는다 — 절반은 우리 몫이다.",
+                f"(A100 fp32) 로 적는다 — 같은 표(SagittaSBR Table 1)의 두 카드다. "
+                f"⛔A100 fp32 한 칸만 인쇄하던 판은 내렸다. 절반은 우리 몫이다.",
             ],
             method=[
                 ("갈래 지도", "방법마다 «무엇을 푸는가» 를 그 방법의 문헌 표현으로 적고, 그 문헌의 "
@@ -930,8 +933,15 @@ def report_07_why_po():
            f"적분이 아직 호스트 numpy 라서이고, 측정은 Γ(θ) 배선 전 batch 커널 경로다. "
            f"프리프린트로 공개된 유일한 GPU 커널 분해(SagittaSBR)는 같은 "
            f"캐스케이드를 광선발사의 "
+           f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_MI250X_fp32', POC, '{:.1%}')} "
+           f"(MI250X 1 GCD fp32) ~ "
            f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_A100_fp32', POC, '{:.1%}')} "
-           f"로 적는다. 절반은 우리 몫이다.", "",
+           f"(A100 fp32) 로 적는다 — 두 값은 같은 표의 두 카드다(SagittaSBR Table 1; 그 표와 "
+           f"쪽은 원장 `outputs/runtime_benchmark.json` 의 `published_baselines.rows[6]` "
+           f"안 `page`·`quote` 에 그대로 있다). ⛔A100 fp32 한 칸만 인쇄하던 판은 내렸다 — "
+           f"큰 쪽만 적으면 남의 캐스케이드 비용이 실제보다 크게, 곧 우리 "
+           f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배와의 "
+           f"간격이 작게 읽힌다. 절반은 우리 몫이다.", "",
            f"⭐ 그래서 이 편의 결론은 «PO 가 가장 정확하다» 가 아니다. ⛔**«이 비용대에서 "
            f"가장 정확하다» 도 2026-09-04 에 내렸다** — 같은 비용대의 다른 갈래(③통계 RCS "
            f"주입 · ④기하 대리표적)의 정확도를 **잰 칸이 하나도 없다.** 유일하게 재 본 "

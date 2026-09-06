@@ -299,9 +299,18 @@ PRF_INVARIANCE = [
     dict(dec=8, prf_hz=2462.5, n=1024, cross_snr_db=-11.098, expected_shift_db=9.031,
          measured_shift_db=8.755, residual_db=-0.276),
 ]
+_PRF_LAST = PRF_INVARIANCE[-1]
+_PRF_NEED_HZ = 2.0 * METRIC["f_tip_hz_el_minus30"].value      # 날개끝을 안 접으려면
 PRF_INVARIANCE_NOTE_KO = (
-    "⭐dec=8 의 PRF 2462.5 Hz 는 도플러 게이트(2·f_tip = 2204.8 Hz) 바로 위다 — "
-    "사다리가 물리적 하한에서 정확히 끝난다. 잔차 ≤0.28 dB = 거리 ±0.7 %. "
+    f"⭐dec={_PRF_LAST['dec']} 의 PRF {_PRF_LAST['prf_hz']:.1f} Hz 는 도플러 게이트"
+    f"(2·f_tip = {_PRF_NEED_HZ:.1f} Hz) 위다. 사다리가 여기서 끝나는 것은 솎기 배수를 "
+    f"2 의 거듭제곱으로 잡은 스윕 설계(measure_metric_gates 의 `for dec in (1, 2, 4, 8)`) "
+    f"때문이다 — 다음 계단 dec={2 * _PRF_LAST['dec']}"
+    f"({_PRF_LAST['prf_hz'] / 2:.2f} Hz)는 그 게이트 아래라 날개끝이 접히므로, "
+    f"이 솎기 축은 여기까지만 뜻이 있다. "
+    f"⛔«물리적 하한에서 정확히 끝난다» 는 문장은 내렸다 — 사다리 끝은 하드코딩된 배수의 "
+    f"결과이고 {_PRF_LAST['prf_hz']:.1f} Hz 는 필요치 {_PRF_NEED_HZ:.1f} Hz 위다. "
+    "잔차 ≤0.28 dB = 거리 ±0.7 %. "
     "⇒ **PRF 19.7 kHz 의 약한 근거[C]는 «몇 미터» 를 흔들지 않는다.**")
 
 #: ⭐패시브 2채널 — 기준 안테나를 이상적으로 두면 얼마를 공짜로 얻나

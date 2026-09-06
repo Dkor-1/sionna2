@@ -63,7 +63,10 @@ LEDGER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 #:   안쪽 0.20 미만 = 허브에 물린 생크라 익형이 아니고,
 #:   바깥쪽 0.96 초과 = 로프트 마감면(팁 캡) 인공물이 섞인다.
 BAND_HEADLINE = (0.20, 0.96)
-#: 참고용 밴드 — 날 전체 / 팁 쪽(마이크로도플러 f_tip 을 만드는 구간)
+#: 참고용 밴드 — 날 전체 / 팁 쪽(팁 쪽 두께를 재는 구간).
+#:   ⛔«마이크로도플러 f_tip 을 만드는 구간» 이라고 적었던 것은 내렸다
+#:   (docs/MESH_AUDIT_0816.md §⑥ ② · I8 정정): f_tip = 2·v_tip·cos(el)/λ 는 순수 운동학이라
+#:   시위·두께가 들어갈 자리가 없다.
 BAND_FULL = (0.10, 0.98)
 BAND_TIP = (0.80, 0.96)
 

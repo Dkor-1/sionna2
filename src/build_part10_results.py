@@ -1783,8 +1783,26 @@ def r65():
 
         md("## 이 표에 구 대조군은 없다", "",
            "구는 **부피를 맞게 고르면** σ 의 절대 레벨을 맞출 수 있는 단순 모형이면서 자세에 따른 "
-           "변화를 0 으로 낸다. 레벨에서 우리 메쉬를 앞선 그 구는 논문이 적어 둔 상자 치수로 잡은 "
-           "부피이고, 메쉬 부피로 잡으면 두 잣대 모두에서 우리 메쉬보다 나쁘다.", "",
+           "변화를 0 으로 낸다. Phantom 3 한 기체 · Yuan Fig.5 복원 실측곡선 한 대조에서, 메쉬 "
+           "부피로 잡은 구는 레벨오차 "
+           + num(None, ("outputs/p3_validation_v2.json",
+                        "controls.table.sphere_vol_v2.level_err_db"), "{:+.2f}", "dB")
+           + " · rms "
+           + num(None, ("outputs/p3_validation_v2.json",
+                        "controls.table.sphere_vol_v2.rms_db"), "{:.2f}", "dB")
+           + " 로 우리 메쉬("
+           + num(None, ("outputs/p3_validation_v2.json",
+                        "controls.table.ours_phantom3_mesh_v2.level_err_db"), "{:+.2f}", "dB")
+           + " · "
+           + num(None, ("outputs/p3_validation_v2.json",
+                        "controls.table.ours_phantom3_mesh_v2.rms_db"), "{:.2f}", "dB")
+           + ") 보다 두 잣대 다 나쁘고, 논문이 적어 둔 상자 치수로 잡은 부피의 구는 "
+           + num(None, ("outputs/p3_validation_v2.json",
+                        "controls.table.sphere_eqvol_paperbox.level_err_db"), "{:+.2f}", "dB")
+           + " · "
+           + num(None, ("outputs/p3_validation_v2.json",
+                        "controls.table.sphere_eqvol_paperbox.rms_db"), "{:.2f}", "dB")
+           + " 로 두 잣대 다 앞선다. 이 값은 그 한 기체 · 한 대조 위의 것이다.", "",
            "그래서 이 표의 낙차는 «자세 구조를 얼마나 담는가» 의 낙차로 읽는다. 구 팔을 넣는 일은 "
            "다음 단계에 있다."),
 
@@ -1828,8 +1846,11 @@ def r66():
                 f"{DV.num('rx_gain.excess_max_db', None, '{:+.2f}', 'dB')} 다.",
                 f"결합 잡음전력/σ² = {RX.num('modes.W1.combine_ratio', None, '{:.5f}')} 로 잡음 "
                 f"보존을 확인했다 — 10log₁₀N 은 **열잡음만** 상대할 때의 이상적 상한이다.",
-                f"초과분의 출처는 ECA 잔차다 — 감시신호가 `surv = √N·echo + dpi + noise` 이고 "
-                f"`dpi` 는 N 에 무관하게 고정이라 √N 이 잡음과 잔차 양쪽 대비로 표적을 올린다.",
+                f"초과분은 ECA 잔차 대비 이득으로 설명된다 — 감시신호가 "
+                f"`surv = √N·echo + dpi + noise` 이고 `dpi` 는 N 에 무관하게 고정이라 √N 이 "
+                f"잡음과 잔차 양쪽 대비로 표적을 올린다. ⚠아직 **유력 가설**이다"
+                f"(`src/experiment_detection.py:112`) — 대조군 `SIONNA2_DPI_AMP=0` 은 아직 "
+                f"돌리지 않았다.",
                 f"격자 보간의 대조군으로 Pd 곡선에 로지스틱을 다시 적합해도 초과분이 "
                 f"{DV.num('rx_gain.excess_fit_min_db', None, '{:+.2f}')} ~ "
                 f"{DV.num('rx_gain.excess_fit_max_db', None, '{:+.2f}', 'dB')} 로 같다.",

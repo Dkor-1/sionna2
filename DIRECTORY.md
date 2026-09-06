@@ -7,7 +7,7 @@
 
 | | |
 |---|---|
-| **[`reports/`](reports/)** | ⭐**여기부터.** 본편 11 권 · 별편 8 편. [`01_map.ipynb`](reports/01_map.ipynb) 이 지도다 |
+| **[`reports/`](reports/)** | ⭐**여기부터.** 편성과 세는 법의 정본은 [`docs/REPORTS_VOLUMES.md`](docs/REPORTS_VOLUMES.md) 이고, 개수는 `outputs/volumes_index.json` 의 `_meta` 가 센다(`n_volumes` · `n_companions` · `n_notebooks` — 2026-09-05 빌드에서 본편 13 권 · 별편 7 편 · 노트북 33). [`01_map.ipynb`](reports/01_map.ipynb) 이 지도다. ⛔여기 적혀 있던 「본편 11 권 · 별편 8 편」은 그 원장과 어긋나 내렸다 |
 | [`docs/`](docs/) | 규약과 감사 기록. [`CLAIM_GATE.md`](docs/CLAIM_GATE.md) · [`AUDIT_REPORTS_0901.md`](docs/AUDIT_REPORTS_0901.md) · [`RESUME.md`](docs/RESUME.md) |
 | [`README.md`](README.md) | 리포트 목차(생성물 — `src/build_volumes.py` 가 낸다) |
 | [`CLAUDE.md`](CLAUDE.md) | 이 저장소에서 일할 때의 상시 규약 |
