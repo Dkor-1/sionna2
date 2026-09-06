@@ -1,0 +1,63 @@
+# ── ⓐ ⭐있나 없나 — 자유공간 대 지면 · 앙각 넷 (이 발주의 기본선)
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-60 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-60 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-60 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-60 --ground concrete --shard 1 --nshards 2
+
+# ── ⓑ 고도 10·40 m — 행로차 Δ 가 바뀌어 간섭 무늬가 움직여야 한다 (20 m 는 ⓐ 에 있다)
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --ground-alt 10 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --ground-alt 10 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --ground-alt 10 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --ground-alt 10 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --ground-alt 40 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --ground-alt 40 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --ground-alt 40 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --ground-alt 40 --shard 1 --nshards 2
+
+# ── ⓒ 지면 재질 — 흙(ε_r 15.0) 대 콘크리트(ε_r 5.24). Γ 가 바뀐다
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground soil --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground soil --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground soil --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground soil --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --ground soil --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --ground soil --shard 1 --nshards 2
+
+# ── ⓓ 확산 규약 — R/R_img 를 뺀 고전 2선 판. 결론이 이 손잡이를 타는지 본다
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --ground-spread 0 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-15 --ground concrete --ground-spread 0 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --ground-spread 0 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --ground concrete --ground-spread 0 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --ground concrete --ground-spread 0 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-45 --ground concrete --ground-spread 0 --shard 1 --nshards 2
+
+# ── ⓔ 거리 30·60 m — 스침각이 바뀐다 (레이다 깊이 < 고도를 지킨다)
+--engine ours --n-poses 8192 --range-m 30 --els=-30 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 30 --els=-30 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 30 --els=-30 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 30 --els=-30 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 60 --els=-15 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 60 --els=-15 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 60 --els=-15 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 60 --els=-15 --shard 1 --nshards 2
+
+# ── ⓕ 방위 45·90° — 평평한 지면은 방위에 대칭이라 **안 변해야** 한다 (음성 대조)
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 45 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 45 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 45 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 45 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 90 --ground concrete --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 90 --ground concrete --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 90 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --els=-30 --az-deg 90 --shard 1 --nshards 2
