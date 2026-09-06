@@ -822,7 +822,10 @@ def to_markdown(cert: dict) -> str:
              "양성 대조가 없다) · **없음**(그 범주를 보는 행이 없다) 셋뿐이다.")
     L.append(f"- 지도가 왜 빠짐없는가 — 메쉬는 (정점 V · 삼각형 F · 그룹 라벨 G) 셋과 그것을 만든 "
              f"(빌더 입력) · 그 라벨을 뜻으로 바꾸는 (바깥 표) 둘, 모두 다섯 상태뿐이라 결함은 "
-             f"그중 하나에 반드시 나타난다. 논증 원문은 `{CERTS['map']}::closure_argument`.")
+             f"그중 하나에 반드시 나타난다. 닫힌 것은 «범주» 이지 검사의 촘촘함이 아니다 — "
+             f"한 범주 안에서 검사가 얼마나 촘촘한가는 예산 값과 양성 대조의 강도가 정한다. "
+             f"논증 원문과 그 한계는 `{CERTS['map']}::closure_argument · "
+             f"what_this_argument_does_not_prove_ko`.")
     L.append("")
 
     L.append("## 매트릭스")

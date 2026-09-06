@@ -1692,8 +1692,14 @@ def build_gaps(R: dict) -> list[dict]:
             f"(PDF 가 디스크에 있는 엔트리 {R['venue_entries']['entries_with_pdf_on_disk']}건). "
             f"outputs 전체의 UNVERIFIED 마커는 오히려 {R['unverified_markers_in_outputs']}개로 늘었다 — "
             "검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.",
-            "what_changed": "⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 "
-            "UNVERIFIED 는 0 이고 인용 80건이 매 빌드 재대조된다. 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.",
+            "what_changed": "⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 "
+            f"{R['matrix']['rows']}행 {R['matrix']['cells']}칸에서 UNVERIFIED 는 0 이고, 인용 "
+            f"{R['matrix']['by_grade']['QUOTED']}건은 매트릭스 빌드"
+            f"({J('capability_matrix')['meta'].get('generated', '시각 미기록')})가 PDF 페이지 텍스트와 "
+            f"재대조해 {R['matrix']['quote_selfcheck']['passed']}/"
+            f"{R['matrix']['quote_selfcheck']['checked']} 통과했다(⛔ «매 빌드 재대조된다» 는 내렸다 — "
+            "덱 빌드는 그 원장 outputs/capability_matrix.json 을 읽기만 한다). "
+            "덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.",
             "honest_statement_ko": "'우리 문헌 조사가 검증되었다' 고 말하면 안 된다. "
             "'덱이 인용하는 26행은 검증되었고, 배후의 81개 엔트리 대부분은 서지 수준이다' 가 참이다.",
             "attack": "그럼 배후 코퍼스의 결론(H8 등)은 어떻게 믿는가.",
@@ -1809,9 +1815,16 @@ def build_position(R: dict) -> dict:
             },
             {
                 "q": "그 6/9 는 자기 채점 아닌가.",
-                "a": "그렇다. 그래서 채점표가 아니라 **근거표**를 낸다 — 234칸 중 80칸이 축자 인용이고 "
-                "빌드가 매 실행 PDF 와 재대조한다(80/80 통과). 판정에 동의하지 않으면 근거를 보고 "
-                "다시 채점할 수 있다. 그리고 우리 행에도 NONE 이 두 개 있다.",
+                "a": "그렇다. 그래서 채점표가 아니라 **근거표**를 낸다 — "
+                f"{R['matrix']['cells']}칸 중 {R['matrix']['by_grade']['QUOTED']}칸이 축자 인용이고, "
+                f"그 인용의 PDF 원문 재대조는 {R['matrix']['quote_selfcheck']['passed']}/"
+                f"{R['matrix']['quote_selfcheck']['checked']} 통과다. "
+                "⛔ 옛 답의 «빌드가 매 실행 PDF 와 재대조한다» 는 내렸다 — 재대조를 실제로 도는 것은 "
+                "benchmark/capability_matrix.py 의 매트릭스 빌드"
+                f"({J('capability_matrix')['meta'].get('generated', '시각 미기록')})이고, 이 덱 빌드는 "
+                "그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다. "
+                "판정에 동의하지 않으면 근거를 보고 다시 채점할 수 있다. 그리고 우리 행에도 NONE 이 "
+                "두 개 있다.",
             },
         ],
         "do_not_say": [

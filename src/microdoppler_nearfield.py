@@ -193,9 +193,19 @@ def _build_clouds(spec, lam, frame_div, blade_div, blade_n):
       전 로터가 같은 손잡이가 되어 저장소와 어긋난다).
 
     ⚠ **point_spacing 라벨 주의(적대검증 지적)**: `mesh_to_points` 는 삼각형당 최소 1점을 깔기
-      때문에, 프로펠러 facet 이 이미 촘촘하면(중앙값 ~2.9 mm) 요청한 λ/N 이 **구속되지 않는다**
-      — 실효 최근접간격은 ~λ/98 수준이고 λ/6~λ/24 구간에서 노브가 사실상 불활성이다.
-      그래서 meta 에 'λ/11' 이라고만 적으면 거짓 라벨이다. 실측 간격을 함께 기록한다."""
+      때문에, 프로펠러 facet 이 이미 촘촘하면 요청한 λ/N 이 **구속되지 않는다** — λ/6~λ/24
+      구간에서 노브가 사실상 불활성이다. 그래서 meta 에 'λ/11' 이라고만 적으면 거짓 라벨이다.
+      실측 간격(`_nn_spacing`)을 함께 기록한다.
+
+      ⛔정정 2026-09-06: 여기 있던 「facet 중앙값 ~2.9 mm · 실효 최근접간격 ~λ/98」 두 수를
+      내렸다. 기체도 밴드도 밝히지 않은 채 한 벌이 전체를 대표하는 것처럼 적혀 있었고,
+      같은 간격이라도 밴드마다 다른 λ 분수가 되기 때문이다. 원장에서 직접 읽은 실현
+      최근접간격 중앙값(blade_spacing_actual_median_m): mini2 0.300 mm · matrice4e 0.701 mm
+      (`outputs/report16_base.json` : convergence.<drone>.base), 3.5 GHz 판은 mini2 0.312 mm ·
+      matrice4e 0.678 mm(`outputs/report15_po_control.json` :
+      airframes.<drone>.arms.ref.po_plane_mono.info). 밴드 파장으로 나누면 1.843 GHz 에서
+      λ/232~λ/543, 3.5 GHz 에서 λ/122~λ/286, 5.21 GHz 에서 λ/82~λ/192 이다 — 두 기체만 잰
+      값이므로 한 분수를 다른 기체·다른 밴드로 옮겨 적지 않는다."""
     gm = drone_gamma_map(spec)
     Pf, Nf, dAf, wf = mesh_to_points(build_frame(spec), lam / frame_div, gamma=gm)
     Pp, Np_, dAp, wp = mesh_to_points(build_propeller(spec, n=blade_n), lam / blade_div, gamma=gm)

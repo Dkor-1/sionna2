@@ -189,7 +189,7 @@
       "20.0": 0.909741458910434
      }
     },
-    "reading": "An exact copy of the mesh scores 0.868 here. One degree of pose error takes it to 0.888 and one percent of scale error to 0.944: arms and blades a few pixels wide make this metric steep.",
+    "reading": "Re-rendering the same pose from a different sample of the same mesh scores 0.996 - that is the ceiling of this metric. The fit the search recovered scores 0.868, at a pose error of 1.43 deg and a scale error of +0.22 %, so it is a recovered fit and not the ceiling. Starting from the true pose, one degree of pose error takes the score to 0.888 and one percent of scale error to 0.944: arms and blades a few pixels wide make this metric steep. Recovered fits from different runs carry different pose errors, so they are not comparable with each other: this pre-fix 0.868 (pose error 1.43 deg) and the current block's 0.847 (pose error 0.71 deg) are not an improvement and a regression. ⛔정정(2026-09-06): 이 문장은 원래 «An exact copy of the mesh scores 0.868 here» 로 시작했다 - 0.868 은 정확한 사본이 아니라 탐색이 되찾은 적합값이고, 정확한 사본의 값은 같은 블록의 sensitivity.same_pose_other_sample 0.996 이다. 수치는 모두 _meta.metric_calibration.pre_fix 에서 온다. 이 원장을 만든 scratch 생성기(_meta.generator 의 m4e_v3_*.py)가 레포에 없어 재빌드가 안 되므로 문장만 손으로 맞춘다 - 같은 문장을 만들던 빌더 src/viz_mesh_photo.py 의 calibrate() reading f-string 은 이미 고쳐져 있다.",
     "runtime_s": 27.6,
     "mesh_variant": "pre-fix"
    }

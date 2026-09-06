@@ -1487,7 +1487,12 @@ def main():
             f"파장의 {w['blade_width_over_lambda_main']:.3f} 배에 불과해 문턱에 "
             f"**{w['shortfall_x']:.2f} 배 모자란다**(문턱을 넘는 주파수는 {w['blade_knee_ghz']:.2f} GHz). "
             f"동체는 {w['body_knee_ghz']:.2f} GHz 부터 유효하므로 통과한다. "
-            f"⭐ 즉 **마이크로도플러를 만드는 바로 그 부품이 우리 커널이 가장 약한 부품**이다. "
+            f"⭐ 즉 **마이크로도플러를 만드는 바로 그 부품이 문턱 아래에 있다**. "
+            f"⛔«우리 커널이 가장 약한 부품» 이라는 최상급은 내린다 — 같은 문턱을 부품 폭으로 "
+            f"옮기면 모터·캐노피·PCB 의 무릎이 프로펠러의 {w['blade_knee_ghz']:.2f} GHz 보다 "
+            f"위여서 프로펠러는 문턱에서 가장 먼 부품이 아니다(부품별 무릎 일곱 값은 "
+            f"`outputs/audit_rcs_kernel.json : q4_honesty_of_limits."
+            f"few_lambda_is_quantified_not_folklore.component_knee_ghz` 에 있다). "
             f"이 문서의 모든 마이크로도플러 숫자는 그 사실을 안고 읽어야 한다 — 부호와 "
             f"자릿수는 쓸 수 있어도 소수점은 못 쓴다."))
 
@@ -1585,8 +1590,12 @@ def main():
              priority=2),
         dict(title_ko="프로펠러를 PO 가 유효한 대역으로 올려 사다리를 한 번 더 돌린다",
              why_ko=(f"날개 폭 {pov['blade_width_mm']:.2f} mm 는 3.5 GHz 에서 PO 유효 하한에 "
-                     f"{pov['shortfall_x']:.2f} 배 모자란다. 커널이 가장 약한 부품이 이 실험의 "
-                     f"주인공이다. 게다가 절반메쉬 판정이 무릎 대역(15.86 GHz)에서 같은 문턱으로 "
+                     f"{pov['shortfall_x']:.2f} 배 모자란다. 마이크로도플러를 내는 그 부품이 "
+                     f"문턱 아래에 있다(⛔«가장 약한 부품» 이라는 최상급은 내렸다 — 모터·캐노피·"
+                     f"PCB 의 무릎이 프로펠러의 {pov['blade_knee_ghz']:.2f} GHz 보다 위다: "
+                     f"`outputs/audit_rcs_kernel.json : q4_honesty_of_limits."
+                     f"few_lambda_is_quantified_not_folklore.component_knee_ghz`). "
+                     f"게다가 절반메쉬 판정이 무릎 대역(15.86 GHz)에서 같은 문턱으로 "
                      f"{kern['T4b_same_threshold_at_the_knee']['n_flipped']} 개 뒤집혔다 — 3.5 GHz 의 "
                      "PASS 가 «형상이 안 중요해서» 인지 «파장이 그 형상을 못 봐서» 인지 아직 못 가른다."),
              how_ko=("교정 사다리 C 를 3.5 / 7 / 15.86 / 22 GHz 에서 돌려 지표의 부호가 대역에 따라 "

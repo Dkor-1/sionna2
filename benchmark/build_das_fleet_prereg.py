@@ -105,7 +105,9 @@ A_SE_PRED = {"phantom2": 0.12, "phantom3": 0.066, "mini2": 0.28, "m350rtk": 0.28
 
 def obliquity_inflation_db(beta_deg):
     """표준 obliquity (n̂·û_i) 만 쓸 때 생기는 상반성 위반의 **방위평균 인플레이션 상한**.
-    평판 실측(sbr_defect_fixes.d2_reciprocity_plate)에서 sigma(i,s)/sigma(s,i) = (cos_i/cos_s)^2
+    PEC 평판 자체검산(sbr_defect_fixes.d2_reciprocity_plate — 우리 SBR 커널이 자기 자신을
+    검산한 값이지 실측이 아니다; 이 레포에 실측 대조는 0 건)에서
+    sigma(i,s)/sigma(s,i) = (cos_i/cos_s)^2
     = (cos beta)^-2 임이 rms 0.87 dB 로 확인됐다. 방위 전주기 평균은 두 순서를 다 지나므로
     선형영역에서 (r^2 + r^-2)/2, r = 1/cos(beta) 가 **상한**이다(모든 면이 최악 짝을 이룰 때)."""
     c = np.cos(np.radians(beta_deg))
@@ -428,7 +430,8 @@ def main():
             },
             "mechanism_3_single_illumination_grid_reuse": {
                 "what": "조명 격자는 û_i 하나로만 쏜다. û_s 쪽으로 거의 스쳐 보이는 면은 표본이 성기게 잡히고, "
-                        "코히런트 합에서 양자화 손실이 난다. 평판 실측에서 cells_across_reverse 가 "
+                        "코히런트 합에서 양자화 손실이 난다. PEC 평판 자체검산(우리 SBR 커널의 "
+                        "자기검산이지 실측이 아니다)에서 cells_across_reverse 가 "
                         "beta=5 의 29.8 에서 beta=75 의 7.7 로 줄었다.",
                 "sign": "negative, 그리고 분산이 커진다",
             },

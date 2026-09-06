@@ -425,6 +425,17 @@ def _photo_table(P) -> dict:
         })
     lo, hi = min(rows, key=lambda r: r["iou"]), max(rows, key=lambda r: r["iou"])
     sens = cal[rows[0]["key"]]["sensitivity"]["pose_off_deg"]
+    #: ⛔2026-09-06 — 위 414 행의 `ceil` 은 «상한» 이 아니다. `recovered_iou` 는 자기 메쉬로 만든
+    #  가짜 사진을 같은 탐색에 다시 넣어 **되찾은 적합** 이라 자세·배율 오차가 붙어 있다.
+    #  자세를 틀지 않고 같은 자세를 다른 표본으로 다시 렌더한 값은 그보다 높다 — 손으로 치지 않고
+    #  원장에서 뽑아 definition 에 함께 적는다(키는 sensitivity.same_pose_other_sample).
+    _same_pose = sorted(c["sensitivity"]["same_pose_other_sample"]
+                        for c in cal.values() if "sensitivity" in c)
+    _same_pose_ko = ("" if not _same_pose else
+                     " 자세를 틀지 않고 같은 자세를 다른 표본으로 다시 렌더하면 "
+                     f"{_same_pose[0]:.3f}~{_same_pose[-1]:.3f} 로 그보다 높다"
+                     "(원장 `outputs/mesh_compare_photo.json` 의 "
+                     "`_meta.metric_calibration.<기체>.sensitivity.same_pose_other_sample`).")
     return {
         "rows": rows, "n_airframes": len(rows),
         "n_pairs": P["_meta"]["n_pairs"], "n_excluded": len(P["_meta"]["excluded"]),
@@ -437,8 +448,10 @@ def _photo_table(P) -> dict:
         "iou_at_1deg_pose_error": sens["1.0"],
         "iou_at_2deg_pose_error": sens["2.0"],
         "definition": ("IoU = 두 실루엣의 교집합/합집합. 카메라 자세·원근·배율·위치와 로터별 "
-                       "프로펠러 위상을 맞춘 뒤 잰다. 상한 = 같은 파이프라인에 자기 메쉬로 만든 "
-                       "가짜 사진을 넣었을 때의 IoU — 암·블레이드가 몇 px 이라 1.0 이 아니다."),
+                       "프로펠러 위상을 맞춘 뒤 잰다. ⛔«상한» 칸은 상한이 아니라 **탐색이 "
+                       "되찾은 적합** 이다 — 자기 메쉬로 만든 가짜 사진을 같은 탐색에 다시 넣어 "
+                       "되찾은 IoU 라 자세·배율 오차가 붙어 있다." + _same_pose_ko +
+                       " 암·블레이드가 몇 px 이라 어느 쪽도 1.0 이 아니다."),
     }
 
 
@@ -2247,10 +2260,17 @@ def blocks(J):
 
             ("가림 판정은 Sionna 의 Mitsuba/OptiX 광선엔진이 하고, 표면전류 적분과 σ 출력을 "
              "우리가 얹었다",
-             "§2 표 · `outputs/prior_settled_sionna.json:word_counts_rerun_this_session`",
+             "§2 표 · `outputs/prior_work_survey.json:engine.technical_report.term_counts`",
              "Sionna 에도 SBR 이 있으니 엔진 기여는 이미 그 안에 있다",
-             "기술보고서(v1.2, 59쪽)에 SBR 은 "
-             + PS.num(f"{WC}.SBR or shooting-and-bouncing", fmt="{:.0f}")
+             # ⛔정정(2026-09-06) — 이 자리는 outputs/prior_settled_sionna.json 의 **합성 키**
+             #   «SBR or shooting-and-bouncing» = 48 을 라벨 없이 읽어 「SBR 은 48회」로
+             #   인쇄했다. 48 은 대소문자를 무시한 `sbr` 45회 + `shooting and bouncing` 3회의
+             #   합이고, 대소문자를 구분한 낱말 `SBR` 만이면 44회다. §2 본문과 01편이 이미 쓰는
+             #   ⟨outputs/prior_work_survey.json : engine.technical_report.term_counts.sbr⟩ 로
+             #   통일한다. 옛 줄은 지우지 않고 이 주석으로 남긴다.
+             "기술보고서(v1.2 · 59쪽)에 낱말 `SBR` 은 "
+             + from_json("outputs/prior_work_survey.json").num(
+                 "engine.technical_report.term_counts.sbr", fmt="{:.0f}")
              + "회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` "
              + PS.num(f"{WC}.physical optics", fmt="{:.0f}") + "회 · `radar cross section` "
              + PS.num(f"{WC}.radar cross section", fmt="{:.0f}")

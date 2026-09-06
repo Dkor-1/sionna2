@@ -898,8 +898,15 @@ def v6_ledger(v1, v2, v3, v45):
              holds_for="bistatic_only",
              evidence="structural: an ECA needs a reference channel; a monostatic sensor has none",
              number=None, unit=None,
-             note_ko=("모노는 대신 STAR/전이중 자기간섭 소거가 필요하다. 실측 최고 100 dB"
-                      "(Barneto 2019)로 100 m 표적에 %.1f dB 부족." % rc["shortfall_at_100m_db"])),
+             note_ko=("모노는 대신 STAR/전이중 자기간섭 소거가 필요하다. Barneto 2019 가 보고한 "
+                      "격리 100 dB(우리가 확인한 단일 문헌값 — 원문 PDF 미보유: "
+                      "outputs/reflib_read.json 의 records_without_pdf 에 A06_Barneto_TMTT2019. "
+                      "문헌을 훑은 범위를 잡은 적이 없으므로 「실측 최고」 라는 최상급은 쓰지 "
+                      "않는다)를 대입하면 100 m 표적에 %.1f dB 부족. ⚠ 이 격리는 EIRP 를 "
+                      "기준면으로 잡은 보수적 가정이라 실제 STAR 전단과 기준면이 다르다"
+                      "(이 파일 open_questions). ⛔ 종전 문장의 「실측 최고 100 dB(Barneto 2019)」 "
+                      "는 훑은 모집단이 없는 최상급이라 내렸다."
+                      % rc["shortfall_at_100m_db"])),
         dict(id="cassini", claim="iso-sensitivity contours are Cassini ovals (freespace_link.cassini_contour)",
              holds_for="bistatic_only",
              evidence="kappa = R1 R2 = const; monostatic kappa = R^2 -> a circle",

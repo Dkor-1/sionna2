@@ -57,7 +57,8 @@ from report_style import (build_notebook, caption, fetch, header, md,     # noqa
 # --------------------------------------------------------------------------- #
 DER = "outputs/report02_derived.json"        # 02 파생 원장(가림·kr·밴드)
 MCM = "outputs/mesh_compare_material.json"   # 가림 축의 두 팔 정의와 그 바닥의 caveat
-PSS = "outputs/prior_settled_sionna.json"    # Sionna 문서 단어 수
+PSS = "outputs/prior_settled_sionna.json"    # Sionna 문서 단어 수(합성 키 — §「왜」 주석 참조)
+PWS = "outputs/prior_work_survey.json"       # 기술보고서 낱말 단위 계수(`SBR` = 44)
 R3RT = "outputs/report3_rt.json"             # 스톡 산란 모델 대조
 FCNT = "outputs/facet_count.json"            # 면 수 ↔ 에코 가설
 FMEC = "outputs/facet_mechanism.json"        # 평판 대조군 — 이미지법 진폭
@@ -297,8 +298,14 @@ def report_18_kernel_what():
                    "🔵 우리 (동 `penetrate=True`)"]])),
 
         md("## 왜 우리가 얹어야 하나", "",
-           f"Sionna 는 광선을 쏘고 튀긴다 — 기술보고서(v1.2, 59쪽)에 SBR 이 "
-           f"{_n('word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing', PSS, '{:.0f}', '회')} "
+           # ⛔정정(2026-09-06) — 전 판은 outputs/prior_settled_sionna.json 의 **합성 키**
+           #   «SBR or shooting-and-bouncing» = 48 을 라벨 없이 읽어 「SBR 이 48회」로 인쇄했다.
+           #   48 은 대소문자를 무시한 `sbr` 45회 + `shooting and bouncing` 3회의 합이고,
+           #   대소문자를 구분한 낱말 `SBR` 만이면 44회다. 01편·02편이 이미 쓰는
+           #   ⟨outputs/prior_work_survey.json : engine.technical_report.term_counts.sbr⟩ 로
+           #   통일한다. 옛 줄은 지우지 않고 이 주석으로 남긴다.
+           f"Sionna 는 광선을 쏘고 튀긴다 — 기술보고서(v1.2 · 59쪽)에 낱말 `SBR` 은 "
+           f"{_n('engine.technical_report.term_counts.sbr', PWS, '{:.0f}', '회')} "
            f"나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` "
            f"{_n('word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics', PSS, '{:.0f}', '회')} · "
            f"`radar cross section` "

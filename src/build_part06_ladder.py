@@ -724,7 +724,11 @@ def blocks_33() -> list:
 
                 f"문턱을 넘는 주파수는 {_n(PO + '.blade_knee_ghz', '{:.2f}', 'GHz')} 이고 "
                 f"동체는 {_n(PO + '.body_knee_ghz', '{:.2f}', 'GHz')} 부터 유효하다 — "
-                f"**커널이 가장 약한 부품이 이 실험의 주인공**이다.",
+                f"**마이크로도플러를 내는 그 부품이 문턱 아래에 있다**"
+                f"(⛔«커널이 가장 약한 부품» 이라는 최상급은 내렸다 — 모터·캐노피·PCB 의 "
+                f"무릎이 프로펠러의 {_n(PO + '.blade_knee_ghz', '{:.2f}', 'GHz')} 보다 "
+                f"위다: `outputs/audit_rcs_kernel.json : q4_honesty_of_limits."
+                f"few_lambda_is_quantified_not_folklore.component_knee_ghz`).",
 
                 f"그래서 이 부의 숫자는 **부호와 자릿수까지** 인용한다 — 소수점은 가림 "
                 f"재계산 뒤에 연다.",
