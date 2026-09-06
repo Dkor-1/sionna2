@@ -153,7 +153,11 @@ ax.axhline(1.0, color="#cccccc", lw=0.8)
 ax.set_xlim(0, 130); ax.set_ylim(0, 3.1); ax.set_xticks([0, 30, 60, 90, 120])
 ax.set_xlabel(r"Bistatic angle $\beta$  [deg]")
 ax.set_ylabel("same estimator, SBR arm")
-ax.set_title("(l) The kernel arm cannot see the scale")
+# ⛔«커널 팔이 못 본다» 는 능력 판정이라 내렸다 — 확인된 것은 이 잣대(시간분해 최대 도플러)가
+#   SBR 팔의 광대역 느린시간 바닥에 걸려 두 예측을 모두 벗어난다는 것뿐이다
+#   (원장 outputs/report07b_bistatic_md.json :: verdict.sbr_edge_unusable.why).
+ax.set_title("(l) Same estimator on the SBR arm: it departs from both predictions\n"
+             "(a wideband floor reaches past the blade tip)", fontsize=FS - 0.5)
 ax.legend(loc="upper left", frameon=False, fontsize=FS - 2.8)
 ax.grid(alpha=0.25, lw=0.6)
 

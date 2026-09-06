@@ -21,7 +21,17 @@ v2 는 x축 텀블 널을 세우며 이렇게 주장했다:
      (가시 반구가 언제나 전 위도대를 포함하므로). 즉 구 널이 흔드는 것은 '면의 크기 구성'이
      아니라 '어느 삼각형이 켜지는가' 다. 이 한계를 감추지 않고 적는다 —
      ⭐ 그래서 v2 의 최종 근거는 구 널이 아니라 **disc 널**이 지탱한다:
-        disc 는 드론과 **삼각형 수·재질·꼭짓점 변위(1.3888λ)가 전부 같은데** 변조가 0 이다.
+        disc 는 드론과 **재질·꼭짓점 변위(1.3888λ)가 같고 삼각형 수도 25,839 대 25,823 으로
+        맞췄는데**, 위상변동 ptp 가 0.0045 dB 로 판정 문턱(3·SE = 3×0.431 dB) 아래다 —
+        두 검정 모두 불통과다(ptp/SE = 0.011 < 3 · ANOVA p = 1.0).
+        ⛔ 「변조가 0 이다」는 내렸다(2026-09-06, 지우지 않고 남긴다) — 널의 힘은 바닥의
+           크기에 있는데 0 으로 적으면 동적범위가 무한처럼 읽힌다. 「삼각형 수가 전부
+           같다」도 16 장 어긋나 있었다. 위 수는 대조용으로 옮겨 적은 것이고 정본은
+           ⟨outputs/report15_null_control.json : arms.disc_mini2.mesh.n_tris ·
+             arms.full_mini2.mesh.n_tris · arms.disc_mini2.geometry_drive.
+             vertex_shift_max_lambda · arms.disc_mini2.verdict['prod/all'] 의
+             modulation_ptp_db · noise_se_db · ptp_over_noise_se · anova.p_value ·
+             modulation_above_noise⟩ 다.
 
 ⛔ src/drones.py · src/drone_cad.py 읽기만. ⛔ 숫자 손입력 금지.
 출력은 v2 와 같은 outputs/report15_null_control.json 에 **병합**한다.

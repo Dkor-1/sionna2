@@ -3,7 +3,7 @@
 
 참조번호 [4] · [12] · [14] 는 `outputs/report01_paper.json:citations` 의 `n` 번호를 가리킨다 (Rzewuski · Ziganshin 저널판 · LAMBDA).
 
-> Prior work obtains a UAV target signature along one of seven routes, and the route fixes the size of the claim a paper can make: chamber measurement buys an absolute RCS for one airframe, an external full-wave solver buys a bistatic RCS and the coverage budget that consumes it, injection of a pre-computed RCS buys aspect-dependent amplitude without touching the engine, an analytic blade model buys the shape of a micro-Doppler signature, an abstract coefficient buys a closed-form signal model, and the stock interactions of a ray engine buy kinematic structure.
+> Across the 21 documents we adjudicated, prior work obtains a UAV target signature along one of seven routes, and the route fixes the size of the claim a paper can make: chamber measurement buys an absolute RCS for one airframe, an external full-wave solver buys a bistatic RCS and the coverage budget that consumes it, injection of a pre-computed RCS buys aspect-dependent amplitude without touching the engine, an analytic blade model buys the shape of a micro-Doppler signature, an abstract coefficient buys a closed-form signal model, and the stock interactions of a ray engine buy kinematic structure.
 >
 > We adjudicate twelve candidates against four prongs — (P1) published in a venue of record, (P2) the UAV carried as a 3-D surface mesh, (P3) the scattered field computed inside a Sionna-class differentiable GPU ray engine, and (P4) the computed amplitude compared against measurement or a reference solution — and no candidate satisfies all four. Two qualifications bound that statement.
 >

@@ -37,7 +37,14 @@ hl = {
                     for c in D["drones"][MANY]["configs"]),
                 max(D["drones"][MANY]["configs"][c]["V"]["delta_mean_db"]
                     for c in D["drones"][MANY]["configs"])],
-            verdict="PTD raises the azimuth-mean sigma by 8-24 dB - physically impossible"),
+            verdict=("PTD raises the azimuth-mean sigma by 8-24 dB - physically impossible. "
+                     "Per defect D-5 this is a BAND over the sharp_deg 5..30 deg gate, never a "
+                     "single value: mean delta "
+                     f"{D['addendum'][MANY]['sharp_deg_verdict']['mean_delta_db_at_5deg']:+.2f} dB "
+                     "at 5 deg to "
+                     f"{D['addendum'][MANY]['sharp_deg_verdict']['mean_delta_db_at_30deg']:+.2f} dB "
+                     f"at 30 deg (outputs/ptd_drone_effect.json addendum.{MANY}."
+                     "sharp_deg_verdict)")),
         "few_edges": dict(
             drone=FEW, L_metal_m=D["drones"][FEW]["edge_stats"]["length_metal_m"],
             L_metal_lambda=D["drones"][FEW]["L_metal_lambda_at_3p5GHz"],
@@ -46,11 +53,25 @@ hl = {
                     for c in D["drones"][FEW]["configs"]),
                 max(D["drones"][FEW]["configs"][c]["V"]["delta_mean_db"]
                     for c in D["drones"][FEW]["configs"])],
-            verdict="PTD is a small, plausible correction (<= ~1.5 dB on the azimuth mean)"),
+            verdict=("PTD is a small, plausible correction (<= ~1.5 dB on the azimuth mean). "
+                     "Per defect D-5 this is a BAND over the sharp_deg 5..30 deg gate, never a "
+                     "single value: mean delta "
+                     f"{D['addendum'][FEW]['sharp_deg_verdict']['mean_delta_db_at_5deg']:+.2f} dB "
+                     "at 5 deg to "
+                     f"{D['addendum'][FEW]['sharp_deg_verdict']['mean_delta_db_at_30deg']:+.2f} dB "
+                     f"at 30 deg (outputs/ptd_drone_effect.json addendum.{FEW}."
+                     "sharp_deg_verdict)")),
         "level_sanity_vs_production_sbr_db": ctrl,
-        "reading": ("the effect scales with metal edge length exactly as PTD predicts, but on the "
-                    "edge-rich airframe it overshoots into the physically impossible. Only the "
-                    "edge-poor airframe gives numbers we can stand behind."),
+        "reading": ("WITHDRAWN - do not cite this sentence. 'the effect scales with metal edge "
+                    "length exactly as PTD predicts' was written before the reentrant-edge guard "
+                    "(defect D-3): on the edge-rich airframe 6.5 % of the metal edge length "
+                    "sitting next to the exact pole N = 1/6 produced 99.99 % of the edge field, "
+                    "so that scaling was a numerical divergence, not physics. See "
+                    "blockers_before_this_can_be_used below and the SUPERSEDED block of "
+                    "outputs/ptd_drone_effect.json. What still stands is only the edge-poor "
+                    f"airframe: on {FEW} the azimuth-mean change is <= ~1.5 dB - and even that is "
+                    "a PO-only, occlusion-free number whose overall edge constant is still "
+                    "uncalibrated (Rung 2 flat-plate calibration not done)."),
     },
     "question_2_band_slope": {
         "headline_configuration": (f"{FEW} (few edges), dense grid 1.8-5.8 GHz (21 points), "

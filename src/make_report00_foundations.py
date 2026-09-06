@@ -122,9 +122,15 @@ def blocks():
                 f"경로 수는 전 구간 "
                 f"{_n('A_plate_size_sweep.numbers.n_paths_target_set_union[0]', EVD, '{:.0f}')}개다.",
 
-                f"같은 재질·같은 정면면적에서 모양만 바꾸면 σ 가 "
+                f"같은 재질·같은 정면면적 "
+                f"{_n('C_same_material_different_shape.numbers.frontal_area_m2', EVD, '{:.4f}')} m², "
+                f"5G 밴드 "
+                f"{_n('s4_limits.our_production_bands_vs_knee.nr_ghz', POC, '{:.1f}', 'GHz')} "
+                f"정면입사에서 모양만 바꾸면 σ 가 "
                 f"{_n('C_same_material_different_shape.numbers.shape_gap_db', EVD, '{:.2f}', 'dB')} "
-                f"갈린다 — 같은 반사계수 위에서 위상 정렬이 답을 정한다.",
+                f"갈리고, 이 간극은 주파수가 두 배가 될 때마다 "
+                f"{_n('C_same_material_different_shape.numbers.plate_sigma_df_db_per_octave', EVD, '{:+.2f}', 'dB')} "
+                f"더 벌어진다 — 같은 반사계수 위에서 위상 정렬이 답을 정한다.",
 
                 f"우리 PO 커널은 해석 PO 대비 "
                 f"{_n('s3_validation.layer1_analytic_po_convergence.kr_sweep_max_abs_db_vs_po_div16', POC, '{:.3f}', 'dB')} "
@@ -402,10 +408,12 @@ def blocks():
            f"우리 구현에서 PO 적분은 광선캐스팅의 "
            f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배다 — "
            f"적분이 아직 호스트 numpy 라서다.", "",
-           f"게재된 유일한 GPU 커널 분해(SagittaSBR)는 같은 "
+           f"보유 아카이브(`docs/REFERENCE_LIBRARY.md`) 안에서 GPU 커널 분해를 인쇄한 것을 "
+           f"하나 찾았다 — SagittaSBR 이다. 그 논문은 같은 "
            f"캐스케이드를 광선발사의 "
            f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_A100_fp32', POC, '{:.1%}')} "
-           f"로 적는다. 절반은 우리 몫이다."),
+           f"로 적는다. 절반은 우리 몫이다. "
+           f"⛔«게재된 유일한» 으로는 쓰지 않는다 — 전 문헌을 뒤진 적이 없다(2026-09-06 정정)."),
 
         # ═══ §6 ════════════════════════════════════════════════════════════
         md("## §6. 우리 PO 는 납득 가능한 수준인가 — 검증 3층과 자기검사 2건", "",

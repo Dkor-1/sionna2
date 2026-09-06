@@ -81,8 +81,15 @@ def fig_rcs_polar(outdir=FIG, fc=3.5e9):
     axp = fig.add_subplot(1, 2, 1, projection="polar")
     for k in DRONES:
         # **대역폭 평균**(5G 100MHz)으로 그린다 — 단일주파수 코히런트 PO 의 깊은 널은
-        # 이산화에 따라 위치가 춤추는 수치 아티팩트이고(λ/7↔λ/12 에서 최저점 330°→127°),
-        # 유한 대역폭을 가진 실제 레이더는 그 널을 보지 못한다(최저값 +20 dB 상승). rcs_po 참조.
+        # 이산화에 따라 **깊이**가 흔들리는 수치 아티팩트다(mavic4pro @3.5 GHz, az 0.5° 샘플링:
+        # λ/7↔λ/12 에서 el 0° 최저 −59.2→−51.1 dBsm, el 22° −62.5→−45.4 dBsm — 널의 **위치**는
+        # 오히려 안정적이다). 유한 대역폭을 가진 실제 레이더는 그 널을 보지 못한다(5G 100 MHz
+        # 대역평균으로 최저값 −59.2→−45.0 dBsm = **+14 dB** 상승, 3° 각도창까지 주면 −41.0 dBsm;
+        # 이 대역+각도 평균 패턴은 λ/7 vs λ/12 에서 상관 0.998·RMS 0.31 dB·최저점 방위 328.0° 로 동일).
+        # 값·조건 출처: rcs_po.drone_rcs_pattern_bw docstring (src/rcs_po.py:326-342).
+        # ⛔전에 여기 적혀 있던 «위치가 춤춘다 · 최저점 330°→127° · +20 dB 상승» 은 내렸다 —
+        # 위치 이동은 거친 2° 샘플링에서 깊이가 몇 dB 이내인 널들 사이로 argmin 이 점프한 것이고,
+        # 상승폭은 +14 dB 다(위 docstring). 한 기체·한 밴드·한 앙각의 값이라는 범위도 함께 밝힌다.
         sig, _ = drone_rcs_pattern_bw(k, fc, BW_HZ, az)
         sig = angular_smooth(sig, SMOOTH_DEG, float(az[1] - az[0]))
         axp.plot(np.radians(az), np.maximum(dbsm(sig), RFLOOR_DBSM),

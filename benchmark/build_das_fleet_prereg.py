@@ -177,12 +177,17 @@ def main():
                 "outputs/das_fleet_spec.json (표 판독본·등급·대조계획)",
                 "outputs/p3_validation.json (phantom3 결과: 레벨 -4.9 dB(Yuan 정합) / -3.01 dB(Das 지수분기), 기울기 1.6 sigma)",
                 "outputs/mini2_mesh_audit.json · outputs/m350rtk_mesh_audit.json (새 기체 빌드 결과)",
-                "outputs/sbr_defect_fixes.json (평판 상반성 위반 = -20log10(cos beta) 실측)",
+                "outputs/sbr_defect_fixes.json (평판 상반성 위반 = -20log10(cos beta) — 우리 SBR 커널의 PEC 평판 자체검산, 실측 아님)",
                 "outputs/geometry_benchmark.json (이등분선 근사 오차 rms 중앙 7.47 dB · p95 최대 20.04 dB)",
                 "src/rcs_sbr.py:568,636-639 (obliquity 규약 주석) — 읽기만",
                 "outputs/p3_ours.json/meta (div=16, jitter=2, max_bounce=1, penetrate=True, 선형 방위평균)",
             ],
             "wrote_only": "outputs/das_fleet_prereg.json",
+            "_correction_2026_09_06": (
+                "⛔정정: 2026-08-03 봉인본(outputs/das_fleet_prereg.json line 10)은 이 항목을 "
+                "'평판 상반성 위반 = -20log10(cos beta) 실측' 이라고 적었다. 그건 우리 SBR 커널이 "
+                "PEC 평판에 대해 자기 자신을 검산한 값이지 실측이 아니다 — 이 레포에 실측 대조는 0 건이다. "
+                "봉인본 문장은 추적을 위해 지우지 않고 그대로 두고, 여기서 성격만 바로잡는다."),
             "metric_definition": (
                 "DL(af, theta_b) = mu_ours_linear(f_c) - [a_das*f_c + b_das + 2.5068] [dB],  "
                 "Da(af, theta_b) = a_ours - a_das [dB/GHz].  f_c = 밴드중심. "

@@ -313,9 +313,18 @@ def section1() -> dict:
     put(c, "sagitta_po_ns_per_ray", f"{RB}:answer.cost_per_ray.sagitta_A100_po_ns_per_ray")
     put(c, "verdict", f"{RB}:answer.verdict")
     put(c, "what_it_does_not_support", f"{RB}:answer.what_the_measurement_does_NOT_support")
-    c["honest_concession"] = ("반론의 절반은 맞다 — **우리 구현에서** PO 적분이 광선캐스팅의 16 배다. "
-                              "우리 적분이 아직 호스트 numpy 라서다. 게재된 유일한 GPU 커널 분해"
-                              "(SagittaSBR Table 1)는 같은 캐스케이드가 광선발사의 1.9~6.5% 라고 적는다.")
+    put(c, "archive_pdfs_scanned",
+        "outputs/reference_library.json:counts.sionna_corpus_scanned_pdfs")
+    c["honest_concession"] = (
+        "반론의 절반은 맞다 — **우리 구현에서** PO 적분이 광선캐스팅의 "
+        f"{c['our_po_over_rt']:.0f} 배다. 우리 적분이 아직 호스트 numpy 라서다. "
+        f"보유 아카이브 {c['archive_pdfs_scanned']:.0f}편"
+        "(2026-07-31 집계 ⟨outputs/reference_library.json : "
+        "counts.sionna_corpus_scanned_pdfs⟩) 안에서 GPU 커널 분해를 인쇄한 유일한 논문인 "
+        "SagittaSBR Table 1 은 같은 캐스케이드가 광선발사의 "
+        f"{c['sagitta_po_over_raylaunch_MI250X_fp32']:.1%}~"
+        f"{c['sagitta_po_over_raylaunch_A100_fp32']:.1%} 라고 적는다. "
+        "⛔«게재된 유일한» 으로는 쓰지 않는다 — 전 문헌을 뒤진 적이 없다(2026-09-06 정정).")
     s["cascade_cost_objection"] = c
 
     # ── 대안 5갈래 ──────────────────────────────────────────────────────────────────────

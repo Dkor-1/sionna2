@@ -224,7 +224,10 @@ ROTOR_MODEL = ("프로펠러: $h_{drone}(t)=h_{body}(t)+\\sum_{i=1}^{N_{blade}} 
 # §9 — 연구 공백 + 가장 가까운 문헌
 GAP_TARGET = ("Sionna RT + open-source EM-derived UAV complex bistatic reflectivity + passive reference/surveillance "
               "channels + Wi-Fi/LTE/5G multi-illuminator 비교 + rotor micro-Doppler + SDR/USRP 실측 calibration — "
-              "**이 모두를 만족하는 완전한 연구는 아직 없다.**")
+              f"**이 여섯 조건을 모두 만족하는 연구는, 이번 조사에서 1차 출처(arXiv/IEEE/DOI)로 확인한 "
+              f"{len(TABLE1) + len(TABLE2) + len(TABLE3)} 편(표1 {len(TABLE1)} · 표2 {len(TABLE2)} · 표3 {len(TABLE3)}) "
+              "안에서는 찾지 못했다.** «없다» 가 아니라 «이 범위에서 못 찾았다» 다 — 조사 범위·방법은 머리말의 "
+              "조사 방법 줄(METHOD)에 적혀 있다.")
 GAP_NEAREST = [
     ("LAMBDA", "Sionna + CADFEKO UAV RCS", "상용 FEKO·능동 FMCW·passive reference channel 없음"),
     ("Sionna-RT Reflectivity (Ziganshin)", "오픈소스 Sionna 표적 reflectivity 확장", "차량·PEC 중심, rotor micro-Doppler 없음"),

@@ -1178,9 +1178,14 @@ def verdict(axis, geo_r, det_bb, det_zd, si, adv, ledger, reg_chk, drones, eirpl
                eirpl["cells"]["C_bistatic_L500"]["lte"]["R90_span_x"],
                eirpl["cells"]["A_mono_at_illuminator"]["lte"]["R90_span_x"])),
         saturation=(
-            "12-bit ADC 헤드룸으로 보면 5G 대역에서 포화하는 구성은 %s 다 — 병설(구성 B)과 능동 "
-            "모노가 같은 벽에 부딪힌다. 벽의 원인은 기하가 아니라 **송수신 병설**이다."
-            % [r["config"] for r in adc["by_band"]["nr"]["rows"] if r["saturates"]]),
+            "등-EIRP 63 dBm · 12-bit ADC(동적범위 %.1f dB) · 5G 122.88 MHz 규약에서 포화하는 "
+            "구성은 %s 다 — 두 구성의 공통점은 송수신 병설이다. 다만 «병설이라서 포화한다» 로 "
+            "원인을 단정하지는 않는다: 같은 표의 LTE 행에서는 병설이 아닌 C(L=500 m)도 헤드룸 "
+            "%.1f dB 로 벽에 닿는다 ⟨outputs/mono_link.json : adc_headroom.by_band.lte.rows⟩."
+            % (adc["by_band"]["nr"]["rows"][0]["adc_dynamic_range_db"],
+               [r["config"] for r in adc["by_band"]["nr"]["rows"] if r["saturates"]],
+               [r["headroom_db"] for r in adc["by_band"]["lte"]["rows"]
+                if r["config"].startswith("C ")][0])),
         doppler_geometry=(
             "도플러 완화도 같은 이유로 죽는다 — 검지 한계에서 β 중앙값 %.2f°, 완화 %.4f× 다. "
             "반면 반절 베이스라인에서는 β %.0f° 로 완화 %.2f× 다. 기하 축은 근거리에 산다."

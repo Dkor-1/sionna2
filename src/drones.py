@@ -698,7 +698,11 @@ DRONES: dict[str, DroneSpec] = {
              "above is a published value, not a measurement off that DAE.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="none",
         accent_rgb=None, body_frac=0.28744,      # = 143.72/500 → _drone_dims 의 동체치수 = 실제 판
-        shape_source="manufacturer_cad",         # ⭐ 저장소에서 유일 — 제조사 STEP 실측(위 note 의 SHAPE SOURCE 절)
+        #  ⛔ 「저장소에서 유일」 은 내렸다(2026-09-06, 지우지 않고 남긴다) — mini2 가
+        #    추가되며 거짓이 됐다(같은 파일의 mini2 항목도 shape_source="manufacturer_cad").
+        #    ⭐개수는 세지 말고 `shape_source == "manufacturer_cad"` 로 판정할 것 — 세어
+        #    적으면 또 낡는다(같은 정정을 typhoonh480 항목에서 이미 했다).
+        shape_source="manufacturer_cad",         # 제조사 STEP 실측(위 note 의 SHAPE SOURCE 절)
         body_lw=(1.0, 1.0), gimbal_style="none", cad_version="v2",
         envelope_mm=None,                        # Holybro 는 전체 외형(L×W×H)을 공표하지 않는다 → 맞출 대상이 없다
         #  ⭐ 2026-08-04 — 판 맞변거리 144.0 → **143.72** (모서리 실측). body_l/w_mm 과 반드시

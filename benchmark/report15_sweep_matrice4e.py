@@ -1113,12 +1113,27 @@ def sec6_mechanism(spp=1_024_000_000) -> dict:
             v = prop_stat["prop"]["by_range"][f"{R:g}"]
             v["predicted_specular_possible"] = bool(v["sep_over_acceptance"] is not None
                                                     and v["sep_over_acceptance"] <= thr2)
+    #  ⭐ 거리별 비는 손으로 쓰지 않고 위에서 잰 prop_stat 에서 그대로 뽑는다(정정 2026-09-06).
+    _pr = (prop_stat.get("prop") or {}).get("by_range") or {}
+    _pairs = []
+    for R in RANGES:
+        _v = (_pr.get(f"{R:g}") or {}).get("sep_over_acceptance")
+        if _v is not None:
+            _pairs.append(f"{R:g} m {_v:.2f}")
+    _ratio_txt = " · ".join(_pairs) or "미측정"
+    _thr_txt = f"{thr2:.2f}" if thr2 else "미측정"
     out["d_prop_facet_stats"] = dict(
         by_group=prop_stat, threshold_ratio_used=thr2,
         note_ko=("법선간격/수용각 이 문턱을 넘으면 '이등분선을 만족하는 면이 메쉬에 존재하지 않는다' — "
-                 "즉 그 거리에서 정반사가 사실상 안 나온다. camera 는 **완전 평면**이라 법선간격이 "
-                 "정확히 0 이다 → 어느 거리에서나 글린트가 난다(그래서 이 기체에서 정반사를 내는 "
-                 "부위가 카메라뿐인 것이다)."))
+                 "즉 그 거리에서 정반사가 사실상 안 나온다. camera 는 평면이라 법선간격이 정확히 "
+                 "0 이고 시험한 거리 전부에서 이 지표가 문턱 아래다. "
+                 f"prop 은 문턱 {_thr_txt} 에 대해 {_ratio_txt} 라 가까운 거리에서만 문턱 아래다"
+                 "(by_range 의 predicted_specular_possible 이 거리마다 참/거짓을 적는다). "
+                 "⛔ 여기 있던 «그래서 이 기체에서 정반사를 내는 부위가 카메라뿐인 것이다» 는 "
+                 "내린다(정정 2026-09-06) — 같은 원장의 specular_census.production 이 "
+                 "specular_paths_by_group 에서 camera 와 prop 양쪽의 정반사 경로를 세고, "
+                 "specular_census.production.by_range 의 n_with_prop_specular 는 가까운 "
+                 "거리에서 0 이 아니다."))
     return out
 
 

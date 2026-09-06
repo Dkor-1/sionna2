@@ -67,7 +67,7 @@
   "UNCLEAR": "the paper never states its own Tx-Rx geometry - a legitimate and useful classification",
   "⭐ two orthogonal axes this sweep forced us to add": {
    "cooperative_tx": "does the illuminator cooperate? In the literature 'passive' often means ONLY 'bistatic geometry', not 'non-cooperative source' - see sun2022wisec (their own USRPs) and jopanya2025spawc (both nodes are BSs of the same network).",
-   "waveform_access": "full-waveform / reconstructed / reference-signal-only / reference-free. ⭐ THIS, not geometry, is what actually sets the slow-time rate. wypich2026sensors is passive AND full-waveform; lasen2026 is monostatic AND full-waveform; the two land in the same place on v_max."
+   "waveform_access": "full-waveform / reconstructed / reference-signal-only / reference-free. ⭐ 이 축은 지오메트리와 따로 논다: wypich2026sensors 는 패시브(config C)인데 전파형에 손을 대고, lasen2026 은 모노스태틱(config A)인데 같은 칸에 놓인다 — 55개 항목 중 2편의 관찰이다. ⚠ 그렇다고 이 축이 슬로타임 속도를 혼자 정한다는 뜻은 아니다: (a) v_max 에는 바이스태틱 각의 완화계수 1/cos(beta/2) 가 함께 들어가고(geometry_findings 8), (b) 같은 칸 안에서도 슬로타임 축이 버스트 안쪽 심볼 간격이냐 신호 반복 주기냐에 따라 상한이 갈리며(jopanya2025spawc 대 lasen2026, passive_drone_corpus_verdict), (c) 두 편의 숫자 자체는 나란히 놓을 수 없다 — convention_ledger 는 wypich 392 m/s 를 규약 미확인·표적이 차량으로, lasen 2.6 m/s 를 CSI-RS 축의 반폭으로 적어 둔다. ⛔ 2026-09-06: 여기 있던 'THIS, not geometry, is what actually sets the slow-time rate ... the two land in the same place on v_max' 는 내렸다 — 2편이 한 축에서 겹친 관찰을 배타적 판정으로 쓴 문장이고, 같은 파일의 (a)(b)(c) 와 어긋난다."
   }
  },
  "counts": {
@@ -1805,7 +1805,7 @@
    "config": "survey covering A, C and D",
    "config_evidence": "'For downlink sensing in monostatic scenarios, the synchronization signal block (SSB) ... has been investigated as a sensing waveform [36]-[38].' + 'Xie et al. investigated bistatic target detection in ISAC systems that exploit both deterministic pilots and unknown random data payloads in a hybrid transmit signal [45].'",
    "cooperative_tx": "varies",
-   "waveform_access": "⭐ the survey's own organising axis is pilot-only vs pilot+data - the same axis this sweep found to be decisive",
+   "waveform_access": "⭐ the survey's own organising axis is pilot-only vs pilot+data - the same axis this sweep keeps returning to. ⛔ 2026-09-06: 'the same axis this sweep found to be decisive' 에서 «decisive» 를 뺐다 - taxonomy → waveform_access 참조: 이 축은 지오메트리와 따로 놀지만 슬로타임 상한을 혼자 정하지는 않는다.",
    "illuminator": "varies",
    "band_note": "varies",
    "target": "non-cooperative low-altitude UAV",
@@ -2186,7 +2186,7 @@
   }
  },
  "sionna_x_geometry_x_drone": {
-  "headline": "⭐ 아카이브의 Sionna 사용 논문 약 75편 중 센싱 지오메트리를 한 번이라도 명명한 것은 소수이고, 드론 표적까지 겹치는 것은 손에 꼽는다.",
+  "headline": "⭐ 이 스윕이 항목으로 세운 55편(같은 파일 counts.entries_total) 중 Sionna 를 쓴 것은 6편(counts.sionna_used = 아래 sionna_used_entries)이고, 그중 표적이 드론인 것은 3편(cudetnet2026 · clutteraware2026 · mdrt2025)이며, 그 3편 중 센싱 지오메트리를 명명한 것은 cudetnet2026(분산 바이스태틱)과 clutteraware2026(mono/bi/multi 전부 언급) 둘, mdrt2025 는 UNCLEAR 다. ⛔ 2026-09-06 정정 — 이전 문장은 «아카이브의 Sionna 사용 논문 약 75편 중 … 소수이고 … 손에 꼽는다» 였다. 75 도 '소수'·'손에 꼽는다' 도 이 레포 안에 다시 셀 원장이 없어(geoscan 원자료 미보관) 내렸다.",
   "machine_evidence": "geoscan 150편 중 sionna>=2 인 파일에서 monostatic+bistatic+multistatic 언급 합이 0 인 파일이 압도적 다수다 - 디지털트윈·뉴럴리시버·데이터셋·CKM 계열은 전부 0.",
   "sionna_used_entries": [
    "cudetnet2026",
@@ -2240,7 +2240,7 @@
   "멀티스태틱(D)은 패시브 쪽에서 이미 성숙해 있다: Geng(2020) 이래 Viberg 계열(ICASSP 2026, CAMSAP 2025, ECA 프리프린트), Sriranga(2025), Huang 업링크(2026)로 이어진다. 우리 다중Rx 절은 이 계보 안에 놓여야 한다.",
   "⭐ 업링크 조명(UE 가 조명원, BS 가 수신)은 우리 2x3 격자가 아예 다루지 않는 네 번째 지오메트리다(huang2026uplink). future work 에 정직하게 적는다.",
   "RCS 측정 문헌은 지오메트리를 mono/bi 로 명확히 나누지만(das2026wcl, yuan2025eucap, zhang2026jsac), 센싱 시스템 문헌은 자기 지오메트리를 안 밝히는 경우가 흔하다(lin2023iccc, mdrt2025).",
-  "⭐ 바이스태틱은 v_max 에 **유리**하다: Costa(RadarConf24)의 실측/해석은 beta 가 커질수록 도플러 확산이 줄어듦을 보이고, 이는 우리 완화계수 1/cos(beta/2) 와 같은 물리다. 즉 '패시브 바이스태틱은 속도 상한에서 불리하다'가 아니라 '상시 기준신호만 쓰는 것이 불리하고, 바이스태틱 각은 그것을 조금 완화한다'가 정확한 문장이다."
+  "⭐ 바이스태틱은 v_max 에 **유리**하다: Costa(RadarConf24)의 **해석 모델 시뮬레이션**(같은 파일 entries[costa2024radarconf].config_evidence 의 Fig.7 캡션 — 'from simulated data, with different bistatic angles (16384 symbols, subsampling = 8)')은 beta 가 커질수록 도플러 확산이 줄어듦을 보인다. 우리 v_max(beta) 의 분모 cos(beta/2) 와 같은 방향이며, 도플러 확산에서 무모호 속도로의 환산은 **우리 추론**이다. 즉 '패시브 바이스태틱은 속도 상한에서 불리하다'가 아니라 '상시 기준신호만 쓰는 것이 불리하고, 바이스태틱 각은 그것을 조금 완화한다'가 정확한 문장이다. ⛔2026-09-06 정정: 앞선 판은 이 근거를 '실측/해석'이라고 적어 출처 등급을 올렸다 — beta 스윕 그림은 시뮬레이션이다(같은 논문이 BiRa 실측을 함께 담고 있다는 사실과는 별개다)."
  ],
  "actions_ranked": [
   {

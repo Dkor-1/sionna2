@@ -767,9 +767,26 @@ CONTRIBUTION = [
     "모호 없이 재는지를 표 하나로 판정한다.",
     "③ 설계 규칙으로의 역산: PRF_req = 4v/lambda, T_ref,max = lambda/4v, f_c,max = c*PRF/4v. "
     "'흥미롭다' 를 '쓴다' 로 바꾸는 형태다.",
-    "④ 인프라 서사: 사업자가 LTE 를 5G 로 옮기면 패시브가 쓸 수 있는 상시 기준의 반복률이 20배 "
-    "떨어지고 속도 관측성이 40.7 -> 1.07 m/s 로 무너진다. 파장 기여는 1.90배뿐이고 나머지가 반복률이다.",
 ]
+
+# ⛔④ 의 수치는 손으로 치지 않는다 — 조명원 표에서 뽑는다(ILLUM → build_illuminator_table)
+_ILLUM_TXT = build_illuminator_table()
+CONTRIBUTION.append(
+    "④ 인프라 서사: 사업자가 상시 기준을 LTE CRS 에서 5G NR SSB 로 옮기면 반복률과 밴드가 함께 "
+    f"바뀐다 — LTE CRS({_ILLUM_TXT['lte_crs']['fc_hz'] / 1e9:.3f} GHz, 서브프레임당 1표본 규약 "
+    f"{_ILLUM_TXT['lte_crs']['prf_hz']:.0f} Hz)의 "
+    f"{_ILLUM_TXT['lte_crs']['v_max_ms']:.1f} m/s 가 5G SSB"
+    f"({_ILLUM_TXT['nr_ssb']['fc_hz'] / 1e9:.1f} GHz, 빔당 보수적 읽기 "
+    f"{_ILLUM_TXT['nr_ssb']['prf_hz']:.0f} Hz)에서 "
+    f"{_ILLUM_TXT['nr_ssb']['v_max_ms']:.2f} m/s 가 된다. 분해하면 반복률 "
+    f"{_ILLUM_TXT['lte_crs']['prf_hz'] / _ILLUM_TXT['nr_ssb']['prf_hz']:.0f}배 · 파장 "
+    f"{_ILLUM_TXT['lte_crs']['lambda_m'] / _ILLUM_TXT['nr_ssb']['lambda_m']:.2f}배다. "
+    "이 폭은 수신기 표본화 규약에도 걸린다 — 같은 CRS 를 심볼 단위로 잡으면 "
+    f"{_ILLUM_TXT['lte_crs_sym']['prf_hz']:.0f} Hz · "
+    f"{_ILLUM_TXT['lte_crs_sym']['v_max_ms']:.1f} m/s 다. "
+    "⛔«20배 떨어지고 … 무너진다» 로는 쓰지 않는다 — 밴드도 표본화 규약도 빠진 문장이었다"
+    "(2026-09-06 정정)."
+)
 
 RETRACTION = dict(
     retracted="5G coverage = 0 at every heading (report05 headline)",

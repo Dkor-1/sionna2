@@ -6,7 +6,9 @@ render_builtin_scenes_0819.py — Sionna 2.0.1 이 기본으로 주는 씬을 **
 무엇을 위해
 -----------
 환경(바닥·벽·도심)을 넣으려는데, 무엇이 이미 있는지 **눈으로** 확인한다.
-Sionna 2.0.1 설치본은 씬 16 개를 들고 있고 그중 넷은 **실제 도시**다(뮌헨·파리·피렌체·SF).
+Sionna 2.0.1 설치본은 씬 15 개를 들고 있고(아래 SCENES 가 전부다 — 같은 디렉토리의
+low_poly_car.ply · sphere.ply 두 개는 씬이 아니라 메쉬 파일이다) 그중 넷은 **실제 도시**다
+(뮌헨·파리·피렌체·SF). ⟨원장 outputs/builtin_scenes_0819.json : scenes 15 · failed 0⟩
 
 규약
 ----

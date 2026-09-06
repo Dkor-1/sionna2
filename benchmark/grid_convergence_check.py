@@ -688,9 +688,9 @@ def run() -> dict:
             f"«곡률이 원인이다/아니다» 를 이 원장으로는 **판정할 수 없다**."
             if (abs(d_ac) < ac_band and abs(d_ratio) < acdc_band) else
             f"AC {d_ac:+.2f} dB · AC/DC {d_ratio:+.2f} dB — 밴드 밖 항이 있어 판정 가능하다."),
-        "note_ko": ("⭐AC 절대전력과 DC 를 **따로** 싣는다. 비율만 보면 «평면파가 더 낮다» 가 "
-                    "1.27 dB 로 보이는데, AC 절대값 차이는 그 절반 이하다 — 비율이 움직인 이유의 "
-                    "상당 부분이 **분모(DC)** 다."),
+        "note_ko": (f"⭐AC 절대전력과 DC 를 **따로** 싣는다. 비율만 보면 «평면파가 더 낮다» 가 "
+                    f"{d_ratio:+.2f} dB 로 보이는데, AC 절대값 차이는 {d_ac:+.2f} dB 로 그 "
+                    f"**절반 정도**이고, 나머지는 분모(DC {d_dc:+.2f} dB)가 움직인 몫이다."),
         "nadir_azimuth_dead_axis_ko": "나딧에서 방위는 죽은 축이다 — los(az, −90°)=[0,0,−1] 이라 "
                                       "방위 회전이 시선을 안 바꾼다. 앞으로 큐에서 나딧×방위 조합을 배제한다.",
         "nadir_azimuth_los_diff_deg": los_deg,

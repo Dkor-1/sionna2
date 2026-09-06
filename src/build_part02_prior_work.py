@@ -825,7 +825,10 @@ def report_14_borrowed():
 #  (사용자 지시: 논문 작성 측면은 리포트에 쓰지 않고 따로 메모한다)
 # =========================================================================== #
 NOVELTY = [
-    "Prior work obtains a UAV target signature along one of seven routes, and the route fixes "
+    # 갈래 일곱은 «선행연구 전체» 가 아니라 우리가 전문 판정한 코퍼스 안에서 나온 분류다.
+    # 편수는 손으로 치지 않는다 — 원장에서 뽑는다(outputs/prior_work_survey.json : counts.papers).
+    f"Across the {fetch((SURVEY, 'counts.papers')):.0f} documents we adjudicated, prior work "
+    "obtains a UAV target signature along one of seven routes, and the route fixes "
     "the size of the claim a paper can make: chamber measurement buys an absolute RCS for one "
     "airframe, an external full-wave solver buys a bistatic RCS and the coverage budget that "
     "consumes it, injection of a pre-computed RCS buys aspect-dependent amplitude without "

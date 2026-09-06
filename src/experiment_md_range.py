@@ -376,13 +376,24 @@ def main():
                 gate="benchmark/verify_matched_filter_gain.py, benchmark/verify_snr_convention.py"),
             point_spacing=dict(frame_requested="lambda/6", blade_requested="lambda/11",
                                note=("REQUESTED, not realised: rcs_po.mesh_to_points floors at one point "
-                                     "per CAD triangle, and the propeller facets are already ~2.9 mm, so the "
-                                     "actual nearest-neighbour spacing is ~lambda/127 and the knob is inert "
-                                     "over lambda/6..lambda/24. ⛔This ledger does NOT record a realised "
+                                     "per CAD triangle, so wherever the mesh is already finer than the "
+                                     "requested step the lambda/N knob is not binding, and it is inert over "
+                                     "lambda/6..lambda/24. ⛔WITHDRAWN 2026-09-06: this note used to add "
+                                     "'the propeller facets are already ~2.9 mm, so the actual "
+                                     "nearest-neighbour spacing is ~lambda/127'. That pair named no airframe "
+                                     "and no band, no cell in this ledger supports it, and one "
+                                     "lambda-fraction cannot stand for every cell here anyway - the same "
+                                     "spacing in metres is a different fraction of the wavelength in each of "
+                                     "the three bands in meta.bands. ⛔This ledger does NOT record a realised "
                                      "spacing: no cell here carries blade_spacing_actual_median_m. The measured "
                                      "nearest-neighbour medians live in outputs/report16_base.json under "
-                                     "convergence.<drone>.<arm>.blade_spacing_actual_median_m, and only for "
-                                     "mini2 and matrice4e."),),
+                                     "convergence.<drone>.<arm>.blade_spacing_actual_median_m and in "
+                                     "outputs/report15_po_control.json under "
+                                     "airframes.<drone>.arms.<arm>.<case>.info.blade_spacing_actual_median_m, "
+                                     "and only for mini2 and matrice4e - two of the airframes swept here. "
+                                     "Divide the median for a cell by the wavelength of that cell's band to "
+                                     "get the realised lambda-fraction; do not carry one fraction across "
+                                     "airframes or bands."),),
             link_budget=dict(eirp_dbm=nf.DECLARED_EIRP_DBM, rx_gain_dbi=nf.DECLARED_RX_GAIN_DBI,
                              noise_figure_db=nf.DECLARED_NF_DB, noise_bw_hz=nf.DECLARED_B_HZ,
                              #  ⭐ 정합필터 뒤 실효 잡음대역: kT0F*B / (B/PRF) = kT0F*PRF

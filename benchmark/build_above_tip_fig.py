@@ -5,7 +5,8 @@
     `outputs/figures/wideband_energy.png` 은 세 단이고 그중 (c) 만 이 잣대를 그린다.
     조각 80 은 잣대 **하나**를 설명하는 절이라 그림도 한 질문만 답해야 한다 —
       (a) 상한이 앙각에 따라 어디에 그어지나 (관찰 대역의 어디까지가 물리적으로 가능한가)
-      (b) 팔마다 그 위에 얼마가 놓이나 (참값이 0 인 자리다)
+      (b) 팔마다 그 위에 얼마가 놓이나 (⛔«참값이 0» 은 내렸다 — 이상적 날개의 위상변조
+          꼬리 τ 가 바닥이다: outputs/tip_tail_reference.json. 팔끼리 견주는 상대 잣대다)
 
 ■ 원장
     outputs/wideband_energy{TAG}.json  — 값을 여기서만 읽는다. 새로 계산하지 않는다.
@@ -64,10 +65,11 @@ def main() -> None:
     ax[0].set_ylim(0, nyq)
     ax[0].set_xlabel("elevation [deg]")
     ax[0].set_ylabel("Doppler frequency [Hz]")
-    ax[0].set_title("(a) Blade Doppler can only live under the tip-speed limit "
+    ax[0].set_title("(a) Rigid-blade rotation kinematics alone place power only under "
                     "f_tip(el) = f_tip(0) x cos(el)")
-    ax[0].text(-45, nyq * 0.55, "energy here cannot be blade Doppler = artefact",
-               fontsize=12, color="darkred", ha="center")
+    ax[0].text(-45, nyq * 0.55, "energy here is not explained by rigid-blade kinematics\n"
+               "(window leakage, airframe-line sidelobes and multi-bounce also land here)",
+               fontsize=11, color="darkred", ha="center")
     ax[0].text(-11, ftip0 * 0.42, "blade band", fontsize=10, color="navy")
     ax[0].annotate("f_tip(el)", xy=(-30, ftip0 * np.cos(np.radians(30))),
                    xytext=(-24, ftip0 * 2.8), fontsize=10,
@@ -85,8 +87,11 @@ def main() -> None:
     ax[1].set_xlabel("elevation [deg]")
     ax[1].set_ylabel("energy above f_tip [% of total power]")
     ax[1].set_ylim(0, 100)
-    ax[1].set_title("(b) Leakage above the limit, where the true value is 0 for every bar "
-                    "- lower is better")
+    # ⛔«참값 0» 은 내렸다 — 이상적 날개의 위상변조 꼬리 τ 가 바닥이다
+    #   (원장 outputs/tip_tail_reference.json · 리포트 12 본문이 같은 정정을 싣는다).
+    ax[1].set_title("(b) Share above the kinematic limit - the true value is not 0\n"
+                    "(ideal blades leave a phase-modulation tail, and window leakage,\n"
+                    "airframe-line sidelobes and multi-bounce land here too); compare arm to arm")
     if not TAG:
         ax[1].annotate("ours leaks most here", xy=(2 - w, 11.2), xytext=(2.05, 34),
                    fontsize=10, color="tab:blue",

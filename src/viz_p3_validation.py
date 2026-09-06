@@ -97,8 +97,15 @@ def main():
     ax.text(3.75, -18.6, "level deficit", fontsize=8.6, color=C_OURS)
 
     ax.set_ylabel("$\\mu(f)$  = 10 log$_{10}\\,\\langle\\sigma\\rangle_\\phi$   [dBsm]")
-    ax.set_title("DJI Phantom 3 monostatic RCS vs frequency — our blind SBR+PO kernel "
-                 "against the only two measured datasets  (both are the same campaign)",
+    # ⛔ 종전 제목 「against the only two measured datasets」 는 코퍼스 범위·편수가 빠져
+    #    전수 부재(세상에 둘뿐)로 읽혔으므로 내렸다(2026-09-06). 레포 공용 표현
+    #    「보유 아카이브 218편 안에서」에 문구를 맞춘다.
+    #    218 = outputs/reference_library.json → counts.sionna_corpus_scanned_pdfs
+    #    (2026-07-31 집계, docs/REFERENCE_LIBRARY.md 의 전수 집계와 같은 수).
+    ax.set_title("DJI Phantom 3 monostatic RCS vs frequency — our blind SBR+PO kernel against "
+                 "the two measured $\\sigma(f)$ datasets\n"
+                 "found in our 218-PDF reference archive (Das and Yuan — both from the same "
+                 "campaign)",
                  loc="left", pad=9)
     ax.set_ylim(-29, -7)
     ax.legend(loc="lower right", fontsize=8.3, ncol=1, handlelength=2.4, labelspacing=0.32)

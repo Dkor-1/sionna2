@@ -203,7 +203,13 @@ def microdoppler_sbr(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None, prf=20000.0,
     #   그전까지 `sbr_field` 는 자세마다 표적 경계상자에서 격자 중심·반경·칸수를 다시
     #   잡았다. 프로펠러가 돌면 경계상자가 바뀌므로 **자(모눈종이)가 프레임마다 움직였고**,
     #   마이크로도플러는 «프레임 사이 위상차» 로 재는 양이라 그 움직임이 표적의 운동으로
-    #   기록됐다(시선방향 39.9 mm = 0.47 λ = 5.85 rad p-p 의 가짜 변조).
+    #   기록됐다 — **matrice4e · 3.5 GHz · az 0° / el −15° · 4096 자세 · λ/12 격자**에서
+    #   시선방향 39.9 mm = 0.47 λ = 5.85 rad p-p 의 가짜 변조.
+    #   ⚠ 이 크기는 기체·주파수·자세·격자에 딸린 값이다 — 다른 조건의 일반값으로 재인용하지 마라.
+    #   원장 `outputs/sbr_grid_freeze_review.json` 의 `R4_phase_only_arm.ctr_dot_u_ptp_mm`
+    #   = 39.886 · 같은 칸의 `ctr_dot_u_ptp_rad` = 5.852 (원자료는
+    #   `outputs/archive/sbr_grid_conv_parts/div012.npz` 의 `ctr_u`, 조건은
+    #   `outputs/report07_three_engines.json` 의 `_meta`: drone matrice4e · fc 3.5e9 · n 4096).
     #   ⭐결정적 증거 — 서로 안 가리는 로터의 PO 적분은 E = E₀ + Σ ΔE_j(φ_j) 로 정확히
     #     쪼개져야 하는데, 얼린 격자는 잔차 1e-15(기계정밀도), 움직이는 격자는 O(1) 이다.
     #     즉 물리적으로 결합할 수 없는 로터 사이에 결합을 지어냈다.

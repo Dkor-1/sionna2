@@ -63,7 +63,12 @@ def extract_clutter_paths(sc, tx_pos, rx_pos, max_depth=3, diffuse=True,
                           drop_los=True, top_k=80):
     """TX→RX 환경 다중경로(=cold 클러터) 추출 → **전력 상위 top_k 지배경로**.
 
-    확산산란은 수만 경로를 낳지만 대부분 −130 dB 이하로 무시가능 → 전력순 top_k 만 남긴다(공분산 tractable).
+    확산 경로는 수만 개가 나오지만 전력이 상위 경로 대비 한참 아래로 흩어진다 → 전력순
+    top_k(기본 80)만 남긴다(공분산을 다룰 수 있게).
+    ⛔2026-09-06 철회 — 전에 여기 적혀 있던 «대부분 −130 dB 이하로 무시가능» 은 내렸다.
+      씬·TX/RX 배치·주파수·재질 산란계수가 하나도 안 붙은 수였고 뒷받침할 원장이 없다
+      (outputs/ 에 report14 산출이 0 건). 문턱 dB 를 인용하려면 그 조건을 같이 적어라.
+      그리고 잘라낸 몫이 공분산을 얼마나 바꾸는지는 **아직 안 쟀다**.
     최단지연 경로 = 직접파 → `drop_los=True` 면 뺀다(클러터만; 직접파는 ECA/레퍼런스가 따로 처리)."""
     _reset_radios(sc)
     sc.add(Transmitter("tx", position=[float(x) for x in tx_pos]))

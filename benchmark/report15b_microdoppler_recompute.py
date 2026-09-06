@@ -260,7 +260,11 @@ def main():
         "enabled_by_ko": "src/articulated_fast.py (20,000배, 정점차 0.00e+00). "
                          "설계 출처는 선배 po_mdoppler/po_sim/mesh.py.",
         "spread_is_declared_ko": (
-            f"±{RPM_SPREAD_FRAC*100:.2f}% 는 선배 PX4 텔레메트리 실측(0.07~0.29%)의 중간값이다. "
+            f"±{RPM_SPREAD_FRAC*100:.2f}% 는 선배 PX4 **SITL**(소프트웨어 시뮬) 로그의 "
+            "모터 간 산포 0.07~0.29 % 안에서 고른 값이다 — 실기 텔레메트리가 아니고, "
+            "중앙값도 구간 중점(0.18 %)도 아니다. 같은 로그를 t≥5 s · 전 8 grade 로 다시 재면 "
+            "로터간 상대산포는 p50 0.26 % · p90 6.41 % 다"
+            "(docs/PRIOR_WORK_JIHYUCK.md : «보너스 — 로터 rpm 산포의 실제 분포»). "
             "우리 표적(Matrice 4E) 실측 로그가 오면 그 값으로 바꾼다."),
         "clean_axis_ko": "B↔E 가 단일축(동체 유무)이다. A↔C 는 가림 외에 엔진도 달라 단일축이 아니다.",
     }, "cells": {}}

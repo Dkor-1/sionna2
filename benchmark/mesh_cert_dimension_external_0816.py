@@ -465,9 +465,16 @@ def build_certificate() -> dict:
             "runner": "benchmark/adv_mesh_dimref_faults.py",
             "n_total": len(controls), "n_passed": sum(1 for c in controls if c["passed"]),
             "exit_code": int(rc),
-            "detection_floor_ko": ("전역 배율 결함은 ×1.002(0.2 %)부터 걸리기 시작하고 ×1.05 에서 "
-                                   "전 행이 걸린다. 작은 부품 행이 늦게 걸리는 이유는 U 가 그 부품 "
-                                   "크기의 1 % 보다 크기 때문이다 — 선언된 한계다."),
+            "detection_floor_ko": (
+                "⛔이전 판 «전역 배율 결함은 ×1.002(0.2 %)부터 걸리기 시작하고 ×1.05 에서 전 행이 "
+                "걸린다» 는 기체·행수를 안 붙여 인증서 전체의 탐지 하한처럼 읽혀 내렸다(2026-09-06). "
+                "사다리는 mini2 한 기체에만 돌렸다 — "
+                f"mini2 {summary['mini2']['n_rows']} 행(그중 «일치» {summary['mini2']['일치']} 행)에 "
+                "전역 배율을 먹인 결과이고, «전 행» 은 그 «일치» 행 전부라는 뜻이다. "
+                "사다리 원문(배율:적발행) — "
+                f"{next(c['detail'] for c in controls if '탐지 하한 사다리' in c['tag'])}. "
+                f"나머지 {len(summary) - 1} 기체와 이 인증서 {len(table)} 행 전체에서는 사다리를 "
+                "돌리지 않았으므로 이 하한은 그 행들에 대한 장담이 아니다."),
             "results": controls,
         },
 

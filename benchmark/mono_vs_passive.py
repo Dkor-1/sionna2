@@ -476,11 +476,15 @@ def sec2_freedom(refrate, sigma_json):
         coverage=cover,
         airframes_covered_by_monostatic_ceiling="%d/%d" % (n_air_cov, n_air),
         slowest_airframe_max_ms=float(min(speeds.values())),
-        verdict_ko=("⭐ 3.5 GHz 에서 **기준신호 레인의 천장은 {vc:.2f} m/s** 다. 공개된 기체 최고속도 "
-                    "중 가장 느린 것({sl:.1f} m/s)조차 못 덮는다({cov} 커버). 우리 장면속도 5 m/s 는 "
+        verdict_ko=("⭐ 3.5 GHz 에서 **기준신호 레인의 천장은 {vc:.2f} m/s** 다. 우리 제원표의 공개 기체 "
+                    "{n} 종(src/drones.py : DroneSpec.max_speed_ms · docs/drone_research.json) 중 "
+                    "가장 느린 것({sl:.1f} m/s)조차 못 덮는다({cov} 커버) — 전체 공개 기종에 대한 "
+                    "전칭이 아니다. 우리 장면속도 5 m/s 는 "
                     "천장에서만 덮이고(패시브 최선 합법설정 {vb:.2f} m/s 로는 못 덮는다), 15 m/s 는 "
-                    "천장으로도 못 덮는다. 즉 모노스태틱의 '자유'는 5 m/s 를 사는 데까지다."
-                    ).format(vc=v_ceiling, sl=min(speeds.values()),
+                    "천장으로도 못 덮는다. 즉 모노스태틱의 '자유'는 5 m/s 를 사는 데까지다. "
+                    "⛔전 판의 「공개된 기체 최고속도 중 가장 느린 것」은 이 {n} 종을 재서 전칭으로 "
+                    "올린 표현이라 내렸다(2026-09-06)."
+                    ).format(vc=v_ceiling, sl=min(speeds.values()), n=n_air,
                              cov="%d/%d" % (n_air_cov, n_air), vb=v_passive_best))
 
     # --- D3  반송파 축 — 밴드를 바꾸면 넘는가 -------------------------------- #
@@ -691,9 +695,12 @@ def sec2_freedom(refrate, sigma_json):
         answer_en=("Bounded, quantized, and smaller than the framing implies. The reference-signal "
                    "repetition rate is not a continuous design variable: it is a discrete ladder "
                    "of slot-multiples, capped by 3GPP at %g Hz for sub-6 CSI-RS. Against the "
-                   "passive default that is a factor of %.1f in v_max — real, but finite, and it "
-                   "still does not reach the slowest published airframe maximum at 3.5 GHz."
-                   % (prf_ceiling, freedom_ratio)),
+                   "passive default that is a factor of %.1f in v_max — real, but finite, and at "
+                   "3.5 GHz it still does not reach the slowest of the %d airframes in our own "
+                   "spec table (src/drones.py : DroneSpec.max_speed_ms, docs/drone_research.json), "
+                   "which tops out at %.1f m/s. The scope is that table, not every published "
+                   "airframe."
+                   % (prf_ceiling, freedom_ratio, n_air, min(speeds.values()))),
         freedom_ratio_v_max=freedom_ratio,
         freedom_is_quantized_to_n_steps=len(CSIRS_SLOTS),
         ladder_span_hz=[prf_floor_mono, prf_ceiling],
@@ -702,8 +709,9 @@ def sec2_freedom(refrate, sigma_json):
             "'모노스태틱은 PRF 를 자유롭게 고른다' — 틀렸다. 3GPP 가 sub-6 CSI-RS 에 500 Hz 천장을 "
             "걸었고 ⟨SRC.csirs_ceiling_500hz, LaSen 원문 인용⟩, 값은 슬롯 배수로 양자화된다.",
             "'그래서 모노스태틱이면 이 문제가 없다' — 틀렸다. 천장의 v_max 는 {v:.2f} m/s 로 "
-            "가장 느린 기체 최고속도({s:.1f} m/s)에도 못 미친다.".format(
-                v=v_ceiling, s=min(speeds.values())),
+            "우리 제원표의 공개 기체 {n} 종 중 가장 느린 최고속도({s:.1f} m/s)에도 못 미친다 "
+            "— 전체 공개 기종이 아니라 그 표 안에서다.".format(
+                v=v_ceiling, s=min(speeds.values()), n=n_air),
             "'모노스태틱은 송신을 멈추고 들으면 된다' — 틀렸다. 왕복지연이 심볼길이의 "
             "{p:.1%} 라 인밴드 전이중이 강제된다(D4).".format(
                 p=(2 * 100.0 / C0) / sym_s),

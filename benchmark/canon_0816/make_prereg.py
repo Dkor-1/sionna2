@@ -144,8 +144,17 @@ add("E2", "앵커 동일성 |Δ| [dB] (두 원장의 c_anchor)", 0.0, [0.0, 0.01
     "나란히 놓을 수 없다(MAP_SCALING §4-b)", "B_bar_dependent", unit="dB")
 add("E3", "ours A1↔A2 모양 드리프트 (el −30, 15→480 m) [dB]",
     gates["G9_a1_a2"]["rows"]["ours"]["max_shape_drift_db"], [0.0, 2.0],
-    "⭐원장에 240·480 m 판이 있다 — 헤드라인 판독거리(약 520~650 m)의 **87 %** 까지 "
-    f"연장선을 직접 검증할 수 있다. 예행 실측 "
+    f"⭐원장에 240·{gates['G9_a1_a2']['rows']['ours']['farthest_ledger_range_m']:.0f} m 판이 "
+    f"있다 — 헤드라인 판독거리(이 파일이 원장에서 계산한 ours R_read, 막대 2종 "
+    f"{Rg['ours']:.0f}~{Rn['ours']:.0f} m)의 "
+    f"**{gates['G9_a1_a2']['rows']['ours']['farthest_ledger_range_m'] / Rn['ours'] * 100:.0f}~"
+    f"{gates['G9_a1_a2']['rows']['ours']['farthest_ledger_range_m'] / Rg['ours'] * 100:.0f} %** "
+    "지점까지 연장선을 직접 대조할 수 있다. ⛔2026-09-06 정정 — 옛 판은 이 자리에 "
+    "«약 520~650 m 의 87 %» 라는 한 점을 적었다. 87 % 는 다른 규약의 판독거리 554 m"
+    "(총 σ 앵커 · 밴드 3.861, docs/RETRACTION_LOG.md «2026-08-16 (2)» 표)를 분모로 써야 "
+    "나오는 수라, 이 예측이 서 있는 밴드 4.616 규약에서는 검증 가능한 구간을 실제보다 "
+    "위쪽으로 좁혀 말한다. "
+    f"예행 실측 "
     f"{gates['G9_a1_a2']['rows']['ours']['max_shape_drift_db']} dB 로 밴드 4.616 안",
     "A_convention_free", unit="dB")
 add("E4", "ps_refr A1↔A2 모양 드리프트 (el −30, 15→240 m) [dB]",

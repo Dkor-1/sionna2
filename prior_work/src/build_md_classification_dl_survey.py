@@ -203,7 +203,14 @@ def main() -> None:
             {"order": 6, "item": "잡음 축을 곡선으로(F1 vs SNR)",
              "evidence": "Raval F1 vs SNR 규약 · Larrat 4종 잡음 · Malarvanan 펄스당 SNR"},
             {"order": 7, "item": "새(bird) 클래스 도입 전엔 난이도 비교 성립 안 함",
-             "evidence": "Molchanov 2014 이후 거의 전편이 새를 포함"},
+             # ⛔이전 판 「Molchanov 2014 이후 거의 전편이 새를 포함」은 §3-1 표가 뒷받침하지
+             #   않아 내렸다(2026-09-06). 아래 수는 그 표에서 직접 센다 — 손으로 적지 않는다.
+             "evidence": (
+                 f"본표 {len(classification)}편 중 "
+                 f"{sum(1 for _p in classification if re.search('새|[Bb]ird|버드', json.dumps(_p, ensure_ascii=False)))}"
+                 f"편이 새(바이오닉버드 포함) 클래스를 둔다 — 나머지는 새 없이 드론끼리·사람·차량과 "
+                 f"가른다(명단: 이 원장 table_classification_papers 에서 '새'·bird·버드 로 잡히는 행)"
+             )},
         ],
         "not_found": [
             "CNN-LSTM / CRNN 하이브리드 — 검증 39편에 0편(시계열 결합은 Larrat 의 4종 병렬 비교뿐)",

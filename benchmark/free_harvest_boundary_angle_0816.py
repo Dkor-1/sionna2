@@ -891,14 +891,18 @@ def make_figure(cells, mech) -> str:
                      color="#8a0000" if m["flicker_excess_db"] > 3 else "#333333",
                      fontweight="bold" if m["flicker_excess_db"] > 3 else "normal")
     axD.axvspan(-15, 0, color="#f2c14e", alpha=0.30, zorder=1)
-    axD.annotate("at 0 deg the moving echo is not the rotors:\nit is body-occlusion flicker,"
-                 " 52 dB louder", (-52, -97), ha="center", va="center", fontsize=10.4,
+    _m0 = next((m for m in mech if m["el_deg"] == 0.0), None)
+    _x0 = "%+.1f" % _m0["flicker_excess_db"] if _m0 else "?"
+    axD.annotate("at 0 deg the whole scene sits " + _x0 + " dB above the rotors-only scene:\n"
+                 "what shakes is not the rotors themselves. WHICH body-rotor mechanism does\n"
+                 "it (occlusion flicker? body-blade multipath?) is NOT settled here.",
+                 (-52, -100), ha="center", va="center", fontsize=9.6,
                  color="#8a0000")
     axD.annotate("elsewhere the two curves sit on top of each other:\n"
                  "what moves is exactly the rotors", (-52, -146), ha="center", va="center",
                  fontsize=10.4, color="#333333")
     axD.set_ylabel("DC-removed AC level [dB]")
-    axD.set_title("(d) Why it drowns: only the frontal cell has a non-rotor driver")
+    axD.set_title("(d) Only the frontal cell has a contribution from outside the rotors")
     axD.set_ylim(-156, -84)
     axD.legend(loc="center right", framealpha=0.95)
 

@@ -494,7 +494,10 @@ def a1_a2_drift(inv: dict, ledger_npz=LEDGER_NPZ, prf=19700.0, f_flash=126.66666
                 el=-30.0, band_db_by_el=None) -> dict:
     """⭐연장선(A1)은 15 m 모양을 얼린 축이다. 원장에 30·60·120·**240·480 m** 판이
     있으므로 «얼린 모양이 그 거리에서도 맞나» 를 **직접** 잴 수 있다.
-    판독 한계(554 m 언저리)에 가장 가까운 검증점이 480 m 다 — 본판은 이것을 쓴다."""
+    판독 한계(우리 커널 · el −30 · ⛔**이전 판 예산**(EIRP 30 dBm · NF 5 dB · 손실 0 dB)
+    위의 554 m ⟨benchmark/link_budget_spec.py:1062 · outputs/noise_distance_frame.json⟩ —
+    정본 예산으로 옮기면 ×0.546 ≈ 303 m ⟨docs/LINK_BUDGET.md §1⟩)에 가장 가까운 검증점이
+    480 m 다 — 본판은 이것을 쓴다."""
     z = np.load(ledger_npz)
     rows = {}
     for c in inv["cells"]:

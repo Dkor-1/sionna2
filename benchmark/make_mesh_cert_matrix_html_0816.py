@@ -187,9 +187,17 @@ def main() -> int:
     A("</tbody></table></div></section>")
 
     # ── 범주 지도 ───────────────────────────────────────────────────────────
-    A('<section><h2>범주 지도 — 결함이 있을 수 있는 자리 20칸</h2>')
+    A(f'<section><h2>범주 지도 — 결함이 있을 수 있는 자리 {len(c["category_map"])}칸</h2>')
     A('<p class="note">메쉬는 (정점 · 삼각형 · 그룹 라벨) 셋과, 그것을 만든 빌더 입력, 그 라벨을 뜻으로 바꾸는 '
-      '바깥 표 — 모두 다섯 상태뿐이라 결함은 그중 하나에 반드시 나타난다. 그래서 이 목록이 닫혀 있다.</p>')
+      '바깥 표 — 모두 다섯 상태뿐이라 결함은 그중 하나에 담긴다. 그래서 이 «범주 목록» 이 닫혀 있다 — '
+      '닫힌 것은 범주이지 검사의 촘촘함이 아니다. 한 범주 안에서 검사가 얼마나 촘촘한가는 예산 값과 '
+      '양성 대조의 강도가 정한다(논증 원문과 그 한계: '
+      '<span class="mono">outputs/mesh_cert_map_0816.json :: closure_argument · '
+      'what_this_argument_does_not_prove_ko</span>). '
+      f'지금 {len(c["category_map"])} 칸 중 «부분» 은 '
+      f'{sum(1 for m in c["category_map"] if m["status_now"] == "부분")} 칸'
+      f'({", ".join(m["id"] for m in c["category_map"] if m["status_now"] == "부분")}) 인데, '
+      '이것은 목록의 빠짐이 아니라 그 칸에 양성 대조가 아직 없다는 뜻이다.</p>')
     A('<div class="scroll"><table class="rows"><thead><tr><th>범주</th><th>무엇</th><th>이 매트릭스의 행</th>'
       '<th>지금</th></tr></thead><tbody>')
     for m in c["category_map"]:

@@ -105,7 +105,7 @@
    "Directly counted with fitz: /data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf -> 'Sionna' 0 times, 'physical optics' 1, 'dBsm' 6.",
    "Every UAV-RCS measurement paper in the archive (Semkin, Ezuma, the 3GPP RCS-modelling papers, the PTD/SBR method papers) sits in the 80 that never mention Sionna."
   ],
-  "so_what": "Nobody in these archives has put a measured or full-wave UAV signature and a Sionna-based tracer in the same paper. Ziganshin is the only author who joins a target signature to Sionna at all, and his target is a CAR."
+  "so_what": "Within the 220 unique PDF basenames in these archives, exactly one lineage (Ziganshin, two documents) computes a target signature INSIDE a Sionna-based tracer, and that target is a CAR. LAMBDA (2607.03826) does put a full-wave UAV signature and a Sionna-based tracer in the same paper, but by INJECTION: CADFEKO computes the UAV RCS off-line and that RCS term multiplies the Sionna RT path coefficients, queried by UAV attitude - see the LAMBDA record in this file and P1_signature_routes.INJECTED_EXTERNAL. ⛔ Withdrawn wording: 'Nobody in these archives has put a measured or full-wave UAV signature and a Sionna-based tracer in the same paper. Ziganshin is the only author who joins a target signature to Sionna at all.' LAMBDA, cited in this same file, is the counterexample. Computed-inside-the-tracer and injected-from-an-external-solver have to be said separately."
  },
  "P1_signature_routes": {
   "route_definitions": {
@@ -206,7 +206,7 @@
       "q": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information to generate radar data."
      }
     ],
-    "why_it_matters_for_us": "The clearest published statement that Sionna cannot produce a UAV signature: the authors pay for a commercial full-wave licence to fill the hole. Our position is that we compute the signature ourselves instead of buying it - which is a real contribution, but only if our absolute level is defensible (P5), and theirs is CADFEKO's.",
+    "why_it_matters_for_us": "LAMBDA splits the job: Sionna RT for propagation, CADFEKO for the UAV RCS (p3, p4, p7). The paper does not state why. What is observable is the construction, not a capability claim about the engine: the stock tracer's own target amplitude was not used as-is. That construction is circumstantial support for our problem statement. Our position is that we compute the signature ourselves instead of importing it - which is a real contribution, but only if our absolute level is defensible (P5), and theirs is CADFEKO's. ⛔ 2026-09-06: the earlier wording here read 'The clearest published statement that Sionna cannot produce a UAV signature: the authors pay for a commercial full-wave licence to fill the hole' - pulled because it read an engine capability gap out of a tool choice, called that inference a published statement, and carried a superlative.",
     "validated_absolute_level": "NO - the paper reports no comparison of its RCS against measurement or another solver anywhere."
    },
    {
@@ -1384,7 +1384,7 @@
  ],
  "twelve_things_worth_carrying_into_the_reports": [
   "Ziganshin journal p1: 'This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.' - a published, citable objection to our exact architecture.",
-  "LAMBDA p3: Sionna RT for propagation, CADFEKO for RCS, stated in one sentence. The clearest evidence that the hole we are filling is real.",
+  "LAMBDA p3: Sionna RT for propagation, CADFEKO for RCS, stated in one sentence (repeated p4 and p7). The paper gives no reason for the split; the construction itself is circumstantial support for our problem statement, not a statement about what the engine can do. ⛔ 2026-09-06: 'The clearest evidence that the hole we are filling is real' pulled - superlative over a single case, and it turned a tool choice into evidence about the engine.",
   "Clutter-Aware ISAC p20: drone meshes imported into Sionna, stock materials, and 'dBsm' 0 times in 36 pages - at Proceedings of the IEEE level.",
   "2605.07623 p8: 'The UAV is modeled as a metallic cube.'",
   "2604.08306 p2: 'The bi-static RCS relies on the assumption that the target is a point scatterer.'",

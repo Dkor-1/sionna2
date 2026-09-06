@@ -537,7 +537,7 @@ def fig_envelope(mm: dict):
                  fontsize=14, fontweight="bold")
     _cap(fig, "Left: each frame is scaled per axis until its bounding box equals the official DJI unfolded L x W x H (propellers excluded). 0.00 % is a constraint we imposed, not evidence.\n"
               f"Middle: the real test. The 400 mm diagonal that circulated for the Mavic 4 Pro has no source and is geometrically impossible with a 267 mm propeller; the published envelope forces {dm:.0f} mm, and an independent adversarial re-check landed on ~440 mm.\n"
-              f"Right: the Matrice 4E is the only DJI drone that publishes BOTH the envelope and the diagonal. We fitted only the envelope, and the diagonal came out {abs(100*(got-off)/off):.1f} % low ({got:.0f} vs {off:.1f} mm). That is a genuine, method-independent check.")
+              f"Right: of the {len(DKEYS)} airframes in this report's registry ({', '.join(DKEYS)}), the Matrice 4E is the only one for which DJI publishes BOTH the envelope and the diagonal -- we did not survey DJI's full model line. We fitted only the envelope, and the diagonal came out {abs(100*(got-off)/off):.1f} % low ({got:.0f} vs {off:.1f} mm). That is a genuine, method-independent check.")
     return _save(fig, "report1_envelope.png")
 
 

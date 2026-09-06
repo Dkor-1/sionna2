@@ -56,6 +56,28 @@ HATCH = {"WiFi80": "", "LTE20": "//", "NR100": "xx"}
 
 #: ⭐ 논문에 그대로 붙일 **완결 문장** 캡션(PAPER_SPEC §4.3).
 #  빌더가 같은 문자열을 `figure_md(paper_caption=…)` 로 실어 `outputs/paper_kit.json` 에 모은다.
+
+#  ⭐ 캡션에 들어갈 수는 손으로 치지 않는다 — ECA 원장에서 그때그때 읽는다.
+with open(os.path.join(ROOT, "outputs", "verify_eca.json"), encoding="utf-8") as _f:
+    _ECA = json.load(_f)
+_ECA_S1 = _ECA["S1_depth_vs_taps"]
+
+
+def _eca_sat_taps(rows, tol_db: float = 1.0) -> int:
+    """가장 큰 스윕 탭(96)의 깊이에서 tol 안으로 들어와 **그 뒤로 계속 머무는** 최소 탭 수."""
+    rows = sorted(rows, key=lambda r: r["n_taps"])
+    floor = rows[-1]["depth_full_db"]
+    for i, r in enumerate(rows):
+        if all(abs(q["depth_full_db"] - floor) <= tol_db for q in rows[i:]):
+            return int(r["n_taps"])
+    return int(rows[-1]["n_taps"])
+
+
+_ECA_SAT = max(_eca_sat_taps(s["rows"]) for s in _ECA_S1)
+_ECA_FLOOR = [max(r["depth_full_db"] for r in s["rows"]) for s in _ECA_S1]
+_ECA_NCL = "/".join(str(n) for n in sorted({int(s["n_clutter"]) for s in _ECA_S1}))
+_ECA_DRONE = str(_ECA["meta"]["drone"])
+
 PAPER_CAPTIONS: dict[str, str] = {
     "f1_chain":
         "Passive bistatic detection chain applied identically to all three illuminators: "
@@ -67,10 +89,17 @@ PAPER_CAPTIONS: dict[str, str] = {
     #    광선추적 모의로 만든 클러터에서 재었다
     #    (`outputs/verify_eca.json : meta.setups[*].clutter_src == "RT"`).
     #    맥락이 사라진 지면에서 「measured」는 실측 환경에서 잴 바닥으로 읽힌다.
+    # ⛔ 「rather than by the number of taps」·「more than twenty decibels」도 내렸다
+    #    (2026-09-06) — 탭이 적은 쪽에서는 탭이 깊이를 지배한다(원장 S1_depth_vs_taps 는
+    #    탭 1 에서 2.8 dB 로 시작한다). 클러터 산포를 흔든 대조군이 없으므로 바닥을 탭과
+    #    무관하다고 말할 수 있는 구간은 포화 뒤뿐이고, 포화 탭·바닥·클러터 표본은 위에서
+    #    원장으로 계산한다.
     "f2_eca_depth":
-        "ECA cancellation depth saturates at a floor set by the simulated (ray-traced, "
-        "not measured) multipath environment rather than by the number of taps, and "
-        "that floor differs by more than twenty decibels across the three waveforms.",
+        f"ECA cancellation depth grows with the number of taps up to about {_ECA_SAT} taps and "
+        f"then saturates at a floor set by the simulated (ray-traced, not measured) multipath of "
+        f"this one scene - {_ECA_NCL} clutter paths, airframe {_ECA_DRONE}, one bistatic geometry, "
+        f"with no run here that varies the clutter spread. Across the three waveforms that floor "
+        f"spans {min(_ECA_FLOOR):.1f} to {max(_ECA_FLOOR):.1f} dB.",
     "f3_eca_notch":
         "The ECA zero-Doppler notch removes target energy inside one Doppler bin for all "
         "three waveforms, and the resulting minimum detectable radial speed is set by the "

@@ -284,7 +284,12 @@ def fig_doppler_mesh(outdir=FIG, target="matrice4e"):
     # 두 공식은 제목에서 빼고 캡션 한 줄로(패널 제목·축라벨이 각각의 물리량을 이미 말한다)
     fig.supxlabel("Doppler " r"$f_d=2v/\lambda$" " · max unambiguous "
                   r"$v_{\max}=\mathrm{PRF}\cdot\lambda/4$ (mono-equiv)"
-                  " — only the LTE CRS rate clears typical drone speeds",
+                  # 「only」 는 물리가 아니라 아래 가정한 반복률에서 나온다. 반복률은 전형적
+                  # 배치값이고 설정가변이라(waveforms.PILOT_RATE_HZ 주석) 캡션이 그 조건을 말한다.
+                  " — at the assumed pilot rates (WiFi 1 kHz congested-AP packet rate,"
+                  " LTE CRS 1 kHz, 5G PRS 200 Hz typical config, 5G SSB 50 Hz;"
+                  " all configuration-dependent — src/waveforms.py PILOT_RATE_HZ),"
+                  " only LTE CRS clears 19~25 m/s",
                   fontsize=8.5, color="0.45")
 
     # (좌) 드론 메쉬 + 속도 화살표

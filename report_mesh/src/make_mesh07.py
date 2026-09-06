@@ -721,15 +721,25 @@ cells.append(md(
     "",
     f"← 출처: `{CANON_LEDGER}` `prop_triangles`(프롭 그룹 삼각형만, 엣지 잣대는 §6 표와 같다).",
     "",
-    f"**프롭은 함대에서 가장 잘게 쪼개진 부위다** — p95 가 λ 의 "
+    f"**프롭은 기체 전체보다 잘게 쪼개져 있다** — p95 가 λ 의 "
     f"{min(PROPTRI[k]['edge_vs_lam']['p95_over_lam'] for k in ORDER):.2f}~"
-    f"{max(PROPTRI[k]['edge_vs_lam']['p95_over_lam'] for k in ORDER):.2f}배,",
-    f"최장 엣지도 {max(PROPTRI[k]['edge_vs_lam']['max_over_lam'] for k in ORDER):.2f}λ 를 안 넘는다"
+    f"{max(PROPTRI[k]['edge_vs_lam']['p95_over_lam'] for k in ORDER):.2f}배이고, 기체 전체는 "
+    f"{min(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}~"
+    f"{max(A[k]['edge_vs_lam52']['p95_over_lam'] for k in ORDER):.2f}배다"
+    f" (← 출처: 같은 JSON §A_geometry edge_vs_lam52).",
+    f"프롭의 최장 엣지도 {max(PROPTRI[k]['edge_vs_lam']['max_over_lam'] for k in ORDER):.2f}λ 를 안 넘는다"
     f"(가장 성긴 쪽이 {NAME[max(ORDER, key=lambda k: PROPTRI[k]['edge_vs_lam']['max_over_lam'])]},"
     f" 가장 촘촘한 쪽이 {NAME[min(ORDER, key=lambda k: PROPTRI[k]['edge_vs_lam']['max_over_lam'])]}).",
     f"삼각형 수로 보면 프롭이 기체 전체의 "
     f"{min(PROPTRI[k]['share_pct'] for k in ORDER):.0f}~{max(PROPTRI[k]['share_pct'] for k in ORDER):.0f} %"
     " 를 차지한다 — 날이 곡면이라 잘게 쪼개야 하기 때문이다.",
+    "",
+    "**부위 사이의 순위는 모른다.** 부위별로 갈라 잰 엣지 통계는 이 원장에 프롭 축"
+    "(`prop_triangles`)뿐이고, §A_geometry 는 프롭까지 포함한 기체 전체 값이다. 그래서 "
+    "«프롭 < 기체 전체» 는 말할 수 있어도 «프롭이 부위 중 가장 잘다» 는 말할 수 없다.",
+    "",
+    "⛔ **정정(2026-09-06).** 옛 판은 «프롭은 함대에서 가장 잘게 쪼개진 부위다» 라고 적었다. "
+    "비교 상대(다른 부위들의 엣지 통계)가 원장에 없는 최상급이라 내렸다.",
     "",
     f"**현재 한계 — 최장 엣지는 λ 를 넘는다** (예: S1000+ 최장 {A['s1000plus']['edge_mm']['max']:.0f} mm"
     f" = {A['s1000plus']['edge_vs_lam52']['max_over_lam']:.1f}λ ← 출처: 같은 JSON). 이 긴 엣지들은",
@@ -839,9 +849,14 @@ cells.append(md(
     "",
     f"s1000plus 를 뺀 {len(ORDER) - 1}종이 {min(v for k, v in ovp.items() if k != 's1000plus'):.0f}~"
     f"{max(ovp.values()):.0f} % 씩 겹친다. 셸형 기체의 1위는 예외 없이 battery–body — 예컨대 Mavic 4 Pro 의",
-    f"배터리 겹침 {mav_batt_ov['overlap_cm3']:.0f} cm³ 는 배터리 부피 {mav_batt_vol:.0f} cm³ 와",
-    "같다. 즉 **배터리가 몸체 안에 100% 묻혀 있다** — 실물이 그렇듯이 ← 출처: §F_overlap.mavic4pro",
-    "pairs[0] vs §D_volume.mavic4pro.volume_cm3.battery.",
+    f"우리 메쉬에서는 배터리 겹침 {mav_batt_ov['overlap_cm3']:.0f} cm³ 가 배터리 부피 "
+    f"{mav_batt_vol:.0f} cm³ 와 같다. 즉 **배터리가 몸체 부피에 100 % 들어 있다** ← 출처: "
+    "§F_overlap.mavic4pro pairs[0] vs §D_volume.mavic4pro.volume_cm3.battery.",
+    "**실물이 그런지는 대조하지 않았다** — 원장이 잰 것은 우리 메쉬의 부피 겹침뿐이다.",
+    "",
+    "⛔ **정정(2026-09-06).** 옛 판은 «배터리가 몸체 안에 100% 묻혀 있다 — 실물이 그렇듯이 ← 출처: "
+    "§F_overlap» 처럼 한 문장에 붙여, 원장이 재지 않은 실물 쪽까지 원장 출처 표시를 얻었다. "
+    "메쉬 이야기와 실물 이야기를 두 문장으로 갈랐다.",
     "",
     f"**S1000+ 만 {ovp['s1000plus']:.2f}%로 거의 0** 인 이유도 실물 구조 그대로다: 이 기체는 중앙",
     "허브에 팔·랜딩기어를 **볼트로 덧다는**(bolt-on) 산업용 프레임이라, 부위들이 서로 파고들 일 없이",

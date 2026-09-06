@@ -7,16 +7,24 @@
 
 ■ 왜 넓게 보면 값어치가 있나
     블레이드 끝 속도가 정하는 **물리 상한**은 f_tip = 1272.9·cos(el) Hz 다.
-    그 **위에 있는 에너지는 블레이드 도플러일 수 없다** — 인공물이다.
-    지금까지 430~1229 Hz 만 봐서 그 인공물을 **아예 못 보고 있었다.**
+    그 **위에 있는 에너지는 블레이드 회전 도플러로는 설명되지 않는다.**
+    ⛔여기서 «인공물이다» 로 넘어가지 않는다 — 그것은 운동학 상한이 아니라 **귀속**이고,
+      귀속(격자 표본화 잡음 · 근접장 곡률 · 가림 · 창 누설)은 따로 잰다
+      ⟨outputs/refute_nadir_mechanism_final.json : R5_detection.nadir_ac_split⟩.
+    지금까지 430~1229 Hz 만 봐서 그 자리를 **아예 못 보고 있었다.**
     관찰 상한은 나이퀴스트 PRF/2 = 9,850 Hz 다.
 
-    ⭐이 그림이 새로 주는 것: **«물리 상한 위로 새는 에너지 비율»** 이라는 잣대.
-      엔진을 가르는 데 대역 안 에너지보다 강력하다(아래 §숫자 참조).
+    ⭐이 그림이 새로 주는 것: **«물리 상한 위로 새는 에너지 비율»** 이라는 잣대를 하나 더 낸다.
+      ⛔«대역 안 에너지보다 강력하다» 는 비교는 내렸다(2026-09-06) — 기체·앙각·거리·팔 수도,
+        분리도 같은 잣대도 없고 두 축의 단위가 dB 대 몫으로 달라 저장소 안에 이 비교를
+        뒷받침하는 계산이 없다. 두 잣대가 칸마다 어느 쪽으로 얼마나 갈리는지는
+        원장 `outputs/wideband_energy.json` 의 `cells["<팔>/<앙각>"]` 에서
+        `"500-f_tip"`(dB) 과 `"above_f_tip_frac"`(몫) 을 나란히 놓고 읽는다 —
+        앙각에 따라 두 축의 격차 순서가 뒤집히는 칸도 있다(아래 §숫자).
 
 ■ 무엇을 그리나 (3 단)
     (a) 앙각별 **전대역 스펙트럼** — x 축을 f_tip 으로 정규화해 겹친다.
-        x = 1 이 물리 상한. 그 오른쪽은 전부 인공물이다.
+        x = 1 이 물리 상한. 그 오른쪽은 블레이드 회전 도플러로 설명되지 않는 자리다.
     (b) **대역별 에너지 몫** — 0~500 / 500~f_tip / f_tip~2·f_tip / 2~4·f_tip / 4·f_tip~나이퀴스트
     (c) ⭐**물리 상한 위로 새는 비율 대 앙각** — 팔마다. 낮을수록 좋다.
 
@@ -80,8 +88,12 @@ def main() -> None:
         "generator": "benchmark/build_wideband_energy_fig.py",
         "question_ko": "관찰범위를 물리 상한 위까지 넓히면 무엇이 보이나",
         "prf_hz": prf, "nyquist_hz": nyq, "f_tip_el0_hz": FTIP0,
-        "physical_limit_ko": ("f_tip = 1272.9·cos(el) 가 날개끝 속도가 정하는 상한이다. "
-                              "그 위의 에너지는 블레이드 도플러일 수 없다 — 인공물이다."),
+        "physical_limit_ko": (f"f_tip = {FTIP0:.1f}·cos(el) 가 날개끝 속도가 정하는 상한이다. "
+                              "그 위의 에너지는 블레이드 회전 도플러로는 설명되지 않는다. "
+                              "⛔«인공물이다» 는 여기서 따라 나오지 않는다 — 귀속(격자 표본화 "
+                              "잡음 · 근접장 곡률 · 가림 · 창 누설)은 따로 잰다: "
+                              "outputs/refute_nadir_mechanism_final.json : "
+                              "R5_detection.nadir_ac_split."),
         "normalisation_ko": "전부 그 팔의 전체 전력 대비 몫. 팔 사이 레벨은 비교하지 않는다.",
         "incomplete_excluded_ko": "n_missing > 0 인 행은 제외했다(부분 병합은 시계열에 0 이 박힌다).",
     }, "cells": {}}
@@ -161,8 +173,9 @@ def main() -> None:
             ax[2].plot(leak_el[arm], leak[arm], "o-", color=col, label=label)
     ax[2].set_xlabel("elevation [deg]")
     ax[2].set_ylabel("energy above f_tip [% of total]")
-    ax[2].set_title("(c) Leakage above the physical limit — lower is better "
-                    "(no blade Doppler can exist there)")
+    ax[2].set_title("(c) Energy above the kinematic limit - this measure also counts\n"
+                    "window leakage and multi-bounce, so read it arm to arm,\n"
+                    "not as an absolute amount of artefact")
     ax[2].grid(alpha=0.3); ax[2].legend(fontsize=8)
     ax[2].set_ylim(0, None)
 

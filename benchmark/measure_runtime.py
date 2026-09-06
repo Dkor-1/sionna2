@@ -834,6 +834,10 @@ def section_answer():
              hardware="not stated", measures="'several hours' per simulation (p.8)"),
     ]
 
+    # 우리가 인용하는 스톡 Sionna 공개값의 폭 — 손으로 치지 않고 사다리에서 뽑는다
+    pub_ms = sorted(1e3 * float(d["per_pose_s"][0]) for d in ladder
+                    if d["what"].startswith("stock Sionna RT solve"))
+
     # 같은 카드 위 스톡 Sionna — 하드웨어 변수를 없앤 유일한 비교
     sk = _RESULT.get("stock_sionna_same_card") or {}
     sk_ok = [r for r in sk.get("rows", []) if "solve_s" in r]
@@ -894,10 +898,15 @@ def section_answer():
         ],
         verdict=("ANSWERABLE, with the ratio conceded. The objection is right that in OUR "
                  "implementation PO dominates ray casting "
-                 f"(PO/RT = {po_over_rt:.0f}x at production batch); it is wrong that this negates "
-                 "RT's advantage in practice, because the absolute per-pose cost lands at or below "
-                 "stock Sionna's own published per-solve cost, and because the published "
-                 "GPU-resident SBR+PO breakdown puts the PO integral at 1.9–6.5% of ray launch."),
+                 f"(PO/RT = {po_over_rt:.0f}x at production batch); what it does not settle is the "
+                 "absolute cost, which lands in the same band as stock Sionna's own published "
+                 f"per-solve cost (our median {np.median(pp):.0f} ms against a published "
+                 f"{pub_ms[0]:.0f}–{pub_ms[-1]:.0f} ms; our worst pose {pp.max():.0f} ms is above "
+                 "the largest published value), and the published GPU-resident SBR+PO breakdown "
+                 "puts the PO integral at 1.9–6.5% of ray launch. "
+                 "⛔ 2026-09-06: the earlier wording 'the absolute per-pose cost lands at or below "
+                 "stock Sionna's own published per-solve cost' was pulled — this same file records "
+                 f"a worst pose of {pp.max():.0f} ms, above the largest published value it cites."),
         cost_structure=dict(
             rt_trace_pct=rt_pct, handoff_d2h_pct=ho_pct, po_integral_pct=po_pct,
             host_side_pct=host_pct, po_over_rt=po_over_rt,

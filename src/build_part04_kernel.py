@@ -11,7 +11,13 @@ build_part04_kernel.py — 부 4 「산란 커널」 → 편 18~23
     19 kernel-vs-stock      스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고,
                             우리 커널 런타임의 96.9% 는 호스트가 쓴다
     20 bistatic-exit        수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다
-    21 kernel-vs-reference  해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다
+    21 kernel-vs-reference  해석 PO 구 대비 구현오차는 kr 전 구간에서 λ/16 격자 0.201 dB ·
+                            생산 λ/12 격자 0.254 dB 안이다
+                            ⛔ 목차에 λ/16 한 값만 적던 줄은 2026-09-06 에 내렸다 — 실제
+                              편 제목(아래 `title=`)은 이미 두 격자를 병기한다. 두 수는
+                              ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po ·
+                                summary_div12.max_abs_db_vs_po⟩ 를 옮겨 적은 대조용이고,
+                              렌더되는 제목은 같은 키를 f-string 으로 뽑는다.
     22 po-knee              PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서
                             떨어지는지가 보인다
     23 kernel-open-items    커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·Γ(θ) 배선

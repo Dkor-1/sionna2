@@ -32,7 +32,12 @@ viz_mesh_photo.py — **사진 vs 현재 메쉬**, 실루엣 겹침을 숫자로
 지표에는 **눈금**이 붙어 있다
 ---------------------------
 기체마다 자기 메쉬로 만든 가짜 사진을 같은 파이프라인에 넣어 **상한**을 잰다(`calibrate`).
-가는 암·블레이드 때문에 상한은 1.0 이 아니고, 자세가 1° 어긋나면 IoU 가 0.09 떨어진다.
+가는 암·블레이드 때문에 상한은 1.0 이 아니다 — 기체별 상한이 **0.864~0.957** 로 갈린다
+(원장 `outputs/mesh_compare_photo.json` 의 `_meta.metric_calibration.<기체>.recovered_iou`, 7 기체).
+1° 자세오차의 낙차는 **어느 기준선으로 재느냐에 따라 다르다**: 자기 상한 대비면
+−0.01 ~ +0.05 로 기체마다 부호까지 갈리고(matrice4e −0.014 · phantom4 −0.010 은 오히려 오른다),
+1.0 기준으로 재면 0.070~0.145 다(같은 원장의 `...sensitivity.pose_off_deg['1.0']`).
+한 숫자만 떼어 인용하지 말고 기준선과 기체 산포를 같이 적어라 —
 `_meta.metric_calibration` 의 민감도 표가 사진 IoU 를 읽는 기준선이다.
 
 무엇을 만드나
@@ -1645,6 +1650,11 @@ def calibrate(key="mini5pro", shape=(430, 640), n_final=1_200_000, n_fit=150_000
     fit, _free = fit_pose(pr["parts"], ref, shape, pr["span"], pr["centre"],
                           declared=(az, el), window_deg=WINDOW_DEG, want_free=False)
     m, _mm, _g = measure_pair(A["parts"], ref, shape, A["span"], A["centre"], A["groups"], fit)
+    # ⭐ reading 문장이 쓸 두 기준선을 미리 뽑는다 — 기준이 다른 수를 한 사다리에 잇지 않기 위해.
+    #    sens["same_pose_other_sample"] = 같은 자세를 다른 표본으로 다시 렌더한 값(진짜 상한).
+    #    m["iou"] = 탐색이 되찾은 적합값. 자세·배율 오차가 붙어 있으므로 상한이 아니다.
+    _pose_err = view_angle(fit["azim"], fit["elev"], az, el)
+    _scale_err = 100.0 * (fit["scale_px_per_m"] / s0 - 1.0)
     out = dict(
         airframe=key,
         purpose="같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
@@ -1656,10 +1666,16 @@ def calibrate(key="mini5pro", shape=(430, 640), n_final=1_200_000, n_fit=150_000
         pose_error_deg=view_angle(fit["azim"], fit["elev"], az, el),
         scale_error_pct=100.0 * (fit["scale_px_per_m"] / s0 - 1.0),
         sensitivity=sens,
-        reading=(f"An exact copy of the mesh scores {m['iou']:.3f} here. One degree of pose "
-                 f"error takes it to {sens['pose_off_deg']['1.0']:.3f} and one percent of "
-                 f"scale error to {sens['scale_off_pct']['1.0']:.3f}: arms and blades a few "
-                 f"pixels wide make this metric steep."),
+        reading=(f"Re-rendering the same pose from a different sample of the same mesh scores "
+                 f"{sens['same_pose_other_sample']:.3f} - that is the ceiling of this metric. "
+                 f"The fit the search recovered scores {m['iou']:.3f}, at a pose error of "
+                 f"{_pose_err:.2f} deg and a scale error of {_scale_err:+.2f} %, so it is a "
+                 f"recovered fit and not the ceiling. Starting from the true pose, one degree "
+                 f"of pose error takes the score to {sens['pose_off_deg']['1.0']:.3f} and one "
+                 f"percent of scale error to {sens['scale_off_pct']['1.0']:.3f}: arms and "
+                 f"blades a few pixels wide make this metric steep. Recovered fits from "
+                 f"different runs carry different pose errors, so they are not comparable "
+                 f"with each other."),
         runtime_s=round(time.time() - t0, 1))
     if verbose:
         print(f"  🎚  지표 눈금({key}): 자기자신 IoU {m['iou']:.3f}, "

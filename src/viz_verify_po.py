@@ -256,7 +256,8 @@ def fig_po_diagnostic(outdir=FIG):
     ax2.set_title("Phase test on the sphere\n(the quantity micro-Doppler reads)", fontsize=11)
     ax2.grid(axis="y", alpha=0.25)
 
-    fig.suptitle("A flat plate cannot test the PO kernel — only a sphere can", fontsize=15)
+    fig.suptitle("At normal incidence a flat plate is an identity, not a test — "
+                 "it takes a sphere plus a phase probe", fontsize=13.5)
     _caption(fig,
         "Left: the same five kernels are evaluated on a flat plate at normal incidence and on a PEC sphere, each against its "
         "analytic reference (plate 4πA²/λ²; sphere: the closed-form PO integral, which our discrete kernel must reproduce). "

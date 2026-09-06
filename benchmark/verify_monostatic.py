@@ -1139,19 +1139,38 @@ def run_all(smoke=False, n_geom=2000, verbose=True):
                   fairness=("same EIRP/G_rx/NF, same T_CPI, same alt/speed, same sigma grid, "
                             "same measured SNR90, same d grid, SAME PRF — the monostatic PRF "
                             "freedom is a separate axis quantified in mono_vs_passive.json")),
+        # ⛔ 종전 머리기사 「정확히 … = 87.3 dB」 는 조건이 빠져 87.3 dB 가 기하와 무관한 상수처럼
+        #    읽혔으므로 내렸다(2026-09-06). exactly 가 뜻하는 것은 **표적거리 무관성**이지 값의
+        #    유일성이 아니다 — 같은 닫힌형이 이 파일이 함께 쓰는 L∈fss.BASELINES × 3밴드 격자에서
+        #    35 dB 남짓 흔들린다. 격자값은 손으로 적지 않고 아래에서 그대로 계산해 끼운다.
         headline_ko=(
             "모노스태틱 검출 시나리오를 세워 두 기하를 같은 함수·같은 σ·같은 문턱으로 나란히 놓았다. "
             "**도플러 모호 바닥은 안 바뀌고**(v_max=λPRF/4, 모노는 β=0 절편), **링크는 바뀐다**"
-            "(1/R⁴ ↔ 1/(R1²R2²), 그리고 기준채널이 자기간섭으로 대체되며 그 격차가 정확히 "
-            "20log10(4πL/λ)−G_rx = %.1f dB). 두 효과를 섞지 않는 것이 이 검증의 요점이다."
-            % v3["reference_channel"]["gap_closed_form_db"]),
+            "(1/R⁴ ↔ 1/(R1²R2²), 그리고 기준채널이 자기간섭으로 대체되며 그 격차가 **표적거리와 "
+            "무관하게** 20log10(4πL/λ)−G_rx 로 닫힌다 — L=%.0f m 헤드라인 베이스라인·3.5 GHz·"
+            "G_rx=%.0f dBi 에서 %.1f dB, 이 파일이 함께 쓰는 L∈%s m × 3밴드 격자에서는 %.1f~%.1f dB). "
+            "두 효과를 섞지 않는 것이 이 검증의 요점이다."
+            % (v3["reference_channel"]["link_budget"]["baseline_m"],
+               v3["reference_channel"]["link_budget"]["rx_gain_dbi"],
+               v3["reference_channel"]["gap_closed_form_db"],
+               tuple(int(_L) for _L in fss.BASELINES),
+               min(_GAP_GRID_DB := [20.0 * np.log10(4.0 * np.pi * _L / (C0 / _band_of(_m)[3]))
+                                    - v3["reference_channel"]["link_budget"]["rx_gain_dbi"]
+                                    for _L in fss.BASELINES for _m in MODES]),
+               max(_GAP_GRID_DB))),
         headline_en=(
             "A monostatic detection scenario now exists and is compared to the bistatic one with the "
             "same functions, the same sigma grid and the same measured threshold. The Doppler "
             "ambiguity floor does NOT change (monostatic is the beta = 0 slice of our law); the link "
             "budget DOES (1/R^4 instead of 1/(R1^2 R2^2), and the reference channel is replaced by "
-            "self-interference, harder by exactly 20 log10(4 pi L / lambda) - G_rx = %.1f dB)."
-            % v3["reference_channel"]["gap_closed_form_db"]),
+            "self-interference, harder by 20 log10(4 pi L / lambda) - G_rx, which is %.1f dB at the "
+            "headline baseline L = %.0f m, 3.5 GHz, G_rx = %.0f dBi and spans %.1f-%.1f dB over the "
+            "L x band grid this same file sweeps. 'Exactly' refers to the gap being independent of "
+            "target range, not to it being a single number)."
+            % (v3["reference_channel"]["gap_closed_form_db"],
+               v3["reference_channel"]["link_budget"]["baseline_m"],
+               v3["reference_channel"]["link_budget"]["rx_gain_dbi"],
+               min(_GAP_GRID_DB), max(_GAP_GRID_DB))),
         V1_geometry_equivalence=v1,
         V2_doppler_floor_unchanged=v2,
         V3_link_budget_changed=v3,

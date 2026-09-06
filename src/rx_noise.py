@@ -4,7 +4,8 @@ rx_noise.py — 링크버짓 기반 **수신 잡음 모듈** + 탐지 곡선 파
 ==========================================================================
 
 역할 하나: 커널이 낸 **모양·위상**(복소 슬로타임 열 E)에 **절대 눈금**과 **열잡음**을 입혀
-«거리 R 에서 날개 무늬 리듬 몫이 잡음선(≈13 %)에 닿는 지점» 을 낸다.
+«거리 R 에서 날개 무늬 리듬 몫이 백색잡음 바닥선에 닿는 지점» 을 낸다
+(바닥선은 물리가 아니라 창 폭 규약이 정한다 — 아래 «탐지 잣대» 절).
 
 ■ ⭐절대 눈금 규약 — 커널의 15 m 규약과 정면으로 마주 본다
   우리 커널(sbr_field)은 (i) 구면파 **조명**(range_m)으로 위상 곡률만 넣고
@@ -32,8 +33,15 @@ rx_noise.py — 링크버짓 기반 **수신 잡음 모듈** + 탐지 곡선 파
 
 ■ 탐지 잣대 — «구조» 지표 (benchmark/build_deck_maps.structure_bars 규약)
   상한(f_tip·cos 규약은 호출자 소관) 위 에너지 중 f_flash 정수배(±hw)에 붙은 몫 [%].
-  백색잡음 ≈13 %, 이상적 로터 100 %. 세기가 아니라 구조라 눈금 무관 — 그래서
-  잡음이 이길수록 13 % 로 내려간다. 탐지 곡선 = 몫(R) 이 잡음선에 닿는 R.
+  ⚠이 몫의 «백색잡음 바닥» 은 데이터의 성질이 아니라 **창 폭 규약이 정하는 기하값**이다 —
+  바닥 ≈ 2·hw/f_flash. matrice4e(f_flash 126.67 Hz)에서 hw 8 Hz → 12.6 %, hw 2 Hz → 3.2 %,
+  hw 32 Hz → 50.5 % 로 손잡이 하나에 처음부터 끝까지 움직인다
+  (docs/RETRACTION_LOG.md R29 · 원장 outputs/rhythm_share_knob_audit_0825.json 의
+   «기하학적 바닥 2hw/f_flash» 열).
+  그러므로 «백색잡음 ≈13 %» 는 hw=8 Hz · f_flash=126.67 Hz 한 칸의 값이고, 이상적 로터 100 %
+  역시 같은 창 규약 안에서의 값이다. 세기에 무관하다는 뜻이지 **손잡이에 무관하다는 뜻이 아니다**.
+  ⛔리듬 몫의 크기는 머리기사 수치로 인용하지 않는다(R29). 방향(잡음이 이길수록 바닥으로
+  내려간다)만 쓴다. 탐지 곡선 = 몫(R) 이 그 바닥선에 닿는 R.
 """
 from __future__ import annotations
 
@@ -227,12 +235,20 @@ def detection_curve(E, fc: float, prf: float, f_flash: float, *,
         R_grid_m=[round(float(r), 2) for r in R_grid],
         _meta=dict(
             generator="src/rx_noise.py:detection_curve",
-            question_ko="거리 R 에서 날개 리듬 몫이 잡음선(≈13 %)에 닿는 지점",
+            question_ko=(f"거리 R 에서 날개 리듬 몫이 백색잡음 바닥선에 닿는 지점 "
+                         f"(바닥 = 2·hw/f_flash = {200.0 * float(hw_hz) / float(f_flash):.1f} %"
+                         f" — hw {float(hw_hz):.3g} Hz · f_flash {float(f_flash):.4g} Hz 규약)"),
             convention=dict(
                 scale="σ_ref 문헌 앵커 재보정 — 커널 15 m 구면파 조명은 위상 곡률뿐, "
                       "1/R⁴ 은 레이더 방정식에서만(이중계상 아님)",
                 noise="N = kT0·F·PRF (풀캡처 v2, B 약분)",
-                metric="rhythm share (build_deck_maps.structure_bars 규약, 백색잡음≈13 %)",
+                metric=(f"rhythm share (build_deck_maps.structure_bars 규약). "
+                        f"백색잡음 바닥은 물리가 아니라 창 폭 규약이 정하는 기하값 "
+                        f"2·hw/f_flash = {200.0 * float(hw_hz) / float(f_flash):.1f} % "
+                        f"(hw {float(hw_hz):.3g} Hz, f_flash {float(f_flash):.4g} Hz). "
+                        f"hw 를 흔들면 바닥이 3 %↔50 % 로 움직인다 — "
+                        f"docs/RETRACTION_LOG.md R29 · outputs/rhythm_share_knob_audit_0825.json. "
+                        f"⛔크기는 머리기사 수치로 인용하지 않는다"),
                 arm="A1(잡음만) — 근접장 모양 변화(A2)는 E 재계산으로 합류"),
             fc_hz=float(fc), prf_hz=float(prf), f_flash_hz=float(f_flash),
             f_above_hz=(1.5 * f_flash if f_above is None else float(f_above)),
