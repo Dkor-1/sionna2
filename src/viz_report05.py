@@ -4,7 +4,7 @@ viz_report05.py — 리포트 05(검출 결과)의 그림 8장을 만든다
 ==========================================================================
 입력은 전부 `outputs/*.json` 이고, 이 스크립트는 **읽기만** 한다(실험을 다시 돌리지 않는다).
 
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report05.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report05.py
 
 출력: `outputs/figures/report05_f{1..8}_*.png`
 

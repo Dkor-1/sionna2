@@ -18,7 +18,7 @@ pilot_blade_law_0816.py — 새 날 법칙이 **얼마나 큰가**를 먼저 재
     날끼리의 가림은 무시된다.
   · 두 법칙 모두 |Γ|=prop_plastic 0.25 로 같으므로, **차이[dB]** 에는 재질이 안 들어간다.
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/pilot_blade_law_0816.py
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/pilot_blade_law_0816.py
 산출: outputs/pilot_blade_law_0816.json
 GPU 미사용(PO 는 numpy CPU).
 """

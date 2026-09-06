@@ -16,7 +16,7 @@ extract_part_docs.py — 부 6·7·11 의 **논문 조각**과 **재현 절차**
 
 실행
     cd /workspace/sionna
-    ~/.venvs/py312/bin/python src/extract_part_docs.py
+    /workspace/.venvs/py312/bin/python src/extract_part_docs.py
 """
 from __future__ import annotations
 

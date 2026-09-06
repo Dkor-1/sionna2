@@ -21,7 +21,7 @@ hit_triangle_0903.py — 같은 줄이 여러 번 적히는 «횟수» 가 무�
 
 쓰는 법
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=benchmark \\
-        ~/.venvs/py312/bin/python benchmark/hit_triangle_0903.py --dumps <dir> ...
+        /workspace/.venvs/py312/bin/python benchmark/hit_triangle_0903.py --dumps <dir> ...
 """
 from __future__ import annotations
 

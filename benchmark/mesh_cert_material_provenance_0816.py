@@ -14,7 +14,7 @@ mesh_cert_material_provenance_0816.py — **재질 배정·재질 상수·출처
 
 ⛔GPU 미사용(CPU만) · ⛔git 미접촉 · ⛔형상·재질 상수 무변경(읽기만 한다).
 실행: cd sionna && CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark \
-        ~/.venvs/py312/bin/python benchmark/mesh_cert_material_provenance_0816.py
+        /workspace/.venvs/py312/bin/python benchmark/mesh_cert_material_provenance_0816.py
 """
 from __future__ import annotations
 

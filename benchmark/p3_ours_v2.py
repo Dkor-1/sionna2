@@ -14,7 +14,7 @@ el=0(=Yuan θ90 방위면) 하나뿐이므로 여기서는 그것만 돌린다. 
 
 실행:
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/p3_ours_v2.py
+  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/p3_ours_v2.py
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.join(ROOT, "benchmark"))
 
 OUT = os.path.join(ROOT, "outputs", "p3_ours_v2.json")
 PARTS = os.path.join(ROOT, "outputs", "partial", "p3_v2")
-PY = os.path.expanduser("~/.venvs/py312/bin/python")
+PY = os.path.expanduser("/workspace/.venvs/py312/bin/python")
 
 N_FREQ = 61
 FREQS = np.linspace(1.8, 18.2, N_FREQ)

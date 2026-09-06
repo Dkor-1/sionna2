@@ -18,7 +18,7 @@
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_above_tip_fig.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_above_tip_fig.py
 """
 from __future__ import annotations
 

@@ -13,7 +13,7 @@ tm_envs.py — 표적모형(target-model) 비교를 태울 **환경 축** 확정
 ⚠ outputs/report13_sigma_grid.json · outputs/rcs_anchor.json 은 07-31 메쉬 개편 이전 산출물이라 낡았다.
    여기서는 **절대 σ 레벨을 인용하지 않는다** — meta 만 읽어 낡음을 기록한다.
 
-실행: SIONNA2_GPU=0 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/tm_envs.py
+실행: SIONNA2_GPU=0 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/tm_envs.py
 """
 from __future__ import annotations
 

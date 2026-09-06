@@ -30,7 +30,7 @@ make_report06_measurement.py — 리포트 06 「실측」 빌더  →  report06
 
 실행
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py
+  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/make_report06_measurement.py
 
 읽는 것 (전부 저장소에 이미 있는 산출물)
   outputs/report06_measurement.json  ← benchmark/plan_measurement.py
@@ -828,10 +828,10 @@ def blocks(J) -> list:
                 ("04", "명목 Pfa 를 경험 Pfa 로 교정하는 절차"),
                 ("05", "자유공간 탐지 결과가 서 있는 기하")],
         repro=dict(
-            cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c "
+            cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/plan_measurement.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python -c "
                  "\"import sigma_anchor as S; S.write_measurement_plan()\"",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "src/make_report06_measurement.py"],
             out=["outputs/report06_measurement.json", "outputs/measurement_plan.json",
                  "outputs/report06_derived.json"],

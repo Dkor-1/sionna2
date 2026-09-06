@@ -43,7 +43,7 @@ prop_thickness.py — **프로펠러 날 두께를 기종별로, 우리 메쉬�
     (감사 판정보류 ?2 — 두 추정이 0.99 ↔ 1.40 mm 로 1.41 배 벌어진다).
   · 그러므로 여기 숫자는 «우리 형상 법칙이 함의하는 두께» 이고, 실물 앵커링은 별개 축이다.
 
-실행:  cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행:  cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
          benchmark/measure_prop_thickness_by_drone.py
 산출:  outputs/prop_thickness_by_drone.json   (이 파일의 `load_ledger()` 가 읽는다)
 GPU 미사용 — numpy·trimesh CPU 만 쓴다.

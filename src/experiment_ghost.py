@@ -26,7 +26,7 @@ experiment_ghost.py — [탐색용·미결론] RT 유령을 검출 채널에 주
   진폭     = 표적 에코 × 10^(ghost_db/20) (≈ −18 dB)
   도플러   = fd_true × (fd_ghost/fd_true)  (JSON 비율 — 표적경유라 ECA 를 통과한다)
 
-실행:  SIONNA2_DET_K=4000 ~/.venvs/py312/bin/python src/experiment_ghost.py
+실행:  SIONNA2_DET_K=4000 /workspace/.venvs/py312/bin/python src/experiment_ghost.py
 출력:  outputs/detection_ghost.json
 """
 from __future__ import annotations

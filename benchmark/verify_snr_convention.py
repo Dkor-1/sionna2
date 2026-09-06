@@ -39,7 +39,7 @@ verify_snr_convention.py — ⭐**SNR 규약 v2 게이트**: 옛 동작 보존 +
        특히 헤드라인 경로(`abs_noise=True`)에서 `snr_db` 가 **죽은 인자**임을 비트동일로 증명.
 
 실행 (CPU 수 초, GPU 불필요)
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_snr_convention.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_snr_convention.py
 산출: outputs/verify_snr_convention.json
 """
 from __future__ import annotations

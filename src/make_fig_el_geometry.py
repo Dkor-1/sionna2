@@ -20,7 +20,7 @@ make_fig_el_geometry.py — 권 16 절 1 의 **기하 한 장** → outputs/figu
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_fig_el_geometry.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_fig_el_geometry.py
 """
 from __future__ import annotations
 

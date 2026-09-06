@@ -24,7 +24,7 @@ make_jobs_0903b.py — 2026-09-03 에 파헤친 것에서 곧장 나오는 물�
   · `--inmem` 은 기본값이라 줄에 안 적어도 된다(2026-08-29) — 그래도 명시해 둔다
 
 쓰는 법
-    CUDA_VISIBLE_DEVICES="" ~/.venvs/py312/bin/python runners/make_jobs_0903b.py > runners/jobs_0903b_new.txt
+    CUDA_VISIBLE_DEVICES="" /workspace/.venvs/py312/bin/python runners/make_jobs_0903b.py > runners/jobs_0903b_new.txt
 """
 from __future__ import annotations
 

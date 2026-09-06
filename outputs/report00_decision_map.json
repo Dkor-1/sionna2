@@ -2,7 +2,7 @@
  "_meta": {
   "file": "outputs/report00_decision_map.json",
   "title": "리포트 00 F4 — 무엇을 Sionna 만으로 할 수 있고, 어디서 표적 항이 필요해지는가",
-  "generated": "2026-08-04 04:56:09",
+  "generated": "2026-09-06 08:05:06",
   "generator": "benchmark/build_report00_decision_map.py",
   "reads": [
    "outputs/report00_evidence.json",
@@ -167,7 +167,7 @@
      "text_en": "sphere vs plate: 31.29 dB"
     }
    ],
-   "why_ko": "같은 재질·같은 정면면적에서도 모양만으로 31 dB 가 갈린다 — 반사계수로는 못 가른다.",
+   "why_ko": "같은 재질·같은 정면면적 0.7854 m² 에서 3.5 GHz 정면입사로 구와 평판을 비교하면 31.29 dB 갈린다(각도·밴드가 바뀌면 값이 달라진다) — 반사계수로는 못 가른다.",
    "evidence_src": "outputs/report00_evidence.json:C_same_material_different_shape.numbers.shape_gap_db"
   },
   {
@@ -230,20 +230,11 @@
    "id": "I11",
    "zone": "Z4",
    "label_en": "Mesh fidelity budget for a drone target",
-   "note_en": "specular-only echo collapses with facets",
-   "evidence": "evidence:_meta.headline.drone_collapse_db",
-   "badges": [
-    {
-     "prefix_en": "collapse over the facet sweep:",
-     "value": 49.02111307779948,
-     "fmt": "{:.1f}",
-     "unit": "dB",
-     "src": "outputs/report00_evidence.json:_meta.headline.drone_collapse_db",
-     "text_en": "collapse over the facet sweep: 49.0 dB"
-    }
-   ],
-   "why_ko": "실루엣이 유지돼도 정반사 채널만으로는 49 dB 가 무너진다 — 면적분이 있어야 메쉬 예산을 잴 수 있다.",
-   "evidence_src": "outputs/report00_evidence.json:_meta.headline.drone_collapse_db"
+   "note_en": "specular path count steps the amplitude",
+   "evidence": "evidence:B_facet_count_sweep.numbers.step_2to1_facet_db",
+   "badges": [],
+   "why_ko": "형상 판정을 통과하는 구간에서 정반사 경로가 2 → 1 로 줄면 진폭이 −6.02 dB 로 계단을 진다(해석값 −6.02). 면적분이 있어야 메쉬 예산을 잴 수 있다. ⛔옛 «49.02 dB 붕괴» 는 리포트 02-2 가 철회했다.",
+   "evidence_src": "outputs/report00_evidence.json:B_facet_count_sweep.numbers.step_2to1_facet_db"
   }
  ],
  "footer_en": "The split is the radar equation's own: propagation is the engine's term, target scattering is a separate one."

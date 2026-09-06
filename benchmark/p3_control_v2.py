@@ -11,7 +11,7 @@
       CPU 로 돌린다. ⭐ 커널 등가성은 `cube_vol_v1`(구판과 같은 한 변 132.7 mm) 를 함께
       계산해 p3_attack 의 +6.94 dB 를 재현하는지로 **직접 검증**한다.
 
-실행:  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/p3_control_v2.py
+실행:  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/p3_control_v2.py
 """
 from __future__ import annotations
 

@@ -26,7 +26,7 @@
 
 ⛔GPU 를 쓰지 않는다. CUDA_VISIBLE_DEVICES="" 로 돌린다.
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/outdoor_scene_0901.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/outdoor_scene_0901.py
 """
 import json
 import os

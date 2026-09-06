@@ -27,7 +27,7 @@ copies_id_0903.py — el 0° 에서 «같은 줄이 몇 번 적히나» 이고, 
 
 쓰는 법
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=benchmark \\
-        ~/.venvs/py312/bin/python benchmark/copies_id_0903.py --dumps <dir> <dir> ...
+        /workspace/.venvs/py312/bin/python benchmark/copies_id_0903.py --dumps <dir> <dir> ...
 """
 from __future__ import annotations
 

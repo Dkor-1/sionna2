@@ -16,7 +16,7 @@ adv_mesh_check_faults.py — **검사기를 검사한다**: 일부러 나쁜 메
   · 음성 대조: 손대지 않은 메쉬는 **통과해야** 한다 (거짓경보가 아님을 보인다)
   · 양성 대조: 결함을 넣은 메쉬는 **걸려야** 한다 (실제로 본다는 것을 보인다)
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/adv_mesh_check_faults.py
       ⛔ GPU 안 쓴다. 파일도 안 쓴다(읽기만 + 화면 출력).
       나가는 값: 전부 잡으면 0, 하나라도 놓치면 1.

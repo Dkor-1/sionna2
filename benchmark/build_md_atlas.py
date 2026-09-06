@@ -63,7 +63,7 @@ build_md_atlas.py — 앙각 스윕 원장의 **모든 팔**을 그림으로 굽
 
 돌리는 법
 --------
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_md_atlas.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_md_atlas.py
     …                       benchmark/build_md_atlas.py --topics switch airframe
     …                       benchmark/build_md_atlas.py --force        # 다시 굽기
 

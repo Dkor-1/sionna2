@@ -26,7 +26,7 @@ build_part01_stock_engine.py — 부 1 「스톡 엔진이 하는 일과 안 하
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part01_stock_engine.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part01_stock_engine.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다.
 """
@@ -157,7 +157,7 @@ def report_01_stock_says():
                 ("파장·크기", "밴드 세 개의 λ 와 기체 대각을 같은 원장에 적어 둔다 — "
                              "«파장의 몇 배인가» 가 뒤따르는 모든 편의 축이다"),
             ],
-            repro=_repro(["~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py"],
+            repro=_repro(["/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py"],
                          [SURVEY], "약 1분 (CPU 만 쓴다)",
                          "아카이브 파일이름은 v1 이지만 내용은 Version 1.2 다 "
                          "— 그 함정을 근거 JSON 이 `filename_trap` 으로 들고 있다"),

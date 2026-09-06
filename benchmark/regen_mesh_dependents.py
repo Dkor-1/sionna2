@@ -300,7 +300,7 @@ def print_dropped() -> None:
     for label, cmd, out, why in DROPPED:
         print(f"  · {label:24s} {out}")
         print(f"    {'':24s} 이유: {why}")
-        print(f"    {'':24s} 실행: PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python {cmd}")
+        print(f"    {'':24s} 실행: PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python {cmd}")
     print("\n  근거: docs/REBUILD_2026-07-30.md §3 (챔버·바닥유령·마이크로도플러 제외 결정)")
 
 

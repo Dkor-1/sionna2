@@ -22,7 +22,7 @@ thread_ladder_0903.py — 흔들림이 «병렬 순서» 때문인가.
 
 쓰는 법
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark \\
-        ~/.venvs/py312/bin/python benchmark/thread_ladder_0903.py --reps 5
+        /workspace/.venvs/py312/bin/python benchmark/thread_ladder_0903.py --reps 5
 """
 from __future__ import annotations
 

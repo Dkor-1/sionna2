@@ -45,7 +45,7 @@ sigma_anchor.py — 측정 앵커 σ(f) 레이어. 표준화 문헌의 분해형
 
 실행 (GPU 불필요 — 이미 계산된 outputs/*.json 만 읽는다):
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python src/sigma_anchor.py
+  PYTHONPATH=src:benchmark SIONNA2_CPU=1 /workspace/.venvs/py312/bin/python src/sigma_anchor.py
 """
 from __future__ import annotations
 

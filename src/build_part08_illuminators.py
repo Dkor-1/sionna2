@@ -3,7 +3,7 @@
 build_part08_illuminators.py — 부 8 「조명원」 7편(44~50)을 짓는다
 ==========================================================================================
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part08_illuminators.py
 
 산출
     reports/44_illuminators.ipynb       상시이면서 내용을 미리 아는 신호는 표준마다 하나씩 있다
@@ -56,10 +56,10 @@ FIG = "../outputs/figures"
 STDS = ("wifi", "lte", "nr")
 
 CMD_ALL = ["cd /workspace/sionna",
-           "~/.venvs/py312/bin/python src/viz_report2.py",
-           "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
-           "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/report4_fixups.py",
-           "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"]
+           "/workspace/.venvs/py312/bin/python src/viz_report2.py",
+           "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+           "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/report4_fixups.py",
+           "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part08_illuminators.py"]
 
 
 def W1(k, f=None, u=""):

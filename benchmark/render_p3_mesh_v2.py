@@ -19,7 +19,7 @@ render_p3_mesh_v2.py — Phantom 3 **재제작 메쉬** 온전성 렌더 (2026-0
 
 실행
   cd /workspace/sionna
-  SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/render_p3_mesh_v2.py
+  SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/render_p3_mesh_v2.py
 """
 from __future__ import annotations
 

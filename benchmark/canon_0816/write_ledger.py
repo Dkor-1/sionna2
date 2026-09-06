@@ -118,6 +118,6 @@ d["front_metal_mirror"] = {
     },
 }
 
-json.dump(d, open("/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/part1.json", "w"),
+json.dump(d, open("/workspace/sionna/benchmark/canon_0816/data/part1.json", "w"),
           ensure_ascii=False, indent=1)
 print("part1 ok")

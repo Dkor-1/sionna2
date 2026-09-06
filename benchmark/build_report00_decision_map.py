@@ -25,7 +25,7 @@ build_report00_decision_map.py — 00편 F4「할 수 있는 것 / 없는 것」
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_decision_map.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_report00_decision_map.py
 """
 from __future__ import annotations
 

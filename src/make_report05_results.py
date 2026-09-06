@@ -2,7 +2,7 @@
 """
 make_report05_results.py — 리포트 05(검출 결과) 노트북 생성기
 ==========================================================================================
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report05_results.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report05_results.py
 
 산출: `report05_results.ipynb`. 그림은 `src/viz_report05_paper.py` 가 만든 **게재 규격**
 7장(벡터 PDF + 400 dpi PNG)을 끼운다(없으면 이 스크립트가 먼저 그린다).
@@ -780,25 +780,25 @@ def build_blocks(D: dict):
         repro=dict(
             cmd=["cd /workspace/sionna",
                  "# ① σ 격자(자세 × 밴드)",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+                 "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
                  "# ② 검지거리 4단계 — 기종마다 1회(결과는 add-only 로 쌓인다)",
                  "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
-                 "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+                 "  PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
                  "    --stage all --mode W1,L1,G1 --drone $D; done",
                  "# ③ 기하·규약 게이트 · 레이더 방정식 항등식 · β 창",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_freespace.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/verify_sbr_defect_fixes.py",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_linkbudget.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_linkbudget.py",
                  "# ④ 파형 9모드 × 수신소자 N 몬테카를로",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+                 "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_detection.py",
                  "# ⑤ σ 민감도(순위 강건성) · 5G 도플러 가드 CPI 스윕",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
                  "# ⑥ 앵커 재보정 · 게재규격 그림 7장 · 이 노트북(+ report05_derived.json)",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report05_paper.py",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report05_results.py"],
+                 "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/sigma_anchor.py",
+                 "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report05_paper.py",
+                 "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report05_results.py"],
             out=[J_FS, J_SG, J_RX, J_VF, J_LB, J_DF, J_AN, J_SS, J_CG, J_DV],
             runtime="① 워커 CPU " + DV.num("runtime.sigma_grid_s", None, "{:.0f}", "s")
                     + " · ② 기종당 " + DV.num("runtime.range_per_drone_s", None, "{:.0f}", "s")

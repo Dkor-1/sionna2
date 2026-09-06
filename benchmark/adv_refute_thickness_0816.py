@@ -16,7 +16,7 @@ adv_refute_thickness_0816.py — **두께 주장 반증 전담** (2026-08-16)
   ⑤ PO 커널이 실제로 쓰는 프롭 |Γ| 가 **몇 mm 짜리 슬래브에 해당하는지** 역산한다.
 
 ⛔ GPU 미사용(numpy·trimesh CPU) · 저장소 코드 무변경 · git 무접촉.
-실행:  cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행:  cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
          benchmark/adv_refute_thickness_0816.py
 산출:  outputs/mesh_adv_refute_thickness_0816.json
 """

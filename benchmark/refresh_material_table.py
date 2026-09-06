@@ -21,7 +21,7 @@
 
 실행
 ----
-  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/refresh_material_table.py
+  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/refresh_material_table.py
   → outputs/report1.json 의 chamber.materials · chamber.table · _provenance.materials 갱신
 """
 from __future__ import annotations

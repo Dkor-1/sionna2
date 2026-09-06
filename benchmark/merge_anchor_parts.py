@@ -20,7 +20,7 @@ merge_anchor_parts.py — 기종별로 쪼개 돌린 `rcs_anchor` 조각들을 �
   즉 5개 조각이 서로를 검증한다. 어긋나면 그것 자체가 발견이므로 **경고하고 산포를 기록**한다.
 
 실행:
-  ~/.venvs/py312/bin/python benchmark/merge_anchor_parts.py <조각디렉터리> [--out outputs/rcs_anchor.json]
+  /workspace/.venvs/py312/bin/python benchmark/merge_anchor_parts.py <조각디렉터리> [--out outputs/rcs_anchor.json]
 """
 from __future__ import annotations
 

@@ -46,7 +46,7 @@
    사라진다. **이것은 회절을 꺼도 난다** — 자리가 다르다.
 
     CUDA_VISIBLE_DEVICES=3 DRJIT_LIBOPTIX_PATH=... LD_LIBRARY_PATH=... \
-      ~/.venvs/py312/bin/python benchmark/minrepro_hash_0902.py
+      /workspace/.venvs/py312/bin/python benchmark/minrepro_hash_0902.py
 """
 import numpy as np
 

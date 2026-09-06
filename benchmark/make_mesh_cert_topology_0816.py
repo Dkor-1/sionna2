@@ -13,7 +13,7 @@ make_mesh_cert_topology_0816.py — **위상·이산화 인증서**를 만든다
     ④ 전수 측정 + 회귀 봉인: 기종 10대의 실측값과 **지문**(sha256). 형상이 바뀌면 지문이 바뀐다
     ⑤ ⭐못 하는 것        : 이 인증서가 **장담하지 않는** 범위
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/make_mesh_cert_topology_0816.py
       ⛔ GPU 안 쓴다 · ⛔형상 상수 안 건드린다 · 쓰는 파일은 위 JSON 하나뿐이다.
 """

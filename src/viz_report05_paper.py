@@ -2,7 +2,7 @@
 """
 viz_report05_paper.py — 리포트 05(결과편)의 **게재 규격** 그림
 ==========================================================================================
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report05_paper.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report05_paper.py
 
 출력: `outputs/figures/report05_pf{1..7}_*.pdf` + 같은 이름의 400 dpi PNG.
 

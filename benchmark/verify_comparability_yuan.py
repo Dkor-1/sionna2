@@ -14,7 +14,7 @@
 
 실행 (GPU 불필요):
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python benchmark/verify_comparability_yuan.py
+  PYTHONPATH=src:benchmark SIONNA2_CPU=1 /workspace/.venvs/py312/bin/python benchmark/verify_comparability_yuan.py
 """
 from __future__ import annotations
 

@@ -17,7 +17,7 @@ build_part06_ladder.py — 부 6 「표적 사다리」 → reports/30~33_*.ipyn
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part06_ladder.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part06_ladder.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
 """
@@ -77,7 +77,7 @@ OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽�
 FIG = "../outputs/figures"
 
 REPRO = dict(
-    cmd="PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py",
+    cmd="PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py",
     out=[SYN],
     runtime="약 3 초 (CPU — 저장된 위상표 후처리)")
 
@@ -749,10 +749,10 @@ def blocks_33() -> list:
             ],
             prereq=GATE,
             repro=dict(
-                cmd=["PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_tautology.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_kernel.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_detector.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py"],
+                cmd=["PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_tautology.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_kernel.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_verify_detector.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report16_synthesis.py"],
                 out=[VT, VK, VD, SYN],
                 runtime="약 40 분 (GPU 1장 — 커널 렌즈의 가림 재계산이 대부분)"),
         ),

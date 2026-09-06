@@ -17,7 +17,7 @@ adv_material_provenance_faults.py — **재질·출처 검사기를 검사한다
   · 한계 선언: 못 잡는 것은 **못 잡는다고** 적는다(가짜 통과보다 빈칸이 낫다)
 
 실행: cd sionna && CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark \
-        ~/.venvs/py312/bin/python benchmark/adv_material_provenance_faults.py
+        /workspace/.venvs/py312/bin/python benchmark/adv_material_provenance_faults.py
       ⛔GPU 안 쓴다 · 파일도 안 쓴다(읽기 + 화면 출력) · 저장소 상태를 안 바꾼다
         (원장·표를 건드리는 시험은 전부 **사본**이거나 `try/finally` 로 되돌린다).
       나가는 값: 전부 잡으면 0, 하나라도 놓치면 1.

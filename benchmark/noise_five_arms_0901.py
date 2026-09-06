@@ -11,7 +11,7 @@
    (규약이 갈리면 옛 판과 못 잇는다).
 
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark \\
-      ~/.venvs/py312/bin/python benchmark/noise_five_arms_0901.py
+      /workspace/.venvs/py312/bin/python benchmark/noise_five_arms_0901.py
 """
 import json
 import os

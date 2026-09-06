@@ -17,7 +17,7 @@ build_deck_maps.py — 0818 팀미팅 덱이 쓸 **마이크로도플러 맵**�
   · 패널마다 자기 최댓값으로 정규화한다. 그래서 **판 사이 레벨 비교는 이 그림 밖**이다.
   · 겹침 금지 — 제목·라벨·주석이 서로 물리지 않는지 눈으로 본다([[figure-and-plain-language]]).
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_deck_maps.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_deck_maps.py
 """
 from __future__ import annotations
 

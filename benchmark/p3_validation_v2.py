@@ -13,7 +13,7 @@
 
 ⚠ 구판 outputs/p3_ours.json · outputs/p3_validation.json 은 **읽기만 한다**.
 
-실행:  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/p3_validation_v2.py
+실행:  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/p3_validation_v2.py
 """
 from __future__ import annotations
 

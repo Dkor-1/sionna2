@@ -26,7 +26,7 @@ measure_mini2_prop_thickness.py — **DJI 공식 3D 모델에서 프로펠러 �
     **비스듬히** 잘리고, 그래서 두께가 커 보인다. 이 파일은 그 구간을 따로 표시한다.
   · Mini 2 는 소형기다. 큰 프롭(S1000 급)은 이보다 두껍다 — 기종을 넘겨 쓰지 말 것.
 
-실행:  PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/measure_mini2_prop_thickness.py
+실행:  PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/measure_mini2_prop_thickness.py
 GPU 미사용 — trimesh·numpy·scipy 만 쓴다.
 """
 from __future__ import annotations

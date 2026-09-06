@@ -30,7 +30,7 @@
     outputs/refrate_law.json
     outputs/figures/refrate_law_f{1,2,3}_*.{png,pdf}    (그림 텍스트 전부 영어)
 
-실행:  cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/refrate_law.py
+실행:  cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/refrate_law.py
        빠른 확인:  --smoke   (그림 생략)
 """
 from __future__ import annotations

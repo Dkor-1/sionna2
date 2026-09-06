@@ -12,7 +12,7 @@ import trimesh
 from scipy.spatial import ConvexHull
 
 GLB = "/workspace/sionna/assets/meshes/reference/WM161_zhankai_1k.glb"
-OUT = "/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/dji_blade_raw.json"
+OUT = "/workspace/sionna/outputs/_adv_pitch_tip_0816/dji_blade_raw.json"
 P_NOM_M = 2.6 * 0.0254        # 0.06604 m
 
 

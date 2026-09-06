@@ -12,7 +12,7 @@ make_legacy_map.py — 옛 편·옛 빌더가 어디로 갔는지 한 장으로 
 ⛔ 이 문서는 **지우지 않는다** — 무엇을 지워도 되는지만 적는다. 철거는 대조가 끝난 뒤다.
 
 실행
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_legacy_map.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_legacy_map.py
 """
 from __future__ import annotations
 

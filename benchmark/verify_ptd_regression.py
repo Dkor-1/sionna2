@@ -27,9 +27,9 @@ verify_ptd_regression.py — PTD 모듈(src/ptd_edges.py) 도입 **회귀 검증
 
 실행
   cd /workspace/sionna
-  PTD_REG_PART=cpu PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
-  PTD_REG_PART=gpu SIONNA2_GPU=0 SIONNA2_GPU_MEM=3000 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
-  PTD_REG_PART=merge ~/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
+  PTD_REG_PART=cpu PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
+  PTD_REG_PART=gpu SIONNA2_GPU=0 SIONNA2_GPU_MEM=3000 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
+  PTD_REG_PART=merge /workspace/.venvs/py312/bin/python benchmark/verify_ptd_regression.py
 산출: outputs/ptd_regression.json   (파트별 중간산출은 outputs/_ptd_reg_{gpu,cpu}.json)
 """
 from __future__ import annotations

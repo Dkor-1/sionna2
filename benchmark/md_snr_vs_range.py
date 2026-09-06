@@ -23,7 +23,7 @@ md_snr_vs_range.py — ⭐**거리와 SNR 을 잇는 길** 하나 (원장: outpu
              ⚠ 바이스태틱으로 한 다리만 움직이면 −20 dB/decade 다. 원장에 둘 다 적는다.
 
 실행:
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/md_snr_vs_range.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/md_snr_vs_range.py
 """
 from __future__ import annotations
 

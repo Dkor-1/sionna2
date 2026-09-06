@@ -14,8 +14,8 @@ viz_report1.py — report1 (Sionna 환경 + 실물 3D 메쉬 + 분절 드론) �
   · 숫자는 손으로 적지 않는다 — 여기서 측정해 outputs/report1.json 에 넣고 노트북이 읽는다.
   · GPU 는 src/gpu.py 가 여유 메모리를 보고 자동 선택 (mitsuba import 전에 pick()).
 
-실행:  ~/.venvs/py312/bin/python src/build_report1.py       (권장 — 이걸 부른다)
-       ~/.venvs/py312/bin/python src/viz_report1.py --only mesh,cad
+실행:  /workspace/.venvs/py312/bin/python src/build_report1.py       (권장 — 이걸 부른다)
+       /workspace/.venvs/py312/bin/python src/viz_report1.py --only mesh,cad
 """
 from __future__ import annotations
 

@@ -57,12 +57,12 @@ PO 점구름은 **몸에 붙어 같이 돈다**(라그랑주). 표본이 사라�
 
     cd sionna2
     # 워커 (격자 하나씩, 병렬로 띄운다)
-    SIONNA2_GPU=3 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+    SIONNA2_GPU=3 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/sbr_grid_convergence_md.py --div 32
     # 회귀 게이트 (커널과 같은 값인가)
     SIONNA2_GPU=3 ... --gate
     # 집계 + 그림
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/sbr_grid_convergence_md.py --analyze
 
 원장

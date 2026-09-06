@@ -12,7 +12,7 @@
 
 실행 (GPU 불필요):
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python benchmark/p3_validation.py
+  PYTHONPATH=src:benchmark SIONNA2_CPU=1 /workspace/.venvs/py312/bin/python benchmark/p3_validation.py
 """
 from __future__ import annotations
 

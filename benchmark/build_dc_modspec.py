@@ -22,7 +22,7 @@ build_dc_modspec.py — **정지 성분(DC)을 빼기 전과 뺀 뒤**를 네 �
     outputs/figures/dcms_stft_dc.png               ③ STFT — 정지 성분 제거
     outputs/figures/dcms_band_dc.png               ④ 대역 전력의 변조 스펙트럼 — 제거 후
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_dc_modspec.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_dc_modspec.py
 """
 from __future__ import annotations
 

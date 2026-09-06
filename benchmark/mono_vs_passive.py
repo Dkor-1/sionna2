@@ -47,7 +47,7 @@
 ⚠ 이 스크립트는 refrate_law.py / refrate_law.json 을 **건드리지 않는다**. 두 파일 모두 다른
   워크플로가 지금 작업 중인 미추적 파일이다. 대신 §5 가 적용 가능한 **패치를 JSON 에 적어** 넘긴다.
 
-실행:  cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/mono_vs_passive.py
+실행:  cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/mono_vs_passive.py
        빠른 확인:  --smoke   (그림 생략)
 """
 from __future__ import annotations

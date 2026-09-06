@@ -32,7 +32,7 @@ figs_report00.py — 리포트 00(가르치는 편)의 그림 4장을 **게재 �
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report00.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/figs_report00.py
 """
 from __future__ import annotations
 

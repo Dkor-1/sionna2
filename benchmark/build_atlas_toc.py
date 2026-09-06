@@ -27,7 +27,7 @@ build_atlas_toc.py — 마이크로도플러 아틀라스의 **목차 노트북*
 
 돌리는 법
 --------
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_atlas_toc.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_atlas_toc.py
 """
 from __future__ import annotations
 
@@ -650,8 +650,8 @@ def build() -> NB:
         f"PRF {thousands(META['prf_hz'])} Hz · 기본 표적 `{META['drone_default']}` |",
         "",
         "```bash",
-        "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_md_atlas.py",
-        "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_atlas_toc.py"
+        "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_md_atlas.py",
+        "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_atlas_toc.py"
         "   # 이 문서",
         "```",
     )

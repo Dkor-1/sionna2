@@ -16,7 +16,7 @@ report08 이 "보류(defer)" 로 남긴 절대 σ 판정을, 문헌이 실제로
 
 실행:
   cd /workspace/sionna
-  SIONNA2_GPU=3 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rcs_anchor.py
+  SIONNA2_GPU=3 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rcs_anchor.py
 
 ■ PTD 스위치 (`--ptd`, 기본 **꺼짐**)
   `src/rcs_sbr.py` 에 모서리 프린지(PTD) 항이 배선돼 있다(σ = 4π/λ²|E_면적분 + A_FW|²).

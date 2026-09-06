@@ -13,7 +13,7 @@ build_jihyuck_stft.py — 선배(jihyuck) PX4 파이프라인 산출물의 **STF
   · 벌크 도플러(기체 이동)가 사후 보정 없이 그대로 실려 있다 — 맵에서 0 Hz 가 아니라
     움직이는 능선으로 보이는 것이 정상이다.
 
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_jihyuck_stft.py --grade 2 \
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_jihyuck_stft.py --grade 2 \
         --in outputs/jihyuck_po --out outputs/figures
 """
 from __future__ import annotations

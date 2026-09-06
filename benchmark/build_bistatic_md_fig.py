@@ -15,7 +15,7 @@ build_bistatic_md_fig.py — 그림 g2: **β 스윕의 결과판**
 읽는 것: outputs/report07b_bistatic_md.{json,npz}
 쓰는 것: outputs/figures/report07b_g2.{png,pdf}
 
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_bistatic_md_fig.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_bistatic_md_fig.py
 """
 from __future__ import annotations
 

@@ -79,7 +79,7 @@ mie_pec_sphere.py — PEC 구의 **두 기준해(reference solution)**: 정확�
   · 해석 PO ↔ 수치적분  닫힌형이 PO 적분의 직접 수치구적과 일치하는지(대수 검증)
   · G = σ_PO/σ_Mie      kr 대역별 평균·산포와 PO 리플 주기
 
-실행: cd sionna2 && ~/.venvs/py312/bin/python benchmark/mie_pec_sphere.py
+실행: cd sionna2 && /workspace/.venvs/py312/bin/python benchmark/mie_pec_sphere.py
 """
 from __future__ import annotations
 

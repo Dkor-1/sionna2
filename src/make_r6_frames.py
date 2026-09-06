@@ -10,7 +10,7 @@ viz_report13 의 r6_rd_recede 는 `curves.rd_frames`(|RD| 2D 배열 리스트)�
 range_doppler 로 |RD| 를 낸다. 진폭은 **한 번 보정**(a=1 출력봉우리 측정)해 각 d 의 출력 SNR 이
 snr_rd_db(d) 와 맞게 스케일한다 — GPU 0회.
 
-실행: PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_r6_frames.py [--drone mavic4pro --mode L1]
+실행: PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/make_r6_frames.py [--drone mavic4pro --mode L1]
 """
 import os, sys, json, argparse
 import numpy as np

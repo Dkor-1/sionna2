@@ -1,7 +1,7 @@
 {
  "_meta": {
-  "generated": "2026-08-10T16:34:48+00:00",
-  "host": "irsgpu1",
+  "generated": "2026-09-06T08:03:31+00:00",
+  "host": "12f4315b8f04",
   "script": "benchmark/adv_sbr_grid_freeze_audit.py",
   "role": "적대적 감사 — outputs/sbr_grid_convergence.json 의 결론을 깨려는 시도",
   "lens": "자세마다 격자 재정의가 사실은 물리적으로 필요할 가능성",
@@ -46,7 +46,7 @@
   ],
   "surviving_defense": [
    "⭐ctr 이 두 역할을 겸한다 — **격자 앵커**이자 **위상 원점**이다. 표적이 «병진» 하면 앵커는 반드시 몸을 따라가야 한다(안 그러면 격자를 항적 전체로 키워야 한다). 따라서 «자세마다 ctr 을 새로 잡는다» 자체가 무조건 틀린 것은 아니다. 틀린 것은 그 ctr 을 **관절운동으로 흔들리는 bbox** 에서 뽑는 것과, 같은 흔들리는 점을 위상 원점으로 쓰는 것이다. 올바른 처방은 «세계좌표 고정» 이 아니라 «강체 프레임에 고정 + n 고정 + 격자 위상 스냅, 위상 원점은 운동학이 알려진 점».",
-   "⭐자세마다 서브셀 오프셋을 새로 뽑는 것은 **시간평균 σ 에는 진짜 이득**이다 — 격자 dither 를 4096 프레임에 걸쳐 몬테카를로 평균한다. 실측: 생산 팔의 레벨은 λ/12→λ/32 에서 0.052 dB 밖에 안 움직이는데 얼린 팔은 1.554 dB 흔들린다. 즉 현재 코드는 **σ 에는 맞고 마이크로도플러에는 틀린** 설계다. 둘을 한 함수가 겸할 수 없다.",
+   "⭐자세마다 서브셀 오프셋을 새로 뽑는 것은 **시간평균 σ 에는 진짜 이득**이다 — 격자 dither 를 4096 프레임에 걸쳐 몬테카를로 평균한다. 실측: 생산 팔의 레벨은 λ/12→λ/32 에서 0.052 dB 밖에 안 움직이는데 얼린 팔은 1.554 dB 흔들린다(같은 수가 audit_2_signal_loss.level_spread_ge12_db 에 그대로 실린다). ⛔«σ 에는 맞고 마이크로도플러에는 틀린 설계다. 둘을 한 함수가 겸할 수 없다» 는 2026-09-06 내렸다 — 잰 것은 현행 두 구현의 대비뿐이고, 설계 공간을 뒤진 적이 없다. 지금 말할 수 있는 것: **현재 구현은 σ 쪽 이득(자세별 dither 평균)과 마이크로도플러 쪽 손해(격자 재정의)를 한 손잡이에 묶어 놓았다**. 바로 위 처방(강체 프레임 고정 + n 고정 + 격자 위상 스냅)이 둘을 가를 수 있는지는 **아직 안 재 봤다**.",
    "하류 결합: src/ptd_edges.py 는 위상 원점 = 자세별 bbox 중심을 **요구**하고(64행) 어긋나면 경고한다(785행). 얼리려면 PTD 규약도 같이 바꿔야 한다."
   ]
  },
@@ -278,56 +278,56 @@
  },
  "audit_3_coverage": {
   "note": "«자세마다 bbox 가 숨쉬니 격자도 커져야 한다» 를 기하로 검사한다 — 광선을 쏘지 않고 정점만 본다. 필요한 것은 û 에 수직인 **가로** 반폭이다.",
-  "required_half_extent_fixed_center_mm": 318.37381357862785,
-  "required_half_extent_own_center_min_mm": 214.14685178199792,
-  "required_half_extent_own_center_max_mm": 315.53670678228275,
-  "enclosing_radius_3d_min_mm": 289.9349270210118,
-  "enclosing_radius_3d_max_mm": 386.7639766866104,
+  "required_half_extent_fixed_center_mm": 318.373791827414,
+  "required_half_extent_own_center_min_mm": 214.18017699389875,
+  "required_half_extent_own_center_max_mm": 315.59904308900093,
+  "enclosing_radius_3d_min_mm": 290.44860067993926,
+  "enclosing_radius_3d_max_mm": 386.34104354947175,
   "conclusion": "가로 요구는 고정중심 기준 318.37 mm 하나로 4096 자세 전부를 덮는다. 코드가 격자를 키우는 근거인 3D 포위반경은 28 % 숨쉬지만 그 숨은 대부분 û 방향이고 가로 표본화와 무관하다.",
   "rows": [
    {
     "div": 8,
     "frozen_half_extent_mm": 449.688687,
     "prod_half_extent_min_mm": 364.033699,
-    "required_half_extent_all_poses_mm": 318.37381357862785,
-    "frozen_margin_mm": 131.31487342137217,
-    "prod_worst_margin_mm": 80.56047505369767,
+    "required_half_extent_all_poses_mm": 318.373791827414,
+    "frozen_margin_mm": 131.31489517258603,
+    "prod_worst_margin_mm": 80.71446510161978,
     "frozen_clips_any_pose": false
    },
    {
     "div": 12,
     "frozen_half_extent_mm": 438.98181350000004,
     "prod_half_extent_min_mm": 353.3268255,
-    "required_half_extent_all_poses_mm": 318.37381357862785,
-    "frozen_margin_mm": 120.60799992137217,
-    "prod_worst_margin_mm": 70.74826054429384,
+    "required_half_extent_all_poses_mm": 318.373791827414,
+    "frozen_margin_mm": 120.60802167258605,
+    "prod_worst_margin_mm": 71.27557962612619,
     "frozen_clips_any_pose": false
    },
    {
     "div": 16,
     "frozen_half_extent_mm": 436.305095125,
     "prod_half_extent_min_mm": 347.97338875,
-    "required_half_extent_all_poses_mm": 318.37381357862785,
-    "frozen_margin_mm": 117.93128154637212,
-    "prod_worst_margin_mm": 66.0375779934334,
+    "required_half_extent_all_poses_mm": 318.373791827414,
+    "frozen_margin_mm": 117.931303297586,
+    "prod_worst_margin_mm": 66.19252686572824,
     "frozen_clips_any_pose": false
    },
    {
     "div": 24,
     "frozen_half_extent_mm": 430.0594189166667,
-    "prod_half_extent_min_mm": 342.619952,
-    "required_half_extent_all_poses_mm": 318.37381357862785,
-    "frozen_margin_mm": 111.68560533803884,
-    "prod_worst_margin_mm": 60.95648247688407,
+    "prod_half_extent_min_mm": 344.4044309166667,
+    "required_half_extent_all_poses_mm": 318.373791827414,
+    "frozen_margin_mm": 111.68562708925272,
+    "prod_worst_margin_mm": 62.35318504279286,
     "frozen_clips_any_pose": false
    },
    {
     "div": 32,
     "frozen_half_extent_mm": 428.27494,
     "prod_half_extent_min_mm": 341.2815928125,
-    "required_half_extent_all_poses_mm": 318.37381357862785,
-    "frozen_margin_mm": 109.90112642137213,
-    "prod_worst_margin_mm": 59.345782055933384,
+    "required_half_extent_all_poses_mm": 318.373791827414,
+    "frozen_margin_mm": 109.901148172586,
+    "prod_worst_margin_mm": 59.500730928228215,
     "frozen_clips_any_pose": false
    }
   ]

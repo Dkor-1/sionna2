@@ -28,7 +28,7 @@ A2 는 잡음이 없으므로 A0 대비 차이가 **전부 파면 곡률**이다
   * 링크버짓 파라미터(EIRP 12 dBm 등)는 **선언값**이다. provenance 로 표기.
 
 실행:
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_md_range.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_md_range.py
     (옵션) --drones mavic4pro,s1000plus  --quick
 산출: outputs/md_range_sweep.json
 """

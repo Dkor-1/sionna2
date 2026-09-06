@@ -16,7 +16,7 @@ report2 가 답하는 질문:
 
 산출: outputs/figures/report2_*.png,  outputs/report2_waveform_rcs.json (노트북이 읽는다)
 
-실행:  ~/.venvs/py312/bin/python src/viz_report2.py
+실행:  /workspace/.venvs/py312/bin/python src/viz_report2.py
 """
 from __future__ import annotations
 

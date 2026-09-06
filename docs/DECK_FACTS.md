@@ -1,6 +1,6 @@
 # DECK_FACTS — 0804 팀미팅 덱이 인용해도 되는 사실 기반
 
-생성 2026-09-05 02:28:04 · 생성기 `benchmark/deck_facts.py` · 런타임 2.5 s
+생성 2026-09-06 08:09:40 · 생성기 `benchmark/deck_facts.py` · 런타임 1.9 s
 
 > **증거 규칙**  한 주장은 (a) 내가 직접 연 PDF 의 축자 문장이거나, (b) 디스크의 JSON 에서 우리가 계산했고 재현 가능하거나, 둘 중 하나다. 나머지는 UNVERIFIED 로 라벨하거나 뺀다.
 > 인용은 매 빌드 PDF 페이지 텍스트에 재대조된다. 개수 주장은 **코퍼스 이름을 달고 다닌다**.
@@ -33,7 +33,7 @@
 - **Q. 무향실 시뮬레이션이 실제 배치와 무슨 상관인가.**
   - A. 상관없다고 인정하는 것이 정답이다. 챔버는 **통제된 비교대**이지 배치 예측이 아니다. 배치 주장은 실측(외부 필드테스트, X410)으로만 한다. 그리고 우리가 인용하는 실측 앵커는 우리 것이 아니라 공개 문헌 RCS 다.
 - **Q. 그 6/9 는 자기 채점 아닌가.**
-  - A. 그렇다. 그래서 채점표가 아니라 **근거표**를 낸다 — 234칸 중 80칸이 축자 인용이고 빌드가 매 실행 PDF 와 재대조한다(80/80 통과). 판정에 동의하지 않으면 근거를 보고 다시 채점할 수 있다. 그리고 우리 행에도 NONE 이 두 개 있다.
+  - A. 그렇다. 그래서 채점표가 아니라 **근거표**를 낸다 — 234칸 중 80칸이 축자 인용이고, 그 인용의 PDF 원문 재대조는 80/80 통과다. ⛔ 옛 답의 «빌드가 매 실행 PDF 와 재대조한다» 는 내렸다 — 재대조를 실제로 도는 것은 benchmark/capability_matrix.py 의 매트릭스 빌드(2026-08-03T02:01:46)이고, 이 덱 빌드는 그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다. 판정에 동의하지 않으면 근거를 보고 다시 채점할 수 있다. 그리고 우리 행에도 NONE 이 두 개 있다.
 
 **절대 말하지 않는다**
 - ⛔ '무모호 속도 식을 우리가 제시한다/유도한다' — Abratkiewicz 2023 eq.(16) 이 문자 그대로 같다.
@@ -140,7 +140,7 @@
 
 - **우리가 말했던 것** — 우리 코퍼스는 diffraction 11회 · UTD 13회 · PTD 1회 · wedge 0회를 언급한다.
 - **무엇이 그것을 깼는가** — 코퍼스를 특정해 다시 세었다. 그 수는 **reference_library.json 텍스트**의 수이고, 그중 13 은 UTD 가 아니라 diffract* 였다(UTD 는 10, PTD 는 8).
-- **지금 참인 것** — 코퍼스 B(reference_library.json 텍스트): diffraction 11 · diffract* 13 · UTD 10 · PTD 8 · wedge 0. 코퍼스 A(PDF 217편 본문): diffract* 72편/607회 · UTD 10편 · PTD 6편 · wedge 10편. 두 수를 한 문장에 섞으면 안 된다.
+- **지금 참인 것** — 코퍼스 B(reference_library.json 텍스트): diffraction 11 · diffract* 13 · UTD 10 · PTD 9 · wedge 0. 코퍼스 A(PDF 217편 본문): diffract* 72편/607회 · UTD 10편 · PTD 6편 · wedge 10편. 두 수를 한 문장에 섞으면 안 된다.
 - **근거** — `json`: outputs/psolve_diffraction.json : machine_census · outputs/deck_facts.json : recomputed.diffraction_census
 - **왜 슬라이드에 올리는가** — ⭐ 이 프로젝트가 반복해서 틀린 방식이 정확히 이것이다 — 서로 다른 코퍼스의 수를 한 호흡에 섞는 것(81개 엔트리 중 8개 인용 건도 같은 실수였다). 규칙으로 승격했다: 모든 개수 주장은 코퍼스 이름을 달고 다닌다.
 - **⭐ 예상 공격** — 단순 오타 아닌가.
@@ -315,10 +315,10 @@
 
 ### [포지셔닝]
 
-#### F12 · 능력 매트릭스는 26행 × 9열 = 234칸이고, UNVERIFIED 칸이 0개다 — 80칸은 축자 인용이며 빌드가 매 실행 PDF 원문과 재대조해 80/80 통과했다.
+#### F12 · 능력 매트릭스는 26행 × 9열 = 234칸이고, UNVERIFIED 칸이 0개다 — 80칸은 축자 인용이고, 그 인용의 PDF 원문 재대조는 80/80 통과다. ⚠ 이 재대조가 돈 것은 매트릭스 빌드(2026-08-03T02:01:46) 이고, 이 덱 빌드는 그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다 — 이번 실행에서 다시 돌리지 않았다.
 
 - **등급** `computed-by-us`
-- **EN** The capability matrix is 26x9 = 234 cells with zero UNVERIFIED, 80 of them verbatim quotes re-checked against the PDFs on every build (80/80 pass).
+- **EN** The capability matrix is 26x9 = 234 cells with zero UNVERIFIED; 80 of them are verbatim quotes whose re-check against the PDFs passed 80/80 in the matrix build of 2026-08-03T02:01:46; this deck build only reads that ledger and does not re-run the check.
 - **json** `outputs/capability_matrix.json : counts`
 - **generator** `benchmark/capability_matrix.py`
 - **figures** `{'full': {'png': 'outputs/figures/capability_matrix.png', 'pdf': 'outputs/figures/capability_matrix.pdf'}, 'slide': {'png': 'outputs/figures/capability_matrix_slide.png', 'pdf': 'outputs/figures/capability_matrix_slide.pdf'}}`
@@ -434,7 +434,7 @@
 - **command** `grep -n 'def rcs_sbr_batch' -A6 src/rcs_sbr.py   # ptd=False 기본값
 grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 - **json** `outputs/psolve_diffraction.json : our_p4_state_verified`
-- **수치** `{"hits_by_file": {"src/rcs_sbr.py": 35, "src/rcs_po.py": 1}, "total_hits": 36, "note_ko": "⚠이 개수는 «모서리항이 있다» 는 뜻이 아니다 — 대부분 PTD 배선의 주석·인자다.", "ptd_default_off": true, "attach_to_sbr_field_callers": []}`
+- **수치** `{"hits_by_file": {"src/rcs_sbr.py": 37, "src/rcs_po.py": 1}, "total_hits": 38, "note_ko": "⚠이 개수는 «모서리항이 있다» 는 뜻이 아니다 — 대부분 PTD 배선의 주석·인자다.", "ptd_default_off": true, "attach_to_sbr_field_callers": []}`
 - **⭐ 예상 공격** — 그러면 결과를 믿을 수 없는 것 아닌가.
 - **우리 답** — 영향의 크기를 우리가 계산했다(F24). 회절항 부재가 밴드 기울기 초과의 가장 유력한 물리적 후보이지만, 우리 자체 산술은 그것만으로 전부를 설명하기 어렵다고 말한다 — 우리 유효 지수는 2 가 아니라 0.55~1.27 이라 PO 적분이 이미 단일 평판이 아니다. 그래서 PTD 는 **수정이 아니라 진단으로 먼저** 붙일 계획이다.
 
@@ -467,7 +467,7 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 - **json** `outputs/verify_cfar.json : meta · alpha_audit`
 - **수치** `{"runtime_s": 2716.746778488159, "n_maps_white": 500000, "n_maps_chain": 10000, "M_cpi": 48, "dtype": "torch.complex128", "pfa_nominal": [0.01, 0.003, 0.001, 0.0003, 0.0001, 3e-05, 1e-05, 3e-06, 1e-06], "guard_train": ["g2x2_t6x6", "g1x1_t4x4", "g3x3_t8x8", "g2x2_t10x10"], "alpha_max_rel_err": 0.00033463628713065505, "alpha_configs": 4}`
 - **⭐ 예상 공격** — 백색잡음에서의 Pfa 교정은 실제 클러터에서 의미가 없다.
-- **우리 답** — 맞다 — 그래서 백색 교정과 체인(전 처리사슬) 교정을 따로 냈다. 백색은 α 구현 감사용이고, 실제 오경보 판정은 체인 맵에서 한다. 그리고 우리 챔버는 semi-anechoic 이라 정적 클러터가 ECA 로 삼중 차단되고, 진짜 위협은 표적경유 바닥유령이라는 별도 축이다.
+- **우리 답** — 맞다 — 그래서 백색 교정과 체인(전 처리사슬) 교정을 따로 냈다. 백색은 α 구현 감사용이고, 실제 오경보 판정은 처리사슬 전체를 통과시킨 체인 맵에서 한다. 정적 클러터에 대해서는 ECA 사영이 세 파형에서 잔차를 클러터 대비 -53.0~-28.0 dB 로 남기고(outputs/verify_eca.json : S5_clutter_dead.projection.resid_frac_db), 그 뒤 0-도플러 행 마스킹이 남은 정지 성분을 지운다 — 클러터 진폭을 100 배까지 키워도 SCR 이 3.5e-09 dB 밖에 안 움직인다(같은 원장 : S5_clutter_dead.scr_span_db).
 
 #### F27 · ⚠ 지금까지의 검출 결과는 전부 장면방위 φ=90° 한 컷이다. φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립한다. ⛔**전 판이 여기 적은 «φ 를 쓸면 최대 23.17 dB» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03 φ 실측 스윕 72 점) — 그 수는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고, R90 동작점에서는 **≤1.20 dB** (d 중앙값 ≤3.10 dB)다. 두 기하의 확산항 차는 φ=90° 에서 0.118 dB 다. 남은 축은 «φ 한 컷으로만 보고했다» 는 보고 범위이지 위험의 크기가 아니다.
 
@@ -560,7 +560,7 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 
 - **이전** — 엔트리 81건 중 축자 인용 8건, 출력 전반에 UNVERIFIED 마커 다수.
 - **지금** — ⚠ 부분적으로만 개선. 넓은 코퍼스의 인용 커버리지는 그대로다(PDF 가 디스크에 있는 엔트리 41건). outputs 전체의 UNVERIFIED 마커는 오히려 784개로 늘었다 — 검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.
-- **무엇이 바뀌었는가** — ⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 UNVERIFIED 는 0 이고 인용 80건이 매 빌드 재대조된다. 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.
+- **무엇이 바뀌었는가** — ⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 UNVERIFIED 는 0 이고, 인용 80건은 매트릭스 빌드(2026-08-03T02:01:46)가 PDF 페이지 텍스트와 재대조해 80/80 통과했다(⛔ «매 빌드 재대조된다» 는 내렸다 — 덱 빌드는 그 원장 outputs/capability_matrix.json 을 읽기만 한다). 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.
 - **정직한 문장** — '우리 문헌 조사가 검증되었다' 고 말하면 안 된다. '덱이 인용하는 26행은 검증되었고, 배후의 81개 엔트리 대부분은 서지 수준이다' 가 참이다.
 - **⭐ 예상 공격** — 그럼 배후 코퍼스의 결론(H8 등)은 어떻게 믿는가.
 - **우리 답** — H8 판정은 배후 코퍼스가 아니라 전문 판정 12편에서 나왔고, 그 12편은 PDF 를 열었다. 배후 81 엔트리는 '무엇을 아직 안 읽었는지' 의 지도이지 결론의 근거가 아니다.

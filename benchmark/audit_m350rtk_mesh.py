@@ -19,7 +19,7 @@ audit_m350rtk_mesh.py — m350rtk 메쉬의 **자유도 감사 + 온전성 + 실
 
 실행
   cd /workspace/sionna
-  SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/audit_m350rtk_mesh.py
+  SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/audit_m350rtk_mesh.py
   ... --no-iou      # IoU 정합(약 2.5 분)을 건너뛴다
 """
 from __future__ import annotations

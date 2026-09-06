@@ -11,7 +11,7 @@ mesh_cert_dimension_external_0816.py — **치수·외부 기준 대조 인증�
   ⑥ 봉인        — 지금 잔차를 «선언» 으로 못박고 메쉬 지문을 같이 적는다(회귀 감지)
   ⑦ 못 하는 것  — 이 인증서가 **장담하지 않는** 범위
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/mesh_cert_dimension_external_0816.py
       ⛔ GPU 미사용 · ⛔ git 미접촉 · ⛔ 형상 상수 무변경(읽기만).
 """

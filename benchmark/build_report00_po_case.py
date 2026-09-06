@@ -28,7 +28,7 @@ build_report00_po_case.py — 리포트 00 「왜 PO 인가」의 근거 JSON �
 
 실행:
   cd /workspace/sionna
-  PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py
+  PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_report00_po_case.py
 """
 from __future__ import annotations
 
@@ -1037,7 +1037,7 @@ def main() -> None:
             "generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "generator": "benchmark/build_report00_po_case.py",
             "run": "cd /workspace/sionna && PYTHONPATH=src "
-                   "~/.venvs/py312/bin/python benchmark/build_report00_po_case.py",
+                   "/workspace/.venvs/py312/bin/python benchmark/build_report00_po_case.py",
             "reads_only": True,
             "value_rule": "모든 스칼라 옆에 <이름>_src 가 붙는다. outputs/…:키 = 다른 산출물에서 "
                           "읽었다 · code: = 소스 상수 · computed: = 이 스크립트가 계산 · "

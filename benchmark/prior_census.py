@@ -22,7 +22,7 @@ prior_census.py — 리포트 01(선행연구)의 **유일한 근거 생성기**
     각각 `quotes` 의 축자 인용으로 뒷받침된다. 두 층을 JSON 에서 섞지 않는다.
 
 재현
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/prior_census.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/prior_census.py
     → outputs/prior_census.json, outputs/figures/report01_*.png (약 30초, GPU 불필요)
 """
 from __future__ import annotations

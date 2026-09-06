@@ -18,7 +18,7 @@ el0_drop_0903.py — 덱 2 부가 말한 «0° 의 갑작스런 낙차» 를 그
 ⛔판정하지 않는다 — 수를 내고 문장은 사람이 쓴다(주장 게이트 ⓑ).
 
 쓰는 법
-    CUDA_VISIBLE_DEVICES="" ~/.venvs/py312/bin/python benchmark/el0_drop_0903.py
+    CUDA_VISIBLE_DEVICES="" /workspace/.venvs/py312/bin/python benchmark/el0_drop_0903.py
 """
 from __future__ import annotations
 

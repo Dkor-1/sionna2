@@ -52,7 +52,7 @@ mesh_symmetry.py — **대칭 · 손잡이 · 파생량** 검사 (감사 지도�
    (2026-08-16 현재 다른 라운드들이 짐벌·다리·모터z·축간거리를 실제로 바꾸는 중이다.)
 
 실행:
-  cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/mesh_symmetry.py
+  cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/mesh_symmetry.py
   ⛔ GPU 안 쓴다(전부 CPU). 파일도 안 쓴다 — 원장은 benchmark/mesh_cert_symmetry_derived_0816.py 가 쓴다.
 """
 from __future__ import annotations

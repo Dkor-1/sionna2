@@ -74,7 +74,7 @@ def main(out):
         dji_R_mm=round(dji_R, 2), ours_R_mm=round(R_ours * 1000, 2))
 
     # ── 시위분포만으로 본 면적 (스팬 적분), 안/밖 나눠서 ─────────────────────
-    d = json.load(open("/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/dji_prop.json"))
+    d = json.load(open("/workspace/sionna/benchmark/canon_0816/data/dji_prop.json"))
     st = {}
     for k in [k for k in d if not k.startswith("_")]:
         for row in d[k]["stations"]:

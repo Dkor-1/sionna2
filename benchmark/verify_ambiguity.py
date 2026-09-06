@@ -37,7 +37,7 @@ verify_ambiguity.py — [E3] **모호함수(Ambiguity Function)**: 검출기 성
                     얼마나 새는가 — 유령(-18.1 dB)보다 크면 유령 검출은 해석 불가가 된다.
   6. 5G SSB 이중고: 좁은 대역(거리) + **20 ms 버스트 주기**(도플러 모호)를 AF 로 보인다.
 
-실행:  ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py
+실행:  /workspace/.venvs/py312/bin/python benchmark/verify_ambiguity.py
 출력:  outputs/verify_ambiguity.json, outputs/figures/verify_ambiguity_{af,range,doppler}.png
 """
 from __future__ import annotations

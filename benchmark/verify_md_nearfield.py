@@ -37,7 +37,7 @@ verify_md_nearfield.py — 근거리장 마이크로도플러 모듈 검증 하�
                      로터 회전수의 홀수 하모닉이 통째로 사라지는 문제 —
                      ⚠ **기존 `microdoppler.microdoppler_sbr` 가 이 근사를 쓴다**(report08 파급).
 
-실행:  cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_md_nearfield.py
+실행:  cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_md_nearfield.py
 산출:  outputs/verify_md_nearfield.json
 """
 from __future__ import annotations

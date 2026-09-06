@@ -17,7 +17,7 @@ figs_report01.py — 리포트 01 의 그림 4장을 **게재 품질로** 다시
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report01.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/figs_report01.py
 """
 from __future__ import annotations
 

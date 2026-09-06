@@ -27,7 +27,7 @@ hash_bucket_sweep_0903.py — 해시 통 수를 흔들면 낙차가 줄어드나
 
 쓰는 법
     CUDA_VISIBLE_DEVICES=<하나> PYTHONPATH=src \\
-        ~/.venvs/py312/bin/python benchmark/hash_bucket_sweep_0903.py --reps 8
+        /workspace/.venvs/py312/bin/python benchmark/hash_bucket_sweep_0903.py --reps 8
 """
 from __future__ import annotations
 

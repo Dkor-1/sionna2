@@ -283,7 +283,7 @@ def main():
         t_chordmean_0p20_0p96=round(tbar, 4),
         per_blade=[{k: v for k, v in r.items()
                     if k not in ("chord", "tmax", "tmean")} for r in res])
-    p = "/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/xcheck_mini2_exact.json"
+    p = "/workspace/sionna/benchmark/canon_0816/data/xcheck_mini2_exact.json"
     json.dump(out, open(p, "w"), ensure_ascii=False, indent=1)
     print("\n  →", p)
 

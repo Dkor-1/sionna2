@@ -27,7 +27,7 @@ hash_bucket_stat_0903.py — 흔들림을 «폭» 이 아니라 «발생률» �
 
 쓰는 법
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark OMP_NUM_THREADS=6 \\
-        ~/.venvs/py312/bin/python benchmark/hash_bucket_stat_0903.py --reps 30
+        /workspace/.venvs/py312/bin/python benchmark/hash_bucket_stat_0903.py --reps 30
 """
 from __future__ import annotations
 

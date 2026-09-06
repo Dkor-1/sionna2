@@ -16,7 +16,7 @@ render_mini2_mesh.py — mini2 메쉬 온전성 렌더 (2026-08-03)
 
 실행
   cd /workspace/sionna
-  SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/render_mini2_mesh.py
+  SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/render_mini2_mesh.py
 """
 from __future__ import annotations
 

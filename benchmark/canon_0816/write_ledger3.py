@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
-d = json.load(open("/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/part2.json"))
+d = json.load(open("/workspace/sionna/benchmark/canon_0816/data/part2.json"))
 
 # ── ⑤ 공표 부품치수 대조 ────────────────────────────────────────────────────
 d["published_vs_mesh"] = {

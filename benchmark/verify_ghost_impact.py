@@ -18,7 +18,7 @@ verify_ghost_impact.py — [E6] **표적 경유 바닥 유령이 탐지·추적�
       TX/RX/바닥이 **알려져 있다** → 기하 게이트를 칠 수 있는가? 그 게이트가 **진짜 2번째
       드론을 얼마나 지우는가**(오배제 비용)를 몬테카를로로 잰다.
 
-실행:  ~/.venvs/py312/bin/python benchmark/verify_ghost_impact.py
+실행:  /workspace/.venvs/py312/bin/python benchmark/verify_ghost_impact.py
        (σ 프리필만 GPU(SBR), CFAR 는 numpy 병렬)
 출력:  outputs/verify_ghost_impact.json  +  outputs/figures/ghost_impact.png
 """

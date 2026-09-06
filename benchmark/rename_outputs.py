@@ -42,13 +42,13 @@ rename_outputs.py — 은퇴한 13편 번호가 박힌 산출물 이름을 내�
 실행
 ----
     # 예행 — 옮길 파일과 바꿀 참조를 전부 찍는다 (기본값)
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rename_outputs.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rename_outputs.py
 
     # 한 항목만 자세히
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rename_outputs.py --only report13_freespace.json
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rename_outputs.py --only report13_freespace.json
 
     # 실제 적용 — 파이프라인이 멈춰 있을 때만
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rename_outputs.py --apply --pipeline-is-idle
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rename_outputs.py --apply --pipeline-is-idle
 
 적용 뒤 반드시 할 일 (스크립트가 마지막에 다시 찍는다)
 --------------------------------------------------
@@ -420,7 +420,7 @@ def apply(rows) -> int:
     print("다음을 이 순서로 돌려라 —")
     print("  1) 그림 안에 구워진 옛 이름 4곳 수정 — src/make_report03_illuminators.py:237·242·245·252")
     print("     (docs/OUTPUT_NAMING.md §5.3 · 확장자가 없어 이 스크립트가 못 바꾼다)")
-    print("  2) PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/regen_mesh_dependents.py --check")
+    print("  2) PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/regen_mesh_dependents.py --check")
     print("  3) 리포트 6편 재빌드 (regen_mesh_dependents stage 9)")
     print("  4) report_style.check_budget 6편 — 출처태그가 실제 JSON 을 여는지 확인")
     return 0

@@ -32,7 +32,7 @@
   같은 d 격자, 같은 PRF(모노가 PRF 를 고를 수 있다는 자유도는 **별개 축**이며 그 크기는
   ⟨outputs/mono_vs_passive.json §2 D1⟩ 에 이미 정량화돼 있다 — 여기서 다시 쓰지 않는다).
 
-실행: cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_monostatic.py
+실행: cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_monostatic.py
       (스모크: --smoke --out /tmp/.../verify_monostatic.json)
 그림 없음(순수 검증). 주석·docstring·print 한국어(하우스 규약).
 """

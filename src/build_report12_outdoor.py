@@ -10,7 +10,7 @@
 
 원장: outputs/outdoor_scene_0901.json (benchmark/outdoor_scene_0901.py 가 낸다)
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_report12_outdoor.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/build_report12_outdoor.py
 
 ⚠이 빌더만 돌리면 권 꼬리(다음 권 안내)가 빠진다 — 편성이 붙이는 것이라
   **src/build_volumes.py 를 이어서** 돌려야 정본이 된다(2026-09-03 에 12 권을
@@ -326,7 +326,7 @@ md(f"""### 방법
 ### 재현
 
 ```bash
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/outdoor_scene_0901.py
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/outdoor_scene_0901.py
 ```
 
 | | |

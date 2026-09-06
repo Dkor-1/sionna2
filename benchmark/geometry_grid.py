@@ -21,7 +21,7 @@ geometry_grid.py — 2×3 벤치마크 격자의 정의와 **공정성 감사**
 
 실행:
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/geometry_grid.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/geometry_grid.py
 
 집안 규약: 산문·print 는 한국어, 그림 텍스트는 영어(이 스크립트는 그림 없음),
 모든 수치는 저장소 함수/JSON 에서 뽑는다 — 손으로 치지 않는다.

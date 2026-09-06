@@ -41,7 +41,7 @@ PRF·표본 수를 `outputs/report07_three_engines.json` 의 `_meta` 에서 **�
   outputs/report07b_bistatic_md.json  기하·예측·실측·회귀 전부
 
     cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark \
-        ~/.venvs/py312/bin/python benchmark/report07b_bistatic_md.py
+        /workspace/.venvs/py312/bin/python benchmark/report07b_bistatic_md.py
 """
 from __future__ import annotations
 

@@ -21,7 +21,7 @@ build_part07_microdoppler.py — 부 7 「마이크로도플러」 → reports/3
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part07_microdoppler.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part07_microdoppler.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
 """
@@ -97,9 +97,9 @@ FIG = "../outputs/figures"
 LEAD = "cells.matrice4e/belly"
 
 REPRO_15B = dict(
-    cmd=["PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
-         "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
-         "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"],
+    cmd=["PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
+         "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
+         "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_report15b_figs.py"],
     out=[MDB, "outputs/report15b_series.npz"],
     runtime="약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
     note="메쉬 지문(`mesh_provenance`)은 도장 스크립트 "
@@ -245,7 +245,7 @@ def blocks_34() -> list:
                  + ref("md-two-engines", "두 엔진") + " 이 그것을 잰다"),
             ],
             repro=dict(
-                cmd="PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_probe.py",
+                cmd="PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_probe.py",
                 out=[PRB],
                 runtime="약 7 분 (GPU 1장)"),
         ),
@@ -501,9 +501,9 @@ def blocks_36() -> list:
             ],
             prereq=[("앞 편", ref("md-slowtime", "슬로타임 복소열") + " — 두 엔진에 태운 절차")],
             repro=dict(
-                cmd=["PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_po_control.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict.py"],
+                cmd=["PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_po_control.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_verdict.py"],
                 out=[POC, GEO, VRD],
                 runtime="약 30 분 (GPU 1장)"),
         ),
@@ -1508,10 +1508,10 @@ def blocks_41() -> list:
                  "삼각형 100/50/25/12.5 % 로 재고 ptp 뿐 아니라 곡선 상관까지 봤다"),
             ],
             repro=dict(
-                cmd=["PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_null_control_v2.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_stats.py"],
+                cmd=["PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_null_control_v2.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_verdict.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_attack_stats.py"],
                 out=[NUL, GEO, VRD, ATK],
                 runtime="약 35 분 (GPU 1장 — 널 팔 "
                         + _n("verdict.n_null_arms", NUL, "{:.0f}", "개") + ")"),
@@ -1660,8 +1660,8 @@ def blocks_42() -> list:
             ],
             prereq=[("앞 편", ref("md-calibration", "판정 잣대 교정") + " — 이 통계의 문턱")],
             repro=dict(
-                cmd=["PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_spp_ladder.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_stats.py"],
+                cmd=["PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_attack_spp_ladder.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_attack_stats.py"],
                 out=[SPP, ATK],
                 runtime="약 36 분 (GPU 1장 — 사다리 전량 재추적)"),
         ),
@@ -1822,7 +1822,7 @@ def blocks_43() -> list:
             ],
             prereq=[("앞 편", ref("md-slowtime", "슬로타임 복소열") + " — f_tip 과 f_flash 의 정의")],
             repro=dict(
-                cmd="PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_md_range.py",
+                cmd="PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_md_range.py",
                 out=[RNG],
                 runtime="약 12 분 (GPU 1장)"),
         ),

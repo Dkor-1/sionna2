@@ -12,7 +12,7 @@ mesh_cert_symmetry_derived_0816.py — **대칭 · 손잡이 · 파생량 인증
   ⑸ 못 하는 것이 명시됐다   → `limits` · `evidence_grades` · `what_this_round_did_not_do`
 
 ⛔ 형상은 하나도 안 바꾼다. 읽고 재고 적는다.
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/mesh_cert_symmetry_derived_0816.py
       ⛔ GPU 안 쓴다(전부 CPU). 약 5 분.
 """
@@ -365,10 +365,10 @@ def main():
     seal = dict(
         what_ko="다음 라운드가 «이 인증서가 아직 유효한가»를 **기계로** 물을 수 있게 만든 지문들.",
         how_to_reverify_ko=[
-            "cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/mesh_symmetry.py",
-            "cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+            "cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/mesh_symmetry.py",
+            "cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
             "benchmark/adv_mesh_symmetry_faults.py",
-            "cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+            "cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
             "benchmark/mesh_cert_symmetry_derived_0816.py   (이 파일 — 원장을 다시 찍는다)",
             "⭐**봉인 확인**: 같은 파일에 `--regress` 를 붙이면 저장된 인증서와 지금을 견주고, "
             "«형상이 바뀌었다(지문 다름 → 3)» 와 «불변량이 깨졌다(→ 1)» 를 **따로** 알려 준다.",

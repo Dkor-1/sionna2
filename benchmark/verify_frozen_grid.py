@@ -28,7 +28,7 @@ keyword-only 인자 `grid_ref` 를 배선했다. 이 스크립트는 그 배선�
 원장:  outputs/verify_frozen_grid.json
 
 실행:
-    cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+    cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/verify_frozen_grid.py
 """
 from __future__ import annotations

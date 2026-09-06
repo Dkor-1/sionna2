@@ -2,7 +2,7 @@
 """make_report04_detector.py — 리포트 04(검출기) 노트북을 만든다
 
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report04_detector.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report04_detector.py
     → report04_detector.ipynb
 
 계약서 두 장이 동시에 걸린다.
@@ -368,11 +368,11 @@ def blocks():
             ],
             repro=dict(
                 cmd=["cd /workspace/sionna",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_observability.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
-                     "PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report04_detector.py"],
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_cfar.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_eca.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_observability.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report04_detector.py",
+                     "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report04_detector.py"],
                 out=[CFAR, ECA, OBS],
                 runtime=f"CFAR 측정이 {RUNTIME} (GPU 1장). ECA · 관측가능성 · 그림은 각각 수 분.",
                 note="맵 수는 `--maps` / `--white` 로 줄인다. 줄이면 신뢰구간이 넓어진다.",

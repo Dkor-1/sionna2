@@ -22,7 +22,7 @@ build_part05_anchor.py — 부 5 「앵커와 검증」 → 편 24~29
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part05_anchor.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part05_anchor.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다 — 서술 재배치다.
 """

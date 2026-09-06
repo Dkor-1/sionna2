@@ -16,7 +16,7 @@ mesh_cert_placement_0816.py — **배치·겹침·묻힘 인증서**를 발급�
 산출: outputs/mesh_cert_placement_overlap_0816.json
 나가는 값: 0 = 인증 · 1 = 예산 초과/대조 실패 · 2 = 형상이 바뀌어 재발급 필요
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/mesh_cert_placement_0816.py [--verify]
       --verify 를 주면 **기존 인증서의 봉인만** 확인한다(다시 재지 않는다).
 ⛔ GPU 안 쓴다.

@@ -19,7 +19,7 @@ verify_noise_injection.py — 잡음 주입 배선의 게이트 (원장: outputs
  NI9  ⭐시계열에 더한 잡음의 맵 바닥이 **지수분포(χ²₂)** 인가 (맵에 더하면 가우시안이 된다)
 
 실행:
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_noise_injection.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_noise_injection.py
 """
 from __future__ import annotations
 

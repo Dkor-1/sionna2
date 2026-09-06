@@ -40,10 +40,10 @@ make_report00_foundations.py — 리포트 00 「기초」 빌더  →  report00
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py       # ① PO 근거
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_decision_map.py  # ② 결정표 근거
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report00.py                      # ③ 그림 4장
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report00_foundations.py          # ④ 리포트
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_report00_po_case.py       # ① PO 근거
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_report00_decision_map.py  # ② 결정표 근거
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/figs_report00.py                      # ③ 그림 4장
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report00_foundations.py          # ④ 리포트
 
 ⚠ GPU 도 Sionna 실행도 필요 없다. 전부 합쳐 수 분.
 """

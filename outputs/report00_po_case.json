@@ -2,9 +2,9 @@
  "_meta": {
   "file": "outputs/report00_po_case.json",
   "title": "리포트 00 「왜 PO 인가 · 우리 PO 는 납득 가능한가 · 선행에서 무엇을 빌릴 수 있나」의 근거",
-  "generated": "2026-08-04 04:33:19",
+  "generated": "2026-09-06 08:05:06",
   "generator": "benchmark/build_report00_po_case.py",
-  "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py",
+  "run": "cd /workspace/sionna && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py",
   "reads_only": true,
   "value_rule": "모든 스칼라 옆에 <이름>_src 가 붙는다. outputs/…:키 = 다른 산출물에서 읽었다 · code: = 소스 상수 · computed: = 이 스크립트가 계산 · doc: = 문서 문장(숫자 아님).",
   "house_rules": "본문·주석·print 는 한국어, 그림 안 텍스트는 전부 영어. 숫자는 손으로 치지 않는다(src/report_style.py num()).",
@@ -260,7 +260,9 @@
     "no cross-hardware normalisation was applied. Our card was shared with another job at 0–100% foreign utilisation during the run; the per-config min is the least-contended observation and the spread between min and max is reported for every row."
    ],
    "what_it_does_not_support_src": "outputs/runtime_benchmark.json:answer.what_the_measurement_does_NOT_support",
-   "honest_concession": "반론의 절반은 맞다 — **우리 구현에서** PO 적분이 광선캐스팅의 16 배다. 우리 적분이 아직 호스트 numpy 라서다. 게재된 유일한 GPU 커널 분해(SagittaSBR Table 1)는 같은 캐스케이드가 광선발사의 1.9~6.5% 라고 적는다."
+   "archive_pdfs_scanned": 218,
+   "archive_pdfs_scanned_src": "outputs/reference_library.json:counts.sionna_corpus_scanned_pdfs",
+   "honest_concession": "반론의 절반은 맞다 — **우리 구현에서** PO 적분이 광선캐스팅의 16 배다. 우리 적분이 아직 호스트 numpy 라서다. 보유 아카이브 218편(2026-07-31 집계 ⟨outputs/reference_library.json : counts.sionna_corpus_scanned_pdfs⟩) 안에서 GPU 커널 분해를 인쇄한 유일한 논문인 SagittaSBR Table 1 은 같은 캐스케이드가 광선발사의 1.9%~6.5% 라고 적는다. ⛔«게재된 유일한» 으로는 쓰지 않는다 — 전 문헌을 뒤진 적이 없다(2026-09-06 정정)."
   },
   "alternatives": [
    {
@@ -299,7 +301,7 @@
    },
    {
     "method": "④ 기하 대리표적 (큐브·박스·구)",
-    "what_it_solves": "표적을 정육면체·직육면체·구로 바꾼다. 선행에서 가장 흔한 회피다.",
+    "what_it_solves": "표적을 정육면체·직육면체·구로 바꾼다. 원문 정독 18편 중 2편이 이 방식이다 (outputs/evasion_catalogue.json). ⛔'가장 흔한'은 내렸다 — 빈도로는 상대 baseline 만으로 대는 방식(E13)이 4편으로 더 잦다.",
     "our_position": "대조군으로 **같은 자로** 재봤다(benchmark/p3_control.py, 같은 PO 커널·같은 방위격자·같은 실측 앵커).",
     "ours_mesh_mean_delta_db": -4.9131282182585565,
     "ours_mesh_mean_delta_db_src": "outputs/p3_control.json:comparison.ours_p3_mesh.mean_delta_db",
@@ -366,7 +368,7 @@
    "headline_findings": [
     "⭐패턴은 일반적이다. 원문 판정 18편 중 표적 산란을 주장한 17편에서, 계산된(가정이 아닌) 절대 dBsm 을 인쇄한 것은 3편뿐이고 그 3편의 표적은 차량·보행자·항공기다. 드론 표적의 계산된 절대 dBsm 을 인쇄한 논문은 이 표본에 0편이다.",
     "md-rt(ICCT 2025)의 구조는 예외가 아니라 정석이다. sigma 를 기호로 두고 관측량을 위상 미분으로 한정하면(E1+E2) 진폭 검증 의무가 통째로 사라진다. Costa 계열 2편이 같은 구조를 실측 대조까지 붙여 반복한다.",
-    "⭐가장 흔한 회피는 '표적을 상자로 바꾸기'(E10)다. CellSense 는 사람을 1.8x0.5x0.25 m 직육면체로, LowAlt-Cube 는 UAV 를 금속 정육면체로 놓고 각각 Pd=0.74, 미검출률 0.63% 를 소수점까지 인쇄한다. 두 논문 모두 'RCS' 라는 단어가 본문에 0회다(CellSense 는 'SNR' 도 0회).",
+    "⭐눈에 가장 잘 띄는 회피는 '표적을 상자로 바꾸기'(E10)다 — 원문 정독 18편 중 2편(CellSense · LowAlt-Cube). ⛔'가장 흔한'은 내린다: 같은 파일 papers[].evasion_devices 를 세면 상대 baseline 만으로 대는 방식(E13) 4편, 위상 관측량만 보는 방식(E2) · 정규화 dB 축(E3) · 통계 대리 RCS(E6) 각 3편으로 더 잦다. CellSense 는 사람을 1.8x0.5x0.25 m 직육면체로, LowAlt-Cube 는 UAV 를 금속 정육면체로 놓고 각각 Pd=0.74, 미검출률 0.63% 를 소수점까지 인쇄한다. 두 논문 모두 'RCS' 라는 단어가 본문에 0회다(CellSense 는 'SNR' 도 0회).",
     "에너지 주장을 한 14편의 진폭 정당화는 넷으로 갈린다 - 아무것도 대지 않거나(NONE 3편), 같은 시뮬 안의 baseline 대비로만 대거나(RELATIVE_ONLY 2편 + HAND_TUNED 1편), 스칼라 상수·표준표로 위임하거나(ASSUMED_CONSTANT·STANDARD_MODEL 2편), 엔진 밖(FEKO/실측/Mie)으로 내보낸다(EXTERNAL_SOLVER 1 + MEASUREMENT_ANCHOR 3 + REFERENCE_SOLVER 3 = 7편). 광선추적 엔진 안에서 표적 진폭을 풀어낸 사례는 표본에 0편이다.",
     "Costa 저널판은 회피를 문장으로 자백한다 - 몸통 반사도 스칼라를 '단순화를 위해 수동 조정' 했고, 검증 지표는 [0,1] 정규화 후의 Pearson 상관(스케일 불변)이다. 이건 E5+E4 의 교과서적 조합이다.",
     "RadarTwin 은 회피를 이름 붙이고 고친 유일한 사례다 - '절대 방사측정은 sim-to-real 격차를 넘지 못한다' 고 쓴 뒤 삼면 코너리플렉터 1개로 앵커를 붙였다. 우리가 쓸 수 있는 가장 정직한 선행 문장이다.",
@@ -466,7 +468,7 @@
    "statement": "그래픽 레이트레이서 위에 자기 PO 적분기를 얹는 것은 우리 발명이 아니라 **이 문제의 표준 대응**이고, 두 팀이 독립적으로 같은 곳에 도달했다.",
    "quote_mc_sbr": "\"Our implementation is not simply a direct application of Mitsuba, which does not currently support surface current calculation or physical optics integration.\" — Monte-Carlo SBR (UMD), arXiv:2511.07586 p.7",
    "sagitta": "SagittaSBR(arXiv:2604.09243)은 독립 SBR+PO RCS 솔버이고 코드를 공개했다.",
-   "how_to_write_it": "'우리는 이렇게 했다' 가 아니라 '이 구조가 이 문제의 표준 대응이고, 우리는 그것을 **부품별 재질을 가진 드론**에 처음 적용했다'.",
+   "how_to_write_it": "'우리는 이렇게 했다' 가 아니라 '이 구조가 이 문제의 표준 대응이고, 우리는 그것을 **부품별 재질을 가진 드론**에 적용했다 — ⚠«처음» 이라고는 쓰지 않는다. 보유 아카이브(고유 218편) 안에서 선례를 못 찾았다는 것이 우리가 말할 수 있는 전부다(RETRACTION_LOG R12: 코퍼스 안의 미발견을 문헌의 부재로 말하지 않는다)'.",
    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §5"
   },
   "what_our_kernel_does_not_do": [
@@ -658,7 +660,7 @@
    "nr_ghz_src": "code: src/experiment_freespace_sigma.py:64 (BANDS)",
    "wifi_ghz": 5.21,
    "wifi_ghz_src": "code: src/experiment_freespace_sigma.py:65 (BANDS)",
-   "the_uncomfortable_corollary": "우리 생산 3 밴드(LTE 1.843 · 5G 3.5 · WiFi 5.21 GHz)에서 body 를 제외한 **모든** 특징이 이 무릎 아래에 있다. 그리고 prop·motor·canopy·pcb 는 **18.2 GHz 까지 대역 전체**에서 무릎 아래다. 따라서 이 라운드가 '고대역은 깨끗하다' 고 말할 근거는 자기 자신의 무릎 기준에 의해 **없다**. 자매 파일이 권고한 '우리 모형의 신뢰 하한 ≈6 GHz' 도 body·arm 에만 참이고 prop 계열에는 거짓이다.",
+   "the_uncomfortable_corollary": "우리 생산 3 밴드(LTE 1.843 · 5G 3.5 · WiFi 5.21 GHz)에서 body 를 제외한 **모든** 특징이 이 무릎 아래에 있다. 그리고 canopy·pcb 는 **18.2 GHz 까지 대역 전체**에서 무릎 아래이고, prop·motor 도 위 표대로 15.86 · 15.97 GHz 에서야 무릎을 넘는다 — 문헌 대역의 맨 위 토막을 빼면 그 대역 대부분에서 무릎 아래다. 따라서 이 라운드가 '고대역은 깨끗하다' 고 말할 근거는 자기 자신의 무릎 기준에 의해 **없다**. 자매 파일이 권고한 '우리 모형의 신뢰 하한 ≈6 GHz' 도 body·arm 에만 참이고 prop 계열에는 거짓이다.",
    "the_uncomfortable_corollary_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.⭐_the_uncomfortable_corollary",
    "sign_of_the_error": "지배채널(TM) 기준 PO 는 얇은 특징을 **과소평가**한다(prop 0.083λ 에서 −7.25 dB). 따라서 우리 저주파 σ 는 낮게 나와 있을 개연성이 높고, 검출 성능 산출물은 **보수적(비관적)** 쪽으로 틀렸을 것이다. 단, 스칼라 PO 는 편파를 못 가르므로 TE 채널 기준으로는 부호가 반대다 — 방향을 못 박으려면 편파 있는 커널이 필요하다.",
    "sign_of_the_error_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.sign_of_the_error"
@@ -781,7 +783,7 @@
    "residual_holes_src": "outputs/lowfreq_attack.json:residual_holes_i_could_not_close",
    "what_must_not_be_said": [
     "'저주파 σ 가 틀렸다' — 아니다. '저주파 σ 의 불확도가 선언된 것보다 훨씬 크고, 그 크기를 아직 못 정했다' 가 맞다.",
-    "'고대역(6~18.2 GHz)은 검증됐다' — 아니다. a_high 의 주파수-잔차 SE 가 0.079 이고, prop·motor·canopy·pcb 는 그 대역 전체에서 PO 무릎 아래다.",
+    "'고대역(6~18.2 GHz)은 검증됐다' — 아니다. a_high 의 주파수-잔차 SE 가 0.079 이고, canopy·pcb 는 그 대역 전체에서 PO 무릎 아래이며 prop·motor 도 15.86 · 15.97 GHz 까지, 즉 그 대역 대부분에서 무릎 아래다(2026-08-07 정정 — q5_blast_radius.po_validity_blast_radius_the_real_one._correction_2026_08_07).",
     "'격자를 조이면 σ 가 고쳐진다' — 아니다. 이 라운드의 가장 확실한 결과가 그 반대다."
    ],
    "what_must_not_be_said_src": "outputs/lowfreq_attack.json:q5_blast_radius.what_must_not_be_said",
@@ -797,8 +799,8 @@
    "⚠ 2D MoM 은 **무한히 긴 띠**의 정확해다. 우리 3D 판은 b=6λ 로 유한하므로, 시선에 나란한 두 모서리(off-cone) 기여만큼 대응이 어긋난다. σ_3D=(2b²/λ)σ_2D 는 PO 항과 on-cone 모서리에 대해 정확하다.",
    "⚠ 정면입사만 참값과 나란히 놓았다. 경사입사는 PO 닫힌형과만 비교했다(oblique 항목).",
    "⚠ 우리 PO 면적분은 **스칼라**라 편파가 없다. TM/TE 참값의 중간 어디쯤이라고 말할 근거가 없으며, 이 라운드는 그 간극을 재기만 하고 고치지 않는다.",
-   "⚠ 커널 규약은 생산과 같지만(jitter=3, penetrate=False, max_bounce=1) 구·판은 볼록이라 다중반사가 원래 없다 — 이 검증은 다중반사 경로를 재지 않는다.",
-   "⚠ **격자 정련이 산 것은 (커널−해석PO) 뿐이다.** 생산 규약(jitter=3)에서 그 항은 λ/12 에서 이미 ≤0.2 dB 라 '격자를 조여도 안 움직인다' 로 보인다. 단일격자(jitter=1)로 재면 정련이 최대 1.35 dB 를 벌지만 정확히 PO−Mie 바닥에서 멈추고, 규칙을 J=1 로 재채점해도 판정은 그대로다(sphere.adversarial_jitter_control). 즉 정확한 진술은 '격자는 무관하다' 가 아니라 '격자로 살 수 있는 것에 상한이 있고 그 상한이 간극보다 훨씬 작다' 이다.",
+   "⚠ 이 검증의 커널 규약은 penetrate=False · max_bounce=1 로 생산과 같지만 격자위상 평균은 **jitter=3** 이고 드론 생산 호출의 기본은 **jitter=2** 다(src/rcs_sbr.py::rcs_sbr_batch). 게다가 구·판은 볼록이라 다중반사가 원래 없다 — 이 검증은 다중반사 경로를 재지 않는다.",
+   "⚠ **격자 정련이 산 것은 (커널−해석PO) 뿐이다.** 검증 규약(jitter=3)에서 그 항은 λ/12 에서 이미 ≤0.19 dB 라 '격자를 조여도 안 움직인다' 로 보인다. 생산 규약(jitter=2)에서는 같은 항이 λ/12 에서 최대 0.52 dB 다 — ≤0.19 dB 는 생산 규약의 값이 아니다. 단일격자(jitter=1)로 재면 정련이 최대 1.35 dB 를 벌지만 정확히 PO−Mie 바닥에서 멈추고, 규칙을 J=1 로 재채점해도 판정은 그대로다(sphere.adversarial_jitter_control). 즉 정확한 진술은 '격자는 무관하다' 가 아니라 '격자로 살 수 있는 것에 상한이 있고 그 상한이 간극보다 훨씬 작다' 이다.",
    "⚠ 기울기 실험은 단일 스트립이고 드론은 다특징 3D 기체의 방위 360 평균이다. 비교한 것은 **부호와 메커니즘**이지 dB/GHz 숫자의 크기가 아니다.",
    "⚠ 'PO 가 저대역 기울기를 가파르게 만든다' 는 **지배 채널(TM) 기준** 진술이다. 얇은 띠에서 σ_TM ≫ σ_TE 라 절대 레벨은 TM 이 만들지만, 약한 TE 채널만 보면 기울기 초과의 부호가 반대다.",
    "⚠ 기울기 스윕의 3D 환산 span 은 **고정 물리 길이**(0.999 m)다. 처음에 b=6λ 로 두었더니 σ_3D 의 주파수 의존이 통째로 상쇄돼 a_PO 가 0.0000 dB/GHz 로 나왔고, 그 판은 폐기했다(outputs/partial/lowfreq_anchor/slope.json.blam_bug.bak). 기울기 **차이**는 그 버그에 무관했다.",
@@ -869,7 +871,9 @@
     "what": "모노스태틱에서 출사 가시성 함수를 생략해도 되는 근거",
     "from": "SagittaSBR 각주 1 (원문 인용이 src/rcs_sbr.py:538-542 주석에 그대로 실려 있다)",
     "where_in_our_repo": "src/rcs_sbr.py rcs_sbr_multistatic(exit_vis=…)",
-    "what_it_bought": "바이스태틱에만 그림자광선을 1발 더 쏘는 설계의 근거. 모노에서 정확한 no-op 임을 실측으로 확인했다.",
+    "monostatic_noop_max_abs_db": 0.0,
+    "monostatic_noop_max_abs_db_src": "computed: max over outputs/sbr_defect_fixes.json:d4_exit_visibility.by_drone.*.monostatic_noop_max_abs_db (기체 3기)",
+    "what_it_bought": "바이스태틱에만 그림자광선을 1발 더 쏘는 설계의 근거. 모노(β=0)에서 정확한 no-op 임을 **우리 계산으로** 확인했다 — 출사 가시성을 켜고 끈 σ 의 차가 기체 3기 전부에서 0.000e+00 dB 다. ⛔«실측으로 확인했다» 는 철회한다(2026-09-06): 이 저장소에는 실측 대조가 0 건이다.",
     "exit_vis_note": "Δ = 10log10(sigma_exit_vis_on / sigma_off). β=0(모노)에서 0 이어야 한다 — first-hit 이 이미 그 가림을 뺐으므로(Sagitta arXiv:2604.09243 각주 1).",
     "exit_vis_note_src": "outputs/sbr_defect_fixes.json:d4_exit_visibility.note"
    },
@@ -1141,7 +1145,7 @@
   "figure_text_rule": "그림 안의 모든 글자는 영어. report_style.assert_fig_text() 로 검사한다."
  },
  "_provenance": {
-  "n_fields_traced": 212,
+  "n_fields_traced": 214,
   "source_files": [
    "outputs/evasion_catalogue.json",
    "outputs/injection_standards.json",
@@ -1151,6 +1155,7 @@
    "outputs/lowfreq_grid.json",
    "outputs/p3_control.json",
    "outputs/rcs_anchor.json",
+   "outputs/reference_library.json",
    "outputs/report2_waveform_rcs.json",
    "outputs/rt_no_rcs_verify.json",
    "outputs/runtime_benchmark.json",
@@ -1406,6 +1411,10 @@
    {
     "field": "what_it_does_not_support",
     "src": "outputs/runtime_benchmark.json:answer.what_the_measurement_does_NOT_support"
+   },
+   {
+    "field": "archive_pdfs_scanned",
+    "src": "outputs/reference_library.json:counts.sionna_corpus_scanned_pdfs"
    },
    {
     "field": "mom2d_selftest_worst_db",
@@ -1990,6 +1999,10 @@
    {
     "field": "axis_note",
     "src": "outputs/sbr_kr_sweep.json:meta.axis_note"
+   },
+   {
+    "field": "monostatic_noop_max_abs_db",
+    "src": "computed: max over outputs/sbr_defect_fixes.json:d4_exit_visibility.by_drone.*.monostatic_noop_max_abs_db (기체 3기)"
    },
    {
     "field": "exit_vis_note",

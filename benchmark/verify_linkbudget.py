@@ -19,7 +19,7 @@ verify_linkbudget.py — [E4] 링크버짓 · 처리이득 · 잡음바닥 교�
 
 측정값은 outputs/verify_linkbudget.json 으로 남긴다(노트북이 읽는다 — 손으로 숫자 적지 말 것).
 
-실행:  CUDA_VISIBLE_DEVICES=2 ~/.venvs/py312/bin/python benchmark/verify_linkbudget.py
+실행:  CUDA_VISIBLE_DEVICES=2 /workspace/.venvs/py312/bin/python benchmark/verify_linkbudget.py
        (σ 는 SBR 캐시 조회 — 미스면 GPU 로 채운다)
 """
 from __future__ import annotations

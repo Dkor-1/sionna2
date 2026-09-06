@@ -36,7 +36,7 @@ mesh_fix_holes_poles_0816.py — **2층 수리 I5(구멍) · m6(극점)**: 고�
   python src/mesh_check.py --mesh-fix i5,m6  ← 명령줄
   from geom import set_mesh_fix; set_mesh_fix("i5")
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/mesh_fix_holes_poles_0816.py
 """
 from __future__ import annotations

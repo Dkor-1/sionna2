@@ -37,7 +37,7 @@ measure_x500v2_cad.py — Holybro **공식 STEP CAD** 에서 X500 V2 치수 직�
   판 높이의 암 끝단은 오차 +2% 다. 세 높이의 오차가 깊이에 비례한다는 사실이
   시차 가설을 확증한다. → 판에서 멀리 떨어진 부품은 이 사진으로 재면 안 된다.
 
-실행: cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/measure_x500v2_cad.py
+실행: cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/measure_x500v2_cad.py
 산출: outputs/x500v2_cad.json
 """
 from __future__ import annotations

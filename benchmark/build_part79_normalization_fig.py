@@ -14,7 +14,7 @@ build_part79_normalization_fig.py — 권 16 절 2 의 **정규화 그림 한 �
 
   그림 글자는 전부 영어(하우스 규약). 본문·주석은 한국어.
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_part79_normalization_fig.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_part79_normalization_fig.py
 """
 from __future__ import annotations
 

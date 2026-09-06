@@ -34,7 +34,7 @@ true_repeat_0903.py — PathSolver 재현성을 **같은 설정의 진짜 재실
 
 쓰는 법
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=src \
-        ~/.venvs/py312/bin/python benchmark/true_repeat_0903.py
+        /workspace/.venvs/py312/bin/python benchmark/true_repeat_0903.py
 """
 from __future__ import annotations
 

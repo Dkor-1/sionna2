@@ -2,7 +2,7 @@
 """
 make_fig_captions_part10.py — 부 10 그림의 **영문 논문 캡션**을 문서로 남긴다
 ==========================================================================================
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_fig_captions_part10.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_fig_captions_part10.py
     → docs/paper/figs_part10.md
 
 왜 따로 있나

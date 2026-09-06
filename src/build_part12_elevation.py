@@ -27,7 +27,7 @@ build_part12_elevation.py — 권 4 「앙각 커버리지」의 조각들 → r
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_part12_elevation.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/build_part12_elevation.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — 원장 JSON 을 읽어 노트북을 조립할 뿐이다.
 """
@@ -592,18 +592,18 @@ TITLE_78 = (f"앙각 {N78_EL} 점을 {R78_PRIMARY:.0f} m 한 자리에서 광선
 REG["el-sweep-design"] = ("78", TITLE_78)
 
 REPRO_78 = dict(
-    cmd=["SIONNA2_GPU=3 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+    cmd=["SIONNA2_GPU=3 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/elevation_sweep_md.py --engine ours --shard 0 --nshards 8",
-         "SIONNA2_GPU=3 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "SIONNA2_GPU=3 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/elevation_sweep_md.py --engine sionna --shard 0 --nshards 8",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/elevation_sweep_md.py --merge",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "src/make_fig_el_geometry.py",
          # ⭐시나리오 렌더 — 씬을 Sionna RT 로 그리고(GPU) 도식과 합친다(CPU)
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/render_el15_scene.py",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/build_el15_scenario_fig.py"],
     out=["outputs/elevation_sweep_md.json", "outputs/elevation_sweep_md.npz",
          "outputs/figures/ch1_f0_geometry.png",
@@ -967,11 +967,11 @@ FIGDIR = os.path.join(_ROOT, "outputs", "figures")
 _R_OURS90 = row("ours", -90.0)          # el −90 행(결측 0)의 인덱스 — 병합마다 밀린다
 
 REPRO_82 = dict(
-    cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+    cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/verify_nadir_flash.py",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/refute_nadir_mechanism_final.py",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "src/build_part12_elevation.py"],
     out=["outputs/verify_nadir_flash.json",
          "outputs/refute_nadir_mechanism_final.json"],

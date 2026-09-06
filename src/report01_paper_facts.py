@@ -30,7 +30,7 @@ P1 규칙을 좁힌다 (인용 감사 P03)
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/report01_paper_facts.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/report01_paper_facts.py
 """
 from __future__ import annotations
 

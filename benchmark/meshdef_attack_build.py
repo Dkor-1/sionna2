@@ -37,7 +37,7 @@ def prefix_repro():
             "sz=dr.frame_fit_scale(s)[2];"
             "print(round(float(V[:,2].max()-V[:,2].min()),4),round(float(sz),10))")
     env = dict(os.environ, CUDA_VISIBLE_DEVICES="", SIONNA2_NO_GPU="1")
-    r = subprocess.run([os.path.expanduser("~/.venvs/py312/bin/python"), "-c", code],
+    r = subprocess.run([os.path.expanduser("/workspace/.venvs/py312/bin/python"), "-c", code],
                        cwd=d, capture_output=True, text=True, env=env)
     toks = r.stdout.split()
     if len(toks) != 2:

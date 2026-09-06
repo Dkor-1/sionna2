@@ -22,7 +22,7 @@ elephant_id_0903.py — 낙차 자세에서 «빠진 그 경로» 의 정체를 
 ⛔판정하지 않는다 — 수를 내고 문장은 사람이 쓴다(주장 게이트 ⓑ).
 
 쓰는 법
-    CUDA_VISIBLE_DEVICES="" ~/.venvs/py312/bin/python benchmark/elephant_id_0903.py \\
+    CUDA_VISIBLE_DEVICES="" /workspace/.venvs/py312/bin/python benchmark/elephant_id_0903.py \\
         --dir /tmp/.../pathdump
 """
 from __future__ import annotations

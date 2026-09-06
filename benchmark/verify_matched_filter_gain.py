@@ -46,7 +46,7 @@ E[m] 은 «PRI 한 개 분량의 대역 B 신호를 기준신호와 상관» 해
 
 실행 (CPU 수 초, GPU 불필요)
 ------------------------------------------------------------------------------------------------
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_matched_filter_gain.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_matched_filter_gain.py
 산출: outputs/verify_matched_filter_gain.json
 """
 from __future__ import annotations

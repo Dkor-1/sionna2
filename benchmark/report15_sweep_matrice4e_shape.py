@@ -37,9 +37,9 @@ report15_sweep_matrice4e_shape.py — 본 스윕의 **남은 구멍 하나**를 
 ⛔ 새 산출물을 만들지 않고 **이 실험의 자기 JSON** 에만 키를 더한다.
 
 실행:
-    ~/.venvs/py312/bin/python benchmark/report15_sweep_matrice4e_shape.py
-    ~/.venvs/py312/bin/python benchmark/report15_sweep_matrice4e_shape.py --quick   # 연기 시험
-    ~/.venvs/py312/bin/python benchmark/report15_sweep_matrice4e_shape.py --patch-only  # RT 없이 §S2·§S3
+    /workspace/.venvs/py312/bin/python benchmark/report15_sweep_matrice4e_shape.py
+    /workspace/.venvs/py312/bin/python benchmark/report15_sweep_matrice4e_shape.py --quick   # 연기 시험
+    /workspace/.venvs/py312/bin/python benchmark/report15_sweep_matrice4e_shape.py --patch-only  # RT 없이 §S2·§S3
 """
 from __future__ import annotations
 

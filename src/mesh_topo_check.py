@@ -52,7 +52,7 @@ mesh_topo_check.py — **위상·이산화** 검사 (2026-08-16 신설)
 
 ⛔ 이 파일은 형상을 **하나도 바꾸지 않는다**(읽기 전용 검사기). GPU 도 쓰지 않는다.
 
-실행:  cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/mesh_topo_check.py
+실행:  cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/mesh_topo_check.py
        (한 기체만: `--drone mavic4pro` · 주파수: `--fc 5.8e9` · 자기교차 생략: `--no-selfint`
         · ⭐회귀 봉인 대조만: `--check-seal` — 인증서의 지문과 지금 메쉬를 견준다)
 

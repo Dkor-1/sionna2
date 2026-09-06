@@ -89,7 +89,7 @@
 ⛔ outputs/report07_three_engines.{json,npz} 와 outputs/sbr_grid_convergence.* 는 **안 건드린다**.
 
     cd sionna2
-    PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/ledger_outofband_power.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/ledger_outofband_power.py
 """
 from __future__ import annotations
 

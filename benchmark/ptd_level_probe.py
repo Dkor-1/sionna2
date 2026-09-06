@@ -20,7 +20,7 @@ ours 와 ours+PTD 는 무늬(리듬 몫·맵상관 ≥0.998)는 사실상 같은
      몰린 이상치가 아니라 플래시들에 고르게 퍼져 있어야 한다.
   ④ 프린지 몫 ‖Δ‖²/‖E_ac‖² 이 각도에 따라 매끄럽게 변한다(한 각도만 폭주하면 냄새).
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/ptd_level_probe.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/ptd_level_probe.py
 """
 from __future__ import annotations
 

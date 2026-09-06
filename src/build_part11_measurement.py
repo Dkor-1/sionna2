@@ -25,7 +25,7 @@ build_part11_measurement.py — 부 11 「실측 설계」 → reports/67~77_*.i
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part11_measurement.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part11_measurement.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
 """
@@ -97,10 +97,10 @@ OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽�
 FIG = "../outputs/figures"
 
 REPRO = dict(
-    cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c "
+    cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/plan_measurement.py",
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python -c "
          "\"import sigma_anchor as S; S.write_measurement_plan()\"",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"],
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/make_report06_measurement.py"],
     out=["outputs/report06_measurement.json", "outputs/measurement_plan.json",
          "outputs/report06_derived.json"],
     runtime="약 10 초 (CPU)",

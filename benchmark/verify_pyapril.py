@@ -16,7 +16,7 @@ ECA(직접파 제거) → CAF(거리-도플러) → CFAR 체인을, 실측 검�
 표적 에코 + 잡음. ⛔실제 5G NR·WiFi·LTE 파형은 여기서 쓰지 않는다 — 실 파형은 report05 에서 따로 검증.
 출력: outputs/verify_pyapril.json  (두 체인의 표적 셀·검출 여부·RD 상관)
 
-실행: ~/.venvs/py312/bin/python benchmark/verify_pyapril.py
+실행: /workspace/.venvs/py312/bin/python benchmark/verify_pyapril.py
 """
 from __future__ import annotations
 

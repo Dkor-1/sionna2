@@ -29,7 +29,7 @@ report15_specular_range_law.py — 정반사 채널이 **레이다 법칙을 따
 ⛔ src/drones.py · src/drone_cad.py 를 건드리지 않는다(스윕 모듈 경유 읽기만).
 ⛔ 새 산출물 파일을 만들지 않고 이 실험의 자기 JSON 에 `specular_range_law` 키만 더한다.
 
-실행:  ~/.venvs/py312/bin/python benchmark/report15_specular_range_law.py
+실행:  /workspace/.venvs/py312/bin/python benchmark/report15_specular_range_law.py
 """
 from __future__ import annotations
 

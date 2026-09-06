@@ -32,7 +32,7 @@ build_part04_kernel.py — 부 4 「산란 커널」 → 편 18~23
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part04_kernel.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part04_kernel.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다 — 서술 재배치다.
 """

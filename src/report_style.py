@@ -1521,7 +1521,7 @@ def _demo_blocks():
                 ("엔진 검증", "해석 PO 구 · PEC 이면각 해석해와 대조"),
             ],
             prereq=[("01 §3", "게재 선행이 표적 산란을 어떻게 다뤘는지")],
-            repro=dict(cmd="PYTHONPATH=src ~/.venvs/py312/bin/python "
+            repro=dict(cmd="PYTHONPATH=src /workspace/.venvs/py312/bin/python "
                            "benchmark/verify_sbr_kr_sweep.py",
                        out="outputs/sbr_kr_sweep.json",
                        runtime="(재현 시 측정해 채울 것)"),

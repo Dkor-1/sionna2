@@ -15,7 +15,7 @@ import drone_cad                                     # noqa: E402
 import drones                                        # noqa: E402
 from rcs_po import mesh_to_points, C0                # noqa: E402
 
-OUT = "/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/flash2.json"
+OUT = "/workspace/sionna/outputs/_adv_pitch_tip_0816/flash2.json"
 
 
 def look(az_deg, el_deg):

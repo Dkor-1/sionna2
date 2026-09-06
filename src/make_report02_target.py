@@ -29,7 +29,7 @@ make_report02_target.py — 리포트 02 「표적 모델」 빌더  →  report
 
 실행
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report02_target.py
+  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/make_report02_target.py
 
 읽는 것 (전부 저장소에 이미 있는 실험 산출물)
   outputs/mesh_gallery.json · mesh_compare_photo.json · mesh_compare_cad.json
@@ -1381,32 +1381,32 @@ def blocks(J):
                             "stock Fresnel · 해석적 블레이드")],
         repro=dict(
             cmd=["# ① 메쉬 원장 넷 — 기하·사진·공식 CAD·재질/가림 (CPU)",
-                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "src/viz_mesh_gallery.py",
-                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "src/viz_mesh_photo.py",
-                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "src/viz_cad_compare.py",
-                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_CPU=1 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "src/viz_mesh_material.py",
                  "# ② 기준해 대조와 앵커 원장 (GPU 1장)",
-                 "SIONNA2_GPU=2 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_GPU=2 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/verify_sbr_kr_sweep.py",
-                 "SIONNA2_GPU=2 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_GPU=2 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/verify_sbr_defect_fixes.py",
-                 "SIONNA2_GPU=2 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "SIONNA2_GPU=2 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/rcs_anchor.py",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/sigma_anchor.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/sigma_anchor.py",
                  "# ③ σ 오차 → 순위 강건성 (§5) — CPU",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/sigma_sensitivity.py",
                  "# ④ 대조군과 함대 대조 (§3.1a · §4.6 · §4.7)",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/p3_validation_v2.py",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "benchmark/das_fleet_sigma.py",
                  "# ⑤ 이 리포트 재생성 (파생 JSON + 게재규격 그림 4장 + 노트북) — GPU 불필요",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                  "src/make_report02_target.py"],
             out=["outputs/mesh_gallery.json", "outputs/mesh_compare_photo.json",
                  "outputs/mesh_compare_cad.json", "outputs/mesh_compare_material.json",

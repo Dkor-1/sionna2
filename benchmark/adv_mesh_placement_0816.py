@@ -21,7 +21,7 @@ adv_mesh_placement_0816.py — **배치·겹침·묻힘 검사기를 검사한�
   D. 봉인 · 함대     — 같은 형상이면 같은 답 · 1 nm 만 바꿔도 지문이 달라짐 ·
                        실제 기체는 예산 안 · 실제 메쉬에서 독립 구현과 대조 (D1~D4)
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/adv_mesh_placement_0816.py [--fleet]
       ⛔ GPU 안 쓴다. 파일도 안 쓴다(읽기 + 화면 출력).
       나가는 값: 전부 통과 0, 하나라도 어긋나면 1.

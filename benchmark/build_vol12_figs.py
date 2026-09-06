@@ -11,7 +11,7 @@
 ⛔ 2026-09-06 그 수로 «있다/없다» 를 찍지 않는다 — 종전 규약 「**repeats / no repeat** 로 적고」
    는 자유 문턱 |rho| > 0.10 하나에 판정을 걸어 두었으므로 내렸다. 배지는 수만 싣는다.
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_vol12_figs.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_vol12_figs.py
 """
 import importlib
 import os

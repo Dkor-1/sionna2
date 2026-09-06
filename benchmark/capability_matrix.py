@@ -27,7 +27,7 @@ capability_matrix.py — 선행연구 능력 매트릭스 (사용자 추적표 �
 
 실행:
   cd /workspace/sionna && PYTHONPATH=src:benchmark \\
-    ~/.venvs/py312/bin/python benchmark/capability_matrix.py
+    /workspace/.venvs/py312/bin/python benchmark/capability_matrix.py
 
 산출:
   outputs/capability_matrix.json
@@ -1344,7 +1344,7 @@ def main():
             "script": "benchmark/capability_matrix.py",
             "generated": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "run": "cd /workspace/sionna && PYTHONPATH=src:benchmark "
-                   "~/.venvs/py312/bin/python benchmark/capability_matrix.py",
+                   "/workspace/.venvs/py312/bin/python benchmark/capability_matrix.py",
             "purpose_ko": "사용자 추적표(Sionna RT | drone Mesh | material | Aspect/RCS | Rotor | "
                           "diffraction)를 우리 포지셔닝에 필요한 3열(진폭검증·기하·무모호속도)로 확장한 "
                           "능력 매트릭스.",

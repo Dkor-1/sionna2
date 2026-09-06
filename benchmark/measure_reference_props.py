@@ -36,7 +36,7 @@ measure_reference_props.py — 실물 참조 프로펠러 CAD 정밀 측정 → 
   ⚠ 평면절단(스팬축 수직)은 **못 쓴다** — 자세한 이유는 `_cyl_sections` 의 docstring 에 있다
     (스윕 큰 프롭은 팁이 절단면 밖으로 밀리고, 비폐곡면 어셈블리는 폴리곤이 안 나온다).
 
-실행: cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/measure_reference_props.py
+실행: cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/measure_reference_props.py
 산출: outputs/reference_props.json
 """
 from __future__ import annotations

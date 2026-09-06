@@ -15,7 +15,7 @@ viz_ch1_el0_budget_ladder.py — **el 0 광선 예산 사다리** 한 장.
 ⚠ 그림 글자는 전부 영어(하우스 규약). 그림 안에 하이퍼파라미터는 넣지 않는다 —
   x 축의 광선 수는 이 그림이 흔드는 축 자신이고, f_flash 선은 **입력한 참값**이다.
 
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_ch1_el0_budget_ladder.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_ch1_el0_budget_ladder.py
 """
 from __future__ import annotations
 

@@ -17,7 +17,7 @@ adv_mesh_symmetry_faults.py — **대칭·손잡이·파생량 검사기를 검�
 ⛔ 저장소의 형상 상수는 **하나도 안 건드린다.** 결함은 전부 메쉬 **사본**(deepcopy) 이나
    스펙 **사본**(dataclasses.replace) 위에서 짓는다. 원본은 읽기만 한다.
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/adv_mesh_symmetry_faults.py
       ⛔ GPU 안 쓴다. 파일도 안 쓴다(읽기 + 화면 출력).
       나가는 값: 전부 잡으면 0, 하나라도 놓치면 1.

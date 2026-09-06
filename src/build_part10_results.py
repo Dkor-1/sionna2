@@ -3,7 +3,7 @@
 build_part10_results.py — 부 10 「검출 결과」 11편(56~66)을 짓는다
 ==========================================================================================
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part10_results.py
 
 산출
     reports/56_geometry.ipynb            TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다
@@ -161,16 +161,16 @@ SRC_A = f"출처 ⟨{KEY_A}⟩"
 SRC_B = f"출처 ⟨{J_FS} : " + CELL.format(d="mavic4pro", m="*") + ".budget_terms_db⟩"
 
 CMD = ["cd /workspace/sionna",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
        "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
-       "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+       "  PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
        "    --stage all --mode W1,L1,G1 --drone $D; done",
-       "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
-       "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
-       "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"]
+       "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_freespace.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_detection.py",
+       "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+       "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/sigma_anchor.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part10_results.py"]
 
 RUNTIME = ("σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 "
            + DV.num("runtime.total_h", None, "{:.1f}", "h")

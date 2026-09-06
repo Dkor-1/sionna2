@@ -21,7 +21,7 @@ verify_bistatic_field.py — **바이스태틱 복소장 `sbr_field_bistatic` �
 
 ⚠ 이 스크립트는 커널을 고치지 않는다. 숫자가 안 맞으면 맞추지 말고 **왜 다른지** 적는다.
 
-실행:  cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행:  cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
          benchmark/verify_bistatic_field.py
 """
 from __future__ import annotations

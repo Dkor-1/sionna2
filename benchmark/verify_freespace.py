@@ -27,7 +27,7 @@
   sigma_el_sign(S8/A2) · solve_range_nonmonotone(S6/S1) · eca_ridge0_floor(R6) ·
   cpi_M_from_prf(F1) · constants_9mode(§4.3) · closed_form_vs_measured(§2.5).
 
-실행:  cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py
+실행:  cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_freespace.py
        (스모크: --out /tmp/.../verify_freespace.json 로 outputs 오염 회피)
 
 그림 텍스트 없음(순수 검증). 주석·docstring 한국어.

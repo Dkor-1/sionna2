@@ -26,7 +26,7 @@ verify_sbr_defect_fixes.py — **SBR 커널 결함 3건(D2·D3·D4) 정정의 �
   부호는 알 수 없다 → 그 부분에 대해서는 대칭화가 **상반성 성질만 보장**할 뿐 정확도 개선의
   증거가 없다. 이 스크립트는 두 성분을 나눠서 보고한다.
 
-실행:  cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행:  cd sionna2 && SIONNA2_GPU=2 PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
          benchmark/verify_sbr_defect_fixes.py
 """
 from __future__ import annotations

@@ -12,7 +12,7 @@ build_bistatic_geom_fig.py — 그림 g1: **바이스태틱 기하 설명도** (
 읽는 것: outputs/report07b_bistatic_md.json  (β·φ·이등분선은 원장에서 읽는다 — 하드코딩 금지)
 쓰는 것: outputs/figures/report07b_g1.{png,pdf}
 
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_bistatic_geom_fig.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_bistatic_geom_fig.py
 """
 from __future__ import annotations
 

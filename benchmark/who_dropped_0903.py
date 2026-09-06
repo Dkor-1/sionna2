@@ -22,7 +22,7 @@ who_dropped_0903.py — 깊은 낙차에서 **누가 버렸나** 를 가른다.
 
 쓰는 법
     CUDA_VISIBLE_DEVICES="" PYTHONPATH=src \\
-        ~/.venvs/py312/bin/python benchmark/who_dropped_0903.py
+        /workspace/.venvs/py312/bin/python benchmark/who_dropped_0903.py
 """
 from __future__ import annotations
 

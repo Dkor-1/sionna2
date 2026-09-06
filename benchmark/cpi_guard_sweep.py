@@ -28,7 +28,7 @@
     outputs/cpi_guard_sweep.json
     outputs/figures/cpi_guard_f{1..4}_*.png   (그림 텍스트 전부 영어, 캡션만 한국어)
 
-실행:  cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py
+실행:  cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py
        빠른 확인:  --smoke
 """
 from __future__ import annotations

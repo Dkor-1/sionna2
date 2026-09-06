@@ -24,7 +24,7 @@
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/wideband_energy_fairbudget.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/wideband_energy_fairbudget.py
 """
 from __future__ import annotations
 

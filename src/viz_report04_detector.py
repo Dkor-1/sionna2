@@ -3,7 +3,7 @@
 
 재현:
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report04_detector.py
 
 입력(전부 이미 측정된 JSON — 무거운 계산 없음, 수 초):
     outputs/verify_eca.json           §1 사슬 · §2 ECA

@@ -27,7 +27,7 @@ make_report07_microdoppler.py — 리포트 07 「마이크로도플러」 → r
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report07_microdoppler.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report07_microdoppler.py
 
 ⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
 """

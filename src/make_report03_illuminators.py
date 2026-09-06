@@ -24,7 +24,7 @@
    4장은 다른 편이 인용하지 않는다(`report02` 는 `report2_{gallery,occlusion,rcs_polar}` 만 쓴다).
 
 실행:  cd /workspace/sionna && \
-       PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report03_illuminators.py
+       PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report03_illuminators.py
 """
 from __future__ import annotations
 
@@ -800,13 +800,13 @@ def build_blocks(led, caps):
         repro=dict(
             cmd=["cd /workspace/sionna",
                  "# ① 파형 제원 · 자원격자 · Sionna 교차대조 수치",
-                 "~/.venvs/py312/bin/python src/viz_report2.py",
+                 "/workspace/.venvs/py312/bin/python src/viz_report2.py",
                  "# ② 모호함수 — 검출기와 같은 커널",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
                  "# ③ 링크버짓 규약 상수(듀티 · CPI · CFAR)",
-                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/report4_fixups.py",
+                 "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/report4_fixups.py",
                  "# ④ 이 편의 파생 원장 + 게재규격 그림 7장 + 노트북",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report03_illuminators.py"],
+                 "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_report03_illuminators.py"],
             out=[J_WAVE, J_AMB, J_FIX, J_MTX, J_LED],
             runtime=f"① {num(None, (J_WAVE, 'meta.runtime_s'), '{:.0f}', 's')} "
                     f"(대부분은 같은 스크립트의 RCS 스윕이고 파형 부분은 초 단위) · "

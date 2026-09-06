@@ -288,7 +288,7 @@ def stale_table_drift():
     return dict(
         what="§4 AUTO 표(07-30 생성) vs 현재 메쉬(07-31 개편 이후)의 D_bbox 드리프트",
         rows=rows, printed_table_is_conservative_everywhere=bool(conservative),
-        regenerate_cmd=("PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python -c "
+        regenerate_cmd=("PYTHONPATH=src:benchmark SIONNA2_CPU=1 /workspace/.venvs/py312/bin/python -c "
                         "\"import sigma_anchor as S; S.write_measurement_plan()\""),
         _rule=("⛔ 이 라운드에서는 §4 를 재생성하지 않는다(보존 지시). 대신 드리프트를 여기 남긴다. "
                "§A/§C 숫자를 인쇄할 때 '07-30 생성, 07-31 메쉬 개편 이전' 을 함께 적는다."))

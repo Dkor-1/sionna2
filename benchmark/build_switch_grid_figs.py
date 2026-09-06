@@ -20,7 +20,7 @@ build_switch_grid_figs.py — **다섯 팔**의 STFT 맵·대역 에너지 그�
     outputs/figures/swgrid_be_wide.png         대역 에너지 100~1,000 Hz (조합당 패널)
     outputs/figures/swgrid_be_zoom.png         대역 에너지 0~420 Hz
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_switch_grid_figs.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_switch_grid_figs.py
 """
 from __future__ import annotations
 

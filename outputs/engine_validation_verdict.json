@@ -1,6 +1,6 @@
 {
  "_meta": {
-  "generated": "2026-09-04 16:05:30",
+  "generated": "2026-09-06 08:12:06",
   "generator": "benchmark/engine_validation_verdict.py",
   "purpose": "엔진 검증 판정 + 리포트 순서 제안 + 재질 3층 + 비용",
   "inputs": [
@@ -19,7 +19,7 @@
    {
     "quantity": "교정 표적의 절대 σ (PEC 구 r = 17.8 cm, Yuan 자신의 교정 표준)",
     "reproduced": "예",
-    "accuracy": "정확 Mie 대비 0.375~0.851 dB, ka = 6.88~19.44",
+    "accuracy": "정확 Mie 대비 0.374~0.851 dB, ka = 6.88~19.44",
     "src": "validate_measured_airframe.json : 2_calibration_sphere"
    },
    {
@@ -31,7 +31,7 @@
    {
     "quantity": "측정 기체의 밴드 기울기 dμ/df, 6 GHz 위",
     "reproduced": "예",
-    "accuracy": "우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안** ⛔**대조 불가**(2026-09-04) — 측정 기울기 0.175~0.315 는 전부 **1.8~18.2 GHz 전대역 적합**이고 6 GHz 위 적합은 없다. 같은 구간에서 재면 우리 0.435 대 Das 0.210 = 2.07배다(`docs/ENGINE_VALIDATION.md` §1).",
+    "accuracy": "우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안**",
     "src": "validate_measured_airframe.json : 8_comparison._headline"
    },
    {
@@ -89,13 +89,13 @@
     "verdict": "측정 구간 안"
    }
   },
-  "correction_to_the_feasibility_phase": "The feasibility phase expected 'a 6.4x-9.5x steeper slope'. That ratio compared our 1.843-5.21 GHz slope with their 1.8-18.2 GHz slope. Fitted over the SAME interval the ratio is 2.1x against Das and 1.4x against Yuan, and above 6 GHz our slope is 0.264 dB/GHz against their 0.21-0.315 — i.e. INSIDE their range. The steepness is a low-frequency artefact, not a global band law.",
+  "correction_to_the_feasibility_phase": "The feasibility phase expected 'a 6.4x-9.5x steeper slope'. That ratio compared our 1.843-5.21 GHz slope with their 1.8-18.2 GHz slope. Fitted over the SAME interval the ratio is 2.1x against Das and 1.4x against Yuan, and above 6 GHz our sub-band fit is 0.264 dB/GHz, which falls between their 0.21-0.315 — but ⚠ that is NOT an agreement: every measured slope is a SINGLE FIT OVER 1.8-18.2 GHz and the measurement publishes no 6-18.2 GHz sub-fit, so this is the very narrow-band-vs-wide-band pairing this same paragraph calls an artefact. The steepness we can actually measure is a low-frequency effect, not a global band law.",
   "mechanism": {
    "claim": "낮은 ka 에서 PO 가 지는 것이지 밴드 법칙이 틀린 것이 아니다",
    "in_house_control": {
-    "LTE 1.843 GHz": -0.8511794043608774,
-    "5G 3.5 GHz": -0.37484212539172646,
-    "WiFi 5.21 GHz": -0.4198079012506746
+    "LTE 1.843 GHz": -0.8506258340528685,
+    "5G 3.5 GHz": -0.374411571671434,
+    "WiFi 5.21 GHz": -0.4190451379337272
    },
    "control_ka": {
     "LTE 1.843 GHz": 6.87550342831337,
@@ -117,13 +117,13 @@
    },
    "directional_terms_db_per_ghz": {
     "geometry idealisation (real 0.4 mm scan minus our parametric, both PEC)": -0.5189700625122299,
-    "azimuth-sector convention (front hemisphere instead of full 360)": -0.5138508861222046
+    "azimuth-sector convention (front hemisphere instead of full 360)": -0.3932187431279901
    },
-   "directional_total_db_per_ghz": -1.0328209486344346,
+   "directional_total_db_per_ghz": -0.91218880564022,
    "unexplained_residual_db_per_ghz": {
-    "vs_das": 0.6483844684360363,
-    "vs_yuan_azplane": 0.5433844684360363,
-    "fraction_of_gap_vs_das": 0.3856664164013088
+    "vs_das": 0.7690166114302509,
+    "vs_yuan_azplane": 0.6640166114302509,
+    "fraction_of_gap_vs_das": 0.457419779654455
    },
    "two_sided_uncertainty_db_per_ghz": {
     "material table bracket (V1/V2/V3)": 0.43012840567330324,
@@ -134,12 +134,12 @@
   },
   "error_bars": {
    "calibration_scale (kernel vs exact Mie on Yuan's own standard)": {
-    "magnitude_db": 0.8511794043608774,
+    "magnitude_db": 0.8506258340528685,
     "signed": true,
     "by_band": {
-     "LTE 1.843 GHz": -0.8511794043608774,
-     "5G 3.5 GHz": -0.37484212539172646,
-     "WiFi 5.21 GHz": -0.4198079012506746
+     "LTE 1.843 GHz": -0.8506258340528685,
+     "5G 3.5 GHz": -0.374411571671434,
+     "WiFi 5.21 GHz": -0.4190451379337272
     },
     "reading": "|dev| <= 0.85 dB and essentially frequency-flat, so neither the kernel's absolute scale nor a frequency bias of the kernel is the problem. Tightest bar in the exercise."
    },
@@ -217,7 +217,7 @@
     "no": "01",
     "title": "선행연구 — 무엇이 가능하고 무엇이 아닌가",
     "change": "변동 없음",
-    "why": "게재본 중 드론 메쉬에서 산란을 계산한 전례가 0편임을 먼저 확정해야, 뒤 편들이 무엇을 새로 하는지가 정의된다."
+    "why": "보유 아카이브(고유 218편 — docs/REFERENCE_LIBRARY.md 의 전수 집계) 안에서는 드론 메쉬를 PO 표면전류 적분에 통과시켜 산란을 계산한 저작을 찾지 못했다 — ⛔«게재본 중 전례가 0편» 이라고는 쓰지 않는다. 그 범위를 먼저 확정해야, 뒤 편들이 무엇을 새로 하는지가 정의된다."
    },
    {
     "no": "02",
@@ -422,14 +422,14 @@
     "bound_db": 0.2442867831130684,
     "bound_where": "mavic4pro · WiFi 5.21 GHz · prop=0.460",
     "status": "선언된 선택 · 근거 문장은 반증됨",
-    "detail": "note 의 '날개가 셸보다 얇다'를 우리 CAD 가 반증한다 — 시위평균 0.80~1.99 mm, s1000plus 최대 4.15 mm 로 셸 1~3 mm 를 넘는다. 결론은 살아남고 근거가 틀렸다"
+    "detail": "note 의 '날개가 셸보다 얇다'를 우리 CAD 가 반증한다 — 시위평균 0.62~2.78 mm, m350rtk 최대 5.81 mm 로 셸 1~3 mm 를 넘는다. 결론은 살아남고 근거가 틀렸다"
    }
   ],
   "bounded_total": {
    "thin_slab_replacement_db": 0.8544550257841266,
    "bracket_level_db": 1.1356512535902628,
    "bracket_slope_db_per_ghz": 0.43012840567330324,
-   "reading": "재질은 레벨 문제이지 기울기 문제가 아니다. 모든 gamma_po 가 주파수 평탄한 실수 상수라서, 어떤 재질 편집도 밴드 의존성을 구제하지 못한다"
+   "reading": "⛔정정: '어떤 재질 편집도 밴드 의존성을 구제하지 못한다' 는 전칭이라 내린다. **현행 모델(gamma_po 가 주파수 평탄한 실수 상수) 안에서는** 재질 브래킷이 밴드 기울기를 0.430 dB/GHz 안으로만 움직인다 — 우리 밴드폭 3.37 GHz 로 환산하면 1.45 dB 로 레벨 진폭 1.14 dB 와 같은 크기다. gamma_po 를 박막 프레넬(주파수·두께 의존)로 바꾸면 gamma_po 자체가 밴드 의존이 되어 기울기가 움직인다 — 이 문서 3_materials.proposed_patches[2] 가 그 패치다. 잔차 0.769 dB/GHz 는 이 브래킷의 1.8 배뿐이라 PTD 지목은 지시적이지 확정이 아니다"
   },
   "proposed_patches": [
    {
@@ -555,7 +555,7 @@
   },
   {
    "do": "PTD(모서리 회절) 항을 커널에 넣는다",
-   "decides": "좁은대역 기울기 잔차 0.648 dB/GHz (39%) 가 닫히는지. ⚠ 잔차는 재질 브래킷 0.430 dB/GHz 의 1.5 배뿐이라 지목은 지시적이지 확정이 아니다",
+   "decides": "좁은대역 기울기 잔차 0.769 dB/GHz (46%) 가 닫히는지. ⚠ 잔차는 재질 브래킷 0.430 dB/GHz 의 1.8 배뿐이라 지목은 지시적이지 확정이 아니다",
    "where": "src/rcs_sbr.py"
   },
   {

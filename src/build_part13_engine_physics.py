@@ -19,7 +19,7 @@ build_part13_engine_physics.py — 권 5 「엔진의 물리 스위치」의 조
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_part13_engine_physics.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/build_part13_engine_physics.py
 """
 from __future__ import annotations
 
@@ -226,7 +226,7 @@ def blocks_83() -> list:
                  f"⛔실내 통제 기하에서 낸 짝은 내렸다(`archive/chamber_0903/`)"),
             ],
             repro=dict(
-                cmd="PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                cmd="PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                     "benchmark/diag_physics_paths.py -90 20",
                 out="outputs/diag_physics_paths_el-90.json",
                 runtime="여섯 판 × 자세 20 개 (GPU 1 장)",
@@ -412,7 +412,7 @@ TITLE_86 = (
 REG["physics-deck-match"] = ("86", TITLE_86)
 
 REPRO_86 = dict(
-    cmd="PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+    cmd="PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
         "benchmark/build_physics_vs_deck_fig.py",
     out=["outputs/physics_vs_deck.json",
          "outputs/figures/physics_vs_deck_el-15.png"],
@@ -737,11 +737,11 @@ _S88_P0 = _s88_row("sionna_phys", 0.0)      # 물리 팔 el +0 (완결)
 _S88_P90 = _s88_row("sionna_phys", -90.0)   # 물리 팔 el −90 (완결)
 
 REPRO_88 = dict(
-    cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+    cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/diag_physics_paths.py -90 20",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/verify_rt_no_rcs.py",
-         "PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_vol17_scope.py"],
+         "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/figs_vol17_scope.py"],
     out=["outputs/diag_physics_paths_el-90.json",
          "outputs/rt_no_rcs_verify.json",
          "outputs/figures/ch17_scope_coverage.png"],
@@ -1063,11 +1063,11 @@ REG["budget-not-physics"] = ("87", TITLE_87)
 FIGS_87 = ["ch1_f6_el0_budget_ladder.png", "ch1_f5_raybudget.png"]
 
 REPRO_87 = dict(
-    cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+    cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/elevation_sweep_md.py --merge",
-         "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+         "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
          "benchmark/build_ch1_elevation_figs.py",
-         "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_ch1_el0_budget_ladder.py"],
+         "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_ch1_el0_budget_ladder.py"],
     out=["outputs/elevation_sweep_md.json", "outputs/ch1_elevation_figdata.json",
          "outputs/figures/ch1_f6_el0_budget_ladder.png"],
     runtime="병합·그림 약 1 분 (CPU). 네 계단의 추적 자체는 합계 약 4.3 시간 (GPU 1 장)",
@@ -1510,9 +1510,9 @@ def blocks_84() -> list:
                  "물리를 끈 우리 커널이 같은 자리에서 무엇을 남기는가"),
             ],
             repro=dict(
-                cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                      "benchmark/diag_physics_paths.py -90 20",
-                     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                     "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                      "benchmark/build_vol17_switch_fig.py"],
                 out=["outputs/diag_physics_paths_el-90.json",
                      "outputs/figures/vol17_f1_switches.png"],
@@ -1826,9 +1826,9 @@ def blocks_85() -> list:
                  "f_tip 위로 새는 몫이 팔을 가르는 잣대라는 것"),
             ],
             repro=dict(
-                cmd=["PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                cmd=["PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                      "benchmark/wideband_energy_fairbudget.py",
-                     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                     "PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python "
                      "benchmark/fig_fairbudget_leak.py"],
                 out=["outputs/wideband_energy_fairbudget.json",
                      "outputs/figures/fairbudget_leak.png"],

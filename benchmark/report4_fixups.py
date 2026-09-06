@@ -11,7 +11,7 @@ report4 는 6개 검증실험(E1..E6)의 JSON 을 읽어 조립된다. 그런데
   DERIVED   — 원본 JSON 의 원자료(rows/sample)에서 정확히 재계산 (손계산 아님)
   RETRACTED — 측정으로 뒷받침되지 않아 **철회**. 대체값 없음(모르는 건 모른다고 쓴다)
 
-실행:  ~/.venvs/py312/bin/python benchmark/report4_fixups.py
+실행:  /workspace/.venvs/py312/bin/python benchmark/report4_fixups.py
 출력:  outputs/report4_fixups.json
 """
 from __future__ import annotations

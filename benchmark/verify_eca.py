@@ -22,7 +22,7 @@ verify_eca.py — [E2] ECA(직접파 제거) 교정 검증
   [4] ★ 표적 손실 vs 도플러  — 최소 검출가능 도플러 = **저속 드론 탐지의 근본 한계**.
   [5] 정적 클러터 = 죽은 파라미터 — 부분공간 사영으로 '왜' 그런지.
 
-실행:  ~/.venvs/py312/bin/python benchmark/verify_eca.py     (numpy 전용, GPU 불필요)
+실행:  /workspace/.venvs/py312/bin/python benchmark/verify_eca.py     (numpy 전용, GPU 불필요)
 출력:  outputs/verify_eca.json  +  outputs/figures/verify_eca.png
 """
 from __future__ import annotations

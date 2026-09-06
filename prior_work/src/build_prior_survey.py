@@ -23,7 +23,7 @@ build_prior_survey.py — 리포트 01 의 근거 JSON `outputs/prior_work_surve
 
 실행
     cd /workspace/sionna
-    ~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py
+    /workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py
     → outputs/prior_work_survey.json + outputs/figures/report01_survey_*.png  (CPU, 수 초)
 """
 from __future__ import annotations

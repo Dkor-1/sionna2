@@ -18,7 +18,7 @@ measure_prop_thickness_by_drone.py — 프롭 슬래브 두께 **기종별 표**
 ⚠ 이 표는 **우리 메쉬의 두께**다. 실물 프롭 두께가 아니다(실물 실측은 DJI Mini 2 공식 CAD
   하나뿐이고 matrice4e 는 1차 출처가 0 이다 — 감사 판정보류 ?2).
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/measure_prop_thickness_by_drone.py [--laws legacy,dji_mini2]
 GPU 미사용.
 """

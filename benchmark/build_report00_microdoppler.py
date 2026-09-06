@@ -24,7 +24,7 @@ build_report00_microdoppler.py — 리포트 00 §4a 의 근거와 그림을 만
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_report00_microdoppler.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_report00_microdoppler.py
 """
 from __future__ import annotations
 

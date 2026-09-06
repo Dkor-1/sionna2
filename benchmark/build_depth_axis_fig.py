@@ -30,7 +30,7 @@ build_depth_axis_fig.py — ⭐**반사 깊이 축**(덱 30 장 Future work 1 �
    (모든 짝 normal ΔE ≥ 24 · CVD 최소 ΔE ≥ 21)
 
 사용법
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_depth_axis_fig.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_depth_axis_fig.py
 
 ⛔GPU 안 쓴다 — 저장된 원장 JSON 만 읽는다.
 """

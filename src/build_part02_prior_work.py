@@ -23,7 +23,7 @@ build_part02_prior_work.py — 부 2 「선행연구」 → 편 08~14
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part02_prior_work.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part02_prior_work.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다.
 """
@@ -111,7 +111,7 @@ def _repro(cmd_extra: list[str], out: list[str], runtime: str, note: str = "") -
     return d
 
 
-_SURVEY_CMD = "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py"
+_SURVEY_CMD = "/workspace/.venvs/py312/bin/python prior_work/src/build_prior_survey.py"
 _PAPER_CMD = "PYTHONPATH=src python src/report01_paper_facts.py"
 _FIGS_CMD = "PYTHONPATH=src python src/figs_report01.py"
 

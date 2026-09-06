@@ -3,7 +3,7 @@
 build_part09_detector.py — 부 9 「검출기」 5편(51~55)을 짓는다
 ==========================================================================================
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part09_detector.py
 
 산출
     reports/51_chain.ipynb           수신 → ECA → 거리도플러 → CFAR, 사슬의 형상은 파형이 정한다
@@ -56,11 +56,11 @@ ZD = fetch(f"{CFAR}:meta.zd_mask_operational")      # 운용 0-도플러 마스�
 PFA_OP = 1e-4                                       # 운용 명목 Pfa
 
 CMD = ["cd /workspace/sionna",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_observability.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
-       "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"]
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_cfar.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_eca.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/verify_observability.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report04_detector.py",
+       "PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part09_detector.py"]
 
 
 # --------------------------------------------------------------------------- #

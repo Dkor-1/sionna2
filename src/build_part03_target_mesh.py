@@ -20,7 +20,7 @@ build_part03_target_mesh.py — 부 3 「표적 메쉬」 → 편 15~17
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part03_target_mesh.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_part03_target_mesh.py
 
 ⚠ GPU 도 Sionna 실행도 필요 없다.
 """

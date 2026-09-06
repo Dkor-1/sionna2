@@ -15,7 +15,7 @@ deck_facts.py — 0804 팀미팅 덱이 인용해도 되는 **검증된 사실 �
 
 실행:
   cd /workspace/sionna && \
-  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/deck_facts.py
+  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/deck_facts.py
 """
 from __future__ import annotations
 
@@ -2123,7 +2123,7 @@ def main() -> int:
             "script": "benchmark/deck_facts.py",
             "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "run": "cd /workspace/sionna && PYTHONPATH=src:benchmark "
-            "~/.venvs/py312/bin/python benchmark/deck_facts.py",
+            "/workspace/.venvs/py312/bin/python benchmark/deck_facts.py",
             "purpose_ko": "0804 팀미팅 덱이 인용해도 되는 검증된 사실 기반. "
             "덱은 이 파일 밖의 수를 인용하지 않는다.",
             "evidence_rule_ko": "(a) 내가 직접 연 PDF 의 축자 문장 또는 (b) 디스크 JSON 에서 우리가 계산한 "

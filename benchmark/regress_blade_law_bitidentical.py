@@ -28,7 +28,7 @@ regress_blade_law_bitidentical.py — **«안 고르면 안 바뀐다» 를 증�
   그룹 바이트를 해시해 보면 수리 **직전 코드와 비트동일**이다(적대검증에서 직접 확인).
   ⇒ 프레임을 이 시험에 넣어도 거짓 실패는 안 난다. 넣지 않은 이유는 «범위» 이지 «불가» 가 아니다.
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/regress_blade_law_bitidentical.py
 종료코드 0 = 통과. GPU 미사용.
 """

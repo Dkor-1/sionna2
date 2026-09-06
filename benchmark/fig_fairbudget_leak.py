@@ -9,7 +9,7 @@ y 축 = 날개끝 상한 위로 새는 에너지 몫 [%]. 막대 위에 자세�
 그림 안의 글자는 전부 영어(하우스 규약).
 
 실행
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/fig_fairbudget_leak.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/fig_fairbudget_leak.py
 """
 from __future__ import annotations
 

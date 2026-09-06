@@ -18,7 +18,7 @@ adv_mesh_topo_faults.py — **위상·이산화 검사기를 검사한다**(양�
   ② **눈금 검증** — D1 의 사지타 추정기가 해석적 참값(원통·구의 r(1−cos))과 몇 % 안에서
      맞는지 잰다. 잣대 자체가 틀리면 양성/음성 대조는 의미가 없다.
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/adv_mesh_topo_faults.py
       ⛔ GPU 안 쓴다. 파일도 안 쓴다(읽기 + 화면 출력). 나가는 값: 전부 통과 0, 하나라도 실패 1.
 """

@@ -38,7 +38,7 @@ source_not_pdf 등). "확인됨"과 "확인 못 함"을 절대 섞지 않는다.
 사용법
 ------
   cd /workspace/sionna
-  PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_quotes_tool.py
+  PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/verify_quotes_tool.py
   ... --only deepread_w4.json prior_settled_h8.json   # 파일 일부만
   ... --summary-only                                  # 콘솔 요약만
   ... --no-cache                                      # 페이지 텍스트 디스크 캐시 끄기

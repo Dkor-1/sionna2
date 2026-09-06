@@ -7,7 +7,7 @@ phi_sweep_verdict.py — outputs/phi_sweep.json 을 읽어 **판정 블록**(ver
       판정은 **팔 B(σ 고정)** 와 **자세평균 팔** 을 통제군으로 삼는다 — 거기서 평평하면
       φ 의존은 기하가 아니라 σ 자세 몫이다.
 
-실행: PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/phi_sweep_verdict.py
+실행: PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/phi_sweep_verdict.py
 """
 from __future__ import annotations
 

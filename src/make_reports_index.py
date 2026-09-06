@@ -17,7 +17,7 @@ make_reports_index.py — 지어진 편 전부의 색인·재현·논문 목차�
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_reports_index.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_reports_index.py
 
 ⚠ 근거 JSON(`outputs/*.json`)은 한 줄도 고치지 않는다. GPU 도 쓰지 않는다.
 """
@@ -110,7 +110,7 @@ def write_reproduce(rows: list[dict]) -> None:
          "읽기 경로 ③ 이다. **리포트를 읽지 않는다** — 어느 숫자를 재생산하려는지만 알면 된다.",
          "그 숫자가 사는 편을 아래 표에서 찾아 명령을 그대로 돌린다.", "",
          "```bash", "cd /workspace/sionna",
-         "PY=~/.venvs/py312/bin/python", "```", "",
+         "PY=/workspace/.venvs/py312/bin/python", "```", "",
          "노트북만 다시 조립하려면(계산 없음 · 수 초):", "",
          "```bash",
          "for f in src/build_part*.py; do PYTHONPATH=src $PY \"$f\"; done",

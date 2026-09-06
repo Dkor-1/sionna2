@@ -34,7 +34,7 @@
   · R6 : 실 MC RD맵 프레임은 물리라 여기서 못 만든다 → `curves.rd_frames`(|RD| 2D 목록)로
     실어 주면 애니메이션한다. 없으면 skip(날조 금지).
 
-실행:  cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report13.py
+실행:  cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python src/viz_report13.py
        스모크:  --out-dir /tmp/.../fig  (outputs 오염 회피)
 """
 from __future__ import annotations

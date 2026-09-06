@@ -22,7 +22,7 @@ das_fleet_ours.py — 부분 σ 파일을 모아 μ(θb,f)·ε·적합·Das 대�
     sigma_grid_regen.json · sigma_el_extend_progress.json · anchor_subband*.json 은 **읽기만** 한다.
 
 실행:
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/das_fleet_ours.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/das_fleet_ours.py
 """
 from __future__ import annotations
 

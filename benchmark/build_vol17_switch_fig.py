@@ -16,7 +16,7 @@ build_vol17_switch_fig.py — 권 17 절 「물리 스위치 단일축 분해」
   · 막대마다 값을 직접 적는다 — 색맹 조건에서도 이름과 숫자만으로 읽힌다.
   · 그림 안에 설정값(광선 수 · 자세 수 · 앙각)은 적지 않는다. 그것은 리포트 본문이 말한다.
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_vol17_switch_fig.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/build_vol17_switch_fig.py
 """
 from __future__ import annotations
 

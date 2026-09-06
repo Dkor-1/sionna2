@@ -26,7 +26,7 @@ geometry_benchmark.py — **설계공간 지도**와 주장 사다리 **재판�
 
 실행:
     cd /workspace/sionna
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/geometry_benchmark.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/geometry_benchmark.py
 
 집안 규약: 산문·print 는 한국어, **그림 텍스트는 전부 영어**, 수치는 저장소 JSON/함수에서만
 가져온다 — 손으로 치지 않는다(마크다운 표도 이 스크립트가 찍는다).
@@ -1014,9 +1014,9 @@ def write_md(out):
     A("│ 코드가 없다. σ 는 같은 격자를 β=0 으로 조회한다(모노 후방산란이 원래 우리 │")
     A("│ 생산 경로다). 문턱·Pfa 교정·듀티 규약은 두 팔에 같은 값을 쓴다.          │")
     A("├─ 재현 ─────────────────────────────────────────────────────────────────┤")
-    A("│ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/geometry_grid.py   (0.8 s)")
-    A("│ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/mono_link.py       (16.8 s)")
-    A(f"│ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/geometry_benchmark.py "
+    A("│ PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/geometry_grid.py   (0.8 s)")
+    A("│ PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/mono_link.py       (16.8 s)")
+    A(f"│ PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/geometry_benchmark.py "
       f"({out['meta']['runtime_s']:.1f} s)")
     A("│ → outputs/geometry_benchmark.json · outputs/figures/geometry_benchmark_map.png │")
     A("├─ 앞 편에서 ────────────────────────────────────────────────────────────┤")

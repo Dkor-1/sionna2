@@ -42,7 +42,7 @@ das_fleet_sigma.py — ⭐ Das 함대 σ(f, θb) 계산기 (모노 + 바이스�
     파일이 이미 있으면 건너뛴다 → 죽었다 다시 띄우면 이어서 간다.
 
 실행 예:
-    PYTHONPATH=src:benchmark SIONNA2_GPU=2 ~/.venvs/py312/bin/python \
+    PYTHONPATH=src:benchmark SIONNA2_GPU=2 /workspace/.venvs/py312/bin/python \
         benchmark/das_fleet_sigma.py --airframe mini2 --stage 2 --shard 0 --nshard 8
 """
 from __future__ import annotations

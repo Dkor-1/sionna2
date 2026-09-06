@@ -10,7 +10,7 @@ figs_report17_switch_axis.py — 권 17 절 1 의 그림 한 장.
 그림이 답하는 질문 하나 — **네 스위치 중 어느 것이 나딧 레벨을 올리나?**
 왼쪽 막대는 판마다의 레벨[dB], 오른쪽 숫자는 그 판의 경로 중앙값이다.
 
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_report17_switch_axis.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/figs_report17_switch_axis.py
 """
 from __future__ import annotations
 

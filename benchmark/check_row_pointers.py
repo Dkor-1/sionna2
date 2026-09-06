@@ -15,7 +15,7 @@ check_row_pointers.py — 각주의 «rows[N]» 이 아직 그 팔·그 앙각�
     ⇒ 고치는 법은 언제나 «해당 조각 빌더를 다시 돌린다» 이다. 손으로 번호를 고치지 마라.
 
 쓰는 법
-    CUDA_VISIBLE_DEVICES="" PYTHONPATH=src ~/.venvs/py312/bin/python \
+    CUDA_VISIBLE_DEVICES="" PYTHONPATH=src /workspace/.venvs/py312/bin/python \
         benchmark/check_row_pointers.py            # 어긋나면 종료코드 1
     --quiet 를 주면 어긋난 것만 찍는다.
 """

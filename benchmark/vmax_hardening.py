@@ -30,7 +30,7 @@
 ■ 산출
     outputs/vmax_hardening.json      (그림 없음 — 그림 사양은 JSON `figure_specs` 에 적어둔다)
 
-실행:  cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/vmax_hardening.py
+실행:  cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/vmax_hardening.py
        빠른 확인:  --smoke
 """
 from __future__ import annotations

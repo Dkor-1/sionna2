@@ -53,7 +53,7 @@ Clutter-Aware ISAC 서베이(§V-A4, Proc. IEEE 114:52-91, 2026)는 정적-클�
   CNR 앵커는 기대공식이 아니라 **실현전력을 측정해 재스케일**(라벨=실현, anchor_cold_clutter_empirical).
 
 실행:
-  전체 (5G/WiFi/LTE → outputs):   ~/.venvs/py312/bin/python benchmark/verify_clutter_doppler.py
+  전체 (5G/WiFi/LTE → outputs):   /workspace/.venvs/py312/bin/python benchmark/verify_clutter_doppler.py
   스모크 (5G only → /tmp):        ... benchmark/verify_clutter_doppler.py --smoke
 GPU: σ 는 mavic4pro SBR 캐시 조회라 GPU-free. (캐시 미스만 SIONNA2_GPU=3 필요.)
 출력: outputs/verify_clutter_doppler.json + outputs/figures/verify_clutter_doppler.png

@@ -16,7 +16,7 @@ adv_mesh_dimref_faults.py — **치수·외부 대조 검사기를 검사한다*
 ⚠ 심는 결함은 **메모리 안의 메쉬 사본**에만 적용한다. 형상 상수(_SHELL_SHAPE·INTERNALS·
   GEAR_*·CHORD_*·envelope_mm …)는 한 글자도 안 건드린다. 파일도 안 쓴다.
 
-실행: cd sionna && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python \
+실행: cd sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python \
         benchmark/adv_mesh_dimref_faults.py
       ⛔ GPU 안 쓴다. 나가는 값: 전부 잡으면 0, 하나라도 놓치면 1.
 """

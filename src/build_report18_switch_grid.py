@@ -23,7 +23,7 @@ build_report18_switch_grid.py — 리포트 5-2 «물리 스위치 격자» 조�
   · outputs/rhythm_share_knob_audit_0825.json — ⚠리듬 몫이 타는 자유 파라미터(빗살
     반폭)의 흔들기 폭. 깊이 절에서 절대값 인용을 막는 데만 쓴다.
 
-    PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/build_report18_switch_grid.py
+    PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/build_report18_switch_grid.py
 """
 from __future__ import annotations
 

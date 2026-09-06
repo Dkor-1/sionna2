@@ -16,7 +16,7 @@ verify_angle_gamma_po.py — 순수 PO 커널의 각도의존 Γ(θ) 배선 검�
       (po 팔만 재계산 — CPU, GPU 불필요. sionna/sbr 팔은 저장본 그대로.)
 
 쓰는 것: outputs/angle_gamma_po_impact.json
-실행:    ~/.venvs/py312/bin/python benchmark/verify_angle_gamma_po.py
+실행:    /workspace/.venvs/py312/bin/python benchmark/verify_angle_gamma_po.py
 """
 from __future__ import annotations
 

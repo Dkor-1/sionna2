@@ -19,7 +19,7 @@
 
 실행
     cd /workspace/sionna
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/figs_vol17_scope.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/figs_vol17_scope.py
 
 ⚠ GPU 안 쓴다. 원장 JSON 을 읽어 격자를 칠할 뿐이다.
 """

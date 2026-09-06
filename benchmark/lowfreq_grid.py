@@ -22,8 +22,8 @@ lowfreq_grid.py — **저주파 격차의 원인을 가른다: 표본화(A)인�
   ⚠ 곡면 수렴은 단조롭지 않다(실루엣 grazing 위상 에일리어싱). 한 점이 아니라 **사다리 전체 추세**로 본다.
   그 다음 수렴 격자로 **부분대역 기울기를 다시 적합**해 Das 0.21 과의 배수를 다시 잰다.
 
-실행:  ~/.venvs/py312/bin/python benchmark/lowfreq_grid.py --stage run
-       ~/.venvs/py312/bin/python benchmark/lowfreq_grid.py --stage analyze
+실행:  /workspace/.venvs/py312/bin/python benchmark/lowfreq_grid.py --stage run
+       /workspace/.venvs/py312/bin/python benchmark/lowfreq_grid.py --stage analyze
 """
 from __future__ import annotations
 
@@ -121,7 +121,7 @@ def run(n_workers, gpus, mem_mb):
         env["SIONNA2_GPU_MEM"] = str(mem_mb)
         env["PYTHONPATH"] = f"{ROOT}/src:{ROOT}/benchmark"
         log = open(os.path.join(SCRATCH, f"log_{i}.txt"), "w")
-        p = subprocess.Popen([os.path.expanduser("~/.venvs/py312/bin/python"),
+        p = subprocess.Popen([os.path.expanduser("/workspace/.venvs/py312/bin/python"),
                               os.path.join(ROOT, "benchmark", "lowfreq_grid_worker.py"), tf, of],
                              cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
         procs.append((p, of, log))

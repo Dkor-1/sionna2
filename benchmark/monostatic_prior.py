@@ -21,7 +21,7 @@
 ■ 산출
     outputs/monostatic_prior.json
 
-실행:  cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/monostatic_prior.py
+실행:  cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/monostatic_prior.py
 """
 from __future__ import annotations
 

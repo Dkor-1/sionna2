@@ -67,7 +67,7 @@ sentinel_truth.py — ModalAI **Sentinel 공식 CAD** 에서 지상진실(ground
     다만 치수는 독립 방증이 된다 — 나일론 스페이서 OD 6.350 mm = 정확히 1/4", 길이 4.763 /
     12.700 mm = 정확히 3/16" / 1/2". 임페리얼 격자에 정확히 떨어진다.
 
-실행: cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sentinel_truth.py
+실행: cd sionna2 && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/sentinel_truth.py
 산출: outputs/sentinel_truth.json
 """
 from __future__ import annotations

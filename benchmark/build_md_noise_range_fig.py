@@ -22,7 +22,7 @@ build_md_noise_range_fig.py — ⭐**거리에 따라 블레이드선이 잡음�
   outputs/md_noise_range_fig.json   — 패널마다 시드·사다리 세 층위·측정 첨두
 
 실행:
-    cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_md_noise_range_fig.py
+    cd sionna2 && PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_md_noise_range_fig.py
 """
 from __future__ import annotations
 

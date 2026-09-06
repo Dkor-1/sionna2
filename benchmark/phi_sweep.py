@@ -31,7 +31,7 @@ phi_sweep.py — ⭐ 장면방위 φ 를 쓸어 "기하는 링크버짓에 영�
   C. geometry    : σ·파형과 무관한 기하 사실 — N2/N3 확산항 차(모노 vs 바이), R1/R2, β, el_look.
                    benchmark/geometry_grid.py 의 7점 φ 목록을 72점으로 조밀화한 것이다.
 
-실행: CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/phi_sweep.py
+실행: CUDA_VISIBLE_DEVICES="" PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/phi_sweep.py
 산출: outputs/phi_sweep.json · outputs/figs/phi_sweep.png
 """
 from __future__ import annotations

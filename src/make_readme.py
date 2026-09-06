@@ -17,8 +17,8 @@ make_readme.py — README.md 를 편성에서 직접 짓는다
    숫자는 `report_style.num()` 이 JSON 을 열어 대조한 값이다 — 손으로 친 숫자가 없다.
 
 실행 (색인이 먼저다)
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_volumes.py
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_readme.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/build_volumes.py
+    PYTHONPATH=src /workspace/.venvs/py312/bin/python src/make_readme.py
 """
 from __future__ import annotations
 
@@ -360,7 +360,7 @@ def build() -> str:
     A("")
     A("```bash")
     A("cd /workspace/sionna")
-    A("PY=~/.venvs/py312/bin/python")
+    A("PY=/workspace/.venvs/py312/bin/python")
     _CIRCLED = "①②③④⑤⑥⑦⑧⑨"
     for i, step in enumerate(idx["_meta"]["order"], 1):
         A("")
@@ -378,7 +378,7 @@ def build() -> str:
     A("")
     A("| | |")
     A("|---|---|")
-    A("| Python | `~/.venvs/py312/bin/python` (3.12) — 이 한 env 로 전부 실행 |")
+    A("| Python | `/workspace/.venvs/py312/bin/python` (3.12) — 이 한 env 로 전부 실행 |")
     A("| 핵심 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 (OptiX GPU) · torch · "
       "numpy · trimesh + manifold3d |")
     A("| 노트북 커널 | `py312` |")

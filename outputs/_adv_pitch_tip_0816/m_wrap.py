@@ -9,8 +9,8 @@ from scipy.spatial import ConvexHull
 sys.path[:0] = ["/workspace/sionna/src", "/workspace/sionna/benchmark"]
 import drone_cad                                     # noqa: E402
 
-RAW = "/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/dji_blade_raw.json"
-OUT = "/tmp/claude-0/-workspace/e9e31991-b542-4f3a-b8e2-570320d555ba/scratchpad/wrap.json"
+RAW = "/workspace/sionna/outputs/_adv_pitch_tip_0816/dji_blade_raw.json"
+OUT = "/workspace/sionna/outputs/_adv_pitch_tip_0816/wrap.json"
 res = {}
 
 # ── (1) 기준 반경 0.75R 은 이 데이터로 «가려낼 수» 있는가 ────────────────────────────
