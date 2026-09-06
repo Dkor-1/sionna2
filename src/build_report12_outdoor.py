@@ -78,6 +78,22 @@ J2 = json.load(open(f"{ROOT}/{LED2}", encoding="utf-8"))
 C2 = J2["cells"]
 
 
+LED3 = "outputs/outdoor_recover_0907.json"
+J3 = json.load(open(f"{ROOT}/{LED3}", encoding="utf-8"))
+C3, S3 = J3["cells"], J3["summary"]
+
+
+def n3(cell: str, k: str, fmt="{:.1f}") -> str:
+    """전수 원장의 값 하나 + 각주."""
+    v = C3[cell][k]
+    return ("—" if v is None else fmt.format(v)) + " " + fn(LED3, f"cells.{cell}.{k}", v)
+
+
+def s3(k: str) -> str:
+    v = S3[k]
+    return f"{v}" + " " + fn(LED3, f"summary.{k}", v)
+
+
 def n2(el: str, k: str, fmt="{:.1f}") -> str:
     """새 원장의 값 하나 + 각주. ⛔손으로 치지 않는다."""
     v = C2[el][k]
@@ -632,17 +648,51 @@ md(f"""## 되찾을 수 있나 — 그리고 순서가 결과를 바꾼다
 단위는 dB. 꺼진 자세로 걸린 수는 el −30° 에서 {n2('el-30','n_dips_raw','{:,}')} 개다
 (자세 {n2('el-30','n_poses','{:,}')} 개 중).
 
-⭐**el −30° 에서 메우고 나서 빼면 자유공간과 같은 자리로 온다.** 그리고 마지막 두 줄은
-**같은 두 조작을 순서만 바꾼 것**인데 값이 갈린다.
+⭐**el −30° 에서 메우면 자유공간과 같은 자리로 온다.**
 
-⛔**거꾸로 하면 안 된다.** 꺼진 자세는 `|E| < 중앙값 × 0.1` 로 찾는데, 정지 성분을 먼저 빼면
-중앙값이 작아져 기준이 흔들린다 — el −30° 에서 걸리는 자세가
-{n2('el-30','n_dips_raw','{:,}')} 개가 아니라 {n2('el-30','n_dips_after_notch','{:,}')} 개가 되고,
-el 0° 에서는 원래 {n2('el+0','n_dips_raw','{:,}')} 개이던 것이
-{n2('el+0','n_dips_after_notch','{:,}')} 개로 늘어난다.
+⛔⛔**여기 처음 적었던 「메우고 나서 빼야 한다」 는 설명을 내린다(2026-09-07).**
+그 문장은 **정지 성분 노치가 한몫한다**는 뜻으로 읽히는데, 전수로 재 보니 노치는
+**칸 {s3('n_cells')} 개 전부에서 값을 0.05 dB 도 안 바꾼다**
+(`outputs/outdoor_recover_0907.json` 의 `notch_delta_db`). 구조적으로 그럴 수밖에 없다 —
+노치는 `|f| ≤ {n3('R0D0E0F1/el-30','notch_cut_hz','{:.0f}')}` Hz 를 지우는데 이 잣대의 대역은
+**그 위에서 시작**한다: 앙각 0° 에서 {n3('R0D0E0F1/el+0','band_lo_hz')} Hz ·
+−75° 에서도 {n3('R0D0E0F1/el-75','band_lo_hz')} Hz 다. **겹치는 칸이 하나도 없다.**
 
-⚠**el −60° 는 절반만 돌아온다** — {n2('el-60','comb_fill_then_notch_db')} 대 자유공간
-{n2('el-60','comb_free_db')} 다. 거기에는 낙차 말고 다른 것이 더 있다. **무엇인지는 모른다.**
+⇒ 순서가 갈린 것은 노치의 효과가 아니라, 노치가 깊은 골을 얕게 만들어 `|E| < 중앙값 × 0.1`
+규칙이 **그 자세들을 더는 못 찾게** 된 것이다(el −30° 에서 {n2('el-30','n_dips_raw','{:,}')} 개
+→ {n2('el-30','n_dips_after_notch','{:,}')} 개인데, 그 {n2('el-30','n_dips_after_notch','{:,}')} 개는
+**다른 자세들**이다). 규칙이 흔들린 것이지 물리가 아니다.""")
+
+md(f"""## 그러면 어디까지 돌아오나 — 팔 넷 × 앙각 여섯 전수
+
+앞의 표는 팔 하나·앙각 셋이었다. 전수로 재면 **갈린다.**
+
+칸 {s3('n_cells')} 개 가운데 실외가 빗살을 10 dB 넘게 무너뜨린 칸이 {s3('n_broken')} 개이고,
+꺼진 자세만 메워 자유공간 3 dB 안으로 돌아온 칸은 {s3('n_recovered')} 개다.
+
+| 팔 | 앙각 | 자유공간 | 실외 | 메움 | 차 |
+|---|---|---|---|---|---|
+""" + "\n".join(
+    f"| {c['arm']} | {c['el_deg']:+.0f}° | {n3(k,'comb_free_db')} | {n3(k,'comb_raw_db')} "
+    f"| {n3(k,'comb_fill_db')} | {n3(k,'recover_gap_db','{:+.1f}')} |"
+    for k, c in C3.items() if c.get("is_broken")) + f"""
+
+⭐**갈리는 것은 앙각이 아니라 회절이다.** 돌아온 {s3('n_recovered')} 칸은 전부
+**회절·모서리회절을 끈 두 팔**(R0D0E0F1 · R1D0E0F1)이고, 켠 두 팔은 한 칸도 못 돌아온다.
+
+⭐**el −60° 는 「절반만 돌아오는」 것이 아니었다.** 자세 평균을 뺀 잔차의
+{n3('R0D0E0F1/el-60','residual_top10_share_pct')} % 가 자세 **열 개**에 몰려 있고, 그 자세들은
+꺼진 것이 아니라 **밝다**(|E|/중앙값 ≈ 1.117). 꺼진 자세 규칙이 못 보는 자리다.
+밝은 쪽(|E| > 중앙값 × 1.05)도 함께 메우면
+{n3('R0D0E0F1/el-60','comb_fill_with_bright_db')} dB — 자유공간
+{n3('R0D0E0F1/el-60','comb_free_db')} dB 와 같아진다. 다른 팔도 같다
+({n3('R1D0E0F1/el-60','comb_fill_with_bright_db')} 대 {n3('R1D0E0F1/el-60','comb_free_db')}).
+⇒ 회절 끈 두 팔은 무너진 **열 칸 전부**가 돌아온다.
+
+⚠**회절 켠 두 팔은 다르다.** 거기서는 잔차가 한곳에 안 몰리고
+({n3('R0D1E1F1/el-60','residual_top10_share_pct')} % · {n3('R0D1E1F1/el-75','residual_top10_share_pct')} %),
+밝은 자세를 함께 메워도 안 돌아온다({n3('R0D1E1F1/el-75','comb_fill_with_bright_db')} 대
+{n3('R0D1E1F1/el-75','comb_free_db')}). **무엇이 부쉈는지 모른다.**
 
 ⛔이 표는 «지면이 박자를 부순다» 를 말하지 않는다. 부순 것이 무엇인지는 자세를 세어 따로
 물어야 하고, 이 원장은 그것을 안 물었다.""")
