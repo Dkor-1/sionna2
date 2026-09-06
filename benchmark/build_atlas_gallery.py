@@ -496,6 +496,14 @@ def pair_delta(arm: str, other: str):
 # ═══════════════════════════════════════════════════════════════════════════ #
 #  5. 주제마다 ⭐핵심 발견 3 줄 — 전부 색인에서 계산한다
 # ═══════════════════════════════════════════════════════════════════════════ #
+#: ⛔R29 — 리듬 몫의 **크기**는 창 반폭 hw · f_above 가 정한다. 크기가 찍히는 문장마다 이 꼬리를
+#  단다. 2026-09-06 재빌드가 이 꼬리 없는 문장 여덟 자리를 되살려 check_retracted 에 걸렸다 —
+#  verdict() 안에서만 붙이고 있었고, verdict() 를 안 거치는 문장(엔진 평균·밴드 정의)은 맨몸이었다.
+R29_TAIL = ("<br>⚠이 잣대는 격자 축만 잰다 — 분석 손잡이(창 반폭 hw · f_above)에 더 크게 "
+            "흔들린다(RETRACTION_LOG R29: hw 2/8/32 Hz 로 같은 데이터가 9.9/63.4/90.0 %). "
+            "<b>크기는 인용하지 않는다 — 순서만 읽는다.</b>")
+
+
 def verdict(spread: float, *, slug: str | None = None) -> str:
     """폭 하나를 격자 흔들림 밴드에 대 본다 — 밴드 안이면 «차이가 있다»고 말하지 않는다.
 
@@ -508,13 +516,11 @@ def verdict(spread: float, *, slug: str | None = None) -> str:
         return ""
     if slug == "grid":
         return (f"⚠이 짝이 바로 <b>밴드 {RHY_BAND:.1f} %p 를 정의한 짝</b>이다 — "
-                "자기 자신과 대는 자리라 판정 대상이 아니다")
+                "자기 자신과 대는 자리라 판정 대상이 아니다" + R29_TAIL)
     #: ⚠2026-09-04 — 이 밴드는 **격자 축**만 잰다. RETRACTION_LOG R29 가 실측으로 보였듯
     #  분석 손잡이가 더 크게 흔든다(창 반폭 hw 2/8/32 Hz → 같은 데이터가 9.9/63.4/90.0 %,
     #  `f_above` 를 함수 기본값으로 두면 63.4 → 98.9 %). 크기는 인용하지 않는다.
-    R29 = ("<br>⚠이 잣대는 격자 축만 잰다 — 분석 손잡이(창 반폭 hw · f_above)에 더 크게 "
-           "흔들린다(RETRACTION_LOG R29: hw 2/8/32 Hz 로 같은 데이터가 9.9/63.4/90.0 %). "
-           "<b>크기는 인용하지 않는다 — 순서만 읽는다.</b>")
+    R29 = R29_TAIL
     return (f"격자 흔들림 밴드 {RHY_BAND:.1f} %p 밖이다{R29}" if spread > RHY_BAND
             else f"격자 흔들림 밴드 {RHY_BAND:.1f} %p 안이라 <b>판정 불가</b>{R29}")
 
@@ -709,7 +715,7 @@ def topic_findings(tkey: str, tinfo: dict) -> list[str]:
                 + (f"⚠<b>거리를 맞춰서</b> 묶었다 — 이 주제의 팔은 {' · '.join(f'{r:g} m' for r in rngs)} "
                    "로 갈리므로, 섞어 평균하면 «엔진 차이» 안에 «거리 차이»가 들어간다. "
                    if len(rngs) > 1 else "")
-                + "⚠dB(세기)는 엔진마다 눈금이 달라 비교하지 않는다.")
+                + "⚠dB(세기)는 엔진마다 눈금이 달라 비교하지 않는다." + R29_TAIL)
         # ⭐광선 예산 사다리 — **같은 거리**에서 spp 만 올린 PathSolver 팔
         #   (거리를 안 맞추면 사다리 안에 거리 차이가 섞인다)
         cand = [(c["spp"], nm, c["rhythm_share_pct"], c.get("comb_contrast_db"))
@@ -1510,7 +1516,7 @@ def build_index() -> str:
   <b>3. 격자 흔들림 밴드 안이면 판정 불가.</b>
   표면 격자를 λ/12 에서 λ/24 로 조이기만 해도 잣대가 움직인다. 그 폭이
   <b>리듬 몫 {RHY_BAND:.1f} %p · 움직이는 전력 {AC_BAND:.2f} dB</b> 다(<code>{esc(BAND_SRC)}</code>,
-  앙각 네 점에서 잰 최댓값). 두 팔의 리듬 몫 차이가 {RHY_BAND:.1f} %p 안이면 «차이가 있다»고 말할 수 없다.
+  앙각 네 점에서 잰 최댓값). 두 팔의 리듬 몫 차이가 {RHY_BAND:.1f} %p 안이면 «차이가 있다»고 말할 수 없다.{R29_TAIL}
   ⚠<b>이 밴드는 우리 커널의 격자 축(λ/12 ↔ λ/24)에서 나온 수다 — PathSolver 에는 그 축이 아예 없다.</b>
   PathSolver 팔끼리의 차이에 이 밴드를 대는 것은 <b>빌려 쓰는</b> 것이고, 그 사실을 알고 써야 한다.
 </div>
@@ -1753,7 +1759,7 @@ def build_topic(i: int, tkey: str, tinfo: dict) -> str:
   <div class="note"><b>⭐ 핵심 발견</b>
     <ul class="find">{"".join(f"<li>{x}</li>" for x in finds)}</ul>
     <p class="small muted">전부 <code>outputs/md_atlas_index.json</code> 과 원장에서 계산한 수다.
-    «격자 흔들림 밴드»는 리듬 몫 {RHY_BAND:.1f} %p — 그 안의 차이는 판정하지 않는다.</p>
+    «격자 흔들림 밴드»는 리듬 몫 {RHY_BAND:.1f} %p — 그 안의 차이는 판정하지 않는다.{R29_TAIL}</p>
   </div>
 </header>
 

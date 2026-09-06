@@ -9,8 +9,7 @@
 
 결과
   절대 레벨 -23.23 / -19.65 / -16.86 dBsm — 발표된 봉투 대비 -4.43 / -1.20 dB 와 봉투 안.
-  밴드 기울기는 6 GHz 위에서 0.264 dB/GHz 로 측정 구간 0.175~0.315 안에 들고,
-  1.8~6 GHz 에서 1.540 로 벗어난다.
+  밴드 기울기는 6 GHz 위에서 0.264 dB/GHz, 1.8~6 GHz 에서 1.540 dB/GHz 다. ⛔측정 기울기 구간과는 나란히 놓지 않는다 — 적합 구간이 다르다(MATERIAL_CORRECTION §6).
   교정구는 정확 Mie 대비 0.851 dB 안 — 절대 스케일은 맞는다.
 
 방법
@@ -37,7 +36,7 @@
 |---|---|---|---|
 | 교정 표적의 절대 σ (PEC 구 r = 17.8 cm, Yuan 자신의 교정 표준) | 예 | 정확 Mie 대비 0.374~0.851 dB, ka = 6.88~19.44 | validate_measured_airframe.json : 2_calibration_sphere |
 | 해석 PO 구 (커널 자체 수렴) | 예 | kr 1~100 · 입사 48방향에서 최대 0.2006 dB | sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po |
-| 측정 기체의 밴드 기울기 dμ/df, 6 GHz 위 | 예 | 우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안** | validate_measured_airframe.json : 8_comparison._headline |
+| 측정 기체의 밴드 기울기 dμ/df, 6 GHz 위 | 대조 불가 | 우리 0.264 dB/GHz (6~18.2 GHz 적합). ⛔측정 기울기 구간과 나란히 놓지 않는다 — 그쪽은 1.8~18.2 GHz 전대역 적합이라 축이 다르다(MATERIAL_CORRECTION §6). 측정 구간의 값은 인용하지 않는다 | validate_measured_airframe.json : 8_comparison._headline |
 | 방위 산포 ε (Das Table III 와 같은 양) | 부분 | 밴드별 차 -1.30~+1.16 dB. 측정은 세 밴드에서 5.22~5.32 dB 로 거의 평평하고 우리는 밴드마다 움직인다 | validate_measured_airframe.json : 8_comparison.C_azimuth_pattern_shape |
 | 절대 σ 레벨, 5.21 GHz | 예 | -16.86 dBsm — 발표된 봉투 [-18.10, -14.51] **안** | validate_measured_airframe.json : 8_comparison.A_absolute_level |
 | 절대 σ 레벨, 3.5 GHz | 아니오 | -19.65 dBsm — 봉투 최근접변 대비 -1.20 dB, 기하정합 행 대비 -4.60 dB | validate_measured_airframe.json : 8_comparison.A_absolute_level |

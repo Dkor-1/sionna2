@@ -205,11 +205,15 @@ verdict_rows = [
                    f"입사 {KR['meta']['n_incidence']}방향에서 최대 "
                    f"{KR['summary_div16']['max_abs_db_vs_po']:.4f} dB"),
          src="sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po"),
+    #: ⛔«우리 기울기가 측정 구간 안» 은 철회한다(MATERIAL_CORRECTION §6). 측정 쪽 구간은
+    #  1.8~18.2 GHz **전대역** 적합이고 우리 것은 6 GHz 위 적합이라 **축이 다르다** — 나란히
+    #  놓으면 안 되는 두 수를 놓고 «안» 이라 적고 있었다. 이 빌더가 재빌드될 때마다
+    #  그 문장을 되살렸다(2026-09-06 check_retracted 가 잡았다). 축이 다르면 «대조 불가».
     dict(quantity="측정 기체의 밴드 기울기 dμ/df, 6 GHz 위",
-         reproduced="예",
-         accuracy=(f"우리 {HEAD['slope_ours_6_18p2_ghz']:.3f} dB/GHz vs 측정 "
-                   f"{min(HEAD['slope_measured_1p8_18p2'].values()):.3f}~"
-                   f"{max(HEAD['slope_measured_1p8_18p2'].values()):.3f} — 측정 구간 **안**"),
+         reproduced="대조 불가",
+         accuracy=(f"우리 {HEAD['slope_ours_6_18p2_ghz']:.3f} dB/GHz (6~18.2 GHz 적합). "
+                   "⛔측정 기울기 구간과 나란히 놓지 않는다 — 그쪽은 1.8~18.2 GHz 전대역 적합이라 "
+                   "축이 다르다(MATERIAL_CORRECTION §6). 측정 구간의 값은 인용하지 않는다"),
          src="validate_measured_airframe.json : 8_comparison._headline"),
     dict(quantity="방위 산포 ε (Das Table III 와 같은 양)",
          reproduced="부분",
@@ -447,7 +451,8 @@ OUT = {
                 ours_db_per_ghz=HEAD["slope_ours_6_18p2_ghz"],
                 measured_range=[min(HEAD["slope_measured_1p8_18p2"].values()),
                                 max(HEAD["slope_measured_1p8_18p2"].values())],
-                verdict="측정 구간 안"),
+                #: ⛔축이 다른 두 적합이다 — «안» 이라 적지 않는다(MATERIAL_CORRECTION §6)
+                verdict="대조 불가 — 적합 구간이 다르다(MATERIAL_CORRECTION §6)"),
         },
         "correction_to_the_feasibility_phase": HEAD["correction_to_the_feasibility_phase"],
         "mechanism": {
@@ -642,10 +647,11 @@ A(f"  절대 레벨 {LVL['by_band']['LTE 1.843 GHz']['ours_el0_dbsm']:.2f} / "
   f"{LVL['by_band']['WiFi 5.21 GHz']['ours_el0_dbsm']:.2f} dBsm — 발표된 봉투 대비 "
   f"{LVL['by_band']['LTE 1.843 GHz']['gap_to_nearest_db']:+.2f} / "
   f"{LVL['by_band']['5G 3.5 GHz']['gap_to_nearest_db']:+.2f} dB 와 봉투 안.")
-A(f"  밴드 기울기는 6 GHz 위에서 {HEAD['slope_ours_6_18p2_ghz']:.3f} dB/GHz 로 측정 구간 "
-  f"{min(HEAD['slope_measured_1p8_18p2'].values()):.3f}~"
-  f"{max(HEAD['slope_measured_1p8_18p2'].values()):.3f} 안에 들고,")
-A(f"  1.8~6 GHz 에서 {HEAD['slope_ours_1p8_6_ghz']:.3f} 로 벗어난다.")
+#: ⛔«측정 구간 안에 들고» 는 철회한다(MATERIAL_CORRECTION §6) — 측정 쪽은 1.8~18.2 GHz
+#  전대역 적합, 우리 것은 6 GHz 위 적합이라 축이 다르다. 위 표와 같은 병이 머리말에도 있었다.
+A(f"  밴드 기울기는 6 GHz 위에서 {HEAD['slope_ours_6_18p2_ghz']:.3f} dB/GHz, "
+  f"1.8~6 GHz 에서 {HEAD['slope_ours_1p8_6_ghz']:.3f} dB/GHz 다. "
+  "⛔측정 기울기 구간과는 나란히 놓지 않는다 — 적합 구간이 다르다(MATERIAL_CORRECTION §6).")
 A(f"  교정구는 정확 Mie 대비 {max(abs(v) for v in sph_dev.values()):.3f} dB 안 — 절대 스케일은 맞는다.")
 A("")
 A("방법")
