@@ -1254,7 +1254,8 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
 def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
                        spacing=None, pad=1.15, cache_key=None, penetrate=True,
                        shell_groups=None, exit_vis=True,
-                       ptd=False, ptd_pol="V", ptd_opts=None, *, grid_ref=None):
+                       ptd=False, ptd_pol="V", ptd_opts=None, *, grid_ref=None,
+                       range_i=None, range_s=None):
     """**바이스태틱 복소 산란장 E(û_i, û_s)** — `sbr_field` 의 바이스태틱 판(σ 가 아니라 E).
 
         E(û_i,û_s) = Σ_hits |Γ_i| · e^{jk(û_i+û_s)·p} · d²        σ = (4π/λ²)|E|²
@@ -1311,6 +1312,19 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
       복소장을 돌려준다(규약·게이트는 「PTD 배선」 절). ⚠ ptd=False 는 이 인자들이 없던 때와
       비트 단위로 같다.
 
+    range_i / range_s (기본 **None**, keyword-only) : ⭐**구면파 두 다리.** 둘 다 None 이면
+      **평면파**이고 이 인자들이 없던 때와 **비트 단위로 같다**(회귀 게이트가 지킨다).
+      값을 주면 송신국을 `p_tx = ctr + range_i·û_i`, 수신국을 `p_rx = ctr + range_s·û_s` 에
+      놓고 **실제 거리**로 위상을 준다:
+          평면파      exp(jk(û_i+û_s)·(P−ctr))
+          구면파      exp(jk[(R_i − |P−p_tx|) + (R_s − |P−p_rx|)])
+      ⭐모노 특수화(û_s=û_i · range_s=range_i=R)에서 `sbr_field(..., range_m=R)` 의
+        exp(j2k(R − |P−p_tx|)) 와 **정확히 같은 식**이 된다 — 부호 규약도 그대로 따른다
+        (2026-08-11 정정: 거리에 +j 가 아니라 (R − |P−p_tx|) 다).
+      ⚠**둘 중 하나만 주면 막는다.** 한 다리만 구면파인 것은 물리가 아니다.
+      ⚠PTD 모서리 항은 **평면파 위상**으로 계산된다(모노 경로와 같은 한계) — 구면파와 섞으면
+        `sbr_field` 가 적는 것과 같은 정직 표기가 필요하다. 지금은 ptd+구면파를 **막는다**.
+
     grid_ref (기본 **None**, keyword-only) : ⭐**얼린 광선 격자** — `sbr_field` 와 **같은 인자·
       같은 뜻·같은 코드**(`_grid_for`/`_ray_grid` 를 공유한다). 둘이 갈리면 û_s=û_i 모노 회귀
       게이트가 깨지므로 한 군데에서만 정한다. 격자는 조명 방향 û_i 로 깔리고, 위상 원점도
@@ -1339,8 +1353,18 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
     # ⭐ 격자(중심·반경·칸수)와 basis 는 `sbr_field` 와 **같은 함수**로 û_i 에서 만든다 — 다른
     #   basis 를 쓰면 히트점 집합이 미세하게 달라져 모노 회귀 게이트가 위상 수준에서 깨진다
     #   (격자는 물리가 아니라 규약이다). grid_ref 도 그래서 두 함수가 같이 받는다.
+    if (range_i is None) != (range_s is None):
+        raise ValueError("sbr_field_bistatic: range_i 와 range_s 는 **둘 다** 주거나 둘 다 "
+                         "None 이어야 한다 — 한 다리만 구면파인 것은 물리가 아니다.")
+    _sph = range_i is not None
+    if _sph and ptd:
+        raise ValueError("sbr_field_bistatic: ptd=True 와 구면파(range_i/range_s)를 함께 쓰지 "
+                         "않는다 — 모서리 프린지는 평면파 위상으로 계산된다(모노 경로와 같은 한계).")
+
     ctr, Rout, n = _grid_for(mesh, d, pad, grid_ref, u_i, "sbr_field_bistatic")
     ray = _ray_grid(ctr, Rout, n, d, u_i)
+    #: 구면파면 송신국은 여기서 한 번 정한다(û_s 마다 도는 수신국은 아래 루프에서).
+    _p_tx = (ctr + float(range_i) * u_i) if _sph else None
 
     def _illum(sc, shptr, gam, mk=None):
         """조명 패스 — û_i 에만 의존한다(수신방향마다 재사용). 반환: (P절대, P−ctr, n̂, |Γ|, lit_i, si)."""
@@ -1392,7 +1416,15 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
             if sel.size:
                 lit = lit.copy()
                 lit[sel] = _exit_visible(scene, P[sel], Nn[sel], us)
-        E = np.sum(np.where(lit, g, 0.0) * np.exp(1j * k * (Pc @ q)))
+        if not _sph:                                  # 평면파 — 옛 동작과 비트 동일
+            _ph = np.exp(1j * k * (Pc @ q))
+            _ph2 = None
+        else:                                         # ⭐구면파 두 다리 — 실제 거리
+            _p_rx = ctr + float(range_s) * us
+            _leg = (float(range_i) - np.linalg.norm(P - _p_tx, axis=1)) \
+                + (float(range_s) - np.linalg.norm(P - _p_rx, axis=1))
+            _ph = np.exp(1j * k * _leg)
+        E = np.sum(np.where(lit, g, 0.0) * _ph)
         if do_pen:
             litp = lit2_i & ((Nn2 @ us) > 1e-6)
             if exit_vis:
@@ -1400,12 +1432,163 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
                 if sel.size:
                     litp = litp.copy()
                     litp[sel] = _exit_visible(scene_i, P2[sel], Nn2[sel], us)
-            E = E + np.sum(np.where(litp, tau * g2, 0.0) * np.exp(1j * k * (Pc2 @ q)))
+            if not _sph:
+                _ph2 = np.exp(1j * k * (Pc2 @ q))
+            else:
+                _leg2 = (float(range_i) - np.linalg.norm(P2 - _p_tx, axis=1)) \
+                    + (float(range_s) - np.linalg.norm(P2 - _p_rx, axis=1))
+                _ph2 = np.exp(1j * k * _leg2)
+            E = E + np.sum(np.where(litp, tau * g2, 0.0) * _ph2)
         Etot = complex(E) * d * d                         # 면적분 [m²]
         if ptd:
             Etot = Etot + complex(A_ptd[j])               # + 모서리 프린지 [m²]
         out[j] = Etot
     return complex(out[0]) if _one else out
+
+
+#: 지면 재질 기본값 — 저장소가 이미 쓰는 콘크리트(`freespace_link.GROUND_REPO_CONCRETE`,
+#  출처 benchmark/geometry.py FLOOR_EPS_R / FLOOR_SIGMA). σ 는 주파수를 탄다(ITU 모델).
+GROUND_DEFAULT = "concrete"
+
+
+def ground_eps_sigma(fc: float, ground: str = GROUND_DEFAULT):
+    """(보조) 지면 (ε_r, σ[S/m]) — 이름을 저장소의 기존 상수로 푼다.
+
+    ⛔새 물성값을 여기서 지어내지 않는다. `freespace_link` 가 이미 적어 둔 둘만 받는다:
+      · "concrete" … GROUND_REPO_CONCRETE (ε_r 5.24 · σ = 0.0462·f_GHz^0.7822)
+      · "soil"     … GROUND_FS3_SOIL      (ε_r 15.0 · σ 0.005, 선언값)
+    """
+    from freespace_link import GROUND_FS3_SOIL, GROUND_REPO_CONCRETE   # noqa: PLC0415
+    if ground == "concrete":
+        g = GROUND_REPO_CONCRETE
+        return float(g["eps_r"]), 0.0462 * (float(fc) / 1e9) ** 0.7822
+    if ground == "soil":
+        g = GROUND_FS3_SOIL
+        return float(g["eps_r"]), float(g["sigma"])
+    raise ValueError(f"모르는 지면: {ground!r} — 아는 것 ['concrete', 'soil']")
+
+
+def ground_combine(E_dd, E_dg, E_gg, gamma, delta_m, fc, spread_ratio=1.0):
+    """⭐**네 경로를 결맞게 더하는 식 그 자체** — 커널과 떼어 놓아 정확히 시험할 수 있게.
+
+        E = E_dd + 2·(Γ·a·e^{−jkΔ})·E_dg + (Γ·a·e^{−jkΔ})²·E_gg
+            a = spread_ratio (지면 다리 하나의 구면 확산비 R/R_img)
+
+    ⭐세 항이 같으면(점 표적) E/E_dd = (1 + Γ·a·e^{−jkΔ})² 로 줄어든다 —
+      a=1 에서 `freespace_link.two_ray_F` 의 F = |1 + Γe^{−jkΔ}| 와 같은 규약이다.
+      `benchmark/verify_ground_kernel.py` 가 이 항등식을 게이트로 지킨다.
+    """
+    import numpy as _np                                                # noqa: PLC0415
+    k = 2.0 * _np.pi * float(fc) / C0
+    w = complex(gamma) * float(spread_ratio) * _np.exp(-1j * k * float(delta_m))
+    return complex(E_dd) + 2.0 * w * complex(E_dg) + (w * w) * complex(E_gg)
+
+
+def sbr_field_ground(mesh: Mesh, group_mat: dict, fc: float, u, *,
+                     ground_alt_m: float, range_m: float,
+                     ground: str = GROUND_DEFAULT, pol: str = "v", spread: bool = True,
+                     spacing=None, pad=1.15, cache_key=None, penetrate=True,
+                     shell_groups=None, grid_ref=None, return_terms=False):
+    """⭐**평평한 지면 위의 복소 산란장** — 자유공간 `sbr_field` 의 실외 판.
+
+    ■ 무엇을 하나 — **거울상(image) 법**이다. 평평하고 균질한 지면에서 지면 반사 경로는
+      **지면 아래로 거울상을 뜬 레이다**에서 곧장 오는 경로와 정확히 같다. 그러면 왕복
+      경로가 넷이고, 상호성 E(a,b)=E(b,a) 로 계산은 **셋**이다:
+
+          E = E(û,û)  +  2Γ·E(û′,û)  +  Γ²·E(û′,û′)
+              직접-직접      지면 한 번          지면 두 번
+
+      û′ 는 거울상 레이다 방향, Γ 는 그 반사점의 프레넬 반사계수다.
+
+    ■ ⭐왜 «2선 인자 F 를 곱하는 것» 으로는 안 되나
+      `freespace_link.two_ray_F` 의 F 는 **점 표적**용 스칼라 배율이다. 지면 반사 경로는
+      드론을 **다른 각도에서** 비추므로, 크기가 있는 표적에서는 그 각도의 산란 패턴이
+      직접 경로와 다르다. 마이크로도플러는 바로 그 차이를 본다. 그래서 각 경로를 커널로
+      따로 계산해 **결맞게** 더한다. ⭐표적이 점으로 줄면 이 합은 F⁴ 로 수렴한다 —
+      `benchmark/verify_ground_kernel.py` 가 그것을 회귀로 지킨다.
+
+    ■ ⭐왜 격자가 안 터지나 — 지면을 **메쉬에 넣지 않는다.** 광선 격자는 여전히 드론
+      bbox 로 정해지므로 격자점 수가 그대로다(온 지면을 합치면 79,483 배였다).
+      비용은 자유공간의 **3 배**다(경로 셋).
+
+    ■ ⛔이 모델이 **하지 않는 것** — 인용하기 전에 읽어라
+      · 지면은 **평평하고 무한하고 균질**하다. 거칠기(확산 산란)는 없다 — 정반사뿐이다.
+      · **건물·기둥은 없다.** `--env outdoor01` 의 씬에는 건물 4·기둥 2 가 있다.
+        그래서 이 결과를 그 씬과 나란히 놓을 때는 **지면만** 대 **지면+건물**임을 적는다.
+      · Γ 는 **표적 중심의 반사점 하나**에서 잰 값을 쓴다. 표적이 지면·레이다 거리에
+        비해 작을 때 좋은 근사다(드론 0.6 m · 고도 20 m · 거리 15 m).
+      · 지면-드론-지면 이상(3 회 이상)은 없다.
+
+    spread (기본 **True**) : ⭐**두 경로의 확산 차이**를 넣는다. 지면 경로는 직접 경로보다
+      길다 — 고도 20 m · 거리 15 m · 앙각 −30° 에서 **35.0 m 대 15.0 m** 다. 구면 확산은
+      다리마다 1/r 이므로 지면 다리 하나에 **R/R_img** 를 곱한다(직접 다리는 1).
+      ⛔안 넣으면 지면 몫이 이 기하에서 **약 7 dB 과대평가**된다.
+      ⚠`freespace_link.two_ray_F` 는 두 경로의 확산이 **같다고 본다**(d ≫ 높이인 스침 기하의
+        표준 가정이다). 그 규약과 정확히 맞추려면 `spread=False` 로 둔다 —
+        점 표적 회귀 게이트가 그 갈래를 쓴다.
+
+    ground_alt_m : **위상 중심(ctr)** 이 지면 위로 뜬 높이 [m]. 지면은 z = −H 평면이다.
+    range_m      : 레이다까지 거리 [m]. ⛔평면파(None)는 **아직 안 만들었다** — 거울상
+                   경로의 행로차를 어디를 기준으로 잴지 규약이 필요하다.
+    return_terms : True 면 (E_total, 항별 dict) 를 돌려준다(그림·검증용).
+    """
+    import numpy as _np                                                # noqa: PLC0415
+    from freespace_link import fresnel_gamma, two_ray_path_diff        # noqa: PLC0415
+
+    if range_m is None:
+        raise ValueError("sbr_field_ground: range_m 이 필요하다 — 평면파 갈래는 아직 "
+                         "안 만들었다(거울상 행로차의 기준을 정하는 규약이 먼저다).")
+    H = float(ground_alt_m)
+    R = float(range_m)
+    if H <= 0:
+        raise ValueError(f"sbr_field_ground: ground_alt_m 은 양수여야 한다(받은 {H})")
+    u = _np.asarray(u, float); u = u / _np.linalg.norm(u)
+    if R * u[2] <= -H:
+        raise ValueError(f"sbr_field_ground: 레이다가 지면 아래다 — 거리 {R} m · û_z {u[2]:+.4f} "
+                         f"→ 높이 {H + R*u[2]:.2f} m ≤ 0. 거리·앙각을 줄이거나 고도를 올려라.")
+
+    #: 거울상 레이다 — 지면(z=−H)에 대해 z 를 뒤집는다. ctr 기준 상대좌표로 둔다.
+    off_img = _np.array([R * u[0], R * u[1], -2.0 * H - R * u[2]])
+    R_img = float(_np.linalg.norm(off_img))
+    u_img = off_img / R_img
+
+    #: 반사점의 스침각 ψ — 저장소의 기존 평면지면 helper 를 그대로 쓴다.
+    h_t, h_r = H, H + R * float(u[2])
+    d_g = R * float(_np.hypot(u[0], u[1]))
+    dR, psi = two_ray_path_diff(h_t, h_r, d_g)
+    eps_r, sig = ground_eps_sigma(fc, ground)
+    Gam = complex(fresnel_gamma(psi, eps_r=eps_r, cond=sig, pol=pol, fc=fc))
+
+    #: ⭐⭐**행로차를 손으로 되돌려 놓아야 한다.** 커널은 위상을 다리마다 **그 다리의 기준
+    #  거리**로 정규화한다 — `sbr_field` 의 exp(j2k(R − |P−p_tx|)) 는 P=ctr 에서 0 이다.
+    #  경로 셋이 각자 다른 기준(R · R_img)으로 0 이 되면 **경로 사이의 상대 위상이 사라진다.**
+    #  그래서 모든 항을 **직접 경로의 기준 exp(j2kR)** 로 맞춘다 — 지면 다리 하나마다
+    #  exp(−jkΔ) 를 곱한다. Δ = R_img − R 이고, 이것은 평면지면 항등식이라 `two_ray_path_diff`
+    #  가 주는 Δ 와 **정확히 같다**(게이트가 그것을 검사한다):
+    #      √(d²+(h_t+h_r)²) = |거울상 오프셋| = R_img ·  √(d²+(h_t−h_r)²) = R
+    #  ⇒ 점 표적 극한에서 E = E₀(1 + Γe^{−jkΔ})² 로, `freespace_link.two_ray_F` 의
+    #    F = |1 + Γ·e^{−jkΔ}| 규약과 **같은 부호**로 수렴한다.
+    delta = R_img - R
+    _amp = (R / R_img) if spread else 1.0             # 다리마다 구면 확산 1/r
+
+    kw = dict(spacing=spacing, pad=pad, cache_key=cache_key, penetrate=penetrate,
+              shell_groups=shell_groups, grid_ref=grid_ref)
+    E_dd = sbr_field(mesh, group_mat, fc, u, range_m=R, **kw)
+    E_dg = sbr_field_bistatic(mesh, group_mat, fc, u_img, u,
+                              range_i=R_img, range_s=R, **kw)
+    E_gg = sbr_field_bistatic(mesh, group_mat, fc, u_img, u_img,
+                              range_i=R_img, range_s=R_img, **kw)
+    E = ground_combine(E_dd, E_dg, E_gg, Gam, delta, fc, spread_ratio=_amp)
+    if not return_terms:
+        return E
+    return E, dict(E_dd=complex(E_dd), E_dg=complex(E_dg), E_gg=complex(E_gg),
+                   gamma=Gam, psi_deg=float(psi), path_diff_m=float(dR),
+                   path_diff_identity_m=float(delta),
+                   spread=bool(spread),
+                   spread_ratio=float(_amp),
+                   u_img=[float(x) for x in u_img], range_img_m=R_img,
+                   eps_r=eps_r, sigma=sig, ground=ground, pol=pol,
+                   ground_alt_m=H, range_m=R)
 
 
 def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,

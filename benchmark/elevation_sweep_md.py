@@ -432,6 +432,9 @@ def run(a) -> None:
         + ("" if not int(getattr(a, "rep", 0)) else f"_rep{int(a.rep)}") \
         + ("" if not getattr(a, "env", "")
            else "_env" + str(a.env).replace(":", "-")) \
+        + ("" if not getattr(a, "ground", "")
+           else f"_gnd{a.ground}{float(getattr(a, 'ground_alt', 20.0)):g}"
+                + ("" if int(getattr(a, "ground_spread", 1)) else "_nospread")) \
         + ("" if float(getattr(a, "env_scat", -1.0)) < 0
            else f"_S{float(a.env_scat):g}") \
         + ("" if abs(float(getattr(a, "prop_scale", 1.0) or 1.0) - 1.0) < 1e-9
@@ -461,6 +464,15 @@ def run(a) -> None:
         raise SystemExit("⛔ --grid-shift 는 우리 커널 전용이다 — PathSolver 는 표면 격자를 "
                          "안 쓴다(광선을 Rx 에서 쏘고 경로를 찾는다). 옮길 격자가 없다.")
 
+    #: ⛔`--ground` 는 **우리 커널 전용**이다. Sionna 엔진에 주면 아무 일도 안 하면서 이름에만
+    #  _gnd 가 붙어 «자유공간이 실외 행세» 를 한다 — `--env` 거부가 막으려던 바로 그 병이다.
+    #  (그쪽은 진짜 메쉬를 넣는 `--env` 를 쓴다.)
+    if getattr(a, "ground", "") and a.engine not in ("ours", "ours_free", "ours_gpu"):
+        raise SystemExit(f"⛔ --ground 는 우리 커널 전용이다 — --engine {a.engine} 에는 "
+                         f"닿지 않는다. 그런데 파일 이름에는 _gnd{a.ground} 가 붙어 "
+                         f"자유공간 데이터가 실외 행세를 한다. Sionna 엔진은 --env 로 "
+                         f"진짜 메쉬(지면·건물·기둥)를 넣어라.")
+
     if a.engine in ("ours", "ours_free", "ours_gpu"):
         # ⛔⛔**우리 커널에는 --env 를 줄 수 없다** (2026-09-01).
         #  ■ 왜 — 아래 sbr_field 는 `mv`(자세 잡힌 **드론 메쉬**)만 받는다. 환경 부품은
@@ -485,7 +497,22 @@ def run(a) -> None:
                 f"한다. 되게 하려면 지면 조각을 메쉬에 합치는 설계가 먼저다 — 격자가 "
                 f"합집합 bbox 로 정해지므로 온 지면은 79,483 배이고, ⛔«프레넬 조각이면 "
                 f"23 배» 는 철회됐다(2×2 m 조각을 합치면 1,388 배다. 리포트 12 절 3).")
+        #: ⭐실외 갈래 — 평평한 지면을 거울상 법으로 넣는다(격자는 드론 bbox 그대로).
+        #  ⛔`--env`(메쉬 씬)는 위에서 막는다. 이건 **다른 것**이고 이름도 _gnd 로 갈린다.
+        _gnd = str(getattr(a, "ground", "") or "")
+        if _gnd:
+            if plane:
+                raise SystemExit("⛔ --ground 는 --plane-wave 와 함께 쓸 수 없다 — 거울상 "
+                                 "경로의 행로차를 재려면 거리가 있어야 한다(구면파).")
+            if a.ptd:
+                raise SystemExit("⛔ --ground 는 --ptd 와 아직 함께 못 쓴다 — 모서리 프린지가 "
+                                 "평면파 위상으로 계산돼 지면 경로와 규약이 갈린다.")
+            if a.engine == "ours_gpu":
+                raise SystemExit("⛔ --ground 는 --engine ours 로 돌린다 — GPU 커널에는 "
+                                 "아직 안 옮겼다(rcs_sbr_gpu 에 바이스태틱 갈래가 없다).")
         from rcs_sbr import sbr_field, grid_ref_from, grid_ref_margin, grid_ref_shift
+        if _gnd:
+            from rcs_sbr import sbr_field_ground
         gm = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
         #: ⭐격자 간격 λ/div. div 를 안 주면 규약값 12 라 기존 샤드와 비트동일하다.
         div = int(getattr(a, "div", 0) or DIV)
@@ -540,6 +567,12 @@ def run(a) -> None:
                     mv.f, mv.g = f_keep, g_keep          # 정점은 그대로 — bbox 보존
                 if _gpu is not None:
                     E[j] = _gpu.field([mv], u, range_m=(None if plane else rng_m))[0]
+                elif _gnd:
+                    E[j] = sbr_field_ground(
+                        mv, gm, fc, u, ground_alt_m=float(a.ground_alt),
+                        range_m=rng_m, ground=_gnd,
+                        spread=bool(int(getattr(a, "ground_spread", 1))),
+                        spacing=d, grid_ref=gref_el)
                 else:
                     E[j] = sbr_field(mv, gm, fc, u, spacing=d, grid_ref=gref_el,
                                      range_m=(None if plane else rng_m), ptd=bool(a.ptd))
@@ -1144,6 +1177,18 @@ def main() -> None:
                          "「프롭이 크면 정면에서도 박자가 보인다」를 확인하는 대조축이다. "
                          "⚠박자 주파수는 안 변하고 f_tip 은 배율에 비례한다 — 판독에서 "
                          "곱해 줘야 한다. 파일명에 _ps<배율> 이 붙는다.")
+    ap.add_argument("--ground", type=str, default="",
+                    help="⭐**우리 커널의 실외 갈래** — 평평한 지면을 거울상(image) 법으로 넣는다. "
+                         "값은 재질: concrete | soil. `--ground-alt` 로 지면까지 높이를 준다. "
+                         "파일명에 _gnd<재질><고도> 가 붙는다. ⛔`--env`(메쉬 씬)와 **다른 것**이다 — "
+                         "지면만 있고 건물·기둥은 없다. 이름이 갈리므로 두 원장이 안 섞인다. "
+                         "⛔Sionna 엔진에는 주지 않는다(그쪽은 --env 로 진짜 메쉬를 넣는다).")
+    ap.add_argument("--ground-alt", dest="ground_alt", type=float, default=20.0,
+                    help="⭐`--ground` 의 지면까지 높이 [m] (기본 20 — outdoor01 메쉬의 드론 고도와 "
+                         "같은 값이라 두 엔진을 나란히 놓을 수 있다). 레이다가 지면 아래로 가면 막는다.")
+    ap.add_argument("--ground-spread", dest="ground_spread", type=int, default=1,
+                    help="1(기본)이면 지면 경로가 더 긴 만큼의 **구면 확산비 R/R_img** 를 넣는다. "
+                         "0 이면 두 경로의 확산이 같다고 보는 고전 2선 규약이다(파일명 _nospread).")
     ap.add_argument("--env", type=str, default="",
                     help="⭐실외 환경 이름(outdoor01). 주면 지면·건물·기둥을 장면에 얹고 "
                          "파일명에 _env<이름> 이 붙는다. ⛔안 주면 지금까지와 같은 "
