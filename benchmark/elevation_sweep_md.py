@@ -432,6 +432,8 @@ def run(a) -> None:
         + ("" if not int(getattr(a, "rep", 0)) else f"_rep{int(a.rep)}") \
         + ("" if not getattr(a, "env", "")
            else "_env" + str(a.env).replace(":", "-")) \
+        + ("" if not int(getattr(a, "max_paths", 0) or 0)
+           else f"_mp{int(a.max_paths)}") \
         + ("" if not getattr(a, "ground", "")
            else f"_gnd{a.ground}{float(getattr(a, 'ground_alt', 20.0)):g}"
                 + ("" if int(getattr(a, "ground_spread", 1)) else "_nospread")) \
@@ -593,6 +595,10 @@ def run(a) -> None:
 
     # ── Sionna PathSolver ───────────────────────────────────────────────────
     import report15_probe as RP
+    #: ⭐이 줄에서만 상한을 올린다. 안 주면 규약값 그대로라 기존 샤드와 비트 동일하다.
+    if int(getattr(a, "max_paths", 0) or 0):
+        RP.MAX_PATHS = int(a.max_paths)
+        print(f"  ⭐경로 상한을 {RP.MAX_PATHS:,} 로 올렸다(이 줄만)", flush=True)
     require_cuda_variant()          # ⭐GPU 가 안 열렸으면 여기서 멈춘다
     from drones import drone_colors
     # ⭐셸 두께 정정 — **켰을 때만** 재질에 두께를 물린다(안 켜면 materials 가 예전처럼
@@ -797,8 +803,21 @@ def run(a) -> None:
                 e = time.time() - t0
                 print(f"    el{el:+g} sh{a.shard}: {j}/{idx.size} "
                       f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
+        #: ⭐⭐**경로가 잘렸는지 기록한다.** `nret` 은 마스크 **전** 경로 수이므로 그것이
+        #  상한에 붙으면 솔버가 경로를 버린 것이다. 2026-09-07 까지 이 스윕은 그것을
+        #  적지 않았고, 그래서 지면 거칠기 판(S=0.3·0.7)이 1,999,98x 로 상한에 붙은 채
+        #  «거칠면 환경 몫이 준다» 로 읽힐 뻔했다 — 준 것이 물리인지 잘림인지 모른다.
+        #  ⛔이 값이 0 이 아니면 그 샤드의 **레벨을 인용하지 않는다.**
+        #  ⚠문턱을 «상한 이상» 으로 잡으면 안 잡힌다 — 실제로 돌아오는 수는 상한 **바로
+        #    아래**에 선다(실측 1,999,983 / 2,000,000 = 99.9992 %). 버퍼 크기라 몇 개 모자란다.
+        _ntr = int(np.count_nonzero(np.asarray(nret) >= 0.999 * RP.MAX_PATHS))
+        if _ntr:
+            print(f"  ⛔⛔잘림 {_ntr}/{idx.size} 자세가 경로 상한 {RP.MAX_PATHS:,} 에 붙었다 — "
+                  f"이 샤드의 레벨을 인용하지 마라. 올리려면 SIONNA2_MAX_PATHS 를 준다.",
+                  flush=True)
         np.savez_compressed(f, idx=idx, E=E, npaths=npaths, nret=nret,
                             E_dedup=E_dedup, n_dup=n_dup,
+                            n_trunc=np.array([_ntr, int(RP.MAX_PATHS)]),
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
                             # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
@@ -1177,6 +1196,11 @@ def main() -> None:
                          "「프롭이 크면 정면에서도 박자가 보인다」를 확인하는 대조축이다. "
                          "⚠박자 주파수는 안 변하고 f_tip 은 배율에 비례한다 — 판독에서 "
                          "곱해 줘야 한다. 파일명에 _ps<배율> 이 붙는다.")
+    ap.add_argument("--max-paths", dest="max_paths", type=int, default=0,
+                    help="⭐경로 수 상한을 이 줄에서만 올린다(0 이면 규약값 2,000,000). "
+                         "⚠지면 거칠기(--env-scat)를 켜면 확산 경로가 폭증해 상한에 붙고 "
+                         "**경로가 조용히 잘린다** — 2026-09-07 에 S=0.3·0.7 판이 8,192 자세 "
+                         "전부 잘린 채 났다. 파일명에 _mp<값> 이 붙어 규약값 판과 안 섞인다.")
     ap.add_argument("--ground", type=str, default="",
                     help="⭐**우리 커널의 실외 갈래** — 평평한 지면을 거울상(image) 법으로 넣는다. "
                          "값은 재질: concrete | soil. `--ground-alt` 로 지면까지 높이를 준다. "

@@ -96,7 +96,12 @@ KEYS = ("mini2", "matrice4e")
 AZ_DEG, EL_DEG = 0.0, 15.0             # 하우스 기준 시선 (viz_report1.AZ/EL 과 동일)
 RANGE_M = 3.0                          # ⭐ 근거리 — Sionna 에게 가장 유리한 조건
 BASELINE_M = 0.20                       # 준-모노스태틱 송수신 간격 (facet_count 와 동일 규약)
-MAX_PATHS = 2_000_000
+#: ⭐경로 수 상한. ⛔기본값을 바꾸지 않는다 — 지금까지의 모든 샤드가 이 값으로 났다.
+#  ⚠**이 상한에 붙으면 경로가 조용히 잘린다.** 지면 거칠기(--env-scat)를 켜면 확산 경로가
+#    폭증해 실제로 붙는다(2026-09-07 확인: S=0.3·0.7 판이 1,999,98x 로 상한에 붙어 있었고
+#    그 판으로 «거칠면 환경 몫이 준다» 를 읽을 뻔했다 — 준 것이 물리인지 잘림인지 모른다).
+#  ⇒ 올려서 재려면 환경변수로만 올린다: SIONNA2_MAX_PATHS=8000000
+MAX_PATHS = int(os.environ.get("SIONNA2_MAX_PATHS", 2_000_000))
 
 from proc_scratch import proc_scratch                                  # noqa: E402
 # ⭐프로세스마다 자기 폴더 (2026-08-11 결함 정정 — 같은 스크립트를 병렬로 띄우면
