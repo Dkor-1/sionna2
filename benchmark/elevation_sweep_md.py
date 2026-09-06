@@ -469,6 +469,18 @@ def run(a) -> None:
     #: ⛔`--ground` 는 **우리 커널 전용**이다. Sionna 엔진에 주면 아무 일도 안 하면서 이름에만
     #  _gnd 가 붙어 «자유공간이 실외 행세» 를 한다 — `--env` 거부가 막으려던 바로 그 병이다.
     #  (그쪽은 진짜 메쉬를 넣는 `--env` 를 쓴다.)
+    #: ⛔⛔**광선 예산에는 32 비트 천장이 있다.** Sionna 의 표본기 서명이
+    #  `seed(self, seed, wavefront_size: int = 4294967295)` 라 표본 수가 2³²−1 을 넘으면
+    #  TypeError 로 죽는다. 규약값 4e9 는 그 바로 아래다.
+    #  2026-09-06 에 0906 발주의 `--spp 16000000000` 여섯 줄이 전부 이것으로 죽었고,
+    #  감독자 로그에는 «rc=1» 만 남아 이유를 알 수 없었다. GPU 슬롯을 태우기 전에 막는다.
+    _SPP_CEIL = 4_294_967_295
+    if int(getattr(a, "spp", 0) or 0) > _SPP_CEIL:
+        raise SystemExit(
+            f"⛔ --spp {int(a.spp):,} 은 32 비트 천장 {_SPP_CEIL:,} 을 넘는다 — "
+            f"Sionna 표본기의 wavefront_size 가 uint32 다. 이 줄은 절대 안 돈다. "
+            f"광선 축의 상한은 {_SPP_CEIL:,} 이고, 규약값 4,000,000,000 이 그 바로 아래다.")
+
     if getattr(a, "ground", "") and a.engine not in ("ours", "ours_free", "ours_gpu"):
         raise SystemExit(f"⛔ --ground 는 우리 커널 전용이다 — --engine {a.engine} 에는 "
                          f"닿지 않는다. 그런데 파일 이름에는 _gnd{a.ground} 가 붙어 "
