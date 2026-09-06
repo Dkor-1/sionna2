@@ -477,19 +477,25 @@ def v3_link(smoke=False):
                       for x in (40.0, 60.0, 90.0)],
                 formula="equivalent_monostatic_isolation = passive_eca_depth + 20log10(4 pi L/lambda) - G_rx",
                 note_ko=("report13 의 패시브 소거깊이 사다리(40/60/90 dB)를 모노스태틱 자기간섭 "
-                         "축으로 옮기면 %.0f/%.0f/%.0f dB 다 — 실측 최고 100 dB(Barneto 2019)는 "
+                         "축으로 옮기면 %.0f/%.0f/%.0f dB 다 — Barneto 2019 가 보고한 100 dB 는 "
                          "패시브 ECA %.0f dB 에 해당한다."
                          % (40 + gap_closed, 60 + gap_closed, 90 + gap_closed, 100 - gap_closed))),
             verdict_ko=("⭐ 기준채널이 없어지는 대가는 **정확히 닫힌형**이다: 모노 요구격리 − 패시브 "
                         "직접파/에코비 = 20log10(4πL/λ) − G_rx = %.2f dB, 표적거리 무관(편차 %.1e dB). "
                         "L→0 이면 0 이므로 패시브가 모노로 연속 수렴한다 — 도플러 축의 β=0 절편과 "
-                        "같은 구조다. 실측 최고 격리 100 dB(Barneto 2019) 로는 100 m 표적에서 "
-                        "%.1f dB 부족하다.\n"
+                        "같은 구조다. Barneto 2019 가 보고한 격리 100 dB 를 대입하면 100 m 표적에서 "
+                        "%.1f dB 부족하다 — 이 100 dB 는 우리가 확인한 단일 문헌값이고 원문 PDF 는 "
+                        "미보유다(outputs/reflib_read.json 의 A06_Barneto_TMTT2019: pdf=null · "
+                        "records_without_pdf · config_evidence 「제목과 초록 수준. 본문 미독」). "
+                        "문헌을 훑은 범위를 잡은 적이 없으므로 「실측 최고」 라는 최상급은 쓰지 않는다.\n"
                         "⭐⭐ 그 부족분의 값이 **검지거리 축에서 두 기하가 갈리는 유일한 큰 자리**다: "
-                        "이상 격리면 %s m 인데 실측 100 dB 로는 %s m 로 주저앉는다(%.0f배). "
+                        "이상 격리면 %s m 인데 100 dB 를 대입하면 %s m 로 주저앉는다(%.0f배). "
                         "확산법칙 1/R⁴ 은 거리를 사실상 안 바꿨지만(V4 중앙값 비 1.00), "
                         "기준채널의 부재는 %.0f배를 바꾼다 — 두 효과를 섞지 말라는 요구가 "
-                        "여기서 숫자로 갈린다."
+                        "여기서 숫자로 갈린다.\n"
+                        "⚠ 이 자기간섭 격리는 EIRP 를 기준면으로 잡은 보수적 가정이라 실제 STAR "
+                        "전단과 기준면이 다르다(이 파일 open_questions). ⛔ 종전 문장의 "
+                        "「실측 최고 격리 100 dB(Barneto 2019)」 는 훑은 모집단이 없는 최상급이라 내렸다."
                         % (gap_closed, gap_span,
                            iso_rows[1]["mono_required_isolation_db"] - 100.0,
                            ("%.0f" % si_ladder[-1]["R_m"]) if si_ladder[-1]["R_m"] else "nan",

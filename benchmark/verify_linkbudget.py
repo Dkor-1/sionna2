@@ -472,7 +472,12 @@ def section_D2(lb, ch, M=48):
                   f"{rec['pedestal_from_target_db']:+.2f} dB**, ECA 후 DPI 잔류 "
                   f"{rec['eca_dpi_residual_db']:+.2f} dB", flush=True)
     print("  → 강표적일수록 자기 부엽이 SCR 분모를 들어올린다 → 'D 의 처리손실'은 SNR 손실이 아니라")
-    print("    **SCR 지표의 압축**이다. CFAR 는 국소 잡음을 보므로 Pd 에는 영향 없다.")
+    print("    **SCR 분모가 표적 자신의 부엽으로 들어올려진 몫**이 섞인 것이다(최약·최강 두 기체 ×")
+    print("    세 파형에서 잼 — 위 표의 pedestal_from_target_db). 다만 이 부엽 융단은 CFAR 기준영역")
+    print("    에도 그대로 앉으므로 문턱을 함께 올린다 — Pd 가 얼마나 움직이는지는 여기서 재지 않았다.")
+    # ⛔ 2026-09-06 내림: "CFAR 는 국소 잡음을 보므로 Pd 에는 영향 없다" — 이 절이 잰 것이 아니라
+    #   미룬 추론이었고, 이 절이 실제로 잰 값(표적 부엽이 기준영역 바닥을 들어올린 몫)은 오히려
+    #   CFAR 문턱이 함께 올라감을 가리킨다. Pd 측정은 이 절에 없다.
     print("  → ECA 후 DPI 잔류는 잡음바닥 대비 0.00 dB (완전 소거) — 링크버짓 DNR 60 dB 에서도.")
     return out
 

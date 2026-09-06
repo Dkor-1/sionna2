@@ -1586,10 +1586,17 @@ def blocks(J):
         f"(Clutter-Aware ISAC, Proc. IEEE 114(1))은 드론 메쉬를 Sionna 에 넣고 stock Fresnel "
         f"응답을 그대로 받는다(01편 §3).", "",
         f"ITU `metal` 의 산란계수 S = {R3.num('C_metal.itu_metal_S', fmt='{:.1f}')} 이라 stock "
-        f"산란 모델이 금속에서 내놓는 항은 0 이고, 우리 σ 는 면적분에서 창발한다. 금속 4그룹"
-        f"(모터·배터리·PCB·카메라)만 남긴 메쉬의 방위평균 σ 는 전체의 "
+        f"산란 모델이 금속에서 내놓는 항은 0 이고, 우리 σ 는 면적분에서 창발한다. "
+        f"`{R3.get('meta.drone')}` · {float(R3.get('meta.fc')) / 1e9:.1f} GHz · 고각 "
+        f"{R3.num('C_metal.el_deg', fmt='{:.0f}', unit='°')} · 방위 "
+        f"{R3.num('C_metal.n_az', fmt='{:.0f}', unit='칸')} 에서, 금속 "
+        f"{len(R3.get('C_metal.metal_groups'))}그룹"
+        f"(`{'` · `'.join(R3.get('C_metal.metal_groups'))}`)만 남긴 메쉬의 방위평균 σ 는 전체의 "
         f"{R3.num('C_metal.metal_share_pct', fmt='{:.0f}', unit='%')} 다 — 코히런트 합이라 "
-        f"100 % 를 넘는다.", "",
+        f"100 % 를 넘는다. 한 기체·한 밴드·한 고각·방위 한 바퀴에서 잰 수이고, 일곱 기체 "
+        f"공통 성질로 읽지 않는다. ⛔전 판의 «금속 4그룹(모터·배터리·PCB·카메라)» 은 조건이 "
+        f"빠졌을 뿐 아니라 목록 자체가 틀렸다 — 원장 outputs/report3_rt.json : "
+        f"C_metal.metal_groups 는 다섯이고 `fc`(비행제어)가 그 안에 있다(2026-09-04 정정).", "",
         f"같은 메쉬를 스톡 경로 솔버에 그대로 넣고 무엇이 나오는지 쟀다 — 삼각형 "
         f"{FC.num('levels[0].n_tri', 29932, '{:,.0f}')}개(mavic4pro)에서 광선 예산 "
         f"{FC.num('meta.spp_main', fmt='{:.1e}')} spp 일 때 경로는 자세당 "

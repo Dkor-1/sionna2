@@ -15,7 +15,11 @@
   ② 설계자유도 축 — 모노스태틱은 반복률을 얼마나 자유롭게 고르는가.
      ⚠ 프레이밍을 그대로 믿지 않고 시험한다. 결과는 "자유롭다"가 아니라 **"10배만큼, 13단계로,
         천장이 있는 자유"** 다. 그리고 그 천장(3GPP sub-6 CSI-RS 500 Hz)조차 3.5 GHz 에서
-        10.71 m/s 이라 **공개된 어떤 기체 최고속도도 못 덮는다**.
+        10.71 m/s 이라 **우리 제원표의 공개 기체 5 종을 0/5 로 못 덮는다**(최저
+        typhoonh480 13.5 m/s). ⛔전 판의 「공개된 어떤 기체 최고속도도 못 덮는다」는 5 종을
+        잰 것을 전칭으로 올린 것이라 내렸다(2026-09-04). 커버 수는 손으로 적지 않는다 —
+        outputs/mono_vs_passive.json 의
+        L2_design_freedom.D2_ceiling_test.airframes_covered_by_monostatic_ceiling 이 원장이다.
 
   ③ 양방향 비용원장 — 모노스태틱이 사는 것과 무는 것, 패시브의 거울상.
      자기간섭은 인용만 하지 않고 **저장소 링크버짓 + 저장소 σ** 로 직접 계산한다(§3).
@@ -867,6 +871,15 @@ def sec3_ledger(freedom):
 def sec4_verdict(geom, freedom, prior):
     d2 = freedom["D2_ceiling_test"]
     d7 = freedom["D7_verdict"]
+    # ⚠ 범위 표시 — 이 판정은 **우리 제원표의 공개 기체**를 잰 것이지 전체 공개 기종에 대한
+    #   전칭이 아니다. 커버 수·최저 기체는 손으로 적지 않고 D2 원장에서 그대로 읽는다
+    #   (outputs/mono_vs_passive.json :
+    #    L2_design_freedom.D2_ceiling_test.airframes_covered_by_monostatic_ceiling — 지금 "0/5").
+    #   docs/RETRACTION_LOG.md R2 도 같은 표기다.
+    air = d2["airframe_speeds_ms"]
+    n_air = len(air)
+    cov_air = d2["airframes_covered_by_monostatic_ceiling"]
+    slow_air = min(air, key=air.get)
     return dict(
         the_boundary_en=(
             "The wall v_max = lambda*PRF_ref/4 is COMMON to monostatic and passive; monostatic is "
@@ -874,24 +887,29 @@ def sec4_verdict(geom, freedom, prior):
             "passive receiver takes whatever the network broadcasts (5G SSB, %.2f m/s at n78). A "
             "monostatic ISAC sensor picks a rung on a discrete ladder that 3GPP caps at %g Hz for "
             "sub-6 CSI-RS, i.e. %.2f m/s at n78 — a factor of %.1f, not a release. Since %.2f m/s "
-            "is below every published airframe maximum (slowest %.1f m/s), NEITHER lane measures a "
+            "is below all %d airframes in our spec table (%s covered; slowest %s at %.1f m/s), "
+            "NEITHER lane measures a "
             "drone's top speed unambiguously at 3.5 GHz using reference signals alone. The only "
             "escape is the full waveform: free for a monostatic transmitter that knows X[m,n], "
             "purchased with demod/remod for a passive receiver, and traffic-dependent for both."
             % (d2["v_passive_default_ms"], d7["ladder_span_hz"][1], d2["v_monostatic_ceiling_ms"],
                d7["freedom_ratio_v_max"], d2["v_monostatic_ceiling_ms"],
-               d2["slowest_airframe_max_ms"])),
+               n_air, cov_air, slow_air, d2["slowest_airframe_max_ms"])),
         the_boundary_ko=(
             "벽 v_max = λ·PRF_ref/4 는 모노스태틱과 패시브 **공통**이다 — 모노스태틱은 그 벽의 β=0 "
             "절편이지 예외가 아니다. 다른 것은 **누가 PRF_ref 를 고르느냐**다. 패시브는 망이 뿌리는 "
             "것을 받고(5G SSB, n78 에서 {a:.2f} m/s), 모노스태틱은 3GPP 가 sub-6 CSI-RS 에 {c:g} Hz "
             "천장을 건 이산 사다리에서 한 칸을 고른다(n78 에서 {b:.2f} m/s — {r:.1f}배이지 해방이 "
-            "아니다). 그리고 {b:.2f} m/s 는 공개된 어떤 기체 최고속도보다도 낮아서(최저 {s:.1f} m/s), "
-            "3.5 GHz 에서 기준신호만으로는 **어느 쪽도** 드론의 최고속도를 무모호로 못 잰다. 유일한 "
+            "아니다). 그리고 {b:.2f} m/s 는 **우리 제원표의 공개 기체 {n} 종을 {cv} 로** 못 덮어"
+            "(최저 {sn} {s:.1f} m/s), "
+            "3.5 GHz 에서 기준신호만으로는 **어느 쪽도** 이 {n} 종의 최고속도를 무모호로 못 잰다. "
+            "⛔전 판의 「공개된 어떤 기체 최고속도보다도 낮아서」는 {n} 종을 잰 것을 전칭으로 올린 "
+            "것이라 내렸다(2026-09-04). 유일한 "
             "탈출구는 전 파형이고, 그건 X[m,n] 를 아는 모노스태틱 송신기에겐 공짜, 패시브에겐 "
             "복조/재변조라는 유료이며, 양쪽 다 트래픽에 종속된다."
         ).format(a=d2["v_passive_default_ms"], b=d2["v_monostatic_ceiling_ms"],
                  c=d7["ladder_span_hz"][1], r=d7["freedom_ratio_v_max"],
+                 n=n_air, cv=cov_air, sn=slow_air,
                  s=d2["slowest_airframe_max_ms"]),
         the_reviewer_question=dict(
             question="Why not just do monostatic ISAC instead?",
@@ -1154,8 +1172,10 @@ def make_figures(refrate, geom, freedom):
     ax.annotate("MONOSTATIC = a RANGE the sensor chooses\n"
                 "— but a discrete %d-rung ladder, capped by 3GPP\n"
                 "at %g Hz for sub-6 CSI-RS: %.2f m/s.\n"
-                "x%.1f the passive default, and still below\nevery published airframe maximum."
-                % (len(mono), prf_ceil, v_ceil, d7["freedom_ratio_v_max"]),
+                "x%.1f the passive default, and still below all\n"
+                "%d airframes in our spec table (%s covered)."
+                % (len(mono), prf_ceil, v_ceil, d7["freedom_ratio_v_max"],
+                   len(sp), d2["airframes_covered_by_monostatic_ceiling"]),
                 xy=(prf_ceil, v_ceil), xytext=(17.0, 90.0),
                 fontsize=8.3, color=C_MONO, ha="left", va="bottom",
                 arrowprops=dict(arrowstyle="-|>", color=C_MONO, lw=1.2, shrinkA=2, shrinkB=9))
@@ -1248,11 +1268,14 @@ def make_figures(refrate, geom, freedom):
          "FIXED POINT chosen by the network (5G SSB, 20 ms default, filled circle; the open "
          "circles are the other legal ssb-Periodicity values it might be handed). A monostatic "
          "ISAC sensor occupies a RANGE it selects itself, but that range is a discrete ladder of "
-         "slot multiples capped by 3GPP at 500 Hz for sub-6 CSI-RS, which lands below every "
-         "published airframe maximum. Only the data-symbol lane crosses, and only a transmitter "
+         "slot multiples capped by 3GPP at 500 Hz for sub-6 CSI-RS, which lands below all %d "
+         "airframes in our spec table (%s covered) — the published maxima this repository holds, "
+         "not every airframe in existence. Only the data-symbol lane crosses, and only a "
+         "transmitter "
          "that knows its own symbols can use it. (b) The same question on the carrier axis: the "
          "monostatic ceiling reaches the fastest airframe only in low band, at the cost of "
-         "bandwidth and hence range resolution.")
+         "bandwidth and hence range resolution."
+         % (len(sp), d2["airframes_covered_by_monostatic_ceiling"]))
 
     return figs
 

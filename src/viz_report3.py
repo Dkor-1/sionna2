@@ -304,7 +304,9 @@ def fig4_floor(J):
     ax.set_ylabel("amplitude vs LOS  [dB]", fontsize=11.5, color=INK2)
     ax.set_title(f"Floor-bounce amplitude agrees to {abs(F['agree_db']):.2f} dB",
                  fontsize=13, fontweight="bold", color=INK)
-    ax.text(.5, .08, "THIS is why we trust RT\nfor the environment",
+    # ⛔ 옛 문구 "for the environment" 는 바닥 단일반사 1개에서 환경 전체로 건너뛰어 내렸다
+    #    (벽·천장·다중반사는 손계산과 대조하지 않았다). 범위를 이 경로 하나로 좁힌다.
+    ax.text(.5, .08, "THIS is why we trust RT\nfor this floor bounce",
             transform=ax.transAxes, ha="center", fontsize=12, fontweight="bold",
             color=GOOD, bbox=dict(boxstyle="round,pad=0.45", fc="#eaf7ea", ec=GOOD, lw=1.2))
 

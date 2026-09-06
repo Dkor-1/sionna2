@@ -12,7 +12,8 @@ ECA(직접파 제거) → CAF(거리-도플러) → CFAR 체인을, 실측 검�
     우리 range_doppler(CAF)     ↔  pyapril.detector.cc_detector_td
     우리 ca_cfar_2d            ↔  pyapril.caCfar.CA_CFAR
 
-시나리오: 상용 신호(NR/WiFi) 조명 + 직접파(DPI) + 알려진 지연·도플러의 표적 에코 + 잡음.
+시나리오: **광대역 QPSK 기준신호**(씨앗만 다른 3 판) 조명 + 직접파(DPI) + 알려진 지연·도플러의
+표적 에코 + 잡음. ⛔실제 5G NR·WiFi·LTE 파형은 여기서 쓰지 않는다 — 실 파형은 report05 에서 따로 검증.
 출력: outputs/verify_pyapril.json  (두 체인의 표적 셀·검출 여부·RD 상관)
 
 실행: ~/.venvs/py312/bin/python benchmark/verify_pyapril.py
@@ -106,12 +107,18 @@ def pyapril_chain(sc, r_max, fd_max, K=64):
 
 
 def main():
-    """검증 질문: **pyAPRiL(오픈소스 패시브 레이더 라이브러리)이 WiFi/LTE/5G 형 광대역 신호에서도
-    표적을 정확히 검출하는가?** — 우리가 넣은 정답 거리빈에 잡히는지로 판정한다.
-    (pyAPRiL 은 DVB-T/FM 에서 개발됐지만 ECA/CAF/CFAR 는 파형 무관 — 이 검증이 그걸 실증)."""
+    """검증 질문: **pyAPRiL(오픈소스 패시브 레이더 라이브러리)이 광대역 QPSK 기준신호에서
+    표적을 정답 거리빈(±1)에 검출하는가?** — 우리가 넣은 정답 거리빈에 잡히는지로 판정한다.
+    ⛔2026-09-06 정정 — 초판은 이 질문을 「WiFi/LTE/5G 형 광대역 신호에서도」로 적고
+    「ECA/CAF/CFAR 가 파형 무관임을 이 검증이 실증」이라고 했다. 실제로 시험한 파형족은
+    build_scenario 의 광대역 QPSK 하나뿐이고 nr/wifi/lte 세 판은 난수 씨앗만 다르다
+    (build_scenario 의 rng 씨앗 1/2/3). 실 표준 파형은 report05 에서 따로 검증한다."""
     out = {"meta": {"lib": "pyAPRiL", "license": "GPLv3",
-                    "purpose": "pyAPRiL 이 WiFi/LTE/5G 광대역 기준신호에서 표적을 정확히 검출하는지(vs 정답)",
-                    "note": "ECA/CAF/CFAR 는 파형 무관(reference 의 I/Q 만 사용). DVB-T/FM 특정 모듈 없음."},
+                    "purpose": "pyAPRiL 이 광대역 QPSK 기준신호(씨앗만 다른 3 판)에서 표적을 정답 거리빈(±1)에 검출하는지(vs 정답)",
+                    "note": ("이 3 판은 같은 광대역 QPSK 생성기의 씨앗 변형이다 — 'nr/wifi/lte' 는 "
+                             "이름표일 뿐 실제 표준 파형이 아니다(실 파형은 report05). "
+                             "pyAPRiL 체인은 reference 의 I/Q 만 쓰고 DVB-T/FM 특정 모듈을 부르지 "
+                             "않았다 — 파형 무관성 일반은 이 한 파형족으로 실증되지 않는다.")},
            "modes": {}}
     for std in ("nr", "wifi", "lte"):
         sc = build_scenario(std=std)
@@ -126,7 +133,10 @@ def main():
         assert det.shape[1] > rt, f"거리축({det.shape[1]})이 정답 빈 {rt} 보다 짧다"
         fired_at_truth = bool(det[:, max(0, rt - 1):rt + 2].any())
         dr = abs(P["peak_ri"] - rt)
-        row = dict(std=std, r_bin_true=rt, dopp_bin_true=sc["dopp_bin_true"],
+        row = dict(std=std,
+                   waveform=("광대역 QPSK(씨앗만 다름) — 이름표 'nr/wifi/lte' 는 실제 표준 "
+                             "파형이 아니다. 실 파형은 report05 에서 따로 검증"),
+                   r_bin_true=rt, dopp_bin_true=sc["dopp_bin_true"],
                    fd_true_hz=round(sc["fd_true_hz"], 1),
                    pyapril=dict(peak_range_bin=P["peak_ri"], n_fired=P["n_fired"],
                                 rd_shape=P["shape"]),
@@ -137,7 +147,9 @@ def main():
         print(f"  ▶ {std.upper()}: pyAPRiL 최대봉우리 거리빈 {P['peak_ri']} (정답 {rt}, 오차 {dr}빈) · "
               f"정답셀 검출={fired_at_truth} · 판정={'정확' if row['correct'] else '오차'}")
     ok = sum(1 for r in out["modes"].values() if r["correct"])
-    out["meta"]["summary"] = f"{ok}/3 모드에서 pyAPRiL 이 표적을 정답 거리빈(±1)에 정확 검출"
+    out["meta"]["summary"] = (f"{ok}/{len(out['modes'])} 판(같은 광대역 QPSK 기준신호, 씨앗만 "
+                              "다름)에서 pyAPRiL 이 표적을 정답 거리빈(±1)에 검출. "
+                              "⛔표준 파형 3 종을 시험한 것이 아니다")
     path = os.path.join(ROOT, "outputs", "verify_pyapril.json")
     json.dump(out, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"✅ {out['meta']['summary']} → {path}")

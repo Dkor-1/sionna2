@@ -4,9 +4,16 @@ verify_clutter_doppler.py — [E3] cold clutter 도플러퍼짐 + hot clutter + 
 ================================================================================
 질문(정독노트 §6-2): **"클러터에 도플러퍼짐을 주면 '죽은 파라미터' 결론이 살아남는가?"**
 답(측정): **아니다 — SCR 항등식은 도플러 즉시 죽고, 잔류가 진폭에 amp² 로 복귀한다.**
-나아가(C4) **움직이는 클러터는 표적셀에 가짜 검출을 만든다** — 표적을 −80 dB 로 지워도 표적셀 CFAR 가
-울리고(클러터 링이 표적 거리빈을 bracket), 클러터를 빼면 0 이 된다. 특히 저속 드론(fd < 클러터밴드)은
-움직이는 클러터와 분간되지 않는다(서베이 §V-A4 경고 재현).
+나아가(C4) 이 한 조건에서 **표적을 지워도 표적셀 CFAR 가 계속 울렸다** — 5G NR 100 MHz · mavic4pro ·
+챔버 기하에서, 클러터 총전력을 RT 최강 바닥탭(meta.cnr_anchor_db = −9.8 dB)으로 앵커했을 때, 에코를
+−80 dB 로 지운 조건에서도 표적셀 Pd 가 1.0 이었고(N=24, 0.2~3.0 m/s 다섯 속도 전부), 클러터를 빼면
+0 이 되었다(클러터 링이 표적 거리빈을 bracket). 수치 출처는 outputs/verify_clutter_doppler.json 의
+C4_target_speed.rows[*].pd_bench · pd_notarget · pd_notgt_noclut (앵커는 meta.cnr_anchor_db, N 은
+meta.N_C4).
+⛔ 2026-09-06 내림: "특히 저속 드론(fd < 클러터밴드)은 움직이는 클러터와 분간되지 않는다" — 같은
+원장에서 in_clutter_band=false 인 1.2 / 2.0 / 3.0 m/s 도 pd_notarget = 1.0 이라, 이 오염이 저속에
+한정된다는 것은 아직 보이지 않았다(서베이 §V-A4 경고와 방향은 같지만 이 표가 그걸 잰 것은 아니다).
+앵커보다 낮은 클러터 세기, 다른 파형·기체·기하는 재지 않았다.
 
 Clutter-Aware ISAC 서베이(§V-A4, Proc. IEEE 114:52-91, 2026)는 정적-클러터 전제를 부정한다:
   "the cold clutter is modeled as a collection of C = 100 scatterers uniformly distributed

@@ -447,11 +447,12 @@ def fig_ray_budget(outdir=FIG):
     sdb = np.array([r["incoh_sd"] for r in B])
     ax2.errorbar(S, y, yerr=sdb, fmt="o-", color=C_RT, lw=2.4, ms=9, capsize=4, zorder=4,
                  label=f"Sionna RT, {d['S_rays']/1e6:.0f}M rays")
-    ax2.axhline(truth, color=C_TRUTH, lw=2.0, ls="--", label=f"SBR truth ({truth:.1f} dB)")
+    ax2.axhline(truth, color=C_TRUTH, lw=2.0, ls="--",
+                label=f"SBR+PO baseline, not a measurement ({truth:.1f} dB)")
     sfit = d.get("B_fit", {}).get("S_to_match_truth")
     if sfit:
         ax2.plot([sfit], [truth], "*", color=C_TRUTH, ms=20, zorder=6)
-        ax2.annotate(f"you must FIT  S = {sfit:.2f}\nto land on the truth\n-> circular",
+        ax2.annotate(f"you must FIT  S = {sfit:.2f}\nto land on the SBR+PO baseline\n-> circular",
                      xy=(sfit, truth), xytext=(0.36, y.min() - 1.0), ha="center", va="top",
                      fontsize=9.5, color=C_TRUTH, fontweight="bold",
                      arrowprops=dict(arrowstyle="->", color=C_TRUTH, lw=1.4,

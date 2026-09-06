@@ -336,15 +336,16 @@ def fig3_md_survival(ledger_path: str = LEDGER, npz_path: str = NPZ,
     axH = fig.add_subplot(gsC[0, 0])
     m = maps["noECA"]
     meshH = MS.draw(axH, m["t"], m["f"], m["S"], f_tip)
-    axH.set_title("(h)  ECA off — the body line buries the wingtips", loc="left",
-                  color=INK, pad=5)
+    # ⛔ 2026-09-06 제목에서 기작을 내린다 — 「the body line buries the wingtips」 는
+    #    그림에 보이지 않는 «묻는다» 를 얼굴에 박은 말이었다. 제목에는 판에서 읽히는
+    #    것(0-도플러 한 칸이 날개끝 대역보다 몇 dB 높은가)만 원장 수로 적고, 기작
+    #    설명은 발표자 노트로 내린다. 같은 수를 판 안에 한 번 더 찍던 흰 상자는
+    #    제목과 겹치므로 함께 내렸다(수는 그대로 원장 zero_bin_rel_tip_db).
+    axH.set_title(f"(h)  ECA off — zero-Doppler bin "
+                  f"+{surv['noECA']['zero_bin_rel_tip_db']:.1f} dB over the wingtip band",
+                  loc="left", color=INK, pad=5)
     axH.set_xlabel("Time  [ms]")
     axH.set_ylabel("Doppler  [Hz]")
-    axH.text(0.025, 0.045,
-             f"zero-Doppler bin  +{surv['noECA']['zero_bin_rel_tip_db']:.1f} dB "
-             f"over the wingtip band",
-             transform=axH.transAxes, fontsize=FS - 2.4, color="white", va="bottom",
-             bbox=dict(fc="#1a1a19", ec="none", alpha=0.62, pad=2.2))
 
     # ── (i) 5G 접힘 — 닿지 못하는 도플러는 회색으로 덮는다 ──────────────────
     axI = fig.add_subplot(gsC[0, 1])
@@ -443,10 +444,15 @@ def fig3_md_survival(ledger_path: str = LEDGER, npz_path: str = NPZ,
              f"blade-flash line loses {fl_drop:.0f} dB ({fl_txt} dB) — still above the "
              f"background at the rung where the detector reports nothing.",
              ha="left", fontsize=FS + 0.2, color=INK2)
+    # ⛔ 2026-09-06 「noise never causes」 와 「buries」 를 내린다 — 앞의 것은 잡음 전용
+    #    대조군을 따로 돌린 적이 없어 확인할 수 없는 전칭이고, 뒤의 것은 그림에 보이지
+    #    않는 기작이다. 남기는 것은 두 판에서 읽히는 것뿐 — 0-도플러 한 칸이 날개끝
+    #    대역보다 높다는 것과, 조명원 프레임률에 날개끝이 창 안으로 접혀 든다는 것.
     fig.text(0.052, 0.910,
-             "But the comb dies two other ways that noise never causes:  with ECA off the "
-             f"body line buries it, and at a {prf_nr/1e3:.0f} kHz illuminator frame rate "
-             "the wingtip folds inside the window.",
+             "The comb also dies in two ways that are not the noise ladder:  with ECA off "
+             f"the zero-Doppler bin sits +{surv['noECA']['zero_bin_rel_tip_db']:.1f} dB over "
+             f"the wingtip band, and at a {prf_nr/1e3:.0f} kHz illuminator frame rate the "
+             "wingtip folds inside the window.",
              ha="left", fontsize=FS + 0.2, color=INK2)
     fig.text(0.052, 0.012,
              "Every map is read at the target's known range bin — survival here is a "

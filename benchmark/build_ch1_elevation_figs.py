@@ -17,8 +17,14 @@ build_ch1_elevation_figs.py — 8/18 팀미팅 **Chapter 1 «앙각»** 그림 �
     outputs/figures/ch1_f5_raybudget.png   광선 예산 대 박자
 
 ⭐ 잣대를 왜 이렇게 골랐나
-  · **대역 에너지는 «전체 전력 중 몫»(dB)** 으로 낸다. 우리 팔과 PathSolver 팔은 정규화가
-    달라 절대 레벨이 70 dB 벌어져 있어 나란히 못 놓는다. 몫은 눈금에 무관해서 놓을 수 있다.
+  · **대역 에너지는 «전체 전력 중 몫»(dB)** 으로 낸다. 우리 팔과 PathSolver 팔은 절대 레벨을
+    나란히 못 놓는다 — 10 m 세 팔 원장에서 두 팔(`ours` ↔ `sionna`)의 `level_db` 차가
+    el 0° 5.3 dB · el −30° 72.1 dB · el −90° 88.6 dB 로 **앙각마다 다르다**
+    (← outputs/elevation_sweep_md.json 의 `rows` 중 `range_m` = 10.0 인 행, `level_db` 를 뺀 값).
+    ⛔먼저 적었던 「정규화가 달라 절대 레벨이 70 dB 벌어져 있다」는 내렸다 — 정규화는 눈금
+    상수라 앙각에 안 걸리는데 실제 차는 앙각마다 달랐고, 원인은 아직 안 갈랐다(같은 행의
+    `npaths_median` 이 el 0°/−30°/−90° 에서 9·6·12 라 «경로를 아예 못 찾아서» 로도 못 닫는다).
+    몫은 눈금에 무관해서 놓을 수 있다.
     정의는 `verify_nadir_flash.py::decompose` 의 `share_of_total_power_db` 와 **같다**
     (9 칸에서 소수 둘째 자리까지 일치하는 것을 확인했다).
   · **얼린 격자 팔의 절대 레벨은 안 쓴다**(상설 규칙 I1, 판 흩어짐 3.45 dB).

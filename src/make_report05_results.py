@@ -1170,12 +1170,23 @@ def build_blocks(D: dict):
                 + dnum(D["mc_p2db_max"], "{:.2f}", "",
                        f"{J_SS} : monte_carlo_per_band_error", "5기체 최대")]]),
         "",
-        f"취약성을 정하는 것은 기체 크기가 아니라 **밴드 간 σ 로브 산포**다 — 가장 작은 "
+        # ⛔ 「취약성을 정하는 것은 크기가 아니라 밴드 간 σ 로브 산포다」는 2026-09-04 에 내렸다
+        #    (docs/AUDIT_REPORTS_0901.md). 기각하는 쪽(크기)의 상관이 채택하는 쪽(산포)보다
+        #    오히려 강하고 표본이 기체 5 대다. 10편(src/build_part10_results.py)과 같은 문면으로
+        #    맞추고, 세 상관을 다 싣되 인과는 세우지 않는다.
+        f"작은 기체가 더 취약하다는 예상은 이 "
+        f"{len(SS.get('size_vs_fragility.by_drone'))} 대에서 뒤집힌다 — 가장 작은 "
         f"{SS.num('size_vs_fragility.smallest_airframe', None)}(전장 "
         f"{SS.num('size_vs_fragility.by_drone.mini5pro.extent_m', None, '{:.3f}', 'm')}, LTE 에서 "
         f"D/λ = {SS.num('size_vs_fragility.by_drone.mini5pro.D_over_lambda_lte', None, '{:.2f}')})"
-        f" 가 가장 견고하고, 크기와 뒤집힘 문턱의 상관은 "
-        f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')} 다.",
+        f" 가 가장 견고하다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 "
+        f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 밴드 간 σ 로브 "
+        f"산포 쪽 "
+        f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')}, 두 열 "
+        f"사이는 "
+        f"{SS.num('size_vs_fragility.corr_extent_vs_sigma_spread', None, '{:+.2f}')} 이고, 기체 "
+        f"{len(SS.get('size_vs_fragility.by_drone'))} 대 표본이라 어느 열이 취약성을 정하는지는 "
+        f"이 표본으로 정하지 않는다.",
         "",
         f"또 하나의 실측 사실을 같은 자리에 적는다: σ 격자를 블레이드 형상 갱신본으로 바꾸는 것만으로 "
         f"R90 이 최대 "

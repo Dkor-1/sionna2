@@ -564,8 +564,11 @@ def main():
                 "√((n̂·û_i)(n̂·û_s)) 로 승격하면 이론상 상반성이 복원되지만, grazing 조명면"
                 "(n̂·û_i→0)에서 √(cosθ_s/cosθ_i) 가 단일 광선에 수백 배 가중을 실어 이산 격자를 "
                 "폭발시킨다 — 과거 시도에서 rms 오차가 **오히려 커져** 폐기했다(src/rcs_sbr.py:554-556). "
-                "그 대가는 σ(i,s)/σ(s,i)=(cos_i/cos_s)² 라는 **닫힌형 상반성 위반**이고, 평판 실측이 "
-                "β≤60° 에서 0.3 dB 안으로 그 예측과 맞는다(outputs/sbr_defect_fixes.json). "
+                "그 대가는 σ(i,s)/σ(s,i)=(cos_i/cos_s)² 라는 **닫힌형 상반성 위반**이고, ⭐이를 재 본 것은 "
+                "**우리 커널의 자체검산**이지 외부 실측 대조가 아니다 — PEC 평판 0.08×0.08 m · 3.5 GHz · "
+                f"div=32 를 우리 커널로 돌린 값이 β≤60° 에서 그 닫힌형 예측과 "
+                f"{json.load(open(os.path.join(ROOT, 'outputs', 'sbr_defect_fixes.json')))['d2_reciprocity_plate']['max_abs_residual_db_beta_le_60']:.2f} dB "
+                "안으로 맞는다(outputs/sbr_defect_fixes.json : d2_reciprocity_plate.max_abs_residual_db_beta_le_60). "
                 "θb 가 커질수록 이 항이 커지는 것이 우리 바이스태틱 열의 지배 불확도다."),
             exit_vis=(
                 "⭐ **켠다(True)**. 수신 게이트가 법선 판정 (n̂·û_s>0) 하나뿐이면 수신기를 향한 면이 "

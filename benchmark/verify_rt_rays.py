@@ -20,10 +20,17 @@ report6 §A 의 재현 스크립트. 질문은 정당하다:
   [C] **S=0 인 부품이 σ 를 지배한다** — ITU metal(모터·배터리·PCB·카메라 하우징)은
       scattering_coefficient = 0 이라 **확산 채널에 기여가 정확히 0** 이다.
       그런데 SBR(광선+PO적분)로 재면 이 금속 부품들이 σ 의 대부분을 만든다.
-      ⇒ RT 확산이 보는 표적과, 물리가 보는 표적이 **다른 표적**이다.
+      ⇒ RT 확산 채널에 기여하는 부품 집합(S>0)과, 우리 SBR+PO 가 σ 의 대부분을 얻는
+        부품 집합(S=0 금속)이 서로 **겹치지 않는다**.
+        ⛔2026-09-06 정정 — 초판은 이 줄을 「RT 확산이 보는 표적과, 물리가 보는 표적이 다른
+        표적이다」로 적어 우리 커널 출력에 '물리' 라는 이름을 붙였다. 두 값 모두 근사이고
+        실측 대조가 0 건이라, ⚠어느 쪽이 실제에 가까운지는 실측이 있어야 갈린다.
 
-  [D] **정답선** — 같은 메쉬·같은 재질로 SBR 이 낸 σ 를 바이스태틱 레이더 방정식에 넣어
-      "진폭비가 여기 있어야 한다"를 그린다.  ratio = L·√(σ/4π) / (R1·R2)
+  [D] **SBR+PO 기준선** — 같은 메쉬·같은 재질로 우리 커널(SBR = 광선추적 + 표면 PO 적분)이
+      낸 σ 를 바이스태틱 레이더 방정식에 넣은 값.  ratio = L·√(σ/4π) / (R1·R2)
+      ⚠이것도 근사이고 실측 대조는 0 건이다 — 「정답」이 아니라 **비교 기준선**이다.
+      (원장 키 `ratio_db_truth` 는 옛 이름 그대로 둔다 — 이미 구운 원장과
+       src/viz_verify_sbr.py · src/viz_report3.py 가 그 키로 읽는다.)
 
 판정: σ 는 **표면적분에서 나온다.** 광선을 늘리면 표면을 더 촘촘히 표집할 뿐,
       적분 단계가 없는 solver 에서는 값이 수렴할 곳이 없다. **GPU 로 해결되지 않는다.**
@@ -187,7 +194,7 @@ def main():
     print(f"기하: L={g['L']:.2f} m · R1={g['R1']:.2f} · R2={g['R2']:.2f} · β={g['beta']:.1f}° · "
           f"τ_echo={g['tau_echo']*1e9:.1f} ns · f={FC/1e9:.1f} GHz · 표적={DRONES[KEY].name}")
 
-    print("\n[D] 먼저 '정답' — 같은 메쉬·같은 재질을 SBR(광선+PO적분)로 재면")
+    print("\n[D] 먼저 SBR+PO 기준선 — 같은 메쉬·같은 재질을 SBR(광선+PO적분)로 재면")
     truth = sbr_truth()
     print(f"    σ(SBR, 방위평균, el={truth['el_deg']:.0f}°) = {truth['full_dbsm']:+.2f} dBsm")
     print(f"      · 금속 부품(S=0)만       : {truth['metal_only_dbsm']:+.2f} dBsm  "
@@ -216,10 +223,11 @@ def main():
         print(f"\n    → 광선 {ok[0]['spp']/1e6:.0f}M → {ok[-1]['spp']/1e6:.0f}M "
               f"({ok[-1]['spp']/ok[0]['spp']:.0f}배): 비코히어런트 합 **{d:+.1f} dB** 이동 "
               f"(시드 산포 ±{sd:.1f} dB)")
-        print(f"       정답선({truth['ratio_db_truth']:+.2f} dB) 대비: "
+        print(f"       SBR+PO 기준선({truth['ratio_db_truth']:+.2f} dB) 대비: "
               f"{ok[0]['incoh_db']-truth['ratio_db_truth']:+.1f} dB → "
               f"{ok[-1]['incoh_db']-truth['ratio_db_truth']:+.1f} dB")
-        print("       ⇒ 광선을 늘려도 정답선에 **붙지 않는다**. 수렴 목표가 없기 때문이다.")
+        print("       ⇒ 광선을 늘려도 SBR+PO 기준선에 **붙지 않는다**. 수렴 목표가 없기 때문이다.")
+        print("       ⚠기준선도 근사다 — 실측 대조는 0 건이라 「정답」이 아니라 대조점이다.")
 
     print("\n[B] 산란계수 S 스윕 (광선 고정 = %d M) · 시드 %d개 평균" % (S_RAYS / 1e6, len(SEEDS)))
     print(f"    {'S':>5} {'경로수':>8} {'비코히어런트':>14} {'시드산포':>9}")
@@ -235,11 +243,11 @@ def main():
         print(f"\n    → S {okb[0]['S']:.1f} → {okb[-1]['S']:.1f} ({okb[-1]['S']/okb[0]['S']:.0f}배) "
               f"에서 **{okb[-1]['incoh_db']-okb[0]['incoh_db']:+.1f} dB** 이동. "
               "S 는 드론의 물성이 아니라 우리가 돌리는 노브다.")
-        # 정답선을 재현하는 S 를 역산 — "맞추려면 피팅해야 한다"의 정량화
+        # SBR+PO 기준선을 재현하는 S 를 역산 — "맞추려면 피팅해야 한다"의 정량화
         xs = np.log10([r["S"] for r in okb]); ys = np.array([r["incoh_db"] for r in okb])
         sl, ic = np.polyfit(xs, ys, 1)
         s_fit = float(10 ** ((truth["ratio_db_truth"] - ic) / sl))
-        print(f"       정답선({truth['ratio_db_truth']:+.2f} dB)을 재현하는 S ≈ **{s_fit:.2f}** "
+        print(f"       SBR+PO 기준선({truth['ratio_db_truth']:+.2f} dB)을 재현하는 S ≈ **{s_fit:.2f}** "
               f"(기울기 {sl:.1f} dB/decade)  ⇒ 그건 예측이 아니라 **피팅**이다.")
         okb_fit = dict(S_to_match_truth=s_fit, slope_db_per_decade=float(sl))
     else:
@@ -253,7 +261,8 @@ def main():
     with open(OUT, "w") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     print("\n" + "=" * 88)
-    print("판정: 광선을 16배 늘려도 값이 정답선에 붙지 않는다. σ 는 **표면적분에서 나온다** — "
+    print("판정: 광선을 16배 늘려도 값이 SBR+PO 기준선에 붙지 않는다. σ 는 "
+          "**표면적분에서 나온다** — "
           "적분 단계가\n      없는 solver 에서는 광선을 아무리 늘려도 수렴할 곳이 없다. GPU 로 해결되지 않는다.")
     print("=" * 88)
     print("저장:", os.path.relpath(OUT))

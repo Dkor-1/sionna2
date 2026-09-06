@@ -785,8 +785,17 @@ RETRACTION = dict(
         "blind=1.000 (기구 B — 가드가 도플러 진폭을 덮는다)",
         "outputs/cpi_guard_sweep.json : verdict.headline_claim_status = 'must_change'",
     ],
-    replaced_by=("패시브 바이스태틱의 무모호 반경속도는 상시 기준신호의 반복률이 정한다: "
-                 "v_max = lambda*PRF_ref/4. 5G SSB 는 1.07 m/s 이고 이것은 CPI 로 못 고친다."),
+    # ⛔밴드·읽기·숫자를 손으로 치지 않는다 — ILLUM 행과 ssb_burst_set_caveat() 에서 뽑는다
+    #   원장: outputs/refrate_law.json : illuminators.rows.nr_ssb
+    #         outputs/refrate_law.json : scope.ssb_burst_set.conservative_reading
+    replaced_by=(
+        "패시브 바이스태틱의 무모호 반경속도는 상시 기준신호의 반복률이 정한다: "
+        "v_max = lambda*PRF_ref/4. "
+        f"5G SSB({build_illuminator_table()['nr_ssb']['fc_hz'] / 1e9:.1f} GHz n78, "
+        "빔당 SSB 하나만 쓰는 보수적 읽기 "
+        f"{ssb_burst_set_caveat()['conservative_reading']['prf_hz']:.0f} Hz)는 "
+        f"{ssb_burst_set_caveat()['conservative_reading']['v_max_ms']:.2f} m/s 이고, "
+        "이것은 CPI 로 못 고친다."),
     why_the_replacement_is_stronger=("유도 사슬이 3GPP 규격 -> 산술 -> 나이퀴스트 -> 운동학 뿐이라 "
                                      "sigma 가 한 번도 안 들어간다. 프로젝트에서 가장 약한 양(미검증 "
                                      "절대 RCS)이 헤드라인에 관여하지 않는다."),

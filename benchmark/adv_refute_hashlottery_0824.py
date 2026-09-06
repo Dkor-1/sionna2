@@ -139,7 +139,14 @@ def main() -> int:
 
     ref = 8.187348815977586e-04                 # 원 판정의 relt
     oo = summary.get("old_vs_old", {}).get("rel_max", 0.0)
-    verdict = ("REFUTED — 옛↔옛 만으로도 같은 크기로 갈린다. 해시 복권이다"
+    verdict = (f"REFUTED — 회절 팔 한 칸({ARM} · el {EL} · {a.drone} · {NPOSE} 자세)에서 "
+               f"옛↔옛 {len(olds)} 판끼리도 옛↔새와 같은 크기로 갈린다. 즉 이 산포는 "
+               f"옛/새 구분의 성질이 아니라 판마다 달라지는 실행 잡음이다. "
+               f"⛔«해시 복권이다» 라는 원인 지목은 내린다(2026-09-06) — 해시 순서를 "
+               f"바꿔 가며 재지 않았고, 이 스크립트가 «복권이 직접 확인되는» 조건으로 "
+               f"미리 정해 둔 판별 경로 수(npaths) 변동은 {len(runs)} 판 전부 "
+               f"{'/'.join(str(x) for x in npaths_old)} 로 일어나지 않았다"
+               f"(npaths_lottery={lottery_npaths})."
                if oo >= ref * 0.1 else
                "NOT_REFUTED — 옛↔옛 은 조용한데 옛↔새만 갈린다. --inmem 의 실제 차이다")
     print(f"\n  옛↔옛 최대 {oo:.3e}  vs  원 판정 relt {ref:.3e}")

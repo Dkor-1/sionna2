@@ -113,9 +113,22 @@ doc = {
       "선언_안_됨": "mavic4pro(100.00 %) · phantom4(92.86 %) · mini5pro(85.13 %) · typhoonh480(74.66 %) · "
                     "matrice4e(69.19 %). 특히 **mavic4pro 는 100 % 이고 주력 표적**인데 근거 기록이 없다."},
     "impact_ko": {
-      "SBR": "canopy 는 first-hit 이 될 수 없고(묻혀 있음), 동시에 투과 패스에서는 셸이라 씬에서 제외된다 "
-             "(rcs_sbr.py 231행 exclude=_shells). 즉 **기여가 정확히 0** 이면서 메쉬 용량만 먹는다. "
-             "mavic4pro 기준 2240 면 · 25659 mm² = 전체 면적의 7.8 % 가 죽은 무게다.",
+      "SBR": f"**완전히 묻힌 기체(mavic4pro · phantom3 = {a6['mavic4pro']['pct_inside_contains']:.2f} %)에서는** "
+             "canopy 가 first-hit 이 될 수 없고(묻혀 있음), 동시에 투과 패스에서는 셸이라 씬에서 제외된다 "
+             "(rcs_sbr.py 231행 exclude=_shells). 즉 그 두 기체에서는 **기여가 정확히 0** 이면서 "
+             "메쉬 용량만 먹는다 — mavic4pro 기준 2240 면 · "
+             f"{a6['mavic4pro']['canopy_area_mm2']:.0f} mm² = 전체 면적의 7.8 % 가 죽은 무게다. "
+             "⛔«셸형 7 기체 전부에서 기여가 정확히 0» 은 2026-09-06 에 내렸다 — 이 항목의 표 자신이 "
+             "반증한다. 부분 매몰 기체는 노출부가 first-hit 이 될 수 있어 기여가 0 이 아니다: "
+             f"matrice4e {a6['matrice4e']['pct_inside_contains']:.2f} % 묻힘(캐노피 상단이 body 상단보다 "
+             f"{a6['matrice4e']['canopy_top_mm'] - a6['matrice4e']['body_top_mm']:.1f} mm 위로 나온다) · "
+             f"typhoonh480 {a6['typhoonh480']['pct_inside_contains']:.2f} % · "
+             f"mini5pro {a6['mini5pro']['pct_inside_contains']:.2f} % · "
+             f"mini2 {a7['hole_patched']['pct_canopy_area_inside']:.2f} %(F02 구멍을 메운 뒤) · "
+             f"phantom4 {a6['phantom4']['pct_inside_contains']:.2f} % — 노출 몫이 "
+             f"{100.0 - a6['phantom4']['pct_inside_contains']:.1f}~"
+             f"{100.0 - a6['matrice4e']['pct_inside_contains']:.1f} % 다. "
+             "그 노출부가 σ 에 얼마나 보태는지는 이번에 재지 않았다(추측).",
       "PO": "가림이 없으므로 그 7.8 % 가 통째로 이중계상된다.",
       "재질": "canopy·body 둘 다 'plastic' 이라(drones.DRONE_GROUP_MAT) 재질 구분의 실익도 없다."},
     "falsified_hypothesis_ko": "⭐내 가설 반증: «묻힌 캐노피 때문에 투과 τ 가 두 번 곱해질 것» 이라고 의심했으나 "
@@ -125,7 +138,14 @@ doc = {
 
   "F05_prop_thickness_is_one_scalar_but_the_fleet_spans_4x": {
     "severity": "중요",
-    "claim_ko": "프롭이 표적 신호를 지배한다(2026-08-16 재질 판정). 그런데 재질 모형의 프롭 슬래브 두께는 "
+    "claim_ko": "프롭이 **움직이는 성분(AC — 정지 성분 DC 를 걷어낸 변조 채널)** 을 사실상 전부 만든다"
+                "(2026-08-16 재질 판정). ⛔«프롭이 표적 신호를 지배한다» 는 2026-09-06 에 내렸다 — "
+                "총 σ 로는 프롭이 전체보다 16.2 dB(el −30) · 28.1 dB(el 0) 아래이고, 동체(body) 하나와 "
+                "견주어도 6.2 dB(el −30) · 16.9 dB(el 0) 아래다. ⚠이 수는 matrice4e 한 기체를 우리 PO "
+                "커널로(가림 없음 · 방위평균) 이 두 앙각에서만 잰 것이다 — 원장 "
+                "outputs/mesh_audit_0816_adversarial_refute.json 의 5_구조적_필연_점검 → «우리 PO 커널로 "
+                "본 «지배» 의 범위(matrice4e, 가림 없음)», 정리는 docs/MESH_AUDIT_0816.md §4-1. "
+                "그런데 재질 모형의 프롭 슬래브 두께는 "
                 "**스칼라 하나**인데, 메쉬가 말하는 실제 블레이드 두께는 기체마다 4.3 배 벌어진다.",
     "evidence_chord_mean_thickness_mm": {k: v["span_mean_of_chordmean_mm"] for k, v in a15.items()},
     "canonical_check_ko": "material_verdict_0816.json 의 정본 «matrice4e 시위평균 1.43 mm» 는 메쉬에서 "
@@ -344,9 +364,16 @@ doc = {
     "numbers": "mini5pro λ/13.2 · mavic4pro λ/7.5 · matrice4e λ/7.4 · s1000plus λ/5.3 · phantom4 λ/8.4 · "
                "typhoonh480 λ/8.8 · x500v2 λ/7.9 · phantom3 λ/8.4 · m350rtk λ/3.8 · mini2 λ/16.9",
     "impact_ko": "PO 면적분은 삼각형 **안에서 위상을 상수로** 본다. 모서리가 λ/4 를 넘으면 그 근사가 깨진다. "
-                 "지금은 최악이 λ/3.8(m350rtk)이라 **아직 λ/4 아래이긴 하다**. 다만 «전 기체 같은 면 수(12752)» 로 "
-                 "고정돼 있어 큰 기체일수록 성기다 — 면 수가 아니라 **모서리 길이를 λ 로 묶는 것**이 맞다. "
-                 "얼마나 틀리는지는 이번에 재지 않았다(추측).",
+                 "3.5 GHz 에서 λ/4 = 21.4 mm 인데, 최악인 m350rtk 의 최장 모서리는 22.67 mm(λ/3.8)로 "
+                 "**그 문턱을 이미 넘었다** — m350rtk 프롭에는 PO 위상상수 근사가 성립하지 않는다"
+                 "(그 기체 프롭 면 12752 개 중 12128 개가 λ/10 초과). 나머지 9 기체는 s1000plus "
+                 "16.19 mm(λ/5.3) 이하로 문턱 안이다. ⛔«아직 λ/4 아래이긴 하다» 는 2026-09-06 에 내렸다 — "
+                 "같은 문장이 세운 문턱을 그 문장의 수가 넘는데 «안전하다» 로 읽혔다. "
+                 "(수는 원장 outputs/mesh_audit_0816_topology_physics.json 의 "
+                 "F17_facet_size_versus_wavelength_on_the_prop → evidence.<기체>.max_edge_mm · "
+                 "faces_edge_gt_lambda_over_10 · n_prop_faces 와 대조.) 다만 프롭 면 수가 λ 와 무관하게 "
+                 "고정돼 있어(기체별 12736~25600) 큰 기체일수록 성기다 — 면 수가 아니라 "
+                 "**모서리 길이를 λ 로 묶는 것**이 맞다. 얼마나 틀리는지는 이번에 재지 않았다(추측).",
     "note_ko": "SBR 은 광선 간격이 λ/12 라 이 문제에서 자유롭다. 이 항목은 PO 경로에만 해당한다."
   },
 

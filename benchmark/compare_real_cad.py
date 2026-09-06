@@ -5,13 +5,27 @@ compare_real_cad.py — **우리 파라메트릭 방법 vs 실물 3D CAD** (repo
 답할 질문: *"스펙시트 숫자로 코드가 만든 메쉬가, 실물 CAD 와 얼마나 다른가? σ 로 몇 dB 인가?"*
 
 ■ 왜 DJI 로 못 하나 (정직하게)
-  **DJI 는 공식 CAD 를 공개하지 않는다.** 인터넷의 DJI 3D 모델들은
-    · **껍데기만** — 배터리·PCB·모터 같은 **내부 금속 산란체가 없다**.
-      그런데 드론 RCS 는 **내부 금속이 지배한다**(플라스틱 셸은 |Γ|≈0.28 로 반투명).
-    · 치수 검증 안 됨 (예쁘게만 만든 것)
-    · watertight/법선 보장 없음 → 조명판정(n̂·û>0)이 오염됨
-    · 라이선스 제약
-  → RCS 에 쓸 수 없다. 그래서 **CAD 가 공개된 실물 드론**으로 **우리 방법 자체**를 검증한다.
+  ⛔2026-09-04 정정 — 여기 있던 「**DJI 는 공식 CAD 를 공개하지 않는다**」와 「인터넷 DJI 모델은
+    껍데기만이라 **내부 금속 산란체가 없다**」 두 문장을 내린다(지우지 않고 왜 내렸는지 남긴다).
+    같은 저장소가 반례를 둘 들고 있다 — `assets/meshes/reference/matrice4-M4T_v2.step`
+    (DJI **Matrice 4T** 공식 STEP, 2026-08-03 추가) · `assets/meshes/reference/WM161_zhankai_1k.glb`
+    (DJI **Mini 2** 공식 3D, 2026-08-07 추가). 같은 판단을 다루는
+    `report_mesh/src/make_mesh01.py` §2.1 은 이미 «기체마다 다르다» 로 고쳐 적었고,
+    `assets/meshes/reference/SOURCES.md` 머리말도 2026-08-16 에 같은 정정을 했다.
+  **공식 CAD 는 기체마다 갈린다**(SOURCES.md 머리말)
+    · 있다 — Matrice 4**T** 판 STEP · Mini 2 GLB · Holybro X500 V2 STEP
+    · 없다 — 우리 표적판 Matrice 4**E**(`M4E_v2.stp`·`M4E.stp` 는 403) · Mavic 4 Pro ·
+      Mini 5 Pro · Phantom 3/4 · S1000+ · M350 RTK
+  그래서 **이 벤치마크의 σ 대조를 DJI 기체로는 못 한다** — 막는 것은 자산 쪽이다:
+    · 우리 표적판(4E)의 CAD 가 없다. 있는 것은 4T 판이고 짐벌이 달라 갈라 써야 한다
+      (`docs/MESH_AUDIT_0816.md` §⑧ · SOURCES.md).
+    · 그 둘은 DJI 저작물이라 **공개 라이선스가 없고**, 158 MB 인 M4T STEP 은 깃에도 없다
+      (`.gitignore` — SOURCES.md 2026-08-05 결정) → 재현 패키지에 실을 수 없다.
+    · 공식 CAD 가 없는 기종에 남는 것은 인터넷 3D 모델뿐인데 **치수 검증이 안 되고**
+      (취미 모델러의 눈대중이 많다) watertight/법선 보장도 없어 조명판정(n̂·û>0)이 오염되며
+      라이선스도 제약이다(SOURCES.md 머리말). ⚠우리가 그런 모델을 몇 편 열어 봤는지는 이
+      저장소에 기록이 없다 — 「전부 껍데기다」 같은 전면 진술은 여기서 쓰지 않는다.
+  → 그래서 **라이선스가 허용적인 실물 드론 CAD**로 **우리 방법 자체**를 검증한다.
 
 ■ 비교 대상 (assets/meshes/reference/SOURCES.md — 전부 허용적 라이선스)
   [A] **Yuneec Typhoon H480** (Apache-2.0, ethz-asl/rotors_simulator)

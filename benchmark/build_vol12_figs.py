@@ -7,7 +7,9 @@
   · 부제가 길면 좌우로 잘린다 ⇒ 짧게
 
 ⛔잣대 이름을 그림에 «rho» 로 쓰지 않는다 — 전문용어다. 재는 것은 「포락이 되풀이되는가」이므로
-   **repeats / no repeat** 로 적고 수는 곁들인다.
+   **envelope repeat** 로 적고 수를 곁들인다.
+⛔ 2026-09-06 그 수로 «있다/없다» 를 찍지 않는다 — 종전 규약 「**repeats / no repeat** 로 적고」
+   는 자유 문턱 |rho| > 0.10 하나에 판정을 걸어 두었으므로 내렸다. 배지는 수만 싣는다.
 
     PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_vol12_figs.py
 """
@@ -90,15 +92,17 @@ def main():
                        fontsize=19, weight="bold", color="white",
                        bbox=dict(boxstyle="round,pad=0.38", fc=(0, 0, 0, 0.62),
                                  ec="white", lw=1.5))
-            # ⭐판정 — «rho» 대신 쉬운 말
+            # ⛔ 2026-09-06 판정 배지를 내린다 — 자유 문턱 |rho| > 0.10 하나로 판마다
+            #    «beat repeats / no repeat» 를 찍고 초록·빨강으로 칠하던 자리다. 레포가
+            #    문서로 무효화한 판정 규칙이 그림 얼굴에서만 살아 있었고, 문턱 하나가
+            #    빗나가면 실외 장면 서사 전체가 거짓음성 위에 선다. 수만 남기고, 박자가
+            #    있느냐는 빗살 선(f_flash 하모닉)으로 따로 읽는다.
             rr = rho(E)
-            ok = abs(rr) > 0.10
-            a.text(0.972, 0.945, ("beat repeats" if ok else "no repeat") + f"\n{rr:+.3f}",
+            a.text(0.972, 0.945, f"envelope repeat\n{rr:+.3f}",
                    transform=a.transAxes, ha="right", va="top", fontsize=17,
                    weight="bold", color="white", linespacing=1.3,
                    bbox=dict(boxstyle="round,pad=0.36", ec="white", lw=1.6,
-                             fc=(0.09, 0.42, 0.14, 0.88) if ok
-                             else (0.58, 0.06, 0.16, 0.88)))
+                             fc=(0.16, 0.16, 0.18, 0.88)))
 
     fig.subplots_adjust(top=0.858, bottom=0.062, left=0.062, right=0.988,
                         hspace=0.075, wspace=0.045)
@@ -106,8 +110,8 @@ def main():
              ha="center", fontsize=27, color=INK, weight="bold")
     fig.text(0.5, 0.930, "the stripes go, and removing the static part does not "
              "bring them back", ha="center", fontsize=20, color=RED, weight="bold")
-    fig.text(0.5, 0.903, "the number is how strongly the envelope repeats - "
-             "near zero means no beat, whatever the level says",
+    fig.text(0.5, 0.903, "the number measures how smoothly the envelope repeats - "
+             "whether a blade beat is there is read off the comb lines, not off this number",
              ha="center", fontsize=15, color=GRAY)
     fig.text(0.008, 0.012, "stock engine, extra physics off  ·  matrice4e at 15 m  ·  "
              "8,192 poses  ·  our own kernel cannot run this scene yet - see section 3",

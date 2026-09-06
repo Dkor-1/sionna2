@@ -40,7 +40,16 @@ report15_probe.py — **Sionna PathSolver 로 로터 마이크로도플러가 �
    위상별 거동을 **그대로 기록**할 뿐 결론을 미리 넣지 않는다.
 
 기체 2종
-  · mini2      — Das 실측 4기체 대조 ΔL −0.51 dB 로 1위인 **검증된 기준자**.
+  · mini2      — Das 대조에서 바이스태틱 0° 칸의 레벨차 ΔL 가 −0.51 dB 로 네 기체 중
+                 절댓값이 가장 작았다.
+                 ⛔ 「검증된 기준자」 는 내린다 — 같은 원장이 함대 판정을 **NOT_VALIDATED**
+                 로 적는다(기체 간 산포 16.27 dB, 사전등록 문턱 6 dB).
+                 같은 기체의 다른 각도 칸은 −0.77 ~ −2.38 dB 이고, 이 −0.51 은 **선형평균 규약**
+                 의 값이라 dB 영역 규약에서는 −3.82 dB 다(그 규약에서는 순위도 바뀐다) —
+                 원장이 「둘 중 하나만 인용하면 안 된다」 고 못 박았다.
+                 원장 outputs/das_fleet_ours.json ::
+                   prereg_gates.DL_theta_b_0_db.mini2 (−0.5077) · prereg_gates.P3_spread_db (16.2677)
+                   · prereg_gates.verdict · airframes.mini2.by_theta_b.*.DL_prereg_db / DL_dbdomain_db
   · matrice4e  — 실측 캠페인 표적. 남은 최대 불일치가 하필 **로터 부근**(모터·프롭)이라,
                  이 실험이 정확히 그 부위를 흔든다.
   두 기체는 크기·프롭지름·RPM 이 크게 달라 **잡음바닥이 같을 이유가 없다** → 각각 잰다.

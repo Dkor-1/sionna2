@@ -18,7 +18,9 @@ A2 는 잡음이 없으므로 A0 대비 차이가 **전부 파면 곡률**이다
 
 ⚠ 전제·한계 (전부 JSON meta 에 기록)
   * 두 팔 모두 **가림 없는 순수 PO** — 의도적. 가림을 넣으면 A/B 귀속이 깨진다.
-    절대 σ 는 report07 기준 +4~5 dB 과대이나 **양 팔에 동일**하게 걸려 상쇄된다.
+    절대 σ 는 report07 기준 +4~5 dB 과대다 — **mavic4pro · el 15° · 방위평균** 한 칸의
+    값이다(benchmark/channel.py:56). 양 팔이 같은 근사를 쓰므로 상쇄를 **기대**하지만,
+    양 팔에 같게 걸리는지는 **아직 안 쟀다**.
   * σ_eq 는 "구면파로 계산한 원거리장 등가 σ" 진단량이다. 절대 앵커로 인용 금지.
   * PRF 20 kHz = **풀 웨이브폼 캡처** 조건(report01 마이크로도플러와 동일 규약).
     상시 기준신호(LTE CRS 1 kHz / 5G SSB 50 Hz)로는 f_tip 이 접힌다 —
@@ -376,8 +378,11 @@ def main():
                                note=("REQUESTED, not realised: rcs_po.mesh_to_points floors at one point "
                                      "per CAD triangle, and the propeller facets are already ~2.9 mm, so the "
                                      "actual nearest-neighbour spacing is ~lambda/127 and the knob is inert "
-                                     "over lambda/6..lambda/24. Realised spacing is recorded per cell as "
-                                     "blade_spacing_actual_median_m."),),
+                                     "over lambda/6..lambda/24. ⛔This ledger does NOT record a realised "
+                                     "spacing: no cell here carries blade_spacing_actual_median_m. The measured "
+                                     "nearest-neighbour medians live in outputs/report16_base.json under "
+                                     "convergence.<drone>.<arm>.blade_spacing_actual_median_m, and only for "
+                                     "mini2 and matrice4e."),),
             link_budget=dict(eirp_dbm=nf.DECLARED_EIRP_DBM, rx_gain_dbi=nf.DECLARED_RX_GAIN_DBI,
                              noise_figure_db=nf.DECLARED_NF_DB, noise_bw_hz=nf.DECLARED_B_HZ,
                              #  ⭐ 정합필터 뒤 실효 잡음대역: kT0F*B / (B/PRF) = kT0F*PRF

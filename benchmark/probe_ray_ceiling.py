@@ -133,13 +133,36 @@ def main() -> None:
     os.remove(child)
 
     last_ok = max([r["spp"] for r in rows if r["ok"]], default=0)
+    #  ⛔ 원장 문장을 이 스크립트 자신의 관측에 맞춘다(2026-09-06). 옛 «알고리즘 상한이 아니라
+    #     GPU 메모리가 상한이다» 는 설치본 소스만 읽고 내린 추론이라, 위 44~47 줄 사다리 주석
+    #     («메모리 한계가 아니다») 과도 아래 rows(메모리 무변동) 와도 어긋났다.
+    #     수는 손으로 치지 않고 rows 에서 뽑는다.
+    ok_row = max([r for r in rows if r["ok"]], key=lambda r: r["spp"], default=None)
+    fail_row = next((r for r in rows if not r["ok"]), None)
+    src = ("sb_candidate_generator.py:285 spawn_ray_from_sources 가 광선을 "
+           "한 번에 전부 할당한다(내부 청킹 없음). sample_data.py:77 이 "
+           "샘플당 스레드 로컬 버퍼를 max_depth 만큼 잡는다. "
+           "⇒ 소스에는 광선 수를 막는 알고리즘 상한이 없다 — 메모리가 "
+           "광선 수 × 필드 × max_depth 로 선다. "
+           "⚠다만 이 카드에서 실제로 먼저 걸린 것은 메모리가 아니다: ")
+    if ok_row:
+        src += (f"{ok_row['spp_m']:.0f} M 발은 {ok_row['seconds']} s 에 통과했고 GPU 사용량이 "
+                f"{ok_row['gpu_used_before_mib']} → {ok_row['gpu_used_after_mib']} MiB 로 "
+                "그대로였다. ")
+    if fail_row:
+        src += (f"처음 실패한 {fail_row['spp']:,}"
+                + (" (=2^32−1)" if fail_row["spp"] == 2 ** 32 - 1 else "")
+                + f" 발은 «{fail_row['error']}» 로 죽었고, 이때도 GPU 사용량은 "
+                f"{fail_row['gpu_used_before_mib']} → {fail_row['gpu_used_after_mib']} MiB 로 "
+                "안 움직였다. ")
+    src += ("사다리(LADDER)는 그 32비트 경계를 좁히려고 짠 것이다. "
+            "⛔ 옛 문장 «알고리즘 상한이 아니라 GPU 메모리가 상한이다» 는 소스만 읽고 내린 "
+            "추론이라 내렸다(2026-09-06) — 원장만 읽는 쪽이 «카드를 키우면 더 쏠 수 있다» 로 "
+            "읽는다.")
     json.dump({"_meta": {
         "generator": "benchmark/probe_ray_ceiling.py",
         "question_ko": "PathSolver 가 한 번에 쏠 수 있는 광선 수의 상한",
-        "source_ko": "sb_candidate_generator.py:285 spawn_ray_from_sources 가 광선을 "
-                     "한 번에 전부 할당한다(내부 청킹 없음). sample_data.py:77 이 "
-                     "샘플당 스레드 로컬 버퍼를 max_depth 만큼 잡는다. "
-                     "⇒ 알고리즘 상한이 아니라 GPU 메모리가 상한이다.",
+        "source_ko": src,
         "caveat_ko": "다른 작업이 같은 카드를 쓰면 상한이 내려간다. 이 값은 "
                      "«이 카드에서 이 여유일 때» 의 상한이다.",
         "gpu": gpu, "gpu_total_mib": total, "gpu_used_at_start_mib": used0,

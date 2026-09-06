@@ -31,9 +31,15 @@ report15_sweep_mini2.py — **mini2 를 Sionna 로 거리스윕** (본 실험)
 ⭐⭐ 이 실험만의 결정적 대조 — **180° 대칭 널(null)**
   2날 프로펠러는 형상이 **180° 주기**다(탐침 실측: 180° 회전 후 최근접점 최대편차 3.1e−17 m).
   그래서 φ 를 **한 바퀴(360°) 64 스텝**으로 돌리면 h(φ) 는 원리적으로 **짝수 하모닉만** 가진다.
-  → FFT 의 **홀수 빈 = 순수 잡음**, **짝수 빈 = 신호+잡음**. 같은 데이터 안에서, 같은 조건으로,
-    잡음바닥이 공짜로 딸려 나온다. 이 대조는 시드·씬재조립 대조보다 강하다 —
-    기하가 **집합으로 완전히 동일**한데 정점 색인만 다른 두 스냅샷을 비교하기 때문이다.
+  → 홀수 빈에는 **신호가 원리적으로 들어갈 수 없다**. ⚠ 다만 그 빈이 **잡음바닥이 되는지는
+    별개**다 — 파이프라인이 기하에 대해 결정론적이면 φ 와 φ+180° 가 사실상 같은 답을 내고,
+    그러면 홀수 빈은 잡음도 담지 않아 널로 못 쓴다. 자매 실행(matrice4e §1b)이 그 경우였다:
+    outputs/report15_sionna_sweep_matrice4e.json 의
+    rt_periodicity.max_rel_complex_diff_db = −107.70 dB · functionally_identical = true.
+    → 그래서 **잡음바닥은 시드 재추첨으로 따로 잰다**(씬재조립 대조는 그 옆에 나란히 둔다).
+  ⛔ 철회(지우지 않고 남긴다) — 옛 문장 「홀수 빈 = 순수 잡음 … 잡음바닥이 공짜로 딸려
+    나온다. 이 대조는 시드·씬재조립 대조보다 강하다」. 검증된 적 없는 가정이었고, 자매
+    실행이 같은 요령을 명시적으로 못 쓴다고 결론지었다(위 원장 note_ko).
 
 ⛔ src/drones.py · src/drone_cad.py 는 **읽기만** 한다(어제 CAD 정정 미커밋).
 ⛔ 기존 산출물 덮어쓰기 금지 — 출력은 outputs/report15_sionna_sweep_mini2.json 하나.
@@ -660,7 +666,13 @@ def main():
         why_near_range=("가까우면 (a) 입체각이 커서 광선이 많이 맞고 (b) 부위 경로가 분해되고 "
                         "(c) Sionna 는 원래 구면파를 추적한다 → Sionna 에게 가장 유리한 조건."),
         null_design=("⭐ 2날 프롭은 형상이 180° 주기 → 온바퀴 64 스텝 FFT 의 **홀수 빈은 "
-                     "신호가 원리적으로 들어갈 수 없는 자리** = 같은 데이터 안의 잡음바닥."),
+                     "신호가 원리적으로 들어갈 수 없는 자리**. ⚠ 그 빈이 잡음바닥이 되는지는 "
+                     "별개다 — 파이프라인이 기하에 대해 결정론적이면 홀수 빈은 잡음도 담지 "
+                     "않아 널로 못 쓴다(자매 실행 matrice4e §1b: "
+                     "outputs/report15_sionna_sweep_matrice4e.json 의 "
+                     "rt_periodicity.max_rel_complex_diff_db = −107.70 dB · "
+                     "functionally_identical = true). ⛔ 「= 같은 데이터 안의 잡음바닥」은 "
+                     "철회 — 잡음바닥은 시드 재추첨으로 따로 잰다."),
         fc_hz=FC, lambda_m=LAM, max_depth=1, baseline_m=PB.BASELINE_M,
         ranges_m=list(ranges), aspects=[dict(a) for a in aspects],
         n_phase_steps=int(N_STEPS), turn_deg=360.0, seeds=list(seeds),

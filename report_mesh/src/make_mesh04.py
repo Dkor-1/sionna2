@@ -728,7 +728,15 @@ f" `_gear_feet`({LN('_gear_feet')}행)도 소스에 있지만 지금 부르는 �
 "",
 "### §2.1b ⚠ 짐벌 조립의 지금 남은 어긋남",
 "",
-"짐벌은 «작은 부품» 처럼 보이지만 이 함대에서 가장 무거운 결함이 여기 있다. 전용 검사기가",
+f"짐벌은 «작은 부품» 처럼 보이지만 부품 하나가 기체 전체의 세로 치수를 정할 수 있는 자리다 — "
+f"원장이 «치명» 으로 등급 매긴 "
+f"{sum(1 for _x in MF.BODY['findings'] if _x.get('severity') == '치명')} 건"
+f"({', '.join(_x['id'] for _x in MF.BODY['findings'] if _x.get('severity') == '치명')}) 중 하나가 "
+f"짐벌 항목(B2 — «짐벌이 착륙발보다 아래»)이었고, 그 건은 정본 판에서 해소됐다 — 지금은 "
+f"{NAME['mavic4pro']} 의 카메라 최저점이 착륙발보다 {_gap_cam_gear('mavic4pro'):+.2f} mm 위다(§3.2). "
+"남은 어긋남은 아래 게이트들이 짚는 것이다 ← 출처: `outputs/mesh_inspect_body_arms_0816.json` `findings`. "
+"⛔ 옛 판은 여기서 «이 함대에서 가장 무거운 결함이 여기 있다» 고 적었다 — 순위를 매긴 잣대가 없고 "
+"원장에서 같은 «치명» 등급인 B1(세로 배율)은 짐벌 항목이 아니라 2026-09-06 에 내렸다. 전용 검사기가",
 "게이트 넷(A 부착 · B 뜸/삼킴 · C 선언 대비 실제 크기 · D 재질 민감도)으로 10종을 훑는다",
 "← 출처: `outputs/mesh_inspect_gimbal_sensors_0816.json` · `benchmark/check_gimbal_sensors_0816.py`.",
 "",

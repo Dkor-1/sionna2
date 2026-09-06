@@ -242,11 +242,24 @@ def main():
                 if (mirror_size_blind and mirror_range) else
                 "정반사 채널이 거울 법칙을 벗어난다 — 위 수치를 직접 읽을 것.")),
         why_it_matters_ko=(
-            "이 격자에서 정반사를 내는 부위는 짐벌 카메라의 평평한 렌즈면뿐이고, 그 글린트가 "
-            "정면 자세(hot)에서 프롭 확산 에코보다 1 m 에서 57.8 dB 크다. 두 채널의 거리 법칙이 "
-            "20 dB/decade 다르므로 **거리가 멀어질수록 글린트의 지배가 커진다** — 10 m 에서 77.5 dB. "
+            "이 격자의 hot 자세(az 0°·el 0°)에서 정반사를 내는 것은 짐벌 카메라의 평평한 "
+            "렌즈면이고, 그 글린트가 프롭 확산 에코보다 1 m 에서 "
+            f"{GA['1/hot/spec/all']['inc_db_mean'] - GA['1/hot/prod/prop']['inc_db_mean']:.1f} dB 크다. "
+            "두 채널의 거리 법칙이 20 dB/decade 다르므로 **거리가 멀어질수록 글린트의 지배가 "
+            "커진다** — 10 m 에서 "
+            f"{GA['10/hot/spec/all']['inc_db_mean'] - GA['10/hot/prod/prop']['inc_db_mean']:.1f} dB. "
+            "⛔ 다만 '이 격자에서 정반사를 내는 부위는 렌즈면뿐' 은 내린다 — 같은 원장이 "
+            "disc 자세(az 0°·el 75°)의 정반사를 전부 프롭으로 적는다(grid_analysis.by_block 에서 "
+            "그 자세의 spec/all 과 spec/prop 의 자세당 경로 수 평균이 "
+            f"1 m {GA['1/disc/spec/all']['n_paths_mean']:.4f} · "
+            f"3 m {GA['3/disc/spec/all']['n_paths_mean']:.4f} 로 같다). 더 넓은 인구조사"
+            f"(specular_census.production, {J['specular_census']['production']['n_cells']}칸)에서는 "
+            "정반사 경로가 camera "
+            f"{J['specular_census']['production']['specular_paths_by_group']['camera']} · prop "
+            f"{J['specular_census']['production']['specular_paths_by_group']['prop']} 로 갈린다. "
             "즉 '자세에 따라 마이크로도플러가 죽는다' 는 관측은 거리가 늘수록 악화되는 방향이고, "
-            "그 악화분은 물리가 아니라 정반사 채널의 틀린 거리 법칙이 만든다."),
+            "그 악화분은 정반사 채널이 따르는 거리 법칙(1/R², 크기 무관)에서 온다 — §A·§B 의 "
+            "금속 평판 통제 실험이 그 법칙을 재현한다(어느 쪽이 실물에 가까운지는 실측 몫)."),
         note_ko=("평판은 법선이 TX/RX 이등분선과 정확히 맞도록 놓았다(정반사 최적). metal 재질. "
                  "los=False 로 직접파를 뺐다. 원거리장 경계 2D²/λ 를 각 평판마다 적어 두었으니 "
                  "'근거리장이라 그렇다' 는 반론이 성립하는지 바로 확인할 수 있다."),

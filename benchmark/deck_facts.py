@@ -897,18 +897,28 @@ def build_facts(R: dict) -> list[dict]:
     )
 
     # ── TIER 2 : 매트릭스와 포지셔닝 ───────────────────────────────────
+    # ⛔정정: 옛 문구 「빌드가 매 실행 PDF 원문과 재대조해 80/80 통과했다」 는 이 빌더가 하는 일이
+    # 아니었다. 80칸 재대조를 실제로 도는 것은 benchmark/capability_matrix.py 이고, 이 덱 빌더는
+    # outputs/capability_matrix.json 을 읽기만 한다(J() 는 파일 로드일 뿐이다). 그래서 그 매트릭스
+    # 빌드 시각을 함께 찍어 「이번 실행의 재대조」 로 읽히지 않게 한다.
+    _mx_gen = J("capability_matrix")["meta"].get("generated", "시각 미기록")
     add(
         id="F12",
         rank=12,
         tier="포지셔닝",
         claim_ko=f"능력 매트릭스는 {R['matrix']['rows']}행 × {R['matrix']['columns']}열 = "
         f"{R['matrix']['cells']}칸이고, UNVERIFIED 칸이 0개다 — "
-        f"{R['matrix']['by_grade']['QUOTED']}칸은 축자 인용이며 빌드가 매 실행 PDF 원문과 재대조해 "
-        f"{R['matrix']['quote_selfcheck']['passed']}/{R['matrix']['quote_selfcheck']['checked']} 통과했다.",
+        f"{R['matrix']['by_grade']['QUOTED']}칸은 축자 인용이고, 그 인용의 PDF 원문 재대조는 "
+        f"{R['matrix']['quote_selfcheck']['passed']}/{R['matrix']['quote_selfcheck']['checked']} 통과다. "
+        f"⚠ 이 재대조가 돈 것은 매트릭스 빌드({_mx_gen}) 이고, 이 덱 빌드는 그 원장"
+        f"(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다 — "
+        f"이번 실행에서 다시 돌리지 않았다.",
         claim_en=f"The capability matrix is {R['matrix']['rows']}x{R['matrix']['columns']} = "
-        f"{R['matrix']['cells']} cells with zero UNVERIFIED, "
-        f"{R['matrix']['by_grade']['QUOTED']} of them verbatim quotes re-checked against the PDFs on "
-        f"every build ({R['matrix']['quote_selfcheck']['passed']}/{R['matrix']['quote_selfcheck']['checked']} pass).",
+        f"{R['matrix']['cells']} cells with zero UNVERIFIED; "
+        f"{R['matrix']['by_grade']['QUOTED']} of them are verbatim quotes whose re-check against the "
+        f"PDFs passed {R['matrix']['quote_selfcheck']['passed']}/{R['matrix']['quote_selfcheck']['checked']} "
+        f"in the matrix build of {_mx_gen}; this deck build only reads that ledger and does not re-run "
+        f"the check.",
         grade="computed-by-us",
         source={
             "json": "outputs/capability_matrix.json : counts",

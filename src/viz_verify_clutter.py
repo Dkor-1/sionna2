@@ -241,8 +241,9 @@ def fig_ghost_cfar(d, outdir=FIG):
              bbox=dict(boxstyle="round,pad=0.5", fc="#ffebee", ec=C_GHOST, lw=1.4))
 
     fig.supxlabel("The floor ghost sits a fixed 3.5 m behind the target, at a fixed -18 dB. Whether it becomes a second detection is\n"
-                  "decided purely by the range cell — so the very resolution that makes 5G the best illuminator is what turns the floor\n"
-                  "into a phantom drone. Not yet included in report4/report5.",
+                  f"decided purely by the range cell — so the wider band ({g['name']} among the three waveforms, "
+                  f"B = {g['bw_hz']/1e6:.2f} MHz) is what\n"
+                  "turns the floor into a phantom drone. Not yet included in report4/report5.",
                   fontsize=9, color="0.4")
     out = os.path.join(outdir, "report6_ghost_cfar.png")
     fig.savefig(out, dpi=140); plt.close(fig)

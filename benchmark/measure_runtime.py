@@ -691,7 +691,13 @@ def section_baselines():
         caveat="8 nodes × 4 MI250X = 32 GPUs (64 GCDs). 616 ms is NOT a single-GPU number."))
     B.append(dict(
         id="sagitta-kernel-split",
-        who="⭐ SagittaSBR kernel-time breakdown — the only published GPU-level RT-vs-PO split",
+        # ⛔ 2026-09-06 「the only published」 에 범위를 붙인다 — 문헌 전체를 뒤진 적이
+        #    없고 우리가 훑은 것은 보유 아카이브뿐이다(고유 218편, 2026-07-31 집계:
+        #    outputs/reference_library.json 의 counts.sionna_corpus_scanned_pdfs ·
+        #    목록 docs/REFERENCE_LIBRARY.md · 원본 /data/public/sionna_jeong).
+        who="⭐ SagittaSBR kernel-time breakdown — within our 218-PDF reference archive "
+            "(/data/public/sionna_jeong, counted 2026-07-31 in outputs/reference_library.json "
+            "counts.sionna_corpus_scanned_pdfs) the only GPU kernel-level RT-vs-PO split",
         cite="SagittaSBR, arXiv:2604.09243", pdf=_PAPERS +
         "/papers_isac_sionna/2604.09243__sagitta-sbr.pdf", page=11,
         quote="Table 1: Kernel-time breakdown for A380 scattering simulations (18,000 × 18,000 "
@@ -866,7 +872,9 @@ def section_answer():
             "facet count. "
             f"The cascade itself is not what costs: ray casting is only {rt_pct:.1f}% of our wall "
             f"clock and the PO integral is {po_pct:.0f}% of it solely because we run the integral "
-            "in host numpy — the one published GPU kernel-level breakdown of an SBR+PO RCS solver "
+            "in host numpy — within our 218-PDF reference archive (counted 2026-07-31 in "
+            "outputs/reference_library.json counts.sionna_corpus_scanned_pdfs) the one GPU "
+            "kernel-level breakdown of an SBR+PO RCS solver we hold "
             "(SagittaSBR Table 1, p.11) puts the PO integral at 6.5% of ray-launch time on an "
             "A100, so cascading PO after RT costs single-digit percent when the integral is "
             "written as a device kernel."),

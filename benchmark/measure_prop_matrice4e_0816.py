@@ -2,8 +2,18 @@
 """⭐ DJI Matrice 4E 프로펠러 정밀 계측 — 사진 계측 (2026-08-16)
 
 왜 하는가
-  같은 날 재질 판정이 «표적 신호의 움직이는 성분은 사실상 전부 프로펠러» 라고 실측했다
-  (프롭 두께 0.9 mm 에서 요동 −16.99 dB, 셸 두께는 ±0.00 dB). 그런데 코드는 10기종
+  같은 날 재질 판정이 잰 것은 **el −30° 한 칸**이다 — 그 칸에서 «표적 신호의 움직이는
+  성분(AC)은 사실상 전부 프로펠러» 가 나왔다. 셸 0.75 mm + 프롭 0.9 mm 팔에서 AC −16.99 dB,
+  셸만 0.75 mm 로 바꾼 팔은 ±0.00 dB — 즉 그 차이는 프롭 몫이다. 대조할 수 있게 원장 자리를
+  박아 둔다(outputs/material_verdict_0816.json):
+      el_minus30/shell0.75_prop0.9mm/delta_vs_base/d_ac_power_db = −16.986
+      el_minus30/shell_0.75mm/delta_vs_base/d_ac_power_db        = +0.002
+  ⚠ 한 칸의 수다. 그 팔은 원장 _meta.conventions_ko 가 «PathSolver 4e9·물리끔·d1·15 m·
+  matrice4e·seed 1» 이라고 적은 팔이고 자세 8192 개다. 같은 원장의 el 0° 배선대조에서는 같은
+  손잡이(셸 0.75 mm + 프롭 0.9 mm)가 AC 0.000 dB 다
+  (el_0_wiring_control/shell0.75_prop0.9mm/delta_vs_base/d_ac_power_db). 그러니 −16.99 dB 를
+  «표적 신호 일반» 의 성질로 넓혀 읽지 않는다. 우리 커널에는 두께 축이 없어 이 비교 자체가
+  없다. 그런데 코드는 10기종
   전부에 `CHORD_MAX_OVER_R = 0.25` 라는 **단일 상수**를 걸고, 평면형(시위 분포)도
   3DR Solo 하나에서 베껴 쓴다. matrice4e 는 주력 표적 1순위인데 공식 CAD
   (`assets/meshes/reference/matrice4-M4T_v2.step`)에 **프로펠러가 아예 없다**

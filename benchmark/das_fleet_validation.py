@@ -292,8 +292,13 @@ def main():
         db_domain_drop_gradeC=float(vdb3.max() - vdb3.min()),
         any_within_6db=bool(min(v.max() - v.min(), v3.max() - v3.min(),
                                 vdb.max() - vdb.min(), vdb3.max() - vdb3.min()) <= 6.0),
-        reading=("네 조합 중 6 dB 문턱을 넘지 않는 것은 'dB영역 + C등급 제외' 하나뿐이고 "
-                 "그것도 6.75 dB 로 아슬아슬하게 **넘는다**. P3 실패는 규약 선택의 산물이 아니다."))
+        reading=(f"**네 조합이 전부 6 dB 를 넘는다** — 선형평균 전체 {float(v.max() - v.min()):.2f} · "
+                 f"선형평균 C등급제외 {float(v3.max() - v3.min()):.2f} · dB영역 전체 "
+                 f"{float(vdb.max() - vdb.min()):.2f} · dB영역 C등급제외 {float(vdb3.max() - vdb3.min()):.2f} dB. "
+                 f"문턱에 가장 가까운 'dB영역 + C등급 제외' 조차 {float(vdb3.max() - vdb3.min()):.2f} dB 다"
+                 "(같은 dict 의 any_within_6db=false 와 같은 말이다). P3 실패는 규약 선택의 산물이 아니다. "
+                 "⛔앞판은 «6 dB 문턱을 넘지 않는 것은 … 하나뿐이고 그것도 …» 라 적어 넷 중 하나가 "
+                 "문턱을 통과한 것처럼 읽혔다 — 통과한 조합은 없다."))
     judge["slope_gate_pass"] = all(x["pass_"] for x in judge["slope_gate"].values())
     judge["bistatic_gate_pass"] = all(x["pass_"] for x in judge["bistatic_gate_phantom2"].values())
     if not judge["P3_spread_within_6db"]:

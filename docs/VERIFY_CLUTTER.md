@@ -177,7 +177,7 @@ RT 실측값에 맞춰 고치면 물리적으로는 정직해지지만 **수치�
 
 | 리스크 | 상태 |
 |---|---|
-| **클러터 도플러퍼짐** | ✅ **메워짐 (2026-07-24, `verify_clutter_doppler.py` → report09 §5).** 서베이 §V-A4 처방(C=100·4 iso-Rb 링·v∈[−1,1] m/s)을 챔버에 이식. **결과: SCR '죽은 파라미터'는 항등식이었다** — 도플러가 실리면 즉사하고 잔류가 amp²로 복귀. ⭐정정: '죽인 것'은 ECA span(X) 이 아니라 **0-도플러 노치**(이 하네스의 tx-클러터는 ECA 가 ~1.4 dB 만 지운다; verify_eca S5 파일럿-클러터만 진짜 span(X) 항등식). ⭐C4: **움직이는 클러터는 표적셀에 가짜 검출**(표적 −80 dB 로 지워도 표적셀 CFAR Pd≈1, 클러터 빼면 0 — 링이 표적 거리빈 bracket) → 저속 드론은 움직이는 클러터와 분간 안 됨(서베이 경고 재현) |
+| **클러터 도플러퍼짐** | ✅ **메워짐 (2026-07-24, `verify_clutter_doppler.py` → report09 §5).** 서베이 §V-A4 처방(C=100·4 iso-Rb 링·v∈[−1,1] m/s)을 챔버에 이식. **결과: SCR '죽은 파라미터'는 항등식이었다** — 도플러가 실리면 즉사하고 잔류가 amp²로 복귀. ⭐정정: '죽인 것'은 ECA span(X) 이 아니라 **0-도플러 노치**(이 하네스의 tx-클러터는 ECA 가 ~1.4 dB 만 지운다; verify_eca S5 파일럿-클러터만 진짜 span(X) 항등식). ⭐C4: **표적을 지워도 표적셀 CFAR 가 계속 울렸다** — 5G NR 100 MHz·mavic4pro·챔버 기하, 클러터 앵커 −9.8 dB 에서 에코를 −80 dB 로 지워도 표적셀 Pd=1.0, 클러터를 빼면 0(링이 표적 거리빈 bracket). N=24, 0.2~3.0 m/s 다섯 속도 전부. 원장 `outputs/verify_clutter_doppler.json` 의 C4_target_speed.rows · meta.cnr_anchor_db · meta.N_C4. ⛔2026-09-06 내림: "저속 드론은 움직이는 클러터와 분간 안 됨" — 같은 원장에서 in_clutter_band=false 인 1.2/2.0/3.0 m/s 도 pd_notarget=1.0 이라 저속 한정이라는 것은 아직 안 보였다 |
 | **유한 ADC 동적범위·양자화** | 클러터 도플러퍼짐과 별개로 **여전히 미포함**(verify_eca 는 ECA 상쇄깊이 단계에만 ADC 스윕, Pd/SCR 전파 안 됨) |
 | **hot clutter** | ✅ **추가됨 (report09 §5.4).** 독립 이미터 1기. INR 20 dB 미미, CNR-matched 면 SCR 열화. ⚠ scnr_in 이 서베이 입력SCNR 과 정확한 apples-to-apples 아님(축 다름) |
 | **유령이 report4/5 수치에 미반영** | `floor_ghost_on=False` 가 기본 — 기존 수치는 유령 **없는** 세계의 값이다 |

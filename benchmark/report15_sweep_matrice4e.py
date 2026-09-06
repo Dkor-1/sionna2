@@ -1335,8 +1335,13 @@ def main():
         observable=("h_coh = Σ_p a_p·exp(−j2πf_c τ_p) (코히런트) / E_inc = Σ_p|a_p|² (위상무관). "
                     "Paths.a 는 패스밴드라 전파위상이 없다. Paths.cir() 은 normalize_delays=True 로 "
                     "절대위상을 지우므로 쓰지 않는다."),
-        symmetry_null=("2날 → φ 와 φ+180° 는 기하가 동일. 한 바퀴 FFT 에서 **홀수 조화는 0 이 "
-                       "보장된 자리** → 내장 잡음바닥. 짝수 조화만 물리를 실을 수 있다."),
+        symmetry_null=("2날 → φ 와 φ+180° 는 기하가 동일하므로 한 바퀴 FFT 에서 홀수 조화가 "
+                       "0 이 되는 자리다. ⚠ 그러나 **이 널은 쓰지 않았다** — §1b 에서 RT 출력이 "
+                       "기능적으로 동일해(rt_periodicity.max_rel_complex_diff_db 를 볼 것) 홀수 "
+                       "조화가 잡음을 담지 않는다. 잡음바닥은 **시드 재추첨**으로만 잰다(§3). "
+                       "⛔ 옛 문구 «홀수 조화는 0 이 보장된 자리 → 내장 잡음바닥» 은 이 실행이 "
+                       "네 곳에서 부정한다(모듈 docstring 42~43행 · sec1_period.note_ko · "
+                       "rt_periodicity.note_ko · harm_seeded docstring)."),
         fc_hz=FC, lambda_m=LAM, baseline_m=BASELINE_M, max_depth=1,
         ranges_m=list(RANGES),
         aspects=[dict(name=n, az_deg=az, el_deg=el) for n, az, el in ASPECTS],

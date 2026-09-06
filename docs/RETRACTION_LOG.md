@@ -251,7 +251,8 @@ a=0.15  +0.556      a=0.20  +0.466      a=0.30  +0.076      a=0.40  −0.108   �
 
 ⭐ **대신 기계로 셀 수 있는 사실이 나왔다**(`outputs/evasion_catalogue.json`, 18편):
 표적 산란을 주장한 **17편 중 계산된 절대 dBsm 을 인쇄한 것은 3편**, **드론은 0편**.
-가장 흔한 회피는 **기하 대리표적** — 사람을 1.8×0.5×0.25 m 직육면체로, UAV 를 *"metallic cube"* 로 놓는다.
+눈에 가장 잘 띄는 회피는 **기하 대리표적** — 사람을 1.8×0.5×0.25 m 직육면체로, UAV 를 *"metallic cube"* 로 놓는다(18편 중 2편: CellSense · LowAlt-Cube).
+⛔ *"가장 흔한 회피"* 는 내린다 — 같은 파일 `papers[].evasion_devices` 를 세면 상대 baseline 만으로 대는 방식(E13)이 4편으로 더 잦고, 위상 관측량만 보는 방식(E2)·정규화 dB 축(E3)·통계 대리 RCS(E6)가 각 3편이다.
 
 ---
 
@@ -607,8 +608,20 @@ F 갈래가 이름으로 가리킨 `meshfix_attack.json:Q6_invalidated_outputs.c
 | 06 그림 5 이름표 | `Measurement anchor, 0.21 dB/GHz` | `report06_derived.json : slope.anchor_db_per_ghz` |
 
 ⭐ 주입 뒤 파생 원장 셋(`report02/05/06_derived.json`)의 diff 가 **생성시각 두 줄뿐**이었다 —
-바꾼 값이 전부 손입력과 같았다는 뜻이고, 곧 이 라운드는 **틀린 수를 고친 게 아니라 앞으로
-틀릴 자리를 막았다**.
+이 라운드의 주입이 파생 원장 값을 바꾸지 않았다는 뜻이다.
+
+⛔ 그러나 이 diff 를 «바꾼 값이 전부 손입력과 같았다» 의 근거로 쓰지 않는다. 위 표 12곳 중
+파생 원장 셋에 실리는 것은 `02 §5 뜻풀이` 한 줄뿐이고(`report02_derived.json` 의 `밴드 스팬
+3.367 GHz`), 나머지는 문서 본문·방어표·그림 이름표라 **그 diff 가 비어 있어도 그 자리에 대해
+아무 것도 말해 주지 않는다** — 06 그림 이름표는 손입력이 틀렸더라도 `derive()` 가 `SPHERES` 를
+따로 읽으므로(`src/make_report06_measurement.py:427`) diff 는 빈다. 그래서 자리마다
+before/after 를 눈으로 대조했다.
+
+⛔ 또 «틀린 수를 고친 게 아니다» 도 그대로는 아니다. 같은 라운드의 N 갈래
+(`outputs/corr3_nums.json`, `make_report05_results.py` 의 «방어선 9행 주장»)는
+`헤드라인 거리의 β 는 3° 대다` 를 `report13_freespace.json : solve.W1.beta_deg` 로 바꾸며
+**⭐값 정정**으로 적었다. 즉 이 라운드는 **대체로 앞으로 틀릴 자리를 막은 것이고, 틀린 수를
+고친 건도 하나 있다**.
 
 ### 남은 36개는 데이터 숫자가 아니다
 

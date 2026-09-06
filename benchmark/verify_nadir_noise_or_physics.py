@@ -571,14 +571,22 @@ for arm in ("sionna", "sionna_p250000000"):
 rng = np.random.default_rng(0)
 ctrl = [cxcorr(rng.normal(size=N) + 1j * rng.normal(size=N), rel(P10))[0] for _ in range(32)]
 J["S5_pathsolver_vs_physics"] = {
-    "note_ko": ("PathSolver 의 나딧 요동을 «격자 없는 물리» 와 맞대본다. 기본파를 떼어내 "
-                "크기까지 견준다 — 물리면 크기가 맞아야 한다."),
+    "note_ko": ("PathSolver 의 나딧 요동을 «격자가 아예 없는 PO 대리모형» 과 맞대본다. "
+                "기본파를 떼어내 크기까지 견준다. ⚠대리모형도 재질·가림·다중반사가 없는 "
+                "또 하나의 근사이고 실측 대조는 0 건이라, 이 비교는 «어느 쪽이 옳은가» 를 "
+                "정하지 못한다 — 두 근사가 얼마나 벌어지는지를 잴 뿐이다."),
     "arms": ps,
-    "gridless_proxy_fundamental_is_the_truth_ko": (
-        "대리모형의 기본파를 «참값 1» 로 놓으면 — PathSolver 의 나딧 기본파는 11.1 M 에서 "
-        "**39.3 배(+31.9 dB)**, 250 M 에서 **5.76 배(+15.2 dB)** 로 **너무 크다**. "
-        "우리 커널은 0.71 배(−2.98 dB)로 같은 자리에 있다(재질 |Γ|<1·가림이 있어 대리모형보다 "
-        "약간 작은 것은 예상대로다)."),
+    "gridless_proxy_fundamental_amp_ratio_ko": (
+        f"격자 없는 PO 대리모형의 기본파를 기준 1 로 잡으면 — PathSolver 의 나딧 기본파는 "
+        f"11.1 M 에서 {10 ** (ps['sionna']['fundamental_amp_over_proxy_db'] / 20):.1f} 배"
+        f"({ps['sionna']['fundamental_amp_over_proxy_db']:+.2f} dB), 250 M 에서 "
+        f"{10 ** (ps['sionna_p250000000']['fundamental_amp_over_proxy_db'] / 20):.2f} 배"
+        f"({ps['sionna_p250000000']['fundamental_amp_over_proxy_db']:+.2f} dB), 우리 커널은 "
+        f"{10 ** (full['fundamental_amp_over_proxy_db'] / 20):.2f} 배"
+        f"({full['fundamental_amp_over_proxy_db']:+.2f} dB) 다. "
+        "⚠기준으로 쓴 대리모형은 재질 |Γ|<1·가림·다중반사가 없어 그 자체가 근사다. "
+        "실측 대조가 0 건이므로 «누가 참값이냐» 는 이 세 수로 정해지지 않는다 — "
+        "세 근사가 얼마나 벌어져 있는지만 읽는다."),
     "white_noise_control": {"n_draws": len(ctrl),
                             "corr_mean": round(float(np.mean(ctrl)), 4),
                             "corr_p95": round(float(np.percentile(ctrl, 95)), 4)},
@@ -605,6 +613,7 @@ J["S6_why_the_field_sees_doppler"] = {
 }
 
 # ═══ S7. 판정 ═══════════════════════════════════════════════════════════════
+_amp = {k: v["fundamental_amp_over_proxy_db"] for k, v in ps.items()}
 J["S7_verdict"] = {
     "pathsolver_nadir": {
         "verdict": "NOISE",
@@ -612,16 +621,21 @@ J["S7_verdict"] = {
         "ko": ("**표본잡음이다.** 근거 네 겹 — "
                f"(1) 광선을 22.5 배 올리자 AC/DC 가 {dmeas:+.2f} dB 줄었다. 물리면 0 dB, "
                "순수 1/N 이면 −13.52 dB 인데 실측은 잡음 쪽 83 % 자리다. "
-               "(2) 기본파의 **크기**가 격자 없는 물리보다 11.1 M 에서 +31.9 dB, 250 M 에서 "
-               "+15.2 dB 크다 — 물리를 재현한 게 아니라 물리 위에 잡음이 얹힌 것이고, 예산을 "
-               "올리자 물리 쪽으로 16.7 dB 내려왔다. "
+               "(2) 기본파의 **크기**가 격자 없는 PO 대리모형보다 11.1 M 에서 "
+               f"{_amp['sionna']:+.1f} dB, 250 M 에서 "
+               f"{_amp['sionna_p250000000']:+.1f} dB 크고, 예산을 올리자 그 차이가 "
+               f"{_amp['sionna'] - _amp['sionna_p250000000']:.1f} dB 줄어 대리모형 쪽으로 "
+               "움직였다. ⚠대리모형은 «참값» 이 아니라 재질·가림·다중반사가 없는 또 하나의 "
+               "근사다(실측 대조 0 건). "
                "(3) 나딧에서 corr(경로 수, |E|) = 0.87, |E| 최대/최소 214 배 — 신호가 "
                "«이번 자세에 경로가 몇 개 잡혔나» 로 결정된다. "
                "(4) 평균 레벨조차 +13.6 dB 움직였다 — 나딧에서는 반송파도 수렴 안 했다. "
                "⚠정직하게 덧붙인다 — **절대** 요동전력은 오히려 +2.4 dB 올랐다. AC/DC 가 준 "
                "것은 반송파가 더 빨리 올랐기 때문이다. 그래서 «1/N 으로 준다» 는 단순한 "
                "잡음 법칙 서술은 쓰면 안 되고, 쓸 수 있는 서술은 «나딧에서 PathSolver 는 "
-               "아무것도 수렴시키지 못했고 기본파 크기가 물리보다 15~32 dB 과하다» 다. "
+               "아무것도 수렴시키지 못했고, 기본파 크기가 격자 없는 PO 대리모형보다 "
+               f"{_amp['sionna_p250000000']:.0f}~{_amp['sionna']:.0f} dB 크다» 다 — "
+               "⛔«물리보다 과하다»(대리모형을 참값 자리에 세우는 말) 로는 쓰지 않는다. "
                "⚠«무엇으로 수렴하는가» 는 모른다 — 250 M 에서도 바닥이 안 보인다."),
     },
     "ours_nadir": {

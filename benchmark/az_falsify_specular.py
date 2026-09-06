@@ -44,7 +44,12 @@ def main():
         "gpu_used": False, "drone": spec.key, "n_tris": int(F.shape[0]),
         "total_area_m2": round(tot, 5),
         "note_ko": "PathSolver 는 거울반사 경로를 찾는 방식이라, 시선과 법선이 맞는 큰 평면이 "
-                   "있으면 그 칸만 튄다. 우리 커널은 표면 전체를 위상적분하므로 그 특이점이 없다."},
+                   "있으면 그 칸만 튄다. 우리 커널은 표면 전체를 위상적분하므로 이런 «경로를 "
+                   "찾아내는 방식의» 특이점은 원리상 안 생길 것으로 기대한다. ⛔먼저 적었던 "
+                   "«우리 커널은 그 특이점이 없다» 는 단정은 내렸다 — 이 스크립트는 두 커널을 "
+                   "한 번도 안 돌렸고(정렬된 면적만 센다), 우리 격자에도 별개의 정렬 특이점이 "
+                   "있다: outputs/az_falsify_plate.json 의 resonance_45deg 를 함께 읽어라 "
+                   "(faces[].sweep 의 az_deg 45 행에서 div12 열만 통째로 무너진다)."},
         "cells": {}}
 
     for az in (0.0, 45.0):

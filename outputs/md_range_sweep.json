@@ -88,7 +88,7 @@
    "snr_sample_db": "rung 1: per Rx sample, BEFORE the matched filter, over B",
    "gain_mf_db": "rung 2: 10log10(B/PRF), one PRI correlation, full-waveform only",
    "gain_stft_db": "rung 4: 10log10(nperseg)+window loss, ONE STFT frame",
-   "warning": "three ~37 dB quantities exist and are different: gain_mf (36.99 dB), whole-CPI coherent integration over 5000 slow-time samples (36.99 dB, 35.23 dB with a Hann window) and the flash_spec map frame (70 samples, 16.69 dB). Never write one number called 'SNR'."
+   "warning": "three ~37 dB quantities exist and are different: gain_mf (36.99 dB = 10log10(B/PRF) from meta.link_budget.noise_bw_hz = 1e8 and meta.slow_time.prf_hz = 20000 - the ratio 5000 is a bandwidth ratio, NOT a sample count); whole-CPI coherent integration over this run's meta.slow_time.n_t = 6144 slow-time samples (37.88 dB, 36.12 dB with a Hann window, which is the g_stft_db actually stored in every cell here); and the flash_spec map frame (70 samples, 16.69 dB). Never write one number called 'SNR'. ⛔The old literal '5000 slow-time samples, 36.99 / 35.23 dB' was stale: it carried the matched-filter bandwidth ratio over into the CPI length, so the CPI integration gain printed here was 0.89 dB low and happened to equal gain_mf while the sentence claimed the three differ. The builder src/experiment_md_range.py three_layers.warning now derives these from N_T as an f-string; this ledger predates that fix and is annotated in place because re-running the sweep needs the GPU."
   },
   "farfield_rule": "R_ff = 2 D^2 / lambda, D = mesh bbox max horizontal extent (radar_scene.target_extent)",
   "runtime_s": 2848.4

@@ -405,9 +405,12 @@ def report_26_blind_p3():
         header(
             num=26,
             title="Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다",
-            did="앵커 기체와 같은 기체를 문헌 상수를 한 번도 읽지 않은 경로로 돌리고 별도 "
-                "스크립트가 봉인을 풀어 문헌과 맞댔다.",
+            did="앵커 기체와 같은 기체를 별도 프로세스로 돌리고 별도 스크립트가 봉인을 풀어 "
+                "문헌과 맞댔다.",
             results=[
+                "⛔**«눈감기» 라벨은 2026-09-04 에 취소됐다** — 봉인이 온전하지 않았다"
+                "⟨outputs/p3_attack.json : Q1_was_the_answer_seen.verdict⟩. 대조 자체는 "
+                "그대로지만 «눈감고 맞췄다» 로는 읽지 않는다. "
                 f"같은 창 "
                 f"{_n('slope.das_published.band[0]', P3V1, '{:.1f}')}~"
                 f"{_n('slope.das_published.band[1]', P3V1, '{:.1f}', 'GHz')} 에서 우리 커널로 "
@@ -440,8 +443,15 @@ def report_26_blind_p3():
                 f"{_n('thin_plate.truth_2d_mom.0.15.po_minus_te_db', LFA, '{:+.2f}', 'dB')} 다.",
             ],
             method=[
-                ("눈감기", "산출 과정은 문헌 상수를 한 번도 읽지 않았고 봉인은 별도 스크립트가 "
-                       "풀었다(`benchmark/p3_validation.py`)"),
+                # ⛔ 「눈감기」 라벨은 2026-09-04 에 취소됐다 — outputs/p3_attack.json 의
+                #    Q1_was_the_answer_seen 이 blind_intact = FALSE 로 판정했다.
+                ("⛔ 눈감기 라벨은 취소됐다",
+                 "σ 계산 프로세스가 문헌 상수 파일을 직접 열지는 않았지만, 같은 라운드의 docs "
+                 "grep 출력에 Phantom 3 문헌 기울기·절편이 딸려 나왔다 "
+                 "⟨outputs/p3_attack.json : Q1_was_the_answer_seen.verdict⟩ (blind_intact "
+                 "FALSE⟩. 남는 말은 «산출 경로가 연 파일은 outputs/p3_ours.json 의 blind_log 에 "
+                 "적힌 것뿐» 이고, 봉인은 별도 스크립트가 풀었다"
+                 "(`benchmark/p3_validation.py`)"),
                 ("창 맞추기", "적합 창은 Das Table III · Yuan §IV 와 같다 — 창을 바꾸면 같은 "
                           "커널에서도 기울기가 달라지기 때문이다"),
                 ("무엇을 재나", "절대 레벨과 주파수 의존 **두 스칼라**다. 각도패턴은 우리 기하에서 "
@@ -460,9 +470,13 @@ def report_26_blind_p3():
            f"{_n('slope.das_published.band[0]', P3V1, '{:.1f}')}~"
            f"{_n('slope.das_published.band[1]', P3V1, '{:.1f}', 'GHz')} 에서 우리 커널로 돌렸다"
            f"(`benchmark/p3_ours.py`, "
-           f"{_n('meta.runtime_s_total_process', P3O, '{:,.0f}', 's')}). 산출 과정은 문헌 상수를 "
-           f"한 번도 읽지 않았고 봉인은 별도 스크립트가 풀었다. 적합 창은 Das Table III · Yuan §IV "
-           f"와 같다(일치 {_n('window.same_window', P3V1)}).", "",
+           f"{_n('meta.runtime_s_total_process', P3O, '{:,.0f}', 's')}). σ 계산 프로세스는 문헌 "
+           f"상수 파일을 열지 않았고 봉인은 별도 스크립트가 풀었다. ⛔ 다만 «문헌 상수를 한 번도 "
+           f"읽지 않았다» 는 라벨은 2026-09-04 에 취소됐다 — 같은 라운드의 docs grep 출력에 "
+           f"Phantom 3 문헌 기울기·절편이 딸려 나왔다"
+           f"⟨outputs/p3_attack.json : Q1_was_the_answer_seen.verdict⟩ (blind_intact = FALSE). "
+           f"적합 창은 Das Table III · Yuan §IV 와 같다"
+           f"(일치 {_n('window.same_window', P3V1)}).", "",
            f"이 대조가 재는 것은 절대 레벨과 주파수 의존 두 스칼라이고, 각도패턴은 우리 기하에서 "
            f"나온 그대로다. ⚠ 아래 표 네 행은 전부 **v1 메쉬** 산출이다 — 사진 실측으로 다시 지은 "
            f"v2 메쉬의 같은 두 스칼라는 {ref('box-sphere-control', short=True)} 이 잇는다."),
@@ -930,8 +944,8 @@ def report_29_sigma_robustness():
            f"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 "
            f"열은 이 표에서 서로 다른 축이다.", "",
            f"⚠ 기체가 {_n('sigma_sens.n_airframes', DER, '{:.0f}', '대')} 뿐이라 이 세 수는 "
-           f"유의수준이 아니라 **서술용**이다. 원장의 같은 칸에 붙은 산문은 산포 쪽을 단독 원인으로 "
-           f"든다 ⟨{SS} : size_vs_fragility.finding⟩ — 본문은 위 세 상관계수를 그대로 읽는다.", "",
+           f"유의수준이 아니라 **서술용**이다. 원장의 같은 칸에 붙은 산문 "
+           f"⟨{SS} : size_vs_fragility.finding⟩ 이 아니라, 본문은 위 세 상관계수를 그대로 읽는다.", "",
            f"⚠ Matrice 4E 행은 {_MESHFIX} 전 값이고, 표 전체가 {_GAMMA_AXIS} 다 — 이 표를 낸 "
            f"`outputs/sigma_sensitivity.json` 가 그 기체의 형상을 먹는다 "
            f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩. 재생성 시 0.1 dB 급 문턱 값은 그 "

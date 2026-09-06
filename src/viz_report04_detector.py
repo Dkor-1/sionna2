@@ -63,10 +63,14 @@ PAPER_CAPTIONS: dict[str, str] = {
         "channel, a cross-ambiguity function maps delay against Doppler, and a 2D CA-CFAR "
         "declares detections at a threshold calibrated against the measured empirical "
         "false-alarm rate.",
+    # ⛔ 옛 캐션의 「the measured multipath environment」은 내렸다(2026-09-06) — 이 바닥은
+    #    광선추적 모의로 만든 클러터에서 재었다
+    #    (`outputs/verify_eca.json : meta.setups[*].clutter_src == "RT"`).
+    #    맥락이 사라진 지면에서 「measured」는 실측 환경에서 잴 바닥으로 읽힌다.
     "f2_eca_depth":
-        "ECA cancellation depth saturates at a floor set by the measured multipath "
-        "environment rather than by the number of taps, and that floor differs by more "
-        "than twenty decibels across the three waveforms.",
+        "ECA cancellation depth saturates at a floor set by the simulated (ray-traced, "
+        "not measured) multipath environment rather than by the number of taps, and "
+        "that floor differs by more than twenty decibels across the three waveforms.",
     "f3_eca_notch":
         "The ECA zero-Doppler notch removes target energy inside one Doppler bin for all "
         "three waveforms, and the resulting minimum detectable radial speed is set by the "
@@ -84,10 +88,20 @@ PAPER_CAPTIONS: dict[str, str] = {
         "Reference bandwidth sets the bistatic range resolution while signal-to-noise "
         "ratio sets the single-target range accuracy, and the two quantities are "
         "separated by more than an order of magnitude for every illuminator considered.",
+    # ⛔[정정 2026-09-06] 위치 RMS 절대값(1RX 57.75 m → 2RX 0.19 m)을 캡션에서 내렸다.
+    #   그 두 수는 outputs/verify_observability.json 의 **예제 형상 하나**가 정하는 값이다
+    #   (meta.L_m = 15.07 m 기저선 · meta.t_cpi_s = 0.03 s · meta.eirp_dbm = 12 · 표적 한 상태).
+    #   조건 없이 적으면 물리 상수처럼 읽히고, 같은 원고의 500 m 절 옆에서 그 형상의 측위
+    #   정확도로 오독된다. 형상에 무관한 결론인 **랭크 변화만** 남긴다.
+    #   원장 대조: fixes["1RX (baseline)"].rank_practical = 3 (rank = 4, tol 1e-12) ·
+    #            fixes["2RX"].rank = rank_practical = 6.
     "f7_observability":
-        "One transmitter-receiver pair leaves rotation about the baseline unobservable, "
-        "and a second receiver raises the Fisher information rank to six while reducing "
-        "the position RMS error to 0.19 m.",
+        "One transmitter-receiver pair leaves rotation about the baseline unobservable: in the "
+        "example geometry of this study the Fisher information matrix has practical rank three, "
+        "and a second receiver raises it to six, which removes that unobservable rotation. The "
+        "position accuracy that follows is set by the baseline, the coherent processing interval "
+        "and the transmit power, so it is reported only with those conditions attached "
+        "(ledger: outputs/verify_observability.json, meta and fixes blocks).",
 }
 
 

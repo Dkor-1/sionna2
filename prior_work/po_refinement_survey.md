@@ -172,8 +172,14 @@ Measurements*** — **[원문]** (`remcom_mukherjee__blockage-ked-utd-po-60ghz.p
   > resources … While the UTD method with the hexagon shape (approximately 42 faces) is slightly less
   > accurate than the PO method, it **provides the best compromise**."
 
-⇒ **PO 가 UTD 보다 정확하다는 것을 실측으로 못 박은 게재물**이다. 우리가 PO 노선에 있는 것은
-문헌상 «덜 정확한 길» 이 아니다 — 비싼 길이다.
+⇒ **60 GHz 인체 차폐 실측에서는 PO 가 UTD(육각 42면 근사)보다 정확했다.** 다만 이 비교의 대상은
+**차폐손실 예측**이고 우리가 쓰는 **RCS 후방산란**이 아니며, 한 편·한 시나리오다. 그래서 이 편을
+«PO 가 UTD 보다 일반적으로 정확하다» 로 넓혀 우리 노선의 우열 근거로 쓰지 않는다 — 둘 다 근사이고
+현실성 판정은 실측 대조의 몫이다.
+
+⛔ **정정(2026-09-06).** 옛 판은 이 자리에서 이 한 편을 근거로 «PO 가 UTD 보다 정확하다는 것을
+실측으로 못 박은 게재물» 이라고 적고, 그 힘으로 우리 PO 노선이 «문헌상 덜 정확한 길이 아니라
+비싼 길» 이라고 방어했다. 한 편·한 시나리오의 비교를 방법 일반의 우열로 승격시킨 문장이라 내렸다.
 
 **Weinmann, *Ray tracing with PO/PTD for RCS modeling of large complex objects*, IEEE TAP
 54(6):1797–1806, 2006** — **[서지]** (Ziganshin [9], Kırık, Gao 가 공통 인용. 본문 미확보)

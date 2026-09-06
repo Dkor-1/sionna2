@@ -510,7 +510,16 @@ DRONES: dict[str, DroneSpec] = {
     #  비-DJI 2기종 (2026-07-30 추가). 제원은 docs/RESUME_0729.md §5 가 단일 출처이고
     #  등급(VERIFIED / MEASURED / DERIVED / UNKNOWN)은 아래 note 에 그대로 옮겼다 — **올리지 않았다.**
     # ----------------------------------------------------------------------- #
-    # 6) 헥사콥터 (2016) — 이 저장소가 **실물 3D CAD 를 가진** 유일한 표적
+    # 6) 헥사콥터 (2016) — 프롭까지 실물 3D 기하가 있는 기종.
+    #    ⛔«이 저장소가 실물 3D CAD 를 가진 유일한 표적» 은 내렸다(2026-09-04) — 그 «유일» 은
+    #      2026-07-30 시점에만 참이었고, 지금은 `shape_source="manufacturer_cad"` 인 기체가
+    #      따로 있다(x500v2 · mini2). matrice4e 는 공식 STEP CAD 를 형상 라운드의 근거로
+    #      든다(위 «2026-08-04 형상 라운드» 주석). ⭐개수는 여기 적지 말고 `shape_source`
+    #      필드와 각 기체 note 의 SHAPE SOURCE 절로 판정할 것 — 세어 적으면 또 낡는다.
+    #    ⚠ 이 기체의 3D 기하는 제조사 CAD 가 아니라 **상류 시뮬레이터 자산**이다
+    #      (ethz-asl/rotors_simulator, Apache-2.0 — assets/meshes/reference/SOURCES.md).
+    #      등급의 정본은 docs/MESH_CERTIFICATE.md §4 이고, 거기서 이 기체의 프롭은
+    #      «시뮬레이터 자산» 등급 B− 다(airframe 은 A).
     "typhoonh480": DroneSpec(
         key="typhoonh480", name="Yuneec Typhoon H (H480)",
         diagonal_mm=480, weight_g=1950,
@@ -518,8 +527,13 @@ DRONES: dict[str, DroneSpec] = {
         prop_dia_mm=230.2, prop_blades=2, num_rotors=6,
         max_speed_ms=13.5, hover_rpm=5600, max_rpm=None, prop_pitch_in=6.0,
         rtk=False, release="discontinued", confidence="high",
-        note="Hexacopter, and the only target in this repo whose REAL 3D CAD we hold "
-             "(ethz-asl/rotors_simulator, Apache-2.0 - assets/meshes/reference/SOURCES.md). "
+        note="Hexacopter whose 3D geometry we hold as a real mesh. RETRACTED 2026-09-04: "
+             "'the only target in this repo whose REAL 3D CAD we hold' was true only on "
+             "2026-07-30 - other airframes now carry shape_source='manufacturer_cad', so read "
+             "that field instead of counting here. What we hold for THIS airframe is an UPSTREAM "
+             "SIMULATOR asset, not a Yuneec CAD "
+             "(ethz-asl/rotors_simulator, Apache-2.0 - assets/meshes/reference/SOURCES.md); "
+             "docs/MESH_CERTIFICATE.md section 4 grades its prop B- ('simulator asset'). "
              "VARIANT: this is the H480 (2016), NOT the Typhoon H Plus (2018). Five independent "
              "checks agree: upstream directory typhoon_h480, cgo3_* mesh names, CAD diagonal 485.4 vs "
              "H Plus 520, body bbox 455x520 vs H Plus 556x485, prop 230 vs H Plus 248. "

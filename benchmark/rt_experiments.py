@@ -494,7 +494,10 @@ def main():
             print(f"  Sionna RT: {m['delay_ns']:.2f} ns · {m['rel_db']:+.2f} dB "
                   f"({m['objects']}, 반사점 {m['vertices'][0]})")
             print(f"  → **{f['agree_db']:+.2f} dB / {f['agree_delay_ns']:+.2f} ns 일치.** "
-                  "RT 는 환경에서 정확하다.")
+                  f"이 기하(TX{TX} → RX{RX}, 표적{TGT}) · f={FC/1e9:.1f} GHz 의 "
+                  "**바닥 단일반사 1개**에서 손계산과 맞는다 — 벽·천장·다중반사는 손계산과 "
+                  "대조하지 않았다. ⛔ 옛 문장 「RT 는 환경에서 정확하다」는 이 한 경로에서 "
+                  "환경 전체로 건너뛰므로 내렸다.")
         for t in f["twins"]:
             print(f"  같은 지연의 두 번째 경로: {t['delay_ns']:.2f} ns / {t['rel_db']:+.2f} dB "
                   f"→ {t['objects']} @ {t['vertices']}")
@@ -543,8 +546,9 @@ def main():
         print(f"    SBR σ(전체) {C['sigma']['full_dbsm']:+.2f} dBsm · "
               f"금속만 {C['sigma']['metal_only_dbsm']:+.2f} · "
               f"비금속만 {C['sigma']['dielectric_only_dbsm']:+.2f}")
-        print(f"    → 금속(S=0) 부품이 σ 의 **{C['metal_share_pct']:.0f}%**. "
-              f"RT 확산이 보는 표적과 물리가 보는 표적이 다른 표적이다.")
+        print(f"    → 금속(S=0) 부품이 **우리 SBR σ 의 {C['metal_share_pct']:.0f}%** 를 낸다. "
+              "그 부품들은 Sionna 확산 채널 기여가 0 이므로 두 엔진이 조명하는 면이 서로 다르다 "
+              "— 어느 쪽이 실물에 가까운지는 실측 몫이다(이 저장소에 실측 대조 원장은 0 건).")
         print(f"    → 레이더방정식이 요구하는 진폭비 = **{C['ratio_db_truth']:+.2f} dB**")
 
     if "plate" in only:

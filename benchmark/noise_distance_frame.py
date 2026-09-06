@@ -820,13 +820,37 @@ def build_headline(out, cells, read_line):
                      + ("정의 안 됨(15 m 에서도 못 읽음)" if rr is None else f"{rr:.0f} m")
                      + f" · Pd90 한계 "
                      + ("없음" if e["R_pd_comb_90_m"] is None else f"{e['R_pd_comb_90_m']:.0f} m"))
+    # ⚠ 기전 판정 금지 — 이 실험이 잰 것은 빗살 대비 하나다. 동체/날개 성분을 가른 적이 없다.
+    #   희소 표시는 판정 원장에서 그대로 읽는다(그 원장이 요구하는 규약이다):
+    #   outputs/noise_distance_judge_selftest.json : cells.<cell_id>.{sparse, n_eff}
+    _judge_p = os.path.join(ROOT, "outputs", "noise_distance_judge_selftest.json")
+    judge = {}
+    if os.path.exists(_judge_p):
+        try:
+            judge = json.load(open(_judge_p, encoding="utf-8")).get("cells", {})
+        except Exception:                                    # noqa: BLE001
+            judge = {}
+    el0 = []
     for arm in ("ours", "ps_off"):
         cid = f"{arm}_r15_el+0"
         if cid in by:
             b = by[cid]["by_convention"]["S1"]
-            lines.append(f"[el 0°, 15 m, S1] {arm}: 빗살 대비 {b['comb_contrast_db_mean']:.1f} dB "
-                         f"({b['verdict_read_ko']}) — 앙각 0° 는 동체 정반사가 판을 덮어 "
-                         f"PathSolver 쪽에 날개 무늬가 애초에 없다")
+            j = judge.get(cid, {})
+            if j.get("sparse"):
+                mark = f", ⚠희소 — 자세 {j['n_eff']:.0f} 개가 지고 있다"
+            elif j:
+                mark = ""
+            else:
+                mark = (f", 희소 여부는 outputs/noise_distance_judge_selftest.json : "
+                        f"cells.{cid}.sparse/n_eff 로 대조")
+            el0.append(f"{arm} {b['comb_contrast_db_mean']:.1f} dB "
+                       f"({b['verdict_read_ko']}{mark})")
+    if el0:
+        lines.append("[el 0°, 15 m, S1] " + " · ".join(el0)
+                     + " — 두 팔의 차가 무엇에서 오는지는 아직 안 갈랐다. "
+                     "⛔전 판의 「앙각 0° 는 동체 정반사가 판을 덮어 PathSolver 쪽에 날개 "
+                     "무늬가 애초에 없다」는 내렸다(2026-09-04) — 이 실험은 빗살 대비만 재고 "
+                     "동체·날개 성분을 갈라 잰 키가 없다")
     s2 = out["sensitivity"]["S2_minus_S1_db"]
     s3 = out["sensitivity"]["S3_minus_S1_db"]
     lines.append(f"[함정·감도] 거리법칙을 안 벗기면(S2) 120 m 에서 PathSolver 는 "

@@ -123,7 +123,12 @@ def main(argv=None):
     d = json.load(open(FREESPACE))
     d.setdefault("curves", {})["rd_frames"] = out_frames
     d["curves"]["rd_frames_meta"] = dict(frames=meta, **cfg,
-                                         note="실 MC RD맵(passive_process.range_doppler); dB, 0=봉우리, DR45")
+                                         note=("합성 RD 프레임열 — 몬테카를로 관측이 아니다. "
+                                               "진폭을 닫힌형 SNR(freespace_link.snr_rd_db)에 맞도록 "
+                                               "한 번 보정했고, 난수는 열잡음만, 클러터 능선은 끔"
+                                               "(clutter_amp=0), 도플러는 대표값 1개. 실제 RD 처리 "
+                                               "경로(passive_process.range_doppler)만 공유한다. "
+                                               "생성기: src/make_r6_frames.py. dB, 0=최근접 봉우리, DR45"))
     tmp = FREESPACE + ".tmp"
     json.dump(d, open(tmp, "w"))
     os.replace(tmp, FREESPACE)

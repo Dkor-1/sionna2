@@ -294,7 +294,18 @@ def bistatic_rcs_m2(drone_key, fc, u1, u2, az_span_deg=8.0, n_az=5, engine=None)
     """바이스태틱 RCS ≈ **이등분선 방향의 모노스태틱 RCS**(바이스태틱 등가정리).
 
       engine="sbr" (기본) : Mitsuba 광선 + PO 표면적분. **가림 포함**. 캐시/GPU.
-      engine="po"         : 옛 점구름 PO. **가림 없음** → +4~5 dB 과대. 비교용.
+      engine="po"         : 옛 점구름 PO. **가림 없음** → 방위평균 σ 를 과대평가한다. 크기는
+                            기체·시선각이 정한다. ⛔«+4~5 dB 과대» 는 2026-09-06 에 내렸다 —
+                            그 수는 mavic4pro · el 15° · 방위평균 **한 칸**(2026-07-14)에서
+                            나온 것인데 기체·앙각·밴드가 안 붙어 «PO 는 언제나 4~5 dB 과대»
+                            로 읽혔다. 더 새 원장 outputs/mesh_compare_material.json
+                            (3.5 GHz · el 15° · 방위 72점 평균 · 7 기체)의 summary 는,
+                            이 함수의 두 엔진 차(PO ↔ 출하 SBR = 가림 O·셸 투과 O)를
+                            d_total_db 0.30~2.90 dB(s1000plus 0.30 ↔ matrice4e 2.90),
+                            셸 투과를 끄고 가림만 떼어 본 차를 d_occlusion_db
+                            0.11~6.63 dB(s1000plus 0.11 ↔ matrice4e 6.63) 로 낸다 —
+                            4~5 dB 구간에 드는 기체는 0 이다. 다른 앙각·밴드의 폭은
+                            안 쟀다. 비교용.
 
     **자세 소구간 평균**(공정성): 단일-자세 RCS 는 글린트로 값이 심하게 출렁여(스냅샷마다 수 dB)
     SCR·Pd 를 자세운(luck)에 좌우시킨다. 그래서 시선 방위 ±az_span/2 를 n_az 점으로 평균한

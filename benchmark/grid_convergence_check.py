@@ -1158,8 +1158,16 @@ def main() -> None:
             "correct_to_ko": (f"el 0 은 격자 민감도가 가장 큰 자리다 — |ρ| {per_el['+0']['layer1_waveform']['abs_rho_dc_removed']:.2f}, "
                               f"AC {per_el['+0']['layer2_statistics']['delta_div24_minus_div12']['ac_power_db']:+.2f} dB, "
                               f"리듬 몫 {per_el['+0']['layer3_metric']['delta_div24_minus_div12']['rhythm_share_pp']:+.1f} %p. "
-                              "el 0 의 **절대 수치**는 인용하지 말고 «우리 팔은 el 0 에서 박자를 유지하고 "
-                              "PathSolver 는 못 한다» 는 **순서 진술**만 쓴다(그 순서는 격자에 강건하다)."),
+                              "el 0 의 **절대 수치**는 인용하지 말고 관측만 적는다 — 박자 오차 "
+                              "|beat − f_flash| 가 "
+                              f"우리 팔 {order_report['prereg_3arms']['per_elevation']['+0']['beat_err_hz']['values_div12']['ours']:.2f} Hz, "
+                              f"PathSolver 물리끔 {order_report['prereg_3arms']['per_elevation']['+0']['beat_err_hz']['values_div12']['phys_off']:.1f} Hz · "
+                              f"물리켬 {order_report['prereg_3arms']['per_elevation']['+0']['beat_err_hz']['values_div12']['phys_on']:.1f} Hz "
+                              "로 갈리고, 이 순서는 λ/24 에서도 보존된다"
+                              f"(λ/24 우리 팔 {order_report['prereg_3arms']['per_elevation']['+0']['beat_err_hz']['values_div24']['ours']:.2f} Hz · "
+                              f"판정 {order_report['prereg_3arms']['per_elevation']['+0']['beat_err_hz']['verdict']}). "
+                              "⛔「PathSolver 는 못 한다」는 능력 부정으로는 쓰지 않는다 — 둘 다 근사이고 "
+                              "현실성 판정은 실측 대조의 몫이다(아직 0 건)."),
             "severity": "medium",
             "evidence": "outputs/grid_convergence_check.json : per_elevation.+0",
         },

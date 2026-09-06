@@ -1252,8 +1252,9 @@ def r61():
            f"{CORR_RHO['extent_flip'][0]:+.2f}(p={CORR_RHO['extent_flip'][1]:.2f}), 산포-문턱이 "
            f"{CORR_RHO['spread_flip'][0]:+.2f}(p={CORR_RHO['spread_flip'][1]:.2f}) 로 갈리고, 피어슨 "
            f"p 는 각각 {CORR_P['extent_flip']:.2f} · {CORR_P['spread_flip']:.2f} 다(⛔ p 와 순위상관은 "
-           f"원장 밖의 재계산값이다). 원장 `size_vs_fragility.finding` 은 산포를 단독 원인으로 들지만, "
-           f"이 편은 세 상관계수를 그대로 읽고 원인은 표본을 늘린 뒤로 미룬다."),
+           f"원장 밖의 재계산값이다). 이 편은 원장의 같은 칸에 붙은 산문 "
+           f"⟨{J_SS} : size_vs_fragility.finding⟩ 이 아니라 위 세 상관계수를 그대로 읽고, "
+           f"어느 열이 취약성을 정하는지는 표본을 늘린 뒤로 미룬다."),
 
         md(*fig(1, PF["robust"],
                 "σ 오차가 공통모드일 때와 밴드별일 때 순위는 각각 어디까지 버티는가?")),

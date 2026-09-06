@@ -186,8 +186,21 @@ def build_five(el, fname, sub):
 def main():
     build(0.0, "clutter_methods_el0.png",
           "the notch reveals the streaks - it does not remove them")
+    # ⭐부제의 수는 손으로 치지 않는다 — 오른쪽 «energy» 열이 그리는 것과 **같은 psd** 로
+    #   그 자리에서 다시 잰다(전체 드론에 MTI 를 건 곡선 − 필터를 안 건 프로펠러 단독 곡선,
+    #   |f| < 2 kHz 격자의 중앙값). matrice4e · 15 m · el −30 은 outputs/switch_grid.json
+    #   의 _meta.setup_ko 와 같은 자리다.
+    # ⛔옛 부제 「MTI drops the whole-drone curve 30-50 dB below the target」 를 내렸다 —
+    #   재계산에서 어느 읽기로도 30~50 dB 가 안 나왔고(같은 필터를 양쪽에 걸면 중앙값
+    #   −0.3 dB), 「target」 이 프로펠러 단독인지 필터 전인지도 문장이 안 밝혔다.
+    _W, _P = load(ARM_W, -30.0)[0], load(ARM_P, -30.0)[0]
+    _fr, _Yw = psd(mti(_W, 3))
+    _, _Yp = psd(_P)
+    _m = np.abs(_fr) < 2000
+    _drop = abs(float(np.median(_Yw[_m] - _Yp[_m])))
     build(-30.0, "clutter_methods_el30.png",
-          "MTI drops the whole-drone curve 30-50 dB below the target")
+          f"MTI leaves the whole drone {_drop:.0f} dB (median, |f| < 2 kHz) below the "
+          f"unfiltered propellers-only curve   {chr(183)}   matrice4e, 15 m")
     build_five(0.0, "clutter_five_el0.png",
                "the notch reveals the streaks; MTI takes the blade rate with them")
     build_five(-30.0, "clutter_five_el30.png",

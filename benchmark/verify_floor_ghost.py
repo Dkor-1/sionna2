@@ -21,7 +21,12 @@ report4/report5 는 챔버를 **anechoic**(무반사)이라 부르고 "흡수체
 
   [D] 유령을 실제로 주입하고 CFAR 를 돌린다. **거리분해능 ΔRb=c/B 가 운명을 가른다**:
       광대역일수록 유령이 진짜와 잘 **분리되어** 별개 표적으로 찍힌다.
-      → 5G 를 최고의 조명원으로 만든 바로 그 분해능이 유령을 만든다.
+      → 세 파형 중 대역이 가장 넓은 5G(B=98.28 MHz)에서 c/B 가 가장 작고, 그만큼 유령이 진짜와
+        분리되어 별개 표적으로 찍힌다(outputs/floor_ghost_verify.json CD_ghost[*].d_rb_m ·
+        sep_over_drb · p_false).
+      ⛔ 2026-09-06 내림: "5G 를 최고의 조명원으로 만든 바로 그 분해능이 유령을 만든다" — 여기서
+        비교한 표본은 세 파형이고 가른 축은 거리분해능 c/B 하나뿐이라, «최고의 조명원» 이라는
+        전면 우열 판정은 이 실험이 낸 결론이 아니다(다른 리포트의 판정을 끌어다 쓴 것).
 
 실행:  cd benchmark && python verify_floor_ghost.py      (GPU 불필요 — [A] 는 캐시된 RT 결과 사용)
 출력:  outputs/floor_ghost_verify.json
@@ -184,8 +189,9 @@ def main():
         v = "★ 별개 표적으로 검출" if d["p_false"] > 0.5 else "묻힘"
         print(f"  {d['name']:14s} {d['d_rb_m']:7.1f}m {d['sep_m']:8.2f}m {d['sep_over_drb']:8.2f}× "
               f"{d['ghost_db']:+8.1f}dB {d['pd']:7.2f} {d['p_false']:8.2f}  {v}")
-    print("  → 대역폭이 넓을수록 유령이 진짜와 **잘 분리되어** 가짜 표적이 된다.")
-    print("    5G 를 최고의 조명원으로 만든 바로 그 거리분해능이 유령을 만든다.")
+    print("  → 세 파형 중 대역이 넓을수록 유령이 진짜와 **잘 분리되어** 별개 표적으로 찍힌다.")
+    print(f"    가장 넓은 {D[0]['name']}(B={D[0]['bw_hz']/1e6:.2f} MHz, ΔRb={D[0]['d_rb_m']:.2f} m)"
+          f"에서만 분리비가 1 을 넘었다 — 가른 축은 거리분해능 c/B 하나다(전면 우열 판정 아님).")
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as f:

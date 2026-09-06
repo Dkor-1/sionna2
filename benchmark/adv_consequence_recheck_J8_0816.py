@@ -89,13 +89,29 @@ def main():
                                               / (np.linalg.norm(a - a.mean())
                                                  * np.linalg.norm(b - b.mean()))), 4))
         rows[key] = dict(f_tip_hz=round(f_tip, 2), per_law=r)
+    #: ⛔«판 교체가 엔진 간 불일치보다 훨씬 작다» 는 한 줄 요약은 내린다(2026-09-06) —
+    #  엔진 쌍 중 가장 좁은 sbr↔po 보다 mini5pro 의 per_airframe 판 교체가 더 크게
+    #  갈린다. 그래서 넓은 쌍과 좁은 쌍을 갈라 적는다.
+    _swap = [v["per_law"][law]["cosine_in_ftip_magnitude"]
+             for v in rows.values() for law in v["per_law"]]
+    _m5 = rows["mini5pro"]["per_law"]["per_airframe"]
     res = dict(
         published_engine_cosine_in_ftip=pub,
         law_swap_cosine=rows,
         n=N_PUB, el_deg=EL_PUB,
-        reading_ko="발표 잣대(크기 코사인, |f|≤f_tip)로 다시 재면 판 교체의 무늬 변화가 "
-                   "엔진 간 불일치보다 훨씬 작다. 앞 라운드가 쓴 «전력 코사인» 은 봉우리를 "
-                   "제곱으로 가중해 같은 신호쌍을 더 다르게 보이게 하는 다른 자다.",
+        reading_ko=(f"발표 잣대(크기 코사인, |f|≤f_tip)로 다시 재면, 엔진 간 불일치의 "
+                    f"넓은 쪽(sionna↔sbr {pub['sionna_vs_sbr']:.3f} · "
+                    f"sionna↔po {pub['sionna_vs_po']:.3f})보다는 판 교체의 무늬 변화"
+                    f"({min(_swap):.3f}~{max(_swap):.3f}, el {EL_PUB:g}° · n {N_PUB})가 "
+                    f"작다. 다만 엔진 쌍 중 가장 좁은 sbr↔po({pub['sbr_vs_po']:.3f})와 "
+                    f"견주면 mini5pro 의 기체별 판 교체"
+                    f"({_m5['cosine_in_ftip_magnitude']:.3f})가 오히려 더 크게 갈린다"
+                    f"(같은 쌍의 전대역 전력 코사인은 "
+                    f"{_m5['cosine_fullband_power']:.3f} 로 더 멀다). "
+                    f"⛔«엔진 간 불일치보다 훨씬 작다» 는 한 줄 요약은 내린다"
+                    f"(2026-09-06) — 쌍마다 갈린다. 앞 라운드가 쓴 «전력 코사인» 은 "
+                    f"봉우리를 제곱으로 가중해 같은 신호쌍을 더 다르게 보이게 하는 "
+                    f"다른 자다. 잰 자리는 el {EL_PUB:g}° · n {N_PUB} 한 판이다."),
         elapsed_s=round(time.time() - t0, 1))
     #: ⚠ 같은 산출 파일에 다른 프로세스가 동시에 쓰면 키가 사라진다. 그래서 이 파일은
     #   조각으로 먼저 떨어뜨리고, 합치기는 `--merge` 로 따로 한다.

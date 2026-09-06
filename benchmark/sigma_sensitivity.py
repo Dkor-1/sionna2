@@ -638,22 +638,41 @@ def main():
     frag_avg = np.array([avg[dr]["smallest_flip_span_db"] for dr in DRONES])
     dsig_spread = np.array([max(abs(v["d_sigma_db"])
                                 for v in decomp[dr]["pairs"].values()) for dr in DRONES])
+    _c_ext_flip = float(np.corrcoef(ext, frag_single)[0, 1])
+    _c_ext_spread = float(np.corrcoef(ext, dsig_spread)[0, 1])
+    _c_spread_flip = float(np.corrcoef(dsig_spread, frag_single)[0, 1])
+    _small = DRONES[int(np.argmin(ext))]
+    _large = DRONES[int(np.argmax(ext))]
+    _c_ext_flip = float(np.corrcoef(ext, frag_single)[0, 1])
+    _c_ext_spread = float(np.corrcoef(ext, dsig_spread)[0, 1])
+    _c_spread_flip = float(np.corrcoef(dsig_spread, frag_single)[0, 1])
+    _rank_small = int(
+        1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index("mini5pro")]))
     out["size_vs_fragility"] = dict(
         by_drone={dr: dict(size[dr],
                            flip_span_single_aspect_db=float(frag_single[i]),
                            flip_span_aspect_avg_db=float(frag_avg[i]),
                            max_band_sigma_spread_db=float(dsig_spread[i]))
                   for i, dr in enumerate(DRONES)},
-        corr_extent_vs_flip_single=float(np.corrcoef(ext, frag_single)[0, 1]),
-        corr_extent_vs_sigma_spread=float(np.corrcoef(ext, dsig_spread)[0, 1]),
-        corr_sigma_spread_vs_flip_single=float(np.corrcoef(dsig_spread, frag_single)[0, 1]),
-        smallest_airframe="mini5pro",
+        corr_extent_vs_flip_single=_c_ext_flip,
+        corr_extent_vs_sigma_spread=_c_ext_spread,
+        corr_sigma_spread_vs_flip_single=_c_spread_flip,
+        smallest_airframe=_small,
         smallest_airframe_rank_by_robustness=int(
-            1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index("mini5pro")])),
-        finding=("작은 기체가 더 취약하다는 예상은 **틀렸다**. 가장 작은 mini5pro(0.378 m, "
-                 "LTE 에서 D/λ=2.3 인 few-lambda)가 단일자세·자세평균 양쪽에서 가장 견고하고, "
-                 "가장 큰 s1000plus(1.348 m)가 가장 취약한 축에 있다. 취약성을 정하는 것은 "
-                 "크기 자체가 아니라 **밴드간 σ 로브 산포**이고, 그건 전기적 크기가 클수록 커진다."))
+            1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index(_small)])),
+        # ⛔ 「취약성을 정하는 것은 크기 자체가 아니라 밴드간 σ 로브 산포이고, 그건 전기적 크기가
+        #    클수록 커진다」 는 2026-09-04 에 내렸다 — 기체 5 대 표본에서 세운 인과이고, 뒷문장은
+        #    같은 원장의 corr_extent_vs_sigma_spread 가 받치지 않는다.
+        retracted_finding=("⛔ 「취약성을 정하는 것은 크기 자체가 아니라 밴드간 σ 로브 산포이고, "
+                           "그건 전기적 크기가 클수록 커진다」 — 2026-09-04 에 내렸다. "
+                           "corr_extent_vs_sigma_spread 와 표본 크기가 그 문장을 받치지 않는다."),
+        finding=(f"작은 기체가 더 취약하다는 예상은 이 {len(DRONES)} 대에서 뒤집힌다. 가장 작은 "
+                 f"{_small}({ext[DRONES.index(_small)]:.3f} m)가 단일자세·자세평균 양쪽에서 가장 "
+                 f"견고하고, 가장 큰 {_large}({ext[DRONES.index(_large)]:.3f} m)가 취약한 쪽에 "
+                 f"있다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 {_c_ext_flip:+.2f}, 밴드 간 σ "
+                 f"로브 산포 쪽 {_c_spread_flip:+.2f}, 두 열 사이는 {_c_ext_spread:+.2f} 다 — "
+                 f"기체 {len(DRONES)} 대 표본이라 어느 열이 취약성을 정하는지는 이 표본으로 "
+                 f"정하지 않는다."))
 
     out["_meta"]["runtime_s"] = round(time.time() - t0, 1)
 

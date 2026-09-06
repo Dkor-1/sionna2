@@ -358,7 +358,9 @@ def section1() -> dict:
     alts.append(a3)
 
     a4 = {"method": "④ 기하 대리표적 (큐브·박스·구)",
-          "what_it_solves": "표적을 정육면체·직육면체·구로 바꾼다. 선행에서 가장 흔한 회피다.",
+          "what_it_solves": ("표적을 정육면체·직육면체·구로 바꾼다. 원문 정독 18편 중 2편이 이 방식이다 "
+                             "(outputs/evasion_catalogue.json). ⛔'가장 흔한'은 내렸다 — 빈도로는 "
+                             "상대 baseline 만으로 대는 방식(E13)이 4편으로 더 잦다."),
           "our_position": "대조군으로 **같은 자로** 재봤다(benchmark/p3_control.py, 같은 PO 커널·"
                           "같은 방위격자·같은 실측 앵커)."}
     for nm, key in [("ours_mesh", "ours_p3_mesh"), ("box_bbox", "box_bbox_lit"),

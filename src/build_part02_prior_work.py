@@ -593,7 +593,15 @@ def report_13_where_we_stand():
     return [
         header(
             num=13,
-            title="네 관문을 동시에 통과한 게재본은 0편이고, 최근접 3편은 각각 다른 관문에서 걸린다",
+            #: ⭐제목의 모집단은 손으로 적지 않는다 — 「게재 문헌 전체에 0편」 이 아니라
+            #  「우리가 판정한 후보 N편 중 0편」 이다(부재증명에는 범위를 붙인다). N 과 0 은
+            #  원장 `outputs/report01_paper.json` 의 h8.n_adjudicated ·
+            #  h8.n_passing_all_prongs 에서 그대로 읽어, 원장이 바뀌면 제목도 같이 바뀐다.
+            #  같은 파일 편 08 제목(「전문 판정한 게재본 중 …」)과 눈금을 맞춘 것이다.
+            title=(f"판정한 후보 {fetch((PAPER, 'h8.n_adjudicated')):.0f}편 중 네 관문을 "
+                   f"동시에 통과한 게재본은 "
+                   f"{fetch((PAPER, 'h8.n_passing_all_prongs')):.0f}편이고, 최근접 3편은 "
+                   f"각각 다른 관문에서 걸린다"),
             did="후보를 네 관문으로 하나씩 판정하고, 우리 파이프라인이 각 축에서 한 일을 값과 "
                 "함께 같은 표에 올렸다.",
             results=[

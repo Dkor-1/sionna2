@@ -10,9 +10,17 @@ mesh_compare.py — **우리 파라메트릭 메쉬 vs 실물 CAD**: 근사가 �
   실루엣은 **사진을 보고 한 우리의 해석**이지 3D 스캔이 아니다. 그 근사가 얼마나 손해인지
   숫자로 말할 수 있어야 한다.
 
-왜 DJI 로 못 하나 (정직하게)
-  **DJI 는 공식 CAD 를 공개하지 않는다.** 인터넷의 DJI 3D 모델은 시각용(껍데기만, 내부 금속
-  산란체 없음)이고 치수 검증도 안 되고 라이선스도 제약이 있다 → RCS 에 쓸 수 없다.
+왜 DJI 기체로 못 하나 (정직하게)
+  ⛔ **철회(2026-09-06)** — 원문은 「DJI 는 공식 CAD 를 공개하지 않는다」 였다. 같은 저장소가
+     반증했다: docs/RETRACTION_LOG.md 의 2026-08-16 항이 그 문장을 이미 내렸고
+     assets/meshes/reference/ 에 DJI 공식 파일이 실재한다.
+  제조사 공식 CAD 는 **기체마다 갈린다**(정본: assets/meshes/reference/SOURCES.md 머리말).
+     · 있다 — DJI Matrice 4 **T** 판 STEP · DJI **Mini 2** GLB · Holybro **X500 V2** STEP.
+       셋 다 src/mesh_dimref.py 의 [A] 참값으로 쓰고 있다(596 · 721 · 792 행).
+     · 없다 — Matrice 4**E** 판(403) · Mavic 4 Pro · Mini 5 Pro · Phantom 3/4 · S1000+ · M350 RTK.
+  이 실험에서 DJI 기체로 σ 대조를 못 하는 이유는 CAD 자체가 없어서가 아니라, **내부 금속까지
+  든 CAD** 가 그 기체들에 없기 때문이다. 인터넷의 DJI 3D 모델은 시각용(껍데기만, 내부 금속
+  산란체 없음)이고 치수 검증도 안 되고 라이선스도 제약이 있다 → σ 대조에 쓸 수 없다.
   → 대신 **CAD 가 공개된 실물 드론**(Yuneec Typhoon H480, 3DR Solo, Holybro 1345 프롭)으로
     **우리 방법 자체**를 검증한다. assets/meshes/reference/SOURCES.md 참조.
 

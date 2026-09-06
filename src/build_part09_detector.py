@@ -714,7 +714,9 @@ def r55():
                 f"{num(None, f'{OBS}:summary.exact_rotation_max_dRb_m', '{:.1e}', 'm')} 다 — "
                 f"그 방향의 정보량은 SNR 과 관측시간에 무관하게 0 이다.",
                 f"수신기를 하나 더 놓으면 랭크 {RANK2} · 위치 RMS {RMS2} 가 된다 — 그 절대값은 "
-                f"측위 세션 옵션인 PRS 셀({REF_CFG})에서 푼 값이다.",
+                f"측위 세션 옵션인 PRS 셀({REF_CFG}) · 기저선 "
+                f"{num(None, f'{OBS}:meta.L_m', '{:.2f}', 'm')} 의 실내 통제 기하 동작점에서 푼 "
+                f"값이라 ⛔실외 판에서 다시 내야 쓴다.",
                 f"분해능과 정확도는 다른 양이다 — 5G SSB 는 기준 대역폭 "
                 f"{num(None, f'{OBS}:cells[2].ref_bw_mhz', '{:.2f}', 'MHz')} 라 셀이 "
                 f"{num(None, f'{OBS}:cells[2].drb_bw_m', '{:.2f}', 'm')} 인데, 같은 반송파에서 "

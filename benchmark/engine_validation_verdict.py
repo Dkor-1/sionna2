@@ -555,8 +555,16 @@ OUT = {
             thin_slab_replacement_db=max(m_thin, m_thin_n),
             bracket_level_db=BRK["level_swing_db"],
             bracket_slope_db_per_ghz=BRK["slope_swing_db_per_ghz"],
-            reading=("재질은 레벨 문제이지 기울기 문제가 아니다. 모든 gamma_po 가 주파수 평탄한 실수 상수라서, "
-                     "어떤 재질 편집도 밴드 의존성을 구제하지 못한다")),
+            reading=(f"⛔정정: '어떤 재질 편집도 밴드 의존성을 구제하지 못한다' 는 전칭이라 내린다. "
+                     f"**현행 모델(gamma_po 가 주파수 평탄한 실수 상수) 안에서는** 재질 브래킷이 밴드 "
+                     f"기울기를 {BRK['slope_swing_db_per_ghz']:.3f} dB/GHz 안으로만 움직인다 — 우리 밴드폭 "
+                     f"{max(FGHZ.values()) - min(FGHZ.values()):.2f} GHz 로 환산하면 "
+                     f"{BRK['slope_swing_db_per_ghz'] * (max(FGHZ.values()) - min(FGHZ.values())):.2f} dB 로 "
+                     f"레벨 진폭 {BRK['level_swing_db']:.2f} dB 와 같은 크기다. "
+                     f"gamma_po 를 박막 프레넬(주파수·두께 의존)로 바꾸면 gamma_po 자체가 밴드 의존이 되어 "
+                     f"기울기가 움직인다 — 이 문서 3_materials.proposed_patches[2] 가 그 패치다. "
+                     f"잔차 {resid:.3f} dB/GHz 는 이 브래킷의 "
+                     f"{resid / BRK['slope_swing_db_per_ghz']:.1f} 배뿐이라 PTD 지목은 지시적이지 확정이 아니다")),
         "proposed_patches": MAT["proposed_patch"],
         "not_edited": "src/materials.py 는 손대지 않았다 — 패치 6건은 제안으로만 있다",
     },

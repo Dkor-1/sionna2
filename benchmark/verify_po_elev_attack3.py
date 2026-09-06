@@ -5,12 +5,21 @@
      출처 불명이 아니다. Hann · 제로패딩 없음 · **평균 제거(AC)** · 진폭 −20 dB ·
      f_tip(el) 로 정규화 하면 소수 둘째 자리까지 재현된다.
      ⇒ 앞 라운드의 부검(`old_fft_width`, 평균 **미**제거 · pad 8)은 **다른 잣대**를 해부했다.
- (2) 금지대역(|f| > 2·f_tip(0) = 2546 Hz)에 우리 커널만 **이산선**을 낸다.
-     f_flash 의 정수배에 정확히 앉고(21.0·27.0·34.1·42.1 배), 가장 센 것은 최고선 대비
-     −17.8 dB(−15°). 같은 메쉬·같은 자세열의 기하 기준은 −158 dB(수치 영).
-     ⇒ 「한계 초과 에너지」는 FM 측대역도 표본잡음도 아니고 **광선격자 이산화 잔차**다.
-        그런데 새 잣대 W_q 는 이 대역의 평균을 «잡음»으로 빼도록 정의되어 있어
-        **정의상 이 결함을 못 본다.**
+ (2) 금지대역(|f| > 2·f_tip(0) = 2546 Hz)에 우리 커널은 **이산선**을 낸다.
+     f_flash 의 정수배에 정확히 앉고(21.0·27.0·34.1·42.1 배), −15° 에서는 최고선 대비
+     −17.8 dB 밖에 안 내려간다(−90° 는 −14.1 dB 로 더 세다).
+     같은 메쉬·같은 자세열의 기하 기준은 −158 dB(수치 영).
+     ⛔2026-09-06 정정 — 초판은 여기에 「우리 커널**만**」이라고 적고 원인을 「광선격자 이산화
+        잔차」로 못 박았다. 둘 다 이 대조로는 지탱되지 않는다.
+        ⓐ 같은 원장(outputs/elevation_sweep_md.npz)의 PathSolver 팔(`sionna/el*`)도 같은 대역에
+          f_flash 정수배(21~27 배) 이산선을 낸다 — el+0 −20.2 dB · el−15 −12.2 dB · el−90 −19.1 dB.
+          −15° 에서는 PathSolver 쪽이 우리보다 5.6 dB 더 세다 ⇒ 「우리만」이 아니다.
+        ⓑ 기하 기준(꼭짓점 위상합)에는 광선격자도 **가림**도 없어, 메쉬·자세열은 배제해도
+          「얼린 광선격자의 이산화」와 「가림의 주기 그림자」를 갈라 주지 못한다. 가르려면
+          가림을 끈 커널 대조군이 필요하다(아직 없다).
+     ⇒ 「한계 초과 에너지」가 FM 측대역도 표본잡음도 아니라는 데까지가 이 대조가 받치는 범위다.
+        새 잣대 W_q 가 이 대역의 평균을 «잡음»으로 빼도록 정의되어 있어
+        **정의상 이 대역을 못 본다**는 점은 그대로다.
 
 ⛔ 기존 원장 수정 금지 · GPU 미사용.
 """
@@ -117,12 +126,33 @@ J["old_w20_convention_recovered"] = dict(
 J["forbidden_band_lines"] = {
     f"{e:+.0f}": dict(ours=forbidden(d[f"ours/el{e:+.0f}"]), geom_prop=forbidden(hp[e]))
     for e in ELS}
+# ⛔2026-09-06 — 배타 판정(«우리만»)의 대조군: 같은 npz 의 PathSolver 팔도 같은 잣대로 잰다.
+J["forbidden_band_lines_sionna"] = {
+    f"{e:+.0f}": forbidden(d[f"sionna/el{e:+.0f}"]) for e in ELS}
+_ou = {k: v["ours"] for k, v in J["forbidden_band_lines"].items()}
+_sn = J["forbidden_band_lines_sionna"]
 J["forbidden_band_verdict_ko"] = (
-    "우리 커널은 |f| > 2546 Hz 에 **이산선**을 낸다(첨두/평균 56~96 배). 그 선은 f_flash 의 "
+    f"우리 커널은 |f| > {2 * F0:.0f} Hz 에 **이산선**을 낸다(첨두/평균 "
+    f"{min(v['forbidden_peak_to_mean'] for v in _ou.values()):.0f}~"
+    f"{max(v['forbidden_peak_to_mean'] for v in _ou.values()):.0f} 배). 그 선은 f_flash 의 "
     "정수배에 소수 둘째 자리까지 앉고(21.0·27.0·27.96·34.05·42.07 배), −15° 에서는 최고선 "
-    "대비 −17.8 dB 밖에 안 내려간다. 같은 메쉬·같은 자세열·같은 송신점의 기하 기준은 같은 "
-    "대역이 −158~−170 dB(배정밀도 반올림) 다. ⇒ 메쉬도 자세열도 아니고 **얼린 광선격자의 "
-    "이산화**가 원인이다. 5329 Hz 는 시선속도 228 m/s 를 함의한다(날개끝 54.5 m/s 의 4.2 배). "
+    f"대비 −{_ou['-15']['peak_over_forbidden_max_db']:.1f} dB 밖에 안 내려간다. 같은 메쉬·"
+    "같은 자세열·같은 송신점의 기하 기준은 같은 대역이 −158~−170 dB(배정밀도 반올림) 다. "
+    "⛔2026-09-06 정정 — 초판은 여기서 «메쉬도 자세열도 아니고 얼린 광선격자의 이산화가 "
+    "원인이다» 로 단정했다. 같은 npz 의 PathSolver 팔(sionna/el*)도 같은 대역에 f_flash "
+    f"정수배 이산선을 낸다: el+0 −{_sn['+0']['peak_over_forbidden_max_db']:.1f} dB · "
+    f"el−15 −{_sn['-15']['peak_over_forbidden_max_db']:.1f} dB · "
+    f"el−90 −{_sn['-90']['peak_over_forbidden_max_db']:.1f} dB "
+    f"({min(v['forbidden_max_in_flash_units'] for v in _sn.values()):.0f}~"
+    f"{max(v['forbidden_max_in_flash_units'] for v in _sn.values()):.0f} 배). −15° 에서는 "
+    "PathSolver 쪽이 우리보다 "
+    f"{_ou['-15']['peak_over_forbidden_max_db'] - _sn['-15']['peak_over_forbidden_max_db']:.1f}"
+    " dB 더 세다 ⇒ «우리 커널만» 이 아니다. 메쉬·자세열은 기하 기준이 배제하지만, 그 기준에는 "
+    "광선격자도 **가림**도 없어 「얼린 광선격자의 이산화」와 「가림의 주기 그림자」를 이 대조로는 "
+    "가르지 못한다 — 가르려면 가림을 끈 커널 대조군이 있어야 한다(아직 없다). "
+    f"{_ou['-60']['forbidden_max_hz']:.0f} Hz 는 시선속도 "
+    f"{_ou['-60']['implied_speed_mps']:.0f} m/s 를 함의한다(날개끝 "
+    f"{F0 * LAM / 2:.1f} m/s 의 {_ou['-60']['implied_speed_mps'] / (F0 * LAM / 2):.1f} 배). "
     "⚠새 잣대 W_q 는 바로 이 대역의 평균을 «잡음»으로 정의해 빼므로 **이 결함을 정의상 못 본다**.")
 
 with open(OUT, "w") as fh:

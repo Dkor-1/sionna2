@@ -242,7 +242,7 @@ md(
 "",
 "![photo_compare](outputs/figures/photo_compare.png)",
 "",
-"> 색은 **재질 규약**(plastic=회색·metal=파랑·camera=주황·pcb=초록)이라 실제 도색(그레이/화이트)과 다르다 — 맞추는 것은 **형상**이다. 재질 구성도 실제를 반영했다(웹조사 확인): 동체 셸·암·프로펠러는 플라스틱, 모터·배터리·PCB·짐벌 마운트는 금속. 이 금속 내부가 되쏘는 밝기(RCS)를 지배한다.",
+"> 색은 **재질 규약**(plastic=회색·metal=파랑·camera=주황·pcb=초록)이라 실제 도색(그레이/화이트)과 다르다 — 맞추는 것은 **형상**이다. ⛔먼저 적었던 «재질 구성도 실제를 반영했다(웹조사 확인)» 는 내렸다 — 재질 배정은 웹조사로 **정한** 것이고, 1차 출처가 없는 칸과 아직 어긋난 칸이 함께 있다(S1000+ 의 카본 중앙판 2장이 플라스틱 `body` 그룹에 들어 있다 — `outputs/mesh_inspect_materials_check_0816.json` 의 `s1000plus_center_plate` · `rf_estimates.s1000plus_center_plate.facet_reflectivity_dB`, §6.5). 지금 배정은 기체에 따라 동체 셸·프로펠러가 플라스틱, 암은 플라스틱 또는 카본(S1000+·X500 V2·M350 RTK 는 카본), 모터·배터리·PCB·짐벌 마운트는 금속이다 ← `outputs/mesh_inspect_materials_check_0816.json` `fleet[기체].groups[*].material`. 이 배정에서 되쏘는 몫이 큰 쪽은 대체로 금속 부품(모터·배터리·PCB·짐벌 마운트)이다 — 다만 카본 프레임 기체(S1000+·X500 V2)에서는 카본 몫이 금속보다 크고, M350 RTK 는 둘이 접전이다. 그리고 이 «몫» 은 커널이 낸 σ 가 아니라 «면적 × |Γ|²» 대용치이며, 배터리는 팩 외피 전체를 금속으로 본 상한이다(§6 조심할 것) ← `outputs/mesh_inspect_materials_check_0816.json` `fleet[기체].groups[*].power_weight_pct`·`material`.",
 ),
 
 # ── 3. §1 치수 대조 설명 ─────────────────────────────────────────────────

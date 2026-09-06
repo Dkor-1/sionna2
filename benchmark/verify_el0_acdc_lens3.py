@@ -109,10 +109,13 @@ OUT = {
         f"{C['sionna']['comb_share_of_ac_db']} dB(중립 대비 "
         f"+{C['sionna']['comb_excess_over_white_db']} dB)를 담고 대역 초과가 "
         f"{C['sionna']['ac_inband_minus_oob_db']} dB 다. 예산을 올리면 이 구조가 묻힌다.",
-        "AC 전력은 경로 수를 따라간다 — 127 → 471 벌에서 AC 가 "
+        "AC 전력은 경로 수를 따라간다 — 자세당 경로 수 중앙값이 "
+        f"{C['sionna_p250000000']['npaths_median']} → "
+        f"{C['sionna_p1000000000']['npaths_median']} 로 늘 때 AC 가 "
         f"{round(C['sionna_p1000000000']['ac_over_dc_db'] - C['sionna_p250000000']['ac_over_dc_db'], 2)}"
-        f" dB 오르고 10log10(471/127) = "
-        f"{round(float(10 * np.log10(471 / 127)), 2)} dB 다.",
+        f" dB 오르고 10log10({C['sionna_p1000000000']['npaths_median']}/"
+        f"{C['sionna_p250000000']['npaths_median']}) = "
+        f"{round(float(10 * np.log10(C['sionna_p1000000000']['npaths_median'] / C['sionna_p250000000']['npaths_median'])), 2)} dB 다.",
         "우리 팔의 AC 는 같은 자리에서 빗살이 "
         f"{C['ours']['comb_share_of_ac_db']} dB(중립 대비 "
         f"+{C['ours']['comb_excess_over_white_db']} dB)를 담고 대역 초과가 "

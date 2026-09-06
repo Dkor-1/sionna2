@@ -178,16 +178,24 @@ def rx_array(name="rx_array", n_hold=6):
 
 
 # --------------------------------------------------------------------------- #
-#  ⑥ 관측 모호성 — 표적을 TX-RX 축 둘레로 돌려도 R_b·f_d 가 안 변한다 (report11 §5)
+#  ⑥ 관측 모호성 — 표적을 TX-RX 축 둘레로 돌려도 R_b 가 안 변한다 (report11 §5)
 # --------------------------------------------------------------------------- #
 def obs_baseline_ring(n=36, name="obs_baseline_ring", drone="mavic4pro"):
     """**엄밀 대칭의 시각화**: 표적을 송수신 축(baseline) 둘레로 회전시키며 렌더.
-    R_b(바이스태틱 거리)와 f_d 가 **바뀌지 않으므로**, 이 원 위 어디에 있든 레이더는 구분 못 한다
-    → 단일 TX-RX 쌍으로 3D 위치가 관측 불가한 이유(report11 §5).
-    각 프레임에 실제로 계산한 R_b 를 찍어 '변하지 않음'을 증거로 보인다."""
+    이 원 위에서 **불변인 관측량은 R_b(바이스태틱 거리) 하나**다 — 기계정밀도(1e-14 m 급) 안에서
+    변하지 않고, 각 프레임에 실제로 계산해 아래 print 로 찍는 값이 그 증거다.
+    ⛔정정: 옛 문구는 「R_b 와 f_d 가 바뀌지 않으므로 이 원 위 어디에 있든 레이더는 구분 못 한다」
+    였다. f_d 는 이 원 위에서 실제로 변한다 — 이 씬(vel=(-3,0,0) m/s · f_c=FC)에서 기본 n=36
+    표본으로 ±63.9 Hz 폭이고, 아래 print 가 매 실행 다시 찍는다. 또 「레이더는 구분 못 한다」 는
+    수신각까지 포함한 전면 판정인데, 이 그림이 불변을 보인 관측량은 R_b 하나뿐이다.
+    → 그래서 여기서 말할 수 있는 것은 **R_b 하나의 모호성**이다: 단일 TX-RX 쌍에서 R_b 만으로는
+    3D 위치가 풀리지 않는다(report11 §5)."""
     tx = np.asarray(TX, float); rx = np.asarray(RX, float); tgt = np.asarray(TGT, float)
     u = (rx - tx); u /= np.linalg.norm(u)                     # baseline 축 방향
     L = float(np.linalg.norm(rx - tx))
+    vel = (-3.0, 0.0, 0.0)                                    # 렌더와 도플러가 같은 속도를 쓴다
+    vv = np.asarray(vel, float)
+    c_light = 299792458.0
 
     def rot_axis(p, ang):                                     # Rodrigues: TX 기준 u 축 회전
         v = p - tx; c, s = np.cos(ang), np.sin(ang)
@@ -195,20 +203,26 @@ def obs_baseline_ring(n=36, name="obs_baseline_ring", drone="mavic4pro"):
 
     fdir = _framedir(name)
     rbs = []
+    fds = []
     t0 = time.time()
     for i in range(n):
         ang = 2 * np.pi * i / n
         p = rot_axis(tgt, ang)
         rb = float(np.linalg.norm(p - tx) + np.linalg.norm(rx - p) - L)   # 바이스태틱 거리
         rbs.append(rb)
-        sc = make_scene(drone=drone, tgt=tuple(map(float, p)), cutaway=True, vel=(-3.0, 0.0, 0.0))
+        ui = (p - tx) / np.linalg.norm(p - tx)                # TX→표적 단위벡터
+        us = (rx - p) / np.linalg.norm(rx - p)                # 표적→RX 단위벡터
+        fds.append(float(-FC / c_light * (vv @ ui - vv @ us)))  # 바이스태틱 도플러 [Hz]
+        sc = make_scene(drone=drone, tgt=tuple(map(float, p)), cutaway=True, vel=vel)
         sc.render_to_file(camera=cam(*CAMS["wide"]), filename=os.path.join(fdir, f"frame_{i:03d}.png"),
                           num_samples=HIQ_SPP, resolution=HIQ_RES, clip_at=CLIP_CEIL, fov=70.0)
     gif = os.path.join(OUT, "anim", f"{name}.gif")
     make_gif(fdir, gif, ms=110)
     print(f"  ✅ {name}.gif  ({n}프레임, {time.time()-t0:.0f}s)")
     print(f"     R_b 범위: {min(rbs):.6f} ~ {max(rbs):.6f} m  (변동 {max(rbs)-min(rbs):.2e} m "
-          f"= 기계정밀도 → 이 원 위 어디든 레이더에겐 동일)")
+          f"= 기계정밀도 → 이 원 위에서 R_b 는 불변)")
+    print(f"     f_d 범위: {min(fds):+.1f} ~ {max(fds):+.1f} Hz  (vel={vel} · f_c={FC/1e9:.2f} GHz "
+          f"→ f_d 는 이 원 위에서 변한다. 불변인 관측량은 R_b 하나뿐)")
     return gif
 
 

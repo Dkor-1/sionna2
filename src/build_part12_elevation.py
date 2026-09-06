@@ -367,8 +367,15 @@ def blocks_80() -> list:
                       "남기는가?"), "",
            "(a) 는 상한이 앙각을 따라 어디에 그어지는지, (b) 는 그 위에 팔마다 얼마가 "
            "놓이는지다. ⛔«(b) 의 모든 막대는 참값이 0» 은 내렸다 — (b) 의 참값은 이상적 "
-           "날개의 위상변조 꼬리 τ 만큼이고, τ 는 아직 계산 전이다(다음 단계 첫 줄). 이 "
-           "그림은 큰 값을 인공물로 읽는 데만 쓴다."),
+           "날개의 위상변조 꼬리 τ 만큼이다. ⛔«τ 는 아직 계산 전» 도 내렸다 — τ 는 원장 "
+           "`outputs/tip_tail_reference.json` 이 싣는다. 이상적 2엽 로터(균일 진폭)의 τ 는 el 0° 에서 "
+           f"{from_json('outputs/tip_tail_reference.json').num('cells.el+0.tau_uniform_pct', fmt='{:.4f}', unit='%')}, "
+           f"el −75° 에서 "
+           f"{from_json('outputs/tip_tail_reference.json').num('cells.el-75.tau_uniform_pct', fmt='{:.1f}', unit='%')} "
+           "이고, 같은 el −75° 를 진폭 섬광 판으로 읽으면 "
+           f"{from_json('outputs/tip_tail_reference.json').num('cells.el-75.tau_amflash_pct', fmt='{:.1f}', unit='%')} "
+           "다 — 바닥은 앙각과 날개 위 진폭 분포가 정한다. 이 그림은 큰 값을 인공물로 읽는 "
+           "데만 쓴다."),
 
         md("## 세 팔이 상한 위에 남기는 몫", "",
            table(["앙각", "f_tip", "우리 커널 λ/12", "우리 커널 λ/24",

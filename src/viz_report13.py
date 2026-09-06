@@ -596,6 +596,7 @@ class R13Viz:
         fig, axes = plt.subplots(1, 2, figsize=(13.0, 5.0), sharey=True)
         im = None
         drones = [d for d in DRONE_ORDER if _get(self.fs, "ranges", d)]
+        n_cell = {}
         for ax, (vk, vn) in zip(axes, views):
             M = np.full((len(drones), len(MODE_ORDER)), np.nan)
             for i, d in enumerate(drones):
@@ -603,17 +604,35 @@ class R13Viz:
                     c = _range_cell(self.fs, d, mode, view=vk)
                     if c and c.get("R90_C50_m") is not None:
                         M[i, j] = float(c["R90_C50_m"])
-            im = ax.imshow(M, aspect="auto", cmap="viridis")
+            n_cell[vk] = int(np.isfinite(M).sum())
+            h = ax.imshow(M, aspect="auto", cmap="viridis")
+            if n_cell[vk]:
+                im = h
+            else:
+                # 원장에 이 규약의 셀이 한 칸도 없다 — 빈 패널이 판정으로 읽히지 않게 그림에 적는다
+                ax.text(0.5, 0.5,
+                        f"{vn} 미계산\noutputs/report13_freespace.json\nranges[*][*].{vk} 없음",
+                        transform=ax.transAxes, ha="center", va="center",
+                        fontsize=10, color="0.35")
             ax.set_xticks(range(len(MODE_ORDER))); ax.set_xticklabels(MODE_ORDER, fontsize=8)
             ax.set_yticks(range(len(drones)))
             ax.set_yticklabels([DRONE_LABEL[d] for d in drones])
-            ax.set_title(vn)
+            ax.set_title(vn if n_cell[vk] else f"{vn} — 원장에 셀 0칸")
         if im is not None:
             fig.colorbar(im, ax=list(axes), shrink=0.85, label="R90_C50 [m]")
         fig.suptitle(f"R90 matrix - {len(drones)} airframes x {len(MODE_ORDER)} modes (equal-PSD | deploy-EIRP)", y=1.01)
+        n_eq, n_dep = n_cell.get("equal_psd", 0), n_cell.get("deploy", 0)
+        # 판정(«무너진다»)은 캡션에서 뺀다 — 두 규약을 비교하려면 양쪽 셀이 다 있어야 한다.
+        _extra = ("점유·배치 규약(F1/F2) 두 판을 나란히 놓고 본다 — 셀 값만 읽고 판정은 붙이지 않는다."
+                  if (n_eq and n_dep) else
+                  "⛔철회: 옛 캡션 「유휴 5G G1 이 배치 EIRP 에서 무너진다」 는 그 판정을 떠받칠 "
+                  "deploy-EIRP 셀이 원장(outputs/report13_freespace.json : ranges[*][*].deploy)에 "
+                  "0칸이라 내린다. 두 규약을 비교하려면 deploy view 를 먼저 계산해야 한다.")
         return self.save(fig, "report13_matrix.png",
-                         _cap6(self.ctx, f"히트맵 셀=R90_C50 [m], {len(drones)}기종×{len(MODE_ORDER)}모드",
-                               "점유·배치 규약(F1/F2) — 유휴 5G G1 이 배치 EIRP 에서 무너진다."))
+                         _cap6(self.ctx,
+                               f"히트맵 셀=R90_C50 [m], {len(drones)}기종×{len(MODE_ORDER)}모드 "
+                               f"(값이 있는 셀 — equal-PSD {n_eq}칸 · deploy-EIRP {n_dep}칸)",
+                               _extra))
 
     # ---- F13 detector ----------------------------------------------------- #
     def f13_detector(self):
