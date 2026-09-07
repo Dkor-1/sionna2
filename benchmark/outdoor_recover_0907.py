@@ -205,6 +205,19 @@ def main() -> int:
                     c["recover_gap_db"] = round(c["comb_fill_db"] - c["comb_free_db"], 2)
                     c["is_recovered"] = bool(abs(c["recover_gap_db"]) <= 3.0)
                     recovered += int(c["is_recovered"])
+                    #: ⛔⛔**메울 자세가 0 이면 그 칸은 «판정» 이 아니라 «정의» 다.**
+                    #  fill() 이 아무것도 안 했으므로 comb_fill_db 는 comb_raw_db 와
+                    #  글자 그대로 같고, 「메워도 안 돌아왔다」는 「메운 적이 없다」는 뜻이다.
+                    #  2026-09-07 감사에서 그런 칸 둘(R0D1E1F1/el−75 · R1D1E1F1/el−75)이
+                    #  「안 돌아온 여덟 칸」 안에 섞여 세어지고 있던 것이 잡혔다.
+                    #  ⇒ 세는 것은 그대로 두되(분모를 바꾸면 옛 수와 못 견준다) **표시**한다.
+                    c["fill_was_noop"] = bool(n_fill == 0)
+                    if c["fill_was_noop"]:
+                        c["fill_noop_note_ko"] = (
+                            "⛔메울 자세가 0 개다 — fill() 이 아무것도 안 했으므로 "
+                            "comb_fill_db 는 comb_raw_db 와 같은 수다. 이 칸의 "
+                            "is_recovered=False 는 «메워도 안 돌아왔다» 가 아니라 "
+                            "«메울 것이 없었다» 로 읽어야 한다.")
                     #: ③ 안 돌아오면 — 잔차가 어디 몰리나, 밝은 자세를 함께 메우면?
                     if not c["is_recovered"]:
                         #: ⚠**평균을 먼저 뺀다.** 실외 기록은 지면이 만든 정지 성분이
@@ -295,6 +308,12 @@ def main() -> int:
                                 if c.get("visible_out") is False),
         "n_drop_lower_bound_only": sum(1 for c in cells.values()
                                        if c.get("drop_is_lower_bound_only")),
+        #: ⭐「안 돌아온 칸」 가운데 애초에 메울 것이 없었던 칸 — 판정이 아니라 정의다
+        "n_fill_was_noop": sum(1 for c in cells.values() if c.get("fill_was_noop")),
+        "n_not_recovered_but_nothing_to_fill": sum(
+            1 for c in cells.values()
+            if c.get("is_broken") and c.get("is_recovered") is False
+            and c.get("fill_was_noop")),
         "n_cells_with_dedup_free": sum(1 for c in cells.values()
                                        if c.get("has_dedup_free")),
         "n_broken_flips_on_dedup": sum(1 for c in cells.values()

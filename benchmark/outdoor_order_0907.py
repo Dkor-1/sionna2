@@ -29,6 +29,8 @@ outdoor_order_0907.py — **실외에서 날개 박자를 되찾을 수 있나, 
 from __future__ import annotations
 
 import json
+import time
+import glob
 import os
 import sys
 
@@ -75,8 +77,47 @@ def snr(E: np.ndarray, el: float, nm: str):
     return None if v is None else round(float(v), 2)
 
 
+def _source_age(npz_path):
+    """⛔⛔**이 원장은 «병합본» 을 읽는다 — 샤드보다 낡을 수 있다.**
+
+    2026-09-07 감사에서 잡혔다: 이 원장은 `outputs/elevation_sweep_md.npz`(병합본)를
+    읽고, 짝 원장 `benchmark/outdoor_recover_0907.py` 는 `outputs/elev_sweep_shards/`
+    (샤드)를 읽는다. 두 자료의 나이가 다르면 **같은 칸에 다른 수**가 적힌다.
+    실제로 el 0° 자유공간이 이 원장에서 3.15, 짝 원장에서 3.42 였고, 견줘 보니
+    8,192 자세 중 **딱 하나**(idx 7043)가 다르며 비가 정확히 2/3 — 그 자세가
+    「같은 경로를 세 줄로 적었나 두 줄로 적었나」에서 갈렸다.
+    ⇒ 값을 조용히 고치지 않는다. **어느 자료를 몇 시에 읽었는지 원장에 적는다.**
+    """
+    out = {"source": os.path.relpath(npz_path, ROOT)}
+    try:
+        out["source_mtime_utc"] = time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ", time.gmtime(os.path.getmtime(npz_path)))
+        shd = os.path.join(ROOT, "outputs", "elev_sweep_shards")
+        newest = max((os.path.getmtime(f) for f in glob.glob(f"{shd}/*.npz")),
+                     default=None)
+        if newest:
+            out["newest_shard_mtime_utc"] = time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ", time.gmtime(newest))
+            out["source_is_stale"] = bool(newest > os.path.getmtime(npz_path))
+            if out["source_is_stale"]:
+                out["stale_note_ko"] = (
+                    "⛔이 원장이 읽은 병합본이 샤드보다 낡았다 — 샤드를 읽는 짝 원장"
+                    "(outputs/outdoor_recover_0907.json)과 **같은 칸에 다른 수**가"
+                    " 적힐 수 있다. 실제로 el 0° 자유공간이 3.15 대 3.42 로 갈렸고,"
+                    " 8,192 자세 중 하나(idx 7043)가 겹친 줄 수에서 달랐다."
+                    " ⇒ 두 원장의 el 0° 값을 나란히 인용하지 마라."
+                    " 고치려면 병합(elevation_sweep_md.py analyse)을 다시 돌린다.")
+    except Exception:                                                  # noqa: BLE001
+        pass
+    return out
+
+
 def main() -> int:
-    Z = np.load(os.path.join(ROOT, "outputs", "elevation_sweep_md.npz"))
+    _npz = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
+    src = _source_age(_npz)
+    if src.get("source_is_stale"):
+        print(f"  ⛔{src['stale_note_ko']}", flush=True)
+    Z = np.load(_npz)
     cells = {}
     for el in ELS:
         nf, no = arm(el, False), arm(el, True)
@@ -102,6 +143,7 @@ def main() -> int:
     doc = {
         "_meta": {
             "generator": "benchmark/outdoor_order_0907.py",
+            **src,
             "question_ko": "실외에서 날개 박자를 되찾을 수 있나, 그리고 두 조작의 순서가 결과를 바꾸나",
             "metric_ko": "빗살 하모닉 SNR [dB] — 날개 박자의 조화선이 주변 바닥보다 몇 dB 위에 서는가."
                          " ⛔ρ(포락 자기상관)로 재지 않는다(docs/RHO_IS_SMOOTHNESS_0902.md)",
