@@ -502,6 +502,15 @@ def run(a) -> None:
             raise SystemExit("⛔ --env-alt 는 --env 와 함께 준다 — 환경이 없으면 지면도 없다.")
         _ENV_ALT[0] = float(a.env_alt)
 
+    #: ⚠자세가 적으면 **정본 잣대로 못 읽는다.** `benchmark/comb_snr.comb_snr` 은 도플러
+    #  격자(PRF/자세수)가 성겨지면 대역 안 바닥 칸이 0 개가 되어 None 을 돌려준다 —
+    #  실측: 자세 256·512 → None · 1,024 이상 → 값이 선다(2026-09-07).
+    #  ⇒ 모양(빗살·STFT)으로 읽을 판이면 자세를 1,024 이상으로 둔다. 막지는 않는다 —
+    #    레벨만 볼 목적이면 적은 자세도 쓸모가 있다.
+    if 0 < int(getattr(a, "n_poses", 0) or 0) < 1024:
+        print(f"  ⚠자세 {int(a.n_poses)} 는 1,024 미만이라 빗살 하모닉 SNR 로 못 읽는다 "
+              f"(comb_snr 이 None 을 돌려준다). 레벨만 볼 판인지 확인하라.", flush=True)
+
     _SPP_CEIL = 4_294_967_295
     if int(getattr(a, "spp", 0) or 0) > _SPP_CEIL:
         raise SystemExit(

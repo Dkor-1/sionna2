@@ -8,15 +8,13 @@
 
 
 # ── ⓑ 거칠기 사다리 — 잘림 없는 상한으로 다시. 자세 512(레벨만 읽는다)
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
 
 # ── ⓒ 거친 지면(S=0.5) 앙각 셋 — 자세 512. ⚠8,192 로 두면 샤드 하나에 24 시간이라 줄였다
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
+
+# ⛔⛔이 발주서는 **끝냈다(2026-09-07)** — 남은 줄을 더 사지 않는다.
+#   ① 거칠기 축이 죽었다(상한이 값을 정한다 — 위 머리말).
+#   ② 남은 줄은 전부 **자세 512** 인데, 정본 잣대 `comb_snr` 은 자세가 1,024 미만이면
+#      None 을 돌려준다(도플러 격자가 성겨 대역 안 바닥 칸이 0 개가 된다).
+#      ⇒ 모양으로 못 읽고, 레벨은 인용 못 하는 쪽이다. 살 값어치가 없다.
+#   ③ 게다가 el −30° 실외 줄이 ⓑ·ⓒ 에 **두 번** 들어 있었다.
+#   ⇒ ⓐ(잘림 수렴)가 낸 답만 남기고 접는다. 그 답이 이 판의 결과다.
