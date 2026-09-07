@@ -265,6 +265,37 @@ src·benchmark·outputs·docs·reports·atlas·prior_work 전수에서 40자 이
 
 ---
 
+## 17. 무거운 계산을 새로 만들 때는 **코어를 묶는다** (기계 검사 불가 — 사람이 본다)
+
+⭐**규약** — 이 기계는 GPU 큐가 상시 돌고 있고 우리 몫 CPU 는 16 개다. 감독자는
+**우리 cgroup 의 CPU 사용률이 0.85 를 넘으면 GPU 워커를 아예 안 띄운다.** 그러니
+새로 만드는 계산 스크립트는 **자기가 몇 코어를 쓰는지 스스로 정해야 한다.**
+
+⛔⛔**`OMP_NUM_THREADS=1` 로는 안 막힌다.** SBR 커널의 병렬은 그 환경변수를 안 탄다.
+막는 것은 **`os.sched_setaffinity`** 뿐이다:
+
+```python
+ap.add_argument("--max-cores", type=int, default=2)
+...
+if a.max_cores > 0 and hasattr(os, "sched_setaffinity"):
+    _all = sorted(os.sched_getaffinity(0))
+    os.sched_setaffinity(0, set(_all[:max(1, min(a.max_cores, len(_all)))]))
+```
+
+**실제로 난 일 — 같은 사고가 하루에 두 번 났다(2026-09-07).**
+① 감사 하위 에이전트가 띄운 `audit_*.py` 가 **1,433 %** 를 먹었고, 감독자 셋이
+   최근 검사 20/20 회에서 「⛔대기: CPU 사용률 1.00 > 0.85」로 멈춰 있었다.
+② 그것을 고친 **바로 뒤에**, `benchmark/ground_reciprocity_0907.py` 를
+   `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 19` 로
+   띄웠는데 **1,484 %** 를 먹었다. 새 감독자 `sup_jobs_0913b` 가 55 줄을 받아 놓고
+   **20 분 동안 한 줄도 못 띄웠다**(큐 0/55). 환경변수를 다 줬다는 것이
+   「막았다」는 뜻이 아니었다 — **재 보지 않았다.**
+
+⇒ 무거운 계산을 띄운 뒤에는 `ps -eo pid,pcpu,args` 로 **실제 %를 한 번 본다.**
+  줄 수가 아니라 그 수가 증거다.
+
+---
+
 ## 이 문서를 고칠 때
 
 ⛔이 문서는 **손으로 늘리지 않는다.** 새 항목은 실제로 걸린 사고가 있을 때만 넣고,

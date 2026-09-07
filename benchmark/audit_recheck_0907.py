@@ -202,6 +202,7 @@ def main() -> int:
     doc = {
         "_meta": {
             "generated_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "generator": "benchmark/audit_recheck_0907.py",
             "what_ko": "outdoor_recover_0907 원장의 다투는 수를 독립으로 다시 잰 판",
             "n_null": int(a.n_null),
             "dip_threshold": DIP,

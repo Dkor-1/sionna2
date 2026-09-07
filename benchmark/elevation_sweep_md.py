@@ -488,6 +488,28 @@ def run(a) -> None:
         raise SystemExit("⛔ --grid-shift 는 우리 커널 전용이다 — PathSolver 는 표면 격자를 "
                          "안 쓴다(광선을 Rx 에서 쏘고 경로를 찾는다). 옮길 격자가 없다.")
 
+    #: ⛔⛔**격자 위상 널과 지면을 같이 주지 않는다.** `grid_ref_shift` 는 이동 δ 를
+    #  «û 에 수직» 하게 만든다(rcs_sbr.py:965 `e1, e2 = _grid_basis(u)`). 그래야 위상원점이
+    #  안 돌고 표본 자리만 옮겨져 **순수 대조**가 된다 — 그 파일 :931-933 이 스스로
+    #  「û 성분은 넣지 않는다」고 적는 까닭이다.
+    #  그런데 지면 커널은 다리가 셋이고 그중 둘이 **거울상 방향 û′** 을 탄다
+    #  (rcs_sbr.py:1577 의 E_dg·E_gg). û′ 은 û 의 z 부호를 뒤집은 것이라
+    #      δ·û′ = δ·û − 2·δ_z·u_z = −2·δ_z·u_z ≠ 0
+    #  이고, 지면 다리에만 e^{−jk(δ·û′)} 가 붙는다. 옮기기 전후가 «같아야 하는» 널에
+    #  지면·직접 사이 상대위상 변화가 섞여 들어가, 널이 실패해도 그것이 표본 자리 때문인지
+    #  이 위상 때문인지 가를 수 없다. (:653 에서 같은 gref_el 이 sbr_field_ground 로 간다.)
+    #  ⭐고치려면 — 두 다리 모두에 수직인 이동은 **하나뿐**이다: δ_z = 0 이면서 δ·û = 0,
+    #    곧 지면에 평행하고 시선의 수평 투영에 수직인 방향 δ ∝ (−u_y, u_x, 0) 이다.
+    #    그 축을 넣기 전까지는 둘을 같이 안 준다.
+    if tagsh and getattr(a, "ground", ""):
+        raise SystemExit(
+            "⛔ --grid-shift 와 --ground 를 같이 주지 않는다 — 격자 이동 δ 는 û 에만 "
+            "수직이라 거울상 방향 û′ 에는 δ·û′ = −2·δ_z·u_z ≠ 0 이 남는다. "
+            "그러면 지면 다리에만 위상이 붙어 «표본 자리만 옮긴다» 는 널의 전제가 깨지고, "
+            "널이 실패해도 원인을 못 가른다. "
+            "지면 위에서 위상 널을 보려면 지면에 평행하고 시선의 수평 투영에 수직인 축"
+            "(δ ∝ (−u_y, u_x, 0))을 따로 넣어야 한다 — 아직 없다.")
+
     #: ⛔`--ground` 는 **우리 커널 전용**이다. Sionna 엔진에 주면 아무 일도 안 하면서 이름에만
     #  _gnd 가 붙어 «자유공간이 실외 행세» 를 한다 — `--env` 거부가 막으려던 바로 그 병이다.
     #  (그쪽은 진짜 메쉬를 넣는 `--env` 를 쓴다.)
@@ -1026,12 +1048,29 @@ def analyse() -> None:
             if not fs:
                 continue
             E = None; secs = 0.0; npa = []; cfg = None
+            #: ⭐⭐**잘림을 병합까지 끌고 온다.** 샤드는 `n_trunc` 를 적고 콘솔에도 ⛔를
+            #  찍지만, 2026-09-07 까지 이 고리가 그것을 **안 읽어** 사람들이 인용하는
+            #  원장에는 「잘렸다」가 한 글자도 안 실렸다. 그러면 「상한이 결과를 정하면
+            #  그 축은 접는다」는 규약을 원장만 보고는 지킬 수 없다.
+            #  (2026-09-06 에 지면 거칠기 판이 1,999,98x 로 상한에 붙은 채
+            #   「거칠면 환경 몫이 준다」로 읽힐 뻔한 것이 이 병이다.)
+            n_tr, n_seen, cap_seen = 0, 0, None
             for f in fs:
                 z = np.load(f); ii = z["idx"].astype(int)
                 if E is None:
                     E = np.zeros(int(np.asarray(z["meta"], float)[3]), complex)
                 E[ii] = z["E"]; secs += float(np.asarray(z["meta"], float)[5])
                 if "npaths" in z: npa.append(z["npaths"])
+                if "n_trunc" in z:
+                    _nt = np.asarray(z["n_trunc"]).ravel()
+                    n_tr += int(_nt[0]); n_seen += int(ii.size)
+                    if _nt.size > 1:
+                        cap_seen = int(_nt[1])
+                elif "nret" in z and cap_seen:
+                    #: 옛 세대라 n_trunc 는 없지만 nret 는 있는 샤드 — 여기서 센다
+                    n_tr += int(np.count_nonzero(
+                        np.asarray(z["nret"]) >= 0.99 * cap_seen))
+                    n_seen += int(ii.size)
                 # ⭐행마다 자기 판을 싣는다 — 한 원장에 10 m 와 15 m 가 함께 살기 때문.
                 #   옛 샤드에는 cfg 가 없으므로 모듈 기본값으로 채운다.
                 if cfg is None and "cfg" in z:
@@ -1073,6 +1112,16 @@ def analyse() -> None:
                 b = m_sw.group(1)
                 prov["switches"] = dict(refraction=b[1] == "1", diffraction=b[3] == "1",
                                         edge_diffraction=b[5] == "1", diffuse=b[7] == "1")
+            #: ⭐잘림 — 0 이 아니면 **그 행의 레벨을 인용하지 않는다.**
+            prov["n_trunc"] = int(n_tr)
+            prov["n_poses_with_path_count"] = int(n_seen)
+            prov["max_paths_cap"] = cap_seen
+            prov["truncated"] = bool(n_tr)
+            if n_tr:
+                prov["truncation_warning_ko"] = (
+                    f"⛔자세 {n_tr:,}/{n_seen:,} 가 경로 상한"
+                    f"{'' if cap_seen is None else f' {cap_seen:,}'} 에 붙었다 — "
+                    "이 행의 레벨을 인용하지 마라. 준 것이 물리인지 잘림인지 모른다.")
             m_az = re.search(r"_az(-?\d+(?:\.\d+)?)", eng)
             m_div = re.search(r"_div(\d+)", eng)
             prov["az_deg"] = float(m_az.group(1)) if m_az else float(TJ.get("az_deg", 0.0))
