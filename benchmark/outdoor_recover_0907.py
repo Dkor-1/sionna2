@@ -215,9 +215,27 @@ def main() -> int:
                         c["residual_top10_share_pct"] = round(
                             100 * float(np.sum(d[k] ** 2) / max(np.sum(d ** 2), 1e-300)), 1)
                         c["residual_note_ko"] = "자세 평균을 뺀 뒤의 잔차다 — 안 빼면 지면의 상수가 다 먹는다"
-                        a = np.abs(O) / float(np.median(np.abs(O)))
+                        #: ⛔⛔**2026-09-07 — 두 배열을 섞어 읽고 있었다.** 순위 k 는
+                        #  **메운 뒤** 배열 o_fill 의 잔차에서 나오는데, 밝기는
+                        #  **메우기 전** 배열 O 에서 읽었다. 그래서 이미 메워진 골 자세가
+                        #  «밝기 0.005» 같은 골 값 그대로 원장에 실렸고, 그 목록을 근거로
+                        #  레포트가 「그 자세들은 밝다(≈1.117)」라고 적었다.
+                        #  ⇒ 순위를 낸 배열(o_fill)에서 읽는다. 견줄 수 있게 메우기 전
+                        #    값도 함께 싣되 이름으로 구분한다.
+                        a_fill = np.abs(o_fill) / float(np.median(np.abs(o_fill)))
+                        a_raw = np.abs(O) / float(np.median(np.abs(O)))
                         c["top10_pose_idx"] = [int(x) for x in sorted(k)]
-                        c["top10_abs_over_median"] = [round(float(a[x]), 3) for x in sorted(k)]
+                        c["top10_abs_over_median"] = [round(float(a_fill[x]), 3)
+                                                      for x in sorted(k)]
+                        c["top10_abs_over_median_before_fill"] = [
+                            round(float(a_raw[x]), 3) for x in sorted(k)]
+                        c["top10_note_ko"] = (
+                            "top10_abs_over_median 은 **순위를 낸 배열(메운 뒤)** 에서 읽은"
+                            " 값이다. _before_fill 은 메우기 전 값이라 이미 메워진 골"
+                            " 자세에서는 골 값(≪1)이 나온다 — 그 목록으로 «밝다» 를"
+                            " 말하면 안 된다.")
+                        #: 이 열 자세 중 정말 «밝은»(중앙값 위) 것이 몇인가 — 세어서 적는다
+                        c["top10_n_bright"] = int(sum(1 for x in k if a_fill[x] > 1.0))
                         #: ⭐**문턱 하나에 매달리지 않는다.** 1.05 는 원래 `_meta` 에도
                         #  없던 자유 파라미터였다. 사다리를 통째로 남기고, 판정이
                         #  문턱에 따라 갈리는 칸을 `bright_verdict_flips` 로 표시한다.
