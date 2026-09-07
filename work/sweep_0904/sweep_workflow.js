@@ -143,6 +143,15 @@ Read 로 \`${DIR}/${'PADME'}\` 를 **끝까지 전부** 읽어라. 파일이 길
 숫자가 의심스러우면 Grep 으로 docs/RETRACTION_LOG.md 를 뒤져 철회됐는지 확인해라.
 원장 값을 다시 계산해야 하면 Bash 로 \`CUDA_VISIBLE_DEVICES="" python3\` 를 써라.
 
+⛔⛔**CPU 를 아껴라 — 이 기계는 지금 GPU 큐가 돌고 있고 우리 몫 CPU 는 16 개뿐이다.**
+  요원 하나가 14 코어를 먹어 감독자 셋이 «CPU 1.00 > 0.85» 로 멈춘 적이 있다(2026-09-07).
+  · 파이썬을 돌릴 때는 **반드시** 앞에 붙여라:
+    \`CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 19\`
+  · ⛔저장소 **전체**를 훑는 무거운 스크립트를 쓰지 마라(수천 개 .npz 를 다 여는 것 등).
+    네 샤드가 가리키는 **그 파일들만** 열어라.
+  · ⛔한 번에 몇 분 넘게 도는 계산을 돌리지 마라. 확인이 그렇게 비싸면 «확인 못 함» 으로 적어라.
+  · grep·sed 같은 가벼운 도구를 먼저 쓰고, 파이썬은 꼭 필요할 때만.
+
 발견이 없으면 findings 를 빈 배열로 둬라 — **없는데 만들어 내지 마라.**
 lines_read·files_covered 에는 실제로 읽은 줄 수와 파일 수를 적어라.`.replace('PADME', pad(id) + '.txt'),
     { label: `읽기:${pad(id)}`, phase: 'Read', schema: FINDING_SCHEMA, effort: 'medium' }
