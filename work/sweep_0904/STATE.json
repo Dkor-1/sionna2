@@ -1,10 +1,18 @@
 {
- "무엇": "저장소 전수조사 — 문서·레포트·코드를 한 줄씩 훑어 과잉 결론을 찾는다",
- "언제": "2026-09-04",
- "왜": "앞선 판(w70eyfnmb)은 표본이었다. 사용자가 진짜 전수를 요청했다.",
+ "무엇": "저장소 **2 차** 전수조사 — 09-06 판 이후 260 파일·+25,296 줄이 바뀌었고 그 구간이 안 훑였다",
+ "언제": "2026-09-07",
+ "왜": "사용자 재요청. 1 차(09-04~06)는 900 건을 고쳤지만 그 뒤 내가 만든 새 파일 11 개와 고친 코드·레포트·원장이 안 훑였다. 그 구간에서만 이틀 동안 오류를 여섯 번 냈다.",
+ "1차_결과": {
+  "확정": 900,
+  "물결": [
+   "1 발행면+미조사: 끝 — 267 건 확인",
+   "2 코드+원장: 끝 — 549 건 확인",
+   "3 영문: 끝 — 84 건 확인"
+  ]
+ },
  "샤드": {
-  "만드는_법": "CUDA_VISIBLE_DEVICES='' python3 work/sweep_0904/make_shards.py",
-  "어디": "work/sweep_0904/shards  (.gitignore — 18 MB)",
+  "만드는_법": "CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python work/sweep_0904/make_shards.py",
+  "어디": "work/sweep_0904/shards  (.gitignore)",
   "검산": "마지막 줄이 '✅ 손실 없음' 이어야 한다",
   "ranges": {
    "A_발행면": [
@@ -13,24 +21,25 @@
    ],
    "B_코드": [
     64,
-    147
+    151
    ],
    "C_원장": [
-    148,
-    250
+    152,
+    255
    ],
    "D_미조사": [
-    251,
-    270
+    256,
+    321
    ],
    "E_영문": [
-    271,
-    307
+    322,
+    359
    ]
   },
-  "n_shards": 308,
-  "n_ko_lines": 223975,
-  "n_files": 1639
+  "n_shards": 360,
+  "n_ko_lines": 243499,
+  "n_files": 1700,
+  "1차_대비": "샤드 308→360 · 한글 줄 223,975→243,499 · 파일 1,639→1,700"
  },
  "물결": [
   {
@@ -41,117 +50,52 @@
      63
     ],
     [
-     251,
-     270
+     256,
+     321
     ]
    ],
-   "샤드": 84,
-   "상태": "끝 — 267 건 확인",
-   "run_id": "wf_0d449f5c-c1c",
-   "task_id": "wvmaiv2pn",
-   "결과파일": "work/sweep_0904/findings_wave1.json",
-   "n_candidates": 494,
-   "n_confirmed": 267,
-   "고친_것": "«틀린 수가 인용된다» 26 건 중 24 건(#23 prior_work.json · #25 mesh01 은 원장 확인 필요)"
+   "샤드": 130,
+   "상태": "도는 중",
+   "task_id": "ww34pyi9c",
+   "run_id": "wf_a83e023c-aad",
+   "결과파일": "work/sweep_0904/findings2_wave1.json",
+   "재개": "Workflow({scriptPath:'work/sweep_0904/sweep_workflow.js', resumeFromRunId:'wf_a83e023c-aad', args:{ranges:[[0,63],[256,321]]}})"
   },
   {
    "이름": "2 코드+원장",
    "ranges": [
     [
      64,
-     147
+     151
     ],
     [
-     148,
-     250
+     152,
+     255
     ]
    ],
-   "샤드": 187,
-   "상태": "끝 — 549 건 확인",
-   "결과파일": "work/sweep_0904/findings_wave2.json",
-   "run_id": "wf_08dab407-198",
-   "task_id": "wbfeklocr",
-   "읽기": "187/187 완료(캐시) · 후보 1163",
-   "확인": "52/187 · 확인 167건",
-   "재개": "Workflow({scriptPath:'work/sweep_0904/sweep_workflow.js', resumeFromRunId:'wf_08dab407-198', args:{ranges:[[64,147],[148,250]]}})",
-   "n_candidates": 1164,
-   "n_confirmed": 549,
-   "고친_것": "«틀린 수» 90 건 중 클러스터 위주로 ~45 자리(3~8배 · R29 21.8 %p · 0.201 dB · 구-대-메쉬 · φ)"
+   "샤드": 192,
+   "상태": "대기"
   },
   {
    "이름": "3 영문",
    "ranges": [
     [
-     271,
-     307
+     322,
+     359
     ]
    ],
-   "샤드": 37,
-   "상태": "끝 — 84 건 확인",
-   "결과파일": "work/sweep_0904/findings_wave3.json",
-   "run_id": "wf_938ae614-935",
-   "task_id": "wil4kqckv",
-   "n_candidates": 185,
-   "n_confirmed": 84
+   "샤드": 38,
+   "상태": "대기"
   }
  ],
  "워크플로": {
   "스크립트": "work/sweep_0904/sweep_workflow.js",
-  "부르는_법": "Workflow({scriptPath:'work/sweep_0904/sweep_workflow.js', args:{ranges:[[0,63],[251,270]]}})",
-  "단계": "읽기(medium) → 적대적 재검증(high). 확인자는 기각 쪽이다"
+  "부르는_법": "Workflow({scriptPath:'work/sweep_0904/sweep_workflow.js', args:{ranges:[[0,63],[256,321]]}})",
+  "단계": "읽기 → 적대적 재검증. 확인자는 기각 쪽이다",
+  "⚠주의": "스크립트 안 ALREADY_FIXED 는 1 차에서 고친 목록이다 — 그대로 둔다(그 고침은 유효하다)"
  },
- "다음_할_일": [
-  "남은 90 건 — 대부분 outputs/ 원장 안 문자열(사람이 직접 읽는 자리가 아님)",
-  "⛔benchmark/geometry_grid.py 는 재빌드 금지(입력이 multistatic 블록을 잃었다)",
-  "⚠src/make_report02_target.py 는 원장 드리프트로 죽는다(내 치환 탓 아님)",
-  "관문 넷을 커밋 전에 항상 돌린다"
- ],
- "관문": [
-  "benchmark/check_report_links.py",
-  "benchmark/check_row_pointers.py",
-  "benchmark/check_retracted.py (2026-09-04 신설)",
-  "benchmark/check_stale_titles.py (2026-09-05 신설 — 내가 저지른 결함이 계기)"
- ],
- "지뢰": [
-  "make_report11_2_two_channel.py 는 챔버 편을 되살린다(SIONNA_ALLOW_CHAMBER 로 막았다)",
-  "geometry_grid.py / geometry_benchmark.py 는 입력이 깨져 지금 못 돈다",
-  "git checkout 으로 시험 되돌리면 같은 파일의 내 정정도 날아간다",
-  "조사 에이전트에게 빌더를 돌리게 하지 않는다 — 읽기만",
-  "python 은 /workspace/.venvs/py312/bin/python (~/.venvs 아니다)"
- ],
- "세_물결_합계": {
-  "확인": 900,
-  "틀린 수": "1+2+3 = 26+90+12 = 128",
-  "결과파일": [
-   "work/sweep_0904/findings_wave1.json",
-   "work/sweep_0904/findings_wave2.json",
-   "work/sweep_0904/findings_wave3.json"
-  ]
- },
- "고치기_진행": {
-  "찾음": 900,
-  "고침": 810,
-  "남음": 90,
-  "퍼센트": 90,
-  "등급별": {
-   "틀린 수가 인용된다": "120/128 (94%)",
-   "발표에 걸린다": "212/233 (91%)",
-   "오해를 부른다": "371/418 (89%)",
-   "작다": "107/121 (88%)"
-  },
-  "남은_곳": {
-   "outputs": 57,
-   "reports": 7,
-   "prior_work": 7,
-   "report_mesh": 7,
-   "docs": 6,
-   "atlas": 3
-  },
-  "명세_워크플로": "work/sweep_0904/fix_all_workflow.js — args {from,count,chunk,n}",
-  "명세_결과": [
-   "fix_specs_0_127.json",
-   "fix_specs_128_255.json",
-   "fix_specs_256_381.json"
-  ]
+ "함께_도는_것": {
+  "적대_감사": "task w2b8u1f9r — 09-06 이후 구간만 다섯 갈래로 깊게. 전수조사와 상보적이다",
+  "GPU_큐": "jobs_0907 · 0912 · 0913 (감독자 셋)"
  }
 }
