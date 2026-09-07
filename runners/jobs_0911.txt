@@ -1,45 +1,22 @@
-# ── ⓐ ⭐⭐잘림 수렴 — 상한을 올려도 값이 안 움직이나 (자세 256, 싸고 결정적)
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --max-paths 6000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --max-paths 6000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --max-paths 6000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --max-paths 6000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --max-paths 12000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 256 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --max-paths 12000000 --shard 1 --nshards 2
+# ⛔⛔거칠기(--env-scat) 줄을 전부 뺐다 (2026-09-07) — 이 방법으로는 못 잰다.
+#   ⓐ 잘림 수렴이 답을 줬는데, 답이 «수렴하지 않는다» 였다. 상한 2M·6M·12M 어디서나
+#   자세당 경로 수가 **상한을 그대로 따라간다**(198만·598만·1198만). 늘 포화다.
+#   레벨도 안 수렴한다 — S=0.3 에서 −101.55 → −104.63 → −97.40 dB 로 튄다.
+#   ⇒ 값을 정하는 것은 물리가 아니라 상한이다. 그리고 12M 짜리는 cgroup 24 GiB 를
+#     넘겨 rc=−9(OOM)로 3 줄이 35~73 분씩 돌다 죽었다 — GPU 시간까지 태운다.
+#   남긴 것은 거칠기를 안 준 대조 칸뿐이다.
+
 
 # ── ⓑ 거칠기 사다리 — 잘림 없는 상한으로 다시. 자세 512(레벨만 읽는다)
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0 --max-paths 12000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.1 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.1 --max-paths 12000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.3 --max-paths 12000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.7 --max-paths 12000000 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 1 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 1 --max-paths 12000000 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
 
 # ── ⓒ 거친 지면(S=0.5) 앙각 셋 — 자세 512. ⚠8,192 로 두면 샤드 하나에 24 시간이라 줄였다
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-15 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-15 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-60 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-60 --env outdoor01 --env-scat 0.5 --max-paths 12000000 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --range-m 15 --max-depth 2 --n-poses 512 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
