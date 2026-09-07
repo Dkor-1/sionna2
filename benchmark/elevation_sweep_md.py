@@ -500,7 +500,34 @@ def run(a) -> None:
     if float(getattr(a, "env_alt", 0.0) or 0.0):
         if not getattr(a, "env", ""):
             raise SystemExit("⛔ --env-alt 는 --env 와 함께 준다 — 환경이 없으면 지면도 없다.")
+        #: ⛔⛔**남의 씬에는 안 걸린다.** `_ENV_ALT` 를 읽는 곳은 `env_parts`(:200) 뿐인데
+        #  `--env sionna:*` 갈래는 :813-814 에서 `build_scene_builtin` 으로 빠지고
+        #  `env_parts` 를 부르지 않는다(부르는 곳은 :817 의 else 갈래뿐).
+        #  그런데 이름표 :464 는 `_alt<값>` 을 붙이므로 `_alt10`·`_alt40`·무태그 세 팔이
+        #  **같은 데이터**가 되고 원장은 그것을 「고도를 흔들어 봤다」로 읽는다.
+        #  (남의 씬의 고도는 상수 `ENV_BUILTIN_ALT`=25.0 이다 — :118·:170.)
+        if str(a.env).startswith("sionna:"):
+            raise SystemExit(
+                f"⛔ --env-alt {float(a.env_alt):g} 는 남의 씬(--env {a.env})에 안 걸린다 —"
+                " 그 갈래는 build_scene_builtin 으로 가고 env_parts 를 안 부른다"
+                f" (고도는 상수 ENV_BUILTIN_ALT={ENV_BUILTIN_ALT:g} 로 고정)."
+                " 그대로 두면 이름만 `_alt` 로 갈라진 같은 샤드가 생긴다."
+                " 고도를 흔들려면 우리 씬(--env outdoor01*)에 줘라.")
         _ENV_ALT[0] = float(a.env_alt)
+
+    #: ⛔⛔**씨앗은 프리셋이 있을 때만 읽힌다.** 위 :396-405 에서 `_rng` 는 `if _rp:` 안에서만
+    #  만들어지고, 프리셋이 없으면 상수 rpm 경로(`rotor_phases(t, rpms, dirs)`)로 간다 —
+    #  씨앗을 아무리 바꿔도 **같은 데이터**다. 그런데 이름표 :474 는 씨앗을 담으므로
+    #  `…s1` `…s2` 라는 서로 다른 파일에 같은 내용이 적히고, 원장은 그것을
+    #  「씨앗을 흔들어 봤다」로 읽는다. 2026-09-07 감사에서 0913 F 안 8 줄(≈17 GPU시간)이
+    #  이것으로 잡혔다.
+    if int(getattr(a, "rotor_seed", 0) or 0) and not getattr(a, "rotor_preset", ""):
+        raise SystemExit(
+            f"⛔ --rotor-seed {int(a.rotor_seed)} 를 --rotor-preset 없이 줬다 — 씨앗은"
+            " 프리셋이 있을 때만 읽힌다(위 `if _rp:` 안에서만 default_rng 가 만들어진다)."
+            " 프리셋 없이 씨앗만 바꾸면 이름은 `s1`/`s2` 로 갈라지는데 내용은 비트동일해서"
+            " 원장이 «씨앗을 흔들어 봤다» 고 거짓말을 한다."
+            " 로터 산포를 흔들려면 --rotor-preset 을 함께 줘라.")
 
     #: ⚠자세가 적으면 **정본 잣대로 못 읽는다.** `benchmark/comb_snr.comb_snr` 은 도플러
     #  격자(PRF/자세수)가 성겨지면 대역 안 바닥 칸이 0 개가 되어 None 을 돌려준다 —
@@ -673,6 +700,20 @@ def run(a) -> None:
         if not m:
             raise SystemExit(f"⛔ --sw 형식: R<0|1>D<0|1>E<0|1>F<0|1> (받은 값 {swbits!r})")
         r_, d_, e_, f_ = (bool(int(x)) for x in m.groups())
+        #: ⛔⛔**E 는 D 없이 아무 일도 안 한다.** 상류 후보 생성기에서
+        #  `edge_diffraction_enabled` 는 `if diffraction_enabled:` 블록 **안에서만** 쓰인다
+        #  (sionna/rt/path_solvers/sb_candidate_generator.py:600 → :606, 깊이와 무관).
+        #  그래서 D0E1 은 D0E0 과 **비트동일**한데 이름에는 `_swR?D0E1F?` 가 붙어
+        #  「모서리회절 팔」 행세를 한다 — 위 :476 문지기가 막으려던 바로 그 병
+        #  (「이름만 바뀌고 내용이 같은 샤드가 생겨 원장이 거짓말을 한다」)이다.
+        #  2026-09-07 감사에서 0913 A 안 12 줄(≈13 GPU시간)이 이것으로 잡혔다.
+        if e_ and not d_:
+            raise SystemExit(
+                f"⛔ --sw {swbits} — 회절 D 를 끄면 모서리회절 E 는 아무 일도 안 한다"
+                " (상류 sb_candidate_generator.py:600 에서 edge_diffraction_enabled 가"
+                " `if diffraction_enabled:` 안에서만 쓰인다). 이 팔은 D0E0 과 비트동일한데"
+                " 이름만 달라져 원장이 «모서리회절 팔» 이라 거짓말을 한다."
+                " 모서리회절을 보려면 D1E1 ↔ D1E0 을 짝지어라.")
         sw = dict(refraction=r_, diffraction=d_, edge_diffraction=e_)
         diffuse = f_
         mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1

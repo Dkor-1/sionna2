@@ -41,7 +41,7 @@ make_jobs_0913.py — 클러터 다음 판 **여섯 안 전부**, 사용자가 �
 """
 from __future__ import annotations
 
-import math
+import math, re
 import sys
 
 BASE = "--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2"
@@ -55,8 +55,24 @@ def sec(t: str) -> None:
 
 
 def job(*, arm: str, el: float, env: str = "", az=None, rng: int = 15,
-        depth: int = 2, drone: str = "", seed: int = 0, nsh: int = 2) -> None:
-    #: ⛔줄마다 막는다 — 레이다가 지면 아래로 가면 그 줄은 뜻이 없다.
+        depth: int = 2, drone: str = "", seed: int = 0, preset: str = "",
+        nsh: int = 2) -> None:
+    #: ⛔줄마다 막는다 — 발주기가 «돌기 전에» 잡는 것이 GPU 슬롯보다 싸다.
+    #  아래 셋은 2026-09-07 감사에서 실제로 큐에 살아 있던 사고다(≈30 GPU시간).
+    #  같은 문지기가 benchmark/elevation_sweep_md.py 에도 있다 — 둘 다 둔다.
+    m = re.fullmatch(r"R([01])D([01])E([01])F([01])", arm)
+    if not m:
+        raise SystemExit(f"⛔ 팔 이름 형식: R#D#E#F# (받은 값 {arm!r})")
+    if m.group(3) == "1" and m.group(2) == "0":
+        raise SystemExit(f"⛔ {arm} 은 무동작 팔이다 — 회절 D 를 끄면 모서리회절 E 는 "
+                         "아무 일도 안 한다(D0E1 ≡ D0E0, 이름만 다른 같은 샤드). "
+                         "모서리회절을 보려면 D1E1 ↔ D1E0 을 짝지어라.")
+    if seed and not preset:
+        raise SystemExit(f"⛔ 씨앗 {seed} 을 프리셋 없이 줬다 — 씨앗은 --rotor-preset 이 "
+                         "있을 때만 읽힌다. 프리셋 없이 씨앗만 바꾸면 이름은 갈라지고 "
+                         "내용은 비트동일하다.")
+    if env.startswith("sionna:") and preset == "__envalt__":
+        raise SystemExit("⛔ 남의 씬에는 고도를 못 건다 — ENV_BUILTIN_ALT 로 고정이다.")
     if env:
         alt = ALT_BUILTIN if env.startswith("sionna:") else ALT_OURS
         d = rng * math.sin(math.radians(abs(el)))
@@ -65,7 +81,8 @@ def job(*, arm: str, el: float, env: str = "", az=None, rng: int = 15,
     e = f" --env {env}" if env else ""
     a = "" if az is None else f" --az-deg {az:g}"
     dr = f" --drone {drone}" if drone else ""
-    sd = f" --rotor-seed {seed}" if seed else ""
+    sd = (f" --rotor-preset {preset}" if preset else "") + \
+         (f" --rotor-seed {seed}" if seed else "")
     md = "" if depth == 2 else f" --max-depth {depth}"
     b = BASE if depth == 2 else BASE.replace(" --max-depth 2", md)
     OUT.extend(f"{b} --range-m {rng} --sw {arm} --els={el:g}{a}{e}{dr}{sd}"
@@ -79,11 +96,17 @@ for az in (15, 30, 60, 75):
     job(arm="R0D0E0F1", el=-30, az=az)
 
 # ══ A ══ 가장 큰 구멍
-sec("A ⭐회절 D 와 모서리회절 E 를 따로 켠다 — 회절 켠 팔이 왜 안 돌아오나")
-for arm in ("R0D1E0F1", "R0D0E1F1"):
-    for el in (-30, -60, -75):
-        job(arm=arm, el=el, env="outdoor01")
-        job(arm=arm, el=el)
+#: ⭐**2026-09-07 재설계.** 처음에는 `R0D1E0F1` 과 `R0D0E1F1` 두 팔을 사려 했는데,
+#  `R0D0E1F1` 은 **무동작 팔**이다 — 회절 D 를 끄면 모서리회절 E 는 아무 일도 안 한다
+#  (sionna/rt/path_solvers/sb_candidate_generator.py:600 에서 edge_diffraction_enabled 가
+#  `if diffraction_enabled:` 안에서만 쓰인다). D0E1 은 D0E0 과 비트동일한데 이름만
+#  달라져 원장이 「모서리회절 팔」이라 거짓말을 했을 것이다. 12 줄(≈13 GPU시간)을 뺐고,
+#  `elevation_sweep_md.py` 가 이제 그런 줄을 문지기로 막는다.
+#: ⭐가르는 짝은 **D1E0 ↔ D1E1** 이다. D1E1 은 실외·자유공간 모두 el −30·−60·−75 에
+#  이미 있으므로(outputs/elev_sweep_shards 확인, 2026-09-07) 새로 살 것은 D1E0 뿐이다.
+for el in (-30, -60, -75):
+    job(arm="R0D1E0F1", el=el, env="outdoor01")
+    job(arm="R0D1E0F1", el=el)
 
 # ══ C ══ 발표 그림
 sec("C 남의 씬(거리 협곡·뮌헨) — 우리 콘크리트 판이 인공적인가 ⚠고도 25 m 로 다르다")
@@ -105,10 +128,18 @@ job(arm="R0D0E0F1", el=-15, env="outdoor01", rng=60); job(arm="R0D0E0F1", el=-15
 job(arm="R0D0E0F1", el=-30, env="outdoor01", depth=3); job(arm="R0D0E0F1", el=-30, depth=3)
 
 # ══ F ══
-sec("F 재현성 — 꺼진 자세가 씨앗을 타나 (⚠--rep 판은 1e−7 이라 산포를 못 잰다)")
-for seed in (1, 2):
-    for el in (-30, -60):
-        job(arm="R0D0E0F1", el=el, env="outdoor01", seed=seed)
+#: ⭐**2026-09-07 재설계.** 처음에는 `--rotor-seed` 만 줬는데, 씨앗은 **프리셋이 있을 때만
+#  읽힌다** — `elevation_sweep_md.py` 의 `_rng` 는 `if _rp:` 안에서만 만들어지고, 없으면
+#  상수 rpm 경로로 간다. 씨앗만 바꾼 여덟 줄은 이름만 `s1`/`s2` 로 갈라진 **같은 데이터**가
+#  됐을 것이다(≈17 GPU시간). 이제 문지기가 막는다.
+#: ⭐그리고 자유공간 짝은 **이미 있다** — `swR0D0E0F1 … rotoutdoor_v2s1/s2/s3 … el−30` 이
+#  el+0·el−30 두 자리에 있다(2026-09-07 확인). 빈칸은 그 **실외 짝**뿐이다. 그래서
+#  프리셋 `outdoor_v2` 를 걸고 같은 씨앗 셋을 실외에서 산다 ⇒ 규약 ④(자유공간 짝)를 지킨다.
+#: ⚠el 은 −30 만이다 — 자유공간 씨앗 판이 el+0·el−30 뿐이고, el+0 은 GATES_0902 로
+#  「레벨·폭」 인용이 막혀 있어 짝으로 못 쓴다.
+sec("F 재현성 — 꺼진 자세가 씨앗을 타나 ⭐프리셋 outdoor_v2 + 씨앗 (자유공간 짝은 이미 있다)")
+for seed in (1, 2, 3):
+    job(arm="R0D0E0F1", el=-30, env="outdoor01", preset="outdoor_v2", seed=seed)
 
 GROUPS.append(("끝", len(OUT)))
 if "--summary" in sys.argv:

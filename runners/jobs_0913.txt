@@ -1,30 +1,14 @@
-# ⛔거르기에서 STALE 로 나온 10 줄을 **빼고** 발주한다(2026-09-07).
-#   그 10 줄은 전부 D·E 안의 **자유공간 대조군**이고, 목표 샤드가 이미 있으며 E 배열이
-#   온전하다 — 없는 것은 겹침 셈(n_dup)뿐이다. 이 판은 **모양**(빗살 SNR·STFT)으로
-#   읽으므로 n_dup 을 안 쓴다. ⇒ 사지 말고 그대로 대조군으로 쓴다. 약 7 GPU시간 아꼈다.
+# ══ 0913 큐 · 2 판 (2026-09-07 감사 뒤 다시 깎음) ══
+#  ⭐뺀 것 — 무동작 팔 R0D0E1F1 12 줄(회절 D 를 끄면 모서리회절 E 는 아무 일도 안 한다,
+#     sb_candidate_generator.py:600) · 프리셋 없는 씨앗 8 줄(씨앗은 프리셋이 있을 때만 읽힌다).
+#     둘 다 「이름만 다른 같은 샤드」였다. ≈30 GPU시간.
+#  ⭐고친 것 — A 안은 D1E0 ↔ D1E1 로 가른다(D1E1 은 이미 있다).
+#     F 안은 프리셋 outdoor_v2 + 씨앗 1·2·3 을 실외에서 산다(자유공간 짝이 이미 있다).
+#  ⭐--overwrite 10 줄 — 자유공간 짝이 옛 세대라 n_dup 이 없다. 실외 짝은 새로 사므로
+#     그대로 두면 두 판의 세대가 어긋난다(2026-09-07 감사 치명 ①이 바로 그 병이다).
+#  ⛔이미 돌고 있던 4 줄은 뺐다 — 두 번 사면 같은 파일에 두 워커가 쓴다.
+#  ⛔문지기는 benchmark/elevation_sweep_md.py 와 runners/make_jobs_0913.py 양쪽에 있다.
 
-# ── B ⭐방위를 돌려도 이야기가 서나 — 지금 결론은 방위 0° 한 자리에 붙어 있다
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 15 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 15 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 15 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 15 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 30 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 30 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 30 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 30 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 60 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 60 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 60 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 60 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 75 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 75 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 75 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 75 --shard 1 --nshards 2
-
-# ── A ⭐회절 D 와 모서리회절 E 를 따로 켠다 — 회절 켠 팔이 왜 안 돌아오나
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-30 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-30 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
@@ -34,20 +18,6 @@
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-75 --env outdoor01 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-75 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-75 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-30 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-30 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-60 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-60 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-75 --env outdoor01 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-75 --env outdoor01 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-75 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E1F1 --els=-75 --shard 1 --nshards 2
-
-# ── C 남의 씬(거리 협곡·뮌헨) — 우리 콘크리트 판이 인공적인가 ⚠고도 25 m 로 다르다
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
@@ -58,37 +28,39 @@
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:munich --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:munich --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:munich --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:munich --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:munich --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-30 --env sionna:munich --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-30 --env sionna:munich --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-60 --env sionna:munich --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-60 --env sionna:munich --shard 1 --nshards 2
-
-# ── D 기체를 바꿔도 같은가 — 실외는 지금 matrice4e 하나뿐이다
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --drone mini5pro --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --drone mini5pro --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --drone mini5pro --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --drone mini5pro --shard 1 --nshards 2 --overwrite
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --drone mavic4pro --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --drone mavic4pro --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --drone mavic4pro --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --drone mavic4pro --shard 1 --nshards 2 --overwrite
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --drone phantom4 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --drone phantom4 --shard 1 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --drone phantom4 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --drone phantom4 --shard 1 --nshards 2
-
-# ── E 거리·깊이 — 실외는 전부 15 m · 깊이 2 뿐이다 (땅속을 피해 앙각을 맞췄다)
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 30 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 30 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 30 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 30 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2 --overwrite
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 60 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 60 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 60 --sw R0D0E0F1 --els=-15 --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 60 --sw R0D0E0F1 --els=-15 --shard 1 --nshards 2 --overwrite
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
-
-# ── F 재현성 — 꺼진 자세가 씨앗을 타나 (⚠--rep 판은 1e−7 이라 산포를 못 잰다)
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-seed 1 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-seed 1 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --rotor-seed 1 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --rotor-seed 1 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-seed 2 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-seed 2 --shard 1 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --rotor-seed 2 --shard 0 --nshards 2
---engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --rotor-seed 2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-preset outdoor_v2 --rotor-seed 1 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-preset outdoor_v2 --rotor-seed 1 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-preset outdoor_v2 --rotor-seed 2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-preset outdoor_v2 --rotor-seed 2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-preset outdoor_v2 --rotor-seed 3 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --rotor-preset outdoor_v2 --rotor-seed 3 --shard 1 --nshards 2

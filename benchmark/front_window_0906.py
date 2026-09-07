@@ -118,23 +118,80 @@ def ladder(cells, arm: str, key: str) -> dict:
 
 
 def edge(lad: dict) -> dict:
-    """켜진 마지막 각도와 처음 꺼진 각도 — ①로 판단한다."""
-    ks = sorted(lad, key=lambda x: abs(float(x)))
-    last_on = first_off = None
+    """켜진 마지막 각도와 그 **바로 바깥** 첫 꺼진 각도.
+
+    ⛔⛔**2026-09-07 — 옛 판은 성립할 수 없는 값을 냈다.** 옛 코드는 `first_off` 를
+    「안쪽부터 훑어 처음 만난 꺼진 칸」으로 잡았는데, 사다리가 **단조가 아니면**
+    그 칸이 `last_on` 보다 **안쪽**에 놓인다. 실제로 R0D1E1F1 방위는
+    0.05°(켜짐) → 0.07°(1.0 %, 꺼짐) → 0.10·0.11°(켜짐) → 0.12°(꺼짐) 이라
+    {last_on 0.11, first_off 0.07} 이 나왔다 — 꺼지는 자리가 켜진 자리보다 앞이다.
+    그 값이 docs/RESUME.md 와 덱 결론줄로 흘러갔다.
+
+    ⇒ 이제 **바깥 경계**를 낸다: 켜진 가장 바깥 칸(`last_on`)과, 그보다 바깥에서
+      처음 꺼진 칸(`first_off`). 그리고 사다리가 단조인지(`monotonic`)와
+      「꺼졌다 다시 켜진」 칸들(`reentrant_deg`)을 함께 적는다 —
+      ⛔단조가 아니면 경계 하나로 인용하지 않는다.
+    """
+    ks = [k for k in sorted(lad, key=lambda x: abs(float(x)))
+          if abs(float(k)) > 1e-9]
+    on = [k for k in ks if lad[k]["share_pct"] > 50.0]
+    last_on = on[-1] if on else None
+    first_off = None
+    if last_on is not None:
+        for k in ks:
+            if abs(float(k)) > abs(float(last_on)) and lad[k]["share_pct"] <= 50.0:
+                first_off = k
+                break
+    #: 꺼졌다 다시 켜진 칸 — 이것이 있으면 「한 칸에서 사라진다」가 그대로 안 선다
+    seen_off, reentrant = False, []
     for k in ks:
-        if abs(float(k)) < 1e-9:
-            continue
-        if lad[k]["share_pct"] > 50.0:
-            last_on = k
-        elif first_off is None:
-            first_off = k
-    return dict(last_on_deg=last_on, first_off_deg=first_off)
+        if lad[k]["share_pct"] <= 50.0:
+            seen_off = True
+        elif seen_off:
+            reentrant.append(k)
+    return dict(last_on_deg=last_on, first_off_deg=first_off,
+                monotonic=not reentrant, reentrant_deg=reentrant,
+                note_ko=("" if not reentrant else
+                         "⛔사다리가 단조가 아니다 — 꺼졌다 다시 켜지는 칸이 있어"
+                         " 경계 하나로 인용할 수 없다"))
 
 
 def main() -> int:
     g = group_files()
     cells = {k: v for k, v in ((k, measure(p)) for k, p in g.items()) if v}
     arms = sorted({k[0] for k in cells})
+
+    #: ⭐**요약 문장을 손으로 쓰지 않는다.** 2026-09-07 감사에서 손으로 쓴 문장 둘이
+    #  같은 원장의 값과 어긋난 채 발주 판단까지 정한 것이 잡혔다. 이제 여기서 센다.
+    BY = {
+        arm: {
+            "azimuth_ladder_at_el0": ladder(cells, arm, "az"),
+            "elevation_ladder_at_az0": ladder(cells, arm, "el"),
+        }
+        for arm in arms
+    }
+    for arm, v in BY.items():
+        v["edge"] = {"azimuth": edge(v["azimuth_ladder_at_el0"]),
+                     "elevation": edge(v["elevation_ladder_at_az0"])}
+
+    def _inside(key):
+        """창 안(share>50)의 값들 — 요약 문장이 여기서 나온다."""
+        out = []
+        for v in BY.values():
+            for ax in ("azimuth_ladder_at_el0", "elevation_ladder_at_az0"):
+                out += [e[key] for e in v[ax].values()
+                        if e["share_pct"] > 50.0 and e.get(key) is not None]
+        return out
+
+    _N, _R = _inside("N"), _inside("r_max")
+    _spp = sorted({x for v in BY.values() for ax in
+                   ("azimuth_ladder_at_el0", "elevation_ladder_at_az0")
+                   for e in v[ax].values() for x in (e.get("spp") or [])})
+    _spp_axis = sorted({x for v in BY.values()
+                        for k, e in v["azimuth_ladder_at_el0"].items()
+                        if abs(float(k)) < 1e-9 for x in (e.get("spp") or [])})
+    _nonmono = [f"{a}/{ax}" for a, v in BY.items() for ax in ("azimuth", "elevation")
+                if not v["edge"][ax]["monotonic"]]
 
     doc = {
         "_meta": {
@@ -144,30 +201,29 @@ def main() -> int:
             "N_ko": "r 의 중앙값 — 일어난다면 몇 줄로 적히나. ⚠혼합이라 오르내린다",
             "warning_ko": "⚠N 만 보면 창이 켜졌다 꺼졌다 하는 것처럼 보인다. 판단은 share_pct 로 한다",
             "scope_ko": "표준 배치만 — 15 m · 깊이 2 · mfixbatteryi5_blperairframe · 팔마다 따로",
+            #: ⭐세어서 적는다 — 옛 판은 「축 위 기준점은 1e8·1e9 뿐」이라 손으로 적었는데
+            #  실제로는 네 팔 중 셋이 축 위에 4e9 **만** 갖고 있었다(2026-09-07 감사).
             "spp_ko": "⚠광선 예산은 칸을 가르지 않는다 — 칸마다 spp 로 적었다."
-                      " 사다리 칸은 4e9 인데 축 위 기준점은 1e8·1e9 뿐이다"
-                      "(4e9 축 위 샤드는 옛 세대라 겹침을 안 적었다)",
+                      f" 이 원장에 든 예산: {[f'{x:g}' for x in _spp]}."
+                      f" 축 위(0°) 칸에 든 예산: {[f'{x:g}' for x in _spp_axis]}",
+            "spp_all": _spp,
+            "spp_on_axis": _spp_axis,
             "db_vs_dedup_ko": "20·log10(N) — 겹쳐 적힌 만큼 필드가 커진 크기(dB)."
                               " 축 위는 +9.542 dB, 곧 정확히 3 배다",
             "on_threshold": ON,
             "min_poses": MIN_POSES,
             "n_cells": len(cells),
         },
-        "by_arm": {
-            arm: {
-                "azimuth_ladder_at_el0": ladder(cells, arm, "az"),
-                "elevation_ladder_at_az0": ladder(cells, arm, "el"),
-                "edge": {
-                    "azimuth": edge(ladder(cells, arm, "az")),
-                    "elevation": edge(ladder(cells, arm, "el")),
-                },
-            }
-            for arm in arms
-        },
+        "by_arm": BY,
         "observations_ko": [
             "두 팔 모두 창 안에서는 **겹치는 자세가 99% 를 넘고**, 한 칸 밖에서는 **0.0%** 다.",
-            "⚠중앙값 N 은 창 안에서 2.0 과 3.0 사이를 오르내린다 — 겹치는 **줄 수**가"
-            " 바뀌는 것이지 창이 켜졌다 꺼졌다 하는 것이 아니다.",
+            f"⚠중앙값 N 은 창 안에서 {min(_N):.2f} 와 {max(_N):.2f} 사이를 오르내린다 —"
+            " 겹치는 **줄 수**가 바뀌는 것이지 창이 켜졌다 꺼졌다 하는 것이 아니다."
+            f" ⛔한 자세에서는 {max(_R):.1f} 까지 간다 — 회절 켠 팔의 방위 사다리가"
+            " 특히 그렇다. 「2~3 줄」로 요약하지 마라.",
+            ("⛔사다리가 단조가 아닌 자리: " + ", ".join(_nonmono)
+             + ". 그 팔·축은 경계 하나로 인용할 수 없다.") if _nonmono else
+            "✅사다리는 팔·축 모두 단조다 — 경계를 하나로 인용해도 된다.",
             "⛔팔마다 값이 다르다 — 두 팔을 섞으면 없는 봉우리가 생긴다.",
             "⛔이 창을 «실제 비행에서 만나나» 로 옮기려면 호버링 자세 흔들림의 크기가"
             " 있어야 하는데, 이 저장소에는 그 실측이 없다.",
