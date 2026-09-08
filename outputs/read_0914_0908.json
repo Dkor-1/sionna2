@@ -1,6 +1,6 @@
 {
  "_meta": {
-  "generated_utc": "2026-09-08T06:46:25Z",
+  "generated_utc": "2026-09-08T07:39:07Z",
   "generator": "benchmark/read_0914_0908.py",
   "question_ko": "jobs_0914 의 손잡이를 바꾸면 «정적 몫이 사라지는» 사건이 어떻게 변하나",
   "metric_ko": "레벨 문턱을 안 쓴다 — D = E_실외 − E_빈하늘 이 중앙에서 |중앙D|×0.5 넘게 벗어난 자세를 센다",
@@ -36,25 +36,28 @@
    "B 광선/광선 1e9": -53.16,
    "C 깊이/깊이 1": -44.61
   },
+  "cells_with_mismatched_pair": [
+   "B 광선/광선 1e8",
+   "B 광선/광선 1e9"
+  ],
   "cells_at_path_cap": [],
   "missing": [
    {
     "group": "C 깊이",
     "cell": "깊이 3",
-    "have_outdoor": false,
-    "have_free": true
+    "why": "자세 수가 안 맞는다"
    },
    {
     "group": "D 크기",
     "cell": "동체 ×0.5",
     "have_outdoor": false,
-    "have_free": false
+    "have_free": true
    },
    {
     "group": "D 크기",
     "cell": "동체 ×2",
     "have_outdoor": false,
-    "have_free": false
+    "have_free": true
    },
    {
     "group": "E 거칠기",
@@ -63,6 +66,78 @@
     "have_free": true
    }
   ]
+ },
+ "cross_cell_overlap": {
+  "기준/기본 (matrice4e · 4e9 · 깊이 2) ∩ A 기체/phantom4": {
+   "n_a": 82,
+   "n_b": 73,
+   "n_intersect": 2,
+   "jaccard": 0.0131,
+   "expected_if_unrelated": 0.73,
+   "share_of_smaller": 0.0274,
+   "rpm_a": 3800.0,
+   "rpm_b": 5500.0,
+   "comparable": false,
+   "why_not_ko": "호버 회전수가 다르다(3800 대 5500 rpm) — 같은 자세 번호가 다른 로터 각이라 자세를 견줄 수 없다"
+  },
+  "기준/기본 (matrice4e · 4e9 · 깊이 2) ∩ A 기체/mini5pro": {
+   "n_a": 82,
+   "n_b": 55,
+   "n_intersect": 0,
+   "jaccard": 0.0,
+   "expected_if_unrelated": 0.55,
+   "share_of_smaller": 0.0,
+   "rpm_a": 3800.0,
+   "rpm_b": 5500.0,
+   "comparable": false,
+   "why_not_ko": "호버 회전수가 다르다(3800 대 5500 rpm) — 같은 자세 번호가 다른 로터 각이라 자세를 견줄 수 없다"
+  },
+  "기준/기본 (matrice4e · 4e9 · 깊이 2) ∩ C 깊이/깊이 1": {
+   "n_a": 82,
+   "n_b": 51,
+   "n_intersect": 51,
+   "jaccard": 0.622,
+   "expected_if_unrelated": 0.51,
+   "share_of_smaller": 1.0,
+   "rpm_a": 3800.0,
+   "rpm_b": 3800.0,
+   "comparable": true
+  },
+  "A 기체/phantom4 ∩ A 기체/mini5pro": {
+   "n_a": 73,
+   "n_b": 55,
+   "n_intersect": 3,
+   "jaccard": 0.024,
+   "expected_if_unrelated": 0.49,
+   "share_of_smaller": 0.0545,
+   "rpm_a": 5500.0,
+   "rpm_b": 5500.0,
+   "comparable": true
+  },
+  "A 기체/phantom4 ∩ C 깊이/깊이 1": {
+   "n_a": 73,
+   "n_b": 51,
+   "n_intersect": 1,
+   "jaccard": 0.0081,
+   "expected_if_unrelated": 0.45,
+   "share_of_smaller": 0.0196,
+   "rpm_a": 5500.0,
+   "rpm_b": 3800.0,
+   "comparable": false,
+   "why_not_ko": "호버 회전수가 다르다(5500 대 3800 rpm) — 같은 자세 번호가 다른 로터 각이라 자세를 견줄 수 없다"
+  },
+  "A 기체/mini5pro ∩ C 깊이/깊이 1": {
+   "n_a": 55,
+   "n_b": 51,
+   "n_intersect": 0,
+   "jaccard": 0.0,
+   "expected_if_unrelated": 0.34,
+   "share_of_smaller": 0.0,
+   "rpm_a": 5500.0,
+   "rpm_b": 3800.0,
+   "comparable": false,
+   "why_not_ko": "호버 회전수가 다르다(5500 대 3800 rpm) — 같은 자세 번호가 다른 로터 각이라 자세를 견줄 수 없다"
+  }
  },
  "cells": {
   "기준/기본 (matrice4e · 4e9 · 깊이 2)": {
@@ -131,7 +206,8 @@
    "group": "B 광선",
    "cell": "광선 1e8",
    "stem_outdoor": "sionna_p100000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2",
-   "stem_free": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2"
+   "stem_free": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "warn_ko": "짝이 어긋난다 — 빈 하늘은 4e9 다. 사건 수를 인용하지 않는다"
   },
   "B 광선/광선 1e9": {
    "n_poses": 8192,
@@ -148,7 +224,8 @@
    "group": "B 광선",
    "cell": "광선 1e9",
    "stem_outdoor": "sionna_p1000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2",
-   "stem_free": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2"
+   "stem_free": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "warn_ko": "짝이 어긋난다 — 빈 하늘은 4e9 다. 사건 수를 인용하지 않는다"
   },
   "C 깊이/깊이 1": {
    "n_poses": 8192,

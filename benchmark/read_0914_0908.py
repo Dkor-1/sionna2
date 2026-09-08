@@ -107,6 +107,8 @@ def measure(free, out):
         "lift_over_free_db": round(db(m) - db(np.median(np.abs(F))), 2),
         #: 견주기용 — 옛 낙차 규칙이 몇 개나 보나
         "n_caught_by_dip_rule": int((amp / m < 0.1).sum()),
+        #: ⭐칸끼리 견주려고 자세 번호를 들고 나간다(⑬ 에서 쓴다)
+        "_flag": dev,
     }
     #: ⛔경로 상한에 붙으면 그 칸은 접는다
     npa = out["npaths"]
@@ -130,10 +132,16 @@ def main() -> int:
          stem(drone="phantom4", env="outdoor01_ground"), stem(drone="phantom4")),
         ("A 기체", "mini5pro",
          stem(drone="mini5pro", env="outdoor01_ground"), stem(drone="mini5pro")),
+        #: ⛔짝이 어긋난 칸 — 실외는 1e8/1e9 인데 빈 하늘 짝은 4e9 밖에 없다.
+        #:   D = E_실외(적은 광선) − E_빈하늘(많은 광선) 이라 두 예산이 섞인다.
+        #:   0914 발주서가 이 두 줄의 빈 하늘 짝을 안 시켰다(runners/jobs_0914.txt B 묶음).
+        #:   0916 에서 짝을 채운다 — 그 전까지 이 두 칸의 «사건 수»를 인용하지 않는다.
         ("B 광선", "광선 1e8",
-         stem(spp=100_000_000, env="outdoor01_ground"), stem()),
+         stem(spp=100_000_000, env="outdoor01_ground"), stem(),
+         "짝이 어긋난다 — 빈 하늘은 4e9 다. 사건 수를 인용하지 않는다"),
         ("B 광선", "광선 1e9",
-         stem(spp=1_000_000_000, env="outdoor01_ground"), stem()),
+         stem(spp=1_000_000_000, env="outdoor01_ground"), stem(),
+         "짝이 어긋난다 — 빈 하늘은 4e9 다. 사건 수를 인용하지 않는다"),
         ("C 깊이", "깊이 1",
          stem(env="outdoor01_ground", depth=1), stem(depth=1)),
         ("C 깊이", "깊이 3",
@@ -145,8 +153,9 @@ def main() -> int:
         ("E 거칠기", "거칠기 0.3",
          stem(env="outdoor01_ground", scat=0.3), stem()),
     ]
-    cells, missing = {}, []
-    for grp, lbl, so, sf in CELLS:
+    cells, missing, flags = {}, [], {}
+    CELLS = [(c + ("",))[:5] if len(c) == 4 else c for c in CELLS]
+    for grp, lbl, so, sf, warn in CELLS:
         O, F = load(so), load(sf)
         if O is None or F is None:
             missing.append({"group": grp, "cell": lbl,
@@ -156,9 +165,13 @@ def main() -> int:
         if r is None:
             missing.append({"group": grp, "cell": lbl, "why": "자세 수가 안 맞는다"})
             continue
+        flags[f"{grp}/{lbl}"] = r.pop("_flag")
         r.update(group=grp, cell=lbl, stem_outdoor=so, stem_free=sf)
+        if warn:
+            r["warn_ko"] = warn
         cells[f"{grp}/{lbl}"] = r
         cap = " ⛔상한" if r.get("at_path_cap") else ""
+        cap += "  ⛔" + warn if warn else ""
         print(f"  {grp:<8}{lbl:<26} 사건 {r['n_static_changed']:>4}"
               f" ({r['share_pct']:>5.2f} %) · 그때 {str(r['level_at_events_db']):>7} dB"
               f" · 지면이 올린 몫 {r['lift_over_free_db']:>6.1f} dB"
@@ -166,6 +179,49 @@ def main() -> int:
     for m in missing:
         print(f"  ⏳{m['group']:<8}{m['cell']:<26} 아직 없다"
               f" (실외 {m.get('have_outdoor')} · 빈 하늘 {m.get('have_free')})", flush=True)
+
+    #: ⑬ 손잡이를 돌리면 «걸리는 자세» 가 옮겨 가나, 그대로인다
+    #:    ⭐우연히 겹칠 기댓값 = n_a·n_b / N — 관측이 그 언저리면 «상관 없다» 는 뜻이다.
+    #:    ⛔겹침이 크다고 원인이 같다는 뜻은 아니다(설계 검토 ⑯).
+    #:    ⛔⛔**자세 i 는 «시각» t=i/PRF 이지 로터 각이 아니다**
+    #:      (elevation_sweep_md.py:363 「--n-poses 는 촘촘함이 아니라 기록 길이다」).
+    #:      기체마다 호버 회전수가 다르면 같은 i 가 **다른 로터 각**이라 자세를 견줄 수 없다.
+    #:      matrice4e 3800 rpm · phantom4 5500 · mini5pro 5500 —
+    #:      ⭐phantom4↔mini5pro 만 회전수가 같아 «같은 각, 다른 기체» 로 깨끗하게 견준다.
+    #:      matrice4e 가 낀 줄은 not_comparable 로 표시하고 인용하지 않는다.
+    def _rpm_of(st: str) -> float:
+        for k, v in (("_phantom4", 5500.0), ("_mini5pro", 5500.0)):
+            if k in st:
+                return v
+        return 3800.0                                    #: matrice4e (원장 기본)
+    cross, ks = {}, [k for k in cells if not cells[k].get("warn_ko")]
+    for i, ka in enumerate(ks):
+        for kb in ks[i + 1:]:
+            fa, fb = flags[ka], flags[kb]
+            if fa.size != fb.size:
+                continue
+            na, nb, N = int(fa.sum()), int(fb.sum()), int(fa.size)
+            inter = int((fa & fb).sum())
+            uni = int((fa | fb).sum())
+            ra = _rpm_of(cells[ka]["stem_outdoor"])
+            rb = _rpm_of(cells[kb]["stem_outdoor"])
+            cross[f"{ka} ∩ {kb}"] = {
+                "n_a": na, "n_b": nb, "n_intersect": inter,
+                "jaccard": round(inter / max(uni, 1), 4),
+                "expected_if_unrelated": round(na * nb / N, 2),
+                "share_of_smaller": round(inter / max(min(na, nb), 1), 4),
+                "rpm_a": ra, "rpm_b": rb,
+                "comparable": ra == rb,
+                **({} if ra == rb else {"why_not_ko":
+                   f"호버 회전수가 다르다({ra:.0f} 대 {rb:.0f} rpm) — "
+                   "같은 자세 번호가 다른 로터 각이라 자세를 견줄 수 없다"})}
+    print("\n  ⑬ 칸끼리 같은 자세가 걸리나 (우연 기댓값과 견준다)")
+    for k, v in cross.items():
+        bad = "" if v["comparable"] else "  ⛔회전수가 달라 못 견준다"
+        print(f"    {'⭐' if v['comparable'] else '  '}{k:<56} 교집합 {v['n_intersect']:>3}"
+              f" / 작은쪽 {min(v['n_a'], v['n_b']):>3}"
+              f" · 우연이면 {v['expected_if_unrelated']:>5.2f}"
+              f" · 자카드 {v['jaccard']:.3f}{bad}", flush=True)
 
     doc = {
         "_meta": {
@@ -194,9 +250,12 @@ def main() -> int:
             "share_pct_by_cell": {k: v["share_pct"] for k, v in cells.items()},
             "level_at_events_db_by_cell": {k: v["level_at_events_db"]
                                            for k, v in cells.items()},
+            "cells_with_mismatched_pair": [k for k, v in cells.items()
+                                           if v.get("warn_ko")],
             "cells_at_path_cap": [k for k, v in cells.items() if v.get("at_path_cap")],
             "missing": missing,
         },
+        "cross_cell_overlap": cross,
         "cells": cells,
     }
     with open(a.out, "w", encoding="utf-8") as f:
