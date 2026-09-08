@@ -1,0 +1,49 @@
+
+# ══ A ⭐솔버가 주는 거리 협곡 — 앙각을 채운다 (빈 하늘 짝은 이미 다 있다) ══
+#   지금 협곡은 앙각 −30·−60 둘뿐이라 덱의 실외 절이 두 점에 서 있다.
+#   0°·−15°·−45°·−75° 를 더하면 우리 씬(여섯 자리)과 나란히 놓을 수 있다.
+#   ⚠0° 는 그 자리의 빈 하늘 기록이 철회된 판이라 «되풀이» 물음에는 못 쓴다 —
+#     여기서는 «지면·건물이 무늬를 묻는가» 만 본다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 1 --nshards 2
+
+# ══ B ⭐걸리는 자세를 정하는 것이 동체인가 프롭인가 ══
+#   0914 ⑬: 동체만 0.5↔2 로 바꿔도 자카드 0.681, 깊이·거칠기는 0.86~0.95 로 거의 안 움직인다.
+#   그런데 기체를 통째로 바꾸면(같은 회전수) 0.024 로 흩어진다. 남은 차이가 프롭·허브다.
+#   ⛔프롭만 키우면 이웃 프롭이 관통한다(틈 5.9 mm) — 키울 때는 프레임과 함께 키운다.
+#   ⚠--prop-scale 은 f_tip 을 배율만큼 옮긴다. comb_snr 이 _ps 를 읽어 대역을 옮긴다.
+#   앙각 −60 으로 고정한다 — 0914 가 전부 그 자리라 바로 견줄 수 있다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 1.5 --frame-scale 1.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 1.5 --frame-scale 1.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 1.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 1.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 1.5 --frame-scale 1.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 1.5 --frame-scale 1.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 1.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 1.5 --shard 1 --nshards 2
+
+# ══ C ⭐되풀이가 끊기는 자리 — 각도인가 가로 거리인가 ══
+#   15 m 에서 창은 방위 0.11°와 0.12° 사이에서 닫힌다(front_window_0906.json).
+#     각도라면 120 m 에서도 0.11~0.12° 에서 닫힌다.
+#     가로 거리라면 15 m 의 0.115° = 30 mm 이므로 120 m 에서는 0.0144° 에서 닫힌다.
+#   지금 120 m 판은 방위 0.01·0.02·0.05 셋뿐이라 두 가설을 못 가른다.
+#   0.012·0.017 은 «거리» 가설의 벼랑을 끼고, 0.10·0.12 는 «각도» 가설의 벼랑을 낀다.
+#   ⛔둘 다 아니면 그렇게 적는다 — 셋째 설명을 지어내지 않는다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.012 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.012 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.017 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.017 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.1 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.1 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.12 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.12 --shard 1 --nshards 2
