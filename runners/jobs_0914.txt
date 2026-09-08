@@ -1,0 +1,39 @@
+# ══ 0914 큐 — 우리 실외 씬이 왜 깨지는지 가른다 ══
+#  ⭐사용자 요청(2026-09-08): 이 조사를 큐 앞에 올린다.
+#  쫓는 것 — 레이다가 제 지면을 보고 돌려보내는 «상수» 가 8,192 자세 중 1 % 에서
+#     70 dB 사라진다. 되풀이해도 같은 자세다(자카드 1.0000).
+#     수는 outputs/outdoor_dip_origin_0908.json · 설계는 runners/make_jobs_0914.py
+#  ⛔이미 죽인 가설은 다시 안 산다 — 재질·면 수·판 크기·이음매·드론 고도·경로 상한·날개 가림
+#  ⭐--overwrite 4 줄 — 자유공간 짝이 옛 세대(n_dup 없음)라 세대가 어긋난다
+#  ⚠전부 지면만(건물은 이 현상을 안 만든다) · 앙각 −60°(빈 하늘 낙차 0 개라 대조가 깨끗)
+
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --drone phantom4 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --drone phantom4 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --drone phantom4 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --drone phantom4 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --drone mini5pro --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --drone mini5pro --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --drone mini5pro --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --drone mini5pro --shard 1 --nshards 2 --overwrite
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 1000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 1000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --body-scale 0.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --body-scale 0.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 0.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 0.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --body-scale 2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --body-scale 2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --env-scat 0.3 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --env outdoor01_ground --sw R0D0E0F1 --els=-60 --env-scat 0.3 --shard 1 --nshards 2
