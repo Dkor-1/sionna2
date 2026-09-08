@@ -116,7 +116,9 @@ def main() -> int:
             if F is None:
                 continue
             free = {"n_dips": int(dip_idx(F).size),
-                    "median_level_db": db(np.median(np.abs(F)))}
+                    "median_level_db": db(np.median(np.abs(F))),
+                    "min_below_median_db": round(
+                        db(np.min(np.abs(F))) - db(np.median(np.abs(F))), 2)}
             c = {"arm": arm, "el_deg": el, "n_poses": int(F.size), "free": free}
 
             #: ① el 0° 는 겹침으로 설명되나 — n_dup 이 있는 칸에서만
@@ -141,8 +143,15 @@ def main() -> int:
                 if O is None:
                     continue
                 d = dip_idx(O)
+                #: ⭐⭐**낙차 개수보다 이 수가 낫다** — 「가장 깊은 자세가 중앙값보다
+                #  몇 dB 아래인가」. 2026-09-08 에 남의 씬을 「낙차 0 개」로만 적었다가
+                #  그림에서 세로 막대가 보여 다시 쟀더니, 남의 씬은 낙차가 없는 것이
+                #  아니라 **|E| 가 아예 안 흔들린다**(최솟값이 중앙값보다 0.0~0.1 dB 아래).
+                #  개수는 문턱을 타지만 이 수는 안 탄다.
+                _min_db = round(db(np.min(np.abs(O))) - db(np.median(np.abs(O))), 2)
                 row = {"scene": lbl, "arm": arm, "el_deg": el, "n_shards": ns,
                        "n_poses": int(O.size), "n_dips": int(d.size),
+                       "min_below_median_db": _min_db,
                        "median_level_db": round(db(np.median(np.abs(O))), 2),
                        "lift_over_free_db": round(
                            db(np.median(np.abs(O))) - db(np.median(np.abs(F))), 2),
@@ -210,6 +219,12 @@ def main() -> int:
             "ground_only_added_dips": sum(1 for r in gnd if r["n_dips_added"] > 0),
             "buildings_only_cells": len(bldg),
             "buildings_only_added_dips": sum(1 for r in bldg if r["n_dips_added"] > 0),
+            "min_below_median_db_ours": sorted(
+                {r["min_below_median_db"] for r in scene_rows
+                 if r["scene"].startswith("우리") and "건물만" not in r["scene"]}),
+            "min_below_median_db_nvidia": sorted(
+                {r["min_below_median_db"] for r in scene_rows
+                 if r["scene"].startswith("엔비디아")}),
             "max_overlap_with_free_dips": max(
                 (r["overlap_with_free_dips"] for r in scene_rows), default=None),
             "rel_to_free_at_dips_median_diffuse_arm": (
