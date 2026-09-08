@@ -66,8 +66,57 @@
       곧 «무작위로 잃는 것» 이 아니라 «그 자세에서는 늘 못 찾는 것» 이다.
     ⚠**날개가 가려서도 아니다** — 자세 번호를 박자 주기로 접은 집중도가 0.185 뿐이다(⑧).
 
+■ ⑩ ⭐⭐⭐**기전이 잡혔다 (2026-09-08 밤) — 사라지는 것은 «경로 딱 하나» 다**
+
+  경로 목록을 직접 덤프해 낙차 자세와 성한 자세를 차집합했다(work/ 아래 pathdump).
+
+    · 우리 씬에서 **드론을 안 거치는 경로는 하나뿐**이다 — 「정반사 → env_ground」.
+      성한 자세 1 개 · **낙차 자세 0 개.** 다른 것은 안 없어진다.
+    · 그 하나가 곧 샤드 뺄셈으로 나오는 «정적 몫» 이다 — 크기가 일곱 자리까지 같고
+      위상도 맞는다(원형집중도 R = 1.000000 · p99/p1 = 1.0006).
+    · **그 경로가 무엇인지도 갈렸다** — 레이다가 **제 발밑 지면을 수직으로** 보고
+      돌아오는 반사다. 닫힌식과 맞는다:
+
+          |a| = (λ/4π) / (2h) · |Γ_콘크리트|      h = 레이다의 지면 위 높이
+
+      실측/예측이 여섯 앙각 전부에서 **0.998** 이다
+      (el 0·−15·−30·−45·−60·−75 에서 0.9982·0.9980·0.9981·0.9984·0.9976·0.9984).
+      드론 고도를 10·20·40 m 로 바꾸면 2h 가 5·25·65 m 가 되고 값이 그대로 따라간다.
+
+  ⇒ **솔버가 1 % 의 자세에서 그 한 경로를 못 찾는다.** 드론과 무관한 경로인데
+    로터 각도에 따라 찾고 못 찾고가 갈린다. 되풀이해도 같은 자세다(자카드 1.0000).
+
+■ ⛔⛔⛔ **철회 셋 (2026-09-08 밤) — 앞서 이 파일이 적은 것 중 셋이 틀렸다**
+
+  ⛔① 「**우리 씬에서만 난다**」 — **틀렸다.** 레벨 문턱 없이 정적 몫의 변화를 세면
+     엔비디아 거리 협곡에서도 같은 일이 **더 자주** 난다:
+
+         우리 실외 el−30   74 / 8192 = 0.90 %   그때 |E| −53.30 dB   (0.1 규칙이 74 잡음)
+         거리 협곡 el−30   96 / 8192 = 1.17 %   그때 |E| **+6.86 dB** (0.1 규칙이 0 잡음)
+         우리 실외 el−60   84 / 8192 = 1.03 %   그때 |E| −45.35 dB   (84 잡음)
+         거리 협곡 el−60  128 / 8192 = 1.56 %   그때 |E| **+1.57 dB** (0 잡음)
+         뮌헨            0 / 8192
+
+     협곡은 정적 경로가 **다섯 개**라 그중 바닥 하나가 빠지면 합이 **커진다** —
+     그래서 «낙차» 잣대가 원리적으로 못 본다. 우리 씬은 정적 경로가 **하나뿐**이라
+     그 하나를 잃으면 전부 잃는다. **씬이 깨진 것이 아니라 씬이 민감한 것이다.**
+     ⚠뮌헨은 0 이지만 같은 조건이 아니다 — 레이다가 벽에서 0.27 m 다.
+
+  ⛔② 「**방위 45° 이상에서는 안 난다**」 — **틀렸다.** az 45/60/75/90 에서는 정적 경로가
+     **둘**(지면 + env_bldg_a 벽면)이라 지면 하나가 빠져도 |E| 가 4.7~9.5 dB 만 떨어져
+     문턱을 못 넘는다. 문턱 없이 세면 az45 87 · az60 74 · az75 78 · az90 77 로
+     az0/15/30 의 74/75/86 과 **같은 0.90~1.06 %** 다.
+
+  ⛔③ 「**지면 거칠기가 무너짐을 끈다**」 — **못 잰다.** 그 칸(S=0.3·0.7)은 경로 상한에
+     붙어 있다 — 경로 수 중앙이 1,984,860(99.24 %)·1,999,977(100.00 %)이고 기본 칸은
+     1,894 다. 상한이 결과를 정하는 축은 접는다(집 규약).
+     ⇒ 거칠기를 다시 물으려면 상한을 올려 다시 사야 한다.
+
 ■ 무엇을 아직 모르나 (⛔여기서 더 나가지 않는다)
-  · 위 «기하» 가설을 안 시험했다 — 판 크기·기울기를 흔든 판이 없다.
+  · **솔버가 왜 그 한 경로를 못 찾나** — 로터 각도가 드론과 무관한 경로의 탐색을
+    어떻게 바꾸는지 안 갈랐다. 후보 생성기 안쪽이다.
+  · 뮌헨이 0 인 까닭 — 레이다가 벽에서 0.27 m 라 기하가 아예 다르다. 같은 조건으로 못 견줬다.
+  · 거칠기 축은 상한 때문에 접었다(철회 ③). 상한을 올려 다시 사야 한다.
   · 솔버 안쪽인지 우리 배관인지 안 갈랐다.
   · ⛔「Sionna 가 틀렸다」로 결론짓지 않는다(집 규약). 지금 말할 수 있는 것은
     「우리 씬에서는 나고 남의 씬에서는 안 난다」까지다.
@@ -238,6 +287,65 @@ def main() -> int:
                       "min_below_median_db": round(db(np.min(np.abs(E))) - db(med), 2),
                       "n_dips": int(dip_idx(E).size)}
 
+    #: ── ⑪ ⭐⭐⭐**문턱을 안 쓰는 잣대** — 정적 몫이 «달라진» 자세를 센다 ────────
+    #  ⛔레벨 문턱(|E| < 중앙×0.1)은 이 사건을 **원리적으로 못 본다.** 정적 경로가
+    #  여럿인 씬에서는 그중 하나가 빠져도 합이 **커질** 수 있기 때문이다(거리 협곡이 그렇다).
+    #  ⇒ 레벨이 아니라 **정적 몫 D = 실외 − 빈 하늘** 이 중앙에서 얼마나 벗어났나로 센다.
+    #    D 는 성한 자세에서 완전한 상수라(원형집중도 1.000000) 이 잣대가 성립한다.
+    branch = {}
+    for el in (-30.0, -60.0):
+        F, _, _ = load("", el, "R0D0E0F1")
+        if F is None:
+            continue
+        for tag, lbl in (("envoutdoor01_", "우리 실외"),
+                         ("envoutdoor01_ground_", "우리 지면만"),
+                         ("envsionna-simple_street_canyon_", "거리 협곡"),
+                         ("envsionna-munich_", "뮌헨")):
+            E, _, _ = load(tag, el, "R0D0E0F1")
+            if E is None or E.size != F.size:
+                continue
+            D = E - F
+            med = complex(np.median(D.real), np.median(D.imag))
+            #: 정적 몫이 «절반 넘게» 달라진 자세 — 한 갈래가 빠지면 이 문턱을 넉넉히 넘는다
+            dev = np.abs(D - med) > 0.5 * abs(med)
+            amp = np.abs(E)                       # ⛔`a` 는 argparse 이름이다 — 덮지 않는다
+            _n_dip = int((amp / float(np.median(amp)) < DIP).sum())
+            branch[f"{lbl}/el{el:+.0f}"] = {
+                "scene": lbl, "el_deg": el, "n_poses": int(E.size),
+                "n_static_changed": int(dev.sum()),
+                "share_pct": round(100.0 * float(dev.mean()), 2),
+                #: ⭐그때 레벨이 오르나 내리나 — 이것이 «낙차» 잣대가 보이나 마나를 정한다
+                "level_at_events_db": (None if not dev.any() else round(float(
+                    db(np.median(amp[dev])) - db(np.median(amp))), 2)),
+                "n_caught_by_dip_rule": _n_dip,
+                "dip_rule_sees_it": bool(_n_dip > 0),
+            }
+
+    #: ── ⑫ ⛔**경로 상한에 붙은 칸은 접는다** ──────────────────────────────
+    #  거칠기 칸(S=0.3·0.7)이 상한에 붙어 있다 — 그 칸의 레벨·낙차를 인용하면 안 된다.
+    trunc = {}
+    for tag, lbl in (("envoutdoor01_", "기본 S=0.0"),
+                     ("envoutdoor01_S0.3_", "거칠기 0.3"),
+                     ("envoutdoor01_S0.7_", "거칠기 0.7")):
+        E, _, ns = load(tag, -30.0, "R0D0E0F1")
+        if E is None:
+            continue
+        fs = sorted(glob.glob(f"{SHD}/sionna_p4000000000_swR0D0E0F1_r15_n8192_"
+                              f"{tag}{MESH}_d2_el-30_*.npz"))
+        npa = []
+        for f in fs:
+            z = np.load(f)
+            if "npaths" in z.files:
+                npa.append(z["npaths"])
+        if not npa:
+            continue
+        npa = np.concatenate(npa)
+        cap = 2_000_000
+        trunc[lbl] = {"npaths_median": int(np.median(npa)),
+                      "npaths_max": int(npa.max()), "cap": cap,
+                      "share_of_cap_pct": round(100.0 * float(np.median(npa)) / cap, 2),
+                      "at_cap": bool(np.median(npa) >= 0.99 * cap)}
+
     #: ── ⑨ ⭐⭐**지면 몫을 떼어내 본다** — 이것이 사슬을 닫는다 ─────────────
     #  선형 중첩으로 지면 몫 = (실외 기록) − (빈 하늘 기록) 이다.
     #  ① 그 몫이 자세를 타나 — 자세평균 |⟨E⟩| 대비 둘레 변동 |E−⟨E⟩| 로 잰다.
@@ -393,11 +501,24 @@ def main() -> int:
                  if r["scene"].startswith("엔비디아")}),
             "max_overlap_with_free_dips": max(
                 (r["overlap_with_free_dips"] for r in scene_rows), default=None),
+            #: ⛔이 값도 좁혀야 한다 — «우리 씬에서만» 이 아니라 «우리 씬에서는 레벨로
+            #  보인다» 다. 문턱 없는 셈은 threshold_free_branch_count 에 있다.
             #: ⭐1.0 이면 «무작위가 아니라 기하가 정한다»
             "repeat_jaccard_min": (None if not repeat else
                                    min(v["jaccard_min"] for v in repeat.values())),
             "collapse_is_deterministic": (None if not repeat else bool(
                 min(v["jaccard_min"] for v in repeat.values()) >= 0.999)),
+            #: ⛔⛔**철회 셋** — 이 수들이 앞서 적은 결론을 뒤집는다
+            "RETRACTED_ours_only": (None if not branch else bool(any(
+                v["n_static_changed"] > 0 for k, v in branch.items()
+                if v["scene"].startswith("거리"))) ),
+            "branch_events_by_scene": {k: [v["n_static_changed"], v["share_pct"],
+                                           v["level_at_events_db"],
+                                           v["n_caught_by_dip_rule"]]
+                                       for k, v in branch.items()},
+            "RETRACTED_roughness_kills": (None if not trunc else bool(any(
+                v["at_cap"] for k, v in trunc.items() if "거칠기" in k))),
+            "path_cap_share_pct": {k: v["share_of_cap_pct"] for k, v in trunc.items()},
             #: ⭐⭐사슬을 닫는 세 수
             "ground_term_is_static": (None if not split else bool(all(
                 v["ground_wobble_over_static_db"] < -40 for v in split.values()))),
@@ -418,7 +539,9 @@ def main() -> int:
             "locked_to_blade_beat": (None if not phase_lock else bool(max(
                 max(v[k] for k in v if k.startswith("concentration_"))
                 for v in phase_lock.values()) > 0.5)),
-            "roughness_kills_collapse": (
+            #: ⛔이 값은 **철회됐다** — 거칠기 칸이 경로 상한에 붙어 있다(path_cap_check).
+            #  키를 남기는 것은 옛 판과 견주기 위해서다. ⛔인용하지 마라.
+            "RETRACTED_roughness_kills_collapse_do_not_cite": (
                 None if not {k: v for k, v in knobs.items() if "거칠기" in k} else bool(
                     all(v["n_dips"] == 0 for k, v in knobs.items()
                         if "거칠기 0.3" in k or "거칠기 0.7" in k))),
@@ -432,6 +555,8 @@ def main() -> int:
         "repeat_runs": repeat,
         "phase_lock": phase_lock,
         "ground_term_split": split,
+        "threshold_free_branch_count": branch,
+        "path_cap_check": trunc,
         "material_scattering_check": material_check,
         "cells": cells,
         "scene_rows": scene_rows,
