@@ -50,6 +50,9 @@ OUT, GROUPS = [], []
 BASE = "--engine ours --n-poses 8192"
 
 
+_SEEN: set = set()
+
+
 def sec(title: str) -> None:
     GROUPS.append((title, len(OUT)))
     OUT.append("")
@@ -67,8 +70,18 @@ def job(*, el, engine="ours", rng=15, ground="concrete", galt=20.0,
                              f"≥ 지면 높이 {galt:g} m")
     g = f" --ground {ground} --ground-alt {galt:g}" if ground else ""
     b = f" --body-scale {body:g}" if body else ""
-    OUT.extend(f"--engine {engine} --n-poses 8192 --range-m {rng}{g}{b}"
-               f" --els={el:g} --shard {k} --nshards {nsh}" for k in range(nsh))
+    for k in range(nsh):
+        line = (f"--engine {engine} --n-poses 8192 --range-m {rng}{g}{b}"
+                f" --els={el:g} --shard {k} --nshards {nsh}")
+        #: ⛔같은 줄을 두 번 내지 않는다 — C 사다리의 첫 칸(r15·el−30·galt 20)이
+        #:   A 묶음의 el −30 칸과 **같은 계산**이다(galt = 12.5 + 15/2 = 20).
+        #:   두 번 내면 감독자가 같은 일을 두 번 띄우고 뒤에 뜬 쪽이 앞선 판을 덮는다.
+        #:   사다리의 기준 칸은 A 가 이미 굽는다 — 여기서는 건너뛰고 그렇게 적는다.
+        if line in _SEEN:
+            OUT.append(f"#   ⤷ 건너뜀(이미 위에 있다): {line}")
+            continue
+        _SEEN.add(line)
+        OUT.append(line)
 
 
 # ══ A ══ 가장 큰 빈칸 — 앞에 둔다
