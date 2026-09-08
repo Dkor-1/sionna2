@@ -80,6 +80,10 @@ for _p in (HERE, os.path.join(ROOT, "src")):
 SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
 OUT = os.path.join(ROOT, "outputs", "outdoor_dip_origin_0908.json")
 MESH = "mfixbatteryi5_blperairframe"
+#: 날개 박자 한 주기가 자세 몇 개인가 — PRF ÷ f_flash. 정본 원장에서 읽는다.
+_TJ = json.load(open(os.path.join(ROOT, "outputs", "report07_three_engines.json"),
+                     encoding="utf-8"))["_meta"]
+PRF_POSES_PER_FLASH = float(_TJ["prf_hz"]) / float(_TJ["f_flash_hz"])
 DIP = 0.1                       # 리포트 12·실외 그림과 같은 «꺼진 자세» 문턱
 #: ⭐이 문턱은 자유 파라미터다 — 아래 threshold_ladder 가 흔들어 본다.
 LADDER = (0.5, 0.3, 0.2, 0.1, 0.05, 0.03, 0.02, 0.01, 0.005, 0.003)
@@ -216,6 +220,57 @@ def main() -> int:
                       "min_below_median_db": round(db(np.min(np.abs(E))) - db(med), 2),
                       "n_dips": int(dip_idx(E).size)}
 
+    #: ── ⑦ 되풀이하면 같은 자세가 무너지나 ────────────────────────────────
+    #  ⭐**이것이 «무작위냐 기하냐» 를 가른다.** `rep1_`·`rep2_`·`rep3_` 은 같은 설정
+    #  재실행이다. 자카드가 1 이면 솔버의 무작위성이 아니라 **기하가 정하는** 것이다.
+    #  ⚠0° 낙차는 자카드 0.947~1.000 이었다(docs/DEEP_DROP_0902.md) — 견줄 값이다.
+    import itertools as _it
+    repeat = {}
+    for el in (-30.0, -60.0):
+        sets = {}
+        for tag, lbl in (("envoutdoor01_", "base"), ("rep1_envoutdoor01_", "rep1"),
+                         ("rep2_envoutdoor01_", "rep2"), ("rep3_envoutdoor01_", "rep3")):
+            E, _, _ = load(tag, el, "R0D0E0F1")
+            if E is not None:
+                sets[lbl] = set(dip_idx(E).tolist())
+        if len(sets) < 2:
+            continue
+        pairs = {}
+        for (a1, A), (b1, B) in _it.combinations(sets.items(), 2):
+            pairs[f"{a1}~{b1}"] = {
+                "n_a": len(A), "n_b": len(B), "n_shared": len(A & B),
+                "jaccard": round(len(A & B) / max(len(A | B), 1), 4)}
+        repeat[f"el{el:+.0f}"] = {
+            "n_runs": len(sets),
+            "n_dips_per_run": {k: len(v) for k, v in sets.items()},
+            "pairs": pairs,
+            "jaccard_min": round(min(v["jaccard"] for v in pairs.values()), 4)}
+
+    #: ── ⑧ 무너지는 자세가 날개 박자에 물려 있나 ────────────────────────
+    #  ⭐⑦ 이 「기하가 정한다」를 보였으니 다음 물음은 «어느 기하냐» 다.
+    #  날개가 지나가며 가리는 것이라면 자세 번호가 박자 주기의 눈금에 **몰려야** 한다.
+    #  원형 집중도 R = |⟨e^{i2πφ}⟩| — 0 이면 고르게 퍼지고 1 이면 한 위상에 몰린다.
+    #  ⚠빗각의 0° 낙차는 「날개가 가리는 것」으로 읽혔다(docs/DEEP_DROP_0902.md:
+    #    블록 간격이 박자 주기와 1.00 배). 이번 것이 같은 것인지 가른다.
+    _P = PRF_POSES_PER_FLASH
+    phase_lock = {}
+    for el in (-15.0, -30.0, -45.0, -60.0, -75.0):
+        E, _, _ = load("envoutdoor01_ground_", el, "R0D0E0F1")
+        if E is None:
+            E, _, _ = load("envoutdoor01_", el, "R0D0E0F1")
+        if E is None:
+            continue
+        d = dip_idx(E)
+        if d.size < 3:
+            continue
+        row = {"n_dips": int(d.size),
+               "gap_median_poses": round(float(np.median(np.diff(d))), 1)}
+        for nm, per in (("flash", _P), ("half_flash", _P / 2), ("quarter_flash", _P / 4)):
+            ph = (d % per) / per
+            row[f"concentration_{nm}"] = round(
+                float(abs(np.exp(2j * np.pi * ph).mean())), 3)
+        phase_lock[f"el{el:+.0f}"] = row
+
     #: ⛔재질을 직접 읽어 「거칠기가 우리와 남의 씬을 가른다」를 **반증**한 기록.
     #  손으로 적지 않고 여기 상수로 둔다 — 다시 읽으려면 sionna.rt.load_scene 을 쓴다.
     material_check = {
@@ -279,6 +334,19 @@ def main() -> int:
                  if r["scene"].startswith("엔비디아")}),
             "max_overlap_with_free_dips": max(
                 (r["overlap_with_free_dips"] for r in scene_rows), default=None),
+            #: ⭐1.0 이면 «무작위가 아니라 기하가 정한다»
+            "repeat_jaccard_min": (None if not repeat else
+                                   min(v["jaccard_min"] for v in repeat.values())),
+            "collapse_is_deterministic": (None if not repeat else bool(
+                min(v["jaccard_min"] for v in repeat.values()) >= 0.999)),
+            "poses_per_flash": round(PRF_POSES_PER_FLASH, 2),
+            #: ⭐집중도가 낮으면 «날개가 가려서» 가 아니다
+            "phase_concentration_max": (None if not phase_lock else round(max(
+                max(v[k] for k in v if k.startswith("concentration_"))
+                for v in phase_lock.values()), 3)),
+            "locked_to_blade_beat": (None if not phase_lock else bool(max(
+                max(v[k] for k in v if k.startswith("concentration_"))
+                for v in phase_lock.values()) > 0.5)),
             "roughness_kills_collapse": (
                 None if not {k: v for k, v in knobs.items() if "거칠기" in k} else bool(
                     all(v["n_dips"] == 0 for k, v in knobs.items()
@@ -290,6 +358,8 @@ def main() -> int:
                 round(float(np.median(at_dips)), 4) if at_dips else None),
         },
         "knobs_el-30_diffuse_arm": knobs,
+        "repeat_runs": repeat,
+        "phase_lock": phase_lock,
         "material_scattering_check": material_check,
         "cells": cells,
         "scene_rows": scene_rows,
