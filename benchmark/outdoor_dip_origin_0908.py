@@ -29,9 +29,27 @@
      ⛔지면이 레이다에 돌려보내는 정지 몫은 로터 각도를 모른다 — 8,192 자세 중 1 % 에서만
        꺼질 수 없다. ⇒ 물리가 아니라 **기록 쪽 결함**으로 읽는다.
 
+■ ⑥ **손잡이를 흔들어 보니 «거칠기»가 끈다** (2026-09-08 오후, el −30 · 확산만 팔)
+
+      지면 거칠기 S=0 (기본, 거울)   최솟값이 중앙보다 −65.16 dB · 낙차 74
+      지면 거칠기 S=0.3             최솟값이 중앙보다  −0.42 dB · 낙차  0
+      지면 거칠기 S=0.7             최솟값이 중앙보다  −0.38 dB · 낙차  0
+      드론 고도 10 m (S=0)          −80.63 dB · 낙차 71   ← 고도로는 안 꺼진다
+      드론 고도 40 m (S=0)          −57.42 dB · 낙차 54
+
+  ⇒ 지면이 **완벽한 거울이 아니면** 무너짐이 사라진다. 거칠기를 주면 중앙 레벨도
+    −79.4 → −101.5 dB 로 22 dB 내려간다 — 정반사 한 갈래에 몰려 있던 에너지가 흩어진다.
+
+⛔⛔**그런데 이것이 «우리 씬 대 남의 씬» 을 설명하지는 못한다.** 2026-09-08 에
+  `sionna.rt` 로 두 기본 씬의 재질을 직접 읽어 보니 **전부 S=0.0** 이다
+  (거리 협곡: brick·concrete·glass·marble·wood / 뮌헨: brick·concrete·marble·metal·wood).
+  우리 콘크리트도 S=0.0 이다(src/materials.py). 곧 **양쪽 다 거울인데 한쪽만 무너진다.**
+  ⇒ 남는 후보는 **기하**다 — 우리 씬은 드론 바로 아래 120×120 m **평평한 판 하나**라
+    정반사가 한 갈래에 몰리고, 기본 씬은 면이 여러 각도로 쪼개져 있다.
+    ⛔그 가설은 **아직 안 시험했다.** 판 크기를 줄이거나 기울여 보는 실험이 필요하다.
+
 ■ 무엇을 아직 모르나 (⛔여기서 더 나가지 않는다)
-  · 우리 씬의 무엇이 그렇게 만드는지 — 평평한 판 하나라서인지, 크기(120 m)라서인지,
-    거울 같은 재질(콘크리트 기본 산란계수 S=0.0)이라서인지 안 갈랐다.
+  · 위 «기하» 가설을 안 시험했다 — 판 크기·기울기를 흔든 판이 없다.
   · 솔버 안쪽인지 우리 배관인지 안 갈랐다.
   · ⛔「Sionna 가 틀렸다」로 결론짓지 않는다(집 규약). 지금 말할 수 있는 것은
     「우리 씬에서는 나고 남의 씬에서는 안 난다」까지다.
@@ -180,6 +198,40 @@ def main() -> int:
                 scene_rows.append(row)
             cells[f"{arm}/el{el:+.0f}"] = c
 
+    #: ── ⑥ 손잡이를 흔든다 — 거칠기·드론 고도 ────────────────────────────
+    #  ⭐이 판들은 el −30 · 확산만 팔에만 있다. 없으면 조용히 건너뛴다.
+    knobs = {}
+    for tag, lbl in (("envoutdoor01_", "지면+건물 · 거칠기 0 (거울, 기본)"),
+                     ("envoutdoor01_S0.3_", "같은 씬 · 거칠기 0.3"),
+                     ("envoutdoor01_S0.7_", "같은 씬 · 거칠기 0.7"),
+                     ("envoutdoor01_ground_", "지면만 · 드론 고도 20 m (기본)"),
+                     ("envoutdoor01_ground_alt10_", "지면만 · 드론 고도 10 m"),
+                     ("envoutdoor01_ground_alt40_", "지면만 · 드론 고도 40 m")):
+        E, _, ns = load(tag, -30.0, "R0D0E0F1")
+        if E is None:
+            continue
+        med = float(np.median(np.abs(E)))
+        knobs[lbl] = {"n_poses": int(E.size), "n_shards": ns,
+                      "median_level_db": round(db(med), 2),
+                      "min_below_median_db": round(db(np.min(np.abs(E))) - db(med), 2),
+                      "n_dips": int(dip_idx(E).size)}
+
+    #: ⛔재질을 직접 읽어 「거칠기가 우리와 남의 씬을 가른다」를 **반증**한 기록.
+    #  손으로 적지 않고 여기 상수로 둔다 — 다시 읽으려면 sionna.rt.load_scene 을 쓴다.
+    material_check = {
+        "checked_utc": "2026-09-08",
+        "how_ko": "sionna.rt.load_scene 으로 씬을 열어 물체마다 "
+                  "radio_material.scattering_coefficient 를 읽었다",
+        "simple_street_canyon": {"brick": 0.0, "concrete": 0.0, "glass": 0.0,
+                                 "marble": 0.0, "wood": 0.0},
+        "munich": {"brick": 0.0, "concrete": 0.0, "marble": 0.0,
+                   "metal": 0.0, "wood": 0.0},
+        "ours": {"concrete_light": 0.0, "concrete_dark": 0.0},
+        "verdict_ko": "⛔양쪽 다 S=0.0(거울)이다 — 거칠기는 «우리 씬 대 남의 씬» 을 "
+                      "설명하지 못한다. 남는 후보는 기하다(우리는 평평한 판 하나). "
+                      "⛔그 가설은 아직 안 시험했다.",
+    }
+
     #: ── 요약 — 사람이 읽는 문장이 아니라 **센 수**로 낸다 ──────────────────
     def _rows(pred):
         return [r for r in scene_rows if pred(r)]
@@ -227,9 +279,18 @@ def main() -> int:
                  if r["scene"].startswith("엔비디아")}),
             "max_overlap_with_free_dips": max(
                 (r["overlap_with_free_dips"] for r in scene_rows), default=None),
+            "roughness_kills_collapse": (
+                None if not {k: v for k, v in knobs.items() if "거칠기" in k} else bool(
+                    all(v["n_dips"] == 0 for k, v in knobs.items()
+                        if "거칠기 0.3" in k or "거칠기 0.7" in k))),
+            "height_kills_collapse": (
+                None if not {k: v for k, v in knobs.items() if "고도" in k} else bool(
+                    all(v["n_dips"] == 0 for k, v in knobs.items() if "고도" in k))),
             "rel_to_free_at_dips_median_diffuse_arm": (
                 round(float(np.median(at_dips)), 4) if at_dips else None),
         },
+        "knobs_el-30_diffuse_arm": knobs,
+        "material_scattering_check": material_check,
         "cells": cells,
         "scene_rows": scene_rows,
     }
