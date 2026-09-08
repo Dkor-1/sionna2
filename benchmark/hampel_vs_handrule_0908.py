@@ -115,65 +115,87 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--arms", default="R0D0E0F1,R1D0E0F1,R0D1E1F1,R1D1E1F1")
     ap.add_argument("--els", default="-15,-30,-45,-60,-75")
+    ap.add_argument("--scenes", default="envoutdoor01_,envsionna-simple_street_canyon_,"
+                                        "envsionna-munich_",
+                    help="견줄 장면 꼬리표. ⭐우리가 만들지 않은 씬을 함께 넣는 것이 요점이다")
     ap.add_argument("--out", default=OUT)
     a = ap.parse_args()
 
     t0, cells = time.time(), {}
     for arm in a.arms.split(","):
         for el in [float(x) for x in a.els.split(",")]:
-            F, O = load("", el, arm), load("envoutdoor01_", el, arm)
-            if F is None or O is None or F.size != O.size:
+            F = load("", el, arm)
+            if F is None:
                 continue
-            nm = f"sionna_p4000000000_sw{arm}_r15_n8192_envoutdoor01_{MESH}_d2"
-            def snr(x):
-                v = CS.comb_snr(np.asarray(x), PRF, el, arm=nm)
-                return None if v is None else round(float(v), 2)
-            free, raw = snr(F), snr(O)
-            if free is None:
-                continue
-            c = {"arm": arm, "el_deg": el, "comb_free_db": free, "comb_out_db": raw}
+            for _tag in a.scenes.split(","):
+                if not _tag:
+                    continue
+                O = load(_tag, el, arm)
+                if O is None or O.size != F.size:
+                    continue
+                nm = f"sionna_p4000000000_sw{arm}_r15_n8192_{_tag}{MESH}_d2"
 
-            #: ── 옛 손 규칙 두 갈래 ─────────────────────────────────────
-            for lbl, bright in (("hand_dip_only", None), ("hand_dip_and_bright", BRIGHT)):
-                m = hand_mask(O, DIP, bright)
-                R, n = fill(O, m)
-                v = snr(R)
-                c[lbl] = {"n_replaced": n, "comb_db": v,
-                          "gap_db": None if v is None else round(v - free, 2),
-                          "recovered": None if v is None else bool(abs(v - free) <= GAP_OK)}
+                def snr(x, _nm=nm, _el=el):
+                    v = CS.comb_snr(np.asarray(x), PRF, _el, arm=_nm)
+                    return None if v is None else round(float(v), 2)
 
-            #: ── 햄펠 — 손잡이를 흔든다 ─────────────────────────────────
-            grid, hand_m = {}, hand_mask(O, DIP, None)
-            for w in WINS:
-                for k in KS:
-                    hm = hampel_mask(np.abs(O), w, k)
-                    R, n = fill(O, hm)
+                free, raw = snr(F), snr(O)
+                if free is None:
+                    continue
+                c = {"arm": arm, "el_deg": el, "scene": _tag or "(free)",
+                     "comb_free_db": free, "comb_out_db": raw}
+
+                #: ── 옛 손 규칙 두 갈래 ─────────────────────────────────
+                for lbl, bright in (("hand_dip_only", None),
+                                    ("hand_dip_and_bright", BRIGHT)):
+                    m = hand_mask(O, DIP, bright)
+                    R, n = fill(O, m)
                     v = snr(R)
-                    grid[f"win{w}_k{k:g}"] = {
-                        "n_replaced": n, "comb_db": v,
-                        "gap_db": None if v is None else round(v - free, 2),
-                        "recovered": None if v is None else bool(abs(v - free) <= GAP_OK),
-                        #: ⭐손 규칙이 잡은 자세를 햄펠이 전부 품나
-                        "covers_hand_dips": bool((hm | ~hand_m).all()),
-                    }
-            c["hampel_grid"] = grid
-            vs = [g["comb_db"] for g in grid.values() if g["comb_db"] is not None]
-            ok = sum(1 for g in grid.values() if g["recovered"])
-            c["hampel_summary"] = {
-                "n_settings": len(grid), "n_recovered": ok,
-                "comb_db_min": round(min(vs), 2), "comb_db_max": round(max(vs), 2),
-                "comb_db_median": round(float(np.median(vs)), 2),
-                "spread_db": round(max(vs) - min(vs), 2),
-                "all_cover_hand_dips": all(g["covers_hand_dips"] for g in grid.values()),
-                #: ⛔필터 뒤 값이 빈 하늘보다 **높으면** 필터가 없던 구조를 만들었을 수 있다
-                "exceeds_free_space": bool(min(vs) > free + GAP_OK),
-            }
-            cells[f"{arm}/el{el:+.0f}"] = c
-            print(f"  {arm}/el{el:+.0f}  빈하늘 {free:>6.1f} · 실외 {raw:>5.1f} · "
-                  f"손규칙 {c['hand_dip_only']['comb_db']:>6.1f} · "
-                  f"햄펠 {c['hampel_summary']['comb_db_min']:>6.1f}~"
-                  f"{c['hampel_summary']['comb_db_max']:>6.1f} "
-                  f"({ok}/{len(grid)} 돌아옴)", flush=True)
+                    c[lbl] = {"n_replaced": n, "comb_db": v,
+                              "gap_db": None if v is None else round(v - free, 2),
+                              "recovered": None if v is None
+                              else bool(abs(v - free) <= GAP_OK)}
+
+                #: ── 햄펠 — 손잡이를 흔든다 ─────────────────────────────
+                grid, hand_m = {}, hand_mask(O, DIP, None)
+                for w in WINS:
+                    for k in KS:
+                        hm = hampel_mask(np.abs(O), w, k)
+                        R, n = fill(O, hm)
+                        v = snr(R)
+                        grid[f"win{w}_k{k:g}"] = {
+                            "n_replaced": n, "comb_db": v,
+                            "gap_db": None if v is None else round(v - free, 2),
+                            "recovered": None if v is None
+                            else bool(abs(v - free) <= GAP_OK),
+                            "covers_hand_dips": bool((hm | ~hand_m).all()),
+                        }
+                c["hampel_grid"] = grid
+                vs = [g["comb_db"] for g in grid.values() if g["comb_db"] is not None]
+                ns = [g["n_replaced"] for g in grid.values()]
+                if not vs:
+                    continue
+                ok = sum(1 for g in grid.values() if g["recovered"])
+                c["hampel_summary"] = {
+                    "n_settings": len(grid), "n_recovered": ok,
+                    "comb_db_min": round(min(vs), 2), "comb_db_max": round(max(vs), 2),
+                    "comb_db_median": round(float(np.median(vs)), 2),
+                    "spread_db": round(max(vs) - min(vs), 2),
+                    "n_replaced_min": int(min(ns)), "n_replaced_max": int(max(ns)),
+                    #: ⛔갈아끼운 자세가 너무 많으면 «이상치 제거» 가 아니라 신호를 뭉갠 것이다
+                    "replaced_share_max_pct": round(100.0 * max(ns) / O.size, 2),
+                    "all_cover_hand_dips": all(g["covers_hand_dips"]
+                                               for g in grid.values()),
+                    "exceeds_free_space": bool(min(vs) > free + GAP_OK),
+                }
+                key = f"{arm}/el{el:+.0f}/{(_tag or 'free').rstrip('_')}"
+                cells[key] = c
+                print(f"  {key}  빈하늘 {free:>6.1f} · 그대로 {raw:>5.1f} · "
+                      f"햄펠 {c['hampel_summary']['comb_db_min']:>6.1f}~"
+                      f"{c['hampel_summary']['comb_db_max']:>6.1f} "
+                      f"({ok}/{len(grid)} 돌아옴 · 갈아낀 자세 "
+                      f"{c['hampel_summary']['replaced_share_max_pct']:.1f}% 까지)",
+                      flush=True)
 
     tot = len(cells)
     doc = {
@@ -208,6 +230,17 @@ def main() -> int:
                 if c["hampel_summary"]["n_recovered"] == c["hampel_summary"]["n_settings"]),
             "hampel_recovered_no_setting": sum(
                 1 for c in cells.values() if c["hampel_summary"]["n_recovered"] == 0),
+            #: ⭐⭐**우리가 만들지 않은 씬에서도 되나** — 이것이 결론의 유효 범위를 정한다
+            "by_scene": {
+                sc: {"n_cells": sum(1 for c in cells.values() if c["scene"] == sc),
+                     "n_recovered_all_settings": sum(
+                         1 for c in cells.values() if c["scene"] == sc
+                         and c["hampel_summary"]["n_recovered"]
+                         == c["hampel_summary"]["n_settings"]),
+                     "max_replaced_share_pct": max(
+                         [c["hampel_summary"]["replaced_share_max_pct"]
+                          for c in cells.values() if c["scene"] == sc] or [0])}
+                for sc in sorted({c["scene"] for c in cells.values()})},
             "cells_where_hampel_exceeds_free": [
                 k for k, c in cells.items() if c["hampel_summary"]["exceeds_free_space"]],
             "hampel_always_covers_hand_dips": all(
