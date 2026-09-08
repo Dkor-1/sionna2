@@ -48,6 +48,24 @@
     정반사가 한 갈래에 몰리고, 기본 씬은 면이 여러 각도로 쪼개져 있다.
     ⛔그 가설은 **아직 안 시험했다.** 판 크기를 줄이거나 기울여 보는 실험이 필요하다.
 
+■ ⑨ ⭐⭐**사슬이 닫혔다 (2026-09-08)** — 지면 몫을 떼어내 봤다
+
+  선형 중첩으로 «지면 몫» = (실외 기록) − (빈 하늘 기록) 이다. 셋을 쟀다:
+
+    ① **지면 몫은 자세를 안 탄다.** 자세평균 대비 둘레 변동이 **−74.0 · −72.2 dB** 다
+       (드론 자신은 −5.7 · −11.0 dB 로 크게 흔들린다). 곧 그것은 레이다가 제 지면을
+       보는 **상수**이고, 로터가 어디 있든 달라질 이유가 없다.
+    ② **무너진 자세에서 그 상수가 −70.0 · −61.4 dB 떨어진다.** 사라진다.
+    ③ **상쇄가 아니다.** 무너진 자세에서 |실외|/|빈 하늘| 이 **1.06 · 0.97** 이다 —
+       총합이 빈 하늘 값으로 **돌아간다**(상쇄라면 그 비가 훨씬 작아야 한다).
+       그리고 그 자세에서 **드론 자신의 반사는 멀쩡하다**(중앙값과 0.6 dB 안).
+
+  ⇒ **자세를 −74 dB 로 안 타는 상수가, 1 % 의 자세에서만 70 dB 떨어진다.**
+    물리로는 그럴 수 없다. ⛔**기록 쪽 결함이다.**
+    ⚠그리고 그것은 **결정적**이다 — 되풀이 넷에서 자카드 1.0000(⑦).
+      곧 «무작위로 잃는 것» 이 아니라 «그 자세에서는 늘 못 찾는 것» 이다.
+    ⚠**날개가 가려서도 아니다** — 자세 번호를 박자 주기로 접은 집중도가 0.185 뿐이다(⑧).
+
 ■ 무엇을 아직 모르나 (⛔여기서 더 나가지 않는다)
   · 위 «기하» 가설을 안 시험했다 — 판 크기·기울기를 흔든 판이 없다.
   · 솔버 안쪽인지 우리 배관인지 안 갈랐다.
@@ -220,6 +238,47 @@ def main() -> int:
                       "min_below_median_db": round(db(np.min(np.abs(E))) - db(med), 2),
                       "n_dips": int(dip_idx(E).size)}
 
+    #: ── ⑨ ⭐⭐**지면 몫을 떼어내 본다** — 이것이 사슬을 닫는다 ─────────────
+    #  선형 중첩으로 지면 몫 = (실외 기록) − (빈 하늘 기록) 이다.
+    #  ① 그 몫이 자세를 타나 — 자세평균 |⟨E⟩| 대비 둘레 변동 |E−⟨E⟩| 로 잰다.
+    #  ② 무너진 자세에서 그 몫이 «0 이 되나»(사라짐) «직접파와 상쇄하나» 를 가른다.
+    #     사라짐이면 |실외|/|빈 하늘| ≈ 1, 상쇄면 그 비가 ≪1 이다.
+    split = {}
+    for el in (-30.0, -60.0):
+        F, _, _ = load("", el, "R0D0E0F1")
+        G, _, _ = load("envoutdoor01_ground_", el, "R0D0E0F1")
+        if F is None or G is None or F.size != G.size:
+            continue
+        Gc = G - F
+        bad = np.abs(G) / float(np.median(np.abs(G))) < DIP
+        ok = ~bad
+        if not bad.any():
+            continue
+        v = Gc[ok]
+        stat = float(np.abs(v.mean()))
+        wob = float(np.median(np.abs(v - v.mean())))
+        fv = F[ok]
+        fstat = float(np.abs(fv.mean()))
+        fwob = float(np.median(np.abs(fv - fv.mean())))
+        split[f"el{el:+.0f}"] = {
+            "n_dips": int(bad.sum()),
+            "ground_term_static_db": round(db(stat), 2),
+            "ground_term_wobble_db": round(db(wob), 2),
+            #: ⭐이 값이 크게 음수면 지면 몫은 «자세를 안 타는 상수» 다
+            "ground_wobble_over_static_db": round(db(wob) - db(stat), 2),
+            "drone_wobble_over_static_db": round(db(fwob) - db(max(fstat, 1e-300)), 2),
+            "ground_term_at_dips_db": round(db(np.median(np.abs(Gc[bad]))), 2),
+            #: ⭐무너진 자세에서 지면 몫이 평소보다 몇 dB 낮나
+            "ground_term_drop_at_dips_db": round(
+                db(np.median(np.abs(Gc[bad]))) - db(np.median(np.abs(Gc[ok]))), 2),
+            #: ⭐1 에 가까우면 «사라진» 것, ≪1 이면 «상쇄» 다
+            "out_over_free_at_dips": round(
+                float(np.median(np.abs(G[bad]) / np.maximum(np.abs(F[bad]), 1e-300))), 4),
+            #: 드론 자신의 반사는 무너진 자세에서도 멀쩡한가
+            "free_at_dips_minus_free_median_db": round(
+                db(np.median(np.abs(F[bad]))) - db(np.median(np.abs(F))), 2),
+        }
+
     #: ── ⑦ 되풀이하면 같은 자세가 무너지나 ────────────────────────────────
     #  ⭐**이것이 «무작위냐 기하냐» 를 가른다.** `rep1_`·`rep2_`·`rep3_` 은 같은 설정
     #  재실행이다. 자카드가 1 이면 솔버의 무작위성이 아니라 **기하가 정하는** 것이다.
@@ -339,6 +398,18 @@ def main() -> int:
                                    min(v["jaccard_min"] for v in repeat.values())),
             "collapse_is_deterministic": (None if not repeat else bool(
                 min(v["jaccard_min"] for v in repeat.values()) >= 0.999)),
+            #: ⭐⭐사슬을 닫는 세 수
+            "ground_term_is_static": (None if not split else bool(all(
+                v["ground_wobble_over_static_db"] < -40 for v in split.values()))),
+            "ground_wobble_over_static_db": (None if not split else
+                [v["ground_wobble_over_static_db"] for v in split.values()]),
+            "ground_term_drop_at_dips_db": (None if not split else
+                [v["ground_term_drop_at_dips_db"] for v in split.values()]),
+            "vanishes_not_cancels": (None if not split else bool(all(
+                0.8 < v["out_over_free_at_dips"] < 1.25 for v in split.values()))),
+            "drone_own_echo_normal_at_dips": (None if not split else bool(all(
+                abs(v["free_at_dips_minus_free_median_db"]) < 2.0
+                for v in split.values()))),
             "poses_per_flash": round(PRF_POSES_PER_FLASH, 2),
             #: ⭐집중도가 낮으면 «날개가 가려서» 가 아니다
             "phase_concentration_max": (None if not phase_lock else round(max(
@@ -360,6 +431,7 @@ def main() -> int:
         "knobs_el-30_diffuse_arm": knobs,
         "repeat_runs": repeat,
         "phase_lock": phase_lock,
+        "ground_term_split": split,
         "material_scattering_check": material_check,
         "cells": cells,
         "scene_rows": scene_rows,
