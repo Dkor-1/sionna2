@@ -87,6 +87,39 @@ def f_tip(el, arm=""):
       `--fc-ghz` 판(5.8 / 10 / 24 GHz)을 그대로 읽으면 대역이 최대 6.9 배 어긋나
       **모든 칸이 «빗살 안 보임» 으로 거짓 판정**된다. 팔 이름에서 반송파를 읽어 곱한다.
     """
+    #: ⛔⛔**2026-09-08 결함 — 기체를 바꾸면 대역이 틀렸다.**
+    #  이 식은 날개 **통과율**(날개 수 × 회전수)만 눈금으로 썼는데, f_tip 은 팁 **속도**라
+    #  프롭 **지름**에도 비례한다. 기준 기체(matrice4e)에서는 둘이 같이 움직여 안 걸렸지만
+    #  다른 기체에서는 갈린다 — mini5pro 는 이 식이 920.57 Hz 인데 실제는 512.37 Hz 로
+    #  **대역이 1.8 배 넓다**(phantom4 는 920.57 대 806.88). 대역이 넓으면 바닥이 늘어
+    #  빗살이 실제보다 낮게 읽힌다.
+    #  ⇒ 팔 이름에 기체 꼬리표가 있으면 `elevation_sweep_md.f_tip_at` 과 **같은 식**을 쓴다:
+    #       f_tip = 2 · (2π · rpm/60 · R) / λ · cos(el),   R = 프롭 지름 / 2
+    #  ⚠꼬리표가 없으면 옛 식을 그대로 쓴다 — 기존 원장의 matrice4e 값이 한 비트도
+    #    안 바뀌어야 한다(FTIP0 는 원장에서 온 수라 제원 계산과 0.07 % 다르다).
+    _key = None
+    try:
+        import sys as _s                                          # noqa: PLC0415
+        _s.path.insert(0, os.path.join(os.path.dirname(HERE), "src"))
+        from drones import DRONES as _DR                           # noqa: PLC0415
+        for _k in _DR:
+            if f"_{_k}_" in (arm or "") or (arm or "").endswith(f"_{_k}"):
+                _key = _k
+                break
+    except Exception:                                              # noqa: BLE001
+        _key = None
+    if _key and _key != TJ.get("drone", "matrice4e"):
+        _sp = _DR[_key]
+        _R = float(_sp.prop_dia_mm) / 2000.0
+        _m = re.search(r"_ps([0-9.]+)", arm or "")                 # 프롭 배율 꼬리표
+        if _m:
+            try:
+                _R *= float(_m.group(1))
+            except ValueError:
+                pass
+        _lam = 2.998e8 / carrier_of(arm)
+        _frev = float(getattr(_sp, "hover_rpm", 6000.0)) / 60.0
+        return 2.0 * (2 * np.pi * _frev * _R) / _lam * np.cos(np.radians(float(el)))
     return (FTIP0 * np.cos(np.radians(float(el))) * (carrier_of(arm) / FC0_HZ)
             * (blade_of(arm) / F0))
 

@@ -192,6 +192,10 @@ def main() -> int:
                         if abs(float(k)) < 1e-9 for x in (e.get("spp") or [])})
     _nonmono = [f"{a}/{ax}" for a, v in BY.items() for ax in ("azimuth", "elevation")
                 if not v["edge"][ax]["monotonic"]]
+    #: ⭐축 위(0°) 칸의 dB 를 팔마다 세어 둔다 — 손으로 쓴 «+9.542 dB» 를 대체한다
+    _axis_db = {a: v["azimuth_ladder_at_el0"][k]["db_vs_dedup"]
+                for a, v in BY.items()
+                for k in v["azimuth_ladder_at_el0"] if abs(float(k)) < 1e-9}
 
     doc = {
         "_meta": {
@@ -208,8 +212,13 @@ def main() -> int:
                       f" 축 위(0°) 칸에 든 예산: {[f'{x:g}' for x in _spp_axis]}",
             "spp_all": _spp,
             "spp_on_axis": _spp_axis,
+            #: ⛔손으로 쓴 문장이었다 — «정확히 3 배» 는 이 저장소가 금지한 표현이고
+            #  (front_repeat_0906 · docs/RESUME.md), 9.542 는 이 원장 어디에도 없는 수다.
+            #  게다가 네 팔 중 둘은 N≈2.35 라 3 배가 아니다. 세어서 적는다.
             "db_vs_dedup_ko": "20·log10(N) — 겹쳐 적힌 만큼 필드가 커진 크기(dB)."
-                              " 축 위는 +9.542 dB, 곧 정확히 3 배다",
+                              f" 축 위(0°) 값은 팔마다 다르다: {_axis_db}."
+                              " ⛔«정확히 3 배» 로 적지 마라 — 팔에 따라 2.35 배다",
+            "db_vs_dedup_on_axis_by_arm": _axis_db,
             "on_threshold": ON,
             "min_poses": MIN_POSES,
             "n_cells": len(cells),
