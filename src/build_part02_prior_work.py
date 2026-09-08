@@ -612,7 +612,12 @@ def report_13_where_we_stand():
                 "요약이 성립하지 않는다.",
 
                 f"우리 자세 패턴은 해석 PO 구 대비 "
-                f"{_n('summary_div16.max_abs_db_vs_po', KR, '{:.3f}', 'dB')}(입사 "
+                #: ⛔**격자를 안 밝히면 구현오차를 생산 설정보다 좋게 읽힌다.** 0.201 dB 는
+                #  λ/16 격자의 값이고 **생산은 λ/12** 라 0.254 dB 다. 이 수는 물리가 아니라
+                #  «광선 격자 밀도» 라는 설정의 성질이므로 둘을 병기한다(2026-09-08 전수조사 2 차).
+                f"λ/16 격자 {_n('summary_div16.max_abs_db_vs_po', KR, '{:.3f}', 'dB')} · "
+                f"**생산 λ/12 격자 {_n('summary_div12.max_abs_db_vs_po', KR, '{:.3f}', 'dB')}**"
+                f"(입사 "
                 f"{_n('meta.n_incidence', KR, '{:.0f}', '방향')})이고, 밴드 기울기는 Das 적합계수 "
                 f"{_n('anchors.das.mu_a_db_per_ghz', SURVEY, '{:.2f}', 'dB/GHz')} 에 맞춘다.",
 
@@ -667,7 +672,8 @@ def report_13_where_we_stand():
            "레벨과 주파수 의존성은 측정 적합계수에서 받는다.", "",
            table(["축", "우리가 한 일", "값", "어디서 자세히"],
                  [["자세 패턴", "광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질",
-                   f"해석 PO 구 대비 {_n('summary_div16.max_abs_db_vs_po', KR, '{:.3f}', 'dB')}, "
+                   f"해석 PO 구 대비 λ/16 {_n('summary_div16.max_abs_db_vs_po', KR, '{:.3f}', 'dB')} · "
+                     f"생산 λ/12 {_n('summary_div12.max_abs_db_vs_po', KR, '{:.3f}', 'dB')}, "
                    f"입사 {_n('meta.n_incidence', KR, '{:.0f}', '방향')}",
                    ref("kernel-vs-reference", short=True)],
                   ["절대 레벨 · 밴드 기울기", "A(f)·B1(φ)·B2 분해로 Das 적합계수에 정렬",
