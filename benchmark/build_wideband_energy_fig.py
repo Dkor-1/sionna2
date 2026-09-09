@@ -7,7 +7,7 @@
 
 ■ 왜 넓게 보면 값어치가 있나
     블레이드 끝 속도가 정하는 **물리 상한**은 f_tip = 1272.9·cos(el) Hz 다.
-    그 **위에 있는 에너지는 블레이드 회전 도플러로는 설명되지 않는다.**
+    그 위의 스펙트럼에도 회전 위상변조·진폭변조·창 효과가 기여할 수 있다.
     ⛔여기서 «인공물이다» 로 넘어가지 않는다 — 그것은 운동학 상한이 아니라 **귀속**이고,
       귀속(격자 표본화 잡음 · 근접장 곡률 · 가림 · 창 누설)은 따로 잰다
       ⟨outputs/refute_nadir_mechanism_final.json : R5_detection.nadir_ac_split⟩.
@@ -24,9 +24,9 @@
 
 ■ 무엇을 그리나 (3 단)
     (a) 앙각별 **전대역 스펙트럼** — x 축을 f_tip 으로 정규화해 겹친다.
-        x = 1 이 물리 상한. 그 오른쪽은 블레이드 회전 도플러로 설명되지 않는 자리다.
+        x = 1 은 순시 주파수 기준선이며 FFT의 엄밀한 지지구간 경계가 아니다.
     (b) **대역별 에너지 몫** — 0~500 / 500~f_tip / f_tip~2·f_tip / 2~4·f_tip / 4·f_tip~나이퀴스트
-    (c) ⭐**물리 상한 위로 새는 비율 대 앙각** — 팔마다. 낮을수록 좋다.
+    (c) ⭐**물리 상한 위로 새는 비율 대 앙각** — 팔마다 비교한다. 물리적 타당성은 기준 신호와 별도로 대조한다.
 
 ⛔팔 사이 **레벨**을 나란히 놓지 않는다 — 정규화가 달라 우리 −54 대 PathSolver −125 dB 다.
    전부 **자기 전체 전력 대비 몫**으로만 그린다(눈금 무관).
@@ -89,7 +89,7 @@ def main() -> None:
         "question_ko": "관찰범위를 물리 상한 위까지 넓히면 무엇이 보이나",
         "prf_hz": prf, "nyquist_hz": nyq, "f_tip_el0_hz": FTIP0,
         "physical_limit_ko": (f"f_tip = {FTIP0:.1f}·cos(el) 가 날개끝 속도가 정하는 상한이다. "
-                              "그 위의 에너지는 블레이드 회전 도플러로는 설명되지 않는다. "
+                              "그 위의 스펙트럼에도 위상·진폭 변조와 창 효과가 기여할 수 있다. "
                               "⛔«인공물이다» 는 여기서 따라 나오지 않는다 — 귀속(격자 표본화 "
                               "잡음 · 근접장 곡률 · 가림 · 창 누설)은 따로 잰다: "
                               "outputs/refute_nadir_mechanism_final.json : "
@@ -113,16 +113,14 @@ def main() -> None:
         ax[0].semilogx(fr[m] / FTIP0, 10 * np.log10(S[m] / S[m].max() + 1e-16),
                        lw=0.8, alpha=0.85, color=col, label=label)
     ax[0].axvline(1.0, color="k", ls="--", lw=1.4)
-    ax[0].text(1.03, -3, "physical limit  f_tip", fontsize=9, rotation=90, va="top")
     ax[0].axvspan(1.0, nyq / FTIP0, color="red", alpha=0.05)
-    ax[0].text(2.2, -8, "above physical limit = artefact", fontsize=9, color="darkred")
     ax[0].set_xlim(0.02, nyq / FTIP0)
     ax[0].set_ylim(-70, 2)
-    ax[0].set_xlabel("Doppler / f_tip   (1.0 = blade tip speed limit)")
+    ax[0].set_xlabel("Doppler / f_tip (dashed: instantaneous frequency reference)\nSpectrum beyond f_tip: attribution unresolved")
     ax[0].set_ylabel("power [dB, own max]")
     ax[0].set_title("(a) Full-band Doppler spectrum at el 0 deg, normalised to each arm's own maximum")
     ax[0].grid(alpha=0.3, which="both")
-    ax[0].legend(fontsize=8)
+    ax[0].legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1))
 
     # ── (b)(c) 대역별 몫 · 상한 위 누설
     def bands_for(ft: float):
@@ -165,8 +163,8 @@ def main() -> None:
                   w, color=col, label=label)
     ax[1].set_xticks(xs); ax[1].set_xticklabels([f"{e:+.0f}" for e in ELS])
     ax[1].set_xlabel("elevation [deg]"); ax[1].set_ylabel("share of total power [dB]")
-    ax[1].set_title("(b) Energy inside the physical blade band (500 Hz to f_tip)")
-    ax[1].grid(alpha=0.3, axis="y"); ax[1].legend(fontsize=8)
+    ax[1].set_title("(b) Energy inside the defined blade band (500 Hz to f_tip)")
+    ax[1].grid(alpha=0.3, axis="y"); ax[1].legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1))
 
     for arm, label, col in ARMS:
         if leak[arm]:
@@ -176,10 +174,10 @@ def main() -> None:
     ax[2].set_title("(c) Energy above the kinematic limit - this measure also counts\n"
                     "window leakage and multi-bounce, so read it arm to arm,\n"
                     "not as an absolute amount of artefact")
-    ax[2].grid(alpha=0.3); ax[2].legend(fontsize=8)
+    ax[2].grid(alpha=0.3); ax[2].legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1))
     ax[2].set_ylim(0, None)
 
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 0.80, 1))
     os.makedirs(f"{ROOT}/outputs/figures", exist_ok=True)
     fig.savefig(OUTP, dpi=150)
     json.dump(out, open(OUTJ, "w"), ensure_ascii=False, indent=1)

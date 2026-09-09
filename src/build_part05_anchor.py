@@ -10,7 +10,7 @@ build_part05_anchor.py — 부 5 「앵커와 검증」 → 편 24~29
     24 anchor-mode         σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고,
                            레벨과 각패턴은 우리 SBR+PO 커널(B) 출력이다
     25 anchor-ledger       앵커가 통제한 항목과 남은 항목의 크기를 기체별 원장으로 적었다
-    26 blind-p3            Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다
+    26 blind-p3            Phantom 3 계산을 문헌값과 대조했다 — 문헌 비열람 조건은 유지되지 않았다
     27 box-sphere-control  레벨 축에서 상자 계열은 우리 메쉬에 지고, 부피를 맞게 고른 구는
                            같은 자리에 온다 — 갈리는 것은 각도 산포다
     28 fleet-prereg        같은 잣대를 네 기체로 넓히면 판정이 NOT_VALIDATED 로 갈린다
@@ -49,7 +49,7 @@ ANC = "outputs/rcs_anchor.json"              # 문헌 적합 — 측정 기울�
 SIG = "outputs/sigma_anchor.json"            # 재보정 모드 · 비교가능성 · 미통제 항목
 P3V1 = "outputs/p3_validation.json"          # 눈감기 대조 (v1 메쉬)
 P3V2 = "outputs/p3_validation_v2.json"       # 상자·구 대조군 (v2 메쉬)
-P3O = "outputs/p3_ours.json"                 # 눈감기 산출 원본
+P3O = "outputs/p3_ours.json"                 # 문헌 대조 계산 원본(비열람 지위 철회)
 P3O2 = "outputs/p3_ours_v2.json"             # B 팔 커널 신원(엔진·호출자·투과 설정)
 DFV = "outputs/das_fleet_validation.json"    # 함대 사전등록 채점
 DFP = "outputs/das_fleet_prereg.json"        # 봉인한 합격규칙
@@ -404,7 +404,7 @@ def report_26_blind_p3():
     return [
         header(
             num=26,
-            title="Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다",
+            title="Phantom 3 계산을 문헌값과 대조했다 — 문헌 비열람 조건은 유지되지 않았다",
             did="앵커 기체와 같은 기체를 별도 프로세스로 돌리고 별도 스크립트가 봉인을 풀어 "
                 "문헌과 맞댔다.",
             results=[
@@ -483,7 +483,7 @@ def report_26_blind_p3():
 
         md("## 봉인을 풀고 맞댄 결과", "",
            table(["대조 상대", "고도 · 창", "기울기 [dB/GHz]", "우리와의 거리"],
-                 [["우리 el=0 전대역 (눈감기 산출)",
+                 [["우리 el=0 전대역 (문헌 대조 계산)",
                    "el=0 · " + _n('slope.das_published.band[0]', P3V1, '{:.1f}') + "–"
                    + _n('slope.das_published.band[1]', P3V1, '{:.1f}', 'GHz'),
                    _n('slope.ours_el0_full_band.a', P3V1, '{:.3f}') + " ± "
@@ -714,8 +714,8 @@ def report_28_fleet_prereg():
                 f"{_n('prereg_judgement.spread_predicted_db', DFV, '{:.1f}', 'dB')} 였다 — 예측이 "
                 f"반증됐다.",
 
-                f"⭐ 갈린 축은 대역도 전기적 크기도 기체 크기도 아니고 **그 기체 자체의 형상 증거가 "
-                f"있는가** 다 — 증거가 있는 Mini 2 "
+                f"이 원장 세대에서는 **그 기체 자체의 형상 증거가 "
+                f"있는 그룹**의 레벨오차가 작았다. 원인 해석은 가설이다 — Mini 2 "
                 f"{_n('prereg_judgement.DL0_db.mini2', DFV, '{:+.2f}')} · Phantom 3 "
                 f"{_n('prereg_judgement.DL0_db.phantom3', DFV, '{:+.2f}')} 와 얇은 Phantom 2 "
                 f"{_n('prereg_judgement.DL0_db.phantom2', DFV, '{:+.2f}')} · M350 RTK "
@@ -780,9 +780,9 @@ def report_28_fleet_prereg():
            f"는 바이스태틱각 0°(송신기와 수신기가 같은 자리에 있는 배치)에서 측정 대비 우리 σ 가 "
            f"몇 dB 높거나 낮은가다 — 양수면 우리가 더 밝게 냈다는 뜻이다."),
 
-        md("## 갈린 축은 형상 증거의 유무다", "",
-           f"⭐ 갈린 축은 대역도 전기적 크기도 기체 크기도 아니고 **그 기체 자체의 형상 증거가 "
-           f"있는가** 다 — 형상 증거가 있는 Mini 2 "
+        md("## 이 원장에서는 형상 증거가 있는 그룹의 레벨오차가 작았다", "",
+           f"이 원장 세대에서는 **그 기체 자체의 형상 증거가 "
+           f"있는 그룹**의 레벨오차가 작았다. 다른 기체 속성의 기여는 미분리다 — Mini 2 "
            f"{_n('prereg_judgement.DL0_db.mini2', DFV, '{:+.2f}')} · Phantom 3 "
            f"{_n('prereg_judgement.DL0_db.phantom3', DFV, '{:+.2f}')} 와 증거가 얇은 Phantom 2 "
            f"{_n('prereg_judgement.DL0_db.phantom2', DFV, '{:+.2f}')} · M350 RTK "
@@ -860,7 +860,7 @@ def report_29_sigma_robustness():
                 f"{_n('sigma_sens.range_at_minus10_pct', DER, '{:.0f}')} %~"
                 f"{_n('sigma_sens.range_at_plus10_pct', DER, '{:+.0f}', '%')} 다.",
 
-                f"자세평균 σ 로 인용하면 다섯 기체가 한 순위"
+                f"방위 선형평균 σ 를 거리 모델에 넣으면 다섯 기체가 한 순위"
                 f"({_n('sigma_sens.aspect_avg_order', DER)})에 합의하고, 단일자세에서는 순위 "
                 f"{_n('sigma_sens.single_aspect_n_orders', DER, '{:.0f}', '종')} 이 나온다.",
 
@@ -881,7 +881,7 @@ def report_29_sigma_robustness():
             repro=_repro(["PYTHONPATH=src python benchmark/sigma_sensitivity.py"],
                          [SS, DER],
                          "약 20분 (GPU 1장 — 검출 사슬을 오차마다 다시 푼다)",
-                         "논문이 절대 σ 에 기대는 곳은 공통모드 문단에서 끝난다"),
+                         "공통 오프셋 대조의 순위 보존을 차분 오차·실측 검증과 구분한다"),
         ),
 
         md("## 오차를 두 갈래로 나눈다", "",
@@ -907,12 +907,12 @@ def report_29_sigma_robustness():
            "⚠ **거리의 dB 는 10log10 규약이다** — `benchmark/sigma_sensitivity.py` 가 "
            "10·log10(R90) 을 σ 오프셋에 적합해 이 기울기를 낸다. 그래서 σ 1 dB 당 약 1/4 dB 는 "
            "R90 ∝ σ^(1/4) 와 같은 말이고, 위 ±10 dB 의 거리 변화율이 그 지수와 맞는다.", "",
-           "**논문이 절대 σ 에 기대는 곳은 여기서 끝난다.**"),
+           "**이 결과는 선언한 공통 오프셋에서의 순위 보존이다. 차분 오차와 실측 순위는 별도로 확인해야 한다.**"),
 
         md("## 차분 — 순위를 정하는 축", "",
            f"차분오차가 순위를 정하는 축이고, 그래서 {ref('anchor-mode', short=True)} 의 앵커가 잡는 "
            f"축이 정확히 이것이다.", "",
-           f"자세평균 σ 로 인용하면 다섯 기체가 한 순위"
+           f"방위 선형평균 σ 를 거리 모델에 넣으면 다섯 기체가 한 순위"
            f"({_n('sigma_sens.aspect_avg_order', DER)})에 합의하고(단일자세에서는 순위 "
            f"{_n('sigma_sens.single_aspect_n_orders', DER, '{:.0f}', '종')}), 거기에 측정 기울기를 "
            f"얹으면 최악 뒤집힘 문턱이 "

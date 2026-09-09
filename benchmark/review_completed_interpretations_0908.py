@@ -12,6 +12,8 @@ import hashlib
 import json
 import math
 import os
+import subprocess
+import sys
 
 os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
 import numpy as np
@@ -20,6 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT/'outputs/completed_interpretations_review_0908.json'
 MEMO = ROOT/'docs/COMPLETED_INTERPRETATIONS_REVIEW_0908.md'
 SOURCES = {}
+BASELINE_REV = '2f82d34bfe0986b0cf0baff86028a13f2cd772c8'
+
+def baseline(path):
+    raw = subprocess.check_output(["git", "show", f"{BASELINE_REV}:{path}"], cwd=ROOT)
+    SOURCES[f"{BASELINE_REV}:{path}"] = hashlib.sha256(raw).hexdigest()
+    return raw.decode()
+
 
 
 def read(path):
@@ -33,7 +42,7 @@ def ledger(name):
 
 
 def source(path, needle):
-    lines = read(path).splitlines()
+    lines = baseline(path).splitlines()
     hits = [i+1 for i, line in enumerate(lines) if needle in line]
     assert hits, (path, needle)
     return dict(path=path, line=hits[0], text=lines[hits[0]-1].strip())
@@ -41,7 +50,7 @@ def source(path, needle):
 
 def quote(name, cell, needle):
     path = f'reports/{name}.ipynb'
-    nb = json.loads(read(path))
+    nb = json.loads(baseline(path))
     text = ''.join(nb['cells'][cell]['source'])
     hits = [line for line in text.splitlines() if needle in line]
     assert hits, (name, cell, needle)
@@ -113,8 +122,77 @@ def checks():
         realistic_span_db=ledger('sigma_sensitivity')['differential']['realistic_span_db'])
 
 
+# Positive markers verify that the edited builders reached the published volumes.
+FIX_MARKERS = [
+    '가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값',
+    'Phantom 3 계산을 문헌값과 대조했다',
+    '경로수 일치 재실험은 미완료 상태다',
+    '복소 위상 오차는 별도로 대조해야 한다',
+    '드론 전체의 RCS·검출거리 오차 방향은 정할 수 없다',
+    '다른 기체 속성의 기여는 미분리다',
+    '잔여 방식으로 나눈 AC 전력 비율',
+    '순시 주파수 최대값과 FFT의 지지구간은 서로 다른 개념이다',
+    '나머지 행의 굴절·깊이는 설정 표를 따른다',
+    '이 결과의 적용 범위는 기존 통제 기하와 기준신호 모델이다',
+    '공칭 ADC 비트 수의 이상적 양자화 SNR은',
+    '모델-앵커 기울기차로 정한 민감도 범위',
+    '자세별 검출확률이나 검출거리를 계산한 뒤 평균한 결과는 아니다',
+]
+
+
+def current_status(findings):
+    assert len(findings) == len(FIX_MARKERS)
+    obsolete = ['다중반사 위상이 맞는다는 뜻이다', '가 광선 격자 표본화 잡음이다',
+                '날개가 낼 수 없는 대역', '경로수를 맞췄을 때 Mini 2 상승분',
+                '갈린 축은 대역도 전기적 크기도', '정적 클러터는 ECA 뒤에서 죽은 파라미터다']
+    for r, marker in zip(findings, FIX_MARKERS):
+        nb = json.loads(read(r['quote']['path']))
+        cells = [(i, ''.join(c['source'])) for i,c in enumerate(nb['cells'])]
+        matches = [i for i,t in cells if marker in t]
+        remaining = [bad for bad in obsolete if any(bad in t for _,t in cells)]
+        assert not remaining, (r['quote']['path'], remaining)
+        r['current_revision'] = dict(applied=bool(matches), marker=marker, cells=matches)
+    return dict(applied=sum(r['current_revision']['applied'] for r in findings),
+                total=len(findings),
+                scope='Verified wording in published notebooks; no new physical validation.')
+
+
+def review_notebook(out):
+    sys.path.insert(0, str(ROOT/'src'))
+    from report_style import header, md, table, next_steps, build_notebook
+    j='outputs/completed_interpretations_review_0908.json'
+    state=out['implementation']
+    blocks=[header(num='검토', title='완료 실험의 해석 범위와 표현 수정 기록',
+        did='완료 실험의 제목·요약·본문을 원장과 생성 코드에 대조하고 확인된 표현을 수정했다.',
+        results=[
+            f"검토한 해석 {state['total']}건 중 본편 반영 {state['applied']}건 ⟨{j} : implementation⟩.",
+            f"기존 한정이 적절한 해석 {len(out['preserved'])}건을 유지했다 ⟨{j} : preserved⟩.",
+            f"예산 외삽과 RCS 크기 대조를 원장에서 재검산했다 ⟨{j} : checks⟩."],
+        method=[('범위','아래 리포트의 지적 문장과 관련 본문·원장·코드를 대조했다. 전체 저장소의 모든 실험에 대한 전수 검증은 별도 범위다.'),
+                ('증거 수준','기존 수치의 재계산과 수학적 반례를 사용했다. GPU 재실험·외부 계측은 후속 과제다.'),
+                ('이력','수정 전 커밋의 인용문을 보존하고 현재 본편에서 반영 문구를 확인했다.')],
+        repro=dict(cmd=["CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 /workspace/.venvs/py312/bin/python benchmark/review_completed_interpretations_0908.py --check-reports"],out=[j],runtime='CPU 한 코어의 원장·문서 대조'))]
+    for i,r in enumerate(out['findings']):
+        blocks.append(md(f"## {i+1}. {r['title']}", '',
+            '**유지하는 결과:** '+r['retained'], '',
+            f"**수정 반영:** {'확인' if r['current_revision']['applied'] else '대기'} · "
+            f"[{Path(r['quote']['path']).stem}](../{r['quote']['path']}) · "
+            f"[수정 전 인용·근거·권장 문장](COMPLETED_INTERPRETATIONS_REVIEW_0908.md) ⟨{j} : findings[{i}]⟩"))
+    blocks.append(next_steps([
+        ('가시성이 맞는 기본 장면 대조와 씨앗·로터 자세 교차 실험을 읽는다','무사건 이유와 후보 생성기 내부 원인의 구분','OUTDOOR_DESIGN_REVIEW_0908.md'),
+        ('복소 위상·맞춘 광선 예산·자세별 검출확률을 각각 대조한다','현재 원장이 뒷받침하는 범위의 확장','COMPLETED_INTERPRETATIONS_REVIEW_0908.md'),
+        ('기존 원장의 생성 경로 누락과 보고용 산문을 정리한다','기록 재현성과 후속 인용의 개선','COMPLETED_INTERPRETATIONS_REVIEW_0908.md')]))
+    return build_notebook(str(ROOT/'docs/COMPLETED_INTERPRETATIONS_REVIEW_0908.ipynb'),blocks,strict=True)
+
+
 def main():
     c = checks()
+    c['wideband_recorded_cells_unchanged'] = {}
+    for name in ('wideband_energy', 'wideband_energy_r15'):
+        current = ledger(name)['cells']
+        previous = json.loads(baseline('outputs/'+name+'.json'))['cells']
+        assert current == previous, name
+        c['wideband_recorded_cells_unchanged'][name] = len(current)
     findings = []
     def add(title, nb, cell, needle, issue, retained, replacement, refs, status='확인된 해석 범위 초과'):
         findings.append(dict(title=title, quote=quote(nb,cell,needle), status=status,
@@ -139,7 +217,7 @@ def main():
         '이는 의도적으로 결과를 맞췄다는 증거를 뜻하지 않는다.',
         '해당 메쉬와 주파수 창에서 계산한 문헌 대조값은 남는다. 사전 비열람이라는 실험 지위만 제외한다.',
         'Phantom 3 계산을 문헌값과 대조했다. 문헌 비열람 조건은 유지되지 않아 눈감기 검증으로 분류하지 않는다.',
-        [('src/build_part05_anchor.py','눈감기'),('benchmark/p3_attack.py','Q1_was_the_answer_seen')])
+        [('src/build_part05_anchor.py','눈감기'),('outputs/p3_attack.json','Q1_was_the_answer_seen')])
 
     add('예산 보정의 예측을 예산을 맞춘 관측으로 서술한다','06_6_microdoppler-limits',25,'경로수를 맞췄을 때',
         f"원장 상승분은 {c['budget']['ledger_boost_db']:.3f} dB다. 이는 사다리 기울기와 기체 간 경로수 비로 "
@@ -227,7 +305,7 @@ def main():
     add('선언한 모델 차이 규모를 현실 오차 봉투라고 부른다','10_results',26,'현실 봉투',
         f"원장의 봉투 {c['realistic_span_db']:.3f} dB는 원 PO 최대 기울기와 문헌 앵커 기울기의 차이에 밴드 폭을 곱한 값이다. "
         '실제 기체군의 오차 분포나 신뢰구간을 계측해 정한 범위가 아니다. '
-        '그 안에서 순위가 뒤집힌다는 결과는 선택한 민감도 시나리오의 결과이며 현실에서 그 확률로 뒤집힌다는 뜻은 아니다.',
+        '그 안에서 순위가 뒤집힌다는 결과는 선택한 민감도 시나리오의 결과이며 현실에서 그 확률로 뒤집힌다는 뜻은 아니다. 그림에 남아 있던 «모든 문턱이 범위 안»이라는 요약도 일부 막대가 기준선 밖에 있어 삭제했다.',
         '선언한 공통·차분 오차 시나리오에서 재계산한 순위와 뒤집힘 문턱.',
         '모델과 앵커의 기울기 차이에서 정한 민감도 범위 안에 뒤집힘 문턱이 놓인다. 이 범위는 실측 오차 분포나 신뢰구간이 아니다.',
         [('benchmark/sigma_sensitivity.py','REALISTIC_SPAN_DB ='),
@@ -264,10 +342,24 @@ def main():
     out = dict(_meta=dict(generator='benchmark/review_completed_interpretations_0908.py',
                          scope='Current completed-experiment interpretations in the referenced notebooks; '
                                'not an exhaustive audit of every repository artifact.',
-                         source_sha256=SOURCES),
-               checks=c, findings=findings, preserved=preserved, external_sources=external)
+                         source_sha256=SOURCES, baseline_revision=BASELINE_REV),
+               checks=c, findings=findings, preserved=preserved, external_sources=external,
+               implementation=current_status(findings))
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2, allow_nan=False)+'\n')
+    if '--check-reports' in sys.argv:
+        out['document_checks'] = {}
+        for gate in ('check_stale_titles', 'check_retracted', 'check_row_pointers', 'check_new_file_rules', 'check_report_links'):
+            proc = subprocess.run([sys.executable, str(ROOT/'benchmark'/f'{gate}.py')], cwd=ROOT,
+                env=dict(os.environ, CUDA_VISIBLE_DEVICES='', PYTHONPATH='src:benchmark'),
+                capture_output=True, text=True)
+            out['document_checks'][gate] = dict(exit_code=proc.returncode, output=proc.stdout+proc.stderr)
+        out['preexisting_provenance_issues'] = {}
+        for name in ('deck_audit_0908', 'jaccard_0914_0908', 'read_0918A_0909'):
+            path = 'outputs/'+name+'.json'
+            out['preexisting_provenance_issues'][path] = (read(path) == baseline(path))
+        OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2, allow_nan=False)+'\n')
     render(out)
+    review_notebook(out)
     print(f'{len(findings)} findings, {len(preserved)} bounded interpretations retained')
     print(MEMO.relative_to(ROOT))
 
@@ -276,20 +368,21 @@ def render(out):
     fs = out['findings']
     notebooks = sorted({r['quote']['path'] for r in fs+out['preserved']})
     lines = ['# 완료 실험 결과 해석 검토 메모', '',
-             f"현재 리포트 {len(notebooks)}개에서 결과 해석 {len(fs)}건을 구체적으로 짚었다. "
+             f"수정 전 기준 커밋의 리포트 {len(notebooks)}개에서 결과 해석 {len(fs)}건을 구체적으로 짚었다. "
              '이는 오류 개수나 전체 실험의 실패 개수가 아니다. 숫자가 맞아도 관측·예측·원인 귀속·현실 적용 범위가 다른 항목을 구분했다.', '',
              '**범위:** '+', '.join(Path(p).stem for p in notebooks)+'. 제목뿐 아니라 해당 결과 본문·단서·원장 키·생성 코드를 대조했다. '
              '전체 노트북의 모든 셀, 선행연구 전편, 발표 자료를 전수검토한 것은 아니다.', '',
              '**검증 수준:** 기존 원장의 수치와 계산식을 재계산하고 작은 수학적 반례를 실행했다. GPU 원본 재실험과 새로운 외부 계측은 수행하지 않았다. '
-             '원문은 아래 셀에서 자동 추출했으며 각주의 원래 번호를 보존했다. 셀 번호는 파일 내부의 영 기준 번호다.', '',
+             '원문은 원장에 명시한 수정 전 기준 커밋의 셀에서 자동 추출했으며 각주의 원래 번호를 보존했다. 셀 번호는 파일 내부의 영 기준 번호다.', '',
              '[재현 코드](../benchmark/review_completed_interpretations_0908.py) · '
              '[검산·인용 원장](../outputs/completed_interpretations_review_0908.json) · '
              '[실외 설계 검토 메모](OUTDOOR_DESIGN_REVIEW_0908.md)', '',
              '```bash', 'cd /workspace/sionna',
-             "CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 /workspace/.venvs/py312/bin/python benchmark/review_completed_interpretations_0908.py", '```', '']
+             "CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 /workspace/.venvs/py312/bin/python benchmark/review_completed_interpretations_0908.py --check-reports", '```', '']
     for i,r in enumerate(fs,1):
         q=r['quote']
-        lines += [f"## {i}. {r['title']}", '', f"**판정:** {r['status']}", '',
+        lines += [f"## {i}. {r['title']}", '', f"**수정 전 판정:** {r['status']}", '',
+                  f"**현재 본편 반영:** {'확인' if r['current_revision']['applied'] else '대기'} — `{r['current_revision']['marker']}`", '',
                   f"**원문:** [{Path(q['path']).name}](../{q['path']}) · 셀 {q['cell_zero_based']}", '',
                   '> '+q['text'], '', '**왜 오해가 생기나:** '+r['issue'], '',
                   '**남는 결과:** '+r['retained'], '', '**권장 문장:** '+r['replacement'], '',
@@ -302,11 +395,17 @@ def render(out):
     lines += ['', '## 외부 정의 확인', '']
     for s in out['external_sources']:
         lines += [f"- [{s['title']}]({s['url']}) — {s['use']}"]
-    lines += ['', '## 수정 우선순위', '',
-              '먼저 취소한 눈감기 라벨, 거리 키와 가드 조건, 예측을 관측처럼 적은 문장, 물리 설정의 직접 모순을 고친다. '
-              '그 다음 위상 검증·오차 방향·주파수 상한·비직교 분해의 표현을 실제 증거 범위로 좁힌다. '
-              '마지막으로 제목·결과 요약·표·캡션·원장 산문과 생성 빌더를 함께 수정하고 리포트를 재생성한다.', '',
-              '이번 작업은 검토 메모와 재현 자료를 추가한 것이다. 원본 실험 코드, 실행 중 큐, 기존 리포트 내용은 수정하지 않았다.', '']
+    lines += ['', '## 적용 범위와 남은 작업', '',
+              '취소한 문헌 비열람 라벨, 거리 키와 가드 조건, 예산 외삽과 물리 설정의 요약을 빌더에서 수정했다. '
+              '위상 검증·오차 방향·주파수 상한·비직교 분해·ADC·클러터의 표현도 본편에 반영했다. '
+              '원래 실험 원장의 판정 산문과 구형 문헌 대조 기록은 역사적 기록으로 남아 있다. 이 메모의 한정을 함께 읽는다. 전체 과거 원장의 산문을 모두 다시 발행한 것은 아니다.', '',
+              '이 메모의 인용문은 수정 전 기록이다. 각 항목의 현재 반영 표시는 생성된 본편 문구를 확인한 결과다. 문서 검사에서는 제목·철회·행 각주·링크를 확인하며, 기존 원장 일부의 생성 경로 누락은 별도 미해결 항목이다. 실행 중 GPU 큐는 이번 검토 범위에서 제외했다.', '']
+    if 'document_checks' in out:
+        lines += ['## 문서 검사 결과', '', '| 검사 | 종료 코드 |', '|---|---:|']
+        lines += [f"| `{k}` | {v['exit_code']} |" for k,v in out['document_checks'].items()]
+        lines += ['', '새 파일 규칙에서 남은 생성 경로 문제는 다음 기존 원장이다. 기준 커밋과 내용이 같은지 함께 확인했다.', '']
+        lines += [f"- `{k}` — 수정 전과 동일: {v}" for k,v in out['preexisting_provenance_issues'].items()]
+        lines += ['', '추가로 대역 그림 재현 명령에 누락된 반사 깊이 비교 팔을 넣었다. 재생성한 두 대역 원장의 수치 행이 기준 커밋과 일치함을 검산 원장에 기록했다.', '']
     MEMO.write_text('\n'.join(lines))
 
 

@@ -41,7 +41,7 @@
 | [7 «무엇을 조명원으로 쓸 수 있나»](reports/07_illuminators.ipynb) | [절 3](reports/07_illuminators.ipynb) | 여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다 |
 | [8 «처리 사슬 — 직접파를 죽이고 표적을 세운다»](reports/08_detector.ipynb) | [절 3](reports/08_detector.ipynb) | 실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다 |
 | [9 «관측가능성과 기하 — 어디에 서야 보이나»](reports/09_observability.ipynb) | [절 1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다 |
-| [10 «결과 — 얼마나 멀리서 보이나»](reports/10_results.ipynb) | [절 2](reports/10_results.ipynb) | 앵커 σ 위의 R90 은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다 |
+| [10 «결과 — 얼마나 멀리서 보이나»](reports/10_results.ipynb) | [절 2](reports/10_results.ipynb) | 가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다 |
 | [11 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](reports/11_measurement.ipynb) | [절 6](reports/11_measurement.ipynb) | 캠페인이 결판내는 양은 절대값이 아니라 순위다 |
 
 ### ② 왜 믿을 수 있나 — 2시간
@@ -56,7 +56,7 @@
 | [리포트 2-2 절 5](reports/02_2_stock-engine.ipynb) | 면적을 1600배로 키워도 경로 진폭은 7.4e-07 dB 움직인다 |
 | [리포트 2 절 4](reports/02_kernel.ipynb) | 해석 PO 구 대비 구현오차는 kr 전 구간에서 λ/16 격자 0.201 dB · 생산 λ/12 격자 0.254 dB 안이다 |
 | [리포트 2 절 5](reports/02_kernel.ipynb) | PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서 떨어지는지가 보인다 |
-| [리포트 3 절 3](reports/03_anchor.ipynb) | Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다 |
+| [리포트 3 절 3](reports/03_anchor.ipynb) | Phantom 3 계산을 문헌값과 대조했다 — 문헌 비열람 조건은 유지되지 않았다 |
 | [리포트 3 절 4](reports/03_anchor.ipynb) | 레벨 축에서 상자 계열은 우리 메쉬에 지고, 부피를 맞게 고른 구는 같은 자리에 온다 — 갈리는 것은 각도 산포다 |
 | [리포트 3 절 5](reports/03_anchor.ipynb) | 같은 잣대를 네 기체로 넓히면 판정이 NOT_VALIDATED 로 갈린다 |
 | [리포트 3 절 6](reports/03_anchor.ipynb) | 공통모드 σ 오차는 파형 순위를 안 건드리고, 차분 오차가 뒤집는다 |
@@ -64,7 +64,7 @@
 | [리포트 6-6 절 2](reports/06_6_microdoppler-limits.ipynb) | 문턱은 널 팔이 교정했고, 가장자리 시험은 아직 교정되지 않았다 |
 | [리포트 8 절 3](reports/08_detector.ipynb) | 실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다 |
 | [리포트 8 절 4](reports/08_detector.ipynb) | 잡음 맵까지의 배율은 셀 상관이 만들고, 나머지 +0.87 dB 는 아직 못 갈랐다 — 교정표는 형상마다 다시 잰다 |
-| [리포트 10 절 3](reports/10_results.ipynb) | 그 순위는 자세평균이면 하나로 모이고, 자세평균 뒤집힘 문턱은 현실 봉투 안이다 |
+| [리포트 10 절 3](reports/10_results.ipynb) | 방위 평균 RCS의 모델 순위와 선언한 민감도 범위 안의 뒤집힘 문턱 |
 | [리포트 10 절 5](reports/10_results.ipynb) | 모호속도는 표본화율의 성질이라 CPI 와 무관한 상한이다 |
 | [리포트 11 절 7](reports/11_measurement.ipynb) | 기울기 판정의 문턱은 세션간 진폭 재현성이고, σ 사슬 세대를 바꾸면 그 문턱이 손닿는 범위 밖으로 좁아진다 |
 
@@ -120,7 +120,7 @@
 | [6-6 «마이크로도플러 — 무엇이 그 무늬를 흐리나»](reports/06_6_microdoppler-limits.ipynb) | 6 | 자세·보정·광선 예산·표본율 네 가지가 무늬를 지운다. 각각을 단일축으로 갈라 얼마나 지우는지 잰다 |
 | [10-2 «결론이 무엇에 기대고 있나 — 강건성과 하드웨어»](reports/10_2_robustness.ipynb) | 10 | 표적 모형·수신 소자·장비를 바꿔 넣어 결론이 어디서 흔들리는지 본다 |
 
-셀 2896개 · 각주 2447개 · 그림 1045장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.
+셀 2899개 · 각주 2581개 · 그림 1045장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.
 
 ### 권 1 «이 연구가 묻는 것과 답한 방식»
 
@@ -217,7 +217,7 @@ SBR + 물리광학이 무엇을 계산하고 무엇을 **계산하지 않는지*
 |---|---|
 | [1](reports/03_anchor.ipynb) | σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 SBR+PO 커널(B) 출력이다 |
 | [2](reports/03_anchor.ipynb) | 앵커가 통제한 항목과 남은 항목의 크기를 기체별 원장으로 적었다 |
-| [3](reports/03_anchor.ipynb) | Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다 |
+| [3](reports/03_anchor.ipynb) | Phantom 3 계산을 문헌값과 대조했다 — 문헌 비열람 조건은 유지되지 않았다 |
 | [4](reports/03_anchor.ipynb) | 레벨 축에서 상자 계열은 우리 메쉬에 지고, 부피를 맞게 고른 구는 같은 자리에 온다 — 갈리는 것은 각도 산포다 |
 | [5](reports/03_anchor.ipynb) | 같은 잣대를 네 기체로 넓히면 판정이 NOT_VALIDATED 로 갈린다 |
 | [6](reports/03_anchor.ipynb) | 공통모드 σ 오차는 파형 순위를 안 건드리고, 차분 오차가 뒤집는다 |
@@ -252,8 +252,8 @@ SBR + 물리광학이 무엇을 계산하고 무엇을 **계산하지 않는지*
 |---|---|
 | [1](reports/04_elevation-coverage.ipynb) | 앙각 7 점을 15 m 한 자리에서 광선 40 억 발로 재고, 77 행이 모두 완결이다 |
 | [2](reports/04_elevation-coverage.ipynb) | −75° 에서 추적 대역 몫은 고정 대역보다 38.55 dB 크고, 그 차이를 만든 것은 대역을 어디에 놓았는가 하나다 |
-| [3](reports/04_elevation-coverage.ipynb) | 물리 상한 위 누설은 우리 팔(λ/12 격자) 0.22~17.18 %, 스톡 PathSolver 물리 끔 0.81~86.22 % 이고, 물리를 켜면 여섯 앙각이 전부 78 % 위다 |
-| [4](reports/04_elevation-coverage.ipynb) | 나딧 잔여의 적어도 64 %(어림 삼분할의 하한 · 10 m 자세 4096 판)가 광선 격자 표본화 잡음이고, 널은 나딧 −49.18 dB 에서 10° −23.73 dB 로 완만히 차는 얕은 웅덩이다 |
+| [3](reports/04_elevation-coverage.ipynb) | 정의한 f_tip 밖의 스펙트럼 성분은 우리 팔(λ/12 격자) 0.22~17.18 %, 스톡 PathSolver 물리 끔 0.81~86.22 % 이고, 물리를 켜면 여섯 앙각이 전부 78 % 위다 |
+| [4](reports/04_elevation-coverage.ipynb) | 나딧 잔여는 격자·거리 대조에서 달라진다 — 비직교 전력 배분은 조건부 어림이다 |
 | [5](reports/04_elevation-coverage.ipynb) | el 0 에서 광선을 360 배 늘리면 정지 성분은 0.03 dB 안에 모이고, 같은 한 계단이 el −75 의 레벨을 12.55 dB 옮긴다 |
 
 ### 권 5 «엔진의 물리 스위치 — 켜면 무엇이 달라지나»
@@ -317,7 +317,7 @@ SBR + 물리광학이 무엇을 계산하고 무엇을 **계산하지 않는지*
 |---|---|
 | [1](reports/06_6_microdoppler-limits.ipynb) | 지상 레이더는 기체를 아래에서 보므로 가림이 무는 자세가 우리 자세다 |
 | [2](reports/06_6_microdoppler-limits.ipynb) | 문턱은 널 팔이 교정했고, 가장자리 시험은 아직 교정되지 않았다 |
-| [3](reports/06_6_microdoppler-limits.ipynb) | 두 기체가 갈리는 축은 메쉬 품질이 아니라 표적 크기 대비 광선예산이다 — 예산을 맞춰 확인하는 시험은 이 하네스에서 아직 못 한다 |
+| [3](reports/06_6_microdoppler-limits.ipynb) | 예산 사다리에서 판정 통계가 경로수에 따라 변했다 — 예산을 맞춰 확인하는 시험은 이 하네스에서 아직 못 한다 |
 | [4](reports/06_6_microdoppler-limits.ipynb) | 상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다 |
 
 ### 권 7 «무엇을 조명원으로 쓸 수 있나»
@@ -371,8 +371,8 @@ R90 과 순위가 이 연구의 정량 결론이다. 적분시간·잔류·σ �
 | 절 | 이 절의 결론 |
 |---|---|
 | [1](reports/10_results.ipynb) | 레벨을 맞추려면 크기전이 법칙을 골라야 하므로 기울기만 받는다 |
-| [2](reports/10_results.ipynb) | 앵커 σ 위의 R90 은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다 |
-| [3](reports/10_results.ipynb) | 그 순위는 자세평균이면 하나로 모이고, 자세평균 뒤집힘 문턱은 현실 봉투 안이다 |
+| [2](reports/10_results.ipynb) | 가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다 |
+| [3](reports/10_results.ipynb) | 방위 평균 RCS의 모델 순위와 선언한 민감도 범위 안의 뒤집힘 문턱 |
 | [4](reports/10_results.ipynb) | CPI 를 늘리면 세 파형 모두 블라인드율이 내려간다 |
 | [5](reports/10_results.ipynb) | 모호속도는 표본화율의 성질이라 CPI 와 무관한 상한이다 |
 
@@ -393,7 +393,7 @@ R90 과 순위가 이 연구의 정량 결론이다. 적분시간·잔류·σ �
 | [1](reports/10_2_robustness.ipynb) | σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다 |
 | [2](reports/10_2_robustness.ipynb) | 평판·큐브·우리 격자를 같은 동작점에서 갈아끼우면 요구 이득이 이만큼 달라진다 |
 | [3](reports/10_2_robustness.ipynb) | 코히어런트 배열이득은 10log₁₀N 상한에 -0.11~+0.47 dB 로 붙는다 |
-| [4](reports/10_2_robustness.ipynb) | 12-bit ADC 동적범위 74.01 dB 는 직접파 제거에 거는 상한 하나다 |
+| [4](reports/10_2_robustness.ipynb) | 공칭 ADC 비트 수의 이상적 양자화 SNR은 74.01 dB다 — 소거 한계의 실측값은 아니다 |
 | [5](reports/10_2_robustness.ipynb) | 교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다 |
 
 ### 권 11 «실측 계획 — 무엇을 재야 이 문서가 닫히나»
@@ -507,7 +507,7 @@ PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py
 - **권 제목은 물음, 절 제목은 답이다.** 절 제목은 «…다» 로 끝나는 평서문이고, 물음표로 끝나는 절 제목은 `src/report_style.py` 가 막는다.
 - **숫자는 손으로 치지 않는다.** 전부 `num()` 이 JSON 을 열어 값을 대조하고, 화면에는
   각주 `[^n]` 으로 찍힌다. 절 끝 «출처» 표의 값은 표를 만들 때 JSON 을 **다시 열어**
-  채운 것이다(왕복 검사). 지금 본편 13권·별편 7편에 각주 2447개와 그림 1045장이 실려 있다.
+  채운 것이다(왕복 검사). 지금 본편 13권·별편 7편에 각주 2581개와 그림 1045장이 실려 있다.
 - **본문을 고칠 곳은 조각 빌더다.** 조각(`reports/_parts/`)과 권(`reports/`)은 둘 다 생성물이라, 손으로 고치면 다음 빌드에서 사라진다.
 - **논문 문장과 재현 절차는 리포트 밖에 산다** — 사용자 지시다. [`docs/paper/`](docs/paper/README.md) 와 [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 - 각 절은 `한 일 / 결과 / 방법 / 재현` 으로 열고 `다음 단계` 표로 닫는다. «다음 단계» 는 한계 목록이 아니라 앞을 보는 행동이다.

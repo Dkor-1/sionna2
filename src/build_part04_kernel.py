@@ -876,7 +876,7 @@ def report_21_kernel_vs_reference():
 
                 f"PEC 이면각 닫힌형 8πa²b²/λ² 와는 2회 반사에서 최대 "
                 f"{_n('d3_multibounce_phase.max_abs_err_db', DFX, '{:.3f}', 'dB')} 다 — "
-                f"다중반사 위상이 맞는다는 뜻이다.",
+                f"시험한 이면각의 이중반사 RCS 크기가 기준식에 근접했다. 복소 위상 오차는 별도로 대조해야 한다.",
 
                 f"기체 7 × 밴드 3 = "
                 f"{_n('electrical.n_airframe_band', DER, '{:.0f}', '조합')} 중 "
@@ -1101,7 +1101,7 @@ def report_22_po_knee():
            f"그래서 이 저장소는 σ 의 절대 크기 대신 **각도 구조와 밴드 간 상대 순위**를 주장한다. "
            f"절대 레벨은 {ref('calibration-sphere', short=True)} 의 교정구가 측정으로 앵커한다."),
 
-        md("## 부호는 한 방향을 가리킨다", "",
+        md("## 얇은 띠의 오차 부호는 편파에 따라 다르다", "",
            f"지배채널(TM) 기준 PO 는 얇은 특징을 **과소평가**한다 — 가장 가는 시험 폭에서 TM 기준 "
            f"{_n('s3_validation.layer3_thin_plate_2d_mom.po_minus_tm_at_0p15lam_db', POC, '{:.2f}', 'dB')}"
            f"(음수 = 우리가 낮다), TE 기준 "
@@ -1109,9 +1109,9 @@ def report_22_po_knee():
            f"다. 참값 자체가 편파로 "
            f"{_n('s3_validation.layer3_thin_plate_2d_mom.tm_minus_te_at_0p15lam_db', POC, '{:.2f}', 'dB')} "
            f"갈린다.", "",
-           f"따라서 우리 저주파 σ 는 낮게 나와 있을 개연성이 크고, 그 방향이라면 검출 성능 "
-           f"산출물은 **보수적(비관적)** 쪽으로 틀렸다. 스칼라 PO 는 편파를 **못** 가르므로 TE "
-           f"채널 기준으로는 부호가 반대다 — 방향을 못 박으려면 편파 있는 커널이 필요하다 "
+           f"이 얇은 띠 대조만으로 드론 전체의 RCS·검출거리 오차 방향은 정할 수 없다. "
+           f"스칼라 PO 는 편파를 구분하지 않으며 TE "
+           f"채널 기준으로는 부호가 반대다. 드론 전체의 복소 합을 편파별 기준과 대조해야 한다 "
            f"⟨{POC} : s4_limits.our_production_bands_vs_knee.sign_of_the_error⟩."),
 
         md("## 이 결과로 말할 수 없는 것 셋", "",

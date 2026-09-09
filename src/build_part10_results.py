@@ -350,8 +350,8 @@ ASP_N = len(ASP_FLIP)
 _ASP_REAL = float(fetch((J_SS, "differential.realistic_span_db")))
 ASP_N_INSIDE = sum(1 for v in ASP_FLIP.values() if v <= _ASP_REAL)
 # 봉투 안/밖 판정도 원장이 한다 — 값이 바뀌면 문장이 «몇/몇» 으로 갈라진다.
-ASP_ENVELOPE = (f"{ASP_N}기체가 모두 현실 봉투 안에 든다" if ASP_N_INSIDE == ASP_N
-                else f"{ASP_N_INSIDE}/{ASP_N}기체가 현실 봉투 안에 든다")
+ASP_ENVELOPE = (f"{ASP_N}기체가 모두 모델-앵커 기울기차로 정한 민감도 범위 안에 든다" if ASP_N_INSIDE == ASP_N
+                else f"{ASP_N_INSIDE}/{ASP_N}기체가 모델-앵커 기울기차로 정한 민감도 범위 안에 든다")
 ASP_NOTE_MAX = f"{ASP_N}기체 smallest_flip_span_db 최대"
 
 _UNC_OPEN = [u for u in _UNC if str(u.get("status", "")) in ("UNRESOLVED", "PARTIAL")]
@@ -967,9 +967,9 @@ def r60():
     return [
         header(
             num=60,
-            title=f"앵커 σ 위의 R90 은 비교가능 {D['n_cells_comp']}칸에서 "
+            title=f"가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값은 비교가능 {D['n_cells_comp']}칸에서 "
                   f"{D['A_min']:.2f}~{D['A_max']:.2f} km 이고, 밴드 순서는 기체마다 바뀐다",
-            did="기울기 앵커의 Δσ 를 R90 근방 국소 지수로 옮겨 다섯 기체 × 세 밴드의 검출거리를 "
+            did="가드 해제·단일 헤딩의 기준 거리 해에 기울기 앵커 Δσ 를 국소 지수로 일차 전이한 거리를 "
                 "내고, 그 표에서 밴드 순서가 기체마다 어떻게 바뀌는지를 읽었다.",
             results=[
                 f"Δσ 를 R90 근방 국소 지수 "
@@ -981,24 +981,24 @@ def r60():
                 + " ~ "
                 + DV.num("r90.span_comparable_max_km", None, "{:.2f}", "km")
                 + f" 다 — 원키 `R90_C50_m`⟨{KEY_R}⟩ 에 앵커 Δσ⟨{KEY_A}⟩ 를 R90 근방 국소 지수로 "
-                + f"옮긴 값이고, **공칭 헤딩 ψ=0 한 점**에서 푼 거리다⟨{J_DV} : r90.definition⟩.",
+                + f"옮긴 값이고, **도플러 가드 해제·공칭 헤딩 ψ=0 한 점**의 기준 해를 일차 보정한 값이다⟨{J_DV} : r90.definition⟩.",
                 "밴드 순서는 기체마다 바뀐다 — 그 순서를 만드는 것은 자세별 로브 구조이고, 앵커는 "
                 "밴드별 스칼라를 옮기면서 밴드 평균 레벨은 그대로 둔다.",
-                f"자세를 평균하면 다섯 기체가 한 순위 "
+                f"방위 선형평균 RCS를 거리 모델에 넣으면 다섯 기체가 한 순위 "
                 f"({DV.num('ranking.consensus_order_aspect_avg', None)}) 로 모인다 — 단일 자세에서는 "
                 f"{SS.num('ranking_consensus.single_aspect_n_distinct', None, '{:.0f}')}가지 순위가 나온다.",
                 f"아래 km 열은 **순위를 읽는 표**로 쓴다 — 공통모드 σ 오차 ±10 dB 가 이 열 전체를 "
                 f"{SS.num('common_mode.abs_range_shift_at_10db_pct.minus10', None, '{:+.1f}', '%')} ~ "
                 f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} "
-                f"옮긴다. ⚠ 같은 리프의 형제 키 `E_psi_Pd_at_R90` 는 그 거리에서의 헤딩 평균 "
+                f"옮긴다. ⚠ 같은 리프의 형제 키 `E_psi_Pd_at_R90` 는 **앵커 보정 전 기준 거리**에서의 헤딩 평균 "
                 f"검출확률을 {R90_N_CELLS}칸에서 {R90_EPSI_MIN:.2f} ~ {R90_EPSI_MAX:.2f}(5G 다섯 칸은 "
-                f"전부 {R90_EPSI_G1_MAX:.1f}) 로 적으므로, 이 km 열은 **한 헤딩의 도달거리**로 읽는다.",
+                f"전부 {R90_EPSI_G1_MAX:.1f}) 로 적으므로, 이 km 열은 **가드 해제·단일 헤딩 기준 해의 일차 보정값**이다. 보정 후 헤딩 확률을 다시 계산한 값은 아니다.",
             ],
             method=[
                 # ⛔ 옛 정의는 «P_d 가 0.9 로 떨어지는 거리» 였지만, 이 해가 통과시키는 유효 게이트는
                 #    β 와 원거리장 둘이고 헤딩 축은 형제 키가 따로 든다 — 원장이 그렇게 적는다.
                 ("R90 정의",
-                 "**공칭 헤딩 ψ=0 한 점**의 σ 로 만든 SNR(d) 가 교정 문턱과 **최외곽 하강교차**하는 "
+                 "**도플러 가드를 끈 공칭 헤딩 ψ=0 한 점**의 σ 로 만든 SNR(d) 가 교정 문턱과 **최외곽 하강교차**하는 "
                  "수평거리 `d` 다 — 거리축은 송·수신 기선의 중점에서 표적까지의 수평거리이고, 해를 "
                  f"찾는 칸을 고르는 유효 게이트는 β ≤ {BETA_GATE_DEG}° 와 원거리장 둘이다"
                  f"⟨{J_DV} : r90.definition⟩. 헤딩 축은 같은 리프의 형제 키 `coverage_ceiling` · "
@@ -1018,7 +1018,7 @@ def r60():
 
         md("## R90 이 무엇인가", "",
            # ⛔ 규약(공칭 헤딩 한 점 · 게이트 둘)을 정의 자리에 그대로 적는다 — 원장이 그렇게 적는다.
-           "**공칭 헤딩 ψ=0 한 점**의 σ 로 만든 SNR(d) 가 교정 문턱을 마지막으로 아래로 뚫는 "
+           "**도플러 가드를 끈 공칭 헤딩 ψ=0 한 점**의 σ 로 만든 SNR(d) 가 교정 문턱을 마지막으로 아래로 뚫는 "
            "수평거리다. 거리축은 송신국과 수신국을 잇는 기선의 중점에서 표적까지의 수평거리이고, "
            f"해를 찾는 칸을 고르는 유효 게이트는 β ≤ {BETA_GATE_DEG}° 와 원거리장 둘이다"
            f"⟨{J_DV} : r90.definition⟩.", "",
@@ -1058,7 +1058,7 @@ def r60():
            f"{len(D['comparable'])}대 × 세 밴드다 — `{D['X_name']}` 의 세 칸은 "
            f"`not_comparable` 이라 폭에서 뺐고, 표에는 그대로 싣는다.", "",
            # ⛔ 형제 키가 이 표의 km 열이 무엇을 재는 거리인지를 정한다 — 같은 자리에 나란히 싣는다.
-           f"⛔ 위 {R90_N_CELLS}칸은 전부 **공칭 헤딩 ψ=0 한 점**에서 푼 거리다. 헤딩 축을 함께 세는 "
+           f"⛔ 위 {R90_N_CELLS}칸은 전부 **도플러 가드 해제·공칭 헤딩 ψ=0 한 점**의 기준 해를 일차 보정한 값이다. 헤딩 축을 함께 세는 "
            f"형제 키는 밴드별 `blind_heading_frac` (WiFi "
            + DV.num("r90.blind_heading_frac_by_mode.WiFi", None, "{:.3f}") + " · LTE "
            + DV.num("r90.blind_heading_frac_by_mode.LTE", None, "{:.2f}") + " · 5G "
@@ -1093,8 +1093,8 @@ def r60():
 
         md("## 밴드 순서는 자세 인용 방식이 정한다", "",
            "밴드 순서는 기체마다 바뀐다. 그 순서를 만드는 것은 자세별 로브 구조이고, 앵커는 "
-           "밴드별 스칼라를 옮기면서 밴드 평균 레벨은 그대로 둔다. 자세를 평균하면 다섯 기체가 "
-           "한 순위로 모인다."),
+           "밴드별 스칼라를 옮기면서 밴드 평균 레벨은 그대로 둔다. 방위 선형평균 RCS를 대입한 거리 모델에서 다섯 기체가 "
+           "한 순위로 모인다. 자세별 검출확률이나 검출거리를 계산한 뒤 평균한 결과는 아니다."),
 
         md(table(["인용 방식", "서로 다른 순위 수", "합의 순위", "최악 뒤집힘 문턱"],
                  [["단일 자세 ψ=0",
@@ -1149,7 +1149,7 @@ def r61():
     return [
         header(
             num=61,
-            title="그 순위는 자세평균이면 하나로 모이고, 자세평균 뒤집힘 문턱은 현실 봉투 안이다",
+            title="방위 평균 RCS의 모델 순위와 선언한 민감도 범위 안의 뒤집힘 문턱",
             did="σ 오차를 공통모드와 차분 두 종류로 나눠 넣고, 각각에서 밴드 순위가 어디까지 "
                 "버티는지를 단일 자세·자세평균 두 인용 방식의 뒤집힘 문턱과 몬테카를로 "
                 "보존확률로 재었다.",
@@ -1167,7 +1167,7 @@ def r61():
                 f"{SS.num('aspect_averaged.smallest_flip_span_db_overall', None, '{:.2f}')} ~ "
                 + dnum(ASP_FLIP_MAX, "{:.2f}", "dB", f"{J_SS} : aspect_averaged.by_drone",
                        ASP_NOTE_MAX)
-                + f" 이고, 현실 봉투는 "
+                + f" 이고, 모델-앵커 기울기차로 정한 민감도 범위는 "
                 f"{SS.num('differential.realistic_span_db', None, '{:.2f}', 'dB')} 다.",
                 # ⛔ n=5 에서 «산포가 정한다» 는 세울 수 없다 — 기각하는 쪽(크기)의 상관이 채택하는
                 #    쪽(산포)보다 오히려 강하다. 세 상관을 다 싣고 인과는 세우지 않는다.
@@ -1194,7 +1194,7 @@ def r61():
                 ("선형성",
                  "σ 는 SNR 에 선형이라 dB 오프셋이 그대로 옮겨간다 — 그 사실을 잔차로 확인하고 쓴다"),
                 ("몬테카를로",
-                 "밴드별 독립 오차 2 dB 를 넣고 순위 보존 확률을 기체마다 잰다"),
+                 "밴드별 독립 오차 2 dB 를 가정한 조건부 모델 확률이다. 실측 오차 분포·신뢰구간은 별도 계측이 필요하다"),
                 ("관측된 파급",
                  "메쉬 갱신 하나가 옮긴 R90 과 바뀐 순위쌍 수를 함께 적는다 — 통제되지 않은 σ 변화의 "
                  "크기를 관측값으로 두기 위해서다"),
@@ -1219,7 +1219,7 @@ def r61():
                    + SS.num("differential.smallest_flip_span_db_overall", None, "{:.2f}")
                    + " ~ "
                    + SS.num("differential.largest_flip_span_db_overall", None, "{:.2f}", "dB")
-                   + " (현실 봉투 "
+                   + " (모델-앵커 기울기차로 정한 민감도 범위 "
                    + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB") + ") · 봉투 안에서 "
                    + SS.num("differential.n_drones_flipping_inside_realistic", None, "{:.0f}")
                    + "/" + SS.num("differential.n_drones", None, "{:.0f}") + "기체가 뒤집힌다"],

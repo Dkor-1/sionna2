@@ -1586,8 +1586,8 @@ def blocks_84() -> list:
            "켠 판도 " + sw(K_ALL, "level_db", "{:.2f}", "dB") + " 다 — 귀속은 "
            + ref("physics-single-axis", "스위치 단일축") + " 가 세웠다.", "",
            f"⭐ 그 {LEVEL_RISE:.2f} dB 는 «회절 항 대 정반사 항» 의 비가 아니라 **판 대 판의 "
-           f"레벨 차**다. 여섯 판 모두 정반사와 확산 반사를 함께 켜고 굴절을 끈 깊이 1 로 "
-           f"돌았으므로(`benchmark/diag_physics_paths.py:61`), 기준판의 이름은 «반사만» 이다.", "",
+           f"레벨 차**다. 기준판과 회절만 켠 판은 정반사·확산 반사를 함께 켜고 굴절을 끈 깊이 1 로 "
+           f"돌았다. 나머지 행의 굴절·깊이는 설정 표를 따른다(`benchmark/diag_physics_paths.py`). 회절을 끈 모서리회절 행은 독립 효과 대조가 아니다.", "",
            "이 차에는 등급이 있다 — el −45° 에서 "
            + DP45.num(f"cases.{K_BASE}.level_db", fmt="{:.2f}") + " → "
            + DP45.num(f"cases.{K_DIFF}.level_db", fmt="{:.2f}", unit="dB")

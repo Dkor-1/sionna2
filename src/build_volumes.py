@@ -1287,6 +1287,12 @@ def _postprocess_external(ex, place, bu2vol, titles, stat) -> dict:
                 cells.insert(1, _cell("\n".join(ln), meta={"tags": [APPEND_TAG]}))
 
         if fname == host:                              # ⭐ 조각을 절로 덧붙인다
+            #: ⛔붙일 조각이 없으면 안내 셀도 붙이지 않는다 (2026-09-09).
+            #:   전에는 무조건 붙여서, 조각 0 개일 때 「아래 절 1~0 는 …」 이라는
+            #:   **없는 절을 예고하는 문장**이 발행됐다(12_outdoor-scene 셀 26).
+            #:   base+1 ~ base+len(parts) 가 0 개에서 1~0 이 된다.
+            if not ex["parts"]:
+                continue
             base = max([int(n) for c in cells for n in _SEC_H2.findall(_text(c))] or [0])
             cells.append(_cell(
                 "---\n"

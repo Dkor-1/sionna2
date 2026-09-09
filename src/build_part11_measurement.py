@@ -4,7 +4,7 @@ build_part11_measurement.py — 부 11 「실측 설계」 → reports/67~77_*.i
 ==========================================================================================
 한 편 = 중심 메시지 하나. 옛 `report06_measurement.ipynb` 한 편(26 셀)을 열한 편으로 쪼갠다.
 
-    67 hardware            X410 의 12-bit ADC 가 직접파 제거의 천장이다
+    67 hardware            X410 공칭 비트 수로 이상적 양자화 SNR을 계산한다
     68 sigma-checklist     교정된 절대 σ 를 만드는 조건 여섯 항목
     69 site-geometry       세션 거리 하나가 두 기체 세 밴드를 덮는다
     70 calibration-sphere  구가 σ 를 절대량으로 만든다
@@ -135,22 +135,19 @@ def blocks_67() -> list:
     return [
         header(
             num=67,
-            title=f"12-bit ADC 동적범위 {M.get('hw.dynamic_range_db'):.2f} dB 는 직접파 "
-                  f"제거에 거는 상한 하나다",
+            title=f"공칭 ADC 비트 수의 이상적 양자화 SNR은 {M.get('hw.dynamic_range_db'):.2f} dB다 — 소거 한계의 실측값은 아니다",
             did="보유 장비 USRP X410 의 공식 사양을 한 곳에서 읽어 세션이 무엇에 묶이는지를 "
                 "항목마다 수치로 고정했다.",
             results=[
-                #: ⛔2026-09-06 — 전 제목·전 첫 줄은 «이 값이 직접파 제거의 천장이다» 였다.
+                #: ⛔2026-09-06 — 전 제목·전 첫 줄은 «이 값이 이상적 양자화 SNR 계산이다» 였다.
                 #  사양에서 계산한 한 축을 유일한 상한으로 단정한 말이라 내렸다. 같은 원장이
                 #  «여유가 0 dB 아래로 내려가야 ADC 가 묶는다» 고 정의하는데 그 여유가 아직
                 #  +19.2 dB 이고, 바닥을 환경이 정한다는 관측은 편 52 에 있다.
-                f"12-bit ADC(아날로그 신호를 숫자로 바꾸는 변환기)의 동적범위는 "
-                f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} 이고, 이것이 직접파 "
-                f"제거에 거는 상한 하나다 — 사양에서 계산한 값이다. 여유(= 동적범위 − DNR)의 "
+                f"공칭 비트 수로 계산한 이상적 ADC의 풀스케일 정현파 양자화 SNR은 "
+                f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} 이고, 직접파 소거 깊이의 보편적 상한은 아니다. 원장의 여유(= 이상적 양자화 SNR − DNR)의 "
                 f"최소는 {M.num('adc.headroom_db_min', fmt='{:.1f}', unit='dB')} 이고, 원장 "
-                f"정의대로 이 여유가 0 dB 아래로 내려가야 ADC 가 묶는다"
-                f"⟨outputs/report06_measurement.json : adc.definition⟩ — 그 DNR 은 자유공간 시뮬 "
-                f"기하에서 나온 값이라, 지금 이 판에서 ADC 는 묶는 자리가 아니다. 실제 바닥은 "
+                f"정의가 사용하는 단순 예산 지표다"
+                f"⟨outputs/report06_measurement.json : adc.definition⟩ — 그 DNR 은 기존 통제 시뮬레이션에서 나온 값이다. 이 차이만으로 실장비가 제한되지 않는다고 판정할 수 없다. 실제 바닥은 "
                 f"직접파를 받아 재야 갈린다(" + ref("eca", "소거 깊이의 바닥") + ").",
 
                 f"세 파형 중 여유가 가장 좁은 것은 `{M.get('adc.worst_waveform')}` 이고 "
@@ -204,8 +201,8 @@ def blocks_67() -> list:
                ["주파수 범위",
                 D.num("hw_span.f_lo_mhz", fmt="{:.0f}", unit="MHz") + " ~ "
                 + D.num("hw_span.f_hi_ghz", fmt="{:.1f}", unit="GHz"), "세 밴드 전부 커버"],
-               ["ADC 동적범위", M.num("hw.dynamic_range_db", fmt="{:.2f}", unit="dB"),
-                "직접파 제거의 천장"],
+               ["이상적 양자화 SNR", M.num("hw.dynamic_range_db", fmt="{:.2f}", unit="dB"),
+                "이상적 양자화 SNR 계산"],
                ["감시배열 AoA 빔폭", M.num("hw.aoa_beamwidth_deg", fmt="{:.1f}", unit="°"),
                 "RX0 을 기준으로 두고 감시 ULA "
                 + M.num("hw.n_surveillance_ch", fmt="{:.0f}", unit="소자")
@@ -1172,7 +1169,7 @@ def blocks_75() -> list:
                 "교정 자체는 통제 몬테카를로 "
                 + V.num("meta.runtime_s", fmt="{:.0f}", unit="s") + " 가 세운다",
                 "**이 캠페인 밖**"],
-               ["12-bit ADC 가 직접파 제거의 천장이다",
+               ["공칭 비트 수로 이상적 양자화 SNR을 계산했다",
                 "직접파를 실제로 받아 ECA 잔차를 잰다",
                 "여유 " + M.num("adc.headroom_db_min", fmt="{:.1f}", unit="dB")
                 + " 가 야외에 얼마나 남나", "사슬 확인"],
@@ -1186,7 +1183,7 @@ def blocks_75() -> list:
                ["크기전이 법칙", ref("size-law-differential", "크기법칙")],
                ["파형 상대순위", ref("sim-vs-meas", "캠페인이 결판내는 양")],
                ["Pfa 교정", ref("cfar-calib", "CFAR 교정")],
-               ["ADC 천장", ref("hardware", "하드웨어")],
+               ["ADC 양자화 가정", ref("hardware", "하드웨어")],
            ])),
 
         next_steps([

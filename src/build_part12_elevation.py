@@ -13,7 +13,7 @@ build_part12_elevation.py — 권 4 「앙각 커버리지」의 조각들 → r
     82 el-nadir-floor       나딧 잔여의 정체
 
 ⚠ 조각 80 의 **앵커가 계획과 다르다.** 계획 파일의 좌표계(옛 권 번호)로 (권 16 · 절 3)
-  칸은 `el-prediction-gap` 이었는데, 이 자리에 배정된 내용이 «물리 상한 위 누설» 로
+  칸은 `el-prediction-gap` 이었는데, 이 자리에 배정된 내용이 «정의한 f_tip 밖의 스펙트럼 성분» 로
   바뀌었다. 번호 80 은 계획의 권·절 지도를 그대로 두고, 앵커와 제목만 내용에 맞춰
   `el-above-tip-limit` 으로 적는다(아래 `EXTRA` 가 그 한 행이다). 형제 조각이
   `el-prediction-gap` 으로 거는 링크는 이 앵커로 바꿔야 한다.
@@ -82,7 +82,7 @@ _WB80 = _wb80()
 _OURS80 = _WB80["ours_r15_n8192"]
 _OFF80 = _WB80["sionna_p4000000000_r15_n8192_d1"]
 _ON80 = _WB80["sionna_p4000000000_phys_r15_n8192_d1"]
-TITLE_80 = (f"물리 상한 위 누설은 우리 팔(λ/12 격자) {_OURS80[0]:.2f}~{_OURS80[1]:.2f} %, "
+TITLE_80 = (f"정의한 f_tip 밖의 스펙트럼 성분은 우리 팔(λ/12 격자) {_OURS80[0]:.2f}~{_OURS80[1]:.2f} %, "
             f"스톡 PathSolver 물리 끔 {_OFF80[0]:.2f}~{_OFF80[1]:.2f} % 이고, 물리를 켜면 "
             f"여섯 앙각이 전부 {int(_ON80[0])} % 위다")
 EXTRA = {"el-above-tip-limit": ("80", TITLE_80)}
@@ -121,7 +121,7 @@ def ref(anchor: str, short: str | None = None) -> str:
 #: ⭐2026-08-13 재설계 — 이 권이 서술하는 판은 **15 m**(원거리장 밖)다. 파생 원장도
 #  같은 판으로 다시 구웠다. 10 m 옛 판은 꼬리 없는 파일로 그대로 남아 있다.
 WJ = "outputs/wideband_energy_r15.json"
-W = from_json(WJ)                                    # ⭐물리 상한 위 누설(이 절의 본체)
+W = from_json(WJ)                                    # ⭐정의한 f_tip 밖의 스펙트럼 성분(이 절의 본체)
 S = from_json("outputs/elevation_sweep_md.json")     # 앙각 스윕 원장(규약·완결성)
 
 #: ⭐광선 예산 축을 «가만히 있는 몫» 과 «움직이는 몫» 으로 갈라 다시 읽은 원장.
@@ -144,7 +144,7 @@ def row(engine: str, el_deg: float, *, complete: bool = True) -> str:
 
 
 # =========================================================================== #
-#  조각 80 — 권 4 절 3 「물리 상한 위 누설이 엔진을 가른다」
+#  조각 80 — 권 4 절 3 「정의한 f_tip 밖의 스펙트럼 성분이 엔진을 가른다」
 # =========================================================================== #
 ELS = (0.0, -15.0, -30.0, -45.0, -60.0, -75.0)
 #: ⭐PathSolver 두 팔이 **같은 광선 예산(40 억 발)** 을 쓰고, 그 둘이 갈리는 축은 «물리 스위치»
@@ -259,7 +259,7 @@ _assert_title_numbers()
 REPRO_80 = dict(
     cmd=['WB_TAG=_r15 WB_ARMS="ours_r15_n8192|Ours (SBR+PO)|tab:blue;'
          'sionna_p4000000000_r15_n8192_d1|PathSolver physics off|tab:orange;'
-         'sionna_p4000000000_phys_r15_n8192_d1|PathSolver physics on|tab:red" '
+         'sionna_p4000000000_phys_r15_n8192_d1|PathSolver physics on|tab:red;sionna_p4000000000_phys_r15_n8192_d2|PathSolver physics on depth 2|tab:purple" '
          "PYTHONPATH=src:benchmark python benchmark/build_wideband_energy_fig.py",
          "(같은 환경변수) PYTHONPATH=src:benchmark python "
          "benchmark/build_above_tip_fig.py"],
@@ -295,7 +295,7 @@ def blocks_80() -> list:
 
                 f"⭐물리를 켠 PathSolver 는 여섯 앙각이 **전부** el −45° 의 "
                 f"{leak(K_ON, -45.0)} 위이고, el −75° 에서 {leak(K_ON, -75.0)} 다 — "
-                f"움직이는 에너지의 대부분이 날개가 낼 수 없는 자리에 있다.",
+                f"비DC 에너지의 대부분이 정의한 f_tip 밖에 있다. 원인 귀속은 별도 대조가 필요하다.",
 
                 f"이 잣대의 위 끝은 포화점이다 — el 0° 에서 평평한 스펙트럼이 받는 점수가 "
                 f"{sat(0.0)} 이고 물리를 켠 팔의 {leak(K_ON, 0.0)} 가 그 근처다.",
@@ -401,12 +401,11 @@ def blocks_80() -> list:
            "산란과 조명 기하가 정하고, 그 참값은 이 원장 밖에 있다.", "",
            "상한 위의 참값도 같은 것이 정한다 — 날개 위 진폭 분포가 위상변조 꼬리의 크기를 "
            "정하기 때문이다. 두 잣대의 참값은 같은 이유로 원장 밖에 있다.", "",
-           "상한 위가 더 강한 것은 **그 참값이 작다고 알려져 있다**는 데 있다. 대역 안 몫은 "
-           "0.2~0.9 사이 어디든 될 수 있다.", "",
+           "이 몫의 크기로 물리적 타당성을 판단하려면 같은 파형·진폭 분포·창에서의 기준 꼬리가 필요하다.", "",
            "⛔«상한 위 몫은 이상적 날개에서 한 자릿수 퍼센트 아래로 묶인다» 는 내렸다 — 그 "
            "크기 τ 는 아직 계산 전이고(다음 단계 첫 줄), 수치 상한은 τ 가 원장에 실린 뒤에 "
            "쓴다.", "",
-           "그래서 이 잣대는 큰 값을 인공물로 읽는 데 쓰고, 작은 값들 사이의 순위는 이 절의 "
+           "그래서 이 잣대는 정의한 대역 밖 성분의 비교에 쓰고, 원인 귀속과 작은 값들 사이의 순위는 이 절의 "
            "범위 밖이다."),
 
         md("### 이 잣대가 서는 범위", "",
@@ -483,9 +482,9 @@ def blocks_80() -> list:
            f"자리는 {leak(K_OFF, -45.0)} ~ {leak(K_OFF, -60.0)} 사이다. 물리를 켠 팔은 "
            f"여섯 자리가 전부 {leak(K_ON, -45.0)} 위이고 el −75° 에서 "
            f"{leak(K_ON, -75.0)} 다.", "",
-           "⇒ 물리를 켜면 **움직이는 에너지의 대부분이 날개가 낼 수 없는 대역**에 놓인다. "
-           "그 자리의 참값은 0 에 가깝다고 알려져 있으므로, 그 몫은 표적의 운동이 아니라 "
-           "엔진이 만든 것으로 읽는다."),
+           "검사한 설정에서는 **비DC 에너지의 대부분이 정의한 f_tip 밖**에 놓인다. "
+           "순시 주파수 최대값과 FFT의 지지구간은 서로 다른 개념이다. 위상·진폭 변조, 창 효과와 "
+           "수치적 경로 변화를 대조해야 원인을 판단할 수 있다."),
 
         md(f"반사 깊이는 이 잣대를 움직이지 않는다 — 여섯 자리 모두 깊이 1 과 깊이 2 의 차이가 "
            f"소수점 아래다(el 0° 에서 {leak(K_ON, 0.0)} 대 {leak(K_ON2, 0.0)}). 깊이를 "
@@ -952,8 +951,7 @@ def blocks_78() -> list:
 #  원장 `outputs/refute_nadir_mechanism_final.json : R5_detection.nadir_ac_split.caveat_ko` 가
 #  «세 갈래가 직교하지 않으므로 이 나눗셈은 어림이고, 가림 몫이 λ/48 판 상한이라 격자 잡음
 #  몫 64 % 는 **하한**이다» 라고 적는다. 판 조건(10 m · el −90 · 자세 4096)도 제목에 넣는다.
-TITLE_82 = ("나딧 잔여의 적어도 64 %(어림 삼분할의 하한 · 10 m 자세 4096 판)가 광선 격자 "
-            "표본화 잡음이고, 널은 나딧 −49.18 dB 에서 10° −23.73 dB 로 완만히 차는 얕은 웅덩이다")
+TITLE_82 = "나딧 잔여는 격자·거리 대조에서 달라진다 — 비직교 전력 배분은 조건부 어림이다"
 REG["el-nadir-floor"] = ("82", TITLE_82)
 
 #: 조각 82 의 원장 — 전부 읽기 전용. (W · S 는 위에서 이미 열렸다)
@@ -986,35 +984,7 @@ _REP = json.load(open(f"{_ROOT}/outputs/refute_nadir_mechanism_final.json",
     "claim5_blind_cone_is_very_narrow"]["evidence"]["replica"]
 
 
-def _assert_title_numbers_82() -> None:
-    """제목의 세 숫자는 손으로 친 자리다 — 원장에서 다시 읽어 **대조**한다.
-
-    (제목은 `num()` 을 못 쓴다. 원장이 바뀌면 여기서 빌드가 멈춘다.)
-    """
-    #: ⛔전 판은 `C_D_geometry.offnadir_farfield`(−11.88 dB @5°)를 가리켰다. 그 열은
-    #  **가림도 격자도 없는 원거리장 대리모형**이고, 원장이 스스로 반증했다
-    #  (`refute_nadir_mechanism_final.json : VERDICTS.claim5_… = 반증됨(REFUTED)`,
-    #   그 안에서 옛 열의 키 이름부터 `old_proxy` 다).
-    #  ⭐**커널을 그대로 재현한 `replica` 열**로 옮긴다 — 나딧 −49.18 → 10° −23.73 dB.
-    RF = json.load(open(f"{_ROOT}/outputs/refute_nadir_mechanism_final.json",
-                        encoding="utf-8"))
-    _rep = RF["VERDICTS"]["claim5_blind_cone_is_very_narrow"]["evidence"]["replica"]
-    want = [
-        format(100.0 * float(
-            RN.get("R5_detection.nadir_ac_split.grid_sampling_noise_fraction")), ".0f"),
-        format(abs(float(_rep["-90.0"]["sph10_ac_over_dc_db"])), ".2f"),
-        format(abs(float(_rep["-80.0"]["sph10_ac_over_dc_db"])), ".2f"),
-        format(float(_rep["-80.0"]["off_nadir_deg"]), ".0f"),
-    ]
-    missing = [w for w in want if w not in TITLE_82]
-    if missing:
-        raise ContractError(
-            f"제목의 숫자가 원장과 어긋난다 — 원장이 말하는 값: {want}\n"
-            f"  제목: {TITLE_82!r}\n  → 제목을 원장 값으로 고쳐라.")
-
-
-_assert_title_numbers_82()
-
+# 숫자 제목을 제거했다. 본문 수치는 RN.num()으로 원장에서 직접 인용한다.
 
 def xref(anchor: str, short: str) -> str:
     """`build_volumes.py` 의 `_XREF` 가 알아보는 꼴 — `[편 NN «…»](NN_anchor.ipynb)`."""
@@ -1087,13 +1057,13 @@ def fig_nadir_residual() -> str:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    T = dict(title="What the nadir residual is made of, and how it travels",
-             t1="Attribution of the residual modulation power",
+    T = dict(title="Nadir residual: conditional allocation and range comparison",
+             t1="Nonorthogonal allocation (cross terms unresolved)",
              t2="Residual vs range",
-             x1="Share of AC power [%]", x2="Range [m]",
+             x1="Allocated AC power [%]", x2="Range [m]",
              y2="Modulation AC/DC [dB]",
-             c1="Ray-grid sampling noise", c2="Near-field curvature",
-             c3="Occlusion",
+             c1="Residual after subtraction", c2="Near-field curvature",
+             c3="Occlusion control",
              l_rep="Kernel replica, production grid",
              l_prx="Geometry proxy, no grid, no occlusion",
              n_rep="flat within 2 dB from 10 m to 1 km",
@@ -1162,7 +1132,7 @@ def blocks_82() -> list:
         header(
             num=82,
             title=TITLE_82,
-            did="직하방에서 남은 변조를 세 갈래로 귀속하고, 나딧에서 벗어난 각도별 "
+            did="직하방의 잔여 변조를 비직교 대조값으로 조건부 배분하고, 나딧에서 벗어난 각도별 "
                 "변조 예산과 거리 거동을 원장에서 뽑았다.",
             results=[
                 f"원거리장 나딧의 변조는 "
@@ -1171,9 +1141,9 @@ def blocks_82() -> list:
 
                 f"10 m 판에 남는 변조는 "
                 f"{NF.num('B_decomposition.ours/el-90.ac_over_dc_db', fmt='{:.2f}', unit='dB')} "
-                f"이고, 그 전력의 "
+                f"이고, 잔여 방식으로 배분한 비율은 "
                 f"{RN.num('R5_detection.nadir_ac_split.grid_sampling_noise_fraction', fmt='{:.1%}')}"
-                f" 가 광선 격자 표본화 잡음이다.",
+                f" 다. 교차항과 조건 차이가 미분리인 어림값이다.",
 
                 f"⛔**널이 «좁은 원뿔» 이라는 읽기는 철회한다**(2026-09-04) — 원장이 "
                 f"스스로 반증했다(`refute_nadir_mechanism_final.json : "
@@ -1226,7 +1196,7 @@ def blocks_82() -> list:
                 (xref("el-sweep-design", "스윕 규약"),
                  "이 스윕이 무엇을 어떤 규약으로 쟀고 어느 행을 인용해도 되나"),
                 (xref("el-above-tip-limit", "상한 위 누설"),
-                 "날개끝 상한 위 에너지가 왜 인공물의 눈금인가"),
+                 "정의한 f_tip 밖의 에너지 비율을 어떻게 비교하는가"),
             ],
             repro=REPRO_82,
         ),
@@ -1258,22 +1228,22 @@ def blocks_82() -> list:
            "이 예측을 어디까지 읽어도 되는지는 원장이 적어 뒀다 — "
            f"`{RN.get('R2_analytic.two_blade_cancellation.comparison_ko')}`"),
 
-        md("## 남은 변조의 3 분의 2 는 수치 인공물이다", "",
+        md("## 잔여 방식으로 나눈 AC 전력 비율 — 인과적 분해는 아니다", "",
            *_fig82(1, "ch1_nadir_residual", "나딧에 남은 변조는 실물 표적의 신호인가?"),
-           table(["갈래", "AC 전력 몫", "무엇인가"],
+           table(["대조에서 배분한 항", "조건부 AC 전력 비율", "해석 범위"],
                  [["광선 격자 표본화 잡음",
                    RN.num("R5_detection.nadir_ac_split.grid_sampling_noise_fraction",
                           fmt="{:.1%}"),
-                   "격자가 두 날개를 다르게 표본화해 생기는 수치 인공물 — 실물 표적에는 없다"],
+                   "총합에서 아래 두 항을 뺀 잔여 추정값. 교차항과 대조 조건 차이가 포함될 수 있다"],
                   ["근접장 파면 곡률",
                    RN.num("R5_detection.nadir_ac_split.nearfield_fraction", fmt="{:.1%}"),
                    "10 m 에서만 사는 기하 항 — 물리적으로는 거리에 1/r⁴ 로 준다"],
                   ["가림",
                    RN.num("R5_detection.nadir_ac_split.occlusion_fraction", fmt="{:.1%}"),
-                   "날개가 몸체를 스치며 가리는 몫 — 조인 격자 판 값이라 상한이다"]])),
+                   "조인 격자의 가림 대조값. 격자 잔여가 포함될 수 있다"]])),
 
         md("### 이 나눗셈이 서는 범위", "",
-           "가림 몫이 상한이므로 격자 잡음 몫은 하한이다. 근거는 원장에 한 줄로 있다 — "
+           "성분들이 직교하지 않아 교차항을 빼지 않은 이 잔여를 엄밀한 물리적 하한으로 부를 수 없다. 기존 원장의 배분 가정은 다음과 같다 — "
            f"`{RN.get('R5_detection.nadir_ac_split.basis')}`", "",
            "재현기가 관측을 되살린다는 근거는 상관 "
            f"{RN.num('R4b_cpu_kernel_replica.corr_ac_sph10_vs_measured', fmt='{:.3f}')} "
@@ -1393,7 +1363,7 @@ def blocks_82() -> list:
              "`benchmark/elevation_sweep_md.py` 앙각 간격 세분 · **새 계산이 필요하다**"),
 
             ("나딧 한 점을 조인 격자로 다시 재고 삼분할을 갱신한다",
-             "격자 잡음 몫 64 % 가 하한에서 실제값으로 좁혀진다",
+             "복소 교차항과 조건 차이를 함께 대조해 잔여 배분의 의미를 확인한다",
              "`benchmark/refute_nadir_mechanism_final.py` R4c · **새 계산이 필요하다**"),
 
             ("실측에서 기체를 정면 상공에 띄우고 같은 잣대로 잰다",

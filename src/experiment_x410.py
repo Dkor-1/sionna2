@@ -85,6 +85,7 @@ class X410:
 
     @property
     def dynamic_range_db(self) -> float:
+        """Legacy name: ideal full-scale sine quantization SNR, not cancellation depth."""
         return 6.0206 * self.adc_bits + 1.76
 
 

@@ -1,0 +1,363 @@
+{
+ "census": {
+  "truly_empty": [
+   {
+    "axis": "방위 90°–180° (뒤쪽 반구) — 재고에 0 건",
+    "why_empty": "`ls outputs/elev_sweep_shards | grep -o '_az[0-9.]*' | sed s/_az// | sort -u -g` 의 최대값이 **90** 이다. 45 이상은 45·56.25·60·67.5·75·78.75·90 일곱 눈금뿐이고 90 을 넘는 샤드는 **0 건**. 음수 방위도 −0.1·−0.11·−0.12 로 6 샤드뿐이다. 발주서도 안 산다 — `grep -o '--az-deg [-0-9.]*' runners/jobs_0919.txt` 는 −0.15~0.24, jobs_0920.txt 는 0.012~0.125 뿐이다. 죽은 안 44 개(work/wf/queue_design_result.json · queue_design_0920_result.json)를 정규식으로 훑어도 az>90 을 사려던 안은 없다.",
+    "worth": "기체는 앞뒤 대칭이 **아니다**. matrice4e 로터는 52.45·131.53·228.47·307.55° 에 있어(src/drones.py motor_angles) 앞쪽 틈이 104.9°, 뒤쪽 틈이 96.94° 로 다르고, 카메라·전방 식별색은 앞에만 붙는다(src/drones.py:1439-1440). 좌우 거울대칭(az→−az)은 있어서 음수 방위는 널 시험이지만 az→180−az 는 대칭이 아니다. ⇒ 사면 갈리는 것: 「정면 창」이 정말 **정면**의 성질인가, 아니면 로터 틈 축 위라면 어디서나 열리는가. 뒤쪽에도 비슷한 폭의 창이 있으면 '정면'은 틀린 이름이고, 없으면 이름이 맞다. 안 사면 — 방위에 관한 지금의 모든 문장(창의 폭 0.11~0.12°, 45~90 의 바깥 레벨)이 **앞쪽 4분면에서만 참**이라는 단서를 달아야 하고, 청중이 「뒤에서 보면요?」라고 물으면 답이 0 건이다."
+   },
+   {
+    "axis": "--parts 의 13 그룹 중 11 개 (특히 `-camera`) — 정지 부품 나눔",
+    "why_empty": "`ls outputs/elev_sweep_shards | grep -o '_parts[a-z0-9]*' | sort | uniq -c` → `_partsnoprop 4` · `_partsprop 32` **둘뿐**이다. 그룹은 src/drones.py:1432-1449 에 13 개 있다(body·canopy·arm·motor·prop·gear·camera·accent·battery·pcb·deck·gear_cf·fc). jobs_0919.txt·jobs_0920.txt 는 `--parts` 를 **0 번** 쓴다. 죽은 안 중 parts 를 다룬 것은 0919 「② 프롭을 뺀다」(=noprop, 이미 샀다로 사망)와 0920 「B. 그 세 줄은…」뿐이고, prop/noprop 말고 다른 그룹을 사려던 안은 없다. (규약대로 `--parts prop` 단독은 후보에서 뺐다.)",
+    "worth": "el+0 에서 직접 세어 보니: 프롭만(`sionna_p4000000000_partsprop_r15_n8192_d1`) 8192 자세 중 **3331 개**가 중앙값의 0.9 배 밑으로 떨어지는데, 통째(`..._r15_n8192_d1`)는 **58 개**뿐이다. 프롭 없는 팔은 |E|/중앙값이 8192 자세 **전부 정확히 1.0000**(min=max) — 자세 변화가 전부 로터 위상이라는 뜻이라 대조군으로는 축퇴다. ⇒ 정지 부품이 바닥을 올려 프롭 낙차를 덮고 있는데, **어느 정지 부품이 덮는지는 한 번도 안 샀다.** outputs/hit_triangle_0903.json 은 맨 윗줄이 세 기체 모두 `*_camera` 라고 적지만 근거가 기체당 자세 **1 개**다(hit_triangle_0903.py:63 `fs[0]`). `--parts -camera`(꼬리표 `_partsnocamera`) 를 깊이 1 로 el+0 에 두 샤드만 사면, 낙차 자세 수가 58 → 3331 쪽으로 돌아오는지로 갈린다. ⚠단서: 깊이 1 이면 아래 «경로 덤프» 로도 근사로 답할 수 있다(경로마다 물체 id 가 있어 카메라 몫을 빼고 다시 합할 수 있다). 덤프가 더 싸고, `--parts` 쪽이 그림자·기하까지 포함한 정본이다 — 둘은 겹치지 않는다."
+   },
+   {
+    "axis": "부품 가른 실외의 «축 위»(앙각 0) 칸 — 지면만·건물만 각 2 샤드, 합 4 샤드. 새 이름이라 --overwrite 불필요",
+    "why_empty": "ls outputs/elev_sweep_shards | grep -c 'envoutdoor01_ground.*_el+0_' → 0, 'envoutdoor01_bldg.*_el+0_' → 0. 앙각별로 세면 지면만은 el−15(2)·−30(8)·−45(2)·−60(36) 뿐이고 건물만은 el−15(2)·−30(4)·−45(2)·−60(4) 뿐이다 — 두 부품 팔 다 앙각 0 이 한 장도 없다. 부품 가르기는 elevation_sweep_md.py:133-145 에서 2026-09-07 에 신설됐는데(사용자 물음 「지면이 벽보다 큰 영향을 끼치나」), 겹쳐 적힘이 사는 자리인 축 위에는 한 번도 안 돌았다. jobs_0919.txt·jobs_0920.txt 에도 envoutdoor01_ground/_bldg 의 el0 줄은 없다.",
+    "worth": "축 위에서 같은 에코가 몇 줄로 적히나 — 빈 하늘은 3.00 배(겹친 자세 99.99 %), 실외 통째는 2.70 배(rep1·rep2·rep3 세 판이 전부 2.6988 로 같다). 3.00 → 2.70 을 만드는 것이 지면인지 건물인지 지금은 못 가른다. 두 부품이 따로 있는 칸이 없기 때문이다. ⛔안 사면 「축 위 겹침 배수」를 실외에서 인용할 때 그 수가 어느 면에서 오는지 말할 수 없다. ⚠비용은 형제 샤드 실측 meta[5] 로 지면만 32.1~61.6 분/샤드 · 건물만 66.4~71.5 분/샤드 ≈ 3.3 일꾼시간. ⛔이 칸이 나와도 「그래서 겹침이 물리다/결함이다」로 넘어가지 않는다 — 어느 면이 만드나까지다."
+   },
+   {
+    "axis": "앙각 −60 «빈 하늘» 4e9 기준선 두 샤드를 겹침 열쇠 있는 세대로 다시 굽기 — 이 목록에서 --overwrite 가 필요한 유일한 칸",
+    "why_empty": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-60_{00,01}.npz 는 2026-08-24 판이고 열쇠가 ['E','cfg','idx','meta','npaths'] 뿐이다 — nret·n_dup·E_dedup·n_trunc 가 없다. 짝인 실외/지면만 el−60 은 전부 09-07 새 세대(열쇠 아홉)다. rep1~rep5 빈 하늘 el−60 열 장도 전부 08-30 옛 세대다(파일을 하나씩 열어 열쇠 확인). 이 사슬에서 옛 세대는 이 두 장뿐이다.",
+    "worth": "이 두 장이 read_0914_0908.py:69 stem() 기본값이자 read_0918B_0909.py:60 stem() 기본값 — 사건 셈 D = E_실외 − E_빈하늘 의 빼는 쪽이고 「지면이 올린 몫 44.49 dB」의 분모다. 빈 하늘은 축 위에서 에코를 3.00 배로 적는다(9.54 dB). 앙각 −60 에서도 그러는지 아무도 안 쟀다 — 그러면 44.49 dB 가 최대 9.5 dB 틀린다. ⚠다만 나는 지면만 팔 el−60 에서 n_dup 이 8,192 자세 전부 0 인 것을 쟀으므로 빈 하늘도 0 일 공산이 크다. 곧 값어치는 «새 답» 이 아니라 «가장 많이 인용되는 분모의 감사» 다 — 우선순위는 위 칸보다 낮다. 비용 meta[5] 실측 42.4 + 48.4 분. ⛔⛔--overwrite 는 백업을 안 만든다: elevation_sweep_md.py:768 이 건너뛰기만 풀고 :932 np.savez_compressed 가 같은 이름에 그대로 덮어쓴다. 파일명도 안 바뀌어 mtime 말고는 흔적이 없다 ⇒ 굽기 전에 08-24 두 장을 따로 복사해 두어라. 안 그러면 「코드 세대가 값을 안 옮긴다」를 보이는 유일한 옛 판이 사라진다."
+   },
+   {
+    "axis": "남의 씬(거리 협곡·뮌헨)의 «표본을 다시 뽑는» 널 — 광선 예산 ±5 %(3.8e9 · 4.2e9)",
+    "why_empty": "재고 7,101 개 중 진짜 널은 8 개뿐이고 전부 우리 씬이다. `ls /workspace/sionna/outputs/elev_sweep_shards | grep -o '^sionna_p[0-9]*' | sort | uniq -c` → p3800000000 4 · p4200000000 4 (나머지 4,998 이 p4000000000). 그 8 개를 열어 보면 전부 `_envoutdoor01_ground_…_el-60` 과 `_…_el-60`(빈 하늘)이다. 남의 씬 쪽은 `ls | grep envsionna | grep -cv p4000000000` → **0** (남의 씬 샤드는 협곡 16 · 뮌헨 8 = 24 개, 전부 4e9 하나). 0919·0920 과도 안 겹친다 — jobs_0919.txt:66-81 과 jobs_0920.txt:106-123 의 ±5 % 줄 여덟 개는 모두 `--env outdoor01_ground` 이거나 환경 없음(el −60)이고, 두 파일에 `--env sionna:` 와 ±5 % 를 함께 준 줄은 0 개다.",
+    "worth": "덱이 싣기로 한 유일한 실외 자리가 거리 협곡인데(work/sweep_0904/RESUME_0909.md §3, 사용자 지시로 우리 씬은 뺐다), 그 씬에는 «우연이면 얼마» 를 말할 널이 하나도 없다. outputs/read_0918A_0909.json 의 협곡 «걸리는 자세» 1.16 %(el 0) · 1.17 %(−30) · 1.56 %(−60) · 1.64 %(−75) 와, jobs_0920.txt:74-77 이 사 오는 협곡 프롭 배율 자카드가 지금은 널 없이 읽힌다. 우리 씬 널 0.89~0.92(RESUME_0909 §1①)를 빌려 쓸 수 없다 — 경로 수가 다른 씬이다(협곡 npaths 중앙 3,678 대 우리 지면만 2,705, outputs/read_0918A_0909.json). 안 사면 협곡 수는 «크다/작다» 를 못 말하고 관찰로만 남는다."
+   },
+   {
+    "axis": "남의 씬 × 기본 아닌 기체(--drone)",
+    "why_empty": "`ls /workspace/sionna/outputs/elev_sweep_shards | grep envsionna | grep -cE '_(mini5pro|mavic4pro|phantom4|s1000plus)_'` → **0** / 24. 실외 전체로 넓혀도 기체 꼬리표가 붙은 실외 샤드는 10 개뿐이고 전부 우리 씬이다(mavic4pro·mini5pro·phantom4 × envoutdoor01 el−30, mini5pro·phantom4 × envoutdoor01_ground el−60). 발주서에도 없다 — `grep -o '\\-\\-drone [a-z0-9]*' runners/jobs_0919.txt runners/jobs_0920.txt` 는 0 줄이다.",
+    "worth": "「걸리는 자세를 정하는 것은 프롭·허브다」(RESUME_0909 §1①)를 지금까지 흔든 것은 `--prop-scale`·`--frame-scale` 뿐이다 — 같은 메쉬를 늘렸다 줄인 **합성** 축이다. 실제 기체는 그 범위를 그대로 덮는다(src/drones.py: matrice4e 274.0 mm 기준으로 mini5pro 152.4 mm = 0.56 배 · s1000plus 381.0 mm = 1.39 배 ≒ 이미 산 ps0.6 · ps1.4). 사면 「합성 배율 축과 실제 기체 축이 같은 답을 주나」가 갈리고, 안 사면 프롭 읽기는 «한 메쉬를 늘린 결과» 로만 남는다. ⚠위 ①의 널이 먼저 있어야 자카드를 읽을 수 있다 — 따로 사면 또 못 읽는 칸이 된다."
+   }
+  ],
+  "not_a_queue_job": [
+   {
+    "what": "「가르려면 경로 목록을 덤프해야 한다」 — 이건 발주로는 **영원히 안 풀린다**. 기계는 이미 있고, 디스크에 덤프가 0 건일 뿐이다.",
+    "why_not_queue": "스윕 스크립트는 경로열을 만들어 놓고 **버린다**. benchmark/elevation_sweep_md.py:909 이 `_cols`(진폭 실·허부 · 지연 · 물체 id · 삼각형 id)를 쌓아 `np.unique` 로 넘긴 다음, :910-911 에서 곧장 스칼라 둘(E_dedup·n_dup)로 줄인다. :932 의 savez 가 적는 것은 idx·E·npaths·nret·E_dedup·n_dup·n_trunc·meta·cfg — **전부 자세당 스칼라**다. 재고 7,102 개 npz 의 키 조합을 전수로 셌더니 8 종뿐이고 가장 큰 것도 9 키이며 경로 단위 배열은 하나도 없다. ⇒ 이 발주서를 몇 줄 더 사도 경로 목록은 안 생긴다. 그런데 덤프 기계는 **이미 만들어져 있다** — benchmark/probe_drop_0902.py:451 `PROBE_DUMP`(자세 번호 목록) · :452 `PROBE_DUMP_DIR` · :455 `_probe_dump()` · :509 가 `pose{n}_el{el:+.0f}.npz` 로 물체 id·삼각형 id·진폭을 적는다. :914 가 마지막 지정 자세에서 멈추므로 값도 싸다. `find /workspace/sionna -name 'pose*_el*.npz'` → **0 건**(옛 덤프는 /tmp/pathdump 에 있다가 지워졌다).",
+    "how": "① 그대로 돌린다 — `PROBE_DUMP=<자세들> PROBE_DUMP_DIR=outputs/pathdump_0921 python benchmark/probe_drop_0902.py --env outdoor01 …` 과 `--env sionna:simple_street_canyon` 두 판. ② ⛔한 곳은 고쳐야 한다: probe_drop_0902.py:120-130 의 ENV_SPECS 가 **옛 판**이라 `outdoor01` 하나뿐이다. 2026-09-07 에 elevation_sweep_md.py:138-143 에 더한 `outdoor01_ground`·`outdoor01_bldg` 여섯 줄을 그대로 옮겨야 지면만/건물만 덤프가 열린다. ③ 잔가시: :509 가 `:+.0f` 라 옛 이름 규약이다(정수 앙각에서는 elevation_sweep_md.py:409 의 `:+g` 와 글자가 같아 당장은 안 문다).",
+    "unlocks": "outputs/scene_compare_0908.json `_meta.open_hypothesis_ko` 가 적어 둔 그대로 — 「지면 반사가 우리 씬에서는 한 갈래에 몰리고 기본 씬에서는 흩어져 있다. ⚠무너지는 자세의 경로 수가 오히려 몇 개 많다는 관측과 어긋나 보인다」 를 갈라 준다. 덤으로 위 `--parts -camera` 물음도 깊이 1 에서는 덤프만으로 근사 답이 나온다(물체 id 로 카메라 몫을 빼고 다시 합하면 된다)."
+   },
+   {
+    "what": "「건물 넷·기둥 둘이 왜 합에 안 들어오나 — 왜인지 모른다」는 이미 낡았다. 답이 옛 설계판에 적혀 있고, 내가 따로 재서 맞았다.",
+    "why_not_queue": "work/wf/queue_design_result.json 의 killed 「우리 씬의 부품 나눔을 협곡과 같은 앙각 폭으로」가 기하로 답을 적어 두었다. 나는 그 말을 믿지 않고 assets/meshes/outdoor01/*.obj 정점을 직접 읽어(ENV_SPECS 의 −20 m 이동 반영) 다시 쟀다: ground 만 y[−60,+60] 로 y=0 을 지나고, bldg_a y[8.50,19.50] · bldg_b y[14.00,26.00] · bldg_c y[−32.00,−16.00] · bldg_d y[−21.00,−11.00] · pole_a y[−7.17,−6.83] · pole_b y[5.83,6.17] — **지면 아닌 여섯 부품이 전부 y=0 을 안 지난다**. 방위 기본값이 0 이라 레이다도 드론도 y=0 평면 안에 있으니 어느 벽에도 수직발이 안 떨어진다. 같은 원장이 실측도 함께 적는다: `envoutdoor01_bldg` 의 npaths 가 빈 하늘과 사실상 같고 장의 차이가 실외 레벨 대비 약 −92 dB. 그리고 그 팔은 **이미 디스크에 있다**(`_envoutdoor01_bldg` 12 샤드). ⇒ 새로 살 것이 없다.",
+    "how": "work/wf/queue_design_result.json 의 그 killed 항목을 읽고 기억 항목 「⛔…건물 넷·기둥 둘이 합에 안 들어온다. 왜인지 모른다」를 고친다. ⚠단서까지 함께 적을 것 — 이 기하는 **정반사 갈래**가 왜 0 인지를 설명한다. 깊이 2 에서 레이다→벽→드론→레이다 갈래가 왜 정확히 0 인지까지 닫혔다고는 내가 확인 못 했다(그건 위 경로 덤프가 답할 자리다).",
+    "unlocks": "실외 절에서 「지면이 하나, 벽이 하나」로 그리던 두 곡선이 사실 **벽 곡선은 0 이고 통째 곡선이 곧 지면 곡선**이라고 말할 수 있게 된다. 발주 0 줄."
+   },
+   {
+    "what": "el+0 복사본 원장이 «생존자만» 담고 있다 — 낙차가 없는 팔은 조용히 빠진다.",
+    "why_not_queue": "benchmark/el0_copies_0903.py:90 `if d.size < 5: continue` 가, 중앙값의 0.9 배 밑으로 떨어지는 자세가 다섯 개 미만인 팔을 **아무 기록 없이** 버린다. 그래서 outputs/el0_copies_0903.json 의 rows 301 개에 `partsnoprop` 두 팔이 없다. 내가 직접 읽어 보니 이유가 나온다 — `sionna_p4000000000_partsnoprop_r15_n8192_d1` 는 8192 자세에서 |E|/중앙값이 **최소도 1.0000, 최대도 1.0000**(낙차 자세 0 개)이다. 이건 결함이 아니라 하네스 사실이다(자세 변화가 전부 로터 위상이라 프롭을 빼면 모든 자세가 같아진다). 다만 지금 원장만 보면 그 사실이 안 보이고, 「모든 팔에 낙차가 있다」로 잘못 읽힌다. 샤드는 이미 다 있다.",
+    "how": "benchmark/el0_copies_0903.py:90 을 `continue` 대신 «제외됨 + 까닭(n_drop, r 의 최소·최대)» 한 줄을 rows 에 남기도록 고치고 다시 돌린다. CPU 로 몇 초다(내가 같은 계산을 직접 돌려 봤다).",
+    "unlocks": "「낙차는 통째로 로터 위상이 만든다 — 정지 부품은 바닥을 올려 그것을 덮을 뿐」이라는 문장을 재고만으로 세울 수 있다. 통째 58/8192 대 프롭만 3331/8192 라는 대비가 원장에 남는다."
+   },
+   {
+    "what": "기본 씬 진단기가 앙각 0(과 ±소수 앙각)에서 못 돈다 — 한 줄짜리 이름 규약 어긋남.",
+    "why_not_queue": "benchmark/builtin_scene_diagnosis_0908.py:31 이 `f'…_d2_el{el}_*.npz'` 로 글로브를 만든다. :24 의 `ELS = (-30, -60)` 는 음수라 `el-30` 으로 맞게 나오지만, 여기에 0 을 넣으면 `el0_*.npz` 를 찾는데 실제 파일 이름은 `el+0_00.npz` 다(elevation_sweep_md.py:409 가 2026-09-05 부터 `:+g`). :34 에서 `ValueError: No input for …` 로 죽는다. 파일은 디스크에 있는데 읽는 쪽이 못 집는 것이라 발주로는 절대 안 풀린다.",
+    "how": "benchmark/builtin_scene_diagnosis_0908.py:31 의 `_el{el}_` 를 `_el{el:+g}_` 로 바꾼다. 한 글자다.",
+    "unlocks": "el+0 과 −75 를 진단기에 넣을 수 있게 된다 — 그 두 앙각의 `envoutdoor01` 통째 샤드는 이미 재고에 있다(`…_d2_el+0_{00,01}` · `el-75_{00,01}`). 세 씬 대조가 두 앙각 넓어지는데 발주 0 줄이다."
+   },
+   {
+    "what": "⛔문지기 구멍 — `--parts` 를 `--engine ours` 에 주면 조용히 무시되고, 이름은 기본 팔과 **똑같이** 난다.",
+    "why_not_queue": "benchmark/elevation_sweep_md.py:1473-1476 의 도움말은 「Sionna 가지 전용」이라 적지만 **SystemExit 가 없다**. 우리 커널 가지(560~700 행)는 `a.parts` 를 한 번도 안 읽고(직접 훑어 0 건), :640-641 의 `tagd` 에도 parts 꼬리표가 없다. 그래서 `--engine ours --parts body` 는 통째 계산을 해서 `ours_r15_n8192_…` 라는 **기본 팔 이름**으로 적는다(이미 있으면 «건너뜀» 으로 끝난다). 이 파일의 다른 엔진 전용 손잡이는 전부 문지기가 있다 — :478(--shell-mm/--prop-mm) · :488(--grid-shift) · :571(--ground) · :593(--env). parts 만 빠졌다. 위 «--parts 축» 을 사기로 하면 그 줄을 오타 하나로 우리 커널에 붙이는 사고가 바로 이 구멍으로 들어온다.",
+    "how": "benchmark/elevation_sweep_md.py 의 tagr 계산 근처(:477 의 tagth 문지기 바로 옆)에 `if getattr(a,'parts','') and a.engine != 'sionna': raise SystemExit(…)` 를 더한다. 문구는 :478·:488 과 같은 규약으로 — 「우리 커널 쪽 대응물은 ours_free 엔진」이라고 :1476 이 이미 적어 두었다.",
+    "unlocks": "「이름만 같고 내용이 다른 샤드가 생겨 원장이 거짓말을 한다」는 이 저장소가 :476·:478 에서 막으려던 바로 그 병을 parts 축에서도 막는다. 위 truly_empty ②를 발주하기 **전에** 고쳐야 하는 한 줄이다."
+   },
+   {
+    "what": "⭐여러 판이 「여기서 막힌다」고 적은 «경로 목록 덤프» 는 발주가 아니라 코드 일이다 — 그리고 8,192 자세가 아니라 20 자세면 된다",
+    "why_not_queue": "목록은 이미 메모리에 있다가 버려진다. elevation_sweep_md.py:877 이 RP.unpack(p) 로 진폭 aa·지연 tau·물체 O 를 받고(report15_probe.py:198-215), :900 이 p.primitives 까지 읽는다. 그것을 :904-911 에서 여섯 개 스칼라(E·npaths·nret·E_dedup·n_dup)로 줄이고 목록은 버린다. 샤드를 아무리 더 사도 목록은 안 나온다 — 저장하는 줄이 없기 때문이다. outputs/scene_compare_0908.json 의 open_hypothesis_ko 를 비롯해 여러 원장이 멈춘 자리가 이것이다.",
+    "how": "benchmark/elevation_sweep_md.py:900-911 옆에 ~15 줄. --dump-poses 3043,4133,… 인자를 argparse(:1478 근처)에 더하고 그 자세에서만 (O, p.primitives, aa, tau) 를 곁다리 npz 로 쓴다. 표적은 이미 좁혀 두었다 — 앙각 −60·팔 R0D0E0F1·4e9·깊이 2 에서 «건물이 답을 뒤집는» 열 자세: 2753, 3030, 3043, 4133, 4276, 4765, 6018, 6615, 7575, 8080. 성한 자세 몇 개를 대조로 붙인다.",
+    "unlocks": "그 열 자세는 경로 수가 정확히 ±1 만 다른데 |E| 는 −74.4 dB 와 −118 dB 사이를 오간다(다섯은 통째가 무너지고 다섯은 지면만이 무너진다 — 양방향이다). 덤프하면 그 한 줄이 무엇인지(지면 반사인가 건물인가 직접파인가)를 이름으로 볼 수 있다. 20 자세라 샤드시간이 아니라 분 단위다."
+   },
+   {
+    "what": "read_0914_0908.py 가 1e8·1e9 실외 칸을 4e9 빈 하늘에 짝지어 읽는다 — 짝 맞는 샤드가 디스크에 이미 있다",
+    "why_not_queue": "sionna_p100000000_…_d2_el-60_{00,01}.npz 와 sionna_p1000000000_…_d2_el-60_{00,01}.npz 의 빈 하늘 판이 둘 다 있다(ls 로 확인, 각 2 샤드). 그런데 :140 과 :143 이 빈 하늘 자리에 stem() 을 그냥 넣어 4e9 를 쓴다. 그래서 원장이 그 두 칸에 「짝이 어긋난다 — 사건 수를 인용하지 않는다」를 달고 lift_over_free_db 를 두 칸 다 44.51 로 적는다.",
+    "how": "benchmark/read_0914_0908.py:140 의 stem() → stem(spp=100_000_000), :143 의 stem() → stem(spp=1_000_000_000). 경고 문자열 둘도 뗀다. 판독기의 measure() 를 손대지 않고 그대로 써서 미리 돌려 봤다(스크래치 match.py).",
+    "unlocks": "ⓐ 사건 수는 짝을 맞춰도 글자 그대로 같다 — 11(0.13 %)·68(0.83 %)·82(1.00 %). 빈 하늘이 44 dB 아래라 잣대가 안 흔들린다 ⇒ 「인용하지 않는다」 경고를 근거를 갖고 뗄 수 있다. ⓑ 그런데 지면이 올린 몫은 크게 달라진다: 1e8 은 44.51 → 57.50 dB, 1e9 는 44.51 → 52.34 dB, 4e9 는 44.49 그대로. 지금 원장은 세 예산이 다 44.5 로 평평해 보이는데 짝을 맞추면 13 dB 가 벌어진다. ⛔이것을 「지면이 커진다」로 읽지 마라 — 분모인 빈 하늘이 광선을 줄이면 더 내려가는 것이다."
+   },
+   {
+    "what": "front_window_0906.py 의 이름 규칙이 320 샤드를 조용히 버린다 — 거리 다섯 개와 음의 방위 전부",
+    "why_not_queue": "CANON(benchmark/front_window_0906.py:47-51)이 두 군데서 막는다. ⓐ `_r15_` 가 박혀 있어 30·45·60·90·120 m 샤드 314 장(그중 66 장은 겹침 열쇠 있음)을 아예 안 연다. ⓑ az 자리가 `[0-9.]+` 라 빼기표가 없어 `_az-0.1_`·`_az-0.11_`·`_az-0.12_` 여섯 장이 매치에 실패한다. 그 여섯 장은 오늘 03:04~04:15 에 착지했고 원장 outputs/front_window_0906.json 은 01:42 판이라 아직 한 번도 안 읽혔다.",
+    "how": "CANON 두 곳: `_r15_` → `_r(?P<r>\\d+)_`, `az(?P<az>[0-9.]+)` → `az(?P<az>-?[0-9.]+)`. 칸 열쇠(group_files :53-70)에 거리를 넣고, ladder(:117)·edge(:135-142)를 abs 로 접지 말고 부호별로 갈라 돌린다 — 지금은 abs 정렬이라 +0.15 와 −0.15 가 한 사다리에 섞인다. 판독기를 import 해 CANON 만 갈아 끼우고 measure() 는 손대지 않은 채 돌려 봤다(스크래치 win_r.py · mirror.py).",
+    "unlocks": "ⓐ 덱 열린 물음 ③ 「창의 폭은 각도인가 가로 어긋남인가」가 새 샤드 0 개로 닫힌다. 켜짐/꺼짐 경계를 mm 로 적으면 15 m 28.80/31.42 · 30 m 28.80/31.42 · 45 m 29.06/31.42 · 60 m 28.80/31.42 · 90 m 28.27/31.42 · 120 m 25.13/35.60 — 여섯 거리 중 다섯이 같은 [28.8, 31.4] mm 구간에 들고 120 m 는 눈금이 성길 뿐 그 구간을 품는다. 각도 고정은 죽는다(15 m 0.11° 는 켜져 있는데 30 m 0.06° 가 꺼진다). ⓑ 창의 대칭성이 두 축에서 갈린다 — 방위는 대칭이고(−0.11 켜짐 99.99 % / −0.12 꺼짐 0.00 %, +쪽과 같은 자리), 앙각은 한쪽으로 밀려 있다(−0.15 켜짐 99.69 % 대 +0.15 꺼짐 0.00 %, 같은 |각도| · 각 8,192 자세). ⛔여기서 「짐벌 면이 기울어 있다」로 넘어가지 않는다 — 좌우는 대칭, 위아래는 아니다까지다."
+   },
+   {
+    "what": "«통째»와 «지면만»이 같다는 것은 중앙값이다 — 꼬리를 아무 판독기도 안 뺐다",
+    "why_not_queue": "두 팔의 샤드가 앙각 −15·−30·−45·−60 에 다 있다(4e9·15 m·R0D0E0F1·깊이 2). 자세별로 빼는 판독기가 없을 뿐이다. outputs/outdoor_dip_origin_0908.json 은 낙차 개수·레벨·경로 상한만 적고 자세별 ΔE 를 안 적는다(키를 전수로 훑어 확인).",
+    "how": "짧은 스크립트로 끝난다 — 두 stem 을 idx 로 이어 붙이고 |E_통째 − E_지면만| 을 «지면만 |E| 중앙값» 이라는 고정 분모로 나눈다. ⛔자세별 |E| 를 분모로 쓰면 무너지는 자세가 가짜 꼬리를 만든다 — 나는 두 방식을 다 돌려 꼬리가 고정 분모에서도 남는 것을 확인했다(스크래치 tail.py · tail2.py · targets.py).",
+    "unlocks": "「건물 넷·기둥 둘이 합에 안 들어온다」가 중앙값 이야기임이 드러난다. 고정 분모로 1e−9 를 넘는 자세가 앙각 −15 에서 0.54 % · −30 28.70 % · −45 38.05 % · −60 48.33 % 이고, 앙각 −60 에서 1e−6 을 넘는 것이 16.06 %, 중앙값 자체를 넘는 것이 10 자세(0.12 %)다. 경로 수가 다른 자세는 −60 에서 2.70 % 이고 +113 / −108 로 양방향이다. ⭐그리고 1,099 자세는 경로 수가 똑같은데 값이 다르다 — 건물이 경로를 «더하는» 것이 아니라 «갈아 끼운다». 규약 「중앙값은 혼합을 가린다」가 그대로 걸리는 자리다. ⛔왜 그런지는 이 판독으로 안 나온다 — 그것이 위의 덤프다."
+   },
+   {
+    "what": "사건 자세에서 지면 경로는 사라지지 않는다 — 그 자세의 경로 수를 세어 본 원장이 없다",
+    "why_not_queue": "필요한 npaths 가 세 팔 샤드에 다 들어 있다(지면만·빈 하늘·통째, 앙각 −60, 4e9). outputs/outdoor_dip_origin_0908.json 은 ground_term_drop_at_dips_db −61.41 을 이미 적었지만 그 자세들의 경로 수는 안 적었다 — path_cap_check 는 칸 전체의 중앙·최대만 본다.",
+    "how": "지면만 npaths − 빈 하늘 npaths 를 사건 자세와 성한 자세로 갈라 분포를 낸다. 잣대는 read_0914_0908.py:96-125 measure() 를 그대로 쓴다(D = E_지면만 − E_빈하늘, |D − 중앙D| > 0.5·|중앙D|). 스크래치 confirm.py.",
+    "unlocks": "사건 82 자세에서 지면만이 빈 하늘보다 갖는 경로 수는 510~605(중앙 567)이고 성한 자세의 중앙도 567 이다 — 두 무리가 겹친다. 곧 지면 경로 ~567 개가 그대로 다 돌아오는데 합만 61.41 dB 내려간다(|D| 성한 1.913e−4~2.137e−4 대 사건 8.135e−8~2.270e−7 — 세 자릿수 떨어져 있고 겹치는 값이 하나도 없다). ⭐지금까지 원장들이 이것을 「정적 몫이 사라진다」로 적었는데, 샤드는 「경로는 남고 합이 무너진다」고 말한다. 남은 두 갈래(진짜 상쇄인가, 돌아온 경로가 다른 것들인가)는 경로 목록 없이는 못 가른다 — 다시 덤프다. ⛔둘 중 하나로 지금 결론짓지 마라."
+   },
+   {
+    "what": "「재고의 96 %가 n_trunc 열쇠가 없다」는 거의 전부 읽기로 메워진다 — 다시 구울 일이 아니다",
+    "why_not_queue": "재고 7,101 장을 직접 세었다: n_trunc 372 장(5.2 %) · nret 1,132 장(15.9 %) · n_dup 891 장(12.5 %). 그런데 nret 과 npaths 를 둘 다 가진 1,132 장 4,509,184 자세에서 nret/npaths 비가 중앙·90 %·99 %·최대 전부 정확히 1.0000 이다 — elevation_sweep_md.py:881 의 NO_OBJ 마스크가 한 번도 안 버린다. 곧 npaths 가 nret 의 검증된 대역이다.",
+    "how": "elevation_sweep_md.py:1069-1072 에 이미 「nret 로 n_trunc 를 센다」가 있는데 cap_seen 이 먼저 잡혀야만 도는 elif 라, 그 칸에 n_trunc 든 샤드가 하나도 없으면 조용히 건너뛴다 — 그런 stem 이 368 개다. 그 갈래를 상한 기본값(report15_probe.py:104, SIONNA2_MAX_PATHS 기본 2,000,000)으로 열고, nret 이 없으면 npaths 로 떨어지게 한 줄 더 둔다.",
+    "unlocks": "nret 없는 5,970 장 중 npaths 라도 있는 4,209 장 전부에서 잘림 판정이 선다. 그 4,209 장의 npaths 최대는 통틀어 18,917 — 상한 2,000,000 의 0.95 % 다(10 % 를 넘는 샤드 0 장). 상한에 붙는 것은 지면 거칠기 팔(S=0.3·0.7)뿐이고 그 축은 이미 접혀 있다. ⇒ 「n_trunc 열쇠가 없어 못 답한다」는 발주 근거가 못 된다. 정말 모르는 것은 npaths 조차 없는 1,761 장뿐이다."
+   },
+   {
+    "what": "경로 목록 덤프 — 덤프기는 **이미 있다.** 다만 2026-09-02 판 포크에 갇혀 있어 지금 열린 물음에 못 쓴다.",
+    "why_not_queue": "샤드를 아무리 사도 경로 목록은 안 나온다. 샤드가 담는 것은 자세당 요약뿐이다 — benchmark/elevation_sweep_md.py:933-937 `np.savez_compressed(f, idx, E, npaths, nret, E_dedup, n_dup, n_trunc, meta, cfg)`. 경로별 (진폭·지연·물체·상호작용·정점)은 솔버를 다시 부르는 코드에서만 나온다. 왜 다시 안 돌렸나: 덤프기 benchmark/probe_drop_0902.py 는 생산 스크립트의 09-02 포크인데 그 뒤로 559 줄이 갈렸고(`diff probe_drop_0902.py elevation_sweep_md.py | grep -c '^[<>]'`), 지금 열린 물음이 요구하는 것이 그 갈린 자리에 있다 — ⓐ ENV_SPECS 에 outdoor01_ground·outdoor01_bldg 가 없다(probe:120-130 대 elevation_sweep_md.py:137-144 가 09-07 에 넣었다), ⓑ `--ground`·`--env-alt`·`--max-paths` 손잡이가 없다, ⓒ 09-03 에 넣은 중복 세기 n_dup·E_dedup·p.primitives 가 통째로 없다(`grep -n 'n_dup' probe_drop_0902.py` → 0 줄, 생산 쪽은 :783-784·:900·:910-911). 그래서 그 포크가 내는 덤프는 지금 재고의 샤드와 같은 판이 아니다.",
+    "how": "benchmark/probe_drop_0902.py:452-511 의 `_PROBE_DUMP`·`_PROBE_DUMP_DIR`·`_probe_dump()` 를 그대로 benchmark/elevation_sweep_md.py 로 옮기고, 호출 여섯 줄(probe_drop_0902.py:911-916)을 elevation_sweep_md.py:870 `RP.place(sc, center=_ctr, …)` **바로 뒤**에 같은 환경변수 게이트로 끼운다(⛔`PROBE_POSE` 쪽의 savez 금지 장치 probe:380-383 도 함께 옮겨야 생산 샤드를 0 으로 덮지 않는다). 판독기는 새로 만들지 않는다 — benchmark/elephant_id_0903.py(`--dir`) · copies_id_0903.py · hit_triangle_0903.py 가 `pose{n}_el{el}.npz` 를 그대로 읽는다. 물체 이름표도 이미 담긴다(probe_drop_0902.py:496-500 `oid`/`oname`, 원본은 report15_probe.py:214 `paths.objects`).",
+    "unlocks": "① 「우리 씬의 통째와 지면만이 1.8e−16 로 같다 — 건물 넷·기둥 둘이 왜 합에 안 들어오나」(work/wf/queue_design_0920_result.json 의 그 문답, outputs/scene_compare_0908.json `open_hypothesis_ko`). 자세 하나의 경로 목록을 물체 이름으로 갈라 |a| 를 합치면 그 자리에서 답이 난다. ② 「무늬를 지운 것이 땅인가 건물인가」(RESUME_0909 §3 이 «말할 수 없게 됐다» 로 적어 둔 줄) — 협곡 자세 하나만 덤프하면 **한 샤드도 안 사고** 갈린다. ⭐다만 이것이 「솔버가 왜 그 경로를 못 찾나」의 유일한 길은 **아니다** — 덤프는 «무엇이 목록에 없나» 까지만 답한다. «왜» 는 아래 항목이다."
+   },
+   {
+    "what": "「왜 그 경로가 목록에 없나 · 왜 같은 줄이 N 벌 적히나」 — 그 결정을 내리는 코드는 설치본 안에 있고, 이 저장소는 아직 그 자리를 안 읽었다.",
+    "why_not_queue": "발주로는 원리상 못 닫는다. 원장들이 이미 일곱 축을 사서 다 지웠다(docs/DEEP_DROP_0902.md 의 표: 광선 예산 40 배 · 거리 8 배 · 자세 · 삼각형 수 · 삼각형 넓이 · 여러 면인가 · 겹친 삼각형 — 전부 «아니다»)고 «남은 것은 솔버 안쪽이다. 여기서 더 나가지 않는다»(:716-722, :745)로 닫아 두었다. 그런데 그 «안쪽» 은 읽을 수 있는 파이썬 소스다.",
+    "how": "읽을 자리 — /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/sb_candidate_generator.py. ⓐ :391 `diffuse = int_type == InteractionType.DIFFUSE` 와 :465 `valid = los_visible & diffuse & target_incident_side` 때문에 **정반사 사슬은 `valid` 로는 절대 저장되지 않는다** — :500 `store = active & (valid | new_specular)` 의 `new_specular` 하나가 저장 여부를 정한다. ⓑ 그 `new_specular` 는 :484-497 의 해시 카운터가 정한다(`counter_ind = path_target_hash % spec_counter_size`, `new_specular &= samples_counter == 0`). ⓒ 열쇠는 sionna/rt/utils/hashing.py:66-88 `PlaneHasher` 다 — 법선 성분을 eps=1e-5, 평면 오프셋 d=n·p 를 eps=1e-3(=1 mm)로 양자화하고 round/floor 두 벌을 쓴다(:41-44, offset 0.04281 / 0.06284). ⓓ 서문 :42-46 이 스스로 「해시 충돌 때문에 후보가 유실될 수 있다」고 적는다. 흔들 방법 — `PathSolver()` 를 만든 뒤 `solver._candidate_generator.plane_hash_functions`(path_solver.py:117 이 `SBCandidateGenerator()` 를 넣고 sb_candidate_generator.py:65-68 이 그 리스트를 만든다)를 eps·연산자만 바꾼 하위클래스로 갈아 끼우고 자세 46·47·48 을 CPU(llvm)로 다시 푼다. ⛔이미 흔든 것과 헷갈리지 마라 — benchmark/hash_bucket_sweep_0903.py 와 outputs/hash_bucket_sweep_0903.json 이 흔든 것은 **통 개수**(`spec_counter_size = max(max_num_paths_per_src, MIN_SPEC_COUNT_SIZE)`)뿐이고, **양자화 눈금**은 한 번도 안 건드렸다.",
+    "unlocks": "docs/DEEP_DROP_0902.md:716-722 의 「⛔아직 못 답한 것 — 왜 N 이 2·3·4 인가」와 :745 의 「한 줄의 세기가 기체와 무관하게 거의 같다는 수수께끼」. 그리고 덱 4~7 쪽이 통째로 서 있는 «되풀이되는 도착» 이 무엇의 성질인지. ⛔주의 — 이 자리를 읽어도 「시오나가 틀렸다」로 쓰지 않는다(상시 규약). 말할 수 있는 것은 「목록에 넣고 빼는 판단이 어느 양에 걸려 있나」까지다."
+   },
+   {
+    "what": "뮌헨 — 드론을 옮길 손잡이가 argparse 에 **없다.**",
+    "why_not_queue": "지금 발주하면 같은 결과가 또 난다. 남의 씬에서 드론 자리는 상수로 박혀 있다 — benchmark/elevation_sweep_md.py:170 `ctr = (0.0, 0.0, float(ENV_BUILTIN_ALT))` (ENV_BUILTIN_ALT = 25.0, :118). 고도 손잡이 `--env-alt`(:1320)는 남의 씬에 **명시적으로 거부**된다(:531-537 `⛔ --env-alt … 는 남의 씬에 안 걸린다`). x·y 손잡이는 아예 없다. 그래서 (0,0,25) 에서 레이다→드론 시선이 12.4 m(el −30) · 10.5 m(el −60) 앞의 건물 `no-name-6` 에 막힌다(outputs/builtin_scene_diagnosis_0908.json geometry.scenes.munich.cells 의 `blocked_before_drone: true`).",
+    "how": "네 곳이다. ① benchmark/elevation_sweep_md.py:146 `def build_scene_builtin(RP, parts, name, fc)` 에 중심 인자를 더하고 :170 의 상수를 그 인자로 바꾼다. ② 호출부 :849 `sc, _ctr = build_scene_builtin(...)` 에서 넘긴다(:870 `RP.place(sc, center=_ctr, …)` 이 레이다를 같은 중심에 매므로 기하 규약은 저절로 지켜진다). ③ **이름표를 반드시 함께 고친다** — tagr(:448-476, `_alt` 항이 :462-463) 에 자리 꼬리표를 넣지 않으면 기존 뮌헨 샤드 여덟 개(`sionna_p4000000000_sw{R0D0E0F1,R0D1E1F1}_r15_n8192_envsionna-munich_…_el{-30,-60}_{00,01}.npz`)와 파일명이 부딪힌다. ④ :531-537 의 거부를 「남의 씬이면 `ctr` 의 z 로 간다」로 바꾼다. 어디로 옮기나는 원장이 이미 계산해 뒀다 — outputs/builtin_scene_diagnosis_0908.json geometry.scenes.munich.candidate_clear_placement.drone_center_m = [−20.0, 0.0, 25.0], el −30·−60 둘 다 `clear: true`. ⚠같은 파일의 caveat: 「중심 광선 가시성만 봤다 — 드론 전체 여유와 실제 필드 계산은 아직」.",
+    "unlocks": "지금 «결과가 아니다» 로 접어 둔 뮌헨 여덟 샤드(npaths 중앙 41·40 — 같은 팔·같은 거리 협곡의 1/40~1/97, work/wf/queue_design_0920_result.json)가 쓸 수 있는 칸이 된다. 그러면 「건물이 많은 남의 씬」이 협곡 하나에서 둘이 되고, 협곡에서 본 것이 그 씬만의 성질인지 갈린다."
+   },
+   {
+    "what": "comb_snr 이 프롭 배율을 대역에 안 넣는다 — 기본 기체 갈래에서만.",
+    "why_not_queue": "샤드는 이미 있다. 못 읽는 것이 잣대다. benchmark/comb_snr.py:88-124 `f_tip()` 에서 `_ps` 꼬리표를 읽는 줄은 :114-118 인데, 그 블록이 :108 `if _key and _key != TJ.get(\"drone\", \"matrice4e\")` **안에** 있다. 기체 꼬리표가 없는 팔은 `_key = None` 이라 :123-124 의 마지막 return 으로 가고, 거기에는 `_ps` 항이 없다. 실제로 그렇다(직접 실행): `ours_r15_n8192_…` · `…_ps0.6_…` · `…_ps2_…` 셋 다 f_tip(−60) = **636.033 Hz** 로 같고, 기체 꼬리표가 붙은 `…_mini5pro_…_ps2_…` 만 1024.738 Hz 로 배율을 탄다. 원장에도 이미 잡혀 있다 — outputs/read_0918B_0909.json `band_check_f_tip`: comb_snr 636.033 / 636.033 / 636.033 대 elevation_sweep_md 636.457 / 381.874(_ps0.6) / 954.686(_ps1.5_fs1.5).",
+    "how": "benchmark/comb_snr.py:123-124 의 마지막 return 에 `_ps` 인수를 곱한다 — `_m = re.search(r\"_ps([0-9.]+)\", arm or \"\")` 로 읽고 없으면 1.0 을 쓴다(그래야 꼬리표 없는 matrice4e 수가 한 비트도 안 바뀐다 — :95-99 가 FTIP0 를 원장에서 가져오는 까닭이 그것이다). 정본 식은 benchmark/elevation_sweep_md.py:948-975 `f_tip_at` 이고 :967 이 「f_tip 은 팁속도라 **프롭 지름에만** 비례한다 — frame/body 배율은 안 걸린다」고 적어 뒀다. 그 근거도 코드에 있다 — src/articulated_fast.py:169 `pv = np.asarray(src.v, float) * self.prop_scale` (날은 prop_scale 만), :170 `cx, cy, cz = rot[\"center\"] * self.frame_scale` (frame_scale 은 허브 자리만). ⚠같은 결함이 한 군데 더 있다 — benchmark/build_md_atlas.py:258-273 `arm_rates()` 도 `_ps` 를 안 읽고 반송파도 상수(:128 `FC`, :269 `lam = C_LIGHT / FC`)를 쓴다.",
+    "unlocks": "`_ps` 꼬리표가 붙은 샤드 **110 개**의 빗살 SNR 칸 전부. 그 110 개는 하나도 기체 꼬리표가 없어서(`ls outputs/elev_sweep_shards/*_ps* | grep -cE 'mini5pro|mavic|phantom|s1000'` → 0) 지금은 전부 matrice4e 대역(636 Hz)으로 읽힌다 — ps0.6 에서 1.67 배 넓고 ps1.5 에서 1.5 배 좁다. 대역이 넓으면 바닥이 늘어 빗살이 실제보다 낮게 읽히므로, 오차가 **재려는 축과 같은 방향으로** 걸린다. 특히 runners/jobs_0919.txt:70-171 과 runners/jobs_0920.txt:74-77 이 사 온 프롭 배율 사다리가 여기 걸려 있다. jobs_0919.txt:16 이 이미 「⛔--prop-scale 은 f_tip 을 배율만큼 옮기므로 대역을 곱해 읽어야 한다」고 적어 뒀다."
+   },
+   {
+    "what": "「남의 씬은 부품으로 못 쪼갠다」 — 코드로는 사실이 아니다.",
+    "why_not_queue": "work/sweep_0904/RESUME_0909.md §3 이 「무늬를 지운 것이 땅인가 건물인가 — 솔버가 주는 장면은 부품으로 못 쪼갠다」로 닫아 두었다. 그런데 남의 씬 물체에는 이름이 있다. CPU 로 직접 열어 확인했다(CUDA_VISIBLE_DEVICES=\"\", variant llvm_ad_mono_polarized) — simple_street_canyon 은 물체 5 개 ['floor', 'building_2', 'no-name-5', 'building_6', 'no-name-6'], munich 은 11 개이고 그 중 'ground' 가 있다. 그리고 지우는 자리도 있다 — sionna/rt/scene.py:344-369 `Scene.edit(add=…, remove=…)` 가 이름 문자열이나 객체로 지운다(우리 씬의 outdoor01_ground / outdoor01_bldg 쪼갬과 같은 짓을 남의 씬에서 할 수 있다).",
+    "how": "benchmark/elevation_sweep_md.py:849 (`sc, _ctr = build_scene_builtin(...)`) 바로 뒤에 `--env-keep` / `--env-drop` 를 받아 `sc.edit(remove=[...])` 를 거는 줄을 넣고, tagr(:448-476)에 꼬리표를 더한다(안 넣으면 기존 협곡 16 샤드와 이름이 부딪힌다). ⚠씬 이름은 우리가 고른 것이 아니므로 씬마다 실제 물체 이름을 원장에 함께 적어야 한다(지금 있는 목록: 위 다섯 · 열하나). ⭐그런데 **더 싼 길이 먼저 있다** — 위 ①의 덤프를 협곡 자세 하나에 걸고 경로별 물체 id 로 |a| 를 갈라 합치면, 씬을 쪼개지도 발주하지도 않고 「땅 몫 대 건물 몫」이 나온다.",
+    "unlocks": "덱이 「이 판이 말할 수 없게 된 것」으로 적어 둔 두 줄(RESUME_0909 §3)의 첫째. 그리고 우리 씬에서 나온 「통째 ≒ 지면만」이 남의 씬에서도 서는지 — 지금은 우리 씬에서만 쪼개 봤다(envoutdoor01_ground 48 샤드 · envoutdoor01_bldg 12 샤드 대 남의 씬 0)."
+   },
+   {
+    "what": "지면 위에서 격자 위상 널을 볼 축이 없다 — 스크립트가 스스로 「아직 없다」고 적어 뒀다.",
+    "why_not_queue": "benchmark/elevation_sweep_md.py:508-517 이 `--grid-shift` 와 `--ground` 를 함께 주면 죽인다. 까닭도 그 자리에 적혀 있다 — 이동 δ 는 û 에만 수직이라(src/rcs_sbr.py:965 `e1, e2 = _grid_basis(u)`) 거울상 방향 û′ 에는 `δ·û′ = −2·δ_z·u_z ≠ 0` 이 남고, 지면 다리(rcs_sbr.py:1577 의 E_dg·E_gg)에만 위상이 붙어 「표본 자리만 옮긴다」는 널의 전제가 깨진다. 발주로는 못 푼다 — 없는 축이다.",
+    "how": "elevation_sweep_md.py:511 이 고칠 것까지 적어 뒀다: 「지면에 평행하고 시선의 수평 투영에 수직인 축(δ ∝ (−u_y, u_x, 0))을 따로 넣어야 한다」. 자리는 src/rcs_sbr.py:913-966 `grid_ref_shift(ref, shift, u, spacing)` 이다 — :965 가 `_grid_basis(u)`(:1008)에서 (e1, e2) 를 받는 그 줄에, 지면 법선을 함께 받는 갈래를 더하고, elevation_sweep_md.py:508-517 의 거부를 그 갈래에만 열어 준다. 이름표(tagsh, :486 부근 `parse_grid_shift`)도 새 갈래를 구분해야 한다.",
+    "unlocks": "우리 커널의 «격자가 답을 만드나» 널을 지면 위에서 볼 수 있게 된다. 지금 그 널은 빈 하늘에서만 유효하고, 실외(거울 지면) 팔의 격자 몫은 한 번도 널을 통과한 적이 없다."
+   }
+  ]
+ },
+ "n_proposals": 17,
+ "n_alive": 3,
+ "killed": [
+  {
+   "name": "묶음 1 — 거리 협곡의 «표본을 다시 뽑는» 널 (앙각 −60)",
+   "why": "■ 통과한 문부터 (부모가 여기 시간을 안 쓰도록)\n② 문지기 — --spp 는 일반 인자다(benchmark/elevation_sweep_md.py:1283-1284 부근 argparse). 같은 팔·같은 거리·같은 앙각의 협곡 줄이 4e9 로 이미 돌았으므로 --env sionna:simple_street_canyon 과 --spp 를 함께 막는 자리는 없다.\n③ 읽을 수 있나 — 짝이 될 빈 하늘 3.8e9·4.2e9 앙각 −60 이 각 2 샤드 재고에 있다(ls 로 확인). 읽는 법도 실재한다(benchmark/read_0918B_0909.py:42 stem · :86 CELLS · :56 measure).\n④ 상한 — 협곡 el−60 npaths 중앙 3,678 · 최대 3,827, 상한 2e6 의 0.18 %(outputs/read_0918A_0909.json:410,416-417). 안 붙는다.\n① 재고 — 협곡에 널은 0 건이다. 다만 발주서의 「재고 7,104 장 중"
+  },
+  {
+   "name": "묶음 2 — 로터 틈 축이 셋 더 있다 (방위 91.99°·180°)",
+   "why": "■ 판정 — 죽는다. 배관(문지기·이름·상한·비용)은 전부 통과하는데, 세 줄 중 한 줄은 사기 전에 이미 닫혀 있고, 살아 있는 반쪽은 GPU 샤드가 아니라 CPU 한 자세로 먼저 갈리는 일이며, 적어 둔 읽는 법은 자기모순이라 발표된 원장을 덮어쓴다.\n\n【먼저 — 통과한 관문 (부모가 여기서 시간을 안 쓰도록)】\n· 손잡이 있다: benchmark/elevation_sweep_md.py:1387 `--az-deg`, :370-371 에서 읽고 :870 `RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0)` 로 실제로 쓴다. az 값을 막는 SystemExit 은 없다.\n· 이름 안 부딪힌다: tagr :472 `f\"_az{_az_arg:g}\"` → `_az180`·`_az180.12`·`_az91.99`. `ls outputs/elev_sweep_shards | grep -E '_az(180|91.99)'` → 0 "
+  },
+  {
+   "name": "묶음 3 — 하나씩 빼기: 앙각 0 의 바닥을 세우는 정지 부품 (앙각 0 · 빈 하늘)",
+   "why": "죽는다. 게이트 ①(이미 답이 있다)과 ③(읽을 수 있나) 둘 다에서 죽는다. 문지기·상한·손잡이는 통과한다 — 줄이 틀린 게 아니라 물음이 이미 닫혀 있다(두 판 연속 90 %를 죽인 바로 그 자리다).\n\n■ 먼저 통과한 것 (부모가 여기서 시간 안 쓰게 적는다)\n· ② 문지기 — `--parts` 를 막는 SystemExit 는 없다. 0919 가 26 곳을 전수로 봤고(work/wf/queue_design_result.json:43 「SystemExit 26 곳을 전부 봤다 … --parts 와 --env 를 함께 막는 문지기는 없다」), 나도 benchmark/elevation_sweep_md.py:824-833 이 `-<그룹>` 을 drop 집합으로 읽는 것을 직접 봤다. `--inmem` 갈래(:806-810)에서도 같은 필터가 걸린다.\n· ⑥ 손잡이 — benchmark/elevation_sweep_md.py:1473 `--parts`. 꼬리표는 :759-760 이 `-"
+  },
+  {
+   "name": "「축 위 배수 2.35 는 팔마다 다르다」는 겹쳐 적힌 줄 수가 아니다 — 네 팔 다 2 줄이 겹친다",
+   "why": "게이트 ①에서 죽는다 — 이 물음의 답이 이미 세 곳에 적혀 있고, 그중 둘은 이 판이 「먼저 읽어라」고 지시받은 옛 설계판이다.\n\n① ⛔전제가 사실이 아니다. 「판독기가 줄 수를 한 번도 안 실었다」는 front_window_0906.py 하나에만 참이다. n_dup 을 자세마다 읽어 원장에 싣는 판독기가 이미 넷 있다 — /workspace/sionna/benchmark/front_repeat_0906.py:56·84(n_dup_hist), /workspace/sionna/benchmark/outdoor_dip_origin_0908.py:187·235-237, /workspace/sionna/benchmark/read_0918B_0909.py:33·79, 그리고 발표된 레포트 /workspace/sionna/src/build_report12_outdoor.py:877 이 「평소 세 줄 → 그 자세만 두 줄(n_dup 2→1)」로 이미 인쇄한다.\n\n② ⛔찾겠다는 수가 글자 그대로 "
+  },
+  {
+   "name": "회절이 더하는 몫이 60 m 와 90 m 사이에서 목록에서 사라진다",
+   "why": "죽는다. ①「이미 답이 있다」에서 정면으로 걸리고, 남은 값도 ⓐ사실 뒷받침·ⓑ과잉 결론에서 무너진다.\n\n■ 1. 어제 죽인 안의 재제출이다 — 숫자까지 같다\nwork/wf/queue_design_0920_result.json killed[22] 「묶음 4 — 회절 켠 팔의 축 위 겹침 배수가 거리를 타나 (4 줄 · 8 샤드)」가 **같은 24 샤드로 같은 사다리를 이미 냈고** 그 자리에서 죽었다. 그 항목의 already 필드에 그대로 적혀 있다:\n  「15 m 1.050580(+0.429 dB) · 30 m 1.109024(+0.899) · 45 m 1.132814(+1.083) · 60 m 1.141647(+1.151) · 90 m 1.000004(+0.000) · 120 m 1.000001(+0.000) … 회절·모서리 팔이 더 얹는 몫은 60 m 까지 오히려 커지다가 90 m 에서 여섯 자리까지 사라진다 ⇒ 갈림은 60~90 m 사이」\n이 발주안의 머리기사(+0.428/"
+  },
+  {
+   "name": "창 판독기의 축 위 칸이 광선 예산 셋을 한 칸에 합쳐 놓았다 (자세 32,768 · 샤드 8)",
+   "why": "■ 판정 — 사면 안 된다(발주 0 줄이지만 «코드 일» 로도 살리지 않는다). ①「이미 답이 있다」로 죽고, ③「읽는 법」이 쓴 대로 하면 오히려 원장이 더 거짓말을 한다.\n\n【관측은 전부 맞다 — 내가 다시 셌다】\n발주안이 적은 수는 글자 그대로 맞다. /workspace/sionna/benchmark/front_window_0906.py:54 group_files() 의 칸 열쇠는 (팔, 방위, 앙각)뿐이고 spp 가 없다. /workspace/sionna/outputs/front_window_0906.json by_arm.R0D0E0F1.azimuth_ladder_at_el0.\"0\" = n_poses 32768 · n_shards 8 · spp [1e8,1e9,4e9] 다. az0.05 20480 · az0.1 28672 · az0.15 24576 · az0.2 24576 도 그대로다(발주안이 안 적은 칸이 둘 더 있다 — el−30 16384 · el−60 32768, 둘 "
+  },
+  {
+   "name": "앙각 창은 위아래가 다르다 — 위쪽에서는 줄이 늘어도 세기가 안 는다",
+   "why": "죽는다 — ①「이미 답이 있다」에서 걸린다. 관측 자체는 참이나(내가 전부 재현했다), 물음은 이미 닫혀 있고 새 값은 «반드시 하게 되어 있는 재빌드»로 저절로 나온다.\n\n**① 이미 답이 있다 — 전용 원장이 이미 둘을 나란히 적고 있다.**\n`outputs/front_repeat_0906.json` 이 바로 「줄 수 대 세기 배수」를 짝지어 적는 원장이다. `n_dup_hist` 와 `ratio_median` 과 `corr_absE_vs_ratio` 가 한 칸에 함께 있다:\n· :12-25 `R0D0E0F1/az0` — n_dup_hist {0:1, 1:35, 2:8156} · ratio_median 2.9987 · corr 0.99999\n· :46-59 `R0D1E1F1/az0` — n_dup_hist {0:1, 1:36, 2:8155} · ratio_median **2.3516** · corr **0.194253**\n⇒ **줄 수가 사실상 같은데 세기 배수가 2.35 와 3"
+  },
+  {
+   "name": "묶음 1 — 목록에서 빠지는 한 줄이 중복제거 표에 걸려 있나 (8,192 자세 규모 · 발주 3 줄)",
+   "why": "첫 관문 ①「이미 답이 있나」에서 죽는다. 발주 0 줄로, 생산 설정 그대로, 재고 안에 이 물음의 A/B 가 이미 있다. 게다가 발주안이 내걸은 산출물 ⓒ「지면이 올린 몫 dB」는 이 사건 집합과 **수학적으로 무관**하다 — 내가 재서 확인했다.\n\n■ ① 재고에 이미 단일 손잡이 A/B 가 있다 (발주 0 줄, 생산 설정)\n  outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n512_envoutdoor01_**mp12000000**_S0_mfixbatteryi5_blperairframe_d2_el-30_{00,01}.npz\n  대 sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_{00,01}.npz\n  · 두 팔은 표 크기(2e6 → 1.2e7, 6 배)만 다르다. `--env-scat 0` 은 무효 손잡이다 "
+  },
+  {
+   "name": "묶음 3 — el 0 「몇 벌」 원장을 고친다: 둘째 정점 슬롯과 광선 사다리 (발주 0 · 판독기 두 곳)",
+   "why": "죽는다. 게이트 ①은 통과하지만 ②(문지기)·③(정말 코드로만 되나)에서 죽고, 세 관찰 중 머리기사가 될 ⓐ의 기전이 설치본 코드와 어긋난다.\n\n【통과한 것 — 부모가 여기서 시간 안 쓰도록】\n· V[0] 결함은 진짜다. benchmark/copies_id_0903.py:83 `vspread = float(np.max(np.ptp(V[0], axis=0)))` · :92 도 같은 `V[0]`, 그리고 :84 가 찍는 물체 id 도 `O[0]` 하나뿐이다(깊이 0 만). outputs/copies_id_0903.json 의 `vertex_spread_mm 0.0` 다섯 행은 전부 첫 슬롯 값이다.\n· 그 0.0 이 빈 슬롯을 본 것도 아니다 — 내가 재고 덤프로 직접 확인했다. /tmp/…/scratchpad/dump_base/pose4404_el-30.npz 에서 obj[1]==NO_OBJ(4294967295)인 1,455 경로의 vertices[1] 은 min=max=[0,0,0"
+  },
+  {
+   "name": "묶음 4 — 남의 씬을 물체 이름으로 가른다 (발주 0 · sc.edit 도 필요 없다)",
+   "why": "⛔죽는다. 관문 ①「이미 답이 있다」에서 죽고, 그다음 「사려는 축이 아무것도 안 바꾼다」에서 한 번 더 죽는다. 나는 원장을 믿지 않고 npz 를 직접 갈라 재현했다(가르개 /tmp/claude-0/-workspace/8ed65148-4553-4ebc-8477-9670ae39b001/scratchpad/vsplit.py · vtop.py, CPU·GPU 안 씀).\n\n■ 통과한 것부터 (부모가 여기서 시간을 안 쓰도록)\n· 「발주 0 · 코드 일」은 **맞다**. 덤프기는 손댈 데가 없다 — benchmark/probe_drop_0902.py:451-452 가 PROBE_DUMP/PROBE_DUMP_DIR 을 읽고, :455-509 의 _probe_dump 가 이미 물체 id→이름표(`oid`·`oname`, :485-489)·정점·상호작용을 적으며, :880-889 이 `--env sionna:<이름>` 을 build_scene_builtin(:133)으로 받고, :912-913 "
+  },
+  {
+   "name": "묶음 1 — 방위를 돌리면 무너짐이 꺼진다. 그 자리에 벽이 끼어든 것인가 (지면만 사다리 + 건물만 대조)",
+   "why": "■ 결론: 죽인다. ⓐ는 디스크에 이미 답이 있고, ⓑ는 살아 있으나 이 여섯 줄이 그것을 사지 못한다 — 값이 바뀌는 자리(방위 30~45°)에 한 점도 두지 않았다.\n\n【0】먼저 — 이것은 0919 killed ④의 재제출이다.\nwork/wf/queue_design_result.json:122-124 「④ 방위 — 평평한 지면의 되돌림은 방위를 안 타는데 낙차는 탄다」가 산 줄이 바로 `--env outdoor01_ground --az-deg 45` · `--az-deg 90`(el−30)이다. 이 안의 여섯 줄 중 그 둘이 글자 그대로 같다. 그때 적힌 ⚠(줄에 --shard/--nshards 가 없다)도 그대로 되풀이됐다 — elevation_sweep_md.py:1283-1284 기본값 shard=0·nshards=1, :425 `idx = np.arange(a.shard, n, a.nshards)` 라 8,192 자세를 한 조각으로 도는 `_00.npz` 한 장이 나고 m"
+  },
+  {
+   "name": "묶음 2 — 협곡을 부품으로 쪼갠다 (⛔발주가 아니라 코드 일이 먼저다)",
+   "why": "■ 판정: 죽는다. 물음 자체는 새롭다 — 그런데 **이 안은 「코드 일」이 아니라 값을 안 적은 발주다.** 그리고 같은 답을 **코드 0 줄·샤드 0 장**으로 먼저 조여 볼 길이 오늘 이미 열려 있다.\n\n【① 「이미 답이 있다」는 이 안을 못 죽인다 — 먼저 그것부터 인정한다】\n· 협곡 부품 팔은 재고 0 장이다. `ls outputs/elev_sweep_shards | grep envsionna` → 협곡 12 장(R0D0E0F1 여섯 앙각 · R0D1E1F1 el−30/−60)·뮌헨 4 장, 전부 통째다.\n· 옛 설계판 killed 44 개에 같은 안이 없다. work/wf/queue_design_result.json:77 「우리 씬의 부품 나눔을…」은 **우리 씬**이고 :67 「협곡에서 방위를 돌린다」는 방위 축이다. queue_design_0920_result.json:219-331 의 killed 23 개에도 협곡 부품 나눔은 없다.\n· 닻 두 개를 내가 샤드에서 직"
+  },
+  {
+   "name": "③ 그 창을 만드는 면 — 가린 면 하나와 뒤쪽 반구 (7 줄 · 14 샤드)",
+   "why": "■ 죽는 자리 — 발주안이 쓰는 «가장 넓은 보이는 정렬면» 규칙이 재고에서 이미 틀렸고, 옳은 규칙은 CPU 2 분으로 답을 다 낸다.\n\n【1】 옳은 시험은 «정렬면 넓이»가 아니라 «수선의 발»이다 (직접 계산, CUDA_VISIBLE_DEVICES=\"\" · 코어 4 개 묶음)\nTX=RX 가 한 점이므로(benchmark/elevation_sweep_md.py:870 `RP.place(..., baseline=0.0)`) 평면 삼각형의 되돌림 정반사점은 «레이다에서 그 평면에 내린 수선의 발»이다. 그러니 판정은 ⓐ 발이 삼각형 안에 있나 ⓑ 레이다→발 선분이 안 가려졌나 둘뿐이다. src/drones.py:1804 `pose_articulated` 로 matrice4e(31,766 삼각형)를 세우고 이 시험을 az 를 돌려 가며 전수로 돌렸다:\n  az 0 ~ 0.1126 → 살아남는 면 **camera 한 장**(camera_assembly=금속). az 0.1127 부터 *"
+  },
+  {
+   "name": "④ 협곡의 재표본 널 — 덱이 싣는 유일한 실외 자리에 «우연이면 얼마»가 없다 (2 줄 · 4 샤드)",
+   "why": "■ 판정: 사지 않는다. ①②③④⑥ 은 통과하는데 «죽는 조건» 이 자기 칸에서 계산 자체가 안 되고, ⑤ 비용이 발주서에 없다.\n\n── ⛔죽는 자리 1 — 죽는 조건이 원장 항목을 잘못 읽었고, 협곡에서는 아예 못 따진다 ──\n발주서: 「널 자카드가 우연 기댓값과 구별이 안 되면(우리 씬처럼 0.89 대 0.88)」.\n그 0.88 은 자카드가 아니다. benchmark/read_0918B_0909.py:145 `\"expected_if_unrelated\": round(na * nb / N, 2)` (같은 식이 read_0914_0908.py:211) — **두 목록이 무관할 때 겹칠 자세 개수**(8,192 중)다. 우리 씬 널은 82·88/8192 = 0.8809 «개» 를 기대하는데 실제로 **80 개**가 겹쳤다(read_0918B_0909.json: n_intersect 80, baseline_kept 80, lost 2, brand_new 8). 우연의 **91 배**다 —"
+  }
+ ],
+ "alive": [
+  {
+   "name": "묶음 2 — 사건 자세에서 빠지는 줄이 정말 «정반사 지면 한 줄» 하나인가 (발주 0 · 덤프기 그대로)",
+   "angle": "dump",
+   "question": "사건 자세 스무 개에서 빠지는 것이 언제나 «정반사 지면 한 줄» 하나인가, 아니면 자세마다 다른가. 그리고 통째 팔에서 빠지는 자세와 지면만 팔에서 빠지는 자세가 같은 줄을 잃나.",
+   "caveat": "⚠생산 설정(4e9)에서 자세당 약 11 분(CPU 2 스레드)이므로 스무 자세 × 두 팔 = 약 7.3 시간, 코어를 넷 쓰면 절반이다. ⛔GPU 큐가 도는 중이므로 CPU 로만, taskset 으로 코어를 묶어 돌린다(규약 17). ⚠덤프와 샤드는 0.5 % 안에서 맞고 비트동일은 아니다 — 자세 3043 통째 샤드 1.910158e−04 대 덤프 1.919774e−04.",
+   "lines": [
+    "⓪ 먼저 고칠 코드 셋 (이것 없이는 발주안대로 못 돈다) — benchmark/probe_drop_0902.py:130 뒤에 elevation_sweep_md.py:133-145 와 글자 그대로 같은 여섯 줄을 더한다: _O1 = ENV_SPECS['outdoor01'] · ENV_SPECS['outdoor01_ground'] = dict(dir=_O1['dir'], alt_m=_O1['alt_m'], parts=[p for p in _O1['parts'] if p[0]=='ground']) · ENV_SPECS['outdoor01_bldg'] = dict(dir=_O1['dir'], alt_m=_O1['alt_m'], parts=[p for p in _O1['parts'] if p[0]!='ground'])  ⛔alt_m·재질·색을 하나라도 바꾸면 지면 탓인지 설정 탓인지 다시 못 가린다",
+    "⓪-b ⭐이름 충돌을 막는다 — benchmark/probe_drop_0902.py:509 의 f'pose{pose}_el{el:+.0f}.npz' 를 f'pose{pose}_el{el:+.0f}_{env or \"free\"}_sw{sw_tag}.npz' 로 바꾼다. 지금 이름에는 팔 꼬리표가 없어 통째와 지면만을 같은 자세에서 뜨면 뒤엣것이 앞엣것을 조용히 덮어쓴다",
+    "⓪-c ⭐출처를 덤프에 박는다 — :506 의 d['meta'] 옆에 d['prov'] = np.array([env, sw, str(mi.variant()), socket.gethostname()]) 를 더한다. CPU 판(SIONNA2_ALLOW_CPU=1)으로 뜬 목록이 GPU 샤드의 목록으로 읽히는 것을 막는 유일한 장치다",
+    "① 지면만 팔 — cd /workspace/sionna && CUDA_VISIBLE_DEVICES=\"\" SIONNA2_ALLOW_CPU=1 PYTHONPATH=src:benchmark PROBE_DUMP=15,118,171,173,472,604,799,802,968,999,1034,1123,1135,3661,4054,4404,4765,5189,6874,7949,14,16,117,119,170,470,603,798,967,998 PROBE_DUMP_DIR=/workspace/sionna/outputs/pathdump_0921/ground nohup taskset -c 0-7 nice -n 19 /workspace/.venvs/py312/bin/python benchmark/probe_drop_0902.py --engine sionna --sw R0D0E0F1 --max-depth 2 --range-m 15 --spp 4000000000 --n-poses 8192 --els -60 --env outdoor01_ground --shard 0 --nshards 1 > /workspace/sionna/work/dump_ground_el-60.log 2>&1 &",
+    "② 통째 팔 — 같은 줄에서 --env outdoor01 · PROBE_DUMP_DIR=/workspace/sionna/outputs/pathdump_0921/whole · taskset -c 8-15 · 로그 이름만 바꾼다. ⛔두 팔의 PROBE_DUMP_DIR 를 절대 같게 두지 않는다(⓪-b 를 안 고쳤다면 이것이 유일한 방어다)",
+    "③ 표적 자세를 고쳤다 — 사건 20: 15·118·171·173·472·604·799·802·968·999·1034·1123·1135·3661·4054·4404·4765·5189·6874·7949 (지면만 팔에서 20/20, 통째 팔에서 19/20 이 사건). 대조 10: 14·16·117·119·170·470·603·798·967·998 (|E|/중앙 0.9993~1.0023). ⛔6559 를 뺐다 — 4e9 에서 |E|/중앙 = 0.9992 로 사건이 아니다(1e8 에서만 사건이다). 173 을 더했다 — 발주안 목록에서 빠져 있었다",
+    "④ 읽기 — 새 스크립트를 짓지 말고 benchmark/elephant_id_0903.py 의 load()·amp()·describe() 를 그대로 import 한다(설치본 InteractionType 에서 정반사·확산·굴절·회절을 읽는다). 발주안이 가리킨 scratchpad/hp/split.py 는 이 기계에 없다",
+    "⑤ 원장 — outputs/pathdump_read_0921.json 에 자세마다: 경로 수 · env_ground 닿는 줄 수 · 가장 센 줄의 (물체·삼각형·상호작용·τ·c·τ[m]·|a|) · 성한 이웃 자세와의 차집합 줄 · 덤프 |E| 대 샤드 |E| 비. ⛔샤드 대조 비가 0.99~1.01 밖으로 나간 자세는 그 자리에서 «못 읽음» 으로 적고 인용하지 않는다(옛 덤프 실측 0.5 % 가 기준선이다)",
+    "⑥ 죽는 조건에 한 줄 더 — 스무 자세 중 다섯 개 이상에서 덤프 |E| 가 샤드 |E| 를 0.99~1.01 로 못 되살리면 이 판을 접는다. CPU 로 다시 푼 것이 판이 아니라 기계를 바꾼 것이 되기 때문이다(2026-09-04 철회와 같은 사고)",
+    "⑦ 비용을 발주서에 적는다 — 형제 샤드 meta[5] = 3137.04 s / 4096 자세 = 0.766 s/자세(GPU 판). CPU 덤프는 자세당 ~11 분이라 30 자세 × 두 팔 = 60 풀이 ≈ 11 일꾼시간. 발주 줄은 0 이지만 공짜가 아니다",
+    "⑧ 인용 제한 — 빠진 줄의 c·τ 가 14.0192 m(레이다 지상고 20 − 15·sin60 = 7.0096 m 의 두 배)가 아닌 자세가 하나라도 있으면 «레이다 발밑 반사» 라는 말을 쓰지 않는다. 그리고 ⛔어느 경우에도 「솔버가 틀렸다」로 적지 않는다 — 말할 수 있는 것은 「그 자세에서 목록에 없는 줄이 무엇이었나」까지다"
+   ],
+   "nshards": 0,
+   "cost_min_per_shard": 0,
+   "reads_how": "PROBE_DUMP 에 자세 목록을 주고 통째·지면만 두 팔을 같은 자세에서 덤프한 뒤, 물체 이름 사슬(scratchpad/hp/split.py)로 갈라 원장 JSON 을 남긴다. 자세마다 적을 것: 경로 수 · env_ground 닿는 줄 수 · 가장 센 줄의 (물체·삼각형·상호작용·c·τ·|a|) · 두 팔의 차집합 줄. 표적 자세는 원장이 이미 좁혀 두었다(4e9 el−60: 15·118·171·472·604·799·802·968·999 …, 1e8 el−60: 604·999·1123·3661·4054·4404·4765·5189·6559·6874·7949). 성한 자세 열 개를 대조로 붙인다.",
+   "kill_condition": "스무 자세 중 하나라도 «두 줄 이상» 빠지거나 «확산 줄» 이 빠지면 「정반사 한 줄」로 안 적는다 — 그때는 「자세마다 다르다」로 적고 묶음 1 의 읽기를 그 사실 위에서 다시 쓴다. 그리고 빠진 줄의 c·τ 가 레이다 지상고의 두 배(14.0192 m)가 아닌 자세가 있으면 「레이다 발밑 반사」라는 말을 쓰지 않는다."
+  },
+  {
+   "name": "① 사지 말고 고쳐 읽어라 — 판독기 다섯 곳 (발주 0 줄)",
+   "angle": "stop",
+   "question": "재고 7,104 장 중 지금 «잘못 읽히거나 아예 안 열리는» 샤드가 몇 장이고, 고치면 어느 수가 바뀌나?",
+   "caveat": "⛔ⓑ 는 「시오나가 틀렸다」가 아니다. 우리가 고른 잣대(D = E_장면 − E_빈하늘)의 **분모**가 el−60 에서 표본이 모자란다는 관찰까지다. ⛔고친 뒤에도 「44.5 dB」를 인용하려면 어느 예산·어느 짝인지 반드시 함께 적는다.",
+   "lines": [],
+   "nshards": 0,
+   "cost_min_per_shard": 0,
+   "reads_how": "ⓐ~ⓕ 를 고치고 각 판독기를 다시 돌린다(전부 CPU 몇 초~몇 분). ⛔ⓐ 는 고친 뒤 outputs/read_0914_0908.json 의 lift_over_free_db 가 더는 «세 예산이 다 44.5» 로 평평하지 않다는 것을, ⓑ 는 새 칸(빈 하늘 다리의 예산 사다리와 ±5 % 산포)을 원장에 함께 적는다. ⓒ 는 CANON 두 곳(`_r15_` → `_r(?P<r>\\d+)_`, `az(?P<az>-?[0-9.]+)`)을 고치고 칸 열쇠에 거리를 넣은 뒤 ladder(:117)·edge(:135-142)를 abs 로 접지 말고 부호별로 돌린다. measure() 는 손대지 않는다.",
+   "kill_condition": "ⓐ 를 고쳤는데 사건 수가 바뀌면(11/68/82 가 아니면) 내가 쓴 재현이 틀린 것이니 멈추고 다시 잰다. ⓒ 를 고쳤는데 여섯 거리의 켜짐/꺼짐 경계가 mm 로 한 구간에 안 모이면 「가로 거리」로 못 적고 열린 물음으로 남긴다."
+  },
+  {
+   "name": "② 경로 목록 덤프 — 발주로는 영원히 안 나온다 (발주 0 줄 · 20 자세)",
+   "angle": "stop",
+   "question": "무너지는 자세에서 사라지는(또는 겹쳐 적히는) 그 한 줄은 무엇인가 — 지면 반사인가, 건물인가, 직접파인가?",
+   "caveat": "⛔이 자리를 읽어도 「시오나가 틀렸다」로 쓰지 않는다. 말할 수 있는 것은 「목록에 넣고 빼는 판단이 어느 양에 걸려 있나」까지다. ⛔probe_drop_0902.py:120-130 의 ENV_SPECS 가 옛 판이라 `outdoor01` 하나뿐이다 — 옮길 때 elevation_sweep_md.py:136-143 의 현행 목록을 함께 가져간다.",
+   "lines": [
+    "(발주 줄 0 개 — 코드·판독 일. 아래는 고친 작업 줄이다.)",
+    "코드 ① benchmark/elevation_sweep_md.py argparse(:1478 근처)에 `--dump-poses <자세번호 쉼표목록>` 과 `--dump-dir` 를 더한다. 자세 루프에서 그 목록에 없는 자세는 **솔버를 부르지 않고 건너뛴다**(자세 j 의 기하는 ph[i] 에만 걸리므로 :425 `idx = np.arange(a.shard, n, a.nshards)` 를 잘라도 물리가 안 바뀐다).",
+    "코드 ② :900-911 이 이미 만들어 놓고 버리는 (O, p.primitives, aa, tau) 를 그 자세에서만 곁다리 npz 로 적는다(~15 줄). 물체 id→이름표(`oid`·`oname`)를 함께 적는다 — benchmark/probe_drop_0902.py:494-499 의 그 여섯 줄을 그대로 옮긴다.",
+    "코드 ③ ⛔안전장치를 같이 옮긴다 — benchmark/probe_drop_0902.py:378-383 의 `np.savez_compressed` 를 SystemExit 로 바꿔 치는 장치. 덤프 모드에서 생산 샤드가 스무 자세만 든 채 덮이는 것을 막는다.",
+    "실행 ① 통째 팔 — CUDA_VISIBLE_DEVICES=\"\" SIONNA2_ALLOW_CPU=1 (또는 GPU 큐가 빈 뒤) python benchmark/elevation_sweep_md.py --env outdoor01 --range-m 15 --n-poses 8192 --sw R0D0E0F1 --max-depth 2 --spp 4e9 --els -60 --mesh-fix batteryi5 --blade perairframe --dump-poses 2753,3030,3043,4133,4276,4765,6018,6615,7575,8080,15,118,171,173,2754,3044,4132,6017 --dump-dir outputs/pathdump_0921",
+    "실행 ② 지면만 팔 — 위와 **글자 그대로 같고** `--env outdoor01_ground` 만 다르다. 두 팔의 설정이 하나라도 어긋나면 「지면 때문인지 설정이 달라서인지」를 다시 못 가린다.",
+    "⭐표적 목록을 발주안의 열 자세에서 **18 자세로 넓혔다.** 열 개(2753·3030·3043·4133·4276·4765·6018·6615·7575·8080)는 두 팔이 서로 갈리는 자리이고, 넷(15·118·171·173)은 두 팔이 **함께** 무너지는 78 자세의 표본, 넷(2754·3044·4132·6017)은 어느 팔에서도 안 무너지는 대조다. 앞의 열 개만 보면 78 자세짜리 다른 현상까지 「한 줄이 사라진다」로 덮어 말하게 된다.",
+    "읽는 법 ① 자세마다 물체 이름으로 갈라 |a| 를 합치고, **가장 센 한 줄**을 이름과 함께 적는다. 예측이 이미 서 있다 — 무너진 팔의 |E| 가 같은 자세 빈 하늘 값의 ±0.8 dB 안에 앉으므로(열 자세 −0.76~+0.62 dB), 성한 팔에는 |a| ≈ 1.9e−4 짜리 줄이 하나 있고 무너진 팔에는 없어야 한다.",
+    "읽는 법 ② ⛔「경로 수가 ±1 다」를 근거로 쓰지 마라. 되풀이 판 사이에도 자세의 1.8~2.0 % 가 ±1 로 흔들린다(두 팔 사이 2.70 % 와 크기가 같다). 가르는 것은 44 dB 낙차뿐이고, 그 열 자세에서는 되풀이 판 넷의 경로 수 흔들림이 정확히 0 이다.",
+    "읽는 법 ③ 함께 무너지는 넷(15·118·171·173)에서는 「한 줄이 빠졌나, 570 줄이 상쇄했나」를 따로 판정해 적는다. 원장 outputs/outdoor_dip_origin_0908.json 은 `vanishes_not_cancels: true` 로 적어 두었지만 경로 ~567 개가 그대로 남는다는 관측과 맞서 있다 — 그 둘을 가르는 것이 이 덤프의 두 번째 값어치다.",
+    "죽는 조건(그대로 둔다, 다만 판정 자리를 못 박는다): 열 자세에서 «사라진 줄»이 물체 이름으로 한 갈래에 안 모이고 지면·건물·직접파에 고루 흩어지면, 「무엇이 사라지나」를 이 방법으로 못 답한다고 적고 접는다.",
+    "⚠비용 — 형제 샤드 meta[5] 실측으로 지면만 0.766 초/자세 · 통째 1.99 초/자세 ⇒ 18 자세 × 두 팔 ≈ 50 초 솔버시간. 다만 4e9 광선을 CPU 로 푸는 것이 되는지는 **안 재 봤다** — GPU 큐가 비었을 때 돌리거나, CPU 로 갈 거면 한 자세로 먼저 시간을 재고 os.sched_setaffinity 로 코어를 묶는다."
+   ],
+   "nshards": 0,
+   "cost_min_per_shard": 0,
+   "reads_how": "elevation_sweep_md.py:870 `RP.place(sc, center=_ctr, …)` 뒤에 `--dump-poses` 게이트를 두고, :899-911 에서 이미 만든 (O, p.primitives, aa, tau) 를 그 자세에서만 곁다리 npz 로 쓴다(~15 줄). 읽기는 물체 이름으로 갈라 |a| 를 합치는 것뿐이다. ⛔probe_drop_0902.py 쪽 `PROBE_POSE` 의 savez 금지 장치도 함께 옮긴다.",
+   "kill_condition": "덤프한 스무 자세에서 «사라진 줄»이 물체 이름으로 한 갈래에 안 모이면(지면·건물·직접파에 고루 흩어지면) 「무엇이 사라지나」를 이 방법으로 못 답한다고 적고 접는다."
+  }
+ ],
+ "merged": {
+  "verdict": "「채우지 말고 읽어라」 — 큐가 비어 있지 않다. 세 가지를 직접 확인했다. ⓐ **jobs_0919 감독자가 지금도 돌고 있다**: runners/logs/sup_jobs_0919.log 끝줄이 「큐 115/180 · 워커 10」이고 첫줄이 「큐 9/180」, 그 사이가 9시간 32분(ps etime)이다 ⇒ 시간당 11.1 줄, **아직 안 띄운 65 줄**이 남아 있다. ⓑ **jobs_0920.txt(주석 뺀 110 줄)는 한 번도 안 띄웠다** — 09-09 03:05 에 쓰였는데 runners/logs 에 sup_jobs_0920* 이 없고 worker_supervisor 프로세스도 jobs_0919.txt 하나뿐이다. ⇒ 이미 발주됐고 아직 안 돈 줄이 **175 줄 ≈ 160 일꾼시간**으로, 이 판의 예산 60~120 일꾼시간보다 크다. ⓒ 설계 단계에서 **살아남은 묶음 셋이 전부 「줄 0 개」**다 — 발주로 살아남은 물음이 하나도 없다. 여기에 60~120 시간을 더 얹으면, 두 판을 90 % 죽인 그 자리(사 놓고 안 읽음·안 돎)를 세 번째로 되풀이하는 것이 된다. ⭐할 일은 새 발주가 아니라 ① 판독기 다섯 곳을 고쳐 이미 산 7,118 장을 다시 읽고 ② 경로 목록을 덤프하고 ③ jobs_0920 을 filter_jobs.sh 로 거른 뒤 띄우는 것이다.",
+  "queue_lines": [],
+  "groups": [
+   {
+    "name": "A. 경로 목록 덤프 — 무너지는 자세에서 무엇이 빠지나 (묶음 2 와 ② 를 합침)",
+    "question": "무너지는 자세에서 사라지는(또는 겹쳐 적히는) 그 줄은 무엇인가 — 지면 반사인가 건물인가 직접파인가. 그리고 통째 팔과 지면만 팔이 같은 줄을 잃나.",
+    "n_lines": 0,
+    "cost_hours": 11,
+    "reads_how": "발주로는 원리상 안 나온다 — benchmark/elevation_sweep_md.py:904-911 이 _cols(진폭 실·허부·지연·물체 id·삼각형 id)를 쌓아 np.unique 에 넘긴 그 자리에서 스칼라 둘(E_dedup·n_dup)로 줄이고, :952 savez_compressed 가 적는 것은 idx·E·npaths·nret·E_dedup·n_dup·n_trunc·meta·cfg 뿐이다(직접 읽음). 대신 덤프기는 이미 돈다 — benchmark/probe_drop_0902.py:451-452 가 PROBE_DUMP·PROBE_DUMP_DIR 를 읽고 :836 이 목록에 없는 자세를 건너뛰며 :912-913 이 _probe_dump 를 부르고 :455-510 이 물체·삼각형·상호작용·진폭·지연·bbox·|E| 를 npz 로 쓴다. 두 팔(outdoor01 · outdoor01_ground)을 같은 자세에서 뜬 뒤 물체 이름으로 갈라 |a| 를 합치고, 읽기는 benchmark/elephant_id_0903.py 의 load(:44)·amp(:53)·describe(:64) 를 그대로 import 한다(describe 가 설치본 InteractionType 을 읽는다). 원장은 outputs/pathdump_read_0921.json.",
+    "kill_condition": "스무 자세 중 다섯 개 이상에서 덤프 |E| 가 같은 자세 샤드 |E| 를 0.99~1.01 로 못 되살리면 접는다(CPU 로 다시 푼 것이 판이 아니라 기계를 바꾼 것이 된다). 그리고 «사라진 줄» 이 물체 이름으로 한 갈래에 안 모이고 지면·건물·직접파에 고루 흩어지면 「무엇이 사라지나」를 이 방법으로 못 답한다고 적고 접는다.",
+    "caveat": "⛔돌리기 전에 고칠 곳 셋: probe_drop_0902.py:120-130 ENV_SPECS 에 outdoor01_ground/_bldg 가 **없다**(직접 확인 — outdoor01 하나뿐이고 elevation_sweep_md.py:140·143 에만 있다) · :509 파일이름 f'pose{pose}_el{el:+.0f}.npz' 에 팔 꼬리표가 없어 두 팔을 같은 디렉터리에 뜨면 덮어쓴다 · :506 meta 옆에 출처(env·sw·variant·호스트)를 박는다. ⚠자세당 ~11 분은 앞 조사가 잰 값이고 내가 다시 재지 않았다. ⛔지금 워커 10 개가 CPU 를 쓰고 있으니 os.sched_setaffinity 로 코어를 묶어 얹는다."
+   },
+   {
+    "name": "B. 사지 말고 고쳐 읽어라 — 판독기 다섯 곳 (발주 0 줄)",
+    "question": "재고 7,118 장 중 지금 잘못 읽히거나 아예 안 열리는 샤드가 몇 장이고, 고치면 어느 수가 바뀌나?",
+    "n_lines": 0,
+    "cost_hours": 2,
+    "reads_how": "다섯 곳을 소스에서 직접 확인했다(전부 아직 안 고쳐져 있다): benchmark/read_0914_0908.py:139-144 가 1e8·1e9 실외 칸의 빈 하늘 짝에 그냥 stem()(4e9)을 넣는다 → outputs/read_0914_0908.json 의 lift_over_free_db 가 세 예산 다 44.49/44.51/44.51 로 평평하고 warn_ko 「짝이 어긋난다 — 사건 수를 인용하지 않는다」가 두 칸에 그대로 있다. benchmark/front_window_0906.py:47-51 CANON 에 _r15_ 가 박혀 있고 az 자리가 [0-9.]+ 라 음수 방위를 못 받는다. benchmark/builtin_scene_diagnosis_0908.py:31 이 el{el} 이라 el+0 을 못 찾는다(파일은 el+0_00.npz). benchmark/el0_copies_0903.py:90 `if d.size < 5: continue` 가 낙차 없는 팔을 기록 없이 버린다. benchmark/comb_snr.py:114-118 의 _ps 읽기가 :111 `if _key and _key != TJ.get('drone','matrice4e')` 안에 있어 :123-124 마지막 return 에는 _ps 항이 없다. 고친 뒤 각 판독기를 CPU 로 다시 돌린다.",
+    "kill_condition": "고친 판독기가 옛 원장의 수를 그대로 되살리면(=바뀌는 칸이 없으면) 그 항목은 «고칠 것 없음» 으로 적고 닫는다. 반대로 read_0914 를 고친 뒤에도 lift_over_free_db 세 칸이 44.5 로 평평하면, 「짝 어긋남이 원인」이라는 진단이 틀린 것이므로 원장에 그대로 적고 인용 금지 경고를 **유지**한다.",
+    "caveat": "⛔read_0914 를 고치면 머리기사 숫자가 움직인다(앞 조사 재계산: 44.51/44.51/44.49 → 57.50/52.34/44.49, 폭 13 dB). 이건 내가 다시 재지 않았다 — 고친 뒤 그 자리에서 재고 「흔들어 보고」 규약을 적용할 것."
+   },
+   {
+    "name": "C. 발주 대신 먼저 할 일 — 이미 발주된 175 줄을 거르고 띄운다",
+    "question": "jobs_0919 의 안 띄운 65 줄과 jobs_0920 의 110 줄 중, 그 사이에 다른 워커가 이미 채운 것을 빼면 몇 줄이 진짜 NEW 인가?",
+    "n_lines": 0,
+    "cost_hours": 1,
+    "reads_how": "runners/filter_jobs.sh 로 두 파일을 거른다(줄마다 --dry-run 으로 목표 샤드 이름을 뽑아 NEW/DONE/STALE 을 낸다): grep -vE '^\\s*(#|$)' runners/jobs_0920.txt | xargs -d'\\n' -P 4 -I{} runners/filter_jobs.sh {} > /tmp/chk_0920.out. NEW 만 남겨 worker_supervisor 로 띄운다. jobs_0919 는 감독자가 아직 살아 있으므로 **먼저 로그의 큐 N/전체 를 다시 읽는다**(지금 115/180).",
+    "kill_condition": "거른 뒤 NEW 가 0 줄이면 그 파일은 폐기하고 큐 이야기를 끝낸다.",
+    "caveat": "⛔0919 감독자가 도는 중에 0920 을 겹쳐 띄우면 워커가 20 개가 된다 — 지금 RAM 11.8 G·워커 10 이므로 띄우기 전에 호스트 부하를 먼저 본다(규약: 우리 것만 보지 않는다)."
+   }
+  ],
+  "code_work": [
+   {
+    "what": "⭐경로 목록 덤프 — 두 팔·서른 자세. 여러 판이 「여기서 막힌다」고 적은 그 자리",
+    "how": "① benchmark/probe_drop_0902.py:130(ENV_SPECS 닫는 괄호) 뒤에 elevation_sweep_md.py:139-143 과 글자 그대로 같은 여섯 줄을 더한다 — _O1 = ENV_SPECS['outdoor01'] · ENV_SPECS['outdoor01_ground'] = dict(dir=_O1['dir'], alt_m=_O1['alt_m'], parts=[p for p in _O1['parts'] if p[0]=='ground']) · ENV_SPECS['outdoor01_bldg'] = 같은 꼴로 !=. ⛔alt_m·재질·색을 하나라도 바꾸면 지면 탓인지 설정 탓인지 다시 못 가린다. ② :509 의 f'pose{pose}_el{el:+.0f}.npz' 를 f'pose{pose}_el{el:+.0f}_{env or \"free\"}.npz' 로 바꾼다 — 지금 이름에 팔 꼬리표가 없어 통째와 지면만을 같은 곳에 뜨면 뒤엣것이 앞엣것을 조용히 덮는다. ③ :506 d['meta'] 옆에 d['prov'] = np.array([env, sw, str(mi.variant()), socket.gethostname()]) 를 더한다(CPU 판 목록이 GPU 샤드 목록으로 읽히는 것을 막는 유일한 장치). ④ 두 팔을 **다른 PROBE_DUMP_DIR** 로 돌린다: CUDA_VISIBLE_DEVICES=\"\" SIONNA2_ALLOW_CPU=1 PYTHONPATH=src:benchmark PROBE_DUMP=<자세들> PROBE_DUMP_DIR=outputs/pathdump_0921/{ground,whole} taskset -c … python benchmark/probe_drop_0902.py --engine sionna --sw R0D0E0F1 --max-depth 2 --range-m 15 --spp 4000000000 --n-poses 8192 --els -60 --env outdoor01_ground|outdoor01 --shard 0 --nshards 1. 게이트는 이미 있다(:836 이 목록 밖 자세를 건너뛰고 :912-913 이 부르고 :914 가 마지막 자세 뒤 빠져나온다). ⑤ 읽기는 새 스크립트를 짓지 말고 benchmark/elephant_id_0903.py 의 load(:44)·amp(:53)·describe(:64) 를 import 한다. ⑥ 원장 outputs/pathdump_read_0921.json 에 자세마다: 경로 수 · ground 닿는 줄 수 · 가장 센 줄의 (물체·삼각형·상호작용·τ·cτ[m]·|a|) · 성한 이웃과의 차집합 줄 · 덤프 |E| 대 샤드 |E| 비.",
+    "unlocks": "outputs/scene_compare_0908.json _meta.open_hypothesis_ko 가 열어 둔 물음(「가르려면 경로 목록을 덤프해야 한다 — 이 원장은 거기까지 안 간다」)과, outputs/outdoor_dip_origin_0908.json 의 vanishes_not_cancels=true 가 「사건 자세에서도 지면 경로 ~567 개가 그대로 돌아온다」는 관측과 맞서 있는 자리. 「한 줄이 빠졌나, 570 줄이 상쇄했나」를 자세마다 이름으로 판정한다.",
+    "effort": "코드 세 곳(≈10 줄) + CPU 덤프 ≈11 일꾼시간(자세당 ~11 분은 앞 조사 값, 내가 다시 재지 않음)"
+   },
+   {
+    "what": "read_0914_0908.py 의 짝 어긋남 — 1e8·1e9 실외 칸이 4e9 빈 하늘에 붙어 있다",
+    "how": "benchmark/read_0914_0908.py:139-144 의 두 줄에서 빈 하늘 자리 stem() 을 stem(spp=100_000_000) · stem(spp=1_000_000_000) 로 바꾸고, 같은 자리의 warn_ko 「짝이 어긋난다 — 사건 수를 인용하지 않는다」 두 줄을 뗀다. 짝 샤드는 디스크에 이미 있다(sionna_p100000000_* 14 장 · sionna_p1000000000_* 80 장). 고친 뒤 다시 돌리고, lift_over_free_db 가 더는 세 예산 다 44.5 로 평평하지 않다는 것을 원장에 함께 적는다.",
+    "unlocks": "지금 outputs/read_0914_0908.json 에 44.49/44.51/44.51 로 평평하게 적힌 「지면이 올린 몫」이 광선 예산에 따라 갈리는지 여부. 평평함이 물리인지 잣대 결함인지를 가른다 — 덱의 실외 절이 이 수 위에 서 있다.",
+    "effort": "두 곳 · CPU 몇 초"
+   },
+   {
+    "what": "⛔문지기 구멍 — --parts 를 --engine ours 에 주면 조용히 무시되고 이름이 기본 팔과 똑같이 난다",
+    "how": "benchmark/elevation_sweep_md.py 의 우리 커널 갈래(555-700 행)에 'parts' 가 **한 번도 안 나온다**(grep 0 건). 꼬리표도 없다 — tagd(:639-640)는 _ptd·tagr·_div·tagsh 뿐이라 --engine ours --parts body 는 통째 계산을 해서 기본 팔과 **같은 파일 이름**으로 떨어진다. 도움말(:1473-1476)만 「Sionna 가지 전용」이라 적을 뿐 SystemExit 가 없다. 고칠 자리는 :477 의 tagth 문지기 바로 옆이고 문구 규약도 그 줄이 이미 보여 준다: if getattr(a,'parts','') and a.engine != 'sionna': raise SystemExit('⛔ --parts 는 PathSolver 팔 전용이다 … 우리 커널 쪽 대응물은 ours_free 엔진(:1476)').",
+    "unlocks": "이 저장소가 :477-482(두께)·:488-490(격자)에서 막으려던 병 — 「이름만 같고 내용이 다른 샤드가 생겨 원장이 거짓말을 한다」 — 를 parts 축에서도 막는다. ⭐언젠가 부품 팔을 사기로 하면 **그 전에** 고쳐야 하는 한 줄이다.",
+    "effort": "한 줄"
+   },
+   {
+    "what": "front_window_0906.py 의 이름 규칙이 320 샤드를 조용히 버린다 — 거리 다섯 개와 음의 방위 전부",
+    "how": "benchmark/front_window_0906.py:47-51 CANON 두 곳: r'_r15_' → r'_r(?P<r>\\d+)_' , r'az(?P<az>[0-9.]+)' → r'az(?P<az>-?[0-9.]+)'. 그 다음 칸 열쇠(group_files :53-70)에 거리를 넣고, 사다리·경계 계산을 abs 로 접지 말고 부호별로 갈라 돌린다(지금은 +0.15 와 −0.15 가 한 사다리에 섞인다). 재고에 음수 방위 샤드가 여섯 장 있다(az −0.15·−0.13·−0.12·−0.11·−0.1·−0.05).",
+    "unlocks": "덱 열린 물음 ③ 「창의 폭은 각도인가 가로 어긋남인가」를 새 샤드 0 개로 닫는 길. 그리고 좌우 거울대칭(az→−az)이 널 시험으로 서는지.",
+    "effort": "CANON 두 곳 + 묶기 한 곳 · CPU 몇 분"
+   },
+   {
+    "what": "el+0 복사본 원장이 «생존자만» 담는다 — 낙차 없는 팔이 기록 없이 빠진다",
+    "how": "benchmark/el0_copies_0903.py:90 `if d.size < 5: continue` 를, rows 에 «제외됨 + 까닭(n_drop · r 의 최소·최대)» 한 줄을 남기고 넘어가도록 고친 뒤 다시 돌린다. ⭐내가 같은 계산을 직접 돌려 확인했다(el+0 · 4e9 · d1 · r15 · n8192, CPU 2 코어): 통째 med=6.8957e-04, 0.9×중앙 밑 **58/8192**, min/med 0.6666 — 프롭만 med=8.2429e-08, **3331/8192**, min/med 0.0167 — 프롭 없는 팔 med=6.8951e-04, **0/8192**, min/med=max/med=**1.0000**(축퇴).",
+    "unlocks": "「낙차는 통째로 로터 위상이 만든다 — 정지 부품은 바닥을 올려 그것을 덮을 뿐」을 재고만으로 세운다. 덤으로 통째 중앙값과 프롭 없는 팔 중앙값이 6.8957e-04 대 6.8951e-04 로 네 자리까지 같다는 것 — 즉 바닥은 정지 부품이 통째로 정한다 — 이 원장에 남는다.",
+    "effort": "한 곳 · CPU 몇 초"
+   },
+   {
+    "what": "기본 씬 진단기가 앙각 0 에서 못 돈다 — 한 글자 이름 규약 어긋남",
+    "how": "benchmark/builtin_scene_diagnosis_0908.py:31 의 f'…_d2_el{el}_*.npz' 를 el{el:+g} 로 바꾼다(실제 파일은 el+0_00.npz — elevation_sweep_md.py:764 가 el{el:+g} 로 짓는다). :24 의 ELS=(-30,-60) 에 0 과 −75 를 더한다.",
+    "unlocks": "el+0 과 −75 의 envoutdoor01 통째 샤드가 이미 재고에 있으므로, 세 씬 대조가 두 앙각 넓어진다. 발주 0 줄.",
+    "effort": "한 글자 + 한 줄"
+   },
+   {
+    "what": "comb_snr 이 프롭 배율을 대역에 안 넣는다 — 기본 기체 갈래에서만",
+    "how": "benchmark/comb_snr.py 의 _ps 읽기(:114-118)가 :111 `if _key and _key != TJ.get('drone','matrice4e')` **안에** 있어, 기체 꼬리표가 없는 팔은 :123-124 의 마지막 return 으로 가고 거기에는 _ps 항이 없다. 그 return 에 _m = re.search(r'_ps([0-9.]+)', arm or '') 를 읽어 곱하고 없으면 1.0 을 쓴다(그래야 꼬리표 없는 matrice4e 수가 한 비트도 안 바뀐다). 정본 식은 elevation_sweep_md.py 의 f_tip_at 이다 — f_tip 은 팁속도라 프롭 지름에만 비례한다.",
+    "unlocks": "_ps 꼬리표가 붙은 샤드들의 빗살 SNR 칸 전부. RESUME_0909 §1④ 가 이미 적어 둔 불일치(_ps0.6: 636.033 대 381.874 · _ps1.5_fs1.5: 636.033 대 954.686)를 없앤다. ⛔안 고치고 읽은 수는 인용 금지라고 그 문서가 못 박아 두었다.",
+    "effort": "두 줄"
+   },
+   {
+    "what": "«통째»와 «지면만»이 같다는 것은 중앙값 이야기다 — 자세별로 빼는 판독기가 없다",
+    "how": "두 stem 을 idx 로 이어 붙이고 |E_통째 − E_지면만| 을 **«지면만 |E| 중앙값» 이라는 고정 분모**로 나누는 짧은 스크립트(⛔자세별 |E| 를 분모로 쓰면 무너지는 자세가 가짜 꼬리를 만든다). 샤드는 앙각 −15·−30·−45·−60 에 다 있다(4e9·r15·R0D0E0F1·d2 — 지면만 48 장·건물만 12 장을 직접 셌다). outputs/outdoor_dip_origin_0908.json 은 낙차 개수·레벨·경로 상한만 적고 자세별 ΔE 를 안 적는다.",
+    "unlocks": "기억 항목 「통째와 지면만이 1.8e−16 로 같다」가 어느 통계의 이야기인지. 꼬리가 남으면 「건물이 합에 안 들어온다」를 앙각별 백분율로 다시 적어야 한다.",
+    "effort": "스크립트 하나 · CPU 몇 분"
+   },
+   {
+    "what": "기억 항목 고치기 — 「건물 넷·기둥 둘이 왜 합에 안 들어오나, 왜인지 모른다」에 잰 값을 붙인다",
+    "how": "assets/meshes/outdoor01/*.obj 정점을 직접 읽어 쟀다(내가 CPU 로): ground x·y[−60,+60] z=0 · bldg_a x[−33,−19] y[8.50,19.50] z[0,15] · bldg_b x[18,30] y[14,26] z[0,24] · bldg_c x[−25,−15] y[−32,−16] z[0,9] · bldg_d x[22,38] y[−21,−11] z[0,18] · pole_a x[−9.18,−8.82] y[−7.17,−6.83] z[0,7] · pole_b x[10.82,11.18] y[5.83,6.17] z[0,7]. ENV_SPECS 는 alt_m=20 만큼 내리므로 드론 기준 지면은 z=−20 이다. ⇒ y=0 평면을 지나는 것은 **ground 하나뿐**이고, 드론(원점)과 레이다(el−60·r15 이면 수평 7.5 m·지면 위 7.01 m)는 반경 8.5 m 안의 빈 통 안에 있다. 기억을 이 잰 값으로 갈아 끼운다.",
+    "unlocks": "⛔단 여기서 멈춘다 — 이 기하가 **깊이 2 의 레이다→벽→드론→레이다 갈래가 왜 정확히 0 인지까지** 닫는다고 나는 확인하지 못했다(벽은 15 m 밖에 서 있지만 거울상 경로가 원리적으로 불가능하지는 않다). 그 자리는 위 ① 경로 덤프가 답한다. 기억에는 「잰 것: 기하 · 안 잰 것: 왜 0 인가」로 갈라 적는다.",
+    "effort": "기억 한 항목 · 잰 값은 이미 있다"
+   },
+   {
+    "what": "n_trunc 열쇠가 없는 샤드를 읽기로 메운다 — 다시 굽지 않는다",
+    "how": "재고 7,118 장의 열쇠를 전수로 셌다(zipfile 로 직접): npaths **5,352 장** · nret 1,143 · n_dup 902 · n_trunc **383**. benchmark/elevation_sweep_md.py:1066-1072 는 n_trunc 가 있으면 세고, 없으면 `elif 'nret' in z and cap_seen:` 로 가는데 **cap_seen 이 먼저 잡혀야만** 도는 갈래라 그 칸에 새 세대 샤드가 하나도 없으면 조용히 건너뛴다. 그 갈래를 상한 기본값(report15_probe.py 의 SIONNA2_MAX_PATHS)으로 열고, nret 이 없으면 npaths 로 떨어지는 한 줄을 더 둔다.",
+    "unlocks": "「n_trunc 가 없어 못 답한다」를 발주 근거로 쓰지 못하게 만든다 — npaths 라도 있는 5,352 장에서 잘림 판정이 선다. 정말 모르는 것은 npaths 조차 없는 **1,766 장**뿐이라고 수로 적을 수 있다.",
+    "effort": "두어 줄 · CPU 몇 분"
+   },
+   {
+    "what": "«왜 같은 줄이 N 벌 적히나» — 판단을 내리는 코드는 설치본 안에 있고 이 저장소는 아직 그 자리를 안 읽었다",
+    "how": "읽을 자리: /workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/path_solvers/sb_candidate_generator.py. 직접 확인한 세 줄 — :391 `diffuse = int_type == InteractionType.DIFFUSE` · :464 `valid = los_visible & diffuse & target_incident_side` · :501 `store = active & (valid | new_specular)`. 곧 정반사 사슬은 valid 로는 저장되지 않고 new_specular(해시 중복 제거) 갈래로만 들어간다. 그 해시가 무엇으로 만들어지고 언제 «새 경로» 로 셈해지는지를 읽어 문서로 남긴다.",
+    "unlocks": "docs/DEEP_DROP_0902.md 가 「남은 것은 솔버 안쪽이다 — 여기서 더 나가지 않는다」로 닫아 둔 자리. 덱 4~7 쪽이 서 있는 «되풀이되는 도착» 이 무엇의 성질인지. ⛔이 자리를 읽어도 「시오나가 틀렸다」로 쓰지 않는다 — 말할 수 있는 것은 「목록에 넣고 빼는 판단이 어느 양에 걸려 있나」까지다.",
+    "effort": "읽기 반나절 · 발주 0"
+   }
+  ],
+  "total_hours": 14,
+  "dropped": "■ 발주 후보 여섯 축을 전부 이번 판에서 뺐다 — 까닭은 「값이 없다」가 아니라 「지금 큐에 이미 175 줄이 밀려 있다」다.\n· 방위 90~180°(뒤쪽 반구): 재고 0 건이 맞다(내가 셌다 — az 눈금 최대 90, 90 초과 0 건, 음수는 −0.15~−0.05 여섯 장). 기체가 앞뒤 대칭이 아니라는 것도 소스에 있다. ⭐진짜 새 축이므로 **다음 판의 1 번 후보**로 남긴다. 다만 지금 사면 0919 의 안 띄운 65 줄 뒤에 줄을 서게 된다.\n· --parts 13 그룹 중 11 개: 재고는 _partsprop 32 · _partsnoprop 4 뿐이 맞다. ⛔그런데 위 code_work 3 번(문지기 구멍)을 고치기 **전에는 발주하면 안 된다** — --engine ours 에 --parts 를 주면 기본 팔과 같은 이름으로 떨어진다. 그리고 내가 잰 el+0 수(통째 med 6.8957e-04 대 프롭 없는 팔 6.8951e-04, 네 자리 일치)를 보면 「정지 부품이 바닥을 정한다」는 이미 재고로 서고, 남는 것은 «어느 정지 부품인가» 하나다 — 그 근사 답은 깊이 1 경로 덤프에서 물체 id 로 나온다. ⇒ 덤프를 먼저 하고 남는 물음만 사는 것이 싸다.\n· 부품 가른 실외 앙각 0 칸(지면만·건물만 각 2 샤드): 0 건 확인. 형제 샤드 meta[5] 로 값을 쟀다 — 지면만 el−60 이 54.7·60.0 분, 건물만 el−60 이 66.4·71.5 분 ⇒ 네 장에 ≈4.2 일꾼시간. **가장 싼 새 칸**이라, 0920 을 띄울 때 꼬리에 붙일 만하다. 이번 판에 발주로 내지 않는 까닭은 오직 «큐가 안 비었다» 때문이다.\n· 앙각 −60 빈 하늘 두 장 다시 굽기(--overwrite): 옛 세대가 맞다(직접 열어 열쇠 ['E','cfg','idx','meta','npaths'] 확인). ⚠그런데 짝인 지면만 el−60 은 8,192 자세 **전부 n_dup=0** 이었다(내가 쟀다) ⇒ 빈 하늘도 0 일 공산이 커서 44.49 dB 가 흔들릴 가능성이 낮다. 값어치가 낮아 뺀다.\n· 남의 씬 널(±5 % 광선) · 남의 씬 × 기체: 재고 0 건 확인(p3800000000 4 장 · p4200000000 4 장이 전부 우리 씬, envsionna 24 장 중 기체 꼬리표 0 장). 값어치는 있으나 jobs_0920.txt 가 이미 협곡 프롭 배율 줄을 110 줄 들고 **안 띄워진 채** 있다 — 그것부터 돌리고 나서 볼 축이다.\n■ 설계 단계에서 죽은 44 안(work/wf/queue_design_result.json 21 · queue_design_0920_result.json 23)은 다시 올리지 않았다. 살아남은 세 묶음 중 두 개(«묶음 2 dump» 와 «② 경로 목록 덤프»)는 같은 물음을 두 기계로 푸는 것이라 하나로 합쳤다 — 덤프기가 이미 도는 probe_drop_0902.py 쪽을 본길로 잡고, elevation_sweep_md.py 로 옮기는 ~15 줄 안은 그것이 샤드 |E| 를 못 되살릴 때의 예비로 남긴다.\n■ 규약대로 뺀 것: 뮌헨(드론 자리 손잡이가 argparse 에 없다) · 프로펠러 단독 · F0 계열 · 지면 거칠기(경로 상한)."
+ }
+}

@@ -12,7 +12,7 @@
    한 번만 캐시하고 오프셋만 더해 재해(再解)한다 — 근사 아님, 항등이다.
 2. **공통모드(common-mode)** 오차: 세 밴드에 같은 Δ. A3 가 "순위에서 상쇄된다"고 한 것.
 3. **차분(differential) 오차**: 기울기 오차 s [dB/GHz] → Δσ_band = s·(f_band − f̄).
-   이게 상쇄되지 **않는** 종류다. 현실적 최악치는 우리 원(raw) PO 기울기와 측정
+   이게 상쇄되지 **않는** 종류다. 선언한 민감도 범위는 우리 원(raw) PO 기울기와 측정
    기울기의 차 (1.699−0.210)×3.367 GHz ≈ 5.0 dB.
 4. **순위 뒤집힘 문턱**: 밴드쌍마다 "σ 몇 dB 앞서는가"(lead)를 실제 재해로 이분법
    탐색해서 구하고, 그걸 기울기 오차 문턱으로 환산한다.
@@ -22,7 +22,7 @@
 
 정직성 규약
 -----------
-순위가 현실적 오차 범위 안에서 뒤집히면 그대로 적는다. 완화하지 않는다.
+순위가 선언한 민감도 범위 안에서 뒤집히면 그대로 적는다. 완화하지 않는다.
 
 산출: outputs/sigma_sensitivity.json + outputs/figures/sigma_sens_f*.png
 실행: cd <repo> && PYTHONPATH=src:benchmark python benchmark/sigma_sensitivity.py
@@ -740,11 +740,12 @@ def make_figures(out):
                      color=("#B03A2E" if D["flips_inside_realistic_envelope"] else INK))
         ax.set_xlabel("Differential $\\sigma$ error across band span [dB]")
         if k == 0:
-            ax.set_ylabel("Detection range $R_{90}$ [km]")
+            ax.set_ylabel("Model reference range $R_{90}$ [km]")
         ax.set_xlim(x.min(), x.max())
-    axs[0].legend(loc="lower left", fontsize=7.5)
+    handles, labels = axs[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=len(labels), fontsize=8, bbox_to_anchor=(0.5, -0.04))
     fig.suptitle("Waveform ranking vs a differential (slope) RCS error — "
-                 f"shaded band = realistic envelope $\\pm${realistic:.1f} dB; "
+                 f"shaded band = declared scenario $\\pm${realistic:.1f} dB; "
                  "markers = ranking-flip points", fontsize=10.5, y=1.03)
     fig.tight_layout()
     p1 = os.path.join(FIGDIR, "sigma_sens_f1_differential.png")
@@ -763,7 +764,7 @@ def make_figures(out):
     for m in MODES:
         ax.plot([], [], color=COLOR[m], label=LABEL[m])
     ax.set_xlabel("Common-mode $\\sigma$ error [dB]")
-    ax.set_ylabel("Detection range $R_{90}$ [km]")
+    ax.set_ylabel("Model reference range $R_{90}$ [km]")
     ax.set_title("All 5 airframes: curves translate, never cross", fontsize=9.5)
     ax.legend(loc="upper left", fontsize=7.5)
 
@@ -804,7 +805,7 @@ def make_figures(out):
     ax.set_yticklabels(labels, fontsize=7.2)
     ax.invert_yaxis()
     ax.axvline(realistic, color="#B03A2E", lw=1.8, ls="--")
-    ax.annotate(f"realistic differential\nerror  {realistic:.1f} dB",
+    ax.annotate(f"assumed differential\nerror  {realistic:.1f} dB",
                 (realistic, len(labels) - 0.5), xytext=(6, 0),
                 textcoords="offset points", color="#B03A2E", fontsize=8, va="bottom")
     for yi, v in zip(y, vals):
@@ -812,7 +813,7 @@ def make_figures(out):
                     va="center", fontsize=7, color=INK)
     ax.set_xlabel("Ranking-flip threshold: differential $\\sigma$ error across the band span [dB]")
     ax.set_title("How much slope error each band pair survives\n"
-                 "bars left of the red line flip inside the realistic error envelope",
+                 "bars left of the red line flip inside the declared error scenario",
                  fontsize=10)
     fig.tight_layout()
     p3 = os.path.join(FIGDIR, "sigma_sens_f3_flip_threshold.png")
@@ -859,7 +860,7 @@ def make_figures(out):
     ax.set_xticks(xs)
     ax.set_xticklabels(labs, fontsize=6.4)
     ax.set_ylabel("Contribution to band-pair gap [dB of SNR]")
-    ax.set_title("What actually separates the bands: RCS, not the waveform axes\n"
+    ax.set_title("Band-gap components in the declared model\n"
                  f"{out['gap_decomposition']['n_pairs_sigma_dominates']} of 15 pairs are "
                  "$\\sigma$-dominated ($|\\Delta\\sigma| > |\\Delta$axes$|$)", fontsize=10)
     ax.legend(fontsize=8, loc="upper right")
@@ -876,8 +877,7 @@ def make_figures(out):
     ax.barh(y - 0.19, sa, height=0.34, color="#D55E00", label="single aspect (current headline)")
     ax.barh(y + 0.19, aa, height=0.34, color="#0072B2", label="aspect-averaged $\\sigma$")
     ax.axvline(realistic, color="#B03A2E", lw=1.8, ls="--")
-    ax.annotate(f"realistic {realistic:.1f} dB", (realistic, -0.6), xytext=(5, 0),
-                textcoords="offset points", color="#B03A2E", fontsize=8)
+    ax.plot([], [], color="#B03A2E", ls="--", label=f"declared scenario {realistic:.1f} dB")
     for yi, (a, b) in enumerate(zip(sa, aa)):
         ax.annotate(f"{a:.1f}", (a, yi - 0.19), xytext=(4, 0), textcoords="offset points",
                     va="center", fontsize=7.5, color=INK)
@@ -891,12 +891,12 @@ def make_figures(out):
     na = out["ranking_consensus"]["aspect_avg_n_distinct"]
     co = "$\\to$".join({"L1": "LTE", "G1": "5G", "W1": "WiFi"}[m]
                        for m in out["aspect_averaged"]["consensus_order"])
-    ax.set_title("Aspect-averaging buys consensus, NOT robustness\n"
+    ax.set_title("Model rankings using mean RCS and flip thresholds\n"
                  f"orders across the 5 airframes: {ns} distinct at one aspect "
                  f"$\\to$ {na} ({co}) aspect-averaged;\n"
-                 "yet every flip threshold still sits inside the realistic envelope",
+                 "flip thresholds are compared with the declared scenario",
                  fontsize=9.5)
-    ax.legend(fontsize=8, loc="lower right")
+    ax.legend(fontsize=8, loc="upper left", bbox_to_anchor=(1.01, 1))
     fig.tight_layout()
     p6 = os.path.join(FIGDIR, "sigma_sens_f6_aspect_averaged.png")
     fig.savefig(p6, bbox_inches="tight", facecolor="white")
@@ -922,14 +922,13 @@ def make_figures(out):
     ax.barh(y + 0.19, win, height=0.34, color="#0072B2",
             label='winner-only claim ("LTE is best")')
     ax.axvline(realistic, color=INK, lw=1.8, ls="--")
-    ax.annotate(f"realistic\nerror {realistic:.1f} dB", (realistic, len(names) - 0.35),
-                xytext=(6, 0), textcoords="offset points", fontsize=8, color=INK, va="center")
+    ax.plot([], [], color=INK, ls="--", label=f"declared scenario {realistic:.1f} dB")
     for yi, n, fv, wv in zip(y, names, full, win):
-        ax.annotate(f"{fv:.2f}  flips", (fv, yi - 0.19), xytext=(4, 0),
+        ax.annotate(f"{fv:.2f}", (fv, yi - 0.19), xytext=(4, 0),
                     textcoords="offset points", va="center", fontsize=7.4, color=INK)
         wc = CF[n]["winner_claim"]
         lbl = "n/a — no unanimous winner" if not wc["unanimous"] else (
-            f"{wv:.2f}  {'STANDS' if wc['survives_realistic'] else 'flips'}")
+            f"{wv:.2f}")
         ax.annotate(lbl, (wv, yi + 0.19), xytext=(4, 0), textcoords="offset points",
                     va="center", fontsize=7.4,
                     color=("#1f8a4c" if wc["survives_realistic"] else INK))
@@ -938,8 +937,8 @@ def make_figures(out):
     ax.invert_yaxis()
     ax.set_xlim(0, max(max(full + win) * 1.75, realistic * 1.6))
     ax.set_xlabel("Worst-case flip threshold over 5 airframes [dB]")
-    ax.set_title("No configuration supports a 3-way ranking;\n"
-                 "the corrected ones support \"LTE is best\"", fontsize=10)
+    ax.set_title("Model flip thresholds by configuration;\n"
+                 "full ranking and winner-only comparison", fontsize=10)
     ax.legend(fontsize=7.6, loc="upper right")
 
     ax = axs[1]
@@ -952,8 +951,7 @@ def make_figures(out):
         ax.bar(xs + (i - 1) * (xw + 0.02), vals, width=xw,
                color=["#D55E00", "#0072B2", "#009E73"][i], label=nice[n].replace("\n", " "))
     ax.axhline(realistic, color=INK, lw=1.6, ls="--")
-    ax.annotate(f"realistic {realistic:.1f} dB", (-0.45, realistic),
-                xytext=(0, 4), textcoords="offset points", ha="left", fontsize=8, color=INK)
+    ax.plot([], [], color=INK, ls="--", label=f"declared scenario {realistic:.1f} dB")
     ax.set_xticks(xs)
     ax.set_xticklabels([pnice[p] for p in pl], fontsize=9)
     ax.set_ylabel("Worst-case flip threshold [dB]")

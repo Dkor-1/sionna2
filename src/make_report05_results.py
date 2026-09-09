@@ -1161,7 +1161,7 @@ def build_blocks(D: dict):
                 + SS.num("differential.smallest_flip_span_db_overall", None, "{:.2f}")
                 + " ~ "
                 + SS.num("differential.largest_flip_span_db_overall", None, "{:.2f}", "dB")
-                + " (현실 봉투 — 실제로 있을 법한 오차 폭 "
+                + " (선언한 모델-앵커 차이 민감도 범위 "
                 + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB") + ")"],
                ["밴드별 독립 오차 2 dB (몬테카를로)",
                 "순위 보존 확률",
