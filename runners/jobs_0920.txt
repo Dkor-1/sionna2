@@ -1,0 +1,183 @@
+# ══ 0920 큐 — 2026-09-09 설계판 (0918 을 읽고 그 위에서) ══
+#  줄 55 × 샤드 2 = 110 샤드 · 어림 101.4 일꾼시간
+#  ⭐여섯 관점이 27 묶음을 냈고 반증에서 21 이 죽었다(거의 전부 「이미 샀다」).
+#  ⛔이 판은 원인을 정하지 않는다 — 손잡이와 원인은 일대일이 아니다.
+#  ⛔실기 계측 대조는 0 건이다.
+#
+#  ── 묶음과 그 묶음이 답하지 **않는** 것 ──
+#  ▸ 오늘 밤의 기준칸 — 두 다리가 같은 날 판인 것 (rep 6·7) (4 줄 · 어림 7.7 시간)
+#      물음  지금까지 모든 자카드가 서 있는 4e9 기준칸은 실외 다리만 새 판이고 빈 하늘 다리가 2026-08-24 판이다. 두 다리를 같은 날 판으로 갈아도 사건 수·레벨·자카드가 그대로인가. 그리고 같은 예산 두 판(rep6↔rep7) 사이 자카드가 정말 1.000 인가.
+#      죽는 조건  rep6 칸의 사건 수가 82±(널 폭) 밖으로 나가면 「기준선 82」는 옛 빈 하늘 다리의 성질이었다는 뜻이므로, 0914·0918B 의 자카드 표를 통째로 이 새 기준칸 위에서 다시 그린다. rep6↔rep7 자카드가 1.000 이 아니면 0919 의 「되풀이해도 한 자세도 안 옮긴다」를 철회하고 되풀이 널을 이 수로 다시 적는다.
+#      ⛔안 답함  ⛔이 묶음은 «왜 사건이 나는가» 에 한 글자도 답하지 않는다. 앙각 −60 · 땅만 · 팔 R0D0E0F1 한 칸의 기준선일 뿐이고, 다른 앙각·협곡·우리 씬 통째로 옮겨 쓸 수 없다.
+#      읽는 법  benchmark/read_0918B_0909.py 의 CELLS(:86)에 stem(rep=6)·stem(rep=7) 짝을 더한다 — stem(:42)이 이미 rep 을 받는다. 사건 셈은 measure(:56, DEV=0.5 는 :21), 자카드는 benchmark/read_0914_0908.py:197-215. 기존 기준칸(사건 82 · 1.00 % · 지면이 올린 몫 44.49 dB, outputs/read_0914_0908.json)과 나란히 적는다.
+#  ▸ 널의 폭 — 0.9222 가 되풀이되나 (예산 두 판의 둘째 벌) (4 줄 · 어림 7.7 시간)
+#      물음  0919 의 죽는 조건을 걸리게 한 수 «3.8e9 ↔ 4.2e9 자카드 0.9222» 는 한 쌍에서 나온 한 점이다. 같은 두 예산을 한 번 더 뽑으면 다시 0.92 근처인가, 아니면 그 수 자체가 흔들리나.
+#      죽는 조건  둘째 벌의 3.8e9↔4.2e9 자카드가 첫 벌의 0.9222 에서 0.03 넘게 떨어져 있으면 «널 띠 0.889~0.922» 라는 말을 쓰지 않는다 — 그때는 널이 한 점짜리이므로 목요일 덱에서 자카드 수를 통째로 뺀다(runners/jobs_0919.txt:10 의 규약 그대로). 두 벌이 0.03 안에서 붙으면 그 띠를 잣대로 세우고 ③④⑥ 의 사다리를 그 위에서 읽는다.
+#      ⛔안 답함  ⛔이 묶음은 «광선을 다시 뽑으면 왜 8 % 가 옮기나» 를 설명하지 않는다. 널의 폭만 잰다.
+#      읽는 법  read_0918B_0909.py 의 CELLS 에 stem(spp=3_800_000_000, rep=1)·stem(spp=4_200_000_000, rep=1) 을 실외·빈 하늘 짝으로 더한다. 두 벌의 3.8e9↔4.2e9 자카드를 나란히 적고, 그 두 수의 간격을 «널 띠의 폭» 으로 쓴다. 0919 가 낸 값은 outputs/read_0918B_0909.json pairs 에 있다.
+#  ▸ 프롭 배율 사다리 — 벼랑인가 비탈인가 (살아남은 묶음 B) (10 줄 · 어림 19.2 시간)
+#      물음  프롭 ×0.6 에서 걸리는 자세 목록이 통째로 갈렸다(자카드 0.013). 그 무너짐이 어느 크기에서 시작하나 — 프롭 끝이 1.37 mm(0.016 λ)밖에 안 움직이는 ×0.99 에서도 이미 무너지나, 아니면 ×0.99→0.98→0.95→0.9→0.8 로 매끄럽게 내려가나.
+#      죽는 조건  ×0.99 가 이미 널 띠(묶음 ②가 정한 폭, 지금 값으로는 ≤0.92) 아래면 «벼랑» 이다 — 프롭 표면을 1.4 mm 건드리는 것만으로 목록이 통째로 갈린다는 뜻이므로, 자카드를 «어느 손잡이가 중요한가» 의 잣대로 쓰는 것을 그만두고 목요일 덱에서 손잡이 순위표를 뺀다. 다섯 눈금이 1.0 → 0.6 사이를 이어 내려가면 «비탈» 이고, 무너지기 시작하는 변위를 mm 와 λ 로 적는다. 자세 수가 8,192 가 아닌 칸은 그 칸만 뺀다(measure 는 크기 안 맞으면 None 을 낸다).
+#      ⛔안 답함  ⛔빗살(무늬)·마이크로도플러 수는 이 칸들에서 읽지 않는다 — benchmark/comb_snr.py:111 의 `if _key and _key != TJ.get("drone","matrice4e")` 가지 **안**(:114)에 프롭 배율 _ps 보정이 들어 있어, 기체 꼬리표 없는 기본 기체에서는 :123-124 의 옛 식으로 떨어져 대역이 배율을 안 따라간다. 고치기 전에는 이 칸들의 빗살 수를 인용하면 안 된다. ⚠끝 반지름 137.0 mm 는 설계판이 적어 온 값이고 내가 다시 재지 않았다.
+#      읽는 법  read_0918B_0909.py:86 의 CELLS 에 tail="_ps0.99"·"_ps0.98"·"_ps0.95"·"_ps0.9"·"_ps0.8" 다섯 칸을 실외·빈 하늘 짝으로 더한다(stem :42 가 tail 을 그대로 받는다). 사건 셈 measure(:56), 견주기는 같은 파일 pairs. ⭐기준칸은 묶음 ①의 rep6 칸으로 잡아 다섯 칸 모두 두 다리가 오늘 판이 되게 한다. 무너지는 자리는 프롭 끝 변위 mm 와 λ 로 함께 적는다 — 반송파 3.5 GHz(elevation_sweep_md.py:96 `FC, RANGE_M = 3.5e9, 10.0`)라 λ = 85.7 mm 이고, 배율 k 의 끝 변위는 (1−k)×137.0 mm 다.
+#  ▸ 프레임과 기체 통째 — 같은 물음을 나머지 두 손잡이에 (10 줄 · 어림 19.2 시간)
+#      물음  프레임만 ×1.5 는 0.007, 기체 통째 ×1.5 는 0.000 이었다. 두 축도 프롭과 같은 자리에서 무너지나 — 프레임 ×0.98 · 통째 ×1.05 처럼 거의 안 건드린 판에서도 목록이 갈리나, 아니면 축마다 무너지는 크기가 다른가.
+#      죽는 조건  세 축이 같은 «건드린 거리» 에서 같이 무너지면 목록을 정하는 것은 부품이 아니라 기하 전체가 조금이라도 움직였다는 사실이다 — 그러면 「프롭이냐 동체냐」라는 물음 자체를 덱에서 뺀다. 축마다 무너지는 거리가 세 배 이상 다르면 그 순서를 적되 ⛔원인으로 읽지 않는다.
+#      ⛔안 답함  ⛔이 묶음은 어느 축이 «빗살 세기» 를 정하는지에 답하지 않는다 — 자카드는 걸리는 자세 목록만 재고, 빗살은 위 ③의 comb_snr 결함 때문에 아직 못 읽는다.
+#      읽는 법  read_0918B_0909.py 의 CELLS 에 tail="_fs0.98"·"_fs0.9"·"_fs0.7"·"_ps1.05_fs1.05"·"_ps1.2_fs1.2" 를 실외·빈 하늘 짝으로 더한다(꼬리 순서는 ps→fs, elevation_sweep_md.py:465-469). 세 축(프롭·프레임·통째)의 자카드를 배율이 아니라 «건드린 거리» 를 가로축으로 한 장에 겹쳐 그린다. 통째 배율은 프롭만 키울 때 이웃이 관통하는 것을 피하려고 프레임과 함께 키운 것이다(runners/jobs_0918.txt:19, 틈 5.9 mm).
+#  ▸ 동체 배율 사다리 — 빠진 실외 다리만 산다 (3 줄 · 어림 6.5 시간)
+#      물음  동체만 흔든 축은 자카드가 0.952(×0.5)·0.681(×0.5↔2)로 널 띠 위아래에 걸쳐 홀로 버틴다. 왜 동체 축만 다른가 — 눈금을 두 개(0.5·2)에서 다섯 개(0.4·0.5·0.6·0.8·2)로 늘리면 그 버팀이 이어지나.
+#      죽는 조건  다섯 눈금의 자카드가 널 띠 위에서 이어지면 «동체 축만 다르다» 가 서고, 그것이 ③④ 의 결과와 나란히 놓일 한 문장이 된다. 반대로 bs0.8(동체를 20 %만 줄인 판)이 이미 널 띠 아래면 동체 축도 다른 축과 같고, 0914 의 0.952 는 우연이었다고 적는다.
+#      ⛔안 답함  ⛔이 다섯 칸의 빈 하늘 다리는 2026-09-01 판이라 겹침 기록(n_dup·E_dedup)이 없다 — 이 묶음의 수는 «중복 에코를 뺀 판» 으로 다시 셀 수 없다. 기존 bs0.5·bs2 칸도 같은 조건이라 서로 견주는 것은 공정하다.
+#      읽는 법  빈 하늘 다리 bs0.4·bs0.6·bs0.8 은 이미 재고에 있다(outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_bs0.{4,6,8}_mfixbatteryi5_blperairframe_d2_el-60_*.npz, 2026-09-01 판 — 직접 확인). 없는 것은 실외(_envoutdoor01_ground) 다리 셋뿐이라 그것만 산다. read_0918B_0909.py 의 CELLS 에 tail="_bs0.4"·"_bs0.6"·"_bs0.8" 을 더하면 기존 bs0.5·bs2 칸과 한 줄이 된다.
+#  ▸ 손잡이가 앙각을 타나 — 프롭 배율을 −30° 에도 (4 줄 · 어림 7.7 시간)
+#      물음  프롭을 건드리면 목록이 갈린다는 것은 앙각 −60° 한 자리에서만 본 것이다. −30° 에서도 같은 배율이 같은 크기로 갈아치우나, 아니면 −60° 만의 일인가.
+#      죽는 조건  −30° 의 자카드가 −60° 와 0.1 안에서 같으면 «어느 앙각에서나 손잡이가 목록을 갈아치운다» 로 적는다. 두 배 넘게 다르면 그 수는 앙각의 성질이고, ③④ 의 사다리를 «−60° 에서만» 이라고 못 박아 적는다.
+#      ⛔안 답함  ⛔두 앙각뿐이라 «앙각에 따라 어떻게 변하나» 는 못 그린다. 같은가 다른가만 가른다.
+#      읽는 법  read_0918B_0909.py 의 ARM·EL(:21)을 −30 으로 놓고 같은 CELLS 를 한 벌 더 돌린다(빈 하늘·실외 다리 모두 이번에 사 온다). −30° 의 기준칸은 재고에 이미 있다(outputs/elev_sweep_shards/…_envoutdoor01_ground_…_d2_el-30 과 그 빈 하늘 짝). ⭐−60° 의 같은 배율 값(③의 ps0.9, 0918B 의 ps0.6)과 자카드를 나란히 적는다.
+#  ▸ 우리 커널 수의 바닥 — 격자를 옆으로만 옮긴다 (살아남은 묶음 ⑤) (10 줄 · 어림 6.3 시간)
+#      물음  우리 커널의 표면 격자를 같은 촘촘함으로 옆으로만 1/8·1/4·3/8·1/2 칸 옮기면 값이 얼마나 흔들리나 — 우리 커널 사다리가 재는 손잡이 효과보다 큰가 작은가. 세 앙각(0·−30·−60)에서 그 폭을 잰다.
+#      죽는 조건  네 위상의 흔들림 폭이 우리 커널 사다리가 재는 손잡이 효과와 같은 크기이거나 더 크면, 그 앙각에서 우리 커널 수로는 손잡이를 못 가른다 — 그 사다리를 덱에 싣지 않고 「격자 바닥이 물음보다 크다」로 적는다. 폭이 손잡이 효과의 1/3 아래면 그 수를 그대로 인용한다.
+#      ⛔안 답함  ⛔빈 하늘 다리에만 놓을 수 있는 널이다 — elevation_sweep_md.py:506-511 이 --grid-shift 와 --ground 를 함께 막는다(격자 이동 δ 가 시선에만 수직이라 거울상 방향에 δ·û′ = −2·δ_z·u_z 가 남는다). 그래서 우리 커널의 «거울 지면» 다리에는 이 바닥이 안 놓인다.
+#      읽는 법  안 옮긴 기준선은 이미 있다(ours_r15_n8192_mfixbatteryi5_blperairframe_el{+0,-30,-60}_*.npz — 직접 확인). 네 위상과 기준선을 짝지어 ①중앙 |E| dB 차 ②자세마다 |E(옮김) − E(0)| / 중앙|E(0)| 의 중앙값과 95 분위 ③빗살 SNR 차(comb_snr.py — 이 줄들에는 _ps 꼬리표가 없어 :111-117 결함에 안 걸린다)를 낸다. 네 위상의 최대−최소를 «우리 커널 격자 바닥» 으로 적고, 우리 커널의 모든 손잡이 수를 그 띠 위에서 읽는다. ⚠재고의 shift0.5 는 현행 메쉬 판이 el+0·−15·−30 에만 있다(직접 셈) — 세 앙각을 다 채우는 것이 이 묶음이다.
+#  ▸ 우리 씬의 앙각 사다리를 남의 씬과 같은 여섯 자리로 (2 줄 · 어림 4.3 시간)
+#      물음  거리 협곡은 앙각 여섯 자리(0·−15·−30·−45·−60·−75)가 다 찼는데 «우리 지면만» 은 넉 자리뿐이라 두 씬을 나란히 못 놓는다. 빠진 el 0 과 el −75 를 채우면 여섯 대 여섯이 된다.
+#      죽는 조건  우리 씬 여섯 자리가 협곡처럼 출렁이면(0 % 와 1.6 % 를 오가면) 「우리 씬은 앙각에 평평하다」는 지금 읽기가 넉 자리만 본 탓이었다는 뜻이므로 그 문장을 뺀다. 여섯 자리가 0.73~1.03 % 안에 그대로 있으면 두 씬의 대비를 여섯 대 여섯으로 덱에 싣는다.
+#      ⛔안 답함  ⛔두 씬에서 세고 있는 것이 같은 현상이라는 근거는 이 묶음이 주지 않는다 — 우리 씬은 정적 몫이 «사라지고»(|D|/|중앙D| 0.0001~0.0009) 협곡은 «갈아탄다»(0.565~2.202). 수를 겹쳐 그리기 전에 그것부터 갈라야 한다.
+#      읽는 법  빈 하늘 짝은 두 자리 다 이미 있다(sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el{+0,-75}_*.npz — 직접 확인). read_0914_0908.py 의 measure(:88)·문턱 사다리로 여섯 자리를 한 표에 담고, outputs/read_0918A_0909.json 의 협곡 여섯 자리와 나란히 적는다. ⛔협곡 el 0 은 중복 에코(n_dup 중앙 2) 때문에 지금 잣대로 못 읽으므로 그 자리는 «못 읽음» 으로 비워 둔다.
+#  ▸ 되풀이가 끊기는 자리 — 120 m 를 15 m 만큼 조인다 (6 줄 · 어림 7.1 시간)
+#      물음  120 m 의 벼랑 구간은 가로 25.13~35.60 mm 로 15 m 의 2.6 mm 보다 네 배 헐겁다. 그 사이를 두 점으로 조이면 «가로 30 mm 고정» 이 조여 놓고도 맞는가. 그리고 15 m 에서만 본 두 벼랑(필드 벼랑과 장부 벼랑)이 한 팔의 성질인가.
+#      죽는 조건  120 m 에서 0.01375° 가 켜지고 0.015° 가 꺼지면 두 거리의 벼랑이 같은 가로 mm 로 겹친다 — 그때만 «가로 거리로 닫힌다» 를 덱에 싣는다. 벼랑이 그 두 점 밖으로 나가면 mm 가 고정이 아니라는 뜻이므로 그 자리를 표에 그대로 적고 법칙 문장을 뺀다. 회절 켠 팔의 두 점이 R0D0E0F1 과 다른 자리에서 닫히면 «팔마다 다르다» 로 적고 한 팔의 수를 대표로 쓰지 않는다.
+#      ⛔안 답함  ⛔가로 어긋남만이다 — 고도 쪽 창은 이 묶음이 안 건드리므로 표에 반드시 «가로» 를 붙인다. ⛔«왜 30 mm 인가»(그 길이가 기체의 무엇인가)에도 답하지 않는다.
+#      읽는 법  ⛔판독기를 먼저 고쳐야 한다 — benchmark/front_window_0906.py:47-51 의 CANON 에 `_r15_` 가 박혀 있어 다른 거리 샤드를 아예 안 연다. `r15` → `r(?P<r>\d+)` 로 열고 칸 열쇠에 거리를 넣는다(0919 가 이미 그 손질을 발주했다, runners/jobs_0919.txt:27). 셈은 measure(:73-104, ON=1.5 는 :44) 원본 그대로. 120 m 의 0.01375°(28.80 mm)·0.015°(31.42 mm)는 15 m 의 0.11°·0.12° 와 소수 둘째 자리까지 같은 가로 mm 다. 15 m 의 0.115°·0.125° 는 필드 벼랑(28.80~31.42 mm)과 장부 벼랑(31.42~34.03 mm) 사이를 한 칸 더 가른다.
+#  ▸ 남의 씬에서도 손잡이가 목록을 갈아치우나 (거리 협곡) (2 줄 · 어림 15.9 시간)
+#      물음  프롭을 건드리면 걸리는 자세 목록이 통째로 갈린다는 것은 우리가 만든 씬에서만 본 것이다. 건물이 있는 남의 씬에서도 같은 배율이 같은 크기로 갈아치우나 — 협곡의 사건은 «사라짐» 이 아니라 «갈아탐» 인데도 그런가.
+#      죽는 조건  협곡에서도 자카드가 0.05 아래로 무너지면 «목록이 통째로 갈리는 것» 은 씬과 무관한 잣대의 성질이다 — 그러면 덱에서 이 잣대로 씬을 견주는 절을 뺀다. 협곡에서는 자카드가 널 띠 위에 남으면 두 씬이 다른 것을 세고 있다는 지금 읽기가 한 번 더 서고, 그 차이를 덱의 실외 절 한 장으로 적는다. ⚠샤드 하나가 실측 중앙 238 분이라 한 줄이 두 샤드로 8 시간이다 — 큐 맨 앞에 둔다.
+#      ⛔안 답함  ⛔협곡의 사건이 우리 씬의 사건과 같은 현상이라는 근거는 이 묶음도 주지 않는다. 같은 잣대에 두 현상이 한 칸으로 섞여 있다는 것을 알고 읽어야 한다.
+#      읽는 법  빈 하늘 다리는 둘 다 이미 있거나 이번에 온다 — _ps0.6 은 재고(runners/jobs_0918.txt:28-29 가 사 왔다), _ps0.9 는 묶음 ③이 산다. 그래서 협곡 쪽 실외 다리 두 줄만 산다. read_0918B_0909.py 의 stem(env="sionna:simple_street_canyon", tail=…) 로 칸을 만들고(이름은 `_envsionna-simple_street_canyon`, elevation_sweep_md.py:455-456 이 콜론을 붙임표로 바꾼다) 협곡 el −60 기준칸(사건 128 · 1.56 %, outputs/read_0918A_0909.json)과 자카드를 낸다. 우리 씬의 같은 배율 자카드와 나란히 적는다.
+#
+#  ── 차례를 왜 이렇게 짰나 ──
+#  차례는 «시간» 으로 짰다. ⓐ**기준칸이 맨 앞**이다 — 오늘 밤 모든 자카드가 rep6 칸 위에서 읽히므로 그것이 늦으면 나머지가 다 늦는다(3·4 번 줄). ⓑ**제일 무거운 협곡 두 줄을 1·2 번에** 뒀다. 실측 중앙 238 분/샤드라 한 줄이 8 시간이고, 뒤에 두면 큐가 빈 뒤에도 혼자 남는다(0918 이 344 분짜리를 앞에 몰아 뒤를 굶긴 것과 반대로, 무거운 것을 앞에 두되 **한 번에 둘만** 둔다). ⓒ그다음은 **아홉 자리 한 판에 무거운 줄 하나 · 가벼운 줄 하나**를 번갈아 넣었다 — 실외 65 분 · 빈 하늘 50 분 · 120 m 28 분 · 우리 커널 19 분이 한 덩어리로 돌아 워커 슬롯이 계속 돈다(0919 가 이 방식으로 시간당 11 샤드를 냈다). ⓓ**목요일이 실제로 쓰는 것부터** 앞에 왔다: 살아남은 묶음의 죽는 조건을 가르는 프롭 ×0.98(5·6 번), 창의 벼랑을 조이는 120 m 두 점(7·14 번), 협곡과 여섯 대 여섯을 만드는 우리 씬 el 0·−75(9·16 번), 널의 폭(17·18·24·25 번). ⓔ**뒤로 뺀 것**은 답이 늦어도 덱이 안 흔들리는 것들이다 — 통째 배율의 고운 눈금(49·50·52·53)과 우리 커널 격자 널의 el 0 자리(51·54·55). 55 줄 110 샤드가 워커 아홉이면 벽시계로 약 11 시간이고, 지금 큐가 빈 뒤 하루를 버틴다. 실측 시간은 runners/logs/sup_jobs_0919.log · sup_jobs_0918.log 의 「끝 pid=… 분」 을 발주 줄에 짝지어 직접 셌다(중앙값: 실외 15 m 52.9~78.1 · 빈 하늘 15 m 49.9~51.9 · 120 m 27.7 · 우리 커널 빈 하늘 18.6 · 협곡 238.4 분). 55 줄 전부 dry-run 으로 손잡이와 이름을 확인했고 55/55 가 「없음」이다 — 0918·0919 와 겹치는 줄이 하나도 없다.
+#
+#  ── 버린 것 ──
+#  ⛔**살아남은 묶음 둘만으로는 규칙의 90~140 시간이 안 찬다** — 묶음 B 는 여섯 줄 12 샤드(약 11 시간), 묶음 ⑤ 는 넉 줄 여덟 샤드(약 2 시간)로 합쳐 13 시간뿐이다. 그래서 두 물음을 **판독자들이 스스로 「⏳아직 없는 칸」으로 적어 둔 자리로만** 늘렸고, 새 물음을 지어내지 않았다: 프롭 눈금 0.8(0918B 판독이 이름으로 적은 빠진 눈금)·프레임 아래쪽 0.7(같은 자리)·동체 실외 다리 셋·우리 씬 el 0·−75(협곡 판독의 ⏳⑴)·120 m 두 점과 다른 팔(창 판독의 ⏳①②)·같은 세대 빈 하늘 짝(착지 판독의 어긋난 것 ④). ⚠묶음 B 의 읽는 법이 이름으로 부른 「묶음 A」와 묶음 ⑤ 가 부른 「묶음 ②③」의 본문은 내게 안 왔다 — A 가 사 오기로 한 rep6 칸은 내가 직접 발주에 넣었고(줄 3·4), ②③ 이 재는 손잡이 효과가 무엇인지는 모르므로 묶음 ⑦ 의 죽는 조건에 그 이름 대신 「우리 커널 사다리가 재는 손잡이 효과」라고만 적었다.
+#  
+#  **버린 안 —**
+#  · ⛔프롭 ×1.2(프레임 없이): 이웃 프롭이 관통한다(runners/jobs_0918.txt:19, 틈 5.9 mm). 프롭 끝 반지름 137 mm 면 1.043 배에서 이미 닿는다. 통째 ×1.05·×1.2 로 갈음했다.
+#  · ⛔0919 가 이미 사고 있는 것 전부: 창의 반대쪽 24 샤드 · 창과 표적 크기 24 · 다섯째 팔의 창 24 · 창의 폭 여섯 거리의 남은 눈금 · 우리 커널 프롭·프레임 사다리의 남은 35 샤드. 0919 큐는 오늘 안에 비므로 다시 사면 겹친다.
+#  · ⛔협곡의 다른 앙각·다른 손잡이: 샤드 하나 238 분이라 두 줄(15.9 시간)이 이 판에서 협곡에 쓸 수 있는 전부다. 협곡 el 0 을 다시 사는 것도 뺐다 — 중복 에코 때문에 지금 잣대로 못 읽는 것이지 샤드가 없어서가 아니다.
+#  · ⛔뮌헨 · 지면 거칠기(--env-scat) · 프로펠러 단독 · 확산 끈 팔: 규약대로 한 줄도 안 넣었다.
+#  · ⛔되풀이 판을 여섯 벌까지 채우는 안(rep3·4·5 의 실외 다리): 0919 가 되풀이 자카드 1.0000 을 세 판에서 이미 냈으므로 값이 거의 안 늘어난다. 두 벌(rep6·rep7)로 줄여 그 시간을 예산 널의 둘째 벌(묶음 ②)에 돌렸다.
+#  · ⚠**못 고친 채로 두는 것**: benchmark/comb_snr.py:111-124 의 프롭 배율 결함은 코드 일이라 이 발주서가 못 고친다 — 고치기 전에는 ③④ 칸의 빗살 수를 인용하면 안 된다. benchmark/front_window_0906.py:47-51 의 `_r15_` 도 마찬가지로 코드 일이고, 0919 가 이미 발주해 두었다(jobs_0919.txt:27).
+#  · ⚠**모르는 것**: 프롭 끝 반지름 137.0 mm 는 설계판이 적어 온 값을 그대로 썼고 내가 다시 재지 않았다. 샤드 시간은 어젯밤 호스트 부하에서 잰 중앙값이라 오늘 부하가 다르면 총량이 달라진다.
+
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --prop-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --prop-scale 0.6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --prop-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --prop-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 6 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 6 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.98 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.98 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.98 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.98 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.01375 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.01375 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.5 --els=-60 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.5 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 7 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 7 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 7 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 7 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.99 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.99 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.99 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.99 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.015 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D0E0F1 --els=0 --az-deg 0.015 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.37,-0.19 --els=-60 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.37,-0.19 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --shard 0 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.95 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.95 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.95 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.95 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D1E1F1 --els=0 --az-deg 0.012 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D1E1F1 --els=0 --az-deg 0.012 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.25 --els=-60 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.25 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 0.4 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 0.4 --shard 1 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --shard 0 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D1E1F1 --els=0 --az-deg 0.017 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 120 --sw R0D1E1F1 --els=0 --az-deg 0.017 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.125 --els=-60 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.125 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 0.6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 0.98 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 0.98 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 0.98 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 0.98 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.8 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 0.8 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.8 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 0.8 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 0.115 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 0.115 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.37,-0.19 --els=-30 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.37,-0.19 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 0.8 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 0.8 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --prop-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --prop-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --prop-scale 0.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --prop-scale 0.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 0.125 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 0.125 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.25 --els=-30 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.25 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 0.7 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --frame-scale 0.7 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 0.7 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --frame-scale 0.7 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --prop-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --prop-scale 0.6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --prop-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --prop-scale 0.6 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.125 --els=-30 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.125 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 1.05 --frame-scale 1.05 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 1.05 --frame-scale 1.05 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 1.05 --frame-scale 1.05 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 1.05 --frame-scale 1.05 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.37,-0.19 --els=0 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.37,-0.19 --els=0 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 1.2 --frame-scale 1.2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --prop-scale 1.2 --frame-scale 1.2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 1.2 --frame-scale 1.2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --prop-scale 1.2 --frame-scale 1.2 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.25 --els=0 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.25 --els=0 --shard 1 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.125 --els=0 --shard 0 --nshards 2
+--engine ours --n-poses 8192 --range-m 15 --grid-shift 0.125 --els=0 --shard 1 --nshards 2
