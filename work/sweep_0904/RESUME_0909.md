@@ -1,6 +1,6 @@
 # 재개 지점 — 2026-09-09 (낮)
 
-⭐**팀미팅은 내일(2026-09-10 목) KST.** 덱은 **v14** 가 최신이고 커밋·푸시까지 끝났다.
+⭐**팀미팅은 내일(2026-09-10 목) KST.** 덱은 **v15**(11 장) 가 최신이고 커밋·푸시까지 끝났다.
 
 ⛔먼저 읽을 것 — 이 파일 → `work/sweep_0904/RESUME_0908.md`(어제) → `docs/CLAIM_GATE.md`
 
@@ -128,31 +128,40 @@ setsid nohup /workspace/.venvs/py312/bin/python runners/worker_supervisor.py \
 ```
  1 Team Meeting (표지)
  2 Sudden drops at 0°            f_drops_stft        빈 하늘
- 3 Radar, drone, scenes          f_setup             장면 소개(각도 셋 · 렌더 둘)
+ 3 Radar, drone, scenes          f_setup             장면 소개(각도 셋 · 렌더 하나)
  4 The repeated arrival          (나눔장)             빈 하늘
  5 Same aspect, 0.2° apart       f_window_stft       빈 하늘
  6 Where the repeat stops        f_window_ladder     빈 하늘
  7 Forty times more rays         f_window_rays       빈 하늘
  8 Outdoors                      (나눔장)
- 9 The scene we built            f_outdoor_stft      우리 씬
-10 Ground alone, buildings alone f_outdoor_parts     우리 씬을 쪼갬
-11 ⭐The same event, both scenes  f_outdoor_same_event  두 장면
-12 Someone else's scene          f_outdoor_shipped   거리 협곡
-13 Open questions
-14 Next week
+ 9 In the street canyon          f_outdoor_shipped   거리 협곡 (30°·60°)
+10 Open questions
+11 Next week
 ```
 
-- 생성기 `/workspace/team_meeting/teammeeting_0910/make_v14.py`
+### ⛔⛔사용자 지시 — 「our scene 은 그냥 싣지 말라」(2026-09-09)
+
+v14 의 실외 석 장(우리 씬 · 땅/건물 쪼갬 · 두 장면 같은 사건)을 **뺐다.**
+실외 자료는 솔버가 기본으로 주는 거리 협곡 하나로만 간다.
+`make_v15.py` 에 문지기를 박아 우리 장면 그림·문구가 하나라도 남으면 죽는다.
+⚠나는 앞서 반대 의견을 냈고 사용자가 다시 지시해 따랐다. 그 근거 여섯 중 ⑴
+(협곡 샤드 8 장뿐)은 **이미 무효였다** — 0918 A 가 앙각 넷을 사 와 여섯 자리가 됐다.
+
+### ⛔이 판이 말할 수 없게 된 것 (물으면 그대로 답한다)
+
+- 「무늬를 지운 것이 땅인가 건물인가」 — 솔버가 주는 장면은 부품으로 못 쪼갠다
+- 「사라지는 것이 무엇인가」 — 경로 목록까지 연 것은 우리가 만든 장면 쪽뿐이다
+
+- 생성기 `/workspace/team_meeting/teammeeting_0910/make_v15.py`
   ⛔덱 JSON 을 손으로 고치지 않는다 — 생성기를 고치고 다시 굽는다
-- 만들기: `python build_deck.py teammeeting_slides_0910_v14.json _out_0910_v14.pptx`
+- 만들기: `python build_deck.py teammeeting_slides_0910_v15.json _out_0910_v15.pptx`
   ⛔둘째 인자를 안 주면 `groupmeeting_OpenISAC_v1.pptx` 로 나간다
-- 미리보기 `preview_v14/p01.png` ~ `p14.png` — 「레이아웃 문제 없음」 확인함
+- 미리보기 `preview_v15/p01.png` ~ `p11.png` — 「레이아웃 문제 없음」 확인함
 
-### ⛔v14 에 아직 안 반영된 것 (오늘 나온 결과)
+### ⛔아직 안 반영된 것 (오늘 나온 결과)
 
-13·14 쪽이 「프롭인가 동체인가 — 돌고 있다」로 적혀 있는데 **0918 B 가 답했다**(§1①).
-그리고 §1② 의 철회(되풀이 널)가 안 들어갔다. 발표 전에 두 쪽을 손볼지 판단해야 한다.
-⚠고칠 때 반드시 지킬 것 — ⛔결론으로 올리지 않는다. ⛔널(0.89~0.92)을 함께 말한다.
+10·11 쪽에 §1① (프롭·허브가 자세를 정한다)과 §1② (되풀이 널 철회)가 안 들어갔다.
+⚠넣을 때 반드시 — ⛔결론으로 올리지 않는다. ⛔널(0.89~0.92)을 함께 말한다.
 
 ---
 
