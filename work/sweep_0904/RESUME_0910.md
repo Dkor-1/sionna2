@@ -10,13 +10,14 @@
 
 ## 0. 세 줄
 
-1. **덱은 끝났다** — `team_meeting/teammeeting_0910/_out_0910_v22.pptx` (11 장) 커밋·푸시 완료.
-   더 손댈 것이 없다. ⛔새로 고칠 일이 생기면 **v23 으로 새로 굽는다** — v22 를 덮지 않는다.
+1. **덱은 끝났다** — `team_meeting/teammeeting_0910/_out_0910_v23.pptx` (11 장) 커밋·푸시 완료
+   (`team_meeting` `d9bdcac`). ⛔새로 고칠 일이 생기면 **v24 로 새로 굽는다** — 옛 판을 안 덮는다.
+   ⚠v22 이하는 다 남아 있다. 발표에 쓸 것은 **v23** 이다.
 2. **큐가 돌고 있다** — 0922(144 샤드) 진행 중, 0923(14 샤드) 이 사슬에서 대기.
    ⚠**09-12 저녁쯤 마른다.** 그 전에 다음 판을 넣어야 한다(§3).
-3. **외부 검토 세 판을 다 확인했다** — 09-09 두 판(9+10 항목)은 고쳐서 커밋했고,
-   09-10 판(`docs/PRECISION_REVIEW_0910.md`, 7 항목)은 **1·2·3 번을 오늘 고쳤다.**
-   4~7 번이 남았다(§4).
+3. ✅**외부 검토 세 판을 다 닫았다** — 09-09 두 판(9+10 항목) · 09-10 판(7 항목) 전부.
+   ⭐09-10 낮에 ④~⑦ 과 **미수정 결함 셋**을 21 판 검증(확인 7 · 반증 14)으로 닫았다(§4·§5).
+   ⛔그 과정에서 **덱을 v23 으로 새로 구웠다**(9 쪽 노트가 차례를 거꾸로 말했다).
 
 ---
 
@@ -33,8 +34,9 @@ ls outputs/elev_sweep_shards/*.npz | wc -l      # 09-10 11:00 기준 7,304 장
 
 ⛔`pgrep -f` 를 쓰지 않는다 — 내 명령줄이 스스로 걸려 셸이 죽는다. `ps -eo args | grep '[x]…'` 만.
 
-**09-10 11:01 상태** — 0922 감독자 54 분째 · **12/144 발주** · 워커 10 · RAM 14.2 G · CPU 0.65.
-지킴이는 10:21 부터 살아 있고 사슬(`runners/queue_chain_0910.txt`)에 `runners/jobs_0923.txt` 가 대기.
+**09-10 13:00 상태** — 0922 감독자 진행 중(`큐 21/144`) · 워커 10 · 샤드 **7,313 장**.
+지킴이 살아 있음. 사슬에 **`jobs_0923.txt` → `jobs_0924.txt`** 둘 다 대기(아직 하나도 안 띄웠다 —
+`runners/logs/queue_chain_0910_done.txt` 가 비어 있다). ⇒ 0922 가 끝나면 지킴이가 알아서 잇는다.
 
 ### 죽어 있으면 이렇게 되살린다
 
@@ -107,21 +109,71 @@ setsid nohup bash runners/queue_keeper_0827.sh >/dev/null 2>&1 &
 
 ## 3. ⛔다음 사람이 할 일 (급한 차례)
 
-1. ⭐**09-13 전에 큐를 다시 채운다.** 마르면 GPU 가 논다 — 09-08·09-10 에 두 번 그랬다
-   (23:03 부터 14 분, 08:08 부터 **2 시간**). 원인은 둘 다 **사슬을 미리 안 채워 둔 것**이다.
-   ⛔새 판은 **파일을 먼저 만든 뒤** `runners/queue_chain_0910.txt` 에 적는다.
-   ⛔손으로 띄운 판은 사슬에 적지 않는다 — 적으면 두 번 뜬다.
-   ⛔발주 전에 `runners/filter_jobs.sh` 로 NEW·DONE·STALE 을 가른다.
-2. **무엇을 새로 살지는 지금 정할 수 없다.** 0921 재고 세기가 찾은 «정말 안 산 축» 여섯을
-   0922 가 둘, 0923 이 나머지를 샀다 — **목록이 소진됐다.**
-   ⇒ 0922 결과가 앉은 뒤 **재고를 다시 세고** 거기서 뽑는다
-   (`work/wf/queue_design_0921_result.json` 의 census 방식).
-3. **0922 A(협곡의 널)가 앉으면 0923 C 를 읽을 수 있게 된다** — 그 전에는 협곡 자카드를
-   «크다/작다» 로 못 말한다. 차례가 그렇게 짜여 있다.
-4. `docs/PRECISION_REVIEW_0910.md` 4~7 번 (§4).
-5. 아직 안 고친 결함 셋 (§5).
+### ⭐① 09-13 전에 큐를 다시 채운다
+마르면 GPU 가 논다 — 09-08·09-10 에 두 번 그랬다(14 분 · **2 시간**). 둘 다 **사슬을 미리
+안 채워 둔 것**이 원인이다. ⛔새 판은 **파일을 먼저 만든 뒤** `runners/queue_chain_0910.txt` 에
+적는다. ⛔손으로 띄운 판은 사슬에 적지 않는다(두 번 뜬다). ⛔발주 전 `runners/filter_jobs.sh`.
+⚠**무엇을 새로 살지는 지금 정할 수 없다** — 0921 재고 세기의 목록이 소진됐다.
+0922 결과가 앉은 뒤 **재고를 다시 세고** 거기서 뽑는다.
 
----
+### ⭐② `~/.venvs` 자국 — **진단은 끝났고 고치는 일만 남았다** (09-10 낮)
+발표된 문서 **11 개 + 리포트 노트북 5 개**의 재현 명령이 **없는 경로**를 가리킨다.
+따라 치면 전부 실패한다(⛔`~/.venvs` 는 없다 · 파이썬은 `/workspace/.venvs`).
+
+⭐**빌더는 11 개 전부 이미 `/workspace/.venvs` 를 굽는다** — 낡은 것은 **구워진 판**뿐이다.
+```
+✅빌더가 돈다 (6 + 노트북 4)   → 다시 구우면 낫는다
+   PAPER_DRAFT.md            ← benchmark/capability_matrix.py
+   MEASUREMENT_PLAN.md       ← src/build_part11_measurement.py
+   OUTPUT_NAMING.md          ← benchmark/rename_outputs.py
+   INJECTION_PRECEDENT.md    ← benchmark/build_report00_po_case.py
+   docs/repro/part07·part11  ← src/extract_part_docs.py   (json·os·re 만 — 가볍다)
+   reports/05_engine-physics · _parts/86_physics-deck-match
+                             ← src/build_part13_engine_physics.py (GPU 안 씀)
+                                ⚠자국의 뿌리는 outputs/physics_deck_repro_check.json 의
+                                  _meta.rerun_cmd 다 — 원장을 다시 구우면 낫는다
+   reports/A_atlas           ← benchmark/build_atlas_toc.py (:653-654 는 이미 옳다)
+⛔빌더가 못 돈다 (2)           → 다시 못 굽는다 (아래 ③ 을 먼저 고쳐야 한다)
+   GEOMETRY_BENCHMARK.md · PAPER_POSITION.md ← benchmark/geometry_benchmark.py
+—빌더 없음 (3)                → 손으로 쓴 문서라 손으로 고치는 것이 맞다
+   MD_RANGE_SWEEP_CITATIONS.md · REPORT13_DESIGN.md
+   outputs/partial/das_fleet_0803/README_PIDS.md
+```
+⛔`reports/_parts/orig71.ipynb` 은 **보존된 옛 셀**이다(`extract_part_docs.py:12` 가 「옛 셀 24
+코드」라고 적는다) — **기록이라 고치지 않는다.**
+⛔다시 굽지 말 것 셋(`work/sweep_0904/RESUME.md:89-90`) — `make_report11_2_two_channel.py`
+(챔버가 되살아난다 · `SIONNA_ALLOW_CHAMBER=1` 없이 멈춘다) · `geometry_grid.py` · `geometry_benchmark.py`.
+
+### ⭐③ `geometry_grid.py` 를 살릴 수 있다 — **고칠 자리를 찾았고 검산까지 했다** (09-10 낮)
+`benchmark/geometry_grid.py:485` 가 **합본** 원장을 읽는다:
+```python
+ms = _read("report13_sigma_grid.json", "multistatic", default={}) or {}
+```
+⛔그런데 `multistatic` 블록은 **기체별 파일**에 있다(`report13_sigma_grid.matrice4e.json` ·
+`.mavic4pro` · `.mini5pro` · `.phantom4` · `.s1000plus`). 합본에는 **git 25 판 전부에 없다** —
+「블록을 잃었다」가 아니라 **애초에 거기 없었다.**
+
+⭐다섯 파일을 합쳐 넣고 `:486-505` 를 그대로 흉내 내 돌려 봤다(⛔빌더는 안 돌렸다):
+```
+   β      칸   Δσ rms 중앙   Δσ p95 중앙
+   0      15        0.0          0.0     ← 주석이 「β=0 이면 Δσ ≡ 0」이라 적은 그대로다
+  15      15     6.3938      12.1553
+  30      15     6.8444      13.1912
+  45      15     7.4727      13.7191
+  60      15      7.511       14.866
+  75      15     8.0604      15.3802
+  90      15      8.806      16.1033
+   ⇒ 7/7 칸이 찬다 (칸마다 5 기체 × 3 대역).  지금 코드로는 0 칸 → 빈 원장.
+```
+⛔**빌더를 돌리기 전에** 산출물을 백업해라 — 08-27 에 이 빌더가 원장을 비워 되돌린 적이 있다.
+
+### ④ ⬜남은 잔가지
+`work/wf/queue_design_0921.js` 밖의 큐 기록(`jobs_0918`·`0921`·`0923`)은 **원문을 두고 정정
+줄만** 붙인다 — 이력을 바꾸면 「무엇을 믿고 무엇을 샀나」가 흐려진다.
+
+### ⛔⑤ 도구 함정 하나 (09-10 에 물렸다)
+커밋 메시지에 `%` 가 있으면 **`printf` 가 거기서 잘라 먹는다**(`0.04~0.94 %` 에서 10 줄로
+잘렸다). ⇒ 긴 메시지는 **heredoc 파일에 쓰고 `git commit -F <파일>`** 로 넣어라.
 
 ## 4. 외부 검토 세 판 — 어디까지 했나
 
@@ -274,5 +326,10 @@ setsid nohup bash runners/queue_keeper_0827.sh >/dev/null 2>&1 &
 
 | 저장소 | 해시 | 무엇 |
 |---|---|---|
-| `/workspace/sionna` | `614a669f` | 해석 후속 검토 10 항목 — 결함 다섯 수정 |
-| `/workspace/team_meeting` | `dd2f674` | 0910 덱 v22 — 결론줄이 두 설정을 한 경계로 묶던 것 수정 |
+| `/workspace/sionna` | `5b7085e3` | ⑤ ⑦ 을 닫는다 — ⛔⑦ 은 검토의 제안문을 **안 썼다**(지어낸 기전) |
+| `/workspace/sionna` | `6a564dca` | 결함 셋(`--det` · `n_trunc` · `comb_snr`)을 고치고 ④ 를 닫는다 |
+| `/workspace/sionna` | `8d983b2f` | 정밀 검토 1~3 · 동체 사다리를 이미 사 둔 샤드로 다시 읽는다 |
+| `/workspace/team_meeting` | `d9bdcac` | **0910 덱 v23** — 9 쪽 노트가 차례를 거꾸로 말하던 것 수정 |
+
+⚠`5b7085e3` 은 메시지만 amend 하고 `--force-with-lease` 로 밀어 넣은 판이다(사용자 승인).
+  파일 내용은 `29223f95` 와 **한 글자도 다르지 않다.** 단일 작성자·단일 브랜치라 안전했다.
