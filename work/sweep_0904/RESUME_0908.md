@@ -2,6 +2,8 @@
 
 ⭐**세션이 끊기면 여기부터 읽는다.** `docs/RESUME.md` 가 이 파일을 가리킨다.
 
+> **현재 소스·원장 후속 검토:** [검토 노트북](../../docs/INTERPRETATION_FOLLOWUP_0909.ipynb) · [상세 메모](../../docs/INTERPRETATION_FOLLOWUP_0909.md). 최빈값 이탈률, 영 진폭 제외, 깊이 대조의 포함관계와 남은 조건부 구현 문제를 확인했다. 기존 실험 출력은 유지했으며 메모의 수정안은 후속 적용 대상이다.
+
 > **완료 실험의 해석 수정:** [`검토 노트북`](../../docs/COMPLETED_INTERPRETATIONS_REVIEW_0908.ipynb) · [`상세 메모`](../../docs/COMPLETED_INTERPRETATIONS_REVIEW_0908.md). 수정 전 인용과 현재 본편 반영을 함께 기록했다.
 
 > **설계·표현 검토 메모:** [`../../docs/OUTDOOR_DESIGN_REVIEW_0908.md`](../../docs/OUTDOOR_DESIGN_REVIEW_0908.md). 기체별 분석 대역, 조건부 구현 오류, 대조 설계와 철회 문구의 잔존을 정리했다. 다음 결과 해석 전에 읽는다.
