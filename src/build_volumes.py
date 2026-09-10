@@ -1286,13 +1286,17 @@ def _postprocess_external(ex, place, bu2vol, titles, stat) -> dict:
                        "편으로 나눈 것이고, 별편과는 지위가 다르다."]
                 cells.insert(1, _cell("\n".join(ln), meta={"tags": [APPEND_TAG]}))
 
-        if fname == host:                              # ⭐ 조각을 절로 덧붙인다
-            #: ⛔붙일 조각이 없으면 안내 셀도 붙이지 않는다 (2026-09-09).
-            #:   전에는 무조건 붙여서, 조각 0 개일 때 「아래 절 1~0 는 …」 이라는
-            #:   **없는 절을 예고하는 문장**이 발행됐다(12_outdoor-scene 셀 26).
-            #:   base+1 ~ base+len(parts) 가 0 개에서 1~0 이 된다.
-            if not ex["parts"]:
-                continue
+        #: ⛔붙일 조각이 없으면 안내 셀도 붙이지 않는다 (2026-09-09).
+        #:   전에는 무조건 붙여서, 조각 0 개일 때 「아래 절 1~0 는 …」 이라는
+        #:   **없는 절을 예고하는 문장**이 발행됐다(12_outdoor-scene 셀 26).
+        #:   base+1 ~ base+len(parts) 가 0 개에서 1~0 이 된다.
+        #: ⛔⛔2026-09-10 정정 — 그때 `continue` 로 막았는데, 그 `continue` 는 **안내 셀만
+        #:   건너뛰는 것이 아니라 `for fname` 고리 자체를 빠져나갔다.** 그래서 아래
+        #:   `nb["cells"] = cells` 와 파일 쓰기·계수·로그까지 통째로 건너뛰어
+        #:   **조각이 0 인 권은 노트북이 아예 다시 안 쓰였다.**
+        #:   ⛔지금 그런 권이 둘이다 — `parts=[]` 인 12_outdoor-scene(:257)과 A_atlas(:278).
+        #:   ⇒ `continue` 대신 **덧붙이기 블록의 조건**으로 옮긴다. 쓰기는 반드시 지나간다.
+        if fname == host and ex["parts"]:              # ⭐ 조각을 절로 덧붙인다
             base = max([int(n) for c in cells for n in _SEC_H2.findall(_text(c))] or [0])
             cells.append(_cell(
                 "---\n"
