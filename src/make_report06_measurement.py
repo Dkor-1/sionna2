@@ -854,9 +854,18 @@ def blocks(J) -> list:
             "절대 탐지거리와 Pfa 교정은 §4 표에서 '이 캠페인 밖' 으로 표시한다 — "
             "환경 공통항과 통제 몬테카를로가 각각 정한다",
             "σ 절대레벨은 교정구가 세션 안에서 앵커한다 (§2-2). 기울기 앵커는 Das 측정이다",
-            f"뒤집힘 폭의 최솟값은 `sigma_sensitivity.json` 에서 오고 그 값을 내는 Matrice 4E "
-            f"행은 {MFX.num('_meta.date')} 형상 정정 전 메쉬 위에 있다 (02 §5) — "
-            f"σ 사슬을 다시 돌리면 이 폭과 여유가 함께 움직인다",
+            #: ⛔⛔2026-09-10 — 기체 이름을 «Matrice 4E» 로 **박아 두었다.** 그런데 그
+            #  기체는 원장이 정한다(ranking_validation.flip_span_min_airframe). 입력
+            #  outputs/sigma_sensitivity.json 이 2026-09-06 에 다시 구워져 발행 원장
+            #  (2026-09-05)보다 새로운데, 그 판으로 다시 구우면 최솟값 기체가 바뀐다.
+            #  박아 둔 이름을 두면 **원장에 없는 사실**이 인쇄된다.
+            #  ⇒ 원장에서 읽는다. ⛔이름을 손으로 적지 않는다.
+            f"뒤집힘 폭의 최솟값은 `sigma_sensitivity.json` 에서 오고 그 값을 내는 "
+            f"{D.num('ranking_validation.flip_span_min_airframe')} 행은 "
+            f"{MFX.num('_meta.date')} 형상 정정 전 메쉬 위에 있다 (02 §5) — "
+            f"σ 사슬을 다시 돌리면 이 폭과 여유가 함께 움직인다. "
+            f"⚠그 기체가 그 정정을 안 받았으면 이 단서는 그 기체에 안 걸린다 — "
+            f"outputs/meshfix_applied.json 의 untouched_airframes 를 함께 본다",
         ],
         report="report06_measurement")))
 

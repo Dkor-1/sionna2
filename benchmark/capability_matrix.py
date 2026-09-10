@@ -955,7 +955,22 @@ def build_our_row():
                 computed="docs/PAPER_DRAFT.md N12: 마이크로도플러는 리포트에서 제외(코드 보존). "
                          "자체 검증 수단이 없고 Costa(JSTSP, 게재)가 해석 경로를 이미 갖는다.",
                 source="docs/PAPER_DRAFT.md : N12 · src/microdoppler.py"),
-        diffraction=C(0, "NONE - no PTD, no UTD, no creeping wave. THIS IS OUR GAP.",
+        #: ⛔⛔2026-09-10 — 딱지가 «없다» 라고 적는데 같은 칸의 computed 는 회절 함수를
+        #  **4 개** 센다(:887 의 정규식, src/rcs_sbr.py:447·479·488·502). 다시 구우면
+        #  한 칸이 자기모순이 된다. 실제는 이렇다:
+        #    · PTD 는 **구현돼 있고 생산 SBR 경로에 배선돼 있다**
+        #      (src/ptd_edges.py · outputs/ptd_wiring.json 「PTD 를 생산 SBR 경로에
+        #       배선한다 (ptd 기본 False, 기존 결과 불변)」)
+        #    · 다만 **기본이 꺼짐**이고(rcs_sbr.py:212 `ptd=False`), :227 이
+        #      「ptd=False 는 이 인자들이 없던 때와 **비트 단위로 같은 값**」이라 못 박는다
+        #    · 발주 줄(jobs_09*.txt)에 이 축을 켠 것은 우리 전수조사에 없다
+        #    · UTD·크리핑파는 **정말 없다**
+        #  ⇒ 딱지를 사실에 맞춘다. ⛔**등급(0)은 안 바꾼다** — 등급을 올리는 것은
+        #    「우리 결과가 회절을 담는다」는 연구 주장이고, 우리 발표 수치는 전부
+        #    ptd=False 로 낸 것이라 그 주장은 안 선다.
+        diffraction=C(0, "PTD implemented and wired, but OFF by default "
+                         "(ptd=False, bit-identical to pre-PTD); no UTD, no creeping "
+                         "wave. EVERY PUBLISHED NUMBER OF OURS HAS NO DIFFRACTION.",
                       computed="src/rcs_sbr.py + src/rcs_po.py 안에 회절 함수 정의 %d개. "
                                "결과: 우리 밴드 기울기 +0.96~+1.40 dB/GHz 대 실측 %.3f(Das) / %.3f(Yuan) "
                                "dB/GHz - 3~8배 가파르다 ⛔«3~8배» 는 부분대역↔전대역을 섞은 값이라 내린다(2026-09-04, docs/ANCHOR_SUBBAND.md) — 측정 기울기는 전부 1.8~18.2 GHz 전대역 적합이고 우리 수는 3밴드/좁은대역 적합이다. 같은 창에서 재면 1.8~6.0 GHz 에서 +1.45 대 +0.41 = 3.5배다.. PO 면적분만으로는 A^2/lambda^2(~f^2)로 스케일하고, "
