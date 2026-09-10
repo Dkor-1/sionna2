@@ -120,8 +120,32 @@ def f_tip(el, arm=""):
         _lam = 2.998e8 / carrier_of(arm)
         _frev = float(getattr(_sp, "hover_rpm", 6000.0)) / 60.0
         return 2.0 * (2 * np.pi * _frev * _R) / _lam * np.cos(np.radians(float(el)))
+    #: ⛔⛔**2026-09-10 결함 — 프롭 배율이 대역에 안 들어갔다.**
+    #  `--prop-scale`(팔 이름의 `_ps<k>`)은 회전수를 안 건드리고 프롭 지름만 바꾼다
+    #  ⟨src/articulated_fast.py:114 「회전수 고정이므로 박자 주파수는 불변이고 f_tip 은
+    #  prop_scale 에만 비례한다」⟩. 위 기체 꼬리표 갈래는 :114-117 에서 이미 `_ps` 를 곱하는데,
+    #  **꼬리표가 없거나 기준 기체인 팔**은 안 곱해 띠가 굳어 있었다 — 실제 전수조사 팔이
+    #  전부 이쪽이다(예: `ours_r15_n8192_ps0.6_mfixbatteryi5_blperairframe`).
+    #  ⚠어긋남은 정확히 1/ps 배다: ps0.5 면 띠가 2.00 배 넓고 ps2.0 이면 0.50 배 좁다.
+    #  ⚠부호가 양쪽으로 갈린다 — 띠가 넓으면 바닥이 늘어 낮게, 좁으면 위 차수를 놓친다.
+    #  [실측 2026-09-10, outputs/elev_sweep_shards · 이 파일의 고친 식으로 다시 잼]
+    #    `ours_r15_n8192_ps0.6_…`             el −60 : f_tip 636.0 → 381.6 Hz,
+    #                                          띠 안 차수 4 → 2,  comb 28.68 → 51.99 dB
+    #    `ours_r15_n8192_gndconcrete20_ps2_…` el −30 : f_tip 1101.6 → 2203.3 Hz,
+    #                                          차수 5 → 11, comb 45.74 → 40.27 dB
+    #  ⚠여기 f_tip 은 FTIP0 눈금이라 elevation_sweep_md.f_tip_at(381.9 / 2204.8)과
+    #    0.07 % 다르다 — :98-99 가 미리 적어 둔 그 몫이고 일부러 남긴다.
+    #  ⚠`_ps` 꼬리표가 없으면 배율 1.0 이라 **옛 팔의 값은 한 비트도 안 바뀐다**(검산 완료).
+    #  ⚠`_fs`(프레임)·`_bs`(동체)는 팁속도에 안 걸리므로 여기서 읽지 않는다.
+    _mps = re.search(r"_ps([0-9.]+)", arm or "")
+    _ps = 1.0
+    if _mps:
+        try:
+            _ps = float(_mps.group(1))
+        except ValueError:
+            _ps = 1.0
     return (FTIP0 * np.cos(np.radians(float(el))) * (carrier_of(arm) / FC0_HZ)
-            * (blade_of(arm) / F0))
+            * (blade_of(arm) / F0) * _ps)
 
 
 def load(arm, el):

@@ -906,8 +906,18 @@ def run(a) -> None:
                     #   그래서 지연 → 실수부 → 허수부 순으로 열쇠를 겹쳐 완전히 결정한다.
                     _hv = _t
                     _ord = np.lexsort((_hv.imag, _hv.real, tau[hit]))
-                    _t = _t[_ord]
-                E[j] = complex(np.sum(_t))
+                    #: ⛔⛔2026-09-10 에 고침 — 전에는 `_t = _t[_ord]` 로 **덮어썼다.**
+                    #:   아래 중복제거는 `aa[hit]`·`tau[hit]`·`O[..][hit]` 로 열쇠를 만들어
+                    #:   **정렬 전 순서**의 색인(`_first`)을 얻는데, 그 색인을 **정렬된**
+                    #:   `_t` 에 그대로 먹여 **엉뚱한 경로를 골랐다.** 겹친 줄이 하나만
+                    #:   있어도 값이 갈린다(합성 3,000 판 중 2,517 판이 다른 값).
+                    #:   ⚠`E`·`npaths`·`nret`·`n_dup` 은 순열에 무관해 멀쩡했다 —
+                    #:     틀린 것은 `E_dedup` 하나이고, 그것도 `n_dup > 0` 인 자세만이다.
+                    #:   ⇒ `_t` 는 정렬 전 순서로 두고, **합칠 때만** 정렬한 사본을 쓴다.
+                    _t_sum = _t[_ord]
+                else:
+                    _t_sum = _t
+                E[j] = complex(np.sum(_t_sum))
                 npaths[j] = int(hit.sum())
                 nret[j] = int(aa.size)          # ⭐마스크 «전» 수
                 #: ⭐같은 줄을 한 번만 센 합 — 열쇠는 «물체·삼각형·진폭·지연» 넷이다.
@@ -924,7 +934,13 @@ def run(a) -> None:
                 if _pr is not None and _pr.size:
                     _cols += [_pr[d][hit].astype(float) for d in range(_pr.shape[0])]
                 _u, _first = np.unique(np.stack(_cols, axis=1), axis=0, return_index=True)
-                E_dedup[j] = complex(np.sum(_t[np.sort(_first)]))
+                #: ⭐색인은 **정렬 전** `_t` 에 먹인다. --det 면 **고른 뒤에** 다시 정렬해
+                #:   더한다 — 그래야 E_dedup 도 경로 순서와 무관해진다(전에는 E 만 그랬다).
+                _sel = np.sort(_first)
+                _td = _t[_sel]
+                if getattr(a, "det", False):
+                    _td = _td[np.lexsort((_td.imag, _td.real, tau[hit][_sel]))]
+                E_dedup[j] = complex(np.sum(_td))
                 n_dup[j] = int(_t.size - _first.size)
             if dd is not None:
                 RP.drop_scratch(dd)
@@ -1078,7 +1094,16 @@ def analyse() -> None:
             #  그 축은 접는다」는 규약을 원장만 보고는 지킬 수 없다.
             #  (2026-09-06 에 지면 거칠기 판이 1,999,98x 로 상한에 붙은 채
             #   「거칠면 환경 몫이 준다」로 읽힐 뻔한 것이 이 병이다.)
-            n_tr, n_seen, cap_seen = 0, 0, None
+            #: ⭐⭐**상한은 칸 전체를 읽고 나서 정한다** (2026-09-10 정정).
+            #  전에는 이 고리가 샤드를 읽어 나가는 «도중에» 알게 된 상한만 믿었다 —
+            #  옛 세대 샤드(n_trunc 없음 · nret 있음)가 상한을 아는 샤드보다 **먼저**
+            #  오면 `cap_seen` 이 아직 None 이라 그 샤드는 세지도 않고 조용히 넘어갔다.
+            #  ⛔실측(2026-09-10): 거칠기 칸(envoutdoor01_S0.3 · S0.7 · el+0 · −30)은
+            #    두 장 다 옛 세대라 상한을 어디서도 못 얻는다 ⇒ 자세 8,192/8,192 가
+            #    1,999,98x 로 상한에 붙어 있는데 원장에는 n_trunc=0 · truncated=false 로
+            #    실린다. 「상한이 결과를 정하면 그 축은 접는다」를 원장만 보고는 못 지킨다.
+            n_tr, n_seen = 0, 0
+            _caps, _pend = set(), []     # 이 칸이 쓴 상한들 · 상한을 아직 모르는 옛 샤드
             for f in fs:
                 z = np.load(f); ii = z["idx"].astype(int)
                 if E is None:
@@ -1089,16 +1114,28 @@ def analyse() -> None:
                     _nt = np.asarray(z["n_trunc"]).ravel()
                     n_tr += int(_nt[0]); n_seen += int(ii.size)
                     if _nt.size > 1:
-                        cap_seen = int(_nt[1])
-                elif "nret" in z and cap_seen:
-                    #: 옛 세대라 n_trunc 는 없지만 nret 는 있는 샤드 — 여기서 센다
-                    n_tr += int(np.count_nonzero(
-                        np.asarray(z["nret"]) >= 0.99 * cap_seen))
-                    n_seen += int(ii.size)
+                        _caps.add(int(_nt[1]))
+                elif "nret" in z:
+                    #: 옛 세대라 n_trunc 는 없지만 nret 는 있는 샤드 — 상한이 정해진
+                    #  뒤(고리 밖)에서 센다. ⛔여기서 세면 아직 안 읽은 샤드가 들고 있는
+                    #  상한을 못 쓴다.
+                    _pend.append((np.asarray(z["nret"]).copy(), int(ii.size)))
                 # ⭐행마다 자기 판을 싣는다 — 한 원장에 10 m 와 15 m 가 함께 살기 때문.
                 #   옛 샤드에는 cfg 가 없으므로 모듈 기본값으로 채운다.
                 if cfg is None and "cfg" in z:
                     cfg = np.asarray(z["cfg"], float)
+            #: ⭐한 칸 안에서 상한이 갈리면(--max_paths 로 올려 다시 돌린 샤드가 섞이면)
+            #  «하나로 못 적는다» 로 둔다 — 옛 상한으로 새 샤드를 재지 않는다.
+            cap_seen = next(iter(_caps)) if len(_caps) == 1 else None
+            #: 상한을 한 장도 못 얻은 칸은 **규약 기본값**으로 잰다
+            #  (report15_probe.py:104 — SIONNA2_MAX_PATHS 없으면 2,000,000).
+            #  가정한 값이므로 아래 prov 에 그 사실을 함께 적는다 — 「안 잘렸다」로
+            #  조용히 넘어가지 않는다.
+            _cap_default = int(os.environ.get("SIONNA2_MAX_PATHS", 2_000_000))
+            _cap_for_old = cap_seen if cap_seen else _cap_default
+            for _nr, _n in _pend:
+                n_tr += int(np.count_nonzero(_nr >= 0.99 * _cap_for_old))
+                n_seen += _n
             miss = int((E == 0).sum())
             ft = f_tip_at(el, eng)
             series[f"{eng}/el{el:+g}"] = E
@@ -1140,6 +1177,9 @@ def analyse() -> None:
             prov["n_trunc"] = int(n_tr)
             prov["n_poses_with_path_count"] = int(n_seen)
             prov["max_paths_cap"] = cap_seen
+            #: ⛔상한을 샤드에서 못 얻어 규약 기본값으로 잰 칸이면 그 사실을 적는다.
+            prov["max_paths_cap_assumed"] = (_cap_for_old if (_pend and not cap_seen)
+                                             else None)
             prov["truncated"] = bool(n_tr)
             if n_tr:
                 prov["truncation_warning_ko"] = (

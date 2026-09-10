@@ -27,8 +27,8 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_prec
 
 **원문:**
 
-- [RESUME_0909.md:29](../work/sweep_0904/RESUME_0909.md#L29)
-> | 동체만 (0914 의 `bs`) | 0.86 | — |
+- [RESUME_0909.md:41](../work/sweep_0904/RESUME_0909.md#L41)
+> | 동체만 ×0.5 (`bs0.5`) | **80** | 0.9524 |
 
 - [read_0914_0908.json:311](../outputs/read_0914_0908.json#L311)
 > "C 깊이/깊이 3 ∩ D 크기/동체 ×0.5": {
@@ -45,8 +45,8 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_prec
 
 **원문:**
 
-- [RESUME_0909.md:25](../work/sweep_0904/RESUME_0909.md#L25)
-> | 무엇을 바꿨나 | 자카드 | 우연이면 |
+- [RESUME_0909.md](../work/sweep_0904/RESUME_0909.md) — ⭐**이 문구는 그 뒤 고쳐져 현재 파일에 없다.** 아래는 검토 당시 원문이다.
+> | 무엇을 바꿨나 | 자카드
 
 - [read_0918B_0909.py:145](../benchmark/read_0918B_0909.py#L145)
 > "expected_if_unrelated": round(na * nb / N, 2),
@@ -63,8 +63,8 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_prec
 
 **원문:**
 
-- [RESUME_0909.md:34](../work/sweep_0904/RESUME_0909.md#L34)
-> 널이 0.89~0.92 인데 프롭·프레임을 건드리면 **0 언저리로 흩어진다.** 동체(0.86)는 널 안이다.
+- [RESUME_0909.md](../work/sweep_0904/RESUME_0909.md) — ⭐**이 문구는 그 뒤 고쳐져 현재 파일에 없다.** 아래는 검토 당시 원문이다.
+> 동체(0.86)는 널 안이다
 
 - [read_0918B_0909.py:195](../benchmark/read_0918B_0909.py#L195)
 > "표본을 통째로 다시 뽑는 널은 ±5 % 예산(3.8e9·4.2e9) 뿐이다.",
@@ -72,7 +72,7 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_prec
 - [ray_tracing.py:29](/workspace/.venvs/py312/lib/python3.12/site-packages/sionna/rt/utils/ray_tracing.py#L29)
 > y = ns/(num_points-1)
 
-- [elevation_sweep_md.py:876](../benchmark/elevation_sweep_md.py#L876)
+- [elevation_sweep_md.py:893](../benchmark/elevation_sweep_md.py#L893)
 > samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS, seed=1)
 
 ## 4. 프레임 배율은 허브 위치만 바꾸는 대조가 아니다
@@ -93,8 +93,8 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_prec
 - [articulated_fast.py:169](../src/articulated_fast.py#L169)
 > cx, cy, cz = (np.asarray(rot["center"], float) * self.frame_scale)
 
-- [RESUME_0909.md:13](../work/sweep_0904/RESUME_0909.md#L13)
-> 실외 «무너짐» 은 **프롭·허브 기하가 정한다** — 동체는 아니다. 그리고 어제까지
+- [RESUME_0909.md](../work/sweep_0904/RESUME_0909.md) — ⭐**이 문구는 그 뒤 고쳐져 현재 파일에 없다.** 아래는 검토 당시 원문이다.
+> 프롭·허브 기하가 정한다
 
 ## 5. 날개 박자보다 낮은 노치라는 이유로 신호 불변을 주장한다
 

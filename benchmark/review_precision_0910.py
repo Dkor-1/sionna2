@@ -38,11 +38,21 @@ def js(path): return json.loads(read(path))
 
 
 def source(path, needle):
+    """살아 있는 grep 으로 원문을 뜬다. ⛔없으면 «고쳐졌다» 로 적는다 — 죽지 않는다.
+
+    ⛔2026-09-10: 이 검토가 지적한 문구 셋이 실제로 **고쳐지자** next() 가
+      StopIteration 으로 죽어 생성기 전체가 못 돌았다(이 파일이 굽는 .md·.ipynb·
+      .json 이 낡은 판으로 굳었다). 바늘을 새 글자로 갈면 «검토가 겨눈 옛 글자» 를
+      가리키지 못하므로, 바늘은 그대로 두고 **못 찾았다는 사실**을 남긴다.
+    """
     lines = read(path).splitlines()
-    line = next(i for i, s in enumerate(lines, 1) if needle in s)
+    line = next((i for i, s in enumerate(lines, 1) if needle in s), None)
+    if line is None:
+        return dict(path=str(path), line=None, quote=needle, fixed=True)
     full = lines[line-1]
     start = max(0, full.index(needle)-60)
-    return dict(path=str(path), line=line, quote=full[start:start+500].strip())
+    return dict(path=str(path), line=line, quote=full[start:start+500].strip(),
+                fixed=False)
 
 
 def pure_functions(path, names, globals_):
@@ -310,7 +320,13 @@ def render(out):
                   '**다음 확인:** '+f['followup'],'','**원문:**','']
         for s in f['sources']:
             p=Path(s['path']); target=str(p) if p.is_absolute() else '../'+str(p)
-            lines += [f"- [{p.name}:{s['line']}]({target}#L{s['line']})",'> '+s['quote'],'']
+            if s.get('fixed'):
+                lines += [f"- [{p.name}]({target}) — ⭐**이 문구는 그 뒤 고쳐져 "
+                          '현재 파일에 없다.** 아래는 검토 당시 원문이다.',
+                          '> '+s['quote'],'']
+            else:
+                lines += [f"- [{p.name}:{s['line']}]({target}#L{s['line']})",
+                          '> '+s['quote'],'']
     lines += ['## 이번에 유지한 정정과 드러나지 않은 문제','']
     for el,r in c['corrected_marked_positions'].items():
         lines += [f"- 거리 협곡 앙각 {el}°: 표시 마스크 {r['n_marked']}개 중 {r['n_above_global_median']}개가 "
