@@ -257,20 +257,47 @@ def short_labels(arms: list[str]) -> dict[str, str]:
 # ═══════════════════════════════════════════════════════════════════════════ #
 #  팔마다의 «박자»와 «날개끝 상한» — ⚠기체 태그를 반드시 반영한다
 # ═══════════════════════════════════════════════════════════════════════════ #
+def prop_scale_tag(arm: str) -> float:
+    """팔 이름의 `_ps<k>` — 프로펠러 지름 배율. 없으면 1.0.
+
+    ⛔⛔**2026-09-10 결함 정정.** `--prop-scale` 은 회전수를 안 건드리고 프롭 지름만 바꾸므로
+      **f_tip 은 이 배율에 비례**한다(src/articulated_fast.py:114 「회전수 고정이므로 박자
+      주파수는 불변이고 f_tip 은 prop_scale 에만 비례한다」). 그런데 이 아틀라스는 팔 이름에서
+      배율을 읽는 코드가 아예 없어 ps 팔 17 개·34 칸의 띠가 x1.0 자리에 굳어 있었다.
+      ⚠생산자 `elevation_sweep_md.f_tip_at` 은 2026-08-31 에 이미 고쳐서 원장 rows 에
+        891.0 Hz 를 싣는데, 이 색인은 같은 팔·같은 칸에 1272.9 Hz 를 실어 **두 발간물이
+        서로 어긋나 있었다.** 정정 기록: docs/RETRACTION_LOG.md
+      ⚠`_fs`(프레임 12 팔)·`_bs`(동체 9 팔)는 **읽지 않는다.** 프레임 배율은 허브 중심만
+        평행이동시키고(src/articulated_fast.py:169·171) 회전 반경을 안 바꾸므로 팁속도에
+        안 걸린다. 그 팔들의 지금 값은 맞다 — 함께 곱하면 멀쩡한 팔이 망가진다.
+      ⚠파서를 딴 파일로 빼지 않고 여기 둔다 — CODE_MTIME(:136-137)이 이 파일과
+        src/md_mapstyle.py 만 보므로, 셋째 파일에 두면 그 파일만 고쳤을 때 다시 굽지 않는다.
+    """
+    m = re.search(r"_ps([0-9.]+)", arm or "")
+    if not m:
+        return 1.0
+    try:
+        return float(m.group(1))
+    except ValueError:
+        return 1.0
+
+
 def arm_rates(arm: str) -> dict:
     """f_flash(날개 통과율) 와 f_tip 의 0° 값. 기체 태그가 있으면 **그 기체**의 제원.
 
-    f_flash = 날개 수 × 호버rpm / 60      [Hz]  — 앙각과 무관
-    f_tip   = 2·(2π f_rev R)/λ · cos(el)  [Hz]  — cos(el) 로 줄어든다
+    f_flash = 날개 수 × 호버rpm / 60           [Hz]  — 앙각과 무관. ⭐배율에도 무관하다.
+    f_tip   = 2·(2π f_rev R·ps)/λ · cos(el)   [Hz]  — cos(el) 로 줄고 프롭 배율에 비례한다
     """
     key = airframe_tag(arm) or DRONE_DEFAULT
     s = DRONES[key]
     f_rev = float(s.hover_rpm) / 60.0
     lam = C_LIGHT / FC
-    ftip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0)) / lam
+    ps = prop_scale_tag(arm)
+    ftip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0) * ps) / lam
     return dict(drone=key, drone_label=s.name,
                 f_flash_hz=int(s.prop_blades) * f_rev,
                 f_tip0_hz=ftip0,
+                prop_scale=ps,
                 tagged=airframe_tag(arm) is not None)
 
 
