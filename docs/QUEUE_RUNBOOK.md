@@ -1,5 +1,10 @@
 # 큐 직접 돌리기 — 터미널 런북
 
+> ⛔⛔**`pgrep -f` 를 쓰지 마라.** 같은 명령줄에 그 이름이 들어가는 순간 제 셸이 죽는다
+> (exit 144 · `docs/RESUME.md:45`). 이 런북은 2026-09-10 에 전부 `ps` + `[대괄호]` 로 바꿨다.
+> ⭐큐는 **2 단**이다 — 감독자(한 큐를 돌린다) 위에 지킴이(큐가 마르면 다음 큐를 띄운다)가 있다.
+> 1 절을 먼저 읽는다.
+
 > 감독자(`runners/worker_supervisor.py`)와 워커(`benchmark/elevation_sweep_md.py`)를
 > **직접** 짜고 돌리고 멈추는 법. 2026-08-25 기준, 지금 돌고 있는 그 코드 기준으로 썼다.
 
@@ -13,7 +18,14 @@ PY=/workspace/.venvs/py312/bin/python
 
 ## 1. 구조 — 누가 무엇을 하나
 
+⭐**2 단이다.** 아래 칸이 «한 큐를 돌리는» 감독자고, 위 칸이 «큐가 마르면 다음 큐를 띄우는»
+지킴이다. 08-25 판 런북에는 아래 칸만 있었다(지킴이는 08-27 에 생겼다 — 2026-09-10 보강).
+
 ```
+queue_chain_XXXX.txt ──► queue_keeper_XXXX.sh ─┐   (지킴이: 30 초마다 «감독자가 있나» 보고
+ (다음에 띄울 잡 파일    (감독자가 0 명일 때만    │    없으면 사슬의 다음 줄을 띄운다)
+  목록. # 은 주석)       다음 줄을 띄운다)        │
+                                                 ▼
 jobs.txt  ──►  worker_supervisor.py  ──►  elevation_sweep_md.py  ──►  outputs/elev_sweep_shards/*.npz
  (한 줄 =        (큐를 혼자 읽고            (실제 계산. GPU 하나                (샤드 파일)
   잡 하나)        워커를 띄운다)             를 잡고 돈다)
@@ -22,6 +34,50 @@ jobs.txt  ──►  worker_supervisor.py  ──►  elevation_sweep_md.py  ─
 - **감독자는 하나만** 돈다. 큐를 혼자 읽어 나눠 주므로 둘 띄우면 **같은 잡이 중복 배정**된다.
 - 감독자는 **워커를 죽이지 않는다**(저장소 규칙, 0811 사고). 줄일 때는 «끝난 자리를 안 채우는»
   방식으로만 줄인다.
+- 감독자는 큐를 **시작할 때 메모리로 읽고** 커서로 진행한다. 그래서 죽으면 **처음부터** 돈다 —
+  이어 돌리려면 남은 줄만 담은 새 파일을 만들어 띄운다(`runners/QUEUE_STATE_0908.md`).
+
+### 지킴이 — 큐가 저절로 이어지는 구조
+
+| 것 | 파일 | 하는 일 |
+|---|---|---|
+| 사슬 | `runners/queue_chain_XXXX.txt` | 다음에 띄울 잡 파일 목록. 한 줄에 하나, `#` 은 주석 |
+| 지킴이 | `runners/queue_keeper_0827.sh` | 30 초마다 감독자 수를 세고, **0 명이면** 사슬의 다음 줄을 띄운다 |
+| 이미 띄운 목록 | `runners/logs/queue_chain_XXXX_done.txt` | 한 번 띄운 줄은 다시 안 본다 |
+| 지킴이 로그 | `runners/logs/queue_keeper_XXXX.log` | 「▶ 다음 큐 띄움」·「사슬 소진 — 지킴이 종료」 |
+
+- ⛔**사슬에 적힌 파일만** 띄운다. 없는 파일은 「건너뜀」으로 찍고 다시 안 본다.
+- ⛔**파일을 먼저 만든 뒤** 사슬에 적는다. 순서를 뒤집으면 그 줄이 영영 안 돈다.
+- ⛔손으로 띄운 큐는 사슬에 **적지 않는다** — 적으면 그 큐가 두 번 뜬다.
+- 사슬이 비면 지킴이는 **스스로 종료**한다. 그때부터 GPU 가 논다 — 마르기 전에 다음 잡 파일을
+  만들어 사슬에 적어 둔다.
+- 지킴이가 띄우는 감독자는 `SIONNA2_MAX_TOTAL=9` 다(스크립트에 박혀 있다). 손으로 띄울 때
+  쓰는 값과 다를 수 있으니 **로그의 «상한» 을 믿는다**.
+
+### 발주 흐름 — 한 잡이 도는 데까지
+
+```
+① runners/make_jobs_XXXX.py       물음·죽는조건·안답함을 적고 잡 줄을 낸다
+        │                          ⛔줄만 적지 않는다 — «무엇을 안 답하는가» 를 함께 적는다
+        ▼  python runners/make_jobs_XXXX.py > runners/jobs_XXXX.txt
+② runners/jobs_XXXX.txt
+        │
+        ▼  ⭐발주 전 반드시 — runners/filter_jobs.sh
+③ NEW · DONE · STALE 로 가른다     NEW 만 사는 것이 기본. STALE 은 물음이 n_dup 을 필요로
+        │                          할 때만 --overwrite 로 다시 산다
+        ▼
+④ runners/queue_chain_XXXX.txt 에 그 파일 이름을 적는다   (⛔파일을 먼저 만든 뒤에)
+        │
+        ▼
+⑤ 지킴이가 감독자를 띄운다 → 감독자가 워커를 띄운다 → 샤드가 떨어진다
+```
+
+거르는 한 줄:
+
+```bash
+grep -vE "^\s*(#|$)" runners/jobs_XXXX.txt \
+  | xargs -d"\n" -P 4 -I{} runners/filter_jobs.sh {} | cut -d"|" -f1 | sort | uniq -c
+```
 
 ---
 
@@ -98,7 +154,7 @@ setsid nohup $PY runners/worker_supervisor.py runners/jobs_mine.txt \
 
 | 변수 | 기본 | 뜻 |
 |---|---|---|
-| `SIONNA2_MAX_TOTAL` | 8 | 목표 배분의 **예산** 상한(투입 차단선이 아니다) |
+| `SIONNA2_MAX_TOTAL` | 8 | 목표 배분의 **예산** 상한(투입 차단선이 아니다) ⚠지킴이는 **9** 로 띄운다(`queue_keeper_0827.sh`). 손으로 띄운 판이 다를 수 있으니 **감독자 로그의 «상한» 을 믿는다** |
 | `SIONNA2_HARD_TOTAL` | 12 | **절대선**. 이걸 넘겨선 안 띄운다 |
 | `SIONNA2_THREADS` | 2 | 워커당 스레드. ⛔올리지 말 것 — 스레드 폭주의 원인 |
 | `SIONNA2_CPUS` | 자동 | 우리 몫 CPU 코어 수. CPU 브레이크의 분모 |
@@ -141,7 +197,9 @@ tail -f runners/logs/sup_mine.log.workererr
   내 큐 몫만 세려면 **감독자 시작 시각 이후 mtime** 으로 거른다:
 
 ```bash
-SUP=$(pgrep -f 'runners/worker_supervisor.py' | head -1)
+# ⛔pgrep -f 를 쓰지 마라 — 같은 명령줄에 그 이름이 있는 순간 **제 셸이 죽는다**(exit 144).
+#   ps 로 뽑고 이름은 [대괄호]로 갈라 자기 자신을 안 잡게 한다.
+SUP=$(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)
 T0=$(( $(date +%s) - $(ps -o etimes= -p $SUP | tr -d ' ') ))
 echo "내 큐가 낸 샤드: $(find outputs/elev_sweep_shards -name '*.npz' -newermt "@$T0" | wc -l)"
 ```
@@ -153,22 +211,33 @@ echo "내 큐가 낸 샤드: $(find outputs/elev_sweep_shards -name '*.npz' -new
 ### 건강 확인 (좀비·고아)
 
 ```bash
-echo "감독자 $(pgrep -fc 'runners/worker_supervisor.py') · 워커 $(pgrep -fc 'benchmark/elevation_sweep_md.py') · 좀비 $(ps -eo stat= | grep -c '^Z')"
+# ⛔pgrep -f 금지(위 참조). ps + [대괄호] 로 센다.
+echo "감독자 $(ps -eo args= | grep -c '[w]orker_supervisor.py') · 워커 $(ps -eo args= | grep -c '[e]levation_sweep_md.py') · 좀비 $(ps -eo stat= | grep -c '^Z')"
 # 워커의 부모가 전부 감독자인지 (고아 검사)
-for p in $(pgrep -f 'benchmark/elevation_sweep_md.py'); do
+for p in $(ps -eo pid,args= | grep '[e]levation_sweep_md.py' | awk '{print $1}'); do
   echo "  $p ← ppid $(ps -o ppid= -p $p | tr -d ' ')"
 done
 ```
 
-⚠**자기 셸이 같이 잡힌다.** `pgrep -f` 는 명령줄 문자열을 보므로 위 명령을 담은 셸도
-매칭된다. 개수가 하나 많게 나오면 대개 그것이다 — `ps -o args=` 로 확인한다.
+⚠**세는 것만으로도 틀린다.** 명령줄 문자열을 보는 셈법(`pgrep -f` · `ps | grep`)은
+그 이름을 담은 **다른 셸**까지 센다. `[대괄호]` 로 제 셸은 갈라도, 지킴이가 30 초마다 띄우는
+부분셸(`queue_keeper_0827.sh` 안의 `grep -cE '…runners/worker_supervisor'`)이 표본에 걸리면
+개수가 하나 많게 나온다 — 2026-09-10 에 감독자 1 을 3 으로, 워커 10 을 12 로 셌다.
+
+⭐**흔들리지 않는 셈법** — 실행 파일이 python 이고 첫 인자가 그 스크립트인 것만 센다:
+
+```bash
+sup() { ps -eo pid,args= | awk '$2 ~ /\/python[0-9.]*$/ && $3 ~ /worker_supervisor\.py$/ {n++} END{print n+0}'; }
+wrk() { ps -eo pid,args= | awk '$2 ~ /\/python[0-9.]*$/ && $3 ~ /elevation_sweep_md\.py$/ {n++} END{print n+0}'; }
+echo "감독자 $(sup) · 워커 $(wrk) · 좀비 $(ps -eo stat= | grep -c '^Z')"
+```
 
 ---
 
 ## 5. 멈추기 — ⛔여기가 제일 위험하다
 
 ```bash
-SUP=$(pgrep -f 'runners/worker_supervisor.py' | head -1)
+SUP=$(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)   # ⛔pgrep -f 금지
 kill -TERM $SUP          # ⭐한 번만
 ```
 
@@ -230,7 +299,10 @@ E[np.asarray(d["idx"]).astype(int)] = np.asarray(d["E"]).ravel()
 
 | 함정 | 증상 | 대응 |
 |---|---|---|
-| 감독자 둘 | 같은 잡이 두 번 돈다 | 띄우기 전에 `pgrep -fc` 로 0 인지 확인 |
+| 감독자 둘 | 같은 잡이 두 번 돈다 | 띄우기 전에 위 `sup()` 로 0 인지 확인 (⛔`pgrep -f` 금지) |
+| 사슬에 손으로 띄운 큐를 적음 | 그 큐가 두 번 뜬다 | 손으로 띄운 것은 사슬에 **안 적는다** |
+| 사슬에 없는 파일을 적음 | 조용히 건너뛴다 | **파일을 먼저 만든 뒤** 사슬에 적는다 |
+| 사슬이 마름 | 지킴이가 스스로 끝나고 GPU 가 논다 | 마르기 전에 다음 잡 파일을 만들어 사슬에 적는다 |
 | TERM 두 번 | 고아 워커 | 한 번만. 오래 걸려도 기다린다 |
 | 잡 파일 추가 | 아무 일도 안 일어남 | 재시작해야 읽는다 |
 | `큐 i/N` 오독 | 진척을 과대평가 | 샤드 수로 읽는다 |
@@ -245,9 +317,9 @@ E[np.asarray(d["idx"]).astype(int)] = np.asarray(d["E"]).ravel()
 
 ```bash
 cd /workspace/sionna; PY=/workspace/.venvs/py312/bin/python
-pgrep -fc 'worker_supervisor.py'                                   # 0 이어야 띄운다
+ps -eo args= | grep -c '[w]orker_supervisor.py'                     # 0 이어야 띄운다 (⛔pgrep -f 금지)
 setsid nohup $PY runners/worker_supervisor.py runners/jobs_mine.txt \
   runners/logs/sup_mine.log >/dev/null 2>&1 &                      # 띄우기
 tail -f runners/logs/sup_mine.log                                  # 보기
-kill -TERM $(pgrep -f 'worker_supervisor.py' | head -1)            # 멈추기(한 번만)
+kill -TERM $(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)   # 멈추기(한 번만)
 ```
