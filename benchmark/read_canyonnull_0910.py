@@ -71,20 +71,86 @@ def stem(spp: int, rep: int, env: bool) -> str:
     return f"{s}_{MESH}_d2"
 
 
+def _trunc_of(z, fname):
+    """샤드 하나의 «경로 상한에 붙은 자세 수». 없으면 None.
+
+    ⛔⛔**저장값을 그대로 싣지 않는다** (2026-09-10 검증에서 잡혔다).
+      `n_trunc` 는 [잘린 자세 수, 그때 쓴 상한] 두 칸인데, 그 첫 칸은 **구울 때의 문턱**으로
+      센 값이다. 문턱은 0.999 → 0.99 로 한 번 내려갔고(elevation_sweep_md.py:957-959
+      「문턱을 0.999 로 잡았더니 실제 포화를 놓쳤다 ⇒ 0.99 로 내린다」), 옛 문턱으로 구운
+      샤드가 창고에 남아 있다. 실측: `n_trunc`·`nret` 을 함께 가진 샤드 576 장 가운데
+      **14 장이 어긋나고, 그중 12 장은 저장값이 0 인데 지금 규칙으로는 전 자세가 «상한 근접
+      경고» 에 해당**한다. ⛔「잘렸다」로 옮겨 적지 않는다 — 아래 단서 그대로 이것은 돌아온
+      경로 수의 어림수이지 후보가 잘렸다는 직접 증거가 아니다(검토자 지적 2026-09-10).
+      ⇒ 저장값은 `stored` 로만 남기고, **저장된 `nret` 과 저장된 상한으로 지금 규칙을
+        다시 계산**한 값을 싣는다. `nret` 이 없는 옛 샤드는 `None`(진단 미수집)이다.
+      ⛔«경고 없음» 과 «진단 미수집» 을 같은 것으로 세지 않는다.
+    ⚠`nret` 은 돌아온 경로 수라 상한 근접의 **어림수**다 — 후보가 잘렸는지를 직접 잰 것이
+      아니다. 0 이라고 «안 잘렸다» 가 증명되지는 않는다.
+    """
+    has_nt = "n_trunc" in z.files
+    stored, cap = None, None
+    if has_nt:
+        _nt = np.asarray(z["n_trunc"]).ravel()
+        stored = int(_nt[0])
+        cap = int(_nt[1]) if _nt.size > 1 else None
+    #: ⛔상한이 안 적힌 샤드를 규약값 CAP 으로 메우지 않는다 — 그 샤드가 어느 상한으로
+    #  구워졌는지 모르는 채 «경고 없음» 을 만들어 내게 된다(검토자 지적 2026-09-10).
+    #  ⇒ «미확인» 으로 남긴다.
+    if cap is None:
+        return dict(file=fname, stored=stored, cap=None, recomputed=None,
+                    note_ko="샤드에 상한이 안 적혔다 — 미확인(규약값으로 메우지 않는다)")
+    if "nret" not in z.files:
+        return dict(file=fname, stored=stored, cap=cap, recomputed=None,
+                    note_ko="nret 없음 — 진단 미수집")
+    nr = np.asarray(z["nret"])
+    return dict(file=fname, stored=stored, cap=cap,
+                #: ⭐이름 그대로 «상한 근접 경고에 해당하는 자세 수» 다. ⛔«잘린 자세 수» 가 아니다.
+                recomputed=int(np.count_nonzero(nr >= 0.99 * cap)),
+                nret_max=int(nr.max()), n_poses=int(nr.size))
+
+
 def load(name: str, el: float):
+    """샤드를 idx 로 이어 붙인다. ⭐idx 를 **버리지 않고** 온전성을 함께 싣는다.
+
+    ⛔⛔2026-09-10 검증 정정 — 전에는 `argsort` 의 재료로만 쓰고 idx 를 버려서
+      **중복·누락을 못 봤다.** 합성 자료로 재현했다: 8,192 행이지만 고유 인덱스가 4,096 뿐인
+      칸을 그대로 받아들였다(길이만 맞으면 통과).
+    ⚠그렇다고 여기서 **거절하지는 않는다.** 샤드는 여러 장으로 엇갈려 채워지고 큐가 도는
+      중에는 반쪽 칸이 정상적으로 존재한다. 판정은 부르는 쪽(main·_deck_mask_table)이 한다.
+    """
     fs = sorted(glob.glob(f"{SHD}/{name}_el{el:+g}_*.npz"))
     if not fs:
         return None, 0
-    E, I, P, D = [], [], [], []
+    E, I, P, D, TR = [], [], [], [], []
+    n_expected = None
     for f in fs:
         z = np.load(f)
         E.append(z["E"]); I.append(z["idx"])
         P.append(z["npaths"] if "npaths" in z.files else np.full(z["idx"].shape, -1))
         D.append(z["n_dup"] if "n_dup" in z.files else np.full(z["idx"].shape, -1))
-    o = np.argsort(np.concatenate(I))
+        TR.append(_trunc_of(z, os.path.basename(f)))
+        if "meta" in z.files:
+            _m = np.asarray(z["meta"]).ravel()
+            if _m.size > 3:
+                n_expected = int(_m[3])          # 이 칸이 원래 몇 자세짜리인가
+    idx = np.concatenate(I)
+    o = np.argsort(idx)
+    idx_sorted = idx[o]
+    n_uni = int(np.unique(idx).size)
+    ok = bool(n_uni == idx.size
+              and (n_expected is None or idx.size == n_expected)
+              and np.array_equal(idx_sorted, np.arange(idx.size)))
+    #: 진단 미수집(옛 샤드)과 «경고 없음» 을 가른다
+    _rec = [t["recomputed"] for t in TR if t["recomputed"] is not None]
     return dict(E=np.concatenate(E)[o], npaths=np.concatenate(P)[o],
                 n_dup=np.concatenate(D)[o], n_shards=len(fs),
-                trunc=[], files=[os.path.basename(f) for f in fs]), len(fs)
+                trunc=TR,
+                n_trunc_now=(int(sum(_rec)) if _rec else None),
+                n_shards_without_diag=int(len(TR) - len(_rec)),
+                idx_ok=ok, n_rows=int(idx.size), n_unique=n_uni,
+                n_expected=n_expected,
+                files=[os.path.basename(f) for f in fs]), len(fs)
 
 
 #: ⭐덱이 쓰는 잣대로도 함께 잰다 — ⛔다시 구현하지 않고 **덱의 함수를 그대로 부른다**.
@@ -109,7 +175,9 @@ def _deck_mask_table(loadfn, stemfn, els, cells):
         rows = {}
         for nm, spp, rep in cells:
             c, n = loadfn(stemfn(spp, rep, True), el)
-            if c is None or n < 2 or c["E"].size != mb.size:
+            #: ⭐2026-09-10 — 길이만 보던 게이트에 **idx 온전성**을 더한다. 이 표가 덱의
+            #  96·339 를 만드는 자리라 main() 쪽만 고치면 덱이 옛 게이트에 남는다.
+            if c is None or n < 2 or c["E"].size != mb.size or not c["idx_ok"]:
                 continue
             m = hampel_mask(np.abs(c["E"]), 51, 5.0)
             inter = int((m & mb).sum()); uni = int((m | mb).sum())
@@ -120,7 +188,9 @@ def _deck_mask_table(loadfn, stemfn, els, cells):
 
 
 def main() -> int:
-    out = {"_meta": {"made": "benchmark/read_canyonnull_0910.py",
+    out = {"_meta": {#: ⭐관문(check_new_file_rules.py:166)이 보는 키는 «generator» 다 —
+                     #  «made» 로 적어 «못 굽는 원장» 으로 걸리던 것을 고친다(2026-09-10).
+                     "generator": "benchmark/read_canyonnull_0910.py",
                      "scene": ENV, "arm": ARM, "range_m": 15, "depth": 2,
                      "n_poses": 8192, "dev_rule": DEV, "path_cap": CAP,
                      "what_ko": "협곡에서 «아무것도 안 바꿨을 때» 사건 목록이 얼마나 흔들리나",
@@ -138,6 +208,17 @@ def main() -> int:
                 missing.append(dict(cell=nm, scene_shards=ns, free_shards=nf))
                 print(f"  ⏳{nm:<24} 샤드 부족 (협곡 {ns} · 빈하늘 {nf}) — 건너뛴다")
                 continue
+            #: ⭐2026-09-10 — 자세 인덱스가 빠짐없이 한 번씩 있는 칸만 읽는다.
+            #  ⛔거절 사유를 «샤드 부족» 과 섞지 않는다 — 반쪽 칸이 조용히 실리던 자리다.
+            if not (sc["idx_ok"] and fr["idx_ok"]):
+                missing.append(dict(cell=nm, why="자세 인덱스가 온전하지 않다",
+                                    scene=dict(rows=sc["n_rows"], unique=sc["n_unique"],
+                                               expected=sc["n_expected"]),
+                                    free=dict(rows=fr["n_rows"], unique=fr["n_unique"],
+                                              expected=fr["n_expected"])))
+                print(f"  ⛔{nm:<24} 자세 인덱스 불완전 "
+                      f"(협곡 {sc['n_unique']}/{sc['n_rows']} · 빈하늘 {fr['n_unique']}/{fr['n_rows']})")
+                continue
             if sc["E"].size != fr["E"].size:
                 missing.append(dict(cell=nm, why="자세 수 불일치")); continue
             r = measure(fr, sc)
@@ -145,6 +226,18 @@ def main() -> int:
                 missing.append(dict(cell=nm, why="measure 실패")); continue
             flags[nm] = r.pop("_flag")
             r["files_scene"] = sc["files"]
+            #: ⭐상한 근접 진단 — 지금 규칙(0.99×저장된 상한)으로 다시 센 값. 미수집은 따로 센다.
+            r["path_cap"] = dict(
+                scene=dict(n_trunc_now=sc["n_trunc_now"],
+                           shards_without_diag=sc["n_shards_without_diag"]),
+                free=dict(n_trunc_now=fr["n_trunc_now"],
+                          shards_without_diag=fr["n_shards_without_diag"]),
+                note_ko=("«상한 근접 경고에 해당하는 자세 수» 다 — 저장된 nret 과 저장된 "
+                         "상한으로 지금 문턱(0.99)을 다시 적용해 셌다. ⛔«잘린 자세 수» 로 "
+                         "옮겨 적지 않는다: nret 은 돌아온 경로 수의 어림수이지 후보가 잘렸다는 "
+                         "직접 계측이 아니다. 샤드에 적힌 n_trunc 는 구울 때의 문턱(0.999 세대가 "
+                         "섞여 있다)이라 그대로 싣지 않고 stored 로만 남긴다. "
+                         "null 은 «진단 미수집·미확인» 이고 «경고 없음» 이 아니다."))
             cells[nm] = r
             print(f"  {nm:<24} 사건 {r['n_static_changed']:>4} ({r['share_pct']:>5} %)"
                   f" · 경로중앙 {r.get('npaths_median')}"
@@ -179,7 +272,10 @@ def main() -> int:
         "⛔다시 구현하지 않고 덱의 함수를 그대로 불러 쟀다. "
         "실측(2026-09-10): el−30 은 96 → 114(−5 %)·112(+5 %) 로 **수까지 움직이고**, "
         "el−60 은 339 → 332·335 로 **수는 안정한데 집합이 0.80·0.83 만 겹친다** — "
-        "즉 자세 다섯 중 하나쯤이 다른 자세다.")
+        #: ⛔2026-09-10 정정 — 분모를 적는다. 셋이 서로 다른 수다.
+        "겹침 0.80 은 **합집합에서 공통이 아닌 몫** 이 20.1 %(75/373)라는 뜻이다 — "
+        "기준 사건의 탈락률은 12.1 %(41/339)이고 전체 자세 8,192 중 판정이 바뀐 몫은 "
+        "0.92 %(75/8,192)다. 세 비율의 분모가 다르니 «다섯 중 하나» 를 분모 없이 말하지 않는다.")
     out["limits_ko"] = [
         "⛔«널» 이 아니다 — 초기 광선은 씨앗 없는 결정적 피보나치 격자다"
         "(sionna/rt/utils/ray_tracing.py:24-30). 되풀이가 1.000 이면 «수치 재현성» 이고, "

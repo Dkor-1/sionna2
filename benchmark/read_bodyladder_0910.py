@@ -11,7 +11,9 @@
     판독기가 그중 둘만 읽고 있었을 뿐이다. ⇒ 새로 살 것이 없다. 읽기만 하면 된다.
 
 ■ 잣대는 read_0918B_0909.py 를 **그대로 가져다 쓴다**(import). 새로 만들지 않는다.
-  문턱 없는 셈: D = E_장면 − E_빈하늘 이 중앙에서 |중앙 D|×0.5 넘게 벗어난 자세.
+  D = E_장면 − E_빈하늘 이 중앙에서 |중앙 D|×0.5 넘게 벗어난 자세 — **상대 편차 문턱**이다.
+  ⛔「문턱 없는 셈」이라 부르지 않는다(2026-09-10 정정, 근원 read_0918B_0909.py).
+  안 쓰는 것은 레벨 문턱(|E| < 자세중앙×0.1)뿐이다. ⛔DEV 는 자유 파라미터다.
 
 ■ ⛔이 판독기가 답하지 않는 것
   · ⛔«왜» 에는 답하지 않는다 — 몇 개가 살아남나까지다.
@@ -75,7 +77,7 @@ def main() -> int:
         cells[key] = r
 
     print(f"■ 동체 배율 사다리 · 앙각 {EL:+g} · 우리 씬 땅만 · 팔 R0D0E0F1 · 4e9 · 깊이 2")
-    print(f"  잣대 DEV={DEV} (문턱 없는 셈)\n")
+    print(f"  잣대 DEV={DEV} — 상대 편차 문턱(레벨 문턱은 안 쓴다). ⛔자유 파라미터다\n")
     for bs, tail in LADDER:
         take(f"동체 ×{bs:g}", stem(env="outdoor01_ground", tail=tail), stem(tail=tail))
     for spp, nm in GRID:
@@ -126,7 +128,9 @@ def main() -> int:
     print(f"  격자를 갈았을 때 남은 수(참고선): {grid}")
     print(f"  단조로 줄어드나: {mono}")
 
-    out = {"_meta": {"made": "benchmark/read_bodyladder_0910.py",
+    out = {"_meta": {#: ⭐관문(check_new_file_rules.py:166)이 보는 키는 «generator» 다 —
+                     #  «made» 로 적어 «못 굽는 원장» 으로 걸리던 것을 고친다(2026-09-10).
+                     "generator": "benchmark/read_bodyladder_0910.py",
                      "elevation_deg": EL, "arm": "R0D0E0F1", "spp": 4_000_000_000,
                      "scene": "outdoor01_ground", "depth": 2, "dev_rule": DEV,
                      "n_poses": int(fb.size), "baseline_events": nb},
