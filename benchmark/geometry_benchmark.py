@@ -1427,7 +1427,13 @@ def handoff(rj):
             note="mono_link.json : handoff.patch_requests[1] 과 동일 — 두 워크플로가 같은 패치를 요청한다"),
         patch_experiment_freespace_sigma=dict(
             file="src/experiment_freespace_sigma.py",
-            why="결함 D1 — `sigma_anchor` 참조 0회, 앵커가 리포트 계층에만 있다",
+            #: ⛔2026-09-10 — 「참조 0회」는 2026-08-04 배선으로 거짓이 됐다.
+            #  남은 결함은 «배선 안 됨» 이 아니라 «발행 격자에 실체화 안 됨» 이다.
+            why=("결함 D1 — `sigma_anchor` 는 배선돼 있으나(참조 %d회) 발행 σ 격자에 "
+                 "`sigma_anchored_dbsm` 이 실체화되지 않았다"
+                 % open(os.path.join(_ROOT, "src",
+                                     "experiment_freespace_sigma.py"),
+                        encoding="utf-8").read().count("sigma_anchor")),
             patch="σ 격자 생산 시 sigma_anchor 의 측정 기울기(0.210 dB/GHz)를 밴드축에 적용하고, "
                   "meta 에 적용 여부와 기울기를 기록한다",
             effect="R90 밴드별 ×0.900 / ×1.110 / ×1.001 · 승자 여유 3.48 → 8.31 dB"),

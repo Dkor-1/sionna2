@@ -1,7 +1,7 @@
 {
  "meta": {
   "script": "benchmark/geometry_benchmark.py",
-  "generated": "2026-09-10T06:14:39",
+  "generated": "2026-09-10T06:21:46",
   "question": "2×3 지도에서 각 칸은 무엇을 보고, 기존 주장은 어느 기하에서 서는가",
   "contract": [
    "docs/PAPER_SPEC.md §0 · §5",
@@ -32,7 +32,7 @@
    "freespace_link.duty_db_from_cpi"
   ],
   "house_rules": "산문·print 한국어 · 그림 텍스트 영어 · 수치는 저장소에서만 · 마크다운 표도 이 스크립트가 찍는다",
-  "runtime_s": 1.62
+  "runtime_s": 1.61
  },
  "headline": "지도가 채워졌다. 6칸을 가르는 것은 확산항이 아니라 **간섭항과 통제권**이다 — 검지 한계에서 기하 0.441 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB. 무모호 속도의 바닥은 기하와 무관하고(차이 0 m/s), 속도창의 동적범위 M/(2·bins) 에서도 기하가 소거된다 — 기하는 창을 통째로 밀고 CPI 가 폭을 정한다. 주장 18개 + 신규 4개 중 both 13 · monostatic only 3 · passive only 1 · bistatic only 1 · neither 4 이고, C16(자세분해 σ)이 바이에서 drop 이면서 모노에서 서는 유일한 승격 항목이다.",
  "map": {
@@ -1556,7 +1556,7 @@
   },
   "patch_experiment_freespace_sigma": {
    "file": "src/experiment_freespace_sigma.py",
-   "why": "결함 D1 — `sigma_anchor` 참조 0회, 앵커가 리포트 계층에만 있다",
+   "why": "결함 D1 — `sigma_anchor` 는 배선돼 있으나(참조 13회) 발행 σ 격자에 `sigma_anchored_dbsm` 이 실체화되지 않았다",
    "patch": "σ 격자 생산 시 sigma_anchor 의 측정 기울기(0.210 dB/GHz)를 밴드축에 적용하고, meta 에 적용 여부와 기울기를 기록한다",
    "effect": "R90 밴드별 ×0.900 / ×1.110 / ×1.001 · 승자 여유 3.48 → 8.31 dB"
   },
