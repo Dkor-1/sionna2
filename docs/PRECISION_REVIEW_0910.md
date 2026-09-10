@@ -109,12 +109,12 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_prec
 **원문:**
 
 - [clutter_parts_ladder_0824.py:76](../benchmark/clutter_parts_ladder_0824.py#L76)
-> FCUT = 100.0                                   # ECA 노치 — f_flash(126.7) 아래라 신호 불변
+> FCUT = 100.0                                   # 노치 폭(cs_eca) — 날개 박자 126.7 Hz 는 이 대역 밖이다
 
-- [clutter_parts_ladder_0824.py:162](../benchmark/clutter_parts_ladder_0824.py#L162)
-> · 날개 박자 126.7 Hz 는 노치 가장자리보다 26.7 Hz 위 — **신호를 안 건드린다**
+- [clutter_parts_ladder_0824.py](../benchmark/clutter_parts_ladder_0824.py) — ⭐**이 문구는 그 뒤 고쳐져 현재 파일에 없다.** 아래는 검토 당시 원문이다.
+> 신호를 안 건드린다
 
-- [clutter_parts_ladder_0824.py:176](../benchmark/clutter_parts_ladder_0824.py#L176)
+- [clutter_parts_ladder_0824.py:185](../benchmark/clutter_parts_ladder_0824.py#L185)
 > X[np.abs(fr) <= fcut] = 0.0
 
 ## 6. 같은 자세를 보간해도 노치와 보간의 순서가 결과를 바꾼다
