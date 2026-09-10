@@ -15,7 +15,7 @@
 ├─ 방법 ──────────────────────────────────────────────────────────────┤
 아카이브 인구조사(정규식 4중 스크린 → 후보 전부 개봉) + Crossref/Semantic Scholar 로 게재정보 확정. 게재지는 **PDF 마스트헤드 우선**, PDF 에 없으면 Crossref 라고 명시한다.
 ├─ 재현 ──────────────────────────────────────────────────────────────┤
-`PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c "import fitz; ..."` (PDF 축자 대조) · 산출 `outputs/injection_verdict.json`
+`PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python -c "import fitz; ..."` (PDF 축자 대조) · 산출 `outputs/injection_verdict.json`
 └─────────────────────────────────────────────────────────────────────┘
 
 ---

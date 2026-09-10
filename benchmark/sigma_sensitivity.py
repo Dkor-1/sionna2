@@ -166,6 +166,45 @@ def lead_db(cell_a, cell_b, snr90, off_a=0.0, off_b=0.0, lo=-40.0, hi=40.0, tol=
 # --------------------------------------------------------------------------- #
 #  main
 # --------------------------------------------------------------------------- #
+def _anchor_wiring_finding() -> str:
+    """앵커가 생산 σ 사슬에 걸렸나 — ⛔박지 말고 **세고 열어서** 쓴다 (2026-09-10 신설).
+
+    ⛔전에는 「sigma_anchor 참조가 0 회다」를 문자열로 박아 두었다. 2026-08-04(e40b6aa8)에
+      앵커가 실제로 배선되면서 그 수가 **거짓**이 됐는데, 문자열이라 아무 관문도 못 잡았다.
+      ⇒ 참조 수는 소스를 세고, 결론은 **발행 격자를 열어** 확인해서 쓴다.
+    """
+    src_p = os.path.join(ROOT, "src", "experiment_freespace_sigma.py")
+    try:
+        txt = open(src_p, encoding="utf-8").read()
+    except OSError:
+        return "⛔src/experiment_freespace_sigma.py 를 못 읽었다 — 배선 여부를 못 적는다"
+    n_all = txt.count("sigma_anchor")
+    n_code = 0
+    for ln in txt.splitlines():
+        t = ln.strip()
+        if "sigma_anchor" in ln and not t.startswith("#") and not t.startswith('"""'):
+            n_code += 1
+    grid_p = os.path.join(ROOT, "outputs", "report13_sigma_grid.json")
+    try:
+        anchored = "sigma_anchored_dbsm" in open(grid_p, encoding="utf-8").read()
+    except OSError:
+        anchored = None
+    if anchored is True:
+        tail = ("발행 격자 report13_sigma_grid.json 에 `sigma_anchored_dbsm` 이 **있다** — "
+                "이 결함이 닫혔다고 볼 근거가 생겼다. ⛔사람이 확인할 것.")
+    elif anchored is False:
+        tail = ("⭐다만 발행 격자 report13_sigma_grid.json 에는 `sigma_anchored_dbsm` 이 "
+                "**없고 delta 스칼라만** 있다 — 실체화가 선택이기 때문이다"
+                "(src/experiment_freespace_sigma.py:647). 그래서 «앵커가 제거했다»는 "
+                "차분오차는 R90 사슬에서 **아직 제거되지 않았다**.")
+    else:
+        tail = "⛔발행 격자를 못 읽어 실체화 여부를 못 적는다."
+    return ("앵커는 생산 σ 사슬에 **배선돼 있다** — src/experiment_freespace_sigma.py 에 "
+            "sigma_anchor 참조 %d 회(그중 코드 %d 줄). "
+            "⚠2026-09-10 정정: 전 판이 적던 «참조 0 회» 는 2026-08-04 배선으로 거짓이 됐다. "
+            % (n_all, n_code) + tail)
+
+
 def main():
     t0 = time.time()
     os.makedirs(FIGDIR, exist_ok=True)
@@ -422,9 +461,10 @@ def main():
         n_order_changed=sum(1 for v in scen.values() if v["order_changed"]),
         slope_range_db_per_ghz=[float(min(v["our_production_slope_db_per_ghz"] for v in scen.values())),
                                 float(max(v["our_production_slope_db_per_ghz"] for v in scen.values()))],
-        finding=("생산 σ 격자는 앵커된 기울기를 갖고 있지 않다. experiment_freespace_sigma.py 에 "
-                 "sigma_anchor 참조가 0 회다 — 앵커는 리포트 계층에서만 쓰인다. 그래서 "
-                 "'앵커가 제거했다'는 차분오차는 R90 사슬에서 아직 제거되지 않았다."))
+        #: ⛔⛔2026-09-10 — 이 문장이 「sigma_anchor 참조가 **0 회**」를 박아 두었는데
+        #  2026-08-04(e40b6aa8)에 앵커가 그 파일에 **배선됐다**. 박아 둔 수가 거짓이 됐다.
+        #  ⭐결론(발행 격자가 앵커를 안 담았다)은 그대로 서지만 근거를 다시 세게 한다.
+        finding=_anchor_wiring_finding())
 
     # ── S6. 밴드별 독립 랜덤 오차 MC ────────────────────────────────────────
     print("[S6] 밴드별 독립오차 MC …")

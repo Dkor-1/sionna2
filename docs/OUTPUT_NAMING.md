@@ -142,14 +142,14 @@
 
 ```bash
 # 1) 예행 — 옮길 파일과 바꿀 참조를 전부 찍는다 (기본값. 아무것도 바꾸지 않는다)
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rename_outputs.py
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rename_outputs.py
 
 # 2) 한 항목만 자세히 보고 싶을 때
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rename_outputs.py \
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rename_outputs.py \
     --only report13_freespace.json -v
 
 # 3) 실제 적용 — 두 깃발을 다 줘야 한다. 실행 중 프로세스가 잡히면 스스로 멈춘다
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rename_outputs.py \
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/rename_outputs.py \
     --apply --pipeline-is-idle
 ```
 

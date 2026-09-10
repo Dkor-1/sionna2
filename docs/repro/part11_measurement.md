@@ -4,7 +4,7 @@
 
 | 편 | 앵커 | 무엇을 만드나 | 출력 | 소요 |
 |---|---|---|---|---|
-| 67 | `hardware` | 12-bit ADC 동적범위 74.01 dB 는 직접파 제거에 거는 상한 하나다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
+| 67 | `hardware` | 공칭 ADC 비트 수의 이상적 양자화 SNR은 74.01 dB다 — 소거 한계의 실측값은 아니다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 68 | `sigma-checklist` | 교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 69 | `site-geometry` | 가장 보수적인 D 정의로도 세션 거리 하나가 두 기체 세 밴드를 덮는다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
 | 70 | `calibration-sphere` | 구가 σ 를 절대량으로 만들고, 반경 17.8 cm 를 고른다 | `outputs/report06_measurement.json`, `outputs/measurement_plan.json`, `outputs/report06_derived.json` | 약 10 초 (CPU) |
@@ -21,7 +21,7 @@
 ### 편 67 `hardware`
 
 ```bash
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c "import sigma_anchor as S; S.write_measurement_plan()"
-PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/plan_measurement.py
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python -c "import sigma_anchor as S; S.write_measurement_plan()"
+PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/make_report06_measurement.py
 ```

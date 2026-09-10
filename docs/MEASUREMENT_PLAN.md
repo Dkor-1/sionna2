@@ -4,7 +4,7 @@
 > 구조: **1층 σ(f) 레인지** · **2층 파형축** · **3층 비행 검출** + **검증 = 실제 3점(수신 전용)**
 > 생성: 숫자표(§A~E)는 `src/sigma_anchor.py` 의 `measurement_plan()` 이 계산한다 →
 > `outputs/measurement_plan.json`. 표를 갱신하려면
-> `PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python -c "import sigma_anchor as S; S.write_measurement_plan()"`
+> `PYTHONPATH=src:benchmark SIONNA2_CPU=1 /workspace/.venvs/py312/bin/python -c "import sigma_anchor as S; S.write_measurement_plan()"`
 > 2층·검증·3층의 숫자는 `benchmark/measurement_layers.py` → `outputs/measurement_layers.json`.
 >
 > 읽는 순서: **§0 (구조) → §1 (1층 조건) → §5 (2층) → §6 (검증) → §7 (3층) → §8 (비 소거논증의 한계)**.

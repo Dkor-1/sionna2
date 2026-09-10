@@ -583,9 +583,15 @@ def live_defects(mp):
     order_corr = sorted(BANDS, key=lambda b: -(mp["cells"][6 + BANDS.index(b)]["R90_m"] * f_both[b]))
 
     return dict(
-        D1=dict(name="앵커가 리포트 계층에만 있고 생산 σ 사슬 밖에 있다",
-                evidence="src/experiment_freespace_sigma.py 에 `sigma_anchor` 참조 0회 "
-                         "⟨sigma_sensitivity.json : scenario_apply_measured_slope.finding⟩",
+        #: ⛔2026-09-10 — 이름도 낡았다. 앵커는 2026-08-04 에 **배선됐다**(참조 13 회).
+        #  남아 있는 결함은 «배선 안 됨» 이 아니라 «발행 격자에 실체화 안 됨» 이다
+        #  (report13_sigma_grid.json 에 sigma_anchored_dbsm 이 없고 delta 스칼라만 있다).
+        D1=dict(name="앵커가 배선은 됐으나 발행 σ 격자에 실체화되지 않았다",
+                #: ⛔2026-09-10 — 「참조 0회」를 박아 두었는데 2026-08-04 에 배선됐다.
+                #  원장이 **세어서** 적는 문장을 그대로 옮긴다(여기에 박지 않는다).
+                evidence=(SIG["scenario_apply_measured_slope"]["finding"]
+                          + " ⟨sigma_sensitivity.json : "
+                            "scenario_apply_measured_slope.finding⟩"),
                 grep_count=int(sum(1 for _ in open(
                     os.path.join(_ROOT, "src", "experiment_freespace_sigma.py"),
                     encoding="utf-8").read().split("sigma_anchor")) - 1),
@@ -602,9 +608,14 @@ def live_defects(mp):
                        "로 오르고, 그때 비로소 현실 오차범위 "
                        f"{SIG['configurations']['realistic_span_db']:.4g} dB 밖으로 나간다")),
         D2=dict(name="듀티 축이 정의만 되고 R90 생산경로 밖에 있다",
-                evidence="`freespace_link.duty_db_from_cpi` 정의됨 · "
-                         "src/experiment_freespace_range.py 호출 0회 "
-                         "⟨sigma_sensitivity.json : unapplied_duty_axis.finding⟩",
+                #: ⛔2026-09-10 — 「호출 0회」를 박아 두었다. 지금은 참이지만(직접 셈)
+                #  D1 이 그렇게 조용히 낡았다. ⇒ 세어서 쓴다.
+                evidence=("`freespace_link.duty_db_from_cpi` 정의됨 · "
+                          "src/experiment_freespace_range.py 호출 %d회 "
+                          "⟨sigma_sensitivity.json : unapplied_duty_axis.finding⟩"
+                          % open(os.path.join(_ROOT, "src",
+                                              "experiment_freespace_range.py"),
+                                 encoding="utf-8").read().count("duty_db_from_cpi")),
                 duty_db=SIG["unapplied_duty_axis"]["duty_db"],
                 R90_factor_x=f_duty,
                 cells_affected="6칸 전부 — 자원격자가 정하는 값이라 기하와 무관하다",

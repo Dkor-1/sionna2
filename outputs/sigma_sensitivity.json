@@ -1,7 +1,7 @@
 {
  "_meta": {
   "producer": "benchmark/sigma_sensitivity.py",
-  "generated": "2026-09-06T08:33:31",
+  "generated": "2026-09-10T06:13:10",
   "question": "σ 오차 아래에서 WiFi/LTE/5G 파형 순위가 살아남는가 — 벤치마크 논문의 성립 여부를 가르는 계산",
   "reads": [
    "outputs/report13_sigma_grid.json",
@@ -30,7 +30,7 @@
   "realistic_differential_span_db": 5.013463000000001,
   "sigma_linearity_check": 1.2289068237691936e-05,
   "note": "σ 는 SNR 에 선형(k_sigma_invariance≈1e-5)이라 σ 오프셋 Δ dB = SNR 오프셋 Δ dB. 따라서 오프셋 재해는 근사가 아니라 항등이다.",
-  "runtime_s": 10.5,
+  "runtime_s": 10.3,
   "figures": [
    "outputs/figures/sigma_sens_f1_differential.png",
    "outputs/figures/sigma_sens_f2_common_mode.png",
@@ -8104,7 +8104,7 @@
    -0.041603849666156295,
    1.8864412423027825
   ],
-  "finding": "생산 σ 격자는 앵커된 기울기를 갖고 있지 않다. experiment_freespace_sigma.py 에 sigma_anchor 참조가 0 회다 — 앵커는 리포트 계층에서만 쓰인다. 그래서 '앵커가 제거했다'는 차분오차는 R90 사슬에서 아직 제거되지 않았다."
+  "finding": "앵커는 생산 σ 사슬에 **배선돼 있다** — src/experiment_freespace_sigma.py 에 sigma_anchor 참조 13 회(그중 코드 9 줄). ⚠2026-09-10 정정: 전 판이 적던 «참조 0 회» 는 2026-08-04 배선으로 거짓이 됐다. ⭐다만 발행 격자 report13_sigma_grid.json 에는 `sigma_anchored_dbsm` 이 **없고 delta 스칼라만** 있다 — 실체화가 선택이기 때문이다(src/experiment_freespace_sigma.py:647). 그래서 «앵커가 제거했다»는 차분오차는 R90 사슬에서 **아직 제거되지 않았다**."
  },
  "monte_carlo_per_band_error": {
   "by_drone": {

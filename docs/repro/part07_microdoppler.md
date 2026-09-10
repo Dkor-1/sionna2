@@ -12,7 +12,7 @@
 | 39 | `md-blade-vs-body` | matrice4e 배 쪽 3.5 GHz 한 칸에서 프로펠러 채널은 레벨이 20.70 dB 낮고 변조 깊이는 0.73 → 5.93 dB 로 깊다 | `outputs/report15b_microdoppler.json`, `outputs/report15b_series.npz` | 약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔) |
 | 40 | `md-attitude` | 지상 레이더는 기체를 아래에서 보므로 가림이 무는 자세가 우리 자세다 | `outputs/report15b_microdoppler.json`, `outputs/report15b_series.npz` | 약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔) |
 | 41 | `md-calibration` | 문턱은 널 팔이 교정했고, 가장자리 시험은 아직 교정되지 않았다 | `outputs/report15_null_control.json`, `outputs/report15_verdict_geomref.json`, `outputs/report15_verdict.json`, `outputs/report15_attack_stats.json` | 약 35 분 (GPU 1장 — 널 팔 13 개 [^14]) |
-| 42 | `md-ray-budget` | 두 기체가 갈리는 축은 메쉬 품질이 아니라 표적 크기 대비 광선예산이다 — 예산을 맞춰 확인하는 시험은 이 하네스에서 아직 못 한다 | `outputs/report15_attack_spp_ladder.json`, `outputs/report15_attack_stats.json` | 약 36 분 (GPU 1장 — 사다리 전량 재추적) |
+| 42 | `md-ray-budget` | 예산 사다리에서 판정 통계가 경로수에 따라 변했다 — 예산을 맞춰 확인하는 시험은 이 하네스에서 아직 못 한다 | `outputs/report15_attack_spp_ladder.json`, `outputs/report15_attack_stats.json` | 약 36 분 (GPU 1장 — 사다리 전량 재추적) |
 | 43 | `md-prf` | 상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다 | `outputs/md_range_sweep.json` | 약 12 분 (GPU 1장) |
 
 ## 명령
@@ -20,40 +20,40 @@
 ### 편 34 `md-paths-doppler`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_probe.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_probe.py
 ```
 
 ### 편 35 `md-slowtime`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/build_report15b_figs.py
 ```
 
 ### 편 36 `md-two-engines`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_po_control.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_po_control.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_verdict.py
 ```
 
 ### 편 41 `md-calibration`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_null_control_v2.py
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_stats.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_null_control_v2.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_attack_stats.py
 ```
 
 ### 편 42 `md-ray-budget`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_spp_ladder.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python benchmark/report15_attack_spp_ladder.py
 ```
 
 ### 편 43 `md-prf`
 
 ```bash
-PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_md_range.py
+PYTHONPATH=src /workspace/.venvs/py312/bin/python src/experiment_md_range.py
 ```

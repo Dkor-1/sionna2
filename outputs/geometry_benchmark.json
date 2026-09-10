@@ -1,7 +1,7 @@
 {
  "meta": {
   "script": "benchmark/geometry_benchmark.py",
-  "generated": "2026-07-31T09:07:56",
+  "generated": "2026-09-10T06:14:39",
   "question": "2×3 지도에서 각 칸은 무엇을 보고, 기존 주장은 어느 기하에서 서는가",
   "contract": [
    "docs/PAPER_SPEC.md §0 · §5",
@@ -32,7 +32,7 @@
    "freespace_link.duty_db_from_cpi"
   ],
   "house_rules": "산문·print 한국어 · 그림 텍스트 영어 · 수치는 저장소에서만 · 마크다운 표도 이 스크립트가 찍는다",
-  "runtime_s": 2.39
+  "runtime_s": 1.62
  },
  "headline": "지도가 채워졌다. 6칸을 가르는 것은 확산항이 아니라 **간섭항과 통제권**이다 — 검지 한계에서 기하 0.441 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB. 무모호 속도의 바닥은 기하와 무관하고(차이 0 m/s), 속도창의 동적범위 M/(2·bins) 에서도 기하가 소거된다 — 기하는 창을 통째로 밀고 CPI 가 폭을 정한다. 주장 18개 + 신규 4개 중 both 13 · monostatic only 3 · passive only 1 · bistatic only 1 · neither 4 이고, C16(자세분해 σ)이 바이에서 drop 이면서 모노에서 서는 유일한 승격 항목이다.",
  "map": {
@@ -64,7 +64,10 @@
     "s1000plus": null,
     "phantom4": 20.0,
     "typhoonh480": 13.5,
-    "x500v2": null
+    "x500v2": null,
+    "phantom3": 16.0,
+    "m350rtk": 23.0,
+    "mini2": 16.0
    },
    "band_used_ms": [
     5.0,
@@ -856,10 +859,11 @@
     "geometry_verdict": "both",
     "why": "σ 사슬이 두 팔에서 동일하다(모노는 같은 격자의 β=0 조회)",
     "evidence": {
-     "slope_mean": 0.24621813638904827,
+     "slope_mean": 0.25355442792540145,
+     "slope_note_ko": "⚠15 전역 적합의 평균이다 — 셀별 0.223~0.256, 국소 0.049~0.357(7.2배). 4 자리 단일값은 거짓 정밀이다(R11)",
      "monostatic_dsigma_db": 0.0
     },
-    "action": "없음",
+    "action": "⚠**항등식이지 발견이 아니다** — 세 모드가 같은 σ/R⁴ 사슬을 쓰므로 균일 dB 오프셋은 모든 곡선을 같은 양만큼 평행이동시킨다. 국소 최대 0.357 은 이론 상한 0.25 를 넘으므로 σ 격자 고도 조회의 계단 아티팩트다(RETRACTION_LOG R11)",
     "previous_status": "defensible"
    },
    {
@@ -904,7 +908,7 @@
     "why": "v_max 축은 기하 무관이고, σ·R90 축도 네 배치 전부에서 조명원 순위가 같다 — 기하를 바꿔도 답이 안 바뀐다는 직접 증거를 얻었다",
     "evidence": {
      "ranking_same_across_placements": "σ 격자를 가진 7 기체 전부에서 조명원 순위가 네 배치에 걸쳐 동일하다(True). 기하를 바꿔도 조명원 축의 답이 안 바뀐다 — 두 축이 독립이라는 직접 증거다.",
-     "winner_margin_db_aspect_avg_anchored": 8.313102722167969,
+     "winner_margin_db_aspect_avg_anchored": 8.310966491699219,
      "R90_span_m": [
       5306.078391945501,
       6958.339331238738
@@ -1104,7 +1108,7 @@
   "paragraph": [
    "우리는 기하와 조명원을 **서로 독립인 두 축**으로 세우고, 그 위에 통제 축(PRF 가 설계변수인가 주어진 값인가)을 세 번째로 얹는다. 세 축을 분리하면 각 축이 무엇을 정하는지가 수치로 갈린다 — 검지 한계에서 기하 0.44 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB 다.",
    "⭐ **무모호 속도의 바닥은 기하와 무관하다.** 모노스태틱은 바이스태틱의 β=0 특수해이고 두 값의 차이는 0 m/s 다. 바이스태틱은 β 가 커질수록 관대해진다(β=90° 에서 1.414배). 그래서 우리가 발표해온 1.07 / 14.39 / 40.67 m/s 는 **두 기하의 최악값**이며, 검지 한계(β 중앙 2.92°)에서는 그 최악값이 곧 실제값이다.",
-   "⭐ **링크버짓은 다르다.** 기하의 링크버짓 기여는 20log10(R_조명원/R_센서) 한 줄이고 장면 방위에 따라 부호가 뒤집히며 최대 23.2 dB 까지 벌어진다. 같은 항이 검지 한계(d ≈ 14L)에서는 0.44 dB 로 죽는다 — 기하 축은 근거리에 산다. ⛔**RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측) — 그 수는 φ 가 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고 단일 d 칸 값이다. φ 의존은 사실상 없다(R90 span 0.48 % · φ=90° 가 세 팔 모두 최소).",
+   "⭐ **링크버짓은 다르다.** 기하의 링크버짓 기여는 20log10(R_조명원/R_센서) 한 줄이고 장면 방위에 따라 부호가 뒤집힌다. ⛔여기 적혀 있던 «최대 23.2 dB» 는 RETRACTION_LOG R14 가 무효화했다(2026-08-03 φ 실측 스윕 72 점) — 그 수는 φ 의 성질이 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고, 단일 d 칸 값이며 R90 동작점에서는 **≤1.20 dB**(d 중앙값 ≤3.10 dB)다. φ 의존은 사실상 없다 — R90 span 0.48 %(≤0.083 dB)이고 **φ=90° 가 세 팔 모두 최소**다. 같은 항이 검지 한계(d ≈ 14L)에서는 0.44 dB 로 죽는다 — 기하 축은 근거리에 산다.",
    "**통제 축이 왜 같은 법칙을 한쪽에만 구속으로 만드는가.** 능동 모노스태틱은 반복률을 고른다 — 3GPP sub-6 CSI-RS 천장 500 Hz 에서 v_max = 10.71 m/s 로 패시브 SSB 1.071 m/s 의 10배다. 패시브는 망이 정한 값을 받는다. 같은 식이 한쪽에서는 설계 여유이고 다른 쪽에서는 벽이다.",
    "**LaSen(SenSys '26 게재)이 능동 모노스태틱 5G 칸을 차지한다.** 그 칸이 작동한다는 것을 실측으로 보였고, 탈출구로 반복률이 아니라 데이터 심볼(X[m,n] 기지)을 썼다. 그 칸이 서 있기 때문에 패시브 칸의 속도 한계가 실패가 아니라 **설계공간의 경계**가 된다.",
    "⚠ **경계선을 정확히 긋는다.** 통제 축의 진짜 경계는 '모노 vs 패시브' 가 아니라 '기준신호만 쓰기 vs 전 파형 쓰기' 다. 500 Hz CSI-RS 는 망이 설정하면 패시브도 받고, 패시브도 복조·재변조로 전 파형 레인(1 kHz → 21.4 m/s)에 들어갈 수 있다. 모노스태틱이 공짜로 갖는 것은 그 레인의 **입장료**다."
@@ -1118,7 +1122,7 @@
   ],
   "novelty_guard": [
    "Rzewuski(NATO STO 2021)가 드론 바이스태틱 RCS → 커버리지 → 50 m 실외 검출을 이미 닫았다 — '최초' 류를 쓰지 않는다",
-   "v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · Abratkiewicz 2023 이 5G SSB 에 적용했다",
+   "v_max = λ·PRF/(4cos(β/2)cosδ) 의 우선권은 **Abratkiewicz 외, IEEE JSTARS 16:3469-3484 (2023), 식 (16) p.3476** 이다 — 반구간 규약까지 같다. Chen 2024(Appl. Sci. 14:4282)는 **닫힌 식이 없다**('PRF' 0회) — 우리 이전 기록의 Chen 귀속은 철회됐다",
    "v·R = c·λ/8 은 Skolnik 의 고전 결과다"
   ]
  },
@@ -1154,19 +1158,19 @@
  },
  "live_defects": {
   "D1": {
-   "name": "앵커가 리포트 계층에만 있고 생산 σ 사슬 밖에 있다",
-   "evidence": "src/experiment_freespace_sigma.py 에 `sigma_anchor` 참조 0회 ⟨sigma_sensitivity.json : scenario_apply_measured_slope.finding⟩",
-   "grep_count": 0,
+   "name": "앵커가 배선은 됐으나 발행 σ 격자에 실체화되지 않았다",
+   "evidence": "앵커는 생산 σ 사슬에 **배선돼 있다** — src/experiment_freespace_sigma.py 에 sigma_anchor 참조 13 회(그중 코드 9 줄). ⚠2026-09-10 정정: 전 판이 적던 «참조 0 회» 는 2026-08-04 배선으로 거짓이 됐다. ⭐다만 발행 격자 report13_sigma_grid.json 에는 `sigma_anchored_dbsm` 이 **없고 delta 스칼라만** 있다 — 실체화가 선택이기 때문이다(src/experiment_freespace_sigma.py:647). 그래서 «앵커가 제거했다»는 차분오차는 R90 사슬에서 **아직 제거되지 않았다**. ⟨sigma_sensitivity.json : scenario_apply_measured_slope.finding⟩",
+   "grep_count": 13,
    "measured_slope_db_per_ghz": 0.21,
-   "our_production_slope_db_per_ghz": 1.2884017636859721,
+   "our_production_slope_db_per_ghz": -0.041603849666156295,
    "R90_factor_x": {
-    "wifi": 0.9000316040231489,
-    "lte": 1.1096950156399699,
-    "nr": 1.0010997947284943
+    "wifi": 1.0249078795748086,
+    "lte": 0.9760044700713237,
+    "nr": 0.9997434964151558
    },
    "cells_affected": "6칸 전부 — σ 사슬은 두 기하가 공유한다",
    "geometry_axis_impact": "0 — 밴드별 공통모드라 두 행에 같은 배율이 곱해진다. 기하 비교는 불변, 조명원 비교는 바뀐다",
-   "worth": "자세평균 승자 여유가 3.48 dB → 8.313 dB 로 오르고, 그때 비로소 현실 오차범위 5.013 dB 밖으로 나간다"
+   "worth": "자세평균 승자 여유가 2.666 dB → 8.311 dB 로 오르고, 그때 비로소 현실 오차범위 5.013 dB 밖으로 나간다"
   },
   "D2": {
    "name": "듀티 축이 정의만 되고 R90 생산경로 밖에 있다",
@@ -1177,9 +1181,9 @@
     "G1": -16.020599913279625
    },
    "R90_factor_x": {
-    "wifi": 0.4727405306375256,
+    "wifi": 0.4754352317388451,
     "lte": 1.0,
-    "nr": 0.3944216954480569
+    "nr": 0.3960112174347388
    },
    "cells_affected": "6칸 전부 — 자원격자가 정하는 값이라 기하와 무관하다",
    "geometry_axis_impact": "0 — mono_link.views.duty_axis.check 에서 φ·기하 기여 0 확인",
@@ -1190,91 +1194,91 @@
     "cell_id": "A-wifi",
     "illuminator": "wifi",
     "R90_m": 357.6572201615733,
-    "R90_anchored_m": 321.9028015524813,
-    "R90_anchored_duty_m": 152.17650121962612,
-    "factor_anchor_x": 0.9000316040231489,
-    "factor_duty_x": 0.4727405306375256,
-    "factor_total_x": 0.4254814180764467
+    "R90_anchored_m": 366.56570313041857,
+    "R90_anchored_duty_m": 174.27825001532324,
+    "factor_anchor_x": 1.0249078795748086,
+    "factor_duty_x": 0.4754352317388451,
+    "factor_total_x": 0.48727731523661744
    },
    {
     "cell_id": "A-lte",
     "illuminator": "lte",
     "R90_m": 383.7823362475772,
-    "R90_anchored_m": 425.8813456245993,
-    "R90_anchored_duty_m": 425.8813456245993,
-    "factor_anchor_x": 1.1096950156399699,
+    "R90_anchored_m": 374.57327571205116,
+    "R90_anchored_duty_m": 374.57327571205116,
+    "factor_anchor_x": 0.9760044700713237,
     "factor_duty_x": 1.0,
-    "factor_total_x": 1.1096950156399699
+    "factor_total_x": 0.9760044700713237
    },
    {
     "cell_id": "A-nr",
     "illuminator": "nr",
     "R90_m": 421.64907967929634,
-    "R90_anchored_m": 422.1128071144021,
-    "R90_anchored_duty_m": 166.4904490524011,
-    "factor_anchor_x": 1.0010997947284943,
-    "factor_duty_x": 0.3944216954480569,
-    "factor_total_x": 0.39485547834951445
+    "R90_anchored_m": 421.54092517881236,
+    "R90_anchored_duty_m": 166.9349349786276,
+    "factor_anchor_x": 0.9997434964151558,
+    "factor_duty_x": 0.3960112174347388,
+    "factor_total_x": 0.3959096391378283
    },
    {
     "cell_id": "B-wifi",
     "illuminator": "wifi",
     "R90_m": 3512.3613354724357,
-    "R90_anchored_m": 3161.2362066741457,
-    "R90_anchored_duty_m": 1494.444481813694,
-    "factor_anchor_x": 0.9000316040231489,
-    "factor_duty_x": 0.4727405306375256,
-    "factor_total_x": 0.4254814180764467
+    "R90_anchored_m": 3599.846808639597,
+    "R90_anchored_duty_m": 1711.4940016899086,
+    "factor_anchor_x": 1.0249078795748086,
+    "factor_duty_x": 0.4754352317388451,
+    "factor_total_x": 0.48727731523661744
    },
    {
     "cell_id": "B-lte",
     "illuminator": "lte",
     "R90_m": 2261.020706826255,
-    "R90_anchored_m": 2509.0434086238565,
-    "R90_anchored_duty_m": 2509.0434086238565,
-    "factor_anchor_x": 1.1096950156399699,
+    "R90_anchored_m": 2206.766316786249,
+    "R90_anchored_duty_m": 2206.766316786249,
+    "factor_anchor_x": 0.9760044700713237,
     "factor_duty_x": 1.0,
-    "factor_total_x": 1.1096950156399699
+    "factor_total_x": 0.9760044700713237
    },
    {
     "cell_id": "B-nr",
     "illuminator": "nr",
     "R90_m": 3263.239267118365,
-    "R90_anchored_m": 3266.8281604621575,
-    "R90_anchored_duty_m": 1288.5079017869411,
-    "factor_anchor_x": 1.0010997947284943,
-    "factor_duty_x": 0.3944216954480569,
-    "factor_total_x": 0.39485547834951445
+    "R90_anchored_m": 3262.402234548145,
+    "R90_anchored_duty_m": 1291.9478806652232,
+    "factor_anchor_x": 0.9997434964151558,
+    "factor_duty_x": 0.3960112174347388,
+    "factor_total_x": 0.3959096391378283
    },
    {
     "cell_id": "C-wifi",
     "illuminator": "wifi",
     "R90_m": 5303.884160999702,
-    "R90_anchored_m": 4773.663368977534,
-    "R90_anchored_duty_m": 2256.704154135358,
-    "factor_anchor_x": 0.9000316040231489,
-    "factor_duty_x": 0.4727405306375256,
-    "factor_total_x": 0.4254814180764467
+    "R90_anchored_m": 5435.992668960616,
+    "R90_anchored_duty_m": 2584.4624342979537,
+    "factor_anchor_x": 1.0249078795748086,
+    "factor_duty_x": 0.4754352317388451,
+    "factor_total_x": 0.48727731523661744
    },
    {
     "cell_id": "C-lte",
     "illuminator": "lte",
     "R90_m": 6899.704679907597,
-    "R90_anchored_m": 7656.567892681234,
-    "R90_anchored_duty_m": 7656.567892681234,
-    "factor_anchor_x": 1.1096950156399699,
+    "R90_anchored_m": 6734.142609761847,
+    "R90_anchored_duty_m": 6734.142609761847,
+    "factor_anchor_x": 0.9760044700713237,
     "factor_duty_x": 1.0,
-    "factor_total_x": 1.1096950156399699
+    "factor_total_x": 0.9760044700713237
    },
    {
     "cell_id": "C-nr",
     "illuminator": "nr",
     "R90_m": 5316.700491408625,
-    "R90_anchored_m": 5322.547770582059,
-    "R90_anchored_duty_m": 2099.328315776251,
-    "factor_anchor_x": 1.0010997947284943,
-    "factor_duty_x": 0.3944216954480569,
-    "factor_total_x": 0.39485547834951445
+    "R90_anchored_m": 5315.336738673035,
+    "R90_anchored_duty_m": 2104.932972957503,
+    "factor_anchor_x": 0.9997434964151558,
+    "factor_duty_x": 0.3960112174347388,
+    "factor_total_x": 0.3959096391378283
    }
   ],
   "illuminator_order_base": [
@@ -1288,7 +1292,7 @@
    "nr"
   ],
   "order_changes": true,
-  "headline": "두 결함은 **둘 다 조명원 축**이다. 기하 축은 그대로 서고, 조명원 축은 WiFi ×0.425 · LTE ×1.11 · 5G ×0.395 로 움직인다 — LTE 의 우위가 커진다.",
+  "headline": "두 결함은 **둘 다 조명원 축**이다. 기하 축은 그대로 서고, 조명원 축은 WiFi ×0.487 · LTE ×0.976 · 5G ×0.396 로 움직인다 — LTE 의 우위가 커진다.",
   "fix_cost": {
    "D1": "src/experiment_freespace_sigma.py 에 sigma_anchor 를 배선 + 격자 재생성 (GPU ~10 분)",
    "D2": "src/experiment_freespace_range.py stage_solve 의 snr_rd_db 에 duty_db 인자 추가 (패치 1줄 · GPU 0 · mono_link.json : handoff.patch_requests[1] 에 정확한 패치가 있다)"
@@ -1341,7 +1345,7 @@
     "rank": 6,
     "item": "φ 스윕을 σ·커버리지 산출물로 확장",
     "cost": "GPU ~1 시간 (φ 3점) ~ 4 시간 (φ 13점)",
-    "decides": "'기하는 링크버짓에 영향 없다' 가 φ=90° 의 산물인지 아닌지 (함정 T1b, 최대 23.2 dB) ⛔**RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측) — 그 수는 φ 가 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고 단일 d 칸 값이다. φ 의존은 사실상 없다(R90 span 0.48 % · φ=90° 가 세 팔 모두 최소).",
+    "decides": "'기하는 링크버짓에 영향 없다' 가 φ=90° 의 산물인지 아닌지 (⛔함정 T1b 의 «최대 23.2 dB» 는 R14 가 무효화했다 — φ 스윕 72 점에서 R90 span 0.48 %)",
     "geometry_doubles": true,
     "where": "src/experiment_freespace_sigma.py · experiment_freespace_range.py"
    },
@@ -1437,9 +1441,9 @@
   ],
   "n_doubled": 4,
   "n_unchanged": 4,
-  "cpu_spent_s": 17.61,
+  "cpu_spent_s": 17.47,
   "gpu_spent": "0",
-  "headline": "⭐ 기하 축을 두 배로 만든 검증은 8개 중 4개이고, 그 4개의 실제 비용은 CPU 17.61 s · GPU 0 이다. 가장 비싼 검증(σ 격자 570 s GPU · Pfa 2717 s MC)은 정확히 두 배가 되지 않는다 — σ 는 원래 모노고 Pfa 는 기하 무관이기 때문이다.",
+  "headline": "⭐ 기하 축을 두 배로 만든 검증은 8개 중 4개이고, 그 4개의 실제 비용은 CPU 17.47 s · GPU 0 이다. 가장 비싼 검증(σ 격자 570 s GPU · Pfa 2717 s MC)은 정확히 두 배가 되지 않는다 — σ 는 원래 모노고 Pfa 는 기하 무관이기 때문이다.",
   "real_new_cost": "남는 진짜 비용은 두 가지다 — φ 스윕(산출물마다 ×3~13)과 간섭 원장의 두 번째 물리(SI). 앞의 것은 GPU, 뒤의 것은 문헌이다."
  },
  "narrowing": {
@@ -1457,7 +1461,7 @@
     "rank": 2,
     "cut": "φ 13점 → 3점 {0°, 90°, 180°}",
     "saves": "φ 의존 산출물 ×13 → ×3",
-    "costs": "φ 중앙값 통계가 3점 평균으로 거칠어진다. absmax 23.2 dB 는 그대로 잡힌다(φ=180° 가 극값)",
+    "costs": "φ 중앙값 통계가 3점 평균으로 거칠어진다. ⛔«absmax 23.2 dB» 를 근거로 들던 문장은 R14 가 무효화했다 — φ 스윕 72 점에서 R90 span 0.48 % 이고 φ=90° 가 세 팔 모두 최소다",
     "spec_item": "이번 라운드 신규 축"
    },
    {
@@ -1574,10 +1578,12 @@
   "narrowing ladder": "docs/PAPER_SPEC.md §5"
  },
  "self_check": {
-  "negatives": 0,
+  "negatives": 1,
   "negatives_cap": 3,
   "negatives_ok": true,
-  "negative_sentences": [],
+  "negative_sentences": [
+   "앵커가 배선은 됐으나 발행 σ 격자에 실체화되지 않았다"
+  ],
   "hedges": 0,
   "hedges_ok": true,
   "hedge_hits": []
