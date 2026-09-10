@@ -60,35 +60,45 @@ v24 의 잘못은 `verify_raybudget_meaning.json` 의 `seed_vs_budget` 블록을
 
 ## 3. ⛔다음 사람이 할 일
 
-### ⭐① 「어느 세대가 정본인가」 — **사용자가 정해야 한다**
-발행면이 제 입력보다 **한 세대 낡은** 자리가 여럿이다:
-```
-outputs/sigma_sensitivity.json   generated 2026-09-06T08:33:31   ← 입력
-outputs/report06_derived.json    generated 2026-09-05 06:32:21   ← 발행면(낡음)
-outputs/geometry_benchmark.json  generated 2026-07-31T09:07:56   ← 발행면(낡음)
-outputs/capability_matrix.json   generated 2026-08-03T02:01:46   ← 발행면(낡음)
-```
-⭐**저장소가 이미 이 병을 진단해 뒀다** — 커밋 `78f8fb7a`(09-06):
-「전수조사 900 건에서 되풀이가 가장 많았던 것은 **「고침이 빌더에 들어갔는데 생성물은
-옛 문면으로 남았다」**였고(마지막 90 건 중 64 건)」. 그 판이 소스의 `~/.venvs` **317 자리·174 파일**을 고쳤다.
-⇒ **지금 보는 것이 그 잔재다.**
+### ☑① 「어느 세대가 정본인가」 — **구웠다**(2026-09-10 저녁, 사용자 결정)
 
-⚠다시 구우면 **수가 크게 바뀐다**(격리 worktree 에서 실제로 구워 확인):
-· report06 — 뒤집힘 폭 최솟값 1.298 → **4.044 dB**(3.1 배), 그 폭을 정하는 기체가
-  matrice4e → **mini5pro** 로 바뀐다
-· report05 — σ 항이 더 큰 칸 9/15 → **3/15**, 뒤집힘 문턱 3.72 → **6.00 dB**
-· capability_matrix — 기체 7 → **10**, 회절 함수 0 → **4**
-· geometry_benchmark — slope_mean 0.246 → **0.2536**, 검출거리 아홉 줄 전부
-⛔이건 «오늘 고침의 효과» 가 **아니라** 입력 원장이 그 사이 바뀐 것이다. 나눠 말해야 한다.
-⇒ **막던 것 둘은 오늘 다 고쳤다**(아래 §4) — 이제 굽기만 하면 된다. 굽는 판단만 남았다.
+발행면이 제 입력보다 한 세대 낡아 있던 것을 전부 다시 구웠다. 커밋 `16fa1cdc` · `63b9f9e5` · `deee30e4`.
 
-### ② 남은 `~/.venvs` 자국 — 빌더를 돌리면 사라진다
-손으로 쓴 것·셸은 오늘 다 고쳤다(§4). 남은 것은 **전부 빌더 산출물**이라 ① 과 같은 판단에 걸린다:
-`docs/PAPER_DRAFT.md` · `MEASUREMENT_PLAN.md` · `OUTPUT_NAMING.md` ·
-`INJECTION_PRECEDENT.md` · `docs/repro/*.md` · `reports/{05_engine-physics,A_atlas,06_5_bistatic}.ipynb` ·
-`_parts/86_physics-deck-match.ipynb` · `docs/GEOMETRY_BENCHMARK.md`
-⛔`reports/_parts/orig71.ipynb` 은 **보존된 옛 셀**이다 — 안 고친다.
-⛔`work/sweep_0904/RESUME.md:93` · `benchmark/check_new_file_rules.py` 는 **경고하는 자리**다 — 안 고친다.
+⭐**굽는 과정이 결함 다섯을 잡았다 — 이것이 재빌드의 값이다**
+ · ⛔`geometry_benchmark` **D1 칸이 자기모순**이었다 — 근거는 「`sigma_anchor` 참조 **0회**」(박아 둠),
+   같은 칸의 `grep_count` 는 **13**. 앵커는 2026-08-04(`e40b6aa8`)에 **배선됐다**(코드 9 줄).
+   ⭐**결론은 그대로 선다** — 발행 격자에 `sigma_anchored_dbsm` 이 **없고 delta 스칼라만** 있다.
+   ⇒ 근거를 **세어서**, 결론을 **격자를 열어** 쓰게 고쳤다(`_anchor_wiring_finding()`).
+   이름도 「…σ 사슬 **밖에 있다**」 → 「**배선은 됐으나** 발행 격자에 **실체화되지 않았다**」.
+ · ⛔같은 문장이 **두 군데 더** 있었다(`geometry_benchmark.py:1430` · `docs/PAPER_DRAFT.md:571`).
+ · ⛔`D2` 도 같은 모양이라 **미리** 세어서 쓰게 바꿨다(지금은 0 — 맞다).
+ · ⛔`report06` 의 「형상 정정 전 메쉬」 단서가 **공허해질 뻔했다** — 최솟값 기체가 mini5pro 로
+   바뀌는데 mini5pro 는 `untouched_airframes` 에 있다(sha 동일). `_meshfix_clause()` 로 갈라 쓴다.
+ · ⛔`outputs/physics_deck_repro_check.json` 의 `rerun_cmd` 가 없는 경로 —
+   ⚠**굽는 코드가 저장소에 없어**(전수 grep) 손으로 고치고 그 사실을 원장에 남겼다.
+
+⭐**전날 고친 것 둘이 여기서 값을 했다**
+ · `geometry_benchmark.py:1157` 의 48 자 자르기 — 안 고쳤으면 「4 자리 단일값은 **거짓 정밀**이다(R11)」가
+   잘려 나가고 그 네 자리 값만 실렸다. 이번 판엔 78 자 전부 실렸다.
+ · `capability_matrix.py:945` 의 ⚠-만-보기 — 안 고쳤으면 R14 철회 경고가 **사라졌다**. ⛔ 2 개로 남았다.
+ · `build_volumes.py:1292` 의 `continue` — 안 고쳤으면 **A_atlas.ipynb 가 다시 안 쓰여** 자국이 남았다.
+
+**발행 수의 이동** (전부 입력 원장 09-06 재생성의 결과다. ⛔오늘 고침의 효과가 아니다)
+ · 뒤집힘 폭 최솟값 1.298 → **4.044 dB** · 드리프트 여유 0.298 → **3.044 dB**
+ · 그 폭을 정하는 기체 matrice4e → **mini5pro** · 공통모드 기울기 0.2462 → **0.2536**
+ · `geometry_benchmark` 53 칸(검출거리 R90 아홉 줄 포함)
+⭐결정성 확인 — `sigma_sensitivity.py:471` 이 `default_rng(20260731)` 로 씨앗을 고정하고,
+  두 번 구워 시각을 뺀 해시가 같다. ⇒ 몬테카를로 이동은 무작위가 아니라 **자료가 바뀐 것**이다.
+
+⛔**안 돌린 것** — `src/make_report11_2_two_channel.py`(챔버가 되살아난다) ·
+  `benchmark/rename_outputs.py --apply`(큐가 도는 중이라 절대 안 된다. 예행만 돌렸다).
+
+### ☑② `~/.venvs` 자국 — 굽는 것으로 사라졌다
+손으로 쓴 문서 8 · 셸 4 · 재빌드로 사라진 노트북 3(`A_atlas` · `05_engine-physics` ·
+`_parts/86_physics-deck-match`) · `docs/repro` 2.
+⛔`reports/_parts/orig71.ipynb`(보존된 옛 셀) 3 자리는 **안 고친다**.
+⛔남은 **63 자리**는 오래 전 원장의 «그때 무엇으로 돌렸나» **기록**이다 — 고치면 이력이 바뀐다.
+  커밋 `78f8fb7a`(09-06)가 이미 기준선으로 깔아 두었고 「줄어들기만 한다」고 적었다.
 
 ### ③ 아직 안 본 것
 `docs/PRECISION_REVIEW_0910.md` 는 전부 닫았다. 새 검토가 오면 `RESUME_0910.md` §4 의 방식대로
