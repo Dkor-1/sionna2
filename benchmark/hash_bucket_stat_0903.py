@@ -74,12 +74,30 @@ def stat(ns: list[int], hs: list[float]) -> dict:
     mode_n = collections.Counter(ns).most_common(1)[0][0]
     off_n = [i for i, v in enumerate(ns) if v != mode_n]
     ref = float(np.median([hs[i] for i in range(len(hs)) if ns[i] == mode_n]))
-    dev = [abs(20 * np.log10(h / ref)) for h in hs if h > 0 and ref > 0]
+    #: ⛔⛔`h > 0` 이 표본을 **말없이** 버렸다 (2026-09-10 에 고침).
+    #:   ⓐ 영 진폭 판이 빠지는데 몇 개가 빠졌는지 아무 데도 안 적혔다.
+    #:   ⓑ 더 나쁜 것 — 최빈 무리의 과반이 영이면 ref = median = 0 이 되어
+    #:      `ref > 0` 이 거짓이 되고 dev 가 **통째로 빈 리스트**가 된다.
+    #:      그때 옛 코드의 `if dev else 0.0` 이 그것을 「편차 0.0 dB」로 적었다.
+    #:      표본 하나가 빠지는 게 아니라 «편차 없음» 이 날조된다.
+    #:      합성 입력으로 재현했다 — hs=[0,0,0,1,1000] → 0.0,
+    #:      같은 입력에서 0 을 1e−30 으로만 바꾸면 660.0.
+    #:      nan 하나만 있어도 median 이 nan 이 되어 같은 일이 난다.
+    #:   ⇒ 쓴 표본 수를 함께 내고, 빈 표본은 0.0 이 아니라 **None** 으로 낸다.
+    used = [h for h in hs if np.isfinite(h) and h > 0.0]
+    n_zero = int(sum(1 for h in hs if np.isfinite(h) and h <= 0.0))
+    n_nonfinite = int(sum(1 for h in hs if not np.isfinite(h)))
+    ok = np.isfinite(ref) and ref > 0.0
+    dev = [abs(20 * np.log10(h / ref)) for h in used] if ok else []
     return dict(n_reps=len(ns), mode_paths=int(mode_n),
                 n_off=len(off_n), rate_off=round(len(off_n) / len(ns), 4),
                 paths_seen=sorted(set(ns)),
-                max_dev_db=round(float(max(dev)) if dev else 0.0, 5),
-                n_dev_over_0p1db=int(sum(1 for d in dev if d > 0.1)))
+                #: ⭐분모를 함께 적는다 — 이 셋이 없으면 「변화 없음」을 못 읽는다
+                n_used=len(dev), n_zero=n_zero, n_nonfinite=n_nonfinite,
+                ref_ok=bool(ok),
+                max_dev_db=(round(float(max(dev)), 5) if dev else None),
+                n_dev_over_0p1db=(int(sum(1 for d in dev if d > 0.1))
+                                  if dev else None))
 
 
 def main() -> None:

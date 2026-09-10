@@ -168,6 +168,10 @@ def build_scene_builtin(RP, parts, name: str, fc: float):
     #   `SceneObject.position` 설정이 `KeyError: no-name-1.vertex_positions` 로 죽는다.
     #   ⇒ **씬은 그대로 두고 드론을 그 위로 올린다.** 레이다도 같은 중심에 매인다.
     ctr = (0.0, 0.0, float(ENV_BUILTIN_ALT))
+    #: ⭐드론을 얹기 **전** 씬 물체 이름을 떠 둔다 (2026-09-10 신설).
+    #:   --env-scat 이 남의 씬에서 드론 부품까지 거칠게 만들던 것을 막으려는 것이다.
+    #:   ⛔이름으로 가르면 안 된다 — 이 씬에는 «no-name-1» 처럼 이름 없는 물체가 있다.
+    env_names = set(str(k) for k in sc.objects.keys())
     from materials import make_material
     objs = []
     for p in parts:
@@ -182,7 +186,7 @@ def build_scene_builtin(RP, parts, name: str, fc: float):
         _c = o.position
         o.position = _mi.Point3f(float(_c.x[0]) + ctr[0], float(_c.y[0]) + ctr[1],
                                  float(_c.z[0]) + ctr[2])
-    return sc, ctr
+    return sc, ctr, env_names
 
 
 #: ⭐드론이 지면 위로 뜬 높이 [m] 를 잡 줄에서 덮어쓴다(`--env-alt`). 0 이면 항목의 기본값.
@@ -845,8 +849,10 @@ def run(a) -> None:
             #     --env 를 주면 위에서 거부한다(2026-09-01).
             _envn = getattr(a, "env", "")
             _ctr = (0.0, 0.0, 0.0)
+            _scene_obj_names = None
             if _envn.startswith("sionna:"):
-                sc, _ctr = build_scene_builtin(RP, parts, _envn.split(":", 1)[1], fc)
+                sc, _ctr, _scene_obj_names = build_scene_builtin(
+                    RP, parts, _envn.split(":", 1)[1], fc)
             else:
                 if _envn:
                     parts = parts + env_parts(RP.Part, _envn)
@@ -857,9 +863,20 @@ def run(a) -> None:
             #    거울이다 — 실제 흙·풀·자갈은 그보다 거칠다. 그 차이를 재는 축이다.
             _S = float(getattr(a, "env_scat", -1.0))
             if _envn and _S >= 0.0:
+                #: ⛔⛔2026-09-10 에 고침 — 왼쪽 항 `_envn.startswith("sionna:")` 이
+                #:   **물체 이름을 안 보고** 참이 되어, 남의 씬에서는 sc.objects 전부
+                #:   곧 **드론 부품까지** 거칠어졌다. 우리 씬에서는 env_* 만 걸렸다.
+                #:   두 갈래가 대칭이 아니라 「환경만 거칠게」가 성립하지 않았다.
+                #:   ⇒ 드론을 얹기 전 씬 물체 이름을 떠 두고 그 집합만 건드린다.
+                #:   ⚠지금 발주된 줄 중에 --env-scat 을 쓰는 것은 없다
+                #:     (jobs_0911.txt 이 2026-09-07 에 전부 뺐고 jobs_0922·0923 에도 0 건).
+                #:     그래도 다음에 쓰면 바로 물기 때문에 지금 고친다.
+                _envnames = set(_scene_obj_names) if _scene_obj_names else None
                 _n = 0
                 for _nm, _ob in sc.objects.items():
-                    if _envn.startswith("sionna:") or str(_nm).startswith("env_"):
+                    _is_env = (str(_nm) in _envnames) if _envnames is not None \
+                        else str(_nm).startswith("env_")
+                    if _is_env:
                         try:
                             _ob.radio_material.scattering_coefficient = _S
                             _n += 1
@@ -935,11 +952,18 @@ def run(a) -> None:
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
                             # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
+                            #: ⭐--det 를 여기에 적는다 (2026-09-10 신설).
+                            #:   전에는 파일 이름에도 cfg 에도 흔적이 없어, 어느 샤드가
+                            #:   정렬을 켠 판인지 **사후에 못 가렸다**.
+                            #:   ⛔이름은 안 바꾼다 — 바꾸면 옛 샤드와 안 이어진다.
+                            #:   ⚠옛 샤드는 cfg 가 7 칸이라 이 칸이 없다. 읽는 쪽은
+                            #:     길이를 보고 «모른다» 로 다뤄야 한다.
                             cfg=np.array([rng_m, mdep, spp,
                                           float(bool(a.physics)),
                                           float(sw["refraction"]),
                                           float(sw["diffraction"]),
-                                          float(sw["edge_diffraction"])]))
+                                          float(sw["edge_diffraction"]),
+                                          float(bool(getattr(a, "det", False)))]))
         print(f"  ✅ sionna el{el:+g} sh{a.shard} · {idx.size} 자세 · "
               f"{(time.time()-t0)/60:.1f}분", flush=True)
 
