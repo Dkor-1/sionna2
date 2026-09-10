@@ -1,0 +1,63 @@
+# ══ 0923 큐 — 재고 세기가 찾은 «안 산 축» 의 나머지 ══
+#  ⛔여기 적힌 것은 «물음» 이지 «답» 이 아니다.
+#  ⛔묶음마다 «안 답하는 것» 을 적었다 — 결과를 읽을 때 먼저 본다.
+#  ⛔실기 계측 대조는 0 건이고 이 판으로도 안 생긴다.
+
+# ══ A 정지 부품 나눔 — 무엇이 프롭 낙차를 덮나 (재고에 11/13 그룹이 0 장) ══
+#   물음  정면(앙각 0)에서 프롭만 있는 팔은 8,192 자세 중 3,331 개가 중앙의 0.9 배 아래로
+#         떨어지는데 통째는 58 개뿐이다. 정지 부품이 바닥을 올려 덮고 있다는 것인데,
+#         **어느 정지 부품이 덮는지는 한 번도 안 샀다.**
+#   죽는조건  카메라를 뺀 판의 낙차 자세 수가 통째(58)에서 안 움직이면 «카메라가 덮는다» 는
+#           죽는다. 3,331 쪽으로 크게 가면 그 부품이 바닥의 큰 몫이라는 관찰이 선다.
+#   ⛔안답함  «어느 삼각형이» 까지는 안 간다 — outputs/hit_triangle_0903.json 이 카메라를
+#           가리키지만 근거가 **기체당 자세 하나**다. 이 판은 자세 8,192 개로 넓힐 뿐이다.
+#   ⛔안답함  이것은 빈 하늘 판이다 — 실외·두 씬 차이에는 한 글자도 답하지 않는다.
+#   ⚠깊이 1 로 산다 — 그 자리의 옛 판(_d1)과 나란히 놓으려는 것이다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=0 --parts=-camera --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=0 --parts=-camera --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=0 --parts=-body --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=0 --parts=-body --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=0 --parts=-arm --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=0 --parts=-arm --shard 1 --nshards 2
+
+# ══ B 부품 가른 실외의 «축 위» 칸 — 3.00 → 2.70 을 만드는 것이 지면인가 건물인가 ══
+#   물음  축 위(앙각 0)에서 같은 에코가 몇 줄로 적히나 — 빈 하늘은 3.00 배,
+#         우리 씬 통째는 2.70 배다(rep1·rep2·rep3 세 판이 전부 2.6988).
+#         그 3.00 → 2.70 을 만드는 것이 지면인지 건물인지 지금은 못 가른다.
+#   죽는조건  건물만 판이 3.00 을 그대로 내면 지면이 그 몫을 만든 것이고, 2.70 쪽이면 건물이다.
+#           둘 다 3.00 이면 «부품으로 안 갈린다» 로 적고 이 축을 접는다.
+#   ⛔안답함  «왜 겹쳐 적히나» 에는 답하지 않는다 — 어느 면이 만드나까지다.
+#   ⛔안답함  협곡은 부품으로 못 쪼갠다 — 이 물음을 그 씬에서는 물을 수 없다.
+#   ⚠우리 지면만·앙각 0 은 0920 이 이미 샀다(dry-run «있음») — 건물만 두 줄만 산다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --env outdoor01_bldg --shard 1 --nshards 2
+
+# ══ C 남의 씬 × 기본 아닌 기체 — 합성 배율 축과 실제 기체 축이 같은 답을 주나 ══
+#   물음  「걸리는 자세를 정하는 것은 프롭·허브다」를 지금까지 흔든 것은 --prop-scale ·
+#         --frame-scale 뿐이다 — 같은 메쉬를 늘렸다 줄인 **합성** 축이다.
+#         실제 기체가 그 범위를 덮는다(mini5pro 152.4 mm = matrice4e 의 0.56 배).
+#   죽는조건  협곡에서 mini5pro 의 걸린 자세 목록이 matrice4e 와 «널 띠 안» 이면 기체 교체가
+#           목록을 안 옮기는 것이고, 널 아래로 흩어지면 옮기는 것이다.
+#   ⛔안답함  ⚠**널이 먼저 있어야 읽을 수 있다** — 0922 A 가 협곡의 널을 사고 있다.
+#           그 값이 나오기 전에는 이 칸의 자카드를 «크다/작다» 로 말할 수 없다.
+#   ⛔안답함  자세 번호는 시각(t=i/PRF)이지 로터 각이 아니다 — 회전수가 다른 기체끼리는
+#           같은 번호가 다른 각이다. matrice4e 3800 대 mini5pro 5500 rpm 이라
+#           **이 짝은 자세 집합을 직접 못 견준다.** 레벨과 빈도만 읽는다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --drone mini5pro --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --drone mini5pro --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --drone mini5pro --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --drone mini5pro --shard 1 --nshards 2
+
+# ══ D 앙각 −60 빈 하늘 기준선을 겹침 열쇠 있는 세대로 — 가장 많이 인용되는 분모의 감사 ══
+#   물음  read_0914_0908.py · read_0918B_0909.py 의 기본 빈 하늘 짝(앙각 −60)이
+#         2026-08-24 판이라 nret·n_dup·E_dedup·n_trunc 가 없다.
+#         그 두 장이 D = E_실외 − E_빈하늘 의 **빼는 쪽**이고 「지면이 올린 몫」의 분모다.
+#         빈 하늘은 축 위에서 에코를 3.00 배로 적는다 — 앙각 −60 에서도 그런가.
+#   죽는조건  n_dup 이 8,192 자세 전부 0 이면 분모는 깨끗하고 이 축은 닫힌다.
+#           0 이 아니면 「지면이 올린 몫」이 최대 9.5 dB 틀릴 수 있다.
+#   ⛔안답함  이것은 «새 답» 이 아니라 **감사**다 — 값이 그대로일 공산이 크다.
+#   ⛔⛔--overwrite 는 백업을 안 만든다(elevation_sweep_md.py:768·932 이 같은 이름에 덮어쓴다).
+#     ⇒ 굽기 전에 08-24 두 장을 따로 복사해 둔다. 안 그러면 «코드 세대가 값을 안 옮긴다» 를
+#       보이는 유일한 옛 판이 사라진다. **그 복사를 안 했으면 이 줄을 띄우지 마라.**
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2 --overwrite
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2 --overwrite
