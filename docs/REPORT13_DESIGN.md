@@ -561,7 +561,7 @@ fc   : 각 반송파 ±1.5% 3점(n_f=3)   각도평활 3°
 **실행 순서**
 ```bash
 cd /workspace/sionna
-PY="PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python"
+PY="PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python"
 $PY src/experiment_freespace_sigma.py            # GPU 3~4장, ~1.5 h → report13_sigma_grid.json
 $PY src/experiment_freespace_range.py --stage=all # GPU 1~2장, ~2~3 h → report13_freespace.json
 $PY benchmark/verify_freespace.py                 # GPU 1장, ~30 min → verify_freespace.json

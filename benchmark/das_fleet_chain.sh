@@ -13,5 +13,5 @@ while true; do
   sleep 60
 done
 echo "[$(date +%H:%M:%S)] mini2·phantom2 완료 → m350rtk 로 일손 이동" >> $DIR/chain.log
-~/.venvs/py312/bin/python benchmark/das_fleet_unlock.py >> $DIR/chain.log 2>&1
+/workspace/.venvs/py312/bin/python benchmark/das_fleet_unlock.py >> $DIR/chain.log 2>&1
 POOL=c bash benchmark/das_fleet_driver.sh 24 2,3 "m350rtk:0,m350rtk:1,m350rtk:6,m350rtk:2,m350rtk:3"

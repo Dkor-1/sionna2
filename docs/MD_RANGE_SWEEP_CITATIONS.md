@@ -154,7 +154,7 @@ mf 는 `[1,2,5,10,15,20,30,40,50,70,100,1000]` · `n_noise=32` 다.
 | `:289-290` (F6) | `arms[A1,A3].ac_corr_vs_ref` | ⭐**바뀜** | 재실행 |
 | `:332-342` (F8) | `cells[].f_tip_hz` · `prf_feasibility[m].mode_prf_hz` | (B) s1000plus 만 | 재실행 |
 
-명령: `cd sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/viz_md_range.py`
+명령: `cd /workspace/sionna && PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python src/viz_md_range.py`
 (GPU 안 쓴다 — 이 사슬에 `torch`/`cuda` import 가 **없다**. §6 참조)
 
 ### 2-3. 리포트 빌더 — 읽는 키가 좁다

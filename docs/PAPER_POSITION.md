@@ -21,9 +21,9 @@
 │ 나이퀴스트 문턱에 대조(1.34e-11). 탈출구는 NUDFT 점퍼짐·멀티스태틱 접힘   │
 │ 격자 유령탐색·단일버스트 주파수 CRLB 셋을 새로 세워 각각 수치로 닫았다.  │
 ├─ 재현 ─────────────────────────────────────────────────────────────────┤
-│ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/refrate_law.py      (4.5 s)
-│ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/vmax_hardening.py   (11.4 s)
-│ PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py  (3.7 s)
+│ PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/refrate_law.py      (4.5 s)
+│ PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/vmax_hardening.py   (11.4 s)
+│ PYTHONPATH=src:benchmark /workspace/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py  (3.7 s)
 │ → outputs/refrate_law.json · vmax_hardening.json · cpi_guard_sweep.json │
 └────────────────────────────────────────────────────────────────────────┘
 ```

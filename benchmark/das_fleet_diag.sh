@@ -5,7 +5,7 @@ set -u
 cd /workspace/sionna
 export PYTHONPATH=src:benchmark
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
-PY=~/.venvs/py312/bin/python
+PY=/workspace/.venvs/py312/bin/python
 AF=$1; NAZ=$2; FR=$3; NS=$4; IFS=',' read -r -a GPUS <<< "${5:-2,3}"
 DIR=outputs/partial/das_fleet_0803; mkdir -p "$DIR"
 LOG=$DIR/diag_$AF.log
