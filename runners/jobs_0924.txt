@@ -1,0 +1,65 @@
+# ══ 0924 큐 — 09-10 동체 사다리 판독이 연 칸 ══
+#  ⛔여기 적힌 것은 «물음» 이지 «답» 이 아니다.
+#  ⛔bs 는 모형 축이다 — 비구조 산란면만 키운다. 실기 형상이 아니다.
+#  ⛔동체 배율과 경로 수가 함께 움직인다 — 어느 쪽이 목록을 옮겼는지 못 가른다.
+#  ⛔C 의 광선 예산은 «널» 이 아니다 — 씨앗 없는 결정적 격자다.
+#  ⛔실기 계측 대조는 0 건이고 이 판으로도 안 생긴다.
+
+# ══ A ×1 과 ×2 사이 — 18 개가 갈리는 것이 계단인가 비탈인가 (앙각 −60) ══
+#   물음  줄이는 쪽은 ×0.4 까지 전부 80 인데 ×2 만 64 다. 그 사이를 한 번도 안 샀다.
+#   죽는조건  ×1.2·×1.5 가 80~82 면 ×2 는 **계단**이고 어딘가에 문턱이 있다.
+#           80 → 74 → 68 → 64 처럼 매끄러우면 **비탈**이고 «문턱» 이라는 말을 접는다.
+#           ×3 이 ×2 보다 더 안 내려가면 ×2 가 바닥이라는 관찰이 선다.
+#   ⛔안답함  ⛔«왜» 에는 답하지 않는다 — 몇 개가 살아남나까지다.
+#   ⛔안답함  ⛔경로 수가 함께 움직이는 것은 이 축으로 **안 갈린다**(한계 ②).
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 1.2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 1.2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 1.2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 1.2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 1.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 1.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 1.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 1.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 3 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --body-scale 3 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 3 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --body-scale 3 --shard 1 --nshards 2
+
+# ══ B 같은 사다리를 앙각 −30 에서도 (씬 쪽만 산다 — 빈 하늘은 이미 있다) ══
+#   물음  「줄이는 쪽은 목록을 안 옮긴다」가 앙각 −60 한 자리의 이야기인가.
+#   죽는조건  −30 에서도 ×0.4~×0.8 이 서로 붙으면 앙각을 건너 같은 관찰이고,
+#           흩어지면 «앙각 −60 에서만» 으로 좁혀 적는다.
+#   ⚠빈 하늘 짝 bs0.4·0.6·0.8 은 el−30 에 **이미 있다** — 씬 쪽 여섯 줄만 산다.
+#   ⚠×2 는 el−30 에 양쪽 다 없다 — 둘 다 산다.
+#   ⛔안답함  ⛔앙각 0 은 이 묶음에 없다 — 거기는 지면 자체가 +53 dB 를 얹는 다른 이야기다.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 0.4 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 0.4 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 0.6 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 0.6 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 0.8 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 0.8 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --body-scale 2 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --body-scale 2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --body-scale 2 --shard 1 --nshards 2
+
+# ══ C 참고선을 두 점에서 네 점으로 (앙각 −60) ══
+#   물음  «격자를 갈았을 때의 흔들림» 을 3.8e9·4.2e9 **두 점**으로만 재고 있다.
+#         사다리의 칸을 그 두 점과 견주는데, 두 점은 띠가 아니다.
+#   죽는조건  네 점이 모두 78~82 에 모이면 참고선을 «80 언저리» 로 적을 수 있다.
+#           흩어지면 이 참고선 자체를 접고, 사다리를 참고선 없이 읽는다.
+#   ⛔안답함  ⛔이것은 **널이 아니다**(한계 ③). 확률적 반복이 아니라 다른 결정적 격자다.
+#   ⛔안답함  ⛔예산은 경로당 가중치도 함께 바꾼다(한계 ④) — 단일 변수가 아니다.
+#   ⛔⛔안답함  **이 축은 한쪽으로만 열려 있다.** 광선 수는 32 비트 천장
+#           4,294,967,295 를 못 넘는다(Sionna 표본기 wavefront_size 가 uint32 ·
+#           elevation_sweep_md.py 가 dry-run 에서 막는다. 4.4e9 로 짜 봤다가 걸렸다).
+#           규약값 4e9 는 그 천장의 93 % 라 **위로는 7 % 밖에 못 간다.**
+#           ⇒ 3.6/3.8/4.0/4.2/4.29 는 아래로 치우친 다섯 점이다. 대칭 띠가 아니다.
+--engine sionna --spp 3600000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 3600000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 3600000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 3600000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4290000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4290000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4290000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4290000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
