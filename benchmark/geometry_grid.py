@@ -97,6 +97,77 @@ def _read(rel, *keys, default=None):
     return default
 
 
+def _is_drone_block(v):
+    """multistatic 안에서 «기체 한 대» 인 값인가 — 대역 이름(…GHz)을 열쇠로 갖는 사전."""
+    return isinstance(v, dict) and any("GHz" in x for x in v)
+
+
+def _read_multistatic():
+    """σ 격자의 multistatic 블록을 모은다 — 합본 하나 + 기체별 샤드 여러 개.
+
+    ⭐ 왜 필요한가: `report13_sigma_grid.json`(합본)은 2026-08-04 판부터 `multistatic`
+    블록을 **더는 굽지 않는다**. 같은 내용이 기체별 샤드 다섯에 그대로 있다
+    ⟨outputs/report13_sigma_grid.{matrice4e,mavic4pro,mini5pro,phantom4,s1000plus}.json⟩.
+    합본만 읽던 :485 는 그래서 조용히 빈 사전을 받아 원장을 비웠다.
+
+    규칙 — `_read` 의 계약(「없으면 default, 제자리 날조 금지」)을 그대로 지킨다:
+      · 파일이 없거나 블록이 없으면 **건너뛴다.** 대신 채워 넣지 않는다.
+      · 합본에 블록이 있으면 그것을 **먼저** 넣는다(되살아나면 그대로 이긴다).
+      · 기체 열쇠가 겹치면 **먼저 읽은 쪽을 남기고** 겹친 사실을 기록한다.
+        내용이 다르면 `collisions` 에 적는다 — 조용히 덮어쓰지 않는다.
+      · 기체가 아닌 열쇠(`beta_deg` 따위)는 **모든 출처가 똑같을 때만** 싣는다.
+        출처마다 다르면(샤드의 `delta_sigma_mean_db` 는 기체마다 다르다) 아무 값도
+        고르지 않고 뺀다 — 평균·대표값을 여기서 지어내지 않는다.
+
+    반환: (merged, provenance)
+    """
+    import glob as _glob
+
+    srcs = ["report13_sigma_grid.json"]
+    srcs += sorted(os.path.basename(p) for p in
+                   _glob.glob(os.path.join(_ROOT, "outputs",
+                                           "report13_sigma_grid.*.json"))
+                   if os.path.basename(p) != "report13_sigma_grid.json")
+
+    merged, used, collisions = {}, [], []
+    scalars = {}                       # 기체가 아닌 열쇠 → {출처: 값}
+    for rel in srcs:
+        ms = _read(rel, "multistatic", default=None)
+        if not isinstance(ms, dict) or not ms:
+            continue                   # 없으면 건너뛴다 — 지어내지 않는다
+        used.append(rel)
+        for k, v in ms.items():
+            if _is_drone_block(v):
+                if k in merged:
+                    collisions.append(dict(key=k, kept_from=merged[k + "\x00src"],
+                                           also_in=rel, identical=(merged[k] == v)))
+                    continue           # 먼저 읽은 쪽을 남긴다
+                merged[k] = v
+                merged[k + "\x00src"] = rel
+            else:
+                scalars.setdefault(k, {})[rel] = v
+
+    for k in list(merged):
+        if k.endswith("\x00src"):
+            del merged[k]
+
+    agreed = {}
+    for k, per_src in scalars.items():
+        vals = list(per_src.values())
+        if all(v == vals[0] for v in vals):
+            merged[k] = vals[0]
+            agreed[k] = "all sources agree"
+        else:
+            agreed[k] = ("출처마다 다르다 — 어느 값도 고르지 않는다 "
+                         f"({len(per_src)} 출처)")
+
+    prov = dict(sources_used=used,
+                drones=sorted(k for k, v in merged.items() if _is_drone_block(v)),
+                key_collisions=collisions,
+                non_drone_keys=agreed)
+    return merged, prov
+
+
 # --------------------------------------------------------------------------- #
 #  1. 축 독립성 — 무모호 속도의 바닥은 기하와 무관하다 (수치 증명)
 # --------------------------------------------------------------------------- #
@@ -482,9 +553,8 @@ def sigma_transfer(ax=None):
     → 모노스태틱 팔은 β=0 이라 그 근사가 **정확히 성립**한다(Δσ ≡ 0). 새 RCS 계산이 필요 없고,
       우리 물리 중 가장 잘 검증된 부분 위에 선다.
     """
-    ms = _read("report13_sigma_grid.json", "multistatic", default={}) or {}
-    drones = [k for k, v in ms.items() if isinstance(v, dict)
-              and any("GHz" in x for x in v)]
+    ms, ms_prov = _read_multistatic()
+    drones = [k for k, v in ms.items() if _is_drone_block(v)]
     by_beta = {}
     for beta in ("0", "15", "30", "45", "60", "75", "90"):
         p95, rms, rec = [], [], []
@@ -516,6 +586,7 @@ def sigma_transfer(ax=None):
         fact="σ 격자 엔진 = rcs_sbr_batch (모노스태틱 후방산란), 조회방향 = 바이스태틱 이등분선",
         engine=_read("report13_sigma_grid.json", "meta.engine"),
         bisector_approximation_error_by_beta=by_beta,
+        bisector_error_provenance=ms_prov,
         monostatic_arm=dict(dsigma_db=0.0,
                             why="β=0 이면 이등분선 = 시선 = 후방산란. 근사가 항등이 된다.",
                             new_rcs_computation_required=False),
@@ -870,7 +941,7 @@ def readjudicate(ax, sig):
                           f"{b45.get('dsigma_rms_median_db')!r} dB · p95 최대 "
                           f"{b45.get('dsigma_p95_max_db')!r} dB · β=0 에서 정확히 0",
                  action="모노 행은 '근사 없음'으로 표기. 바이 행은 Δσ(β) 오차막대 필수",
-                 source="report13_sigma_grid.json : multistatic"),
+                 source="report13_sigma_grid.{기체}.json : multistatic (기체별 샤드 다섯 · 본 파일 sigma_transfer.bisector_error_provenance)"),
             dict(conclusion="R90 검출거리 · 커버리지 · 블라인드 비율 (report13/05 전부)",
                  status="바이스태틱 L=500 m · **φ=90° 단일 방위** 전용",
                  action="⭐ 모노 팔에서 **재계산 필요**. N1 정규화로 다시 풀고, DPI 항을 빼고, "
@@ -1034,7 +1105,7 @@ def main():
             "DNR vs baseline": "본 파일 interference_ledger (freespace_link.dnr_db)",
             "active PRF ceiling 500 Hz": "monostatic_prior.json : prf_ladder_at_3p5GHz[csirs_spec_max]",
             "self-interference 100 dB": "monostatic_prior.json : side_by_side.lanes[1]",
-            "bisector approximation error": "report13_sigma_grid.json : multistatic",
+            "bisector approximation error": "report13_sigma_grid.{기체}.json : multistatic (기체별 샤드 다섯 · 본 파일 sigma_transfer.bisector_error_provenance)",
             "kernel 0.201 dB": "sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po",
             "aspect averaging required": "sigma_sensitivity.json : aspect_averaged",
             "LaSen identity": "monostatic_prior.json : lasen.identity",

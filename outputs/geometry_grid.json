@@ -1,7 +1,7 @@
 {
  "meta": {
   "script": "benchmark/geometry_grid.py",
-  "generated": "2026-07-31T08:05:01",
+  "generated": "2026-09-10T04:58:03",
   "question": "기하(모노/바이) × 조명원(WiFi/LTE/5G) 격자에서 무엇이 비교 가능한가",
   "house_rules": "산문·print 한국어 · 그림 텍스트 영어 · 수치는 저장소에서만",
   "repo_functions_used": [
@@ -51,9 +51,9 @@
    ],
    "occupancy": "G1"
   },
-  "runtime_s": 0.79
+  "runtime_s": 0.65
  },
- "headline": "⛔**RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측) — 전 판의 «기하 축의 링크버짓 크기는 장면방위 φ 에 강하게 매달린다 — φ 를 쓸면 23.2 dB» 는 **반대**였다. φ 의존은 사실상 없다: R90 span 0.48 %(≤0.083 dB) · 자세평균 0.83 % 이고 **φ=90° 가 세 팔 모두 최소**다. 그 큰 수는 φ 가 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고 단일 d 칸 값이다(R90 동작점 ≤1.20 dB · d 중앙값 ≤3.10 dB). 남는 것은 «지금까지의 결과가 전부 φ=90° 단일 방위였다» 는 **보고 범위**뿐이지 위험의 크기가 아니다.",
+ "headline": "격자는 성립한다. ⑴ 무모호 속도의 바닥은 기하와 완전히 무관해(모노 = 바이 β=0, 차이 0) 기존 헤드라인이 두 기하의 최악값으로 그대로 승격된다. ⑵ 링크버짓은 N1(R_eq=√(R₁R₂)) 정규화 아래서 기하 기여가 정확히 0 이 되므로, 두 기하의 차이는 DPI·기준채널·σ 경로·PRF 통제권 넷으로 **완전히 분해된다**. ⑶ 모노 팔은 새 RCS 계산이 0 이다 — 우리 σ 격자가 이미 모노스태틱 후방산란이고 바이 팔이 그것의 이등분선 근사였기 때문이다. ⑷ ⛔**전 판의 «기하 축의 링크버짓 크기는 장면방위 φ 에 강하게 매달린다» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측). φ 의존은 사실상 없다 — R90 span 0.48 %(≤0.083 dB) · 자세평균 0.83 % 이고 **φ=90° 가 세 팔 모두 최소**다. 그때 인용하던 큰 수는 φ 가 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이었고 단일 d 칸 값이다(R90 동작점 ≤1.20 dB · d 중앙값 ≤3.10 dB). 남는 것은 «지금까지의 결과가 전부 φ=90° 단일 방위였다» 는 **보고 범위**뿐이지 위험의 크기가 아니다. (옛 기록 — φ=90° 0.118 dB · φ 전체 23.2 dB)",
  "configurations_and_grid": {
   "configuration_definitions": {
    "A": {
@@ -1161,6 +1161,27 @@
     "reciprocity_rms_max_db": 7.032387455393946
    }
   },
+  "bisector_error_provenance": {
+   "sources_used": [
+    "report13_sigma_grid.matrice4e.json",
+    "report13_sigma_grid.mavic4pro.json",
+    "report13_sigma_grid.mini5pro.json",
+    "report13_sigma_grid.phantom4.json",
+    "report13_sigma_grid.s1000plus.json"
+   ],
+   "drones": [
+    "matrice4e",
+    "mavic4pro",
+    "mini5pro",
+    "phantom4",
+    "s1000plus"
+   ],
+   "key_collisions": [],
+   "non_drone_keys": {
+    "beta_deg": "all sources agree",
+    "delta_sigma_mean_db": "출처마다 다르다 — 어느 값도 고르지 않는다 (5 출처)"
+   }
+  },
   "monostatic_arm": {
    "dsigma_db": 0.0,
    "why": "β=0 이면 이등분선 = 시선 = 후방산란. 근사가 항등이 된다.",
@@ -1297,9 +1318,9 @@
    {
     "id": "T1b",
     "name": "⭐ 헤드라인 장면방위 φ=90° 하나로만 재기",
-    "bite": "φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립한다. 거기서 두 기하의 확산항 차는 0.118 dB 뿐이라 '기하는 링크버짓에 거의 영향이 없다'는 착시가 생긴다. ⛔여기 적혀 있던 «φ 를 쓸면 최대 23.2 dB» 는 R14 가 무효화했다 — φ 스윕 72 점에서 R90 span 0.48 % 이고 φ=90° 가 세 팔 모두 최소다",
-    "fix": "기하 비교는 φ 를 반드시 쓴다. 한 φ 의 값을 격자 결론으로 쓰지 않는다",
-    "bias_direction": "φ=90° 만 쓰면 기하 축의 크기를 200배 넘게 과소평가한다"
+    "bite": "φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립한다. 거기서 두 기하의 확산항 차는 0.118 dB 뿐이다. ⛔**전 판이 여기 적은 «φ 를 쓸면 최대 23.2 dB 로 벌어진다» 는 RETRACTION_LOG R14 가 무효화했다**(2026-08-03, φ 0~355° 72 점 실측) — 그 수는 φ 가 아니라 **스윕하지 않은 고도차 Δz = 35 m** 의 성질이고 단일 d 칸 값이다. φ 의존은 사실상 없다(R90 span 0.48 % · φ=90° 가 세 팔 모두 **최소**). 남는 것은 «한 컷만 보고했다» 는 보고 범위다",
+    "fix": "기하 비교의 φ 의존은 사실상 없다(R14) — 남는 규율은 «어느 φ 에서 잰 값인지 적는다» 뿐이다. 한 φ 의 값을 격자 결론으로 쓰지 않는다",
+    "bias_direction": "⛔«φ=90° 만 쓰면 200배 넘게 과소평가한다» 는 R14 가 뒤집었다 — φ=90° 는 과소평가가 아니라 세 팔 모두의 **최소**이고, R90 은 φ 전체에서 0.48 % 밖에 안 움직인다"
    },
    {
     "id": "T2",
@@ -1534,7 +1555,7 @@
     "status": "바이스태틱 전용. 모노 팔에서는 창 자체가 필요 없다",
     "evidence": "이등분선 근사오차 β=45°: rms 중앙 7.472692132512693 dB · p95 최대 20.03858904752335 dB · β=0 에서 정확히 0",
     "action": "모노 행은 '근사 없음'으로 표기. 바이 행은 Δσ(β) 오차막대 필수",
-    "source": "report13_sigma_grid.json : multistatic"
+    "source": "report13_sigma_grid.{기체}.json : multistatic (기체별 샤드 다섯 · 본 파일 sigma_transfer.bisector_error_provenance)"
    },
    {
     "conclusion": "R90 검출거리 · 커버리지 · 블라인드 비율 (report13/05 전부)",
@@ -1634,7 +1655,7 @@
   "DNR vs baseline": "본 파일 interference_ledger (freespace_link.dnr_db)",
   "active PRF ceiling 500 Hz": "monostatic_prior.json : prf_ladder_at_3p5GHz[csirs_spec_max]",
   "self-interference 100 dB": "monostatic_prior.json : side_by_side.lanes[1]",
-  "bisector approximation error": "report13_sigma_grid.json : multistatic",
+  "bisector approximation error": "report13_sigma_grid.{기체}.json : multistatic (기체별 샤드 다섯 · 본 파일 sigma_transfer.bisector_error_provenance)",
   "kernel 0.201 dB": "sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po",
   "aspect averaging required": "sigma_sensitivity.json : aspect_averaged",
   "LaSen identity": "monostatic_prior.json : lasen.identity"

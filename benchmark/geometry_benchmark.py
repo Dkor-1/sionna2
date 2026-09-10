@@ -1154,7 +1154,15 @@ def write_md(out):
             elif isinstance(v, dict) and all(isinstance(x, (int, float)) for x in v.values()):
                 bits.append(f"{k} " + "/".join(_f(x, 3) for x in v.values()))
             elif isinstance(v, str):
-                bits.append(f"{k} {v[:48]}")
+                #: ⛔⛔2026-09-10 — 48 자에서 자르면 **철회 단서가 잘려 나간다.**
+                #  C5 의 slope_note_ko 는 78 자인데 48 자에서 끊으면
+                #  「4 자리 단일값은 **거짓 정밀**이다(R11)」가 사라지고,
+                #  바로 그 네 자리 값(slope_mean)만 남는다. C7 은 92 자다.
+                #  ⇒ 160 자로 넓힌다(둘 다 온전히 들어간다).
+                #  ⚠그래도 자르는 것이라 더 긴 경고문은 또 잘린다 —
+                #    잘릴 때는 «…(잘림)» 을 붙여 잘렸음을 숨기지 않는다.
+                _s = v if len(v) <= 160 else v[:160] + "…(잘림)"
+                bits.append(f"{k} {_s}")
             elif isinstance(v, list):
                 bits.append(f"{k} {len(v)}항")
             elif isinstance(v, dict):

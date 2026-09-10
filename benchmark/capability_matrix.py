@@ -854,6 +854,38 @@ def build_rows(scan, ours):
 # =========================================================================== #
 #  4. 우리 행 — 전부 디스크의 JSON/소스에서 실행 시점에 읽는다
 # =========================================================================== #
+#: ⛔경고 표식 — ⚠ 하나만 보면 놓친다. 이 저장소는 «⛔» 를 더 센 표식으로 쓴다.
+_WARN_MARKS = ("⛔", "⚠")
+
+
+def _warning_note(head: str, where: str):
+    """원장 headline 의 경고문을 **자르지 않고** 그대로 옮긴다.
+
+    ⛔⛔2026-09-10 정정 — 전에는 이랬다:
+        note="⚠ " + phi_head[phi_head.find("⚠"):][:180] if "⚠" in phi_head else None
+      두 군데가 틀렸다.
+      ⓐ **표식을 ⚠ 하나로 봤다.** 2026-09-04 전수조사가 outputs/geometry_grid.json 의
+        headline 을 「⛔**RETRACTION_LOG R14 가 무효화했다**…」로 고쳐 쓰면서 그 안에
+        ⚠ 가 하나도 안 남았고, 조건이 거짓이 되어 **R14 철회 경고가 발행면에서 통째로
+        사라졌다.** 원장에는 살아 있는데 발행면에서만 없어지는 조용한 손실이다.
+      ⓑ **[:180] 로 잘랐다.** 지금 headline 은 372 자다. 180 자에서 자르면 철회된 수
+        «23.2 dB» 는 잘린 토막 안에 **살아남고**, 정정의 핵심(「φ 의존은 사실상 없다」
+        뒤의 근거와 「큰 수는 φ 가 아니라 Δz = 35 m 의 성질」)은 잘려 나간다.
+        ⇒ 「철회된 주장 + 잘려나간 정정」이 발행된다. **자르지 않는다.**
+      ⓒ 표식이 하나도 없으면 조용히 None 으로 넘어가지 않고 **알린다** — 그 조용함이
+        이번 손실을 만들었다.
+    """
+    if not head:
+        return None
+    pos = [head.find(m) for m in _WARN_MARKS if m in head]
+    if not pos:
+        print(f"  ⚠경고 표식이 없다 — {where} 의 headline 을 note 로 안 옮긴다 "
+              f"({len(head)} 자). 표식({'·'.join(_WARN_MARKS)})을 붙이거나 "
+              f"이 자리를 다시 봐라.", flush=True)
+        return None
+    return head[min(pos):]
+
+
 def _read_json(name):
     p = os.path.join(OUT, name)
     with open(p, encoding="utf-8") as f:
@@ -942,7 +974,7 @@ def build_our_row():
                    computed="outputs/geometry_grid.json configurations_and_grid - 세 기하 x 세 조명원. "
                             "모노 v_max == 바이 beta=0 (차이 0 m/s) 이므로 우리 수치는 두 기하의 최악값.",
                    source=gg_src,
-                   note="⚠ " + phi_head[phi_head.find("⚠"):][:180] if "⚠" in phi_head else None),
+                   note=_warning_note(phi_head, "outputs/geometry_grid.json")),
         vmax=C(2, "cross-standard table under one stated convention, overlaid on published "
                "airframe maxima; CFAR-calibrated detection linked",
                computed="benchmark/vmax_grid.py - LTE CRS 1 kHz @1.843 GHz, WiFi VHT-LTF 1 kHz "
