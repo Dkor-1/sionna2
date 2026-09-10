@@ -87,6 +87,38 @@ def load(name: str, el: float):
                 trunc=[], files=[os.path.basename(f) for f in fs]), len(fs)
 
 
+#: ⭐덱이 쓰는 잣대로도 함께 잰다 — ⛔다시 구현하지 않고 **덱의 함수를 그대로 부른다**.
+#   두 잣대가 갈리면 그 자체가 알아야 할 사실이라 나란히 남긴다.
+DECK = "/workspace/team_meeting/teammeeting_0910"
+
+
+def _deck_mask_table(loadfn, stemfn, els, cells):
+    """덱의 hampel_mask(win=51, k=5.0)로 같은 칸을 다시 센다. 못 부르면 None."""
+    if DECK not in sys.path:
+        sys.path.insert(0, DECK)
+    try:
+        from bake_outdoor import hampel_mask          # noqa: PLC0415
+    except Exception as e:                            # noqa: BLE001
+        return {"unavailable_ko": f"덱 모듈을 못 불렀다 — {type(e).__name__}: {e}"}
+    out = {}
+    for el in els:
+        base, _ = loadfn(stemfn(4_000_000_000, 0, True), el)
+        if base is None:
+            continue
+        mb = hampel_mask(np.abs(base["E"]), 51, 5.0)
+        rows = {}
+        for nm, spp, rep in cells:
+            c, n = loadfn(stemfn(spp, rep, True), el)
+            if c is None or n < 2 or c["E"].size != mb.size:
+                continue
+            m = hampel_mask(np.abs(c["E"]), 51, 5.0)
+            inter = int((m & mb).sum()); uni = int((m | mb).sum())
+            rows[nm] = dict(n_mask=int(m.sum()), n_common=inter,
+                            jaccard=round(inter / max(uni, 1), 4))
+        out[f"{el:+g}"] = rows
+    return out
+
+
 def main() -> int:
     out = {"_meta": {"made": "benchmark/read_canyonnull_0910.py",
                      "scene": ENV, "arm": ARM, "range_m": 15, "depth": 2,
@@ -140,6 +172,14 @@ def main() -> int:
         out["by_el"][f"{el:+g}"] = dict(cells=cells, pairs=pairs, missing=missing,
                                         baseline_events=(int(flags[base].sum())
                                                          if base in flags else None))
+    out["deck_rule_hampel"] = _deck_mask_table(load, stem, ELS, CELLS)
+    out["deck_rule_note_ko"] = (
+        "⭐덱(teammeeting_0910)이 그림에 쓰는 잣대는 이 파일의 D-편차 규칙이 아니라 "
+        "|E| 에 건 Hampel(win=51 · k=5.0)이다. 발표에서 말하는 96·339 가 그 수다. "
+        "⛔다시 구현하지 않고 덱의 함수를 그대로 불러 쟀다. "
+        "실측(2026-09-10): el−30 은 96 → 114(−5 %)·112(+5 %) 로 **수까지 움직이고**, "
+        "el−60 은 339 → 332·335 로 **수는 안정한데 집합이 0.80·0.83 만 겹친다** — "
+        "즉 자세 다섯 중 하나쯤이 다른 자세다.")
     out["limits_ko"] = [
         "⛔«널» 이 아니다 — 초기 광선은 씨앗 없는 결정적 피보나치 격자다"
         "(sionna/rt/utils/ray_tracing.py:24-30). 되풀이가 1.000 이면 «수치 재현성» 이고, "
