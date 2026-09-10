@@ -1,0 +1,201 @@
+# ══ 0922 큐 — 월요일(2026-09-14) 팀미팅까지 ══
+#  줄 72 × 샤드 2 = 144 샤드 · 어림 537 일꾼시간
+#
+#  ⛔⛔여기 적힌 것은 «물음» 이지 «답» 이 아니다.
+#     묶음 이름은 무엇을 사는지이지 무엇이 참인지가 아니다.
+#     결과를 읽을 때 «이 묶음이 답하지 않는 것» 을 먼저 본다.
+#  ⛔「우리 커널이 맞고 솔버가 틀렸다」를 겨누는 줄은 하나도 없다 — 둘 다 근사다.
+#  ⛔실기 계측 대조는 이 저장소에 0 건이고 이 판으로도 안 생긴다.
+#
+#  ── 2026-09-09 외부 지적으로 확인된 한계 (결과를 읽을 때 함께 본다) ──
+#  ① 상한과 중복제거 해시 통 수가 묶여 있다(spec_counter_size = max(상한, 1e6)).
+#     우리 상한 2,000,000 은 바닥값 위다 — 「상한만 바꿨다」는 단일 변수가 아니다.
+#  ② 반환 경로 수는 후보 수가 아니다(후보 생성 → … → 무효 경로 제거 순).
+#  ③ D = E_장면 − E_빈하늘 은 «환경 산란» 이 아니다 — 차폐·드론 경로 변화·
+#     후보 탐색 차이가 함께 들어간다. 「장면이 얹은 몫」으로만 부른다.
+#  ④ 진폭 증가를 «경로 유실의 반증» 으로 쓰지 않는다 — 복소 전계는 상쇄한다.
+#     협곡에서 걸린 자세는 하나도 빠짐없이 위로 갔다(el−30 96/96 · el−60 339/339).
+#  ⑤ expected_if_unrelated = n_a·n_b/N 은 균일·독립 추출을 가정한 참고값이다.
+#  ⑥ 옵션을 다 켜도 모든 상호작용이 아니다 — 회절은 경로당 1 회, 확산+회절 동거 금지.
+#
+#  ── 묶음 ──
+#  ▸ A. 협곡의 널 — 광선 예산 ±5 % 와 같은 예산 되풀이 (확정 ②) (12 줄 · 어림 118 시간)
+#      물음      덱이 싣는 유일한 실외 장면에서 «걸리는 자세 약 1 %» 목록이 표본을 다시 뽑아도 남나. 협곡에는 «우연이면 얼마나 겹치나» 가 아직 0 건이다.
+#      죽는 조건  ① 두 앙각 모두에서 판들 사이 교집합이 expected_if_unrelated 의 5 배 이하면 죽는다 — 덱에서 협곡 자세 개수를 빼고 중앙 레벨 차만 싣는다. ② 3.8e9·4.2e9 의 사건 수가 4e9 의 96·128 에서 2 배 넘게 벗어나면 «약 1 %» 라는 말 자체를 안 쓴다. ③ 되풀이 셋(rep1·2·3, 같은 광선 예산)의 산포가 광선 ±5 % 산포보다 크면 폭을 정하는 것은 광선 예산이 아니라 솔버의 비결정성이므로 ±5 % 축을 접고 되풀이 쪽만 쓴다. ④ 어느 쪽이든 수는 el−30·el−60 두 자리 것만 쓴다.
+#      ⛔안 답함  ⛔안 답함: 이것은 협곡 · r15 · 정반사 팔 R0D0E0F1 · 깊이 2 · 앙각 두 자리의 널이다 — 우리 씬으로도, 다른 거리로도, 다른 물리 팔로도 못 옮긴다. ⛔«왜 사건이 나는가» 에는 한 글자도 답하지 않는다. ⛔협곡 앙각 0 은 이 잣대로 못 읽는다 — 내가 직접 세니 8,192 자세가 **전부** 중복(n_dup>0 100 %)이고 다른 앙각은 0 %(−75 만 2 개)다. ⛔σ(dBsm) 인용 없음. ⚠비용은 어림이다 — 협곡 샤드 실측이 100~258 분(중앙 226, meta[5] 직접 읽음)으로 2.6 배 흩어져 있어 원장값 344 분/샤드로 잡았다.
+#      읽는 법    잣대는 benchmark/read_0918B_0909.py:56 measure() 그대로 — D = E_협곡 − E_빈하늘, |D| 가 중앙에서 |중앙D|×0.5 넘게 벗어난 자세를 센다. 다섯 판(재고 4e9 + 새 3.8e9 · 4.2e9 + 되풀이 rep1·2·3)의 사건 목록을 서로 교차해 n_intersect 를 :145 의 expected_if_unrelated 와 견준다. ⭐그 값은 자카드가 아니라 «두 목록이 무관할 때 겹칠 자세 개수»(na·nb/8192)다 — 0921 판이 이걸 자카드로 읽어 죽었다. 빈 하늘 짝: 3.8e9·4.2e9 는 el−60 만 재고에 있어(직접 셈) el−30 짝 두 줄을 이 판에서 함께 산다. 되풀이 짝은 살 필요가 없다 — 빈 하늘 rep1~rep5 가 el−30·−60 에 이미 있다(sionna_p4000000000_swR0D0E0F1_r15_n8192_rep{1..5}_mfixbatteryi5_blperairframe_d2_el-30/-60). ⭐우리 씬 통째의 rep1·rep2·rep3 도 el−30·−60 에 이미 있어 두 씬의 널 폭을 같은 잣대로 나란히 적을 수 있다. 기준 사건 수는 협곡 el−30 96 자세(1.17 %) · el−60 128(1.56 %).
+#  ▸ B. 뒤쪽 반구 방위 — 「정면 창」이 정면의 성질인가 (확정 ①) (24 줄 · 어림 36 시간)
+#      물음      지금까지 방위는 0~90° 만 샀다. 기체는 앞뒤가 대칭이 아니다(src/drones.py:364 rotor_deg 52.45·131.53·228.47·307.55, rotor_r_mm 228.77·210.36·210.36·228.77). 좌우(az→−az)는 거울이라 널이지만 앞뒤(az→180−az)는 아니다 — 뒤쪽에도 같은 폭의 창이 열리나.
+#      죽는 조건  뒤쪽 자리의 |E| 중앙값과 낙차 폭이 앞쪽 거울 자리와 각각 1 dB 안에서 겹치면 「정면 창」이라는 이름을 버리고 «로터 틈 축의 창» 으로 고쳐 부른다. az180 이 az0 과 1 dB 넘게 갈리면 앞뒤 비대칭이 실재하므로 지금까지의 모든 방위 문장에 「앞쪽 4분면에서만」 단서를 단다. 거울 널(−179.9 대 179.9, −175 대 175)이 1 dB 안에 안 들어오면 잣대 자체가 흔들린 것이므로 이 묶음의 수를 아예 쓰지 않는다. 179.98~179.85 안에서 값이 들쭉날쭉해 어느 쪽으로도 못 읽히면 눈금을 반으로 줄여 다시 산다.
+#      ⛔안 답함  ⛔장면을 한 글자도 안 건드린다 — 빈 하늘 표적만의 성질이고 이 판의 본 물음(두 씬의 차이)에는 답하지 않는다. ⛔레이다만 드론 둘레를 돈다(elevation_sweep_md.py:870 RP.place) — 「드론이 뒤로 돌았을 때」가 아니다. ⛔실기 계측 대조는 여전히 0 건. ⛔σ(dBsm) 로 옮겨 적지 않는다.
+#      읽는 법    빈 하늘 · 15 m · 정반사 팔 · 깊이 2 · 광선 4e9 · 8,192 자세. 앞쪽 짝이 전부 현행 세대로 디스크에 있다(직접 셈): 내려다보는 각 0 에 az 0·0.02·0.03·0.05·0.07·0.1·0.11·0.12·0.13·0.14·0.15·0.2·0.3·0.5·0.7·1·1.5·2·3·5·10, 내려다보는 각 −30 에 az 11.25·15·22.5·30·33.75·45·56.25·60·67.5·75·78.75·90. 뒤쪽 눈금은 그 앞쪽 사다리를 180−az 로 뒤집은 것이라 짝이 1:1 이다. 방위마다 (ㄱ) |E| 중앙값 (ㄴ) 자세별 |E|/중앙|E| 의 최소·1 %·99 % (ㄷ) npaths 중앙값을 적고 az 와 180−az 를 나란히 놓는다. 앞쪽 창은 0.11~0.12° 에서 닫혔으므로 뒤쪽의 같은 자리는 179.89~179.88 이다 — 그 둘레를 179.98~179.85 로 촘촘히 깔았다. −179.9·−175 는 좌우 거울 널이다(각각 179.9·175 와 같아야 한다).
+#  ▸ C. 두 씬에 같은 깊이 사다리를 깐다 — 「사라진다」 대 「갈아탄다」가 깊이 2 갈래에 매여 있나 (26 줄 · 어림 191 시간)
+#      물음      우리 씬은 장면이 얹은 몫이 자세의 약 1 % 에서 0 으로 사라지고, 협곡은 한 자세도 사라지지 않고 다른 값으로 갈아탄다. 되돌림을 한 번만 허용하면(깊이 1) 협곡도 사라지나, 세 번 허용하면(깊이 3) 더 갈아타나.
+#      죽는 조건  협곡 깊이 1 에서 Δnpaths 가 우리 씬처럼 한 자릿수로 떨어지는데 «0.1 아래» 가 여전히 0 % 면 협곡의 «안 사라짐» 은 깊이와 무관하므로 이 축을 접고 D 로 간다. 깊이 1 에서 «0.1 아래» 가 1 % 근처(우리 씬 값)로 올라오면 두 씬의 차이가 깊이 2 갈래에서 산다고 **관찰로** 적고(⛔원인으로 적지 않는다) 깊이 3 에서 더 늘어나는지로 확인한다. ⛔깊이 3 샤드 하나가 10 시간을 넘기면 그 줄을 접는다. ⛔경로 수 중앙이 상한 2,000,000 의 90 % 에 붙으면 그 축을 접는다(지금 최대 3,992 = 0.2 %라 여유가 있다). ⛔깊이 1 의 경로 수 중앙이 깊이 2 의 0.9 배를 넘으면 깊이가 갈래를 실제로 안 자른 것이므로 그 자리는 안 읽는다.
+#      ⛔안 답함  ⛔깊이는 드론 자신의 다중반사도 함께 끈다 — 빈 하늘 같은 깊이 짝을 뺀 뒤에만 읽는다. ⛔협곡은 부품으로 못 가르므로 어느 벽인지는 여기서 안 나온다(손잡이가 없다 — 우리 씬만 지면만/건물만으로 갈린다). ⛔우리 씬 쪽은 방위 0 이라 벽이 시선 평면에 안 들어오는 조건 그대로다. ⛔협곡 앙각 0 은 자세가 전부 중복이라 안 산다. ⛔「우리 커널이 맞고 솔버가 틀렸다」로 가지 않는다.
+#      읽는 법    benchmark/read_0914_0908.py 로 읽는다(stem :69 이 이미 depth 를 받는다, DEV :51 = 0.5, 겹침 :197-215). 깊이마다 D = E_씬 − E_빈하늘 을 **같은 깊이 짝**으로 만들고(⛔깊이를 섞으면 못 읽는다) Δnpaths 중앙값 · |D|/중앙|D| 의 «0.1 아래» 와 «1.5 위» 비율 · 사건 수를 적는다. 빈 하늘 짝은 깊이 1 이 el+0·−15·−45·−60·−75, 깊이 3 이 여섯 자리 모두 디스크에 있고 **깊이 1 의 el−30 만 없어**(직접 확인 — 묶음 ③은 있다고 적었지만 없다) 이 판에서 산다. 우리 씬 쪽 사다리도 이 판에서 같은 다섯 앙각으로 채운다(통째 깊이 1 이 재고 0 장, 깊이 3 은 el−30 한 자리뿐). 기준값: 우리 씬 지면만 el−60 이 깊이 1 Δnp 1 / 0.62 % / 사건 51 · 깊이 2 567 / 1.00 % / 82 · 깊이 3 646 / 1.03 % / 91. 협곡 깊이 2 의 경로 수 중앙은 내가 직접 세어 el−15 2,122 · −30 2,652 · −45 3,241 · −60 3,678 · −75 3,992 다.
+#  ▸ D. 협곡의 물리 팔을 우리 씬과 같은 폭으로 (10 줄 · 어림 192 시간)
+#      물음      두 씬의 차이가 «정반사 한 갈래» 의 성질인가 — 굴절·회절을 켜면 사라지나, 그대로인가.
+#      죽는 조건  협곡의 |ΔD|/|D| 중앙이 1e−2 이하면 「두 씬 다 굴절을 안 탄다」로 적고 이 축을 접는다(그 경우 남는 설명은 C 의 기하뿐이다). 1e−1 을 넘으면 「협곡에서만 굴절이 장면 몫을 바꾼다」로 적되 ⛔크기는 적지 않는다 — A 가 첫 널을 줄 때까지 「얼마나」는 말하지 않는다. 회절을 켠 팔에서 경로 수 중앙이 상한의 90 % 에 붙으면 그 팔을 접는다(지금 협곡 R0D1E1F1 중앙 2,341·최대 3,394 = 0.17 %). 샤드 하나가 17 시간을 넘기면 R1D1E1F1 두 줄을 먼저 뺀다 — 예산이 밀릴 때 첫 번째로 버리는 줄이다.
+#      ⛔안 답함  ⛔「어느 물리가 맞나」에 답하지 않는다 — 둘 다 근사다. ⛔모서리 회절(E)은 회절이 켜졌을 때만 뜻이 있어 R1D0E0F1 칸에는 안 들어간다. ⛔R1 팔은 우리 씬에서도 통째뿐이고 지면만/건물만 가르기가 없다 — 「굴절을 켜니 우리 벽이 살아난다」는 이 줄들로 말할 수 없다. ⚠이 묶음이 비용이 가장 불확실하다: 협곡 R1 계열은 재고 0 장이고, 어림은 협곡 R0D1E1F1 실측 샤드(430·515·599 분, meta[5] 직접 읽음)와 우리 씬의 팔 사이 비(R1D1E1F1/R0D1E1F1 = 413/315)로 환산한 것이다. ⛔협곡 앙각 −15·−45 의 «사건 수» 는 잣대 문턱에 눌려 있어 안 쓴다 — 그 자리는 |ΔD|/|D| 로만 읽는다.
+#      읽는 법    ⭐사건 비율로 읽지 마라 — 굴절 비트는 장면이 얹은 몫 D 를 0.02 % 움직이는데(우리 씬 |ΔD|/|D| 중앙 2.238e−4 · 4.619e−4 · 2.295e−4 · 4.294e−4) 사건 수는 74→35 · 84→59 처럼 반토막 난다. 잴 것은 |D_R1 − D_R0| / |D_R0| 의 중앙값이다 — 같은 씬 · 같은 앙각 · 같은 D/E/F 에서 R 비트 하나만 다른 짝. 짝이 전부 디스크에 있다(직접 셈): 빈 하늘 R1D0E0F1·R1D1E1F1 이 el−15·−30·−45·−60·−75, R0D1E0F1 이 el+0·−30·−60·−75; 우리 씬 통째도 R1D0E0F1·R1D1E1F1 이 el+0·−15·−30·−45·−60·−75, R0D1E0F1 이 el−30·−60·−75. 이 판을 사면 협곡도 우리 씬과 같은 다섯 팔(R0D0E0F1·R0D1E0F1·R0D1E1F1·R1D0E0F1·R1D1E1F1)을 갖는다 — 지금은 앞의 둘뿐이다.
+#
+#  ── 차례를 왜 이렇게 짰나 ──
+#  차례는 두 가지를 지켰다. ⭐첫째, 덱에 실을 것이 먼저 들어온다 — 확정 ②(협곡의 널)의 여섯 줄이 1·3·5·7·9·11 번 자리에 있고 그 빈 하늘 짝 두 줄이 2·4 번이다. 목요일 덱은 협곡의 «자세 약 1 %» 를 인용할지 말지를 이 여덟 줄로 정한다. ⭐둘째, 무거운 줄과 가벼운 줄을 번갈아 놓았다 — 0918 은 344 분짜리 여덟 줄을 맨 앞에 몰아 뒤가 굶었고, 0919 는 섞어서 시간당 11 샤드를 냈다. 이 판은 홀수 자리에 협곡 줄(샤드 300~1,030 분), 짝수 자리에 빈 하늘·우리 씬 줄(샤드 45~190 분)을 넣어 일꾼 열셋이 늘 긴 것 하나와 짧은 것 하나를 함께 물게 했다. 가장 긴 두 줄(협곡 굴절+회절 팔, 샤드 어림 17 시간)은 13·15 번에 두었다 — 맨 뒤에 두면 그 한 줄 때문에 월요일을 넘긴다. 맨 뒤 여덟 줄은 방위 줄(샤드 45 분)이라 남는 일꾼을 채우고 끝난다. 겹침은 직접 확인했다: jobs_0919·0920 의 PathSolver 줄은 **전부 깊이 2** 이고(깊이 인자가 없는 50 줄은 모두 --engine ours 다), 협곡은 0920 의 프로펠러 배율 0.6·0.9 두 칸뿐이며, 방위는 −0.15~0.25 뿐이고, 되풀이 판은 우리 씬 지면만·빈 하늘 el−60 에만 있다 — 이 판의 72 줄 가운데 겹치는 것은 0 줄이다. 72 줄 전부를 dry-run 으로 돌려 이름과 문지기를 확인했고 **72 줄 모두 «없음»** 이다. 그리고 새로 사는 협곡 줄은 하나도 빠짐없이 빈 하늘 짝과 우리 씬 짝이 이미 디스크에 있다 — 짝이 어긋나 못 읽는 칸이 없다.
+#
+#  ── ⛔발주가 아니라 코드로 해야 하는 일 (이 큐에 안 들어간다) ──
+#  · 남의 씬 드론 고도를 못 내린다 — benchmark/elevation_sweep_md.py:118 ENV_BUILTIN_ALT=25.0 이 모듈 상수이고 :170 이 그대로 쓴다. --env-alt 는 :531 문지기가 sionna:* 에 거부한다(dry-run 으로 확인). 드론 지상고 20 대 25 m 라는 혼란 요인은 잡 줄로는 «우리 씬을 25 로 올려서» 만 지울 수 있고, 그러면 우리 씬의 둘러막힌 방위가 0 % 가 되어 «골목 안» 조건이 영영 안 만들어진다. 남의 씬 드론 고도 인자를 새로 달아야 한다.
+#  · --env-scat 이 두 갈래에서 대칭이 아니다 — elevation_sweep_md.py:862 의 조건 때문에 남의 씬에서는 드론 부품에도 산란계수가 걸리고 우리 씬에서는 env_* 만 걸린다. 「환경만 거칠게」 하는 인자가 없어, 두 씬 재질을 산란계수만이라도 맞추려는 순간 새 혼란 요인이 들어온다.
+#  · 우리 씬 치수를 잡 줄에서 못 바꾼다 — benchmark/make_outdoor_scene_0831.py 에 argparse 가 없고(:89 def main() 하나) 건물 :64-67 · 기둥 :68 · 지면 120×120 :75 · 출력 경로 :30 이 상수다. 새 치수의 씬을 사려면 그 스크립트 복제와 elevation_sweep_md.py:120-144 ENV_SPECS 항목 추가, 두 파일을 함께 고쳐야 한다.
+#  · 드론을 씬 안에서 옆으로 못 옮긴다 — env_parts(:200-208)는 z 만 옮기고 build_scene_builtin(:170-176)은 (0,0,25) 로만 올린다. 「협곡에서 드론을 벽 쪽으로」 나 「우리 씬에서 건물 바로 옆」 은 손잡이가 없다.
+#  · benchmark/read_0914_0908.py:48 에 EL=-60.0 이 박혀 있다 — 이 판의 깊이 사다리는 앙각 −15·−30·−45·−75 도 읽으므로 그 줄을 인자로 빼야 한다(묶음 C 를 읽기 전에 필요한 한 줄).
+#  · benchmark/read_0918B_0909.py:145 의 expected_if_unrelated 는 «두 목록이 무관할 때 겹칠 자세 개수»(na·nb/N)지 자카드가 아니다 — 0921 판이 이 오독으로 죽었다. 판독기 도움말·주석에 못 박아 다음 판에서 같은 사고가 안 나게 한다.
+#  · 협곡 앙각 0 은 8,192 자세가 전부 중복(n_dup>0 100 %)인데 판독기가 그냥 통과시킨다 — 다른 앙각은 0 %(−75 만 2 개)다. 중복 비율이 높은 칸을 판독기가 조용히 건너뛰고 그 사실을 적게 만든다.
+#
+#  ── 버린 것 ──
+#  ① 협곡 앙각 0 의 깊이·널 칸을 전부 뺐다 — 내가 샤드를 직접 열어 세니 8,192 자세가 **전부** 중복(n_dup>0)이고 다른 앙각은 0 % 다. 원안 묶음 B 의 깊이 1·깊이 3 앙각 0 두 줄이 여기서 죽었다. ② 같은 축의 중복 발주를 합쳤다 — 협곡 깊이 사다리가 묶음 ③·⑤·B 세 판으로 들어와 협곡 깊이 1 el−30·−60 이 세 겹, 빈 하늘 깊이 1 el−30 이 두 겹이었다. ③ 묶음 ③이 「빈 하늘 깊이 1 el−30 이 디스크에 있다」고 적었지만 **없다**(ls 로 확인) — 그래서 오히려 샀다. 반대로 묶음 ⑤가 사려던 지면만 깊이 1 el−30 은 그대로 사되, 우리 씬 사다리는 통째로 채웠다(통째 깊이 2 가 여섯 앙각에 이미 있어 사다리가 그 위에 얹힌다). ④ 협곡 앙각 −15·−45 의 «사건 수·비율» 판독은 잣대 문턱에 눌려 있어 안 쓴다(묶음 5 줄임판의 판정을 그대로 지켰다) — 그 두 자리는 경로 수 차와 |D|/중앙|D| 로만 읽는다. ⑤ 광선 예산 ±5 % 를 앙각 −15·−45·−75 로 넓히지 않았다 — 죽는 조건이 두 자리 것만 쓰기로 되어 있어 사도 안 읽는다. ⑥ 규약대로 확산은 모든 줄에서 켜 있고(F1), 프로펠러 단독·뮌헨·지면 거칠기·F0 계열은 한 줄도 없다. ⑦ 총 537 일꾼시간으로 잡아 850 중 약 313 시간을 여유로 남겼다 — 협곡 샤드 실측이 100~258 분으로 2.6 배 흩어져 있고(직접 읽은 meta) 협곡 R1 계열은 재 본 적이 없어 어림이 크게 틀릴 수 있는 몫이다.
+
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 3800000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 180 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 180 --shard 1 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.89 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.89 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --rep 1 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --rep 1 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.88 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.88 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D1E1F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D1E1F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D1E1F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D1E1F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.87 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.87 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --rep 2 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --rep 2 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.95 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.95 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 2 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 2 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.93 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.93 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --rep 3 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --rep 3 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.98 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.98 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 3 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 3 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.85 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.85 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.8 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.8 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.7 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.7 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 179 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 175 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg 175 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-75 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E0F1 --els=-75 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg -179.9 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg -179.9 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg -175 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=0 --az-deg -175 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-75 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 101.25 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 101.25 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 105 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 105 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 112.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 112.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 120 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 120 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 135 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 135 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 150 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 150 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 165 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 165 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 180 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --az-deg 180 --shard 1 --nshards 2
