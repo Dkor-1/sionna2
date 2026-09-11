@@ -150,7 +150,10 @@ def load(name: str, el: float):
     n_uni = int(np.unique(idx).size)
     Ecat = np.concatenate(E)[o]
     #: ⛔비유한 전계도 잡는다 — 전에는 idx 만 봤다(2026-09-11).
-    n_bad = int(np.count_nonzero(~np.isfinite(Ecat.view(float))))
+    #  ⛔⛔`E.view(float)` 로 세면 **complex64 에서 못 잡는다**(비트 재해석이지 형 변환이 아니다).
+    #    실측 2026-09-11: complex64 에 NaN 하나를 넣어도 view(float) 로는 0 건이 나온다.
+    #    ⇒ **복소 배열에 그대로** np.isfinite 를 건다. 지금 샤드는 complex128 이라 값은 안 바뀐다.
+    n_bad = int(np.count_nonzero(~np.isfinite(Ecat)))
     ok = bool(n_uni == idx.size
               and (n_expected is None or idx.size == n_expected)
               and np.array_equal(idx_sorted, np.arange(idx.size))
@@ -232,6 +235,17 @@ def main() -> int:
                 continue
             #: ⭐2026-09-10 — 자세 인덱스가 빠짐없이 한 번씩 있는 칸만 읽는다.
             #  ⛔거절 사유를 «샤드 부족» 과 섞지 않는다 — 반쪽 칸이 조용히 실리던 자리다.
+            #: ⛔⛔2026-09-11 — **비교 쌍의 시간축이 같은지** 본다. 전에는 한 칸 안의 샤드끼리만
+            #  봐서, 빈하늘 19,700 Hz · 장면 10,000 Hz 인 짝이 그대로 비교됐다(합성으로 재현).
+            _pair = []
+            if sc.get("prf_hz") and fr.get("prf_hz") and sc["prf_hz"] != fr["prf_hz"]:
+                _pair.append(dict(what="표집률", scene=sc["prf_hz"], free=fr["prf_hz"]))
+            if sc.get("n_expected") and fr.get("n_expected") and sc["n_expected"] != fr["n_expected"]:
+                _pair.append(dict(what="선언 표본수", scene=sc["n_expected"], free=fr["n_expected"]))
+            if _pair:
+                missing.append(dict(cell=nm, why="비교 쌍의 시간축이 다르다", mismatch=_pair))
+                print(f"  ⛔{nm:<24} 비교 쌍 시간축 불일치 — {_pair}")
+                continue
             if not (sc["idx_ok"] and fr["idx_ok"]):
                 missing.append(dict(cell=nm, why="자세 인덱스가 온전하지 않다",
                                     scene=dict(rows=sc["n_rows"], unique=sc["n_unique"],

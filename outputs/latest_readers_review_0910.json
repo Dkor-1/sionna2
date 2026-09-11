@@ -2,7 +2,7 @@
   "_meta": {
     "generator": "benchmark/review_latest_readers_0910.py",
     "source_sha256": {
-      "benchmark/review_latest_readers_0910.py": "65e6508d2f0b1a78183854b6ccd09b7b22b7ca9da79d425664980fc815563a86",
+      "benchmark/review_latest_readers_0910.py": "decac6242aac35927ea2423cf914637d61a08bfca48425fc5594d70103ef9246",
       "outputs/read_bodyladder_0910.json": "a1001f83584400472b485e627c0fd4d743ee642c7c7017610b93f53a40aae361",
       "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_bs0.4_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "e128d2362d61387213f930dff99fee285c47cba924fb6443e744007202286ed8",
       "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_bs0.4_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "b79bc0d45591d6c7f39765791909af882bff5a89880bbff131d7e3616f1a4174",
@@ -77,9 +77,9 @@
       "src/articulated_fast.py": "b9a55ff556360fad2d2def2b899fb9adf6b781dc85f6047ad066f689d4ee0ea5",
       "benchmark/build_md_atlas.py": "deb12e70357691addd57c5d80d4f62d220d1749a35acf95ff92a6e145cde32ca",
       "outputs/elevation_sweep_md.npz": "34d8d2301c1bbbc6b283c64e3ace2f52023f8811794404d6717dfb027ac1a178",
-      "benchmark/read_canyonnull_0910.py": "5631cd77d4e313ef55b66c91b2cac4551e191b2d5e13ae1532d2711a289c51bb",
+      "benchmark/read_canyonnull_0910.py": "5559e22519b13098abdd0874dd6b5afd4895fb79de69e0998db6eb352a090cad",
       "benchmark/read_0918B_0909.py": "71ccb506f61318415a82b5b3d5fa8515a717e965c02b4385f875c0e4a52fe33e",
-      "benchmark/read_dropladder_0910.py": "9f8f92cbf6a107c4a559ab101f33cc548c1cd44e4fe574154a624ed14326ad26",
+      "benchmark/read_dropladder_0910.py": "08bc4c6906bbe5769fb068ebefa939678ecf9265576ec3d9222334aa5205768a",
       "outputs/read_dropladder_0910.json": "c01ad51c52e316decf79312c490b5d7ed982e5049eb2a6fcb281e3ceb00ccb37",
       "outputs/elev_sweep_shards/sionna_p100000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_00.npz": "73cb3484f26b6602344bfc88d08e2044c3cda76b508322537e677098529a3196",
       "outputs/elev_sweep_shards/sionna_p100000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "87fd7cedb48ec666ca03af370ad3c180b59e0b87467a8073bf8871402fc307f0",
@@ -100,7 +100,7 @@
       "benchmark/read_bodyladder_0910.py": "a9747f703b27c357e91d0eba76fc3fbbc2ac3281eb482e4934ecd13e398a8833",
       "work/sweep_0904/RESUME_0911.md": "e80eae03b699e153b7c5d317faae03c877c145b8ec4f44012e2102be2c0dfc78",
       "runners/make_jobs_0923.py": "8d89fb410dc0b1d0944194a635c7f776bb562f22c232778f837ea0d43117d6f8",
-      "benchmark/elevation_sweep_md.py": "0d3f6047a86729b9b8bcedc69500d2d27319340bca2e7efd65f2cca7132995f6"
+      "benchmark/elevation_sweep_md.py": "2934495ca4838c52fdea21e21c9c94b56cb46a7523f21a58b562166293a8bda4"
     },
     "scope": "Current source and stored data audit; synthetic counterexamples are separately labelled. No GPU runs."
   },
@@ -2732,6 +2732,9 @@
       "mixed_dup_unknown": 4096,
       "mixed_dup_counted_short": 4096,
       "mixed_dup_counted_short_fixed": 0,
+      "production_main_ran": true,
+      "production_skipped": [],
+      "production_probe_note_ko": "n_short 는 read_dropladder_0910.main() 을 합성 창고에 대고 실제로 돌려 원장에서 읽은 값이다. ⛔검토 코드가 정답을 다시 계산하면 생산 코드의 회귀를 못 잡는다(2026-09-11 검토자 실증).",
       "mixed_dup_is_skipped": false,
       "defects_still_present": {
         "equal_length_duplicate_index_accepted": false,
@@ -2740,7 +2743,8 @@
         "unknown_dup_counted_as_short": false
       },
       "n_defects_still_present": 0,
-      "status_ko": "네 결함이 모두 고쳐졌다(합성 입력 기준)"
+      "n_unknown": 0,
+      "status_ko": "네 결함이 모두 고쳐졌다 — 생산 main() 을 합성 창고에 대고 돌려 확인했다"
     },
     "drop": {
       "rows": [
@@ -2836,12 +2840,14 @@
   },
   "findings": [
     {
-      "title": "별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다",
-      "status": "현재 발간값의 수치 영향 확인",
-      "issue": "comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체 지름을 사용한다. 아틀라스를 다시 굽는 작업만으로 이 계산식은 바뀌지 않는다.",
-      "evidence": "현재 아틀라스의 비단위 _ps 태그 17개 팔·34개 칸을 확인했다. 완전성 등 기존 자격 조건을 통과한 33개 칸만 지표를 재계산했다. 예: ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe, el 0°, 3.5 GHz, 8192표본에서 운동학적 기준 대역 끝은 891.0401 → 891.0401 Hz, 같은 신호의 빗살 대비는 41.228132 → 41.228132 dB다. 원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다.",
+      "title": "[고쳐짐] 별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다",
+      "status": "현재 발간값의 수치 영향 확인 · ⭐현재 코드에서는 재현되지 않는다",
+      "issue": "⭐**이 지적은 고쳐졌다**(2026-09-11 측정). 철회 기록 R30 · build_md_atlas.py 의 prop_scale_tag() 로 고쳤고 아틀라스를 다시 구웠다. 아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\ncomb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체 지름을 사용한다. 아틀라스를 다시 굽는 작업만으로 이 계산식은 바뀌지 않는다.",
+      "evidence": "현재 아틀라스의 비단위 _ps 태그 17개 팔·34개 칸을 확인했다. 완전성 등 기존 자격 조건을 통과한 33개 칸만 지표를 재계산했다. 예: ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe, el 0°, 3.5 GHz, 8192표본에서 운동학적 기준 대역 끝은 891.0401 → 891.0401 Hz, 같은 신호의 빗살 대비는 41.228132 → 41.228132 dB다. 원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다. ⭐2026-09-11 재측정: build_md_atlas.arm_rates 가 _ps 를 곱한다(mode=regression) — 발간 색인도 891 Hz 로 다시 구워졌고 current 와 scaled 가 같다.",
       "replacement": "프로펠러 배율을 반영한 운동학적 기준 대역에서 지표를 다시 계산하고, 해당 지도·대역 그래프·목차·영향 진단을 함께 재생성해야 한다.",
-      "followup": "공통 arm 조건 해석 함수로 지름·회전수·주파수·앙각을 정하고, 변경된 기준을 사용하는 발간 경로를 확인한다.",
+      "followup": "⭐수정이 이미 들어갔다. 되살아나지 않는지 회귀 검사로만 지킨다. (옛 제안: 공통 arm 조건 해석 함수로 지름·회전수·주파수·앙각을 정하고, 변경된 기준을 사용하는 발간 경로를 확인한다.)",
+      "fixed": true,
+      "fixed_note_ko": "철회 기록 R30 · build_md_atlas.py 의 prop_scale_tag() 로 고쳤고 아틀라스를 다시 구웠다.",
       "sources": [
         {
           "path": "benchmark/build_md_atlas.py",
@@ -2870,6 +2876,8 @@
       "evidence": "조건은 {'drone': 'matrice4e', 'scene': 'outdoor01_ground', 'el_deg': -60, 'range_m': 15, 'n_poses': 8192, 'prf_hz': 19700.0, 'depth': 2, 'arm': 'R0D0E0F1', 'dev': 0.5}이다. 동체 ×0.4의 기준 사건 탈락 인덱스는 [2978, 5421], 격자 3.8e9는 [3162, 5421], 4.2e9는 [2277, 3162]다. 세 조건은 기준 사건 82개 중 각각 80개를 남겼다. 동체 ×0.4와 두 예산 조건의 전체 사건 대칭차는 각각 12개, 11개다. 인덱스는 0부터 시작한다. 이는 사건 집합의 불일치이며, 물리 기전 차이나 통계적 유의성의 증명은 아니다.",
       "replacement": "동체 축소와 예산 변경에서 기준 사건 잔존 개수는 같았지만, 잃은 사건과 새로 생긴 사건의 목록은 달랐다. 원인 구분에는 추가 대조가 필요하다.",
       "followup": "잔존 개수와 함께 lost/added 인덱스, 직접 교집합, 각 사건의 연속 잔차 크기를 보존한다.",
+      "fixed": null,
+      "fixed_note_ko": null,
       "sources": [
         {
           "path": "runners/make_jobs_0924.py",
@@ -2892,10 +2900,12 @@
       "evidence": "판독기의 조건별 표와 경고는 올바른 방향이다. 그러나 앙각을 합친 최솟값·최댓값은 같은 조건의 확률 분포가 아니다. 서로 다른 회전수에서 같은 시간 인덱스의 겹침은 계산할 수 있지만, 같은 로터 자세에서의 형상 효과를 분리하는 지표가 되지는 않는다. 기체 교체가 실제로 수행한 비교에서 이미 잘못 결론 났다고 주장하는 것이 아니라, 실행 후 판정 지시의 모순을 지적한다.",
       "replacement": "예산 변경에서 관측한 사건 겹침은 앙각별 민감도 참고값으로 둔다. 기체 교체의 같은 시각 겹침은 회전 위상 차이를 포함하므로 형상 효과의 판정 문턱으로 쓰지 않는다.",
       "followup": "0923C의 폐기 조건과 재개 문서를 함께 정리한다. 시간 기준 질문인지 위상 기준 질문인지 먼저 정하고, 주기·허브·회전수·반복 조건을 명시한다.",
+      "fixed": null,
+      "fixed_note_ko": null,
       "sources": [
         {
           "path": "benchmark/read_canyonnull_0910.py",
-          "line": 304,
+          "line": 318,
           "quote": "\"예산 변경은 «격자를 갈았을 때의 민감도» 다. 두 점은 신뢰구간이 아니다.\",",
           "found": true
         },
@@ -2926,6 +2936,8 @@
       "evidence": "거리 협곡·matrice4e·15 m·el −60°·깊이 2·R0D0E0F1·Hampel(win=51,k=5.0), 예산 대조 1: 기준 339개, 새 조건 332개, 공통 298개, 합집합 373개다. 기준 탈락은 41/339=12.094%, 합집합 비공통은 75/373=20.107%, 전체 표본 중 판정이 바뀐 몫은 0.916%다. 예산 대조 2: 기준 339개, 새 조건 335개, 공통 305개, 합집합 369개다. 기준 탈락은 34/339=10.029%, 합집합 비공통은 64/369=17.344%, 전체 표본 중 판정이 바뀐 몫은 0.781%다. 예산 대조 순서는 3.8e9, 4.2e9이며 기준은 4e9다.",
       "replacement": "두 집합의 합집합에서 공통이 아닌 몫을 자카드의 보수로 보고한다. 기준 사건의 탈락률과 전체 표본의 판정 변화율은 분모를 별도로 적는다.",
       "followup": "겹침 설명에 기준 개수·교집합·합집합·추가·탈락을 함께 표시한다.",
+      "fixed": null,
+      "fixed_note_ko": null,
       "sources": [
         {
           "path": "benchmark/read_canyonnull_0910.py",
@@ -2936,40 +2948,44 @@
       ]
     },
     {
-      "title": "협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다",
-      "status": "정보 유실은 현재 코드, 경고 누락은 합성 입력으로 재현",
-      "issue": "새 load는 n_trunc를 읽지 않고 trunc=[]를 반환한다. 이어 호출한 measure의 at_path_cap는 npaths의 중앙값으로 계산되므로 드문 자세의 상한 근접을 감지하는 대체 장치도 아니다.",
+      "title": "[고쳐짐] 협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다",
+      "status": "정보 유실은 현재 코드, 경고 누락은 합성 입력으로 재현 · ⭐현재 코드에서는 재현되지 않는다",
+      "issue": "⭐**이 지적은 고쳐졌다**(2026-09-11 측정). read_canyonnull_0910._trunc_of() 와 read_0918B_0909.load() 가 저장된 nret·상한으로 지금 문턱(0.99)을 다시 적용해 싣고, ⭐2026-09-11 에 **주 원장 병합**(elevation_sweep_md.py)도 같은 식으로 고쳤다 — n_trunc 는 재계산, n_trunc_stored 는 샤드에 적힌 값. 중앙값 판정은 median_npaths_near_cap 으로 이름을 고쳤다. 아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\n새 load는 n_trunc를 읽지 않고 trunc=[]를 반환한다. 이어 호출한 measure의 at_path_cap는 npaths의 중앙값으로 계산되므로 드문 자세의 상한 근접을 감지하는 대체 장치도 아니다.",
       "evidence": "발간된 협곡 10개 조건의 장면·자유공간 샤드를 직접 읽었으며, 저장된 상한 근접 사건 합계는 0개, 해당 진단이 없는 샤드는 12개였다. 읽은 반환 경로 수의 최댓값은 4071개였다. 따라서 이 발간값에서 실제 잘림을 발견한 것은 아니다. 합성 입력에 상한 근접 1건을 넣으면 현재 함수는 trunc=[{'file': 'duplicate_scene_el-60_00.npz', 'stored': 1, 'cap': 2000000, 'recomputed': 1, 'nret_max': 2000000, 'n_poses': 4096}, {'file': 'duplicate_scene_el-60_01.npz', 'stored': 0, 'cap': 2000000, 'recomputed': 0, 'nret_max': 10, 'n_poses': 4096}], at_path_cap=False를 반환했다. n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.",
       "replacement": "저장된 상한 근접 진단을 읽어 보고하며, 진단 미수집과 경고 없음은 구분한다. 반환 수 기반 휴리스틱의 한정은 유지한다.",
-      "followup": "샤드별 n_trunc와 실제 cap을 보존하고 nret 진단을 전파한다. npaths 중앙값은 median_npaths_near_cap처럼 뜻에 맞게 이름 붙인다.",
+      "followup": "⭐수정이 이미 들어갔다. 되살아나지 않는지 회귀 검사로만 지킨다. (옛 제안: 샤드별 n_trunc와 실제 cap을 보존하고 nret 진단을 전파한다. npaths 중앙값은 median_npaths_near_cap처럼 뜻에 맞게 이름 붙인다.)",
+      "fixed": true,
+      "fixed_note_ko": "read_canyonnull_0910._trunc_of() 와 read_0918B_0909.load() 가 저장된 nret·상한으로 지금 문턱(0.99)을 다시 적용해 싣고, ⭐2026-09-11 에 **주 원장 병합**(elevation_sweep_md.py)도 같은 식으로 고쳤다 — n_trunc 는 재계산, n_trunc_stored 는 샤드에 적힌 값. 중앙값 판정은 median_npaths_near_cap 으로 이름을 고쳤다.",
       "sources": [
         {
           "path": "benchmark/read_canyonnull_0910.py",
-          "line": null,
-          "quote": "trunc=[], files=",
-          "found": false
+          "line": 132,
+          "quote": "TR.append(_trunc_of(z, os.path.basename(f)))",
+          "found": true
         },
         {
           "path": "benchmark/read_0918B_0909.py",
-          "line": 98,
-          "quote": "r[\"at_path_cap\"] = r[\"median_npaths_near_cap\"]      # 옛 이름 — 문면 호환",
+          "line": 97,
+          "quote": "r[\"median_npaths_near_cap\"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)",
           "found": true
         },
         {
           "path": "benchmark/elevation_sweep_md.py",
-          "line": 960,
-          "quote": "_ntr = int(np.count_nonzero(np.asarray(nret) >= 0.99 * RP.MAX_PATHS))",
+          "line": 1124,
+          "quote": "n_tr_stored += int(_nt[0])",
           "found": true
         }
       ]
     },
     {
-      "title": "샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다",
-      "status": "현재 자료 정상 확인, 잠재 결함은 합성 입력으로 재현",
-      "issue": "협곡 판독기는 idx를 정렬한 뒤 버려서 중복·누락·장면과 자유공간의 같은 시각 대응을 검사하지 않는다. 낙차 판독기는 n_dup가 일부만 없는 경우 결측값을 복제 부족으로 세게 된다.",
+      "title": "[고쳐짐] 샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다",
+      "status": "현재 자료 정상 확인, 잠재 결함은 합성 입력으로 재현 · ⭐현재 코드에서는 재현되지 않는다",
+      "issue": "⭐**이 지적은 고쳐졌다**(2026-09-11 측정). 협곡·낙차 판독기가 idx 온전성·선언 표본수·표집률·비유한 전계(복소 배열에 직접 isfinite)를 함께 싣고, ⭐2026-09-11 에 **비교 쌍의 시간축**까지 본다. 낙차 쪽은 계측된 자세만 «줄<3» 으로 세고 전부 미계측이면 사유를 남긴다. 판정은 검토 코드가 아니라 **생산 main() 을 돌려** 확인한다. 아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\n협곡 판독기는 idx를 정렬한 뒤 버려서 중복·누락·장면과 자유공간의 같은 시각 대응을 검사하지 않는다. 낙차 판독기는 n_dup가 일부만 없는 경우 결측값을 복제 부족으로 세게 된다.",
       "evidence": "합성 자료에서 총 8192행이지만 고유 인덱스 4096개인 장면을 현 함수가 수락했다(accepted=True). 다른 합성 자료에서는 n_dup 미기록 4096행을 short 4096건으로 셌다. 반면 이번 원본 샤드 검사는 인덱스 완전성·유일성·유한 전계·대조 표집률을 통과했고, 발간 낙차 판독 7개 조건의 n_dup 미기록 수는 0였다. 합성 실패를 현재 실험 데이터 오염으로 소급하지 않는다.",
       "replacement": "예상 표본의 인덱스가 빠짐없이 한 번씩 있고 대조 쌍의 시간축이 같은 칸만 판독한다. 중복 계측이 없는 표본은 미계측으로 분리한다.",
-      "followup": "idx==arange(N), 메타데이터 일치, 유한값을 검증한다. valid_dup와 short를 분리하고 양쪽 비교에 사용한 파일 목록을 저장한다.",
+      "followup": "⭐수정이 이미 들어갔다. 되살아나지 않는지 회귀 검사로만 지킨다. (옛 제안: idx==arange(N), 메타데이터 일치, 유한값을 검증한다. valid_dup와 short를 분리하고 양쪽 비교에 사용한 파일 목록을 저장한다.)",
+      "fixed": true,
+      "fixed_note_ko": "협곡·낙차 판독기가 idx 온전성·선언 표본수·표집률·비유한 전계(복소 배열에 직접 isfinite)를 함께 싣고, ⭐2026-09-11 에 **비교 쌍의 시간축**까지 본다. 낙차 쪽은 계측된 자세만 «줄<3» 으로 세고 전부 미계측이면 사유를 남긴다. 판정은 검토 코드가 아니라 **생산 main() 을 돌려** 확인한다.",
       "sources": [
         {
           "path": "benchmark/read_canyonnull_0910.py",
@@ -2979,20 +2995,20 @@
         },
         {
           "path": "benchmark/read_canyonnull_0910.py",
-          "line": 229,
+          "line": 232,
           "quote": "if sc is None or fr is None or ns < 2 or nf < 2:",
           "found": true
         },
         {
           "path": "benchmark/read_dropladder_0910.py",
-          "line": 116,
+          "line": 125,
           "quote": "if (D < 0).all():",
           "found": true
         },
         {
           "path": "benchmark/read_dropladder_0910.py",
-          "line": 132,
-          "quote": "#  `n_dup` 이 없는 세대의 샤드는 −1 로 채워 두는데, 옛 `short = D < 2` 는 그 −1 을",
+          "line": 149,
+          "quote": "short = have & (D < 2)              # 같은 줄이 세 번 안 적힌 자세(계측된 것만)",
           "found": true
         }
       ]

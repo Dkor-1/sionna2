@@ -113,7 +113,19 @@ def main() -> int:
             if c is None:
                 continue
             E, D, P = c["E"], c["D"], c["P"]
+            #: ⛔⛔2026-09-11 — **비유한 전계를 받아 «낙차 0 · 일치» 로 적던 자리.**
+            #  복소 배열에 그대로 isfinite 를 건다(view(float) 는 complex64 에서 못 잡는다).
+            _nbad = int(np.count_nonzero(~np.isfinite(E)))
+            if _nbad:
+                skipped.append(dict(arm=arm, spp=spp, why="전계에 비유한 값이 있다",
+                                    n_nonfinite=_nbad, n_poses=int(E.size)))
+                print(f"  ⛔{arm:<10}{spp:>15,}  비유한 전계 {_nbad}/{E.size} — 건너뛴다", flush=True)
+                continue
+            #: ⛔⛔2026-09-11 — 전부 미계측이면 **이유 없이 사라지던** 자리. 상태를 남긴다.
             if (D < 0).all():
+                skipped.append(dict(arm=arm, spp=spp, why="n_dup 이 전부 미계측이다",
+                                    n_poses=int(E.size), n_shards=c["n_shards"]))
+                print(f"  ⏳{arm:<10}{spp:>15,}  n_dup 미계측(옛 세대 샤드) — 건너뛴다", flush=True)
                 continue
             #: ⭐⭐2026-09-10 — **완전성 게이트를 새로 단다.** 전에는 샤드 수도 배열 길이도
             #  자세 인덱스도 안 봐서, 반쪽 칸이 들어오면 아무 말 없이 그 위에서 중앙값을 쟀다

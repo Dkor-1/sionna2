@@ -247,8 +247,27 @@ def adversarial_check():
         #   찍힌다(고친 자리는 부르는 쪽의 idx_ok 게이트인데 반례가 그것을 안 봤다).
         gated=bool(accepted and F.get('idx_ok') and O.get('idx_ok'))
         c=ds['cell']('R0D0E0F1',4_000_000_000);D=c['D'];unknown=int((D<0).sum())
-        # ⭐고친 셈법 — 계측된 자세만 «줄<3» 으로 센다(read_dropladder main() 과 같은 식)
-        _have=D>=0; short_fixed=int((_have&(D<2)).sum())
+        # ⛔⛔2026-09-11 — 전에는 여기서 **정답식을 제 손으로 다시 짰다**(`have&(D<2)`).
+        #   그러면 생산 코드가 옛 오류로 되돌아가도 이 검사는 «고쳐졌다» 로 찍힌다
+        #   (검토자가 메모리에서 되돌려 실증했다: 오집계 0 → 4,096 인데 판정은 그대로).
+        #   ⇒ **생산 main() 을 그대로 돌려** 그 결과를 읽는다. 검사는 답을 알면 안 된다.
+        short_fixed, prod_ran = None, False
+        try:
+            import importlib, json as _json, io, contextlib
+            _rd = importlib.import_module('read_dropladder_0910')
+            importlib.reload(_rd)
+            _rd.SHD = tmp                      # 합성 창고를 보게 한다
+            _rd.OUT = os.path.join(tmp, '_probe_dropladder.json')
+            with contextlib.redirect_stdout(io.StringIO()):
+                _rd.main()
+            _pj = _json.load(open(_rd.OUT, encoding='utf-8'))
+            _row = next((r for r in _pj.get('rows', [])
+                         if r['arm']=='R0D0E0F1' and r['spp']==4_000_000_000), None)
+            short_fixed = _row['n_short'] if _row else None
+            prod_ran = True
+            prod_skipped = _pj.get('_meta', {}).get('skipped', [])
+        except Exception as _e:                                   # noqa: BLE001
+            prod_err = f"{type(_e).__name__}: {_e}"; prod_skipped = []
         result=dict(kind='Synthetic fixtures passed to AST-extracted current functions; not observed data corruption.',
                     n_declared=N,n_scene_unique_indices=N//2,
                     equal_length_duplicate_index_accepted=bool(accepted),
@@ -259,7 +278,14 @@ def adversarial_check():
                     recomputed_poses_near_cap=r.get('n_poses_near_cap_now'),
                     shards_without_cap_diag=r.get('n_shards_without_cap_diag'),
                     mixed_dup_unknown=unknown,mixed_dup_counted_short=int((D<2).sum()),
+                    # ⭐생산 main() 이 실제로 실은 수. ⛔검토 코드가 다시 계산한 값이 아니다.
                     mixed_dup_counted_short_fixed=short_fixed,
+                    production_main_ran=prod_ran,
+                    production_skipped=prod_skipped,
+                    production_probe_note_ko=(
+                        "n_short 는 read_dropladder_0910.main() 을 합성 창고에 대고 실제로 "
+                        "돌려 원장에서 읽은 값이다. ⛔검토 코드가 정답을 다시 계산하면 생산 "
+                        "코드의 회귀를 못 잡는다(2026-09-11 검토자 실증)."),
                     mixed_dup_is_skipped=bool((D<0).all()))
     # ⛔⛔2026-09-11 — 여기 있던 assert 넷은 «결함이 **있다**» 를 단정했다. 2026-09-10/11 에
     #   그 넷을 고쳤으므로 단정이 그대로면 이 빌더가 죽는다(실제로 죽었다).
@@ -276,12 +302,18 @@ def adversarial_check():
         median_only_cap_flag=bool((result['recomputed_poses_near_cap'] or 0) <
                                   result['synthetic_recorded_near_cap_events']),
         # 미계측(−1)을 «줄<3» 으로 세는가
-        unknown_dup_counted_as_short=bool(result['mixed_dup_counted_short_fixed']==unknown
-                                          and unknown > 0))
-    result['n_defects_still_present']=sum(result['defects_still_present'].values())
-    result['status_ko']=('네 결함이 모두 고쳐졌다(합성 입력 기준)'
-                         if result['n_defects_still_present']==0 else
-                         '아직 남은 것: '+', '.join(k for k,v in result['defects_still_present'].items() if v))
+        # ⛔생산 main() 이 안 돌았으면 «고쳐졌다» 로 찍지 않는다 — 모르는 것은 모른다고 둔다
+        unknown_dup_counted_as_short=(None if not result['production_main_ran'] else
+                                      bool(result['mixed_dup_counted_short_fixed']==unknown
+                                           and unknown > 0)))
+    _d=result['defects_still_present']
+    result['n_defects_still_present']=sum(1 for v in _d.values() if v is True)
+    result['n_unknown']=sum(1 for v in _d.values() if v is None)
+    result['status_ko']=(
+        ('아직 남은 것: '+', '.join(k for k,v in _d.items() if v is True)) if result['n_defects_still_present']
+        else (f"네 결함이 합성 입력에서 안 재현된다 (⚠못 잰 것 {result['n_unknown']} 개 — "
+              "생산 main() 을 못 돌렸다)") if result['n_unknown']
+        else '네 결함이 모두 고쳐졌다 — 생산 main() 을 합성 창고에 대고 돌려 확인했다')
     return result
 
 
@@ -297,9 +329,23 @@ def drop_check():
 
 def findings(c):
     fs=[]
-    def add(title,status,issue,evidence,replacement,followup,refs):
+    # ⛔⛔2026-09-11 — 전에는 제목·본문이 «결함이 있다» 로 고정이라, 고쳐진 뒤에도 보고서가
+    #   옛 결함을 그대로 재발행했다(검토자 지적: mode=regression 인데 제목은 «반영되지 않았다»).
+    #   ⇒ 측정된 현재 상태(`fixed`)를 받아 **제목·본문·수정 제안에 모두** 싣는다.
+    #   ⛔fixed=None 은 «못 쟀다» 다 — «고쳐졌다» 로 쓰지 않는다.
+    def add(title,status,issue,evidence,replacement,followup,refs,fixed=None,fixed_note=''):
+        if fixed is True:
+            title = '[고쳐짐] ' + title
+            status = f"{status} · ⭐현재 코드에서는 재현되지 않는다"
+            issue = ('⭐**이 지적은 고쳐졌다**(2026-09-11 측정). ' + (fixed_note + ' ' if fixed_note else '')
+                     + '아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\n' + issue)
+            followup = '⭐수정이 이미 들어갔다. 되살아나지 않는지 회귀 검사로만 지킨다. (옛 제안: ' + followup + ')'
+        elif fixed is False:
+            title = '[남음] ' + title
+            status = f"{status} · ⛔현재 코드에서도 재현된다"
         fs.append(dict(title=title,status=status,issue=issue,evidence=evidence,
                        replacement=replacement,followup=followup,
+                       fixed=fixed,fixed_note_ko=fixed_note or None,
                        sources=[source(p,n) for p,n in refs]))
     a=c['atlas'];s=a['sample']
     add('별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다','현재 발간값의 수치 영향 확인',
@@ -309,10 +355,15 @@ def findings(c):
         f"예: {s['arm']}, el {s['el_deg']:g}°, {a['fc_hz']/1e9:g} GHz, {s['n_poses']}표본에서 "
         f"운동학적 기준 대역 끝은 {s['current_tip_hz']:.4f} → {s['scaled_tip_hz']:.4f} Hz, "
         f"같은 신호의 빗살 대비는 {s['comb_db_current']:.6f} → {s['comb_db_scaled']:.6f} dB다. "
-        '원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다.',
+        '원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다.'
+        + (f" ⭐2026-09-11 재측정: build_md_atlas.arm_rates 가 _ps 를 곱한다(mode={a['mode']}) — "
+           f"발간 색인도 {s['published_tip_hz']:g} Hz 로 다시 구워졌고 current 와 scaled 가 같다."
+           if a.get('prop_scale_applied') else ''),
         '프로펠러 배율을 반영한 운동학적 기준 대역에서 지표를 다시 계산하고, 해당 지도·대역 그래프·목차·영향 진단을 함께 재생성해야 한다.',
         '공통 arm 조건 해석 함수로 지름·회전수·주파수·앙각을 정하고, 변경된 기준을 사용하는 발간 경로를 확인한다.',
-        [('benchmark/build_md_atlas.py','ftip0 = 2.0'),('benchmark/comb_snr.py','* (blade_of(arm) / F0) * _ps)'),
+        fixed=bool(a.get('prop_scale_applied')),
+        fixed_note='철회 기록 R30 · build_md_atlas.py 의 prop_scale_tag() 로 고쳤고 아틀라스를 다시 구웠다.',
+        refs=[('benchmark/build_md_atlas.py','ftip0 = 2.0'),('benchmark/comb_snr.py','* (blade_of(arm) / F0) * _ps)'),
          ('src/articulated_fast.py','prop_scale 에만 비례한다')])
     b=c['body'];p=b['pairs_to_base'];direct=b['direct_body_vs_budget']['동체 ×0.4']
     add('기준 사건이 같은 수만큼 남았다는 것이 같은 집합이라는 뜻은 아니다','원본 사건 인덱스로 확인',
@@ -360,9 +411,16 @@ def findings(c):
         'n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.',
         '저장된 상한 근접 진단을 읽어 보고하며, 진단 미수집과 경고 없음은 구분한다. 반환 수 기반 휴리스틱의 한정은 유지한다.',
         '샤드별 n_trunc와 실제 cap을 보존하고 nret 진단을 전파한다. npaths 중앙값은 median_npaths_near_cap처럼 뜻에 맞게 이름 붙인다.',
-        [('benchmark/read_canyonnull_0910.py','trunc=[], files='),
-         ('benchmark/read_0918B_0909.py','r["at_path_cap"] ='),
-         ('benchmark/elevation_sweep_md.py','_ntr = int(np.count_nonzero')])
+        fixed=(None if x['defects_still_present']['trunc_diagnostic_dropped'] is None
+               else not (x['defects_still_present']['trunc_diagnostic_dropped']
+                         or x['defects_still_present']['median_only_cap_flag'])),
+        fixed_note=('read_canyonnull_0910._trunc_of() 와 read_0918B_0909.load() 가 저장된 nret·상한으로 '
+                    '지금 문턱(0.99)을 다시 적용해 싣고, ⭐2026-09-11 에 **주 원장 병합**'
+                    '(elevation_sweep_md.py)도 같은 식으로 고쳤다 — n_trunc 는 재계산, '
+                    'n_trunc_stored 는 샤드에 적힌 값. 중앙값 판정은 median_npaths_near_cap 으로 이름을 고쳤다.'),
+        refs=[('benchmark/read_canyonnull_0910.py','_trunc_of(z, os.path.basename(f))'),
+         ('benchmark/read_0918B_0909.py','r["median_npaths_near_cap"]'),
+         ('benchmark/elevation_sweep_md.py','n_tr_stored += int(_nt[0])')])
     drop=c['drop']
     add('샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다','현재 자료 정상 확인, 잠재 결함은 합성 입력으로 재현',
         '협곡 판독기는 idx를 정렬한 뒤 버려서 중복·누락·장면과 자유공간의 같은 시각 대응을 검사하지 않는다. 낙차 판독기는 n_dup가 일부만 없는 경우 결측값을 복제 부족으로 세게 된다.',
@@ -377,7 +435,14 @@ def findings(c):
         [('benchmark/read_canyonnull_0910.py','o = np.argsort'),
          ('benchmark/read_canyonnull_0910.py','ns < 2 or nf < 2'),
          ('benchmark/read_dropladder_0910.py','if (D < 0).all():'),
-         ('benchmark/read_dropladder_0910.py','short = D < 2')])
+         ('benchmark/read_dropladder_0910.py','short = have & (D < 2)')],
+        fixed=(None if x['defects_still_present']['unknown_dup_counted_as_short'] is None
+               else not (x['defects_still_present']['equal_length_duplicate_index_accepted']
+                         or x['defects_still_present']['unknown_dup_counted_as_short'])),
+        fixed_note=('협곡·낙차 판독기가 idx 온전성·선언 표본수·표집률·비유한 전계(복소 배열에 직접 '
+                    'isfinite)를 함께 싣고, ⭐2026-09-11 에 **비교 쌍의 시간축**까지 본다. 낙차 쪽은 '
+                    '계측된 자세만 «줄<3» 으로 세고 전부 미계측이면 사유를 남긴다. '
+                    '판정은 검토 코드가 아니라 **생산 main() 을 돌려** 확인한다.'))
     return fs
 
 

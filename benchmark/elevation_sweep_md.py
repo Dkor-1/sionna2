@@ -1102,7 +1102,7 @@ def analyse() -> None:
             #    두 장 다 옛 세대라 상한을 어디서도 못 얻는다 ⇒ 자세 8,192/8,192 가
             #    1,999,98x 로 상한에 붙어 있는데 원장에는 n_trunc=0 · truncated=false 로
             #    실린다. 「상한이 결과를 정하면 그 축은 접는다」를 원장만 보고는 못 지킨다.
-            n_tr, n_seen = 0, 0
+            n_tr, n_seen, n_tr_stored = 0, 0, 0
             _caps, _pend = set(), []     # 이 칸이 쓴 상한들 · 상한을 아직 모르는 옛 샤드
             for f in fs:
                 z = np.load(f); ii = z["idx"].astype(int)
@@ -1112,9 +1112,22 @@ def analyse() -> None:
                 if "npaths" in z: npa.append(z["npaths"])
                 if "n_trunc" in z:
                     _nt = np.asarray(z["n_trunc"]).ravel()
-                    n_tr += int(_nt[0]); n_seen += int(ii.size)
                     if _nt.size > 1:
                         _caps.add(int(_nt[1]))
+                    #: ⛔⛔**저장값을 그대로 더하지 않는다** (2026-09-11 정정).
+                    #  `n_trunc[0]` 은 **구울 때의 문턱**으로 센 값이고 문턱이 0.999 → 0.99 로
+                    #  내려간 적이 있다(:957-959 의 정정 기록). 옛 문턱으로 구운 샤드가 창고에
+                    #  남아 있어 저장값을 더하면 잘린 판이 「깨끗함」으로 원장에 실린다.
+                    #  ⛔실측(2026-09-11): 256 표본 묶음에서 저장값 합 0 · 지금 문턱 재계산 256.
+                    #  ⇒ nret 가 있으면 **저장된 상한으로 지금 문턱을 다시 적용**하고,
+                    #    저장값은 n_trunc_stored 로만 남긴다. nret 가 없으면 저장값을 쓴다.
+                    n_tr_stored += int(_nt[0])
+                    if "nret" in z and _nt.size > 1:
+                        _nr = np.asarray(z["nret"])
+                        n_tr += int(np.count_nonzero(_nr >= 0.99 * int(_nt[1])))
+                    else:
+                        n_tr += int(_nt[0])
+                    n_seen += int(ii.size)
                 elif "nret" in z:
                     #: 옛 세대라 n_trunc 는 없지만 nret 는 있는 샤드 — 상한이 정해진
                     #  뒤(고리 밖)에서 센다. ⛔여기서 세면 아직 안 읽은 샤드가 들고 있는
@@ -1175,6 +1188,14 @@ def analyse() -> None:
                                         edge_diffraction=b[5] == "1", diffuse=b[7] == "1")
             #: ⭐잘림 — 0 이 아니면 **그 행의 레벨을 인용하지 않는다.**
             prov["n_trunc"] = int(n_tr)
+            #: ⭐샤드에 적힌 값(구울 때 문턱)도 함께 남긴다 — 둘이 다르면 세대가 섞인 것이다.
+            prov["n_trunc_stored"] = int(n_tr_stored)
+            prov["n_trunc_recomputed_note_ko"] = (
+                "n_trunc 는 저장된 nret 과 저장된 상한으로 **지금 문턱(0.99)을 다시 적용**해 센 "
+                "자세 수다. n_trunc_stored 는 샤드에 적힌 값(구울 때의 문턱, 0.999 세대가 섞여 "
+                "있다). 둘이 다르면 그 칸은 세대가 섞였다는 뜻이다. "
+                "⛔«잘린 자세 수» 가 아니라 «상한 근접 경고에 해당하는 자세 수» 다 — "
+                "nret 은 돌아온 경로 수의 어림수이지 후보가 잘렸다는 직접 계측이 아니다.")
             prov["n_poses_with_path_count"] = int(n_seen)
             prov["max_paths_cap"] = cap_seen
             #: ⛔상한을 샤드에서 못 얻어 규약 기본값으로 잰 칸이면 그 사실을 적는다.
