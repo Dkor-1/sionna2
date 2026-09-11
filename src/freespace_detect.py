@@ -769,17 +769,27 @@ def calibrate_pfa(pre, shape, K_pfa=20000, pfa_target=PFA_CELL, sigma=1.0,
 
     nominal = float(pfa_target)
     probes = []
+    clipped: list = []      # 지원 범위[1e-12, 0.5] 밖으로 나가 경계에 붙은 자리
     emp, fa, cells = _measure(nominal)
     probes.append(dict(nominal=nominal, empirical=emp, n_fa=fa, n_cells=cells))
     for _ in range(int(max_iter) - 1):
         if emp <= 0 or abs(np.log10(max(emp, 1e-12) / pfa_target)) <= tol_log10:
             break
-        nominal = float(np.clip(nominal * (pfa_target / emp), 1e-12, 0.5))
+        #: ⛔⛔2026-09-11(4) — 여기서 **조용히 경계로 고정**됐다. 지원 범위 밖 목표를 넣으면
+        #  경계값(1e-12 또는 0.5)에 붙은 채 «교정됐다» 로 실렸다. ⇒ 붙었다는 사실을 남긴다.
+        _want = nominal * (pfa_target / emp)
+        nominal = float(np.clip(_want, 1e-12, 0.5))
+        if abs(_want - nominal) > 1e-18 * max(1.0, abs(_want)):
+            clipped.append(dict(wanted=float(_want), used=float(nominal)))
         emp, fa, cells = _measure(nominal)
         probes.append(dict(nominal=nominal, empirical=emp, n_fa=fa, n_cells=cells))
 
     return dict(shape=shape.get("name"), mode=f"{shape.get('std','')}{shape.get('occ','')}",
                 target=float(pfa_target), nominal=float(nominal), empirical=float(emp),
+                clipped_to_support=clipped,
+                clipped_note_ko=("교정은 명목 오경보율을 [1e-12, 0.5] 안에서만 움직인다. "
+                                 "이 목록이 비어 있지 않으면 그 되풀이에서 **경계에 붙었다** — "
+                                 "그 칸의 «교정됐다» 를 그대로 읽지 않는다."),
                 ratio_emp_over_nominal=float(emp / nominal) if nominal > 0 else None,
                 fs_hz=float(fs), eca_provenance=eca_prov, cpi=prf_info,
                 n_fa=int(fa), n_cells=int(cells), K_pfa=int(K_pfa), probes=probes,

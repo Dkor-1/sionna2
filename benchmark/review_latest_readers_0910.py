@@ -375,13 +375,13 @@ def findings(c):
     #   ⛔fixed=None 은 «못 쟀다» 다 — «고쳐졌다» 로 쓰지 않는다.
     def add(title,status,issue,evidence,replacement,followup,refs,fixed=None,fixed_note=''):
         if fixed is True:
-            title = '[고쳐짐] ' + title
+            title = '[현행 반영] ' + title
             status = f"{status} · ⭐현재 코드에서는 재현되지 않는다"
             issue = ('⭐**이 지적은 고쳐졌다**(2026-09-11 측정). ' + (fixed_note + ' ' if fixed_note else '')
                      + '아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\n' + issue)
             followup = '⭐수정이 이미 들어갔다. 되살아나지 않는지 회귀 검사로만 지킨다. (옛 제안: ' + followup + ')'
         elif fixed is False:
-            title = '[남음] ' + title
+            title = '[현행 재현] ' + title
             status = f"{status} · ⛔현재 코드에서도 재현된다"
         fs.append(dict(title=title,status=status,issue=issue,evidence=evidence,
                        replacement=replacement,followup=followup,
@@ -559,12 +559,12 @@ def render(o):
         _fx = f.get('fixed')
         _head = f"## {i+1}. {f['title']}"
         _body = f['replacement']
+        # ⛔2026-09-11(4) — 노트북 규약(§5.4 문장 3 · §5.5 수정 이력 · §5.8 부정문 3)을 넘겨
+        #   ContractError 로 죽었다. ⇒ **한 문장**, 긍정문, 이력 낱말 없이 적는다.
         if _fx is True:
-            _body = ('⭐**이 지적은 고쳐졌다**(2026-09-11 측정). '
-                     + (f.get('fixed_note_ko') or '') + ' 아래 제안은 지적 당시의 것이다.\n\n'
-                     + _body)
+            _body = '⭐현재 코드는 이 자리를 다르게 처리한다(2026-09-11 측정).\n\n' + _body
         elif _fx is False:
-            _body = '⛔**현재 코드에서도 재현된다.**\n\n' + _body
+            _body = '⛔현재 코드가 같은 결과를 낸다(2026-09-11 측정).\n\n' + _body
         blocks.append(md(_head,'',_body,'',
             f"[원문·재계산·조건·한정](LATEST_READERS_REVIEW_0910.md) ⟨{j} : findings[{i}]⟩"))
     _steps=[]
@@ -572,14 +572,14 @@ def render(o):
         _steps.append(('아틀라스 대역과 관련 산출물을 정정한다','같은 신호에서 발생한 지표 정의의 차이',
                        'LATEST_READERS_REVIEW_0910.md'))
     else:
-        _steps.append(('아틀라스 정정이 되살아나지 않는지 회귀로 지킨다',
-                       '대역 정의는 이미 고쳐 다시 구웠다(철회 기록 R30)','../docs/RETRACTION_LOG.md'))
+        _steps.append(('아틀라스 대역 정의를 회귀 검사로 지킨다',
+                       '현재 정의는 프로펠러 배율을 반영한다(철회 기록 R30)','../docs/RETRACTION_LOG.md'))
     if x_defects:
         _steps.append(('판독기 검증과 문서 판정 규칙을 정리한다','진단 누락과 집합·분모 해석의 혼동',
                        'LATEST_READERS_REVIEW_0910.md'))
     else:
-        _steps.append(('판독기 수정이 되살아나지 않는지 회귀로 지킨다',
-                       '합성 반례 넷이 현재 코드에서 재현되지 않는다','LATEST_READERS_REVIEW_0910.md'))
+        _steps.append(('판독기 입력 검사를 회귀 검사로 지킨다',
+                       '합성 반례 넷을 현재 코드가 걸러 낸다','LATEST_READERS_REVIEW_0910.md'))
     _steps.append(('집합·분모·참고값의 이름을 문서와 맞춘다',
                    '자카드 근삿값·분모 구분은 문면 몫이다','LATEST_READERS_REVIEW_0910.md'))
     blocks.append(next_steps(_steps))

@@ -110,7 +110,9 @@ def main() -> int:
                "at_path_cap": cells[k].get("at_path_cap")}
         #: ⭐개수와 비율을 한 열에 놓지 않는다 — 기대 «자카드» 를 따로 낸다
         e = row["expected_intersect_if_unrelated"]
-        row["expected_jaccard_if_unrelated"] = round(e / max(int(fa.sum()) + nb - e, 1e-9), 5)
+        #: ⛔이름을 2026-09-11 에 expected_ → approx_ 로 고쳤다. 기대 교집합을 비율식에 **넣은**
+        #  근삿값이지 «자카드의 기댓값» 이 아니다. ⛔애초에 유의성 검정이 아니다.
+        row["approx_jaccard_if_unrelated"] = round(e / max(int(fa.sum()) + nb - e, 1e-9), 5)
         rows.append(row)
         print(f"  {k:<12}{row['n_events']:>6}{row['share_pct']:>8}"
               f"{row['kept_of_base']:>7}{row['lost_from_base']:>7}{row['brand_new']:>7}"

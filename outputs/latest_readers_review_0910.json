@@ -2,7 +2,7 @@
   "_meta": {
     "generator": "benchmark/review_latest_readers_0910.py",
     "source_sha256": {
-      "benchmark/review_latest_readers_0910.py": "2d12840d890bb25e495df8f644a36c5037a430d1d19c8a585f80c7c5bc733c91",
+      "benchmark/review_latest_readers_0910.py": "c90a976c500679972d56626f9f86ecee39f5d37177e501ffc3991f370a0e135e",
       "outputs/read_bodyladder_0910.json": "a1001f83584400472b485e627c0fd4d743ee642c7c7017610b93f53a40aae361",
       "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_bs0.4_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "e128d2362d61387213f930dff99fee285c47cba924fb6443e744007202286ed8",
       "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_bs0.4_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "b79bc0d45591d6c7f39765791909af882bff5a89880bbff131d7e3616f1a4174",
@@ -75,7 +75,7 @@
       "outputs/md_atlas_index.json": "3e28164d748a19fdc88a2c3106f4b351a9349978de77c09b166a9848d6138f97",
       "src/drones.py": "9f35d2a605901adfcd17e432bfa4b7c82afb087718361b82da3c04b7834afb15",
       "src/articulated_fast.py": "b9a55ff556360fad2d2def2b899fb9adf6b781dc85f6047ad066f689d4ee0ea5",
-      "benchmark/build_md_atlas.py": "deb12e70357691addd57c5d80d4f62d220d1749a35acf95ff92a6e145cde32ca",
+      "benchmark/build_md_atlas.py": "6f7619cb547b39edf19fb28206494852f666ce56e3b24c0306a6e526b8adf2f7",
       "outputs/elevation_sweep_md.npz": "34d8d2301c1bbbc6b283c64e3ace2f52023f8811794404d6717dfb027ac1a178",
       "benchmark/read_canyonnull_0910.py": "6950751aaf7ab895998036676a488d09aca0b5caf93e17561a207610dd61e399",
       "benchmark/read_0918B_0909.py": "c62edaa73f3e75a5522a17cbb82df4dcaa7f26da3d253cc13e8ae220edd70e4d",
@@ -97,10 +97,10 @@
       "outputs/elev_sweep_shards/sionna_p4000000000_swR1D1E1F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "18e89d07ecf06a001426c920da842c43f0c7a71ad7289b38d603d18243e670db",
       "benchmark/comb_snr.py": "1794c70daa86897a6d69d2be801fb2365f5afe672e2b3256777160c0a84ed3ea",
       "runners/make_jobs_0924.py": "a477b27d71944edfdea27c7d0b15377d37cef56540fabc1f63feac03bd68f9dc",
-      "benchmark/read_bodyladder_0910.py": "a9747f703b27c357e91d0eba76fc3fbbc2ac3281eb482e4934ecd13e398a8833",
+      "benchmark/read_bodyladder_0910.py": "f2fc8d2270255fe0a6e68214f504f446a5d8312687bd991742b74c9244d728fc",
       "work/sweep_0904/RESUME_0911.md": "e80eae03b699e153b7c5d317faae03c877c145b8ec4f44012e2102be2c0dfc78",
       "runners/make_jobs_0923.py": "8d89fb410dc0b1d0944194a635c7f776bb562f22c232778f837ea0d43117d6f8",
-      "benchmark/elevation_sweep_md.py": "8301ffea9c33cae3197b82878738364a995a15e98d18faee88db7c93cd8793c1"
+      "benchmark/elevation_sweep_md.py": "4be0650a3958bc10f9a5d47228e05a3f5acd3403a5f2f0de8c789ac1164aa254"
     },
     "scope": "Current source and stored data audit; synthetic counterexamples are separately labelled. No GPU runs."
   },
@@ -2845,7 +2845,7 @@
   },
   "findings": [
     {
-      "title": "[고쳐짐] 별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다",
+      "title": "[현행 반영] 별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다",
       "status": "현재 발간값의 수치 영향 확인 · ⭐현재 코드에서는 재현되지 않는다",
       "issue": "⭐**이 지적은 고쳐졌다**(2026-09-11 측정). 철회 기록 R30 · build_md_atlas.py 의 prop_scale_tag() 로 고쳤고 아틀라스를 다시 구웠다. 아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\ncomb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체 지름을 사용한다. 아틀라스를 다시 굽는 작업만으로 이 계산식은 바뀌지 않는다.",
       "evidence": "현재 아틀라스의 비단위 _ps 태그 17개 팔·34개 칸을 확인했다. 완전성 등 기존 자격 조건을 통과한 33개 칸만 지표를 재계산했다. 예: ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe, el 0°, 3.5 GHz, 8192표본에서 운동학적 기준 대역 끝은 891.0401 → 891.0401 Hz, 같은 신호의 빗살 대비는 41.228132 → 41.228132 dB다. 원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다. ⭐2026-09-11 재측정: build_md_atlas.arm_rates 가 _ps 를 곱한다(mode=regression) — 발간 색인도 891 Hz 로 다시 구워졌고 current 와 scaled 가 같다.",
@@ -2953,7 +2953,7 @@
       ]
     },
     {
-      "title": "[고쳐짐] 협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다",
+      "title": "[현행 반영] 협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다",
       "status": "정보 유실은 현재 코드, 경고 누락은 합성 입력으로 재현 · ⭐현재 코드에서는 재현되지 않는다",
       "issue": "⭐**이 지적은 고쳐졌다**(2026-09-11 측정). read_canyonnull_0910._trunc_of() 와 read_0918B_0909.load() 가 저장된 nret·상한으로 지금 문턱(0.99)을 다시 적용해 싣고, ⭐2026-09-11 에 **주 원장 병합**(elevation_sweep_md.py)도 같은 식으로 고쳤다 — n_trunc 는 재계산, n_trunc_stored 는 샤드에 적힌 값. 중앙값 판정은 median_npaths_near_cap 으로 이름을 고쳤다. 아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\n새 load는 n_trunc를 읽지 않고 trunc=[]를 반환한다. 이어 호출한 measure의 at_path_cap는 npaths의 중앙값으로 계산되므로 드문 자세의 상한 근접을 감지하는 대체 장치도 아니다.",
       "evidence": "발간된 협곡 10개 조건의 장면·자유공간 샤드를 직접 읽었으며, 저장된 상한 근접 사건 합계는 0개, 해당 진단이 없는 샤드는 12개였다. 읽은 반환 경로 수의 최댓값은 4071개였다. 따라서 이 발간값에서 실제 잘림을 발견한 것은 아니다. 합성 입력에 상한 근접 1건을 넣으면 현재 함수는 trunc=[{'file': 'good_scene_el-60_00.npz', 'stored': 1, 'cap': 2000000, 'recomputed': 1, 'nret_max': 2000000, 'n_poses': 4096}, {'file': 'good_scene_el-60_01.npz', 'stored': 0, 'cap': 2000000, 'recomputed': 0, 'nret_max': 10, 'n_poses': 4096}], at_path_cap=False를 반환했다. n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.",
@@ -2976,14 +2976,14 @@
         },
         {
           "path": "benchmark/elevation_sweep_md.py",
-          "line": 1126,
+          "line": 1137,
           "quote": "n_tr_stored += int(_nt[0])",
           "found": true
         }
       ]
     },
     {
-      "title": "[고쳐짐] 샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다",
+      "title": "[현행 반영] 샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다",
       "status": "현재 자료 정상 확인, 잠재 결함은 합성 입력으로 재현 · ⭐현재 코드에서는 재현되지 않는다",
       "issue": "⭐**이 지적은 고쳐졌다**(2026-09-11 측정). 협곡·낙차 판독기가 idx 온전성·선언 표본수·표집률·비유한 전계(복소 배열에 직접 isfinite)를 함께 싣고, ⭐2026-09-11 에 **비교 쌍의 시간축**까지 본다. 낙차 쪽은 계측된 자세만 «줄<3» 으로 세고 전부 미계측이면 사유를 남긴다. 판정은 검토 코드가 아니라 **생산 main() 을 돌려** 확인한다. 아래는 지적 당시의 문면이고 기록으로 남긴다 — 그대로 인용하면 틀린다.\n\n협곡 판독기는 idx를 정렬한 뒤 버려서 중복·누락·장면과 자유공간의 같은 시각 대응을 검사하지 않는다. 낙차 판독기는 n_dup가 일부만 없는 경우 결측값을 복제 부족으로 세게 된다.",
       "evidence": "합성 자료에서 총 8192행이지만 고유 인덱스 4096개인 장면을 현 함수가 수락했다(accepted=True). 다른 합성 자료에서는 n_dup 미기록 4096행을 short 4096건으로 셌다. 반면 이번 원본 샤드 검사는 인덱스 완전성·유일성·유한 전계·대조 표집률을 통과했고, 발간 낙차 판독 7개 조건의 n_dup 미기록 수는 0였다. 합성 실패를 현재 실험 데이터 오염으로 소급하지 않는다.",

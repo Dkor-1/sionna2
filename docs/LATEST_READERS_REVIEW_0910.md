@@ -15,7 +15,7 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 발간 원장의 파일 목록을 기준으로 삼은 협곡·낙차 자료와, 정확한 이름으로 검색한 동체 자료를 사용했다. 현재 큐에 추가로 완성되는 조건은 협곡 판독에 섞지 않았다. 합성 반례는 실제 관측과 별도 기록했다.
 
-## 1. [고쳐짐] 별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다
+## 1. [현행 반영] 별도 분석기에서 고친 프로펠러 대역이 발간 아틀라스에는 반영되지 않았다
 
 **확인 수준:** 현재 발간값의 수치 영향 확인 · ⭐현재 코드에서는 재현되지 않는다
 
@@ -111,7 +111,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 - [read_canyonnull_0910.py:None](../benchmark/read_canyonnull_0910.py) — 현재 파일에서 해당 문구를 찾지 못함
 > 즉 자세 다섯 중 하나쯤이 다른 자세다
 
-## 5. [고쳐짐] 협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다
+## 5. [현행 반영] 협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다
 
 **확인 수준:** 정보 유실은 현재 코드, 경고 누락은 합성 입력으로 재현 · ⭐현재 코드에서는 재현되지 않는다
 
@@ -135,10 +135,10 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 - [read_0918B_0909.py:137](../benchmark/read_0918B_0909.py#L137)
 > r["median_npaths_near_cap"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)
 
-- [elevation_sweep_md.py:1126](../benchmark/elevation_sweep_md.py#L1126)
+- [elevation_sweep_md.py:1137](../benchmark/elevation_sweep_md.py#L1137)
 > n_tr_stored += int(_nt[0])
 
-## 6. [고쳐짐] 샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다
+## 6. [현행 반영] 샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다
 
 **확인 수준:** 현재 자료 정상 확인, 잠재 결함은 합성 입력으로 재현 · ⭐현재 코드에서는 재현되지 않는다
 
