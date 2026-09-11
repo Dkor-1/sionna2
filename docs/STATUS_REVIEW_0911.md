@@ -1,72 +1,77 @@
 # 현재 상태 재점검
 
-기준 `1c82aa5304e82037c0f54f1493a1b6fec6c0caac` · 2026-09-11T16:28:26.354979+00:00
+기준 `c3959114126609b98a1f1b625d928b9bd7a6b0fd` · 2026-09-11T17:11:34.455617+00:00
 
 [주피터 보고서](STATUS_REVIEW_0911.ipynb) · [실행 원장](../outputs/status_review_0911.json) · [생성기](../benchmark/review_status_0911.py)
 
 ## 현재 실행과 확인된 수정
 
-프로세스 조회 시점에 워커 8개가 있었고, 감독자·지킴이 목록과 최근 로그를 원장에 남겼다. 큐의 분수는 투입 포인터이며 완료 수로 읽지 않는다.
+프로세스 조회 시점에 워커 10개가 있었고, 감독자·지킴이 목록과 최근 로그를 원장에 남겼다. 큐의 분수는 투입 포인터이며 완료 수로 읽지 않는다.
 
-실제 저장 샤드 7467개를 재판독했다. 읽기 오류 0개다. 최근 수정되어 제외한 파일은 2개다. 기존 관측 사건은 원본 80개·협곡 10칸·낙차 7칸·동체 8칸에서 발간값과 일치했다.
+실제 저장 샤드 7472개를 재판독했다. 읽기 오류 0개다. 최근 수정되어 제외한 파일은 0개다. 기존 관측 사건은 원본 80개·협곡 10칸·낙차 7칸·동체 8칸에서 발간값과 일치했다.
 
 영 전계가 일부인 5조건의 현재 레벨과 결측 수를 원본으로 다시 계산했다. 원본 파일 시각을 유지한 현재 재고에서는 세대 선택과 발간 선택 기록이 일치한다. 교정 범위 밖 목표는 거절되고, 표 안 목표는 교정값을 반환한다. 각 확인의 상세 조건은 aggregation·generation_current·pfa에 있다.
 
 ## 남은 보완점
 
-### 1. 파일 시각이 바뀌면 세대 선택이 다시 혼합 자료를 고른다
+### 1. 세대 선택이 파일 시각과 무관하다
 
-**범위:** 실제 충돌 샤드의 임시 복제 대조
+**범위:** 2026-09-12 정정 뒤 현재 상태 · 실제 충돌 샤드의 임시 복제 대조
 
-현재 원본에서는 4조건 모두 완결 세대를 선택한다. 하지만 동일 바이트를 임시 복제하고 파일 시각만 같게 두면, 선택 결과에 중복 4096행이 다시 들어간다. 원본 선택과 비교해 바뀐 자세 수는 [3582, 3057, 3981, 3621]다. one_generation은 파일 수정 시각 간격으로 세대를 묶으며 선택 뒤에도 중복 충돌을 재검사하지 않는다. 현재 아틀라스가 이 복제 입력으로 발행됐다는 뜻은 아니다.
+현재 원본에서는 4조건 모두 완결 세대를 선택한다. 동일 바이트를 임시 복제하고 파일 시각만 같게 둔 대조에서 선택 결과의 중복은 0행이고 원본 선택과 비교해 바뀐 자세 수는 [0, 0, 0, 0]다. 세대는 파일 시각이 아니라 샤드에 적힌 조각 수(meta[2])로 가른다. 덮는 자세와 중복이 같아 내용으로 못 고르는 경우에는 파일 이름으로 결정적으로 고르고 그 사실을 tie_unresolved로 싣는다. 고른 뒤에는 묶음 안 중복과 값 충돌을 다시 세어 원장에 적는다. 현재 아틀라스가 이 복제 입력으로 발행됐다는 뜻은 아니다.
 
-**수정 제안:** 실행 식별자와 분할 설정을 저장하고, 선택한 묶음의 idx 중복·충돌을 마지막에 검사한다. 파일 시각을 세대의 확정 근거로 삼는 범위를 줄이고, 확정할 수 없는 충돌은 미확인으로 남긴다.
+**수정 제안:** 남은 일은 샤드에 굽기 식별자를 함께 적는 것이다. 지금은 조각 수가 같은 두 굽기를 내용만으로 가르지 못하고 이름으로 고른다.
 
 ⟨outputs/status_review_0911.json : findings[0]⟩
 
-- [elevation_sweep_md.py:1061](../benchmark/elevation_sweep_md.py#L1061)
+- [elevation_sweep_md.py:1130](../benchmark/elevation_sweep_md.py#L1130)
 ```python
-for f in sorted(fs, key=os.path.getmtime):
+def _nsh(f):
 ```
 
-- [elevation_sweep_md.py:1075](../benchmark/elevation_sweep_md.py#L1075)
+- [elevation_sweep_md.py:1193](../benchmark/elevation_sweep_md.py#L1193)
+```python
+tie_unresolved = len(tied) > 1
+```
+
+- [elevation_sweep_md.py:1194](../benchmark/elevation_sweep_md.py#L1194)
 ```python
 keep = sorted(gens[k])
 ```
 
-### 2. 샤드 완료 검사는 배열 내용 손상과 길이 불일치를 통과시킨다
+### 2. 샤드 완료 검사가 배열을 실제로 읽어 손상과 불일치를 거른다
 
-**범위:** 수정된 완료 함수의 남은 범위 · 합성 입력
+**범위:** 2026-09-12 정정 뒤 현재 상태 · 합성 입력
 
-ZIP가 잘린 입력은 거절한다. 그러나 E 데이터의 CRC가 깨진 입력은 shard_done=True인데 실제 읽기는 BadZipFile다. E와 idx 길이가 다른 입력도 shard_done=True다. 현재 함수는 idx·E·meta라는 이름의 존재만 확인한다. 이번 실제 재고 판독 7467개에서 읽기 오류는 0개였다.
+ZIP가 잘린 입력, E 데이터의 CRC가 깨진 입력(shard_done=False, 실제 읽기 BadZipFile), E와 idx 길이가 다른 입력(shard_done=False) 모두 거절된다. 거절된 합성 입력은 3종이다. 함수는 이름 확인에 그치지 않고 모든 배열의 압축을 풀어 차원·길이·형식·인덱스 범위·유한성을 본다. 이번 실제 재고 판독 7472개에서 읽기 오류는 0개이고, 전수에서 잘못 거절된 파일도 없다.
 
-**수정 제안:** 완료 판정에서 필수 배열을 읽어 길이·형식·인덱스 범위를 확인한다. 임시 파일에 쓴 후 검사를 통과한 결과를 최종 이름으로 교체하는 저장 방식도 함께 적용한다.
+**수정 제안:** 남은 일은 저장 쪽이다. 임시 파일에 쓴 후 검사를 통과한 결과를 최종 이름으로 교체하면 끊긴 파일이 창고에 남지 않는다.
 
 ⟨outputs/status_review_0911.json : findings[1]⟩
 
-- [elevation_sweep_md.py:1006](../benchmark/elevation_sweep_md.py#L1006)
+- [elevation_sweep_md.py:1026](../benchmark/elevation_sweep_md.py#L1026)
 ```python
-names = set(z.files)
+arrs = {k: z[k] for k in names}     # ⭐여기서 전부 CRC 를 지난다
 ```
 
-- [elevation_sweep_md.py:1007](../benchmark/elevation_sweep_md.py#L1007)
+- [elevation_sweep_md.py:1047](../benchmark/elevation_sweep_md.py#L1047)
 ```python
-return {"idx", "E", "meta"} <= names
+if np.unique(ii).size != ii.size:
 ```
 
-### 3. 교정 API의 정상 거절을 기존 전체 감사 빌더가 처리하지 못한다
+### 3. 교정 API의 정상 거절을 감사 빌더가 시험 성공으로 기록한다
 
-**범위:** 이번 API 수정 뒤의 감사 실행 실패
+**범위:** 2026-09-12 정정 뒤 현재 상태
 
-교정 범위 밖 입력은 현재 PfaOutOfRange로 올바르게 거절된다. 하지만 review_repository.main은 그 입력의 거절을 시험 성공으로 처리하지 않아 PfaOutOfRange로 멈춘다. 임시 출력에서 JSON 작성=False, 노트북 작성=False다. 반면 이전 ContractError가 나던 review_latest_readers 빌더의 완료=True는 확인했다.
+교정 범위 밖 입력은 PfaOutOfRange로 거절된다. review_repository.main은 그 거절을 예상 결과로 받아 완료=True, 오류 종류=None로 끝나고, 임시 출력에서 JSON 작성=True, 노트북 작성=True다. 이전 ContractError가 나던 review_latest_readers 빌더의 완료=True도 확인했다. 거절된 입력에는 옛 동작이 돌려줬을 경계값을 함께 적어, 포화가 보이지 않게 되지는 않는다.
 
-**수정 제안:** 범위 밖 입력은 예상 예외를 잡아 거절 여부로 기록하고, 표 안 입력은 반환값과 출처를 대조한다. API 수정과 이를 부르는 감사 생성기를 함께 갱신한다.
+**수정 제안:** 남은 일은 교정표를 넓혀 더 엄격한 목표까지 실제로 교정하는 것이다. 그전까지 범위 밖이 필요하면 strict=False로 부르고 source를 결과에 함께 싣는다.
 
 ⟨outputs/status_review_0911.json : findings[2]⟩
 
-- [review_repository_0911.py:233](../benchmark/review_repository_0911.py#L233)
+- [review_repository_0911.py:246](../benchmark/review_repository_0911.py#L246)
 ```python
-calls=[dict(target=x,nominal=pp.pfa_nominal_for(name,x)) for x in values]))
+calls=[_probe(name,x) for x in values]))
 ```
 
 - [passive_process.py:402](../src/passive_process.py#L402)
@@ -107,58 +112,11 @@ if strict:
    … 외 7건 (`--all` 로 전부)
 ```
 
-- `check_row_pointers.py`: exit 1
+- `check_row_pointers.py`: exit 0
 ```text
-═══ 각주 행 포인터 — 맞음 2 · ⛔어긋남 80 · 판정 불가 0 ═══
-
-  ⛔reports/04_elevation-coverage.ipynb  (25 건)
-      [^206] rows[424] 라고 적혀 있으나 — 적힌 것 «sionna/el+0» · 실제 ours_r240_n8192 / el+0
-      [^207] rows[460] 라고 적혀 있으나 — 적힌 것 «sionna_p4000000000/el+0» · 실제 ours_r60_n8192_mfixbatteryi5_blperairframe / el+0
-      [^209] rows[429] 라고 적혀 있으나 — 적힌 것 «sionna/el-75» · 실제 ours_r30_n8192 / el-60
-      [^210] rows[451] 라고 적혀 있으나 — 적힌 것 «sionna_p250000000/el-75» · 실제 ours_r480_n8192_mfixbatteryi5_blperairframe / el-30
-      [^211] rows[424] 라고 적혀 있으나 — 적힌 것 «sionna/el+0» · 실제 ours_r240_n8192 / el+0
-      … 외 20 건
-
-  ⛔reports/05_engine-physics.ipynb  (15 건)
-      [^27] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^28] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^29] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^50] rows[430] 라고 적혀 있으나 — 적힌 것 «sionna/el-90» · 실제 ours_r30_n8192_az45_mfixbatteryi5_blperairframe / el+0
-      [^51] rows[430] 라고 적혀 있으나 — 적힌 것 «sionna/el-90» · 실제 ours_r30_n8192_az45_mfixbatteryi5_blperairframe / el+0
-      … 외 10 건
-
-  ⛔reports/_parts/84_physics-denominator.ipynb  (6 건)
-      [^11] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^12] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^13] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^34] rows[430] 라고 적혀 있으나 — 적힌 것 «sionna/el-90» · 실제 ours_r30_n8192_az45_mfixbatteryi5_blperairframe / el+0
-      [^35] rows[430] 라고 적혀 있으나 — 적힌 것 «sionna/el-90» · 실제 ours_r30_n8192_az45_mfixbatteryi5_blperairframe / el+0
-      … 외 1 건
-
-  ⛔reports/_parts/85_physics-above-limit.ipynb  (2 건)
-      [^7] rows[424] 라고 적혀 있으나 — 적힌 것 «sionna/el+0» · 실제 ours_r240_n8192 / el+0
-      [^8] rows[446] 라고 적혀 있으나 — 적힌 것 «sionna_p250000000/el+0» · 실제 ours_r45_n8192_mfixbatteryi5_blperairframe / el-60
-
-  ⛔reports/_parts/86_physics-deck-match.ipynb  (4 건)
-      [^10] rows[1424] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-15» · 실제 sionna_p4000000000_swR0D0E0F1_r30_n8192_mfixbatteryi5_blperairframe_d2 / el-75
-      [^11] rows[1424] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-15» · 실제 sionna_p4000000000_swR0D0E0F1_r30_n8192_mfixbatteryi5_blperairframe_d2 / el-75
-      [^12] rows[454] 라고 적혀 있으나 — 적힌 것 «sionna_p250000000_phys/el-15» · 실제 ours_r60_n8192 / el-60
-      [^38] rows[447] 라고 적혀 있으나 — 적힌 것 «sionna_p250000000/el-15» · 실제 ours_r45_n8192_mfixbatteryi5_blperairframe / el-75
-
-  ⛔reports/_parts/87_budget-not-physics.ipynb  (25 건)
-      [^1] rows[424] 라고 적혀 있으나 — 적힌 것 «sionna/el+0» · 실제 ours_r240_n8192 / el+0
-      [^2] rows[460] 라고 적혀 있으나 — 적힌 것 «sionna_p4000000000/el+0» · 실제 ours_r60_n8192_mfixbatteryi5_blperairframe / el+0
-      [^4] rows[429] 라고 적혀 있으나 — 적힌 것 «sionna/el-75» · 실제 ours_r30_n8192 / el-60
-      [^5] rows[451] 라고 적혀 있으나 — 적힌 것 «sionna_p250000000/el-75» · 실제 ours_r480_n8192_mfixbatteryi5_blperairframe / el-30
-      [^6] rows[424] 라고 적혀 있으나 — 적힌 것 «sionna/el+0» · 실제 ours_r240_n8192 / el+0
-      … 외 20 건
-
-  ⛔reports/_parts/88_engine-claim-scope.ipynb  (3 건)
-      [^6] rows[1423] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el+0» · 실제 sionna_p4000000000_swR0D0E0F1_r30_n8192_mfixbatteryi5_blperairframe_d2 / el-60
-      [^7] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-      [^34] rows[1429] 라고 적혀 있으나 — 적힌 것 «sionna_phys/el-90» · 실제 sionna_p4000000000_swR0D0E0F1_r45_n8192_mfixbatteryi5_blperairframe_d2 / el-15
-
-  ⭐고치는 법: 손으로 번호를 고치지 마라. 그 조각의 빌더(src/build_part*.py)를 다시 돌리고 src/build_volumes.py 로 권을 다시 짠다.
+═══ 각주 행 포인터 — 맞음 82 · ⛔어긋남 0 · 판정 불가 0 ═══
+    («→ 팔/el» 꼬리 있는 것만 이름까지 대조한다. 꼬리 없는 24 개는 자리가 있는지만 봤다 — 맞음 24 · 어긋남 0)
+  ✅ 각주가 전부 제 행을 가리킨다
 ```
 
 ⟨outputs/status_review_0911.json : checks.repository_checks⟩

@@ -38,6 +38,13 @@ CITE = re.compile(
     r"`rows\[([^\]]+)\]\.([^`→]+?)\s*→\s*([^`]+?)`\s*\|")
 #: «팔/el±NN» 에서 팔 토막과 앙각을 가른다.
 WANT = re.compile(r"(.*?)/el([+-]?[\d.]+)")
+#: ⛔⛔2026-09-12 — 위의 CITE 는 «→ 팔/el» 꼬리가 **있어야** 잡는다. 그래서 꼬리 없이
+#  적힌 각주는 한 번도 검사되지 않았다. ⛔실측: rows 인용 106 개 중 **24 개**가 그랬다
+#  (04권 10 · 06_3 2 · 조각 36/78/80/82 에 12). «어긋남 0» 이 그 24 개를 안 본 채 나온
+#  수였다는 뜻이다. ⇒ 꼬리 없는 것도 잡아 **적어도 «가리키는 자리가 있는가»** 는 본다.
+NOARROW = re.compile(
+    r"\|\s*\[\^(\d+)\]\s*\|\s*`(outputs/[^`]+\.json)`\s*\|\s*"
+    r"`rows\[([^\]]+)\]\.([^`→]+?)`\s*\|")
 
 _LED: dict[str, list | None] = {}
 
@@ -122,7 +129,46 @@ def main() -> int:
                             f"실제 {eng} / el{float(got):+g}" if got is not None
                             else f"실제 {eng}"))
 
+    #: ⭐꼬리(«→ 팔/el») 없이 적힌 각주 — 이름 대조는 못 하지만 **자리가 있는지**는 본다.
+    noarrow_ok = noarrow_bad = 0
+    for p in books:
+        try:
+            src = md_of(p)
+        except Exception:
+            continue
+        for fn, led, n, _fld in NOARROW.findall(src):
+            rows = rows_of(led)
+            if rows is None:
+                undecidable += 1
+                continue
+            if "=" in n:
+                want_kv = [(k.strip(), v.strip()) for k, _, v in
+                           (part.partition("=") for part in n.split(","))]
+
+                def _same(a, b):
+                    try:
+                        return abs(float(a) - float(b)) < 1e-9
+                    except (TypeError, ValueError):
+                        return str(a) == str(b)
+
+                hits = [x for x in rows
+                        if all(k in x and _same(x[k], v) for k, v in want_kv)]
+                if len(hits) == 1:
+                    noarrow_ok += 1
+                else:
+                    noarrow_bad += 1
+                    bad.append((p, fn, n, "(꼬리 없음)", f"조건이 행 {len(hits)} 개를 고른다"))
+            else:
+                i = int(n)
+                if i < len(rows):
+                    noarrow_ok += 1
+                else:
+                    noarrow_bad += 1
+                    bad.append((p, fn, i, "(꼬리 없음)", f"범위 밖 — 원장은 {len(rows)} 행"))
+
     print(f"═══ 각주 행 포인터 — 맞음 {ok} · ⛔어긋남 {len(bad)} · 판정 불가 {undecidable} ═══")
+    print(f"    («→ 팔/el» 꼬리 있는 것만 이름까지 대조한다. 꼬리 없는 {noarrow_ok + noarrow_bad} 개는 "
+          f"자리가 있는지만 봤다 — 맞음 {noarrow_ok} · 어긋남 {noarrow_bad})")
     if bad:
         byfile: dict[str, list] = {}
         for p, fn, i, want, why in bad:

@@ -1011,23 +1011,50 @@ def shard_done(f):
         #  ⭐창고 전수 7,467 장에는 이런 파일이 0 장이다 — 합성 입력으로 재현했다.
         #  ⇒ **필수 배열을 실제로 읽어** 길이·형식·인덱스 범위까지 본다. 재개는 잡 줄마다
         #    한 번씩만 부르므로(전수 훑기가 아니다) 읽는 값이 비싸지 않다.
+        #: ⛔⛔2026-09-12(2) 적대적 검증이 찾은 것 — 전에는 **idx·E·meta 만** 풀었다.
+        #  실제 샤드는 대개 배열을 1~6 개 더 들고 있다(cfg 6,828 · npaths 5,666 ·
+        #  nret 1,459 · E_dedup/n_dup 1,218 · n_trunc 699 · phase_sign_v2 56).
+        #  그 배열이 깨져도 여기선 통과했고 — 창고 압축 바이트의 약 4 분의 1 이 한 번도
+        #  검사되지 않았다 — 재개가 영영 건너뛴 뒤 **병합에서 BadZipFile 로 터졌다.**
+        #  이 함수의 머리말이 「없앴다」고 적어 둔 바로 그 실패다.
+        #  ⇒ **모든 배열을 푼다.** 잡 줄마다 한 번 부르는 검사라 값이 비싸지 않다
+        #    (실측 0.45 ms/장 → 모두 풀어도 같은 자릿수).
         with np.load(f) as z:
             names = set(z.files)
             if not {"idx", "E", "meta"} <= names:
                 return False
-            idx = z["idx"]          # ⭐여기서 압축을 실제로 푼다 → CRC 가 깨지면 여기서 걸린다
-            E = z["E"]
-            meta = np.asarray(z["meta"], float).ravel()
+            arrs = {k: z[k] for k in names}     # ⭐여기서 전부 CRC 를 지난다
+        idx, E = arrs["idx"], arrs["E"]
+        meta = np.asarray(arrs["meta"], float).ravel()
         if idx.ndim != 1 or E.ndim != 1 or idx.size == 0 or idx.size != E.size:
             return False
-        n0 = int(meta[3]) if meta.size > 3 else 0
-        if n0 <= 0:
+        #: ⛔E 는 **복소수**다. 실수로 저장된 판이 들어오면 병합이 복소 누산기에 그대로
+        #  넣어 위상을 0 으로 만든다 — 터지지 않고 **조용히 값을 망친다.**
+        if not np.issubdtype(np.asarray(E).dtype, np.complexfloating):
+            return False
+        #: ⛔meta 는 1 차원이고 자세 수는 유한한 양의 정수여야 한다
+        if np.asarray(arrs["meta"]).ndim != 1 or meta.size < 4 or not np.isfinite(meta[3]):
+            return False
+        n0 = int(meta[3])
+        if n0 <= 0 or float(meta[3]) != n0 or n0 > 1 << 24:
             return False
         ii = np.asarray(idx)
+        if not np.issubdtype(ii.dtype, np.integer):
+            return False
         if int(ii.min()) < 0 or int(ii.max()) >= n0:
+            return False
+        #: ⛔같은 자세를 두 번 적은 샤드는 병합에서 **조용히** 뒤엣것이 이긴다
+        if np.unique(ii).size != ii.size:
+            return False
+        #: ⛔자세 번호가 오름차순이 아니면 E 와 짝이 어긋난 판일 수 있다
+        if not np.all(np.diff(ii) > 0):
             return False
         if not np.isfinite(E).all():
             return False
+        #: ⛔길이가 idx 와 같아야 뜻이 서는 배열들 — 어긋나면 병합이 브로드캐스트로 터진다
+        for k in ("npaths", "nret", "E_dedup", "n_dup"):
+            if k in arrs and np.asarray(arrs[k]).shape[:1] != (idx.size,):
+                return False
         return True
     except Exception as e:
         print(f"  ⛔다시 굽는다(읽을 수 없다) {os.path.basename(f)} — {type(e).__name__}",
@@ -1054,17 +1081,27 @@ def one_generation(fs, tag, gap_s=3600.0):
     """
     if len(fs) < 2:
         return list(fs), None
-    idx, val, n0 = {}, {}, None
-    for f in fs:
+    #: ⛔⛔2026-09-12(2) — 전에는 **정렬 안 한 목록의 첫 파일**에서 n0 를 읽었다. 한 칸의
+    #  두 세대가 meta[3] 를 다르게 적으면 입력 순서에 따라 답이 갈리거나 터졌다.
+    #  ⇒ 정렬해 읽고, **다 같은지 본다**. 다르면 가장 큰 값을 쓰되 그 사실을 적는다.
+    idx, val, n0s = {}, {}, []
+    for f in sorted(fs):
         z = np.load(f)
         idx[f] = z["idx"].astype(int)
         val[f] = z["E"]
-        if n0 is None:
-            n0 = int(np.asarray(z["meta"], float)[3])
+        n0s.append(int(np.asarray(z["meta"], float)[3]))
+    n0 = max(n0s)
+    n0_disagree = sorted(set(n0s)) if len(set(n0s)) > 1 else None
     E0 = np.zeros(n0, complex); S0 = np.zeros(n0, bool)
     clash = 0; rel_max = 0.0; rel_over = 0
     for f in sorted(fs):
         ii, vv = idx[f], val[f]
+        #: ⛔⛔2026-09-12(2) — `S0[ii]` 는 **한 파일 안의 되풀이를 못 본다.** 넘파이의
+        #  멋진 인덱싱은 같은 자리를 두 번 읽어도 «이미 봤다» 를 못 알려 준다.
+        #  ⇒ 파일 자신의 idx 에 같은 값이 두 번 있으면 그것부터 센다.
+        _u, _c = np.unique(ii, return_counts=True)
+        if (_c > 1).any():
+            clash += int((_c - 1).sum())
         d = S0[ii]
         if d.any():
             a, b = E0[ii][d], vv[d]
@@ -1097,6 +1134,10 @@ def one_generation(fs, tag, gap_s=3600.0):
     by_split = {}
     for f in sorted(fs):
         by_split.setdefault(_nsh(f), []).append(f)
+    #: ⛔⛔2026-09-12(2) — 전에는 조각 수를 못 읽은 샤드가 **한 장이라도** 있으면 칸 전체가
+    #  시각 갈래로 떨어졌다(`0 not in by_split`). 나머지 샤드가 멀쩡히 적어 두었는데도.
+    #  ⇒ 못 읽은 것들은 **자기들끼리 한 세대**로 두고, 전부 못 읽었을 때만 시각으로 간다.
+    #  ⭐창고 전수 7,472 장에 meta[2] ≤ 0 인 파일은 0 장이다 — 지금은 잠재 결함이다.
 
     def _cov(g):
         s = np.zeros(n0, bool)
@@ -1105,14 +1146,22 @@ def one_generation(fs, tag, gap_s=3600.0):
         return int(s.sum())
 
     def _dups(g):
-        """묶음 안에서 **같은 자세가 두 번** 들어오는 수 — 0 이어야 한 세대다."""
-        s = np.zeros(n0, bool); d = 0
-        for f in sorted(g):
-            ii = idx[f]; d += int(s[ii].sum()); s[ii] = True
-        return d
+        """묶음 안에서 **같은 자세가 두 번** 들어오는 수 — 0 이어야 한 세대다.
+
+        ⛔⛔2026-09-12(2) — 전에는 `s[ii].sum()` 뒤 `s[ii] = True` 로 셌다. 그 방식은
+        **한 파일 안의 되풀이를 못 본다** — 넘파이 멋진 인덱싱이 같은 자리를 두 번 읽어도
+        «이미 봤다» 를 못 알려 주기 때문이다. ⛔실측: idx=[0,1,2,3,3] 한 장이 0 으로 나왔다
+        (참값 1). 그 탓에 고른 묶음에 갈리는 자세가 있어도 원장에 0 으로 실렸다.
+        ⇒ 모든 idx 를 이어 붙여 **실제 중복도**를 센다.
+        """
+        if not g:
+            return 0
+        allidx = np.concatenate([idx[f] for f in sorted(g)])
+        _, c = np.unique(allidx, return_counts=True)
+        return int((c - 1).sum())
 
     tie_broken_by = None
-    if len(by_split) > 1 and 0 not in by_split:
+    if len(by_split) > 1 and set(by_split) != {0}:
         gens = [by_split[k] for k in sorted(by_split)]
         split_keys = sorted(by_split)
     else:
@@ -1126,27 +1175,48 @@ def one_generation(fs, tag, gap_s=3600.0):
         gens.append(cur)
         split_keys = [None] * len(gens)
 
-    k = max(range(len(gens)),
-            key=lambda j: (_cov(gens[j]), -_dups(gens[j]), os.path.getmtime(gens[j][-1])))
+    #: ⛔⛔2026-09-12(2) — 여기 세 번째 열쇠가 **`os.path.getmtime`** 이었다. 덮는 자세 수와
+    #  중복 수가 같으면(부분 굽기 둘이 같은 크기일 때 — 큐가 도는 동안 흔하다) **시각이
+    #  답을 정했는데** 원장에는 `selected_by="meta.nshards"` 라고 적혔다.
+    #  ⛔실측(적대적 검증, 2026-09-12): 같은 바이트로 4 조각 판과 8 조각 판을 만들고 시각만
+    #    바꾸자 고르는 세대가 뒤집혀 병합 값이 1+0j ↔ 2+0j 로 갈렸다. 두 번 다 원장은
+    #    「meta.nshards 로 골랐다」고 적었다. 한 파일에 touch 한 번이면 칸이 뒤집힌다.
+    #  ⇒ 시각을 **완전히 뺀다.** 동점이면 내용으로는 못 고르는 것이므로, 파일 이름으로
+    #    결정적으로 고르되 **«못 풀었다» 로 표시한다.** 조용히 하나를 고르지 않는다.
+    def _rank(j):
+        return (_cov(gens[j]), -_dups(gens[j]))
+
+    best = max(_rank(j) for j in range(len(gens)))
+    tied = [j for j in range(len(gens)) if _rank(j) == best]
+    #: 이름으로 가른다 — 파일계 시각과 무관하고 어디서 돌려도 같다
+    k = min(tied, key=lambda j: sorted(os.path.basename(x) for x in gens[j]))
+    tie_unresolved = len(tied) > 1
     keep = sorted(gens[k])
 
     #: ⭐⭐**고른 뒤에 다시 본다** — 고른 묶음 안에 같은 자세가 두 번 들어오면 그것은
     #  한 세대가 아니다. 조용히 덮어쓰지 않고 «못 풀었다» 로 원장에 적는다.
     kept_dups = _dups(keep)
+    #: ⛔⛔2026-09-12(2) — 전에는 `if kept_dups:` 로 막아 두었다. 그런데 kept_dups 가
+    #  한 파일 안의 되풀이를 못 봐 0 이 나오면 이 고리가 **아예 안 돌았다.**
+    #  ⇒ 막지 않는다. 고른 묶음은 몇 장뿐이라 값이 비싸지 않다.
     unresolved = 0
-    if kept_dups:
-        seenv = {}
-        for f in sorted(keep):
-            for i, v in zip(idx[f], val[f]):
-                i = int(i)
-                if i in seenv and seenv[i] != v:
-                    unresolved += 1
-                else:
-                    seenv[i] = v
+    seenv = {}
+    for f in sorted(keep):
+        for i, v in zip(idx[f], val[f]):
+            i = int(i)
+            if i in seenv and seenv[i] != v:
+                unresolved += 1
+            else:
+                seenv[i] = v
     note = dict(
         reason="겹친 자세의 전계가 서로 달라 세대를 하나만 골랐다",
         #: ⭐무엇으로 갈랐는지 — 내용(조각 수)인지, 못 읽어 시각으로 갔는지
         selected_by=("meta.nshards" if tie_broken_by is None else "mtime"),
+        #: ⭐동점이라 내용으로는 못 고른 칸 — 이름으로 결정적으로 골랐을 뿐이다.
+        #  ⛔«골랐다» 를 «풀었다» 로 읽지 않는다.
+        tie_unresolved=bool(tie_unresolved),
+        #: ⛔한 칸의 두 세대가 자세 수를 다르게 적었다면 그 값들
+        n_poses_disagree=n0_disagree,
         split_counts=[k for k in split_keys],
         #: ⛔고른 뒤에도 남은 중복·충돌. 0 이 아니면 그 칸은 한 세대로 못 푼 것이다.
         kept_duplicate_poses=int(kept_dups),
@@ -1172,9 +1242,11 @@ def one_generation(fs, tag, gap_s=3600.0):
           f"{note['kept_poses']}/{n0} 자세를 덮는 세대만 쓴다 "
           f"(버린 파일 {len(note['dropped_files'])} 장 · 겹친 자세 {clash} 가 다르고 "
           f"그중 {rel_over} 이 5e-6 밖 · 최대 상대차 {rel_max:.3g})", flush=True)
-    if kept_dups:
-        print(f"    ⛔⛔고른 묶음에 중복 자세 {kept_dups} · 값이 갈리는 자세 {unresolved} "
-              f"— 한 세대로 못 풀었다. 원장에 그대로 적는다.", flush=True)
+    if kept_dups or unresolved or tie_unresolved or n0_disagree:
+        print(f"    ⛔⛔고른 묶음에 중복 자세 {kept_dups} · 값이 갈리는 자세 {unresolved}"
+              + (" · 동점이라 이름으로 골랐다" if tie_unresolved else "")
+              + (f" · 자세 수가 갈린다 {n0_disagree}" if n0_disagree else "")
+              + " — 한 세대로 못 풀었다. 원장에 그대로 적는다.", flush=True)
     return keep, note
 
 

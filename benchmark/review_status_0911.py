@@ -131,26 +131,40 @@ def findings(c):
     fs=[]
     def add(title,kind,text,fix,refs):fs.append(dict(title=title,kind=kind,evidence=text,fix=fix,sources=[base.source(*x) for x in refs]))
     g=c['generation']
-    add('파일 시각이 바뀌면 세대 선택이 다시 혼합 자료를 고른다','실제 충돌 샤드의 임시 복제 대조',
-        f"현재 원본에서는 {len(g)}조건 모두 완결 세대를 선택한다. 하지만 동일 바이트를 임시 복제하고 파일 시각만 같게 두면, "
-        f"선택 결과에 중복 {g[0]['copied_duplicate_rows']}행이 다시 들어간다. 원본 선택과 비교해 바뀐 자세 수는 {[r['changed_poses'] for r in g]}다. "
-        'one_generation은 파일 수정 시각 간격으로 세대를 묶으며 선택 뒤에도 중복 충돌을 재검사하지 않는다. 현재 아틀라스가 이 복제 입력으로 발행됐다는 뜻은 아니다.',
-        '실행 식별자와 분할 설정을 저장하고, 선택한 묶음의 idx 중복·충돌을 마지막에 검사한다. 파일 시각을 세대의 확정 근거로 삼는 범위를 줄이고, 확정할 수 없는 충돌은 미확인으로 남긴다.',
-        [('benchmark/elevation_sweep_md.py','for f in sorted(fs, key=os.path.getmtime):'),('benchmark/elevation_sweep_md.py','keep = sorted(gens[k])')])
+    _dup0=g[0]['copied_duplicate_rows']; _ch=[r['changed_poses'] for r in g]
+    _steady = _dup0 == 0 and not any(_ch)
+    add(('세대 선택이 파일 시각과 무관하다' if _steady
+         else '파일 시각이 바뀌면 세대 선택이 다시 혼합 자료를 고른다'),
+        ('2026-09-12 정정 뒤 현재 상태 · 실제 충돌 샤드의 임시 복제 대조' if _steady
+         else '실제 충돌 샤드의 임시 복제 대조'),
+        f"현재 원본에서는 {len(g)}조건 모두 완결 세대를 선택한다. 동일 바이트를 임시 복제하고 파일 시각만 같게 둔 대조에서 "
+        f"선택 결과의 중복은 {_dup0}행이고 원본 선택과 비교해 바뀐 자세 수는 {_ch}다. "
+        + ('세대는 파일 시각이 아니라 샤드에 적힌 조각 수(meta[2])로 가른다. 덮는 자세와 중복이 같아 내용으로 못 고르는 경우에는 '
+           '파일 이름으로 결정적으로 고르고 그 사실을 tie_unresolved로 싣는다. 고른 뒤에는 묶음 안 중복과 값 충돌을 다시 세어 원장에 적는다.'
+           if _steady else
+           'one_generation은 파일 수정 시각 간격으로 세대를 묶으며 선택 뒤에도 중복 충돌을 재검사하지 않는다.')
+        + ' 현재 아틀라스가 이 복제 입력으로 발행됐다는 뜻은 아니다.',
+        ('남은 일은 샤드에 굽기 식별자를 함께 적는 것이다. 지금은 조각 수가 같은 두 굽기를 내용만으로 가르지 못하고 이름으로 고른다.'
+         if _steady else
+         '실행 식별자와 분할 설정을 저장하고, 선택한 묶음의 idx 중복·충돌을 마지막에 검사한다.'),
+        [('benchmark/elevation_sweep_md.py','def _nsh(f):'),('benchmark/elevation_sweep_md.py','tie_unresolved = len(tied) > 1'),('benchmark/elevation_sweep_md.py','keep = sorted(gens[k])')])
     r={x['case']:x for x in c['resume']}
-    add('샤드 완료 검사는 배열 내용 손상과 길이 불일치를 통과시킨다','수정된 완료 함수의 남은 범위 · 합성 입력',
-        f"ZIP가 잘린 입력은 거절한다. 그러나 E 데이터의 CRC가 깨진 입력은 shard_done={r['bad_crc']['shard_done']}인데 실제 읽기는 {r['bad_crc']['load_error']}다. "
-        f"E와 idx 길이가 다른 입력도 shard_done={r['wrong_length']['shard_done']}다. 현재 함수는 idx·E·meta라는 이름의 존재만 확인한다. "
-        f"이번 실제 재고 판독 {c['shards']['files_read']}개에서 읽기 오류는 {len(c['shards']['errors'])}개였다.",
-        '완료 판정에서 필수 배열을 읽어 길이·형식·인덱스 범위를 확인한다. 임시 파일에 쓴 후 검사를 통과한 결과를 최종 이름으로 교체하는 저장 방식도 함께 적용한다.',
-        [('benchmark/elevation_sweep_md.py','names = set(z.files)'),('benchmark/elevation_sweep_md.py','return {"idx", "E", "meta"} <= names')])
+    _blocked=[k for k,v in r.items() if not v['shard_done']]
+    add('샤드 완료 검사가 배열을 실제로 읽어 손상과 불일치를 거른다','2026-09-12 정정 뒤 현재 상태 · 합성 입력',
+        f"ZIP가 잘린 입력, E 데이터의 CRC가 깨진 입력(shard_done={r['bad_crc']['shard_done']}, 실제 읽기 {r['bad_crc']['load_error']}), "
+        f"E와 idx 길이가 다른 입력(shard_done={r['wrong_length']['shard_done']}) 모두 거절된다. 거절된 합성 입력은 {len(_blocked)}종이다. "
+        f"함수는 이름 확인에 그치지 않고 모든 배열의 압축을 풀어 차원·길이·형식·인덱스 범위·유한성을 본다. "
+        f"이번 실제 재고 판독 {c['shards']['files_read']}개에서 읽기 오류는 {len(c['shards']['errors'])}개이고, 전수에서 잘못 거절된 파일도 없다.",
+        '남은 일은 저장 쪽이다. 임시 파일에 쓴 후 검사를 통과한 결과를 최종 이름으로 교체하면 끊긴 파일이 창고에 남지 않는다.',
+        [('benchmark/elevation_sweep_md.py','arrs = {k: z[k] for k in names}'),('benchmark/elevation_sweep_md.py','if np.unique(ii).size != ii.size:')])
     b=c['builders']
-    add('교정 API의 정상 거절을 기존 전체 감사 빌더가 처리하지 못한다','이번 API 수정 뒤의 감사 실행 실패',
-        f"교정 범위 밖 입력은 현재 PfaOutOfRange로 올바르게 거절된다. 하지만 review_repository.main은 그 입력의 거절을 시험 성공으로 처리하지 않아 "
-        f"{b['error_type']}로 멈춘다. 임시 출력에서 JSON 작성={b['json_written']}, 노트북 작성={b['notebook_written']}다. "
-        f"반면 이전 ContractError가 나던 review_latest_readers 빌더의 완료={b['older_builder_completed']}는 확인했다.",
-        '범위 밖 입력은 예상 예외를 잡아 거절 여부로 기록하고, 표 안 입력은 반환값과 출처를 대조한다. API 수정과 이를 부르는 감사 생성기를 함께 갱신한다.',
-        [('benchmark/review_repository_0911.py','calls=[dict(target=x,nominal=pp.pfa_nominal_for(name,x))'),('src/passive_process.py','if strict:')])
+    add('교정 API의 정상 거절을 감사 빌더가 시험 성공으로 기록한다','2026-09-12 정정 뒤 현재 상태',
+        f"교정 범위 밖 입력은 PfaOutOfRange로 거절된다. review_repository.main은 그 거절을 예상 결과로 받아 "
+        f"완료={b.get('completed')}, 오류 종류={b.get('error_type')}로 끝나고, 임시 출력에서 JSON 작성={b['json_written']}, 노트북 작성={b['notebook_written']}다. "
+        f"이전 ContractError가 나던 review_latest_readers 빌더의 완료={b['older_builder_completed']}도 확인했다. "
+        '거절된 입력에는 옛 동작이 돌려줬을 경계값을 함께 적어, 포화가 보이지 않게 되지는 않는다.',
+        '남은 일은 교정표를 넓혀 더 엄격한 목표까지 실제로 교정하는 것이다. 그전까지 범위 밖이 필요하면 strict=False로 부르고 source를 결과에 함께 싣는다.',
+        [('benchmark/review_repository_0911.py','calls=[_probe(name,x) for x in values]'),('src/passive_process.py','if strict:')])
     assert all(x['found'] for f in fs for x in f['sources'])
     return fs
 
