@@ -236,7 +236,11 @@ def adversarial_check():
                          npaths=p,n_dup=np.zeros(len(ii),int),nret=p,
                          n_trunc=np.array([1 if shard==0 else 0,2_000_000]))
             name=f'sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_{shard:02d}.npz'
-            kw=dict(idx=idx,E=np.ones(len(idx),complex),npaths=np.full(len(idx),10))
+            # ⛔2026-09-11(2) — meta 를 넣는다. 새 검사가 «meta 없는 샤드» 를 거절하므로
+            #   meta 없이 만들면 생산 main() 이 이 칸을 아예 안 읽어 **결함을 못 재게** 된다.
+            #   (검사는 거짓말하지 않고 «못 쟀다» 로 남지만, 재려면 진짜 모양을 줘야 한다.)
+            kw=dict(idx=idx,E=np.ones(len(idx),complex),npaths=np.full(len(idx),10),
+                    meta=np.array([0.,float(shard),2.,float(N),19700.,1.]))
             if shard==0: kw['n_dup']=np.full(len(idx),2)
             np.savez(Path(tmp)/name,**kw)
         F,nf=ns['load']('free',-60);O,no=ns['load']('duplicate_scene',-60)
@@ -261,13 +265,22 @@ def adversarial_check():
             with contextlib.redirect_stdout(io.StringIO()):
                 _rd.main()
             _pj = _json.load(open(_rd.OUT, encoding='utf-8'))
-            _row = next((r for r in _pj.get('rows', [])
-                         if r['arm']=='R0D0E0F1' and r['spp']==4_000_000_000), None)
-            short_fixed = _row['n_short'] if _row else None
-            prod_ran = True
+            # ⛔⛔2026-09-11(2) — 전에는 «행이 없으면 None» 이라 **결함 없음으로 통과**했고,
+            #   미계측을 1 개만 잘못 세는 변형도 통과했다(unknown 과 «같지 않다» 만 봤다).
+            #   ⇒ 행의 **존재·유일성·필드 유효성**을 보고, 이 입력의 **기대값 0** 과 곧장 견준다.
+            _cand = [r for r in _pj.get('rows', [])
+                     if r.get('arm')=='R0D0E0F1' and r.get('spp')==4_000_000_000]
+            prod_rows_found = len(_cand)
+            _row = _cand[0] if prod_rows_found == 1 else None
+            _ns = _row.get('n_short') if _row else None
+            short_fixed = _ns if isinstance(_ns, int) else None
+            # 이 합성 입력은 n_dup 이 전부 미계측이라 «줄<3» 의 **기대값은 정확히 0** 이다
+            prod_expected_short = 0
+            prod_ran = bool(prod_rows_found == 1 and short_fixed is not None)
             prod_skipped = _pj.get('_meta', {}).get('skipped', [])
         except Exception as _e:                                   # noqa: BLE001
             prod_err = f"{type(_e).__name__}: {_e}"; prod_skipped = []
+            prod_rows_found, prod_expected_short = 0, 0
         result=dict(kind='Synthetic fixtures passed to AST-extracted current functions; not observed data corruption.',
                     n_declared=N,n_scene_unique_indices=N//2,
                     equal_length_duplicate_index_accepted=bool(accepted),
@@ -281,6 +294,8 @@ def adversarial_check():
                     # ⭐생산 main() 이 실제로 실은 수. ⛔검토 코드가 다시 계산한 값이 아니다.
                     mixed_dup_counted_short_fixed=short_fixed,
                     production_main_ran=prod_ran,
+                    production_rows_found=prod_rows_found,
+                    production_expected_short=prod_expected_short,
                     production_skipped=prod_skipped,
                     production_probe_note_ko=(
                         "n_short 는 read_dropladder_0910.main() 을 합성 창고에 대고 실제로 "
@@ -303,17 +318,19 @@ def adversarial_check():
                                   result['synthetic_recorded_near_cap_events']),
         # 미계측(−1)을 «줄<3» 으로 세는가
         # ⛔생산 main() 이 안 돌았으면 «고쳐졌다» 로 찍지 않는다 — 모르는 것은 모른다고 둔다
+        # ⭐기대값과 **직접** 견준다 — «unknown 과 같지 않다» 로는 1 개 오집계를 놓친다
         unknown_dup_counted_as_short=(None if not result['production_main_ran'] else
-                                      bool(result['mixed_dup_counted_short_fixed']==unknown
-                                           and unknown > 0)))
+                                      result['mixed_dup_counted_short_fixed']
+                                      != result['production_expected_short']))
     _d=result['defects_still_present']
     result['n_defects_still_present']=sum(1 for v in _d.values() if v is True)
     result['n_unknown']=sum(1 for v in _d.values() if v is None)
     result['status_ko']=(
         ('아직 남은 것: '+', '.join(k for k,v in _d.items() if v is True)) if result['n_defects_still_present']
         else (f"네 결함이 합성 입력에서 안 재현된다 (⚠못 잰 것 {result['n_unknown']} 개 — "
-              "생산 main() 을 못 돌렸다)") if result['n_unknown']
-        else '네 결함이 모두 고쳐졌다 — 생산 main() 을 합성 창고에 대고 돌려 확인했다')
+              f"생산 main() 이 낸 목표 행 {result.get('production_rows_found')} 개)") if result['n_unknown']
+        else ('네 결함이 모두 고쳐졌다 — 생산 main() 을 합성 창고에 대고 돌려, 목표 행이 '
+              f"정확히 1 개이고 n_short 가 기대값 {result['production_expected_short']} 인 것을 확인했다"))
     return result
 
 
@@ -359,7 +376,10 @@ def findings(c):
         + (f" ⭐2026-09-11 재측정: build_md_atlas.arm_rates 가 _ps 를 곱한다(mode={a['mode']}) — "
            f"발간 색인도 {s['published_tip_hz']:g} Hz 로 다시 구워졌고 current 와 scaled 가 같다."
            if a.get('prop_scale_applied') else ''),
-        '프로펠러 배율을 반영한 운동학적 기준 대역에서 지표를 다시 계산하고, 해당 지도·대역 그래프·목차·영향 진단을 함께 재생성해야 한다.',
+        ('⭐이미 했다 — build_md_atlas.py 가 _ps 를 곱하고 아틀라스·목차·HTML·리포트를 다시 구웠다'
+         '(철회 기록 R30). 남은 일은 되살아나지 않는지 회귀로 지키는 것뿐이다.'
+         if a.get('prop_scale_applied') else
+         '프로펠러 배율을 반영한 운동학적 기준 대역에서 지표를 다시 계산하고, 해당 지도·대역 그래프·목차·영향 진단을 함께 재생성해야 한다.'),
         '공통 arm 조건 해석 함수로 지름·회전수·주파수·앙각을 정하고, 변경된 기준을 사용하는 발간 경로를 확인한다.',
         fixed=bool(a.get('prop_scale_applied')),
         fixed_note='철회 기록 R30 · build_md_atlas.py 의 prop_scale_tag() 로 고쳤고 아틀라스를 다시 구웠다.',
@@ -448,6 +468,9 @@ def findings(c):
 
 def render(o):
     c=o['checks'];j=str(OUT.relative_to(ROOT));a=c['atlas'];s=a['sample']
+    #: 반례가 잰 «아직 남은 결함» 수 — 0 이면 작업 목록에서 그 줄을 내린다
+    x_defects = sum(1 for v in c['adversarial']['defects_still_present'].values()
+                    if v is True)
     lines=['# 시오나 최신 판독기 재검토','',
         '현재 소스와 발간 원장에 사용된 저장 자료를 다시 대조했다. 새로운 솔버 실행이나 실기 계측을 수행한 보고서가 아니다.', '',
         '**상태:** 수정 제안이다. 기존 실험 코드·원장·작업 큐·발표 자료는 변경하지 않았다.', '',
@@ -484,10 +507,17 @@ def render(o):
         '공유 재질의 모든 부수 효과까지 새로 검증한 뜻은 아니다.',
         '- 로터 씨앗 근거 부재라는 옛 지적을 반복하지 않았다. 이번 검토의 새 문제는 위 여섯 항목에 한정한다.', '',
         '## 수정 순서','',
-        '발간 숫자에 영향이 확인된 아틀라스의 대역 정의를 먼저 고치고 관련 산출물을 다시 굽는다. '
-        '다음으로 판독기의 입력 검증·진단 전달을 고친다. 문서에서는 잔존 개수·집합·비율의 분모를 구분하고, '
-        '실행 결과에 적용할 판정 규칙을 최신 재개 문서와 작업 생성기에 일치시킨다. '
-        '확률적 불확실성이나 기체 형상 효과의 주장은 그 목적에 맞는 별도 대조 이후에 판단한다.', '']
+        # ⛔⛔2026-09-11(2) — 이 목록이 «아틀라스를 먼저 고치라» 로 굳어 있어, 고쳐진 뒤에도
+        #   보고서가 옛 지시를 재발행했다. ⇒ 측정된 현재 상태를 따라간다.
+        (('⭐아틀라스의 대역 정의는 **이미 고쳐 다시 구웠다**(철회 기록 R30) — 되살아나지 않는지 '
+          '회귀 검사로만 지킨다. '
+          if bool(c['atlas'].get('prop_scale_applied')) else
+          '발간 숫자에 영향이 확인된 아틀라스의 대역 정의를 먼저 고치고 관련 산출물을 다시 굽는다. ')
+         + ('⭐판독기의 입력 검증·진단 전달도 고쳤다(합성 반례로 확인). '
+            if not x_defects else '다음으로 판독기의 입력 검증·진단 전달을 고친다. ')
+         + '문서에서는 잔존 개수·집합·비율의 분모를 구분하고, '
+           '실행 결과에 적용할 판정 규칙을 최신 재개 문서와 작업 생성기에 일치시킨다. '
+           '확률적 불확실성이나 기체 형상 효과의 주장은 그 목적에 맞는 별도 대조 이후에 판단한다.'), '']
     MEMO.write_text('\n'.join(lines))
     sys.path.insert(0,str(ROOT/'src'))
     from report_style import header,md,next_steps,build_notebook

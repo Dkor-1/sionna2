@@ -25,7 +25,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 
 **근거와 한정:** 현재 아틀라스의 비단위 _ps 태그 17개 팔·34개 칸을 확인했다. 완전성 등 기존 자격 조건을 통과한 33개 칸만 지표를 재계산했다. 예: ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe, el 0°, 3.5 GHz, 8192표본에서 운동학적 기준 대역 끝은 891.0401 → 891.0401 Hz, 같은 신호의 빗살 대비는 41.228132 → 41.228132 dB다. 원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다. ⭐2026-09-11 재측정: build_md_atlas.arm_rates 가 _ps 를 곱한다(mode=regression) — 발간 색인도 891 Hz 로 다시 구워졌고 current 와 scaled 가 같다.
 
-**권장 표현:** 프로펠러 배율을 반영한 운동학적 기준 대역에서 지표를 다시 계산하고, 해당 지도·대역 그래프·목차·영향 진단을 함께 재생성해야 한다.
+**권장 표현:** ⭐이미 했다 — build_md_atlas.py 가 _ps 를 곱하고 아틀라스·목차·HTML·리포트를 다시 구웠다(철회 기록 R30). 남은 일은 되살아나지 않는지 회귀로 지키는 것뿐이다.
 
 **수정 작업:** ⭐수정이 이미 들어갔다. 되살아나지 않는지 회귀 검사로만 지킨다. (옛 제안: 공통 arm 조건 해석 함수로 지름·회전수·주파수·앙각을 정하고, 변경된 기준을 사용하는 발간 경로를 확인한다.)
 
@@ -80,7 +80,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 
 **원문 위치:**
 
-- [read_canyonnull_0910.py:318](../benchmark/read_canyonnull_0910.py#L318)
+- [read_canyonnull_0910.py:321](../benchmark/read_canyonnull_0910.py#L321)
 > "예산 변경은 «격자를 갈았을 때의 민감도» 다. 두 점은 신뢰구간이 아니다.",
 
 - [RESUME_0911.md:None](../work/sweep_0904/RESUME_0911.md) — 현재 파일에서 해당 문구를 찾지 못함
@@ -135,7 +135,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 - [read_0918B_0909.py:97](../benchmark/read_0918B_0909.py#L97)
 > r["median_npaths_near_cap"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)
 
-- [elevation_sweep_md.py:1124](../benchmark/elevation_sweep_md.py#L1124)
+- [elevation_sweep_md.py:1126](../benchmark/elevation_sweep_md.py#L1126)
 > n_tr_stored += int(_nt[0])
 
 ## 6. [고쳐짐] 샤드 개수·배열 길이만으로 입력의 완전성과 계측 여부를 판정한다
@@ -159,13 +159,13 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 - [read_canyonnull_0910.py:148](../benchmark/read_canyonnull_0910.py#L148)
 > o = np.argsort(idx)
 
-- [read_canyonnull_0910.py:232](../benchmark/read_canyonnull_0910.py#L232)
+- [read_canyonnull_0910.py:235](../benchmark/read_canyonnull_0910.py#L235)
 > if sc is None or fr is None or ns < 2 or nf < 2:
 
-- [read_dropladder_0910.py:125](../benchmark/read_dropladder_0910.py#L125)
+- [read_dropladder_0910.py:138](../benchmark/read_dropladder_0910.py#L138)
 > if (D < 0).all():
 
-- [read_dropladder_0910.py:149](../benchmark/read_dropladder_0910.py#L149)
+- [read_dropladder_0910.py:173](../benchmark/read_dropladder_0910.py#L173)
 > short = have & (D < 2)              # 같은 줄이 세 번 안 적힌 자세(계측된 것만)
 
 ## 보완 메모: 추가 원인으로 확정하지 않은 사항
@@ -188,4 +188,4 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 
 ## 수정 순서
 
-발간 숫자에 영향이 확인된 아틀라스의 대역 정의를 먼저 고치고 관련 산출물을 다시 굽는다. 다음으로 판독기의 입력 검증·진단 전달을 고친다. 문서에서는 잔존 개수·집합·비율의 분모를 구분하고, 실행 결과에 적용할 판정 규칙을 최신 재개 문서와 작업 생성기에 일치시킨다. 확률적 불확실성이나 기체 형상 효과의 주장은 그 목적에 맞는 별도 대조 이후에 판단한다.
+⭐아틀라스의 대역 정의는 **이미 고쳐 다시 구웠다**(철회 기록 R30) — 되살아나지 않는지 회귀 검사로만 지킨다. ⭐판독기의 입력 검증·진단 전달도 고쳤다(합성 반례로 확인). 문서에서는 잔존 개수·집합·비율의 분모를 구분하고, 실행 결과에 적용할 판정 규칙을 최신 재개 문서와 작업 생성기에 일치시킨다. 확률적 불확실성이나 기체 형상 효과의 주장은 그 목적에 맞는 별도 대조 이후에 판단한다.

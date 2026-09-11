@@ -1103,6 +1103,8 @@ def analyse() -> None:
             #    1,999,98x 로 상한에 붙어 있는데 원장에는 n_trunc=0 · truncated=false 로
             #    실린다. 「상한이 결과를 정하면 그 축은 접는다」를 원장만 보고는 못 지킨다.
             n_tr, n_seen, n_tr_stored = 0, 0, 0
+            #: 자세 수로 센다 — 어느 갈래로 잰 칸인지 원장이 말할 수 있게
+            n_tr_recomputed, n_tr_from_stored, n_tr_assumed = 0, 0, 0
             _caps, _pend = set(), []     # 이 칸이 쓴 상한들 · 상한을 아직 모르는 옛 샤드
             for f in fs:
                 z = np.load(f); ii = z["idx"].astype(int)
@@ -1122,11 +1124,22 @@ def analyse() -> None:
                     #  ⇒ nret 가 있으면 **저장된 상한으로 지금 문턱을 다시 적용**하고,
                     #    저장값은 n_trunc_stored 로만 남긴다. nret 가 없으면 저장값을 쓴다.
                     n_tr_stored += int(_nt[0])
+                    #: ⭐⭐2026-09-11(2) — **세 갈래를 가른다.** 전에는 nret 이 없으면 옛 저장값을
+                    #  그대로 n_trunc 에 넣고도 「저장된 상한으로 재계산했다」고 적어 범위가 과했다.
+                    #    ⓐ 확정 재계산 — nret 과 저장된 상한이 **둘 다** 있다
+                    #    ⓑ 옛 저장값   — nret 이 없다(다시 셀 수가 없다)
+                    #    ⓒ 가정 계산   — nret 은 있는데 상한이 안 적혔다 ⇒ 규약 기본값으로 잰다
                     if "nret" in z and _nt.size > 1:
                         _nr = np.asarray(z["nret"])
                         n_tr += int(np.count_nonzero(_nr >= 0.99 * int(_nt[1])))
+                        n_tr_recomputed += int(ii.size)
+                    elif "nret" in z:
+                        _nr = np.asarray(z["nret"])
+                        n_tr += int(np.count_nonzero(_nr >= 0.99 * _cap_for_old))
+                        n_tr_assumed += int(ii.size)
                     else:
                         n_tr += int(_nt[0])
+                        n_tr_from_stored += int(ii.size)
                     n_seen += int(ii.size)
                 elif "nret" in z:
                     #: 옛 세대라 n_trunc 는 없지만 nret 는 있는 샤드 — 상한이 정해진
@@ -1190,10 +1203,17 @@ def analyse() -> None:
             prov["n_trunc"] = int(n_tr)
             #: ⭐샤드에 적힌 값(구울 때 문턱)도 함께 남긴다 — 둘이 다르면 세대가 섞인 것이다.
             prov["n_trunc_stored"] = int(n_tr_stored)
+            prov["n_trunc_by"] = dict(recomputed=int(n_tr_recomputed),
+                                      from_stored=int(n_tr_from_stored),
+                                      assumed_cap=int(n_tr_assumed))
             prov["n_trunc_recomputed_note_ko"] = (
-                "n_trunc 는 저장된 nret 과 저장된 상한으로 **지금 문턱(0.99)을 다시 적용**해 센 "
-                "자세 수다. n_trunc_stored 는 샤드에 적힌 값(구울 때의 문턱, 0.999 세대가 섞여 "
-                "있다). 둘이 다르면 그 칸은 세대가 섞였다는 뜻이다. "
+                "n_trunc 는 자세를 세 갈래로 잰 합이다 — ⓐrecomputed: nret 과 **저장된 상한**이 "
+                "둘 다 있어 지금 문턱(0.99)을 다시 적용 · ⓑfrom_stored: nret 이 없어 샤드에 적힌 "
+                "값을 그대로 씀(다시 셀 수 없다) · ⓒassumed_cap: nret 은 있으나 상한이 안 적혀 "
+                "규약 기본값으로 쟀다. n_trunc_by 가 갈래별 자세 수다. "
+                "n_trunc_stored 는 샤드에 적힌 값의 합이다. "
+                "⚠둘이 다르다고 «그 칸에 세대가 섞였다» 고 읽지 않는다(2026-09-11 정정) — "
+                "같은 옛 규칙으로만 구운 칸도 새 문턱으로 다시 세면 값이 달라진다. "
                 "⛔«잘린 자세 수» 가 아니라 «상한 근접 경고에 해당하는 자세 수» 다 — "
                 "nret 은 돌아온 경로 수의 어림수이지 후보가 잘렸다는 직접 계측이 아니다.")
             prov["n_poses_with_path_count"] = int(n_seen)

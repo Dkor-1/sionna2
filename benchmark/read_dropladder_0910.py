@@ -66,7 +66,7 @@ def cell(arm: str, spp: int):
     if not fs:
         return None
     E, I, D, P = [], [], [], []
-    n_expected = None
+    n_expected, prf, meta_mismatch, no_meta = None, None, [], []
     for f in fs:
         z = np.load(f)
         E.append(z["E"]); I.append(z["idx"])
@@ -75,17 +75,30 @@ def cell(arm: str, spp: int):
         if "meta" in z.files:
             _m = np.asarray(z["meta"]).ravel()
             if _m.size > 3:
-                n_expected = int(_m[3])          # 이 칸이 원래 몇 자세짜리인가
+                #: ⛔⛔2026-09-11(2) — 샤드마다 **선언 표본수·표집률이 같은지** 본다.
+                #  전에는 마지막 샤드 값으로 덮어써서 서로 다른 판이 한 칸에 섞여도 통과했다.
+                _n, _prf = int(_m[3]), (float(_m[4]) if _m.size > 4 else None)
+                if n_expected is not None and _n != n_expected:
+                    meta_mismatch.append(dict(file=os.path.basename(f), n_poses=_n, seen=n_expected))
+                if prf is not None and _prf is not None and _prf != prf:
+                    meta_mismatch.append(dict(file=os.path.basename(f), prf_hz=_prf, seen=prf))
+                n_expected, prf = _n, (_prf if _prf is not None else prf)
+        else:
+            #: ⛔meta 가 없는 샤드는 «이름이 n8192 인데 4096 표본» 을 걸러낼 근거가 없다.
+            no_meta.append(os.path.basename(f))
     idx = np.concatenate(I)
     o = np.argsort(idx)
     #: ⭐2026-09-10 — idx 를 정렬 재료로만 쓰고 버리던 것을 고친다. 판정은 main() 이 한다.
     n_uni = int(np.unique(idx).size)
     ok = bool(n_uni == idx.size
               and (n_expected is None or idx.size == n_expected)
-              and np.array_equal(idx[o], np.arange(idx.size)))
+              and np.array_equal(idx[o], np.arange(idx.size))
+              and not meta_mismatch
+              and not no_meta)          # ⛔meta 가 없으면 «온전하다» 고 말할 수 없다
     return dict(n_shards=len(fs), files=[os.path.basename(f) for f in fs],
                 E=np.concatenate(E)[o], D=np.concatenate(D)[o], P=np.concatenate(P)[o],
-                idx_ok=ok, n_rows=int(idx.size), n_unique=n_uni, n_expected=n_expected)
+                idx_ok=ok, n_rows=int(idx.size), n_unique=n_uni, n_expected=n_expected,
+                prf_hz=prf, meta_mismatch=meta_mismatch, shards_without_meta=no_meta)
 
 
 def _copies_txt(r: dict) -> str:
@@ -132,14 +145,25 @@ def main() -> int:
             #  (창고에 지금 `sionna_p4000000000_el-75` 가 샤드 4 개·2,048/4,096 로 있다).
             #  ⛔거절 사유를 화면과 원장에 남긴다 — 조용히 건너뛰지 않는다.
             if not c["idx_ok"]:
-                skipped.append(dict(arm=arm, spp=spp, why="자세 인덱스가 온전하지 않다",
+                skipped.append(dict(arm=arm, spp=spp, why="자세 인덱스·메타가 온전하지 않다",
                                     rows=c["n_rows"], unique=c["n_unique"],
-                                    expected=c["n_expected"], n_shards=c["n_shards"]))
+                                    expected=c["n_expected"], n_shards=c["n_shards"],
+                                    meta_mismatch=c["meta_mismatch"],
+                                    shards_without_meta=c["shards_without_meta"]))
                 print(f"  ⛔{arm:<10}{spp:>15,}  자세 인덱스 불완전 "
                       f"({c['n_unique']}/{c['n_rows']}, 기대 {c['n_expected']}) — 건너뛴다",
                       flush=True)
                 continue
             a = np.abs(E); med = float(np.median(a))
+            #: ⛔⛔2026-09-11(2) — 중앙값이 0 이거나 비유한이면 a/med 가 정의되지 않는다.
+            #  전에는 그 나눗셈으로 «낙차 0 · 일치 True» 를 발행했다(전계가 전부 0 인 합성 입력).
+            if not np.isfinite(med) or med <= 0:
+                skipped.append(dict(arm=arm, spp=spp, why="자세 중앙 |E| 가 0 이거나 비유한이다",
+                                    median_abs_E=(None if not np.isfinite(med) else med),
+                                    n_poses=int(E.size)))
+                print(f"  ⛔{arm:<10}{spp:>15,}  중앙 |E| = {med!r} — 낙차 비율을 못 낸다, 건너뛴다",
+                      flush=True)
+                continue
             #: ⛔⛔2026-09-10 정정 — **결측을 «덜 적힌 줄» 로 세지 않는다.**
             #  `n_dup` 이 없는 세대의 샤드는 −1 로 채워 두는데, 옛 `short = D < 2` 는 그 −1 을
             #  전부 「세 번 안 적힌 자세」로 셌다. 합성 자료로 재현했다: n_dup 미기록 4,096 행이

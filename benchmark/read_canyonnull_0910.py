@@ -202,7 +202,10 @@ def _deck_mask_table(loadfn, stemfn, els, cells):
             c, n = loadfn(stemfn(spp, rep, True), el)
             #: ⭐2026-09-10 — 길이만 보던 게이트에 **idx 온전성**을 더한다. 이 표가 덱의
             #  96·339 를 만드는 자리라 main() 쪽만 고치면 덱이 옛 게이트에 남는다.
-            if c is None or n < 2 or c["E"].size != mb.size or not c["idx_ok"]:
+            #: ⛔2026-09-11(2) — 이 표도 **비교 쌍의 표집률**을 봐야 한다. 길이·idx 만 보면
+            #  19,700 Hz 기준선과 10,000 Hz 비교판이 그대로 견줘진다.
+            if (c is None or n < 2 or c["E"].size != mb.size or not c["idx_ok"]
+                    or (c.get("prf_hz") and base.get("prf_hz") and c["prf_hz"] != base["prf_hz"])):
                 continue
             m = hampel_mask(np.abs(c["E"]), 51, 5.0)
             inter = int((m & mb).sum()); uni = int((m | mb).sum())
