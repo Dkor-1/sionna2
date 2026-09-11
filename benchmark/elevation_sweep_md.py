@@ -647,7 +647,7 @@ def run(a) -> None:
             if getattr(a, "dry_run", False):
                 print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
                       f"{os.path.basename(f)}", flush=True); continue
-            if os.path.exists(f) and not a.overwrite:
+            if shard_done(f) and not a.overwrite:
                 print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
             u = los(az, el)
             #: ⭐가로축 (e1,e2) 는 û 가 정하므로 판을 **앙각마다** 옮긴다. 크기(d·n·Rout)는
@@ -769,7 +769,7 @@ def run(a) -> None:
         if getattr(a, "dry_run", False):
             print(f"  [dry] {'있음' if os.path.exists(f) else '없음'}  "
                   f"{os.path.basename(f)}", flush=True); continue
-        if os.path.exists(f) and not a.overwrite:
+        if shard_done(f) and not a.overwrite:
             print(f"  건너뜀 {os.path.basename(f)}", flush=True); continue
         E = np.zeros(idx.size, complex); npaths = np.zeros(idx.size, int)
         # ⭐**돌려받은 경로 수를 따로 적는다**(2026-09-02). `npaths` 는 NO_OBJ 마스크를
@@ -985,6 +985,120 @@ def run(a) -> None:
 
 
 # ═══ 병합·분석 ══════════════════════════════════════════════════════════════
+def shard_done(f):
+    """재개가 «이미 있다» 로 건너뛰어도 되는 샤드인가.
+
+    ⛔⛔2026-09-11(6) 정정 — 전에는 `os.path.exists(f)` 만 봤다. 저장이 **도중에 끊긴**
+    파일(디스크가 찼거나 굽는 중에 죽은 경우)도 이름은 남으므로 재개가 조용히 건너뛰고,
+    그 자리는 다시 굽히지 않은 채 병합에서 «읽기 실패» 로만 나타난다.
+    ⭐창고 전수(7,412 장, 2026-09-11)에는 그런 파일이 **0 장**이다 — 재현은 일부러 잘라
+      만든 파일로 했다. 그래도 조건을 이름에서 내용으로 옮겨 둔다.
+
+    npz 는 zip 이라 `.files` 만 읽으면 **끝쪽 목차**만 훑는다(풀지 않는다) — 잘린 파일은
+    여기서 걸리고, 온전한 파일은 거의 공짜다.
+    """
+    if not os.path.exists(f):
+        return False
+    try:
+        if os.path.getsize(f) == 0:
+            return False
+        with np.load(f) as z:
+            names = set(z.files)
+        return {"idx", "E", "meta"} <= names
+    except Exception as e:
+        print(f"  ⛔다시 굽는다(읽을 수 없다) {os.path.basename(f)} — {type(e).__name__}",
+              flush=True)
+        return False
+
+
+def one_generation(fs, tag, gap_s=3600.0):
+    """한 칸(엔진·앙각)의 샤드가 **두 번의 굽기**에서 남았고 겹친 자세의 전계가
+    서로 다르면, 한 세대만 골라 돌려준다. 겹침이 없거나 값이 같으면 그대로 둔다.
+
+    ⛔⛔2026-09-11(5) 정정 — 전에는 병합 고리가 `E[ii] = z["E"]` 로 **덮어쓰기만** 했다.
+    그러면 겹친 자세는 `sorted(glob(...))` 의 **파일 이름 순서**가 값을 정한다.
+    ⛔실측(2026-09-11): 창고의 4 칸이 그렇다 —
+      sionna_p4000000000_sw{R0D1E1F1,R0D0E0F1}_r15_n8192_az{0.05,0.1}
+      _mfixbatteryi5_blperairframe_d2 · el +0
+      ⓐ `_00/_01` 4,096 자세씩 (09-05) ⓑ `_02/_03` 2,048 자세씩 (09-06)
+    이름 순서로는 ⓑ 가 ⓐ 를 덮어 **한 칸이 두 세대의 혼합**이 되고, 순서를 뒤집으면
+    3,057~3,981 자세의 값이 바뀐다. 「어느 판을 봤는가」를 원장이 말할 수 없다.
+
+    ⇒ 굽기 시각으로 세대를 가르고, **자세를 가장 많이 덮는 세대**(같으면 나중 것)만 쓴다.
+      고른 세대가 자세를 다 못 채우면 그 칸은 그대로 «미완» 으로 남는다 — 모자란 자리를
+      옛 세대로 메워 온전한 칸인 척하지 않는다.
+    """
+    if len(fs) < 2:
+        return list(fs), None
+    idx, val, n0 = {}, {}, None
+    for f in fs:
+        z = np.load(f)
+        idx[f] = z["idx"].astype(int)
+        val[f] = z["E"]
+        if n0 is None:
+            n0 = int(np.asarray(z["meta"], float)[3])
+    E0 = np.zeros(n0, complex); S0 = np.zeros(n0, bool)
+    clash = 0; rel_max = 0.0; rel_over = 0
+    for f in sorted(fs):
+        ii, vv = idx[f], val[f]
+        d = S0[ii]
+        if d.any():
+            a, b = E0[ii][d], vv[d]
+            ne = a != b
+            if ne.any():
+                clash += int(ne.sum())
+                #: ⭐**얼마나 다른지도 잰다.** 「다르다」만 적으면 물리가 갈린 것처럼 읽히는데,
+                #  실제로는 거의 전부 마지막 자리의 차이다 — 그 둘을 수로 갈라 둔다.
+                nz = np.abs(a) > 0
+                if nz.any():
+                    r = np.abs(b[nz] - a[nz]) / np.abs(a[nz])
+                    rel_max = max(rel_max, float(r.max()))
+                    rel_over += int((r > 5e-6).sum())
+        E0[ii] = vv; S0[ii] = True
+    if not clash:
+        return list(fs), None
+    gens, cur = [], []
+    for f in sorted(fs, key=os.path.getmtime):
+        if cur and os.path.getmtime(f) - os.path.getmtime(cur[-1]) > gap_s:
+            gens.append(cur); cur = []
+        cur.append(f)
+    gens.append(cur)
+
+    def _cov(g):
+        s = np.zeros(n0, bool)
+        for f in g:
+            s[idx[f]] = True
+        return int(s.sum())
+
+    k = max(range(len(gens)),
+            key=lambda j: (_cov(gens[j]), os.path.getmtime(gens[j][-1])))
+    keep = sorted(gens[k])
+    note = dict(
+        reason="겹친 자세의 전계가 서로 달라 세대를 하나만 골랐다",
+        #: ⭐⭐**갈림의 크기**를 함께 적는다 — 「두 물리」가 아니라 「같은 계산을 다르게
+        #  조각낸 판」임이 대부분이다. 그래도 몇 자세는 크게 갈리므로 파일 순서가 값을
+        #  정하게 두면 안 된다.
+        #  ⛔실측(2026-09-11): 겹친 4,096 자세 중 5e-6 을 넘는 것이 칸마다 1·1·6·8 개,
+        #    그중 두 자세는 **약 50 % 어긋난다**(swR0D0E0F1 az0.05 · az0.1).
+        #    ⇒ 굽는 쪽 빌더 머리말의 「두 판은 5e-6 안에서 같다」는 참이 아니다
+        #      (team_meeting/teammeeting_0910/bake_window.py:52 에서 고쳤다).
+        n_poses_differing=clash,
+        rel_diff_max=rel_max,
+        n_poses_rel_diff_over_5e_6=rel_over,
+        n_generations=len(gens),
+        kept_files=[os.path.basename(f) for f in keep],
+        kept_poses=_cov(gens[k]), n_poses=n0,
+        dropped_files=[os.path.basename(f) for g in gens if g is not gens[k]
+                       for f in sorted(g)],
+        dropped_poses=int(S0.sum()) - _cov(gens[k]),
+    )
+    print(f"  ⛔세대 혼합 {tag} — {len(gens)} 세대 중 "
+          f"{note['kept_poses']}/{n0} 자세를 덮는 세대만 쓴다 "
+          f"(버린 파일 {len(note['dropped_files'])} 장 · 겹친 자세 {clash} 가 다르고 "
+          f"그중 {rel_over} 이 5e-6 밖 · 최대 상대차 {rel_max:.3g})", flush=True)
+    return keep, note
+
+
 def f_tip_at(el_deg: float, arm: str = "") -> float:
     import sys as _s; _s.path.insert(0, f"{ROOT}/src")
     from drones import DRONES
@@ -1087,6 +1201,8 @@ def analyse() -> None:
             fs = _by.get((eng, float(el)), [])       # ⭐한 번 훑어 만든 사전에서 꺼낸다
             if not fs:
                 continue
+            #: ⭐⭐두 세대가 섞인 칸은 **한 세대만** 쓴다 (one_generation 의 머리말).
+            fs, mixed_gen = one_generation(fs, f"{eng}/el{el:+g}")
             E = None; secs = 0.0; npa = []; cfg = None
             #: ⭐⭐**잘림을 병합까지 끌고 온다.** 샤드는 `n_trunc` 를 적고 콘솔에도 ⛔를
             #  찍지만, 2026-09-07 까지 이 고리가 그것을 **안 읽어** 사람들이 인용하는
@@ -1109,8 +1225,19 @@ def analyse() -> None:
             for f in fs:
                 z = np.load(f); ii = z["idx"].astype(int)
                 if E is None:
-                    E = np.zeros(int(np.asarray(z["meta"], float)[3]), complex)
-                E[ii] = z["E"]; secs += float(np.asarray(z["meta"], float)[5])
+                    _n0 = int(np.asarray(z["meta"], float)[3])
+                    E = np.zeros(_n0, complex)
+                    #: ⛔⛔2026-09-11(4) — **«안 채운 자리» 와 «채웠는데 0» 을 가른다.**
+                    #  전에는 누산기가 0 으로 시작해 둘을 구별할 수 없었고, `miss = (E==0).sum()`
+                    #  이 **실제로 저장된 영(零) 전계까지 결측으로 셌다.**
+                    #  ⛔실측(2026-09-11): 원장 1,433 행 중 **38 행**이 자세를 다 저장하고도
+                    #    영 전계 탓에 결측으로 찍혔고, 그 행의 레벨이 최대 **+21.43 dB** 높다
+                    #    (sionna_p4000000000_onlyrefr_mini5pro_r240_n8192 · el −30 ·
+                    #     8,192 자세 전부 저장 · 그중 7,497 이 영 전계).
+                    #  ⇒ **쓴 자리를 따로 표시**하고, 평균은 «쓴 자리 전부»(영 전계 포함)로 낸다.
+                    seen = np.zeros(_n0, bool)
+                E[ii] = z["E"]; seen[ii] = True
+                secs += float(np.asarray(z["meta"], float)[5])
                 if "npaths" in z: npa.append(z["npaths"])
                 if "n_trunc" in z:
                     _nt = np.asarray(z["n_trunc"]).ravel()
@@ -1173,7 +1300,9 @@ def analyse() -> None:
                     n_tr_recomputed += _n      # 이 칸의 다른 샤드가 상한을 적어 두었다
                 else:
                     n_tr_assumed += _n         # 아무 데서도 못 얻어 규약 기본값으로 쟀다
-            miss = int((E == 0).sum())
+            #: ⭐결측 = **안 쓴 자리**. 영 전계는 자료이지 결측이 아니다.
+            miss = int((~seen).sum())
+            n_zero_field = int((seen & (E == 0)).sum())
             ft = f_tip_at(el, eng)
             series[f"{eng}/el{el:+g}"] = E
             if cfg is not None:
@@ -1274,15 +1403,24 @@ def analyse() -> None:
             rows.append(dict(
                 engine=eng, el_deg=el, cos_el=round(float(np.cos(np.radians(el))), 4),
                 f_tip_hz=round(ft, 1), n_poses=len(E), n_missing=miss,
+                #: ⭐«썼는데 값이 0» — 자료다. 결측과 섞지 않는다(2026-09-11(4) 신설)
+                n_zero_field=n_zero_field,
+                #: ⭐세대를 골랐으면 무엇을 버렸는지 행에 남긴다 (없으면 null).
+                mixed_generations=mixed_gen,
+                n_missing_note_ko=("n_missing 은 **샤드가 안 쓴 자리**다. n_zero_field 는 "
+                                   "**썼는데 전계가 0** 인 자세이고 결측이 아니라 자료다 — "
+                                   "레벨 평균에 **포함**한다. ⛔2026-09-11 전에는 둘을 뭉쳐 세어 "
+                                   "38 행의 레벨이 최대 +21.43 dB 높았다(철회 기록 R31)."),
                 seconds=round(secs, 1), **prov,
                 npaths_median=int(np.median(np.concatenate(npa))) if npa else None,
                 # ⛔**결측 자세(0)를 평균에서 뺀다** (2026-08-20 정정). 예전에는 안 채워진
                 #   자세의 0 이 그대로 평균에 들어가 레벨을 낮췄다 — 원장 766 행 중 **52 행**이
                 #   틀렸고 최악은 **−24.08 dB** 였다. `n_missing` 은 이미 세고 있었는데
                 #   평균만 그걸 안 봤다. (정정 기록: docs/RETRACTION_LOG.md)
+                #: ⭐평균은 **쓴 자리 전부**로 낸다 — 영 전계도 자료다.
+                #  ⛔옛 식은 `E[E != 0]` 라 실제로 0 인 자세를 빼 레벨을 올렸다.
                 level_db=round(float(20 * np.log10(
-                    (np.abs(E[E != 0]).mean() if miss and (E != 0).any()
-                     else np.abs(E).mean()) + 1e-300)), 2),
+                    (np.abs(E[seen]).mean() if seen.any() else 0.0) + 1e-300)), 2),
                 # ⭐(a) 앙각마다 대역을 다시 잡는다 — 정본
                 track=band_metrics(E, 0.35 * ft, max(ft, 1e-6)),
                 # (b) 덱의 −15° 대역 고정 — 어디서 무너지나 (반송파를 옮긴 팔은 λ 비로 늘린다)

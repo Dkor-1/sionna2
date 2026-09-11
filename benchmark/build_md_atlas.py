@@ -305,18 +305,35 @@ def f_tip_at(rates: dict, el: float) -> float:
     return rates["f_tip0_hz"] * math.cos(math.radians(el))
 
 
+def el_key(el: float) -> str:
+    """앙각을 **원장이 쓴 그대로**의 글자로 — «+0» · «-15» · «-0.1».
+
+    ⛔⛔2026-09-11 정정 — 전에는 곳곳에서 `f"{el:+.0f}"` 를 썼다. 정수 앙각에서는
+    맞지만 **소수 앙각을 0 으로 반올림한다**.
+    ⛔실측(2026-09-11): 창고에 소수 앙각 칸이 **55 개** 있다(창 훑기의 el −0.02·−0.03·
+      −0.075·−0.08·−0.1·−0.3·−0.32 …). 그 칸들이 전부 «el-0» 한 자리로 뭉개져
+      ① `series()` 가 `KeyError: …/el-0` 로 **아틀라스를 통째로 멈췄고**
+      ② 멈추지 않았다면 아틀라스 색인의 `cells` 키와 그림 파일 이름이 **서로 덮어썼을**
+        것이다(−0.02 와 −0.3 이 같은 이름이 된다).
+    병합기가 키를 `f"{eng}/el{el:+g}"` 로 쓴다(`benchmark/elevation_sweep_md.py`) —
+    **같은 서식**을 쓴다. 정수 앙각에서는 «+0»·«-15» 로 전과 한 글자도 다르지 않다.
+    """
+    return f"{el:+g}"
+
+
 def deg_txt(el: float) -> str:
-    """«0°» · «−30°» · «+15°» — 음수는 U+2212."""
+    """«0°» · «−30°» · «+15°» · «−0.1°» — 음수는 U+2212."""
     if abs(el) < 1e-9:
         return "0" + DEG
-    return ("+" if el > 0 else MINUS) + f"{abs(el):.0f}" + DEG
+    #: ⭐소수 자리를 **버리지 않는다** — el −0.1 을 «−0°» 로 적으면 el 0 과 구별이 안 된다.
+    return ("+" if el > 0 else MINUS) + f"{abs(el):g}" + DEG
 
 
 # ═══════════════════════════════════════════════════════════════════════════ #
 #  잣대 — ⭐레벨(dB)은 전부 **정지 성분 제거 후**
 # ═══════════════════════════════════════════════════════════════════════════ #
 def series(arm: str, el: float) -> np.ndarray:
-    return np.asarray(Z[f"{arm}/el{el:+.0f}"], complex)
+    return np.asarray(Z[f"{arm}/el{el_key(el)}"], complex)
 
 
 def rhythm_share(E: np.ndarray, f_flash: float, f_tip: float, hw: float = RHY_HW):
@@ -879,10 +896,16 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
     empty = (not (p_tot > 0.0)) or n_zero == E.size
     n_miss = int(row.get("n_missing") or 0)
     n_pose = int(row.get("n_poses") or E.size)
-    incomplete = (not empty) and ((0 < n_miss < n_pose) or 0 < n_zero < E.size)
+    #: ⛔⛔2026-09-11(4) — 전에는 «영 전계 표본이 있다» 만으로도 incomplete 로 묶었다.
+    #  그래서 **자세를 다 저장한 칸**(예: 굴절만 켠 먼 거리 팔)이 «자세가 덜 찼다» 로 찍혔다.
+    #  ⇒ incomplete 는 **원장 n_missing(안 쓴 자리)** 로만 정하고, 영 전계는 따로 표시한다.
+    #    ⚠영 전계 칸도 스펙트럼이 그 구조를 그대로 지니므로 «수를 낼 자격» 에서는 여전히 뺀다 —
+    #      다만 **까닭을 달리 적는다**(결측 자국이 아니라 자료 자체가 0 이다).
+    incomplete = (not empty) and (0 < n_miss < n_pose)
+    zero_field = (not empty) and (not incomplete) and (0 < n_zero < E.size)
     acdc = (p_ac / p_tot) if p_tot > 0 else 0.0
-    no_motion = (not empty) and (not incomplete) and acdc < NO_MOTION_ACDC
-    mute = empty or incomplete or no_motion          # ⭐수를 낼 자격이 없는 칸
+    no_motion = (not empty) and (not incomplete) and (not zero_field) and acdc < NO_MOTION_ACDC
+    mute = empty or incomplete or zero_field or no_motion   # ⭐수를 낼 자격이 없는 칸
 
     share, null, frac_above, degen = rhythm_share(E, ffl, ft)
     comb = None if mute else comb_contrast_db(E, ffl, ft)
@@ -903,6 +926,8 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
     if mute:
         why = ("에코가 0 — 흔들어 볼 것이 없다" if empty else
                "자세가 덜 찼다 — 결측 자국 위에서 «튐» 을 물을 수 없다" if incomplete else
+               ("전계가 0 인 자세가 섞여 있다 — 결측이 아니라 **자료가 0** 이다. "
+                "스펙트럼이 그 구조를 지니므로 이 칸의 수는 인용하지 않는다") if zero_field else
                "AC/DC 가 반올림 바닥 — 움직이는 것이 없어 «튐» 이 정의되지 않는다")
         ol = dict(gradeable=False, grade="퇴화", why_ko=why, classes=[], reasons=[],
                   impact_over_band=[])
@@ -910,7 +935,7 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
         ol = outlier_probe(E, ffl, ft, el)
     # ⭐census 원장이 같은 칸에 매긴 등급을 나란히 적는다 — 갈리면 **숨기지 않는다**.
     #   갈리는 자리는 거의 다 대조군 추첨이 흔드는 경계 칸이다(grade_sensitive_to_control_draw).
-    cg = (outlier_rules().get("census_grade") or {}).get(f"{arm}/el{el:+.0f}")
+    cg = (outlier_rules().get("census_grade") or {}).get(f"{arm}/el{el_key(el)}")
     if cg is not None:
         ol["census_grade"] = cg
         ol["agrees_with_census"] = bool(cg == ol.get("grade"))
@@ -935,6 +960,7 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
         # ── 깃발: 이 칸을 읽어도 되나 ──────────────────────────────────────
         no_return=bool(empty),
         incomplete=bool(incomplete),
+        zero_field=bool(zero_field),
         no_motion=bool(no_motion),
         beat_spiky=bool(spiky and not mute),
         tip_ceiling_degenerate=bool(degen),
@@ -1779,7 +1805,7 @@ def main():
                 "f_tip0_hz": round(rt["f_tip0_hz"], 1),
                 "stft_periods": per,
                 "elevations_deg": els,
-                "cells": {f"{el:+.0f}": cells[el] for el in els},
+                "cells": {el_key(el): cells[el] for el in els},
             }
 
         # ⭐주제가 «무엇을 섞고 있나» 를 색인에 싣는다 — 갤러리·목차가 이것으로
@@ -1821,7 +1847,7 @@ def main():
                 pages = _chunks(sorted(grp), 20)
                 for pi, page in enumerate(pages, start=1):
                     p = os.path.join(OUTDIR, f"{pre}__01-compare-tile"
-                                             f"{el:+.0f}-p{pi}.png")
+                                             f"{el_key(el)}-p{pi}.png")
                     if not fresh(p, a.force):
                         fig_compare_tiles(page, el, rates_of, periods_of,
                                           cells_of, short, p, a.compare_dpi, en,
