@@ -1,0 +1,37 @@
+# ══ 0925 큐 — 협곡 격자 민감도를 두 점에서 사다리로 ══
+#  ⛔여기 적힌 것은 «물음» 이지 «답» 이 아니다.
+#  ⛔예산을 바꾸는 것은 «격자를 다시 써는» 일이다 — 점이 일곱이 되어도 널이 아니다.
+#  ⛔이것으로 다른 기체의 자세 집합을 견줄 수 있게 되지 않는다(회전수가 다르다).
+#  ⛔실기 계측 대조는 0 건이고 이 판으로도 안 생긴다.
+#  ⛔축이 위로 비대칭이다 — uint32 천장 4,294,967,295 때문에 +10 % 는 못 산다.
+#     위쪽 끝은 4.29e9(+7.25 %)가 한계다. 결과에 이 비대칭을 함께 적는다.
+#  ⚠한 샤드가 실측 중앙 238 분이다 — 16 줄이면 어림 64 일꾼시간.
+
+# ── 앙각 -30 — 이미 있는 점 3.8e9 · 4.0e9 · 4.2e9 사이와 바깥
+#   예산 3,600,000,000 (−10 %)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3600000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3600000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   예산 3,900,000,000 (−2.5 %)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3900000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3900000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   예산 4,100,000,000 (+2.5 %)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4100000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4100000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   예산 4,290,000,000 (+7.25 % · 천장 바로 아래)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4290000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4290000000 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+
+# ── 앙각 -60 — 이미 있는 점 3.8e9 · 4.0e9 · 4.2e9 사이와 바깥
+#   예산 3,600,000,000 (−10 %)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3600000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3600000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   예산 3,900,000,000 (−2.5 %)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3900000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 3900000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   예산 4,100,000,000 (+2.5 %)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4100000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4100000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   예산 4,290,000,000 (+7.25 % · 천장 바로 아래)
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4290000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --max-depth 2 --range-m 15 --spp 4290000000 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+
