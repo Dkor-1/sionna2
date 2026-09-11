@@ -1002,9 +1002,33 @@ def shard_done(f):
     try:
         if os.path.getsize(f) == 0:
             return False
+        #: ⛔⛔2026-09-12 정정 — 전에는 **이름만** 봤다(`{"idx","E","meta"} <= set(z.files)`).
+        #  zip 목차만 읽으니 잘린 파일은 걸렸지만 **내용이 깨진 파일은 그대로 통과**했다.
+        #  ⛔실측(2026-09-12, 합성 입력 셋):
+        #    ⓐ E 의 CRC 를 깨뜨린 파일 → shard_done=True 인데 실제 읽기는 BadZipFile
+        #    ⓑ E 와 idx 의 길이가 다른 파일 → True (병합에서 브로드캐스트 오류가 난다)
+        #    ⓒ idx 에 음수가 든 파일 → True (병합이 뒤에서부터 엉뚱한 자리에 쓴다)
+        #  ⭐창고 전수 7,467 장에는 이런 파일이 0 장이다 — 합성 입력으로 재현했다.
+        #  ⇒ **필수 배열을 실제로 읽어** 길이·형식·인덱스 범위까지 본다. 재개는 잡 줄마다
+        #    한 번씩만 부르므로(전수 훑기가 아니다) 읽는 값이 비싸지 않다.
         with np.load(f) as z:
             names = set(z.files)
-        return {"idx", "E", "meta"} <= names
+            if not {"idx", "E", "meta"} <= names:
+                return False
+            idx = z["idx"]          # ⭐여기서 압축을 실제로 푼다 → CRC 가 깨지면 여기서 걸린다
+            E = z["E"]
+            meta = np.asarray(z["meta"], float).ravel()
+        if idx.ndim != 1 or E.ndim != 1 or idx.size == 0 or idx.size != E.size:
+            return False
+        n0 = int(meta[3]) if meta.size > 3 else 0
+        if n0 <= 0:
+            return False
+        ii = np.asarray(idx)
+        if int(ii.min()) < 0 or int(ii.max()) >= n0:
+            return False
+        if not np.isfinite(E).all():
+            return False
+        return True
     except Exception as e:
         print(f"  ⛔다시 굽는다(읽을 수 없다) {os.path.basename(f)} — {type(e).__name__}",
               flush=True)
@@ -1057,12 +1081,22 @@ def one_generation(fs, tag, gap_s=3600.0):
         E0[ii] = vv; S0[ii] = True
     if not clash:
         return list(fs), None
-    gens, cur = [], []
-    for f in sorted(fs, key=os.path.getmtime):
-        if cur and os.path.getmtime(f) - os.path.getmtime(cur[-1]) > gap_s:
-            gens.append(cur); cur = []
-        cur.append(f)
-    gens.append(cur)
+    #: ⛔⛔2026-09-12 정정 — **굽힌 시각으로 세대를 갈랐다.** mtime 은 파일 내용이 아니라
+    #  파일계의 메타라 복사·rsync·백업 복원·touch 한 번에 바뀐다.
+    #  ⛔실측(2026-09-12): 같은 바이트를 복제하고 **시각만 같게** 만들자 네 칸 모두
+    #    두 세대가 한 묶음으로 붙어 고른 결과에 **중복 자세 4,096** 이 들어왔고, 원본
+    #    선택과 3,057~3,981 자세가 갈렸다. (지금 창고의 원본에서는 바르게 고른다.)
+    #  ⇒ **조각 내기 방식을 내용에서 읽는다** — `meta[2]` 가 그 굽기의 `--nshards` 다
+    #    (:688 · :968 에서 `np.array([el, a.shard, a.nshards, n, prf, ...])` 로 적는다).
+    #    두 세대는 조각 수가 2 와 4 로 갈리므로 이것이 확정 근거가 된다. mtime 은
+    #    **조각 수까지 같은 두 굽기**가 있을 때만 뒤에서 쓰고, 썼다는 것을 원장에 적는다.
+    def _nsh(f):
+        m = np.asarray(np.load(f)["meta"], float).ravel()
+        return int(m[2]) if m.size > 2 and m[2] > 0 else 0
+
+    by_split = {}
+    for f in sorted(fs):
+        by_split.setdefault(_nsh(f), []).append(f)
 
     def _cov(g):
         s = np.zeros(n0, bool)
@@ -1070,11 +1104,53 @@ def one_generation(fs, tag, gap_s=3600.0):
             s[idx[f]] = True
         return int(s.sum())
 
+    def _dups(g):
+        """묶음 안에서 **같은 자세가 두 번** 들어오는 수 — 0 이어야 한 세대다."""
+        s = np.zeros(n0, bool); d = 0
+        for f in sorted(g):
+            ii = idx[f]; d += int(s[ii].sum()); s[ii] = True
+        return d
+
+    tie_broken_by = None
+    if len(by_split) > 1 and 0 not in by_split:
+        gens = [by_split[k] for k in sorted(by_split)]
+        split_keys = sorted(by_split)
+    else:
+        #: 조각 수를 못 읽었거나 모두 같다 — 옛 방식(시각)으로 가르되 **그 사실을 적는다**
+        tie_broken_by = "mtime"
+        gens, cur = [], []
+        for f in sorted(fs, key=os.path.getmtime):
+            if cur and os.path.getmtime(f) - os.path.getmtime(cur[-1]) > gap_s:
+                gens.append(cur); cur = []
+            cur.append(f)
+        gens.append(cur)
+        split_keys = [None] * len(gens)
+
     k = max(range(len(gens)),
-            key=lambda j: (_cov(gens[j]), os.path.getmtime(gens[j][-1])))
+            key=lambda j: (_cov(gens[j]), -_dups(gens[j]), os.path.getmtime(gens[j][-1])))
     keep = sorted(gens[k])
+
+    #: ⭐⭐**고른 뒤에 다시 본다** — 고른 묶음 안에 같은 자세가 두 번 들어오면 그것은
+    #  한 세대가 아니다. 조용히 덮어쓰지 않고 «못 풀었다» 로 원장에 적는다.
+    kept_dups = _dups(keep)
+    unresolved = 0
+    if kept_dups:
+        seenv = {}
+        for f in sorted(keep):
+            for i, v in zip(idx[f], val[f]):
+                i = int(i)
+                if i in seenv and seenv[i] != v:
+                    unresolved += 1
+                else:
+                    seenv[i] = v
     note = dict(
         reason="겹친 자세의 전계가 서로 달라 세대를 하나만 골랐다",
+        #: ⭐무엇으로 갈랐는지 — 내용(조각 수)인지, 못 읽어 시각으로 갔는지
+        selected_by=("meta.nshards" if tie_broken_by is None else "mtime"),
+        split_counts=[k for k in split_keys],
+        #: ⛔고른 뒤에도 남은 중복·충돌. 0 이 아니면 그 칸은 한 세대로 못 푼 것이다.
+        kept_duplicate_poses=int(kept_dups),
+        kept_conflicting_poses=int(unresolved),
         #: ⭐⭐**갈림의 크기**를 함께 적는다 — 「두 물리」가 아니라 「같은 계산을 다르게
         #  조각낸 판」임이 대부분이다. 그래도 몇 자세는 크게 갈리므로 파일 순서가 값을
         #  정하게 두면 안 된다.
@@ -1092,10 +1168,13 @@ def one_generation(fs, tag, gap_s=3600.0):
                        for f in sorted(g)],
         dropped_poses=int(S0.sum()) - _cov(gens[k]),
     )
-    print(f"  ⛔세대 혼합 {tag} — {len(gens)} 세대 중 "
+    print(f"  ⛔세대 혼합 {tag} — {len(gens)} 세대({note['selected_by']} 로 가름) 중 "
           f"{note['kept_poses']}/{n0} 자세를 덮는 세대만 쓴다 "
           f"(버린 파일 {len(note['dropped_files'])} 장 · 겹친 자세 {clash} 가 다르고 "
           f"그중 {rel_over} 이 5e-6 밖 · 최대 상대차 {rel_max:.3g})", flush=True)
+    if kept_dups:
+        print(f"    ⛔⛔고른 묶음에 중복 자세 {kept_dups} · 값이 갈리는 자세 {unresolved} "
+              f"— 한 세대로 못 풀었다. 원장에 그대로 적는다.", flush=True)
     return keep, note
 
 

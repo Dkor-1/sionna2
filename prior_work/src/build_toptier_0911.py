@@ -115,6 +115,44 @@ CONFS = [
      "UbiComp 정본지 — 무선 센싱 응용의 주 무대"),
 ]
 
+#: ⭐⭐**닻 — 저장소가 이미 아는 편.** 조사가 이것들을 도로 찾아오는지가 재현율이다.
+#  ⛔⛔2026-09-12 정정 — 전에는 이 목록이 **어디에도 없었다.** INDEX 가 「재현율 4/6」
+#    이라고 적어 놨는데 그 여섯이 무엇인지 적힌 자리가 없고, 검사하는 코드도 없었다.
+#    ⛔실측(2026-09-12): 그 여섯을 이름·DOI 로 원장에서 찾아보니 **0/6** 이다. 「4/6」은
+#      재현할 수 없는 수였다. ⇒ 목록을 코드에 박고 **굽을 때마다 검사해 원장에 적는다.**
+ANCHORS = [
+    ("Zhang JSAC «Typical Targets»", "10.1109/jsac.2025.3608732",
+     "3GPP ISAC 표준화용 표적 RCS 모형 — 우리와 가장 가까운 축"),
+    ("Khawaja/Semkin COMST 조사", "10.1109/comst.2025.3554613",
+     "UAV 전파 채널 조사. ⚠IEEE 가 제목에서 UAV 를 AAV 로 고쳐 실었다"),
+    ("Ziganshin EuCAP «Curved Bodies»", "10.23919/eucap63536.2025.10999367",
+     "곡면체 RCS — 동체 근사의 대조군"),
+    ("Sun OJ-COMS LIPASE", "", "패시브 센싱 — 제목 낱말이 우리와 다르다"),
+    ("Semkin IEEE Access 드론 σ 계측", "", "실측 σ — 우리에게 없는 축"),
+    ("Das/Yuan WCL", "", "드론 마이크로도플러"),
+]
+
+
+def check_anchors(rows: dict) -> list[dict]:
+    """닻이 원장에 들어왔는지 본다. ⛔못 찾은 것을 «없는 셈» 치지 않는다 — 원장에 적는다."""
+    got = []
+    for nm, doi, why in ANCHORS:
+        hit = None
+        if doi:
+            hit = rows.get(doi.lower()) or next(
+                (r for k, r in rows.items() if k.lower() == doi.lower()), None)
+        if hit is None:
+            key = re.sub(r"[^a-z0-9]+", "", nm.split("«")[-1].strip("»").lower())
+            if key:
+                hit = next((r for r in rows.values()
+                            if key and key in re.sub(r"[^a-z0-9]+", "", r["title"].lower())), None)
+        got.append(dict(name=nm, doi=doi or None, why_ko=why,
+                        found=hit is not None,
+                        found_as=(hit or {}).get("title"),
+                        found_venue=(hit or {}).get("venue")))
+    return got
+
+
 #: 물음 축 — 저장소가 실제로 답하려는 것에 맞춘다
 TOPICS = {
     "drone_rcs":      "drone UAV radar cross section",
@@ -132,13 +170,21 @@ TARGET = [r"micro-?doppler", r"rotor", r"blade", r"\bUAV\b", r"drone", r"unmanne
           r"quadcopter", r"multirotor", r"\bsUAS\b"]
 SENSE  = [r"radar", r"doppler", r"scatter", r"\bRCS\b", r"radar cross.?section", r"sensing",
           r"\bISAC\b", r"passive (radar|bistatic)", r"ray.?trac", r"physical optics",
-          r"electromagnetic", r"propagat", r"channel", r"antenna", r"detect", r"backscatter",
+          r"electromagnetic", r"propagat", r"channel", r"antenna", r"backscatter",
           r"millimeter.?wave", r"\bmmWave\b", r"spectrogram", r"clutter"]
 #: ⛔이 낱말만 있으면 우리 물음이 아니다 — 비행제어·영상·구조점검 계열
 OFFTOPIC = [r"flight control", r"trajectory", r"formation control", r"aerodynam", r"thrust",
             r"path plan", r"\bPID\b", r"fault diagnos", r"defect", r"crack", r"inspect",
             r"imagery", r"photogramm", r"segmentation", r"waste", r"crop", r"soil moisture",
-            r"light pollution", r"edge computing", r"video streaming"]
+            r"light pollution", r"edge computing", r"video streaming",
+            #: ⛔⛔2026-09-12 — 원장에 **제목이 광학·영상인 편이 35 편** 들어와 있었다
+            #  (SODA-Net·SDS-YOLO·HazyDet·CODrone·RGB-T…). 두 군데가 열려 있었다:
+            #    ⓐ SENSE 에 `detect` 가 있어 「드론 + 객체검출」이면 다 통과했다
+            #      ⇒ 뺐다. 진짜 레이다 편은 radar·sensing·doppler 로 이미 걸린다.
+            #    ⓑ OFFTOPIC 에 `imagery` 는 있는데 `images` · `optical` · `YOLO` 가 없었다.
+            r"\bimages?\b", r"\boptical\b", r"\bYOLO\b", r"\bRGB\b", r"\bvisual\b",
+            r"\bcamera\b", r"object detection", r"semantic", r"image.?domain",
+            r"\bvision\b", r"super.?resolution image"]
 
 
 #: ⛔⛔2026-09-11(2) — TARGET(드론 낱말)을 **반드시** 요구했더니 저장소가 아는 편 셋이 떨어졌다
@@ -149,17 +195,58 @@ CORE = [r"radar cross.?section", r"\bRCS\b", r"micro-?doppler", r"physical optic
         r"ISAC channel", r"sensing channel", r"target channel"]
 
 
-def title_ok(t: str) -> bool:
-    b = t.lower()
-    if any(re.search(p, b) for p in CORE):
+#: ⛔⛔2026-09-12 정정 — **대문자가 든 패턴이 전부 죽어 있었다.**
+#  옛 코드는 `b = t.lower()` 로 제목을 소문자로 바꾼 뒤 `re.search(p, b)` 를 **re.I 없이**
+#  돌렸다. 그래서 패턴에 대문자가 하나라도 있으면 영원히 안 맞는다:
+#      TARGET  \bUAV\b · \bsUAS\b
+#      SENSE   \bRCS\b · \bISAC\b · \bmmWave\b
+#      CORE    \bRCS\b · \bSBR\b · ISAC channel
+#      OFFTOPIC \bPID\b
+#  곧 **이 주제의 핵심 약어 아홉 개가 죽은 코드**였다.
+#  ⛔실측(2026-09-12): 「A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel
+#    Standardization」(Zhang, JSAC 2025)이 **버려진다**. re.I 를 넣으면 담긴다.
+#    INDEX 는 이것을 「제목에 우리 낱말이 없다 — 제목·초록 검색의 한계」로 적어 놨는데,
+#    한계가 아니라 **버그**였다. 진단이 반대 방향으로 닫혀 있었다.
+#  ⇒ 이제 **원문 제목에 re.I 로** 찾는다. 소문자 사본은 안 쓴다.
+#: ⭐복수형도 받는다 — \bUAV\b 는 "UAVs" 를 못 맞춘다. IEEE 가 UAV 를 AAV 로 고쳐 실은
+#  편도 있다(Khawaja COMST 2025).
+TARGET = TARGET + [r"\bUAVs\b", r"\bAAVs?\b", r"\bUAS\b"]
+
+#: ⭐**전파·레이다 «좁은» 낱말** — 모바일·네트워킹 정본 학회용.
+#  그 학회 논문은 제목에 «drone» 을 거의 안 적는다(사람·손동작·눈을 잰다). 그렇다고 SENSE
+#  전부를 허용하면 «channel»·«detect»·«propagat» 때문에 네트워킹 논문이 쏟아진다.
+#  ⇒ 그 자리에서는 **RF 낱말 하나**를 요구한다.
+RF_SENSE = [r"radar", r"micro-?doppler", r"\bdoppler\b", r"backscatter", r"\bmmWave\b",
+            r"millimeter.?wave", r"\bRCS\b", r"radar cross.?section", r"\bISAC\b",
+            r"integrated sensing", r"wireless sensing", r"\bRF\b.{0,12}sens",
+            r"ray.?trac", r"physical optics", r"scatter", r"spectrogram", r"\bWi-?Fi sens"]
+
+#: 위 RF 낱말 하나로 담아 주는 게재지 — 사용자가 탑티어로 지목한 계열이다(2026-09-11).
+#  ⛔여기 없는 게재지에는 안 쓴다. 레이다 학술지에 이 규칙을 쓰면 드론과 무관한 편이 쏟아진다.
+SYSTEMS_VENUES = {"MobiCom", "SenSys", "SIGCOMM", "MobiSys", "IPSN", "HotMobile",
+                  "ACM IMWUT", "IEEE ICASSP", "IEEE INFOCOM"}
+
+
+def title_ok(t: str, venue: str | None = None) -> bool:
+    """제목만 보고 «우리 물음인가» 를 가른다. ⭐원문에 re.I 로 찾는다(소문자 사본 안 쓴다)."""
+    def has(pats):
+        return any(re.search(p, t, re.I) for p in pats)
+    #: ⭐모바일·신호처리 정본 학회 — RF 낱말 하나면 담는다(드론 낱말을 요구하지 않는다)
+    if venue in SYSTEMS_VENUES:
+        if not has(RF_SENSE):
+            return False
+        if has(OFFTOPIC) and not has([r"radar", r"doppler", r"scatter", r"\bRCS\b",
+                                      r"backscatter", r"\bmmWave\b"]):
+            return False
+        return True
+    if has(CORE):
         return True                       # 핵심 물리 낱말은 그 자체로 우리 물음이다
-    if not any(re.search(p, b) for p in TARGET):
+    if not has(TARGET):
         return False
-    if not any(re.search(p, b) for p in SENSE):
+    if not has(SENSE):
         return False
     #: 전파 낱말이 있어도 제목이 통째로 제어·비전이면 뺀다
-    if any(re.search(p, b) for p in OFFTOPIC) and not any(
-            re.search(p, b) for p in (r"radar", r"doppler", r"scatter", r"\bRCS\b", r"sensing")):
+    if has(OFFTOPIC) and not has([r"radar", r"doppler", r"scatter", r"\bRCS\b", r"sensing"]):
         return False
     return True
 
@@ -297,6 +384,45 @@ def norm(it: dict, venue: str) -> dict:
         type=it.get("type"), url=f"https://doi.org/{it.get('DOI')}" if it.get("DOI") else None)
 
 
+def fetch_abstracts(rows: dict, limit: int | None = None) -> dict:
+    """OpenAlex 에서 DOI 로 초록을 받아 채운다.
+
+    ⛔⛔2026-09-12 정정 — 원장 275 행에 **초록이 한 줄도 없었다**(`abstract` 열쇠 자체가
+    없었다). 그런데 INDEX 는 「초록을 다 못 읽었다」고만 적어 «일부는 읽었다» 로 읽혔다.
+    제목과 서지만 보고 내린 판정이었다. ⇒ 받아서 원장에 싣는다.
+
+    OpenAlex 는 초록을 `abstract_inverted_index`(낱말 → 자리 목록)로 준다. 되돌려 붙인다.
+    ⚠저작권 때문에 안 주는 편이 있다 — 그 행은 abstract=None 으로 남고, 그 사실을
+      `n_abstract` 로 센다. ⛔없는 것을 «못 읽었다» 가 아니라 «없다» 로 적는다.
+    """
+    dois = [d for d in rows if rows[d].get("abstract") is None]
+    if limit:
+        dois = dois[:limit]
+    got = 0
+    for i in range(0, len(dois), 40):
+        chunk = dois[i:i + 40]
+        try:
+            r = openalex({"filter": "doi:" + "|".join(f"https://doi.org/{d}" for d in chunk),
+                          "per-page": 50,
+                          "select": "doi,abstract_inverted_index"})
+        except Exception as e:                                     # noqa: BLE001
+            print(f"  ⛔초록 {i}-{i+len(chunk)} — {type(e).__name__}"); time.sleep(2); continue
+        for w in r.get("results", []):
+            inv = w.get("abstract_inverted_index")
+            doi = (w.get("doi") or "").replace("https://doi.org/", "").lower()
+            if not inv or doi not in rows:
+                continue
+            pos = {}
+            for word, idxs in inv.items():
+                for j in idxs:
+                    pos[j] = word
+            rows[doi]["abstract"] = " ".join(pos[k] for k in sorted(pos))[:4000]
+            got += 1
+        time.sleep(0.4)
+        print(f"  초록 {min(i+40, len(dois))}/{len(dois)} 조회 · 받은 것 {got}", flush=True)
+    return dict(asked=len(dois), got=got)
+
+
 def main() -> int:
     os.makedirs(STORE, exist_ok=True)
     #: 소장본에 이미 있는 DOI — 파일명에는 DOI 가 거의 없으므로 제목 대조로도 본다
@@ -339,7 +465,7 @@ def main() -> int:
                     if not venue_ok(name, d["container"]):
                         n_guard += 1              # 엉뚱한 논문집 — 딱지를 붙이지 않는다
                         continue
-                    if not title_ok(d["title"]):
+                    if not title_ok(d["title"], name):
                         continue
                     rows.setdefault(d["doi"], dict(d, topics=[], venue_why=why,
                                                    tier=tier_of(name), channel="crossref"))
@@ -412,9 +538,15 @@ def main() -> int:
         #  ⇒ **주제어에 학회 이름을 섞어** query.bibliographic 으로 묻고 가드로 고른다.
         #    실측: 이 길로 RadarConf 142 · EuCAP 157 편이 가드를 통과한다.
         if kind in ("acm", "ieee"):
-            pref = "10.1145" if kind == "acm" else ("10.23919" if name == "EuCAP" else "10.1109")
-            sweep(name, why, f"prefix:{pref},from-pub-date:{SINCE},type:proceedings-article",
-                  venue_hint=key)
+            #: ⛔⛔2026-09-12 — ACM 학회라고 **다 10.1145 가 아니다.** IPSN 은 IEEE 가
+            #  펴내 10.1109 에 들어 있어, 10.1145 로만 물으면 **구조적으로 0 편**이다.
+            #  ⇒ 애매한 것은 두 접두사를 다 본다. 가드가 엉뚱한 것을 걸러 준다.
+            prefs = (["10.1145", "10.1109"] if name in ("IPSN", "HotMobile")
+                     else ["10.1145"] if kind == "acm"
+                     else ["10.23919"] if name == "EuCAP" else ["10.1109"])
+            for pref in prefs:
+                sweep(name, why, f"prefix:{pref},from-pub-date:{SINCE},type:proceedings-article",
+                      venue_hint=key)
         else:
             sweep(name, why, f"issn:{key},from-pub-date:{SINCE}")
 
@@ -423,6 +555,20 @@ def main() -> int:
         d["maybe_in_store"] = bool(key in have_titles)
         d.pop("channels", None)
         d.setdefault("tier", tier_of(d.get("venue", "")))
+        d.setdefault("abstract", None)
+
+    print("■ 초록 받기 (OpenAlex · DOI 로)")
+    abs_stat = fetch_abstracts(rows)
+    n_abs = sum(1 for d in rows.values() if d.get("abstract"))
+    print(f"  초록이 있는 행 {n_abs}/{len(rows)}")
+
+    print("■ 닻 검사 (저장소가 아는 편을 도로 찾아오나)")
+    anchors = check_anchors(rows)
+    n_found = sum(a["found"] for a in anchors)
+    for a in anchors:
+        print(f"  {'✅' if a['found'] else '⛔'} {a['name']}"
+              + (f"  ← {a['found_venue']}" if a["found"] else ""))
+    print(f"  재현율 {n_found}/{len(anchors)}")
 
     out = {"_meta": {
         "generator": "prior_work/src/build_toptier_0911.py",
@@ -436,6 +582,17 @@ def main() -> int:
         "since": SINCE, "venues": [{"issn": i, "name": n, "why_ko": w} for i, n, w in VENUES],
         "conferences": [{"kind": k, "name": n, "key": v, "why_ko": w} for k, n, v, w in CONFS],
         "topics": TOPICS, "openalex_topics": OA_TOPICS, "n_rows": len(rows),
+        #: ⭐⭐**재현율을 수로 싣는다.** 옛 판은 INDEX 에 손으로 «4/6» 이라고만 적혀 있었고
+        #  그 여섯이 무엇인지도, 검사하는 코드도 없었다(실측하니 0/6 이었다).
+        "anchors": anchors,
+        "recall": {"found": n_found, "total": len(anchors),
+                   "how_ko": "ANCHORS 의 DOI·제목으로 원장을 찾는다. 굽을 때마다 다시 잰다."},
+        "abstracts": {"rows_with_abstract": n_abs, "asked": abs_stat["asked"],
+                      "got": abs_stat["got"],
+                      "how_ko": ("OpenAlex 에서 DOI 로 받아 역색인을 되돌려 붙였다. "
+                                 "⚠저작권 때문에 안 주는 편이 있다 — 그 행은 null 이다.")},
+        "venue_counts": {k: sum(1 for d in rows.values() if d.get("venue") == k)
+                         for k in sorted({d.get("venue", "") for d in rows.values()})},
         "tiers_ko": {"정본": sorted(TIER_CORE),
                      "how_ko": ("정본 = 저장소가 정한 탑티어(dl_toptier_anchors.md) + 이 주제의 "
                                 "정본 학술지·학회. 일반 = 분야의 정식 게재지이지만 탑티어로 세지 "
@@ -447,7 +604,20 @@ def main() -> int:
             "prior_work/dl_toptier_anchors.md 가 이미 원문 페이지로 확인해 두었다.",
             "⚠ACM 학회는 ISSN 이 없어 DOI 앞자리(10.1145)+논문집 이름으로 잡았다 — 논문집 이름이 "
             "해마다 바뀌므로 빠짐이 있을 수 있다.",
-            "⛔초록을 안 받았다(IEEE 는 Crossref 에 초록이 대체로 없다). 제목·서지까지다.",
+            "⭐2026-09-12 부터 초록을 OpenAlex 에서 DOI 로 받는다(위 abstracts 참고). "
+            "⚠저작권 때문에 안 주는 편이 있고 그 행은 null 이다 — «없는 것» 이지 «못 읽은 것» 이 아니다.",
+            "⛔⛔2026-09-12 정정 — 제목 거르기가 **소문자 사본에 re.I 없이** 찾고 있어 "
+            "대문자가 든 패턴 아홉 개(RCS·ISAC·SBR·mmWave·UAV·sUAS·PID)가 **죽은 코드**였다. "
+            "그래서 「A Unified RCS Modeling … 3GPP ISAC Channel …」(Zhang JSAC 2025) 같은 편이 "
+            "버려졌고, 옛 INDEX 는 그것을 「제목에 우리 낱말이 없다 — 제목·초록 검색의 한계」로 "
+            "적어 진단이 반대 방향으로 닫혀 있었다. 한계가 아니라 버그였다.",
+            "⛔⛔2026-09-12 정정 — SENSE 에 `detect` 가 있어 「드론 + 객체검출」이면 다 통과했고, "
+            "OFFTOPIC 에 `images`·`optical`·`YOLO` 가 없었다 ⇒ 제목이 광학·영상인 편이 "
+            "옛 원장에 35 편 들어와 있었다(옛 INDEX 는 「오염 0 %」라고 적었다).",
+            "⭐2026-09-12 — 모바일·신호처리 정본 학회(MobiCom·SenSys·SIGCOMM·MobiSys·IPSN·"
+            "HotMobile·IMWUT·ICASSP·INFOCOM)에서는 **드론 낱말을 요구하지 않는다.** 그 자리의 "
+            "논문은 사람·손동작·눈을 재느라 제목에 드론을 안 적는다 ⇒ RF 낱말 하나로 담는다.",
+            "⛔NSDI 는 USENIX 라 Crossref 에 없다 — 이 조사가 **덮지 못한다**. MobiHoc 도 안 물었다.",
             "⛔제목 낱말로 걸렀다 — 표적 낱말과 전파·레이다 낱말이 **둘 다** 있어야 담는다. "
             "낱말이 없어도 관련 있을 수 있다(재현율 손해).",
             "⭐2026-09-11(2) 두 번째 자기감사 — ⓐ`query.container-title` 이 필터가 아니라 "
@@ -466,7 +636,81 @@ def main() -> int:
     with open(f"{STORE}/toptier_0911.json", "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     print(f"\n■ 게재판 {len(rows)} 편 → {STORE}/toptier_0911.json")
+    write_index(out)
     return 0
+
+
+def write_index(out: dict) -> None:
+    """⭐INDEX.md 를 **생성기가 굽는다**.
+
+    ⛔⛔2026-09-12 정정 — INDEX.md 에 빌더가 없어 손으로 쓰여 있었고, 그래서 수치가
+    원장과 어긋났다. ⛔실측으로 확인된 어긋남:
+        «RadarConf · EuCAP 63 · 66» → 실제 16 · 18 (63/66 은 논문 수가 아니라 주제태그 합)
+        «제어·비전 오염 0 %»        → 제목이 광학·영상인 편 35 편
+        «정본 48 편»                → 실제 123
+        «재현율 4/6»                → 실제 0/6
+        §1ⓒ 가 «원장에서 찾았다» 고 적은 DOI 둘이 원장에 없다
+    ⇒ 사람이 적는 자리를 없앤다. 수는 전부 원장에서 꺼내 쓴다.
+    """
+    m = out["_meta"]; R = out["rows"]
+    vc = m["venue_counts"]
+    named = ["IEEE ICASSP", "MobiCom", "SIGCOMM", "SenSys", "MobiSys",
+             "IPSN", "IEEE INFOCOM", "ACM IMWUT", "HotMobile"]
+    n_named = sum(vc.get(k, 0) for k in named)
+    tiers = {t: sum(1 for r in R if r.get("tier") == t) for t in ("정본", "일반")}
+    L = []
+    L.append("# 선행 연구 — 게재지를 정본으로")
+    L.append("")
+    L.append(f"> ⛔**이 문서는 손으로 쓰지 않는다.** `{m['generator']}` 가 굽는다.")
+    L.append(f"> 옛 판은 손으로 쓰여 수가 원장과 어긋나 있었다(정정 기록 R33).")
+    L.append("")
+    L.append(f"- 구운 때 `{m['made_utc']}` · 구간 `{m['since']}` 이후")
+    L.append(f"- 원장 [`toptier_0911.json`](toptier_0911.json) — **{m['n_rows']} 편**")
+    L.append(f"- 층: 정본 {tiers['정본']} · 일반 {tiers['일반']}  "
+             f"(⛔층은 우리가 정한 것이지 객관 지표가 아니다)")
+    L.append("")
+    L.append("## 재현율 — 저장소가 아는 편을 도로 찾아오나")
+    L.append("")
+    L.append(f"**{m['recall']['found']}/{m['recall']['total']}** · {m['recall']['how_ko']}")
+    L.append("")
+    L.append("| | 닻 | 찾음 | 어디서 |")
+    L.append("|---|---|---|---|")
+    for a in m["anchors"]:
+        L.append(f"| {'✅' if a['found'] else '⛔'} | {a['name']} | "
+                 f"{'예' if a['found'] else '**아니오**'} | {a.get('found_venue') or '—'} |")
+    L.append("")
+    L.append("## 게재지별 편 수")
+    L.append("")
+    L.append("| 게재지 | 편 | 층 |")
+    L.append("|---|---:|---|")
+    for k, v in sorted(vc.items(), key=lambda kv: -kv[1]):
+        if not v:
+            continue
+        t = "정본" if k in m["tiers_ko"]["정본"] else "일반"
+        L.append(f"| {k} | {v} | {t} |")
+    L.append("")
+    L.append(f"### ⭐사용자가 탑티어로 지목한 계열 — **{n_named} 편 / {m['n_rows']}** "
+             f"({100*n_named/max(m['n_rows'],1):.1f} %)")
+    L.append("")
+    L.append("| 게재지 | 편 |")
+    L.append("|---|---:|")
+    for k in named:
+        L.append(f"| {k} | {vc.get(k, 0)} |")
+    L.append("")
+    L.append("## 초록")
+    L.append("")
+    a = m["abstracts"]
+    L.append(f"초록이 있는 행 **{a['rows_with_abstract']}/{m['n_rows']}** "
+             f"(물어본 {a['asked']} · 받은 {a['got']}). {a['how_ko']}")
+    L.append("")
+    L.append("## ⛔이 조사가 **말하지 않는** 것")
+    L.append("")
+    for x in m["limits_ko"]:
+        L.append(f"- {x}")
+    L.append("")
+    with open(f"{STORE}/INDEX.md", "w", encoding="utf-8") as f:
+        f.write("\n".join(L) + "\n")
+    print(f"■ 목차 → {STORE}/INDEX.md")
 
 
 if __name__ == "__main__":

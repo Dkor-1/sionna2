@@ -108,7 +108,10 @@ _SWPJ = "outputs/elevation_sweep_md.json"
 #    나중에 병합이 한 번 더 돌아도 팔 이름으로 같은 칸을 다시 찾는다.
 # --------------------------------------------------------------------------- #
 _ARM_BY_ROW: dict[str, str] = {}
-_ROW_HEAD = re.compile(r"^(rows\[\d+\])")
+#: ⭐인용은 **조건**으로 찍지만, 표를 원장 순서대로 세우려면 그때의 자리도 알아야 한다.
+#  자리는 여기서만 쓰고 **글로는 안 나간다** — 나가면 병합마다 밀린다.
+_IDX_BY_ROW: dict[str, int] = {}
+_ROW_HEAD = re.compile(r"^(rows\[[^\]]+\])")
 
 
 def _arm_key(engine: str, el_deg: float) -> str:
@@ -118,8 +121,10 @@ def _arm_key(engine: str, el_deg: float) -> str:
 
 def _mark_row(i: int, engine: str, el_deg: float) -> str:
     """행 하나를 안정키에 등록하고 `rows[i]` 를 돌려준다."""
-    key = f"rows[{i}]"
+    #: ⭐자리(i)가 아니라 **조건**을 찍는다 — 병합마다 밀리기 때문이다(report_style._walk).
+    key = f"rows[engine={engine},el_deg={el_deg:g}]"
     _ARM_BY_ROW[key] = _arm_key(engine, el_deg)
+    _IDX_BY_ROW[key] = i
     return key
 
 
@@ -1157,7 +1162,7 @@ def blocks_87() -> list:
            + " 가 채워져 있다 — 부분 병합 행은 이 절에서 제외한다."),
 
         md(table_from("outputs/elevation_sweep_md.json:rows", _COLS87,
-                      fmt=_FMT87, order=[int(k[5:-1]) for k in _L0]), "",
+                      fmt=_FMT87, order=[_IDX_BY_ROW[k] for k in _L0]), "",
            "레벨 칸(자세 평균 = 가만히 있는 몫)은 0.03 dB 폭 안에 모이고, 그 옆에서 박자 "
            "칸은 326 Hz 를 오간다. **수렴한 것과 맞은 것은 다른 일이다.**", "",
            "네 계단은 시드가 하나씩이라 그 박자 흔들림이 예산 축 하나로 닫히지 않는다 — "
@@ -1258,7 +1263,7 @@ def blocks_87() -> list:
 
         md("## el −30 은 같은 사다리에서 박자가 붙는다", "",
            table_from("outputs/elevation_sweep_md.json:rows", _COLS87,
-                      fmt=_FMT87, order=[int(k[5:-1]) for k in _L30])),
+                      fmt=_FMT87, order=[_IDX_BY_ROW[k] for k in _L30])),
 
         md("11.1 M 계단의 " + _n(f"{_L30[0]}.track.beat_hz", unit="Hz")
            + " 는 f_flash 의 두 배 자리다. 그 계단에서는 1 차 빗살이 2 차보다 "

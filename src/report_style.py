@@ -252,6 +252,41 @@ def _walk(node: Any, path: str, trail: list[str]) -> tuple[Any, list[str]]:
     if not path:
         return node, trail
 
+    #: ⭐⭐**조건 선택자** `rows[engine=…,el_deg=-15].level_db` (2026-09-12).
+    #  ⛔⛔왜 넣었나 — `rows[i]` 의 i 는 **병합마다 밀린다.** 원장은 큐가 도는 동안
+    #    계속 자라고(이번 라운드에만 1,433 → 2,275 → 2,276 → 2,301), 각주의 숫자는
+    #    그대로인데 가리키는 자리가 다른 팔이 된다. 아무 오류도 안 나고 빌더도 안 죽는다.
+    #  ⛔실측(2026-09-12): 조각·권을 **다시 구워 80 곳을 고친 지 몇 분 만에** 큐가 25 행을
+    #    더해 18 곳이 또 어긋났다. 다시 굽는 것은 해결이 아니라 쳇바퀴다.
+    #  ⇒ **자리 대신 조건으로 가리킨다.** 안 맞거나 둘 이상 맞으면 여기서 멈춘다 —
+    #    조용히 딴 행을 가리키는 것보다 소리 내며 실패하는 편이 낫다.
+    m = re.match(r"^\[([A-Za-z_]\w*=[^\],]*(?:,\s*[A-Za-z_]\w*=[^\],]*)*)\]\.?(.*)$", path)
+    if m:
+        if isinstance(node, dict) or not hasattr(node, "__getitem__") \
+                or not hasattr(node, "__len__"):
+            raise ContractError(
+                f"조건 선택 대상이 배열이 아니다: {'.'.join(trail) or '<root>'} "
+                f"({type(node).__name__})")
+        want = []
+        for part in m.group(1).split(","):
+            k, _, v = part.partition("=")
+            want.append((k.strip(), v.strip()))
+
+        def _same(a, b) -> bool:
+            try:
+                return abs(float(a) - float(b)) < 1e-9
+            except (TypeError, ValueError):
+                return str(a) == str(b)
+
+        hits = [j for j, it in enumerate(node)
+                if isinstance(it, dict) and all(k in it and _same(it[k], v) for k, v in want)]
+        sel = ", ".join(f"{k}={v}" for k, v in want)
+        if len(hits) != 1:
+            raise ContractError(
+                f"조건이 행 하나를 고르지 못한다: {'.'.join(trail) or '<root>'}[{sel}] "
+                f"— 맞는 행 {len(hits)} 개. 조건을 좁히거나 원장이 바뀐 것인지 본다.")
+        return _walk(node[hits[0]], m.group(2), trail + [f"[{sel}]"])
+
     m = re.match(r"^\[(-?\d+)\]\.?(.*)$", path)
     if m:
         # 리스트·튜플·numpy 배열(.npz 출처) 모두 인덱싱한다
@@ -277,6 +312,12 @@ def _walk(node: Any, path: str, trail: list[str]) -> tuple[Any, list[str]]:
             try:
                 return _walk(node[k], rest, trail + [k])
             except ContractError:
+                #: ⛔⛔2026-09-12 — 후보가 **하나뿐**이면 안쪽 이유를 삼키지 않는다.
+                #  이 `continue` 는 키 이름이 겹칠 때 다음 후보를 보려고 둔 것인데,
+                #  후보가 하나면 삼킬 이유가 없고 실제로는 「키를 못 찾았다」라는 **엉뚱한**
+                #  메시지로 덮였다(조건 선택자가 행을 못 고른 경우가 그렇게 보였다).
+                if len(cands) == 1:
+                    raise
                 continue
         keys = list(node.keys())
         shown = ", ".join(repr(k) for k in keys[:12]) + (" …" if len(keys) > 12 else "")

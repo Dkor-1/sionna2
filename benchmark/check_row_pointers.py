@@ -30,10 +30,12 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
-#: 각주 한 줄: | [^N] | `outputs/….json` | `rows[i].필드 → 팔/el±NN` | 값 |
+#: 각주 한 줄: | [^N] | `outputs/….json` | `rows[<자리>].필드 → 팔/el±NN` | 값 |
+#:   <자리> 는 두 꼴이다 — 옛 꼴 `rows[132]`(배열 위치) · 새 꼴
+#:   `rows[engine=…,el_deg=-15]`(조건). ⭐새 꼴이 기본이다.
 CITE = re.compile(
     r"\|\s*\[\^(\d+)\]\s*\|\s*`(outputs/[^`]+\.json)`\s*\|\s*"
-    r"`rows\[(\d+)\]\.([^`→]+?)\s*→\s*([^`]+?)`\s*\|")
+    r"`rows\[([^\]]+)\]\.([^`→]+?)\s*→\s*([^`]+?)`\s*\|")
 #: «팔/el±NN» 에서 팔 토막과 앙각을 가른다.
 WANT = re.compile(r"(.*?)/el([+-]?[\d.]+)")
 
@@ -79,11 +81,35 @@ def main() -> int:
             if rows is None or not m:
                 undecidable += 1                      # 원장이 없거나 «팔/el» 꼴이 아니다
                 continue
-            i = int(n)
-            if i >= len(rows):
-                bad.append((p, fn, i, want, f"범위 밖 — 원장은 {len(rows)} 행"))
-                continue
-            r = rows[i]
+            #: ⭐⭐**조건 인용**이면 원장에서 직접 골라 본다(2026-09-12).
+            #  ⛔배열 위치는 병합마다 밀린다 — 조각·권을 다시 구워 80 곳을 고친 지
+            #    몇 분 만에 큐가 25 행을 더해 18 곳이 또 어긋났다. 다시 굽는 것은
+            #    해결이 아니라 쳇바퀴라, 빌더가 자리 대신 조건을 찍게 바꿨다.
+            #  여기서는 **조건이 행 하나를 고르는지**만 본다. 못 고르면 어긋남이다.
+            if "=" in n:
+                want_kv = []
+                for part in n.split(","):
+                    k, _, v = part.partition("=")
+                    want_kv.append((k.strip(), v.strip()))
+
+                def _same(a, b):
+                    try:
+                        return abs(float(a) - float(b)) < 1e-9
+                    except (TypeError, ValueError):
+                        return str(a) == str(b)
+
+                hits = [x for x in rows
+                        if all(k in x and _same(x[k], v) for k, v in want_kv)]
+                if len(hits) != 1:
+                    bad.append((p, fn, n, want, f"조건이 행 {len(hits)} 개를 고른다"))
+                    continue
+                r = hits[0]
+            else:
+                i = int(n)
+                if i >= len(rows):
+                    bad.append((p, fn, i, want, f"범위 밖 — 원장은 {len(rows)} 행"))
+                    continue
+                r = rows[i]
             arm, el = m.group(1).strip(), float(m.group(2))
             eng = str(r.get("engine", ""))
             got = r.get("el_deg")
@@ -92,7 +118,7 @@ def main() -> int:
                     and got is not None and abs(float(got) - el) < 1e-6:
                 ok += 1
             else:
-                bad.append((p, fn, i, want,
+                bad.append((p, fn, n, want,
                             f"실제 {eng} / el{float(got):+g}" if got is not None
                             else f"실제 {eng}"))
 
@@ -109,6 +135,8 @@ def main() -> int:
                 print(f"      … 외 {len(v) - 5} 건")
         print("\n  ⭐고치는 법: 손으로 번호를 고치지 마라. 그 조각의 빌더"
               "(src/build_part*.py)를 다시 돌리고 src/build_volumes.py 로 권을 다시 짠다.")
+        print("  ⭐아직 `rows[132]` 처럼 **자리**로 적힌 각주가 남아 있으면 그 빌더를 "
+              "`rows[engine=…,el_deg=…]` 꼴로 고친다 — 자리는 병합마다 밀린다.")
         return 1
     if not quiet:
         print("  ✅ 각주가 전부 제 행을 가리킨다")

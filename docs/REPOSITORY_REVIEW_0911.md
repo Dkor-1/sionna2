@@ -1,16 +1,16 @@
 # 시오나 저장소 전체 재고와 주요 실행 경로 점검
 
-기준 `f05c5e082d9b01dd016eeed1607f21c87e08e60f` · 2026-09-11T08:39:04.293600+00:00
+기준 `1c82aa5304e82037c0f54f1493a1b6fec6c0caac` · 2026-09-11T16:38:45.660848+00:00
 
 [주피터 보고서](REPOSITORY_REVIEW_0911.ipynb) · [전수 목록·실행 원장](../outputs/repository_review_0911.json) · [재현 생성기](../benchmark/review_repository_0911.py)
 
 ## 조사 범위
 
-추적 파일과 작업 트리 파일 19128개를 목록화하고, 파이썬 799개를 구문 검사했다. 열거에 쓴 방법은 os.walk (no ignore rules; .git and __pycache__ excluded)다. outputs 바로 아래 JSON 734개를 구문 확인했다. 저장 샤드 7417개를 실제로 읽어 2275조건의 idx·선언 길이·시간축·전계 유한값·배열 길이를 집계했다.
+추적 파일과 작업 트리 파일 19571개를 목록화하고, 파이썬 800개를 구문 검사했다. 열거에 쓴 방법은 os.walk (no ignore rules; .git and __pycache__ excluded)다. outputs 바로 아래 JSON 735개를 구문 확인했다. 저장 샤드 7470개를 실제로 읽어 2301조건의 idx·선언 길이·시간축·전계 유한값·배열 길이를 집계했다.
 
 파일 목록·구문 검사는 모든 코드의 의미를 정독하거나 모든 실험을 재실행한 것과 다르다. 의미와 반례를 깊게 확인한 범위는 주 병합·샤드 저장·재개 조건·협곡/낙차/동체 판독·아틀라스 완전성·검토 보고서 빌더·신호처리 교정이다. refs·prior_work의 논문 근거 재독, GPU 커널 재실행, 모든 보고서의 과학적 결론 검증은 이번 범위 밖이다. 저장소 무시 규칙에 걸리는 미추적 파일은 일반 목록 밖이며 샤드 폴더는 별도로 직접 열거했다.
 
-샤드 읽기 오류 0개·비유한 전계 조건 0개·배열 길이 오류 조건 0개다. 인덱스가 선언 길이를 덮지 않는 조건은 8개로, 진행 중 자료와 구별해 다뤄야 한다. 완전성 부족을 곧바로 솔버 결함으로 부르지 않는다.
+샤드 읽기 오류 0개·비유한 전계 조건 0개·배열 길이 오류 조건 0개다. 인덱스가 선언 길이를 덮지 않는 조건은 7개로, 진행 중 자료와 구별해 다뤄야 한다. 완전성 부족을 곧바로 솔버 결함으로 부르지 않는다.
 
 ## 이전 지적의 현재 상태
 
@@ -25,18 +25,18 @@
 
 **범위:** 2026-09-11 정정(R31) 뒤 현재 상태
 
-인덱스가 완결된 14칸에 영 전계가 있고, 그중 일부 표본만 영인 칸은 5개다. 이 5칸 모두에서 발간 level_db가 영 표본을 포함한 평균과 같고 n_missing이 실제 빠진 인덱스 수와 같다(일치 5칸). 예: sionna_p4000000000_onlyrefr_mini5pro_r240_n8192, el -30°, 저장 8192표본 중 영 전계 7497개, 실제 빠진 인덱스 0개, n_missing=0, 발간 레벨 -214.72 dB다. 옛 규칙(영 표본 제외)과의 차이는 이 칸에서 21.43 dB였다. 저장된 영 값은 물리적으로 신호가 없다는 증명도 아니며 표본을 저장하지 않았다는 증명도 아니므로, 두 수를 따로 싣는다. 같은 칸들의 아틀라스 incomplete 값은 [True]이며, 이 값은 아틀라스를 다시 구운 뒤에 의미가 있다.
+인덱스가 완결된 14칸에 영 전계가 있고, 그중 일부 표본만 영인 칸은 5개다. 이 5칸 모두에서 발간 level_db가 영 표본을 포함한 평균과 같고 n_missing이 실제 빠진 인덱스 수와 같다(일치 5칸). 예: sionna_p4000000000_onlyrefr_mini5pro_r240_n8192, el -30°, 저장 8192표본 중 영 전계 7497개, 실제 빠진 인덱스 0개, n_missing=0, 발간 레벨 -214.72 dB다. 옛 규칙(영 표본 제외)과의 차이는 이 칸에서 21.43 dB였다. 저장된 영 값은 물리적으로 신호가 없다는 증명도 아니며 표본을 저장하지 않았다는 증명도 아니므로, 두 수를 따로 싣는다. 같은 칸들의 아틀라스 incomplete 값은 [False]이며, 이 값은 아틀라스를 다시 구운 뒤에 의미가 있다.
 
 **수정 방향:** 남은 일은 아틀라스 색인을 정정된 원장으로 다시 굽고 incomplete와 zero_field가 갈라져 실리는지 확인하는 것이다. 원장 쪽 규칙은 idx 기반 수집 마스크로 고정됐다.
 
 ⟨outputs/repository_review_0911.json : findings[0]⟩
 
-- [elevation_sweep_md.py:1304](../benchmark/elevation_sweep_md.py#L1304)
+- [elevation_sweep_md.py:1383](../benchmark/elevation_sweep_md.py#L1383)
 ```python
 miss = int((~seen).sum())
 ```
 
-- [elevation_sweep_md.py:1423](../benchmark/elevation_sweep_md.py#L1423)
+- [elevation_sweep_md.py:1502](../benchmark/elevation_sweep_md.py#L1502)
 ```python
 (np.abs(E[seen]).mean() if seen.any() else 0.0) + 1e-300)), 2),
 ```
@@ -56,17 +56,17 @@ incomplete = (not empty) and (0 < n_miss < n_pose)
 
 ⟨outputs/repository_review_0911.json : findings[1]⟩
 
-- [elevation_sweep_md.py:1014](../benchmark/elevation_sweep_md.py#L1014)
+- [elevation_sweep_md.py:1038](../benchmark/elevation_sweep_md.py#L1038)
 ```python
 def one_generation(fs, tag, gap_s=3600.0):
 ```
 
-- [elevation_sweep_md.py:1205](../benchmark/elevation_sweep_md.py#L1205)
+- [elevation_sweep_md.py:1284](../benchmark/elevation_sweep_md.py#L1284)
 ```python
 fs, mixed_gen = one_generation(fs, f"{eng}/el{el:+g}")
 ```
 
-- [elevation_sweep_md.py:1018](../benchmark/elevation_sweep_md.py#L1018)
+- [elevation_sweep_md.py:1042](../benchmark/elevation_sweep_md.py#L1042)
 ```python
 ⛔⛔2026-09-11(5) 정정 — 전에는 병합 고리가 `E[ii] = z["E"]` 로 **덮어쓰기만** 했다.
 ```
@@ -75,7 +75,7 @@ fs, mixed_gen = one_generation(fs, f"{eng}/el{el:+g}")
 
 **범위:** 2026-09-11 정정 뒤 현재 상태 · 합성 장애 시험
 
-실제 저장 호출에서 E를 쓰는 중 예외를 주입했다. 파일 잔존=True, E 배열 유효=False, 재개 조건 원문은 «shard_done(f) and (not a.overwrite)»이고 그 조건이 이 파일을 건너뛸지는 False다. 조건이 부르는 생산 함수 ['shard_done']를 원본 그대로 실행해 판정했다. 이번 전수 판독 7417개에서 읽기 실패는 0개이므로, 현재 재고가 손상됐다는 주장이 아니라 저장 중단에 대한 내성을 잰 것이다.
+실제 저장 호출에서 E를 쓰는 중 예외를 주입했다. 파일 잔존=True, E 배열 유효=False, 재개 조건 원문은 «shard_done(f) and (not a.overwrite)»이고 그 조건이 이 파일을 건너뛸지는 False다. 조건이 부르는 생산 함수 ['shard_done']를 원본 그대로 실행해 판정했다. 이번 전수 판독 7470개에서 읽기 실패는 0개이므로, 현재 재고가 손상됐다는 주장이 아니라 저장 중단에 대한 내성을 잰 것이다.
 
 **수정 방향:** 남은 일은 저장 자체를 같은 디렉토리의 임시 파일에 쓰고 최종 이름으로 교체하는 것이다. 지금은 재개 쪽만 내용을 확인하므로, 끊긴 파일은 남아 있다가 다시 구워질 때 덮인다.
 
@@ -116,24 +116,29 @@ build_notebook(str(NB),blocks,strict=True)
 raise ContractError(
 ```
 
-### 5. 교정 범위 밖 목표 오경보율이 끝점으로 조용히 고정된다
+### 5. 교정 범위 밖 목표 오경보율을 거절하고 범위 안에서만 교정값을 준다
 
-**범위:** 신호처리 API의 범위·설명 불일치 · 현재 발간 영향 미확인
+**범위:** 2026-09-11 정정 뒤 현재 상태
 
-wifi 교정 범위 1e-05~0.01에서 함수에 넣은 목표와 반환 명목값은 [{'target': 1.0000000000000002e-06, 'nominal': 4.509196605305932e-06}, {'target': 1e-05, 'nominal': 4.509196605305932e-06}, {'target': 0.01, 'nominal': 0.008764288638535718}, {'target': 0.1, 'nominal': 0.008764288638535718}]다. 범위 밖 입력에도 경계 입력과 같은 값이 돌아오지만 코드 주석은 이를 외삽이라고 설명한다. 다른 두 파형에서도 같은 포화 동작을 확인했다. 이번 점검에서 범위 밖 설정으로 생성된 발간 결과를 특정한 것은 아니다.
+wifi 교정 범위 1e-05~0.01에서 네 값을 넣었다. 범위 밖 2개는 거절됐고([1.0000000000000002e-06, 0.1]), 범위 안 2개는 교정값을 돌려줬다. 거절된 값이 옛 동작에서 돌려줬을 수는 [4.509196605305932e-06, 0.008764288638535718]인데, 이는 경계값이지 그 목표의 값이 아니다. 옛 코드는 np.interp가 구간 밖에서 외삽한다고 주석에 적었으나 실제로는 끝점에 붙는다. 세 파형 모두 같다. 범위 밖 설정으로 생성된 발간 결과를 특정한 것은 아니다.
 
-**수정 방향:** 지원하는 목표 범위를 반환값의 상태와 함께 알리고, 범위 밖 입력은 거절하거나 미교정으로 표시한다. 경계값을 쓸 경우 실제 적용한 목표를 명시한다. 근거 없는 외삽으로 대체하는 처방은 피한다.
+**수정 방향:** 남은 일은 표를 넓혀 더 엄격한 목표까지 교정하는 것이다. 그전까지 범위 밖이 필요하면 strict=False로 부르고 pfa_nominal_detail의 source를 결과에 함께 적는다.
 
 ⟨outputs/repository_review_0911.json : findings[4]⟩
 
-- [passive_process.py:346](../src/passive_process.py#L346)
+- [passive_process.py:342](../src/passive_process.py#L342)
 ```python
-# 로그-로그 보간 (측정 구간 밖은 외삽 — 주의)
+def pfa_nominal_detail(std: str, pfa_target: float) -> dict:
 ```
 
-- [passive_process.py:349](../src/passive_process.py#L349)
+- [passive_process.py:404](../src/passive_process.py#L404)
 ```python
-return float(10 ** np.interp(np.log10(pfa_target), lx, ly))
+raise PfaOutOfRange(
+```
+
+- [passive_process.py:382](../src/passive_process.py#L382)
+```python
+val = float(10 ** np.interp(np.log10(pfa_target), lx, ly))
 ```
 
 ### 6. 두 판독 빌더가 근사 자카드를 근사라고 이름 붙인다

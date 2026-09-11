@@ -229,8 +229,21 @@ def dsp_checks():
         for name in ['wifi','lte','nr']:
             tab=pp.PFA_CALIBRATION.get(name);lo,hi=min(tab),max(tab)
             values=[lo/10,lo,hi,hi*10]
+            # The API now refuses uncalibrated targets (2026-09-11). Probing out-of-range
+            # values is the point of this check, so record the refusal as the expected
+            # outcome instead of letting it abort the whole audit. Also record what the
+            # unchecked path would have returned, so the saturation stays visible.
+            def _probe(std,x):
+                d=pp.pfa_nominal_detail(std,x)
+                try:
+                    return dict(target=x,nominal=pp.pfa_nominal_for(std,x),refused=False,
+                        source=d['source'],calibrated=d['calibrated'])
+                except pp.PfaOutOfRange as e:
+                    return dict(target=x,nominal=None,refused=True,source=d['source'],
+                        calibrated=d['calibrated'],would_have_returned=d['nominal'],
+                        error=type(e).__name__)
             calibration.append(dict(waveform=name,calibration_min=lo,calibration_max=hi,
-                calls=[dict(target=x,nominal=pp.pfa_nominal_for(name,x)) for x in values]))
+                calls=[_probe(name,x) for x in values]))
     periods=[]
     for N in [512,8192]:
         f,t,S,info=mp.periodogram_spec(np.ones(N,complex),19700.,126.7,min_periods=8)
@@ -375,11 +388,14 @@ def findings(c):
         '남은 일은 산출물 묶음을 검사까지 통과한 뒤 공개하는 순서를 지키는 것이다. 관문을 통과하려면 처방줄을 긍정형의 구체적인 상태 설명으로 쓴다.',
         [('benchmark/review_latest_readers_0910.py','build_notebook(str(NB),blocks,strict=True)'),('src/report_style.py','raise ContractError(')])
     p=d['pfa'][0]
-    add('교정 범위 밖 목표 오경보율이 끝점으로 조용히 고정된다','신호처리 API의 범위·설명 불일치 · 현재 발간 영향 미확인',
-        f"{p['waveform']} 교정 범위 {p['calibration_min']}~{p['calibration_max']}에서 함수에 넣은 목표와 반환 명목값은 {p['calls']}다. "
-        '범위 밖 입력에도 경계 입력과 같은 값이 돌아오지만 코드 주석은 이를 외삽이라고 설명한다. 다른 두 파형에서도 같은 포화 동작을 확인했다. 이번 점검에서 범위 밖 설정으로 생성된 발간 결과를 특정한 것은 아니다.',
-        '지원하는 목표 범위를 반환값의 상태와 함께 알리고, 범위 밖 입력은 거절하거나 미교정으로 표시한다. 경계값을 쓸 경우 실제 적용한 목표를 명시한다. 근거 없는 외삽으로 대체하는 처방은 피한다.',
-        [('src/passive_process.py','# 로그-로그 보간 (측정 구간 밖은 외삽'),('src/passive_process.py','return float(10 ** np.interp')])
+    _ref=[c for c in p['calls'] if c['refused']];_ok=[c for c in p['calls'] if not c['refused']]
+    add('교정 범위 밖 목표 오경보율을 거절하고 범위 안에서만 교정값을 준다','2026-09-11 정정 뒤 현재 상태',
+        f"{p['waveform']} 교정 범위 {p['calibration_min']}~{p['calibration_max']}에서 네 값을 넣었다. "
+        f"범위 밖 {len(_ref)}개는 거절됐고({[c['target'] for c in _ref]}), 범위 안 {len(_ok)}개는 교정값을 돌려줬다. "
+        f"거절된 값이 옛 동작에서 돌려줬을 수는 {[c['would_have_returned'] for c in _ref]}인데, 이는 경계값이지 그 목표의 값이 아니다. "
+        '옛 코드는 np.interp가 구간 밖에서 외삽한다고 주석에 적었으나 실제로는 끝점에 붙는다. 세 파형 모두 같다. 범위 밖 설정으로 생성된 발간 결과를 특정한 것은 아니다.',
+        '남은 일은 표를 넓혀 더 엄격한 목표까지 교정하는 것이다. 그전까지 범위 밖이 필요하면 strict=False로 부르고 pfa_nominal_detail의 source를 결과에 함께 적는다.',
+        [('src/passive_process.py','def pfa_nominal_detail('),('src/passive_process.py','raise PfaOutOfRange('),('src/passive_process.py','val = float(10 ** np.interp(np.log10(pfa_target), lx, ly))')])
     add('두 판독 빌더가 근사 자카드를 근사라고 이름 붙인다','2026-09-11 정정 뒤 현재 상태',
         f"협곡의 approx_jaccard 명칭 반영={v['canyon_renamed']}이고, 동체 생산 빌더에 남아 있던 expected_jaccard 명칭 잔존={v['body_rename_remaining']}다. "
         '두 빌더 모두 기대 교집합을 비율식에 넣은 값을 근사로 이름 붙이므로, 정확한 기대 자카드와 이름이 갈린다. 이전 감사의 수치적 차이 설명은 그대로 유지한다.',

@@ -133,13 +133,18 @@ AC17 = from_json("outputs/raybudget_ac_ladder.json")
 
 
 def row(engine: str, el_deg: float, *, complete: bool = True) -> str:
-    """`rows[i]` 의 i 를 (엔진, 앙각)으로 찾아 준다 — 병합마다 인덱스가 밀리기 때문이다."""
+    """원장 한 행을 (엔진, 앙각)으로 가리키는 **조건 인용**을 만든다.
+
+    ⛔인덱스(`rows[3]`)를 찍지 않는다 — 병합마다 밀려 조용히 딴 행을 가리킨다.
+    """
     for i, r in enumerate(S.get("rows")):
         if r.get("engine") != engine or abs(float(r.get("el_deg")) - el_deg) > 1e-9:
             continue
         if complete and r.get("n_missing"):
             continue
-        return f"rows[{i}]"
+        #: ⭐자리(i)가 아니라 **조건**을 찍는다 — 병합마다 밀리기 때문이다(report_style._walk).
+        #  i 는 여기서 찾기만 하고 인용에는 안 쓴다.
+        return f"rows[engine={engine},el_deg={el_deg:g}]"
     raise ContractError(f"찾는 행이 없다 — engine={engine!r}, el={el_deg}")
 
 
