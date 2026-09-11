@@ -123,7 +123,7 @@ def load(name: str, el: float):
     if not fs:
         return None, 0
     E, I, P, D, TR = [], [], [], [], []
-    n_expected = None
+    n_expected, prf, meta_mismatch = None, None, []
     for f in fs:
         z = np.load(f)
         E.append(z["E"]); I.append(z["idx"])
@@ -133,23 +133,39 @@ def load(name: str, el: float):
         if "meta" in z.files:
             _m = np.asarray(z["meta"]).ravel()
             if _m.size > 3:
-                n_expected = int(_m[3])          # 이 칸이 원래 몇 자세짜리인가
+                #: ⛔⛔2026-09-11 — 샤드마다 **선언 표본수·표집률이 같은지** 본다.
+                #  전에는 마지막 샤드의 값으로 덮어써서, 8,192 짜리와 4,096 짜리가 한 칸에
+                #  섞여도 통과했다. 다르면 그 사실을 실어 부르는 쪽이 거절하게 한다.
+                _n, _prf = int(_m[3]), (float(_m[4]) if _m.size > 4 else None)
+                if n_expected is not None and _n != n_expected:
+                    meta_mismatch.append(dict(file=os.path.basename(f),
+                                              n_poses=_n, seen=n_expected))
+                if prf is not None and _prf is not None and _prf != prf:
+                    meta_mismatch.append(dict(file=os.path.basename(f),
+                                              prf_hz=_prf, seen=prf))
+                n_expected, prf = _n, (_prf if _prf is not None else prf)
     idx = np.concatenate(I)
     o = np.argsort(idx)
     idx_sorted = idx[o]
     n_uni = int(np.unique(idx).size)
+    Ecat = np.concatenate(E)[o]
+    #: ⛔비유한 전계도 잡는다 — 전에는 idx 만 봤다(2026-09-11).
+    n_bad = int(np.count_nonzero(~np.isfinite(Ecat.view(float))))
     ok = bool(n_uni == idx.size
               and (n_expected is None or idx.size == n_expected)
-              and np.array_equal(idx_sorted, np.arange(idx.size)))
+              and np.array_equal(idx_sorted, np.arange(idx.size))
+              and not meta_mismatch
+              and n_bad == 0)
     #: 진단 미수집(옛 샤드)과 «경고 없음» 을 가른다
     _rec = [t["recomputed"] for t in TR if t["recomputed"] is not None]
-    return dict(E=np.concatenate(E)[o], npaths=np.concatenate(P)[o],
+    return dict(E=Ecat, npaths=np.concatenate(P)[o],
                 n_dup=np.concatenate(D)[o], n_shards=len(fs),
                 trunc=TR,
                 n_trunc_now=(int(sum(_rec)) if _rec else None),
                 n_shards_without_diag=int(len(TR) - len(_rec)),
                 idx_ok=ok, n_rows=int(idx.size), n_unique=n_uni,
-                n_expected=n_expected,
+                n_expected=n_expected, prf_hz=prf,
+                meta_mismatch=meta_mismatch, n_nonfinite=n_bad,
                 files=[os.path.basename(f) for f in fs]), len(fs)
 
 
@@ -168,8 +184,14 @@ def _deck_mask_table(loadfn, stemfn, els, cells):
         return {"unavailable_ko": f"덱 모듈을 못 불렀다 — {type(e).__name__}: {e}"}
     out = {}
     for el in els:
-        base, _ = loadfn(stemfn(4_000_000_000, 0, True), el)
-        if base is None:
+        base, _nb = loadfn(stemfn(4_000_000_000, 0, True), el)
+        #: ⛔⛔2026-09-11 — 기준선 자신의 온전성을 안 봤다. 비교 대상만 검사하면
+        #  기준선이 반쪽이어도 그 위에서 잰 자카드가 그대로 실린다.
+        if base is None or _nb < 2 or not base["idx_ok"]:
+            out[f"{el:+g}"] = {"unavailable_ko": (
+                "기준선 칸이 온전하지 않다 — "
+                f"샤드 {_nb} · " + ("불러오기 실패" if base is None else
+                f"자세 {base['n_unique']}/{base['n_rows']}(기대 {base['n_expected']})"))}
             continue
         mb = hampel_mask(np.abs(base["E"]), 51, 5.0)
         rows = {}

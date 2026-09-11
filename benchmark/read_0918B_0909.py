@@ -33,12 +33,23 @@ def load(name):
         E.append(z["E"]); I.append(z["idx"])
         P.append(z["npaths"] if "npaths" in z.files else np.full(z["idx"].shape, -1))
         DUP.append(z["n_dup"] if "n_dup" in z.files else np.full(z["idx"].shape, -1))
-        if "n_trunc" in z.files:
-            TR.append(np.asarray(z["n_trunc"]).ravel())
+        #: ⛔⛔2026-09-11 — 저장값을 그대로 쓰지 않는다. `n_trunc` 첫 칸은 **구울 때의 문턱**
+        #  으로 센 값이고 문턱이 0.999 → 0.99 로 내려간 적이 있다(elevation_sweep_md.py:957-959).
+        #  실측: 진단을 가진 샤드 617 장 중 14 장이 저장값과 지금 규칙이 어긋난다.
+        #  ⇒ 저장된 nret 과 **저장된 상한**으로 지금 문턱을 다시 적용하고, 저장값은 stored 로만.
+        _nt = np.asarray(z["n_trunc"]).ravel() if "n_trunc" in z.files else None
+        _stored = int(_nt[0]) if _nt is not None else None
+        _cap = int(_nt[1]) if (_nt is not None and _nt.size > 1) else None
+        if "nret" in z.files and _cap is not None:
+            _nr = np.asarray(z["nret"])
+            _rec = int(np.count_nonzero(_nr >= 0.99 * _cap))
+        else:
+            _rec = None                       # 진단 미수집 · 상한 미기재 — «경고 없음» 이 아니다
+        TR.append(dict(file=os.path.basename(f), stored=_stored, cap=_cap, recomputed=_rec))
     o = np.argsort(np.concatenate(I))
     return {"E": np.concatenate(E)[o], "npaths": np.concatenate(P)[o],
             "n_dup": np.concatenate(DUP)[o], "n_shards": len(fs),
-            "trunc": [t.tolist() for t in TR], "files": [os.path.basename(f) for f in fs]}
+            "trunc": TR, "files": [os.path.basename(f) for f in fs]}
 
 
 def stem(spp=4_000_000_000, env="", rep=0, tail=""):
@@ -77,7 +88,30 @@ def measure(free, out):                       # ⭐read_0914_0908.py:96-125 와 
     npa = out["npaths"]
     if (npa >= 0).any():
         r["npaths_median"] = int(np.median(npa[npa >= 0]))
-        r["at_path_cap"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)
+        #: ⛔⛔2026-09-11 정정 — **중앙값 하나로는 드문 자세를 못 잡는다.** 게다가 CAP 은
+        #  이 파일에 박힌 규약값이라 다른 상한으로 구운 샤드에는 안 맞는다. 실측: 진단을 가진
+        #  샤드 617 장 가운데 14 장이 저장값과 지금 규칙의 재계산이 어긋났고, 256 표본 묶음에서
+        #  이 병합기는 경고 0 · 재계산은 256 이었다.
+        #  ⇒ 저장된 nret 과 **저장된 상한**으로 자세별로 다시 세고, 중앙값 판정은 이름을 고쳐
+        #    따로 남긴다. ⛔«잘렸다» 가 아니라 «상한 근접 경고에 해당» 이다(반환 수 어림수).
+        r["median_npaths_near_cap"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)
+        r["at_path_cap"] = r["median_npaths_near_cap"]      # 옛 이름 — 문면 호환
+        _near, _nodiag = 0, 0
+        for _t in out.get("trunc", []):
+            if _t.get("recomputed") is None:
+                _nodiag += 1
+            else:
+                _near += int(_t["recomputed"])
+        _tr = out.get("trunc", [])
+        r["n_poses_near_cap_now"] = (_near if (_tr and _nodiag < len(_tr)) else None)
+        r["path_cap_stored"] = [t.get("stored") for t in _tr]
+        r["path_cap_values"] = sorted({t.get("cap") for t in _tr if t.get("cap")})
+        r["n_shards_without_cap_diag"] = _nodiag
+        r["path_cap_note_ko"] = (
+            "n_poses_near_cap_now 는 저장된 nret 과 **저장된 상한**으로 지금 문턱(0.99)을 "
+            "다시 적용해 센 자세 수다. null 은 «진단 미수집» 이고 «경고 없음» 이 아니다. "
+            "⛔«잘린 자세 수» 로 옮겨 적지 않는다 — nret 은 돌아온 경로 수의 어림수다. "
+            "median_npaths_near_cap 은 옛 중앙값 판정이고 드문 자세를 못 잡는다.")
     dup = out["n_dup"]
     if (dup >= 0).any():
         r["n_poses_with_dup"] = int((dup > 0).sum())

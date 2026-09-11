@@ -88,6 +88,20 @@ def cell(arm: str, spp: int):
                 idx_ok=ok, n_rows=int(idx.size), n_unique=n_uni, n_expected=n_expected)
 
 
+def _copies_txt(r: dict) -> str:
+    """화면에 찍을 «같은 줄이 몇 번». 중앙값이 정수가 아니면 그 사실을 보인다.
+
+    ⛔2026-09-11 정정 — 09-10 에 `copies_median=None` 을 넣으면서 f-문자열 정렬이
+      TypeError 로 죽었다(n_dup 중앙값이 1.5 인 칸). None 을 숫자 자리에 그대로 넣은 탓이다.
+      ⚠«정수가 아니다» 는 «모르겠다» 이지 «못 찍는다» 가 아니다 — 중앙값을 괄호로 보인다.
+    """
+    c = r.get("copies_median")
+    if c is not None:
+        return str(c)
+    m = r.get("n_dup_median")
+    return "?" if m is None else f"?({m:g})"
+
+
 def main() -> int:
     print(f"■ 앙각 {EL:+g} · {RNG} m · 깊이 {DEPTH} · 빈 하늘 · 자세 {NPOSE} · 낙차 규칙 {DIP}\n")
     print(f"  {'팔':<10}{'광선':>15}{'샤드':>5}{'자세':>7}{'경로중앙':>9}"
@@ -140,14 +154,23 @@ def main() -> int:
                      copies_median_caveat_ko=("중복 무리가 하나일 때만 «한 줄이 몇 번» 으로 "
                                               "읽는다. 이 판독기는 그 조건을 검사하지 않는다 "
                                               "— 근거는 outputs/copies_id_0903.json 이다."),
-                     dip_equals_short=bool(int(short.sum()) == int(dip.sum())
-                                           == int((short & dip).sum())),
+                     #: ⛔⛔2026-09-11 정정 — 이 딱지는 **계측된 자세 안에서만** 성립한다.
+                     #  n_dup 이 없는 자세(−1)는 short 에서 빠지므로, 절반만 계측된 칸에서도
+                     #  「완전 일치」로 찍혔다(합성 입력으로 재현). ⇒ 계측이 온전한 칸에서만
+                     #  True 를 주고, 아니면 None 으로 둔다 — «모른다» 와 «같다» 를 가른다.
+                     dip_equals_short=(
+                         bool(int(short.sum()) == int(dip.sum()) == int((short & dip).sum()))
+                         if bool(have.all()) else None),
+                     dip_equals_short_scope_ko=(
+                         "계측된 자세 전부에서 잰다. n_dup 이 없는 자세가 하나라도 있으면 "
+                         "null 이다 — 그때는 «낙차 = 줄<3» 을 전체 자세에 대해 말할 수 없다."),
                      files=c["files"])
             rows.append(r)
             print(f"  {arm:<10}{spp:>15,}{r['n_shards']:>5}{r['n_poses']:>7}"
                   f"{str(r['npaths_median']):>9}{r['n_short']:>6}{r['n_dip']:>6}"
-                  f"{r['n_both']:>6}{r['copies_median']:>9}"
-                  f"{'  ⭐일치' if r['dip_equals_short'] else ''}", flush=True)
+                  f"{_copies_txt(r):>9}"
+                  f"{'  ⭐일치' if r['dip_equals_short'] else ('' if r['dip_equals_short'] is False else '  ⚠부분계측')}",
+                  flush=True)
 
     lad = [r for r in rows if r["arm"] == "R0D0E0F1"]
     lad.sort(key=lambda r: r["spp"])
@@ -155,10 +178,12 @@ def main() -> int:
     if len(lad) > 1:
         print(f"  광선 사다리(R0D0E0F1): 낙차 {[r['n_dip'] for r in lad]} "
               f"· 줄<3 {[r['n_short'] for r in lad]} · 경로중앙 {[r['npaths_median'] for r in lad]}")
-        print(f"  같은 줄이 몇 번 적히나(중앙): {[r['copies_median'] for r in lad]}"
+        print(f"  같은 줄이 몇 번 적히나(중앙): {[_copies_txt(r) for r in lad]}"
               f"  ← 덱 6 쪽의 «Still three»")
-    n_eq = sum(1 for r in rows if r["dip_equals_short"])
-    print(f"  «낙차 = 줄<3» 이 정확히 맞는 칸: {n_eq}/{len(rows)}")
+    n_eq = sum(1 for r in rows if r["dip_equals_short"] is True)
+    n_partial = sum(1 for r in rows if r["dip_equals_short"] is None)
+    print(f"  «낙차 = 줄<3» 이 정확히 맞는 칸: {n_eq}/{len(rows)}"
+          + (f"  (⚠계측이 반쪽이라 못 재는 칸 {n_partial})" if n_partial else ""))
 
     out = {"_meta": {#: ⭐관문(check_new_file_rules.py:166)이 보는 키는 «generator» 다 —
                      #  «made» 로 적어 «못 굽는 원장» 으로 걸리던 것을 고친다(2026-09-10).

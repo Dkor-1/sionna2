@@ -11,7 +11,7 @@ cd /workspace/sionna
 CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_latest_readers_0910.py
 ```
 
-원본 샤드 76개를 읽어 idx 완전성·유일성·유한 전계·대조 표집률을 확인했다. 이는 저장 이전의 경로 누락이나 물리적 정확성까지 검증한 뜻은 아니다. 읽은 파일과 SHA-256은 재계산 원장에 보존했다.
+원본 샤드 80개를 읽어 idx 완전성·유일성·유한 전계·대조 표집률을 확인했다. 이는 저장 이전의 경로 누락이나 물리적 정확성까지 검증한 뜻은 아니다. 읽은 파일과 SHA-256은 재계산 원장에 보존했다.
 
 발간 원장의 파일 목록을 기준으로 삼은 협곡·낙차 자료와, 정확한 이름으로 검색한 동체 자료를 사용했다. 현재 큐에 추가로 완성되는 조건은 협곡 판독에 섞지 않았다. 합성 반례는 실제 관측과 별도 기록했다.
 
@@ -21,7 +21,7 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **문제:** comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체 지름을 사용한다. 아틀라스를 다시 굽는 작업만으로 이 계산식은 바뀌지 않는다.
 
-**근거와 한정:** 현재 아틀라스의 비단위 _ps 태그 17개 팔·34개 칸을 확인했다. 완전성 등 기존 자격 조건을 통과한 33개 칸만 지표를 재계산했다. 예: ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe, el 0°, 3.5 GHz, 8192표본에서 운동학적 기준 대역 끝은 1272.9144 → 891.0401 Hz, 같은 신호의 빗살 대비는 39.319736 → 41.228132 dB다. 원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다.
+**근거와 한정:** 현재 아틀라스의 비단위 _ps 태그 17개 팔·34개 칸을 확인했다. 완전성 등 기존 자격 조건을 통과한 33개 칸만 지표를 재계산했다. 예: ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe, el 0°, 3.5 GHz, 8192표본에서 운동학적 기준 대역 끝은 891.0401 → 891.0401 Hz, 같은 신호의 빗살 대비는 41.228132 → 41.228132 dB다. 원신호 변화·솔버 오차 크기를 측정한 것이 아니다. 프레임 배율은 회전 반경 배율을 대신하지 않는다. 이 기준선을 물리 스펙트럼의 엄밀한 지지집합 경계로 해석하지 않는다.
 
 **권장 표현:** 프로펠러 배율을 반영한 운동학적 기준 대역에서 지표를 다시 계산하고, 해당 지도·대역 그래프·목차·영향 진단을 함께 재생성해야 한다.
 
@@ -31,8 +31,8 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **원문 위치:**
 
-- [build_md_atlas.py:270](../benchmark/build_md_atlas.py#L270)
-> ftip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0)) / lam
+- [build_md_atlas.py:296](../benchmark/build_md_atlas.py#L296)
+> ftip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0) * ps) / lam
 
 - [comb_snr.py:148](../benchmark/comb_snr.py#L148)
 > * (blade_of(arm) / F0) * _ps)
@@ -56,10 +56,10 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **원문 위치:**
 
-- [make_jobs_0924.py:13](../runners/make_jobs_0924.py#L13)
-> ⇒ 줄이는 쪽은 2.5 배를 훑어도 **전부 80** 이라 격자를 갈았을 때와 구별되지 않는다.
+- [make_jobs_0924.py:15](../runners/make_jobs_0924.py#L15)
+> ⛔⛔**2026-09-11 정정 — 「구별되지 않는다」로 적었던 것을 내린다.**
 
-- [read_bodyladder_0910.py:102](../benchmark/read_bodyladder_0910.py#L102)
+- [read_bodyladder_0910.py:104](../benchmark/read_bodyladder_0910.py#L104)
 > "kept_of_base": inter,
 
 ## 3. 민감도 참고값을 다른 기체의 판정 문턱으로 올리는 문장이 다시 남았다
@@ -78,16 +78,16 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **원문 위치:**
 
-- [read_canyonnull_0910.py:186](../benchmark/read_canyonnull_0910.py#L186)
+- [read_canyonnull_0910.py:304](../benchmark/read_canyonnull_0910.py#L304)
 > "예산 변경은 «격자를 갈았을 때의 민감도» 다. 두 점은 신뢰구간이 아니다.",
 
-- [RESUME_0911.md:143](../work/sweep_0904/RESUME_0911.md#L143)
-> ⛔단 띠가 **0.60~0.77** 이지 0.89~0.92 가 아니다. 문턱이 훨씬 느슨하다.
+- [RESUME_0911.md:None](../work/sweep_0904/RESUME_0911.md) — 현재 파일에서 해당 문구를 찾지 못함
+> 문턱이 훨씬 느슨하다
 
-- [make_jobs_0923.py:103](../runners/make_jobs_0923.py#L103)
-> "죽는조건  협곡에서 mini5pro 의 걸린 자세 목록이 matrice4e 와 «널 띠 안» 이면 기체 교체가",
+- [make_jobs_0923.py:None](../runners/make_jobs_0923.py) — 현재 파일에서 해당 문구를 찾지 못함
+> 죽는조건  협곡에서 mini5pro
 
-- [make_jobs_0923.py:109](../runners/make_jobs_0923.py#L109)
+- [make_jobs_0923.py:117](../runners/make_jobs_0923.py#L117)
 > "        **이 짝은 자세 집합을 직접 못 견준다.** 레벨과 빈도만 읽는다.")
 
 ## 4. 자카드의 보수를 기준 사건의 교체율로 풀어 쓰면 분모가 달라진다
@@ -106,8 +106,8 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **원문 위치:**
 
-- [read_canyonnull_0910.py:182](../benchmark/read_canyonnull_0910.py#L182)
-> "즉 자세 다섯 중 하나쯤이 다른 자세다.")
+- [read_canyonnull_0910.py:None](../benchmark/read_canyonnull_0910.py) — 현재 파일에서 해당 문구를 찾지 못함
+> 즉 자세 다섯 중 하나쯤이 다른 자세다
 
 ## 5. 협곡 판독기가 상한 근접 진단을 빈 배열로 바꿔 내보낸다
 
@@ -115,7 +115,7 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **문제:** 새 load는 n_trunc를 읽지 않고 trunc=[]를 반환한다. 이어 호출한 measure의 at_path_cap는 npaths의 중앙값으로 계산되므로 드문 자세의 상한 근접을 감지하는 대체 장치도 아니다.
 
-**근거와 한정:** 발간된 협곡 9개 조건의 장면·자유공간 샤드를 직접 읽었으며, 저장된 상한 근접 사건 합계는 0개, 해당 진단이 없는 샤드는 10개였다. 읽은 반환 경로 수의 최댓값은 4071개였다. 따라서 이 발간값에서 실제 잘림을 발견한 것은 아니다. 합성 입력에 상한 근접 1건을 넣으면 현재 함수는 trunc=[], at_path_cap=False를 반환했다. n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.
+**근거와 한정:** 발간된 협곡 10개 조건의 장면·자유공간 샤드를 직접 읽었으며, 저장된 상한 근접 사건 합계는 0개, 해당 진단이 없는 샤드는 12개였다. 읽은 반환 경로 수의 최댓값은 4071개였다. 따라서 이 발간값에서 실제 잘림을 발견한 것은 아니다. 합성 입력에 상한 근접 1건을 넣으면 현재 함수는 trunc=[{'file': 'duplicate_scene_el-60_00.npz', 'stored': 1, 'cap': 2000000, 'recomputed': 1, 'nret_max': 2000000, 'n_poses': 4096}, {'file': 'duplicate_scene_el-60_01.npz', 'stored': 0, 'cap': 2000000, 'recomputed': 0, 'nret_max': 10, 'n_poses': 4096}], at_path_cap=False를 반환했다. n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.
 
 **권장 표현:** 저장된 상한 근접 진단을 읽어 보고하며, 진단 미수집과 경고 없음은 구분한다. 반환 수 기반 휴리스틱의 한정은 유지한다.
 
@@ -125,11 +125,11 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **원문 위치:**
 
-- [read_canyonnull_0910.py:87](../benchmark/read_canyonnull_0910.py#L87)
-> trunc=[], files=[os.path.basename(f) for f in fs]), len(fs)
+- [read_canyonnull_0910.py:None](../benchmark/read_canyonnull_0910.py) — 현재 파일에서 해당 문구를 찾지 못함
+> trunc=[], files=
 
-- [read_0918B_0909.py:78](../benchmark/read_0918B_0909.py#L78)
-> r["at_path_cap"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)
+- [read_0918B_0909.py:98](../benchmark/read_0918B_0909.py#L98)
+> r["at_path_cap"] = r["median_npaths_near_cap"]      # 옛 이름 — 문면 호환
 
 - [elevation_sweep_md.py:960](../benchmark/elevation_sweep_md.py#L960)
 > _ntr = int(np.count_nonzero(np.asarray(nret) >= 0.99 * RP.MAX_PATHS))
@@ -150,17 +150,17 @@ CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_late
 
 **원문 위치:**
 
-- [read_canyonnull_0910.py:84](../benchmark/read_canyonnull_0910.py#L84)
-> o = np.argsort(np.concatenate(I))
+- [read_canyonnull_0910.py:148](../benchmark/read_canyonnull_0910.py#L148)
+> o = np.argsort(idx)
 
-- [read_canyonnull_0910.py:137](../benchmark/read_canyonnull_0910.py#L137)
+- [read_canyonnull_0910.py:229](../benchmark/read_canyonnull_0910.py#L229)
 > if sc is None or fr is None or ns < 2 or nf < 2:
 
-- [read_dropladder_0910.py:86](../benchmark/read_dropladder_0910.py#L86)
+- [read_dropladder_0910.py:116](../benchmark/read_dropladder_0910.py#L116)
 > if (D < 0).all():
 
-- [read_dropladder_0910.py:89](../benchmark/read_dropladder_0910.py#L89)
-> short = D < 2                       # 세 번 안 적힌 자세
+- [read_dropladder_0910.py:132](../benchmark/read_dropladder_0910.py#L132)
+> #  `n_dup` 이 없는 세대의 샤드는 −1 로 채워 두는데, 옛 `short = D < 2` 는 그 −1 을
 
 ## 보완 메모: 추가 원인으로 확정하지 않은 사항
 

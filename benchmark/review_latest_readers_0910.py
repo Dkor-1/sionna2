@@ -166,8 +166,17 @@ def atlas_check():
     from drones import DRONES
     ns=dict(np=np,math=math,DRONES=DRONES,DRONE_DEFAULT=m['drone_default'],C_LIGHT=2.998e8,
             FC=m['fc_hz'],PRF=m['prf_hz'],RHY_HW=8.)
+    # ⛔2026-09-11 — arm_rates 가 prop_scale_tag 를 부르게 바뀌어(R30 보정) 추출 목록에 없으면
+    #   NameError 로 죽는다. 없던 시절에도 돌게 기본값을 함께 넣는다.
+    ns.setdefault('re', re); ns.setdefault('prop_scale_tag', lambda _a: 1.0)
     functions('benchmark/build_md_atlas.py',
-              ['airframe_tag','arm_rates','f_tip_at','comb_contrast_db','rhythm_share'],ns)
+              ['airframe_tag','prop_scale_tag','arm_rates','f_tip_at',
+               'comb_contrast_db','rhythm_share'],ns)
+    # ⭐⭐**배율이 이미 들어갔는지 먼저 잰다.** 안 재고 ft*ps 를 하면 보정된 코드에서 **두 번**
+    #   곱한다(R30 뒤의 실제 위험). 기준 기체·배율 없는 팔의 f_tip0 과 견줘 판정한다.
+    _probe = 'ours_r15_n8192_ps2_mfixbatteryi5_blperairframe'
+    _base_tip = ns['arm_rates']('ours_r15_n8192_mfixbatteryi5_blperairframe')['f_tip0_hz']
+    _ps_applied = abs(ns['arm_rates'](_probe)['f_tip0_hz'] - 2.0*_base_tip) < 1e-6
     digest('outputs/elevation_sweep_md.npz'); rows=[]; arms=[]
     with np.load(ROOT/'outputs/elevation_sweep_md.npz',allow_pickle=False) as z:
         for topic,t in j['topics'].items():
@@ -176,8 +185,10 @@ def atlas_check():
                 if not match or float(match[1])==1: continue
                 ps=float(match[1]);arms.append(arm);rates=ns['arm_rates'](arm);ff=rates['f_flash_hz']
                 for el,c in a['cells'].items():
-                    ft=ns['f_tip_at'](rates,float(el));correct=ft*ps
-                    assert round(ft,1)==c['f_tip_hz']
+                    ft=ns['f_tip_at'](rates,float(el))
+                    # ⭐보정 뒤에는 ft 가 이미 배율을 담고 있다 — 다시 곱하지 않는다.
+                    correct=ft if _ps_applied else ft*ps
+                    assert round(ft,1)==c['f_tip_hz'], (arm,el,ft,c['f_tip_hz'])
                     row=dict(topic=topic,arm=arm,el_deg=float(el),prop_scale=ps,
                              current_tip_hz=ft,scaled_tip_hz=correct,
                              published_tip_hz=c['f_tip_hz'],f_flash_hz=ff,
@@ -194,14 +205,26 @@ def atlas_check():
     sample=next(r for r in rows if r['arm']=='ours_r15_n8192_ps0.7_fs0.7_mfixbatteryi5_blperairframe' and r['el_deg']==0)
     return dict(fc_hz=m['fc_hz'],prf_hz=m['prf_hz'],n_tagged_arms=len(arms),n_tagged_cells=len(rows),
                 n_eligible_cells=sum('comb_db_current' in r for r in rows),sample=sample,cells=rows,
+                prop_scale_applied=_ps_applied,
+                mode=('regression' if _ps_applied else 'pre_fix_audit'),
+                mode_note_ko=(
+                    '⭐regression — build_md_atlas.arm_rates 가 _ps 를 이미 곱한다(R30 보정 반영). '
+                    'current 와 scaled 가 같은 값이고, 이 칸은 «보정이 살아 있나» 를 지키는 '
+                    '회귀 검사다. ⛔여기서 ft 에 배율을 다시 곱하면 두 번 적용된다.'
+                    if _ps_applied else
+                    'pre_fix_audit — arm_rates 가 아직 _ps 를 안 곱한다. current 는 발간값이고 '
+                    'scaled 는 배율을 반영했을 때의 값이다(정정 전 상태를 재현한다).'),
                 scope='Current atlas kinematic reference band, same saved E and same metric functions; '
                       'not a hard physical support bound or a new ray simulation. Incomplete cells stay excluded.')
 
 
 def adversarial_check():
-    ns=functions('benchmark/read_canyonnull_0910.py',['load'],dict(np=np,glob=glob,os=os))
+    # ⛔2026-09-11 — _trunc_of 는 CAP 을 쓰던 자리가 있었다. 새 판은 샤드의 상한을 읽지만
+    #   옛 판도 돌게 규약값을 함께 준다.
+    ns=functions('benchmark/read_canyonnull_0910.py',['_trunc_of','load'],
+                 dict(np=np,glob=glob,os=os,CAP=2_000_000))
     ms=functions('benchmark/read_0918B_0909.py',['db','measure'],dict(np=np,DEV=.5,CAP=2_000_000))
-    ds=functions('benchmark/read_dropladder_0910.py',['cell'],dict(np=np,glob=glob,os=os,
+    ds=functions('benchmark/read_dropladder_0910.py',['_copies_txt','cell'],dict(np=np,glob=glob,os=os,
         RNG=15,NPOSE=8192,MESH='mfixbatteryi5_blperairframe',DEPTH=2,EL=0))
     with tempfile.TemporaryDirectory(prefix='sionna-reader-audit-') as tmp:
         ns['SHD']=ds['SHD']=tmp;N=8192
@@ -217,17 +240,48 @@ def adversarial_check():
             if shard==0: kw['n_dup']=np.full(len(idx),2)
             np.savez(Path(tmp)/name,**kw)
         F,nf=ns['load']('free',-60);O,no=ns['load']('duplicate_scene',-60)
-        r=ms['measure'](F,O);accepted=nf>=2 and no>=2 and F['E'].size==O['E'].size and r is not None
+        r=ms['measure'](F,O)
+        # ⚠옛 관문(길이·샤드 수만) — 이것이 결함을 낳던 경로다
+        accepted=nf>=2 and no>=2 and F['E'].size==O['E'].size and r is not None
+        # ⭐⭐2026-09-11 — **고친 관문**도 함께 잰다. 위 것만 재면 고친 뒤에도 «결함이 남았다» 로
+        #   찍힌다(고친 자리는 부르는 쪽의 idx_ok 게이트인데 반례가 그것을 안 봤다).
+        gated=bool(accepted and F.get('idx_ok') and O.get('idx_ok'))
         c=ds['cell']('R0D0E0F1',4_000_000_000);D=c['D'];unknown=int((D<0).sum())
+        # ⭐고친 셈법 — 계측된 자세만 «줄<3» 으로 센다(read_dropladder main() 과 같은 식)
+        _have=D>=0; short_fixed=int((_have&(D<2)).sum())
         result=dict(kind='Synthetic fixtures passed to AST-extracted current functions; not observed data corruption.',
                     n_declared=N,n_scene_unique_indices=N//2,
                     equal_length_duplicate_index_accepted=bool(accepted),
+                    accepted_through_fixed_gate=gated,
+                    load_reports_idx_ok=dict(free=F.get('idx_ok'),scene=O.get('idx_ok')),
                     synthetic_recorded_near_cap_events=1,returned_trunc=r['trunc_outdoor'],
                     returned_at_path_cap=r['at_path_cap'],
+                    recomputed_poses_near_cap=r.get('n_poses_near_cap_now'),
+                    shards_without_cap_diag=r.get('n_shards_without_cap_diag'),
                     mixed_dup_unknown=unknown,mixed_dup_counted_short=int((D<2).sum()),
+                    mixed_dup_counted_short_fixed=short_fixed,
                     mixed_dup_is_skipped=bool((D<0).all()))
-    assert result['equal_length_duplicate_index_accepted'] and result['returned_trunc']==[]
-    assert not result['returned_at_path_cap'] and result['mixed_dup_counted_short']==unknown
+    # ⛔⛔2026-09-11 — 여기 있던 assert 넷은 «결함이 **있다**» 를 단정했다. 2026-09-10/11 에
+    #   그 넷을 고쳤으므로 단정이 그대로면 이 빌더가 죽는다(실제로 죽었다).
+    #   ⇒ 단정을 **상태 기록**으로 바꾼다. 고쳐졌으면 고쳐졌다고 적고, 되살아나면 그것도 적는다.
+    #   ⛔«고쳐졌다» 를 여기서 «검증됐다» 로 읽지 않는다 — 합성 입력 네 가지에 대한 관찰이다.
+    # ⭐판정은 **고친 자리**를 본다. 옛 경로의 값은 위 raw 필드에 그대로 남겨 둔다.
+    result['defects_still_present']=dict(
+        # 중복 인덱스 칸이 고친 관문을 그대로 통과하는가
+        equal_length_duplicate_index_accepted=bool(result['accepted_through_fixed_gate']),
+        # 상한 진단이 버려지는가 — 이제 measure 가 다시 센 수를 들고 온다
+        trunc_diagnostic_dropped=bool(result['recomputed_poses_near_cap'] is None
+                                      and result['returned_trunc']==[]),
+        # 드문 자세의 상한 근접을 못 잡는가
+        median_only_cap_flag=bool((result['recomputed_poses_near_cap'] or 0) <
+                                  result['synthetic_recorded_near_cap_events']),
+        # 미계측(−1)을 «줄<3» 으로 세는가
+        unknown_dup_counted_as_short=bool(result['mixed_dup_counted_short_fixed']==unknown
+                                          and unknown > 0))
+    result['n_defects_still_present']=sum(result['defects_still_present'].values())
+    result['status_ko']=('네 결함이 모두 고쳐졌다(합성 입력 기준)'
+                         if result['n_defects_still_present']==0 else
+                         '아직 남은 것: '+', '.join(k for k,v in result['defects_still_present'].items() if v))
     return result
 
 
