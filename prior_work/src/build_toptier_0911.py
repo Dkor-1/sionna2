@@ -30,7 +30,7 @@
       /workspace/.venvs/py312/bin/python prior_work/src/build_toptier_0911.py
 """
 from __future__ import annotations
-import json, os, re, time, urllib.parse, urllib.request
+import json, os, re, sys, time, urllib.parse, urllib.request
 
 STORE = "/data/public/sionna_jeong/toptier_0911"
 HAVE_ROOT = "/data/public/sionna_jeong"
@@ -120,34 +120,37 @@ CONFS = [
 #    이라고 적어 놨는데 그 여섯이 무엇인지 적힌 자리가 없고, 검사하는 코드도 없었다.
 #    ⛔실측(2026-09-12): 그 여섯을 이름·DOI 로 원장에서 찾아보니 **0/6** 이다. 「4/6」은
 #      재현할 수 없는 수였다. ⇒ 목록을 코드에 박고 **굽을 때마다 검사해 원장에 적는다.**
+#: ⛔⛔2026-09-12(2) 정정 — 닻 셋에 DOI 를 안 적어 두고 **제목 낱말로 어림잡아** 찾았다.
+#  그 어림이 헛나가 「재현율 2/6」이 나왔는데, 실제로는 구간 안 닻이 전부 들어와 있었다:
+#    · Ziganshin 은 EuCAP 이 아니라 **IEEE TRS** 에 실렸고 제목이 «Curved **Plates**» 다
+#      (내 키는 «Curved Bodies» 였다) — 원장에 있었는데 못 찾았다.
+#    · Das/Yuan 은 IEEE WCL 이고 제목이 «**AAV** Rotors» 다(UAV 가 아니다) — 역시 있었다.
+#  ⇒ **DOI 를 적는다.** 그리고 «구간 밖» 과 «못 찾음» 을 가른다 — 2022 년 논문이 2025 년
+#    이후 조사에 없는 것은 재현율 실패가 아니다.
 ANCHORS = [
-    ("Zhang JSAC «Typical Targets»", "10.1109/jsac.2025.3608732",
+    ("Zhang JSAC «Typical Targets»", "10.1109/jsac.2025.3608732", True,
      "3GPP ISAC 표준화용 표적 RCS 모형 — 우리와 가장 가까운 축"),
-    ("Khawaja/Semkin COMST 조사", "10.1109/comst.2025.3554613",
+    ("Khawaja/Semkin COMST 조사", "10.1109/comst.2025.3554613", True,
      "UAV 전파 채널 조사. ⚠IEEE 가 제목에서 UAV 를 AAV 로 고쳐 실었다"),
-    ("Ziganshin EuCAP «Curved Bodies»", "10.23919/eucap63536.2025.10999367",
-     "곡면체 RCS — 동체 근사의 대조군"),
-    ("Sun OJ-COMS LIPASE", "", "패시브 센싱 — 제목 낱말이 우리와 다르다"),
-    ("Semkin IEEE Access 드론 σ 계측", "", "실측 σ — 우리에게 없는 축"),
-    ("Das/Yuan WCL", "", "드론 마이크로도플러"),
+    ("Ziganshin TRS «Curved Plates»", "10.1109/trs.2025.3637451", True,
+     "곡면판 쌍정적 RCS — 동체 근사의 대조군. ⚠EuCAP 이 아니라 TRS 다"),
+    ("Das/Yuan WCL «AAV Rotors»", "10.1109/lwc.2026.3728892", True,
+     "회전자 마이크로도플러 매개변수 추출. ⚠제목이 UAV 가 아니라 AAV 다"),
+    ("Semkin Sensors J 드론 σ 계측", "10.1109/jsen.2022.3194527", False,
+     "⛔2022 년이라 이 조사의 구간(2025-01-01 이후) **밖**이다 — 없는 것이 맞다"),
+    ("Sun OJ-COMS LIPASE", "", False,
+     "⛔DOI 를 아직 못 찾았다 — 이 닻으로는 재현율을 잴 수 없다"),
 ]
 
 
 def check_anchors(rows: dict) -> list[dict]:
     """닻이 원장에 들어왔는지 본다. ⛔못 찾은 것을 «없는 셈» 치지 않는다 — 원장에 적는다."""
     got = []
-    for nm, doi, why in ANCHORS:
-        hit = None
-        if doi:
-            hit = rows.get(doi.lower()) or next(
-                (r for k, r in rows.items() if k.lower() == doi.lower()), None)
-        if hit is None:
-            key = re.sub(r"[^a-z0-9]+", "", nm.split("«")[-1].strip("»").lower())
-            if key:
-                hit = next((r for r in rows.values()
-                            if key and key in re.sub(r"[^a-z0-9]+", "", r["title"].lower())), None)
-        got.append(dict(name=nm, doi=doi or None, why_ko=why,
-                        found=hit is not None,
+    for nm, doi, in_scope, why in ANCHORS:
+        #: ⛔**DOI 로만 찾는다.** 제목 낱말 어림은 헛나가 재현율을 틀리게 만든다.
+        hit = next((r for k, r in rows.items() if doi and k.lower() == doi.lower()), None)
+        got.append(dict(name=nm, doi=doi or None, why_ko=why, in_scope=bool(in_scope),
+                        checkable=bool(doi), found=hit is not None,
                         found_as=(hit or {}).get("title"),
                         found_venue=(hit or {}).get("venue")))
     return got
@@ -423,6 +426,35 @@ def fetch_abstracts(rows: dict, limit: int | None = None) -> dict:
     return dict(asked=len(dois), got=got)
 
 
+def reindex() -> int:
+    """⭐훑기를 다시 하지 않고 **닻 검사와 목차만** 다시 굽는다.
+
+    쓰는 법: `python build_toptier_0911.py --index-only`
+    ⛔훑기는 네트워크를 45 분 쓴다. 닻 목록이나 목차 글을 고쳤을 뿐인데 다시 훑으면
+      결과가 달라져 무엇이 바뀐 것인지 못 가린다. 원장은 그대로 두고 메타만 고친다.
+    """
+    p = f"{STORE}/toptier_0911.json"
+    out = json.load(open(p, encoding="utf-8"))
+    rows = {(r.get("doi") or "").lower(): r for r in out["rows"]}
+    anchors = check_anchors(rows)
+    scored = [a for a in anchors if a["in_scope"] and a["checkable"]]
+    n_found = sum(a["found"] for a in scored)
+    for a in anchors:
+        mark = ("✅" if a["found"] else "⛔") if (a["in_scope"] and a["checkable"]) else "—"
+        print(f"  {mark} {a['name']}" + (f"  ← {a['found_venue']}" if a["found"] else ""))
+    print(f"  재현율 {n_found}/{len(scored)}  (잴 수 있는 닻만; 전체 닻 {len(anchors)})")
+    out["_meta"]["anchors"] = anchors
+    out["_meta"]["recall"] = {"found": n_found, "total": len(scored), "n_anchors": len(anchors),
+                              "how_ko": ("ANCHORS 의 **DOI 로만** 원장을 찾는다. 구간 밖이거나 "
+                                         "DOI 를 모르는 닻은 분모에서 뺀다.")}
+    out["_meta"]["reindexed_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, indent=1)
+    write_index(out)
+    print(f"■ 원장은 그대로 두고 메타·목차만 고쳤다 ({out['_meta']['n_rows']} 편)")
+    return 0
+
+
 def main() -> int:
     os.makedirs(STORE, exist_ok=True)
     #: 소장본에 이미 있는 DOI — 파일명에는 DOI 가 거의 없으므로 제목 대조로도 본다
@@ -564,11 +596,16 @@ def main() -> int:
 
     print("■ 닻 검사 (저장소가 아는 편을 도로 찾아오나)")
     anchors = check_anchors(rows)
-    n_found = sum(a["found"] for a in anchors)
+    #: ⭐재현율은 **구간 안이고 DOI 가 있는 닻**으로만 잰다. 구간 밖이거나 DOI 를 모르는
+    #  닻을 분모에 넣으면 수가 조사의 성능을 말하지 않는다.
+    scored = [a for a in anchors if a["in_scope"] and a["checkable"]]
+    n_found = sum(a["found"] for a in scored)
     for a in anchors:
-        print(f"  {'✅' if a['found'] else '⛔'} {a['name']}"
-              + (f"  ← {a['found_venue']}" if a["found"] else ""))
-    print(f"  재현율 {n_found}/{len(anchors)}")
+        mark = ("✅" if a["found"] else "⛔") if (a["in_scope"] and a["checkable"]) else "—"
+        note = "" if (a["in_scope"] and a["checkable"]) else (
+            "  (구간 밖 — 없는 것이 맞다)" if not a["in_scope"] else "  (DOI 를 몰라 못 잰다)")
+        print(f"  {mark} {a['name']}" + (f"  ← {a['found_venue']}" if a["found"] else "") + note)
+    print(f"  재현율 {n_found}/{len(scored)}  (잴 수 있는 닻만; 전체 닻 {len(anchors)})")
 
     out = {"_meta": {
         "generator": "prior_work/src/build_toptier_0911.py",
@@ -585,8 +622,11 @@ def main() -> int:
         #: ⭐⭐**재현율을 수로 싣는다.** 옛 판은 INDEX 에 손으로 «4/6» 이라고만 적혀 있었고
         #  그 여섯이 무엇인지도, 검사하는 코드도 없었다(실측하니 0/6 이었다).
         "anchors": anchors,
-        "recall": {"found": n_found, "total": len(anchors),
-                   "how_ko": "ANCHORS 의 DOI·제목으로 원장을 찾는다. 굽을 때마다 다시 잰다."},
+        "recall": {"found": n_found, "total": len(scored), "n_anchors": len(anchors),
+                   "how_ko": ("ANCHORS 의 **DOI 로만** 원장을 찾는다(제목 어림은 안 쓴다). "
+                              "구간 밖이거나 DOI 를 모르는 닻은 분모에서 뺀다 — "
+                              "2022 년 논문이 2025 년 이후 조사에 없는 것은 재현율 실패가 아니다. "
+                              "굽을 때마다 다시 잰다.")},
         "abstracts": {"rows_with_abstract": n_abs, "asked": abs_stat["asked"],
                       "got": abs_stat["got"],
                       "how_ko": ("OpenAlex 에서 DOI 로 받아 역색인을 되돌려 붙였다. "
@@ -714,4 +754,6 @@ def write_index(out: dict) -> None:
 
 
 if __name__ == "__main__":
+    if "--index-only" in sys.argv:
+        raise SystemExit(reindex())
     raise SystemExit(main())
