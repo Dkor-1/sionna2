@@ -62,10 +62,27 @@ Sionna RT** 로 5G NR 상향 SRS 를 패시브 레이다 파형으로 쓰는 O-R
     CUDA_VISIBLE_DEVICES="" taskset -c 8-11 \
       /workspace/.venvs/py312/bin/python prior_work/src/build_toptier_0911.py
 
-- **Crossref 를 ISSN·DOI 앞자리로** 조회 — 학술지 19 종 + **학회 10 종**, 2025-01 이후 **366 편**
+- **Crossref**(ISSN·DOI 앞자리 · 제목) + **OpenAlex**(초록까지) 두 채널 — 학술지 25 종 +
+  **학회 11 종**, 2025-01 이후 **275 편**(정본 123 · 일반 152)
 - 탑티어 기준은 `dl_toptier_anchors.md` 의 것을 따르고 주제 학술지·학회를 얹었다(까닭은 원장에)
-- ⛔첫 판은 `type:journal-article` 로 걸러 **학회가 통째로 빠졌다**. ⛔IEEE 학회는 **ISSN 필터가
-  안 먹는다**(실측: ICASSP ISSN 조회 0 건) — DOI 앞자리 `10.1109` + 논문집 이름으로 잡아야 걸린다.
+- ⭐**네 판을 거쳤다**(자기감사 수치):
+
+  | 항목 | 1 판 | 2 판 | 3 판 | 지금 |
+  |---|---|---|---|---|
+  | 편 수 | 366 | 191 | 263 | **275** |
+  | 제어·비전 오염 | 14 % | 0 % | 0 % | **0 %** |
+  | 재현율(아는 6 편) | 3/6 | 3/6 | 4/6 | **4/6** |
+  | 게재지 딱지 오염 | MMAR→RadarConf | 0 | 0 | **0** |
+  | 잘림 경고 | 페이징 없음 | — | 95 | **0** |
+  | RadarConf · EuCAP | 31 · 0 | 0 · 0 | 16 · 16 | **63 · 66** |
+
+- ⛔고친 것 넷 — ⓐ쪽 수 5→20 + 마른 쪽 조기종료 ⓑOpenAlex 채널(제목만 보던 한계)
+  ⓒ게재지 층(정본/일반) ⓓ학회는 `query.container-title` 이 **필터가 아니라 퍼지 검색**이라
+  엉뚱한 논문집(LCN·NordPac)을 돌려줬다 ⇒ 학회 이름을 **주제어에 섞어** 묻고 되짚어 고른다.
+  (그 전 판들: `type:journal-article` 로 걸러 학회가 통째로 빠졌고, IEEE 학회는 ISSN 필터가
+  안 먹는다 — 실측 ICASSP ISSN 조회 0 건.)
+- ⛔**아직 안 된 것** — 재현율 4/6(Zhang JSAC·Clutter-Aware 는 제목에 우리 낱말이 없다) ·
+  초록을 다 못 읽었다 · NeurIPS·CVPR 은 Crossref 색인이 고르지 않다 · 구독지(IET/Wiley) 403.
 - 원장 `/data/public/sionna_jeong/toptier_0911/toptier_0911.json` · 문서 `.../INDEX.md`
 
 ⭐**가장 큰 것 — 소장본 373 편은 거의 전부 arXiv 였고 게재지 축이 사실상 비어 있었다**(중복 2 편).
@@ -77,6 +94,7 @@ Sionna RT** 로 5G NR 상향 SRS 를 패시브 레이다 파형으로 쓰는 O-R
 | IEEE **TAES** 61(4) 2025 `10.1109/taes.2025.3545000` | **4G-LTE 패시브 레이다**로 드론 검출, 비협조 송신기 실측 |
 | **IET RSN** 19(1) 2025 `10.1049/rsn2.70092` | **LTE450 패시브 레이다** 드론 검출 실증 — OFDM **기준 요소만** 써서 |
 | IEEE **OJAP** 2026 `10.1109/ojap.2026.3720651` | **미분 가능 광선추적**을 저고도 드론 채널에 **보정**. 우리가 못 한 그 자리 |
+| **EuCAP 2026** | ⭐«Monostatic-Bistatic Equivalence Theorem for **Drone RCS**» — 우리 SBR 이 모노스태틱만 낸다는 **바로 그 한계** · «**Propeller Blade Orientation** 이 마이크로도플러에 미치는 영향» — 우리 blperairframe 축과 같은 물음 · «**Multi-Link** Micro-Doppler **Measurements** for ISAC» |
 | **IET RSN** 20(1) 2026 `10.1049/rsn2.70201` | **완전파(HFSS)**로 드론 전방산란 RCS 100 MHz~5 GHz |
 
 ⚠**랩카드 주장의 범위** — 망 신호로 드론을 잰 **게재 논문은 여럿 있다**(우리가 처음이 아니다).
