@@ -335,18 +335,83 @@ class _PfaCalibration(dict):
 PFA_CALIBRATION = _PfaCalibration()
 
 
-def pfa_nominal_for(std: str, pfa_target: float) -> float:
-    """**경험적** Pfa 목표 → ca_cfar_2d 에 줘야 할 **명목** Pfa.
-    파형(std = 'wifi'|'lte'|'nr')마다 다르다 — 이걸 안 쓰면 Pd 비교가 공정하지 않다."""
+class PfaOutOfRange(ValueError):
+    """교정표가 덮지 않는 오경보율을 물었다 — 돌려줄 **교정된** 값이 없다."""
+
+
+def pfa_nominal_detail(std: str, pfa_target: float) -> dict:
+    """환산값과 **그것이 어떻게 나왔는지**를 함께 돌려준다.
+
+    ⛔⛔2026-09-11 정정 — 전에는 이 계산이 `np.interp` 하나였고, 주석에
+    «측정 구간 밖은 외삽» 이라고 적혀 있었다. **numpy 는 외삽하지 않는다 — 끝점에 붙인다.**
+    그래서 교정 구간 밖을 물으면 경고도 없이 **경계값이 그대로** 돌아왔고, 반환값만
+    봐서는 「교정된 값」인지 「구간 밖이라 끝점으로 대체된 값」인지 구별할 수가 없었다.
+
+    ⛔실측(2026-09-11) — 세 파형 모두 교정 격자가 [1e-5, 1e-4, 1e-3, 1e-2] 다:
+        wifi  달라고 한 1e-5 → 4.51e-06
+              달라고 한 1e-6 → 4.51e-06   ⛔같은 값
+              달라고 한 1e-7 → 4.51e-06   ⛔같은 값
+      곧 «10 배·100 배 더 엄격하게» 를 물어도 같은 문턱이 돌아온다. lte·nr 도 같다.
+
+    ⭐발간 영향은 **아직 특정하지 않았다** — 저장소의 호출부는 전부 1e-4 이고 그것은
+      표에 그대로 있는 값이다(source='table'). 구간 밖으로 만든 그림은 찾지 못했다.
+
+    반환 dict:
+      nominal            ca_cfar_2d 에 줄 값
+      requested          물어본 값
+      calibrated_range   (최소, 최대) — 표가 실제로 덮는 구간. 표가 없으면 None
+      source  'table'    표에 그 값이 그대로 있다            ⭐교정된 값
+            | 'interp'   표 **안**이라 로그-로그 보간했다      ⭐교정된 값
+            | 'clamped'  표 **밖**이라 끝점 값이다            ⛔교정된 값이 아니다
+            | 'identity' 그 파형의 표가 없다                 ⛔교정을 아예 못 했다
+      calibrated         bool — source 가 앞의 둘 중 하나인가
+    """
     tab = PFA_CALIBRATION.get(str(std).lower())
-    if not tab:
-        return float(pfa_target)
+    #: ⛔표 파일에는 `_source` · `_generated` 같은 **메타 열쇠**도 들어 있다. 그것이
+    #  파형 이름으로 들어오면 tab 이 문자열이 되어 sorted() 가 글자를 돌려준다 —
+    #  dict 인지 먼저 본다.
+    if not isinstance(tab, dict) or not tab:
+        return dict(nominal=float(pfa_target), requested=float(pfa_target),
+                    calibrated_range=None, source="identity", calibrated=False)
+    ks = sorted(float(k) for k in tab)
+    lo, hi = ks[0], ks[-1]
     if pfa_target in tab:
-        return tab[pfa_target]
-    # 로그-로그 보간 (측정 구간 밖은 외삽 — 주의)
-    ks = sorted(tab)
+        return dict(nominal=float(tab[pfa_target]), requested=float(pfa_target),
+                    calibrated_range=(lo, hi), source="table", calibrated=True)
     lx = np.log10(ks); ly = np.log10([tab[k] for k in ks])
-    return float(10 ** np.interp(np.log10(pfa_target), lx, ly))
+    val = float(10 ** np.interp(np.log10(pfa_target), lx, ly))
+    inside = lo <= pfa_target <= hi
+    return dict(nominal=val, requested=float(pfa_target), calibrated_range=(lo, hi),
+                source=("interp" if inside else "clamped"), calibrated=bool(inside))
+
+
+def pfa_nominal_for(std: str, pfa_target: float, *, strict: bool = True) -> float:
+    """**경험적** Pfa 목표 → ca_cfar_2d 에 줘야 할 **명목** Pfa.
+    파형(std = 'wifi'|'lte'|'nr')마다 다르다 — 이걸 안 쓰면 Pd 비교가 공정하지 않다.
+
+    ⭐`strict=True`(기본)면 **교정된 값을 못 줄 때 거절한다** — 구간 밖(끝점에 붙는 경우)과
+      표가 없는 파형 둘 다. 조용히 틀린 문턱을 쓰는 것보다 멈추는 편이 낫다.
+      ⛔실측으로 확인했다: 저장소의 호출부는 전부 1e-4 이고 세 파형 모두 표에 그 값이
+        그대로 있어, 이 기본값으로 바뀌어도 **지금 도는 것은 하나도 안 깨진다.**
+    ⭐일부러 구간 밖을 쓰려면 `strict=False` 로 부르고, 그 값이 교정된 것이 아님을
+      `pfa_nominal_detail(...)['source']` 로 확인해 **결과에 함께 적는다.**
+    """
+    d = pfa_nominal_detail(std, pfa_target)
+    if d["calibrated"]:
+        return d["nominal"]
+    if strict:
+        if d["source"] == "identity":
+            raise PfaOutOfRange(
+                f"{std!r} 는 교정표에 없다 — 명목 Pfa 를 교정할 수 없다. "
+                f"교정된 파형: {[k for k, v in _load_pfa_calibration().items() if isinstance(v, dict)]}. "
+                f"교정 없이 목표값을 그대로 쓰려면 strict=False 로 부르고, 파형 간 Pd 비교에는 쓰지 말 것.")
+        lo, hi = d["calibrated_range"]
+        raise PfaOutOfRange(
+            f"{std} 의 교정 구간은 {lo:g} ~ {hi:g} 인데 {pfa_target:g} 를 물었다. "
+            f"구간 밖에서는 numpy 가 외삽하지 않고 **끝점에 붙인다** — 돌려줄 값 "
+            f"{d['nominal']:.3e} 는 경계({lo:g} 또는 {hi:g})의 값이지 {pfa_target:g} 의 값이 아니다. "
+            f"표를 넓혀 다시 교정하거나, 알고 쓰려면 strict=False 로 부를 것.")
+    return d["nominal"]
 
 
 def doppler_guard_mask(det, f_d, width=3, also_exclude_from_training=True):
@@ -397,8 +462,17 @@ def check_detector_config(wf, n_range, n_taps, M, pfa, verbose=True) -> list[str
             f"**경험적 Pfa 가 41~2300배 폭발**한다. doppler_guard_mask(width=3) 를 반드시 쓸 것.")
     std = getattr(wf, "std", "").lower()
     if std in PFA_CALIBRATION:
-        need = pfa_nominal_for(std, pfa)
-        if abs(np.log10(need / max(pfa, 1e-30))) > 0.05:
+        #: ⭐여기서는 strict 로 멈추지 않는다 — 이 함수가 하는 일이 «경고 목록을 돌려주는 것»
+        #  이라 구간 밖이라고 죽으면 설정 점검 자체가 안 된다. 대신 그 사실을 한 줄 더 적는다.
+        _pd = pfa_nominal_detail(std, pfa)
+        need = _pd["nominal"]
+        if not _pd["calibrated"]:
+            _lo, _hi = _pd["calibrated_range"] or (float("nan"), float("nan"))
+            warn.append(
+                f"[R1] ⛔{std} 의 Pfa 교정 구간은 {_lo:g} ~ {_hi:g} 인데 {pfa:.1e} 를 물었다. "
+                f"돌려준 {need:.2e} 는 **경계값이지 교정된 값이 아니다**(numpy 는 구간 밖에서 "
+                f"외삽하지 않고 끝점에 붙는다). 이 설정으로 낸 Pd 는 «{pfa:.1e} 에서 잰 것» 이 아니다.")
+        if _pd["calibrated"] and abs(np.log10(need / max(pfa, 1e-30))) > 0.05:
             warn.append(
                 f"[R1] 명목 Pfa {pfa:.1e} 를 그대로 쓰면 {std} 의 **경험적** Pfa 는 다르다. "
                 f"경험적 {pfa:.1e} 를 원하면 명목 **{need:.2e}** 를 줄 것 "
