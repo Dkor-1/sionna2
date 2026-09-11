@@ -97,6 +97,18 @@ Sionna RT** 로 5G NR 상향 SRS 를 패시브 레이다 파형으로 쓰는 O-R
 | **EuCAP 2026** | ⭐«Monostatic-Bistatic Equivalence Theorem for **Drone RCS**» — 우리 SBR 이 모노스태틱만 낸다는 **바로 그 한계** · «**Propeller Blade Orientation** 이 마이크로도플러에 미치는 영향» — 우리 blperairframe 축과 같은 물음 · «**Multi-Link** Micro-Doppler **Measurements** for ISAC» |
 | **IET RSN** 20(1) 2026 `10.1049/rsn2.70201` | **완전파(HFSS)**로 드론 전방산란 RCS 100 MHz~5 GHz |
 
+⭐**일곱 편을 정독했다**(반증까지) — 표적 반사 세기를 어디서 가져오나:
+  · **값 주입** TWC(동체 σ=0.1 m² 상수 + 날개 계수를 IEEE Access 2019 에서 인용)
+  · **모델 없음** TAES·IET RSN(세기는 실측 그 자체)
+  · **계산** IET RSN 완전파(HFSS, 단 **PEC**) · EuCAP 날개방향(**점산란체** PO)
+  · **측정** EuCAP 등가정리(실물 Phantom 3, 회로망분석기, 11–26 GHz, 방위 360 점)
+  ⇒ 일곱 가운데 **기체 메시에 재질을 먹여** 산란을 풀고 광선 엔진에 얹는 편은 **없다**.
+  ⛔단 「우리가 처음」으로 쓰지 않는다 — 일곱 편을 읽은 범위 안의 말이다.
+  ⛔셋 다(TWC·TAES·IET RSN) **자료를 공개하지 않았다** — IET RSN 은 «The authors have nothing to report.»
+
+⛔**이 정독이 우리 사실 하나를 뒤집었다** — `REC.phantom`(Taylor & Poullin 표적 기체).
+  공백이 지워진 PDF 추출문에서 «없다» 를 센 탓이었다. 자세히는 커밋 240d4abb.
+
 ⚠**랩카드 주장의 범위** — 망 신호로 드론을 잰 **게재 논문은 여럿 있다**(우리가 처음이 아니다).
 공개 **데이터셋**은 여전히 LIPASE 하나이고 **우리 자신의 실측은 0 건**이다.
 ⇒ 살아남는 문장은 「우리 손에 없다」·「공개된 자료가 드물다」 뿐이다.
