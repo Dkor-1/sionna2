@@ -17,7 +17,7 @@
     ⛔이것을 «솔버의 결함» 으로도 «상쇄되니 괜찮다» 로도 읽지 않는다 — 재 보지 않았다.
   · ⛔D = E_장면 − E_빈하늘 은 «환경 산란» 이 아니다 — 차폐·드론 경로 변화·후보 탐색
     차이가 함께 들어간다. 「장면이 얹은 몫」으로만 부른다.
-  · ⛔expected_* 는 균일·독립 추출을 가정한 참고값이다. 자세는 시각이고 로터 위상
+  · ⛔approx_* 는 균일·독립 추출을 가정한 참고값이다. 자세는 시각이고 로터 위상
     구조가 있다 — 유의성 검정이 아니다.
   · ⛔실기 계측 대조는 0 건이다.
 
@@ -286,7 +286,7 @@ def main() -> int:
         if base in flags:
             fb = flags[base]; nb = int(fb.sum())
             print(f"\n  기준선 사건 {nb} 개 — 그 중 몇 개가 살아남나")
-            print(f"    {'칸':<24}{'남음':>6}{'잃음':>6}{'새로':>6}{'자카드':>9}{'기대 자카드':>12}")
+            print(f"    {'칸':<24}{'남음':>6}{'잃음':>6}{'새로':>6}{'자카드':>9}{'참고 자카드':>12}")
             for nm, fa in flags.items():
                 if fa.size != fb.size:
                     continue
@@ -297,10 +297,10 @@ def main() -> int:
                                  brand_new=int((~fb & fa).sum()),
                                  jaccard=round(inter / max(uni, 1), 4),
                                  expected_intersect_if_unrelated=round(e, 3),
-                                 expected_jaccard_if_unrelated=round(e / max(na + nb - e, 1e-9), 5))
+                                 approx_jaccard_if_unrelated=round(e / max(na + nb - e, 1e-9), 5))
                 p = pairs[nm]
                 print(f"    {nm:<24}{p['kept']:>6}{p['lost']:>6}{p['brand_new']:>6}"
-                      f"{p['jaccard']:>9.4f}{p['expected_jaccard_if_unrelated']:>12.5f}")
+                      f"{p['jaccard']:>9.4f}{p['approx_jaccard_if_unrelated']:>12.5f}")
         out["by_el"][f"{el:+g}"] = dict(cells=cells, pairs=pairs, missing=missing,
                                         baseline_events=(int(flags[base].sum())
                                                          if base in flags else None))
@@ -315,6 +315,11 @@ def main() -> int:
         "겹침 0.80 은 **합집합에서 공통이 아닌 몫** 이 20.1 %(75/373)라는 뜻이다 — "
         "기준 사건의 탈락률은 12.1 %(41/339)이고 전체 자세 8,192 중 판정이 바뀐 몫은 "
         "0.92 %(75/8,192)다. 세 비율의 분모가 다르니 «다섯 중 하나» 를 분모 없이 말하지 않는다.")
+    out["approx_jaccard_note_ko"] = (
+        "⛔이름을 2026-09-11 에 expected_ → approx_ 로 고쳤다. 이 값은 «자카드의 기댓값» 이 "
+        "**아니다** — 기대 교집합 n_a·n_b/N 을 비율식 J = ∩/(a+b−∩) 에 **넣은 근삿값**이다. "
+        "비율의 기댓값과 기댓값의 비율은 다르다(이 예에서 0.00503 대 0.00506). "
+        "⛔애초에 유의성 검정이 아니다 — 자세는 시각이고 로터 위상 구조가 있다.")
     out["limits_ko"] = [
         "⛔«널» 이 아니다 — 초기 광선은 씨앗 없는 결정적 피보나치 격자다"
         "(sionna/rt/utils/ray_tracing.py:24-30). 되풀이가 1.000 이면 «수치 재현성» 이고, "
@@ -324,7 +329,7 @@ def main() -> int:
         "«상쇄되니 괜찮다» 로도 읽지 않는다 — 재 보지 않았다.",
         "⛔D = E_장면 − E_빈하늘 은 «환경 산란» 이 아니다 — 차폐·드론 경로 변화·후보 "
         "탐색 차이가 함께 들어간다.",
-        "⛔expected_* 는 균일·독립 추출을 가정한 참고값이다 — 유의성 검정이 아니다.",
+        "⛔approx_* 는 균일·독립 추출을 가정한 참고값이다 — 유의성 검정이 아니다.",
         "⛔잣대 DEV=0.5 는 자유 파라미터다. 다른 값에서 수가 달라진다.",
         "⛔실기 계측 대조는 0 건이다."]
     with open(OUT, "w", encoding="utf-8") as f:

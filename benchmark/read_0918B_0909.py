@@ -28,6 +28,7 @@ def load(name):
     if not fs:
         return None
     E, I, P, DUP, TR = [], [], [], [], []
+    n_expected, prf, meta_mismatch, no_meta = None, None, [], []
     for f in fs:
         z = np.load(f)
         E.append(z["E"]); I.append(z["idx"])
@@ -46,10 +47,38 @@ def load(name):
         else:
             _rec = None                       # 진단 미수집 · 상한 미기재 — «경고 없음» 이 아니다
         TR.append(dict(file=os.path.basename(f), stored=_stored, cap=_cap, recomputed=_rec))
-    o = np.argsort(np.concatenate(I))
-    return {"E": np.concatenate(E)[o], "npaths": np.concatenate(P)[o],
+        #: ⛔⛔2026-09-11(3) — **이 공유 로더에 검사가 없었다.** 협곡·낙차 판독기에만 달아 둔
+        #  탓에 동체 사다리(read_bodyladder_0910)가 이 길로 **검사를 우회**했다 — 중복 인덱스·
+        #  표집률 불일치·반쪽 입력을 그대로 받았고, NaN 을 넣으니 사건 1 → 0 으로 발행했다.
+        #  ⇒ 검사를 **여기** 심는다. 판정은 부르는 쪽이 idx_ok 로 한다.
+        if "meta" in z.files:
+            _m = np.asarray(z["meta"]).ravel()
+            if _m.size > 3:
+                _n, _prf = int(_m[3]), (float(_m[4]) if _m.size > 4 else None)
+                if n_expected is not None and _n != n_expected:
+                    meta_mismatch.append(dict(file=os.path.basename(f), n_poses=_n, seen=n_expected))
+                if prf is not None and _prf is not None and _prf != prf:
+                    meta_mismatch.append(dict(file=os.path.basename(f), prf_hz=_prf, seen=prf))
+                n_expected, prf = _n, (_prf if _prf is not None else prf)
+        else:
+            no_meta.append(os.path.basename(f))
+    idx = np.concatenate(I)
+    o = np.argsort(idx)
+    Ecat = np.concatenate(E)[o]
+    #: ⛔복소 배열에 그대로 isfinite 를 건다 — view(float) 는 complex64 에서 못 잡는다
+    n_bad = int(np.count_nonzero(~np.isfinite(Ecat)))
+    n_uni = int(np.unique(idx).size)
+    ok = bool(n_uni == idx.size
+              and (n_expected is None or idx.size == n_expected)
+              and np.array_equal(idx[o], np.arange(idx.size))
+              and not meta_mismatch and not no_meta and n_bad == 0)
+    return {"E": Ecat, "npaths": np.concatenate(P)[o],
             "n_dup": np.concatenate(DUP)[o], "n_shards": len(fs),
-            "trunc": TR, "files": [os.path.basename(f) for f in fs]}
+            "trunc": TR, "files": [os.path.basename(f) for f in fs],
+            "idx_ok": ok, "n_rows": int(idx.size), "n_unique": n_uni,
+            "n_expected": n_expected, "prf_hz": prf,
+            "meta_mismatch": meta_mismatch, "shards_without_meta": no_meta,
+            "n_nonfinite": n_bad}
 
 
 def stem(spp=4_000_000_000, env="", rep=0, tail=""):
@@ -69,6 +98,17 @@ def db(x):
 def measure(free, out):                       # ⭐read_0914_0908.py:96-125 와 같은 코드
     F, O = free["E"], out["E"]
     if F.size != O.size:
+        return None
+    #: ⛔⛔2026-09-11(3) — 길이만 보면 «빈하늘 19,700 Hz · 장면 10,000 Hz» 짝이 통과한다.
+    #  쌍의 시간축과 온전성을 함께 본다. ⛔옛 호출자(딕셔너리에 이 키가 없는 경우)는 그대로 둔다.
+    for _k in ("idx_ok",):
+        if free.get(_k) is False or out.get(_k) is False:
+            return None
+    _pf, _po = free.get("prf_hz"), out.get("prf_hz")
+    if _pf and _po and _pf != _po:
+        return None
+    _nf, _no = free.get("n_expected"), out.get("n_expected")
+    if _nf and _no and _nf != _no:
         return None
     D = O - F
     med = complex(np.median(D.real), np.median(D.imag))

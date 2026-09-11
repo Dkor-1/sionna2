@@ -1133,14 +1133,18 @@ def analyse() -> None:
                         _nr = np.asarray(z["nret"])
                         n_tr += int(np.count_nonzero(_nr >= 0.99 * int(_nt[1])))
                         n_tr_recomputed += int(ii.size)
+                        n_seen += int(ii.size)
                     elif "nret" in z:
-                        _nr = np.asarray(z["nret"])
-                        n_tr += int(np.count_nonzero(_nr >= 0.99 * _cap_for_old))
-                        n_tr_assumed += int(ii.size)
+                        #: ⛔⛔2026-09-11(3) — 여기서 `_cap_for_old` 를 쓰면 **안 된다.**
+                        #  그 값은 이 고리가 끝난 **뒤**에 정해진다(:1161) — 첫 칸은
+                        #  UnboundLocalError 로 죽고, 뒤 칸은 **앞 칸의 상한**을 가져다 쓴다
+                        #  (실측: 같은 입력의 경고 수가 4 ↔ 8 로 갈렸다).
+                        #  ⇒ 상한을 모르는 샤드는 보류 경로로 모아 **상한이 정해진 뒤** 센다.
+                        _pend.append((np.asarray(z["nret"]).copy(), int(ii.size)))
                     else:
                         n_tr += int(_nt[0])
                         n_tr_from_stored += int(ii.size)
-                    n_seen += int(ii.size)
+                        n_seen += int(ii.size)
                 elif "nret" in z:
                     #: 옛 세대라 n_trunc 는 없지만 nret 는 있는 샤드 — 상한이 정해진
                     #  뒤(고리 밖)에서 센다. ⛔여기서 세면 아직 안 읽은 샤드가 들고 있는
@@ -1162,6 +1166,13 @@ def analyse() -> None:
             for _nr, _n in _pend:
                 n_tr += int(np.count_nonzero(_nr >= 0.99 * _cap_for_old))
                 n_seen += _n
+                #: ⛔⛔2026-09-11(3) — 전에는 여기서 **분류 합계를 안 올렸다.** 그래서 옛 세대
+                #  샤드만 있는 칸(거칠기 S0.3 · el −30)에서 n_trunc 8,192 인데 n_trunc_by 는
+                #  셋 다 0 이 나왔다. ⇒ 상한을 어디서 얻었는지에 따라 갈라 센다.
+                if cap_seen:
+                    n_tr_recomputed += _n      # 이 칸의 다른 샤드가 상한을 적어 두었다
+                else:
+                    n_tr_assumed += _n         # 아무 데서도 못 얻어 규약 기본값으로 쟀다
             miss = int((E == 0).sum())
             ft = f_tip_at(el, eng)
             series[f"{eng}/el{el:+g}"] = E
@@ -1207,16 +1218,21 @@ def analyse() -> None:
                                       from_stored=int(n_tr_from_stored),
                                       assumed_cap=int(n_tr_assumed))
             prov["n_trunc_recomputed_note_ko"] = (
-                "n_trunc 는 자세를 세 갈래로 잰 합이다 — ⓐrecomputed: nret 과 **저장된 상한**이 "
-                "둘 다 있어 지금 문턱(0.99)을 다시 적용 · ⓑfrom_stored: nret 이 없어 샤드에 적힌 "
-                "값을 그대로 씀(다시 셀 수 없다) · ⓒassumed_cap: nret 은 있으나 상한이 안 적혀 "
-                "규약 기본값으로 쟀다. n_trunc_by 가 갈래별 자세 수다. "
+                "n_trunc 는 자세를 세 갈래로 잰 합이다 — ⓐrecomputed: nret 이 있고 상한을 "
+                "**이 칸에서** 얻어(그 샤드 또는 같은 칸의 다른 샤드) 지금 문턱(0.99)을 다시 적용 · "
+                "ⓑfrom_stored: nret 이 없어 샤드에 적힌 값을 그대로 씀(다시 셀 수 없다) · "
+                "ⓒassumed_cap: 상한을 이 칸 어디서도 못 얻어 규약 기본값으로 쟀다. "
+                "⭐**세 갈래의 합은 n_poses_with_path_count 와 같아야 한다** — 다르면 결함이다. "
+                "n_trunc_by 가 갈래별 자세 수다. "
                 "n_trunc_stored 는 샤드에 적힌 값의 합이다. "
                 "⚠둘이 다르다고 «그 칸에 세대가 섞였다» 고 읽지 않는다(2026-09-11 정정) — "
                 "같은 옛 규칙으로만 구운 칸도 새 문턱으로 다시 세면 값이 달라진다. "
                 "⛔«잘린 자세 수» 가 아니라 «상한 근접 경고에 해당하는 자세 수» 다 — "
                 "nret 은 돌아온 경로 수의 어림수이지 후보가 잘렸다는 직접 계측이 아니다.")
             prov["n_poses_with_path_count"] = int(n_seen)
+            #: ⭐분류 합계가 자세 수와 맞나 — 안 맞으면 원장이 그 사실을 싣는다(2026-09-11(3))
+            prov["n_trunc_by_sums_ok"] = bool(
+                n_tr_recomputed + n_tr_from_stored + n_tr_assumed == n_seen)
             prov["max_paths_cap"] = cap_seen
             #: ⛔상한을 샤드에서 못 얻어 규약 기본값으로 잰 칸이면 그 사실을 적는다.
             prov["max_paths_cap_assumed"] = (_cap_for_old if (_pend and not cap_seen)

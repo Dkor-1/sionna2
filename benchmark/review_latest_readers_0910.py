@@ -231,9 +231,14 @@ def adversarial_check():
         for shard in range(2):
             idx=np.arange(shard,N,2);badidx=np.arange(0,N,2)
             p=np.full(len(idx),10);p[0]=2_000_000 if shard==0 else 10
-            for name,ii in [('free',idx),('duplicate_scene',badidx)]:
+            # ⭐2026-09-11(3) — 반례를 **둘로 가른다**. 한 쌍으로 관문과 상한 진단을 다 재려니
+            #   고친 관문이 그 쌍을 걸러 상한 쪽을 «못 쟀다» 로 만들었다.
+            #     free · good_scene       — 정상 쌍(상한 근접 진단을 여기서 잰다)
+            #     free · duplicate_scene  — 중복 인덱스(고친 관문이 걸러야 한다)
+            for name,ii in [('free',idx),('good_scene',idx),('duplicate_scene',badidx)]:
                 np.savez(Path(tmp)/f'{name}_el-60_{shard:02d}.npz',idx=ii,E=np.full(len(ii),1.+0j),
                          npaths=p,n_dup=np.zeros(len(ii),int),nret=p,
+                         meta=np.array([-60.,float(shard),2.,float(N),19700.,1.]),
                          n_trunc=np.array([1 if shard==0 else 0,2_000_000]))
             name=f'sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_{shard:02d}.npz'
             # ⛔2026-09-11(2) — meta 를 넣는다. 새 검사가 «meta 없는 샤드» 를 거절하므로
@@ -243,8 +248,20 @@ def adversarial_check():
                     meta=np.array([0.,float(shard),2.,float(N),19700.,1.]))
             if shard==0: kw['n_dup']=np.full(len(idx),2)
             np.savez(Path(tmp)/name,**kw)
-        F,nf=ns['load']('free',-60);O,no=ns['load']('duplicate_scene',-60)
-        r=ms['measure'](F,O)
+        F,nf=ns['load']('free',-60)
+        G,ng=ns['load']('good_scene',-60)          # 정상 쌍 — 상한 진단을 여기서 잰다
+        O,no=ns['load']('duplicate_scene',-60)     # 중복 인덱스 — 관문이 걸러야 한다
+        r=ms['measure'](F,G)                        # ⭐정상 쌍으로 잰다
+        r_dup=ms['measure'](F,O)                    # 중복 쌍 — None 이어야 «고쳐진» 것
+        # ⛔⛔2026-09-11(3) — measure() 가 이제 **쌍의 온전성까지 보고 None 을 낸다**(중복 인덱스
+        #   장면이 바로 그 경우다). 전에는 r['...'] 로 곧장 들어가 TypeError 로 죽었다.
+        #   ⇒ None 은 «고친 관문이 걸렀다» 는 뜻이므로 그렇게 적는다.
+        _rejected = r_dup is not None      # 중복 쌍이 통과하면 관문이 아직 안 걸린 것이다
+        if r is None:                       # 정상 쌍까지 거절되면 그건 우리 잘못이다
+            r = {"trunc_outdoor": None, "at_path_cap": None,
+                 "n_poses_near_cap_now": None, "n_shards_without_cap_diag": None}
+        _pair_ok = ms['measure'](F,G) is not None
+
         # ⚠옛 관문(길이·샤드 수만) — 이것이 결함을 낳던 경로다
         accepted=nf>=2 and no>=2 and F['E'].size==O['E'].size and r is not None
         # ⭐⭐2026-09-11 — **고친 관문**도 함께 잰다. 위 것만 재면 고친 뒤에도 «결함이 남았다» 로
@@ -284,7 +301,10 @@ def adversarial_check():
         result=dict(kind='Synthetic fixtures passed to AST-extracted current functions; not observed data corruption.',
                     n_declared=N,n_scene_unique_indices=N//2,
                     equal_length_duplicate_index_accepted=bool(accepted),
-                    accepted_through_fixed_gate=gated,
+                    accepted_through_fixed_gate=bool(gated and _rejected),
+                    duplicate_pair_rejected=bool(not _rejected),
+                    good_pair_accepted=bool(_pair_ok),
+                    measure_rejected_pair=(not _pair_ok),
                     load_reports_idx_ok=dict(free=F.get('idx_ok'),scene=O.get('idx_ok')),
                     synthetic_recorded_near_cap_events=1,returned_trunc=r['trunc_outdoor'],
                     returned_at_path_cap=r['at_path_cap'],
@@ -311,11 +331,14 @@ def adversarial_check():
         # 중복 인덱스 칸이 고친 관문을 그대로 통과하는가
         equal_length_duplicate_index_accepted=bool(result['accepted_through_fixed_gate']),
         # 상한 진단이 버려지는가 — 이제 measure 가 다시 센 수를 들고 온다
-        trunc_diagnostic_dropped=bool(result['recomputed_poses_near_cap'] is None
-                                      and result['returned_trunc']==[]),
-        # 드문 자세의 상한 근접을 못 잡는가
-        median_only_cap_flag=bool((result['recomputed_poses_near_cap'] or 0) <
-                                  result['synthetic_recorded_near_cap_events']),
+        # ⛔쌍이 거절됐으면 이 둘은 «못 쟀다» 다 — «고쳐졌다» 로도 «남았다» 로도 쓰지 않는다
+        # ⭐정상 쌍에서 잰다 — 그 쌍이 거절되면 «못 쟀다»(None)
+        trunc_diagnostic_dropped=(None if result['measure_rejected_pair'] else
+                                  bool(result['recomputed_poses_near_cap'] is None
+                                       and result['returned_trunc']==[])),
+        median_only_cap_flag=(None if result['measure_rejected_pair'] else
+                              bool((result['recomputed_poses_near_cap'] or 0) <
+                                   result['synthetic_recorded_near_cap_events'])),
         # 미계측(−1)을 «줄<3» 으로 세는가
         # ⛔생산 main() 이 안 돌았으면 «고쳐졌다» 로 찍지 않는다 — 모르는 것은 모른다고 둔다
         # ⭐기대값과 **직접** 견준다 — «unknown 과 같지 않다» 로는 1 개 오집계를 놓친다
@@ -530,12 +553,36 @@ def render(o):
                 ('잠재 결함 검산','실제 데이터와 분리된 합성 샤드를 현재 판독 함수에 입력')],
         repro=dict(cmd=["CUDA_VISIBLE_DEVICES='' /workspace/.venvs/py312/bin/python benchmark/review_latest_readers_0910.py"],
                    out=[j],runtime='CPU 한 코어, 저장 자료 판독'))]
+    # ⛔⛔2026-09-11(3) — 노트북이 마크다운과 따로 놀았다. 제목은 [고쳐짐]인데 노트북의
+    #   수정 제안과 작업 목록은 여전히 「아틀라스를 정정하라」였다. ⇒ 둘 다 **측정 상태**에서 낸다.
     for i,f in enumerate(o['findings']):
-        blocks.append(md(f"## {i+1}. {f['title']}",'',f['replacement'],'',
+        _fx = f.get('fixed')
+        _head = f"## {i+1}. {f['title']}"
+        _body = f['replacement']
+        if _fx is True:
+            _body = ('⭐**이 지적은 고쳐졌다**(2026-09-11 측정). '
+                     + (f.get('fixed_note_ko') or '') + ' 아래 제안은 지적 당시의 것이다.\n\n'
+                     + _body)
+        elif _fx is False:
+            _body = '⛔**현재 코드에서도 재현된다.**\n\n' + _body
+        blocks.append(md(_head,'',_body,'',
             f"[원문·재계산·조건·한정](LATEST_READERS_REVIEW_0910.md) ⟨{j} : findings[{i}]⟩"))
-    blocks.append(next_steps([
-        ('아틀라스 대역과 관련 산출물을 정정한다','같은 신호에서 발생한 지표 정의의 차이','LATEST_READERS_REVIEW_0910.md'),
-        ('판독기 검증과 문서 판정 규칙을 정리한다','진단 누락과 집합·분모 해석의 혼동','LATEST_READERS_REVIEW_0910.md')]))
+    _steps=[]
+    if not bool(a.get('prop_scale_applied')):
+        _steps.append(('아틀라스 대역과 관련 산출물을 정정한다','같은 신호에서 발생한 지표 정의의 차이',
+                       'LATEST_READERS_REVIEW_0910.md'))
+    else:
+        _steps.append(('아틀라스 정정이 되살아나지 않는지 회귀로 지킨다',
+                       '대역 정의는 이미 고쳐 다시 구웠다(철회 기록 R30)','../docs/RETRACTION_LOG.md'))
+    if x_defects:
+        _steps.append(('판독기 검증과 문서 판정 규칙을 정리한다','진단 누락과 집합·분모 해석의 혼동',
+                       'LATEST_READERS_REVIEW_0910.md'))
+    else:
+        _steps.append(('판독기 수정이 되살아나지 않는지 회귀로 지킨다',
+                       '합성 반례 넷이 현재 코드에서 재현되지 않는다','LATEST_READERS_REVIEW_0910.md'))
+    _steps.append(('집합·분모·참고값의 이름을 문서와 맞춘다',
+                   '자카드 근삿값·분모 구분은 문면 몫이다','LATEST_READERS_REVIEW_0910.md'))
+    blocks.append(next_steps(_steps))
     build_notebook(str(NB),blocks,strict=True)
 
 

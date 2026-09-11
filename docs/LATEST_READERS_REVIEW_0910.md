@@ -80,7 +80,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 
 **원문 위치:**
 
-- [read_canyonnull_0910.py:321](../benchmark/read_canyonnull_0910.py#L321)
+- [read_canyonnull_0910.py:326](../benchmark/read_canyonnull_0910.py#L326)
 > "예산 변경은 «격자를 갈았을 때의 민감도» 다. 두 점은 신뢰구간이 아니다.",
 
 - [RESUME_0911.md:None](../work/sweep_0904/RESUME_0911.md) — 현재 파일에서 해당 문구를 찾지 못함
@@ -119,7 +119,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 
 새 load는 n_trunc를 읽지 않고 trunc=[]를 반환한다. 이어 호출한 measure의 at_path_cap는 npaths의 중앙값으로 계산되므로 드문 자세의 상한 근접을 감지하는 대체 장치도 아니다.
 
-**근거와 한정:** 발간된 협곡 10개 조건의 장면·자유공간 샤드를 직접 읽었으며, 저장된 상한 근접 사건 합계는 0개, 해당 진단이 없는 샤드는 12개였다. 읽은 반환 경로 수의 최댓값은 4071개였다. 따라서 이 발간값에서 실제 잘림을 발견한 것은 아니다. 합성 입력에 상한 근접 1건을 넣으면 현재 함수는 trunc=[{'file': 'duplicate_scene_el-60_00.npz', 'stored': 1, 'cap': 2000000, 'recomputed': 1, 'nret_max': 2000000, 'n_poses': 4096}, {'file': 'duplicate_scene_el-60_01.npz', 'stored': 0, 'cap': 2000000, 'recomputed': 0, 'nret_max': 10, 'n_poses': 4096}], at_path_cap=False를 반환했다. n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.
+**근거와 한정:** 발간된 협곡 10개 조건의 장면·자유공간 샤드를 직접 읽었으며, 저장된 상한 근접 사건 합계는 0개, 해당 진단이 없는 샤드는 12개였다. 읽은 반환 경로 수의 최댓값은 4071개였다. 따라서 이 발간값에서 실제 잘림을 발견한 것은 아니다. 합성 입력에 상한 근접 1건을 넣으면 현재 함수는 trunc=[{'file': 'good_scene_el-60_00.npz', 'stored': 1, 'cap': 2000000, 'recomputed': 1, 'nret_max': 2000000, 'n_poses': 4096}, {'file': 'good_scene_el-60_01.npz', 'stored': 0, 'cap': 2000000, 'recomputed': 0, 'nret_max': 10, 'n_poses': 4096}], at_path_cap=False를 반환했다. n_trunc 자체도 반환 수의 상한 근접 휴리스틱이며 후보 잘림의 직접 계측은 아니다. 영 경고는 무잘림 증명이 아니다.
 
 **권장 표현:** 저장된 상한 근접 진단을 읽어 보고하며, 진단 미수집과 경고 없음은 구분한다. 반환 수 기반 휴리스틱의 한정은 유지한다.
 
@@ -132,7 +132,7 @@ comb_snr의 배율 보정을 고쳐도 build_md_atlas.arm_rates는 기본 기체
 - [read_canyonnull_0910.py:132](../benchmark/read_canyonnull_0910.py#L132)
 > TR.append(_trunc_of(z, os.path.basename(f)))
 
-- [read_0918B_0909.py:97](../benchmark/read_0918B_0909.py#L97)
+- [read_0918B_0909.py:137](../benchmark/read_0918B_0909.py#L137)
 > r["median_npaths_near_cap"] = bool(np.median(npa[npa >= 0]) >= 0.99 * CAP)
 
 - [elevation_sweep_md.py:1126](../benchmark/elevation_sweep_md.py#L1126)
