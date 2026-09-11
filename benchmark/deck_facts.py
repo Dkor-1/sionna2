@@ -608,6 +608,24 @@ def pdf_text(path: str) -> str:
     return _pdf_cache[path]
 
 
+def squash(s: str) -> str:
+    """공백을 **전부 지운** 판. ⛔PDF 추출이 낱말 사이 공백을 잃는 일이 잦다.
+
+    ⛔⛔2026-09-11 사고 — `"phantom 3" not in pdf_text(...)` 가 **참** 을 냈고 그것으로
+      「Taylor & Poullin 전문에 Phantom 3 이 없다」를 사실로 실었다. 실제 추출문은
+      `thetargetusedwasadjiphantom3` 이라 공백이 통째로 빠져 있었다 — 논문은 두 실험에서
+      **Phantom 4 와 Phantom 3 을 둘 다** 쓴다.
+      ⇒ «없다» 를 셀 때는 **반드시 이 판으로도** 본다. norm() 은 공백을 합칠 뿐 되살리지 못한다.
+    """
+    return re.sub(r"\s+", "", s)
+
+
+def absent(pdf: str, phrase: str) -> bool:
+    """그 말이 전문에 **정말 없나**. 공백 있는 판과 없는 판 **둘 다** 본다."""
+    t = pdf_text(pdf)
+    return (norm(phrase) not in t) and (squash(norm(phrase)) not in squash(t))
+
+
 def verify_quote(qid: str, pdf: str, fragment: str) -> bool:
     if not os.path.exists(pdf):
         return check(f"Q.{qid}", False, f"PDF 없음: {pdf}")
@@ -2101,12 +2119,24 @@ def main() -> int:
     verify_quote("TAY28", PDF_TAYLOR, "The highest SNR is obtained by using all the symbols")
     verify_quote("TAY29", PDF_TAYLOR, "the ideal gain one could expect would be of 10 log")
     verify_quote("TAY.p4", PDF_TAYLOR, "a DJI Phantom 4 drone evolving above the surveillance antenna")
-    # ⚠ 다른 라운드가 이 논문 표적을 'Phantom 3' 으로 적었다. 원문은 Phantom 4 다 — 아래가 그 증거.
+    # ⛔⛔2026-09-11 정정 — 이 자리에 **틀린 사실**이 실려 있었다.
+    #   옛 검사: `"phantom 3" not in pdf_text(PDF_TAYLOR)` → 참 → 「전문에 Phantom 3 이 없다」.
+    #   그러나 PDF 추출문이 `thetargetusedwasadjiphantom3` 로 **공백을 잃어** 그렇게 보였을 뿐이다.
+    #   논문은 **두 실험**에서 기체를 달리 쓴다 — 지붕 실험은 Phantom 4, 조용한 지역 실험은 Phantom 3.
+    #   ⇒ deepread_reconcile.json 의 'DJI Phantom 3' 기재는 **정정 대상이 아니었다.**
+    _tay_sq = squash(pdf_text(PDF_TAYLOR))
     check(
         "REC.phantom",
-        "phantom 3" not in pdf_text(PDF_TAYLOR),
-        "Taylor & Poullin 표적은 Phantom 4 다 — 전문에 'Phantom 3' 문자열이 없다"
-        "(outputs/deepread_reconcile.json 의 'DJI Phantom 3' 기재는 정정 대상)",
+        ("phantom4" in _tay_sq) and ("phantom3" in _tay_sq),
+        "Taylor & Poullin 은 표적 기체를 **둘** 쓴다 — 지붕 실험 DJI Phantom 4, 조용한 지역 실험 "
+        "DJI Phantom 3. ⛔옛 기록 「전문에 Phantom 3 이 없다」는 **틀렸다**(공백이 지워진 추출문을 "
+        "그대로 센 탓). 이 논문을 인용할 때 기체를 하나로 적지 않는다.",
+    )
+    #: ⭐같은 함정이 다른 «없다» 검사에도 걸리는지 본다 — 공백 없는 판으로도 세어 맞춰 본다
+    check(
+        "REC.phantom.squash_guard",
+        absent(PDF_TAYLOR, "phantom 5") is True,
+        "absent() 가 공백 있는 판과 없는 판을 둘 다 본다 — 없는 말은 여전히 «없다» 로 나온다",
     )
     # Chen 전문에 반복률 기호가 없다는 계수(R10 의 근거)
     _ct = pdf_text(PDF_CHEN)

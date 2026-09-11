@@ -1,11 +1,11 @@
 # DECK_FACTS — 0804 팀미팅 덱이 인용해도 되는 사실 기반
 
-생성 2026-09-06 08:09:40 · 생성기 `benchmark/deck_facts.py` · 런타임 1.9 s
+생성 2026-09-11 07:20:40 · 생성기 `benchmark/deck_facts.py` · 런타임 1.6 s
 
 > **증거 규칙**  한 주장은 (a) 내가 직접 연 PDF 의 축자 문장이거나, (b) 디스크의 JSON 에서 우리가 계산했고 재현 가능하거나, 둘 중 하나다. 나머지는 UNVERIFIED 로 라벨하거나 뺀다.
 > 인용은 매 빌드 PDF 페이지 텍스트에 재대조된다. 개수 주장은 **코퍼스 이름을 달고 다닌다**.
 
-**사실 32건**(축자 인용 9 · 우리 계산 22 · SECONDHAND 1 · UNVERIFIED 0) · **철회 10건** · **열린 구멍 7건** · 자체검사 41/42 통과 (인용 재대조 13건)
+**사실 32건**(축자 인용 9 · 우리 계산 22 · SECONDHAND 1 · UNVERIFIED 0) · **철회 10건** · **열린 구멍 7건** · 자체검사 42/43 통과 (인용 재대조 13건)
 
 ⚠ SECONDHAND ['F30'] — 다른 라운드가 연 PDF 의 인용에 기댄다. 슬라이드에 올리기 전 원문을 직접 열 것.
 
@@ -33,7 +33,7 @@
 - **Q. 무향실 시뮬레이션이 실제 배치와 무슨 상관인가.**
   - A. 상관없다고 인정하는 것이 정답이다. 챔버는 **통제된 비교대**이지 배치 예측이 아니다. 배치 주장은 실측(외부 필드테스트, X410)으로만 한다. 그리고 우리가 인용하는 실측 앵커는 우리 것이 아니라 공개 문헌 RCS 다.
 - **Q. 그 6/9 는 자기 채점 아닌가.**
-  - A. 그렇다. 그래서 채점표가 아니라 **근거표**를 낸다 — 234칸 중 80칸이 축자 인용이고, 그 인용의 PDF 원문 재대조는 80/80 통과다. ⛔ 옛 답의 «빌드가 매 실행 PDF 와 재대조한다» 는 내렸다 — 재대조를 실제로 도는 것은 benchmark/capability_matrix.py 의 매트릭스 빌드(2026-08-03T02:01:46)이고, 이 덱 빌드는 그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다. 판정에 동의하지 않으면 근거를 보고 다시 채점할 수 있다. 그리고 우리 행에도 NONE 이 두 개 있다.
+  - A. 그렇다. 그래서 채점표가 아니라 **근거표**를 낸다 — 234칸 중 80칸이 축자 인용이고, 그 인용의 PDF 원문 재대조는 80/80 통과다. ⛔ 옛 답의 «빌드가 매 실행 PDF 와 재대조한다» 는 내렸다 — 재대조를 실제로 도는 것은 benchmark/capability_matrix.py 의 매트릭스 빌드(2026-09-10T06:13:50)이고, 이 덱 빌드는 그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다. 판정에 동의하지 않으면 근거를 보고 다시 채점할 수 있다. 그리고 우리 행에도 NONE 이 두 개 있다.
 
 **절대 말하지 않는다**
 - ⛔ '무모호 속도 식을 우리가 제시한다/유도한다' — Abratkiewicz 2023 eq.(16) 이 문자 그대로 같다.
@@ -315,10 +315,10 @@
 
 ### [포지셔닝]
 
-#### F12 · 능력 매트릭스는 26행 × 9열 = 234칸이고, UNVERIFIED 칸이 0개다 — 80칸은 축자 인용이고, 그 인용의 PDF 원문 재대조는 80/80 통과다. ⚠ 이 재대조가 돈 것은 매트릭스 빌드(2026-08-03T02:01:46) 이고, 이 덱 빌드는 그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다 — 이번 실행에서 다시 돌리지 않았다.
+#### F12 · 능력 매트릭스는 26행 × 9열 = 234칸이고, UNVERIFIED 칸이 0개다 — 80칸은 축자 인용이고, 그 인용의 PDF 원문 재대조는 80/80 통과다. ⚠ 이 재대조가 돈 것은 매트릭스 빌드(2026-09-10T06:13:50) 이고, 이 덱 빌드는 그 원장(outputs/capability_matrix.json : counts.quote_selfcheck)을 읽기만 한다 — 이번 실행에서 다시 돌리지 않았다.
 
 - **등급** `computed-by-us`
-- **EN** The capability matrix is 26x9 = 234 cells with zero UNVERIFIED; 80 of them are verbatim quotes whose re-check against the PDFs passed 80/80 in the matrix build of 2026-08-03T02:01:46; this deck build only reads that ledger and does not re-run the check.
+- **EN** The capability matrix is 26x9 = 234 cells with zero UNVERIFIED; 80 of them are verbatim quotes whose re-check against the PDFs passed 80/80 in the matrix build of 2026-09-10T06:13:50; this deck build only reads that ledger and does not re-run the check.
 - **json** `outputs/capability_matrix.json : counts`
 - **generator** `benchmark/capability_matrix.py`
 - **figures** `{'full': {'png': 'outputs/figures/capability_matrix.png', 'pdf': 'outputs/figures/capability_matrix.pdf'}, 'slide': {'png': 'outputs/figures/capability_matrix_slide.png', 'pdf': 'outputs/figures/capability_matrix_slide.pdf'}}`
@@ -434,7 +434,7 @@
 - **command** `grep -n 'def rcs_sbr_batch' -A6 src/rcs_sbr.py   # ptd=False 기본값
 grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 - **json** `outputs/psolve_diffraction.json : our_p4_state_verified`
-- **수치** `{"hits_by_file": {"src/rcs_sbr.py": 37, "src/rcs_po.py": 1}, "total_hits": 38, "note_ko": "⚠이 개수는 «모서리항이 있다» 는 뜻이 아니다 — 대부분 PTD 배선의 주석·인자다.", "ptd_default_off": true, "attach_to_sbr_field_callers": []}`
+- **수치** `{"hits_by_file": {"src/rcs_sbr.py": 41, "src/rcs_po.py": 1}, "total_hits": 42, "note_ko": "⚠이 개수는 «모서리항이 있다» 는 뜻이 아니다 — 대부분 PTD 배선의 주석·인자다.", "ptd_default_off": true, "attach_to_sbr_field_callers": []}`
 - **⭐ 예상 공격** — 그러면 결과를 믿을 수 없는 것 아닌가.
 - **우리 답** — 영향의 크기를 우리가 계산했다(F24). 회절항 부재가 밴드 기울기 초과의 가장 유력한 물리적 후보이지만, 우리 자체 산술은 그것만으로 전부를 설명하기 어렵다고 말한다 — 우리 유효 지수는 2 가 아니라 0.55~1.27 이라 PO 적분이 이미 단일 평판이 아니다. 그래서 PTD 는 **수정이 아니라 진단으로 먼저** 붙일 계획이다.
 
@@ -560,7 +560,7 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 
 - **이전** — 엔트리 81건 중 축자 인용 8건, 출력 전반에 UNVERIFIED 마커 다수.
 - **지금** — ⚠ 부분적으로만 개선. 넓은 코퍼스의 인용 커버리지는 그대로다(PDF 가 디스크에 있는 엔트리 41건). outputs 전체의 UNVERIFIED 마커는 오히려 784개로 늘었다 — 검증이 후퇴해서가 아니라 스윕이 더 돌아 미검증 항목이 더 많이 **드러났기** 때문이다.
-- **무엇이 바뀌었는가** — ⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 UNVERIFIED 는 0 이고, 인용 80건은 매트릭스 빌드(2026-08-03T02:01:46)가 PDF 페이지 텍스트와 재대조해 80/80 통과했다(⛔ «매 빌드 재대조된다» 는 내렸다 — 덱 빌드는 그 원장 outputs/capability_matrix.json 을 읽기만 한다). 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.
+- **무엇이 바뀌었는가** — ⭐ 발표가 실제로 인용하는 좁은 코퍼스는 다르다 — 능력 매트릭스 26행 234칸에서 UNVERIFIED 는 0 이고, 인용 80건은 매트릭스 빌드(2026-09-10T06:13:50)가 PDF 페이지 텍스트와 재대조해 80/80 통과했다(⛔ «매 빌드 재대조된다» 는 내렸다 — 덱 빌드는 그 원장 outputs/capability_matrix.json 을 읽기만 한다). 덱은 넓은 코퍼스가 아니라 이 좁은 코퍼스에서만 인용한다.
 - **정직한 문장** — '우리 문헌 조사가 검증되었다' 고 말하면 안 된다. '덱이 인용하는 26행은 검증되었고, 배후의 81개 엔트리 대부분은 서지 수준이다' 가 참이다.
 - **⭐ 예상 공격** — 그럼 배후 코퍼스의 결론(H8 등)은 어떻게 믿는가.
 - **우리 답** — H8 판정은 배후 코퍼스가 아니라 전문 판정 12편에서 나왔고, 그 12편은 PDF 를 열었다. 배후 81 엔트리는 '무엇을 아직 안 읽었는지' 의 지도이지 결론의 근거가 아니다.
@@ -646,7 +646,8 @@ grep -rn 'attach_to_sbr_field(' --include='*.py' . | grep -v ptd_edges.py`
 | `Q.TAY28` | ✅ | TAY28 조각 대조: The highest SNR is obtained by using all the symbols... |
 | `Q.TAY29` | ✅ | TAY29 조각 대조: the ideal gain one could expect would be of 10 log... |
 | `Q.TAY.p4` | ✅ | TAY.p4 조각 대조: a DJI Phantom 4 drone evolving above the surveillance antenn... |
-| `REC.phantom` | ✅ | Taylor & Poullin 표적은 Phantom 4 다 — 전문에 'Phantom 3' 문자열이 없다(outputs/deepread_reconcile.json 의 'DJI Phantom 3' 기재는 정정 대상) |
+| `REC.phantom` | ✅ | Taylor & Poullin 은 표적 기체를 **둘** 쓴다 — 지붕 실험 DJI Phantom 4, 조용한 지역 실험 DJI Phantom 3. ⛔옛 기록 「전문에 Phantom 3 이 없다」는 **틀렸다**(공백이 지워진 추출문을 그대로 센 탓). 이 논문을 인용할 때 기체를 하나로 적지 않는다. |
+| `REC.phantom.squash_guard` | ✅ | absent() 가 공백 있는 판과 없는 판을 둘 다 본다 — 없는 말은 여전히 «없다» 로 나온다 |
 | `R10.prf` | ✅ | Chen 2024 전문의 'PRF' 출현 0회 — '같은 기호로 냈다' 는 우리 서술의 반례 |
 
 **실패한 검사**
