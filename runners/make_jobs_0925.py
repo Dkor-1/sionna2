@@ -20,7 +20,7 @@
 ■ 무엇을 사나 — 협곡 · matrice4e · 15 m · 팔 R0D0E0F1 · 깊이 2 · 자세 8,192
   이미 있는 점: 3.8e9(−5 %) · 4.0e9(기준) · 4.2e9(+5 %)
   새로 사는 점: **3.6e9(−10 %) · 3.9e9(−2.5 %) · 4.1e9(+2.5 %) · 4.29e9(+7.25 %)**
-  두 앙각(−30 · −60) × 네 점 × 샤드 2 = **16 줄**
+  두 앙각(−30 · −60) × 네 점 × 샤드 2 = **32 줄** (장면 16 + 빈 하늘 16)
 
   ⛔⛔**이 축은 위로 비대칭이다 — 천장이 있다.** 처음에 +10 %(4.4e9)로 잡았더니
     `elevation_sweep_md.py:567` 의 가드가 막았다: Sionna 표본기의 `wavefront_size` 가 uint32 라
@@ -72,14 +72,19 @@ OUT.append("#  ⛔이것으로 다른 기체의 자세 집합을 견줄 수 있�
 OUT.append("#  ⛔실기 계측 대조는 0 건이고 이 판으로도 안 생긴다.")
 OUT.append("#  ⛔축이 위로 비대칭이다 — uint32 천장 4,294,967,295 때문에 +10 % 는 못 산다.")
 OUT.append("#     위쪽 끝은 4.29e9(+7.25 %)가 한계다. 결과에 이 비대칭을 함께 적는다.")
-OUT.append("#  ⚠한 샤드가 실측 중앙 238 분이다 — 16 줄이면 어림 64 일꾼시간.")
+OUT.append("#  ⚠한 샤드가 실측 중앙 238 분이다 — 32 줄이면 어림 64 일꾼시간.")
 OUT.append("")
 for el in ELS:
     OUT.append(f"# ── 앙각 {el:+d} — 이미 있는 점 3.8e9 · 4.0e9 · 4.2e9 사이와 바깥")
     for spp, lbl in SPPS:
         OUT.append(f"#   예산 {spp:,} ({lbl})")
         for k in range(NSH):
+            #: ⭐⭐**장면과 빈 하늘을 같은 예산으로 짝지어 산다.**
+            #  ⛔read_canyonnull_0910.stem() 이 둘을 같은 예산으로 묶는다 — 장면만 사면
+            #    그 예산 점은 **한 칸도 못 읽는다**(2026-09-11 실측: 새 점의 빈 하늘 0 장).
             OUT.append(f"{BASE} --spp {spp} --sw {ARM} --els={el} --env {ENV} "
+                       f"--shard {k} --nshards {NSH}")
+            OUT.append(f"{BASE} --spp {spp} --sw {ARM} --els={el} "
                        f"--shard {k} --nshards {NSH}")
     OUT.append("")
 
