@@ -1,0 +1,36 @@
+# ══ 0928 큐 — 실외에서 물리 스위치를 처음으로 흔든다 ══
+#  ⛔여기 적힌 것은 «물음» 이지 «답» 이 아니다.
+#  ⛔「어느 팔이 맞는가」를 답하지 않는다 — 다섯 팔은 전부 근사다.
+#  ⛔팔 사이의 절대 레벨을 견주지 않는다. 같은 팔 안에서 장면이 얹은 몫만 읽는다.
+#  ⛔지면만·건물만은 우리 장면을 조각낸 것이다 — 솔버가 주는 협곡과 같지 않다.
+#  ⛔드론 고도가 장면마다 다르다(우리 20 m · 솔버 25 m).
+#  ⛔el 0 은 안 산다(GATES_0902 — 그 앙각의 빈 하늘 기록은 인용이 막혀 있다).
+#  ⛔실기 계측 대조는 0 건이고 이 판으로도 안 생긴다.
+
+# ── A 지면만 — 장면 조각 × 물리 축을 처음 교차시킨다
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-15 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-15 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-45 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-45 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-75 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-75 --env outdoor01_ground --shard 1 --nshards 2
+#   위 6 줄 · 한 샤드 어림 190 분 ⇒ 19 일꾼시간
+
+# ── A 건물만 — 같은 교차 · 확산만 팔의 −75 도 함께
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-15 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-15 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-45 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-45 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-75 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-75 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_bldg --shard 1 --nshards 2
+#   위 8 줄 · 한 샤드 어림 276 분 ⇒ 37 일꾼시간
+
+# ── B 거리 협곡 — 덱 9 쪽이 열어 둔 ⚠를 두 앙각 더 본다
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-15 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-15 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-45 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D1E1F1 --els=-45 --env sionna:simple_street_canyon --shard 1 --nshards 2
+#   위 4 줄 · 한 샤드 어림 515 분 ⇒ 34 일꾼시간
+
