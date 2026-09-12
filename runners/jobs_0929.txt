@@ -1,0 +1,46 @@
+# ══ 0929 큐 — 대역 안에서 표적이 평평한가 ══
+#  ⛔여기 적힌 것은 «물음» 이지 «답» 이 아니다.
+#  ⛔OFDM 을 계산하는 것이 아니다 — 대역 안 네 점을 따로 계산해 평평함만 본다.
+#  ⛔반송파가 바뀌면 날개끝 도플러도 fc 에 비례한다 — 겹쳐 볼 때 주파수축을 fc 로 나눈다.
+#  ⛔이 판이 «파형 벤치마크가 맞다/틀리다» 를 결정하지 않는다.
+#  ⛔실기 계측 대조는 0 건이고 이 판으로도 안 생긴다.
+#  ⚠대역 중앙 3.500 GHz 는 이미 있다 — 네 점만 사면 다섯 점이 선다.
+
+# ── 빈 하늘 — 표적만
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-60 --shard 1 --nshards 2
+#   위 16 줄 · 한 샤드 어림 38 분 ⇒ 10 일꾼시간
+
+# ── 우리 실외 — 장면이 끼면
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-60 --env outdoor01 --shard 1 --nshards 2
+#   위 16 줄 · 한 샤드 어림 121 분 ⇒ 32 일꾼시간
+
