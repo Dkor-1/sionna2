@@ -66,6 +66,7 @@ import argparse
 import glob
 import json
 import os
+import uuid
 import re
 import sys
 import time
@@ -685,6 +686,7 @@ def run(a) -> None:
                     print(f"    el{el:+g} sh{a.shard}: {j}/{idx.size} "
                           f"{e/60:.1f}분 ETA {(idx.size-j)/j*e/60:.1f}분", flush=True)
             np.savez_compressed(f, idx=idx, E=E,
+                                **bake_stamp(t0),
                                 meta=np.array([el, a.shard, a.nshards, n, prf,
                                                time.time() - t0]),
                                 # ⭐출처 — 우리 팔은 광선 예산·깊이가 없으므로 NaN 으로 둔다.
@@ -964,6 +966,7 @@ def run(a) -> None:
                   flush=True)
         np.savez_compressed(f, idx=idx, E=E, npaths=npaths, nret=nret,
                             E_dedup=E_dedup, n_dup=n_dup,
+                            **bake_stamp(t0),
                             n_trunc=np.array([_ntr, int(RP.MAX_PATHS)]),
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
@@ -985,6 +988,27 @@ def run(a) -> None:
 
 
 # ═══ 병합·분석 ══════════════════════════════════════════════════════════════
+#: ⭐⭐**굽기 식별자** (2026-09-12 신설) — 한 칸에 굽기가 두 번 남았을 때 «어느 굽기의
+#  것인가» 를 **파일 안에서** 알 수 있게 한다.
+#
+#  ⛔왜 필요한가: 옛 코드는 굽기를 **파일 수정 시각(mtime)** 으로 갈랐다. mtime 은 파일
+#    내용이 아니라 파일계의 메타라 복사·rsync·백업 복원·touch 한 번에 바뀐다. 그래서
+#    `touch` 하나로 칸 전체가 뒤집혔다(적대적 검증, 2026-09-12).
+#  ⭐지금은 조각 수(meta[2])로 먼저 가르는데, **조각 수까지 같은 두 굽기**는 그것으로도
+#    못 가른다. 그 자리를 이 두 값이 메운다:
+#      t_start  이 샤드를 굽기 시작한 때(에포크 초). **파일 안에 적히므로** touch 로 안 바뀐다.
+#      run_id   이 프로세스의 식별자. 같은 굽기의 조각들은 서로 다른 프로세스라 값이
+#               다르지만, 「누가 언제 썼나」를 사후에 되짚을 수 있다.
+#  ⛔옛 샤드 7,472 장에는 이 둘이 **없다.** 없으면 옛 갈래(조각 수 → mtime)로 내려간다 —
+#    새 값이 있는 칸만 더 단단해진다. 이름·meta 자리는 건드리지 않아 옛 판과 그대로 이어진다.
+RUN_ID = os.environ.get("SIONNA2_RUN_ID") or uuid.uuid4().hex[:16]
+
+
+def bake_stamp(t0: float) -> dict:
+    """샤드에 함께 넣을 굽기 도장. `np.savez_compressed(**bake_stamp(t0))` 로 쓴다."""
+    return dict(t_start=np.array([float(t0)]), run_id=np.array(RUN_ID))
+
+
 def shard_done(f):
     """재개가 «이미 있다» 로 건너뛰어도 되는 샤드인가.
 
@@ -1131,6 +1155,33 @@ def one_generation(fs, tag, gap_s=3600.0):
         m = np.asarray(np.load(f)["meta"], float).ravel()
         return int(m[2]) if m.size > 2 and m[2] > 0 else 0
 
+    def _tstart(f):
+        """샤드 **안에 적힌** 굽기 시작 시각. 없으면 None(옛 샤드).
+
+        ⭐이것이 파일 수정 시각을 대신한다 — touch·복사·rsync 로 안 바뀐다.
+        """
+        try:
+            z = np.load(f)
+            if "t_start" not in z.files:
+                return None
+            v = float(np.asarray(z["t_start"], float).ravel()[0])
+            return v if np.isfinite(v) and v > 0 else None
+        except Exception:                                          # noqa: BLE001
+            return None
+
+    def _cluster(files, stamp, gap):
+        """시각으로 묶는다 — `stamp` 가 주는 값이 None 이면 묶지 않고 통째로 돌려준다."""
+        ts = {f: stamp(f) for f in files}
+        if any(v is None for v in ts.values()):
+            return None
+        out, cur = [], []
+        for f in sorted(files, key=lambda x: ts[x]):
+            if cur and ts[f] - ts[cur[-1]] > gap:
+                out.append(cur); cur = []
+            cur.append(f)
+        out.append(cur)
+        return out
+
     by_split = {}
     for f in sorted(fs):
         by_split.setdefault(_nsh(f), []).append(f)
@@ -1164,15 +1215,32 @@ def one_generation(fs, tag, gap_s=3600.0):
     if len(by_split) > 1 and set(by_split) != {0}:
         gens = [by_split[k] for k in sorted(by_split)]
         split_keys = sorted(by_split)
+        #: ⭐조각 수가 같은 두 굽기가 한 묶음 안에 있으면 **기록된 시작 시각**으로 더 가른다.
+        #  ⛔파일 수정 시각이 아니다 — 그것은 touch 한 번에 바뀐다(2026-09-12 정정).
+        _more, _keys = [], []
+        for g, kk in zip(gens, split_keys):
+            sub = _cluster(g, _tstart, gap_s) if _dups(g) else None
+            if sub and len(sub) > 1:
+                tie_broken_by = "meta.nshards+t_start"
+                _more += sub; _keys += [kk] * len(sub)
+            else:
+                _more.append(g); _keys.append(kk)
+        gens, split_keys = _more, _keys
     else:
         #: 조각 수를 못 읽었거나 모두 같다 — 옛 방식(시각)으로 가르되 **그 사실을 적는다**
-        tie_broken_by = "mtime"
-        gens, cur = [], []
-        for f in sorted(fs, key=os.path.getmtime):
-            if cur and os.path.getmtime(f) - os.path.getmtime(cur[-1]) > gap_s:
-                gens.append(cur); cur = []
-            cur.append(f)
-        gens.append(cur)
+        #: ⭐먼저 **기록된 시작 시각**으로 가른다. 다 있어야 쓴다 — 하나라도 없으면
+        #  옛 샤드가 섞인 것이라 파일 수정 시각으로 내려간다.
+        gens = _cluster(fs, _tstart, gap_s)
+        if gens is not None:
+            tie_broken_by = "t_start"
+        else:
+            tie_broken_by = "mtime"
+            gens, cur = [], []
+            for f in sorted(fs, key=os.path.getmtime):
+                if cur and os.path.getmtime(f) - os.path.getmtime(cur[-1]) > gap_s:
+                    gens.append(cur); cur = []
+                cur.append(f)
+            gens.append(cur)
         split_keys = [None] * len(gens)
 
     #: ⛔⛔2026-09-12(2) — 여기 세 번째 열쇠가 **`os.path.getmtime`** 이었다. 덮는 자세 수와
@@ -1188,9 +1256,28 @@ def one_generation(fs, tag, gap_s=3600.0):
 
     best = max(_rank(j) for j in range(len(gens)))
     tied = [j for j in range(len(gens)) if _rank(j) == best]
-    #: 이름으로 가른다 — 파일계 시각과 무관하고 어디서 돌려도 같다
-    k = min(tied, key=lambda j: sorted(os.path.basename(x) for x in gens[j]))
+    #: ⭐⭐동점이면 **샤드에 적힌 시작 시각**으로 최신 굽기를 고른다 (2026-09-12 신설).
+    #  ⛔파일 수정 시각이 아니다 — 그것은 touch 한 번에 바뀐다. t_start 는 파일 **안**에
+    #    있어 복사·rsync·백업 복원에도 안 바뀐다.
+    #  도장이 한 장이라도 없는 묶음이 끼면 못 쓴다 ⇒ 이름으로 결정적으로 고르고
+    #  «못 풀었다»(tie_unresolved)로 남긴다.
+    def _gen_tstart(j):
+        ts = [_tstart(x) for x in gens[j]]
+        return None if any(t is None for t in ts) else max(ts)
+
     tie_unresolved = len(tied) > 1
+    if len(tied) > 1:
+        _ts = {j: _gen_tstart(j) for j in tied}
+        if all(v is not None for v in _ts.values()) and len(set(_ts.values())) == len(tied):
+            k = max(tied, key=lambda j: _ts[j])      # 가장 나중에 구운 판
+            tie_unresolved = False
+            tie_broken_by = ("t_start(newest)" if tie_broken_by in (None, "t_start")
+                             else (tie_broken_by + "+t_start(newest)"))
+        else:
+            #: 이름으로 가른다 — 파일계 시각과 무관하고 어디서 돌려도 같다
+            k = min(tied, key=lambda j: sorted(os.path.basename(x) for x in gens[j]))
+    else:
+        k = tied[0]
     keep = sorted(gens[k])
 
     #: ⭐⭐**고른 뒤에 다시 본다** — 고른 묶음 안에 같은 자세가 두 번 들어오면 그것은
@@ -1211,7 +1298,11 @@ def one_generation(fs, tag, gap_s=3600.0):
     note = dict(
         reason="겹친 자세의 전계가 서로 달라 세대를 하나만 골랐다",
         #: ⭐무엇으로 갈랐는지 — 내용(조각 수)인지, 못 읽어 시각으로 갔는지
-        selected_by=("meta.nshards" if tie_broken_by is None else "mtime"),
+        #: ⭐무엇이 세대를 갈랐나 — meta.nshards(조각 수) · t_start(샤드에 적힌 시작 시각) ·
+        #  mtime(파일계 시각 — 옛 샤드뿐). ⛔mtime 이 찍히면 그 칸은 touch 에 흔들릴 수 있다.
+        selected_by=("meta.nshards" if tie_broken_by is None else tie_broken_by),
+        #: 굽기 도장이 있는 파일 수 — 옛 샤드는 0 이다
+        n_files_with_stamp=sum(1 for f in fs if _tstart(f) is not None),
         #: ⭐동점이라 내용으로는 못 고른 칸 — 이름으로 결정적으로 골랐을 뿐이다.
         #  ⛔«골랐다» 를 «풀었다» 로 읽지 않는다.
         tie_unresolved=bool(tie_unresolved),
