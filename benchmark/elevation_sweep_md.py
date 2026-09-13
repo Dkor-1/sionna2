@@ -1384,6 +1384,7 @@ def analyse() -> None:
     #   m350rtk 는 0.6316 배다.)
     #  ⭐표집률·반송파와 **같은 병**이다(R34 · R36). 이름의 기체 꼬리표가 정본이다.
     from arm_grammar import parse as _arm_parse, ArmNameError as _ArmErr   # noqa: E402
+    from drones import DRONES as _DRONES                                   # noqa: E402
     _FLASH = {}
 
     def flash_of(arm: str) -> float:
@@ -1394,7 +1395,7 @@ def analyse() -> None:
                 key = _arm_parse(arm).get("drone")
             except (_ArmErr, Exception):
                 key = None
-            sp = DRONES.get(key) if key else None
+            sp = _DRONES.get(key) if key else None
             v = (float(int(sp.prop_blades) * float(sp.hover_rpm) / 60.0)
                  if sp is not None else ffl)
             _FLASH[arm] = v
@@ -1709,18 +1710,18 @@ def analyse() -> None:
                 prf_note_ko=("STFT·리듬 지표는 **이 칸의 저장 표집률**로 냈다. 여러 값이 "
                              "섞인 칸은 prf_hz 가 null 이고 규약값으로 냈다 — 그 칸은 읽지 않는다."),
                 #: ⭐이 칸의 날개 통과율 — 기체 꼬리표가 정한다. 잣대·STFT 가 이 값을 쓴다.
-                f_flash_hz=round(flash_of(arm), 4),
-                f_flash_is_default=bool(abs(flash_of(arm) - ffl) < 1e-6),
+                f_flash_hz=round(flash_of(eng), 4),
+                f_flash_is_default=bool(abs(flash_of(eng) - ffl) < 1e-6),
                 f_flash_note_ko=("배음 잣대(h1_over_h2_db)와 STFT 조각 길이는 **이 팔의** "
                                  "날개 통과율로 냈다. _meta.f_flash_hz 는 기본 기체 값이라 "
                                  "기체 태그가 붙은 팔에 그대로 대면 틀린다."),
                 track=band_metrics(E, 0.35 * ft, max(ft, 1e-6),
                                    next(iter(_prfs)) if len(_prfs) == 1 else None,
-                                   flash_of(arm)),
+                                   flash_of(eng)),
                 # (b) 덱의 −15° 대역 고정 — 어디서 무너지나 (반송파를 옮긴 팔은 λ 비로 늘린다)
                 fixed=band_metrics(E, 0.35 * ftd, ftd,
                                    next(iter(_prfs)) if len(_prfs) == 1 else None,
-                                   flash_of(arm))))
+                                   flash_of(eng))))
 
     if not rows:
         raise SystemExit(f"⛔ {SHD} 에 샤드가 없다")

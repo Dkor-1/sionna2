@@ -244,7 +244,15 @@ def main() -> None:
           f"f_flash {FFL:.2f} Hz · 빗살 반폭 ±{HALF_HZ:.0f} Hz\n")
 
     # ── 2-1. 채점할 팔 고르기 ───────────────────────────────────────────────
+    #: ⛔⛔2026-09-13(6) 적대 검증이 찾은 것 — **열쇠가 팔을 안 담아 행이 소리 없이 덮인다.**
+    #  칸 열쇠는 `{조합}_d{깊이}/el{앙각}` 인데, 같은 조합·깊이·앙각을 내는 팔이 여럿이다
+    #  (예산·방위·표집률·로터 씨앗…). 그러면 원장에서 **마지막에 온 행이 앞을 덮는다.**
+    #  ⛔실측: 241 행이 213 칸 열쇠로 접히고 **28 행이 소리 없이 사라진다.** 숨은 짝의
+    #    |ΔAC| 는 최대 **12.65 dB**(중앙 1.45 dB)다 — 어느 팔이 표에 섰는지가 값을 정한다.
+    #  ⇒ 덮지 않고 **부딪힌 사실을 적는다.** 먼저 온 것을 쓰고(원장 차례는 결정적이다),
+    #    덮으려 한 팔·값 차이를 collisions 에 남긴다. 읽는 이가 가릴 수 있어야 한다.
     cells, refs, other_drone, gates = {}, {}, {}, []
+    collisions = []
     combos_seen = {}
     for i, r in enumerate(ROWS):
         arm, el = r["engine"], float(r["el_deg"])
@@ -281,7 +289,18 @@ def main() -> None:
         col.update(combo=tag, depth=dep, provenance_ko=why,
                    refraction=tag[1] == "1", diffraction=tag[3] == "1",
                    edge_diffraction=tag[5] == "1", diffuse=tag[7] == "1")
-        cells[f"{tag}_d{dep}/el{el:+g}"] = col
+        _k = f"{tag}_d{dep}/el{el:+g}"
+        if _k in cells:
+            _prev = cells[_k]
+            collisions.append(dict(
+                cell=_k, kept=_prev["arm"], dropped=arm,
+                kept_ac_db=_prev.get("ac_db"), dropped_ac_db=col.get("ac_db"),
+                d_ac_db=(None if (_prev.get("ac_db") is None or col.get("ac_db") is None)
+                         else round(float(col["ac_db"]) - float(_prev["ac_db"]), 3)),
+                why_ko=("같은 조합·깊이·앙각을 내는 팔이 둘 이상이다 — 열쇠가 팔을 "
+                        "안 담는다. 먼저 온 것을 쓰고 이 사실을 적는다.")))
+            continue                     # ⛔덮지 않는다
+        cells[_k] = col
         combos_seen.setdefault((tag, dep), []).append(el)
 
         # ⭐게이트 — 샤드 cfg 의 R·D·E·깊이가 배정한 태그와 맞나 (F 는 cfg 에 자리가 없다)
@@ -678,6 +697,8 @@ def main() -> None:
     corrections = build_corrections(cells, refs, d_main, verdict, burial, rep, p13, dead_pairs)
 
     out = dict(
+        #: ⭐열쇠가 팔을 안 담아 부딪힌 자리 — 덮지 않고 적는다(2026-09-13(6)).
+        collisions=collisions,
         _meta=dict(
             generator="benchmark/switch_factorial.py",
             experiment="R13 · 스위치 완전요인을 절대 dB 로 분해",
@@ -698,6 +719,11 @@ def main() -> None:
             #: ⭐**규약 기본값**이다 — 칸의 값은 그 칸의 prf_hz 를 본다(2026-09-13(4)).
             prf_hz=PRF,
             prf_hz_ko="규약 기본 표집률 — 칸의 값은 그 칸의 prf_hz 를 본다",
+            #: ⭐열쇠가 팔을 안 담아 부딪힌 자리 — 비어 있는 것이 정상이 아니다(아래 참조).
+            n_collisions=len(collisions),
+            collisions_ko=("칸 열쇠 `{조합}_d{깊이}/el{앙각}` 이 팔을 안 담는다. 같은 열쇠를 "
+                           "내는 팔이 여럿이면 **먼저 온 것만** 표에 서고 나머지는 "
+                           "collisions 에 적힌다 — 옛 판은 조용히 덮었다."),
             f_flash_hz=FFL, comb_half_width_hz=HALF_HZ,
             units_ko="세 열은 전부 **절대 dB** — 원장 시계열 진폭의 제곱 단위(행의 level_db 와 같은 눈금). "
                      "비율이 아니다.",

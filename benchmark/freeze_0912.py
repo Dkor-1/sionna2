@@ -132,7 +132,16 @@ def measure() -> dict:
 _ROW_KEYS = (("engine", "el_deg"), ("cell", "arm"), ("cell",), ("engine",),
              ("arm", "el_deg"), ("combo", "el_deg"),
              ("on", "off", "el_deg", "depth"), ("on", "off", "el_deg"),
-             ("axis", "el_deg"), ("name",), ("id",), ("key",), ("pair",))
+             ("axis", "el_deg"), ("file",), ("name",), ("id",), ("key",), ("pair",))
+
+#: ⛔⛔**이 장치가 덮는 범위**(2026-09-13(6) 적대 검증이 좁힌 것)
+#  네 원장의 목록은 10,541 개인데 그중 **10,526 개는 값 벡터**다(`path_cap_stored=[a,b]`
+#  같은 것) — 거기서는 자리 번호가 **옳다**. 정체로 잡아야 하는 것은 **행 같은 목록 15 개**
+#  뿐이고, 이 표를 넓히기 전에는 3 개만 잡혔다(read_wfsurvive.rows ·
+#  read_scenephysics 의 rows·skipped). 나머지 12 개는 canyonnull 의 `trunc_outdoor`
+#  로 전부 `file` 열쇠가 있어 이번에 더했다.
+#  ⇒ 「목록을 정체로 잡는다」를 **모든 목록**으로 읽지 않는다. 새 원장이 붙으면 행 같은
+#    목록에 정체 열쇠가 있는지 **세어 보고** 없으면 이 표에 넣는다.
 
 
 def _item_key(v):
@@ -188,6 +197,13 @@ def ground_collapse(R) -> dict:
     #: 이 잣대가 허용하는 꼬리표 — 기체와 장면만 달라야 한다.
     ALLOWED = {"engine", "spp", "switches", "range_m", "n_poses",
                "max_depth", "drone", "env", "mesh_fix", "blade_law"}
+    #: ⛔⛔2026-09-13(6) 적대 검증이 찾은 것 — **허용한다고 묶이는 것이 아니다.**
+    #  mesh_fix·blade_law 는 허용목록에 있지만 값이 두 상태다(원장 실측:
+    #  batteryi5 1,901 · 없음 487 / perairframe 1,890 · 없음 498). 메쉬 수리를 끈 팔은
+    #  **다른 메쉬**이므로 같은 기체라도 레벨이 달라진다 — 그러면 이 잣대가 재려던
+    #  「지면이 기체 사이 퍼짐을 줄이나」에 메쉬 축이 섞인다.
+    #  ⇒ 값을 **정본으로 못 박는다**. 옛 메쉬 팔은 아예 안 쓴다.
+    PINNED = {"mesh_fix": "batteryi5", "blade_law": "perairframe"}
 
     def ok(r):
         return (r.get("n_missing") == 0 and r.get("n_zero_field", 0) == 0
@@ -206,6 +222,8 @@ def ground_collapse(R) -> dict:
                 continue
             if set(f) - ALLOWED:
                 continue
+            if any(f.get(k) != v for k, v in PINNED.items()):
+                continue                 # ⛔메쉬·날법칙이 정본이 아닌 팔은 안 쓴다
             if not (f["engine"] == "sionna" and f.get("switches") == "R0D0E0F1"
                     and f.get("spp") == "4000000000" and f.get("range_m") == "15"
                     and f.get("n_poses") == "8192" and f.get("max_depth") == "2"):
@@ -232,6 +250,8 @@ def ground_collapse(R) -> dict:
         gv = [G[d] for d in both]
         out[f"el{el:+g}"] = dict(
             n_airframes=len(both), airframes=both,
+            pinned_ko=("메쉬 수리·날 법칙을 정본으로 못 박았다 — 허용목록만으로는 "
+                       "두 상태가 섞인다(2026-09-13(6))."),
             free_spread_db=round(max(fv) - min(fv), 2),
             ground_spread_db=round(max(gv) - min(gv), 2),
             free_levels={d: F[d] for d in both}, ground_levels={d: G[d] for d in both})
