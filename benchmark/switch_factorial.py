@@ -55,6 +55,8 @@ from matplotlib.patches import Patch                                   # noqa: E
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+import sys as _sys; _sys.path.insert(0, os.path.join(ROOT, "src"))
+from arm_grammar import parse as _arm_parse                          # noqa: E402
 SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
 LEDJ = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
 LEDN = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
@@ -253,6 +255,18 @@ def main() -> None:
     #    덮으려 한 팔·값 차이를 collisions 에 남긴다. 읽는 이가 가릴 수 있어야 한다.
     cells, refs, other_drone, gates = {}, {}, {}, []
     collisions = []
+
+    #: ⭐부딪혔을 때 **무엇을 쓰나** — 차례가 아니라 규칙으로 고른다(2026-09-13(6)).
+    #  ⛔실측: 「먼저 온 것」 규칙은 28 건 **전부** 정본 메쉬 팔을 버리고 옛 메쉬 팔
+    #    (`_phys` · 수리 안 한 메쉬)을 썼다. 차가 최대 12.65 dB 다.
+    #  차례: ① 정본 메쉬·날법칙 ② 물리 모드가 아닌 것 ③ 이름 사전순(결정적).
+    def _prefer(arm_name: str):
+        try:
+            f = _arm_parse(arm_name)
+        except Exception:
+            return (2, 1, arm_name)
+        canon = (f.get("mesh_fix") == "batteryi5" and f.get("blade_law") == "perairframe")
+        return (0 if canon else 1, 1 if f.get("physics") else 0, arm_name)
     combos_seen = {}
     for i, r in enumerate(ROWS):
         arm, el = r["engine"], float(r["el_deg"])
@@ -290,17 +304,28 @@ def main() -> None:
                    refraction=tag[1] == "1", diffraction=tag[3] == "1",
                    edge_diffraction=tag[5] == "1", diffuse=tag[7] == "1")
         _k = f"{tag}_d{dep}/el{el:+g}"
+        col["mesh_canonical"] = bool(_prefer(arm)[0] == 0)
         if _k in cells:
             _prev = cells[_k]
+            #: 규칙으로 고른다 — 진 쪽을 collisions 에 적고, 이긴 쪽이 표에 선다.
+            if _prefer(arm) < _prefer(_prev["arm"]):
+                keep, drop, kcol, dcol = arm, _prev["arm"], col, _prev
+            else:
+                keep, drop, kcol, dcol = _prev["arm"], arm, _prev, col
             collisions.append(dict(
-                cell=_k, kept=_prev["arm"], dropped=arm,
-                kept_ac_db=_prev.get("ac_db"), dropped_ac_db=col.get("ac_db"),
-                d_ac_db=(None if (_prev.get("ac_db") is None or col.get("ac_db") is None)
-                         else round(float(col["ac_db"]) - float(_prev["ac_db"]), 3)),
+                cell=_k, kept=keep, dropped=drop,
+                kept_ac_db=kcol.get("ac_db"), dropped_ac_db=dcol.get("ac_db"),
+                d_ac_db=(None if (kcol.get("ac_db") is None or dcol.get("ac_db") is None)
+                         else round(float(dcol["ac_db"]) - float(kcol["ac_db"]), 3)),
+                kept_is_canonical=bool(_prefer(keep)[0] == 0),
                 why_ko=("같은 조합·깊이·앙각을 내는 팔이 둘 이상이다 — 열쇠가 팔을 "
-                        "안 담는다. 먼저 온 것을 쓰고 이 사실을 적는다.")))
-            continue                     # ⛔덮지 않는다
-        cells[_k] = col
+                        "안 담는다. ⭐정본 메쉬 → 물리모드 아님 → 이름순으로 고른다.")))
+            cells[_k] = kcol
+            if keep == _prev["arm"]:
+                continue          # 앞서 선 팔이 이겼다 — 이 팔의 뒷일은 안 한다
+            col = kcol
+        else:
+            cells[_k] = col
         combos_seen.setdefault((tag, dep), []).append(el)
 
         # ⭐게이트 — 샤드 cfg 의 R·D·E·깊이가 배정한 태그와 맞나 (F 는 cfg 에 자리가 없다)
@@ -722,8 +747,15 @@ def main() -> None:
             #: ⭐열쇠가 팔을 안 담아 부딪힌 자리 — 비어 있는 것이 정상이 아니다(아래 참조).
             n_collisions=len(collisions),
             collisions_ko=("칸 열쇠 `{조합}_d{깊이}/el{앙각}` 이 팔을 안 담는다. 같은 열쇠를 "
-                           "내는 팔이 여럿이면 **먼저 온 것만** 표에 서고 나머지는 "
-                           "collisions 에 적힌다 — 옛 판은 조용히 덮었다."),
+                           "내는 팔이 여럿이면 **정본 메쉬 → 물리모드 아님 → 이름순**으로 "
+                           "골라 하나만 표에 서고 나머지는 collisions 에 적힌다. "
+                           "⛔옛 판은 조용히 덮었고, 그 규칙(먼저 온 것)은 28 건 전부에서 "
+                           "정본 메쉬 팔을 버렸다(차 최대 12.65 dB)."),
+            #: ⭐표에 선 칸 중 **정본 메쉬가 아닌** 팔이 선 칸 수. 0 이 아니어도 결함은
+            #  아니다 — `_only…` 팔처럼 정본 짝이 아예 없는 칸이 있다. 다만 읽는 이가
+            #  그 칸을 가려서 읽어야 한다.
+            n_cells_noncanonical_mesh=sum(
+                1 for v in cells.values() if not v.get("mesh_canonical")),
             f_flash_hz=FFL, comb_half_width_hz=HALF_HZ,
             units_ko="세 열은 전부 **절대 dB** — 원장 시계열 진폭의 제곱 단위(행의 level_db 와 같은 눈금). "
                      "비율이 아니다.",
