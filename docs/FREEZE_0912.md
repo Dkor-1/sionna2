@@ -3,7 +3,7 @@
 > ⛔이 문서는 손으로 쓰지 않는다. `benchmark/freeze_0912.py` 가 굽는다.
 > 지금과 대조하려면 `--check`. 받아들이려면 `--update`(왜 움직였는지 커밋에 적는다).
 
-- 뜬 때 `2026-09-13T05:09:48Z` · 커밋 `5de9a098c4cafa6cabe97e11cee4332201520712`
+- 뜬 때 `2026-09-13T05:50:06Z` · 커밋 `a664502b4d7d87c4785b13700ed88c296c809942`
 - 사용자 지시: 「가·나·다 모두 시행해 볼 수 없을까? 현재까지의 결과들도 잘 보존하고」
 
 ## 원장
@@ -20,7 +20,7 @@
 | 앙각 | 46 |
 | 창고 샤드 | 7632 |
 
-아틀라스 — 주제 9 · 팔 823 · 칸 2302
+아틀라스 — 주제 9 · 팔 844 · 칸 2381
 
 ## 지면이 있으면 기체 사이 레벨이 모인다
 
@@ -35,10 +35,10 @@
 
 | 원장 | 뜬 필드 수 |
 |---|---:|
-| `outputs/read_canyonnull_0910.json` | 131 |
-| `outputs/read_dropladder_0910.json` | 15 |
-| `outputs/read_scenephysics_0913.json` | 568 |
-| `outputs/read_wfsurvive_0912.json` | 10647 |
+| `outputs/read_canyonnull_0910.json` | 441 |
+| `outputs/read_dropladder_0910.json` | 89 |
+| `outputs/read_scenephysics_0913.json` | 671 |
+| `outputs/read_wfsurvive_0912.json` | 16903 |
 
 ⛔문자열 포함 검사가 아니라 **수를 그대로** 뜬다 — 사건 수가 바뀌면 --check 가 짚는다.
 

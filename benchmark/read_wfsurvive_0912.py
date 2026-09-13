@@ -137,6 +137,16 @@ def survive(E, prf, rates, f_tip=None):
     x = E - E.mean()                      # ⛔동체(0 도플러) 선을 뺀다 — 회전자만 본다
     ref_rms = float(np.std(x))
 
+    def bandpow(v, fs_, lo, hi):
+        """[lo,hi] Hz 안의 변동 전력의 제곱근(RMS). 띠가 없으면 None."""
+        if lo is None or hi is None or v.size < 8:
+            return None
+        F = np.fft.fft(v)
+        f = np.fft.fftfreq(v.size, 1 / fs_)
+        F = F * ((np.abs(f) >= lo) & (np.abs(f) <= hi))
+        y = np.fft.ifft(F)
+        return float(np.std(y))
+
     def _spec(v, fs_):
         w = np.hanning(v.size)
         S = np.abs(np.fft.fftshift(np.fft.fft(v * w)))
@@ -178,7 +188,8 @@ def survive(E, prf, rates, f_tip=None):
         return (None, None) if b is None else (b[0], b[1])
 
     lo0, hi0 = band(prf)
-    out = dict(ref_peak_hz=peak(x, prf), ref_peak_in_tipband_hz=peak(x, prf, lo0, hi0),
+    out = dict(has_tipband=bool(lo0 is not None),
+               ref_peak_hz=peak(x, prf), ref_peak_in_tipband_hz=peak(x, prf, lo0, hi0),
                tipband_lo_hz=lo0, tipband_hi_hz=hi0, f_tip_hz_used=f_tip,
                tipband_note_ko=("[0.5,1.5]·f_tip 을 프레임율로 접어 닿는 최소~최대로 감싼 띠. "
                                 "⛔감싸므로 띠가 넓어질 수 있다 — 넓이를 함께 본다."),
@@ -193,9 +204,27 @@ def survive(E, prf, rates, f_tip=None):
         st = np.round(np.arange(0, x.size - L, step)).astype(int)
         y2 = np.array([x[s:s + L].mean() for s in st]) if st.size else y1
         lo, hi = band(fr)
+        #: ⛔⛔2026-09-13(2) 적대적 검증이 찾은 것 — **이 띠는 구실을 못 한다.**
+        #  접힌 상(像)이 무모호 창의 중앙 72~96 %(최대 98 %)를 덮어, «띠 안 최강선» 이
+        #  272 칸 중 136~261 칸에서 **전체 최강선과 같다.** 09-12 에 띠를 넣은 까닭(스펙트럼
+        #  바닥을 빼려고)이 사라진 것이다. 그리고 rms_keep_db 는 **광대역**이라 그 바닥의
+        #  비간섭 평균이 수를 지배한다 — 회전자 구조의 생존이 아니다.
+        #  ⇒ ⓐ 띠가 창의 몇 %인지 **함께 싣는다**(넓으면 그 칸의 띠 값은 읽지 않는다)
+        #    ⓑ **우리 격자의 날개끝 띠**를 기준으로 한 생존을 따로 낸다 —
+        #      우리 격자에서는 그 띠가 ±9,850 Hz 중 좁아 뜻이 선다.
+        #  ⛔접힌 뒤에는 회전자 몫을 딴 것과 **못 가른다** — 그 사실 자체가 결과다.
+        _frac = (None if (lo is None or hi is None) else round((hi - lo) / (fr / 2), 3))
+        _ref_tb = bandpow(x, prf, lo0, hi0)          # 우리 격자의 날개끝 띠
+        _post_tb = bandpow(y2, fr, lo, hi)           # 접힌 상 안
         out[r["std"]] = dict(
             frame_rate_hz=fr, frame_ms=blk, n_samples=int(y1.size),
+            n_samples_frameavg=int(y2.size),
             unambiguous_hz=fr / 2, tipband_lo_hz=lo, tipband_hi_hz=hi,
+            tipband_frac_of_window=_frac,
+            #: ⛔띠가 창의 절반을 넘으면 «띠 안» 이라는 말이 뜻을 잃는다
+            tipband_discriminates=(None if _frac is None else bool(_frac < 0.5)),
+            rms_keep_tipband_db=(None if (_ref_tb is None or _post_tb is None or _ref_tb <= 0)
+                                 else round(float(20 * np.log10(_post_tb / _ref_tb)), 2)),
             tip_folds=bool(f_tip and f_tip > fr / 2),
             peak_decimated_hz=peak(y1, fr),
             peak_frameavg_hz=peak(y2, fr),
@@ -262,6 +291,14 @@ def main() -> int:
             "⛔5G 의 2 kHz 는 **슬롯율**이다. 상시 기준신호로 쓸 수 있는 SSB 는 주기 20 ms(50 Hz)라 "
             "무모호 도플러가 ±25 Hz 로 훨씬 좁다 — 이 판은 5G 에 유리한 쪽으로 낙관적이다.",
             "⛔정지 성분(0 도플러 동체선)을 빼고 잰다. 그것을 남기면 생존 수가 동체에 지배된다.",
+            "⛔⛔rms_keep_db 는 **광대역**이다 — SBR 스펙트럼 바닥이 나이퀴스트까지 차 있어 "
+            "그 바닥의 비간섭 평균이 이 수를 지배한다. 회전자 구조의 생존으로 읽지 마라. "
+            "그쪽은 rms_keep_tipband_db(우리 격자의 날개끝 띠를 기준으로 한 것)를 본다.",
+            "⛔⛔접힌 상이 무모호 창의 72~96 %(최대 98 %)를 덮는다 — «띠 안» 이 창 전체와 "
+            "사실상 같다. tipband_frac_of_window 가 0.5 를 넘는 칸의 «띠 안» 값은 읽지 않는다"
+            "(tipband_discriminates=false). ⭐접힌 뒤에는 회전자 몫을 딴 것과 **못 가른다** — "
+            "그 사실 자체가 이 판독의 결과다.",
+            "⛔f_tip 이 0 인 칸(직하방)은 띠가 없다 — has_tipband=false 이고 띠 값이 전부 null 이다.",
             "⛔실기 계측 대조는 0 건이고 이 판독으로도 안 생긴다.",
         ]), rows=rows)
     with open(OUT, "w", encoding="utf-8") as f:

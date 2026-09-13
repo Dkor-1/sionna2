@@ -112,35 +112,31 @@ def measure() -> dict:
     return m
 
 
-#: ⭐사건 수를 지키는 열쇠 이름 — 이 이름으로 끝나는 필드는 전부 뜬다
-_COUNT_KEYS = ("n_replaced", "n_mask", "n_common", "n_events", "n_replaced_dropfn",
-               "n_poses", "n_missing", "n_zero_field", "n_trunc", "n_samples",
-               "n_rows", "count", "n_cells", "n_skipped")
-
-
+#: ⛔⛔2026-09-13(2) 적대적 검증이 찾은 것 — 첫 판은 **열쇠 이름 화이트리스트**로 떴다.
+#  그래서 이름이 목록에 없는 수는 통째로 빠졌다:
+#    ⛔`by_el.-30.baseline_events`(실외 사건 수 **96 그 자체**) · `n_trunc_now`(endswith 가
+#      `n_trunc` 에 안 걸린다) · **목록 안의 스칼라는 재귀의 잎 갈래가 없어 전부 버려졌다.**
+#  ⛔실측(2026-09-13): 협곡 원장의 수 잎 421 개 중 **131 개(31 %)**, 낙차 사다리는
+#    82 개 중 **15 개(18 %)** 만 떴다. 발간 사건 수를 세 배로 바꿔도 «움직인 자리 0» 이었다.
+#  ⇒ **화이트리스트를 버린다.** 수인 잎은 **전부** 뜬다. 이름으로 고르지 않는다.
+#    부동소수는 자리 흔들림을 막으려 유효숫자로 맞춘다(반올림 자리를 이름에 안 매단다).
 def scrape_numbers(o, path="", out=None) -> dict:
-    """원장에서 **수를 세는 필드**를 경로째 긁는다.
-
-    ⛔문자열 포함 검사로는 «수가 바뀌었다» 를 못 잡는다 — 그래서 이것으로 바꿨다.
-    레벨(dB)처럼 실수인 지표도 함께 뜨되, 부동소수 흔들림을 피해 소수 둘째 자리로 맞춘다.
-    """
+    """원장의 **모든 수 잎**을 경로째 긁는다. ⛔이름으로 고르지 않는다 — 그래서 틀렸다."""
     if out is None:
         out = {}
     if isinstance(o, dict):
         for k, v in o.items():
-            p = f"{path}.{k}" if path else str(k)
-            if isinstance(v, bool):
-                out[p] = v
-            elif isinstance(v, int) and (k.endswith(_COUNT_KEYS) or k in _COUNT_KEYS):
-                out[p] = v
-            elif isinstance(v, float) and any(
-                    k.endswith(x) for x in ("_db", "_hz", "_jaccard", "jaccard")):
-                out[p] = round(v, 2)
-            else:
-                scrape_numbers(v, p, out)
-    elif isinstance(o, list):
+            scrape_numbers(v, f"{path}.{k}" if path else str(k), out)
+    elif isinstance(o, (list, tuple)):
         for i, v in enumerate(o):
             scrape_numbers(v, f"{path}[{i}]", out)
+    elif isinstance(o, bool):
+        out[path] = o
+    elif isinstance(o, int):
+        out[path] = o
+    elif isinstance(o, float):
+        #: 유효숫자 9 자리 — 실수 연산의 마지막 자리 흔들림은 무시하고 뜻 있는 변화만 잡는다
+        out[path] = float(f"{o:.9g}")
     return out
 
 
@@ -262,7 +258,9 @@ def main() -> int:
         a, b = dict(flatten(base)), dict(flatten(now))
         moved = [(k, a.get(k), b.get(k)) for k in sorted(set(a) | set(b)) if a.get(k) != b.get(k)]
         #: 검사기 출력 첫 줄은 수가 들어 있어 흔들린다 — 종료코드만 본다
-        moved = [x for x in moved if not x[0].endswith(".head")]
+        #: 검사기 출력 첫 줄과 **갱신 기록 자체**는 잰 값이 아니다 — 대조에서 뺀다
+        moved = [x for x in moved if not x[0].endswith('.head')
+                 and not x[0].startswith('_updates')]
         print(f"═══ 기준선 대조 — 움직인 자리 {len(moved)} ═══")
         for k, x, y in moved[:40]:
             print(f"  {k}\n     기준 {x}\n     지금 {y}")
@@ -273,6 +271,28 @@ def main() -> int:
         return 1 if moved else 0
     if os.path.exists(OUT) and "--update" not in sys.argv:
         print("⛔기준선이 이미 있다 — 대조는 --check, 갱신은 --update"); return 2
+    #: ⛔⛔--update 로 «세탁» 하지 못하게 한다 (2026-09-13(2) 적대적 검증 지적).
+    #  갱신은 **무엇이 움직였는지 적어 두고** 해야 한다 — 안 적으면 되돌아볼 수가 없다.
+    if os.path.exists(OUT) and "--update" in sys.argv:
+        old = js("outputs/freeze_0912.json")["baseline"]
+        a, b = dict(flatten(old)), dict(flatten(now))
+        moved = [(k, a.get(k), b.get(k)) for k in sorted(set(a) | set(b))
+                 if a.get(k) != b.get(k) and not k.endswith(".head")]
+        if moved and "--why" not in sys.argv:
+            print(f"⛔움직인 자리 {len(moved)} 개인데 까닭이 없다 — "
+                  f"`--update --why \"…\"` 로 한 줄 적는다.")
+            for k, x, y in moved[:10]:
+                print(f"   {k}\n      기준 {x}\n      지금 {y}")
+            return 2
+        why = ""
+        if "--why" in sys.argv:
+            i = sys.argv.index("--why")
+            why = sys.argv[i + 1] if i + 1 < len(sys.argv) else ""
+        prev = old.get("_updates", []) if isinstance(old, dict) else []
+        now["_updates"] = (prev if isinstance(prev, list) else []) + [
+            dict(at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                 moved=len(moved), why_ko=why,
+                 examples=[dict(path=k, was=x, now=y) for k, x, y in moved[:8]])]
     base = dict(frozen_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 head=head, generator="benchmark/freeze_0912.py",
                 why_ko=("2026-09-12 세 갈래(물리 경로·파형 생존·대역폭)를 시작하기 전의 수. "

@@ -112,11 +112,23 @@ def main() -> int:
     hampel_mask, drop_outliers = deck_filters()
     L = json.load(open(os.path.join(ROOT, "outputs/elevation_sweep_md.json"), encoding="utf-8"))
 
+    #: ⛔⛔2026-09-13(2) 적대적 검증이 찾은 것 — 첫 판은 장면을 **네 이름 목록**으로 갈랐다.
+    #  목록에 없는 장면은 «free»(빈 하늘)로 찍혔고, 그러면 `sc(...) == "free": continue` 에
+    #  걸려 **행으로도 안 나오고 skipped 에도 안 남는다.** n_skipped == 0 이 «다 봤다» 가 아니다.
+    #  ⛔실측: 원장에 `sionna-munich` 장면 칸이 4 개 있는데 그렇게 조용히 사라졌다.
+    #  ⇒ 꼬리표를 **이름에서 뽑는다**(목록이 아니다). 모르는 장면도 제 이름으로 선다.
+    ENV_RE = re.compile(r"_env([A-Za-z0-9:._-]+?)_(?:mfix|blper)")
+
+    def env_tag(e):
+        m = ENV_RE.search(e)
+        return m.group(1) if m else None
+
+    SHORT = {"sionna-simple_street_canyon": "canyon", "outdoor01_ground": "gnd",
+             "outdoor01_bldg": "bldg", "outdoor01": "outdoor", "sionna-munich": "munich"}
+
     def sc(e):
-        return ("canyon" if "envsionna-simple_street_canyon" in e else
-                "gnd" if "envoutdoor01_ground" in e else
-                "bldg" if "envoutdoor01_bldg" in e else
-                "outdoor" if "envoutdoor01" in e else "free")
+        t = env_tag(e)
+        return "free" if t is None else SHORT.get(t, t)
 
     def usable(r):
         e = r["engine"]
@@ -138,12 +150,15 @@ def main() -> int:
     by_engine = {(r["engine"], r["el_deg"]): r for r in L["rows"]}
 
     def twin_name(engine: str) -> str:
-        """장면 꼬리표만 뺀 이름 — 이것이 유일한 대조군이다."""
-        for tag in ("_envsionna-simple_street_canyon", "_envoutdoor01_ground",
-                    "_envoutdoor01_bldg", "_envoutdoor01"):
-            if tag in engine:
-                return engine.replace(tag, "", 1)
-        return engine
+        """장면 꼬리표만 뺀 이름 — 이것이 유일한 대조군이다.
+
+        ⛔⛔2026-09-13(2) — 첫 판은 네 이름 목록에서 찾아, **목록에 없는 장면이면 이름을
+        그대로 돌려줬다.** 그러면 대조군이 **자기 자신**이 되어 얹은 몫이 0 dB 로 나오고
+        쌍 검사도 통과한다(같은 행이니까). ⇒ 꼬리표를 이름에서 뽑아 **그것만** 뺀다.
+        뽑히지 않으면 None 을 돌려주고 호출자가 거른다 — 조용히 자기 자신을 쓰지 않는다.
+        """
+        t = env_tag(engine)
+        return None if t is None else engine.replace(f"_env{t}", "", 1)
 
     rows, skipped = [], []
     for r in sorted(L["rows"], key=lambda r: (sc(r["engine"]), r["engine"], r["el_deg"])):
@@ -154,6 +169,11 @@ def main() -> int:
             continue
         arm, el = a.group(1), r["el_deg"]
         fengine = twin_name(r["engine"])
+        if fengine is None:
+            skipped.append(dict(engine=r["engine"], el_deg=el,
+                                why="장면 꼬리표를 이름에서 못 뽑았다 — 대조군을 정할 수 없다",
+                                want=None))
+            continue
         fr = by_engine.get((fengine, el))
         if fr is None or not usable(fr):
             skipped.append(dict(engine=r["engine"], el_deg=el,
