@@ -139,6 +139,7 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 import re
 import sys
 from typing import Any, Iterable, Sequence
@@ -1237,7 +1238,16 @@ def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
                    strict: bool = False, quiet: bool = False) -> dict:
     """블록 리스트 → `.ipynb` 파일. 쓰고 나서 §5.7 예산 + §5.8 톤을 검사해 결과를 돌려준다.
 
-    strict=True 면 위반 시 **예외**(파일은 이미 쓰인 뒤이므로 확인 후 고치면 된다).
+    strict=True 면 위반 시 **예외**를 던지고 **옛 노트북을 그대로 둔다.**
+
+    ⛔⛔2026-09-13(10) 고쳤다 — 옛 판은 최종 경로에 **먼저 쓰고** 그다음에 검사했다.
+      그래서 strict 가 거절한 판이 이미 좋은 판을 덮어쓴 뒤였다. 머리말도 그걸
+      「확인 후 고치면 된다」로 적어 두었지만, 그 사이 저장소에는 **규약을 어긴 노트북이
+      발간물 자리에 앉아 있다.** 같은 날 판독기 셋을 `src/reader_gate.publish` 로 옮긴
+      것과 같은 이유다 — 이쪽은 빌더 38 개의 공통 출구다.
+    ⇒ 같은 디렉터리의 임시 파일에 쓰고 **거기서 검사한 뒤** `os.replace` 로 옮긴다.
+    ⇒ 거절된 판을 볼 수 있어야 하니 `<경로>.rejected.ipynb` 로 남기고 예외에 그 자리를
+      적는다(다음 거절 때 덮인다). 발간물 자리는 건드리지 않는다.
     """
     cells = _footnote_pass(_to_cells(blocks))
     nb = {"cells": cells,
@@ -1245,18 +1255,36 @@ def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
                        "language_info": {"name": "python"}},
           "nbformat": 4, "nbformat_minor": 5}
     p = path if os.path.isabs(path) else os.path.join(ROOT, path)
-    os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
-    with open(p, "w", encoding="utf-8") as f:
-        json.dump(nb, f, ensure_ascii=False, indent=1)
-
-    rep = check_budget(p)
-    if not quiet:
-        print(_budget_text(rep))
-    if strict and not rep["ok"]:
-        raise ContractError(
-            f"규약 위반 — {rep['path']}\n  "
-            + "\n  ".join(rep["violations"])
-            + "\n  → 톤이면 **주장의 크기를 맞춰라**(§5.0). ⛔분량으로 편을 쪼개지 마라.")
+    d = os.path.dirname(p) or "."
+    os.makedirs(d, exist_ok=True)
+    #: ⛔임시 파일은 **같은 디렉터리**에 만든다 — 파일시스템이 다르면 os.replace 가
+    #  원자적이지 않다(src/reader_gate.publish 와 같은 규약).
+    fd, tmp = tempfile.mkstemp(dir=d, prefix=".nb_", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(nb, f, ensure_ascii=False, indent=1)
+        rep = check_budget(tmp)
+        #: 검사가 임시 이름을 들고 왔으니 **발간될 이름**으로 고쳐 적는다.
+        rep["path"] = p
+        if not quiet:
+            print(_budget_text(rep))
+        if strict and not rep["ok"]:
+            keep = p + ".rejected.ipynb"
+            os.replace(tmp, keep)
+            tmp = None
+            raise ContractError(
+                f"규약 위반 — {p}\n  "
+                + "\n  ".join(rep["violations"])
+                + f"\n  ⛔발간하지 않았다 — 옛 노트북은 그대로다. 거절된 판은 {keep}"
+                + "\n  → 톤이면 **주장의 크기를 맞춰라**(§5.0). ⛔분량으로 편을 쪼개지 마라.")
+        os.replace(tmp, p)
+        tmp = None
+    finally:
+        if tmp is not None:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
     return rep
 
 
