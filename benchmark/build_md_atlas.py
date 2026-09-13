@@ -140,6 +140,10 @@ FC = float(M["fc_hz"])
 DRONE_DEFAULT = str(M.get("drone", "matrice4e"))
 RANGE_PRIMARY = float(M.get("range_m_primary", 15.0))
 ROW = {(r["engine"], float(r["el_deg"])): r for r in J["rows"]}
+#: 한 팔 안에서 저장 표집률이 갈린 자리를 담는다 — 비어 있는 것이 정상이고, 차면 목차
+#  `_meta.prf_split_arms` 에 실려서 조용히 지나가지 않는다(비교 그림은 팔마다 조각 길이가
+#  하나라서, 갈리면 그 그림의 시간축이 칸마다 다르다는 뜻이다).
+PRF_SPLIT: list[dict] = []
 #: 건너뛰기 기준 — **원장이나 이 코드가 그림보다 새로우면** 다시 굽는다.
 #  ⭐2026-08-15 수리: 그전에는 원장 시각만 봐서, 그림 모양을 바꾸는 코드 수정 뒤 --force 를
 #    빼먹으면 옛 그림이 그대로 남았다(코드는 새 규칙, 그림은 옛 규칙 → 목차와 그림이 갈린다).
@@ -347,7 +351,8 @@ def series(arm: str, el: float) -> np.ndarray:
     return np.asarray(Z[f"{arm}/el{el_key(el)}"], complex)
 
 
-def rhythm_share(E: np.ndarray, f_flash: float, f_tip: float, hw: float = RHY_HW):
+def rhythm_share(E: np.ndarray, f_flash: float, f_tip: float, hw: float = RHY_HW,
+                 prf: float | None = None):
     """날개끝 상한 **위** 에너지 중 «박자의 정수배» 에 붙은 몫 [%].
 
     세기가 아니라 **구조**를 잰다 — 눈금·정규화에 무관하다.
@@ -367,7 +372,7 @@ def rhythm_share(E: np.ndarray, f_flash: float, f_tip: float, hw: float = RHY_HW
     """
     n = E.size
     P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
-    fr = np.fft.fftfreq(n, 1.0 / PRF)
+    fr = np.fft.fftfreq(n, 1.0 / float(prf or PRF))   # ⭐칸의 표집률(2026-09-13(3))
     degenerate = f_tip <= 1e-6
     above = np.abs(fr) >= f_tip
     k = np.round(np.abs(fr) / f_flash)
@@ -383,7 +388,7 @@ def rhythm_share(E: np.ndarray, f_flash: float, f_tip: float, hw: float = RHY_HW
 
 
 def comb_contrast_db(E: np.ndarray, f_flash: float, f_tip: float,
-                     hw: float = RHY_HW):
+                     hw: float = RHY_HW, prf: float | None = None):
     """⭐대안 잣대 — 상한 **아래** 빗살 대비 [dB]. «리듬 몫 0 %» 의 반증 도구.
 
     리듬 몫은 «날개가 만들 수 없는 자리(상한 위)» 만 본다. 날개 무늬가 상한 **아래** 에
@@ -403,7 +408,7 @@ def comb_contrast_db(E: np.ndarray, f_flash: float, f_tip: float,
         return None
     n = E.size
     P = np.abs(np.fft.fft((E - E.mean()) * np.hanning(n))) ** 2
-    fr = np.abs(np.fft.fftfreq(n, 1.0 / PRF))
+    fr = np.abs(np.fft.fftfreq(n, 1.0 / float(prf or PRF)))  # ⭐칸의 표집률
     band = (fr >= lo) & (fr <= hi)
     k = fr / f_flash
     on = band & (np.abs(k - np.round(k)) * f_flash <= hw)
@@ -573,14 +578,15 @@ def _outlier_meta_ko() -> str:
     return s
 
 
-def _headline4(E: np.ndarray, ffl: float, ft: float) -> dict:
+def _headline4(E: np.ndarray, ffl: float, ft: float,
+               prf: float | None = None) -> dict:
     """튐 진단이 흔들어 보는 헤드라인 넷.
 
     ⭐잣대는 위의 `rhythm_share`·`comb_contrast_db` 를 **그대로** 부른다 — 진단용으로 새
     정의를 만들면 이미 인용된 수와 갈린다(`outlier_census_0816.headline` 과 같은 함수다).
     """
-    share, null, above, degen = rhythm_share(E, ffl, ft)
-    comb = comb_contrast_db(E, ffl, ft)
+    share, null, above, degen = rhythm_share(E, ffl, ft, prf=prf)
+    comb = comb_contrast_db(E, ffl, ft, prf=prf)
     x = np.asarray(E, complex)
     x = x - x.mean()
     p = float(np.mean(np.abs(x) ** 2))
@@ -606,7 +612,8 @@ def _dd(a, b):
     return None if (a is None or b is None) else float(b - a)
 
 
-def outlier_probe(E: np.ndarray, ffl: float, ft: float, el: float) -> dict:
+def outlier_probe(E: np.ndarray, ffl: float, ft: float, el: float,
+                  prf: float | None = None) -> dict:
     """한 칸의 튐 지표 + 등급. ⛔GPU 를 안 쓴다 — 저장된 시계열만 흔든다.
 
     지표 (각각 왜 필요한지)
@@ -642,7 +649,7 @@ def outlier_probe(E: np.ndarray, ffl: float, ft: float, el: float) -> dict:
     iso = float(srt[0] / srt[1]) if srt[1] > 0 else float("inf")
     s1 = float(pw[ip] / tot * n) if tot > 0 else None
     s8 = float(np.sort(pw)[::-1][:8].sum() / tot * n / 8.0) if tot > 0 else None
-    T = PRF / ffl
+    T = float(prf or PRF) / ffl                       # ⭐칸의 표집률
     rec = []
     for m2 in (1, 2, 3, 4, -1, -2, -3, -4):
         c0 = int(round(ip + m2 * T))
@@ -667,14 +674,14 @@ def outlier_probe(E: np.ndarray, ffl: float, ft: float, el: float) -> dict:
         hi_jump = float(np.median(jj)) if jj else None
 
     # ── 영향 — 갈아 끼우기(정본) · 대조군 ────────────────────────────────────
-    base = _headline4(E, ffl, ft)
+    base = _headline4(E, ffl, ft, prf)
     rank = np.argsort(a)[::-1]
-    rep1 = _headline4(_replace_pose(E, ip), ffl, ft)
+    rep1 = _headline4(_replace_pose(E, ip), ffl, ft, prf)
     i2 = int(rank[1])
-    rep2 = _headline4(_replace_pose(E, i2), ffl, ft)
+    rep2 = _headline4(_replace_pose(E, i2), ffl, ft, prf)
     rng = np.random.default_rng(OUT_SEED)
     mid = rank[n // 4: 3 * n // 4]
-    ctrl = [_headline4(_replace_pose(E, int(i)), ffl, ft)
+    ctrl = [_headline4(_replace_pose(E, int(i)), ffl, ft, prf)
             for i in rng.choice(mid, size=min(OUT_N_CONTROL, mid.size), replace=False)]
     d_top = {k: _dd(base[k], rep1[k]) for k in OUT_KEYS}
     d_2nd = {k: _dd(base[k], rep2[k]) for k in OUT_KEYS}
@@ -853,7 +860,8 @@ def outlier_probe(E: np.ndarray, ffl: float, ft: float, el: float) -> dict:
     return out
 
 
-def modspec_curve(E: np.ndarray, f_flash: float, f_tip_band: float, periods: float):
+def modspec_curve(E: np.ndarray, f_flash: float, f_tip_band: float, periods: float,
+                  prf: float | None = None):
     """블레이드 대역 전력 g(t) 의 **변조 스펙트럼**.
 
     `md_mapstyle.flash_spec` 로 STFT 를 뜨고 0.35~1.0 × f_tip 띠의 전력을 시간축으로 모은 뒤,
@@ -862,7 +870,7 @@ def modspec_curve(E: np.ndarray, f_flash: float, f_tip_band: float, periods: flo
     ⚠ f_tip = 0(직하방)이면 대역이 정의되지 않아 호출자가 **0° 의 대역을 빌려** 넘긴다 —
       참값이 «선 없음» 인 자리라, 거기서 빗살이 서면 그것이 곧 인공물이다.
     """
-    f, t, S, _ = flash_spec(E, PRF, f_flash, periods)
+    f, t, S, _ = flash_spec(E, float(prf or PRF), f_flash, periods)
     m = (np.abs(f) >= 0.35 * f_tip_band) & (np.abs(f) <= f_tip_band)
     if m.sum() < 2:
         return None, None
@@ -922,23 +930,28 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
     #  ⛔실측(점검자, 2026-09-13): 저장 표집률로 다시 재면 122 칸 중 107 칸의 track 지표가
     #    바뀐다(예: prf39400 · el+0 의 beat_hz 59.79 → 119.52 Hz).
     #  ⭐원장은 이제 칸마다 prf_hz 를 싣는다(elevation_sweep_md.py 2026-09-13).
-    #  ⚠여기서는 **아직 그 값을 STFT 에 넘기지 않는다** — PRF 를 쓰는 자리가 16 곳이라
-    #    한 번에 갈면 검증이 안 된다. 그래서 **그 칸은 수를 안 낸다**(mute). 조용히 틀린
-    #    축에 그리는 것보다 낫다. 전면 교체는 남은 일이다(docs/RETRACTION_LOG.md R34).
+    #  ⭐2026-09-13(3) 해결 — 그 값을 **쓰는 자리 전부**에 넘긴다: 그림 둘(map_panel ·
+    #    modspec_curve)과 잣대 셋(rhythm_share · comb_contrast_db · outlier_probe).
+    #    표집률을 못 읽은 칸만 규약 값으로 떨어진다(prf_of 의 갈음).
+    prf_cell = prf_of(arm, el)
+    #: ⭐조각 길이도 칸의 표집률로 다시 잰다 — 팔이 한 표집률이면 넘어온 값과 **같은 값**이
+    #  나오고(auto_periods 는 순수 함수), 갈린 팔에서만 칸이 자기 값을 쓴다.
+    periods = auto_periods(prf_cell, rates["f_flash_hz"])
     _prf_cell = row.get("prf_hz")
     prf_mismatch = bool(_prf_cell) and abs(float(_prf_cell) - PRF) > 1.0
-    mute = (empty or incomplete or zero_field or no_motion
-            or prf_mismatch)                                # ⭐수를 낼 자격이 없는 칸
+    #: ⭐이제 그림·지표가 **칸의 표집률**로 계산되므로 mute 에서 뺀다. 딱지(prf_mismatch)는
+    #  «이 칸은 축이 다르다» 를 읽는 이에게 알리려고 남긴다.
+    mute = empty or incomplete or zero_field or no_motion   # ⭐수를 낼 자격이 없는 칸
 
-    share, null, frac_above, degen = rhythm_share(E, ffl, ft)
-    comb = None if mute else comb_contrast_db(E, ffl, ft)
+    share, null, frac_above, degen = rhythm_share(E, ffl, ft, prf=prf_cell)
+    comb = None if mute else comb_contrast_db(E, ffl, ft, prf=prf_cell)
     spike = None if empty else spike_ratio(E)
     spiky = bool(spike is not None and spike > SPIKE_MAX)
 
     ft_band = ft if ft > 1e-6 else rates["f_tip0_hz"]
     beat = beat_rel = None
     if not mute:
-        fr, Y = modspec_curve(E, ffl, ft_band, periods)
+        fr, Y = modspec_curve(E, ffl, ft_band, periods, prf=prf_cell)
         if fr is not None:
             sel = (fr > 20.0) & (fr < 1000.0)
             if sel.any() and float(Y[sel].max()) > 0.0:
@@ -955,7 +968,7 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
         ol = dict(gradeable=False, grade="퇴화", why_ko=why, classes=[], reasons=[],
                   impact_over_band=[])
     else:
-        ol = outlier_probe(E, ffl, ft, el)
+        ol = outlier_probe(E, ffl, ft, el, prf=prf_cell)
     # ⭐census 원장이 같은 칸에 매긴 등급을 나란히 적는다 — 갈리면 **숨기지 않는다**.
     #   갈리는 자리는 거의 다 대조군 추첨이 흔드는 경계 칸이다(grade_sensitive_to_control_draw).
     cg = (outlier_rules().get("census_grade") or {}).get(f"{arm}/el{el_key(el)}")
@@ -1046,7 +1059,8 @@ def nadir_window(rates: dict) -> float:
     return YLIM_FTIP * 0.25 * rates["f_tip0_hz"]
 
 
-def map_panel(ax, E, f_flash, f_tip, periods, *, dc_removed: bool, ylim=None):
+def map_panel(ax, E, f_flash, f_tip, periods, *, dc_removed: bool, ylim=None,
+              prf: float | None = None):
     """맵 한 패널.
 
     ⭐**보이는 도플러 범위 밖의 빈은 자르고** 넘긴다. gouraud 음영은 격자 칸마다 폴리곤을
@@ -1054,11 +1068,16 @@ def map_panel(ax, E, f_flash, f_tip, periods, *, dc_removed: bool, ylim=None):
     0.29 초, 70 배). 자르는 것은 **표시 범위 밖**뿐이라 STFT 규약(조각·hop·제로패딩)은
     그대로다 — 220 칸을 굽는 판에서는 이것이 없으면 몇 시간이 걸린다.
     """
-    n0, nz = int(round(T0 * PRF)), int(round(TSPAN * PRF))
+    #: ⛔⛔2026-09-13(3) — 이 창은 **그 칸의 표집률**로 잰다. 전역값을 쓰면 39,400·78,800·
+    #  157,600 Hz 로 구운 칸(122 칸)의 **시간축과 도플러축이 통째로 틀린다.**
+    #  전에는 그 칸들을 mute 로 «수만» 막았는데, 그림은 그대로 틀린 축에 그려지고 있었다 —
+    #  축 이름이 틀린 그림이 틀린 수보다 나쁘다.
+    _prf = float(prf or PRF)
+    n0, nz = int(round(T0 * _prf)), int(round(TSPAN * _prf))
     x = E[n0:n0 + nz] if E.size >= n0 + nz else E[-nz:] if E.size > nz else E
     if dc_removed:
         x = x - x.mean()                       # ⭐정지 성분 제거 — 움직이는 것만 남는다
-    f, t, S, _ = flash_spec(x, PRF, f_flash, periods)
+    f, t, S, _ = flash_spec(x, _prf, f_flash, periods)
     yl = YLIM_FTIP * f_tip if ylim is None else float(ylim)
     keep = np.abs(f) <= yl * 1.03
     m = draw(ax, t, f[keep], S[keep], f_tip)
@@ -1282,7 +1301,8 @@ def fig_map(arm, els, rates, periods, cells, path, dpi):
         yl = YLIM_FTIP * ft if ft > 1e-6 else nadir_window(rates)
         for r, dcr in enumerate((False, True)):
             a = ax[r][c]
-            map_panel(a, E, rates["f_flash_hz"], ft, periods, dc_removed=dcr, ylim=yl)
+            map_panel(a, E, rates["f_flash_hz"], ft, periods, dc_removed=dcr, ylim=yl,
+                      prf=prf_of(arm, el))
             if r == 0:
                 a.set_title(deg_txt(el) + ("  *" if ft <= 1e-6 else ""),
                             pad=6, fontsize=13)
@@ -1346,7 +1366,7 @@ def fig_band(arm, els, rates, periods, cells, path, dpi):
                "still filling up" if c.get("incomplete") else
                "nothing moves" if c.get("no_motion") else None)
         fr, Y = (None, None) if why else \
-            modspec_curve(series(arm, el), ffl, ftb, periods)
+            modspec_curve(series(arm, el), ffl, ftb, periods, prf=prf_of(arm, el))
         ok = why is None and fr is not None and np.isfinite(Y).all() \
             and float(Y.max()) > 0.0
         curves[el] = (fr, Y) if ok else None
@@ -1482,6 +1502,7 @@ def fig_compare_tiles(arms, el, rates_of, periods_of, cells_of, short, path, dpi
         rt = rates_of[arm]
         ft = f_tip_at(rt, el)
         map_panel(a, series(arm, el), rt["f_flash_hz"], ft, periods_of[arm],
+                  prf=prf_of(arm, el),
                   dc_removed=True, ylim=YLIM_FTIP * ft if ft > 1e-6
                   else nadir_window(rt))
         rng = range_of(cells_of[arm])
@@ -1552,6 +1573,7 @@ def fig_compare_rows(arms, els, rates_of, periods_of, cells_of, short, path, dpi
                 continue
             ft = f_tip_at(rt, el)
             map_panel(a, series(arm, el), rt["f_flash_hz"], ft, periods_of[arm],
+                      prf=prf_of(arm, el),
                       dc_removed=True,
                       ylim=YLIM_FTIP * ft if ft > 1e-6 else nadir_window(rt))
             corner(a, cell_corner(cells_of[arm][el]), size=8.2)
@@ -1718,7 +1740,11 @@ def main():
             "code_mtime": CODE_MTIME,
             "built_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "figdir": os.path.relpath(OUTDIR, ROOT),
-            "prf_hz": PRF, "fc_hz": FC,
+            #: ⭐이것은 **규약 기본값**이다. 칸마다 다를 수 있고, 다른 칸은 자기 행의
+            #  prf_hz 를 쓴다(그림·잣대 모두). 목차의 칸마다 prf_hz 가 실려 있다.
+            "prf_hz": PRF, "prf_hz_ko": "규약 기본 표집률 — 칸의 값은 칸의 prf_hz 를 본다",
+            "prf_split_arms": PRF_SPLIT,
+            "fc_hz": FC,
             "drone_default": DRONE_DEFAULT,
             "range_m_primary": RANGE_PRIMARY,
             "stft_ko": "md_mapstyle.flash_spec — 블레이드 주기의 auto_periods 배 조각 · "
@@ -1796,7 +1822,14 @@ def main():
         for ai, arm in enumerate(arms, start=1):
             els = all_arms[arm]
             rt = arm_rates(arm)
-            per = auto_periods(PRF, rt["f_flash_hz"])
+            #: ⛔조각 수도 표집률을 탄다 — **이 팔의** 값으로 잰다(2026-09-13(3)).
+            #  ⚠「팔 안에서 한 값」을 **믿지 않는다** — 세어 보고, 갈리면 소리를 낸다.
+            #  (2026-09-13 원장 실측: 844 팔 전부 한 값이고 팔 이름의 `_prf…` 꼬리표와도
+            #   맞는다. 그래도 원장은 자라므로 확인은 코드에 남긴다.)
+            _pr = sorted({prf_of(arm, e) for e in els}) or [PRF]
+            if len(_pr) > 1:
+                PRF_SPLIT.append({"arm": arm, "prf_hz": _pr, "n_cells": len(els)})
+            per = auto_periods(_pr[0], rt["f_flash_hz"])
             rates_of[arm], periods_of[arm] = rt, per
             cells = {el: cell_summary(arm, el, rt, per) for el in els}
             cells_of[arm] = cells

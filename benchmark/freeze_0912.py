@@ -293,7 +293,14 @@ def main() -> int:
             dict(at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                  moved=len(moved), why_ko=why,
                  examples=[dict(path=k, was=x, now=y) for k, x, y in moved[:8]])]
-    base = dict(frozen_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    #: ⛔집 규약 — 원장은 `_meta.generator` 에 «다시 구울 스크립트» 를 적어야 한다
+    #  (benchmark/check_new_file_rules.py ⓔ). 첫 판은 그것을 최상위에 적어 검사에 걸렸다.
+    base = dict(_meta=dict(generator="benchmark/freeze_0912.py",
+                           made_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                           head=head,
+                           how_ko=("--check 로 지금과 대조 · --update --why \"…\" 로 갱신. "
+                                   "⛔까닭 없이 갱신하면 거절한다.")),
+                frozen_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 head=head, generator="benchmark/freeze_0912.py",
                 why_ko=("2026-09-12 세 갈래(물리 경로·파형 생존·대역폭)를 시작하기 전의 수. "
                         "흔들고 나서 무엇이 달라졌는지 말하려면 흔들기 전의 수가 있어야 한다."),

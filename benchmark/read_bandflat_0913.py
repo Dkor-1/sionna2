@@ -1,0 +1,458 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""대역 안에서 표적이 평평한가 — 5G NR 100 MHz 를 다섯 점으로 훑어 읽는다 (2026-09-13).
+
+  PYTHONPATH=src:benchmark python benchmark/read_bandflat_0913.py
+
+무엇을 묻나
+-----------
+지금 사슬에서 파형은 **산란이 끝난 뒤 곱해지는 스칼라**다. 그래서 「한 대역 안에서 표적의
+복소 반사율이 평평한가」를 한 번도 안 봤다. 0929 가 그 구멍을 메우려고 3.450 · 3.475 ·
+3.525 · 3.550 GHz 를 샀다(중앙 3.500 은 이미 있었다) — **자유공간과 실외 둘 다**.
+
+⛔이것은 OFDM 을 계산한 것이 아니다. 다섯 점을 **따로** 계산해 겹쳐 보는 것뿐이다.
+⛔여기 나오는 레벨은 σ(dBsm)가 아니다 — 면적이 그 식에 없다. 환산하지 않는다.
+⛔다른 엔진과 절대 레벨을 견주지 않는다. 이 글의 모든 칸은 **한 엔진·한 팔**이다.
+
+어떻게 읽나 — ⭐대조군이 없으면 「퍼짐 4 dB」는 아무 뜻이 없다
+-----------------------------------------------------------
+반송파를 갈면 값이 달라진다. 그런데 **같은 반송파로 다시 재도** 값은 달라진다(자세를 유한
+개 뽑으므로). 그래서 두 퍼짐을 나란히 낸다.
+
+  대역 퍼짐   다섯 반송파 사이의 최대−최소 [dB]
+  칸 안 퍼짐  ⭐**같은 칸**의 자세 8,192 개를 둘로 갈라(짝수/홀수) 각각 잰 값의 차 [dB]
+
+⛔⛔**이 대조군이 무엇을 재고 무엇을 못 재는지** (2026-09-13 에 스스로 건 제동)
+  잰다   자세를 유한 개 뽑아서 생기는 흔들림.
+  못 잰다 광선 발사 격자가 만드는 흔들림. 이 엔진은 씨앗이 없어 같은 장면을 다시 돌리면
+          같은 값이 나오므로, 격자를 흔들려면 **격자 사다리 칸을 따로 사야** 한다.
+          ⛔실측(2026-09-13): 원장에 격자 사다리 행이 537 개 있지만 **이 팔 계열에는 0 개**다.
+  ⇒ 그래서 「대역 퍼짐 ÷ 칸 안 퍼짐」을 **머리기사 숫자로 쓰지 않는다.** 두 수를 나란히
+    적고, 대조군이 좁다는 것을 함께 적는다. 큰 배수는 「대조군이 작다」는 뜻이기도 하다.
+
+⛔여기서 «평평하다»로 결론짓지 않는다 — 다섯 점은 다섯 점이다.
+
+마이크로도플러 축
+-----------------
+⛔반송파가 바뀌면 날개끝 도플러도 fc 를 탄다(f_tip ∝ fc). 겹쳐 볼 때는 띠를 **그 칸의
+f_tip** 으로 잡는다 — 안 그러면 「무늬가 달라졌다」가 아니라 「자를 바꿨다」를 보는 것이다.
+
+⛔⛔정지 성분을 먼저 뺀다 — 2026-09-13 에 이것 때문에 헛것을 볼 뻔했다
+--------------------------------------------------------------------
+실외에서 돌아오는 것의 **99.1 %는 안 움직인다**(지면). 정지 성분을 둔 채 STFT 를 뜨면
+0 Hz 의 거대한 에너지가 창의 옆잎으로 날개끝 띠(0.35~1.0×f_tip)까지 샌다. 실측(el −30):
+
+    띠 전력   정지 성분 그대로 −49.8 dB   ·   정지 성분 제거 −64.3 dB
+    ⇒ 그 띠에 있던 것의 약 97 %가 **지면이 샌 것**이었다.
+
+그 샘을 두고 재면 으뜸 봉우리가 3.500 과 3.525 GHz 사이에서 460.7 → 58.2 Hz 로 **계단처럼**
+갈아타고 모양 상관이 0.38 까지 떨어진다 — 25 MHz 가 만든 물리로 읽으면 틀린다. 정지 성분을
+빼면 다섯 반송파가 모두 58.2 Hz 에 모이고 상관이 0.9986 이상이 된다. 그래서 여기서는
+**언제나 빼고 잰다**. 뺀 것과 안 뺀 것을 둘 다 적어 둔다(왜 그렇게 골랐는지가 보이게).
+
+⛔레벨도 마찬가지다 — 실외의 level_db 는 **지면**이지 표적이 아니다. 표적에 관해 말할 수
+있는 것은 «움직이는 몫» 뿐이므로 둘을 갈라 적는다.
+
+⛔⛔⛔그런데 실외에서는 **그 «움직이는 몫»조차 날개가 아니다** (2026-09-13 실측)
+------------------------------------------------------------------------
+「정지 성분을 뺐으니 이제 표적이다」로 넘어가면 또 틀린다. 뺀 나머지에 날개 무늬가 있는지
+**세어 보면** 이렇다(확산만 팔 · 15 m):
+
+              리듬 몫 [%]     빗살 대비 [dB]     날개끝 띠가 움직임에서
+    자유공간   80 ~ 96         +46 ~ +54          24 ~ 87 %
+    실외       12.5 ~ 13.1     −0.8 ~ +0.3         4.8 ~ 8.0 %
+    백색잡음   12.6 (셀 수 있는 널)   0.0
+
+실외 값은 **백색잡음 널과 구별되지 않는다.** 게다가 그 바닥은 정지 성분의 −20.4 dB(el −30)
+· −19.8 dB(el −60)로, 두 앙각에서 거의 같은 비율로 따라붙고 다섯 반송파에서 전부 0.9 %다
+— 정지 성분에 **비례하는 바닥**의 모습이다.
+
+⇒ 그래서 실외 줄의 「대역을 가로질러 0.24 dB」는 **표적이 평평하다는 뜻이 아니다.** 이 팔·
+  이 거리에서 날개 무늬가 그 바닥 아래에 있다는 뜻이다. ⛔실외 숫자를 「표적의 대역 평탄성」
+  으로 인용하지 않는다. ⚠그 바닥을 무엇이 만드는지는 이 자료만으로 못 가른다 — 자세마다
+  광선 집합이 조금씩 달라지는 것이 유력하지만, 여기서 단정하지 않는다.
+"""
+from __future__ import annotations
+import json, os, re, sys
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+for p in (os.path.join(ROOT, "src"), HERE):
+    if p not in sys.path:
+        sys.path.insert(0, p)
+from md_mapstyle import auto_periods, flash_spec                      # noqa: E402
+
+LED_J = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
+LED_N = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
+OUT_J = os.path.join(ROOT, "outputs", "bandflat_0913.json")
+
+#: 5G NR n78 의 100 MHz 폭 한 덩이를 다섯 점으로. 중앙은 꼬리표가 **없는** 팔이다.
+FCS_MHZ = (3450, 3475, 3500, 3525, 3550)
+ELS = (-30.0, -60.0)
+#: 팔 이름의 형태 — 꼬리표 하나만 다르고 나머지가 **글자 그대로 같아야** 짝이다.
+STEM_HEAD = "sionna_p4000000000_swR0D0E0F1_r15_n8192"
+STEM_TAIL = "mfixbatteryi5_blperairframe_d2"
+ENVS = {"free": "", "outdoor01": "envoutdoor01"}
+
+FC_RE = re.compile(r"_fc(\d+)(?=_)")
+
+
+def arm_name(env: str, fc_mhz: int) -> str:
+    """⭐이름을 **짓는다** — 원장에서 정규식으로 긁으면 «outdoor01_fc3450» 같은 것이
+    환경 이름으로 딸려 온다(2026-09-13 에 실제로 당했다). 지어서 찾으면 그 일이 없다."""
+    mid = [x for x in (ENVS[env], "" if fc_mhz == 3500 else f"fc{fc_mhz}") if x]
+    return "_".join([STEM_HEAD, *mid, STEM_TAIL])
+
+
+def el_key(el: float) -> str:
+    return f"{el:+g}"
+
+
+def halves_level_db(E: np.ndarray) -> tuple[float, float]:
+    """⭐같은 칸을 짝수 자세 / 홀수 자세로 갈라 각각 레벨을 낸다 — 잣대의 흔들림 대조군.
+
+    ⚠ **자세를 앞뒤로 자르지 않는다.** 앞 절반 / 뒤 절반으로 가르면 로터 위상이 한 바퀴를
+      고르게 안 돌아 «흔들림» 이 아니라 «다른 자세 집합» 을 재게 된다. 짝/홀은 격자를
+      균일하게 반으로 나누므로 그 문제가 없다.
+    """
+    x = np.asarray(E, complex)
+    out = []
+    for s in (x[0::2], x[1::2]):
+        p = float(np.mean(np.abs(s) ** 2))
+        out.append(10.0 * np.log10(p) if p > 0 else float("nan"))
+    return out[0], out[1]
+
+
+def modspec_norm(E: np.ndarray, prf: float, f_flash: float, f_tip: float,
+                 dc_removed: bool = True):
+    """날개끝 띠 전력의 변조 스펙트럼. ⭐띠는 **fc 로 스케일된 f_tip** 으로 잡는다.
+
+    dc_removed : ⭐기본 참 — 정지 성분을 STFT **전에** 뺀다(머리말 참조). 거짓은 그 선택이
+                 무엇을 막았는지 보이려고만 쓴다.
+    """
+    x = np.asarray(E, complex)
+    if dc_removed:
+        x = x - x.mean()
+    per = auto_periods(prf, f_flash)
+    f, t, S, _ = flash_spec(x, prf, f_flash, per)
+    m = (np.abs(f) >= 0.35 * f_tip) & (np.abs(f) <= f_tip)
+    if int(m.sum()) < 2:
+        return None, None
+    g = (S[m, :] ** 2).sum(axis=0)
+    fs_g = 1.0 / float(t[1] - t[0])
+    n = g.size
+    Y = np.abs(np.fft.rfft((g - g.mean()) * np.hanning(n))) ** 2
+    fr = np.fft.rfftfreq(n, 1.0 / fs_g)
+    return fr, Y, float((S[m, :] ** 2).sum())
+
+
+def main() -> int:
+    J = json.load(open(LED_J))
+    Z = np.load(LED_N, allow_pickle=True)
+    M = J["_meta"]
+    ROW = {(r["engine"], float(r["el_deg"])): r for r in J["rows"]}
+
+    out: dict = {"_meta": {
+        "generator": "benchmark/read_bandflat_0913.py",
+        "ledger": os.path.relpath(LED_J, ROOT),
+        "ledger_rows": len(J["rows"]),
+        "question_ko": "한 대역(5G NR 100 MHz) 안에서 표적의 반사와 마이크로도플러가 "
+                       "반송파를 따라 움직이나 — 다섯 점을 따로 계산해 겹쳐 본다",
+        "not_ofdm_ko": "⛔OFDM 을 계산한 것이 아니다. 다섯 점은 각각 단일 반송파다.",
+        "level_is_not_sigma_ko": "⛔level_db 는 σ(dBsm)가 아니다 — 면적이 그 식에 없다.",
+        "fcs_mhz": list(FCS_MHZ), "els_deg": list(ELS), "envs": sorted(ENVS),
+        "arm_ko": "확산만(R0D0E0F1) · 15 m · 자세 8,192 · matrice4e",
+    }, "cells": [], "series": [], "skipped": [], "gates": []}
+
+    # ── 1. 칸을 모으고, 쓸 자격이 있는지 먼저 건다 ──────────────────────────
+    cells: dict[tuple, dict] = {}
+    for env in ENVS:
+        for fc in FCS_MHZ:
+            arm = arm_name(env, fc)
+            for el in ELS:
+                r = ROW.get((arm, el))
+                if r is None:
+                    out["skipped"].append({"arm": arm, "el_deg": el, "why": "원장에 없다"})
+                    continue
+                why = []
+                if r.get("n_missing"):
+                    why.append(f"자세가 덜 찼다({r['n_missing']} 개)")
+                if r.get("n_zero_field"):
+                    why.append(f"전계가 0 인 자세({r['n_zero_field']} 개)")
+                if r.get("truncated") or r.get("n_trunc"):
+                    why.append("경로가 잘렸다")
+                if r.get("mixed_generations"):
+                    why.append("굽기 세대가 섞였다")
+                cap = r.get("max_paths_cap")
+                med = r.get("npaths_median")
+                if cap and med and med >= 0.9 * float(cap):
+                    why.append(f"경로 수가 상한을 따라간다({med}/{cap}) — 이 축은 접는다")
+                if abs(float(r.get("fc_hz", 0)) / 1e6 - fc) > 1.0:
+                    why.append(f"원장 fc_hz({r.get('fc_hz')})가 이름 꼬리표와 어긋난다")
+                if why:
+                    out["skipped"].append({"arm": arm, "el_deg": el, "why": " · ".join(why)})
+                    continue
+                cells[(env, fc, el)] = r
+
+    out["_meta"]["n_cells"] = len(cells)
+    out["_meta"]["n_expected"] = len(ENVS) * len(FCS_MHZ) * len(ELS)
+
+    # ── 2. 칸마다 레벨·대조군·박자 ────────────────────────────────────────
+    for (env, fc, el), r in sorted(cells.items()):
+        E = np.asarray(Z[f"{r['engine']}/el{el_key(el)}"], complex)
+        a, b = halves_level_db(E)
+        p = float(np.mean(np.abs(E) ** 2))
+        lvl = 10.0 * np.log10(p) if p > 0 else None
+        #: ⭐정지(자세평균) / 움직임(나머지)을 가른다 — 실외의 level_db 는 지면이다.
+        p_dc = float(np.abs(E.mean()) ** 2)
+        p_ac = float(np.mean(np.abs(E - E.mean()) ** 2))
+        tr = r.get("track") or {}
+        out["cells"].append({
+            "env": env, "fc_mhz": fc, "el_deg": el, "engine": r["engine"],
+            "level_db_ledger": r.get("level_db"),
+            "level_db_here": None if lvl is None else round(lvl, 4),
+            "static_db": None if p_dc <= 0 else round(10.0 * np.log10(p_dc), 4),
+            "moving_db": None if p_ac <= 0 else round(10.0 * np.log10(p_ac), 4),
+            "moving_frac_of_total": None if p <= 0 else round(p_ac / p, 6),
+            "half_even_db": round(a, 4), "half_odd_db": round(b, 4),
+            "half_spread_db": round(abs(a - b), 4),
+            "f_tip_hz": r.get("f_tip_hz"), "prf_hz": r.get("prf_hz"),
+            "npaths_median": r.get("npaths_median"), "seconds": r.get("seconds"),
+            "beat_hz": tr.get("beat_hz"), "band_power_db": tr.get("band_power_db"),
+            "h1_over_h2_db": tr.get("h1_over_h2_db"),
+        })
+
+    # ── 3. 대역을 가로지른 퍼짐 vs 칸 안 퍼짐 ──────────────────────────────
+    for env in ENVS:
+        for el in ELS:
+            got = [(fc, c) for fc in FCS_MHZ
+                   for c in out["cells"]
+                   if c["env"] == env and c["el_deg"] == el and c["fc_mhz"] == fc]
+            if len(got) < 3:
+                out["series"].append({"env": env, "el_deg": el, "n": len(got),
+                                      "why_ko": "점이 셋도 안 된다 — 기울기를 안 잰다"})
+                continue
+            fcs = np.array([g[0] for g in got], float)
+            lv = np.array([g[1]["level_db_here"] for g in got], float)
+            mv = np.array([g[1]["moving_db"] for g in got], float)
+            half = float(np.median([g[1]["half_spread_db"] for g in got]))
+            band = float(lv.max() - lv.min())
+            slope = float(np.polyfit(fcs / 1000.0, lv, 1)[0])          # dB per GHz
+            d = np.diff(lv)
+            mono = bool(np.all(d > 0) or np.all(d < 0))
+            #: ⚠배수는 **참고**다 — 대조군이 자세 표집만 덮는다(머리말). 머리기사 아님.
+            ratio = None if half <= 0 else round(band / half, 3)
+            mv_band = float(np.ptp(np.array([g[1]["moving_db"] for g in got], float)))
+            #: 날개끝 상한이 fc 에 정비례하나 — 자를 바꾼 것이 맞는지 확인
+            ft = np.array([g[1]["f_tip_hz"] for g in got], float)
+            ft_over_fc = ft / fcs
+            out["series"].append({
+                "env": env, "el_deg": el, "n": len(got),
+                "fc_mhz": [int(x) for x in fcs],
+                "level_db": [round(float(x), 3) for x in lv],
+                "band_spread_db": round(band, 3),
+                #: ⭐표적에 관해 말할 수 있는 것은 이쪽이다 — 실외의 전체 레벨은 지면이다.
+                "moving_db": [round(float(x), 3) for x in mv],
+                "moving_band_spread_db": round(float(mv.max() - mv.min()), 3),
+                "moving_slope_db_per_ghz": round(
+                    float(np.polyfit(fcs / 1000.0, mv, 1)[0]), 3),
+                "moving_frac_of_total": [g[1]["moving_frac_of_total"] for g in got],
+                "within_cell_spread_db": round(half, 3),
+                "band_spread_over_pose_sampling": ratio,
+                "control_covers_ko": "자세 표집만 — 광선 격자는 못 덮는다(짝 칸 0 개)",
+                "slope_db_per_ghz": round(slope, 3),
+                "monotonic": mono,
+                "f_tip_over_fc_ppb": [round(float(x) * 1e9, 3) for x in ft_over_fc],
+                "f_tip_scales_with_fc": bool(
+                    ft_over_fc.max() / ft_over_fc.min() - 1.0 < 1e-3),
+                #: ⭐표적을 말하는 것은 **움직이는 몫**이다 — 실외의 전체 레벨은 지면이다.
+                #  문장은 잰 수에서 **만들어 낸다**(틀에 박아 넣지 않는다).
+                "reading_ko": (
+                    f"움직이는 몫이 100 MHz 를 가로질러 {mv_band:.2f} dB 움직인다"
+                    + (" — 자세 표집 흔들림(%.2f dB)과 같은 자릿수라 이 잣대로는 "
+                       "기울기를 가르지 못한다" % half if mv_band < 2.0 * half else
+                       " — 자세 표집 흔들림(%.2f dB)보다 크다" % half)),
+            })
+
+    # ── 4. 겹쳐 보기 — 주파수축을 fc 로 나눈 변조 스펙트럼 ─────────────────
+    for env in ENVS:
+        for el in ELS:
+            got = [c for c in out["cells"] if c["env"] == env and c["el_deg"] == el]
+            if len(got) < 3:
+                continue
+            ffl = float(M["f_flash_hz"])
+            rec = {}
+            for dcr in (True, False):            # ⭐참이 정본 · 거짓은 대조로만 적는다
+                curves, bpow = {}, {}
+                for c in got:
+                    E = np.asarray(Z[f"{c['engine']}/el{el_key(el)}"], complex)
+                    fr, Y, bp = modspec_norm(E, float(c["prf_hz"]), ffl,
+                                             float(c["f_tip_hz"]), dc_removed=dcr)
+                    if fr is None:
+                        continue
+                    s = (fr > 20.0) & (fr < 1000.0)
+                    if not s.any() or float(Y[s].max()) <= 0:
+                        continue
+                    curves[c["fc_mhz"]] = (fr[s], Y[s] / float(Y[s].max()))
+                    bpow[c["fc_mhz"]] = round(10.0 * np.log10(bp), 3) if bp > 0 else None
+                if len(curves) < 3:
+                    continue
+                ks = sorted(curves)
+                ref = curves[3500] if 3500 in curves else curves[ks[0]]
+                ds = []
+                for k in ks:
+                    fr, Y = curves[k]
+                    Yi = np.interp(ref[0], fr, Y)
+                    #: ⭐모양 차이는 **상관**으로 — 레벨을 이미 뺐으므로 남는 것은 무늬다.
+                    cc = float(np.corrcoef(ref[1], Yi)[0, 1])
+                    ds.append({"fc_mhz": k, "shape_corr_vs_3500": round(cc, 5),
+                               "peak_hz": round(float(fr[int(np.argmax(Y))]), 2),
+                               "band_power_db": bpow.get(k)})
+                rec["dc_removed" if dcr else "dc_left_in"] = {
+                    "curves": ds,
+                    "shape_corr_min": round(min(d["shape_corr_vs_3500"] for d in ds), 5),
+                    "peaks_hz": sorted({d["peak_hz"] for d in ds}),
+                }
+            if not rec.get("dc_removed"):
+                continue
+            prim, ctrl = rec["dc_removed"], rec.get("dc_left_in") or {}
+            leak = None
+            if ctrl.get("curves"):
+                bp0 = [d["band_power_db"] for d in ctrl["curves"] if d["band_power_db"]]
+                bp1 = [d["band_power_db"] for d in prim["curves"] if d["band_power_db"]]
+                if bp0 and bp1:
+                    leak = round(float(np.median(bp0) - np.median(bp1)), 2)
+            out["gates"].append({
+                "env": env, "el_deg": el, "n_curves": len(prim["curves"]),
+                "note_ko": "날개끝 띠(0.35~1.0×f_tip) 전력의 변조 스펙트럼 — 띠를 그 칸의 "
+                           "f_tip 으로 잡았으므로 반송파가 만드는 «자 바뀜» 은 이미 빠졌다. "
+                           "⭐정지 성분은 STFT 전에 뺐다.",
+                "dc_removed": prim, "dc_left_in": ctrl,
+                "static_leak_into_band_db": leak,
+                #: ⛔문장을 **틀에 박지 않는다** — 봉우리가 실제로 달라졌을 때만 그렇게 적고,
+                #  뺀 뒤에도 갈리면 갈린다고 적는다(2026-09-13 에 거짓 문장 둘을 잡았다).
+                "leak_note_ko": (None if leak is None else " · ".join(filter(None, [
+                    f"정지 성분을 두면 이 띠의 전력이 {leak:+.1f} dB 부푼다",
+                    ("그러면 으뜸 봉우리가 %s Hz 로 갈린다" % ctrl.get("peaks_hz")
+                     if len(ctrl.get("peaks_hz") or []) > 1 else None),
+                    ("빼면 %s Hz 하나로 모인다" % prim["peaks_hz"][0]
+                     if len(prim["peaks_hz"]) == 1 else
+                     "빼고도 으뜸 봉우리는 %s Hz 로 갈린다 — ⚠낮은 쪽에 엇비슷한 봉우리가 "
+                     "여럿이라 «가장 큰 하나»는 흔들린다. 모양 상관으로 읽는다"
+                     % prim["peaks_hz"]),
+                ]))),
+                "peak_stable_across_band": len(prim["peaks_hz"]) == 1,
+                "shape_corr_min": prim["shape_corr_min"],
+            })
+
+    # ── 5. ⭐구조 관문 — 「움직이는 몫」에 날개 무늬가 있나 ──────────────────
+    #  ⛔이 관문을 통과 못 한 줄의 대역 평탄성은 **표적 이야기가 아니다**.
+    import build_md_atlas as _A                                        # noqa: E402
+    ffl = float(M["f_flash_hz"])
+    for env in ENVS:
+        for el in ELS:
+            got = [c for c in out["cells"] if c["env"] == env and c["el_deg"] == el]
+            if not got:
+                continue
+            rs, nl, cb, tipfrac = [], [], [], []
+            for c in got:
+                E = np.asarray(Z[f"{c['engine']}/el{el_key(el)}"], complex)
+                ft, prf = float(c["f_tip_hz"]), float(c["prf_hz"])
+                sh, null, _above, _deg = _A.rhythm_share(E, ffl, ft, prf=prf)
+                comb = _A.comb_contrast_db(E, ffl, ft, prf=prf)
+                ac = E - E.mean()
+                n = ac.size
+                Pp = np.abs(np.fft.fft(ac * np.hanning(n))) ** 2
+                fr = np.abs(np.fft.fftfreq(n, 1.0 / prf))
+                tip = (fr >= 0.35 * ft) & (fr <= ft)
+                tot = float(Pp.sum())
+                rs.append(sh); nl.append(null); cb.append(comb)
+                tipfrac.append(100.0 * float(Pp[tip].sum()) / tot if tot > 0 else None)
+            rs_ok = [x for x in rs if x is not None]
+            nl_ok = [x for x in nl if x is not None]
+            cb_ok = [x for x in cb if x is not None]
+            #: ⭐널은 칸마다 셀 수 있다 — «13» 하나를 모든 팔에 대지 않는다.
+            over_null = (min(rs_ok) - max(nl_ok)) if (rs_ok and nl_ok) else None
+            has = bool(over_null is not None and over_null > 5.0
+                       and cb_ok and min(cb_ok) > 3.0)
+            #: 바닥이 정지 성분에 비례하나 — 비례하면 «표적» 으로 못 읽는다
+            fr_mv = [c["moving_frac_of_total"] for c in got
+                     if c["moving_frac_of_total"] is not None]
+            out.setdefault("structure", []).append({
+                "env": env, "el_deg": el,
+                "rhythm_pct": [None if x is None else round(x, 2) for x in rs],
+                "rhythm_null_pct": [None if x is None else round(x, 2) for x in nl],
+                "rhythm_over_null_pct": None if over_null is None else round(over_null, 2),
+                "comb_db": [None if x is None else round(x, 2) for x in cb],
+                "tip_band_share_of_moving_pct": [None if x is None else round(x, 2)
+                                                 for x in tipfrac],
+                "moving_frac_of_total": fr_mv,
+                "moving_frac_spread": (None if not fr_mv else
+                                       round(max(fr_mv) - min(fr_mv), 6)),
+                "blade_structure_present": has,
+                "verdict_ko": (
+                    "움직이는 몫에 날개 무늬가 있다 — 이 줄의 대역 평탄성은 표적 이야기다"
+                    if has else
+                    "움직이는 몫이 백색잡음 널과 구별되지 않는다 — ⛔이 줄의 대역 평탄성을 "
+                    "«표적이 평평하다»로 읽지 않는다"),
+            })
+
+    json.dump(out, open(OUT_J, "w"), ensure_ascii=False, indent=1)
+
+    # ── 화면 ───────────────────────────────────────────────────────────────
+    print("═══ 대역 안 평탄성 — 5G NR 100 MHz 다섯 점 ═══")
+    print(f"  칸 {out['_meta']['n_cells']}/{out['_meta']['n_expected']} · "
+          f"건너뜀 {len(out['skipped'])}")
+    for s in out["skipped"]:
+        print(f"   ⛔ {s['arm'][-52:]} el{s['el_deg']:+.0f} — {s['why']}")
+    print()
+    for s in out["series"]:
+        if s.get("n", 0) < 3:
+            print(f"  {s['env']:10s} el{s['el_deg']:+.0f}  {s['why_ko']}")
+            continue
+        print(f"  {s['env']:10s} el{s['el_deg']:+.0f}  "
+              f"대역퍼짐 {s['band_spread_db']:6.2f} dB · 칸안퍼짐 "
+              f"{s['within_cell_spread_db']:5.2f} dB · "
+              f"배수 {s['band_spread_over_pose_sampling']}(참고) · "
+              f"기울기 {s['slope_db_per_ghz']:+8.2f} dB/GHz · "
+              f"{'단조' if s['monotonic'] else '비단조'}")
+        print(f"             전체 레벨   {s['level_db']}")
+        print(f"             움직이는 몫 {s['moving_db']}  "
+              f"(퍼짐 {s['moving_band_spread_db']:.2f} dB · "
+              f"기울기 {s['moving_slope_db_per_ghz']:+.2f} dB/GHz)")
+        print(f"             움직이는 몫이 전체에서 차지하는 비 "
+              f"{[f'{x:.3f}' for x in s['moving_frac_of_total']]}")
+        print(f"             날개끝 상한이 fc 에 비례: {s['f_tip_scales_with_fc']}")
+        print(f"             → {s['reading_ko']}")
+        print(f"             (대조군 범위: {s['control_covers_ko']})")
+    print()
+    for g in out["gates"]:
+        print(f"  무늬 {g['env']:10s} el{g['el_deg']:+.0f}  "
+              f"3.500 GHz 와의 모양 상관 최소 {g['shape_corr_min']:.4f}  "
+              f"({g['n_curves']} 곡선) · 으뜸 봉우리 {g['dc_removed']['peaks_hz']} Hz"
+              f" {'(다섯 점이 한 자리)' if g['peak_stable_across_band'] else '(갈린다)'}")
+        print("             " + " · ".join(
+            f"{d['fc_mhz']}:{d['shape_corr_vs_3500']:.4f}"
+            for d in g["dc_removed"]["curves"]))
+        if g.get("leak_note_ko"):
+            print(f"             ⚠ {g['leak_note_ko']}")
+    print("\n── ⭐구조 관문 — 움직이는 몫에 날개 무늬가 있나 ──")
+    for g in out.get("structure", []):
+        mark = "✔" if g["blade_structure_present"] else "⛔"
+        print(f"  {mark} {g['env']:10s} el{g['el_deg']:+.0f}  리듬몫 "
+              f"{min(x for x in g['rhythm_pct'] if x is not None):.1f}~"
+              f"{max(x for x in g['rhythm_pct'] if x is not None):.1f} % "
+              f"(널 ~{max(x for x in g['rhythm_null_pct'] if x is not None):.1f}) · 빗살 "
+              f"{min(x for x in g['comb_db'] if x is not None):+.1f}~"
+              f"{max(x for x in g['comb_db'] if x is not None):+.1f} dB · "
+              f"날개끝띠가 움직임의 "
+              f"{min(g['tip_band_share_of_moving_pct']):.1f}~"
+              f"{max(g['tip_band_share_of_moving_pct']):.1f} %")
+        print(f"      {g['verdict_ko']}")
+    print(f"\n  → {os.path.relpath(OUT_J, ROOT)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
