@@ -1,16 +1,16 @@
 # 시오나 저장소 전체 재고와 주요 실행 경로 점검
 
-기준 `1c82aa5304e82037c0f54f1493a1b6fec6c0caac` · 2026-09-11T16:38:45.660848+00:00
+기준 `5db40e9b68007725c2e78cd44e72406bd75a038a` · 2026-09-13T18:43:17.764016+00:00
 
 [주피터 보고서](REPOSITORY_REVIEW_0911.ipynb) · [전수 목록·실행 원장](../outputs/repository_review_0911.json) · [재현 생성기](../benchmark/review_repository_0911.py)
 
 ## 조사 범위
 
-추적 파일과 작업 트리 파일 19571개를 목록화하고, 파이썬 800개를 구문 검사했다. 열거에 쓴 방법은 os.walk (no ignore rules; .git and __pycache__ excluded)다. outputs 바로 아래 JSON 735개를 구문 확인했다. 저장 샤드 7470개를 실제로 읽어 2301조건의 idx·선언 길이·시간축·전계 유한값·배열 길이를 집계했다.
+추적 파일과 작업 트리 파일 19886개를 목록화하고, 파이썬 813개를 구문 검사했다. 열거에 쓴 방법은 os.walk (no ignore rules; .git and __pycache__ excluded)다. outputs 바로 아래 JSON 742개를 구문 확인했다. 저장 샤드 7647개를 실제로 읽어 2389조건의 idx·선언 길이·시간축·전계 유한값·배열 길이를 집계했다.
 
 파일 목록·구문 검사는 모든 코드의 의미를 정독하거나 모든 실험을 재실행한 것과 다르다. 의미와 반례를 깊게 확인한 범위는 주 병합·샤드 저장·재개 조건·협곡/낙차/동체 판독·아틀라스 완전성·검토 보고서 빌더·신호처리 교정이다. refs·prior_work의 논문 근거 재독, GPU 커널 재실행, 모든 보고서의 과학적 결론 검증은 이번 범위 밖이다. 저장소 무시 규칙에 걸리는 미추적 파일은 일반 목록 밖이며 샤드 폴더는 별도로 직접 열거했다.
 
-샤드 읽기 오류 0개·비유한 전계 조건 0개·배열 길이 오류 조건 0개다. 인덱스가 선언 길이를 덮지 않는 조건은 7개로, 진행 중 자료와 구별해 다뤄야 한다. 완전성 부족을 곧바로 솔버 결함으로 부르지 않는다.
+샤드 읽기 오류 0개·비유한 전계 조건 0개·배열 길이 오류 조건 0개다. 인덱스가 선언 길이를 덮지 않는 조건은 6개로, 진행 중 자료와 구별해 다뤄야 한다. 완전성 부족을 곧바로 솔버 결함으로 부르지 않는다.
 
 ## 이전 지적의 현재 상태
 
@@ -31,17 +31,17 @@
 
 ⟨outputs/repository_review_0911.json : findings[0]⟩
 
-- [elevation_sweep_md.py:1383](../benchmark/elevation_sweep_md.py#L1383)
+- [elevation_sweep_md.py:1586](../benchmark/elevation_sweep_md.py#L1586)
 ```python
 miss = int((~seen).sum())
 ```
 
-- [elevation_sweep_md.py:1502](../benchmark/elevation_sweep_md.py#L1502)
+- [elevation_sweep_md.py:1705](../benchmark/elevation_sweep_md.py#L1705)
 ```python
 (np.abs(E[seen]).mean() if seen.any() else 0.0) + 1e-300)), 2),
 ```
 
-- [build_md_atlas.py:904](../benchmark/build_md_atlas.py#L904)
+- [build_md_atlas.py:959](../benchmark/build_md_atlas.py#L959)
 ```python
 incomplete = (not empty) and (0 < n_miss < n_pose)
 ```
@@ -56,17 +56,17 @@ incomplete = (not empty) and (0 < n_miss < n_pose)
 
 ⟨outputs/repository_review_0911.json : findings[1]⟩
 
-- [elevation_sweep_md.py:1038](../benchmark/elevation_sweep_md.py#L1038)
+- [elevation_sweep_md.py:1089](../benchmark/elevation_sweep_md.py#L1089)
 ```python
 def one_generation(fs, tag, gap_s=3600.0):
 ```
 
-- [elevation_sweep_md.py:1284](../benchmark/elevation_sweep_md.py#L1284)
+- [elevation_sweep_md.py:1478](../benchmark/elevation_sweep_md.py#L1478)
 ```python
 fs, mixed_gen = one_generation(fs, f"{eng}/el{el:+g}")
 ```
 
-- [elevation_sweep_md.py:1042](../benchmark/elevation_sweep_md.py#L1042)
+- [elevation_sweep_md.py:1093](../benchmark/elevation_sweep_md.py#L1093)
 ```python
 ⛔⛔2026-09-11(5) 정정 — 전에는 병합 고리가 `E[ii] = z["E"]` 로 **덮어쓰기만** 했다.
 ```
@@ -75,23 +75,23 @@ fs, mixed_gen = one_generation(fs, f"{eng}/el{el:+g}")
 
 **범위:** 2026-09-11 정정 뒤 현재 상태 · 합성 장애 시험
 
-실제 저장 호출에서 E를 쓰는 중 예외를 주입했다. 파일 잔존=True, E 배열 유효=False, 재개 조건 원문은 «shard_done(f) and (not a.overwrite)»이고 그 조건이 이 파일을 건너뛸지는 False다. 조건이 부르는 생산 함수 ['shard_done']를 원본 그대로 실행해 판정했다. 이번 전수 판독 7470개에서 읽기 실패는 0개이므로, 현재 재고가 손상됐다는 주장이 아니라 저장 중단에 대한 내성을 잰 것이다.
+실제 저장 호출에서 E를 쓰는 중 예외를 주입했다. 파일 잔존=True, E 배열 유효=False, 재개 조건 원문은 «shard_done(f) and (not a.overwrite)»이고 그 조건이 이 파일을 건너뛸지는 False다. 조건이 부르는 생산 함수 ['shard_done']를 원본 그대로 실행해 판정했다. 이번 전수 판독 7647개에서 읽기 실패는 0개이므로, 현재 재고가 손상됐다는 주장이 아니라 저장 중단에 대한 내성을 잰 것이다.
 
 **수정 방향:** 남은 일은 저장 자체를 같은 디렉토리의 임시 파일에 쓰고 최종 이름으로 교체하는 것이다. 지금은 재개 쪽만 내용을 확인하므로, 끊긴 파일은 남아 있다가 다시 구워질 때 덮인다.
 
 ⟨outputs/repository_review_0911.json : findings[2]⟩
 
-- [elevation_sweep_md.py:965](../benchmark/elevation_sweep_md.py#L965)
+- [elevation_sweep_md.py:967](../benchmark/elevation_sweep_md.py#L967)
 ```python
 np.savez_compressed(f, idx=idx, E=E, npaths=npaths, nret=nret,
 ```
 
-- [elevation_sweep_md.py:988](../benchmark/elevation_sweep_md.py#L988)
+- [elevation_sweep_md.py:1012](../benchmark/elevation_sweep_md.py#L1012)
 ```python
 def shard_done(f):
 ```
 
-- [elevation_sweep_md.py:650](../benchmark/elevation_sweep_md.py#L650)
+- [elevation_sweep_md.py:651](../benchmark/elevation_sweep_md.py#L651)
 ```python
 if shard_done(f) and not a.overwrite:
 ```
@@ -106,7 +106,7 @@ if shard_done(f) and not a.overwrite:
 
 ⟨outputs/repository_review_0911.json : findings[3]⟩
 
-- [review_latest_readers_0910.py:586](../benchmark/review_latest_readers_0910.py#L586)
+- [review_latest_readers_0910.py:625](../benchmark/review_latest_readers_0910.py#L625)
 ```python
 build_notebook(str(NB),blocks,strict=True)
 ```

@@ -90,6 +90,13 @@ from datetime import datetime, timedelta, timezone
 
 import numpy as np
 
+#: ⛔이 파일은 `src/` 를 **스스로** 경로에 넣는다(2026-09-13(10) 고침). 전에는 넣지 않아
+#  `python benchmark/switch_to_classification.py` 가 ModuleNotFoundError: drones 로 죽었고,
+#  부르는 쪽이 PYTHONPATH 를 맞춰 줘야만 돌았다 — 같은 저장소의 다른 빌더는
+#  `benchmark/switch_factorial.py:58` 처럼 전부 스스로 넣는다.
+#  ⚠아래 자료 경로는 상대경로다 — 이 빌더는 **저장소 뿌리에서** 부른다.
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 from drones import DRONES                     # numpy/dataclass 뿐 — GPU 스택 아님
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -234,7 +241,12 @@ def db(v):
 
 def line_floor(E: np.ndarray, prf: float, f_flash: float, f_tip: float) -> dict:
     """⭐R13(switch_factorial.py:columns)과 같은 식 — 절대 dB 로 선/바닥을 가른다.
-    다만 f_flash·f_tip 은 **그 팔의 진짜 기체 것**을 쓴다(R13 은 판 전체를 matrice4e 로 쟀다)."""
+    f_flash·f_tip 은 **그 팔의 진짜 기체 것**을 부르는 쪽이 넣는다.
+
+    ⚠2026-09-13(10) 단서를 고쳤다 — 옛 머리말은 「R13 은 판 전체를 matrice4e 로 쟀다」고
+      적혀 있었는데, R13 은 그 뒤 칸마다 `f_flash_hz`·`prf_hz` 를 적게 됐다(다른 기체 팔
+      180 칸이 120.0·148.9·183.333 Hz). 그 낡은 단서를 믿고 자가검사 ③ 이 판 전체에
+      126.667 Hz 를 물려서 540 열 중 352 열이 허용을 넘었다."""
     E = np.asarray(E, complex)
     n = E.size
     x = E - E.mean()
@@ -1288,27 +1300,75 @@ def selftest(p: dict) -> dict:
     add("reproduces_classify_airframe", d_ours < 1e-9 and d_sio < 1e-9,
         f"ours Δ={d_ours:.2e} · sionna(물리끔) Δ={d_sio:.2e} — 채점 규약이 원본과 같음을 확인")
 
-    # ③ 선/바닥 분해가 R13 원장을 되찾나(같은 팔·같은 f_flash=126.67·같은 f_tip)
+    # ③ 선/바닥 분해가 R13 원장을 되찾나 — ⭐**칸마다 그 칸의 박자·표집률로** 맞댄다
+    #
+    #   ⛔⛔2026-09-13(10) 고쳤다. 옛 판은 `_meta` 의 값 **하나**(126.667 Hz · 19,700 Hz)를
+    #     R13 칸 전부에 물렸다. R13 이 칸마다 `f_flash_hz`·`prf_hz` 를 적게 된 뒤로 그것은
+    #     **다른 기체 칸에 남의 박자를 물리는 것**이 됐다 — 다른 기체 팔 180 칸 540 열 중
+    #     352 열이 허용 0.02 dB 를 넘었고 최대 |Δ| 가 27.56 dB 였다. 재현 검사가 아니라
+    #     검사 자신이 틀린 것이다(R13 쪽 수와 이 파일의 계산은 둘 다 맞았다).
     with open(R13_JSON, encoding="utf-8") as f:
         r13 = json.load(f)
     with open(LEDGER_JSON, encoding="utf-8") as f:
         led = json.load(f)
-    prf = float(led["_meta"]["prf_hz"])
-    ffl13 = float(r13["_meta"]["f_flash_hz"])
-    errs = []
+    prf_default = float(led["_meta"]["prf_hz"])
+    ffl_default = float(r13["_meta"]["f_flash_hz"])
+    errs, worst, n_cell, fallback = [], None, 0, []
     for key, cell in list(r13["cells"].items()) + list(r13["other_drone_switch_arms"].items()):
         k = cell["npz_key"]
         if k not in npz.files or cell.get("zero_echo"):
             continue
-        mine = line_floor(np.asarray(npz[k], complex), prf, ffl13, float(cell["f_tip_hz"]))
+        #: ⭐칸이 적어 둔 값을 쓴다. 없으면 규약 기본값으로 물러서되 **몇 칸이 물러섰는지 적는다**
+        #  — 조용히 물러서면 옛 사고가 그대로 되살아난다.
+        ffl = cell.get("f_flash_hz")
+        pcf = cell.get("prf_hz")
+        if ffl is None or pcf is None:
+            fallback.append(key)
+        ffl = ffl_default if ffl is None else float(ffl)
+        pcf = prf_default if pcf is None else float(pcf)
+        mine = line_floor(np.asarray(npz[k], complex), pcf, ffl, float(cell["f_tip_hz"]))
+        n_cell += 1
         for col in ("ac_db", "above_floor_db", "above_comb_db"):
             if cell[col] is not None and mine[col] is not None:
-                errs.append(abs(mine[col] - cell[col]))
-    add("reproduces_switch_factorial", errs and max(errs) <= 0.02,
-        f"R13 셀 {len(errs)} 개 열 비교 · 최대 |Δ| = {max(errs):.4f} dB (허용 0.02)")
+                e = abs(mine[col] - cell[col])
+                errs.append(e)
+                if worst is None or e > worst[0]:
+                    worst = (e, key, col)
+    ffls = sorted({round(float(c["f_flash_hz"]), 3)
+                   for c in list(r13["cells"].values()) + list(r13["other_drone_switch_arms"].values())
+                   if c.get("f_flash_hz") is not None})
+    prfs = sorted({float(c["prf_hz"])
+                   for c in list(r13["cells"].values()) + list(r13["other_drone_switch_arms"].values())
+                   if c.get("prf_hz") is not None})
+    add("reproduces_switch_factorial", bool(errs) and max(errs) <= 0.02 and not fallback,
+        f"R13 칸 {n_cell} 개 · 열 {len(errs)} 개 비교 · 최대 |Δ| = {max(errs):.4f} dB (허용 0.02)"
+        + (f" — 가장 큰 곳 {worst[1]}/{worst[2]}" if worst and worst[0] > 0.02 else "")
+        + f" · 칸이 적은 박자 {ffls} Hz · 표집률 {prfs} Hz"
+        + (f" · ⛔칸 값이 없어 기본값으로 물러선 칸 {len(fallback)} 개" if fallback else ""))
+
+    # ③-2 ⭐분류가 쓰는 팔이 **정말** 규약 표집률·반송파에 있나 — 전역 하나를 쓰는 근거
+    #     ⛔이 파일은 prf·fc 를 원장 `_meta` 에서 하나만 읽어 온 판 전체에 쓴다(:333).
+    #       원장에 표집률 4 종·반송파 여러 종이 생긴 뒤로 그건 **검사해야 하는 가정**이다.
+    led_by = {(r["engine"], round(float(r["el_deg"]), 6)): r for r in led["rows"]}
+    off = []
+    for c in CFG_ORDER:
+        for a, arm in CONFIGS[c]["arms"].items():
+            for el in ELS:
+                r = led_by.get((arm, round(float(el), 6)))
+                if r is None:
+                    continue
+                if r.get("prf_hz") is not None and abs(float(r["prf_hz"]) - prf_default) > 1e-6:
+                    off.append(f"{arm}/el{el:+g} prf={r['prf_hz']}")
+                if r.get("fc_hz") is not None and abs(float(r["fc_hz"]) - float(led["_meta"]["fc_hz"])) > 1.0:
+                    off.append(f"{arm}/el{el:+g} fc={r['fc_hz']}")
+    add("classify_arms_at_default_prf_fc", not off,
+        f"분류가 쓰는 팔이 전부 표집률 {prf_default:.0f} Hz · 반송파 "
+        f"{float(led['_meta']['fc_hz']) / 1e9:.3f} GHz 에 있다(전역 하나를 쓰는 근거)"
+        + (f" — ⛔벗어난 칸 {len(off)} 개: {off[:3]}" if off else ""))
 
     # ④ 잣대가 배율에 불변인가 — 성적은 절대 세기가 아니라 «대비» 의 함수여야 한다
-    sc2 = Scorer(prf, {a: p["templates"][a]["f_flash_hz_spec"] for a in CLASSES2})
+    #: ③-2 가 분류 팔이 전부 규약 표집률에 있음을 확인했으므로 여기서 기본값을 쓴다.
+    sc2 = Scorer(prf_default, {a: p["templates"][a]["f_flash_hz_spec"] for a in CLASSES2})
     E = np.asarray(npz[f"{CONFIGS['sionna_phys']['arms']['s1000plus']}/el-45"], complex)
     a1 = sc2.series(E, "s1000plus", CLASSES2)["acc"]
     a2 = sc2.series(E * 1e6, "s1000plus", CLASSES2)["acc"]

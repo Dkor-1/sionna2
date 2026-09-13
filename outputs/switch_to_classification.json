@@ -3,7 +3,7 @@
   "generator": "benchmark/switch_to_classification.py",
   "experiment": "R14 · 엔진 설정 → 기체 분류 성적",
   "design_doc": "docs/NEXT_EXPERIMENTS.md §② 순위 6 · §3-1 R14",
-  "generated_kst": "2026-08-15 19:03 KST",
+  "generated_kst": "2026-09-14 03:33 KST",
   "gpu_used": false,
   "gpu_note_ko": "⛔sionna.rt·mitsuba 임포트 없음 — 저장된 원장만 읽는 CPU 분석",
   "question_ko": "엔진 물리 설정을 켜고 끄면 기체 분류 성적이 얼마나 달라지고, 그 차이의 기전은 무엇인가",
@@ -35,25 +35,25 @@
   "provenance": {
    "ledger_json": {
     "path": "outputs/elevation_sweep_md.json",
-    "mtime": "2026-08-15 16:15 KST",
-    "n_rows": 220
+    "mtime": "2026-09-13 20:05 KST",
+    "n_rows": 2388
    },
    "ledger_npz": {
     "path": "outputs/elevation_sweep_md.npz",
-    "mtime": "2026-08-15 16:15 KST",
-    "n_keys": 221
+    "mtime": "2026-09-13 20:05 KST",
+    "n_keys": 2389
    },
    "r13": {
     "path": "outputs/switch_factorial.json",
-    "mtime": "2026-08-15 15:23 KST"
+    "mtime": "2026-09-14 03:23 KST"
    },
    "r16_bands": {
     "path": "outputs/grid_convergence_check.json",
-    "mtime": "2026-08-15 15:04 KST"
+    "mtime": "2026-09-05 02:06 KST"
    },
    "reference_classifier": {
     "path": "outputs/classify_airframe.json",
-    "mtime": "2026-08-15 12:54 KST",
+    "mtime": "2026-08-24 13:36 KST",
     "role_ko": "재현 게이트(읽기 전용) — 3 클래스 성적이 같아야 한다"
    },
    "templates_from": "src/drones.py DRONES (제원 계산 — 데이터에 맞추지 않음)",
@@ -183,7 +183,7 @@
   "n_boot": 20000,
   "boot_seed": 314159,
   "el_minus90_note_ko": "−90°(직하방)는 f_tip=0 이라 «상한 위» 가 전 대역이 된다. 물리적으로 날개 속도가 시선에 수직이라 마이크로도플러가 원리적으로 사라지는 앙각이다 — 그 칸의 성적은 잔결 구조만 시험한다.",
-  "elapsed_s": 2.3
+  "elapsed_s": 1.8
  },
  "configs": {
   "ours": {
@@ -4653,7 +4653,11 @@
   },
   "reproduces_switch_factorial": {
    "pass": true,
-   "detail_ko": "R13 셀 219 개 열 비교 · 최대 |Δ| = 0.0000 dB (허용 0.02)"
+   "detail_ko": "R13 칸 384 개 · 열 1080 개 비교 · 최대 |Δ| = 0.0000 dB (허용 0.02) · 칸이 적은 박자 [120.0, 126.667, 148.9, 183.333] Hz · 표집률 [19700.0, 39400.0, 78800.0] Hz"
+  },
+  "classify_arms_at_default_prf_fc": {
+   "pass": true,
+   "detail_ko": "분류가 쓰는 팔이 전부 표집률 19700 Hz · 반송파 3.500 GHz 에 있다(전역 하나를 쓰는 근거)"
   },
   "metric_is_scale_free": {
    "pass": true,

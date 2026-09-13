@@ -38,6 +38,7 @@ import glob
 import importlib.util
 import io
 import json
+import collections
 import os
 import re
 import contextlib
@@ -104,11 +105,13 @@ def prod():
     return m
 
 
-def cell_series(esm, arm: str, el: float):
+def cell_series(esm, arm: str, el: float, n_poses_ledger: int | None = None):
     """한 칸의 복소 시계열 E(자세) 와 PRF. 미완이면 None."""
     fs = sorted(glob.glob(f"{esm.SHD}/{arm}_el{el:+g}_*.npz"))
     if not fs:
-        return None
+        #: ⛔두 값을 돌려준다 — 옛 판은 여기서만 맨 None 이라 부르는 쪽이 TypeError 로
+        #  죽었다(2026-09-13(10)). 창고가 깨졌을 때 정확히 이 갈래가 탄다.
+        return None, "그 칸의 조각이 창고에 없다"
     with contextlib.redirect_stdout(io.StringIO()):
         fs, _ = esm.one_generation(fs, f"{arm}/el{el:+g}")
     E = seen = None
@@ -130,10 +133,29 @@ def cell_series(esm, arm: str, el: float):
     if not seen.all():
         return None, f"자세가 덜 찼다({int(seen.sum())}/{seen.size})"
     #: ⭐공통 입력 관문 — 비유한 값·길이·차원을 여기서 거른다(src/reader_gate.py).
-    why = check_series(E, n_poses=E.size, prf=prf)
+    #: ⛔⛔`n_poses=E.size` 는 **빈 검사**다(자기 자신과 견준다). 원장의 값을 받아야
+    #  「자세 수가 원장과 다르다」가 뜻을 갖는다(2026-09-13(10) 정정).
+    why = check_series(E, n_poses=n_poses_ledger, prf=prf)
     if why:
         return None, " · ".join(why)
     return (E, prf), None
+
+
+def _hz(v, nd: int = 1) -> str:
+    """봉우리 값을 글자로. ⛔⛔없으면 «없음» 이지 «nan» 이 아니다(2026-09-13(10) 정정).
+
+    옛 판은 `(v or float('nan')):.0f` 라 띠가 없는 칸에 **«nan» 이라는 글자**를 찍었고,
+    그것이 발간 문서 docs/WFSURVIVE_0912.md 에 **20 자리** 실려 있었다. JSON 은 null 인데
+    글만 nan 이라 문면과 자료가 어긋났고, 발간 관문의 비유한 수 검사도 **글자는 못 봤다**.
+    ⇒ 글자로 «없음» 을 찍고, 관문도 글 안의 nan 을 잡게 함께 넓혔다(src/reader_gate.py).
+    ⚠`v or …` 는 **0.0 도 없음으로 삼킨다** — 그것도 여기서 함께 고친다(None 만 없음이다).
+    """
+    if v is None:
+        return "없음"
+    try:
+        return f"{float(v):.{nd}f}"
+    except (TypeError, ValueError):
+        return "없음"
 
 
 def survive(E, prf, rates, f_tip=None):
@@ -343,35 +365,67 @@ def main() -> int:
     #: ⭐일부러 들이는 변화축 — 표에 **열로** 드러낸다. 여기 없는 꼬리표는 막는다.
     AXES = ("az", "rotor", "prf")
 
+    #: 이 판독이 요구하는 팔의 꼴 — 어긋나면 **그 자리를 이름으로** 적는다.
+    WANT = {"engine": "sionna", "spp": "4000000000", "range_m": "15",
+            "n_poses": "8192", "max_depth": "2"}
+    WANT_KO = {"engine": "엔진", "spp": "광선 예산", "range_m": "거리[m]",
+               "n_poses": "자세 수", "max_depth": "반사 깊이"}
+
     def scope_of(e):
-        """(쓸 수 있나, 이 팔이 켠 변화축, 막힌 꼬리표)"""
+        """(쓸 수 있나, 이 팔이 켠 변화축, **못 쓰는 까닭 전부**)
+
+        ⛔⛔2026-09-13(10) 고쳤다 — 옛 판은 막힌 꼬리표만 돌려줬다. 그래서 꼬리표는
+          깨끗한데 **엔진·광선 예산·거리·깊이가 다른** 팔이 한 줄도 안 남고 사라졌다.
+          머리말 ⓒ(「뺀 칸은 까닭과 함께 적는다」)를 코드가 안 지키고 있었다.
+        """
         try:
             f = parse_arm(e)
         except Exception:
-            return False, {}, ["이름을 문법으로 못 읽었다"]
-        extra = set(f) - BASE - set(AXES)
+            return False, {}, [], [("이름을 못 읽음", "이름을 문법으로 못 읽었다")]
+        extra = sorted(set(f) - BASE - set(AXES))
         axes = {k: f[k] for k in AXES if f.get(k) is not None}
-        ok = (not extra and f["engine"] == "sionna" and f.get("switches")
-              and f.get("spp") == "4000000000" and f.get("range_m") == "15"
-              and f.get("n_poses") == "8192" and f.get("max_depth") == "2")
-        return bool(ok), axes, sorted(extra)
+        why = []
+        if extra:
+            why.append(("허용 밖 꼬리표",
+                        "이 연구가 허용하지 않는 꼬리표가 붙어 있다: " + " · ".join(extra)))
+        for k, v in WANT.items():
+            if f.get(k) != v:
+                why.append((f"{WANT_KO[k]} 다름",
+                            f"{WANT_KO[k]}이(가) 이 판독의 값과 다르다"
+                            f"(팔 {f.get(k)!r} · 이 판독 {v!r})"))
+        if not f.get("switches"):
+            why.append(("스위치 꼬리표 없음",
+                        "스위치 꼬리표가 없다 — 어느 물리를 켠 판인지 이름이 안 말한다"))
+        return (not why), axes, extra, why
 
     want, skipped = [], []
     for r in R:
-        if not (r.get("n_missing") == 0 and r.get("n_poses") == 8192
-                and r.get("spp") == 4e9):
-            continue
-        ok, axes, extra = scope_of(r["engine"])
-        if ok:
-            want.append((r, axes))
-        elif extra:
+        #: ⛔⛔2026-09-13(10) — 여기서 `continue` 로 조용히 버렸다(옛 판). 원장 행 수백 개가
+        #  행에도 건너뜀에도 없이 사라져 「건너뜀 N」이 «다 봤다» 로 읽혔다.
+        pre = []
+        if r.get("n_missing") != 0:
+            pre.append(("자세 덜 참", f"자세가 덜 찼다(빠진 자세 {r.get('n_missing')})"))
+        if r.get("n_poses") != 8192:
+            pre.append(("자세 수 다름",
+                        f"자세 수가 이 판독의 값과 다르다(원장 {r.get('n_poses')} · 이 판독 8192)"))
+        if r.get("spp") != 4e9:
+            pre.append(("광선 예산 다름",
+                        f"광선 예산이 이 판독의 값과 다르다(원장 {r.get('spp')} · 이 판독 4e9)"))
+        ok, axes, extra, why = scope_of(r["engine"])
+        if pre or not ok:
+            allw = pre + why
             skipped.append(dict(engine=r["engine"], el_deg=r["el_deg"], extra_tags=extra,
-                                why=("이 연구가 허용하지 않는 꼬리표가 붙어 있다: "
-                                     + " · ".join(extra))))
+                                #: ⭐이름표와 글을 **따로** 둔다 — 집계는 이름표로 센다.
+                                #  글자를 잘라 세면 조사가 잘려 「거리[m]이」 같은 이름이 난다.
+                                why_codes=[c for c, _ in allw],
+                                why=" · ".join(t for _, t in allw)))
+            continue
+        want.append((r, axes))
     rows = []
     for r, axes in sorted(want, key=lambda p: (scene(p[0]["engine"]), p[0]["engine"],
                                                p[0]["el_deg"])):
-        got, why_in = cell_series(esm, r["engine"], r["el_deg"])
+        got, why_in = cell_series(esm, r["engine"], r["el_deg"],
+                                  n_poses_ledger=r.get("n_poses"))
         if got is None:
             skipped.append(dict(engine=r["engine"], el_deg=r["el_deg"], extra_tags=[],
                                 why=why_in or "시계열을 못 읽었다"))
@@ -390,8 +444,8 @@ def main() -> int:
         print(f"  {scene(r['engine']):8s} el{r['el_deg']:+4g} {(arm or '?'):10s}"
               f" {_ax or '기본':14s}"
               f" f_tip {r.get('f_tip_hz', 0):7.1f} · 띠 안 최강선 "
-              f"{(s.get('ref_peak_in_tipband_hz') or float('nan')):7.1f}"
-              f" · NR 띠안 {(s['nr'].get('peak_frameavg_in_tipband_hz') or float('nan')):7.1f}"
+              f"{_hz(s.get('ref_peak_in_tipband_hz')):>7s}"
+              f" · NR 띠안 {_hz(s['nr'].get('peak_frameavg_in_tipband_hz')):>7s}"
               f" ({s['nr']['rms_keep_db']:+5.1f} dB) · 접힘 {s['nr']['tip_folds']}",
               flush=True)
 
@@ -407,6 +461,13 @@ def main() -> int:
         axes_declared=list(AXES),
         base_tags=sorted(BASE),
         n_skipped=len(skipped),
+        #: ⭐까닭별 집계 — 1 천 줄을 사람이 읽을 수는 없으니 **무엇 때문에 몇 칸인지**를 낸다.
+        skipped_by_reason={k: v for k, v in sorted(
+            collections.Counter(c for x in skipped for c in x["why_codes"]).items(),
+            key=lambda kv: -kv[1])},
+        #: ⚠한 칸이 까닭 여럿을 가질 수 있으니 위 합은 건너뜀 수보다 크다. 아래가 칸 수다.
+        n_skipped_cells=len(skipped),
+        n_ledger_rows=len(R),
         limits_ko=[
             "⛔OFDM 을 계산하지 않는다 — 프레임율과 프레임 길이만 모형화한다. 대역폭·부반송파·"
             "추정 잡음은 여기 없다(대역폭은 0929 큐가 따로 잰다).",
@@ -461,7 +522,7 @@ def render(o, to_string: bool = False):
         lines.append(f"| {r['scene']} | {r['el_deg']:+g} | {r['arm']} | "
                      f"{r['axes_label']} | "
                      f"{(r.get('f_tip_hz') or 0):.0f} | "
-                     f"{(r.get('ref_peak_in_tipband_hz') or float('nan')):.0f} | "
+                     f"{_hz(r.get('ref_peak_in_tipband_hz'), 0)} | "
                      f"{(r.get('ref_peak_hz') or 0):.0f} | "
                      f"{c('nr')} | {c('wifi')} | {c('lte')} |")
     lines += ["", "값은 «프레임 평균 뒤 가장 센 선 [Hz] (남은 변동 [dB])» 다.", "",

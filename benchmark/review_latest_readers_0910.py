@@ -49,11 +49,42 @@ def source(p, needle):
                 found=i is not None)
 
 
-def functions(p, names, ns):
+def functions(p, names, ns, later=()):
+    """생산 파일에서 함수 몇 개만 떼어 `ns` 안에서 실행한다.
+
+    ⛔⛔**추출 경계를 검사한다**(2026-09-13(10) 추가). 이 자리에서 같은 사고가 세 번 났다 —
+      생산 쪽 함수가 새 이름을 부르게 바뀌면 검토기는 `NameError` 로 **깊은 곳에서** 죽고,
+      부르는 쪽은 그 까닭 대신 `KeyError` 를 본다.
+        · 2026-09-11 `prop_scale_tag` (R30 보정) — 아래 setdefault 로 막았다
+        · 2026-09-13 `fc_of` (R36 팔별 반송파) — 이 검토기를 죽여
+          `outputs/repository_review_0911.json` 이 09-11 판에 멈춰 있었다
+        · 같은 날 `_prfs` (R34 칸별 표집률) — `review_extended_0911.production_merge`
+      ⇒ 조용히 죽지 않게, **무엇이 모자란지 이름을 대고** 멈춘다.
+    """
+    import builtins
     nodes = [n for n in ast.parse(read(p)).body
              if isinstance(n,ast.FunctionDef) and n.name in names]
     assert len(nodes) == len(names)
-    exec(compile(ast.Module(body=nodes,type_ignores=[]),str(p),'exec'),ns)
+    mod = ast.Module(body=nodes,type_ignores=[])
+    defined = {n.name for n in nodes}
+    assigned, readn = set(), set()
+    for n in ast.walk(mod):
+        if isinstance(n,ast.Name):
+            (assigned if isinstance(n.ctx,ast.Store) else readn).add(n.id)
+        elif isinstance(n,ast.arg): assigned.add(n.arg)
+        elif isinstance(n,(ast.For,ast.comprehension)) and isinstance(n.target,ast.Name):
+            assigned.add(n.target.id)
+    #: ⭐`later` 는 **이 검토기가 뒤에 묶을** 이름이다(예: SHD 를 임시 창고로 바꿔 끼운다).
+    #  정적 검사는 그 순서를 모르니 부르는 쪽이 알려 준다 — 조용히 넘기는 게 아니라 **적는다**.
+    missing = {x for x in readn-assigned-defined-set(ns)-set(later)-set(dir(builtins))
+               if not x.startswith('__')}
+    if missing:
+        raise RuntimeError(
+            f'extracted production functions {sorted(names)} in {p} need names this '
+            f'review does not provide: {", ".join(sorted(missing))} — add them to the '
+            f'names list (if they are functions in the same file) or seed ns=, so the '
+            f'review follows production instead of dying inside exec')
+    exec(compile(mod,str(p),'exec'),ns)
     return ns
 
 
@@ -169,8 +200,15 @@ def atlas_check():
     # ⛔2026-09-11 — arm_rates 가 prop_scale_tag 를 부르게 바뀌어(R30 보정) 추출 목록에 없으면
     #   NameError 로 죽는다. 없던 시절에도 돌게 기본값을 함께 넣는다.
     ns.setdefault('re', re); ns.setdefault('prop_scale_tag', lambda _a: 1.0)
+    # ⛔2026-09-13(10) — `fc_of`(R36 팔별 반송파)가 원장 전문 `J` 와 자기 보관함 `_FC_CACHE`·
+    #   갈린 팔 목록 `FC_SPLIT` 을 읽는다. 생산과 **같은 원장**을 준다(상수로 대신하지 않는다).
+    #   갈린 팔이 생기면 FC_SPLIT 에 쌓이고, 아래 atlas['fc_split_arms'] 로 보고된다.
+    ns.setdefault('J', js('outputs/elevation_sweep_md.json'))
+    ns.setdefault('_FC_CACHE', {}); ns.setdefault('FC_SPLIT', [])
+    #: ⛔`fc_of` 는 2026-09-13 팔별 반송파(R36)로 `arm_rates` 가 부르게 된 함수다 —
+    #  같은 파일에 있으니 **떼어 온다**(상수로 대신하면 검토기가 생산과 갈라진다).
     functions('benchmark/build_md_atlas.py',
-              ['airframe_tag','prop_scale_tag','arm_rates','f_tip_at',
+              ['airframe_tag','prop_scale_tag','fc_of','arm_rates','f_tip_at',
                'comb_contrast_db','rhythm_share'],ns)
     # ⭐⭐**배율이 이미 들어갔는지 먼저 잰다.** 안 재고 ft*ps 를 하면 보정된 코드에서 **두 번**
     #   곱한다(R30 뒤의 실제 위험). 기준 기체·배율 없는 팔의 f_tip0 과 견줘 판정한다.
@@ -221,11 +259,12 @@ def atlas_check():
 def adversarial_check():
     # ⛔2026-09-11 — _trunc_of 는 CAP 을 쓰던 자리가 있었다. 새 판은 샤드의 상한을 읽지만
     #   옛 판도 돌게 규약값을 함께 준다.
+    #: `SHD` 는 아래에서 임시 창고로 바꿔 끼운다 — 반례 샤드를 진짜 창고에 쓰지 않으려는 것이다.
     ns=functions('benchmark/read_canyonnull_0910.py',['_trunc_of','load'],
-                 dict(np=np,glob=glob,os=os,CAP=2_000_000))
+                 dict(np=np,glob=glob,os=os,CAP=2_000_000),later=('SHD',))
     ms=functions('benchmark/read_0918B_0909.py',['db','measure'],dict(np=np,DEV=.5,CAP=2_000_000))
     ds=functions('benchmark/read_dropladder_0910.py',['_copies_txt','cell'],dict(np=np,glob=glob,os=os,
-        RNG=15,NPOSE=8192,MESH='mfixbatteryi5_blperairframe',DEPTH=2,EL=0))
+        RNG=15,NPOSE=8192,MESH='mfixbatteryi5_blperairframe',DEPTH=2,EL=0),later=('SHD',))
     with tempfile.TemporaryDirectory(prefix='sionna-reader-audit-') as tmp:
         ns['SHD']=ds['SHD']=tmp;N=8192
         for shard in range(2):

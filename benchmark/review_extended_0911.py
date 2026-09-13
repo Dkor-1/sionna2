@@ -29,8 +29,25 @@ def production_merge(groups):
         end=next(i for i,x in enumerate(node.body) if isinstance(x,ast.Assign) and isinstance(x.targets[0],ast.Name) and x.targets[0].id=='miss')
         blocks.append(node.body[start:end])
     assert len(blocks)==1
-    wrapper=ast.parse('def run(groups):\n results=[]\n for fs in groups:\n  E=None; secs=0.; npa=[]; cfg=None\n return results')
+    # 2026-09-13(10): production gained per-cell accumulators (_prfs for per-cell PRF).
+    # Seed them in the wrapper preamble, then CHECK the extraction boundary. Without the
+    # check this died as `NameError: name '_prfs' is not defined` inside exec, three call
+    # sites deep, and outputs/repository_review_0911.json stayed at its 09-11 build.
+    # The sibling audit benchmark/review_repository_0911.py:_free_names does the same.
+    preamble='E=None; secs=0.; npa=[]; cfg=None; _prfs=set(); _stamps=[]; _runs=set(); _tstarts=[]'
+    wrapper=ast.parse('def run(groups):\n results=[]\n for fs in groups:\n  '+preamble+'\n return results')
     loop=wrapper.body[0].body[1]
+    seeded={'np','os','fs','groups','results'}|{x.split('=')[0].strip() for x in preamble.split(';')}
+    _assigned=set();_read=set()
+    for _n in ast.walk(ast.Module(body=list(blocks[0]),type_ignores=[])):
+        if isinstance(_n,ast.Name):(_assigned if isinstance(_n.ctx,ast.Store) else _read).add(_n.id)
+        elif isinstance(_n,ast.For) and isinstance(_n.target,ast.Name):_assigned.add(_n.target.id)
+        elif isinstance(_n,ast.comprehension) and isinstance(_n.target,ast.Name):_assigned.add(_n.target.id)
+    _missing={x for x in _read-_assigned-seeded-set(dir(__builtins__) if isinstance(__builtins__,type(os)) else __builtins__) if not x.startswith('__')}
+    if _missing:
+        raise RuntimeError('extracted production merge block needs names this audit does not '
+                           'provide: '+', '.join(sorted(_missing))+
+                           ' — add them to production_merge(preamble=...) so the audit follows production')
     loop.body+=blocks[0]+ast.parse("results.append(dict(n_trunc=n_tr,n_seen=n_seen,n_trunc_stored=n_tr_stored,by=dict(recomputed=n_tr_recomputed,from_stored=n_tr_from_stored,assumed_cap=n_tr_assumed),cap=cap_seen,cap_for_old=_cap_for_old))").body
     ns=dict(np=np,os=os)
     exec(compile(ast.fix_missing_locations(wrapper),'current merge diagnostic block','exec'),ns)

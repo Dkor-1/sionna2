@@ -38,6 +38,7 @@ import glob
 import importlib.util
 import io
 import json
+import collections
 import os
 import re
 import sys
@@ -88,7 +89,7 @@ def deck_filters():
     return hampel_mask, drop_outliers
 
 
-def series(esm, arm, el):
+def series(esm, arm, el, n_poses_ledger=None):
     fs = sorted(glob.glob(f"{esm.SHD}/{arm}_el{el:+g}_*.npz"))
     if not fs:
         return None
@@ -114,7 +115,11 @@ def series(esm, arm, el):
     if not seen.all():
         return None
     #: ⭐공통 입력 관문(src/reader_gate.py) — 비유한 값·길이·차원을 여기서 거른다.
-    return None if check_series(E, n_poses=E.size, prf=prf0) else E
+    #: ⛔⛔`n_poses=E.size` 는 빈 검사였다 — 원장의 값을 받는다(2026-09-13(10)).
+    #: ⭐거절 까닭을 **버리지 않는다** — 부르는 쪽이 «자료 없음» 과 가릴 수 있게
+    #  (E, 까닭목록) 으로 돌려준다.
+    _why = check_series(E, n_poses=n_poses_ledger, prf=prf0)
+    return (None, _why) if _why else (E, [])
 
 
 def db(x):
@@ -162,19 +167,49 @@ def main() -> int:
         except Exception:
             return ["이름을 문법으로 못 읽었다"]
 
-    def usable(r):
+    #: 이 잣대가 요구하는 팔·원장 값. 어긋나면 **그 자리를 이름으로** 적는다.
+    _WANT = (("engine", "sionna", "엔진"), ("spp", "4000000000", "광선 예산"),
+             ("range_m", "15", "거리[m]"), ("n_poses", "8192", "자세 수"),
+             ("max_depth", "2", "반사 깊이"))
+
+    def why_unusable(r):
+        """못 쓰는 **까닭 전부**를 (이름표, 글) 로 돌려준다 — 빈 목록이면 쓸 수 있다.
+
+        ⛔⛔2026-09-13(10) 고쳤다. 옛 판 `usable()` 은 참·거짓만 돌려줬고, 부르는 쪽은
+          **꼬리표 때문일 때만** 건너뜀에 적었다. 그래서 꼬리표는 깨끗한데 광선 예산·
+          거리·깊이가 다른 칸이 행에도 건너뜀에도 없이 사라졌다 — 이 파일 머리말이
+          스스로 「건너뜀 0 이 «다 봤다» 가 아니다」라고 적어 둔 바로 그 병이다.
+        """
         e = r["engine"]
         try:
             f = parse_arm(e)
         except Exception:
-            return False
-        extra = set(f) - ALLOWED
-        return (not extra
-                and f["engine"] == "sionna" and f.get("switches")
-                and f.get("spp") == "4000000000" and f.get("range_m") == "15"
-                and f.get("n_poses") == "8192" and f.get("max_depth") == "2"
-                and r.get("n_missing") == 0 and r.get("n_poses") == 8192
-                and r.get("spp") == 4e9)
+            return [("이름을 못 읽음", "이름을 문법으로 못 읽었다")]
+        why = []
+        extra = sorted(set(f) - ALLOWED)
+        if extra:
+            why.append(("허용 밖 꼬리표",
+                        "이 잣대가 허용하지 않는 꼬리표가 붙어 있다: " + " · ".join(extra)
+                        + " — 장면×물리 표는 **다른 축이 안 섞인** 팔만 쓴다"))
+        for k, v, ko in _WANT:
+            if f.get(k) != v:
+                why.append((f"{ko} 다름",
+                            f"{ko}이(가) 이 잣대의 값과 다르다(팔 {f.get(k)!r} · 이 잣대 {v!r})"))
+        if not f.get("switches"):
+            why.append(("스위치 꼬리표 없음",
+                        "스위치 꼬리표가 없다 — 어느 물리를 켠 판인지 이름이 안 말한다"))
+        if r.get("n_missing") != 0:
+            why.append(("자세 덜 참", f"자세가 덜 찼다(빠진 자세 {r.get('n_missing')})"))
+        if r.get("n_poses") != 8192:
+            why.append(("원장 자세 수 다름",
+                        f"원장의 자세 수가 다르다({r.get('n_poses')} · 이 잣대 8192)"))
+        if r.get("spp") != 4e9:
+            why.append(("원장 광선 예산 다름",
+                        f"원장의 광선 예산이 다르다({r.get('spp')} · 이 잣대 4e9)"))
+        return why
+
+    def usable(r):
+        return not why_unusable(r)
 
     #: ⛔⛔2026-09-13 정정 — 첫 판은 빈 하늘 짝을 **(팔, 앙각) 사전**으로 찾았다.
     #  그 열쇠로는 같은 팔·앙각의 **다른 조건** 칸이 덮어쓴다.
@@ -208,21 +243,22 @@ def main() -> int:
     for r in sorted(L["rows"], key=lambda r: (sc(r["engine"]), r["engine"], r["el_deg"])):
         if sc(r["engine"]) == "free":
             continue
-        if not usable(r):
+        w = why_unusable(r)
+        if w:
             #: ⛔⛔장면이 붙은 칸을 **조용히** 버리지 않는다. 이 파일의 머리말이 스스로
             #  「n_skipped == 0 이 «다 봤다» 가 아니다」라고 적었는데, 거르개가 행을
             #  보기 **전에** 걸러내면 그 말이 무의미해진다(2026-09-13(4)).
-            ex = extra_tags(r["engine"])
-            if ex:
-                skipped.append(dict(
-                    engine=r["engine"], el_deg=r["el_deg"], want=None,
-                    extra_tags=ex,
-                    why=("이 잣대가 허용하지 않는 꼬리표가 붙어 있다: "
-                         + " · ".join(ex)
-                         + " — 장면×물리 표는 **다른 축이 안 섞인** 팔만 쓴다")))
+            #  ⛔2026-09-13(10) — 꼬리표 까닭만 적던 것을 **까닭 전부**로 넓혔다.
+            skipped.append(dict(
+                engine=r["engine"], el_deg=r["el_deg"], want=None,
+                extra_tags=extra_tags(r["engine"]),
+                why_codes=[c for c, _ in w], why=" · ".join(t for _, t in w)))
             continue
         a = re.search(r"_sw(R\dD\dE\dF\d)", r["engine"])
         if not a:
+            skipped.append(dict(engine=r["engine"], el_deg=r["el_deg"], want=None,
+                                why_codes=["스위치 이름 없음"],
+                                why="이름에서 스위치 꼬리표(_swR?D?E?F?)를 못 찾았다"))
             continue
         arm, el = a.group(1), r["el_deg"]
         fengine = twin_name(r["engine"])
@@ -244,10 +280,17 @@ def main() -> int:
             skipped.append(dict(engine=r["engine"], el_deg=el,
                                 why=f"쌍의 조건이 어긋난다: {bad}", want=fengine))
             continue
-        Es, Ef = series(esm, r["engine"], el), series(esm, fengine, el)
+        Es, why_s = series(esm, r["engine"], el, r.get("n_poses"))
+        Ef, why_f = series(esm, fengine, el, fr.get("n_poses"))
         if Es is None or Ef is None:
-            skipped.append(dict(engine=r["engine"], el_deg=el,
-                                why="장면 또는 빈 하늘 칸이 미완이다", want=fengine))
+            #: ⭐**까닭을 가른다** — 「자료가 없다」와 「입력 관문이 거절했다」는 다른 일이다.
+            #  옛 판은 둘 다 «미완» 으로 적어 원장에서 가릴 수 없었다(2026-09-13(10)).
+            _w = (why_s or []) + (why_f or [])
+            skipped.append(dict(
+                engine=r["engine"], el_deg=el, want=fengine,
+                gate_rejected=bool(_w),
+                why=(("입력 관문이 거절했다: " + " · ".join(_w)) if _w
+                     else "장면 또는 빈 하늘 칸이 미완이다(조각이 덜 찼거나 세대가 갈렸다)")))
             continue
         #: ② 덱의 잣대 그대로 — 갈아낀 자세 수
         mask = hampel_mask(np.abs(Es), 51, 5.0)
@@ -287,7 +330,18 @@ def main() -> int:
             "⛔갈아낀 자세를 «사건» 으로 부르되 그것이 무엇인지는 이 판이 말하지 않는다.",
         ], pairing_ko=("대조군은 **장면 꼬리표만 뺀 이름**으로 고른다(구성이지 블록리스트가 "
                        "아니다). 고른 뒤 n_poses·spp·fc·f_tip·거리·깊이를 쌍으로 다시 검사한다."),
-        n_skipped=len(skipped)), rows=rows, skipped=skipped)
+        n_skipped=len(skipped),
+        #: ⭐⭐**셈이 닫히는지 보여 준다** — 원장 행 = 자유공간(이 잣대의 범위 밖) + 쓴 칸
+        #  + 건너뜀. 이 줄이 맞아떨어져야 「건너뜀 N」을 «다 봤다» 로 읽어도 된다.
+        n_ledger_rows=len(L["rows"]),
+        n_free_out_of_scope=sum(1 for r in L["rows"] if sc(r["engine"]) == "free"),
+        accounting_closes=(len(L["rows"]) ==
+                           sum(1 for r in L["rows"] if sc(r["engine"]) == "free")
+                           + len(rows) + len(skipped)),
+        skipped_by_reason={k: v for k, v in sorted(
+            collections.Counter(c for x in skipped for c in (x.get("why_codes") or ["까닭 없음"])
+                                ).items(), key=lambda kv: -kv[1])},
+        ), rows=rows, skipped=skipped)
     #: ⭐⭐다 만든 뒤 한 번에 발간한다(src/reader_gate.publish).
     publish({OUT: out, MD: render(out, to_string=True)})
     n_above = sum(1 for x in rows if x["above_free_db"] > 0)

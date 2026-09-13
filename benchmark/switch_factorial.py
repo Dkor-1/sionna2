@@ -160,6 +160,11 @@ def db(v):
     return None if (v is None or not np.isfinite(v) or v <= 0) else round(float(10 * np.log10(v)), 2)
 
 
+def _d(v, nd: int = 2, unit: str = "") -> str:
+    """None 을 «—» 로 찍는다. ⛔퇴화 띠(f_tip=0)의 값은 null 이므로 서식에서 죽으면 안 된다."""
+    return "—" if v is None else f"{float(v):+.{nd}f}{unit}"
+
+
 def columns(E, prf, ffl, ft, hw=HALF_HZ):
     """세 열 + 파생. 전력 단위는 원장의 진폭 단위² (rows[].level_db 와 같은 눈금)."""
     E = np.asarray(E, complex)
@@ -183,18 +188,29 @@ def columns(E, prf, ffl, ft, hw=HALF_HZ):
     excess = p_cb - dens_f * nb_c                      # 국소 바닥을 뺀 «선» 초과분
     # 창가중 시간평균 — Parseval 항등식의 시간축 쪽(스펙트럼 합과 **정확히** 같아야 한다)
     ac_w = float(np.sum(np.abs(x * w) ** 2) / np.sum(w ** 2))
+    #: ⛔⛔f_tip = 0(직하방)이면 «날개끝 상한 **위**» 라는 띠가 **없다** — 그런데
+    #  `np.abs(fr) >= 0` 은 **전 대역**이 참이라 «위» 가 창 전체가 된다.
+    #  ⛔실측(2026-09-13(10)): f_tip = 0 인 칸 42 개 중 **41 개**에 above_* · rhythm_share
+    #    값이 실려 있었다 — read_wfsurvive 의 «경계가 None 이면 전 대역을 뒤진다» 와 같은 병.
+    #  ⇒ 띠가 없으면 그 띠의 값은 **전부 null**. 전체 요동 ac_db 만 뜻이 선다.
+    _degen = bool(ft <= 1e-6)
+    _nz = (lambda v: None) if _degen else (lambda v: v)
     out = dict(
         # ── ① ② ③ 세 열 (절대 dB) ────────────────────────────────────────
         ac_db=db(ac_t),
-        above_floor_db=db(p_fl),
-        above_comb_db=db(p_cb),
+        above_floor_db=_nz(db(p_fl)),
+        above_comb_db=_nz(db(p_cb)),
+        degenerate_band=_degen,
+        degenerate_band_ko=("f_tip = 0 이라 «날개끝 상한 위» 띠가 없다 — 그 띠의 값은 전부 "
+                            "null 이다(옛 판은 전 대역을 «위» 로 삼아 수를 실었다)."
+                            if _degen else None),
         # ── 파생 ───────────────────────────────────────────────────────────
-        above_total_db=db(p_ab),
-        above_comb_line_db=db(excess) if excess > 0 else None,
-        comb_over_floor_db=(round(float(10 * np.log10(dens_c / dens_f)), 2)
-                            if (nb_f and nb_c and dens_f > 0 and dens_c > 0) else None),
-        floor_density_db=db(dens_f),
-        rhythm_share_pct=(round(100.0 * p_cb / p_ab, 2) if p_ab > 0 else None),
+        above_total_db=_nz(db(p_ab)),
+        above_comb_line_db=_nz(db(excess) if excess > 0 else None),
+        comb_over_floor_db=_nz(round(float(10 * np.log10(dens_c / dens_f)), 2)
+                               if (nb_f and nb_c and dens_f > 0 and dens_c > 0) else None),
+        floor_density_db=_nz(db(dens_f)),
+        rhythm_share_pct=_nz(round(100.0 * p_cb / p_ab, 2) if p_ab > 0 else None),
         # ── 자가검사용 ─────────────────────────────────────────────────────
         ac_spec_db=db(float(P.sum())), ac_windowed_db=db(ac_w),
         n_bins_above=int(above.sum()), n_bins_comb=nb_c, n_bins_floor=nb_f,
@@ -506,23 +522,26 @@ def main() -> None:
     dpairs = [r for r in dall if r["el_deg"] == -30.0]
     dscope = [r for r in dall if r["el_deg"] != -30.0]
     dzero = [r for r in axis_tbl["D"] if r["off_zero_echo"]]
-    lit_floor = [r["d_above_floor_db"] for r in dpairs]
-    lit_comb = [r["d_above_comb_db"] for r in dpairs]
-    lit_line = [r["d_comb_over_floor_db"] for r in dpairs]
-    a_literal = bool(dpairs and all(v is not None and v >= DB_SAME for v in lit_floor)
-                     and all(v is not None and abs(v) < DB_SAME for v in lit_comb))
-    # 선/바닥 대비로 읽은 판 — «선» 은 국소 바닥 위 솟음이지 빈 총합이 아니다
-    a_line = bool(dpairs and all(v is not None and v >= DB_SAME for v in lit_floor)
-                  and all(v is not None and v <= -DB_SAME for v in lit_line))
-    #: ⛔주판정은 **깨끗한 쌍만** 쓴다(스위치 하나만 다른 쌍). 더러운 쌍은 세어서 적는다.
+    #: ⛔⛔**사전등록 판정은 전부 깨끗한 쌍만 쓴다**(2026-09-13(10) 정정).
+    #  앞 판은 a_cover 만 깨끗한 쌍을 쓰고 a_literal·a_line·a_white 는 **더러운 쌍을
+    #  포함한** dpairs 를 그대로 썼다 — 총평이 그 셋의 AND 라 결국 섞였다.
     dirty = [r for r in dpairs if not r.get("pair_is_clean")]
     dpairs_clean = [r for r in dpairs if r.get("pair_is_clean")]
+    lit_floor = [r["d_above_floor_db"] for r in dpairs_clean]
+    lit_comb = [r["d_above_comb_db"] for r in dpairs_clean]
+    lit_line = [r["d_comb_over_floor_db"] for r in dpairs_clean]
+    a_literal = bool(dpairs_clean and all(v is not None and v >= DB_SAME for v in lit_floor)
+                     and all(v is not None and abs(v) < DB_SAME for v in lit_comb))
+    # 선/바닥 대비로 읽은 판 — «선» 은 국소 바닥 위 솟음이지 빈 총합이 아니다
+    a_line = bool(dpairs_clean and all(v is not None and v >= DB_SAME for v in lit_floor)
+                  and all(v is not None and v <= -DB_SAME for v in lit_line))
     a_cover = bool(dpairs_clean
                    and all(r.get("contains_unit_within_3sigma") for r in dpairs_clean))
     #: ⭐옛 식(크기만)으로는 통과했는데 위상 때문에 떨어진 쌍 — 이력을 남긴다.
     n_phase_rej = sum(1 for r in dpairs_clean if r.get("contain_rejected_by_phase"))
-    a_white = bool(dpairs and all(r.get("residual_rhythm_pct") is not None
-                                  and 9.0 <= r["residual_rhythm_pct"] <= 17.0 for r in dpairs))
+    a_white = bool(dpairs_clean and all(r.get("residual_rhythm_pct") is not None
+                                       and 9.0 <= r["residual_rhythm_pct"] <= 17.0
+                                       for r in dpairs_clean))
     dall_clean = [r for r in dall if r.get("pair_is_clean")]
     a_cover_all_el = bool(dall_clean
                           and all(r.get("contains_unit_within_3sigma") for r in dall_clean))
@@ -735,12 +754,20 @@ def main() -> None:
                          "«회절이 리듬 없는 에코를 얹어 덮는다» 로 고친다",
         A_n_pairs_plate=len(dpairs), A_n_pairs_from_zero=len(dzero),
         A_literal_pass=a_literal,
-        A_literal_why_ko="문자 그대로(빗살 **빈 총합**이 불변) 읽으면 **불성립**이다 — 올라온 바닥이 "
-                         "빗살 빈 안에도 똑같이 들어차서 빈 총합이 +16~+22 dB 함께 올라간다. "
-                         "이 정의로는 «선» 을 못 잰다.",
+        #: ⛔설명을 **판정에서 만든다**(2026-09-13(10)) — 옛 판은 판정과 무관하게 단정했다.
+        A_literal_why_ko=(
+            (f"문자 그대로(빗살 **빈 총합**이 불변) 읽어도 성립한다"
+             f"(깨끗한 쌍 {len(dpairs_clean)} 개).") if a_literal else
+            (f"⛔문자 그대로(빗살 **빈 총합**이 불변) 읽으면 **불성립**이다"
+             f"(깨끗한 쌍 {len(dpairs_clean)} 개) — 올라온 바닥이 빗살 빈 안에도 들어차서 "
+             f"빈 총합이 함께 올라간다. 이 정의로는 «선» 을 못 잰다.")),
         A_line_pass=a_line,
-        A_line_why_ko="«선» 을 국소 바닥 위 솟음(빗살 빈 밀도 ÷ 바닥 빈 밀도)으로 읽으면 성립한다 "
-                      "— 바닥은 +27~+37 dB 오르고 선은 대비 0 dB(=백색)로 주저앉는다",
+        A_line_why_ko=(
+            (f"«선» 을 국소 바닥 위 솟음(빗살 빈 밀도 ÷ 바닥 빈 밀도)으로 읽으면 성립한다"
+             f"(깨끗한 쌍 {len(dpairs_clean)} 개) — 바닥이 오르고 선 대비가 주저앉는다.")
+            if a_line else
+            (f"⛔«선» 을 국소 바닥 위 솟음으로 읽어도 **불성립**이다"
+             f"(깨끗한 쌍 {len(dpairs_clean)} 개).")),
         A_cover_pass=a_cover, A_cover_pass_all_elevations=a_cover_all_el,
         A_cover_n_pairs=len(dpairs_clean),
         A_cover_n_pairs_dropped_dirty=len(dirty),
@@ -766,8 +793,13 @@ def main() -> None:
         A_cover_scale_note_ko=("«3 배 척도» 는 얹힌 항이 끈 판과 무상관이라는 **가정 위의** "
                                "척도이지 검증된 신뢰구간이 아니다."),
         A_residual_is_white_pass=a_white,
-        A_residual_why_ko="얹힌 항(켠 판 − 끈 판)만 따로 재면 리듬 몫이 백색 밴드(9~17 %) 안이다 "
-                          "— 얹힌 것에는 날개 박자가 없다",
+        A_residual_why_ko=(
+            (f"얹힌 항(켠 판 − 끈 판)만 따로 재면 리듬 몫이 설정한 밴드(9~17 %) 안이다"
+             f"(깨끗한 쌍 {len(dpairs_clean)} 개). ⛔«백색잡음이다» 로 읽지 않는다 — "
+             f"밴드는 우리가 정한 값이고 잡음 모형과의 검정이 아니다.")
+            if a_white else
+            (f"⛔얹힌 항의 리듬 몫이 설정한 밴드(9~17 %) **밖**이다"
+             f"(깨끗한 쌍 {len(dpairs_clean)} 개).")),
         A_verdict_ko=("«회절이 리듬 없는 에코를 얹어 덮는다» 로 고친다"
                       if (a_line and a_cover and a_white) else "판정 보류 — 아래 수를 다시 읽어라"),
         A_scope_ko="⚠앙각 0° 는 예외다 — 거기서는 회절을 켜도 바닥이 +1.8 dB 밖에 안 오른다. "
@@ -928,7 +960,7 @@ def main() -> None:
           f"· 깨진 쌍 {len(b_fail_rows)} ⇒ {verdict['B_verdict_ko']}")
     for r in b_fail_rows:
         print(f"    ⛔ {r['combo']} el{r['el_deg']:+g} — 레벨 {r['max_abs_level_db']:+.2f} dB · "
-              f"바닥 {r['d_above_floor_db']:+.2f} dB · 리듬 {r['d_rhythm_pp']:+.2f} %p")
+              f"바닥 {_d(r['d_above_floor_db'])} dB · 리듬 {_d(r['d_rhythm_pp'])} %p")
     print(f"자가검사 전체통과 = {sc['all_pass']}")
     for k, v_ in sc.items():
         if isinstance(v_, dict) and "pass_" in v_:

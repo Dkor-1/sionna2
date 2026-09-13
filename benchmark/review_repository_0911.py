@@ -411,7 +411,12 @@ def findings(c):
     add('검토 빌더가 형식 관문까지 통과해 끝난다','2026-09-11 정정 뒤 현재 상태',
         f"직전 라운드 빌더의 main을 임시 출력 경로에서 실행하면 완료={b['completed']}, 오류 종류={b.get('error_type')}로 끝난다. "
         f"JSON 작성={b['json_written']}, 마크다운 작성={b['markdown_written']}, 노트북 작성={b['notebook_written']}다. "
-        f"아틀라스 점검 방식은 {b['atlas_mode']}이고 첫 소견의 처방줄은 «{b['current_replacement'][:60]}…»로 끝난다. "
+        + (f"아틀라스 점검 방식은 {b['atlas_mode']}이고 첫 소견의 처방줄은 «{b['current_replacement'][:60]}…»로 끝난다. "
+         if b.get('atlas_mode') else
+         # 2026-09-13(10): report the failure instead of raising KeyError here. The builder
+         # died inside an extracted production block (fc_of, per-arm carrier) and this line
+         # read the absent key, so the whole report crashed and its cause stayed hidden.
+         f"빌더가 끝나지 않아 아틀라스 점검 방식과 첫 소견을 읽지 못했다(오류 {b.get('error_type')}: {str(b.get('error'))[:120]}). ") +
         '전에는 내용 수정이 노트북의 부정문 개수 제한을 넘겨 strict 관문이 거절했다. 원장 계산 성공과 보고서 생성 완료는 여전히 따로 센다. 실행 전문은 checks.previous.builder에 보존했다.',
         '남은 일은 산출물 묶음을 검사까지 통과한 뒤 공개하는 순서를 지키는 것이다. 관문을 통과하려면 처방줄을 긍정형의 구체적인 상태 설명으로 쓴다.',
         [('benchmark/review_latest_readers_0910.py','build_notebook(str(NB),blocks,strict=True)'),('src/report_style.py','raise ContractError(')])

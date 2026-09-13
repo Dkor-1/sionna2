@@ -43,6 +43,21 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
+
+def _elkey(el: float) -> str:
+    """앙각 → 색인의 칸 키. ⛔**정본은 `benchmark/build_md_atlas.py:el_key`** 이고 서식은
+    `f"{el:+g}"` 다(병합기가 샤드 키를 그 서식으로 쓴다).
+
+    ⛔⛔2026-09-13(10) 고쳤다 — 이 파일만 옛 서식 `f"{el:+.0f}"` 에 남아 있었다.
+      2026-09-11 에 색인 쪽을 `:+g` 로 고치면서 여기를 안 고쳤고, 그래서 소수 앙각 칸이
+      생긴 뒤로 이 빌더가 `KeyError: '-0'` 으로 **죽어 있었다** — `reports/A_atlas.ipynb`
+      가 09-11 16:48 판에 멈춘 채 「445 팔 · 1433 칸」을 싣고 있던 까닭이다
+      (색인의 지금 값은 844 팔 · 2388 칸).
+    ⚠정수 앙각에서는 «+0»·«-15» 로 옛 서식과 한 글자도 다르지 않다 — 바뀌는 것은
+      소수 앙각(−0.02 · −0.075 · −0.3 …)뿐이다.
+    """
+    return f"{el:+g}"
+
 IDX_P = os.path.join(ROOT, "outputs", "md_atlas_index.json")
 LED_J = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
 LED_N = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
@@ -588,7 +603,7 @@ def topic_table(t) -> list[str]:
     for arm in arms:
         a = t["arms"][arm]
         row = ROWS[(arm, a["elevations_deg"][0])]
-        cells = " | ".join(rhythm_cell(a["cells"].get(f"{e:+.0f}")) for e in els)
+        cells = " | ".join(rhythm_cell(a["cells"].get(_elkey(e))) for e in els)
         out.append(f"| `{arm}` | {a['airframe_label']} · {a['f_flash_hz']:g} Hz "
                    f"| {row['range_m']:g} m | {cells} |")
     return out
@@ -603,7 +618,7 @@ def arm_table(arm: str) -> list[str]:
            "| 움직이는 전력 [dB] | 움직이는 몫 [%] |",
            "|---|---|---|---|---|---|---|---|---|---|"]
     for e in a["elevations_deg"]:
-        c = a["cells"][f"{e:+.0f}"]
+        c = a["cells"][_elkey(e)]
         why = ("∅ 에코 없음" if c.get("no_return") else
                f"◐ 덜 참({thousands(c['n_poses'] - max(c.get('n_missing') or 0, c.get('n_zero_samples') or 0))}"
                f"/{thousands(c['n_poses'])} 자세)" if c.get("incomplete") else
