@@ -221,6 +221,14 @@ FCS_MHZ = (3450, 3475, 3500, 3525, 3550)
 #  다르므로 문법으로는 한 묶음이다), 범위를 안 적으면 「대역 평탄성」에 **반송파 의존성**이
 #  섞인다 — 퍼짐이 4.24 dB 가 아니라 28.32 dB 가 된다(2026-09-13 실측).
 BAND_SPAN_MHZ = (3400, 3600)
+#: ⭐이 판독이 **일부러 흔드는 축**. 대조군 검사는 이 축들만 달라도 «한 묶음» 으로 본다.
+#  ⛔2026-09-13(9) 신설 — 0930 발주서가 광선 예산 짝(3.9e9)을 사 온다. 그것이 원장에
+#    들어오면 옛 검사(vary=["fc","env"])는 묶음을 둘로 세어 **SystemExit 로 죽는다**.
+#    자료가 오기 전에 미리 넓혀 둔다. ⚠판독은 여전히 **예산마다 따로** 낸다 — 예산이
+#    다른 칸을 같은 대역 곡선에 섞지 않는다(아래 SPP_PRIMARY).
+VARY_AXES = ("fc", "env", "spp")
+#: 대역 곡선을 그리는 정본 예산. 나머지 예산은 **대조군**으로만 읽는다.
+SPP_PRIMARY = "4000000000"
 ELS = (-30.0, -60.0)
 #: 팔 이름의 형태 — 꼬리표 하나만 다르고 나머지가 **글자 그대로 같아야** 짝이다.
 STEM_HEAD = "sionna_p4000000000_swR0D0E0F1_r15_n8192"
@@ -256,7 +264,7 @@ def control_group_check(arms: list[str]) -> dict:
       다른 기체(s1000plus)와 다른 대역(24 GHz)이 섞여 20 dB·48 dB 폭이 나왔다.
       숫자가 커서 «발견» 처럼 보였지만 그것은 표적이 아니라 **섞임**이었다.
     """
-    g = matched_groups(arms, vary=["fc", "env"])
+    g = matched_groups(arms, vary=list(VARY_AXES))
     return {"n_groups": len(g),
             "one_group_only": len(g) == 1,
             "fixed_fields": (sorted(dict(list(g)[0]).items()) if len(g) == 1 else None),
@@ -467,6 +475,9 @@ def main() -> int:
     for env in ENVS:
         for fc in FCS_MHZ:
             arm = arm_name(env, fc)
+            #: ⭐정본 예산 칸만 곡선에 쓴다(다른 예산은 ray_spread_db 가 대조군으로 읽는다).
+            if parse_arm(arm).get("spp") not in (None, SPP_PRIMARY):
+                continue
             for el in ELS:
                 r = ROW.get((arm, el))
                 if r is None:

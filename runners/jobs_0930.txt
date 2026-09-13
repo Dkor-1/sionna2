@@ -1,0 +1,108 @@
+# 0930 발주서 — ⛔**회절(D)·모서리회절(E) 을 켠 줄이 한 줄도 없다**
+#   사용자 지시(2026-09-13): 「회절은 일반 배제하고 작업하고 싶어」
+#   쓰는 팔은 R0D0E0F1(확산만) · R1D0E0F1(+굴절) 둘뿐. F(확산)는 규약대로 항상 켬.
+#   까닭·«아니다» 규칙·비용 근거는 runners/make_jobs_0930.py 머리말에.
+#   ⛔el 0 은 한 줄도 없다(GATES_0902).
+#   줄 88 · 실측 요율로 약 141 일꾼시간 ⇒ 동시 9 이면 경과 약 16 시간
+
+# ── A 조각 장면에 굴절 팔 (20 줄 · 약 29 h) — 건물만 판이 굴절로 얹기 시작하나
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-75 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-75 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-75 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-75 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-60 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-60 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env outdoor01_bldg --shard 1 --nshards 2
+
+# ── B 실외 고도 사다리 (14 줄 · 약 28 h) — 바닥이 지면 탓인가
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-alt 40 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-alt 40 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-alt 80 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --env-alt 80 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --env-alt 40 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --env-alt 40 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --env-alt 80 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --env-alt 80 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --env-alt 80 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --env-alt 80 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 40 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 40 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 80 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 80 --shard 1 --nshards 2
+
+# ── C 실외 대역 팔의 광선 예산 짝 (10 줄 · 약 22 h) — 대역 기울기가 광선 흔들림보다 큰가
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.45 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.475 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.525 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 3900000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.55 --els=-60 --env outdoor01 --shard 1 --nshards 2
+
+# ── D 실외 끝점 앙각 −90 (8 줄 · 약 14 h) — 지면 봉우리가 끝에서도 이어지나
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-90 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-90 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-90 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-90 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-90 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-90 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-90 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-90 --env outdoor01_ground --shard 1 --nshards 2
+
+# ── E 위상용 촘촘한 반송파 (20 줄 · 약 18 h) — 지연 되감기를 풀어 위상을 본다
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.495 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.495 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.495 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.495 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.502 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.502 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.502 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.502 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.505 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.505 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.505 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.505 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.51 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.51 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.51 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.51 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.502 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.502 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.51 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --fc-ghz 3.51 --els=-60 --env outdoor01 --shard 1 --nshards 2
+
+# ── F 실외 표집률 사다리 (12 줄 · 약 27 h) — 움직이는 몫이 잡음인가 날개인가
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 39400 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 39400 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 39400 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 39400 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 78800 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 78800 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 78800 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 78800 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 157600 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 157600 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 157600 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 157600 --els=-60 --env outdoor01 --shard 1 --nshards 2
+
+# ── G 굴절 팔 깊이 1 두 칸 (4 줄 · 약 2.4 h) — 깊이 축이 굴절 팔에서도 서나
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-30 --shard 1 --nshards 2
