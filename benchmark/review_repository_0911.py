@@ -119,6 +119,23 @@ def shards():
         n_shape_error_groups=sum(bool(r['shape_errors']) for r in rows))
 
 
+def _free_names(body,ns):
+    """Names the extracted block reads before assigning. Empty set means the audit
+    namespace covers production. 2026-09-13(6): added so a new accumulator in the
+    merge loop reports a clear boundary error instead of NameError deep inside exec."""
+    import builtins
+    mod=ast.Module(body=list(body),type_ignores=[])
+    assigned=set();read=set()
+    for n in ast.walk(mod):
+        if isinstance(n,ast.Name):
+            (assigned if isinstance(n.ctx,ast.Store) else read).add(n.id)
+        elif isinstance(n,(ast.For,)) and isinstance(n.target,ast.Name):
+            assigned.add(n.target.id)
+        elif isinstance(n,ast.comprehension) and isinstance(n.target,ast.Name):
+            assigned.add(n.target.id)
+    return {x for x in read-assigned-set(ns)-set(dir(builtins)) if not x.startswith('__')}
+
+
 def raw_merge(files):
     tree=ast.parse(base.read('benchmark/elevation_sweep_md.py'));code=None
     for loop in ast.walk(tree):
@@ -129,7 +146,15 @@ def raw_merge(files):
         end=next(i for i,n in enumerate(loop.body) if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='miss')
         code=loop.body[start:end+1]
     assert code is not None
-    ns=dict(np=np,os=os,fs=files,E=None,secs=0.,npa=[],cfg=None)
+    # 2026-09-13(6): production gained new accumulators (e.g. _prfs for per-cell PRF).
+    # Seed them, then CHECK the extraction boundary instead of dying on NameError.
+    ns=dict(np=np,os=os,fs=files,E=None,secs=0.,npa=[],cfg=None,_prfs=set(),_stamps=[],
+            _runs=set(),_tstarts=[])
+    missing=_free_names(code,ns)
+    if missing:
+        raise RuntimeError('extracted production block needs names the audit does not '
+                           'provide: '+', '.join(sorted(missing))+
+                           ' — add them to raw_merge(ns=...) so the audit follows production')
     exec(compile(ast.Module(body=code,type_ignores=[]),'production merge block','exec'),ns)
     return ns
 

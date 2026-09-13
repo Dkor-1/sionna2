@@ -1374,7 +1374,31 @@ def f_tip_at(el_deg: float, arm: str = "") -> float:
 def analyse() -> None:
     from md_mapstyle import auto_periods, flash_spec
     prf, ffl = float(TJ["prf_hz"]), float(TJ["f_flash_hz"])
-    per = auto_periods(prf, ffl)
+    #: ⛔전역 `per` 를 없앴다(2026-09-13(6)) — 조각 길이는 이제 **칸의 표집률 × 팔의 날개
+    #  통과율**로 정해지므로 머리말 두 값으로 미리 계산해 둘 수 없다. `_stft` 가 그때그때 낸다.
+    #: ⛔⛔2026-09-13(6) 정정 — **날개 통과율도 팔마다 다르다.** 머리말의 한 값(기본 기체
+    #  matrice4e 의 126.667 Hz)을 모든 행에 쓰면, 기체 태그가 붙은 **488 칸**의 배음 잣대가
+    #  엉뚱한 주파수에서 잰다. 실측(점검자 2026-09-13): 445 칸의 지표가 바뀌고,
+    #  `ours_s1000plus_…_az67.5 / el−45` 의 h1_over_h2_db 는 **+46.43 → −4.81 dB** 다.
+    #  (s1000plus 는 148.9 Hz — 머리말의 1.1755 배. mini5pro·phantom4 는 1.4474 배,
+    #   m350rtk 는 0.6316 배다.)
+    #  ⭐표집률·반송파와 **같은 병**이다(R34 · R36). 이름의 기체 꼬리표가 정본이다.
+    from arm_grammar import parse as _arm_parse, ArmNameError as _ArmErr   # noqa: E402
+    _FLASH = {}
+
+    def flash_of(arm: str) -> float:
+        """그 팔의 날개 통과율 [Hz] = 날 수 × 호버rpm / 60. 기체 꼬리표가 없으면 규약값."""
+        v = _FLASH.get(arm)
+        if v is None:
+            try:
+                key = _arm_parse(arm).get("drone")
+            except (_ArmErr, Exception):
+                key = None
+            sp = DRONES.get(key) if key else None
+            v = (float(int(sp.prop_blades) * float(sp.hover_rpm) / 60.0)
+                 if sp is not None else ffl)
+            _FLASH[arm] = v
+        return v
     ft_deck = float(TJ["f_tip_hz"])                 # −15° 의 f_tip (덱 대역의 기준)
 
     # ⭐**같은 STFT 를 두 번 돌지 않는다** (2026-08-20). 행마다 `track` 과 `fixed` 두 번
@@ -1383,18 +1407,21 @@ def analyse() -> None:
     _stft_cache = {}
 
     #: ⛔⛔2026-09-13 — STFT 는 **그 칸의 표집률**로 돈다. 전역값을 쓰면 시간축이 틀린다.
-    def _stft(E, prf_cell):
-        k = (id(E), prf_cell)
+    def _stft(E, prf_cell, ffl_cell):
+        #: ⛔열쇠에 **날개 통과율도** 넣는다 — 조각 길이가 그 값으로 정해지므로, 빼면
+        #  기체가 다른 팔이 앞 팔의 STFT 를 그대로 물려받는다(2026-09-13(6)).
+        k = (id(E), prf_cell, ffl_cell)
         v = _stft_cache.get(k)
         if v is None:
-            v = flash_spec(np.asarray(E, complex), prf_cell, ffl,
-                           auto_periods(prf_cell, ffl))
+            v = flash_spec(np.asarray(E, complex), prf_cell, ffl_cell,
+                           auto_periods(prf_cell, ffl_cell))
             _stft_cache.clear()          # 한 행만 붙잡는다 — 메모리가 안 늘게
             _stft_cache[k] = v
         return v
 
-    def band_metrics(E, lo, hi, prf_cell=None):
-        f, t, S, _ = _stft(E, float(prf_cell or prf))
+    def band_metrics(E, lo, hi, prf_cell=None, ffl_cell=None):
+        ffl_cell = float(ffl_cell or ffl)
+        f, t, S, _ = _stft(E, float(prf_cell or prf), ffl_cell)
         b = (np.abs(f) >= lo) & (np.abs(f) <= hi)
         if b.sum() < 2:
             return dict(n_bins=int(b.sum()), beat_hz=None, h1_over_h2_db=None,
@@ -1419,7 +1446,8 @@ def analyse() -> None:
             w = (fr >= f0 - h) & (fr <= f0 + h)
             return 20 * np.log10(A[w].max()) if w.any() else np.nan
         return dict(n_bins=int(b.sum()), beat_hz=round(float(pk), 2),
-                    h1_over_h2_db=round(float(pkdb(ffl) - pkdb(2 * ffl)), 2),
+                    #: ⭐배음은 **이 팔의** 날개 통과율 자리에서 잰다(2026-09-13(6))
+                    h1_over_h2_db=round(float(pkdb(ffl_cell) - pkdb(2 * ffl_cell)), 2),
                     band_power_db=round(pw, 2))
 
     rows, series = [], {}
@@ -1680,11 +1708,19 @@ def analyse() -> None:
                 prf_hz_seen=sorted(_prfs) if len(_prfs) != 1 else None,
                 prf_note_ko=("STFT·리듬 지표는 **이 칸의 저장 표집률**로 냈다. 여러 값이 "
                              "섞인 칸은 prf_hz 가 null 이고 규약값으로 냈다 — 그 칸은 읽지 않는다."),
+                #: ⭐이 칸의 날개 통과율 — 기체 꼬리표가 정한다. 잣대·STFT 가 이 값을 쓴다.
+                f_flash_hz=round(flash_of(arm), 4),
+                f_flash_is_default=bool(abs(flash_of(arm) - ffl) < 1e-6),
+                f_flash_note_ko=("배음 잣대(h1_over_h2_db)와 STFT 조각 길이는 **이 팔의** "
+                                 "날개 통과율로 냈다. _meta.f_flash_hz 는 기본 기체 값이라 "
+                                 "기체 태그가 붙은 팔에 그대로 대면 틀린다."),
                 track=band_metrics(E, 0.35 * ft, max(ft, 1e-6),
-                                   next(iter(_prfs)) if len(_prfs) == 1 else None),
+                                   next(iter(_prfs)) if len(_prfs) == 1 else None,
+                                   flash_of(arm)),
                 # (b) 덱의 −15° 대역 고정 — 어디서 무너지나 (반송파를 옮긴 팔은 λ 비로 늘린다)
                 fixed=band_metrics(E, 0.35 * ftd, ftd,
-                                   next(iter(_prfs)) if len(_prfs) == 1 else None)))
+                                   next(iter(_prfs)) if len(_prfs) == 1 else None,
+                                   flash_of(arm))))
 
     if not rows:
         raise SystemExit(f"⛔ {SHD} 에 샤드가 없다")
