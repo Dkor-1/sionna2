@@ -99,6 +99,53 @@ for p in (os.path.join(ROOT, "src"), HERE):
 from md_mapstyle import auto_periods, flash_spec                      # noqa: E402
 from arm_grammar import matched_groups, parse as parse_arm, unparse  # noqa: E402
 from drones import DRONES                                            # noqa: E402
+from arm_grammar import unparse as unparse_arm                       # noqa: E402
+
+
+def repeat_spread_db(arm: str, el: float, rows: list, Z) -> tuple:
+    """⭐**옳은 대조군** — 같은 설정을 다시 돌린 판(`--rep`) 사이의 움직이는 몫 퍼짐 [dB].
+
+    ⛔⛔2026-09-13(7) 정정. 처음에는 짝·홀 자세 분할 차이를 «흔들림» 이라 부르며
+      대조군으로 썼고, 그 뒤 「같은 AC 통계로 맞추면 실외 두 줄이 묻힌다」로 **뒤집었다.**
+      둘 다 틀렸다 — 짝·홀 차이는 흔들림이 아니라 **자세 집합의 계통적 치우침**이다
+      (AC 를 10^±6 배 해도 1.6457 dB 로 안 바뀐다 · 부호가 한쪽으로 쏠린다).
+    ⭐실측(2026-09-13): 이 팔들의 되풀이 판은 합친 움직이는 몫이 **0.0000 dB** 로 같다.
+      자세 하나까지 보면 최대 44~48 % 까지 다른데(경로 하나를 잃는 알려진 현상)
+      합치면 사라진다. 곧 **재실행 재현성은 0.000 dB** 이고, 대역 퍼짐 0.235~3.914 dB 는
+      그보다 크다.
+    ⚠되풀이는 **같은 광선 격자를 다시 도는 것**이라 격자 민감도는 못 덮는다 —
+      그 대조군(광선 예산 사다리)은 이 팔 계열에 아직 없다.
+    """
+    f = None
+    try:
+        from arm_grammar import parse as _p
+        f = _p(arm)
+    except Exception:
+        return None, 0
+    vals, n = [], 0
+    have = {(r["engine"], float(r["el_deg"])) for r in rows}
+
+    def _ac(a):
+        k = f"{a}/el{el:+g}"
+        if k not in Z.files:
+            return None
+        E = np.asarray(Z[k], complex)
+        p = float(np.mean(np.abs(E - E.mean()) ** 2))
+        return 10.0 * np.log10(p) if p > 0 else None
+
+    v = _ac(arm)
+    if v is not None:
+        vals.append(v)
+    for k in range(1, 9):
+        g = dict(f)
+        g["rep"] = str(k)
+        nm = unparse_arm(g)
+        if (nm, el) in have:
+            w = _ac(nm)
+            if w is not None:
+                vals.append(w)
+                n += 1
+    return (round(max(vals) - min(vals), 4) if len(vals) > 1 else None), len(vals)
 
 
 def flash_of(arm: str, default: float) -> float:
@@ -267,28 +314,38 @@ def write_md(out: dict) -> None:
     a("")
     a("⛔실외의 전체 레벨은 **지면**이지 표적이 아니다.")
     a("")
-    a("| 환경 | 앙각 | 전체 퍼짐 | (전체) 짝·홀 차 | 움직이는 몫 퍼짐 | "
-      "(AC) 짝·홀 차 | 움직임 기울기 | 읽기 |")
+    a("| 환경 | 앙각 | 전체 퍼짐 | 움직이는 몫 퍼짐 | ⭐되풀이 재현성 | "
+      "(참고) 짝·홀 차 | 움직임 기울기 | 읽기 |")
     a("|---|---:|---:|---:|---:|---:|---:|---|")
     for r in out["series"]:
         if r.get("n", 0) < 3:
             continue
-        _v = ("⛔분할 차이에 묻힌다"
-              if r["moving_band_spread_db"] < 2.0 * r["within_cell_spread_ac_db"]
-              else "분할 차이보다 크다")
+        _rs = r.get("repeat_spread_db")
+        _v = ("되풀이 판 없음"
+              if _rs is None else
+              ("되풀이 재현성보다 크다"
+               if r["moving_band_spread_db"] > 2.0 * max(_rs, 1e-4)
+               else "⛔되풀이 재현성과 같은 자릿수 — 못 가른다"))
         #: ⚠소수 두 자리면 0.015 와 0.008 이 **둘 다 0.01** 로 찍혀 산문과 어긋난다.
         a(f"| {r['env']} | {r['el_deg']:+.0f} | {r['band_spread_db']:.3f} dB | "
-          f"{r['within_cell_spread_db']:.3f} dB | "
           f"{r['moving_band_spread_db']:.3f} dB | "
+          f"{'—' if _rs is None else f'{_rs:.3f} dB'}"
+          f" ({r.get('repeat_n_runs', 0)} 판) | "
           f"{r['within_cell_spread_ac_db']:.3f} dB | "
           f"{r['moving_slope_db_per_ghz']:+.2f} dB/GHz | {_v} |")
     a("")
-    a("⛔**통계를 짝 맞춰 읽는다** — 전체 퍼짐은 전체 짝·홀 차와, 움직이는 몫의 퍼짐은 "
-      "AC 짝·홀 차와 견준다. 섞으면 실외 두 줄의 결론이 거꾸로 나온다.")
+    a("⭐**대조군은 되풀이 판이다** — 같은 설정을 다시 돌린 판 사이의 퍼짐, 곧 "
+      "**재실행 재현성**이다. 이 팔들에서는 **0.000 dB** 다(자세 하나까지 보면 최대 "
+      "44~48 % 까지 다른데 합치면 사라진다).")
     a("")
-    a("⚠짝·홀 차는 **결정적 표본 분할의 민감도**다 — 재실행 산포도, 광선 격자 민감도도, "
-      "신뢰구간도 아니다. 격자 민감도를 재려면 격자 사다리 칸을 따로 사야 하는데 "
-      "이 팔 계열에는 0 개다. 그래서 「퍼짐 ÷ 분할 차」 배수를 머리기사로 쓰지 않는다.")
+    a("⛔**짝·홀 자세 분할 차는 대조군이 아니다** (2026-09-13 에 두 번 틀렸다). "
+      "그것은 흔들림이 아니라 **자세 집합의 계통적 치우침**이다 — AC 를 10^±6 배 해도 "
+      "1.6457 dB 로 안 바뀐다. 한때 그것을 대조군으로 삼아 실외 두 줄을 «묻힌다» 로 "
+      "읽었는데, 되풀이로 재면 거꾸로다. 표에는 참고로만 남긴다.")
+    a("")
+    a("⚠⚠**되풀이도 못 덮는 것**: 같은 광선 격자를 다시 도는 것이라 **격자 민감도**는 "
+      "안 덮는다. 그 사다리(광선 예산을 ±5 % 흔든 짝)를 이 팔 계열에 아직 안 샀다 — "
+      "그것이 이 판독의 가장 큰 빈자리다.")
     a("")
     a("## ⭐구조 관문 — 움직이는 몫에 날개 무늬가 있나")
     a("")
@@ -460,6 +517,11 @@ def main() -> int:
             #  움직이는 몫의 퍼짐은 **AC 분할 차이**와. 섞으면 결론이 뒤집힌다.
             half = float(np.median([g[1]["half_spread_db"] for g in got]))
             half_ac = float(np.median([g[1]["half_spread_ac_db"] for g in got]))
+            #: ⭐**되풀이 대조군** — 이것이 재실행 재현성이다(짝·홀 차이가 아니다).
+            _rs = [repeat_spread_db(g[1]["engine"], el, J["rows"], Z) for g in got]
+            _rv = [x[0] for x in _rs if x[0] is not None]
+            rep_spread = float(max(_rv)) if _rv else None
+            rep_n = sum(x[1] for x in _rs)
             band = float(lv.max() - lv.min())
             slope = float(np.polyfit(fcs / 1000.0, lv, 1)[0])          # dB per GHz
             d = np.diff(lv)
@@ -486,6 +548,12 @@ def main() -> int:
                 "within_cell_spread_ac_db": round(half_ac, 3),
                 "moving_spread_over_split_ac": (None if half_ac <= 0 else
                                                 round(mv_band / half_ac, 3)),
+                #: ⭐정본 대조군 — 되풀이 판 사이의 움직이는 몫 퍼짐.
+                "repeat_spread_db": rep_spread,
+                "repeat_n_runs": rep_n,
+                "repeat_note_ko": ("같은 설정을 다시 돌린 판 사이의 퍼짐 — **재실행 "
+                                   "재현성**이다. ⚠같은 광선 격자를 다시 도는 것이라 "
+                                   "격자 민감도는 못 덮는다(그 사다리는 이 팔 계열에 없다)."),
                 "control_covers_ko": ("짝·홀 자세 분할만 — 광선 격자는 못 덮는다"
                                       "(이 팔 계열에 격자 사다리 칸 0 개). "
                                       "⛔재실행 산포도 신뢰구간도 아니다."),
@@ -497,12 +565,20 @@ def main() -> int:
                 #: ⭐표적을 말하는 것은 **움직이는 몫**이고, 그것은 **AC 분할 차이**와
                 #  견준다(2026-09-13(6) 정정 — 전에는 전체 전력의 분할 차이와 견주어
                 #  실외 두 줄에서 결론이 거꾸로 나왔다).
+                #: ⭐읽기는 **되풀이 대조군**으로 한다(2026-09-13(7) 두 번째 정정).
+                #  짝·홀 분할 차이는 흔들림이 아니라 자세 집합의 계통적 치우침이라
+                #  대조군이 아니다 — 그것으로 판정하면 실외 두 줄이 거꾸로 읽힌다.
                 "reading_ko": (
                     f"움직이는 몫이 100 MHz 를 가로질러 {mv_band:.2f} dB 움직인다 — "
-                    + (f"같은 통계(AC)의 짝·홀 분할 차이 {half_ac:.2f} dB 에 묻힌다. "
-                       f"⛔이 잣대로는 대역 기울기를 가르지 못한다"
-                       if mv_band < 2.0 * half_ac else
-                       f"같은 통계(AC)의 짝·홀 분할 차이 {half_ac:.2f} dB 보다 크다")),
+                    + ("되풀이 판이 없어 재실행 재현성을 못 댄다"
+                       if rep_spread is None else
+                       (f"되풀이 재현성 {rep_spread:.3f} dB 보다 크다"
+                        if mv_band > 2.0 * max(rep_spread, 1e-4) else
+                        f"되풀이 재현성 {rep_spread:.3f} dB 과 같은 자릿수라 못 가른다"))
+                    + f". ⚠되풀이는 같은 광선 격자를 다시 도는 것이라 **격자 민감도는 "
+                      f"안 덮는다** — 그 사다리를 아직 안 샀다. "
+                      f"(짝·홀 자세 분할 차이는 {half_ac:.3f} dB 인데 그것은 흔들림이 "
+                      f"아니라 자세 집합의 계통적 치우침이다 — 대조군으로 쓰지 않는다.)"),
             })
 
     # ── 4. 겹쳐 보기 — 주파수축을 fc 로 나눈 변조 스펙트럼 ─────────────────
