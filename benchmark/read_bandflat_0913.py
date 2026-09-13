@@ -82,6 +82,7 @@ for p in (os.path.join(ROOT, "src"), HERE):
     if p not in sys.path:
         sys.path.insert(0, p)
 from md_mapstyle import auto_periods, flash_spec                      # noqa: E402
+from arm_grammar import matched_groups, parse as parse_arm, unparse  # noqa: E402
 
 LED_J = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
 LED_N = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
@@ -89,6 +90,10 @@ OUT_J = os.path.join(ROOT, "outputs", "bandflat_0913.json")
 
 #: 5G NR n78 의 100 MHz 폭 한 덩이를 다섯 점으로. 중앙은 꼬리표가 **없는** 팔이다.
 FCS_MHZ = (3450, 3475, 3500, 3525, 3550)
+#: ⛔⛔**읽을 범위를 선언한다.** 같은 대조군 안에도 24 GHz 팔이 있어서(꼬리표가 fc 하나만
+#  다르므로 문법으로는 한 묶음이다), 범위를 안 적으면 「대역 평탄성」에 **반송파 의존성**이
+#  섞인다 — 퍼짐이 4.24 dB 가 아니라 28.32 dB 가 된다(2026-09-13 실측).
+BAND_SPAN_MHZ = (3400, 3600)
 ELS = (-30.0, -60.0)
 #: 팔 이름의 형태 — 꼬리표 하나만 다르고 나머지가 **글자 그대로 같아야** 짝이다.
 STEM_HEAD = "sionna_p4000000000_swR0D0E0F1_r15_n8192"
@@ -100,9 +105,36 @@ FC_RE = re.compile(r"_fc(\d+)(?=_)")
 
 def arm_name(env: str, fc_mhz: int) -> str:
     """⭐이름을 **짓는다** — 원장에서 정규식으로 긁으면 «outdoor01_fc3450» 같은 것이
-    환경 이름으로 딸려 온다(2026-09-13 에 실제로 당했다). 지어서 찾으면 그 일이 없다."""
+    환경 이름으로 딸려 온다(2026-09-13 에 실제로 당했다). 지어서 찾으면 그 일이 없다.
+
+    ⭐2026-09-13(2): 지은 이름이 **문법으로 되읽히는지** `src/arm_grammar` 로 확인한다.
+      되읽은 환경·반송파가 내가 뜻한 것과 다르면 여기서 멈춘다 — 판독기가 엉뚱한 팔을
+      집어 들고 조용히 계속 가는 일이 없게."""
     mid = [x for x in (ENVS[env], "" if fc_mhz == 3500 else f"fc{fc_mhz}") if x]
-    return "_".join([STEM_HEAD, *mid, STEM_TAIL])
+    name = "_".join([STEM_HEAD, *mid, STEM_TAIL])
+    f = parse_arm(name)                       # strict — 되짓기까지 확인한다
+    want_env = None if env == "free" else env
+    want_fc = None if fc_mhz == 3500 else str(fc_mhz)
+    if f.get("env") != want_env or f.get("fc") != want_fc:
+        raise SystemExit(f"⛔ 지은 이름이 뜻대로 안 읽힌다: {name}\n"
+                         f"   뜻한 것 env={want_env} fc={want_fc}\n"
+                         f"   읽힌 것 env={f.get('env')} fc={f.get('fc')}")
+    return name
+
+
+def control_group_check(arms: list[str]) -> dict:
+    """⭐이 판독기가 고른 팔들이 **정말 한 축만 다른가** — 문법으로 확인한다.
+
+    ⛔이 검사가 있는 까닭(사용자 지적, 2026-09-13): 즉석 필터로 반송파를 견주다가
+      다른 기체(s1000plus)와 다른 대역(24 GHz)이 섞여 20 dB·48 dB 폭이 나왔다.
+      숫자가 커서 «발견» 처럼 보였지만 그것은 표적이 아니라 **섞임**이었다.
+    """
+    g = matched_groups(arms, vary=["fc", "env"])
+    return {"n_groups": len(g),
+            "one_group_only": len(g) == 1,
+            "fixed_fields": (sorted(dict(list(g)[0]).items()) if len(g) == 1 else None),
+            "varied": sorted("·".join("없음" if x is None else str(x) for x in k)
+                             for k in list(g.values())[0]) if len(g) == 1 else None}
 
 
 def el_key(el: float) -> str:
@@ -197,6 +229,19 @@ def main() -> int:
 
     out["_meta"]["n_cells"] = len(cells)
     out["_meta"]["n_expected"] = len(ENVS) * len(FCS_MHZ) * len(ELS)
+    #: ⭐대조군 확인 — 고른 팔들이 반송파·환경 **말고는** 글자까지 같아야 한다.
+    cg = control_group_check(sorted({r["engine"] for r in cells.values()}))
+    out["_meta"]["control_group"] = cg
+    out["_meta"]["band_span_mhz"] = list(BAND_SPAN_MHZ)
+    if not cg["one_group_only"]:
+        raise SystemExit(f"⛔ 고른 팔이 한 대조군이 아니다 — 묶음 {cg['n_groups']} 개. "
+                         f"반송파·환경 말고 다른 축(기체·거리·팔·표집률)이 섞였다.")
+    #: ⛔범위 밖 반송파가 한 칸이라도 들어오면 멈춘다 — 문법만으로는 못 막는 자리다.
+    _out_of_band = sorted({fc for (_e, fc, _l) in cells
+                           if not (BAND_SPAN_MHZ[0] <= fc <= BAND_SPAN_MHZ[1])})
+    if _out_of_band:
+        raise SystemExit(f"⛔ 선언한 대역 {BAND_SPAN_MHZ} MHz 밖의 반송파가 섞였다: "
+                         f"{_out_of_band}. 대역 평탄성이 아니라 반송파 의존성이 된다.")
 
     # ── 2. 칸마다 레벨·대조군·박자 ────────────────────────────────────────
     for (env, fc, el), r in sorted(cells.items()):
@@ -210,8 +255,16 @@ def main() -> int:
         tr = r.get("track") or {}
         out["cells"].append({
             "env": env, "fc_mhz": fc, "el_deg": el, "engine": r["engine"],
+            #: ⛔⛔**두 레벨은 다른 통계다** — 섞어 인용하면 퍼짐이 달라진다.
+            #    원장 level_db = 20·log10(mean|E|)   ← **크기**의 평균 (:1675)
+            #    여기 level_db_here = 10·log10(mean|E|²) ← **전력**의 평균
+            #  젠센 부등식으로 언제나 mean|E| ≤ sqrt(mean|E|²) 라 값도 퍼짐도 다르다.
+            #  실측(자유공간 el −30 · 100 MHz): 원장 정의 4.24 dB · 전력 정의 3.62 dB.
+            #  ⭐이 글의 모든 «퍼짐·기울기» 는 **전력 정의**로 낸 것이다.
             "level_db_ledger": r.get("level_db"),
+            "level_db_ledger_def_ko": "20·log10(mean|E|) — 크기의 평균(원장 정의)",
             "level_db_here": None if lvl is None else round(lvl, 4),
+            "level_db_here_def_ko": "10·log10(mean|E|²) — 전력의 평균(이 글의 정본)",
             "static_db": None if p_dc <= 0 else round(10.0 * np.log10(p_dc), 4),
             "moving_db": None if p_ac <= 0 else round(10.0 * np.log10(p_ac), 4),
             "moving_frac_of_total": None if p <= 0 else round(p_ac / p, 6),
@@ -404,6 +457,9 @@ def main() -> int:
     print("═══ 대역 안 평탄성 — 5G NR 100 MHz 다섯 점 ═══")
     print(f"  칸 {out['_meta']['n_cells']}/{out['_meta']['n_expected']} · "
           f"건너뜀 {len(out['skipped'])}")
+    _cg = out["_meta"]["control_group"]
+    print(f"  ⭐대조군 확인: 고른 팔이 반송파·환경 말고 전부 같다 "
+          f"(문법 묶음 {_cg['n_groups']} 개 · 다른 값 {_cg['varied']})")
     for s in out["skipped"]:
         print(f"   ⛔ {s['arm'][-52:]} el{s['el_deg']:+.0f} — {s['why']}")
     print()
