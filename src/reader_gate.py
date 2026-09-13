@@ -103,14 +103,44 @@ def check_series(E, *, n_poses: int | None = None, prf: float | None = None,
 #     ② 마크다운 표의 칸 하나가 그런 것(`| 1017.7 Hz | nan |`) ← 실제로 샌 모양
 #  문장 속에서 낱말로 쓰인 것은 **막지 않는다.**
 _NF_TOKEN = r"(?:nan|NaN|NAN|[-+]?inf|[-+]?Inf|[-+]?INF|[-+]?Infinity)"
-#: 값 자리 = 토막 하나(+ 앞의 부호, 뒤의 단위) 뿐인 글.
-_VALUE_ONLY = re.compile(r"^\s*[-+]?\s*" + _NF_TOKEN + r"\s*[%\w°/·()]{0,8}\s*$")
+#: 값 자리 = 토막 하나(+ 앞의 **짧은 이름표**와 부호, 뒤의 단위) 뿐인 글.
+#  ⛔2026-09-13(10) — 처음 판은 이름표를 안 봤다. 실제 표 칸은 «띠 안 nan» 처럼
+#    이름표를 앞에 달고 쓴다. 이름표는 **숫자가 없고 12 자 이하**여야 한다 — 그래야
+#    문장(«NaN 을 null 로 바꿀 것»)이 값 자리로 오해되지 않는다.
+_LABEL_MAX = 12
+_VALUE_ONLY_RE = re.compile(r"^(?P<pre>.*?)[-+]?\s*(?P<tok>" + _NF_TOKEN
+                            + r")(?![A-Za-z_])(?P<post>[\s%\w°/·()]*)$")
+
+
+def _VALUE_ONLY(t: str):
+    """이 토막이 «값 자리» 인가 — 맞으면 match 처럼 참을 돌려준다."""
+    m = _VALUE_ONLY_RE.match(t.strip())
+    if not m:
+        return None
+    pre, post = m.group("pre"), m.group("post").strip()
+    if any(c.isdigit() for c in pre) or len(pre.strip()) > _LABEL_MAX:
+        return None
+    if len(post) > 8:
+        return None
+    return m
 _TEXT_NONFINITE = re.compile(r"(?<![A-Za-z_])(" + _NF_TOKEN + r")(?![A-Za-z_])")
 
 
+#: 표 한 칸 안에서 값이 여럿 붙는 자리 — «1272.9 · 380.3 ( -6.0 dB)» 처럼 쓴다.
+_PART_SPLIT = re.compile(r"[·,;()\[\]]|\s{2,}")
+
+
 def _value_slots(s: str):
-    """이 글에서 **값 자리**만 뽑아 준다 — 글 전체이거나, 마크다운 표의 한 칸이거나."""
-    if _VALUE_ONLY.match(s):
+    """이 글에서 **값 자리**만 뽑아 준다 — 글 전체이거나, 마크다운 표의 한 칸(의 토막)이거나.
+
+    ⛔2026-09-13(10) 넓혔다 — 처음 판은 **칸 전체**가 그 토막일 때만 봤다. 실제 표에는
+      «f_tip 1272.9 · 띠 안 최강선 759.9 ( -6.0 dB)» 처럼 한 칸에 값이 여럿 붙으므로,
+      그중 하나가 nan 이면 **그냥 지나갔다**. 칸을 토막(· , ; 괄호 · 두 칸 이상 공백)으로
+      갈라 각각을 본다.
+    ⚠표 칸 안에서 사람이 «값이 (NaN) 이다» 처럼 쓰면 걸린다 — 표는 수가 사는 자리이니
+      그쪽으로 치우친다. 표 밖의 문장은 그대로 통과한다.
+    """
+    if _VALUE_ONLY(s):
         yield s.strip(), 0
         return
     for ln, line in enumerate(s.splitlines()):
@@ -118,8 +148,9 @@ def _value_slots(s: str):
         if not (t.startswith("|") and t.endswith("|")):
             continue
         for cell in t[1:-1].split("|"):
-            if _VALUE_ONLY.match(cell):
-                yield cell.strip(), ln + 1
+            for part in _PART_SPLIT.split(cell):
+                if _VALUE_ONLY(part):
+                    yield part.strip(), ln + 1
 
 
 def _nonfinite_paths(o, path: str = "") -> list[str]:
