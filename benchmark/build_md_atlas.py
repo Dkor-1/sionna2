@@ -131,11 +131,38 @@ assert int(np.asarray(Z["phase_sign_v2"]).ravel()[0]) == 1, "⛔ 부호 정정�
 PRF = float(M["prf_hz"])
 
 
+def fc_of(arm: str) -> float:
+    """그 **팔**의 반송파 [Hz]. 원장에 없거나 섞였으면 규약 기본값.
+
+    ⭐왜 팔 단위인가 — 반송파는 팔 이름의 `_fc…` 꼬리표가 정한다. 실측(2026-09-13):
+      844 팔 전부 팔 안에서 한 값이고 이름 꼬리표와도 맞는다(어긋난 팔 0).
+      그래도 믿지 않고 **세어서** 쓴다 — 갈리면 규약값으로 떨어지고 아래 FC_SPLIT 에 실린다.
+    """
+    v = _FC_CACHE.get(arm)
+    if v is None:
+        seen = {float(r["fc_hz"]) for r in J["rows"]
+                if r["engine"] == arm and r.get("fc_hz")}
+        if len(seen) == 1:
+            v = seen.pop()
+        else:
+            if len(seen) > 1:
+                FC_SPLIT.append({"arm": arm, "fc_hz": sorted(seen)})
+            v = FC
+        _FC_CACHE[arm] = v
+    return v
+
+
 def prf_of(arm: str, el: float) -> float:
     """그 칸의 저장 표집률. 원장에 없거나 섞였으면 규약 기본값."""
     r = ROW.get((arm, float(el))) or {}
     v = r.get("prf_hz")
     return float(v) if v else PRF
+#: ⛔⛔2026-09-13(4) 정정 — 이것도 **규약 기본값**이다(표집률과 똑같은 병이었다).
+#  원장에 반송파가 머리말과 다른 칸이 **49 개(팔 19 개)** 있다 — 3.450·3.475·3.525·
+#  3.550·5.800·10.000·24.000 GHz. 날개끝 상한 f_tip 은 파장에 반비례하므로 24 GHz 팔을
+#  3.5 GHz 로 재면 상한이 **6.857 배** 틀리고, 그 상한이 그림의 도플러 창·리듬 몫의 가름선·
+#  빗살 대역·변조 스펙트럼 띠를 한꺼번에 정한다.
+#  ⭐아래 fc_of() 를 통해서만 읽고, 이 상수는 그것을 못 얻었을 때의 되짚기다.
 FC = float(M["fc_hz"])
 DRONE_DEFAULT = str(M.get("drone", "matrice4e"))
 RANGE_PRIMARY = float(M.get("range_m_primary", 15.0))
@@ -144,6 +171,9 @@ ROW = {(r["engine"], float(r["el_deg"])): r for r in J["rows"]}
 #  `_meta.prf_split_arms` 에 실려서 조용히 지나가지 않는다(비교 그림은 팔마다 조각 길이가
 #  하나라서, 갈리면 그 그림의 시간축이 칸마다 다르다는 뜻이다).
 PRF_SPLIT: list[dict] = []
+#: 한 팔 안에서 반송파가 갈린 자리 — 비어 있는 것이 정상. 차면 목차 `_meta.fc_split_arms`.
+FC_SPLIT: list[dict] = []
+_FC_CACHE: dict = {}
 #: 건너뛰기 기준 — **원장이나 이 코드가 그림보다 새로우면** 다시 굽는다.
 #  ⭐2026-08-15 수리: 그전에는 원장 시각만 봐서, 그림 모양을 바꾸는 코드 수정 뒤 --force 를
 #    빼먹으면 옛 그림이 그대로 남았다(코드는 새 규칙, 그림은 옛 규칙 → 목차와 그림이 갈린다).
@@ -306,12 +336,18 @@ def arm_rates(arm: str) -> dict:
     key = airframe_tag(arm) or DRONE_DEFAULT
     s = DRONES[key]
     f_rev = float(s.hover_rpm) / 60.0
-    lam = C_LIGHT / FC
+    #: ⛔⛔**이 팔의** 반송파로 잰다(2026-09-13(4)). 전에는 머리말의 한 값이라 다른 대역에
+    #  구운 팔 19 개(칸 49 개)의 날개끝 상한이 최대 6.857 배 틀렸다 — 그 상한이 그림의
+    #  도플러 창과 잣대 넷(리듬 몫·널·빗살 대역·변조 띠)을 한꺼번에 정한다.
+    fc = fc_of(arm)
+    lam = C_LIGHT / fc
     ps = prop_scale_tag(arm)
     ftip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0) * ps) / lam
     return dict(drone=key, drone_label=s.name,
                 f_flash_hz=int(s.prop_blades) * f_rev,
                 f_tip0_hz=ftip0,
+                fc_hz=fc,
+                fc_mismatch=bool(abs(fc - FC) > 1e3),
                 prop_scale=ps,
                 tagged=airframe_tag(arm) is not None)
 
@@ -1744,7 +1780,10 @@ def main():
             #  prf_hz 를 쓴다(그림·잣대 모두). 목차의 칸마다 prf_hz 가 실려 있다.
             "prf_hz": PRF, "prf_hz_ko": "규약 기본 표집률 — 칸의 값은 칸의 prf_hz 를 본다",
             "prf_split_arms": PRF_SPLIT,
+            #: ⭐이것도 **규약 기본값**이다 — 팔의 값은 팔의 fc_hz 를 본다(2026-09-13(4)).
             "fc_hz": FC,
+            "fc_hz_ko": "규약 기본 반송파 — 팔의 값은 그 팔의 fc_hz 를 본다",
+            "fc_split_arms": FC_SPLIT,
             "drone_default": DRONE_DEFAULT,
             "range_m_primary": RANGE_PRIMARY,
             "stft_ko": "md_mapstyle.flash_spec — 블레이드 주기의 auto_periods 배 조각 · "
@@ -1862,6 +1901,8 @@ def main():
                 "airframe_label": rt["drone_label"],
                 "f_flash_hz": round(rt["f_flash_hz"], 3),
                 "f_tip0_hz": round(rt["f_tip0_hz"], 1),
+                #: ⭐어느 팔이 다른 대역인지 목차만 보고 알 수 있게 함께 싣는다.
+                "fc_hz": rt["fc_hz"], "fc_mismatch": rt["fc_mismatch"],
                 "stft_periods": per,
                 "elevations_deg": els,
                 "cells": {el_key(el): cells[el] for el in els},
