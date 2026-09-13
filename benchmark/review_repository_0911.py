@@ -218,6 +218,9 @@ def save_interruption():
     with tempfile.TemporaryDirectory() as td:
         target=Path(td)/'probe.npz';N=8
         ns=dict(np=np,f=str(target),idx=np.arange(N),E=np.ones(N,complex),npaths=np.ones(N),nret=np.ones(N),E_dedup=np.ones(N,complex),n_dup=np.zeros(N),
+            # 2026-09-13(10): production save now calls bake_stamp(); give the test the
+            # same dependency so an intended OSError is not masked by a NameError.
+            bake_stamp=(lambda t0: dict(t_start=np.array([t0]), run_id=np.array('audit'))),
             _ntr=0,RP=types.SimpleNamespace(MAX_PATHS=2000000),a=types.SimpleNamespace(shard=0,nshards=1,physics=False,det=False,overwrite=False),
             el=0,n=N,prf=19700,time=time,t0=time.time(),spp=4000000000,rng_m=15,mdep=2,sw=dict(refraction=False,diffraction=False,edge_diffraction=False),os=os)
         real=np.lib.format.write_array;count=[0]

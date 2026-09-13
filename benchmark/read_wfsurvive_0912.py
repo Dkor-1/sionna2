@@ -50,6 +50,7 @@ import sys as _sys                                                    # noqa: E4
 _sys.path.insert(0, os.path.join(ROOT, "src"))
 #: ⭐팔 이름은 **문법으로** 되읽는다 — 부분문자열로 장면을 가르지 않는다(2026-09-13(4)).
 from arm_grammar import parse as parse_arm                            # noqa: E402
+from reader_gate import check_series, publish                        # noqa: E402
 OUT = os.path.join(ROOT, "outputs/read_wfsurvive_0912.json")
 MD = os.path.join(ROOT, "docs/WFSURVIVE_0912.md")
 
@@ -123,9 +124,16 @@ def cell_series(esm, arm: str, el: float):
             prf = float(meta[4])
         E[ii] = z["E"]
         seen[ii] = True
+        #: ⛔⛔한 칸에 표집률이 섞이면 **조용히 첫 값을 쓰지 않는다**(2026-09-13(10)).
+        if abs(float(meta[4]) - prf) > 1.0:
+            return None, f"한 칸에 표집률이 섞였다({prf} · {float(meta[4])})"
     if not seen.all():
-        return None
-    return E, prf
+        return None, f"자세가 덜 찼다({int(seen.sum())}/{seen.size})"
+    #: ⭐공통 입력 관문 — 비유한 값·길이·차원을 여기서 거른다(src/reader_gate.py).
+    why = check_series(E, n_poses=E.size, prf=prf)
+    if why:
+        return None, " · ".join(why)
+    return (E, prf), None
 
 
 def survive(E, prf, rates, f_tip=None):
@@ -158,6 +166,7 @@ def survive(E, prf, rates, f_tip=None):
         return f, S
 
     def peak(v, fs_, lo=None, hi=None):
+        """가장 센 선 [Hz]. ⛔`in_band=True` 인데 띠가 없으면 **None** 이다."""
         f, S = _spec(v, fs_)
         m = np.abs(f) > 20.0              # 0 둘레의 잔류는 뺀다
         if lo is not None:
@@ -165,6 +174,19 @@ def survive(E, prf, rates, f_tip=None):
         if not m.any():
             return None
         return float(abs(f[m][int(np.argmax(S[m]))]))
+
+    def peak_in_band(v, fs_, lo, hi):
+        """띠 **안**의 가장 센 선. ⛔⛔띠가 없으면(lo/hi 가 None) **전 대역을 뒤지지 않고**
+        None 을 돌려준다(2026-09-13(10) 정정).
+
+        ⛔왜 고쳤나: `peak(v, fs_, None, None)` 은 띠 조건을 그냥 빼고 **전 대역**을 뒤진다.
+          그래서 직하방(f_tip = 0, 띠 없음) **20 행 전부**에 「띠 안 봉우리」 자리에
+          전 대역 봉우리 값이 실려 있었다(예: f_tip 0 Hz 인데 127.45 Hz). 머리말은
+          「띠 값이 전부 null」이라고 적어 두었으니 문면과도 어긋났다.
+        """
+        if lo is None or hi is None:
+            return None
+        return peak(v, fs_, lo, hi)
 
     #: ⛔⛔2026-09-13 정정 — 첫 판은 띠가 창 밖이면 **중심만 접어** ±25 % 를 띠로 삼았다.
     #  그러면 **입력 띠 안의 다른 점이 접혀 들어온 자리**가 그 창 밖으로 떨어진다.
@@ -193,7 +215,8 @@ def survive(E, prf, rates, f_tip=None):
 
     lo0, hi0 = band(prf)
     out = dict(has_tipband=bool(lo0 is not None),
-               ref_peak_hz=peak(x, prf), ref_peak_in_tipband_hz=peak(x, prf, lo0, hi0),
+               ref_peak_hz=peak(x, prf),
+               ref_peak_in_tipband_hz=peak_in_band(x, prf, lo0, hi0),
                tipband_lo_hz=lo0, tipband_hi_hz=hi0, f_tip_hz_used=f_tip,
                tipband_note_ko=("[0.5,1.5]·f_tip 을 프레임율로 접어 닿는 최소~최대로 감싼 띠. "
                                 "⛔감싸므로 띠가 넓어질 수 있다 — 넓이를 함께 본다."),
@@ -278,7 +301,7 @@ def survive(E, prf, rates, f_tip=None):
             tip_folds=bool(f_tip and f_tip > fr / 2),
             peak_decimated_hz=peak(y1, fr),
             peak_frameavg_hz=peak(y2, fr),
-            peak_frameavg_in_tipband_hz=peak(y2, fr, lo, hi),
+            peak_frameavg_in_tipband_hz=peak_in_band(y2, fr, lo, hi),
             rms_keep_db=round(float(20 * np.log10(np.std(y2) / (ref_rms + 1e-300) + 1e-300)), 2),
             frame_samples=int(L),
         )
@@ -348,10 +371,10 @@ def main() -> int:
     rows = []
     for r, axes in sorted(want, key=lambda p: (scene(p[0]["engine"]), p[0]["engine"],
                                                p[0]["el_deg"])):
-        got = cell_series(esm, r["engine"], r["el_deg"])
+        got, why_in = cell_series(esm, r["engine"], r["el_deg"])
         if got is None:
             skipped.append(dict(engine=r["engine"], el_deg=r["el_deg"], extra_tags=[],
-                                why="시계열을 못 읽었다(샤드가 덜 찼거나 세대가 갈렸다)"))
+                                why=why_in or "시계열을 못 읽었다"))
             continue
         E, prf = got
         s = survive(E, prf, rates, f_tip=r.get("f_tip_hz"))
@@ -408,14 +431,14 @@ def main() -> int:
             "⛔f_tip 이 0 인 칸(직하방)은 띠가 없다 — has_tipband=false 이고 띠 값이 전부 null 이다.",
             "⛔실기 계측 대조는 0 건이고 이 판독으로도 안 생긴다.",
         ]), rows=rows, skipped=skipped)
-    with open(OUT, "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, indent=1)
-    render(out)
+    #: ⭐⭐**다 만든 뒤 한 번에** 발간한다 — 중간에 죽으면 옛 발간물이 그대로 남고,
+    #  비유한 수가 있으면 아무것도 안 바꾸고 멈춘다(src/reader_gate.publish).
+    publish({OUT: out, MD: render(out, to_string=True)})
     print(f"\n✅ {os.path.relpath(OUT, ROOT)} · {os.path.relpath(MD, ROOT)}  ({len(rows)} 칸)")
     return 0
 
 
-def render(o) -> None:
+def render(o, to_string: bool = False):
     rows, m = o["rows"], o["_meta"]
     lines = ["# 망 프레임율에서 회전자 구조가 얼마나 살아남나 — 실외 원장",
              "",
@@ -445,8 +468,12 @@ def render(o) -> None:
               "## ⛔이 판독이 말하지 않는 것", ""]
     lines += [f"- {x}" for x in m["limits_ko"]]
     lines.append("")
+    txt = "\n".join(lines) + "\n"
+    if to_string:
+        return txt
     with open(MD, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
+        f.write(txt)
+    return None
 
 
 if __name__ == "__main__":

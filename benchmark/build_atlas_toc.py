@@ -448,15 +448,31 @@ def self_checks(A: dict) -> list[tuple[str, bool, str]]:
     (`track.beat_hz` — 스윕이 스스로 잰 박자)과의 대조를 함께 낸다.
     """
     from drones import DRONES
-    fc = float(META["fc_hz"])
+    import re as _re
+    fc0 = float(META["fc_hz"])
     out = []
+
+    #: ⛔⛔2026-09-13(10) 정정 — 이 검사식 **자신이 낡아** 오경보를 냈다.
+    #  ⓐ 반송파를 원장 머리말의 한 값으로 썼다 — 다른 대역에 구운 팔이 있다.
+    #  ⓑ 프롭 배율(`_ps…`)을 빠뜨렸다 — f_tip 은 프롭 지름에 비례한다.
+    #  ⛔실측(점검자): 그 탓에 **72 팔**을 잘못 지적했다. 행별 반송파·프롭 배율을 넣으면
+    #    72 팔 모두 지금 색인과 맞는다.
+    #  ⭐목차가 이제 팔마다 `fc_hz` 를 싣는다(2026-09-13(4) 반송파 고침) — 그것을 쓴다.
+    def _ps_of(arm_name: str) -> float:
+        m = _re.search(r"_ps([0-9.]+)", arm_name)
+        try:
+            return float(m.group(1)) if m else 1.0
+        except ValueError:
+            return 1.0
 
     bad = []
     for arm, a in IDX_ARM.items():
         s = DRONES[a["airframe"]]
         f_rev = float(s.hover_rpm) / 60.0
         want = int(s.prop_blades) * f_rev
-        tip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0)) / (C_LIGHT / fc)
+        fc = float(a.get("fc_hz") or fc0)          # ⭐팔의 반송파
+        ps = _ps_of(arm)                            # ⭐프롭 배율
+        tip0 = 2.0 * (2 * math.pi * f_rev * (s.prop_dia_mm / 2000.0) * ps) / (C_LIGHT / fc)
         if abs(want - a["f_flash_hz"]) > 0.01 or abs(tip0 - a["f_tip0_hz"]) > 0.2:
             bad.append(arm)
     out.append(("기체별 박자·날개끝 상한을 `src/drones.py` 에서 다시 계산해 색인과 대조 "

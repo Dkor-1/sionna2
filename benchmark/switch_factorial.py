@@ -57,6 +57,24 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 import sys as _sys; _sys.path.insert(0, os.path.join(ROOT, "src"))
 from arm_grammar import parse as _arm_parse                          # noqa: E402
+from drones import DRONES as _DRONES                                 # noqa: E402
+
+
+def flash_of(arm: str, default: float) -> float:
+    """그 팔의 날개 통과율 [Hz] = 날 수 × 호버rpm / 60. 기체 꼬리표가 없으면 규약값.
+
+    ⛔⛔2026-09-13(10) 정정 — 주 집계(elevation_sweep_md)는 고쳤는데 **여기 보조 표는
+      안 고쳤다.** other_drone_switch_arms 180 행 + reference_arms 30 행 = **210 행**이
+      기본 기체(matrice4e 126.667 Hz)의 값으로 리듬 몫·빗살을 재고 있었다.
+      ⛔실측: 210 행 **전부** 값이 바뀐다(예: mavic4pro 는 120.0 Hz).
+    ⭐잣대가 선 주파수가 틀리면 「리듬 몫」은 다른 자리를 센 것이다."""
+    try:
+        key = _arm_parse(arm).get("drone")
+    except Exception:
+        key = None
+    sp = _DRONES.get(key) if key else None
+    return (float(int(sp.prop_blades) * float(sp.hover_rpm) / 60.0)
+            if sp is not None else float(default))
 SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
 LEDJ = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
 LEDN = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
@@ -282,14 +300,20 @@ def main() -> None:
             continue
         ft = float(r["f_tip_hz"])
         prf_cell = prf_of_row(r)
-        col = columns(Z[key_np], prf_cell, FFL, ft)
+        #: ⭐이 팔의 날개 통과율로 잰다(2026-09-13(10)) — 보조 표 210 행이 기본 기체
+        #  값을 쓰고 있었다. 주 집계는 이미 고쳤는데 여기로 안 이어졌다.
+        ffl_cell = flash_of(arm, FFL)
+        col = columns(Z[key_np], prf_cell, ffl_cell, ft)
         col.update(arm=arm, el_deg=el, ledger_row=i, npz_key=key_np,
                    n_missing=int(r["n_missing"]), seconds=r["seconds"],
                    range_m=r["range_m"], ledger_level_db=r["level_db"],
                    ledger_max_depth=r["max_depth"], spp=r["spp"],
                    npaths_median=r["npaths_median"])
-        col["rhythm_share_ref_pct"] = rhythm_share_ref(Z[key_np], prf_cell, FFL, ft)
+        col["rhythm_share_ref_pct"] = rhythm_share_ref(Z[key_np], prf_cell, ffl_cell, ft)
         col["prf_hz"] = prf_cell
+        #: ⭐쓴 값을 행에 적는다 — 읽는 이가 어느 잣대로 쟀는지 알 수 있게.
+        col["f_flash_hz"] = round(ffl_cell, 4)
+        col["f_flash_is_default"] = bool(abs(ffl_cell - FFL) < 1e-6)
         col["prf_mismatch"] = bool(abs(prf_cell - PRF) > 1.0)
         col["above_is_degenerate"] = bool(ft <= 1.0)      # el −90 은 f_tip = 0
         if other and "_sw" in arm:
@@ -392,7 +416,30 @@ def main() -> None:
             if k1 not in cells:
                 continue
             o, n = c, cells[k1]
+            #: ⛔⛔2026-09-13(10) — **쌍의 양쪽이 같은 조건인지 세어 본다.** 칸 열쇠는
+            #  조합·깊이·앙각뿐이라 메쉬 세대·물리 모드가 다른 팔이 짝이 될 수 있다.
+            #  ⛔실측: 145 쌍 중 **33 쌍**이 그렇고, **주판정용 el −30 회절 10 쌍 중 2 쌍**도
+            #    거기 든다. 그 쌍에서는 스위치 말고 **메쉬도 함께 바뀐다.**
+            #  ⇒ 쌍마다 «바꾸려는 스위치 말고 무엇이 또 다른가» 를 적고, 주판정은
+            #    **깨끗한 쌍만** 쓴다(아래 clean_pairs).
+            def _cond(cell):
+                try:
+                    f = _arm_parse(cell["arm"])
+                except Exception:
+                    return {"arm": cell.get("arm")}
+                return {k: v for k, v in f.items()
+                        if k not in ("switches", "max_depth", "_seed_host")}
+            _co, _cn = _cond(o), _cond(n)
+            _diff = sorted(set(_co) | set(_cn))
+            _pair_extra = sorted(k for k in _diff if _co.get(k) != _cn.get(k))
             row = dict(off=key, on=k1, el_deg=o["el_deg"], depth=int(dep),
+                       off_arm=o.get("arm"), on_arm=n.get("arm"),
+                       pair_other_diffs=_pair_extra,
+                       pair_is_clean=bool(not _pair_extra),
+                       pair_note_ko=("스위치 말고 다른 조건도 함께 바뀐다: "
+                                     + " · ".join(_pair_extra)
+                                     + " — ⛔이 쌍은 주판정에 안 쓴다"
+                                     ) if _pair_extra else "스위치 하나만 다르다",
                        d_ac_db=dd(o["ac_db"], n["ac_db"]),
                        d_above_floor_db=dd(o["above_floor_db"], n["above_floor_db"]),
                        d_above_comb_db=dd(o["above_comb_db"], n["above_comb_db"]),
@@ -409,16 +456,32 @@ def main() -> None:
                 e1 = e1 - e1.mean()
                 a = np.vdot(e0, e1) / np.vdot(e0, e0)
                 res = e1 - e0
-                # ⭐계수 1 의 불확도 — 얹힌 항 N 이 끈 판과 무상관이라 보면
-                #   a = 1 + <e0,N>/||e0||² 이고 표준편차는 (||N||/||e0||)/√n 이다.
+                #: ⛔⛔2026-09-13(10) 정정 — 옛 식은 `abs(abs(a) - 1.0)` 이라 **위상을
+                #  통째로 버렸다.** 실측: 실제 쌍 **8 개**가 위상 −150.51°·−112.39°·
+                #  −73.45° 인데 「계수 1 포함」으로 통과했다. 그중 −73.45° 쌍은 **주판정용
+                #  el −30 회절 비교**에 들어 있다.
+                #  ⇒ 복소 계수와 1 의 **복소 거리** |a − 1| 로 잰다.
+                #: ⚠sigma 는 「얹힌 항이 끈 판과 무상관」이라는 **가정 위의 척도**이지
+                #  이 결정적 자세열에서 검증된 신뢰구간이 아니다. 그래서 이름과 문구에서
+                #  «3σ 안» 을 «가정한 척도의 3 배 안» 으로 읽는다.
                 sig = float(np.linalg.norm(res) / (np.linalg.norm(e0) * np.sqrt(e0.size)))
+                _dist = float(abs(a - 1.0))
+                #: ⭐잔차가 0 이면 두 판이 **같은 신호**다 — 품는 것의 극한이므로 통과다.
+                #  (옛 식은 sig > 0 을 요구해 «완전히 같은 신호» 를 떨어뜨렸다.)
+                _identical = bool(np.linalg.norm(res) == 0.0)
                 row.update(
                     contain_coeff=round(float(abs(a)), 4),
                     contain_phase_deg=round(float(np.degrees(np.angle(a))), 2),
+                    contain_complex_dist=round(_dist, 6),
                     contain_sigma=round(sig, 4),
-                    contain_dev_sigma=(round(float(abs(abs(a) - 1.0) / sig), 2)
-                                       if sig > 0 else None),
-                    contains_unit_within_3sigma=bool(sig > 0 and abs(abs(a) - 1.0) <= 3 * sig),
+                    contain_sigma_note_ko=("무상관 가정 위의 척도다 — 검증된 신뢰구간이 "
+                                           "아니다(자세열은 결정적이고 시간 의존이 있다)."),
+                    contain_dev_sigma=(round(_dist / sig, 2) if sig > 0 else None),
+                    #: ⭐복소 거리로 잰다. 이름도 «가정한 척도» 임을 드러낸다.
+                    contains_unit_within_3scale=bool(_identical or (sig > 0 and _dist <= 3 * sig)),
+                    contains_unit_within_3sigma=bool(_identical or (sig > 0 and _dist <= 3 * sig)),
+                    contain_rejected_by_phase=bool(
+                        sig > 0 and abs(abs(a) - 1.0) <= 3 * sig and _dist > 3 * sig),
                     coh_rho=round(float(abs(np.vdot(e0, e1))
                                         / (np.linalg.norm(e0) * np.linalg.norm(e1))), 4),
                     coh_rho_null=round(float(1.0 / np.sqrt(e0.size)), 4),
@@ -426,9 +489,11 @@ def main() -> None:
                     orthogonal_pred_db=db(max(float(np.mean(np.abs(e1) ** 2)
                                                     - np.mean(np.abs(e0) ** 2)), 0.0)),
                     residual_rhythm_pct=(
-                        None if rhythm_share_ref(res, o.get("prf_hz") or PRF, FFL,
+                        None if rhythm_share_ref(res, o.get("prf_hz") or PRF,
+                                                 o.get("f_flash_hz") or FFL,
                                                  o["f_tip_hz"]) is None else
-                        round(rhythm_share_ref(res, o.get("prf_hz") or PRF, FFL,
+                        round(rhythm_share_ref(res, o.get("prf_hz") or PRF,
+                                               o.get("f_flash_hz") or FFL,
                                                o["f_tip_hz"]), 2)))
             axis_tbl[ax].append(row)
 
@@ -449,10 +514,18 @@ def main() -> None:
     # 선/바닥 대비로 읽은 판 — «선» 은 국소 바닥 위 솟음이지 빈 총합이 아니다
     a_line = bool(dpairs and all(v is not None and v >= DB_SAME for v in lit_floor)
                   and all(v is not None and v <= -DB_SAME for v in lit_line))
-    a_cover = bool(dpairs and all(r.get("contains_unit_within_3sigma") for r in dpairs))
+    #: ⛔주판정은 **깨끗한 쌍만** 쓴다(스위치 하나만 다른 쌍). 더러운 쌍은 세어서 적는다.
+    dirty = [r for r in dpairs if not r.get("pair_is_clean")]
+    dpairs_clean = [r for r in dpairs if r.get("pair_is_clean")]
+    a_cover = bool(dpairs_clean
+                   and all(r.get("contains_unit_within_3sigma") for r in dpairs_clean))
+    #: ⭐옛 식(크기만)으로는 통과했는데 위상 때문에 떨어진 쌍 — 이력을 남긴다.
+    n_phase_rej = sum(1 for r in dpairs_clean if r.get("contain_rejected_by_phase"))
     a_white = bool(dpairs and all(r.get("residual_rhythm_pct") is not None
                                   and 9.0 <= r["residual_rhythm_pct"] <= 17.0 for r in dpairs))
-    a_cover_all_el = bool(dall and all(r.get("contains_unit_within_3sigma") for r in dall))
+    dall_clean = [r for r in dall if r.get("pair_is_clean")]
+    a_cover_all_el = bool(dall_clean
+                          and all(r.get("contains_unit_within_3sigma") for r in dall_clean))
     # 덮힘 깊이 — 끈 판의 «선» 이 켠 판의 바닥 밑 몇 dB 로 내려앉나
     burial = []
     for r in dpairs:
@@ -669,9 +742,29 @@ def main() -> None:
         A_line_why_ko="«선» 을 국소 바닥 위 솟음(빗살 빈 밀도 ÷ 바닥 빈 밀도)으로 읽으면 성립한다 "
                       "— 바닥은 +27~+37 dB 오르고 선은 대비 0 dB(=백색)로 주저앉는다",
         A_cover_pass=a_cover, A_cover_pass_all_elevations=a_cover_all_el,
-        A_cover_why_ko="회절을 켠 시계열은 끈 시계열을 **계수 1 (3σ 안) · 위상 ≈0°** 로 그대로 "
-                       "품고 있고, 잔차 전력이 두 판 전력의 차와 일치한다(직교 합) — "
-                       "지운 것이 아니라 얹은 것이다",
+        A_cover_n_pairs=len(dpairs_clean),
+        A_cover_n_pairs_dropped_dirty=len(dirty),
+        A_cover_dropped_ko=("스위치 말고 다른 조건(메쉬 세대·물리 모드 …)도 함께 바뀌는 "
+                            "쌍은 주판정에서 뺐다 — 그 쌍에서는 무엇이 값을 바꿨는지 "
+                            "못 가른다. 뺀 쌍은 axis_diffs 에 pair_other_diffs 와 함께 "
+                            "남아 있다."),
+        A_cover_n_rejected_by_phase=n_phase_rej,
+        #: ⛔⛔설명을 **판정에서 만들어 낸다**(2026-09-13(10) 정정). 옛 판은 판정이
+        #  False 인데도 「계수 1 · 위상 ≈0° 로 그대로 품는다」고 단정했다.
+        A_cover_why_ko=(
+            ("회절을 켠 시계열이 끈 시계열을 **계수 1 과 복소 거리 3 배 척도 안**으로 "
+             "품는다(쌍 %d 개 전부). 잔차 전력이 두 판 전력의 차와 맞는다(직교 합)."
+             % len(dpairs_clean))
+            if a_cover else
+            ("⛔**덮개 시험을 통과하지 못했다**(깨끗한 쌍 %d 개 중 통과 %d"
+             % (len(dpairs_clean),
+                sum(1 for r in dpairs_clean if r.get("contains_unit_within_3sigma")))
+             + (" · 조건이 섞여 뺀 쌍 %d" % len(dirty) if dirty else "") + "). "
+             + ("그중 %d 쌍은 크기만 보면 통과인데 **위상 때문에** 떨어진다 — "
+                "옛 식은 위상을 버려서 통과로 적었다. " % n_phase_rej if n_phase_rej else "")
+             + "⛔그러므로 「지운 것이 아니라 얹은 것」으로 **단정하지 않는다**.")),
+        A_cover_scale_note_ko=("«3 배 척도» 는 얹힌 항이 끈 판과 무상관이라는 **가정 위의** "
+                               "척도이지 검증된 신뢰구간이 아니다."),
         A_residual_is_white_pass=a_white,
         A_residual_why_ko="얹힌 항(켠 판 − 끈 판)만 따로 재면 리듬 몫이 백색 밴드(9~17 %) 안이다 "
                           "— 얹힌 것에는 날개 박자가 없다",
@@ -749,8 +842,12 @@ def main() -> None:
             collisions_ko=("칸 열쇠 `{조합}_d{깊이}/el{앙각}` 이 팔을 안 담는다. 같은 열쇠를 "
                            "내는 팔이 여럿이면 **정본 메쉬 → 물리모드 아님 → 이름순**으로 "
                            "골라 하나만 표에 서고 나머지는 collisions 에 적힌다. "
-                           "⛔옛 판은 조용히 덮었고, 그 규칙(먼저 온 것)은 28 건 전부에서 "
-                           "정본 메쉬 팔을 버렸다(차 최대 12.65 dB)."),
+                           "⛔⛔**이력 정정(2026-09-13(10))**: 옛 발간 판은 «나중 것이 "
+                           "이긴다»(조용한 덮어쓰기)였고, 그 28 칸에서 **정본 메쉬를 "
+                           "쓰고 있었다** — 값은 지금과 팔·ac_db 가 모두 같다. "
+                           "«먼저 온 것» 규칙은 옛 판이 아니라 같은 날 내가 중간에 넣었다 "
+                           "되돌린 구현이다. 그러니 이 고침의 값어치는 «값을 바로잡았다» 가 "
+                           "아니라 **«조용하고 차례에 기대던 선택을 규칙으로 명시했다»** 다."),
             #: ⭐표에 선 칸 중 **정본 메쉬가 아닌** 팔이 선 칸 수. 0 이 아니어도 결함은
             #  아니다 — `_only…` 팔처럼 정본 짝이 아예 없는 칸이 있다. 다만 읽는 이가
             #  그 칸을 가려서 읽어야 한다.

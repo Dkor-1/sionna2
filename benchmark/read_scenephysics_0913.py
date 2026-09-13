@@ -49,6 +49,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 #: ⭐팔 이름은 **문법으로** 되읽는다 — 정규식으로 긁지 않는다(2026-09-13(4)).
 from arm_grammar import parse as parse_arm, unparse as unparse_arm   # noqa: E402
+from reader_gate import check_series, publish                        # noqa: E402
 DECK = "/workspace/team_meeting/teammeeting_0910"
 OUT = os.path.join(ROOT, "outputs/read_scenephysics_0913.json")
 MD = os.path.join(ROOT, "docs/SCENEPHYSICS_0913.md")
@@ -94,6 +95,7 @@ def series(esm, arm, el):
     with contextlib.redirect_stdout(io.StringIO()):
         fs, _ = esm.one_generation(fs, f"{arm}/el{el:+g}")
     E = seen = None
+    prf0 = None
     for f in fs:
         z = np.load(f)
         ii = z["idx"].astype(int)
@@ -103,7 +105,16 @@ def series(esm, arm, el):
             seen = np.zeros(n0, bool)
         E[ii] = z["E"]
         seen[ii] = True
-    return E if seen.all() else None
+        #: ⛔한 칸에 표집률이 섞이면 쓰지 않는다(2026-09-13(10)).
+        _p = float(np.asarray(z["meta"], float)[4])
+        if prf0 is None:
+            prf0 = _p
+        elif abs(_p - prf0) > 1.0:
+            return None
+    if not seen.all():
+        return None
+    #: ⭐공통 입력 관문(src/reader_gate.py) — 비유한 값·길이·차원을 여기서 거른다.
+    return None if check_series(E, n_poses=E.size, prf=prf0) else E
 
 
 def db(x):
@@ -277,16 +288,15 @@ def main() -> int:
         ], pairing_ko=("대조군은 **장면 꼬리표만 뺀 이름**으로 고른다(구성이지 블록리스트가 "
                        "아니다). 고른 뒤 n_poses·spp·fc·f_tip·거리·깊이를 쌍으로 다시 검사한다."),
         n_skipped=len(skipped)), rows=rows, skipped=skipped)
-    with open(OUT, "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, indent=1)
-    render(out)
+    #: ⭐⭐다 만든 뒤 한 번에 발간한다(src/reader_gate.publish).
+    publish({OUT: out, MD: render(out, to_string=True)})
     n_above = sum(1 for x in rows if x["above_free_db"] > 0)
     print(f"\n✅ {os.path.relpath(OUT, ROOT)} · {os.path.relpath(MD, ROOT)}  ({len(rows)} 칸)")
     print(f"   ⭐필터 뒤가 빈 하늘보다 **높은** 칸 {n_above}/{len(rows)}")
     return 0
 
 
-def render(o) -> None:
+def render(o, to_string: bool = False):
     rows, m = o["rows"], o["_meta"]
     lines = ["# 장면 축 × 물리 축 — 필터 뒤가 빈 하늘보다 높은가", "",
              f"> ⛔손으로 쓰지 않는다. `{m['generator']}` 가 굽는다. `{m['made_utc']}`", "",
@@ -304,8 +314,12 @@ def render(o) -> None:
               "## ⛔이 판독이 말하지 않는 것", ""]
     lines += [f"- {x}" for x in m["limits_ko"]]
     lines.append("")
+    txt = "\n".join(lines) + "\n"
+    if to_string:
+        return txt
     with open(MD, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
+        f.write(txt)
+    return None
 
 
 if __name__ == "__main__":

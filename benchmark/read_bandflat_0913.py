@@ -78,12 +78,15 @@ f_tip** 으로 잡는다 — 안 그러면 「무늬가 달라졌다」가 아�
     실외       12.5 ~ 13.1     −0.8 ~ +0.3         4.8 ~ 8.0 %
     백색잡음   12.6 (셀 수 있는 널)   0.0
 
-실외 값은 **백색잡음 널과 구별되지 않는다.** 게다가 그 바닥은 정지 성분의 −20.4 dB(el −30)
+실외 값은 **설정한 두 문턱을 못 넘는다.** ⛔«백색잡음이다» 로 읽지 않는다 — 두 문턱은
+우리가 정한 값이고 잡음 모형과의 검정이 아니다(널 분포·오류율·검정력을 안 쟀다).
+반례: 잡음 0 인 501 Hz 단일 정현파도 빗살 대비 86.08 dB 인데 AND 라서 미통과다.
+그 바닥은 정지 성분의 −20.4 dB(el −30)
 · −19.8 dB(el −60)로, 두 앙각에서 거의 같은 비율로 따라붙고 다섯 반송파에서 전부 0.9 %다
 — 정지 성분에 **비례하는 바닥**의 모습이다.
 
 ⇒ 그래서 실외 줄의 「대역을 가로질러 0.24 dB」는 **표적이 평평하다는 뜻이 아니다.** 이 팔·
-  이 거리에서 날개 무늬가 그 바닥 아래에 있다는 뜻이다. ⛔실외 숫자를 「표적의 대역 평탄성」
+  이 거리에서 **두 구조 문턱을 못 넘는다**는 뜻이고, 그것이 「날개가 없다」는 아니다. ⛔실외 숫자를 「표적의 대역 평탄성」
   으로 인용하지 않는다. ⚠그 바닥을 무엇이 만드는지는 이 자료만으로 못 가른다 — 자세마다
   광선 집합이 조금씩 달라지는 것이 유력하지만, 여기서 단정하지 않는다.
 """
@@ -99,6 +102,7 @@ for p in (os.path.join(ROOT, "src"), HERE):
 from md_mapstyle import auto_periods, flash_spec                      # noqa: E402
 from arm_grammar import matched_groups, parse as parse_arm, unparse  # noqa: E402
 from drones import DRONES                                            # noqa: E402
+from reader_gate import check_series, publish                        # noqa: E402
 from arm_grammar import unparse as unparse_arm                       # noqa: E402
 
 
@@ -143,7 +147,9 @@ def ray_spread_db(arm: str, el: float, rows: list, Z, win: float = 0.05) -> tupl
         p = float(np.mean(np.abs(E - E.mean()) ** 2))
         if p > 0:
             vals.append(10.0 * np.log10(p))
-    return (round(max(vals) - min(vals), 4) if len(vals) > 1 else None), len(vals)
+    #: ⭐**반올림하지 않는다**(2026-09-13(10)) — 옛 판의 「0.000 dB」는 정확한 영이
+    #  아니라 작은 수의 반올림이었다(실측 2.76e−05 · 2.07e−06 · 2.97e−08 · 5.30e−07 dB).
+    return (float(max(vals) - min(vals)) if len(vals) > 1 else None), len(vals)
 
 
 def repeat_spread_db(arm: str, el: float, rows: list, Z) -> tuple:
@@ -166,6 +172,9 @@ def repeat_spread_db(arm: str, el: float, rows: list, Z) -> tuple:
         f = _p(arm)
     except Exception:
         return None, 0
+    #: ⛔⛔2026-09-13(10) — **되풀이가 있는 반송파는 중앙(3.500 GHz) 하나뿐**이다.
+    #  옛 판은 다섯 반송파의 단독 실행까지 판 수에 넣어 10·12·8·8 로 적었는데, 같은
+    #  조건의 **되풀이 수**는 6·8·4·4 다. 그 둘을 나눠 센다.
     vals, n = [], 0
     have = {(r["engine"], float(r["el_deg"])) for r in rows}
 
@@ -189,7 +198,9 @@ def repeat_spread_db(arm: str, el: float, rows: list, Z) -> tuple:
             if w is not None:
                 vals.append(w)
                 n += 1
-    return (round(max(vals) - min(vals), 4) if len(vals) > 1 else None), len(vals)
+    #: ⭐**반올림하지 않는다**(2026-09-13(10)) — 옛 판의 「0.000 dB」는 정확한 영이
+    #  아니라 작은 수의 반올림이었다(실측 2.76e−05 · 2.07e−06 · 2.97e−08 · 5.30e−07 dB).
+    return (float(max(vals) - min(vals)) if len(vals) > 1 else None), len(vals)
 
 
 def flash_of(arm: str, default: float) -> float:
@@ -281,9 +292,17 @@ def halves_level_db(E: np.ndarray, *, ac: bool = False) -> tuple[float, float]:
 
     ac : 참이면 **전체 자세 평균을 한 번 빼고** 같은 분할을 적용한다(움직이는 몫의 통계).
 
-    ⛔⛔**이것은 «흔들림» 이 아니다** (2026-09-13(6) 정정). 결정적 표본 분할의 민감도일
-      뿐이고 재실행 산포도, 광선 격자 민감도도, 신뢰구간도 아니다. 이 엔진은 씨앗이 없어
-      같은 장면을 다시 돌리면 같은 값이 나온다.
+    ⛔⛔**이것은 대조군이 아니다** (2026-09-13(6) → (10) 다시 정정).
+      ⛔한때 나는 「AC 를 10^±6 배 해도 이 dB 차가 안 바뀌니 계통적 치우침이다」라고 적었다.
+        **그 논증은 성립하지 않는다** — 전력비 10log10(c²P짝 / c²P홀) 에서 공통 배율 c 는
+        **정의상 소거된다**. 진폭 불변은 «계통» 의 증거가 아니라 그 잣대의 성질일 뿐이다.
+      ⭐대조군의 적절성은 **물음에 대응하는 비교와 그 불확도**로 정한다. 여기 물음은
+        「반송파를 옮기면 값이 움직이나」이므로, 대조군은 **반송파를 안 옮기고 다시 잰 것**
+        (되풀이)과 **광선 표본 자리를 흔든 것**(예산 사다리)이다. 짝·홀 자세 분할은
+        그 물음에 대응하지 않는다 — 각 집합을 중앙 반송파에 맞춰 보면 반송파 변화 대비
+        최대 차는 0.0033 dB 이고, 짝수만·홀수만으로 잰 대역 퍼짐은 0.2359·0.2342 dB 로
+        거의 같다. 곧 절대 짝·홀 차가 커도 **대역 축의 비교는 그 차에 안 실린다.**
+      ⇒ 표에 **참고로만** 남긴다.
     ⛔⛔**전체 전력의 분할 차이를 움직이는 몫의 대역 퍼짐과 견주면 안 된다** — 통계가
       다르다. 실측(점검자 2026-09-13): 실외 el −30 에서 전체 전력 분할 차이는 0.015 dB
       인데 **같은 AC 통계로 맞추면 1.647 dB** 다(el −60 은 0.008 → 0.833 dB). 그 통계로
@@ -338,7 +357,7 @@ def modspec_norm(E: np.ndarray, prf: float, f_flash: float, f_tip: float,
     return fr, Y, float((S[m, :] ** 2).sum())
 
 
-def write_md(out: dict) -> None:
+def write_md(out: dict, to_string: bool = False):
     """읽는 문서. ⛔여기서 새로 계산하지 않는다 — 위에서 낸 수를 그대로 옮긴다."""
     L: list[str] = []
     a = L.append
@@ -372,6 +391,9 @@ def write_md(out: dict) -> None:
         if r.get("n", 0) < 3:
             continue
         _rs = r.get("repeat_spread_db"); _ry = r.get("ray_budget_spread_db")
+        _rep_txt = ("—" if _rs is None else
+                    f"{_rs:.2e} dB ({r.get('repeat_n_runs', 0)} 판 @ "
+                    f"{r.get('repeat_fcs_mhz') or '—'} MHz)")
         _v = ("⚠광선 짝 없음 — 판정 미룸"
               if _ry is None else
               ("광선 흔들림보다 크다" if r["moving_band_spread_db"] > 2.0 * _ry
@@ -379,7 +401,7 @@ def write_md(out: dict) -> None:
         #: ⚠소수 두 자리면 0.015 와 0.008 이 **둘 다 0.01** 로 찍혀 산문과 어긋난다.
         a(f"| {r['env']} | {r['el_deg']:+.0f} | {r['moving_band_spread_db']:.3f} dB | "
           f"{'— (짝 없음)' if _ry is None else f'{_ry:.3f} dB ({r.get(chr(114)+chr(97)+chr(121)+chr(95)+chr(98)+chr(117)+chr(100)+chr(103)+chr(101)+chr(116)+chr(95)+chr(110)+chr(95)+chr(112)+chr(111)+chr(105)+chr(110)+chr(116)+chr(115), 0)} 점)'} | "
-          f"{'—' if _rs is None else f'{_rs:.3f} dB'} | "
+                    f"{_rep_txt} | "
           f"{r['within_cell_spread_ac_db']:.3f} dB | {_v} |")
     a("")
     a("⭐⭐**대조군은 광선 예산 사다리다** — 예산을 ±5 % 흔들면 광선 표본 자리가 통째로 "
@@ -390,10 +412,15 @@ def write_md(out: dict) -> None:
       "최대 44~48 % 까지 다른데 합치면 사라진다. ⚠그러나 되풀이는 **같은 광선 격자를 "
       "다시 도는 것**이라 격자 민감도를 못 덮는다. 그래서 대조군이 아니다.")
     a("")
-    a("⛔**짝·홀 자세 분할 차는 대조군이 아니다** (2026-09-13 에 두 번 틀렸다). "
-      "그것은 흔들림이 아니라 **자세 집합의 계통적 치우침**이다 — AC 를 10^±6 배 해도 "
-      "1.6457 dB 로 안 바뀐다. 한때 그것을 대조군으로 삼아 실외 두 줄을 «묻힌다» 로 "
-      "읽었는데, 되풀이로 재면 거꾸로다. 표에는 참고로만 남긴다.")
+    a("⛔**짝·홀 자세 분할 차는 대조군이 아니다** — 이 물음에 대응하지 않기 때문이다. "
+      "물음은 「반송파를 옮기면 값이 움직이나」이고, 대조군은 반송파를 **안 옮기고** 다시 "
+      "잰 것(되풀이)과 광선 표본 자리를 흔든 것(예산 사다리)이다. 실제로 각 집합을 중앙 "
+      "반송파에 맞춰 보면 반송파 변화 대비 최대 차는 0.0033 dB 이고, 짝수만·홀수만으로 잰 "
+      "대역 퍼짐은 0.2359·0.2342 dB 로 거의 같다 — 절대 짝·홀 차가 커도 **대역 축의 비교는 "
+      "그 차에 안 실린다.** 표에는 참고로만 남긴다.")
+    a("")
+    a("⛔**앞서 쓴 논증 하나를 거둔다**: 「진폭을 10^±6 배 해도 짝·홀 dB 차가 같으니 "
+      "계통적 치우침이다」는 성립하지 않는다 — 전력비에서 공통 배율은 **정의상 소거된다**.")
     a("")
     a("⚠**실외 두 줄은 판정을 미룬다** — `envoutdoor01` 팔에 광선 예산 짝이 없다"
       "(사다리가 `outdoor01_ground` 와 협곡에만 있다). 이웃 장면의 같은 사다리는 "
@@ -446,8 +473,12 @@ def write_md(out: dict) -> None:
     a(f"원장 `{os.path.relpath(OUT_J, ROOT)}` · 칸 {out['_meta']['n_cells']}/"
       f"{out['_meta']['n_expected']} · 건너뜀 {len(out['skipped'])}")
     a("")
+    txt = "\n".join(L)
+    if to_string:
+        return txt
     with open(OUT_MD, "w", encoding="utf-8") as f:
-        f.write("\n".join(L))
+        f.write(txt)
+    return None
 
 
 def main() -> int:
@@ -522,6 +553,16 @@ def main() -> int:
     # ── 2. 칸마다 레벨·대조군·박자 ────────────────────────────────────────
     for (env, fc, el), r in sorted(cells.items()):
         E = np.asarray(Z[f"{r['engine']}/el{el_key(el)}"], complex)
+        #: ⭐공통 입력 관문 — 못 쓰는 칸은 **까닭과 함께 건너뛴다**(2026-09-13(10)).
+        #  ⛔전에는 NaN 이 섞이면 한참 뒤 TypeError 로 죽었고, 그 전에 **오염된 JSON 을
+        #    이미 저장**해 두었다(비유한 수 260 개).
+        _why = check_series(E, n_poses=r.get("n_poses"), prf=r.get("prf_hz"),
+                            prf_seen=r.get("prf_hz_seen"),
+                            mixed_generations=r.get("mixed_generations"))
+        if _why:
+            out["skipped"].append(dict(engine=r["engine"], el_deg=el,
+                                       why=" · ".join(_why)))
+            continue
         a, b = halves_level_db(E)                 # 전체 전력 기준
         aa, bb = halves_level_db(E, ac=True)      # ⭐움직이는 몫과 **같은 통계**
         p = float(np.mean(np.abs(E) ** 2))
@@ -578,7 +619,10 @@ def main() -> int:
             _rs = [repeat_spread_db(g[1]["engine"], el, J["rows"], Z) for g in got]
             _rv = [x[0] for x in _rs if x[0] is not None]
             rep_spread = float(max(_rv)) if _rv else None
-            rep_n = sum(x[1] for x in _rs)
+            #: ⛔되풀이가 **있는 반송파만** 센다(2026-09-13(10)). 옛 판은 다섯 반송파의
+            #  단독 실행까지 더해 10·12·8·8 로 적었는데 실제 되풀이 수는 6·8·4·4 다.
+            rep_n = sum(x[1] for x in _rs if x[0] is not None)
+            rep_fcs = sorted(g[0] for g, x in zip(got, _rs) if x[0] is not None)
             #: ⭐⭐정본 대조군 — 광선 예산 ±5 % 사다리(중앙 반송파 팔에서 잰다).
             _ctr = next((g[1] for g in got if g[0] == 3500), got[0][1])
             ray_spread, ray_n = ray_spread_db(_ctr["engine"], el, J["rows"], Z, 0.05)
@@ -610,7 +654,13 @@ def main() -> int:
                                                 round(mv_band / half_ac, 3)),
                 #: ⭐정본 대조군 — 되풀이 판 사이의 움직이는 몫 퍼짐.
                 "repeat_spread_db": rep_spread,
+                "repeat_spread_db_sci": (None if rep_spread is None
+                                         else f"{rep_spread:.3e}"),
                 "repeat_n_runs": rep_n,
+                "repeat_fcs_mhz": rep_fcs,
+                "repeat_scope_ko": ("되풀이가 있는 반송파는 repeat_fcs_mhz 뿐이다 — 나머지 "
+                                    "반송파는 단독 실행이라 판 수에 안 넣는다. ⚠이 재현성은 "
+                                    "**중앙 반송파 조건**의 것이고 대역 전체의 수렴성이 아니다."),
                 #: ⭐⭐이것이 정본 대조군이다 — 광선 표본 자리를 실제로 흔든다.
                 "ray_budget_spread_db": ray_spread,
                 "ray_budget_n_points": ray_n,
@@ -792,8 +842,10 @@ def main() -> int:
                       "구별을 검정한 것이 아니다(널 분포·오류율·검정력을 안 쟀다)."),
             })
 
-    json.dump(out, open(OUT_J, "w"), ensure_ascii=False, indent=1)
-    write_md(out)
+    #: ⭐⭐**다 만든 뒤 한 번에** 발간한다 — 계산이 중간에 죽으면 옛 발간물이 그대로 남고,
+    #  비유한 수가 있으면 아무것도 안 바꾸고 멈춘다(src/reader_gate.publish).
+    _md = write_md(out, to_string=True)
+    publish({OUT_J: out, OUT_MD: _md})
 
     # ── 화면 ───────────────────────────────────────────────────────────────
     print("═══ 대역 안 평탄성 — 5G NR 100 MHz 다섯 점 ═══")
@@ -803,7 +855,10 @@ def main() -> int:
     print(f"  ⭐대조군 확인: 고른 팔이 반송파·환경 말고 전부 같다 "
           f"(문법 묶음 {_cg['n_groups']} 개 · 다른 값 {_cg['varied']})")
     for s in out["skipped"]:
-        print(f"   ⛔ {s['arm'][-52:]} el{s['el_deg']:+.0f} — {s['why']}")
+        #: ⚠건너뜀 항목의 열쇠는 둘이다 — 이름을 지어 찾다 없던 칸은 `arm`,
+        #  입력 관문이 거절한 칸은 `engine`. 둘 다 받는다(2026-09-13(10)).
+        _n = s.get("arm") or s.get("engine") or "?"
+        print(f"   ⛔ {_n[-52:]} el{s['el_deg']:+.0f} — {s['why']}")
     print()
     for s in out["series"]:
         if s.get("n", 0) < 3:
