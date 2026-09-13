@@ -61,13 +61,26 @@ def net_rates() -> list[dict]:
         g = re.search(r'"(\w+)":\s*dict\(M=(\d+),\s*b=(\d+)\).*?#\s*(.*)', line)
         if not g:
             continue
-        std, note = g.group(1), g.group(4)
+        std, b, note = g.group(1), int(g.group(3)), g.group(4)
         pr = re.search(r"PRF\s*([\d.]+)\s*Hz", note)
         bl = re.search(r"\(([\d.]+)(ms|µs)\)", note)
         if not (pr and bl):
             continue
+        #: ⛔⛔2026-09-13 정정 — 첫 판은 주석의 괄호 값을 **프레임 길이**로 썼다. 그것은
+        #  **블록 하나**의 길이다. 한 프레임은 `b` 개 블록이다(CPI_CFG 의 b).
+        #  ⛔실측: Wi-Fi 는 블록 4160 표본(52 µs) × b=9 ⇒ 프레임 0.468 ms 인데 0.052 를 썼다
+        #    — **9 배 짧다**. 그래서 「Wi-Fi 는 거의 안 번진다(−0.06 dB)」가 나왔다.
+        #  ⭐프레임율과 서로 검산한다: 1/프레임율 ≈ 블록 길이 × b 여야 한다. 어긋나면 멈춘다.
         blk_ms = float(bl.group(1)) * (1.0 if bl.group(2) == "ms" else 1e-3)
-        out.append(dict(std=std, frame_rate_hz=float(pr.group(1)), frame_ms=blk_ms,
+        frame_ms = blk_ms * b
+        rate = float(pr.group(1))
+        period_ms = 1000.0 / rate
+        if abs(period_ms - frame_ms) > 0.05 * max(period_ms, frame_ms):
+            raise SystemExit(
+                f"⛔{std}: 프레임율 {rate} Hz 는 주기 {period_ms:.3f} ms 인데 "
+                f"블록 {blk_ms:.3f} ms × b={b} = {frame_ms:.3f} ms 다 — 둘이 어긋난다")
+        out.append(dict(std=std, frame_rate_hz=rate, frame_ms=frame_ms,
+                        block_ms=blk_ms, n_blocks=b, frame_ms_from_rate=round(period_ms, 4),
                         source_note=note.strip()))
     if len(out) != 3:
         raise SystemExit(f"⛔CPI_CFG 에서 파형 3 개를 못 읽었다 — {len(out)} 개")
@@ -139,22 +152,36 @@ def survive(E, prf, rates, f_tip=None):
             return None
         return float(abs(f[m][int(np.argmax(S[m]))]))
 
-    #: 날개끝 띠 — 접힌 뒤에는 그 띠가 창 밖일 수 있으므로 창 안으로 접어 준다
-    def band(fs_):
+    #: ⛔⛔2026-09-13 정정 — 첫 판은 띠가 창 밖이면 **중심만 접어** ±25 % 를 띠로 삼았다.
+    #  그러면 **입력 띠 안의 다른 점이 접혀 들어온 자리**가 그 창 밖으로 떨어진다.
+    #  ⛔반례(점검자 합성): f_tip 1,102 Hz · 입력 1,550 Hz(원래 띠 [551,1653] 안) ·
+    #    프레임율 2,000 Hz ⇒ 참 접힘은 450 Hz 인데 옛 띠는 [551,1000] 이라 **그 선을 제외**하고
+    #    750.9 Hz 의 딴 성분을 골랐다.
+    #  ⇒ **입력 띠 전체를 촘촘히 접어** 닿는 구간의 합집합을 띠로 쓴다.
+    def band_set(fs_):
+        """[0.5,1.5]·f_tip 을 프레임율로 접었을 때 닿는 구간들. (없으면 None)"""
         if not f_tip or f_tip <= 0:
-            return None, None
-        lo, hi = 0.5 * f_tip, 1.5 * f_tip
+            return None
         ny = fs_ / 2
-        if lo >= ny:                       # 띠 전체가 창 밖 — 접어서 어디로 가는지 본다
-            def fold(t):
-                return abs(((t + ny) % fs_) - ny)
-            c = fold(f_tip)
-            return max(20.0, c * 0.75), min(ny, c * 1.25)
-        return lo, min(hi, ny)
+        lo, hi = 0.5 * f_tip, 1.5 * f_tip
+        #: 입력 띠를 촘촘히 훑어 접힌 자리를 모은다 — 창 분해능보다 잘게 뜬다
+        n = max(64, int(np.ceil((hi - lo) / max(ny / 256.0, 1e-9))))
+        t = np.linspace(lo, hi, n)
+        folded = np.abs(((t + ny) % fs_) - ny)
+        lo2, hi2 = float(folded.min()), float(folded.max())
+        #: 접으면 조각이 갈릴 수 있다 — 여기서는 **닿는 최소~최대**로 감싼다(보수적).
+        #  ⛔감싸면 띠가 넓어져 딴 성분이 들어올 수 있다. 그래서 아래에 넓이도 함께 싣는다.
+        return max(20.0, lo2), min(ny, max(hi2, lo2 + ny / 128.0)), float(folded.size)
+
+    def band(fs_):
+        b = band_set(fs_)
+        return (None, None) if b is None else (b[0], b[1])
 
     lo0, hi0 = band(prf)
     out = dict(ref_peak_hz=peak(x, prf), ref_peak_in_tipband_hz=peak(x, prf, lo0, hi0),
-               tipband_lo_hz=lo0, tipband_hi_hz=hi0,
+               tipband_lo_hz=lo0, tipband_hi_hz=hi0, f_tip_hz_used=f_tip,
+               tipband_note_ko=("[0.5,1.5]·f_tip 을 프레임율로 접어 닿는 최소~최대로 감싼 띠. "
+                                "⛔감싸므로 띠가 넓어질 수 있다 — 넓이를 함께 본다."),
                ref_rms=ref_rms, n_poses=int(x.size), prf_hz=prf)
     for r in rates:
         fr, blk = r["frame_rate_hz"], r["frame_ms"]

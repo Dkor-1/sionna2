@@ -49,8 +49,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DECK = "/workspace/team_meeting/teammeeting_0910"
 OUT = os.path.join(ROOT, "outputs/read_scenephysics_0913.json")
 MD = os.path.join(ROOT, "docs/SCENEPHYSICS_0913.md")
-ARMS = {"R0D0E0F1": "확산만", "R0D1E0F1": "+굴절", "R0D1E1F1": "+굴절+모서리",
-        "R1D0E0F1": "+반사", "R1D1E1F1": "전부"}
+#: ⛔⛔2026-09-13 정정 — **팔 이름을 틀리게 적었다.** 스위치 글자는
+#    R = 굴절(refraction) · D = 회절(diffraction) · E = 모서리회절(edge) · F = 확산반사(diffuse)
+#  다(elevation_sweep_md.py:745 `sw = dict(refraction=r_, diffraction=d_, edge_diffraction=e_)`).
+#  첫 판은 D 를 «굴절», R 을 «반사» 로 적어 **두 이름이 서로 바뀌어** 있었다.
+#  ⛔그 탓에 「회절을 켠 팔」을 셀 때 D1 인 R1D1E1F1 이 «전부» 라는 이름 때문에 빠져
+#    덱의 ⚠ 가 반대 방향으로 보였다. 이름 하나가 판정을 뒤집었다.
+ARMS = {"R0D0E0F1": "확산만", "R0D1E0F1": "+회절", "R0D1E1F1": "+회절+모서리회절",
+        "R1D0E0F1": "+굴절", "R1D1E1F1": "전부(굴절+회절+모서리)"}
+
+
+def has_diffraction(arm: str) -> bool:
+    """D 비트 — 회절을 켰나. ⛔이름 문자열로 세지 않는다(그래서 틀렸다)."""
+    return arm[3] == "1"
 
 
 def prod():
@@ -115,15 +126,26 @@ def main() -> int:
                 and not re.search(r"_(ps|fs|bs|az|rot|shell|S0|rep|div|onlyrefr|phys|alt|fc)[\d._]", e)
                 and not any(d in e for d in ("mini5pro", "mavic4pro", "phantom4", "s1000plus")))
 
-    #: 빈 하늘 짝을 (팔, 앙각) 으로 찾는다
-    free = {}
-    for r in L["rows"]:
-        if usable(r) and sc(r["engine"]) == "free":
-            a = re.search(r"_sw(R\dD\dE\dF\d)", r["engine"])
-            if a:
-                free[(a.group(1), r["el_deg"])] = r["engine"]
+    #: ⛔⛔2026-09-13 정정 — 첫 판은 빈 하늘 짝을 **(팔, 앙각) 사전**으로 찾았다.
+    #  그 열쇠로는 같은 팔·앙각의 **다른 조건** 칸이 덮어쓴다.
+    #  ⛔실측(2026-09-13): 63 행 중 **43 행**이 엉뚱한 짝을 골랐다 —
+    #    `_rotoutdoor_v2`(다른 로터 설정) · `_prf78800`(다른 표집률) · `_x500v2`(다른 기체).
+    #    거르개가 블록리스트였고 `_rot` 뒤에 숫자를 요구해 `rotoutdoor` 가 새어 들어왔다.
+    #  ⇒ **이름을 지어서 고른다** — 장면 꼬리표만 뺀 이름이 원장에 있는지 본다.
+    #    블록리스트가 아니라 구성이라 새는 곳이 없다. 그리고 쌍의 조건을 다시 검사한다.
+    #: ⛔원장은 (팔, 앙각) 한 줄씩이다 — 팔 이름만으로 키를 잡으면 **마지막 앙각이 덮는다**
+    #  (첫 수정에서 실제로 그랬다: el −30 을 찾는데 el −90 이 돌아와 58 칸이 거절됐다).
+    by_engine = {(r["engine"], r["el_deg"]): r for r in L["rows"]}
 
-    rows = []
+    def twin_name(engine: str) -> str:
+        """장면 꼬리표만 뺀 이름 — 이것이 유일한 대조군이다."""
+        for tag in ("_envsionna-simple_street_canyon", "_envoutdoor01_ground",
+                    "_envoutdoor01_bldg", "_envoutdoor01"):
+            if tag in engine:
+                return engine.replace(tag, "", 1)
+        return engine
+
+    rows, skipped = [], []
     for r in sorted(L["rows"], key=lambda r: (sc(r["engine"]), r["engine"], r["el_deg"])):
         if not usable(r) or sc(r["engine"]) == "free":
             continue
@@ -131,11 +153,24 @@ def main() -> int:
         if not a:
             continue
         arm, el = a.group(1), r["el_deg"]
-        fengine = free.get((arm, el))
-        if not fengine:
+        fengine = twin_name(r["engine"])
+        fr = by_engine.get((fengine, el))
+        if fr is None or not usable(fr):
+            skipped.append(dict(engine=r["engine"], el_deg=el,
+                                why="장면 꼬리표만 뺀 빈 하늘 짝이 원장에 없거나 쓸 수 없다",
+                                want=fengine))
+            continue
+        #: ⭐쌍의 조건을 다시 검사한다 — 이름이 맞아도 원장 값이 어긋나면 안 쓴다
+        bad = [k for k in ("n_poses", "spp", "fc_hz", "f_tip_hz", "range_m", "max_depth")
+               if r.get(k) != fr.get(k)]
+        if bad:
+            skipped.append(dict(engine=r["engine"], el_deg=el,
+                                why=f"쌍의 조건이 어긋난다: {bad}", want=fengine))
             continue
         Es, Ef = series(esm, r["engine"], el), series(esm, fengine, el)
         if Es is None or Ef is None:
+            skipped.append(dict(engine=r["engine"], el_deg=el,
+                                why="장면 또는 빈 하늘 칸이 미완이다", want=fengine))
             continue
         #: ② 덱의 잣대 그대로 — 갈아낀 자세 수
         mask = hampel_mask(np.abs(Es), 51, 5.0)
@@ -146,6 +181,7 @@ def main() -> int:
             engine=r["engine"], free_engine=fengine,
             level_scene_db=db(np.abs(Es).mean()), level_free_db=db(np.abs(Ef).mean()),
             lift_db=round(db(np.abs(Es).mean()) - db(np.abs(Ef).mean()), 2),
+            has_diffraction=has_diffraction(arm),
             n_replaced=int(mask.sum()), n_replaced_dropfn=int(n_rep),
             #: 정지 성분을 뺀 뒤의 변동 크기 — 이것을 빈 하늘과 견준다
             ac_after_db=db(np.std(Er - Er.mean())),
@@ -172,7 +208,9 @@ def main() -> int:
             "⛔D = 장면 − 빈 하늘 은 «환경 산란» 이 아니다 — 차폐·경로 변화·후보 탐색 차이가 함께 든다.",
             "⛔지면만·건물만은 우리 장면을 조각낸 것이라 솔버가 주는 협곡과 같지 않다(고도도 20 vs 25 m).",
             "⛔갈아낀 자세를 «사건» 으로 부르되 그것이 무엇인지는 이 판이 말하지 않는다.",
-        ]), rows=rows)
+        ], pairing_ko=("대조군은 **장면 꼬리표만 뺀 이름**으로 고른다(구성이지 블록리스트가 "
+                       "아니다). 고른 뒤 n_poses·spp·fc·f_tip·거리·깊이를 쌍으로 다시 검사한다."),
+        n_skipped=len(skipped)), rows=rows, skipped=skipped)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     render(out)

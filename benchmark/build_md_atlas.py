@@ -124,7 +124,18 @@ Z = np.load(LED_N, allow_pickle=True)
 M = J["_meta"]
 assert int(np.asarray(Z["phase_sign_v2"]).ravel()[0]) == 1, "⛔ 부호 정정본이 아니다"
 
+#: ⛔⛔2026-09-13 정정 — 이것은 **규약 기본값**이다. 창고에는 39,400·78,800·157,600 Hz 로
+#  구운 팔이 57 개(샤드 244 장) 있고, 그 칸들은 시간축·주파수축이 다르다. 원장이 이제
+#  칸마다 `prf_hz` 를 싣는다(elevation_sweep_md.py) — **칸을 그릴 때는 그 값을 쓴다.**
+#  아래 prf_of() 를 통해서만 읽고, 이 상수는 그것을 못 얻었을 때의 되짚기다.
 PRF = float(M["prf_hz"])
+
+
+def prf_of(arm: str, el: float) -> float:
+    """그 칸의 저장 표집률. 원장에 없거나 섞였으면 규약 기본값."""
+    r = ROW.get((arm, float(el))) or {}
+    v = r.get("prf_hz")
+    return float(v) if v else PRF
 FC = float(M["fc_hz"])
 DRONE_DEFAULT = str(M.get("drone", "matrice4e"))
 RANGE_PRIMARY = float(M.get("range_m_primary", 15.0))
@@ -905,7 +916,19 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
     zero_field = (not empty) and (not incomplete) and (0 < n_zero < E.size)
     acdc = (p_ac / p_tot) if p_tot > 0 else 0.0
     no_motion = (not empty) and (not incomplete) and (not zero_field) and acdc < NO_MOTION_ACDC
-    mute = empty or incomplete or zero_field or no_motion   # ⭐수를 낼 자격이 없는 칸
+    #: ⛔⛔2026-09-13 — **이 아틀라스의 시간축은 규약 표집률 하나다.** 창고에는 39,400·
+    #  78,800·157,600 Hz 로 구운 팔이 57 개(샤드 244 장) 있고, 그 칸을 같은 축에 그리면
+    #  시간축·주파수축이 통째로 틀린다.
+    #  ⛔실측(점검자, 2026-09-13): 저장 표집률로 다시 재면 122 칸 중 107 칸의 track 지표가
+    #    바뀐다(예: prf39400 · el+0 의 beat_hz 59.79 → 119.52 Hz).
+    #  ⭐원장은 이제 칸마다 prf_hz 를 싣는다(elevation_sweep_md.py 2026-09-13).
+    #  ⚠여기서는 **아직 그 값을 STFT 에 넘기지 않는다** — PRF 를 쓰는 자리가 16 곳이라
+    #    한 번에 갈면 검증이 안 된다. 그래서 **그 칸은 수를 안 낸다**(mute). 조용히 틀린
+    #    축에 그리는 것보다 낫다. 전면 교체는 남은 일이다(docs/RETRACTION_LOG.md R34).
+    _prf_cell = row.get("prf_hz")
+    prf_mismatch = bool(_prf_cell) and abs(float(_prf_cell) - PRF) > 1.0
+    mute = (empty or incomplete or zero_field or no_motion
+            or prf_mismatch)                                # ⭐수를 낼 자격이 없는 칸
 
     share, null, frac_above, degen = rhythm_share(E, ffl, ft)
     comb = None if mute else comb_contrast_db(E, ffl, ft)
@@ -962,6 +985,9 @@ def cell_summary(arm: str, el: float, rates: dict, periods: float) -> dict:
         incomplete=bool(incomplete),
         zero_field=bool(zero_field),
         no_motion=bool(no_motion),
+        #: ⭐이 칸의 저장 표집률이 아틀라스의 축과 다르다 — 수를 안 낸다(2026-09-13)
+        prf_hz=(float(_prf_cell) if _prf_cell else None),
+        prf_mismatch=bool(prf_mismatch),
         beat_spiky=bool(spiky and not mute),
         tip_ceiling_degenerate=bool(degen),
         band_borrowed_from_0deg=bool(ft <= 1e-6),

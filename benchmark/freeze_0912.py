@@ -75,15 +75,19 @@ def measure() -> dict:
         m["atlas"] = dict(error=f"{type(e).__name__}")
 
     #: 실외 사건 수 — 덱 9 쪽이 인용하는 수
-    try:
-        C = js("outputs/read_canyonnull_0910.json")
-        m["canyon_events"] = {k: v for k, v in C.items() if isinstance(v, (int, float))} \
-            or dict(note="스칼라 없음")
-        txt = json.dumps(C, ensure_ascii=False)
-        m["canyon_events"]["has_96"] = ": 96" in txt or " 96," in txt or "96]" in txt
-        m["canyon_events"]["has_339"] = "339" in txt
-    except Exception as e:                                          # noqa: BLE001
-        m["canyon_events"] = dict(error=f"{type(e).__name__}")
+    #  ⛔⛔2026-09-13 정정 — 첫 판은 **문자열에 «96»·«339» 가 있나**만 봤다. 그러면
+    #    사건 수가 바뀌어도 다른 자리에 그 숫자가 있으면 그대로 통과한다.
+    #    ⛔실측(점검자): 사건 수·마스크 수 20 필드를 바꿔도 --check 가 같은 결과를 냈다.
+    #  ⇒ **수를 그대로 뜬다.** 원장 안의 모든 정수 필드를 경로째 긁어 싣는다.
+    m["events"] = {}
+    for rel in ("outputs/read_canyonnull_0910.json",
+                "outputs/read_dropladder_0910.json",
+                "outputs/read_scenephysics_0913.json",
+                "outputs/read_wfsurvive_0912.json"):
+        try:
+            m["events"][rel] = scrape_numbers(js(rel))
+        except Exception as e:                                      # noqa: BLE001
+            m["events"][rel] = dict(error=f"{type(e).__name__}")
 
     #: ⭐지면이 있으면 기체 사이 레벨이 모인다 — 2026-09-12 에 확인한 가장 센 대조
     m["ground_collapse"] = ground_collapse(R)
@@ -106,6 +110,38 @@ def measure() -> dict:
         shards=len([x for x in os.listdir(os.path.join(ROOT, "outputs/elev_sweep_shards"))
                     if x.endswith(".npz")]))
     return m
+
+
+#: ⭐사건 수를 지키는 열쇠 이름 — 이 이름으로 끝나는 필드는 전부 뜬다
+_COUNT_KEYS = ("n_replaced", "n_mask", "n_common", "n_events", "n_replaced_dropfn",
+               "n_poses", "n_missing", "n_zero_field", "n_trunc", "n_samples",
+               "n_rows", "count", "n_cells", "n_skipped")
+
+
+def scrape_numbers(o, path="", out=None) -> dict:
+    """원장에서 **수를 세는 필드**를 경로째 긁는다.
+
+    ⛔문자열 포함 검사로는 «수가 바뀌었다» 를 못 잡는다 — 그래서 이것으로 바꿨다.
+    레벨(dB)처럼 실수인 지표도 함께 뜨되, 부동소수 흔들림을 피해 소수 둘째 자리로 맞춘다.
+    """
+    if out is None:
+        out = {}
+    if isinstance(o, dict):
+        for k, v in o.items():
+            p = f"{path}.{k}" if path else str(k)
+            if isinstance(v, bool):
+                out[p] = v
+            elif isinstance(v, int) and (k.endswith(_COUNT_KEYS) or k in _COUNT_KEYS):
+                out[p] = v
+            elif isinstance(v, float) and any(
+                    k.endswith(x) for x in ("_db", "_hz", "_jaccard", "jaccard")):
+                out[p] = round(v, 2)
+            else:
+                scrape_numbers(v, p, out)
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            scrape_numbers(v, f"{path}[{i}]", out)
+    return out
 
 
 def ground_collapse(R) -> dict:
@@ -197,7 +233,11 @@ def render(base: dict) -> None:
             continue
         lines.append(f"| {k} | {v['n_airframes']} | {v['free_spread_db']} dB | "
                      f"{v['ground_spread_db']} dB |")
-    lines += ["", "## 검사기", "", "| 검사 | 종료코드 |", "|---|---:|"]
+    lines += ["", "## 지키는 수", "", "| 원장 | 뜬 필드 수 |", "|---|---:|"]
+    for k, v in m.get("events", {}).items():
+        lines.append(f"| `{k}` | {len(v) if isinstance(v, dict) and 'error' not in v else v} |")
+    lines += ["", "⛔문자열 포함 검사가 아니라 **수를 그대로** 뜬다 — 사건 수가 바뀌면 --check 가 짚는다.",
+              "", "## 검사기", "", "| 검사 | 종료코드 |", "|---|---:|"]
     for k, v in m["checks"].items():
         lines.append(f"| {k} | {v.get('exit', v.get('error'))} |")
     lines += ["", "## 세대를 고른 칸", "",

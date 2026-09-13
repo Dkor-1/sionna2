@@ -1382,17 +1382,19 @@ def analyse() -> None:
     #   **뒤에만** 쓰인다. 병합 1 회에 −16~27 s. ⛔값은 안 바뀐다(같은 입력 → 같은 출력).
     _stft_cache = {}
 
-    def _stft(E):
-        k = id(E)
+    #: ⛔⛔2026-09-13 — STFT 는 **그 칸의 표집률**로 돈다. 전역값을 쓰면 시간축이 틀린다.
+    def _stft(E, prf_cell):
+        k = (id(E), prf_cell)
         v = _stft_cache.get(k)
         if v is None:
-            v = flash_spec(np.asarray(E, complex), prf, ffl, per)
+            v = flash_spec(np.asarray(E, complex), prf_cell, ffl,
+                           auto_periods(prf_cell, ffl))
             _stft_cache.clear()          # 한 행만 붙잡는다 — 메모리가 안 늘게
             _stft_cache[k] = v
         return v
 
-    def band_metrics(E, lo, hi):
-        f, t, S, _ = _stft(E)
+    def band_metrics(E, lo, hi, prf_cell=None):
+        f, t, S, _ = _stft(E, float(prf_cell or prf))
         b = (np.abs(f) >= lo) & (np.abs(f) <= hi)
         if b.sum() < 2:
             return dict(n_bins=int(b.sum()), beat_hz=None, h1_over_h2_db=None,
@@ -1460,6 +1462,12 @@ def analyse() -> None:
             #    두 장 다 옛 세대라 상한을 어디서도 못 얻는다 ⇒ 자세 8,192/8,192 가
             #    1,999,98x 로 상한에 붙어 있는데 원장에는 n_trunc=0 · truncated=false 로
             #    실린다. 「상한이 결과를 정하면 그 축은 접는다」를 원장만 보고는 못 지킨다.
+            #: ⛔⛔2026-09-13 정정 — 이 칸의 **저장 표집률**을 모은다. 아래 band_metrics 가
+            #  전역 `prf`(규약값 19,700 Hz)를 쓰고 있었는데, 창고에는 39,400·78,800·157,600 Hz
+            #  로 구운 팔이 57 개(샤드 244 장) 있다. 그 칸들은 시간축·주파수축이 **다르다**.
+            #  ⛔실측(점검자, 2026-09-13): 저장 표집률로 다시 재면 122 칸 중 107 칸의 track
+            #    지표가 바뀐다(예: prf39400 · el+0 의 beat_hz 59.79 → 119.52 Hz).
+            _prfs = set()
             n_tr, n_seen, n_tr_stored = 0, 0, 0
             #: 자세 수로 센다 — 어느 갈래로 잰 칸인지 원장이 말할 수 있게
             n_tr_recomputed, n_tr_from_stored, n_tr_assumed = 0, 0, 0
@@ -1479,6 +1487,9 @@ def analyse() -> None:
                     #  ⇒ **쓴 자리를 따로 표시**하고, 평균은 «쓴 자리 전부»(영 전계 포함)로 낸다.
                     seen = np.zeros(_n0, bool)
                 E[ii] = z["E"]; seen[ii] = True
+                _m4 = np.asarray(z["meta"], float).ravel()
+                if _m4.size > 4 and _m4[4] > 0:
+                    _prfs.add(float(_m4[4]))
                 secs += float(np.asarray(z["meta"], float)[5])
                 if "npaths" in z: npa.append(z["npaths"])
                 if "n_trunc" in z:
@@ -1664,9 +1675,16 @@ def analyse() -> None:
                 level_db=round(float(20 * np.log10(
                     (np.abs(E[seen]).mean() if seen.any() else 0.0) + 1e-300)), 2),
                 # ⭐(a) 앙각마다 대역을 다시 잡는다 — 정본
-                track=band_metrics(E, 0.35 * ft, max(ft, 1e-6)),
+                #: ⭐이 칸의 저장 표집률. 여러 값이 섞이면 None 으로 두고 아래에 적는다.
+                prf_hz=(float(next(iter(_prfs))) if len(_prfs) == 1 else None),
+                prf_hz_seen=sorted(_prfs) if len(_prfs) != 1 else None,
+                prf_note_ko=("STFT·리듬 지표는 **이 칸의 저장 표집률**로 냈다. 여러 값이 "
+                             "섞인 칸은 prf_hz 가 null 이고 규약값으로 냈다 — 그 칸은 읽지 않는다."),
+                track=band_metrics(E, 0.35 * ft, max(ft, 1e-6),
+                                   next(iter(_prfs)) if len(_prfs) == 1 else None),
                 # (b) 덱의 −15° 대역 고정 — 어디서 무너지나 (반송파를 옮긴 팔은 λ 비로 늘린다)
-                fixed=band_metrics(E, 0.35 * ftd, ftd)))
+                fixed=band_metrics(E, 0.35 * ftd, ftd,
+                                   next(iter(_prfs)) if len(_prfs) == 1 else None)))
 
     if not rows:
         raise SystemExit(f"⛔ {SHD} 에 샤드가 없다")
