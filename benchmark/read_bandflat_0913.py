@@ -73,7 +73,7 @@ f_tip** 으로 잡는다 — 안 그러면 「무늬가 달라졌다」가 아�
   광선 집합이 조금씩 달라지는 것이 유력하지만, 여기서 단정하지 않는다.
 """
 from __future__ import annotations
-import json, os, re, sys
+import json, os, re, sys, time
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -87,6 +87,9 @@ from arm_grammar import matched_groups, parse as parse_arm, unparse  # noqa: E40
 LED_J = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
 LED_N = os.path.join(ROOT, "outputs", "elevation_sweep_md.npz")
 OUT_J = os.path.join(ROOT, "outputs", "bandflat_0913.json")
+#: ⭐다른 두 갈래(장면 물리·파형 생존)와 같은 규약 — 읽는 문서도 함께 굽는다.
+#  ⛔손으로 쓰지 않는다. 이 스크립트만이 이 파일을 만든다.
+OUT_MD = os.path.join(ROOT, "docs", "BANDFLAT_0913.md")
 
 #: 5G NR n78 의 100 MHz 폭 한 덩이를 다섯 점으로. 중앙은 꼬리표가 **없는** 팔이다.
 FCS_MHZ = (3450, 3475, 3500, 3525, 3550)
@@ -177,6 +180,88 @@ def modspec_norm(E: np.ndarray, prf: float, f_flash: float, f_tip: float,
     Y = np.abs(np.fft.rfft((g - g.mean()) * np.hanning(n))) ** 2
     fr = np.fft.rfftfreq(n, 1.0 / fs_g)
     return fr, Y, float((S[m, :] ** 2).sum())
+
+
+def write_md(out: dict) -> None:
+    """읽는 문서. ⛔여기서 새로 계산하지 않는다 — 위에서 낸 수를 그대로 옮긴다."""
+    L: list[str] = []
+    a = L.append
+    a("# 대역 안에서 표적이 평평한가 — 5G NR 100 MHz 를 다섯 점으로")
+    a("")
+    a(f"> ⛔손으로 쓰지 않는다. `benchmark/read_bandflat_0913.py` 가 굽는다. "
+      f"`{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}`")
+    a("")
+    a("지금 사슬에서 파형은 **산란이 끝난 뒤 곱해지는 스칼라**다. 그래서 「한 대역 안에서 "
+      "표적의 복소 반사율이 평평한가」를 한 번도 안 봤다. 0929 가 그 구멍을 메우려고 "
+      "3.450 · 3.475 · 3.525 · 3.550 GHz 를 샀다(중앙 3.500 은 이미 있었다) — "
+      "**자유공간과 실외 둘 다**.")
+    a("")
+    a("⛔OFDM 을 계산한 것이 아니다 — 다섯 점을 따로 계산해 겹쳐 본 것이다. "
+      "⛔여기 레벨은 σ(dBsm)가 아니다. "
+      "⛔다른 엔진과 절대 레벨을 견주지 않는다(모두 한 엔진·한 팔).")
+    a("")
+    cg = out["_meta"].get("control_group") or {}
+    a(f"대조군 확인: 고른 팔 {out['_meta']['n_cells']} 칸이 반송파·환경 **말고는** 글자까지 "
+      f"같다(문법 묶음 {cg.get('n_groups')} 개, `src/arm_grammar.py`). "
+      f"읽는 대역은 {out['_meta']['band_span_mhz']} MHz 로 선언했다 — 같은 묶음에 24 GHz 팔이 "
+      f"있어서, 범위를 안 적으면 대역 평탄성이 아니라 반송파 의존성이 된다.")
+    a("")
+    a("## 레벨 — 전체와 «움직이는 몫»을 가른다")
+    a("")
+    a("⛔실외의 전체 레벨은 **지면**이지 표적이 아니다.")
+    a("")
+    a("| 환경 | 앙각 | 전체 퍼짐 | 움직이는 몫 퍼짐 | 움직임 기울기 | 자세 표집 흔들림 | 단조 |")
+    a("|---|---:|---:|---:|---:|---:|---|")
+    for r in out["series"]:
+        if r.get("n", 0) < 3:
+            continue
+        a(f"| {r['env']} | {r['el_deg']:+.0f} | {r['band_spread_db']:.2f} dB | "
+          f"{r['moving_band_spread_db']:.2f} dB | {r['moving_slope_db_per_ghz']:+.2f} dB/GHz | "
+          f"{r['within_cell_spread_db']:.2f} dB | {'단조' if r['monotonic'] else '비단조'} |")
+    a("")
+    a("⚠자세 표집 흔들림은 같은 칸의 자세를 짝/홀로 갈라 잰 것이다. **자세 표집만** 덮고 "
+      "광선 격자는 못 덮는다 — 이 팔 계열에 격자 사다리 칸이 0 개다. 그래서 "
+      "「대역 퍼짐 ÷ 흔들림」 배수를 머리기사로 쓰지 않는다.")
+    a("")
+    a("## ⭐구조 관문 — 움직이는 몫에 날개 무늬가 있나")
+    a("")
+    a("⛔이 관문을 통과 못 한 줄의 대역 평탄성은 **표적 이야기가 아니다.**")
+    a("")
+    a("| 환경 | 앙각 | 리듬 몫 | (백색잡음 널) | 빗살 대비 | 날개끝 띠가 움직임에서 | 판정 |")
+    a("|---|---:|---:|---:|---:|---:|---|")
+    for g in out.get("structure", []):
+        rs = [x for x in g["rhythm_pct"] if x is not None]
+        nl = [x for x in g["rhythm_null_pct"] if x is not None]
+        cb = [x for x in g["comb_db"] if x is not None]
+        tp = [x for x in g["tip_band_share_of_moving_pct"] if x is not None]
+        a(f"| {g['env']} | {g['el_deg']:+.0f} | {min(rs):.1f}~{max(rs):.1f} % | "
+          f"{max(nl):.1f} % | {min(cb):+.1f}~{max(cb):+.1f} dB | "
+          f"{min(tp):.1f}~{max(tp):.1f} % | "
+          f"{'✅ 날개 무늬 있음' if g['blade_structure_present'] else '⛔ 널과 구별 안 됨'} |")
+    a("")
+    a("## 무늬 — 주파수축을 그 칸의 날개끝 상한으로 잡고 겹친다")
+    a("")
+    a("⛔정지 성분은 STFT **전에** 뺐다. 안 빼면 0 Hz 의 에너지가 창 옆잎으로 날개끝 띠까지 "
+      "새어, 으뜸 봉우리가 3.500 과 3.525 GHz 사이에서 계단처럼 갈아탄다 — 25 MHz 가 만든 "
+      "물리로 읽으면 틀린다.")
+    a("")
+    a("| 환경 | 앙각 | 3.500 GHz 와의 모양 상관(최소) | 으뜸 봉우리 | 정지 성분이 띠에 넣던 몫 |")
+    a("|---|---:|---:|---|---:|")
+    for g in out.get("gates", []):
+        pk = g["dc_removed"]["peaks_hz"]
+        leak = g.get("static_leak_into_band_db")
+        leak_txt = "—" if leak is None else f"{leak:+.1f} dB"
+        peak_txt = " · ".join(f"{x:g}" for x in pk) + " Hz"
+        if len(pk) > 1:
+            peak_txt += " ⚠갈린다"
+        a(f"| {g['env']} | {g['el_deg']:+.0f} | {g['shape_corr_min']:.4f} | "
+          f"{peak_txt} | {leak_txt} |")
+    a("")
+    a(f"원장 `{os.path.relpath(OUT_J, ROOT)}` · 칸 {out['_meta']['n_cells']}/"
+      f"{out['_meta']['n_expected']} · 건너뜀 {len(out['skipped'])}")
+    a("")
+    with open(OUT_MD, "w", encoding="utf-8") as f:
+        f.write("\n".join(L))
 
 
 def main() -> int:
@@ -452,6 +537,7 @@ def main() -> int:
             })
 
     json.dump(out, open(OUT_J, "w"), ensure_ascii=False, indent=1)
+    write_md(out)
 
     # ── 화면 ───────────────────────────────────────────────────────────────
     print("═══ 대역 안 평탄성 — 5G NR 100 MHz 다섯 점 ═══")

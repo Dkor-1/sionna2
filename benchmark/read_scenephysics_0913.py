@@ -144,6 +144,13 @@ def main() -> int:
     ALLOWED = {"engine", "spp", "switches", "range_m", "n_poses",
                "max_depth", "env", "mesh_fix", "blade_law"}
 
+    def extra_tags(e):
+        """허용목록 밖의 꼬리표. ⭐빈 집합이 아니면 그 팔은 안 쓰고 **왜인지 적는다**."""
+        try:
+            return sorted(set(parse_arm(e)) - ALLOWED)
+        except Exception:
+            return ["이름을 문법으로 못 읽었다"]
+
     def usable(r):
         e = r["engine"]
         try:
@@ -188,7 +195,20 @@ def main() -> int:
 
     rows, skipped = [], []
     for r in sorted(L["rows"], key=lambda r: (sc(r["engine"]), r["engine"], r["el_deg"])):
-        if not usable(r) or sc(r["engine"]) == "free":
+        if sc(r["engine"]) == "free":
+            continue
+        if not usable(r):
+            #: ⛔⛔장면이 붙은 칸을 **조용히** 버리지 않는다. 이 파일의 머리말이 스스로
+            #  「n_skipped == 0 이 «다 봤다» 가 아니다」라고 적었는데, 거르개가 행을
+            #  보기 **전에** 걸러내면 그 말이 무의미해진다(2026-09-13(4)).
+            ex = extra_tags(r["engine"])
+            if ex:
+                skipped.append(dict(
+                    engine=r["engine"], el_deg=r["el_deg"], want=None,
+                    extra_tags=ex,
+                    why=("이 잣대가 허용하지 않는 꼬리표가 붙어 있다: "
+                         + " · ".join(ex)
+                         + " — 장면×물리 표는 **다른 축이 안 섞인** 팔만 쓴다")))
             continue
         a = re.search(r"_sw(R\dD\dE\dF\d)", r["engine"])
         if not a:
