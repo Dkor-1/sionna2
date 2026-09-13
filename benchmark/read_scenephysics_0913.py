@@ -46,6 +46,9 @@ import time
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "src"))
+#: ⭐팔 이름은 **문법으로** 되읽는다 — 정규식으로 긁지 않는다(2026-09-13(4)).
+from arm_grammar import parse as parse_arm, unparse as unparse_arm   # noqa: E402
 DECK = "/workspace/team_meeting/teammeeting_0910"
 OUT = os.path.join(ROOT, "outputs/read_scenephysics_0913.json")
 MD = os.path.join(ROOT, "docs/SCENEPHYSICS_0913.md")
@@ -117,11 +120,15 @@ def main() -> int:
     #  걸려 **행으로도 안 나오고 skipped 에도 안 남는다.** n_skipped == 0 이 «다 봤다» 가 아니다.
     #  ⛔실측: 원장에 `sionna-munich` 장면 칸이 4 개 있는데 그렇게 조용히 사라졌다.
     #  ⇒ 꼬리표를 **이름에서 뽑는다**(목록이 아니다). 모르는 장면도 제 이름으로 선다.
-    ENV_RE = re.compile(r"_env([A-Za-z0-9:._-]+?)_(?:mfix|blper)")
-
+    #: ⛔⛔2026-09-13(4) 또 정정 — 위의 정규식은 `_mfix`/`_blper` 까지 **통째로 먹는다.**
+    #  그 사이에 오는 꼬리표가 전부 장면 이름에 딸려 들어간다. 실측: 팔 844 개 중 **57 개**가
+    #  이렇게 어긋난다 — `outdoor01_S0.3` · `outdoor01_az45` · `outdoor01_fc3450` ·
+    #  `outdoor01_rotoutdoor_v2s1` · `outdoor01_ground_ps1.05_fs1.05` …
+    #  ⇒ 이제 이름을 **문법으로 되읽는다**(src/arm_grammar.py). 그 문법은 이름을 «짓는»
+    #    benchmark/elevation_sweep_md.py 에서 그대로 옮긴 것이고, 되읽은 것을 다시 지어
+    #    원본과 글자까지 같은지 확인한다 — 조각이 조용히 딸려 오거나 사라질 수 없다.
     def env_tag(e):
-        m = ENV_RE.search(e)
-        return m.group(1) if m else None
+        return parse_arm(e).get("env")
 
     SHORT = {"sionna-simple_street_canyon": "canyon", "outdoor01_ground": "gnd",
              "outdoor01_bldg": "bldg", "outdoor01": "outdoor", "sionna-munich": "munich"}
@@ -130,13 +137,26 @@ def main() -> int:
         t = env_tag(e)
         return "free" if t is None else SHORT.get(t, t)
 
+    #: ⭐쓸 수 있는 팔의 꼬리표 **허용목록**. ⛔블록리스트를 쓰지 않는다 — 옛 판은
+    #  `_(…|rot|…)[\d._]` 라 `_rot` 뒤에 글자가 오는 `rotoutdoor_v2s1` 이 **새어 들어왔고**,
+    #  그 3 행이 로터 설정이 다른 빈 하늘과 짝지어졌다(2026-09-13(4) 실측).
+    #  허용목록은 새로운 꼬리표가 생겨도 조용히 통과시키지 않는다 — 모르면 막는다.
+    ALLOWED = {"engine", "spp", "switches", "range_m", "n_poses",
+               "max_depth", "env", "mesh_fix", "blade_law"}
+
     def usable(r):
         e = r["engine"]
-        return (e.startswith("sionna") and r.get("n_missing") == 0
-                and r.get("n_poses") == 8192 and r.get("spp") == 4e9
-                and e.endswith("_d2") and "_r15_" in e
-                and not re.search(r"_(ps|fs|bs|az|rot|shell|S0|rep|div|onlyrefr|phys|alt|fc)[\d._]", e)
-                and not any(d in e for d in ("mini5pro", "mavic4pro", "phantom4", "s1000plus")))
+        try:
+            f = parse_arm(e)
+        except Exception:
+            return False
+        extra = set(f) - ALLOWED
+        return (not extra
+                and f["engine"] == "sionna" and f.get("switches")
+                and f.get("spp") == "4000000000" and f.get("range_m") == "15"
+                and f.get("n_poses") == "8192" and f.get("max_depth") == "2"
+                and r.get("n_missing") == 0 and r.get("n_poses") == 8192
+                and r.get("spp") == 4e9)
 
     #: ⛔⛔2026-09-13 정정 — 첫 판은 빈 하늘 짝을 **(팔, 앙각) 사전**으로 찾았다.
     #  그 열쇠로는 같은 팔·앙각의 **다른 조건** 칸이 덮어쓴다.
@@ -157,8 +177,14 @@ def main() -> int:
         쌍 검사도 통과한다(같은 행이니까). ⇒ 꼬리표를 이름에서 뽑아 **그것만** 뺀다.
         뽑히지 않으면 None 을 돌려주고 호출자가 거른다 — 조용히 자기 자신을 쓰지 않는다.
         """
-        t = env_tag(engine)
-        return None if t is None else engine.replace(f"_env{t}", "", 1)
+        #: ⛔문자열 치환이 아니라 **꼬리표를 빼고 다시 짓는다**(2026-09-13(4)).
+        #  치환은 장면 이름이 잘못 뽑히면 엉뚱한 자리를 지운다 — 로터 꼬리표까지 장면으로
+        #  읽힌 3 행이 실제로 **로터 설정이 다른 빈 하늘**과 짝지어져 있었다.
+        f = parse_arm(engine)
+        if f.get("env") is None:
+            return None
+        f = {k: v for k, v in f.items() if k != "env"}
+        return unparse_arm(f)
 
     rows, skipped = [], []
     for r in sorted(L["rows"], key=lambda r: (sc(r["engine"]), r["engine"], r["el_deg"])):

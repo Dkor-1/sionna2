@@ -33,6 +33,9 @@ import sys
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "src"))
+#: ⭐팔 이름은 **문법으로** 되읽는다 — 부분문자열로 기체·장면을 가르지 않는다(2026-09-13(4)).
+from arm_grammar import ArmNameError, parse as parse_arm              # noqa: E402
 OUT = os.path.join(ROOT, "outputs/freeze_0912.json")
 MD = os.path.join(ROOT, "docs/FREEZE_0912.md")
 
@@ -120,6 +123,28 @@ def measure() -> dict:
 #    82 개 중 **15 개(18 %)** 만 떴다. 발간 사건 수를 세 배로 바꿔도 «움직인 자리 0» 이었다.
 #  ⇒ **화이트리스트를 버린다.** 수인 잎은 **전부** 뜬다. 이름으로 고르지 않는다.
 #    부동소수는 자리 흔들림을 막으려 유효숫자로 맞춘다(반올림 자리를 이름에 안 매단다).
+#: ⭐목록 항목을 **자리 번호 대신** 붙잡는 열쇠. 앞에 있는 것부터 본다.
+#  ⛔⛔2026-09-13(4) — 전에는 `rows[N]` 자리 번호만 썼다. 그런데 판독기들은 행을
+#    **정렬해서** 낸다(예: read_wfsurvive 는 장면 이름 순). 장면 딱지 하나가 바뀌자
+#    행 번호가 통째로 밀려 **6,436 자리**가 어긋났다 — 값은 4 개만 바뀌었는데.
+#    그러면 기준선이 「무엇이 정말 바뀌었나」를 못 말한다.
+#  ⭐레포트 각주에서 이미 같은 병을 같은 방법으로 고쳤다(조건 선택자, 2026-09-12).
+_ROW_KEYS = (("engine", "el_deg"), ("cell", "arm"), ("cell",), ("engine",),
+             ("arm", "el_deg"), ("combo", "el_deg"),
+             ("on", "off", "el_deg", "depth"), ("on", "off", "el_deg"),
+             ("axis", "el_deg"), ("name",), ("id",), ("key",), ("pair",))
+
+
+def _item_key(v):
+    """목록 항목의 **정체**. 정체가 없으면 None 을 돌려주고 자리 번호로 떨어진다."""
+    if not isinstance(v, dict):
+        return None
+    for ks in _ROW_KEYS:
+        if all(k in v and isinstance(v[k], (str, int, float)) for k in ks):
+            return ",".join(f"{k}={v[k]}" for k in ks)
+    return None
+
+
 def scrape_numbers(o, path="", out=None) -> dict:
     """원장의 **모든 수 잎**을 경로째 긁는다. ⛔이름으로 고르지 않는다 — 그래서 틀렸다."""
     if out is None:
@@ -128,8 +153,12 @@ def scrape_numbers(o, path="", out=None) -> dict:
         for k, v in o.items():
             scrape_numbers(v, f"{path}.{k}" if path else str(k), out)
     elif isinstance(o, (list, tuple)):
+        #: 항목에 정체가 있으면 그걸로 잡는다 — 정렬이 바뀌어도 같은 것을 가리킨다.
+        keys = [_item_key(v) for v in o]
+        uniq = len(set(k for k in keys if k is not None)) == len([k for k in keys if k])
         for i, v in enumerate(o):
-            scrape_numbers(v, f"{path}[{i}]", out)
+            tag = keys[i] if (keys[i] is not None and uniq) else str(i)
+            scrape_numbers(v, f"{path}[{tag}]", out)
     elif isinstance(o, bool):
         out[path] = o
     elif isinstance(o, int):
@@ -141,34 +170,61 @@ def scrape_numbers(o, path="", out=None) -> dict:
 
 
 def ground_collapse(R) -> dict:
-    """지면이 있을 때 기체 사이 레벨 퍼짐이 줄어드는가 — 같은 팔·거리·예산·앙각에서만."""
-    DR = ("phantom4", "mavic4pro", "mini5pro", "s1000plus")
+    """지면이 있을 때 기체 사이 레벨 퍼짐이 줄어드는가 — 같은 팔·거리·예산·앙각에서만.
 
-    def drone(e):
-        return next((d for d in DR if d in e), "matrice4e")
+    ⛔⛔2026-09-13(4) 정정 — 옛 판은 두 군데에서 대조군을 섞었다.
+      ① 기체를 **부분문자열**로 찾고 `F[d] = …` 로 덮어썼다. 자유공간 쪽에는 같은 기체의
+         다른 조건 팔이 여럿 있어(표집률 사다리 · 로터 씨앗 · 다른 반송파 · 두께 · det)
+         **원장에 마지막으로 온 행**이 그 기체의 «자유공간 레벨» 이 됐다.
+         ⛔실측: 발간된 el −60 값 셋 중 **둘**(matrice4e −119.3 · mini5pro −121.99)이
+           로터 설정 `outdoor_v2` 팔에서 왔고 phantom4 만 기본 팔이었다. 곧 **셋이 서로
+           다른 조건**이었다. 기본 팔로 맞추면 −119.6 · −122.04 · −120.99 다.
+      ② 거르개가 블록리스트라 `_fc` 가 빠져 있었다 — 24 GHz·3.45 GHz 팔이 그대로 들어왔다.
+
+    ⇒ 이제 팔 이름을 **문법으로 되읽고**(src/arm_grammar.py) 꼬리표 **허용목록**으로 고른다.
+      허용한 것 말고 아무 꼬리표나 붙어 있으면 그 팔은 안 쓴다. 그리고 (기체, 장면) 한
+      자리에 팔이 둘 이상 오면 **덮어쓰지 않고 소리를 낸다**.
+    """
+    #: 이 잣대가 허용하는 꼬리표 — 기체와 장면만 달라야 한다.
+    ALLOWED = {"engine", "spp", "switches", "range_m", "n_poses",
+               "max_depth", "drone", "env", "mesh_fix", "blade_law"}
 
     def ok(r):
         return (r.get("n_missing") == 0 and r.get("n_zero_field", 0) == 0
                 and not r.get("truncated") and r.get("n_poses") == 8192)
 
-    def plain(e):
-        return not re.search(r"_(ps|fs|bs|az|rot|shell|S0|rep|div|onlyrefr|phys|alt)[\d._]", e)
-
     out = {}
     for el in (-30.0, -60.0):
-        F, G = {}, {}
+        F, G, clash = {}, {}, []
         for r in R:
             e = r["engine"]
-            if not (e.startswith("sionna") and "_swR0D0E0F1_" in e and e.endswith("_d2")
-                    and "_r15_" in e and r["el_deg"] == el and r.get("spp") == 4e9
-                    and ok(r) and plain(e)):
+            if not (r["el_deg"] == el and r.get("spp") == 4e9 and ok(r)):
                 continue
-            d = drone(e)
-            if "envoutdoor01_ground" in e:
-                G[d] = r["level_db"]
-            elif "env" not in e:
-                F[d] = r["level_db"]
+            try:
+                f = parse_arm(e)
+            except ArmNameError:
+                continue
+            if set(f) - ALLOWED:
+                continue
+            if not (f["engine"] == "sionna" and f.get("switches") == "R0D0E0F1"
+                    and f.get("spp") == "4000000000" and f.get("range_m") == "15"
+                    and f.get("n_poses") == "8192" and f.get("max_depth") == "2"):
+                continue
+            d = f.get("drone") or "matrice4e"
+            env = f.get("env")
+            tbl = G if env == "outdoor01_ground" else (F if env is None else None)
+            if tbl is None:
+                continue
+            if d in tbl:
+                clash.append({"drone": d, "env": env, "engine": e})
+                continue
+            tbl[d] = r["level_db"]
         both = sorted(set(F) & set(G))
+        if clash:
+            #: ⛔조용히 덮어쓰지 않는다 — 같은 (기체, 장면)에 팔이 둘이면 잣대가 못 선다.
+            out[f"el{el:+g}"] = dict(n_airframes=0, clash=clash,
+                                     note="같은 (기체, 장면)에 팔이 둘 이상이다 — 못 잰다")
+            continue
         if len(both) < 2:
             out[f"el{el:+g}"] = dict(n_airframes=len(both), note="기체가 둘 미만 — 못 잰다")
             continue

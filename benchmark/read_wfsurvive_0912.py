@@ -46,6 +46,10 @@ import time
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import sys as _sys                                                    # noqa: E402
+_sys.path.insert(0, os.path.join(ROOT, "src"))
+#: ⭐팔 이름은 **문법으로** 되읽는다 — 부분문자열로 장면을 가르지 않는다(2026-09-13(4)).
+from arm_grammar import parse as parse_arm                            # noqa: E402
 OUT = os.path.join(ROOT, "outputs/read_wfsurvive_0912.json")
 MD = os.path.join(ROOT, "docs/WFSURVIVE_0912.md")
 
@@ -241,11 +245,19 @@ def main() -> int:
     L = json.load(open(os.path.join(ROOT, "outputs/elevation_sweep_md.json"), encoding="utf-8"))
     R = L["rows"]
 
+    #: ⛔⛔2026-09-13(4) 정정 — 옛 판은 **네 이름을 부분문자열로** 찾고 나머지를 전부
+    #  «free»(빈 하늘)로 찍었다. 그래서 도시 장면 `sionna-munich` 4 칸이 **빈 하늘로
+    #  발간돼 있었다**(outputs/read_wfsurvive_0912.json 에서 실측). 목록에 없는 장면이
+    #  조용히 «아무 장면도 없음» 이 되는 것이 이 꼴의 병이다.
+    #  ⇒ 장면 꼬리표를 **문법으로 뽑고**, 짧은 이름은 표에서 찾되 **없으면 제 이름으로
+    #    세운다**(free 로 떨어뜨리지 않는다). 환경 꼬리표가 아예 없을 때만 free 다.
+    SHORT = {"sionna-simple_street_canyon": "canyon", "outdoor01_ground": "gnd",
+             "outdoor01_bldg": "bldg", "outdoor01": "outdoor",
+             "sionna-munich": "munich"}
+
     def scene(e):
-        return ("canyon" if "envsionna-simple_street_canyon" in e else
-                "gnd" if "envoutdoor01_ground" in e else
-                "bldg" if "envoutdoor01_bldg" in e else
-                "outdoor" if "envoutdoor01" in e else "free")
+        t = parse_arm(e).get("env")
+        return "free" if t is None else SHORT.get(t, t)
 
     #: ⭐실외 계열과 그 빈 하늘 짝만 본다 — 챔버는 아예 손대지 않는다
     want = [r for r in R

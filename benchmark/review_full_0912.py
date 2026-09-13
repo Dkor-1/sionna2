@@ -14,6 +14,8 @@ from datetime import datetime,timezone
 import numpy as np
 import review_status_0911 as prev
 repo=prev.repo;base=repo.base;ROOT=base.ROOT
+sys.path.insert(0,str(ROOT/'src'))
+from arm_grammar import parse as _agparse,unparse as _agunparse  # noqa: E402
 OUT=ROOT/'outputs/full_review_0912.json';MD=ROOT/'docs/FULL_REVIEW_0912.md';NB=MD.with_suffix('.ipynb')
 CACHE=ROOT/'work/full_review_0912_cache.json'
 

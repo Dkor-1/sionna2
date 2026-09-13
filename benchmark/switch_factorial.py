@@ -195,7 +195,7 @@ def mtime(p):
 
 def shard_cfg(arm, el):
     """샤드 하나에서 cfg 를 읽는다 — [range, max_depth, spp, physics, R, D, E]."""
-    fs = sorted(glob.glob(f"{SHD}/{arm}_el{el:+.0f}_*.npz"))
+    fs = sorted(glob.glob(f"{SHD}/{arm}_el{el:+g}_*.npz"))
     if not fs:
         return None, 0
     z = np.load(fs[0])
@@ -205,7 +205,7 @@ def shard_cfg(arm, el):
 
 def shard_assemble(arm, el):
     """샤드를 idx 로 제자리에 꽂는다 — analyse() 와 같은 조립 규칙(교차확인용)."""
-    fs = sorted(glob.glob(f"{SHD}/{arm}_el{el:+.0f}_*.npz"))
+    fs = sorted(glob.glob(f"{SHD}/{arm}_el{el:+g}_*.npz"))
     if not fs:
         return None, None, 0.0
     E = None
@@ -225,7 +225,15 @@ def shard_assemble(arm, el):
 def main() -> None:
     J = json.load(open(LEDJ, encoding="utf-8"))
     M, ROWS = J["_meta"], J["rows"]
+    #: ⛔⛔2026-09-13(4) 정정 — PRF 는 **규약 기본값**이다. 창고에는 39,400·78,800 Hz 로
+    #  구운 칸이 있고, 이 잣대가 채점하는 430 칸 중 **24 칸**이 그렇다. 그 칸을 기본 축으로
+    #  읽으면 리듬 몫·빗살 자리가 통째로 틀린다(R34 와 같은 병).
+    #  ⇒ 칸마다 원장의 `prf_hz` 를 쓴다. 없으면 규약값으로 떨어지고 그 사실을 행에 적는다.
     PRF, FFL = float(M["prf_hz"]), float(M["f_flash_hz"])
+
+    def prf_of_row(r):
+        v = r.get("prf_hz")
+        return float(v) if v else PRF
     Z = np.load(LEDN)
 
     # 행 색인 — (팔, 앙각) → 행 번호
@@ -240,7 +248,7 @@ def main() -> None:
     combos_seen = {}
     for i, r in enumerate(ROWS):
         arm, el = r["engine"], float(r["el_deg"])
-        key_np = f"{arm}/el{el:+.0f}"
+        key_np = f"{arm}/el{el:+g}"
         if key_np not in Z.files:
             continue
         c = combo_of(arm)
@@ -251,13 +259,16 @@ def main() -> None:
         if not (c or is_ref or (other and "_sw" in arm)):
             continue
         ft = float(r["f_tip_hz"])
-        col = columns(Z[key_np], PRF, FFL, ft)
+        prf_cell = prf_of_row(r)
+        col = columns(Z[key_np], prf_cell, FFL, ft)
         col.update(arm=arm, el_deg=el, ledger_row=i, npz_key=key_np,
                    n_missing=int(r["n_missing"]), seconds=r["seconds"],
                    range_m=r["range_m"], ledger_level_db=r["level_db"],
                    ledger_max_depth=r["max_depth"], spp=r["spp"],
                    npaths_median=r["npaths_median"])
-        col["rhythm_share_ref_pct"] = rhythm_share_ref(Z[key_np], PRF, FFL, ft)
+        col["rhythm_share_ref_pct"] = rhythm_share_ref(Z[key_np], prf_cell, FFL, ft)
+        col["prf_hz"] = prf_cell
+        col["prf_mismatch"] = bool(abs(prf_cell - PRF) > 1.0)
         col["above_is_degenerate"] = bool(ft <= 1.0)      # el −90 은 f_tip = 0
         if other and "_sw" in arm:
             other_drone[key_np] = col
@@ -270,7 +281,7 @@ def main() -> None:
         col.update(combo=tag, depth=dep, provenance_ko=why,
                    refraction=tag[1] == "1", diffraction=tag[3] == "1",
                    edge_diffraction=tag[5] == "1", diffuse=tag[7] == "1")
-        cells[f"{tag}_d{dep}/el{el:+.0f}"] = col
+        cells[f"{tag}_d{dep}/el{el:+g}"] = col
         combos_seen.setdefault((tag, dep), []).append(el)
 
         # ⭐게이트 — 샤드 cfg 의 R·D·E·깊이가 배정한 태그와 맞나 (F 는 cfg 에 자리가 없다)
@@ -285,7 +296,7 @@ def main() -> None:
             ok = bool(int(cfg[1]) == dep
                       and bool(cfg[3]) == (tag == "R1D1E1F1"))
             scope = "깊이 + physics 플래그(옛 4칸 cfg — R·D·E 개별비트 없음)"
-        gates.append(dict(cell=f"{tag}_d{dep}/el{el:+.0f}", arm=arm, n_shards=nsh,
+        gates.append(dict(cell=f"{tag}_d{dep}/el{el:+g}", arm=arm, n_shards=nsh,
                           cfg=cfg, cfg_len=(None if cfg is None else len(cfg)),
                           checked_ko=scope, cfg_matches_tag=ok))
 
@@ -309,7 +320,7 @@ def main() -> None:
             continue
         E, npa, secs = shard_assemble(c["arm"], c["el_deg"])
         zero_proof[k] = dict(
-            arm=c["arm"], n_shards=len(glob.glob(f"{SHD}/{c['arm']}_el{c['el_deg']:+.0f}_*.npz")),
+            arm=c["arm"], n_shards=len(glob.glob(f"{SHD}/{c['arm']}_el{c['el_deg']:+g}_*.npz")),
             npaths_sum=(int(npa.sum()) if npa is not None else None),
             seconds=round(secs, 1), all_E_zero=bool(E is not None and not np.any(E)),
             computed_not_missing=bool(npa is not None and int(npa.sum()) == 0 and secs > 0))
@@ -370,10 +381,11 @@ def main() -> None:
                     residual_ac_db=db(float(np.mean(np.abs(res) ** 2))),
                     orthogonal_pred_db=db(max(float(np.mean(np.abs(e1) ** 2)
                                                     - np.mean(np.abs(e0) ** 2)), 0.0)),
-                    residual_rhythm_pct=(None if rhythm_share_ref(res, PRF, FFL, o["f_tip_hz"])
-                                         is None else
-                                         round(rhythm_share_ref(res, PRF, FFL,
-                                                                o["f_tip_hz"]), 2)))
+                    residual_rhythm_pct=(
+                        None if rhythm_share_ref(res, o.get("prf_hz") or PRF, FFL,
+                                                 o["f_tip_hz"]) is None else
+                        round(rhythm_share_ref(res, o.get("prf_hz") or PRF, FFL,
+                                               o["f_tip_hz"]), 2)))
             axis_tbl[ax].append(row)
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -438,7 +450,7 @@ def main() -> None:
             if (tag, hi) not in combos_seen:
                 continue
             for el in sorted(set(els) & set(combos_seen[(tag, hi)])):
-                k1, k3 = f"{tag}_d1/el{el:+.0f}", f"{tag}_d{hi}/el{el:+.0f}"
+                k1, k3 = f"{tag}_d1/el{el:+g}", f"{tag}_d{hi}/el{el:+g}"
                 a, b = cells[k1], cells[k3]
                 if a["zero_echo"] and b["zero_echo"]:
                     dead_pairs.append(dict(combo=tag, el_deg=el, depths=[1, hi],
@@ -757,7 +769,7 @@ def main() -> None:
     print(f"판정 B 1↔3 {len(p13)} 쌍(판 위 {len(p13_plate)} · 죽은 쌍 {len(dead_pairs)}) "
           f"· 깨진 쌍 {len(b_fail_rows)} ⇒ {verdict['B_verdict_ko']}")
     for r in b_fail_rows:
-        print(f"    ⛔ {r['combo']} el{r['el_deg']:+.0f} — 레벨 {r['max_abs_level_db']:+.2f} dB · "
+        print(f"    ⛔ {r['combo']} el{r['el_deg']:+g} — 레벨 {r['max_abs_level_db']:+.2f} dB · "
               f"바닥 {r['d_above_floor_db']:+.2f} dB · 리듬 {r['d_rhythm_pp']:+.2f} %p")
     print(f"자가검사 전체통과 = {sc['all_pass']}")
     for k, v_ in sc.items():
@@ -803,7 +815,7 @@ def fig_factorial(cells, refs, all16, el=-30.0):
             ax.text(gx, -0.95, nm, ha="right", va="center", fontsize=9.5, color=cl,
                     fontweight="bold")
         for i, t in enumerate(tags):
-            c = cells.get(f"{t}_d{dep}/el{el:+.0f}")
+            c = cells.get(f"{t}_d{dep}/el{el:+g}")
             if c is None:
                 ax.text(lo + 2, i, "not computed", va="center", fontsize=9,
                         color="0.55", style="italic")
@@ -848,7 +860,7 @@ def fig_factorial(cells, refs, all16, el=-30.0):
         ax2.set_title(f"({'cd'[j]}) max_depth = {dep}  —  is there a comb line above the "
                       f"local floor?", loc="left")
         ax2.set_xlabel("comb-bin density / floor-bin density [dB]   (0 dB = white, no line)")
-    ref = refs.get(f"ours_r15_n8192/el{el:+.0f}")
+    ref = refs.get(f"ours_r15_n8192/el{el:+g}")
     hnd = [Patch(facecolor=C_AC, label="(1) AC  =  DC-removed fluctuation power"),
            Patch(facecolor=C_FL, label="(2) floor above f_tip  =  off-comb bins"),
            Patch(facecolor=C_CB, label="(3) comb bins above f_tip  =  k x f_flash +/- 8 Hz"),
