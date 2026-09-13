@@ -695,7 +695,10 @@ def main() -> None:
                 old_ratio_ledger=dict(path="outputs/switch_grid.json",
                                       mtime=(mtime(OLDJ) if os.path.exists(OLDJ) else None))),
             plate_ko="matrice4e · 3.5 GHz · 15 m · 자세 8192 · 광선 4e9 · 확산/스위치만 갈린다",
-            prf_hz=PRF, f_flash_hz=FFL, comb_half_width_hz=HALF_HZ,
+            #: ⭐**규약 기본값**이다 — 칸의 값은 그 칸의 prf_hz 를 본다(2026-09-13(4)).
+            prf_hz=PRF,
+            prf_hz_ko="규약 기본 표집률 — 칸의 값은 그 칸의 prf_hz 를 본다",
+            f_flash_hz=FFL, comb_half_width_hz=HALF_HZ,
             units_ko="세 열은 전부 **절대 dB** — 원장 시계열 진폭의 제곱 단위(행의 level_db 와 같은 눈금). "
                      "비율이 아니다.",
             recipe_ko="P = |FFT((E − mean(E))·hanning)|² 를 창 에너지 n·Σw² 로 나눠 Parseval 정규화. "

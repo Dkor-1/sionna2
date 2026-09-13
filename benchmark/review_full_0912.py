@@ -475,7 +475,9 @@ def late_scene_check():
     filters=base.funcs(ROOT.parent/'team_meeting/teammeeting_0910/bake_outdoor.py',['hampel_mask','drop_outliers'],dict(np=np))
     rows=[]
     for r in old['rows']:
-        desired=re.sub(r'_env(?:sionna-simple_street_canyon|outdoor01_ground|outdoor01_bldg|outdoor01)(?=_|$)','',r['engine'])
+        # 2026-09-13(4): four-name list did not know sionna-munich, so 4 rows paired with themselves.
+        # Rebuild the name from the grammar instead (src/arm_grammar.py), dropping only the scene tag.
+        _f=_agparse(r['engine']);desired=_agunparse({k:v for k,v in _f.items() if k!='env'})
         Es=m.series(esm,r['engine'],r['el_deg']);Ef=m.series(esm,r['free_engine'],r['el_deg']);Efix=m.series(esm,desired,r['el_deg'])
         Er,n=filters['drop_outliers'](Es,51,5.)
         current=round(m.db(np.std(Er-Er.mean()))-m.db(np.std(Ef-Ef.mean())),2)
