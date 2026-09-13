@@ -66,7 +66,15 @@ KNOWN_DRONES = {
     "m350rtk", "matrice4e", "mavic4pro", "mini5pro", "phantom4", "s1000plus", "x500v2",
 }
 KNOWN_ROTORS = {"legacy", "outdoor", "outdoor_v2"}
-#: 로터는 씨앗이 **밑줄 없이** 뒤에 붙는다(`_rotoutdoor_v2s3`) — 씨앗까지 포함한 형태.
+#: ⛔⛔**로터 씨앗은 «앞에 무엇이 오든» 밑줄 없이 달라붙는다.** 빌더(:487)가
+#      + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}")
+#  로 **독립해서** 이어 붙이기 때문이다 — 바로 앞이 `_rot…` 이면 로터에, `_az…` 면
+#  방위각에, 로터도 방위각도 없으면 `_gnd…`·`_env…`·`_nospread` 에 붙는다.
+#  ⛔2026-09-13(6) 실측: 그래서 원장의 4 팔이 `az0.7s1`·`az0.7s2` 로 읽혀
+#    **방위각 축 대조군**에 0.7 과 «0.7s1» 이 다른 방위각인 척 같이 들어왔다
+#    (원장 행의 az_deg 는 셋 다 0.7 이다). 왕복은 맞는데 뜻이 틀린 자리다.
+#  ⇒ 씨앗을 **값에서 떼어** 따로 싣는다(`rotor_seed`). 되지을 때 원래 자리에 붙인다.
+_SEED_RE = re.compile(r"^(?P<head>.*?)s(?P<seed>\d+)$")
 _ROTOR_FORMS = {p + (f"s{k}" if k else "") for p in KNOWN_ROTORS for k in range(0, 9)}
 #: 밑줄을 품는 꼬리표만 이 표를 쓴다. ⭐발주서(`runners/jobs_*.txt`)가 정본이다.
 KNOWN_VALUES = {"env": KNOWN_ENVS, "rotor": _ROTOR_FORMS}
@@ -113,6 +121,7 @@ _COMMON = [
     _F("plane_wave", "pw", r"", flag=True),
     _F("det", "det", r"", flag=True),
     #: ⚠`_az0.7s1` — 로터 씨앗은 **앞 꼬리표에 바로 붙는다**(빌더가 밑줄을 안 넣는다).
+    #: ⚠씨앗이 붙을 수 있다 — 아래 `_split_seed` 가 떼어 `rotor_seed` 로 옮긴다.
     _F("az", "az", r"%s(?:s\d+)?" % _NUM),
     _F("rotor", "rot", r"[A-Za-z0-9.-]+", absorbs=True),
     _F("fc", "fc", r"\d+"),
@@ -206,6 +215,9 @@ def parse(engine: str, *, strict: bool = True) -> dict:
             i += 1
         fi = j + 1
 
+    #: ⭐씨앗을 값에서 떼어 따로 싣는다 — 어느 꼬리표에 붙어 있었는지도 적는다.
+    _split_seed(out)
+
     if strict:
         back = unparse(out)
         if back != engine:
@@ -215,15 +227,53 @@ def parse(engine: str, *, strict: bool = True) -> dict:
     return out
 
 
+#: 씨앗이 달라붙을 수 있는 꼬리표 — 빌더의 이어붙이기 차례에서 `_rot` **앞뒤**로
+#  올 수 있는 것들. 뒤 꼬리표(fc·shell·prop·mfix·bl)는 씨앗보다 뒤에 붙으므로 제외한다.
+_SEED_HOSTS = ("rotor", "az", "det", "plane_wave", "body_scale", "frame_scale",
+               "prop_scale", "env_alt", "env_scat", "nospread", "ground", "max_paths",
+               "env")
+
+
+def _split_seed(out: dict) -> None:
+    """값 끝에 달라붙은 로터 씨앗 `s<N>` 을 떼어 `rotor_seed` 로 옮긴다.
+
+    ⛔`rotor` 는 예외다 — 아는 형태 표(_ROTOR_FORMS)가 씨앗까지 포함해 맞추므로
+      이미 «그 로터 설정의 그 씨앗» 이라는 한 값이다. 나머지 꼬리표에 붙은 것만 뗀다.
+    ⛔떼어도 `unparse` 가 **같은 자리에** 다시 붙이므로 왕복은 그대로 성립한다.
+    """
+    for k in _SEED_HOSTS:
+        v = out.get(k)
+        if k == "rotor" or not isinstance(v, str):
+            continue
+        m = _SEED_RE.match(v)
+        if not m or not m.group("head"):
+            continue
+        head = m.group("head")
+        #: 떼어낸 머리가 그 꼬리표의 정규식에 맞아야 «씨앗이었다» 고 본다.
+        fld = next((f for f in _COMMON if f.name == k), None)
+        if fld is None or not fld.match(fld.pre + head):
+            continue
+        out[k] = head
+        out["rotor_seed"] = int(m.group("seed"))
+        out["_seed_host"] = k
+        return
+
+
 def unparse(fields: dict) -> str:
     """꼬리표 사전을 다시 이름으로. `parse` 의 역이고, 둘의 왕복이 이 모듈의 검사다."""
     head = fields["engine"]
+    host = fields.get("_seed_host")
+    seed = fields.get("rotor_seed")
     out = [head]
     for f in FIELDS[_family(head)]:
         v = fields.get(f.name)
         if v is None or v is False:
             continue
-        out.append(f.render(v))
+        piece = f.render(v)
+        #: ⭐떼어낸 씨앗을 **원래 붙어 있던 꼬리표 뒤에** 밑줄 없이 되붙인다.
+        if host == f.name and seed is not None:
+            piece += f"s{int(seed)}"
+        out.append(piece)
     return "".join(out)
 
 
@@ -240,8 +290,13 @@ def warnings_for(fields: dict) -> list[str]:
 
 
 def key_without(fields: dict, vary: Iterable[str]) -> tuple:
-    """`vary` 를 뺀 나머지 꼬리표 전부 — 이것이 같아야 **대조군**이다."""
-    skip = set(vary)
+    """`vary` 를 뺀 나머지 꼬리표 전부 — 이것이 같아야 **대조군**이다.
+
+    ⛔`_seed_host` 는 «씨앗이 어느 꼬리표에 붙어 있었나» 라는 **표기 사정**일 뿐
+      물리 축이 아니다. 열쇠에 넣으면 같은 조건인데 묶음이 갈린다 — 뺀다.
+      씨앗 자체(`rotor_seed`)는 진짜 축이므로 남긴다.
+    """
+    skip = set(vary) | {"_seed_host"}
     return tuple(sorted((k, v) for k, v in fields.items() if k not in skip))
 
 
