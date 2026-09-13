@@ -268,6 +268,13 @@ def survive(E, prf, rates, f_tip=None):
             rms_keep_tipband_note_ko=("접힌 띠의 총 RMS ÷ 입력의 우리 격자 날개끝 띠 RMS. "
                                       "⛔회전자 성분의 생존율이 아니다 — 분자는 띠 밖에서 "
                                       "접혀 온 것도 센다. from_inband/from_offband 로 가른다."),
+            split_limits_ko=("⚠가르기는 **완전하지 않다**(2026-09-13(6) 적대 검증). 입력을 "
+                             "딱딱한 FFT 마스크로 안/밖으로 자르므로 띠 **밖** 성분의 "
+                             "스펙트럼 새어나감이 «띠 안» 쪽에도 조금 남는다 — 실측: 띠 밖 "
+                             "620 Hz 톤을 10 배로 키우면 from_inband 가 1.77 dB 움직인다"
+                             "(1600 Hz 는 0.65 dB, 톤 16 개는 1.57 dB). 그래서 이 두 열은 "
+                             "«어느 쪽이 지배하나» 를 가리는 데 쓰고, from_inband 를 "
+                             "«관심 성분만의 생존» 으로 **단독 인용하지 않는다**."),
             tip_folds=bool(f_tip and f_tip > fr / 2),
             peak_decimated_hz=peak(y1, fr),
             peak_frameavg_hz=peak(y2, fr),
@@ -357,7 +364,8 @@ def main() -> int:
                          row_label=f"{scene(r['engine'])} el{r['el_deg']:+g} {arm}"
                                    + (f" [{_ax}]" if _ax else ""),
                          f_tip_hz=r.get("f_tip_hz"), **s))
-        print(f"  {scene(r['engine']):8s} el{r['el_deg']:+4g} {arm.group(1) if arm else '?':10s}"
+        print(f"  {scene(r['engine']):8s} el{r['el_deg']:+4g} {(arm or '?'):10s}"
+              f" {_ax or '기본':14s}"
               f" f_tip {r.get('f_tip_hz', 0):7.1f} · 띠 안 최강선 "
               f"{(s.get('ref_peak_in_tipband_hz') or float('nan')):7.1f}"
               f" · NR 띠안 {(s['nr'].get('peak_frameavg_in_tipband_hz') or float('nan')):7.1f}"

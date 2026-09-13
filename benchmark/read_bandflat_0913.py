@@ -215,7 +215,12 @@ def modspec_norm(E: np.ndarray, prf: float, f_flash: float, f_tip: float,
     #: ⛔⛔입력을 **먼저 거절한다**(2026-09-13(6)). 전에는 비유한 값이 들어오면 한참 뒤
     #  TypeError 로 죽었다 — 사유도 안 남기고. 판독기는 못 읽는 입력을 조용히 통과시키거나
     #  엉뚱한 자리에서 죽는 대신, **여기서** 거절해야 한다.
-    if x.size < 8 or not np.isfinite(x).all():
+    #: ⛔⛔길이 관문이 8 이면 **안 된다**(2026-09-13(6) 적대 검증). 조각 길이는
+    #  auto_periods(prf, f_flash) × prf / f_flash 표본이고, STFT 는 그보다 긴 입력을
+    #  요구한다. 실측: 길이 8~70 은 ValueError «noverlap must be less than nperseg»,
+    #  71 은 IndexError 로 죽었다. ⇒ **필요한 길이를 세어** 그보다 짧으면 거절한다.
+    _nper = max(8, int(round(auto_periods(prf, f_flash) * prf / f_flash)))
+    if x.size <= _nper + 1 or not np.isfinite(x).all():
         return None, None, None
     if dc_removed:
         x = x - x.mean()
@@ -271,10 +276,11 @@ def write_md(out: dict) -> None:
         _v = ("⛔분할 차이에 묻힌다"
               if r["moving_band_spread_db"] < 2.0 * r["within_cell_spread_ac_db"]
               else "분할 차이보다 크다")
-        a(f"| {r['env']} | {r['el_deg']:+.0f} | {r['band_spread_db']:.2f} dB | "
-          f"{r['within_cell_spread_db']:.2f} dB | "
-          f"{r['moving_band_spread_db']:.2f} dB | "
-          f"{r['within_cell_spread_ac_db']:.2f} dB | "
+        #: ⚠소수 두 자리면 0.015 와 0.008 이 **둘 다 0.01** 로 찍혀 산문과 어긋난다.
+        a(f"| {r['env']} | {r['el_deg']:+.0f} | {r['band_spread_db']:.3f} dB | "
+          f"{r['within_cell_spread_db']:.3f} dB | "
+          f"{r['moving_band_spread_db']:.3f} dB | "
+          f"{r['within_cell_spread_ac_db']:.3f} dB | "
           f"{r['moving_slope_db_per_ghz']:+.2f} dB/GHz | {_v} |")
     a("")
     a("⛔**통계를 짝 맞춰 읽는다** — 전체 퍼짐은 전체 짝·홀 차와, 움직이는 몫의 퍼짐은 "

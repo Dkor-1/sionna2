@@ -3,7 +3,7 @@
 > ⛔이 문서는 손으로 쓰지 않는다. `benchmark/freeze_0912.py` 가 굽는다.
 > 지금과 대조하려면 `--check`. 받아들이려면 `--update`(왜 움직였는지 커밋에 적는다).
 
-- 뜬 때 `2026-09-13T11:50:39Z` · 커밋 `0c55f3b2600448f9f02ca353a2ce75f22ad08fdc`
+- 뜬 때 `2026-09-13T12:59:25Z` · 커밋 `cb4e659509e2b64efc3c835347d6f6f6655bfb26`
 - 사용자 지시: 「가·나·다 모두 시행해 볼 수 없을까? 현재까지의 결과들도 잘 보존하고」
 
 ## 원장
@@ -38,7 +38,7 @@
 | `outputs/read_canyonnull_0910.json` | 441 |
 | `outputs/read_dropladder_0910.json` | 89 |
 | `outputs/read_scenephysics_0913.json` | 826 |
-| `outputs/read_wfsurvive_0912.json` | 16903 |
+| `outputs/read_wfsurvive_0912.json` | 34702 |
 
 ⛔문자열 포함 검사가 아니라 **수를 그대로** 뜬다 — 사건 수가 바뀌면 --check 가 짚는다.
 
