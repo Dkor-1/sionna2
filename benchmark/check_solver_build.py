@@ -15,11 +15,12 @@
 상류가 무엇인지 모른다. 더 나쁜 것은 **이름이 같아 옛 샤드를 덮어쓰는 것**이다 —
 2026-08-17 에 메쉬 수리로 똑같은 사고가 났다(이름이 같아 옛 샤드를 재사용, 재계산이 무효).
 
-이 검사가 보는 것 넷
+이 검사가 보는 것 다섯
   ① `build_tag()` 가 판마다 옳은 꼬리표를 내나 (덮어쓰기를 막는 그 함수다)
   ② 문법이 그 꼬리표를 되읽고 되짓나
   ③ 창고 샤드의 **이름 꼬리표 ↔ 도장** 이 서로 맞나
   ④ 지금 설치된 판이 무엇이고, PathSolver 가 어떤 인자를 받나
+  ⑤ **적힌 판이 실제로 돌고 있는 판인가**(제자리 업그레이드 중에 어긋나는 자리)
 
 ⛔이 검사는 「2.1.0 이 옳다」거나 「2.0.1 이 틀렸다」를 말하지 않는다. 섞이지 않게만 한다.
 """
@@ -190,9 +191,18 @@ def check_shards(limit: int = 0) -> int:
     from arm_grammar import ArmNameError, parse
     import re
     rx = re.compile(r"^(?P<arm>.+)_el(?P<el>[-+][\d.]+)_(?P<sh>\d+)\.npz$")
-    paths = sorted(glob.glob(os.path.join(SHD, "*.npz")))
+    #: ⭐**모수는 디렉터리에서 센다** — glob 결과로 세면 `*.npz` 가 아닌 것(`.npz.part`·
+    #  `.npz.bak`)·점으로 시작하는 이름·하위 디렉터리가 **세어지지도 대조되지도 않는데**
+    #  셈은 그대로 ✅ 가 된다(2026-09-14 적대 검증). 항등식이면 검사가 아니다.
+    try:
+        entries = sorted(os.listdir(SHD))
+    except OSError as e:                                       # noqa: BLE001
+        print(f"── ③ 창고를 못 읽었다({type(e).__name__}: {e})")
+        return 1
+    paths = [os.path.join(SHD, e) for e in entries if e.endswith(".npz")]
+    other = [e for e in entries if not e.endswith(".npz")]
     if limit:
-        paths = paths[:limit]
+        paths, other = paths[:limit], []
     n_stamp = n_none = 0
     n_skip_name = n_skip_parse = 0          # ⭐말없이 건너뛴 수 — 전에는 세지도 찍지도 않았다
     bad = []
@@ -231,9 +241,14 @@ def check_shards(limit: int = 0) -> int:
     #: ⭐**셈이 맞나** — 전에는 건너뛴 것을 세지 않아 a+b < N 이어도 아무도 몰랐다
     acct = n_stamp + n_none + n_skip_name + n_skip_parse
     print(f"  셈: {n_stamp} + {n_none} + 이름규약 밖 {n_skip_name} + 문법이 못 읽음 {n_skip_parse}"
-          f" = {acct} {'✅' if acct == len(paths) else '⛔'} {len(paths)}")
+          f" = {acct} {'✅' if acct == len(paths) else '⛔'} {len(paths)}"
+          f" · 창고 안 «.npz 가 아닌 것» {len(other)}")
     if acct != len(paths):
-        bad.append(("(셈)", f"합이 {acct} 인데 샤드는 {len(paths)} 개다"))
+        #: ⛔합이 모자라면 읽다 터진 샤드가 있다는 뜻이다(그 갈래만 계수기를 안 올린다)
+        bad.append(("(셈)", f"합이 {acct} 인데 샤드는 {len(paths)} 개다 — 읽다 터진 것이 있다"))
+    if other:
+        #: ⚠굽다 만 파일·백업이 섞여 있으면 재개가 헷갈린다. 막지는 않고 짚는다
+        print(f"     ⚠{other[:6]}{' …' if len(other) > 6 else ''}")
     if n_skip_parse:
         bad.append(("(문법)", f"문법이 못 읽는 이름이 {n_skip_parse} 개 — 이 샤드는 대조에서 빠진다"))
     for p, why in bad[:12]:

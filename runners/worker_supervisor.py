@@ -106,6 +106,14 @@ EXCLUDE = {int(x) for x in os.environ.get("SIONNA2_EXCLUDE_GPUS", "").replace(" 
 # ╚══════════════════════════════════════════════════════════════════════════════════╝
 HOLD_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "GPU_HOLD.json")
 _hold_warned = {"v": None}
+#: ⭐**마지막으로 제대로 읽은 보류** — 파일이 깨졌을 때 규약을 잃지 않으려고 든다.
+#  ⛔⛔2026-09-14 적대 검증: 읽기·모양 실패가 전부 `return set()` 이라 **쉼표 오타 하나로
+#    보류가 풀렸다.** 그 바퀴에 4번 카드로 워커가 갔다(실측). 「큐를 굶기지 않는다」는
+#    지켜지지만 사용자 지시(「별도로 요청하기 전까지 4번에 싣지 마라」)는 깨진다.
+#  ⇒ **파일을 지운 것**(FileNotFoundError = 공식으로 끄는 법)만 규약을 푼다.
+#    깨진 것·모양이 이상한 것은 **마지막으로 성공한 보류를 그대로 쓴다** — 큐는 다른 카드에서
+#    계속 돌므로 굶지 않고, 보류는 사람이 고칠 때까지 살아 있다.
+_hold_last = {"v": None}
 
 
 def _as_gpu_list(v, what: str, warn: list) -> list:
@@ -124,7 +132,11 @@ def _as_gpu_list(v, what: str, warn: list) -> list:
     if isinstance(v, bool):
         warn.append(f"{what} 가 참/거짓이다 — 카드 번호가 아니다. 무시한다")
         return []
-    if isinstance(v, (int, float, str)):
+    if isinstance(v, str):
+        #: ⭐쉼표 목록도 받는다 — 같은 파일의 SIONNA2_EXCLUDE_GPUS="0,3" 과 표기를 맞춘다.
+        #  ⛔글자열을 그냥 순회하면 "10" 이 카드 1 과 0 으로 쪼개진다. 그래서 쉼표로만 가른다.
+        v = [x for x in v.replace(" ", "").split(",") if x]
+    elif isinstance(v, (int, float)):
         v = [v]                                   # ⭐스칼라를 목록으로 감싼다
     if not isinstance(v, (list, tuple, set)):
         warn.append(f"{what} 가 목록이 아니다({type(v).__name__}) — 무시한다")
@@ -137,7 +149,7 @@ def _as_gpu_list(v, what: str, warn: list) -> list:
         try:
             #: ⭐"4" 도 4 도 4.0 도 받되 글자로 안 쪼갠다. ⛔4.5 같은 것은 거절한다
             #  (정수와 같은 실수만 받는 규칙은 src/reader_gate.check_series 의 n_poses 와 같다).
-            fv = float(str(g).strip())
+            fv = float(str(g).strip())          # ⛔str 를 거친다 — float(큰 int) 의 OverflowError 회피
             if not fv.is_integer():
                 warn.append(f"{what} 의 {g!r} 는 정수가 아니다 — 무시한다")
                 continue
@@ -179,40 +191,72 @@ def temp_hold(ext: dict, log=None) -> set:
         with open(HOLD_JSON, encoding="utf-8") as f:
             d = json.load(f)
     except FileNotFoundError:
-        return set()                              # ⭐없으면 규약이 없는 것 — 조용한 것이 맞다
+        #: ⭐파일을 지우는 것이 **공식으로 끄는 법**이다(GPU_HOLD_README.md). 규약이 사라진다.
+        _hold_last["v"] = None
+        return set()
     except Exception as e:                                     # noqa: BLE001
-        if _hold_warned["v"] != ("read", str(e)):
-            _hold_warned["v"] = ("read", str(e))
-            say(f"  ⚠{HOLD_JSON} 를 못 읽었다({type(e).__name__}: {e}) — 이번 바퀴는 아무 카드도 안 뺀다")
-        return set()
-    warn = []
+        return _fallback(f"못 읽었다({type(e).__name__}: {e})", say)
     if not isinstance(d, dict):
-        say(f"  ⚠{HOLD_JSON} 의 최상위가 객체가 아니다({type(d).__name__}) — 아무 카드도 안 뺀다")
-        return set()
+        return _fallback(f"최상위가 객체가 아니다({type(d).__name__})", say)
+    warn = []
+    #: ⭐**규약을 푸는 길은 둘뿐이다** — 파일을 지우거나, `"gpus": []` 라고 **적어서** 비우거나.
+    #  ⛔열쇠를 오타 내면(`"gpu"`) JSON 은 멀쩡해 성공 경로로 빠지고 보류가 **조용히 풀린다.**
+    #    그 바퀴에 보류하려던 카드로 워커가 간다(2026-09-14 적대 검증 실측).
+    #  ⇒ 아는 열쇠가 **하나도 없으면** 그것은 「비우겠다」가 아니라 **잘못 쓴 파일**로 본다.
+    if not ({"gpus", "gpus_if_external"} & set(d)):
+        return _fallback("빼는 카드를 적는 열쇠(gpus · gpus_if_external)가 하나도 없다"
+                         f" — 있는 열쇠 {sorted(d)[:6]}", say)
     known = {"gpus", "gpus_if_external", "external_mb"}
     typo = [k for k in d if k not in known and not k.endswith("_ko")
             and k not in ("note", "set_by", "why_both_ko", "how_to_remove_ko", "limit_ko")]
     if typo:
         warn.append(f"모르는 열쇠 {typo} — 오타면 보류가 조용히 사라진다")
     try:
-        thr = float(d.get("external_mb", 5_000))
-    except (TypeError, ValueError):
+        #: ⛔`float(큰 정수)` 는 **OverflowError** 다 — TypeError 도 ValueError 도 아니라
+        #  전에는 새어 나가 한 바퀴를 통째로 죽였다(2026-09-14 적대 검증, 310 자리부터).
+        #  str 를 거치면 큰 수가 inf 로 포화돼 안 터진다. 그래도 except 는 넓게 잡는다.
+        thr = float(str(d.get("external_mb", 5_000)).strip())
+    except Exception:                                          # noqa: BLE001
         warn.append(f"external_mb {d.get('external_mb')!r} 를 수로 못 읽는다 — 5000 으로 본다")
         thr = 5_000.0
     out = set(_as_gpu_list(d.get("gpus"), "gpus", warn))
     for g in _as_gpu_list(d.get("gpus_if_external"), "gpus_if_external", warn):
         try:
-            if float(ext.get(g, 0)) >= thr:
+            if float(str(ext.get(g, 0)).strip()) >= thr:
                 out.add(g)
-        except (TypeError, ValueError):
+        except Exception:                                      # noqa: BLE001
             warn.append(f"카드 {g} 의 남의 점유를 수로 못 읽는다 — 안 뺀다")
     if not out and (d.get("gpus") or d.get("gpus_if_external") or typo):
         warn.append("⭐파일은 있는데 **빼는 카드가 하나도 없다** — 뜻한 바인지 보라")
-    if warn and _hold_warned["v"] != ("warn", tuple(warn)):
-        _hold_warned["v"] = ("warn", tuple(warn))
-        for w in warn:
-            say(f"  ⚠GPU_HOLD.json: {w}")
+    if warn:
+        if _hold_warned["v"] != ("warn", tuple(warn)):
+            for w in warn:
+                say(f"  ⚠GPU_HOLD.json: {w}")
+            #: ⛔say() **뒤에** 적는다 — 앞에 적으면 로그가 죽어 있던 바퀴의 경고가
+            #  「이미 알렸다」로 남아 되살아나도 영영 안 나온다(2026-09-14 적대 검증).
+            _hold_warned["v"] = ("warn", tuple(warn))
+    else:
+        #: ⭐**정상 바퀴는 슬롯을 푼다.** 안 그러면 같은 고장이 다시 났을 때 한 줄도 안 나간다
+        #  — 고쳤다가 같은 실수를 되풀이하면 무음이 되던 자리다(2026-09-14 적대 검증).
+        _hold_warned["v"] = None
+    _hold_last["v"] = set(out)
     return out
+
+
+def _fallback(why: str, say) -> set:
+    """파일을 못 읽었을 때 — **마지막으로 성공한 보류를 그대로 쓴다.**
+
+    ⛔규약을 잃는 쪽(빈 집합)으로 실패하지 않는다. 큐는 다른 카드에서 계속 돌므로 굶지 않는다.
+    """
+    keep = _hold_last["v"]
+    if _hold_warned["v"] != ("read", why):
+        if keep:
+            say(f"  ⚠GPU_HOLD.json 를 {why} — **마지막으로 읽은 보류 {sorted(keep)} 를 그대로 쓴다.**"
+                " 파일을 고치거나, 규약을 끄려면 파일을 지워라.")
+        else:
+            say(f"  ⚠GPU_HOLD.json 를 {why} — 아직 제대로 읽은 적이 없어 아무 카드도 안 뺀다")
+        _hold_warned["v"] = ("read", why)
+    return set(keep) if keep else set()
 
 
 CPU_LOAD_CAP = 0.85     # ⭐**우리** cgroup 사용률이 이보다 크면 새로 안 띄운다

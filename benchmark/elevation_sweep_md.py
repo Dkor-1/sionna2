@@ -1028,8 +1028,15 @@ def _solver_build() -> str:
 #: 한 프로세스 안에서 한 번만 잰다 — 샤드마다 importlib 을 두드리지 않는다.
 SOLVER_BUILD = _solver_build()
 
-#: ⭐⭐**기준 판** — 창고 샤드 7,730 개를 구운 판이다(2026-09-14 확인: 모든 샤드가
-#  2.0.1 설치 시각 08-13 00:24 **이후**라 그 전 판으로 구운 샤드가 없다).
+#: ⭐⭐**기준 판** — 창고의 기존 샤드를 구운 판이다.
+#  ⛔⛔2026-09-14 **근거를 내렸다.** 여기 적혀 있던 「모든 샤드가 2.0.1 설치 시각
+#    08-13 00:24 이후라 그 전 판으로 구운 샤드가 없다」는 **못 쓴다** — 창고 파일 시각의
+#    57 %(4,438/7,736)가 나노초 0 인 통짜 값이고 대부분 2026-08-24 하루에 몰려 있다.
+#    컨테이너 이관이 찍은 도장이지 굽기 시각이 아니다. 샤드가 스스로 적는 `t_start` 도
+#    210 개뿐이다(그 210 개 중 설치보다 이른 것은 0 개).
+#  ⇒ 지금 댈 수 있는 것은 **「2.0.1 이 아닌 판으로 구웠다는 기록이 없다」** 까지다.
+#    가장 이른 기록은 `docs/SIONNA_RT_REFERENCE.md:828`(2026-08-03 · 커밋 5ad359b0)의
+#    「우리 스택은 2.0.1」이다. 자세한 것은 docs/SIONNA_UPGRADE_0914.md.
 BUILD_BASELINE = "sionna=2.0.1 sionna-rt=2.0.1 mitsuba=3.8.0 drjit=1.3.1"
 BUILD_BASELINE_RT = "2.0.1"
 
@@ -1094,12 +1101,22 @@ def build_tag() -> str:
     try:
         with open(BUILD_REGISTRY, encoding="utf-8") as f:
             reg = json.load(f)
+        if not isinstance(reg, dict):
+            raise TypeError(f"최상위가 객체가 아니다({type(reg).__name__})")
         known = reg.get("builds", {})
+        #: ⛔"builds" 의 **값**이 목록·숫자면 여기서 잡아야 한다 — 안 그러면 다음 줄
+        #  `known.get(tag)` 가 try 밖에서 AttributeError 로 터진다(2026-09-14 적대 검증).
+        if not isinstance(known, dict):
+            raise TypeError(f'"builds" 가 객체가 아니다({type(known).__name__})')
     except FileNotFoundError:
         known = {}
     except Exception as e:                                     # noqa: BLE001
-        raise SystemExit(f"⛔판 장부 {BUILD_REGISTRY} 를 못 읽었다({type(e).__name__}: {e}).") from None
+        raise SystemExit(f"⛔판 장부 {BUILD_REGISTRY} 를 못 읽었다({type(e).__name__}: {e}).\n"
+                         '   모양은 {"builds": {"_rt210": "sionna=… sionna-rt=… mitsuba=… drjit=…"}} 다.') from None
     want = known.get(tag)
+    if tag in known and not isinstance(want, str):
+        raise SystemExit(f"⛔판 장부의 {tag!r} 값이 글이 아니다({type(want).__name__}) — "
+                         "판 묶음 문자열을 그대로 적어야 한다.")
     if want is None:
         raise SystemExit(
             f"⛔처음 보는 솔버 판이다 — 판 장부에 적고 오라.\n"
@@ -1149,17 +1166,27 @@ def _check_runtime_build() -> None:
         return
     _RT_CHECKED["v"] = True
     said = dict(part.split("=", 1) for part in SOLVER_BUILD.split() if "=" in part)
-    bad = []
-    for dist, mod in (("mitsuba", "mitsuba"), ("drjit", "drjit"),
-                      ("sionna", "sionna"), ("sionna-rt", "sionna_rt")):
+    #: ⛔⛔2026-09-14 적대 검증이 찾은 것 — 전에는 sionna-rt 를 `sys.modules["sionna_rt"]`
+    #  로 찾았다. **그런 모듈은 없다.** sionna-rt 배포판은 `sionna/rt/` 로 풀려 모듈 이름이
+    #  `sionna.rt` 다(실측: `importlib.util.find_spec("sionna_rt")` 는 None).
+    #  그래서 네 다리 중 **꼬리표를 정하는 바로 그 다리**가 언제나 건너뛰어졌다.
+    PAIRS = (("mitsuba", "mitsuba"), ("drjit", "drjit"),
+             ("sionna", "sionna"), ("sionna-rt", "sionna.rt"))
+    bad, seen = [], set()
+    for dist, mod in PAIRS:
         m = sys.modules.get(mod)
         if m is None:
             continue
         live = getattr(m, "__version__", None)
         if live is None or said.get(dist) in (None, "없음"):
             continue
+        seen.add(dist)
         if str(live) != said[dist]:
             bad.append(f"{dist}: 이름·도장에 적은 것 {said[dist]} ↔ 실제로 돌고 있는 것 {live}")
+    #: ⭐솔버가 올라와 있는데 **sionna-rt 를 못 봤다면** 그 자체가 탈이다 — 이름을 정하는 판이다.
+    if sys.modules.get("sionna.rt") is not None and "sionna-rt" not in seen:
+        bad.append("sionna-rt: 모듈은 올라와 있는데 판을 못 읽었다"
+                   f"(__version__ 없음 · 도장에는 {said.get('sionna-rt')!r})")
     if bad:
         raise SystemExit(
             "⛔**적힌 판과 도는 판이 다르다** — 이대로 저장하면 이름도 도장도 거짓이 된다.\n"
