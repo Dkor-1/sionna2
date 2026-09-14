@@ -34,7 +34,9 @@ def production_merge(groups):
     # check this died as `NameError: name '_prfs' is not defined` inside exec, three call
     # sites deep, and outputs/repository_review_0911.json stayed at its 09-11 build.
     # The sibling audit benchmark/review_repository_0911.py:_free_names does the same.
-    preamble='E=None; secs=0.; npa=[]; cfg=None; _prfs=set(); _stamps=[]; _runs=set(); _tstarts=[]'
+    # 2026-09-14: production gained _builds (per-cell solver build stamp).
+    preamble=('E=None; secs=0.; npa=[]; cfg=None; _prfs=set(); _stamps=[]; _runs=set(); '
+              '_tstarts=[]; _builds=set()')
     wrapper=ast.parse('def run(groups):\n results=[]\n for fs in groups:\n  '+preamble+'\n return results')
     loop=wrapper.body[0].body[1]
     seeded={'np','os','fs','groups','results'}|{x.split('=')[0].strip() for x in preamble.split(';')}

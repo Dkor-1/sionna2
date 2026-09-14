@@ -122,17 +122,46 @@ def shards():
 def _free_names(body,ns):
     """Names the extracted block reads before assigning. Empty set means the audit
     namespace covers production. 2026-09-13(6): added so a new accumulator in the
-    merge loop reports a clear boundary error instead of NameError deep inside exec."""
+    merge loop reports a clear boundary error instead of NameError deep inside exec.
+
+    2026-09-14(2): comprehension and lambda targets are no longer counted as bound for
+    the whole block. The old version walked the block flat, so a name bound only inside
+    a comprehension looked available everywhere after it - the same false-pass class the
+    sibling check in benchmark/review_latest_readers_0910.py:_free_in_scope was rewritten
+    for. The merge block has no nested functions, so a full per-scope walk is not needed
+    here; skipping comprehension and lambda subtrees is enough."""
     import builtins
     mod=ast.Module(body=list(body),type_ignores=[])
     assigned=set();read=set()
-    for n in ast.walk(mod):
-        if isinstance(n,ast.Name):
-            (assigned if isinstance(n.ctx,ast.Store) else read).add(n.id)
-        elif isinstance(n,(ast.For,)) and isinstance(n.target,ast.Name):
-            assigned.add(n.target.id)
-        elif isinstance(n,ast.comprehension) and isinstance(n.target,ast.Name):
-            assigned.add(n.target.id)
+    def walk(n):
+        for ch in ast.iter_child_nodes(n):
+            if isinstance(ch,(ast.ListComp,ast.SetComp,ast.DictComp,ast.GeneratorExp,ast.Lambda)):
+                # Own scope: only the names it READS from outside leak out.
+                inner_bound=set()
+                for g in ast.walk(ch):
+                    if isinstance(g,ast.comprehension):
+                        for t in ast.walk(g.target):
+                            if isinstance(t,ast.Name): inner_bound.add(t.id)
+                    elif isinstance(g,ast.arg):
+                        inner_bound.add(g.arg)
+                for g in ast.walk(ch):
+                    if isinstance(g,ast.Name) and isinstance(g.ctx,ast.Load) and g.id not in inner_bound:
+                        read.add(g.id)
+                continue
+            if isinstance(ch,ast.Name):
+                (assigned if isinstance(ch.ctx,ast.Store) else read).add(ch.id)
+            elif isinstance(ch,(ast.For,ast.AsyncFor)):
+                for t in ast.walk(ch.target):
+                    if isinstance(t,ast.Name): assigned.add(t.id)
+            elif isinstance(ch,ast.ExceptHandler) and ch.name:
+                assigned.add(ch.name)
+            elif isinstance(ch,ast.withitem) and ch.optional_vars is not None:
+                for t in ast.walk(ch.optional_vars):
+                    if isinstance(t,ast.Name): assigned.add(t.id)
+            elif isinstance(ch,(ast.Import,ast.ImportFrom)):
+                for al in ch.names: assigned.add((al.asname or al.name).split('.')[0])
+            walk(ch)
+    walk(mod)
     return {x for x in read-assigned-set(ns)-set(dir(builtins)) if not x.startswith('__')}
 
 
@@ -148,8 +177,9 @@ def raw_merge(files):
     assert code is not None
     # 2026-09-13(6): production gained new accumulators (e.g. _prfs for per-cell PRF).
     # Seed them, then CHECK the extraction boundary instead of dying on NameError.
+    # 2026-09-14: production gained _builds (per-cell solver build stamp). Seed it here too.
     ns=dict(np=np,os=os,fs=files,E=None,secs=0.,npa=[],cfg=None,_prfs=set(),_stamps=[],
-            _runs=set(),_tstarts=[])
+            _runs=set(),_tstarts=[],_builds=set())
     missing=_free_names(code,ns)
     if missing:
         raise RuntimeError('extracted production block needs names the audit does not '

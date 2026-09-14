@@ -64,6 +64,31 @@ ARMS = {"R0D0E0F1": "확산만", "R0D1E0F1": "+회절", "R0D1E1F1": "+회절+모
         "R1D0E0F1": "+굴절", "R1D1E1F1": "전부(굴절+회절+모서리)"}
 
 
+def gen_note(row) -> dict | None:
+    """그 칸이 **두 세대였나** — 발간 행에 실을 한 줄 요약(아니면 None).
+
+    ⛔⛔2026-09-14(2) 신설. 공통 관문이 세대를 「고른 **뒤** 갈린 자세가 남았나」로 판정하게
+      완화했는데(그건 옳다 — 깨끗이 풀린 칸까지 버리면 안 된다), 그 바람에 **고르기 전에는
+      크게 갈렸다는 사실**이 발간물 어디에도 안 남았다.
+    ⛔실측(2026-09-14): 원장의 두 세대 칸 4 개는 고른 뒤 갈린 자세가 0 이지만, 고르기 **전**
+      에는 자세 3,057~3,981 / 8,192(37~49 %)가 다르고 최대 상대차가 0.0075~0.4999 다.
+      그 칸에서 나온 발간 행 6 개에 그 사실을 적은 열이 하나도 없었다.
+    ⇒ 관문은 그대로 통과시키되(값은 한 세대로 풀렸다) **행이 스스로 말하게** 한다.
+    """
+    m = (row or {}).get("mixed_generations")
+    if not isinstance(m, dict):
+        return None
+    return {"n_generations": m.get("n_generations"),
+            "selected_by": m.get("selected_by"),
+            "kept_conflicting_poses": m.get("kept_conflicting_poses"),
+            "n_poses_differing_before_pick": m.get("n_poses_differing"),
+            "rel_diff_max_before_pick": m.get("rel_diff_max"),
+            "note_ko": ("이 칸에는 굽기 세대가 둘이었고 하나를 골랐다. 고른 뒤 갈린 자세는 "
+                        f"{m.get('kept_conflicting_poses')} 개지만, 고르기 **전**에는 "
+                        f"{m.get('n_poses_differing')} 자세가 달랐다(최대 상대차 "
+                        f"{m.get('rel_diff_max')}). ⛔두 세대를 가로지르는 비교에 쓰지 않는다.")}
+
+
 def has_diffraction(arm: str) -> bool:
     """D 비트 — 회절을 켰나. ⛔이름 문자열로 세지 않는다(그래서 틀렸다)."""
     return arm[3] == "1"
@@ -313,6 +338,7 @@ def main() -> int:
         #: ③ ⭐순서가 중요하다 — **갈아끼우고 나서** 정지 성분을 뺀다(덱 bake_outdoor.py:465)
         Er, n_rep = drop_outliers(Es, 51, 5.0)
         rows.append(dict(
+            mixed_generations=gen_note(r), free_mixed_generations=gen_note(fr),
             scene=sc(r["engine"]), arm=arm, arm_ko=ARMS.get(arm, arm), el_deg=el,
             engine=r["engine"], free_engine=fengine,
             level_scene_db=db(np.abs(Es).mean()), level_free_db=db(np.abs(Ef).mean()),

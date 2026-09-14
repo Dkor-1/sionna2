@@ -57,6 +57,31 @@ MD = os.path.join(ROOT, "docs/WFSURVIVE_0912.md")
 
 #: 망이 채널을 읽는 프레임율과 프레임 길이 — src/experiment_detection.py:98-102 의 CPI_CFG
 #:   ⛔여기 값을 손으로 적지 않는다. 그 파일에서 읽어 온다.
+def gen_note(row) -> dict | None:
+    """그 칸이 **두 세대였나** — 발간 행에 실을 한 줄 요약(아니면 None).
+
+    ⛔⛔2026-09-14(2) 신설. 공통 관문이 세대를 「고른 **뒤** 갈린 자세가 남았나」로 판정하게
+      완화했는데(그건 옳다 — 깨끗이 풀린 칸까지 버리면 안 된다), 그 바람에 **고르기 전에는
+      크게 갈렸다는 사실**이 발간물 어디에도 안 남았다.
+    ⛔실측(2026-09-14): 원장의 두 세대 칸 4 개는 고른 뒤 갈린 자세가 0 이지만, 고르기 **전**
+      에는 자세 3,057~3,981 / 8,192(37~49 %)가 다르고 최대 상대차가 0.0075~0.4999 다.
+      그 칸에서 나온 발간 행 6 개에 그 사실을 적은 열이 하나도 없었다.
+    ⇒ 관문은 그대로 통과시키되(값은 한 세대로 풀렸다) **행이 스스로 말하게** 한다.
+    """
+    m = (row or {}).get("mixed_generations")
+    if not isinstance(m, dict):
+        return None
+    return {"n_generations": m.get("n_generations"),
+            "selected_by": m.get("selected_by"),
+            "kept_conflicting_poses": m.get("kept_conflicting_poses"),
+            "n_poses_differing_before_pick": m.get("n_poses_differing"),
+            "rel_diff_max_before_pick": m.get("rel_diff_max"),
+            "note_ko": ("이 칸에는 굽기 세대가 둘이었고 하나를 골랐다. 고른 뒤 갈린 자세는 "
+                        f"{m.get('kept_conflicting_poses')} 개지만, 고르기 **전**에는 "
+                        f"{m.get('n_poses_differing')} 자세가 달랐다(최대 상대차 "
+                        f"{m.get('rel_diff_max')}). ⛔두 세대를 가로지르는 비교에 쓰지 않는다.")}
+
+
 def net_rates() -> list[dict]:
     src = open(os.path.join(ROOT, "src/experiment_detection.py"), encoding="utf-8").read()
     m = re.search(r"CPI_CFG\s*=\s*\{(.*?)\n\}", src, re.S)
@@ -441,7 +466,8 @@ def main() -> int:
         arm = parse_arm(r["engine"]).get("switches")
         #: ⭐켠 변화축을 이름에 드러낸다 — 같은 (장면·앙각·팔)이라도 줄이 안 겹치게.
         _ax = " ".join(f"{k}={v}" for k, v in sorted(axes.items()))
-        rows.append(dict(engine=r["engine"], scene=scene(r["engine"]), el_deg=r["el_deg"],
+        rows.append(dict(mixed_generations=gen_note(r),
+                         engine=r["engine"], scene=scene(r["engine"]), el_deg=r["el_deg"],
                          arm=arm,
                          axes=axes, axes_label=(_ax or "기본"),
                          row_label=f"{scene(r['engine'])} el{r['el_deg']:+g} {arm}"

@@ -45,6 +45,14 @@ def js(rel):
         return json.load(f)
 
 
+def _short(v, n: int = 400):
+    """갱신 기록에 실을 값 — 길면 글자로 잘라 싣는다(2026-09-14(2) 신설)."""
+    if isinstance(v, (int, float, bool)) or v is None:
+        return v
+    t = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
+    return t if len(t) <= n else t[:n] + f"… (잘림 · 원래 {len(t)} 자)"
+
+
 def measure() -> dict:
     """지금의 수를 **상류에서 다시 계산**한다."""
     m: dict = {}
@@ -383,8 +391,13 @@ def main() -> int:
     if os.path.exists(OUT) and "--update" in sys.argv:
         old = js("outputs/freeze_0912.json")["baseline"]
         a, b = dict(flatten(old)), dict(flatten(now))
+        #: ⛔⛔2026-09-14(2) — `_updates` 를 **빼지 않아** 갱신 기록이 자기 자신을 예시로
+        #  담았다. 그래서 `--update` 를 돌릴 때마다 파일 크기가 거의 배로 불었고
+        #  (오늘만 8 → 13 → 27 → 65 → **176 MB**) 결국 GitHub 100 MB 한도에 걸려
+        #  푸시가 거절됐다. `--check` 쪽(:370)은 처음부터 빼고 있었다 — 이쪽만 빠졌다.
         moved = [(k, a.get(k), b.get(k)) for k in sorted(set(a) | set(b))
-                 if a.get(k) != b.get(k) and not k.endswith(".head")]
+                 if a.get(k) != b.get(k) and not k.endswith(".head")
+                 and not k.startswith("_updates")]
         if moved and "--why" not in sys.argv:
             print(f"⛔움직인 자리 {len(moved)} 개인데 까닭이 없다 — "
                   f"`--update --why \"…\"` 로 한 줄 적는다.")
@@ -399,7 +412,10 @@ def main() -> int:
         now["_updates"] = (prev if isinstance(prev, list) else []) + [
             dict(at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                  moved=len(moved), why_ko=why,
-                 examples=[dict(path=k, was=x, now=y) for k, x, y in moved[:8]])]
+                 #: ⛔값이 큰 자리(목록·사전)는 **글자로 잘라** 싣는다 — 예시 하나가
+                 #  수십 MB 가 되면 기록이 아니라 짐이다.
+                 examples=[dict(path=k, was=_short(x), now=_short(y))
+                           for k, x, y in moved[:8]])]
     #: ⛔집 규약 — 원장은 `_meta.generator` 에 «다시 구울 스크립트» 를 적어야 한다
     #  (benchmark/check_new_file_rules.py ⓔ). 첫 판은 그것을 최상위에 적어 검사에 걸렸다.
     base = dict(_meta=dict(generator="benchmark/freeze_0912.py",
