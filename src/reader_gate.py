@@ -308,7 +308,7 @@ _NF_TOKEN = r"(?:nan|NaN|NAN|[-+]?inf|[-+]?Inf|[-+]?INF|[-+]?Infinity)"
 #  안 보이고 글 검사가 지나간다 — 그래서 `cell()`(아래)이 **진짜 방벽**이고 글 검사는 보조다.
 _UNITS = ("dBsm", "dBm", "dBi", "dB", "GHz", "MHz", "kHz", "Hz", "%p", "%",
           "ms", "µs", "us", "ns", "mm", "cm", "km", "m", "s", "°",
-          "점", "판", "칸", "개", "배", "자리", "쌍", "행")
+          "점", "판", "칸", "개", "배", "자리", "쌍", "행", "반송파", "벌")
 #: ⛔「자세」는 일부러 **뺐다**(2026-09-14). 자세 수는 언제나 정수라 비유한 수가 될 수
 #  없는데, 단위로 두면 `check_series` 의 사유 「비유한 값이 4 자세에 있다(NaN·무한)」가
 #  표 칸 안에서 값 자리로 읽혀 거절됐다 — 사유는 실려야 하는 글이다.
@@ -429,6 +429,12 @@ def cell(v, spec: str = "", unit: str = "", *, none: str = "없음") -> str:
     if not math.isfinite(x):
         raise ValueError(f"표 칸에 비유한 수를 찍으려 한다({x!r} · 서식 {spec!r}{unit!r}) — "
                          "값이 없으면 None 을 넘겨라(«없음» 으로 찍힌다)")
+    #: ⭐정수 서식(d·n·b·o·x·X)은 float 로는 못 찍는다 — 정수면 정수로 넘긴다.
+    #  ⛔값이 정수가 아닌데 정수 서식을 달라고 하면 **조용히 자르지 않고** 멈춘다.
+    if spec and spec[-1] in "dnboxX":
+        if not float(x).is_integer():
+            raise ValueError(f"정수 서식 {spec!r} 인데 값이 정수가 아니다({x!r})")
+        return format(int(x), spec) + unit
     return format(x, spec) + unit
 
 
@@ -463,6 +469,10 @@ def _nonfinite_paths(o, path: str = "") -> list[str]:
     return out
 
 
+#: 발간 임시 파일의 이름 앞머리. ⛔바꾸면 옛 고아를 못 알아본다.
+_TMP_PREFIX = ".pub_"
+
+
 def publish(items: dict, *, allow_nonfinite: bool = False) -> dict:
     """⭐**다 만든 뒤 한 번에** 발간한다. `items` 는 {최종경로: 내용}.
 
@@ -489,7 +499,10 @@ def publish(items: dict, *, allow_nonfinite: bool = False) -> dict:
         for p, v in items.items():
             d = os.path.dirname(os.path.abspath(p)) or "."
             os.makedirs(d, exist_ok=True)
-            fd, tmp = tempfile.mkstemp(dir=d, prefix=".pub_", suffix=".tmp")
+            #: ⭐임시 이름에 **소유 프로세스 번호**를 적는다 — `sweep_orphans` 가 살아 있는
+            #  발간을 안 지우려면 주인을 알아야 한다(2026-09-14(4) 신설).
+            fd, tmp = tempfile.mkstemp(dir=d, prefix=f"{_TMP_PREFIX}{os.getpid()}_",
+                                       suffix=".tmp")
             #: ⛔⛔**만들자마자 목록에 넣는다**(2026-09-13(10) 정정). 옛 판은 `with` 가
             #  끝난 뒤에 넣어서, 쓰다 죽으면(디스크 참 · json.dump 의 TypeError) 그
             #  임시 파일을 finally 가 못 지우고 **고아로 남았다** — 실측으로 재현했다.
@@ -517,17 +530,64 @@ def publish(items: dict, *, allow_nonfinite: bool = False) -> dict:
     return {"published": sorted(items), "n": len(items)}
 
 
-def sweep_orphans(dirs: Iterable[str]) -> list[str]:
-    """지난번에 죽어 남은 `.pub_*.tmp` 를 쓸어담는다. ⭐판독기가 시작할 때 부른다."""
+def _pid_alive(pid: int) -> bool:
+    """그 프로세스가 아직 사나. ⛔모르면 **살아 있다고 본다**(안 지우는 쪽으로 기운다)."""
+    if pid <= 0:
+        return True
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True                 # 남의 프로세스지만 살아 있다
+    except Exception:               # noqa: BLE001
+        return True                 # 모르면 안 지운다
+    return True
+
+
+def sweep_orphans(dirs: Iterable[str], *, dry_run: bool = False) -> dict:
+    """죽어 남은 임시 파일만 쓸어담는다 — **살아 있는 발간은 건드리지 않는다.**
+
+    ⛔⛔2026-09-14(4) 정정. 옛 판은 디렉터리의 `.pub_*.tmp` 를 **전부** 지웠다. 그래서
+      다른 판독기가 **지금 발간 중**인 임시 파일까지 지웠다.
+      ⛔실측 재현(외부 점검): 임시 디렉터리에서 첫 파일 교체 직후 다른 판독기의 정리를
+        끼워 넣으니 살아 있는 임시 파일 1 개가 지워졌고, 다음 교체가 FileNotFoundError 로
+        끝나 **JSON 은 새것 · 글은 옛것**으로 쪽이 갈렸다. 전원이 안 나가도, 정상 함수
+        호출만으로 일어난다.
+    ⇒ 임시 이름에 **소유 프로세스 번호**를 적고(`publish` 가 `.pub_<pid>_…` 로 만든다),
+      그 프로세스가 **죽었을 때만** 지운다.
+    ⛔⛔소유자를 못 읽는 파일(옛 이름꼴)은 **안 지운다** — 나이만으로 지우면 오래 걸리는
+      정상 발간을 다시 지우게 된다. 대신 `unknown` 으로 돌려주어 사람이 보게 한다.
+    ⚠이 함수는 **한 파일씩** 지운다. 여러 파일에 걸친 발간의 원자성은 여전히 없다
+      (`publish` 머리말 참조) — 이 고침은 «남이 내 임시 파일을 지우는» 충돌만 없앤다.
+    """
     gone: list[str] = []
+    kept_alive: list[str] = []
+    unknown: list[str] = []
     for d in dirs:
         if not os.path.isdir(d):
             continue
         for n in os.listdir(d):
-            if n.startswith(".pub_") and n.endswith(".tmp"):
-                try:
-                    os.unlink(os.path.join(d, n))
-                    gone.append(os.path.join(d, n))
-                except OSError:
-                    pass
-    return gone
+            if not (n.startswith(_TMP_PREFIX) and n.endswith(".tmp")):
+                continue
+            full = os.path.join(d, n)
+            m = re.match(re.escape(_TMP_PREFIX) + r"(\d+)_", n)
+            if not m:
+                unknown.append(full)
+                continue
+            pid = int(m.group(1))
+            if pid == os.getpid() or _pid_alive(pid):
+                kept_alive.append(full)
+                continue
+            if dry_run:
+                gone.append(full)
+                continue
+            try:
+                os.unlink(full)
+                gone.append(full)
+            except OSError:
+                pass
+    return {"removed": gone, "kept_alive": kept_alive, "unknown_owner": unknown,
+            "note_ko": ("소유 프로세스가 **죽은** 임시 파일만 지운다. 살아 있는 것과 "
+                        "소유자를 못 읽는 옛 이름꼴은 남긴다 — 남의 발간을 지우지 않으려는 "
+                        "것이다(2026-09-14(4) 신설).")}

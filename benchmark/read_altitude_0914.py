@@ -127,23 +127,32 @@ def cell_series(arm: str, el: float, n_poses_ledger=None):
     return (E, prf), None
 
 
-def lag1_corr(E: np.ndarray):
-    """움직이는 몫의 **이웃 자세 상관**. ⭐이 열이 물리인지 떨림인지 가르는 자.
+def lag_corr(E: np.ndarray, k: int = 1):
+    """움직이는 몫의 **정규화된 복소 지연 상관** — (실수부, 크기) 를 돌려준다.
 
-    자세 번호가 곧 날개 각도이므로, 로터 위상에 반응하는 전계는 이웃 자세와 **강하게
-    상관**해야 한다. 무상관(≈0)이면 그 «움직임» 은 자세를 따라 흐르는 신호가 아니다.
-    ⛔실측(2026-09-14 적대 검증): 실외 칸은 0.0049(el −30)·0.0024(el −60) 인데 설정이 글자
-      그대로 같은 빈 하늘 팔은 0.9757·0.9905 다. 그래서 실외의 «움직임» 열을 **날개 신호로
-      읽으면 안 된다** — 이 판독은 그 사실을 표에 함께 싣는다.
+    ⛔⛔2026-09-14(4) 정정 — 옛 판은 **실수부만** 돌려주고 그것으로 「자세를 따라 흐르는
+      신호가 아니다」라고 결론지었다. 그 결론은 이 통계에서 안 나온다:
+        · 주기 4 표본의 **결정적** 신호 exp(2πi·n/4) 는 실수부가 **0** 인데 복소 크기는
+          **1.0** 이다(실측 재현). 곧 실수부가 0 이라고 «신호가 없다» 가 아니다.
+      ⇒ **크기도 함께** 내고, 결론은 «실외와 빈 하늘의 상관 구조가 다르다» 까지로 낮춘다.
+    ⭐지연을 둘 본다 — 이웃 자세(k=1)와 **날개 박자 한 주기**(k ≈ prf/f_flash).
+      로터 위상에 반응하는 전계는 둘 다에서 상관이 서야 한다.
+    ⚠이것으로 «잡음의 종류» 를 판정하지 않는다 — 그건 다른 대조의 몫이다.
     """
     x = np.asarray(E) - np.asarray(E).mean()
-    if x.size < 3:
-        return None
-    a, b = x[:-1], x[1:]
+    if x.size < k + 2 or k < 1:
+        return None, None
+    a, b = x[:-k], x[k:]
     da = float(np.real(np.vdot(a, a))); db = float(np.real(np.vdot(b, b)))
     if da <= 0 or db <= 0:
-        return None
-    return round(float(np.real(np.vdot(a, b)) / math.sqrt(da * db)), 4)
+        return None, None
+    c = np.vdot(a, b) / math.sqrt(da * db)
+    return round(float(c.real), 4), round(float(abs(c)), 4)
+
+
+def lag1_corr(E: np.ndarray):
+    """뒤에 쓰던 이름 — 실수부만 돌려준다(표는 크기도 함께 싣는다)."""
+    return lag_corr(E, 1)[0]
 
 
 def parts(E: np.ndarray) -> dict:
@@ -182,7 +191,8 @@ def db_ratio(a: float, b: float):
 
 
 def main() -> int:
-    sweep_orphans([os.path.dirname(OUT), os.path.dirname(MD)])
+    #: ⭐죽은 프로세스의 임시 파일만 지운다 — 살아 있는 남의 발간은 안 건드린다.
+    _orph = sweep_orphans([os.path.dirname(OUT), os.path.dirname(MD)])
     L = json.load(open(LED_J, encoding="utf-8"))
     ROW = {(r["engine"], float(r["el_deg"])): r for r in L["rows"]}
     DEFAULT_ALT = _default_alt()
@@ -241,6 +251,17 @@ def main() -> int:
         bad = [k for k in ("n_poses", "spp", "fc_hz", "f_tip_hz", "range_m",
                            "max_depth", "prf_hz", "f_flash_hz")
                if r.get(k) != rb.get(k)]
+        #: ⛔⛔2026-09-14(4) — **도장을 적는 것과 비교에서 혼합을 막는 것은 다른 일이다.**
+        #  서로 다른 솔버 판으로 구운 두 칸이 쌍이 되면 그 차는 고도가 아니라 판 갈이다.
+        #  ⚠지금 원장 2,408 행은 이 필드를 아직 안 들고 있다(샤드 7,720 중 7,704 장이
+        #    도장 전 세대다). 그래서 지금은 «둘 다 없음» 으로 통과한다 — 그것도 적는다.
+        #  ⛔없는 판을 설치본에서 역산하지 않는다(출처를 만들어 내게 된다).
+        _ba, _bb = r.get("solver_build"), rb.get("solver_build")
+        _sa, _sb = r.get("solver_build_seen"), rb.get("solver_build_seen")
+        if _sa or _sb:
+            bad.append("solver_build_seen(한 칸에 판이 여럿)")
+        elif _ba != _bb:
+            bad.append(f"solver_build({_ba} ↔ {_bb})")
         if bad:
             skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
                                 why_codes=["쌍의 조건 어긋남"],
@@ -263,11 +284,35 @@ def main() -> int:
                                 why=" · ".join(x for x in (why_a, why_b) if x)))
             continue
         Ea, prf = got_a
-        Eb, _ = got_b
+        Eb, prf_b = got_b
+        #: ⛔⛔2026-09-14(4) — 쌍의 조건 검사(:위)는 **원장끼리만** 봤다. 그래서 원장 값은
+        #  같은데 **샤드의 저장 표집률**만 다른 쌍이 그대로 통과했다. 실측 반례: 기준 샤드의
+        #  표집률만 10,000 Hz 로 바꾸면 기준 시계열의 올바른 리듬 몫 0.00 % 가 높은 고도
+        #  쪽 표집률로 계산돼 **99.99 %** 로 발간됐다(양쪽이 원장과 함께 어긋나도 통과).
+        #  ⇒ ⓐ 각 시계열의 **저장** 표집률을 그 칸의 **원장** 값과 대조하고
+        #    ⓑ 쌍의 두 저장 표집률이 서로 같은지도 본다. 빈 하늘 대조도 같은 계약이다.
+        _pw = []
+        for _nm, _row, _p in (("고도 팔", r, prf), ("기준 고도 팔", rb, prf_b),
+                              ("빈 하늘 팔", rf, (got_f[1] if got_f else None))):
+            if _p is None or _row is None:
+                continue
+            _lp = _row.get("prf_hz")
+            if _lp is not None and abs(float(_lp) - float(_p)) > 1.0:
+                _pw.append(f"{_nm}의 저장 표집률이 원장과 다르다(샤드 {_p} · 원장 {_lp})")
+        if prf_b is not None and abs(float(prf) - float(prf_b)) > 1.0:
+            _pw.append(f"쌍의 저장 표집률이 서로 다르다(고도 {prf} · 기준 {prf_b})")
+        if got_f is not None and abs(float(prf) - float(got_f[1])) > 1.0:
+            _pw.append(f"빈 하늘 대조의 저장 표집률이 다르다(고도 {prf} · 빈 하늘 {got_f[1]})")
+        if _pw:
+            skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
+                                why_codes=["저장 표집률 어긋남"], why=" · ".join(_pw)))
+            continue
         pa, pb = parts(Ea), parts(Eb)
         alt = float(f["env_alt"])
         ftip = float(r.get("f_tip_hz") or 0.0)
         ffl = float(r.get("f_flash_hz") or 0.0)
+        #: ⭐날개 박자 한 주기가 몇 자세인가 — 자세 번호가 곧 날개 각도다.
+        k_blade = int(round(prf / ffl)) if (ffl and prf and ffl > 0) else 0
         #: ⭐레이다가 지면 위로 뜬 높이 — 드론이 원점이고 레이다는 rng·sin(el) 깊이다.
         rng_m = float(r.get("range_m") or 0.0)
         h_new = alt - rng_m * abs(math.sin(math.radians(el)))
@@ -290,10 +335,21 @@ def main() -> int:
                                 else round(d_dc - pred, 3)),
             rhythm_share_pct=rhythm_share_pct(Ea, prf, ffl, ftip),
             base_rhythm_share_pct=rhythm_share_pct(Eb, prf, ffl, ftip),
-            #: ⭐«움직임» 열이 물리인지 떨림인지 — 이웃 자세 상관(lag1_corr 머리말 참조).
-            lag1_corr=lag1_corr(Ea), base_lag1_corr=lag1_corr(Eb),
+            #: ⭐«움직임» 열의 상관 구조 — 실수부·크기를 **두 지연**에서 본다(lag_corr 머리말).
+            #  k=1 은 이웃 자세, k_blade 는 날개 박자 한 주기다.
+            lag1_corr=lag_corr(Ea, 1)[0], lag1_abs=lag_corr(Ea, 1)[1],
+            base_lag1_corr=lag_corr(Eb, 1)[0], base_lag1_abs=lag_corr(Eb, 1)[1],
+            blade_lag=k_blade,
+            blade_lag_abs=(lag_corr(Ea, k_blade)[1] if k_blade else None),
+            base_blade_lag_abs=(lag_corr(Eb, k_blade)[1] if k_blade else None),
+            #: ⭐이 쌍이 어느 솔버 판으로 구워졌나 — 없으면 «도장 전 세대» 다.
+            solver_build=(r.get("solver_build") or "(도장 전 세대)"),
+            base_solver_build=(rb.get("solver_build") or "(도장 전 세대)"),
             free_engine=(free_arm if rf is not None else None),
-            free_lag1_corr=(lag1_corr(got_f[0]) if got_f is not None else None),
+            free_lag1_corr=(lag_corr(got_f[0], 1)[0] if got_f is not None else None),
+            free_lag1_abs=(lag_corr(got_f[0], 1)[1] if got_f is not None else None),
+            free_blade_lag_abs=((lag_corr(got_f[0], k_blade)[1])
+                                if (got_f is not None and k_blade) else None),
             #: ⭐리듬 몫의 **기하 바닥** 2·hw/f_flash — 실린 값이 이 바닥 근처면 아무것도 안 잰다.
             rhythm_floor_pct=(None if not ffl else round(200.0 * 8.0 / ffl, 2)),
         ))
@@ -304,10 +360,15 @@ def main() -> int:
     #  그런데 고도를 20 → 10 m 로 **내린** 쌍은 +14.003 dB **올라간다.** 발간 문장이 제
     #  표와 어긋났다. ⇒ 부호를 그대로 쓴다.
     d_dcs = [r["d_dc_power_db"] for r in rows if r["d_dc_power_db"] is not None]
-    corr = ([r["lag1_corr"] for r in rows if r["lag1_corr"] is not None]
-            + [r["base_lag1_corr"] for r in rows if r["base_lag1_corr"] is not None])
+    #: ⭐⭐**크기로 센다**(2026-09-14(4) 정정) — 실수부만 보면 주기 4 표본의 결정적 신호도
+    #  0 이 나온다(복소 크기는 1.0). 실자료에서는 위상이 작아 둘이 거의 같지만, 그건
+    #  **자료의 성질**이지 자의 성질이 아니다.
+    corr = ([r["lag1_abs"] for r in rows if r.get("lag1_abs") is not None]
+            + [r["base_lag1_abs"] for r in rows if r.get("base_lag1_abs") is not None])
     #: ⭐대조는 **빈 하늘 팔**이다(같은 실외 장면의 기준 고도 팔이 아니다).
-    fcorr = [r["free_lag1_corr"] for r in rows if r["free_lag1_corr"] is not None]
+    fcorr = [r["free_lag1_abs"] for r in rows if r.get("free_lag1_abs") is not None]
+    bl = [r["blade_lag_abs"] for r in rows if r.get("blade_lag_abs") is not None]
+    fbl = [r["free_blade_lag_abs"] for r in rows if r.get("free_blade_lag_abs") is not None]
 
     out = dict(_meta=dict(
         generator="benchmark/read_altitude_0914.py",
@@ -328,9 +389,12 @@ def main() -> int:
         skipped_by_reason={k: v for k, v in sorted(
             collections.Counter(c for x in skipped for c in x["why_codes"]).items(),
             key=lambda kv: -kv[1])},
-        ruler_ko=("정지 성분 = |평균 E|² · 움직이는 성분 = 평균 |E − 평균 E|² · 리듬 몫은 "
-                  "`benchmark/build_deck_maps.py:structure_bars` 의 창 반폭 8 Hz 정의를 "
-                  "그대로 쓴다(새로 만들지 않았다)."),
+        ruler_ko=("정지 성분 = |평균 E|² · 움직이는 성분 = 평균 |E − 평균 E|² · "
+                  "이웃/날개주기 «상관» 은 **정규화된 복소 상관의 크기**다(실수부도 행에 "
+                  "함께 싣는다). ⭐리듬 몫의 **분모는 움직이는 몫 전체가 아니라 «날개끝 상한 "
+                  "f_tip 위» 전력**이다 — 조건이 걸린 비다. 정의는 "
+                  "`benchmark/build_deck_maps.py:structure_bars` 의 창 반폭 8 Hz 를 그대로 "
+                  "쓴다(새로 만들지 않았다)."),
         inverse_square_ko=("«1/h² 예측» 은 레이다↔지면 높이가 h_ref → h_new 로 바뀔 때 "
                            "−20·log10(h_new/h_ref) 다. ⛔이것은 **기하 예측과의 일치를 재는 "
                            "자**이지 기작의 증명이 아니다 — 레이다↔지면 거리에 반비례하는 "
@@ -343,9 +407,11 @@ def main() -> int:
             "⛔⛔리듬 몫은 **비**다. 분자와 분모가 함께 줄면 비는 안 변한다 — 「리듬 몫이 "
             "널 근처라 지면 탓이 아니다」로 읽지 않는다. 이 표가 비와 절대 전력을 같은 줄에 "
             "두는 까닭이 그것이다.",
-            "⛔⛔«움직이는 몫» 열은 이웃 자세와 무상관이다(표의 «이웃 상관» 칸). 자세 번호가 "
-            "곧 날개 각도이므로, 그 몫은 날개를 따라 흐르는 신호가 아니다 — 무엇인지는 이 "
-            "판독이 말하지 않는다.",
+            "⛔⛔«움직이는 몫» 열의 상관은 빈 하늘 팔과 크게 다르다(표의 두 «상관» 칸 — "
+            "이웃 자세와 날개 박자 한 주기, 둘 다 **복소 상관의 크기**다). ⛔그 차이에서 "
+            "「날개 신호가 없다」로 넘어가지 않는다 — 상관 통계는 신호의 유무를 못 가른다"
+            "(주기 4 표본의 결정적 신호도 실수부가 0 이다). 말할 수 있는 것은 «구조가 "
+            "다르다» 까지다.",
             "⛔리듬 몫 크기는 인용 대상이 아니다(RETRACTION_LOG R29) — 창 반폭 hw 가 그 수를 "
             "지배한다. 표에 기하 바닥을 함께 적어 두었다.",
             "⛔쌍의 조건 검사는 원장 값 여덟 개만 본다 — **굽기 세대**는 아직 안 본다. 실측: "
@@ -364,9 +430,11 @@ def main() -> int:
             f"고도 쌍 {n_pairs} 개에서 정지 성분이 {min(d_dcs):+.2f}~{max(d_dcs):+.2f} dB "
             f"움직이고, 그 값이 레이다↔지면 높이의 1/h² 예측과 "
             f"{min(dd):+.2f}~{max(dd):+.2f} dB 안에서 맞는다"
-            + (f". ⛔같은 칸의 «움직이는 몫» 은 이웃 자세 상관이 {min(corr):.4f}~{max(corr):.4f} "
-               f"로 자세를 따라 흐르지 않는다 — 환경 꼬리표만 뺀 **빈 하늘 팔**은 "
-               f"{min(fcorr):.4f}~{max(fcorr):.4f} 다. 그 열을 날개 신호로 읽지 않는다."
+            + (f". ⛔같은 칸의 «움직이는 몫» 은 정규화된 복소 이웃 상관의 **크기**가 "
+               f"{min(corr):.4f}~{max(corr):.4f} 인데, 환경 꼬리표만 뺀 **빈 하늘 팔**은 "
+               f"{min(fcorr):.4f}~{max(fcorr):.4f} 다 — 두 자료의 상관 구조가 다르다. "
+               "⛔여기서 말할 수 있는 것은 그 차이까지다(신호의 유무나 잡음의 종류는 "
+               "이 통계가 못 가른다)."
                if corr and fcorr else
                (f". ⛔같은 칸의 «움직이는 몫» 은 이웃 자세 상관이 "
                 f"{min(corr):.4f}~{max(corr):.4f} 로 자세를 따라 흐르지 않는다 "
@@ -385,8 +453,9 @@ def main() -> int:
     a.append(f"⚠**이 축이 무엇을 옮기나** — {out['_meta']['axis_ko']}")
     a.append("")
     a.append("| 장면 | 앙각 | 고도 m | 레이다 높이 m | 정지 dB | 1/h² 예측 dB | 차 dB "
-             "| 움직임 dB | 이웃 상관 기준→새 | 리듬 몫 기준→새 % (바닥) |")
-    a.append("|---|---:|---:|---:|---:|---:|---:|---:|---|---|")
+             "| 움직임 dB | 이웃 상관 크기 기준→새 | 날개주기 지연 크기 기준→새 "
+             "| 리듬 몫 기준→새 % (바닥) |")
+    a.append("|---|---:|---:|---:|---:|---:|---:|---:|---|---|---|")
     for r in sorted(rows, key=lambda r: (r["env"], r["el_deg"], r["alt_m"])):
         a.append(
             f"| {r['env']} | {cell(r['el_deg'], '+.0f')} | {cell(r['alt_m'], 'g')} "
@@ -394,18 +463,29 @@ def main() -> int:
             f"| {cell(r['inverse_square_pred_db'], '+.3f', ' dB')} "
             f"| {cell(r['d_dc_minus_pred_db'], '+.3f', ' dB')} "
             f"| {cell(r['d_ac_power_db'], '+.3f', ' dB')} "
-            f"| {cell(r['base_lag1_corr'], '.4f')} → {cell(r['lag1_corr'], '.4f')} "
+            f"| {cell(r['base_lag1_abs'], '.4f')} → {cell(r['lag1_abs'], '.4f')} "
+            f"| {cell(r['base_blade_lag_abs'], '.4f')} → {cell(r['blade_lag_abs'], '.4f')} "
             f"| {cell(r['base_rhythm_share_pct'], '.2f')} → {cell(r['rhythm_share_pct'], '.2f')} "
             f"({cell(r['rhythm_floor_pct'], '.1f')}) |")
     a.append("")
-    a.append("⛔⛔**«움직임» 열을 날개 신호로 읽지 않는다.** 이웃 자세 상관이 "
-             + (f"{min(corr):.4f}~{max(corr):.4f} " if corr else "")
-             + "로 거의 0 이다 — 자세 번호가 곧 날개 각도인데 이웃 자세와 무상관이면 그 몫은 "
-               "자세를 따라 흐르는 신호가 아니다. **환경 꼬리표만 뺀 빈 하늘 팔**"
-             + (f"(상관 {min(fcorr):.4f}~{max(fcorr):.4f})" if fcorr else "(원장에 없다)")
-             + "과 견주면 차이가 분명하다. ⚠기준 고도 팔은 **같은 실외 장면**이라 대조가 "
-               "안 된다 — 둘 다 0 근처다. ⛔이 판독은 그 몫이 **무엇인지** 말하지 않는다 — "
-               "말할 수 있는 것은 「자세를 따라 흐르지 않는다」까지다.")
+    a.append("⭐**«움직임» 열의 상관 구조가 빈 하늘과 다르다.** 정규화된 복소 상관의 "
+             "**크기**로 재면 — 이웃 자세(k = 1)에서 "
+             + (f"{min(corr):.4f}~{max(corr):.4f}" if corr else "—")
+             + ", 날개 박자 한 주기 지연"
+             + (f"(k = {rows[0]['blade_lag']} 자세)" if rows and rows[0].get("blade_lag") else "")
+             + "에서 "
+             + (f"{min(bl):.4f}~{max(bl):.4f}" if bl else "—")
+             + " 다. **환경 꼬리표만 뺀 빈 하늘 팔**은 같은 자로 "
+             + (f"{min(fcorr):.4f}~{max(fcorr):.4f}(k=1) · {min(fbl):.4f}~{max(fbl):.4f}"
+                f"(k={rows[0]['blade_lag']})" if fcorr and fbl and rows else "(원장에 없다)")
+             + " 다.")
+    a.append("")
+    a.append("⛔⛔**그 차이에서 «날개 신호가 없다» 로 넘어가지 않는다**(2026-09-14(4) 정정). "
+             "이 자는 상관의 **실수부·크기**일 뿐이다 — 주기 4 표본의 **결정적** 신호도 "
+             "실수부가 0 이 나온다(복소 크기는 1.0). 실자료에서는 위상이 작아 실수부와 크기가 "
+             "거의 같지만, 그건 **자료의 성질**이지 자의 성질이 아니다. ⛔이 판독이 말할 수 "
+             "있는 것은 **두 자료의 상관 구조가 다르다**까지이고, 신호의 유무나 잡음의 종류는 "
+             "다른 대조의 몫이다. ⚠기준 고도 팔은 **같은 실외 장면**이라 대조가 안 된다.")
     a.append("")
     a.append("⛔⛔**리듬 몫 크기를 인용하지 않는다**(RETRACTION_LOG R29). 그 퍼센티지는 자료의 "
              "성질이 아니라 우리가 고른 창 반폭 hw = 8 Hz 의 성질이다 — 표의 괄호 안 «바닥» 이 "

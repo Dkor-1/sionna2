@@ -59,8 +59,26 @@ def inputs():
     L=base.js('outputs/elevation_sweep_md.json');J=base.js('outputs/read_scenephysics_0913.json');r=J['rows'][0];keys={(r['engine'],r['el_deg']),(r['free_engine'],r['el_deg'])};mini={**L,'rows':[s for s in L['rows'] if (s['engine'],s['el_deg']) in keys]}
     with tempfile.TemporaryDirectory() as td:
         p=Path(td);(p/'outputs').mkdir();(p/'outputs/elevation_sweep_md.json').write_text(json.dumps(mini));esm=types.SimpleNamespace(SHD=td,one_generation=choose)
-        with patch.object(sc,'ROOT',td),patch.object(sc,'prod',lambda:esm),patch.object(sc,'deck_filters',lambda:(None,None)),contextlib.redirect_stdout(io.StringIO()):
+        # 2026-09-14(4): patch the OUTPUT paths too, not just ROOT.
+        # sc.OUT and sc.MD are module-level constants resolved at import time from the
+        # REAL root, so patching ROOT alone leaves main() publishing to production.
+        # Before the scene reader's early-return bug was fixed this test died before
+        # reaching publish(); now it reaches it and overwrote the production artifacts
+        # (reproduced 2026-09-14 — outputs/read_scenephysics_0913.json went 83 rows to 0).
+        # Guard the run with a before/after hash of every production artifact it could
+        # touch, so a future path that escapes isolation fails loudly instead of silently.
+        _watch=[Path(base.ROOT)/'outputs/read_scenephysics_0913.json',
+                Path(base.ROOT)/'docs/SCENEPHYSICS_0913.md']
+        _before={str(w):(hashlib.sha256(w.read_bytes()).hexdigest() if w.exists() else None)
+                 for w in _watch}
+        with patch.object(sc,'ROOT',td),patch.object(sc,'OUT',str(p/'scene.json')),patch.object(sc,'MD',str(p/'scene.md')),patch.object(sc,'prod',lambda:esm),patch.object(sc,'deck_filters',lambda:(None,None)),contextlib.redirect_stdout(io.StringIO()):
             c['checks']['scene_main_missing']=outcome(sc.main)
+        _after={str(w):(hashlib.sha256(w.read_bytes()).hexdigest() if w.exists() else None)
+                for w in _watch}
+        _touched=[k for k in _before if _before[k]!=_after[k]]
+        c['checks']['scene_main_missing']['production_untouched']=not _touched
+        c['checks']['scene_main_missing']['production_touched']=_touched
+        assert not _touched, f'audit wrote to production artifacts: {_touched}'
     boundary=[]
     for name,kw in [('valid',dict(n_poses=8,prf=19700,prf_seen=[19700])),('infinite_n',dict(n_poses=float('inf'),prf=19700)),('bad_seen',dict(n_poses=8,prf=19700,prf_seen=['bad'])),('seen_disagrees_with_row',dict(n_poses=8,prf=19700,prf_seen=[10000])),('fractional_n',dict(n_poses=8.5,prf=19700))]:
         boundary.append({'case':name,**outcome(lambda kw=kw:gate.check_series(np.ones(8),**kw))})
@@ -223,9 +241,23 @@ def ray_control():
             f=parse(b.arm_name('free',fc));f['spp']=str(budget);arm=unparse(f);E=np.exp(2j*np.pi*t)*10**((level+offset)/20);z[f'{arm}/el-30']=E;rows.append({'engine':arm,'el_deg':-30});curve.append(float(10*np.log10(np.mean(abs(E-E.mean())**2))))
         curves.append(curve)
     spread,num=b.ray_spread_db(b.arm_name('free',3500),-30,rows,z);d=[np.array(v)-v[fcs.index(3500)] for v in curves]
-    tree=ast.parse(base.read('benchmark/read_bandflat_0913.py'));expr=next(node for node in ast.walk(tree) if isinstance(node,ast.Compare) and ast.unparse(node)=='mv_band > 2.0 * ray_spread')
-    verdict=bool(eval(compile(ast.Expression(expr),'production threshold','eval'),{'mv_band':float(np.ptp(curves[0])),'ray_spread':spread}))
-    c['checks']['ray_control']={'current_series':j['series'],'counterexample':{'frequencies_mhz':fcs,'n_samples':n,'curves_db':curves,'constant_budget_offset_db':1.,'production_ray_spread_db':spread,'production_n_points':num,'band_spread_db':float(np.ptp(curves[0])),'production_says_larger':verdict,'maximum_change_in_frequency_contrast_db':float(np.max(abs(d[0]-d[1]))),'scope':'Synthetic common offset; disproves general implication, does not establish physical correctness of existing curves.'}}
+    # 2026-09-14(4): this audit used to die here with StopIteration.
+    # It looked for the literal production node `mv_band > 2.0 * ray_spread`, which this
+    # very finding caused to be removed - the band verdict no longer compares the band
+    # spread against the CENTRE CARRIER's level sensitivity at all. An audit that dies
+    # when its finding is acted on cannot re-bake its own ledger, so record the state
+    # instead of raising.
+    tree=ast.parse(base.read('benchmark/read_bandflat_0913.py'))
+    expr=next((node for node in ast.walk(tree) if isinstance(node,ast.Compare) and ast.unparse(node)=='mv_band > 2.0 * ray_spread'),None)
+    if expr is None:
+        verdict=None
+        threshold_state='removed — production no longer thresholds the band spread against the centre-carrier level sensitivity'
+    else:
+        verdict=bool(eval(compile(ast.Expression(expr),'production threshold','eval'),{'mv_band':float(np.ptp(curves[0])),'ray_spread':spread}))
+        threshold_state='present'
+    # What production uses now, if anything, so the ledger says which ruler was read.
+    shape_fn=any(isinstance(nd,ast.FunctionDef) and nd.name=='budget_shape_spread_db' for nd in ast.walk(tree))
+    c['checks']['ray_control']={'current_series':j['series'],'counterexample':{'frequencies_mhz':fcs,'n_samples':n,'curves_db':curves,'constant_budget_offset_db':1.,'production_ray_spread_db':spread,'production_n_points':num,'band_spread_db':float(np.ptp(curves[0])),'production_says_larger':verdict,'production_threshold_state':threshold_state,'production_has_band_shape_statistic':shape_fn,'maximum_change_in_frequency_contrast_db':float(np.max(abs(d[0]-d[1]))),'scope':'Synthetic common offset; disproves general implication, does not establish physical correctness of existing curves.'}}
     save(c)
 
 

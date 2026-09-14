@@ -188,6 +188,9 @@ def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
         return None
     #: 예산 → {반송파: 레벨}. 이름에서 spp 만 갈아 끼워 찾는다.
     by_budget: dict[str, dict[int, float]] = {}
+    #: 뺀 칸을 사유와 함께 남긴다 — 조용히 버리지 않는다.
+    dropped: list[dict] = []
+    ref_prf: list = [None]
     for fc_mhz, arm0 in sorted(arm_by_fc.items()):
         try:
             f0 = _p(arm0)
@@ -210,7 +213,42 @@ def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
             k = f"{r['engine']}/el{el:+g}"
             if k not in Z.files:
                 continue
+            #: ⛔⛔2026-09-14(4) — 이 대조군은 **주 곡선이 지나는 관문을 통째로 건너뛰었다.**
+            #  실측 반례: 대조군 원장에 빠진 자세 4,096 개와 다른 표집률 10,000 Hz 를
+            #  적어도 이 함수는 20.0 dB 를 그대로 돌려줬다. 주 곡선은 :531 에서 완전성·
+            #  전계 0·잘림·세대·반송파 어긋남을 보고 거르는데 여기만 안 봤다.
+            #  ⇒ **같은 계약**을 건다. 뺀 예산·반송파는 사유와 함께 남긴다.
+            _w = []
+            if r.get("n_missing"):
+                _w.append(f"자세가 덜 찼다({r['n_missing']} 개)")
+            if r.get("n_zero_field"):
+                _w.append(f"전계가 0 인 자세({r['n_zero_field']} 개)")
+            if r.get("truncated") or r.get("n_trunc"):
+                _w.append("경로가 잘렸다")
+            _mg2 = r.get("mixed_generations")
+            if isinstance(_mg2, dict):
+                if (int(_mg2.get("kept_conflicting_poses") or 0)
+                        or _mg2.get("tie_unresolved") or _mg2.get("n_poses_disagree")):
+                    _w.append("굽기 세대를 하나로 못 풀었다")
+            elif _mg2:
+                _w.append("굽기 세대가 섞였다")
+            #: ⭐**시간축** — 표집률이 기준과 다르면 대역 모양을 견줄 수 없다.
+            _pr = r.get("prf_hz")
+            if _pr is None:
+                _w.append("표집률을 모른다")
+            elif ref_prf[0] is None:
+                ref_prf[0] = float(_pr)
+            elif abs(float(_pr) - ref_prf[0]) > 1.0:
+                _w.append(f"표집률이 기준과 다르다({_pr} · 기준 {ref_prf[0]})")
+            if abs(float(r.get("fc_hz", 0)) / 1e6 - float(fc_mhz)) > 1.0:
+                _w.append(f"원장 fc_hz({r.get('fc_hz')})가 이름 꼬리표와 어긋난다")
             E = np.asarray(Z[k], complex)
+            if not np.isfinite(E).all():
+                _w.append(f"비유한 값이 {int((~np.isfinite(E)).sum())} 자세에 있다")
+            if _w:
+                dropped.append({"spp": str(spp), "fc_mhz": int(fc_mhz),
+                                "el_deg": el, "why": " · ".join(_w)})
+                continue
             pw = float(np.mean(np.abs(E - E.mean()) ** 2))
             if pw > 0:
                 by_budget.setdefault(str(spp), {})[int(fc_mhz)] = 10.0 * np.log10(pw)
@@ -218,10 +256,17 @@ def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
     if ref not in by_budget:
         ref = max(by_budget, key=lambda b: len(by_budget[b])) if by_budget else None
     if ref is None:
-        return None
+        return ({"ref_spp": None, "per_budget": [], "n_budgets": 0, "n_fc": 0,
+                 "shape_spread_db": None, "dropped": dropped,
+                 "n_dropped": len(dropped), "prf_hz": ref_prf[0],
+                 "gate_ko": "쓸 수 있는 예산이 없다 — 아래 dropped 를 본다."}
+                if dropped else None)
     #: 두 예산 **모두**에 있는 반송파만 쓴다 — 없는 칸을 0 으로 메우지 않는다.
     out = {"ref_spp": ref, "per_budget": [], "n_budgets": 0, "n_fc": 0,
-           "shape_spread_db": None}
+           "shape_spread_db": None, "dropped": dropped, "n_dropped": len(dropped),
+           "gate_ko": ("주 곡선과 **같은 관문**을 건다 — 완전성·전계 0·잘림·세대·표집률·"
+                       "반송파 어긋남·비유한 값. 뺀 칸은 dropped 에 사유와 함께 남는다."),
+           "prf_hz": ref_prf[0]}
     best = None
     for b, cur in sorted(by_budget.items()):
         if b == ref:
@@ -498,7 +543,10 @@ def write_md(out: dict, to_string: bool = False):
         #  두고 기울기만 갈아탄 판에서 「크다」가 나왔다. 곧 그 자는 대역 «모양» 을
         #  안 보고 있었다. ⇒ 배수 비교를 지우고 **두 수를 나란히 적는다.**
         _sh = r.get("budget_shape_spread_db")
-        _v = (f"모양 민감도 {_sh:.3f} dB({r.get('budget_shape_n_fc', 0)} 반송파)"
+        #: ⛔2026-09-14(4) — 「(N 반송파)」의 N 이 괄호 안에 **단위 없이** 붙어 글 검사를
+        #  빠져나갔다(발간물 훑기가 잡았다). 수가 글이 되는 자리를 cell() 로 옮긴다.
+        _v = (f"모양 민감도 {cell(_sh, '.3f', ' dB')}"
+              f"({cell(r.get('budget_shape_n_fc'), 'd', ' 반송파')})"
               if _sh is not None else
               "⚠예산을 흔들었을 때 **대역 모양**이 얼마나 움직이는지 잴 짝이 없다 — 판정 미룸")
         #: ⚠소수 두 자리면 0.015 와 0.008 이 **둘 다 0.01** 로 찍혀 산문과 어긋난다.
