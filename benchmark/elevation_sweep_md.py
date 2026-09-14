@@ -450,6 +450,9 @@ def run(a) -> None:
     _law = _blc()
     tagmf += "" if _law == "legacy" else "_bl" + _law.replace("_", "")
 
+    #: ⭐`_sdet` = 솔버 결정 모드(2026-09-14). ⛔우리 `_det`(합산 순서 정렬)와 **다른 것**이다 —
+    #  이쪽은 `PathSolver(deterministic=True)` 로 솔버 자체를 바꾼다. 이름이 같으면 옛 샤드를
+    #  건너뛰거나 덮으므로 팔을 가른다. ⛔기본(끔)에는 안 붙는다 — 창고 전부가 그 모드다.
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
@@ -474,6 +477,7 @@ def run(a) -> None:
            else f"_bs{float(a.body_scale):g}") \
         + ("_pw" if plane else "") \
         + ("_det" if getattr(a, "det", False) else "") \
+        + ("_sdet" if getattr(a, "solver_deterministic", False) else "") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
@@ -790,7 +794,21 @@ def run(a) -> None:
         n_dup = np.zeros(idx.size, int)
         t0 = time.time()
         # ⭐A3 — 솔버 객체를 자세마다 새로 만들지 않는다(인자가 루프 상수다).
-        _solver = RP.rt.PathSolver()
+        #: ⭐⭐**결정 모드**(2026-09-14 · 사용자 점검 메모의 권고 「결정 모드는 별도 이름·설정
+        #  도장으로 비교」). 2.1.0 부터 생성자가 `deterministic` 을 받는다(2.0.1 에는 없었다).
+        #  ⛔기본은 끔이다 — 지금까지의 모든 자료가 그 모드이고, 켜면 **다른 결과 집합**이 된다.
+        #  ⛔이 인자는 우리 `--det`(합산 순서 정렬)와 **다른 것**이다. 그쪽은 솔버에 안 닿는다.
+        _detmode = bool(getattr(a, "solver_deterministic", False))
+        if _detmode:
+            try:
+                _solver = RP.rt.PathSolver(deterministic=True)
+            except TypeError as _e:                            # noqa: BLE001
+                raise SystemExit(
+                    "⛔--solver-deterministic 를 줬는데 이 솔버 판은 그 인자를 안 받는다"
+                    f"({_e}).\n   지금 판: {SOLVER_BUILD}\n"
+                    "   sionna-rt 2.1.0 부터 생긴 인자다 — 판을 올리거나 인자를 빼라.") from None
+        else:
+            _solver = RP.rt.PathSolver()
         # ⭐인메모리 경로 — 자세가 바뀌어도 안 변하는 것(면·그룹·재번호표)을 한 번만 짓는다.
         #   `FastPoser` 가 자세마다 **같은** f·g 객체를 돌려주므로 구조적으로 안전하다
         #   (`src/articulated_fast.py:120-126, 147`).
@@ -982,7 +1000,12 @@ def run(a) -> None:
                                           float(sw["refraction"]),
                                           float(sw["diffraction"]),
                                           float(sw["edge_diffraction"]),
-                                          float(bool(getattr(a, "det", False)))]))
+                                          float(bool(getattr(a, "det", False))),
+                                          #: ⭐cfg[8] = 솔버 결정 모드 (2026-09-14 신설).
+                                          #  ⛔cfg[7] 의 `--det`(합산 순서 정렬)와 다른 축이다.
+                                          #  옛 샤드는 이 자리가 **없다** — 읽는 쪽은 길이로 가른다.
+                                          float(bool(getattr(a, "solver_deterministic",
+                                                             False)))]))
         print(f"  ✅ sionna el{el:+g} sh{a.shard} · {idx.size} 자세 · "
               f"{(time.time()-t0)/60:.1f}분", flush=True)
 
@@ -2159,6 +2182,16 @@ def main() -> None:
     ap.add_argument("--no-inmem", dest="inmem", action="store_false",
                     help="⛔옛 길 — 자세마다 정점을 텍스트 OBJ 로 썼다가 되읽는다"
                          "(자세당 62 ms). 회귀 대조용으로만 쓴다.")
+    ap.add_argument("--solver-deterministic", dest="solver_deterministic",
+                    action="store_true",
+                    help="⭐**솔버의 결정 모드를 켠다**(sionna-rt 2.1.0 부터). "
+                         "⛔우리 --det 와 다른 것이다 — 이쪽은 `PathSolver(deterministic=True)` "
+                         "로 **솔버 자체**를 바꾼다(같은 해시 통에서 «먼저 올린 스레드» 대신 "
+                         "«가장 작은 스레드 번호» 를 승자로 못 박는다). "
+                         "⭐켜면 팔 이름에 `_sdet` 가 붙고 샤드 cfg 에 적힌다 — 끈 자료와 "
+                         "섞이지 않는다. ⛔실측(2026-09-14 · 합성 평판): 끈 모드는 같은 씨앗으로도 "
+                         "실행마다 경로 수가 8057~8059 로 오가고 |E| 폭이 0~1.59 dB 인데, "
+                         "켜면 그 폭이 0 이 된다. ⛔어느 쪽이 물리적으로 옳은지는 안 정한다.")
     ap.add_argument("--det", action="store_true",
                     help="⭐**재현 가능하게 만든다** (2026-08-20). PathSolver 는 같은 씬·같은 "
                          "시드로 두 번 풀어도 **경로가 담기는 순서**가 달라진다(GPU 가 수만 "

@@ -122,6 +122,11 @@ _COMMON = [
     _F("body_scale", "bs", _NUM),
     _F("plane_wave", "pw", r"", flag=True),
     _F("det", "det", r"", flag=True),
+    #: ⭐⭐**솔버 결정 모드**(2026-09-14 신설) — `_sdet` = `PathSolver(deterministic=True)`.
+    #  ⛔`_det` 와 **다른 것**이다: `_det` 는 우리 하네스가 합산 순서를 정렬한 것이고
+    #    `_sdet` 는 솔버 자체를 바꾼 것이다. 둘은 같이 붙을 수 있어 자리를 따로 둔다.
+    #  ⛔기본(끔)에는 안 붙는다 — 창고의 기존 자료 전부가 그 모드다.
+    _F("solver_det", "sdet", r"", flag=True),
     #: ⚠`_az0.7s1` — 로터 씨앗은 **앞 꼬리표에 바로 붙는다**(빌더가 밑줄을 안 넣는다).
     #: ⚠씨앗이 붙을 수 있다 — 아래 `_split_seed` 가 떼어 `rotor_seed` 로 옮긴다.
     _F("az", "az", r"%s(?:s\d+)?" % _NUM),

@@ -1,0 +1,40 @@
+# 0933 같은 판 반복 (2026-09-14) — ⭐**실행별 흔들림을 먼저 잰다**
+#
+# 사용자 점검 메모의 권고: 「기본 모드끼리 한 번씩 비교한 차이에는 실행별 변동도 포함될 수
+# 있으므로, 일부 조건에서 **동일 버전 반복**을 함께 확보하는 편이 좋겠습니다」.
+#
+# ⭐우리 실측이 그 권고를 더 급하게 만든다(docs/DET_MODE_0914.md · benchmark/det_mode_dedup_0914.py):
+#   합성 평판·CPU 4 스레드에서 **기본 모드 혼자** 같은 씨앗으로 경로 수가 8057~8059 를 오가고
+#   |E| 폭이 0 / 0.76 / 1.59 dB 다(새 프로세스 6 번 실측). 다리 큐는 판마다 **한 번씩**만
+#   돌리므로, 두 판의 차가 이 폭보다 작으면 **판 차이라고 말할 수 없다.**
+#   ⛔그 폭은 합성 평판에서 잰 것이다 — **드론 코퍼스에서 얼마인지는 아직 모른다.** 그것을 잰다.
+#
+# 무엇을 사나: 다리 묶음 7 팔 중 **셋**을 골라 같은 2.1.0 으로 **한 번 더** 굽는다(`--rep 1`).
+#   고른 기준 — 환경 셋을 덮는다(빈 하늘 · 실외 · 지면만) · 앙각 −60 하나로 고정 · 값이 싼 쪽.
+#   ⛔전수가 아니다. 흔들림의 **크기 자리**를 먼저 보려는 것이다.
+# 12 줄 · 2.1.0 짝의 실측 요율로 어림 8 일꾼시간.
+#
+# ⛔발주 전 runners/filter_jobs.sh 로 거른다. ⛔4번 GPU 는 보류 중이다.
+# ⛔`--rep 1` 은 팔 이름에 `_rep1` 을 붙여 원본과 **다른 팔**이 된다 — 덮지 않는다.
+
+# ── 빈 하늘 · 확산만 · 깊이 1 (싼 쪽) ─────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 1 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 2 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --rep 2 --shard 1 --nshards 2
+
+# ── 빈 하늘 · +굴절 · 깊이 1 ──────────────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-60 --rep 1 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-60 --rep 1 --shard 1 --nshards 2
+
+# ── 실외 · 확산만 · 깊이 1 ────────────────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --rep 1 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --rep 1 --shard 1 --nshards 2
+
+# ── 지면만 · 확산만 · 깊이 2 ──────────────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --rep 1 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --rep 1 --shard 1 --nshards 2
+
+# ── ⭐결정 모드 한 짝 — 「별도 이름·설정 도장으로 비교」(메모의 권고) ──
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 1 --nshards 2
