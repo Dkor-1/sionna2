@@ -162,7 +162,19 @@ def temp_hold(ext: dict, log=None) -> set:
       ⚠전에는 최상위 목록·빈 객체·키 오타·null 이 전부 **말없이** 빈 집합이 됐고, 유일한 경고도
         운영 로그가 아니라 stderr 로 갔다 — 사람이 볼 수 없는 자리였다.
     """
-    say = log if callable(log) else (lambda m: None)
+    def say(m):
+        #: ⛔**알리다가 죽지 않는다.** self.log 는 바퀴마다 파일을 연다 — 디스크가 차거나
+        #  권한이 사라지면 OSError 가 난다. 그것이 여기서 새어 나가면 plan() → _tick() 을
+        #  뚫고 loop() 의 포괄 except 로 가고, 그 바퀴는 **어느 카드에도** 워커를 안 띄운다.
+        #  (2026-09-14 자체 두들김이 찾았다 — 「이 함수는 어떤 입력에도 예외를 던지지 않는다」던
+        #   바로 그 약속이 로그 쪽으로 뚫려 있었다.)
+        if not callable(log):
+            return
+        try:
+            log(m)
+        except Exception:                                      # noqa: BLE001
+            pass
+
     try:
         with open(HOLD_JSON, encoding="utf-8") as f:
             d = json.load(f)
@@ -385,8 +397,22 @@ class Sup:
                  f"· 전체 상한 {MAX_TOTAL}")
 
     def log(self, msg):
-        with open(self.log_path, "a", encoding="utf-8") as f:
-            f.write(f"[{time.strftime('%m-%d %H:%M:%S', time.gmtime(time.time()+9*3600))}] {msg}\n")
+        """⛔**적다가 죽지 않는다.** 바퀴마다 파일을 여는데, 디스크가 차면 OSError 가 난다.
+        그러면 _tick 이 상태 줄에서 죽고 loop 의 포괄 except 가 삼켜 — 큐가 **조용히 선다.**
+        더 나쁜 것은 그 증상이 「로그가 안 남는 것」이라 아무도 못 본다는 점이다.
+        ⇒ 못 적으면 stderr 로라도 내보내고 계속 돈다(2026-09-14).
+        """
+        line = (f"[{time.strftime('%m-%d %H:%M:%S', time.gmtime(time.time() + 9 * 3600))}] "
+                f"{msg}\n")
+        try:
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(line)
+        except Exception as e:                                 # noqa: BLE001
+            try:
+                sys.stderr.write(f"⚠로그를 못 적었다({type(e).__name__}: {e}) {line}")
+                sys.stderr.flush()
+            except Exception:                                  # noqa: BLE001
+                pass
 
     # ── 지금 각 카드에 우리 워커가 몇 개인가 ────────────────────────────
     def running_by_gpu(self):
