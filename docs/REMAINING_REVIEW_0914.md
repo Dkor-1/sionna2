@@ -204,3 +204,11 @@ CPU 재현기: llvm_ad_mono_polarized · 설치 버전 {'sionna': '2.0.1', 'sion
 ```
 
 기존 검사 캐시에서 문서만 다시 만들 때는 --publish를 붙인다. 큐와 창고 파일 수는 재실행 시점에 따라 바뀐다. 외부 웹 확인은 external_sources에 기록한 날짜의 별도 관측이다.
+
+---
+
+> ⚠**줄 번호에 대하여** (2026-09-14 덧붙임). 이 메모의 `benchmark/elevation_sweep_md.py:NNNN`
+> 포인터는 **이 메모를 쓴 시점(커밋 `f0b257d7`)의 줄**이다. 그 뒤 같은 파일에 판 꼬리표
+> (`build_tag()`·판 장부·실판 대조)가 들어가면서 `:1029` 아래가 밀렸다.
+> ⛔기록이라 메모 본문의 숫자는 **고치지 않는다** — 그때 무엇을 보고 썼는지가 남아야 한다.
+> 지금 줄을 찾으려면 `git show f0b257d7:benchmark/elevation_sweep_md.py` 로 본다.

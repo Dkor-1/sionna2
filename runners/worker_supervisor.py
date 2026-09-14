@@ -108,7 +108,46 @@ HOLD_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "GPU_HOLD.j
 _hold_warned = {"v": None}
 
 
-def temp_hold(ext: dict) -> set:
+def _as_gpu_list(v, what: str, warn: list) -> list:
+    """카드 번호 목록으로 **강제한다** — ⛔여기서 예외가 나면 감독자가 한 바퀴를 통째로 잃는다.
+
+    ⛔⛔2026-09-14 적대 검증이 찾은 것: 전에는 `for g in d.get("gpus", [])` 였다.
+      값이 스칼라면(`{"gpus": 4}`) `for g in 4` 가 TypeError 를 내고, 그 예외는 함수 안
+      어디에서도 안 잡혀 plan() → _tick() 을 뚫고 loop() 의 포괄 except 로 간다.
+      그 바퀴는 **어느 카드에도** 워커를 안 띄우고, 파일은 매 바퀴 다시 읽히므로
+      30 초마다 영원히 되풀이된다 — 커밋이 「막는 쪽으로 실패하지 않는다」고 적은 그 실패다.
+    ⛔글자열을 그냥 순회하면 글자 단위로 쪼개진다("10" → 카드 1 과 0). 통째로 읽는다.
+    ⛔bool 은 int 의 아래 갈래라 `int(True)==1` 로 조용히 카드 1 이 된다 — 막는다.
+    """
+    if v is None:
+        return []
+    if isinstance(v, bool):
+        warn.append(f"{what} 가 참/거짓이다 — 카드 번호가 아니다. 무시한다")
+        return []
+    if isinstance(v, (int, float, str)):
+        v = [v]                                   # ⭐스칼라를 목록으로 감싼다
+    if not isinstance(v, (list, tuple, set)):
+        warn.append(f"{what} 가 목록이 아니다({type(v).__name__}) — 무시한다")
+        return []
+    out = []
+    for g in v:
+        if isinstance(g, bool):
+            warn.append(f"{what} 에 참/거짓이 들었다 — 무시한다")
+            continue
+        try:
+            #: ⭐"4" 도 4 도 4.0 도 받되 글자로 안 쪼갠다. ⛔4.5 같은 것은 거절한다
+            #  (정수와 같은 실수만 받는 규칙은 src/reader_gate.check_series 의 n_poses 와 같다).
+            fv = float(str(g).strip())
+            if not fv.is_integer():
+                warn.append(f"{what} 의 {g!r} 는 정수가 아니다 — 무시한다")
+                continue
+            out.append(int(fv))
+        except (TypeError, ValueError):
+            warn.append(f"{what} 의 {g!r} 를 카드 번호로 못 읽는다 — 무시한다")
+    return out
+
+
+def temp_hold(ext: dict, log=None) -> set:
     """지금 쓰지 않을 카드 — `runners/GPU_HOLD.json` 을 **매 바퀴 다시 읽는다**(살아서 반영된다).
 
     파일 모양::
@@ -117,40 +156,53 @@ def temp_hold(ext: dict) -> set:
          "gpus_if_external": [4],     # 남의 점유가 문턱을 넘는 **동안만** 뺀다
          "external_mb": 5000}
 
-    ⛔파일이 깨져 있어도 감독자는 안 죽는다 — 그때는 **아무 카드도 빼지 않고** 한 번만 찍는다.
-      (막는 쪽으로 실패하면 큐가 통째로 굶는다. 이 규약 하나 때문에 그러지 않게 한다.)
+    ⛔**이 함수는 어떤 입력에도 예외를 던지지 않는다.** 던지면 감독자가 그 바퀴에 아무 카드에도
+      워커를 못 띄운다(2026-09-14 적대 검증). 규약 하나 때문에 큐가 통째로 굶는 일은 없어야 한다.
+    ⛔파일이 깨졌거나 모양이 이상하면 **아무 카드도 빼지 않고**, 무슨 일인지 `log` 로 알린다.
+      ⚠전에는 최상위 목록·빈 객체·키 오타·null 이 전부 **말없이** 빈 집합이 됐고, 유일한 경고도
+        운영 로그가 아니라 stderr 로 갔다 — 사람이 볼 수 없는 자리였다.
     """
+    say = log if callable(log) else (lambda m: None)
     try:
         with open(HOLD_JSON, encoding="utf-8") as f:
             d = json.load(f)
     except FileNotFoundError:
-        return set()
+        return set()                              # ⭐없으면 규약이 없는 것 — 조용한 것이 맞다
     except Exception as e:                                     # noqa: BLE001
-        if _hold_warned["v"] != str(e):
-            _hold_warned["v"] = str(e)
-            print(f"⚠{HOLD_JSON} 를 못 읽었다({type(e).__name__}: {e}) — 이번 바퀴는 아무 카드도 안 뺀다",
-                  file=sys.stderr, flush=True)
+        if _hold_warned["v"] != ("read", str(e)):
+            _hold_warned["v"] = ("read", str(e))
+            say(f"  ⚠{HOLD_JSON} 를 못 읽었다({type(e).__name__}: {e}) — 이번 바퀴는 아무 카드도 안 뺀다")
         return set()
+    warn = []
     if not isinstance(d, dict):
+        say(f"  ⚠{HOLD_JSON} 의 최상위가 객체가 아니다({type(d).__name__}) — 아무 카드도 안 뺀다")
         return set()
+    known = {"gpus", "gpus_if_external", "external_mb"}
+    typo = [k for k in d if k not in known and not k.endswith("_ko")
+            and k not in ("note", "set_by", "why_both_ko", "how_to_remove_ko", "limit_ko")]
+    if typo:
+        warn.append(f"모르는 열쇠 {typo} — 오타면 보류가 조용히 사라진다")
     try:
         thr = float(d.get("external_mb", 5_000))
     except (TypeError, ValueError):
+        warn.append(f"external_mb {d.get('external_mb')!r} 를 수로 못 읽는다 — 5000 으로 본다")
         thr = 5_000.0
-    out = set()
-    for g in (d.get("gpus") or []):
+    out = set(_as_gpu_list(d.get("gpus"), "gpus", warn))
+    for g in _as_gpu_list(d.get("gpus_if_external"), "gpus_if_external", warn):
         try:
-            out.add(int(g))
+            if float(ext.get(g, 0)) >= thr:
+                out.add(g)
         except (TypeError, ValueError):
-            pass
-    for g in (d.get("gpus_if_external") or []):
-        try:
-            g = int(g)
-        except (TypeError, ValueError):
-            continue
-        if float(ext.get(g, 0)) >= thr:
-            out.add(g)
+            warn.append(f"카드 {g} 의 남의 점유를 수로 못 읽는다 — 안 뺀다")
+    if not out and (d.get("gpus") or d.get("gpus_if_external") or typo):
+        warn.append("⭐파일은 있는데 **빼는 카드가 하나도 없다** — 뜻한 바인지 보라")
+    if warn and _hold_warned["v"] != ("warn", tuple(warn)):
+        _hold_warned["v"] = ("warn", tuple(warn))
+        for w in warn:
+            say(f"  ⚠GPU_HOLD.json: {w}")
     return out
+
+
 CPU_LOAD_CAP = 0.85     # ⭐**우리** cgroup 사용률이 이보다 크면 새로 안 띄운다
 #   (남의 부하가 아니라 우리 것만 본다 — cpu_load_frac 주석 참조)
 
@@ -421,7 +473,7 @@ class Sup:
             ext[g] = max(0, used - ours.get(g, 0))
         #: ⭐임시 규약(2026-09-14) — 매 바퀴 `runners/GPU_HOLD.json` 을 다시 읽는다.
         #  파일을 지우면 규약이 사라진다. 위 HOLD_JSON 블록 참조.
-        hold = temp_hold(ext)
+        hold = temp_hold(ext, log=self.log)
         self._hold = hold
         for g, used, total in cards:
             e = ext[g]

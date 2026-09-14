@@ -1034,21 +1034,32 @@ BUILD_BASELINE = "sionna=2.0.1 sionna-rt=2.0.1 mitsuba=3.8.0 drjit=1.3.1"
 BUILD_BASELINE_RT = "2.0.1"
 
 
+#: ⭐**판 장부** — 꼬리표 하나가 «어느 판 묶음» 을 뜻하는지 사람이 적어 둔 표.
+#  ⛔⛔2026-09-14 적대 검증이 찾은 것: 전에는 꼬리표를 sionna-rt 판만 보고 지었다. 그래서
+#    sionna-rt 가 2.1.0 인 채 mitsuba·drjit 만 움직이면 꼬리표가 그대로 `_rt210` 이라
+#    이름이 같아지고, :651·:774 가 «건너뜀» 으로 끝낸다. 막으려던 그 사고가 그대로 돌아온다.
+#    (문지기가 기준 판일 때만 섰다 — 올린 다음 날부터는 영영 안 서는 비대칭이었다.)
+#  ⇒ **꼬리표 ↔ 판 묶음** 을 이 파일에 적고, 어긋나면 선다. 새 판을 처음 쓰는 날에는
+#    「모르는 판」으로 서서 사람을 부른다 — 그때 한 줄 적으면 된다.
+BUILD_REGISTRY = os.path.join(ROOT, "runners", "SOLVER_BUILDS.json")
+
+
 def build_tag() -> str:
     """솔버 판 꼬리표 — 기준 판이면 **빈 글자**, 그 밖에는 `_rt<판>`(2.1.0 → `_rt210`).
 
     ⛔⛔**왜 있나** (2026-09-14, 2.1.0 으로 올리기 직전에 넣었다).
-      꼬리표가 없으면 2.1.0 으로 같은 팔을 구울 때 샤드 **파일 이름이 같아** 2.0.1 판을
-      덮어쓴다. 비교하려던 상대가 사라지는 것이라 되돌릴 수 없다.
-      (2026-08-17 에 메쉬 수리로 똑같은 사고가 났다 — 이름이 같아 옛 샤드를 그대로 재사용해
-       재계산이 통째로 무효였다. `tagmf` 주석 참조. 같은 병을 판 갈이에서 되풀이하지 않는다.)
+      꼬리표가 없으면 새 판으로 같은 팔을 구울 때 샤드 **파일 이름이 같다.** 그러면
+      :651·:774 의 `if shard_done(f) and not a.overwrite:` 가 몇 초 만에 «건너뜀» 으로
+      끝낸다 — 새 판 자료는 0 개인데 잡은 rc=0 이라 성공처럼 보인다.
+      (2026-08-17 에 메쉬 수리로 똑같은 사고가 났다. `tagmf` 주석 참조.)
 
-    ⭐규약은 이 파일의 다른 꼬리표와 같다 — **기준 판이면 안 붙는다.** 그래야 기존 7,730 개와
+    ⭐규약은 이 파일의 다른 꼬리표와 같다 — **기준 판이면 안 붙는다.** 그래야 기존 창고와
       이름이 같아 이어진다.
 
-    ⛔**이름이 못 담는 차이는 여기서 멈춘다.** sionna-rt 는 기준 그대로인데 mitsuba·drjit 만
-      움직이면 꼬리표가 안 붙어 또 덮어쓴다. 그때는 이름을 짓지 않고 **예외로 세운다** —
-      「조용히 덮어쓰기」보다 「서서 사람을 부르기」가 낫다.
+    ⛔**서는 자리 셋** — 셋 다 「조용히 건너뛰기」보다 「서서 사람을 부르기」를 고른 것이다:
+      ⓐ 판을 못 읽었다
+      ⓑ 지은 꼬리표를 **문법이 되읽지 못한다**(rc·post·dev 판이면 글자가 남는다)
+      ⓒ 판 장부에 없거나, 있는데 **적힌 판 묶음과 다르다**
     """
     if SOLVER_BUILD == BUILD_BASELINE:
         return ""
@@ -1056,16 +1067,54 @@ def build_tag() -> str:
     for part in SOLVER_BUILD.split():
         if part.startswith("sionna-rt="):
             rt = part.split("=", 1)[1]
-    if rt in ("", "없음"):
+    if rt in ("", "없음"):                                      # ⓐ
         raise SystemExit("⛔sionna-rt 판을 못 읽었다 — 샤드 이름을 지을 수 없다.\n"
                          f"   지금 {SOLVER_BUILD}")
-    if rt == BUILD_BASELINE_RT:
+    tag = "_rt" + rt.replace(".", "")
+
+    #: ⓑ ⭐**지은 이름을 되읽어 본다.** 빌더가 자기 산출물을 스스로 검사하지 않으면,
+    #   문법이 못 읽는 이름이 창고에 남고 감사기들이 그 샤드를 «조용히 건너뛴다».
+    #   (`2.1.0rc1` → `_rt210rc1` → arm_grammar 의 `rt\d+` 가 못 읽는다.)
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "src"))
+        from arm_grammar import parse as _p, unparse as _u   # noqa: E402
+        _probe = "sionna_p1_r15_n8" + tag + "_d2"
+        if _u(_p(_probe)) != _probe:
+            raise ValueError("되짓기가 원본과 다르다")
+    except SystemExit:
+        raise
+    except Exception as e:                                     # noqa: BLE001
         raise SystemExit(
-            "⛔솔버 판이 기준과 다른데 **이름에 담을 수가 없다** — sionna-rt 는 그대로인데\n"
-            "   다른 꾸러미가 움직였다. 그대로 구우면 기존 샤드를 **덮어써** 비교 상대가 사라진다.\n"
-            f"   기준 {BUILD_BASELINE}\n   지금 {SOLVER_BUILD}\n"
-            "   ⇒ benchmark/elevation_sweep_md.py 의 BUILD_BASELINE 규약을 먼저 정하고 오라.")
-    return "_rt" + rt.replace(".", "")
+            f"⛔판 꼬리표 {tag!r} 를 **문법이 되읽지 못한다**({type(e).__name__}: {e}).\n"
+            f"   판 문자열 {rt!r} 에 숫자 아닌 마디가 있다(rc·post·dev·로컬 판).\n"
+            "   그대로 구우면 창고에 «되읽히지 않는 이름» 이 남고 감사기가 그 샤드를 조용히\n"
+            "   건너뛴다. src/arm_grammar.py 의 solver_build 꼬리표 규칙을 먼저 넓혀라.") from None
+
+    #: ⓒ ⭐**판 장부와 맞대 본다** — 같은 꼬리표가 다른 판 묶음을 가리키면 이름이 겹친다.
+    try:
+        with open(BUILD_REGISTRY, encoding="utf-8") as f:
+            reg = json.load(f)
+        known = reg.get("builds", {})
+    except FileNotFoundError:
+        known = {}
+    except Exception as e:                                     # noqa: BLE001
+        raise SystemExit(f"⛔판 장부 {BUILD_REGISTRY} 를 못 읽었다({type(e).__name__}: {e}).") from None
+    want = known.get(tag)
+    if want is None:
+        raise SystemExit(
+            f"⛔처음 보는 솔버 판이다 — 판 장부에 적고 오라.\n"
+            f"   지금 {SOLVER_BUILD}\n   꼬리표 {tag}\n"
+            f"   {BUILD_REGISTRY} 의 \"builds\" 에 이 한 줄을 넣어라:\n"
+            f'     "{tag}": "{SOLVER_BUILD}"\n'
+            "   ⭐적어 두는 까닭: 꼬리표는 sionna-rt 판만 담는다. mitsuba·drjit 가 따로\n"
+            "     움직여도 이름은 그대로라, 장부가 없으면 그 차이가 조용히 지나간다.")
+    if want != SOLVER_BUILD:
+        raise SystemExit(
+            f"⛔같은 꼬리표 {tag} 가 **다른 판 묶음**을 가리킨다 — 이름이 겹쳐 옛 샤드를\n"
+            "   건너뛰거나 덮어쓴다.\n"
+            f"   장부 {want}\n   지금 {SOLVER_BUILD}\n"
+            "   ⇒ 판을 장부대로 되돌리거나, 새 꼬리표 규칙을 정하고 장부를 고쳐라.")
+    return tag
 
 
 def bake_stamp(t0: float) -> dict:
@@ -1074,8 +1123,49 @@ def bake_stamp(t0: float) -> dict:
     ⭐`solver_build` 는 2026-09-14 에 더했다 — 옛 샤드에는 없다. 없는 샤드는 «적히기 전
       세대» 로 읽는다(`t_start` 처럼 옛 갈래로 내려간다).
     """
+    _check_runtime_build()
     return dict(t_start=np.array([float(t0)]), run_id=np.array(RUN_ID),
                 solver_build=np.array(SOLVER_BUILD))
+
+
+#: 같은 어긋남을 샤드마다 되풀이해 찍지 않는다
+_RT_CHECKED = {"v": False}
+
+
+def _check_runtime_build() -> None:
+    """⭐**적힌 판이 실제로 돌고 있는 판인가** — 굽기 도장을 찍기 직전에 본다.
+
+    ⛔⛔2026-09-14 적대 검증이 찾은 것: `SOLVER_BUILD` 는 모듈 import 때 **디스크의
+      dist-info** 를 읽는다. 그런데 솔버(mitsuba·drjit·sionna.rt)는 훨씬 **나중에**
+      import 된다. 제자리 업그레이드 중이라면 그 사이에 판이 갈릴 수 있고, 그러면
+      **새 판 코드로 굽고 옛 판 이름·도장으로 저장**한다 — 이름도 도장도 거짓이 된다.
+      (이번 갈이는 워커가 0 이 될 때까지 기다려서 그 창을 피하지만, 창을 피하는 것과
+       창이 없는 것은 다르다.)
+
+    ⇒ **이미 올라온 모듈의 `__version__`** 과 맞대 본다. 안 올라온 것은 안 본다
+      (dry-run 은 솔버를 아예 안 부른다 — 거기서 서면 큐 짜기가 막힌다).
+    """
+    if _RT_CHECKED["v"]:
+        return
+    _RT_CHECKED["v"] = True
+    said = dict(part.split("=", 1) for part in SOLVER_BUILD.split() if "=" in part)
+    bad = []
+    for dist, mod in (("mitsuba", "mitsuba"), ("drjit", "drjit"),
+                      ("sionna", "sionna"), ("sionna-rt", "sionna_rt")):
+        m = sys.modules.get(mod)
+        if m is None:
+            continue
+        live = getattr(m, "__version__", None)
+        if live is None or said.get(dist) in (None, "없음"):
+            continue
+        if str(live) != said[dist]:
+            bad.append(f"{dist}: 이름·도장에 적은 것 {said[dist]} ↔ 실제로 돌고 있는 것 {live}")
+    if bad:
+        raise SystemExit(
+            "⛔**적힌 판과 도는 판이 다르다** — 이대로 저장하면 이름도 도장도 거짓이 된다.\n"
+            + "".join(f"   · {b}\n" for b in bad)
+            + f"   도장에 적으려던 것: {SOLVER_BUILD}\n"
+            "   ⇒ 굽는 중에 꾸러미가 갈렸다. 이 워커를 내리고, 판을 정한 뒤 다시 구워라.")
 
 
 def shard_done(f):

@@ -27,7 +27,9 @@ from __future__ import annotations
 
 import glob
 import inspect
+import json
 import os
+import tempfile
 import sys
 
 import numpy as np
@@ -52,16 +54,38 @@ def _versions() -> dict:
 
 
 def check_build_tag() -> int:
-    """① 판마다 옳은 꼬리표가 나오나 — **덮어쓰기를 막는 함수**라 여기가 제일 중요하다."""
+    """① 판마다 옳은 꼬리표가 나오나 — **덮어쓰기·건너뛰기를 막는 함수**라 여기가 제일 중요하다.
+
+    ⛔⛔2026-09-14 적대 검증이 잡은 것 둘을 여기서 시험한다:
+      ⓐ 문지기가 **기준 판일 때만** 섰다 — 올린 뒤 mitsuba·drjit 가 따로 움직여도 안 섰다.
+      ⓑ 빌더가 **자기가 지은 이름을 되읽어 보지 않았다** — rc·post 판이면 문법이 못 읽는다.
+    """
     import elevation_sweep_md as esm
     base = esm.BUILD_BASELINE
-    keep = esm.SOLVER_BUILD
+    keep_b, keep_r = esm.SOLVER_BUILD, esm.BUILD_REGISTRY
+    B210 = "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+    #: ⛔장부를 임시 파일로 돌려 **운영 장부를 건드리지 않는다**
+    fd, reg = tempfile.mkstemp(prefix="solverbuilds_", suffix=".json")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump({"builds": {"_rt210": B210}}, f)
+    esm.BUILD_REGISTRY = reg
+
     cases = [
         ("기준 판 그대로", base, ""),
-        ("2.1.0", "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0", "_rt210"),
-        ("2.2.0", "sionna=2.2.0 sionna-rt=2.2.0 mitsuba=3.9.1 drjit=1.5.0", "_rt220"),
-        #: ⛔이름이 못 담는 차이 — 멈춰야 한다
-        ("rt 는 그대로인데 mitsuba 만 움직임",
+        ("2.1.0 · 장부와 같다", B210, "_rt210"),
+        #: ⭐ⓐ 같은 꼬리표인데 판 묶음이 다르다 — 이름이 겹쳐 옛 샤드를 건너뛴다
+        ("2.1.0 인데 mitsuba 만 움직임",
+         "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.5 drjit=1.5.0", SystemExit),
+        ("2.1.0 인데 drjit 만 움직임",
+         "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.7.0", SystemExit),
+        ("장부에 없는 판(2.2.0)",
+         "sionna=2.2.0 sionna-rt=2.2.0 mitsuba=3.9.1 drjit=1.5.0", SystemExit),
+        #: ⭐ⓑ 문법이 못 읽는 꼬리표
+        ("정식 판이 아닌 것(2.1.0rc1)",
+         "sionna=2.1.0rc1 sionna-rt=2.1.0rc1 mitsuba=3.9.1 drjit=1.5.0", SystemExit),
+        ("정식 판이 아닌 것(2.1.0.post1)",
+         "sionna=2.1.0 sionna-rt=2.1.0.post1 mitsuba=3.9.1 drjit=1.5.0", SystemExit),
+        ("이름이 못 담는 차이(기준 rt + 다른 꾸러미)",
          "sionna=2.0.1 sionna-rt=2.0.1 mitsuba=3.9.1 drjit=1.3.1", SystemExit),
         ("sionna-rt 를 못 읽음",
          "sionna=2.0.1 sionna-rt=없음 mitsuba=3.8.0 drjit=1.3.1", SystemExit),
@@ -72,15 +96,59 @@ def check_build_tag() -> int:
         esm.SOLVER_BUILD = build
         try:
             got = esm.build_tag()
-        except SystemExit as e:
+        except SystemExit:
             got = SystemExit
-            first = str(e).splitlines()[0]
         ok = (got is want) if want is SystemExit else (got == want)
         bad += not ok
         shown = "⛔멈춘다" if got is SystemExit else repr(got)
-        print(f"  {'✅' if ok else '⛔'} {name:<32} → {shown}"
+        print(f"  {'✅' if ok else '⛔'} {name:<34} → {shown}"
               + ("" if ok else f"  (바람 {want!r})"))
+    esm.SOLVER_BUILD, esm.BUILD_REGISTRY = keep_b, keep_r
+    try:
+        os.remove(reg)
+    except OSError:
+        pass
+    return bad
+
+
+def check_runtime() -> int:
+    """⑤ **적힌 판이 실제로 도는 판인가** — 제자리 업그레이드 중에 어긋나는 자리다.
+
+    ⛔`SOLVER_BUILD` 는 import 때 dist-info 를 읽는데 솔버는 한참 뒤에 import 된다.
+      그 사이에 판이 갈리면 새 판으로 굽고 옛 이름·도장으로 저장한다.
+    """
+    import elevation_sweep_md as esm
+    keep = esm.SOLVER_BUILD
+    bad = 0
+    print("── ⑤ 적힌 판 ↔ 도는 판 ──")
+    #: 지금 올라온 모듈이 없으면 아무 말도 안 해야 한다(dry-run 이 막히면 큐를 못 짠다)
+    esm._RT_CHECKED["v"] = False
     esm.SOLVER_BUILD = keep
+    try:
+        esm._check_runtime_build()
+        ok1 = True
+    except SystemExit as e:
+        ok1, why = False, str(e).splitlines()[0]
+    bad += not ok1
+    print(f"  {'✅' if ok1 else '⛔'} 지금 판 그대로면 안 선다" + ("" if ok1 else f" — {why}"))
+    #: 거짓 판을 적어 두면 서야 한다 — 단, 그 꾸러미가 실제로 올라와 있을 때만
+    import sys as _s
+    live = [m for m in ("mitsuba", "drjit", "sionna") if _s.modules.get(m) is not None]
+    if not live:
+        print("  ⚠솔버가 아직 안 올라와 있어 «어긋남» 갈래는 시험 못 했다(dry-run 경로)")
+        esm.SOLVER_BUILD = keep
+        return bad
+    esm._RT_CHECKED["v"] = False
+    esm.SOLVER_BUILD = "sionna=9.9.9 sionna-rt=9.9.9 mitsuba=9.9.9 drjit=9.9.9"
+    try:
+        esm._check_runtime_build()
+        ok2 = False
+    except SystemExit:
+        ok2 = True
+    bad += not ok2
+    print(f"  {'✅' if ok2 else '⛔'} 거짓 판을 적어 두면 멈춘다 (올라온 꾸러미 {live})")
+    esm.SOLVER_BUILD = keep
+    esm._RT_CHECKED["v"] = False
     return bad
 
 
@@ -126,14 +194,17 @@ def check_shards(limit: int = 0) -> int:
     if limit:
         paths = paths[:limit]
     n_stamp = n_none = 0
+    n_skip_name = n_skip_parse = 0          # ⭐말없이 건너뛴 수 — 전에는 세지도 찍지도 않았다
     bad = []
     for p in paths:
         m = rx.match(os.path.basename(p))
         if not m:
+            n_skip_name += 1                # ⛔샤드 이름 규약에 안 맞는 파일
             continue
         try:
             tag = parse(m.group("arm")).get("solver_build")
         except ArmNameError:
+            n_skip_parse += 1               # ⛔문법이 못 읽는 이름 — 여기가 눈이 멀던 자리다
             continue
         try:
             z = np.load(p, allow_pickle=True)
@@ -157,6 +228,14 @@ def check_shards(limit: int = 0) -> int:
     print("── ③ 창고 이름 ↔ 도장 ──")
     print(f"  샤드 {len(paths)} · 도장 있음 {n_stamp} · 도장 없음(적히기 전 세대) {n_none}"
           f" · ⛔어긋남 {len(bad)}")
+    #: ⭐**셈이 맞나** — 전에는 건너뛴 것을 세지 않아 a+b < N 이어도 아무도 몰랐다
+    acct = n_stamp + n_none + n_skip_name + n_skip_parse
+    print(f"  셈: {n_stamp} + {n_none} + 이름규약 밖 {n_skip_name} + 문법이 못 읽음 {n_skip_parse}"
+          f" = {acct} {'✅' if acct == len(paths) else '⛔'} {len(paths)}")
+    if acct != len(paths):
+        bad.append(("(셈)", f"합이 {acct} 인데 샤드는 {len(paths)} 개다"))
+    if n_skip_parse:
+        bad.append(("(문법)", f"문법이 못 읽는 이름이 {n_skip_parse} 개 — 이 샤드는 대조에서 빠진다"))
     for p, why in bad[:12]:
         print(f"   ⛔ {os.path.basename(p)[-64:]}\n      {why}")
     return len(bad)
@@ -187,7 +266,8 @@ def show_env() -> None:
 def main() -> int:
     print("═══ 솔버 판 검사 ═══")
     show_env()
-    bad = check_build_tag() + check_grammar() + check_shards()
+    bad = (check_build_tag() + check_runtime()
+           + check_grammar() + check_shards())
     if bad:
         print(f"\n⛔어긋남 {bad} 곳 — 판이 섞일 수 있다. 굽기 전에 고쳐라.")
         return 1
