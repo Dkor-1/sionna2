@@ -1,0 +1,19 @@
+# 4번 GPU 를 비우느라 죽인 줄 (2026-09-14 16:32 KST)
+# 사용자 지시: 「지금 4번 GPU에서 돌아가고 작업도 끝나가는 상태 아니면 즉시 비워줘」
+# 끝나가는 상태가 아니었다 — 같은 모양으로 끝난 짝의 실측이 159·154 분인데 경과가 47·46 분(약 30 %).
+# 셋 다 rc=-15 로 끝났고 **샤드를 하나도 안 남겼다**(창고 확인).
+#
+# ⚠105 번 줄은 짝의 한쪽이다 — shard 1 은 09-14 07:33 에 이미 구워졌다
+#   (sionna_p4000000000_swR1D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-60_01.npz).
+#   shard 0 이 없으면 그 칸은 반쪽이라 병합이 안 된다. ⇒ 이 줄이 가장 급하다.
+#
+# ⛔발주 전에 runners/filter_jobs.sh 로 NEW·DONE·STALE 를 가른다.
+# ⛔지금 감독자(jobs_0930)가 아직 돌고 있다 — 감독자는 하나만 돈다. 그것이 빠진 뒤에 띄운다.
+# ⛔4번 GPU 는 보류 중이다(runners/GPU_HOLD.json).
+
+# jobs_0930.txt:105  — G 묶음(굴절 팔 깊이 1) · 짝의 shard 0
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-60 --shard 0 --nshards 2
+
+# jobs_0930.txt:99,100 — F 묶음(실외 표집률 사다리) · 짝 전체
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 157600 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --prf 157600 --els=-30 --env outdoor01 --shard 1 --nshards 2

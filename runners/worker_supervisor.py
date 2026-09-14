@@ -89,6 +89,68 @@ HARD_TOTAL = int(os.environ.get("SIONNA2_HARD_TOTAL", "12"))
 #: ⛔**절대 안 쓸 카드** — 환경변수 SIONNA2_EXCLUDE_GPUS="0,3" 으로 준다.
 #   사용자가 «저 카드는 빼라» 고 하면 여기로 막는다. 규약(남의 점유)과 무관하게 0 이 된다.
 EXCLUDE = {int(x) for x in os.environ.get("SIONNA2_EXCLUDE_GPUS", "").replace(" ", "").split(",") if x.isdigit()}
+
+# ╔══ 임시 규약 (2026-09-14) — ⛔지우기 쉽게 **한 덩어리**로 묶어 뒀다 ═══════════════╗
+# ║ 사용자 지시(2026-09-14): 「한동안 4번 GPU 는 비우고 작업하고 싶다 · 별도로        ║
+# ║   요청하기 전까지 4번에 추가 작업을 싣지 마라」 ·「container_eunchankim 이        ║
+# ║   4번을 쓰고 있으면 쓰지 않도록 임시 규약을 만들어 달라(나중에 지우기 쉽게)」.     ║
+# ║                                                                                  ║
+# ║ ⭐**끄는 법은 파일 하나를 지우는 것**이다:   rm runners/GPU_HOLD.json             ║
+# ║   파일이 없으면 아래 함수는 빈 집합을 돌려주고 규약이 사라진다.                    ║
+# ║   (코드는 남아도 무해하다 — 파일이 있을 때만 무언가를 한다.)                       ║
+# ║                                                                                  ║
+# ║ ⛔**«container_eunchankim 이 쓰고 있나» 를 이름으로는 못 본다.** 우리 컨테이너     ║
+# ║   안에서 nvidia-smi 의 compute-apps 는 **우리 프로세스만** 보여 준다.             ║
+# ║   잴 수 있는 것은 «카드 전체 사용량 − 우리 것» = 남의 점유(MB) 뿐이고,            ║
+# ║   그것으로 갈음한다. 이름을 확인한 것이 아니다.                                   ║
+# ╚══════════════════════════════════════════════════════════════════════════════════╝
+HOLD_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "GPU_HOLD.json")
+_hold_warned = {"v": None}
+
+
+def temp_hold(ext: dict) -> set:
+    """지금 쓰지 않을 카드 — `runners/GPU_HOLD.json` 을 **매 바퀴 다시 읽는다**(살아서 반영된다).
+
+    파일 모양::
+
+        {"gpus": [],                  # 조건 없이 뺀다
+         "gpus_if_external": [4],     # 남의 점유가 문턱을 넘는 **동안만** 뺀다
+         "external_mb": 5000}
+
+    ⛔파일이 깨져 있어도 감독자는 안 죽는다 — 그때는 **아무 카드도 빼지 않고** 한 번만 찍는다.
+      (막는 쪽으로 실패하면 큐가 통째로 굶는다. 이 규약 하나 때문에 그러지 않게 한다.)
+    """
+    try:
+        with open(HOLD_JSON, encoding="utf-8") as f:
+            d = json.load(f)
+    except FileNotFoundError:
+        return set()
+    except Exception as e:                                     # noqa: BLE001
+        if _hold_warned["v"] != str(e):
+            _hold_warned["v"] = str(e)
+            print(f"⚠{HOLD_JSON} 를 못 읽었다({type(e).__name__}: {e}) — 이번 바퀴는 아무 카드도 안 뺀다",
+                  file=sys.stderr, flush=True)
+        return set()
+    if not isinstance(d, dict):
+        return set()
+    try:
+        thr = float(d.get("external_mb", 5_000))
+    except (TypeError, ValueError):
+        thr = 5_000.0
+    out = set()
+    for g in (d.get("gpus") or []):
+        try:
+            out.add(int(g))
+        except (TypeError, ValueError):
+            pass
+    for g in (d.get("gpus_if_external") or []):
+        try:
+            g = int(g)
+        except (TypeError, ValueError):
+            continue
+        if float(ext.get(g, 0)) >= thr:
+            out.add(g)
+    return out
 CPU_LOAD_CAP = 0.85     # ⭐**우리** cgroup 사용률이 이보다 크면 새로 안 띄운다
 #   (남의 부하가 아니라 우리 것만 본다 — cpu_load_frac 주석 참조)
 
@@ -356,12 +418,17 @@ class Sup:
         """
         caps, ext = {}, {}
         for g, used, total in cards:
-            e = max(0, used - ours.get(g, 0))
-            ext[g] = e
+            ext[g] = max(0, used - ours.get(g, 0))
+        #: ⭐임시 규약(2026-09-14) — 매 바퀴 `runners/GPU_HOLD.json` 을 다시 읽는다.
+        #  파일을 지우면 규약이 사라진다. 위 HOLD_JSON 블록 참조.
+        hold = temp_hold(ext)
+        self._hold = hold
+        for g, used, total in cards:
+            e = ext[g]
             # ⭐카드가 URGENT_FRAC 넘게 찼으면 떨림 방지를 건너뛰고 **즉시** 등급을 내린다
             self._filling_up = used >= URGENT_FRAC * total
-            if g in EXCLUDE:
-                caps[g] = 0                                    # ⛔사용자가 뺀 카드
+            if g in EXCLUDE or g in hold:
+                caps[g] = 0                                    # ⛔사용자가 뺀 카드 · 임시 보류
             else:
                 caps[g] = 0 if used >= FULL_FRAC * total else max(self.capped(g, e), MIN_PER_GPU)
         budget = min(MAX_TOTAL, sum(caps.values()))
@@ -460,7 +527,8 @@ class Sup:
         state = []
         for g, _u, _t in cards:
             cur = run.get(g, 0)
-            state.append(f"G{g}:{cur}/{tgt[g]}(상한{caps[g]}·남{ext[g]//1000}G)")
+            state.append(f"G{g}:{cur}/{tgt[g]}(상한{caps[g]}·남{ext[g]//1000}G"
+                         + ("·⛔보류" if g in getattr(self, "_hold", ()) else "") + ")")
             if hold or self.i >= len(self.jobs):
                 continue
             while cur < tgt[g] and self.i < len(self.jobs) and live < HARD_TOTAL:
