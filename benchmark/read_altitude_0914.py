@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""고도 사다리 판독 — 0930 B 묶음 (2026-09-14).
+
+    CUDA_VISIBLE_DEVICES="" taskset -c 8-11 \
+      /workspace/.venvs/py312/bin/python benchmark/read_altitude_0914.py
+
+무엇을 묻나
+-----------
+실외 판의 바닥이 **지면 때문인가**. 0930 B 묶음이 그 축을 사려고 `--env-alt` 를 흔들었다.
+
+⛔⛔**그런데 이 축이 무엇을 옮기는지부터 적어야 한다.** 생산 구현
+`benchmark/elevation_sweep_md.py:200 env_parts` 는 드론을 올리는 것이 아니라 **환경 부품을
+통째로 내린다**(`position=(0,0,dz)`, `dz = -alt`). 그리고 같은 파일 :114 가 적어 두었듯
+**드론이 원점이고 레이다는 `rng·sin(el)` 깊이에 온다** — 곧 레이다도 드론에 매여 있다.
+⇒ 이 축은 「드론이 높이 난다(레이다는 땅에 있다)」가 **아니다.** 「드론과 레이다가 **함께**
+  지면에서 멀어진다」이다. 상대 기하 실험으로 읽는다.
+
+⛔이 판독은 **관측만** 낸다. 「지면 탓이다/아니다」로 닫지 않는다 — 그 판정은 이 표 하나로
+  설 수 없다(아래 limits_ko).
+
+⭐왜 리듬 몫만 보면 안 되나
+---------------------------
+리듬 몫은 **비**다. 분자(빗살)와 분모(움직이는 몫 전체)가 **함께** 줄면 비는 안 변한다.
+그래서 「리듬 몫이 널 근처라 지면 탓이 아니다」로 읽으면 안 된다 — 이 표는 비와 **절대
+전력**을 같은 줄에 나란히 놓아 그 읽기를 막는다.
+"""
+from __future__ import annotations
+
+import collections
+import glob
+import json
+import math
+import os
+import sys
+
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+sys.path.insert(0, os.path.join(ROOT, "src"))
+sys.path.insert(0, HERE)
+from arm_grammar import parse as parse_arm, unparse as unparse_arm   # noqa: E402
+from reader_gate import cell, check_series, check_shards, publish, sweep_orphans  # noqa: E402
+
+LED_J = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
+SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
+OUT = os.path.join(ROOT, "outputs", "read_altitude_0914.json")
+MD = os.path.join(ROOT, "docs", "ALTITUDE_0914.md")
+
+#: 이 판독이 요구하는 팔의 꼴. ⛔꼬리표 **허용목록**으로 고른다 — 블록리스트는 샌다.
+BASE_TAGS = {"engine", "spp", "switches", "range_m", "n_poses",
+             "max_depth", "env", "env_alt", "mesh_fix", "blade_law"}
+WANT = (("engine", "sionna", "엔진"), ("spp", "4000000000", "광선 예산"),
+        ("range_m", "15", "거리[m]"), ("n_poses", "8192", "자세 수"),
+        ("max_depth", "2", "반사 깊이"))
+#: 기준 고도 — `env_parts` 가 항목의 기본값으로 쓰는 값(ENV_SPECS["outdoor01"]["alt_m"]).
+#  ⛔손으로 친 수가 아니라 생산 파일에서 읽는다(아래 `_default_alt`).
+RANGE_M = 15.0
+
+
+def _default_alt() -> float:
+    """생산 파일이 쓰는 기본 고도 [m] — 손으로 치지 않고 읽어 온다."""
+    import ast
+    src = open(os.path.join(HERE, "elevation_sweep_md.py"), encoding="utf-8").read()
+    tree = ast.parse(src)
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Assign) and node.targets
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == "ENV_SPECS"):
+            for k, v in zip(node.value.keys, node.value.values):
+                if getattr(k, "value", None) != "outdoor01":
+                    continue
+                for kw in getattr(v, "keywords", []):
+                    if kw.arg == "alt_m":
+                        return float(ast.literal_eval(kw.value))
+    raise SystemExit("⛔ elevation_sweep_md.py 에서 기본 고도(ENV_SPECS.outdoor01.alt_m)를 못 읽었다")
+
+
+def cell_series(arm: str, el: float, n_poses_ledger=None):
+    """한 칸의 복소 시계열 — (전계, 표집률) 또는 (None, 까닭)."""
+    fs = sorted(glob.glob(f"{SHD}/{arm}_el{el:+g}_*.npz"))
+    if not fs:
+        return None, "그 칸의 조각이 창고에 없다"
+    n0, prf, why = check_shards(fs)
+    if why:
+        return None, " · ".join(why)
+    E = np.zeros(n0, complex)
+    seen = np.zeros(n0, bool)
+    for f in fs:
+        z = np.load(f)
+        ii = z["idx"].astype(int)
+        E[ii] = z["E"]
+        seen[ii] = True
+    if not seen.all():
+        return None, f"자세가 덜 찼다({int(seen.sum())}/{seen.size})"
+    w = check_series(E, n_poses=n_poses_ledger, prf=prf)
+    if w:
+        return None, " · ".join(w)
+    return (E, prf), None
+
+
+def parts(E: np.ndarray) -> dict:
+    """정지 성분과 움직이는 성분. ⭐둘을 갈라야 «바닥이 지면인가» 를 물을 수 있다."""
+    dc = float(np.abs(E.mean()) ** 2)
+    ac = float(np.mean(np.abs(E - E.mean()) ** 2))
+    return {"dc_power": dc, "ac_power": ac, "mean_abs": float(np.abs(E).mean())}
+
+
+def rhythm_share_pct(E: np.ndarray, prf: float, f_flash: float, f_tip: float,
+                     half_hz: float = 8.0):
+    """움직이는 몫 가운데 **날개 박자 빗살**이 차지하는 비 [%].
+
+    ⛔정의는 `benchmark/build_deck_maps.py:structure_bars` 의 창 반폭 8 Hz 를 따른다 —
+      이 저장소가 이미 쓰던 정의이고 새로 만들지 않는다.
+    ⛔날개끝 상한이 0 인 칸(직하방)은 «상한 위» 띠가 없으므로 None 을 돌려준다.
+    """
+    if not (f_tip and f_tip > 0) or not (f_flash and f_flash > 0):
+        return None
+    x = E - E.mean()
+    n = x.size
+    w = np.hanning(n)
+    P = np.abs(np.fft.fft(x * w)) ** 2 / (n * np.sum(w ** 2))
+    fr = np.fft.fftfreq(n, 1.0 / prf)
+    above = np.abs(fr) >= f_tip
+    k = np.round(np.abs(fr) / f_flash)
+    on = np.abs(np.abs(fr) - k * f_flash) <= half_hz
+    tot = float(P[above].sum())
+    if tot <= 0:
+        return None
+    return round(100.0 * float(P[above & on].sum()) / tot, 2)
+
+
+def db_ratio(a: float, b: float):
+    return None if (a <= 0 or b <= 0) else round(float(10 * np.log10(a / b)), 3)
+
+
+def main() -> int:
+    sweep_orphans([os.path.dirname(OUT), os.path.dirname(MD)])
+    L = json.load(open(LED_J, encoding="utf-8"))
+    ROW = {(r["engine"], float(r["el_deg"])): r for r in L["rows"]}
+    DEFAULT_ALT = _default_alt()
+
+    def usable(r):
+        """못 쓰는 까닭 — 빈 목록이면 쓸 수 있다. ⛔버린 칸은 까닭과 함께 적는다."""
+        try:
+            f = parse_arm(r["engine"])
+        except Exception:
+            return [("이름을 못 읽음", "이름을 문법으로 못 읽었다")]
+        why = []
+        extra = sorted(set(f) - BASE_TAGS)
+        if extra:
+            why.append(("허용 밖 꼬리표", "이 판독이 허용하지 않는 꼬리표가 붙어 있다: "
+                        + " · ".join(extra)))
+        for k, v, ko in WANT:
+            if f.get(k) != v:
+                why.append((f"{ko} 다름",
+                            f"{ko}이(가) 이 판독의 값과 다르다(팔 {f.get(k)!r} · 이 판독 {v!r})"))
+        if r.get("n_missing") != 0:
+            why.append(("자세 덜 참", f"자세가 덜 찼다(빠진 자세 {r.get('n_missing')})"))
+        return why
+
+    rows, skipped = [], []
+    n_no_alt = 0
+    for r in sorted(L["rows"], key=lambda r: (r["engine"], r["el_deg"])):
+        try:
+            f = parse_arm(r["engine"])
+        except Exception:
+            f = {}
+        if not f.get("env_alt"):
+            n_no_alt += 1                      # 고도 꼬리표가 없는 팔 = 이 축의 범위 밖
+            continue
+        el = float(r["el_deg"])
+        w = usable(r)
+        if w:
+            skipped.append(dict(engine=r["engine"], el_deg=el,
+                                why_codes=[c for c, _ in w],
+                                why=" · ".join(t for _, t in w)))
+            continue
+        #: ⭐짝은 **고도 꼬리표만 뺀 같은 팔**이다 — 이름을 긁지 않고 문법으로 짓는다.
+        base_arm = unparse_arm({k: v for k, v in f.items() if k != "env_alt"})
+        rb = ROW.get((base_arm, el))
+        if rb is None:
+            skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
+                                why_codes=["기준 고도 짝 없음"],
+                                why="고도 꼬리표만 뺀 기준 팔이 원장에 없다"))
+            continue
+        #: ⭐쌍의 조건을 **다시** 검사한다 — 이름이 맞아도 원장 값이 어긋나면 안 쓴다.
+        bad = [k for k in ("n_poses", "spp", "fc_hz", "f_tip_hz", "range_m",
+                           "max_depth", "prf_hz", "f_flash_hz")
+               if r.get(k) != rb.get(k)]
+        if bad:
+            skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
+                                why_codes=["쌍의 조건 어긋남"],
+                                why=f"쌍의 조건이 어긋난다: {bad}"))
+            continue
+        got_a, why_a = cell_series(r["engine"], el, r.get("n_poses"))
+        got_b, why_b = cell_series(base_arm, el, rb.get("n_poses"))
+        if got_a is None or got_b is None:
+            skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
+                                why_codes=["시계열을 못 읽음"],
+                                why=" · ".join(x for x in (why_a, why_b) if x)))
+            continue
+        Ea, prf = got_a
+        Eb, _ = got_b
+        pa, pb = parts(Ea), parts(Eb)
+        alt = float(f["env_alt"])
+        ftip = float(r.get("f_tip_hz") or 0.0)
+        ffl = float(r.get("f_flash_hz") or 0.0)
+        #: ⭐레이다가 지면 위로 뜬 높이 — 드론이 원점이고 레이다는 rng·sin(el) 깊이다.
+        h_new = alt - RANGE_M * abs(math.sin(math.radians(el)))
+        h_ref = DEFAULT_ALT - RANGE_M * abs(math.sin(math.radians(el)))
+        pred = (None if (h_new <= 0 or h_ref <= 0)
+                else round(float(-20 * math.log10(h_new / h_ref)), 3))
+        d_dc = db_ratio(pa["dc_power"], pb["dc_power"])
+        rows.append(dict(
+            engine=r["engine"], base_engine=base_arm, env=f.get("env"),
+            el_deg=el, alt_m=alt, base_alt_m=DEFAULT_ALT,
+            radar_height_m=round(h_new, 3), base_radar_height_m=round(h_ref, 3),
+            prf_hz=prf, f_tip_hz=ftip, f_flash_hz=ffl,
+            d_mean_abs_db=(None if (pa["mean_abs"] <= 0 or pb["mean_abs"] <= 0) else
+                           round(float(20 * np.log10(pa["mean_abs"] / pb["mean_abs"])), 3)),
+            d_dc_power_db=d_dc,
+            d_ac_power_db=db_ratio(pa["ac_power"], pb["ac_power"]),
+            inverse_square_pred_db=pred,
+            d_dc_minus_pred_db=(None if (d_dc is None or pred is None)
+                                else round(d_dc - pred, 3)),
+            rhythm_share_pct=rhythm_share_pct(Ea, prf, ffl, ftip),
+            base_rhythm_share_pct=rhythm_share_pct(Eb, prf, ffl, ftip),
+        ))
+
+    n_pairs = len(rows)
+    dd = [r["d_dc_minus_pred_db"] for r in rows if r["d_dc_minus_pred_db"] is not None]
+    rr = [(r["base_rhythm_share_pct"], r["rhythm_share_pct"]) for r in rows
+          if r["rhythm_share_pct"] is not None and r["base_rhythm_share_pct"] is not None]
+    d_rh = [abs(b - a) for a, b in rr]
+    d_dcs = [abs(r["d_dc_power_db"]) for r in rows if r["d_dc_power_db"] is not None]
+
+    out = dict(_meta=dict(
+        generator="benchmark/read_altitude_0914.py",
+        reads=["outputs/elevation_sweep_md.json", "outputs/elev_sweep_shards/*.npz",
+               "benchmark/elevation_sweep_md.py (기본 고도)"],
+        question_ko="실외 판의 바닥이 지면에서 오나 — 고도를 흔들었을 때 정지·움직이는 성분이 "
+                    "어떻게 가나",
+        axis_ko=(f"`--env-alt` 는 드론을 올리는 것이 아니라 **환경 부품을 통째로 내린다**"
+                 f"(elevation_sweep_md.py:200 `env_parts`, position z = -alt). 드론이 원점이고 "
+                 f"레이다는 rng·sin(el) 깊이에 매여 있으므로(같은 파일 :114) 드론과 레이다가 "
+                 f"**함께** 지면에서 멀어진다. 기준 고도는 {DEFAULT_ALT:g} m, 거리는 {RANGE_M:g} m 다."),
+        default_alt_m=DEFAULT_ALT, range_m=RANGE_M,
+        n_ledger_rows=len(L["rows"]),
+        n_out_of_scope_no_alt_tag=n_no_alt,
+        n_pairs=n_pairs, n_skipped=len(skipped),
+        accounting_closes=(len(L["rows"]) == n_no_alt + n_pairs + len(skipped)),
+        skipped_by_reason={k: v for k, v in sorted(
+            collections.Counter(c for x in skipped for c in x["why_codes"]).items(),
+            key=lambda kv: -kv[1])},
+        ruler_ko=("정지 성분 = |평균 E|² · 움직이는 성분 = 평균 |E − 평균 E|² · 리듬 몫은 "
+                  "`benchmark/build_deck_maps.py:structure_bars` 의 창 반폭 8 Hz 정의를 "
+                  "그대로 쓴다(새로 만들지 않았다)."),
+        inverse_square_ko=("«1/h² 예측» 은 레이다↔지면 높이가 h_ref → h_new 로 바뀔 때 "
+                           "−20·log10(h_new/h_ref) 다. ⛔이것은 **기하 예측과의 일치를 재는 "
+                           "자**이지 기작의 증명이 아니다 — 레이다↔지면 거리에 반비례하는 "
+                           "어떤 법칙이든 같은 수를 낸다."),
+        limits_ko=[
+            "⛔이 축은 「드론이 높이 난다」가 아니다 — 드론과 레이다가 함께 멀어진다. "
+            "레이다가 땅에 남는 실제 비행 기하는 이 자료에 없다.",
+            "⛔「바닥이 지면 탓이다/아니다」로 닫지 않는다. 이 표가 보이는 것은 고도를 "
+            "흔들었을 때 두 성분이 **어떻게 가는가** 뿐이다.",
+            "⛔⛔리듬 몫은 **비**다. 분자와 분모가 함께 줄면 비는 안 변한다 — 「리듬 몫이 "
+            "널 근처라 지면 탓이 아니다」로 읽지 않는다. 이 표가 비와 절대 전력을 같은 줄에 "
+            "두는 까닭이 그것이다.",
+            "⛔실기 계측 대조는 0 건이다. 이 판독으로도 생기지 않는다.",
+        ]), rows=rows, skipped=skipped)
+
+    if dd:
+        out["_meta"]["headline_ko"] = (
+            f"고도 쌍 {n_pairs} 개에서 정지 성분은 {min(d_dcs):.2f}~{max(d_dcs):.2f} dB 내려가고, "
+            f"그 값이 레이다↔지면 높이의 1/h² 예측과 "
+            f"{min(dd):+.2f}~{max(dd):+.2f} dB 안에서 맞는다"
+            + (f". 같은 쌍에서 리듬 몫은 {min(d_rh):.2f}~{max(d_rh):.2f} %p 밖에 안 움직인다 "
+               "— 비만 보면 이 큰 변화가 안 보인다." if d_rh else "."))
+    else:
+        out["_meta"]["headline_ko"] = f"고도 쌍 {n_pairs} 개 — 견줄 수 있는 값이 없다"
+
+    #: ── 문서 ────────────────────────────────────────────────────────────
+    a = []
+    a.append("# 고도 사다리 — 0930 B 묶음 판독")
+    a.append("")
+    a.append(f"> ⛔손으로 쓰지 않는다. `{out['_meta']['generator']}` 가 굽는다.")
+    a.append("")
+    a.append(f"⭐{out['_meta']['headline_ko']}")
+    a.append("")
+    a.append(f"⚠**이 축이 무엇을 옮기나** — {out['_meta']['axis_ko']}")
+    a.append("")
+    a.append("| 장면 | 앙각 | 고도 m | 레이다 높이 m | 정지 dB | 1/h² 예측 dB | 차 dB "
+             "| 움직임 dB | 리듬 몫 기준→새 % |")
+    a.append("|---|---:|---:|---:|---:|---:|---:|---:|---|")
+    for r in sorted(rows, key=lambda r: (r["env"], r["el_deg"], r["alt_m"])):
+        a.append(
+            f"| {r['env']} | {cell(r['el_deg'], '+.0f')} | {cell(r['alt_m'], 'g')} "
+            f"| {cell(r['radar_height_m'], '.2f')} | {cell(r['d_dc_power_db'], '+.3f', ' dB')} "
+            f"| {cell(r['inverse_square_pred_db'], '+.3f', ' dB')} "
+            f"| {cell(r['d_dc_minus_pred_db'], '+.3f', ' dB')} "
+            f"| {cell(r['d_ac_power_db'], '+.3f', ' dB')} "
+            f"| {cell(r['base_rhythm_share_pct'], '.2f')} → {cell(r['rhythm_share_pct'], '.2f')} |")
+    a.append("")
+    a.append(f"⭐**정지 성분과 움직이는 성분이 거의 같이 간다** — 쌍 {n_pairs} 개에서 두 값의 "
+             f"차는 "
+             + (f"{min(abs(r['d_ac_power_db'] - r['d_dc_power_db']) for r in rows if r['d_ac_power_db'] is not None and r['d_dc_power_db'] is not None):.2f}"
+                f"~{max(abs(r['d_ac_power_db'] - r['d_dc_power_db']) for r in rows if r['d_ac_power_db'] is not None and r['d_dc_power_db'] is not None):.2f} dB 다. "
+                if rows else "잴 수 없다. ")
+             + "드론↔레이다 기하는 고도를 바꿔도 **한 자도 안 바뀌므로**, 이만큼 움직인 것은 "
+               "드론 자신의 반향이 아니다.")
+    a.append("")
+    for t in out["_meta"]["limits_ko"]:
+        a.append(f"- {t}")
+    a.append("")
+    a.append(f"셈: 원장 {out['_meta']['n_ledger_rows']} 행 = 고도 꼬리표 없음 "
+             f"{out['_meta']['n_out_of_scope_no_alt_tag']} + 쌍 {n_pairs} + 건너뜀 "
+             f"{len(skipped)} — 닫힘 {out['_meta']['accounting_closes']}")
+    if out["_meta"]["skipped_by_reason"]:
+        a.append("")
+        a.append("| 건너뛴 까닭 | 칸 |")
+        a.append("|---|---:|")
+        for k, v in out["_meta"]["skipped_by_reason"].items():
+            a.append(f"| {k} | {v} |")
+    a.append("")
+    a.append(f"자: {out['_meta']['ruler_ko']}")
+    a.append("")
+    a.append(f"1/h² 예측: {out['_meta']['inverse_square_ko']}")
+    a.append("")
+
+    publish({OUT: out, MD: "\n".join(a) + "\n"})
+    print(f"\n✅ {os.path.relpath(OUT, ROOT)} · {os.path.relpath(MD, ROOT)}  ({n_pairs} 쌍)")
+    print(f"   {out['_meta']['headline_ko']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1004,9 +1004,39 @@ def run(a) -> None:
 RUN_ID = os.environ.get("SIONNA2_RUN_ID") or uuid.uuid4().hex[:16]
 
 
+def _solver_build() -> str:
+    """이 샤드를 구운 **솔버 판**. ⛔임포트가 없으면 «없음» 이지 예외가 아니다.
+
+    ⛔⛔2026-09-14 신설. 그 전까지 창고와 원장 어디에도 **솔버 판이 안 적혀 있었다.**
+      세대는 `t_start`(굽기 시작 시각)로만 갈렸는데, 그것은 「언제 구웠나」이지
+      「무엇으로 구웠나」가 아니다. 판을 올리는 날 같은 칸에 두 판의 조각이 섞이면
+      `one_generation` 은 **덮개가 넓은 쪽**을 고르지 상류가 무엇인지 모른다.
+    ⭐2026-09-09 에 sionna-rt 2.1.0 이 나왔고, 릴리스 노트가 재질(ITU-R P.2040-4)·
+      회절 모형·도플러 계산을 함께 바꿨다고 적는다 — 곧 **절대 레벨이 움직이는 판 갈이**다.
+      그러니 올리기 전에 「어느 판으로 구운 칸인가」를 샤드가 스스로 말해야 한다.
+    """
+    out = []
+    for name in ("sionna", "sionna-rt", "mitsuba", "drjit"):
+        try:
+            import importlib.metadata as _md
+            out.append(f"{name}={_md.version(name)}")
+        except Exception:                      # noqa: BLE001 — 없으면 없다고 적는다
+            out.append(f"{name}=없음")
+    return " ".join(out)
+
+
+#: 한 프로세스 안에서 한 번만 잰다 — 샤드마다 importlib 을 두드리지 않는다.
+SOLVER_BUILD = _solver_build()
+
+
 def bake_stamp(t0: float) -> dict:
-    """샤드에 함께 넣을 굽기 도장. `np.savez_compressed(**bake_stamp(t0))` 로 쓴다."""
-    return dict(t_start=np.array([float(t0)]), run_id=np.array(RUN_ID))
+    """샤드에 함께 넣을 굽기 도장. `np.savez_compressed(**bake_stamp(t0))` 로 쓴다.
+
+    ⭐`solver_build` 는 2026-09-14 에 더했다 — 옛 샤드에는 없다. 없는 샤드는 «적히기 전
+      세대» 로 읽는다(`t_start` 처럼 옛 갈래로 내려간다).
+    """
+    return dict(t_start=np.array([float(t0)]), run_id=np.array(RUN_ID),
+                solver_build=np.array(SOLVER_BUILD))
 
 
 def shard_done(f):
@@ -1497,6 +1527,12 @@ def analyse() -> None:
             #  ⛔실측(점검자, 2026-09-13): 저장 표집률로 다시 재면 122 칸 중 107 칸의 track
             #    지표가 바뀐다(예: prf39400 · el+0 의 beat_hz 59.79 → 119.52 Hz).
             _prfs = set()
+            #: ⭐⭐이 칸을 구운 **솔버 판**(2026-09-14 신설). 옛 샤드에는 없으므로 «없음» 이
+            #  들어온다 — 그 자체가 「적히기 전 세대」라는 정보다. 한 칸에 판이 둘 이상이면
+            #  아래 원장 행이 `solver_build_seen` 으로 **드러낸다**(조용히 하나를 고르지 않는다).
+            #  ⛔왜 — 2026-09-09 의 sionna-rt 2.1.0 은 재질(ITU-R P.2040-4)·회절 모형·도플러
+            #  계산을 함께 바꿨다고 릴리스 노트가 적는다. 판이 섞인 칸은 그 축을 못 잰다.
+            _builds = set()
             n_tr, n_seen, n_tr_stored = 0, 0, 0
             #: 자세 수로 센다 — 어느 갈래로 잰 칸인지 원장이 말할 수 있게
             n_tr_recomputed, n_tr_from_stored, n_tr_assumed = 0, 0, 0
@@ -1519,6 +1555,8 @@ def analyse() -> None:
                 _m4 = np.asarray(z["meta"], float).ravel()
                 if _m4.size > 4 and _m4[4] > 0:
                     _prfs.add(float(_m4[4]))
+                _builds.add(str(np.asarray(z["solver_build"]).ravel()[0])
+                            if "solver_build" in z else "(도장 전 세대)")
                 secs += float(np.asarray(z["meta"], float)[5])
                 if "npaths" in z: npa.append(z["npaths"])
                 if "n_trunc" in z:
@@ -1707,6 +1745,13 @@ def analyse() -> None:
                 #: ⭐이 칸의 저장 표집률. 여러 값이 섞이면 None 으로 두고 아래에 적는다.
                 prf_hz=(float(next(iter(_prfs))) if len(_prfs) == 1 else None),
                 prf_hz_seen=sorted(_prfs) if len(_prfs) != 1 else None,
+                #: ⭐이 칸을 구운 솔버 판. 하나면 그 값, 여럿이면 None + 목록.
+                solver_build=(next(iter(_builds)) if len(_builds) == 1 else None),
+                solver_build_seen=sorted(_builds) if len(_builds) != 1 else None,
+                solver_build_note_ko=("이 칸을 구운 솔버 판이다(2026-09-14 부터 샤드에 적는다). "
+                                      "«(도장 전 세대)» 는 그 전에 구운 샤드다. ⛔판이 여럿이면 "
+                                      "그 칸은 판 갈이를 가로지른 것이라 절대 레벨 비교에 "
+                                      "쓰지 않는다."),
                 prf_note_ko=("STFT·리듬 지표는 **이 칸의 저장 표집률**로 냈다. 여러 값이 "
                              "섞인 칸은 prf_hz 가 null 이고 규약값으로 냈다 — 그 칸은 읽지 않는다."),
                 #: ⭐이 칸의 날개 통과율 — 기체 꼬리표가 정한다. 잣대·STFT 가 이 값을 쓴다.
