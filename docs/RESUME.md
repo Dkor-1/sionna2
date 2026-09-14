@@ -83,3 +83,5 @@ for g in check_retracted check_stale_titles check_row_pointers check_new_file_ru
 `~/.claude/projects/-workspace-sionna/…/workflows/scripts/clutter-experiment-design-wf_a265209d-c0e.js`).
 끊겼으면 journal.jsonl 을 보고, 0909 발주(72 줄)에 없는 손잡이만 0909b 로 붙인다. 없으면 그만둔다.
 ⛔우리 커널은 `--env` 를 거부한다(elevation_sweep_md.py:484) — 실외 «다섯 팔» 은 넷까지.
+
+- ⛔**다시 못 굽는 자리**: `src/make_report02_target.py` 가 선다(메쉬 갤러리 원장이 낡음 · phantom4 2.13 %). 진단은 [`docs/MESH_GALLERY_STALE_0914.md`](MESH_GALLERY_STALE_0914.md). 솔버 판 갈이와 섞지 말고 따로 고친다.
