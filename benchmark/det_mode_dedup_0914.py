@@ -79,20 +79,45 @@ def _repro():
     return m
 
 
-def dedup(a, tau):
-    """같은 (지연·복소진폭) 줄을 한 번만 센다 — 샤드의 `E_dedup` 과 같은 정의."""
-    k = np.stack([np.round(tau, 15), np.round(a.real, 18), np.round(a.imag, 18)], 1)
-    _, idx = np.unique(k, axis=0, return_index=True)
-    return a[idx], tau[idx]
+def dedup(a, tau, obj=None, prim=None):
+    """같은 줄을 한 번만 센다 — ⭐**샤드의 `E_dedup` 과 같은 열쇠**로.
+
+    ⛔⛔2026-09-14 정정. 첫 판은 열쇠를 `(반올림한 지연, 반올림한 진폭)` 둘로만 잡고
+      「샤드의 E_dedup 과 같은 정의」라고 적었다. **틀렸다.**
+      샤드의 열쇠는 `benchmark/elevation_sweep_md.py:946-956` 에서 **넷**이다 —
+      «진폭 실·허 · 지연 · 물체 · 삼각형», 그리고 **반올림이 없다.**
+      그 코드가 스스로 까닭을 적어 뒀다:
+        「⚠삼각형까지 넣는 까닭 — 대칭 기하에서 **서로 다른 경로**가 우연히 같은 진폭·
+          지연을 가질 수 있다. 그것까지 지우면 진짜 신호를 버린다.」
+      실제로 이 씬에서 그 일이 난다 — 축 대칭의 반대편 평판 두 장(삼각형 570 ↔ 631)이
+      진폭·지연을 비트까지 공유한다. 느슨한 열쇠는 그 둘을 하나로 지운다(8,051 → 8,050).
+    ⇒ 물체·삼각형을 받으면 넣고, 못 받으면 **그 사실을 알린다**(수가 달라지므로).
+    """
+    cols = [a.real, a.imag, tau]
+    if obj is not None and getattr(obj, "size", 0):
+        cols += [obj[d].astype(float) for d in range(obj.shape[0])]
+    if prim is not None and getattr(prim, "size", 0):
+        cols += [prim[d].astype(float) for d in range(prim.shape[0])]
+    _, idx = np.unique(np.stack(cols, axis=1), axis=0, return_index=True)
+    return a[idx], tau[idx], (len(cols) > 3)
 
 
 def solve(rt, sc, fc, mode, kw):
+    """(진폭, 지연, 물체, 삼각형) — 뒤의 둘은 샤드 열쇠가 요구하는 것이다."""
     p = rt.PathSolver(deterministic=mode)(sc, **kw)
     ar = np.array(p.a[0], copy=True).astype(np.float64)
     ai = np.array(p.a[1], copy=True).astype(np.float64)
     a = (ar + 1j * ai).reshape(-1, ar.shape[-1])[0]
     tau = np.array(p.tau, copy=True).astype(np.float64).reshape(-1, a.size)[0]
-    return a, tau
+    try:
+        obj = np.asarray(p.objects)[:, 0, 0, :]
+    except Exception:                                          # noqa: BLE001
+        obj = None
+    try:
+        prim = np.asarray(p.primitives)[:, 0, 0, :]
+    except Exception:                                          # noqa: BLE001
+        prim = None
+    return a, tau, obj, prim
 
 
 def main() -> int:
@@ -110,12 +135,14 @@ def main() -> int:
         kw = dict(KW, seed=seed, samples_per_src=spp, max_depth=depth)
         out = []
         for mode in (False, True):
-            a, tau = solve(rt, sc, repro.FC, mode, kw)
-            da, dt = dedup(a, tau)
+            a, tau, obj, prim = solve(rt, sc, repro.FC, mode, kw)
+            da, dt, full = dedup(a, tau, obj, prim)
             h = np.sum(a * np.exp(-2j * np.pi * repro.FC * tau))
             hd = np.sum(da * np.exp(-2j * np.pi * repro.FC * dt))
-            out.append((len(a), h, da, dt, hd))
-        (nF, hF, aFd, tFd, hFd), (nT, hT, aTd, tTd, hTd) = out
+            out.append((len(a), h, da, dt, hd, full))
+        (nF, hF, aFd, tFd, hFd, fullF), (nT, hT, aTd, tTd, hTd, fullT) = out
+        if not (fullF and fullT):
+            print("  ⚠물체·삼각형을 못 받아 열쇠가 느슨하다 — 샤드의 E_dedup 과 같은 수가 아니다")
         same = (len(aFd) == len(aTd)
                 and np.array_equal(np.sort_complex(aFd), np.sort_complex(aTd))
                 and np.array_equal(np.sort(tFd), np.sort(tTd)))
@@ -136,7 +163,7 @@ def main() -> int:
         for mode in (False, True):
             hs, ns = [], []
             for _ in range(5):
-                a, tau = solve(rt, sc, repro.FC, mode, dict(KW))
+                a, tau, _o, _p = solve(rt, sc, repro.FC, mode, dict(KW))
                 ns.append(len(a))
                 hs.append(abs(np.sum(a * np.exp(-2j * np.pi * repro.FC * tau))))
             span = 20 * np.log10(max(hs) / min(hs)) if min(hs) > 0 else 0.0
