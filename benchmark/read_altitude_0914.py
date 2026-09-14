@@ -56,7 +56,9 @@ WANT = (("engine", "sionna", "엔진"), ("spp", "4000000000", "광선 예산"),
         ("max_depth", "2", "반사 깊이"))
 #: 기준 고도 — `env_parts` 가 항목의 기본값으로 쓰는 값(ENV_SPECS["outdoor01"]["alt_m"]).
 #  ⛔손으로 친 수가 아니라 생산 파일에서 읽는다(아래 `_default_alt`).
-RANGE_M = 15.0
+#: ⛔⛔2026-09-14(2) 정정 — 바로 위 주석이 「손으로 치지 않는다」인데 그 아래가 손으로 친
+#  `RANGE_M = 15.0` 이었다. 게다가 생산 기본값은 10 m 다(elevation_sweep_md.py 의 --range-m).
+#  ⇒ **원장 행의 `range_m` 을 쓴다.** 쌍마다 다를 수 있으므로 칸에서 읽는다.
 
 
 def _default_alt() -> float:
@@ -98,6 +100,25 @@ def cell_series(arm: str, el: float, n_poses_ledger=None):
     if w:
         return None, " · ".join(w)
     return (E, prf), None
+
+
+def lag1_corr(E: np.ndarray):
+    """움직이는 몫의 **이웃 자세 상관**. ⭐이 열이 물리인지 떨림인지 가르는 자.
+
+    자세 번호가 곧 날개 각도이므로, 로터 위상에 반응하는 전계는 이웃 자세와 **강하게
+    상관**해야 한다. 무상관(≈0)이면 그 «움직임» 은 자세를 따라 흐르는 신호가 아니다.
+    ⛔실측(2026-09-14 적대 검증): 실외 칸은 0.0049(el −30)·0.0024(el −60) 인데 설정이 글자
+      그대로 같은 빈 하늘 팔은 0.9757·0.9905 다. 그래서 실외의 «움직임» 열을 **날개 신호로
+      읽으면 안 된다** — 이 판독은 그 사실을 표에 함께 싣는다.
+    """
+    x = np.asarray(E) - np.asarray(E).mean()
+    if x.size < 3:
+        return None
+    a, b = x[:-1], x[1:]
+    da = float(np.real(np.vdot(a, a))); db = float(np.real(np.vdot(b, b)))
+    if da <= 0 or db <= 0:
+        return None
+    return round(float(np.real(np.vdot(a, b)) / math.sqrt(da * db)), 4)
 
 
 def parts(E: np.ndarray) -> dict:
@@ -163,10 +184,16 @@ def main() -> int:
     rows, skipped = [], []
     n_no_alt = 0
     for r in sorted(L["rows"], key=lambda r: (r["engine"], r["el_deg"])):
+        #: ⛔⛔2026-09-14(2) 정정 — 옛 판은 이름을 못 읽으면 `f = {}` 로 두고 그 행을
+        #  «고도 꼬리표 없음(범위 밖)» 으로 셌다. 그러면 **버린 칸이 소리 없이 범위 밖에
+        #  섞인다** — 아래 `usable()` 의 «이름을 못 읽음» 사유는 닿지 않는 죽은 가지였다.
         try:
             f = parse_arm(r["engine"])
-        except Exception:
-            f = {}
+        except Exception as e:                 # noqa: BLE001
+            skipped.append(dict(engine=r["engine"], el_deg=float(r["el_deg"]),
+                                why_codes=["이름을 못 읽음"],
+                                why=f"이름을 문법으로 못 읽었다({type(e).__name__})"))
+            continue
         if not f.get("env_alt"):
             n_no_alt += 1                      # 고도 꼬리표가 없는 팔 = 이 축의 범위 밖
             continue
@@ -196,6 +223,15 @@ def main() -> int:
             continue
         got_a, why_a = cell_series(r["engine"], el, r.get("n_poses"))
         got_b, why_b = cell_series(base_arm, el, rb.get("n_poses"))
+        #: ⭐⭐**빈 하늘 팔**(환경 꼬리표를 전부 뺀 같은 팔) — «움직임» 열이 물리인지 가르는
+        #  유일한 대조다. 기준 고도 팔은 **같은 실외 장면**이라 대조가 안 된다(둘 다 ≈0).
+        #  ⛔이 줄이 없을 때 나는 「빈 하늘 팔은 …」이라 적고 실제로는 기준 고도 팔의 수를
+        #  실었다(2026-09-14(2) 정정). 없으면 None 이고 문장도 그 사실을 적는다.
+        free_arm = unparse_arm({k: v for k, v in f.items()
+                                if k not in ("env", "env_alt")})
+        rf = ROW.get((free_arm, el))
+        got_f, _why_f = (cell_series(free_arm, el, rf.get("n_poses"))
+                         if rf is not None else (None, "빈 하늘 짝이 원장에 없다"))
         if got_a is None or got_b is None:
             skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
                                 why_codes=["시계열을 못 읽음"],
@@ -208,14 +244,15 @@ def main() -> int:
         ftip = float(r.get("f_tip_hz") or 0.0)
         ffl = float(r.get("f_flash_hz") or 0.0)
         #: ⭐레이다가 지면 위로 뜬 높이 — 드론이 원점이고 레이다는 rng·sin(el) 깊이다.
-        h_new = alt - RANGE_M * abs(math.sin(math.radians(el)))
-        h_ref = DEFAULT_ALT - RANGE_M * abs(math.sin(math.radians(el)))
+        rng_m = float(r.get("range_m") or 0.0)
+        h_new = alt - rng_m * abs(math.sin(math.radians(el)))
+        h_ref = DEFAULT_ALT - rng_m * abs(math.sin(math.radians(el)))
         pred = (None if (h_new <= 0 or h_ref <= 0)
                 else round(float(-20 * math.log10(h_new / h_ref)), 3))
         d_dc = db_ratio(pa["dc_power"], pb["dc_power"])
         rows.append(dict(
             engine=r["engine"], base_engine=base_arm, env=f.get("env"),
-            el_deg=el, alt_m=alt, base_alt_m=DEFAULT_ALT,
+            el_deg=el, alt_m=alt, base_alt_m=DEFAULT_ALT, range_m=rng_m,
             radar_height_m=round(h_new, 3), base_radar_height_m=round(h_ref, 3),
             prf_hz=prf, f_tip_hz=ftip, f_flash_hz=ffl,
             d_mean_abs_db=(None if (pa["mean_abs"] <= 0 or pb["mean_abs"] <= 0) else
@@ -227,14 +264,24 @@ def main() -> int:
                                 else round(d_dc - pred, 3)),
             rhythm_share_pct=rhythm_share_pct(Ea, prf, ffl, ftip),
             base_rhythm_share_pct=rhythm_share_pct(Eb, prf, ffl, ftip),
+            #: ⭐«움직임» 열이 물리인지 떨림인지 — 이웃 자세 상관(lag1_corr 머리말 참조).
+            lag1_corr=lag1_corr(Ea), base_lag1_corr=lag1_corr(Eb),
+            free_engine=(free_arm if rf is not None else None),
+            free_lag1_corr=(lag1_corr(got_f[0]) if got_f is not None else None),
+            #: ⭐리듬 몫의 **기하 바닥** 2·hw/f_flash — 실린 값이 이 바닥 근처면 아무것도 안 잰다.
+            rhythm_floor_pct=(None if not ffl else round(200.0 * 8.0 / ffl, 2)),
         ))
 
     n_pairs = len(rows)
     dd = [r["d_dc_minus_pred_db"] for r in rows if r["d_dc_minus_pred_db"] is not None]
-    rr = [(r["base_rhythm_share_pct"], r["rhythm_share_pct"]) for r in rows
-          if r["rhythm_share_pct"] is not None and r["base_rhythm_share_pct"] is not None]
-    d_rh = [abs(b - a) for a, b in rr]
-    d_dcs = [abs(r["d_dc_power_db"]) for r in rows if r["d_dc_power_db"] is not None]
+    #: ⛔⛔2026-09-14(2) 정정 — 옛 판은 `abs()` 로 부호를 지우고 「내려간다」로 적었다.
+    #  그런데 고도를 20 → 10 m 로 **내린** 쌍은 +14.003 dB **올라간다.** 발간 문장이 제
+    #  표와 어긋났다. ⇒ 부호를 그대로 쓴다.
+    d_dcs = [r["d_dc_power_db"] for r in rows if r["d_dc_power_db"] is not None]
+    corr = ([r["lag1_corr"] for r in rows if r["lag1_corr"] is not None]
+            + [r["base_lag1_corr"] for r in rows if r["base_lag1_corr"] is not None])
+    #: ⭐대조는 **빈 하늘 팔**이다(같은 실외 장면의 기준 고도 팔이 아니다).
+    fcorr = [r["free_lag1_corr"] for r in rows if r["free_lag1_corr"] is not None]
 
     out = dict(_meta=dict(
         generator="benchmark/read_altitude_0914.py",
@@ -245,8 +292,9 @@ def main() -> int:
         axis_ko=(f"`--env-alt` 는 드론을 올리는 것이 아니라 **환경 부품을 통째로 내린다**"
                  f"(elevation_sweep_md.py:200 `env_parts`, position z = -alt). 드론이 원점이고 "
                  f"레이다는 rng·sin(el) 깊이에 매여 있으므로(같은 파일 :114) 드론과 레이다가 "
-                 f"**함께** 지면에서 멀어진다. 기준 고도는 {DEFAULT_ALT:g} m, 거리는 {RANGE_M:g} m 다."),
-        default_alt_m=DEFAULT_ALT, range_m=RANGE_M,
+                 f"**함께** 지면에서 멀어진다. 기준 고도는 {DEFAULT_ALT:g} m 다(거리는 칸마다 원장에서 읽는다)."),
+        default_alt_m=DEFAULT_ALT,
+        range_m_seen=sorted({float(x["range_m"]) for x in rows}) if rows else [],
         n_ledger_rows=len(L["rows"]),
         n_out_of_scope_no_alt_tag=n_no_alt,
         n_pairs=n_pairs, n_skipped=len(skipped),
@@ -269,16 +317,34 @@ def main() -> int:
             "⛔⛔리듬 몫은 **비**다. 분자와 분모가 함께 줄면 비는 안 변한다 — 「리듬 몫이 "
             "널 근처라 지면 탓이 아니다」로 읽지 않는다. 이 표가 비와 절대 전력을 같은 줄에 "
             "두는 까닭이 그것이다.",
+            "⛔⛔«움직이는 몫» 열은 이웃 자세와 무상관이다(표의 «이웃 상관» 칸). 자세 번호가 "
+            "곧 날개 각도이므로, 그 몫은 날개를 따라 흐르는 신호가 아니다 — 무엇인지는 이 "
+            "판독이 말하지 않는다.",
+            "⛔리듬 몫 크기는 인용 대상이 아니다(RETRACTION_LOG R29) — 창 반폭 hw 가 그 수를 "
+            "지배한다. 표에 기하 바닥을 함께 적어 두었다.",
+            "⛔쌍의 조건 검사는 원장 값 여덟 개만 본다 — **굽기 세대**는 아직 안 본다. 실측: "
+            "아홉 쌍 전부 기준 팔과 고도 팔의 샤드 세대가 다르다(기준 팔에는 run_id·n_trunc 가 "
+            "없다). 잔차가 세대가 아니라 앙각을 따라가므로 수치가 그 때문에 틀렸다는 증거는 "
+            "없지만, 열린 구멍이다.",
             "⛔실기 계측 대조는 0 건이다. 이 판독으로도 생기지 않는다.",
         ]), rows=rows, skipped=skipped)
 
+    #: ⛔⛔머리기사에서 **리듬 몫 크기를 뺐다**(2026-09-14(2) 정정). RETRACTION_LOG R29 가
+    #  그 퍼센티지는 자료의 성질이 아니라 **우리가 고른 창 반폭의 성질**이라고 철회해 둔
+    #  수다. 실린 값 11.6~13.1 % 는 hw = 8 Hz 의 기하 바닥 2·hw/f_flash ≈ 12.6 % 바로 위라
+    #  아무것도 안 재고 있다. 표에는 바닥과 함께 남겨 읽는 이가 보게 두고, 머리기사에서는 뺀다.
     if dd:
         out["_meta"]["headline_ko"] = (
-            f"고도 쌍 {n_pairs} 개에서 정지 성분은 {min(d_dcs):.2f}~{max(d_dcs):.2f} dB 내려가고, "
-            f"그 값이 레이다↔지면 높이의 1/h² 예측과 "
+            f"고도 쌍 {n_pairs} 개에서 정지 성분이 {min(d_dcs):+.2f}~{max(d_dcs):+.2f} dB "
+            f"움직이고, 그 값이 레이다↔지면 높이의 1/h² 예측과 "
             f"{min(dd):+.2f}~{max(dd):+.2f} dB 안에서 맞는다"
-            + (f". 같은 쌍에서 리듬 몫은 {min(d_rh):.2f}~{max(d_rh):.2f} %p 밖에 안 움직인다 "
-               "— 비만 보면 이 큰 변화가 안 보인다." if d_rh else "."))
+            + (f". ⛔같은 칸의 «움직이는 몫» 은 이웃 자세 상관이 {min(corr):.4f}~{max(corr):.4f} "
+               f"로 자세를 따라 흐르지 않는다 — 환경 꼬리표만 뺀 **빈 하늘 팔**은 "
+               f"{min(fcorr):.4f}~{max(fcorr):.4f} 다. 그 열을 날개 신호로 읽지 않는다."
+               if corr and fcorr else
+               (f". ⛔같은 칸의 «움직이는 몫» 은 이웃 자세 상관이 "
+                f"{min(corr):.4f}~{max(corr):.4f} 로 자세를 따라 흐르지 않는다 "
+                "(빈 하늘 대조 팔이 원장에 없어 견줄 짝이 없다)." if corr else ".")))
     else:
         out["_meta"]["headline_ko"] = f"고도 쌍 {n_pairs} 개 — 견줄 수 있는 값이 없다"
 
@@ -293,8 +359,8 @@ def main() -> int:
     a.append(f"⚠**이 축이 무엇을 옮기나** — {out['_meta']['axis_ko']}")
     a.append("")
     a.append("| 장면 | 앙각 | 고도 m | 레이다 높이 m | 정지 dB | 1/h² 예측 dB | 차 dB "
-             "| 움직임 dB | 리듬 몫 기준→새 % |")
-    a.append("|---|---:|---:|---:|---:|---:|---:|---:|---|")
+             "| 움직임 dB | 이웃 상관 기준→새 | 리듬 몫 기준→새 % (바닥) |")
+    a.append("|---|---:|---:|---:|---:|---:|---:|---:|---|---|")
     for r in sorted(rows, key=lambda r: (r["env"], r["el_deg"], r["alt_m"])):
         a.append(
             f"| {r['env']} | {cell(r['el_deg'], '+.0f')} | {cell(r['alt_m'], 'g')} "
@@ -302,15 +368,24 @@ def main() -> int:
             f"| {cell(r['inverse_square_pred_db'], '+.3f', ' dB')} "
             f"| {cell(r['d_dc_minus_pred_db'], '+.3f', ' dB')} "
             f"| {cell(r['d_ac_power_db'], '+.3f', ' dB')} "
-            f"| {cell(r['base_rhythm_share_pct'], '.2f')} → {cell(r['rhythm_share_pct'], '.2f')} |")
+            f"| {cell(r['base_lag1_corr'], '.4f')} → {cell(r['lag1_corr'], '.4f')} "
+            f"| {cell(r['base_rhythm_share_pct'], '.2f')} → {cell(r['rhythm_share_pct'], '.2f')} "
+            f"({cell(r['rhythm_floor_pct'], '.1f')}) |")
     a.append("")
-    a.append(f"⭐**정지 성분과 움직이는 성분이 거의 같이 간다** — 쌍 {n_pairs} 개에서 두 값의 "
-             f"차는 "
-             + (f"{min(abs(r['d_ac_power_db'] - r['d_dc_power_db']) for r in rows if r['d_ac_power_db'] is not None and r['d_dc_power_db'] is not None):.2f}"
-                f"~{max(abs(r['d_ac_power_db'] - r['d_dc_power_db']) for r in rows if r['d_ac_power_db'] is not None and r['d_dc_power_db'] is not None):.2f} dB 다. "
-                if rows else "잴 수 없다. ")
-             + "드론↔레이다 기하는 고도를 바꿔도 **한 자도 안 바뀌므로**, 이만큼 움직인 것은 "
-               "드론 자신의 반향이 아니다.")
+    a.append("⛔⛔**«움직임» 열을 날개 신호로 읽지 않는다.** 이웃 자세 상관이 "
+             + (f"{min(corr):.4f}~{max(corr):.4f} " if corr else "")
+             + "로 거의 0 이다 — 자세 번호가 곧 날개 각도인데 이웃 자세와 무상관이면 그 몫은 "
+               "자세를 따라 흐르는 신호가 아니다. **환경 꼬리표만 뺀 빈 하늘 팔**"
+             + (f"(상관 {min(fcorr):.4f}~{max(fcorr):.4f})" if fcorr else "(원장에 없다)")
+             + "과 견주면 차이가 분명하다. ⚠기준 고도 팔은 **같은 실외 장면**이라 대조가 "
+               "안 된다 — 둘 다 0 근처다. ⛔이 판독은 그 몫이 **무엇인지** 말하지 않는다 — "
+               "말할 수 있는 것은 「자세를 따라 흐르지 않는다」까지다.")
+    a.append("")
+    a.append("⛔⛔**리듬 몫 크기를 인용하지 않는다**(RETRACTION_LOG R29). 그 퍼센티지는 자료의 "
+             "성질이 아니라 우리가 고른 창 반폭 hw = 8 Hz 의 성질이다 — 표의 괄호 안 «바닥» 이 "
+             "기하 바닥 2·hw/f_flash 이고, 실린 값이 그 바닥 근처면 아무것도 안 재고 있다는 "
+             "뜻이다. 이 열은 «비만 보면 절대 변화가 안 보인다» 를 눈으로 보이려고 남긴 것이지 "
+             "측정값으로 인용하라고 둔 것이 아니다.")
     a.append("")
     for t in out["_meta"]["limits_ko"]:
         a.append(f"- {t}")

@@ -165,6 +165,20 @@ def _d(v, nd: int = 2, unit: str = "") -> str:
     return "—" if v is None else f"{float(v):+.{nd}f}{unit}"
 
 
+#: ⛔⛔이 세 꼬리표는 **스위치·깊이를 적는 다른 철자**다 — 다른 조건이 아니다.
+#  같은 파일 :95 의 EQUIV 표가 스스로 선언한다: `onlydepth3` = R0D0E0F1·깊이 3 ·
+#  `onlyedge` = R0D0E1F1·깊이 1 · `phys_…_d1` = R1D1E1F1·깊이 1 · `stockdef` = R1D0E0F0·깊이 3.
+#  ⛔⛔2026-09-14(2) 정정 — 그날 낮에 넣은 조건 혼합 관문이 이것을 「깊이 말고 다른 것도
+#    다르다」로 세어 **멀쩡한 쌍을 뺐다.** 적대 검증 실측:
+#      · 깊이 1↔3 에서 1 쌍 오배제 — 발간된 「23 쌍 / 뺀 9 쌍」은 실제로 24 쌍 / 8 쌍이다
+#      · el −30 스위치 쌍에서 9 쌍 오배제(주판정 D 축 2 쌍 포함)
+#      · 그 결과 머리기사 네 수가 전부 좁게 나왔고, 회절 파묻힘은 「6 쌍 → 2 쌍으로 좁혔다」가
+#        아니라 **관문이 과해서** 좁아진 것이었다(되돌리면 4 쌍 16.49~21.48 dB).
+#  ⭐그렇다고 무조건 봐주지 않는다 — **샤드의 cfg 가 그 이름을 검증한 칸에서만** 넘어간다
+#    (`cfg_gates` 의 `cfg_matches_tag`). 지금 241 행 전부 통과한다.
+NAMING_TAGS = ("only", "stock", "physics")
+
+
 def pair_diffs(arm_a, arm_b, ignore) -> list[str]:
     """두 팔 이름에서 `ignore` 를 뺀 **모든** 꼬리표 차이 — 쌍이 깨끗한지 보는 자.
 
@@ -403,6 +417,13 @@ def main() -> None:
                           cfg=cfg, cfg_len=(None if cfg is None else len(cfg)),
                           checked_ko=scope, cfg_matches_tag=ok))
 
+    #: ⭐칸 → cfg 관문이 그 칸의 이름을 **샤드 cfg 로 검증했나**. NAMING_TAGS 를 봐주는
+    #  유일한 근거다 — 검증이 없거나(cfg 없는 옛 샤드) 떨어진 칸은 안 봐준다.
+    _CFG_OK = {g["cell"]: g["cfg_matches_tag"] for g in gates}
+
+    def _cfg_ok(c) -> bool:
+        return bool(_CFG_OK.get(f"{c['combo']}_d{c['depth']}/el{c['el_deg']:+g}") is True)
+
     print(f"채점 칸 {len(cells)} · 기준 팔 {len(refs)} · 다른 기체 스위치 팔 {len(other_drone)}")
 
     # ── 2-2. 완전요인 완성도 (el −30 = 유일하게 격자가 다 사는 자리) ─────────
@@ -466,10 +487,15 @@ def main() -> None:
                         if k not in ("switches", "max_depth", "_seed_host")}
             _co, _cn = _cond(o), _cond(n)
             _diff = sorted(set(_co) | set(_cn))
-            _pair_extra = sorted(k for k in _diff if _co.get(k) != _cn.get(k))
+            _all_extra = sorted(k for k in _diff if _co.get(k) != _cn.get(k))
+            #: ⭐이름만 다른 것(검증된 철자)과 진짜 조건 차이를 가른다 — 위 NAMING_TAGS.
+            _verified = _cfg_ok(o) and _cfg_ok(n)
+            _pair_naming = [k for k in _all_extra if k in NAMING_TAGS and _verified]
+            _pair_extra = [k for k in _all_extra if k not in _pair_naming]
             row = dict(off=key, on=k1, el_deg=o["el_deg"], depth=int(dep),
                        off_arm=o.get("arm"), on_arm=n.get("arm"),
                        pair_other_diffs=_pair_extra,
+                       pair_naming_equiv=_pair_naming,
                        pair_is_clean=bool(not _pair_extra),
                        pair_note_ko=("스위치 말고 다른 조건도 함께 바뀐다: "
                                      + " · ".join(_pair_extra)
@@ -646,8 +672,12 @@ def main() -> None:
                 #: ⛔⛔2026-09-14 — 깊이 쌍에도 **조건 혼합 관문**을 건다. 스위치 쪽에는
                 #  2026-09-13(10) 에 붙였는데 이 별도 고리에는 안 갔다. 실측: 63 쌍 중
                 #  21 쌍이 mesh_fix·blade_law 가 다르고, 그 혼합이 「깊이 차」로 실렸다.
-                _dx = pair_diffs(a.get("arm"), b.get("arm"),
-                                 ("max_depth", "_seed_host"))
+                _dx_all = pair_diffs(a.get("arm"), b.get("arm"),
+                                     ("max_depth", "_seed_host"))
+                #: ⭐깊이도 `onlydepth3` 라는 다른 철자가 있다 — cfg 가 검증한 칸에서만 넘긴다.
+                _dv = _cfg_ok(a) and _cfg_ok(b)
+                _dnm = [k for k in _dx_all if k in NAMING_TAGS and _dv]
+                _dx = [k for k in _dx_all if k not in _dnm]
                 if a["zero_echo"] and b["zero_echo"]:
                     dead_pairs.append(dict(combo=tag, el_deg=el, depths=[1, hi],
                                            note_ko="두 판 모두 경로 0 — 깊이가 바꿀 것이 없다"))
@@ -656,7 +686,8 @@ def main() -> None:
                            #: ⭐팔 이름을 행에 싣는다 — 칸 열쇠는 조합·깊이·앙각뿐이라
                            #  읽는 이가 어느 팔끼리 견줬는지 알 수 없었다.
                            d1_arm=a.get("arm"), dN_arm=b.get("arm"),
-                           pair_other_diffs=_dx, pair_is_clean=bool(not _dx),
+                           pair_other_diffs=_dx, pair_naming_equiv=_dnm,
+                           pair_is_clean=bool(not _dx),
                            pair_note_ko=(("깊이 말고 다른 조건도 함께 바뀐다: "
                                           + " · ".join(_dx)
                                           + " — ⛔이 쌍은 깊이 판정에 안 쓴다")

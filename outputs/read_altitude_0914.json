@@ -7,9 +7,11 @@
    "benchmark/elevation_sweep_md.py (기본 고도)"
   ],
   "question_ko": "실외 판의 바닥이 지면에서 오나 — 고도를 흔들었을 때 정지·움직이는 성분이 어떻게 가나",
-  "axis_ko": "`--env-alt` 는 드론을 올리는 것이 아니라 **환경 부품을 통째로 내린다**(elevation_sweep_md.py:200 `env_parts`, position z = -alt). 드론이 원점이고 레이다는 rng·sin(el) 깊이에 매여 있으므로(같은 파일 :114) 드론과 레이다가 **함께** 지면에서 멀어진다. 기준 고도는 20 m, 거리는 15 m 다.",
+  "axis_ko": "`--env-alt` 는 드론을 올리는 것이 아니라 **환경 부품을 통째로 내린다**(elevation_sweep_md.py:200 `env_parts`, position z = -alt). 드론이 원점이고 레이다는 rng·sin(el) 깊이에 매여 있으므로(같은 파일 :114) 드론과 레이다가 **함께** 지면에서 멀어진다. 기준 고도는 20 m 다(거리는 칸마다 원장에서 읽는다).",
   "default_alt_m": 20.0,
-  "range_m": 15.0,
+  "range_m_seen": [
+   15.0
+  ],
   "n_ledger_rows": 2408,
   "n_out_of_scope_no_alt_tag": 2399,
   "n_pairs": 9,
@@ -22,9 +24,12 @@
    "⛔이 축은 「드론이 높이 난다」가 아니다 — 드론과 레이다가 함께 멀어진다. 레이다가 땅에 남는 실제 비행 기하는 이 자료에 없다.",
    "⛔「바닥이 지면 탓이다/아니다」로 닫지 않는다. 이 표가 보이는 것은 고도를 흔들었을 때 두 성분이 **어떻게 가는가** 뿐이다.",
    "⛔⛔리듬 몫은 **비**다. 분자와 분모가 함께 줄면 비는 안 변한다 — 「리듬 몫이 널 근처라 지면 탓이 아니다」로 읽지 않는다. 이 표가 비와 절대 전력을 같은 줄에 두는 까닭이 그것이다.",
+   "⛔⛔«움직이는 몫» 열은 이웃 자세와 무상관이다(표의 «이웃 상관» 칸). 자세 번호가 곧 날개 각도이므로, 그 몫은 날개를 따라 흐르는 신호가 아니다 — 무엇인지는 이 판독이 말하지 않는다.",
+   "⛔리듬 몫 크기는 인용 대상이 아니다(RETRACTION_LOG R29) — 창 반폭 hw 가 그 수를 지배한다. 표에 기하 바닥을 함께 적어 두었다.",
+   "⛔쌍의 조건 검사는 원장 값 여덟 개만 본다 — **굽기 세대**는 아직 안 본다. 실측: 아홉 쌍 전부 기준 팔과 고도 팔의 샤드 세대가 다르다(기준 팔에는 run_id·n_trunc 가 없다). 잔차가 세대가 아니라 앙각을 따라가므로 수치가 그 때문에 틀렸다는 증거는 없지만, 열린 구멍이다.",
    "⛔실기 계측 대조는 0 건이다. 이 판독으로도 생기지 않는다."
   ],
-  "headline_ko": "고도 쌍 9 개에서 정지 성분은 8.30~19.84 dB 내려가고, 그 값이 레이다↔지면 높이의 1/h² 예측과 -0.23~+0.02 dB 안에서 맞는다. 같은 쌍에서 리듬 몫은 0.14~1.45 %p 밖에 안 움직인다 — 비만 보면 이 큰 변화가 안 보인다."
+  "headline_ko": "고도 쌍 9 개에서 정지 성분이 -19.84~+14.00 dB 움직이고, 그 값이 레이다↔지면 높이의 1/h² 예측과 -0.23~+0.02 dB 안에서 맞는다. ⛔같은 칸의 «움직이는 몫» 은 이웃 자세 상관이 -0.0094~0.0635 로 자세를 따라 흐르지 않는다 — 환경 꼬리표만 뺀 **빈 하늘 팔**은 0.9757~0.9905 다. 그 열을 날개 신호로 읽지 않는다."
  },
  "rows": [
   {
@@ -34,6 +39,7 @@
    "el_deg": -60.0,
    "alt_m": 40.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 27.01,
    "base_radar_height_m": 7.01,
    "prf_hz": 19700.0,
@@ -45,7 +51,12 @@
    "inverse_square_pred_db": -11.716,
    "d_dc_minus_pred_db": -0.061,
    "rhythm_share_pct": 11.61,
-   "base_rhythm_share_pct": 13.06
+   "base_rhythm_share_pct": 13.06,
+   "lag1_corr": -0.0029,
+   "base_lag1_corr": 0.0024,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9905,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_alt40_mfixbatteryi5_blperairframe_d2",
@@ -54,6 +65,7 @@
    "el_deg": -30.0,
    "alt_m": 40.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 32.5,
    "base_radar_height_m": 12.5,
    "prf_hz": 19700.0,
@@ -65,7 +77,12 @@
    "inverse_square_pred_db": -8.299,
    "d_dc_minus_pred_db": -0.001,
    "rhythm_share_pct": 12.34,
-   "base_rhythm_share_pct": 12.48
+   "base_rhythm_share_pct": 12.48,
+   "lag1_corr": -0.0039,
+   "base_lag1_corr": 0.0049,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9757,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_alt80_mfixbatteryi5_blperairframe_d2",
@@ -74,6 +91,7 @@
    "el_deg": -60.0,
    "alt_m": 80.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 67.01,
    "base_radar_height_m": 7.01,
    "prf_hz": 19700.0,
@@ -85,7 +103,12 @@
    "inverse_square_pred_db": -19.609,
    "d_dc_minus_pred_db": -0.231,
    "rhythm_share_pct": 12.26,
-   "base_rhythm_share_pct": 13.06
+   "base_rhythm_share_pct": 13.06,
+   "lag1_corr": 0.062,
+   "base_lag1_corr": 0.0024,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9905,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_alt80_mfixbatteryi5_blperairframe_d2",
@@ -94,6 +117,7 @@
    "el_deg": -30.0,
    "alt_m": 80.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 72.5,
    "base_radar_height_m": 12.5,
    "prf_hz": 19700.0,
@@ -105,7 +129,12 @@
    "inverse_square_pred_db": -15.269,
    "d_dc_minus_pred_db": -0.05,
    "rhythm_share_pct": 12.2,
-   "base_rhythm_share_pct": 12.48
+   "base_rhythm_share_pct": 12.48,
+   "lag1_corr": 0.0221,
+   "base_lag1_corr": 0.0049,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9757,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_alt10_mfixbatteryi5_blperairframe_d2",
@@ -114,6 +143,7 @@
    "el_deg": -30.0,
    "alt_m": 10.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 2.5,
    "base_radar_height_m": 12.5,
    "prf_hz": 19700.0,
@@ -125,7 +155,12 @@
    "inverse_square_pred_db": 13.979,
    "d_dc_minus_pred_db": 0.024,
    "rhythm_share_pct": 12.17,
-   "base_rhythm_share_pct": 12.47
+   "base_rhythm_share_pct": 12.47,
+   "lag1_corr": 0.0055,
+   "base_lag1_corr": 0.0046,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9757,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_alt40_mfixbatteryi5_blperairframe_d2",
@@ -134,6 +169,7 @@
    "el_deg": -60.0,
    "alt_m": 40.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 27.01,
    "base_radar_height_m": 7.01,
    "prf_hz": 19700.0,
@@ -145,7 +181,12 @@
    "inverse_square_pred_db": -11.716,
    "d_dc_minus_pred_db": -0.068,
    "rhythm_share_pct": 11.58,
-   "base_rhythm_share_pct": 12.45
+   "base_rhythm_share_pct": 12.45,
+   "lag1_corr": -0.0038,
+   "base_lag1_corr": -0.0094,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9905,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_alt40_mfixbatteryi5_blperairframe_d2",
@@ -154,6 +195,7 @@
    "el_deg": -30.0,
    "alt_m": 40.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 32.5,
    "base_radar_height_m": 12.5,
    "prf_hz": 19700.0,
@@ -165,7 +207,12 @@
    "inverse_square_pred_db": -8.299,
    "d_dc_minus_pred_db": -0.003,
    "rhythm_share_pct": 11.95,
-   "base_rhythm_share_pct": 12.47
+   "base_rhythm_share_pct": 12.47,
+   "lag1_corr": -0.0042,
+   "base_lag1_corr": 0.0046,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9757,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_alt80_mfixbatteryi5_blperairframe_d2",
@@ -174,6 +221,7 @@
    "el_deg": -60.0,
    "alt_m": 80.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 67.01,
    "base_radar_height_m": 7.01,
    "prf_hz": 19700.0,
@@ -185,7 +233,12 @@
    "inverse_square_pred_db": -19.609,
    "d_dc_minus_pred_db": -0.232,
    "rhythm_share_pct": 12.64,
-   "base_rhythm_share_pct": 12.45
+   "base_rhythm_share_pct": 12.45,
+   "lag1_corr": 0.0635,
+   "base_lag1_corr": -0.0094,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9905,
+   "rhythm_floor_pct": 12.63
   },
   {
    "engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_alt80_mfixbatteryi5_blperairframe_d2",
@@ -194,6 +247,7 @@
    "el_deg": -30.0,
    "alt_m": 80.0,
    "base_alt_m": 20.0,
+   "range_m": 15.0,
    "radar_height_m": 72.5,
    "base_radar_height_m": 12.5,
    "prf_hz": 19700.0,
@@ -205,7 +259,12 @@
    "inverse_square_pred_db": -15.269,
    "d_dc_minus_pred_db": -0.05,
    "rhythm_share_pct": 12.2,
-   "base_rhythm_share_pct": 12.47
+   "base_rhythm_share_pct": 12.47,
+   "lag1_corr": 0.0216,
+   "base_lag1_corr": 0.0046,
+   "free_engine": "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2",
+   "free_lag1_corr": 0.9757,
+   "rhythm_floor_pct": 12.63
   }
  ],
  "skipped": []

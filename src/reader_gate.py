@@ -170,55 +170,93 @@ def check_shards(paths) -> tuple[int | None, float | None, list[str]]:
     """
     why: list[str] = []
     n0 = prf = None
+    #: ⛔빈 목록에서 «까닭 없음 + n0 None» 을 돌려주면 부르는 쪽의 `np.zeros(n0, …)` 가
+    #  TypeError 로 죽는다 — 「까닭이 없다 = 쓸 수 있다」가 깨지는 유일한 자리였다.
+    if not list(paths):
+        return None, None, ["그 칸의 샤드 목록이 비었다"]
     ns, prfs, seen_vals = [], [], {}
     for p in list(paths):
+        #: ⛔⛔2026-09-14(2) 정정 — 옛 판은 `np.load(p)` 와 `set(z.files)` **두 줄만** try 로
+        #  감쌌다. 그런데 npz 는 **게으르게** 읽히므로 열기는 늘 성공하고 실제 읽기는
+        #  `z["meta"]`·`z["idx"]`·`z["E"]` 에서 일어난다 — 전부 try 밖이었다.
+        #  ⛔적대 검증 실측(2026-09-14): 다섯 꼴이 예외로 새어 **판독 전체를 죽였다** —
+        #    비트 하나 뒤집힌 샤드(BadZipFile: Bad CRC-32) · object 배열 E(ValueError) ·
+        #    글자 meta(ValueError) · 2 차원 idx(TypeError) · 0 차원 idx(TypeError).
+        #  ⛔⛔그중 2 차원 idx 는 **이 관문이 새로 만든 것**이었다 — 옛 대입 고리
+        #    `E[ii] = z["E"]` 는 그것을 멀쩡히 받았는데 겹침 검사의 `zip(…tolist())` 가
+        #    중첩 목록을 열쇠로 써서 죽는다. 죽는 자리를 하나 없애고 다섯을 만든 셈이었다.
+        #  ⚠가장 크게 노출된 곳은 `benchmark/read_altitude_0914.py` 다 — 그 판독기는
+        #    `one_generation` 을 안 부르고 곧장 여기로 오므로 앞에서 받아 줄 try 가 없다.
+        #  ⇒ 고리 **몸통 전체**를 감싼다. 「그 칸만 건너뛰고 까닭을 적는다」가 계약이다.
         try:
             z = np.load(p)
             keys = set(z.files)
-        except Exception as e:                  # noqa: BLE001
-            why.append(f"샤드를 못 읽는다({os.path.basename(str(p))} · {type(e).__name__})")
-            continue
-        if not {"idx", "E", "meta"} <= keys:
-            why.append(f"샤드에 idx·E·meta 가 다 있지 않다({os.path.basename(str(p))})")
-            continue
-        meta = np.asarray(z["meta"], float).ravel()
-        if meta.size <= _META_PRF:
-            why.append(f"샤드의 meta 가 짧다({os.path.basename(str(p))} · 길이 {meta.size})")
-            continue
-        n_i, prf_i = float(meta[_META_N_POSES]), float(meta[_META_PRF])
-        if not math.isfinite(n_i) or n_i <= 0 or not float(n_i).is_integer():
-            why.append(f"샤드의 표본수가 쓸 수 없는 값이다({os.path.basename(str(p))}: {n_i})")
-        else:
-            ns.append(int(n_i))
-        if not math.isfinite(prf_i) or prf_i <= 0:
-            why.append(f"샤드의 표집률이 쓸 수 없는 값이다({os.path.basename(str(p))}: {prf_i})")
-        else:
-            prfs.append(prf_i)
-        idx = np.asarray(z["idx"])
-        E = np.asarray(z["E"])
-        if idx.size != E.size:
-            why.append(f"샤드의 idx 와 E 의 길이가 다르다({idx.size} · {E.size})")
-            continue
-        if not np.issubdtype(idx.dtype, np.integer):
-            fi = np.asarray(idx, float)
-            if not (np.isfinite(fi).all() and np.all(fi == np.floor(fi))):
-                why.append(f"샤드의 idx 가 정수가 아니다({os.path.basename(str(p))})")
+            if not {"idx", "E", "meta"} <= keys:
+                why.append(f"샤드에 idx·E·meta 가 다 있지 않다({os.path.basename(str(p))})")
                 continue
-        ii = np.asarray(idx).astype(np.int64)
-        if np.unique(ii).size != ii.size:
-            why.append(f"한 샤드 안에 같은 자세가 두 번 있다({os.path.basename(str(p))})")
-        lo, hi = (int(ii.min()), int(ii.max())) if ii.size else (0, -1)
-        if ii.size and (lo < 0 or (ns and hi >= max(ns))):
-            why.append(f"샤드의 idx 가 범위를 벗어난다(최소 {lo} · 최대 {hi} · 표본수 "
-                       f"{max(ns) if ns else '?'})")
-        #: ⭐겹친 자세는 값이 **다를 때만** 거절한다.
-        Ec = np.asarray(E).ravel()
-        for k, v in zip(ii.tolist(), Ec.tolist()):
-            if k in seen_vals and seen_vals[k] != v:
-                why.append("샤드 사이에 같은 자세의 값이 다르다"
-                           f"(자세 {k} · {seen_vals[k]!r} ↔ {v!r})")
-                break
-            seen_vals.setdefault(k, v)
+            meta = np.asarray(z["meta"], float).ravel()
+            if meta.size <= _META_PRF:
+                why.append(f"샤드의 meta 가 짧다({os.path.basename(str(p))} · 길이 {meta.size})")
+                continue
+            n_i, prf_i = float(meta[_META_N_POSES]), float(meta[_META_PRF])
+            if not math.isfinite(n_i) or n_i <= 0 or not float(n_i).is_integer():
+                why.append(f"샤드의 표본수가 쓸 수 없는 값이다({os.path.basename(str(p))}: {n_i})")
+            else:
+                ns.append(int(n_i))
+            if not math.isfinite(prf_i) or prf_i <= 0:
+                why.append(f"샤드의 표집률이 쓸 수 없는 값이다({os.path.basename(str(p))}: {prf_i})")
+            else:
+                prfs.append(prf_i)
+            idx = np.asarray(z["idx"])
+            E = np.asarray(z["E"])
+            #: ⛔차원부터 본다 — 2 차원 idx 가 아래 겹침 고리까지 가면 TypeError 로 죽는다.
+            if idx.ndim != 1 or E.ndim != 1:
+                why.append(f"샤드의 idx·E 가 1 차원이 아니다({os.path.basename(str(p))} · "
+                           f"idx {idx.ndim} 차원 · E {E.ndim} 차원)")
+                continue
+            if idx.size != E.size:
+                why.append(f"샤드의 idx 와 E 의 길이가 다르다({idx.size} · {E.size})")
+                continue
+            if not np.issubdtype(idx.dtype, np.integer):
+                #: ⛔⛔값이 아니라 **자료형**으로 본다. 옛 판은 `np.asarray(idx, float)` 로 바꿔
+                #  봤는데, 그러면 글자 배열 ["0","1",…] 이 수로 바뀌어 **까닭 하나 없이 통과**했다
+                #  (2026-09-14(2) 적대 검증). 자료형을 보는 것이 이 관문의 일이다.
+                why.append(f"샤드의 idx 가 정수형이 아니다({os.path.basename(str(p))} · "
+                           f"dtype {idx.dtype})")
+                continue
+            ii = np.asarray(idx).astype(np.int64)
+            if np.unique(ii).size != ii.size:
+                why.append(f"한 샤드 안에 같은 자세가 두 번 있다({os.path.basename(str(p))})")
+            lo, hi = (int(ii.min()), int(ii.max())) if ii.size else (0, -1)
+            if ii.size and (lo < 0 or (ns and hi >= max(ns))):
+                why.append(f"샤드의 idx 가 범위를 벗어난다(최소 {lo} · 최대 {hi} · 표본수 "
+                           f"{max(ns) if ns else '?'})")
+            #: ⭐겹친 자세는 값이 **다를 때만** 거절한다.
+            #: ⛔⛔2026-09-14(2) — 옛 판은 **처음 걸린 자세**에서 `break` 했다. 그런데 처음
+            #  걸리는 것은 대개 마지막 자릿수 차이라, 찍힌 두 값이 눈으로는 같아 보였다
+            #  (실측: -0.00041002931253579283 ↔ -0.0004100293125357928). 같은 칸에서 진짜
+            #  갈리는 자세의 상대차는 최대 4.995e-01 인데도 그렇다 — 읽는 사람이 그 까닭을
+            #  보고 「관문이 예민하다」로 잘못 닫을 자리였다. ⇒ **전부 세고 가장 큰 것**을 적는다.
+            Ec = np.asarray(E).ravel()
+            _n_clash, _worst = 0, None
+            for k, v in zip(ii.tolist(), Ec.tolist()):
+                if k in seen_vals:
+                    o = seen_vals[k]
+                    if o != v:
+                        _n_clash += 1
+                        rel = abs(v - o) / max(abs(o), 1e-300)
+                        if _worst is None or rel > _worst[0]:
+                            _worst = (rel, k, o, v)
+                else:
+                    seen_vals[k] = v
+            if _worst:
+                why.append(f"샤드 사이에 같은 자세의 값이 다르다(갈린 자세 {_n_clash} 개 · "
+                           f"가장 큰 상대차 {_worst[0]:.3e} @ 자세 {_worst[1]} · "
+                           f"{_worst[2]!r} ↔ {_worst[3]!r})")
+        except Exception as _e:                 # noqa: BLE001 — 까닭이 계약이다
+            why.append(f"샤드를 못 읽는다({os.path.basename(str(p))} · "
+                       f"{type(_e).__name__}: {str(_e)[:60]})")
+            continue
     if ns:
         if len(set(ns)) > 1:
             why.append(f"샤드마다 표본수가 다르다({sorted(set(ns))})")
