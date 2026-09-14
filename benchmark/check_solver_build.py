@@ -189,7 +189,18 @@ def check_shards(limit: int = 0) -> int:
       그런 샤드는 이름에도 꼬리표가 없어야 한다(기준 판이라는 뜻).
     """
     from arm_grammar import ArmNameError, parse
+    import elevation_sweep_md as _esm
     import re
+    #: ⭐쓰기 전 관문과 **같은 정본**을 쓴다 — 여기만 따로 규칙을 두면 또 갈린다.
+    BASELINE = _esm.BUILD_BASELINE
+    BASELINE_RT = _esm.BUILD_BASELINE_RT
+    try:
+        with open(_esm.BUILD_REGISTRY, encoding="utf-8") as _f:
+            REGISTRY = (json.load(_f) or {}).get("builds") or {}
+        if not isinstance(REGISTRY, dict):
+            REGISTRY = {}
+    except FileNotFoundError:
+        REGISTRY = {}
     rx = re.compile(r"^(?P<arm>.+)_el(?P<el>[-+][\d.]+)_(?P<sh>\d+)\.npz$")
     #: ⭐**모수는 디렉터리에서 센다** — glob 결과로 세면 `*.npz` 가 아닌 것(`.npz.part`·
     #  `.npz.bak`)·점으로 시작하는 이름·하위 디렉터리가 **세어지지도 대조되지도 않는데**
@@ -228,13 +239,25 @@ def check_shards(limit: int = 0) -> int:
                 bad.append((p, f"도장이 없는데 이름에 판 꼬리표 _rt{tag} 가 있다"))
             continue
         n_stamp += 1
-        rt = ""
-        for part in stamp.split():
-            if part.startswith("sionna-rt="):
-                rt = part.split("=", 1)[1]
-        want = None if rt == "2.0.1" else rt.replace(".", "")
-        if tag != want:
+        #: ⛔⛔2026-09-14 사용자 점검이 찾은 것 — 전에는 도장에서 **sionna-rt 조각만** 읽어
+        #  이름과 견줬다. 그래서 drjit 만 다른 도장·의존성을 뺀 도장이 **전부 통과**했다.
+        #  쓰기 전 관문(build_tag)은 장부의 **묶음 전체**를 보는데 사후 검사만 좁았다.
+        #  ⇒ 같은 정본(판 장부 · BUILD_BASELINE)으로 **통째로** 맞댄다.
+        got = dict(x.split("=", 1) for x in stamp.split() if "=" in x)
+        missing = [k for k in ("sionna", "sionna-rt", "mitsuba", "drjit") if k not in got]
+        if missing:
+            bad.append((p, f"도장에 빠진 꾸러미 {missing} — 도장은 넷을 다 적어야 한다"))
+            continue
+        rt = got["sionna-rt"]
+        want_tag = None if rt == BASELINE_RT else rt.replace(".", "")
+        if tag != want_tag:
             bad.append((p, f"이름 꼬리표 {tag!r} ↔ 도장 sionna-rt={rt!r}"))
+            continue
+        want_stamp = BASELINE if tag is None else REGISTRY.get("_rt" + tag)
+        if want_stamp is None:
+            bad.append((p, f"판 장부에 없는 꼬리표 _rt{tag} — 이 도장을 대조할 정본이 없다"))
+        elif stamp != want_stamp:
+            bad.append((p, f"도장이 장부와 다르다\n      도장 {stamp}\n      장부 {want_stamp}"))
     print("── ③ 창고 이름 ↔ 도장 ──")
     print(f"  샤드 {len(paths)} · 도장 있음 {n_stamp} · 도장 없음(적히기 전 세대) {n_none}"
           f" · ⛔어긋남 {len(bad)}")

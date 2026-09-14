@@ -197,7 +197,11 @@ def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
         except Exception:
             continue
         base = float(f0.get("spp") or 0) or 4e9
-        for r in rows:
+        #: ⛔⛔2026-09-14 사용자 점검 — 기준 표집률이 **행 순서**를 탔다. 위에서 「모든 검사를
+        #  지난 행에서만 기준을 세운다」로 고쳤지만, 그래도 «어느 지난 행이 먼저 오나» 가
+        #  남는다(거절 사유 문구가 갈린다). ⇒ 순회를 **이름순으로 고정**해 기준이 되는 행을
+        #  입력 순서와 무관하게 정한다. 값도 사유도 그때 보존된다.
+        for r in sorted(rows, key=lambda x: (str(x.get("engine")), float(x.get("el_deg") or 0.0))):
             if float(r["el_deg"]) != el:
                 continue
             try:
@@ -233,12 +237,15 @@ def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
             elif _mg2:
                 _w.append("굽기 세대가 섞였다")
             #: ⭐**시간축** — 표집률이 기준과 다르면 대역 모양을 견줄 수 없다.
+            #  ⛔⛔2026-09-14 사용자 점검이 찾은 것 — 전에는 **여기서 바로** ref_prf 를 세웠다.
+            #    그런데 이 행은 아직 다른 검사를 안 지났다. 거절될 행이 기준을 선점하면,
+            #    그 행을 버린 뒤에도 기준은 남아 **멀쩡한 행까지 거절한다.**
+            #    실측: 같은 행 집합의 **순서만 바꿔도** 비교 주파수 수가 0 ↔ 2 로 뒤집혔다.
+            #  ⇒ 기준은 **모든 검사를 지난 행**에서만 세운다(아래 `if _w:` 뒤).
             _pr = r.get("prf_hz")
             if _pr is None:
                 _w.append("표집률을 모른다")
-            elif ref_prf[0] is None:
-                ref_prf[0] = float(_pr)
-            elif abs(float(_pr) - ref_prf[0]) > 1.0:
+            elif ref_prf[0] is not None and abs(float(_pr) - ref_prf[0]) > 1.0:
                 _w.append(f"표집률이 기준과 다르다({_pr} · 기준 {ref_prf[0]})")
             if abs(float(r.get("fc_hz", 0)) / 1e6 - float(fc_mhz)) > 1.0:
                 _w.append(f"원장 fc_hz({r.get('fc_hz')})가 이름 꼬리표와 어긋난다")
@@ -249,6 +256,9 @@ def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
                 dropped.append({"spp": str(spp), "fc_mhz": int(fc_mhz),
                                 "el_deg": el, "why": " · ".join(_w)})
                 continue
+            #: ⭐여기까지 온 행만 **모든 검사를 지났다.** 기준 표집률은 그런 행에서만 세운다.
+            if ref_prf[0] is None:
+                ref_prf[0] = float(_pr)
             pw = float(np.mean(np.abs(E - E.mean()) ** 2))
             if pw > 0:
                 by_budget.setdefault(str(spp), {})[int(fc_mhz)] = 10.0 * np.log10(pw)

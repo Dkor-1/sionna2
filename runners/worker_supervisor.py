@@ -35,7 +35,7 @@ worker_supervisor.py — GPU 사정에 맞춰 워커 수를 **실시간으로** 
 """
 from __future__ import annotations
 
-import collections, json, os, re, signal, subprocess, sys, time
+import collections, json, math, os, re, signal, subprocess, sys, time
 
 ROOT = "/workspace/sionna"
 PY = "/workspace/.venvs/py312/bin/python"
@@ -116,7 +116,7 @@ _hold_warned = {"v": None}
 _hold_last = {"v": None}
 
 
-def _as_gpu_list(v, what: str, warn: list) -> list:
+def _as_gpu_list(v, what: str, warn: list, bad: list) -> list:
     """카드 번호 목록으로 **강제한다** — ⛔여기서 예외가 나면 감독자가 한 바퀴를 통째로 잃는다.
 
     ⛔⛔2026-09-14 적대 검증이 찾은 것: 전에는 `for g in d.get("gpus", [])` 였다.
@@ -131,6 +131,7 @@ def _as_gpu_list(v, what: str, warn: list) -> list:
         return []
     if isinstance(v, bool):
         warn.append(f"{what} 가 참/거짓이다 — 카드 번호가 아니다. 무시한다")
+        bad.append(what)
         return []
     if isinstance(v, str):
         #: ⭐쉼표 목록도 받는다 — 같은 파일의 SIONNA2_EXCLUDE_GPUS="0,3" 과 표기를 맞춘다.
@@ -140,11 +141,13 @@ def _as_gpu_list(v, what: str, warn: list) -> list:
         v = [v]                                   # ⭐스칼라를 목록으로 감싼다
     if not isinstance(v, (list, tuple, set)):
         warn.append(f"{what} 가 목록이 아니다({type(v).__name__}) — 무시한다")
+        bad.append(what)
         return []
     out = []
     for g in v:
         if isinstance(g, bool):
             warn.append(f"{what} 에 참/거짓이 들었다 — 무시한다")
+            bad.append(what)
             continue
         try:
             #: ⭐"4" 도 4 도 4.0 도 받되 글자로 안 쪼갠다. ⛔4.5 같은 것은 거절한다
@@ -152,10 +155,12 @@ def _as_gpu_list(v, what: str, warn: list) -> list:
             fv = float(str(g).strip())          # ⛔str 를 거친다 — float(큰 int) 의 OverflowError 회피
             if not fv.is_integer():
                 warn.append(f"{what} 의 {g!r} 는 정수가 아니다 — 무시한다")
+                bad.append(what)
                 continue
             out.append(int(fv))
         except (TypeError, ValueError):
             warn.append(f"{what} 의 {g!r} 를 카드 번호로 못 읽는다 — 무시한다")
+            bad.append(what)
     return out
 
 
@@ -211,21 +216,33 @@ def temp_hold(ext: dict, log=None) -> set:
             and k not in ("note", "set_by", "why_both_ko", "how_to_remove_ko", "limit_ko")]
     if typo:
         warn.append(f"모르는 열쇠 {typo} — 오타면 보류가 조용히 사라진다")
+    bad = []
     try:
         #: ⛔`float(큰 정수)` 는 **OverflowError** 다 — TypeError 도 ValueError 도 아니라
         #  전에는 새어 나가 한 바퀴를 통째로 죽였다(2026-09-14 적대 검증, 310 자리부터).
         #  str 를 거치면 큰 수가 inf 로 포화돼 안 터진다. 그래도 except 는 넓게 잡는다.
         thr = float(str(d.get("external_mb", 5_000)).strip())
+        #: ⛔⛔`float("nan")` 은 **성공한다.** 그러면 `ext >= nan` 이 늘 거짓이라 조건부 보류가
+        #  조용히 풀린다(2026-09-14 사용자 점검이 찾은 것). 유한하지 않으면 못 읽은 값으로 본다.
+        if not math.isfinite(thr):
+            raise ValueError("유한하지 않다")
     except Exception:                                          # noqa: BLE001
         warn.append(f"external_mb {d.get('external_mb')!r} 를 수로 못 읽는다 — 5000 으로 본다")
+        bad.append("external_mb")
         thr = 5_000.0
-    out = set(_as_gpu_list(d.get("gpus"), "gpus", warn))
-    for g in _as_gpu_list(d.get("gpus_if_external"), "gpus_if_external", warn):
+    out = set(_as_gpu_list(d.get("gpus"), "gpus", warn, bad))
+    for g in _as_gpu_list(d.get("gpus_if_external"), "gpus_if_external", warn, bad):
         try:
             if float(str(ext.get(g, 0)).strip()) >= thr:
                 out.add(g)
         except Exception:                                      # noqa: BLE001
             warn.append(f"카드 {g} 의 남의 점유를 수로 못 읽는다 — 안 뺀다")
+    #: ⭐⭐**여기가 핵심이다**(2026-09-14 사용자 점검). 전에는 「아는 열쇠가 있나」로만 갈라서,
+    #  값이 **못 읽혀 비어도**(`{"gpus": "넷"}` · `{"gpus": true}` · `external_mb: "nan"`)
+    #  「적어서 비웠다」로 세고 보류를 풀었다. 규약을 푸는 것은 **뜻한 행위**여야 한다.
+    #  ⇒ 값을 하나라도 못 읽었으면 그 파일은 **잘못 쓴 것**이다 — 마지막 보류를 지킨다.
+    if bad:
+        return _fallback(f"값을 못 읽었다({sorted(set(bad))}) — 적어서 비운 것과 다르다", say)
     if not out and (d.get("gpus") or d.get("gpus_if_external") or typo):
         warn.append("⭐파일은 있는데 **빼는 카드가 하나도 없다** — 뜻한 바인지 보라")
     if warn:

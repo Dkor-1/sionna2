@@ -41,7 +41,8 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 sys.path.insert(0, HERE)
 from arm_grammar import parse as parse_arm, unparse as unparse_arm   # noqa: E402
-from reader_gate import cell, check_series, check_shards, publish, sweep_orphans  # noqa: E402
+from reader_gate import (cell, check_series, check_shards,   # noqa: E402
+                         publish, shard_builds, sweep_orphans)
 
 LED_J = os.path.join(ROOT, "outputs", "elevation_sweep_md.json")
 SHD = os.path.join(ROOT, "outputs", "elev_sweep_shards")
@@ -105,13 +106,21 @@ def _default_alt() -> float:
 
 
 def cell_series(arm: str, el: float, n_poses_ledger=None):
-    """한 칸의 복소 시계열 — (전계, 표집률) 또는 (None, 까닭)."""
+    """한 칸의 복소 시계열 — `(전계, 표집률, 판집합)` 또는 `(None, 까닭)`.
+
+    ⛔⛔2026-09-14 사용자 점검 — 전에는 **원장의** `solver_build` 만 보고 짝을 걸렀다.
+      원장 값이 같은 채로 **샤드 도장**만 달라도 그대로 발간됐다. ⇒ 원자료에서 직접 읽어
+      함께 돌려준다(`reader_gate.shard_builds`). 부르는 쪽이 원장과 맞대게 한다.
+    """
     fs = sorted(glob.glob(f"{SHD}/{arm}_el{el:+g}_*.npz"))
     if not fs:
         return None, "그 칸의 조각이 창고에 없다"
     n0, prf, why = check_shards(fs)
     if why:
         return None, " · ".join(why)
+    builds, bwhy = shard_builds(fs)
+    if bwhy:
+        return None, " · ".join(bwhy)
     E = np.zeros(n0, complex)
     seen = np.zeros(n0, bool)
     for f in fs:
@@ -124,7 +133,7 @@ def cell_series(arm: str, el: float, n_poses_ledger=None):
     w = check_series(E, n_poses=n_poses_ledger, prf=prf)
     if w:
         return None, " · ".join(w)
-    return (E, prf), None
+    return (E, prf, builds), None
 
 
 def lag_corr(E: np.ndarray, k: int = 1):
@@ -283,8 +292,8 @@ def main() -> int:
                                 why_codes=["시계열을 못 읽음"],
                                 why=" · ".join(x for x in (why_a, why_b) if x)))
             continue
-        Ea, prf = got_a
-        Eb, prf_b = got_b
+        Ea, prf, builds_a = got_a
+        Eb, prf_b, builds_b = got_b
         #: ⛔⛔2026-09-14(4) — 쌍의 조건 검사(:위)는 **원장끼리만** 봤다. 그래서 원장 값은
         #  같은데 **샤드의 저장 표집률**만 다른 쌍이 그대로 통과했다. 실측 반례: 기준 샤드의
         #  표집률만 10,000 Hz 로 바꾸면 기준 시계열의 올바른 리듬 몫 0.00 % 가 높은 고도
@@ -303,6 +312,35 @@ def main() -> int:
             _pw.append(f"쌍의 저장 표집률이 서로 다르다(고도 {prf} · 기준 {prf_b})")
         if got_f is not None and abs(float(prf) - float(got_f[1])) > 1.0:
             _pw.append(f"빈 하늘 대조의 저장 표집률이 다르다(고도 {prf} · 빈 하늘 {got_f[1]})")
+        #: ⭐⭐**샤드가 스스로 적은 판**을 본다 (2026-09-14 사용자 점검).
+        #  위(:268)의 쌍 조건은 **원장끼리만** 봤다 — 원장 값이 같은 채로 샤드 도장만 달라도
+        #  통과했다. 표집률에 건 것과 **같은 계약**을 판에도 건다: 한 칸 안에서 하나여야 하고,
+        #  쌍의 둘이 같아야 하고, 빈 하늘 대조도 같아야 한다.
+        #  ⛔「도장 없음」과 「도장이 다름」을 가른다 — 없는 것은 아직 안 적힌 세대이지
+        #    다른 판으로 구웠다는 뜻이 아니다. 섞이면 그때는 출처를 못 가리므로 뺀다.
+        _bw = []
+        _trip = [("고도 팔", builds_a), ("기준 고도 팔", builds_b)]
+        if got_f is not None:
+            _trip.append(("빈 하늘 팔", got_f[2]))
+        for _nm, _bs in _trip:
+            if _bs and len(_bs) > 1:
+                _bw.append(f"{_nm}의 조각들이 서로 다른 판이다({sorted(_bs)})")
+        _sets = [(_nm, _bs) for _nm, _bs in _trip if _bs]
+        for _i in range(1, len(_sets)):
+            if _sets[_i][1] != _sets[0][1]:
+                _bw.append(f"{_sets[0][0]}과 {_sets[_i][0]}의 샤드 판이 다르다"
+                           f"({sorted(_sets[0][1])} ↔ {sorted(_sets[_i][1])})")
+        #: ⭐샤드 도장과 **원장**이 어긋나는 것도 본다 — 둘이 따로 놀면 출처 기록이 거짓이다.
+        for _nm, _row, _bs in (("고도 팔", r, builds_a), ("기준 고도 팔", rb, builds_b)):
+            if not _bs or _row is None:
+                continue
+            _lb = _row.get("solver_build")
+            if _lb is not None and _bs != {str(_lb)}:
+                _bw.append(f"{_nm}의 샤드 판({sorted(_bs)})이 원장({_lb})과 다르다")
+        if _bw:
+            skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
+                                why_codes=["샤드 판 어긋남"], why=" · ".join(_bw)))
+            continue
         if _pw:
             skipped.append(dict(engine=r["engine"], el_deg=el, want=base_arm,
                                 why_codes=["저장 표집률 어긋남"], why=" · ".join(_pw)))

@@ -591,3 +591,30 @@ def sweep_orphans(dirs: Iterable[str], *, dry_run: bool = False) -> dict:
             "note_ko": ("소유 프로세스가 **죽은** 임시 파일만 지운다. 살아 있는 것과 "
                         "소유자를 못 읽는 옛 이름꼴은 남긴다 — 남의 발간을 지우지 않으려는 "
                         "것이다(2026-09-14(4) 신설).")}
+
+def shard_builds(paths) -> tuple[set, list[str]]:
+    """그 칸의 샤드가 **스스로 적은 솔버 판**을 모은다 — (판 집합, 까닭목록).
+
+    ⛔⛔2026-09-14 사용자 점검이 찾은 것: 판독기들이 **원장의** `solver_build` 만 보고
+      샤드의 실제 도장은 안 봤다. 원장 값이 같은 채로 샤드 도장만 달라도 그대로 발간됐다.
+      ⇒ 원자료에서 직접 읽어 원장과 맞댈 수 있게 한다.
+
+    · 도장이 없는 샤드는 `"(도장 전 세대)"` 로 센다 — 없는 것과 다른 것을 구별한다.
+    · ⛔여기서 예외를 던지지 않는다. 못 읽은 것은 까닭으로 돌려준다.
+    """
+    import numpy as _np
+    paths = list(paths)
+    if not paths:
+        return set(), ["조각이 하나도 없다"]
+    out, why = set(), []
+    for f in paths:
+        try:
+            with _np.load(f, allow_pickle=True) as z:
+                if "solver_build" not in z.files:
+                    out.add("(도장 전 세대)")
+                else:
+                    out.add(str(_np.asarray(z["solver_build"]).ravel()[0]
+                                if _np.asarray(z["solver_build"]).ndim else z["solver_build"]))
+        except Exception as e:                                 # noqa: BLE001
+            why.append(f"{os.path.basename(str(f))}: 판을 못 읽었다({type(e).__name__})")
+    return out, why
