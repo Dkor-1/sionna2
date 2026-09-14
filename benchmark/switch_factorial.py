@@ -335,17 +335,40 @@ def main() -> None:
         canon = (f.get("mesh_fix") == "batteryi5" and f.get("blade_law") == "perairframe")
         return (0 if canon else 1, 1 if f.get("physics") else 0, arm_name)
     combos_seen = {}
+    #: ⭐건너뛴 행을 **센다** — 전에는 세는 자리가 없어 조용히 사라졌다(2026-09-14).
+    skipped_build: list[dict] = []
+    skipped_scope: list[dict] = []
+    skipped_nonpz: list[dict] = []
     for i, r in enumerate(ROWS):
         arm, el = r["engine"], float(r["el_deg"])
         key_np = f"{arm}/el{el:+g}"
         if key_np not in Z.files:
+            skipped_nonpz.append(dict(arm=arm, el_deg=el,
+                                      why_ko="원장에는 있는데 시계열 꾸러미에 그 칸이 없다"))
             continue
         c = combo_of(arm)
         is_ref = arm in REF_ARMS
         # 다른 기체(mini5pro·s1000plus)는 f_tip 이 달라 완전요인 표와 나란히 못 놓는다.
         # ⭐mavic4pro 가 빠져 있었다(2026-08-27) — 기체 넷이 다 들어와야 한다.
         other = any(k in arm for k in ("mavic4pro", "mini5pro", "s1000plus"))
+        #: ⭐⭐**솔버 판 꼬리표가 붙은 팔은 이 요인표에 안 섞는다** (2026-09-14 적대 검증).
+        #  ⛔전에는 SW_RE 가 `_rt210` 을 **못 읽어** combo_of 가 None 을 주고 그 행이
+        #    `continue` 로 **조용히** 빠졌다. 세는 자리도 없었다 — 다리 큐가 병합되면
+        #    2.1.0 팔이 통째로 사라지는데 아무도 모른다.
+        #  ⇒ 이름을 **문법으로 되읽어**(긁지 않는다) 판 꼬리표가 있으면 **사유와 함께** 뺀다.
+        #    요인표는 2.0.1 자료의 표다 — 판을 섞으면 축차이가 판 갈이와 뒤엉킨다.
+        try:
+            _bt = _arm_parse(arm).get("solver_build")
+        except Exception:                                      # noqa: BLE001
+            _bt = None
+        if _bt:
+            skipped_build.append(dict(arm=arm, el_deg=el, solver_build_tag=_bt,
+                                      why_ko="솔버 판 꼬리표가 붙은 팔이다 — 이 요인표는 "
+                                             "기준 판(꼬리표 없음) 자료의 표라 섞지 않는다"))
+            continue
         if not (c or is_ref or (other and "_sw" in arm)):
+            skipped_scope.append(dict(arm=arm, el_deg=el,
+                                      why_ko="이 요인표의 범위 밖 팔이다(조합·기준팔·기체 어느 것도 아니다)"))
             continue
         ft = float(r["f_tip_hz"])
         prf_cell = prf_of_row(r)
@@ -1105,11 +1128,24 @@ def main() -> None:
         depth_dead_pairs=dead_pairs,
         zero_echo_proof=zero_proof,
         cfg_gates=gates,
+        #: ⭐건너뛴 행을 **사유와 함께** 남긴다 (2026-09-14 적대 검증 — 전에는 조용히 빠졌다)
+        skipped_rows=dict(
+            solver_build_tagged=skipped_build, out_of_scope=skipped_scope,
+            not_in_npz=skipped_nonpz,
+            n_total=len(skipped_build) + len(skipped_scope) + len(skipped_nonpz),
+            note_ko=("원장 행 중 이 요인표가 안 쓴 것. ⭐solver_build_tagged 는 솔버 판 꼬리표가 "
+                     "붙은 팔이다 — 이 표는 기준 판 자료의 표라 섞지 않는다(판 갈이와 축차이가 "
+                     "뒤엉킨다). ⛔전에는 이름 정규식이 그 꼬리표를 못 읽어 세지도 않고 빠졌다.")),
         selfcheck=sc,
         corrections=corrections,
         figures={k: (os.path.relpath(p, ROOT) if isinstance(p, str) and os.path.exists(p) else p)
                  for k, p in figs.items()},
     )
+    print(f"건너뛴 원장 행 {len(skipped_build) + len(skipped_scope) + len(skipped_nonpz)}"
+          f"  (솔버 판 꼬리표 {len(skipped_build)} · 범위 밖 {len(skipped_scope)}"
+          f" · 꾸러미에 없음 {len(skipped_nonpz)})")
+    if skipped_build:
+        print(f"   ⭐판 꼬리표로 뺀 팔: {sorted({x['solver_build_tag'] for x in skipped_build})}")
     json.dump(out, open(OUTJ, "w", encoding="utf-8"), ensure_ascii=False, indent=1,
               default=lambda o: (o.item() if hasattr(o, "item") else str(o)))
 

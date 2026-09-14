@@ -114,6 +114,35 @@ _hold_warned = {"v": None}
 #    깨진 것·모양이 이상한 것은 **마지막으로 성공한 보류를 그대로 쓴다** — 큐는 다른 카드에서
 #    계속 돌므로 굶지 않고, 보류는 사람이 고칠 때까지 살아 있다.
 _hold_last = {"v": None}
+#: ⭐**마지막으로 제대로 읽은 보류를 파일로도 남긴다** (2026-09-14 적대 검증).
+#  ⛔`_hold_last` 는 **프로세스 안에만** 있다. 감독자를 새로 띄우면 None 이라, 그 상태에서
+#    설정이 깨져 있으면 폴백이 빈 집합을 돌려주고 **보류가 풀린다.** 지킴이가 감독자를 다시
+#    띄우는 이 저장소에서 그것은 실제로 일어날 수 있는 길이다.
+#  ⇒ 성공한 읽기마다 곁파일에 적어 두고, 프로세스가 새로 뜨면 거기서 되살린다.
+HOLD_LAST = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".gpu_hold_last.json")
+
+
+def _remember(out) -> None:
+    _hold_last["v"] = set(out)
+    try:                                                       # ⛔적다가 죽지 않는다
+        tmp = HOLD_LAST + f".{os.getpid()}.tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({"gpus": sorted(out), "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}, f)
+        os.replace(tmp, HOLD_LAST)
+    except Exception:                                          # noqa: BLE001
+        pass
+
+
+def _recall():
+    """프로세스 안에 없으면 곁파일에서 되살린다 — 없으면 None."""
+    if _hold_last["v"] is not None:
+        return _hold_last["v"]
+    try:
+        with open(HOLD_LAST, encoding="utf-8") as f:
+            v = json.load(f)
+        return {int(x) for x in (v.get("gpus") or [])}
+    except Exception:                                          # noqa: BLE001
+        return None
 
 
 def _as_gpu_list(v, what: str, warn: list, bad: list) -> list:
@@ -198,6 +227,10 @@ def temp_hold(ext: dict, log=None) -> set:
     except FileNotFoundError:
         #: ⭐파일을 지우는 것이 **공식으로 끄는 법**이다(GPU_HOLD_README.md). 규약이 사라진다.
         _hold_last["v"] = None
+        try:
+            os.remove(HOLD_LAST)          # ⭐공식으로 끄는 법 — 곁파일도 함께 잊는다
+        except OSError:
+            pass
         return set()
     except Exception as e:                                     # noqa: BLE001
         return _fallback(f"못 읽었다({type(e).__name__}: {e})", say)
@@ -241,8 +274,18 @@ def temp_hold(ext: dict, log=None) -> set:
     #  값이 **못 읽혀 비어도**(`{"gpus": "넷"}` · `{"gpus": true}` · `external_mb: "nan"`)
     #  「적어서 비웠다」로 세고 보류를 풀었다. 규약을 푸는 것은 **뜻한 행위**여야 한다.
     #  ⇒ 값을 하나라도 못 읽었으면 그 파일은 **잘못 쓴 것**이다 — 마지막 보류를 지킨다.
-    if bad:
-        return _fallback(f"값을 못 읽었다({sorted(set(bad))}) — 적어서 비운 것과 다르다", say)
+    #: ⛔⛔2026-09-14 적대 검증이 잡은 **반대 사고** — 전에는 열쇠 하나만 나빠도 파일 전체를
+    #  버리고 지난 보류를 썼다. 그러면 gpus 를 멀쩡히 **새로 적었는데** external_mb 오타 하나로
+    #  그 새 지시가 통째로 무시된다. 「보류를 못 푼다」보다 나쁜 쪽이다.
+    #  ⇒ **열쇠별로** 가른다: 빼는 카드를 적는 열쇠가 하나라도 제대로 읽혔으면 그것을 쓰고,
+    #    문턱만 나쁘면 기본값으로 떨어뜨린다(경고와 함께). 카드 열쇠가 전부 나쁠 때만 폴백한다.
+    _card_bad = {x for x in bad if x != "external_mb"}
+    _card_ok = ({"gpus", "gpus_if_external"} & set(d)) - _card_bad
+    if _card_bad and not _card_ok:
+        return _fallback(f"빼는 카드를 적는 열쇠를 못 읽었다({sorted(_card_bad)})"
+                         " — 적어서 비운 것과 다르다", say)
+    if _card_bad:
+        warn.append(f"{sorted(_card_bad)} 는 못 읽어 무시했다 — 나머지 열쇠로 보류를 정한다")
     if not out and (d.get("gpus") or d.get("gpus_if_external") or typo):
         warn.append("⭐파일은 있는데 **빼는 카드가 하나도 없다** — 뜻한 바인지 보라")
     if warn:
@@ -256,7 +299,7 @@ def temp_hold(ext: dict, log=None) -> set:
         #: ⭐**정상 바퀴는 슬롯을 푼다.** 안 그러면 같은 고장이 다시 났을 때 한 줄도 안 나간다
         #  — 고쳤다가 같은 실수를 되풀이하면 무음이 되던 자리다(2026-09-14 적대 검증).
         _hold_warned["v"] = None
-    _hold_last["v"] = set(out)
+    _remember(out)
     return out
 
 
@@ -265,7 +308,7 @@ def _fallback(why: str, say) -> set:
 
     ⛔규약을 잃는 쪽(빈 집합)으로 실패하지 않는다. 큐는 다른 카드에서 계속 돌므로 굶지 않는다.
     """
-    keep = _hold_last["v"]
+    keep = _recall()
     if _hold_warned["v"] != ("read", why):
         if keep:
             say(f"  ⚠GPU_HOLD.json 를 {why} — **마지막으로 읽은 보류 {sorted(keep)} 를 그대로 쓴다.**"

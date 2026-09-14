@@ -812,6 +812,10 @@ def main() -> int:
                     level_by_fc[int(_fc)] = {"level_spread_db": round(float(_v), 4),
                                              "n_budgets": int(_n)}
             #: ⭐⭐대역 **모양**의 예산 민감도 — 레벨 민감도와 다른 자다(함수 머리말 참조).
+            #: ⛔⛔2026-09-14 적대 검증 — 이 함수는 **거절된 행만 있을 때** «참인 dict» 를
+            #  돌려준다(shape_spread_db 는 None). 아래 `if shape` 가 그것을 「잰 것」으로
+            #  받아 `{shape['shape_spread_db']:.3f}` 에서 **TypeError 로 죽었다.**
+            #  ⇒ 「쟀나」의 기준은 dict 의 참/거짓이 아니라 **그 값이 있나**다.
             shape = budget_shape_spread_db({f: c["engine"] for f, c in got}, el,
                                            J["rows"], Z, 0.05)
             band = float(lv.max() - lv.min())
@@ -820,6 +824,7 @@ def main() -> int:
             mono = bool(np.all(d > 0) or np.all(d < 0))
             #: ⚠배수는 **참고**다 — 대조군이 자세 표집만 덮는다(머리말). 머리기사 아님.
             ratio = None if half <= 0 else round(band / half, 3)
+            shape_ok = bool(shape) and shape.get("shape_spread_db") is not None
             mv_band = float(np.ptp(np.array([g[1]["moving_db"] for g in got], float)))
             #: 날개끝 상한이 fc 에 정비례하나 — 자를 바꾼 것이 맞는지 확인
             ft = np.array([g[1]["f_tip_hz"] for g in got], float)
@@ -893,7 +898,7 @@ def main() -> int:
                        f"다({shape['n_fc']} 반송파 × 예산 {shape['n_budgets']} 벌). "
                        "⛔두 수를 나란히 읽는다 — 어느 쪽이 크면 «가른다» 로 자르는 문턱을 "
                        "우리는 아직 안 세웠다(널 분포·오류율을 안 쟀다)."
-                       if shape else
+                       if shape_ok else
                        "⚠예산을 흔들었을 때 **대역 모양**이 얼마나 움직이는지 잴 짝이 "
                        "**없다 — 판정을 미룬다**. 같은 조건에서 반송파 둘 이상 × 예산 둘 "
                        "이상이 있어야 잰다."
