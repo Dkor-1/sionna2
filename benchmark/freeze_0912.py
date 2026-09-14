@@ -77,6 +77,37 @@ def measure() -> dict:
     except Exception as e:                                          # noqa: BLE001
         m["atlas"] = dict(error=f"{type(e).__name__}")
 
+    #: ⭐⭐완전요인 **판정** — 2026-09-14 신설.
+    #  ⛔왜 — 오늘 그 원장의 머리기사가 **조건이 섞이고 덮개 시험도 떨어진 쌍**의
+    #    계수 0.92(±0.04)·잔차 11.8 % 를 싣고 있는 것이 외부 점검으로 드러났다(깨끗한
+    #    쌍은 1.05~1.06 · 12.8 %). 기준선이 이 파일을 **안 보고 있어서** 그 사이 아무
+    #    관문도 안 물었다. ⇒ 판정 칸을 뜬다(전체 원장은 크니 verdict 만).
+    #  ⛔사람이 읽는 긴 문장은 **길이만** 센다 — 글자가 바뀔 때마다 기준선이 흔들리면
+    #    쓸모가 없고, 뜻이 바뀌면 아래 수치 칸이 함께 움직인다.
+    m["factorial_verdict"] = {}
+    try:
+        V = js("outputs/switch_factorial.json")["verdict"]
+    except Exception as e:                                          # noqa: BLE001
+        m["factorial_verdict"] = dict(error=f"{type(e).__name__}")
+    else:
+        for k, v in sorted(V.items()):
+            if isinstance(v, bool) or isinstance(v, (int, float)):
+                m["factorial_verdict"][k] = v
+            elif isinstance(v, str):
+                m["factorial_verdict"][k + "__len"] = len(v)
+            elif isinstance(v, list) and all(isinstance(x, str) for x in v):
+                m["factorial_verdict"][k] = sorted(v)
+            elif isinstance(v, list):
+                m["factorial_verdict"][k + "__n"] = len(v)
+            elif isinstance(v, dict):
+                for kk, vv in sorted(v.items()):
+                    if isinstance(vv, dict):
+                        for k3, v3 in sorted(vv.items()):
+                            if isinstance(v3, (int, float, bool)):
+                                m["factorial_verdict"][f"{k}.{kk}.{k3}"] = v3
+                    elif isinstance(vv, (int, float, bool)):
+                        m["factorial_verdict"][f"{k}.{kk}"] = vv
+
     #: 실외 사건 수 — 덱 9 쪽이 인용하는 수
     #  ⛔⛔2026-09-13 정정 — 첫 판은 **문자열에 «96»·«339» 가 있나**만 봤다. 그러면
     #    사건 수가 바뀌어도 다른 자리에 그 숫자가 있으면 그대로 통과한다.

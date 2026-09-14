@@ -50,7 +50,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 #: ⭐팔 이름은 **문법으로** 되읽는다 — 정규식으로 긁지 않는다(2026-09-13(4)).
 from arm_grammar import parse as parse_arm, unparse as unparse_arm   # noqa: E402
-from reader_gate import check_series, publish                        # noqa: E402
+from reader_gate import check_series, check_shards, publish                        # noqa: E402
 DECK = "/workspace/team_meeting/teammeeting_0910"
 OUT = os.path.join(ROOT, "outputs/read_scenephysics_0913.json")
 MD = os.path.join(ROOT, "docs/SCENEPHYSICS_0913.md")
@@ -90,36 +90,51 @@ def deck_filters():
 
 
 def series(esm, arm, el, n_poses_ledger=None):
+    """이 칸의 시계열 — **언제나 두 값**을 돌려준다: (전계 또는 None, (이름표, 글) 목록).
+
+    ⛔⛔2026-09-14 정정. 이 함수는 자료 없음·표집률 혼합·조각 미완에서 **맨 None** 을
+      돌려주는데, 부르는 쪽(:283·284)은 항상 두 값으로 풀었다. 그래서 창고가 비면
+      `TypeError: cannot unpack non-iterable NoneType object` 로 **판독 전체가 죽었다.**
+      ⚠이건 남아 있던 결함이 아니라 커밋 621f0a97 이 낸 **회귀**다 — 그 커밋이 같은 병을
+      `read_wfsurvive_0912.cell_series` 에서는 고치면서 여기는 호출부만 두 값으로 바꾸고
+      앞의 세 return 을 그대로 뒀다. 세 조건 다 실측으로 재현했다(2026-09-14).
+      ⚠같은 커밋의 두 번째 피해자는 `benchmark/review_full_0912.py:481` 이다.
+    ⭐사유를 (이름표, 글) 로 두는 까닭 — 부르는 쪽이 «자료 없음» 과 «관문 거절» 을
+      가려서 적어야 한다. 평평한 글 목록으로 통일하면 그 구분이 깨진다.
+    """
     fs = sorted(glob.glob(f"{esm.SHD}/{arm}_el{el:+g}_*.npz"))
     if not fs:
-        return None
-    with contextlib.redirect_stdout(io.StringIO()):
-        fs, _ = esm.one_generation(fs, f"{arm}/el{el:+g}")
-    E = seen = None
-    prf0 = None
+        return None, [("조각 없음", "그 칸의 조각이 창고에 없다")]
+    #: ⛔⛔`one_generation` 은 세대를 고르려고 **제가 먼저 전계를 대입해 본다** — 그래서
+    #  범위 밖 idx 가 든 샤드는 아래 `check_shards` 에 닿기 전에 IndexError 로 판독 전체를
+    #  죽인다(2026-09-14 실측). 「그 칸만 건너뛴다」를 지키려면 여기서 받아야 한다.
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            fs, gen = esm.one_generation(fs, f"{arm}/el{el:+g}")
+    except Exception as e:                      # noqa: BLE001 — 까닭으로 돌려주는 것이 계약이다
+        return None, [("세대 고르기 실패", f"세대를 고르다 죽었다({type(e).__name__}: {str(e)[:80]})")]
+    #: ⭐⭐**대입하기 전에** 샤드를 전부 본다(src/reader_gate.check_shards).
+    #  옛 판은 첫 샤드에서만 표본수·표집률을 뽑고 idx 는 검사 없이 대입해서,
+    #  둘째 샤드의 NaN 표집률·음수 idx·소수 idx·표본수 불일치가 조용히 통과했다.
+    #  범위 밖 idx 는 대입에서 IndexError 로 **판독 전체를 죽였다**(2026-09-14 실측).
+    n0, prf0, _sw = check_shards(fs)
+    if _sw:
+        return None, [("샤드 검사", w) for w in _sw]
+    E = np.zeros(n0, complex)
+    seen = np.zeros(n0, bool)
     for f in fs:
         z = np.load(f)
         ii = z["idx"].astype(int)
-        if E is None:
-            n0 = int(np.asarray(z["meta"], float)[3])
-            E = np.zeros(n0, complex)
-            seen = np.zeros(n0, bool)
         E[ii] = z["E"]
         seen[ii] = True
-        #: ⛔한 칸에 표집률이 섞이면 쓰지 않는다(2026-09-13(10)).
-        _p = float(np.asarray(z["meta"], float)[4])
-        if prf0 is None:
-            prf0 = _p
-        elif abs(_p - prf0) > 1.0:
-            return None
     if not seen.all():
-        return None
+        return None, [("조각 덜 참", f"조각이 덜 찼다({int(seen.sum())}/{seen.size} 자세)")]
     #: ⭐공통 입력 관문(src/reader_gate.py) — 비유한 값·길이·차원을 여기서 거른다.
     #: ⛔⛔`n_poses=E.size` 는 빈 검사였다 — 원장의 값을 받는다(2026-09-13(10)).
-    #: ⭐거절 까닭을 **버리지 않는다** — 부르는 쪽이 «자료 없음» 과 가릴 수 있게
-    #  (E, 까닭목록) 으로 돌려준다.
-    _why = check_series(E, n_poses=n_poses_ledger, prf=prf0)
-    return (None, _why) if _why else (E, [])
+    #: ⭐세대 진단을 **버리지 않는다**(2026-09-14). 다만 «있으면 거절» 이 아니라
+    #  갈린 자세가 남았는지로 판정한다 — 깨끗이 풀린 두 세대 칸까지 버리면 안 된다.
+    _why = check_series(E, n_poses=n_poses_ledger, prf=prf0, mixed_generations=gen)
+    return (None, [("입력 관문 거절", t) for t in _why]) if _why else (E, [])
 
 
 def db(x):
@@ -288,9 +303,10 @@ def main() -> int:
             _w = (why_s or []) + (why_f or [])
             skipped.append(dict(
                 engine=r["engine"], el_deg=el, want=fengine,
-                gate_rejected=bool(_w),
-                why=(("입력 관문이 거절했다: " + " · ".join(_w)) if _w
-                     else "장면 또는 빈 하늘 칸이 미완이다(조각이 덜 찼거나 세대가 갈렸다)")))
+                #: ⭐이름표로 가른다 — 「자료가 없다」와 「관문이 거절했다」는 다른 일이다.
+                gate_rejected=any(c == "입력 관문 거절" for c, _ in _w),
+                why_codes=[c for c, _ in _w],
+                why=" · ".join(t for _, t in _w) or "장면 또는 빈 하늘 칸을 못 읽었다"))
             continue
         #: ② 덱의 잣대 그대로 — 갈아낀 자세 수
         mask = hampel_mask(np.abs(Es), 51, 5.0)

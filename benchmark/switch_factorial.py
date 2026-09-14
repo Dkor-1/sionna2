@@ -165,6 +165,25 @@ def _d(v, nd: int = 2, unit: str = "") -> str:
     return "—" if v is None else f"{float(v):+.{nd}f}{unit}"
 
 
+def pair_diffs(arm_a, arm_b, ignore) -> list[str]:
+    """두 팔 이름에서 `ignore` 를 뺀 **모든** 꼬리표 차이 — 쌍이 깨끗한지 보는 자.
+
+    ⛔⛔2026-09-14 — 이 함수를 모듈로 올린 까닭. 스위치 루프 안에만 지역 함수로 있어서
+      **깊이 비교(:588)에는 안 갔다.** 실측: 깊이 쌍 63 개 중 **21 개**가 mesh_fix·
+      blade_law 가 다른데 혼합 표시 없이 깊이 판정에 들어갔고, 그중 하나는 「깊이 차
+      7.04 dB」로 실렸다. 회절 파묻힘(:diffraction_burial)도 같은 병이었다.
+    ⛔이름을 긁지 않는다 — `src/arm_grammar.parse` 로 되읽는다(MEMORY 규약).
+    """
+    def _c(a):
+        try:
+            f = _arm_parse(a)
+        except Exception:
+            return {"arm": a}
+        return {k: v for k, v in f.items() if k not in ignore}
+    ca, cb = _c(arm_a), _c(arm_b)
+    return sorted(k for k in set(ca) | set(cb) if ca.get(k) != cb.get(k))
+
+
 def columns(E, prf, ffl, ft, hw=HALF_HZ):
     """세 열 + 파생. 전력 단위는 원장의 진폭 단위² (rows[].level_db 와 같은 눈금)."""
     E = np.asarray(E, complex)
@@ -546,8 +565,11 @@ def main() -> None:
     a_cover_all_el = bool(dall_clean
                           and all(r.get("contains_unit_within_3sigma") for r in dall_clean))
     # 덮힘 깊이 — 끈 판의 «선» 이 켠 판의 바닥 밑 몇 dB 로 내려앉나
+    #: ⛔⛔2026-09-14 — 여기도 `dpairs` 를 돌고 있었다. 발간 행 6 개 중 4 개가 **조건이
+    #  섞인 쌍**이라 「16.5~21.5 dB(6 쌍)」가 깊이 표의 7.04 dB 와 같은 병이었다.
+    #  ⇒ 깨끗한 쌍만 쓴다. 뺀 쌍 수는 아래 verdict 에 적는다.
     burial = []
-    for r in dpairs:
+    for r in dpairs_clean:
         o, n = cells[r["off"]], cells[r["on"]]
         if o["above_comb_db"] is None or n["floor_density_db"] is None:
             continue
@@ -559,21 +581,54 @@ def main() -> None:
 
     # ⭐축마다 «얹나 바꾸나» — 담김계수 a 가 1 이면 얹은 것(원래 항이 그대로 남았다),
     #   1 보다 작으면 원래 항 자체를 바꾼 것이다. 회절만 유별난지 이 표가 말한다.
+    #: ⛔⛔2026-09-14 — 이 고리가 **깨끗한 쌍을 안 걸렀다.** 그래서 같은 dict 안에서
+    #  D·E·F 의 항목별 reads_ko 가 「바꾼다」인데 총평은 「얹는 축」이라 **서로 모순**이었다.
+    #  까닭: 규칙이 `min(v) >= 0.9` 라 더러운 쌍 하나가 최솟값을 끌어내리면 축 전체가
+    #  뒤집힌다. 실측으로 네 축의 최솟값을 만든 쌍이 **전부** 더러운 쌍이었다
+    #  (mesh_fix·blade_law 가 다른 옛 세대 팔). 깨끗한 쌍만 보면 모순이 사라진다.
+    #: ⭐총평도 손으로 쓰지 않고 **이 표에서 만든다** — 그래야 구조적으로 어긋날 수 없다.
     mech = {}
     for ax in AXIS:
-        v = [r["contain_coeff"] for r in axis_tbl[ax]
-             if r["el_deg"] == -30.0 and r.get("contain_coeff") is not None]
-        if not v:
+        rows_ax = [r for r in axis_tbl[ax]
+                   if r["el_deg"] == -30.0 and r.get("pair_is_clean")
+                   and r.get("contain_coeff") is not None]
+        drop_ax = [r for r in axis_tbl[ax]
+                   if r["el_deg"] == -30.0 and not r.get("pair_is_clean")
+                   and r.get("contain_coeff") is not None]
+        if not rows_ax:
             continue
+        v = [r["contain_coeff"] for r in rows_ax]
         mech[ax] = dict(
-            n_pairs=len(v), a_min=round(min(v), 3), a_max=round(max(v), 3),
+            n_pairs=len(v), n_pairs_dropped_dirty=len(drop_ax),
+            pairs=[f"{r['off']} → {r['on']}" for r in rows_ax],
+            a_min=round(min(v), 3), a_max=round(max(v), 3),
             a_median=round(float(np.median(v)), 3),
+            n_within_3scale=sum(1 for r in rows_ax
+                                if r.get("contains_unit_within_3sigma")),
+            ruler_ko=("담김계수 |a| 의 0.9~1.25 밴드다 — 덮개 시험의 «복소 거리 ≤ 3 배 척도» "
+                      "와 **다른 자**다. 두 자를 같은 말로 읽지 않는다."),
             reads_ko=("얹는다 — 원래 시계열이 계수 1 로 그대로 남아 있다"
                       if min(v) >= 0.9 and max(v) <= 1.25 else
                       "바꾼다 — 원래 시계열 자체가 다른 것이 된다"))
-    mech_note = ("⭐축을 가르는 한 줄: 회절 D 와 모서리 E 와 확산 F 는 **얹는 축**(a≈1)이고, "
-                 "굴절 R 만 **바꾸는 축**(a≈0.5)이다. 굴절은 셸을 통과시켜 원래 반사 자체를 "
-                 "다른 것으로 만들고, 회절은 원래 반사를 남긴 채 위에 새 항을 더한다.")
+    _ride = [a for a in mech if mech[a]["reads_ko"].startswith("얹는다")]
+    _chg = [a for a in mech if mech[a]["reads_ko"].startswith("바꾼다")]
+    _nm = {"R": "굴절 R", "D": "회절 D", "E": "모서리 E", "F": "확산 F"}
+    if _ride and _chg:
+        mech_note = (
+            "⭐축을 가르는 한 줄(el −30 · 깨끗한 쌍만): "
+            + " 와 ".join(_nm.get(a, a) for a in _ride) + " 는 **얹는 축**"
+            + f"(a {min(mech[a]['a_min'] for a in _ride):.2f}~"
+              f"{max(mech[a]['a_max'] for a in _ride):.2f})이고, "
+            + " 와 ".join(_nm.get(a, a) for a in _chg) + " 는 **바꾸는 축**"
+            + f"(a {min(mech[a]['a_min'] for a in _chg):.2f}~"
+              f"{max(mech[a]['a_max'] for a in _chg):.2f})이다. "
+            + "⚠이 표의 자는 |a| 밴드다. 덮개 시험(복소 거리 3 배 척도)으로 다시 재면 "
+            + " · ".join(f"{a} {mech[a]['n_within_3scale']}/{mech[a]['n_pairs']}"
+                         for a in mech) + " 만 통과한다 — 두 자는 같지 않다.")
+    else:
+        mech_note = ("⚠el −30 의 깨끗한 쌍만으로는 축이 한쪽으로만 갈린다 — "
+                     "«얹는 축 ↔ 바꾸는 축» 으로 나누지 않는다"
+                     + f"(얹는 축 {len(_ride)} · 바꾸는 축 {len(_chg)}).")
 
     # ═══════════════════════════════════════════════════════════════════════
     # 5. 사전등록 판정 B — 깊이 축
@@ -588,11 +643,24 @@ def main() -> None:
             for el in sorted(set(els) & set(combos_seen[(tag, hi)])):
                 k1, k3 = f"{tag}_d1/el{el:+g}", f"{tag}_d{hi}/el{el:+g}"
                 a, b = cells[k1], cells[k3]
+                #: ⛔⛔2026-09-14 — 깊이 쌍에도 **조건 혼합 관문**을 건다. 스위치 쪽에는
+                #  2026-09-13(10) 에 붙였는데 이 별도 고리에는 안 갔다. 실측: 63 쌍 중
+                #  21 쌍이 mesh_fix·blade_law 가 다르고, 그 혼합이 「깊이 차」로 실렸다.
+                _dx = pair_diffs(a.get("arm"), b.get("arm"),
+                                 ("max_depth", "_seed_host"))
                 if a["zero_echo"] and b["zero_echo"]:
                     dead_pairs.append(dict(combo=tag, el_deg=el, depths=[1, hi],
                                            note_ko="두 판 모두 경로 0 — 깊이가 바꿀 것이 없다"))
                     continue
                 row = dict(combo=tag, el_deg=el, depths=[1, hi], d1=k1, dN=k3,
+                           #: ⭐팔 이름을 행에 싣는다 — 칸 열쇠는 조합·깊이·앙각뿐이라
+                           #  읽는 이가 어느 팔끼리 견줬는지 알 수 없었다.
+                           d1_arm=a.get("arm"), dN_arm=b.get("arm"),
+                           pair_other_diffs=_dx, pair_is_clean=bool(not _dx),
+                           pair_note_ko=(("깊이 말고 다른 조건도 함께 바뀐다: "
+                                          + " · ".join(_dx)
+                                          + " — ⛔이 쌍은 깊이 판정에 안 쓴다")
+                                         if _dx else "깊이 하나만 다르다"),
                            d_ac_db=dd(a["ac_db"], b["ac_db"]),
                            d_above_floor_db=dd(a["above_floor_db"], b["above_floor_db"]),
                            d_above_comb_db=dd(a["above_comb_db"], b["above_comb_db"]),
@@ -607,20 +675,41 @@ def main() -> None:
                       if v is not None]
                 row["max_abs_level_db"] = round(max(lv), 2) if lv else None
                 row["level_within_2db"] = bool(lv and max(lv) < DB_SAME)
-                row["rhythm_within_3pp"] = bool(row["d_rhythm_pp"] is not None
-                                                and abs(row["d_rhythm_pp"]) < PP_SAME)
-                row["pass"] = bool(row["level_within_2db"] and row["rhythm_within_3pp"])
+                #: ⛔⛔2026-09-14 — **세 갈래**로 가른다. 옛 판은 `bool(None is not None
+                #  and …)` 로 뭉개서 **계측 불가를 실패로** 셌다(직하방 4 행: f_tip = 0 이라
+                #  날개끝 상한 위 띠가 아예 없는 칸이다 — :193 의 `_degen` 이 일부러 null 로
+                #  둔 값이다). 그리고 조건이 섞인 쌍도 «실패» 로 셌다.
+                #  ⭐`pass` 를 False 가 아니라 **None** 으로 두는 것이 요점이다 — 그래야
+                #    아래 집계가 「못 잰 것」을 「깨진 것」으로 못 센다.
+                if not row["pair_is_clean"]:
+                    row["rhythm_within_3pp"] = None
+                    row["pass"] = None
+                    row["verdict_ko"] = "비교 부적격 — 깊이 말고 다른 조건도 다르다"
+                elif row["d_rhythm_pp"] is None:
+                    row["rhythm_within_3pp"] = None
+                    row["pass"] = None if row["level_within_2db"] else False
+                    row["verdict_ko"] = ("계측 불가 — f_tip = 0 이라 날개끝 상한 위 띠가 "
+                                         "없다" + ("(레벨은 밴드 안)" if row["level_within_2db"]
+                                                   else "(레벨은 밴드 밖)"))
+                else:
+                    row["rhythm_within_3pp"] = bool(abs(row["d_rhythm_pp"]) < PP_SAME)
+                    row["pass"] = bool(row["level_within_2db"] and row["rhythm_within_3pp"])
+                    row["verdict_ko"] = "밴드 안" if row["pass"] else "기준 초과"
                 depth_pairs.append(row)
-    p13 = [r for r in depth_pairs if r["depths"] == [1, 3]]
-    p13_plate = [r for r in p13 if r["el_deg"] == -30.0]
+    #: ⭐집계는 **관문 뒤**에서 한다 — 비교 부적격·계측 불가·기준 초과를 가른다.
+    p13_all = [r for r in depth_pairs if r["depths"] == [1, 3]]
+    p13 = [r for r in p13_all if r["pair_is_clean"]]          # ⭐판정에 쓰는 쌍
+    p13_judged = [r for r in p13 if r["pass"] is not None]
+    p13_plate = [r for r in p13_judged if r["el_deg"] == -30.0]
     p12 = [r for r in depth_pairs if r["depths"] == [1, 2]]
-    b_pass = bool(p13 and all(r["pass"] for r in p13))
+    b_pass = bool(p13_judged and all(r["pass"] for r in p13_judged))
     b_pass_plate = bool(p13_plate and all(r["pass"] for r in p13_plate))
-    b_fail_rows = [dict(combo=r["combo"], el_deg=r["el_deg"],
+    b_fail_rows = [dict(combo=r["combo"], el_deg=r["el_deg"], d1_arm=r.get("d1_arm"),
+                        dN_arm=r.get("dN_arm"),
                         max_abs_level_db=r["max_abs_level_db"], d_rhythm_pp=r["d_rhythm_pp"],
                         d_above_floor_db=r["d_above_floor_db"],
-                        broke_ko=("리듬" if not r["rhythm_within_3pp"] else "레벨"))
-                   for r in p13 if not r["pass"]]
+                        broke_ko=("리듬" if r["rhythm_within_3pp"] is False else "레벨"))
+                   for r in p13_judged if not r["pass"]]
 
     # ═══════════════════════════════════════════════════════════════════════
     # 6. 대조군 — 백색잡음 / 이상 로터
@@ -746,7 +835,11 @@ def main() -> None:
     # ═══════════════════════════════════════════════════════════════════════
     # 9. 판정문 · 정정 대상
     # ═══════════════════════════════════════════════════════════════════════
-    d_main = next((r for r in dpairs if r["off"] == "R0D0E0F1_d1/el-30"), None)
+    #: ⛔⛔2026-09-14 — 이름으로 한 쌍을 집던 줄(`R0D0E0F1_d1/el-30`)을 지웠다.
+    #  그 쌍은 조건이 섞였고(blade_law·mesh_fix·only) 덮개 시험도 떨어진 쌍인데,
+    #  머리기사와 정정 권고가 **그 쌍 하나**의 수를 쓰고 있었다. 이제 판정이 쓰는
+    #  목록(dpairs_clean)의 첫 쌍만 넘기고, 그 목록 전체는 verdict 에 이름으로 남긴다.
+    d_main = dpairs_clean[0] if dpairs_clean else None
     verdict = dict(
         plate_ko="⭐판정은 설계서가 정한 판 — 앙각 −30° · matrice4e · 15 m · 광선 4e9 — 에서만 "
                  "내린다. 다른 앙각의 쌍은 «적용 범위(scope)» 로 따로 적는다.",
@@ -808,7 +901,14 @@ def main() -> None:
                    "덮개 문장은 **빗각(−15°~−75°)** 에서 쓴다.",
         B_prereg_text_ko="깊이 1↔3 쌍 전부에서 레벨 차 < 2 dB 이고 리듬 차 < 3 %p 면 깊이 축 종결",
         B_pass=b_pass, B_pass_on_plate_el30=b_pass_plate,
+        #: ⭐뺀 쌍이 안 보이면 안 된다 — 셋을 함께 싣는다(2026-09-14).
         B_n_pairs_1to3=len(p13), B_n_pairs_1to3_on_plate=len(p13_plate),
+        B_n_pairs_1to3_all=len(p13_all),
+        B_n_pairs_1to3_excluded_mixed=len(p13_all) - len(p13),
+        B_n_pairs_1to3_unmeasurable=sum(1 for r in p13 if r["pass"] is None),
+        B_gate_ko=("깊이 판정은 «깊이 말고 모든 꼬리표가 같은» 쌍만 쓴다(2026-09-14 신설). "
+                   "계측 불가(f_tip = 0 이라 날개끝 상한 위 띠가 없는 칸)는 실패로 세지 "
+                   "않고 따로 센다."),
         B_n_pairs_1to2=len(p12), B_n_dead_pairs=len(dead_pairs),
         B_max_level_db=(round(max(r["max_abs_level_db"] for r in p13), 2) if p13 else None),
         B_max_rhythm_pp=(round(max(abs(r["d_rhythm_pp"]) for r in p13
@@ -816,14 +916,26 @@ def main() -> None:
         B_failures=b_fail_rows,
         B_verdict_ko=("깊이 축 종결 — 앞으로 큐에서 --max-depth 3 를 빼도 된다" if b_pass else
                       "⛔깊이 축 종결 **불가** — 큐에서 --max-depth 3 를 빼면 안 된다"),
-        B_why_ko="두 가지로 깨진다. ①판 위(−30°)의 R1D1** 칸 넷이 깊이 3 에서 세 열 전부 "
-                 "+2.2~+2.4 dB — 사전등록 2 dB 밴드 바로 밖이다. ②판 밖 −60° 의 R0D0E0F1 은 "
-                 "AC 가 +0.09 dB 로 «같은데» 상한 위 바닥만 **+12.7 dB** 오른다 — 레벨 "
-                 "잣대 하나로는 안 보이던 자리다. ⛔**여기 있던 «리듬이 86.6 → 32.4 % 로 "
-                 "무너진다» 는 2026-08-16 에 철회됐다** — 그 낙차는 8,192 자세 중 **#3399 "
-                 "하나 탓**이었고, 그 자세만 빼면 두 판이 리듬 85.52 대 85.24 % · 빗살 45.37 "
-                 "대 45.29 dB 로 일치한다(RETRACTION_LOG 2026-08-16 ③). 그리고 리듬 몫 "
-                 "크기 자체가 R29 로 인용 대상이 아니다.",
+        #: ⛔⛔2026-09-14 — 이 문장을 **원장에서 만든다**. 옛 판은 손으로 친 「칸 넷」·
+        #  「−60° 바닥만 +12.7 dB」를 그대로 달고 있었는데, 조건 관문을 붙이자 판 위 깨짐이
+        #  셋으로 줄고 −60° 쌍은 지금 원장에서 +0.04 dB 라 이미 어긋나 있었다.
+        B_why_ko=(
+            (f"깨짐은 전부 **레벨**이다 — 깨끗한 1↔3 쌍 {len(p13_judged)} 개 중 "
+             f"{len(b_fail_rows)} 개가 사전등록 {DB_SAME:g} dB 밴드 밖이고, 그 폭은 "
+             f"{min(r['max_abs_level_db'] for r in b_fail_rows):+.2f}~"
+             f"{max(r['max_abs_level_db'] for r in b_fail_rows):+.2f} dB 다"
+             f"(판 위 −30° {sum(1 for r in b_fail_rows if r['el_deg'] == -30.0)} 개). "
+             f"리듬으로 깨진 쌍은 {sum(1 for r in b_fail_rows if r['broke_ko'] == '리듬')} 개다. "
+             if b_fail_rows else
+             f"깨끗한 1↔3 쌍 {len(p13_judged)} 개가 전부 밴드 안이다. ")
+            + (f"⛔조건이 섞여 판정에서 뺀 쌍이 {len(p13_all) - len(p13)} 개 있다 — 그 쌍에서는 "
+               "깊이 말고 메쉬 세대·날개 법칙도 함께 바뀌어 무엇이 값을 바꿨는지 못 가른다"
+               "(2026-09-14 신설 관문). " if len(p13_all) > len(p13) else "")
+            + "⛔**여기 있던 «리듬이 86.6 → 32.4 % 로 무너진다» 는 2026-08-16 에 철회됐다** — "
+              "그 낙차는 8,192 자세 중 **#3399 하나 탓**이었고, 그 자세만 빼면 두 판이 리듬 "
+              "85.52 대 85.24 % · 빗살 45.37 대 45.29 dB 로 일치한다"
+              "(RETRACTION_LOG 2026-08-16 ③). 그리고 리듬 몫 크기 자체가 R29 로 인용 "
+              "대상이 아니다."),
         B_lesson_ko="⭐깊이를 «레벨이 안 변하니 죽은 축» 이라 부른 근거가 레벨 하나였다는 것이 "
                     "이 실험의 부산물이다. 세 열로 갈라 보니 깊이는 **바닥을 올리는 축**이다.",
         C_edge_is_noop_ko="모서리회절 E 는 회절 D 가 꺼져 있으면 완전 무동작이다 — «모서리만» 은 "
@@ -836,15 +948,49 @@ def main() -> None:
                                             "**0 개** 다 — 에코가 아예 없다(굴절 켜도 마찬가지). "
                                             "순정 기본값(stockdef=R1D0E0F0·d3)이 여기 걸린다.",
     )
-    if d_main:
+    #: ⛔⛔2026-09-14 — 머리기사를 **판정이 쓰는 쌍에서** 만든다. 옛 판은 `d_main`
+    #  (이름으로 집은 한 쌍 `R0D0E0F1_d1/el-30`)의 수를 썼는데, 그 쌍은
+    #    ⓐ 더러운 쌍이라 주판정에서 이미 빠져 있었고(pair_other_diffs =
+    #      blade_law·mesh_fix·only),
+    #    ⓑ 이 파일 자신의 덮개 시험을 **떨어진** 쌍이다(contains_unit_within_3sigma =
+    #      False · contain_rejected_by_phase = True).
+    #  그 쌍의 계수 0.92(±0.04)·잔차 11.8 % 가 머리기사에 실려 있었다. 깨끗한 쌍
+    #  (깊이 2·3)으로 다시 재면 1.05~1.06 · 12.8 % 다.
+    #: ⛔「(백색)」이라는 맨 낱말도 지운다 — 같은 dict 의 A_residual_why_ko 가
+    #  「«백색잡음이다» 로 읽지 않는다」고 적어 두었는데 머리기사가 그 말을 쓰고 있었다.
+    #  그 낱말은 어떤 시험의 출력도 아니고 f-string 에 박힌 글자였다. 쓰려면 **대조 수치와
+    #  뽑기 수를 붙여** 쓴다.
+    if dpairs_clean:
+        _dep = sorted({int(r["depth"]) for r in dpairs_clean})
+        _fl = [r["d_above_floor_db"] for r in dpairs_clean if r["d_above_floor_db"] is not None]
+        _ln = [r["d_comb_over_floor_db"] for r in dpairs_clean
+               if r["d_comb_over_floor_db"] is not None]
+        _aa = [r["contain_coeff"] for r in dpairs_clean if r.get("contain_coeff") is not None]
+        _sg = [r["contain_sigma"] for r in dpairs_clean if r.get("contain_sigma") is not None]
+        _rr = [r["residual_rhythm_pct"] for r in dpairs_clean
+               if r.get("residual_rhythm_pct") is not None]
+        verdict["A_headline_pairs"] = [f"{r['off']} → {r['on']}" for r in dpairs_clean]
+        verdict["A_headline_depths"] = _dep
         verdict["A_headline_ko"] = (
-            f"el −30 기본 칸에서 회절을 켜면 상한 위 **바닥은 {d_main['d_above_floor_db']:+.1f} dB** "
-            f"오르는데 **선/바닥 대비는 {d_main['d_comb_over_floor_db']:+.1f} dB** 로 무너진다 — "
-            f"그러면서도 켠 판은 끈 판을 계수 {d_main['contain_coeff']:.2f}"
-            f"(±{d_main['contain_sigma']:.2f}) 로 품고 있고, 얹힌 항만 재면 리듬 몫이 "
-            f"{d_main['residual_rhythm_pct']:.1f} %(백색)다")
+            f"el −30 · 깊이 {'·'.join(map(str, _dep))} 의 깨끗한 쌍 {len(dpairs_clean)} 개에서 "
+            f"회절을 켜면 상한 위 **바닥이 {min(_fl):+.1f}~{max(_fl):+.1f} dB** 오르는데 "
+            f"**선/바닥 대비는 {max(_ln):+.1f}~{min(_ln):+.1f} dB** 로 무너진다 — 그러면서도 "
+            f"켠 판은 끈 판을 계수 {min(_aa):.2f}~{max(_aa):.2f}"
+            f"(가정한 척도 ±{max(_sg):.2f}) 로 품고 있고, 얹힌 항만 재면 리듬 몫이 "
+            f"{min(_rr):.1f}~{max(_rr):.1f} % 다"
+            + (f" — 같은 파일의 백색 대조({ctrl['white_share_pct_mean']:.1f} ± "
+               f"{ctrl['white_share_pct_std']:.1f} %, 뽑기 {ctrl['white_draws']} 회) 안이다."
+               if a_white and isinstance(ctrl, dict)
+               and ctrl.get("white_share_pct_mean") is not None
+               else " — ⛔설정한 밴드(9~17 %) 밖이다."))
+    else:
+        verdict["A_headline_ko"] = (
+            "⛔el −30 에 깨끗한 회절 쌍이 없다 — 머리기사를 쓰지 않는다"
+            f"(조건이 섞여 뺀 쌍 {len(dirty)} 개).")
+        verdict["A_headline_pairs"] = []
 
-    corrections = build_corrections(cells, refs, d_main, verdict, burial, rep, p13, dead_pairs)
+    corrections = build_corrections(cells, refs, (dpairs_clean[0] if dpairs_clean else None),
+                                    verdict, burial, rep, p13, dead_pairs)
 
     out = dict(
         #: ⭐열쇠가 팔을 안 담아 부딪힌 자리 — 덮지 않고 적는다(2026-09-13(6)).
@@ -950,8 +1096,7 @@ def main() -> None:
     print(f"\n[판 el −30] D 쌍 {len(dpairs)} + 0에코출발 {len(dzero)} · 판정 A "
           f"문자그대로 {a_literal} · 선/바닥 {a_line} · 덮개 {a_cover} · 잔차백색 {a_white}")
     print(f"  ⇒ {verdict['A_verdict_ko']}")
-    if d_main:
-        print(f"  {verdict['A_headline_ko']}")
+    print(f"  {verdict['A_headline_ko']}")
     print("축별 담김계수(el −30) — 1 이면 «얹는다», 1 미만이면 «바꾼다»")
     for ax, m in mech.items():
         print(f"    {ax}: a {m['a_min']:.2f}~{m['a_max']:.2f} (중앙 {m['a_median']:.2f}, "
@@ -1144,12 +1289,14 @@ def build_corrections(cells, refs, d_main, verdict, burial, rep, p13, dead_pairs
     d0s = sorted(c["rhythm_share_pct"] for k, c in cells.items()
                  if k.endswith("_d1/el-30") and c["rhythm_share_pct"] is not None
                  and not c["diffraction"])
-    if base and diff:
+    if base and diff and d_main:
         out.append(dict(
             where="reports/18_switch-grid.ipynb · 제목",
             old="리포트 18 — 물리 스위치 격자: 회절이 든 조합은 전부 잡음이 된다",
             new="리포트 18 — 물리 스위치 격자: 회절은 리듬을 지우지 않고 리듬 없는 에코로 덮는다",
-            why_ko=f"회절을 켠 팔은 끈 팔을 계수 {d_main['contain_coeff']:.2f}·위상 "
+            #: ⭐어느 쌍의 수인지 문장에 적는다 — 옛 판은 이름으로 집은 한 쌍이었다.
+            why_ko=f"깨끗한 쌍 «{d_main['off']} → {d_main['on']}» 에서 회절을 켠 팔은 끈 팔을 "
+                   f"계수 {d_main['contain_coeff']:.2f}·위상 "
                    f"{d_main['contain_phase_deg']:+.1f}° 로 그대로 품고 있다. 「잡음이 된다」는 "
                    f"신호가 사라졌다는 뜻으로 읽히는데, 사라진 것이 아니라 "
                    f"{d_main['d_above_floor_db']:+.1f} dB 올라온 바닥 밑에 잠긴 것이다.",

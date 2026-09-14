@@ -51,7 +51,7 @@ import sys as _sys                                                    # noqa: E4
 _sys.path.insert(0, os.path.join(ROOT, "src"))
 #: ⭐팔 이름은 **문법으로** 되읽는다 — 부분문자열로 장면을 가르지 않는다(2026-09-13(4)).
 from arm_grammar import parse as parse_arm                            # noqa: E402
-from reader_gate import check_series, publish                        # noqa: E402
+from reader_gate import check_series, check_shards, publish                        # noqa: E402
 OUT = os.path.join(ROOT, "outputs/read_wfsurvive_0912.json")
 MD = os.path.join(ROOT, "docs/WFSURVIVE_0912.md")
 
@@ -112,30 +112,36 @@ def cell_series(esm, arm: str, el: float, n_poses_ledger: int | None = None):
         #: ⛔두 값을 돌려준다 — 옛 판은 여기서만 맨 None 이라 부르는 쪽이 TypeError 로
         #  죽었다(2026-09-13(10)). 창고가 깨졌을 때 정확히 이 갈래가 탄다.
         return None, "그 칸의 조각이 창고에 없다"
-    with contextlib.redirect_stdout(io.StringIO()):
-        fs, _ = esm.one_generation(fs, f"{arm}/el{el:+g}")
-    E = seen = None
-    prf = None
+    #: ⛔⛔`one_generation` 은 세대를 고르려고 **제가 먼저 전계를 대입해 본다** — 범위 밖
+    #  idx 가 든 샤드는 아래 `check_shards` 에 닿기 전에 IndexError 로 판독 전체를 죽인다
+    #  (2026-09-14 실측). 「그 칸만 건너뛴다」를 지키려면 여기서 받아야 한다.
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            fs, gen = esm.one_generation(fs, f"{arm}/el{el:+g}")
+    except Exception as e:                      # noqa: BLE001 — 까닭으로 돌려주는 것이 계약이다
+        return None, f"세대를 고르다 죽었다({type(e).__name__}: {str(e)[:80]})"
+    #: ⭐⭐**대입하기 전에** 샤드를 전부 본다(src/reader_gate.check_shards) — 2026-09-14.
+    #  옛 판은 첫 샤드에서만 표본수·표집률을 뽑았다. 그래서 둘째 샤드의 **NaN 표집률**이
+    #  `abs(nan - 19700) > 1.0` 이 언제나 거짓이라 그대로 새고(0.0 은 제대로 걸렸다),
+    #  음수 idx 는 NumPy 의 끝 기준 인덱스라 **시간 순서가 뒤집힌 채** 통과했다.
+    n0, prf, _sw = check_shards(fs)
+    if _sw:
+        return None, " · ".join(_sw)
+    E = np.zeros(n0, complex)
+    seen = np.zeros(n0, bool)
     for f in fs:
         z = np.load(f)
         ii = z["idx"].astype(int)
-        meta = np.asarray(z["meta"], float)
-        if E is None:
-            n0 = int(meta[3])
-            E = np.zeros(n0, complex)
-            seen = np.zeros(n0, bool)
-            prf = float(meta[4])
         E[ii] = z["E"]
         seen[ii] = True
-        #: ⛔⛔한 칸에 표집률이 섞이면 **조용히 첫 값을 쓰지 않는다**(2026-09-13(10)).
-        if abs(float(meta[4]) - prf) > 1.0:
-            return None, f"한 칸에 표집률이 섞였다({prf} · {float(meta[4])})"
     if not seen.all():
         return None, f"자세가 덜 찼다({int(seen.sum())}/{seen.size})"
     #: ⭐공통 입력 관문 — 비유한 값·길이·차원을 여기서 거른다(src/reader_gate.py).
     #: ⛔⛔`n_poses=E.size` 는 **빈 검사**다(자기 자신과 견준다). 원장의 값을 받아야
     #  「자세 수가 원장과 다르다」가 뜻을 갖는다(2026-09-13(10) 정정).
-    why = check_series(E, n_poses=n_poses_ledger, prf=prf)
+    #: ⭐세대 진단을 **버리지 않는다**(2026-09-14). 「있으면 거절」이 아니라 갈린 자세가
+    #  남았는지로 본다 — 깨끗이 풀린 두 세대 칸 4 개(발간 4 행)까지 버리면 안 된다.
+    why = check_series(E, n_poses=n_poses_ledger, prf=prf, mixed_generations=gen)
     if why:
         return None, " · ".join(why)
     return (E, prf), None

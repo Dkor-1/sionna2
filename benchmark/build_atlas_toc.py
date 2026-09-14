@@ -517,13 +517,53 @@ def self_checks(A: dict) -> list[tuple[str, bool, str]]:
                 f"맞음 {hit} 칸 · 어긋남 {miss} 칸"
                 + (f" (가장 먼 칸 {worst[0]})" if worst else "")))
 
-    tagged = sorted({a["airframe"] for a in IDX_ARM.values() if a["airframe_tagged"]})
-    ff = {k: IDX_ARM[[x for x in IDX_ARM if IDX_ARM[x]["airframe"] == k][0]]["f_flash_hz"]
-          for k in tagged}
-    out.append(("기체 태그 팔의 박자가 원장 기본값과 **다르다**(그대로 썼으면 틀렸을 자리)",
-                all(abs(v - LED["_meta"]["f_flash_hz"]) > 1.0 for v in ff.values()),
-                " · ".join(f"{k} {v:g} Hz" for k, v in ff.items())
-                + f" ↔ 원장 기본 {LED['_meta']['f_flash_hz']:.2f} Hz"))
+    #: ⛔⛔2026-09-14 정정 — 옛 식은 「태그 팔의 박자가 **원장 기본값과 달라야 한다**」를
+    #  요구했다. 두 가지가 틀렸다:
+    #   ⓐ 기본 기체(matrice4e)를 **이름에 명시한** 팔에는 「자기 자신과 달라라」가 되어
+    #     자료와 무관하게 절대 통과하지 못한다. 실측(2026-09-14): 태그 기체 7 개 중
+    #     matrice4e 하나만 |Δ| = 0.0003 Hz 로 걸려 이 줄이 ❌ 로 **발간돼 있었다**
+    #     (reports/A_atlas.ipynb §14.3). 읽는 이에게는 「박자 배정에 결함이 있다」로
+    #     읽히는데 실제로는 검사식이 틀린 것이다.
+    #   ⓑ 기체마다 **첫 팔 하나**만 읽어서, 나머지 태그 팔의 박자가 깨져도 안 보였다.
+    #  ⇒ 원장 기본값이 아니라 **그 기체의 명세값**(src/drones.py)과 직접 대고,
+    #    태그 붙은 팔을 **전부** 훑는다. 「기본과 달라야 한다」는 명세 박자가 실제로 다른
+    #    기체에만 건다.
+    from drones import DRONES                      # numpy/dataclass 뿐 — GPU 스택 아님
+    _dflt_flash = float(LED["_meta"]["f_flash_hz"])
+
+    def _spec_flash(key):
+        d = DRONES[key]
+        return int(d.prop_blades) * float(d.hover_rpm) / 60.0
+
+    tag_bad, tag_txt, n_tag_arms = [], [], 0
+    for k in sorted({a["airframe"] for a in IDX_ARM.values() if a["airframe_tagged"]}):
+        arms_k = [x for x, a in IDX_ARM.items()
+                  if a["airframe_tagged"] and a["airframe"] == k]
+        n_tag_arms += len(arms_k)
+        try:
+            spec = _spec_flash(k)
+        except Exception:
+            tag_bad.append(f"{k}: src/drones.py 에 없다")
+            continue
+        off = [x for x in arms_k if abs(float(IDX_ARM[x]["f_flash_hz"]) - spec) > 0.01]
+        if off:
+            tag_bad.append(f"{k}: 명세 {spec:g} Hz 와 다른 팔 {len(off)} 개 "
+                           f"(예: {off[0][-40:]} {IDX_ARM[off[0]]['f_flash_hz']:g} Hz)")
+        #: ⭐「기본과 달라야 한다」는 **명세가 실제로 다른 기체에만** 건다.
+        if abs(spec - _dflt_flash) > 1.0:
+            same = [x for x in arms_k
+                    if abs(float(IDX_ARM[x]["f_flash_hz"]) - _dflt_flash) <= 1.0]
+            if same:
+                tag_bad.append(f"{k}: 명세는 기본과 다른데({spec:g} ↔ {_dflt_flash:g} Hz) "
+                               f"기본값을 그대로 쓴 팔 {len(same)} 개")
+        tag_txt.append(f"{k} {spec:g} Hz×{len(arms_k)}"
+                       + ("(=기본)" if abs(spec - _dflt_flash) <= 1.0 else ""))
+    out.append(("기체 태그 팔의 박자가 **그 기체의 명세값**(src/drones.py)과 같다 — "
+                "기본 기체를 이름에 명시한 팔도 여기서는 정상이다",
+                not tag_bad,
+                f"태그 팔 {n_tag_arms} 개 · 기체 {len(tag_txt)} 종: "
+                + " · ".join(tag_txt) + f" ↔ 원장 기본 {_dflt_flash:.2f} Hz"
+                + (f" — ⛔어긋남 {len(tag_bad)}: {tag_bad[:2]}" if tag_bad else "")))
 
     #: ⭐이번 수리의 핵심 — 자격 없는 칸에 수가 실리면 안 된다
     leak = [f"{a}@{e}" for a, e, c in ALL_CELLS
@@ -1192,9 +1232,24 @@ def build() -> NB:
     #  어디에도 안 맞는 팔은 «왜 비었는지 원장이 말해 주지 않는» 자리다.
     PATTERNS = [set(FULL_ELS), {0.0, -30.0, -60.0, -90.0},
                 {0.0, -15.0, -30.0, -45.0}]
+    #: ⛔2026-09-14 — `A["absent"]` 에는 **색인에 아예 없는 팔**도 들어온다. 칸이 하나뿐인데
+    #  그 칸이 미완(n_missing > 0)이면 색인이 그 팔을 안 싣기 때문이다 — 실측: 큐 C 의
+    #  `…p3900000000…fc3450…` 팔이 조각 하나만 구워진 채로 원장에 들어와 여기서 KeyError 로
+    #  아틀라스를 통째로 멈췄다. 조용히 넘기지 않고 **따로 세어 아래에 적는다.**
+    _no_idx = sorted(a for a in A["absent"] if a not in IDX_ARM)
     odd = sorted(arm for arm in A["absent"]
-                 if len(IDX_ARM[arm]["elevations_deg"]) > 1
+                 if arm in IDX_ARM
+                 and len(IDX_ARM[arm]["elevations_deg"]) > 1
                  and set(IDX_ARM[arm]["elevations_deg"]) not in PATTERNS)
+    if _no_idx:
+        lines += [f"⚠**원장에는 있는데 색인에 없는 팔이 {len(_no_idx)} 개** 있다 — 그 팔의 "
+                  "칸이 전부 미완이라 색인이 안 싣는다(굽는 중이거나 조각이 덜 찼다). "
+                  "앙각 구성은 여기서 못 적는다.", "",
+                  "| 팔 |", "|---|"]
+        lines += [f"| `{a}` |" for a in _no_idx[:12]]
+        if len(_no_idx) > 12:
+            lines.append(f"| … 그리고 {len(_no_idx) - 12} 개 더 |")
+        lines.append("")
     if odd:
         lines += ["⚠**설계 격자 어디에도 안 맞는 팔이 있다.** 위 네 가지(7 점 · 성긴 "
                   "4 점 · 촘촘한 4 점 · 1 점) 중 어느 것도 아닌 앙각 구성이다 — "

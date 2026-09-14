@@ -478,7 +478,13 @@ def late_scene_check():
         # 2026-09-13(4): four-name list did not know sionna-munich, so 4 rows paired with themselves.
         # Rebuild the name from the grammar instead (src/arm_grammar.py), dropping only the scene tag.
         _f=_agparse(r['engine']);desired=_agunparse({k:v for k,v in _f.items() if k!='env'})
-        Es=m.series(esm,r['engine'],r['el_deg']);Ef=m.series(esm,r['free_engine'],r['el_deg']);Efix=m.series(esm,desired,r['el_deg'])
+        # 2026-09-14: series() now always returns (E-or-None, reasons). Commit 621f0a97 changed
+        # the contract for the caller in read_scenephysics_0913 but left this checker on the old
+        # single-value form, so --late-scene raised ValueError before reaching any assertion.
+        # Pass the ledger pose count too, so the gate inside series() is not a vacuous self-check.
+        Es,_=m.series(esm,r['engine'],r['el_deg'],r.get('n_poses'))
+        Ef,_=m.series(esm,r['free_engine'],r['el_deg'],r.get('n_poses'))
+        Efix,_=m.series(esm,desired,r['el_deg'],r.get('n_poses'))
         Er,n=filters['drop_outliers'](Es,51,5.)
         current=round(m.db(np.std(Er-Er.mean()))-m.db(np.std(Ef-Ef.mean())),2)
         computed=dict(above_free_db=current,n_replaced=int(filters['hampel_mask'](np.abs(Es),51,5.).sum()),n_replaced_dropfn=n,

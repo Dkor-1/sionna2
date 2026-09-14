@@ -105,10 +105,16 @@ def ang(x):
 #  ⛔그래서 이 쌍의 수를 **결과 1 처럼 표와 나란히 놓는 자리에 쓰면 안 된다** —
 #    표는 정본 판(깊이 2)이라 같은 양이 두 값을 갖게 된다(2026-09-03 에 실제로 그랬다).
 #    이 쌍은 «덮개 시험» 절에서만, 판을 밝히고 쓴다.
-PAIR = next(p for p in F["diffraction_on_plate_el30"]
-            if p["off"] == "R0D0E0F1_d1/el-30")
+#: ⛔⛔2026-09-14 정정 — 옛 판은 쌍을 **이름으로** 집었다(`R0D0E0F1_d1/el-30`).
+#  그 쌍은 스위치 말고 메쉬 세대·날개 법칙도 함께 달라서 원장이 주판정에서 뺀 쌍이고,
+#  이 파일 자신의 덮개 시험도 떨어진 쌍이다. 원장이 그 쌍을 빼자 여기서 StopIteration 으로
+#  빌더가 멈췄다. ⇒ **원장이 판정에 쓴 쌍**(verdict.A_headline_pairs)에서 집고,
+#  그중 표와 같은 깊이(CANON_DEPTH)를 고른다 — 없으면 첫 쌍.
+_CLEAN = [p for p in F["diffraction_on_plate_el30"] if p.get("pair_is_clean")]
+assert _CLEAN, "원장에 el −30 의 깨끗한 회절 쌍이 없다 — 이 편은 그 쌍 위에 선다"
+PAIR = next((p for p in _CLEAN if p.get("depth") == CANON_DEPTH), _CLEAN[0])
 OFF, ON = FC[PAIR["off"]], FC[PAIR["on"]]
-OLD_PLATE_KO = "깊이 1 · 메쉬 전 세대"
+OLD_PLATE_KO = f"깊이 {PAIR.get('depth')} · 정본 메쉬"
 BURIAL = next(b for b in F["diffraction_burial"]
               if b["pair"] == f"{PAIR['off']} → {PAIR['on']}")
 BUR_LO = min(b["burial_depth_db"] for b in F["diffraction_burial"])
@@ -118,14 +124,21 @@ BUR_HI = max(b["burial_depth_db"] for b in F["diffraction_burial"])
 #: ⛔전 판은 여기서 depth==1 을 박아 두어, 결과 1 이 옛 메쉬 칸을 읽었다. 그래서 같은 쪽에서
 #   리듬 범위가 «11.6~12.5 %» 인데 표에는 12.90·13.20 이 실려 **범위가 표를 안 품었다.**
 #   판을 하나로 묶는다 — 아래 네 칸이 곧 표의 Sionna 네 행이다.
-CANON = [v for v in FC.values()
-         if v["el_deg"] == EL and v.get("depth") == CANON_DEPTH
-         and CANON_MESH in v["arm"] and not v["zero_echo"]]
-assert len(CANON) == 4, f"정본 판 칸이 4 개가 아니다: {len(CANON)}"
 #: ⭐**결과 1 과 표가 같은 판에 서 있나** — 빌드 때마다 확인한다.
-#  표는 fac(격자 팔) 로, 결과 1 은 CANON 으로 칸을 집는다. 두 길이 같은 네 칸에 닿아야 한다.
+#  표는 fac(격자 팔) 로 칸을 집는다. 결과 1 도 **같은 팔 집합**에서 집는다.
 #  ⛔이 검사가 없어서 2026-09-02·09-03 두 번 연달아 같은 쪽이 두 말을 했다.
 _TAB = {fac(nm)["arm"] for nm in ORDER if not fac(nm)["arm"].startswith("ours")}
+#: ⛔⛔2026-09-14 정정 — 옛 판은 정본 메쉬·정본 깊이 칸을 **폭넓게 긁은 뒤**
+#  `assert len(CANON) == 4` 로 개수를 박아 두었다. 원장에 같은 조건의 팔이 하나 더 구워지자
+#  (el −30 · 깊이 2 의 정본 메쉬 칸이 4 → **5**) 그 assert 가 터져 이 빌더가 **돌지 않았고**,
+#  그래서 발간본 reports/05_2_switch-grid.ipynb 가 09-05 판에 멈춘 채 옛 수를 싣고 있었다.
+#  ⇒ 개수를 박지 않는다. **표가 보여 주는 팔**에서 결과 1 의 칸을 집는다 — 그러면 원장이
+#    자라도 두 길이 갈라질 수 없고, 표에 없는 정본 칸은 아래에 따로 적어 둔다.
+_CANON_ALL = [v for v in FC.values()
+              if v["el_deg"] == EL and v.get("depth") == CANON_DEPTH
+              and CANON_MESH in v["arm"] and not v["zero_echo"]]
+CANON = [v for v in _CANON_ALL if v["arm"] in _TAB]
+CANON_NOT_SHOWN = sorted(v["combo"] for v in _CANON_ALL if v["arm"] not in _TAB)
 _RES = {v["arm"] for v in CANON}
 assert _TAB == _RES, ("결과 1 과 표가 다른 판을 짚는다 —\n"
                       f"  표만 가진 것: {sorted(_TAB - _RES)}\n"
@@ -180,10 +193,20 @@ FL_HI = max(p["d_above_floor_db"] for p in PL)
 SC = F["diffraction_scope_other_elevations"]
 Z0 = next(p for p in SC if p["el_deg"] == 0.0)
 Z0_OFF = FC[Z0["off"]]
-OBL = [p for p in SC if p["el_deg"] < 0.0]
+OBL_ALL = [p for p in SC if p["el_deg"] < 0.0]
+#: ⛔⛔2026-09-14 — 직하방(el −90)은 f_tip = 0 이라 «날개끝 상한 위» 띠가 **없다**.
+#  원장이 그 칸의 띠 값을 일부러 null 로 둔다(switch_factorial.py 의 `_degen`). 그것을
+#  수로 섞으면 min/max 가 TypeError 로 죽거나, 더 나쁘게 0 으로 뭉개진다.
+#  ⇒ **계측 불가를 따로 센다** — 범위에서 빼고, 몇 칸을 뺐는지 문면에 적는다.
+OBL = [p for p in OBL_ALL if p["d_above_floor_db"] is not None]
+OBL_UNMEASURABLE = [p for p in OBL_ALL if p["d_above_floor_db"] is None]
+assert OBL, "빗각 적용범위 쌍이 하나도 안 남았다"
 OBL_LO = min(p["d_above_floor_db"] for p in OBL)
 OBL_HI = max(p["d_above_floor_db"] for p in OBL)
 OBL_BAD = [p for p in OBL if not p["contains_unit_within_3sigma"]]
+OBL_UNMEAS_KO = ("" if not OBL_UNMEASURABLE else
+                 f" ⚠직하방 {len(OBL_UNMEASURABLE)} 칸은 f_tip = 0 이라 «상한 위» 띠가 "
+                 "없어 **계측 불가**로 빼 두었다(실패가 아니다).")
 OBL_LIST = " · ".join(ang(p["el_deg"]) for p in OBL)
 
 # ── 축의 성질 ──────────────────────────────────────────────────────────────

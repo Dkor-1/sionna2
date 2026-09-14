@@ -114,8 +114,13 @@ def ray_spread_db(arm: str, el: float, rows: list, Z, win: float = 0.05) -> tupl
       광선 격자를 다시 도는 것**이라 격자 민감도를 못 덮는다) → **광선 예산 사다리**.
     ⭐그 사다리가 **이미 원장에 있었다**(자유공간 19 묶음 · 협곡 5 앙각 × 7 점 ·
       지면조각 2 벌). 살 것이 아니라 읽을 것이었다.
+    ⛔⛔**이것은 대역 «모양» 의 잣대가 아니다**(2026-09-14 정정). 이 값은 **한 반송파의
+      레벨 민감도**다. 예산을 흔들었을 때 다섯 반송파의 레벨이 **똑같이** 움직이면
+      대역 모양은 한 자리도 안 바뀌는데 이 값은 커진다 — 합성 반례로 재현했다(모든
+      반송파를 정확히 1 dB 올리면 모양 변화 0.000 dB 인데 옛 판정은 「묻힌다」였다).
+      거꾸로 레벨은 그대로 두고 기울기만 갈아타면 이 값이 0 이 되어 「크다」가 나온다.
+      ⇒ 대역 모양이 예산에 얼마나 민감한지는 `budget_shape_spread_db`(아래)로 잰다.
     ⛔실측(±5 %): 자유공간 el −30 **1.042 dB** · el −60 **1.414 dB**.
-      대역 퍼짐은 0.278 · 3.914 dB 이므로 **el −30 은 묻히고 el −60 만 산다**.
     ⚠실외(`envoutdoor01`) 팔에는 짝이 **없다** — 사다리가 `outdoor01_ground` 와 협곡에만
       있다. 그 이웃들의 값(지면조각 0.303 · 협곡 0.426~0.910 dB)은 실외 대역 퍼짐
       0.235~0.239 dB 보다 **크다** — 곧 실외 두 줄도 묻힐 자리로 보이지만, 짝이 없으므로
@@ -150,6 +155,94 @@ def ray_spread_db(arm: str, el: float, rows: list, Z, win: float = 0.05) -> tupl
     #: ⭐**반올림하지 않는다**(2026-09-13(10)) — 옛 판의 「0.000 dB」는 정확한 영이
     #  아니라 작은 수의 반올림이었다(실측 2.76e−05 · 2.07e−06 · 2.97e−08 · 5.30e−07 dB).
     return (float(max(vals) - min(vals)) if len(vals) > 1 else None), len(vals)
+
+
+def budget_shape_spread_db(arm_by_fc: dict, el: float, rows: list, Z,
+                           win: float = 0.05) -> dict | None:
+    """⭐**대역 «모양»이 광선 예산에 얼마나 움직이나** — 레벨 민감도와 다른 자다.
+
+    무엇을 재나
+    -----------
+    예산 b 마다 그 예산으로 있는 반송파들의 움직이는 몫 L_b(f) 를 모아
+        D_b(f) = L_b(f) − L_b(f중심)
+    을 만들고, 기준 예산(SPP_PRIMARY) 대비 `max_f |D_b(f) − D기준(f)|` 의 예산별 최대를
+    돌려준다. 모든 반송파가 **같은 양**만큼 움직이면 D 가 안 변하므로 이 값은 0 이다 —
+    레벨 민감도(`ray_spread_db`)와 갈리는 지점이 바로 여기다.
+
+    왜 필요한가 (2026-09-14 · 외부 점검 + 적대 검증이 합성 반례로 재현)
+    -----------------------------------------------------------------
+    옛 판정은 **중심 반송파 하나**의 레벨 민감도를 대역 기울기의 문턱으로 썼다.
+      · 다섯 반송파를 정확히 1 dB 올린 판 → 모양 변화 **0.000 dB** 인데 「묻힌다」
+      · 레벨은 그대로 두고 기울기만 2 dB 갈아탄 판 → 레벨 민감도 **0.000 dB** 라 「크다」
+    둘 다 거꾸로다. 옛 규칙은 대역 모양을 안 보고 있었다.
+
+    ⛔**짝이 없으면 None 을 돌려준다** — 반송파 2 개 미만이거나 예산 2 개 미만.
+      오늘 원장이 정확히 그 상태다: 예산 사다리는 **중심 반송파에만** 있고 비중심
+      네 반송파는 예산이 한 벌뿐이다(2026-09-14 실측). 큐 0930 의 C 묶음 10 줄이
+      예산 3.9e9 × 반송파 5 개 × el −60 을 사서 그 짝을 처음 만든다.
+    ⛔None 일 때 「묻힌다/크다」로 단정하지 않는다. 못 잰 것은 못 잰 것이다.
+    """
+    try:
+        from arm_grammar import parse as _p, unparse as _u
+    except Exception:
+        return None
+    #: 예산 → {반송파: 레벨}. 이름에서 spp 만 갈아 끼워 찾는다.
+    by_budget: dict[str, dict[int, float]] = {}
+    for fc_mhz, arm0 in sorted(arm_by_fc.items()):
+        try:
+            f0 = _p(arm0)
+        except Exception:
+            continue
+        base = float(f0.get("spp") or 0) or 4e9
+        for r in rows:
+            if float(r["el_deg"]) != el:
+                continue
+            try:
+                g = _p(r["engine"])
+            except Exception:
+                continue
+            if {k: v for k, v in g.items() if k != "spp"} != {k: v for k, v in f0.items()
+                                                              if k != "spp"}:
+                continue
+            spp = g.get("spp")
+            if not spp or abs(float(spp) - base) > win * base:
+                continue
+            k = f"{r['engine']}/el{el:+g}"
+            if k not in Z.files:
+                continue
+            E = np.asarray(Z[k], complex)
+            pw = float(np.mean(np.abs(E - E.mean()) ** 2))
+            if pw > 0:
+                by_budget.setdefault(str(spp), {})[int(fc_mhz)] = 10.0 * np.log10(pw)
+    ref = str(int(float(SPP_PRIMARY)))
+    if ref not in by_budget:
+        ref = max(by_budget, key=lambda b: len(by_budget[b])) if by_budget else None
+    if ref is None:
+        return None
+    #: 두 예산 **모두**에 있는 반송파만 쓴다 — 없는 칸을 0 으로 메우지 않는다.
+    out = {"ref_spp": ref, "per_budget": [], "n_budgets": 0, "n_fc": 0,
+           "shape_spread_db": None}
+    best = None
+    for b, cur in sorted(by_budget.items()):
+        if b == ref:
+            continue
+        fcs = sorted(set(cur) & set(by_budget[ref]))
+        if len(fcs) < 2:
+            continue
+        ctr = 3500 if 3500 in fcs else fcs[len(fcs) // 2]
+        d_ref = {f: by_budget[ref][f] - by_budget[ref][ctr] for f in fcs}
+        d_cur = {f: cur[f] - cur[ctr] for f in fcs}
+        m = max(abs(d_cur[f] - d_ref[f]) for f in fcs)
+        out["per_budget"].append({"spp": b, "n_fc": len(fcs), "fc_mhz": fcs,
+                                  "center_fc_mhz": ctr,
+                                  "shape_spread_db": round(float(m), 4)})
+        out["n_fc"] = max(out["n_fc"], len(fcs))
+        best = m if best is None else max(best, m)
+    out["n_budgets"] = len(out["per_budget"]) + (1 if out["per_budget"] else 0)
+    if best is None:
+        return None
+    out["shape_spread_db"] = round(float(best), 4)
+    return out
 
 
 def repeat_spread_db(arm: str, el: float, rows: list, Z) -> tuple:
@@ -399,10 +492,15 @@ def write_md(out: dict, to_string: bool = False):
         _rep_txt = ("—" if _rs is None else
                     f"{_rs:.2e} dB ({r.get('repeat_n_runs', 0)} 판 @ "
                     f"{r.get('repeat_fcs_mhz') or '—'} MHz)")
-        _v = ("⚠광선 짝 없음 — 판정 미룸"
-              if _ry is None else
-              ("광선 흔들림보다 크다" if r["moving_band_spread_db"] > 2.0 * _ry
-               else "⛔광선 흔들림에 묻힌다"))
+        #: ⛔⛔2026-09-14 — 옛 판은 **중심 반송파 하나의 레벨 민감도**(_ry)의 두 배를
+        #  대역 기울기의 문턱으로 썼다. 합성 반례로 양쪽이 다 뒤집혔다: 다섯 반송파를
+        #  똑같이 1 dB 올려 모양 변화가 정확히 0 인 판에서 「묻힌다」가, 레벨은 그대로
+        #  두고 기울기만 갈아탄 판에서 「크다」가 나왔다. 곧 그 자는 대역 «모양» 을
+        #  안 보고 있었다. ⇒ 배수 비교를 지우고 **두 수를 나란히 적는다.**
+        _sh = r.get("budget_shape_spread_db")
+        _v = (f"모양 민감도 {_sh:.3f} dB({r.get('budget_shape_n_fc', 0)} 반송파)"
+              if _sh is not None else
+              "⚠예산을 흔들었을 때 **대역 모양**이 얼마나 움직이는지 잴 짝이 없다 — 판정 미룸")
         #: ⚠소수 두 자리면 0.015 와 0.008 이 **둘 다 0.01** 로 찍혀 산문과 어긋난다.
         a(f"| {r['env']} | {r['el_deg']:+.0f} | {r['moving_band_spread_db']:.3f} dB | "
           f"{'— (짝 없음)' if _ry is None else f'{_ry:.3f} dB ({r.get(chr(114)+chr(97)+chr(121)+chr(95)+chr(98)+chr(117)+chr(100)+chr(103)+chr(101)+chr(116)+chr(95)+chr(110)+chr(95)+chr(112)+chr(111)+chr(105)+chr(110)+chr(116)+chr(115), 0)} 점)'} | "
@@ -528,7 +626,17 @@ def main() -> int:
                     why.append(f"전계가 0 인 자세({r['n_zero_field']} 개)")
                 if r.get("truncated") or r.get("n_trunc"):
                     why.append("경로가 잘렸다")
-                if r.get("mixed_generations"):
+                #: ⛔⛔2026-09-14 — 「있으면 거절」이 아니라 **필드로** 본다. `one_generation`
+                #  은 세대를 **깨끗이 푼** 칸에도 진단을 남긴다(창고의 두 세대 칸 4 개는 전부
+                #  갈린 자세 0 · 동점 없음으로 풀렸다). 참·거짓만 보면 그런 칸까지 버린다.
+                _mg = r.get("mixed_generations")
+                if isinstance(_mg, dict):
+                    _k = int(_mg.get("kept_conflicting_poses") or 0)
+                    _t = bool(_mg.get("tie_unresolved"))
+                    _d = _mg.get("n_poses_disagree")
+                    if _k or _t or _d:
+                        why.append(f"굽기 세대를 하나로 못 풀었다(갈린 자세 {_k} · 동점 {_t})")
+                elif _mg:
                     why.append("굽기 세대가 섞였다")
                 cap = r.get("max_paths_cap")
                 med = r.get("npaths_median")
@@ -633,6 +741,17 @@ def main() -> int:
             #: ⭐⭐정본 대조군 — 광선 예산 ±5 % 사다리(중앙 반송파 팔에서 잰다).
             _ctr = next((g[1] for g in got if g[0] == 3500), got[0][1])
             ray_spread, ray_n = ray_spread_db(_ctr["engine"], el, J["rows"], Z, 0.05)
+            #: ⭐**반송파마다** 레벨 민감도를 잰다(2026-09-14). 옛 판은 중심 하나만 불러
+            #  큐 C 가 사는 비중심 예산 짝 8 줄이 통계에 아예 안 들어왔다.
+            level_by_fc = {}
+            for _fc, _c in got:
+                _v, _n = ray_spread_db(_c["engine"], el, J["rows"], Z, 0.05)
+                if _v is not None:
+                    level_by_fc[int(_fc)] = {"level_spread_db": round(float(_v), 4),
+                                             "n_budgets": int(_n)}
+            #: ⭐⭐대역 **모양**의 예산 민감도 — 레벨 민감도와 다른 자다(함수 머리말 참조).
+            shape = budget_shape_spread_db({f: c["engine"] for f, c in got}, el,
+                                           J["rows"], Z, 0.05)
             band = float(lv.max() - lv.min())
             slope = float(np.polyfit(fcs / 1000.0, lv, 1)[0])          # dB per GHz
             d = np.diff(lv)
@@ -645,6 +764,17 @@ def main() -> int:
             ft_over_fc = ft / fcs
             out["series"].append({
                 "env": env, "el_deg": el, "n": len(got),
+                #: ⭐두 자를 **따로** 싣는다 — 레벨 민감도는 대역 모양의 잣대가 아니다.
+                "budget_level_spread_by_fc_mhz": level_by_fc,
+                "budget_shape_spread_db": (shape or {}).get("shape_spread_db"),
+                "budget_shape_n_fc": (shape or {}).get("n_fc", 0),
+                "budget_shape_n_budgets": (shape or {}).get("n_budgets", 0),
+                "budget_shape_detail": shape,
+                "budget_shape_note_ko": (
+                    "D_b(f) = L_b(f) − L_b(중심) 을 예산마다 만들고 기준 예산 대비 "
+                    "max_f |D_새 − D_기준| 을 잰다. 모든 반송파가 같은 양만큼 움직이면 "
+                    "0 이다 — 그래서 레벨 민감도와 갈린다. ⛔짝이 없으면 null 이고, "
+                    "그때는 «크다/묻힌다» 를 말하지 않는다."),
                 "fc_mhz": [int(x) for x in fcs],
                 "level_db": [round(float(x), 3) for x in lv],
                 "band_spread_db": round(band, 3),
@@ -692,17 +822,22 @@ def main() -> int:
                 #  짝·홀 분할 차이는 흔들림이 아니라 자세 집합의 계통적 치우침이라
                 #  대조군이 아니다 — 그것으로 판정하면 실외 두 줄이 거꾸로 읽힌다.
                 #: ⭐읽기는 **광선 예산 사다리**로 한다(2026-09-13(8) 세 번째이자 마지막 정정).
+                #: ⛔⛔2026-09-14 — 여기도 같은 배수 비교였다(위 :495 와 한 쌍). 대역
+                #  «모양» 의 잣대는 `budget_shape_spread_db` 이고, 레벨 민감도는 참고로만
+                #  적는다. 오늘 원장에는 짝이 없으므로 네 줄 모두 «판정 미룸» 이 된다.
                 "reading_ko": (
                     f"움직이는 몫이 100 MHz 를 가로질러 {mv_band:.2f} dB 움직인다 — "
-                    + ("⚠이 팔에 광선 예산 짝이 **없어 판정을 미룬다**. "
-                       "(이웃 장면의 같은 사다리는 0.30~0.91 dB 라 이 크기는 묻힐 자리로 "
-                       "보이지만, 짝이 없으므로 단정하지 않는다.)"
-                       if ray_spread is None else
-                       (f"광선 예산 ±5 % 를 흔든 폭 {ray_spread:.3f} dB 보다 **크다**"
-                        f"({ray_n} 점)"
-                        if mv_band > 2.0 * ray_spread else
-                        f"⛔광선 예산 ±5 % 를 흔든 폭 {ray_spread:.3f} dB 에 **묻힌다**"
-                        f"({ray_n} 점) — 이 잣대로는 대역 기울기를 가르지 못한다"))
+                    + (f"같은 예산 변경이 **대역 모양**을 바꾼 폭은 {shape['shape_spread_db']:.3f} dB "
+                       f"다({shape['n_fc']} 반송파 × 예산 {shape['n_budgets']} 벌). "
+                       "⛔두 수를 나란히 읽는다 — 어느 쪽이 크면 «가른다» 로 자르는 문턱을 "
+                       "우리는 아직 안 세웠다(널 분포·오류율을 안 쟀다)."
+                       if shape else
+                       "⚠예산을 흔들었을 때 **대역 모양**이 얼마나 움직이는지 잴 짝이 "
+                       "**없다 — 판정을 미룬다**. 같은 조건에서 반송파 둘 이상 × 예산 둘 "
+                       "이상이 있어야 잰다."
+                       + (f" (참고: 중심 반송파의 레벨 민감도 {ray_spread:.3f} dB · {ray_n} 점 "
+                          "— ⛔이것은 대역 모양의 잣대가 아니다)"
+                          if ray_spread is not None else " (중심 반송파의 예산 짝도 없다)"))
                     + f" [되풀이 재현성 {('없음' if rep_spread is None else f'{rep_spread:.3f} dB')}"
                       f" · 짝·홀 분할 차 {half_ac:.3f} dB 는 흔들림이 아니라 자세 집합의 "
                       f"계통적 치우침이라 대조군이 아니다]"),

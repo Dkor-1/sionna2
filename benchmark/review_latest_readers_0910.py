@@ -49,6 +49,69 @@ def source(p, needle):
                 found=i is not None)
 
 
+def _free_in_scope(node):
+    """이 함수가 **자기 스코프 밖에서** 읽는 이름 — 추출 경계 검사의 자.
+
+    ⛔⛔2026-09-14 정정. 옛 판은 추출한 함수 **전부의 이름을 한 통에 섞었다.** 그래서
+      f() 가 미제공 전역 `missing` 을 읽고 g(missing) 이 **같은 이름의 인자**를 받으면
+      g 의 인자가 f 의 누락을 덮어 검사가 통과했고, 그 뒤 f() 실행에서 NameError 가 났다
+      (합성 소스로 재현). 곧 검사가 있는데도 같은 사고가 다시 날 수 있었다.
+    ⇒ **함수마다 따로** 센다. 인자·지역 대입·for·with as·except as·컴프리헨션·바다코끼리·
+      중첩 함수의 이름은 그 스코프 안에서만 «있는 것» 으로 친다.
+    ⚠정적 검사라 «분기에 따라 안 읽히는 이름» 도 잡는다 — 그건 일부러 그렇게 둔다
+      (조용히 지나가는 것보다 이름을 대고 멈추는 편이 낫다). 부르는 쪽이 `later=` 로 푼다.
+    """
+    bound, freed = set(), set()
+
+    def _bind_target(t):
+        for x in ast.walk(t):
+            if isinstance(x, ast.Name) and isinstance(x.ctx, ast.Store):
+                bound.add(x.id)
+
+    a = node.args
+    for arg in list(a.posonlyargs) + list(a.args) + list(a.kwonlyargs):
+        bound.add(arg.arg)
+    if a.vararg: bound.add(a.vararg.arg)
+    if a.kwarg: bound.add(a.kwarg.arg)
+
+    inner = []
+    for n in ast.walk(node):
+        if n is node:
+            continue
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            inner.append(n)
+            if not isinstance(n, ast.Lambda):
+                bound.add(n.name)
+            continue
+        if isinstance(n, ast.ClassDef):
+            bound.add(n.name); continue
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store):
+            bound.add(n.id)
+        elif isinstance(n, ast.arg):
+            pass                                   # 중첩 함수의 인자는 그쪽 스코프다
+        elif isinstance(n, (ast.For, ast.AsyncFor, ast.comprehension)):
+            _bind_target(n.target)
+        elif isinstance(n, ast.ExceptHandler) and n.name:
+            bound.add(n.name)
+        elif isinstance(n, ast.withitem) and n.optional_vars is not None:
+            _bind_target(n.optional_vars)
+        elif isinstance(n, (ast.Import, ast.ImportFrom)):
+            for al in n.names:
+                bound.add((al.asname or al.name).split('.')[0])
+        elif isinstance(n, (ast.Global, ast.Nonlocal)):
+            bound.update(n.names)
+        elif isinstance(n, ast.NamedExpr) and isinstance(n.target, ast.Name):
+            bound.add(n.target.id)
+
+    for n in ast.walk(node):
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load) and n.id not in bound:
+            freed.add(n.id)
+    #: 중첩 함수는 바깥에서 묶인 이름을 볼 수 있으므로 그 몫은 따로 재서 더한다.
+    for f in inner:
+        freed |= {x for x in _free_in_scope(f) if x not in bound}
+    return {x for x in freed if not x.startswith('__')}
+
+
 def functions(p, names, ns, later=()):
     """생산 파일에서 함수 몇 개만 떼어 `ns` 안에서 실행한다.
 
@@ -67,21 +130,14 @@ def functions(p, names, ns, later=()):
     assert len(nodes) == len(names)
     mod = ast.Module(body=nodes,type_ignores=[])
     defined = {n.name for n in nodes}
-    assigned, readn = set(), set()
-    for n in ast.walk(mod):
-        if isinstance(n,ast.Name):
-            (assigned if isinstance(n.ctx,ast.Store) else readn).add(n.id)
-        elif isinstance(n,ast.arg): assigned.add(n.arg)
-        elif isinstance(n,(ast.For,ast.comprehension)) and isinstance(n.target,ast.Name):
-            assigned.add(n.target.id)
     #: ⭐`later` 는 **이 검토기가 뒤에 묶을** 이름이다(예: SHD 를 임시 창고로 바꿔 끼운다).
     #  정적 검사는 그 순서를 모르니 부르는 쪽이 알려 준다 — 조용히 넘기는 게 아니라 **적는다**.
-    missing = {x for x in readn-assigned-defined-set(ns)-set(later)-set(dir(builtins))
-               if not x.startswith('__')}
+    supplied = defined | set(ns) | set(later) | set(dir(builtins))
+    missing = sorted(x for n in nodes for x in _free_in_scope(n) - supplied)
     if missing:
         raise RuntimeError(
             f'extracted production functions {sorted(names)} in {p} need names this '
-            f'review does not provide: {", ".join(sorted(missing))} — add them to the '
+            f'review does not provide: {", ".join(sorted(set(missing)))} — add them to the '
             f'names list (if they are functions in the same file) or seed ns=, so the '
             f'review follows production instead of dying inside exec')
     exec(compile(mod,str(p),'exec'),ns)

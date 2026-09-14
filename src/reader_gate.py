@@ -40,11 +40,33 @@ def check_series(E, *, n_poses: int | None = None, prf: float | None = None,
                  mixed_generations=None, min_len: int = 8) -> list[str]:
     """이 칸의 시계열을 쓸 수 있나 — 못 쓰는 **까닭 목록**을 돌려준다(빈 목록이면 쓸 수 있다).
 
-    ⛔예외를 던지지 않는다. 호출자가 그 칸만 건너뛰고 `skipped` 에 까닭을 적게 한다 —
+    ⛔**창고에서 온 값**(E · n_poses · prf · prf_seen · mixed_generations)에는 예외를
+      던지지 않는다. 호출자가 그 칸만 건너뛰고 `skipped` 에 까닭을 적게 한다 —
       한 칸 때문에 판독 전체가 죽으면 나머지 답도 못 얻는다.
+    ⚠단서(2026-09-14) — `min_len` 은 **부르는 쪽이 정하는 손잡이**이지 창고에서 온 값이
+      아니다. 잘못된 min_len 을 조용한 사유로 덮으면 `8 < nan` 이 False 라 **최소 길이
+      검사가 통째로 무력화된 것을 아무도 모른다.** 그래서 그것만 예외를 던진다.
+
+    ⛔⛔2026-09-14 넓혔다. 옛 판은 예외가 **일곱 자리**에서 새어 나갔다(외부 점검이
+      둘을 짚었고, 적대 검증이 나머지를 실측으로 찾았다):
+        · `np.asarray(E)` 가 울퉁불퉁한 중첩 목록에서 ValueError
+        · `np.asarray(a, complex)` 가 아주 큰 정수에서 OverflowError
+        · `int(n_poses)` 가 ±무한대에서 OverflowError
+        · `float(prf)` 가 아주 큰 정수에서 OverflowError
+        · `{float(x) for x in prf_seen}` 가 글자·목록 아닌 것에서 ValueError·TypeError
+      그리고 조용히 **틀리게 통과**하던 자리가 둘 있었다:
+        · 소수인 자세 수(8192.7)가 int 로 잘려 길이가 같으면 통과
+        · 유일한 prf_seen 값이 원장 prf 와 달라도 통과
     """
+    #: ⭐손잡이 검사 — 창고 값이 아니므로 여기서는 던진다(위 단서).
+    if isinstance(min_len, bool) or not isinstance(min_len, (int, np.integer)) or min_len < 0:
+        raise TypeError(f"min_len 은 0 이상 정수여야 한다(받은 {min_len!r})")
+
     why: list[str] = []
-    a = np.asarray(E)
+    try:
+        a = np.asarray(E)
+    except Exception as e:                      # noqa: BLE001 — 까닭으로 돌려주는 것이 계약이다
+        return [f"시계열을 배열로 못 읽는다({type(e).__name__}: {str(e)[:60]})"]
     if a.size == 0:
         return ["시계열이 비어 있다"]
     if a.ndim != 1:
@@ -53,38 +75,167 @@ def check_series(E, *, n_poses: int | None = None, prf: float | None = None,
         why.append(f"자세가 너무 적다({a.size} < {min_len})")
     try:
         c = np.asarray(a, complex)
-    except (TypeError, ValueError):
-        return why + [f"시계열을 복소수로 못 읽는다(dtype {a.dtype})"]
+    except Exception as e:                      # noqa: BLE001
+        return why + [f"시계열을 복소수로 못 읽는다(dtype {a.dtype} · {type(e).__name__})"]
     if not np.isfinite(c).all():
         n = int((~np.isfinite(c)).sum())
         why.append(f"비유한 값이 {n} 자세에 있다(NaN·무한)")
     if n_poses is not None:
-        #: ⛔예외를 던지지 않는다는 약속을 지킨다 — NaN·글자가 와도 까닭으로 돌려준다.
+        #: ⛔예외를 던지지 않는다는 약속을 지킨다 — NaN·글자·±무한대가 와도 까닭으로.
+        #: ⭐**변환 전후로** 본다 — `int(8192.7)` 은 8192 라 길이가 같으면 조용히 통과했다.
         try:
-            want = int(n_poses)
-        except (TypeError, ValueError):
+            fv = float(n_poses)
+            if not math.isfinite(fv) or not float(fv).is_integer():
+                raise ValueError("정수가 아니다")
+            want = int(fv)
+        except Exception:                       # noqa: BLE001
             why.append(f"원장의 자세 수를 못 읽는다({n_poses!r})")
         else:
             if a.size != want:
                 why.append(f"자세 수가 원장과 다르다(시계열 {a.size} · 원장 {want})")
     #: ⛔⛔표집률은 «있나» 만 보면 안 된다 — 0·음수·NaN 이면 시간축이 무너진다.
+    pv = None
     if prf is None:
         why.append("이 칸의 표집률을 모른다(원장에 prf_hz 가 없다)")
     else:
         try:
             pv = float(prf)
-        except (TypeError, ValueError):
+        except Exception:                       # noqa: BLE001
             why.append(f"표집률을 수로 못 읽는다({prf!r})")
+            pv = None
         else:
             if not math.isfinite(pv) or pv <= 0:
                 why.append(f"표집률이 쓸 수 없는 값이다({pv})")
+                pv = None
     if prf_seen is not None:
-        seen = sorted({float(x) for x in prf_seen})
-        if len(seen) > 1:
-            why.append(f"한 칸에 표집률이 여럿 섞였다({seen})")
-    if mixed_generations:
+        #: ⭐목록인지부터 본다 — 글자는 «한 자씩» 돌아 엉뚱한 사유를 낸다.
+        if isinstance(prf_seen, (str, bytes)) or not hasattr(prf_seen, "__iter__"):
+            why.append(f"본 표집률 목록이 목록이 아니다({prf_seen!r})")
+        else:
+            try:
+                vals = [float(x) for x in prf_seen]
+            except Exception:                   # noqa: BLE001
+                why.append(f"본 표집률 목록을 수로 못 읽는다({prf_seen!r})")
+            else:
+                bad = [v for v in vals if not math.isfinite(v) or v <= 0]
+                if bad:
+                    why.append(f"본 표집률에 쓸 수 없는 값이 있다({sorted(bad)})")
+                seen = sorted({v for v in vals if math.isfinite(v)})
+                if len(seen) > 1:
+                    why.append(f"한 칸에 표집률이 여럿 섞였다({seen})")
+                #: ⭐⭐**원장과 맞대 본다**(2026-09-14 추가). 옛 판은 목록 안에서 갈리는지만
+                #  보고, 유일한 값이 원장 prf 와 **달라도 통과**시켰다.
+                elif len(seen) == 1 and pv is not None and abs(seen[0] - pv) > 1.0:
+                    why.append(f"샤드가 본 표집률이 원장과 다르다(샤드 {seen[0]} · 원장 {pv})")
+    #: ⛔⛔2026-09-14 — `mixed_generations` 가 **dict** 로 오면 «있다» 만 보고 거절하던
+    #  것을 고쳤다. `one_generation` 은 세대를 **깨끗이 푼** 칸에도 진단 dict 를 돌려준다.
+    #  참·거짓만 보면 그런 칸까지 일괄 거절한다 — 실측(2026-09-14): 창고의 두 세대 칸 4 개는
+    #  전부 `kept_conflicting_poses=0 · tie_unresolved=False` 로 깨끗이 풀렸고,
+    #  발간본 outputs/read_wfsurvive_0912.json 의 4 행이 거기서 나온다.
+    if isinstance(mixed_generations, dict):
+        _k = int(mixed_generations.get("kept_conflicting_poses") or 0)
+        _t = bool(mixed_generations.get("tie_unresolved"))
+        _d = mixed_generations.get("n_poses_disagree")
+        if _k or _t or _d:
+            why.append(f"굽기 세대를 하나로 못 풀었다(갈린 자세 {_k} · 동점 {_t} · 표본수 {_d})")
+    elif mixed_generations:
         why.append("굽기 세대가 섞였고 한 세대로 못 풀었다")
     return why
+
+
+#: 샤드 검사가 보는 meta 자리. ⛔빌더가 적는 차례다(elevation_sweep_md.py 의 `meta=`).
+_META_N_POSES, _META_PRF = 3, 4
+
+
+def check_shards(paths) -> tuple[int | None, float | None, list[str]]:
+    """⭐**배열에 대입하기 전에** 그 칸의 샤드를 전부 본다 — (표본수, 표집률, 까닭목록).
+
+    왜 있나 (2026-09-14 · 외부 점검 + 적대 검증이 합성 샤드로 재현)
+    ------------------------------------------------------------
+    두 판독기는 첫 샤드에서만 표본수·표집률을 뽑고, `idx` 는 **검사 없이 대입**했다.
+    그래서 아래가 전부 조용히 통과했다(전부 실측 재현):
+      · 둘째 샤드의 표집률이 NaN — `abs(nan - 19700) > 1.0` 이 **언제나 거짓**이라 샌다
+        (0.0 은 제대로 거절된다. NaN 만 새는 까닭이 이것이다)
+      · 음수 idx — NumPy 가 끝 기준 인덱스로 받아 **시간 순서가 뒤집힌 채** 통과
+      · 소수 idx — `.astype(int)` 가 4.9 → 4 로 조용히 자름
+      · 샤드마다 표본수(meta[3])가 다름 — 첫 샤드가 작은 쪽일 때만 통과
+      · 한 샤드 안 같은 자세가 두 번
+    그리고 범위 밖 idx 는 대입에서 **IndexError 로 판독 전체를 죽였다** — 그 칸만
+    건너뛰는 것이 아니다.
+    ⚠실제 창고에는 이런 샤드가 **한 장도 없다**(2026-09-14 전수: 파일 7,685 · 칸 2,408 ·
+      이상 0). 이것은 창고가 깨졌을 때 조용히 틀린 수를 내지 않게 하는 관문이다.
+
+    ⛔예외를 던지지 않는다(`check_series` 와 같은 계약). 못 읽는 파일도 까닭으로 돌려준다.
+    ⛔겹친 자세는 **값이 다를 때만** 거절한다 — 창고의 `ours_*` 11 칸이 겹치되 값이 같다.
+    """
+    why: list[str] = []
+    n0 = prf = None
+    ns, prfs, seen_vals = [], [], {}
+    for p in list(paths):
+        try:
+            z = np.load(p)
+            keys = set(z.files)
+        except Exception as e:                  # noqa: BLE001
+            why.append(f"샤드를 못 읽는다({os.path.basename(str(p))} · {type(e).__name__})")
+            continue
+        if not {"idx", "E", "meta"} <= keys:
+            why.append(f"샤드에 idx·E·meta 가 다 있지 않다({os.path.basename(str(p))})")
+            continue
+        meta = np.asarray(z["meta"], float).ravel()
+        if meta.size <= _META_PRF:
+            why.append(f"샤드의 meta 가 짧다({os.path.basename(str(p))} · 길이 {meta.size})")
+            continue
+        n_i, prf_i = float(meta[_META_N_POSES]), float(meta[_META_PRF])
+        if not math.isfinite(n_i) or n_i <= 0 or not float(n_i).is_integer():
+            why.append(f"샤드의 표본수가 쓸 수 없는 값이다({os.path.basename(str(p))}: {n_i})")
+        else:
+            ns.append(int(n_i))
+        if not math.isfinite(prf_i) or prf_i <= 0:
+            why.append(f"샤드의 표집률이 쓸 수 없는 값이다({os.path.basename(str(p))}: {prf_i})")
+        else:
+            prfs.append(prf_i)
+        idx = np.asarray(z["idx"])
+        E = np.asarray(z["E"])
+        if idx.size != E.size:
+            why.append(f"샤드의 idx 와 E 의 길이가 다르다({idx.size} · {E.size})")
+            continue
+        if not np.issubdtype(idx.dtype, np.integer):
+            fi = np.asarray(idx, float)
+            if not (np.isfinite(fi).all() and np.all(fi == np.floor(fi))):
+                why.append(f"샤드의 idx 가 정수가 아니다({os.path.basename(str(p))})")
+                continue
+        ii = np.asarray(idx).astype(np.int64)
+        if np.unique(ii).size != ii.size:
+            why.append(f"한 샤드 안에 같은 자세가 두 번 있다({os.path.basename(str(p))})")
+        lo, hi = (int(ii.min()), int(ii.max())) if ii.size else (0, -1)
+        if ii.size and (lo < 0 or (ns and hi >= max(ns))):
+            why.append(f"샤드의 idx 가 범위를 벗어난다(최소 {lo} · 최대 {hi} · 표본수 "
+                       f"{max(ns) if ns else '?'})")
+        #: ⭐겹친 자세는 값이 **다를 때만** 거절한다.
+        Ec = np.asarray(E).ravel()
+        for k, v in zip(ii.tolist(), Ec.tolist()):
+            if k in seen_vals and seen_vals[k] != v:
+                why.append("샤드 사이에 같은 자세의 값이 다르다"
+                           f"(자세 {k} · {seen_vals[k]!r} ↔ {v!r})")
+                break
+            seen_vals.setdefault(k, v)
+    if ns:
+        if len(set(ns)) > 1:
+            why.append(f"샤드마다 표본수가 다르다({sorted(set(ns))})")
+        else:
+            n0 = ns[0]
+    if prfs:
+        if max(prfs) - min(prfs) > 1.0:
+            why.append(f"샤드마다 표집률이 다르다({sorted(set(prfs))})")
+        else:
+            prf = prfs[0]
+    #: 같은 까닭이 여러 샤드에서 나오면 한 번만 적는다 — 읽는 이가 세기 쉽게.
+    out, seen_why = [], set()
+    for w in why:
+        if w not in seen_why:
+            seen_why.add(w)
+            out.append(w)
+    return n0, prf, out
 
 
 #: 글 안에 비유한 수가 **글자로** 찍힌 자리를 찾는 틀. ⛔`float('nan')` 을 `:.0f` 로
@@ -103,43 +254,75 @@ def check_series(E, *, n_poses: int | None = None, prf: float | None = None,
 #     ② 마크다운 표의 칸 하나가 그런 것(`| 1017.7 Hz | nan |`) ← 실제로 샌 모양
 #  문장 속에서 낱말로 쓰인 것은 **막지 않는다.**
 _NF_TOKEN = r"(?:nan|NaN|NAN|[-+]?inf|[-+]?Inf|[-+]?INF|[-+]?Infinity)"
-#: 값 자리 = 토막 하나(+ 앞의 **짧은 이름표**와 부호, 뒤의 단위) 뿐인 글.
-#  ⛔2026-09-13(10) — 처음 판은 이름표를 안 봤다. 실제 표 칸은 «띠 안 nan» 처럼
-#    이름표를 앞에 달고 쓴다. 이름표는 **숫자가 없고 12 자 이하**여야 한다 — 그래야
-#    문장(«NaN 을 null 로 바꿀 것»)이 값 자리로 오해되지 않는다.
+#: ⭐표 칸이 쓸 수 있는 **닫힌 단위 목록**. 여기 없는 단위를 쓰면 그 칸은 값 자리로
+#  안 보이고 글 검사가 지나간다 — 그래서 `cell()`(아래)이 **진짜 방벽**이고 글 검사는 보조다.
+_UNITS = ("dBsm", "dBm", "dBi", "dB", "GHz", "MHz", "kHz", "Hz", "%p", "%",
+          "ms", "µs", "us", "ns", "mm", "cm", "km", "m", "s", "°",
+          "점", "판", "칸", "개", "배", "자리", "쌍", "행")
+#: ⛔「자세」는 일부러 **뺐다**(2026-09-14). 자세 수는 언제나 정수라 비유한 수가 될 수
+#  없는데, 단위로 두면 `check_series` 의 사유 「비유한 값이 4 자세에 있다(NaN·무한)」가
+#  표 칸 안에서 값 자리로 읽혀 거절됐다 — 사유는 실려야 하는 글이다.
+_UNIT_RE = "(?:" + "|".join(re.escape(u) for u in sorted(_UNITS, key=len, reverse=True)) + ")"
+#: 값 자리 = **짧은 이름표** + 부호 + 토막 + **닫힌 단위**. 왼쪽 낱말 경계를 강제한다.
+#  ⛔⛔2026-09-14 세 번째 정정. 옛 판은
+#   ⓐ 왼쪽 경계가 없어 낱말 **끝**이 nan·inf 이면 값으로 봤다 — 실제 저자 이름
+#     «P. V. Brennan»(outputs/reflib_sweep_venues.json)과 «second_prf_nan» 이 거절됐다.
+#   ⓑ 뒷글자를 `[%\w°/·()]{0,8}` 로 두어 **한글을 단위로 삼켰다** — 「NaN 감지」·
+#     「NaN 때문에 제외했다」가 거절됐다(뒤가 각각 2 자·8 자).
+#   ⓒ 이름표에 숫자를 금지해 «h1 nan»·«b3 nan»·«1 차 조화 nan» 이 **검사를 통째로 껐다**.
+#   ⓓ 꾸밈을 안 벗겨 «**nan**» · «`nan`» · «ｎａｎ»(전각) 이 틀에 아예 안 걸렸다.
 _LABEL_MAX = 12
-_VALUE_ONLY_RE = re.compile(r"^(?P<pre>.*?)[-+]?\s*(?P<tok>" + _NF_TOKEN
-                            + r")(?![A-Za-z_])(?P<post>[\s%\w°/·()]*)$")
+#: 표 칸에서 수·부호·단위·구분자를 지우고 **남는 글자**가 이보다 많으면 산문으로 본다.
+#  ⚠이건 내가 정한 손잡이다 — 머리기사 숫자가 아니므로 흔드는 대신 아래 시험 32 줄로 못 박는다.
+#  8 로 잡은 근거: 「띠 안 최강선」(5 자) 같은 이름표는 값 자리로 남기고,
+#  「비유한 값이 4 자세에 있다(NaN·무한)」(12 자)는 산문으로 넘긴다.
+_PROSE_MAX = 8
+_VALUE_ONLY_RE = re.compile(
+    r"^(?P<pre>.*?)(?:(?<=^)|(?<=[\s~=(\[]))[-+±]?\s*"
+    r"(?P<tok>" + _NF_TOKEN + r")(?![A-Za-z0-9_])"
+    r"(?P<post>\s*" + _UNIT_RE + r"?)\s*$")
+
+#: 가장자리 꾸밈만 벗긴다. ⛔가운데 `_` 까지 벗기면 «second_prf_nan» 이 도로 거짓 거절이 된다.
+_TRIM = " \t*_`~\"'«»‹›“”‘’"
+
+
+def _undecorate(t: str) -> str:
+    """표 칸의 꾸밈을 벗긴다 — 굵게·기울임·코드·HTML 태그·링크·각주·전각."""
+    t = re.sub(r"<[^<>]{1,40}>", "", t)                 # <b>nan</b> · <td>nan</td>
+    t = re.sub(r"\[([^\]]{0,60})\]\([^)]{0,80}\)", r"\1", t)   # [nan](#x)
+    t = re.sub(r"\[\^[^\]]{1,20}\]", "", t)              # 각주 [^1]
+    t = "".join(chr(ord(ch) - 0xFEE0) if 0xFF01 <= ord(ch) <= 0xFF5E else ch for ch in t)
+    return t.strip(_TRIM)
 
 
 def _VALUE_ONLY(t: str):
     """이 토막이 «값 자리» 인가 — 맞으면 match 처럼 참을 돌려준다."""
-    m = _VALUE_ONLY_RE.match(t.strip())
+    m = _VALUE_ONLY_RE.match(_undecorate(t))
     if not m:
         return None
-    pre, post = m.group("pre"), m.group("post").strip()
-    if any(c.isdigit() for c in pre) or len(pre.strip()) > _LABEL_MAX:
-        return None
-    if len(post) > 8:
+    if len(m.group("pre").strip(_TRIM)) > _LABEL_MAX:
         return None
     return m
-_TEXT_NONFINITE = re.compile(r"(?<![A-Za-z_])(" + _NF_TOKEN + r")(?![A-Za-z_])")
 
 
 #: 표 한 칸 안에서 값이 여럿 붙는 자리 — «1272.9 · 380.3 ( -6.0 dB)» 처럼 쓴다.
 _PART_SPLIT = re.compile(r"[·,;()\[\]]|\s{2,}")
+#: 산문인지 가르는 데 쓴다 — 수·부호·단위·구분자를 지우고 남는 글자 수를 센다.
+_STRIP_VALUEISH = re.compile(r"[\d\s.,;:()\[\]~·+\-±/%°]|" + _UNIT_RE + "|" + _NF_TOKEN)
+
+
+def _is_prose(cell: str) -> bool:
+    """이 표 칸이 **산문**인가 — 그렇다면 토막으로 가르지 않는다.
+
+    ⛔`check_series` 가 돌려주는 진짜 사유 「비유한 값이 4 자세에 있다(NaN·무한)」가
+      표 칸에 들어가면 `_PART_SPLIT` 이 괄호와 «·» 로 갈라 맨 «NaN» 토막을 만들어
+      거절됐다(2026-09-14 실측). 사유 문장은 발간을 막는 것이 아니라 실려야 한다.
+    """
+    return len(_STRIP_VALUEISH.sub("", _undecorate(cell))) > _PROSE_MAX
 
 
 def _value_slots(s: str):
-    """이 글에서 **값 자리**만 뽑아 준다 — 글 전체이거나, 마크다운 표의 한 칸(의 토막)이거나.
-
-    ⛔2026-09-13(10) 넓혔다 — 처음 판은 **칸 전체**가 그 토막일 때만 봤다. 실제 표에는
-      «f_tip 1272.9 · 띠 안 최강선 759.9 ( -6.0 dB)» 처럼 한 칸에 값이 여럿 붙으므로,
-      그중 하나가 nan 이면 **그냥 지나갔다**. 칸을 토막(· , ; 괄호 · 두 칸 이상 공백)으로
-      갈라 각각을 본다.
-    ⚠표 칸 안에서 사람이 «값이 (NaN) 이다» 처럼 쓰면 걸린다 — 표는 수가 사는 자리이니
-      그쪽으로 치우친다. 표 밖의 문장은 그대로 통과한다.
-    """
+    """이 글에서 **값 자리**만 뽑아 준다 — 글 전체이거나, 마크다운 표의 한 칸(의 토막)이거나."""
     if _VALUE_ONLY(s):
         yield s.strip(), 0
         return
@@ -147,10 +330,31 @@ def _value_slots(s: str):
         t = line.strip()
         if not (t.startswith("|") and t.endswith("|")):
             continue
-        for cell in t[1:-1].split("|"):
-            for part in _PART_SPLIT.split(cell):
-                if _VALUE_ONLY(part):
-                    yield part.strip(), ln + 1
+        for cell_txt in t[1:-1].split("|"):
+            if _VALUE_ONLY(cell_txt):
+                yield cell_txt.strip(), ln + 1
+            elif not _is_prose(cell_txt):
+                for part in _PART_SPLIT.split(cell_txt):
+                    if _VALUE_ONLY(part):
+                        yield part.strip(), ln + 1
+
+
+def cell(v, spec: str = "", unit: str = "", *, none: str = "없음") -> str:
+    """⭐표 한 칸에 수를 찍는 **유일한 문**. 없으면 «없음», 비유한 수면 여기서 멈춘다.
+
+    왜 있나 — 글 검사(위)는 **글자를 세는 일**이라 표기가 늘어날 때마다 구멍이 난다.
+    2026-09-14 에 표기 53 가지로 재니 옛 틀이 21 가지를 틀리게 갈랐다. 진짜 방벽은
+    **수가 글로 바뀌는 그 자리**에 두어야 한다 — `float` 와 표 칸 사이에 문이 하나도
+    없어서 `docs/WFSURVIVE_0912.md` 에 «nan» 이 20 자리 실렸던 것이다.
+    ⛔유한한 값에서는 `format(x, spec)` 과 **한 글자도 다르지 않다** — 옮겨도 문서가 안 바뀐다.
+    """
+    if v is None:
+        return none
+    x = float(v)
+    if not math.isfinite(x):
+        raise ValueError(f"표 칸에 비유한 수를 찍으려 한다({x!r} · 서식 {spec!r}{unit!r}) — "
+                         "값이 없으면 None 을 넘겨라(«없음» 으로 찍힌다)")
+    return format(x, spec) + unit
 
 
 def _nonfinite_paths(o, path: str = "") -> list[str]:
@@ -159,6 +363,7 @@ def _nonfinite_paths(o, path: str = "") -> list[str]:
     ⛔⛔2026-09-13(10) 넓혔다 — 옛 판은 `isinstance(o, float)` 만 봐서
       **numpy 형(np.float32·np.complex128)·0 차원 배열·복소수**를 놓쳤고,
       **글(마크다운)** 은 아예 안 봤다.
+    ⭐글은 «값 자리» 만 본다(`_value_slots`). 문장 속 낱말은 막지 않는다.
     """
     out: list[str] = []
     if isinstance(o, dict):
@@ -168,7 +373,6 @@ def _nonfinite_paths(o, path: str = "") -> list[str]:
         for i, v in enumerate(o):
             out += _nonfinite_paths(v, f"{path}[{i}]")
     elif isinstance(o, str):
-        #: ⭐낱말이 아니라 **값 자리**만 본다(위 머리말 ⓐⓑ). 문장 속 «NaN» 은 통과시킨다.
         for tok, ln in _value_slots(o):
             where = f"{path or '(뿌리)'}" + (f":{ln}" if ln else "")
             out.append(f"{where}«{tok}»")
