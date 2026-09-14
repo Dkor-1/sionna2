@@ -477,7 +477,7 @@ def run(a) -> None:
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
-        + tagfc + tagth + tagmf
+        + tagfc + tagth + tagmf + build_tag()
 
     if tagth and a.engine in ("ours", "ours_free", "ours_gpu"):
         raise SystemExit("⛔ --shell-mm/--prop-mm 은 PathSolver 팔 전용이다 — 우리 커널에는 "
@@ -1027,6 +1027,45 @@ def _solver_build() -> str:
 
 #: 한 프로세스 안에서 한 번만 잰다 — 샤드마다 importlib 을 두드리지 않는다.
 SOLVER_BUILD = _solver_build()
+
+#: ⭐⭐**기준 판** — 창고 샤드 7,730 개를 구운 판이다(2026-09-14 확인: 모든 샤드가
+#  2.0.1 설치 시각 08-13 00:24 **이후**라 그 전 판으로 구운 샤드가 없다).
+BUILD_BASELINE = "sionna=2.0.1 sionna-rt=2.0.1 mitsuba=3.8.0 drjit=1.3.1"
+BUILD_BASELINE_RT = "2.0.1"
+
+
+def build_tag() -> str:
+    """솔버 판 꼬리표 — 기준 판이면 **빈 글자**, 그 밖에는 `_rt<판>`(2.1.0 → `_rt210`).
+
+    ⛔⛔**왜 있나** (2026-09-14, 2.1.0 으로 올리기 직전에 넣었다).
+      꼬리표가 없으면 2.1.0 으로 같은 팔을 구울 때 샤드 **파일 이름이 같아** 2.0.1 판을
+      덮어쓴다. 비교하려던 상대가 사라지는 것이라 되돌릴 수 없다.
+      (2026-08-17 에 메쉬 수리로 똑같은 사고가 났다 — 이름이 같아 옛 샤드를 그대로 재사용해
+       재계산이 통째로 무효였다. `tagmf` 주석 참조. 같은 병을 판 갈이에서 되풀이하지 않는다.)
+
+    ⭐규약은 이 파일의 다른 꼬리표와 같다 — **기준 판이면 안 붙는다.** 그래야 기존 7,730 개와
+      이름이 같아 이어진다.
+
+    ⛔**이름이 못 담는 차이는 여기서 멈춘다.** sionna-rt 는 기준 그대로인데 mitsuba·drjit 만
+      움직이면 꼬리표가 안 붙어 또 덮어쓴다. 그때는 이름을 짓지 않고 **예외로 세운다** —
+      「조용히 덮어쓰기」보다 「서서 사람을 부르기」가 낫다.
+    """
+    if SOLVER_BUILD == BUILD_BASELINE:
+        return ""
+    rt = ""
+    for part in SOLVER_BUILD.split():
+        if part.startswith("sionna-rt="):
+            rt = part.split("=", 1)[1]
+    if rt in ("", "없음"):
+        raise SystemExit("⛔sionna-rt 판을 못 읽었다 — 샤드 이름을 지을 수 없다.\n"
+                         f"   지금 {SOLVER_BUILD}")
+    if rt == BUILD_BASELINE_RT:
+        raise SystemExit(
+            "⛔솔버 판이 기준과 다른데 **이름에 담을 수가 없다** — sionna-rt 는 그대로인데\n"
+            "   다른 꾸러미가 움직였다. 그대로 구우면 기존 샤드를 **덮어써** 비교 상대가 사라진다.\n"
+            f"   기준 {BUILD_BASELINE}\n   지금 {SOLVER_BUILD}\n"
+            "   ⇒ benchmark/elevation_sweep_md.py 의 BUILD_BASELINE 규약을 먼저 정하고 오라.")
+    return "_rt" + rt.replace(".", "")
 
 
 def bake_stamp(t0: float) -> dict:

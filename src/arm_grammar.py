@@ -77,7 +77,9 @@ KNOWN_ROTORS = {"legacy", "outdoor", "outdoor_v2"}
 _SEED_RE = re.compile(r"^(?P<head>.*?)s(?P<seed>\d+)$")
 _ROTOR_FORMS = {p + (f"s{k}" if k else "") for p in KNOWN_ROTORS for k in range(0, 9)}
 #: 밑줄을 품는 꼬리표만 이 표를 쓴다. ⭐발주서(`runners/jobs_*.txt`)가 정본이다.
-KNOWN_VALUES = {"env": KNOWN_ENVS, "rotor": _ROTOR_FORMS}
+KNOWN_VALUES = {"env": KNOWN_ENVS, "rotor": _ROTOR_FORMS,
+                #: 지금까지 발주서가 쓴 솔버 판. 처음 보는 판은 ⚠로 짚는다(막지는 않는다).
+                "solver_build": ("210",)}
 
 _NUM = r"-?\d+(?:\.\d+)?"
 
@@ -129,6 +131,14 @@ _COMMON = [
     _F("prop_mm", "prop", r"%smm" % _NUM),
     _F("mesh_fix", "mfix", r"[A-Za-z0-9]+"),
     _F("blade_law", "bl", r"[A-Za-z0-9]+"),
+    #: ⭐⭐**솔버 판** (2026-09-14 신설) — `_rt210` = sionna-rt 2.1.0 으로 구웠다는 뜻.
+    #  ⛔**기준 판(2.0.1)에는 안 붙는다.** 창고 7,730 개가 전부 그 판이라 이름이 그대로여야
+    #    이어진다. 그러니 「꼬리표가 없다」 = 「2.0.1 로 구웠다」로 읽는다 —
+    #    그 근거는 샤드가 스스로 적는 `solver_build` 이고, 적히기 전 세대는
+    #    「모든 샤드가 2.0.1 설치(08-13) 이후」라는 창고 사실로 뒷받침한다.
+    #  ⛔이름은 sionna-rt 판만 담는다. mitsuba·drjit 만 움직인 경우는 이름이 못 담으므로
+    #    빌더(`elevation_sweep_md.build_tag`)가 **아예 멈춘다.**
+    _F("solver_build", "rt", r"\d+"),
 ]
 
 _SIONNA_HEAD = [
@@ -286,6 +296,12 @@ def warnings_for(fields: dict) -> list[str]:
     #  씨앗까지 포함한 형태 표(_ROTOR_FORMS)와 통째로 맞춘다.
     if fields.get("rotor") and fields["rotor"] not in _ROTOR_FORMS:
         w.append(f"처음 보는 로터 {fields['rotor']!r} (아는 것 {sorted(KNOWN_ROTORS)} + 씨앗)")
+    #: ⚠처음 보는 **솔버 판**. 꼬리표가 없으면 기준 판(2.0.1)이라 경고하지 않는다.
+    #  ⛔막지는 않는다 — 판을 올리는 날 발주서가 먼저 오고 이 표가 뒤따르는 것이 정상이다.
+    sb = fields.get("solver_build")
+    if sb and sb not in (KNOWN_VALUES.get("solver_build") or ()):
+        w.append(f"처음 보는 솔버 판 {sb!r} (아는 것 "
+                 f"{sorted(KNOWN_VALUES.get('solver_build') or ())} · 꼬리표 없음 = 2.0.1)")
     return w
 
 
