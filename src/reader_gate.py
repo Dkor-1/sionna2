@@ -133,7 +133,15 @@ def check_series(E, *, n_poses: int | None = None, prf: float | None = None,
     #  전부 `kept_conflicting_poses=0 · tie_unresolved=False` 로 깨끗이 풀렸고,
     #  발간본 outputs/read_wfsurvive_0912.json 의 4 행이 거기서 나온다.
     if isinstance(mixed_generations, dict):
-        _k = int(mixed_generations.get("kept_conflicting_poses") or 0)
+        #: ⛔⛔2026-09-14(3) — 이 줄이 맨몸이라 머리말의 「창고에서 온 값에는 예외를 던지지
+        #  않는다」를 **제가 깼다**. 실측: 'abc'→ValueError · nan→ValueError ·
+        #  inf→OverflowError · [1]→TypeError. 새면 그 칸만 건너뛰는 게 아니라 판독이 죽는다.
+        try:
+            _k = int(float(mixed_generations.get("kept_conflicting_poses") or 0))
+        except Exception:                       # noqa: BLE001
+            why.append("굽기 세대 진단의 «갈린 자세» 를 수로 못 읽는다"
+                       f"({mixed_generations.get('kept_conflicting_poses')!r})")
+            _k = 0
         _t = bool(mixed_generations.get("tie_unresolved"))
         _d = mixed_generations.get("n_poses_disagree")
         if _k or _t or _d:
@@ -172,10 +180,14 @@ def check_shards(paths) -> tuple[int | None, float | None, list[str]]:
     n0 = prf = None
     #: ⛔빈 목록에서 «까닭 없음 + n0 None» 을 돌려주면 부르는 쪽의 `np.zeros(n0, …)` 가
     #  TypeError 로 죽는다 — 「까닭이 없다 = 쓸 수 있다」가 깨지는 유일한 자리였다.
-    if not list(paths):
+    #: ⛔2026-09-14(3) — 옛 판은 `list(paths)` 를 **두 번** 불러 제너레이터를 받으면 첫 줄이
+    #  다 써 버리고 고리가 한 번도 안 돌았다. 그러면 (None, None, []) 이 나와 「까닭 없음 =
+    #  쓸 수 있다」가 깨진다 — 바로 아래 주석이 막으려던 그 상태다. **한 번만 펼친다.**
+    paths = list(paths)
+    if not paths:
         return None, None, ["그 칸의 샤드 목록이 비었다"]
     ns, prfs, seen_vals = [], [], {}
-    for p in list(paths):
+    for p in paths:
         #: ⛔⛔2026-09-14(2) 정정 — 옛 판은 `np.load(p)` 와 `set(z.files)` **두 줄만** try 로
         #  감쌌다. 그런데 npz 는 **게으르게** 읽히므로 열기는 늘 성공하고 실제 읽기는
         #  `z["meta"]`·`z["idx"]`·`z["E"]` 에서 일어난다 — 전부 try 밖이었다.
@@ -315,10 +327,24 @@ _LABEL_MAX = 12
 #  8 로 잡은 근거: 「띠 안 최강선」(5 자) 같은 이름표는 값 자리로 남기고,
 #  「비유한 값이 4 자세에 있다(NaN·무한)」(12 자)는 산문으로 넘긴다.
 _PROSE_MAX = 8
+#: 토막 **뒤**에 붙어도 되는 «글자» 수(수·단위·표시 기호는 안 센다). 「nan dB ⛔」(⛔ 1 자)·「nan → 12.2」(→ 는 값 기호라
+#  지워진다)는 넘기고, 「NaN 감지」(2 자)는… 넘어간다 ⇒ 1 로 잡는다. 「NaN detected」(8 자)·
+#  「NaN 때문에 제외했다」(8 자)는 막힌다. ⚠내가 정한 손잡이다 — 아래 시험으로 못 박는다.
+_TAIL_MAX = 1
+#: ⛔⛔2026-09-14(3) 네 번째 정정 — 옛 틀은 토막 뒤에 `\s*단위?\s*$` 를 요구해서
+#  **수 뒤에 무엇이든 더 있으면 값 자리로 안 봤다.** 발간물의 표 칸에 든 수를 하나씩
+#  nan 으로 바꿔 보니 **55 자리**가 그대로 빠져나갔다(적대 검증 실측):
+#    「nan dB ⛔」 20 · 「nan → 수」 18 · 「nan~수 %」 8 · 「nan~수 dB」 4 ·
+#    「수 dB (nan 판 @ …)」 4 · 「수 · 수 · nan Hz ⚠갈린다」 1.
+#  ⛔⛔가장 뼈아픈 것: 시험에는 **되는 쪽만** 있었다. 「nan~nan %」는 막는데, 생산 빌더가
+#    실제로 내는 것은 `f"{min(rs):.1f}~{max(rs):.1f} %"` 이고 min() 은 NaN 을 **왼쪽에**
+#    놓으므로 실제로 날 모양은 「nan~80.9 %」다 — 그 꼴이 시험에 없고 관문도 안 막았다.
+#  ⇒ 뒤는 **단위만 보고 나머지는 안 본다.** 앞 이름표 길이와 «산문이면 안 가른다» 는
+#    그대로라 거짓 거절은 안 는다(아래 시험 41 줄로 못 박는다).
 _VALUE_ONLY_RE = re.compile(
-    r"^(?P<pre>.*?)(?:(?<=^)|(?<=[\s~=(\[]))[-+±]?\s*"
+    r"^(?P<pre>.*?)(?:(?<=^)|(?<=[\s~=(\[→]))[-+±]?\s*"
     r"(?P<tok>" + _NF_TOKEN + r")(?![A-Za-z0-9_])"
-    r"(?P<post>\s*" + _UNIT_RE + r"?)\s*$")
+    r"(?P<post>\s*" + _UNIT_RE + r"?)(?P<tail>.*)$")
 
 #: 가장자리 꾸밈만 벗긴다. ⛔가운데 `_` 까지 벗기면 «second_prf_nan» 이 도로 거짓 거절이 된다.
 _TRIM = " \t*_`~\"'«»‹›“”‘’"
@@ -340,13 +366,24 @@ def _VALUE_ONLY(t: str):
         return None
     if len(m.group("pre").strip(_TRIM)) > _LABEL_MAX:
         return None
+    #: ⭐토막 뒤 꼬리는 **짧을 때만** 봐준다. 무제한으로 두면 「NaN 감지」·「NaN 때문에
+    #  제외했다」·「NaN detected」 같은 **문장이 값으로 읽힌다**(넓히자마자 거짓 거절 5 개가
+    #  살아났다 — 2026-09-14(3) 실측). 꼬리에서 수·부호·구분자·단위를 지우고 남는 **글자**가
+    #  이보다 많으면 값 자리가 아니다.
+    tail = _STRIP_VALUEISH.sub("", m.group("tail") or "")
+    if len(tail.strip(_TRIM)) > _TAIL_MAX:
+        return None
     return m
 
 
 #: 표 한 칸 안에서 값이 여럿 붙는 자리 — «1272.9 · 380.3 ( -6.0 dB)» 처럼 쓴다.
 _PART_SPLIT = re.compile(r"[·,;()\[\]]|\s{2,}")
 #: 산문인지 가르는 데 쓴다 — 수·부호·단위·구분자를 지우고 남는 글자 수를 센다.
-_STRIP_VALUEISH = re.compile(r"[\d\s.,;:()\[\]~·+\-±/%°]|" + _UNIT_RE + "|" + _NF_TOKEN)
+#: ⭐표시 기호(⛔·⚠·⭐·→·←·↔)는 **값이 아니라 꾸밈**이다 — 꼬리 길이를 셀 때 지운다.
+#  2026-09-14(3): 「1272.9 · 759.9 · nan Hz ⚠갈린다」가 꼬리 「⚠갈린다」 4 자에 걸려 샜다.
+_MARKS = "⛔⚠⭐→←↔·※"
+_STRIP_VALUEISH = re.compile(r"[\d\s.,;:()\[\]~·+\-±/%°" + _MARKS + r"]|"
+                            + _UNIT_RE + "|" + _NF_TOKEN)
 
 
 def _is_prose(cell: str) -> bool:

@@ -71,7 +71,29 @@ CASES = [
     ("정상 «없음»",             "| ours | 띠 안 없음 · 접힘 True |",             False),
     ("정상 «—»",                "| a | — |",                                     False),
     ("정상 null·None",          "| a | null · None |",                           False),
+    #: ── 2026-09-14(3) 적대 검증이 찾은 «꼬리 붙은» 모양 ──────────────────────
+    #  ⛔틀이 토막 뒤에 아무것도 못 오게 해서 **발간물의 55 자리**가 그대로 샜다.
+    #  ⭐⭐그중 가장 뼈아픈 것: 시험에는 「nan~nan %」만 있었는데, 생산 빌더가 실제로
+    #    내는 것은 f"{min(rs):.1f}~{max(rs):.1f} %" 이고 min() 은 NaN 을 **왼쪽에** 놓는다
+    #    — 곧 실제로 날 모양은 「nan~80.9 %」다. 되는 쪽만 시험에 담고 있었다.
+    ("⭐생산 범위(왼쪽 nan)",     "| a | nan~80.9 % |",                            True),
+    ("⭐생산 범위(오른쪽 nan)",   "| a | 12.3~nan % |",                            True),
+    ("⭐꼬리 표시 기호",          "| a | nan dB ⛔ |",                              True),
+    ("⭐화살표 뒤",              "| a | 13.06 → nan |",                           True),
+    ("⭐화살표 앞",              "| a | nan → 12.2 |",                            True),
+    ("⭐괄호 안 판 수",           "| a | 2.76e-05 dB (nan 판 @ 3500 MHz) |",        True),
+    ("정상 범위",               "| a | 12.5~80.9 % |",                           False),
+    ("정상 화살표",             "| a | 13.06 → 12.26 |",                          False),
 ]
+
+#: ⚠**아직 막지 못하는 모양** — 숨기지 않고 적어 둔다.
+#  「1272.9 · 759.9 · nan Hz ⚠갈린다」 는 꼬리 「갈린다」 3 자가 _TAIL_MAX 를 넘어 샌다.
+#  꼬리를 4 자로 늘리면 「NaN 감지」·「비유한 값이 있다(NaN·무한)」 같은 **사유 문장**이
+#  값으로 읽혀 발간이 막힌다 — 한글 두세 자 꼬리는 단위와 문장을 못 가른다.
+#  ⇒ 그 자리는 글 검사로 못 닫는다. `benchmark/read_bandflat_0913.py` 의 그 칸을
+#    `reader_gate.cell()` 로 옮겨 **수가 글이 되는 자리**에서 막았다(2026-09-14(3)).
+#    여기 한 줄로 남겨, 다음에 틀을 만질 때 이 갈림을 다시 만나게 한다.
+KNOWN_UNBLOCKED = [("꼬리가 긴 표시", "| a | 1272.9 · 759.9 · nan Hz ⚠갈린다 |")]
 
 #: 세 판독기가 실제로 찍는 칸 서식을 비유한 수로 찍어 본 것 — 하나도 새면 안 된다.
 PROD_FORMATS = ["nan dB", "nan dB (0 점)", "nan dB (3 판 @ 3500 MHz)", "nan~nan %",
@@ -83,7 +105,41 @@ PROD_FORMATS = ["nan dB", "nan dB (0 점)", "nan dB (3 판 @ 3500 MHz)", "nan~na
 LEAK_COMMIT, LEAK_PATH, LEAK_N = "5db40e9b", "docs/WFSURVIVE_0912.md", 20
 
 #: 지금 발간물 — 오탐이 하나도 없어야 한다.
-LIVE = ["docs/WFSURVIVE_0912.md", "docs/SCENEPHYSICS_0913.md", "docs/BANDFLAT_0913.md"]
+LIVE = ["docs/WFSURVIVE_0912.md", "docs/SCENEPHYSICS_0913.md", "docs/BANDFLAT_0913.md",
+        "docs/ALTITUDE_0914.md"]      # ⭐2026-09-14: 새 판독기의 문서가 빠져 있었다
+
+#: ⭐**발간물의 표 칸에 든 수를 하나씩 nan 으로 바꿔** 관문이 잡나 본다 — 시험 줄이
+#  «되는 쪽만» 담는 것을 막는 유일한 방법이다(2026-09-14(3) 신설).
+def leak_sweep() -> tuple[int, int, list[str]]:
+    import re as _re
+    tot = miss = 0
+    ex: list[str] = []
+    num = _re.compile(r"(?<![\w.])[-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w.])")
+    sep = _re.compile(r"^\|[\s:\-|]+\|$")
+    for rel in LIVE:
+        p = os.path.join(ROOT, rel)
+        if not os.path.exists(p):
+            continue
+        lines = open(p, encoding="utf-8").read().splitlines()
+        for i, ln in enumerate(lines):
+            t = ln.strip()
+            if not (t.startswith("|") and t.endswith("|")):
+                continue
+            #: ⛔표 **머리글**과 구분줄은 뺀다 — 거기 든 수는 계산값이 아니라 제목이다
+            #  (「3.500 GHz 와의 모양 상관」·「1/h² 예측」). 자료 칸만 훑는다.
+            if sep.match(t):
+                continue
+            nxt = lines[i + 1].strip() if i + 1 < len(lines) else ""
+            if sep.match(nxt):
+                continue
+            for m in num.finditer(t):
+                tot += 1
+                spoiled = t[:m.start()] + "nan" + t[m.end():]
+                if not _nonfinite_paths({"md": spoiled}):
+                    miss += 1
+                    if len(ex) < 5:
+                        ex.append(f"{rel}: {spoiled[:76]}")
+    return tot, miss, ex
 
 
 def main() -> int:
@@ -140,6 +196,26 @@ def main() -> int:
             print(f"  ⛔ cell({v}) 가 안 멈췄다")
         except ValueError:
             print(f"  ✅ cell({v}) 가 멈춘다")
+
+    #: ⭐발간물 훑기 — 표 칸의 수를 하나씩 nan 으로 바꿔 잡나 본다.
+    tot, miss, ex = leak_sweep()
+    print(f"\n── 발간물 표 칸 훑기: 수 {tot} 자리 중 ⛔새는 자리 {miss}")
+    for e in ex:
+        print(f"     {e}")
+    #: ⭐새는 자리가 **KNOWN_UNBLOCKED 에 적힌 모양뿐**이면 통과시킨다 — 그 자리는
+    #  글 검사로 못 닫고, 수가 글이 되는 자리(`reader_gate.cell()`)에서 막았다.
+    #  ⛔그 밖의 모양이 하나라도 새면 실패다. 이 갈림을 여기 남겨 둔다.
+    unexplained = [e for e in ex if "⚠갈린다" not in e]
+    if miss and (unexplained or miss > len(KNOWN_UNBLOCKED)):
+        bad.append(("발간물 훑기(설명 안 되는 새는 자리)", len(unexplained) or miss, 0))
+    elif miss:
+        print(f"     ⚠새는 {miss} 자리는 전부 KNOWN_UNBLOCKED 의 모양이다 — 그 자리는 "
+              "`reader_gate.cell()` 이 수가 글이 되는 자리에서 막는다.")
+
+    print("── 아직 막지 못하는 모양(숨기지 않는다)")
+    for name, md in KNOWN_UNBLOCKED:
+        blocked = bool(_nonfinite_paths({"md": md}))
+        print(f"     {'⚠여전히 샌다' if not blocked else '✅이제 막힌다'} {name}")
 
     if bad:
         print(f"\n⛔ 어긋난 줄 {len(bad)} — {bad}")

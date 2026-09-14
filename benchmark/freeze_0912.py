@@ -106,7 +106,16 @@ def measure() -> dict:
             elif isinstance(v, list) and all(isinstance(x, str) for x in v):
                 m["factorial_verdict"][k] = sorted(v)
             elif isinstance(v, list):
+                #: ⛔⛔2026-09-14(3) — 옛 판은 목록을 **길이만** 떴다. 그래서 B_failures 의
+                #  쌍별 수(max_abs_level_db …)를 바꿔도 「움직인 자리 0」이었다. B_why_ko 가
+                #  인용하는 「+2.16~+4.97 dB · 깨진 쌍 7 개」의 근거가 바로 그 목록 안이다.
+                #  ⛔이건 **같은 파일이 12 줄 위에서 이미 배운 것**이다 — scrape_numbers 머리말이
+                #    「목록 안의 스칼라는 전부 버려졌다 … 화이트리스트를 버린다」고 적어 두었는데
+                #    오늘 새로 넣은 칸이 그 병을 그대로 되풀이했다.
+                #  ⇒ 길이 **와** 목록 안의 수를 전부 뜬다(scrape_numbers 와 같은 규약).
                 m["factorial_verdict"][k + "__n"] = len(v)
+                for _p, _x in sorted(scrape_numbers(v, k).items()):
+                    m["factorial_verdict"][_p] = _x
             elif isinstance(v, dict):
                 for kk, vv in sorted(v.items()):
                     if isinstance(vv, dict):
@@ -115,6 +124,16 @@ def measure() -> dict:
                                 m["factorial_verdict"][f"{k}.{kk}.{k3}"] = v3
                     elif isinstance(vv, (int, float, bool)):
                         m["factorial_verdict"][f"{k}.{kk}"] = vv
+
+    #: ⭐회절 파묻힘 — 머리기사 옆에 실리는 수인데 기준선 밖이었다(2026-09-14(3)).
+    #  오늘 이 값이 「6 쌍 16.5~21.5 → 2 쌍 20.8~21.0 → 4 쌍 16.49~21.48 dB」 로 두 번
+    #  움직였는데 기준선은 한 번도 안 물었다.
+    try:
+        _B = js("outputs/switch_factorial.json")["diffraction_burial"]
+    except Exception as e:                                          # noqa: BLE001
+        m["factorial_burial"] = dict(error=f"{type(e).__name__}")
+    else:
+        m["factorial_burial"] = dict(n=len(_B), **scrape_numbers(_B, "rows"))
 
     #: 실외 사건 수 — 덱 9 쪽이 인용하는 수
     #  ⛔⛔2026-09-13 정정 — 첫 판은 **문자열에 «96»·«339» 가 있나**만 봤다. 그러면

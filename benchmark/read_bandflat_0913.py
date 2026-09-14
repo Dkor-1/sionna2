@@ -102,7 +102,7 @@ for p in (os.path.join(ROOT, "src"), HERE):
 from md_mapstyle import auto_periods, flash_spec                      # noqa: E402
 from arm_grammar import matched_groups, parse as parse_arm, unparse  # noqa: E402
 from drones import DRONES                                            # noqa: E402
-from reader_gate import check_series, publish                        # noqa: E402
+from reader_gate import cell, check_series, publish                        # noqa: E402
 from arm_grammar import unparse as unparse_arm                       # noqa: E402
 
 
@@ -568,12 +568,16 @@ def write_md(out: dict, to_string: bool = False):
     for g in out.get("gates", []):
         pk = g["dc_removed"]["peaks_hz"]
         leak = g.get("static_leak_into_band_db")
-        leak_txt = "—" if leak is None else f"{leak:+.1f} dB"
-        peak_txt = " · ".join(f"{x:g}" for x in pk) + " Hz"
+        #: ⛔⛔2026-09-14(3) — 이 네 자리를 `reader_gate.cell()` 로 옮겼다. 글 검사만으로는
+        #  「1272.9 · 759.9 · nan Hz ⚠갈린다」처럼 **꼬리가 붙은** 칸을 못 가른다(한글 두 자
+        #  꼬리가 단위와 문장을 못 가르기 때문이다 — 틀을 네 번 고치고 얻은 결론이다).
+        #  ⇒ 수가 글로 바뀌는 **그 자리**에 문을 둔다. 유한한 값에서는 글자가 한 자도 안 바뀐다.
+        leak_txt = cell(leak, "+.1f", " dB", none="—")
+        peak_txt = " · ".join(cell(x, "g") for x in pk) + " Hz"
         if len(pk) > 1:
             peak_txt += " ⚠갈린다"
-        a(f"| {g['env']} | {g['el_deg']:+.0f} | {g['shape_corr_min']:.4f} | "
-          f"{peak_txt} | {leak_txt} |")
+        a(f"| {g['env']} | {cell(g['el_deg'], '+.0f')} | "
+          f"{cell(g['shape_corr_min'], '.4f')} | {peak_txt} | {leak_txt} |")
     a("")
     a(f"원장 `{os.path.relpath(OUT_J, ROOT)}` · 칸 {out['_meta']['n_cells']}/"
       f"{out['_meta']['n_expected']} · 건너뜀 {len(out['skipped'])}")
