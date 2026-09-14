@@ -172,13 +172,39 @@ D_FLOOR_LIFT = (max(v["above_floor_db"] for v in _ROWS if v.get("diffraction"))
                 - min(v["above_floor_db"] for v in _ROWS
                       if v.get("diffraction") is False))
 
-N_SAME = sum(1 for k in _NUM if _A[k] == _B[k])
-N_DIFF = len(_NUM) - N_SAME
-#: 딱 하나 어긋나는 칸의 크기 — 배정밀도 끝자리 몇 칸인지 보이려고 절대값으로 든다.
-ULP_GAP = max((abs(_A[k] - _B[k]) for k in _NUM if _A[k] != _B[k]), default=0.0)
+#: ⛔⛔2026-09-14(3) 정정 — 앞 판은 `ledger_row`·`seconds` 만 빼고 세어
+#  「28 개 중 13 개가 비트단위로 같고 남은 13 개도 **배정밀도 끝자리 차이(Δ=8.9e+01)**」
+#  라고 실었다. 실제로는 ⓐ «같은» 13 개가 **전부 설정 꼬리표**(depth·el_deg·f_flash_hz·
+#  f_tip_hz·n_poses·prf_hz·range_m·spp·빈 수 …)이고 ⓑ **잰 값은 하나도 안 같다**
+#  (바닥 0.43 dB · 원장 레벨 1.46 dB · 리듬 0.93 %p) ⓒ Δ=8.9e+01 은 경로 수
+#  1416 ↔ 1505 의 **89 경로** 차이지 부동소수점 끝자리가 아니다.
+#  ⇒ **설정 꼬리표와 잰 값을 갈라** 센다. 그래야 「같다」가 무엇을 말하는지 드러난다.
+_SETUP_KEYS = ("depth", "el_deg", "f_flash_hz", "f_tip_hz", "ledger_max_depth",
+               "n_bins_above", "n_bins_comb", "n_bins_floor", "n_missing",
+               "n_poses", "prf_hz", "range_m", "spp", "npaths_median")
+_SETUP = [k for k in _NUM if k in _SETUP_KEYS]
+_MEAS = [k for k in _NUM if k not in _SETUP_KEYS]
+N_SETUP_SAME = sum(1 for k in _SETUP if _A[k] == _B[k])
+N_MEAS_SAME = sum(1 for k in _MEAS if _A[k] == _B[k])
+MEAS_GAP = max((abs(_A[k] - _B[k]) for k in _MEAS if _A[k] != _B[k]), default=0.0)
+MEAS_GAP_KEY = max(((abs(_A[k] - _B[k]), k) for k in _MEAS if _A[k] != _B[k]),
+                   default=(0.0, ""))[1]
+NPATH_GAP = abs(_A.get("npaths_median", 0) - _B.get("npaths_median", 0))
+#: ⭐이 쌍이 원장에서 **주판정 금지**인지 — E 축 행이 그렇게 적어 둔다.
+_E_ROW = next((r for r in F["axis_diffs"]["E"]
+               if r["off"] == "R0D0E0F1_d1/el-30"), None)
+PAIR_DIRTY = bool(_E_ROW and not _E_ROW.get("pair_is_clean"))
+PAIR_DIFFS = (_E_ROW or {}).get("pair_other_diffs") or []
 
 # ── 덮개 시험 — 판 위 다섯 쌍 ───────────────────────────────────────────────
-PL = F["diffraction_on_plate_el30"]
+#: ⛔⛔2026-09-14(3) — 앞 판은 **6 쌍 전량**(더러운 쌍 2 개 포함)에서 덮개 시험을 읽어
+#  「a 0.64~1.10 · 위상 74.6° · 6 쌍 중 4 쌍」을 실었다. 원장의 주판정은 **깨끗한 4 쌍**
+#  에서 「계수 1.04~1.10 · 4 쌍 전부」다(verdict.A_cover_n_pairs · A_headline_ko).
+#  게다가 같은 셀의 «얼마나 깊이 잠겼나» 는 이미 깨끗한 쌍(diffraction_burial)을 쓰고 있어
+#  **한 셀 안에서 모집단이 갈렸다.** ⇒ 원장과 같은 목록을 쓴다.
+PL_ALL = F["diffraction_on_plate_el30"]
+PL = [p for p in PL_ALL if p.get("pair_is_clean")] or PL_ALL
+PL_DIRTY = [p for p in PL_ALL if not p.get("pair_is_clean")]
 A_LO = min(p["contain_coeff"] for p in PL)
 A_HI = max(p["contain_coeff"] for p in PL)
 PH_HI = max(abs(p["contain_phase_deg"]) for p in PL)
@@ -198,8 +224,19 @@ OBL_ALL = [p for p in SC if p["el_deg"] < 0.0]
 #  원장이 그 칸의 띠 값을 일부러 null 로 둔다(switch_factorial.py 의 `_degen`). 그것을
 #  수로 섞으면 min/max 가 TypeError 로 죽거나, 더 나쁘게 0 으로 뭉개진다.
 #  ⇒ **계측 불가를 따로 센다** — 범위에서 빼고, 몇 칸을 뺐는지 문면에 적는다.
+#: ⛔⛔2026-09-14(3) — `el_deg < 0` 만 보아 **근-정면 칸**(el −0.1 · −0.15 · −0.16 ·
+#  −0.17 · −0.18)이 «빗각» 에 섞였다. ang() 가 다섯을 모두 «−0°» 로 찍어 발간본이
+#  「빗각 12 자리(… −0° · −0° · −0° · −0° · −0° …)에서 바닥을 1.3~64.1 dB 올린다」로
+#  나왔고, 범위의 양 끝이 **둘 다 그 근-정면 칸**에서 나왔다. 바로 다음 문장이
+#  「범위는 빗각 −15°~−75° 로 적는다」라 앞뒤가 어긋났다.
+#  ⇒ **|el| ≥ OBL_MIN_DEG 만 빗각으로 센다.** 뺀 칸은 아래 문면에 적는다.
+OBL_MIN_DEG = 15.0
+OBL_NEAR = [p for p in OBL_ALL if abs(p["el_deg"]) < OBL_MIN_DEG]
+OBL_ALL = [p for p in OBL_ALL if abs(p["el_deg"]) >= OBL_MIN_DEG]
 OBL = [p for p in OBL_ALL if p["d_above_floor_db"] is not None]
 OBL_UNMEASURABLE = [p for p in OBL_ALL if p["d_above_floor_db"] is None]
+#: ⭐깨끗한 쌍만 따로 센다 — 12 자리 중 4 자리가 더러운 쌍이었다.
+OBL_CLEAN = [p for p in OBL if p.get("pair_is_clean")]
 assert OBL, "빗각 적용범위 쌍이 하나도 안 남았다"
 OBL_LO = min(p["d_above_floor_db"] for p in OBL)
 OBL_HI = max(p["d_above_floor_db"] for p in OBL)
@@ -253,6 +290,17 @@ PL_LO, PL_HI = min(PL_SPAN), max(PL_SPAN)
 D60 = next(p for p in F["depth_pairs"]
            if p["combo"] == "R0D0E0F1" and p["el_deg"] == -60.0 and p["depths"] == [1, 3])
 D60_1, D60_3 = FC[D60["d1"]], FC[D60["dN"]]
+#: ⛔⛔2026-09-14(3) 정정 — 철회된 주장을 **오늘 값으로 재구성**하고 있었다.
+#  아래 문장은 2026-08-16 에 철회된 «−60° 반례» 를 따옴표로 인용하는 자리인데, 그 안의
+#  수를 오늘 원장(D60)에서 읽었다. 그런데 오늘 그 쌍은 **통과**한다(pass=True · 「밴드 안」 ·
+#  리듬 차 −0.11 %p). 그래서 발간본에 「리듬 몫이 90.5 → 90.4 %(낙차 0.11 %p)로 **무너진다**」
+#  라는 앞뒤가 안 맞는 문장이 실렸다 — 0.11 %p 를 «무너진다» 라 부르고 +0.0 dB 를 반례로 든다.
+#  ⇒ 철회된 주장은 **철회를 기록한 원장**에서 글자 그대로 가져오고, 오늘 값은 따로 적는다.
+R13_QUOTE = ((DA.get("outlier_forensics", {}).get("el60_case", {}) or {})
+             .get("r13_number_ko"))
+_PRE = [x for x in (DA.get("scorecard", {}) or {}).get("prereg_r13_failures", [])
+        if x.get("combo") == "R0D0E0F1" and x.get("el_deg") == -60.0]
+R13_OLD = _PRE[0] if _PRE else None
 #: 튐 자세의 둘째 대비 — 고립도 = 최대 ÷ 둘째(outlier_forensics.isolation_def_ko).
 P60_TOP2 = OUT60["pose_over_median_dN"] / OUT60["isolation_dN"]
 ROT60_TXT = " · ".join(f"{r:.2f}"
@@ -321,11 +369,19 @@ nb.cells = [
        f"(≈{LIFT_LO:.2f}~{LIFT_HI:.2f}).",
        f"4. **모서리회절 스위치는 혼자서는 아무것도 안 한다** — ⚠이 한 줄만 **다른 판**"
        f"({OLD_ARM_KO})에서 읽는다. 모서리만 켠 팔이 그 판에만 있기 때문이다. 같은 판의 "
-       f"«다 끔» 과 견주면 리듬 {_B['rhythm_share_pct']:.2f} %, 바닥 "
-       f"{_B['above_floor_db']:.1f} dB 로 같다. 두 칸이 함께 가진 물리 수치 "
-       f"{N_SAME + N_DIFF} 개 가운데 {N_SAME} 개가 비트단위로 같고, 남은 {N_DIFF} 개도 "
-       f"배정밀도 끝자리 차이(Δ = {ULP_GAP:.1e})다 — 갈리는 것은 원장 줄번호와 벽시계뿐. "
-       f"모서리회절 후보를 만드는 자리가 회절 스위치 안에 있기 때문이다.",
+       f"«다 끔» 과 견주면 리듬 {_A['rhythm_share_pct']:.2f} → "
+       f"{_B['rhythm_share_pct']:.2f} %, 바닥 {_A['above_floor_db']:.1f} → "
+       f"{_B['above_floor_db']:.1f} dB 다. "
+       f"⚠**«소수점까지 같다» 로 적지 않는다** — 설정 꼬리표 {len(_SETUP)} 개는 "
+       f"{N_SETUP_SAME} 개가 같지만, **잰 값 {len(_MEAS)} 개 가운데 같은 것은 "
+       f"{N_MEAS_SAME} 개**이고 가장 큰 차는 {MEAS_GAP:.2f}"
+       f"({MEAS_GAP_KEY})다. 경로 수도 {_A.get('npaths_median'):,} ↔ "
+       f"{_B.get('npaths_median'):,}(차 {NPATH_GAP:,})로 갈린다 — 부동소수점 끝자리가 아니다. "
+       + (f"⛔게다가 원장은 이 쌍을 **주판정에 안 쓴다**고 적어 뒀다"
+          f"(함께 바뀐 조건: {' · '.join(PAIR_DIFFS)}). 그러므로 여기서 읽을 수 있는 것은 "
+          f"«모서리를 켜도 세 열이 크게 안 움직인다» 까지이고, «무동작이다» 로는 못 쓴다. "
+          if PAIR_DIRTY else "")
+       + f"모서리회절 후보를 만드는 자리가 회절 스위치 안에 있기 때문이다.",
        f"5. **굴절은 깎지만 죽이지 않는다** — 혼자 켜면 리듬 "
        f"{facc('R0D0E0F1')['rhythm_share_pct']:.1f} → "
        f"{facc('R1D0E0F1')['rhythm_share_pct']:.1f} %, 빗살 솟음 "
@@ -336,8 +392,10 @@ nb.cells = [
        f"{C['refraction + diffraction']['h1_peak_hz']:.1f} Hz** — 예측 "
        f"{M['f_flash_hz']:.1f} Hz 의 자리다. 위치가 아니라 **선명도**가 갈린다.",
        f"7. ⚠**사전등록 문턱 밖에 남은 것은 회절 켠 조합의 절대 레벨 하나다** — 깊이 "
-       f"1↔3 을 견준 {V['B_n_pairs_1to3']} 쌍 중 문턱 밖은 판 위({ang(EL)}) R1D1** "
-       f"{len(BF_LIVE)} 쌍(깊이 3 에서 세 열 전부 +{PL_LO:.1f}~+{PL_HI:.1f} dB)이고, "
+       #: ⛔2026-09-14(3) — 「판 위 … {len(BF_LIVE)} 쌍」은 모집단이 섞인 문장이었다.
+       f"1↔3 을 견준 {V['B_n_pairs_1to3']} 쌍 중 문턱 밖은 {len(BF_LIVE)} 쌍이고 "
+       f"그중 판 위({ang(EL)}) R1D1** 는 {len(BF_PLATE)} 쌍"
+       f"(깊이 3 에서 세 열 전부 +{PL_LO:.1f}~+{PL_HI:.1f} dB)이며, "
        f"그 +2 dB 의 기전은 아직 안 세워졌다. ⛔전 판이 여기 함께 적었던 «판 밖 −60° 의 "
        f"리듬 붕괴» 는 그 칸 자세 {OUT60['n_poses']:,} 개 중 하나가 만든 값이라 "
        f"**철회했다**(2026-08-16) — 아래 «깊이» 절.",
@@ -402,7 +460,9 @@ nb.cells = [
        f"스위치 조합이 여덟(2³)이 아니라 일곱인 이유: {M['excluded_ko']}",
        "",
        f"리듬 몫 · 상한 위 바닥 · 빗살 솟음 · 빠진 자세는 outputs/switch_factorial.json "
-       f"(cells, 앙각 {ang(EL)} · 깊이 1)에서, 1 차 선과 봉우리는 그림 네 장을 만든 "
+       #: ⛔2026-09-14(3) — 여기만 «깊이 1» 로 손으로 박혀 있었다. 표의 네 Sionna 행은
+       #  전부 깊이 CANON_DEPTH 팔이고 머리말도 그렇게 적는다.
+       f"(cells, 앙각 {ang(EL)} · 깊이 {CANON_DEPTH})에서, 1 차 선과 봉우리는 그림 네 장을 만든 "
        f"outputs/switch_grid.json 에서 읽었다. 리듬 몫의 눈금 — 백색 {WHITE:.1f} "
        f"(±{CTRL['white_share_pct_std']:.1f}, 뽑기 {CTRL['white_draws']} 회), 이상 로터 "
        f"{CTRL['ideal_comb_share_pct']:.0f}. 다섯 팔 전부 {OFF['n_poses']:,} 자세가 다 "
@@ -450,8 +510,14 @@ nb.cells = [
        f"{FL_LO:.1f}~{FL_HI:.1f} dB 오르고, 빗살 솟음은 0 dB(=백색)로 주저앉는다.",
        f"3. ✅**덮개 시험 — 켠 판이 끈 판을 품고 있느냐.** 켠 시계열을 «계수 a × 끈 "
        f"시계열 + 나머지» 로 갈라 보면 a 가 {A_LO:.2f}~{A_HI:.2f} 이고 위상 틀어짐은 "
-       f"많아야 {PH_HI:.1f}° 다. {V['A_n_pairs_plate']} 쌍 중 "
-       f"{N_UNIT} 쌍이 «a = 1» 을 3σ 안에서 담는다. 나머지의 전력은 두 판 전력의 차와 "
+       f"많아야 {PH_HI:.1f}° 다. 조건이 깨끗한 {len(PL)} 쌍 중 "
+       #: ⛔2026-09-14(3) — 원장이 그 자를 «3 배 척도» 라 부르고 「무상관 가정 위의
+       #  척도이지 검증된 신뢰구간이 아니다」(A_cover_scale_note_ko)라고 못 박아 뒀다.
+       #  앞 판은 그 단서를 빼고 σ(신뢰구간)로만 불렀다.
+       f"{N_UNIT} 쌍이 «a = 1» 을 **3 배 척도** 안에서 담는다"
+       + (f"(조건이 섞여 뺀 쌍 {len(PL_DIRTY)} 개는 여기 안 들어간다)" if PL_DIRTY else "")
+       + f". ⚠그 척도는 «{V.get('A_cover_scale_note_ko','')}» "
+       f"나머지의 전력은 두 판 전력의 차와 "
        f"{ORTH_GAP:.2f} dB 안에서 같다 — 원래 신호와 겹치지 않는 **새 항이 더해졌다**는 "
        f"뜻이다.",
        "",
@@ -487,8 +553,12 @@ nb.cells = [
        f"{Z0_OFF['rhythm_share_pct']:.1f} %(= 백색 {WHITE:.1f})다. 덮을 것이 이미 덮여 "
        f"있으니 회절이 더 얹어도 눈금이 안 움직인다.",
        "",
-       f"판 밖 빗각 {len(OBL)} 자리({OBL_LIST})"
-       f"에서는 회절이 바닥을 {OBL_LO:.1f}~{OBL_HI:.1f} dB 올리고 빗살 솟음을 0 dB 로 "
+       f"판 밖 빗각(|앙각| ≥ {OBL_MIN_DEG:g}°) {len(OBL)} 자리({OBL_LIST})"
+       + (f" — 그중 조건이 깨끗한 쌍은 {len(OBL_CLEAN)} 자리다" if OBL_CLEAN else "")
+       + (f". ⚠근-정면 칸 {len(OBL_NEAR)} 자리(|앙각| < {OBL_MIN_DEG:g}°)는 빗각이 아니라 "
+          "따로 둔다 — 앞 판은 그 칸을 섞어 범위의 양 끝이 거기서 나왔다" if OBL_NEAR else "")
+       + OBL_UNMEAS_KO
+       + f"에서는 회절이 바닥을 {OBL_LO:.1f}~{OBL_HI:.1f} dB 올리고 빗살 솟음을 0 dB 로 "
        f"눌러, 판 위에서 본 것과 같은 그림이 나온다. 다만 «계수 1» 이 3σ 안에 드는지는 "
        f"자리마다 다르다 — "
        + ("모든 빗각에서 든다." if not OBL_BAD else
@@ -513,8 +583,11 @@ nb.cells = [
        f"는 «얹는 축»**이다(a ≈ {LIFT_LO:.2f}~{LIFT_HI:.2f}) — 원래 반사를 남긴 채 위에 "
        f"새 항을 더한다.",
        "",
-       f"모서리 E 가 얹는 항은 크기가 0 이다 — 회절 D 가 꺼져 있으면 «모서리만» 은 "
-       f"«다 끔» 과 세 열이 소수점까지 같다. 확산 F 도 회절이 켜져 있으면 세기를 "
+       f"모서리 E 가 얹는 항은 작다 — 회절 D 가 꺼져 있으면 «모서리만» 과 «다 끔» 의 "
+       f"세 열이 {MEAS_GAP:.2f} 안에서 붙는다"
+       + ("(⛔다만 그 쌍은 원장이 주판정에 안 쓰는 쌍이다 — «무동작» 으로 못 읽는다)"
+          if PAIR_DIRTY else "")
+       + f". 확산 F 도 회절이 켜져 있으면 세기를 "
        f"0.1~0.4 dB 밖에 안 바꾸지만, 회절이 꺼져 있으면 **에코의 유무**를 가른다 — "
        f"빗각에서 살아 있는 유일한 경로원이다.",
        "",
@@ -528,14 +601,24 @@ nb.cells = [
        f"깊이 축 종결» 이었다. 실측은 견줄 수 있는 쌍이 {V['B_n_pairs_1to3']} 쌍"
        f"(판 위 {V['B_n_pairs_1to3_on_plate']} 쌍) + 두 판 모두 경로가 0 이라 견줄 것이 "
        f"없는 죽은 쌍 {V['B_n_dead_pairs']} 쌍이다. 이 원장(R13)은 {len(BF)} 쌍을 문턱 "
-       f"밖에 적었는데 그중 −60° 한 쌍은 뒤 원장이 **철회**했으므로(아래 2 번), 남는 "
+       #: ⛔2026-09-14(3) — 앞 판은 「7 쌍을 적었는데 −60° 한 쌍을 철회했으므로 남는 것은
+       #  7 쌍」이라 적어 **7 − 0 = 7 을 «철회했으므로» 로 이었다.** 철회는 이미 원장 쪽에
+       #  반영돼 B_failures 에 그 행이 없다. 있지도 않은 뺄셈을 광고하지 않는다.
+       f"밖에 적었다(−60° 쌍의 철회는 아래 2 번 — 그 철회가 이미 반영돼 이 목록에 없다). 남는 "
        f"것은 **{len(BF_LIVE)} 쌍**이다. 아래 1·2 번 값은 15 m · 자세 "
        f"{D60_1['n_poses']:,} 개 생값 · 광선 4×10⁹ 발 · PRF {FM['prf_hz']:,.0f} Hz · "
        f"빗살 반폭 ±{FM['comb_half_width_hz']:.0f} Hz 한 설정에서 잰 것이다(«자세를 뺀» "
        f"값은 가장 튄 자세 1 개 또는 8 개를 뺀 판이다).",
        "",
        f"1. **판 위({ang(EL)})** — R1D1** 칸 "
-       f"{len(BF_PLATE)} 개가 깊이 3 에서 세 열 전부 +{PL_LO:.1f}~+{PL_HI:.1f} dB 다. "
+       #: ⛔2026-09-14(3) — 앞 판은 개수를 **전량**(BF_LIVE)으로 적고 범위는 **판 위**
+       #  (BF_PLATE)에서만 재어, 「판 위 R1D1** 7 쌍(세 열 전부 +2.2~+2.4 dB)」처럼
+       #  서로 다른 모집단의 두 수를 한 문장에 넣었다. 같은 노트북의 «깊이» 절은 같은 것을
+       #  「칸 3 개」로 옳게 적어 한 문서가 두 말을 했다. ⇒ 둘을 갈라 적는다.
+       f"{len(BF_PLATE)} 개다(판 위 −30°). 그 {len(BF_PLATE)} 개는 깊이 3 에서 세 열 전부 "
+       f"+{PL_LO:.1f}~+{PL_HI:.1f} dB 이고, 판 밖까지 더한 {len(BF_LIVE)} 개의 폭은 "
+       f"+{min(b['max_abs_level_db'] for b in BF_LIVE):.2f}~"
+       f"+{max(b['max_abs_level_db'] for b in BF_LIVE):.2f} dB 다. "
        f"2 dB 밴드 바로 밖이다. 가장 튄 자세 1 개·8 개를 빼도 그대로이고, 그 팔의 재실행 "
        f"문턱(같은 물리를 두 이름으로 독립 재실행한 폭) {RERUN:.2f} dB 의 "
        f"{PL_LO / RERUN:.0f}~{PL_HI / RERUN:.0f} 배라 **차이 자체는 실재한다.** "
@@ -543,10 +626,15 @@ nb.cells = [
        f"것» 은 후보일 뿐이고, 깊이 3 에서 광선 사다리도 시드 복제도 아직 안 돌렸다. "
        f"물리인지 경로 표집의 부산물인지 이 원장으로는 못 가른다.",
        f"2. ⛔**판 밖(−60°) 은 반례가 아니었다 — 자세 하나다(2026-08-16 철회).** "
-       f"«세기는 {D60['d_ac_db']:+.2f} dB 로 같은데 상한 위 바닥만 "
-       f"{D60['d_above_floor_db']:+.1f} dB 오르고 리듬 몫이 "
-       f"{D60_1['rhythm_share_pct']:.1f} → {D60_3['rhythm_share_pct']:.1f} %"
-       f"(낙차 {abs(D60['d_rhythm_pp']):.2f} %p)로 무너진다» 는 그 칸 자세 "
+       + (f"«{R13_QUOTE}» " if R13_QUOTE else
+          (f"«세기는 {R13_OLD['max_abs_level_db']:+.2f} dB … 리듬 "
+           f"{R13_OLD['d_rhythm_pp']:+.2f} %p» " if R13_OLD else "그 주장은 "))
+       + (f"⭐이 수는 **철회를 기록한 원장**(`outputs/depth_axis_verdict_0816.json` : "
+          f"outlier_forensics.el60_case)에서 글자 그대로 가져온 것이다 — 지금 원장에서 "
+          f"같은 쌍을 다시 재면 세기 차 {D60['d_ac_db']:+.2f} dB · 바닥 차 "
+          f"{D60['d_above_floor_db']:+.2f} dB · 리듬 차 {D60['d_rhythm_pp']:+.2f} %p 로 "
+          f"**밴드 안**이다(판정 «{D60['verdict_ko']}»). ")
+       + f"철회의 근거는 그 칸 자세 "
        f"{OUT60['n_poses']:,} 개 중 **#{OUT60['culprit_pose_index']} 하나**가 만든 "
        f"값이다. 그 자세의 움직이는 성분 |AC| 는 중앙값의 "
        f"{OUT60['pose_over_median_dN']:.1f} 배인데 둘째 자세는 {P60_TOP2:.2f} 배뿐이고"
@@ -635,7 +723,7 @@ nb.cells = [
        f"것이다. 물을 것은 «Sionna 의 유전체 셸 투과가 우리 커널의 투과 규약과 왜 "
        f"다른가» 다.",
        f"4. ⚠**깊이 축 — 표준 팔은 닫혔고, 문턱 밖에는 회절 켠 조합의 레벨만 남았다.** "
-       f"문턱 밖은 판 위 R1D1** {len(BF_LIVE)} 쌍(세 열 전부 "
+       f"문턱 밖은 {len(BF_LIVE)} 쌍이고 그중 판 위 R1D1** 는 {len(BF_PLATE)} 쌍(세 열 전부 "
        f"+{PL_LO:.1f}~+{PL_HI:.1f} dB)뿐이고 "
        f"그 기전은 안 세워졌다. 표준 팔에서는 `--max-depth 3` 를 뺀다. ⛔전 판이 근거로 "
        f"든 «−60° 리듬 붕괴» 는 자세 하나의 튐이라 **철회했다**(2026-08-16) — 그 숫자를 "
