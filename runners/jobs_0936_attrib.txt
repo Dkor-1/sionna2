@@ -1,0 +1,49 @@
+# 0936 경로 출처 (2026-09-15) — ⭐**스펙트럼의 각 줄이 어디서 왔나**
+#
+# 사용자 결정(2026-09-15): 커널은 다른 논문으로 가고, 이 쪽은 **PathSolver 만으로** 간다.
+# ⭐그때 광선 추적기만이 가진 것이 **경로별 출처**다 — 실측은 「무엇이 돌아왔나」만 알지
+#   「무엇에 맞고 왔나」는 모른다. 우리는 그 장부를 갖고 있으면서 한 번도 안 열었다.
+#
+# 무엇이 되나 (2026-09-15 확인):
+#   · 생산 경로가 드론을 **부위마다 이름 붙은 별개 물체**로 올린다 —
+#     matrice4e_{accent,battery,body,camera,canopy,gear,motor,pcb,prop} 아홉.
+#   · PathSolver 의 `objects` 가 그 번호를 돌려준다. ⇒ 경로마다 부위 이름이 바로 붙는다.
+#   · 시험(자세 8 · 깊이 1 · 앙각 −30): 되돌아온 전력이 camera 66.6 % · motor 14.1 %.
+#     ⛔작은 한 칸이라 결론이 아니다 — 기계가 돈다는 증거다.
+#
+# 이 발주서가 사는 것: `--dump-paths 64` 로 **자세 64 개**의 경로 출처를 곁파일에 남긴다.
+#   ⛔샤드 형식·팔 이름은 안 바뀐다 — outputs/path_provenance/ 에 따로 쓴다.
+#     그래서 이 줄들은 **기존 칸을 다시 굽는 것**이고, 원장에는 새 행이 안 생긴다.
+#     ⇒ ⛔`--overwrite` 를 준다(같은 이름이라 안 주면 「건너뜀」이다).
+#   ⚠덮어쓰는 것이 걸리면 이 묶음만 따로 보관하면 되지만, 같은 설정·같은 씨앗이라
+#     E 는 같은 값이 나온다(같은 판 반복의 흔들림 0.00000 dB 를 어제 쟀다).
+#
+# 고른 칸 8 개 — 「무늬가 보이는 곳」과 「묻히는 곳」을 짝으로:
+#   빈 하늘 −30·−60 (무늬가 보이는 곳) · 실외 −30·−60 (묻히는 곳)
+#   지면만 −30·−60 · 건물만 −60 · 협곡 −60 (무엇이 묻는지 가르는 곳)
+# 16 줄 · 전부 깊이 2 또는 1 · 어림 24 일꾼시간.
+# ⛔el 0 안 산다(GATES_0902). ⛔뮌헨 안 산다. ⛔4번 GPU 보류.
+
+# ── 빈 하늘 — 무늬가 보이는 곳 ────────────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --dump-paths 64 --overwrite --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --dump-paths 64 --overwrite --shard 1 --nshards 2
+
+# ── 실외(온전한 장면) — 묻히는 곳 ─────────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01 --dump-paths 64 --overwrite --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01 --dump-paths 64 --overwrite --shard 1 --nshards 2
+
+# ── 지면만·건물만 — **무엇이 묻나** 를 가르는 곳 ───────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --dump-paths 64 --overwrite --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --dump-paths 64 --overwrite --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_bldg --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_bldg --dump-paths 64 --overwrite --shard 1 --nshards 2
+
+# ── 협곡(솔버가 주는 장면) — 덱 9 쪽이 쓰는 그 장면 ────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna-simple_street_canyon --dump-paths 64 --overwrite --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna-simple_street_canyon --dump-paths 64 --overwrite --shard 1 --nshards 2

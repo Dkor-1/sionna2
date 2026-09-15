@@ -798,6 +798,13 @@ def run(a) -> None:
         #  도장으로 비교」). 2.1.0 부터 생성자가 `deterministic` 을 받는다(2.0.1 에는 없었다).
         #  ⛔기본은 끔이다 — 지금까지의 모든 자료가 그 모드이고, 켜면 **다른 결과 집합**이 된다.
         #  ⛔이 인자는 우리 `--det`(합산 순서 정렬)와 **다른 것**이다. 그쪽은 솔버에 안 닿는다.
+        #: ⭐경로 출처를 남길 자세 — 이 조각이 맡은 자세 중에서 **고르게** 뽑는다.
+        _ndump = int(getattr(a, "dump_paths", 0) or 0)
+        _dump_at = set()
+        if _ndump > 0:
+            _sel = np.linspace(0, idx.size - 1, min(_ndump, idx.size)).round().astype(int)
+            _dump_at = {int(x) for x in _sel}
+        _prov = []
         _detmode = bool(getattr(a, "solver_deterministic", False))
         if _detmode:
             #: ⭐⭐**굽기 전에 메모리를 미리 잰다** (2026-09-15 · 실제로 터진 뒤에 넣었다).
@@ -950,6 +957,20 @@ def run(a) -> None:
                 aa, tau, _, O = RP.unpack(p, want_doppler=False)
             except ValueError:
                 aa = np.zeros(0)
+            #: ⭐경로 출처를 남긴다(고른 자세만). ⛔예외가 나도 굽기를 멈추지 않는다 —
+            #  이것은 **덤**이고, 이것 때문에 칸을 잃으면 안 된다.
+            if j in _dump_at and aa.size:
+                try:
+                    _pr = np.asarray(p.primitives)[:, 0, 0, :]
+                except Exception:                              # noqa: BLE001
+                    _pr = np.zeros_like(O)
+                try:
+                    _prov.append(dict(
+                        pose=int(i), slot=int(j),
+                        a=aa.astype(np.complex64), tau=tau.astype(np.float64),
+                        obj=np.asarray(O, np.int32), prim=np.asarray(_pr, np.int32)))
+                except Exception:                              # noqa: BLE001
+                    pass
             if aa.size:
                 hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)
                 _t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])
@@ -1041,6 +1062,41 @@ def run(a) -> None:
                                           #  옛 샤드는 이 자리가 **없다** — 읽는 쪽은 길이로 가른다.
                                           float(bool(getattr(a, "solver_deterministic",
                                                              False)))]))
+        #: ⭐경로 출처 곁파일 — ⛔샤드가 아니라 **따로** 쓴다(샤드 형식은 판독기 여럿이 기댄다).
+        if _prov:
+            try:
+                _pd = os.path.join(ROOT, "outputs", "path_provenance")
+                os.makedirs(_pd, exist_ok=True)
+                #: 물체 번호 ↔ 이름 — 이것이 있어야 나중에 «부위» 로 읽힌다.
+                _names = [str(nm) for nm in sc.objects.keys()]
+                _pf = os.path.join(_pd, os.path.basename(f).replace(".npz", "_prov.npz"))
+                #: ⛔`np.savez_compressed` 는 이름이 `.npz` 로 안 끝나면 **덧붙인다** —
+                #  임시 이름을 `…tmp` 로 두면 실제 파일은 `…tmp.npz` 가 되어 os.replace 가
+                #  없는 파일을 찾는다(2026-09-15 실측). 임시 이름도 `.npz` 로 끝낸다.
+                _tmpf = _pf + f".{os.getpid()}.tmp.npz"
+                np.savez_compressed(
+                    _tmpf,
+                    object_names=np.array(_names),
+                    pose=np.array([r["pose"] for r in _prov], np.int64),
+                    slot=np.array([r["slot"] for r in _prov], np.int64),
+                    n_paths=np.array([r["a"].size for r in _prov], np.int64),
+                    #: 자세마다 경로 수가 달라 **이어 붙이고** 경계를 따로 적는다
+                    a=np.concatenate([r["a"] for r in _prov]),
+                    tau=np.concatenate([r["tau"] for r in _prov]),
+                    obj=np.concatenate([r["obj"] for r in _prov], axis=1),
+                    prim=np.concatenate([r["prim"] for r in _prov], axis=1),
+                    arm=np.array(os.path.basename(f).rsplit("_el", 1)[0]),
+                    el_deg=np.array([float(el)]),
+                    note_ko=np.array(
+                        "경로마다 «어느 물체·어느 삼각형에 맞았나». obj/prim 은 [깊이, 경로] 이고 "
+                        "경로 축은 자세 순서로 이어 붙였다(경계는 n_paths 의 누적합). "
+                        "object_names 의 번호가 obj 값이다 — 드론은 부위마다 별개 물체다."),
+                    **bake_stamp(t0))
+                os.replace(_tmpf, _pf)
+                print(f"  ⭐경로 출처 {len(_prov)} 자세 → {os.path.relpath(_pf, ROOT)}", flush=True)
+            except Exception as _e:                            # noqa: BLE001
+                print(f"  ⚠경로 출처를 못 남겼다({type(_e).__name__}: {_e}) — 굽기는 정상이다",
+                      flush=True)
         print(f"  ✅ sionna el{el:+g} sh{a.shard} · {idx.size} 자세 · "
               f"{(time.time()-t0)/60:.1f}분", flush=True)
 
@@ -2217,6 +2273,13 @@ def main() -> None:
     ap.add_argument("--no-inmem", dest="inmem", action="store_false",
                     help="⛔옛 길 — 자세마다 정점을 텍스트 OBJ 로 썼다가 되읽는다"
                          "(자세당 62 ms). 회귀 대조용으로만 쓴다.")
+    ap.add_argument("--dump-paths", type=int, default=0, metavar="N",
+                    help="⭐**경로마다 «어디에 맞았나» 를 남긴다** — 자세 N 개만(고르게 뽑는다). "
+                         "장면이 부위마다 이름 붙은 별개 물체라(matrice4e_prop · _body · _camera …) "
+                         "경로의 `objects` 가 곧 **부위 이름**이다. `primitives`(삼각형)도 함께 남긴다. "
+                         "⛔샤드 형식은 안 건드린다 — outputs/path_provenance/ 에 **곁파일**로 쓴다. "
+                         "⛔팔 이름도 안 바꾼다(같은 칸의 덤이지 다른 조건이 아니다). "
+                         "⚠자세 전부를 남기면 너무 크다 — 64 쯤이면 한 칸에 수십 MB 다.")
     ap.add_argument("--solver-deterministic", dest="solver_deterministic",
                     action="store_true",
                     help="⭐**솔버의 결정 모드를 켠다**(sionna-rt 2.1.0 부터). "
