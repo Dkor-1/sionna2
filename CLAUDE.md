@@ -2,6 +2,25 @@
 
 > ⭐**If you are new here, start with [`docs/HANDOVER_MAP.md`](docs/HANDOVER_MAP.md).** It lays out on one page which document holds which convention, how the queue runs, and what to do every day.
 
+## Language Policy
+
+* Perform all analysis, planning, implementation, debugging, and intermediate work in English.
+* Use English for source code, code comments, variable and function names, filenames, commit-style notes, technical notes, and intermediate artifacts unless the existing project conventions explicitly require otherwise.
+* Follow the existing directory structure, naming conventions, and project organization. Do not introduce new directory structures unnecessarily.
+* Write the final report and any designated final deliverables in Korean.
+* In Korean reports, preserve important technical terms in English when doing so improves technical precision. When appropriate, introduce a term in the form `Korean term (English term)`.
+
+## Working Principles
+
+* Inspect the existing project structure and relevant files before making changes.
+* Prefer modifying existing files and conventions over introducing new abstractions, files, or dependencies.
+* Do not modify unrelated files.
+* Do not delete or overwrite existing results, datasets, configurations, or reports unless explicitly required.
+* Keep intermediate outputs separate from final deliverables whenever the project structure provides dedicated directories for them.
+* Ensure that the final report reflects the actual implementation, experiments, and results. Do not claim results that were not produced or verified.
+* Clearly distinguish measured results, computed results, assumptions, and interpretations in the final report.
+* When information is uncertain or incomplete, state the limitation explicitly rather than guessing.
+
 ## ⭐⭐Claim gate — no exceptions
 
 Before putting a number or claim on a slide · report · briefing, pass it through **[`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md)**.
@@ -103,8 +122,8 @@ if only presentations use it, send it to `/workspace/team_meeting/`.
   ⭐This is the parent convention of 「덱에 우리끼리 쓰는 말 금지」 [No insider words in decks] — it applies not only to decks but **everywhere**
 - Because footnotes point to ledger rows with `rows[N]`, they shift when the ledger grows — check with `benchmark/check_row_pointers.py`, and if they are off, **rerun the piece builders**
 
-## Language and experiment preferences
+## Experiment preferences
 
-See [AGENTS.md](AGENTS.md) for the user's 2026-09-15 language preference and current
-ISAC hardware scope: English progress/internal artifacts, Korean final responses
-and reports; one X410 as the main platform with a Wi-Fi/LTE/5G NR benchmark.
+Language rules are in «Language Policy» at the top of this file (user, 2026-09-16; it replaces the
+2026-09-15 language preference). See [AGENTS.md](AGENTS.md) for the current ISAC hardware scope and
+engine roles: one X410 as the main platform with a Wi-Fi/LTE/5G NR benchmark.
