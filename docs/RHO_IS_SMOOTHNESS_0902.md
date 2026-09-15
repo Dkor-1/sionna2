@@ -1,159 +1,159 @@
-# ρ 는 «리듬» 이 아니라 «매끄러움» 을 잰다 (2026-09-02)
+# ρ measures «smoothness», not «rhythm» (2026-09-02)
 
-## 무엇이 문제인가
+## What the problem is
 
-`benchmark/outdoor_scene_0901.py:rho` — 포락 자기상관(1 지연) — 은 **레포트 12 의 정본 잣대**이고
-거기 눈금은 「잡음 −0.06~+0.07 · 박자 +0.92~+0.99」로 적혀 있다.
+`benchmark/outdoor_scene_0901.py:rho` — the envelope autocorrelation (lag 1) — is **report 12's canonical yardstick**, and
+its scale there is written as 「잡음 −0.06~+0.07 · 박자 +0.92~+0.99」 [noise −0.06~+0.07 · beat +0.92~+0.99].
 
-⛔**그 눈금은 «매끄러움»과 «백색»을 가를 뿐, «리듬»과 «무리듬»을 가르지 않는다.**
-진동이 **전혀 없는** 신호들이 「박자」 칸에 들어간다(2026-09-02 독립 재계산, N=8192):
+⛔**That scale separates only «smooth» from «white»; it does not separate «rhythm» from «no rhythm».**
+Signals with **no oscillation at all** land in the 「박자」 [beat] cell (independent recomputation 2026-09-02, N=8192):
 
-| 신호 | ρ |
+| Signal | ρ |
 |---|---|
-| 직선 기울기 | **0.9996** |
-| 2 차 추세 | **0.9996** |
-| 한가운데 계단 하나 | **0.9996** |
-| AR(1) 붉은잡음 φ=0.99 | **0.9748** |
-| 띠제한 잡음(순음 없음) | **0.9975** |
-| 백색잡음(대조) | −0.0289 |
+| Straight-line slope | **0.9996** |
+| 2nd-order trend | **0.9996** |
+| A single step in the middle | **0.9996** |
+| AR(1) red noise φ=0.99 | **0.9748** |
+| Band-limited noise (no pure tone) | **0.9975** |
+| White noise (control) | −0.0289 |
 
-반대 방향으로도 샌다: **진짜 플래시 열**이 126.7 Hz 에서 0.9986 인데 4 kHz 에서 0.2410,
-9 kHz 에서 **−0.8872** 다. 빠른 리듬은 ρ 가 **못 본다.**
+It leaks in the opposite direction too: **a real flash train** gives 0.9986 at 126.7 Hz but 0.2410 at 4 kHz and
+**−0.8872** at 9 kHz. ρ **cannot see** fast rhythm.
 
-## 실제로 무엇을 잘못 읽었나
+## What was actually misread
 
-2026-09-02 실외 환경메쉬 판정에서 **40 칸 중 12 칸이 ρ 의 거짓음성**이었다.
-독립 검출기(f_flash = 126.7 Hz 빗살 하모닉 SNR, 백색잡음 2,000 판 영분포:
-중앙 8.2 · p95 12.5 · p99 15.2 ⛔(아래 「먼저 내 실수」에서 철회한 값이다 — 이 구현의 정본 바닥은 p99 ≈ 8.4 · 2,000 판 최대 9.6) · 최대 25.2)로 다시 보면:
+In the 2026-09-02 verdict on the outdoor environment mesh, **12 of 40 cells were ρ false negatives**.
+Looking again with an independent detector (harmonic SNR of the comb at f_flash = 126.7 Hz, null distribution from 2,000 white-noise runs:
+median 8.2 · p95 12.5 · p99 15.2 ⛔(values withdrawn below in 「First, my own mistake」 — this implementation's canonical floor is p99 ≈ 8.4 · maximum over 2,000 runs 9.6) · maximum 25.2):
 
-| 칸 | ρ(수리 뒤) | 빗살 SNR | 판정 |
+| Cell | ρ (after repair) | Comb SNR | Verdict |
 |---|---|---|---|
-| diffraction / 실외 / −45° | 0.070 | **114.5** | 박자 있다 (p<0.0005) |
-| diffraction / 실외 / −75° | 0.055 | **127.3** | 박자 있다 |
-| both / 실외 / −30° | 0.047 | **59.1** | 박자 있다 |
-| all off / 실외 / −60° | 0.041 | **121.3** (2 배음 253 Hz) | 박자 있다 |
-| all off / 실외 / **+0°** | −0.004 | **2.4** (p=0.14) | ⭐**정말로 빗살이 없다** |
+| diffraction / outdoor / −45° | 0.070 | **114.5** | beat present (p<0.0005) |
+| diffraction / outdoor / −75° | 0.055 | **127.3** | beat present |
+| both / outdoor / −30° | 0.047 | **59.1** | beat present |
+| all off / outdoor / −60° | 0.041 | **121.3** (2nd harmonic 253 Hz) | beat present |
+| all off / outdoor / **+0°** | −0.004 | **2.4** (p=0.14) | ⭐**there really is no comb** |
 
-기작: 거짓음성 칸은 **변동의 74~80 % 가 2 kHz 위**에 있다. 1 지연 통계가 그것에 눌려 0 이 되고,
-127~634 Hz 에 있는 (변동의 ~20 % 를 지는) 빗살을 못 본다.
+Mechanism: in the false-negative cells, **74~80 % of the variation lies above 2 kHz**. The lag-1 statistic is pressed down to 0 by it
+and cannot see the comb at 127~634 Hz (which carries ~20 % of the variation).
 
-⇒ ⛔「회절 팔은 실외에서 박자가 죽는다」 · 「−60° 가 이웃과 다르다」 는 **ρ 에 대한 진술이지
-   기록에 대한 진술이 아니었다.** ⭐**0° 만 살아남는다** — 거기는 독립 검출기로도 빗살이 없다.
+⇒ ⛔「회절 팔은 실외에서 박자가 죽는다」 [the diffraction arm loses the beat outdoors] · 「−60° 가 이웃과 다르다」 [−60° differs from its neighbours] were **statements about ρ,
+   not statements about the records.** ⭐**Only 0° survives** — there, the independent detector also finds no comb.
 
-## 낙차 수리의 잣대도 틀렸다
+## The yardstick for drop repair was wrong too
 
-「자세의 몇 % 를 건드렸나」로 수리의 과격함을 쟀는데, 옳은 잣대는 **변동(분산) 몫**이다:
+The aggressiveness of the repair was measured as 「자세의 몇 % 를 건드렸나」 [what % of poses were touched], but the right yardstick is **the share of variation (variance)**:
 
-| | 자세 몫 | **변동 몫** |
+| | Share of poses | **Share of variation** |
 |---|---|---|
-| all off / 실외 / −30° (74 자세) | 0.90 % | **99.09 %** |
-| all off / 자유 / −30° (2,954 자세) | 36.06 % | **36.92 %** |
+| all off / outdoor / −30° (74 poses) | 0.90 % | **99.09 %** |
+| all off / free / −30° (2,954 poses) | 36.06 % | **36.92 %** |
 
-⇒ **실외 수리가 더 과격하다.** 「1 % 만 건드렸으니 안전」은 성립하지 않는다.
-   실외 수리가 정당한 근거는 **독립 검출기가 남은 것을 확인해 주기 때문**이지 자세 수가 적어서가 아니다.
+⇒ **The outdoor repair is more aggressive.** 「1 % 만 건드렸으니 안전」 [only 1 % was touched, so it is safe] does not hold.
+   What justifies the outdoor repair is **that the independent detector confirms what remains**, not that few poses were touched.
 
-⭐그래도 (B) 의 결론(자유공간 수리는 못 쓴다)은 선다 — 자유공간에서 **낙차 지표 자체가 리듬**이다
-(all off / 자유 / −30° 의 낙차 지표는 f_flash 선 대 배경이 119.7 이고 중앙 간격이 1 자세다).
-거기서 «수리» 는 신호를 지운다.
+⭐Still, the conclusion of (B) (the free-space repair cannot be used) stands — in free space **the drop indicator itself is the rhythm**
+(for all off / free / −30°, the drop indicator's f_flash line against background is 119.7 and its median spacing is 1 pose).
+There, «repair» erases the signal.
 
-## 살아남은 것
+## What survived
 
-⭐**보간이 ρ 를 부풀린다는 의심은 기각됐다** — 실제 낙차 마스크를 «리듬 없는» 신호에 옮겨 심어
-   보간이 무에서 만들어 내는 ρ 를 쟀다:
+⭐**The suspicion that interpolation inflates ρ was rejected** — the real drop masks were transplanted onto «rhythm-free» signals
+   to measure the ρ that interpolation creates from nothing:
 
-| 마스크 | 만들어진 ρ |
+| Mask | ρ created |
 |---|---|
-| 실외 (0.9~1.0 %, 최대 연속 2) | **−0.011 ~ +0.020** |
-| 자유 −30° (36.1 %, 최대 연속 34) | +0.205 ~ +0.368 |
-| 자유 −60° (41.7 %, 최대 연속 78) | +0.205 ~ +0.392 |
+| Outdoor (0.9~1.0 %, longest run 2) | **−0.011 ~ +0.020** |
+| Free −30° (36.1 %, longest run 34) | +0.205 ~ +0.368 |
+| Free −60° (41.7 %, longest run 78) | +0.205 ~ +0.392 |
 
-⇒ 실외의 0.005 → 0.974 는 **보간 인공물이 아니다.** 자유공간 수리값 0.757~0.983 중
-   **+0.32~+0.39 은 보간이 만든 것**이다.
+⇒ The outdoor 0.005 → 0.974 **is not an interpolation artefact.** Of the free-space repaired values 0.757~0.983,
+   **+0.32~+0.39 was created by interpolation**.
 
-## 앞으로
+## Going forward
 
-⛔**ρ 하나로 「박자가 있다/없다」를 말하지 않는다.** 최소한 **빗살 하모닉 SNR** 을 함께 낸다.
-⭐ρ 를 쓸 때는 **100 Hz 고역통과 뒤에도 값이 남는지** 확인한다(매끄러운 추세 거짓양성 배제).
-   이번 표의 0.9+ 칸들은 이 시험을 통과했다(고역통과 뒤 0.79~0.99) — 거짓양성은 실제로 없었다.
+⛔**Do not say 「박자가 있다/없다」 [the beat is present/absent] from ρ alone.** At minimum, also report the **comb harmonic SNR**.
+⭐When using ρ, check **whether the value remains after a 100 Hz high-pass** (to rule out smooth-trend false positives).
+   The 0.9+ cells in this table passed that test (0.79~0.99 after high-pass) — there were in fact no false positives.
 
-⚠**레포트 12 의 눈금 문장을 고쳐야 한다** — 「잡음 −0.06~+0.07 · 박자 +0.92~+0.99」는
-   ρ 가 리듬 검출기라는 인상을 준다.
+⚠**The scale sentence in report 12 must be fixed** — 「잡음 −0.06~+0.07 · 박자 +0.92~+0.99」 [noise −0.06~+0.07 · beat +0.92~+0.99] gives the impression
+   that ρ is a rhythm detector.
 
 ---
 
-# 빗살 SNR 로 다시 낸 판정 (2026-09-02 밤)
+# Verdicts redone with comb SNR (night of 2026-09-02)
 
-## ⛔먼저 내 실수 — 남의 영분포를 내 검출기에 썼다
+## ⛔First, my own mistake — I used someone else's null distribution for my detector
 
-「중앙 8.2 · p95 12.5 · p99 15.2 ⛔(아래 「먼저 내 실수」에서 철회한 값이다 — 이 구현의 정본 바닥은 p99 ≈ 8.4 · 2,000 판 최대 9.6)」는 **검증 에이전트가 자기 구현으로 낸** 값인데,
-내가 `benchmark/comb_snr.py` 에 그대로 갖다 썼다. 백색잡음 2,000 판으로 **이 구현의**
-영분포를 다시 잡았다:
+「중앙 8.2 · p95 12.5 · p99 15.2 ⛔(아래 「먼저 내 실수」에서 철회한 값이다 — 이 구현의 정본 바닥은 p99 ≈ 8.4 · 2,000 판 최대 9.6)」 [median 8.2 · p95 12.5 · p99 15.2 (values withdrawn in this section — this implementation's canonical floor is p99 ≈ 8.4 · maximum over 2,000 runs 9.6)] are values **the verification agent produced with its own implementation**,
+and I copied them as is into `benchmark/comb_snr.py`. The null distribution **of this implementation** was re-established
+with 2,000 white-noise runs:
 
-| 앙각 | 중앙 | p95 | p99 | p99.9 | 최대 |
+| Elevation | Median | p95 | p99 | p99.9 | Max |
 |---|---|---|---|---|---|
 | 0° | 6.03 | 7.49 | **8.19** | 8.81 | 8.91 |
 | −30° | 6.09 | 7.73 | **8.40** | 9.01 | 9.07 |
 | −60° | 6.10 | 7.82 | **8.61** | 9.33 | 9.57 |
 
-⇒ **바닥은 p99 ≈ 8.4, 2,000 판 최대 9.6** 이다. 앞으로 이 값을 쓴다.
+⇒ **The floor is p99 ≈ 8.4, maximum over 2,000 runs 9.6**. Use these values from now on.
 
-## ⭐거짓양성 대조군 — 통과
+## ⭐False-positive control — passed
 
-리듬이 **없다는 것이 증명된** 기록(동체만, 폭이 정확히 0.0000 %)에 먼저 걸었다:
+It was first applied to a record **proven to have no rhythm** (body only, width exactly 0.0000 %):
 
-| 기록 | 폭 % | 빗살 SNR | |
+| Record | Width % | Comb SNR | |
 |---|---|---|---|
-| **동체만** `partsnoprop` el 0 | **0.0000** | **5.1** | ✅바닥 — 거짓양성 없음 |
-| 전체 드론 el 0 | 33.35 | 4.9 | 안 보인다 |
-| **프로펠러만** el 0 | 239.88 | **51.9** | ⭐날개는 확실히 있다 |
-| 전체 드론 el −30 | 264.14 | 60.1 | 있다 |
+| **Body only** `partsnoprop` el 0 | **0.0000** | **5.1** | ✅floor — no false positive |
+| Whole drone el 0 | 33.35 | 4.9 | not visible |
+| **Propeller only** el 0 | 239.88 | **51.9** | ⭐the blades are definitely there |
+| Whole drone el −30 | 264.14 | 60.1 | present |
 
-⇒ 0° 는 **익사**다 — 날개는 변조하는데(51.9) 동체가 덮어 전체 드론에선 안 보인다(4.9).
-⛔`partsprop`/`partsnoprop` 은 **깊이 1 · 옛 메쉬**다. 슬라이드에 올릴 때 그렇게 적는다.
+⇒ 0° is **drowning** — the blades modulate (51.9), but the body covers them so they are not visible on the whole drone (4.9).
+⛔`partsprop`/`partsnoprop` are **depth 1 · old mesh**. Say so when putting them on a slide.
 
-## ⭐⭐실외 — 솔버 인공물이 빗살을 가리고 있었다
+## ⭐⭐Outdoor — a solver artefact was hiding the comb
 
-실외 원본은 어느 팔·어느 앙각에서도 바닥이다(2.5~12.7). 그런데 **깊은 낙차 자세
-(= 지면 반사 경로가 해시 통에서 빠진 자세, [`DEEP_DROP_0902.md`](DEEP_DROP_0902.md))**
-를 메우면 올라온다:
+The raw outdoor records are at the floor in every arm and every elevation (2.5~12.7). But filling in the **deep-drop poses
+(= poses where the ground-reflection path fell out of the hash bucket, [`DEEP_DROP_0902.md`](DEEP_DROP_0902.md))**
+brings it up:
 
-| 팔 | 앙각 | 낙차 | 원본 | **인공물 뺀 뒤** | 무작위 대조(5 씨앗) |
+| Arm | Elevation | Drops | Raw | **After removing the artefact** | Random control (5 seeds) |
 |---|---|---|---|---|---|
-| 다 끔 | −15° | 60 | 5.8 | **47.3** | 5.9 ± 0.2 |
+| All off | −15° | 60 | 5.8 | **47.3** | 5.9 ± 0.2 |
 | | −30° | 74 | 4.3 | **59.7** | 4.4 ± 0.3 |
 | | −45° | 83 | 6.7 | **58.0** | 6.6 ± 0.2 |
 | | −60° | 84 | 2.5 | **16.5** | 2.6 ± 0.3 |
 | | −75° | 82 | 7.0 | **66.4** | 7.1 ± 0.1 |
-| 굴절만 | −15° | 33 | 6.7 | **34.2** | |
+| Refraction only | −15° | 33 | 6.7 | **34.2** | |
 | | −30° | 35 | 4.9 | **45.7** | |
 | | −45° | 46 | 6.1 | **43.2** | |
 | | −60° | 59 | 3.5 | **15.7** | |
 | | −75° | 31 | 3.8 | **47.7** | |
 
-⭐**무작위 자세를 같은 개수만큼 메우면 안 오른다**(2.6~7.1). 보간 인공물이 아니다.
-⇒ **실외에서도 날개 빗살은 있다. 솔버 인공물이 가리고 있었다.**
-기작: 인공물 자세는 임펄스라 **광대역 바닥을 올려** 빗살 검출기의 분모를 키운다.
+⭐**Filling the same number of random poses does not raise it** (2.6~7.1). It is not an interpolation artefact.
+⇒ **The blade comb is present outdoors too. A solver artefact was hiding it.**
+Mechanism: the artefact poses are impulses, so they **raise the broadband floor** and enlarge the comb detector's denominator.
 
-⚠**이것은 아침의 ρ 함정과 다르다** — 이 검출기는 평균을 빼므로 되살아난 지면 반송파가
-도움을 못 주고, **무작위 대조군이 통과**했다.
+⚠**This differs from the morning's ρ trap** — this detector subtracts the mean, so the revived ground carrier
+cannot help it, and **the random control passed**.
 
-⛔**el 0° 는 여전히 바닥**이다(4.4 → 4.4, 낙차 0 개). 0° 는 인공물 문제가 아니라 **동체 익사**다.
+⛔**el 0° is still at the floor** (4.4 → 4.4, 0 drops). 0° is not an artefact problem but **the body drowning the blades**.
 
-## ⛔`benchmark/comb_snr.py` 수정 (2026-09-02)
+## ⛔Fix to `benchmark/comb_snr.py` (2026-09-02)
 
-`f_tip(el) = FTIP0 · cos(el)` 에 **반송파 항이 없었다.** 날개 끝 도플러는
-`2 v_tip / λ = 2 v_tip · fc / c` 라 반송파에 비례한다. `--fc-ghz` 판(5.8/10/24 GHz)을
-그대로 읽으면 대역이 최대 **6.86 배** 어긋나 **전 칸이 「빗살 안 보임」으로 거짓 판정**된다.
-팔 이름의 `_fc<MHz>` 를 읽어 곱하도록 고쳤다.
+`f_tip(el) = FTIP0 · cos(el)` **had no carrier term.** The blade-tip Doppler is
+`2 v_tip / λ = 2 v_tip · fc / c`, so it is proportional to the carrier. Reading the `--fc-ghz` runs (5.8/10/24 GHz)
+as they were puts the band off by up to **6.86×**, and **every cell is falsely judged 「빗살 안 보임」 [comb not visible]**.
+Fixed to read `_fc<MHz>` from the arm name and multiply.
 
-## ⚠레포트 12 를 고쳐야 한다
+## ⚠Report 12 must be fixed
 
-`reports/12_outdoor-scene.ipynb` 에 ρ 인용이 **42 줄** 있다. 특히:
-- 「버리기만 해도 실외 ρ 는 +0.973 · +0.976」 ⛔ — 그것은 **되살아난 지면 반송파의
-  매끄러움**을 읽은 값이다.
-- 실외 판정 전체를 위 빗살 SNR 표로 갈아야 한다.
-⭐그리고 그 절이 말하던 「실외에서 오른 +53.6 dB 정지 성분」의 정체가
-**지면 거울 반사**임이 밝혀졌다(ε_r = 5.26 ≈ ITU 콘크리트 5.24).
+`reports/12_outdoor-scene.ipynb` has **42 lines** citing ρ. In particular:
+- 「버리기만 해도 실외 ρ 는 +0.973 · +0.976」 [just discarding them makes outdoor ρ +0.973 · +0.976] ⛔ — that value reads **the smoothness of the revived ground
+  carrier**.
+- The whole outdoor verdict must be replaced with the comb SNR table above.
+⭐And the identity of 「실외에서 오른 +53.6 dB 정지 성분」 [the +53.6 dB static component that rose outdoors] that the section spoke of turned out to be
+**the ground mirror reflection** (ε_r = 5.26 ≈ ITU concrete 5.24).
 
-⛔다른 리포트의 `ρ` 는 **뜻이 다르다** — `08_2` 기준채널 SNR · `08` 백색도 자기상관 ·
-`02_2` 곡률반경 · `01_2` 복소 산란계수. 건드리지 않는다.
+⛔`ρ` in other reports **means something different** — `08_2` reference-channel SNR · `08` whiteness autocorrelation ·
+`02_2` radius of curvature · `01_2` complex scattering coefficient. Do not touch them.
