@@ -69,6 +69,8 @@ POLL_S = 30
 
 RAM_FLOOR_GB = float(os.environ.get("SIONNA2_RAM_FLOOR_GB", "4"))
 # ⭐우리 천장이 **24 GiB** 다. 60 은 천장보다 커서 «영구 정지» 지뢰였다.
+# NOTE 2026-09-15: `_reclaimable_bytes()` now subtracts all droppable page cache
+#   (file - shmem - file_mapped), not inactive_file only; the floor value itself is unchanged.
 # ⭐**6 → 4 로 낮춤(2026-09-02 사용자 승인).** `ram_free_gb()` 가 보수적으로
 #   `inactive_file` 만 빼기 때문에 **`active_file` 을 «쓰는 중» 으로 센다.**
 #   실측(2026-09-02 15:36): cgroup 19.5/24 GiB 중 파일 캐시 13.6(active 11.9 +
@@ -375,17 +377,30 @@ def _reclaimable_bytes() -> int:
     ⛔이걸 안 빼면 캐시가 찰수록 여유가 0 으로 수렴해 감독자가 **영구 정지**한다
       (2026-09-02 에 실제로 2.5 시간 멈췄다 — anon 1.38 GiB 인데 여유를 3.5 GiB 로 읽었다).
 
-    ⚠보수적으로 **inactive_file 만** 뺀다. active_file 은 최근에 쓰인 캐시라 회수하면
-      느려질 수 있고, 여기서 한 번에 다 빼면 브레이크가 헐거워진다.
+    Change 2026-09-15 (user asked to apply the recommended fix): count ALL page cache that the
+    kernel can drop, i.e. `file - shmem - file_mapped`, instead of `inactive_file` only.
+    - Why: the inactive-only rule reproduced the 09-02 stall. Live reading on 09-15:
+      cap 24.00 GiB, current 23.30, anon 5.01, kernel 1.97, file 16.32 (active 13.89,
+      inactive 2.32), shmem 0.11, file_mapped 0.44. Old estimate 3.02 GiB free -> below the
+      4 GiB floor -> no launches, although real non-reclaimable use was about 7.5 GiB.
+      New estimate 16.47 GiB free.
+    - Safety: active page cache is reclaimed under pressure just like inactive cache; dropping
+      it can cost re-reads (speed), not an out-of-memory kill. What cannot be dropped is kept
+      as "used": anon, kernel, shmem (tmpfs/shared memory is inside `file`) and mapped file
+      pages. The 4 GiB floor, the per-card caps and HARD_TOTAL are unchanged.
+    - Fallback: if any of those keys is missing, return inactive_file only (the old,
+      conservative rule), and 0 if even that fails.
     """
+    st = {}
     try:
         for ln in open("/sys/fs/cgroup/memory.stat"):
             k, v = ln.split()
-            if k == "inactive_file":
-                return int(v)
-    except Exception:
-        pass
-    return 0
+            st[k] = int(v)
+    except Exception:                                          # noqa: BLE001
+        return 0
+    if all(k in st for k in ("file", "shmem", "file_mapped")):
+        return max(0, st["file"] - st["shmem"] - st["file_mapped"])
+    return int(st.get("inactive_file", 0))
 
 
 def ram_free_gb() -> float:
