@@ -10,6 +10,10 @@ Purpose
     windows, drone height variants, directional-antenna pairs (with the queued antenna cells read from the
     job files, never executed), clutter-limited margins, the street-canyon solver-build change and a code
     check that every cell is a hovering drone. Also writes a spectra npz next to the JSON.
+    Section "dropout": per row, the isolated outlier poses of the merged field (|E - complex median E| above a
+    multiple of its median), their share of the pose-varying power, the comb contrast after replacing them with
+    the complex median against a random-pose control, their index structure and blade-phase concentration, their
+    overlap across repeat runs and across solver builds, and the same count on E_dedup where the shards carry it.
 
 Run
     CUDA_VISIBLE_DEVICES="" /workspace/.venvs/py312/bin/python benchmark/isac_plan_corpus_0915.py
@@ -21,7 +25,7 @@ Run
 
 Runtime
     Seconds to a few minutes on one CPU core, depending on the file cache (opens only the production, repeat
-    and ray-ladder shards, about 420 files).
+    and ray-ladder shards, about 420 files). The dropout section adds seconds (no extra files).
 
 Scope
     Simulation / code / bookkeeping checks only; there is no comparison against RF measurements.
@@ -111,6 +115,10 @@ PREFERRED_BUILD_DEPTH = ("2.1.0", 2)
 RAY_LADDER_CELL = dict(scene="outdoor01_ground", build="2.0.1", depth=2, el_deg=-60.0)
 WHITE_SEED = 20260915
 TOP_SHARE_FRACTION_DIV = 100             # top 1 % of non-DC bins
+DROPOUT_FACTORS = (10, 20, 50)          # outlier threshold multiples of median |E - complex median E|
+DROPOUT_PRIMARY_FACTOR = 20
+DROPOUT_SEED = 20260916                  # random-control and random-phase-set draws (rule in _meta.seeds)
+DROPOUT_N_RANDOM = 5
 JOB_FILES = ("runners/jobs_0938_antenna.txt", "runners/jobs_0940_antenna.txt", "runners/jobs_0941_buffer.txt")
 
 #: External specification values (context only; the computation uses the repo code values quoted below).
@@ -357,7 +365,11 @@ def main() -> None:
         seeds=dict(white_reference_seed=WHITE_SEED,
                    white_reference_seed_rule="np.random.default_rng([WHITE_SEED, depth, round(100*el_deg)+100000, "
                                              "0 for 2.0.1 / 1 for 2.1.0])",
-                   solver_seed_quote="repo_quotes.solver_seed"),
+                   solver_seed_quote="repo_quotes.solver_seed",
+                   dropout_seed=DROPOUT_SEED,
+                   dropout_seed_rule=("np.random.default_rng([DROPOUT_SEED, h, k]); h = int(sha256(f'{arm}_el{el:+g}')"
+                                      "[:12], 16) of the cell the draw is for; k = 0..4 random-control pose sets, "
+                                      "k = 10..14 random blade-phase / adjacency pose sets")),
     )
     LEDGER["sources"] = SOURCES
 
@@ -453,6 +465,54 @@ def main() -> None:
                                "one common absolute reference for all series (the PathSolver arbitrary level "
                                "reference; the bins of one series sum to its varying power). DC bin stored as NaN."),
     }
+    LEDGER["_meta"]["definitions"].update({
+        "dropout complex median": "m = median(Re E) + 1j*median(Im E) over all poses of the merged cell (component-wise).",
+        "dropout outlier poses (factor k)": ("poses with |E - m| > k * median_over_poses(|E - m|); k in "
+                                             f"{list(DROPOUT_FACTORS)}, primary k = {DROPOUT_PRIMARY_FACTOR}. "
+                                             "A statistical label on the stored field, not a statement about the solver."),
+        "dropout varying_power_share_of_outliers": ("sum over outlier poses of |E - mean E|^2 / sum over all poses of "
+                                                    "|E - mean E|^2 (primary factor). The _median_ref variant uses "
+                                                    "|E - m|^2 in both sums."),
+        "dropout abs_ratio_to_median": "|E| / |m| at each outlier pose; min, median and max over the outlier poses.",
+        "dropout n_outliers_abs_ratio_above_0p5": "number of outlier poses (primary factor) with |E| / |m| > 0.5.",
+        "dropout abs_dev_over_abs_median_median": "median over the outlier poses of |E - m| / |m|.",
+        "dropout dev_gap_ratio": ("min over outlier poses of |E - m| / max over non-outlier poses of |E - m| (primary "
+                                  "factor); above 1 by construction, large when the outliers stand far from the bulk."),
+        "dropout comb_contrast_db_outliers_replaced": ("comb_contrast_db (same definition) of E with the outlier poses "
+                                                       "(factor as named) set to m; _f10 / _f50 use the other factors."),
+        "dropout random_control": (f"{DROPOUT_N_RANDOM} draws (seed rule _meta.seeds.dropout_seed_rule): the same "
+                                   "number of poses drawn without replacement from the non-outlier poses (primary "
+                                   "factor) set to m; comb contrast min / max over the draws."),
+        "dropout runs": ("maximal runs of consecutive pose indices inside the outlier set (index order = time order, "
+                         "not wrapped); n_runs and the longest run length."),
+        "dropout adjacent_fraction": ("fraction of outlier poses with another outlier pose at index +/-1 (nearest "
+                                      "outlier neighbour 1 pose away); null when fewer than 2 outliers. The random "
+                                      f"counterpart is the max of the same fraction over {DROPOUT_N_RANDOM} random pose "
+                                      "sets of equal size drawn from all poses."),
+        "dropout blade_phase_R": ("Rayleigh mean resultant length |mean exp(1j*2*pi*h*FFL*idx/PRF)| over the outlier "
+                                  "poses, h = 1 (FFL = constants.ffl_hz, idx = pose index, PRF from shard meta). "
+                                  f"random_R_max = max of the same R over {DROPOUT_N_RANDOM} random pose sets of equal "
+                                  f"size drawn from all poses. _max_h1_{N_HARM} = max over h = 1..{N_HARM} of R, with "
+                                  "the random counterpart taking the same max per set. Null when no outlier."),
+        "dropout rayleigh_p_approx": "exp(-n R^2) for n outlier poses at h = 1 (large-n Rayleigh-test approximation).",
+        "dropout jaccard": ("|A intersect B| / |A union B| of two outlier pose-index sets (primary factor); null when "
+                            "both sets are empty."),
+        "dropout repeat_jaccard": ("over the base run and its rep runs (the groups of repeats.groups), every pair of "
+                                   "runs; min and max over pairs."),
+        "dropout cross_build_jaccard": ("between the 2.0.1 row and the 2.1.0 row matched on every arm field except the "
+                                        "solver build tag, same el (the canyon_build_change pairing rule); stored on "
+                                        "both rows of the pair."),
+        "dropout E_dedup": ("when every shard of the cell stores E_dedup (the sum that counts identical path entries "
+                            "once; see benchmark/elevation_sweep_md.py), the same outlier count and replaced contrast "
+                            "computed on E_dedup with its own complex median; jaccard_with_E compares its outlier set "
+                            "with the E outlier set."),
+        "dropout npaths_median_ratio": ("median npaths over outlier poses / median npaths over all poses, when every "
+                                        "shard stores npaths."),
+        "dropout summary": ("dropout.summary groups every row by (scene, ant); summary_by_build_depth by (scene, ant, "
+                            "build, depth). *_min / *_max are over the cells of the group (null entries skipped); "
+                            "random_control_contrast_max_db = max over cells of the per-cell random-control max; "
+                            "n_cells_R_above_random_max counts cells whose outlier R exceeds that cell's random_R_max."),
+    })
     LEDGER["_meta"]["assumptions"] = [
         dict(id="production_filter", value=PROD, flag="configuration input",
              note="Production tags; other tags allowed only on the axes " + ", ".join(ALLOWED_AXES) + "."),
@@ -479,6 +539,9 @@ def main() -> None:
         dict(id="street_canyon_env_alt", flag="assumption",
              value="ENV_BUILTIN_ALT is reported as env_alt_m for street_canyon",
              note="It is the drone offset above the scene origin; the local ground height under the drone is not read."),
+        dict(id="dropout", value=dict(factors=list(DROPOUT_FACTORS), primary_factor=DROPOUT_PRIMARY_FACTOR,
+                                      seed=DROPOUT_SEED, n_random=DROPOUT_N_RANDOM), flag="configuration input",
+             note="Outlier threshold from the main-session check (task input); factors 10 and 50 bracket it."),
     ]
     write_ledger("partial", "repo_facts")
 
@@ -524,6 +587,7 @@ def main() -> None:
 
     E_of: dict = {}
     info_of: dict = {}
+    extra_of: dict = {}        # per-pose E_dedup / n_dup / npaths when every shard stores them (dropout section)
     shard_hashes = SHARD_HASHES
 
     def load_cell(key) -> tuple[bool, str | None]:
@@ -544,6 +608,7 @@ def main() -> None:
             if not shard_done(str(files[no])):
                 return fail(f"shard {no:02d} fails shard_done")
         idxs, Es, metas, cfgs, nrets, caps, builds, antp, antc, aimo = [], [], [], [], [], [], [], [], [], []
+        eds, nds, nps = [], [], []
         for no in nos:
             with np.load(files[no]) as z:
                 zf = set(z.files)
@@ -558,6 +623,9 @@ def main() -> None:
                 antp.append(str(z["ant_pattern"]) if "ant_pattern" in zf else None)
                 antc.append(float(np.asarray(z["ant_cap_db"]).ravel()[0]) if "ant_cap_db" in zf else None)
                 aimo.append(float(np.asarray(z["aim_offset_deg"]).ravel()[0]) if "aim_offset_deg" in zf else None)
+                eds.append(z["E_dedup"] if "E_dedup" in zf else None)
+                nds.append(np.asarray(z["n_dup"]) if "n_dup" in zf else None)
+                nps.append(np.asarray(z["npaths"]) if "npaths" in zf else None)
             shard_hashes[files[no].name] = sha256_file(files[no])
         nsh = {int(m[2]) for m in metas}
         if len(nsh) != 1:
@@ -627,6 +695,20 @@ def main() -> None:
             hc.update(files[no].name.encode())
             hc.update(shard_hashes[files[no].name].encode())
         E_of[key] = E
+        ex = dict(n_shards_with_E_dedup=sum(1 for x in eds if x is not None), E_dedup=None, n_dup=None, npaths=None)
+        if all(x is not None for x in eds):
+            ex["E_dedup"] = np.zeros(n0, complex)
+            for ii, ee in zip(idxs, eds):
+                ex["E_dedup"][ii] = ee
+        if all(x is not None for x in nds):
+            ex["n_dup"] = np.zeros(n0, np.int64)
+            for ii, ee in zip(idxs, nds):
+                ex["n_dup"][ii] = ee
+        if all(x is not None for x in nps):
+            ex["npaths"] = np.zeros(n0, np.int64)
+            for ii, ee in zip(idxs, nps):
+                ex["npaths"][ii] = ee
+        extra_of[key] = ex
         info_of[key] = dict(complete=True, prf=prf, n_poses=n0, n_shards=nsh, nret_max=nmax,
                             n_poses_at_path_limit=nat, path_limit_source=lim_src,
                             solver_build_recorded=bool(rec), shards_sha256=hc.hexdigest())
@@ -1347,7 +1429,247 @@ def main() -> None:
                                               "noncomb_bin_mask", "ffl_hz", "prf_hz", "psd_db__<series_id>"],
                                     reference="common absolute reference (PathSolver level in dB, arbitrary); "
                                               "no per-series normalisation")
-    write_ledger("complete", "spectra")
+    write_ledger("partial", "spectra")
+
+    # ---------------------------------------------------------------- section 8: dropout poses
+    def cmedian(E):
+        return complex(np.median(E.real), np.median(E.imag))
+
+    def outliers(E, k):
+        m = cmedian(E)
+        d = np.abs(E - m)
+        sc = float(np.median(d))
+        mask = d > k * sc if sc > 0 else np.zeros(E.size, bool)
+        return mask, m, sc
+
+    def cell_h(c):
+        return int(hashlib.sha256(f"{c[0]}_el{c[1]:+g}".encode()).hexdigest()[:12], 16)
+
+    def g4(x):
+        return None if x is None else float(f"{float(x):.4g}")
+
+    def jac(a, b):
+        a, b = set(map(int, a)), set(map(int, b))
+        if not a and not b:
+            return None
+        return len(a & b) / len(a | b)
+
+    def resultant(idx, prf, h=1):
+        return float(np.abs(np.mean(np.exp(1j * 2 * np.pi * h * FFL * np.asarray(idx, float) / prf))))
+
+    def adjacent_fraction(idx):
+        idx = np.asarray(idx)
+        if idx.size < 2:
+            return None
+        return float(np.mean(np.isin(idx - 1, idx) | np.isin(idx + 1, idx)))
+
+    def replaced(E, mask, m):
+        Er = E.copy()
+        Er[mask] = m
+        return Er
+
+    out_idx: dict = {}
+
+    def outlier_idx(c):
+        if c not in out_idx:
+            out_idx[c] = np.flatnonzero(outliers(E_of[c], DROPOUT_PRIMARY_FACTOR)[0])
+        return out_idx[c]
+
+    base_to_reps = {base_by_key[k]: reps for k, reps in groups.items()}
+    do_rows, do_raw = [], {}
+    for r in rows:
+        c = (r["arm"], r["el_deg"])
+        E = E_of[c]
+        prf = info_of[c]["prf"]
+        n = E.size
+        h = cell_h(c)
+        mask, m, sc = outliers(E, DROPOUT_PRIMARY_FACTOR)
+        oi = np.flatnonzero(mask)
+        out_idx[c] = oi
+        no = int(oi.size)
+        ac = E - E.mean()
+        pw = np.abs(ac) ** 2
+        dm = np.abs(E - m) ** 2
+        ratio = np.abs(E[oi]) / abs(m) if no and abs(m) > 0 else None
+        devr = np.abs(E[oi] - m) / abs(m) if no and abs(m) > 0 else None
+        gap = float(np.abs(E[oi] - m).min() / np.abs(E[~mask] - m).max()) if no and (~mask).any() else None
+        stored = raw_of[c]["comb_contrast_db"]
+        rep_c = contrast_db(replaced(E, mask, m), prf, FFL)
+        rep_f = {}
+        for k in DROPOUT_FACTORS:
+            if k == DROPOUT_PRIMARY_FACTOR:
+                continue
+            mk, mm, _ = outliers(E, k)
+            rep_f[k] = (int(mk.sum()), contrast_db(replaced(E, mk, mm), prf, FFL))
+        pool = np.flatnonzero(~mask)
+        rc = []
+        for k in range(DROPOUT_N_RANDOM):
+            rng = np.random.default_rng([DROPOUT_SEED, h, k])
+            sel = rng.choice(pool, size=no, replace=False) if no else np.array([], int)
+            rm = np.zeros(n, bool)
+            rm[sel] = True
+            rc.append(contrast_db(replaced(E, rm, m), prf, FFL))
+        n_runs, longest = 0, 0
+        if no:
+            br = np.flatnonzero(np.diff(oi) != 1)
+            lens = np.r_[br, no - 1] - np.r_[0, br + 1] + 1
+            n_runs, longest = int(lens.size), int(lens.max())
+        R1 = resultant(oi, prf) if no else None
+        Rh = max(resultant(oi, prf, hh) for hh in range(1, N_HARM + 1)) if no else None
+        rR1, rRh, radj = [], [], []
+        if no:
+            for k in range(DROPOUT_N_RANDOM):
+                rng = np.random.default_rng([DROPOUT_SEED, h, 10 + k])
+                sel = np.sort(rng.choice(n, size=no, replace=False))
+                rR1.append(resultant(sel, prf))
+                rRh.append(max(resultant(sel, prf, hh) for hh in range(1, N_HARM + 1)))
+                a = adjacent_fraction(sel)
+                if a is not None:
+                    radj.append(a)
+        ex = extra_of.get(c, {})
+        npm = None
+        if ex.get("npaths") is not None and no:
+            med_all = float(np.median(ex["npaths"]))
+            npm = float(np.median(ex["npaths"][oi])) / med_all if med_all > 0 else None
+        ded = dict(present=bool(ex.get("E_dedup") is not None), n_shards_with_E_dedup=ex.get("n_shards_with_E_dedup"),
+                   n_shards=info_of[c]["n_shards"])
+        if ded["present"]:
+            Ed = ex["E_dedup"]
+            mkd, md, _ = outliers(Ed, DROPOUT_PRIMARY_FACTOR)
+            ded.update(n_outlier_poses=int(mkd.sum()),
+                       comb_contrast_db=rnd(contrast_db(Ed, prf, FFL)),
+                       comb_contrast_db_outliers_replaced=rnd(contrast_db(replaced(Ed, mkd, md), prf, FFL)),
+                       jaccard_with_E=g4(jac(np.flatnonzero(mkd), oi)),
+                       n_poses_with_dup=(int(np.count_nonzero(ex["n_dup"] > 0)) if ex.get("n_dup") is not None else None),
+                       max_abs_E_minus_E_dedup_over_median_abs_dev=g4(float(np.max(np.abs(Ed - E))) / sc if sc > 0 else None))
+        # repeats
+        rj = None
+        if c in base_to_reps:
+            runs = [c] + sorted(base_to_reps[c], key=lambda x: int(parsed[x[0]]["rep"]))
+            sets = [outlier_idx(x) for x in runs]
+            pj = [jac(sets[i], sets[j]) for i in range(len(runs)) for j in range(i + 1, len(runs))]
+            pjv = [x for x in pj if x is not None]
+            rj = dict(n_runs=len(runs), rep_ids=[int(parsed[x[0]]["rep"]) for x in runs[1:]],
+                      n_outlier_poses_per_run=[int(s_.size) for s_ in sets],
+                      jaccard_min=g4(min(pjv)) if pjv else None, jaccard_max=g4(max(pjv)) if pjv else None,
+                      n_pairs=len(pj))
+        # cross build
+        tag = parsed[c[0]].get("solver_build")
+        if tag is None:
+            t = twin(c, ["solver_build"], lambda g: g.get("solver_build") is not None)
+        else:
+            t = twin(c, ["solver_build"], lambda g: g.get("solver_build") is None)
+        xb = None
+        if t is not None:
+            xb = dict(other_arm=t[0], other_build=row_of[t]["build"], n_outlier_poses_other=int(outlier_idx(t).size),
+                      jaccard=g4(jac(oi, outlier_idx(t))))
+        cnt = {}
+        for k in DROPOUT_FACTORS:
+            cnt[f"f{k}"] = no if k == DROPOUT_PRIMARY_FACTOR else rep_f[k][0]
+        d = dict(arm=r["arm"], el_deg=r["el_deg"], scene=r["scene"], ant=r["ant"], ant_cap_db=r["ant_cap_db"],
+                 aim_offset_deg=r["aim_offset_deg"], build=r["build"], depth=r["depth"], env_alt_m=r["env_alt_m"],
+                 default_height=r["default_height"], n_poses=n,
+                 n_outlier_poses=cnt,
+                 varying_power_share_of_outliers=g4(pw[oi].sum() / pw.sum()),
+                 varying_power_share_of_outliers_median_ref=g4(dm[oi].sum() / dm.sum()),
+                 abs_ratio_to_median_min=(g4(ratio.min()) if ratio is not None else None),
+                 abs_ratio_to_median_median=(g4(np.median(ratio)) if ratio is not None else None),
+                 abs_ratio_to_median_max=(g4(ratio.max()) if ratio is not None else None),
+                 n_outliers_abs_ratio_above_0p5=(int(np.count_nonzero(ratio > 0.5)) if ratio is not None else 0),
+                 abs_dev_over_abs_median_median=(g4(np.median(devr)) if devr is not None else None),
+                 dev_gap_ratio=g4(gap),
+                 comb_contrast_db=r["comb_contrast_db"],
+                 comb_contrast_db_outliers_replaced=rnd(rep_c),
+                 **{f"comb_contrast_db_outliers_replaced_f{k}": rnd(v[1]) for k, v in rep_f.items()},
+                 random_control_contrast_min_db=rnd(min(rc)), random_control_contrast_max_db=rnd(max(rc)),
+                 n_runs=n_runs, longest_run=longest,
+                 adjacent_fraction=g4(adjacent_fraction(oi)),
+                 adjacent_fraction_random_max=(g4(max(radj)) if radj else None),
+                 blade_phase_R=g4(R1), blade_phase_random_R_max=(g4(max(rR1)) if rR1 else None),
+                 rayleigh_p_approx=(g4(np.exp(-no * R1 ** 2)) if no else None),
+                 blade_phase_R_max_h1_12=g4(Rh), blade_phase_random_R_max_h1_12=(g4(max(rRh)) if rRh else None),
+                 npaths_median_ratio=g4(npm),
+                 repeat=rj, cross_build=xb, E_dedup=ded,
+                 outlier_pose_indices=[int(x) for x in oi[:64]], outlier_pose_indices_truncated=bool(no > 64))
+        do_rows.append(d)
+        do_raw[c] = dict(stored=stored, replaced=rep_c, rc_max=max(rc), R1=R1, rR1=max(rR1) if rR1 else None)
+
+    def _mm(vals):
+        v = [x for x in vals if x is not None]
+        return (min(v), max(v)) if v else (None, None)
+
+    def summarise(keyf, keynames):
+        grp = defaultdict(list)
+        for d in do_rows:
+            grp[keyf(d)].append(d)
+        out = []
+        for k in sorted(grp, key=lambda k: tuple((order.get(x, 99) if i == 0 else (x if x is not None else -1))
+                                                 for i, x in enumerate(k))):
+            dd = grp[k]
+            raws = [do_raw[(x["arm"], x["el_deg"])] for x in dd]
+            nof = _mm([x["n_outlier_poses"][f"f{DROPOUT_PRIMARY_FACTOR}"] for x in dd])
+            sh = _mm([x["varying_power_share_of_outliers"] for x in dd])
+            cs = _mm([x["comb_contrast_db"] for x in dd])
+            cr = _mm([x["comb_contrast_db_outliers_replaced"] for x in dd])
+            rmed = _mm([x["abs_ratio_to_median_median"] for x in dd])
+            rmin = _mm([x["abs_ratio_to_median_min"] for x in dd])
+            rmax = _mm([x["abs_ratio_to_median_max"] for x in dd])
+            R = _mm([x["blade_phase_R"] for x in dd])
+            rR = _mm([x["blade_phase_random_R_max"] for x in dd])
+            rj = _mm([x["repeat"]["jaccard_min"] for x in dd if x["repeat"]])
+            xj = _mm([x["cross_build"]["jaccard"] for x in dd if x["cross_build"]])
+            dd_d = [x["E_dedup"] for x in dd if x["E_dedup"]["present"]]
+            e = dict(zip(keynames, k))
+            e.update(
+                n_cells=len(dd),
+                n_cells_with_outliers=sum(1 for x in dd if x["n_outlier_poses"][f"f{DROPOUT_PRIMARY_FACTOR}"] > 0),
+                n_outlier_poses_min=nof[0], n_outlier_poses_max=nof[1],
+                n_outlier_poses_f10_min_max=list(_mm([x["n_outlier_poses"]["f10"] for x in dd])),
+                n_outlier_poses_f50_min_max=list(_mm([x["n_outlier_poses"]["f50"] for x in dd])),
+                share_min=sh[0], share_max=sh[1],
+                abs_ratio_to_median_median_min=rmed[0], abs_ratio_to_median_median_max=rmed[1],
+                abs_ratio_to_median_min=rmin[0], abs_ratio_to_median_max=rmax[1],
+                n_cells_with_outlier_abs_ratio_above_0p5=sum(1 for x in dd if x["n_outliers_abs_ratio_above_0p5"] > 0),
+                abs_dev_over_abs_median_median_min_max=list(_mm([x["abs_dev_over_abs_median_median"] for x in dd])),
+                dev_gap_ratio_min_max=list(_mm([x["dev_gap_ratio"] for x in dd])),
+                contrast_stored_min_db=cs[0], contrast_stored_max_db=cs[1],
+                contrast_replaced_min_db=cr[0], contrast_replaced_max_db=cr[1],
+                contrast_replaced_f10_min_max_db=list(_mm([x["comb_contrast_db_outliers_replaced_f10"] for x in dd])),
+                contrast_replaced_f50_min_max_db=list(_mm([x["comb_contrast_db_outliers_replaced_f50"] for x in dd])),
+                random_control_contrast_max_db=_mm([x["random_control_contrast_max_db"] for x in dd])[1],
+                random_control_minus_stored_max_db=rnd(max(q["rc_max"] - q["stored"] for q in raws)),
+                blade_phase_R_max=R[1], blade_phase_random_R_max=rR[1],
+                rayleigh_p_approx_min=_mm([x["rayleigh_p_approx"] for x in dd])[0],
+                n_cells_rayleigh_p_below_0p01=sum(1 for x in dd if x["rayleigh_p_approx"] is not None
+                                                  and x["rayleigh_p_approx"] < 0.01),
+                n_cells_R_above_random_max=sum(1 for x in dd if x["blade_phase_R"] is not None
+                                               and x["blade_phase_R"] > x["blade_phase_random_R_max"]),
+                longest_run_max=max(x["longest_run"] for x in dd),
+                adjacent_fraction_max=_mm([x["adjacent_fraction"] for x in dd])[1],
+                adjacent_fraction_random_max=_mm([x["adjacent_fraction_random_max"] for x in dd])[1],
+                n_repeat_groups=sum(1 for x in dd if x["repeat"]), repeat_jaccard_min=rj[0],
+                n_cross_build_rows=sum(1 for x in dd if x["cross_build"]), cross_build_jaccard_min=xj[0],
+                n_cells_with_E_dedup=len(dd_d),
+                E_dedup_n_outlier_poses_min_max=list(_mm([x["n_outlier_poses"] for x in dd_d])),
+                E_dedup_contrast_replaced_min_max_db=list(_mm([x["comb_contrast_db_outliers_replaced"] for x in dd_d])),
+                E_dedup_jaccard_with_E_min=_mm([x["jaccard_with_E"] for x in dd_d])[0],
+            )
+            out.append(e)
+        return out
+
+    LEDGER["dropout"] = dict(
+        rows=do_rows,
+        summary=summarise(lambda d: (d["scene"], d["ant"]), ("scene", "ant")),
+        summary_by_build_depth=summarise(lambda d: (d["scene"], d["ant"], d["build"], d["depth"]),
+                                         ("scene", "ant", "build", "depth")),
+        factors=list(DROPOUT_FACTORS), primary_factor=DROPOUT_PRIMARY_FACTOR, n_random=DROPOUT_N_RANDOM,
+        n_rows=len(do_rows), n_rep_cells_scored=sum(1 for c in out_idx if "rep" in parsed[c[0]]),
+        scope=("every row of rows[] (all scenes, antennas, builds, depths, heights; el window, munich and env_scat "
+               "excluded as in rows); repeat and cross-build overlaps use the rep cells and matched rows. Statistics "
+               "of the stored simulated field only: no statement on which solver build or which sum is closer to a "
+               "measurement (there is no RF measurement comparison)."),
+    )
+    write_ledger("complete", "dropout")
 
 
 if __name__ == "__main__":
