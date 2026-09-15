@@ -157,8 +157,7 @@ DROPPED: list[tuple[str, str, str, str]] = [
      "읽는 리포트 없음"),
     ("RT 표적 σ 부재 실증", "benchmark/verify_rt_no_rcs.py", "rt_no_rcs_verify.json",
      "읽는 리포트 없음 — 02편은 report3_rt.json 으로 같은 것을 보인다"),
-    ("RT 그림 8장(챔버·바닥·유령)", "src/viz_report3.py", "figures/report3_f1~f8.png",
-     "6편 중 report3_* 그림을 싣는 편이 없다 — 챔버·유령 그림이 절반이다"),
+    # src/viz_report3.py (RT figures report3_f1~f8, chamber) was archived on 2026-09-16 to /workspace/archive/2026-09/sionna/src/.
 ]
 
 #: 리포트 본문이 **이름으로 가리키지만 아직 없는** 산출물. 고아가 아니라 다음 라운드의 계약이다.

@@ -30,7 +30,7 @@ report6 §A 의 재현 스크립트. 질문은 정당하다:
       낸 σ 를 바이스태틱 레이더 방정식에 넣은 값.  ratio = L·√(σ/4π) / (R1·R2)
       ⚠이것도 근사이고 실측 대조는 0 건이다 — 「정답」이 아니라 **비교 기준선**이다.
       (원장 키 `ratio_db_truth` 는 옛 이름 그대로 둔다 — 이미 구운 원장과
-       src/viz_verify_sbr.py · src/viz_report3.py 가 그 키로 읽는다.)
+       src/viz_verify_sbr.py 가 그 키로 읽는다. src/viz_report3.py was archived 2026-09.)
 
 판정: σ 는 **표면적분에서 나온다.** 광선을 늘리면 표면을 더 촘촘히 표집할 뿐,
       적분 단계가 없는 solver 에서는 값이 수렴할 곳이 없다. **GPU 로 해결되지 않는다.**
