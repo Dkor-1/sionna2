@@ -1,4 +1,5 @@
 #!/bin/bash
+# SUPERSEDED 2026-09-15 by runners/watch_0939_after_0940.py (stopped before it triggered). Do not run.
 # Start the 0939 leftover queue once 0938 has launched every line (queue 30/30).
 # Detached with setsid+nohup so it survives a dropped session. Gives up after 24 h.
 cd /workspace/sionna

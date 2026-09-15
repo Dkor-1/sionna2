@@ -1,0 +1,74 @@
+# 0940 directional antenna, revised (2026-09-15) — supersedes runners/jobs_0938_antenna.txt
+#
+# Why revised: an adversarial review of commit 2de3adaf (13 agents) found no blocking problem — the iso
+# path is verified unchanged — but 8 should-fix items survived verification. Changes vs 0938:
+#   1. Height. The default scene puts the radar 20 + 15*sin(el) m above a mirror ground: 16.1 m at el -15,
+#      7.0 m at el -60. That is not a tripod rig; the 0938 header's "tripod" wording was wrong. A radar
+#      ~1.5 m high sees the nadir ground bounce roughly 13-21 dB stronger (image-range scaling).
+#      -> NEW block F: iso and aimed ground cells with the radar ~1.5 m above the ground.
+#   2. At both elevations the nadir bounce is BEHIND the aimed antenna, so its level is set by the
+#      attenuation cap (front-to-back ratio of an antenna that is not yet specified), not by beam shape.
+#      Only drone-ground paths within 90 deg of boresight (el -15, drone image ~83 deg) follow the shape.
+#      -> read the aimed nadir clutter as a function of an assumed cap; D now shakes the cap BOTH ways
+#         (20 and 50) at el -60, ground only; D's free-sky lines were redundant and are dropped.
+#   3. The exact level mount (offset = -el) puts the nadir bounce on the rear pole of the TR 38.901
+#      formula, where Sionna pins azimuth to 0; the result there is a convention. -> C brackets it at
+#      59 and 61 deg (el -60 only; at el -15 a level mount is only 15 deg off aim).
+#   4. E at el -60 measured nothing new (both ground paths on the cap) and lacked a free-sky partner.
+#      -> E is el -15 only, ground + free sky.
+#
+# Reality check (AGENTS.md): the real rig is one USRP X410 with six directional antennas whose models,
+# bands and calibrated patterns are NOT yet specified. The 3GPP element is a stand-in; nothing here may be
+# read as "our antennas do X". Co-located tx/rx with one pattern (baseline 0) is a simplification.
+#
+# Order = priority (the supervisor launches top to bottom). Queue 0939 (9 leftover lines from 0937/0935)
+# follows via runners/watch_0939_after_0940.sh.
+
+
+# -- A: aimed tr38901 (fixed aim at the hover point) — the core answer
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --shard 1 --nshards 2
+
+# -- B: iso free-sky control at the installed build (missing at el -15)
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --shard 1 --nshards 2
+
+# -- F: LOW RADAR ~1.5 m above the ground (--env-alt = 1.5 - 15*sin(el)); iso and aimed, ground only.
+#    Free-sky references do not depend on altitude (no ground): reuse A and B / existing iso.
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 14.5 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 14.5 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 14.5 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --env-alt 14.5 --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --env-alt 5.4 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --env-alt 5.4 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shard 1 --nshards 2
+
+# -- C: level mount, el -60, bracketed at offsets 59 and 61 deg (exactly 60 puts the nadir bounce on the
+#    rear pole of the TR 38.901 formula, where Sionna pins azimuth to 0 — a numerical convention).
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 59 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 59 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 61 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 61 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --aim-offset 59 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --aim-offset 59 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --aim-offset 61 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --aim-offset 61 --shard 1 --nshards 2
+
+# -- D: attenuation-cap sensitivity at el -60, ground only (free sky is cap-independent: reuse A)
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 20 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 20 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 50 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 50 --shard 1 --nshards 2
+
+# -- E: 10 deg pointing error toward the ground at el -15, with its free-sky partner
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 10 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 10 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --aim-offset 10 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --aim-offset 10 --shard 1 --nshards 2

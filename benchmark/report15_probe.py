@@ -138,7 +138,10 @@ def basis_perp(u):
 #    무늬 이득을 곱해 **세기만** 바꾼다(field_calculator.py:204 · :332-346).
 #  ■ ⭐**추적이 아니라 고정 조준이다.** `place()` 는 자세마다 불리지만 center·az·el·rng 가
 #    한 칸 안에서 상수라 `look_at` 은 칸마다 **한 번 정해진 방향**이 된다. 드론은 제자리에 떠
-#    있고 로터만 돈다 — 삼각대에 세운 레이다를 뜰 자리에 한 번 맞춰 두는 셈이다.
+#    있고 로터만 돈다 — 뜰 자리에 한 번 맞춰 둔 고정 레이다다.
+#    Correction 2026-09-15 (review): this is NOT a tripod-height rig. With the default scene the
+#    radar sits 20 + 15*sin(el) m above the ground: 16.1 m at el -15, 12.5 m at -30, 7.0 m at -60.
+#    A radar about 1.5 m above the ground needs --env-alt (alt = 1.5 - 15*sin(el)).
 #  ■ 무늬 — 시오나에 등록된 3GPP TR 38.901 소자(antenna_pattern.py:264-290: 3 dB 폭 65°,
 #    정점 8 dBi, 감쇠 상한 30 dB). ⛔새 무늬를 지어내지 않는다 — `cap_db` 는 **같은 공식의
 #    상한값(a_max = sla_v)만** 바꾼다. 가파른 각도에서는 지면이 안테나 뒤에 있어 결과를

@@ -480,6 +480,13 @@ def run(a) -> None:
             if abs(_e) > 89.9:
                 raise SystemExit("⛔ 지향성 무늬는 el ±90 에서 조준 방위가 정해지지 않는다 "
                                  "(radio_device.look_at 이 방위를 0 으로 억지로 둔다).")
+        #: Review 2026-09-15: the offset goes into the name via :g. Values like 1e-05 or 1e+20
+        #  give a token the grammar rejects, and 10.0000001 formats as "10" and would silently
+        #  reuse (skip onto) the offset-10 shard. Require the name to carry the exact value.
+        _aim_s = f"{_aimo:g}"
+        if not re.fullmatch(r"-?\d+(?:\.\d+)?", _aim_s) or float(_aim_s) != _aimo:
+            raise SystemExit(f"⛔ --aim-offset {_aimo!r} cannot be written exactly into the arm name "
+                             f"(formats as {_aim_s!r}). Use a plain decimal such as 10 or 14.5.")
         _nm = "tr38901" if abs(_antc - 30.0) < 1e-9 else f"tr38901c{int(round(_antc))}"
         tagant = f"_ant{_nm}" + ("" if _aimo == 0.0 else f"_aim{_aimo:g}")
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
