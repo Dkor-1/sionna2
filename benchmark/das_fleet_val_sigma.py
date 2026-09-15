@@ -20,7 +20,7 @@ das_fleet_val_sigma.py — ⭐ 28 쌍 대조를 완성하기 위한 **phantom3 �
   격자: 1.8–18.2 GHz 21 점(p3_ours el0 과 **같은 격자**) × 방위 360 점 전주기(p3_ours 와 같다).
 
 실행:
-    bash benchmark/das_fleet_val_driver.sh <워커수> <GPU목록>
+    bash /workspace/archive/2026-09/sionna/benchmark/das_fleet_val_driver.sh <워커수> <GPU목록>  (driver archived 2026-09)
 """
 from __future__ import annotations
 
