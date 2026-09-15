@@ -1,131 +1,131 @@
-# Sionna RT 비결정성 — 공개 자료와 우리 관측의 관계 (2026-09-02)
+# Sionna RT nondeterminism — how public material relates to our observation (2026-09-02)
 
-바탕 문서: `/workspace/Sionna_RT_Diffraction_Nondeterminism_Reproducibility_2026-09-02.md`
-(GitHub Discussion #1175 · #851 · #917 · #1142, Issue #1071 정리)
+Source document: `/workspace/Sionna_RT_Diffraction_Nondeterminism_Reproducibility_2026-09-02.md`
+(summary of GitHub Discussions #1175 · #851 · #917 · #1142 and Issue #1071)
 
-## ⭐한 줄
+## ⭐In one line
 
-**우리가 오늘 잡은 것은 #1175 이 아니다.** #1175 은 `diffraction=False` 로 사라지는데,
-**우리 것은 `diffraction=False` 에서 난다.** 자리가 다르다.
+**What we caught today is not #1175.** #1175 disappears with `diffraction=False`,
+but **ours occurs with `diffraction=False`.** They are in different places.
 
-## 1. 두 기작을 가른다
+## 1. Separating the two mechanisms
 
-| | **#1175 (공개 보고)** | **우리 관측 (2026-09-02)** |
+| | **#1175 (public report)** | **Our observation (2026-09-02)** |
 |---|---|---|
-| 어디 | `RadioMapSolver` 의 **회절 wedge** 수집·표본추출 | `PathSolver` 의 **정반사 사슬 중복제거** |
-| 파일 | `radio_map_solvers/radio_map_solver.py` | `path_solvers/sb_candidate_generator.py:484-498` |
-| 기작 | wedge 를 해시 표에 넣는 **순서**가 병렬 실행에 좌우 → 같은 seed 라도 뽑히는 wedge 가 달라짐 | 정반사 사슬의 해시 통을 **먼저 올린 스레드만** 그 경로를 남김(`dr.scatter_inc`) → 경로가 **통째로 사라짐** |
-| 회절 끄면 | **사라진다**(보고자 확인) | ⛔**그대로 난다** |
-| 크기 | path_gain 최대 **~3.7 dB** | 계단 **−3.5 dB**(2/3) · 지면 반사 탈락 **−51 dB** |
-| 우리가 쓰나 | ⛔안 쓴다(`RadioMapSolver` 는 렌더링에만) | ✅**측정 전 경로가 여기를 지난다** |
+| Where | Collection · sampling of **diffraction wedges** in `RadioMapSolver` | **Specular-chain deduplication** in `PathSolver` |
+| File | `radio_map_solvers/radio_map_solver.py` | `path_solvers/sb_candidate_generator.py:484-498` |
+| Mechanism | The **order** in which wedges enter the hash table depends on parallel execution → even with the same seed, different wedges are drawn | Only **the thread that first increments** a specular chain's hash bucket keeps that path (`dr.scatter_inc`) → paths **vanish entirely** |
+| With diffraction off | **Disappears** (confirmed by the reporter) | ⛔**Still occurs** |
+| Size | path_gain up to **~3.7 dB** | step **−3.5 dB** (2/3) · ground-reflection dropout **−51 dB** |
+| Do we use it | ⛔No (`RadioMapSolver` is only for rendering) | ✅**Every measurement path goes through here** |
 
-⭐**우리 팔이 회절을 끈 상태라는 확인**(`elevation_sweep_md.py:566-568`):
+⭐**Confirmation that our arms run with diffraction off** (`elevation_sweep_md.py:566-568`):
 ```python
 r_, d_, e_, f_ = bits            # R0D0E0F1
 sw = dict(refraction=r_, diffraction=d_, edge_diffraction=e_)
 diffuse = f_
 ```
 ⇒ `R0D0E0F1` = refraction **False** · diffraction **False** · edge **False** · diffuse **True**.
-그리고 `PathSolver.__init__` 이 `SBCandidateGenerator()` 를 만든다(`path_solver.py:117`) —
-**회절 여부와 무관하게** 후보 생성기를 지난다.
+And `PathSolver.__init__` creates `SBCandidateGenerator()` (`path_solver.py:117`) —
+it goes through the candidate generator **regardless of whether diffraction is on**.
 
-⇒ **회절을 꺼도 재현이 안 되는 PathSolver 사례**다.
+⇒ **It is a PathSolver case that does not reproduce even with diffraction off**.
 
-⛔⛔**정정(2026-09-14) — 「공개 논의에 이 경우는 없다」는 틀렸다.**
-Discussion **#1142** 의 공개 재현 코드가 바로 그 경우다 — NVIDIA **기본 제공 munich 장면**에
+⛔⛔**Correction (2026-09-14) — 「공개 논의에 이 경우는 없다」 [public discussions do not have this case] was wrong.**
+The public reproduction code in Discussion **#1142** is exactly that case — with NVIDIA's **built-in munich scene** set to
 `los=False · specular_reflection=True · diffuse_reflection=False · refraction=False ·
-diffraction=False · edge_diffraction=False · diffraction_lit_region=False` 로 두고
-**같은 씨앗(seed=1981)** 으로 두 번 돌리면 채널 계수가 갈린다(보고된 상대차 > 0.1 %,
-예: `5.0264234e-06+2.62638764e-06j` ↔ `5.0212852e-06+2.63619950e-06j`).
-메인테이너는 그것을 「병렬 축약의 비결정적 누산」으로 설명하고 «deterministic PathSolver
-option» 을 예고했다 — 그 옵션이 2.1.0 에 들어왔다(릴리스 노트가 #1142 를 명시한다).
-⇒ **우리 관측은 유일하지 않다.** #1175(RadioMapSolver 회절 wedge)과는 자리가 다르지만,
-  #1142 와는 **같은 자리(PathSolver)** 다. 「NVIDIA 기본 장면에서는 안 난다」는 전제도 함께
-  내려놓는다 — #1142 가 기본 장면에서 낸다.
-⚠**그래도 우리 관측이 #1142 와 같은 것이라고 단정하지도 않는다** — 우리 것은 경로가 통째로
-  빠져 \|E\| 가 정확히 (N−1)/N 로 떨어지는 모양이고(`docs/DEEP_DROP_0902.md`), #1142 는
-  계수의 상대차다. 기하·스위치·관측량·스레드 수가 다르다. 같은 solver 라는 것까지만 말한다.
-공개 근거: https://github.com/NVlabs/sionna/discussions/1142
+diffraction=False · edge_diffraction=False · diffraction_lit_region=False`,
+running twice with **the same seed (seed=1981)** gives diverging channel coefficients (reported relative difference > 0.1 %,
+e.g. `5.0264234e-06+2.62638764e-06j` ↔ `5.0212852e-06+2.63619950e-06j`).
+The maintainer explained it as 「병렬 축약의 비결정적 누산」 [nondeterministic accumulation in parallel reduction] and announced a «deterministic PathSolver
+option» — that option arrived in 2.1.0 (the release notes name #1142).
+⇒ **Our observation is not unique.** It is in a different place from #1175 (RadioMapSolver diffraction wedges), but
+  in **the same place (PathSolver)** as #1142. Also drop the premise 「NVIDIA 기본 장면에서는 안 난다」 [it does not occur in NVIDIA's built-in scenes]
+  — #1142 produces it in a built-in scene.
+⚠**Still, do not assert that our observation is the same thing as #1142** — ours has the shape of a path dropping out
+  entirely so that \|E\| falls to exactly (N−1)/N (`docs/DEEP_DROP_0902.md`), whereas #1142 is
+  a relative difference in coefficients. Geometry · switches · observed quantity · thread count differ. Say only that it is the same solver.
+Public evidence: https://github.com/NVlabs/sionna/discussions/1142
 
-## 2. 문서가 권하는 것 중 **우리가 못 쓰는 것**
+## 2. What the document recommends that **we cannot use**
 
-설치본 `sionna 2.0.1` 의 `PathSolver.__call__` 인자 전체:
+All arguments of `PathSolver.__call__` in the installed `sionna 2.0.1`:
 ```
 scene · max_depth · max_num_paths_per_src · samples_per_src · synthetic_array
 los · specular_reflection · diffuse_reflection · refraction
 diffraction · edge_diffraction · diffraction_lit_region · seed
 ```
-⛔**`rr_depth` 가 없다** — 문서의 `rr_depth=-1` 권고는 `RadioMapSolver` 쪽이다.
-⛔**`deterministic` 옵션도 없다**(#1142 에서 «향후 release» 로 예고된 것).
+⛔**There is no `rr_depth`** — the document's `rr_depth=-1` recommendation is on the `RadioMapSolver` side.
+⛔**There is no `deterministic` option either** (it was announced in #1142 as «a future release»).
 
-⚠우리 `--det`(경로를 지연 기준으로 정렬해 합)은 **이 문제를 못 고친다** — 순서를 고정할 뿐,
-**애초에 안 돌아온 경로는 되살릴 수 없다.**
+⚠Our `--det` (sorting paths by delay before summing) **cannot fix this problem** — it only fixes the order;
+**a path that never came back cannot be revived.**
 
-## 3. 문서의 «크기 기준» 으로 본 우리 값
+## 3. Our values against the document's «size criterion»
 
-문서는 `~1e-5 dB` = 부동소수점 축약 수준, `≥ 1 dB` = 알고리즘 비결정성으로 가른다.
+The document separates `~1e-5 dB` = floating-point reduction level from `≥ 1 dB` = algorithmic nondeterminism.
 
-| 우리 값 | dB | 판정 |
+| Our value | dB | Verdict |
 |---|---|---|
-| 정상 자세끼리 재실행 차 | `|ΔE|/|E|` 중앙 **1.57e-16** | 기계 정밀도 — 부동소수점 축약 |
-| 계단(2/3) | **−3.52 dB** | ⚠**자세의 성질** — 판을 바꿔도 같은 자세에서 난다(자카드 0.947~1.000). 실행마다 갈리는 것은 8,192 중 2 개다(`DEEP_DROP_0902.md` §2026-09-04 정정) |
-| 지면 반사 탈락 | **−51 dB** | ⚠**기작 미상** — ⛔«비결정성» 이라 쓰지 않는다 |
+| Rerun difference between normal poses | `|ΔE|/|E|` median **1.57e-16** | Machine precision — floating-point reduction |
+| Step (2/3) | **−3.52 dB** | ⚠**A property of the pose** — it occurs at the same poses even across runs (Jaccard 0.947~1.000). Only 2 of 8,192 differ between runs (`DEEP_DROP_0902.md` §2026-09-04 correction) |
+| Ground-reflection dropout | **−51 dB** | ⚠**Mechanism unknown** — ⛔do not write «nondeterminism» |
 
-⇒ 문서의 **크기** 기준으로는 알고리즘 층이지만, 우리 것은 «판마다 다름» 이 아니라
-**«자세마다 정해짐»** 이다 — 정본은 `docs/DEEP_DROP_0902.md` 다.
-⚠«지면 반사 탈락» 행은 빼고 읽는다(아래 정정).
-⛔**정정(2026-09-04)** — 그 −51 dB 를 «비결정성» 으로 분류한 것은 틀렸다.
-  `docs/DEEP_DROP_0902.md` 가 같은 수를 「**비결정성이 아니다. 기작 미상**」이라 적고
-  근거로 「25 판 전부 \|E\| = 2.988340e−07 로 **비트 동일**」을 댄다. 원장이 그쪽이다.
-  그것은 실외 한 칸의 **도플러 0 인 지면 클러터 항**이고, 판마다 안 흔들린다. 그리고 #1175 의 3.7 dB 보다 크다.
+⇒ By the document's **size** criterion it is at the algorithmic level, but ours is not «different in each run» but
+**«fixed per pose»** — the canonical source is `docs/DEEP_DROP_0902.md`.
+⚠Read with the «ground-reflection dropout» row excluded (correction below).
+⛔**Correction (2026-09-04)** — classifying that −51 dB as «nondeterminism» was wrong.
+  `docs/DEEP_DROP_0902.md` records the same number as 「**비결정성이 아니다. 기작 미상**」 [**not nondeterminism. Mechanism unknown**] and
+  gives as evidence 「25 판 전부 \|E\| = 2.988340e−07 로 **비트 동일**」 [all 25 runs **bit-identical** at \|E\| = 2.988340e−07]. The ledger sides with that.
+  It is the **ground clutter term with Doppler 0** of one outdoor cell and does not wobble between runs. And it is larger than #1175's 3.7 dB.
 
-## 4. ⛔확산을 끄는 권고는 **우리 태스크에 못 쓴다** (2026-09-02 정정)
+## 4. ⛔The recommendation to turn diffuse off **cannot be used for our task** (corrected 2026-09-02)
 
-문서는 재현성을 위해 `diffuse_reflection=False` 도 권한다. **우리는 못 쓴다 — 신호가 아예 없어진다.**
+For reproducibility the document also recommends `diffuse_reflection=False`. **We cannot use it — the signal disappears entirely.**
 
-원장 `outputs/switch_factorial.json : cells.*.zero_echo` (이미 있던 측정):
+Ledger `outputs/switch_factorial.json : cells.*.zero_echo` (a measurement that already existed):
 
-| 팔 | el +0 | el −15 | −30 | −45 | −60 | −75 | −90 |
+| Arm | el +0 | el −15 | −30 | −45 | −60 | −75 | −90 |
 |---|---|---|---|---|---|---|---|
-| `R1D0E0F0` 굴절만·**확산 끔** | false | **true** | **true** | **true** | **true** | **true** | **true** |
-| `R0D0E0F0` **둘 다 끔** | — | — | **true**(d1·d3) | — | — | — | — |
+| `R1D0E0F0` refraction only · **diffuse off** | false | **true** | **true** | **true** | **true** | **true** | **true** |
+| `R0D0E0F0` **both off** | — | — | **true** (d1·d3) | — | — | — | — |
 
-`zero_echo = true` 는 **`npaths = 0 · E ≡ 0`** 이다. 빗각에서 **문자 그대로 아무것도 안 돌아온다.**
+`zero_echo = true` means **`npaths = 0 · E ≡ 0`**. At oblique angles **literally nothing comes back.**
 
-기작(`docs/MATERIAL_CORRECTION.md`):
-1. `src/materials.py` 가 ITU 금속 계열(`metal`·`camera_assembly`·`pcb`)의 산란계수 **S = 0.0** 으로 고정한다
-   → 금속에서는 확산이 **원리적으로 안 나온다**
-2. 빗각에는 **시선에 정렬한 삼각형이 0 개**다(`az_falsify_verdict_attack2.json : kill_3`)
-   → 정반사도 안 나온다
+Mechanism (`docs/MATERIAL_CORRECTION.md`):
+1. `src/materials.py` fixes the scattering coefficient of the ITU metal family (`metal` · `camera_assembly` · `pcb`) at **S = 0.0**
+   → metal **in principle produces no diffuse scattering**
+2. At oblique angles there are **0 triangles aligned with the line of sight** (`az_falsify_verdict_attack2.json : kill_3`)
+   → no specular reflection either
 
-⇒ ⛔**[정정 — 범위 좁힘]** 옛 문장 «빗각 PathSolver 에코는 원리적으로 100 % 플라스틱·탄소의 확산
-   산란이다» 는 **회절 채널을 안 배제했다.** 위 1·2 가 배제한 것은 금속의 확산(S = 0.0)과 정반사
-   (정렬 삼각형 0 개)뿐이다 ⇒ «**확산·정반사 채널에 한정하면** 빗각에서 돌아오는 것은 플라스틱·탄소의
-   확산뿐이다» 로 좁혀 읽는다. **회절을 켠 팔에는 에코가 남는다** — 아래 ⚠ 문단의
-   `R0D1E0F0`·`R0D1E1F0`·`R1D1E1F0`·`R1D1E0F0`, 그리고 el −30 에서 회절만 켠 팔 AC −124.745 dB 가
-   물리 끔 팔 −135.664 dB 보다 **+10.9 dB 위**다(원장 `outputs/material_verdict_0816.json` :
+⇒ ⛔**[Correction — scope narrowed]** The old sentence «빗각 PathSolver 에코는 원리적으로 100 % 플라스틱·탄소의 확산
+   산란이다» [the oblique PathSolver echo is in principle 100 % diffuse scattering from plastic · carbon] **did not rule out the diffraction channel.** What 1 · 2 above rule out is only metal diffuse scattering (S = 0.0) and specular reflection
+   (0 aligned triangles) ⇒ read it narrowed as «**restricted to the diffuse · specular channels**, what comes back at oblique angles is only
+   diffuse scattering from plastic · carbon». **Arms with diffraction on keep an echo** — in the ⚠ paragraph below,
+   `R0D1E0F0` · `R0D1E1F0` · `R1D1E1F0` · `R1D1E0F0`, and at el −30 the diffraction-only arm's AC −124.745 dB is
+   **+10.9 dB above** the physics-off arm's −135.664 dB (ledger `outputs/material_verdict_0816.json` :
    `el_minus30.ref_onlydiffr_100mm` ↔ `el_minus30.base_100mm`).
-   **확산과 회절을 함께 끄면** 남는 것이 없다. **우리 태스크(빗각 마이크로도플러)가 성립하지 않는다.**
+   **With diffuse and diffraction both off** nothing remains. **Our task (oblique-angle micro-Doppler) does not hold.**
 
-⛔**내 실수(2026-09-02)**: 「`R0D0E0F0` 를 한 번도 안 돌렸으니 진단으로 돌려 보자」고 적었는데,
-   원장에 **el −30 d1·d3 로 이미 있고 둘 다 `zero_echo = true`** 였다.
-   원장을 안 보고 제안했다 — CLAIM_GATE 의 «원장 없음» 냄새 그대로다.
+⛔**My mistake (2026-09-02)**: I wrote 「`R0D0E0F0` 를 한 번도 안 돌렸으니 진단으로 돌려 보자」 [R0D0E0F0 was never run, so let us run it as a diagnostic], but
+   the ledger **already had it at el −30 d1 · d3, both with `zero_echo = true`**.
+   I proposed it without looking at the ledger — exactly CLAIM_GATE's «no ledger» smell.
 
-⚠디스크의 F0 샤드는 **전부 el −30** 뿐이고(176 개), 그중 에코가 있는 것은
-   **회절을 켠 팔**(`R0D1E0F0`·`R0D1E1F0`·`R1D1E1F0`·`R1D1E0F0`)뿐이다.
-   즉 우리 자료에서 「확산 끔 + 회절 끔」은 **측정 자체가 불가능**하다.
+⚠The F0 shards on disk are **all at el −30** (176 of them), and the only ones with an echo are
+   **the arms with diffraction on** (`R0D1E0F0` · `R0D1E1F0` · `R1D1E1F0` · `R1D1E0F0`).
+   So in our data, 「확산 끔 + 회절 끔」 [diffuse off + diffraction off] **cannot be measured at all**.
 
-⭐그래서 남는 정직한 문장은 이것이다:
-> **공개 논의가 권하는 재현성 설정(`diffraction=False` + `diffuse_reflection=False`)은
-> 우리 표적에서 빗각 에코를 0 으로 만든다. 우리는 그 권고를 따를 수 없고, 따라서
-> 재현성을 설정으로 사지 못한다 — 대신 «얼마나 안 맞는지» 를 재서 함께 싣는다.**
+⭐So the honest sentence that remains is this:
+> **The reproducibility settings public discussions recommend (`diffraction=False` + `diffuse_reflection=False`)
+> make the oblique-angle echo 0 on our target. We cannot follow that recommendation, and therefore
+> cannot buy reproducibility through settings — instead we measure «how far it fails to match» and publish that alongside.**
 
-## 6. ⭐최소 재현기 — 만들었다 (2026-09-02 밤)
+## 6. ⭐Minimal reproducer — built (night of 2026-09-02)
 
-`benchmark/minrepro_hash_0902.py` (130 줄). **우리 저장소에 하나도 안 기댄다** —
-`numpy` · `mitsuba` · `sionna.rt` 뿐이다. 작은 평판을 격자로 깐 합성 메쉬 하나가 전부다.
+`benchmark/minrepro_hash_0902.py` (130 lines). **It depends on nothing in our repository** —
+only `numpy` · `mitsuba` · `sionna.rt`. A single synthetic mesh of small plates laid out on a grid is all there is.
 
-| 평판 | 삼각형 | 산란 S | 경로 수 종류 (10 판) | \|h\| 폭 |
+| Plates | Triangles | Scattering S | Path-count variants (10 runs) | \|h\| spread |
 |---|---|---|---|---|
 | 64 | 128 | 0.7 | `[454]` | 0.0000 dB |
 | 256 | 512 | 0.7 | `[1755, 1756]` | **1.0954 dB** |
@@ -134,46 +134,46 @@ diffraction · edge_diffraction · diffraction_lit_region · seed
 | 576 | 1152 | 0.3 | `[758, 759, 760]` | **2.2585 dB** |
 | 576 | 1152 | 1.0 | `[8200]` | 0.0000 dB |
 
-설정: `diffraction=False` · `edge_diffraction=False` · `seed=42` 고정 ·
-**같은 씬 객체 · 같은 솔버 객체 · 연속 호출**.
+Settings: `diffraction=False` · `edge_diffraction=False` · `seed=42` fixed ·
+**same scene object · same solver object · consecutive calls**.
 
-⭐**대조군도 함께 잰다** — 순정 씬 `simple_street_canyon` 은 경로가 **6 개**뿐이라
-안 흔들리고 \|h\| 폭이 **0.0008 dB** 다(부동소수점 축약 수준, 문서 §16 의 예측과 일치).
-⇒ 재현기의 **4.7089 dB 는 그보다 약 5,900 배**(dB 를 그대로 나눈 값)다. #1175 의 3.7 dB
-보다도 크다. ⛔«2,700 배» 는 어느 읽기로도 안 나와 2026-09-04 에 고쳤다(4.7089/0.0008 =
-5,886). ⚠대조군 0.0008 dB 는 `outputs/` 에 원장이 없다 — 다시 돌려 원장을 남기기 전까지
-이 배수는 **참고값**이다. 같은 정정이 `benchmark/minrepro_hash_0902.py` 머리말에도 있다.
+⭐**A control is measured too** — the stock scene `simple_street_canyon` has only **6** paths, so
+it does not wobble, and its \|h\| spread is **0.0008 dB** (floating-point reduction level, matching the prediction in §16 of the document).
+⇒ The reproducer's **4.7089 dB is about 5,900× that** (dividing the dB values directly). It is larger than #1175's 3.7 dB
+too. ⛔«2,700×» does not follow from any reading and was fixed on 2026-09-04 (4.7089/0.0008 =
+5,886). ⚠The control's 0.0008 dB has no ledger in `outputs/` — until it is rerun and a ledger is left,
+this ratio is **a reference value only**. The same correction is in the header of `benchmark/minrepro_hash_0902.py`.
 
-⚠경로가 적으면(454) 안 흔들린다 · 산란 S=1.0 이면 안 흔들린다(정반사 사슬이 안 남는다).
-**경로가 많아 해시 통이 겹칠 때** 흔들린다 — 충돌 가설과 맞는다.
-⚠재현기 자체도 판마다 결과가 다르다(1024 평판이 한 번은 흔들리고 한 번은 안 흔들렸다).
-**확률 과정이므로 판을 여럿 돌려야 한다.**
+⚠With few paths (454) it does not wobble · with scattering S=1.0 it does not wobble (no specular chains remain).
+It wobbles **when there are many paths and hash buckets overlap** — consistent with the collision hypothesis.
+⚠The reproducer itself also gives different results from run to run (the 1024-plate case wobbled once and did not once).
+**It is a stochastic process, so several runs are needed.**
 
-## 7. 다음 주 팀미팅에 올린다 (2026-09-02 결정)
+## 7. To be raised at next week's team meeting (decided 2026-09-02)
 
-⛔**내일(09-03) 발표에는 안 넣는다.** 내일 덱의 2 부는 「튀는 자세가 있고 그것이 그림을
-망친다」는 **관찰**이고, 기작은 발표자 노트에만 있다. 밖으로 나가는 주장이 없다.
+⛔**Not included in tomorrow's (09-03) presentation.** Part 2 of tomorrow's deck is the **observation** 「튀는 자세가 있고 그것이 그림을
+망친다」 [some poses spike and they ruin the figure], and the mechanism is only in the presenter notes. No claim goes outside.
 
-⭐**다음 주에 팀에 올릴 것**:
-1. 최소 재현기와 그 표(위) — 「부동소수점이 아니다」를 대조군과 함께
-2. 우리 결과에 어떤 단서를 달 것인가 — 재현성을 **설정으로 살 수 없다**(§4)
-3. 반복(rep) 판으로 잰 산포를 결과에 함께 싣는 방식
-4. **업스트림에 올릴지 말지** — 랩 이름이 걸린 결정이라 팀이 정한다
+⭐**To raise with the team next week**:
+1. The minimal reproducer and its table (above) — 「부동소수점이 아니다」 [it is not floating point] together with the control
+2. What caveat to attach to our results — reproducibility **cannot be bought through settings** (§4)
+3. A way to publish the spread measured with repeated (rep) runs alongside the results
+4. **Whether to report upstream** — a decision that carries the lab's name, so the team decides
 
-## 5. 남는 것
+## 5. What remains
 
-1. 해시 통 수(`max_num_paths_per_src`) 사다리를 판 수를 늘려 다시 — 오늘 40 판으로는
-   1e6 → 1/40, 2e6 → 3/40, 8e6 → 0/40, 32e6 → 0/40 이라 **유의하지 않았다**
-2. 다음 Sionna release 에서 확인할 것: #1175 wedge fix · `deterministic` PathSolver 옵션
-3. ⭐**공개 논의에 올릴 값어치가 있다** — 다만 **범위를 좁혀서** 적는다(2026-09-14 정정).
-   ⛔옛 문장 「회절을 꺼도 …는 사례는 #1175·#1071·#851·#917·**#1142** 어디에도 없다」는
-     **틀렸다** — #1142 가 회절·모서리회절을 끈 PathSolver 사례다(위 §1 정정).
-   ⭐남는 것은 **모양**이다: #1142 는 계수의 상대차(> 0.1 %)를 보고하는데, 우리 것은
-     **경로가 통째로 빠져** \|E\| 가 정확히 (N−1)/N 로 떨어진다(`docs/DEEP_DROP_0902.md` —
-     자세 32,768 개에서 남는 줄 1/2/3 이 깊이 0.371/0.684/1.000 을 그대로 정한다).
-     그 «통째로 빠짐» 이 공개 논의에 있는지는 **아직 안 세어 봤다** — 세기 전에는
-     「없다」로 적지 않는다.
-   재현기가 이미 있다(`benchmark/probe_drop_0902.py` · `benchmark/minrepro_hash_0902.py`).
-   ⭐그리고 우리에게는 **확산을 끌 수 없다는 사정**이 있어, 그들의 회피책이 안 통한다는 점도
-   함께 말할 수 있다.
-4. 반복(rep) 판으로 **산포를 재서 결과에 함께 싣는다** — 설정으로 못 사면 그렇게라도 정직해진다
+1. Redo the hash bucket count (`max_num_paths_per_src`) ladder with more runs — with today's 40 runs,
+   1e6 → 1/40, 2e6 → 3/40, 8e6 → 0/40, 32e6 → 0/40, which was **not significant**
+2. To check in the next Sionna release: the #1175 wedge fix · the `deterministic` PathSolver option
+3. ⭐**Worth raising in public discussion** — but written **with a narrowed scope** (corrected 2026-09-14).
+   ⛔The old sentence 「회절을 꺼도 …는 사례는 #1175·#1071·#851·#917·**#1142** 어디에도 없다」 [a case where … even with diffraction off exists in none of #1175 · #1071 · #851 · #917 · #1142]
+     **was wrong** — #1142 is a PathSolver case with diffraction · edge diffraction off (§1 correction above).
+   ⭐What remains is **the shape**: #1142 reports a relative difference in coefficients (> 0.1 %), while in ours
+     **a path drops out entirely** and \|E\| falls to exactly (N−1)/N (`docs/DEEP_DROP_0902.md` —
+     over 32,768 poses, the number of remaining lines 1/2/3 exactly determines the depth 0.371/0.684/1.000).
+     Whether that «dropping out entirely» exists in public discussions **has not been counted yet** — until it is counted,
+     do not write 「없다」 [there is none].
+   Reproducers already exist (`benchmark/probe_drop_0902.py` · `benchmark/minrepro_hash_0902.py`).
+   ⭐And because we **cannot turn diffuse off**, we can also point out that their workaround
+   does not work for us.
+4. **Measure the spread** with repeated (rep) runs **and publish it with the results** — if it cannot be bought through settings, that is how we stay honest
