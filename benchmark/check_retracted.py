@@ -87,7 +87,7 @@ RETRACTED: list = [
      "R14 — φ 스윕. 그 수는 φ 가 아니라 스윕하지 않은 고도차 Δz=35 m 의 성질이고 "
      "R90 동작점에서는 ≤1.20 dB 다. φ=90° 가 세 팔 모두 최소",
      ("outputs/fix_phi.json", "outputs/geometry_grid_axis_review.json",
-      "outputs/geometry_grid_fairness_audit.json", "docs/GEOMETRY_BENCHMARK.md",
+      "outputs/geometry_grid_fairness_audit.json",
       #: ⚠여기 23.2 dB 는 φ 가 아니라 **동체가 블레이드를 덮는 세기비**다 — 다른 수다.
       "outputs/report16_metric_mesh_no_rotor.json")),
 

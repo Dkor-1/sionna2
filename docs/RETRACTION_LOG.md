@@ -355,7 +355,7 @@ Johansen 1996 식 (3)(9)(10)(11)(21)(22) 가 Gao 의 TW 이고, 우리가 구현
 **φ 의존은 사실상 없다.** 발표된 검출 결과가 φ=90° 라서 위험한 게 아니었다.
 
 ⛔ **무효화 대상**: `docs/DECK_FACTS.md` F27 · G5, `outputs/deck_facts.json`,
-`outputs/capability_matrix.json:3598`, `docs/GEOMETRY_BENCHMARK.md` 의 23.17 dB 인용 전부.
+`outputs/capability_matrix.json:3598`, `/workspace/archive/2026-09/sionna/docs/GEOMETRY_BENCHMARK.md` 의 23.17 dB 인용 전부.
 
 ### ⚠⚠ 대신 **진짜 결함이 두 개 드러났다**
 
