@@ -840,6 +840,9 @@ def run(a) -> None:
             _sel = np.linspace(0, idx.size - 1, min(_ndump, idx.size)).round().astype(int)
             _dump_at = {int(x) for x in _sel}
         _prov = []
+        #: 부위 이름 사전 — 자세마다 뜬 매핑이 여기로 모인다(번호는 이 목록의 순번).
+        _part_names: list[str] = []
+        _n_unknown = 0
         _detmode = bool(getattr(a, "solver_deterministic", False))
         if _detmode:
             #: ⭐⭐**굽기 전에 메모리를 미리 잰다** (2026-09-15 · 실제로 터진 뒤에 넣었다).
@@ -854,25 +857,51 @@ def run(a) -> None:
             #    ⛔그냥 돌려 한 시간 뒤에 OOM 으로 죽는 것보다 낫다.
             _elem = float(mdep) * float(spp)        # 표적 1 (모노스태틱)
             _need_gib = _elem * (11 * 4 + 2 * 8) / 2**30
+            #: ⛔⛔**`nvidia-smi` 는 CUDA_VISIBLE_DEVICES 를 무시한다** (2026-09-15 실측,
+            #  외부 점검 메모 5 번). 전에는 출력의 **첫 줄**을 읽어 「이 카드 여유」라 적었는데,
+            #  그것은 언제나 **물리 GPU 0** 이다. 이 기계에서 잰 값 — CVD 를 3 으로 줘도
+            #  카드 다섯 줄이 그대로 나왔고, 첫 줄은 GPU 0(여유 92.4 GiB)이었다.
+            #  같은 시각 GPU 1 의 여유는 51.7 GiB 다. 1 번을 받은 워커가 92.4 를 보고
+            #  **통과한 뒤 카드에서 터진다** — 막으려던 바로 그 사고다.
+            #  ⇒ 배정된 카드를 `nvidia-smi -i` 로 지목한다(색인·UUID 를 둘 다 받는다).
+            #  ⛔못 재면 **틀린 수를 쓰지 않는다** — None 으로 두고 ⚠를 찍는다.
+            #    (막지는 않는다. 여기서 서면 카드를 못 읽는 기계에서 굽기가 통째로 막힌다.)
             _free_gib = None
-            try:
-                import subprocess as _sp
-                _o = _sp.run("nvidia-smi --query-gpu=memory.total,memory.used "
-                             "--format=csv,noheader,nounits", shell=True,
-                             capture_output=True, text=True).stdout.splitlines()
-                if _o:
-                    _t, _u = [int(x) for x in _o[0].split(",")]
-                    _free_gib = (_t - _u) / 1024.0
-            except Exception:                                  # noqa: BLE001
-                pass
+            _cvd = os.environ.get("CUDA_VISIBLE_DEVICES")
+            _card = (_cvd.split(",")[0].strip() if _cvd else "0")
+            _why = ""
+            if _cvd is not None and not _card:
+                _why = "CUDA_VISIBLE_DEVICES 가 비어 있다(GPU 없음)"
+            else:
+                try:
+                    import subprocess as _sp
+                    _r = _sp.run(["nvidia-smi", "-i", _card,
+                                  "--query-gpu=index,memory.total,memory.used",
+                                  "--format=csv,noheader,nounits"],
+                                 capture_output=True, text=True, timeout=30)
+                    _o = [x for x in _r.stdout.splitlines() if x.strip()]
+                    #: ⛔줄이 여럿이면 지목이 안 먹은 것이다 — 첫 줄을 집지 않는다.
+                    if _r.returncode != 0 or len(_o) != 1:
+                        _why = (f"nvidia-smi -i {_card} rc={_r.returncode} 줄 {len(_o)}"
+                                f" · {(_r.stderr or '').strip()[:80]}")
+                    else:
+                        _ix, _t, _u = [int(x) for x in _o[0].split(",")]
+                        _free_gib = (_t - _u) / 1024.0
+                        _card = str(_ix)
+                except Exception as _e:                        # noqa: BLE001
+                    _why = f"{type(_e).__name__}: {_e}"
+            if _free_gib is None:
+                print(f"  ⚠카드 여유 메모리를 못 쟀다({_why}) — 어림만 찍고 그냥 간다",
+                      flush=True)
             print(f"  ⭐결정 모드 메모리 어림 {_need_gib:.0f} GiB"
                   f"  (원소 {_elem:,.0f} = 깊이 {mdep} × 광선 {spp:,.0f})"
-                  + (f" · 이 카드 여유 {_free_gib:.0f} GiB" if _free_gib else ""),
+                  + (f" · GPU {_card} 여유 {_free_gib:.0f} GiB"
+                     if _free_gib is not None else " · 여유 못 쟀음"),
                   flush=True)
             if _free_gib is not None and _need_gib > _free_gib:
                 raise SystemExit(
-                    f"⛔결정 모드가 이 카드에 안 들어간다 — 어림 {_need_gib:.0f} GiB 가 "
-                    f"필요한데 여유가 {_free_gib:.0f} GiB 다.\n"
+                    f"⛔결정 모드가 GPU {_card} 에 안 들어간다 — 어림 {_need_gib:.0f} GiB 가 "
+                    f"필요한데 그 카드 여유가 {_free_gib:.0f} GiB 다.\n"
                     f"   그 크기는 **깊이 × 광선 예산**에 정비례한다(지금 깊이 {mdep} · 광선 {spp:,.0f}).\n"
                     "   ⇒ `--spp` 를 낮춰라. ⛔자세(`--n-poses`)를 줄이는 것은 답이 아니다 —\n"
                     "     이 배열은 자세 수와 무관하고, 자세를 줄이면 STFT 창이 깨진다.\n"
@@ -997,13 +1026,53 @@ def run(a) -> None:
             if j in _dump_at and aa.size:
                 try:
                     _pr = np.asarray(p.primitives)[:, 0, 0, :]
+                    _pr_ok = True
                 except Exception:                              # noqa: BLE001
-                    _pr = np.zeros_like(O)
+                    _pr = np.zeros_like(O); _pr_ok = False
+                #: ⛔⛔**`objects` 가 돌려주는 값은 `object_id` 이지 이름 목록의 순번이
+                #  아니다** (2026-09-15, 외부 점검 메모 1 번 · 우리가 직접 재서 확인).
+                #  ■ 실측 ⓐ 우리 자유공간 드론 씬에서 순번은 0~7 인데 object_id 는 **1~8**
+                #    이다. 순번으로 읽으면 **모든 경로가 이웃 부위로** 귀속된다.
+                #  ■ 실측 ⓑ **번호가 자세마다 떠다닌다.** 같은 기체를 위상만 바꿔 세 벌 지으니
+                #    1~8 · **9~16** · 1~8 이 나왔다(미쓰바가 전역으로 매기고 씬을 버리면
+                #    되쓴다). ⇒ 샤드에 매핑을 **하나** 적으면 그것도 틀린다. **자세마다** 뜬다.
+                #  ■ 이 레포에는 이미 옳은 헬퍼가 있었다 — `report15_probe.py:225`
+                #    `id_to_group` 이 `int(o.object_id)` 를 열쇠로 쓴다.
+                #  ⇒ 굽는 자리에서 **그 자세의 매핑으로 이름을 확정해** 안정된 번호로 바꾼다.
+                #    저장하는 것은 «부위 번호» 이고 `part_names` 가 그 사전이다.
+                #    ⛔원본 id 도 함께 남긴다(감사용). 다만 **int64** 로 — 아래 참조.
+                #: ⛔⛔`NO_OBJ`(4294967295 = uint32 −1)를 **int32 로 적으면 −1 이 된다.**
+                #  판독기가 `== NO_OBJ` 로 견주면 영영 안 맞는다(2026-09-15 실측).
+                #  ⇒ 부위 번호에서 «상호작용 없음» 은 **−1**, «이 자세 매핑에 없는 id» 는
+                #    **−2** 로 갈라 적는다. 원본 id 는 int64 라 값이 안 접힌다.
+                try:
+                    _id2nm = {int(_o.object_id): str(_nm)
+                              for _nm, _o in sc.objects.items()}
+                except Exception:                              # noqa: BLE001
+                    _id2nm = {}
+                _Oa = np.asarray(O, np.int64)
+                _part = np.full(_Oa.shape, -1, np.int16)
+                _unk = 0
+                for _v in np.unique(_Oa):
+                    _vi = int(_v)
+                    if _vi == RP.NO_OBJ or _vi < 0:
+                        continue                               # 상호작용 없음 → −1
+                    _nm = _id2nm.get(_vi)
+                    if _nm is None:
+                        _part[_Oa == _v] = -2                  # 매핑에 없는 id
+                        _unk += int((_Oa == _v).sum())
+                        continue
+                    if _nm not in _part_names:
+                        _part_names.append(_nm)
+                    _part[_Oa == _v] = _part_names.index(_nm)
+                _n_unknown += _unk
                 try:
                     _prov.append(dict(
                         pose=int(i), slot=int(j),
                         a=aa.astype(np.complex64), tau=tau.astype(np.float64),
-                        obj=np.asarray(O, np.int32), prim=np.asarray(_pr, np.int32)))
+                        part=_part, obj_raw=_Oa,
+                        prim=np.asarray(_pr, np.int64),
+                        prim_ok=bool(_pr_ok)))
                 except Exception:                              # noqa: BLE001
                     pass
             if aa.size:
@@ -1102,8 +1171,6 @@ def run(a) -> None:
             try:
                 _pd = os.path.join(ROOT, "outputs", "path_provenance")
                 os.makedirs(_pd, exist_ok=True)
-                #: 물체 번호 ↔ 이름 — 이것이 있어야 나중에 «부위» 로 읽힌다.
-                _names = [str(nm) for nm in sc.objects.keys()]
                 _pf = os.path.join(_pd, os.path.basename(f).replace(".npz", "_prov.npz"))
                 #: ⛔`np.savez_compressed` 는 이름이 `.npz` 로 안 끝나면 **덧붙인다** —
                 #  임시 이름을 `…tmp` 로 두면 실제 파일은 `…tmp.npz` 가 되어 os.replace 가
@@ -1111,24 +1178,36 @@ def run(a) -> None:
                 _tmpf = _pf + f".{os.getpid()}.tmp.npz"
                 np.savez_compressed(
                     _tmpf,
-                    object_names=np.array(_names),
+                    #: ⭐부위 사전 — `part` 값이 이 목록의 순번이다.
+                    #  ⛔`obj_raw`(솔버가 준 object_id)의 순번이 **아니다.**
+                    part_names=np.array(_part_names),
                     pose=np.array([r["pose"] for r in _prov], np.int64),
                     slot=np.array([r["slot"] for r in _prov], np.int64),
                     n_paths=np.array([r["a"].size for r in _prov], np.int64),
                     #: 자세마다 경로 수가 달라 **이어 붙이고** 경계를 따로 적는다
                     a=np.concatenate([r["a"] for r in _prov]),
                     tau=np.concatenate([r["tau"] for r in _prov]),
-                    obj=np.concatenate([r["obj"] for r in _prov], axis=1),
+                    part=np.concatenate([r["part"] for r in _prov], axis=1),
+                    obj_raw=np.concatenate([r["obj_raw"] for r in _prov], axis=1),
                     prim=np.concatenate([r["prim"] for r in _prov], axis=1),
+                    prim_ok=np.array([r["prim_ok"] for r in _prov], bool),
+                    n_unknown_id=np.array([int(_n_unknown)], np.int64),
                     arm=np.array(os.path.basename(f).rsplit("_el", 1)[0]),
                     el_deg=np.array([float(el)]),
                     note_ko=np.array(
-                        "경로마다 «어느 물체·어느 삼각형에 맞았나». obj/prim 은 [깊이, 경로] 이고 "
-                        "경로 축은 자세 순서로 이어 붙였다(경계는 n_paths 의 누적합). "
-                        "object_names 의 번호가 obj 값이다 — 드론은 부위마다 별개 물체다."),
+                        "경로마다 «어느 부위·어느 삼각형에 맞았나». part/obj_raw/prim 은 "
+                        "[깊이, 경로] 이고 경로 축은 자세 순서로 이어 붙였다"
+                        "(경계는 n_paths 의 누적합). "
+                        "⭐part 값이 part_names 의 순번이다. −1 은 상호작용 없음, "
+                        "−2 는 그 자세의 매핑에 없던 물체 번호다(n_unknown_id 에 몇 개인지 적었다). "
+                        "⛔obj_raw 는 솔버가 준 object_id 그대로이고 **자세마다 값이 달라진다** — "
+                        "부위를 읽을 때는 part 를 쓴다. obj_raw 는 감사용이다. "
+                        "prim_ok 가 거짓인 자세는 삼각형 번호를 못 읽어 prim 이 0 이다."),
                     **bake_stamp(t0))
                 os.replace(_tmpf, _pf)
-                print(f"  ⭐경로 출처 {len(_prov)} 자세 → {os.path.relpath(_pf, ROOT)}", flush=True)
+                print(f"  ⭐경로 출처 {len(_prov)} 자세 · 부위 {len(_part_names)} 종"
+                      + (f" · ⚠매핑에 없던 번호 {_n_unknown} 개" if _n_unknown else "")
+                      + f" → {os.path.relpath(_pf, ROOT)}", flush=True)
             except Exception as _e:                            # noqa: BLE001
                 print(f"  ⚠경로 출처를 못 남겼다({type(_e).__name__}: {_e}) — 굽기는 정상이다",
                       flush=True)
