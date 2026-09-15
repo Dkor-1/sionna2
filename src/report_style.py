@@ -1234,6 +1234,36 @@ def _footnote_pass(cells: list[dict]) -> list[dict]:
     return out
 
 
+def assign_cell_ids(cells: list[dict]) -> list[dict]:
+    """Give every cell a deterministic nbformat 4.5 `id`, in place, and return the list.
+
+    Added 2026-09-15. The notebooks declare nbformat 4.5, which requires a unique `id` on every
+    cell (nbformat's validator warns "MissingIDFieldWarning ... will become a hard error"). This
+    function and build_volumes.py wrote plain dicts without ids, so 30 of 32 reports had none;
+    the two that had ids came from builders using nbformat.v4.new_*_cell (random ids).
+
+    The id is derived from the cell's final position, type and source, so rebuilding an unchanged
+    notebook reproduces the same ids (no diff churn), unlike nbformat's random ids. Any existing
+    id is overwritten so ids stay unique after cells are concatenated (build_volumes.py).
+    """
+    import hashlib
+    seen: set[str] = set()
+    for i, c in enumerate(cells):
+        src = c.get("source", "")
+        src = "".join(src) if isinstance(src, list) else str(src)
+        h = hashlib.sha1(f"{i}\x00{c.get('cell_type', '')}\x00{src}".encode("utf-8")).hexdigest()
+        k = 8
+        cid = h[:k]
+        while cid in seen and k < len(h):
+            k += 2
+            cid = h[:k]
+        if cid in seen:
+            raise ValueError(f"assign_cell_ids: could not make a unique id for cell {i}")
+        c["id"] = cid
+        seen.add(cid)
+    return cells
+
+
 def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
                    strict: bool = False, quiet: bool = False) -> dict:
     """블록 리스트 → `.ipynb` 파일. 쓰고 나서 §5.7 예산 + §5.8 톤을 검사해 결과를 돌려준다.
@@ -1250,6 +1280,8 @@ def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
       적는다(다음 거절 때 덮인다). 발간물 자리는 건드리지 않는다.
     """
     cells = _footnote_pass(_to_cells(blocks))
+    #: nbformat 4.5 requires a cell id; copy first so caller-owned cell dicts are not mutated.
+    cells = assign_cell_ids([dict(c) for c in cells])
     nb = {"cells": cells,
           "metadata": {"kernelspec": kernel or KERNEL,
                        "language_info": {"name": "python"}},

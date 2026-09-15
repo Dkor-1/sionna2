@@ -1232,6 +1232,7 @@ def _assemble(no, slug, title, thesis, parts, hd, place, bu2vol, titles, stat) -
                                       "name": "py312"},
                        "language_info": {"name": "python"}},
           "nbformat": 4, "nbformat_minor": 5}
+    RS.assign_cell_ids(nb["cells"])         # nbformat 4.5 requires ids; deterministic, see report_style
     with open(os.path.join(OUT, fname), "w", encoding="utf-8") as f:
         json.dump(nb, f, ensure_ascii=False, indent=1)
 
@@ -1335,6 +1336,7 @@ def _postprocess_external(ex, place, bu2vol, titles, stat) -> dict:
                                       part_file=_part_file(p)))
 
         nb["cells"] = cells
+        RS.assign_cell_ids(nb["cells"])     # nbformat 4.5 requires ids; deterministic, see report_style
         with open(path, "w", encoding="utf-8") as f:
             json.dump(nb, f, ensure_ascii=False, indent=1)
         body = "\n".join(_text(c) for c in cells)
