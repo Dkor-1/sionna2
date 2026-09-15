@@ -1,0 +1,45 @@
+# 0941 buffer queue (2026-09-15) — keeps GPUs 3/4 busy past 22:00-23:00 KST, runs into the morning
+#
+# User request (2026-09-15): "if the queue will dry soon, design it so it does not dry before 22-23h;
+#   if it looks like drying, design and add a new queue. Proceed without asking. Taking longer is fine."
+#
+# Drain estimate when this was written (17:3x KST): ~43 GPU-hours left on 6 slots (0937 tail + 0940 +
+#   0939) = ~7 h with perfect packing using measured medians (ground ~65-92 min/shard, free sky ~38-46,
+#   canyon ~220, low-ray det-mode 4-16). But the running aimed el -60 cells are ~40% faster than those
+#   medians, which puts the drain near 22:00 KST — at the boundary. Hence this buffer (~32 GPU-h).
+#
+# What it buys, in priority order (the supervisor launches top to bottom):
+#   1. Aimed TR 38.901 antenna in the NVIDIA street canyon (the deck's outdoor scene), el -60 then -30.
+#      Question: does a fixed, aimed antenna bring the blade contrast back in the street?
+#      Iso controls at this build already exist (canyon _rt210 d2 el -30 and -60).
+#      Scene note: the built-in scene puts the drone at z = 25 m, so the radar is ~12 m (el -60) and
+#      ~17.5 m (el -30) above that scene's ground. aim_target() aims at the drone (place(center=_ctr)).
+#      CPU pilot (16 poses, 1e7 rays, depth 1, el -60, NOT production): aimed street level -32.1 dB vs iso.
+#   2. Free-sky references at el -30 for the same build: aimed, and iso (the iso _rt210 d2 el -30 cell is
+#      missing), so "street minus sky under the same antenna" can be formed at both elevations.
+#   3. Canyon iso at el -15 and -45 at the new build. 2.0.1 partners exist, so these extend the version
+#      comparison: at el -30/-60 the canyon came back +10.8 / +6.2 dB stronger at 2.1.0 with the same path
+#      counts (cause unknown). Are canyon levels build-sensitive at every elevation?
+#
+# Rules kept: diffuse on (F1) in every arm; no el 0; no prop-only; no diffraction; GPU hold (cards 3/4).
+# Chained by runners/watch_then_start.py after 0939 is fully launched (idle fallback included).
+
+# -- 1: aimed antenna in the street canyon ------------------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 1 --nshards 2
+
+# -- 2: free-sky references at el -30 (aimed, iso) -----------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
+
+# -- 1 (cont.): aimed antenna in the street canyon, el -30 --------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 1 --nshards 2
+
+# -- 3: canyon iso at el -15 and -45, new build (version comparison) ---------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env sionna:simple_street_canyon --shard 1 --nshards 2
