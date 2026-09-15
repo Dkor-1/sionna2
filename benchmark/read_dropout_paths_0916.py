@@ -88,7 +88,7 @@ def main() -> None:
                           missing_path_keys_by_pairs=[dict(key=json.loads(k), n_pairs=n)
                                                       for k, n in missing_keys.most_common()],
                           pairs=pairs))
-    meta = dict(script="benchmark/read_dropout_paths_0916.py", created_utc=dt.datetime.now(dt.timezone.utc).isoformat(),
+    meta = dict(generator="benchmark/read_dropout_paths_0916.py", created_utc=dt.datetime.now(dt.timezone.utc).isoformat(),
                 inputs={str(SRC_JSON.relative_to(ROOT)): sha(SRC_JSON), str(SRC_NPZ.relative_to(ROOT)): sha(SRC_NPZ)},
                 definitions=dict(env_only="every interaction of the path is on an environment object",
                                  key="per-interaction (object name, interaction type, primitive index); delay not matched",
