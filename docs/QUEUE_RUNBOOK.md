@@ -1,78 +1,78 @@
-# 큐 직접 돌리기 — 터미널 런북
+# Running the queue by hand — terminal runbook
 
-> ⛔⛔**`pgrep -f` 를 쓰지 마라.** 같은 명령줄에 그 이름이 들어가는 순간 제 셸이 죽는다
-> (exit 144 · `docs/RESUME.md:45`). 이 런북은 2026-09-10 에 전부 `ps` + `[대괄호]` 로 바꿨다.
-> ⭐큐는 **2 단**이다 — 감독자(한 큐를 돌린다) 위에 지킴이(큐가 마르면 다음 큐를 띄운다)가 있다.
-> 1 절을 먼저 읽는다.
+> ⛔⛔**Do not use `pgrep -f`.** The moment that name appears on the same command line, your own shell dies
+> (exit 144 · `docs/RESUME.md:45`). On 2026-09-10 this runbook was switched entirely to `ps` + `[대괄호]` [brackets].
+> ⭐The queue has **2 tiers** — above the supervisor (runs one queue) sits the keeper (starts the next queue when a queue runs dry).
+> Read section 1 first.
 
-> 감독자(`runners/worker_supervisor.py`)와 워커(`benchmark/elevation_sweep_md.py`)를
-> **직접** 짜고 돌리고 멈추는 법. 2026-08-25 기준, 지금 돌고 있는 그 코드 기준으로 썼다.
+> How to write, run and stop the supervisor (`runners/worker_supervisor.py`) and the workers (`benchmark/elevation_sweep_md.py`)
+> **by hand**. Written as of 2026-08-25, against the code that is running now.
 
 ```bash
-# 어디서든 이 두 줄로 시작
+# Start with these two lines from anywhere
 cd /workspace/sionna
 PY=/workspace/.venvs/py312/bin/python
 ```
 
 ---
 
-## 1. 구조 — 누가 무엇을 하나
+## 1. Structure — who does what
 
-⭐**2 단이다.** 아래 칸이 «한 큐를 돌리는» 감독자고, 위 칸이 «큐가 마르면 다음 큐를 띄우는»
-지킴이다. 08-25 판 런북에는 아래 칸만 있었다(지킴이는 08-27 에 생겼다 — 2026-09-10 보강).
+⭐**There are 2 tiers.** The lower box is the supervisor that «runs one queue», and the upper box is the keeper that
+«starts the next queue when a queue runs dry». The 08-25 edition of this runbook had only the lower box (the keeper appeared on 08-27 — added 2026-09-10).
 
 ```
-queue_chain_XXXX.txt ──► queue_keeper_XXXX.sh ─┐   (지킴이: 30 초마다 «감독자가 있나» 보고
- (다음에 띄울 잡 파일    (감독자가 0 명일 때만    │    없으면 사슬의 다음 줄을 띄운다)
-  목록. # 은 주석)       다음 줄을 띄운다)        │
+queue_chain_XXXX.txt ──► queue_keeper_XXXX.sh ─┐   (keeper: every 30 s checks «is there a supervisor»
+ (list of job files      (starts the next line   │    and if not, starts the next line of the chain)
+  to start next; # = comment)  only when 0 supervisors) │
                                                  ▼
 jobs.txt  ──►  worker_supervisor.py  ──►  elevation_sweep_md.py  ──►  outputs/elev_sweep_shards/*.npz
- (한 줄 =        (큐를 혼자 읽고            (실제 계산. GPU 하나                (샤드 파일)
-  잡 하나)        워커를 띄운다)             를 잡고 돈다)
+ (one line =     (reads the queue alone     (the actual computation; holds       (shard files)
+  one job)        and starts workers)        one GPU while running)
 ```
 
-- **감독자는 하나만** 돈다. 큐를 혼자 읽어 나눠 주므로 둘 띄우면 **같은 잡이 중복 배정**된다.
-- 감독자는 **워커를 죽이지 않는다**(저장소 규칙, 0811 사고). 줄일 때는 «끝난 자리를 안 채우는»
-  방식으로만 줄인다.
-- 감독자는 큐를 **시작할 때 메모리로 읽고** 커서로 진행한다. 그래서 죽으면 **처음부터** 돈다 —
-  이어 돌리려면 남은 줄만 담은 새 파일을 만들어 띄운다(`runners/QUEUE_STATE_0908.md`).
+- **Only one supervisor** runs. It reads the queue alone and hands out jobs, so starting two **assigns the same job twice**.
+- The supervisor **does not kill workers** (repository rule, the 0811 incident). It scales down only by «not refilling
+  finished slots».
+- The supervisor **reads the queue into memory at start** and advances a cursor. So if it dies it runs **from the beginning** —
+  to continue, make a new file containing only the remaining lines and start that (`runners/QUEUE_STATE_0908.md`).
 
-### 지킴이 — 큐가 저절로 이어지는 구조
+### Keeper — how queues continue on their own
 
-| 것 | 파일 | 하는 일 |
+| Item | File | What it does |
 |---|---|---|
-| 사슬 | `runners/queue_chain_XXXX.txt` | 다음에 띄울 잡 파일 목록. 한 줄에 하나, `#` 은 주석 |
-| 지킴이 | `runners/queue_keeper_0827.sh` | 30 초마다 감독자 수를 세고, **0 명이면** 사슬의 다음 줄을 띄운다 |
-| 이미 띄운 목록 | `runners/logs/queue_chain_XXXX_done.txt` | 한 번 띄운 줄은 다시 안 본다 |
-| 지킴이 로그 | `runners/logs/queue_keeper_XXXX.log` | 「▶ 다음 큐 띄움」·「사슬 소진 — 지킴이 종료」 |
+| Chain | `runners/queue_chain_XXXX.txt` | List of job files to start next. One per line, `#` is a comment |
+| Keeper | `runners/queue_keeper_0827.sh` | Counts supervisors every 30 s and, **if there are 0**, starts the next line of the chain |
+| Already-started list | `runners/logs/queue_chain_XXXX_done.txt` | A line started once is never looked at again |
+| Keeper log | `runners/logs/queue_keeper_XXXX.log` | 「▶ 다음 큐 띄움」 [▶ next queue started] · 「사슬 소진 — 지킴이 종료」 [chain exhausted — keeper exiting] |
 
-- ⛔**사슬에 적힌 파일만** 띄운다. 없는 파일은 「건너뜀」으로 찍고 다시 안 본다.
-- ⛔**파일을 먼저 만든 뒤** 사슬에 적는다. 순서를 뒤집으면 그 줄이 영영 안 돈다.
-- ⛔손으로 띄운 큐는 사슬에 **적지 않는다** — 적으면 그 큐가 두 번 뜬다.
-- 사슬이 비면 지킴이는 **스스로 종료**한다. 그때부터 GPU 가 논다 — 마르기 전에 다음 잡 파일을
-  만들어 사슬에 적어 둔다.
-- 지킴이가 띄우는 감독자는 `SIONNA2_MAX_TOTAL=9` 다(스크립트에 박혀 있다). 손으로 띄울 때
-  쓰는 값과 다를 수 있으니 **로그의 «상한» 을 믿는다**.
+- ⛔It starts **only files written in the chain**. A missing file is logged as 「건너뜀」 [skipped] and never looked at again.
+- ⛔**Create the file first**, then write it into the chain. Reverse the order and that line never runs.
+- ⛔**Do not write** a hand-started queue into the chain — if you do, that queue starts twice.
+- When the chain is empty the keeper **exits by itself**. From then on the GPUs sit idle — before it runs dry, create the next job file
+  and write it into the chain.
+- Supervisors started by the keeper use `SIONNA2_MAX_TOTAL=9` (hard-coded in the script). This may differ from the value
+  used when starting by hand, so **trust the «상한» [cap] in the log**.
 
-### 발주 흐름 — 한 잡이 도는 데까지
+### Ordering flow — up to one job running
 
 ```
-① runners/make_jobs_XXXX.py       물음·죽는조건·안답함을 적고 잡 줄을 낸다
-        │                          ⛔줄만 적지 않는다 — «무엇을 안 답하는가» 를 함께 적는다
+① runners/make_jobs_XXXX.py       writes the question · kill conditions · what it does not answer, and emits job lines
+        │                          ⛔do not write only lines — also write «what it does not answer»
         ▼  python runners/make_jobs_XXXX.py > runners/jobs_XXXX.txt
 ② runners/jobs_XXXX.txt
         │
-        ▼  ⭐발주 전 반드시 — runners/filter_jobs.sh
-③ NEW · DONE · STALE 로 가른다     NEW 만 사는 것이 기본. STALE 은 물음이 n_dup 을 필요로
-        │                          할 때만 --overwrite 로 다시 산다
+        ▼  ⭐always before ordering — runners/filter_jobs.sh
+③ split into NEW · DONE · STALE    buying only NEW is the default. STALE is bought again with --overwrite
+        │                          only when the question needs n_dup
         ▼
-④ runners/queue_chain_XXXX.txt 에 그 파일 이름을 적는다   (⛔파일을 먼저 만든 뒤에)
+④ write that file name into runners/queue_chain_XXXX.txt   (⛔after creating the file first)
         │
         ▼
-⑤ 지킴이가 감독자를 띄운다 → 감독자가 워커를 띄운다 → 샤드가 떨어진다
+⑤ the keeper starts a supervisor → the supervisor starts workers → shards land
 ```
 
-거르는 한 줄:
+The one-liner that filters:
 
 ```bash
 grep -vE "^\s*(#|$)" runners/jobs_XXXX.txt \
@@ -81,14 +81,14 @@ grep -vE "^\s*(#|$)" runners/jobs_XXXX.txt \
 
 ---
 
-## 2. 잡 파일 쓰기
+## 2. Writing a job file
 
-한 줄이 잡 하나이고, 그 줄이 그대로 `elevation_sweep_md.py` 의 인자가 된다.
-`#` 로 시작하는 줄과 빈 줄은 건너뛴다.
+One line is one job, and that line becomes the arguments of `elevation_sweep_md.py` as is.
+Lines starting with `#` and blank lines are skipped.
 
 ```bash
 cat > runners/jobs_mine.txt <<'EOF'
-# 내 큐 — 2026-08-25
+# My queue — 2026-08-25
 --engine sionna --spp 4000000000 --sw R0D1E1F1 --max-depth 2 --drone mini5pro \
   --range-m 15 --n-poses 8192 --els=0,-30 --shard 0 --nshards 2 --inmem
 --engine sionna --spp 4000000000 --sw R0D1E1F1 --max-depth 2 --drone mini5pro \
@@ -96,28 +96,28 @@ cat > runners/jobs_mine.txt <<'EOF'
 EOF
 ```
 
-⚠**한 줄은 반드시 한 줄로.** 위 예시의 `\` 줄바꿈은 셸 히어독에서만 이어지지, 감독자는
-파일을 **줄 단위**로 읽는다. 안전하게 하려면 그냥 길게 한 줄로 쓴다.
+⚠**One job must be exactly one line.** The `\` line breaks in the example above only continue inside a shell heredoc; the supervisor
+reads the file **line by line**. To be safe, just write one long line.
 
-### 자주 쓰는 인자
+### Frequently used arguments
 
-| 인자 | 뜻 |
+| Argument | Meaning |
 |---|---|
-| `--sw R?D?E?F?` | 물리 스위치. **R**=굴절 **D**=회절 **E**=모서리회절 **F**=확산. `R0D1E1F1` = 굴절만 끔 |
-| `--els=0,-30` | 앙각 목록. **잡 하나가 여기 적힌 앙각을 전부 돈다** → 파일도 그만큼 나온다 |
-| `--shard k --nshards n` | 자세를 n 등분해 k 번째만. **자세를 건너뛰며** 나눠 가진다 |
-| `--n-poses 8192` | 자세 수 |
-| `--range-m 15` · `--drone mini5pro` | 거리 · 기체 |
-| `--spp 4000000000` | 광선 수 |
-| `--max-depth 2` | 반사 깊이. ⛔회절 켠 조합에서 3 을 빼면 안 된다(R13) |
-| `--inmem` | 중간 파일 없이 메모리에서. 지금 큐가 쓰는 방식 |
-| `--overwrite` | 이미 있는 샤드도 **다시** 계산 |
-| `--dry-run` | 계산 없이 «있음/없음»만 출력 |
+| `--sw R?D?E?F?` | Physics switches. **R**=refraction **D**=diffraction **E**=edge diffraction **F**=diffuse. `R0D1E1F1` = only refraction off |
+| `--els=0,-30` | Elevation list. **One job runs every elevation written here** → it produces that many files |
+| `--shard k --nshards n` | Split the poses into n parts and take only the k-th. Parts are shared **by skipping through the poses** |
+| `--n-poses 8192` | Number of poses |
+| `--range-m 15` · `--drone mini5pro` | Range · airframe |
+| `--spp 4000000000` | Number of rays |
+| `--max-depth 2` | Reflection depth. ⛔In combinations with diffraction on, 3 must not be dropped (R13) |
+| `--inmem` | In memory, without intermediate files. The mode the current queue uses |
+| `--overwrite` | Compute **again** even shards that already exist |
+| `--dry-run` | Print only «present/absent», without computing |
 
-### ⭐돌리기 전에 반드시 — 무엇이 이미 있는지 본다
+### ⭐Always before running — see what already exists
 
-워커는 **이미 있는 샤드를 건너뛴다**(`--overwrite` 없으면). 그래서 큐를 다시 짜도
-끝난 일은 다시 안 한다. 미리 확인하려면:
+Workers **skip shards that already exist** (without `--overwrite`). So even if the queue is rewritten,
+finished work is not redone. To check in advance:
 
 ```bash
 while read -r line; do
@@ -128,22 +128,22 @@ done < runners/jobs_mine.txt
 
 ---
 
-## 3. 띄우기
+## 3. Starting
 
 ```bash
 setsid nohup $PY runners/worker_supervisor.py \
   runners/jobs_mine.txt \
   /workspace/sionna/runners/logs/sup_mine.log \
   >/dev/null 2>&1 &
-echo "감독자 pid $!"
+echo "supervisor pid $!"
 ```
 
-- `setsid` 가 핵심이다 — 터미널이나 SSH 가 끊겨도 계속 돈다.
-- 로그 경로를 생략하면 `runners/logs/supervisor.log` 로 간다.
+- `setsid` is the key — it keeps running even if the terminal or SSH disconnects.
+- If the log path is omitted, it goes to `runners/logs/supervisor.log`.
 
-### 자원 규율 — 환경변수로 조인다
+### Resource discipline — tighten with environment variables
 
-기본값은 이 컨테이너에 맞춰 이미 보수적이지만, **더 조이고 싶으면** 앞에 붙인다:
+The defaults are already conservative for this container, but **if you want to tighten further**, prefix these:
 
 ```bash
 SIONNA2_CPUS=8 SIONNA2_RAM_GB=24 SIONNA2_MAX_TOTAL=4 SIONNA2_HARD_TOTAL=6 \
@@ -152,142 +152,142 @@ setsid nohup $PY runners/worker_supervisor.py runners/jobs_mine.txt \
   runners/logs/sup_mine.log >/dev/null 2>&1 &
 ```
 
-| 변수 | 기본 | 뜻 |
+| Variable | Default | Meaning |
 |---|---|---|
-| `SIONNA2_MAX_TOTAL` | 8 | 목표 배분의 **예산** 상한(투입 차단선이 아니다) ⚠지킴이는 **9** 로 띄운다(`queue_keeper_0827.sh`). 손으로 띄운 판이 다를 수 있으니 **감독자 로그의 «상한» 을 믿는다** |
-| `SIONNA2_HARD_TOTAL` | 12 | **절대선**. 이걸 넘겨선 안 띄운다 |
-| `SIONNA2_THREADS` | 2 | 워커당 스레드. ⛔올리지 말 것 — 스레드 폭주의 원인 |
-| `SIONNA2_CPUS` | 자동 | 우리 몫 CPU 코어 수. CPU 브레이크의 분모 |
-| `SIONNA2_RAM_GB` | 자동 | 우리 몫 RAM. 컨테이너 천장은 32 GiB |
-| `SIONNA2_EXCLUDE_GPUS` | 없음 | `"0,3"` 처럼. 절대 안 쓸 카드 |
+| `SIONNA2_MAX_TOTAL` | 8 | **Budget** cap for the target allocation (not a hard launch cut-off) ⚠The keeper starts with **9** (`queue_keeper_0827.sh`). A hand-started run may differ, so **trust the «상한» [cap] in the supervisor log** |
+| `SIONNA2_HARD_TOTAL` | 12 | **Absolute line**. Nothing is started beyond it |
+| `SIONNA2_THREADS` | 2 | Threads per worker. ⛔Do not raise it — the cause of thread runaways |
+| `SIONNA2_CPUS` | auto | Number of CPU cores in our share. Denominator of the CPU brake |
+| `SIONNA2_RAM_GB` | auto | RAM in our share. The container ceiling is 32 GiB |
+| `SIONNA2_EXCLUDE_GPUS` | none | Like `"0,3"`. Cards never to use |
 
-**안전선**(코드 상수, 환경변수 아님): RAM 여유 `6 GB` 아래거나 우리 CPU 사용률이
-`0.85` 를 넘으면 **새로 안 띄운다**(돌던 것은 계속 돈다).
+**Safety lines** (code constants, not environment variables): if free RAM is below `6 GB` or our CPU utilisation
+exceeds `0.85`, **nothing new is started** (what is already running keeps running).
 
 ---
 
-## 4. 지켜보기
+## 4. Watching
 
 ```bash
-# 지금 상태 한 줄
+# Current state in one line
 tail -1 runners/logs/sup_mine.log
 
-# 흐르는 대로
+# As it flows
 tail -f runners/logs/sup_mine.log
 
-# 워커가 뱉는 진행률
+# Progress printed by workers
 tail -f runners/logs/sup_mine.log.workerout
-# 워커 오류
+# Worker errors
 tail -f runners/logs/sup_mine.log.workererr
 ```
 
-로그 한 줄은 이렇게 생겼다:
+A log line looks like this:
 
 ```
 [08-25 13:40] 상태 G0:2/2(상한3·남0G) ... · 큐 25/48 · 워커 4 · RAM 16.9G · CPU 0.88 · ⛔대기: ...
-                    └ 카드별 현재/목표      └ ⚠«투입 포인터» 지 완료 수가 아니다
+                    └ per card current/target └ ⚠«launch pointer», not a completion count
 ```
 
-### ⛔진척은 «샤드» 로 읽는다 — 이게 제일 헷갈린다
+### ⛔Read progress in «shards» — this is the most confusing part
 
-- `큐 25/48` 은 감독자가 **몇 번째 잡을 꺼내 갔나**(투입 포인터)다. 완료 수가 **아니다**.
-- 잡 하나가 `--els=a,b` 로 앙각 둘을 돌면 **파일이 2 개** 나온다.
-  그래서 48 잡짜리 큐의 총량은 샤드 **96** 개다.
-- `outputs/elev_sweep_shards/` 에는 **옛 실행분이 잔뜩 섞여 있다**(지금 4,300 개 넘는다).
-  내 큐 몫만 세려면 **감독자 시작 시각 이후 mtime** 으로 거른다:
+- `큐 25/48` is **how many jobs the supervisor has taken out** (the launch pointer). It is **not** a completion count.
+- If one job runs two elevations with `--els=a,b`, **2 files** come out.
+  So a 48-job queue totals **96** shards.
+- `outputs/elev_sweep_shards/` **is full of output from old runs** (over 4,300 files now).
+  To count only your queue's share, filter by **mtime after the supervisor start time**:
 
 ```bash
-# ⛔pgrep -f 를 쓰지 마라 — 같은 명령줄에 그 이름이 있는 순간 **제 셸이 죽는다**(exit 144).
-#   ps 로 뽑고 이름은 [대괄호]로 갈라 자기 자신을 안 잡게 한다.
+# ⛔Do not use pgrep -f — the moment that name is on the same command line, **your own shell dies** (exit 144).
+#   Pick it out with ps and split the name with [brackets] so it does not catch itself.
 SUP=$(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)
 T0=$(( $(date +%s) - $(ps -o etimes= -p $SUP | tr -d ' ') ))
-echo "내 큐가 낸 샤드: $(find outputs/elev_sweep_shards -name '*.npz' -newermt "@$T0" | wc -l)"
+echo "shards produced by my queue: $(find outputs/elev_sweep_shards -name '*.npz' -newermt "@$T0" | wc -l)"
 ```
 
-⚠`find -newermt '2026-08-25 16:40'` 처럼 **사람이 읽는 시각**을 쓰면 함정이다 —
-컨테이너 시계는 UTC 인데 머릿속은 KST 라 9 시간이 어긋난다. 위처럼 `@epoch` 를 쓰거나
-`touch -d` 로 기준 파일을 만들어 `-newer` 를 쓴다.
+⚠Using a **human-readable time** like `find -newermt '2026-08-25 16:40'` is a trap —
+the container clock is UTC while your head is in KST, so it is off by 9 hours. Use `@epoch` as above, or
+make a reference file with `touch -d` and use `-newer`.
 
-### 건강 확인 (좀비·고아)
+### Health check (zombies · orphans)
 
 ```bash
-# ⛔pgrep -f 금지(위 참조). ps + [대괄호] 로 센다.
-echo "감독자 $(ps -eo args= | grep -c '[w]orker_supervisor.py') · 워커 $(ps -eo args= | grep -c '[e]levation_sweep_md.py') · 좀비 $(ps -eo stat= | grep -c '^Z')"
-# 워커의 부모가 전부 감독자인지 (고아 검사)
+# ⛔pgrep -f forbidden (see above). Count with ps + [brackets].
+echo "supervisors $(ps -eo args= | grep -c '[w]orker_supervisor.py') · workers $(ps -eo args= | grep -c '[e]levation_sweep_md.py') · zombies $(ps -eo stat= | grep -c '^Z')"
+# Whether every worker's parent is a supervisor (orphan check)
 for p in $(ps -eo pid,args= | grep '[e]levation_sweep_md.py' | awk '{print $1}'); do
   echo "  $p ← ppid $(ps -o ppid= -p $p | tr -d ' ')"
 done
 ```
 
-⚠**세는 것만으로도 틀린다.** 명령줄 문자열을 보는 셈법(`pgrep -f` · `ps | grep`)은
-그 이름을 담은 **다른 셸**까지 센다. `[대괄호]` 로 제 셸은 갈라도, 지킴이가 30 초마다 띄우는
-부분셸(`queue_keeper_0827.sh` 안의 `grep -cE '…runners/worker_supervisor'`)이 표본에 걸리면
-개수가 하나 많게 나온다 — 2026-09-10 에 감독자 1 을 3 으로, 워커 10 을 12 로 셌다.
+⚠**Even counting alone gets it wrong.** Counting methods that look at command-line strings (`pgrep -f` · `ps | grep`)
+also count **other shells** that contain the name. `[대괄호]` [brackets] exclude your own shell, but if a subshell the keeper spawns every 30 s
+(`grep -cE '…runners/worker_supervisor'` inside `queue_keeper_0827.sh`) is caught in the sample,
+the count comes out one too high — on 2026-09-10, 1 supervisor was counted as 3 and 10 workers as 12.
 
-⭐**흔들리지 않는 셈법** — 실행 파일이 python 이고 첫 인자가 그 스크립트인 것만 센다:
+⭐**A counting method that does not wobble** — count only processes whose executable is python and whose first argument is that script:
 
 ```bash
 sup() { ps -eo pid,args= | awk '$2 ~ /\/python[0-9.]*$/ && $3 ~ /worker_supervisor\.py$/ {n++} END{print n+0}'; }
 wrk() { ps -eo pid,args= | awk '$2 ~ /\/python[0-9.]*$/ && $3 ~ /elevation_sweep_md\.py$/ {n++} END{print n+0}'; }
-echo "감독자 $(sup) · 워커 $(wrk) · 좀비 $(ps -eo stat= | grep -c '^Z')"
+echo "supervisors $(sup) · workers $(wrk) · zombies $(ps -eo stat= | grep -c '^Z')"
 ```
 
 ---
 
-## 5. 멈추기 — ⛔여기가 제일 위험하다
+## 5. Stopping — ⛔this is the most dangerous part
 
 ```bash
-SUP=$(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)   # ⛔pgrep -f 금지
-kill -TERM $SUP          # ⭐한 번만
+SUP=$(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)   # ⛔pgrep -f forbidden
+kill -TERM $SUP          # ⭐once only
 ```
 
-| 신호 | 무슨 일이 일어나나 |
+| Signal | What happens |
 |---|---|
-| **1 번** | 새로 안 띄우고 **돌던 워커가 끝나기를 기다린다.** 이게 정상 종료다 |
-| **2 번** | ⛔**배수를 끊고 나간다. 워커는 계속 돈다 → 고아가 된다.** 정말 급할 때만 |
+| **1st** | Starts nothing new and **waits for running workers to finish.** This is the normal shutdown |
+| **2nd** | ⛔**Abandons the drain and exits. Workers keep running → they become orphans.** Only in a real emergency |
 
-두 번 보내면 감독자가 `runners/logs/orphans_handoff.txt` 에 pid↔잡 대응을 남긴다.
-그 파일로 나중에 추적해 정리할 수 있지만, **애초에 두 번 보내지 않는 게 맞다.**
+If sent twice, the supervisor leaves the pid↔job mapping in `runners/logs/orphans_handoff.txt`.
+That file lets you trace and clean up later, but **the right thing is never to send it twice in the first place.**
 
-워커 하나가 앙각 2 개면 **몇 시간** 돈다. 정상 종료가 오래 걸리는 건 정상이다.
+A worker with 2 elevations runs for **hours**. It is normal for a normal shutdown to take a long time.
 
-⛔**워커를 직접 `kill` 하지 않는다.** 저장소 규칙이다(0811 사고). 중간에 죽이면 샤드가
-안 써지고, 다음 실행이 «없음» 으로 보고 처음부터 다시 한다.
+⛔**Do not `kill` workers directly.** It is a repository rule (the 0811 incident). Killing one midway means the shard
+is not written, and the next run sees «absent» and starts over from the beginning.
 
 ---
 
-## 6. 잡을 더 넣고 싶을 때
+## 6. When you want to add more jobs
 
-⛔**잡 파일은 감독자가 뜰 때 한 번만 읽는다.** 돌아가는 중에 파일에 줄을 추가해도
-**안 읽는다.** 방법은 하나다:
+⛔**The job file is read only once, when the supervisor starts.** Lines added to the file while it is running
+**are not read.** There is one way:
 
 ```bash
-kill -TERM $SUP                      # 1) 한 번만. 워커가 끝날 때까지 기다린다
-# ... 워커가 다 끝날 때까지 기다린 뒤 ...
-vi runners/jobs_mine.txt             # 2) 줄 추가
+kill -TERM $SUP                      # 1) once only. Wait until the workers finish
+# ... after waiting for every worker to finish ...
+vi runners/jobs_mine.txt             # 2) add lines
 setsid nohup $PY runners/worker_supervisor.py runners/jobs_mine.txt \
-  runners/logs/sup_mine.log >/dev/null 2>&1 &   # 3) 다시 띄운다
+  runners/logs/sup_mine.log >/dev/null 2>&1 &   # 3) start it again
 ```
 
-**끝난 잡은 다시 안 한다** — 워커가 샤드 존재를 보고 건너뛴다. 그러니 옛 줄을 지울 필요 없이
-**그대로 두고 새 줄만 붙이면** 된다.
+**Finished jobs are not redone** — workers see that the shard exists and skip it. So there is no need to delete old lines;
+**leave them and just append new lines**.
 
 ---
 
-## 7. 결과 합치기
+## 7. Merging results
 
-샤드는 흩어져 있다. 하나로 합칠 때:
+Shards are scattered. To merge them into one:
 
 ```bash
-$PY benchmark/elevation_sweep_md.py --merge ...   # 인자는 합칠 대상과 같게
+$PY benchmark/elevation_sweep_md.py --merge ...   # arguments the same as the target being merged
 ```
 
-⛔⛔**샤드를 직접 이어붙이지 말 것.** 샤드는 자세를 **건너뛰며** 나눠 갖는다 —
-각 파일의 `idx` 가 자세 번호이고 `meta[3]` 이 전체 자세 수다. 그냥 `concatenate` 하면
-① 시간 순서가 깨져 리듬이 사라지고 ② 팔끼리 자세 정렬이 어긋난다.
-(2026-08-24 실측: 이어붙인 판이 el −30 을 2.47 % 로 냈는데 정본은 80.5 % 였다.)
+⛔⛔**Do not concatenate shards directly.** Shards share the poses **by skipping through them** —
+each file's `idx` holds the pose numbers and `meta[3]` the total pose count. A plain `concatenate`
+① breaks the time order so the rhythm disappears and ② misaligns poses between arms.
+(Measured 2026-08-24: the concatenated edition gave el −30 as 2.47 %, while the canonical one was 80.5 %.)
 
-올바른 재조립은 **제자리에 흩뿌리기**다:
+The correct reassembly is **scattering back into place**:
 ```python
 E = np.zeros(int(np.asarray(d["meta"], float)[3]), complex)
 E[np.asarray(d["idx"]).astype(int)] = np.asarray(d["E"]).ravel()
@@ -295,31 +295,31 @@ E[np.asarray(d["idx"]).astype(int)] = np.asarray(d["E"]).ravel()
 
 ---
 
-## 8. 알려진 함정 모음
+## 8. Known traps
 
-| 함정 | 증상 | 대응 |
+| Trap | Symptom | Response |
 |---|---|---|
-| 감독자 둘 | 같은 잡이 두 번 돈다 | 띄우기 전에 위 `sup()` 로 0 인지 확인 (⛔`pgrep -f` 금지) |
-| 사슬에 손으로 띄운 큐를 적음 | 그 큐가 두 번 뜬다 | 손으로 띄운 것은 사슬에 **안 적는다** |
-| 사슬에 없는 파일을 적음 | 조용히 건너뛴다 | **파일을 먼저 만든 뒤** 사슬에 적는다 |
-| 사슬이 마름 | 지킴이가 스스로 끝나고 GPU 가 논다 | 마르기 전에 다음 잡 파일을 만들어 사슬에 적는다 |
-| TERM 두 번 | 고아 워커 | 한 번만. 오래 걸려도 기다린다 |
-| 잡 파일 추가 | 아무 일도 안 일어남 | 재시작해야 읽는다 |
-| `큐 i/N` 오독 | 진척을 과대평가 | 샤드 수로 읽는다 |
-| 샤드 이어붙이기 | 리듬이 사라진 값 | `idx` 로 흩뿌린다 |
-| KST/UTC | `find -newermt` 가 0 개 | `@epoch` 를 쓴다 |
-| `pgrep` 자기매칭 | 개수가 하나 많다 | `ps -o args=` 로 확인 |
-| `--help` 가 죽는다 | argparse 예외 | 알려진 버그. 인자는 이 문서나 소스에서 본다 |
+| Two supervisors | The same job runs twice | Before starting, confirm 0 with `sup()` above (⛔`pgrep -f` forbidden) |
+| Hand-started queue written into the chain | That queue starts twice | Hand-started queues are **not written** into the chain |
+| A file not yet created written into the chain | Silently skipped | **Create the file first**, then write it into the chain |
+| Chain runs dry | The keeper exits by itself and the GPUs sit idle | Before it runs dry, create the next job file and write it into the chain |
+| TERM twice | Orphan workers | Once only. Wait even if it takes long |
+| Adding to the job file | Nothing happens | It is read only after a restart |
+| Misreading `큐 i/N` | Overestimated progress | Read it by shard count |
+| Concatenating shards | Values with the rhythm gone | Scatter by `idx` |
+| KST/UTC | `find -newermt` finds 0 files | Use `@epoch` |
+| `pgrep` self-match | Count one too high | Check with `ps -o args=` |
+| `--help` crashes | argparse exception | Known bug. Look up arguments in this document or the source |
 
 ---
 
-## 9. 한 장 요약
+## 9. One-page summary
 
 ```bash
 cd /workspace/sionna; PY=/workspace/.venvs/py312/bin/python
-ps -eo args= | grep -c '[w]orker_supervisor.py'                     # 0 이어야 띄운다 (⛔pgrep -f 금지)
+ps -eo args= | grep -c '[w]orker_supervisor.py'                     # must be 0 to start (⛔pgrep -f forbidden)
 setsid nohup $PY runners/worker_supervisor.py runners/jobs_mine.txt \
-  runners/logs/sup_mine.log >/dev/null 2>&1 &                      # 띄우기
-tail -f runners/logs/sup_mine.log                                  # 보기
-kill -TERM $(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)   # 멈추기(한 번만)
+  runners/logs/sup_mine.log >/dev/null 2>&1 &                      # start
+tail -f runners/logs/sup_mine.log                                  # watch
+kill -TERM $(ps -eo pid,args= | grep '[w]orker_supervisor.py' | awk '{print $1}' | head -1)   # stop (once only)
 ```
