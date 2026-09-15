@@ -1,0 +1,31 @@
+# 0944 isolated poses in the street canyon: solver seed and path cap (2026-09-16)
+#
+# User request (2026-09-16): 「큐는 내일 점심 이후까지 마르지않도록 설계해주면 좋겠는데」 [design the queue so it does
+#   not dry before after lunch].
+#
+# Street-canyon cells take about 225 min per shard, so this file starts only after 06:10 KST 2026-09-16, when GPUs 0
+#   and 1 are held again and every launch goes to GPUs 3/4 (started by a time-gated shell loop; see the commit).
+# Background and read-out as in jobs_0943_seed.txt. In the canyon the missing path at isolated poses is the floor
+#   specular or a two-bounce building/unnamed specular path (outputs/dropout_paths_0916_diff.json), and isolated
+#   poses stand above the rest rather than collapse.
+# Questions (reference: canyon rt210 d2 iso 4e9 rays seed 1; 0942/§3 buys path cap 8e6 at el -60):
+#   1. Seed 2 at el -60: does the canyon's isolated-pose set (339 poses) change with the ray sample set?
+#   2. Path cap 8e6 at el -30: second elevation for 0942/§3.
+#   3. Tail (buffer): seed 2 at el -30.
+# Kill / fold: if 0943/§1 shows the ground set does not follow the seed (Jaccard >= 0.95), §1 here still checks the
+#   canyon; §3 is dropped if §1 also gives Jaccard >= 0.95 and it has not launched (stop the supervisor with the
+#   user's OK — the supervisor reads this file once). Fold any arm whose npaths reaches the cap.
+# Not answered: mechanism; real radar; absolute levels between engines.
+# Rules kept: F1 in every arm; no el 0; no prop-only; no diffraction; GPU hold.
+
+# -- 1: seed 2, canyon el -60 ------------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --solver-seed 2 --shard 1 --nshards 2
+
+# -- 2: path cap 8e6, canyon el -30 ----------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --max-paths 8000000 --shard 1 --nshards 2
+
+# -- 3: tail, seed 2, canyon el -30 ----------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --solver-seed 2 --shard 1 --nshards 2

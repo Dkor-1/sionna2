@@ -28,7 +28,7 @@
     우리 커널   ours|ours_free|ours_gpu _ptd <공통> _div<나눔> _shift<옮김>
     <공통>      _<기체> _r<거리> _n<자세> _prf<표집률> _rep<되풀이> _env<환경>
                 _mp<경로상한> _gnd<지면><고도> _nospread _S<산란> _alt<고도>
-                _ps<프롭배율> _fs<프레임배율> _bs<동체배율> _pw _det _az<방위>
+                _ps<프롭배율> _fs<프레임배율> _bs<동체배율> _pw _det _sdet _ss<솔버씨앗> _az<방위>
                 _rot<로터> _fc<반송파MHz> _shell<두께>mm _prop<두께>mm _mfix<수리> _bl<날법칙>
 
 ⚠꼬리표 **둘**은 밑줄을 품는다 — `_env`(예: `outdoor01_ground` · `sionna-simple_street_canyon`)
@@ -127,6 +127,8 @@ _COMMON = [
     #    `_sdet` 는 솔버 자체를 바꾼 것이다. 둘은 같이 붙을 수 있어 자리를 따로 둔다.
     #  ⛔기본(끔)에는 안 붙는다 — 창고의 기존 자료 전부가 그 모드다.
     _F("solver_det", "sdet", r"", flag=True),
+    #: PathSolver seed (added 2026-09-16) - `_ss<N>` = `seed=N`; absent for seed 1, which every earlier shard used.
+    _F("solver_seed", "ss", r"\d+"),
     #: ⚠`_az0.7s1` — 로터 씨앗은 **앞 꼬리표에 바로 붙는다**(빌더가 밑줄을 안 넣는다).
     #: ⚠씨앗이 붙을 수 있다 — 아래 `_split_seed` 가 떼어 `rotor_seed` 로 옮긴다.
     _F("az", "az", r"%s(?:s\d+)?" % _NUM),

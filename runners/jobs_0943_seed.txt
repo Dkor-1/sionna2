@@ -1,0 +1,60 @@
+# 0943 isolated poses: solver seed, ray count, second elevation; free-sky completion (2026-09-16)
+#
+# User requests (2026-09-16): 「큐에 새로운 작업 설계 빨리 부탁해!」 [design new queue work quickly] and
+#   「큐는 내일 점심 이후까지 마르지않도록 설계해주면 좋겠는데」 [design the queue so it does not dry before after lunch].
+#
+# Background: at every isolated pose of the ground and street-canyon cells (rt210, d2, el -60) one or two
+#   environment-only specular paths that both neighbours have are absent, and no new environment path appears
+#   (outputs/dropout_paths_0916_diff.json; neighbour i-1 vs i+1 control: none missing). Queue 0942 varies the path cap
+#   and the solver's deterministic mode. This queue varies what 0942 does not: the ray sample set (solver seed, added
+#   to benchmark/elevation_sweep_md.py on 2026-09-16 as --solver-seed; name tag _ss<N>; seed 1 = every earlier shard)
+#   and the ray count, and repeats the seed test at a second elevation.
+#
+# Questions (reference: ground cell rt210 d2 iso 4e9 rays seed 1, and its same-seed repeat _rep1 at el -60):
+#   1. Seed: does the isolated-pose set at el -60 change with seed 2 and seed 3? Same-seed repeat Jaccard is >= 0.984.
+#   2. Control: free sky at seed 2 (el -60) — no environment, so no isolated poses are expected; checks that a seed
+#      change alone does not create them.
+#   3. Ray count at this build: 2e9 and 3e9 rays at el -60 (a CPU ladder on 2.0.1 shards gave 11/76/90-97 isolated
+#      poses at 1e8/1e9/3.6e9-4.29e9 with the set mostly stable from 3.6e9).
+#   4. Second elevation (el -30): seed 2 and path cap 8e6 — does what 0942/§1 find at el -60 hold at el -30?
+#   5. Free sky rt210 iso d2 at el -45 (missing; -15/-60 exist, -30 in 0941) for the kernel/PathSolver free-space match.
+#   6. Tail (buffer): ground cell el -15 seed 2.
+# Read-out: isolated count at factor 20, Jaccard against the seed-1 cell, missing-path class at isolated poses
+#   (benchmark/dropout_paths_0916.py can list any of these cells), npaths against the cap.
+# Kill / fold: if seed 2 and 3 give Jaccard >= 0.95 against seed 1, the set does not follow the ray samples: §4's seed
+#   line adds little (it stays as a check at a second elevation). If npaths reaches the cap anywhere, fold that arm.
+# Not answered: why the solver omits the path; anything about a real radar (no RF measurement); absolute levels
+#   between engines (never compared).
+# No street-canyon or depth-3 line here (GPUs 0/1 must be free at 08:00 KST); canyon work is in jobs_0944.
+# Rules kept: F1 in every arm; no el 0; no prop-only; no diffraction; GPU hold. Chained after 0942 by
+#   runners/watch_then_start.py.
+
+# -- 1: solver seed, ground el -60 ------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --solver-seed 2 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --solver-seed 3 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --solver-seed 3 --shard 1 --nshards 2
+
+# -- 2: control, free sky el -60, seed 2 -------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --solver-seed 2 --shard 1 --nshards 2
+
+# -- 3: ray count at this build, ground el -60 ---------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 2000000000 --max-depth 2 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 2000000000 --max-depth 2 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 3000000000 --max-depth 2 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 3000000000 --max-depth 2 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+
+# -- 4: second elevation, ground el -30: seed 2, path cap 8e6 ---------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_ground --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_ground --solver-seed 2 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_ground --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_ground --max-paths 8000000 --shard 1 --nshards 2
+
+# -- 5: free sky rt210 iso d2 el -45 -------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --shard 1 --nshards 2
+
+# -- 6: tail, ground el -15 seed 2 ---------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --solver-seed 2 --shard 1 --nshards 2

@@ -514,6 +514,7 @@ def run(a) -> None:
         + ("_pw" if plane else "") \
         + ("_det" if getattr(a, "det", False) else "") \
         + ("_sdet" if getattr(a, "solver_deterministic", False) else "") \
+        + ("" if int(getattr(a, "solver_seed", 1)) == 1 else f"_ss{int(a.solver_seed)}") \
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
@@ -1054,7 +1055,8 @@ def run(a) -> None:
                 # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
                 #   깊이는 --max-depth 로 따로 준다(안 주면 옛 규칙 3/1).
                 max_depth=mdep, **sw,
-                samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS, seed=1)
+                samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS,
+                seed=int(getattr(a, "solver_seed", 1)))
             try:
                 aa, tau, _, O = RP.unpack(p, want_doppler=False)
             except ValueError:
@@ -2382,6 +2384,10 @@ def main() -> None:
                          "⚠지면 거칠기(--env-scat)를 켜면 확산 경로가 폭증해 상한에 붙고 "
                          "**경로가 조용히 잘린다** — 2026-09-07 에 S=0.3·0.7 판이 8,192 자세 "
                          "전부 잘린 채 났다. 파일명에 _mp<값> 이 붙어 규약값 판과 안 섞인다.")
+    ap.add_argument("--solver-seed", dest="solver_seed", type=int, default=1,
+                    help="PathSolver seed for this line (default 1, the value every earlier shard used). "
+                         "Any other value adds _ss<seed> to the file name so it never mixes with seed-1 shards. "
+                         "Added 2026-09-16 to test whether the isolated-pose set follows the ray sample set.")
     ap.add_argument("--ground", type=str, default="",
                     help="⭐**우리 커널의 실외 갈래** — 평평한 지면을 거울상(image) 법으로 넣는다. "
                          "값은 재질: concrete | soil. `--ground-alt` 로 지면까지 높이를 준다. "

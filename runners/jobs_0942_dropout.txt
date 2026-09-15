@@ -24,14 +24,17 @@
 # Kill / fold conditions:
 #   - If npaths per pose reaches the cap in any arm, that arm measures the cap, not the scene: fold it
 #     (memory note saturating-cap-means-unmeasurable) and do not buy further rungs.
-#   - If 1e6 and 8e6 both give Jaccard >= 0.95 against the default cap, table size is not the driver: skip section 3
-#     if it has not launched yet (remove its lines; supervisors re-read the job file).
+#   - If 1e6 and 8e6 both give Jaccard >= 0.95 against the default cap, table size is not the driver: section 3 is then
+#     not needed. The supervisor reads this file once at start, so editing it does not remove lines; skipping means
+#     stopping the 0942 supervisor before it reaches section 3 (docs/QUEUE_RUNBOOK.md section 5; needs the user's OK).
 #   - If deterministic on/off give Jaccard >= 0.95 at 2e8, the winner rule is not the driver.
 # What this does not answer: which path goes missing (dropout_paths_0916.py does that), whether a real radar
 #   sees anything similar (no RF measurement exists), and absolute levels between engines (never compared).
 #
 # Rules kept: diffuse on (F1) in every arm; no el 0; no prop-only; no diffraction; GPU hold (cards 3/4 after
-#   06:10 KST 2026-09-16). Chained by runners/watch_then_start.py after 0941.
+#   06:10 KST 2026-09-16). Supervisor started directly at 01:40 KST (two supervisors share the worker cap).
+#   Section 3 is street canyon (~225 min per shard): runners/gpu_hold_schedule_0916.py holds GPUs 0 and 1 from
+#   03:50 KST while such a line is among the next 3, so it cannot land on cards that must be free at 08:00.
 
 # -- 2: deterministic mode at 2e8 rays (short; first) --------------------------
 --engine sionna --spp 200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --solver-deterministic --shard 0 --nshards 2
