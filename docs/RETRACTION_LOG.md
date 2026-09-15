@@ -1748,3 +1748,7 @@ prop_scale 에만 비례한다」). ⇒ 대역이 x1.0 자리에 굳어 있었�
 
 **교훈.** 자기가 정의한 지표를 머리기사 숫자로 올리기 전에 **자유 파라미터를 흔들어 본다.**
 흔들어서 결론이 바뀌면 그것은 측정이 아니라 규약이다. 여기서는 흔들자 9.9 %↔90 % 로 움직였다.
+
+---
+
+**Archived files (2026-09-16).** Some files this log names were moved out of the repository in the 2026-09 cleanup, to `/workspace/archive/2026-09/sionna/` at the same relative path (for example `docs/PLAN_PATHSOLVER_CLASSIFY.md`, `docs/NOISE_MAIN_RUN_SPEC.md`, `docs/PLAN_0818.md`). The entries above keep their original paths; the archive `README.md` lists every moved file. Nothing in this log was withdrawn or changed by the move.
