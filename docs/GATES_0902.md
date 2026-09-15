@@ -1,13 +1,13 @@
-# 관문 셋 — 결과 (2026-09-02 밤)
+# The three gates — results (night of 2026-09-02)
 
-큐 앞으로 당긴 34 줄(관문 16 + 기준선 18) 중 **관문 셋이 끝났다.** 이 셋은 다른 축의
-값어치를 판정하는 자리다.
+Of the 34 lines pulled to the front of the queue (16 gate + 18 baseline), **the three gates have finished.** These three are where the value
+of the other axes is judged.
 
-## ⭐E3 — 도 이하 방위: **az 0 은 곡선 위의 한 점이 아니다**
+## ⭐E3 — sub-degree azimuth: **az 0 is not one point on a curve**
 
-el 0 · 다 끔 · 깊이 2 · matrice4e:
+el 0 · everything off · depth 2 · matrice4e:
 
-| 방위 | 계단 낙차 | 몰린 비 | N |
+| Azimuth | Step drops | Ratio the drops cluster at | N |
 |---|---|---|---|
 | **0°** | **36** | **0.6667** | **3** |
 | 0.5° | 707 | 0.8928 | 9 |
@@ -16,54 +16,54 @@ el 0 · 다 끔 · 깊이 2 · matrice4e:
 | 22.5° | 259 | 0.8885 | 9 |
 | 45° | 15 | 0.8951 | 10 |
 
-⭐**N 이 az 0 에서 3, az 0.5° 에서 벌써 9 로 뛴다.** 그리고 그 뒤로는 9~10 에서 크게 안 변한다.
-⇒ **az = 0 은 대칭 기하라 특별한 칸**이다. 「N 이 방위에 따라 매끄럽게 변한다」가 아니라
-   **「0 만 다르고 나머지는 비슷하다」** 이다.
-⚠**낙차 개수는 방위에 단조롭지 않다**(2026-09-04 정정) — 0° 36 · 0.5~2° 442~845 로
-   뛰었다가 22.5° 259 · **45° 15** 로 다시 내려온다. ⛔전 판의 「우리 코퍼스(전부 az 0)가
-   인공물이 가장 적은 경우였다」는 **이 표 자신의 마지막 줄에 반증된다** — 45° 의 15 가
-   az 0° 의 36 보다 적다. 확실한 것은 **N 이 az 0 에서만 3, 나머지는 9~10** 이라는 것
-   하나다.
-⇒ 방위 144 줄은 **돌릴 값어치가 있다**. 다만 읽는 법이 바뀐다.
+⭐**N is 3 at az 0 and already jumps to 9 at az 0.5°.** After that it does not change much, staying at 9~10.
+⇒ **az = 0 is a special cell because the geometry is symmetric**. It is not 「N 이 방위에 따라 매끄럽게 변한다」 [N changes smoothly with azimuth] but
+   **「0 만 다르고 나머지는 비슷하다」 [only 0 differs and the rest are similar]**.
+⚠**The number of drops is not monotonic in azimuth** (corrected 2026-09-04) — it jumps from 36 at 0° to 442~845 at 0.5~2°,
+   then comes back down to 259 at 22.5° and **15 at 45°**. ⛔The previous edition's 「우리 코퍼스(전부 az 0)가
+   인공물이 가장 적은 경우였다」 [our corpus (all az 0) was the case with the fewest artefacts] **is refuted by the last row of this very table** — 15 at 45° is
+   fewer than 36 at az 0°. Only one thing is certain:
+   **N is 3 only at az 0 and 9~10 everywhere else**.
+⇒ The 144 azimuth lines are **worth running**. But how to read them changes.
 
-## ⭐B1 — 격자 위상 널: **el 0 은 λ/12 에서 수렴하지 않았다**
+## ⭐B1 — grid phase null: **el 0 has not converged at λ/12**
 
-격자를 **반 칸** 옮긴다(간격도 칸 수도 그대로 — 물리는 아무것도 안 변한다):
+Shift the grid by **half a cell** (same spacing, same number of cells — nothing physical changes):
 
-| 앙각 | 기준 | 반 칸 | 차이 | 폭 (기준 → 이동) |
+| Elevation | Baseline | Half cell | Difference | Width (baseline → shifted) |
 |---|---|---|---|---|
 | **0°** | −53.59 dB | −65.49 dB | **−11.91 dB** | **65.4 % → 309.9 %** |
 | −15° | −51.11 | −50.64 | +0.47 | 56.8 → 40.4 |
 | −30° | −58.06 | −58.81 | −0.74 | 120.8 → 203.1 |
 
-⭐**el 0 만 12 dB 움직인다.** 다른 앙각은 0.5~0.7 dB 다.
-⭐**격자를 촘촘히 하면(λ/24) 같은 이동이 +1.45 dB 로 줄어든다** — 수렴의 서명이다.
-⇒ **우리 커널의 el 0 «레벨» 과 «폭» 은 λ/12 에서 못 쓴다.**
+⭐**Only el 0 moves by 12 dB.** The other elevations move 0.5~0.7 dB.
+⭐**With a finer grid (λ/24) the same shift shrinks to +1.45 dB** — the signature of convergence.
+⇒ **Our kernel's el 0 «level» and «width» cannot be used at λ/12.**
 
-## ⭐B2 — 프롭 배율 × λ/24: 비단조가 사라진다
+## ⭐B2 — propeller scale × λ/24: the non-monotonicity disappears
 
-λ/12 에서 ps 사다리가 **비단조**였다(0.7/1/1.4/2 → −64.41 / −53.53 / −53.77 / −60.22 dB).
-λ/24 에서 재면 **기준 −59.53 → 프롭 ×2 −57.73 dB (+1.80)** 로 **단조**다.
-⇒ 그 비단조는 물리가 아니라 **격자 churn** 이었다.
+At λ/12 the ps ladder was **non-monotonic** (0.7/1/1.4/2 → −64.41 / −53.53 / −53.77 / −60.22 dB).
+Measured at λ/24 it is **monotonic**: **baseline −59.53 → propeller ×2 −57.73 dB (+1.80)**.
+⇒ That non-monotonicity was **grid churn**, not physics.
 
-## ✅그래도 덱 주장은 선다 — 빗살은 격자에 안 기댄다
+## ✅The deck's claim still stands — the comb does not depend on the grid
 
-빗살 SNR(바닥 p99 ≈ 8.4 · 2,000 판 최대 9.6):
+Comb SNR (floor p99 ≈ 8.4 · maximum over 2,000 runs 9.6):
 
-| 우리 커널 판 | el 0 | el −15 | el −30 |
+| Our kernel run | el 0 | el −15 | el −30 |
 |---|---|---|---|
-| 기준 λ/12 | **51.3** | 46.7 | 49.8 |
-| 반 칸 λ/12 | **52.9** | 46.6 | 47.9 |
+| Baseline λ/12 | **51.3** | 46.7 | 49.8 |
+| Half cell λ/12 | **52.9** | 46.6 | 47.9 |
 | λ/24 | **54.5** | 52.2 | 52.5 |
-| λ/24 + 반 칸 | **53.1** | — | — |
+| λ/24 + half cell | **53.1** | — | — |
 
-네 판이 전부 51~55 다. **날개 박자의 «있음/없음» 은 격자에 안 기댄다.**
-대조로 PathSolver el 0 은 3.1 / 4.2 / 10.7 / 12.7 이다.
+All four runs are 51~55. **The «present/absent» of the blade beat does not depend on the grid.**
+For comparison, PathSolver at el 0 gives 3.1 / 4.2 / 10.7 / 12.7.
 
-⇒ 덱 12 쪽의 「**At 0° only our kernel shows stripes**」는 **정성 주장이라 안전하다.**
-⛔다만 **우리 커널의 el 0 «레벨»이나 «폭» 을 숫자로 인용하면 안 된다** — 그건 안 수렴했다.
-   (덱에는 그 숫자가 없다. 확인했다.)
+⇒ 「**At 0° only our kernel shows stripes**」 on deck slide 12 **is a qualitative claim, so it is safe.**
+⛔However, **our kernel's el 0 «level» or «width» must not be cited as numbers** — it has not converged.
+   (The deck does not contain those numbers. Checked.)
 
-## 남은 관문
+## Remaining gates
 
-E1b 정본 구멍(el −45 · −75 × 네 팔) 4/8 완료. 방위 축이 그 앙각에서 기준점으로 쓴다.
+E1b canonical holes (el −45 · −75 × four arms) 4/8 done. The azimuth axis uses them as reference points at those elevations.
