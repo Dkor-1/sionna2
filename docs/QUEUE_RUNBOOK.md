@@ -63,7 +63,7 @@ jobs.txt  ──►  worker_supervisor.py  ──►  elevation_sweep_md.py  ─
 - The supervisor **does not kill workers** (repository rule, the 0811 incident). It scales down only by «not refilling
   finished slots».
 - The supervisor **reads the queue into memory at start** and advances a cursor. So if it dies it runs **from the beginning** —
-  to continue, make a new file containing only the remaining lines and start that (`runners/QUEUE_STATE_0908.md`).
+  to continue, make a new file containing only the remaining lines and start that (worked example: `/workspace/archive/2026-09/sionna/runners/QUEUE_STATE_0908.md`).
 
 ### Watchers — how queues continue on their own (current)
 
