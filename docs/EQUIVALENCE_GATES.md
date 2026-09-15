@@ -1,117 +1,117 @@
-# 같음을 무엇으로 판정하나 — 동등성 게이트 3 층
+# How sameness is judged — the 3 layers of equivalence gates
 
-> **왜 이 문서가 있나.** 「비트 동일」이라는 말이 저장소 곳곳에 나오는데, **어디에 적용되고
-> 어디에 적용 안 되는지가 어디에도 안 적혀 있었다.** 그래서 2026-08-28 에 실제로 오독이
-> 났다 — 자세 배치 최적화를 검토하면서 «결과가 바뀌면 샤드 4,500 개가 전부 무효» 라고
-> 판단했는데, **저장소는 솔버 산출물에 비트 동일을 요구한 적이 없다.**
+> **Why this document exists.** The phrase 「비트 동일」 [bit-identical] appears all over the repository, but **where it applies
+> and where it does not was written down nowhere.** So on 2026-08-28 it was actually misread
+> — while reviewing a pose-batching optimisation, someone judged «결과가 바뀌면 샤드 4,500 개가 전부 무효» [if the results change, all 4,500 shards are invalid],
+> but **the repository has never required solver outputs to be bit-identical.**
 >
-> ⛔**「비트 동일」을 기본 기대치로 말하지 마라.** 층을 골라서 말한다.
+> ⛔**Do not speak of 「비트 동일」 [bit-identical] as the default expectation.** Pick a layer and say which.
 
 ---
 
-## 0. 왜 한 잣대로 안 되나
+## 0. Why one yardstick does not work
 
-**PathSolver 는 결정적이지 않다.** ⚠근거를 정확히 적는다(2026-09-03 정정) —
-NVlabs/sionna Discussion #1175 는 **`RadioMapSolver`** 의 회절 웨지 표집 사례이고
-(`docs/SIONNA_NONDETERMINISM_0902.md` §1 이 「우리가 잡은 것은 #1175 이 아니다」로 갈랐다),
-**PathSolver** 쪽 근거는 벤더 인정이 아니라 ⓐ 후보 생성기 서문이 적어 둔 «해시 충돌로 후보
-유실»(`sb_candidate_generator.py:43-45·55-57`)과 ⓑ 우리 실측이다.
-같은 설정 재실행에서 우리 커널은 6/6 비트 동일인데 PathSolver 는 네 팔 12 칸 전부 안 맞는다
-(`outputs/true_repeat_0903.json`). 옛 판도 함께 쟀다 — **같은 코드·같은 씨앗(seed=1 하드코딩)·같은 기계로 돌린
-옛↔옛 15 쌍의 상대차 중앙값 8.187e-4** (`outputs/adv_refute_hashlottery_0824.json`).
+**PathSolver is not deterministic.** ⚠State the evidence precisely (corrected 2026-09-03) —
+NVlabs/sionna Discussion #1175 is a case of diffraction-wedge sampling in **`RadioMapSolver`**
+(`docs/SIONNA_NONDETERMINISM_0902.md` §1 separated it as 「우리가 잡은 것은 #1175 이 아니다」 [what we caught is not #1175]),
+and the evidence on the **PathSolver** side is not a vendor admission but ⓐ «해시 충돌로 후보
+유실» [candidates lost to hash collisions] as written in the candidate generator's preamble (`sb_candidate_generator.py:43-45·55-57`) and ⓑ our own measurement.
+On reruns with the same settings our kernel is bit-identical 6/6, while PathSolver fails to match in all 12 cells of four arms
+(`outputs/true_repeat_0903.json`). The old edition was measured too — **across 15 old↔old pairs run with the same code · the same seed (seed=1 hard-coded) · the same machine,
+the median relative difference is 8.187e-4** (`outputs/adv_refute_hashlottery_0824.json`).
 
-⇒ 솔버 산출물에 비트 동일을 걸면 **아무것도 못 고친다.** 규약이 아니라 족쇄가 된다.
+⇒ Demanding bit-identity of solver outputs means **nothing can ever be fixed.** It becomes shackles, not a convention.
 
-반대로 **메쉬 생성과 우리 PO 커널은 결정적이다.** 거기서는 비트 동일이 달성 가능하고,
-싸고, 되돌림을 보장한다. 실제로 그 장치가 사고를 막아 왔다.
+Conversely, **mesh generation and our PO kernel are deterministic.** There, bit-identity is achievable,
+cheap, and guarantees the ability to roll back. In practice that mechanism has prevented incidents.
 
-⇒ **하나의 잣대가 아니라 세 층이다.**
+⇒ **Not one yardstick but three layers.**
 
 ---
 
-## A 층 · 비트 동일 — 결정적인 것에만
+## Layer A · bit-identical — only for what is deterministic
 
-**대상**
-- 메쉬 생성 (`report_mesh/`) — `sha256(float32 정점 + int32 삼각형)`
-- 우리 PO/SBR 커널의 내부 대조 (`benchmark/verify_bistatic_field.py` 의 `bit_identical`)
-- **순수 리팩터** — 이름 바꾸기 · I/O 경로 · 캐시 · 로깅. 수치에 손대지 않는 변경
+**Applies to**
+- Mesh generation (`report_mesh/`) — `sha256(float32 정점 + int32 삼각형)`
+- Internal comparisons of our PO/SBR kernel (`bit_identical` in `benchmark/verify_bistatic_field.py`)
+- **Pure refactors** — renames · I/O paths · caching · logging. Changes that do not touch numerics
 
-**판정** 지문이 같으면 통과, 다르면 실패. 통계 불필요.
+**Verdict** Same fingerprint passes, different fails. No statistics needed.
 
-**⭐무엇을 지키나 — 이미 한 번 뜻이 바뀌었다.**
-`report_mesh/src/make_mesh02.py:791` 이 스스로 적어 둔 표:
+**⭐What it protects — its meaning has already changed once.**
+The table that `report_mesh/src/make_mesh02.py:791` wrote down itself:
 
-| | 준비 단계 | 착지 뒤(지금) |
+| | Preparation stage | After landing (now) |
 |---|---|---|
-| 비트동일 시험이 지키는 것 | «아직 안 바뀌었다» | **«옛 판을 그대로 되살릴 수 있다»** |
+| What the bit-identity test protects | «not changed yet» | **«the old edition can be brought back exactly»** |
 
-즉 지금 A 층이 지키는 것은 «바꾸지 마라» 가 **아니라 되돌림 가능성**이다.
-그래서 되돌림 스위치(`MESH_FIX=none BLADE_LAW=legacy`)와 **파일명 꼬리표**가 짝으로 붙는다.
+So what layer A protects now is **not** «do not change it» **but the ability to roll back**.
+That is why the rollback switch (`MESH_FIX=none BLADE_LAW=legacy`) and the **filename tag** come as a pair.
 
-⛔**꼬리표가 A 층의 절반이다.** 판이 갈렸는데 이름이 같으면 워커가 「있음」으로 건너뛰고
-옛 결과가 새 판 행세를 한다. 2026-08-16 메쉬 사고(10 줄이 rc=0 으로 넘어가고 ≈20 워커-시간
-증발)와 2026-08-27 PRF 사고 미수가 **둘 다 이 자리**였다.
-
----
-
-## B 층 · 자연 산포 안 — 계산 순서가 바뀌는 변경
-
-**대상**
-- **PathSolver 를 쓰는 모든 것**
-- 자세 배치·장면 재사용·병렬화처럼 **부동소수 합산 순서가 달라질 수 있는** 최적화
-- 라이브러리 판 올리기
-
-**판정 — 순서가 중요하다**
-1. **먼저 «옛↔옛» 산포를 잰다.** 바꾸기 전 경로로 같은 칸을 **여러 판**(≥6) 돌려
-   판끼리의 상대차 분포를 낸다. 이것이 그 칸의 **자연 산포**다.
-2. 새 경로로 몇 판(≥3) 돌린다.
-3. **«옛↔새» 상대차가 «옛↔옛» 분포 안이면 통과.** 밖이면 실패.
-4. 판정할 때 **경로 수(`npaths`)도 함께 본다** — 경로 집합이 갈리면 합산 순서가 아니라
-   기하가 달라진 것이다.
-
-⭐**선례가 이미 있다: `benchmark/adv_refute_hashlottery_0824.py`.**
-「`--inmem` 이 회절 팔을 깨뜨렸다」를 이 방식으로 반증했다 — 옛↔옛만으로도 같은 크기로
-갈렸고(8.187e-4), `npaths` 는 9 판 전부 41 로 같았다. **이 스크립트를 B 층 게이트의
-본보기로 쓴다.**
-
-⛔**«한 번 돌려 보고 비슷하니 됐다» 는 B 층이 아니다.** 산포를 먼저 재지 않으면
-«밴드 안» 을 말할 수 없다.
+⛔**The tag is half of layer A.** If the edition has split but the name is the same, the worker skips it as 「있음」 [exists]
+and the old result poses as the new edition. The 2026-08-16 mesh incident (10 lines passed with rc=0 and ≈20 worker-hours
+evaporated) and the 2026-08-27 PRF near-miss were **both at this spot**.
 
 ---
 
-## C 층 · 설계된 대조 — 알고리즘이 바뀌는 변경
+## Layer B · within natural spread — changes that alter the order of computation
 
-**대상** 계산 방식 자체가 달라지는 것. 예: 자세를 묶어 한 번에 푸는 배치 처리,
-솔버 교체, 근사 도입.
+**Applies to**
+- **Everything that uses PathSolver**
+- Optimisations such as pose batching · scene reuse · parallelisation, where **the floating-point summation order can change**
+- Library version upgrades
 
-**판정** 비교가 자동으로 성립하지 않는다. **무엇이 같아야 하는지 미리 선언**하고 시험한다.
-- 어떤 물리량이 보존돼야 하나 (레벨? 스펙트럼? 경로 수? 위상?)
-- 어느 칸에서 시험하나 (앙각·팔·거리)
-- 통과선을 **미리** 정한다 — 결과를 보고 정하면 게이트가 아니다
-- ⚠B 층 산포보다 큰 차이가 나면 «최적화» 가 아니라 «다른 방법» 이다. 그러면 옛 결과를
-  덮지 말고 **새 팔 이름으로 따로 쌓는다**(A 층의 꼬리표 규약).
+**Verdict — the order matters**
+1. **First measure the «old↔old» spread.** Run the same cell **several times** (≥6) on the pre-change path and
+   produce the distribution of relative differences between runs. This is that cell's **natural spread**.
+2. Run the new path a few times (≥3).
+3. **If the «old↔new» relative difference is within the «old↔old» distribution, pass.** If outside, fail.
+4. When judging, **also look at the path count (`npaths`)** — if the path sets diverge, what changed is the geometry,
+   not the summation order.
+
+⭐**A precedent already exists: `benchmark/adv_refute_hashlottery_0824.py`.**
+It refuted 「`--inmem` 이 회절 팔을 깨뜨렸다」 [--inmem broke the diffraction arm] in exactly this way — old↔old alone diverged by the same size
+(8.187e-4), and `npaths` was 41 in all 9 runs. **Use this script as the model
+for a layer-B gate.**
+
+⛔**«Ran it once, looked similar, done» is not layer B.** Without measuring the spread first you
+cannot say «within the band».
 
 ---
 
-## 어느 층인지 고르는 법
+## Layer C · designed comparison — changes that alter the algorithm
+
+**Applies to** changes where the computation method itself differs. E.g. batch processing that solves grouped poses at once,
+replacing the solver, introducing an approximation.
+
+**Verdict** The comparison does not hold automatically. **Declare in advance what must be the same**, then test.
+- Which physical quantity must be preserved (level? spectrum? path count? phase?)
+- In which cells to test (elevation · arm · range)
+- Set the pass line **in advance** — if you set it after seeing the result, it is not a gate
+- ⚠If the difference exceeds the layer-B spread, it is not «an optimisation» but «a different method». Then do not overwrite the old results;
+  **stack the new ones separately under a new arm name** (layer A's tag convention).
+
+---
+
+## How to pick the layer
 
 ```
-수치에 손대지 않는 변경인가?           → A
-  ↓ 아니오
-PathSolver 를 거치나 / 합산 순서가 바뀌나? → B
-  ↓ 아니오(알고리즘 자체가 다르다)
+Does the change leave numerics untouched?       → A
+  ↓ no
+Does it go through PathSolver / change summation order? → B
+  ↓ no (the algorithm itself is different)
                                       → C
 ```
 
-**의심스러우면 한 층 위로 간다.** A 로 통과할 줄 알았는데 안 되면 그것 자체가 정보다 —
-「손 안 댈 줄 알았는데 댔다」는 뜻이다.
+**When in doubt, go one layer up.** If you expected to pass under A and did not, that in itself is information —
+it means 「손 안 댈 줄 알았는데 댔다」 [you thought you were not touching it, but you did].
 
 ---
 
-## ⛔인용할 때
+## ⛔When citing
 
-- 「비트 동일하다」는 **A 층 대상에만** 쓴다. 솔버 결과에 쓰면 틀린다.
-- 솔버 결과에는 **「자연 산포 안에서 같다」**·**「기계 정밀도 안에서 같다」** 로 적는다.
-  (2026-08-18 에 「적대 검증 7/7」·「자가검사 12/12」 표현이 철회된 것도 같은 사유다.)
-- ⚠**「같은 씨앗이면 같은 답」을 전제하지 마라.** `seed=1` 이 하드코딩돼 있지만
-  그것으로 결정성이 보장되지 않는다(#1175).
+- Use 「비트 동일하다」 [is bit-identical] **only for layer-A items**. Used on solver results, it is wrong.
+- For solver results write **「자연 산포 안에서 같다」 [same within natural spread]** · **「기계 정밀도 안에서 같다」 [same within machine precision]**.
+  (The withdrawal of the expressions 「적대 검증 7/7」 [adversarial verification 7/7] · 「자가검사 12/12」 [self-check 12/12] on 2026-08-18 was for the same reason.)
+- ⚠**Do not assume 「같은 씨앗이면 같은 답」 [same seed, same answer].** `seed=1` is hard-coded, but
+  that does not guarantee determinism (#1175).
