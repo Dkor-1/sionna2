@@ -1,50 +1,50 @@
-# 오픈소스 대체·검증 지도 (open-source reliance map)
+# Open-source replacement and verification map (open-source reliance map)
 
-목표(2026-07-20 사용자 방침): **직접 만든 것을 최대한 오픈소스로 대체**해 신뢰성을 높이고 반복 수작업을
-줄인다. 단 원칙은 **"검증 후 대체"** — 이미 이론(평판/구)으로 검증된 코드를 검증 없이 통째로 갈아끼우면
-신뢰성이 오히려 **떨어진다**. 그래서 각 조각은 ① 오픈소스로 **교차검증** → ② 허용오차 내 일치하면
-**권위 소스를 오픈소스로 이관**하는 2단계로 대체한다.
+Goal (user policy, 2026-07-20): **replace what we built ourselves with open source as far as possible** to raise reliability and
+reduce repeated manual work. The principle, however, is **"verify, then replace"** — swapping out code that has already been
+verified against theory (plate/sphere) wholesale without verification would **lower** reliability instead. So each piece is replaced in 2 steps:
+① **cross-verify** against the open-source tool → ② if they agree within tolerance, **move the authoritative source to the open-source tool**.
 
-근거 조사: `prior_work/`(pw01 논문·pw02 도구·pw03 포지셔닝) · `prior_work/outputs/prior_work.json`.
+Background research: `prior_work/` (pw01 papers · pw02 tools · pw03 positioning) · `prior_work/outputs/prior_work.json`.
 
-## 조각별 대체 판정
+## Replacement verdict per piece
 
-| 우리 구현 | 대체/검증 오픈소스 | 라이선스 | 지금 대체? | 계획 |
+| Our implementation | Open-source replacement/verifier | License | Replace now? | Plan |
 |---|---|---|---|---|
-| **검출체인 ECA·CAF·CFAR** (`passive_process.py`) | ⭐ **pyAPRiL** (GPLv3, ECA/ECA-S·CAF·CA-CFAR·DoA) | GPLv3 | ✅ **실검증됨** | `benchmark/verify_pyapril.py`: 광대역 **QPSK 기준신호 3판(씨앗만 다름)** 모두 **CAF 봉우리의 거리빈이 정답과 일치**(range_bin_error=0), CFAR 도 정답셀에서 발화(원장 `outputs/verify_pyapril.json` 의 `detected_at_truth=true`·`n_fired=5`). 이 3판에서는 파형 특정 모듈 없이(reference I/Q 만으로) 동작했다 — 다만 시험한 파형족이 하나뿐이라 「파형 무관」 일반은 이것으로 실증되지 않는다. ⛔2026-09-06 정정 — 초판은 이 칸을 「NR/WiFi/LTE 3모드」·「파형 무관」으로 적었고(실은 같은 QPSK 생성기의 난수 씨앗 변형이다. 실 표준 파형은 report05 에서 따로 검증), 「detected_at_truth=false」로도 적었으나 2026-07-24 재실행으로 뒤집혔다(docs/AUDIT_FINDINGS_0722.md C-3). 대량 MC 만 `detection_gpu.py`(GPU) 유지·pyAPRiL 로 정합검증 |
-| **SBR+PO 드론 RCS** (`rcs_sbr.py`·`rcs_po.py`) | (라이브러리 대체 안 함) | — | ✖ 자작 유지 | 선행이 쓰는 세 갈래(상용 full-wave·자작 SBR+PO·점산란체) 중 **자작 SBR+PO**(BVH SBR+PO arXiv:2604.09243 와 동일 방법)를 따른다. RadarSimPy 는 비공개 C++ 엔진(게이트)이라 불채택, RaytrAMP 는 모노·PEC 전용이라 부족. 검증: 이론(평판/구)+**실측 문헌 RCS 앵커**(report08) |
-| **프로펠러 마이크로도플러** (`microdoppler.py`) | (자작 유지) | — | ✖ | 선행(Costa & Thomä, IEEE J-STEAP 2025)이 프로펠러를 thin-wire 점산란체+PO 로 모델링한 방식과 동종. 측정 마이크로도플러와 대조 가능 |
-| **파형 합성** (`waveforms.py`) | **Sionna PHY** (`sionna.phy.nr`, OFDM) | Apache-2.0 | ✅ 이미 검증 | report05 에서 NMSE −135 dB 일치. Sionna PHY 를 파형 진리원으로 유지 |
-| **지연 채널** (`sionna_chain.py`) | **Sionna PHY** (`cir_to_time_channel`) | Apache-2.0 | ✅ 이미 사용 | 유지 |
-| **추적** (future work, 미구현) | **Stone Soup** (EKF/UKF·파티클·JPDA, MIT) | MIT | ✅ 도입(직접 안 짬) | 바이스태틱 custom nonlinear 측정모델(ρ_b=R_T+R_R−L, f_D=(û_T+û_R)·v/λ)만 작성 |
-| **실측 (X410 OTA 바이스태틱)** | **OpenISAC** + **GNU Radio**(SigMF I/Q) | 오픈소스 / GPLv3 | ✅ 실측단계 채택 | OTA 바이스태틱 동기가 X410 계획과 직결. 시뮬(Sionna) I/Q 와 실측(X410) I/Q 를 **동일 SigMF 포맷**으로 통일 → 같은 처리코드 |
-| **드론 메쉬 CAD** (`drone_cad.py`) | (대체 없음 — DJI 공식 CAD 미공개) | — | ✖ | 파라메트릭 유지. 검증은 실기체 스캔·실측 문헌 RCS 앵커 |
+| **Detection chain ECA·CAF·CFAR** (`passive_process.py`) | ⭐ **pyAPRiL** (GPLv3, ECA/ECA-S·CAF·CA-CFAR·DoA) | GPLv3 | ✅ **Verified in practice** | `benchmark/verify_pyapril.py`: in all **3 runs of a wideband QPSK reference signal (differing only in seed)** **the range bin of the CAF peak matched the ground truth** (range_bin_error=0), and CFAR also fired at the true cell (`detected_at_truth=true`·`n_fired=5` in ledger `outputs/verify_pyapril.json`). In these 3 runs it worked without a waveform-specific module (from the reference I/Q alone) — but only one waveform family was tested, so the general claim 「파형 무관」 [waveform-agnostic] is not demonstrated by this. ⛔Correction 2026-09-06 — the first edition wrote this cell as 「NR/WiFi/LTE 3모드」 [NR/WiFi/LTE, 3 modes] · 「파형 무관」 [waveform-agnostic] (in fact they are random-seed variants of the same QPSK generator; real standard waveforms were verified separately in report05), and also wrote 「detected_at_truth=false」, which a 2026-07-24 rerun overturned (docs/AUDIT_FINDINGS_0722.md C-3). Only the large MC keeps `detection_gpu.py` (GPU), cross-checked against pyAPRiL |
+| **SBR+PO drone RCS** (`rcs_sbr.py`·`rcs_po.py`) | (no library replacement) | — | ✖ Keep our own | Of the three routes prior work uses (commercial full-wave · in-house SBR+PO · point scatterers), we follow **in-house SBR+PO** (the same method as BVH SBR+PO arXiv:2604.09243). RadarSimPy is not adopted because its C++ engine is closed (gated); RaytrAMP is monostatic- and PEC-only, which is insufficient. Verification: theory (plate/sphere) + **measured literature RCS anchors** (report08) |
+| **Propeller micro-Doppler** (`microdoppler.py`) | (keep our own) | — | ✖ | Same kind of approach as prior work (Costa & Thomä, IEEE J-STEAP 2025), which modelled the propeller as thin-wire point scatterers + PO. Can be compared with measured micro-Doppler |
+| **Waveform synthesis** (`waveforms.py`) | **Sionna PHY** (`sionna.phy.nr`, OFDM) | Apache-2.0 | ✅ Already verified | Matched at NMSE −135 dB in report05. Keep Sionna PHY as the waveform source of truth |
+| **Delay channel** (`sionna_chain.py`) | **Sionna PHY** (`cir_to_time_channel`) | Apache-2.0 | ✅ Already in use | Keep |
+| **Tracking** (future work, not implemented) | **Stone Soup** (EKF/UKF · particle · JPDA, MIT) | MIT | ✅ Adopt (do not write it ourselves) | Write only the bistatic custom nonlinear measurement model (ρ_b=R_T+R_R−L, f_D=(û_T+û_R)·v/λ) |
+| **Measurement (X410 OTA bistatic)** | **OpenISAC** + **GNU Radio** (SigMF I/Q) | Open source / GPLv3 | ✅ Adopted for the measurement stage | OTA bistatic synchronisation ties directly into the X410 plan. Unify simulated (Sionna) I/Q and measured (X410) I/Q in the **same SigMF format** → the same processing code |
+| **Drone mesh CAD** (`drone_cad.py`) | (no replacement — official DJI CAD is not published) | — | ✖ | Keep parametric. Verification via scans of the real airframe and measured literature RCS anchors |
 
-**참조(코드 이식 아님):** NIST 5GNRad(usnistgov/5GNRad, h=h_bg+h_target 아키텍처) · NIST ISAC-PLM(WiFi 802.11bf 센싱, 단 60GHz) · MATLAB(1차 baseline) · OAI(실 5G NR, 최종단계) · openEMS(full-wave RCS).
+**Reference (not code to port):** NIST 5GNRad (usnistgov/5GNRad, h=h_bg+h_target architecture) · NIST ISAC-PLM (WiFi 802.11bf sensing, but 60GHz) · MATLAB (1st baseline) · OAI (real 5G NR, final stage) · openEMS (full-wave RCS).
 
-## ⚠ 1차 조사 정정
-이전 판에서 "패시브 바이스태틱 ECA 는 드롭인 오픈소스 없음"이라 적었으나 **틀렸다** — **pyAPRiL** 이
-정확히 그 드롭인이다(GPLv3, DVB-T/FM 실측 검증). 사용자 심화 서베이가 지목, GitHub 로 직접 확인.
+## ⚠ Correction to the 1st survey
+An earlier edition said "there is no drop-in open source for passive bistatic ECA", but that was **wrong** — **pyAPRiL** is
+exactly that drop-in (GPLv3, verified on DVB-T/FM measurements). Pointed out by the user's in-depth survey and confirmed directly on GitHub.
 
-## 5단계 대체 로드맵
-1. 최소동작: Sionna RT+PHY 채널 → **pyAPRiL** ECA/CAF/CFAR (← 지금 여기)
-2. 추적: +**Stone Soup**(바이스태틱 EKF/UKF)
-3. 드론 물리: 멀티산란체(1 body+4 motor+8~16 blade-tip) — 우리는 SBR+PO 로 이미 여기
-4. AI·sim-to-real: +PyTorch(분류·domain randomization)
-5. 실측: +**OpenISAC**+**GNU Radio**+**X410**(SigMF 로 sim↔real 통일)
+## 5-stage replacement roadmap
+1. Minimum working pipeline: Sionna RT+PHY channel → **pyAPRiL** ECA/CAF/CFAR (← we are here)
+2. Tracking: +**Stone Soup** (bistatic EKF/UKF)
+3. Drone physics: multi-scatterer (1 body + 4 motors + 8~16 blade tips) — with SBR+PO we are already here
+4. AI · sim-to-real: +PyTorch (classification · domain randomization)
+5. Measurement: +**OpenISAC**+**GNU Radio**+**X410** (unify sim↔real with SigMF)
 
-## 왜 "검증 후 대체"인가 (신뢰성 논리)
+## Why "verify, then replace" (reliability logic)
 
-- **검출체인**은 pyAPRiL(오픈소스)로 실제 대체해 **CAF 거리빈 일치**를 확인했다 — 시험한 것은 광대역 QPSK 기준신호 3판(씨앗만 다름)이고 CFAR 도 정답셀에서 발화했다(`outputs/verify_pyapril.json`: `detected_at_truth=true`·`n_fired=5`). ⛔2026-09-06 정정 — 초판의 「파형무관하게」는 내린다(파형족이 하나뿐이다. 실 표준 파형은 report05). 「CFAR 발화까지는 아님」도 2026-07-24 재실행으로 뒤집힌 옛 값이다.
-- **RCS** 는 라이브러리 대체가 마찰이 크다(RadarSimPy=비공개 엔진, RaytrAMP=모노·PEC). 그래서 선행이 쓰는
-  **자작 SBR+PO** 방식을 따르되, 신뢰성은 **실측 문헌 RCS 앵커**로 세운다(시뮬 vs 시뮬보다 강함).
-- 원칙: 대체가 이득이고 재현가능한 곳(검출=pyAPRiL, 실측=OpenISAC, 추적=Stone Soup)은 라이브러리로,
-  대체 마찰이 크고 이미 검증된 곳(RCS=SBR+PO)은 선행 방식 준수+실측 앵커로.
+- The **detection chain** was actually replaced with pyAPRiL (open source) and **the CAF range bin matched** — what was tested is 3 runs of a wideband QPSK reference signal (differing only in seed), and CFAR also fired at the true cell (`outputs/verify_pyapril.json`: `detected_at_truth=true`·`n_fired=5`). ⛔Correction 2026-09-06 — the first edition's 「파형무관하게」 [regardless of waveform] is withdrawn (there is only one waveform family; real standard waveforms are in report05). 「CFAR 발화까지는 아님」 [not as far as CFAR firing] is also an old value overturned by the 2026-07-24 rerun.
+- For **RCS**, library replacement has high friction (RadarSimPy = closed engine, RaytrAMP = monostatic·PEC). So we follow the
+  **in-house SBR+PO** approach prior work uses, but establish reliability with **measured literature RCS anchors** (stronger than sim vs sim).
+- Principle: where replacement pays off and is reproducible (detection = pyAPRiL, measurement = OpenISAC, tracking = Stone Soup), use a library;
+  where replacement friction is high and the code is already verified (RCS = SBR+PO), follow prior work's approach plus measured anchors.
 
-## 반영 위치(리포트)
+## Where this is reflected (reports)
 
-- report06 §3 — RCS 한계 주장이 선행(Deterministic-Modeling EuCAP·Sionna-RT 창설논문)에 의해 지지됨 + 우회 3분류.
-- report07 — SBR+PO 가 선행(BVH SBR+PO)이 쓰는 방식임을 명시, 검증은 이론+실측 앵커.
-- report08 — 문헌 대조에 선행 방법론(확산S vs RCS주입 vs SBR/PO) 위치 표기.
-- report08 — **실측 문헌 드론 RCS 표로 절대값 앵커**(교차검증). report12 §6 — pyAPRiL 대조·아키텍처 정합.
-- prior_work/ 3편 — 전체 근거·출처.
+- report06 §3 — the RCS-limit claim is supported by prior work (Deterministic-Modeling EuCAP · the Sionna-RT founding paper) + 3 categories of workaround.
+- report07 — states that SBR+PO is the method prior work (BVH SBR+PO) uses; verification is theory + measured anchors.
+- report08 — marks the position of prior methodology (diffuse S vs RCS injection vs SBR/PO) in the literature comparison.
+- report08 — **absolute-value anchors from a table of measured literature drone RCS** (cross-verification). report12 §6 — pyAPRiL comparison · architecture consistency.
+- prior_work/ 3 papers — full evidence and sources.
