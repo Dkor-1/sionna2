@@ -213,7 +213,7 @@ Make `drones` · `n_samples` fields mandatory for every ledger entry, and if `n_
 
 ⭐**Rule** — when quoting a ledger key or someone else's sentence, carry the qualifiers attached to that value (caveat · note · n · confidence · range · exceptions · ⚠) into the same sentence — do not substitute 「다른 절 참조」 [see another section], and if you drop conditions or add words, remove the quotation marks and mark it as our verdict
 
-**What actually happened** — docs/S2R_JEPA_POSITION.md:171 「Trinh 2026 이 배경 정렬 하나로 chance 50 % → 97 % 를 만들었다」 [Trinh 2026 took chance 50 % → 97 % with background alignment alone] — §9 of the same document says «확인 전 인용 금지» [do not cite before confirming], but the value itself carries no mark, and docs/SIM2REAL_PLAN.md:294 inherited it as is. outputs/psolve_adopt.json:830 carried over 「616 ms」 while stripping «LUMI 8노드(MI250X 32장)» [LUMI 8 nodes (32 MI250X cards)] from line 433 of the same file
+**What actually happened** — /workspace/archive/2026-09/sionna/docs/S2R_JEPA_POSITION.md:171 「Trinh 2026 이 배경 정렬 하나로 chance 50 % → 97 % 를 만들었다」 [Trinh 2026 took chance 50 % → 97 % with background alignment alone] — §9 of the same document says «확인 전 인용 금지» [do not cite before confirming], but the value itself carries no mark, and docs/SIM2REAL_PLAN.md:294 inherited it as is. outputs/psolve_adopt.json:830 carried over 「616 ms」 while stripping «LUMI 8노드(MI250X 32장)» [LUMI 8 nodes (32 MI250X cards)] from line 433 of the same file
 
 <details><summary>Machine check</summary>
 
