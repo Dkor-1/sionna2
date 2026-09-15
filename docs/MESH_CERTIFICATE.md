@@ -5,7 +5,7 @@
 > (⛔GPU 미사용 · ⛔git 미접촉 · ⛔형상 상수 무변경).
 >
 > - 근거 시험: `benchmark/adv_mesh_certificate_probes_0816.py` → `outputs/mesh_certificate_probes_0816.json`
-> - 앞 라운드 산출물: `docs/MESH_AUDIT_0816.md` · `docs/MESH_SEAL_0816.md` ·
+> - 앞 라운드 산출물: `docs/MESH_AUDIT_0816.md` · `docs/MESH_SEAL_0816.md` (2026-09 보관: `/workspace/archive/2026-09/sionna/docs/`) ·
 >   `outputs/mesh_cert_matrix_0816.json`(450칸) · `outputs/mesh_golden_0816.json`(봉인)
 
 ---
@@ -325,7 +325,7 @@ G1(분절·자세 재현) · W1(검사기 사각지대 자기신고). 여섯 다
 6. 빌더 모드(`MESH_FIX`)를 켠 채로 산출물을 만들면 — **다른 메쉬**이고 예산표도 갈아 끼워진다.
 7. 파이썬·trimesh·numpy 판이 바뀌면 — 골든은 한 기계·한 파이썬에서 재현된다는 전제다.
 
-절차는 `docs/MESH_SEAL_0816.md` §4 와 `benchmark/mesh_certify.py --how` 에 있다.
+절차는 `docs/MESH_SEAL_0816.md` §4 (2026-09 보관: `/workspace/archive/2026-09/sionna/docs/`) 와 `benchmark/mesh_certify.py --how` 에 있다.
 
 ### ⚠ 지금 봉인이 «빨강» 인 이유 — 이 라운드가 낸 것이다 (형상은 그대로다)
 
