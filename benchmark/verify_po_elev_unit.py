@@ -564,7 +564,7 @@ def recheck_real_sweep():
             "outputs/verify_po_elev_rebuttal.json 의 "
             "`깨진_것/5_el-90_은_바닥이_아니라_구조를_가진_모형_신호다` 는 그 잔여의 27 % 가 "
             "±125.0 Hz 두 줄(블레이드 통과 주파수, f/f_bp = 0.99)에 앉아 있다고 쟀고, "
-            "outputs/verify_nadir_noise_or_physics.json 의 `S4_our_arm`·`S7_verdict` 는 "
+            "/workspace/archive/2026-09/sionna/outputs/verify_nadir_noise_or_physics.json 의 `S4_our_arm`·`S7_verdict` 는 "
             "λ/12 에서 물리 44.6 % · 격자 55.4 %, 격자를 λ/8→λ/12→λ/16 으로 조이면 물리 "
             "비중이 18.0→47.3→61.9 % 로 오른다고 쟀다. ⇒ 바닥이 아니라 물리와 격자가 "
             "섞여 있다."),
