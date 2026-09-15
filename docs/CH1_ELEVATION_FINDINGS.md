@@ -1,7 +1,7 @@
 # 8/18 덱 Chapter 1 «앙각» — 그림과 판정
 
 작성 2026-08-12 · 그림 빌더 `benchmark/build_ch1_elevation_figs.py` ·
-파생 원장 `outputs/ch1_elevation_figdata.json` · 계획서 `docs/PLAN_0818_CH1_ELEVATION.md`
+파생 원장 `outputs/ch1_elevation_figdata.json` · 계획서 `docs/PLAN_0818_CH1_ELEVATION.md` (2026-09 보관: `/workspace/archive/2026-09/sionna/docs/`)
 
 > **GPU 를 쓰지 않았다.** 이미 있는 원장(`elevation_sweep_md.{json,npz}` ·
 > `verify_nadir_flash.json`)만 읽고 CPU 로 FFT 해서 그렸다. 새 계산은 없다.

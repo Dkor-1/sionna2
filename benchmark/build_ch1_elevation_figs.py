@@ -2,7 +2,7 @@
 """
 build_ch1_elevation_figs.py — 8/18 팀미팅 **Chapter 1 «앙각»** 그림 다섯 장.
 
-계획서는 `docs/PLAN_0818_CH1_ELEVATION.md`, 판정은 `docs/CH1_ELEVATION_FINDINGS.md` 다.
+계획서는 `docs/PLAN_0818_CH1_ELEVATION.md` (2026-09 보관: `/workspace/archive/2026-09/sionna/docs/`), 판정은 `docs/CH1_ELEVATION_FINDINGS.md` 다.
 
 읽는 것 (계산 없음 — 원장만 읽는다, GPU 안 씀)
     outputs/elevation_sweep_md.json   팔 3 × 앙각 7 의 박자·대역·경로수
