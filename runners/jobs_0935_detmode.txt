@@ -1,0 +1,28 @@
+# 0935 결정 모드 짝 (2026-09-15) — ⛔**1 차에서 GPU 메모리로 죽은 둘을 살린다**
+#
+# 0933 의 마지막 두 줄(--solver-deterministic)이 이렇게 죽었다:
+#   sionna/rt/path_solvers/sb_deterministic.py:186  dr.gather(...)
+#   RuntimeError: jit_malloc(): out of memory! Could not allocate 17179869184 bytes (=16 GiB)
+# ⭐결정 모드는 **메모리를 훨씬 더 쓴다**(상류 문서도 「지연은 거의 그대로, 메모리가 는다」고 적는다).
+#   우리 생산 설정(광선 4e9 · 자세 8,192)에서 한 번에 16 GiB 를 잡으려 했고, 남의 컨테이너가
+#   같은 카드를 쓰고 있어 터졌다.
+#
+# ⇒ **광선 예산을 낮춰** 다시 산다. ⛔그러면 «생산 설정과 같은 조건» 이 아니다 —
+#   그래서 **끈 모드도 같은 낮은 예산으로 함께** 사서 둘을 같은 자리에서 견준다.
+#   ⛔이 짝을 4e9 짝과 나란히 놓지 않는다. 예산이 다르면 다른 축이다.
+# 8 줄 = 4 칸(예산 2 벌 × 모드 2 벌) · 빈 하늘 깊이 1 앙각 −60 한 칸에서만.
+# ⛔el 0 안 산다. ⛔4번 GPU 보류 중.
+# ⚠그래도 터지면 자세를 줄이는 것이 아니라 **예산을 더 낮춘다** — 자세를 줄이면 STFT 창이 깨진다
+#   (2026-09-15 실측: 자세 32 짜리 샤드가 병합을 죽였다).
+
+# ── 광선 4e8 — 끈 모드·켠 모드 ────────────────────────────────
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 0 --nshards 2
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 1 --nshards 2
+
+# ── 광선 1e8 — 더 낮춰 한 벌 더(위가 터질 때의 보험이자 예산 축의 두 점) ──
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 0 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 1 --nshards 2

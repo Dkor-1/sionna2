@@ -1,0 +1,67 @@
+# 0934 다리 2 차 (2026-09-15) — **판 차이의 표본을 넓힌다**
+#
+# ⭐왜 지금 이것인가 — 1 차에서 나온 두 수가 이것을 요구한다:
+#   · 다리 12 칸의 판 차이:  **−0.0053 ~ +0.0324 dB** (6 칸은 정확히 0.0000)
+#   · 같은 판 반복의 |E| 폭: **0.00000 dB** (4 칸 · 한 칸은 3 판)
+#   ⇒ 흔들림이 0 이므로 그 0.032 dB 는 **실행별 변동이 아니다.** 판이 낸 것이다.
+#   ⛔다만 12 칸은 표본이 작고, 0 이 아닌 칸이 **실외·건물만·지면만에만** 있었다
+#     (빈 하늘은 6 칸 전부 정확히 0.0000). 장면이 있을 때만 갈리는지 **더 세야** 한다.
+#
+# 무엇을 사나 — 「0 이 아닌 쪽」을 두껍게. 현 세대 짝이 있는 칸 111 개 중 20 칸(40 줄).
+#   ⓐ 실외·지면만·건물만의 **깊이 2** 를 앙각으로 넓힌다(−15·−45·−75) — 1 차는 −30·−60 뿐.
+#   ⓑ 협곡(솔버가 주는 장면)을 처음 넣는다 — 1 차에 한 칸도 없었다.
+#   ⓒ 빈 하늘 깊이 2·3 을 몇 칸 — 「장면이 없으면 정말 0 인가」를 더 센다(대조군).
+# ⛔el 0 은 안 산다(GATES_0902). ⛔뮌헨은 결과가 아니다. ⛔회절 팔은 안 산다(사용자 결정).
+# ⛔전수가 아니다 — 111 칸 중 20 칸이다. 고른 까닭은 위 ⓐⓑⓒ 다.
+# 어림: 구버전 짝의 실측 소요 합으로 약 46 일꾼시간 ⇒ 동시 8 이면 경과 약 6 시간.
+# ⛔발주 전 filter_jobs.sh. ⛔4번 GPU 보류 중.
+
+# ── ⓐ 실외 셋 · 깊이 2 · 앙각 넓히기 ──────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01_bldg --shard 1 --nshards 2
+
+# ── ⓐ 실외(온전한 장면) 깊이 1 의 나머지 앙각 ─────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-75 --env outdoor01 --shard 1 --nshards 2
+
+# ── ⓑ 협곡 — 1 차에 한 칸도 없었다 ────────────────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna-simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna-simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna-simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna-simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env sionna-simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env sionna-simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna-simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna-simple_street_canyon --shard 1 --nshards 2
+
+# ── ⓒ 빈 하늘 대조군 — 「장면이 없으면 정말 0 인가」 ───────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-45 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-45 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R1D0E0F1 --els=-45 --shard 1 --nshards 2
+
+# ── ⓐ 실외·지면만 깊이 3 (깊이 축을 한 점 더) ─────────────────
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-30 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 3 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-45 --env outdoor01_ground --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-15 --env outdoor01_ground --shard 1 --nshards 2
