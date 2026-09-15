@@ -131,7 +131,86 @@ def basis_perp(u):
     return e1, e2
 
 
-def place(scene, center=(0., 0., 0.), az=AZ_DEG, el=EL_DEG, rng=RANGE_M, baseline=BASELINE_M):
+#: ⭐⭐**안테나 무늬 축** (2026-09-15 신설) — 사용자 물음: 「바닥으로 간 레이가 그대로 반사돼
+#  세게 들어온다. 지향성을 주면 해결되나?」
+#  ■ 무엇이 바뀌나 — **레이를 쏘는 방식은 안 바뀐다.** 시오나의 후보 생성기는 무늬를 모른다
+#    (sionna/rt/path_solvers/path_solver.py:259-274). 경로를 다 찾은 뒤 출발·도착 각도에서
+#    무늬 이득을 곱해 **세기만** 바꾼다(field_calculator.py:204 · :332-346).
+#  ■ ⭐**추적이 아니라 고정 조준이다.** `place()` 는 자세마다 불리지만 center·az·el·rng 가
+#    한 칸 안에서 상수라 `look_at` 은 칸마다 **한 번 정해진 방향**이 된다. 드론은 제자리에 떠
+#    있고 로터만 돈다 — 삼각대에 세운 레이다를 뜰 자리에 한 번 맞춰 두는 셈이다.
+#  ■ 무늬 — 시오나에 등록된 3GPP TR 38.901 소자(antenna_pattern.py:264-290: 3 dB 폭 65°,
+#    정점 8 dBi, 감쇠 상한 30 dB). ⛔새 무늬를 지어내지 않는다 — `cap_db` 는 **같은 공식의
+#    상한값(a_max = sla_v)만** 바꾼다. 가파른 각도에서는 지면이 안테나 뒤에 있어 결과를
+#    빔폭이 아니라 그 상한이 정하므로, 상한 하나로 사면 「상한이 결과를 정한다」에 걸린다.
+#  ■ `aim_offset_deg` — 조준 오차. ⭐**양수 = 지면 쪽으로** 숙인다(클러터에 가장 불리한 쪽).
+#    `aim_offset_deg = −el` 이면 조준축이 **수평**이 된다(드론을 겨누지 않고 수평으로 세운 장비).
+_TR38901_STOCK_CAP = 30.0
+
+
+def antenna_pattern_name(pattern: str, cap_db: float = _TR38901_STOCK_CAP) -> str:
+    """시오나 무늬 등록부에서 쓸 이름. 상한이 기본(30 dB)이 아니면 **한 번만** 등록한다."""
+    if pattern != "tr38901":
+        raise ValueError(f"antenna_pattern_name: 지원하는 무늬는 tr38901 뿐이다 — {pattern!r}")
+    cap = float(cap_db)
+    if abs(cap - _TR38901_STOCK_CAP) < 1e-9:
+        return "tr38901"                              # ⛔시오나 원본을 그대로 쓴다
+    if cap <= 0 or abs(cap - round(cap)) > 1e-9:
+        raise ValueError(f"antenna_pattern_name: 상한은 양의 정수 dB 여야 한다 — {cap_db!r}")
+    name = f"tr38901c{int(round(cap))}"
+    from sionna.rt import antenna_pattern as _AP
+    try:
+        _AP.antenna_pattern_registry.get(name)
+        return name
+    except KeyError:
+        pass
+    import drjit as _dr
+
+    def _v(theta, phi, _cap=float(round(cap))):
+        #: ⛔시오나 v_tr38901_pattern 과 **글자 그대로 같은 식**이고 a_max·sla_v 만 _cap 이다.
+        phi = phi + _dr.pi
+        phi -= _dr.floor(phi / (2. * _dr.pi)) * 2. * _dr.pi
+        phi -= _dr.pi
+        theta_3db = phi_3db = 65. / 180. * _dr.pi
+        a_max = sla_v = _cap
+        g_e_max = 8.
+        a_v = -_dr.min([12. * ((theta - _dr.pi / 2.) / theta_3db) ** 2, sla_v])
+        a_h = -_dr.min([12. * (phi / phi_3db) ** 2, a_max])
+        a_db = -_dr.min([-(a_v + a_h), a_max]) + g_e_max
+        a = _dr.power(10., a_db / 10.)
+        return mi.Complex2f(_dr.sqrt(a), 0)
+
+    def _factory(*, polarization, polarization_model="tr38901_2"):
+        return _AP.PolarizedAntennaPattern(v_pattern=_v, polarization=polarization,
+                                           polarization_model=polarization_model)
+    _AP.register_antenna_pattern(name, _factory)
+    return name
+
+
+def aim_target(center, pos, aim_offset_deg: float = 0.0) -> np.ndarray:
+    """`pos` 에서 `center` 를 겨누되 조준축을 **지면 쪽으로** `aim_offset_deg` 만큼 숙인 점."""
+    c = np.asarray(center, float); p = np.asarray(pos, float)
+    d = c - p
+    r = float(np.linalg.norm(d))
+    if r <= 0:
+        raise ValueError("aim_target: 레이다가 겨눌 점과 같은 자리다")
+    if abs(float(aim_offset_deg)) < 1e-12:
+        return c
+    d = d / r
+    h = math.hypot(float(d[0]), float(d[1]))
+    if h < 1e-9:
+        raise ValueError("aim_target: 조준축이 수직이라 숙일 방위가 정해지지 않는다")
+    el0 = math.atan2(float(d[2]), h)
+    az0 = math.atan2(float(d[1]), float(d[0]))
+    el1 = el0 - math.radians(float(aim_offset_deg))
+    if not (-math.pi / 2 + 1e-6 < el1 < math.pi / 2 - 1e-6):
+        raise ValueError(f"aim_target: 숙인 조준축이 수직을 넘는다 ({math.degrees(el1):.2f}°)")
+    d1 = np.array([math.cos(el1) * math.cos(az0), math.cos(el1) * math.sin(az0), math.sin(el1)])
+    return p + r * d1
+
+
+def place(scene, center=(0., 0., 0.), az=AZ_DEG, el=EL_DEG, rng=RANGE_M, baseline=BASELINE_M,
+          *, pattern="iso", cap_db=_TR38901_STOCK_CAP, aim_offset_deg=0.0):
     """준-모노스태틱 TX/RX 배치 → dict(tx, rx, tau_expect_s, bistatic_deg)."""
     u = look_dir(az, el)
     e1, _ = basis_perp(u)
@@ -142,17 +221,37 @@ def place(scene, center=(0., 0., 0.), az=AZ_DEG, el=EL_DEG, rng=RANGE_M, baselin
         scene.remove(nm)
     for nm in list(scene.receivers):
         scene.remove(nm)
-    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
-    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
-    scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx])))
-    scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx])))
+    if pattern == "iso":
+        #: ⛔⛔**이 갈래는 옛 문장 그대로다** — `look_at` 을 부르지 않는다. 등방이어도 V 편파는
+        #  기기 좌표에서 정의돼(antenna_pattern.py:683-711) 방향을 돌리면 값이 바뀐다.
+        #  기존 팔 전부가 이 갈래라 한 글자도 바꾸지 않는다.
+        if float(aim_offset_deg) != 0.0 or abs(float(cap_db) - _TR38901_STOCK_CAP) > 1e-9:
+            raise ValueError("place: 등방(iso)에는 조준 오차·상한을 줄 수 없다 — 아무 효과가 없다")
+        scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+        scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx])))
+        scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx])))
+    else:
+        name = antenna_pattern_name(pattern, cap_db)
+        at_tx = aim_target(c, tx, aim_offset_deg)
+        at_rx = aim_target(c, rx, aim_offset_deg)
+        scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern=name, polarization="V")
+        scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern=name, polarization="V")
+        scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx]),
+                                 look_at=mi.Point3f(*[float(v) for v in at_tx])))
+        scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx]),
+                              look_at=mi.Point3f(*[float(v) for v in at_rx])))
     R1 = float(np.linalg.norm(tx - c)); R2 = float(np.linalg.norm(rx - c))
     u1 = (tx - c) / R1; u2 = (rx - c) / R2
-    return dict(tx=[float(v) for v in tx], rx=[float(v) for v in rx],
-                az_deg=float(az), el_deg=float(el), range_m=float(rng),
-                baseline_m=float(baseline),
-                bistatic_deg=float(np.degrees(np.arccos(np.clip(float(u1 @ u2), -1.0, 1.0)))),
-                tau_expect_ns=float((R1 + R2) / C0 * 1e9))
+    out = dict(tx=[float(v) for v in tx], rx=[float(v) for v in rx],
+               az_deg=float(az), el_deg=float(el), range_m=float(rng),
+               baseline_m=float(baseline),
+               bistatic_deg=float(np.degrees(np.arccos(np.clip(float(u1 @ u2), -1.0, 1.0)))),
+               tau_expect_ns=float((R1 + R2) / C0 * 1e9))
+    if pattern != "iso":
+        #: 등방 팔의 반환값은 옛날과 같게 둔다(원장에 json 으로 들어가는 호출부가 있다).
+        out.update(ant_pattern=name, ant_cap_db=float(cap_db), aim_offset_deg=float(aim_offset_deg))
+    return out
 
 
 # --------------------------------------------------------------------------- #

@@ -453,6 +453,35 @@ def run(a) -> None:
     #: ⭐`_sdet` = 솔버 결정 모드(2026-09-14). ⛔우리 `_det`(합산 순서 정렬)와 **다른 것**이다 —
     #  이쪽은 `PathSolver(deterministic=True)` 로 솔버 자체를 바꾼다. 이름이 같으면 옛 샤드를
     #  건너뛰거나 덮으므로 팔을 가른다. ⛔기본(끔)에는 안 붙는다 — 창고 전부가 그 모드다.
+    #: ⭐⭐**안테나 무늬 축** (2026-09-15 신설) — benchmark/report15_probe.py `place()` 머리말 참조.
+    #  ⛔등방(기본)에는 꼬리표가 **안 붙는다** — 창고의 샤드 전부가 등방이라 이름이 그대로여야 한다.
+    #  ⛔이름을 짓기 **전에** 막는다 — dry-run 탈출보다 앞이라 `runners/filter_jobs.sh` 가 잡는다.
+    _antp = str(getattr(a, "ant_pattern", "iso") or "iso")
+    _antc = float(getattr(a, "ant_cap", 30.0))
+    _aimo = float(getattr(a, "aim_offset", 0.0) or 0.0)
+    if _antp == "iso":
+        if abs(_antc - 30.0) > 1e-9 or _aimo != 0.0:
+            raise SystemExit("⛔ --ant-cap/--aim-offset 는 --ant-pattern tr38901 과 함께만 준다 — "
+                             "등방에는 아무 효과가 없어 이름만 다른 같은 샤드가 생긴다.")
+        tagant = ""
+    else:
+        if a.engine != "sionna":
+            raise SystemExit(f"⛔ --ant-pattern 은 PathSolver 팔 전용이다 — --engine {a.engine} 은 "
+                             "안테나 무늬 개념이 없어 이름만 붙고 내용은 등방이 된다.")
+        if _antc <= 0 or abs(_antc - round(_antc)) > 1e-9:
+            raise SystemExit(f"⛔ --ant-cap 은 양의 정수 dB 여야 한다 — {_antc!r} "
+                             "(팔 이름 문법이 소수점을 못 담는다)")
+        _el_chk = [float(x) for x in els]
+        for _e in _el_chk:
+            _new = -_e - _aimo
+            if not (-89.9 < _new < 89.9):
+                raise SystemExit(f"⛔ --aim-offset {_aimo:g} 이면 el {_e:g} 에서 조준축이 수직을 넘는다 "
+                                 f"({_new:.1f}°).")
+            if abs(_e) > 89.9:
+                raise SystemExit("⛔ 지향성 무늬는 el ±90 에서 조준 방위가 정해지지 않는다 "
+                                 "(radio_device.look_at 이 방위를 0 으로 억지로 둔다).")
+        _nm = "tr38901" if abs(_antc - 30.0) < 1e-9 else f"tr38901c{int(round(_antc))}"
+        tagant = f"_ant{_nm}" + ("" if _aimo == 0.0 else f"_aim{_aimo:g}")
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
@@ -481,7 +510,7 @@ def run(a) -> None:
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
-        + tagfc + tagth + tagmf + build_tag()
+        + tagfc + tagth + tagmf + tagant + build_tag()
 
     if tagth and a.engine in ("ours", "ours_free", "ours_gpu"):
         raise SystemExit("⛔ --shell-mm/--prop-mm 은 PathSolver 팔 전용이다 — 우리 커널에는 "
@@ -1010,7 +1039,9 @@ def run(a) -> None:
                             pass
                 if j == 0 and el == els[0]:
                     print(f"  ⭐환경 거칠기 S={_S:g} — 물체 {_n} 개에 걸었다", flush=True)
-            RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0)
+            #: ⭐등방이면 옛 호출과 같은 갈래로 간다(place() 안에서 문장 그대로).
+            RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0,
+                     pattern=_antp, cap_db=_antc, aim_offset_deg=_aimo)
             p = _solver(
                 sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
                 # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
@@ -1153,6 +1184,11 @@ def run(a) -> None:
                             E_dedup=E_dedup, n_dup=n_dup,
                             **bake_stamp(t0),
                             n_trunc=np.array([_ntr, int(RP.MAX_PATHS)]),
+                            #: ⭐지향성 팔만 무늬를 적는다(등방 샤드의 키는 옛날과 같게 둔다)
+                            **({} if _antp == "iso" else dict(
+                                ant_pattern=np.array(tagant.split("_aim")[0][4:]),
+                                ant_cap_db=np.array([_antc]),
+                                aim_offset_deg=np.array([_aimo]))),
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
                             # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
@@ -2401,6 +2437,14 @@ def main() -> None:
                          "⛔샤드 형식은 안 건드린다 — outputs/path_provenance/ 에 **곁파일**로 쓴다. "
                          "⛔팔 이름도 안 바꾼다(같은 칸의 덤이지 다른 조건이 아니다). "
                          "⚠자세 전부를 남기면 너무 크다 — 64 쯤이면 한 칸에 수십 MB 다.")
+    ap.add_argument("--ant-pattern", dest="ant_pattern", choices=("iso", "tr38901"),
+                    default="iso",
+                    help="⭐안테나 무늬. iso(기본, 옛 동작 그대로) · tr38901(3GPP 소자, 드론에 고정 조준). "
+                         "⛔레이를 쏘는 방식은 안 바뀐다 — 찾은 경로의 세기만 무늬로 바뀐다.")
+    ap.add_argument("--ant-cap", dest="ant_cap", type=float, default=30.0, metavar="DB",
+                    help="tr38901 감쇠 상한[dB]. 기본 30 = 시오나 원본. 같은 공식에서 상한만 바꾼다.")
+    ap.add_argument("--aim-offset", dest="aim_offset", type=float, default=0.0, metavar="DEG",
+                    help="조준 오차[deg]. ⭐양수 = 지면 쪽으로 숙인다. −el 을 주면 조준축이 수평이 된다.")
     ap.add_argument("--solver-deterministic", dest="solver_deterministic",
                     action="store_true",
                     help="⭐**솔버의 결정 모드를 켠다**(sionna-rt 2.1.0 부터). "

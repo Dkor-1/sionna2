@@ -1,0 +1,71 @@
+# 0938 directional antenna (2026-09-15) — does a directional antenna remove the ground's effect?
+#
+# User question (2026-09-15): "rays toward the ground bounce straight back strongly because we shoot
+#   without directivity — can directivity fix it?" and "a real rig will not track the drone in real
+#   time — how is directivity applied, and is the experiment realistic?"
+#
+# How the antenna is applied (benchmark/report15_probe.py place()):
+#   - Ray launching is unchanged: Sionna's candidate generator ignores the antenna pattern. The pattern
+#     only re-weights found paths at their departure/arrival angles.
+#   - FIXED aim, not tracking: place() is called per pose but center/az/el/range are constant within a
+#     cell, so look_at() gives one fixed boresight per cell. The drone hovers; only rotors spin — like a
+#     tripod radar pointed once at the hover spot.
+#   - Pattern: Sionna's 3GPP TR 38.901 element (65 deg 3 dB width, 8 dBi peak, 30 dB attenuation cap).
+#     --ant-cap changes only that cap in the same formula (no invented pattern).
+#   - --aim-offset: pointing error, positive = tilted toward the ground. offset = -el makes the boresight
+#     horizontal (a rig mounted level, not aimed at the drone).
+#
+# CPU pilot before ordering (16 poses, 6e7 rays, depth 1, el -60 — NOT production settings):
+#   drone gain, aimed vs iso          +16.02 dB (expected +16: 8 dBi each way)
+#   ground minus free sky, same antenna: iso +64.86 · aimed +2.98 · aimed cap50 -0.09 · horizontal +39.45
+#   => the static ground term collapses when aimed. Whether the BLADE CONTRAST returns needs 8,192 poses.
+#
+# Order = priority (the supervisor launches top to bottom):
+#   A aimed tr38901            ground + free sky, el -15 and -60   (the core answer)
+#   B iso free-sky fill        el -15 at the installed build        (control missing at _rt210)
+#   C horizontal mount         ground + free sky                    (realistic "not aimed" bound)
+#   D aimed, cap 50 dB         ground + free sky                    (is el -60 set by the cap?)
+#   E 10 deg pointing error    ground only                          (robustness of a small miss)
+# el -15: ground image ~83 deg off boresight (inside the pattern's slope)
+# el -60: ground image ~134 deg off boresight (behind the antenna -> set by the cap)
+# Do NOT buy el -90 (look_at azimuth is ill-defined) or el 0 (standing gate).
+
+# -- A: aimed tr38901 --------------------------------------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --shard 1 --nshards 2
+
+# -- B: iso free-sky control at the installed build (missing at el -15) -------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --shard 1 --nshards 2
+
+# -- C: horizontal mount (aim offset = -el) ---------------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --aim-offset 60 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --aim-offset 60 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 15 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 15 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --aim-offset 15 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --aim-offset 15 --shard 1 --nshards 2
+
+# -- D: aimed, attenuation cap 50 dB ----------------------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 50 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 50 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --ant-cap 50 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --ant-pattern tr38901 --ant-cap 50 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 50 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --ant-cap 50 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --ant-cap 50 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --ant-pattern tr38901 --ant-cap 50 --shard 1 --nshards 2
+
+# -- E: 10 deg pointing error toward the ground (ground only) ---------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 10 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 10 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 10 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-15 --env outdoor01_ground --ant-pattern tr38901 --aim-offset 10 --shard 1 --nshards 2
