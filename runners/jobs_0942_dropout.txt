@@ -1,0 +1,50 @@
+# 0942 dropout-mechanism queue (2026-09-16)
+#
+# User request (2026-09-16 ~01:30 KST): 「추가로 큐에 넣을만한 실험 설계해서 큐에 넣어줘」
+#   [design more experiments worth queueing and add them to the queue].
+#
+# Background: in every production PathSolver cell with ground (isotropic antenna) a few "isolated poses"
+#   (|E - complex median| > 20 x median over poses of that distance) carry 94.8-99.7% of the
+#   pose-to-pose power (outputs/isac_plan_corpus_0915.json : dropout). They are the same poses across
+#   repeats and across builds 2.0.1/2.1.0, so thread-order noise alone does not explain them. A CPU ray
+#   ladder on the 2.0.1 ground cell (d2, el -60) gave isolated counts 11 / 76 / 90-97 at 1e8 / 1e9 / 3.6e9-4.29e9
+#   rays, with the set mostly stable from 3.6e9 up. Mechanism unknown. benchmark/dropout_paths_0916.py lists
+#   the paths at those poses; this queue varies the two solver knobs that decide which paths survive.
+#
+# Questions (reference cell for all: envoutdoor01_ground, rt210, d2, el -60, iso antenna, 4e9 rays, default cap 2e6):
+#   1. Path cap / hash table size: does the isolated-pose set change with --max-paths 1e6 or 8e6?
+#      (the hash table is max(max_paths, 1e6) entries, so 1e6 halves it and 8e6 quadruples it)
+#   2. Solver deterministic mode: at 2e8 rays (memory: depth x rays x 60 B = 22 GiB), does
+#      PathSolver(deterministic=True) change the set against the same ray count without it?
+#   3. Street canyon at el -60 with --max-paths 8e6: the canyon cell has 339 isolated poses and they jump up
+#      rather than collapse. Does a larger table change that set?
+#
+# Read-out (per cell): isolated count at factor 20, Jaccard of the isolated set against the reference cell,
+#   contrast stored vs replaced, and npaths per pose against the cap.
+# Kill / fold conditions:
+#   - If npaths per pose reaches the cap in any arm, that arm measures the cap, not the scene: fold it
+#     (memory note saturating-cap-means-unmeasurable) and do not buy further rungs.
+#   - If 1e6 and 8e6 both give Jaccard >= 0.95 against the default cap, table size is not the driver: skip section 3
+#     if it has not launched yet (remove its lines; supervisors re-read the job file).
+#   - If deterministic on/off give Jaccard >= 0.95 at 2e8, the winner rule is not the driver.
+# What this does not answer: which path goes missing (dropout_paths_0916.py does that), whether a real radar
+#   sees anything similar (no RF measurement exists), and absolute levels between engines (never compared).
+#
+# Rules kept: diffuse on (F1) in every arm; no el 0; no prop-only; no diffraction; GPU hold (cards 3/4 after
+#   06:10 KST 2026-09-16). Chained by runners/watch_then_start.py after 0941.
+
+# -- 2: deterministic mode at 2e8 rays (short; first) --------------------------
+--engine sionna --spp 200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --solver-deterministic --shard 0 --nshards 2
+--engine sionna --spp 200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --solver-deterministic --shard 1 --nshards 2
+--engine sionna --spp 200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 0 --nshards 2
+--engine sionna --spp 200000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --shard 1 --nshards 2
+
+# -- 1: path cap ladder on the ground cell --------------------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --max-paths 1000000 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --max-paths 1000000 --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env outdoor01_ground --max-paths 8000000 --shard 1 --nshards 2
+
+# -- 3: street canyon, larger path cap -------------------------------------------
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --max-paths 8000000 --shard 1 --nshards 2
