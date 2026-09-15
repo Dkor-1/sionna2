@@ -800,6 +800,41 @@ def run(a) -> None:
         #  ⛔이 인자는 우리 `--det`(합산 순서 정렬)와 **다른 것**이다. 그쪽은 솔버에 안 닿는다.
         _detmode = bool(getattr(a, "solver_deterministic", False))
         if _detmode:
+            #: ⭐⭐**굽기 전에 메모리를 미리 잰다** (2026-09-15 · 실제로 터진 뒤에 넣었다).
+            #  결정 모드는 `sb_deterministic.py` 의 Step 2 에서
+            #      max_depth × samples_per_src × num_targets
+            #  개짜리 배열을 **여러 벌** 만든다(lane · expected_thread_idx · candidate_hashes(8B) ·
+            #  hash0/1 · did_win · output_indicator · …). 곧 **광선 예산에 정비례**한다.
+            #  ⛔실측(2026-09-15): 광선 4e9 · 깊이 1 에서 `dr.gather` 가 16 GiB 를 잡으려다
+            #    터졌다. 한 배열이 14.9 GiB 이고 동시에 사는 것을 더하면 어림 **224 GiB** 라
+            #    카드 한 장(95 GiB)에 애초에 안 들어간다 — 다른 워커가 없어도 마찬가지다.
+            #  ⇒ 굽기 **전에** 세어 보고, 카드보다 크면 **서서 사람을 부른다.**
+            #    ⛔그냥 돌려 한 시간 뒤에 OOM 으로 죽는 것보다 낫다.
+            _elem = float(mdep) * float(spp)        # 표적 1 (모노스태틱)
+            _need_gib = _elem * (11 * 4 + 2 * 8) / 2**30
+            _free_gib = None
+            try:
+                import subprocess as _sp
+                _o = _sp.run("nvidia-smi --query-gpu=memory.total,memory.used "
+                             "--format=csv,noheader,nounits", shell=True,
+                             capture_output=True, text=True).stdout.splitlines()
+                if _o:
+                    _t, _u = [int(x) for x in _o[0].split(",")]
+                    _free_gib = (_t - _u) / 1024.0
+            except Exception:                                  # noqa: BLE001
+                pass
+            print(f"  ⭐결정 모드 메모리 어림 {_need_gib:.0f} GiB"
+                  f"  (원소 {_elem:,.0f} = 깊이 {mdep} × 광선 {spp:,.0f})"
+                  + (f" · 이 카드 여유 {_free_gib:.0f} GiB" if _free_gib else ""),
+                  flush=True)
+            if _free_gib is not None and _need_gib > _free_gib:
+                raise SystemExit(
+                    f"⛔결정 모드가 이 카드에 안 들어간다 — 어림 {_need_gib:.0f} GiB 가 "
+                    f"필요한데 여유가 {_free_gib:.0f} GiB 다.\n"
+                    f"   그 크기는 **깊이 × 광선 예산**에 정비례한다(지금 깊이 {mdep} · 광선 {spp:,.0f}).\n"
+                    "   ⇒ `--spp` 를 낮춰라. ⛔자세(`--n-poses`)를 줄이는 것은 답이 아니다 —\n"
+                    "     이 배열은 자세 수와 무관하고, 자세를 줄이면 STFT 창이 깨진다.\n"
+                    "   ⛔끈 모드와 견주려면 **끈 모드도 같은 낮은 예산으로** 함께 사야 한다.")
             try:
                 _solver = RP.rt.PathSolver(deterministic=True)
             except TypeError as _e:                            # noqa: BLE001
