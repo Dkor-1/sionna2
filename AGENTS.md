@@ -13,8 +13,13 @@ User preference recorded on 2026-09-15:
   configuration descriptions, and machine-oriented artifacts in English.
 - Korean report prose may live in report templates or report data when needed to
   generate the Korean report. Preserve exact source quotations and official names.
-- Do not translate or rename existing artifacts wholesale; apply this preference
-  to new work and edits where relevant.
+- Existing agent-facing documents (conventions, runbooks, audit and review memos,
+  internal READMEs) are being migrated to English **one file at a time, not in
+  parallel** (user decision 2026-09-15). Translate line for line, keep machine
+  strings, paths and numbers byte-identical, keep Korean user quotations verbatim
+  with an English gloss, and check each file mechanically against the original
+  before installing it. Do not rename files. Reports (notebooks), deck scripts and
+  other text the user reads directly stay Korean.
 
 ## Current ISAC experiment constraints
 
