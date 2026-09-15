@@ -1,0 +1,20 @@
+# 0937 협곡 되살리기 (2026-09-15) — ⛔내 발주서 오타로 죽은 8 줄
+#
+# 0934 의 협곡 8 줄이 30 초 만에 전부 죽었다:
+#   ⛔ 모르는 환경: sionna-simple_street_canyon — 아는 것 ['outdoor01','outdoor01_ground','outdoor01_bldg']
+# 까닭: 저장소 표기는 --env sionna:<이름>(**콜론**)인데 내가 **팔 이름 표기**(하이픈)로 적었다.
+#   팔 이름에는 _envsionna-simple_street_canyon 으로 하이픈이 박히지만, 그건 이름을 지을 때
+#   콜론을 하이픈으로 바꾼 결과다(elevation_sweep_md.py 의 tagr: .replace(':','-')).
+#   기존 176 줄은 전부 콜론이고 내 10 줄만 하이픈이었다.
+# ⚠거르기가 못 잡았다 — dry-run 도 같은 오타로 돌아 이름만 짓고 «NEW» 라 답했다.
+#   ⇒ filter_jobs.sh 는 «그 줄이 실제로 도나» 를 안 본다. 그건 따로 봐야 한다.
+# ⛔4번 GPU 는 이제 쓴다(2026-09-15 사용자가 풀었다).
+
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 2 --range-m 15 --sw R1D0E0F1 --els=-30 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2

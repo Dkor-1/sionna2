@@ -527,6 +527,41 @@ def run(a) -> None:
     #  TypeError 로 죽는다. 규약값 4e9 는 그 바로 아래다.
     #  2026-09-06 에 0906 발주의 `--spp 16000000000` 여섯 줄이 전부 이것으로 죽었고,
     #  감독자 로그에는 «rc=1» 만 남아 이유를 알 수 없었다. GPU 슬롯을 태우기 전에 막는다.
+    #: ⭐⭐**환경 이름은 이름을 짓기 전에 확인한다** (2026-09-15 신설).
+    #  ⛔전에는 `env_parts`(:200) 와 `build_scene_builtin`(:159) 이 **씬을 지을 때**
+    #    처음 봤다. 그 자리는 dry-run 탈출(:652·:775)보다 **뒤**라,
+    #    `runners/filter_jobs.sh` 는 틀린 환경 이름으로도 샤드 이름을 지어 내고
+    #    «있음/없음» 만 찍은 뒤 그 줄을 NEW 로 통과시켰다.
+    #  ■ 실제로 났다(2026-09-15) — 저장소 표기는 `--env sionna:simple_street_canyon`
+    #    (콜론)인데 발주서에 **팔 이름 표기인 하이픈**(`sionna-…`)으로 적힌 10 줄이
+    #    거르기를 통과하고 GPU 에서 30 초 만에 죽었다(0934 협곡 8 줄 · 0936 출처 2 줄).
+    #  ⇒ 여기서 막으면 dry-run 도 같은 문을 지나므로 거르기가 잡는다.
+    _envarg = str(getattr(a, "env", "") or "")
+    if _envarg:
+        if _envarg.startswith("sionna:"):
+            _scn = _envarg.split(":", 1)[1]
+            #: ⛔시오나를 못 불러도 **발주서 검사를 막지는 않는다** — 여기서 죽으면
+            #   CPU 전용 dry-run 이 통째로 서고 큐를 못 짠다(:1277 과 같은 규약).
+            try:
+                from sionna.rt import scene as _SCN
+                _known = sorted(n for n in dir(_SCN) if not n.startswith("_")
+                                and isinstance(getattr(_SCN, n, None), str)
+                                and str(getattr(_SCN, n)).endswith(".xml"))
+            except Exception as _e:
+                print(f"  \u26a0\ufe0f기본 씬 이름 {_scn!r} 을 확인 못 했다 "
+                      f"({type(_e).__name__}) — 씬을 지을 때 다시 본다", flush=True)
+                _known = None
+            #: ⛔`hasattr` 로 보면 `os`·`plt` 같은 모듈 이름도 통과한다(:159 의 헐거움).
+            #   씬 이름은 `.xml` 경로 문자열이므로 그것으로 가른다.
+            if _known is not None and _scn not in _known:
+                raise SystemExit(f"⛔ 모르는 기본 씬: {_scn} — 아는 것 {_known}")
+        elif _envarg not in ENV_SPECS:
+            raise SystemExit(
+                f"⛔ 모르는 환경: {_envarg} — 우리 씬은 {list(ENV_SPECS)} 이고, "
+                f"엔비디아 기본 씬은 **콜론**으로 준다(`--env sionna:<씬>`). "
+                f"⚠팔 이름에는 하이픈(`_envsionna-…`)으로 적히지만 그것은 파일 이름 "
+                f"표기일 뿐이라 인자로 되돌려 쓰면 안 된다(2026-09-15 사고).")
+
     #: 드론 고도 덮어쓰기 — 환경 부품을 만들기 **전에** 걸어야 한다.
     if float(getattr(a, "env_alt", 0.0) or 0.0):
         if not getattr(a, "env", ""):
