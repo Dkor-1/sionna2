@@ -7,7 +7,7 @@
 
 ## 환경·백엔드 분업  ← 중요
 
-환경은 리눅스 단일 env: `/workspace/.venvs/py312/bin/python` (Sionna RT 2.0.1 설치됨 — 이 서버에서 Analytic/RT 모두 실행).
+환경은 리눅스 단일 env: `/workspace/.venvs/py312/bin/python` (2026-09-14 부터 Sionna RT 2.1.0 설치됨, 그 전은 2.0.1 — 판 장부 `runners/SOLVER_BUILDS.json` · 이 서버에서 Analytic/RT 모두 실행).
 GPU 는 `src/gpu.py` 가 여유 큰 카드를 자동 선택한다(고정하려면 `SIONNA2_GPU=N`).
 
 | | Analytic (개발·sanity) | Sionna RT (검증) |

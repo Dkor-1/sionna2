@@ -130,14 +130,24 @@ def eca(surv, ref, n_taps=40):
 # --------------------------------------------------------------------------- #
 #  ② CAF 거리-도플러 맵 (프레임 정합필터 + slow-time FFT)
 # --------------------------------------------------------------------------- #
-def range_doppler(surv, ref, fs, M, n_range=None):
+def range_doppler(surv, ref, fs, M, n_range=None, per_frame_ref=False):
     """CPI(surv,ref) → (거리축 Rb[m], 도플러축 f_d[Hz], |RD| 맵[도플러,거리]).
-    프레임마다 순환상관(정합필터)으로 거리, 프레임축 FFT 로 도플러."""
+    프레임마다 순환상관(정합필터)으로 거리, 프레임축 FFT 로 도플러.
+
+    Reference assumption: with per_frame_ref=False (default, unchanged behaviour) the first frame ref[:Lf] is the
+    matched-filter reference for every frame, which is correct only when the transmitted frames repeat (as in
+    make_cpi, which tiles one frame). For a waveform whose payload changes per frame (Wi-Fi/LTE/NR data, every OFDM
+    symbol as reference) pass per_frame_ref=True: frame m is matched with ref[m*Lf:(m+1)*Lf].
+    Ledger: outputs/isac_plan_detection_0915.json : f14_reference (independent QPSK per frame, first-frame
+    reference: peak off the injected target in every probe row; repeated-frame control: 0 dB)."""
     Lf = len(ref) // M
     n_range = n_range or Lf
     S = surv[:M * Lf].reshape(M, Lf)
-    Rf = np.conj(np.fft.fft(ref[:Lf]))             # 한 프레임 기준
-    RP = np.fft.ifft(np.fft.fft(S, axis=1) * Rf[None, :], axis=1)   # (M, Lf) 거리프로파일
+    if per_frame_ref:
+        Rf = np.conj(np.fft.fft(np.asarray(ref)[:M * Lf].reshape(M, Lf), axis=1))   # 프레임별 기준 (M, Lf)
+    else:
+        Rf = np.conj(np.fft.fft(ref[:Lf]))[None, :]  # 한 프레임 기준
+    RP = np.fft.ifft(np.fft.fft(S, axis=1) * Rf, axis=1)   # (M, Lf) 거리프로파일
     RP = RP[:, :n_range]
     win = np.hanning(M)[:, None]                   # slow-time Hann (도플러 부엽 억제)
     RD = np.fft.fftshift(np.fft.fft(RP * win, axis=0), axes=0)      # (M, n_range) slow-time FFT

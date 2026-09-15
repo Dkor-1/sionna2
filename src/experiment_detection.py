@@ -18,6 +18,17 @@ experiment_detection.py — **다중 수신기(Rx 1→4) 패시브 디텍션 실
   N=1→4 이면 이론상 **+6.02 dB**. 이 실험은 그 이득이 실제로 나오는지, 그래서 Pd 곡선이
   얼마나 왼쪽으로(=더 약한 표적도 탐지) 이동하는지 **직접 잰다**.
 
+■ Scope: known target cell, known direction, ideal combining (checked 2026-09-15/16)
+  · Pd counts a hit only near the truth cell (di_true, ri_true) taken from the noise-free echo map, and the
+    range axis labels are anchored to the ground-truth metadata vel_meta["Rb"] (Precomputed.__init__). Changing
+    that metadata moves the labels, not the map.
+  · gpu_montecarlo uses the steering vector only through len(sv): the echo is scaled by sqrt(N) and the noise
+    stays at sigma. Any vector of the same length gives the same Pd (outputs/isac_plan_detection_0915.json :
+    f1_steering, including an all-zero vector); verify_combine measures the noise side only.
+  · So the N-receiver curves are the ideal coherent gain at a known direction and cell. They are not an estimate
+    of range, angle or track accuracy; for that, detection must run without truth metadata and be scored
+    against the truth afterwards (outputs/directory_review_0915.json, docs/MOBICOM_PIPELINE_PLAN_0916.md §6).
+
 ■ report4/report10 의 교정을 강제한다
   · CFAR 명목 Pfa 는 파형별로 교정(passive_process.pfa_nominal_for) — 공정 비교.
   · 표적 없는 트라이얼로 **경험적 Pfa** 를 같이 재서 교정이 실제로 맞는지 확인.

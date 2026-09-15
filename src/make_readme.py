@@ -190,7 +190,8 @@ def build() -> str:
     A("# sionna2 — 통신신호를 조명원 삼는 패시브 바이스태틱 드론 탐지 시뮬레이터")
     A("")
     A("셀이 이미 켜 두는 상시 신호(WiFi · LTE · 5G NR)를 조명 삼아 드론을 탐지하는 패시브")
-    A("바이스태틱 레이더를, Sionna RT 2.0.1 위에서 자유공간 기하로 끝까지 시뮬레이션한다.")
+    A("바이스태틱 레이더를, Sionna RT 2.0.1 위에서 자유공간 기하로 끝까지 시뮬레이션한다(2026-09-14 전까지의 판이다. "
+      "그 뒤 설치된 판은 2.1.0 이고, 그 판으로 구운 샤드는 이름에 `_rt210` 이 붙는다 — `runners/SOLVER_BUILDS.json`).")
     A("표적 산란은 Sionna 의 Mitsuba/OptiX 광선엔진으로 면별 가림을 풀고 그 조명면 위에서")
     A("부품별 재질 PO 를 적분해 만든다. σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고,")
     A("**자세 패턴과 절대 레벨은 우리 PO 출력**이다.")
@@ -379,8 +380,10 @@ def build() -> str:
     A("| | |")
     A("|---|---|")
     A("| Python | `/workspace/.venvs/py312/bin/python` (3.12) — 이 한 env 로 전부 실행 |")
-    A("| 핵심 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 (OptiX GPU) · torch · "
-      "numpy · trimesh + manifold3d |")
+    A("| 핵심 (지금 설치) | Sionna / Sionna RT 2.1.0 · Mitsuba 3.9.1 · drjit 1.5.0 (OptiX GPU) · torch 2.11.0+cu128 · "
+      "numpy 2.5.2 · scipy 1.18.0 · trimesh 5.0.0 + manifold3d 3.5.2 (2026-09-16 확인) |")
+    A("| `_rt210` 없는 샤드의 판 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 — 판 꼬리표 장부는 `runners/SOLVER_BUILDS.json` |")
+    A("| 설치 목록 | ⚠잠금 파일(requirements/lock)은 없다. 새 환경을 이 목록만으로 똑같이 짓는 절차는 아직 적혀 있지 않다 |")
     A("| 노트북 커널 | `py312` |")
     A("| 실행 규약 | `PYTHONPATH=src:benchmark` 를 반드시 준다 |")
     A("")

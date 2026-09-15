@@ -31,13 +31,23 @@ def _torch():
 
 def rd_batch(surv, ref_frame, M, n_range, device=None):
     """surv (B, M*Lf) 복소텐서 → |RD| (B, M, n_range). ref_frame (Lf,) 복소텐서.
-    passive_process.range_doppler 와 동일 규약(프레임 정합필터 + slow-time Hann + FFT)."""
+    passive_process.range_doppler 와 동일 규약(프레임 정합필터 + slow-time Hann + FFT).
+
+    ref_frame of shape (Lf,) is the same reference for every frame: correct only when the transmitted frames
+    repeat. For a waveform whose payload changes from frame to frame pass shape (M, Lf), one reference per frame
+    (outputs/isac_plan_detection_0915.json : f14_reference — with an independent QPSK frame per slow-time sample the
+    single-frame reference put the peak off the injected target in every probe row)."""
     torch = _torch()
     B, Ns = surv.shape
     Lf = Ns // M
     S = surv.view(B, M, Lf)
-    Rf = torch.conj(torch.fft.fft(ref_frame))                       # (Lf,)
-    RP = torch.fft.ifft(torch.fft.fft(S, dim=2) * Rf.view(1, 1, Lf), dim=2)[:, :, :n_range]
+    if ref_frame.dim() == 2:
+        if tuple(ref_frame.shape) != (M, Lf):
+            raise ValueError(f"per-frame reference must have shape (M, Lf) = ({M}, {Lf}), got {tuple(ref_frame.shape)}")
+        Rf = torch.conj(torch.fft.fft(ref_frame, dim=1)).view(1, M, Lf)   # (1, M, Lf)
+    else:
+        Rf = torch.conj(torch.fft.fft(ref_frame)).view(1, 1, Lf)          # (1, 1, Lf)
+    RP = torch.fft.ifft(torch.fft.fft(S, dim=2) * Rf, dim=2)[:, :, :n_range]
     win = torch.hann_window(M, periodic=False, dtype=surv.real.dtype,
                             device=surv.device).view(1, M, 1)
     RD = torch.fft.fftshift(torch.fft.fft(RP * win, dim=1), dim=1)   # (B, M, n_range)
@@ -46,9 +56,17 @@ def rd_batch(surv, ref_frame, M, n_range, device=None):
 
 def cfar_batch(rd, guard=(2, 2), train=(6, 6), pfa=1e-4):
     """배치 2D CA-CFAR. rd (B, nd, nr) → (det (B,nd,nr) bool, thr (B,nd,nr)).
-    passive_process.ca_cfar_2d 를 배치·적분영상으로 그대로 벡터화(가변 학습셀 수 포함)."""
+    passive_process.ca_cfar_2d 를 배치·적분영상으로 그대로 벡터화(가변 학습셀 수 포함).
+
+    Precision (2026-09-16): the power map and the summed-area table are computed in float64 whatever the input
+    dtype, like the numpy reference. With float32 running sums a single strong cell (about 90 dB above the
+    background in a 64 x 32 map) made the box differences wrong elsewhere and fired hundreds of false cells
+    (outputs/isac_plan_detection_0915.json : f4_cfar; also outputs/directory_review_0915.json). The threshold is
+    returned in the input dtype; the mask is decided in float64. Results written before this date with float32
+    maps are not recomputed here."""
     torch = _torch()
-    P = rd ** 2
+    out_dtype = rd.dtype
+    P = rd.to(torch.float64) ** 2
     B, nd, nr = P.shape
     gd, gr = guard; td, tr = train
     win_d, win_r = gd + td, gr + tr
@@ -81,7 +99,7 @@ def cfar_batch(rd, guard=(2, 2), train=(6, 6), pfa=1e-4):
     alpha = ntr_safe * (pfa ** (-1.0 / ntr_safe) - 1.0)
     thr = alpha * noise
     det = ok & (P > thr)
-    return det, torch.sqrt(torch.clamp(thr, min=0))
+    return det, torch.sqrt(torch.clamp(thr, min=0)).to(out_dtype)
 
 
 def peak_batch(rd, det, guard_zd=1):
@@ -126,13 +144,27 @@ def validate(verbose=True):
     ref_t = torch.tensor(ref, dtype=torch.complex128, device=dev)
     rd_g = rd_batch(surv_t, ref_t, M, nr)[0].cpu().numpy()
     rd_err = float(np.abs(rd_g - rd_ref).max() / (rd_ref.max() + 1e-30))
+    # High dynamic range regression: float32 map with one cell 110 dB above the background must give the same
+    # mask as the float64 numpy reference (float32 running sums fired hundreds of false cells before 2026-09-16).
+    rd_hi = np.abs(rng.standard_normal((nd, 32)) + 1j * rng.standard_normal((nd, 32))) / np.sqrt(2)
+    rd_hi[10, 2] = 10 ** (110 / 20)
+    det_hi_np, _, _ = ca_cfar_2d(rd_hi, pfa=1e-4)
+    det_hi_t, _ = cfar_batch(torch.tensor(rd_hi, dtype=torch.float32, device=dev)[None], pfa=1e-4)
+    hi_mismatch = int((torch.tensor(det_hi_np, device=dev)[None] != det_hi_t).sum().item())
+    # Per-frame reference: frames that differ (independent QPSK per frame) through numpy and torch paths.
+    refs = np.exp(1j * np.pi / 2 * rng.integers(0, 4, (M, Lf)))
+    _, _, rd_pf = range_doppler(surv, refs.reshape(-1), 1e6, M, n_range=nr, per_frame_ref=True)
+    rd_pf_g = rd_batch(surv_t, torch.tensor(refs, dtype=torch.complex128, device=dev), M, nr)[0].cpu().numpy()
+    pf_err = float(np.abs(rd_pf_g - rd_pf).max() / (rd_pf.max() + 1e-30))
+    ok = det_match and rd_err < 1e-9 and hi_mismatch == 0 and pf_err < 1e-9
     if verbose:
         print(f"[validate] device={dev}")
         print(f"  CFAR det 일치: {det_match}   thr 최대오차: {thr_err:.2e}")
         print(f"  RD 상대오차: {rd_err:.2e}")
-        print("  ✅ GPU 커널이 numpy 기준과 일치" if (det_match and rd_err < 1e-9)
-              else "  ⚠ 불일치 — 점검 필요")
-    return det_match and rd_err < 1e-9
+        print(f"  CFAR float32 input, strong cell 110 dB: mask cells differing from numpy float64 = {hi_mismatch}")
+        print(f"  RD per-frame reference relative error (torch vs numpy): {pf_err:.2e}")
+        print("  ✅ GPU 커널이 numpy 기준과 일치" if ok else "  ⚠ 불일치 — 점검 필요")
+    return ok
 
 
 if __name__ == "__main__":
