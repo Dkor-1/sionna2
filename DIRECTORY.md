@@ -29,7 +29,7 @@
 | `/workspace/archive/2026-09/sionna/` (outside the repository) | Stale material moved out from 2026-09-16 on, at the **same relative paths** (`docs/X` → `/workspace/archive/2026-09/sionna/docs/X`). Its `README.md` lists each item: what it is, why it left, inbound references, commit. A path named in an older document that no longer exists here is usually there. Numbers inside archived files are not cited |
 | `vendor/wheels/` | 59 wheels for installation. ⛔Not kept in git |
 | `archive/legacy_reports/` | 8 notebooks from **before** the 2026-08-16 reorganisation. Do not read them — `reports/` is the current set |
-| `work/` | Temporary work (`scratchpad`, `scratchpad_verify`) |
+| `work/` | Working files (sweep handover `sweep_0904/`, workflow results `wf/`) |
 | `prior_work/` · `refs/` · `jihyuck/` | Prior work and reference material |
 | `atlas/` | Micro-Doppler atlas (analysis output) |
 
