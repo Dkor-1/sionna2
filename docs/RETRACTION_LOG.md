@@ -1239,7 +1239,7 @@ div 12) — 에서, 잡음이 전혀 없을 때(SNR 격자 상단 55 dB) 물리 
 숨어 있다 → 상시 기준신호 팔이면 우리 554 → 66 m). ⭐X410 스펙 파일에 송신 전력·안테나 이득·
 잡음지수가 **아예 없다**.
 
-근거: `docs/LINK_BUDGET.md` · `docs/NOISE_MAIN_RUN_SPEC.md` · `outputs/noise_distance_prereg_0816.json`
+근거: `/workspace/archive/2026-09/sionna/docs/LINK_BUDGET.md` · `docs/NOISE_MAIN_RUN_SPEC.md` · `outputs/noise_distance_prereg_0816.json`
 
 ---
 
