@@ -1,104 +1,110 @@
-# 이 저장소에서 일할 때
+# Working in this repository
 
-> ⭐**처음 들어왔으면 [`docs/HANDOVER_MAP.md`](docs/HANDOVER_MAP.md) 부터.** 규약이 어느 문서에 있는지, 큐가 어떻게 도는지, 매일 무엇을 하는지 한 장으로 적어 뒀다.
+> ⭐**If you are new here, start with [`docs/HANDOVER_MAP.md`](docs/HANDOVER_MAP.md).** It lays out on one page which document holds which convention, how the queue runs, and what to do every day.
 
-## ⭐⭐주장 게이트 — 예외 없음
+## ⭐⭐Claim gate — no exceptions
 
-숫자나 주장을 슬라이드·레포트·보고에 올리기 전에 **[`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md)** 를 통과시킨다.
+Before putting a number or claim on a slide · report · briefing, pass it through **[`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md)**.
 
-**ⓐ 사실 뒷받침** — 이 숫자가 **물리**의 성질인가, **측정 설정**의 성질인가?
-포화값 · 끊긴 훑기 · 탐색 바닥 · 퇴화한 분모 · 창/칸 폭 · 산포 미만 · 원장 없음 · 낡음.
+**ⓐ Factual support** — is this number a property of the **physics**, or a property of the **measurement setup**?
+Saturated value · cut-off sweep · search floor · degenerate denominator · window/cell width · below the spread · no ledger · stale.
 
-**ⓑ 과잉 결론** — 이건 내가 **본** 것인가, 내가 **판정한** 것인가?
-「X 가 Y 를 묻는다/덮는다/일으킨다」, 「A 가 아니라 B 다」 는 판정이다.
-⛔슬라이드 얼굴에 쓰지 않는다 — **발표자 노트로 내린다.**
+**ⓑ Over-concluding** — is this something I **saw**, or something I **judged**?
+「X 가 Y 를 묻는다/덮는다/일으킨다」 [X buries/masks/causes Y], 「A 가 아니라 B 다」 [it is B, not A] are verdicts.
+⛔Do not write them on the slide face — **move them down to the presenter notes.**
 
-**3 층**: ①자문(모든 주장, 예외 없음) ②손잡이 흔들기(머리기사 숫자) ③적대 검증 +
-**독립 재계산**(발표·레포트에 박히는 것). 자세한 건 CLAIM_GATE.md.
+**3 layers**: ①self-check (every claim, no exceptions) ②knob shaking (headline numbers) ③adversarial verification +
+**independent recomputation** (anything that gets fixed into a presentation · report). Details in CLAIM_GATE.md.
 
-⭐**끝을 늘려 보는 검산이 가장 싸고 가장 잘 잡는다.** 2026-09-01 덱 13 장 사고는
-훑기를 +24 → +60 dB 로 늘려보는 30 초짜리 검산 하나로 막을 수 있었다.
+⭐**The check that extends the end of the range is the cheapest and catches the most.** The 2026-09-01 incident on slide 13 of the deck
+could have been prevented by a single 30-second check that extended the sweep from +24 → +60 dB.
 
-## 그림
+## Figures
 
-⛔**겹침을 남기지 않는다**(사용자 지시 2026-09-02). 범례가 자료를 덮거나 글자끼리 포개지면
-그림이 제 일을 못 한다. `src/paper_kit.save_figure` 가 저장 직전에 `src/figcheck.py` 로
-검사하고 경고를 찍는다 — **경고가 나오면 고치고 다시 낸다.**
+⛔**Leave no overlaps** (user directive 2026-09-02). If the legend covers the data or text overlaps text,
+the figure cannot do its job. `src/paper_kit.save_figure` checks with `src/figcheck.py` right before saving
+and prints warnings — **if a warning appears, fix it and output again.**
 
-| 잡는 것 | 고치는 법 |
+| What it catches | How to fix |
 |---|---|
-| 범례가 자료를 덮음 | `bbox_to_anchor` 로 축 **밖**에 두거나 `loc` 를 빈 쪽으로 |
-| 축 안 글자끼리 겹침 | 자리를 옮기거나 한쪽을 지운다 — 짧게 쓰면 자리가 는다 |
-| y 축 이름 ↔ 눈금 글자 | `labelpad` 를 키우거나 `subplots_adjust(left=)` |
+| Legend covers the data | Place it **outside** the axes with `bbox_to_anchor`, or point `loc` at the empty side |
+| Text inside the axes overlaps | Move it or delete one of them — writing shorter frees up room |
+| y-axis label ↔ tick labels | Increase `labelpad` or use `subplots_adjust(left=)` |
 
-`FIGCHECK_STRICT=1` 을 주면 경고가 아니라 예외가 된다. 기본은 경고다 —
-반투명 범례를 일부러 자료 위에 두는 판이 있고, 빌더를 멈추면 그림이 아예 안 나온다.
+Setting `FIGCHECK_STRICT=1` turns warnings into exceptions. The default is warnings —
+some figures deliberately place a semi-transparent legend over the data, and stopping the builder means no figure comes out at all.
 
-현상을 보여준다 — **STFT · 에너지 분포 · 변조 스펙트럼**. 파생 판정 그림은 관찰 그림을
-대체하지 않는다. ⛔판정 배지·네모 상자를 그림 안에 넣지 않는다. 그림은 곡선으로 말하고
-판정은 발표자가 말한다.
+Show the phenomenon — **STFT · energy distribution · modulation spectrum**. Derived verdict figures do not
+replace observation figures. ⛔Do not put verdict badges · boxes inside a figure. The figure speaks through curves,
+and the presenter speaks the verdict.
 
-## ⛔레포트는 **주피터 노트북**이다 — 웹 페이지로 내지 않는다
+## ⛔Reports are **Jupyter notebooks** — do not publish them as web pages
 
-사용자 지시(2026-09-07): 「레포트는 기존 레포트들처럼 **주피터로 만들어 마크다운 형식으로**」.
+User directive (2026-09-07): 「레포트는 기존 레포트들처럼 **주피터로 만들어 마크다운 형식으로**」 [Make reports like the existing reports — built in Jupyter, in Markdown format].
 
-정리·보고를 요청받으면 `src/report_style.py` 규약을 따르는 **노트북**으로 짓는다.
-아티팩트(웹 페이지)로 내지 않는다 — 레포트는 저장소에 남아 인용·재빌드·각주 검사를 받는
-자산이지 한 번 보고 마는 페이지가 아니다.
+When asked to summarize · report, build a **notebook** that follows the `src/report_style.py` conventions.
+Do not publish it as an artifact (web page) — a report is an asset that stays in the repository and undergoes citation · rebuilding · footnote checks,
+not a page you look at once and are done with.
 
-| 무엇 | 어디 |
+| What | Where |
 |---|---|
-| 짓는 함수 | `src/report_style.py` — `header()` · `md()` · `figure_md()` · `build_notebook()` |
-| 빌더 | `src/build_part*.py` (조각) · `src/make_report*.py` (권) — **다시 구울 수 있어야 한다** |
-| 수 | 원장에서 `⟨파일 : 키⟩` 태그로 인용한다. ⛔손으로 치지 않는다 |
-| 그림 | `outputs/figures/` 에 두고 노트북이 가리킨다 |
+| Building functions | `src/report_style.py` — `header()` · `md()` · `figure_md()` · `build_notebook()` |
+| Builders | `src/build_part*.py` (pieces) · `src/make_report*.py` (volumes) — **must be rebuildable** |
+| Numbers | Cite from the ledger with `⟨파일 : 키⟩` tags. ⛔Do not type them by hand |
+| Figures | Put them in `outputs/figures/` and have the notebook point to them |
 
-⛔**노트북을 손으로 고치지 않는다** — 빌더를 고치고 다시 굽는다.
+⛔**Do not edit notebooks by hand** — fix the builder and rebuild.
 
-## ⛔팀미팅은 이 저장소에서 관리하지 않는다
+## ⛔Team meetings are not managed in this repository
 
-발표 자료(덱·대본·발표용 그림)는 **`/workspace/team_meeting/` 에서만** 만들고 보관한다.
-이 저장소에 `.pptx` · 덱 계획 문서 · 덱 전용 빌더를 두지 않는다.
-2026-09-02 에 `decks/`(56 MB) · `teammeeting_0811/` · `DECK_0827_PLAN.md` 를 옮겼다 —
-사용자 지시: 「시오나 디렉토리 내에 팀미팅 내용은 내부에서 다 없애버려」.
+Presentation materials (decks · scripts · presentation figures) are made and kept **only in `/workspace/team_meeting/`**.
+Do not keep `.pptx` · deck planning documents · deck-only builders in this repository.
+On 2026-09-02, `decks/` (56 MB) · `teammeeting_0811/` · `DECK_0827_PLAN.md` were moved out —
+user directive: 「시오나 디렉토리 내에 팀미팅 내용은 내부에서 다 없애버려」 [Get rid of all the team-meeting content inside the Sionna directory].
 
-⚠**이름에 `deck` 이 들어갔다고 팀미팅 자산인 것은 아니다.** 다음은 **분석 자산이라 남긴다**:
+⚠**Having `deck` in the name does not make it a team-meeting asset.** The following are **analysis assets, so they stay**:
 
-| 남긴 것 | 왜 |
+| Kept | Why |
 |---|---|
-| `benchmark/build_deck_maps.py` | `structure_bars` 가 **리듬 몫 창 반폭 8 Hz 정의의 정본**이다 — `build_md_atlas.py` · `build_atlas_toc.py` · `src/rx_noise.py` 가 이 정의를 인용한다 |
-| `benchmark/deck_facts.py` · `deck_ours_by_range.py` · `build_deck0811_*.py` · `build_physics_vs_deck_fig.py` | sionna 스크립트·리포트 빌더가 부른다 |
-| `outputs/deck*.json` | **원장**이다. 리포트 3 편(05 · 06_2 · 06_4)이 각주로 인용한다 |
-| `docs/DECK_FACTS.md` | 덱이 인용하는 숫자의 **원장 대조표** — 검증 기록이다 |
+| `benchmark/build_deck_maps.py` | `structure_bars` is the **canonical source of the definition of the rhythm-share window half-width of 8 Hz** — `build_md_atlas.py` · `build_atlas_toc.py` · `src/rx_noise.py` cite this definition |
+| `benchmark/deck_facts.py` · `deck_ours_by_range.py` · `build_deck0811_*.py` · `build_physics_vs_deck_fig.py` | Called by sionna scripts · report builders |
+| `outputs/deck*.json` | These are **ledgers**. 3 reports (05 · 06_2 · 06_4) cite them in footnotes |
+| `docs/DECK_FACTS.md` | **Ledger cross-check table** for the numbers the deck cites — it is a verification record |
 
-⇒ 가르는 기준은 이름이 아니라 **누가 쓰나**다. 리포트나 분석이 쓰면 남기고,
-발표에만 쓰면 `/workspace/team_meeting/` 으로 보낸다.
+⇒ The dividing criterion is not the name but **who uses it**. If a report or analysis uses it, keep it;
+if only presentations use it, send it to `/workspace/team_meeting/`.
 
-## 그 밖의 상시 규약
+## Other standing conventions
 
-| 문서 | 무엇 |
+| Document | What |
 |---|---|
-| [`docs/RESUME.md`](docs/RESUME.md) | 재개 지점 — 세션 시작 때 먼저 읽는다 |
-| [`docs/NEW_FILE_RULES.md`](docs/NEW_FILE_RULES.md) | ⭐⭐**새 파일·새 메모를 만들기 전에 읽는다.** 전수조사 900 건을 근본 원인으로 묶은 **16 가지**와, 저장하기 전 훑을 **여덟 줄**. 관문은 `benchmark/check_new_file_rules.py`(기준선 뒤로 새 것만 막는다) |
-| [`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md) | 주장 게이트 (위) |
-| [`docs/EQUIVALENCE_GATES.md`](docs/EQUIVALENCE_GATES.md) | 「같음」 판정 3 층. ⛔솔버 산출물에 «비트 동일» 을 요구하지 않는다 |
-| [`docs/DECK_FACTS.md`](docs/DECK_FACTS.md) | 덱이 인용하는 숫자의 원장 대조표 |
-| [`docs/GATES_0902.md`](docs/GATES_0902.md) | ⭐관문 셋 결과 — **az 0 은 대칭 기하라 특별한 칸**(N 이 az 0 에서만 3, 나머지 9~10. ⚠낙차 개수는 방위에 **단조롭지 않다** — 45° 는 15 로 az 0 의 36 보다 적다. 「az 0 이 가장 깨끗하다」고 말하지 않는다) · **우리 커널 el 0 은 λ/12 에서 미수렴**(반 칸 이동이 −11.9 dB, λ/24 면 +1.45 dB). ⛔el 0 «레벨·폭» 은 인용 금지. ✅빗살(있음/없음)은 격자에 안 기댄다 |
-| [`docs/SIONNA_NONDETERMINISM_0902.md`](docs/SIONNA_NONDETERMINISM_0902.md) | ⭐공개 논의(#1175 등)와 **우리 관측을 가른다** — #1175 은 회절 wedge(RadioMapSolver)라 `diffraction=False` 로 사라지지만, **우리 것은 회절을 꺼도 난다**(PathSolver 후보 생성기). ⛔`rr_depth`·`deterministic` 은 2.0.1 PathSolver 에 **없다** |
-| [`docs/DEEP_DROP_0902.md`](docs/DEEP_DROP_0902.md) | ⭐**깊은 낙차 = 한 자세에서 경로 하나를 «비결정적으로» 잃는 현상.** 같은 설정 재실행에서 낙차 여부가 뒤집힌다(154 자세). 빠지는 것은 **고정된 복소 상수 하나**이고 \|E\| 가 정확히 (N−1)/N 로 떨어진다. ⚠«비결정적으로» 는 과했다 — **어떤 자세에서는 그 사본 하나가 늘 빠진다**(2026-09-04). ✅**누구 탓인지 갈렸다(2026-09-03)** — 낙차 자세 2,296 개 중 우리 마스크가 버린 자세 **0 개**(`outputs/who_dropped_0903.json`). 하네스는 무죄다 — ⚠**칸 45 개** 범위이고 앙각 조성이 −45° 15 ··· **el 0° 는 2 칸**이다. ⚠낙차 자세의 경로 **수는 정상**이다 — 수가 아니라 합이 무너진다. ⭐재현성은 **진짜 재실행**(`outputs/true_repeat_0903.json`)으로 잰다 — 우리 커널 6/6 비트 동일(⚠**2 판씩**이다 — PathSolver 팔은 칸에 따라 3~5 판이라 판 수가 다른 칸끼리 나란히 읽지 않는다), PathSolver 는 회절을 **꺼도** 안 맞는다(el 0 에서 자세 2 개가 50 %). ⛔옛 E0↔E1 값(8~26 자세·23 %)은 인용 금지. ⭐⭐**스레드 수가 이 흔들림을 켜고 끈다(2026-09-03)** — 스레드 1 이면 40 판이 **같은 경로 수(8,059)·\|h\| 편차 0.00000 dB** 이고 2 면 갈린다. ⛔«비트 동일» 로 적지 않는다 — 그 시험은 경로 수와 결맞음 합의 크기만 잰다(2026-09-10 정정, 위 EQUIVALENCE_GATES 규약과도 어긋났다). ⛔**«원인은 병렬 축약 순서다» 로 못 박지 않는다** — 그것은 설명 후보이고, 어느 경합인지는 이 시험이 못 짚는다. ⚠스레드 2 의 최빈 경로 수는 8,058 로 **옮겨간다** — 1-스레드 기준으로 다시 세면 다른 판이 1 개가 아니라 **39/40** 이고, 192 에서는 다시 14/40 이라 **단조롭지 않다**. ⚠**이건 CPU·합성 평판 576 장 최소재현기에서 잰 것**이다 — 드론 코퍼스에서는 자세의 기하가 대체로 정하고 병렬 순서는 경계 자세만 가른다. GPU·씨앗·해시 통 수(32 배 흔들어도 무변)가 아니다 (`outputs/thread_ladder_0903.json`). ⭐**실외 칸(3/45)** 에서 빠지는 것은 레이다 자신의 지면 반사(40 m · env_ground · 정지 클러터)다 — ⚠**한 칸의 자세 하나를 덤프한 결과**다 — 드론 경로는 그대로(`outputs/elephant_id_0903.json`). ⛔**낙차의 97 %(42 칸 · 자세 2,236)는 지면이 없는 자유공간**이고 모양도 다르다(연속 블록 · −20 dB ↔ 고립 한 자세 · −38 dB) — ⭐⭐⭐**덱이 말한 «0° 서든 드랍» 은 «같은 경로가 셋 들어 있다가 하나 빠지는 것»** 이다(2026-09-03) — 낙차 깊이가 58 자세 전부 **정확히 2/3** 다. ⛔«재실행하면 안 난다» 는 **철회**(2026-09-04) — 근거가 GPU 기록을 CPU 로 다시 푼 것이라 판이 아니라 기계를 바꾼 것이었다. `_rep` 판 5 개로 다시 재면 낙차 자세는 대체로 그대로다(자카드 0.947~1.000 · 8,192 중 2 개만 뒤집힌다). ⚠자세 47 의 «정반사→카메라 셋» 목록은 **정본 메쉬 팔**의 것이고 그 팔에서 자세 47 은 낙차가 **아니다**(비 1.0000) — 2/3 는 **메쉬 보정 안 한 팔**에서 난다. 두 사실은 다른 팔에서 나왔다. ⭐⭐**2026-09-04 에 직접 셌다** — 자세 32,768 개에서 남는 줄 1/2/3 이 깊이 0.371/0.684/1.000 을 그대로 정한다(낙차 자세 156 개). 추론이 아니라 관측이다. ⚠CPU·광선 1e8 에서는 안 난다 — 경로 총수가 문턱 아래다(`outputs/el0_drop_0903.json`). ⛔«물리적으로 몇 줄이 옳은가» 는 아직 안 물었다. ⭐빗각(el −15/−45)의 낙차는 **다른 것** — 날개가 지나가며 가리는 것이다(2026-09-03) — 블록 간격이 날개 박자 주기(155.5 자세)와 **1.00 배**로 맞고 위상이 5~6 배 쏠린다. 결함이 아니라 **재려던 신호**로 읽는다 — ⚠**주기성만으로는 «물리» 와 «솔버» 가 안 갈린다**(자세 번호가 곧 날개 각도라 기하가 정하는 솔버 유실도 같은 주기로 되풀이된다). 판정은 경로 목록으로 한다. ⚠**칸 3 개**(블록 65·60·39)로 잰 값이다(`outputs/drop_blocks_0903.json`) |
-| [`docs/RHO_IS_SMOOTHNESS_0902.md`](docs/RHO_IS_SMOOTHNESS_0902.md) | ⛔**ρ(포락 자기상관)는 리듬이 아니라 «매끄러움» 을 잰다.** 직선·계단·붉은잡음이 전부 「박자」 칸(0.92~0.99)에 든다. ρ 하나로 박자를 판정하지 않는다 — **빗살 하모닉 SNR 을 함께 낸다** |
-| [`docs/AUDIT_REPORTS_0901.md`](docs/AUDIT_REPORTS_0901.md) | ⭐레포트 24권 적대 검증 — **확인 59 건(fatal 5), 살아 있음 49**. 인용 전에 해당 권을 확인한다 |
+| [`docs/RESUME.md`](docs/RESUME.md) | Resume point — read it first at session start |
+| [`docs/NEW_FILE_RULES.md`](docs/NEW_FILE_RULES.md) | ⭐⭐**Read before creating a new file · new memo.** The **16 items** that group the 900 findings of the exhaustive audit by root cause, and the **eight lines** to scan before saving. The gate is `benchmark/check_new_file_rules.py` (blocks only new ones after the baseline) |
+| [`docs/CLAIM_GATE.md`](docs/CLAIM_GATE.md) | Claim gate (above) |
+| [`docs/EQUIVALENCE_GATES.md`](docs/EQUIVALENCE_GATES.md) | 3 layers for judging 「같음」 [sameness]. ⛔Do not require «비트 동일» [bit-identical] of solver outputs |
+| [`docs/DECK_FACTS.md`](docs/DECK_FACTS.md) | Ledger cross-check table for the numbers the deck cites |
+| [`docs/GATES_0902.md`](docs/GATES_0902.md) | ⭐Results of the three gates — **az 0 is a special cell because the geometry is symmetric** (N is 3 only at az 0, 9~10 everywhere else. ⚠The number of drops is **not monotonic** in azimuth — 45° has 15, fewer than az 0's 36. Do not say 「az 0 이 가장 깨끗하다」 [az 0 is the cleanest]) · **our kernel at el 0 is not converged at λ/12** (a half-cell shift gives −11.9 dB; at λ/24, +1.45 dB). ⛔Citing el 0 «레벨·폭» [level · width] is prohibited. ✅The comb (present/absent) does not depend on the grid |
+| [`docs/SIONNA_NONDETERMINISM_0902.md`](docs/SIONNA_NONDETERMINISM_0902.md) | ⭐**Separates public discussion (#1175 etc.) from our observation** — #1175 is the diffraction wedge (RadioMapSolver), so it disappears with `diffraction=False`, but **ours occurs even with diffraction off** (PathSolver candidate generator). ⛔`rr_depth`·`deterministic` **do not exist** in the 2.0.1 PathSolver |
+| [`docs/DEEP_DROP_0902.md`](docs/DEEP_DROP_0902.md) | ⭐**Deep drop = the phenomenon of losing one path «non-deterministically» at a pose.** Whether a drop occurs flips between reruns with the same settings (154 poses). What drops out is **one fixed complex constant**, and \|E\| falls to exactly (N−1)/N. ⚠«비결정적으로» [non-deterministically] was overstated — **at some poses that one copy always drops out** (2026-09-04). ✅**Whose fault it is has been settled (2026-09-03)** — of 2,296 drop poses, poses discarded by our mask: **0** (`outputs/who_dropped_0903.json`). The harness is not guilty — ⚠this covers **45 cells**, and the elevation composition is −45° 15 ··· **el 0° is 2 cells**. ⚠The path **count at drop poses is normal** — it is the sum, not the count, that collapses. ⭐Reproducibility is measured with **true reruns** (`outputs/true_repeat_0903.json`) — our kernel 6/6 bit-identical (⚠**2 runs each** — PathSolver arms have 3~5 runs depending on the cell, so do not read cells with different run counts side by side), PathSolver does not match **even with** diffraction off (at el 0, 2 poses at 50 %). ⛔Citing the old E0↔E1 values (8~26 poses · 23 %) is prohibited. ⭐⭐**The thread count turns this wobble on and off (2026-09-03)** — with 1 thread, 40 runs have **the same path count (8,059) · \|h\| deviation 0.00000 dB**, and with 2 they diverge. ⛔Do not write this as «비트 동일» [bit-identical] — that test measures only the path count and the magnitude of the coherent sum (corrected 2026-09-10; it also contradicted the EQUIVALENCE_GATES convention above). ⛔**Do not nail it down as «원인은 병렬 축약 순서다» [the cause is the parallel reduction order]** — that is a candidate explanation, and this test cannot pinpoint which race it is. ⚠With 2 threads the most frequent path count **shifts** to 8,058 — recounted against the 1-thread baseline, the differing runs are not 1 but **39/40**, and at 192 it is back to 14/40, so it is **not monotonic**. ⚠**This was measured on a minimal reproducer (CPU · 576 synthetic flat plates)** — in the drone corpus the pose geometry mostly decides, and the parallel order only splits borderline poses. It is not the GPU · seed · hash bucket count (unchanged even when shaken 32×) (`outputs/thread_ladder_0903.json`). ⭐In the **outdoor cells (3/45)**, what drops out is the radar's own ground reflection (40 m · env_ground · static clutter) — ⚠**this is the result of dumping one pose from one cell** — the drone paths stay intact (`outputs/elephant_id_0903.json`). ⛔**97 % of the drops (42 cells · 2,236 poses) are in free space with no ground**, and their shape differs too (contiguous blocks · −20 dB ↔ a single isolated pose · −38 dB) — ⭐⭐⭐**the «0° 서든 드랍» [0° sudden drop] the deck spoke of is «the same path being present three times and one of them dropping out»** (2026-09-03) — the drop depth is **exactly 2/3** at all 58 poses. ⛔«재실행하면 안 난다» [it does not occur on rerun] is **retracted** (2026-09-04) — its basis was re-solving GPU records on CPU, so it changed the machine, not the run. Re-measured with 5 `_rep` runs, the drop poses mostly stay the same (Jaccard 0.947~1.000 · only 2 of 8,192 flip). ⚠The «정반사→카메라 셋» [three specular → camera entries] list for pose 47 belongs to the **canonical-mesh arm**, and in that arm pose 47 is **not** a drop (ratio 1.0000) — the 2/3 occurs in the **arm without mesh correction**. The two facts came from different arms. ⭐⭐**Counted directly on 2026-09-04** — across 32,768 poses, the number of remaining lines (1/2/3) exactly determines the depth (0.371/0.684/1.000) (156 drop poses). This is observation, not inference. ⚠It does not occur with CPU · 1e8 rays — the total path count is below the threshold (`outputs/el0_drop_0903.json`). ⛔«How many lines are physically correct» has not been asked yet. ⭐Drops at oblique angles (el −15/−45) are **something else** — blades occluding as they pass (2026-09-03) — the block spacing matches the blade beat period (155.5 poses) at **1.00×**, and the phase is concentrated 5~6×. Read it not as a defect but as **the signal we set out to measure** — ⚠**periodicity alone does not separate «physics» from «solver»** (the pose index is itself the blade angle, so solver losses determined by geometry also repeat with the same period). The verdict is made from the path list. ⚠These values were measured on **3 cells** (blocks 65·60·39) (`outputs/drop_blocks_0903.json`) |
+| [`docs/RHO_IS_SMOOTHNESS_0902.md`](docs/RHO_IS_SMOOTHNESS_0902.md) | ⛔**ρ (envelope autocorrelation) measures «smoothness», not rhythm.** Straight lines · staircases · red noise all land in the 「박자」 [beat] cell (0.92~0.99). Do not judge beat from ρ alone — **also report the comb harmonic SNR** |
+| [`docs/AUDIT_REPORTS_0901.md`](docs/AUDIT_REPORTS_0901.md) | ⭐Adversarial verification of 24 report volumes — **59 confirmed (5 fatal), 49 still alive**. Check the relevant volume before citing |
 
-- 확산반사(F)는 **모든 팔에서 항상 켠다.** 비교축은 다섯 팔뿐이다
-- 「우리 커널이 맞고 PathSolver 가 틀렸다」로 **결론짓지 않는다** — 둘 다 근사, 현실성 판정은 실측 몫
-- CPU 전용 작업은 `CUDA_VISIBLE_DEVICES=""` 로 띄운다
-- 파이썬은 **`/workspace/.venvs/py312/bin/python`** 이다 — ⛔`~/.venvs` 는 이 기계에 없다
-- ⛔**죽는 경로를 소스에 박지 않는다** — `/tmp/…/scratchpad/…` 는 세션이 끝나면 사라져
-  그 빌더를 영영 못 굽게 만든다. 입력이 필요하면 저장소 안으로 옮기고 커밋한다
-- ⛔⛔**말을 지어내지 않는다**(사용자 지시 2026-09-03). 새 낱말·약칭·기호를 그 자리에서
-  만들어 쓰지 않는다 — 레포트·문서·커밋·**사용자에게 하는 말** 전부에 걸린다.
-  · 쓸 말이 마땅치 않으면 **풀어서 쓴다**(「벌」 ✗ → 「같은 줄이 몇 번 적히나」 ✓)
-  · 꼭 새 이름이 있어야 하면 **처음 쓰는 자리에서 한 줄로 정의**하고, 그 정의를 문서에 남긴다
-  · 이미 있는 말(경로 · 자세 · 샤드 · 팔)은 그대로 쓴다. 새것을 겹쳐 만들지 않는다
-  ⭐이건 「덱에 우리끼리 쓰는 말 금지」의 상위 규약이다 — 덱뿐 아니라 **모든 자리**에 걸린다
-- 각주가 `rows[N]` 으로 원장 행을 가리키므로, 원장이 자라면 밀린다 — `benchmark/check_row_pointers.py` 로 검사하고, 어긋나면 **조각 빌더를 다시 돌린다**
+- Diffuse reflection (F) is **always on in every arm.** The comparison axis is the five arms only
+- **Do not conclude** 「우리 커널이 맞고 PathSolver 가 틀렸다」 [our kernel is right and PathSolver is wrong] — both are approximations; judging realism is the job of real measurements
+- Launch CPU-only jobs with `CUDA_VISIBLE_DEVICES=""`
+- Python is **`/workspace/.venvs/py312/bin/python`** — ⛔`~/.venvs` does not exist on this machine
+- ⛔**Do not hard-code paths that will disappear into the source** — `/tmp/…/scratchpad/…` disappears when the session ends,
+  making that builder permanently unbuildable. If you need an input, move it into the repository and commit it
+- ⛔⛔**말을 지어내지 않는다** [Do not invent words] (user directive 2026-09-03). Do not coin new words · abbreviations · symbols
+  on the spot and use them — this applies to all of reports · documents · commits · **what you say to the user**.
+  · If no suitable word exists, **spell it out** (「벌」 [sets/copies] ✗ → 「같은 줄이 몇 번 적히나」 [how many times the same line is written] ✓)
+  · If a new name is truly required, **define it in one line where it is first used**, and record that definition in a document
+  · Use existing words (path · pose · shard · arm) as they are. Do not create new ones that overlap them
+  ⭐This is the parent convention of 「덱에 우리끼리 쓰는 말 금지」 [No insider words in decks] — it applies not only to decks but **everywhere**
+- Because footnotes point to ledger rows with `rows[N]`, they shift when the ledger grows — check with `benchmark/check_row_pointers.py`, and if they are off, **rerun the piece builders**
+
+## Language and experiment preferences
+
+See [AGENTS.md](AGENTS.md) for the user's 2026-09-15 language preference and current
+ISAC hardware scope: English progress/internal artifacts, Korean final responses
+and reports; one X410 as the main platform with a Wi-Fi/LTE/5G NR benchmark.

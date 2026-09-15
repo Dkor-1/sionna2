@@ -1,139 +1,139 @@
-# 주장 게이트 — 사실 뒷받침 · 과잉 결론 두 축
+# Claim Gate — Two Axes: Factual Support · Over-Conclusion
 
-> **왜 이 문서가 있나.** 2026-09-01 에 팀미팅 덱 13 장에서 사고가 났다.
-> 「회절이 무늬에 천장을 씌운다」로 결론짓고 그림까지 만들었는데, 검산해 보니
-> 그 «천장» 은 **각 팔의 무잡음 comb contrast** 였다. 훑기를 +24 dB 에서 끊어서
-> 생긴 인공물을 물리 발견으로 읽은 것이다. +60 dB 까지 늘리면 다섯 팔이 **전부**
-> 자기 무잡음 값에서 포화한다.
+> **Why this document exists.** On 2026-09-01 an incident happened on slide 13 of the team meeting deck.
+> We concluded 「회절이 무늬에 천장을 씌운다」 [Diffraction puts a ceiling on the pattern] and even made a figure, but on checking,
+> that «ceiling» was **each arm's noise-free comb contrast**. An artifact created by cutting the sweep off at +24 dB
+> was read as a physical discovery. Extending to +60 dB, **all** five arms
+> saturate at their own noise-free values.
 >
-> 사용자 지시(2026-09-01): 「자꾸 뭘 결론짓는 버릇이 있는거같은데 / 현상 자체를
+> User instruction (2026-09-01): 「자꾸 뭘 결론짓는 버릇이 있는거같은데 / 현상 자체를
 > 어떤 에너지 plot이나 STFT Plot같은것을 토대로 관찰 위주로하고 / 결론 지으려고
-> 하는 행위를 좀 줄여줘」 · 「ⓐ사실 뒷받침 ⓑ과잉 결론 두 축으로 공격 →
-> 독립 재검증 → 관찰 위주로 보기를 앞으로 작업하면서 항시 해줘. 규약으로 정해두고」
+> 하는 행위를 좀 줄여줘」 [You seem to keep having a habit of concluding things / focus on observing the phenomenon itself, based on something like an energy plot or STFT plot / and cut down on trying to draw conclusions] · 「ⓐ사실 뒷받침 ⓑ과잉 결론 두 축으로 공격 →
+> 독립 재검증 → 관찰 위주로 보기를 앞으로 작업하면서 항시 해줘. 규약으로 정해두고」 [Attack along two axes, ⓐ factual support and ⓑ over-conclusion → independent re-verification → observation-first viewing; always do this from now on as you work. Set it down as a rule]
 >
-> ⛔**이 문서는 그 규약이다.** 슬라이드·레포트·보고에 숫자나 주장을 올리기 전에 통과시킨다.
+> ⛔**This document is that rule.** Before putting a number or claim on a slide, in a report, or in an update to the user, pass it through this gate.
 
 ---
 
-## 0. 두 축
+## 0. Two axes
 
-| 축 | 묻는 것 | 실패하면 |
+| Axis | What it asks | If it fails |
 |---|---|---|
-| **ⓐ 사실 뒷받침** | 이 숫자가 **물리**의 성질인가, **측정 설정**의 성질인가? | 숫자를 뺀다 |
-| **ⓑ 과잉 결론** | 이건 내가 **본** 것인가, 내가 **판정한** 것인가? | 그림에서 빼고 발표자 노트로 내린다 |
+| **ⓐ Factual support** | Is this number a property of **physics**, or a property of the **measurement setup**? | Remove the number |
+| **ⓑ Over-conclusion** | Is this something I **saw**, or something I **judged**? | Remove it from the figure and move it down to the presenter notes |
 
-두 축은 독립이다. ⓐ를 통과해도 ⓑ에서 걸릴 수 있다 — 숫자는 맞는데 「A 때문에 B」라고
-말하면 ⓑ 위반이다. 반대로 ⓑ가 깨끗해도 ⓐ에서 걸릴 수 있다.
+The two axes are independent. Something can pass ⓐ and still be caught at ⓑ — if the number is right but you say 「because of A, B」,
+that is a ⓑ violation. Conversely, something can be clean on ⓑ and still be caught at ⓐ.
 
 ---
 
-## 1. ⓐ 사실 뒷받침 — 「측정 설정을 물리로 읽었나」
+## 1. ⓐ Factual support — 「Did I read the measurement setup as physics?」
 
-### 1-1. 냄새 목록
+### 1-1. Smell list
 
-우리가 실제로 밟은 것에 ⭐를 붙였다.
+We marked with ⭐ the ones we actually stepped on.
 
-| 냄새 | 형태 |
+| Smell | Form |
 |---|---|
-| ⭐**포화** | 보고한 값이 알고 보니 **무잡음·정상상태 값**이다. 효과가 아니라 도달점 |
-| ⭐**끊긴 훑기** | 추세가 훑기를 **어디서 끊었느냐**에만 의존한다. 더 늘리면 사라진다 |
-| ⭐**탐색 바닥** | 값이 격자 해상도·검색 하한에 **핀으로 박혀** 있다. 「법칙」이 항등식이다 |
-| ⭐**퇴화한 분모** | 비가 큰 이유가 분자가 커서가 아니라 **분모가 0 에 가까워서**다 |
-| **창·칸 폭** | 값을 정하는 게 신호가 아니라 FFT 길이·창·칸 반폭이다 |
-| **산포 미만** | 차이가 **판 사이 재현 산포보다 작다** |
-| **원장 없음** | 인용한 숫자에 원장이 없거나, 원장이 **다른 메쉬·거리·규약**으로 지어졌다 |
-| **낡음** | 원장은 맞는데 그 뒤 커널·메쉬가 바뀌어 서술만 남았다 |
+| ⭐**Saturation** | The reported value turns out to be the **noise-free, steady-state value**. Not an effect but the value the curve converges to |
+| ⭐**Truncated sweep** | The trend depends only on **where the sweep was cut off**. Extend it and it disappears |
+| ⭐**Search floor** | The value is **pinned** to the grid resolution or the search lower bound. The 「law」 is an identity |
+| ⭐**Degenerate denominator** | The ratio is large not because the numerator is large but because **the denominator is close to 0** |
+| **Window/cell width** | What sets the value is not the signal but the FFT length, window, or cell half-width |
+| **Below scatter** | The difference is **smaller than the run-to-run reproduction scatter** |
+| **No ledger** | The quoted number has no ledger, or the ledger was built with a **different mesh, range, or convention** |
+| **Stale** | The ledger is right, but the kernel or mesh changed afterward and only the description remains |
 
-### 1-2. 손잡이 흔들기 — 머리기사 숫자의 필수 관문
+### 1-2. Shaking the knobs — mandatory gate for headline numbers
 
-숫자를 머리기사로 올리기 전에 **자유 파라미터를 흔들어 본다.** 흔들려서 결론이 바뀌면
-그건 물리가 아니라 측정 설정이다.
+Before raising a number to a headline, **shake the free parameters.** If shaking changes the conclusion,
+it is not physics but the measurement setup.
 
-흔들 것: **훑기 양끝** · 창 길이·종류 · 칸 반폭 · 문턱 · 격자 간격 · 씨앗 · 자세 수
+Things to shake: **both ends of the sweep** · window length and type · cell half-width · threshold · grid spacing · seed · number of poses
 
-⭐**끝을 늘려 보는 것이 가장 싸고 가장 잘 잡는다.** 13 장 사고는 훑기를
-+24 → +60 dB 로 늘려보는 30 초짜리 검산 하나로 막을 수 있었다.
+⭐**Extending the ends is the cheapest check and catches the most.** The slide 13 incident could have been prevented
+by a single 30-second check extending the sweep from +24 → +60 dB.
 
-### 1-3. 극단 검산
+### 1-3. Extreme-case checks
 
-- **무잡음 값을 먼저 구한다.** 잡음 곡선의 도달점은 거의 항상 이것이다
-- **잡음만 넣어 본다.** 지표가 0 이나 널 값으로 가는가?
-- **한쪽 팔을 일부러 망가뜨린다.** 지표가 반응하는가?
+- **Compute the noise-free value first.** The value a noisy curve converges to is almost always this
+- **Try feeding noise only.** Does the metric go to 0 or to a null value?
+- **Deliberately break one arm.** Does the metric respond?
 
 ---
 
-## 2. ⓑ 과잉 결론 — 「봤나, 판정했나」
+## 2. ⓑ Over-conclusion — 「Did I see it, or did I judge it?」
 
-### 2-1. 관찰 / 판정 가르기
+### 2-1. Separating observation / judgment
 
-| | 관찰 | 판정 |
+| | Observation | Judgment |
 |---|---|---|
-| 문장 | 「−30° 에서는 빗살이 보이고 0° 에서는 안 보인다」 | 「회절이 빗살을 묻는다」 |
-| | 「③④ 는 10~11 dB, ①②⑤ 는 38~53 dB」 | 「회절이 천장을 씌운다」 |
-| 근거 | 그림에 **그대로 보인다** | 그림에 **안 보이는 기작**을 끌어왔다 |
+| Sentence | 「−30° 에서는 빗살이 보이고 0° 에서는 안 보인다」 [At −30° the comb is visible and at 0° it is not] | 「회절이 빗살을 묻는다」 [Diffraction buries the comb] |
+| | 「③④ 는 10~11 dB, ①②⑤ 는 38~53 dB」 [③④ are 10~11 dB, ①②⑤ are 38~53 dB] | 「회절이 천장을 씌운다」 [Diffraction imposes a ceiling] |
+| Basis | **Visible as is** in the figure | Brings in a **mechanism not visible** in the figure |
 
-⛔**기작·인과를 슬라이드 얼굴에 쓰지 않는다.** 「X 가 Y 를 묻는다/덮는다/일으킨다」,
-「이건 A 가 아니라 B 다」 는 전부 판정이다. **발표자 노트로 내린다** — 말로 하는 건 괜찮다.
-슬라이드에 박히면 근거 없이 남는다.
+⛔**Do not write mechanism or causation on the slide face.** 「X buries/covers/causes Y」,
+「this is not A but B」 are all judgments. **Move them down to the presenter notes** — saying them out loud is fine.
+Once stamped on a slide, they remain there without their basis.
 
-### 2-2. 그림이 먼저다
+### 2-2. The figure comes first
 
-그림은 **현상**을 보여준다 — STFT, 에너지 분포, 변조 스펙트럼. 사용자가 원래 쓰던 방식이다.
-파생 판정 그림(막대·배지·판정선)은 관찰 그림을 **대체하지 않는다.**
+A figure shows the **phenomenon** — STFT, energy distribution, modulation spectrum. This is the way the user originally worked.
+Derived judgment figures (bars, badges, judgment lines) **do not replace** observation figures.
 
-⛔판정 배지·네모 상자를 그림 안에 넣지 않는다(2026-09-01 지시). 그림은 곡선으로 말하고
-판정은 발표자가 말한다.
+⛔Do not put judgment badges or square boxes inside the figure (2026-09-01 instruction). The figure speaks through curves,
+and the presenter speaks the judgment.
 
-### 2-3. 말할 수 있는 것 / 없는 것을 갈라 적는다
+### 2-3. Write down separately what can and cannot be said
 
-숫자마다 **검증된 범위**를 명시한다. 우리 표준 문구:
+For every number, state the **verified scope**. Our standard wording:
 
-> 검증: 팔 사이 **순서**. 미검증: **절대 미터** — 실측 대조 0 건.
+> 검증: 팔 사이 **순서**. 미검증: **절대 미터** — 실측 대조 0 건. [Verified: **order** between arms. Unverified: **absolute meters** — 0 comparisons against real measurement.]
 
-축이 물리량이 아니면 축 이름에 적는다 — 예: `per-sample SNR (a sweep, not a range)`.
+If an axis is not a physical quantity, write that in the axis name — e.g. `per-sample SNR (a sweep, not a range)`.
 
 ---
 
-## 3. 3 층 — 언제 어디까지 하나
+## 3. 3 tiers — when, and how far
 
-비용이 다르므로 층을 갈라 쓴다. **1 층은 항상**, 2·3 층은 무게에 따라.
+The costs differ, so the checks are split into tiers. **Tier 1 always**, tiers 2 and 3 depending on weight.
 
-| 층 | 언제 | 무엇 | 비용 |
+| Tier | When | What | Cost |
 |---|---|---|---|
-| **1. 자문** | **모든 주장. 예외 없다** | ⓐⓑ 두 질문을 스스로 던진다. 냄새 목록 훑는다 | 0 |
-| **2. 손잡이 흔들기** | 숫자가 **머리기사**가 될 때 — 슬라이드 얼굴·레포트 결과·사용자 보고 | §1-2 대로 자유 파라미터를 흔들고 §1-3 극단 검산 | 분 단위 |
-| **3. 적대 검증** | **발표되거나 레포트에 박히는 것** | 다중 에이전트: ⓐⓑ 두 축 공격 → **독립 재계산으로 재검증** → 관찰 위주 재작성 | 시간 단위 |
+| **1. Self-questioning** | **Every claim. No exceptions** | Ask yourself the two questions ⓐⓑ. Scan the smell list | 0 |
+| **2. Shaking the knobs** | When a number becomes a **headline** — slide face, report result, reporting to the user | Shake the free parameters per §1-2 and run the §1-3 extreme-case checks | minutes |
+| **3. Adversarial verification** | **Anything that gets presented or stamped into a report** | Multi-agent: attack along both axes ⓐⓑ → **re-verify by independent recomputation** → rewrite observation-first | hours |
 
-⭐**3 층의 핵심은 «독립 재검증»이다.** 공격에서 올라온 지적을 그대로 믿지 않는다 —
-다른 에이전트가 **숫자를 직접 다시 돌려** 확인한 것만 반영한다. 헛짚음도 비용이다.
-그래서 공격 프롬프트에 **「문제 없음도 정상 답」** 을 반드시 명시한다.
-
----
-
-## 4. 보고 규약
-
-검증 결과를 사용자에게 낼 때:
-
-- **확인된 것과 헛짚은 것을 갈라서** 보고한다. 헛짚었으면 헛짚었다고 그대로 말한다
-- 문제가 적으면 **적다고 분명히** 말한다 — 안심시키려 부풀리지도, 겁주려 부풀리지도 않는다
-- 내가 만든 것이 틀렸으면 **틀렸다고 먼저** 말한다. 변호하지 않는다
+⭐**The core of tier 3 is «independent re-verification».** Do not trust findings raised by the attack as is —
+reflect only what another agent has confirmed by **re-running the numbers directly**. False alarms are also a cost.
+So the attack prompt must explicitly state **「문제 없음도 정상 답」** ["no problem" is also a normal answer].
 
 ---
 
-## 5. 이 규약이 잡았어야 했던 사고들
+## 4. Reporting rules
 
-| 사고 | 축 | 냄새 | 흔들었으면 |
+When giving verification results to the user:
+
+- Report **what was confirmed and what were false alarms separately**. If it was a false alarm, say plainly that it was a false alarm
+- If there are few problems, say **clearly that there are few** — do not inflate to reassure, nor inflate to alarm
+- If something I made was wrong, say **that it was wrong first**. Do not defend it
+
+---
+
+## 5. Incidents this rule should have caught
+
+| Incident | Axis | Smell | If we had shaken |
 |---|---|---|---|
-| 13 장 «회절 천장» (0901) | ⓐ+ⓑ | 포화 · 끊긴 훑기 | 훑기를 +60 까지 늘렸으면 즉시 |
-| PRF 사다리 «θ_half ∝ 1/k» | ⓐ | 탐색 바닥 | 폭이 전부 2 자세에 핀 박힌 걸 봤으면 |
-| dB(peak÷floor) 를 비트 세기로 | ⓐ | 퇴화한 분모 | 자세 누락 임펄스열을 넣어 봤으면 |
-| el 0 을 «점진적»으로 서술 | ⓐ | — | 기록이 복소 상수인 걸 봤으면 |
-| 「우리 커널이 맞고 PathSolver 가 틀렸다」 | ⓑ | — | 둘 다 근사임을 인정했으면 |
+| Slide 13 «diffraction ceiling» (0901) | ⓐ+ⓑ | Saturation · truncated sweep | Immediately, had we extended the sweep to +60 |
+| PRF ladder «θ_half ∝ 1/k» | ⓐ | Search floor | Had we seen that the widths were all pinned at 2 poses |
+| Reading dB(peak÷floor) as beat strength | ⓐ | Degenerate denominator | Had we tried feeding an impulse train with missing poses |
+| Describing el 0 as «gradual» | ⓐ | — | Had we seen that the record is a complex constant |
+| 「우리 커널이 맞고 PathSolver 가 틀렸다」 [Our kernel is right and PathSolver is wrong] | ⓑ | — | Had we acknowledged that both are approximations |
 
 ---
 
-## 관련 문서
+## Related documents
 
-- [`EQUIVALENCE_GATES.md`](EQUIVALENCE_GATES.md) — 「같음」을 무엇으로 판정하나
-- [`REPORTS_ADVERSARIAL_0810.md`](REPORTS_ADVERSARIAL_0810.md) — 레포트 전권 적대 검증 선례
-- [`DECK_FACTS.md`](DECK_FACTS.md) — 덱이 인용하는 숫자의 원장 대조표
+- [`EQUIVALENCE_GATES.md`](EQUIVALENCE_GATES.md) — what we use to judge 「sameness」
+- [`REPORTS_ADVERSARIAL_0810.md`](REPORTS_ADVERSARIAL_0810.md) — precedent of adversarial verification across all report volumes
+- [`DECK_FACTS.md`](DECK_FACTS.md) — ledger cross-check table for the numbers the deck quotes
