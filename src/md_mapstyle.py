@@ -55,7 +55,7 @@ YLIM_FTIP = 1.9           # 도플러축을 f_tip 의 이 배까지
 # --------------------------------------------------------------------------- #
 #  ⭐ 같은 세 팔이 8-2(모노)와 8-5(바이스태틱)의 같은 표에 나오므로, 이름이 갈리면 같은
 #     수가 다른 물건처럼 읽힌다. 그림 라벨(`benchmark/build_three_engine_fig.py` ·
-#     `build_flash_zoom.py` · `build_engine_concept_fig.py`)과 **같은 문자열**이다.
+#     `build_flash_zoom.py` · `build_engine_concept_fig.py`, archived 2026-09)과 **같은 문자열**이다.
 #  ⚠ 그림 텍스트는 영어이므로 라벨도 영어로 둔다(집 규약).
 ARM_SIONNA = "Sionna PathSolver"
 ARM_SBR = "Ours (SBR+PO, 기본)"
