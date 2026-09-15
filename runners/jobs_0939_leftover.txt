@@ -1,0 +1,21 @@
+# 0939 leftovers (2026-09-15) — lines not yet launched when 0937 and 0935 were drained
+#
+# User request: run the directional antenna queue (0938) first. Both supervisors got ONE drain signal:
+# they stop launching and wait for running workers (none killed). Final launch indices from their logs:
+#   jobs_0937_canyon.txt  launched 6/8  -> lines 7-8 below
+#   jobs_0935_detmode.txt launched 1/8  -> lines 2-8 below
+# A detached watcher starts this file once 0938 reports its queue fully launched (30/30), so the two
+# supervisors share the per-card caps without an idle gap.
+
+# -- from jobs_0937_canyon.txt (lines 7-8) --
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --spp 4000000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --env sionna:simple_street_canyon --shard 1 --nshards 2
+
+# -- from jobs_0935_detmode.txt (lines 2-8) --
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 0 --nshards 2
+--engine sionna --spp 400000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 1 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 0 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --shard 1 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 0 --nshards 2
+--engine sionna --spp 100000000 --n-poses 8192 --max-depth 1 --range-m 15 --sw R0D0E0F1 --els=-60 --solver-deterministic --shard 1 --nshards 2
