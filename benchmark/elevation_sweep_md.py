@@ -1062,6 +1062,13 @@ def run(a) -> None:
                         _part[_Oa == _v] = -2                  # 매핑에 없는 id
                         _unk += int((_Oa == _v).sum())
                         continue
+                    #: ⛔`--no-inmem` 은 부품 이름에 **자세 짝·홀 꼬리표**를 붙인다
+                    #  (:964-965 `f"{spec.key}_{g}_{i%2}"`). 떼지 않으면 같은 부위가
+                    #  `part_names` 에 두 칸으로 갈린다(prop_0 · prop_1) — 부위별로 세는
+                    #  모든 셈이 반으로 쪼개진다. 인메모리 갈래는 꼬리가 없으니 안 건드린다.
+                    #  ⚠환경(`env_ground`)과 남의 씬의 `no-name-1` 은 **붙임표**라 안 걸린다.
+                    if mi_meshes is None and (_nm.endswith("_0") or _nm.endswith("_1")):
+                        _nm = _nm[:-2]
                     if _nm not in _part_names:
                         _part_names.append(_nm)
                     _part[_Oa == _v] = _part_names.index(_nm)
