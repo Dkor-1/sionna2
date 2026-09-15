@@ -29,7 +29,9 @@ worker_supervisor.py — GPU 사정에 맞춰 워커 수를 **실시간으로** 
      전역 상한은 이제 **목표 배분의 예산**으로만 쓰고, 투입 판정은 카드별 목표로 한다.
      (진짜 안전선인 RAM·CPU 는 그대로 신규 투입을 막는다.)
 
-⛔이 파일은 **감독자 하나만** 돌아야 한다(큐를 혼자 읽어 나눠 준다 — 중복 배정이 없다).
+⛔One supervisor per job file (it reads its queue alone, so two supervisors on the same file launch the same
+jobs twice). Supervisors on different job files may run together: running_by_gpu() counts every worker on
+each card, so per-card targets and HARD_TOTAL are shared (see docs/QUEUE_RUNBOOK.md §1, updated 2026-09-15).
 
 실행: setsid nohup python runners/worker_supervisor.py <jobs.txt> [로그] &
 """
