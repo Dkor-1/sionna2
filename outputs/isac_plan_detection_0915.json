@@ -1,0 +1,2887 @@
+{
+  "_meta": {
+    "generator": "benchmark/isac_plan_detection_0915.py",
+    "command": "CUDA_VISIBLE_DEVICES=\"\" /workspace/.venvs/py312/bin/python benchmark/isac_plan_detection_0915.py",
+    "argv": [
+      "--core",
+      "15"
+    ],
+    "started_utc": "2026-09-15T12:41:53+00:00",
+    "finished_utc": "2026-09-15T12:43:03+00:00",
+    "status": "complete",
+    "git_head": "e2a828b7ee62c82f7293b73e1c250926b00cb4c5",
+    "packages": {
+      "python": "3.12.3",
+      "numpy": "2.5.2",
+      "scipy": "1.18.0",
+      "torch": "2.11.0+cu128",
+      "sionna": "2.1.0"
+    },
+    "cpu": {
+      "core": 15,
+      "affinity_after": [
+        15
+      ],
+      "torch_threads": 1,
+      "cuda_visible_devices": "",
+      "cuda_available": false
+    },
+    "scope": "Simulation / code / bookkeeping checks of the current detection code and a text inventory of tracking components. Synthetic signals only; no comparison against RF measurements.",
+    "seeds": {
+      "f1f2_reference_qpsk": 20260915,
+      "f1_montecarlo_torch": 7,
+      "f3_reference_qpsk": 11,
+      "f4_background_map": 11,
+      "f4_l1_noise_torch": 1,
+      "f5_signals": 12,
+      "f14_probe_seeds": [
+        915,
+        1,
+        2,
+        3
+      ]
+    },
+    "config": {
+      "f1f2": {
+        "Lf": 256,
+        "M": 32,
+        "fs_hz": 256000.0,
+        "delay_samples": 9,
+        "doppler_bin": 6,
+        "echo_amplitude": 0.02,
+        "meta_rb_values_m": [
+          200.0,
+          300.0
+        ]
+      },
+      "f1": {
+        "K": 192,
+        "batch": 16,
+        "noise_sigma": 1.0,
+        "pfa": 0.001,
+        "n_elements": 4,
+        "true_az_deg": 30.0,
+        "wrong_az_deg": -40.0,
+        "el_deg": 0.0
+      },
+      "f2": {
+        "fs_list_hz": [
+          20000000.0,
+          30720000.0,
+          122880000.0
+        ],
+        "kernel_delays_samples": [
+          5,
+          20
+        ],
+        "impulse_length": 256,
+        "impulse_index": 32
+      },
+      "f3": {
+        "Lf": 256,
+        "M": 56,
+        "delay_samples": 9,
+        "doppler_bins": [
+          0.0,
+          0.05,
+          0.1,
+          0.25,
+          0.5,
+          1.0,
+          1.5,
+          2.0,
+          3.0
+        ],
+        "sensitivity_configs": [
+          {
+            "config_id": "Lf128_M64_taps16_ridge0",
+            "Lf": 128,
+            "M": 64,
+            "n_taps": 16,
+            "ridge_rel": 0.0,
+            "delay_samples": 7
+          },
+          {
+            "config_id": "Lf256_M56_taps40_ridge0",
+            "Lf": 256,
+            "M": 56,
+            "n_taps": 40,
+            "ridge_rel": 0.0,
+            "delay_samples": 9
+          }
+        ],
+        "speed_bins": [
+          0.1,
+          1.0
+        ]
+      },
+      "f4": {
+        "map_doppler_rows": 64,
+        "map_range_bins": 32,
+        "strong_cell_db": [
+          60,
+          65,
+          70,
+          75,
+          80,
+          85,
+          90,
+          95,
+          100,
+          105,
+          110
+        ],
+        "strong_cell_zero_doppler": {
+          "row": 32,
+          "col": 2
+        },
+        "strong_cell_off_ridge": {
+          "row": 10,
+          "col": 2
+        },
+        "excluded_rows_half_width": 2,
+        "pfa": 0.0001,
+        "l1_mode": "L1",
+        "l1_n_rx": [
+          1,
+          4
+        ]
+      },
+      "f5": {
+        "Lf": 256,
+        "M": 32,
+        "fs_hz": 256000.0,
+        "n_range": 32,
+        "pfa": 0.0001,
+        "noise_sigma": 1.0,
+        "targets": [
+          {
+            "amplitude": 3.0,
+            "delay_samples": 5,
+            "doppler_bin": 6
+          },
+          {
+            "amplitude": 1.5,
+            "delay_samples": 14,
+            "doppler_bin": -9
+          }
+        ],
+        "peak_batch_guard_zd": 2
+      },
+      "f14": {
+        "delay_samples": 7,
+        "doppler_bin": 5,
+        "n_range_max": 32,
+        "configs": [
+          [
+            915,
+            32,
+            128
+          ],
+          [
+            1,
+            32,
+            128
+          ],
+          [
+            2,
+            32,
+            128
+          ],
+          [
+            3,
+            32,
+            128
+          ],
+          [
+            915,
+            16,
+            128
+          ],
+          [
+            915,
+            64,
+            128
+          ],
+          [
+            915,
+            32,
+            512
+          ],
+          [
+            915,
+            128,
+            1024
+          ]
+        ],
+        "pyapril_scenario_std": "nr",
+        "pyapril_r_max": 64,
+        "pyapril_fd_max_hz": 200.0
+      },
+      "inventory": {
+        "roots": [
+          "src",
+          "benchmark"
+        ],
+        "file_glob": "*.py",
+        "exclude_glob": "*isac*0915*",
+        "max_examples": 3
+      }
+    },
+    "definitions": {
+      "pd": "gpu_montecarlo hit rate: CFAR-masked global maximum within +-2 cells of the noiseless truth cell.",
+      "pfa_emp": "gpu_montecarlo target-free false detections divided by cells outside the zero-Doppler +-2 rows.",
+      "physical_combiner_loss_db": "10log10(|w^H a|^2/(|w|^2|a|^2)), w = ULA steering at the wrong azimuth, a = ULA response at the true azimuth; relative to ideal steering.",
+      "snr50_n1_minus_n4_db": "curves['1'].snr50 - curves['4'].snr50 per mode in outputs/detection_rx_sweep.json.",
+      "ideal_gain_db": "10log10(4), coherent gain of 4 elements with independent noise.",
+      "extra_lag_samples": "argmax|fftconvolve(impulse, channel_taps kernel)[:L]| - impulse index - requested delay.",
+      "axis_shift_m_when_meta_rb_changes": "max |Rb_axis(meta Rb B) - Rb_axis(meta Rb A)| for the same IQ.",
+      "retained_db_measured": "10log10(sum|ECA(s)|^2 / sum|s|^2) for a noiseless delayed echo with nu Doppler bins.",
+      "retained_db_analytic": "10log10(1 - |mean_n exp(j2pi nu n/N)|^2); null when the argument is 0 (nu = 0).",
+      "doppler_bin": "cycles of Doppler phase over the whole CPI (= Doppler FFT bins).",
+      "false_cells": "CFAR detections in rows farther than 2 rows from the strong cell's row.",
+      "float32_input_float64_sum": "cfar_batch on the float32 map cast to float64 before squaring and summing.",
+      "max_cell_over_median_db": "10log10(max cell power / median cell power) of the float32 L1 map.",
+      "mask_mismatches": "number of cells where float32 and float64 cfar_batch masks differ (summed over n_rx rows).",
+      "f14_loss_db": "20log10(|production map at truth cell| / |per-frame-reference map at truth cell|).",
+      "repeated_frame_control_db": "Same ratio when all frames repeat frame 0 (the case every tiled builder is in).",
+      "hits_in_src_benchmark": "number of matching lines in *.py under src/ and benchmark/ excluding *isac*0915*.",
+      "hits_in_files_mentioning_cfar": "subset of those hits in files that contain 'cfar' anywhere.",
+      "cfar_connected_components_8conn": "scipy.ndimage.label of the CFAR mask with a 3x3 structuring element.",
+      "loss_plus_ten_log10_ML_db": "f14 loss_db + 10log10(M*L); near 0 when the loss equals the full coherent gain.",
+      "production_peak_to_median_db": "20log10(max / median) of the production magnitude map in the f14 probe.",
+      "peak_at_truth": "ours() Doppler-guarded argmax equals (zero-Doppler row + dopp_bin_true, r_bin_true).",
+      "named_definitions_matching": "function/class names matching grep_pattern (AST).",
+      "component_id": "comma-free row identifier for condition selectors.",
+      "hits_spec_terms_only": "matching lines for spec_grep_pattern (spec terms only), same file set.",
+      "implementation_defs": "function/class definitions (AST) whose name matches spec_grep_pattern.",
+      "library_calls_or_imports": "AST call nodes whose function name (or base.name) is in library_call_names, plus import statements of library_modules or of those names.",
+      "library_calls_or_imports_in_functions_calling_cfar": "subset whose innermost enclosing function (or the module body) also calls a function whose name contains 'cfar'.",
+      "library_calls_or_imports_in_files_calling_cfar": "subset in files with any call to a name containing 'cfar'.",
+      "implementation_defs_or_library_calls_in_files_calling_cfar": "implementation_defs in files calling a cfar function plus library_calls_or_imports_in_files_calling_cfar; 0 means no named definition or listed library call of that component sits in a file on the CFAR detection path.",
+      "dB_ratio_sign": "physical_combiner_loss_db and f14 loss_db are 10log10 / 20log10 ratios and are negative when power is lost; do not add a second minus sign when writing 'loss'.",
+      "mask_mismatches_at_production_pfa": "mask_mismatches with pfa = the L1 production pfa_nominal."
+    },
+    "assumptions": [
+      {
+        "id": "synthetic_cpi_f1f2",
+        "flagged": true,
+        "text": "Findings 1-2 use an analytic integer-delay echo on a tiled QPSK frame, not a Sionna kernel echo or a report12 waveform."
+      },
+      {
+        "id": "dpi_amplitude",
+        "flagged": true,
+        "text": "Precomputed adds the module DPI_AMP direct-path term (value recorded in f4_cfar.report12_l1_check.dpi_amplitude; env SIONNA2_DPI_AMP unset=True)."
+      },
+      {
+        "id": "l1_check_echo",
+        "flagged": true,
+        "text": "report12 L1 check uses analytic_echo instead of the Sionna kernel echo, geometry X410Scenario defaults, velocity and the echo amplitude scale read from outputs/detection_rx_sweep.json meta (the velocity key and the analytic point-echo amplitude scale key), one noise draw, n_rx 1 and 4, CFAR pfa from CONFIG f4 and, separately, the production pfa_nominal of the L1 mode."
+      },
+      {
+        "id": "speed_convention",
+        "flagged": true,
+        "text": "Radial speed per Doppler bin uses the monostatic-equivalent v = f_d * wavelength / 2; bistatic Doppler depends on geometry."
+      },
+      {
+        "id": "f3_sizes",
+        "flagged": true,
+        "text": "ECA low-Doppler rows use a short synthetic frame (Lf in f3_eca.sizes) instead of the production frames (f3_eca.production_frame_rows, read from outputs/detection_rx_sweep.json); taps and ridge are the production values (N_TAPS and ridge_rel read from code)."
+      },
+      {
+        "id": "f4_map",
+        "flagged": true,
+        "text": "Float32 CFAR rows use a 64x32 unit-mean background with one strong cell; real maps with extended ridges were not modelled."
+      },
+      {
+        "id": "inventory_regex",
+        "flagged": true,
+        "text": "Tracking inventory is a regex/AST text scan; a grep hit is a mention, not an implementation, and a miss outside src/ and benchmark/ is not asserted. grep_pattern is wider than the spec term list (spelling variants and near terms such as aoa, bare gating, ndimage.label, track initiation, mota); spec_grep_pattern holds the spec terms only. Library call names and modules per row are a chosen list, not an exhaustive one."
+      }
+    ],
+    "wall_time_s": 70.44,
+    "source_hashes": [
+      {
+        "path": "benchmark/scenarios.py",
+        "sha256": "64c390d5cff28433bb866bb26da3a7eb7cadba8f9f510d56154bc9ef2b776b7c"
+      },
+      {
+        "path": "benchmark/verify_ghost_impact.py",
+        "sha256": "1d61aa40ea268b98f446c5ef0204796b6f171cfd7866572bcf1fb434d7fc4602"
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "sha256": "836b5b86f6ee564fcb26c2b49d1929193d692820519a4b05c8615b3550b379c3"
+      },
+      {
+        "path": "benchmark/verify_pyapril.py",
+        "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+      },
+      {
+        "path": "outputs/detection_rx_sweep.json",
+        "sha256": "f78ddfe8c9952e63b9c45445ebbdffd74387d77a29655d76ecbd3bc753d542eb"
+      },
+      {
+        "path": "outputs/verify_pyapril.json",
+        "sha256": "8590625dd0f9df3cb50183118be1c05251cd63f522c264bd01815957149f96d4"
+      },
+      {
+        "path": "src/detection_gpu.py",
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      },
+      {
+        "path": "src/experiment_detection.py",
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      {
+        "path": "src/experiment_freespace_range.py",
+        "sha256": "58d0c59569fd6acd8869fa0e4893f5f9041e295a9808a221faa03f96855da2c2"
+      },
+      {
+        "path": "src/experiment_x410.py",
+        "sha256": "29496438f8510e097d9fbb470b8a83eb4c952f1ede34e7c0c4ba0c6036a06fc6"
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "sha256": "1bc658f50ec420973c647bb68c9057381b7cc7dcd707e93eb989cbe91cb3c360"
+      },
+      {
+        "path": "src/make_r6_frames.py",
+        "sha256": "e620f266aba7c0afdf865e8eda6f0c7e3a82ae04e7a3d894c170fc50151b6235"
+      },
+      {
+        "path": "src/microdoppler_proc.py",
+        "sha256": "4cf4f9c8b0d3e78a2d6aeaee3ab7acc3f6aa5e183f07b06f72cd1837dd733bba"
+      },
+      {
+        "path": "src/passive_process.py",
+        "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+      },
+      {
+        "path": "src/report14_stap.py",
+        "sha256": "73847b8423fc4bc07afec3944fddb205ef085c52bd1ab958cd0f9b550bc1da85"
+      },
+      {
+        "path": "src/sionna_chain.py",
+        "sha256": "334a3ebba2db0777a989dbc3d10dc09db28fd77012310386e1d030bba4bb887d"
+      },
+      {
+        "path": "src/waveforms.py",
+        "sha256": "518fc6d9a70ea4c20705907f179e22a9b54ad18fb3490ea0a45faedd4afa3a21"
+      }
+    ],
+    "quote_checks": {
+      "n_quotes": 41,
+      "n_failed": 0
+    },
+    "repo_c0_equals_si_value": true,
+    "source_hashes_note": "source_hashes lists files whose content a value depends on (quoted, executed or read ledgers); the full inventory scan is covered by tracking_inventory.scanned_files_digest_sha256.",
+    "quotes_failed": []
+  },
+  "sources": [
+    {
+      "id": "si_speed_of_light",
+      "value": 299792458.0,
+      "unit": "m/s",
+      "url": "https://www.bipm.org/en/publications/si-brochure",
+      "document": "BIPM, The International System of Units (SI Brochure), 9th edition (2019)",
+      "locator": "Section 2.2 'Definition of the SI', Table 1 (seven defining constants), speed of light in vacuum",
+      "note": "Exact defining constant. Used only to check that the repo constant C0 used in all calculations equals it; no calculation takes the value from this table."
+    }
+  ],
+  "f1_steering": {
+    "variants": [
+      {
+        "name": "steer_true_az",
+        "steering": "ideal ULA steering at the true azimuth 30.0 deg",
+        "pd": 0.55208333,
+        "pfa_emp": 0.0011689815,
+        "n_trials": 192
+      },
+      {
+        "name": "steer_wrong_az",
+        "steering": "ideal ULA steering at a wrong azimuth -40.0 deg",
+        "pd": 0.55208333,
+        "pfa_emp": 0.0011689815,
+        "n_trials": 192
+      },
+      {
+        "name": "all_zeros",
+        "steering": "all-zero vector of length 4",
+        "pd": 0.55208333,
+        "pfa_emp": 0.0011689815,
+        "n_trials": 192
+      },
+      {
+        "name": "alternating_sign",
+        "steering": "vector [+1,-1,+1,-1]",
+        "pd": 0.55208333,
+        "pfa_emp": 0.0011689815,
+        "n_trials": 192
+      }
+    ],
+    "all_identical": true,
+    "n_trials": 192,
+    "noise_sigma": 1.0,
+    "pfa_nominal": 0.001,
+    "monte_carlo_seed": 7,
+    "synthetic_cpi": {
+      "Lf": 256,
+      "M": 32,
+      "fs_hz": 256000.0,
+      "delay_samples": 9,
+      "doppler_bin": 6,
+      "echo_amplitude": 0.02,
+      "meta_rb_values_m": [
+        200.0,
+        300.0
+      ],
+      "reference_seed": 20260915
+    },
+    "physical_combiner_loss_db": -13.9616,
+    "physical_combiner_config": {
+      "n_elements": 4,
+      "element_spacing": "lambda/2 ULA (experiment_x410.X410Scenario)",
+      "true_az_deg": 30.0,
+      "steer_az_deg": -40.0,
+      "el_deg": 0.0,
+      "carrier_hz": 3500000000.0,
+      "loss_db": -13.9616
+    },
+    "sv_name_uses_in_gpu_montecarlo": [
+      {
+        "line": 269,
+        "inside_len_call": true
+      }
+    ],
+    "sv_used_only_via_len": true,
+    "gpu_montecarlo_arguments": [
+      "pre",
+      "sv",
+      "sigma",
+      "K",
+      "seed",
+      "pfa",
+      "batch"
+    ],
+    "code_quotes": {
+      "only_len_sv": {
+        "path": "src/experiment_detection.py",
+        "line": 269,
+        "quote": "N = len(sv); sqrtN = float(np.sqrt(N))",
+        "verified": true,
+        "lines_containing_quote": [
+          269
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      "sqrt_n_line": {
+        "path": "src/experiment_detection.py",
+        "line": 284,
+        "quote": "surv = sqrtN * echo[None, :] + dpi[None, :] + _noise(b)",
+        "verified": true,
+        "lines_containing_quote": [
+          284
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      "hit_test_near_truth": {
+        "path": "src/experiment_detection.py",
+        "line": 288,
+        "quote": "hit = found & (torch.abs(di - pre.di_true) <= tol_d)",
+        "verified": true,
+        "lines_containing_quote": [
+          288
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      }
+    },
+    "snr50_ledger": "outputs/detection_rx_sweep.json",
+    "ideal_gain_db": 6.0206,
+    "snr50_gain_rows": [
+      {
+        "mode": "W1",
+        "snr50_n1_minus_n4_db": 6.443,
+        "minus_ideal_gain_db": 0.4224,
+        "exceeds_ideal_gain": true
+      },
+      {
+        "mode": "W2",
+        "snr50_n1_minus_n4_db": 6.3277,
+        "minus_ideal_gain_db": 0.3071,
+        "exceeds_ideal_gain": true
+      },
+      {
+        "mode": "W3",
+        "snr50_n1_minus_n4_db": 6.3653,
+        "minus_ideal_gain_db": 0.3447,
+        "exceeds_ideal_gain": true
+      },
+      {
+        "mode": "L1",
+        "snr50_n1_minus_n4_db": 6.0109,
+        "minus_ideal_gain_db": -0.0097,
+        "exceeds_ideal_gain": false
+      },
+      {
+        "mode": "L2",
+        "snr50_n1_minus_n4_db": 6.0201,
+        "minus_ideal_gain_db": -0.0005,
+        "exceeds_ideal_gain": false
+      },
+      {
+        "mode": "L3",
+        "snr50_n1_minus_n4_db": 5.9962,
+        "minus_ideal_gain_db": -0.0244,
+        "exceeds_ideal_gain": false
+      },
+      {
+        "mode": "G1",
+        "snr50_n1_minus_n4_db": 6.3582,
+        "minus_ideal_gain_db": 0.3376,
+        "exceeds_ideal_gain": true
+      },
+      {
+        "mode": "G2",
+        "snr50_n1_minus_n4_db": 5.9482,
+        "minus_ideal_gain_db": -0.0724,
+        "exceeds_ideal_gain": false
+      },
+      {
+        "mode": "G3",
+        "snr50_n1_minus_n4_db": 5.9145,
+        "minus_ideal_gain_db": -0.1061,
+        "exceeds_ideal_gain": false
+      }
+    ],
+    "n_modes_exceeding_ideal_gain": 4,
+    "section_wall_s": 0.24
+  },
+  "f2_range_axis": {
+    "l_min_rows": [
+      {
+        "fs_hz": 20000000.0,
+        "l_min": -6,
+        "l_max": 26,
+        "max_delay_spread_s": 1e-06
+      },
+      {
+        "fs_hz": 30720000.0,
+        "l_min": -6,
+        "l_max": 37,
+        "max_delay_spread_s": 1e-06
+      },
+      {
+        "fs_hz": 122880000.0,
+        "l_min": -6,
+        "l_max": 129,
+        "max_delay_spread_s": 1e-06
+      }
+    ],
+    "channel_taps_default_max_delay_spread_s": 1e-06,
+    "kernel_lag_rows": [
+      {
+        "fs_hz": 20000000.0,
+        "delay_samples": 5,
+        "output_peak_index": 43,
+        "extra_lag_samples": 6,
+        "minus_l_min": 6
+      },
+      {
+        "fs_hz": 20000000.0,
+        "delay_samples": 20,
+        "output_peak_index": 58,
+        "extra_lag_samples": 6,
+        "minus_l_min": 6
+      },
+      {
+        "fs_hz": 30720000.0,
+        "delay_samples": 5,
+        "output_peak_index": 43,
+        "extra_lag_samples": 6,
+        "minus_l_min": 6
+      },
+      {
+        "fs_hz": 30720000.0,
+        "delay_samples": 20,
+        "output_peak_index": 58,
+        "extra_lag_samples": 6,
+        "minus_l_min": 6
+      },
+      {
+        "fs_hz": 122880000.0,
+        "delay_samples": 5,
+        "output_peak_index": 43,
+        "extra_lag_samples": 6,
+        "minus_l_min": 6
+      },
+      {
+        "fs_hz": 122880000.0,
+        "delay_samples": 20,
+        "output_peak_index": 58,
+        "extra_lag_samples": 6,
+        "minus_l_min": 6
+      }
+    ],
+    "measured_extra_lag_samples": 6,
+    "measured_extra_lag_all_rows_equal": true,
+    "meta_rb_values_m": [
+      200.0,
+      300.0
+    ],
+    "rd_identical": true,
+    "truth_cell_A": [
+      22,
+      9
+    ],
+    "truth_cell_B": [
+      22,
+      9
+    ],
+    "axis_at_truth_cell_A_m": 200.0,
+    "axis_at_truth_cell_B_m": 300.0,
+    "axis_shift_m_when_meta_rb_changes": 100.0,
+    "native_axis_at_truth_cell_m": 10539.5786,
+    "true_excess_path_m": 10539.5786,
+    "l_min_name_lines_in_build_echo_sionna": [
+      155
+    ],
+    "l_min_used_after_assignment": false,
+    "code_quotes": {
+      "axis_anchor": {
+        "path": "src/experiment_detection.py",
+        "line": 222,
+        "quote": "self.Rb = (np.arange(self.n_range) - self.ri_true) * _dr + float(vel_meta[\"Rb\"])",
+        "verified": true,
+        "lines_containing_quote": [
+          222
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      "l_min_returned": {
+        "path": "src/experiment_detection.py",
+        "line": 155,
+        "quote": "h, l_min, l_max = sc.channel_taps([1.0], [tau], bandwidth=fs, n_time=1)",
+        "verified": true,
+        "lines_containing_quote": [
+          155
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      "convolution_truncation": {
+        "path": "src/experiment_detection.py",
+        "line": 157,
+        "quote": "y_del = fftconvolve(ref_cpi, kernel)[:Ns]",
+        "verified": true,
+        "lines_containing_quote": [
+          157
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      "native_axis": {
+        "path": "src/passive_process.py",
+        "line": 146,
+        "quote": "Rb = np.arange(n_range) * C0 / fs",
+        "verified": true,
+        "lines_containing_quote": [
+          146
+        ],
+        "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+      }
+    },
+    "section_wall_s": 1.07
+  },
+  "f3_eca": {
+    "rows": [
+      {
+        "doppler_bin": 0.0,
+        "retained_db_measured": -32.0115,
+        "retained_db_analytic": null
+      },
+      {
+        "doppler_bin": 0.05,
+        "retained_db_measured": -20.5496,
+        "retained_db_analytic": -20.8631
+      },
+      {
+        "doppler_bin": 0.1,
+        "retained_db_measured": -14.8101,
+        "retained_db_analytic": -14.8853
+      },
+      {
+        "doppler_bin": 0.25,
+        "retained_db_measured": -7.219,
+        "retained_db_analytic": -7.2255
+      },
+      {
+        "doppler_bin": 0.5,
+        "retained_db_measured": -2.2589,
+        "retained_db_analytic": -2.2569
+      },
+      {
+        "doppler_bin": 1.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "doppler_bin": 1.5,
+        "retained_db_measured": -0.2003,
+        "retained_db_analytic": -0.2001
+      },
+      {
+        "doppler_bin": 2.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "doppler_bin": 3.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      }
+    ],
+    "sizes": {
+      "Lf": 256,
+      "M": 56,
+      "taps": 40,
+      "ridge_rel": 0.0001,
+      "delay_samples": 9,
+      "reference": "QPSK frame tiled M times",
+      "seed": 11,
+      "taps_source": {
+        "path": "src/experiment_detection.py",
+        "line": 104,
+        "quote": "N_TAPS = 40",
+        "verified": true,
+        "lines_containing_quote": [
+          104
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      "ridge_source": {
+        "path": "src/experiment_detection.py",
+        "line": 203,
+        "quote": "ECACanceller(ref_cpi, n_taps=N_TAPS, ridge_rel=1e-4)",
+        "verified": true,
+        "lines_containing_quote": [
+          203
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      }
+    },
+    "sensitivity_rows": [
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.0,
+        "retained_db_measured": -30.6743,
+        "retained_db_analytic": null
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.05,
+        "retained_db_measured": -20.4418,
+        "retained_db_analytic": -20.8631
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.1,
+        "retained_db_measured": -14.7831,
+        "retained_db_analytic": -14.8853
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.25,
+        "retained_db_measured": -7.2165,
+        "retained_db_analytic": -7.2255
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.5,
+        "retained_db_measured": -2.2595,
+        "retained_db_analytic": -2.2569
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 1.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 1.5,
+        "retained_db_measured": -0.2003,
+        "retained_db_analytic": -0.2001
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 2.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "config_id": "Lf128_M64_taps16_ridge0",
+        "Lf": 128,
+        "M": 64,
+        "n_taps": 16,
+        "ridge_rel": 0.0,
+        "doppler_bin": 3.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.0,
+        "retained_db_measured": -32.0118,
+        "retained_db_analytic": null
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.05,
+        "retained_db_measured": -20.5496,
+        "retained_db_analytic": -20.8631
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.1,
+        "retained_db_measured": -14.8101,
+        "retained_db_analytic": -14.8853
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.25,
+        "retained_db_measured": -7.2189,
+        "retained_db_analytic": -7.2255
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 0.5,
+        "retained_db_measured": -2.2588,
+        "retained_db_analytic": -2.2569
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 1.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 1.5,
+        "retained_db_measured": -0.2003,
+        "retained_db_analytic": -0.2001
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 2.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      },
+      {
+        "config_id": "Lf256_M56_taps40_ridge0",
+        "Lf": 256,
+        "M": 56,
+        "n_taps": 40,
+        "ridge_rel": 0.0,
+        "doppler_bin": 3.0,
+        "retained_db_measured": 0.0,
+        "retained_db_analytic": 0.0
+      }
+    ],
+    "production_frame_rows": [
+      {
+        "mode": "W1",
+        "std": "wifi",
+        "Ns": 4193280,
+        "M": 112,
+        "b": 9,
+        "frame_samples": 4160
+      },
+      {
+        "mode": "W2",
+        "std": "wifi",
+        "Ns": 4193280,
+        "M": 112,
+        "b": 9,
+        "frame_samples": 4160
+      },
+      {
+        "mode": "W3",
+        "std": "wifi",
+        "Ns": 4193280,
+        "M": 112,
+        "b": 9,
+        "frame_samples": 4160
+      },
+      {
+        "mode": "L1",
+        "std": "lte",
+        "Ns": 1720320,
+        "M": 56,
+        "b": 1,
+        "frame_samples": 30720
+      },
+      {
+        "mode": "L2",
+        "std": "lte",
+        "Ns": 1720320,
+        "M": 56,
+        "b": 1,
+        "frame_samples": 30720
+      },
+      {
+        "mode": "L3",
+        "std": "lte",
+        "Ns": 1720320,
+        "M": 56,
+        "b": 1,
+        "frame_samples": 30720
+      },
+      {
+        "mode": "G1",
+        "std": "nr",
+        "Ns": 6881280,
+        "M": 112,
+        "b": 1,
+        "frame_samples": 61440
+      },
+      {
+        "mode": "G2",
+        "std": "nr",
+        "Ns": 6881280,
+        "M": 112,
+        "b": 1,
+        "frame_samples": 61440
+      },
+      {
+        "mode": "G3",
+        "std": "nr",
+        "Ns": 6881280,
+        "M": 112,
+        "b": 1,
+        "frame_samples": 61440
+      }
+    ],
+    "production_frame_note": "frame_samples = Ns / (M * b) per mode of outputs/detection_rx_sweep.json.",
+    "max_abs_measured_minus_analytic_db_for_bins_ge_0p1": 0.1022,
+    "bin0_circular_shift_edge_floor_db": -32.0219,
+    "bin0_note": "At 0 bins the projection removes the echo except the first delay_samples samples, which np.roll wraps from the CPI end and a causal delayed copy does not model; bin0_circular_shift_edge_floor_db = 10log10(delay_samples / (Lf*M)).",
+    "guard_rows": {
+      "peak_batch_guard_zd": 2,
+      "peak_batch_blocked_doppler_bin_offsets": [
+        -2,
+        -1,
+        0,
+        1,
+        2
+      ],
+      "freespace_detect_guard_width": 3,
+      "freespace_detect_removed_doppler_bin_offsets": [
+        -1,
+        0,
+        1
+      ],
+      "code_quotes": {
+        "peak_batch_call": {
+          "path": "src/experiment_detection.py",
+          "line": 287,
+          "quote": "peak_batch(rd, det, guard_zd=2)",
+          "verified": true,
+          "lines_containing_quote": [
+            287
+          ],
+          "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+        },
+        "freespace_width": {
+          "path": "src/freespace_detect.py",
+          "line": 91,
+          "quote": "DOPPLER_GUARD_WIDTH = 3",
+          "verified": true,
+          "lines_containing_quote": [
+            91
+          ],
+          "sha256": "1bc658f50ec420973c647bb68c9057381b7cc7dcd707e93eb989cbe91cb3c360"
+        }
+      },
+      "probe_map_doppler_rows": 56
+    },
+    "l1_ledger": "outputs/detection_rx_sweep.json",
+    "t_cpi_s": 0.056,
+    "t_cpi_matches_ledger_dfd": true,
+    "bin_width_hz": 17.857143,
+    "carrier_hz": 3500000000.0,
+    "wavelength_m": 0.085655,
+    "radial_speed_per_0p1_bin_mps": 0.076478,
+    "radial_speed_rows": [
+      {
+        "doppler_bins": 0.1,
+        "radial_speed_mps_monostatic_equivalent": 0.076478
+      },
+      {
+        "doppler_bins": 1.0,
+        "radial_speed_mps_monostatic_equivalent": 0.764777
+      }
+    ],
+    "speed_convention": "monostatic-equivalent: v = bins * bin_width_hz * wavelength / 2",
+    "section_wall_s": 0.04
+  },
+  "f4_cfar": {
+    "rows": [
+      {
+        "strong_cell_db": 60,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 65,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 70,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 75,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 80,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 85,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 90,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 8,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 3
+      },
+      {
+        "strong_cell_db": 95,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 277,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 264
+      },
+      {
+        "strong_cell_db": 100,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 597,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 581
+      },
+      {
+        "strong_cell_db": 105,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 566,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 522
+      },
+      {
+        "strong_cell_db": 110,
+        "strong_cell_row": 32,
+        "strong_cell_col": 2,
+        "false_cells_float32": 734,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 690
+      }
+    ],
+    "rows_strong_cell_off_ridge": [
+      {
+        "strong_cell_db": 60,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 65,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 70,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 75,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 80,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 85,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 0,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 0
+      },
+      {
+        "strong_cell_db": 90,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 8,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 3
+      },
+      {
+        "strong_cell_db": 95,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 525,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 500
+      },
+      {
+        "strong_cell_db": 100,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 1069,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 1020
+      },
+      {
+        "strong_cell_db": 105,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 1181,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 1098
+      },
+      {
+        "strong_cell_db": 110,
+        "strong_cell_row": 10,
+        "strong_cell_col": 2,
+        "false_cells_float32": 1559,
+        "false_cells_float64": 0,
+        "false_cells_float32_input_float64_sum": 0,
+        "false_cells_numpy_ca_cfar_2d": 0,
+        "float32_threshold_cells_le_zero": 1476
+      }
+    ],
+    "map_size": {
+      "doppler_rows": 64,
+      "range_bins": 32,
+      "background": "unit-mean-power Rayleigh magnitude",
+      "seed": 11,
+      "pfa": 0.0001,
+      "excluded_rows_half_width_around_strong_cell": 2
+    },
+    "first_strong_cell_db_with_float32_false_cells": 90,
+    "float32_false_cell_onset_band_db": {
+      "last_strong_cell_db_without": 85,
+      "first_strong_cell_db_with": 90
+    },
+    "float64_false_cells_all_zero": true,
+    "float32_input_float64_sum_false_cells_all_zero": true,
+    "counts_note": "Exact float32 false-cell counts depend on the summation order and library of the running sums; cite the onset band and the float64 = 0 result, not the counts as characteristic values.",
+    "report12_l1_check": {
+      "mode": "L1",
+      "echo": "analytic_echo (not the Sionna kernel echo)",
+      "M": 56,
+      "n_samples": 1720320,
+      "snr_grid_max_db": 20.0,
+      "snr_ref_db_at_sigma1": -17.1546,
+      "noise_sigma_at_grid_max": 0.0138761782,
+      "noise_seed": 1,
+      "dpi_amplitude": 40.0,
+      "rb_from_geometry_m": 22.281314,
+      "rb_matches_ledger": true,
+      "rows": [
+        {
+          "n_rx": 1,
+          "rd_dtype": "torch.float32",
+          "mask_mismatches_at_production_pfa": 0,
+          "float32_detections_at_production_pfa": 3,
+          "float64_detections_at_production_pfa": 3,
+          "max_cell_over_median_db": 38.26,
+          "zero_doppler_row_max_over_median_db": 38.26,
+          "mask_mismatches": 0,
+          "float32_detections": 3,
+          "float64_detections": 3
+        },
+        {
+          "n_rx": 4,
+          "rd_dtype": "torch.float32",
+          "mask_mismatches_at_production_pfa": 0,
+          "float32_detections_at_production_pfa": 3,
+          "float64_detections_at_production_pfa": 3,
+          "max_cell_over_median_db": 38.111,
+          "zero_doppler_row_max_over_median_db": 38.111,
+          "mask_mismatches": 0,
+          "float32_detections": 3,
+          "float64_detections": 3
+        }
+      ],
+      "pfa_used": 0.0001,
+      "production_pfa_nominal": 2.9046132107902345e-05,
+      "production_pfa_nominal_key": "outputs/detection_rx_sweep.json:modes.L1.pfa_nominal",
+      "max_cell_over_median_db": 38.26,
+      "mask_mismatches": 0,
+      "mask_mismatches_at_production_pfa": 0
+    },
+    "dtype_probe": {
+      "rd_dtype": "torch.float32",
+      "torch_complex64_real_dtype": "torch.float32",
+      "numpy_complex64_to_torch_dtype": "torch.complex64"
+    },
+    "code_quotes": {
+      "power_in_input_dtype": {
+        "path": "src/detection_gpu.py",
+        "line": 51,
+        "quote": "P = rd ** 2",
+        "verified": true,
+        "lines_containing_quote": [
+          51
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      },
+      "running_sum_dtype": {
+        "path": "src/detection_gpu.py",
+        "line": 57,
+        "quote": "S = torch.zeros((B, nd + 1, nr + 1), dtype=P.dtype, device=dev)",
+        "verified": true,
+        "lines_containing_quote": [
+          57
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      },
+      "running_sum": {
+        "path": "src/detection_gpu.py",
+        "line": 58,
+        "quote": "S[:, 1:, 1:] = torch.cumsum(torch.cumsum(P, dim=1), dim=2)",
+        "verified": true,
+        "lines_containing_quote": [
+          58
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      },
+      "self_check_float64_input": {
+        "path": "src/detection_gpu.py",
+        "line": 116,
+        "quote": "rd_t = torch.tensor(rd_np, dtype=torch.float64, device=dev)[None]",
+        "verified": true,
+        "lines_containing_quote": [
+          116
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      },
+      "noise_dtype_complex64": {
+        "path": "src/experiment_detection.py",
+        "line": 279,
+        "quote": "* (sigma / np.sqrt(2))).to(torch.complex64)",
+        "verified": true,
+        "lines_containing_quote": [
+          279
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      }
+    },
+    "l1_ledger": "outputs/detection_rx_sweep.json",
+    "section_wall_s": 0.83
+  },
+  "f5_multi_target": {
+    "cfar_mask_cells": 34,
+    "cfar_mask_cells_torch": 34,
+    "cfar_connected_components_8conn": 14,
+    "n_targets": 2,
+    "target_cells": [
+      [
+        22,
+        5
+      ],
+      [
+        7,
+        14
+      ]
+    ],
+    "target_cells_in_cfar_mask": [
+      true,
+      true
+    ],
+    "peaks_returned_by_peak_detection": 1,
+    "peak_detection_cell": [
+      22,
+      5
+    ],
+    "peaks_returned_by_peak_batch": 1,
+    "peaks_returned_by_peak_batch_note": "peak_batch returns one masked argmax per trial; with one trial (B=1) this count is at most 1 by construction and shows the interface limit.",
+    "peak_batch_cell": [
+      22,
+      5
+    ],
+    "rd_is_complex": false,
+    "rd_is_complex_numpy": false,
+    "rd_is_complex_torch": false,
+    "sizes": {
+      "Lf": 256,
+      "M": 32,
+      "fs_hz": 256000.0,
+      "n_range": 32,
+      "pfa": 0.0001,
+      "seed": 12,
+      "noise_sigma": 1.0,
+      "targets": [
+        {
+          "amplitude": 3.0,
+          "delay_samples": 5,
+          "doppler_bin": 6
+        },
+        {
+          "amplitude": 1.5,
+          "delay_samples": 14,
+          "doppler_bin": -9
+        }
+      ]
+    },
+    "code_quotes": {
+      "numpy_magnitude": {
+        "path": "src/passive_process.py",
+        "line": 147,
+        "quote": "return Rb, f_d, np.abs(RD)",
+        "verified": true,
+        "lines_containing_quote": [
+          147
+        ],
+        "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+      },
+      "numpy_single_argmax": {
+        "path": "src/passive_process.py",
+        "line": 205,
+        "quote": "di, ri = np.unravel_index(np.argmax(masked), masked.shape)",
+        "verified": true,
+        "lines_containing_quote": [
+          205
+        ],
+        "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+      },
+      "torch_magnitude": {
+        "path": "src/detection_gpu.py",
+        "line": 44,
+        "quote": "return RD.abs()",
+        "verified": true,
+        "lines_containing_quote": [
+          44
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      },
+      "torch_single_max": {
+        "path": "src/detection_gpu.py",
+        "line": 98,
+        "quote": "val, idx = flat.max(dim=1)",
+        "verified": true,
+        "lines_containing_quote": [
+          98
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      }
+    },
+    "section_wall_s": 0.0
+  },
+  "f14_reference": {
+    "rows": [
+      {
+        "config_id": "seed915_M32_L128",
+        "seed": 915,
+        "M": 32,
+        "L": 128,
+        "loss_db": -37.7772,
+        "ten_log10_ML_db": 36.1236,
+        "loss_plus_ten_log10_ML_db": -1.6536,
+        "argmax_correct": false,
+        "production_argmax": [
+          30,
+          16
+        ],
+        "per_frame_reference_argmax": [
+          21,
+          7
+        ],
+        "truth_cell": [
+          21,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 10.616
+      },
+      {
+        "config_id": "seed1_M32_L128",
+        "seed": 1,
+        "M": 32,
+        "L": 128,
+        "loss_db": -39.3918,
+        "ten_log10_ML_db": 36.1236,
+        "loss_plus_ten_log10_ML_db": -3.2682,
+        "argmax_correct": false,
+        "production_argmax": [
+          26,
+          19
+        ],
+        "per_frame_reference_argmax": [
+          21,
+          7
+        ],
+        "truth_cell": [
+          21,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 9.848
+      },
+      {
+        "config_id": "seed2_M32_L128",
+        "seed": 2,
+        "M": 32,
+        "L": 128,
+        "loss_db": -34.8677,
+        "ten_log10_ML_db": 36.1236,
+        "loss_plus_ten_log10_ML_db": 1.2559,
+        "argmax_correct": false,
+        "production_argmax": [
+          13,
+          31
+        ],
+        "per_frame_reference_argmax": [
+          21,
+          7
+        ],
+        "truth_cell": [
+          21,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 10.614
+      },
+      {
+        "config_id": "seed3_M32_L128",
+        "seed": 3,
+        "M": 32,
+        "L": 128,
+        "loss_db": -34.6233,
+        "ten_log10_ML_db": 36.1236,
+        "loss_plus_ten_log10_ML_db": 1.5003,
+        "argmax_correct": false,
+        "production_argmax": [
+          10,
+          29
+        ],
+        "per_frame_reference_argmax": [
+          21,
+          7
+        ],
+        "truth_cell": [
+          21,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 10.254
+      },
+      {
+        "config_id": "seed915_M16_L128",
+        "seed": 915,
+        "M": 16,
+        "L": 128,
+        "loss_db": -34.2777,
+        "ten_log10_ML_db": 33.1133,
+        "loss_plus_ten_log10_ML_db": -1.1644,
+        "argmax_correct": false,
+        "production_argmax": [
+          7,
+          3
+        ],
+        "per_frame_reference_argmax": [
+          13,
+          7
+        ],
+        "truth_cell": [
+          13,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 9.788
+      },
+      {
+        "config_id": "seed915_M64_L128",
+        "seed": 915,
+        "M": 64,
+        "L": 128,
+        "loss_db": -37.8944,
+        "ten_log10_ML_db": 39.1339,
+        "loss_plus_ten_log10_ML_db": 1.2395,
+        "argmax_correct": false,
+        "production_argmax": [
+          3,
+          13
+        ],
+        "per_frame_reference_argmax": [
+          37,
+          7
+        ],
+        "truth_cell": [
+          37,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 10.936
+      },
+      {
+        "config_id": "seed915_M32_L512",
+        "seed": 915,
+        "M": 32,
+        "L": 512,
+        "loss_db": -36.3559,
+        "ten_log10_ML_db": 42.1442,
+        "loss_plus_ten_log10_ML_db": 5.7883,
+        "argmax_correct": false,
+        "production_argmax": [
+          0,
+          6
+        ],
+        "per_frame_reference_argmax": [
+          21,
+          7
+        ],
+        "truth_cell": [
+          21,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 10.129
+      },
+      {
+        "config_id": "seed915_M128_L1024",
+        "seed": 915,
+        "M": 128,
+        "L": 1024,
+        "loss_db": -50.8691,
+        "ten_log10_ML_db": 51.1751,
+        "loss_plus_ten_log10_ML_db": 0.306,
+        "argmax_correct": false,
+        "production_argmax": [
+          74,
+          21
+        ],
+        "per_frame_reference_argmax": [
+          69,
+          7
+        ],
+        "truth_cell": [
+          69,
+          7
+        ],
+        "repeated_frame_control_db": 0.0,
+        "production_peak_to_median_db": 9.893
+      }
+    ],
+    "probe": {
+      "delay_samples": 7,
+      "doppler_bin": 5,
+      "n_range_max": 32,
+      "fs_rule": "fs = 1000 * L (only labels the axis)",
+      "reference": "independent random QPSK per frame"
+    },
+    "n_rows_argmax_correct": 0,
+    "loss_db_min": -50.8691,
+    "loss_db_max": -34.2777,
+    "max_abs_repeated_frame_control_db": 0.0,
+    "first_frame_quotes": {
+      "numpy_first_frame": {
+        "path": "src/passive_process.py",
+        "line": 139,
+        "quote": "Rf = np.conj(np.fft.fft(ref[:Lf]))",
+        "verified": true,
+        "lines_containing_quote": [
+          139
+        ],
+        "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+      },
+      "torch_single_frame": {
+        "path": "src/detection_gpu.py",
+        "line": 39,
+        "quote": "Rf = torch.conj(torch.fft.fft(ref_frame))",
+        "verified": true,
+        "lines_containing_quote": [
+          39
+        ],
+        "sha256": "b9e7d72d743fb4acf6e065b78051a84a2822e207ecb431960f700ad5d522b1e2"
+      }
+    },
+    "tile_quotes": [
+      {
+        "path": "src/passive_process.py",
+        "line": 68,
+        "quote": "ref_cpi = np.tile(ref_frame, M)",
+        "verified": true,
+        "lines_containing_quote": [
+          68
+        ],
+        "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+      },
+      {
+        "path": "src/experiment_detection.py",
+        "line": 145,
+        "quote": "ref_cpi = np.tile(block, b * M)",
+        "verified": true,
+        "lines_containing_quote": [
+          145
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      {
+        "path": "src/experiment_detection.py",
+        "line": 173,
+        "quote": "ref_cpi = np.tile(block, meta[\"b\"] * meta[\"M\"])",
+        "verified": true,
+        "lines_containing_quote": [
+          173
+        ],
+        "sha256": "ee78aba9a0924a004712c650663054d76dc3beb0cd2051d87f1ebf52e32ff3f1"
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "line": 474,
+        "quote": "ref_cpi = np.tile(ref_frame, M)",
+        "verified": true,
+        "lines_containing_quote": [
+          474
+        ],
+        "sha256": "1bc658f50ec420973c647bb68c9057381b7cc7dcd707e93eb989cbe91cb3c360"
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "line": 1054,
+        "quote": "ref_cpi = np.tile(np.asarray(pre.ref_frame), M)",
+        "verified": true,
+        "lines_containing_quote": [
+          1054
+        ],
+        "sha256": "1bc658f50ec420973c647bb68c9057381b7cc7dcd707e93eb989cbe91cb3c360"
+      },
+      {
+        "path": "src/experiment_freespace_range.py",
+        "line": 206,
+        "quote": "np.tile(np.asarray(pre.ref_frame), ref[\"M\"])",
+        "verified": true,
+        "lines_containing_quote": [
+          206
+        ],
+        "sha256": "58d0c59569fd6acd8869fa0e4893f5f9041e295a9808a221faa03f96855da2c2"
+      },
+      {
+        "path": "src/experiment_freespace_range.py",
+        "line": 729,
+        "quote": "ref_cpi = np.tile(np.asarray(ref[\"wf\"].tx, np.complex64), Mf)",
+        "verified": true,
+        "lines_containing_quote": [
+          729
+        ],
+        "sha256": "58d0c59569fd6acd8869fa0e4893f5f9041e295a9808a221faa03f96855da2c2"
+      },
+      {
+        "path": "src/make_r6_frames.py",
+        "line": 46,
+        "quote": "ref_cpi = np.tile(ref_frame, M)",
+        "verified": true,
+        "lines_containing_quote": [
+          46
+        ],
+        "sha256": "e620f266aba7c0afdf865e8eda6f0c7e3a82ae04e7a3d894c170fc50151b6235"
+      }
+    ],
+    "kernel_caller_scan": [
+      {
+        "path": "src/detection_gpu.py",
+        "kernels_called": [
+          "range_doppler",
+          "rd_batch"
+        ],
+        "call_lines": [
+          124,
+          127
+        ],
+        "n_call_lines": 2,
+        "tile_evidence": [
+          "np.tile in file"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "src/experiment_detection.py",
+        "kernels_called": [
+          "range_doppler",
+          "rd_batch"
+        ],
+        "call_lines": [
+          209,
+          215,
+          285,
+          302,
+          418
+        ],
+        "n_call_lines": 5,
+        "tile_evidence": [
+          "np.tile in file",
+          "calls experiment_detection Precomputed/build_echo_sionna (tiles at src/experiment_detection.py:145)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "src/experiment_ghost.py",
+        "kernels_called": [
+          "range_doppler",
+          "rd_batch"
+        ],
+        "call_lines": [
+          87,
+          120,
+          166,
+          167
+        ],
+        "n_call_lines": 4,
+        "tile_evidence": [
+          "calls experiment_detection Precomputed/build_echo_sionna (tiles at src/experiment_detection.py:145)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "kernels_called": [
+          "range_doppler",
+          "rd_batch"
+        ],
+        "call_lines": [
+          764,
+          836,
+          848,
+          854,
+          1074,
+          1084,
+          1113
+        ],
+        "n_call_lines": 7,
+        "tile_evidence": [
+          "np.tile in file"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "src/make_r6_frames.py",
+        "kernels_called": [
+          "range_doppler"
+        ],
+        "call_lines": [
+          47
+        ],
+        "n_call_lines": 1,
+        "tile_evidence": [
+          "np.tile in file"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "src/passive_process.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          223,
+          229
+        ],
+        "n_call_lines": 2,
+        "tile_evidence": [
+          "np.tile in file",
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "src/viz_bistatic.py",
+        "kernels_called": [
+          "make_cpi"
+        ],
+        "call_lines": [
+          99
+        ],
+        "n_call_lines": 1,
+        "tile_evidence": [
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/passive_two_channel_md.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          139,
+          142,
+          156,
+          273,
+          404,
+          410,
+          503,
+          551
+        ],
+        "n_call_lines": 8,
+        "tile_evidence": [
+          "np.tile in file",
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/run_min_cell.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          156,
+          164,
+          182
+        ],
+        "n_call_lines": 3,
+        "tile_evidence": [
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_ambiguity.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          547,
+          549
+        ],
+        "n_call_lines": 2,
+        "tile_evidence": [
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_cfar.py",
+        "kernels_called": [
+          "range_doppler"
+        ],
+        "call_lines": [
+          432
+        ],
+        "n_call_lines": 1,
+        "tile_evidence": [
+          "np.tile in file"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_clutter_doppler.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          222,
+          228,
+          264,
+          354,
+          356,
+          364,
+          406,
+          591
+        ],
+        "n_call_lines": 9,
+        "tile_evidence": [
+          "np.tile in file",
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_eca.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          118,
+          247,
+          253,
+          295,
+          296
+        ],
+        "n_call_lines": 5,
+        "tile_evidence": [
+          "np.tile in file",
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_ghost_impact.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          185,
+          188,
+          197
+        ],
+        "n_call_lines": 3,
+        "tile_evidence": [
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_linkbudget.py",
+        "kernels_called": [
+          "make_cpi",
+          "range_doppler"
+        ],
+        "call_lines": [
+          185,
+          439,
+          441,
+          451
+        ],
+        "n_call_lines": 4,
+        "tile_evidence": [
+          "np.tile in file",
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      },
+      {
+        "path": "benchmark/verify_pyapril.py",
+        "kernels_called": [
+          "range_doppler"
+        ],
+        "call_lines": [
+          71
+        ],
+        "n_call_lines": 1,
+        "tile_evidence": [],
+        "classified_as_tiled_by_scan": false
+      },
+      {
+        "path": "benchmark/verify_snr_convention.py",
+        "kernels_called": [
+          "make_cpi"
+        ],
+        "call_lines": [
+          261,
+          263,
+          267,
+          269,
+          276,
+          278
+        ],
+        "n_call_lines": 6,
+        "tile_evidence": [
+          "calls make_cpi (tiles at src/passive_process.py:68)"
+        ],
+        "classified_as_tiled_by_scan": true
+      }
+    ],
+    "kernel_callers_not_classified_as_tiled": [
+      "benchmark/verify_pyapril.py"
+    ],
+    "non_tiled_reference_case": {
+      "path": "benchmark/verify_pyapril.py",
+      "functions_extracted": [
+        "build_scenario",
+        "ours"
+      ],
+      "repeated_frame_control": {
+        "local_copy_reproduces_build_scenario": true,
+        "source_quotes": [
+          {
+            "path": "benchmark/verify_pyapril.py",
+            "line": 50,
+            "quote": "Ns = n_blocks * Lf",
+            "verified": true,
+            "lines_containing_quote": [
+              50
+            ],
+            "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+          },
+          {
+            "path": "benchmark/verify_pyapril.py",
+            "line": 51,
+            "quote": "rng = np.random.default_rng({\"nr\": 1, \"wifi\": 2, \"lte\": 3}.get(std, 0) + seed)",
+            "verified": true,
+            "lines_containing_quote": [
+              51
+            ],
+            "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+          },
+          {
+            "path": "benchmark/verify_pyapril.py",
+            "line": 55,
+            "quote": "dpi = 10 ** (dpi_db / 20.0) * ref",
+            "verified": true,
+            "lines_containing_quote": [
+              55
+            ],
+            "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+          },
+          {
+            "path": "benchmark/verify_pyapril.py",
+            "line": 57,
+            "quote": "echo = a * np.roll(ref, r_bin_true) * np.exp(1j * 2 * np.pi * fd_true_hz * n / fs)",
+            "verified": true,
+            "lines_containing_quote": [
+              57
+            ],
+            "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+          },
+          {
+            "path": "benchmark/verify_pyapril.py",
+            "line": 58,
+            "quote": "npow = (np.abs(echo) ** 2).mean() / (10 ** (snr_db / 10.0))",
+            "verified": true,
+            "lines_containing_quote": [
+              58
+            ],
+            "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+          },
+          {
+            "path": "benchmark/verify_pyapril.py",
+            "line": 59,
+            "quote": "noise = np.sqrt(npow / 2) * (rng.standard_normal(Ns) + 1j * rng.standard_normal(Ns))",
+            "verified": true,
+            "lines_containing_quote": [
+              59
+            ],
+            "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+          }
+        ],
+        "peak_cell": [
+          11,
+          18
+        ],
+        "peak_at_truth": true,
+        "n_cfar_cells": 32
+      },
+      "reference_quote": {
+        "path": "benchmark/verify_pyapril.py",
+        "line": 52,
+        "quote": "ref = np.exp(1j * rng.integers(0, 4, Ns) * (np.pi / 2)).astype(np.complex64)",
+        "verified": true,
+        "lines_containing_quote": [
+          52
+        ],
+        "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+      },
+      "range_doppler_quote": {
+        "path": "benchmark/verify_pyapril.py",
+        "line": 71,
+        "quote": "Rb, fd, rd = range_doppler(resid, can.ref, sc[\"fs\"], sc[\"M\"], n_range=r_max)",
+        "verified": true,
+        "lines_containing_quote": [
+          71
+        ],
+        "sha256": "e204134878b3cea068cf25663f3f5599a2353c5edc7ff056064d2c072b6e25a5"
+      },
+      "ours_called_by_main": false,
+      "ours_rerun": {
+        "scenario_std_label": "nr",
+        "M": 16,
+        "Lf": 8192,
+        "truth_cell": [
+          11,
+          18
+        ],
+        "peak_cell": [
+          12,
+          55
+        ],
+        "peak_at_truth": false,
+        "n_cfar_cells": 0
+      },
+      "verify_pyapril_ledger_stores_ours": false
+    },
+    "note": "Every CPI builder quoted in tile_quotes repeats one reference frame M times, which is the repeated-frame control of the rows (0 dB). The AST scan of range_doppler/rd_batch/make_cpi callers finds tile evidence in every calling file except those listed in kernel_callers_not_classified_as_tiled. The exception, benchmark/verify_pyapril.py, builds a non-repeating QPSK reference; its ours() chain is not called by main() and its ledger does not store that chain's result, so no published output depends on it. Rerunning ours() on that scenario and on the same scenario with a repeated frame is in non_tiled_reference_case. The scan looks for tile evidence per file, not for data flow.",
+    "section_wall_s": 4.56
+  },
+  "tracking_inventory": {
+    "rows": [
+      {
+        "component_id": "kalman_ekf_ukf",
+        "component": "kalman / ekf / ukf",
+        "grep_pattern": "kalman|(?<![a-z])(ekf|ukf)(?![a-z])",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 2,
+        "files_with_hits": 1,
+        "hits_in_files_mentioning_cfar": 2,
+        "example_hits": [
+          "src/passive_process.py:8",
+          "src/passive_process.py:15"
+        ],
+        "named_definitions_matching": 0,
+        "example_named_definitions": [],
+        "spec_grep_pattern": "kalman|(?<![a-z])(ekf|ukf)(?![a-z])",
+        "hits_spec_terms_only": 2,
+        "example_hits_spec_terms_only": [
+          "src/passive_process.py:8",
+          "src/passive_process.py:15"
+        ],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [
+          "KalmanFilter",
+          "ExtendedKalmanFilter",
+          "UnscentedKalmanFilter"
+        ],
+        "library_modules": [
+          "filterpy",
+          "pykalman",
+          "stonesoup"
+        ],
+        "library_calls_or_imports": 0,
+        "example_library_calls_or_imports": [],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      },
+      {
+        "component_id": "data_association",
+        "component": "data association (linear_sum_assignment, hungarian, jpda, gnn)",
+        "grep_pattern": "linear_sum_assignment|hungarian|(?<![a-z])(jpda|gnn)(?![a-z])",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 1,
+        "files_with_hits": 1,
+        "hits_in_files_mentioning_cfar": 0,
+        "example_hits": [
+          "src/report01_paper_facts.py:124"
+        ],
+        "named_definitions_matching": 0,
+        "example_named_definitions": [],
+        "spec_grep_pattern": "linear_sum_assignment|hungarian|(?<![a-z])(jpda|gnn)(?![a-z])",
+        "hits_spec_terms_only": 1,
+        "example_hits_spec_terms_only": [
+          "src/report01_paper_facts.py:124"
+        ],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [
+          "linear_sum_assignment",
+          "Munkres"
+        ],
+        "library_modules": [
+          "munkres",
+          "lap",
+          "stonesoup"
+        ],
+        "library_calls_or_imports": 0,
+        "example_library_calls_or_imports": [],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      },
+      {
+        "component_id": "gating",
+        "component": "gating (mahalanobis, chi2 gate)",
+        "grep_pattern": "mahalanobis|chi2[ _-]?gat|chi-?square[ _-]?gat|(?<![a-z])gating(?![a-z])",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 5,
+        "files_with_hits": 1,
+        "hits_in_files_mentioning_cfar": 0,
+        "example_hits": [
+          "benchmark/mesh_cert_symmetry_derived_0816.py:135",
+          "benchmark/mesh_cert_symmetry_derived_0816.py:150",
+          "benchmark/mesh_cert_symmetry_derived_0816.py:168"
+        ],
+        "named_definitions_matching": 0,
+        "example_named_definitions": [],
+        "spec_grep_pattern": "mahalanobis|chi-?2[ _-]?gat",
+        "hits_spec_terms_only": 0,
+        "example_hits_spec_terms_only": [],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [
+          "mahalanobis"
+        ],
+        "library_modules": [
+          "stonesoup"
+        ],
+        "library_calls_or_imports": 0,
+        "example_library_calls_or_imports": [],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      },
+      {
+        "component_id": "cfar_cell_clustering",
+        "component": "clustering of CFAR cells (dbscan, connected components, nms)",
+        "grep_pattern": "dbscan|connected[ _-]?components?|(?<![a-z])nms(?![a-z])|non[ _-]?max(imum)?[ _-]?suppression|ndimage\\.label",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 36,
+        "files_with_hits": 14,
+        "hits_in_files_mentioning_cfar": 0,
+        "example_hits": [
+          "src/mesh_buried.py:109",
+          "src/mesh_check.py:242",
+          "src/mesh_check.py:246"
+        ],
+        "named_definitions_matching": 0,
+        "example_named_definitions": [],
+        "spec_grep_pattern": "dbscan|connected[ _-]?components?|(?<![a-z])nms(?![a-z])",
+        "hits_spec_terms_only": 20,
+        "example_hits_spec_terms_only": [
+          "src/mesh_buried.py:109",
+          "src/mesh_check.py:242",
+          "src/mesh_check.py:246"
+        ],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [
+          "DBSCAN",
+          "dbscan",
+          "connected_components",
+          "ndimage.label",
+          "nms",
+          "non_max_suppression"
+        ],
+        "library_modules": [],
+        "library_calls_or_imports": 32,
+        "example_library_calls_or_imports": [
+          "benchmark/adv_multiref_planform_0816.py:274:geoms_from_components",
+          "benchmark/adv_multiref_planform_0816.py:275:geoms_from_components",
+          "benchmark/adv_multiref_planform_0816.py:422:_photo_from_mask"
+        ],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      },
+      {
+        "component_id": "track_management",
+        "component": "track management (tentative/confirmed track, m-of-n)",
+        "grep_pattern": "tentative|confirmed[ _-]?track|(?<![a-z0-9])m[ _-]of[ _-]n(?![a-z])|(?<![0-9])[0-9]+[ _-]of[ _-][0-9]+[ _-]track|track[ _-]?(management|initiation|confirmation|deletion)",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 3,
+        "files_with_hits": 2,
+        "hits_in_files_mentioning_cfar": 3,
+        "example_hits": [
+          "src/viz_report4.py:670",
+          "benchmark/verify_ghost_impact.py:14",
+          "benchmark/verify_ghost_impact.py:226"
+        ],
+        "named_definitions_matching": 0,
+        "example_named_definitions": [],
+        "spec_grep_pattern": "tentative|confirmed[ _-]?track|(?<![a-z0-9])m[ _-]of[ _-]n(?![a-z])",
+        "hits_spec_terms_only": 2,
+        "example_hits_spec_terms_only": [
+          "benchmark/verify_ghost_impact.py:14",
+          "benchmark/verify_ghost_impact.py:226"
+        ],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [],
+        "library_modules": [
+          "stonesoup"
+        ],
+        "library_calls_or_imports": 0,
+        "example_library_calls_or_imports": [],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      },
+      {
+        "component_id": "angle_estimation",
+        "component": "angle estimation (music, bartlett, capon, esprit, doa)",
+        "grep_pattern": "(?<![a-z])(music|bartlett|capon|esprit|doa|aoa)(?![a-z])",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 28,
+        "files_with_hits": 12,
+        "hits_in_files_mentioning_cfar": 17,
+        "example_hits": [
+          "src/bistatic_scene.py:17",
+          "src/build_part09_detector.py:793",
+          "src/build_part09_detector.py:819"
+        ],
+        "named_definitions_matching": 1,
+        "example_named_definitions": [
+          "src/experiment_x410.py:164:aoa_resolution_deg"
+        ],
+        "spec_grep_pattern": "(?<![a-z])(music|bartlett|capon|esprit|doa)(?![a-z])",
+        "hits_spec_terms_only": 1,
+        "example_hits_spec_terms_only": [
+          "src/experiment_x410.py:154"
+        ],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [],
+        "library_modules": [
+          "doatools",
+          "spectrum"
+        ],
+        "library_calls_or_imports": 0,
+        "example_library_calls_or_imports": [],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      },
+      {
+        "component_id": "tracking_metrics",
+        "component": "tracking metrics (gospa, ospa, id switch)",
+        "grep_pattern": "(?<![a-z])(gospa|ospa|mota|motp)(?![a-z])|id[ _-]?switch",
+        "pattern_flags": "case-insensitive",
+        "hits_in_src_benchmark": 0,
+        "files_with_hits": 0,
+        "hits_in_files_mentioning_cfar": 0,
+        "example_hits": [],
+        "named_definitions_matching": 0,
+        "example_named_definitions": [],
+        "spec_grep_pattern": "(?<![a-z])(gospa|ospa)(?![a-z])|id[ _-]?switch",
+        "hits_spec_terms_only": 0,
+        "example_hits_spec_terms_only": [],
+        "implementation_defs": 0,
+        "example_implementation_defs": [],
+        "library_call_names": [
+          "gospa",
+          "ospa",
+          "GOSPA",
+          "OSPA",
+          "GOSPAMetric",
+          "OSPAMetric"
+        ],
+        "library_modules": [
+          "motmetrics",
+          "stonesoup"
+        ],
+        "library_calls_or_imports": 0,
+        "example_library_calls_or_imports": [],
+        "library_calls_or_imports_in_files_calling_cfar": 0,
+        "library_calls_or_imports_in_functions_calling_cfar": 0,
+        "example_library_calls_or_imports_in_functions_calling_cfar": [],
+        "implementation_defs_in_files_calling_cfar": 0,
+        "implementation_defs_or_library_calls_in_files_calling_cfar": 0
+      }
+    ],
+    "n_files_scanned": 702,
+    "roots": [
+      "src",
+      "benchmark"
+    ],
+    "exclude_glob": "*isac*0915*",
+    "reusable_assets": [
+      {
+        "path": "src/passive_process.py",
+        "function": "ECACanceller",
+        "def_line": 93,
+        "def_line_verified": true,
+        "what": "Standard whole-CPI ECA: least-squares removal of delayed zero-Doppler copies of the reference; reference autocorrelation factorised once.",
+        "reusable_for_tracking": "yes, per CPI; removes low-Doppler targets (f3_eca)",
+        "what_quote": null
+      },
+      {
+        "path": "src/passive_process.py",
+        "function": "range_doppler",
+        "def_line": 133,
+        "def_line_verified": true,
+        "what": "Frame matched filter plus slow-time Hann FFT; returns the magnitude map and uses only the first reference frame.",
+        "reusable_for_tracking": "needs changes: complex output (f5) and a per-frame reference (f14)",
+        "what_quote": null
+      },
+      {
+        "path": "src/passive_process.py",
+        "function": "ca_cfar_2d",
+        "def_line": 153,
+        "def_line_verified": true,
+        "what": "float64 2-D CA-CFAR with a summed-area table.",
+        "reusable_for_tracking": "yes",
+        "what_quote": null
+      },
+      {
+        "path": "src/passive_process.py",
+        "function": "_subbin",
+        "def_line": 190,
+        "def_line_verified": true,
+        "what": "Parabolic sub-bin offset from the peak cell and its two neighbours.",
+        "reusable_for_tracking": "yes, per detection cluster",
+        "what_quote": {
+          "path": "src/passive_process.py",
+          "line": 192,
+          "quote": "den = vm1 - 2.0 * v0 + vp1",
+          "verified": true,
+          "lines_containing_quote": [
+            192
+          ],
+          "sha256": "c24b65f836555c4a650b5abae06e4a9d02afc7a6a9c8ff52eb61170e46c60046"
+        }
+      },
+      {
+        "path": "src/passive_process.py",
+        "function": "peak_detection",
+        "def_line": 198,
+        "def_line_verified": true,
+        "what": "One masked global argmax with sub-bin refinement.",
+        "reusable_for_tracking": "not as is: one peak per map (f5)",
+        "what_quote": null
+      },
+      {
+        "path": "src/passive_process.py",
+        "function": "doppler_guard_mask",
+        "def_line": 417,
+        "def_line_verified": true,
+        "what": "Zero-Doppler guard applied to a detection mask.",
+        "reusable_for_tracking": "yes",
+        "what_quote": null
+      },
+      {
+        "path": "src/passive_process.py",
+        "function": "make_cpi",
+        "def_line": 42,
+        "def_line_verified": true,
+        "what": "Synthetic CPI builder that tiles one reference frame M times.",
+        "reusable_for_tracking": "test signals only; no moving target across CPIs",
+        "what_quote": null
+      },
+      {
+        "path": "src/detection_gpu.py",
+        "function": "rd_batch",
+        "def_line": 32,
+        "def_line_verified": true,
+        "what": "Batched magnitude range-Doppler map from one reference frame.",
+        "reusable_for_tracking": "needs changes: complex output and a per-frame reference",
+        "what_quote": null
+      },
+      {
+        "path": "src/detection_gpu.py",
+        "function": "cfar_batch",
+        "def_line": 47,
+        "def_line_verified": true,
+        "what": "Batched CA-CFAR; running sums in the input dtype.",
+        "reusable_for_tracking": "after float64 running sums (f4_cfar)",
+        "what_quote": null
+      },
+      {
+        "path": "src/detection_gpu.py",
+        "function": "peak_batch",
+        "def_line": 87,
+        "def_line_verified": true,
+        "what": "One masked argmax per trial after a zero-Doppler guard.",
+        "reusable_for_tracking": "not as is: one peak per trial (f5)",
+        "what_quote": null
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "function": "_cfar_excl_rows",
+        "def_line": 609,
+        "def_line_verified": true,
+        "what": "CA-CFAR on a sub-map with the zero-Doppler guard rows removed from detection and training.",
+        "reusable_for_tracking": "yes",
+        "what_quote": null
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "function": "_cfar_excl_rows_batch",
+        "def_line": 655,
+        "def_line_verified": true,
+        "what": "Batched version of _cfar_excl_rows (uses cfar_batch).",
+        "reusable_for_tracking": "yes, after the cfar_batch dtype fix",
+        "what_quote": null
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "function": "detect_target_neighborhood",
+        "def_line": 678,
+        "def_line_verified": true,
+        "what": "Threshold crossing within +-tol cells of a given truth cell.",
+        "reusable_for_tracking": "evaluation only (needs truth)",
+        "what_quote": null
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "function": "calibrate_pfa",
+        "def_line": 714,
+        "def_line_verified": true,
+        "what": "Empirical false-alarm rate on target-free trials; iterates the nominal Pfa.",
+        "reusable_for_tracking": "yes, truth-free threshold calibration",
+        "what_quote": null
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "function": "false_alarms_per_cpi",
+        "def_line": 878,
+        "def_line_verified": true,
+        "what": "Expected false alarms per CPI from map shape and Pfa.",
+        "reusable_for_tracking": "yes, for false-track budgeting",
+        "what_quote": null
+      },
+      {
+        "path": "src/experiment_x410.py",
+        "function": "adc_quantize",
+        "def_line": 92,
+        "def_line_verified": true,
+        "what": "Uniform I/Q ADC quantisation.",
+        "reusable_for_tracking": "yes, front-end model",
+        "what_quote": null
+      },
+      {
+        "path": "src/experiment_x410.py",
+        "function": "X410Scenario",
+        "def_line": 110,
+        "def_line_verified": true,
+        "what": "Legacy small bistatic layout with half-wavelength ULA element positions.",
+        "reusable_for_tracking": "geometry template only; not an outdoor layout",
+        "what_quote": {
+          "path": "src/experiment_x410.py",
+          "line": 127,
+          "quote": "d = lam / 2.0",
+          "verified": true,
+          "lines_containing_quote": [
+            127
+          ],
+          "sha256": "29496438f8510e097d9fbb470b8a83eb4c952f1ede34e7c0c4ba0c6036a06fc6"
+        }
+      },
+      {
+        "path": "src/experiment_x410.py",
+        "function": "steering_vector",
+        "def_line": 153,
+        "def_line_verified": true,
+        "what": "Ideal plane-wave ULA steering vector (no calibration or pattern).",
+        "reusable_for_tracking": "starting point for an angle scan",
+        "what_quote": null
+      },
+      {
+        "path": "src/sionna_chain.py",
+        "function": "channel_taps",
+        "def_line": 66,
+        "def_line_verified": true,
+        "what": "Sionna discrete-time sinc taps; also returns l_min.",
+        "reusable_for_tracking": "yes, if the -l_min offset is applied (f2_range_axis)",
+        "what_quote": null
+      },
+      {
+        "path": "src/experiment_detection.py",
+        "function": "bistatic_tau_fd",
+        "def_line": 74,
+        "def_line_verified": true,
+        "what": "Bistatic delay and Doppler of a point target.",
+        "reusable_for_tracking": "yes, measurement function for (Rb, fd)",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "bistatic_Rb",
+        "def_line": 118,
+        "def_line_verified": true,
+        "what": "Analytic bistatic range.",
+        "reusable_for_tracking": "yes, measurement model",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "bistatic_fd",
+        "def_line": 131,
+        "def_line_verified": true,
+        "what": "Analytic bistatic Doppler.",
+        "reusable_for_tracking": "yes, measurement model",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "grad_Rb",
+        "def_line": 137,
+        "def_line_verified": true,
+        "what": "Gradient of bistatic range with respect to position.",
+        "reusable_for_tracking": "yes, EKF Jacobian",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "grad_fd_p",
+        "def_line": 143,
+        "def_line_verified": true,
+        "what": "Gradient of bistatic Doppler with respect to position.",
+        "reusable_for_tracking": "yes, EKF Jacobian",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "grad_fd_v",
+        "def_line": 152,
+        "def_line_verified": true,
+        "what": "Gradient of bistatic Doppler with respect to velocity.",
+        "reusable_for_tracking": "yes, EKF Jacobian",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "_rows_pair",
+        "def_line": 329,
+        "def_line_verified": true,
+        "what": "Whitened Jacobian rows of (Rb, fd) for state [p0, v].",
+        "reusable_for_tracking": "yes, EKF Jacobian",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_observability.py",
+        "function": "gramian",
+        "def_line": 341,
+        "def_line_verified": true,
+        "what": "Constant-velocity observability Gramian with optional azimuth/elevation rows (angle sigma is an input).",
+        "reusable_for_tracking": "yes, design-time observability check",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/scenarios.py",
+        "function": "hover",
+        "def_line": 31,
+        "def_line_verified": true,
+        "what": "Truth trajectory: fixed position, zero velocity.",
+        "reusable_for_tracking": "yes, as truth",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/scenarios.py",
+        "function": "radial",
+        "def_line": 37,
+        "def_line_verified": true,
+        "what": "Truth trajectory along the bistatic bisector.",
+        "reusable_for_tracking": "yes, as truth",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/scenarios.py",
+        "function": "tangential",
+        "def_line": 51,
+        "def_line_verified": true,
+        "what": "Truth trajectory across the bisector.",
+        "reusable_for_tracking": "yes, as truth",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/scenarios.py",
+        "function": "waypoint",
+        "def_line": 64,
+        "def_line_verified": true,
+        "what": "Truth trajectory on a bent Bezier path at constant speed.",
+        "reusable_for_tracking": "yes, as truth",
+        "what_quote": null
+      },
+      {
+        "path": "benchmark/verify_ghost_impact.py",
+        "function": "d_tracker",
+        "def_line": 225,
+        "def_line_verified": true,
+        "what": "Analytic binomial M-of-N track-start probabilities.",
+        "reusable_for_tracking": "reference formula only; no association",
+        "what_quote": {
+          "path": "benchmark/verify_ghost_impact.py",
+          "line": 227,
+          "quote": "out = {\"init_logic\": \"3-of-5\", \"per_wf\": {}}",
+          "verified": true,
+          "lines_containing_quote": [
+            227
+          ],
+          "sha256": "1d61aa40ea268b98f446c5ef0204796b6f171cfd7866572bcf1fb434d7fc4602"
+        }
+      },
+      {
+        "path": "src/report14_stap.py",
+        "function": "stap_weights",
+        "def_line": 43,
+        "def_line_verified": true,
+        "what": "MVDR space-time weights for a given covariance.",
+        "reusable_for_tracking": "adjacent asset, not a tracker",
+        "what_quote": null
+      },
+      {
+        "path": "src/report14_stap.py",
+        "function": "estimate_covariance",
+        "def_line": 92,
+        "def_line_verified": true,
+        "what": "Sample covariance with diagonal loading or rank truncation.",
+        "reusable_for_tracking": "adjacent asset, not a tracker",
+        "what_quote": null
+      },
+      {
+        "path": "src/microdoppler_proc.py",
+        "function": "clutter_suppress",
+        "def_line": 97,
+        "def_line_verified": true,
+        "what": "IIR MTI notch on an already-selected target signal.",
+        "reusable_for_tracking": "adjacent asset for slow-target studies; no range bin",
+        "what_quote": null
+      }
+    ],
+    "section_wall_s": 63.1,
+    "scanned_files_digest_sha256": "21dc7fc86e7b00e81e359d0009ecd3b72f3b57fc8c505240095191bf1e106eb3"
+  }
+}

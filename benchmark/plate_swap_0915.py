@@ -64,7 +64,17 @@ def main() -> int:
     m = _plate_mesh(PLATE_M)
     #: ⛔재질 이름 'pec' 는 없다 — 완전도체는 **float 1.0**(=|Γ|)로 준다.
     gm = {g: 1.0 for g in set(np.asarray(m.g).tolist())}
-    out = dict(fc_hz=FC, plate_m=PLATE_M, gamma_abs=1.0,
+    import subprocess, sys, time
+    out = dict(_meta=dict(
+                   generator="benchmark/plate_swap_0915.py",
+                   command="CUDA_VISIBLE_DEVICES=\"\" PYTHONPATH=src taskset -c 8-11 "
+                           "/workspace/.venvs/py312/bin/python benchmark/plate_swap_0915.py",
+                   started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                   git_head=subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
+                                           capture_output=True, text=True).stdout.strip(),
+                   scope="Flat PEC plate through our kernel's bistatic branch; an implementation check, "
+                         "not a comparison against RF measurements."),
+               fc_hz=FC, plate_m=PLATE_M, gamma_abs=1.0,
                note_ko="입사·출사를 바꾼 |E| 의 비. 1 로 가면 순서가 무의미하다는 뜻이다.")
 
     print(f"평판 {PLATE_M} m · {FC/1e9:.1f} GHz · |Γ|=1 · 관통/PTD 끔 · 삼각형 {m.n_tris()}")

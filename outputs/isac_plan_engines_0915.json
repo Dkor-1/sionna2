@@ -1,0 +1,3837 @@
+{
+  "_meta": {
+    "generator": "benchmark/isac_plan_engines_0915.py",
+    "command": "CUDA_VISIBLE_DEVICES=\"\" /workspace/.venvs/py312/bin/python benchmark/isac_plan_engines_0915.py",
+    "argv": [
+      "--core",
+      "15"
+    ],
+    "started_utc": "2026-09-15T12:41:42Z",
+    "finished_utc": "2026-09-15T12:41:52Z",
+    "git_head": "e2a828b7ee62c82f7293b73e1c250926b00cb4c5",
+    "versions": {
+      "sionna": "2.1.0",
+      "sionna-rt": "2.1.0",
+      "mitsuba": "3.9.1",
+      "drjit": "1.5.0",
+      "numpy": "2.5.2"
+    },
+    "python": "3.12.3",
+    "cpu_affinity": [
+      15
+    ],
+    "scope": "Simulation / code / bookkeeping checks with no comparison against RF measurements. PathSolver levels are PathSolver level in dB (arbitrary reference). Toy CPU probes are labelled as such.",
+    "config": {
+      "fc_hz": 3500000000.0,
+      "pathsolver_seed": 42,
+      "contract_probe": {
+        "scene": "simple_street_canyon",
+        "tx_pos_m": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "rx_pos_m": [
+          2.0,
+          0.0,
+          1.0
+        ],
+        "rx_array_rows_cols": [
+          1,
+          2
+        ],
+        "max_depth": 1,
+        "samples_per_src": 10000,
+        "deterministic": true,
+        "cfr_offsets_hz": [
+          -50000000.0,
+          0.0,
+          50000000.0
+        ]
+      },
+      "angle_probe": {
+        "scene": "empty",
+        "tx_pos_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tx_orientation_rad": [
+          1.0,
+          0.5,
+          0.3
+        ],
+        "rx_pos_m": [
+          3.0,
+          4.0,
+          5.0
+        ],
+        "rx_orientation_rad": [
+          -0.7,
+          0.2,
+          0.1
+        ],
+        "max_depth": 0,
+        "samples_per_src": 1000
+      },
+      "doppler_probe": {
+        "scene": "simple_reflector",
+        "tx_pos_m": [
+          0.0,
+          0.0,
+          10.0
+        ],
+        "rx_pos_m": [
+          0.01,
+          0.0,
+          10.0
+        ],
+        "object_velocity_mps": [
+          0.0,
+          0.0,
+          2.0
+        ],
+        "max_depth": 1,
+        "samples_per_src": 100000,
+        "deterministic": true,
+        "los": false,
+        "diffuse": false,
+        "second_velocity_test_xyz_components": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ]
+        ]
+      },
+      "txrx_velocity_probe": {
+        "scene": "empty",
+        "tx_pos_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tx_velocity_mps": [
+          3.0,
+          0.0,
+          0.0
+        ],
+        "rx_pos_m": [
+          10.0,
+          0.0,
+          0.0
+        ],
+        "rx_velocity_mps": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "max_depth": 0,
+        "samples_per_src": 1000
+      },
+      "per_object_probe": {
+        "scene": "simple_street_canyon",
+        "tx_pos_m": [
+          0.0,
+          0.0,
+          10.0
+        ],
+        "rx_pos_m": [
+          0.01,
+          0.0,
+          10.0
+        ],
+        "velocity_rule": "v_i = 0.5*(i+1)*[1,1,1] m/s, i = rank of the object after sorting by mesh bbox centre (x, then y, then z, rounded to bbox_round_decimals); scene.objects order is not stable between runs",
+        "bbox_round_decimals": 2,
+        "velocity_step_mps": 0.5,
+        "max_depth": 1,
+        "samples_per_src": 200000,
+        "deterministic": true,
+        "los": false
+      },
+      "time_steps": {
+        "sampling_frequency_hz": 1000.0,
+        "num_time_steps": 50
+      },
+      "rotation_probe": {
+        "scene": "simple_reflector",
+        "scattering_coefficient": 0.3,
+        "tilt_from_deg": 2.75,
+        "tilt_to_deg": 3.25,
+        "tilt_axis": "orientation[2] (rotation about x)",
+        "max_depth": 1,
+        "specular_only": {
+          "samples_per_src": 1000000,
+          "diffuse": false,
+          "seed": 1
+        },
+        "diffuse_on_ladder": {
+          "samples_per_src": [
+            250000,
+            1000000,
+            4000000,
+            16000000
+          ],
+          "seeds": [
+            1,
+            2,
+            3
+          ],
+          "diffuse": true
+        }
+      },
+      "cost": {
+        "shard_dir": "outputs/elev_sweep_shards",
+        "pathsolver_base_fields": {
+          "engine": "sionna",
+          "spp": "4000000000",
+          "switches": "R0D0E0F1",
+          "range_m": "15",
+          "n_poses": "8192",
+          "mesh_fix": "batteryi5",
+          "blade_law": "perairframe"
+        },
+        "allowed_extra_fields": [
+          "env",
+          "solver_build",
+          "max_depth"
+        ],
+        "production_depth": 2,
+        "kernel_base_fields": {
+          "engine": "ours",
+          "range_m": "15",
+          "n_poses": "8192",
+          "mesh_fix": "batteryi5",
+          "blade_law": "perairframe"
+        },
+        "trajectory_rates_hz": [
+          1000,
+          10000,
+          19700
+        ],
+        "trajectory_duration_s": 10
+      },
+      "rotor": {
+        "pose_rates_hz": [
+          1000,
+          10000,
+          19700
+        ],
+        "body_speeds_mps": [
+          0,
+          5,
+          10,
+          15
+        ]
+      },
+      "kernel": {
+        "plate_side_m": 0.125,
+        "gamma": 1.0,
+        "u": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "spacing_div": 12,
+        "move_fraction_of_lambda": 0.125,
+        "penetrate": false,
+        "freq_offsets_mhz": [
+          -50,
+          0,
+          50
+        ],
+        "range_m": 15.0
+      }
+    },
+    "definitions": {
+      "median_s_per_pose": "median over shards of meta[5] / idx.size (elapsed seconds of the shard divided by its pose count); meta layout verified in cost.meta_layout.quotes",
+      "median_paths": "median over shards of the per-shard median of npaths",
+      "single_process_wall_hours": "rate_hz * duration_s * median_s_per_pose / 3600 (rt210, depth 2)",
+      "doppler_hz_measured": "Paths.doppler of the single specular path",
+      "per_object doppler_hz": "median Paths.doppler over valid paths whose first interaction is that object; expected = dot(k_out - k_in, v_object) / lambda from Paths.vertices",
+      "phase slope Doppler": "slope of a linear fit to the unwrapped phase of the path-summed coefficient versus time, divided by 2*pi",
+      "phase_rotation_deg_measured": "median over valid paths of angle(cir(normalize_delays=True) / cir(normalize_delays=False)) in degrees",
+      "phase_rotation_deg_expected": "angle(exp(j 2 pi fc min_tau)) in degrees",
+      "max_rel_diff": "max_t |h_extrapolated(t) - h_retraced(t)| / max_t |h_retraced(t)|",
+      "level_db": "20 log10 |sum over paths of cir(normalize_delays=False)| ; PathSolver level in dB (arbitrary reference)",
+      "n_specular_paths / n_diffuse_paths": "valid paths whose first interaction type is InteractionType.SPECULAR / InteractionType.DIFFUSE",
+      "median_level_db_per_4x_samples_per_src": "slope of a linear fit of the per-budget median level_db against log4(samples_per_src)",
+      "f_tip_el0_hz": "f_tip_hz / cos(source el_deg)",
+      "implied_tip_speed_mps": "f_tip_hz * source_wavelength_m / (2 cos(source el_deg))",
+      "implied_tip_radius_m": "implied_tip_speed_mps / (2 pi hover_rpm / 60)",
+      "recentred_phase_deg": "angle(E(moved) / E(original)) with the kernel grid centred on each mesh bbox",
+      "frozen_grid_phase_deg": "same ratio with one grid_ref_from() frozen over both meshes",
+      "required_rate_hz": "2 * (f_tip_hz + 2 v / lambda); required_pose_rate uses f_tip_hz at the source look, required_pose_rate_el0 uses f_tip_el0_hz",
+      "deg_per_sample": "360 * rpm / 60 / rate_hz"
+    },
+    "assumptions": [
+      {
+        "id": "speed_of_light",
+        "flag": "external constant",
+        "value": 299792458.0,
+        "source": "SOURCES[speed_of_light]"
+      },
+      {
+        "id": "carrier",
+        "flag": "configuration",
+        "value": 3500000000.0,
+        "note": "3.5 GHz; checked against outputs/report07_three_engines.json _meta.fc_hz (rotor.fc_matches_config)"
+      },
+      {
+        "id": "unstamped_names_are_2.0.1",
+        "flag": "naming rule, not a per-shard record",
+        "note": "Shards without a build tag in the name are counted as build 2.0.1 per BUILD_BASELINE and build_tag(); the same file states only that no record shows another build."
+      },
+      {
+        "id": "shared_card_timing",
+        "flag": "unmeasured conditions",
+        "note": "Shards record neither device id nor concurrent workers; the supervisor allows several workers per card. Wall times are single-process wall time under shared conditions."
+      },
+      {
+        "id": "timer_includes_scene_rebuild",
+        "flag": "verified from code order",
+        "note": "cost.timer_includes_scene_rebuild is computed from verified line order and indentation."
+      },
+      {
+        "id": "kernel_device",
+        "flag": "unrecorded",
+        "note": "ours shards do not record CPU or GPU."
+      },
+      {
+        "id": "f_tip_is_source_look_projection",
+        "flag": "taken from source ledger, formula verified",
+        "note": "f_tip_hz in outputs/report07_three_engines.json includes cos(el_deg) for the source look (rotor.source_el_deg, rotor.source_az_deg; quote report07_f_tip_cos_el) and uses the source wavelength constant. required_pose_rate and tip_doppler_within_two_sided_band_at_source_look hold for that look only; the _el0 variants use f_tip_hz / cos(el_deg). Body Doppler is added as a radial speed with exact c."
+      },
+      {
+        "id": "tilt_diffuse_budget",
+        "flag": "ray-budget dependent",
+        "note": "With diffuse reflection on, the level after the tilt changes with samples_per_src; it is recorded only as a ladder (extrapolation.rotation_tilt.diffuse_on_budget_ladder)."
+      },
+      {
+        "id": "toy_probes",
+        "flag": "CPU toy",
+        "note": "Translation and tilt probes use the 1 m simple_reflector plate at 10 m, not production settings (depth 2, 4e9 rays)."
+      }
+    ],
+    "source_hashes": {
+      "installed:sionna/rt/path_solvers/paths.py": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41",
+      "installed:sionna/rt/scene_object.py": "16d04cff7755e707a74773e62276a3360fe069e2b0daf490aec60152111cced3",
+      "installed:sionna/rt/path_solvers/field_calculator.py": "02ac0e5264e8c6ad7bf299055c4b37c133b522f6d2d40e3ba923013f52d31ed0",
+      "installed:sionna/rt/path_solvers/path_solver.py": "1e14fd9da9d7fb73e4301540789eadb5dfc5cf9ab97a85360771982b017a4544",
+      "benchmark/report15_probe.py": "b6bf14315825727dbfb150b65d58dc3dd37643d390baf8ebca53241d00e4795e",
+      "benchmark/elevation_sweep_md.py": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e",
+      "runners/worker_supervisor.py": "7124a0a8c4a9d974d08f02af9cfeee080c2d17cb6a157af169d1e87cc8312109",
+      "benchmark/report07_three_engine_maps.py": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0",
+      "benchmark/report07_hover_long.py": "33d3720cc98f24a565df1bb938f030c3710517e0f29204fd48d79f697b191568",
+      "src/rcs_sbr.py": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67",
+      "src/arm_grammar.py": "4472a42c7f7d5ec9676c244feff6924652b6301e8f9f8cc505ec2cca7c6f640b",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+0_00.npz": "02aa290b758ab051d875e582379b7451eeaca1002a0fb0f51727c243dde19e75",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+0_01.npz": "6655c5ae278653f8340fe216aeb9cfd22daa20887441ef76738a74591258f61b",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+15_00.npz": "a1498ea2c6d0ce66db31a3027c7cada4d54f802b85d54d1239ba13349a16ba76",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+15_01.npz": "c8df6f54f5b6264d289a1df28bbd02ede75e1015253d92b4fbff766b443d7bd4",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+30_00.npz": "b252b824194442ad61899f3300e770c7010c169adbd6c638e5c6233dd76dc305",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+30_01.npz": "a724d0bdeaecfc6a64fd90b8ca6a95c95bb0ceea7d2276f35fd1458740f8f653",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+60_00.npz": "0ade05eee09df96849d74ea817b536d0e9f1781901b906ab824d57770f3e0950",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el+60_01.npz": "3ffd01fcdc8ef8a5a790e1626f95480d5b4a3436b7941c984f6cdc7917680910",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-15_00.npz": "972cc705553de40200452167f70e52d131c9cd855fd95e72a3ba95faa919418d",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-15_01.npz": "aa43d90f7c856945f43c4a3fd641beed6f623589fc9adf3894d8cc4ad69c76d5",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-30_00.npz": "14ada4ab49840a09c0e458cab539e85211fc5edfa939902642796484abe11d05",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-30_01.npz": "ae05d24e5446818dd5804c86f71d0fbdaa6f8fe20989e554bdf4fb51f85ee2b6",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-45_00.npz": "7ef9f61363507b7b225bdf68b26193a7090a90cc74b7d4ef52caa266cea84390",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-45_01.npz": "3865edad0e65171d271f695585673bc1583eb7e8d4c07641b2ccb764fe490d34",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-52_00.npz": "458fc157c9f7259f4b5ad2dd994540ed678d99c5b7e6d5b64f9f4781f4e9f7a5",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-52_01.npz": "ced1ca2f898af92c43431c8f04662bedfa221bb61ca792619f28063508cd3872",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-60_00.npz": "a23d592663d0636c58e78ce06d9d62d853b411f634ce0603a521236723f8875e",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-60_01.npz": "ec2d002ad6a7ab5b36e03788d5af271dce0f815a99c31cf3390911348a94a762",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-68_00.npz": "5938c47585b4404ed12fdea68fad90cf751069aa4ccfdc0a24f859aa4bb31551",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-68_01.npz": "2e023e828109cd39ed342ad645d8841aba62494b118932b58d5901bcac7ca852",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-75_00.npz": "aa24be74d66bad0b4f044bd2b661617bd959a77ddb1ad500b24ac11d47b3ae31",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-75_01.npz": "790e7a1d594244f0c3a5527ec2d348e2f76c324fb47bcaa3740732323a513ddc",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-82_00.npz": "6cf96d3bd6d6bb7867774973fcbc2b9315de3a20110185560290ba0f5ac849e8",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-82_01.npz": "313ae35dec99160992d239d93c1a9cc3f8697afcf81be1e59fc617e6fbea096f",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-90_00.npz": "8ca261d3f07bbe361e70b29e1e6dba0ca671cbbf96d1719144236d11a08f9d34",
+      "outputs/elev_sweep_shards/ours_r15_n8192_mfixbatteryi5_blperairframe_el-90_01.npz": "b331bbc68e79b377d58ad56d60f23a97b9580bcf078eabc686993edbc2c3194c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-30_00.npz": "19235c8544856e1bfc5b1ac3a898b1c64a2850f7e1df5b927ff86db29de3657d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-30_01.npz": "8e7425a094fd792be036d2ce6ac22c086029dac336e5d401424e8b70abe8e8b1",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-60_00.npz": "534d9e739cae060ca8bdf7ab79e7cb3831773f422478e5df0d95ed07d8a59348",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-60_01.npz": "fc82e1a345e9cbc1f8c1ba0fc0387a375da33c833252fa1fdd18c2a78b2d6604",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el+0_00.npz": "d2b92a3e9fda16bebe24b08bffeed835c42751289a0f69d4260ec62abc137c5c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "4a01957a5a59d0dd3cffe41e5a6c41d4e87d3a4e59a099b184f5644c80b1c266",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-15_00.npz": "ac32de26f6244c4961d7cde08f75caed6b6918f1bed8740f3774d2c007422273",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-15_01.npz": "384cd214301a1f74b9b0215a1b8f2878b7010ff048ee9ccdbb5b1fd2e49ef83f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-30_00.npz": "6bbab06ff5bc942a3f5b1bddd8a88caad9298a86f8994e6c8a7c3a64654abaa8",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-30_01.npz": "7b6e914705362afd6a6c0ab56ec922ba1025972d18cbf9980ff6454695b7804e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-45_00.npz": "89f8c88a1593e6b39ad90816ec713b87fac730623142d82c76fd265675361385",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-45_01.npz": "b6357059ca05b96bfaef452998fb50e5c50c830217a9007a83298bbaf0929146",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "54485517193e0c251766af3b16b539c1c865ec8791f35d88036bec71862d2b2a",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "42d6c5c2664ab55403d828760bd49ad3afc29fe1e7f2d74b292610de35ae5fa9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-75_00.npz": "b70ff4afc8b3e0362fb4b5b741c8670bcb108be685e39f8191423398a08b7625",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-75_01.npz": "5705fb54b2b1c8125ff4a20aad93797ffce7f6a256168e2c16f882e717ffa78f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-30_00.npz": "8941caecc0922b9e9f04fc69e7b7906bde66cc9979ea3ca7f2e23b587abec15d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-30_01.npz": "a32cb08e44383a961b79b481d87f97a03580dedce5b501244128e2276f9a754f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-60_00.npz": "bc1ac5e6627a5e1577ac655599b82f44054c485302c0b297b420faa573d4274b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-60_01.npz": "da9bd52439e637c22d2ec0a30cecadf8d7c4eba3772661ab704a507915c28720",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-15_00.npz": "80b020ed275d190ba2901e9c35aa99b955cf7d8bc41c4dbe0d6c861c0cc03686",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-15_01.npz": "8e486a297192c019c1c99133dc1b9e96ad5363c40f181fe692f0216cec6c1f88",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-45_00.npz": "7d039c19242d7a4ef77bbc57bfb0f6a3f61eb4d5f1e074049e0741d3f601f180",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-45_01.npz": "bd98ed1e1562b530c2b0796f669fe177cb07ae76dbe2aaccafac1dce292f6438",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz": "3a7efc4fda0b91cbfdb61156c5a40830cc294a018d7ad1a56ab7ca1fc6c3fa04",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz": "00a8a544b37ed0c8da067d6fa80dd4e6a0557c312edc63c39451bc0a997bcd78",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-75_00.npz": "d1d5f547c31b8f5c0073f2972b36a10894a6492dc61f50e3108e03a72ba29bbf",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-75_01.npz": "a87fa4404f6781fca1e0b39bbb16b41fe86e61a914d4b23f32325cec4ebbf826",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-30_00.npz": "7217f63b61da457048b8573762c169f19ea9dfa610e9cb52242080030cb7a847",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-30_01.npz": "bed9d9c64939c39726b109478f7125631d57d83abf82a337a6cd414d793f6e68",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-60_00.npz": "99ef8a0d7957598f874bd74703ec343436bc8e6db26efc63ed08de1f1e0c6211",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-60_01.npz": "3acbcfc6f16d24321d56d171d56d19c519c253f97f3dc5b4bf71459b7da0f7a6",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el+0_00.npz": "7438a0e4f4f0ff70ba657d0d85576b5f56665a95b731a8fb1542a4a4656a1845",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "36417f1508455ae97ff919857a2b09c33d6192245817d37cbd290695e643c046",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-15_00.npz": "9b95eff0adf79ddf85976670cc4d565d2691fbfeeb256c2430aebb486873cf1e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-15_01.npz": "c4366952a78e84608a90545fddbc94d8976537323becbb20250668f0cbab9bf2",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-30_00.npz": "19ec2cdc660c90a4e5489170ac1a207eb8fdb4cfa33c30400ff2cb9069b06fa0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-30_01.npz": "37866a2ec0f66d2ad5de0782c1083560791c88c920f74514b7de691a6e537e84",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-45_00.npz": "7289e7ec1ba2cda470cd6adf6de6c248efde076020d515cf8210b54b5f16e3b8",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-45_01.npz": "4c5a8d30a6133191c4ff28822b6eab47c3a92926ba4aeab5e3ee1d041de540d9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "fb423193117aaedf3b97fe92e2d7144dd34fe9c12b37b745219e685ef255eb48",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "eb89496b8409910c8922a14578abbaac784dcf1cd1f0c76f85ec67067b247e40",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-75_00.npz": "cbe0503869a2e626c9b1ced01e0463322f626656a6f6ccbe0b35ed1df77eec4f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-75_01.npz": "11cd23561dd936e3279a8d8bfe072560c1334e9eb83dc2bf0c41ca18f064abb5",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-90_00.npz": "b841d022702bbaa285f6457b3521565e6fe21e6e249a819277d1ea402cbb2c7e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-90_01.npz": "fada29dedf6b96c06654536cea00de365ac451e355a7a8df47ceaa12b97a223e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-30_00.npz": "90a58ba946e2540e839935024f2043d0870185f2e31274d6d229bd9d42067e49",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-30_01.npz": "3ae5f155707703e737073b67973eca4208aa5f6558a8382195af4c7d6b04a175",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-60_00.npz": "e775bec8dc0c5fb83b81ff00015ddb565461b8e3b0bc12c181e558150bbeb148",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-60_01.npz": "2f02ea3c330358a0f428a0807a83cedc97af24840fec6e2a9f5800fdfd96deb0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-15_00.npz": "eeb7c16f73e5a934abd523fcc9782a989ede1d2ab0d39919958aeec4dfea8f8e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-15_01.npz": "26799bc67b85bacca8f601126be2b939632d93afad14ff980f5e9e74a765069b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-30_00.npz": "226f1015d1b4740e037c73a509c1f46f4007124dc550e91ab4fcf6fb4d6e1bcf",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-30_01.npz": "c57af75687694bbad946ce3c4b0c84a70874eb79f81c8a275423204d179e8a11",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-45_00.npz": "e45ccacfa80ad765486b2882a5dc728939d35efc8ceeba1499744be75a10d46e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-45_01.npz": "9fd41b0ff7e66f54c89fab41fda0a5a748fd114428996149caf505f047717068",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz": "26eda59d2266ad33199574ac88c4bf3473471027b44648b6e86523a03be1d6c3",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz": "fa069443f7f800b3afbd900471baad1d32fc781aca3ca448574e322ba1969b24",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-75_00.npz": "888592d52bb925543924b557eadd90d6e892e9a10f3789a26a2fdb8d183cecd2",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-75_01.npz": "ea20f647efa7871a132b2a0c344653018e152a55ca02408620d12a5e89f67bbb",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-30_00.npz": "59b944c87d325d80a6a71b0f4a2276fa801b5af06fe2e78a2676ac549ec2578d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-30_01.npz": "37111b6de97ea41aca5e7349eb8e2b39898c1bb037c1e8ae5ffa4c039466cc69",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-60_00.npz": "7bdd038dfa8ec133c64de09fda023bce3c71c4f42dc196eb22fc8754cff4da37",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-60_01.npz": "369466ce565863ce9ac62c50fd11755cdea89ef5136d4a5faafe699d2f41f419",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-15_00.npz": "3e0c6910cb5bf18d851f6a5f3228fde6a85a2351475a0c73a48058b13a49792f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-15_01.npz": "389bcdd427bf9f42e63600e91eb127e16bccf371c490ffd33a033889a7cba974",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-30_00.npz": "bf42903ad8bb926f68daee17826ec98fe9ac1eb30109e415bc6cf7b0a669a2bf",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-30_01.npz": "07d65fd5a23006acb7c863ccd519aa6334289b6dcb47fdac3b4f3cfedcf2276e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-45_00.npz": "756efbc5166a0d2aaa41d7a5cb1bef5098be80ec5f7e55da342b66e8ec6a1abd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-45_01.npz": "c41d50986d56b4ca016af261da88bc14892566d5f845a506fe9d7ab8559ee380",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-60_00.npz": "b7f121d129ac3de2397723fcd94c7b0b26114abd77cf3671dc53e6cbc2b3d6fc",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-60_01.npz": "ae4ddc8c2af531bb29d2854e3970b728da7fef16a9ffcbf43e5e1c2ea6374e38",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-75_00.npz": "9d5e5d5a189669627d6981bbde5bdbc260d42a8dd5ab07a30579bee148236776",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-75_01.npz": "e8f23fe80fc9e4e024474039084c96f7b89db25fe11adfbab33e542028a563ef",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el+0_00.npz": "60af531905af5c26b06109896f7e74eae20c3e57d852e8e4769f84480217ceda",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "298a815e36bad1a4dbef6c6120b243442f7daeb9228091f7b8f575dbefe13e8c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-15_00.npz": "1893633d662ee1dcba4fde9374d3881591e895b6daf8b3b8b02dfda3f0ba1b8b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-15_01.npz": "ae677bc50f324979db76a1d33a4a07be7c84adb49661b1ea93d1d2b544b05e10",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_00.npz": "f561325067c913d69badd285ec0fe6afd8fbedeed447453e8a75c7f69b089406",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_01.npz": "98bbe17f2bb6f7fdf8a3f6ac3b21c34825b0c52de6d5c1198580b0793d786619",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-45_00.npz": "15805bbb3a3d912b157a27dc8d2b7a44902e1098ecd2ec674f5ba155b9ff133c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-45_01.npz": "11e5f9b28a6a6b16c95858f8723c5bd898538374b42b6f67935c9315b02cec4b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "0031189cdc8ac27aa0af8580d8669bb16bd6e3762c9ce69d337a1282ea11b013",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "5af6f22712538a2bc7c9a957022377d981164e4bcc9a99e3cf0ca2bfee0cb139",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-75_00.npz": "a52d43fb12be1c230ff2851fc2d8bc578805b8d2bf1ae8e2d250d20564f25c56",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-75_01.npz": "c94642bab0d83d81460a25c570f12c2f8371f15a3434ea1a7c4e44e793e346d0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-90_00.npz": "67d7204a526983eeab209ea2469ba67369bb4525c911f5ddb50c9a36f211c259",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-90_01.npz": "1356dcc5a8991521036db313d03a4902377c956577b75bdf98c820c72d464151",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-15_00.npz": "007e9eeb71bf3e8ae75227d832d6ea0cdf71edd4a43312b36ba3b13896f5e7dd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-15_01.npz": "e537e36fe33d559b2f46a0a01fdad312179c937fa7891c05a531e864ffe75c54",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-30_00.npz": "c2f6801ecf01560b4b8abf256db1a4c45a2666ef1c60aa1f2fc81dde06f9e7f8",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-30_01.npz": "97035566c5735e214fa033c28c2b82d9e8922b51051a0d17b58e1eeb1bc27e34",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-45_00.npz": "d0d8e056993ca1de13d810d85c95444718ed63efbf2ff62dd2cbb7d249da793c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-45_01.npz": "211105a3cabc8b52818ae4f685f2e481cdf58df88c15352d336527e377da26bd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-60_00.npz": "2f5857a6ec6096932e25637e8ad9cbb239842be6fbc3a32a788c0a668e91ac4c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-60_01.npz": "31a02c414f5cd5a14cc50f1f8a90a1c06bf34ac3b08fb0f1991b837f5383784d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-75_00.npz": "48b0d578abf468f21f363630a18d031b97a603e632acc6bd363b1708b7f8ec9f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-75_01.npz": "f5994f5f66c7636b6a5e7a44dc1fa5f4c9b2e89347cd563e9902207c09c7ac19",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-30_00.npz": "108aebb92effa0d5900a19ac9693f8027e465d7deafcac090cea3075fc9c3608",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-30_01.npz": "b15aa9915539addfbcb2b5629ab9afe646fa058f8291f33489fa9d4270a9dfa7",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-45_00.npz": "897b672c4a9b21063017375bd68f1d9abc3af1494e84f7b0e6f4492301e997f8",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-45_01.npz": "50de017b5660b68fcfa1760e450256fcb869340548425c6fe081863613c560b4",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-60_00.npz": "42ce20c71436db7cc1e03f8bdc340cd2a87014248861525976e88b30e46c039f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-60_01.npz": "cab6bbf140cabf2a22481ec41589d52d07cf51b9c3df743df26e9976c0a91aea",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-75_00.npz": "36af4a887b9f2885115871600446c3e3d088bccd4c485269f4f4527a885a754b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-75_01.npz": "589082bd2f7bc75d9df8f7f6f40c49533983f1db474d7b2d60deaf5103e1827c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-30_00.npz": "3c13fee3633dbdef60ad83bd3dced8febd8a5378c3ab77edac7bdc16f6d774d4",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-30_01.npz": "08b7e6c0af62896fbb6a43505083e10ed0ec6df6f1aa0fa2620eab207cf526c9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "f9e15817f9d9c7fcd3030a76e7c6b08b494752cc9060425f33ef51148c1a5a67",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "76064e37f8b2547312df08d1a8c9ef0020003956f6772f2316328880734eb10f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-15_00.npz": "9da6488a75d9e7d4ba94f485bc6fe9efdc4a9a7cb0649ceb0b5e3f71d31a9845",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-15_01.npz": "510334e80ec7ec972909203f0a173daeaf66d021b634bac1312d635789b5657a",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-30_00.npz": "45e29909293534c008ba52a22c8ea1f584036382d65bdbb56e3c855dac943fd4",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-30_01.npz": "fe2d0e18cc40a677125de6bb16d4d1be638693eb50b5771334b64ff8fd1153a2",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-45_00.npz": "3f704718bf263e11667ace4000ba326c788b0869791fb7dde8a673606c646e59",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-45_01.npz": "c2377c9ad5b6d9505846d1fccf703c3105de97ffb2083d7ac5b5eedcb79e5cfc",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-60_00.npz": "d3d7c23ab87e2dff95e6fc055020f08040fa33bcdbb6b09e73f0b9f41821f6f5",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-60_01.npz": "4348335f084e6bcd8218959e8f75e8546af4d0eee1ec34a5f3585d54eb2df079",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-75_00.npz": "c552c0f7c89297818b7f0d22d09a3e4050587ffe6c77de9d18ad7644bc77ed4d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-75_01.npz": "836967c86048c715db3b4e41df837c0060f69d38312be018b6eeea48b9016304",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el+0_00.npz": "f6d02113b1d8e353b88f89dc23b525673f85252ebb932edbc555ba2913896616",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "ba01b32a7f82d7620daffc39fb47ee6b6d92b1406c8bac230bdbcf4a345b3806",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-15_00.npz": "7c7d468bac9c399b468c66b1a176b004b6286303103a159514f55c3cd72f3287",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-15_01.npz": "ed3fda2d72f4e8dfb96256de571ae96f857a61776fc925b49febc3cea74a38cf",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-30_00.npz": "3e6aba46ed63623c630bc49a5c2731465d87c62c58948110a925f331e0648dbd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-30_01.npz": "8692cd3d5ced888efadc0b1b501743a196d5e5b98592f06a93d528488304b63e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-45_00.npz": "1001870fb647183b2ac1b49b2c2a8f1e3967546ee3030c33414c970550519451",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-45_01.npz": "aca251ce320c7050272a1aa99317da1a92448eef3e33412db758408292f0d8ec",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "856631cbdac5889d3f9921e0c782fe18b9d2f316727eefa145d58113a0e294cd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "28a68956a4e58a135ab53152918e159534bf1a761495c573d21b6eaf239d3d50",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-75_00.npz": "45d39cfc4fb4967537c0aa16719d193c75c0830a27d5f0d9f3146e6c16be3a60",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-75_01.npz": "12fcd1f75ca9bc608d9cee4aa0b2f9d9fe40b1b2e2d9e2a369027d12a2ad02bc",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-15_00.npz": "3df1468b41e115792afd84c639a246c397c5b0ffffed9623543394f3c794828f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-15_01.npz": "8fc273721aa3bddd8084e35caefb419389960a0f95e35094801d48f67b153c7d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-30_00.npz": "514ad440f92cf7dc6d9cba1867692a13d60c4fdd7d9a7322e93728208322d0e1",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-30_01.npz": "ab3d406b737b0326259e03a03ddae5a8ea64bc01bdf639845c10c06be944425e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-45_00.npz": "89d066c86170f31e90a7895dd07d05e51925efbe5b7e63f7bb24a26069f6bfff",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-45_01.npz": "6926aae26bfb97680cea7f114875212cb934532a41360b0b81f33b21ff07bc26",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-60_00.npz": "bfb588c1049a700b740fd5e2e23ea9e7cdaa0f2f3c8f2aad910461e1ca5d0b65",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-60_01.npz": "aab4f4eb1ed2d9d54c051ff40ca431d25c8ce5c7e7eb728bee9c6aea3b2fd7d0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-75_00.npz": "10617c947a876445afdf12c5cf212bcd10d13c1db0a0fe19c933216c0b150d70",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-75_01.npz": "f71ea2ada3d9e6c82a0e000406ccca7cfbc50e1841eb4b40126d93708c0e4bc9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-30_00.npz": "4a63eeae7f625195b16ff4e621e24ff402b032adde13808e4af5ad92915bfbfb",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-30_01.npz": "69c5e49409437e9dfa9e4d89f7d527c5a54166f400440e551b915d3e213fb5da",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz": "84c2449d88fb82326b0974bdb3bd0c14da7e168c44568f3575510d634a1a0fdb",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz": "2445a83d837d65e5034812546f6404c2aab247f63a0c7c9322da5b060ff0287c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el+0_00.npz": "399fb9150ea22c6f343b74b5fc089c69cf4890b780cd2bcedb26c4dd334dda7d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el+0_01.npz": "18bc0759dc81a1fb949f73ebe8cd1a9821521c2d25cbbfdc6bc3aaa5cb11f64d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-15_00.npz": "40fe00f0c52a4af43afdf587731e37c05bc0067dd0e93c034f2529ed6eb5767f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-15_01.npz": "ffcdbf968c0c204e652055b2c05b294112a5ff1c540ac6c92bb932dfc429f46b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-30_00.npz": "1574bcd65c4980f00396d6a5c395af7cbb2c13ff60fd2688d27eac0272afb50d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-30_01.npz": "647077af6ff43ac680a5d6e64e418f93584c093977a44b99c641b120eba00bb0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-45_00.npz": "3661391caf3d1d23e646dfc74e5cd97b7f81b940345decae4ee62f8a3d0ecb19",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-45_01.npz": "438b7e5548e786c1458f8cce9602961f6e6daf621499b3becbbe09debd6ec9b5",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-60_00.npz": "b022b0b275662e31f14983547eb2f3bd437102d3d6b9cb4dfc154f46ff10a5d8",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-60_01.npz": "c45e26685463e8dad639f6e749face86d11e8d8bed966fa45f83a1d51bc45378",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-75_00.npz": "a8df316e228a90962055835fb2ba4044eb01bb5a4eda31ad412ca116ad98adc6",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-75_01.npz": "eaa7d348f8b14966bc064775db47999ec856a91fbab83d4718d9fe0f3002eea6",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.05_00.npz": "25fcc6591ef4d842b7e3f5ae6132beefbe9ec44d67358a42df35ea5c2a720850",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.05_01.npz": "08ac76fe76d5c90f6c1b6eb06e0644558a49ec8c904d0fb7282820396367596f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.15_00.npz": "76521bf85c5e4a529ef3ea5f1cc54390ec6ba4cb315bfbde5ddf504e20fbb351",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.15_01.npz": "90d2d92acfcd38598e5a9ca224e7014456dca81219d84f2fe31c350d20d5cf16",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.16_00.npz": "c5e893aed72fb548bb5e18a60fc8b9a1e6780f0de2eaf69c04ff2fa538d7e7ec",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.16_01.npz": "e95cd8f00fd4cdb47b17d0a6ada8c6fa435cfc9be31032948d675fa77a40c08b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.17_00.npz": "b8215a0f277346c82c5817af6fcd18e07f4f3c029de40c1f75560dd4bce31489",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.17_01.npz": "269f235ed0600fa10682f263c620cfcf419bc93700c71a07514f6897079168d6",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.1_00.npz": "f5b1228a39dd2ed3b58658cef7f525a74cc44bfc1def8900a5633507d8160986",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.1_01.npz": "6bf99fb01c6c15e949355dbd2fa4ac2e3b09df9b58f9686434917ed63ee995eb",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.2_00.npz": "e6144775dd95855f450ecbc096ca13df859b9eb8de2a5c978ca2e0e56f9da9d0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.2_01.npz": "c1bb330ea825b2c46f6924824cec93a689312055540957f7380ab4c3c838fdcf",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_00.npz": "a5b12549d327574b260dd364c69d98fd24349b3e5eb26a8372609d8f952d1ce7",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_01.npz": "7e3e5a490f63a203c6d7aa23c7da55422b5a5e335908a90f27203685ef07f56c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+15_00.npz": "66b1b05e373e99f05142d1ece0d74e38b0da042c2e28f2463f10f261e43bbe85",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+15_01.npz": "20bfc3587397221985bf0b1395d55afb9dae3fd8ca1ebc484609903221d5cd11",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+30_00.npz": "95cee0b84ba39bf645196dfda165d51b2111bbfa09d81693cf08a71ae96c36e0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+30_01.npz": "c052b83b442dcc34d446d50c52305eaf9d9b0c522c9288d7dc6b73c7b9c02edd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+60_00.npz": "4f616624ac73a9e1bcf277e39dd97cb9a8d6f836c9ae988f2836a28c7b44df04",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+60_01.npz": "44ef9a07fd4b1c661f4e9c3c081fafaceecf1a5df2e837ed13410b1567985228",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.02_00.npz": "1bd27acc11601f4834c67afaf01c855f0f216e887b24412206ef0c3f7124d2d7",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.02_01.npz": "759252c478c3819b35315736eda3bbbb6d75eaed5e4ecba0066756c192869017",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.03_00.npz": "907bf4a5b298edc1d9d8ee6854ac55dd1ba161b354bc9e2ee5ea6ce54a0ce01d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.03_01.npz": "6eb494b7f645df11c31566c99287b7e1a91cf2c12ffa16d839a06e78c34e5c48",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.05_00.npz": "167bf9f244545d6927ef771690497fb798357aff604adf861f7e1e86e16eb152",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.05_01.npz": "00f87e138ff93f508e6865ba20f285f8de8f37fa8d17c73d025c4826d0d86fdd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.07_00.npz": "caf28dd4b0bfd2b9b13bd22eea4d5aa2e1a1746d1636765cb5c8e69df99ed1dc",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.07_01.npz": "296375025aa8cd2ea109dae76b09bbe88cb80a17a5223f8c3906872dd23d098f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.15_00.npz": "756a3e8db589ed86a2a7ae3af2c50fc2e4999083fb8d0cfd7bbdd60c5b2ea1cb",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.15_01.npz": "f884719f71cd2cf486fb0a08bf1db836b3851318a6cceecf2a1975dff64dacac",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.16_00.npz": "bb88370b62067a499a03f5b3bdc8a017a0fee2e0fdf1fd146a23984f799ac255",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.16_01.npz": "652999e01cb77d37597eb79bf3dad8b4d7ac794c16c7f9435732b8f6637293a3",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.17_00.npz": "eed8d9e72eec513a4d537ac202d8bcc06f03757551f3c1aa9723a5752edd6494",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.17_01.npz": "2fee43eb56b26147fbb4dd57cdaf04c2be989ee043ed5bb569e537be0e6136e2",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.18_00.npz": "4546306410f40e22e44f765831b7b15d60193850552a004c0b7adcfc765e8195",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.18_01.npz": "5f4bd61bc91fe34f0372930950c27ca80b66679b20389c0b91701c5e427dfbeb",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.19_00.npz": "fb8f1fa799df71747aa3eecc43c0c987df102b08e17cf68ca9c565b78e12ca90",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.19_01.npz": "c40185d16098034c9fe3359a9f7fc5dd232233e03f085373062ade31441db634",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.1_00.npz": "31101499b7facec2322478691b79f9fa6a474a275ae7820ffb1f11dd518de216",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.1_01.npz": "5a197ae8efd79d10d657ef03b7ecfd94df34a89b0d714e98348dffefcf702a4d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.2_00.npz": "e2bd8725159a7b73f1c29cfccffc163ee5f38d84b52451d24b01ba04383c9c2e",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.2_01.npz": "a20a23c521cb961a6068508c426f2df461f07a5a7c271963c86cc2b252f5d567",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.3_00.npz": "9debf108b35596760da8c7b9d44dc5e328b97699de245a2d458a39f80acef22d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.3_01.npz": "1009d4f52c7ce15e3168d6635950a2622605fefbf62264ac08b14cde16b1412c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.5_00.npz": "75754c5f8624ddd69d569e897afd68482491df801493e26e696f7d8d214e3faa",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.5_01.npz": "7eecfcc66302b5b4c7a512d85c4925784ee0978e109c2ad8401fe1329965528d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.7_00.npz": "b45c814e4e5e24eaf59e9d7ec116df9d549252d1172e03f864a0903b2ffb6bb1",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.7_01.npz": "a857ef9ed7eb14af572204ceb993855954c3e36bc029fa826061399b61f63512",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1.5_00.npz": "0f216f196b052b81cedf9869e97b1ac804dc7c156b917b1f5779267af8746ee1",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1.5_01.npz": "91a78f914d1370a0f20056354da3640cf8aa4fde59ffe0872ae95dae5d5992b9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-10_00.npz": "c431fb5add1751e43ce66507b685706a72d7ec36fd2d14d28378840905740105",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-10_01.npz": "437ccd2aecdb2281be25046c6223198253d708ac898664c0d1cb0d0b2df67c97",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-15_00.npz": "0a0ff0ad56f2dcc2473c8aa192a7bacd577f06e723e8ffaa4882c568f6fc0223",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-15_01.npz": "afa8e23b5350f6728d9d42f6d457123be370d9675ecd5e58b6518b8c3b8df218",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1_00.npz": "70235f76fb663d721d3be299cdebe2cfd4a1d33c9870a3d065bb44e9711f3a2b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1_01.npz": "ce480f0463bfa4e2bdabc64714677a7e96693c01956fe5b6f7f8f75c6a2be1c4",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-2_00.npz": "6d7a2736705d7c7bf8fb5bcb1274639dc69268f3c6fec04bad7ab9cad3f60da3",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-2_01.npz": "6de8d03b81e5588dbf99ddde404d5fad6943344c41e6e077e1d67db48d352faa",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-30_00.npz": "974cf2a064918000a98247d97c4544e0cfa90661a94378fa18c6c1c08522e7de",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-30_01.npz": "bdc5bd4c4e86aaafed652e10eb9071e3be5595a28c52cb4090f3b6a75645f116",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-3_00.npz": "a3cf98ffcf7d273d42803a056f0cc6a3195fd4e832e9d36b857df81f617be7d5",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-3_01.npz": "fb9338b1d4cb87e5fe518bd3682642c3d2e7d4cea5be4d97f2c9f83ae9eede9a",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-45_00.npz": "88d6fb4e13d016fa7df84a28a777a7119491ce7e91cb3b236a5d647347f07e30",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-45_01.npz": "d5aed0543e84d6721ef71371c308442cdf1b15338d302e5688a2a3c1b08009df",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-4_00.npz": "f6667809276f7610b6e922e6dd149009631d8ad2967cd0c2222da30b7615275c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-4_01.npz": "faea7dcb229a4c91980be3e99621531ff2eca2b325f2862adfff752af8ebc80d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-5_00.npz": "ad2ec35416a6e595145b839de149267e47bcc3eaeb21c06c71c823bd1e9a9e2f",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-5_01.npz": "9032195b1cd5dfe2fc35f1f4f8da4eb1e551c9008cb8bae6e354dcd5a9bdf088",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-60_00.npz": "5277815c3118ec8c5d931ce7cd77659249d872173a6eb198ac45d4e75246777d",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-60_01.npz": "0e2937f0b98aea77b3055ca1ad71ca956241ad42f0487e11330a3aba294b1d3b",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-6_00.npz": "99fc48c9f43e455b8d2d3654d84dec458c66870bd4494614a34ae8c80bedaed9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-6_01.npz": "53429fb0b0906e282bd5fb816a74f54fdd0f8098a3b8aabbc47441e4ad290a43",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-75_00.npz": "9c7b5f48f665ab83c70bfba43a2dc28a66db839f30ca617be914f8579bd730a5",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-75_01.npz": "4ce741e6c552139e7400f724d51f099a405513df0b07ad8cacd43ba6d4c8fa43",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-90_00.npz": "56e811ee86bc6d70c7e84fc35da6ed37722fe79fe8e2629c9fc076d61022f4b3",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-90_01.npz": "6e8d6eb7833a701d4d56e57e6bc519cc45a7ccf9c77417fbc20ee3208fd1f8da",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el+0_00.npz": "5a5d85b7b8dbf12294b78788c4354ab0727f3aec0f7aaa0b5c53ca0ca8ff48b4",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el+0_01.npz": "bc1ae6564656fe39b16f9fa26947172bb245713dcc8df9f2fd44dff71b0fb8f1",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-15_00.npz": "a5be8d5c836b79d83c46ae36ed6745b94f76556cd0ade1c721c86202ec0f3a13",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-15_01.npz": "4c553b340d4d8cab19057f079db73d3f28f488beeeafaeccfde5cfc3a83817da",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-30_00.npz": "e6f6ededec923157f454e71a21c50f48ae5bb7c0c8cb590e853ac09456091bb2",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-30_01.npz": "deed4ada5ea9bf04f55cf78a885da55dd931976ea693c8c9abff9a5866990f38",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-45_00.npz": "5d757a857e654f9439c37cd67bfbef5866fe6d8a337aaf0972d8e3c2469660f7",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-45_01.npz": "b708559ddcd1e90e8423dd9fac75ee41c6456de5613c80cebf64553b69428d6c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-60_00.npz": "241a31c8ebcb0fb1b0a226d92cbc0536c0dae2136e438df27db7cd1dbcebaddd",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-60_01.npz": "b9d56fa14ec033d28546021e94b2898bafd3200ec5917194be88b664082407f6",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-75_00.npz": "0363a708fb07aec5b708d57542b10c7b4c7612cef074acbbbda3467d300bbfdc",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-75_01.npz": "9344375b54fe7c8408da38b25a47dfe0e4e8bc4820d52ca81c19797ad11776a9",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-30_00.npz": "0df9d996a106bddcf4cf849e41ccbb7d2af847d20cefe5fe008df7393622873c",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-30_01.npz": "92369f7d823ee1efba2ce2c6ff4751385937ce169b7eb36273caf6789be51fe2",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-45_00.npz": "11793ee794d577009fe6c8dec81e3291d17bda9f57b94da78250ca7d31dd82d7",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-45_01.npz": "a41d452e4fc12346a6a4ae7e25c1309b6459add60f4fd7bf949fdaaca63779e0",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-60_00.npz": "be3243e108f677c29026102c54181fbab4599a2b0ff1cd74d7085e079b1a8885",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-60_01.npz": "360b805311d681a94bd8766011d995a0d4b1a85da7e2c16fb3f1f112e2d21aa6",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-15_00.npz": "4d60266ea134304b36a63fc40db6e0c72f4dbc30216e4a1ecdc61ed749576066",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-15_01.npz": "d8414040fc4274627a217d81afd0d9e10e5fae42233f6255cb3860da0cb61119",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz": "e959e2c28ad06330cd36efd6e68c722a07717cccdbb0bff47298ec77a92ee721",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz": "a5f3f895948e8cf63d4d75498ec84ad9978d8a8fa6bdbd28707a70a9c50405a3",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-30_00.npz": "6f11e2adbd3354cee16f90eb269a8266b39001113044c18fc0f742755cf90e60",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-30_01.npz": "d2dd617ff4bf3d18111ac04975e3306c5553232c98ffc753bc9aa890944ab1aa",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-60_00.npz": "2607d1718582baa4a6f7eca2b2af6c8e053869e7444ebeb2e83f1a584a806aab",
+      "outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-60_01.npz": "f7f1808b90264e6a8974dde7318e5b1159fd598d2773fb88876496c77b975363",
+      "runners/SOLVER_BUILDS.json": "12ef673609d9668001d1559650745c6609450fffc253a0d6d0f184b5cfe05669",
+      "src/drones.py": "9f35d2a605901adfcd17e432bfa4b7c82afb087718361b82da3c04b7834afb15",
+      "outputs/report07_three_engines.json": "618df50dfe7f602fb0e7155980080e2f49f6ac337ea2e3de51dfd27d5ab51814",
+      "installed:sionna/rt/scenes/simple_reflector/meshes/reflector.ply": "96efb23550241e04fb185fd42a072f5d0662756da2aef72d3af61925af0192a6",
+      "installed:sionna/rt/scenes/simple_reflector/simple_reflector.xml": "3ec6803aeec413f446dde52404f07daa44be8756a887e5aef15b280a5c9afcd7",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/building_1.ply": "b8d90a9dc1813d9415187808c8e2d143fbde98d406b5a1eef90d6374aaef3886",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/building_2.ply": "68b2d70c2c8f2e11f4bf7075757323076c806f2a7e9282e357373512973a374d",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/building_3.ply": "626e25b2e41490e643bdc982e161e93149141cede7e3f3b0715a3ef1a5f6b538",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/building_4.ply": "8ef103c850e286c3dd152c350c567565e63a261ea738b5e6fbd75fa6481eacc5",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/building_5.ply": "65844f67abe2262753429d9a26aaf9d83df487f11e517c4c9ecc041710dfa996",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/building_6.ply": "da449d68dbe60531d14f8d2c3ed1841ab97d98e6d453eb7a098d905bd175cc92",
+      "installed:sionna/rt/scenes/simple_street_canyon/meshes/floor.ply": "638802fa86a5e6961418784d3873d89556e21f0227ae0f67455f8d71fba90756",
+      "installed:sionna/rt/scenes/simple_street_canyon/simple_street_canyon.xml": "02e4c97a82dfa3fbcc42a1742ed28a3b64fdeeeb962a15f505445b38a9179dc0",
+      "outputs/isac_kernel_review_0915.json": "cc479b2b58df03079c481eed825f6d7ae01b760ec3db6e560b4f94ad89d14d0f",
+      "src/rcs_po.py": "2b3712983848acc588c378082c117ab1727b0248b73ae1fabf90fdb2fd028226",
+      "src/geom.py": "cf6f39e978b46d601111370ea4d9d5eccdc6b7169bd6319c8daffc3e5797d913",
+      "src/materials.py": "15f3ffb870d63c53229871662945532b319046eec3a14715e0a039aedee942a1",
+      "src/gpu.py": "4506fe58584f46c09def7da55c16e998800d369eeae4d7f376c5f5b88bdf8237",
+      "outputs/kernel_outdoor_review_0915.json": "fbfd144b1d460eab08ce36464c627eeb4fe7d22548ca11a0041ec9bc4e61d845"
+    },
+    "sections_done": [
+      {
+        "section": "quotes",
+        "elapsed_s": 0.029
+      },
+      {
+        "section": "cost",
+        "elapsed_s": 0.346
+      },
+      {
+        "section": "rotor",
+        "elapsed_s": 0.351
+      },
+      {
+        "section": "rt_contract",
+        "elapsed_s": 1.279
+      },
+      {
+        "section": "rt_doppler",
+        "elapsed_s": 2.28
+      },
+      {
+        "section": "extrapolation",
+        "elapsed_s": 9.472
+      },
+      {
+        "section": "kernel",
+        "elapsed_s": 9.633
+      }
+    ],
+    "quote_checks_failed": [],
+    "quote_checks_relocated": [],
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "wall_time_s": 9.633
+  },
+  "sources": [
+    {
+      "id": "speed_of_light",
+      "value": 299792458.0,
+      "unit": "m/s",
+      "url": "https://www.bipm.org/en/publications/si-brochure",
+      "document": "BIPM, The International System of Units (SI Brochure), 9th edition (2019)",
+      "locator": "Section 2.2, Table 1 (defining constant c)",
+      "note": "Exact by definition. Used for wavelength lambda = c / fc."
+    }
+  ],
+  "quote_checks": [
+    {
+      "id": "paths_rx_array_shared",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 55,
+      "expected_line": 55,
+      "quote": "self._rx_array = scene.rx_array",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    {
+      "id": "paths_tx_array_shared",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 54,
+      "expected_line": 54,
+      "quote": "self._tx_array = scene.tx_array",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    {
+      "id": "paths_normalize_synthetic_min",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 463,
+      "expected_line": 463,
+      "quote": "min_tau = dr.min(tau, axis=-1)",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    {
+      "id": "paths_normalize_subtract",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 472,
+      "expected_line": 472,
+      "quote": "tau -= min_tau",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    {
+      "id": "paths_doppler_time_phase",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 507,
+      "expected_line": 507,
+      "quote": "phase = dr.two_pi*doppler*time_steps",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    {
+      "id": "scene_object_single_velocity",
+      "path": "installed:sionna/rt/scene_object.py",
+      "line": 268,
+      "expected_line": 268,
+      "quote": "raise ValueError(\"Only a single velocity vector must be provided\")",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "16d04cff7755e707a74773e62276a3360fe069e2b0daf490aec60152111cced3"
+    },
+    {
+      "id": "field_calculator_object_doppler",
+      "path": "installed:sionna/rt/path_solvers/field_calculator.py",
+      "line": 557,
+      "expected_line": 557,
+      "quote": "v_effective = dr.dot(ko_world - ki_world, v_world)",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "02ac0e5264e8c6ad7bf299055c4b37c133b522f6d2d40e3ba923013f52d31ed0"
+    },
+    {
+      "id": "path_solver_synthetic_default",
+      "path": "installed:sionna/rt/path_solvers/path_solver.py",
+      "line": 169,
+      "expected_line": 169,
+      "quote": "synthetic_array: bool = True,",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "1e14fd9da9d7fb73e4301540789eadb5dfc5cf9ab97a85360771982b017a4544"
+    },
+    {
+      "id": "report15_unpack_reshape",
+      "path": "benchmark/report15_probe.py",
+      "line": 308,
+      "expected_line": 308,
+      "quote": "a = (ar + 1j * ai).reshape(-1, ar.shape[-1])[0]",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "b6bf14315825727dbfb150b65d58dc3dd37643d390baf8ebca53241d00e4795e"
+    },
+    {
+      "id": "report15_unpack_1x1_docstring",
+      "path": "benchmark/report15_probe.py",
+      "line": 301,
+      "expected_line": 301,
+      "quote": "1×1 안테나 가정",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "b6bf14315825727dbfb150b65d58dc3dd37643d390baf8ebca53241d00e4795e"
+    },
+    {
+      "id": "sweep_timer_start",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 866,
+      "expected_line": 866,
+      "quote": "t0 = time.time()",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 2,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_pose_loop",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 969,
+      "expected_line": 969,
+      "quote": "for j, i in enumerate(idx):",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 2,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_scene_builtin_rebuild",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1016,
+      "expected_line": 1016,
+      "quote": "sc, _ctr, _scene_obj_names = build_scene_builtin(",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_scene_rebuild",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1021,
+      "expected_line": 1021,
+      "quote": "sc = RP.build_scene(parts, fc=fc)",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_meta_layout_head",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1199,
+      "expected_line": 1199,
+      "quote": "meta=np.array([el, a.shard, a.nshards, n, prf,",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 2,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_meta_layout_tail",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1200,
+      "expected_line": 1200,
+      "quote": "time.time() - t0, spp]),",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_kernel_meta_head",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 765,
+      "expected_line": 765,
+      "quote": "meta=np.array([el, a.shard, a.nshards, n, prf,",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 2,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_kernel_meta_tail",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 766,
+      "expected_line": 766,
+      "quote": "time.time() - t0]),",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_kernel_timer_start",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 738,
+      "expected_line": 738,
+      "quote": "E = np.zeros(idx.size, complex); t0 = time.time()",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_build_baseline",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1318,
+      "expected_line": 1318,
+      "quote": "BUILD_BASELINE = \"sionna=2.0.1 sionna-rt=2.0.1 mitsuba=3.8.0 drjit=1.3.1\"",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_build_tag_empty_for_baseline",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1333,
+      "expected_line": 1333,
+      "quote": "기준 판이면 **빈 글자**, 그 밖에는 `_rt<판>`(2.1.0 → `_rt210`)",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_build_baseline_caveat",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 1315,
+      "expected_line": 1315,
+      "quote": "「2.0.1 이 아닌 판으로 구웠다는 기록이 없다」",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_branch",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 656,
+      "expected_line": 656,
+      "quote": "if a.engine in (\"ours\", \"ours_free\", \"ours_gpu\"):",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_comment",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 657,
+      "expected_line": 657,
+      "quote": "# ⛔⛔**우리 커널에는 --env 를 줄 수 없다** (2026-09-01).",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_if",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 672,
+      "expected_line": 672,
+      "quote": "if getattr(a, \"env\", \"\"):",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_raise",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 673,
+      "expected_line": 673,
+      "quote": "raise SystemExit(",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 43,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_message",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 674,
+      "expected_line": 674,
+      "quote": "f\"⛔ --engine {a.engine} 에는 --env 를 줄 수 없다 — 우리 커널은 \"",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_reason",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 675,
+      "expected_line": 675,
+      "quote": "f\"sbr_field(mv, ...) 로 **드론 메쉬만** 받아 환경이 도달하지 않는다. \"",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "sweep_env_refusal_grid_factor",
+      "path": "benchmark/elevation_sweep_md.py",
+      "line": 678,
+      "expected_line": 678,
+      "quote": "합집합 bbox 로 정해지므로 온 지면은 79,483 배이고",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+    },
+    {
+      "id": "supervisor_workers_per_card_tiers",
+      "path": "runners/worker_supervisor.py",
+      "line": 63,
+      "expected_line": 63,
+      "quote": "TIERS = [(10_000, 3), (20_000, 2), (70_000, 2), (float(\"inf\"), 1)]",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "7124a0a8c4a9d974d08f02af9cfeee080c2d17cb6a157af169d1e87cc8312109"
+    },
+    {
+      "id": "report07_ledger_path",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 61,
+      "expected_line": 61,
+      "quote": "OUTJ = os.path.join(ROOT, \"outputs\", \"report07_three_engines.json\")",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_rpm0_hover",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 89,
+      "expected_line": 89,
+      "quote": "rpm0 = float(getattr(spec, \"hover_rpm\", 6000.0))",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_wavelength",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 90,
+      "expected_line": 90,
+      "quote": "lam = 3e8 / FC",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_radius",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 91,
+      "expected_line": 91,
+      "quote": "R = spec.prop_dia_mm / 1000.0 / 2.0",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_f_rev",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 92,
+      "expected_line": 92,
+      "quote": "f_rev = rpm0 / 60.0",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_f_tip_cos_el",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 94,
+      "expected_line": 94,
+      "quote": "f_tip = 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(a.el))",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_meta_el",
+      "path": "benchmark/report07_three_engine_maps.py",
+      "line": 187,
+      "expected_line": 187,
+      "quote": "\"az_deg\": a.az, \"el_deg\": a.el, \"range_m\": a.range,",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+    },
+    {
+      "id": "report07_hover_long_f_tip_cos_el",
+      "path": "benchmark/report07_hover_long.py",
+      "line": 130,
+      "expected_line": 130,
+      "quote": "f_tip = 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(a.el))",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "33d3720cc98f24a565df1bb938f030c3710517e0f29204fd48d79f697b191568"
+    },
+    {
+      "id": "kernel_bbox_centre",
+      "path": "src/rcs_sbr.py",
+      "line": 1051,
+      "expected_line": 1051,
+      "quote": "ctr = 0.5 * (V.max(0) + V.min(0))",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 4,
+      "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+    },
+    {
+      "id": "kernel_plane_phase_reference",
+      "path": "src/rcs_sbr.py",
+      "line": 1194,
+      "expected_line": 1194,
+      "quote": "ph = np.exp(1j * 2.0 * k * ((P - ctr) @ u))",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+    },
+    {
+      "id": "kernel_spherical_phase_tx",
+      "path": "src/rcs_sbr.py",
+      "line": 1196,
+      "expected_line": 1196,
+      "quote": "p_tx = ctr + float(range_m) * np.asarray(u, float)",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+    },
+    {
+      "id": "kernel_spherical_phase",
+      "path": "src/rcs_sbr.py",
+      "line": 1200,
+      "expected_line": 1200,
+      "quote": "(float(range_m) - np.linalg.norm(P - p_tx, axis=1)))",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+    }
+  ],
+  "env_refusal_quote": {
+    "lines": [
+      {
+        "id": "sweep_env_refusal_branch",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 656,
+        "expected_line": 656,
+        "quote": "if a.engine in (\"ours\", \"ours_free\", \"ours_gpu\"):",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_env_refusal_comment",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 657,
+        "expected_line": 657,
+        "quote": "# ⛔⛔**우리 커널에는 --env 를 줄 수 없다** (2026-09-01).",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_env_refusal_if",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 672,
+        "expected_line": 672,
+        "quote": "if getattr(a, \"env\", \"\"):",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_env_refusal_raise",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 673,
+        "expected_line": 673,
+        "quote": "raise SystemExit(",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 43,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_env_refusal_message",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 674,
+        "expected_line": 674,
+        "quote": "f\"⛔ --engine {a.engine} 에는 --env 를 줄 수 없다 — 우리 커널은 \"",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_env_refusal_reason",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 675,
+        "expected_line": 675,
+        "quote": "f\"sbr_field(mv, ...) 로 **드론 메쉬만** 받아 환경이 도달하지 않는다. \"",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_env_refusal_grid_factor",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 678,
+        "expected_line": 678,
+        "quote": "합집합 bbox 로 정해지므로 온 지면은 79,483 배이고",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      }
+    ],
+    "all_verified": true
+  },
+  "cost": {
+    "label": "PathSolver wall time per pose from production shards: meta[5] / n_poses",
+    "unit_note": "single-process wall time measured under shared-card conditions; device id and concurrency are not recorded in the shards",
+    "meta_layout": {
+      "layout": [
+        "el_deg",
+        "shard",
+        "nshards",
+        "n_poses_total",
+        "prf_hz",
+        "elapsed_s",
+        "spp"
+      ],
+      "elapsed_index": 5,
+      "quotes": [
+        {
+          "id": "sweep_meta_layout_head",
+          "path": "benchmark/elevation_sweep_md.py",
+          "line": 1199,
+          "expected_line": 1199,
+          "quote": "meta=np.array([el, a.shard, a.nshards, n, prf,",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 2,
+          "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+        },
+        {
+          "id": "sweep_meta_layout_tail",
+          "path": "benchmark/elevation_sweep_md.py",
+          "line": 1200,
+          "expected_line": 1200,
+          "quote": "time.time() - t0, spp]),",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+        }
+      ]
+    },
+    "timer_includes_scene_rebuild": true,
+    "comparability_note": "Build-to-build wall-time differences do not measure solver speed: the builds were run at different elevation sets (rows[].elevations_deg), at different times and code revisions (the 2.0.1 shards predate later changes to the sweep script), and under unrecorded card sharing.",
+    "live_directory_note": "Rows are recomputed from the shard directory at run time; n_shards and the medians move when new shards land.",
+    "row_selector_note": "A row is identified by scene AND build (and depth); rows[scene=...] alone can match several rows.",
+    "timer_quotes": [
+      {
+        "id": "sweep_timer_start",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 866,
+        "expected_line": 866,
+        "quote": "t0 = time.time()",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 2,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_pose_loop",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 969,
+        "expected_line": 969,
+        "quote": "for j, i in enumerate(idx):",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 2,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_scene_builtin_rebuild",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 1016,
+        "expected_line": 1016,
+        "quote": "sc, _ctr, _scene_obj_names = build_scene_builtin(",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_scene_rebuild",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 1021,
+        "expected_line": 1021,
+        "quote": "sc = RP.build_scene(parts, fc=fc)",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      }
+    ],
+    "t0_reassignments_between_timer_and_meta": [],
+    "build_naming_quotes": [
+      {
+        "id": "sweep_build_baseline",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 1318,
+        "expected_line": 1318,
+        "quote": "BUILD_BASELINE = \"sionna=2.0.1 sionna-rt=2.0.1 mitsuba=3.8.0 drjit=1.3.1\"",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_build_tag_empty_for_baseline",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 1333,
+        "expected_line": 1333,
+        "quote": "기준 판이면 **빈 글자**, 그 밖에는 `_rt<판>`(2.1.0 → `_rt210`)",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      {
+        "id": "sweep_build_baseline_caveat",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 1315,
+        "expected_line": 1315,
+        "quote": "「2.0.1 이 아닌 판으로 구웠다는 기록이 없다」",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      }
+    ],
+    "shared_conditions_quote": {
+      "id": "supervisor_workers_per_card_tiers",
+      "path": "runners/worker_supervisor.py",
+      "line": 63,
+      "expected_line": 63,
+      "quote": "TIERS = [(10_000, 3), (20_000, 2), (70_000, 2), (float(\"inf\"), 1)]",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "7124a0a8c4a9d974d08f02af9cfeee080c2d17cb6a157af169d1e87cc8312109"
+    },
+    "selection": {
+      "pathsolver_base_fields": {
+        "engine": "sionna",
+        "spp": "4000000000",
+        "switches": "R0D0E0F1",
+        "range_m": "15",
+        "n_poses": "8192",
+        "mesh_fix": "batteryi5",
+        "blade_law": "perairframe"
+      },
+      "allowed_extra_fields": [
+        "env",
+        "solver_build",
+        "max_depth"
+      ],
+      "names_parsed_with": "src/arm_grammar.py parse()",
+      "build_rule": "name has solver_build 210 -> rt210; name without a build tag -> 2.0.1 (baseline naming rule, see build_naming_quotes)",
+      "skipped": {
+        "name_shape": 0,
+        "grammar": 0,
+        "unreadable": 0
+      }
+    },
+    "rows": [
+      {
+        "scene": "free_sky",
+        "build": "rt210",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 0.7200065818033181,
+        "min_s_per_pose": 0.681039527989924,
+        "max_s_per_pose": 0.7658893914194778,
+        "median_paths": 1727.0,
+        "elevations_deg": [
+          -60.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "free_sky",
+        "build": "2.0.1",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 76,
+        "median_s_per_pose": 0.5155807453847956,
+        "min_s_per_pose": 0.31540821271482855,
+        "max_s_per_pose": 0.9374543627491221,
+        "median_paths": 1066.0,
+        "elevations_deg": [
+          -90.0,
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          -10.0,
+          -6.0,
+          -5.0,
+          -4.0,
+          -3.0,
+          -2.0,
+          -1.5,
+          -1.0,
+          -0.7,
+          -0.5,
+          -0.3,
+          -0.2,
+          -0.19,
+          -0.18,
+          -0.17,
+          -0.16,
+          -0.15,
+          -0.1,
+          -0.07,
+          -0.05,
+          -0.03,
+          -0.02,
+          0.0,
+          0.05,
+          0.1,
+          0.15,
+          0.16,
+          0.17,
+          0.2,
+          15.0,
+          30.0,
+          60.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.05_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.05_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.16_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.16_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.17_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.17_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.1_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.1_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.2_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0.2_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el+60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.02_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.02_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.03_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.03_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.05_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.05_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.07_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.07_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.16_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.16_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.17_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.17_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.18_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.18_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.19_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.19_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.1_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.1_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.2_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.2_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.3_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.3_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.5_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.5_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.7_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-0.7_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1.5_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1.5_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-10_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-10_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-1_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-2_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-2_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-3_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-3_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-4_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-4_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-5_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-5_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-6_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-6_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-75_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-90_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d2_el-90_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01",
+        "build": "2.0.1",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 14,
+        "median_s_per_pose": 1.8974446763459127,
+        "min_s_per_pose": 1.019518522953149,
+        "max_s_per_pose": 2.918963329459075,
+        "median_paths": 2427.0,
+        "elevations_deg": [
+          -90.0,
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-75_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-90_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d2_el-90_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "rt210",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 8,
+        "median_s_per_pose": 1.0524069674429484,
+        "min_s_per_pose": 0.6949819079018198,
+        "max_s_per_pose": 1.554746527574025,
+        "median_paths": 2040.0,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_rt210_d2_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "2.0.1",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 12,
+        "median_s_per_pose": 1.6035303437092807,
+        "min_s_per_pose": 0.6219929527724162,
+        "max_s_per_pose": 1.9697503465577029,
+        "median_paths": 1753.0,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d2_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "rt210",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 10,
+        "median_s_per_pose": 1.284654375485843,
+        "min_s_per_pose": 0.5763732927152887,
+        "max_s_per_pose": 1.3488988850149326,
+        "median_paths": 2427.0,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "2.0.1",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 14,
+        "median_s_per_pose": 0.8908615808468312,
+        "min_s_per_pose": 0.40149012149777263,
+        "max_s_per_pose": 1.338558633287903,
+        "median_paths": 2427.0,
+        "elevations_deg": [
+          -90.0,
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-75_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-90_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d2_el-90_01.npz"
+        ]
+      },
+      {
+        "scene": "sionna-munich",
+        "build": "2.0.1",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 5.320621910650516,
+        "min_s_per_pose": 4.554052604304161,
+        "max_s_per_pose": 9.087443845812231,
+        "median_paths": 13.0,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-munich_mfixbatteryi5_blperairframe_d2_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "rt210",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 3.2961051023739856,
+        "min_s_per_pose": 3.1795536442659795,
+        "max_s_per_pose": 3.2987805578741245,
+        "median_paths": 3165.0,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "2.0.1",
+        "depth": 2,
+        "spp": 4000000000,
+        "n_shards": 12,
+        "median_s_per_pose": 3.3125034843978938,
+        "min_s_per_pose": 1.4654304881114513,
+        "max_s_per_pose": 3.779104327724781,
+        "median_paths": 2947.0,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d2_el-75_01.npz"
+        ]
+      }
+    ],
+    "other_depth_rows": [
+      {
+        "scene": "free_sky",
+        "build": "rt210",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 6,
+        "median_s_per_pose": 0.5131094612879679,
+        "min_s_per_pose": 0.4419573597260751,
+        "max_s_per_pose": 0.5526216355501674,
+        "median_paths": 1813.0,
+        "elevations_deg": [
+          -60.0,
+          -45.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d1_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "free_sky",
+        "build": "rt210",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 0.6165246284217574,
+        "min_s_per_pose": 0.4273709320113994,
+        "max_s_per_pose": 0.6592953245854005,
+        "median_paths": 1887.5,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_rt210_d3_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "free_sky",
+        "build": "2.0.1",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 12,
+        "median_s_per_pose": 0.5224148943962064,
+        "min_s_per_pose": 0.31090488174231723,
+        "max_s_per_pose": 0.71272453002166,
+        "median_paths": 1614.5,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d1_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "free_sky",
+        "build": "2.0.1",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 12,
+        "median_s_per_pose": 0.6590887380880304,
+        "min_s_per_pose": 0.395025901903864,
+        "max_s_per_pose": 0.8727320194593631,
+        "median_paths": 1796.5,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0,
+          0.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el+0_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el+0_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_d3_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01",
+        "build": "rt210",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 8,
+        "median_s_per_pose": 0.8010353847639635,
+        "min_s_per_pose": 0.56948691298021,
+        "max_s_per_pose": 1.1501515535637736,
+        "median_paths": 1907.5,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d1_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01",
+        "build": "2.0.1",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 10,
+        "median_s_per_pose": 1.349486676394008,
+        "min_s_per_pose": 0.3858281262218952,
+        "max_s_per_pose": 1.851204778708052,
+        "median_paths": 1814.0,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d1_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01",
+        "build": "2.0.1",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 10,
+        "median_s_per_pose": 2.49064429855207,
+        "min_s_per_pose": 0.9840209040557966,
+        "max_s_per_pose": 2.977125533623621,
+        "median_paths": 2542.5,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_d3_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "2.0.1",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 1.1516387772571761,
+        "min_s_per_pose": 0.34425413666758686,
+        "max_s_per_pose": 1.523760569107253,
+        "median_paths": 1708.0,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d1_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "2.0.1",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 1.405242910492234,
+        "min_s_per_pose": 0.6080048914300278,
+        "max_s_per_pose": 2.4926148256636225,
+        "median_paths": 1887.5,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_bldg_mfixbatteryi5_blperairframe_d3_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "rt210",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 1.3553909555776045,
+        "min_s_per_pose": 0.7118367731454782,
+        "max_s_per_pose": 1.5984590857406147,
+        "median_paths": 2419.0,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3"
+        ],
+        "solver_build_stamps": [
+          "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d3_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "2.0.1",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 0.7120335978106596,
+        "min_s_per_pose": 0.2871098949108273,
+        "max_s_per_pose": 1.050654319289606,
+        "median_paths": 1709.0,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d1_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "2.0.1",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 4,
+        "median_s_per_pose": 1.2211381222005002,
+        "min_s_per_pose": 0.4897374772117473,
+        "max_s_per_pose": 1.7191948044928722,
+        "median_paths": 2420.5,
+        "elevations_deg": [
+          -60.0,
+          -30.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_d3_el-60_01.npz"
+        ]
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "2.0.1",
+        "depth": 1,
+        "spp": 4000000000,
+        "n_shards": 10,
+        "median_s_per_pose": 0.9207579838111997,
+        "min_s_per_pose": 0.5190879767178558,
+        "max_s_per_pose": 2.2186093954369426,
+        "median_paths": 1801.0,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d1_el-75_01.npz"
+        ]
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "2.0.1",
+        "depth": 3,
+        "spp": 4000000000,
+        "n_shards": 10,
+        "median_s_per_pose": 3.5823968016775325,
+        "min_s_per_pose": 1.7011839716578834,
+        "max_s_per_pose": 5.513709481514525,
+        "median_paths": 4198.5,
+        "elevations_deg": [
+          -75.0,
+          -60.0,
+          -45.0,
+          -30.0,
+          -15.0
+        ],
+        "poses_per_shard": [
+          4096
+        ],
+        "arm": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3"
+        ],
+        "solver_build_stamps": [
+          "None"
+        ],
+        "shards_with_truncated_poses": 0,
+        "files": [
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-15_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-15_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-30_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-30_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-45_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-45_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-60_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-60_01.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-75_00.npz",
+          "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mfixbatteryi5_blperairframe_d3_el-75_01.npz"
+        ]
+      }
+    ],
+    "trajectory_rows": [
+      {
+        "scene": "free_sky",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 1000,
+        "duration_s": 10,
+        "n_snapshots": 10000,
+        "median_s_per_pose_used": 0.7200065818033181,
+        "n_shards_behind": 4,
+        "single_process_wall_hours": 2.0000182827869946,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "free_sky",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 10000,
+        "duration_s": 10,
+        "n_snapshots": 100000,
+        "median_s_per_pose_used": 0.7200065818033181,
+        "n_shards_behind": 4,
+        "single_process_wall_hours": 20.00018282786995,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "free_sky",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 19700,
+        "duration_s": 10,
+        "n_snapshots": 197000,
+        "median_s_per_pose_used": 0.7200065818033181,
+        "n_shards_behind": 4,
+        "single_process_wall_hours": 39.400360170903795,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 1000,
+        "duration_s": 10,
+        "n_snapshots": 10000,
+        "median_s_per_pose_used": 1.0524069674429484,
+        "n_shards_behind": 8,
+        "single_process_wall_hours": 2.923352687341523,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 10000,
+        "duration_s": 10,
+        "n_snapshots": 100000,
+        "median_s_per_pose_used": 1.0524069674429484,
+        "n_shards_behind": 8,
+        "single_process_wall_hours": 29.233526873415233,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "outdoor01_bldg",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 19700,
+        "duration_s": 10,
+        "n_snapshots": 197000,
+        "median_s_per_pose_used": 1.0524069674429484,
+        "n_shards_behind": 8,
+        "single_process_wall_hours": 57.59004794062801,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 1000,
+        "duration_s": 10,
+        "n_snapshots": 10000,
+        "median_s_per_pose_used": 1.284654375485843,
+        "n_shards_behind": 10,
+        "single_process_wall_hours": 3.568484376349564,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 10000,
+        "duration_s": 10,
+        "n_snapshots": 100000,
+        "median_s_per_pose_used": 1.284654375485843,
+        "n_shards_behind": 10,
+        "single_process_wall_hours": 35.68484376349564,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "outdoor01_ground",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 19700,
+        "duration_s": 10,
+        "n_snapshots": 197000,
+        "median_s_per_pose_used": 1.284654375485843,
+        "n_shards_behind": 10,
+        "single_process_wall_hours": 70.29914221408642,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 1000,
+        "duration_s": 10,
+        "n_snapshots": 10000,
+        "median_s_per_pose_used": 3.2961051023739856,
+        "n_shards_behind": 4,
+        "single_process_wall_hours": 9.155847506594405,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 10000,
+        "duration_s": 10,
+        "n_snapshots": 100000,
+        "median_s_per_pose_used": 3.2961051023739856,
+        "n_shards_behind": 4,
+        "single_process_wall_hours": 91.55847506594404,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      },
+      {
+        "scene": "sionna-simple_street_canyon",
+        "build": "rt210",
+        "depth": 2,
+        "rate_hz": 19700,
+        "duration_s": 10,
+        "n_snapshots": 197000,
+        "median_s_per_pose_used": 3.2961051023739856,
+        "n_shards_behind": 4,
+        "single_process_wall_hours": 180.37019587990977,
+        "unit": "single-process wall-hours measured under shared-card conditions"
+      }
+    ],
+    "kernel_cost": {
+      "arm": [
+        "ours_r15_n8192_mfixbatteryi5_blperairframe"
+      ],
+      "n_shards": 26,
+      "median_s_per_pose": 0.057530729565769434,
+      "min_s_per_pose": 0.0411175437620841,
+      "max_s_per_pose": 0.2603466408327222,
+      "elevations_deg": [
+        -90.0,
+        -82.0,
+        -75.0,
+        -68.0,
+        -60.0,
+        -52.0,
+        -45.0,
+        -30.0,
+        -15.0,
+        0.0,
+        15.0,
+        30.0,
+        60.0
+      ],
+      "device": "not recorded in the shard",
+      "timer_quote": {
+        "id": "sweep_kernel_timer_start",
+        "path": "benchmark/elevation_sweep_md.py",
+        "line": 738,
+        "expected_line": 738,
+        "quote": "E = np.zeros(idx.size, complex); t0 = time.time()",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+      },
+      "meta_quotes": [
+        {
+          "id": "sweep_kernel_meta_head",
+          "path": "benchmark/elevation_sweep_md.py",
+          "line": 765,
+          "expected_line": 765,
+          "quote": "meta=np.array([el, a.shard, a.nshards, n, prf,",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 2,
+          "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+        },
+        {
+          "id": "sweep_kernel_meta_tail",
+          "path": "benchmark/elevation_sweep_md.py",
+          "line": 766,
+          "expected_line": 766,
+          "quote": "time.time() - t0]),",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "6f8014c5d0109d228d702fb23bc6fad06ea2d2ee18cda0ea75f106004007c30e"
+        }
+      ]
+    },
+    "build_registry": {
+      "path": "runners/SOLVER_BUILDS.json",
+      "builds": {
+        "_rt210": "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0"
+      },
+      "sha256": "12ef673609d9668001d1559650745c6609450fffc253a0d6d0f184b5cfe05669"
+    }
+  },
+  "rotor": {
+    "rpm_per_rotor": [
+      3808.36,
+      3791.64,
+      3795.402,
+      3804.598
+    ],
+    "rpm_mean": 3800.0,
+    "f_flash_hz": 126.66666666666667,
+    "f_tip_hz": 1228.7211819358865,
+    "f_tip_hz_meaning": "line-of-sight blade-tip Doppler at the source look (includes cos(el_deg)); not the full tip Doppler at every elevation",
+    "source_el_deg": -15.0,
+    "source_az_deg": 0.0,
+    "source_cos_el": 0.9659258262890683,
+    "fc_hz_in_source": 3500000000.0,
+    "prf_hz_in_source": 19700.0,
+    "drone_in_source": "matrice4e",
+    "fc_matches_config": true,
+    "source": {
+      "path": "outputs/report07_three_engines.json",
+      "keys": [
+        "_meta.rpm_per_rotor",
+        "_meta.f_flash_hz",
+        "_meta.f_tip_hz",
+        "_meta.fc_hz",
+        "_meta.prf_hz",
+        "_meta.el_deg",
+        "_meta.az_deg",
+        "_meta.drone"
+      ],
+      "generator_quotes": [
+        {
+          "id": "report07_ledger_path",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 61,
+          "expected_line": 61,
+          "quote": "OUTJ = os.path.join(ROOT, \"outputs\", \"report07_three_engines.json\")",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        },
+        {
+          "id": "report07_rpm0_hover",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 89,
+          "expected_line": 89,
+          "quote": "rpm0 = float(getattr(spec, \"hover_rpm\", 6000.0))",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        },
+        {
+          "id": "report07_wavelength",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 90,
+          "expected_line": 90,
+          "quote": "lam = 3e8 / FC",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        },
+        {
+          "id": "report07_radius",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 91,
+          "expected_line": 91,
+          "quote": "R = spec.prop_dia_mm / 1000.0 / 2.0",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        },
+        {
+          "id": "report07_f_rev",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 92,
+          "expected_line": 92,
+          "quote": "f_rev = rpm0 / 60.0",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        },
+        {
+          "id": "report07_f_tip_cos_el",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 94,
+          "expected_line": 94,
+          "quote": "f_tip = 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(a.el))",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        },
+        {
+          "id": "report07_meta_el",
+          "path": "benchmark/report07_three_engine_maps.py",
+          "line": 187,
+          "expected_line": 187,
+          "quote": "\"az_deg\": a.az, \"el_deg\": a.el, \"range_m\": a.range,",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "fd518565100814f50f0502ca820ea4f756d18c5474617c55f0d6b34b89bc2fa0"
+        }
+      ],
+      "same_formula_elsewhere_quote": {
+        "id": "report07_hover_long_f_tip_cos_el",
+        "path": "benchmark/report07_hover_long.py",
+        "line": 130,
+        "expected_line": 130,
+        "quote": "f_tip = 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(a.el))",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "33d3720cc98f24a565df1bb938f030c3710517e0f29204fd48d79f697b191568"
+      }
+    },
+    "source_formula_check": {
+      "drone_spec_from": "src/drones.py DRONES[_meta.drone]",
+      "hover_rpm": 3800.0,
+      "prop_dia_mm": 274.0,
+      "prop_blades": 2,
+      "speed_of_light_constant_in_source_line": 300000000.0,
+      "source_wavelength_m": 0.08571428571428572,
+      "config_wavelength_m_exact_c": 0.085654988,
+      "wavelength_rel_diff_source_vs_exact_c": 0.0006922855944561422,
+      "f_tip_hz_reproduced": 1228.7211819358865,
+      "f_tip_reproduction_rel_err": 0.0,
+      "f_flash_hz_reproduced": 126.66666666666667,
+      "f_flash_reproduction_rel_err": 0.0
+    },
+    "f_tip_el0_hz": 1272.0657720235474,
+    "tip_speed_los_component_at_source_look_mps": 52.65947922582371,
+    "implied_tip_speed_mps": 54.51710451529488,
+    "implied_tip_speed_mps_if_exact_c": 54.479389218943844,
+    "implied_tip_radius_m": 0.137,
+    "spec_prop_radius_m": 0.137,
+    "implied_tip_radius_rel_diff_vs_spec": 0.0,
+    "rotation_deg_per_s_mean_rpm": 22800.0,
+    "rotation_per_sample_deg": [
+      {
+        "rate_hz": 1000,
+        "rotation_per_sample_deg": 22.8,
+        "deg_per_sample_mean_rpm": 22.8,
+        "deg_per_sample_max_rpm": 22.85016,
+        "tip_doppler_within_two_sided_band_at_source_look": false,
+        "tip_doppler_within_two_sided_band_at_el0": false
+      },
+      {
+        "rate_hz": 10000,
+        "rotation_per_sample_deg": 2.28,
+        "deg_per_sample_mean_rpm": 2.28,
+        "deg_per_sample_max_rpm": 2.285016,
+        "tip_doppler_within_two_sided_band_at_source_look": true,
+        "tip_doppler_within_two_sided_band_at_el0": true
+      },
+      {
+        "rate_hz": 19700,
+        "rotation_per_sample_deg": 1.1573604060913705,
+        "deg_per_sample_mean_rpm": 1.1573604060913705,
+        "deg_per_sample_max_rpm": 1.1599065989847717,
+        "tip_doppler_within_two_sided_band_at_source_look": true,
+        "tip_doppler_within_two_sided_band_at_el0": true
+      }
+    ],
+    "required_pose_rate": [
+      {
+        "body_speed_mps": 0,
+        "f_body_hz": 0.0,
+        "f_tip_hz": 1228.7211819358865,
+        "f_tip_basis": "source look: el_deg=-15, az_deg=0 (outputs/report07_three_engines.json _meta)",
+        "required_rate_hz": 2457.442363871773
+      },
+      {
+        "body_speed_mps": 5,
+        "f_body_hz": 116.74743331935322,
+        "f_tip_hz": 1228.7211819358865,
+        "f_tip_basis": "source look: el_deg=-15, az_deg=0 (outputs/report07_three_engines.json _meta)",
+        "required_rate_hz": 2690.9372305104794
+      },
+      {
+        "body_speed_mps": 10,
+        "f_body_hz": 233.49486663870644,
+        "f_tip_hz": 1228.7211819358865,
+        "f_tip_basis": "source look: el_deg=-15, az_deg=0 (outputs/report07_three_engines.json _meta)",
+        "required_rate_hz": 2924.432097149186
+      },
+      {
+        "body_speed_mps": 15,
+        "f_body_hz": 350.2422999580596,
+        "f_tip_hz": 1228.7211819358865,
+        "f_tip_basis": "source look: el_deg=-15, az_deg=0 (outputs/report07_three_engines.json _meta)",
+        "required_rate_hz": 3157.9269637878924
+      }
+    ],
+    "required_pose_rate_el0": [
+      {
+        "body_speed_mps": 0,
+        "f_body_hz": 0.0,
+        "f_tip_el0_hz": 1272.0657720235474,
+        "f_tip_basis": "source formula at el_deg=0: f_tip_hz / cos(el_deg of source)",
+        "required_rate_hz": 2544.131544047095
+      },
+      {
+        "body_speed_mps": 5,
+        "f_body_hz": 116.74743331935322,
+        "f_tip_el0_hz": 1272.0657720235474,
+        "f_tip_basis": "source formula at el_deg=0: f_tip_hz / cos(el_deg of source)",
+        "required_rate_hz": 2777.626410685801
+      },
+      {
+        "body_speed_mps": 10,
+        "f_body_hz": 233.49486663870644,
+        "f_tip_el0_hz": 1272.0657720235474,
+        "f_tip_basis": "source formula at el_deg=0: f_tip_hz / cos(el_deg of source)",
+        "required_rate_hz": 3011.121277324508
+      },
+      {
+        "body_speed_mps": 15,
+        "f_body_hz": 350.2422999580596,
+        "f_tip_el0_hz": 1272.0657720235474,
+        "f_tip_basis": "source formula at el_deg=0: f_tip_hz / cos(el_deg of source)",
+        "required_rate_hz": 3244.616143963214
+      }
+    ],
+    "required_rate_rule": "2*(f_tip + f_body), f_body = 2 v / lambda (monostatic, radial speed), lambda = c / fc. required_pose_rate uses f_tip_hz at the source look only (el_deg and az_deg above); required_pose_rate_el0 uses f_tip_hz / cos(el_deg), what the source formula gives at el_deg = 0. f_body uses exact c while f_tip used the source wavelength constant (see source_formula_check.wavelength_rel_diff_source_vs_exact_c)."
+  },
+  "rt_contract": {
+    "probe": {
+      "scene": "simple_street_canyon",
+      "tx_pos_m": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "rx_pos_m": [
+        2.0,
+        0.0,
+        1.0
+      ],
+      "rx_array_rows_cols": [
+        1,
+        2
+      ],
+      "max_depth": 1,
+      "samples_per_src": 10000,
+      "deterministic": true,
+      "cfr_offsets_hz": [
+        -50000000.0,
+        0.0,
+        50000000.0
+      ]
+    },
+    "a_shape": [
+      1,
+      2,
+      1,
+      1,
+      4
+    ],
+    "a_shape_nonsynthetic": [
+      1,
+      2,
+      1,
+      1,
+      4
+    ],
+    "a_axes": [
+      "num_rx",
+      "num_rx_ant",
+      "num_tx",
+      "num_tx_ant",
+      "num_paths"
+    ],
+    "tau_shape_synthetic": [
+      1,
+      1,
+      4
+    ],
+    "tau_shape_nonsynthetic": [
+      1,
+      2,
+      1,
+      1,
+      4
+    ],
+    "doppler_shape_synthetic": [
+      1,
+      1,
+      4
+    ],
+    "doppler_shape_nonsynthetic": [
+      1,
+      2,
+      1,
+      1,
+      4
+    ],
+    "cir_shape": [
+      1,
+      2,
+      1,
+      1,
+      4,
+      1
+    ],
+    "cfr_shape_three_frequencies": [
+      1,
+      2,
+      1,
+      1,
+      1,
+      3
+    ],
+    "unpack_style_reshape_len": 4,
+    "unpack_style_kept_fraction_of_coefficients": 0.5,
+    "unpack_style_quotes": [
+      {
+        "id": "report15_unpack_reshape",
+        "path": "benchmark/report15_probe.py",
+        "line": 308,
+        "expected_line": 308,
+        "quote": "a = (ar + 1j * ai).reshape(-1, ar.shape[-1])[0]",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "b6bf14315825727dbfb150b65d58dc3dd37643d390baf8ebca53241d00e4795e"
+      },
+      {
+        "id": "report15_unpack_1x1_docstring",
+        "path": "benchmark/report15_probe.py",
+        "line": 301,
+        "expected_line": 301,
+        "quote": "1×1 안테나 가정",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "b6bf14315825727dbfb150b65d58dc3dd37643d390baf8ebca53241d00e4795e"
+      }
+    ],
+    "rx_antenna_coefficient_max_abs_difference": 0.00036108848871663213,
+    "manual_a_exp_minus_j2pi_f_tau_vs_cir_rel_err": 5.69047692869159e-06,
+    "a_imag_max_abs": 0.00015037607226986438,
+    "a_real_max_abs": 0.0034081032499670982,
+    "normalize_delays": {
+      "min_tau_ns": 6.671281749248692,
+      "normalized_min_tau_s": 0.0,
+      "phase_rotation_deg_measured": 125.81517791748047,
+      "phase_rotation_deg_measured_min": 125.81011199951172,
+      "phase_rotation_deg_measured_max": 125.81710815429688,
+      "phase_rotation_deg_expected": 125.8150040533517,
+      "common_phase_chord_abs_1_minus_exp_j_phase": 1.7805462695611012,
+      "pointer_isac_kernel_review": {
+        "key": "outputs/isac_kernel_review_0915.json:checks.pathsolver_cir.normalized_vs_absolute_relative_l2",
+        "value": 1.7805465459823608
+      },
+      "nonsynthetic_phase_rotation_deg_measured": 126.29700469970703,
+      "nonsynthetic_phase_rotation_deg_expected": 126.29677867354997,
+      "quotes": [
+        {
+          "id": "paths_normalize_synthetic_min",
+          "path": "installed:sionna/rt/path_solvers/paths.py",
+          "line": 463,
+          "expected_line": 463,
+          "quote": "min_tau = dr.min(tau, axis=-1)",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+        },
+        {
+          "id": "paths_normalize_subtract",
+          "path": "installed:sionna/rt/path_solvers/paths.py",
+          "line": 472,
+          "expected_line": 472,
+          "quote": "tau -= min_tau",
+          "verified": true,
+          "relocated": false,
+          "occurrences": 1,
+          "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+        }
+      ]
+    },
+    "receivers_share_rx_array_quote": {
+      "id": "paths_rx_array_shared",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 55,
+      "expected_line": 55,
+      "quote": "self._rx_array = scene.rx_array",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    "transmitters_share_tx_array_quote": {
+      "id": "paths_tx_array_shared",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 54,
+      "expected_line": 54,
+      "quote": "self._tx_array = scene.tx_array",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    },
+    "synthetic_array_default_quote": {
+      "id": "path_solver_synthetic_default",
+      "path": "installed:sionna/rt/path_solvers/path_solver.py",
+      "line": 169,
+      "expected_line": 169,
+      "quote": "synthetic_array: bool = True,",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "1e14fd9da9d7fb73e4301540789eadb5dfc5cf9ab97a85360771982b017a4544"
+    },
+    "angles_global_frame": {
+      "theta_t_deg": 45.000022888183594,
+      "phi_t_deg": 53.130123138427734,
+      "theta_r_deg": 134.99996948242188,
+      "phi_r_deg": -126.86986541748047,
+      "expected_theta_t_deg": 45.00000000000001,
+      "expected_phi_t_deg": 53.13010235415598,
+      "expected_theta_r_deg": 135.0,
+      "expected_phi_r_deg": -126.86989764584402,
+      "tx_orientation_rad": [
+        1.0,
+        0.5,
+        0.3
+      ],
+      "rx_orientation_rad": [
+        -0.7,
+        0.2,
+        0.1
+      ],
+      "note": "Devices have non-zero orientations; expected values are global-frame directions (tx->rx for departure, rx->tx for arrival)."
+    }
+  },
+  "rt_doppler": {
+    "probe": {
+      "scene": "simple_reflector",
+      "tx_pos_m": [
+        0.0,
+        0.0,
+        10.0
+      ],
+      "rx_pos_m": [
+        0.01,
+        0.0,
+        10.0
+      ],
+      "object_velocity_mps": [
+        0.0,
+        0.0,
+        2.0
+      ],
+      "max_depth": 1,
+      "samples_per_src": 100000,
+      "deterministic": true,
+      "los": false,
+      "diffuse": false,
+      "second_velocity_test_xyz_components": [
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ]
+    },
+    "reflector_bbox_m": {
+      "min": [
+        -0.5,
+        -0.5,
+        0.0
+      ],
+      "max": [
+        0.5,
+        0.5,
+        0.0
+      ]
+    },
+    "object_velocity_mps": [
+      0.0,
+      0.0,
+      2.0
+    ],
+    "object_speed_toward_radar_mps": 2.0,
+    "n_paths": 1,
+    "doppler_hz_measured": 46.698974609375,
+    "doppler_hz_expected_2v_over_lambda": 46.698973327741285,
+    "txrx_velocity_probe": {
+      "scene": "empty",
+      "tx_pos_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "tx_velocity_mps": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "rx_pos_m": [
+        10.0,
+        0.0,
+        0.0
+      ],
+      "rx_velocity_mps": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "max_depth": 0,
+      "samples_per_src": 1000
+    },
+    "txrx_velocity_case_hz": 46.698978424072266,
+    "txrx_expected_hz": 46.698973327741285,
+    "second_velocity_error_message": "ValueError: Only a single velocity vector must be provided",
+    "second_velocity_quote": {
+      "id": "scene_object_single_velocity",
+      "path": "installed:sionna/rt/scene_object.py",
+      "line": 268,
+      "expected_line": 268,
+      "quote": "raise ValueError(\"Only a single velocity vector must be provided\")",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "16d04cff7755e707a74773e62276a3360fe069e2b0daf490aec60152111cced3"
+    },
+    "object_doppler_quote": {
+      "id": "field_calculator_object_doppler",
+      "path": "installed:sionna/rt/path_solvers/field_calculator.py",
+      "line": 557,
+      "expected_line": 557,
+      "quote": "v_effective = dr.dot(ko_world - ki_world, v_world)",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "02ac0e5264e8c6ad7bf299055c4b37c133b522f6d2d40e3ba923013f52d31ed0"
+    },
+    "per_object_probe": {
+      "scene": "simple_street_canyon",
+      "tx_pos_m": [
+        0.0,
+        0.0,
+        10.0
+      ],
+      "rx_pos_m": [
+        0.01,
+        0.0,
+        10.0
+      ],
+      "velocity_rule": "v_i = 0.5*(i+1)*[1,1,1] m/s, i = rank of the object after sorting by mesh bbox centre (x, then y, then z, rounded to bbox_round_decimals); scene.objects order is not stable between runs",
+      "bbox_round_decimals": 2,
+      "velocity_step_mps": 0.5,
+      "max_depth": 1,
+      "samples_per_src": 200000,
+      "deterministic": true,
+      "los": false
+    },
+    "per_object_n_objects_with_velocity": 5,
+    "per_object_velocities": [
+      {
+        "object": "building_6",
+        "velocity_mps": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "object_rank_by_bbox_centre": 3,
+        "bbox_centre_m": [
+          0.44,
+          -22.56,
+          25.46
+        ],
+        "n_paths": 1,
+        "doppler_hz": 46.69896697998047,
+        "doppler_hz_min": 46.69896697998047,
+        "doppler_hz_max": 46.69896697998047,
+        "expected_doppler_hz_from_vertices": 46.69896363734439,
+        "max_abs_error_hz": 3.3426360772637054e-06
+      },
+      {
+        "object": "floor",
+        "velocity_mps": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "object_rank_by_bbox_centre": 1,
+        "bbox_centre_m": [
+          -0.77,
+          0.24,
+          -0.03
+        ],
+        "n_paths": 1,
+        "doppler_hz": 23.34946632385254,
+        "doppler_hz_min": 23.34946632385254,
+        "doppler_hz_max": 23.34946632385254,
+        "expected_doppler_hz_from_vertices": 23.34946219382625,
+        "max_abs_error_hz": 4.130026290738442e-06
+      },
+      {
+        "object": "no-name-5",
+        "velocity_mps": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "object_rank_by_bbox_centre": 0,
+        "bbox_centre_m": [
+          -23.2,
+          23.51,
+          25.46
+        ],
+        "n_paths": 1,
+        "doppler_hz": -11.674745559692383,
+        "doppler_hz_min": -11.674745559692383,
+        "doppler_hz_max": -11.674745559692383,
+        "expected_doppler_hz_from_vertices": -11.674744709433222,
+        "max_abs_error_hz": 8.502591608561261e-07
+      }
+    ],
+    "per_object_objects_with_velocity_on_no_valid_path": [
+      {
+        "object": "no-name-6",
+        "object_rank_by_bbox_centre": 2,
+        "bbox_centre_m": [
+          0.27,
+          -22.56,
+          14.53
+        ],
+        "velocity_mps": [
+          1.5,
+          1.5,
+          1.5
+        ]
+      },
+      {
+        "object": "building_2",
+        "object_rank_by_bbox_centre": 4,
+        "bbox_centre_m": [
+          47.92,
+          24.28,
+          10.89
+        ],
+        "velocity_mps": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      }
+    ],
+    "per_object_name_note": "Object names are the scene's object names; names such as no-name-5 are assigned automatically by Sionna when the scene file gives none.",
+    "per_object_distinct_doppler_hz": [
+      -11.675,
+      23.349,
+      46.699
+    ],
+    "time_steps": {
+      "sampling_frequency_hz": 1000.0,
+      "num_time_steps": 50
+    },
+    "normalize_within_cir_time_steps_doppler_hz": 46.69897477273832,
+    "absolute_within_cir_time_steps_doppler_hz": 46.698976079382575,
+    "normalized_over_absolute_phase_spread_across_time_steps_deg": 1.3660377589985728e-05,
+    "separate_retrace_normalized_doppler_hz": -3.2251744370273e-12,
+    "separate_retrace_absolute_doppler_hz": 46.69874392674636,
+    "doppler_time_phase_quote": {
+      "id": "paths_doppler_time_phase",
+      "path": "installed:sionna/rt/path_solvers/paths.py",
+      "line": 507,
+      "expected_line": 507,
+      "quote": "phase = dr.two_pi*doppler*time_steps",
+      "verified": true,
+      "relocated": false,
+      "occurrences": 1,
+      "sha256": "80dcae654b6d74d9db86016393ef6813c739f06b64b159f2b24e3c1bc4fd4f41"
+    }
+  },
+  "extrapolation": {
+    "label": "CPU toy comparisons, not production settings",
+    "translation": {
+      "label": "CPU toy: 1 m plate (simple_reflector), near-monostatic, single specular path",
+      "distance_m": 0.098,
+      "duration_s": 0.049,
+      "range_m": 10.0,
+      "extrapolated_doppler_hz": 46.698976079382575,
+      "retraced_doppler_hz": 46.69874392674636,
+      "max_rel_diff": 0.0098020751029253,
+      "extrapolated_mag_ratio_last_first": 1.0,
+      "retraced_mag_ratio_last_first": 1.0098967552185059,
+      "definition": "extrapolated = one solve + cir(num_time_steps, sampling_frequency, normalize_delays=False); retraced = separate solves with the plate moved by v*t; both summed over paths"
+    },
+    "rotation_tilt": {
+      "label": "CPU toy: 1 m plate tilt; PathSolver level in dB (arbitrary reference)",
+      "tilt_from_deg": 2.75,
+      "tilt_to_deg": 3.25,
+      "level_before_db": -69.75292534677749,
+      "level_before_basis": "specular reflection only (diffuse_reflection=False)",
+      "level_after_db": null,
+      "level_after_basis": "specular reflection only; null when no specular path is found. With diffuse reflection on, the after-tilt level is set by samples_per_src; see diffuse_on_budget_ladder and diffuse_on_budget_slope.",
+      "n_specular_paths_before": 1,
+      "n_specular_paths_after": 0,
+      "specular_only_rows": [
+        {
+          "tilt_deg": 2.75,
+          "diffuse_reflection": false,
+          "samples_per_src": 1000000,
+          "seed": 1,
+          "n_valid_paths": 1,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 0,
+          "level_db": -69.75292534677749
+        },
+        {
+          "tilt_deg": 3.25,
+          "diffuse_reflection": false,
+          "samples_per_src": 1000000,
+          "seed": 1,
+          "n_valid_paths": 0,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 0,
+          "level_db": null
+        }
+      ],
+      "plate_half_width_m": 0.5,
+      "radar_height_above_plate_m": 10.0,
+      "specular_foot_offset_m_before": 0.47978128521343943,
+      "specular_foot_offset_m_after": 0.5669278756337751,
+      "specular_cutoff_tilt_deg": 2.8659839825988622,
+      "extrapolated_level_across_time_steps_db": {
+        "basis": "specular-only solve at tilt_from_deg with the plate velocity of the Doppler probe; cir(sampling_frequency, num_time_steps) summed over paths at each step",
+        "sampling_frequency_hz": 1000.0,
+        "num_time_steps": 50,
+        "first_db": -69.7529296875,
+        "last_db": -69.7529296875,
+        "max_minus_min_db": 0.0
+      },
+      "diffuse_on_budget_ladder": [
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 250000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 20,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 19,
+          "level_db": -69.71932557262551
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 250000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 20,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 19,
+          "level_db": -69.77108795275535
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 250000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 20,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 19,
+          "level_db": -70.27681382262254
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 1000000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 72,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 71,
+          "level_db": -70.12624957282596
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 1000000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 66,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 65,
+          "level_db": -70.01213377114556
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 1000000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 67,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 66,
+          "level_db": -70.16811272308283
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 4000000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 282,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 281,
+          "level_db": -70.31249244101988
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 4000000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 291,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 290,
+          "level_db": -70.33725364579833
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 4000000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 283,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 282,
+          "level_db": -70.35701650639993
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 16000000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 1112,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 1111,
+          "level_db": -70.40450433432383
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 16000000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 1125,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 1124,
+          "level_db": -70.37878634023005
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 16000000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 1066,
+          "n_specular_paths": 1,
+          "n_diffuse_paths": 1065,
+          "level_db": -70.5847475073145
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 250000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 19,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 19,
+          "level_db": -93.5824143707577
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 250000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 19,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 19,
+          "level_db": -96.93482942416665
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 250000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 19,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 19,
+          "level_db": -88.91973332319014
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 1000000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 71,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 71,
+          "level_db": -90.07102604742931
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 1000000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 65,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 65,
+          "level_db": -90.17354109456734
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 1000000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 66,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 66,
+          "level_db": -90.57663150385437
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 4000000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 281,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 281,
+          "level_db": -85.13106663467171
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 4000000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 290,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 290,
+          "level_db": -85.21462712084553
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 4000000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 282,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 282,
+          "level_db": -84.67066256128805
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 16000000,
+          "seed": 1,
+          "diffuse_reflection": true,
+          "n_valid_paths": 1111,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 1111,
+          "level_db": -78.7079025896384
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 16000000,
+          "seed": 2,
+          "diffuse_reflection": true,
+          "n_valid_paths": 1123,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 1123,
+          "level_db": -79.15351295990949
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 16000000,
+          "seed": 3,
+          "diffuse_reflection": true,
+          "n_valid_paths": 1065,
+          "n_specular_paths": 0,
+          "n_diffuse_paths": 1065,
+          "level_db": -79.7140463864148
+        }
+      ],
+      "diffuse_on_budget_summary": [
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 250000,
+          "n_seeds": 3,
+          "median_level_db": -69.77108795275535,
+          "min_level_db": -70.27681382262254,
+          "max_level_db": -69.71932557262551,
+          "median_n_specular_paths": 1.0,
+          "median_n_diffuse_paths": 19.0
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 1000000,
+          "n_seeds": 3,
+          "median_level_db": -70.12624957282596,
+          "min_level_db": -70.16811272308283,
+          "max_level_db": -70.01213377114556,
+          "median_n_specular_paths": 1.0,
+          "median_n_diffuse_paths": 66.0
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 4000000,
+          "n_seeds": 3,
+          "median_level_db": -70.33725364579833,
+          "min_level_db": -70.35701650639993,
+          "max_level_db": -70.31249244101988,
+          "median_n_specular_paths": 1.0,
+          "median_n_diffuse_paths": 282.0
+        },
+        {
+          "tilt_deg": 2.75,
+          "samples_per_src": 16000000,
+          "n_seeds": 3,
+          "median_level_db": -70.40450433432383,
+          "min_level_db": -70.5847475073145,
+          "max_level_db": -70.37878634023005,
+          "median_n_specular_paths": 1.0,
+          "median_n_diffuse_paths": 1111.0
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 250000,
+          "n_seeds": 3,
+          "median_level_db": -93.5824143707577,
+          "min_level_db": -96.93482942416665,
+          "max_level_db": -88.91973332319014,
+          "median_n_specular_paths": 0.0,
+          "median_n_diffuse_paths": 19.0
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 1000000,
+          "n_seeds": 3,
+          "median_level_db": -90.17354109456734,
+          "min_level_db": -90.57663150385437,
+          "max_level_db": -90.07102604742931,
+          "median_n_specular_paths": 0.0,
+          "median_n_diffuse_paths": 66.0
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 4000000,
+          "n_seeds": 3,
+          "median_level_db": -85.13106663467171,
+          "min_level_db": -85.21462712084553,
+          "max_level_db": -84.67066256128805,
+          "median_n_specular_paths": 0.0,
+          "median_n_diffuse_paths": 282.0
+        },
+        {
+          "tilt_deg": 3.25,
+          "samples_per_src": 16000000,
+          "n_seeds": 3,
+          "median_level_db": -79.15351295990949,
+          "min_level_db": -79.7140463864148,
+          "max_level_db": -78.7079025896384,
+          "median_n_specular_paths": 0.0,
+          "median_n_diffuse_paths": 1111.0
+        }
+      ],
+      "diffuse_on_budget_slope": [
+        {
+          "tilt_deg": 2.75,
+          "median_level_db_per_4x_samples_per_src": -0.21112532176777335,
+          "median_level_span_db_across_ladder": 0.6334163815684803
+        },
+        {
+          "tilt_deg": 3.25,
+          "median_level_db_per_4x_samples_per_src": 4.832917869244052,
+          "median_level_span_db_across_ladder": 14.428901410848212
+        }
+      ],
+      "note": "An object carries one translational velocity, so cir() time steps keep |a| from the first solve (extrapolated_level_across_time_steps_db). A re-trace loses the specular path when the specular foot point leaves the plate; a rotation is not represented by extrapolation. With diffuse reflection on, the remaining level after the tilt changes with samples_per_src, so no single after-tilt level or level change is given for that case."
+    }
+  },
+  "kernel": {
+    "label": "Our kernel on a flat square plate, CPU; implementation checks, no RF comparison",
+    "plate_side_m": 0.125,
+    "gamma": 1.0,
+    "fc_hz": 3500000000.0,
+    "look_direction_u": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "spacing_div": 12,
+    "spacing_m": 0.007137915666666667,
+    "module_default_div": 12,
+    "module_angle_gamma": true,
+    "move_m": 0.0107068735,
+    "recentred_phase_deg_for_lambda_over_8_move": 7.672854452696312e-07,
+    "frozen_grid_phase_deg": 90.00000076728546,
+    "expected_deg": 90.0,
+    "move_rows": [
+      {
+        "move": "along_look_direction",
+        "move_m": [
+          0.0,
+          0.0,
+          0.0107068735
+        ],
+        "recentred_phase_deg": 7.672854452696312e-07,
+        "frozen_grid_phase_deg": 90.00000076728546,
+        "frozen_grid_mag_ratio": 0.9999999999999989,
+        "expected_deg": 90.0
+      },
+      {
+        "move": "perpendicular",
+        "move_m": [
+          0.0107068735,
+          0.0,
+          0.0
+        ],
+        "recentred_phase_deg": 0.0,
+        "frozen_grid_phase_deg": 0.0,
+        "frozen_grid_mag_ratio": 1.0,
+        "expected_deg": 0.0
+      }
+    ],
+    "phase_vs_frequency": [
+      {
+        "offset_mhz": -50,
+        "phase_deg": -0.6754464953638634,
+        "magnitude": 0.014724098778906635
+      },
+      {
+        "offset_mhz": 0,
+        "phase_deg": -0.6852355253297019,
+        "magnitude": 0.01472408695485927
+      },
+      {
+        "offset_mhz": 50,
+        "phase_deg": -0.6950245531511811,
+        "magnitude": 0.014724074960689894
+      }
+    ],
+    "phase_vs_frequency_range_m": 15.0,
+    "phase_vs_frequency_measured_span_deg": 0.019578057787317693,
+    "phase_span_deg_if_output_carried_two_way_delay": 3602.4922281400422,
+    "code_quotes": [
+      {
+        "id": "kernel_bbox_centre",
+        "path": "src/rcs_sbr.py",
+        "line": 1051,
+        "expected_line": 1051,
+        "quote": "ctr = 0.5 * (V.max(0) + V.min(0))",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 4,
+        "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+      },
+      {
+        "id": "kernel_plane_phase_reference",
+        "path": "src/rcs_sbr.py",
+        "line": 1194,
+        "expected_line": 1194,
+        "quote": "ph = np.exp(1j * 2.0 * k * ((P - ctr) @ u))",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+      },
+      {
+        "id": "kernel_spherical_phase_tx",
+        "path": "src/rcs_sbr.py",
+        "line": 1196,
+        "expected_line": 1196,
+        "quote": "p_tx = ctr + float(range_m) * np.asarray(u, float)",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+      },
+      {
+        "id": "kernel_spherical_phase",
+        "path": "src/rcs_sbr.py",
+        "line": 1200,
+        "expected_line": 1200,
+        "quote": "(float(range_m) - np.linalg.norm(P - p_tx, axis=1)))",
+        "verified": true,
+        "relocated": false,
+        "occurrences": 1,
+        "sha256": "9b65f3b4e32f52f39f71738fb5774da9845c6f52fb32eb59b3d867011c41fb67"
+      }
+    ],
+    "plate_reciprocity_pointer": {
+      "ledger": "outputs/kernel_outdoor_review_0915.json",
+      "generator": "benchmark/review_kernel_outdoor_0915.py",
+      "inputs": {
+        "side_m": 0.25,
+        "fc_hz": 3500000000.0,
+        "theta_i_deg": 0,
+        "theta_s_deg": 60,
+        "gamma": 1.0,
+        "ptd": false,
+        "range": "plane wave"
+      },
+      "continuum_ratio": 2.0,
+      "recomputed": false,
+      "rows": [
+        {
+          "div": 12,
+          "magnitude_ratio": 1.9630652935000514,
+          "key": "outputs/kernel_outdoor_review_0915.json:checks.plate_reciprocity.rows[div=12].magnitude_ratio"
+        },
+        {
+          "div": 24,
+          "magnitude_ratio": 2.0784651664606515,
+          "key": "outputs/kernel_outdoor_review_0915.json:checks.plate_reciprocity.rows[div=24].magnitude_ratio"
+        },
+        {
+          "div": 48,
+          "magnitude_ratio": 1.9967880412936025,
+          "key": "outputs/kernel_outdoor_review_0915.json:checks.plate_reciprocity.rows[div=48].magnitude_ratio"
+        },
+        {
+          "div": 96,
+          "magnitude_ratio": 1.9991969534361298,
+          "key": "outputs/kernel_outdoor_review_0915.json:checks.plate_reciprocity.rows[div=96].magnitude_ratio"
+        }
+      ]
+    }
+  }
+}
