@@ -22,14 +22,30 @@ The watcher re-checks every minute and edits only the `gpus` list of runners/GPU
         --log runners/logs/hold_window_gpu1.log &
 """
 import argparse
+import contextlib
 import datetime as dt
+import fcntl
 import json
 import os
-import re
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOLD = os.path.join(HERE, "GPU_HOLD.json")
+#: ⭐one lock per hold file. More than one window can be open at a time (0, 1 and 2 have each been
+#  lent on the same night), and every one of them does a read-modify-write of the same `gpus` list.
+#  Without this, two watchers that tick in the same second can lose one card's change — and a hold
+#  that quietly disappears is the failure this file exists to prevent.
+LOCK = os.path.join(HERE, ".gpu_hold.lock")
+
+
+@contextlib.contextmanager
+def hold_lock():
+    with open(LOCK, "a+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 KST = dt.timezone(dt.timedelta(hours=9))
 
 CANYON = "street_canyon"
@@ -69,6 +85,11 @@ def pending_canyon(queues):
 
 def set_card(card, held, log):
     """Add or remove one card from the hold, leaving every other key exactly as it was."""
+    with hold_lock():
+        return _set_card_locked(card, held, log)
+
+
+def _set_card_locked(card, held, log):
     try:
         with open(HOLD, encoding="utf-8") as f:
             d = json.load(f)
