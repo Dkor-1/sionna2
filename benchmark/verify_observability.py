@@ -339,7 +339,10 @@ def _rows_pair(p, v, lam, t, s_rb, s_fd, tx, rx):
 
 
 def gramian(cell, K, t_obs, p0=None, v0=None, pairs=None, aoa_sigma_deg=None):
-    """G = Σ_k H_kᵀ H_k (이미 백색화). 상태 스케일: v ← v·t_obs (전 성분 m 단위)."""
+    """G = Σ_k H_kᵀ H_k (이미 백색화). 상태 스케일: u = v·t_obs (전 성분 m 단위).
+
+    ⚠속도 열은 t_obs 로 **나눈다** — 야코비안이 ∂m/∂v 이고 ∂m/∂u = (1/t_obs)·∂m/∂v 이기
+    때문이다. 복원은 σ_v = σ_u / t_obs (616 행)."""
     lam = cell["lam_m"]; s_rb = cell["sigma_rb_m"]; s_fd = cell["sigma_fd_hz"]
     pairs = pairs or [(TXv, RXv)]
     p0 = TGT.copy() if p0 is None else np.asarray(p0, float)
@@ -358,7 +361,10 @@ def gramian(cell, K, t_obs, p0=None, v0=None, pairs=None, aoa_sigma_deg=None):
             gel = np.array([-d[0] * d[2] / (r ** 2 * rho), -d[1] * d[2] / (r ** 2 * rho), rho / r ** 2])
             for g in (gaz, gel):
                 Hs.append((np.concatenate([g, t * g]) / s_a)[None, :])
-    H = np.concatenate(Hs, 0) @ np.diag([1, 1, 1, t_obs, t_obs, t_obs])
+    #: ⛔2026-09-16 정정(R39) — 상태를 u = v·t_obs 로 재면 ∂m/∂u = (1/t_obs)·∂m/∂v 다.
+    #  예전에는 여기서 **곱해** 놓고 아래 616 행에서 또 나눠, 속도 CRLB 가 t_obs² 배
+    #  (이 형상에서 9 배) 작게 찍혔다. 위치 CRLB·랭크는 열 스케일에 불변이라 그대로다.
+    H = np.concatenate(Hs, 0) @ np.diag([1, 1, 1, 1 / t_obs, 1 / t_obs, 1 / t_obs])
     G = H.T @ H
     w, V = np.linalg.eigh(G)
     return G, w, V
@@ -613,7 +619,7 @@ def main():
         wn = w / w.max()
         rank = int((wn > RANK_TOL).sum())
         Gi = np.linalg.pinv(G, rcond=1e-13)
-        sp = np.sqrt(np.abs(np.diag(Gi)))                  # [m, m, m, m, m, m] (v 는 ×t_obs 스케일)
+        sp = np.sqrt(np.abs(np.diag(Gi)))                  # [m, m, m, m, m, m] (v 는 u = v·t_obs 스케일)
         fixes[name] = dict(eig_norm=[float(x) for x in wn], rank=rank,
                            rank_practical=int((wn > PRACT_TOL).sum()),
                            cond=float(w.max() / max(w.min(), 1e-300)),

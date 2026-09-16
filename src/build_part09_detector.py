@@ -846,16 +846,55 @@ def r55():
 # =========================================================================== #
 #  논문 조각 — 옛 report04 c22
 # =========================================================================== #
+#: ⛔재생성이 막힌 조각에 덮어쓰는 정정 — (옛 문장, 새 문장). 이미 고쳐져 있으면 건너뛴다.
+#  본편(편 55)이 2026-09-16 에 내린 것과 같은 문면이다: 한 순간의 위치 랭크와 관측창을 누적한
+#  등속 6상태의 **국소** 랭크는 다른 양이고, pos_rms_m 은 관측가능 부분공간의 CRLB 하한이다.
+PAPER_DOC_FIXES = [
+    ("송수신 한 쌍의 한 순간 관측량은 3차원 위치에 대해 랭크 2 를 만들고, 수신기 2대가 랭크 6 을 만든다.",
+     "송수신 한 쌍의 한 순간 관측량은 3차원 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창을 "
+     "누적하면 등속 6상태 그램행렬의 국소 랭크가 6 이 된다."),
+    ("로 적어두면 검출 결과가 말하는 범위가 정해진다(2 Rx 위치 RMS 0.19 m",
+     "로 적어두면 검출 결과가 말하는 범위가 정해진다(2 Rx 위치 CRLB(rms) 0.19 m — 관측가능 "
+     "부분공간의 하한이고 추적기가 낸 오차가 아니다. 국소 랭크 6 은 전역 유일성이 아니다"),
+]
+_PAPER_DOC_BANNER = ("<!-- ⛔이 조각의 원본 셀(옛 report04_detector.ipynb c22)은 사라져 다시 짓지 못한다. "
+                     "보존본에 2026-09-16 정정만 덮어쓴 판이다 — 본편은 reports/09_observability.ipynb 다. -->")
+
+
+def _patch_paper_doc(path: str) -> None:
+    """재생성이 막힌 논문 조각에 본편의 정정을 덮어쓴다(멱등)."""
+    with open(path, encoding="utf-8") as f:
+        txt = f.read()
+    before = txt
+    for old, new in PAPER_DOC_FIXES:
+        if old in txt:
+            txt = txt.replace(old, new)
+            print(f"   ✎ 정정: {old[:34]}…")
+    if _PAPER_DOC_BANNER not in txt:
+        lines = txt.split("\n")
+        lines.insert(2, _PAPER_DOC_BANNER)
+        txt = "\n".join(lines)
+    if txt != before:
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(txt)
+        os.replace(tmp, path)
+    else:
+        print("   (정정할 문장이 없다 — 이미 고쳐져 있다)")
+
+
 def write_paper_doc() -> str:
     nb = os.path.join(_ROOT, "archive", "legacy_reports", "report04_detector.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
     if len(cells) <= 22:
-        # 옛 노트북(report04_detector.ipynb)이 비워져 논문 부록 셀(c22)이 없다 —
-        # 마지막으로 생성된 docs/paper/04_detector.md 를 그대로 보존하고 재생성만 건너뛴다.
+        # 옛 노트북(report04_detector.ipynb)이 비워져 논문 부록 셀(c22)이 없다 — 재생성은 못 한다.
+        # ⛔2026-09-16: 그때 «보존만» 하면 본편에서 내린 문장이 이 조각에 그대로 남는다(실제로 남았다).
+        #   그래서 보존본에 **정정만 덮어쓴다**. 아래 PAPER_DOC_FIXES 는 여러 번 돌려도 같은 결과다.
         p = os.path.join(_ROOT, "docs", "paper", "04_detector.md")
         print(f"⚠ {os.path.relpath(nb, _ROOT)} 에 셀 23개가 없다({len(cells)}개) — "
-              f"논문 조각 재생성을 건너뛰고 기존 {os.path.relpath(p, _ROOT)} 를 보존한다")
+              f"논문 조각을 다시 짓지 못한다. 기존 {os.path.relpath(p, _ROOT)} 에 정정만 덮어쓴다")
+        _patch_paper_doc(p)
         return p
 
     figs = []

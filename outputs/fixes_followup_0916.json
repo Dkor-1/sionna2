@@ -1,0 +1,237 @@
+{
+  "_meta": {
+    "generator": "benchmark/review_fixes_followup_0916.py",
+    "command": "/workspace/.venvs/py312/bin/python benchmark/review_fixes_followup_0916.py",
+    "utc": "2026-09-16T05:09:44.193441+00:00",
+    "head": "1ef94422e1ededa3ab59f80aa0a5f122ac28c042",
+    "scope": "Selected source/publication review and CPU analytic probes. Design assessments are human-reviewed snapshot judgments, not automatic proof of design adequacy.",
+    "independent_review": "design_review reviewed the evaluation contract; verify_review independently checked published claims and velocity scaling."
+  },
+  "sources": {
+    "scale": {
+      "path": "benchmark/verify_observability.py",
+      "line": 367,
+      "excerpt": "    H = np.concatenate(Hs, 0) @ np.diag([1, 1, 1, 1 / t_obs, 1 / t_obs, 1 / t_obs])"
+    },
+    "unscale": {
+      "path": "benchmark/verify_observability.py",
+      "line": 627,
+      "excerpt": "                           sigma_vel_ms=[float(x / t_obs) for x in sp[3:]],"
+    },
+    "known_fix": {
+      "path": "benchmark/report4_fixups.py",
+      "line": 551,
+      "excerpt": "        kind=\"LEDGER\", t_obs_s=t_obs, legacy_factor_for_pre_0916_ledgers=t_obs ** 2, rows=fx,"
+    },
+    "paper": {
+      "path": "docs/paper/04_detector.md",
+      "line": 43,
+      "excerpt": "<!--pk:defence {\"kind\": \"defence\", \"report\": \"report04_detector\", \"rows\": [{\"주장\": \"명목 오경보율과 경험 오경보율은 파형마다 다른 배율로 어긋나고, 그 배율을 재서 CFAR 문턱을 교정했다.\", \"근거\": \"그림 4 · `outputs/verify_cfar.json:chain.NR100.dpi_eca.op.rows`\", \"공격\": \"그 배율은 CFAR 구현이 틀린 흔적이다.\", \"답\": \"문턱 상수는 이론식과 상대오차 7.6e-16 ⟨outputs/verify_cfar.json : alpha_audit.g2x2_t6x6.rel_err⟩ 안에서 같고, 이상적 백색 맵 500,000 ⟨outputs/verify_cfar.json : meta.n_maps_white⟩장 (셀 564,000,000 ⟨outputs/verify_cfar.json : white.48x24.rows[89].cells⟩개)에서 경험/명목 = 0.997 ⟨outputs/verify_cfar.json : white.48x24.rows[89].ratio⟩ 로 눈금이 1 에 선다.\"}, {\"주장\": \"교정 없는 세 파형 비교는 서로 다른 실제 오경보율 위에서 이뤄진다.\", \"근거\": \"그림 4 · `outputs/verify_cfar.json:chain.LTE20.dpi_eca.calib_op_mask1.points`\", \"공격\": \"배율이 두 배 안팎이면 순위가 뒤집힐 만큼 큰가.\", \"답\": \"명목 1e-04 ⟨outputs/verify_cfar.json : chain.NR100.dpi_eca.op.rows[89].pfa_nom⟩ 에서 실제 오경보율이 WiFi 1.53 ⟨outputs/verify_cfar.json : chain.WiFi80.dpi_eca.op.rows[89].ratio⟩배 · LTE 2.66 ⟨outputs/verify_cfar.json : chain.LTE20.dpi_eca.op.rows[89].ratio⟩배 · 5G 1.52 ⟨outputs/verify_cfar.json : chain.NR100.dpi_eca.op.rows[89].ratio⟩배 로 갈리고, 교정은 명목값을 WiFi 6.27e-05 ⟨outputs/verify_cfar.json : chain.WiFi80.dpi_eca.calib_op_mask1.points[2].pfa_nominal_needed⟩ · LTE 2.90e-05 ⟨outputs/verify_cfar.json : chain.LTE20.dpi_eca.calib_op_mask1.points[2].pfa_nominal_needed⟩ · 5G 6.46e-05 ⟨outputs/verify_cfar.json : chain.NR100.dpi_eca.calib_op_mask1.points[2].pfa_nominal_needed⟩ 로 바꿔 셋을 같은 경험 1e-04 ⟨outputs/verify_cfar.json : chain.NR100.dpi_eca.op.rows[89].pfa_nom⟩ 위에 올린다.\"}, {\"주장\": \"배율의 원인은 slow-time Hann 창이 만드는 도플러축 셀 상관이다.\", \"근거\": \"그림 5 · `outputs/verify_cfar.json:control_rect_window_NR100`\", \"공격\": \"셀 상관은 어느 검출기에나 있다 — 원인 지목의 근거가 약하다.\", \"답\": \"대조군이 확정한다 — Hann 을 rect 창으로 바꾸면 0.96 ⟨outputs/verify_cfar.json : control_rect_window_NR100.op.rows[89].ratio⟩, 백색화 정합필터까지 끄면 1.02 ⟨outputs/verify_cfar.json : control_whitened_mf_rect_NR100.op.rows[89].ratio⟩ 로 눈금이 1 로 돌아온다.\"}, {\"주장\": \"ECA 소거 깊이의 바닥은 환경이 정한다.\", \"근거\": \"그림 2 · `outputs/verify_eca.json:S1_depth_vs_taps`\", \"공격\": \"탭이 부족해서 얕게 나온 것이다.\", \"답\": \"탭 1~96 스윕에서 깊이가 포화한다 — 직접파만 든 신호에 같은 소거기를 걸면 232.3 dB ⟨outputs/verify_eca.json : S1_depth_vs_taps[0].rows[12].depth_dpi_db⟩(float64 한계)까지 내려가고, 측정된 다중경로를 넣으면 56.1 dB ⟨outputs/verify_eca.json : S1_depth_vs_taps[0].rows[12].depth_full_db⟩ 에서 멈춘다.\"}, {\"주장\": \"ECA 는 0-도플러 노치를 대가로 내며, 3 dB 지점은 세 파형이 같다.\", \"근거\": \"그림 3 · `outputs/verify_eca.json:S4_target_loss`\", \"공격\": \"노치가 드론 속도대를 통째로 먹으면 비교 자체가 무의미하다.\", \"답\": \"3 dB 지점은 f_d/Δf_d = 0.596 ⟨outputs/verify_eca.json : S4_target_loss[1].fd_3db_over_dfd⟩ 이고, 프레임 48 ⟨outputs/verify_eca.json : S4_target_loss[4].M⟩개에서 속도 문턱은 WiFi 0.39 m/s ⟨outputs/verify_eca.json : S4_target_loss[4].v_3db_ms⟩ · LTE 1.10 m/s ⟨outputs/verify_eca.json : S4_target_loss[7].v_3db_ms⟩ · 5G 1.16 m/s ⟨outputs/verify_eca.json : S4_target_loss[1].v_3db_ms⟩ 다 — 그 위 속도는 온전히 남는다.\"}, {\"주장\": \"오경보율 교정은 같은 배경을 수만 번 다시 만드는 통제 시뮬레이션이 한다.\", \"근거\": \"§3 · `outputs/prior_census.json:counts.zero_cfar_and_falsealarm`\", \"공격\": \"실측 플랫폼이 더 현실적인 근거다.\", \"답\": \"census 16 ⟨outputs/prior_census.json : meta.n_papers⟩편 · 전문 198 ⟨outputs/prior_census.json : counts.total_pages⟩쪽에서 `CFAR` 와 `false alarm` 이 모두 0회인 논문이 13 ⟨outputs/prior_census.json : counts.zero_cfar_and_falsealarm⟩편이고 검출을 주장한 논문은 1 ⟨outputs/prior_census.json : counts.claims_detection⟩편이다. 실외 실측은 배경을 주어진 대로 받고, 이 편은 맵 10,000 ⟨outputs/verify_cfar.json : meta.n_maps_chain⟩장을 다시 만들어 그 대조를 세운다.\"}, {\"주장\": \"교정표는 형상마다 다시 잰다.\", \"근거\": \"§3 · `src/passive_process.py:383` · `outputs/verify_cfar.json:chain.NR100.dpi_eca.wide`\", \"공격\": \"그럼 이 표는 이 형상 하나에서만 쓰는 값이다.\", \"답\": \"그렇다 — 같은 파형이 운용 창에서 1.52 ⟨outputs/verify_cfar.json : chain.NR100.dpi_eca.op.rows[89].ratio⟩배, 넓은 창(256 ⟨outputs/verify_cfar.json : meta.n_range_wide⟩ 빈)에서 47.70 ⟨outputs/verify_cfar.json : chain.NR100.dpi_eca.wide.rows[89].ratio⟩배다. `check_detector_config()`(`src/passive_process.py:383`)가 형상 조건을 강제하고, 자유공간 형상은 `src/freespace_detect.py:711` 이 다시 잰다.\"}, {\"주장\": \"송수신 한 쌍의 한 순간 관측량은 3차원 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창을 누적하면 등속 6상태 그램행렬의 국소 랭크가 6 이 된다.\", \"근거\": \"그림 7 · `outputs/verify_observability.json:summary`\", \"공격\": \"그건 기하 문제이고 검출기 성능과 별개다.\", \"답\": \"검출 판정은 (R_b, f_d) 셀에서 난다 — 두 양이 위치로 풀리는 조건을 FIM 랭크 2 ⟨outputs/verify_observability.json : summary.snapshot_fim_rank⟩ → 6 ⟨outputs/verify_observability.json : summary.fix_2rx_rank⟩ 로 적어두면 검출 결과가 말하는 범위가 정해진다(2 Rx 위치 CRLB(rms) 0.19 m — 관측가능 부분공간의 하한이고 추적기가 낸 오차가 아니다. 국소 랭크 6 은 전역 유일성이 아니다 ⟨outputs/verify_observability.json : summary.fix_2rx_pos_rms_m⟩).\"}]}-->"
+    },
+    "paper_builder": {
+      "path": "src/build_part09_detector.py",
+      "line": 864,
+      "excerpt": "def _patch_paper_doc(path: str) -> None:"
+    },
+    "review": {
+      "path": "benchmark/review_research_logic_0916.py",
+      "line": 88,
+      "excerpt": "    d['checks']['both_rank_claim_contradicted'] = order['single'][0] == 'mini5pro' and order['average'][0] != 'mini5pro'"
+    },
+    "stale_review": {
+      "path": "benchmark/review_research_logic_0916.py",
+      "line": 206,
+      "excerpt": "            '계획의 차별점은 네 RX 각도를 말하지만 배분은 감시 RX 세 개와 기준 또는 통신 RX 한 개다. 캠페인의 초기 상태는 알려진 표적 높이를 가정한다.',"
+    },
+    "endpoint": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 205,
+      "excerpt": "and the rule each competing method uses to pick one candidate; the metric list of §6.5 and which single metric is the"
+    },
+    "holdout": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 213,
+      "excerpt": "- placement-selection flights choose mast position, height and aim; final performance is reported only on evaluation"
+    },
+    "placement": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 168,
+      "excerpt": "   comparison, the only family a twin claim may be read from: antenna model, aim rule, channel count, aperture and RF"
+    },
+    "cfar": {
+      "path": "src/detection_gpu.py",
+      "line": 69,
+      "excerpt": "    P = rd.to(torch.float64) ** 2"
+    },
+    "reference": {
+      "path": "src/passive_process.py",
+      "line": 133,
+      "excerpt": "def range_doppler(surv, ref, fs, M, n_range=None, per_frame_ref=False):"
+    },
+    "ideal_scope": {
+      "path": "src/experiment_detection.py",
+      "line": 25,
+      "excerpt": "  · gpu_montecarlo uses the steering vector only through len(sv): the echo is scaled by sqrt(N) and the noise"
+    },
+    "threshold": {
+      "path": "src/build_part10_results.py",
+      "line": 753,
+      "excerpt": "            title=\"자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다\","
+    },
+    "rank": {
+      "path": "src/build_part10_results.py",
+      "line": 1282,
+      "excerpt": "           f\"이고, 자세평균에서 가장 견고한 것은 {ROB_ORDER_AVG[0]}\""
+    },
+    "correlation": {
+      "path": "src/build_part05_anchor.py",
+      "line": 92,
+      "excerpt": "_STRONGER_KO = {\"sigma_spread\": \"산포\", \"extent\": \"크기\"}["
+    },
+    "observability": {
+      "path": "src/build_part09_detector.py",
+      "line": 707,
+      "excerpt": "            title=\"한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다\","
+    }
+  },
+  "source_sha256": {
+    "benchmark/verify_observability.py": "9fe46967cb9e62eadf50b2b907a396e08fc609ab548f28d3a1d5d081a85e86b8",
+    "benchmark/report4_fixups.py": "9d5b311da03286495703d3ba7996a3f52fa69e249b4599ba5c896a2142bcee9e",
+    "docs/paper/04_detector.md": "8252c4adb4a405d1156c5b7e9af753e1dd672e3ac73d702b79ca5c980fa520a8",
+    "src/build_part09_detector.py": "47af121148fa9ab85c735d9c7305430d2d5f3d99627ab9c099f75e91c8085695",
+    "benchmark/review_research_logic_0916.py": "33a11c5d7d7ef1e3a28805c45c8072397aa1904aae7e74a00cc3361b7cc2310c",
+    "docs/MOBICOM_PIPELINE_PLAN_0916.md": "99b6424f92ff1929923c7e24084969c657435206916d68fb951c16e9a9f8ed92",
+    "src/detection_gpu.py": "44e91c2e12e57e95dc42531433ab8cf59181341b500e3fc92ff915c7c8aa1c55",
+    "src/passive_process.py": "33b1e8d2d55da893d42b2785118a83f940c9854ad62c21b81288bf8b01f7b806",
+    "src/experiment_detection.py": "0e910b8cb05591dec6242d7e5b5e10b4ea640b8cdc3f0181e9b01e9d5c35d7de",
+    "src/build_part10_results.py": "81b56723c79dfaf6d06996feaeab035b61e40840a1a6e472c0093ba04238aee2",
+    "src/build_part05_anchor.py": "50a035dea6d34b03a73064506b9475920cc2c54f933c2e89993d5f09b7036b5f",
+    "outputs/verify_observability.json": "beee2529307a37d2a03b3d987b2454990f91ebcb42b10a4e2d8f45cdfccd2efd",
+    "outputs/report4_fixups.json": "19bbdd8291a1729455706134ad48084302c8cb5179013b518c4c085c513e5867"
+  },
+  "checks": {
+    "existing_cpu_kernel_validation": true,
+    "cfar_direct_local_sum": true,
+    "variable_frame_target_peak": true,
+    "velocity_scaling_fixed": true,
+    "position_full_rank_invariant": true,
+    "canonical_velocity_matches_physical_units": true
+  },
+  "cfar": {
+    "shape": [
+      64,
+      32
+    ],
+    "strong_amplitude": 100000.0,
+    "pfa": 0.0001,
+    "rows": [
+      {
+        "seed": 915,
+        "mismatched_cells": 0
+      },
+      {
+        "seed": 916,
+        "mismatched_cells": 0
+      }
+    ],
+    "mismatched_cells": 0
+  },
+  "reference": {
+    "frames": 32,
+    "frame_length": 256,
+    "expected_peak": [
+      19,
+      7
+    ],
+    "actual_peak": [
+      19,
+      7
+    ],
+    "relative_numpy_torch_error": 2.2920733411616134e-16
+  },
+  "velocity": {
+    "cell": "nr100_G3",
+    "epochs": 16,
+    "tx": [
+      4.0,
+      2.5,
+      8.0
+    ],
+    "rx": [
+      4.0,
+      17.5,
+      6.5
+    ],
+    "rx2": [
+      26.0,
+      17.5,
+      6.5
+    ],
+    "target": [
+      20.85559953662147,
+      10.000239671579674,
+      5.5148407864251165
+    ],
+    "velocity": [
+      -2.9842762431563106,
+      0.004953212646613449,
+      0.3067095861190765
+    ],
+    "rows": [
+      {
+        "duration_s": 1.0,
+        "physical_velocity_std_ms": [
+          0.08893899689183857,
+          0.14535000518565086,
+          0.8654336288772408
+        ],
+        "current_velocity_std_ms": [
+          0.08893899690025193,
+          0.14535000519925256,
+          0.8654336289591128
+        ],
+        "understatement_factor": [
+          0.9999999999054029,
+          0.9999999999064211,
+          0.9999999999053978
+        ],
+        "physical_position_rms_m": 1.7054040924299803,
+        "current_position_rms_m": 1.7054040925915577
+      },
+      {
+        "duration_s": 3.0,
+        "physical_velocity_std_ms": [
+          0.009365047713107637,
+          0.016734862836089846,
+          0.09040209102628774
+        ],
+        "current_velocity_std_ms": [
+          0.009365047713105897,
+          0.01673486283608719,
+          0.09040209102627085
+        ],
+        "understatement_factor": [
+          1.0000000000001859,
+          1.0000000000001588,
+          1.0000000000001867
+        ],
+        "physical_position_rms_m": 0.1895653847111496,
+        "current_position_rms_m": 0.18956538471111228
+      }
+    ],
+    "factor": 9.0,
+    "history_pre_r39": {
+      "understatement_factor_per_duration": {
+        "1.0": 1.0,
+        "3.0": 9.0
+      },
+      "pre_fix_2rx_sigma_vel_ms": [
+        0.0010405608570125146,
+        0.0018594292040108897,
+        0.010044676780703973
+      ],
+      "note": "before R39 the velocity columns were multiplied by t_obs and the sigmas divided by it again"
+    }
+  },
+  "check_count": 6
+}

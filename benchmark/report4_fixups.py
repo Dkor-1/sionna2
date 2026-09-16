@@ -535,7 +535,10 @@ def f5_observability():
     amb = J("verify_ambiguity.json")
     out = {}
 
-    # (a) 속도 CRLB: 스케일 좌표 u_v = δv/t_obs 인데 코드가 sp/t_obs 로 나눴다 → ×t_obs²
+    # (a) 속도 CRLB 스케일 — ⛔2026-09-16 (R39) 에 **원 생성기가 고쳐졌다**
+    #     (benchmark/verify_observability.py:361 이 이제 속도 열을 1/t_obs 로 나눈다).
+    #     그래서 여기서 t_obs² 를 다시 곱하면 **두 번 고치는 것**이 된다. 이 절은 이제 원장 값을
+    #     그대로 싣고, 옛 판을 읽을 때만 쓰라고 배율을 따로 적는다.
     t_obs = obs["gramian"]["t_obs_s"]
     fx = []
     for k, v in obs["fixes"].items():
@@ -543,12 +546,13 @@ def f5_observability():
             continue
         fx.append(dict(config=k, rank=v["rank"],
                        sigma_pos_m=v["sigma_pos_m"], pos_rms_m=v["pos_rms_m"],
-                       sigma_vel_reported_ms=v["sigma_vel_ms"],
-                       sigma_vel_corrected_ms=[x * t_obs ** 2 for x in v["sigma_vel_ms"]]))
+                       sigma_vel_ms=v["sigma_vel_ms"]))
     out["crlb"] = dict(
-        kind="DERIVED", t_obs_s=t_obs, factor=t_obs ** 2, rows=fx,
-        note="위치 CRLB 는 속도좌표 재스케일에 불변 → **2RX 위치 0.22 m 는 그대로 유효**. "
-             "속도 CRLB 만 t_obs² = %g 배 낙관적으로 찍혔다." % (t_obs ** 2))
+        kind="LEDGER", t_obs_s=t_obs, legacy_factor_for_pre_0916_ledgers=t_obs ** 2, rows=fx,
+        note="속도 CRLB 는 2026-09-16 이전 원장에서 t_obs² = %g 배 낙관적으로 찍혔다(R39). "
+             "지금 원장은 고쳐진 값이라 여기서는 그대로 싣는다 — 옛 원장을 읽을 때만 "
+             "legacy_factor_for_pre_0916_ledgers 를 곱한다. 위치 CRLB 는 이 스케일에 불변이라 "
+             "그때도 지금도 같다." % (t_obs ** 2))
 
     # (b) ΔRb: 관측가능성 스크립트는 자기상관을 1샘플 선형보간으로 재 계통 과소.
     #     모호함수 스크립트는 0.05 m 미세격자로 같은 양을 정확히 쟀다 → 그 값을 쓴다.

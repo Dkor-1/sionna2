@@ -225,3 +225,51 @@ Which data chooses settings and which data evaluates them:
   and its error is reported before the tracker consumes it;
 - headline numbers are reported per flight and per day as well as pooled, and the raw field, not any screened or replaced
   field, carries them (§4).
+
+### 9.1 What "better track continuity" has to mean (to be fixed before the campaign)
+
+The follow-up review of 2026-09-16 (`docs/FIXES_FOLLOWUP_0916.ipynb`) is right that the headline metric is still open.
+These are the parts that must be written down, with numbers, before the January 2027 campaign, and never after seeing
+results:
+
+- **The same evaluation volume and the same denominator for every placement.** The volume is a fixed geometric region
+  (range, azimuth and height limits around the site), identical for all four placement methods, decided from the site
+  map and not from any method's coverage. The denominator is the seconds of RTK-truth track inside that volume, so a
+  placement cannot win by being scored only where it happens to see well.
+- **A position-matching tolerance and an identity rule.** A track point counts as matched when it is within a fixed
+  distance of the truth position at that time; the tolerance is one number, fixed in advance. Identity switches are
+  counted separately and never absorbed into continuity.
+- **A coasting allowance.** Prediction without detection is allowed to bridge at most a fixed number of seconds; beyond
+  that the track is broken at the last detection. A tracker that predicts a wrong position for a long time must not be
+  paid for continuity.
+- **What counts as an improvement.** The headline difference is agreed with the user in advance, and it only counts if
+  the false-track rate and the position error are no worse at the same time (a three-part criterion, not one number).
+- **Reported alongside, never instead:** time to first confirmation, track breaks per flight, false tracks per minute,
+  and position error inside the matched segments.
+
+### 9.2 From twin output to a chosen placement (the rule, fixed in advance)
+
+A twin that is only "consulted" cannot be evaluated. The selection rule is written down before the campaign:
+
+- **Which twin outputs enter the score.** Relative quantities only (the two-engine absolute-level rule stands): the
+  predicted target-to-clutter ratio at the drone position, and the fraction of the trajectory prior where the drone
+  stays inside the beam and above the ground-clutter floor. Free-space kernel agreement is a precondition for trusting a
+  setting, not a term in the score.
+- **A trajectory prior.** The candidate placements are scored against one written set of trajectories with weights
+  (approach, crossing, hover at several heights), fixed before scoring.
+- **One scalar.** The terms are combined into a single score with fixed weights, and the ranking of the whole candidate
+  set is recorded before any flight is measured — so the twin's prediction is testable, not just its winner.
+- **Regret, not only rank.** After the campaign, report how much the twin's chosen placement loses against the measured
+  best candidate, and how far off its predicted ranking was (rank correlation over the candidate set). That number is
+  the twin's contribution; "the twin's placement worked" is not.
+
+### 9.3 Why holdout days are not enough
+
+Moving the mast and measuring methods one after another confounds the method with wind, interference and flight
+conditions. So:
+
+- all four placement methods are flown in the **same sessions** where the site allows it, with the same trajectory set
+  repeated per method, and the order randomised or balanced across sessions;
+- one **fixed reference placement** is re-measured at intervals inside every session, so drift over the day is visible
+  and can be removed;
+- session and day enter the analysis as blocks; a difference that only appears between sessions is reported as such.
