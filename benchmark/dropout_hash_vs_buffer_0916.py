@@ -1025,15 +1025,27 @@ def summarise(DP, grid: list, order: list, roles: dict, rows: dict, envs: dict, 
                 continue
             gained = {i: len(set(envs[(q.name, i)]["hash"]) - set(envs[(p.name, i)]["hash"])) for i in iso_idx}
             lost = {i: len(set(envs[(p.name, i)]["hash"]) - set(envs[(q.name, i)]["hash"])) for i in iso_idx}
-            contrasts.append(dict(kind=kind, knob=knob, frm=p.name, to=q.name, n_scored=len(iso_idx),
-                                  n_poses_gaining_env_path=int(sum(1 for v in gained.values() if v > 0)),
-                                  n_poses_losing_env_path=int(sum(1 for v in lost.values() if v > 0)),
-                                  n_no_longer_isolated=int(sum(1 for i in iso_idx
-                                                               if dev(q.name, i) <= ARGS.factor))))
+            # ⛔2026-09-16 (review): "no longer isolated" against the production point is CUMULATIVE — at
+            #   hash8 -> both8 it counts the five poses the hash had already restored. The contrast's own
+            #   question is the INCREMENTAL one: isolated at `frm`, not isolated at `to`. Both are reported,
+            #   named apart, and the incremental one is what attributes an effect to this knob.
+            iso_at = lambda g, i: dev(g, i) > ARGS.factor                               # noqa: E731
+            contrasts.append(dict(
+                kind=kind, knob=knob, frm=p.name, to=q.name, n_scored=len(iso_idx),
+                n_isolated_at_from=int(sum(1 for i in iso_idx if iso_at(p.name, i))),
+                n_incremental_recoveries=int(sum(1 for i in iso_idx
+                                                 if iso_at(p.name, i) and not iso_at(q.name, i))),
+                n_incremental_losses=int(sum(1 for i in iso_idx
+                                             if not iso_at(p.name, i) and iso_at(q.name, i))),
+                n_poses_gaining_env_path=int(sum(1 for v in gained.values() if v > 0)),
+                n_poses_losing_env_path=int(sum(1 for v in lost.values() if v > 0)),
+                n_no_longer_isolated_cumulative_vs_production=int(sum(1 for i in iso_idx
+                                                                     if dev(q.name, i) <= ARGS.factor))))
     for c in contrasts:
-        log(f"  contrast [{c['kind']:12}] {c['knob']}: env path gained at "
-            f"{c['n_poses_gaining_env_path']}/{c['n_scored']} isolated poses · no longer isolated "
-            f"{c['n_no_longer_isolated']}")
+        log(f"  contrast [{c['kind']:12}] {c['knob']}: incremental recoveries "
+            f"{c['n_incremental_recoveries']}/{c['n_isolated_at_from']} (isolated at the starting point) · "
+            f"env path gained at {c['n_poses_gaining_env_path']} · cumulative vs production "
+            f"{c['n_no_longer_isolated_cumulative_vs_production']}")
 
     return dict(production_grid_point=prod_name, groups={k: v for k, v in groups.items()},
                 reference_env_paths=refs, n_reference_env_paths_missing_at_production=len(refs_missing),
@@ -1065,6 +1077,11 @@ def ledger_obj(status: str, grid: list, cells: list, variant, hold: dict, sb_che
             "lost. buffer_saturation.n_poses_buffer_binding decides separately whether the per-source "
             "cap was ever reached at all."),
         cannot_say=[
+            "that hash collisions are what dropped the candidate — the run shows that enlarging the hash "
+            "counter at a fixed buffer restores the path, not that two candidates collided (nothing here "
+            "counts collisions or ties a specific lost candidate to the missing path)",
+            "anything about a grid point that did not complete — the buffer-never-binding statement covers "
+            "the buffer values that ran to the end, not one that stopped on an allocation failure",
             "why a candidate is lost inside shoot-and-bounce (no collision counting, no buffer-fill "
             "instrumentation, no proof that the lost candidate is the missing path)",
             "anything about a radio measurement, a detector or a real radar",
@@ -1130,6 +1147,12 @@ def ledger_obj(status: str, grid: list, cells: list, variant, hold: dict, sb_che
             "env_only_keys_vs_production": "environment-only path keys gained and lost per pose relative "
                                            "to the production grid point (reference-free version of the "
                                            "same question).",
+            "paired_contrasts": "two grid points differing in one knob. n_incremental_recoveries counts poses "
+                                "isolated at frm and not at to — that is what this knob did. "
+                                "n_no_longer_isolated_cumulative_vs_production counts every pose no longer "
+                                "isolated at to relative to the production point, so a knob that changed "
+                                "nothing still inherits the recoveries an earlier knob made; do not read it "
+                                "as this knob's effect.",
             "buffer_saturation": "max candidates stored (pre-shrink paths_counter) / buffer. If this reaches "
                                  "1 the per-source cap was binding; if it stays far below 1 the buffer was "
                                  "never binding and only the hash counter could have acted.",
