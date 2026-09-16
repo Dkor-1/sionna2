@@ -1,7 +1,7 @@
 {
  "_meta": {
   "generator": "benchmark/dropout_knobs_0916.py",
-  "created_utc": "2026-09-16T03:02:12.162430+00:00",
+  "created_utc": "2026-09-16T05:11:48.013825+00:00",
   "factor": 20.0,
   "definitions": {
    "isolated_pose": "|E - m| > 20 x median_over_poses(|E - m|), m = component-wise median of E (same definition as outputs/isac_plan_corpus_0915.json : dropout)",
@@ -492,6 +492,56 @@
    }
   },
   {
+   "name": "ground path cap 16e6",
+   "group": "ground",
+   "stem": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp16000000_mfixbatteryi5_blperairframe_rt210_d2_el-60",
+   "available": true,
+   "solver_build": "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0",
+   "n_poses": 8192,
+   "n_isolated": 22,
+   "isolated_pose_indices": [
+    176,
+    1353,
+    1414,
+    1604,
+    2277,
+    2356,
+    2752,
+    3045,
+    3446,
+    3661,
+    4386,
+    4518,
+    4536,
+    4557,
+    4873,
+    5626,
+    5798,
+    6529,
+    6716,
+    7597,
+    7806,
+    8015
+   ],
+   "isolated_indices_truncated": false,
+   "share_of_pose_varying_power": 0.9976,
+   "abs_complex_median": 0.0001909,
+   "median_abs_dev": 2.504e-07,
+   "npaths_median": 2706,
+   "npaths_max": 2827,
+   "shard_sha256": {
+    "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp16000000_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz": "38f8f2757e92a96f9f1917dff48b749ba65f5072be4767e7cf6842d4a236bde3",
+    "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp16000000_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz": "d5b71187c9ab587ae60337fcd7644ab354e58bad29045dd895107e5096ba2d6a"
+   }
+  },
+  {
+   "name": "ground path cap 32e6",
+   "group": "ground",
+   "stem": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp32000000_mfixbatteryi5_blperairframe_rt210_d2_el-60",
+   "available": false,
+   "reason": "4095 poses missing"
+  },
+  {
    "name": "ground 3e9 rays",
    "group": "ground",
    "stem": "sionna_p3000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60",
@@ -944,6 +994,20 @@
    }
   },
   {
+   "name": "street canyon path cap 16e6",
+   "group": "canyon",
+   "stem": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mp16000000_mfixbatteryi5_blperairframe_rt210_d2_el-60",
+   "available": false,
+   "reason": "no shard"
+  },
+  {
+   "name": "street canyon path cap 32e6",
+   "group": "canyon",
+   "stem": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_mp32000000_mfixbatteryi5_blperairframe_rt210_d2_el-60",
+   "available": false,
+   "reason": "no shard"
+  },
+  {
    "name": "street canyon solver seed 2",
    "group": "canyon",
    "stem": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envsionna-simple_street_canyon_ss2_mfixbatteryi5_blperairframe_rt210_d2_el-60",
@@ -1299,6 +1363,16 @@
    "reference_is_subset_of_cell": false
   },
   {
+   "cell": "ground path cap 16e6",
+   "reference": "ground reference (4e9 rays, cap 2e6, seed 1)",
+   "jaccard": 0.2444,
+   "n_cell": 22,
+   "n_reference": 90,
+   "n_common": 22,
+   "cell_is_subset_of_reference": true,
+   "reference_is_subset_of_cell": false
+  },
+  {
    "cell": "ground 3e9 rays",
    "reference": "ground reference (4e9 rays, cap 2e6, seed 1)",
    "jaccard": 0.87,
@@ -1417,6 +1491,16 @@
    "jaccard": 0.2112,
    "n_a": 161,
    "n_b": 34,
+   "identical": false,
+   "b_subset_of_a": true
+  },
+  {
+   "pair": "path cap 8e6 vs 16e6",
+   "a": "ground path cap 8e6",
+   "b": "ground path cap 16e6",
+   "jaccard": 0.6471,
+   "n_a": 34,
+   "n_b": 22,
    "identical": false,
    "b_subset_of_a": true
   },

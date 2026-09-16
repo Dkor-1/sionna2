@@ -36,6 +36,8 @@ CELLS = [
     ("ground solver seed 3", "ground", BASE.format(spp=4000000000, tag="envoutdoor01_ground_ss3_")),
     ("ground path cap 1e6", "ground", BASE.format(spp=4000000000, tag="envoutdoor01_ground_mp1000000_")),
     ("ground path cap 8e6", "ground", BASE.format(spp=4000000000, tag="envoutdoor01_ground_mp8000000_")),
+    ("ground path cap 16e6", "ground", BASE.format(spp=4000000000, tag="envoutdoor01_ground_mp16000000_")),
+    ("ground path cap 32e6", "ground", BASE.format(spp=4000000000, tag="envoutdoor01_ground_mp32000000_")),
     ("ground 3e9 rays", "ground", BASE.format(spp=3000000000, tag="envoutdoor01_ground_")),
     ("ground 2e9 rays", "ground", BASE.format(spp=2000000000, tag="envoutdoor01_ground_")),
     ("ground 2e8 rays", "ground", BASE.format(spp=200000000, tag="envoutdoor01_ground_")),
@@ -45,6 +47,10 @@ CELLS = [
     ("street canyon reference", "canyon", BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_")),
     ("street canyon path cap 8e6", "canyon",
      BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_mp8000000_")),
+    ("street canyon path cap 16e6", "canyon",
+     BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_mp16000000_")),
+    ("street canyon path cap 32e6", "canyon",
+     BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_mp32000000_")),
     ("street canyon solver seed 2", "canyon",
      BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_ss2_")),
     ("street canyon el -30 reference", "canyon_el30",
@@ -54,7 +60,12 @@ CELLS = [
     ("street canyon el -30 solver seed 2", "canyon_el30",
      BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_ss2_").replace("el-60", "el-30")),
 ]
-REFERENCE = {"ground": 0, "free_sky": 10, "canyon": 12, "canyon_el30": 15}   # index into CELLS
+#: reference cell per scene group, by name (indices shifted when rungs were added)
+REFERENCE_NAME = {"ground": "ground reference (4e9 rays, cap 2e6, seed 1)",
+                  "free_sky": "free sky seed 1",
+                  "canyon": "street canyon reference",
+                  "canyon_el30": "street canyon el -30 reference"}
+REFERENCE = {g: [i for i, c in enumerate(CELLS) if c[0] == n][0] for g, n in REFERENCE_NAME.items()}
 
 
 def sha256_file(p: Path) -> str:
@@ -155,13 +166,23 @@ def main() -> None:
         print(f"  vs reference: {name:40} J={comps[-1]['jaccard']} common {len(a & b)} "
               f"subset={comps[-1]['cell_is_subset_of_reference']}")
     pairs = []
-    for i, j, why in ((8, 9, "deterministic mode off vs on at 2e8 rays"),
-                      (2, 3, "solver seed 2 vs seed 3"),
-                      (4, 5, "path cap 1e6 vs 8e6"),
-                      (0, 1, "reference vs its same-seed repeat"),
-                      (12, 14, "street canyon: reference vs solver seed 2"),
-                      (15, 17, "street canyon el -30: reference vs solver seed 2"),
-                      (15, 16, "street canyon el -30: reference vs path cap 8e6")):
+    idx = {c[0]: k for k, c in enumerate(CELLS)}
+    PAIRS = [("ground 2e8 rays", "ground 2e8 rays, solver deterministic", "deterministic mode off vs on at 2e8 rays"),
+             ("ground solver seed 2", "ground solver seed 3", "solver seed 2 vs seed 3"),
+             ("ground path cap 1e6", "ground path cap 8e6", "path cap 1e6 vs 8e6"),
+             ("ground path cap 8e6", "ground path cap 16e6", "path cap 8e6 vs 16e6"),
+             ("ground path cap 16e6", "ground path cap 32e6", "path cap 16e6 vs 32e6"),
+             ("ground reference (4e9 rays, cap 2e6, seed 1)", "ground repeat of the reference",
+              "reference vs its same-seed repeat"),
+             ("street canyon reference", "street canyon solver seed 2", "street canyon: reference vs solver seed 2"),
+             ("street canyon path cap 8e6", "street canyon path cap 16e6", "street canyon: cap 8e6 vs 16e6"),
+             ("street canyon path cap 16e6", "street canyon path cap 32e6", "street canyon: cap 16e6 vs 32e6"),
+             ("street canyon el -30 reference", "street canyon el -30 solver seed 2",
+              "street canyon el -30: reference vs solver seed 2"),
+             ("street canyon el -30 reference", "street canyon el -30 path cap 8e6",
+              "street canyon el -30: reference vs path cap 8e6")]
+    for a_name, b_name, why in PAIRS:
+        i, j = idx[a_name], idx[b_name]
         if i in sets and j in sets:
             a, b = set(map(int, sets[i])), set(map(int, sets[j]))
             pairs.append(dict(pair=why, a=CELLS[i][0], b=CELLS[j][0], jaccard=g4(jaccard(sets[i], sets[j])),
