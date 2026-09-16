@@ -8,7 +8,7 @@ build_part10_results.py — 부 10 「검출 결과」 11편(56~66)을 짓는다
 산출
     reports/56_geometry.ipynb            TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다
     reports/57_sensitivity-chain.ipynb   세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다
-    reports/58_shared-threshold.ipynb    자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다
+    reports/58_shared-threshold.ipynb    자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다
     reports/59_slope-anchor.ipynb        레벨을 맞추려면 크기전이 법칙을 골라야 하므로 기울기만 받는다
     reports/60_r90.ipynb                 앵커 σ 위의 R90 과 기체별 밴드 순서
     reports/61_rank-durability.ipynb     그 순위는 자세평균이면 하나로 모이고, 문턱은 봉투 안이다
@@ -750,9 +750,10 @@ def r58():
     return [
         header(
             num=58,
-            title="자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다",
-            did="자유공간 형상에서 경험 Pfa 를 목표값에 고정해 문턱을 다시 잡고, 세 밴드가 문턱 "
-                "하나를 공유하는 선택이 거리에 얼마를 주는지를 계산했다.",
+            title="자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다",
+            did="자유공간 형상에서 경험 Pfa 를 목표값에 고정해 문턱을 다시 잡고, 세 밴드에 W1 "
+                "문턱 하나를 넘기는 선택이 거리에 얼마를 주는지를 LTE 에서 계산했다 — 5G 는 "
+                "검사 칸이 전부 도플러 축 밖이라 자기 문턱이 비어 있다.",
             results=[
                 f"경험 Pfa 를 목표 {FS.num('threshold.pfa.W1.target', 1e-4, '{:.0e}')} 에 고정하고 "
                 f"그때 요구되는 명목 Pfa 를 기록한다 — 자유공간 형상은 거리창·오버샘플·가드 규약이 "
@@ -762,7 +763,9 @@ def r58():
                        f"{J_FS} : threshold.pfa.G1.ratio_emp_over_nominal", "역수")
                 + f" 다 — 프레임 {FS.num('waveforms.G1.M', 5, '{:.0f}')}개짜리 도플러 축이 그만큼 좁다.",
                 f"세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 = "
-                f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 공유한다.",
+                f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 함께 쓴다 — "
+                f"세 밴드에서 각각 재어 같은 값이 나온 것이 아니라, `--mode` 목록 첫 모드의 값을 "
+                f"그대로 넘기기 때문이다(`src/experiment_freespace_range.py:1056`).",
                 f"그 선택의 크기 — 같은 dopoff {_THR_DOP}빈에서 LTE 자기 문턱은 "
                 f"{DV.num('threshold.l1_own_snr90_db', None, '{:.2f}', 'dB')} 로 공유 문턱과 "
                 f"{DV.num('threshold.l1_delta_db', None, '{:+.3f}', 'dB')} 차이이고, R90 에 주는 차는 "
@@ -782,8 +785,9 @@ def r58():
                  "거리창·오버샘플·가드 규약이 실내 통제 형상과 다르다. 그 형상의 배율을 그대로 쓰면 "
                  "세 밴드가 서로 다른 실제 오경보율 위에 선다"),
                 ("문턱 공유",
-                 "W1 에서 잰 SNR90 하나를 세 밴드가 함께 쓴다 — 그 선택의 크기를 LTE 자기 문턱과의 "
-                 "차로 같은 표에 싣는다(`src/experiment_freespace_range.py:856`)"),
+                 "`--mode` 목록 첫 모드(W1)에서 잰 SNR90 을 세 밴드 solve 에 그대로 넘긴다 — 그 "
+                 "선택의 크기를 LTE 자기 문턱과의 차로 같은 표에 싣는다"
+                 "(`src/experiment_freespace_range.py:1056` → `:1067`)"),
                 ("5G 의 자기 문턱",
                  f"dopoff 격자 {DV.num('threshold.g1_total_cells', None, '{:.0f}')}칸이 "
                  f"M={DV.num('threshold.g1_M', None, '{:.0f}')} 의 도플러 축 밖이라 자기 문턱을 "
@@ -818,10 +822,11 @@ def r58():
            "흔들어 손실을 잰 편이 "
            "⛔«기준채널이 현실이면 얼마를 잃는가» 별편(2026-09-03 내림 — 동작점이 실내 통제 기하다, `archive/chamber_0903/`) 다."),
 
-        md("## 세 밴드가 문턱 하나를 공유한다", "",
+        md("## W1 문턱 하나를 세 밴드에 넘겨 쓴다", "",
            f"세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 = "
-           f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 공유한다"
-           f"(`src/experiment_freespace_range.py:856`). 그 선택의 크기는 이렇다.", "",
+           f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 함께 쓴다 — 코드가 "
+           f"`--mode` 목록 첫 모드의 첫 유효 dopoff 칸 값을 뽑아 세 solve 에 그대로 넘긴다"
+           f"(`src/experiment_freespace_range.py:1056` → `:1067`). 그 선택의 크기는 이렇다.", "",
            table(["모드", f"자기 문턱 SNR90 (dopoff {_THR_DOP}빈)", "공유 문턱과의 차",
                   "R90 에 주는 차"],
                  [["WiFi", DV.num("threshold.snr90_shared_db", None, "{:.2f}", "dB"),
@@ -862,7 +867,7 @@ def r58():
         next_steps([
             ("5G 의 dopoff 격자를 M 인식으로 고쳐 Pd=0.9 문턱을 직접 잰다",
              "5G 의 R90 이 자기 문턱 위에 서고, 위 표의 마지막 줄이 닫힌다",
-             "`src/experiment_freespace_range.py:856`"),
+             "`src/experiment_freespace_range.py:186` 의 `dopoff_bins`"),
             ("⛔실내 통제 형상과 나란히 싣는 안은 내렸다 — 자유공간 형상 하나로 잰다",
              "형상이 배율에 주는 크기가 두 형상 사이에서 확정된다",
              ref("cfar-why", short=True)),
@@ -1037,7 +1042,7 @@ def r60():
                  "단일 자세 · 자세평균 · 자세평균+앵커 · 듀티까지 켠 설정 네 가지를 나란히 싣는다"),
             ],
             prereq=[(ref("slope-anchor", short=True), "기울기 앵커가 무엇을 받고 무엇을 남기는가"),
-                    (ref("shared-threshold", short=True), "세 밴드가 공유하는 문턱")],
+                    (ref("shared-threshold", short=True), "세 밴드에 넘겨 쓴 W1 문턱")],
             repro=dict(cmd=CMD[:5] + CMD[-2:], out=[J_FS, J_AN, J_SS, J_DV], runtime=RUNTIME),
         ),
 

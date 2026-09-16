@@ -1501,6 +1501,39 @@ m["canyon_events"]["has_339"] = "339" in txt
 
 ---
 
+## R38 ⛔ 「세 밴드가 SNR90 하나를 **공유한다**」 — 재어서 같았던 게 아니라 첫 모드 값을 넘긴 것이다
+
+**언제** 2026-09-16 · **어디** `src/build_part10_results.py` 편 58 의 제목·여는블록·본문 소제목·편 60
+링크 이름표 · `src/make_report05_results.py` 머리말 ③ 과 §3.1 · 원장 산문
+`outputs/report05_derived.json : threshold.note` 와 그 생성기. **다른 세션의 검토가 잡았다**
+(`docs/RESEARCH_LOGIC_REVIEW_0916.ipynb` · `outputs/research_logic_review_0916.json : threshold`).
+이쪽에서도 `outputs/report13_freespace.json` 을 직접 다시 읽어 같은 결과를 얻었다.
+
+**무엇이 틀렸나.** `main()` 이 `--mode` 목록 첫 모드(W1)의 **건너뛰지 않은 첫 dopoff 칸** SNR90 을 뽑아
+세 밴드 solve 에 그대로 넘긴다(`src/experiment_freespace_range.py:1056` → `:1067`). 그래서
+`solve.W1/L1/G1.snr90_db` 가 셋 다 **11.861 dB 한 값**이고, 이는 세 밴드에서 각각 잰 결과가 아니다.
+자기 문턱이 있는 밴드는 W1·L1 둘뿐이고(dopoff 3 빈에서 11.861 vs 11.908 dB, 차 +0.047 dB,
+R90 −0.27 %), 5G(G1)는 dopoff 검사 칸 5 개가 **전부** M=5 의 도플러 축 밖(|dopoff| ≤ 2)이라 자기
+문턱이 **비어 있다**. 제목의 「공유한다」 는 셋을 재어 같았다는 뜻으로 읽힌다.
+
+**고친 것.** 제목을 «자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다» 로,
+소제목·결과 문장·원장 산문을 «넘겨 쓴다» 로 바꿨다. **값과 표는 그대로다 — 바뀐 것은 그 값을 읽는
+문장이다.** 겸해서 두 빌더 **일곱 자리**(`build_part10_results.py` 셋 · `make_report05_results.py` 넷)에
+남아 있던 낡은 코드 위치 `experiment_freespace_range.py:856`(커밋 `cba86264` 시점에는 맞았고 —
+그때 855-856 행이 solve 호출이다 — 그 뒤 211 행 밀렸다. 지금 856 행은 `assemble_canonical()` 안이다)을
+`:1056`·`:1067`(문턱 전달)과 `:186`(dopoff 격자 선언)으로 고쳤다.
+
+⚠ **겹치는 신뢰구간은 동등성 입증이 아니다.** W1 [11.804, 11.922] · L1 [11.855, 11.964] dB 가 겹치고
+두 반폭의 quadrature 0.081 dB 를 얹으면 차가 0 을 품지만, dopoff 칸을 바꾸면 부호가 뒤집힌다(8 빈에서
+L1 자기 문턱 11.843 dB 로 공유 문턱 아래). 「같다」 는 판정은 여유폭을 먼저 선언한 동등성 검정과
+M 인식 dopoff 격자에서 다시 잰 G1 문턱이 있어야 선다.
+
+⚠ 원장 자체도 오해를 부른다 — `src/experiment_freespace_range.py:509` 가 `solve.*.snr90_source` 를
+세 모드 모두 "measured (stage_threshold)" 로 적는다. G1 에는 측정이 없다. 이 필드를 고치는 일은
+실험 스크립트 수정 + 원장 재생성(GPU)이라 이번 문서 정정과 분리했다.
+
+---
+
 ## R33 ⛔⛔ 선행 연구 조사의 **재현율 «4/6» 은 실제로 0/6** 이었다 — 한 줄짜리 버그
 
 **언제** 2026-09-12 · **어디** `/data/public/sionna_jeong/toptier_0911/`(INDEX.md · 원장 275 행) ·

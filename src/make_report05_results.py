@@ -41,7 +41,7 @@ make_report05_results.py — 리포트 05(검출 결과) 노트북 생성기
    세 밴드 평균 레벨이동은 0 이다(02 §4 와 같은 말).
 ② R90 은 **공칭 헤딩 ψ=0** 에서 SNR(d) 가 교정 문턱을 마지막으로 하강교차하는 수평거리다
    (`src/freespace_link.py:448`). 헤딩 축은 §3.5 의 CPI 스윕이 든다.
-③ 세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 하나를 공유한다(`experiment_freespace_range.py:856`).
+③ 세 밴드의 solve 에는 첫 모드(W1)에서 잰 문턱 SNR90 을 그대로 넘긴다 — 세 밴드에서 각각 잰 값이 아니다(`experiment_freespace_range.py:1056`).
 ④ 예산은 선언값이다(EIRP 63 dBm · NF 5 dB). `meta.link_budget.provenance` 가 그렇게 적고 있다.
 ⑤ §3.6·§4 의 절대 SNR 은 X410 벤치 배치(단일 반송파 3.5 GHz · R_b 22.3 m)에서 나온다 —
    같은 조건에서의 **모드 간 상대 비교**가 그 두 절이 읽는 것이다.
@@ -376,8 +376,9 @@ def write_derived(D: dict, t0: float) -> str:
                          "CPI 의존성은 outputs/cpi_guard_sweep.json 이 스윕으로 든다."),
         "threshold": dict(
             snr90_shared_db=D["snr90_shared"], snr90_source_mode="W1",
-            note="stage_threshold 는 --mode 목록의 첫 모드에서 SNR90 을 뽑아 세 밴드 solve "
-                 "전부에 넘긴다 (src/experiment_freespace_range.py:856).",
+            note="main 은 stage_threshold 결과에서 --mode 목록 첫 모드의 첫 유효 dopoff 칸 "
+                 "SNR90 을 뽑아 세 밴드 solve 전부에 넘긴다 — 세 밴드에서 각각 잰 값이 아니다 "
+                 "(src/experiment_freespace_range.py:1056 → :1067).",
             l1_own_snr90_db=D["snr90_L1_own"], l1_delta_db=D["snr90_L1_delta"],
             l1_range_shift_pct=D["R_shift_L1_pct"],
             g1_skipped_cells=D["G1_skipped"], g1_total_cells=D["G1_cells"], g1_M=D["G1_M"]),
@@ -1000,8 +1001,9 @@ def build_blocks(D: dict):
         f" 다 — 프레임 {FS.num('waveforms.G1.M', 5, '{:.0f}')}개짜리 도플러 축이 그만큼 좁다.",
         "<!--cell-->",
         f"세 밴드의 solve 는 이 중 W1 에서 잰 문턱 SNR90 = "
-        f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 공유한다"
-        f"(`src/experiment_freespace_range.py:856`). 그 선택의 크기는 이렇다.",
+        f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 함께 쓴다 — 세 밴드에서 "
+        f"각각 재어 같은 값이 나온 것이 아니라, `--mode` 목록 첫 모드의 값을 그대로 넘기기 때문이다"
+        f"(`src/experiment_freespace_range.py:1056` → `:1067`). 그 선택의 크기는 이렇다.",
         "",
         table(["모드", "자기 문턱 SNR90", "공유 문턱과의 차", "R90 에 주는 차"],
               [["WiFi", DV.num("threshold.snr90_shared_db", None, "{:.2f}", "dB"),
@@ -1440,7 +1442,7 @@ def build_blocks(D: dict):
     blocks.append(next_steps([
         ("5G 의 dopoff 격자를 M 인식으로 고쳐 Pd=0.9 문턱을 직접 잰다",
          "5G 의 R90 이 자기 문턱 위에 서고, 세 밴드가 문턱을 공유하는 §3.1 의 행이 닫힌다",
-         "`src/experiment_freespace_range.py:856` → 05편 §3.1"),
+         "`src/experiment_freespace_range.py:186` 의 `dopoff_bins` → 05편 §3.1"),
         ("듀티 항을 R90 경로에 켜고 세 밴드를 다시 푼다",
          "§2.2 의 "
          + SS.num("unapplied_duty_axis.duty_db.G1", None, "{:.2f}", "dB")

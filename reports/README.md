@@ -226,7 +226,7 @@
 | 1 | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다 | `_parts/55_observability.ipynb` |
 | 2 | TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다 | `_parts/56_geometry.ipynb` |
 | 3 | 세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다 | `_parts/57_sensitivity-chain.ipynb` |
-| 4 | 자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다 | `_parts/58_shared-threshold.ipynb` |
+| 4 | 자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다 | `_parts/58_shared-threshold.ipynb` |
 
 ### 권 [10 «결과 — 얼마나 멀리서 보이나»](10_results.ipynb)
 
