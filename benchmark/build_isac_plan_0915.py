@@ -217,11 +217,18 @@ def sec_corpus(C) -> list:
         "### 고립 자세",
         "",
         "**고립 자세** = 8,192 자세의 E 에서 복소 중앙값과의 거리가 그 거리 중앙값의 20 배를 넘는 자세다.",
-        f"지면만 장면 {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].n_cells', fmt='{:d}', unit='칸')} 전부에 고립 자세가"
+        f"지면만 장면의 등방 안테나 {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].n_cells', fmt='{:d}', unit='칸')} 전부에 고립 자세가"
         f" {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].n_outlier_poses_min', fmt='{:d}')}"
         f" ~ {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].n_outlier_poses_max', fmt='{:d}', unit='개')} 있고,"
         f" 변하는 전력의 {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].share_min', fmt='{:.1%}')}"
         f" ~ {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].share_max', fmt='{:.1%}')} 를 쥔다.",
+        f"그 칸들은 문턱 50 배에서도 {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].n_outlier_poses_f50_min_max[0]', fmt='{:d}')}"
+        f" ~ {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].n_outlier_poses_f50_min_max[1]', fmt='{:d}', unit='개')} 로 같다.",
+        f"같은 장면의 조준 안테나 {C.num('dropout.summary[scene=outdoor01_ground,ant=tr38901].n_cells', fmt='{:d}', unit='칸')} 중"
+        f" 고립 자세가 있는 칸은 {C.num('dropout.summary[scene=outdoor01_ground,ant=tr38901].n_cells_with_outliers', fmt='{:d}', unit='칸')} 이고,"
+        f" 그 칸이 쥔 몫은 {C.num('dropout.summary[scene=outdoor01_ground,ant=tr38901].share_max', fmt='{:.1%}')} 인데,"
+        f" 문턱 50 배에서는 조준 칸 최대가 {C.num('dropout.summary[scene=outdoor01_ground,ant=tr38901].n_outlier_poses_f50_min_max[1]', fmt='{:d}', unit='개')} 다"
+        f" — 고립 자세는 안테나 조건까지 넓혀 읽지 않는다.",
         f"그 자세만 복소 중앙값으로 바꾸면 대비가 {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].contrast_replaced_min_db', fmt='{:.1f}')}"
         f" ~ {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].contrast_replaced_max_db', fmt='{:.1f}', unit='dB')} 이고,"
         f" 같은 수의 무작위 자세를 바꾼 대조는 최대 {C.num('dropout.summary[scene=outdoor01_ground,ant=iso].random_control_contrast_max_db', fmt='{:.1f}', unit='dB')} 다.",

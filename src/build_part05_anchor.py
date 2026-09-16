@@ -87,6 +87,11 @@ def _repro(cmd: list[str], out: list[str], runtime: str, note: str = "") -> dict
 _ARMS = ("**S** = Sionna PathSolver · **B** = 우리 SBR+PO 커널(광선 가림 + 셸 투과 + PO 면적분) · "
          "**P** = 순수 PO 대조군(PEC |Γ|=1)")
 
+#: 어느 열의 상관 **절댓값**이 큰가 — 이 판정도 두 수에서 나오므로 산문에 손으로 적지 않고
+#  원장에서 읽는다(R37). 원장이 다시 구워져 두 열의 순서가 뒤집혀도 이 낱말이 따라간다.
+_STRONGER_KO = {"sigma_spread": "산포", "extent": "크기"}[
+    fetch((SS, "size_vs_fragility.stronger_abs_corr_with_flip_single"))]
+
 #: 끝점 두 개를 뺀 기울기가 Das 공표 기울기의 몇 배인가 — 두 원장 값의 몫이다(파생).
 _P3_DROP_RATIO = (fetch((P3V1, "slope.ours_slope_robustness.drop_both_endpoints"))
                   / fetch((P3V1, "slope.das_published.a")))
@@ -940,7 +945,7 @@ def report_29_sigma_robustness():
            f"문턱과의 상관이 크기 쪽 "
            f"{_n('size_vs_fragility.corr_extent_vs_flip_single', SS, '{:.2f}')} · 산포 쪽 "
            f"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 절댓값은 "
-           f"산포 쪽이 크다(⛔2026-09-16 정정 — 여기에는 「크기 쪽이 더 강하다」 가 적혀 있었다. R37). "
+           f"{_STRONGER_KO} 쪽이 크다(⛔2026-09-16 정정 — 여기에는 「크기 쪽이 더 강하다」 가 적혀 있었다. R37). "
            f"두 열 사이의 상관은 "
            f"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 "
            f"열은 이 표에서 서로 다른 축이다.", "",

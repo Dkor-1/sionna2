@@ -2,45 +2,45 @@
   "_meta": {
     "generator": "benchmark/review_research_logic_0916.py",
     "command": "/workspace/.venvs/py312/bin/python benchmark/review_research_logic_0916.py",
-    "utc": "2026-09-16T01:25:23.387063+00:00",
-    "head": "3b3cd0735258705629158f12a24705496d5d5002",
+    "utc": "2026-09-16T03:23:35.111573+00:00",
+    "head": "ee035daca4e278eec88c051aa37e83042be03c39",
     "scope": "Selected current plans, report headlines, builders and ledgers; analytic counterexamples. No exhaustive literature review, RF measurement, full rebuild, or GPU job.",
     "interpretation": "Confirmed source/ledger inconsistencies are separated from proposed-design risks. Existing acknowledgments remain attached."
   },
   "sources": {
     "scope": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 91,
+      "line": 103,
       "excerpt": "  effect on false tracks as an ablation; multi-class identification is future work.\n- Differentiation from LaSen has to come from: angle via 4 RX channels and sector antennas, multi-drone association,\n  communication metrics next to sensing, and site-specific design of antenna aim and height.\n"
     },
     "ofdm": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 49,
-      "excerpt": "Suitable, with conditions. OFDM radar processing divides each received resource element by the known transmitted one, so the\nrange-Doppler response does not depend on the data content; LaSen already used an NR-structured waveform with this drone.\n\n| Condition | Why | Evidence |"
+      "line": 48,
+      "excerpt": "\nSuitable, with conditions. OFDM radar processing divides each received resource element by the known transmitted one, so the\ntarget response carries no data-dependent structure — the noise does not follow: Y / X = H + N / X scales the noise by\n1 / |X| at each element, so the range-Doppler noise floor does depend on the constellation. At equal mean symbol energy"
     },
     "all_ground": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 80,
-      "excerpt": "- check for isolated jumps before trusting a spectrum: in the simulation corpus a few isolated poses dominate the varying\n  power in every ground scene (`outputs/isac_plan_corpus_0915.json : dropout`); real captures can have their own jumps\n  (ADC clipping, gain changes, packet loss) and must be screened the same way;\n- this repository's rotor numbers use hover rpm 3,800 (an estimate; DJI publishes no hover rpm) and the Matrice 4E logs no"
+      "line": 84,
+      "excerpt": "- static leakage into the STFT band must be removed before reading lines (memory note `static-leaks-into-stft-band`);\n- check for isolated jumps before trusting a spectrum: in the simulation corpus every one of the 24 omnidirectional-antenna\n  cells of the ground-only scene carries 49-99 isolated poses holding 94.8-99.4 % of that cell's varying power, and the\n  same 49-99 at the 10, 20 and 50 times thresholds; but of the 4 cells of that scene with the aimed TR 38.901 element 3"
     },
     "rotor": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 89,
+      "line": 101,
       "excerpt": "  what the closest accepted systems evaluated. Classification needs many negative targets (birds, other drones) and more data.\n- Keep the rotor signature as a **track-confirmation feature** (does a confirmed track carry blade lines?) and report its\n  effect on false tracks as an ablation; multi-class identification is future work.\n- Differentiation from LaSen has to come from: angle via 4 RX channels and sector antennas, multi-drone association,"
     },
     "channels": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 97,
+      "line": 109,
       "excerpt": "1. Hardware and site — X410 variant (standard vs \"L\") and host NIC (10 GbE → 200 MHz per channel; continuous 400 MHz needs\n   CG_400 over 100 GbE, UHD manual); TX 1, sensing RX 3 on overlapping sectors, RX 1 as coupled TX sample or communication\n   receiver; GPS time on the X410 and Matrice 4E RTK logs; camera for non-drone events.\n2. Waveform TX — NR-structured slot from installed Sionna at 30.72 Msps native raster; LTE and Wi-Fi arms written later; OAI"
     },
     "bearing": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 104,
+      "line": 116,
       "excerpt": "4. Sensing front end — per-frame reference, leakage/direct-path cancellation, complex range-Doppler cube per channel,\n   float64 CFAR, cell clustering into a detection list (range, Doppler, sector amplitude ratio → azimuth, SNR).\n5. Tracking — Stone Soup (EKF/UKF, GNN then JPDA, M-of-N confirmation; `OPENSOURCE.md`); metrics: TR 38.765 P_md,\n   P_fa Type 1 and 2, error against RTK, GOSPA, continuity, time to confirm."
     },
     "placement": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 112,
+      "line": 124,
       "excerpt": "8. Campaign — 2-3 sites, 20-300 m, several heights, hover and 5-15 m/s, two drones, several days; comparisons: single\n   omnidirectional antenna, no sectors, placement without the twin; ablations: waveform, aim/sector, rotor-line confirmation,\n   CPI length; release code and SigMF data.\n"
     },
     "admission": {
@@ -65,28 +65,28 @@
     },
     "threshold": {
       "path": "src/build_part10_results.py",
-      "line": 728,
+      "line": 753,
       "excerpt": "            num=58,\n            title=\"자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다\",\n            did=\"자유공간 형상에서 경험 Pfa 를 목표값에 고정해 문턱을 다시 잡고, 세 밴드가 문턱 \"\n                \"하나를 공유하는 선택이 거리에 얼마를 주는지를 계산했다.\","
     },
     "threshold_gap": {
       "path": "src/build_part10_results.py",
-      "line": 765,
+      "line": 790,
       "excerpt": "                 f\"M={DV.num('threshold.g1_M', None, '{:.0f}')} 의 도플러 축 밖이라 자기 문턱을 \"\n                 f\"직접 재지 못한다 — 다음 단계에 건다\"),\n            ],\n            prereq=[(ref(\"cfar-calib\", short=True), \"경험 Pfa 교정이 왜 필요한가\"),"
     },
     "rank": {
       "path": "src/build_part10_results.py",
-      "line": 1245,
-      "excerpt": "           f\"D/λ = {SS.num('size_vs_fragility.by_drone.mini5pro.D_over_lambda_lte', None, '{:.2f}')})\"\n           f\" 가 단일자세·자세평균 양쪽에서 가장 견고하다.\", \"\",\n           f\"단일자세 뒤집힘 문턱은 최대 치수 열과 밴드 간 σ 로브 산포 열 둘 다에 걸린다 — 상관은 \"\n           f\"크기 쪽 {SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 산포 쪽 \""
+      "line": 1277,
+      "excerpt": "           f\"({SS.num('size_vs_fragility.by_drone.mini5pro.flip_span_aspect_avg_db', None, '{:.2f}', 'dB')})\"\n           f\"이고, 자세평균에서 가장 견고한 것은 {ROB_ORDER_AVG[0]}\"\n           f\"({SS.num(f'size_vs_fragility.by_drone.{ROB_ORDER_AVG[0]}.flip_span_aspect_avg_db', None, '{:.2f}', 'dB')})\"\n           f\" 다. ⛔2026-09-16 정정 — 이 자리에는 「단일자세·자세평균 양쪽에서 가장 견고하다」 가 \""
     },
     "rank_generator": {
       "path": "benchmark/sigma_sensitivity.py",
-      "line": 710,
-      "excerpt": "        finding=(f\"작은 기체가 더 취약하다는 예상은 이 {len(DRONES)} 대에서 뒤집힌다. 가장 작은 \"\n                 f\"{_small}({ext[DRONES.index(_small)]:.3f} m)가 단일자세·자세평균 양쪽에서 가장 \"\n                 f\"견고하고, 가장 큰 {_large}({ext[DRONES.index(_large)]:.3f} m)가 취약한 쪽에 \"\n                 f\"있다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 {_c_ext_flip:+.2f}, 밴드 간 σ \""
+      "line": 705,
+      "excerpt": "            1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index(_small)])),\n        smallest_airframe_rank_aspect_averaged=int(\n            1 + sorted(frag_avg, reverse=True).index(frag_avg[DRONES.index(_small)])),\n        most_robust_aspect_averaged=DRONES[int(np.argmax(frag_avg))],"
     },
     "correlation": {
       "path": "src/build_part05_anchor.py",
-      "line": 943,
-      "excerpt": "           f\"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 크기 쪽이 \"\n           f\"더 강하다. 두 열 사이의 상관은 \"\n           f\"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 \"\n           f\"열은 이 표에서 서로 다른 축이다.\", \"\","
+      "line": 948,
+      "excerpt": "           f\"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 절댓값은 \"\n           f\"{_STRONGER_KO} 쪽이 크다(⛔2026-09-16 정정 — 여기에는 「크기 쪽이 더 강하다」 가 적혀 있었다. R37). \"\n           f\"두 열 사이의 상관은 \"\n           f\"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 \""
     },
     "known_height": {
       "path": "benchmark/design_isac_campaign_0915.py",
@@ -130,23 +130,23 @@
     }
   },
   "source_sha256": {
-    "docs/MOBICOM_PIPELINE_PLAN_0916.md": "aedb2f930c11cde4860eceb6ce9c744985860613118b97decaf82b93a36083b7",
+    "docs/MOBICOM_PIPELINE_PLAN_0916.md": "ed984cea42169b4e4f7fb6b867bedda35a8440c80266ded248518666cd08fb7a",
     "benchmark/isac_plan_positioning_0915.py": "c68cd9e1c881f917d24db6f623e26854b080442b407a1e5f047c6edc3de33ca7",
     "src/build_part09_detector.py": "26eccff1e1977e8ec84fb543c968741d3e512cdd5ec9579ddad5fa6bfa07cff1",
     "benchmark/verify_observability.py": "836b5b86f6ee564fcb26c2b49d1929193d692820519a4b05c8615b3550b379c3",
-    "src/build_part10_results.py": "218ed90202f8aa7cb1b3727557b77af799426d1f3f39c25de8f8cd9039c7b15b",
-    "benchmark/sigma_sensitivity.py": "9e0b4f4db6e25e50cf2711288e78a07298dda1632de65d8258e1da681b63504c",
-    "src/build_part05_anchor.py": "27ecaa16563b33840620bc52260a376dfe806b787da5fc525062d86157792f96",
+    "src/build_part10_results.py": "2b70e240765138d6f0eb2b12505e68d25cee17550cd88166cd57fa9c23575210",
+    "benchmark/sigma_sensitivity.py": "282aa8d208d368c03e9edf9e48c289d53f7c1d62561f89420aca6fb7d5e95919",
+    "src/build_part05_anchor.py": "50a035dea6d34b03a73064506b9475920cc2c54f933c2e89993d5f09b7036b5f",
     "benchmark/design_isac_campaign_0915.py": "13e8d9a0c104c5f7c5dd8f1e2616ebfb089825decbb346a9be873c1fc56f2f6f",
     "benchmark/design_isac_waveform_benchmark_0915.py": "c105eccdeecbabf8f24c7fdd171045fda43b81f7d26602763abec6457baddace",
     "src/build_part02_prior_work.py": "ed72c7470c27892264c6ed69385d0076cc6102dab61ae079a568b605fb8ab70b",
     "benchmark/isac_plan_corpus_0915.py": "f9064c1b838e5ef843b8d1763790189b39f0d60afa9a58df151015a3a169c7a3",
-    "outputs/sigma_sensitivity.json": "3ef13c1ce979291df11c4c5ba26429b2a3d3244940d63db2181d082bfaafae8b",
+    "outputs/sigma_sensitivity.json": "3a170a44fda81d27b206401f4715ca9013814cb0d678bade151f06255fe3fcb4",
     "outputs/report05_derived.json": "39e0a9487ba7623690ef8ae2be8016d4233a9dac646d93c14385cf8074afd8dd",
     "outputs/isac_plan_corpus_0915.json": "7d60fd5e8c4076d342028c385ed25a81b596c21da2ef05aa3cf7bd71512ac5ef",
     "outputs/isac_plan_kernel_match_0915.json": "96ecc5bd3d7728e2cdfa86f5e86a258429e857b67c1525dd369385022cc60b04",
     "outputs/isac_campaign_design_0915.json": "2e99410ef7b135763d785493b17c6ac7bfad075a667f09436d12078a3f7dbca8",
-    "benchmark/review_research_logic_0916.py": "ef7dff92a51c0bd45b499b79a2a5cfb50e4563c925bbd88adc009327b3490b4f"
+    "benchmark/review_research_logic_0916.py": "33a11c5d7d7ef1e3a28805c45c8072397aa1904aae7e74a00cc3361b7cc2310c"
   },
   "checks": {
     "ledger_correlations_recomputed": true,

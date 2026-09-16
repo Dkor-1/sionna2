@@ -46,14 +46,19 @@
 ## 3. Waveform: close to commercial OFDM (NR-structured CP-OFDM first)
 
 Suitable, with conditions. OFDM radar processing divides each received resource element by the known transmitted one, so the
-range-Doppler response does not depend on the data content; LaSen already used an NR-structured waveform with this drone.
+target response carries no data-dependent structure — the noise does not follow: Y / X = H + N / X scales the noise by
+1 / |X| at each element, so the range-Doppler noise floor does depend on the constellation. At equal mean symbol energy
+E[1/|X|^2] is 1.000 for QPSK and 1.889 for 16-QAM, i.e. 2.76 dB more average noise after plain division
+(`outputs/research_logic_review_0916.json : ofdm.qpsk_inverse_energy, ofdm.qam_inverse_energy, ofdm.noise_ratio_db`;
+an analytic average on an ideal elementwise model — not an end-to-end detection loss, and not a regularised divider).
+This is the reason for the constant-modulus row below. LaSen already used an NR-structured waveform with this drone.
 
 | Condition | Why | Evidence |
 |---|---|---|
 | Own transmitter; use **every** OFDM symbol as a known reference | one reference symbol per slot gives 1 / 2 / 4 kHz slow-time for NR 15 / 30 / 60 kHz, below the blade-tip need | `outputs/isac_plan_waveforms_0915.json : slow_time_rates`; `outputs/isac_plan_link_budget_0915.json : tip_doppler_rows` (3.5 GHz hover el 0 needs 2,546 Hz; 5.8 GHz 4,219 Hz) |
 | Contiguous symbols for the micro-Doppler window (no UL slots, SSB gaps or idle symbols inside it) | uniform slow-time sampling; gaps alias or smear the rotor lines | *inference* from sampling theory |
 | Prefer 30 kHz subcarrier spacing at 3.5 GHz | blade-tip Doppler as a fraction of spacing: 0.085 at 15 kHz, 0.042 at 30 kHz (3.5 GHz hover) — less inter-carrier leakage | `isac_plan_link_budget_0915.json : intra_symbol_doppler_rows` |
-| Constant-modulus sensing symbols where possible (QPSK/DMRS-like) | per-element division amplifies noise on low-amplitude constellation points | *inference* |
+| Constant-modulus sensing symbols where possible (QPSK/DMRS-like) | per-element division scales noise by 1 / \|X\|: at equal mean symbol energy 16-QAM carries 2.76 dB more average noise than QPSK | `outputs/research_logic_review_0916.json : ofdm.noise_ratio_db` |
 | Linear average power around +5 dBm and measured TX-RX isolation of about 40-45 dB | OFDM PAPR (11 dB assumed) and ADC/TX-noise limits | `isac_plan_link_budget_0915.json : isolation_summary_rows` (3.5 GHz, +5 dBm OFDM: 43.5 dB, TX noise binding) |
 | Call it "NR-structured", not "5G NR compliant", unless a conformant stack (OAI) is used | honesty about what is standard | `AGENTS.md` ISAC constraints |
 | Carrier and outdoor transmit licence decided before waveform work | the Matrice 4E video link uses 5.725-5.850 GHz and 2.4 GHz (5.150-5.250 GHz listed as CE-only); 3.5 GHz is a licensed band | DJI M4 spec page; licence rules not verified |
@@ -76,8 +81,15 @@ Conditions and cautions:
 - blade returns in published measurements are 17-25 dB below the body (link-budget sources), so rotor lines need longer
   coherent windows or closer ranges than body detection;
 - static leakage into the STFT band must be removed before reading lines (memory note `static-leaks-into-stft-band`);
-- check for isolated jumps before trusting a spectrum: in the simulation corpus a few isolated poses dominate the varying
-  power in every ground scene (`outputs/isac_plan_corpus_0915.json : dropout`); real captures can have their own jumps
+- check for isolated jumps before trusting a spectrum: in the simulation corpus every one of the 24 omnidirectional-antenna
+  cells of the ground-only scene carries 49-99 isolated poses holding 94.8-99.4 % of that cell's varying power, and the
+  same 49-99 at the 10, 20 and 50 times thresholds; but of the 4 cells of that scene with the aimed TR 38.901 element 3
+  carry none at all, and the fourth carries 53 of its 8,192 poses (62.3 % of the varying power) at the 20 times threshold
+  and 0 at the 50 times one — the aimed condition is not the same picture, and the full-outdoor and street-canyon scenes
+  carry omnidirectional cells only, so the antenna axis is untested there
+  (`outputs/isac_plan_corpus_0915.json : dropout.summary[scene=outdoor01_ground,ant=iso]`,
+  `dropout.summary[scene=outdoor01_ground,ant=tr38901]`,
+  `dropout.rows[scene=outdoor01_ground,ant=tr38901,env_alt_m=5.4]`); real captures can have their own jumps
   (ADC clipping, gain changes, packet loss) and must be screened the same way;
 - this repository's rotor numbers use hover rpm 3,800 (an estimate; DJI publishes no hover rpm) and the Matrice 4E logs no
   motor rpm in the paths checked, so rotor speed on the day is read from the spectrum itself or an acoustic sensor.
