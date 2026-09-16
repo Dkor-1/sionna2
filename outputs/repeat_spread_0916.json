@@ -2,15 +2,16 @@
  "_meta": {
   "generator": "benchmark/repeat_spread_0916.py",
   "question": "Is the buffer-alone difference bigger than what two identical runs do anyway?",
-  "answer": "On the same 42 positions the buffer-alone difference (1.969e-05) is 9x larger than what two identical runs do there (2.125e-06), and those runs differ in path count at 0 of those positions. So it is NOT explained by repeat variation. That does not make it the buffer either — these repeats and the split run are different jobs on different cards, and no experiment here holds the card fixed. The honest statement is: no incremental recovery was observed with a bigger buffer, and the cause of the small field and path-count differences has not been separated.",
-  "verdict_code": "not-explained-by-repeat-variation",
+  "answer": "Re-solving the identical setting on these same 42 positions already moves the field by 1.973e-05, with 2 position(s) changing path count. The buffer-alone contrast moves it by 1.969e-05, with 1 — the same size and the same kind of difference. So nothing can be attributed to the buffer at that size. What the contrast does show is that no position gained or lost the environment path: 0 incremental recoveries and 0 incremental losses.",
+  "verdict_code": "same-size-as-a-re-solve",
   "bought_by": "runners/jobs_0947_repeat_spread.txt",
   "asked_by": "docs/HASH_DIAGNOSTIC_REVIEW_0916.ipynb §2 ②",
   "corrected_by": "docs/RESULTS_QUEUE_REVIEW_0917.ipynb §2 B — the first edition of this script compared the maximum over all 8,192 positions against a contrast measured on 42, and reached the opposite conclusion",
-  "finished_utc": "2026-09-16T16:59:41Z",
+  "finished_utc": "2026-09-16T17:16:50Z",
   "wall_time_s": 0.1,
   "cannot_say": [
-   "that the buffer caused the difference — the repeats and the split run are different jobs and may have run on different cards; nothing here holds the card fixed",
+   "that the buffer caused the difference — a re-solve at the identical setting produces the same size of move on the same positions",
+   "that the 09-16 wording «two positions returning one path fewer» described the buffer: on this ledger the buffer-alone contrast changes the path count at ONE position and that position GAINS a path (8015: 2810 -> 2811). The 8016 case, 2794 -> 2793, is a production-versus-re-solve difference that was mislabelled as a buffer effect",
    "which of two identical runs is closer to reality — both are the simulator's output",
    "that the buffer never matters: it was moved at one hash size only, and the largest pair of settings ran out of memory and was not run again",
    "anything about a real radar measurement"
@@ -70,6 +71,24 @@
    8016
   ],
   "n_poses_scored": 42,
+  "same_settings_replay": {
+   "n": 42,
+   "largest_move": 1.97267e-05,
+   "largest_move_pose": 8016,
+   "n_path_count_flips": 2,
+   "path_count_flips": [
+    [
+     8016,
+     2794,
+     2793
+    ],
+    [
+     8015,
+     2811,
+     2810
+    ]
+   ]
+  },
   "largest_move": 1.9685643524411302e-05,
   "largest_move_pose": 8015,
   "path_count_differences": [

@@ -7,11 +7,17 @@ position moved by about 2e-5 of the median |E| and two positions returning one p
 review asked whether that is the buffer or what two identical runs do anyway. Queue 0947 bought the
 repeats; this reads them.
 
-⛔**Read the scope before the number.** The first edition of this script compared the maximum repeat
-difference over all 8,192 rotor positions against a buffer difference measured on only the 42 positions
-the split run actually solved, and concluded the buffer difference was "inside the spread". That is not
-a like-for-like comparison, and on the same 42 positions the conclusion reverses. The 09-17 review
-caught it. This edition reports both scopes and decides on the matched one.
+⛔**Read the scope before the number.** This script has been wrong twice, in opposite directions.
+  1st edition: compared the maximum repeat difference over all 8,192 positions against a buffer
+     difference measured on 42, and called it "inside the spread". Not like-for-like.
+  2nd edition: matched the positions, found the buffer difference 9x larger, and called it "not
+     explained by repeat variation". Also wrong — a whole-sweep re-run is not the right comparator.
+  ⭐The right comparator was inside the split ledger the whole time. That run re-solves each chosen
+     position at the production setting and stores the difference against the field already on disk
+     (`abs_err_over_abs_cell_median`). That IS "identical settings, same positions, re-solved", and it
+     produces 1.97e-5 with two one-path flips — the same size and the same kind of difference as the
+     buffer contrast. So nothing can be attributed to the buffer at that size.
+  The whole-sweep repeats bought by 0947 are still reported, as a second, coarser scope.
 
 ⛔This measures the spread of the simulator's own output between identical runs. It says nothing about
 which output is closer to reality, and nothing about a real radar.
@@ -76,9 +82,30 @@ def read_split():
         na, nb = a[p].get("n_paths_returned"), b[p].get("n_paths_returned")
         if na is not None and nb is not None and na != nb:
             dpaths.append((p, na, nb))
+    #: ⭐the ledger's own same-settings replay — each chosen position solved again at the production
+    #  setting and differenced against the field already on disk. Same positions, same run, same card.
+    replay = []
+    for r in cell["rows"]:
+        if r["grid_point"] != "production":
+            continue
+        e = r.get("abs_err_over_abs_cell_median")
+        if e is not None:
+            replay.append(dict(pose=r["pose"], move=float(e),
+                               paths_now=r.get("n_paths_returned"),
+                               paths_stored=r.get("npaths_stored")))
+    replay.sort(key=lambda x: -x["move"])
+    flips = [x for x in replay if x["paths_now"] is not None and x["paths_stored"] is not None
+             and x["paths_now"] != x["paths_stored"]]
+
     con = next((c for c in cell["summary"]["paired_contrasts"]
                 if c["frm"] == BUF_FROM and c["to"] == BUF_TO), {})
     return dict(poses=poses, n_poses_scored=len(shared),
+                same_settings_replay=dict(
+                    n=len(replay),
+                    largest_move=replay[0]["move"] if replay else None,
+                    largest_move_pose=replay[0]["pose"] if replay else None,
+                    n_path_count_flips=len(flips),
+                    path_count_flips=[[x["pose"], x["paths_stored"], x["paths_now"]] for x in flips]),
                 largest_move=max(moves)[0] if moves else None,
                 largest_move_pose=max(moves)[1] if moves else None,
                 path_count_differences=dpaths,
@@ -126,27 +153,29 @@ def main() -> None:
     matched = max(r["same_positions_as_the_contrast"]["max_field_move_over_median"] for r in got)
     matched_dn = max(r["same_positions_as_the_contrast"]["n_with_a_different_path_count"] for r in got)
     buf = split["largest_move"]
+    rep = split["same_settings_replay"]
+    same = rep["largest_move"]
 
-    #: the verdict branches on the matched comparison — different data prints a different sentence
-    if buf is None:
-        verdict = ("The split ledger does not carry a comparable field value for the buffer contrast, "
-                   "so this run cannot judge it. The repeat spread is reported for its own sake.")
+    #: the verdict branches, and the primary comparator is the ledger's own same-settings replay
+    if buf is None or same is None:
+        verdict = ("The split ledger does not carry both a buffer-contrast move and a same-settings "
+                   "replay, so this run cannot judge it.")
         calls_it = "cannot-judge"
-    elif buf <= matched:
-        verdict = (f"On the same {len(sel)} positions, the buffer-alone difference ({buf:.3e}) is not "
-                   f"larger than what two identical runs do there ({matched:.3e}), so it is inside the "
-                   "repeat spread and nothing can be attributed to the buffer at that size.")
-        calls_it = "inside-the-spread"
+    elif buf <= same:
+        verdict = (f"Re-solving the identical setting on these same {rep['n']} positions already moves "
+                   f"the field by {same:.3e}, with {rep['n_path_count_flips']} position(s) changing "
+                   f"path count. The buffer-alone contrast moves it by {buf:.3e}, with "
+                   f"{len(split['path_count_differences'])} — the same size and the same kind of "
+                   "difference. So nothing can be attributed to the buffer at that size. What the "
+                   "contrast does show is that no position gained or lost the environment path: "
+                   f"{split['n_incremental_recoveries']} incremental recoveries and "
+                   f"{split['n_incremental_losses']} incremental losses.")
+        calls_it = "same-size-as-a-re-solve"
     else:
-        verdict = (f"On the same {len(sel)} positions the buffer-alone difference ({buf:.3e}) is "
-                   f"{buf / matched:.0f}x larger than what two identical runs do there ({matched:.3e}), "
-                   f"and those runs differ in path count at {matched_dn} of those positions. So it is "
-                   "NOT explained by repeat variation. That does not make it the buffer either — these "
-                   "repeats and the split run are different jobs on different cards, and no experiment "
-                   "here holds the card fixed. The honest statement is: no incremental recovery was "
-                   "observed with a bigger buffer, and the cause of the small field and path-count "
-                   "differences has not been separated.")
-        calls_it = "not-explained-by-repeat-variation"
+        verdict = (f"The buffer-alone contrast moves the field by {buf:.3e}, larger than the "
+                   f"{same:.3e} that re-solving the identical setting on the same positions produces. "
+                   "That is worth a dedicated run before anything is attributed to it.")
+        calls_it = "larger-than-a-re-solve"
 
     doc = {
         "_meta": {
@@ -162,8 +191,12 @@ def main() -> None:
             "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "wall_time_s": round(time.time() - t0, 1),
             "cannot_say": [
-                "that the buffer caused the difference — the repeats and the split run are different "
-                "jobs and may have run on different cards; nothing here holds the card fixed",
+                "that the buffer caused the difference — a re-solve at the identical setting produces "
+                "the same size of move on the same positions",
+                "that the 09-16 wording «two positions returning one path fewer» described the buffer: "
+                "on this ledger the buffer-alone contrast changes the path count at ONE position and "
+                "that position GAINS a path (8015: 2810 -> 2811). The 8016 case, 2794 -> 2793, is a "
+                "production-versus-re-solve difference that was mislabelled as a buffer effect",
                 "which of two identical runs is closer to reality — both are the simulator's output",
                 "that the buffer never matters: it was moved at one hash size only, and the largest "
                 "pair of settings ran out of memory and was not run again",
@@ -191,8 +224,10 @@ def main() -> None:
     os.replace(tmp, OUT)
 
     print(f"✅ {os.path.relpath(OUT, ROOT)}")
-    print(f"  the contrast was measured on {len(sel)} positions; "
-          f"its largest field move was {buf:.3e}" if buf else "  contrast move unavailable")
+    print(f"  buffer contrast, {len(sel)} positions: {buf:.3e}, path-count changes "
+          f"{split['path_count_differences']}")
+    print(f"  the SAME setting re-solved, same positions: {same:.3e}, "
+          f"{rep['n_path_count_flips']} path-count flip(s) {rep['path_count_flips']}")
     print(f"\n  {'pair':34} {'all 8,192':>11} {'those ' + str(len(sel)):>11} {'dN>0 there':>11}")
     for r in rows:
         if not r["available"]:

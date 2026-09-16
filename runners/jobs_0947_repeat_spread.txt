@@ -8,18 +8,23 @@
 #    three cells are simply missing from 0946 and are re-bought here (filtered NEW).
 #
 # 2. The review is right that "the buffer changed nothing" was too strong. At a fixed hash counter of 8e6,
-#    raising the buffer from 2e6 to 8e6 gave no incremental recovery and no isolation change, but two poses
-#    returned one path fewer (8015: 2811 -> 2810; 8016: 2794 -> 2793) and one pose moved 2.15e-5 of the
-#    median |E|, just over the 2e-5 tolerance the script declared (review ledger : buffer_comparison).
+#    raising the buffer from 2e6 to 8e6 gave no incremental recovery and no isolation change, but a small
+#    field difference and a path-count change were recorded.
+#    ⛔CORRECTED 2026-09-17: the line that stood here said "two poses returned one path fewer
+#    (8015: 2811 -> 2810; 8016: 2794 -> 2793) and one pose moved 2.15e-5". Re-read from the ledger, the
+#    buffer-alone contrast changes the path count at ONE pose and that pose GAINS a path
+#    (8015: 2810 -> 2811), and its largest field move is 1.969e-5. The 8016 case is a
+#    production-versus-re-solve difference that was mislabelled as a buffer effect.
 #    Nothing in the repository says how big the run-to-run spread of a whole cell is at a fixed knob other
 #    than the one _rep1 pair at the production cap (median 4e-16, 99th percentile 4.4e-6, max 3.7e-3 over
 #    8,192 poses). Question: is a one-path, 2e-5 difference inside the spread of two identical runs?
 #    So: a second repeat at the production cap, and the first repeat at cap 8e6 (the cap the contrast used).
 # Read-out: benchmark/dropout_knobs_0916.py (isolated sets and field_stability of the repeat cells against
 #   their partners), then the same tolerance applied to the buffer contrast.
-# Kill / fold: if a repeat differs from its partner by more than the cap contrast did, the 2e-5 tolerance is
-#   too tight to attribute anything at that size and the buffer comparison folds to "no change observed at
-#   the isolation level".
+# Kill / fold: ⛔the fold written here before the run pre-supposed the comparator. The comparator that
+#   matters is not a whole-sweep repeat at all — it is the split run's own re-solve of the same poses at
+#   the identical setting, which the ledger already stored. Read that first
+#   (benchmark/repeat_spread_0916.py, outputs/repeat_spread_0916.json).
 # Not answered: which candidate collided (no collision counting), why a path is lost, anything about a real
 #   radar, absolute levels between engines.
 #
