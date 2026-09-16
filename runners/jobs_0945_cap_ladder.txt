@@ -1,0 +1,35 @@
+# 0945 path-cap ladder, upper end (2026-09-16)
+#
+# User (2026-09-16 ~10:30 KST): 「이게 중요하다고 판단되면 큐에 올려줘」 [queue it if you judge it important],
+#   after the proposal to push the path-cap ladder further up.
+#
+# What 0942/0943/0944 gave (outputs/dropout_knobs_0916.json): in the ground cell at el -60 the isolated-pose set
+#   is 161 at cap 1e6, 90 at the default 2e6 and 34 at 8e6, and the sets nest (34 subset of 90 subset of 161).
+#   The street canyon goes 339 -> 79 at cap 8e6, also a subset. The same poses come back with a different solver
+#   seed (92 poses, containing the 90) and with the solver's deterministic mode (identical sets), and the returned
+#   path count per pose stays near 2,700 (max 2,827), far below any of these caps — so this is not truncation.
+#
+# Question: does raising the cap further drive the isolated poses to zero, or is there a core that stays?
+#   - If 32e6 gives 0 in both scenes, the isolated poses are a capacity effect of the path store alone.
+#   - If a core stays (and the sets keep nesting), capacity is not the whole story and the remaining poses are
+#     the ones to list paths for (benchmark/dropout_paths_0916.py).
+# Read-out: benchmark/dropout_knobs_0916.py (add the two stems), then the subset check against cap 8e6.
+# Kill / fold: if a worker dies for memory at 32e6, keep the 16e6 rung and say so in the ledger; if npaths per
+#   pose ever approaches the cap, that arm measures the cap and folds (memory note saturating-cap).
+# Not answered: why the solver omits a path at a pose; anything about a real radar (no RF measurement); absolute
+#   levels between engines.
+#
+# Rules kept: diffuse on (F1) in every arm; no el 0; no prop-only; no diffraction; GPU hold (cards 3/4).
+# Chained after 0943 by runners/watch_then_start.py.
+
+# -- 1: ground cell, caps 16e6 and 32e6 ------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 32000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 32000000 --shard 1 --nshards 2
+
+# -- 2: street canyon, caps 16e6 and 32e6 ---------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 16000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 16000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 32000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 32000000 --shard 1 --nshards 2
