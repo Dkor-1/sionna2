@@ -45,8 +45,16 @@ CELLS = [
     ("street canyon reference", "canyon", BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_")),
     ("street canyon path cap 8e6", "canyon",
      BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_mp8000000_")),
+    ("street canyon solver seed 2", "canyon",
+     BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_ss2_")),
+    ("street canyon el -30 reference", "canyon_el30",
+     BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_").replace("el-60", "el-30")),
+    ("street canyon el -30 path cap 8e6", "canyon_el30",
+     BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_mp8000000_").replace("el-60", "el-30")),
+    ("street canyon el -30 solver seed 2", "canyon_el30",
+     BASE.format(spp=4000000000, tag="envsionna-simple_street_canyon_ss2_").replace("el-60", "el-30")),
 ]
-REFERENCE = {"ground": 0, "free_sky": 10, "canyon": 12}          # index into CELLS
+REFERENCE = {"ground": 0, "free_sky": 10, "canyon": 12, "canyon_el30": 15}   # index into CELLS
 
 
 def sha256_file(p: Path) -> str:
@@ -150,7 +158,10 @@ def main() -> None:
     for i, j, why in ((8, 9, "deterministic mode off vs on at 2e8 rays"),
                       (2, 3, "solver seed 2 vs seed 3"),
                       (4, 5, "path cap 1e6 vs 8e6"),
-                      (0, 1, "reference vs its same-seed repeat")):
+                      (0, 1, "reference vs its same-seed repeat"),
+                      (12, 14, "street canyon: reference vs solver seed 2"),
+                      (15, 17, "street canyon el -30: reference vs solver seed 2"),
+                      (15, 16, "street canyon el -30: reference vs path cap 8e6")):
         if i in sets and j in sets:
             a, b = set(map(int, sets[i])), set(map(int, sets[j]))
             pairs.append(dict(pair=why, a=CELLS[i][0], b=CELLS[j][0], jaccard=g4(jaccard(sets[i], sets[j])),
