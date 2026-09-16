@@ -127,10 +127,19 @@ PAPER_CAPTIONS: dict[str, str] = {
     "f7_observability":
         "One transmitter-receiver pair leaves rotation about the baseline unobservable: in the "
         "example geometry of this study the Fisher information matrix has practical rank three, "
-        "and a second receiver raises it to six, which removes that unobservable rotation. The "
-        "position accuracy that follows is set by the baseline, the coherent processing interval "
-        "and the transmit power, so it is reported only with those conditions attached "
-        "(ledger: outputs/verify_observability.json, meta and fixes blocks).",
+        "and a second receiver raises the constant-velocity observability Gramian, accumulated "
+        "over the observation window of this study, to local rank six. Local rank six is not "
+        "global uniqueness: the transmitter and the two receivers are three points and therefore "
+        "always lie in one plane, and a trajectory reflected in that plane produces identical "
+        "bistatic range and Doppler at every instant, so a known altitude, a bounded flight "
+        "volume, or a station set that is not coplanar is what removes the mirrored twin. The "
+        "plotted quantity is a Cramer-Rao bound on the observable subspace, obtained from a "
+        "pseudoinverse that discards the null space, rather than a tracker's achieved position "
+        "error; for the single-receiver bar the bound along the unobservable rotation is not "
+        "finite, so the two bars are not a measured accuracy ratio. The bound is set by the "
+        "baseline, the coherent processing interval and the transmit power, so it is reported "
+        "only with those conditions attached (ledger: outputs/verify_observability.json, meta, "
+        "gramian and fixes blocks).",
 }
 
 
@@ -547,7 +556,7 @@ def f7_observability():
         ax.set_ylim(5e-3, 5e2)
         ax.set_xticks(range(4))
         ax.set_xticklabels([f"{n}\nrank {r}/6" for n, r in zip(names, rank)])
-        ax.set_ylabel("position RMS error [m, log scale]")
+        ax.set_ylabel("position CRLB [m, log scale]")   # observable subspace — said in the caption
         _src(fig, "verify_observability.json : fixes")
         return _emit(fig, "f7_observability", W)
 

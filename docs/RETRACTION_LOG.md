@@ -1830,3 +1830,53 @@ prop_scale 에만 비례한다」). ⇒ 대역이 x1.0 자리에 굳어 있었�
 ---
 
 **Archived files (2026-09-16).** Some files this log names were moved out of the repository in the 2026-09 cleanup, to `/workspace/archive/2026-09/sionna/` at the same relative path (for example `docs/PLAN_PATHSOLVER_CLASSIFY.md`, `docs/NOISE_MAIN_RUN_SPEC.md`, `docs/PLAN_0818.md`). The entries above keep their original paths; the archive `README.md` lists every moved file. Nothing in this log was withdrawn or changed by the move.
+
+---
+
+## 2026-09-16 — ⛔「수신기를 하나 더하면 위치가 풀린다」 는 **국소** 랭크를 전역 유일성으로 읽은 것이었다
+
+**원장** `outputs/verify_observability.json : fixes.2RX` · 생성기 `benchmark/verify_observability.py:341 gramian()`
+
+원장이 재는 것은 **한 형상 · 등속 6상태 · 관측창 `gramian.t_obs_s` = 3 s** 의 관측가능성
+그램행렬 랭크다. `fixes.2RX.rank` = 6 은 그 창에서 상태가 **국소적으로** 식별된다는 뜻이다.
+
+**반례(직접 재계산, 원장 기하 그대로).** 송신기 `meta.tx` = (4, 2.5, 8) 과 두 수신기
+`meta.rx` = (4, 17.5, 6.5) · `fixes._rx2` = (26, 17.5, 6.5) 는 세 점이라 한 평면 위에 있다.
+그 평면(법선 (0, −0.0995, −0.9950))에 대해 위치와 속도를 함께 뒤집은 궤적
+(p₀ = (20.856, 10.344, 8.951), v = (−2.984, −0.056, −0.302)) 은 관측창 3 s 의 모든 시각에서 두
+수신기 모두에 대해 같은 (R_b, f_d) 를 낸다 — 201 표본에서 max|ΔR_b| ≈ 1.4e-14 m
+(1.9e-12 σ_Rb) · max|Δf_d| ≈ 2.1e-14 Hz, 곧 배정밀도 0 이다(표본 수에 따라 끝자리가 흔들리는
+반올림 오차라 유효숫자로 적지 않는다). 그 짝은 참 궤적에서 2.54~4.37 m 떨어져 있고 방 안에
+온전히 남는다. ⇒ 랭크 6 은 국소 식별성이고, 전역에서 하나로 정하는 일은 알려진 고도 · 비행
+가능 공간 · 평면의 어느 쪽인지 같은 사전조건이 맡는다.
+
+**랭크 6 은 관측창에도 매달린다(직접 재계산).** 같은 기하 · 같은 셀 · K = 16 에서 유효 랭크
+(허용오차 `gramian.practical_tol` = 1e-08)는 관측창 0.03 s(= `meta.t_cpi_s`)에서 4, 0.1~0.3 s
+에서 5, 1 s 부터 6 이다. 엄격 허용오차 `gramian.rank_tol` = 1e-12 에서는 0.03 s 에서 5, 0.1 s
+부터 6 이다. 단일 스냅샷(K = 1)은 두 허용오차 모두 4 다. 곧 「수신기 2대」만으로 나오는 수가
+아니라 **등속 가정 + 이 관측창**이 함께 만든 수다.
+
+**CRLB ≠ 추적기 오차.** `fixes.2RX.pos_rms_m` = 0.1896 m 는 백색화 그램행렬의 pinv 대각합으로
+낸 **불편추정기 하한**이고, 표적 상태 하나에서 낸 값이다. 표적을 방 안에서 옮기면 자릿수가
+바뀌지만 그 범위는 훑는 격자가 정하는 값이라 숫자를 싣지 않는다. 실험에서 「확인」되는 종류의
+수가 아니다.
+
+**1RX 행의 57.75 m 는 pinv 잘라내기가 정한 값이다(기록 — 새 사실 아님).**
+`np.linalg.pinv(G, rcond=1e-13)`(`benchmark/verify_observability.py:615`)이 영공간을 버리고 남긴
+부분공간의 하한이다. rcond 를 훑으면 57.75 m(≤1e-11) → 0.0422 m(1e-10~1e-7) → 0.0010 m(1e-6)
+로 움직이고, 랭크 열이 쓰는 1e-08 에 맞추면 1RX 가 2RX 보다 작아진다.
+`docs/AUDIT_REPORTS_0901.md` 가 2026-09-01 에 같은 것을 기록했다.
+
+**무엇을 내렸나** — 제목 · 소제목 · 그림 질문의 「위치가 풀린다」 를 「국소 랭크가 6 이 된다」
+로, 표 열 이름 「위치 RMS 오차」 를 「관측가능 부분공간의 위치 CRLB(rms)」 로, 다음 걸음의
+「위치 RMS 0.19 m 가 검출 실험에서 확인된다」 를 「CRLB 하한과 추적기 실제 오차를 따로 잰다」
+로 내리고, 등속 가정 · 수신기 배치 · 국소/전역 · CRLB 대 추적기 오차 · pinv 잘라내기를 한 절로
+세웠다(`src/build_part09_detector.py` · `src/viz_report04_detector.py`).
+
+**아직 살아 있는 자리** — `docs/paper/04_detector.md` 의 방어선 행은
+`archive/legacy_reports/report04_detector.ipynb` 가 셀 1 개로 비어 `write_paper_doc()`
+(`src/build_part09_detector.py:828-838`)이 재생성을 건너뛰는 **얼린 생성물**이라 빌더 재실행으로
+안 바뀐다. 루트 `report04_detector.ipynb` 은 `reports/09_observability.ipynb` 가 대신한 옛
+노트북이다. 둘 다 이 문서를 근거로 따로 처리한다.
+
+**교훈.** 국소 관측가능성(랭크)과 전역 유일성은 다른 주장이다. 하한은 성능이 아니다.

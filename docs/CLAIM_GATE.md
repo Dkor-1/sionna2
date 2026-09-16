@@ -129,6 +129,7 @@ When giving verification results to the user:
 | Reading dB(peak÷floor) as beat strength | ⓐ | Degenerate denominator | Had we tried feeding an impulse train with missing poses |
 | Describing el 0 as «gradual» | ⓐ | — | Had we seen that the record is a complex constant |
 | 「우리 커널이 맞고 PathSolver 가 틀렸다」 [Our kernel is right and PathSolver is wrong] | ⓑ | — | Had we acknowledged that both are approximations |
+| 「수신기 2대면 위치가 풀린다」 [Two receivers resolve position] (0916) | ⓑ | Local rank read as global uniqueness; a pinv bound read as an achieved error | Had we mirrored the state in the TX–RX–RX2 plane and recomputed (R_b, f_d), and had we swept the pinv rcond |
 
 ---
 

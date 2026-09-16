@@ -40,7 +40,7 @@
 | [6 «마이크로도플러 — 도는 로터가 남기는 무늬»](reports/06_1_scene.ipynb) | [절 3](reports/06_3_pattern.ipynb) | 두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다 |
 | [7 «무엇을 조명원으로 쓸 수 있나»](reports/07_illuminators.ipynb) | [절 3](reports/07_illuminators.ipynb) | 여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다 |
 | [8 «처리 사슬 — 직접파를 죽이고 표적을 세운다»](reports/08_detector.ipynb) | [절 3](reports/08_detector.ipynb) | 실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다 |
-| [9 «관측가능성과 기하 — 어디에 서야 보이나»](reports/09_observability.ipynb) | [절 1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다 |
+| [9 «관측가능성과 기하 — 어디에 서야 보이나»](reports/09_observability.ipynb) | [절 1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다 |
 | [10 «결과 — 얼마나 멀리서 보이나»](reports/10_results.ipynb) | [절 2](reports/10_results.ipynb) | 가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다 |
 | [11 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](reports/11_measurement.ipynb) | [절 6](reports/11_measurement.ipynb) | 캠페인이 결판내는 양은 절대값이 아니라 순위다 |
 
@@ -120,7 +120,7 @@
 | [6-6 «마이크로도플러 — 무엇이 그 무늬를 흐리나»](reports/06_6_microdoppler-limits.ipynb) | 6 | 자세·보정·광선 예산·표본율 네 가지가 무늬를 지운다. 각각을 단일축으로 갈라 얼마나 지우는지 잰다 |
 | [10-2 «결론이 무엇에 기대고 있나 — 강건성과 하드웨어»](reports/10_2_robustness.ipynb) | 10 | 표적 모형·수신 소자·장비를 바꿔 넣어 결론이 어디서 흔들리는지 본다 |
 
-셀 4606개 · 각주 2589개 · 그림 1918장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.
+셀 4607개 · 각주 2592개 · 그림 1918장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.
 
 ### 권 1 «이 연구가 묻는 것과 답한 방식»
 
@@ -357,7 +357,7 @@ ECA 로 직접파를 지우고 CFAR 로 문턱을 세운다. **문턱을 어디�
 
 | 절 | 이 절의 결론 |
 |---|---|
-| [1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다 |
+| [1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다 |
 | [2](reports/09_observability.ipynb) | TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다 |
 | [3](reports/09_observability.ipynb) | 세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다 |
 | [4](reports/09_observability.ipynb) | 자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다 |
@@ -509,7 +509,7 @@ PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py
 - **권 제목은 물음, 절 제목은 답이다.** 절 제목은 «…다» 로 끝나는 평서문이고, 물음표로 끝나는 절 제목은 `src/report_style.py` 가 막는다.
 - **숫자는 손으로 치지 않는다.** 전부 `num()` 이 JSON 을 열어 값을 대조하고, 화면에는
   각주 `[^n]` 으로 찍힌다. 절 끝 «출처» 표의 값은 표를 만들 때 JSON 을 **다시 열어**
-  채운 것이다(왕복 검사). 지금 본편 13권·별편 7편에 각주 2589개와 그림 1918장이 실려 있다.
+  채운 것이다(왕복 검사). 지금 본편 13권·별편 7편에 각주 2592개와 그림 1918장이 실려 있다.
 - **본문을 고칠 곳은 조각 빌더다.** 조각(`reports/_parts/`)과 권(`reports/`)은 둘 다 생성물이라, 손으로 고치면 다음 빌드에서 사라진다.
 - **논문 문장과 재현 절차는 리포트 밖에 산다** — 사용자 지시다. [`docs/paper/`](docs/paper/README.md) 와 [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 - 각 절은 `한 일 / 결과 / 방법 / 재현` 으로 열고 `다음 단계` 표로 닫는다. «다음 단계» 는 한계 목록이 아니라 앞을 보는 행동이다.
