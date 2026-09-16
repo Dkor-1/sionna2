@@ -1,0 +1,74 @@
+# 0948 — after the 09-16 hash-diagnostic review, and after three queues went dry at 20:28 KST (2026-09-16)
+#
+# The review's recommended order was: ① wording and paired-aggregation fixes, ② the GPU diagnostic over
+# ALL fifteen residual positions with neighbours and controls, ③ an OFDM pilot on CPU in parallel,
+# ④ the 0946 raw cross-comparison once the queue finished. ① is done (commit 0b84878b: incremental and
+# cumulative recoveries are separate columns; the buffer wording is narrowed to "no incremental recovery
+# and no isolation change"; the non-saturation statement is scoped to the completed 2e6 and 8e6 points).
+# ② is a diagnostic script, not a sweep, and runs separately. This file is ③'s GPU half and ④.
+#
+# ⛔What this file does NOT do: push the path limit higher. The review says so explicitly —
+#   「추가 대규모 cap 확대보다 이 순서가 현재 불확실성을 더 직접적으로 줄입니다」 — so no rung above 32e6.
+#
+# -- 1: the debt ------------------------------------------------------------------------------------
+# Three aimed-antenna cells have now been interrupted twice, both times by a card being handed back
+# (rc=-15 in sup_cap_antenna_0946.log 15:56 and sup_repeat_0947.log 16:41). A killed worker writes no
+# shard, so they are simply missing. Same lines, filtered NEW.
+#
+# -- 2: the antenna verdict, widened (review §4) -----------------------------------------------------
+# jobs_0946 read "no isolated positions with the aimed antenna" as the antenna axis being independent of
+# the solver setting. The review is right that this is too strong: an aimed pattern can weaken an unstable
+# path below the isolation threshold instead of removing the cause. That cannot be settled at one angle,
+# so the aimed antenna is bought at the angles where the omnidirectional cell is already in the store
+# (-30, -45) and at one more path-limit value in the street, which is where the count is largest.
+#
+# -- 3: does the count-against-limit relation hold at other angles? ----------------------------------
+# The ladder 161/90/34/22/15 is one cell at one angle. Ground at -15, -45, -75 already exists at the
+# production limit; buying 8e6 there asks whether the same fall happens at every angle or only at -60.
+# Same question in the street, where the production count is 339 instead of 90.
+#
+# -- 4: the street at -75, and the run-to-run spread there -------------------------------------------
+# The street is run at -15, -30, -45, -60. -75 closes the set the deck promises to show. And the whole
+# run-to-run spread argument (0947) exists only for the ground cell; the street is the scene with the
+# most positions standing apart, so it gets its own repeat.
+#
+# Read-out: benchmark/dropout_knobs_0916.py for the counts and field_stability; then the antenna arms
+#   cross-compared on raw spectra, not only on the isolation count (review §4).
+# Kill / fold: if the count at 8e6 does not fall at the other angles the way it does at -60, the ladder
+#   is a property of that angle and the deck's ladder slide gets an angle condition in its lead.
+# Not answered: which candidate collided, why a path is lost, anything about a real radar.
+#
+# Rules kept: diffuse on (F1) in every arm; no el 0; no prop-only; no diffraction; --inmem is the default;
+#   GPU hold — cards 3 and 4 only (0, 1, 2 are held; 0 and 2 were handed back to the user today).
+
+# -- 1: the three cells the two evacuations interrupted ---------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 8000000 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 8000000 --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --ant-pattern tr38901 --shard 0 --nshards 2
+
+# -- 2: the aimed antenna at two more angles, and one more limit in the street -----------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env outdoor01_ground --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env outdoor01_ground --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_ground --ant-pattern tr38901 --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_ground --ant-pattern tr38901 --max-paths 8000000 --shard 1 --nshards 2
+
+# -- 3: the limit at the other angles ----------------------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --max-paths 8000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env outdoor01_ground --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env outdoor01_ground --max-paths 8000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env outdoor01_ground --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env outdoor01_ground --max-paths 8000000 --shard 1 --nshards 2
+
+# -- 4: the street — the missing angle, a second limit rung there, and a repeat ----------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env sionna:simple_street_canyon --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env sionna:simple_street_canyon --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --max-paths 16000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --max-paths 16000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env sionna:simple_street_canyon --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env sionna:simple_street_canyon --max-paths 8000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env sionna:simple_street_canyon --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env sionna:simple_street_canyon --max-paths 8000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --rep 1 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --rep 1 --shard 1 --nshards 2
+# ⛔the street aimed antenna at 16e6 was already in the store (filter_jobs: DONE x2) and is dropped.

@@ -1,0 +1,53 @@
+# 0949 — the second half of the 09-16 restock, queued behind 0948 (2026-09-16 21:35 KST)
+#
+# 0948 is about twice six-hours of work on two cards; this file carries the queue past tomorrow midday,
+# which is the horizon the user asked for. It is the same two questions as 0948, taken across angle in
+# the scene where the effect is largest, plus two cheap spread measurements.
+#
+# -- 1: the antenna verdict across angle, in the street (review §4) ----------------------------------
+# The street is where the most positions stand apart (339 at -60 against 90 on the ground), so it is the
+# hardest place for the aimed-antenna claim to survive. The aimed pattern already exists there at -30 and
+# -60; these are the remaining angles. If "no positions stand apart with the aimed antenna" holds at every
+# angle, the claim is about the antenna; if it holds only where the omnidirectional count is small, the
+# antenna is lowering a level past a threshold and the claim folds to that.
+#
+# -- 2: the limit at the street's new angle ----------------------------------------------------------
+# 0948 buys the street at -75 for the first time; this adds the 8e6 rung there, so the new angle arrives
+# with the same ladder the other angles have rather than a single point.
+#
+# -- 3: two spread measurements, cheap ---------------------------------------------------------------
+# The seed moved the field outside the standing-apart positions by 2.2e-3 — a hundred times what the path
+# limit moved it (2.2e-5) and a hundred times the repeat-run noise (2.0e-5). That is from two seeds. A
+# third seed and a third repeat of the ground cell turn "two points" into a spread we can quote.
+#
+# Read-out: benchmark/dropout_knobs_0916.py (counts, field_stability), then the antenna arms compared on
+#   raw spectra and per-position path lists, not on the isolation count alone (review §4).
+# Kill / fold: if the aimed antenna shows positions standing apart at any street angle, the 0946 header's
+#   verdict is withdrawn outright, not softened.
+# Not answered: which candidate collided, why a path is lost, anything about a real radar.
+#
+# Rules kept: diffuse on (F1); no el 0; no prop-only; no diffraction; --inmem default; cards 3 and 4 only.
+
+# -- 1: aimed antenna in the street, the remaining angles -------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env sionna:simple_street_canyon --ant-pattern tr38901 --shard 1 --nshards 2
+
+# -- 2: the ladder at the street's new angle ---------------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env sionna:simple_street_canyon --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-75 --env sionna:simple_street_canyon --max-paths 8000000 --shard 1 --nshards 2
+
+# -- 3: a third seed and a third repeat of the ground cell -------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --solver-seed 4 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --solver-seed 4 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --rep 3 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --rep 3 --shard 1 --nshards 2
+
+# -- 4: the seed in the street, at two more angles ---------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env sionna:simple_street_canyon --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env sionna:simple_street_canyon --solver-seed 2 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env sionna:simple_street_canyon --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-45 --env sionna:simple_street_canyon --solver-seed 2 --shard 1 --nshards 2
