@@ -698,21 +698,35 @@ def main():
         corr_extent_vs_sigma_spread=_c_ext_spread,
         corr_sigma_spread_vs_flip_single=_c_spread_flip,
         smallest_airframe=_small,
-        smallest_airframe_rank_by_robustness=int(
+        #: ⛔2026-09-16 (R34): 예전 키 smallest_airframe_rank_by_robustness 는 **단일자세** 순위만
+        #   담고 이름은 그 조건을 안 적어, 「양쪽에서 가장 견고하다」 로 읽혔다. 두 기준을 따로 적는다.
+        smallest_airframe_rank_single_aspect=int(
             1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index(_small)])),
+        smallest_airframe_rank_aspect_averaged=int(
+            1 + sorted(frag_avg, reverse=True).index(frag_avg[DRONES.index(_small)])),
+        most_robust_aspect_averaged=DRONES[int(np.argmax(frag_avg))],
+        stronger_abs_corr_with_flip_single=("sigma_spread" if abs(_c_spread_flip) > abs(_c_ext_flip)
+                                            else "extent"),
         # ⛔ 「취약성을 정하는 것은 크기 자체가 아니라 밴드간 σ 로브 산포이고, 그건 전기적 크기가
         #    클수록 커진다」 는 2026-09-04 에 내렸다 — 기체 5 대 표본에서 세운 인과이고, 뒷문장은
         #    같은 원장의 corr_extent_vs_sigma_spread 가 받치지 않는다.
         retracted_finding=("⛔ 「취약성을 정하는 것은 크기 자체가 아니라 밴드간 σ 로브 산포이고, "
                            "그건 전기적 크기가 클수록 커진다」 — 2026-09-04 에 내렸다. "
                            "corr_extent_vs_sigma_spread 와 표본 크기가 그 문장을 받치지 않는다."),
-        finding=(f"작은 기체가 더 취약하다는 예상은 이 {len(DRONES)} 대에서 뒤집힌다. 가장 작은 "
-                 f"{_small}({ext[DRONES.index(_small)]:.3f} m)가 단일자세·자세평균 양쪽에서 가장 "
-                 f"견고하고, 가장 큰 {_large}({ext[DRONES.index(_large)]:.3f} m)가 취약한 쪽에 "
-                 f"있다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 {_c_ext_flip:+.2f}, 밴드 간 σ "
-                 f"로브 산포 쪽 {_c_spread_flip:+.2f}, 두 열 사이는 {_c_ext_spread:+.2f} 다 — "
+        finding=(f"작은 기체가 더 취약하다는 예상은 이 {len(DRONES)} 대의 **단일자세** 기준에서 "
+                 f"뒤집힌다. 가장 작은 {_small}({ext[DRONES.index(_small)]:.3f} m)가 단일자세 "
+                 f"뒤집힘 문턱 {frag_single[DRONES.index(_small)]:.2f} dB 로 "
+                 f"{1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index(_small)])} 위다. "
+                 f"⛔자세평균 기준은 다르다 — 같은 기체가 "
+                 f"{1 + sorted(frag_avg, reverse=True).index(frag_avg[DRONES.index(_small)])} 위"
+                 f"({frag_avg[DRONES.index(_small)]:.2f} dB)이고 그 자리는 "
+                 f"{DRONES[int(np.argmax(frag_avg))]}({frag_avg.max():.2f} dB)가 가져간다. "
+                 f"단일자세 뒤집힘 문턱과의 상관은 크기 쪽 {_c_ext_flip:+.2f}, 밴드 간 σ 로브 산포 쪽 "
+                 f"{_c_spread_flip:+.2f}, 두 열 사이는 {_c_ext_spread:+.2f} 라 절댓값은 "
+                 f"{'산포' if abs(_c_spread_flip) > abs(_c_ext_flip) else '크기'} 쪽이 크다 — "
                  f"기체 {len(DRONES)} 대 표본이라 어느 열이 취약성을 정하는지는 이 표본으로 "
-                 f"정하지 않는다."))
+                 f"정하지 않는다. ⛔2026-09-16 (R34) 정정: 이 칸에는 「단일자세·자세평균 양쪽에서 "
+                 f"가장 견고하다」 가 적혀 있었다."))
 
     out["_meta"]["runtime_s"] = round(time.time() - t0, 1)
 

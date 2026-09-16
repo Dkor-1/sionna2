@@ -332,14 +332,39 @@ R90_GUARD_HARD_HZ = float(fetch((J_DV, "r90.doppler.5G.guard_hz"))) * 1.5 / 2.5
 R90_FD0_BOUND_KO = "1 mHz"
 
 # ── 취약성 상관 — 세 상관을 다 싣고 인과는 세우지 않는다. ─────────────────────────── #
-CORR_N = len(fetch((J_SS, "size_vs_fragility.by_drone")))
-# ⛔ p 값과 순위상관은 원장에 없다 — 원장의 size_vs_fragility.by_drone 5행에서 scipy.stats 로
-#    직접 낸 값이다(2026-09-01):
-#      크기(extent_m) vs 단일자세 문턱 : pearson -0.618 p=0.266 / spearman -0.900 p=0.037
-#      σ 로브 산포 vs 단일자세 문턱     : pearson -0.315 p=0.606 / spearman -0.100 p=0.873
-#      크기 vs σ 로브 산포              : pearson +0.091 p=0.884 / spearman +0.200 p=0.747
-CORR_P = dict(extent_flip=0.27, spread_flip=0.61, extent_spread=0.88)
-CORR_RHO = dict(extent_flip=(-0.90, 0.04), spread_flip=(-0.10, 0.87))
+_SVF = fetch((J_SS, "size_vs_fragility.by_drone"))
+CORR_N = len(_SVF)
+# ⛔ p 값과 순위상관은 원장에 없다 — **굽을 때마다** 원장의 size_vs_fragility.by_drone 행에서
+#    scipy.stats 로 다시 낸다. ⛔2026-09-16 정정: 예전에는 2026-09-01 에 손으로 적은 값
+#    (pearson 크기 -0.618 · 산포 -0.315, spearman 크기 -0.90)이 박혀 있었는데, 그 뒤 원장이
+#    다시 구워지면서 두 열의 순서가 **뒤집혔다**(지금 pearson 크기 -0.45 · 산포 -0.69).
+#    손으로 적은 수가 원장과 어긋난 채 산문에 실린 것이 R34 의 절반이다.
+def _corr(xk, yk):
+    from scipy import stats as _st
+    x = [float(v[xk]) for v in _SVF.values()]
+    y = [float(v[yk]) for v in _SVF.values()]
+    pe, sp = _st.pearsonr(x, y), _st.spearmanr(x, y)
+    return dict(r=float(pe.statistic), p=float(pe.pvalue),
+                rho=float(sp.statistic), rho_p=float(sp.pvalue))
+
+
+CORR = dict(
+    extent_flip=_corr("extent_m", "flip_span_single_aspect_db"),
+    spread_flip=_corr("max_band_sigma_spread_db", "flip_span_single_aspect_db"),
+    extent_spread=_corr("extent_m", "max_band_sigma_spread_db"))
+CORR_P = {k: v["p"] for k, v in CORR.items()}
+CORR_RHO = {k: (v["rho"], v["rho_p"]) for k, v in CORR.items()}
+#: 어느 열의 **절댓값**이 큰가 — 산문이 이 판정을 손으로 적지 않게 여기서 한 번만 정한다.
+CORR_STRONGER = ("산포" if abs(CORR["spread_flip"]["r"]) > abs(CORR["extent_flip"]["r"]) else "크기")
+
+# ── 견고함 순위 — 두 기준(단일자세·자세평균)에서 따로 센다. ───────────────────────── #
+def _rank(key):
+    order = sorted(_SVF, key=lambda k: -float(_SVF[k][key]))
+    return order, {k: i + 1 for i, k in enumerate(order)}
+
+
+ROB_ORDER_SINGLE, ROB_RANK_SINGLE = _rank("flip_span_single_aspect_db")
+ROB_ORDER_AVG, ROB_RANK_AVG = _rank("flip_span_aspect_avg_db")
 
 # ── 자세평균 판의 뒤집힘 문턱 — 기체별 최댓값은 원장의 by_drone 에서 센다. ──────────── #
 ASP_FLIP = {k: float(v["smallest_flip_span_db"])
@@ -1171,14 +1196,17 @@ def r61():
                 f"{SS.num('differential.realistic_span_db', None, '{:.2f}', 'dB')} 다.",
                 # ⛔ n=5 에서 «산포가 정한다» 는 세울 수 없다 — 기각하는 쪽(크기)의 상관이 채택하는
                 #    쪽(산포)보다 오히려 강하다. 세 상관을 다 싣고 인과는 세우지 않는다.
-                f"작은 기체가 더 취약하다는 예상은 뒤집힌다 — 가장 작은 "
-                f"{SS.num('size_vs_fragility.smallest_airframe', None)} 가 단일자세·자세평균 양쪽에서 "
-                f"가장 견고하다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 "
+                f"작은 기체가 더 취약하다는 예상은 단일자세 기준에서 뒤집힌다 — 가장 작은 "
+                f"{SS.num('size_vs_fragility.smallest_airframe', None)} 가 단일자세 뒤집힘 문턱에서는 "
+                f"{CORR_N} 대 중 {ROB_RANK_SINGLE['mini5pro']} 위지만, 자세평균에서는 "
+                f"{ROB_RANK_AVG['mini5pro']} 위이고 그 자리는 {ROB_ORDER_AVG[0]} 가 가져간다(두 순위는 "
+                f"원장의 같은 두 열을 굽을 때 다시 센 것이다). 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 "
                 f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 밴드 간 σ "
                 f"로브 산포 쪽 "
                 f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')}, 두 "
                 f"열 사이는 "
-                f"{SS.num('size_vs_fragility.corr_extent_vs_sigma_spread', None, '{:+.2f}')} 이고, 기체 "
+                f"{SS.num('size_vs_fragility.corr_extent_vs_sigma_spread', None, '{:+.2f}')} 라 절댓값은 "
+                f"{CORR_STRONGER} 쪽이 크고, 기체 "
                 f"{CORR_N} 대의 상관계수라 어느 열이 취약성을 정하는지는 이 표본으로 정할 수 없다.",
                 f"σ 격자를 블레이드 형상 갱신본으로 바꾸는 것만으로 R90 이 최대 "
                 + dnum(D["stale_max_pct"], "{:.1f}", "%",
@@ -1238,21 +1266,29 @@ def r61():
 
         # ⛔ 옛 제목 «취약성을 정하는 것은 크기가 아니다» 는 바로 아래 인용한 상관 자신이 부정한다.
         #    제목을 관측으로 내리고, 세 상관을 나란히 싣고, 원인은 표본을 늘린 뒤로 미룬다.
-        md("## 작은 기체가 더 취약하다는 예상은 뒤집힌다", "",
+        md("## 작은 기체가 더 취약하다는 예상은 단일자세에서만 뒤집힌다", "",
            f"가장 작은 {SS.num('size_vs_fragility.smallest_airframe', None)}(전장 "
            f"{SS.num('size_vs_fragility.by_drone.mini5pro.extent_m', None, '{:.3f}', 'm')}, LTE 에서 "
            f"D/λ = {SS.num('size_vs_fragility.by_drone.mini5pro.D_over_lambda_lte', None, '{:.2f}')})"
-           f" 가 단일자세·자세평균 양쪽에서 가장 견고하다.", "",
+           f" 는 단일자세 뒤집힘 문턱에서 {CORR_N} 대 중 {ROB_RANK_SINGLE['mini5pro']} 위"
+           f"({SS.num('size_vs_fragility.by_drone.mini5pro.flip_span_single_aspect_db', None, '{:.2f}', 'dB')})"
+           f"지만 자세평균에서는 {ROB_RANK_AVG['mini5pro']} 위"
+           f"({SS.num('size_vs_fragility.by_drone.mini5pro.flip_span_aspect_avg_db', None, '{:.2f}', 'dB')})"
+           f"이고, 자세평균에서 가장 견고한 것은 {ROB_ORDER_AVG[0]}"
+           f"({SS.num(f'size_vs_fragility.by_drone.{ROB_ORDER_AVG[0]}.flip_span_aspect_avg_db', None, '{:.2f}', 'dB')})"
+           f" 다. ⛔2026-09-16 정정 — 이 자리에는 「단일자세·자세평균 양쪽에서 가장 견고하다」 가 "
+           f"적혀 있었다(R34).", "",
            f"단일자세 뒤집힘 문턱은 최대 치수 열과 밴드 간 σ 로브 산포 열 둘 다에 걸린다 — 상관은 "
            f"크기 쪽 {SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 산포 쪽 "
-           f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')} 로 크기 "
-           f"쪽이 더 강하고, 두 열 사이 상관은 "
+           f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')} 로 절댓값은 "
+           f"{CORR_STRONGER} 쪽이 크고(⛔2026-09-16 정정 — 여기에는 「크기 쪽이 더 강하다」 가 "
+           f"적혀 있었다), 두 열 사이 상관은 "
            f"{SS.num('size_vs_fragility.corr_extent_vs_sigma_spread', None, '{:+.2f}')} 다.", "",
            f"⚠ 기체가 {CORR_N} 대라 이 세 수는 서술용이다 — 같은 5행에서 순위상관을 내면 크기-문턱이 "
            f"{CORR_RHO['extent_flip'][0]:+.2f}(p={CORR_RHO['extent_flip'][1]:.2f}), 산포-문턱이 "
            f"{CORR_RHO['spread_flip'][0]:+.2f}(p={CORR_RHO['spread_flip'][1]:.2f}) 로 갈리고, 피어슨 "
            f"p 는 각각 {CORR_P['extent_flip']:.2f} · {CORR_P['spread_flip']:.2f} 다(⛔ p 와 순위상관은 "
-           f"원장 밖의 재계산값이다). 이 편은 원장의 같은 칸에 붙은 산문 "
+           f"원장에 없는 값이라 굽을 때마다 원장의 같은 행에서 다시 낸다). 이 편은 원장의 같은 칸에 붙은 산문 "
            f"⟨{J_SS} : size_vs_fragility.finding⟩ 이 아니라 위 세 상관계수를 그대로 읽고, "
            f"어느 열이 취약성을 정하는지는 표본을 늘린 뒤로 미룬다."),
 

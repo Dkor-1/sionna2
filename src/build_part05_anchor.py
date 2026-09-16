@@ -939,8 +939,9 @@ def report_29_sigma_robustness():
            f"뒤집힘 문턱은 최대 치수 열과 밴드간 σ 산포 열 **둘 다에 약하게** 걸린다 — 단일자세 "
            f"문턱과의 상관이 크기 쪽 "
            f"{_n('size_vs_fragility.corr_extent_vs_flip_single', SS, '{:.2f}')} · 산포 쪽 "
-           f"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 크기 쪽이 "
-           f"더 강하다. 두 열 사이의 상관은 "
+           f"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 절댓값은 "
+           f"산포 쪽이 크다(⛔2026-09-16 정정 — 여기에는 「크기 쪽이 더 강하다」 가 적혀 있었다. R34). "
+           f"두 열 사이의 상관은 "
            f"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 "
            f"열은 이 표에서 서로 다른 축이다.", "",
            f"⚠ 기체가 {_n('sigma_sens.n_airframes', DER, '{:.0f}', '대')} 뿐이라 이 세 수는 "

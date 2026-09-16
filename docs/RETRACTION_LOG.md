@@ -1456,6 +1456,51 @@ m["canyon_events"]["has_339"] = "339" in txt
 
 ---
 
+## R34 ⛔ 「가장 작은 기체가 **단일자세·자세평균 양쪽에서** 가장 견고하다」 — 자세평균은 4 위다
+
+**언제** 2026-09-16 · **어디** `src/build_part10_results.py`(두 자리) · `src/build_part05_anchor.py` ·
+`src/make_report05_results.py` · 원장 산문 `outputs/sigma_sensitivity.json : size_vs_fragility.finding` ·
+그 생성기 `benchmark/sigma_sensitivity.py`. **다른 세션의 검토가 원장을 다시 세어 잡았다**
+(`docs/RESEARCH_LOGIC_REVIEW_0916.ipynb` · `outputs/research_logic_review_0916.json : ranking`).
+이쪽에서도 원장 `size_vs_fragility.by_drone` 5 행을 직접 다시 세어 같은 결과를 얻었다.
+
+### ① 순위 — 두 기준이 다르다
+
+| 기체 | 단일자세 뒤집힘 문턱 [dB] | 자세평균 뒤집힘 문턱 [dB] |
+|---|---:|---:|
+| **mini5pro**(가장 작다) | **5.49 (1 위)** | **4.04 (4 위)** |
+| matrice4e | 4.68 (2 위) | 5.23 (2 위) |
+| mavic4pro | 1.97 (3 위) | **6.93 (1 위)** |
+| s1000plus | 1.62 (4 위) | 4.41 (3 위) |
+| phantom4 | 1.28 (5 위) | 1.99 (5 위) |
+
+「양쪽에서」 는 단일자세 한 기준에서만 참이다.
+
+### ② 상관 — 절댓값 비교가 거꾸로였다
+
+크기(extent) ↔ 단일자세 문턱 **-0.45**, 밴드 간 σ 로브 산포 ↔ 단일자세 문턱 **-0.69**
+(`size_vs_fragility.corr_*`). 절댓값이 큰 쪽은 **산포** 인데 산문은 「크기 쪽이 더 강하다」 고 적었다.
+
+### ③ 왜 어긋났나 — 손으로 적은 통계가 원장을 안 따라갔다
+
+`src/build_part10_results.py` 에 2026-09-01 에 손으로 적어 둔 값
+(pearson 크기 -0.618 · 산포 -0.315, spearman 크기 -0.90)이 박혀 있었다. 그 뒤 원장이 다시 구워지면서
+두 열의 순서가 뒤집혔는데(지금 pearson 크기 -0.45 · 산포 -0.69, spearman 산포 -0.90 p=0.037)
+박아 둔 수는 그대로였다. **지금은 굽을 때마다 원장의 같은 행에서 다시 낸다.**
+
+### 고친 것
+
+- 두 빌더의 산문을 기준별 순위와 절댓값 비교로 바꾸고, 정정 표시를 본문에 남겼다.
+- 원장 생성기의 `finding` 을 같은 문면으로 바꾸고, 애매하던 키 `smallest_airframe_rank_by_robustness` 를
+  `smallest_airframe_rank_single_aspect` · `smallest_airframe_rank_aspect_averaged` ·
+  `most_robust_aspect_averaged` · `stronger_abs_corr_with_flip_single` 로 나눴다(원장 재생성 10 초, CPU).
+- 리포트를 다시 구웠다(`src/build_part05_anchor.py` · `src/build_part10_results.py` · `src/build_volumes.py`).
+
+⚠ 이 표의 값 자체는 그대로다 — 바뀐 것은 **그 값을 읽는 문장** 이다. 어느 열이 취약성을 정하는지는
+기체 5 대 표본으로 정하지 않는다(그 판정은 R29 이후로 계속 보류다).
+
+---
+
 ## R33 ⛔⛔ 선행 연구 조사의 **재현율 «4/6» 은 실제로 0/6** 이었다 — 한 줄짜리 버그
 
 **언제** 2026-09-12 · **어디** `/data/public/sionna_jeong/toptier_0911/`(INDEX.md · 원장 275 행) ·
