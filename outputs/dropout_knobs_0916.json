@@ -1,14 +1,16 @@
 {
  "_meta": {
   "generator": "benchmark/dropout_knobs_0916.py",
-  "created_utc": "2026-09-16T05:11:48.013825+00:00",
+  "created_utc": "2026-09-16T05:32:35.322773+00:00",
   "factor": 20.0,
   "definitions": {
    "isolated_pose": "|E - m| > 20 x median_over_poses(|E - m|), m = component-wise median of E (same definition as outputs/isac_plan_corpus_0915.json : dropout)",
    "share_of_pose_varying_power": "sum of |E - m|^2 over the isolated poses / sum over all poses",
-   "jaccard": "|A and B| / |A or B| of two isolated-pose index sets"
+   "jaccard": "|A and B| / |A or B| of two isolated-pose index sets",
+   "field_stability": "per cell of the ground group: max |E - E_reference| / median |E_reference|, over all poses and over the poses that are isolated in neither cell. The second number says whether the knob changed anything outside the isolated poses."
   },
-  "scope": "Merged production PathSolver cells (outdoor scenes, isotropic antenna, depth 2, el -60). Simulation bookkeeping only: no RF measurement, no comparison of absolute levels between engines, and no statement about why a path is missing."
+  "scope": "Merged production PathSolver cells (outdoor scenes, isotropic antenna, depth 2, el -60). Simulation bookkeeping only: no RF measurement, no comparison of absolute levels between engines, and no statement about why a path is missing.",
+  "max_paths_caveat": "--max-paths sets both the candidate buffer (max_num_paths_per_src x num_sources) and the specular-chain hash counter size, max(max_num_paths_per_src, 1e6), in sionna/rt/path_solvers/sb_candidate_generator.py (lines 107, 59, 313-315); that generator's docstring says candidates can be lost to hash collisions. So a row labelled 'path cap N' moves two things at once, and the returned path count staying far below the cap does not show that nothing was dropped earlier. The rows below support 'raising --max-paths reduces the isolated poses in these cells' and nothing about which of the two effects does it."
  },
  "cells": [
   {
@@ -538,8 +540,37 @@
    "name": "ground path cap 32e6",
    "group": "ground",
    "stem": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp32000000_mfixbatteryi5_blperairframe_rt210_d2_el-60",
-   "available": false,
-   "reason": "4095 poses missing"
+   "available": true,
+   "solver_build": "sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0",
+   "n_poses": 8192,
+   "n_isolated": 15,
+   "isolated_pose_indices": [
+    176,
+    1604,
+    2277,
+    2356,
+    3446,
+    4386,
+    4536,
+    4557,
+    4873,
+    5626,
+    5798,
+    6716,
+    7597,
+    7806,
+    8015
+   ],
+   "isolated_indices_truncated": false,
+   "share_of_pose_varying_power": 0.9953,
+   "abs_complex_median": 0.0001909,
+   "median_abs_dev": 2.504e-07,
+   "npaths_median": 2706,
+   "npaths_max": 2827,
+   "shard_sha256": {
+    "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp32000000_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz": "86ef39d6a062c6c9e3ac07293cbc48c7f46c92b306b3cb0e0bce330ea057e3f5",
+    "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mp32000000_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz": "1963bc26a3180ff8dafa363a07bb72d3e3246871161456356d30358ab2a4c1b6"
+   }
   },
   {
    "name": "ground 3e9 rays",
@@ -1373,6 +1404,16 @@
    "reference_is_subset_of_cell": false
   },
   {
+   "cell": "ground path cap 32e6",
+   "reference": "ground reference (4e9 rays, cap 2e6, seed 1)",
+   "jaccard": 0.1667,
+   "n_cell": 15,
+   "n_reference": 90,
+   "n_common": 15,
+   "cell_is_subset_of_reference": true,
+   "reference_is_subset_of_cell": false
+  },
+  {
    "cell": "ground 3e9 rays",
    "reference": "ground reference (4e9 rays, cap 2e6, seed 1)",
    "jaccard": 0.87,
@@ -1505,6 +1546,16 @@
    "b_subset_of_a": true
   },
   {
+   "pair": "path cap 16e6 vs 32e6",
+   "a": "ground path cap 16e6",
+   "b": "ground path cap 32e6",
+   "jaccard": 0.6818,
+   "n_a": 22,
+   "n_b": 15,
+   "identical": false,
+   "b_subset_of_a": true
+  },
+  {
    "pair": "reference vs its same-seed repeat",
    "a": "ground reference (4e9 rays, cap 2e6, seed 1)",
    "b": "ground repeat of the reference",
@@ -1543,6 +1594,107 @@
    "n_b": 27,
    "identical": false,
    "b_subset_of_a": true
+  }
+ ],
+ "field_stability": [
+  {
+   "cell": "ground repeat of the reference",
+   "n_isolated": 90,
+   "max_abs_diff_over_median_all": 2.025e-05,
+   "max_abs_diff_over_median_outside_isolated": 2.024e-05,
+   "n_poses_compared_outside_isolated": 8102,
+   "npaths_median": 2706,
+   "npaths_max": 2827
+  },
+  {
+   "cell": "ground solver seed 2",
+   "n_isolated": 92,
+   "max_abs_diff_over_median_all": 1.004,
+   "max_abs_diff_over_median_outside_isolated": 0.002152,
+   "n_poses_compared_outside_isolated": 8100,
+   "npaths_median": 2692,
+   "npaths_max": 2850
+  },
+  {
+   "cell": "ground solver seed 3",
+   "n_isolated": 92,
+   "max_abs_diff_over_median_all": 1.002,
+   "max_abs_diff_over_median_outside_isolated": 0.002711,
+   "n_poses_compared_outside_isolated": 8100,
+   "npaths_median": 2777,
+   "npaths_max": 2914
+  },
+  {
+   "cell": "ground path cap 1e6",
+   "n_isolated": 161,
+   "max_abs_diff_over_median_all": 1.003,
+   "max_abs_diff_over_median_outside_isolated": 2.15e-05,
+   "n_poses_compared_outside_isolated": 8031,
+   "npaths_median": 2706,
+   "npaths_max": 2827
+  },
+  {
+   "cell": "ground path cap 8e6",
+   "n_isolated": 34,
+   "max_abs_diff_over_median_all": 1.003,
+   "max_abs_diff_over_median_outside_isolated": 2.28e-05,
+   "n_poses_compared_outside_isolated": 8102,
+   "npaths_median": 2706,
+   "npaths_max": 2827
+  },
+  {
+   "cell": "ground path cap 16e6",
+   "n_isolated": 22,
+   "max_abs_diff_over_median_all": 1.003,
+   "max_abs_diff_over_median_outside_isolated": 2.308e-05,
+   "n_poses_compared_outside_isolated": 8102,
+   "npaths_median": 2706,
+   "npaths_max": 2827
+  },
+  {
+   "cell": "ground path cap 32e6",
+   "n_isolated": 15,
+   "max_abs_diff_over_median_all": 1.003,
+   "max_abs_diff_over_median_outside_isolated": 2.28e-05,
+   "n_poses_compared_outside_isolated": 8102,
+   "npaths_median": 2706,
+   "npaths_max": 2827
+  },
+  {
+   "cell": "ground 3e9 rays",
+   "n_isolated": 97,
+   "max_abs_diff_over_median_all": 1.005,
+   "max_abs_diff_over_median_outside_isolated": 0.004637,
+   "n_poses_compared_outside_isolated": 8092,
+   "npaths_median": 2025,
+   "npaths_max": 2121
+  },
+  {
+   "cell": "ground 2e9 rays",
+   "n_isolated": 83,
+   "max_abs_diff_over_median_all": 1.005,
+   "max_abs_diff_over_median_outside_isolated": 0.00407,
+   "n_poses_compared_outside_isolated": 8098,
+   "npaths_median": 1419,
+   "npaths_max": 1498
+  },
+  {
+   "cell": "ground 2e8 rays",
+   "n_isolated": 15,
+   "max_abs_diff_over_median_all": 1.008,
+   "max_abs_diff_over_median_outside_isolated": 0.007997,
+   "n_poses_compared_outside_isolated": 8101,
+   "npaths_median": 136,
+   "npaths_max": 161
+  },
+  {
+   "cell": "ground 2e8 rays, solver deterministic",
+   "n_isolated": 15,
+   "max_abs_diff_over_median_all": 1.008,
+   "max_abs_diff_over_median_outside_isolated": 0.007978,
+   "n_poses_compared_outside_isolated": 8101,
+   "npaths_median": 136,
+   "npaths_max": 161
   }
  ]
 }

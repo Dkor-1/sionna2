@@ -189,6 +189,32 @@ def main() -> None:
                               n_a=len(a), n_b=len(b), identical=bool(a == b),
                               b_subset_of_a=bool(b and b <= a)))
             print(f"  pair: {why:42} J={pairs[-1]['jaccard']} identical={pairs[-1]['identical']}")
+    # ---- field stability: does the cap change anything outside the isolated poses? -------------
+    stab = []
+    ref_cell, _ = merge(CELLS[REFERENCE["ground"]][2])
+    if ref_cell is not None:
+        Er = ref_cell["E"]
+        iso_r, _, _ = isolated(Er)
+        med = float(np.median(np.abs(Er)))
+        for name, group, stem in CELLS:
+            if group != "ground" or name == CELLS[REFERENCE["ground"]][0]:
+                continue
+            cell, _why = merge(stem)
+            if cell is None or cell["E"].size != Er.size:
+                continue
+            E = cell["E"]
+            idx, _m, _s = isolated(E)
+            union = set(map(int, idx)) | set(map(int, iso_r))
+            keep = np.array([i for i in range(E.size) if i not in union])
+            npm = cell["npaths"]
+            stab.append(dict(cell=name, n_isolated=int(idx.size),
+                             max_abs_diff_over_median_all=g4(np.abs(E - Er).max() / med),
+                             max_abs_diff_over_median_outside_isolated=g4(np.abs(E[keep] - Er[keep]).max() / med),
+                             n_poses_compared_outside_isolated=int(keep.size),
+                             npaths_median=int(np.median(npm)) if npm.max() > 0 else None,
+                             npaths_max=int(npm.max()) if npm.max() > 0 else None))
+            print(f"  stability: {name:42} outside the isolated poses max|dE|/median|E| = "
+                  f"{stab[-1]['max_abs_diff_over_median_outside_isolated']}")
     meta = dict(generator="benchmark/dropout_knobs_0916.py",
                 created_utc=dt.datetime.now(dt.timezone.utc).isoformat(),
                 factor=FACTOR,
@@ -199,9 +225,22 @@ def main() -> None:
                     jaccard="|A and B| / |A or B| of two isolated-pose index sets"),
                 scope="Merged production PathSolver cells (outdoor scenes, isotropic antenna, depth 2, el -60). "
                       "Simulation bookkeeping only: no RF measurement, no comparison of absolute levels between "
-                      "engines, and no statement about why a path is missing.")
+                      "engines, and no statement about why a path is missing.",
+                max_paths_caveat="--max-paths sets both the candidate buffer (max_num_paths_per_src x num_sources) "
+                                 "and the specular-chain hash counter size, max(max_num_paths_per_src, 1e6), in "
+                                 "sionna/rt/path_solvers/sb_candidate_generator.py (lines 107, 59, 313-315); that "
+                                 "generator's docstring says candidates can be lost to hash collisions. So a row "
+                                 "labelled 'path cap N' moves two things at once, and the returned path count "
+                                 "staying far below the cap does not show that nothing was dropped earlier. The "
+                                 "rows below support 'raising --max-paths reduces the isolated poses in these "
+                                 "cells' and nothing about which of the two effects does it.")
+    meta["definitions"]["field_stability"] = (
+        "per cell of the ground group: max |E - E_reference| / median |E_reference|, over all poses and over the "
+        "poses that are isolated in neither cell. The second number says whether the knob changed anything "
+        "outside the isolated poses.")
     tmp = OUT.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(dict(_meta=meta, cells=rows, vs_reference=comps, pairs=pairs), indent=1) + "\n",
+    tmp.write_text(json.dumps(dict(_meta=meta, cells=rows, vs_reference=comps, pairs=pairs,
+                                   field_stability=stab), indent=1) + "\n",
                    encoding="utf-8")
     os.replace(tmp, OUT)
     print(f"wrote {OUT}")

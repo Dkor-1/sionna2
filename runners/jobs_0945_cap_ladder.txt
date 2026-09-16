@@ -7,12 +7,23 @@
 #   is 161 at cap 1e6, 90 at the default 2e6 and 34 at 8e6, and the sets nest (34 subset of 90 subset of 161).
 #   The street canyon goes 339 -> 79 at cap 8e6, also a subset. The same poses come back with a different solver
 #   seed (92 poses, containing the 90) and with the solver's deterministic mode (identical sets), and the returned
-#   path count per pose stays near 2,700 (max 2,827), far below any of these caps — so this is not truncation.
+#   path count per pose stays near 2,700 (max 2,827), far below any of these caps.
+#
+# ⛔2026-09-16 correction to this header (a second reader was right): --max-paths changes TWO things at once in
+#   this solver build, so this ladder cannot say which one acts. In
+#   sionna/rt/path_solvers/sb_candidate_generator.py the argument sets (a) the candidate buffer
+#   (max_num_paths = max_num_paths_per_src x num_sources, line 107) and (b) the size of the specular-chain hash
+#   counter, spec_counter_size = max(max_num_paths_per_src, MIN_SPEC_COUNT_SIZE = 1e6) (lines 59, 313-315), whose
+#   own docstring says "this can cause loss of candidates due to hash collisions" (line 43-45). The returned path
+#   count is what survives the whole chain, so it being far below the cap does NOT rule out candidates being
+#   dropped earlier — neither by the buffer nor by a hash collision.
 #
 # Question: does raising the cap further drive the isolated poses to zero, or is there a core that stays?
-#   - If 32e6 gives 0 in both scenes, the isolated poses are a capacity effect of the path store alone.
-#   - If a core stays (and the sets keep nesting), capacity is not the whole story and the remaining poses are
-#     the ones to list paths for (benchmark/dropout_paths_0916.py).
+#   - Either way this ladder only establishes "raising --max-paths reduces the isolated poses in the cells tested".
+#     Which of the two effects does it is separated by a small diagnostic that holds one fixed while moving the
+#     other (the hash size can be forced independently through MIN_SPEC_COUNT_SIZE), not by this queue.
+#   - If a core stays (and the sets keep nesting), the remaining poses are the ones to list paths for
+#     (benchmark/dropout_paths_0916.py).
 # Read-out: benchmark/dropout_knobs_0916.py (add the two stems), then the subset check against cap 8e6.
 # Kill / fold: if a worker dies for memory at 32e6, keep the 16e6 rung and say so in the ledger; if npaths per
 #   pose ever approaches the cap, that arm measures the cap and folds (memory note saturating-cap).
