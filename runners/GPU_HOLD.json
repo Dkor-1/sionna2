@@ -1,16 +1,18 @@
 {
   "gpus": [
-    1,
-    2
+    0,
+    1
   ],
   "external_mb": 5000,
-  "note": "Temporary: GPUs 0, 3, 4 (user, 2026-09-16 ~14:40 KST). GPU 0 is on loan and must be evacuable at once — runners/evacuate_gpu.py 0 holds the card and stops only that card's workers, writing the interrupted job lines to a REDO file. GPUs 1 and 2 stay held.",
+  "note": "Temporary: GPUs 2, 3, 4 (user, 2026-09-16 ~15:58 KST). GPU 2 is on loan on the same terms as GPU 0 was — evacuable at once with runners/evacuate_gpu.py 2 --go. GPUs 0 and 1 stay held (0 was returned at 15:55).",
   "why_ko": "⭐사용자 지시(2026-09-15): 「앞으로 한동안 GPU 3,4번만 사용하도록 임시 규약 걸어줄래? (이미 돌아가고있는건 냅두고) 내가 추가 지시 내리기 전까지는 이 규약 유지시키고 따로 되묻지 말아줘」. 그래서 0·1·2 를 조건 없이 뺀다.",
   "limit_ko": "⛔이 파일은 **새로 띄우는 워커**만 막는다 — 이미 0·1·2 에서 돌고 있는 워커는 건드리지 않는다(사용자가 그렇게 지시했다). 그것들이 끝나면 그 카드는 비어 있게 된다.",
   "how_to_remove_ko": "푸는 법 — 이 파일을 지우거나 gpus 를 [] 로 둔다. 감독자가 **매 바퀴 다시 읽으므로 재시작이 필요 없다.** ⛔사용자가 따로 지시할 때까지 유지한다. 되묻지 않는다.",
-  "set_by": "2026-09-15 · user instruction; 2026-09-16 00:57 KST · user instruction (GPU 1 window); 2026-09-16 ~01:50 KST · user instruction (GPU 0 window); 2026-09-16 ~14:40 KST · user instruction (GPU 0 on loan, evacuable on request)",
+  "set_by": "2026-09-15 · user instruction; 2026-09-16 00:57 KST · user instruction (GPU 1 window); 2026-09-16 ~01:50 KST · user instruction (GPU 0 window); 2026-09-16 ~14:40 KST · user instruction (GPU 0 on loan, evacuable on request); 2026-09-16 ~15:58 KST · user instruction (GPU 2 on loan, evacuable on request)",
   "window_0916": "User, 2026-09-16 00:57 KST: 「우선 한국시간 기준으로 아침 9시정도까지 GPU 1번 사용하고 그 이후 다시 3,4번만 사용하는 형태로 작업 들어가줘!」 [use GPU 1 until about 09:00 KST, then GPUs 3 and 4 only again]. New launches on GPU 1 stop at 07:30 KST so that workers started there (47-110 min per job in queue 0940) finish around 09:00; a hold blocks new launches only. Moved: GPU 1 must be free by 08:00 KST, so new launches on GPU 1 stop at 06:10 KST (longest job so far 110 min).",
   "window_0916_gpu2": "User, 2026-09-16 about 01:05 KST: 「오전 8시까지는 GPU 2번도 사용하는 형태로 부탁해!」 [also use GPU 2 until 08:00 KST]. New launches on GPU 2 stop at 06:30 KST so its workers finish around 08:00; a hold blocks new launches only. Ended early — user, 2026-09-16 ~01:25 KST: 「GPU 2번 사용은 지금 당장 멈추도록 해주고, 1번 사용 중지 시점도 8시로 땡겨줘」 [stop using GPU 2 right now, and move the GPU 1 stop to 08:00]. GPU 2 held again at once.",
   "window_0916_gpu0": "User, 2026-09-16 ~01:50 KST: 「오전 8시까지 GPU 0번도 사용하는걸로 해줘!」 [also use GPU 0 until 08:00 KST]. GPU 0 released at once. Queue 0941's remaining lines are street-canyon jobs (~225 min per shard: 3.3 s x 4,096 poses), longer than the 110 min assumed for the GPU 1 cutoff, so from 03:50 KST GPUs 0 and 1 are held while such a line is about to launch; all new launches there stop at 06:10 KST (user, ~01:55 KST: 03:50 for everything is too early). A hold blocks new launches only.",
-  "window_0916_gpu0_second": "User, 2026-09-16 ~14:40 KST: 「0번 GPU도 한동안 사용해줘, 단 내가 요청시 0번에서 하는 작업은 바로 뺄 수 있도록 대응해줘」 [use GPU 0 for a while too, but be ready to pull the work off card 0 the moment I ask]. So: card 0 released now, and an evacuation tool is in place — one command holds it again and stops only its workers. ⛔The standing rule that workers are never killed without the user's word is unchanged; this is the user's standing authorisation for card 0 only, on request."
+  "window_0916_gpu0_second": "User, 2026-09-16 ~14:40 KST: 「0번 GPU도 한동안 사용해줘, 단 내가 요청시 0번에서 하는 작업은 바로 뺄 수 있도록 대응해줘」 [use GPU 0 for a while too, but be ready to pull the work off card 0 the moment I ask]. So: card 0 released now, and an evacuation tool is in place — one command holds it again and stops only its workers. ⛔The standing rule that workers are never killed without the user's word is unchanged; this is the user's standing authorisation for card 0 only, on request.",
+  "evacuated": "GPU 0 evacuated at 2026-09-16T06:55:50.922980+00:00 by runners/evacuate_gpu.py (user request).",
+  "window_0916_gpu2_second": "User, 2026-09-16 ~15:58 KST: 「이제 gpu 2번을 한동안 임시로 쓰다가 내가 말하면 비워줘!! 0번 쓰던것처럼」 [use GPU 2 for a while now and free it when I say, the same way as GPU 0]. Card 2 released; the evacuation tool gives it back in one command (hold + stop only that card's workers + write the interrupted lines to a REDO file). GPU 0 was evacuated at 15:55 KST on request: 3 workers stopped, runners/jobs_REDO_gpu0_20260916T065550Z.txt."
 }

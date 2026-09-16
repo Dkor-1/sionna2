@@ -1,0 +1,38 @@
+# 0947 re-buy the evacuated cells, and measure the run-to-run spread at a fixed knob (2026-09-16)
+#
+# Two reasons, both from the 2026-09-16 hash-diagnostic review (docs/HASH_DIAGNOSTIC_REVIEW_0916.ipynb,
+# ledger outputs/hash_diagnostic_review_0916.json):
+#
+# 1. The user asked for GPU 0 back at 15:55 KST, so runners/evacuate_gpu.py stopped its three workers
+#    mid-cell (runners/jobs_REDO_gpu0_20260916T065550Z.txt). A killed worker writes no shard, so those
+#    three cells are simply missing from 0946 and are re-bought here (filtered NEW).
+#
+# 2. The review is right that "the buffer changed nothing" was too strong. At a fixed hash counter of 8e6,
+#    raising the buffer from 2e6 to 8e6 gave no incremental recovery and no isolation change, but two poses
+#    returned one path fewer (8015: 2811 -> 2810; 8016: 2794 -> 2793) and one pose moved 2.15e-5 of the
+#    median |E|, just over the 2e-5 tolerance the script declared (review ledger : buffer_comparison).
+#    Nothing in the repository says how big the run-to-run spread of a whole cell is at a fixed knob other
+#    than the one _rep1 pair at the production cap (median 4e-16, 99th percentile 4.4e-6, max 3.7e-3 over
+#    8,192 poses). Question: is a one-path, 2e-5 difference inside the spread of two identical runs?
+#    So: a second repeat at the production cap, and the first repeat at cap 8e6 (the cap the contrast used).
+# Read-out: benchmark/dropout_knobs_0916.py (isolated sets and field_stability of the repeat cells against
+#   their partners), then the same tolerance applied to the buffer contrast.
+# Kill / fold: if a repeat differs from its partner by more than the cap contrast did, the 2e-5 tolerance is
+#   too tight to attribute anything at that size and the buffer comparison folds to "no change observed at
+#   the isolation level".
+# Not answered: which candidate collided (no collision counting), why a path is lost, anything about a real
+#   radar, absolute levels between engines.
+#
+# Rules kept: diffuse on (F1) in every arm; no el 0; no prop-only; no diffraction; GPU hold — cards 3 and 4
+# only (GPU 0 was returned to the user at 15:55 KST and is held again).
+
+# -- 1: the three cells the evacuation interrupted (0946 aimed-antenna arms) -------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 8000000 --ant-pattern tr38901 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 8000000 --ant-pattern tr38901 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --ant-pattern tr38901 --shard 0 --nshards 2
+
+# -- 2: run-to-run spread at a fixed knob ----------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --rep 2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --rep 2 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 8000000 --rep 1 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 8000000 --rep 1 --shard 1 --nshards 2
