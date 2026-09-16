@@ -1,4 +1,4 @@
-# Current status — 2026-09-16, 16:40 KST
+# Current status — 2026-09-16, 16:45 KST
 
 > The in-repo edition. `/workspace/RESUME_NOW.md` is the top-level pointer to this file.
 > Written so a fresh session can pick up without reading the transcript.
@@ -21,29 +21,36 @@ change takes effect without restarting anything.
 |---|---|---|
 | 0 | held | on loan earlier today, **evacuated 15:55 KST at the user's request** |
 | 1 | held | standing rule |
-| 2 | **on loan** | user 15:58 KST: 「이제 gpu 2번을 한동안 임시로 쓰다가 내가 말하면 비워줘!! 0번 쓰던것처럼」 |
+| 2 | held | was on loan; **evacuated 16:42 KST at the user's request** (「GPU 2번은 당장 비워줘」) |
 | 3, 4 | ours | standing rule since 2026-09-15 |
 
-**To give card 2 back the moment the user asks** — one command, nothing else:
+**Only cards 3 and 4 are ours right now.** If a card is lent again, hand it back with one command:
 
 ```bash
-cd /workspace/sionna && /workspace/.venvs/py312/bin/python runners/evacuate_gpu.py 2 --go
+cd /workspace/sionna && /workspace/.venvs/py312/bin/python runners/evacuate_gpu.py <card> --go
 ```
 
 It holds the card, stops **only** the workers whose `/proc/<pid>/environ` says that card, and writes
 the interrupted job lines to `runners/jobs_REDO_gpu2_<UTC>.txt` so they can be re-queued. Never
 `pgrep -f` (it matches your own shell) and never kill a supervisor.
 
-The last evacuation left `runners/jobs_REDO_gpu0_20260916T065550Z.txt`; those 3 lines are already
-re-queued inside `jobs_0947`, which is why `sup_cap_antenna_0946.log` shows `실패 3`.
+Two evacuations happened today, each leaving its interrupted lines in a REDO file:
+
+* `runners/jobs_REDO_gpu0_20260916T065550Z.txt` — 3 lines, **already re-queued** inside `jobs_0947`
+  (that is why `sup_cap_antenna_0946.log` shows `실패 3`).
+* `runners/jobs_REDO_gpu2_20260916T074126Z.txt` — 3 lines, ⚠**not re-queued yet**. They are the three
+  aimed-antenna cells, 43 minutes in when they were stopped. Re-buy them with a new jobs file once
+  cards free up; `runners/filter_jobs.sh` first, so anything that did finish is skipped.
 
 ## 2. Queues — three supervisors, nothing waiting on a human
 
 ```
 runners/jobs_0945_cap_ladder.txt      8 left   logs/sup_cap_0945.log
-runners/jobs_0946_cap_antenna.txt     5 left   logs/sup_cap_antenna_0946.log   (3 = the evacuated lines, re-bought in 0947)
+runners/jobs_0946_cap_antenna.txt     5 left   logs/sup_cap_antenna_0946.log   (3 = the GPU-0 lines, re-bought in 0947)
 runners/jobs_0947_repeat_spread.txt   4 left   logs/sup_repeat_0947.log
 ```
+Six workers are running, three on card 3 and three on card 4. The supervisors keep going on their
+own; the GPU-2 evacuation did not touch them.
 
 Check with `tail -2 runners/logs/sup_*.log` — the status line reads
 `G<card>:<running>/<cap> · 큐 <done>/<total> · 워커 <n>`. A ground-cell shard is ~35-110 min, a
@@ -118,5 +125,21 @@ was not floored. Both were found by an independent check, not by the build.
 
 ## 7. Right now
 
-Nothing is blocked. The queue runs itself. The next piece of work in progress is a set of team-meeting
-slides on the isolated poses, drawn from the ledgers in §3 — the numbers are ready, the figures are not.
+Nothing is blocked and nothing is half-finished. Both decks are built, previewed and pushed.
+
+```
+/workspace/team_meeting/teammeeting_0916/     ⭐new — the isolated-pose item for the next meeting
+  teammeeting_0916_v1.pptx                    5 slides, pushed as 271cefc
+  make_deck_0916_v1.py                        the source of truth; never edit the .pptx
+  bake_figs.py                                reads the ledgers and shards directly, no hand-typed numbers
+```
+
+The four content slides are: the cell pose by pose against the same scene with no ground · the same
+data as a distribution (two groups, 40 dB of nothing between) · the path-limit ladder · and what
+changes in practice. The slide faces deliberately avoid the ledger's 99.96 % "share of pose-varying
+power": the poses were selected for being far from the median, so that number is close to circular.
+The 0.05 dB agreement of the other 8,102 poses and the 935x drop in the largest pose-to-pose step
+are used instead — neither follows from the selection rule.
+
+Left for whoever picks this up: re-queue the three GPU-2 lines (§2), then the reviewer's three steps
+(§4). The deck is a draft — the user has not seen it yet.
