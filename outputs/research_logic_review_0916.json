@@ -1,0 +1,395 @@
+{
+  "_meta": {
+    "generator": "benchmark/review_research_logic_0916.py",
+    "command": "/workspace/.venvs/py312/bin/python benchmark/review_research_logic_0916.py",
+    "utc": "2026-09-16T01:25:23.387063+00:00",
+    "head": "3b3cd0735258705629158f12a24705496d5d5002",
+    "scope": "Selected current plans, report headlines, builders and ledgers; analytic counterexamples. No exhaustive literature review, RF measurement, full rebuild, or GPU job.",
+    "interpretation": "Confirmed source/ledger inconsistencies are separated from proposed-design risks. Existing acknowledgments remain attached."
+  },
+  "sources": {
+    "scope": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 91,
+      "excerpt": "  effect on false tracks as an ablation; multi-class identification is future work.\n- Differentiation from LaSen has to come from: angle via 4 RX channels and sector antennas, multi-drone association,\n  communication metrics next to sensing, and site-specific design of antenna aim and height.\n"
+    },
+    "ofdm": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 49,
+      "excerpt": "Suitable, with conditions. OFDM radar processing divides each received resource element by the known transmitted one, so the\nrange-Doppler response does not depend on the data content; LaSen already used an NR-structured waveform with this drone.\n\n| Condition | Why | Evidence |"
+    },
+    "all_ground": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 80,
+      "excerpt": "- check for isolated jumps before trusting a spectrum: in the simulation corpus a few isolated poses dominate the varying\n  power in every ground scene (`outputs/isac_plan_corpus_0915.json : dropout`); real captures can have their own jumps\n  (ADC clipping, gain changes, packet loss) and must be screened the same way;\n- this repository's rotor numbers use hover rpm 3,800 (an estimate; DJI publishes no hover rpm) and the Matrice 4E logs no"
+    },
+    "rotor": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 89,
+      "excerpt": "  what the closest accepted systems evaluated. Classification needs many negative targets (birds, other drones) and more data.\n- Keep the rotor signature as a **track-confirmation feature** (does a confirmed track carry blade lines?) and report its\n  effect on false tracks as an ablation; multi-class identification is future work.\n- Differentiation from LaSen has to come from: angle via 4 RX channels and sector antennas, multi-drone association,"
+    },
+    "channels": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 97,
+      "excerpt": "1. Hardware and site — X410 variant (standard vs \"L\") and host NIC (10 GbE → 200 MHz per channel; continuous 400 MHz needs\n   CG_400 over 100 GbE, UHD manual); TX 1, sensing RX 3 on overlapping sectors, RX 1 as coupled TX sample or communication\n   receiver; GPS time on the X410 and Matrice 4E RTK logs; camera for non-drone events.\n2. Waveform TX — NR-structured slot from installed Sionna at 30.72 Msps native raster; LTE and Wi-Fi arms written later; OAI"
+    },
+    "bearing": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 104,
+      "excerpt": "4. Sensing front end — per-frame reference, leakage/direct-path cancellation, complex range-Doppler cube per channel,\n   float64 CFAR, cell clustering into a detection list (range, Doppler, sector amplitude ratio → azimuth, SNR).\n5. Tracking — Stone Soup (EKF/UKF, GNN then JPDA, M-of-N confirmation; `OPENSOURCE.md`); metrics: TR 38.765 P_md,\n   P_fa Type 1 and 2, error against RTK, GOSPA, continuity, time to confirm."
+    },
+    "placement": {
+      "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
+      "line": 112,
+      "excerpt": "8. Campaign — 2-3 sites, 20-300 m, several heights, hover and 5-15 m/s, two drones, several days; comparisons: single\n   omnidirectional antenna, no sectors, placement without the twin; ablations: waveform, aim/sector, rotor-line confirmation,\n   CPI length; release code and SigMF data.\n"
+    },
+    "admission": {
+      "path": "benchmark/isac_plan_positioning_0915.py",
+      "line": 1498,
+      "excerpt": "                 \"a written free-space consistency protocol: which relative quantities, which PathSolver settings, which \"\n                 \"tolerance, fixed before the comparison is read\",\n                 \"the flat-ground bridge cells at matched geometry (kernel image-method arm and PathSolver ground scene)\",\n                 \"finish the aimed-antenna production cells (8192 poses, depth 2, build 2.1.0) and their isotropic partners\","
+    },
+    "observability": {
+      "path": "src/build_part09_detector.py",
+      "line": 707,
+      "excerpt": "            num=55,\n            title=\"한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다\",\n            did=\"송수신 한 쌍이 한 순간에 담는 정보량을 Fisher 정보행렬의 랭크로 세고, \"\n                \"수신기를 더하거나 도래각을 더했을 때 위치 오차가 어디로 가는지를 계산했다.\","
+    },
+    "gramian": {
+      "path": "benchmark/verify_observability.py",
+      "line": 341,
+      "excerpt": "\ndef gramian(cell, K, t_obs, p0=None, v0=None, pairs=None, aoa_sigma_deg=None):\n    \"\"\"G = Σ_k H_kᵀ H_k (이미 백색화). 상태 스케일: v ← v·t_obs (전 성분 m 단위).\"\"\"\n    lam = cell[\"lam_m\"]; s_rb = cell[\"sigma_rb_m\"]; s_fd = cell[\"sigma_fd_hz\"]"
+    },
+    "pinv": {
+      "path": "benchmark/verify_observability.py",
+      "line": 627,
+      "excerpt": "              f\"σ_p=({sp[0]:.3g}, {sp[1]:.3g}, {sp[2]:.3g}) m\")\n    print(\"  ※ 1RX 의 위치 CRLB 가 유한해 보이는 것은 pinv 가 영공간을 **버리기 때문**이다 —\"\n          \" 그 방향의 실제 오차는 무한대(회전 유령). AoA σ 는 **가정**(안테나 미지정).\")\n    fixes[\"_rx2\"] = [float(x) for x in RX2]"
+    },
+    "threshold": {
+      "path": "src/build_part10_results.py",
+      "line": 728,
+      "excerpt": "            num=58,\n            title=\"자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다\",\n            did=\"자유공간 형상에서 경험 Pfa 를 목표값에 고정해 문턱을 다시 잡고, 세 밴드가 문턱 \"\n                \"하나를 공유하는 선택이 거리에 얼마를 주는지를 계산했다.\","
+    },
+    "threshold_gap": {
+      "path": "src/build_part10_results.py",
+      "line": 765,
+      "excerpt": "                 f\"M={DV.num('threshold.g1_M', None, '{:.0f}')} 의 도플러 축 밖이라 자기 문턱을 \"\n                 f\"직접 재지 못한다 — 다음 단계에 건다\"),\n            ],\n            prereq=[(ref(\"cfar-calib\", short=True), \"경험 Pfa 교정이 왜 필요한가\"),"
+    },
+    "rank": {
+      "path": "src/build_part10_results.py",
+      "line": 1245,
+      "excerpt": "           f\"D/λ = {SS.num('size_vs_fragility.by_drone.mini5pro.D_over_lambda_lte', None, '{:.2f}')})\"\n           f\" 가 단일자세·자세평균 양쪽에서 가장 견고하다.\", \"\",\n           f\"단일자세 뒤집힘 문턱은 최대 치수 열과 밴드 간 σ 로브 산포 열 둘 다에 걸린다 — 상관은 \"\n           f\"크기 쪽 {SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 산포 쪽 \""
+    },
+    "rank_generator": {
+      "path": "benchmark/sigma_sensitivity.py",
+      "line": 710,
+      "excerpt": "        finding=(f\"작은 기체가 더 취약하다는 예상은 이 {len(DRONES)} 대에서 뒤집힌다. 가장 작은 \"\n                 f\"{_small}({ext[DRONES.index(_small)]:.3f} m)가 단일자세·자세평균 양쪽에서 가장 \"\n                 f\"견고하고, 가장 큰 {_large}({ext[DRONES.index(_large)]:.3f} m)가 취약한 쪽에 \"\n                 f\"있다. 단일자세 뒤집힘 문턱과의 상관은 크기 쪽 {_c_ext_flip:+.2f}, 밴드 간 σ \""
+    },
+    "correlation": {
+      "path": "src/build_part05_anchor.py",
+      "line": 943,
+      "excerpt": "           f\"{_n('size_vs_fragility.corr_sigma_spread_vs_flip_single', SS, '{:.2f}')} 로, 크기 쪽이 \"\n           f\"더 강하다. 두 열 사이의 상관은 \"\n           f\"{_n('size_vs_fragility.corr_extent_vs_sigma_spread', SS, '{:.2f}')} 라서 크기 열과 산포 \"\n           f\"열은 이 표에서 서로 다른 축이다.\", \"\","
+    },
+    "known_height": {
+      "path": "benchmark/design_isac_campaign_0915.py",
+      "line": 112,
+      "excerpt": "            \"first_state\": [\"x_m\", \"y_m\", \"vx_m_s\", \"vy_m_s\"],\n            \"constraint\": \"known target height and front field of view; initial single target; three sensing elements\",\n            \"measurements\": [\"absolute delay or calibrated bistatic excess delay\", \"Doppler\", \"receive azimuth\"],\n            \"pipeline\": [\"time and RF calibration\", \"per-RX complex range-Doppler\", \"noncoherent sum of per-RX power with empirical H0 calibration\", \"CFAR\", \"NMS/clustering\", \"angle scan\", \"gated association\", \"EKF\", \"M/N track management\"],"
+    },
+    "truth": {
+      "path": "benchmark/design_isac_campaign_0915.py",
+      "line": 115,
+      "excerpt": "            \"pipeline\": [\"time and RF calibration\", \"per-RX complex range-Doppler\", \"noncoherent sum of per-RX power with empirical H0 calibration\", \"CFAR\", \"NMS/clustering\", \"angle scan\", \"gated association\", \"EKF\", \"M/N track management\"],\n            \"ground_truth_role\": \"rendering and evaluation only; excluded from detection search, angle steering, range-axis calibration and association\",\n            \"fallback_without_array_calibration\": \"known corridor range/radial-speed tracking\",\n            \"three_dimensional_extension\": \"calibrated vertical aperture and elevation measurement, or nondegenerate synchronized multi-site geometry; validate observability\","
+    },
+    "policy": {
+      "path": "benchmark/design_isac_campaign_0915.py",
+      "line": 137,
+      "excerpt": "            {\"stage\": \"outdoor_structure\", \"inputs\": \"ground only, wall only, combined scene, controlled occlusion\", \"decision\": \"environmental cancellation, ghosts and path association under model error\", \"pass_rule\": \"shared trajectories and noise; map material/height/pose perturbations on holdout sessions\"},\n            {\"stage\": \"isac_policy\", \"inputs\": \"fixed, random, covariance-only and proposed burst/revisit policies\", \"decision\": \"tracking continuity versus actual communication resources\", \"pass_rule\": \"same payload demand, total RF energy/airtime or explicit Pareto comparison; processing window alone is not transmit overhead\"},\n        ],\n        \"model_comparison\": {"
+    },
+    "shared_clock": {
+      "path": "benchmark/design_isac_waveform_benchmark_0915.py",
+      "line": 59,
+      "excerpt": "                   'three_sensing_rx_sc16_payload_bytes_s':3*radio_fs*4,\n                   'communication_receiver_clock':'same X410; independent oscillator impairments need separate injected/optional-hardware evaluation',\n                   'rf_frequency':'Choose supported and authorized test RF after antenna identification; waveform family and actual operating RF band are separate variables',\n                   'validation':'Confirm installed FPGA, actual UHD returned rates, channel calibration, leakage headroom and sustained streaming'},"
+    },
+    "fairness": {
+      "path": "benchmark/design_isac_waveform_benchmark_0915.py",
+      "line": 73,
+      "excerpt": "            'caveat':'Native maximum allocations differ in bandwidth; the observed result includes that difference.'},\n           {'id':'resource_matched','question':'Which differences remain after matching usable bandwidth, energy, observation time and payload demand?',\n            'fixed':['chosen actual spectrum or tolerance on RMS bandwidth','total transmit energy and elapsed observation time','receiver noise PSD and physical RF filter','same offered payload and success/latency target','same geometry and estimator family'],\n            'method':'Use legal resource allocation/subsets within each PHY where possible; report residual spectral-mask differences. A common artificial mask is a controlled waveform ablation, not a standard-compliance claim.',"
+    },
+    "negative_trials": {
+      "path": "benchmark/design_isac_campaign_0915.py",
+      "line": 129,
+      "excerpt": "            \"exact_upper_bound_if_zero\": 1 - alpha ** (1 / n0),\n            \"meaning\": \"A planning calculation conditional on independent H0 frames from the same environment without the target, retaining clutter and receiver impairments. Correlated adjacent captures require block or session-level uncertainty. Calibration and evaluation must be separate.\",\n        },\n        \"campaign\": ["
+    },
+    "novelty": {
+      "path": "src/build_part02_prior_work.py",
+      "line": 655,
+      "excerpt": "\n        md(\"## 네 관문\", \"\",\n           f\"드론 메쉬에서 계산한 산란 서명을 Sionna 계열 엔진 안에서 검증한 **게재** 논문은 \"\n           f\"{_n('h8.n_passing_all_prongs', PAPER, '{:.0f}', '편')} 이다. 네 관문으로 쪼개 후보마다 \""
+    },
+    "replacement": {
+      "path": "benchmark/isac_plan_corpus_0915.py",
+      "line": 1438,
+      "excerpt": "\n    def outliers(E, k):\n        m = cmedian(E)\n        d = np.abs(E - m)"
+    }
+  },
+  "source_sha256": {
+    "docs/MOBICOM_PIPELINE_PLAN_0916.md": "aedb2f930c11cde4860eceb6ce9c744985860613118b97decaf82b93a36083b7",
+    "benchmark/isac_plan_positioning_0915.py": "c68cd9e1c881f917d24db6f623e26854b080442b407a1e5f047c6edc3de33ca7",
+    "src/build_part09_detector.py": "26eccff1e1977e8ec84fb543c968741d3e512cdd5ec9579ddad5fa6bfa07cff1",
+    "benchmark/verify_observability.py": "836b5b86f6ee564fcb26c2b49d1929193d692820519a4b05c8615b3550b379c3",
+    "src/build_part10_results.py": "218ed90202f8aa7cb1b3727557b77af799426d1f3f39c25de8f8cd9039c7b15b",
+    "benchmark/sigma_sensitivity.py": "9e0b4f4db6e25e50cf2711288e78a07298dda1632de65d8258e1da681b63504c",
+    "src/build_part05_anchor.py": "27ecaa16563b33840620bc52260a376dfe806b787da5fc525062d86157792f96",
+    "benchmark/design_isac_campaign_0915.py": "13e8d9a0c104c5f7c5dd8f1e2616ebfb089825decbb346a9be873c1fc56f2f6f",
+    "benchmark/design_isac_waveform_benchmark_0915.py": "c105eccdeecbabf8f24c7fdd171045fda43b81f7d26602763abec6457baddace",
+    "src/build_part02_prior_work.py": "ed72c7470c27892264c6ed69385d0076cc6102dab61ae079a568b605fb8ab70b",
+    "benchmark/isac_plan_corpus_0915.py": "f9064c1b838e5ef843b8d1763790189b39f0d60afa9a58df151015a3a169c7a3",
+    "outputs/sigma_sensitivity.json": "3ef13c1ce979291df11c4c5ba26429b2a3d3244940d63db2181d082bfaafae8b",
+    "outputs/report05_derived.json": "39e0a9487ba7623690ef8ae2be8016d4233a9dac646d93c14385cf8074afd8dd",
+    "outputs/isac_plan_corpus_0915.json": "7d60fd5e8c4076d342028c385ed25a81b596c21da2ef05aa3cf7bd71512ac5ef",
+    "outputs/isac_plan_kernel_match_0915.json": "96ecc5bd3d7728e2cdfa86f5e86a258429e857b67c1525dd369385022cc60b04",
+    "outputs/isac_campaign_design_0915.json": "2e99410ef7b135763d785493b17c6ac7bfad075a667f09436d12078a3f7dbca8",
+    "benchmark/review_research_logic_0916.py": "ef7dff92a51c0bd45b499b79a2a5cfb50e4563c925bbd88adc009327b3490b4f"
+  },
+  "checks": {
+    "ledger_correlations_recomputed": true,
+    "both_rank_claim_contradicted": true,
+    "nr_threshold_skipped": true,
+    "all_ground_claim_contradicted": true,
+    "mirror_counterexample": true,
+    "binomial_plan_recomputed": true
+  },
+  "ranking": {
+    "rows": {
+      "mini5pro": {
+        "extent_m": 0.3777120331286884,
+        "D_over_lambda_lte": 2.3220173105761477,
+        "D_over_lambda_wifi": 6.564140091210922,
+        "few_lambda_at_lte": true,
+        "flip_span_single_aspect_db": 5.492386421962091,
+        "flip_span_aspect_avg_db": 4.0439340914899145,
+        "max_band_sigma_spread_db": 2.304217651371129
+      },
+      "mavic4pro": {
+        "extent_m": 0.5555501320433451,
+        "D_over_lambda_lte": 3.41529236654741,
+        "D_over_lambda_wifi": 9.654733168590345,
+        "few_lambda_at_lte": false,
+        "flip_span_single_aspect_db": 1.9669477897777892,
+        "flip_span_aspect_avg_db": 6.928670671251086,
+        "max_band_sigma_spread_db": 4.772783909541754
+      },
+      "matrice4e": {
+        "extent_m": 0.5869953547472244,
+        "D_over_lambda_lte": 3.6086045860404354,
+        "D_over_lambda_wifi": 10.20120992581154,
+        "few_lambda_at_lte": false,
+        "flip_span_single_aspect_db": 4.682238963834478,
+        "flip_span_aspect_avg_db": 5.23295091327868,
+        "max_band_sigma_spread_db": 3.516334242184109
+      },
+      "phantom4": {
+        "extent_m": 0.47064053134626926,
+        "D_over_lambda_lte": 2.893303270728626,
+        "D_over_lambda_wifi": 8.179115594409192,
+        "few_lambda_at_lte": true,
+        "flip_span_single_aspect_db": 1.2834008860890234,
+        "flip_span_aspect_avg_db": 1.9911337289196707,
+        "max_band_sigma_spread_db": 12.501230354394954
+      },
+      "s1000plus": {
+        "extent_m": 1.3477300727417156,
+        "D_over_lambda_lte": 8.285286896920475,
+        "D_over_lambda_wifi": 23.421782275070903,
+        "few_lambda_at_lte": false,
+        "flip_span_single_aspect_db": 1.6151612166115226,
+        "flip_span_aspect_avg_db": 4.405220946373298,
+        "max_band_sigma_spread_db": 4.741102683793594
+      }
+    },
+    "order": {
+      "single": [
+        "mini5pro",
+        "matrice4e",
+        "mavic4pro",
+        "s1000plus",
+        "phantom4"
+      ],
+      "average": [
+        "mavic4pro",
+        "matrice4e",
+        "s1000plus",
+        "mini5pro",
+        "phantom4"
+      ]
+    },
+    "n_airframes": 5,
+    "mini_single_rank": 1,
+    "mini_average_rank": 4,
+    "corr_extent": -0.447451507331293,
+    "corr_spread": -0.6938642603005994
+  },
+  "threshold": {
+    "snr90_shared_db": 11.86143572621035,
+    "snr90_source_mode": "W1",
+    "note": "stage_threshold 는 --mode 목록의 첫 모드에서 SNR90 을 뽑아 세 밴드 solve 전부에 넘긴다 (src/experiment_freespace_range.py:856).",
+    "l1_own_snr90_db": 11.908326967150497,
+    "l1_delta_db": 0.04689124094014652,
+    "l1_range_shift_pct": -0.2700829490247969,
+    "g1_skipped_cells": 5,
+    "g1_total_cells": 5,
+    "g1_M": 5
+  },
+  "aimed_ground": {
+    "scene": "outdoor01_ground",
+    "ant": "tr38901",
+    "n_cells": 4,
+    "n_cells_with_outliers": 1,
+    "n_outlier_poses_min": 0,
+    "n_outlier_poses_max": 53,
+    "n_outlier_poses_f10_min_max": [
+      0,
+      57
+    ],
+    "n_outlier_poses_f50_min_max": [
+      0,
+      0
+    ],
+    "share_min": 0.0,
+    "share_max": 0.6227,
+    "abs_ratio_to_median_median_min": 0.5321,
+    "abs_ratio_to_median_median_max": 0.5321,
+    "abs_ratio_to_median_min": 0.4961,
+    "abs_ratio_to_median_max": 0.5587,
+    "n_cells_with_outlier_abs_ratio_above_0p5": 1,
+    "abs_dev_over_abs_median_median_min_max": [
+      0.4685,
+      0.4685
+    ],
+    "dev_gap_ratio_min_max": [
+      1.009,
+      1.009
+    ],
+    "contrast_stored_min_db": 14.827,
+    "contrast_stored_max_db": 29.285,
+    "contrast_replaced_min_db": 23.95,
+    "contrast_replaced_max_db": 29.285,
+    "contrast_replaced_f10_min_max_db": [
+      26.963,
+      29.285
+    ],
+    "contrast_replaced_f50_min_max_db": [
+      14.827,
+      29.285
+    ],
+    "random_control_contrast_max_db": 29.285,
+    "random_control_minus_stored_max_db": 0.0,
+    "blade_phase_R_max": 0.147,
+    "blade_phase_random_R_max": 0.1794,
+    "rayleigh_p_approx_min": 0.3184,
+    "n_cells_rayleigh_p_below_0p01": 0,
+    "n_cells_R_above_random_max": 0,
+    "longest_run_max": 1,
+    "adjacent_fraction_max": 0.0,
+    "adjacent_fraction_random_max": 0.07547,
+    "n_repeat_groups": 0,
+    "repeat_jaccard_min": null,
+    "n_cross_build_rows": 0,
+    "cross_build_jaccard_min": null,
+    "n_cells_with_E_dedup": 4,
+    "E_dedup_n_outlier_poses_min_max": [
+      0,
+      53
+    ],
+    "E_dedup_contrast_replaced_min_max_db": [
+      23.95,
+      29.285
+    ],
+    "E_dedup_jaccard_with_E_min": 1.0
+  },
+  "kernel_scope": [
+    "No cross-engine absolute level difference (forbidden by the repository convention; units differ).",
+    "Sionna 2.0.1 ITU concrete table is not quoted: only sionna-rt 2.1.0 is installed on this machine.",
+    "No pair at el 0 (excluded), and none at kernel-only elevations -52, -68, -82 or PathSolver-only elevations (-1..-10, near-zero ladder), because the other engine has no cell there.",
+    "No kernel flat-ground cells above el 0 exist, so free-sky +15/+30/+60 have no ground counterpart.",
+    "No realism statement about either engine (no RF measurement in scope).",
+    "The path list at the isolated outlier poses is not inspected here (no path-provenance dump was read), so which path is missing or changed at those poses is not identified by this ledger.",
+    "No kernel flat-ground grid-spacing variants exist (the builder refuses --grid-shift with --ground and no _div ground arm is present), so the kernel ground cells have no grid sensitivity rows."
+  ],
+  "ofdm": {
+    "model": "Y = H X + N, elementwise diagonal channel; equal mean symbol energy; independent additive noise",
+    "qpsk_inverse_energy": 1.0,
+    "qam_inverse_energy": 1.8888888888888886,
+    "noise_ratio_db": 2.76206411938949,
+    "limit": "Analytic average noise after elementwise division, not end-to-end detection loss."
+  },
+  "observability": {
+    "tx": [
+      0.0,
+      0.0,
+      10.0
+    ],
+    "receivers": [
+      [
+        5.0,
+        0.0,
+        10.0
+      ],
+      [
+        0.0,
+        8.0,
+        10.0
+      ]
+    ],
+    "p": [
+      10.0,
+      3.0,
+      14.0
+    ],
+    "v": [
+      1.0,
+      2.0,
+      -0.3
+    ],
+    "mirrored_p": [
+      10.0,
+      3.0,
+      6.0
+    ],
+    "mirrored_v": [
+      1.0,
+      2.0,
+      0.3
+    ],
+    "times": [
+      0.0,
+      0.2,
+      0.4,
+      0.6000000000000001,
+      0.8,
+      1.0,
+      1.2000000000000002,
+      1.4000000000000001,
+      1.6,
+      1.8,
+      2.0,
+      2.2,
+      2.4000000000000004,
+      2.6,
+      2.8000000000000003,
+      3.0
+    ],
+    "wavelength_m": 0.1,
+    "relative_eigenvalue_tolerance": 1e-08,
+    "local_rank": 6,
+    "max_range_difference_m": 3.552713678800501e-15,
+    "max_doppler_difference_hz": 3.552713678800501e-15,
+    "position_separation_m": 8.0,
+    "limit": "Synthetic geometry with stations in a horizontal plane and both trajectories above ground. Additional side-of-plane or height priors may resolve ambiguity."
+  },
+  "false_alarm": {
+    "target": 0.001,
+    "confidence": 0.95,
+    "independent_trials": 2995,
+    "upper_bound_zero": 0.0009997444209011164,
+    "limit": "Independent identically distributed target-absent trials only; not adjacent-frame independence or track-level false-alarm validation."
+  },
+  "check_count": 6
+}
