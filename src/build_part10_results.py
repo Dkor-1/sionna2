@@ -338,7 +338,7 @@ CORR_N = len(_SVF)
 #    scipy.stats 로 다시 낸다. ⛔2026-09-16 정정: 예전에는 2026-09-01 에 손으로 적은 값
 #    (pearson 크기 -0.618 · 산포 -0.315, spearman 크기 -0.90)이 박혀 있었는데, 그 뒤 원장이
 #    다시 구워지면서 두 열의 순서가 **뒤집혔다**(지금 pearson 크기 -0.45 · 산포 -0.69).
-#    손으로 적은 수가 원장과 어긋난 채 산문에 실린 것이 R34 의 절반이다.
+#    손으로 적은 수가 원장과 어긋난 채 산문에 실린 것이 R37 의 절반이다.
 def _corr(xk, yk):
     from scipy import stats as _st
     x = [float(v[xk]) for v in _SVF.values()]
@@ -1277,7 +1277,7 @@ def r61():
            f"이고, 자세평균에서 가장 견고한 것은 {ROB_ORDER_AVG[0]}"
            f"({SS.num(f'size_vs_fragility.by_drone.{ROB_ORDER_AVG[0]}.flip_span_aspect_avg_db', None, '{:.2f}', 'dB')})"
            f" 다. ⛔2026-09-16 정정 — 이 자리에는 「단일자세·자세평균 양쪽에서 가장 견고하다」 가 "
-           f"적혀 있었다(R34).", "",
+           f"적혀 있었다(R37).", "",
            f"단일자세 뒤집힘 문턱은 최대 치수 열과 밴드 간 σ 로브 산포 열 둘 다에 걸린다 — 상관은 "
            f"크기 쪽 {SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')}, 산포 쪽 "
            f"{SS.num('size_vs_fragility.corr_sigma_spread_vs_flip_single', None, '{:+.2f}')} 로 절댓값은 "

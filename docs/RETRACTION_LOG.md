@@ -1456,7 +1456,7 @@ m["canyon_events"]["has_339"] = "339" in txt
 
 ---
 
-## R34 ⛔ 「가장 작은 기체가 **단일자세·자세평균 양쪽에서** 가장 견고하다」 — 자세평균은 4 위다
+## R37 ⛔ 「가장 작은 기체가 **단일자세·자세평균 양쪽에서** 가장 견고하다」 — 자세평균은 4 위다
 
 **언제** 2026-09-16 · **어디** `src/build_part10_results.py`(두 자리) · `src/build_part05_anchor.py` ·
 `src/make_report05_results.py` · 원장 산문 `outputs/sigma_sensitivity.json : size_vs_fragility.finding` ·

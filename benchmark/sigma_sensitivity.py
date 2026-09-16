@@ -698,7 +698,7 @@ def main():
         corr_extent_vs_sigma_spread=_c_ext_spread,
         corr_sigma_spread_vs_flip_single=_c_spread_flip,
         smallest_airframe=_small,
-        #: ⛔2026-09-16 (R34): 예전 키 smallest_airframe_rank_by_robustness 는 **단일자세** 순위만
+        #: ⛔2026-09-16 (R37): 예전 키 smallest_airframe_rank_by_robustness 는 **단일자세** 순위만
         #   담고 이름은 그 조건을 안 적어, 「양쪽에서 가장 견고하다」 로 읽혔다. 두 기준을 따로 적는다.
         smallest_airframe_rank_single_aspect=int(
             1 + sorted(frag_single, reverse=True).index(frag_single[DRONES.index(_small)])),
@@ -725,7 +725,7 @@ def main():
                  f"{_c_spread_flip:+.2f}, 두 열 사이는 {_c_ext_spread:+.2f} 라 절댓값은 "
                  f"{'산포' if abs(_c_spread_flip) > abs(_c_ext_flip) else '크기'} 쪽이 크다 — "
                  f"기체 {len(DRONES)} 대 표본이라 어느 열이 취약성을 정하는지는 이 표본으로 "
-                 f"정하지 않는다. ⛔2026-09-16 (R34) 정정: 이 칸에는 「단일자세·자세평균 양쪽에서 "
+                 f"정하지 않는다. ⛔2026-09-16 (R37) 정정: 이 칸에는 「단일자세·자세평균 양쪽에서 "
                  f"가장 견고하다」 가 적혀 있었다."))
 
     out["_meta"]["runtime_s"] = round(time.time() - t0, 1)
