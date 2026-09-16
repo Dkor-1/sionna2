@@ -14,7 +14,7 @@ Created 2026-09-10. ⛔When editing this document, also check that the links are
 | 1 | [`CLAUDE.md`](../CLAUDE.md) | **All standing conventions.** Claim gate · figures · reports · team-meeting boundary · the rest |
 | 2 | [`docs/CLAIM_GATE.md`](CLAIM_GATE.md) | The two axes a number must pass before it goes up (factual support · over-conclusion) |
 | 3 | [`docs/QUEUE_RUNBOOK.md`](QUEUE_RUNBOOK.md) | How to run the queue. **The 2-tier structure (keeper + supervisor)** is in section 1 |
-| 4 | `work/sweep_0904/RESUME_<가장 최근>.md` [most recent] | What happened up to yesterday. **This is the daily handover** |
+| 4 | `docs/RESUME_0916.md` | Where the work stands today. **This is the handover** — GPU rules, running queues, what is established and what is not, what waits on the user. Earlier daily editions are in `work/sweep_0904/RESUME_<date>.md` |
 
 ---
 
@@ -90,5 +90,5 @@ recount it from the stored `nret` and the stored cap (see `benchmark/read_canyon
 1. Check the queue status — runbook section 4 `sup()`·`wrk()` and the tail of the supervisor log.
 2. Commit newly landed shards **only after opening and checking them with `np.load`** (exclude anything written within the last 2 minutes).
 3. Check how much of the chain remains. Create the next job file before it runs dry.
-4. Write the day's work in `work/sweep_0904/RESUME_<날짜>.md` [date] — **the next person starts reading from here**.
+4. Write the day's work into `docs/RESUME_<날짜>.md` [date] and repoint `/workspace/RESUME_NOW.md` at it — **the next person starts reading from there**.
 5. Team-meeting outputs get commit + push on the spot (`/workspace/team_meeting`).

@@ -1,6 +1,7 @@
 # ⭐Current status
 
-> ## ⛔⛔**From 2026-09-08 on, this file is not the one — start reading from [`../work/sweep_0904/RESUME_0908.md`](../work/sweep_0904/RESUME_0908.md).**
+> ## ⛔⛔**From 2026-09-16 on, this file is not the one — start reading from [`RESUME_0916.md`](RESUME_0916.md).**
+> The 09-08 edition, [`../work/sweep_0904/RESUME_0908.md`](../work/sweep_0904/RESUME_0908.md), is also superseded by it.
 > The 09-06 edition below is stale in all of its queue numbers and deck versions (the 0906·0908 queues have finished and the deck is at v8).
 > It is kept because the ledger list and the prohibition list from §5 onward are still in use.
 >
