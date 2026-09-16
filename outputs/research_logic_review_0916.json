@@ -2,16 +2,16 @@
   "_meta": {
     "generator": "benchmark/review_research_logic_0916.py",
     "command": "/workspace/.venvs/py312/bin/python benchmark/review_research_logic_0916.py",
-    "utc": "2026-09-16T03:25:33.642256+00:00",
-    "head": "0ce384a7d18dc81b12bbe16ad9e1ea80369c7d13",
+    "utc": "2026-09-16T03:29:05.361663+00:00",
+    "head": "6b6a2d8824afe845ef115b104fd5538dd87f4114",
     "scope": "Selected current plans, report headlines, builders and ledgers; analytic counterexamples. No exhaustive literature review, RF measurement, full rebuild, or GPU job.",
     "interpretation": "Confirmed source/ledger inconsistencies are separated from proposed-design risks. Existing acknowledgments remain attached."
   },
   "sources": {
     "scope": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 103,
-      "excerpt": "  effect on false tracks as an ablation; multi-class identification is future work.\n- Differentiation from LaSen has to come from: angle via 4 RX channels and sector antennas, multi-drone association,\n  communication metrics next to sensing, and site-specific design of antenna aim and height.\n"
+      "line": 141,
+      "excerpt": "  (`false_alarm_design.meaning`).\n- Differentiation from LaSen has to come from: azimuth from the three sensing channels and sector antennas - the X410's\n  fourth receive channel carries the coupled TX sample or the communication receiver (§6.1), so the angle observation\n  uses three channels and not four (`outputs/isac_campaign_design_0915.json : hardware.x410_sensing_rx_used` = 3,"
     },
     "ofdm": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
@@ -25,23 +25,23 @@
     },
     "rotor": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 101,
-      "excerpt": "  what the closest accepted systems evaluated. Classification needs many negative targets (birds, other drones) and more data.\n- Keep the rotor signature as a **track-confirmation feature** (does a confirmed track carry blade lines?) and report its\n  effect on false tracks as an ablation; multi-class identification is future work.\n- Differentiation from LaSen has to come from: angle via 4 RX channels and sector antennas, multi-drone association,"
+      "line": 128,
+      "excerpt": "  what the closest accepted systems evaluated. Classification needs many negative targets (birds, other drones) and more data.\n- Keep the rotor signature as a **track-confirmation feature** (does a confirmed track carry blade lines?) and report its\n  effect on false tracks as an ablation; multi-class identification is future work. The ablation may not be read off\n  surviving tracks only: the rotor test and a persistence/SNR-only confirmation rule run over the *same* candidate-track"
     },
     "channels": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 109,
+      "line": 151,
       "excerpt": "1. Hardware and site — X410 variant (standard vs \"L\") and host NIC (10 GbE → 200 MHz per channel; continuous 400 MHz needs\n   CG_400 over 100 GbE, UHD manual); TX 1, sensing RX 3 on overlapping sectors, RX 1 as coupled TX sample or communication\n   receiver; GPS time on the X410 and Matrice 4E RTK logs; camera for non-drone events.\n2. Waveform TX — NR-structured slot from installed Sionna at 30.72 Msps native raster; LTE and Wi-Fi arms written later; OAI"
     },
     "bearing": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 116,
+      "line": 158,
       "excerpt": "4. Sensing front end — per-frame reference, leakage/direct-path cancellation, complex range-Doppler cube per channel,\n   float64 CFAR, cell clustering into a detection list (range, Doppler, sector amplitude ratio → azimuth, SNR).\n5. Tracking — Stone Soup (EKF/UKF, GNN then JPDA, M-of-N confirmation; `OPENSOURCE.md`); metrics: TR 38.765 P_md,\n   P_fa Type 1 and 2, error against RTK, GOSPA, continuity, time to confirm."
     },
     "placement": {
       "path": "docs/MOBICOM_PIPELINE_PLAN_0916.md",
-      "line": 124,
-      "excerpt": "8. Campaign — 2-3 sites, 20-300 m, several heights, hover and 5-15 m/s, two drones, several days; comparisons: single\n   omnidirectional antenna, no sectors, placement without the twin; ablations: waveform, aim/sector, rotor-line confirmation,\n   CPI length; release code and SigMF data.\n"
+      "line": 167,
+      "excerpt": "   data. Two comparison families, reported apart. (a) Sensor comparisons, which deliberately change the hardware: single\n   omnidirectional antenna, no sectors — they answer what the antennas buy, not what the twin decides. (b) Placement\n   comparison, the only family a twin claim may be read from: antenna model, aim rule, channel count, aperture and RF\n   budget held fixed while only mast position, height and aim differ, over four methods on the same candidate set — a"
     },
     "admission": {
       "path": "benchmark/isac_plan_positioning_0915.py",
@@ -51,7 +51,7 @@
     "observability": {
       "path": "src/build_part09_detector.py",
       "line": 707,
-      "excerpt": "            num=55,\n            title=\"한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다\",\n            did=\"송수신 한 쌍이 한 순간에 담는 정보량을 Fisher 정보행렬의 랭크로 세고, \"\n                \"수신기를 더하거나 도래각을 더했을 때 위치 오차가 어디로 가는지를 계산했다.\","
+      "excerpt": "            num=55,\n            title=\"한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다\",\n            did=\"송수신 한 쌍이 한 순간에 담는 정보량을 Fisher 정보행렬의 랭크로 세고, \"\n                \"수신기를 더하거나 도래각을 더했을 때 위치 오차의 CRLB 하한이 어디로 가는지를 \""
     },
     "gramian": {
       "path": "benchmark/verify_observability.py",
@@ -130,9 +130,9 @@
     }
   },
   "source_sha256": {
-    "docs/MOBICOM_PIPELINE_PLAN_0916.md": "ed984cea42169b4e4f7fb6b867bedda35a8440c80266ded248518666cd08fb7a",
+    "docs/MOBICOM_PIPELINE_PLAN_0916.md": "cef3c0c37c02abaa83ecc12100ead2a17c87f17ab1b14886595d06b187c8d92a",
     "benchmark/isac_plan_positioning_0915.py": "c68cd9e1c881f917d24db6f623e26854b080442b407a1e5f047c6edc3de33ca7",
-    "src/build_part09_detector.py": "26eccff1e1977e8ec84fb543c968741d3e512cdd5ec9579ddad5fa6bfa07cff1",
+    "src/build_part09_detector.py": "fe058e41117330bb99921de7db29425752449fd041a5cecb98a26e72c80b896f",
     "benchmark/verify_observability.py": "836b5b86f6ee564fcb26c2b49d1929193d692820519a4b05c8615b3550b379c3",
     "src/build_part10_results.py": "81b56723c79dfaf6d06996feaeab035b61e40840a1a6e472c0093ba04238aee2",
     "benchmark/sigma_sensitivity.py": "282aa8d208d368c03e9edf9e48c289d53f7c1d62561f89420aca6fb7d5e95919",
