@@ -26,6 +26,14 @@ started the last two lines of `jobs_0955` (street canyon, el -30°, cap 32e6, sh
 2** (`runners/logs/manual_gpu{1,2}_0955C_20260917T085500Z.log`; key `manual_one_each_gpu1_gpu2_0917` in
 `runners/GPU_HOLD.json`). The hold stays `[0, 1, 2]`; nothing else goes on cards 1 or 2 (§1).
 
+**After the snapshot (20:00 KST).** Queue design for the next GPU work was filtered against
+`/workspace/sionna_mobicom_research_strategy_2026-09-17.md` (§6.2 delay-bearing channels, §6.4 receiver first, placement fixed; §9
+minimal extra ray tracing). Started on cards 3/4: `jobs_0957_path_lists_nadir_check_30m_partners.txt` (per-path a and tau over
+4,096-position records, aimed tr38901, open sky and ground only at 15/30 m) and `jobs_0959_open_sky_partners_0950_offdiag.txt` (open-sky
+partners of the 0950 off-diagonal cells). On hold with release triggers in the header: `jobs_0958_full_scene_30m_two_positions_HOLD.txt`
+and 0959 part (a). Path-list sidecars go to `outputs/path_provenance/` and are git-ignored. Before reading any 0957 shard, run check 0 of
+its header on the first GPU sidecar.
+
 ## 0. One line
 
 Seven supervisors (0950-0956) share cards 3 and 4 with six workers (plus, from 17:55 KST, the two hand-started 0955 C
