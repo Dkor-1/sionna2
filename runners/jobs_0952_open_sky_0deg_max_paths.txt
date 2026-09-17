@@ -1,0 +1,39 @@
+# 0952 — open sky at 0°, current build (sionna-rt 2.1.0), max_num_paths_per_src ladder (2026-09-17 ~13:45 KST)
+#
+# Why. Deck 0917 v5 «Next week» promises «Open sky at 0°, solved again at a larger max_num_paths_per_src».
+# Ground only at 60° below (2.1.0, max_depth 2) has a ladder: positions without the ground reflection
+# 153/82/26/14/7 at 1e6/2e6/8e6/16e6/32e6, same 82 on a repeat run. The open-sky 0° drops (one of three identical
+# copies of the drone echo missing) have no current-build run at all — every 0° open-sky shard in the store is
+# sionna-rt 2.0.1. These lines are the like-for-like ladder: same drone, 15 m, 4e9 rays, R0D0E0F1, max_depth 2,
+# mesh fix (default), isotropic antenna, no environment.
+# Dry run 2026-09-17: all six stems «없음» (NEW).
+#
+# Read-out — fixed before any shard is read:
+#   per position: listed count k = round(|E| / |E_dedup|) (the shard also stores n_dup); modal k over 8,192 positions.
+#   primary count  S = positions with k below the modal k («short positions»; 2.0.1 d2 az0 had 36: 35 at 2, 1 at 1).
+#   also           Hampel marks (team_meeting/teammeeting_0910/bake_outdoor.drop_outliers) and blade-line contrast
+#                  (bake_ground2.contrast_db) as listed / counting each echo once / marked positions replaced.
+#   tolerance      the only spread available is the default-value pair (plain vs rep1): d = |S(2e6) - S(rep1)|.
+#                  A value differs from 2e6 only when |ΔS| > max(5, 3·d). One run per value — no seed spread.
+#   outcomes       (a) S falls beyond tolerance as the value rises → same sensitivity as the ground case.
+#                      ⛔Not the same cause: the argument also sizes PathSolver's internal record of reflection
+#                      chains (docs/SIONNA_NONDETERMINISM_0902.md; dropout_hash_vs_buffer_0916.json).
+#                  (b) every |ΔS| within tolerance → not sensitive at these values.
+#                  (c) non-monotone, or d as large as the changes → unreadable at one run per value; say so.
+#                  (d) modal k is 1 on 2.1.0 (no repeated arrival at 0°) → report that the build changed the
+#                      0° behaviour; compare Hampel marks only, and do not put these next to the 2.0.1 slides.
+#   The short positions at larger values should be checked as a subset of those at 2e6 (as the ground ones were).
+# Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
+
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 32000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 32000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --rep 1 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --rep 1 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 8000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 8000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 16000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 16000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 1000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 1000000 --shard 1 --nshards 2
