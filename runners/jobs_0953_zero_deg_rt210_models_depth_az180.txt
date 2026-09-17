@@ -16,6 +16,13 @@
 #                repeat at max_depth 1 exists, say so if the change is small.
 #   az 180:      modal k and S; if k is 1 everywhere, the 2.0.1 az-180 repeat does not carry over to 2.1.0.
 #   One run per cell, no seed spread.
+# ADDED 2026-09-17 17:40 KST, before any 0953 cell was read (review /workspace/sionna_review_2026-09-17_queues_figures.md, verified in the main session):
+#   · Stop / extend: stop when each cell answers «same modal copy count and short-position set as the 2.0.1 analogue, or not».
+#     Extend (e.g. more drones, azimuths or depths) only if a difference would change the simulation conditions, antenna settings
+#     or field layout in use. A similar result is not read as the same cause.
+#   · max_depth 1 uses the depth-2 threshold (5): a change within it reads «threshold not crossed». If a depth-1 change near 5
+#     matters, measure spread with one --solver-seed 2 run at max_depth 1 (a --rep replay only reproduces the run on 2.1.0).
+#   · Report per cell the number of positions where round(|E|/|E_dedup|) != n_dup + 1.
 # Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
 
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --drone mini5pro --shard 0 --nshards 2

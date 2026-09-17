@@ -16,6 +16,13 @@
 #      beside 2.0.1: 3 at az 0.11, 1 at az 0.12, 2 at el -0.15, 1 at el -0.16, 1 at az 0.2.
 #   C  Hampel marks and blade-line height at 2e6 / 8e6 / 16e6 / 32e6, street canyon 30° below.
 #   One run per cell; build differences are reported as such, not as causes.
+# ADDED 2026-09-17 17:40 KST, before any 0955 shard landed (review /workspace/sionna_review_2026-09-17_queues_figures.md, verified in the main session):
+#   · Stop / extend: A — if 2.1.0 matches 2.0.1 within the pre-set readings (same scenes' marks and contrast pattern), stop; if not,
+#     report the scene/angle as changed and add cells only if a slide or a design decision depends on it. B — if 2.1.0 k matches
+#     2.0.1 at all five edge values, stop; if any differ, report «the 2.0.1 edge value re-checked on 2.1.0 moved» (not «the 2.1.0
+#     boundary») and add finer angles only if something depends on it. C — read with the existing 2e6/8e6/16e6 cells; no further cap.
+#   · B read-out: team_meeting/teammeeting_0917/bake_repeat_count.py cannot see _rt210 stems as written — count from n_dup + 1
+#     (or copy_k_diff with |one copy| from the 2.1.0 0° cell of 0952), and confirm solver_build on every file read.
 # Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
 
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01 --shard 0 --nshards 2

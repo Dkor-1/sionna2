@@ -19,6 +19,15 @@
 # Kill / fold: if iso pointed at the drone behaves like the aimed arm, the aimed result was pointing and
 #   polarisation, not pattern. If it behaves like plain iso, the pattern is doing the work.
 # Not answered: why a path is lost, anything about a real antenna or a real radar.
+# ADDED 2026-09-17 17:40 KST, after the first cells were read (review /workspace/sionna_review_2026-09-17_queues_figures.md, verified in the main session). The kill/fold rule above stays as written; it is
+#   now read as a 2x2 instead: pattern effect at each orientation, orientation effect at each pattern, and their interaction —
+#   only within one scene and one cap (isolated counts change about 4x between 2e6 and 16e6, so no 2x2 across caps; a cross-cap
+#   stitch of contrast is marked as such). «Orientation» = pointing + rotation of the V-polarisation basis (confounded).
+#   Already read (ground only, 60° below): iso pointed at the drone keeps exactly the same 90 isolated positions as plain iso
+#   (2e6); tr38901 at device orientation keeps the same 22 as iso at 16e6; only tr38901 pointed at the drone lifts contrast (~29 dB).
+#   «0 isolated» is not «0 missing paths»: the normaliser median|E-m| differs per cell, so the readout adds |E-m|/|m| at the
+#   isolated positions and the env field-drop count next to the isolated count. Path-count lower bound in line 5 is 8,017
+#   (ground 16e6), not 8,025.
 # Rules kept: diffuse on (F1); no el 0; --inmem default; cards 3 and 4 only.
 
 # -- ground only ---------------------------------------------------------------------------------------

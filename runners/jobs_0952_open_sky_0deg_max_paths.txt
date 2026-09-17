@@ -23,6 +23,16 @@
 #                  (d) modal k is 1 on 2.1.0 (no repeated arrival at 0°) → report that the build changed the
 #                      0° behaviour; compare Hampel marks only, and do not put these next to the 2.0.1 slides.
 #   The short positions at larger values should be checked as a subset of those at 2e6 (as the ground ones were).
+# ADDED 2026-09-17 17:40 KST (review /workspace/sionna_review_2026-09-17_queues_figures.md, verified in the main session). Nothing above is changed.
+#   · «36: 35 at 2, 1 at 1» is the 2.0.1 `_az0_` run (09-04; outputs/front_repeat_0906.json cell R0D0E0F1/az0). The untagged 2.0.1
+#     run of the same setup (…blperairframe_d2_el+0, 09-06) has 37 (36 at 2, 1 at 1): it adds position 7043. The 2.1.0 2e6 cell and
+#     rep1 reproduce that 37 index for index. The 2.0.1 labels rest on file dates before the 09-14 install, not on a stamp.
+#   · rep1 is complete: S = 37, same 37 indices, d = 0 → the threshold is 5 positions. It is a pre-set working threshold from one
+#     same-seed replay, not a seed spread: «within 5» reads «threshold not crossed», never «no effect».
+#   · contrast_raw sits at its floor (about 0 dB) while any short position remains (S >= 1); its 2e6 → 32e6 values (0.445 → 0.055 dB)
+#     carry no direction. Report S, the index sets, contrast after replacement and counting each echo once beside it.
+#   · copy_k_ratio = round(|E|/|E_dedup|) matched n_dup + 1 at all 8,192 positions of the 2e6 and 32e6 cells; the readout reports the
+#     mismatch count per cell (a mix |ka+b|/|a+b| can differ from k elsewhere).
 # Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
 
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --shard 0 --nshards 2
