@@ -3,7 +3,9 @@
 # Why. Deck 0917 v17 Future Work, in the user's words: 「약간 틀어지게 빔의 지향성을 부여해도 합리적인 결과물이 나오는지 확인하도록
 # 하겠습니다」 [check whether reasonable results still come out when the beam is pointed slightly off]. tr38901 pointed at the
 # drone gives blade lines 29.3 dB above surroundings as recorded (ground only, 60° below, 2.1.0), isotropic about 0 dB.
-# --aim-offset tilts the pointing toward the ground (positive = toward the ground, the side worst for clutter; report15_probe).
+# --aim-offset tilts the pointing toward the ground (positive = toward the ground; report15_probe). Scope: sensitivity to a vertical
+# tilt toward the ground at this elevation only — not general pointing-error robustness (no negative or sideways offsets; in the
+# canyon, buildings return from other directions, so «toward the ground» is not shown to be the worst side). (review §3.3)
 # Offsets 5°, 10°, 20°: inside the 65° beamwidth, the drone loses about 0.07 / 0.3 / 1.1 dB each way by the pattern formula,
 # while the ground straight below stays in the back half (-22 dBi). Existing offset cells are far off (aim59/aim61 at 60° below
 # = near horizontal; aim10 at 15° below). Ground only first (about 95 min a shard), then the street canyon (about 225 min).
@@ -11,9 +13,11 @@
 #
 # Read-out — fixed before any shard is read:
 #   blade lines above surroundings, as recorded (team_meeting/teammeeting_0910/bake_ground2.contrast_db), next to aim 0 (same
-#   scene, 2e6) and isotropic; and the ground term (scene minus open sky, same antenna) — its median level and the positions
-#   where it falls below half its median (82 at aim 0, ground only).
-#   One run per cell; no seed spread. A difference under 1 dB is not read as a change (aim 0 vs open sky is 0.4-0.9 dB).
+#   scene, 2e6) and isotropic; and the field difference due to the environment (scene minus open sky at the SAME offset —
+#   references in runners/jobs_0956, added after review §3.1 found none) — its median level and the positions where it falls
+#   below half its median (82 at aim 0, ground only). Called a ground contribution only where path classes show it.
+#   One run per cell; no seed spread. «Under 1 dB» is a pre-set practical threshold (aim 0 vs open sky is 0.4-0.9 dB), not a
+#   repeat-based uncertainty: below it the result is «did not cross the threshold», not «no effect» or «equivalent» (review §3.2).
 # Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
 
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --env outdoor01_ground --aim-offset 5 --shard 0 --nshards 2

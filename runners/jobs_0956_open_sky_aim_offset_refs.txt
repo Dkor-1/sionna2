@@ -1,0 +1,19 @@
+# 0956 — open-sky references for queue 0954 (tr38901 pointed 5/10/20° off the drone, 60° below) (2026-09-17 17:10 KST)
+#
+# Why. External review /workspace/sionna_review_2026-09-17_queues_figures.md §3.1: the 0954 read-out compares each scene with
+# open sky at the same antenna setting, but no open-sky cell with --aim-offset 5/10/20 at 60° below existed or was queued.
+# Earlier offset runs (aim59/aim61 at 60° below, aim10 at 15° below) all have their open-sky partner; these six lines follow
+# that practice. Dry run 2026-09-17: all three stems NEW. Same placement code path as the scene cells (report15_probe.place).
+#
+# Read-out (with 0954): scene minus open sky at the same offset is called the field difference due to the environment. It is
+# called a ground contribution only where path classes show it (ground only: environment-only paths). The offset effect is read
+# first as raw blade-line contrast per scene, then as that difference. A 1 dB change is a pre-set practical threshold, not a
+# repeat-based uncertainty; one run per cell, so small effects are not judged either way.
+# Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
+
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --aim-offset 5 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --aim-offset 5 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --aim-offset 10 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --aim-offset 10 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --aim-offset 20 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --aim-offset 20 --shard 1 --nshards 2
