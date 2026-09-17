@@ -1,0 +1,135 @@
+# 0960 — drone slab thickness in the receiver's hub cells: at the 0957 geometries (15 m and 30 m, looking up 15°, radar on a tripod,
+#        tr38901 aimed), do the slab thicknesses that docs/MATERIAL_CORRECTION.md §11-0 fixed for all later experiments (shell 0.75 mm,
+#        propeller 1.43 mm) move what the receiver reads, compared with the Sionna default 0.1 m slab that every sionna-rt 2.1.0 cell
+#        (0950-0959 included) has used? This file also carries the gate for the thin-slab files 0961-0963.
+#        (2026-09-17 ~22:00 KST, queue judge; merged from two independent designs; corrected by the adversarial check ~22:50 KST)
+#
+# Launch preconditions (main session).
+#   (1) CPU smoke test first, done the same way as 0957's: 4 positions, ground only, alt 5.4, tr38901, 4e6 rays, --dump-paths 2, run once with
+#       and once without --shell-mm 0.75 --prop-mm 1.43. Pass = the log prints «⭐두께 정정: plastic 0.75 mm · plastic_blue 0.75 mm ·
+#       prop_plastic 1.43 mm» (the dry run already prints it), the stem carries _shell0.75mm_prop1.43mm, E differs between the two runs, and
+#       Σ over listed paths equals the stored E. Then delete both test shards and sidecars. The flags are wired
+#       (benchmark/elevation_sweep_md.py set_thickness_mm → src/materials.py make_material → RadioMaterial(thickness=…)) but have never
+#       run on 2.1.0: no rt210 shard in outputs/elev_sweep_shards carries a _shell or _prop tag (listing 2026-09-17).
+#   (2) outputs/path_provenance/*_prov.npz is already git-ignored (done with 0957).
+#   (3) Write the readout script on CPU before any shard of this file is read. The rules below are fixed now.
+#   (4) This supervisor may start as soon as (1) passes; it has only 10 lines. Every --dump-paths line keeps a valid E even if the dump
+#       turns out broken on the GPU (same stem, as in 0957).
+#
+# Why. The main session's queue verdict of 2026-09-17 (conversation record, not a repo file; nearest written source
+#   /workspace/sionna_mobicom_research_strategy_2026-09-17.md §6.2, §6.4, §9) says ray tracing should supply only relative quantities to the
+#   receiver: the in-bin target fluctuation over aspect, the rotor-to-body ratio, and the drone-ground ghost level and delay.
+#   On 2.0.1 (outputs/material_canon_0816.json; max_depth 1, iso, open sky), one knob at a time at el −30: propeller 1.43 mm vs 0.1 m moved the
+#   blade fluctuation by −13.02 dB and the comb contrast by −6.21 dB; shell 0.75 mm moved the static part by −6.24 dB and the fluctuation by
+#   +0.002 dB. Both knobs together (derived_moving_share_el): total level −12.94 dB and ac/total −0.08 dB at el −30; total −16.50 dB and
+#   ac/total +5.74 dB at el −60; 0.00 / 0.00 dB at el 0. So on 2.0.1 the slab moved the drone's level by 13-16 dB against anything that does not
+#   scale with the drone (the ground nadir, receiver noise), while its effect on the rotor-to-body ratio depended on elevation.
+#   It was never measured on 2.1.0, at max_depth 2, with tr38901, with ground, or at el −15. The 0957 path lists (the first
+#   channels the CPU OFDM receiver benchmark/ofdm_receiver_pilot_0917.py will read) use 0.1 m.
+#   Decision this informs: which slab the receiver's channel set uses. This file measures what the choice moves; the user decides. Until
+#   then every 0957 number carries «Sionna default 0.1 m drone slab».
+#
+# What exists (sionna-rt 2.1.0, matrice4e, 4e9 rays, max_depth 2, R0D0E0F1, cap 2e6, tr38901 aimed, 0.1 m slab).
+#   · Stored n8192 cells: open sky 15 m el −15 (sionna_p4000000000_swR0D0E0F1_r15_n8192_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15)
+#     and ground only 15 m el −15 alt 5.4 (…_n8192_envoutdoor01_ground_alt5.4_…_anttr38901_rt210_d2_el-15), both shards.
+#   · runners/jobs_0957 (queued; 0 of 10 lines launched at 21:55 KST): n4096 path lists, open sky 15 m (lines 1-2), 30 m (3-4), 30 m at 2e9
+#     (5-6); ground only 30 m alt 9.26 (7-8) and 15 m alt 5.4 (9-10).
+#   · Nothing at 0.75 mm / 1.43 mm on 2.1.0.
+#
+# Geometry and pairs. Every line: n4096, 4e9 rays, max_depth 2, R0D0E0F1, cap 2e6, tr38901 aimed at the drone, az 0, el −15 (radar below
+#   the drone, looking up 15°), --shell-mm 0.75 --prop-mm 1.43, --dump-paths 2048 (every position).
+#   job lines 1-2    15 m, open sky                 ↔ 0.1 m partner: runners/jobs_0957 lines 1-2 (or positions 0-4,095 of the stored n8192 cell)
+#   job lines 3-4    15 m, ground, --env-alt 5.4    ↔ runners/jobs_0957 lines 9-10 (or positions 0-4,095 of the stored n8192 cell); radar 1.52 m
+#   job lines 5-6    30 m, open sky                 ↔ runners/jobs_0957 lines 3-4
+#   job lines 7-8    30 m, ground, --env-alt 9.26   ↔ runners/jobs_0957 lines 7-8; radar 1.50 m
+#   job lines 9-10   15 m, open sky, --solver-seed 2 (the seed pair of job lines 1-2; the thresholds of this file and of 0961 come from it)
+#   Scene − sky only within one thickness: ground 3-4 against open sky 1-2, ground 7-8 against 5-6 (same antenna, range, elevation, azimuth,
+#   rays, seed and record length).
+#   Computed (two-ray, ITU concrete εr 5.24 − j0.632, V polarisation, tr38901 vertical cut; scratch design_0917b/judge/ghost_geom.py, recomputed
+#   independently in design_0917b/checker; not a ledger): the drone-ground ghost at these geometries sits near the V-pol Brewster grazing
+#   angle (23.5°): ψ 25.5° at 15 m and 20.4° at 30 m,
+#   predicted [g,d] − [d] = −32.4 dB and −26.8 dB. So these cells are hub cells for the receiver, not ghost cells (runners/jobs_0962).
+#
+# Names. The sweep adds _shell0.75mm_prop1.43mm (and _ss2 on lines 9-10); --dump-paths does not change a name. E_B, drone paths,
+#   environment-only paths, contrast_gated, env_in_bin_db, event positions, event_in_bin, event_share: runners/jobs_0957 header. Metric
+#   names as in docs/READOUT_0917.md §1. New names, each defined only here and reused by 0961-0963:
+#   lvl_db            20·log10|mean_t E| over the record (the static level; in open sky every drone path lies inside one range cell up to 200 MHz).
+#   ac_level_db       10·log10(mean_t|E − mean_t E|²), read only as a difference between cells of the same range, rays and antenna.
+#   ac_to_static_db   ac_level_db − lvl_db (the rotor-to-body ratio of the record).
+#   hits_per_pose     median over positions of the number of listed paths with at least one drone interaction (npaths in open sky).
+#   path_class        ordered interaction sequence of a listed path, consecutive drone-part hits written once: [d], [g,d], [d,g], [g,d,g], [g]
+#                     (g = env_ground, d = any drone part); any other sequence is listed as it is.
+#   class_power_db(c) 10·log10(mean_t |E_B over the paths of path_class c|²), B = 20 MHz Hann unless stated.
+#   thickness_delta(q) q(line of this file) − q(its 0.1 m partner).
+#   seed_diff(q)      |q(--solver-seed 2) − q(seed 1)| at otherwise equal settings (here job lines 9-10 vs 1-2; 0961-0963 name their own pairs).
+#
+# Read-out — fixed before any shard is read. Pre-set working thresholds, not repeat-based. Inside a threshold write «threshold not crossed»,
+#   never «no effect» or «equivalent». n4096 values only; a stored n8192 cell is used only through its positions 0-4,095 (same time grid)
+#   and is labelled «replay-based».
+#   0. check 0 (runners/jobs_0957 check 0) on the first sidecar of each of lines 1, 3, 5, 7: at every position |Σ_hit a·exp(−j2π·fc·τ) − E|/|E|
+#      < 1e-4. Fails → no path list from this file or from 0962 is read; E stays valid.
+#   G0 gate, on job lines 1-2 as soon as they land, against the 0.1 m partner (0957 lines 1-2 if landed, else stored n8192 positions 0-4,095):
+#      |thickness_delta(lvl_db)| < 0.5 dB AND |thickness_delta(ac_level_db)| < 1 dB → «the thickness flags did not change the cell»:
+#      remove every unlaunched line of 0960-0963 and diagnose on CPU. hits_per_pose must agree within 3 % (thickness does not move ray hits);
+#      a pair that does not is listed, not read.
+#   T1 per pair (lines 1-2, 3-4, 5-6, 7-8), at 20 and 100 MHz Hann (rect as the knob): thickness_delta of lvl_db, ac_level_db,
+#      ac_to_static_db, contrast_raw, contrast_gated, env_in_bin_db, class_power_db([d], [g,d], [d,g], [g]) in ground cells,
+#      isolated_20xmedian (with normaliser and |m|), env_field_drop_halfmedian (against the open sky of the same thickness), event_in_bin,
+#      event_share. Threshold T_q = max(floor_q, 3·seed_diff(q)) for quantities that exist in open sky (lines 9-10 give seed_diff); quantities
+#      that exist only in ground cells (env_in_bin_db, class_power_db of [g,d], [d,g], [g], env_field_drop_halfmedian, event_in_bin,
+#      event_share) have no seed pair in this file and use the floor alone. Floors 1.0 dB for levels and contrasts, 5 positions for counts.
+#      Quantities that need path lists (contrast_gated, env_in_bin_db, class powers, event_in_bin, event_share) are read only against
+#      runners/jobs_0957 partners; the stored n8192 fallback gives E-only quantities.
+#      |thickness_delta(ac_to_static_db)| ≥ max(3 dB, T) in either open-sky pair, or |thickness_delta(env_in_bin_db)| ≥ 3 dB in either ground
+#      pair, or the 0957 B verdict (event_in_bin ≤ 3 and event_share ≤ 10 % at 20 MHz) differs between thicknesses → «the drone slab
+#      thickness changes receiver-facing quantities at this geometry (threshold crossed)»; otherwise «threshold not crossed at this geometry».
+#      Expectation written before reading (from the 2.0.1 both-knob values above — another build, depth, antenna, elevation and metric, so
+#      not a prediction with a tolerance): G0 passes with lvl_db and ac_level_db lower by roughly 13-16 dB; env_in_bin_db higher by a similar
+#      amount in both ground pairs (the nadir term does not scale with the drone slab), so T1 crosses there; the sign and size of
+#      thickness_delta(ac_to_static_db) at el −15 are not predicted (−0.08 dB at el −30 and +5.74 dB at el −60 on 2.0.1).
+#   T2 hub readings at the canonical slab (written, not gated): the 0957 readings P, A and B applied to lines 1-8 with their own partners;
+#      class_power_db([g,d]) − class_power_db([d]) at 15 and 30 m beside the computed −32.4 / −26.8 dB (read on CPU; no threshold, the
+#      ghost there is below the level 0962 can test).
+#   Also written beside every open-sky pair: thickness_delta(lvl_db) and thickness_delta(ac_level_db) next to the 2.0.1 both-knob values (total
+#   level −12.94 dB at el −30, −16.50 dB at el −60; ac/total −0.08 / +5.74 dB), labelled with their build, depth, antenna, elevation and metric
+#   (2.0.1 used total power and ac/total, not lvl_db and ac_to_static_db).
+#   Scope in every sentence: the §11-0 values (a shell measured on DJI Matrice 4T CAD; a propeller thickness taken from our own mesh, which
+#   §2-2 records as thicker than the real blade), tr38901 stand-in (not the real antennas), flat mirror ground (S = 0), hover, 3.5 GHz,
+#   no TX-RX leakage, no receiver noise, one run per cell except the seed pair.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; each was dry-run NEW on 2026-09-17 ~21:40 KST (both shards).
+#   · check (1) or G0 fails → nothing from 0960-0963 launches or continues to launch; lines already running finish.
+#   · T1 crossed → no more thickness lines anywhere; the main session asks the user which slab the receiver uses (proposed: §11-0, which the
+#     document already names as the value for all later experiments).
+#   · T1 at the 30 m ground pair lands with 1 dB ≤ |thickness_delta| < 3 dB on ac_to_static_db or env_in_bin_db → seed 2 of the thin 30 m
+#     ground cell only, read against lines 7-8 on class ratios (no scene − sky from it); about 1.8 slot-h; no third seed.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · Only if the user picks the private-5G n79 band (4.72-4.82 GHz) before these rules are read: the 15 m hub pair at 4.75 GHz (about 2.7 slot-h).
+#     Not bought now: the main session's 2026-09-17 queue verdict lists a carrier cell before the band decision as low value.
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 4.75 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 4.75 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · In no outcome from this file: a thickness ladder (0.5 / 0.9 / 2.0 mm exist on 2.0.1), other airframes, 5.8 GHz, iso versions, cap ladders.
+#
+# One run per cell; lines 9-10 are the stated seed exception (their question is the spread that sets T_q). Rules kept: open sky and outdoor
+#   ground only; R0D0E0F1 (diffuse on, refraction and diffraction off); no propeller-only parts; _rt210 added automatically; --inmem default;
+#   cap 2e6, no cap ladder.
+# Dry run 2026-09-17 21:32-21:40 KST (queue judge) and again 22:26-22:42 KST (adversarial check; CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1
+#   MPLBACKEND=Agg nice -n 19 taskset -c 8-15, runners/filter_jobs.sh at -P 2, lines verbatim, both shards): 10/10 NEW; the 6 extension lines
+#   NEW. Stems read back from --dry-run: distinct from each other and from every line of 0960-0963, all with _shell0.75mm_prop1.43mm and
+#   _rt210. No line of any runners/jobs_*.txt (commented and #HOLD lines included) carries --shell-mm or --prop-mm, so no equivalent line exists.
+# Estimate about 6.4 slot-h (5.9-7.3): per 2,048-position shard, open sky 0.48 h and ground at tripod height 0.89 h, from stored 2.1.0 shard
+#   times (t_start → file time, 6-9 concurrent workers): open sky 15 m el −15 median 51.6 min per 4,096 positions (47.2-52.3), ground alt 5.4
+#   el −15 95.5 min (94.7-110.0); sup_095* 'ended' lines agree (open sky 46.5-57.4, ground 82.6-96.2 per 4,096); scene build about 0.5 min;
+#   +10 % assumed for the dump (never timed on a GPU). Sidecars about 1.3 GB before compression.
+# Cards 3 and 4; cards 1 and 2 only while lent (runners/hold_window.py stops new launches there at 03:23-07:01 KST by line class and
+#   evacuates at 08:40 KST 09-18); card 0 held. At 21:44 KST card 4's per-card cap fell to 1 (another user's 78.7 GB).
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 1 --nshards 2

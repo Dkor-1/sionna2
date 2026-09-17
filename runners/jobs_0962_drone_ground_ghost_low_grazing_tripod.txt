@@ -1,0 +1,183 @@
+# 0962 — the drone-ground ghost in the drone's own range bin at a tripod radar and low grazing angles: at 30 m (and one 15 m and one 60 m
+#        cell), with the radar 1.5 m above flat ground and tr38901 aimed at the drone, do the listed path classes follow the computed two-ray
+#        reflection (reciprocity, one-bounce level over grazing angle ψ 7.8-16.1°, the depth-3 double bounce, aspect), and does per-class
+#        re-weighting reproduce the antenna pattern? Canonical slab, path lists over 4,096-position records.
+#        (2026-09-17 ~22:00 KST, queue judge; merged from the receiver/tracker and decision-value designs; corrected by the adversarial check
+#        ~22:50 KST: nadir gain in W, delay check split from P2, partner list for scene − sky, M3 aspect note)
+#
+# Launch preconditions (main session).
+#   (1) runners/jobs_0960 G0 passed.
+#   (2) Path-list integrity passed on a GPU sidecar (check 0 of runners/jobs_0960 lines 1-2, or of runners/jobs_0957 lines 1-2). Every line here
+#       carries path lists; E-only cells cannot answer P1-P3 or W. If check 0 fails, nothing here launches.
+#   (3) Ray density at 30 m read: runners/jobs_0961 R2 (15 m 1e9 → 4e9 step) or runners/jobs_0957 reading C, whichever lands first. Steep →
+#       this file still runs, but its 30 m cells are read only on P1-P3 and W (class mean-level ratios), never on contrast or events.
+#   (4) Start this supervisor after sup_0957 shows all 10 of its lines launched (the main session's 2026-09-17 queue verdict keeps 0957 first),
+#       unless the main session instead holds the unlaunched low-value lines of 0953-0956 (same verdict; conversation record, not a repo file).
+#   (5) Readout script on CPU before any shard is read; the predictions below are entered in it first.
+#
+# Why. The main session's 2026-09-17 queue verdict names the drone-ground ghost level and delay as one of the three relative quantities ray
+#   tracing should give the receiver and tracker (strategy document §6.4: add ground after the simple delay/Doppler
+#   channel; §9: minimum extra RT). Over a flat mirror ground the ghost paths (radar → ground → drone → radar and the reverse; at max_depth 3 also
+#   radar → ground → drone → ground → radar) are 28-66 cm longer than the direct echo here: inside the drone's range bin at 20 and 100 MHz.
+#   They add coherently, and as the drone moves their phase turns, so the echo fades. A two-ray formula predicts them from ψ alone. If the
+#   solver's extended drone follows it, the tracker's fade model is computed for any height and range (including field ranges the 4e9-ray
+#   ceiling cannot reach); if not, it has to come from cells. Every ground cell stored or queued sits at ψ 20-81° — 0957's tripod cells at
+#   20.4° (30 m) and 25.5° (15 m), next to the V-pol Brewster grazing angle of ITU concrete (23.5°, computed), where the ghost is predicted
+#   26.8 and 32.4 dB below the direct echo. A tripod radar watching a drone 50-100 m away and 5-20 m up sees ψ 3.7-23.3° (computed), where
+#   |Γ_V| runs from 0.72 down to 0.02 (0.31 at 12°). max_depth 2 cannot list the double bounce, which changes the deepest point-target
+#   fade by 2.4 dB (A) to 9.3 dB (B).
+#
+# What exists. No 2.1.0 ground cell below ψ 20°; stored ground max_depth 3 cells are at el −30/−60 with the drone 20 m up (ψ 65-75°). No path
+#   list stored yet (outputs/path_provenance/ empty at 21:55 KST). The sidecar keeps a, tau and the parts hit per interaction but no angles
+#   (benchmark/elevation_sweep_md.py --dump-paths), so W uses class directions, which a flat ground fixes in the vertical plane.
+#
+# Geometry. --env-alt = drone height H; radar height h = H + R·sin(el); D = R·cos(el); ψ = atan((H + h)/D); R′ = √(D² + (H + h)²). ITU concrete
+#   half-space at 3.5 GHz εr 5.24 − j0.632 (the ground material concrete_dark is a 0.30 m ITU concrete slab, whose back-face return is more than
+#   50 dB below the front-face reflection (computed), so the half-space form holds), V polarisation, tr38901 aimed at the drone: 8 dBi and
+#   12·(θ/65)² dB below boresight in the vertical cut for directions in front of the element; behind it (local azimuth 180°, e.g. the nadir)
+#   the 30 dB cap of the combined pattern applies, −22 dBi.
+#   Computed, not solver output (scratch design_0917b/judge/ghost_geom.py; every row recomputed independently in design_0917b/checker):
+#   | cell (job lines)          | R m   | el     | alt  | h m   | ψ      | |Γ_V| | image off-bore | R′−R cm | P2 [g,d]−[d] | P3 [g,d,g]     | point-target fade d2 / d3 | nadir cells 20/100 MHz |
+#   | A  open 1-2, ground 3-4   | 30    | −5     | 4.11 | 1.495 | 10.62° | 0.363 | 15.62° (−0.69) | 40.7    | −9.61 dB     | −18.99 dB (vs 21-22) | +4.4/−9.4 · +5.0/−7.0 | 3.80 / 19.0 |
+#   | A  depth 3: 9-10          |       |        |      |       |        |       |                | 81.4    |              |                |                           |             |
+#   | B  open 5-6, ground 7-8   | 30    | −2.5   | 2.81 | 1.501 | 8.19°  | 0.469 | 10.69° (−0.32) | 28.0    | −6.98 dB     | −13.97 dB (vs [d], 11-12) | +5.6/−19.6 · +6.4/−10.3 | 3.80 / 19.0 |
+#   | C  open 13-14, ground 15-16 | 30  | −10    | 6.71 | 1.501 | 15.53° | 0.194 | 25.53° (−1.85) | 66.4    | −16.28 dB    | —              | +2.3/−3.2                 | 3.80 / 19.0 |
+#   | E  open 17-18, ground 19-20 | 15  | −5     | 2.81 | 1.503 | 16.10° | 0.178 | 21.10° (−1.26) | 55.3    | −16.59 dB    | —              | +2.3/−3.1                 | 1.80 / 9.00 |
+#   | A-img open 21-22          | 30.41 | −10.62 | —    | —     | the image-radar aspect of A: the drone seen along the depth-3 path's legs, same path length 2R′                         |
+#   | A seed 2: open 23-24, ground 25-26; A iso pointed at the drone (_orTgt), ground 27-28                                                                                     |
+#   | A az 90: open 29-30, ground 31-32; A az 180: open 33-34, ground 35-36 (the ground plate is ±60 m around the drone, so ψ and the nadir do not change with az)            |
+#   | F  open 37-38, ground 39-40 | 60  | −5, az 45 | 6.73 | 1.501 | 7.84° | 0.485 | 12.84° (−0.47) | 33.6   | −6.80 dB     | —              | +5.6/−21.4 · +6.5/−10.6 | 7.81 / 39.0 |
+#   P2 includes 20·log10(R/R′); P3 for A is against all drone paths of the A-img open-sky cell (−2 × image loss, no spreading term); P3 for B is
+#   against [d] of the same depth-3 cell (+40·log10(R/R′)). The fade columns are max/min of 20·log10|1 + 2Γ′e^{jφ}| (d2) and |1 + Γ′e^{jφ}|² (d3)
+#   over φ for a point target, Γ′ = |Γ_V|·(image pattern loss)·R/R′. At az 45 the 60 m radar stands 17.7 m inside the plate edge (at az 0 it would
+#   stand 0.2 m inside). A hover cell samples one φ, so a fade depth is never read from one cell; class ratios are.
+#   Scene − sky only for depth-2 ground cells against the open-sky cell of the same range, elevation, azimuth, rays, seed, antenna, slab and
+#   record length (A, B, C, E, A seed 2, A az 90, A az 180, F). Depth-3 cells and the iso cell are read by path class only (no partner bought).
+#
+# Names. E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db, event positions, event_in_bin, event_share: runners/jobs_0957
+#   header. lvl_db, path_class, class_power_db, seed_diff: runners/jobs_0960 header. Metric names as in docs/READOUT_0917.md §1. New, defined here:
+#   D2              class_power_db([g,d]) − class_power_db([d]) − P2 of that cell (measured minus computed, dB).
+#   excess_cm       100 × (median path length c·τ over [g,d] − median over [d]), against 100·(R′ − R).
+#   w_err(c)        class_power_db(c) in lines 3-4 − class_power_db(c) in lines 27-28 − computed two-way tr38901 gain of class c
+#                   ([d] +16.00, [g,d] and [d,g] +15.31, [g] −44.00 dB: the nadir is 95° off boresight and behind the element, local zenith
+#                   175°, local azimuth 180°, so the 30 dB cap gives −22 dBi each way — the same −44 dB that runners/jobs_0957 found at el −15).
+#   fade_env_db     20·log10(1 ± 2r) (depth 2) and 20·log10((1 ± r)²) (depth 3) with r = |m_[g,d] + m_[d,g]| / (2·|m_[d]|), m_c = time mean of E_B
+#                   over class c — computed from listed classes, never read as a measured fade.
+#
+# Read-out — fixed before any shard is read. Predictions are computed, not measured. Pre-set working thresholds, not repeat-based; inside them
+#   «threshold not crossed», never «no effect» or «equivalent». B = 20 and 100 MHz, Hann (rect as the knob); a verdict on which the windows
+#   disagree is not written.
+#   0. check 0 on the first sidecar of each new geometry and of each depth.
+#   P1 reciprocity (every ground cell): |class_power_db([g,d]) − class_power_db([d,g])| ≤ 1 dB → «the two one-bounce classes are reciprocal».
+#   P2 one-bounce level (A, B, C, E at az 0): |D2| ≤ 3 dB → «the ghost follows the computed two-ray level at ψ (threshold not crossed)». The ±3 dB
+#      carries the unknown ratio of bistatic to monostatic drone scattering. Also the change A → B within ±2 dB of +2.63 dB.
+#   P2d delay, written beside P2 and not gating M2 or any extension: |excess_cm − 100·(R′ − R)| ≤ 10 → «the ghost delay follows the two-ray
+#      excess (threshold not crossed)». 10 cm, not 5: the two classes may be dominated by different parts of a 0.78 m airframe, and 10 cm is
+#      0.03 of a 100 MHz range cell (c/B = 3 m of round-trip path).
+#   M2 model: P2 not crossed at all of A, B, C, E → «at tripod height with tr38901 aimed, the ghost level may be computed from the two-ray
+#      formula for ψ 8.2-16.1° (computed, labelled)». Crossed anywhere → the tracker's fade model takes the listed class ratios, interpolated in ψ,
+#      and nothing outside 8.2-16.1° is modelled from these cells.
+#   M3 range at similar ψ: |D2(C) − D2(E)| ≤ 2 dB → «range did not move D2 beyond threshold at ψ 15.5-16.1°»; otherwise ψ alone is not the
+#      model input. C sees the drone from 10° below and E from 5° below, so a crossing names range and aspect together.
+#   P3 depth 3: A — class_power_db([g,d,g]) of lines 9-10 minus 10·log10 mean_t|E_B over all drone paths|² of lines 21-22 within ±2 dB of
+#      −18.99 dB; B — [g,d,g] − [d] of lines 11-12 within ±3 dB of −13.97 dB (the aspects differ). And depth 3 − depth 2 of [d], [g,d], [d,g]
+#      within ±1 dB at A and B (depth 3 also adds drone-internal triple bounces to [d]; a larger change is listed by parts) → «depth 3 adds the
+#      double bounce at its two-ray level and leaves the other classes (threshold not crossed)» → the fade model uses the depth-3 form.
+#   W pattern re-weighting (A ground, tr38901 lines 3-4 vs iso lines 27-28, same pointing and V basis): |w_err| ≤ 0.5 dB for [d] and ≤ 1 dB
+#      for [g,d], [d,g], [g] (positions where the nadir path is listed in both) → «per-class re-weighting reproduces the aimed pattern at this
+#      geometry (threshold not crossed)» → measured antenna patterns (specs due late Sep-Oct) are applied on CPU to path lists, labelled
+#      computed, and no pattern line is bought for ground only. Otherwise no pattern-weighted number is written.
+#   AS aspect (A at az 90 and az 180): |D2(az) − D2(az 0)| ≤ 3 dB at 20 and 100 MHz → «the ghost ratio did not follow aspect beyond threshold at ψ 10.6°
+#      (three aspects)»; otherwise the fade model carries aspect at this ψ (extension below). lvl_db of the three 30 m open-sky cells written
+#      beside runners/jobs_0963's 15 m scan at the same az and el −5 as a pattern only (different ray density).
+#   P6 events at A (the 0957 B rule, against lines 1-2): event_in_bin ≤ 3 and event_share ≤ 10 % at 20 MHz → «events stay outside the drone's
+#      bin (threshold not crossed)»; otherwise both numbers and the 100 MHz values are written.
+#   Seeds: seed_diff of every P, W and AS quantity from lines 23-26 vs 1-4; a deviation within 3·seed_diff → «not told apart from a seed change».
+#   F (60 m, ψ 7.84°): P1 and P2 (−6.80 dB) read only if runners/jobs_0961 R1 did not cross in group 2.5e8; otherwise listed with the ray-density
+#      note and not read.
+#   Written per depth-2 ground cell that has an open-sky partner (A, B, C, E, A seed 2, A az 90, A az 180, F; not the iso cell 27-28), not gated:
+#      contrast_raw, contrast_gated, env_in_bin_db, scene − sky in the bin («field difference due to the environment»), env_field_drop_halfmedian,
+#      isolated_20xmedian (with normaliser and |m|), env_path_missing, path counts per class, fade_env_db beside the point-target columns.
+#      The iso cell and the depth-3 cells get path counts per class and fade_env_db only.
+#   Scope in every sentence: flat simulated ground, ITU concrete with S = 0 (a mirror), hover, tr38901 stand-in with V polarisation (not the real
+#   antennas), canonical slab (0960), 3.5 GHz, sionna-rt 2.1.0, no TX-RX leakage, no receiver noise, one run per cell except the seed pair.
+#
+# Stop / extend. Extension lines are comments, NOT queued; each was dry-run NEW on 2026-09-17 ~21:40 KST (both shards where sharded).
+#   · check 0 fails → nothing launches; running lines finish (their E is valid).
+#   · P1-P3, M2 and W hold → stop: no more depth, grazing, height or pattern cells in ground only; other geometries are computed and labelled.
+#   · P2d crossed alone → written; no line is bought for it.
+#   · P3 fails → the receiver does not use max_depth 3 cells; [g,d,g] paths are listed by delay and parts; no more depth-3 lines.
+#   · P3's depth 3 − depth 2 moves [d], [g,d] or [d,g] by more than 1 dB → depth 3 at C, to see where depth stops mattering; about 1.8 slot-h.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10 --env outdoor01_ground --env-alt 6.71 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · P2 crossed at A, or AS crossed → the fade library with the ghost must come from cells: ground only at A over az 0-44 in 2° steps with
+#     1,024-position path-list records (23 cells, about 10 slot-h; templates below, az 0 / 2 / 44 dry-run NEW, the other az in between follow the
+#     same pattern and must be dry-run before use), read on class ratios and lvl_db of E_B like runners/jobs_0963.
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --az-deg 2 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --az-deg 44 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#   · P6 fails → the existing top rung of max_num_paths_per_src (32e6) at A with its open-sky partner; nothing above 32e6; about 2.7 slot-h.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --max-paths 32000000 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --max-paths 32000000 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · W holds and the user fixes a mechanical down-tilt for the X410 antennas → vertical re-pointing check at A (aim +20: boresight 15° below
+#     horizontal), read as reweighting of lines 3-4 at the class directions; about 2.7 slot-h.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --aim-offset 20 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --aim-offset 20 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · runners/jobs_0961 R1 crosses in group 2.5e8 before lines 37-40 launch → remove them.
+#   · In no outcome from this file: walls or our full scene (runners/jobs_0958 stays on hold), rough ground (--env-scat: diffuse paths fill the path
+#     cap), cap or hash ladders, mast-height ladders, a third seed, ranges beyond 60 m, elevations nearer 0° than −2.5° (0955 B covers the 0° copy
+#     window), iso or omni versions beyond the one W cell, other airframes, other carriers.
+#
+# One run per cell; lines 23-26 are the stated seed exception. Rules kept: open sky and outdoor ground only; R0D0E0F1 on every line (lines 9-12 change
+#   max_depth, which is the question — not a physics switch); no propeller-only parts; _rt210 automatic; --inmem default; cap 2e6 (32e6 only as the
+#   conditional top rung).
+# Dry run 2026-09-17 21:32-21:40 KST (queue judge) and 22:26-22:42 KST (adversarial check; CPU prefix as in runners/jobs_0960, runners/filter_jobs.sh,
+#   lines verbatim, both shards): 40/40 NEW; the 13 extension lines NEW. Stems distinct (_r30.41, _alt4.11, _alt2.81, _alt6.71, _alt6.73, _orTgt,
+#   _az90, _az180, _az45, _ss2, _d3 read back from --dry-run); no runners/jobs_*.txt line carries --shell-mm or --prop-mm, so no equivalent line.
+#   Geometry check (adversarial): radar height = alt + range·sin(el) (report15_probe.place puts the radar at range·(cos el cos az, cos el sin az,
+#   sin el) from the drone; env_parts lowers the scene by alt); the ground mesh assets/meshes/outdoor01/ground.obj spans x, y ±60 m around the
+#   drone, so every ground specular point (5.2-10.9 m from the radar toward the drone) and every nadir point lies on the plate.
+# Estimate about 28 slot-h (25-32): 9 open-sky pairs × 0.96 h, 9 depth-2 ground pairs × 1.77 h, 2 depth-3 ground pairs × 1.8 h (stored 2.1.0 rates
+#   per 4,096 positions: open sky 51.6 min, tripod ground 95.5 min, ground max_depth 3 75.6-95.8 min; halved for 2,048-position shards, +0.5 min
+#   build, +10 % dump; 30 and 60 m assumed alike because solve time follows the rays launched). Sidecars about 2.5 GB before compression
+#   (52 B per path; 30 m cells about a quarter of the 15 m path counts).
+# Cards 3 and 4; cards 1 and 2 only while lent (new launches there stop 03:23-06:05 KST for ground lines, evacuation 08:40 KST 09-18); card 0 held.
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-2.5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-2.5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-2.5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-2.5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10 --env outdoor01_ground --env-alt 6.71 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10 --env outdoor01_ground --env-alt 6.71 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30.41 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10.62 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30.41 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10.62 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-orient target --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-orient target --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 45 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 45 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 6.73 --az-deg 45 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 6.73 --az-deg 45 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2

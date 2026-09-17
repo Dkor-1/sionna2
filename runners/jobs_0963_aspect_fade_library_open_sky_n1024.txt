@@ -1,0 +1,279 @@
+# 0963 — aspect fade library of the drone's in-bin echo, open sky: how much, and over how many degrees, does the drone's static echo level
+#        (and its rotor-to-body ratio) change as the aspect a tripod radar sees changes — heading at 5° and 15° up, and elevation at heading 0 —
+#        at the canonical slab with tr38901 aimed? Short (1,024-position) records in 2° steps, coarse steps first.
+#        (2026-09-17 ~22:00 KST, queue judge; replaces the n4096 heading/elevation cells of the three designs; corrected by the adversarial
+#        check ~22:50 KST: verdict citations, elevation mapping, T_s fallback, hold rule for the 2° fills)
+#
+# ⭐Main-session launch note (2026-09-17 ~23:00 KST): job lines 74-163 (the 2° fills, about 20 slot-h) are commented out with «#HOLD-rev1 ».
+#   Reason 1 (this header's own hold rule): the CPU pilot has no tracker that reads a fade input yet.
+#   Reason 2 (new since the design): mesh revision 1 is being built (docs/MESH_REV1_PLAN_0917.md). For matrice4e it changes exactly the
+#   facets that set heading fades — the flat plastic nose face seen at az 0 and the exposed battery face at the tail. Lines 1-73 stay queued
+#   as the revision-0 baseline that the revision-1 trend check will compare against; the fine 2° fills are better bought once, on the
+#   revision that will be used. Release: re-dry-run, then either as written (revision 0) or with --mesh-rev 1 after its acceptance.
+#
+# Launch preconditions (main session).
+#   (1) runners/jobs_0960 G0 passed.
+#   (2) CPU check (d) of the main session's 2026-09-17 queue verdict (conversation record, not a repo file: in-bin level spread over aspect on
+#       stored cells ≥ 3 dB) confirmed on CPU. The scratch recount below already shows 27.0 dB on the stored 2.0.1 el −30 ladder; the main
+#       session confirms before launch.
+#   (3) Start this supervisor after runners/jobs_0962's supervisor (it is lower in value and has 163 short lines that would take most free
+#       slots), and after sup_0957 shows 10/10 launched, unless the main session holds the unlaunched low-value lines of 0953-0956 instead.
+#   (4) Readout script on CPU before any cell is read. No path lists (open sky: every drone path lies inside one range cell up to 200 MHz,
+#       so E is the in-bin echo; runners/jobs_0957 header).
+#
+# Why. The main session's 2026-09-17 queue verdict asks the CPU pilot to split track breaks into gaps, fades, clutter drift and aliasing, with
+#   target fading taken from stored cells; the pilot's Pd goes from 0.16 to 0.92 over 4 dB (docs/OFDM_PILOT_0917.md, qpsk_dcguard at 13.9 and
+#   17.9 dB), so few-dB fades decide miss runs. ⚠The pilot reports detection only and has no tracker yet, and
+#   /workspace/sionna_mobicom_research_strategy_2026-09-17.md §9 warns against growing rotor or environment sweeps before the receiver input
+#   contract is fixed; see the hold rule for lines 74-163 under Stop / extend.
+#   A fade's duration is its angular width divided by the aspect rate: a crossing drone at 10 m/s and 50 m turns 11.5°/s (computed). No stored
+#   cell gives the angular width at the receiver's settings:
+#   · 2.1.0: tr38901 aimed open sky only at az 0 (el −15/−30/−60); az 180 at el 0 (0953); all at the 0.1 m slab.
+#   · 2.0.1 R0D0E0F1 d2 el −30 ladder (21 aspects, iso default orientation, 0.1 m slab, 15 m), scratch recount (design_0917b/judge/aspect201.py;
+#     NOT a ledger, do not cite): lvl_db spread 27.0 dB over az 0-180; steps of 3.75° changed lvl_db by median 3.0 dB (max 18.4, n 5), 7.5° by
+#     1.7 dB (max 11.6, n 6), 11.25° by 6.2 dB (max 27.0, n 5); ac_to_static_db ran from −15.5 to +10.1 dB (the static part nearly cancels at
+#     az 101.25°); lvl_db of the first 1,024 positions was within 0.14 dB of the full 8,192 at every aspect.
+#   ⇒ 3.75° undersamples; λ/(2L) is 3.1° for the 0.78 m diagonal and 4.1° for 0.60 m (computed). Hence 2° steps, and 1,024-position records
+#     (52 ms) for a quarter of the cost of 4,096.
+#   Elevations: el −5 lies inside the 2-10° that a drone 50-100 m away and 5-10 m up presents to a 1.5 m tripod; el −15 = the 0957/0960 hub
+#   the receiver is validated on first; the el −2 … −40 series at heading 0 is the elevation sequence of a radial approach at 10 m height from
+#   about 240 m to 10 m (computed: horizontal distance = 8.5 m / tan(el); at 15 m height, 13.5 m / tan(el)).
+#
+# Geometry. Open sky, 15 m (past 2D²/λ = 14.2 m, computed), 4e9 rays, max_depth 2, R0D0E0F1, cap 2e6, tr38901 aimed, --shell-mm 0.75
+#   --prop-mm 1.43, --n-poses 1024 (t = k/19,700 s, 52 ms), one shard. --az-deg moves the radar around the fixed airframe at the same range and
+#   elevation (az 0 has no --az-deg flag; the default is 0). Job lines, in launch order (coarse first so that the stop rules can cut the fills):
+#     1-10     el −5,  az 0-162 in 18°          11-13   el −5, az 0 / 54 / 90, --solver-seed 2
+#     14-18    el −5,  az 342 / 324 / 306 / 288 / 270 (the mirrors of az 18 / 36 / 54 / 72 / 90 about the airframe's az-0 vertical plane)
+#     19-25    az 0,   el −4 / −10 / −16 / −22 / −28 / −34 / −40
+#     26-30    el −15, az 0-72 in 18°
+#     31-50    el −5,  6° fill (az 6-174)        51-63   az 0, el −2 … −38 fill (2° steps)        64-73   el −15, 6° fill (az 6-84)
+#     74-133   el −5,  2° fill (az 2-178)        134-163 el −15, 2° fill (az 2-88)
+#   Full series: el −5 az 0-178 (90 cells), el −15 az 0-88 (45), heading 0 el −2 … −40 (20, plus el −5 and el −15 from lines 1 and 26).
+#
+# Names. The sweep adds _n1024, _az<deg>, _ss2, _shell0.75mm_prop1.43mm. lvl_db, ac_to_static_db, seed_diff: runners/jobs_0960 header (on these
+#   1,024-position records). New names, each defined only here:
+#   fade_acf(lag)     Pearson correlation of lvl_db between all pairs of cells lag apart within one series (lags 2-30°).
+#   theta_c           the smallest lag at which fade_acf ≤ 0.5 (linear interpolation between lags).
+#   fade_share_X      share of cells in a series with lvl_db ≤ (median of the series − X dB), X = 3, 6, 10.
+#   mirror_diff_db    lvl_db(az 360 − a) − lvl_db(az a) at el −5.
+#   replay_diff_db    |lvl_db(n1024 cell) − lvl_db(positions 0-1,023 of the n4096 record with the same settings)|: runners/jobs_0960 lines 1-2 for
+#                     line 26, runners/jobs_0962 lines 17-18 for line 1 (a same-seed re-solve of the same positions).
+#   T_s               max(0.5 dB, 3·max seed_diff(lvl_db) over lines 11-13, 3·max replay_diff_db); a replay whose n4096 record has not landed is
+#                     left out and named, so an early T_s may rise when the replays land (a verdict already written is then re-read).
+#
+# Read-out — fixed before any cell is read. Pre-set working thresholds, not repeat-based unless T_s is named; inside them «threshold not crossed»,
+#   never «no effect» or «flat». Only lvl_db and ac_to_static_db are computed on these records; contrast_raw and the other comb metrics are
+#   not (1,024 positions give 19.2 Hz bins) and no n1024 value is placed next to an n4096 or n8192 value except replay_diff_db.
+#   S1 coarse gate, when lines 1-30 have landed: max − min lvl_db over lines 1-10 < max(3 dB, T_s) AND max − min ac_to_static_db < 3 dB →
+#      «at 18° sampling, heading did not cross the 3 dB fade threshold at el −5» → remove unlaunched lines 31-50 and 74-133. The same rule on
+#      lines 19-25 (with lines 1 and 26) decides lines 51-63, and on lines 26-30 decides lines 64-73 and 134-163. Expectation written before
+#      reading: crossed (the 27.0 dB above, another build, antenna, slab and elevation).
+#   S2 per series: lvl_db and ac_to_static_db curves; max − min; fade_share_3/6/10; theta_c; median |Δlvl_db| between neighbouring 2° cells
+#      against T_s — at or below T_s → «neighbouring 2° aspects are not told apart from a seed change».
+#   S3 sampling: fade_acf(2°) < 0.5 at el −5 → «2° undersamples the heading fades at el −5 (threshold crossed)» → 1° extension below.
+#      fade_acf(6°) ≥ 0.9 at el −5 once lines 31-50 have landed → «6° resolves the heading fades at el −5» → remove unlaunched lines 74-163.
+#   S4 mirror: |mirror_diff_db| ≤ max(1 dB, T_s) at all five pairs → «the mirror pairs stay within threshold at el −5»; az 180-358 is then read as
+#      the mirror of az 0-178, labelled «mirror assumed within threshold». Otherwise «mirror not assumed»; the four-sample extension below.
+#   S5 heading-0 elevation series: max − min, theta_c in elevation, fade_share_3; no trend read beyond the series.
+#   S6 rotor-to-body: share of cells with ac_to_static_db ≥ 0 dB (the rotor part at or above the static echo) per series; max − min of
+#      ac_to_static_db ≥ 6 dB at el −5 → «the rotor-to-body ratio follows heading at el −5 (threshold crossed)» → the n4096 extension below at
+#      the headings of its maximum and minimum (rotor lines for plan §5 confirmation).
+#   S7 el −5 vs el −15: max − min, theta_c and fade_share_3 written side by side; two elevations do not make a trend.
+#   Use, fixed now: the CPU pilot takes lvl_db(az) at el −5 as the target fading along a crossing track at aspect rate v/R, and lvl_db(el) at
+#   heading 0 for a radial approach, labelled «computed from simulated hover cells, open sky». Absolute levels are never used (SNR comes from the
+#   link-budget ledger; a PathSolver level is not σ). The drone-ground ghost is added only through runners/jobs_0962 (formula if M2 holds).
+#   Scope in every sentence: open sky, hover at constant rpm (no yaw dynamics or body motion in the solve), 15 m, one airframe mesh (matrice4e),
+#   canonical slab, tr38901 stand-in, 3.5 GHz, sionna-rt 2.1.0, 52 ms records, one run per cell except lines 11-13.
+#
+# Stop / extend. Extension lines are comments, NOT queued; each listed line was dry-run NEW on 2026-09-17 ~21:40 KST.
+#   · runners/jobs_0960 G0 fails → nothing here launches.
+#   · S1 not crossed → the removals above; S3 (6° resolves) → the removal above.
+#   · Hold rule: when line 74 is next to launch, if the CPU pilot still has no tracker that reads a fade input, the main session removes the
+#     unlaunched lines of 74-163 (2° fills, about 20 slot-h) and keeps them as comments for later; they were dry-run NEW on 2026-09-17 and need a
+#     new dry run before use. Lines 1-73 (coarse, seeds, mirrors, 6° fills, elevation series) are enough for S1, S2 at 6°, S4, S5 and S7;
+#     S3 and the 2° lags of S2 wait for the held lines.
+#   · S3 (2° undersamples) → el −5 az 1, 3, 5, …, 29 (15 cells, every one dry-run NEW); about 3.4 slot-h. Template:
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 1 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1   (and --az-deg 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29)
+#   · S4 fails → four samples of the other half at el −5 (az 186, 240, 300, 354, each dry-run NEW); about 0.9 slot-h; a full 180-358 scan only after
+#     those are read and with a new dry run.
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 186 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1   (and --az-deg 240, 300, 354)
+#   · S6 crossed → 4,096-position records at el −5 at the two headings of max and min ac_to_static_db (at most two headings, about 0.9 slot-h each;
+#     template for az 90, dry-run NEW; any other heading needs its own dry run).
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2   (and --shard 1)
+#   · Ghost at aspect → runners/jobs_0962 (its P2/AS extension is the ground-only 1,024-position scan at 30 m).
+#   · In no outcome from this file: elevations nearer 0° than −2° (0955 B covers the 0° copy window), other airframes, iso or omni cells,
+#     5.8 GHz, rotor presets or rotor seeds, ground or walls, other ranges (runners/jobs_0961 decides whether 15 m stands in).
+#
+# One run per cell; lines 11-13 are the stated seed exception. Rules kept: open sky only; R0D0E0F1; no propeller-only parts; _rt210 automatic;
+#   --inmem default; cap 2e6.
+# Dry run 2026-09-17 21:32-21:48 KST (queue judge; line 12 re-checked after moving its seed pair from az 46 to az 54) and 22:26-22:42 KST
+#   (adversarial check; CPU prefix as in runners/jobs_0960, runners/filter_jobs.sh, lines verbatim): 163/163 NEW; the 21 extension lines NEW.
+#   163 distinct stems read back from --dry-run, all with _n1024, _shell0.75mm_prop1.43mm and _rt210; no runners/jobs_*.txt line carries
+#   --shell-mm, --prop-mm or --n-poses 1024, so no equivalent line.
+# Estimate about 36 slot-h (34-41): 163 cells × 0.223 h (open sky 15 m 4e9 d2: 51.6 min per 4,096 positions → 12.9 min per 1,024, +0.5 min
+#   scene build; 47-57 min per 4,096 gives the range). If S1 removes the fills, about 6.7 slot-h. No sidecars.
+# Cards 3 and 4; cards 1 and 2 only while lent. These are the shortest lines in the set (about 13-14 min); runners/hold_window.py counts them as
+#   7 min (57 × 1,024/8,192, one-shard lines are not doubled), which its 1.3× + 45 min margin still covers. Card 0 held.
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 18 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 36 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 54 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 72 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 108 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 126 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 144 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 162 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 54 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 342 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 324 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 306 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 288 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-10 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-16 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-22 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-28 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-34 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-40 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 18 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 36 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 54 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 72 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 6 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 24 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 30 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 42 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 48 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 60 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 66 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 78 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 84 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 96 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 102 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 114 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 120 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 132 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 138 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 150 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 156 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 168 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 174 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-2 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-6 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-14 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-18 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-20 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-24 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-32 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-36 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-38 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 6 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 24 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 30 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 42 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 48 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 60 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 66 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 78 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 84 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 2 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 10 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 14 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 16 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 20 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 22 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 28 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 32 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 34 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 38 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 40 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 44 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 46 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 50 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 52 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 56 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 58 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 62 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 64 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 68 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 70 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 74 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 76 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 80 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 82 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 86 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 88 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 92 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 94 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 98 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 100 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 104 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 106 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 110 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 112 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 116 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 118 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 122 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 124 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 128 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 130 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 134 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 136 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 140 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 142 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 146 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 148 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 152 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 154 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 158 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 160 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 164 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 166 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 170 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 172 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 176 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 178 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 2 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 10 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 14 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 16 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 20 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 22 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 28 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 32 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 34 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 38 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 40 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 44 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 46 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 50 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 52 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 56 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 58 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 62 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 64 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 68 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 70 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 74 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 76 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 80 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 82 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 86 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1
+#HOLD-rev1 --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 88 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 1

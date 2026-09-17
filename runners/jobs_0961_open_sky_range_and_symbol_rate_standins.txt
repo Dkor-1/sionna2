@@ -1,0 +1,122 @@
+# 0961 — can the receiver's open-sky inputs come from 15 m, 19.7 kHz cells? (A) With the same number of rays on the drone, does range
+#        (15-100 m) change the drone's level, rotor-to-body ratio or rotor lines beyond seed-based thresholds? (B) Can a 19.7 kHz record be
+#        taken to the OFDM pilot's symbol times (28,029 Hz) by interpolation? Open sky, looking up 15°, tr38901 aimed, canonical slab.
+#        (2026-09-17 ~22:00 KST, queue judge; (A) merged from the decision-value design, (B) replaces a 39.4 kHz / 5.8 GHz design;
+#        corrected by the adversarial check ~22:50 KST: 100 m seed pair added as lines 17-18, re-solve floors added to (B))
+#
+# Launch preconditions (main session).
+#   (1) runners/jobs_0960 G0 passed (thickness flags change the cell).
+#   (2) Readout script on CPU before any shard is read.
+#   (3) Start before runners/jobs_0962: reading R2 here is one of the two ways 0962's 30 m cells get their ray-density check.
+#
+# Why.
+#   (A) The main session's queue verdict of 2026-09-17 (conversation record, not a repo file) puts the range claim at 100 m or less and says
+#       absolute SNR comes from the link-budget ledger, while ray tracing supplies relative quantities. Rays leave the radar over the whole
+#       sphere, so the paths on the drone scale as rays/R² (counted from stored 2.1.0 shards, open sky 15 m el −60 d1: median npaths 50 / 208 /
+#       2,001 at 1e8 / 4e8 / 4e9 rays, 5.0-5.2e-7 per ray; open sky 15 m el −15 d2 tr38901 at 4e9: 1,316 per position, so about 30 at 100 m),
+#       and 4e9 is next to the 32-bit ceiling (4,294,967,295). If range changes a cell only through ray density, the receiver takes 15 m
+#       cells for 30-100 m with the level scaled by R⁴ (computed, labelled), and no field-range cell is bought. runners/jobs_0957 reading C
+#       (30 m at 2e9 vs 4e9, 0.1 m slab) is a one-step version of this; nothing on 2.1.0 has landed at any range other than 15 m.
+#   (B) Every stored record and every path list has positions 1/19,700 s apart; the pilot numerology (docs/OFDM_PILOT_0917.md: 30 kHz, FFT 1024,
+#       CP 72) has symbols 1/28,029 s apart, so the receiver has to interpolate between positions (strategy §6.2 step 6). Scratch recount on
+#       stored 2.0.1 dense records (iso, 0.1 m slab, open sky, 15 m; another design's scratch, not a ledger, do not cite): the linear-
+#       interpolation residual at skipped positions falls only 2-2.5 dB per halving of the spacing, about −18 dB relative to the rotor part at
+#       19.7 kHz spacing. Rechecked by the adversarial check on the stored 2.0.1 dense records (iso, 0.1 m slab, open sky, 15 m, d2; scratch,
+#       not a ledger): prf 39,400 el −15: −17.7 / −15.4 / −12.0 dB at 19,700 / 9,850 / 4,925 Hz spacing; prf 157,600 el −30: −28.2 / −26.1 /
+#       −23.9 dB at 78,800 / 39,400 / 19,700 Hz; share of AC power above 9,850 Hz 0.0055 (el −15) and 0.0022 (el −30). A residual that falls
+#       only 2-2.5 dB per halving is what a per-position floor (paths listed at one position and not the next) would give, not band-limited
+#       interpolation error — a reading, not measured; hence the re-solve floors in T1. The thin propeller lowers the rotor part (0960), so
+#       the relative residual may be larger here. A symbol-rate record answers it directly at the canonical slab; its path lists are kept
+#       because the receiver reads per-path a and τ, and if T1 crosses they are the symbol-rate channel.
+#
+# Geometry. Open sky, el −15, az 0, n4096, max_depth 2, R0D0E0F1, cap 2e6, tr38901 aimed, --shell-mm 0.75 --prop-mm 1.43, no path list except
+#   lines 15-16. Every range is past 2D²/λ = 14.2 m for the 0.78 m diagonal (computed). Groups by «15 m-equivalent rays» = spp·(15 m / R)²:
+#     1e9     15 m @ 1e9 (job lines 1-2) · 30 m @ 4e9 (runners/jobs_0960 lines 5-6)
+#     2.5e8   15 m @ 2.5e8 (3-4) · 30 m @ 1e9 (5-6) · 60 m @ 4e9 (7-8)
+#     9e7     15 m @ 9e7 (11-12) · 100 m @ 4e9 (13-14)
+#     4e9     15 m @ 4e9 (runners/jobs_0960 lines 1-2)
+#   Seeds: 15 m @ 4e9 seed 2 (runners/jobs_0960 lines 9-10); 60 m @ 4e9 seed 2 (job lines 9-10); 100 m @ 4e9 seed 2 (job lines 17-18; about 30
+#   paths per position, the sparsest cell, whose seed spread is not bounded by the denser pairs).
+#   (B) job lines 15-16: 15 m @ 4e9, --prf 28029, --dump-paths 2048: position k at t = k/28,029 s (146 ms). Comparator: runners/jobs_0960 lines 1-2
+#   (same settings at 19,700 Hz, 208 ms). Position 0 is the same geometry and rotor phase in both.
+#
+# Names. The sweep adds _r<R>, _p<spp>, _ss2, _prf28029, _shell0.75mm_prop1.43mm. lvl_db, ac_level_db, ac_to_static_db, hits_per_pose, seed_diff:
+#   runners/jobs_0960 header. New names, each defined only here:
+#   lvl_at_15m_db    lvl_db + 40·log10(R / 15 m); read only as differences between cells of this file and runners/jobs_0960.
+#   interp_resid_db  10·log10( mean_k|E28(k) − Ê(k)|² / mean_k|E28(k) − mean E28|² ), E28 = lines 15-16, Ê = the 19,700 Hz record of
+#                    runners/jobs_0960 lines 1-2 interpolated to t = k/28,029 s (linear; band-limited FFT interpolation as the knob).
+#   above_nyq_share  share of the AC power of E28 (FFT of E28 − mean E28, DC bin excluded) at |f| > 9,850 Hz.
+#   rerun_floor_db   10·log10( mean_k|(E_a(k) − mean E_a) − (E_b(k) − mean E_b)|² / mean_k|E_a(k) − mean E_a|² ), E_a = runners/jobs_0957
+#                    lines 1-2 (n4096), E_b = positions 0-4,095 of the stored n8192 cell with the same settings (a same-seed re-solve of the
+#                    same positions; 0.1 m slab, labelled).
+#   seed_floor_db    the same formula with E_a = runners/jobs_0960 lines 1-2 and E_b = runners/jobs_0960 lines 9-10 (canonical slab; a seed
+#                    change also moves the rotor part, so this is an upper bound on the per-position floor).
+#
+# Read-out — fixed before any shard is read. Pre-set working thresholds unless a seed difference is named; inside them «threshold not crossed»,
+#   never «no effect», «converged» or «equivalent». contrast_raw is computed on n4096 records only and never placed next to n8192 values.
+#   R0 premise: hits_per_pose / (spp / R²) within ±10 % of its median over the cells of (A) → otherwise no range reading is written; cells listed.
+#   R1 range at matched rays, per group: the largest pairwise |Δ| of lvl_at_15m_db, ac_to_static_db and contrast_raw against
+#      T = max(1 dB, 3·seed difference of that quantity), the seed difference taken at 15 m @ 4e9 (group 1e9), the larger of that and
+#      60 m @ 4e9 (group 2.5e8), and the largest of those and 100 m @ 4e9 (group 9e7). All below T → «with matched rays on the drone, range
+#      did not cross the threshold (open sky, 15° up, 15-R m)» → the receiver takes 15 m open-sky cells for range R with R⁴ level scaling,
+#      labelled computed. Any above → «range changes the open-sky cell beyond ray density at 15° up», naming the group and the quantity;
+#      no 15 m stand-in for that range.
+#   R2 ray steepness at 15 m, listed step by step (9e7 → 2.5e8 → 1e9 → 4e9): Δcontrast_raw and Δac_to_static_db per step. The 1e9 → 4e9 step
+#      with |Δ| > 2 dB on either → «steep in rays between the 30 m and 15 m densities»: runners/jobs_0962 reads its 30 m cells only as class
+#      mean-level ratios (P1-P3, W), no contrast or event reading at 30 m. Never written as convergence.
+#   R3 beside runners/jobs_0957 reading C (if landed): its |Δ| next to the 1e9 → 4e9 step here and the 15 m seed difference.
+#   T1 (B): first the floor. interp_resid_db ≤ rerun_floor_db + 3 dB → «the interpolation residual is not told apart from re-solving the same
+#      positions»: the receiver interpolates, and the per-position floor is carried as a labelled model floor (a symbol-rate record is solved
+#      the same way and carries it too). If rerun_floor_db is missing (0957 not landed), seed_floor_db is used and the sentence says «against a
+#      seed-change floor, an upper bound». Otherwise: interp_resid_db (linear) ≤ −20 dB → «19.7 kHz records interpolated to the pilot symbol
+#      times stay 20 dB below the rotor part (threshold not crossed)»: the receiver interpolates. > −10 dB → «rotor-part readouts at the pilot
+#      symbol rate need symbol-rate records (threshold crossed)». In between → both numbers written; the receiver uses symbol-rate records for
+#      rotor-part readouts and interpolation for levels.
+#   T2 (B): above_nyq_share ≥ 0.01 → «at least 1 % of the rotor-part power lies above the 19.7 kHz Nyquist limit at 15° up»; otherwise «threshold
+#      not crossed». Written beside T1 with rerun_floor_db, seed_floor_db, |E28(0) − E19.7(0)| / |mean E| at the one shared position (k = 0; the
+#      two grids share no other position in the record), and the known same-seed rerun rate (2.1-2.3 % path-count differences per rerun,
+#      runners/jobs_0957 header reading 1).
+#   Scope in every sentence: open sky, one elevation (15° up), az 0, hover, constant rpm, tr38901 stand-in, canonical slab (0960), 3.5 GHz,
+#   sionna-rt 2.1.0, one run per cell except the seed lines.
+#
+# Stop / extend. Extension lines are comments, NOT queued; each was dry-run NEW on 2026-09-17 ~21:40 KST (both shards).
+#   · R0 fails → stop; nothing else from (A).
+#   · R1 crosses in group 2.5e8 → remove runners/jobs_0962 lines 37-40 (60 m) if not launched.
+#   · R1 crosses in any group → the 2.5e8 group at el −60, to see whether the range effect follows the aspect; about 1.2 slot-h.
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 250000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2   (and --shard 1)
+#   · T1 crossed or in between → the symbol-rate record of the 15 m tripod ground cell (radar 1.52 m), read against runners/jobs_0960 lines 3-4
+#     on E_B of drone paths at 20 MHz; about 1.9 slot-h.
+#     # --engine sionna --n-poses 4096 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · In no outcome: more than 4e9 rays; ranges beyond 100 m; ground at range here (range moves the ground geometry — runners/jobs_0962);
+#     other PRFs (39.4 / 78.8 kHz); 5.8 GHz; a third seed.
+#
+# One run per cell; the seed lines (9-10 and 17-18 here, 9-10 of 0960) answer the spread question. Rules kept: open sky only; R0D0E0F1;
+#   no propeller-only parts; _rt210 automatic; --inmem default; cap 2e6.
+# Dry run 2026-09-17 21:32-21:40 KST (queue judge; lines 1-16) and 22:26-22:45 KST (adversarial check; CPU prefix as in runners/jobs_0960,
+#   runners/filter_jobs.sh, lines verbatim, both shards): 18/18 NEW (lines 17-18 added by the check); the 6 extension lines NEW. Stems read
+#   back from --dry-run are distinct and carry _shell0.75mm_prop1.43mm and _rt210; no runners/jobs_*.txt line carries --shell-mm or --prop-mm.
+# Estimate about 5.8 slot-h (5.3-6.9). 4e9 open-sky shards 0.43-0.48 h per 2,048 positions (stored 2.1.0 rates in runners/jobs_0960; 60 and 100 m
+#   assumed alike, since solve time follows the rays launched): 10 shards. Low-ray max_depth 2 shards are not timed on 2.1.0; from stored 2.1.0
+#   times (open sky d1: 1e8 2.6 min, 4e8 20.1 min (12.6-28.6), 4e9 32-37 min; open sky d2 4e9 51.6 min per 4,096 positions; ground d2 2e8
+#   15.2 min, 2e9 31.1 min) taken conservatively: 1e9 ≈ 0.17-0.25 h, 2.5e8 ≈ 0.07-0.13 h, 9e7 ≈ 0.03-0.05 h per 2,048-position shard.
+#   Lines 15-16 +10 % for the dump. Sidecars about 0.3 GB.
+# Cards 3 and 4; cards 1 and 2 only while lent (new launches there stop 03:23-07:01 KST by line class, evacuation 08:40 KST 09-18); card 0 held.
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 1000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 1000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 250000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 250000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 1000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 1000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 60 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 90000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 90000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 100 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 100 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 100 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 100 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --shard 1 --nshards 2
