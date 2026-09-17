@@ -1,0 +1,30 @@
+# 0953 — 0° on sionna-rt 2.1.0: other drones, max_depth 1, and the opposite direction (2026-09-17 ~15:40 KST)
+#
+# Why. The user's own script for deck 0917 v7 says (slide 3) the number of identical copies differs by drone model,
+# (slide 2) the recap drops are at 0°, max_depth 1, and (slide 4) the effect occurs only at azimuth/elevation 0.
+# An independent check (workflow wf_72857b90-1ad) found all three rest on sionna-rt 2.0.1 runs only; no 0° run exists on
+# 2.1.0. On 2.0.1: mini5pro 2 copies, matrice4e 3, mavic4pro 4 (d2); the recap cell is max_depth 1; and az 180 / el 0
+# also lists one line twice (23 positions at exactly 1/2). These lines ask the same questions on the current build,
+# next to queue 0952 (matrice4e, max_depth 2, max_num_paths_per_src ladder). Dry run 2026-09-17: all ten stems NEW.
+#
+# Read-out — fixed before any shard is read (same as 0952's header):
+#   per position k = round(|E| / |E_dedup|) and n_dup; modal k; S = positions with k below the modal k.
+#   drones:      report modal k per model on 2.1.0 next to 2.0.1 (2 / 3 / 4). Differences between builds are reported
+#                as such; ⛔do not read a model's k as a property of the mesh alone — on 2.0.1 matrice4e gives 2 copies
+#                at az 0.03-0.07°, so k also moves with a fraction of a degree.
+#   max_depth 1: S at the default value and at 32e6; the tolerance is 0952's (default vs rep1 at max_depth 2) — no
+#                repeat at max_depth 1 exists, say so if the change is small.
+#   az 180:      modal k and S; if k is 1 everywhere, the 2.0.1 az-180 repeat does not carry over to 2.1.0.
+#   One run per cell, no seed spread.
+# Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
+
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --drone mini5pro --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --drone mini5pro --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --drone mavic4pro --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --drone mavic4pro --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 1 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 1 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 1 --max-paths 32000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 1 --max-paths 32000000 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --az-deg 180 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --els=0 --max-depth 2 --az-deg 180 --shard 1 --nshards 2
