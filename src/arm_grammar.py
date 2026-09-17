@@ -145,6 +145,11 @@ _COMMON = [
     _F("ant", "ant", r"tr38901(?:c\d+)?"),
     #: 조준 오차[deg] — 양수 = 지면 쪽으로 숙임. 0 이면 안 붙는다.
     _F("aim", "aim", _NUM),
+    #: Device orientation, separated from the pattern (added 2026-09-17). Absent = the old coupling
+    #  (iso at the default device orientation, tr38901 pointed at the drone), so every earlier name
+    #  still parses unchanged. `_orTgt` = iso pointed at the drone; `_orDev` = tr38901 left at the
+    #  default device orientation. These are the two off-diagonal cells of pattern x orientation.
+    _F("orient", "or", r"(?:Dev|Tgt)"),
     #: ⭐⭐**솔버 판** (2026-09-14 신설) — `_rt210` = sionna-rt 2.1.0 으로 구웠다는 뜻.
     #  ⛔**기준 판(2.0.1)에는 안 붙는다.** 창고 7,730 개가 전부 그 판이라 이름이 그대로여야
     #    이어진다. 그러니 「꼬리표가 없다」 = 「2.0.1 로 구웠다」로 읽는다 —

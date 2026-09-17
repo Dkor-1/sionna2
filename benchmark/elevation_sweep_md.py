@@ -489,6 +489,26 @@ def run(a) -> None:
                              f"(formats as {_aim_s!r}). Use a plain decimal such as 10 or 14.5.")
         _nm = "tr38901" if abs(_antc - 30.0) < 1e-9 else f"tr38901c{int(round(_antc))}"
         tagant = f"_ant{_nm}" + ("" if _aimo == 0.0 else f"_aim{_aimo:g}")
+    #: ⭐⭐device orientation, separated from the pattern (2026-09-17). auto = the old coupling, and
+    #  an explicit value equal to that coupling is normalised to auto so the same cell cannot get a
+    #  second name. Only the two off-diagonal cells carry a tag.
+    _orient = str(getattr(a, "ant_orient", "auto") or "auto")
+    _auto_aim = (_antp != "iso")
+    if _orient == "auto" or (_orient == "target") == _auto_aim:
+        _orient, tagor = "auto", ""
+    else:
+        if a.engine != "sionna":
+            raise SystemExit(f"⛔ --ant-orient is for PathSolver arms only — --engine {a.engine} has no "
+                             "radio device to point, so only the name would change.")
+        if _orient == "device" and _aimo != 0.0:
+            raise SystemExit("⛔ --aim-offset needs the device pointed at the drone — with "
+                             "--ant-orient device there is no aim to offset.")
+        if _orient == "target":
+            for _e in [float(x) for x in els]:
+                if abs(_e) > 89.9:
+                    raise SystemExit("⛔ pointing at the drone is undefined at el ±90 "
+                                     "(radio_device.look_at forces the azimuth to 0).")
+        tagor = "_orTgt" if _orient == "target" else "_orDev"
     tagr = ("" if not getattr(a, "drone", "") else f"_{drone_key}") \
         + ("" if abs(rng_m - RANGE_M) < 1e-9 else f"_r{rng_m:g}") \
         + ("" if not getattr(a, "n_poses", 0) else f"_n{n}") \
@@ -518,7 +538,7 @@ def run(a) -> None:
         + ("" if np.isnan(_az_arg) else f"_az{_az_arg:g}") \
         + ("" if not getattr(a, "rotor_preset", "") else f"_rot{a.rotor_preset}") \
         + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}") \
-        + tagfc + tagth + tagmf + tagant + build_tag()
+        + tagfc + tagth + tagmf + tagant + tagor + build_tag()
 
     if tagth and a.engine in ("ours", "ours_free", "ours_gpu"):
         raise SystemExit("⛔ --shell-mm/--prop-mm 은 PathSolver 팔 전용이다 — 우리 커널에는 "
@@ -1049,7 +1069,7 @@ def run(a) -> None:
                     print(f"  ⭐환경 거칠기 S={_S:g} — 물체 {_n} 개에 걸었다", flush=True)
             #: ⭐등방이면 옛 호출과 같은 갈래로 간다(place() 안에서 문장 그대로).
             RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0,
-                     pattern=_antp, cap_db=_antc, aim_offset_deg=_aimo)
+                     pattern=_antp, cap_db=_antc, aim_offset_deg=_aimo, orient=_orient)
             p = _solver(
                 sc, los=True, specular_reflection=True, diffuse_reflection=diffuse,
                 # ⭐--physics 면 굴절·회절·모서리회절을 전부 켠다.
@@ -1198,6 +1218,8 @@ def run(a) -> None:
                                 ant_pattern=np.array(tagant.split("_aim")[0][4:]),
                                 ant_cap_db=np.array([_antc]),
                                 aim_offset_deg=np.array([_aimo]))),
+                            #: only the off-diagonal cells write it, so earlier shards keep their keys
+                            **({} if not tagor else dict(ant_orient=np.array(_orient))),
                             meta=np.array([el, a.shard, a.nshards, n, prf,
                                            time.time() - t0, spp]),
                             # ⭐출처 — meta 모양은 안 바꾼다(기존 병합 코드 보호)
@@ -2456,6 +2478,13 @@ def main() -> None:
                          "⛔레이를 쏘는 방식은 안 바뀐다 — 찾은 경로의 세기만 무늬로 바뀐다.")
     ap.add_argument("--ant-cap", dest="ant_cap", type=float, default=30.0, metavar="DB",
                     help="tr38901 감쇠 상한[dB]. 기본 30 = 시오나 원본. 같은 공식에서 상한만 바꾼다.")
+    ap.add_argument("--ant-orient", dest="ant_orient", choices=("auto", "device", "target"),
+                    default="auto",
+                    help="⭐Where the radio devices point, separated from --ant-pattern (2026-09-17). "
+                         "auto = the old coupling (iso: default orientation · tr38901: at the drone). "
+                         "device / target choose it explicitly; only the two off-diagonal cells get a "
+                         "name tag (_orDev · _orTgt). Needed because V polarisation is defined in device "
+                         "coordinates, so pointing moves the result even with an isotropic pattern.")
     ap.add_argument("--aim-offset", dest="aim_offset", type=float, default=0.0, metavar="DEG",
                     help="조준 오차[deg]. ⭐양수 = 지면 쪽으로 숙인다. −el 을 주면 조준축이 수평이 된다.")
     ap.add_argument("--solver-deterministic", dest="solver_deterministic",

@@ -213,8 +213,21 @@ def aim_target(center, pos, aim_offset_deg: float = 0.0) -> np.ndarray:
 
 
 def place(scene, center=(0., 0., 0.), az=AZ_DEG, el=EL_DEG, rng=RANGE_M, baseline=BASELINE_M,
-          *, pattern="iso", cap_db=_TR38901_STOCK_CAP, aim_offset_deg=0.0):
-    """준-모노스태틱 TX/RX 배치 → dict(tx, rx, tau_expect_s, bistatic_deg)."""
+          *, pattern="iso", cap_db=_TR38901_STOCK_CAP, aim_offset_deg=0.0, orient="auto"):
+    """준-모노스태틱 TX/RX 배치 → dict(tx, rx, tau_expect_s, bistatic_deg).
+
+    orient (2026-09-17) — where the radio devices point, separated from the pattern:
+      "auto"   : the behaviour every earlier arm used. iso keeps the default device orientation;
+                 tr38901 points at the drone. ⛔This is byte-identical to the old code path.
+      "device" : default device orientation, whatever the pattern
+      "target" : point at the drone (look_at), whatever the pattern
+    Why: the 09-17 results/queue review showed the aimed arm changes the pattern, the pointing and
+    the polarisation at once (V polarisation is defined in device coordinates, so pointing alone
+    moves it). The 2x2 pattern x orientation contrast needs the two off-diagonal cells.
+    """
+    if orient not in ("auto", "device", "target"):
+        raise ValueError(f"place: orient must be auto, device or target — got {orient!r}")
+    aim = (pattern != "iso") if orient == "auto" else (orient == "target")
     u = look_dir(az, el)
     e1, _ = basis_perp(u)
     c = np.asarray(center, float)
@@ -224,7 +237,7 @@ def place(scene, center=(0., 0., 0.), az=AZ_DEG, el=EL_DEG, rng=RANGE_M, baselin
         scene.remove(nm)
     for nm in list(scene.receivers):
         scene.remove(nm)
-    if pattern == "iso":
+    if pattern == "iso" and not aim:
         #: ⛔⛔**이 갈래는 옛 문장 그대로다** — `look_at` 을 부르지 않는다. 등방이어도 V 편파는
         #  기기 좌표에서 정의돼(antenna_pattern.py:683-711) 방향을 돌리면 값이 바뀐다.
         #  기존 팔 전부가 이 갈래라 한 글자도 바꾸지 않는다.
@@ -235,15 +248,25 @@ def place(scene, center=(0., 0., 0.), az=AZ_DEG, el=EL_DEG, rng=RANGE_M, baselin
         scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx])))
         scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx])))
     else:
-        name = antenna_pattern_name(pattern, cap_db)
-        at_tx = aim_target(c, tx, aim_offset_deg)
-        at_rx = aim_target(c, rx, aim_offset_deg)
+        name = "iso" if pattern == "iso" else antenna_pattern_name(pattern, cap_db)
+        if pattern == "iso" and (float(aim_offset_deg) != 0.0
+                                 or abs(float(cap_db) - _TR38901_STOCK_CAP) > 1e-9):
+            raise ValueError("place: 등방(iso)에는 조준 오차·상한을 줄 수 없다 — 아무 효과가 없다")
         scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern=name, polarization="V")
         scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern=name, polarization="V")
-        scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx]),
-                                 look_at=mi.Point3f(*[float(v) for v in at_tx])))
-        scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx]),
-                              look_at=mi.Point3f(*[float(v) for v in at_rx])))
+        if aim:
+            at_tx = aim_target(c, tx, aim_offset_deg)
+            at_rx = aim_target(c, rx, aim_offset_deg)
+            scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx]),
+                                     look_at=mi.Point3f(*[float(v) for v in at_tx])))
+            scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx]),
+                                  look_at=mi.Point3f(*[float(v) for v in at_rx])))
+        else:
+            #: tr38901 at the default device orientation — the pattern without the pointing
+            if float(aim_offset_deg) != 0.0:
+                raise ValueError("place: an aim offset needs orient=target — there is no aim to offset")
+            scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in tx])))
+            scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in rx])))
     R1 = float(np.linalg.norm(tx - c)); R2 = float(np.linalg.norm(rx - c))
     u1 = (tx - c) / R1; u2 = (rx - c) / R2
     out = dict(tx=[float(v) for v in tx], rx=[float(v) for v in rx],
