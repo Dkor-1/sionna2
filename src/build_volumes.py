@@ -10,21 +10,16 @@ build_volumes.py — ⭐**조각을 권으로 묶는다**
 >  해주면 좋겠어. 0~6 을 한 **20 개 이내로** 적당히 메시지가 담기게끔 구성해주면 좋겠고,
 >  7 번도 7 번을 고집한다기보다는 **순서상 어울리는 위치로** 레포트 번호를 매겨서 만들어줘."*
 
-⭐ 실행 순서 — 이 스크립트는 **맨 마지막**이다
-------------------------------------------------
-    ① 조각 빌더 전부         src/build_part00_map.py … src/build_part13_engine_physics.py
-                             (개수는 `src/build_part*.py` 를 세어 본문에 주입한다)
-                             → reports/_parts/NN_slug.ipynb
-    ② 6 권 빌더              src/make_report08_microdoppler.py
-                             → reports/06_1_scene.ipynb … 06_4_sampling.ipynb
-    ②' 6-5 바이스태틱 빌더  src/make_report07b_bistatic.py → reports/06_5_bistatic.ipynb
-    ②" 외부 별편 빌더        src/make_report11_2_two_channel.py → reports/08_2_two_channel.ipynb
-                             src/build_report18_switch_grid.py  → reports/05_2_switch-grid.ipynb
-    ③ **이 스크립트**        src/build_volumes.py
-                             → reports/NN_slug.ipynb 권 파일 + 6 권 후처리 + 색인 + README
-    ④ 검사                   benchmark/check_report_links.py
+⭐ 실행 순서 — 이 스크립트는 **외부 빌더 뒤**에 돈다
+------------------------------------------------------
+    The order is not written here. The single source is `REBUILD_ORDER` in this file
+    (2026-09-17); every recipe (map section, reports/README.md, volumes_index.json, root
+    README, docs/REPRODUCE.md) is generated from it. Print it with:
+        PYTHONPATH=src /workspace/.venvs/py312/bin/python -c \
+            "import build_volumes as B; print(chr(10).join(B.rebuild_recipe()))"
+    ⛔ src/make_report11_2_two_channel.py is not in the order (archived chamber report).
 
-②가 아직 없으면 6 권 후처리를 **조용히 건너뛰고 경고만** 찍는다 — 빌드는 죽지 않는다.
+외부 빌더의 산출물이 아직 없으면 그 권의 후처리를 **조용히 건너뛰고 경고만** 찍는다 — 빌드는 죽지 않는다.
 
 설계 — 빌더는 그대로 두고 그 위에 «묶는 층» 을 얹는다
 ------------------------------------------------------
@@ -51,7 +46,7 @@ build_volumes.py — ⭐**조각을 권으로 묶는다**
 3. **지도 권 생성** — 1 권의 첫 절은 조각이 아니라 이 스크립트가 짓는다. 옛 조각 `00_map`
    은 «78 편 · 12 부» 라는 폐지된 구조 자체를 설명하는 글이라 재배선으로 살릴 수 없다.
    대신 여기서 전 권의 목차·조각 배치·읽는 경로를 **편성과 디스크에서 다시 만든다.**
-4. **6 권 후처리** — 6 권은 그림이 무거워 다섯 편으로 나뉘고, 다른 빌더가 낸다(위 ②·②').
+4. **6 권 후처리** — 6 권은 그림이 무거워 다섯 편으로 나뉘고, 다른 빌더가 낸다(REBUILD_ORDER 의 외부 빌더).
    이 스크립트는 그 다섯 편의 **주소만 고치고**, 옛 부 7 조각(34~39)을 `06_3_pattern.ipynb`
    뒤에 절로 **덧붙인다**. 덧붙인 셀에는 표식을 달아 두므로 다시 돌려도 겹쳐 쌓이지 않는다.
 5. **색인과 목차** — `outputs/volumes_index.json`(기계용)과 `reports/README.md`(사람용).
@@ -133,8 +128,12 @@ def _part_builders() -> list[str]:
 # --------------------------------------------------------------------------- #
 VOLUMES = [
     ("01", "map", "이 연구가 묻는 것과 답한 방식",
-     "패시브 바이스태틱으로 드론을 **탐지하고 마이크로도플러로 분류**하는 것이 태스크이고, "
-     "RCS 는 그 인프라다. 이 권은 나머지 ⟦권수-1⟧ 권과 거기 딸린 별편들의 지도다.",
+     # ⛔2026-09-17 — was «패시브 바이스태틱으로 드론을 탐지하고 마이크로도플러로 분류하는 것이
+     #   태스크». Standing user instructions: passive bistatic is not the main purpose (2026-09-02);
+     #   detection + tracking is the core, classification is not (2026-09-16).
+     "드론을 **탐지하고 추적**하는 것이 이 연구의 목표이고, 표적 산란(RCS)과 전파 경로 계산은 "
+     "그 인프라다. 셀 신호를 빌리는 패시브 바이스태틱은 파형 벤치마크의 한 조건으로 다룬다. "
+     "이 권은 나머지 ⟦권수-1⟧ 권과 거기 딸린 별편들의 지도다.",
      ["13", "75"], "75"),
     ("01_2", "prior-work", "선행연구는 어디까지 왔고 우리는 어디 서는가",
      "공개 문헌과 오픈소스를 전수로 세어, 우리가 **새로 하는 것과 빌려 쓰는 것**을 갈라 적는다.",
@@ -221,11 +220,18 @@ VOLUMES = [
 # --------------------------------------------------------------------------- #
 EXTERNAL = [
     dict(no="06", title="마이크로도플러 — 도는 로터가 남기는 무늬",
+         # ⛔2026-09-17 — was «그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이다», which
+         #   contradicted the map glossary and the standing instruction (2026-09-16: detection +
+         #   tracking is the core; rotor lines only confirm a track).
          thesis="호버링하는 드론은 제자리에 있지만 **프로펠러는 돈다**. "
-                "그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이다. "
+                "이 권은 그 회전이 남기는 시간-주파수 무늬를 본다 — 지금 계획에서는 트랙이 "
+                "드론인지 확인하는 특징으로 쓴다. "
                 "그림이 무거워 **다섯 편**으로 나뉜다.",
          builder="src/make_report08_microdoppler.py "
                  "(06_5 만 src/make_report07b_bistatic.py)",
+         #: Files whose builder is not the first word of `builder` — read by REBUILD_ORDER's
+         #  import-time check, so the rebuild recipe cannot silently drop a builder.
+         file_builders={"06_5_bistatic.ipynb": "src/make_report07b_bistatic.py"},
          files=[("06_1_scene.ipynb", "무엇을 보고 있나 — 시나리오와 신호의 정체"),
                 ("06_2_engines.ipynb", "어떻게 계산하나 — 세 엔진과 거리"),
                 ("06_3_pattern.ipynb", "무엇이 무늬를 정하나 — 회전수·가림·산포"),
@@ -373,8 +379,10 @@ _check_companions()
 
 # --------------------------------------------------------------------------- #
 #  권 수는 편성에서 센다 — VOLUMES 나 EXTERNAL 에 권을 더하면 본문의 «몇 권» 이 함께 바뀐다.
-#  ⭐ 세는 것은 **본편**(번호에 `_` 가 없는 권)뿐이다 — «열한 권» 은 본편 수이고,
-#     별편 8 편은 따로 센다(`_n_companions`). 둘을 합치면 노트북 23 개다.
+#  ⭐ 세는 것은 **본편**(번호에 `_` 가 없는 권)뿐이다 — «몇 권» 은 본편 수이고,
+#     별편은 따로 센다(`_n_companions`). 노트북 수는 분권 파일까지 더한 것이라 둘의 합과
+#     다르다. ⛔2026-09-17 — the counts that used to be typed here (11 · 8 · 23) were stale;
+#     the current values live only in `outputs/volumes_index.json : _meta`.
 #  VOLUMES 의 논지에 박아 둔 ⟦권수⟧·⟦권수-1⟧ 자리를 여기서 채운다.
 # --------------------------------------------------------------------------- #
 def _trunk_nos() -> list[str]:
@@ -429,6 +437,133 @@ def _companions(parent: str) -> list[dict]:
         d["no"], d["parent"] = no, parent
         out.append(d)
     return out
+
+# --------------------------------------------------------------------------- #
+#  ⭐The one rebuild order (2026-09-17)
+#    Every rebuild recipe is generated from REBUILD_ORDER: the map section's 재현 block and
+#    reports/README.md (this file), `outputs/volumes_index.json` (`_meta.order`, `rebuild`,
+#    `notes.rebuild`), the root README (`src/make_readme.py`) and docs/REPRODUCE.md
+#    (`src/make_reports_index.py`). Before this there were three hand-written recipes and none
+#    was complete and runnable: docs/REPRODUCE.md skipped this script and every external
+#    builder; the root README, reports/README.md, the map section and docs/REPORTS_VOLUMES.md skipped
+#    make_reports_index and listed the chamber builder, which stops without
+#    SIONNA_ALLOW_CHAMBER=1 and would bring an archived report back into reports/; none of them
+#    listed the builders of volume 12 and the A volume.
+#    Each step was run on 2026-09-17 (CPU only) and exited 0.
+#    `path` is the PYTHONPATH the step's own docstring asks for; `lead` is printed next to it.
+#    External builders get their `lead` from EXTERNAL/COMPANIONS (`_step_files`), so file names
+#    are not typed twice. The import-time check below fails the build if a volume file has a
+#    builder that is not in this list, or if a listed script is not on disk.
+# --------------------------------------------------------------------------- #
+PART_STEP = "src/build_partNN_*.py"
+REBUILD_ORDER = [
+    dict(step=PART_STEP, path="src",
+         lead="조각 빌더 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장)"),
+    dict(step="src/make_report08_microdoppler.py", path="src"),
+    dict(step="src/make_report07b_bistatic.py", path="src"),
+    dict(step="src/build_report18_switch_grid.py", path="src:benchmark"),
+    dict(step="src/build_report12_outdoor.py", path="src:benchmark"),
+    dict(step="benchmark/build_atlas_toc.py", path="src",
+         need="그림은 benchmark/build_md_atlas.py 가 먼저 구워 둔 것을 읽고, 이 단계는 "
+              "그림을 다시 굽지 않는다"),
+    dict(step="src/build_volumes.py", path="src",
+         lead="조각 → 권 + 외부 권 후처리 + outputs/volumes_index.json + reports/README.md "
+              "(외부 빌더 뒤에 돈다 — 그 산출물에 절을 덧붙인다)"),
+    dict(step="src/make_reports_index.py", path="src",
+         lead="→ outputs/reports_index.json · docs/REPRODUCE.md · docs/paper/README.md"),
+    dict(step="src/make_readme.py", path="src", lead="→ 루트 README.md (색인을 읽는다)"),
+    dict(step="benchmark/check_report_links.py", path="src",
+         lead="끊긴 링크·그림·출처를 센다 — 종료 코드 = 위반 수"),
+]
+
+#: Builders that stay in src/ but are **not** part of the order.
+REBUILD_ARCHIVED = [
+    dict(step="src/make_report11_2_two_channel.py",
+         why="챔버 편(옛 별편 8-2)은 2026-09-03 에 archive/chamber_0903/ 로 내렸다. "
+             "SIONNA_ALLOW_CHAMBER=1 없이는 멈추고, 그 변수를 주면 그 편이 reports/ 로 "
+             "되살아난다. 돌리지 않는다"),
+]
+
+
+def _step_files(step: str) -> list[str]:
+    """Volume files an external step writes — read from EXTERNAL and COMPANIONS."""
+    out = []
+    for ex in EXTERNAL:
+        main_builder = ex["builder"].split()[0]
+        fb = ex.get("file_builders", {})
+        out += [f for f, _t in ex["files"] if fb.get(f, main_builder) == step]
+    out += [c["file"] for cs in COMPANIONS.values() for c in cs
+            if c.get("file") and c.get("builder") == step]
+    return out
+
+
+def _step_lead(s: dict) -> str:
+    if s.get("lead"):
+        lead = s["lead"]
+    else:
+        files = [os.path.splitext(f)[0] for f in _step_files(s["step"])]
+        lead = "→ reports/" + (files[0] if len(files) == 1
+                               else f"{files[0]} … {files[-1]} ({_kor(len(files))} 편)")
+    if s["step"] == PART_STEP:
+        lead = f"{lead.split(' →')[0]} {len(_part_builders())} 개 →{lead.split('→', 1)[1]}"
+    return lead + (f" — {s['need']}" if s.get("need") else "")
+
+
+def _check_rebuild_order() -> None:
+    steps = [s["step"] for s in REBUILD_ORDER]
+    assert len(steps) == len(set(steps)), "REBUILD_ORDER 에 같은 단계가 두 번 있다"
+    for s in steps[1:] + [a["step"] for a in REBUILD_ARCHIVED]:
+        assert os.path.isfile(os.path.join(_ROOT, s)), f"재빌드 단계 «{s}» 가 디스크에 없다"
+    builders = {ex.get("file_builders", {}).get(f, ex["builder"].split()[0])
+                for ex in EXTERNAL for f, _t in ex["files"]}
+    builders |= {c["builder"] for cs in COMPANIONS.values() for c in cs
+                 if c.get("file") and c.get("builder")}
+    missing = sorted(builders - set(steps))
+    assert not missing, f"권 파일을 내는 빌더가 REBUILD_ORDER 에 없다: {missing}"
+    for b in builders:
+        assert _step_files(b), f"«{b}» 가 내는 권 파일을 찾지 못했다"
+    assert steps.index("src/build_volumes.py") > max(steps.index(b) for b in builders), \
+        "build_volumes.py 는 외부 빌더 뒤에 와야 한다 — 그 산출물에 절을 덧붙인다"
+    assert steps[0] == PART_STEP and steps[-1] == "benchmark/check_report_links.py"
+
+
+_check_rebuild_order()
+
+
+def rebuild_recipe(py: str = "$PY", marks: bool = True) -> list[str]:
+    """The rebuild order as bash lines (comment line + command per step), for every recipe."""
+    circ = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫"
+    L: list[str] = []
+    for i, s in enumerate(REBUILD_ORDER):
+        mark = (circ[i] if i < len(circ) else f"{i + 1}.") if marks else "-"
+        L.append(f"# {mark} {_step_lead(s)}")
+        if s["step"] == PART_STEP:
+            L.append(f'for f in src/build_part*.py; do PYTHONPATH={s["path"]} {py} "$f"; done')
+        else:
+            L.append(f"PYTHONPATH={s['path']} {py} {s['step']}")
+    for a in REBUILD_ARCHIVED:
+        L.append(f"# ⛔ 순서 밖 {a['step']}: {a['why']}")
+    return L
+
+
+#: The current plan and hand-over documents linked from the entry pages (standing user
+#  instruction: the research starts from drone detection and tracking; passive bistatic is one
+#  waveform-benchmark condition — 2026-09-02 and 2026-09-16). The anchor is computed from the
+#  heading on disk so a renamed heading fails the build instead of leaving a dead anchor.
+PLAN_DOC = "docs/MOBICOM_PIPELINE_PLAN_0916.md"
+PLAN_SECTION = "## 9. "
+RESUME_DOC = "docs/RESUME_0917.md"
+
+
+def plan_anchor(prefix: str = "") -> str:
+    """`docs/MOBICOM_PIPELINE_PLAN_0916.md#9-…` — GitHub's slug of the «## 9.» heading."""
+    with open(os.path.join(_ROOT, PLAN_DOC), encoding="utf-8") as f:
+        heads = [ln.strip() for ln in f if ln.startswith(PLAN_SECTION)]
+    assert len(heads) == 1, f"{PLAN_DOC}: «{PLAN_SECTION}» 로 시작하는 제목이 {len(heads)} 개다"
+    slug = re.sub(r"[^\w\s\-]", "", heads[0].lstrip("#").strip().lower(), flags=re.UNICODE)
+    slug = re.sub(r"\s", "-", slug)
+    return f"{prefix}{PLAN_DOC}#{slug}"
+
 
 #: 읽는 경로 ② «왜 믿을 수 있나» — 검증·대조·반증 조각만. (경로 ① 은 각 권의 결론 절이다)
 VERIFY_PARTS = ["01", "04", "05", "21", "22", "26", "27", "28", "29", "33",
@@ -722,7 +857,6 @@ def _section_rule(idx: int, title: str, meta: dict | None = None) -> dict:
 # --------------------------------------------------------------------------- #
 def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
     n_vol = N_VOLUMES                          # 본편 수 — 별편은 아래에서 따로 센다
-    bld = _part_builders()                     # 재현 절차의 «조각 빌더 N 개» 는 디스크에서 센다
     cells: list[dict] = []
 
     cells.append(_cell(
@@ -780,24 +914,20 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "### 재현\n"
         "\n"
         "```bash\n"
-        f"PYTHONPATH=src python src/{bld[0]:<33s}# ① 조각 빌더 {len(bld)} 개\n"
-        f"#  … {bld[1]} … {bld[-1]}\n"
-        "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 6 권 1~4 편\n"
-        "PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 6 권 5 편\n"
-        "PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②\" 별편 8-2\n"
-        "PYTHONPATH=src python src/build_report18_switch_grid.py    # ②\" 별편 5-2\n"
-        "PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권\n"
-        "PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사\n"
-        "```\n"
+        "cd /workspace/sionna\n"
+        "PY=/workspace/.venvs/py312/bin/python\n"
+        + "".join(f"{ln}\n" for ln in rebuild_recipe())
+        + "```\n"
         "\n"
         "| | |\n"
         "|---|---|\n"
         f"| 출력 | `reports/*.ipynb` 본편 {n_vol} 권 · 별편 {_n_companions()} 편 "
         f"(노트북 ⟨{INDEX_REL} : _meta.n_notebooks⟩ 개) · "
         f"`{INDEX_REL}` · `reports/README.md` |\n"
-        "| 소요 | 약 3 초 (GPU 0 장) |\n"
-        "| 비고 | ③ 은 맨 마지막이다 — ② 가 낸 6 권 파일 뒤에 조각을 덧붙이기 때문이다. "
-        "②' 와 ②\" 는 자기 파일만 내므로 ③ 과 순서를 다투지 않는다 |\n"))
+        "| 소요 | `src/build_volumes.py` 만 약 3 초 (GPU 0 장) |\n"
+        "| 비고 | `src/build_volumes.py` 는 외부 빌더 뒤에 돈다 — 외부 빌더가 낸 권 파일 뒤에 "
+        "조각을 덧붙이기 때문이다. 순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 이고, "
+        "이 블록·reports/README.md·루트 README·docs/REPRODUCE.md 가 전부 거기서 생성된다 |\n"))
 
     # ── 처음 여는 사람을 위한 말 풀이 ────────────────────────────────────────
     #   ⭐이 권을 처음 여는 사람은 편성이 아니라 **무엇을 하는 연구인가**를 먼저 묻는다.
@@ -805,8 +935,13 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
     cells.append(_cell(
         "## 처음 여는 사람에게 — 이 연구의 말 다섯\n"
         "\n"
-        "레이더를 우리가 쏘지 않는다. 이동통신 기지국이 늘 내보내는 신호를 빌려, 떨어진 곳에 "
-        "세운 수신기로 드론이 되돌린 메아리를 듣는다. 아래 다섯 낱말이 그 그림의 이름이다.\n"
+        "이 연구의 목표는 드론을 탐지하고 추적하는 것이다. 보고서의 조명원·검출기 권은 그중 "
+        "한 조건에서 세웠다 — 레이더를 우리가 쏘지 않고, 이동통신 기지국이 늘 내보내는 신호를 "
+        "빌려 떨어진 곳에 세운 수신기로 드론이 되돌린 메아리를 듣는 조건이다. 이 조건은 파형 "
+        "벤치마크의 한 갈래이고, 지금의 중심 물음은 "
+        f"[계획서의 중심 물음 절]({plan_anchor('../')}) "
+        "에 있다. 아래 다섯 낱말이 "
+        "이 보고서들의 이름이다.\n"
         "\n"
         "| 말 | 뜻 |\n"
         "|---|---|\n"
@@ -815,9 +950,10 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "모노스태틱이다 |\n"
         "| RCS · σ | 표적이 되돌리는 에코의 세기를 넓이(m²)로 환산한 값. 기체의 모양·재질·보는 "
         "각도가 정한다 |\n"
-        "| 마이크로도플러 | 도는 프로펠러가 에코에 남기는 시간-주파수 무늬. 기종을 가르는 축이 "
-        "이것이다 |\n"
-        "| 탐지 · 분류 | 있나 없나를 정하는 것이 탐지, 어느 기종인가를 정하는 것이 분류다 |\n"))
+        "| 마이크로도플러 | 도는 프로펠러가 에코에 남기는 시간-주파수 무늬. 지금 계획에서는 "
+        "트랙이 드론인지 확인하는 특징으로 쓴다 |\n"
+        "| 탐지 · 추적 | 있나 없나를 정하는 것이 탐지, 시간에 걸쳐 같은 표적의 위치를 잇는 것이 "
+        "추적이다 |\n"))
 
     # ── 본편 표 (두 셀로 나눠 화면에서 읽히게 · 나누는 자리도 권 수에서 센다) ──
     def _vol_rows(nos) -> str:
@@ -1006,8 +1142,9 @@ def _count_xrefs(place: dict[str, dict]) -> int:
 def _write_bootstrap_index(place: dict[str, dict]) -> None:
     """지도 절이 인용할 구조 수치를 **먼저** 원장에 적는다(그 다음 지도를 짓는다)."""
     on_disk = _all_parts_on_disk()
-    #  ⭐«권» 은 본편만 센다(11). 별편 8 편은 따로 세고, 둘을 합친 노트북 수가 23 이다 —
-    #    본편 파일 15(06 권만 분권 5 편) + 별편 8.
+    #  ⭐«권» 은 본편만 센다. 별편은 따로 세고, 노트북 수는 본편 파일(분권이면 그 편 수)과
+    #    별편의 합이다. ⛔2026-09-17 — the counts typed here (11 · 8 · 23 · 15) were stale; the
+    #    values are the `_meta` keys this function writes.
     doc = {"_meta": {
         "n_volumes": len(_trunk_nos()),
         "n_notebooks": (sum(len(_vol_entry(n)["files"]) for n in _trunk_nos())
@@ -1036,14 +1173,15 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
         n_crossrefs_cross_file=stat.get("xref_cross", 0) + stat.get("coderef_cross", 0),
         n_crossrefs_same_file=stat.get("xref_intra", 0) + stat.get("coderef_intra", 0),
         n_partrefs_rewritten=stat.get("buref", 0) + stat.get("buprose", 0),
-        # ⭐순서는 «권을 만드는 명령» 전부다 — 여기 없는 빌더는 README 의 재현 블록에서도
-        #   빠지고, 그러면 reports/README.md 의 순서와 갈린다(같은 절차가 두 곳에서 다르게
-        #   적히는 것이 가장 잦은 어긋남이다). 6-5 와 별편(8-2·5-2)도 권 파일을 내므로
-        #   여기 든다 — 루트 README 는 별편 빌더를 이 목록에서 되찾는다.
-        order=["src/build_partNN_*.py", "src/make_report08_microdoppler.py",
-               "src/make_report07b_bistatic.py", "src/make_report11_2_two_channel.py",
-               "src/build_report18_switch_grid.py",
-               "src/build_volumes.py", "benchmark/check_report_links.py"])
+        # ⭐순서는 «권을 만드는 명령» 전부다 — REBUILD_ORDER 에서 받는다(2026-09-17).
+        #   루트 README 는 별편 빌더를 이 목록에서 되찾는다.
+        order=[s["step"] for s in REBUILD_ORDER])
+    doc["rebuild"] = dict(
+        what="재빌드 순서의 기계용 사본 — 정본은 src/build_volumes.py 의 REBUILD_ORDER 다",
+        order=[dict(step=s["step"], pythonpath=s["path"], lead=_step_lead(s),
+                    files=_step_files(s["step"])) for s in REBUILD_ORDER],
+        archived=[dict(step=a["step"], why=a["why"]) for a in REBUILD_ARCHIVED],
+        bash=rebuild_recipe())
     doc["volumes"] = built
     doc["parts"] = {p: dict(volume=m["vol"], file=m["file"], section=m["sec"],
                             title=titles.get(p, ""),
@@ -1066,11 +1204,9 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
                        f"({', '.join(c['file'] for no in sorted(COMPANIONS) for c in _companions(no))})."
                        if COMPANIONS else ".")),
         "companions": {no: [c["file"] for c in _companions(no)] for no in sorted(COMPANIONS)},
-        "rebuild": (f"① 조각 빌더 {len(_part_builders())} 개 → "
-                    "② src/make_report08_microdoppler.py + "
-                    "src/make_report07b_bistatic.py + src/make_report11_2_two_channel.py + "
-                    "src/build_report18_switch_grid.py → "
-                    "③ src/build_volumes.py → ④ benchmark/check_report_links.py"),
+        "rebuild": (" → ".join(f"{s['step']}" for s in REBUILD_ORDER)
+                    + " (조각 빌더 " + str(len(_part_builders())) + " 개 · ⛔순서 밖: "
+                    + ", ".join(a["step"] for a in REBUILD_ARCHIVED) + ")"),
     }
     with open(INDEX, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
@@ -1081,14 +1217,18 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
     by_no = {b["no"]: b for b in built}
     n_vol = N_VOLUMES
     n_comp = _n_companions()
-    bld = _part_builders()
     L = ["<!-- 생성물 — `src/build_volumes.py` 가 낸다. 손으로 고치지 말고 그 파일을 고쳐라. -->",
          "",
          f"# 리포트 — 본편 {n_vol} 권 · 별편 {n_comp} 편",
          "",
-         "패시브 바이스태틱 드론 탐지 시뮬레이터의 본문이다. **한 권이 물음 하나를 들고, 권 "
-         "제목이 그 물음이다.** 권 안의 절은 각각 «한 일 · 결과 · 방법 · 재현» 을 앞에 달고 "
-         "있어 필요한 절만 따로 읽어도 된다.",
+         # ⛔2026-09-17 — was «패시브 바이스태틱 드론 탐지 시뮬레이터의 본문이다» (see VOLUMES
+         #   01 thesis for the standing instruction this follows).
+         "드론 탐지·추적 연구의 시뮬레이션 보고서다. 셀 신호를 빌리는 패시브 바이스태틱은 파형 "
+         "벤치마크의 한 조건이고, 조명원·검출기 권이 그 조건에서 세운 판이다. 지금의 중심 물음은 "
+         f"[`{PLAN_DOC}` §9]({plan_anchor('../')}) 에, "
+         f"오늘의 작업 상태는 [`{RESUME_DOC}`](../{RESUME_DOC}) 에 있다. "
+         "**한 권이 물음 하나를 들고, 권 제목이 그 물음이다.** 권 안의 절은 각각 «한 일 · 결과 · "
+         "방법 · 재현» 을 앞에 달고 있어 필요한 절만 따로 읽어도 된다.",
          "",
          f"처음이면 [리포트 {_disp(VOLUMES[0][0])} «{VOLUMES[0][2]}»]"
          f"({VOLUMES[0][0]}_{VOLUMES[0][1]}.ipynb) 부터다 — {_kor(n_vol)} "
@@ -1170,17 +1310,13 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
             L.append(f"| `_parts/{_part_file(k)}` | {v} |")
         L.append("")
     L += ["## 다시 만들려면", "",
-          "순서가 중요하다 — ③ 이 ② 의 산출물 뒤에 절을 덧붙이기 때문이다.",
+          "순서가 중요하다 — `src/build_volumes.py` 가 외부 빌더의 산출물 뒤에 절을 덧붙이기 "
+          "때문이다. 아래 순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 다.",
           "",
           "```bash",
-          f"PYTHONPATH=src python src/{bld[0]:<33s}# ① 조각 빌더 {len(bld)} 개",
-          f"#  … {bld[1]} … {bld[-1]}",
-          "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 6 권 1~4 편",
-          "PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 6 권 5 편",
-          "PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②\" 별편 8-2",
-          "PYTHONPATH=src python src/build_report18_switch_grid.py    # ②\" 별편 5-2",
-          "PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권 + 색인 + 이 파일",
-          "PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사",
+          "cd /workspace/sionna",
+          "PY=/workspace/.venvs/py312/bin/python",
+          *rebuild_recipe(),
           "```",
           "",
           f"기계용 색인은 [`{INDEX_REL}`](../{INDEX_REL}), 구조 설명서는 "

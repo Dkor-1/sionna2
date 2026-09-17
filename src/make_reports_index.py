@@ -34,6 +34,9 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 from report_registry import PARTS, REPORTS, REPORT_DIR                   # noqa: E402
+#: ⭐The rebuild order has one source (2026-09-17) — this file used to carry its own copy, which
+#  skipped src/build_volumes.py and the builders of the external volumes.
+from build_volumes import rebuild_recipe                                 # noqa: E402
 
 OUT_INDEX = os.path.join(ROOT, "outputs", "reports_index.json")
 OUT_REPRO = os.path.join(ROOT, "docs", "REPRODUCE.md")
@@ -111,12 +114,10 @@ def write_reproduce(rows: list[dict]) -> None:
          "그 숫자가 사는 편을 아래 표에서 찾아 명령을 그대로 돌린다.", "",
          "```bash", "cd /workspace/sionna",
          "PY=/workspace/.venvs/py312/bin/python", "```", "",
-         "노트북만 다시 조립하려면(계산 없음 · 수 초):", "",
+         "노트북만 다시 조립하려면(계산 없음) 아래 순서대로 돌린다. 순서의 정본은 "
+         "`src/build_volumes.py` 의 `REBUILD_ORDER` 이고, 이 블록은 거기서 생성된다.", "",
          "```bash",
-         "for f in src/build_part*.py; do PYTHONPATH=src $PY \"$f\"; done",
-         "PYTHONPATH=src $PY src/make_reports_index.py     # 색인·이 문서·논문 목차",
-         "PYTHONPATH=src $PY src/make_readme.py            # README",
-         "PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사",
+         *rebuild_recipe(),
          "```", "",
          "기계용 사본은 [`outputs/reports_index.json`](../outputs/reports_index.json) 이다.",
          "부 단위 재현 메모는 [`docs/repro/`](repro/) 에 있다.", "", "---", ""]

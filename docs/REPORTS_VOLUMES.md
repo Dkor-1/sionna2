@@ -36,16 +36,18 @@ reports/
 
 | 지위 | 무엇 | 파일명 | 산문 표기 |
 |---|---|---|---|
-| **본편** (11권) | 전개방향의 독립 서사 박자 하나 | `NN_slug.ipynb` | «리포트 N» |
-| **별편** (8편) | 부모 권의 질문에 대한 답 — 심화·지원·변주 | `NN_K_slug.ipynb` (K≥2) | «리포트 N-K» |
-| **분권** (6권의 5파일) | 그림 무게 때문에 나눈 **한 권의 장** | `06_1`~`06_5` | «리포트 6 (K편)» |
+| **본편** (`_meta.n_volumes`) | 전개방향의 독립 서사 박자 하나 | `NN_slug.ipynb` | «리포트 N» |
+| **별편** (`_meta.n_companions`) | 부모 권의 질문에 대한 답 — 심화·지원·변주 | `NN_K_slug.ipynb` (K≥2) | «리포트 N-K» |
+| **분권** (6권 · A권) | 그림 무게 때문에 나눈 **한 권의 장** | `06_1`~`06_5` · `A_atlas`~`A_atlas_I` | «리포트 6 (K편)» |
 | 조각 | 주제 하나짜리 재료. 숫자는 원장 JSON 주입 | `_parts/NN_slug.ipynb` | (사람이 안 읽음) |
 
 ⭐**분권 ≠ 별편.** `06_1~06_5` 는 base64 그림이 무거워 나눈 한 권의 장이고(나누는 축은
 물음, 무게는 사정), `N_K` 류 별편은 «이 권의 결론이 부모 권의 질문에 대한 답인가» 를 통과한
 권이다. `06_6` 은 분권 `_1~_5` 와의 번호 충돌을 피해 꼬리만 `_6` 을 쓸 뿐 지위는 별편이다.
 **별편의 별편은 없다** — 이 번호 문법은 `build_volumes.py` 의 import 시 assert 가 강제한다
-(`_` 든 번호는 전부 COMPANIONS 에 1회 등재 · 접두=부모 키 · 부모 키에 `_` 없음 · 합계 8).
+(`_` 든 번호는 전부 COMPANIONS 에 1회 등재 · 접두=부모 키 · 부모 키에 `_` 없음 · 합계 = `N_COMPANIONS`).
+⛔2026-09-17 정정 — 이 표와 문단에 손으로 적혀 있던 «본편 11권 · 별편 8편 · 합계 8» 은 낡은 값이었다.
+개수는 `outputs/volumes_index.json` 의 `_meta` 만 센다.
 
 ## 2. 편성표
 
@@ -71,24 +73,28 @@ reports/
 | 층 | 무엇 | 누가 만드나 | 사람이 읽나 |
 |---|---|---|---|
 | **조각** `reports/_parts/NN_slug.ipynb` | 주제 하나짜리 짧은 편. 숫자는 전부 원장 JSON 에서 주입 | `src/build_partNN_*.py` **14개** | ❌ 재료다 |
-| **권** `reports/NN[_K]_slug.ipynb` | 물음 하나에 답하는 문서. 조각을 절로 품는다 | `src/build_volumes.py` (+외부 빌더 4개) | ✅ 이것을 읽는다 |
+| **권** `reports/NN[_K]_slug.ipynb` | 물음 하나에 답하는 문서. 조각을 절로 품는다 | `src/build_volumes.py` (+외부 빌더 — 아래 표) | ✅ 이것을 읽는다 |
 
 `build_volumes.py` 안의 편성 데이터는 셋이다.
 
 | 데이터 | 내용 |
 |---|---|
 | `VOLUMES` | 조각을 조립하는 16권 — 본편 10 (01·02·03·04·05·07·08·09·10·11) + **조립 별편 6** (01_2·02_2·02_3·03_2·06_6·10_2) |
-| `EXTERNAL` | 6 권 분권 5파일 — 다른 빌더가 만들고, 여기서는 주소 후처리만 |
+| `EXTERNAL` | 다른 빌더가 만드는 권 — 6 권 분권 · 12 권 · A 권(도감). 여기서는 주소 후처리만 |
 | `COMPANIONS` | 별편의 {부모: [별편…]} 등재 — 총수는 손으로 적지 않는다. `src/build_volumes.py` 의 `N_COMPANIONS`(같은 파일 assert 가 편성과 어긋나면 빌드를 멈춘다)가 정본이다. 조립 별편 6은 VOLUMES 포인터, 외부 별편 1(05_2)은 빌더 명시. ⛔외부 별편 08_2 는 2026-09-03 에 편성에서 내려 `archive/chamber_0903/` 로 옮겼다 — 이유는 §2 참조, **그 안의 수는 인용하지 않는다** |
 
-외부 빌더 4개 (⭐스크립트 이름의 숫자는 **역사 층**이라 개명하지 않는다 — 산출물 번호가 정본):
+외부 빌더 (⭐스크립트 이름의 숫자는 **역사 층**이라 개명하지 않는다 — 산출물 번호가 정본).
+목록의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 다 — 권 파일을 내는 빌더가 거기 빠지면
+import 때 assert 가 빌드를 멈춘다(2026-09-17).
 
 | 빌더 | 산출 |
 |---|---|
 | `src/make_report08_microdoppler.py` | `06_1_scene` ~ `06_4_sampling` |
 | `src/make_report07b_bistatic.py` | `06_5_bistatic` |
-| `src/make_report11_2_two_channel.py` | ⛔`08_2_two_channel` (별편 8-2) — **산출물은 2026-09-03 에 `archive/chamber_0903/` 로 내려갔다**(§2 와 같은 이유). 빌더만 `src/` 에 남아 있고, 그 판의 수는 인용하지 않는다 |
 | `src/build_report18_switch_grid.py` | `05_2_switch-grid` (별편 5-2) |
+| `src/build_report12_outdoor.py` | `12_outdoor-scene` |
+| `benchmark/build_atlas_toc.py` | `A_atlas` ~ `A_atlas_I` (그림은 `benchmark/build_md_atlas.py` 가 먼저 굽는다) |
+| ⛔`src/make_report11_2_two_channel.py` | **순서 밖.** 옛 `08_2_two_channel`(별편 8-2)은 2026-09-03 에 `archive/chamber_0903/` 로 내려갔다(§2 와 같은 이유). 빌더만 `src/` 에 남아 있고 `SIONNA_ALLOW_CHAMBER=1` 없이는 멈춘다 — 돌리지 않고, 그 판의 수는 인용하지 않는다 |
 
 ⭐ **분량 상한은 두지 않는다.** 옛 셀 수 상한(`report_style.MAX_MD_CELLS`)은 폐지됐고(`None`),
 새 상한도 만들지 않는다. 권의 길이는 그 권이 답하는 물음의 크기가 정한다.
@@ -102,7 +108,7 @@ reports/
 | **각주 재번호** | 조각마다 `[^1]` 부터 다시 센다. 이을 때 앞까지의 최대 번호만큼 밀어 정의와 인용을 함께 옮긴다 |
 | **상호참조 재배선** | 조각 본문의 «편 NN» 주소를 배치표에서 찾아 권 주소로 고친다 (아래 규칙) |
 | **머리말** | 부모 권 머리에는 딸린 별편 안내를, 별편 머리에는 «이 편은 리포트 P 의 **별편**이다» 부모 선언을 쓴다 |
-| **지도 권 생성** | 1 권의 절 1(열한 권의 지도·환산표·읽기 경로)은 조각이 아니라 이 스크립트가 짓는다 |
+| **지도 권 생성** | 1 권의 절 1(본편 전 권의 지도·환산표·읽기 경로)은 조각이 아니라 이 스크립트가 짓는다 |
 | **6 권 후처리** | 외부 빌더가 낸 분권 주소를 고치고, 옛 부 7 조각(34~39)을 `06_3_pattern.ipynb` 뒤에 절로 덧붙인다 |
 | **색인·목차** | `outputs/volumes_index.json` 과 `reports/README.md`. 색인 권 항목에 `kind`("trunk"/"companion")·`parent`·`no_disp` |
 
@@ -146,7 +152,7 @@ reports/
 |---|---|---|
 | 절의 본문·숫자·각주 | 그 조각을 만든 `src/build_partNN_*.py` | ⛔ `reports/_parts/*.ipynb` · ⛔ `reports/*.ipynb` |
 | 권 구성·순서·제목·논지·별편 배속 | `src/build_volumes.py` 의 `VOLUMES`·`COMPANIONS` | ⛔ 권 노트북 |
-| 6 권 분권·별편 8-2·5-2 의 본문 | 위 §3 외부 빌더 4개 | ⛔ 해당 `reports/*.ipynb` |
+| 6 권 분권·12 권·A 권·별편 5-2 의 본문 | 위 §3 외부 빌더 | ⛔ 해당 `reports/*.ipynb` |
 | 목차·색인 | `src/build_volumes.py` (루트 README 는 `src/make_readme.py`) | ⛔ `reports/README.md` · ⛔ `outputs/volumes_index.json` |
 
 조각이나 권을 손으로 고치면 **다음 빌드에서 조용히 사라진다.** 사라지지 않더라도 더 나쁘다 —
@@ -154,30 +160,29 @@ reports/
 
 ## 7. 다시 만드는 절차
 
-순서가 중요하다. ③ 이 ② 의 산출물 뒤에 절을 덧붙이기 때문이다.
+⭐순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 다(2026-09-17). 그 순서는 손으로 옮겨 적지
+않고 네 곳에 **생성**된다 — 루트 [`README.md`](../README.md) «다시 만들기» ·
+[`reports/README.md`](../reports/README.md) «다시 만들려면» · 1 권 절 1 의 재현 블록 ·
+[`REPRODUCE.md`](REPRODUCE.md). 기계용 사본은 `outputs/volumes_index.json` 의 `rebuild` 다.
+지금 순서를 찍으려면:
 
 ```bash
-# ① 조각 빌더 14 개  → reports/_parts/NN_slug.ipynb
-PYTHONPATH=src python src/build_part00_map.py
-#  … build_part01_stock_engine.py … build_part13_engine_physics.py
-
-# ② 외부 빌더 4 개    → 06_1~06_4 / 06_5 / 08_2 / 05_2
-PYTHONPATH=src python src/make_report08_microdoppler.py
-PYTHONPATH=src python src/make_report07b_bistatic.py
-PYTHONPATH=src python src/make_report11_2_two_channel.py
-PYTHONPATH=src python src/build_report18_switch_grid.py
-
-# ③ 조각 → 권         → 본편 10 + 조립 별편 6 + 6 권 후처리 + 색인 + reports/README.md
-PYTHONPATH=src python src/build_volumes.py
-
-# ④ 루트 README
-PYTHONPATH=src python src/make_readme.py
-
-# ⑤ 검사
-PYTHONPATH=src python benchmark/check_report_links.py
+cd /workspace/sionna
+PYTHONPATH=src /workspace/.venvs/py312/bin/python -c \
+    "import build_volumes as B; print(chr(10).join(B.rebuild_recipe()))"
 ```
 
-②가 아직 없으면 ③ 은 후처리를 **조용히 건너뛰고 경고만** 찍는다 — 빌드가 죽지 않는다.
+순서의 뼈대는 이렇다 — 조각 빌더 → 외부 빌더(6 권 · 별편 5-2 · 12 권 · A 권) →
+`src/build_volumes.py` → `src/make_reports_index.py` → `src/make_readme.py` →
+`benchmark/check_report_links.py`. `src/build_volumes.py` 가 외부 빌더 뒤에 오는 것은 그 산출물 뒤에
+절을 덧붙이기 때문이다. ⛔`src/make_report11_2_two_channel.py` 는 순서 밖이다(§3).
+
+⛔2026-09-17 정정 — 여기 적혀 있던 절차는 챔버 빌더를 ② 에 넣고, `src/make_reports_index.py` 와
+12 권 · A 권 빌더를 빠뜨렸다. 같은 절차의 손 사본이 이 문서 밖에도 여럿(`docs/REPRODUCE.md` ·
+`reports/README.md` · 1 권 절 1) 있었고 어느 것도 완전하지 않았다.
+
+외부 빌더의 산출물이 아직 없으면 `src/build_volumes.py` 는 후처리를 **조용히 건너뛰고 경고만** 찍는다 —
+빌드가 죽지 않는다.
 
 ## 8. 검사에서 무엇을 보나
 

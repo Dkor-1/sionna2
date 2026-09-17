@@ -99,6 +99,19 @@ _P3_DROP_RATIO_TXT = (f"{_P3_DROP_RATIO:.1f} 배 ⟨{P3V1} : "
                       f"slope.ours_slope_robustness.drop_both_endpoints → "
                       f"Das 공표 기울기로 나눈 배수⟩")
 
+#: ⛔2026-09-17 — the Phantom 3 σ ledger has no preserved generator. Earlier editions printed
+#  `p3_ours.py` as a runnable command; that script is not on disk or in git history, and the
+#  ledger (written the day before that name first appears in git) records only its caller.
+#  The closest rerun is benchmark/p3_ours_v2.py, which is a different ledger (v2 mesh, el
+#  0 only). Date, caller and elevations are read from the two ledgers, not typed here.
+_P3O_DATE = str(fetch((P3O, "meta.generated")))[:10]
+_P3O_CALLER = str(fetch((P3O, "meta.caller"))).split()[0]
+_P3O2_ELS = " · ".join(f"{float(e):g}" for e in fetch((P3O2, "meta.els_deg")))
+_P3O_NO_GENERATOR = (f"생성 스크립트는 보존되지 않았다 — 원장 {_P3O_DATE} · 호출자 "
+                     f"`{_P3O_CALLER}`")
+_P3O_CLOSEST = (f"가장 가까운 재실행은 `benchmark/p3_ours_v2.py`(el {_P3O2_ELS} · v2 메쉬)이고, "
+                f"그 산출은 별도 원장 `{P3O2}` 이다")
+
 _DERIVE = "PYTHONPATH=src python src/make_report02_target.py --derive-only"
 _MESHFIX = f"{_n('_meta.date', MFX)} 형상 정정"
 _GAMMA_AXIS = (f"{_n('_meta.generated', AGI)} Γ(θ) 각도 모양(기본 켬) 이전 커널의 산출"
@@ -419,7 +432,7 @@ def report_26_blind_p3():
                 f"같은 창 "
                 f"{_n('slope.das_published.band[0]', P3V1, '{:.1f}')}~"
                 f"{_n('slope.das_published.band[1]', P3V1, '{:.1f}', 'GHz')} 에서 우리 커널로 "
-                f"돌렸다(`benchmark/p3_ours.py`, "
+                f"돌렸다({_P3O_NO_GENERATOR}, "
                 f"{_n('meta.runtime_s_total_process', P3O, '{:,.0f}', 's')}).",
 
                 f"우리 el=0 전대역 기울기는 "
@@ -463,18 +476,21 @@ def report_26_blind_p3():
                            "나온 그대로다"),
                 ("독립성", "Das 의 Phantom 3 행은 Yuan 원자료의 재분석이라 독립 2건이 아니다"),
             ],
-            repro=_repro(["PYTHONPATH=src python benchmark/p3_ours.py",
+            repro=_repro([f"# ⛔ {P3O}: {_P3O_NO_GENERATOR.replace('`', '')}. "
+                          f"{_P3O_CLOSEST.replace('`', '')}",
                           "PYTHONPATH=src python benchmark/p3_validation.py"],
                          [P3O, P3V1, LFA, LFK],
-                         "약 4시간 (GPU 1장 — 전대역 σ 를 다시 낸다)",
-                         "이 절의 표 네 행은 전부 v1 메쉬 산출이다 — v2 는 다음 편이 잇는다"),
+                         "원 계산은 다시 낼 명령이 없다(그 원장의 프로세스 시간 합은 결과 첫 줄에 "
+                         "있다) · `benchmark/p3_validation.py` 의 소요는 미측정",
+                         f"이 절의 표 네 행은 전부 v1 메쉬 산출이다 — v2 는 다음 편이 잇는다. "
+                         f"`{P3O}` 은 다시 낼 명령이 없다 — 명령 칸 첫 줄 주석이 그 사정이다"),
         ),
 
         md("## 무엇을 눈감고 냈나", "",
            f"앵커 기체와 같은 기체(DJI Phantom 3)를 같은 창 "
            f"{_n('slope.das_published.band[0]', P3V1, '{:.1f}')}~"
            f"{_n('slope.das_published.band[1]', P3V1, '{:.1f}', 'GHz')} 에서 우리 커널로 돌렸다"
-           f"(`benchmark/p3_ours.py`, "
+           f"({_P3O_NO_GENERATOR}, "
            f"{_n('meta.runtime_s_total_process', P3O, '{:,.0f}', 's')}). σ 계산 프로세스는 문헌 "
            f"상수 파일을 열지 않았고 봉인은 별도 스크립트가 풀었다. ⛔ 다만 «문헌 상수를 한 번도 "
            f"읽지 않았다» 는 라벨은 2026-09-04 에 취소됐다 — 같은 라운드의 docs grep 출력에 "
@@ -544,7 +560,7 @@ def report_26_blind_p3():
         next_steps([
             ("v2 메쉬로 같은 눈감기 대조를 다시 봉인해 돌린다",
              "형상 개선이 두 스칼라를 어느 방향으로 옮기는지가 사전등록 아래에서 확정된다",
-             "`benchmark/p3_ours.py` → " + ref("box-sphere-control", short=True)),
+             "`benchmark/p3_ours_v2.py` → " + ref("box-sphere-control", short=True)),
             ("편파를 가르는 커널로 같은 창을 다시 낸다",
              "낙차의 부호가 개연성에서 값으로 바뀐다",
              ref("kernel-open-items", short=True)),

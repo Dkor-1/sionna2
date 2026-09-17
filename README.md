@@ -1,12 +1,20 @@
 <!-- 생성물 — `src/make_readme.py` 가 편성에서 읽어 쓴다. 손으로 고치지 말고 그 파일을 고쳐라. -->
 
-# sionna2 — 통신신호를 조명원 삼는 패시브 바이스태틱 드론 탐지 시뮬레이터
+# sionna2 — 드론 탐지·추적을 위한 전파·산란 시뮬레이션
 
-셀이 이미 켜 두는 상시 신호(WiFi · LTE · 5G NR)를 조명 삼아 드론을 탐지하는 패시브
-바이스태틱 레이더를, Sionna RT 2.0.1 위에서 자유공간 기하로 끝까지 시뮬레이션한다(2026-09-14 전까지의 판이다. 그 뒤 설치된 판은 2.1.0 이고, 그 판으로 구운 샤드는 이름에 `_rt210` 이 붙는다 — `runners/SOLVER_BUILDS.json`).
+이 저장소의 목표는 **드론을 탐지하고 추적**하는 것이다. 표적 산란과 전파 경로를 계산해
+안테나 배치 · 파형 · 검출기를 시뮬레이션으로 먼저 따져 본다. 셀이 이미 켜 두는 신호
+(WiFi · LTE · 5G NR)를 빌리는 패시브 바이스태틱은 **파형 벤치마크의 한 조건**으로 다루고,
+아래 보고서의 조명원 · 검출기 권이 그 조건에서 세운 판이다.
+
+지금의 중심 물음은 [`docs/MOBICOM_PIPELINE_PLAN_0916.md` §9](docs/MOBICOM_PIPELINE_PLAN_0916.md#9-central-question-and-evaluation-contract) 에 있다 — 장소별 광선추적 트윈으로 고른 안테나 배치 · 지향이, 같은 교정 예산의 기하 규칙이나 실측 탐색보다, 트윈이 보지 않은 비행 · 날짜에서 추적 연속성을 높이는가. 오늘의 작업 상태와 인계는 [`docs/RESUME_0917.md`](docs/RESUME_0917.md) 다.
+
 표적 산란은 Sionna 의 Mitsuba/OptiX 광선엔진으로 면별 가림을 풀고 그 조명면 위에서
-부품별 재질 PO 를 적분해 만든다. σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고,
-**자세 패턴과 절대 레벨은 우리 PO 출력**이다.
+부품별 재질 PO 를 적분해 만든다(우리 커널). σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고,
+**자세 패턴과 절대 레벨은 우리 PO 출력**이다. 엔진의 역할은 `AGENTS.md` «Engine roles» 가
+정한다 — 우리 커널은 자유공간에서 PathSolver 설정을 가늠하는 기준이고, 환경이 든 장면은
+PathSolver 로 돌린다. 설치본은 2026-09-14 전까지 Sionna RT 2.0.1 이었고 그 뒤 2.1.0 이다 —
+2.1.0 으로 구운 샤드는 이름에 `_rt210` 이 붙고, 판 꼬리표 장부는 `runners/SOLVER_BUILDS.json` 이다.
 
 보고서는 **본편 13권 · 별편 7편 · 절 102개** 다. **한 권이 물음 하나를 들고, 절 제목이 그 절의
 결론 문장**이다 — 목차를 읽는 것이 결론을 읽는 것이다. 사람이 읽는 문서는
@@ -19,6 +27,8 @@
 
 | 무엇을 하려는가 | 어디로 | 얼마나 |
 |---|---|---|
+| 지금 무엇을 묻고 있는지 알고 싶다 | [`docs/MOBICOM_PIPELINE_PLAN_0916.md` §9](docs/MOBICOM_PIPELINE_PLAN_0916.md#9-central-question-and-evaluation-contract) — 중심 물음과 평가 계약 | — |
+| 오늘 어디까지 왔고 무엇이 남았는지 알고 싶다 | [`docs/RESUME_0917.md`](docs/RESUME_0917.md) — 인계 문서 | — |
 | 이 저장소가 무엇을 해냈는지만 알고 싶다 | ↓ **① 빨리 훑기** | 30분 |
 | 판정을 검사하려 한다(심사·적대검증) | ↓ **② 왜 믿을 수 있나** | 2시간 |
 | 숫자를 재생산하려 한다 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) — 명령 → 출력 → 소요 | 리포트를 안 읽는다 |
@@ -40,7 +50,7 @@
 | [6 «마이크로도플러 — 도는 로터가 남기는 무늬»](reports/06_1_scene.ipynb) | [절 3](reports/06_3_pattern.ipynb) | 두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다 |
 | [7 «무엇을 조명원으로 쓸 수 있나»](reports/07_illuminators.ipynb) | [절 3](reports/07_illuminators.ipynb) | 여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다 |
 | [8 «처리 사슬 — 직접파를 죽이고 표적을 세운다»](reports/08_detector.ipynb) | [절 3](reports/08_detector.ipynb) | 실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다 |
-| [9 «관측가능성과 기하 — 어디에 서야 보이나»](reports/09_observability.ipynb) | [절 1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다 |
+| [9 «관측가능성과 기하 — 어디에 서야 보이나»](reports/09_observability.ipynb) | [절 1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창 3 s 를 누적하면 등속 6상태의 국소 랭크가 6 이 된다 |
 | [10 «결과 — 얼마나 멀리서 보이나»](reports/10_results.ipynb) | [절 2](reports/10_results.ipynb) | 가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다 |
 | [11 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](reports/11_measurement.ipynb) | [절 6](reports/11_measurement.ipynb) | 캠페인이 결판내는 양은 절대값이 아니라 순위다 |
 
@@ -94,12 +104,12 @@
 
 | 권 | 이 권이 답하는 물음 | 절 | 그림 |
 |---|---|---|---|
-| [1 «이 연구가 묻는 것과 답한 방식»](#권-1-이-연구가-묻는-것과-답한-방식) | 패시브 바이스태틱으로 드론을 탐지하고 마이크로도플러로 분류하는 것이 태스크이고, RCS 는 그 인프라다. 이 권은 나머지 열두… | 3 | 1 |
+| [1 «이 연구가 묻는 것과 답한 방식»](#권-1-이-연구가-묻는-것과-답한-방식) | 드론을 탐지하고 추적하는 것이 이 연구의 목표이고, 표적 산란(RCS)과 전파 경로 계산은 그 인프라다. 셀 신호를 빌리는 패시… | 3 | 1 |
 | [2 «우리 커널 — 무엇이고, 무엇이 아닌가»](#권-2-우리-커널--무엇이고-무엇이-아닌가) | SBR + 물리광학이 무엇을 계산하고 무엇을 계산하지 않는지를 정의하고, 해석해가 있는 과녁(구·평판·이면각)으로 잰다. | 6 | 2 |
 | [3 «σ 를 무엇에 붙들어 매나»](#권-3-σ-를-무엇에-붙들어-매나) | 우리 σ 의 절대 레벨을 붙드는 것은 공개 문헌 한 기체·한 실험실뿐이다. 그 끈의 장력을 재고, 끊어질 자리를 먼저 적는다. | 6 | 2 |
 | [4 «앙각 커버리지 — 어느 각도까지 유효한가»](#권-4-앙각-커버리지--어느-각도까지-유효한가) | 관측 앙각을 0° 에서 −90° 까지 내리며 같은 표적을 재면, 커버리지를 정하는 것은 표적이 아니라 우리가 고른 분석 대역과… | 5 | 9 |
 | [5 «엔진의 물리 스위치 — 켜면 무엇이 달라지나»](#권-5-엔진의-물리-스위치--켜면-무엇이-달라지나) | 스톡 PathSolver 의 굴절·회절·모서리회절·다중반사를 하나씩 켜서 무엇이 결과를 만들었는지 귀속한다. 나딧에서 레벨을 6… | 5 | 6 |
-| [6 «마이크로도플러 — 도는 로터가 남기는 무늬»](#권-6-마이크로도플러--도는-로터가-남기는-무늬) | 호버링하는 드론은 제자리에 있지만 프로펠러는 돈다. 그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이다. 그림이 무거워… | 6 | 21 |
+| [6 «마이크로도플러 — 도는 로터가 남기는 무늬»](#권-6-마이크로도플러--도는-로터가-남기는-무늬) | 호버링하는 드론은 제자리에 있지만 프로펠러는 돈다. 이 권은 그 회전이 남기는 시간-주파수 무늬를 본다 — 지금 계획에서는 트랙… | 6 | 21 |
 | [7 «무엇을 조명원으로 쓸 수 있나»](#권-7-무엇을-조명원으로-쓸-수-있나) | LTE·5G·WiFi 가 각각 얼마나 자주, 얼마나 넓게 신호를 내주는가. 5G 는 대역이 넓은 대신 상시 신호가 드물어 이중고… | 7 | 7 |
 | [8 «처리 사슬 — 직접파를 죽이고 표적을 세운다»](#권-8-처리-사슬--직접파를-죽이고-표적을-세운다) | ECA 로 직접파를 지우고 CFAR 로 문턱을 세운다. 문턱을 어디에 두느냐가 결과를 정하므로 그 교정을 먼저 적는다. | 4 | 5 |
 | [9 «관측가능성과 기하 — 어디에 서야 보이나»](#권-9-관측가능성과-기하--어디에-서야-보이나) | 송신기·수신기·표적의 배치가 검출을 정한다. 볼 수 없는 자리를 먼저 지도로 그리고, 그 다음에 거리를 말한다. | 4 | 4 |
@@ -124,7 +134,7 @@
 
 ### 권 1 «이 연구가 묻는 것과 답한 방식»
 
-패시브 바이스태틱으로 드론을 **탐지하고 마이크로도플러로 분류**하는 것이 태스크이고, RCS 는 그 인프라다. 이 권은 나머지 열두 권과 거기 딸린 별편들의 지도다.
+드론을 **탐지하고 추적**하는 것이 이 연구의 목표이고, 표적 산란(RCS)과 전파 경로 계산은 그 인프라다. 셀 신호를 빌리는 패시브 바이스태틱은 파형 벤치마크의 한 조건으로 다룬다. 이 권은 나머지 열두 권과 거기 딸린 별편들의 지도다.
 
 → [`reports/01_map.ipynb`](reports/01_map.ipynb)
 
@@ -276,7 +286,7 @@ SBR + 물리광학이 무엇을 계산하고 무엇을 **계산하지 않는지*
 
 ### 권 6 «마이크로도플러 — 도는 로터가 남기는 무늬»
 
-호버링하는 드론은 제자리에 있지만 **프로펠러는 돈다**. 그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이다. 그림이 무거워 **다섯 편**으로 나뉜다.
+호버링하는 드론은 제자리에 있지만 **프로펠러는 돈다**. 이 권은 그 회전이 남기는 시간-주파수 무늬를 본다 — 지금 계획에서는 트랙이 드론인지 확인하는 특징으로 쓴다. 그림이 무거워 **다섯 편**으로 나뉜다.
 
 → [`reports/06_1_scene.ipynb`](reports/06_1_scene.ipynb)
 
@@ -357,7 +367,7 @@ ECA 로 직접파를 지우고 CFAR 로 문턱을 세운다. **문턱을 어디�
 
 | 절 | 이 절의 결론 |
 |---|---|
-| [1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다 |
+| [1](reports/09_observability.ipynb) | 한 순간의 (R_b, f_d) 는 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창 3 s 를 누적하면 등속 6상태의 국소 랭크가 6 이 된다 |
 | [2](reports/09_observability.ipynb) | TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다 |
 | [3](reports/09_observability.ipynb) | 세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다 |
 | [4](reports/09_observability.ipynb) | 자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다 |
@@ -462,33 +472,43 @@ R90 과 순위가 이 연구의 정량 결론이다. 적분시간·잔류·σ �
 
 순서가 중요하다 — 뒤 단계가 앞 단계의 산출물을 읽는다.
 
+순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 이고, 이 블록 · [`reports/README.md`](reports/README.md) · [`docs/REPRODUCE.md`](docs/REPRODUCE.md) 가 전부 거기서 생성된다.
+
 ```bash
 cd /workspace/sionna
 PY=/workspace/.venvs/py312/bin/python
 
-# ① 조각 빌더 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장 · 수 초)
+# ① 조각 빌더 14 개 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장)
 for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done
 
-# ② 그림이 무거워 여러 편으로 나뉘는 권을 따로 짓는다
+# ② → reports/06_1_scene … 06_4_sampling (네 편)
 PYTHONPATH=src $PY src/make_report08_microdoppler.py
 
-# ③ 그 권의 마지막 편(바이스태틱)은 빌더가 따로다
+# ③ → reports/06_5_bistatic
 PYTHONPATH=src $PY src/make_report07b_bistatic.py
 
-# ④ 권에 딸린 별편 — 자기 파일만 낸다
-PYTHONPATH=src $PY src/make_report11_2_two_channel.py
+# ④ → reports/05_2_switch-grid
+PYTHONPATH=src:benchmark $PY src/build_report18_switch_grid.py
 
-# ⑤ 권에 딸린 별편 — 자기 파일만 낸다
-PYTHONPATH=src $PY src/build_report18_switch_grid.py
+# ⑤ → reports/12_outdoor-scene
+PYTHONPATH=src:benchmark $PY src/build_report12_outdoor.py
 
-# ⑥ 조각 → 권 + 후처리 + 색인 + reports/README.md
+# ⑥ → reports/A_atlas … A_atlas_I (열 편) — 그림은 benchmark/build_md_atlas.py 가 먼저 구워 둔 것을 읽고, 이 단계는 그림을 다시 굽지 않는다
+PYTHONPATH=src $PY benchmark/build_atlas_toc.py
+
+# ⑦ 조각 → 권 + 외부 권 후처리 + outputs/volumes_index.json + reports/README.md (외부 빌더 뒤에 돈다 — 그 산출물에 절을 덧붙인다)
 PYTHONPATH=src $PY src/build_volumes.py
 
-# ⑦ 끊긴 링크·그림·출처를 전수로 센다
+# ⑧ → outputs/reports_index.json · docs/REPRODUCE.md · docs/paper/README.md
+PYTHONPATH=src $PY src/make_reports_index.py
+
+# ⑨ → 루트 README.md (색인을 읽는다)
+PYTHONPATH=src $PY src/make_readme.py
+
+# ⑩ 끊긴 링크·그림·출처를 센다 — 종료 코드 = 위반 수
 PYTHONPATH=src $PY benchmark/check_report_links.py
 
-# 이 README (색인을 읽어 목차를 다시 낸다)
-PYTHONPATH=src $PY src/make_readme.py
+# ⛔ 순서 밖 src/make_report11_2_two_channel.py: 챔버 편(옛 별편 8-2)은 2026-09-03 에 archive/chamber_0903/ 로 내렸다. SIONNA_ALLOW_CHAMBER=1 없이는 멈추고, 그 변수를 주면 그 편이 reports/ 로 되살아난다. 돌리지 않는다
 
 # 숫자 자체를 다시 낸다 (GPU) — 어느 절의 어느 명령인지는 docs/REPRODUCE.md 에
 PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --list
@@ -502,7 +522,7 @@ PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py
 | `_rt210` 없는 샤드의 판 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 — 판 꼬리표 장부는 `runners/SOLVER_BUILDS.json` |
 | 설치 목록 | ⚠잠금 파일(requirements/lock)은 없다. 새 환경을 이 목록만으로 똑같이 짓는 절차는 아직 적혀 있지 않다 |
 | 노트북 커널 | `py312` |
-| 실행 규약 | `PYTHONPATH=src:benchmark` 를 반드시 준다 |
+| 실행 규약 | 위 재빌드 순서는 스크립트마다 그 머리말이 적은 `PYTHONPATH` 를 쓴다. 숫자를 다시 내는 `benchmark/` 스크립트에는 `PYTHONPATH=src:benchmark` 를 준다 |
 
 ## 하우스 규약
 
@@ -532,8 +552,9 @@ src/
   build_volumes.py           ⭐조각 → 권 + 색인 + reports/README.md
   make_report08_microdoppler.py  6권 5편 중 주 빌더 (그림이 무거워 따로 짓는다)
   make_report07b_bistatic.py     6권의 나머지 한 편
-  make_report11_2_two_channel.py  권 파일을 짓는다
   build_report18_switch_grid.py  별편 5-2 — 자기 파일만 낸다
+  build_report12_outdoor.py      12권 파일을 짓는다
+  make_reports_index.py      색인 outputs/reports_index.json · docs/REPRODUCE.md · 논문 목차
   make_readme.py             이 파일을 만든다
   report_style.py            규약 강제(num()·각주·부정문 계수)
   report_registry.py         앵커 사전 — 조각 사이 링크의 유일한 출처

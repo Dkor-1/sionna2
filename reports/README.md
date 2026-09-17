@@ -2,7 +2,7 @@
 
 # 리포트 — 본편 13 권 · 별편 7 편
 
-패시브 바이스태틱 드론 탐지 시뮬레이터의 본문이다. **한 권이 물음 하나를 들고, 권 제목이 그 물음이다.** 권 안의 절은 각각 «한 일 · 결과 · 방법 · 재현» 을 앞에 달고 있어 필요한 절만 따로 읽어도 된다.
+드론 탐지·추적 연구의 시뮬레이션 보고서다. 셀 신호를 빌리는 패시브 바이스태틱은 파형 벤치마크의 한 조건이고, 조명원·검출기 권이 그 조건에서 세운 판이다. 지금의 중심 물음은 [`docs/MOBICOM_PIPELINE_PLAN_0916.md` §9](../docs/MOBICOM_PIPELINE_PLAN_0916.md#9-central-question-and-evaluation-contract) 에, 오늘의 작업 상태는 [`docs/RESUME_0917.md`](../docs/RESUME_0917.md) 에 있다. **한 권이 물음 하나를 들고, 권 제목이 그 물음이다.** 권 안의 절은 각각 «한 일 · 결과 · 방법 · 재현» 을 앞에 달고 있어 필요한 절만 따로 읽어도 된다.
 
 처음이면 [리포트 1 «이 연구가 묻는 것과 답한 방식»](01_map.ipynb) 부터다 — 열세 권의 지도와 읽는 경로 셋이 거기 있다.
 
@@ -10,15 +10,15 @@
 
 | 권 | 이 권이 답하는 물음 | 절 | 한 절만 읽는다면 |
 |---|---|---|---|
-| [1 «이 연구가 묻는 것과 답한 방식»](01_map.ipynb) | 패시브 바이스태틱으로 드론을 탐지하고 마이크로도플러로 분류하는 것이 태스크이고, RCS 는 그 인프라다. 이… | 3 | [절 3 «주장마다 판정 범위를 결판·사슬확인·캠페인 밖으로 적었다»](01_map.ipynb) |
+| [1 «이 연구가 묻는 것과 답한 방식»](01_map.ipynb) | 드론을 탐지하고 추적하는 것이 이 연구의 목표이고, 표적 산란(RCS)과 전파 경로 계산은 그 인프라다. 셀… | 3 | [절 3 «주장마다 판정 범위를 결판·사슬확인·캠페인 밖으로 적었다»](01_map.ipynb) |
 | [2 «우리 커널 — 무엇이고, 무엇이 아닌가»](02_kernel.ipynb) | SBR + 물리광학이 무엇을 계산하고 무엇을 계산하지 않는지를 정의하고, 해석해가 있는 과녁(구·평판·이면각)… | 6 | [절 4 «해석 PO 구 대비 구현오차는 kr 전 구간에서 λ/16 격자 0.201 dB · 생산 λ/12 격자 0.254 dB 안이다»](02_kernel.ipynb) |
 | [3 «σ 를 무엇에 붙들어 매나»](03_anchor.ipynb) | 우리 σ 의 절대 레벨을 붙드는 것은 공개 문헌 한 기체·한 실험실뿐이다. 그 끈의 장력을 재고, 끊어질 자리… | 6 | [절 1 «σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 SBR+PO 커널(B) 출력이다»](03_anchor.ipynb) |
 | [4 «앙각 커버리지 — 어느 각도까지 유효한가»](04_elevation-coverage.ipynb) | 관측 앙각을 0° 에서 −90° 까지 내리며 같은 표적을 재면, 커버리지를 정하는 것은 표적이 아니라 우리가… | 5 | [절 2 «−75° 에서 추적 대역 몫은 고정 대역보다 38.55 dB 크고, 그 차이를 만든 것은 대역을 어디에 놓았는가 하나다»](04_elevation-coverage.ipynb) |
 | [5 «엔진의 물리 스위치 — 켜면 무엇이 달라지나»](05_engine-physics.ipynb) | 스톡 PathSolver 의 굴절·회절·모서리회절·다중반사를 하나씩 켜서 무엇이 결과를 만들었는지 귀속한다… | 5 | [절 1 «나딧에서 레벨을 −130.78 dB 에서 −64.23 dB 로 올리는 스위치는 회절 하나다»](05_engine-physics.ipynb) |
-| [6 «마이크로도플러 — 도는 로터가 남기는 무늬»](06_1_scene.ipynb) | 호버링하는 드론은 제자리에 있지만 프로펠러는 돈다. 그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이… | 6 | [절 3 «두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다»](06_3_pattern.ipynb) |
+| [6 «마이크로도플러 — 도는 로터가 남기는 무늬»](06_1_scene.ipynb) | 호버링하는 드론은 제자리에 있지만 프로펠러는 돈다. 이 권은 그 회전이 남기는 시간-주파수 무늬를 본다 — 지… | 6 | [절 3 «두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다»](06_3_pattern.ipynb) |
 | [7 «무엇을 조명원으로 쓸 수 있나»](07_illuminators.ipynb) | LTE·5G·WiFi 가 각각 얼마나 자주, 얼마나 넓게 신호를 내주는가. 5G 는 대역이 넓은 대신 상시 신… | 7 | [절 3 «여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다»](07_illuminators.ipynb) |
 | [8 «처리 사슬 — 직접파를 죽이고 표적을 세운다»](08_detector.ipynb) | ECA 로 직접파를 지우고 CFAR 로 문턱을 세운다. 문턱을 어디에 두느냐가 결과를 정하므로 그 교정을 먼저… | 4 | [절 3 «실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다»](08_detector.ipynb) |
-| [9 «관측가능성과 기하 — 어디에 서야 보이나»](09_observability.ipynb) | 송신기·수신기·표적의 배치가 검출을 정한다. 볼 수 없는 자리를 먼저 지도로 그리고, 그 다음에 거리를 말한다. | 4 | [절 1 «한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다»](09_observability.ipynb) |
+| [9 «관측가능성과 기하 — 어디에 서야 보이나»](09_observability.ipynb) | 송신기·수신기·표적의 배치가 검출을 정한다. 볼 수 없는 자리를 먼저 지도로 그리고, 그 다음에 거리를 말한다. | 4 | [절 1 «한 순간의 (R_b, f_d) 는 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창 3 s 를 누적하면 등속 6상태의 국소 랭크가 6 이 된다»](09_observability.ipynb) |
 | [10 «결과 — 얼마나 멀리서 보이나»](10_results.ipynb) | R90 과 순위가 이 연구의 정량 결론이다. 적분시간·잔류·σ 가정을 흔들어 순위가 견디는지까지 함께 적는다. | 5 | [절 2 «가드 해제·단일 헤딩 기준 거리의 앵커 일차 보정값은 비교가능 12칸에서 3.69~7.44 km 이고, 밴드 순서는 기체마다 바뀐다»](10_results.ipynb) |
 | [11 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](11_measurement.ipynb) | 시뮬레이션이 선언으로 남겨 둔 것들의 목록과, 그것을 닫는 야외 실측 규약이다. | 7 | [절 6 «캠페인이 결판내는 양은 절대값이 아니라 순위다»](11_measurement.ipynb) |
 | [12 «실외 장면 — 지면과 벽이 서면 무엇이 달라지나»](12_outdoor-scene.ipynb) | 자유공간에서 세운 판정이 지면과 건물이 있는 자리에서도 서는지 묻는다. 빗살 하모닉 SNR 로 다시 재면 el… | 0 | — |
@@ -223,7 +223,7 @@
 
 | 절 | 제목 | 조각 |
 |---|---|---|
-| 1 | 한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다 | `_parts/55_observability.ipynb` |
+| 1 | 한 순간의 (R_b, f_d) 는 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창 3 s 를 누적하면 등속 6상태의 국소 랭크가 6 이 된다 | `_parts/55_observability.ipynb` |
 | 2 | TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다 | `_parts/56_geometry.ipynb` |
 | 3 | 세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다 | `_parts/57_sensitivity-chain.ipynb` |
 | 4 | 자유공간 형상에서 문턱을 다시 재고 W1 문턱 하나를 세 밴드에 넘겨 쓴다 | `_parts/58_shared-threshold.ipynb` |
@@ -309,17 +309,32 @@
 
 ## 다시 만들려면
 
-순서가 중요하다 — ③ 이 ② 의 산출물 뒤에 절을 덧붙이기 때문이다.
+순서가 중요하다 — `src/build_volumes.py` 가 외부 빌더의 산출물 뒤에 절을 덧붙이기 때문이다. 아래 순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 다.
 
 ```bash
-PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 14 개
-#  … build_part01_stock_engine.py … build_part13_engine_physics.py
-PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 6 권 1~4 편
-PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 6 권 5 편
-PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②" 별편 8-2
-PYTHONPATH=src python src/build_report18_switch_grid.py    # ②" 별편 5-2
-PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권 + 색인 + 이 파일
-PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사
+cd /workspace/sionna
+PY=/workspace/.venvs/py312/bin/python
+# ① 조각 빌더 14 개 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장)
+for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done
+# ② → reports/06_1_scene … 06_4_sampling (네 편)
+PYTHONPATH=src $PY src/make_report08_microdoppler.py
+# ③ → reports/06_5_bistatic
+PYTHONPATH=src $PY src/make_report07b_bistatic.py
+# ④ → reports/05_2_switch-grid
+PYTHONPATH=src:benchmark $PY src/build_report18_switch_grid.py
+# ⑤ → reports/12_outdoor-scene
+PYTHONPATH=src:benchmark $PY src/build_report12_outdoor.py
+# ⑥ → reports/A_atlas … A_atlas_I (열 편) — 그림은 benchmark/build_md_atlas.py 가 먼저 구워 둔 것을 읽고, 이 단계는 그림을 다시 굽지 않는다
+PYTHONPATH=src $PY benchmark/build_atlas_toc.py
+# ⑦ 조각 → 권 + 외부 권 후처리 + outputs/volumes_index.json + reports/README.md (외부 빌더 뒤에 돈다 — 그 산출물에 절을 덧붙인다)
+PYTHONPATH=src $PY src/build_volumes.py
+# ⑧ → outputs/reports_index.json · docs/REPRODUCE.md · docs/paper/README.md
+PYTHONPATH=src $PY src/make_reports_index.py
+# ⑨ → 루트 README.md (색인을 읽는다)
+PYTHONPATH=src $PY src/make_readme.py
+# ⑩ 끊긴 링크·그림·출처를 센다 — 종료 코드 = 위반 수
+PYTHONPATH=src $PY benchmark/check_report_links.py
+# ⛔ 순서 밖 src/make_report11_2_two_channel.py: 챔버 편(옛 별편 8-2)은 2026-09-03 에 archive/chamber_0903/ 로 내렸다. SIONNA_ALLOW_CHAMBER=1 없이는 멈추고, 그 변수를 주면 그 편이 reports/ 로 되살아난다. 돌리지 않는다
 ```
 
 기계용 색인은 [`outputs/volumes_index.json`](../outputs/volumes_index.json), 구조 설명서는 [`docs/REPORTS_VOLUMES.md`](../docs/REPORTS_VOLUMES.md) 다.

@@ -37,25 +37,18 @@ from report_style import num                                           # noqa: E
 
 #: 읽는 경로 ② «왜 믿을 수 있나» 의 정본은 권을 조립하는 스크립트다 — 1 권 절 1 의 지도와
 #: 같은 목록을 써야 README 와 리포트가 갈라지지 않는다.
-from build_volumes import VERIFY_PARTS                                 # noqa: E402
+from build_volumes import (VERIFY_PARTS, REBUILD_ORDER, rebuild_recipe,  # noqa: E402
+                           PLAN_DOC, RESUME_DOC, plan_anchor)
 
 OUT = os.path.join(ROOT, "README.md")
 IDX = "outputs/volumes_index.json"
 
-#: 다시 만들기 블록의 한 줄 설명. 명령 목록 자체는 색인(`_meta.order`)이 정한다.
-STEP_LEAD = {
-    "src/build_partNN_*.py": "조각 빌더 → reports/_parts/NN_slug.ipynb "
-                             "(계산 없음 · GPU 0 장 · 수 초)",
-    "src/make_report08_microdoppler.py": "그림이 무거워 여러 편으로 나뉘는 권을 따로 짓는다",
-    "src/make_report07b_bistatic.py": "그 권의 마지막 편(바이스태틱)은 빌더가 따로다",
-    "src/make_report11_2_two_channel.py": "권에 딸린 별편 — 자기 파일만 낸다",
-    "src/build_report18_switch_grid.py": "권에 딸린 별편 — 자기 파일만 낸다",
-    "src/build_volumes.py": "조각 → 권 + 후처리 + 색인 + reports/README.md",
-    "benchmark/check_report_links.py": "끊긴 링크·그림·출처를 전수로 센다",
-}
+#: ⛔2026-09-17 — the step descriptions and commands that lived here (STEP_LEAD · STEP_CMD) were
+#  a second hand-written copy of the rebuild order and still listed the archived chamber
+#  builder. The order, commands and descriptions now come from `build_volumes.REBUILD_ORDER`.
 
-#: 색인의 명령 목록이 글로브일 때 실제로 치는 명령.
-STEP_CMD = {"src/build_partNN_*.py": 'for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done'}
+#: The current plan and hand-over documents linked from the entry block live in build_volumes
+#  (PLAN_DOC · RESUME_DOC · plan_anchor), so reports/README.md and this README link the same place.
 
 
 # --------------------------------------------------------------------------- #
@@ -187,14 +180,27 @@ def build() -> str:
     A("<!-- 생성물 — `src/make_readme.py` 가 편성에서 읽어 쓴다. "
       "손으로 고치지 말고 그 파일을 고쳐라. -->")
     A("")
-    A("# sionna2 — 통신신호를 조명원 삼는 패시브 바이스태틱 드론 탐지 시뮬레이터")
+    #  ⛔2026-09-17 — the title was «통신신호를 조명원 삼는 패시브 바이스태틱 드론 탐지
+    #    시뮬레이터». The user said on 2026-09-02 that passive bistatic sensing is not the main
+    #    purpose and on 2026-09-16 set detection + tracking as the core; the headline now starts
+    #    there and names passive bistatic only as a benchmark condition.
+    A("# sionna2 — 드론 탐지·추적을 위한 전파·산란 시뮬레이션")
     A("")
-    A("셀이 이미 켜 두는 상시 신호(WiFi · LTE · 5G NR)를 조명 삼아 드론을 탐지하는 패시브")
-    A("바이스태틱 레이더를, Sionna RT 2.0.1 위에서 자유공간 기하로 끝까지 시뮬레이션한다(2026-09-14 전까지의 판이다. "
-      "그 뒤 설치된 판은 2.1.0 이고, 그 판으로 구운 샤드는 이름에 `_rt210` 이 붙는다 — `runners/SOLVER_BUILDS.json`).")
+    A("이 저장소의 목표는 **드론을 탐지하고 추적**하는 것이다. 표적 산란과 전파 경로를 계산해")
+    A("안테나 배치 · 파형 · 검출기를 시뮬레이션으로 먼저 따져 본다. 셀이 이미 켜 두는 신호")
+    A("(WiFi · LTE · 5G NR)를 빌리는 패시브 바이스태틱은 **파형 벤치마크의 한 조건**으로 다루고,")
+    A("아래 보고서의 조명원 · 검출기 권이 그 조건에서 세운 판이다.")
+    A("")
+    A(f"지금의 중심 물음은 [`{PLAN_DOC}` §9]({plan_anchor()}) 에 있다 — 장소별 광선추적 트윈으로 "
+      "고른 안테나 배치 · 지향이, 같은 교정 예산의 기하 규칙이나 실측 탐색보다, 트윈이 보지 않은 "
+      f"비행 · 날짜에서 추적 연속성을 높이는가. 오늘의 작업 상태와 인계는 [`{RESUME_DOC}`]({RESUME_DOC}) 다.")
+    A("")
     A("표적 산란은 Sionna 의 Mitsuba/OptiX 광선엔진으로 면별 가림을 풀고 그 조명면 위에서")
-    A("부품별 재질 PO 를 적분해 만든다. σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고,")
-    A("**자세 패턴과 절대 레벨은 우리 PO 출력**이다.")
+    A("부품별 재질 PO 를 적분해 만든다(우리 커널). σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고,")
+    A("**자세 패턴과 절대 레벨은 우리 PO 출력**이다. 엔진의 역할은 `AGENTS.md` «Engine roles» 가")
+    A("정한다 — 우리 커널은 자유공간에서 PathSolver 설정을 가늠하는 기준이고, 환경이 든 장면은")
+    A("PathSolver 로 돌린다. 설치본은 2026-09-14 전까지 Sionna RT 2.0.1 이었고 그 뒤 2.1.0 이다 —")
+    A("2.1.0 으로 구운 샤드는 이름에 `_rt210` 이 붙고, 판 꼬리표 장부는 `runners/SOLVER_BUILDS.json` 이다.")
     A("")
     A(f"보고서는 **본편 {n_vol}권 · 별편 {n_comp}편 · 절 {n_sec}개** 다. **한 권이 물음 하나를"
       " 들고, 절 제목이 그 절의")
@@ -218,6 +224,9 @@ def build() -> str:
     A("")
     A("| 무엇을 하려는가 | 어디로 | 얼마나 |")
     A("|---|---|---|")
+    A(f"| 지금 무엇을 묻고 있는지 알고 싶다 | [`{PLAN_DOC}` §9]({plan_anchor()}) — 중심 물음과 "
+      "평가 계약 | — |")
+    A(f"| 오늘 어디까지 왔고 무엇이 남았는지 알고 싶다 | [`{RESUME_DOC}`]({RESUME_DOC}) — 인계 문서 | — |")
     A("| 이 저장소가 무엇을 해냈는지만 알고 싶다 | ↓ **① 빨리 훑기** | 30분 |")
     A("| 판정을 검사하려 한다(심사·적대검증) | ↓ **② 왜 믿을 수 있나** | 2시간 |")
     A("| 숫자를 재생산하려 한다 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) — "
@@ -359,18 +368,17 @@ def build() -> str:
     A("")
     A("순서가 중요하다 — 뒤 단계가 앞 단계의 산출물을 읽는다.")
     A("")
+    A("순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 이고, 이 블록 · "
+      "[`reports/README.md`](reports/README.md) · [`docs/REPRODUCE.md`](docs/REPRODUCE.md) 가 "
+      "전부 거기서 생성된다.")
+    A("")
     A("```bash")
     A("cd /workspace/sionna")
     A("PY=/workspace/.venvs/py312/bin/python")
-    _CIRCLED = "①②③④⑤⑥⑦⑧⑨"
-    for i, step in enumerate(idx["_meta"]["order"], 1):
-        A("")
-        mark = _CIRCLED[i - 1] if i <= len(_CIRCLED) else f"{i}."
-        A(f"# {mark} {STEP_LEAD[step]}" if step in STEP_LEAD else f"# {mark}")
-        A(STEP_CMD.get(step, f"PYTHONPATH=src $PY {step}"))
-    A("")
-    A("# 이 README (색인을 읽어 목차를 다시 낸다)")
-    A("PYTHONPATH=src $PY src/make_readme.py")
+    for ln in rebuild_recipe():
+        if ln.startswith("# "):
+            A("")
+        A(ln)
     A("")
     A("# 숫자 자체를 다시 낸다 (GPU) — 어느 절의 어느 명령인지는 docs/REPRODUCE.md 에")
     A("PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --list")
@@ -385,7 +393,8 @@ def build() -> str:
     A("| `_rt210` 없는 샤드의 판 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 — 판 꼬리표 장부는 `runners/SOLVER_BUILDS.json` |")
     A("| 설치 목록 | ⚠잠금 파일(requirements/lock)은 없다. 새 환경을 이 목록만으로 똑같이 짓는 절차는 아직 적혀 있지 않다 |")
     A("| 노트북 커널 | `py312` |")
-    A("| 실행 규약 | `PYTHONPATH=src:benchmark` 를 반드시 준다 |")
+    A("| 실행 규약 | 위 재빌드 순서는 스크립트마다 그 머리말이 적은 `PYTHONPATH` 를 쓴다. 숫자를 다시 내는 "
+      "`benchmark/` 스크립트에는 `PYTHONPATH=src:benchmark` 를 준다 |")
     A("")
     A("## 하우스 규약")
     A("")
@@ -425,12 +434,13 @@ def build() -> str:
     #    `companions`)에서 읽는다.
     #  ⚠조립 별편(조각에서 조립되는 별편)의 빌더는 `build_volumes.py` 자신이다 — 색인이 그
     #    이름을 그대로 주면 위에 손으로 적은 줄과 **겹쳐 두 번** 찍힌다. 이미 적은 줄은 뺀다.
-    _HAND = {"src/build_volumes.py", "src/make_readme.py"}
+    _HAND = {"src/build_volumes.py", "src/make_readme.py", "src/make_reports_index.py"}
     _comp_by_builder = {c["builder"]: c
                         for cs in idx.get("companions", {}).values()
                         for c in cs if c.get("builder")}
-    for step in idx["_meta"]["order"]:
+    for step in [s["step"] for s in REBUILD_ORDER]:
         if step in _HAND or not (step.startswith("src/make_report")
+                                 or step.startswith("src/build_report")
                                  or step in _comp_by_builder):
             continue
         _b = os.path.basename(step)
@@ -439,13 +449,16 @@ def build() -> str:
             #  «별편 5-2 을/를» 은 번호마다 조사가 갈린다 — 조사를 피해 적는다.
             _lead = f"별편 {_comp_by_builder[step]['label']} — 자기 파일만 낸다"
         elif _own is None:
-            _lead = "권 파일을 짓는다"
+            _one = next((v for v in vols
+                         if (v.get("builder") or "").split()[:1] == [step]), None)
+            _lead = f"{_vd(_one)}권 파일을 짓는다" if _one else "권 파일을 짓는다"
         elif (_own.get("builder") or "").split()[0] == step:
             _lead = (f"{_vd(_own)}권 {len(_own['files'])}편 중 주 빌더"
                      " (그림이 무거워 따로 짓는다)")
         else:
             _lead = f"{_vd(_own)}권의 나머지 한 편"
         A(f"  {_b}{' ' * max(2, 31 - len(_b))}{_lead}")
+    A("  make_reports_index.py      색인 outputs/reports_index.json · docs/REPRODUCE.md · 논문 목차")
     A("  make_readme.py             이 파일을 만든다")
     A("  report_style.py            규약 강제(num()·각주·부정문 계수)")
     A("  report_registry.py         앵커 사전 — 조각 사이 링크의 유일한 출처")

@@ -963,9 +963,11 @@ def report_07_why_po():
              f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배가 "
              f"프리프린트 GPU 분해 수준으로 내려가는지가 확정된다",
              "`src/rcs_sbr.py`"),
-            ("Γ(θ) 를 batch 경로에 배선한 뒤 runtime_benchmark 를 같은 카드에서 다시 돌린다",
+            # ⛔2026-09-17 — the script was named `runtime_benchmark.py`, which is not on disk or
+            #   in git history; `outputs/runtime_benchmark.json : meta.script` names measure_runtime.py.
+            ("Γ(θ) 를 batch 경로에 배선한 뒤 런타임 측정을 같은 카드에서 다시 돌린다",
              "각도 모양이 붙은 커널의 자세당 비용이 확정된다",
-             "`benchmark/runtime_benchmark.py`"),
+             "`benchmark/measure_runtime.py`"),
             ("이 비용대에서 얻은 σ 를 해석 기준해와 맞댄다",
              "구현오차가 kr 전 구간에서 dB 로 확정된다",
              ref("kernel-vs-reference", short=True)),

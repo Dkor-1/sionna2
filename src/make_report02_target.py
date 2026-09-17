@@ -1926,7 +1926,12 @@ def blocks(J):
         f"앵커 기체와 같은 기체(DJI Phantom 3)를 같은 창 "
         f"{P3V.num('slope.das_published.band[0]', fmt='{:.1f}')}~"
         f"{P3V.num('slope.das_published.band[1]', fmt='{:.1f}', unit='GHz')} 에서 우리 커널로 돌렸다"
-        f"(`benchmark/p3_ours.py`, {P3O.num('meta.runtime_s_total_process', fmt='{:.0f}', unit='s')}). "
+        # ⛔2026-09-17 — `p3_ours.py` was printed here as the generator; it is not on disk or in
+        #   git history. The ledger records only its caller; the closest rerun is a different ledger.
+        f"(생성 스크립트는 보존되지 않았다 — 원장 {str(P3O.get('meta.generated'))[:10]} · 호출자 "
+        f"`{str(P3O.get('meta.caller')).split()[0]}`; 가장 가까운 재실행은 "
+        f"`benchmark/p3_ours_v2.py`(v2 메쉬)이고 그 산출은 별도 원장 `outputs/p3_ours_v2.json` 이다, "
+        f"{P3O.num('meta.runtime_s_total_process', fmt='{:.0f}', unit='s')}). "
         f"산출 과정은 문헌 상수를 한 번도 읽지 않았고 봉인은 별도 스크립트가 풀었다"
         f"(`benchmark/p3_validation.py`). 적합 창은 Das Table III · Yuan §IV 와 같다"
         f"(일치 {P3V.num('window.same_window')}). ⚠ **이 절의 표 네 행은 전부 v1 메쉬 산출이다** — "

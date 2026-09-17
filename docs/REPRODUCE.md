@@ -10,13 +10,30 @@ cd /workspace/sionna
 PY=/workspace/.venvs/py312/bin/python
 ```
 
-노트북만 다시 조립하려면(계산 없음 · 수 초):
+노트북만 다시 조립하려면(계산 없음) 아래 순서대로 돌린다. 순서의 정본은 `src/build_volumes.py` 의 `REBUILD_ORDER` 이고, 이 블록은 거기서 생성된다.
 
 ```bash
+# ① 조각 빌더 14 개 → reports/_parts/NN_slug.ipynb (계산 없음 · GPU 0 장)
 for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done
-PYTHONPATH=src $PY src/make_reports_index.py     # 색인·이 문서·논문 목차
-PYTHONPATH=src $PY src/make_readme.py            # README
-PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
+# ② → reports/06_1_scene … 06_4_sampling (네 편)
+PYTHONPATH=src $PY src/make_report08_microdoppler.py
+# ③ → reports/06_5_bistatic
+PYTHONPATH=src $PY src/make_report07b_bistatic.py
+# ④ → reports/05_2_switch-grid
+PYTHONPATH=src:benchmark $PY src/build_report18_switch_grid.py
+# ⑤ → reports/12_outdoor-scene
+PYTHONPATH=src:benchmark $PY src/build_report12_outdoor.py
+# ⑥ → reports/A_atlas … A_atlas_I (열 편) — 그림은 benchmark/build_md_atlas.py 가 먼저 구워 둔 것을 읽고, 이 단계는 그림을 다시 굽지 않는다
+PYTHONPATH=src $PY benchmark/build_atlas_toc.py
+# ⑦ 조각 → 권 + 외부 권 후처리 + outputs/volumes_index.json + reports/README.md (외부 빌더 뒤에 돈다 — 그 산출물에 절을 덧붙인다)
+PYTHONPATH=src $PY src/build_volumes.py
+# ⑧ → outputs/reports_index.json · docs/REPRODUCE.md · docs/paper/README.md
+PYTHONPATH=src $PY src/make_reports_index.py
+# ⑨ → 루트 README.md (색인을 읽는다)
+PYTHONPATH=src $PY src/make_readme.py
+# ⑩ 끊긴 링크·그림·출처를 센다 — 종료 코드 = 위반 수
+PYTHONPATH=src $PY benchmark/check_report_links.py
+# ⛔ 순서 밖 src/make_report11_2_two_channel.py: 챔버 편(옛 별편 8-2)은 2026-09-03 에 archive/chamber_0903/ 로 내렸다. SIONNA_ALLOW_CHAMBER=1 없이는 멈추고, 그 변수를 주면 그 편이 reports/ 로 되살아난다. 돌리지 않는다
 ```
 
 기계용 사본은 [`outputs/reports_index.json`](../outputs/reports_index.json) 이다.
@@ -67,9 +84,9 @@ PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
 | 편 | 명령 | 출력 | 소요 |
 |---|---|---|---|
 | [18](../reports/_parts/18_kernel-what.ipynb) kernel-what | `PYTHONPATH=src python src/make_report02_target.py --derive-only`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/report02_derived.json`<br>`outputs/prior_settled_sionna.json`<br>`outputs/report3_rt.json`<br>`outputs/sbr_grid_convergence.json`<br>`outputs/outofband_power.json`<br>`outputs/verify_frozen_grid.json`<br>`outputs/md_classify_verify.json` | 약 2분 (GPU 0장 — 원장 조립이다) |
-| [19](../reports/_parts/19_kernel-vs-stock.ipynb) kernel-vs-stock | `PYTHONPATH=src python benchmark/facet_count.py`<br>`PYTHONPATH=src python benchmark/runtime_benchmark.py`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/facet_count.json`<br>`outputs/facet_mechanism.json`<br>`outputs/runtime_benchmark.json` | 약 40분 (GPU 1장 — 스톡 솔버와 우리 커널을 같은 카드에서 돌린다) |
+| [19](../reports/_parts/19_kernel-vs-stock.ipynb) kernel-vs-stock | `PYTHONPATH=src python benchmark/facet_count_effect.py`<br>`PYTHONPATH=src python benchmark/verify_facet_mechanism.py`<br>`PYTHONPATH=src python benchmark/verify_facet_mechanism_probe.py`<br>`PYTHONPATH=src python benchmark/facet_mechanism_verdict.py`<br>`PYTHONPATH=src:benchmark python benchmark/measure_runtime.py`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/facet_count.json`<br>`outputs/facet_mechanism.json`<br>`outputs/runtime_benchmark.json` | 약 40분 (GPU 1장 — 스톡 솔버와 우리 커널을 같은 카드에서 돌린다) |
 | [20](../reports/_parts/20_bistatic-exit.ipynb) bistatic-exit | `PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/sbr_defect_fixes.json` | 약 25분 (GPU 1장) |
-| [21](../reports/_parts/21_kernel-vs-reference.ipynb) kernel-vs-reference | `PYTHONPATH=src python benchmark/sbr_kr_sweep.py`<br>`PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/sbr_kr_sweep.json`<br>`outputs/sbr_defect_fixes.json`<br>`outputs/report00_po_case.json`<br>`outputs/report02_derived.json` | 약 1시간 (GPU 1장 — kr 스윕이 대부분이다) |
+| [21](../reports/_parts/21_kernel-vs-reference.ipynb) kernel-vs-reference | `PYTHONPATH=src python benchmark/verify_sbr_kr_sweep.py`<br>`PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/sbr_kr_sweep.json`<br>`outputs/sbr_defect_fixes.json`<br>`outputs/report00_po_case.json`<br>`outputs/report02_derived.json` | 약 1시간 (GPU 1장 — kr 스윕이 대부분이다) |
 | [22](../reports/_parts/22_po-knee.ipynb) po-knee | `PYTHONPATH=src python benchmark/lowfreq_anchor.py`<br>`PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/lowfreq_anchor.json`<br>`outputs/lowfreq_attack.json`<br>`outputs/report00_po_case.json`<br>`outputs/report02_derived.json` | 약 15분 (GPU 0장 — 2D MoM 은 CPU 다) |
 | [23](../reports/_parts/23_kernel-open-items.ipynb) kernel-open-items | `PYTHONPATH=src python src/build_part04_kernel.py` | `outputs/report00_po_case.json`<br>`outputs/ptd_wiring.json`<br>`outputs/report00_evidence.json` | 약 1분 (GPU 0장 — 이미 잰 값을 모은 표다) |
 
@@ -79,7 +96,7 @@ PYTHONPATH=src $PY benchmark/check_report_links.py   # 편 사이 참조 검사
 |---|---|---|---|
 | [24](../reports/_parts/24_anchor-mode.ipynb) anchor-mode | `PYTHONPATH=src python src/make_report02_target.py --derive-only`<br>`PYTHONPATH=src python benchmark/rcs_anchor.py`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/report02_derived.json`<br>`outputs/rcs_anchor.json`<br>`outputs/sigma_anchor.json` | 약 3분 (GPU 0장 — 이미 낸 σ 격자에 적합을 다시 건다) |
 | [25](../reports/_parts/25_anchor-ledger.ipynb) anchor-ledger | `PYTHONPATH=src python src/make_report02_target.py --derive-only`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/sigma_anchor.json`<br>`outputs/report02_derived.json`<br>`outputs/lowfreq_anchor.json` | 약 2분 (GPU 0장) |
-| [26](../reports/_parts/26_blind-p3.ipynb) blind-p3 | `PYTHONPATH=src python benchmark/p3_ours.py`<br>`PYTHONPATH=src python benchmark/p3_validation.py`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/p3_ours.json`<br>`outputs/p3_validation.json`<br>`outputs/lowfreq_anchor.json`<br>`outputs/lowfreq_attack.json` | 약 4시간 (GPU 1장 — 전대역 σ 를 다시 낸다) |
+| [26](../reports/_parts/26_blind-p3.ipynb) blind-p3 | `# ⛔ outputs/p3_ours.json: 생성 스크립트는 보존되지 않았다 — 원장 2026-08-03 · 호출자 benchmark/rcs_anchor.raw_sigma_az. 가장 가까운 재실행은 benchmark/p3_ours_v2.py(el 0 · v2 메쉬)이고, 그 산출은 별도 원장 outputs/p3_ours_v2.json 이다`<br>`PYTHONPATH=src python benchmark/p3_validation.py`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/p3_ours.json`<br>`outputs/p3_validation.json`<br>`outputs/lowfreq_anchor.json`<br>`outputs/lowfreq_attack.json` | 원 계산은 다시 낼 명령이 없다(그 원장의 프로세스 시간 합은 결과 첫 줄에 있다) · `benchmark/p3_validation.py` 의 소요는 미측정 |
 | [27](../reports/_parts/27_box-sphere-control.ipynb) box-sphere-control | `PYTHONPATH=src python benchmark/p3_validation_v2.py`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/p3_validation_v2.json`<br>`outputs/das_fleet_validation.json` | 약 2시간 (GPU 1장 — 대조군 형상마다 σ 를 다시 낸다) |
 | [28](../reports/_parts/28_fleet-prereg.ipynb) fleet-prereg | `PYTHONPATH=src python benchmark/das_fleet_validation.py`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/das_fleet_validation.json`<br>`outputs/das_fleet_prereg.json`<br>`outputs/das_fleet_attack.json` | 약 3시간 (GPU 1장 — 네 기체를 문헌 격자에서 다시 낸다) |
 | [29](../reports/_parts/29_sigma-robustness.ipynb) sigma-robustness | `PYTHONPATH=src python benchmark/sigma_sensitivity.py`<br>`PYTHONPATH=src python src/build_part05_anchor.py` | `outputs/sigma_sensitivity.json`<br>`outputs/report02_derived.json` | 약 20분 (GPU 1장 — 검출 사슬을 오차마다 다시 푼다) |

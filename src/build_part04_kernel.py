@@ -637,11 +637,23 @@ def report_19_kernel_vs_stock():
                         "**우리 per-pose 비용만** 호스트/GPU 단계로 쪼갠다 — 스톡 팔에는 "
                         "단계분해가 없다"),
             ],
-            repro=_repro(["PYTHONPATH=src python benchmark/facet_count.py",
-                          "PYTHONPATH=src python benchmark/runtime_benchmark.py"],
+            # ⛔2026-09-17 — the script names here were `facet_count.py` and
+            #   `runtime_benchmark.py`; neither is on disk or in git history (checked 2026-09-17). The ledgers name
+            #   their own generators: `outputs/facet_count.json : meta.script` and
+            #   `outputs/runtime_benchmark.json : meta.script`. `facet_mechanism.json` is written
+            #   by three scripts in turn (main run A–D, probe E–G, verdict block).
+            repro=_repro(["PYTHONPATH=src python benchmark/facet_count_effect.py",
+                          "PYTHONPATH=src python benchmark/verify_facet_mechanism.py",
+                          "PYTHONPATH=src python benchmark/verify_facet_mechanism_probe.py",
+                          "PYTHONPATH=src python benchmark/facet_mechanism_verdict.py",
+                          "PYTHONPATH=src:benchmark python benchmark/measure_runtime.py"],
                          [FCNT, FMEC, RUN],
                          "약 40분 (GPU 1장 — 스톡 솔버와 우리 커널을 같은 카드에서 돌린다)",
-                         "런타임은 같은 카드·같은 세션에서 재야 비교가 선다"),
+                         "런타임은 같은 카드·같은 세션에서 재야 비교가 선다. "
+                         f"`{FMEC}` 은 Sionna {_lit('_meta.sionna', FMEC, '{}')} · `{RUN}` 은 "
+                         f"Sionna {_lit('meta.software.sionna', RUN, '{}')} 판에서 났고 "
+                         f"`{FCNT}` 은 판을 적지 않았다 — 지금 설치본으로 다시 돌리면 다른 판의 "
+                         "원장이 된다"),
         ),
 
         md("## 같은 메쉬를 스톡에 그대로 넣으면", "",
@@ -895,7 +907,9 @@ def report_21_kernel_vs_reference():
                 ("자기검사", "상반성 σ(û_i,û_s)=σ(û_s,û_i) 위반을 기체에서 잰다 — 정리 위반이 "
                          "곧 모형오차다"),
             ],
-            repro=_repro(["PYTHONPATH=src python benchmark/sbr_kr_sweep.py",
+            # ⛔2026-09-17 — was `sbr_kr_sweep.py` (no such script);
+            #   `benchmark/verify_sbr_kr_sweep.py:66` writes `outputs/sbr_kr_sweep.json`.
+            repro=_repro(["PYTHONPATH=src python benchmark/verify_sbr_kr_sweep.py",
                           "PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py"],
                          [KRS, DFX, POC, DER],
                          "약 1시간 (GPU 1장 — kr 스윕이 대부분이다)",

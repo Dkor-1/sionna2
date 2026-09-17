@@ -10,7 +10,8 @@ build_part09_detector.py — 부 9 「검출기」 5편(51~55)을 짓는다
     reports/52_eca.ipynb             탭을 1~96 으로 늘려도 소거 깊이가 포화하고, 그 대가가 0-도플러 노치다
     reports/53_cfar-calib.ipynb      실내 통제 기하에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다 — 실외 판은 아직 없다
     reports/54_cfar-why.ipynb        그 배율의 원인은 셀 상관이고, 교정표는 형상마다 다시 재야 한다
-    reports/55_observability.ipynb   한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다
+    reports/55_observability.ipynb   한 순간의 (R_b, f_d) 가 위치에 대해 갖는 랭크와, 수신기를 하나 더해 관측창을
+                                     누적한 등속 6상태의 국소 랭크 (제목의 값은 원장에서 읽는다)
     docs/paper/04_detector.md        논문 조각(옛 report04 의 논문 부록)
     outputs/reports_index/<anchor>.json
 
@@ -232,6 +233,14 @@ RMS2 = num(None, f"{OBS}:summary.fix_2rx_pos_rms_m", "{:.2f}", "m")
 #: 그램행렬·CRLB 를 푼 기준 셀과 관측창 — 랭크 표의 절대값이 어디에 매달려 있는지가 이 둘이다.
 REF_CFG = num(None, f"{OBS}:gramian.ref_cfg")
 T_OBS = num(None, f"{OBS}:gramian.t_obs_s", "{:.0f}", "s")
+#: ⛔2026-09-17 — the title, the table heading and the figure question said «랭크 2 … 국소 랭크가 6»
+#  without the state or the window, so a summary line read as if one snapshot gave rank 6. They now
+#  name both: position rank of one snapshot vs. local rank of the constant-velocity 6-state Gramian
+#  accumulated over the observation window. Titles take no provenance tag, so the values are read
+#  from the ledger as plain text here (never typed).
+_R1_LIT = f"{fetch(f'{OBS}:summary.snapshot_fim_rank'):.0f}"
+_R2_LIT = f"{fetch(f'{OBS}:summary.fix_2rx_rank'):.0f}"
+_T_OBS_LIT = f"{fetch(f'{OBS}:gramian.t_obs_s'):.0f} s"
 #: 랭크 표의 허용오차 두 판. 열 이름에 넣을 값은 원장에서 읽어 끼운다(제목·열 이름에는
 #: 출처 태그를 달 수 없으므로 값만 주입한다). 표 밑 한 줄이 다른 판의 값을 병기한다.
 PTOL_F = float(fetch(f"{OBS}:gramian.practical_tol"))
@@ -704,7 +713,8 @@ def r55():
     return [
         header(
             num=55,
-            title="한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다",
+            title=(f"한 순간의 (R_b, f_d) 는 위치에 대해 랭크 {_R1_LIT} 이고, 수신기를 하나 더해 "
+                   f"관측창 {_T_OBS_LIT} 를 누적하면 등속 6상태의 국소 랭크가 {_R2_LIT} 이 된다"),
             did="송수신 한 쌍이 한 순간에 담는 정보량을 Fisher 정보행렬의 랭크로 세고, "
                 "수신기를 더하거나 도래각을 더했을 때 위치 오차의 CRLB 하한이 어디로 가는지를 "
                 "등속 가정 위에서 계산했다.",
@@ -779,7 +789,8 @@ def r55():
            f"{num(None, f'{OBS}:cells[0].dfd_hz', '{:.2f}', 'Hz')}. 그 아래 속도는 "
            + ref("eca", short=True) + " 의 노치가 먼저 지운다."),
 
-        md("## 관측가능성 — 수신기 2대면 국소 랭크가 6 이 된다", "",
+        md(f"## 관측가능성 — 수신기 2대에 관측창 {_T_OBS_LIT} 를 누적하면 등속 6상태의 국소 랭크가 "
+           f"{_R2_LIT} 이 된다", "",
            f"검출 판정은 $(R_b, f_d)$ 셀에서 난다. 그 두 양이 3차원 위치로 풀리는지가 검출 결과가 "
            f"말할 수 있는 범위를 정한다.", "",
            f"기저선을 축으로 표적을 돌리면 $R_b$ 변화가 최대 "
@@ -829,7 +840,8 @@ def r55():
            f"{num(None, f'{OBS}:meta.t_cpi_s', '{:.2f}', 's')} 의 실내 통제 기하다. "
            f"⛔이 동작점의 수는 실외 판에서 다시 내야 쓴다(`archive/chamber_0903/`)."),
 
-        md(*fig(2, "f7_observability", "송수신 한 쌍에 무엇을 더하면 국소 랭크가 6 이 되는가?")),
+        md(*fig(2, "f7_observability", f"송수신 한 쌍에 무엇을 더하고 관측창 {_T_OBS_LIT} 를 누적하면 "
+                                       f"등속 6상태의 국소 랭크가 {_R2_LIT} 이 되는가?")),
 
         next_steps([
             ("수신기 2대 형상으로 검출 실험을 재설계한다",

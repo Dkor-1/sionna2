@@ -766,8 +766,11 @@
    ],
    "repro": {
     "cmd": [
-     "PYTHONPATH=src python benchmark/facet_count.py",
-     "PYTHONPATH=src python benchmark/runtime_benchmark.py",
+     "PYTHONPATH=src python benchmark/facet_count_effect.py",
+     "PYTHONPATH=src python benchmark/verify_facet_mechanism.py",
+     "PYTHONPATH=src python benchmark/verify_facet_mechanism_probe.py",
+     "PYTHONPATH=src python benchmark/facet_mechanism_verdict.py",
+     "PYTHONPATH=src:benchmark python benchmark/measure_runtime.py",
      "PYTHONPATH=src python src/build_part04_kernel.py"
     ],
     "out": [
@@ -776,7 +779,7 @@
      "outputs/runtime_benchmark.json"
     ],
     "runtime": "약 40분 (GPU 1장 — 스톡 솔버와 우리 커널을 같은 카드에서 돌린다)",
-    "note": "런타임은 같은 카드·같은 세션에서 재야 비교가 선다"
+    "note": "런타임은 같은 카드·같은 세션에서 재야 비교가 선다. `outputs/facet_mechanism.json` 은 Sionna 2.0.1 · `outputs/runtime_benchmark.json` 은 Sionna 2.0.1 판에서 났고 `outputs/facet_count.json` 은 판을 적지 않았다 — 지금 설치본으로 다시 돌리면 다른 판의 원장이 된다"
    }
   },
   {
@@ -825,7 +828,7 @@
    ],
    "repro": {
     "cmd": [
-     "PYTHONPATH=src python benchmark/sbr_kr_sweep.py",
+     "PYTHONPATH=src python benchmark/verify_sbr_kr_sweep.py",
      "PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py",
      "PYTHONPATH=src python src/build_part04_kernel.py"
     ],
@@ -989,7 +992,7 @@
    ],
    "repro": {
     "cmd": [
-     "PYTHONPATH=src python benchmark/p3_ours.py",
+     "# ⛔ outputs/p3_ours.json: 생성 스크립트는 보존되지 않았다 — 원장 2026-08-03 · 호출자 benchmark/rcs_anchor.raw_sigma_az. 가장 가까운 재실행은 benchmark/p3_ours_v2.py(el 0 · v2 메쉬)이고, 그 산출은 별도 원장 outputs/p3_ours_v2.json 이다",
      "PYTHONPATH=src python benchmark/p3_validation.py",
      "PYTHONPATH=src python src/build_part05_anchor.py"
     ],
@@ -999,8 +1002,8 @@
      "outputs/lowfreq_anchor.json",
      "outputs/lowfreq_attack.json"
     ],
-    "runtime": "약 4시간 (GPU 1장 — 전대역 σ 를 다시 낸다)",
-    "note": "이 절의 표 네 행은 전부 v1 메쉬 산출이다 — v2 는 다음 편이 잇는다"
+    "runtime": "원 계산은 다시 낼 명령이 없다(그 원장의 프로세스 시간 합은 결과 첫 줄에 있다) · `benchmark/p3_validation.py` 의 소요는 미측정",
+    "note": "이 절의 표 네 행은 전부 v1 메쉬 산출이다 — v2 는 다음 편이 잇는다. `outputs/p3_ours.json` 은 다시 낼 명령이 없다 — 명령 칸 첫 줄 주석이 그 사정이다"
    }
   },
   {
@@ -1806,7 +1809,7 @@
    "anchor": "observability",
    "part": 9,
    "part_name": "검출기",
-   "title": "한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 국소 랭크가 6 이 된다",
+   "title": "한 순간의 (R_b, f_d) 는 위치에 대해 랭크 2 이고, 수신기를 하나 더해 관측창 3 s 를 누적하면 등속 6상태의 국소 랭크가 6 이 된다",
    "file": "reports/_parts/55_observability.ipynb",
    "md_cells": 12,
    "figures": [
