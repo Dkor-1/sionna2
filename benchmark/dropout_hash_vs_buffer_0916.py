@@ -70,11 +70,13 @@ Poses (chosen from the stored shards, a few tens per cell, all counts are CLI op
 Precondition (checked, and refused with the exact fix if it does not hold)
     benchmark/dropout_paths_0916.py verifies at import time that its copied ranges still sit where its
     ANCHORS table says they do in benchmark/elevation_sweep_md.py, and stops the process if they do not.
-    On 2026-09-16 that table is stale (16 of 20 entries shifted by one or two lines after --solver-seed
-    was added to the builder), so this script refuses to start and prints the new line numbers. Re-anchor
-    that table first. The copied code itself is unchanged, except that the production solver call now
-    reads seed=int(getattr(a, "solver_seed", 1)) over two lines, which equals the copied seed=1 only for
-    job lines without --ss; this script checks that on the parsed job namespace and refuses otherwise.
+    That table went stale twice: on 2026-09-16 (--solver-seed, one or two lines) and on 2026-09-17
+    (--ant-orient, commit 5d3329d6, +20 lines); both tables were re-anchored on 2026-09-17. If it goes
+    stale again this script refuses to start and prints the new line numbers; re-anchor that table first.
+    The copied code itself is unchanged, except that the production solver call now reads
+    seed=int(getattr(a, "solver_seed", 1)) over two lines, which equals the copied seed=1 only for job lines
+    without --ss (this script checks that on the parsed job namespace and refuses otherwise), and that the
+    builder's placement call now passes orient=_orient, which is "auto" for the iso cells this script takes.
 
 Production run (GPU; run by the main session)
     cd /workspace/sionna && CUDA_VISIBLE_DEVICES=<free card> OMP_NUM_THREADS=2 \
@@ -288,7 +290,9 @@ SB_ANCHORS = [
 ]
 
 #: The same anchors benchmark/dropout_paths_0916.py declares for its copied ranges, at the line numbers
-#  they occupy in benchmark/elevation_sweep_md.py as of 2026-09-16 (solver build rt210 with --solver-seed).
+#  they occupy in benchmark/elevation_sweep_md.py as of 2026-09-17 (commit 5d3329d6, --ant-orient, inserted
+#  20 lines at :492-511, so every entry after :489 moved by +20; the copied code did not change, the builder's
+#  placement call only gained orient=_orient, which is "auto" for the production iso cells this script takes).
 #  This script re-checks them itself so the copied production call is guarded by an up-to-date table.
 #  ⚠ Difference from the table inside dropout_paths_0916.py: the production PathSolver call now reads
 #  `seed=int(getattr(a, "solver_seed", 1))` over two lines, where the copy hard-codes `seed=1`. Those
@@ -298,23 +302,23 @@ ESM_ANCHORS = [
     (411, "ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)"),
     (433, 'rng_m = float(getattr(a, "range_m", RANGE_M) or RANGE_M)'),
     (438, "fc, tagfc = carrier(a)"),
-    (793, "spp = int(a.spp) if a.spp else rule_spp(rng_m)"),
-    (803, 'm = _re.fullmatch(r"R([01])D([01])E([01])F([01])", swbits)'),
-    (823, 'mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1'),
-    (835, "cols = drone_colors(spec)"),
-    (954, "_solver = RP.rt.PathSolver()"),
-    (962, "_lay = InMemGroups(_mv0.f, _mv0.g)"),
-    (976, "_lay.update_vertices(RP.mi, _par_cache[g], mv.v, g)"),
-    (1017, "sc, _ctr, _scene_obj_names = build_scene_builtin("),
-    (1022, "sc = RP.build_scene(parts, fc=fc)"),
-    (1051, "RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0,"),
-    (1058, "samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS,"),
-    (1059, 'seed=int(getattr(a, "solver_seed", 1)))'),
-    (1061, "aa, tau, _, O = RP.unpack(p, want_doppler=False)"),
-    (1089, "_id2nm = {int(_o.object_id): str(_nm)"),
-    (1126, "hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)"),
-    (1127, "_t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])"),
-    (1147, "E[j] = complex(np.sum(_t_sum))"),
+    (813, "spp = int(a.spp) if a.spp else rule_spp(rng_m)"),
+    (823, 'm = _re.fullmatch(r"R([01])D([01])E([01])F([01])", swbits)'),
+    (843, 'mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1'),
+    (855, "cols = drone_colors(spec)"),
+    (974, "_solver = RP.rt.PathSolver()"),
+    (982, "_lay = InMemGroups(_mv0.f, _mv0.g)"),
+    (996, "_lay.update_vertices(RP.mi, _par_cache[g], mv.v, g)"),
+    (1037, "sc, _ctr, _scene_obj_names = build_scene_builtin("),
+    (1042, "sc = RP.build_scene(parts, fc=fc)"),
+    (1071, "RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0,"),
+    (1078, "samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS,"),
+    (1079, 'seed=int(getattr(a, "solver_seed", 1)))'),
+    (1081, "aa, tau, _, O = RP.unpack(p, want_doppler=False)"),
+    (1109, "_id2nm = {int(_o.object_id): str(_nm)"),
+    (1146, "hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)"),
+    (1147, "_t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])"),
+    (1167, "E[j] = complex(np.sum(_t_sum))"),
 ]
 
 

@@ -14,6 +14,10 @@ Purpose
     against the ledger row), each one's neighbours i-1 and i+1, and --n-random random non-isolated poses
     (fixed --seed). Every pose is compared with the stored shard value E_stored, which is the trust gate
     for the listing: the summary reports the maximum relative error and does not hide it.
+    With --poses the centre poses are named instead (option added 2026-09-17): each named pose gets the role
+    "isolated" when it is isolated in the cell's own stored field and "chosen" otherwise, and its neighbours
+    i-1 and i+1 are solved as well. The cell may carry a path-cap tag (_mp<N>); the re-solve then uses that cap,
+    exactly as the builder's --max-paths line does (copied below), and E_stored is that cell's stored field.
 
 Production run (GPU; run by the main session, not by a CPU helper)
     cd /workspace/sionna && CUDA_VISIBLE_DEVICES=1 OMP_NUM_THREADS=2 \
@@ -24,7 +28,8 @@ Production run (GPU; run by the main session, not by a CPU helper)
     refuses to start without them)
     (the taskset cores are the operator's choice; the script records its CPU affinity in _meta)
     Estimate: GPU memory about 1.3 GiB per process (production workers of these arms at 4e9 rays, depth 2
-    show 1.23-1.30 GiB in nvidia-smi on 2026-09-16); allow 3 GiB. Runtime: at most 64 poses per cell
+    show 1.23-1.30 GiB in nvidia-smi on 2026-09-16); allow 3 GiB. A raised path cap needs more: allow 5 GiB
+    for an _mp32000000 cell (its 2026-09-17 re-solve peaked at about 4 GiB in nvidia-smi). Runtime: at most 64 poses per cell
     (16 isolated + up to 32 neighbours + 16 random; with the defaults 63 poses for the ground cell and 61 for
     the street canyon, because some isolated poses share a neighbour); stored per-pose times are about 1.35 s
     (ground) and 3.3 s (street canyon), so about 1.5 min + 3.5 min of solving plus scene loading and kernel
@@ -56,6 +61,17 @@ Arguments
     --json-paths K    strongest paths per pose written into the JSON (default 24; the npz has all of them)
     --tau-tol-s T     delay tolerance when matching a path between poses (default 1e-12 s)
     --cores LIST      optional CPU affinity (comma list) applied with os.sched_setaffinity
+    --poses LIST      comma list of centre poses, solved in this order with their neighbours; replaces the
+                      --n-outliers selection (default: not given)
+    --compare-cell ARM  repeatable; another stored cell of the same scene and elevation (for example the same
+                      arm at another path cap). Each solved pose then also records that cell's stored field,
+                      its deviation from that cell's median and whether it is isolated there. Nothing is
+                      re-solved for it.
+    --diff-all-classes  add summary.neighbour_path_diff: for every centre pose i with both neighbours solved,
+                      per path class the path keys present at both i-1 and i+1 and absent at i ("missing"),
+                      present at i and absent at both ("extra"), and keys whose copy count at i differs from
+                      an equal count at both neighbours; with their complex sums against the local jump
+                      E_i - (E_{i-1} + E_{i+1}) / 2. Keys are matched without delays.
 
 Reuse and copies (benchmark/elevation_sweep_md.py is imported, never modified)
     Imported: elevation_sweep_md.main's argument parser (run() is swapped for a capture while main() parses
@@ -66,20 +82,25 @@ Reuse and copies (benchmark/elevation_sweep_md.py is imported, never modified)
     (FastPoser, rotor_phases); drones (DRONES, DRONE_GROUP_MAT, drone_colors); mesh_inmem.InMemGroups;
     arm_grammar (parse, unparse).
     Copied (the pose loop lives inside run() and cannot be imported); line numbers refer to
-    benchmark/elevation_sweep_md.py as last changed in commit d42a9fe6 and are repeated in _meta.copied.
+    benchmark/elevation_sweep_md.py as last changed in commit 5d3329d6 (--ant-orient, 2026-09-17) and are
+    repeated in _meta.copied. Re-anchored 2026-09-17: that commit inserted 20 lines (now :492-511), so every
+    range after them moved by +20; the copied code is unchanged except that the builder's placement call now passes
+    orient=_orient, which is "auto" for every job line this script can rebuild (the _orTgt/_orDev tags are
+    refused by SUPPORTED_FIELDS), and report15_probe.place defaults to orient="auto".
     At start-up the script checks an anchor string at each copied range and stops if the file has moved:
       362-411   drone spec, FastPoser, PRF, pose count, azimuth, rpm and rotor phases (constant-rpm branch)
       433, 438  range and carrier
-      792-822   ray count, depth and the --sw switch parsing (--sw branch only)
-      834       drone colours
-      953       PathSolver construction (non-deterministic branch)
-      958-968   InMemGroups mesh cache
-      969-1003  per-pose vertex update and drone Part list (in-memory branch)
-      1012-1021 environment scene (outdoor01_* meshes or an NVIDIA built-in scene)
-      1050-1057 transmitter/receiver placement and the PathSolver call
-      1059      path unpacking
-      1087-1088 per-pose object_id -> scene object name map
-      1124-1125, 1144-1145  interaction mask and carrier-phase sum (no --det branch)
+      799-800   path cap (--max-paths job lines only)
+      813-843   ray count, depth and the --sw switch parsing (--sw branch only)
+      855       drone colours
+      974       PathSolver construction (non-deterministic branch)
+      978-989   InMemGroups mesh cache
+      990-1025  per-pose vertex update and drone Part list (in-memory branch)
+      1033-1042 environment scene (outdoor01_* meshes or an NVIDIA built-in scene)
+      1071-1079 transmitter/receiver placement and the PathSolver call
+      1081      path unpacking
+      1109-1110 per-pose object_id -> scene object name map
+      1146-1147, 1166-1167  interaction mask and carrier-phase sum (no --det branch)
 
 Scope
     Simulation bookkeeping only. Path classes are defined by scene object names; nothing here states which
@@ -114,6 +135,9 @@ def _cli() -> argparse.Namespace:
     ap.add_argument("--json-paths", type=int, default=24)
     ap.add_argument("--tau-tol-s", type=float, default=1e-12)
     ap.add_argument("--cores", default="")
+    ap.add_argument("--poses", default="", metavar="LIST")
+    ap.add_argument("--compare-cell", dest="compare_cell", action="append", default=None, metavar="ARM")
+    ap.add_argument("--diff-all-classes", dest="diff_all_classes", action="store_true")
     return ap.parse_args()
 
 
@@ -167,39 +191,43 @@ ESM_REL = "benchmark/elevation_sweep_md.py"
 COPIED = [
     dict(lines="362-411", what="drone spec, FastPoser, PRF, pose count, azimuth, rpm and rotor phases (constant-rpm branch)"),
     dict(lines="433, 438", what="range and carrier"),
-    dict(lines="792-822", what="ray count, depth and --sw switch parsing (--sw branch only)"),
-    dict(lines="834", what="drone colours"),
-    dict(lines="953", what="PathSolver construction (non-deterministic branch)"),
-    dict(lines="958-968", what="InMemGroups mesh cache"),
-    dict(lines="969-1003", what="per-pose vertex update and drone Part list (in-memory branch)"),
-    dict(lines="1012-1021", what="environment scene (outdoor01_* meshes or NVIDIA built-in scene)"),
-    dict(lines="1050-1057", what="placement and PathSolver call"),
-    dict(lines="1059", what="path unpacking"),
-    dict(lines="1087-1088", what="per-pose object_id -> scene object name map"),
-    dict(lines="1124-1125, 1144-1145", what="interaction mask and carrier-phase sum (no --det branch)"),
+    dict(lines="799-800", what="path cap (--max-paths job lines only; added 2026-09-17)"),
+    dict(lines="813-843", what="ray count, depth and --sw switch parsing (--sw branch only)"),
+    dict(lines="855", what="drone colours"),
+    dict(lines="974", what="PathSolver construction (non-deterministic branch)"),
+    dict(lines="978-989", what="InMemGroups mesh cache"),
+    dict(lines="990-1025", what="per-pose vertex update and drone Part list (in-memory branch)"),
+    dict(lines="1033-1042", what="environment scene (outdoor01_* meshes or NVIDIA built-in scene)"),
+    dict(lines="1071-1079", what="placement and PathSolver call (orient omitted: auto, the place() default)"),
+    dict(lines="1081", what="path unpacking"),
+    dict(lines="1109-1110", what="per-pose object_id -> scene object name map"),
+    dict(lines="1146-1147, 1166-1167", what="interaction mask and carrier-phase sum (no --det branch)"),
 ]
 # (line, text that must appear on that line of benchmark/elevation_sweep_md.py) - guards the copied ranges.
+# Re-anchored 2026-09-17 after commit 5d3329d6 (--ant-orient) inserted 20 lines at :492-511: every entry
+# after :489 moved by +20. The (800, ...) entry is new with the --max-paths support.
 ANCHORS = [
     (362, 'drone_key = str(getattr(a, "drone", "") or TJ.get("drone", "matrice4e"))'),
     (411, "ph = rotor_phases(np.arange(n) / prf, rpms, fp.dirs)"),
     (433, 'rng_m = float(getattr(a, "range_m", RANGE_M) or RANGE_M)'),
     (438, "fc, tagfc = carrier(a)"),
-    (793, "spp = int(a.spp) if a.spp else rule_spp(rng_m)"),
-    (803, 'm = _re.fullmatch(r"R([01])D([01])E([01])F([01])", swbits)'),
-    (823, 'mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1'),
-    (835, "cols = drone_colors(spec)"),
-    (954, "_solver = RP.rt.PathSolver()"),
-    (962, "_lay = InMemGroups(_mv0.f, _mv0.g)"),
-    (976, "_lay.update_vertices(RP.mi, _par_cache[g], mv.v, g)"),
-    (1017, "sc, _ctr, _scene_obj_names = build_scene_builtin("),
-    (1022, "sc = RP.build_scene(parts, fc=fc)"),
-    (1051, "RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0,"),
-    (1058, 'samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS'),
-    (1061, "aa, tau, _, O = RP.unpack(p, want_doppler=False)"),
-    (1089, "_id2nm = {int(_o.object_id): str(_nm)"),
-    (1126, "hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)"),
-    (1127, "_t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])"),
-    (1147, "E[j] = complex(np.sum(_t_sum))"),
+    (800, "RP.MAX_PATHS = int(a.max_paths)"),
+    (813, "spp = int(a.spp) if a.spp else rule_spp(rng_m)"),
+    (823, 'm = _re.fullmatch(r"R([01])D([01])E([01])F([01])", swbits)'),
+    (843, 'mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1'),
+    (855, "cols = drone_colors(spec)"),
+    (974, "_solver = RP.rt.PathSolver()"),
+    (982, "_lay = InMemGroups(_mv0.f, _mv0.g)"),
+    (996, "_lay.update_vertices(RP.mi, _par_cache[g], mv.v, g)"),
+    (1037, "sc, _ctr, _scene_obj_names = build_scene_builtin("),
+    (1042, "sc = RP.build_scene(parts, fc=fc)"),
+    (1071, "RP.place(sc, center=_ctr, az=az, el=el, rng=rng_m, baseline=0.0,"),
+    (1078, 'samples_per_src=spp, max_num_paths_per_src=RP.MAX_PATHS'),
+    (1081, "aa, tau, _, O = RP.unpack(p, want_doppler=False)"),
+    (1109, "_id2nm = {int(_o.object_id): str(_nm)"),
+    (1146, "hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)"),
+    (1147, "_t = aa[hit] * np.exp(-1j * 2 * np.pi * fc * tau[hit])"),
+    (1167, "E[j] = complex(np.sum(_t_sum))"),
 ]
 _esm_lines = (ROOT / "benchmark" / "elevation_sweep_md.py").read_text(encoding="utf-8").splitlines()
 _bad = [(ln, txt) for ln, txt in ANCHORS if ln > len(_esm_lines) or txt not in _esm_lines[ln - 1]]
@@ -220,8 +248,9 @@ REUSED = [
 CLASSES = ("none", "env_only", "drone_only", "both", "unmapped")      # class code = index
 TYPE_NAMES = {0: "none", 1: "specular", 2: "diffuse", 4: "refraction", 8: "diffraction"}
 # Arm-name fields this script can rebuild into a job line; anything else is refused.
+#  max_paths (the _mp<N> tag) added 2026-09-17: the job line then carries --max-paths N and the re-solve uses that cap.
 SUPPORTED_FIELDS = {"engine", "spp", "switches", "range_m", "n_poses", "rep", "env", "mesh_fix", "blade_law",
-                    "solver_build", "max_depth"}
+                    "solver_build", "max_depth", "max_paths"}
 
 STARTED = _dt.datetime.now(_dt.timezone.utc)
 T0 = time.time()
@@ -295,6 +324,8 @@ def job_argv(arm: str, el: float) -> tuple[list, dict]:
             f"--els={el:g}", "--env", env_arg]
     if f.get("rep"):
         argv += ["--rep", str(f["rep"])]
+    if f.get("max_paths"):
+        argv += ["--max-paths", str(int(f["max_paths"]))]
     return argv, f
 
 
@@ -406,12 +437,29 @@ def rep_sibling(fields: dict) -> str | None:
         return None
 
 
-def select_poses(n: int, iso: np.ndarray, n_out: int, n_rand: int, seed: int, cap: int):
+def parse_pose_list(text: str, n: int) -> list | None:
+    """--poses: comma list of centre poses (None when the option is not given)."""
+    if not str(text).strip():
+        return None
+    try:
+        out = [int(x) for x in str(text).split(",") if x.strip()]
+    except ValueError:
+        raise SystemExit(f"--poses expects a comma list of integers, got {text!r}")
+    bad = [i for i in out if not 0 <= i < n]
+    if bad or len(set(out)) != len(out) or not out:
+        raise SystemExit(f"--poses: poses must be unique and within 0..{n - 1}; got {out}")
+    return out
+
+
+def select_poses(n: int, iso: np.ndarray, n_out: int, n_rand: int, seed: int, cap: int, explicit=None):
     iso_set = set(int(i) for i in iso)
-    chosen_iso = [int(i) for i in iso[:max(0, n_out)]]
+    # --poses (explicit centres, 2026-09-17): role "isolated" when isolated in this cell's stored field, else
+    # "chosen". Without --poses the selection is the first n_out isolated poses, as before.
+    chosen_iso = [int(i) for i in iso[:max(0, n_out)]] if explicit is None else [int(i) for i in explicit]
     roles: dict[int, dict] = {}
     for i in chosen_iso:
-        roles.setdefault(i, dict(roles=set(), neighbour_of=set()))["roles"].add("isolated")
+        roles.setdefault(i, dict(roles=set(), neighbour_of=set()))["roles"].add(
+            "isolated" if i in iso_set else "chosen")
     for i in chosen_iso:
         for j in (i - 1, i + 1):
             if 0 <= j < n:
@@ -452,7 +500,12 @@ class CellSolver:
                       solver_deterministic=getattr(a, "solver_deterministic", False),
                       parts=getattr(a, "parts", ""), physics=getattr(a, "physics", False),
                       stock=getattr(a, "stock", False), only=getattr(a, "only", ""),
-                      max_paths=int(getattr(a, "max_paths", 0) or 0),
+                      # --max-paths is reproduced (2026-09-17): main() applies the builder's :799-800 before
+                      # this object is built; refuse only when the cap in force is not the job line's.
+                      max_paths_not_applied=(int(getattr(a, "max_paths", 0) or 0) != 0
+                                             and int(a.max_paths) != int(RP.MAX_PATHS)),
+                      # the copied place() call has no orient argument, i.e. "auto"; refuse anything else
+                      ant_orient_not_auto=str(getattr(a, "ant_orient", "auto") or "auto") != "auto",
                       shell_mm=float(getattr(a, "shell_mm", 0) or 0), prop_mm=float(getattr(a, "prop_mm", 0) or 0),
                       env_alt=float(getattr(a, "env_alt", 0) or 0),
                       env_scat_set=float(getattr(a, "env_scat", -1.0)) >= 0,
@@ -486,7 +539,7 @@ class CellSolver:
         # --- copied from elevation_sweep_md.py:433, 438
         rng_m = float(getattr(a, "range_m", ESM.RANGE_M) or ESM.RANGE_M)
         fc, _tagfc = ESM.carrier(a)
-        # --- copied from elevation_sweep_md.py:792-822 (--sw branch)
+        # --- copied from elevation_sweep_md.py:813-843 (--sw branch)
         spp_prod = int(a.spp) if a.spp else ESM.rule_spp(rng_m)
         swbits = str(getattr(a, "sw", "") or "").upper()
         import re as _re
@@ -497,7 +550,7 @@ class CellSolver:
         sw = dict(refraction=r_, diffraction=d_, edge_diffraction=e_)
         diffuse = f_
         mdep = int(a.max_depth) if getattr(a, "max_depth", 0) else 1
-        # --- copied from elevation_sweep_md.py:834
+        # --- copied from elevation_sweep_md.py:855
         cols = drone_colors(spec)
         self.spec, self.fp, self.ph, self.n, self.prf, self.az, self.el = spec, fp, ph, n, prf, az, float(el)
         self.rng_m, self.fc, self.sw, self.diffuse, self.mdep, self.cols = rng_m, fc, sw, diffuse, mdep, cols
@@ -507,9 +560,9 @@ class CellSolver:
             raise SystemExit("--spp above the 32-bit sampler ceiling")
         self.env = str(getattr(a, "env", "") or "")
         self.antp, self.antc, self.aimo = "iso", float(getattr(a, "ant_cap", 30.0)), 0.0
-        # --- copied from elevation_sweep_md.py:953
+        # --- copied from elevation_sweep_md.py:974
         self.solver = RP.rt.PathSolver()
-        # --- copied from elevation_sweep_md.py:958-968 (the production cache starts from the shard's first pose;
+        # --- copied from elevation_sweep_md.py:978-989 (the production cache starts from the shard's first pose;
         #     vertices are replaced before every solve, so the starting pose does not enter the scene)
         self.InMemGroups = InMemGroups
         self._lay = None
@@ -531,7 +584,7 @@ class CellSolver:
         RP, spec = self.RP, self.spec
         self._ensure_cache(i)
         t0 = time.time()
-        # --- copied from elevation_sweep_md.py:969-1003 (in-memory branch, no --parts)
+        # --- copied from elevation_sweep_md.py:990-1025 (in-memory branch, no --parts)
         mv = self.fp.pose(self.ph[i])
         paths_obj = {g: None for g in self._lay.names}
         for g in self._lay.names:
@@ -542,7 +595,7 @@ class CellSolver:
                          mi_mesh=mi_meshes[g])
                  for g, p in paths_obj.items()]
         drone_names = {p.name for p in parts}
-        # --- copied from elevation_sweep_md.py:1012-1021
+        # --- copied from elevation_sweep_md.py:1033-1042
         _envn = self.env
         _ctr = (0.0, 0.0, 0.0)
         if _envn.startswith("sionna:"):
@@ -551,7 +604,7 @@ class CellSolver:
             if _envn:
                 parts = parts + ESM.env_parts(RP.Part, _envn)
             sc = RP.build_scene(parts, fc=self.fc)
-        # --- copied from elevation_sweep_md.py:1050-1057
+        # --- copied from elevation_sweep_md.py:1071-1079 (orient omitted: "auto", the place() default)
         RP.place(sc, center=_ctr, az=self.az, el=self.el, rng=self.rng_m, baseline=0.0,
                  pattern=self.antp, cap_db=self.antc, aim_offset_deg=self.aimo)
         p = self.solver(
@@ -559,14 +612,14 @@ class CellSolver:
             max_depth=self.mdep, **self.sw,
             samples_per_src=self.spp, max_num_paths_per_src=RP.MAX_PATHS, seed=1)
         t_solve = time.time() - t0
-        # --- copied from elevation_sweep_md.py:1059
+        # --- copied from elevation_sweep_md.py:1081
         try:
             aa, tau, _, O = RP.unpack(p, want_doppler=False)
         except ValueError:
             aa = np.zeros(0)
             tau = np.zeros(0)
             O = np.zeros((0, 0), int)
-        # --- copied from elevation_sweep_md.py:1087-1088
+        # --- copied from elevation_sweep_md.py:1109-1110
         try:
             id2nm = {int(_o.object_id): str(_nm) for _nm, _o in sc.objects.items()}
         except Exception:                                              # noqa: BLE001
@@ -589,7 +642,7 @@ class CellSolver:
             except Exception as e:                                     # noqa: BLE001
                 extras[key] = None
                 extras[key + "_error"] = f"{type(e).__name__}: {e}"[:160]
-        # --- copied from elevation_sweep_md.py:1124-1125, 1144-1145 (no --det branch)
+        # --- copied from elevation_sweep_md.py:1146-1147, 1166-1167 (no --det branch)
         if P:
             hit = (O != RP.NO_OBJ).any(axis=0) if O.size else np.zeros(aa.size, bool)
             _t = aa[hit] * np.exp(-1j * 2 * np.pi * self.fc * tau[hit])
@@ -747,6 +800,8 @@ def cell_summary(poses: dict, pas: dict, name_table: list, tau_tol: float) -> di
     groups = dict(isolated=[r for r in recs if "isolated" in r["roles"]],
                   neighbour=[r for r in recs if "neighbour" in r["roles"] and not r["isolated_by_definition"]],
                   random=[r for r in recs if "random" in r["roles"]])
+    if any("chosen" in r["roles"] for r in recs):                     # --poses centres that are not isolated
+        groups["chosen"] = [r for r in recs if "chosen" in r["roles"]]
     by_group = {}
     for gname, rr in groups.items():
         d = dict(n_poses=len(rr))
@@ -852,6 +907,112 @@ def cell_summary(poses: dict, pas: dict, name_table: list, tau_tol: float) -> di
     return out
 
 
+def _class_key_index(pa: dict, name_table: list) -> dict:
+    """Per path class (env_only / drone_only / both / unmapped): path key -> indices of the paths with that key
+    (a key can occur more than once in one pose's list)."""
+    out = {}
+    for c, nm in enumerate(CLASSES):
+        if c == 0:
+            continue
+        sel = pa["cls"] == c
+        d: dict = {}
+        if sel.any():
+            keys = path_keys(pa["name_idx"], pa["types"], pa["prims"], pa["n_inter"], sel, name_table)
+            for j, k in zip(np.flatnonzero(sel), keys):
+                d.setdefault(k, []).append(int(j))
+        out[nm] = d
+    return out
+
+
+def _key_group(k: tuple, idx: list, pa: dict) -> dict:
+    s = complex(np.sum(pa["a_bb"][idx])) if idx else 0j
+    return dict(objects=[o for o, _, _ in k],
+                interaction_types=[None if t is None else TYPE_NAMES.get(int(t), str(t)) for _, t, _ in k],
+                primitives=[pr for _, _, pr in k], n_copies=len(idx),
+                tau_s=[float(pa["tau"][j]) for j in idx[:4]],
+                abs_a_each=[g6(abs(pa["a_bb"][j])) for j in idx[:4]],
+                sum_a_bb=cpair(s), abs_sum_a_bb=g6(abs(s)))
+
+
+def neighbour_path_diff(poses: dict, pas: dict, name_table: list, centres: list, abs_m: float,
+                        k_list: int = 12) -> dict:
+    """--diff-all-classes: path keys that differ between a centre pose and BOTH of its neighbours, per class.
+
+    For centre i with neighbours L = i-1 and R = i+1 (both solved):
+      missing  key present at L and at R, absent at i
+      extra    key present at i, absent at L and at R
+      copies   key present at all three, same copy count at L and R, a different count at i
+    Complex bookkeeping: jump J = E_i - (E_L + E_R)/2; attributed = sum over classes of
+    [sum a_bb of extra paths at i] - [mean over L, R of sum a_bb of missing paths] + [copies: S_i(k) - mean S_LR(k)].
+    closure = |J - attributed| / |J|: how much of the jump these key differences carry (paths common to all
+    three poses also change a little between poses; that part is in J and not in attributed).
+    Control per centre: key differences between L and R themselves (two poses apart).
+    Keys are matched without delays. Listing only; says nothing about why a path is or is not returned."""
+    cache: dict = {}
+
+    def K(p):
+        if p not in cache:
+            cache[p] = _class_key_index(pas[p], name_table)
+        return cache[p]
+
+    rows = []
+    for i in centres:
+        L, R = i - 1, i + 1
+        if i not in poses or L not in poses or R not in poses:
+            rows.append(dict(pose=int(i), skipped="the pose or a neighbour was not solved"))
+            continue
+        Ki, KL, KR = K(i), K(L), K(R)
+        Ei, EL, ER = (complex(*poses[p]["E_recomputed"]) for p in (i, L, R))
+        jump = Ei - 0.5 * (EL + ER)
+        per_class, attributed = {}, 0j
+        for nm in CLASSES[1:]:
+            ki, kl, kr = Ki[nm], KL[nm], KR[nm]
+            miss = [k for k in kl if k in kr and k not in ki]
+            extra = [k for k in ki if k not in kl and k not in kr]
+            copies = [k for k in ki if k in kl and k in kr and len(kl[k]) == len(kr[k]) != len(ki[k])]
+            s_extra = sum((complex(np.sum(pas[i]["a_bb"][ki[k]])) for k in extra), 0j)
+            s_miss = sum((0.5 * (complex(np.sum(pas[L]["a_bb"][kl[k]])) + complex(np.sum(pas[R]["a_bb"][kr[k]])))
+                          for k in miss), 0j)
+            s_copies = sum((complex(np.sum(pas[i]["a_bb"][ki[k]]))
+                            - 0.5 * (complex(np.sum(pas[L]["a_bb"][kl[k]])) + complex(np.sum(pas[R]["a_bb"][kr[k]])))
+                            for k in copies), 0j)
+            attributed += s_extra - s_miss + s_copies
+            S = {p: complex(*poses[p]["class_sums"][nm]["sum"]) for p in (i, L, R)}
+            d_cls = S[i] - 0.5 * (S[L] + S[R])
+            miss_d = sorted(((k, _key_group(k, kl[k], pas[L])) for k in miss), key=lambda t: -t[1]["abs_sum_a_bb"])
+            extra_d = sorted(((k, _key_group(k, ki[k], pas[i])) for k in extra), key=lambda t: -t[1]["abs_sum_a_bb"])
+            copies_d = [dict(_key_group(k, ki[k], pas[i]), n_copies_left=len(kl[k]), n_copies_right=len(kr[k]))
+                        for k in copies][:k_list]
+            per_class[nm] = dict(
+                n_keys=dict(centre=len(ki), left=len(kl), right=len(kr)),
+                n_missing=len(miss), n_extra=len(extra), n_copies_changed=len(copies),
+                sum_a_bb_missing_mean_of_neighbours=cpair(s_miss), sum_a_bb_extra=cpair(s_extra),
+                sum_a_bb_copies_change=cpair(s_copies),
+                class_sum_minus_neighbour_mean=cpair(d_cls),
+                abs_class_sum_minus_neighbour_mean_over_abs_m=g6(abs(d_cls) / abs_m) if abs_m > 0 else None,
+                control_left_vs_right=dict(n_left_only=sum(1 for k in kl if k not in kr),
+                                           n_right_only=sum(1 for k in kr if k not in kl)),
+                missing=[t[1] for t in miss_d[:k_list]], extra=[t[1] for t in extra_d[:k_list]],
+                copies_changed=copies_d)
+        rows.append(dict(
+            pose=int(i), roles=poses[i]["roles"], isolated_by_definition=poses[i]["isolated_by_definition"],
+            neighbours=[int(L), int(R)],
+            abs_E_over_abs_m=g6(abs(Ei) / abs_m) if abs_m > 0 else None,
+            jump=cpair(jump), abs_jump_over_abs_m=g6(abs(jump) / abs_m) if abs_m > 0 else None,
+            attributed_to_key_differences=cpair(attributed),
+            closure_rel=g6(abs(jump - attributed) / abs(jump)) if abs(jump) > 0 else None,
+            n_paths=dict(centre=poses[i]["n_paths_returned"], left=poses[L]["n_paths_returned"],
+                         right=poses[R]["n_paths_returned"]),
+            per_class=per_class))
+    return dict(
+        definition=("missing = key at both neighbours and not at the centre; extra = key at the centre and at "
+                    "neither neighbour; copies_changed = key at all three with equal counts at the neighbours and a "
+                    "different count at the centre. Key = per interaction (object name, interaction type, primitive "
+                    "index); delays are not matched. jump = E_i - (E_{i-1} + E_{i+1}) / 2; closure_rel = "
+                    "|jump - attributed| / |jump|. Lists keep the k_list strongest entries; the counts are complete."),
+        k_list=int(k_list), rows=rows)
+
+
 # ----------------------------------------------------------------------------------------------- main
 def meta_block(status: str, variant: str | None, cells_meta: list) -> dict:
     prod_eq = [c.get("production_equivalent") for c in cells_meta]
@@ -879,6 +1040,8 @@ def meta_block(status: str, variant: str | None, cells_meta: list) -> dict:
                "solver faults. A run with spp or device different from production cannot reproduce E_stored."),
         seeds=dict(random_pose_draw=int(ARGS.seed), solver_seed=1),
         parameters=dict(n_outliers=ARGS.n_outliers, n_random=ARGS.n_random, factor=ARGS.factor,
+                        poses=ARGS.poses or None, compare_cells=ARGS.compare_cell or None,
+                        diff_all_classes=bool(ARGS.diff_all_classes),
                         max_poses=ARGS.max_poses, json_paths=ARGS.json_paths, tau_tol_s=ARGS.tau_tol_s),
         reused_by_import=REUSED,
         copied=[dict(source=ESM_REL, **c) for c in COPIED],
@@ -892,18 +1055,19 @@ def meta_block(status: str, variant: str | None, cells_meta: list) -> dict:
             "cell complex median m": "median(Re E) + 1j*median(Im E) over all poses of the merged stored field.",
             "scale": "median over poses of |E - m| (stored field).",
             "isolated pose": "|E - m| > factor * scale on the stored field (factor 20 as in the ledger's primary factor).",
-            "roles": "isolated = among the first n_outliers isolated poses; neighbour = pose i-1 or i+1 of a chosen "
-                     "isolated pose; random = drawn without replacement from poses that are neither isolated nor "
+            "roles": "isolated = among the first n_outliers isolated poses, or with --poses a named centre pose that is "
+                     "isolated in this cell's stored field; chosen = a --poses centre that is not isolated there; "
+                     "neighbour = pose i-1 or i+1 of a centre pose (isolated or chosen); random = drawn without replacement from poses that are neither isolated nor "
                      "chosen, generator numpy default_rng(seeds.random_pose_draw + cell index). A pose can carry several roles.",
             "E_recomputed": "sum over paths with at least one interaction of a*exp(-j*2*pi*fc*tau), path order as "
-                            "returned (elevation_sweep_md.py:1124-1125, 1144-1145).",
+                            "returned (elevation_sweep_md.py:1146-1147, 1166-1167).",
             "a_bb": "a*exp(-j*2*pi*fc*tau) per path (the production summand); a is the solver's passband coefficient.",
             "rel_err": "|E_recomputed - E_stored| / |E_stored|.",
             "abs_err_over_abs_cell_median": "|E_recomputed - E_stored| / |m| (useful where |E_stored| is small).",
             "rel_diff_stored_vs_repeat": "|E_stored - E_rep1| / |E_stored| for the stored repeat run (_rep1) of the "
                                          "same cell when it exists: run-to-run spread of production at that pose.",
             "objects": "scene object name per interaction, from the per-pose object_id -> name map "
-                       "(elevation_sweep_md.py:1087-1088); drone parts are the Part names <drone>_<group> placed in "
+                       "(elevation_sweep_md.py:1109-1110); drone parts are the Part names <drone>_<group> placed in "
                        "the scene, every other mapped name is an environment object.",
             "unnamed[r]": "an object without a name in a built-in scene; Mitsuba calls it no-name-<counter> and the "
                           "counter grows with every scene load, so the listing uses r = rank of the counter within "
@@ -941,6 +1105,10 @@ def meta_block(status: str, variant: str | None, cells_meta: list) -> dict:
 
 def main() -> None:
     cells_arg = ARGS.cells or list(DEFAULT_CELLS)
+    # report15_probe.MAX_PATHS is one module-level value, as in the builder (one --max-paths per process).
+    _caps = {str(AG.parse(c.rpartition("@")[0], strict=True).get("max_paths") or "") for c in cells_arg}
+    if len(_caps) > 1:
+        raise SystemExit(f"--cells mix path caps {sorted(_caps)}; run one cap per process, as the builder does")
     cells = []
     for c in cells_arg:
         arm, _, el = c.rpartition("@")
@@ -972,6 +1140,9 @@ def main() -> None:
         elif not str(variant).startswith("llvm"):
             raise SystemExit(f"--device cpu but the Mitsuba variant is {variant!r}")
         import report15_probe as RP
+        # --- copied from elevation_sweep_md.py:799-800 (path cap, --max-paths job lines only)
+        if int(getattr(a, "max_paths", 0) or 0):
+            RP.MAX_PATHS = int(a.max_paths)
         caps = {tuple(p["n_trunc"]) if p["n_trunc"] else None for p in field["parts"]}
         builds = {p["solver_build"] for p in field["parts"]}
         if any(cap is None or int(cap[1]) != int(RP.MAX_PATHS) for cap in caps):
@@ -1004,8 +1175,21 @@ def main() -> None:
             except SystemExit as e:
                 rep_info = dict(arm=rep_arm, unavailable=str(e)[:200])
 
+        explicit = parse_pose_list(ARGS.poses, field["n"])
         order, roles, chosen_iso, rand = select_poses(field["n"], iso, ARGS.n_outliers, ARGS.n_random,
-                                                      ARGS.seed + ci, ARGS.max_poses)
+                                                      ARGS.seed + ci, ARGS.max_poses, explicit)
+        # --compare-cell: stored fields of other cells of the same scene and elevation (nothing re-solved)
+        compare = []
+        for carm in (ARGS.compare_cell or []):
+            cf = load_cell_field(carm, el)
+            if cf["n"] != field["n"]:
+                raise SystemExit(f"--compare-cell {carm}: {cf['n']} poses, this cell {field['n']}")
+            ciso, cm, csc = isolated_poses(cf["E"], ARGS.factor)
+            compare.append(dict(arm=carm, E=cf["E"], npaths=cf["npaths"], iso=set(int(x) for x in ciso), m=cm,
+                                scale=csc, meta=dict(arm=carm, n_isolated=int(ciso.size), cell_complex_median=cpair(cm),
+                                                     scale=g6(csc), shards=[{k: v for k, v in p_.items() if k in (
+                                                         "file", "sha256", "n_trunc", "solver_build", "run_id")}
+                                                         for p_ in cf["parts"]])))
         cs = CellSolver(a, el, ARGS.spp)
         ESM._check_runtime_build()
         if cs.n != field["n"]:
@@ -1026,7 +1210,11 @@ def main() -> None:
                      cell_complex_median=cpair(m_cell), scale=g6(scale), factor=ARGS.factor,
                      n_isolated=int(iso.size), isolated_indices=[int(x) for x in iso],
                      ledger_check=ledger, repeat_cell=rep_info,
-                     selected=dict(isolated=chosen_iso, random=rand, solve_order=order))
+                     selected=dict(isolated=[i for i in chosen_iso if i in set(int(x) for x in iso)],
+                                   centres=chosen_iso if explicit is not None else None,
+                                   chosen_not_isolated=[i for i in chosen_iso if i not in set(int(x) for x in iso)],
+                                   random=rand, solve_order=order),
+                     compare_cells=[c_["meta"] for c_ in compare] or None)
         cells_meta.append(cmeta)
         if not prod_eq:
             log("  NOTE: spp or device differs from production; E_recomputed cannot reproduce E_stored.")
@@ -1082,11 +1270,22 @@ def main() -> None:
                     f"env_only |S| {rec['class_sums']['env_only']['abs_sum']} · drone_only |S| "
                     f"{rec['class_sums']['drone_only']['abs_sum']} · both |S| {rec['class_sums']['both']['abs_sum']} · "
                     f"{rec['t_total_s']} s")
+            if compare:
+                rec["compare_cells"] = {c_["arm"]: dict(
+                    E_stored=cpair(c_["E"][i]), npaths_stored=int(c_["npaths"][i]),
+                    dev_stored_over_scale=g6(abs(complex(c_["E"][i]) - c_["m"]) / c_["scale"]) if c_["scale"] > 0 else None,
+                    isolated=i in c_["iso"],
+                    abs_diff_vs_this_cell_stored_over_abs_m=g6(abs(complex(c_["E"][i]) - complex(field["E"][i]))
+                                                               / abs(m_cell)) if abs(m_cell) > 0 else None)
+                    for c_ in compare}
             poses[i], pas[i] = rec, pa
             cell_out["poses"] = [poses[j] for j in order if j in poses]
             atomic_json(OUT, dict(_meta=meta_block("partial", variant, cells_meta), name_table=name_table,
                                   cells=out_cells))
         cell_out["summary"] = cell_summary(poses, pas, name_table, ARGS.tau_tol_s)
+        if ARGS.diff_all_classes:
+            cell_out["summary"]["neighbour_path_diff"] = neighbour_path_diff(
+                poses, pas, name_table, [i for i in chosen_iso if i in poses], abs(m_cell))
         all_pa += [(ci, i, pas[i]) for i in order]
         s = cell_out["summary"]
         log(f"  summary: max rel_err {s.get('max_rel_err_all')} (non-isolated {s.get('max_rel_err_non_isolated')}, "
