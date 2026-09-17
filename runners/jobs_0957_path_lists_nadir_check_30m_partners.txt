@@ -1,0 +1,150 @@
+# 0957 — path lists over a 4,096-position record, aimed tr38901, radar at tripod height. Asks three things: does the path-list route
+#        work on 2.1.0; does the ground-only environment term in the drone's range bin match a prediction made from stored cells; and
+#        is contrast steep in ray count at 30 m? Also supplies the az 0 partners for 0958. (2026-09-17, corrected after an adversarial
+#        check of the 18:45 draft)
+#
+# ⭐Main-session launch note (2026-09-17, ~20:00 KST). Read this before the design text below.
+#   Why this file runs and 0958 does not. /workspace/sionna_mobicom_research_strategy_2026-09-17.md moves the central question to ISAC
+#   (waveform time-frequency structure and traffic gaps vs drone detection and tracking). Its §6.2 says a single complex field E(t) per
+#   position cannot give back paths at different delays, and that a waveform comparison needs per-path coefficient, delay and time. Its
+#   §6.4 says: validate the receiver on simple delay/Doppler channels first, then add ground, wall and rotor; keep antenna placement and
+#   pointing fixed for the first waveform comparison; placement by a twin is an auxiliary axis. Its §9 keeps extra ray tracing to the
+#   minimum that explains an observed failure or changes a design choice.
+#   ⇒ The first use of these lines is the delay-bearing channel for the CPU receiver (benchmark/ofdm_receiver_pilot_0917.py): open sky
+#     and ground only, one antenna condition (tr38901 aimed at the drone), a contiguous 4,096-position record with every path's a and tau.
+#     The placement readings below (A-C, and the 0958 partners) stay as written but are secondary. Wall scenes (0958) wait (see 0958).
+#   Preconditions, status at launch:
+#   (1) DONE. .gitignore now has outputs/path_provenance/*_prov.npz (commit with this file). outputs/path_provenance/ is empty.
+#   (2) CPU smoke test DONE, GPU check still due. A 4-position CPU run (ground only, alt 5.4, tr38901, 4e6 rays, --dump-paths 2) wrote a
+#       sidecar whose Σ over paths with any interaction of a·exp(−j2π·3.5e9·tau) equals the stored E and E_dedup at both positions (relative
+#       difference 0.0), and the nadir path has tau·c = 3.04 m = 2 × 1.52 m. The test shard and sidecar were deleted. Still do check 0 on
+#       the first GPU sidecar of lines 1-2 before reading anything.
+#   (3) Readout script not written yet (CPU, while these run).
+#   (4) Changed: started now, alongside 0950-0956 and 0959, instead of after they are dry. Supervisors share cards 3 and 4. Lines 7-10 may
+#       launch before check 0 on a GPU sidecar; their E is valid in any outcome.
+#
+# Purpose. Plan docs/MOBICOM_PIPELINE_PLAN_0916.md §9.2 scores placements by a target-to-clutter ratio at the drone's position. Every
+#   cell so far stores one complex sum per position over all delays (E). A receiver separates paths by delay, and the verified review
+#   (/workspace/sionna_review_2026-09-17_queues_figures.md §7 C) says range questions need per-path delay and complex gain. These lines
+#   keep the path list (a, tau, part hit) at every position of a contiguous record. Uses: (i) prove the route before 0958 spends
+#   full-scene shards on it; (ii) test a prediction, written below, of the ground-only in-bin environment term; (iii) supply the 30 m
+#   open-sky and ground-only partners of 0958 az 0.
+#
+# What exists. Settings: sionna-rt 2.1.0, matrice4e, 4e9 rays, max_depth 2, R0D0E0F1, cap 2e6, 8,192 positions. No path list is kept
+#   anywhere: outputs/path_provenance/ does not exist and queue 0936 was stood down. Every 2.1.0 cell is at 15 m.
+#   Ground only, 15 m, radar 1.52 m above ground (--env-alt 5.4), el −15 (radar below the drone, looking up 15°) (queue 0940 block F):
+#   contrast_raw aimed 14.83 dB, iso 0.01 dB; open sky 28.16 dB.
+#   CPU rechecks 2026-09-17 (scratch, NOT a ledger, do not cite):
+#   · replacing the 57 positions of env_field_drop_halfmedian ∪ isolated_20xmedian gives 28.06 dB (aimed) / 27.98 dB (iso);
+#   · first 4,096 positions: raw 11.90 / −0.45 dB, replaced 24.38 / 24.37 dB, open sky 24.41 / 24.42 dB, 32 event positions per cell.
+#   ⚠contrast depends on record length — never put an n4096 value next to an n8192 value.
+#   Why ground only is predictable here. Every environment material has scattering coefficient S = 0 (src/materials.py concrete_dark,
+#   concrete_light, metal), and refraction and diffraction are off. Ground only therefore returns exactly one environment-only path: the
+#   radar's own nadir reflection. Stored cells agree (scratch queue_design_0917/adv/nadir_check2.out):
+#   · iso: the time median of E_ground − E_sky equals λ/(4π·2h)·|Γ| of ITU concrete (|Γ| 0.3946) within 0.02 dB at h = 1.52, 7.01, 16.12 m;
+#   · aimed tr38901: it lies 43.9-44.2 dB lower, the pattern's two-way floor 2 × (8 − 30) dBi; −105.3 dB in the 15 m tripod cell.
+#
+# Geometry. --env-alt (benchmark/elevation_sweep_md.py env_parts, report15_probe.place): the scene moves down by alt, the drone stays at
+#   the origin, the radar sits at range·(cos el, sin el), so radar height = alt + range·sin(el).
+#   A range cell here is c/B of round-trip path; offset x = (2R − 2h)/c·B cells.
+#   lines 7-8 (30 m): radar 1.50 m, drone 9.26 m, 29.0 m apart horizontally; nadir 3.80 / 19.0 / 38.0 cells from the drone at 20 / 100 / 200 MHz.
+#   lines 9-10 (15 m): radar 1.52 m, drone 5.4 m, 14.5 m apart; nadir 1.80 / 8.99 / 17.99 cells.
+#   Open sky does not depend on alt, but does depend on range, elevation, antenna and rays: lines 3-4 partner 7-8, lines 1-2 partner 9-10.
+#   Ray density: 4e9 rays at 30 m put as many rays on the drone as 1e9 at 15 m (2e9 as 5e8). Stored 15 m open sky (el −60, d1) has
+#   contrast 25.94 / 27.11 / 29.65 dB at 1e8 / 4e8 / 4e9 rays, i.e. 0.6-0.8 dB per doubling. So a halving check cannot certify
+#   convergence (scratch adv/ray_ladder.out).
+# Names. --dump-paths does not change the name; _n4096 makes these new cells (the first 4,096 positions of the same time grid, dt = 1/PRF).
+#   Shards are interleaved (idx = shard::2), so a replay against a stored 8,192 cell needs both of its shards.
+#   --dump-paths 2048 = every position of each shard. ⛔Never --overwrite a stored stem to get paths (review §7 C).
+#
+# Launch preconditions (main session):
+#   (1) outputs/path_provenance/ is NOT git-ignored, and outputs/elev_sweep_shards/ is tracked (7,978 files). Add an ignore rule for
+#       *_prov.npz first. Estimate 0.1-0.4 GB per shard (52 B per path before compression; stored nret medians: 1,316 per position for
+#       open sky 15 m, 2,454 for ground tripod 15 m). 10 shards here, 8 in 0958.
+#   (2) Dump integrity is unproven on 2.1.0. Lines 1-6 are open sky (about 25-30 min a shard) and land first. Check that
+#       outputs/path_provenance/<stem>_00_prov.npz exists with 2,048 positions and passes check 0 below. If it fails: remove every
+#       not-yet-launched line of this file and of 0958, and fix on CPU. Lines already running finish (their E is a valid same-seed n4096
+#       record, read only as a replay).
+#   (3) The gated readout script does not exist — write it on CPU while these run. The rules below are fixed now; enter prediction P in
+#       the script before any shard of lines 7-10 is read.
+#   (4) Start after 0950-0956 are dry.
+#
+# Read-out — fixed before any shard is read. Definitions (used here and in 0958; each name is new and defined only here):
+#   E_B(t)          gated field: Σ over listed paths with any interaction of a·exp(−j2π·fc·τ)·h_B(τ − 2R/c). h_B = range-bin response of a
+#                   receiver with a Hann window over bandwidth B (rectangular window as the knob). B = 20, 100, 200 MHz. R = radar-drone range.
+#   drone paths     at least one interaction on a drone part.
+#   environment-only paths  every interaction on an env_* object.
+#   contrast_gated  the contrast of benchmark/readout_0917.py (m_contrast → contrast_db) applied to E_B on the 4,096 record
+#                   (contrast_raw: the same on E).
+#   env_in_bin_db   10·log10( mean_t|E_B over environment-only paths|² / mean_t|E_B over drone paths − its time mean|² ).
+#   event positions env_field_drop_halfmedian ∪ isolated_20xmedian of the n4096 E (against its open-sky partner).
+#   event_in_bin    median over event positions of |E_B(t) − (E_B(t−1)+E_B(t+1))/2|, divided by the same median over all positions.
+#   event_share     share of event positions where that ratio exceeds 3.
+#   0. integrity: one sidecar per shard; at every position |Σ_hit a·exp(−j2π·fc·τ) − E| / |E| < 1e-4; count of n_dup > 0 reported.
+#   1. replay: n4096 E of lines 1-2 and 9-10 against positions 0..4095 of the stored 8,192 cell with the same settings. Report path-count
+#      differences and positions with |ΔE|/median|E| > 1e-5 (a same-seed re-solve; 2.1-2.3 % path-count differences per rerun seen before).
+#   2. per cell and B, beside the all-delay value on the same record: contrast_gated, env_in_bin_db, event_in_bin, event_share, and scene −
+#      sky in the bin, called «field difference due to the environment» (a ground contribution only where path classes show it).
+#      For every environment-only path class, give its offset x and |h_B(x)|, so window leakage is told apart from content inside the bin.
+#   Pre-set working thresholds, not repeat-based. Below a threshold write «threshold not crossed», never «no effect» or «equivalent».
+#   P  prediction for lines 7-10, entered before they are read. At ≥ 99 % of the positions outside event positions, the environment-only
+#      paths are one path: one interaction on env_ground, path length 2h within 1 cm, |a| = −105.3 dB at 15 m and −104.9 dB at 30 m
+#      (aimed values above). Predicted environment-only in-bin power = |a|²·|h_B(x)|², with x from that path's listed delay.
+#      Measured within 3 dB for both windows at 20 and 100 MHz → «in ground only, the environment term in the drone's range bin is the
+#      radar's own ground reflection seen through the range window (threshold not crossed)». The iso values at 15 m may then be COMPUTED
+#      from the stored iso cells (nadir −61.07 dB), labelled computed, not measured.
+#      Otherwise: list the environment-only paths within 20 dB of the largest, by delay and part, and see stop/extend.
+#   A  15 m tripod cell (lines 9-10 vs partner 1-2), 20 and 100 MHz:
+#      · contrast_gated within 1 dB of the partner's → «the all-delay contrast deficit of the aimed tripod cell does not reach the drone's
+#        bin at B (threshold not crossed)»;
+#      · ≥ 3 dB below → «part of it remains in the bin at B»;
+#      · in between → unresolved at one run per cell.
+#      Hann and rect disagree → A is not written.
+#   B  events (lines 7-8 and 9-10), 20 MHz: event_in_bin ≤ 3 and event_share ≤ 10 % → «events stay outside the drone's bin (threshold
+#      not crossed)». Otherwise both numbers are written and B counts as failed (a median alone hides mixtures).
+#   C  rays at 30 m, open sky (5-6 vs 3-4), one-sided. |Δcontrast_raw| or |Δcontrast_gated| at 20 MHz > 2 dB → «steep in rays at 30 m»:
+#      no 30 m cell is read further and 0958 is not launched. Otherwise every 30 m level or contrast carries the ray-density note above,
+#      and only differences between cells at the same range, rays and antenna are read as results (0958 does that). A small change is
+#      never written as convergence.
+#   Scope in every sentence: one flat simulated ground with a mirror material, hover only, tr38901 as a stand-in (not the real antennas),
+#   no TX-RX leakage, no receiver noise, one run per cell.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; dry-run each before use (all were NEW on 2026-09-17, both shards).
+#   · check (2) fails → stop every dump line (above).
+#   · P fails at 15 m → iso at 15 m, open sky and ground only, so the antenna reading is measured, not computed; about 2.6 slot-h.
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · P fails at 30 m → the same pair at 30 m; about 2.6 slot-h.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · A unresolved → solver seed 2 of the 15 m aimed tripod ground cell only, read on contrast_gated against its seed-1 value; about 1.7 slot-h,
+#     no third seed. No scene − sky here, because the open-sky field moves with the seed.
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --solver-seed 2 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · B fails at 15 m → the existing top rung of max_num_paths_per_src only (32e6), aimed, with its open-sky partner; about 2.6 slot-h.
+#     Nothing above 32e6 in any outcome (review §7 D). If it still fails, the twin readout adopts the plan §4 screening rule instead.
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --max-paths 32000000 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --max-paths 32000000 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · C steep → no other range and no more rays (4e9 is next to the 32-bit ceiling, 4,294,967,295); the range question goes back to the plan.
+#   · In no outcome from this file:
+#     - a mast-height ladder in ground only (a flat mirror ground is a two-ray problem that a written heuristic already solves);
+#     - an elevation or aim sweep;
+#     - an --ant-cap sweep;
+#     - waveform combinations.
+#
+# One run per cell. Rules kept: outdoor ground / open sky only; diffuse on (R0D0E0F1, no refraction or diffraction); no propeller-only
+#   parts; _rt210 is added automatically; --inmem default.
+# Dry run 2026-09-17 (CPU, runners/filter_jobs.sh, lines verbatim, both shards): 10/10 NEW; the 7 extension lines NEW. No equivalent line
+#   in any runners/jobs_*.txt (flag-set comparison, commented lines included).
+# Estimate about 5.8 slot-h: open sky 50-57 min and ground 88-110 min per 4,096-position shard (sup_0950/0952/0956, stored meta), so
+#   about half that at 2,048.
+# Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 2000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 2000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --dump-paths 2048 --shard 1 --nshards 2

@@ -1,0 +1,76 @@
+# 0959 — two open-sky completions for readouts already promised: solver seed 2 on both sides of the 0952 cap comparison at 0°, and the
+#        same-antenna open-sky partners of the two 0950 off-diagonal cells at 60° below (2026-09-17)
+#
+# ⭐Main-session launch note (2026-09-17, ~20:00 KST). Only part (b) is queued. Part (a) (lines 1-4, seed 2 of open sky 0° at 2e6 and
+#   32e6) is commented out with «#HOLD ».
+#   Reason: /workspace/sionna_mobicom_research_strategy_2026-09-17.md §9 keeps cap and hash/buffer checks for cells that will actually be
+#   used, and says wider runs of them should wait for a research decision they would change. Open sky at 0° is not a cell planned for the
+#   receiver or campaign (0957 uses el −15). Part (b) completes the pattern × pointing 2×2, which §9 names as the basis for fixing the
+#   antenna condition of the first waveform comparison.
+#   Release trigger for (a): the 0° cap result (S = 37 → 12 → 2) is going to be written into a report or paper, or the user asks.
+#   Changed: started now alongside 0950-0957 (the 0950 cells these partner land tonight), not after 0957/0958.
+#
+# Purpose / what exists.
+#   (a) lines 1-4. 0952 (open sky 0°, iso, max_depth 2, sionna-rt 2.1.0): S = 37 at 2e6, 12 at 8e6, 2 at 32e6 ({2630, 7064}, a subset).
+#       rep1 (same seed) reproduces the 37 index for index, so the working threshold (5 positions) comes from a same-seed replay. No seed
+#       spread exists at 0°, and the 32e6 side is a single run. Verified review action (§7 P2): repeat the one-run side of comparisons
+#       that could flip, naming open sky 0° 32e6. Both caps are bought at --solver-seed 2, so the fall can also be read inside one seed.
+#   (b) lines 5-8. The 0950 addendum (17:40 KST) promises env_field_drop_halfmedian next to the isolated count for the 2×2. But
+#       docs/READOUT_0917.md 3(a) shows «no reference» for iso/target (_orTgt) and tr38901/device (_orDev): no open sky exists at those
+#       antenna settings. One open-sky cell serves ground only and street canyon (same drone centre, Tx/Rx and phase reference; 0950
+#       header). Diagonal partners exist (open sky iso/device and tr38901/target, el −60, 2e6).
+#
+# Read-out — fixed before any shard is read.
+#   (a) Per cell: copy_k_ratio histogram and modal k; S and its index set; Jaccard with the seed-1 set at the same cap; positions with
+#       copy_k_ratio ≠ n_dup + 1; S(32e6, seed 2) ⊆ S(2e6, seed 2) yes/no; contrast_dedup (seed 1: 27.86 dB). contrast_raw is reported as
+#       «at its floor while S ≥ 1» and is not read as a direction.
+#       d_seed = |S_seed2(2e6) − 37|; T = max(5, 3·d_seed), labelled «from one seed pair», reported beside the 0952 threshold 5.
+#       Δ1 = 37 − 2 = 35 (seed 1); Δ2 = S_seed2(2e6) − S_seed2(32e6).
+#       · Δ1 > T and Δ2 > T → «the 2e6 → 32e6 fall crosses the working threshold at both seeds»;
+#       · only one of them → «at one seed only»;
+#       · T ≥ 35 → 0952 outcome (c), «unreadable at one run per value», for that step.
+#       The 1e6, 8e6 and 16e6 steps of 0952 are re-read under T as well.
+#   (b) Cap 2e6, per scene (ground only, street canyon), all four antenna cells, each against its own open sky at seed 1:
+#       · env_field_drop_halfmedian count, index set, and Jaccard with iso/device;
+#       · median |scene − sky|; median |D − mean D| with D = scene − sky, as the check that the pairing cancels the drone term;
+#       · isolated_20xmedian with normaliser median|E − m|, |m|, and median normalised distance;
+#       · contrast_raw.
+#       Then, on median |scene − sky| and within one scene and one cap only: pattern effect at each orientation, orientation effect at each
+#       pattern, and their interaction. «Orientation» = pointing plus rotation of the V basis (confounded).
+#       Working rule (ground only): Jaccard ≥ 0.97 with iso/device, and a count inside 82-84 (the seed-change range of READOUT_0917 3(d),
+#       computed against the seed-1 open sky) → «the field-drop set did not follow pattern or orientation at 2e6 (threshold not crossed)».
+#       Street canyon iso/device has 0 drops, so the canyon row is read on level only.
+#       Expectation written before reading: the same set. Two reasons:
+#       · rays are launched in world directions, whatever the pattern or device orientation (sionna/rt/utils/ray_tracing.py
+#         spawn_ray_from_sources);
+#       · the static term these drops act on is the radar's nadir reflection (0957 header), whose |m| exceeds the normaliser by 57 dB
+#         (iso/target) and 72 dB (tr38901/device at 16e6) in READOUT_0917 3(a).
+#       A different set would first point to run-to-run path-count differences, not to the antenna.
+#   Tolerance wording everywhere: a pre-set working threshold; inside it «threshold not crossed», never «no effect» or «equivalent».
+#
+# Stop / extend.
+#   (a) Stop after these two cells in every outcome; no seed 3. A max_depth 1 seed run stays conditional on 0953 (only if a depth-1 change
+#       near 5 positions matters).
+#   (b) Stop when the 2e6 row is complete in both scenes; no 16e6 or 8e6 open-sky partners. A set with Jaccard < 0.97, or a count outside
+#       82-84 → path lists at those positions (benchmark/dropout_paths_0916.py in a card 3/4 hold window), not more shards.
+#   Conditional, NOT queued (trigger fixed now): if the 0954 + 0956 ground readout shows an aim-offset effect on contrast_raw or median
+#   |scene − sky| between 0.3 and 3 dB that is going to be reported, buy seed 2 of aimed tr38901 at el −60 in ground only, plus its open
+#   sky at the same seed (scene − sky only within one seed, because the open-sky field moves with the seed). About 4.9 slot-h; no seed 3,
+#   no canyon.
+#   # --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --solver-seed 2 --shard 0 --nshards 2   (and --shard 1)
+#   # --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --solver-seed 2 --shard 0 --nshards 2   (and --shard 1)
+#
+# One run per cell. Rules kept: open sky only in this file; diffuse on (R0D0E0F1); _rt210 automatic; --inmem default.
+# Start after 0957 and 0958 have launched every line (after 0957 alone if 0958 is not launched).
+# Dry run 2026-09-17 (CPU, runners/filter_jobs.sh, lines verbatim, both shards): 8/8 NEW; the 2 conditional lines NEW. No equivalent line
+#   in any runners/jobs_*.txt.
+# Estimate about 7.2 slot-h (open-sky shard 50-57 min in sup_0952).
+# Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
+#HOLD --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --solver-seed 2 --shard 0 --nshards 2
+#HOLD --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --solver-seed 2 --shard 1 --nshards 2
+#HOLD --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 32000000 --solver-seed 2 --shard 0 --nshards 2
+#HOLD --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --max-paths 32000000 --solver-seed 2 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-orient target --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-orient target --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --ant-orient device --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --ant-pattern tr38901 --ant-orient device --shard 1 --nshards 2

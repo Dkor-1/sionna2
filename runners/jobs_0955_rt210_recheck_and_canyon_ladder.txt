@@ -27,6 +27,12 @@
 #   request; runners/GPU_HOLD.json «manual_one_each_gpu1_gpu2_0917»). sup_0955 skips them when it gets there.
 # Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
 
+# ADDED 2026-09-17 ~20:00 KST (main session; header only, the supervisor read its lines at start): expectation for A's buildings-only
+#   lines (el −30, az 0, default height), written before they land. The 2.0.1 cell with the same settings equals open sky at el −30:
+#   |E_bldg − E_sky| / median|E_sky| has median 2.9e-16, p99 3.3e-4, max 0.027, and path counts are equal at 99.7 % of 8,192 positions.
+#   The 0957/0958 design check found no specular path that touches a building or pole at 15 m for az 0 (image-method search; every
+#   environment material has S = 0; diffraction off). So these lines are expected to repeat open sky on 2.1.0. They were not removed:
+#   they answer the Future Work recheck as asked, and stopping a supervisor is the user's call.
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01 --shard 0 --nshards 2
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01 --shard 1 --nshards 2
 --engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01 --shard 0 --nshards 2
