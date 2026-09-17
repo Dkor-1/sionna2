@@ -1,0 +1,42 @@
+# 0950 — antenna pattern x antenna pointing, the two missing cells (2026-09-17)
+#
+# Asked by docs/RESULTS_QUEUE_REVIEW_0917.ipynb priority 3, and made necessary by its adversarial
+# re-check: the aimed arm (tr38901 pointed at the drone) has zero positions standing apart, but its path
+# counts match the iso arm at 8,025-8,166 of 8,192 positions, and the zero comes from a per-cell
+# denominator about six times larger. The arm moves pattern, pointing and polarisation together, so it
+# cannot say which of them does anything. --ant-orient (commit before this file) separates them.
+#
+#                     default orientation      pointed at the drone
+#   iso pattern       existing (every iso arm)  ⭐THIS FILE  _orTgt
+#   tr38901 pattern   ⭐THIS FILE  _orDev        existing (_anttr38901)
+#
+# Where: el -60, ground-only and street canyon, at path limit 2e6 and 16e6 — the two rungs where BOTH
+#   existing diagonal cells are already in the store in both scenes (the aimed arm has no 32e6 cell).
+# Read-out: raw spectra and per-position path counts of all four cells side by side, NOT the isolated
+#   count alone — that count is normalised by each cell's own spread and moved six-fold between arms.
+# Expect: tr38901 at the default orientation puts the drone in the back lobe (120° off boresight at
+#   el -60), so that cell will be weak. It isolates the pattern; it is not a candidate configuration.
+# Kill / fold: if iso pointed at the drone behaves like the aimed arm, the aimed result was pointing and
+#   polarisation, not pattern. If it behaves like plain iso, the pattern is doing the work.
+# Not answered: why a path is lost, anything about a real antenna or a real radar.
+# Rules kept: diffuse on (F1); no el 0; --inmem default; cards 3 and 4 only.
+
+# -- ground only ---------------------------------------------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --ant-orient target --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --ant-orient target --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-orient device --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --ant-pattern tr38901 --ant-orient device --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --ant-orient target --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --ant-orient target --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --ant-pattern tr38901 --ant-orient device --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01_ground --max-paths 16000000 --ant-pattern tr38901 --ant-orient device --shard 1 --nshards 2
+
+# -- street canyon ------------------------------------------------------------------------------------
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --ant-orient target --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --ant-orient target --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --ant-pattern tr38901 --ant-orient device --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --ant-pattern tr38901 --ant-orient device --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 16000000 --ant-orient target --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 16000000 --ant-orient target --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 16000000 --ant-pattern tr38901 --ant-orient device --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env sionna:simple_street_canyon --max-paths 16000000 --ant-pattern tr38901 --ant-orient device --shard 1 --nshards 2
