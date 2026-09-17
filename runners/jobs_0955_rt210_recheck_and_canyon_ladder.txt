@@ -1,0 +1,38 @@
+# 0955 — the deck's puzzling effects re-checked on sionna-rt 2.1.0, and max_num_paths_per_src in the street canyon (2026-09-17 16:45 KST)
+#
+# Why. Deck 0917 v17 Future Work, in the user's words: 「이 버전을 이번주에 업데이트하여서 각종 의아한 현상이 여전히 발생하는지 실험을
+# 간략하게 돌려보고자합니다」 and 「max_num_paths_per_src … 이 값을 올릴 시 튀는 값이 줄어드는 현상이 확인되어서 이에 대해 알아보고자
+# 합니다」. The slides' results are mostly sionna-rt 2.0.1. Already on 2.1.0 or queued: open sky 0° (0952 Matrice 4E done, same
+# copies at the same positions; ladder 1e6-32e6 running), other drones / max_depth 1 / az 180 (0953), ground only at 15-75°,
+# buildings only and street canyon at 60° below, street canyon at 30°, the ground-only and street-canyon ladders up to 16e6/32e6.
+# Missing on 2.1.0, bought here (dry run 2026-09-17: all NEW):
+#   A  our own test scene with all elements at 30° and 60° below, buildings only at 30° below   (slides 11-13)
+#   B  the angle window: azimuth 0.11° / 0.12° / 0.2°, elevation -0.15° / -0.16°                (slides 4-6; 2.0.1 edges)
+#   C  street canyon at 30° below with max_num_paths_per_src 32e6                                  (completes 2e6-32e6 at 30°)
+# Read-out — fixed before any shard is read:
+#   A  Hampel marks (bake_outdoor.drop_outliers, win 51, k 5) and blade lines above surroundings (bake_ground2.contrast_db) as
+#      recorded and after replacement, beside the 2.0.1 cell of the same scene/angle; drop-out cases of the ground term.
+#   B  times the same reflection is listed at the typical position, k = 1 + |E - E_dedup| / |one copy| (bake_repeat_count.py),
+#      beside 2.0.1: 3 at az 0.11, 1 at az 0.12, 2 at el -0.15, 1 at el -0.16, 1 at az 0.2.
+#   C  Hampel marks and blade-line height at 2e6 / 8e6 / 16e6 / 32e6, street canyon 30° below.
+#   One run per cell; build differences are reported as such, not as causes.
+# Cards 3 and 4 only; GPU 0, 1 and 2 stay held.
+
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-60 --env outdoor01 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_bldg --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env outdoor01_bldg --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --az-deg 0.11 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --az-deg 0.11 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --az-deg 0.12 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --az-deg 0.12 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-0.15 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-0.15 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-0.16 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-0.16 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --az-deg 0.2 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=0 --az-deg 0.2 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --max-paths 32000000 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-30 --env sionna:simple_street_canyon --max-paths 32000000 --shard 1 --nshards 2
