@@ -2,30 +2,109 @@
  "_meta": {
   "generator": "benchmark/repeat_spread_0916.py",
   "question": "Is the buffer-alone difference bigger than what two identical runs do anyway?",
-  "answer": "Re-solving the identical setting on these same 42 positions already moves the field by 1.973e-05, with 2 position(s) changing path count. The buffer-alone contrast moves it by 1.969e-05, with 1 — the same size and the same kind of difference. So nothing can be attributed to the buffer at that size. What the contrast does show is that no position gained or lost the environment path: 0 incremental recoveries and 0 incremental losses.",
+  "answer": "The fresh diagnostic re-solve at the production setting on these 42 positions differs from the stored whole-sweep output by up to 1.973e-05, with 2 position(s) changing path count. The buffer-alone contrast moves the field by 1.969e-05, with 1 — the same size and the same kind of difference, and its path-count change sits at position(s) [8015] where the re-solve also flips one path. So nothing can be attributed to the buffer at that size. That comparator is a difference between two processes on two cards, not a measured run-to-run spread. Identical whole-sweep runs (run 1 against each repeat) flip the path count at 171-186 of 8,192 positions (2.1%-2.3%), 29-33 of them moving the field by more than 1e-05. At that rate about 0.9-1.0 flips per repeat are expected among the 42 contrast positions; 0 were seen there across 3 repeats. The same positions flip again and again (65 in every pair), so that count is too little to call those positions stable. What the contrast does show is that no position gained or lost the environment path: 0 incremental recoveries and 0 incremental losses.",
   "verdict_code": "same-size-as-a-re-solve",
-  "bought_by": "runners/jobs_0947_repeat_spread.txt",
+  "bought_by": [
+   "runners/jobs_0933_repeat.txt (rep1)",
+   "runners/jobs_0947_repeat_spread.txt (rep2; rep1 at limit 8e6)",
+   "runners/jobs_0949_antenna_by_angle.txt (rep3)"
+  ],
   "asked_by": "docs/HASH_DIAGNOSTIC_REVIEW_0916.ipynb §2 ②",
-  "corrected_by": "docs/RESULTS_QUEUE_REVIEW_0917.ipynb §2 B — the first edition of this script compared the maximum over all 8,192 positions against a contrast measured on 42, and reached the opposite conclusion",
-  "finished_utc": "2026-09-16T17:16:50Z",
-  "wall_time_s": 0.1,
+  "corrected_by": [
+   "docs/RESULTS_QUEUE_REVIEW_0917.ipynb §2 B — the first edition of this script compared the maximum over all 8,192 positions against a contrast measured on 42, and reached the opposite conclusion",
+   "/workspace/sionna_review_2026-09-17_queues_figures.md §2.5 and its adversarial verification (2026-09-17) — the re-solve comparator is not the same run or the same card; rep3 added; the whole-cell flip rate of identical runs reported next to the contrast's positions"
+  ],
+  "comparator": {
+   "wording": "stored whole-sweep production output (GPU 1, 09-14, jobs_0931) vs fresh diagnostic re-solve (GPU 2, 09-16, 42 poses)",
+   "stored_side": {
+    "shards": [
+     {
+      "file": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+      "run_id": "80f5bfc99c0b451a",
+      "t_start_kst": "2026-09-14 20:48:59",
+      "launches_matching_start_and_job_line": [
+       {
+        "launch": 16,
+        "gpu": "1",
+        "lag_s": 3.351987,
+        "jobs_line_matches": true
+       }
+      ]
+     },
+     {
+      "file": "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz",
+      "run_id": "c0b4e4632f4d4fb2",
+      "t_start_kst": "2026-09-14 20:48:59",
+      "launches_matching_start_and_job_line": [
+       {
+        "launch": 17,
+        "gpu": "1",
+        "lag_s": 3.337877,
+        "jobs_line_matches": true
+       }
+      ]
+     }
+    ],
+    "gpus": [
+     "1"
+    ],
+    "t_start_dates_kst": [
+     "09-14"
+    ],
+    "supervisor_log": "runners/logs/sup_bridge_0931.log",
+    "supervisor_log_on_disk": true,
+    "jobs_file": "runners/jobs_0931_bridge.txt"
+   },
+   "re_solve_side": {
+    "ledger": "outputs/dropout_hash_vs_buffer_0916.json",
+    "cuda_visible_devices": "2",
+    "started_utc": "2026-09-16T06:59:17Z",
+    "finished_utc": "2026-09-16T07:04:32Z",
+    "n_positions": 42,
+    "n_production_rows": 42,
+    "stored_shards": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ],
+    "started_date_kst": "09-16"
+   },
+   "wording_checked": {
+    "stored_gpu": true,
+    "stored_date": true,
+    "stored_queue": true,
+    "re_solve_gpu": true,
+    "re_solve_date": true,
+    "re_solve_positions": true
+   },
+   "wording_holds": true
+  },
+  "finished_utc": "2026-09-17T09:03:53Z",
+  "wall_time_s": 0.2,
   "cannot_say": [
-   "that the buffer caused the difference — a re-solve at the identical setting produces the same size of move on the same positions",
+   "that the buffer caused the difference — the production-setting re-solve differs from the stored field by the same size of move on the same positions",
+   "that the re-solve comparator is run-to-run noise — it compares the stored whole-sweep production output with a fresh diagnostic re-solve (a different process on a different card), and its one-path flips sit at positions where the knob contrasts also flip one path",
+   "that the card causes the comparator's difference — card and process change together there",
+   "that the contrast's positions are stable because identical whole-sweep repeats show no flip there — at the whole-cell flip rate only a handful of flips per repeat are expected among them (whole_cell_flip_rate)",
    "that the 09-16 wording «two positions returning one path fewer» described the buffer: on this ledger the buffer-alone contrast changes the path count at ONE position and that position GAINS a path (8015: 2810 -> 2811). The 8016 case, 2794 -> 2793, is a production-versus-re-solve difference that was mislabelled as a buffer effect",
    "which of two identical runs is closer to reality — both are the simulator's output",
    "that the buffer never matters: it was moved at one hash size only, and the largest pair of settings ran out of memory and was not run again",
    "anything about a real radar measurement"
   ],
-  "what_would_settle_it": "the same selected positions, the same card, (buffer 2e6, hash 8e6) against (buffer 8e6, hash 8e6), repeated with the run order balanced, and each position's difference read against the repeat distribution of that same position",
+  "what_would_settle_it": "the same selected positions in one process on one card, (buffer 2e6, hash 8e6) against (buffer 8e6, hash 8e6), repeated with the run order balanced, with a production-setting re-solve at the start and at the end of that same process, and each position's difference read against the repeat distribution of that same position",
   "definitions": {
    "field move": "|E_a - E_b| at the same rotor position, divided by the median |E| of the cell",
    "the contrast's positions": "the rotor positions the split run actually solved, read from the split ledger's own groups — not a fixed list",
-   "identical runs": "the same job line with only --rep changed"
+   "identical runs": "the same job line with only --rep changed",
+   "whole-cell flip": "a rotor position, anywhere in the cell, whose returned path count differs between two identical whole-sweep runs",
+   "production-setting re-solve": "split-ledger rows at grid point «production»: a chosen position solved again in the diagnostic process and differenced against the stored whole-sweep field (abs_err_over_abs_cell_median); see _meta.comparator"
   }
  },
  "buffer_contrast_being_judged": {
   "source": "outputs/dropout_hash_vs_buffer_0916.json",
   "knob": "hash8 -> both8",
+  "positions_where_buffer_and_re_solve_both_flip": [
+   8015
+  ],
   "poses": [
    14,
    15,
@@ -101,22 +180,60 @@
   "n_incremental_recoveries": 0,
   "n_incremental_losses": 0
  },
+ "whole_cell_flip_rate": {
+  "pairs": [
+   "production limit, run 1 vs run 2 (rep1)",
+   "production limit, run 1 vs run 3 (rep2)",
+   "production limit, run 1 vs run 4 (rep3)"
+  ],
+  "n_positions": 8192,
+  "n_flipped": [
+   182,
+   171,
+   186
+  ],
+  "flip_rate_min": 0.0208740234375,
+  "flip_rate_max": 0.022705078125,
+  "n_flipped_moving_more_than_tol": [
+   33,
+   30,
+   29
+  ],
+  "tol": 1e-05,
+  "n_flipped_in_every_pair": 65,
+  "contrast_positions": 42,
+  "expected_flips_per_repeat_at_those_positions": [
+   0.876708984375,
+   0.95361328125
+  ],
+  "observed_flips_at_those_positions_all_repeats": 0
+ },
+ "summary_of_repeats": {
+  "max_move_all_positions": 4.3105570239963276e-05,
+  "max_move_at_contrast_positions": 2.1252078401364037e-06,
+  "max_path_count_flips_at_contrast_positions": 0
+ },
  "repeats": [
   {
-   "pair": "production limit, run 1 vs run 2",
+   "pair": "production limit, run 1 vs run 2 (rep1)",
    "available": true,
    "n_positions": 8192,
    "all_positions": {
     "max_field_move_over_median": 2.025271720219883e-05,
     "p99": 4.2485267611439245e-06,
     "n_with_a_different_path_count": 182,
+    "path_count_flip_rate": 0.022216796875,
+    "n_one_path_flips": 182,
+    "n_flips_moving_more_than_tol": 33,
+    "max_field_move_at_a_flip": 2.025271720219883e-05,
     "max_path_count_difference": 1
    },
    "same_positions_as_the_contrast": {
     "n": 42,
     "max_field_move_over_median": 2.1252075440555004e-06,
     "n_with_a_different_path_count": 0,
-    "max_path_count_difference": 0
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.93310546875
    },
    "shards": {
     "a": [
@@ -130,20 +247,25 @@
    }
   },
   {
-   "pair": "production limit, run 1 vs run 3",
+   "pair": "production limit, run 1 vs run 3 (rep2)",
    "available": true,
    "n_positions": 8192,
    "all_positions": {
     "max_field_move_over_median": 3.9184667912574074e-05,
     "p99": 4.2416939556529385e-06,
     "n_with_a_different_path_count": 171,
+    "path_count_flip_rate": 0.0208740234375,
+    "n_one_path_flips": 171,
+    "n_flips_moving_more_than_tol": 30,
+    "max_field_move_at_a_flip": 3.9184667912574074e-05,
     "max_path_count_difference": 1
    },
    "same_positions_as_the_contrast": {
     "n": 42,
     "max_field_move_over_median": 2.1252075441960117e-06,
     "n_with_a_different_path_count": 0,
-    "max_path_count_difference": 0
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.876708984375
    },
    "shards": {
     "a": [
@@ -157,20 +279,57 @@
    }
   },
   {
-   "pair": "production limit, run 2 vs run 3",
+   "pair": "production limit, run 1 vs run 4 (rep3)",
+   "available": true,
+   "n_positions": 8192,
+   "all_positions": {
+    "max_field_move_over_median": 2.0236078190178677e-05,
+    "p99": 4.250104300700982e-06,
+    "n_with_a_different_path_count": 186,
+    "path_count_flip_rate": 0.022705078125,
+    "n_one_path_flips": 186,
+    "n_flips_moving_more_than_tol": 29,
+    "max_field_move_at_a_flip": 2.0236078190178677e-05,
+    "max_path_count_difference": 1
+   },
+   "same_positions_as_the_contrast": {
+    "n": 42,
+    "max_field_move_over_median": 1.7674861923848491e-06,
+    "n_with_a_different_path_count": 0,
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.95361328125
+   },
+   "shards": {
+    "a": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ],
+    "b": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep3_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep3_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ]
+   }
+  },
+  {
+   "pair": "production limit, run 2 (rep1) vs run 3 (rep2)",
    "available": true,
    "n_positions": 8192,
    "all_positions": {
     "max_field_move_over_median": 4.291950585992113e-05,
     "p99": 4.2489585823541735e-06,
     "n_with_a_different_path_count": 166,
+    "path_count_flip_rate": 0.020263671875,
+    "n_one_path_flips": 165,
+    "n_flips_moving_more_than_tol": 24,
+    "max_field_move_at_a_flip": 2.018026532021588e-05,
     "max_path_count_difference": 2
    },
    "same_positions_as_the_contrast": {
     "n": 42,
     "max_field_move_over_median": 1.5931676398918603e-06,
     "n_with_a_different_path_count": 0,
-    "max_path_count_difference": 0
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.85107421875
    },
    "shards": {
     "a": [
@@ -184,20 +343,89 @@
    }
   },
   {
-   "pair": "limit 8e6, run 1 vs run 2",
+   "pair": "production limit, run 2 (rep1) vs run 4 (rep3)",
+   "available": true,
+   "n_positions": 8192,
+   "all_positions": {
+    "max_field_move_over_median": 2.0341802585276308e-05,
+    "p99": 4.218196577723622e-06,
+    "n_with_a_different_path_count": 162,
+    "path_count_flip_rate": 0.019775390625,
+    "n_one_path_flips": 162,
+    "n_flips_moving_more_than_tol": 27,
+    "max_field_move_at_a_flip": 2.0341802585276308e-05,
+    "max_path_count_difference": 1
+   },
+   "same_positions_as_the_contrast": {
+    "n": 42,
+    "max_field_move_over_median": 2.1252078401364037e-06,
+    "n_with_a_different_path_count": 0,
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.83056640625
+   },
+   "shards": {
+    "a": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep1_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep1_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ],
+    "b": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep3_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep3_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ]
+   }
+  },
+  {
+   "pair": "production limit, run 3 (rep2) vs run 4 (rep3)",
+   "available": true,
+   "n_positions": 8192,
+   "all_positions": {
+    "max_field_move_over_median": 4.3105570239963276e-05,
+    "p99": 4.218867050431159e-06,
+    "n_with_a_different_path_count": 159,
+    "path_count_flip_rate": 0.0194091796875,
+    "n_one_path_flips": 159,
+    "n_flips_moving_more_than_tol": 26,
+    "max_field_move_at_a_flip": 2.0253513996903817e-05,
+    "max_path_count_difference": 1
+   },
+   "same_positions_as_the_contrast": {
+    "n": 42,
+    "max_field_move_over_median": 2.125207579213757e-06,
+    "n_with_a_different_path_count": 0,
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.815185546875
+   },
+   "shards": {
+    "a": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep2_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep2_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ],
+    "b": [
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep3_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_00.npz",
+     "sionna_p4000000000_swR0D0E0F1_r15_n8192_rep3_envoutdoor01_ground_mfixbatteryi5_blperairframe_rt210_d2_el-60_01.npz"
+    ]
+   }
+  },
+  {
+   "pair": "limit 8e6, run 1 vs run 2 (rep1)",
    "available": true,
    "n_positions": 8192,
    "all_positions": {
     "max_field_move_over_median": 2.0405474108596944e-05,
     "p99": 4.222249830864858e-06,
     "n_with_a_different_path_count": 170,
+    "path_count_flip_rate": 0.020751953125,
+    "n_one_path_flips": 170,
+    "n_flips_moving_more_than_tol": 25,
+    "max_field_move_at_a_flip": 2.0405474108596944e-05,
     "max_path_count_difference": 1
    },
    "same_positions_as_the_contrast": {
     "n": 42,
     "max_field_move_over_median": 2.125197430680974e-06,
     "n_with_a_different_path_count": 0,
-    "max_path_count_difference": 0
+    "max_path_count_difference": 0,
+    "expected_flips_at_the_whole_cell_rate": 0.87158203125
    },
    "shards": {
     "a": [

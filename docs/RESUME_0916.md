@@ -1,6 +1,8 @@
+> ⛔**Historical — superseded by [`RESUME_0917.md`](RESUME_0917.md).** Kept as the dated 09-16 record; the scoped corrections of 2026-09-17 are marked «corrected 09-17» (metric names as defined in RESUME_0917 §4).
+
 # Current status — 2026-09-16, 16:45 KST
 
-> The in-repo edition. `/workspace/RESUME_NOW.md` is the top-level pointer to this file.
+> The in-repo edition. `/workspace/RESUME_NOW.md` was the top-level pointer to this file (it now points to RESUME_0917).
 > Written so a fresh session can pick up without reading the transcript.
 > The 2026-09-02 edition is at `/workspace/archive/2026-09/resume/RESUME_NOW_0902.md`.
 > Python is **/workspace/.venvs/py312/bin/python**. For CPU work put `CUDA_VISIBLE_DEVICES=""` in front.
@@ -9,8 +11,13 @@
 ## 0. One line
 
 Three GPU queues are running on cards 2/3/4 and will not dry out before tomorrow midday. The open
-question is the **isolated poses**: about 1 % of drone poses return a path set their neighbours have,
-and that 1 % carries essentially all of the pose-to-pose change. Nothing needs a human right now.
+question is the **isolated poses** — ground only, el -60°, RT 2.1.0, max_depth 2, cap 2e6, isolated_20xmedian:
+90/8,192, of which 82 fall below the cell (env_field_drop_halfmedian; the path-listed ones lack the ground specular
+their neighbours have) and 8 rise about +0.96 dB above it (the 5 path-listed carry extra ground-propeller paths);
+street canyon el -60°: 339 (4.1 %). Nothing needs a human right now.
+*(Corrected 09-17: this line said «about 1 % of drone poses return a path set their neighbours have, and that 1 %
+carries essentially all of the pose-to-pose change» — no scene, angle, cap or metric; the mechanism was inverted; the
+share is close to circular.)*
 
 ## 1. GPU rules — read this before launching anything
 
@@ -61,22 +68,38 @@ street-canyon shard ~225 min. Before adding a queue, split NEW/DONE/STALE/BAD wi
 
 Ledgers: `outputs/dropout_knobs_0916.json`, `outputs/dropout_hash_vs_buffer_0916.json`,
 `outputs/dropout_paths_0916_diff.json`. Definition: a pose whose complex field sits more than
-20 x median-absolute-deviation from the cell's complex median.
+20 x median-absolute-deviation from the cell's complex median (= isolated_20xmedian; the centre is the component-wise
+median of E, median(Re) + j·median(Im) — clarified 09-17).
 
-**Established** (ground cell, 8,192 poses, 0.044° apart, one shard each):
+**Established** (ground only, el -60°, RT 2.1.0, max_depth 2, cap 2e6 unless stated; 8,192 consecutive pulses,
+≈1.16° of rotor turn apart at 3,800 rpm and 19.7 kHz; two shards per cell — corrected 09-17, it said «0.044° apart,
+one shard each»):
 
-* 90 of 8,192 poses (1.1 %) are isolated, and they carry **99.96 %** of the pose-to-pose varying power.
-  Street canyon 339, canyon at -30 deg elevation 96, **free sky 0** — the ground has to be in the scene.
-* At 30 of 32 checked ground pairs, the pose is missing exactly one path the neighbour 0.044 deg away
-  has: a single-bounce specular off `env_ground`, tau = 46.8 ns, |a| = 1.9e-4.
-* Raising the solver's path limit thins them out but never to zero:
-  cap 1e6 -> 161, 2e6 (production) -> 90, 8e6 -> 34, 16e6 -> 22, 32e6 -> 15.
+* 90 of 8,192 poses (1.1 %) are isolated (isolated_20xmedian). The 99.96 % share of the pose-to-pose varying power
+  they carry is close to circular (they were selected for being far from the median). Street canyon el -60° 339,
+  canyon el -30° 96. Open sky (RT 2.1.0, 2e6, factor-20 rule): 0 at max_depth 2 el -15/-30/-45/-60°, max_depth 1 el -30/-45/-60°
+  and max_depth 3 el -30/-60° (the cells on disk); at max_depth 2 el 0°, 37 (the same set in rep1; 2 at 32e6), a
+  different signature (one of three copies of the drone echo missing).
+  *(Corrected 09-17: this line said «free sky 0 — the ground has to be in the scene», which is false at 0°.)*
+* At 30 of 32 checked ground pairs, the pose is missing exactly one path the neighbouring pulse (≈1.16° of rotor
+  turn away) has: a single-bounce specular off `env_ground`, tau = 46.8 ns, |a| = 1.9e-4.
+* Raising the solver's path limit thins them out but never to zero. Field-threshold drops (env_field_drop_halfmedian, every rung
+  against open sky iso at cap 2e6, el -60°): cap 1e6 -> 153, 2e6 (production) -> 82, 8e6 -> 26, 16e6 -> 14, 32e6 -> 7.
+  Path lists back «without the ground reflection» only at the sampled poses (`outputs/dropout_paths_0916_diff.json`,
+  `outputs/dropout_hash_vs_buffer_0916.json`), not for every pose of these counts. All isolated poses (isolated_20xmedian) 161/90/34/22/15 add the same 8 rises at
+  every cap. *(Corrected 09-17: the all-isolated ladder had been used for the missing ground reflection.)*
 * Outside the isolated poses the cap changes the field by 2.2e-5, against 2.0e-5 for **re-running the
   identical job**. So the cap is not quietly reshaping the rest of the cell.
 * `--max-paths` moves two things at once: the candidate buffer and the specular-chain hash counter.
-  Separating them (`benchmark/dropout_hash_vs_buffer_0916.py`): with the buffer fixed, hash 2e6 -> 8e6
-  brings the missing path back at **5 of 12** isolated poses and 8e6 -> 32e6 at one more (6 of 12);
-  with the hash fixed, buffer 2e6 -> 8e6 changes **nothing** (0 recoveries, 0 losses, both directions).
+  Separating them (`benchmark/dropout_hash_vs_buffer_0916.py`, 12 selected isolated poses): with the buffer fixed at
+  2e6 (never more than 1.43 % full), raising only the hash counter restored the env_ground specular at **5/6 (8e6)
+  and 6/6 (32e6)** of the poses chosen because cap 32e6 had recovered them; the one sampled pose cap 32e6 did not
+  recover (8015) still lacked it at hash 32e6; the other 5 sampled core poses never lacked it.
+  At hash 8e6, on the 12 selected isolated poses, buffer 2e6 -> 8e6 gave no incremental env-path recovery or loss.
+  Its only path-count change (8015, +1 path, 1.97e-5 of |m|) is at the same pose where the diagnostic's own
+  production-setting re-solve differs from the stored field by one path. Buffer tested at one hash size only.
+  *(Corrected 09-17: this bullet said «5 of 12» and «6 of 12» — a denominator that mixed poses that never lacked the
+  path — and that the buffer change altered nothing at all, which the ledger does not support.)*
 * Changing the solver seed moves the field outside the isolated poses by 2.2e-3 — a hundred times the
   repeat-run noise, and a hundred times what the cap does. The seed is the bigger lever on everything else.
 
@@ -88,7 +111,10 @@ Ledgers: `outputs/dropout_knobs_0916.json`, `outputs/dropout_hash_vs_buffer_0916
   the 32e6 x 32e6 grid point died of out-of-memory and was not repeated.
 * That the isolated poses are wrong and the neighbours are right. Both are approximations; which one
   matches reality is a question for measurement (`memory: dont-call-sionna-wrong`).
-* Anything about the 15 surviving "core" poses as a class. 6 of them were sampled, not all 15.
+* Anything about the 15 surviving "core" poses (cap 32e6) as one class — field level and cap behaviour already split
+  them into 7 falls (env_field_drop_halfmedian; the ladder above) and 8 rises that do not change with cap or repeat.
+  The 6 sampled are 5 rises + 1 fall (8015); 9 were never diagnosed. *(Corrected 09-17: it said «6 of them were
+  sampled, not all 15».)*
 
 ## 4. What the reviewer asked for next, in order
 

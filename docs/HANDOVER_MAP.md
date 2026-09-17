@@ -14,7 +14,8 @@ Created 2026-09-10. ⛔When editing this document, also check that the links are
 | 1 | [`CLAUDE.md`](../CLAUDE.md) | **All standing conventions.** Claim gate · figures · reports · team-meeting boundary · the rest |
 | 2 | [`docs/CLAIM_GATE.md`](CLAIM_GATE.md) | The two axes a number must pass before it goes up (factual support · over-conclusion) |
 | 3 | [`docs/QUEUE_RUNBOOK.md`](QUEUE_RUNBOOK.md) | How to run the queue. **The 2-tier structure (keeper + supervisor)** is in section 1 |
-| 4 | `docs/RESUME_0916.md` | Where the work stands today. **This is the handover** — GPU rules, running queues, what is established and what is not, what waits on the user. Earlier daily editions are in `work/sweep_0904/RESUME_<date>.md` |
+| 4 | [`docs/RESUME_0917.md`](RESUME_0917.md) | Where the work stands today. **This is the handover** — GPU rules, queues 0948-0956 by saved shards, recounted results with their scope (ledger: `READOUT_0917.md`), metric names, deck state, open review items, what waits on the user. The previous edition is [`docs/RESUME_0916.md`](RESUME_0916.md) (historical); earlier daily editions are in `work/sweep_0904/RESUME_<date>.md` |
+| 5 | [`docs/MOBICOM_PIPELINE_PLAN_0916.md` §9](MOBICOM_PIPELINE_PLAN_0916.md#9-central-question-and-evaluation-contract) | **The current central question** and its evaluation contract (detection and tracking; fixed before the campaign) |
 
 ---
 
