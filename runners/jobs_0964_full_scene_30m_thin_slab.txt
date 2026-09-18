@@ -1,0 +1,202 @@
+# 0964 — our full test scene (ground, four buildings, two poles) at 30 m, radar at tripod height, aimed tr38901, at the canonical
+#        drone slab (shell 0.75 mm, propeller 1.43 mm). Two mast positions around one hover point: do the buildings change what lands
+#        in the drone's range bin, and do the two positions differ?
+#        Replaces runners/jobs_0958_full_scene_30m_two_positions_HOLD.txt, whose 8 held lines are at the Sionna default 0.1 m slab.
+#        (2026-09-18 ~13:00 KST, Q4 of /workspace/sionna_queue_recommendations_2026-09-18.md §4)
+#
+# ⭐Main-session launch note (2026-09-18 ~14:30 KST): installed and chained AFTER jobs_0963, not started immediately.
+#   The 09-18 recommendations (/workspace/sionna_queue_recommendations_2026-09-18.md §4 Q4) make this bundle conditional on the Q0
+#   path→receiver adapter passing and on the 0961 range/ray-density readout being fixed. Both are CPU work that is running now, so the
+#   chain (runners/watch_then_start.py, log runners/logs/watch_0964.log) starts this file once 0963 has launched every line, by which
+#   time the Q0 result should exist. If Q0 fails, hold the unlaunched lines rather than reading them.
+#   My own dry-run of all 8 lines (2026-09-18 05:24 UTC, runners/filter_jobs.sh): 8/8 NEW. The only near-identical lines anywhere are the
+#   4 commented #HOLD lines of jobs_0958, which lack --shell-mm/--prop-mm and therefore name different stems.
+#
+# ⛔0958 IS SUPERSEDED, NOT RELEASED. Its 8 #HOLD lines carry no --shell-mm / --prop-mm, so they name stems without
+#   _shell0.75mm_prop1.43mm and would buy the same four cells at the old slab. §4 Q4 of the recommendations: «현행 보류 줄에는
+#   --shell-mm 0.75 --prop-mm 1.43 가 없다 … 보류 해제를 그대로 실행하면 새 material 기준과 어긋난다» [the held lines have no
+#   --shell-mm 0.75 --prop-mm 1.43 … releasing the hold as it stands contradicts the new material baseline]. Whoever installs this file
+#   marks 0958 superseded in its own header; it is not launched, and its release triggers no longer apply.
+#
+# Purpose. The paper's central question is still open between the communication-resource / observation-gap line and twin-guided
+#   placement (AGENTS.md, user decisions 2026-09-18: 「이건 아직 열린 질문으로 생각해줘」). This file does not choose. It buys the
+#   cheapest cells that can tell whether the twin-guided branch has a premise at all: a site-specific twin can only beat a written
+#   geometric heuristic if where the mast stands relative to structures changes what the receiver reads. Two radar positions around one
+#   hover point, at a field range and a realistic radar height, in a scene that has structures.
+#   What the result changes: if the structures do not reach the drone's range bin at either position, the twin-guided branch drops down
+#   the queue and the next GPU cells go to the observation-gap branch instead; if they do, the candidate set and the selection rule are
+#   fixed first and only then is a larger placement experiment designed.
+#
+# What exists, and what this file does NOT buy again.
+#   Reused, not re-bought — the az 0 partners are already stored at this slab, at exactly the settings of the lines below
+#   (runners/jobs_0960 lines 5-8; dry-run 2026-09-18 04:38-04:39 UTC reports DONE for all four, i.e. the shard exists and carries n_dup):
+#     az 0 open sky, both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r30_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#       sidecars outputs/path_provenance/…_{00,01}_prov.npz (4.63 / 4.61 MB), nret median 321, max 360, n_trunc[0] = 0 of 2,048 positions.
+#     az 0 ground only (--env-alt 9.26), both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#       sidecars …_{00,01}_prov.npz (9.35 / 9.38 MB), nret median 620, max 673, n_trunc[0] = 0.
+#   So the §4 Q4 sketch of «최대 8개 신규 shards» [at most 8 new shards] is met exactly: 4 new cells × 2 shards = 8 lines, and the az 0
+#   sky and ground cells cost nothing. 0957 lines 3-4 and 7-8 hold the same two az 0 cells at the 0.1 m slab; they are the thickness
+#   partners of 0960, not partners of this file. Nothing in this file is read against them.
+#   Not bought here, on purpose: az 0 open sky, az 0 ground only (above); any iso version (the antenna axis is fixed for this question);
+#   any second range, elevation, cap, seed, carrier or airframe; a street-canyon counterpart; depth 3 (runners/jobs_0962 already carries
+#   the depth 2/3 pairs at 30 m and this file must not re-buy them under a new name).
+#
+# Geometry, computed from the code, not from a note.
+#   benchmark/elevation_sweep_md.py env_parts() moves the scene down by --env-alt and leaves the drone at the origin;
+#   benchmark/report15_probe.py place() puts the radar at center + range·(cos el·cos az, cos el·sin az, sin el), with TX and RX
+#   BASELINE_M = 0.20 m apart across the line of sight. So radar height above ground = alt + range·sin(el), and a negative elevation
+#   means the radar is below the drone and looking up (docs, 2026-09-10).
+#   For every line here: range 30 m, el −15°, --env-alt 9.26 m ⇒
+#     · radar 1.495 m above the ground plate (a tripod), drone 9.26 m above it, 28.978 m apart horizontally;
+#     · direct drone two-way path R0 = 60.000 m; bistatic angle 0.38°;
+#     · radar 31.02 m inside the edge of the 120 × 120 m ground plate (benchmark/make_outdoor_scene_0831.py), so the plate edge is not
+#       the nearest scatterer;
+#     · line of sight radar → drone clear at both azimuths, and the radar is not inside any building box at either.
+#   A range cell is c/B of round-trip path: 14.99 m at 20 MHz, 3.00 m at 100 MHz, 1.50 m at 200 MHz.
+#   Scene, from benchmark/make_outdoor_scene_0831.py (boxes, base at the ground plate): bldg_a centre (−26, 14), 14 × 11 m, 15 m tall;
+#   bldg_b (24, 20), 12 × 12 m, 24 m; bldg_c (−20, −24), 10 × 16 m, 9 m; bldg_d (30, −16), 16 × 10 m, 18 m; pole_a (−9, −7) and
+#   pole_b (11, 6), 0.35 × 0.35 m, 7 m.
+#
+# Why each cell is worth buying — the structure geometry, by image method.
+#   To this solver every environment material has scattering coefficient S = 0 (src/materials.py concrete_dark, concrete_light, metal),
+#   refraction and diffraction are off (R0D0E0F1) and max_depth is 2, so a structure can enter a path only through exact specular
+#   geometry off a flat box face. That set can be enumerated in closed form. Recomputed independently for this file over all 6 faces of
+#   every box plus the ground plate, with occlusion checked against the same boxes and with TX and RX kept apart
+#   (scratch recs_0918/q4/specular_enum.py and margin.py; a scratch script, not a ledger):
+#
+#   az 0 — radar at (x +28.978, y ∓0.100), in the street between bldg_b and bldg_d.
+#     environment-only, 1 bounce   bldg_b            28.000 m   offset −32.000 m   2.13 / 10.67 / 21.35 cells
+#     environment-only, 1 bounce   bldg_d            22.000 m   offset −38.000 m   2.54 / 12.68 / 25.35 cells
+#     environment-only, 2 bounces  bldg_b + bldg_d   49.800 and 50.200 m   offset −10.200 / −9.800 m   0.65-0.68 / 3.27-3.40 / 6.54-6.80 cells
+#     environment-only, 2 bounces  ground + bldg_b   28.159 m   offset −31.841 m;   bldg_d + ground  22.202 m   offset −37.798 m
+#     drone + ground (the ghost)   60.910 m   offset +0.909 m   0.06 / 0.30 / 0.61 cells; grazing angle 20.36°
+#     ⇒ NO path has both a drone interaction and a building or pole interaction. This position carries clutter near the drone's range
+#       and no structure multipath on the drone's own echo. The wall-to-wall double bounce is the one that can reach the bin: 0.65-0.68
+#       cells away at 20 MHz, inside the main lobe of a Hann range response.
+#
+#   az 90 — radar at (x ∓0.100, y +28.978), in the gap between bldg_a and bldg_b.
+#     environment-only              none from any building or pole; only the radar's own nadir, 2.998 m, offset −57.003 m
+#     drone + bldg_b                76.785 and 76.939 m   offset +16.785 / +16.938 m   1.12-1.13 / 5.60-5.65 / 11.20-11.30 cells
+#     drone + bldg_a                78.337 and 78.494 m   offset +18.336 / +18.493 m   1.22-1.23 / 6.12-6.17 / 12.23-12.34 cells
+#     drone + ground (the ghost)    60.910 m   offset +0.909 m, as at az 0
+#     ⇒ This position carries structure multipath on the drone's own echo and no environment-only structure return. Both structure
+#       paths survive the drone's own size: over a ±0.30 m displacement of the drone point the bldg_b reflection point stays 0.38-0.68 m
+#       inside its face edge and the bldg_a one 4.90-5.20 m, and the bldg_b path only disappears once the drone point moves to
+#       y = −1.25 m, far outside the airframe.
+#
+#   The two positions therefore carry different mechanisms, and the drone's nadir and its aspect are the same at both. Nothing was
+#   dropped for want of a structure path: at 30 m both azimuths carry one. Two azimuths that were considered and are NOT bought:
+#   az 180 has only an environment-only bldg_a return at 17.000 m (offset −43.000 m, 2.87 cells at 20 MHz) and no drone-structure path,
+#   so it repeats the az 0 mechanism more weakly; az 225 puts the radar inside bldg_c at this range and height (x −20.56, y −20.42,
+#   z 1.495 above ground, inside x ∈ [−25, −15], y ∈ [−32, −16], height 9 m), so it is not a placement at all.
+#   ⚠What the enumeration does not say: whether the ray-launching solver finds those paths at 4e9 rays. That is check S below, and it is
+#   a pre-set failure mode of this file, not a result.
+#
+# Names. The sweep builds the stems; --dump-paths does not change a name. Read back from --dry-run, all 8 distinct and none on disk:
+#   az 90 open sky     sionna_p4000000000_swR0D0E0F1_r30_n4096_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
+#   az 90 ground only  sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt9.26_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
+#   az 0  full scene   sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
+#   az 90 full scene   sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_alt9.26_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (already git-ignored, done with 0957). Expected about 9.5 MB per full-scene
+#   and ground shard and about 4.6 MB per open-sky shard, from the stored az 0 partners above: about 66 MB for all 8.
+#   Shards are interleaved (idx = shard::2), so a cell needs both of its shards before it is read.
+#
+# Read-out — fixed before any shard of this file is read. Metric names are the repo's fixed ones (docs/READOUT_0917.md §1:
+#   isolated_20xmedian, hampel_w51_k5, env_field_drop_halfmedian, env_path_missing, copy_k_ratio / copy_k_diff,
+#   contrast_raw / contrast_dedup / contrast_interp). E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db, event
+#   positions, event_in_bin and event_share are defined in the runners/jobs_0957 header; lvl_db, ac_level_db, ac_to_static_db,
+#   hits_per_pose, path_class and class_power_db in the runners/jobs_0960 header. B = 20, 100, 200 MHz; Hann window, rectangular as the
+#   knob. Three new quantities, each defined here where it first appears:
+#   structure_drone_in_bin_db = 10·log10( in-bin power of paths with at least one drone interaction AND at least one building or pole
+#                               interaction / in-bin power of all drone paths ). A path touching two structures is counted under each
+#                               and flagged, never shared out (the 0936 retraction).
+#   Δ_struct(q)               = q(full scene) − q(ground only) at the same azimuth, range, elevation, antenna, rays and record length.
+#                               It removes the drone's aspect and the ground, which change with azimuth in both cells alike.
+#   struct_path_found         = for each structure path predicted above, whether the stored path list contains a path with that
+#                               interaction sequence whose delay·c is within 0.05 m of the predicted length, counted over positions.
+#   Per cell, written before any verdict: hits_per_pose; nret median, max and n_trunc[0]; contrast_raw and contrast_gated;
+#   env_in_bin_db split into paths touching env_ground only and paths touching any env_bldg_* or env_pole_*; for every
+#   environment-only path class its offset x and |h_B(x)|, so window leakage is told apart from content inside the bin; every listed
+#   path class not predicted above, by part and delay.
+#   Pre-set working thresholds, not repeat-based. Below a threshold write «threshold not crossed», never «no effect» or «equivalent».
+#   S  solver finds the geometry, on the two full-scene cells, before G or F is written. At az 90, struct_path_found ≥ 90 % of positions
+#      for the bldg_b path AND ≥ 90 % for the bldg_a path; at az 0, struct_path_found ≥ 90 % for the bldg_b+bldg_d double bounce.
+#      Below 90 % at either azimuth → the cell is reported as «the solver did not return the predicted structure path at 4e9 rays at
+#      this azimuth», G and F are not written from it, and see stop / extend. A path the enumeration did not predict is listed by part
+#      and delay; it is a defect in the enumeration or a non-specular return, and it is written, not quietly folded in.
+#   C  cap, on all four new cells: n_trunc[0] = 0 (the shard's own truncation count against the 2,000,000 path cap). Any position at the
+#      cap → no level from that shard is quoted and the cell is re-read only after the cap is raised, per the standing rule that a
+#      saturating cap makes the axis unmeasurable. Expectation from stored cells, written before reading: the 15 m el −30 full-scene
+#      shard has nret median 1,894, max 2,027, n_trunc[0] = 0, and the 30 m ground-only shard at this slab has median 620, max 673, so
+#      the cap is about three orders of magnitude away.
+#   G  structures change the bin, per position: |Δ_struct(q)| ≥ 3 dB for q = env_in_bin_db or q = contrast_gated, or
+#      structure_drone_in_bin_db ≥ −10 dB, at 20 or 100 MHz → «buildings change the drone's range bin at this position».
+#   F  position lever: |Δ_struct(q)(az 90) − Δ_struct(q)(az 0)| ≥ 3 dB for either q, at 20 or 100 MHz → «position lever present at this
+#      geometry». Written beside it and NOT read as a lever: the raw between-position differences of the two full-scene cells, and those
+#      of the two open-sky cells (drone aspect alone, which changes with azimuth whatever the scene does).
+#   Hann and rect disagree on S, G or F → that reading is not written. Only Δ_struct, structure_drone_in_bin_db and F are read as
+#   results; every absolute level carries the 0957 ray-density note (contrast rose 0.6-0.8 dB per doubling of rays in the stored 15 m
+#   open-sky ladder, so a level difference between cells at different ray counts is not read at all, and these cells are all at 4e9).
+#   Expectation written before reading, and not a prediction with a tolerance: at az 0 the closest structure return is 0.65-0.68 range
+#   cells from the drone at 20 MHz, so Δ_struct(env_in_bin_db) there is expected to move and Δ_struct(contrast_gated) is not; at az 90
+#   the structure paths sit 1.12-1.23 cells away and carry the drone's own Doppler, so structure_drone_in_bin_db is the quantity that
+#   can cross. Neither expectation is used to choose a threshold.
+#   Scope in every sentence: two named radar positions, one hover point, 30 m, el −15°, one synthetic flat-ground scene with mirror
+#   materials and box buildings, canonical drone slab (shell 0.75 mm from DJI Matrice 4T CAD, propeller 1.43 mm from our own mesh,
+#   which docs/MATERIAL_CORRECTION.md §2-2 records as thicker than the real blade), tr38901 as a stand-in and not the real antennas,
+#   3.5 GHz as a working assumption (carrier still unspecified, AGENTS.md 2026-09-18), hover only, no TX-RX leakage, no receiver noise,
+#   one run per cell. Two positions in one synthetic scene say nothing about placement optimisation in general and nothing about
+#   whether a twin beats a heuristic.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; each was dry-run NEW on 2026-09-18 (both shards).
+#   · S fails at az 90 → stop. The question then is a solver question, not a placement question: diagnose on CPU at a handful of
+#     positions with a raised max_paths before any further azimuth is bought. Do not buy more azimuths to «try again».
+#   · C fails anywhere → stop that cell, raise SIONNA2_MAX_PATHS, and re-read; no level from the capped shard is quoted.
+#   · G not crossed at both positions → stop. No further azimuth from this scene: its buildings then do not reach the drone's bin at a
+#     30 m tripod placement, and the twin-guided branch drops below the observation-gap branch in the queue.
+#   · G crossed but F not crossed → stop buying scene cells, and write that the structures reach the bin while the two positions do not
+#     differ at this geometry. The receiver reading (Q3 of the recommendations) comes first, on these same stored path lists.
+#   · F crossed → at most ONE more position, and only if the candidate rule needs a third point. az 270 is the candidate: it carries
+#     both mechanisms at 30 m (environment-only bldg_c return at 30.000 m, offset −30.000 m; drone + bldg_d at 83.172 and 83.337 m,
+#     offset +23.171 / +23.337 m), line of sight clear, radar not inside any box. It needs its own open-sky and ground-only partners.
+#     About 5.3 slot-h (0.86 + 1.76 + 2.70). No fourth position from this file in any outcome.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01 --env-alt 9.26 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · F lands with 1 dB ≤ |difference| < 3 dB on either q → solver seed 2 of the az 90 full-scene cell only, read against its seed-1
+#     value to size the same-seed spread, and no scene − sky is read from it. About 2.7 slot-h; no third seed.
+#     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01 --env-alt 9.26 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
+#   · Any new position at all: the image-method enumeration and the inside-a-box and line-of-sight checks first, then the dry run.
+#   · Not from this file in any outcome: an iso version, a street-canyon counterpart, depth 3 (0962 has it), another range, another
+#     elevation, a cap ladder, an aim-offset ladder, another airframe, another carrier, or a real-site scene. A real site is a separate
+#     design with its own header.
+#
+# One run per cell. Rules kept: outdoor scenes only; R0D0E0F1 (diffuse on, refraction and diffraction off); no propeller-only arms;
+#   _rt210 added automatically; --inmem is the default; cap 2e6 with no cap ladder; the canonical slab on every line, so the whole
+#   bundle is readable against the thin-slab families 0960-0962.
+# Dry run 2026-09-18 04:38-04:39 UTC (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg nice -n 19 taskset -c 8-15,
+#   runners/filter_jobs.sh at -P 2, the 8 lines below verbatim): 8/8 NEW. The 4 reused az 0 partner lines dry-run DONE in the same pass.
+#   The 8 extension lines above were dry-run NEW in the same session. Stems read back from --dry-run are distinct from each other and
+#   absent from outputs/elev_sweep_shards/. No equivalent line exists in any runners/jobs_*.txt: the only lines anywhere that name
+#   --env outdoor01 --env-alt 9.26 … --dump-paths 2048 are the 4 full-scene #HOLD lines of 0958, and those carry no --shell-mm / --prop-mm, so
+#   they name different stems; the only other thin-slab lines with --az-deg 90 at 30 m are 0962's, at el −5 and --env-alt 4.11.
+# Estimate about 8.0 slot-h, band 6-12. Per 2,048-position shard, from runners/logs (wall clock, one worker slot each):
+#   open sky 30 m at this slab with --dump-paths 25.7 and 25.7 min (sup_0960 lines 5-6) → 0.43 h;
+#   ground only 30 m alt 9.26 at this slab with --dump-paths 52.4 and 53.9 min (sup_0960 lines 7-8) → 0.88 h;
+#   full scene 149.2-150.2 min per 4,096-position shard (sup_0955 lines 1-4, 15 m, iso, no dump; the antenna pattern is applied after
+#   the paths are found, so it does not move the time) → 1.25-1.5 h per 2,048-position shard, taking the time as proportional to
+#   positions above a few minutes of fixed scene build. ⚠The band is wide because the wall clock is set by how many of our workers share
+#   a card: two identical 30 m ground shards took 17.1 and 54.4 min in sup_0957 on different cards the same night.
+# Cards. No card restriction: runners/GPU_HOLD.json has an empty hold list and its all_five_0918 note records the user's 2026-09-18
+#   ~11:00 KST instruction to use all five GPUs with the supervisors behaving normally. The supervisors' own tier table decides how many
+#   workers each card takes from other users' VRAM, re-read every round. Nothing in this file asks for a particular card.
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01 --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01 --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01 --env-alt 9.26 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
+--engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01 --env-alt 9.26 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
