@@ -23,6 +23,35 @@ _UM20 = "Phantom_4_User_Manual_en_v1.2_160328.pdf p.20 Obstacle and Vision Posit
 _SPIN = ("scratchpad/wf/b1_spin.md — User Manual v1.2 p.7 propeller figure and p.23 ring-colour "
          "rule; front-left and rear-right clockwise seen from above (grade medium-high)")
 
+#  ---------------------------------------------------------------------------------------- #
+#  Prop seating clearance (b4 review fix, 2026-09-18) — the number behind `rotor_z_mm` below.
+#
+#  The delivery seated the propeller with gap exactly 0.00 mm: the P6 hub's flat underside
+#  (a disc of radius 10.20 mm at the prop frame's z = 0) sat in the **same plane** as the metal
+#  prop adapter's top disc (radius 9.00 mm at z = +24.90 mm). That is 254.47 mm^2 of exactly
+#  coincident, oppositely-facing triangles between the `prop` group (plastic) and the `motor`
+#  group (metal) — which surface a ray meets there is decided by floating-point tie-breaking,
+#  not by geometry. Measured: 268.5 mm^2 of prop surface inside the motor solid against
+#  revision 0's 240.3 mm^2 budget (acceptance C.2b), of which ~254 mm^2 was that coincident
+#  disc. It is the same class of defect as mini5pro's welded battery face, so it is fixed by
+#  geometry rather than declared.
+#
+#  Fix: the metal stays exactly where the scan puts it (adapter top = MOUNT_Z_MM = +24.90 mm,
+#  which C.3 `motor_top_z_mm` scores against 24.9 +- 2.0) and the **propeller** is lifted by a
+#  declared modelling clearance. The clearance is chosen, not measured off the aircraft; its
+#  admissible window is the frozen threshold C2b_prop_seating_gap_mm = [0.0, 0.5] mm:
+#    * it must exceed 0.152 mm, the depth the P6 blade root reaches below the hub seat plane at
+#      r = 12.06 mm, or that root stays inside the can's top chamfer (measured, fixwork/);
+#    * it must stay at most 0.5 mm, and not sit on that cap, or the row is decided by the bound;
+#    * 0.30 mm = lambda/172 at 5.8 GHz (lambda = 51.69 mm), i.e. 1/9 of the mesh's own
+#      lambda/20 = 2.58 mm facet bound, so it cannot change what a solver sees.
+#  Measured after the lift: 1.80 mm^2 of prop surface inside the motor solid (0.017 % of the
+#  propeller's 10 305 mm^2), 0 coincident triangle pairs, deepest prop vertex 0.22 mm into the
+#  adapter over r = 8.53 ... 8.93 mm. That residual is the P6 blade root, which plan P6 forbids
+#  this revision from changing; it is reported by acceptance, not hidden.
+PROP_SEAT_CLEARANCE_MM = 0.30
+_ROTOR_Z_OFFSET_MM = round(3.2 + PROP_SEAT_CLEARANCE_MM, 6)     # = 3.5 mm
+
 ENTRIES = (
     RevEntry(
         key="phantom4",
@@ -35,8 +64,9 @@ ENTRIES = (
             ("rotor_dirs", (-1, 1, -1, 1)),
             #  P4-4 with plan B.0: rotor z is explicit. drones._arm_motor_dims puts the prop
             #  mount plane at motor_bell_top_z_m + standoff = 21.70 mm for this key, and the scan
-            #  puts the real mount plane at +24.9 mm, so the offset is +3.20 mm.
-            ("rotor_z_mm", (3.2, 3.2, 3.2, 3.2)),
+            #  puts the real metal mount plane at +24.9 mm (drone_rev1_phantom4.MOUNT_Z_MM), so
+            #  the offset is +3.20 mm, plus the seating clearance below.
+            ("rotor_z_mm", tuple([_ROTOR_Z_OFFSET_MM] * 4)),
             #  The one-piece X fairing carries the whole shell, so the revision-0 split into a
             #  'body' shell plus a raised 'canopy' is gone. Both groups are the same material
             #  (plastic); no material group is added.
@@ -99,7 +129,12 @@ ENTRIES = (
             Component(
                 id="P4-8", grade="medium-high",
                 change="P6 propeller orientation (the thick raised edge leads) and rotor_dirs = "
-                       "the measured pattern, front-left and rear-right clockwise from above.",
+                       "the measured pattern, front-left and rear-right clockwise from above. "
+                       "b4 review fix 2026-09-18: the propeller is seated 0.30 mm above the "
+                       "metal prop adapter instead of flush with it, because flush made the "
+                       "hub's underside and the adapter's top face the same plane "
+                       "(250 mm^2 of coincident plastic/metal triangles). The adapter stays "
+                       "on the scan's +24.9 mm mount plane; only the propeller moves.",
                 sources=(_SPIN,), groups=("prop",)),
         ),
         frame_builder="drone_rev1_phantom4:build_frame",
@@ -115,6 +150,16 @@ ENTRIES = (
         #  failures_left_standing are resolved: `mesh_rev.run_spec` refuses a run whose entry has
         #  no fingerprint, and that refusal is what keeps an unaccepted geometry out of the shard
         #  names.  FINGERPRINT_PLACEHOLDER
+        #  -- b4 ROUND 2026-09-18 (gate closing) -------------------------------------
+        #  The geometry changed again: the propeller is lifted 0.30 mm off the metal prop
+        #  adapter (PROP_SEAT_CLEARANCE_MM above), so the fingerprint moved to
+        #      34e68d7839e55ce4b503057c4c8779242e88ac78a54a85aa3efe41952c1bd82a
+        #  reproducible in 6 processes (OMP/MKL/OpenBLAS threads 1, 2, 4 x two processes).
+        #  Acceptance after that fix and after the two ruling-2 measurement fixes:
+        #      139 scored / 138 PASS / 1 FAIL, and 138 / 121 / 17 without the deviations,
+        #  which benchmark/mesh_rev1_acceptance_phantom4.py now prints both ways because it
+        #  reads docs/mesh_rev1/phantom4_acceptance_deviations.json (ruling 4).
+        #  The one failing row is C.1's sliver fraction. STILL NOT FROZEN.
         #  -- MERGE STAGE 2026-09-18 ------------------------------------------------
         #  Verified in the merged tree (all four builders + the reconciled shared
         #  modules in one checkout, live HEAD 9425dfe8 + E0):
@@ -129,16 +174,35 @@ ENTRIES = (
         #  merge stage cannot clear these by itself -- the user rules first. While this
         #  field is None, mesh_rev.run_spec refuses --mesh-rev 1 for this key, which is
         #  the safe state: no unaccepted geometry can reach a shard name.
+        #  == b5 RECONCILE-AND-FREEZE ROUND, 2026-09-18 ==========================
+        #  ⛔ NOT FROZEN, and this round did not change that. The b4 files were installed into
+        #     the tree for the first time in this round (the b4 unit worked in an isolated copy
+        #     and installed nothing) and the table reproduces exactly:
+        #       139 scored / 138 PASS / 1 FAIL / 19 report, and 138 / 121 / 17 without the
+        #       deviations, which the scorer recomputes row by row and prints in its footer.
+        #     Fingerprint 34e68d78… reproduced in 6 processes (OMP/MKL/OPENBLAS 1, 2, 4 x two).
+        #     Revision 0 re-proved bit-identical against a pristine HEAD archive, 10 keys x 4
+        #     environment states, 680 equal / 0 different.
+        #  The one failing row is C.1's sliver fraction, 0.02589 against rev0 0.01551 + 0.005.
+        #     It is an UNDECLARED failure — the b4 unit measured it as a genuine shortfall and
+        #     deliberately did not re-measure or relax it — so under this phase's freeze rule
+        #     (freeze only when every remaining failure is a declared deviation with evidence)
+        #     the fingerprint stays None and run_spec keeps refusing --mesh-rev 1 for this key.
         fingerprint=None,
         thresholds_sha256="086f93cf32b98b00d24332074cd74319452981b5b8769e59a1ace6a68c395d8b",
         note="Phantom 4 revision 1, 2026-09-17, review fixes 2026-09-18. Datum frame = "
              "p4_datum.json (feet at z = -153.37 mm, motor diagonal 350 mm). Rotor xy, "
              "wheelbase, prop diameter, blade count, rotor count, hover rpm and base_ang are "
-             "revision 0's. Acceptance: 130 of 139 scored rows pass. The 9 failing rows are "
-             "four checks: C.1 sliver fraction, C.2b prop area inside the bell, C.5 camera "
-             "visible area and C.7 blade angle at r/R 0.3 and 0.7 on both propellers. The last "
-             "three are properties of the shared P6 blade and of revision 0's oversized gimbal, "
-             "not of this builder. The 2026-09-18 round fixed the motor pod (35.03 -> 37.44 mm), "
+             "revision 0's. Acceptance after the b4 round: 138 of 139 scored rows pass "
+             "(121 of 138 without the deviations, which the table prints as a second line). "
+             "The one failing row is C.1's sliver fraction, 0.02589 against <= 0.02051: revision "
+             "1 has 309 sliver faces against revision 0's 246, on the boolean seams of the X "
+             "fairing, the gimbal chain and the landing-gear cuts. C.2b was closed by geometry "
+             "(the 0.30 mm seating clearance); C.5 and C.7 were closed by fixing the "
+             "MEASUREMENT, not the threshold - the visible FRACTION of the camera group and the "
+             "blade angle on the blade's own span section - both logged as D10 and D9 in "
+             "docs/mesh_rev1/phantom4_acceptance_deviations.json with the old readings still "
+             "printed and still failing. The 2026-09-18 round fixed the motor pod (35.03 -> 37.44 mm), "
              "the tail (aft tip -76.0 -> -74.57 mm, and the 14 mm notch between tail and arms "
              "closed), the arm underside (flank + keel rib, 3-4 mm of error removed at "
              "r = 120-150) and the four vision sensors (now cut against their host, not held by "

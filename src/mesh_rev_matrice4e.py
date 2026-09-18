@@ -188,6 +188,76 @@ ENTRIES = (
                 groups=("body", "battery", "pcb", "gear", "camera", "motor", "canopy", "accent"),
             ),
             Component(
+                #  ⚠ ADDED 2026-09-18 (b4 round, review fix F-4; plan C.1 "0 self-intersections").
+                id="M4E-11",
+                change="The host the internal boxes are clipped against is the fuselage alone "
+                       "(the M4E-2 shell loft unioned with the M4E-2 cradle loft), offset inward "
+                       "1 mm by a normal-compensated, fold-free offset instead of a plain "
+                       "vertex-normal offset of the whole body union. The body union has 0 "
+                       "self-intersecting triangle pairs but its plain 1 mm offset has 92, with "
+                       "48 flipped triangles at the arm and motor-pod junctions, and the boolean "
+                       "handed those folds to the clipped boxes: battery 3 pairs and mainboard "
+                       "15, at the buried root of each rear arm. Now 0 and 0. Compensating the "
+                       "offset (d / min(n_vertex . n_face)) also raises the share of internal "
+                       "metal at 1 mm or more from the shell from 1.3 % to 83.7 % (battery) and "
+                       "1.8 % to 97.2 % (mainboard). No dimension changes: the pack keeps its "
+                       "official 145.47 x 60.6 x 46.3 mm and its CAD position, and its clipped "
+                       "volume moves 5.398 -> 5.545 % (mainboard 19.319 -> 19.548 %).",
+                grade="high",
+                sources=("plan docs/MESH_REV1_PLAN_0917.md C.1 (0 self-intersections) and C.2 "
+                         "(internal metal >= 1 mm inside the shell)",
+                         "the `contain_host` block of the build report, which records the "
+                         "realised offset per vertex, the number of clamped vertices and the "
+                         "self-intersection count of the host",
+                         "scratch/mesh_rev1/b4/matrice4e/work/diag_inset.py, proto_host*.py"),
+                groups=("battery", "pcb"),
+            ),
+            Component(
+                #  ⚠ ADDED 2026-09-18 (b4 round, review fix F-5; render defect "the legs are
+                #  shorter and further outboard than the CAD's").
+                id="M4E-12",
+                change="Each landing leg stands on its measured CAD radius: front root 229.75 -> "
+                       "foot 216.61 mm, rear root 217.10 -> foot 208.57 mm. Revision 0 put the "
+                       "rear pair 10.7 mm inboard of the CAD at the root and 11.4 mm at the "
+                       "foot. drone_cad._gear_arm_spikes is unchanged and is called once per "
+                       "pair, because the splay that carries a pair from its root radius to its "
+                       "foot radius is 15.74 deg at the front and 12.40 deg at the rear and the "
+                       "helper takes one scalar splay. The cone, the root and tip diameters, the "
+                       "attachment z and the leg length are revision 0's, so all four feet still "
+                       "land on the CAD ground plane at -59.82 mm.",
+                grade="high",
+                sources=(_CAD + " leg solids (front 99, rear 90), sectioned in z",
+                         "outputs/meshfix_matrice4e.json row F07 — the repository's own CAD "
+                         "audit, which records these radii and says the value was left alone "
+                         "only because changing it would move the revision-0 fingerprint",
+                         "scratch/mesh_rev1/b4/matrice4e/work/diag_cad2.py (my own read of the "
+                         "CAD leg feet: front (135.21, 168.88), rear (-139.39, 155.04))"),
+                groups=("gear",),
+            ),
+            Component(
+                #  ⚠ ADDED 2026-09-18 (b4 round, review fix F-6; render defect "the nose
+                #  underside is a two-plane notch where the CAD sweeps one concave curve").
+                id="M4E-13",
+                change="The gimbal-cradle station table is measured every 4 mm over x = 80...120 "
+                       "instead of every 8 mm, and its z_top / z_bot are no longer rounded to "
+                       "the 1 mm z-bin's floor. The CAD's cradle underside is a FLAT shelf at "
+                       "z = -20.62 mm from x = 92 to 110; at 8 mm spacing it was hit at one "
+                       "station and the loft ran a V through it. 10 stations -> 15. Same rule, "
+                       "same solids, same 4 mm x-band: the width column reproduces the committed "
+                       "table to 0.00 mm at all ten original stations, which is the check that "
+                       "the rule was reproduced. Every z moves by less than 1 mm except z_bot at "
+                       "x = 96 (-19 -> -20.62), where the finer grid finds the shelf. The "
+                       "refinement stops at x = 120: refining the whole table made the nose's "
+                       "front face nearly vertical and C.5's `body facing az0 el0 (10 deg)` went "
+                       "237 -> 1,162 mm2 against a 500 mm2 limit.",
+                grade="high",
+                sources=(_CAD + " gimbal-cradle solids 49/56/57/58, 4 mm x-bands",
+                         "scratch/mesh_rev1/b4/matrice4e/work/cad_stations2.py, "
+                         "make_nose_table.py, cad_crown.py",
+                         _SRC + "#M4E-2b"),
+                groups=("body",),
+            ),
+            Component(
                 id="R-SPIN",
                 change="rotor_dirs = (-1, +1, -1, +1) in rotor_deg order: front-left and "
                        "rear-right clockwise seen from above, the opposite of revision 0's "
@@ -203,30 +273,41 @@ ENTRIES = (
         prop_builder="drone_parts_rev1:propeller_rev1",
         #  ⛔ Frozen only after plan C.1-C.13 pass (plan C.14). Until then the sweep CLI refuses
         #     to run this revision, while the builder and the acceptance tools still work.
-        #  ⏳ PLACEHOLDER — plan C.14 freezes the fingerprint only after C.1-C.13 pass, and 7 of
-        #     159 scored rows are still failing (see the acceptance ledger and the report). The
-        #     geometry changed on 2026-09-18 (review fixes F-1, F-2, F-3), so the value is no
-        #     longer the delivery's 8cdbc9eb…935c; it is now
-        #         fc0bbae9716c291673d2fb37b3d63e261e3a8d4eb37c213a41e7a7d94b9997ac
-        #     computed with mesh_rev.fingerprint_for('matrice4e', 1) on the production venv and
-        #     reproduced bit-for-bit in four processes at OMP/MKL/OpenBLAS threads 1 and 2.
-        #     ⛔ This unit does NOT freeze it: the merge stage does, after the shared modules are
-        #     reconciled and the user has ruled on the 7 rows and the two deviations. With the
-        #     field None, mesh_rev.run_spec refuses --mesh-rev 1 for this key, the safe state.
-        #  -- MERGE STAGE 2026-09-18 ------------------------------------------------
-        #  Verified in the merged tree (all four builders + the reconciled shared
-        #  modules in one checkout, live HEAD 9425dfe8 + E0):
-        #      fc0bbae9716c291673d2fb37b3d63e261e3a8d4eb37c213a41e7a7d94b9997ac
-        #  Recomputed there with mesh_rev.fingerprint_for on the production venv and
-        #  identical in 6 runs -- OMP/MKL/OpenBLAS threads 1, 2 and 4 x two processes.
-        #  It equals the value this drone's own unit reported, so reconciling the
-        #  shared modules moved no geometry.
-        #  NOT FROZEN. Plan C.14 freezes only after C.1-C.13 pass, and
-        #  7 of 159 scored rows fail (2 of them under DEV-5/DEV-6, which are declared but NOT approved), and plan C.1 asks for 0 self-intersections while the mesh has 18.
-        #  Plan critique M8 forbids relaxing a threshold after seeing a failure, so the
-        #  merge stage cannot clear these by itself -- the user rules first. While this
-        #  field is None, mesh_rev.run_spec refuses --mesh-rev 1 for this key, which is
-        #  the safe state: no unaccepted geometry can reach a shard name.
+        #  ⏳ PLACEHOLDER — the value below is NOT frozen and the field stays None.
+        #
+        #  -- b4 ROUND 2026-09-18 (supersedes the delivery's 8cdbc9eb…935c and the merge stage's
+        #     fc0bbae9…97ac) -----------------------------------------------------------------
+        #  The geometry changed again: M4E-11 (fold-free fuselage containment host), M4E-12 (the
+        #  legs on their CAD radii) and M4E-13 (the 4 mm nose underside table). The value is now
+        #      7663a959a7a3cd9c9c51760c868049170b106bc34e33a7d7f0472a8d26d1768c
+        #  computed with mesh_rev.fingerprint_for('matrice4e', 1) on /workspace/.venvs/py312 and
+        #  identical in 6 processes — OMP/MKL/OpenBLAS threads 1, 2 and 4 x two processes.
+        #  ⛔ This round does NOT freeze it. Acceptance is 163 scored / 160 passed / 3 FAILED:
+        #     C.2c swept-disc clearance on the corrected surface measurement (-0.744 mm; the CAD
+        #     airframe itself is -0.811 mm and revision 0 is -2.267 mm under the same discs),
+        #     C.4 CAD->ours motors p99 and ours->CAD turret p99, both of which still fail after
+        #     the interior-surface narrowing, i.e. they are real shape errors in the motor bell
+        #     profile and the RTK cap top. Six deviations (DEV-5 ... DEV-10) are declared in
+        #     docs/mesh_rev1/matrice4e_acceptance_deviations.json and await user approval.
+        #     While this field is None, mesh_rev.run_spec refuses --mesh-rev 1 for this key,
+        #     which is the safe state: no unaccepted geometry can reach a shard name.
+        #  == b5 RECONCILE-AND-FREEZE ROUND, 2026-09-18 ==========================
+        #  ⛔ NOT FROZEN. The b4 table reproduces exactly on the reconciled tree:
+        #       163 scored / 160 passed / 3 FAILED (with the deviations file)
+        #       158 scored / 151 passed / 7 FAILED (with the file moved aside)
+        #     Fingerprint 7663a959… reproduced in 6 processes (OMP/MKL/OPENBLAS 1, 2, 4 x two).
+        #     Revision 0 re-proved bit-identical against a pristine HEAD archive, 10 keys x 4
+        #     environment states, 680 equal / 0 different.
+        #  The three failing rows are NOT rescued by any declared deviation — DEV-7 narrows two
+        #     of them to the visible surface and they still fail, and DEV-9 makes the swept-disc
+        #     row fail on a corrected measurement that used to pass on a broken one. Under this
+        #     phase's freeze rule (freeze only when every remaining failure is a declared
+        #     deviation with evidence) the fingerprint stays None and run_spec keeps refusing
+        #     --mesh-rev 1 for this key.
+        #  The deviations file was renamed to the common name in the b4 round; two in-code
+        #     comments in benchmark/mesh_rev1_acceptance_matrice4e.py still cited the old
+        #     matrice4e_deviations_0918.json name and were corrected in this round (the
+        #     loader's fallback to the old name is kept).
         fingerprint=None,
         #  sha256 of docs/mesh_rev1/matrice4e_acceptance_thresholds.json, frozen 2026-09-17
         #  21:30 UTC, before the first acceptance run.

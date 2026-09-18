@@ -417,6 +417,18 @@
    "why": "Read off the p.8 bottom elevation by eye; the drawing gives no dimension and the scan cannot see the belly lenses. Their z is not chosen at all - it is set by the fairing's own belly under that xy, so the part always meets the shell.",
    "declared": "Engine knob, not a measurement. Moved here by the reviewer 2026-09-17.",
    "grade": "not evidence"
+  },
+  {
+   "what": "propeller seating clearance (mesh_rev_phantom4.PROP_SEAT_CLEARANCE_MM = 0.30 mm)",
+   "revision_1_value_mm": "0.30; it is added to the scan-derived rotor_z offset, so rotor_z_mm = 3.2 + 0.30 = 3.5 mm and the propeller hub's underside sits at z = +25.20 mm while the metal prop adapter's top stays at the scan's +24.90 mm.",
+   "why": "It is a modelling clearance, not a dimension of the aircraft: on the real Phantom 4 the propeller hub rests ON the adapter. A mesh cannot represent contact - with gap 0 the P6 hub's flat underside (radius 10.20 mm) and the adapter's top disc (radius 9.00 mm) are the SAME plane, which is 254.5 mm^2 of coincident oppositely-facing triangles between a plastic group and a metal one, and a ray's first hit there is decided by floating-point tie-breaking. The frozen threshold C2b_prop_seating_gap_mm = [0.0, 0.5] mm is the window this clearance is chosen inside; it was written before the first acceptance run and is not changed.",
+   "how_0_30_was_chosen": [
+    "> 0.152 mm, the depth the P6 blade root reaches below the hub seat plane at r = 12.06 mm; below that the root stays inside the metal can's top chamfer (measured, b4/phantom4/fixwork/sweep_lift.py);",
+    "<= 0.5 mm, the frozen ceiling, and not ON it, so the row is not decided by its own bound (0.2 mm of margin);",
+    "0.30 mm = lambda/172 at 5.8 GHz (lambda = 51.69 mm), one ninth of the mesh's own lambda/20 = 2.58 mm facet bound, so it cannot change what a solver sees."
+   ],
+   "declared": "Engine knob, not a measurement. The metal stays exactly on the scan's +24.90 mm mount plane; only the propeller moves. Added by the b4 round, 2026-09-18.",
+   "grade": "not evidence (modelling clearance inside a frozen window)"
   }
  ],
  "dropped_targets": [
@@ -629,5 +641,12 @@
     "why": "the rib has to overlap the arm fairing or the P2 union leaves a tangent seam instead of one solid. The scan gives the rib's depth and width, not its section shape."
    }
   ]
+ },
+ "b4_fix_2026_09_18": {
+  "what": "prop seating fixed by geometry (main-session ruling 3: a coincident metal/plastic interface is a real defect, not a deviation).",
+  "before": "C.2b prop area inside the bell 268.45 mm^2 against revision 0's 240.3 mm^2 budget, of which 254.5 mm^2 was the coincident hub/adapter disc; seating gap exactly 0.0000 mm; deepest prop vertex 0.369 mm inside the motor solid.",
+  "after": "1.80 mm^2 (0.017 % of the propeller's 10 305 mm^2), seating gap 0.3000 mm, deepest prop vertex 0.22 mm inside the adapter over r = 8.53 ... 8.93 mm, 0 coincident interface area.",
+  "residual": "the 1.80 mm^2 that remains is the P6 blade root, which dips 0.68 mm below the hub's seat plane at r < 9.0 mm; plan P6 forbids this revision from changing the blade, and the frozen [0, 0.5] mm window forbids lifting the propeller the 0.70 mm that would clear it entirely. It is reported by acceptance, not hidden.",
+  "sources_unchanged": "CAN_D_MM 28.2, CAN_H_MM 23.0, POD profile, ADAPTER_D_MM 18.0, MOUNT_Z_MM 24.9 - every scan-derived dimension of the motor stack is untouched, and C.3 motor_top_z_mm still measures 24.90 mm against the frozen 24.9 +- 2.0."
  }
 }

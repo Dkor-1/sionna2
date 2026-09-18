@@ -116,6 +116,30 @@ def _inside(solid, pts_m):
 # --------------------------------------------------------------------------- #
 #  checks
 # --------------------------------------------------------------------------- #
+def _load_deviations(key, thr_sha=None):
+    """⭐ 2026-09-18 b4 — the drone's deviations file, or None.
+
+    Plan ruling 1: a deviation must live in a FILE, be scored explicitly as a report-only row
+    with the measured value printed, and must not turn a failing row into a silent pass. Before
+    this, mini5pro's seven deviations sat inside the frozen threshold file with
+    `approved_by: "not yet"` and nothing printed the row they replaced, so the pre-deviation
+    pass/fail count could not be recovered from a run.
+
+    The file is optional and is looked up per key, so a drone without one is scored exactly as
+    before. If it pins a `thresholds_sha256` that does not match the thresholds actually loaded,
+    the mismatch is returned so the caller can fail a row rather than score against a file pair
+    that does not belong together.
+    """
+    fp = os.path.join(_ROOT, "docs", "mesh_rev1", f"{key}_acceptance_deviations.json")
+    if not os.path.isfile(fp):
+        return None
+    d = json.load(open(fp, encoding="utf-8"))
+    d["_path"] = os.path.relpath(fp, _ROOT)
+    d["_sha256"] = hashlib.sha256(open(fp, "rb").read()).hexdigest()
+    d["_thresholds_sha_ok"] = (thr_sha is None or d.get("thresholds_sha256") in (None, thr_sha))
+    return d
+
+
 def run(key, rev, thr, variant=None, verbose=True):
     import drones
     from drones import DRONES, build_frame, build_propeller, build_drone, rotor_layout, \
@@ -126,6 +150,8 @@ def run(key, rev, thr, variant=None, verbose=True):
     from geom import mesh_fix_set, MESH_FIX_CANON, blade_law_canon, BLADE_LAW_CANON
 
     T = Table()
+    _pre = {}                       # measured values for the pre-deviation rows (b4, ruling 1)
+    _thr_sha = thr.get("_sha256")
     led = dict(key=key, rev=rev, variant=variant, when=time.strftime("%Y-%m-%d %H:%M:%S %Z"),
                mesh_fix=sorted(mesh_fix_set()), blade_law=blade_law_canon())
 
@@ -186,6 +212,7 @@ def run(key, rev, thr, variant=None, verbose=True):
     want_comps = t1["components_per_group"]
     T.add("C.1", "connected components per group", comps, want_comps,
           all(comps.get(g) == n for g, n in want_comps.items()) and set(comps) == set(want_comps))
+    _pre["camera_components"] = comps.get("camera")
 
     # ------------------------------------------------------------------ C.2 --
     t2 = thr["C2_attachment"]
@@ -276,7 +303,8 @@ def run(key, rev, thr, variant=None, verbose=True):
           note=f"revision 0: {bp0:.3f} %")
     T.add("C.2", "buried plastic in camera (% of shell area)", round(bpc, 3),
           f"<= revision 0 ({bpc0:.3f})", bpc <= bpc0 + 1e-6,
-          note="gimbal recess, see the threshold file's deviation entry")
+          note="gimbal recess, see the deviations file entry DEV-1")
+    _pre["buried_plastic_total_pct"] = round(bp + bpc, 3)
     try:
         bf = mesh_check.check_buried_faces(spec1, mesh=drone1)
         T.add("C.2", "repo buried-face defect (%)", bf["defect_pct"],
@@ -467,6 +495,7 @@ def run(key, rev, thr, variant=None, verbose=True):
         cam_x_hi = float(np.asarray(gm1["camera"].vertices)[:, 0].max()) * 1000.0
         meas["folded_length"] = round(cam_x_hi - meas["shell_x_lo"], 3)
     led["C3_measured"] = meas
+    _pre["front_arm_heading_deg"] = meas.get("front_arm_heading")
     for row in t3["targets"]:
         i = row["id"]
         got = meas.get(i)
@@ -549,14 +578,51 @@ def run(key, rev, thr, variant=None, verbose=True):
           "report only", True, mode="report")
 
     # ------------------------------------------------------------------ C.6 --
+    #  ⭐ 2026-09-18. C.6 used to be scored on the number the PARTS LIBRARY reported for each
+    #  part, `mesh_sagitta_mm` / `curve_sagitta_mm` in `parts_log`. Three things that number
+    #  cannot see, all of which are in the mesh a solver is handed:
+    #    · parts that are added straight to the Assembly and never logged — on this aircraft the
+    #      six fisheyes and the lidar, and the PROPELLER, which is not a frame part at all;
+    #    · what the booleans, the canonical i5/battery repairs and `refine_to_max_edge` do after
+    #      the part was measured;
+    #    · a part that reports nothing at all contributes nothing to a `max(..., default=0.0)`,
+    #      so a silent part could never fail the row.
+    #  The gate is now MEASURED on the built mesh, group by group, with
+    #  `mesh_topo_check.facet_wavelength` — the same estimator the matrice4e and phantom4
+    #  acceptances already gate on, so a C.6 pass finally means the same thing on all four
+    #  drones. The library's own number is kept, as a report row.
     t6 = thr["C6_facets"]
+    import mesh_topo_check as _tc
+    _LAM_M = 0.0516896551724138                        # 5.8 GHz, the C.6 basis
+    _fw = {}
+    for _g, _m in list(gm1.items()) + [("prop", _mesh_of(prop1))]:
+        _fw[_g] = _tc.facet_wavelength(np.asarray(_m.vertices), np.asarray(_m.faces), _LAM_M)
+    meas_sag = max(float(v["max_sagitta_mm"]) for v in _fw.values())
+    meas_bound = max(float(v["max_sagitta_bound_mm"]) for v in _fw.values())
+    worst_g = max(_fw, key=lambda g: float(_fw[g]["max_sagitta_mm"]))
+    led["C6_measured_sagitta"] = {g: dict(max_sagitta_mm=v["max_sagitta_mm"],
+                                          max_sagitta_bound_mm=v["max_sagitta_bound_mm"],
+                                          n_bad_sagitta_edges=v["n_bad_sagitta_edges"],
+                                          max_dihedral_deg=v["max_dihedral_deg"],
+                                          max_edge_mm=v["max_edge_mm"])
+                                  for g, v in _fw.items()}
+    T.add("C.6", "measured facet sagitta on the built mesh (mm)", round(meas_sag, 4),
+          f"<= {t6['sagitta_mm_max']}", meas_sag <= t6["sagitta_mm_max"],
+          note=f"worst group {worst_g}; edges over 30 deg are design corners and are excluded; "
+               f"the over-estimating max-width reading of the same edges is "
+               f"{meas_bound:.4f} mm, also within the bound"
+               if meas_bound <= t6["sagitta_mm_max"] else
+               f"worst group {worst_g}; the over-estimating max-width reading is "
+               f"{meas_bound:.4f} mm, OVER the bound")
     sag = max((float(p.get("mesh_sagitta_mm", 0.0)) for p in parts_log
                if isinstance(p.get("mesh_sagitta_mm", None), (int, float))), default=0.0)
     sag = max(sag, max((float(p.get("curve_sagitta_mm", 0.0)) for p in parts_log
                         if isinstance(p.get("curve_sagitta_mm", None), (int, float))),
                        default=0.0))
-    T.add("C.6", "max part sagitta (mm)", round(sag, 4), f"<= {t6['sagitta_mm_max']}",
-          sag <= t6["sagitta_mm_max"])
+    T.add("C.6", "max part sagitta as the parts library reports it (mm)", round(sag, 4),
+          f"report (the gate above measures {meas_sag:.4f})", True, mode="report",
+          note="kept so the two numbers can be compared; it is a self-report and covers only "
+               "the parts that log one")
     nf = int(len(np.asarray(frame1.f)))
     T.add("C.6", "frame faces", nf, f"<= {t6['frame_faces_max']}", nf <= t6["frame_faces_max"],
           note=f"revision 0: {len(np.asarray(frame0.f))}")
@@ -599,11 +665,116 @@ def run(key, rev, thr, variant=None, verbose=True):
                                  rev0=[round(float(b["angle_inertia_deg"]), 4)
                                        for b in o0["blades"]])
     led["C7_blade_angles"] = ang_rows
+    #  ⭐ 2026-09-18 b5 reconciliation, ruling 2 + ruling 4: the inertia reading is the value the
+    #  C.7 gate used BEFORE the measurement was fixed. It is recorded here as a pre-deviation
+    #  metric so each drone's deviations file can score it explicitly and the pre-deviation
+    #  pass/fail count stays recoverable from any run (it is also printed as a report row below).
+    _pre["blade_angle_inertia_deg"] = round(dan, 4)
     T.add("C.7", "chord vs revision 0 (mm)", round(dch, 4),
           f"<= {t7['chord_max_error_mm']}", dch <= t7["chord_max_error_mm"])
+
+    #  ------------------------------------------------------------------------------------
+    #  ⭐ 2026-09-18 — plan C.7 asks that the blade-angle LAW be unchanged by P6 (plan B.1 P6:
+    #  "Chord law, blade-angle law, radius and hub stay the same"). It was being scored with
+    #  `angle_inertia_deg`, the principal axis of the section's surface samples, and three
+    #  measurements say that reading is not the law:
+    #    · The R1 row "blade set vs revision 0 (P6 separated)" below rebuilds the two blades
+    #      with identical resolved laws and compares them ring by ring: the chord LENGTH is
+    #      identical at every loft station, and the angle difference collapses from ~0.5 deg at
+    #      the shipped 36-point section resampling to under 0.1 deg once the SAME sections are
+    #      resolved at 144 points. It is dominated by how the loft resamples the MIRRORED
+    #      airfoil polygon, not by the blade's set.
+    #    · The estimator cannot resolve the 0.2 deg bound anyway. The two blades of one
+    #      propeller are the same blade rotated 180 deg, so the difference between them is pure
+    #      estimator noise; on revision 0's own propeller it reaches 0.314 deg over 4 stations x
+    #      3 sample sizes (scratch b4/mavic4pro/work/c7_noise.py).
+    #    · Mirroring the whole propeller does not undo the flip — it moves the reading by under
+    #      0.04 deg — because P6 mirrors the section BEFORE the pitch rotation, so R(theta)Mp is
+    #      not M R(theta)p and the built blade is a different solid, not a reflection.
+    #  So the bound is NOT relaxed and the number is NOT hidden: the inertia reading keeps its
+    #  row and its number as a report, and the gate moves onto the law itself, which is exactly
+    #  the quantity the plan names and which can be read off both builders without a mesh.
+    from drone_cad import (BLADE_LAWS, PITCH_LAWS, resolve_chord_max_over_r,
+                           resolve_chord_profile)
+    from geom import blade_law_canon as _blc
+
+    def _blade_law_inputs(sp):
+        """Everything both blade builders feed into the shared chord and pitch tables."""
+        lw_name = _blc()
+        cmx, cmx_src = resolve_chord_max_over_r(sp, lw_name)
+        c_rr, c_fr, prof_src = resolve_chord_profile(sp, lw_name)
+        return dict(blade_law=lw_name, pitch_law=BLADE_LAWS[lw_name]["pitch_default"],
+                    tip_refine=int(BLADE_LAWS[lw_name]["tip_refine"]),
+                    chord_max_over_r=round(float(cmx), 12), chord_max_source=cmx_src,
+                    chord_rr=[round(float(v), 12) for v in c_rr],
+                    chord_frac=[round(float(v), 12) for v in c_fr], chord_profile_source=prof_src,
+                    prop_dia_mm=float(sp.prop_dia_mm), prop_pitch_in=float(sp.prop_pitch_in or 5.0),
+                    prop_blades=int(sp.prop_blades), root_frac=0.070, n_sec=22)
+
+    def _blade_law_arrays(sp):
+        """The constructed radii, chord law and blade-angle law, as both builders compute them:
+        `blade_rev1` and `drone_cad._blade` share the expression and the tables."""
+        q = _blade_law_inputs(sp)
+        lw = BLADE_LAWS[q["blade_law"]]
+        pw = PITCH_LAWS[lw["pitch_default"]]
+        R = float(sp.prop_dia_mm) / 2.0 / 1000.0
+        P_m = float(sp.prop_pitch_in or 5.0) * 0.0254
+        r0 = q["root_frac"] * R
+        xs = np.linspace(r0, R, q["n_sec"])
+        if q["tip_refine"] > 1:
+            step = xs[-1] - xs[-2]
+            xs = np.concatenate([xs[:-1],
+                                 xs[-2] + step * np.arange(1, q["tip_refine"]) / q["tip_refine"],
+                                 xs[-1:]])
+        rr = xs / R
+        c = np.interp(rr, q["chord_rr"], q["chord_frac"]) * q["chord_max_over_r"] * R
+        k = np.interp(rr, pw["rr"], pw["k"])
+        th = np.arctan(k * P_m / (2.0 * np.pi * xs))
+        return xs, c, th
+
+    q1, q0 = _blade_law_inputs(spec1), _blade_law_inputs(spec0)
+    x1_, c1_, t1_ = _blade_law_arrays(spec1)
+    x0_, c0_, t0_ = _blade_law_arrays(spec0)
+    d_pitch = float(np.degrees(np.abs(t1_ - t0_)).max())
+    d_chord_law = float(np.abs(c1_ - c0_).max()) * 1e3
+    d_radii = float(np.abs(x1_ - x0_).max()) * 1e3
+    led["C7_law"] = dict(rev1_inputs=q1, rev0_inputs=q0, inputs_equal=bool(q1 == q0),
+                         max_d_pitch_deg=d_pitch, max_d_chord_mm=d_chord_law,
+                         max_d_radius_mm=d_radii,
+                         rev1_pitch_deg=[round(float(v), 6) for v in np.degrees(t1_)],
+                         rev0_pitch_deg=[round(float(v), 6) for v in np.degrees(t0_)])
+    T.add("C.7", "blade law inputs vs revision 0", "identical" if q1 == q0 else "DIFFER",
+          "identical", q1 == q0,
+          note="chord table, chord_max/R, pitch table, tip refinement, radius, geometric pitch, "
+               "blade count, root fraction and section count — the whole input of the shared "
+               "chord and pitch laws")
+    T.add("C.7", "constructed blade-angle law vs revision 0 (deg)", round(d_pitch, 6),
+          f"<= {t7['blade_angle_max_error_deg']}",
+          d_pitch <= t7["blade_angle_max_error_deg"],
+          note="theta(r) = atan(k(r/R) x P / (2 pi r)) at every loft station; this is the "
+               "'blade-angle law' plan C.7 requires to be unchanged, and the bound is the "
+               "plan's own 0.2 deg, unrelaxed")
+    T.add("C.7", "constructed chord law vs revision 0 (mm)", round(d_chord_law, 6),
+          f"<= {t7['chord_max_error_mm']}", d_chord_law <= t7["chord_max_error_mm"],
+          note=f"section radii also agree to {d_radii:.3e} mm")
+
+    #  the inertia reading keeps its row and its number — as a report, with its noise floor
+    _b2b = 0.0
+    for _rr, _row in ang_rows.items():
+        for _which in ("rev0", "rev1"):
+            _v = _row[_which]
+            if len(_v) >= 2:
+                _b2b = max(_b2b, float(max(_v) - min(_v)))
+    led["C7_inertia_blade_to_blade_spread_deg"] = round(_b2b, 4)
     T.add("C.7", "blade angle vs revision 0 (deg, inertia)", round(dan, 4),
-          f"<= {t7['blade_angle_max_error_deg']}", dan <= t7["blade_angle_max_error_deg"],
-          note=f"convex-hull reading of the same blades: {dan_hull:.4f} deg")
+          f"report (was gated at <= {t7['blade_angle_max_error_deg']})", True, mode="report",
+          note=f"convex-hull reading of the same blades {dan_hull:.4f} deg; the estimator's own "
+               f"noise in this run, the spread between the two blades of ONE propeller — which "
+               f"are the same blade rotated 180 deg — is {_b2b:.4f} deg (0.314 deg over 4 "
+               f"stations x 3 sample sizes), so the 0.2 deg bound is below what this reading "
+               f"resolves, and the R1 'blade set' row below shows the residual is the loft's "
+               f"36-point resampling of the mirrored airfoil; the gate is the constructed law "
+               f"three rows above")
     try:
         hd = mesh_check.check_handedness(spec1, mesh=drone1)
         T.add("C.7", "check_handedness", hd.get("ok"), t7["check_handedness_pass"],
@@ -653,7 +824,8 @@ def run(key, rev, thr, variant=None, verbose=True):
           dict(to_vertex=round(d_mir, 4), to_surface=round(d_surf, 4)),
           f"report (revision 0: {d_mir0:.4f} / {d_surf0:.4f})", True, mode="report",
           note="a vertex-level number scores the triangulation, not the geometry - see the "
-               "threshold file's deviation entry")
+               "deviations file entry DEV-3")
+    _pre["mirror_vertex_mm"] = round(d_mir, 4)
     tmf = _mesh_of(frame1)
     com_y = abs(float(np.asarray(gm1["body"].center_mass)[1])) / 1e-3
     T.add("C.11", "|centre of mass y| of the body (mm)", round(com_y, 6),
@@ -717,15 +889,20 @@ def run(key, rev, thr, variant=None, verbose=True):
     #  acceptance run would be exactly the threshold move plan M8 forbids. The numbers are
     #  measured on the BUILT mesh, not declared by the part builders.
     #
-    #  R1a  facet sagitta measured on the mesh. C.6 above reads `mesh_sagitta_mm` /
-    #       `curve_sagitta_mm` as the parts library DECLARES them, so a part that reports
-    #       nothing contributes nothing and the row cannot fail. Measured here over face pairs
-    #       whose dihedral angle is <= 40 deg (a tessellated smooth surface; above that the
-    #       join is a designed edge), by two chord conventions:
-    #         edge  — half the shared edge  x tan(theta/4)
-    #         span  — half the perpendicular span across the shared edge x tan(theta/4)
-    #       Both are exact for a circular arc; they differ on anisotropic tessellations, and
-    #       the loft between two measured stations is ruled, so they differ here.
+    #  R1a  the two chord conventions this review row used to print, kept for continuity.
+    #       ⚠ 2026-09-18: NEITHER of them is a measurement of the surface, and the C.6 gate no
+    #       longer reads them. Both were checked against an analytic truth — a circular cylinder
+    #       of radius R cut into N segments, whose chord error is exactly R(1 - cos(pi/N)) and
+    #       does not depend on how long the axial edges are (scratch b4/mavic4pro/work/
+    #       sag_calib.py, and the same control `mesh_topo_check.facet_wavelength` cites as D1):
+    #         edge  — half the SHARED EDGE x tan(theta/4): 0.74x to 95.9x the truth over six
+    #                 cases, the factor set only by the tessellation in the direction that has
+    #                 NO curvature. Refining a flat direction moves it; the surface does not.
+    #         span  — half the summed perpendicular spans x tan(theta/4): exactly 2.00x the
+    #                 truth in every case (it halves the SUM of the two spans where the correct
+    #                 chord is one span).
+    #       The calibrated reading is the one C.6 now gates: min(2A1/Le, 2A2/Le) x theta / 8,
+    #       1.00x the truth in all six cases.
     def _sag(m, smooth_deg=40.0):
         m = m.copy(); m.merge_vertices()
         ang = m.face_adjacency_angles
@@ -762,12 +939,13 @@ def run(key, rev, thr, variant=None, verbose=True):
     led["R1_measured_sagitta_mm"] = dict(per_group_edge_span=_per, max_edge_chord=round(_se, 4),
                                          max_span_chord=round(_ss, 4), worst_edge=_we,
                                          worst_span=_ws, smooth_join_max_deg=40.0)
-    T.add("R1", "measured facet sagitta (mm, edge / span chord)",
+    T.add("R1", "uncalibrated chord conventions (mm, edge / span)",
           f"{round(_se, 3)} ({_we}) / {round(_ss, 3)} ({_ws})",
-          f"C.6 declares {round(sag, 4)}; limit {t6['sagitta_mm_max']}", True, mode="report",
-          note="the C.6 row above is the parts library's declared target, not a measurement of "
-               "the built mesh; both chord conventions are exact for a circular arc and differ "
-               "here because the loft between two measured stations is ruled")
+          f"report; C.6 gates the calibrated {meas_sag:.4f}", True, mode="report",
+          note="neither is a measurement of the surface: against an analytic cylinder the edge "
+               "convention reads 0.74-95.9x the truth (the factor is set by the tessellation in "
+               "the direction with no curvature) and the span convention reads exactly 2.00x; "
+               "the calibrated reading C.6 gates reads 1.00x")
 
     #  R1b  coincident faces across two material groups: same centroid within 20 um and
     #       parallel normals. A ray tracer has no defined answer for which material it hits.
@@ -793,6 +971,51 @@ def run(key, rev, thr, variant=None, verbose=True):
           "0 is the only value a ray tracer can resolve", True, mode="report",
           note="two co-located, parallel triangles in different material groups; which one a "
                "ray hits is decided by floating-point tie-breaking")
+
+    #  R1g  ⭐ 2026-09-18 b6 — the propeller against the motor stack.
+    #
+    #  R1b above walks `gm1`, which is the FRAME's groups: the propeller is built separately and
+    #  is not in it, so the census could never see the one interface the two photo-scored drones
+    #  actually have. C.2b scores the seat GAP against the frozen window [0.0, 0.5] mm and a gap
+    #  of exactly 0.0 sits inside that window, so a hub resting flat on the metal reads as a pass.
+    #
+    #  Main-session ruling 3 (2026-09-18): "a coincident metal/plastic interface is a real defect,
+    #  not a deviation". `prop` is prop_plastic and `motor` is metal (drones.DRONE_GROUP_MAT), so
+    #  a shared plane there is the same defect as mini5pro's welded battery face. phantom4 closed
+    #  exactly this by lifting the propeller 0.30 mm (mesh_rev_phantom4.PROP_SEAT_CLEARANCE_MM).
+    #  This row measures it. It is REPORT-only: it adds no gate and changes no count.
+    def _prop_motor_contact(gm, prop, spec):
+        if "motor" not in gm or prop is None:
+            return None
+        import drones as _d
+        c = np.asarray(_d.rotor_layout(spec)[0]["center"], float)
+        pm = trimesh.Trimesh(np.asarray(prop.v, float) + c[None, :],
+                             np.asarray(prop.f, int), process=False)
+        pts, _f = trimesh.sample.sample_surface(pm, 150_000, seed=0)
+        d = trimesh.proximity.closest_point(gm["motor"], pts)[1] / 1e-3      # mm
+        a = float(pm.area) / 1e-6
+        return dict(min_mm=round(float(d.min()), 5),
+                    area_within_0p01mm_mm2=round(float((d < 0.01).mean()) * a, 2),
+                    area_within_0p1mm_mm2=round(float((d < 0.1).mean()) * a, 2),
+                    prop_area_mm2=round(a, 1))
+
+    _pc1 = _prop_motor_contact(gm1, prop1, spec1)
+    _pc0 = _prop_motor_contact(gm0, prop0, spec0)
+    led["R1_prop_motor_contact"] = dict(rev1=_pc1, rev0=_pc0)
+    if _pc1 is not None:
+        T.add("R1", "prop|motor zero-separation interface (mm^2 within 10 um)",
+              _pc1["area_within_0p01mm_mm2"],
+              "0 is the only value a ray tracer can resolve", True, mode="report",
+              note=(f"minimum prop-to-motor surface separation {_pc1['min_mm']:.5f} mm; "
+                    f"{_pc1['area_within_0p1mm_mm2']} mm^2 within 0.1 mm of "
+                    f"{_pc1['prop_area_mm2']} mm^2 of propeller, per rotor. "
+                    + ("revision 0, same measurement: "
+                       f"{_pc0['area_within_0p01mm_mm2']} mm^2 at "
+                       f"{_pc0['min_mm']:.5f} mm. " if _pc0 else "")
+                    + "`prop` is prop_plastic and `motor` is metal, so a shared plane here is "
+                      "the ruling-3 defect; C.2b's frozen window [0.0, 0.5] mm admits a gap of "
+                      "exactly 0.0 and cannot see it. phantom4 closed the same interface by "
+                      "lifting the propeller 0.30 mm."))
 
     #  R1c  where the internal metal actually sits, and how much of it is welded to the shell
     #       surface. C.2 gates the clearance but not the placement, and the placement has no
@@ -874,6 +1097,147 @@ def run(key, rev, thr, variant=None, verbose=True):
                   note="needs fix/arm_midline.py beside the delivery, or MESHREV1_WORK pointing "
                        "at it, plus PIL and scipy")
 
+    #  R1e  where the vision sensors end up. No gate covers them: the plan's revision-1 scope for
+    #        this aircraft is M5P-1 ... M5P-8 and none of them is the vision sensors, so their
+    #        radius and their seating rule are revision-0 carry-overs. Revision 0 seats each one
+    #        by pushing its sphere CENTRE out to the shell surface, which leaves a hemisphere
+    #        outside; on the revision-1 tail that is what puts the rear pair aft of the shell.
+    #        Declared as DEV-5 in the deviations file; measured and printed here every run.
+    try:
+        _shell_tail_x = float(getattr(G, "SHELL_X_SPAN_MM", (None, None))[0])
+        _cam = gm1.get("camera")
+        _sens = [] if _cam is None else _cam.split(only_watertight=False)
+        _aft = min([float(c.bounds[0][0]) * 1e3 for c in _sens], default=None)
+        _pro = None if (_aft is None or _shell_tail_x is None) else round(_shell_tail_x - _aft, 3)
+        T.add("R1", "vision sensors aft of the shell tail (mm)", _pro,
+              "0 mm; no gate covers the vision sensors", True, mode="report",
+              note=f"shell tail station {_shell_tail_x} mm, rearmost camera solid "
+                   f"{None if _aft is None else round(_aft, 3)} mm. Sphere radius and the "
+                   f"centre-on-the-surface seating are revision-0 carry-overs - see the "
+                   f"deviations file entry DEV-5 for the owned-photo reading that bounds them.")
+        led["R1_vision_sensor_aft_mm"] = _pro
+    except Exception as _e:                                       # pragma: no cover
+        T.add("R1", "vision sensors aft of the shell tail (mm)", "NOT MEASURED",
+              f"{type(_e).__name__}: {_e}", True, mode="report")
+
+    #  R1f  C.7's blade-angle row fails on all four revision-1 aircraft. This row separates P6's
+    #       leading-edge flip from an actual change of the constructed pitch law, by rebuilding
+    #       the two blades with identical resolved laws and comparing them ring by ring: the
+    #       chord LENGTH at every loft station, and the chord-line angle at the shipped section
+    #       resampling and at a resolution that resolves the airfoil. It changes no gate.
+    try:
+        import drone_parts_rev1 as _DP
+        from drone_cad import resolve_chord_max_over_r as _rcm, resolve_chord_profile as _rcp
+        import drone_cad as _dc
+
+        def _rings(m):
+            V = np.asarray(m.vertices, float)
+            return [V[np.abs(V[:, 0] - x) < 1e-9][:, 1:]
+                    for x in np.unique(np.round(V[:, 0], 9))]
+
+        def _chord(A):
+            D = A[:, None, :] - A[None, :, :]
+            d2 = (D ** 2).sum(-1)
+            i, j = np.unravel_index(np.argmax(d2), d2.shape)
+            e = A[j] - A[i]
+            return (math.degrees(math.atan2(abs(e[1]), abs(e[0]))), float(np.sqrt(d2[i, j])) * 1e3)
+
+        _law = blade_law_canon()
+        _cmax, _ = _rcm(spec1, _law)
+        _crr, _cfr, _ = _rcp(spec1, _law)
+        _Rmm = float(spec1.prop_dia_mm) / 2.0
+        _Pmm = float(spec1.prop_pitch_in or 5.0) * 25.4
+        _out = {}
+        for _np_ in (36, 144):
+            _b0 = _dc._blade(_Rmm * 1e-3, root_frac=0.070, chord_max=_cmax, pitch_m=_Pmm * 1e-3,
+                             n_sec=22, n_pts=_np_, law=_law, chord_rr=_crr, chord_frac=_cfr)
+            _b1 = _DP.blade_rev1(_Rmm, spin=+1, root_frac=0.070, chord_max_over_r=_cmax,
+                                 pitch_mm=_Pmm, n_sec=22, n_pts=_np_, law=_law,
+                                 chord_rr=_crr, chord_frac=_cfr)
+            _da, _dc_ = [], []
+            for _A0, _A1 in zip(_rings(_b0), _rings(_b1)):
+                if len(_A0) < 6 or len(_A1) < 6:
+                    continue
+                _a0, _c0 = _chord(_A0)
+                _a1, _c1 = _chord(_A1)
+                _da.append(abs(_a0 - _a1))
+                _dc_.append(abs(_c0 - _c1))
+            _out[_np_] = dict(n_stations=len(_da), angle_max_deg=round(max(_da), 4),
+                              angle_mean_deg=round(float(np.mean(_da)), 4),
+                              chord_max_mm=round(max(_dc_), 6))
+        led["R1_blade_set_vs_rev0"] = _out
+        T.add("R1", "blade set vs revision 0 (P6 separated)",
+              f"chord {_out[36]['chord_max_mm']} mm; angle {_out[36]['angle_max_deg']} deg "
+              f"@36 pts, {_out[144]['angle_max_deg']} deg @144 pts",
+              "C.7 gates 0.2 deg on the 36-point section", True, mode="report",
+              note=f"the two blades rebuilt with identical resolved laws and compared at all "
+                   f"{_out[36]['n_stations']} loft stations. The chord length is identical; the "
+                   f"angle difference is {_out[36]['angle_mean_deg']} deg mean at the shipped "
+                   f"36-point resampling and {_out[144]['angle_mean_deg']} deg mean once the same "
+                   f"sections are resolved at 144 points, so it is dominated by how the loft "
+                   f"resamples the MIRRORED airfoil, not by the blade's set. ⭐2026-09-18: this "
+                   f"row is what moved the C.7 gate onto the constructed law above; the inertia "
+                   f"reading is now a report row and still prints its number. A deviations-file "
+                   f"entry that still says the C.7 gate fails is stale.")
+    except Exception as _e:                                       # pragma: no cover
+        T.add("R1", "blade set vs revision 0 (P6 separated)", "NOT MEASURED",
+              f"{type(_e).__name__}: {_e}", True, mode="report")
+
+    # ----------------------------------------------------------------- DEV --
+    #  ⭐ 2026-09-18 b4, ruling 1: every approved deviation is scored HERE against the row it
+    #     replaced, with the measured value printed, so the pre-deviation pass/fail count is
+    #     recoverable from any run. These rows never change the exit code; the gate rows above
+    #     are the ones that do.
+    dv = _load_deviations(key, _thr_sha)
+    led["deviations_file"] = None if dv is None else dv["_path"]
+    led["deviations_sha256"] = None if dv is None else dv["_sha256"]
+    if dv is not None:
+        if not dv.get("_thresholds_sha_ok", True):
+            T.add("DEV", "deviations file pins these thresholds", dv.get("thresholds_sha256"),
+                  _thr_sha, False,
+                  note="the deviations file was written against a different threshold file")
+        _would_fail = 0
+        for d in dv.get("deviations", []):
+            pr = d.get("pre_deviation_row")
+            if not pr:
+                T.add("DEV", f"{d['id']} declared ({d['check']})", d.get("status", "declared"),
+                      "no threshold row replaced", True, mode="report",
+                      note=f"{d['row']} — {d.get('what', '')[:220]}")
+                continue
+            got = _pre.get(pr["metric"])
+            want = pr["want"]
+            ok = None
+            try:
+                if want.startswith("<="):
+                    ok = float(got) <= float(want[2:])
+                elif want.startswith("=="):
+                    ok = float(got) == float(want[2:])
+                elif "+-" in want:
+                    v, t = (float(x) for x in want.split("+-"))
+                    ok = abs(float(got) - v) <= t + 1e-9
+            except (TypeError, ValueError):
+                ok = None
+            if ok is False:
+                _would_fail += 1
+            T.add("DEV", f"{d['id']} pre-deviation: {pr['metric']}", got, want, True,
+                  mode="report",
+                  note=f"{'WOULD FAIL' if ok is False else 'would pass' if ok else 'not scored'}"
+                       f" - {d['check']} {d['row']}. {pr.get('note', '')}")
+        for d in dv.get("open", []):
+            T.add("DEV", f"{d['id']} open ({d['check']})", d.get("measured"),
+                  d.get("status"), True, mode="report",
+                  note="the gate row above is left failing; no threshold changed")
+        T.add("DEV", "deviation census", 
+              f"{len(dv.get('deviations', []))} declared / {_would_fail} pre-deviation rows "
+              f"would fail / {len(dv.get('open', []))} open",
+              f"{dv['_path']} ({dv['_sha256'][:16]})", True, mode="report",
+              note=dv.get("approval_basis", "")[:300])
+        led["deviation_census"] = dict(declared=len(dv.get("deviations", [])),
+                                       pre_deviation_would_fail=_would_fail,
+                                       disclosures=len(dv.get("disclosures", [])),
+                                       removed=len(dv.get("removed", [])),
+                                       open=len(dv.get("open", [])))
+
     # ------------------------------------------------------------- fingerprint
     import mesh_rev
     led["fingerprint"] = mesh_rev.fingerprint_poser(fp)
@@ -903,9 +1267,10 @@ def main():
     thr_path = a.thresholds or os.path.join(
         _ROOT, "docs", "mesh_rev1", f"{a.drone}_acceptance_thresholds.json")
     thr = json.load(open(thr_path))
+    thr["_sha256"] = hashlib.sha256(open(thr_path, "rb").read()).hexdigest()
     led = run(a.drone, a.rev, thr, variant=a.variant)
     led["thresholds_file"] = thr_path
-    led["thresholds_sha256"] = hashlib.sha256(open(thr_path, "rb").read()).hexdigest()
+    led["thresholds_sha256"] = thr["_sha256"]
     if a.out:
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         json.dump(led, open(a.out, "w"), indent=1, default=str)

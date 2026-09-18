@@ -107,17 +107,44 @@ SHELL_TAIL_DOME_MM = 3.59
 SHELL_NOSE_DOME_MM = 5.73
 
 #: Gimbal cradle block, CAD solids 49 / 56 / 57 / 58, same measurement.
+#: ⚠ REVIEW FIX F-6 (2026-09-18, render defect "the nose underside is a two-plane notch where the
+#:   CAD sweeps one concave curve"). Two things were wrong and both are measurement, not shape:
+#:   (a) the stations were 8 mm apart, and the CAD's cradle underside is a FLAT shelf at
+#:       z = -20.62 mm from x = 92 to x = 110 with a 3.7 mm step up at each end. Sampled every
+#:       8 mm the shelf is hit once, at x = 104, so the loft ran a V down to that one point and
+#:       back up - the two-plane notch. At 4 mm the shelf is four stations long and the loft
+#:       follows it.
+#:   (b) z_top and z_bot were carried as INTEGERS, which is the 1 mm z-bin's floor, not the
+#:       measurement. Every value below moves by less than 1 mm except z_bot at x = 96, where
+#:       the finer grid finds the shelf itself (-19 -> -20.62).
+#:   ⚠ The refinement is applied only over x = 80...120 mm, where the shelf is. A first pass
+#:   refined the whole table to 4 mm and that made the front face STEEPER - the CAD's cradle
+#:   z_top falls 43.43 -> 5.56 mm between x = 144 and 148, so at 4 mm the nose ends in a nearly
+#:   vertical wall and C.5's `body facing az0 el0 (10 deg)` went 237 -> 1,162 mm2 against a
+#:   500 mm2 limit. Measured, reverted, and the 8 mm spacing kept from x = 120 forward.
+#:   Same rule, same CAD solids, same 4 mm x-band: width reproduces the committed table to
+#:   0.00 mm at all ten original stations, which is the check that the rule was reproduced
+#:   (scratch/mesh_rev1/b4/matrice4e/work/cad_stations2.py, make_nose_table.py).
+#:   `z_mid`, `n_up` and `n_dn` are shape parameters, not dimensions (see the module docstring);
+#:   at the nine new stations they are interpolated from the committed table - `z_mid` as the
+#:   fraction (z_mid - z_bot) / (z_top - z_bot), which is the form `_smooth_shape` already uses.
 NOSE_STATIONS = (
-    (80.0,    43.52,   28.0,  -17.0,    0.0,  1.60,  4.05),
-    (88.0,    44.00,   35.0,  -17.0,   12.5,  2.65,  2.55),
-    (96.0,    53.63,   41.0,  -19.0,   35.5,  1.60,  1.60),
-    (104.0,   61.72,   43.0,  -21.0,   36.5,  1.60,  1.60),
-    (112.0,   63.63,   43.0,  -19.0,   -7.5,  1.60,  2.25),
-    (120.0,   74.91,   43.0,  -17.0,   -6.5,  1.60,  4.20),
-    (128.0,   80.34,   51.0,  -17.0,   -7.5,  2.50,  3.00),
-    (136.0,   82.05,   51.0,  -17.0,   -7.0,  2.65,  3.00),
-    (144.0,   82.05,   44.0,  -19.0,   -6.0,  2.45,  3.00),
-    (152.0,   82.05,    5.0,  -19.0,   -7.5,  3.00,  3.00),
+    # x,      width,  z_top,  z_bot,  z_mid,  n_up,  n_dn
+    (   80.0,   43.52,  27.23, -16.07,   0.29,  1.60,  4.05),
+    (   84.0,   43.91,  32.87, -17.17,   6.48,  2.12,  3.30),
+    (   88.0,   44.00,  34.15, -16.10,  12.41,  2.65,  2.55),
+    (   92.0,   48.03,  38.91, -19.78,  23.52,  2.12,  2.08),
+    (   96.0,   53.63,  40.18, -20.62,  34.61,  1.60,  1.60),
+    (  100.0,   59.08,  41.48, -20.62,  35.48,  1.60,  1.60),
+    (  104.0,   61.72,  42.82, -20.62,  36.38,  1.60,  1.60),
+    (  108.0,   62.43,  43.83, -20.62,  14.31,  1.60,  1.93),
+    (  112.0,   63.63,  42.62, -18.98,  -7.55,  1.60,  2.25),
+    (  116.0,   69.60,  43.28, -16.13,  -5.42,  1.60,  3.23),
+    (  120.0,   74.91,  42.47, -16.12,  -5.87,  1.60,  4.20),
+    (  128.0,   80.34,  50.26, -16.12,  -6.85,  2.50,  3.00),
+    (  136.0,   82.05,  50.27, -16.19,  -6.42,  2.65,  3.00),
+    (  144.0,   82.05,  43.43, -18.76,  -5.93,  2.45,  3.00),
+    (  152.0,   82.05,   4.98, -18.23,  -7.11,  3.00,  3.00),
 )
 NOSE_TAIL_DOME_MM = 4.0       # blends back into the shell at x = 76
 NOSE_FRONT_DOME_MM = 7.0      # CAD cradle solid 49 ends at x = 159.01
@@ -195,6 +222,25 @@ RTK_D_TOP_MM = 37.4
 RTK_TOP_Z_MM = 91.70
 RTK_SINK_MM = 2.0              # how far the base is sunk under the built deck, so it cannot float
 
+#: ⚠ REVIEW FIX F-5 (2026-09-18, render defect "the legs are shorter and further outboard than
+#:   the CAD's"). Revision 0 stands the four legs at `motor_radius * GEAR_SPIKE_INBOARD` with one
+#:   shared splay angle, and `src/drone_cad.py` already records, in its own words, that this puts
+#:   the rear pair 9-11 mm too far inboard (`outputs/meshfix_matrice4e.json` row F07: CAD leg
+#:   centre radius front 229.75 -> 216.61 mm, rear 217.10 -> 208.57 mm; ours front 231.28 ->
+#:   220.18, rear 206.37 -> 197.13). That comment ends "the value has NOT been changed - changing
+#:   it would move the matrice4e fingerprint and stale the stored sigma ledger", which is exactly
+#:   what a revision is for. Revision 1 therefore stands each leg on its measured CAD radius.
+#:   Nothing else about the leg changes: the same `drone_cad._gear_arm_spikes` cone, the same root
+#:   and tip diameters, the same attachment z and the same length, so all four feet still land on
+#:   the CAD ground plane (-59.82 mm front, -59.82 rear against the CAD's -59.61).
+#:   The call is made twice, once per pair, because the splay angle that carries a pair from its
+#:   root radius to its foot radius is not the same front and rear (15.75 deg vs 12.40 deg) and
+#:   `_gear_arm_spikes` takes one scalar splay per call. Its API is unchanged.
+GEAR_ROOT_R_MM = {"front": 229.75, "rear": 217.10}     # CAD, meshfix_matrice4e.json F07
+GEAR_FOOT_R_MM = {"front": 216.61, "rear": 208.57}     # CAD, same row
+GEAR_ROOT_D_MM = 15.5          # unchanged (rev 0)
+GEAR_TIP_D_MM = 9.4            # unchanged (rev 0)
+
 #: Battery pack — official size, CAD position.
 BATTERY_MM = (145.47, 60.6, 46.3)
 BATTERY_CENTER_MM = (70.10 - 145.47 / 2.0, 0.0, -6.14 + 46.3 / 2.0)
@@ -206,6 +252,35 @@ BATTERY_CLEARANCE_MM = 1.0
 #: the shell. The offset is a containment margin, not a dimension: the box keeps its official
 #: size and its CAD position, and plan C.2 asks for exactly this (">= 1 mm clearance").
 CONTAIN_INSET_MM = 1.0
+#: ⚠ REVIEW FIX F-4 (adversarial verification 2026-09-18, target plan C.1 "0 self-intersections").
+#:   The delivered containment host was `body_union.vertices - body_union.vertex_normals * 1 mm`
+#:   and it was only checked for being closed. Measured here: the body union itself has **0**
+#:   self-intersecting triangle pairs, but that naive offset has **92**, with 48 triangles whose
+#:   normal has flipped, clustered where the four arms and the four motor pods cut into the
+#:   fuselage. A vertex-normal offset folds wherever the offset exceeds the local feature size,
+#:   and a boolean intersection against a folded host hands the fold straight to the clipped box:
+#:   that is where the 18 self-intersecting pairs of the battery (3) and the mainboard (15) came
+#:   from — they sit at (-34.7, +-29.9, +1.2) and (-38.7, +-25.5, -11.2), i.e. exactly on the
+#:   buried root of each rear arm.
+#:
+#:   Two things change, and neither is a dimension:
+#:   (a) the host is the FUSELAGE only (the M4E-2 shell loft unioned with the M4E-2 cradle loft),
+#:       not the whole body union. The pack and the mainboard live in the fuselage; a host that
+#:       includes the 12 mm arm tubes and the motor pods would let modelled metal be clipped into
+#:       a plastic arm shaft. The creases that fold the offset are exactly the arm and pod
+#:       junctions, so removing them removes most of the folding as well.
+#:   (b) the offset is normal-compensated and fold-free. Compensated: a vertex offset of d along
+#:       the VERTEX normal moves an incident FACE inward by only d * (n_vertex . n_face), which is
+#:       why the delivered pack's closest approach to the shell was 0.366 mm instead of 1.0; each
+#:       vertex is therefore offset by d / min(n_vertex . n_face) over its incident faces, clipped
+#:       at 1/0.35. Fold-free: after each pass the offset surface is tested for flipped or
+#:       collapsed triangles and for self-intersections, and the offset is reduced (x0.7, with a
+#:       2.5x smoothness limit over the 1-ring) at every vertex involved, until none is left.
+#:       The loop is deterministic and its record goes into the build report.
+CONTAIN_HOST_SHRINK = 0.7          # how much the offset is cut at an offending vertex per pass
+CONTAIN_HOST_SMOOTH = 2.5          # a vertex may not exceed this times its 1-ring minimum
+CONTAIN_HOST_MAX_PASSES = 24
+CONTAIN_HOST_MIN_COS = 0.35        # floor on n_vertex . n_face when compensating
 
 #: Mainboard box — carried over from revision 0 unchanged (its size is unmeasured; see sources).
 PCB_MM = (93.0, 53.6, 5.0)
@@ -434,6 +509,142 @@ def _union_and_repair(A, groups, report):
     return A
 
 
+def _si_pairs(V, F):
+    """Self-intersecting triangle pairs of one mesh (mm). Same test as the acceptance's."""
+    import itertools
+    from collections import defaultdict
+    V = np.asarray(V, float)
+    F = np.asarray(F, np.int64)
+    tv = V[F]
+    lo, hi = tv.min(1), tv.max(1)
+    cell = max(float(np.median(hi - lo)) * 2.0, 1e-9)
+    grid = defaultdict(list)
+    for i, (a, b) in enumerate(zip(lo, hi)):
+        for gx in range(int(np.floor(a[0] / cell)), int(np.floor(b[0] / cell)) + 1):
+            for gy in range(int(np.floor(a[1] / cell)), int(np.floor(b[1] / cell)) + 1):
+                for gz in range(int(np.floor(a[2] / cell)), int(np.floor(b[2] / cell)) + 1):
+                    grid[(gx, gy, gz)].append(i)
+    cand = set()
+    for v in grid.values():
+        if len(v) > 1:
+            cand.update((i, j) for i, j in itertools.combinations(sorted(v), 2))
+    out = []
+    for i, j in cand:
+        if set(F[i]) & set(F[j]):
+            continue
+        if (lo[i] > hi[j]).any() or (lo[j] > hi[i]).any():
+            continue
+        if _tri_tri_hit(*tv[i], *tv[j]):
+            out.append((i, j))
+    return out
+
+
+def _tri_tri_hit(A0, A1, A2, B0, B1, B2, eps=1e-12):
+    """Do two triangles cross? Segment-vs-triangle both ways (Moller's separating test)."""
+    def seg_tri(P, Q, T0, T1, T2):
+        e1, e2 = T1 - T0, T2 - T0
+        d = Q - P
+        h = np.cross(d, e2)
+        a = float(e1 @ h)
+        if abs(a) < eps:
+            return False
+        f = 1.0 / a
+        sv = P - T0
+        u = f * float(sv @ h)
+        if u < -1e-9 or u > 1 + 1e-9:
+            return False
+        q = np.cross(sv, e1)
+        v = f * float(d @ q)
+        if v < -1e-9 or u + v > 1 + 1e-9:
+            return False
+        t = f * float(e2 @ q)
+        return 1e-9 < t < 1 - 1e-9
+    A = (A0, A1, A2)
+    B = (B0, B1, B2)
+    for P, Q in ((A0, A1), (A1, A2), (A2, A0)):
+        if seg_tri(P, Q, *B):
+            return True
+    for P, Q in ((B0, B1), (B1, B2), (B2, B0)):
+        if seg_tri(P, Q, *A):
+            return True
+    return False
+
+
+def _contain_host(fus, inset_mm, report=None):
+    """**REVIEW FIX F-4** — a fold-free, normal-compensated inward offset of the fuselage.
+
+    `fus` is the closed fuselage solid in metres. Returns (host mesh, record). See the comment
+    above CONTAIN_HOST_SHRINK for why the naive vertex-normal offset cannot be used.
+    """
+    import trimesh
+    V0 = np.asarray(fus.vertices, float)
+    N = np.asarray(fus.vertex_normals, float)
+    F = np.asarray(fus.faces, np.int64)
+    n0 = np.asarray(fus.face_normals, float)
+    a0 = np.asarray(fus.area_faces, float)
+    d = float(inset_mm) * MM
+    #  (b1) compensation: move each vertex far enough that every incident face clears `inset_mm`
+    c = np.ones(len(V0))
+    for a in range(3):
+        np.minimum.at(c, F[:, a], (N[F[:, a]] * n0).sum(1))
+    c = np.clip(c, CONTAIN_HOST_MIN_COS, 1.0)
+    delta = d / c
+    base = delta.copy()
+    nbr = [[] for _ in range(len(V0))]
+    for f in F:
+        for a in f:
+            for b in f:
+                if a != b:
+                    nbr[a].append(b)
+    nbr = [np.unique(x) for x in nbr]
+    #  (b2) clamp until the offset surface is fold-free
+    passes = 0
+    for passes in range(int(CONTAIN_HOST_MAX_PASSES)):
+        W = V0 - N * delta[:, None]
+        m = trimesh.Trimesh(W, F, process=False)
+        bad_f = ((n0 * m.face_normals).sum(1) <= 0.3) | (m.area_faces < 0.3 * a0)
+        pairs = _si_pairs(W / MM, F)
+        bad = set(F[bad_f].ravel().tolist())
+        for i, j in pairs:
+            bad.update(F[i].tolist())
+            bad.update(F[j].tolist())
+        if not bad:
+            break
+        idx = np.array(sorted(bad), np.int64)
+        delta[idx] *= CONTAIN_HOST_SHRINK
+        dm = delta.copy()
+        for v in idx:
+            for u in nbr[v]:
+                dm[u] = min(dm[u], CONTAIN_HOST_SMOOTH * delta[v])
+        delta = dm
+    else:
+        raise RuntimeError("drone_rev1_matrice4e: the containment host is still folded after "
+                           f"{CONTAIN_HOST_MAX_PASSES} passes")
+    W = V0 - N * delta[:, None]
+    host = trimesh.Trimesh(W, F, process=False)
+    host.merge_vertices()
+    trimesh.repair.fix_normals(host)
+    if not host.is_watertight or host.volume <= 0:
+        raise RuntimeError("drone_rev1_matrice4e: the containment host is not a closed solid; "
+                           "the internal boxes cannot be contained with a margin")
+    left = len(_si_pairs(np.asarray(host.vertices) / MM, np.asarray(host.faces)))
+    if left:
+        raise RuntimeError(f"drone_rev1_matrice4e: the containment host still self-intersects "
+                           f"({left} pairs) after the clamp loop")
+    rec = dict(inset_mm=float(inset_mm), source="fuselage (shell loft + cradle loft) only",
+               passes=int(passes), self_intersecting_pairs=0,
+               offset_mm=dict(asked=float(inset_mm),
+                              compensated_median=round(float(np.median(base)) / MM, 4),
+                              compensated_max=round(float(base.max()) / MM, 4),
+                              realised_min=round(float(delta.min()) / MM, 4),
+                              realised_median=round(float(np.median(delta)) / MM, 4),
+                              n_clamped=int((delta < base - 1e-12).sum()), n_vertices=len(V0)),
+               host_volume_mm3=round(float(host.volume) / MM ** 3, 3))
+    if report is not None:
+        report["contain_host"] = rec
+    return host, rec
+
+
 def _axis_point(root_xy_z, heading_deg, z_slope, s):
     """Point at arc length `s` along an arm axis that starts at `root_xy_z` (mm)."""
     x0, y0, z0 = root_xy_z
@@ -486,6 +697,7 @@ def build_frame(spec):
         dome_len_mm=(SHELL_TAIL_DOME_MM, SHELL_NOSE_DOME_MM), dome_rings=DOME_RINGS)
     report["shell"] = P.check_part(shell)
     A.add(shell.mesh, shell.group)
+    fuselage_parts = [shell]
 
     # ---- M4E-2 : the gimbal cradle under the beak ---------------------------
     cradle = P.section_loft_shell(
@@ -494,6 +706,7 @@ def build_frame(spec):
         dome_len_mm=(NOSE_TAIL_DOME_MM, NOSE_FRONT_DOME_MM), dome_rings=DOME_RINGS)
     report["cradle"] = P.check_part(cradle)
     A.add(cradle.mesh, cradle.group)
+    fuselage_parts.append(cradle)
 
     # ---- M4E-4 : straight arms ---------------------------------------------
     angles = list(motor_angles(spec))
@@ -583,11 +796,30 @@ def build_frame(spec):
         raise AssertionError("matrice4e rev1 beacon: no deck at x = -61.5 mm")
     A.add(cyl(0.007, 0.005, center=(-0.0615, 0.0, beacon_z - 0.0015), seg=16), "accent")
 
-    # ---- landing legs (carried over from revision 0) ------------------------
-    for g, m in _gear_arm_spikes(radii, angles, GEAR_TOP_Z["matrice4e"],
-                                 GEAR_SPIKE_H["matrice4e"], 0.0155, 0.0094,
-                                 splay_deg=-13.4, inboard=GEAR_SPIKE_INBOARD["matrice4e"]):
-        A.add(m, g)
+    # ---- landing legs (REVIEW FIX F-5: stood on the CAD radii) --------------
+    #  Revision 0's call passes the rotor radius and a ratio; the ratio puts the rear pair
+    #  10.7 mm inboard of the CAD. Here each pair gets its measured CAD root radius directly
+    #  (inboard = 1.0) and its own splay, which is what carries the foot to its measured CAD
+    #  radius over that pair's own leg length. `drone_cad._gear_arm_spikes` is unchanged.
+    leg_rec = {}
+    for side in ("front", "rear"):
+        sel = [k for k in range(len(angles))
+               if (math.cos(math.radians(angles[k])) > 0.0) == (side == "front")]
+        r_root = GEAR_ROOT_R_MM[side]
+        r_foot = GEAR_FOOT_R_MM[side]
+        h_mm = [GEAR_SPIKE_H["matrice4e"][k] / MM for k in sel]
+        if abs(h_mm[0] - h_mm[-1]) > 1e-9:
+            raise AssertionError("matrice4e rev1 legs: the %s pair has two lengths" % side)
+        splay = math.degrees(math.atan2(r_foot - r_root, h_mm[0]))
+        leg_rec[side] = dict(root_r_mm=r_root, foot_r_mm=r_foot, h_mm=round(h_mm[0], 4),
+                             splay_deg=round(splay, 4), rotors=sel)
+        for g, m in _gear_arm_spikes([r_root * MM] * len(sel), [angles[k] for k in sel],
+                                     [GEAR_TOP_Z["matrice4e"][k] for k in sel],
+                                     [GEAR_SPIKE_H["matrice4e"][k] for k in sel],
+                                     GEAR_ROOT_D_MM * MM, GEAR_TIP_D_MM * MM,
+                                     splay_deg=splay, inboard=1.0):
+            A.add(m, g)
+    report["legs"] = leg_rec
 
     # ---- M4E-1 / M4E-3 : internals -----------------------------------------
     #  The plate is gone (M4E-1). The pack keeps its official size and its CAD position.
@@ -603,16 +835,15 @@ def build_frame(spec):
     #  finds a single body part and its own `union_group('body')` is a no-op.
     _union_and_repair(A, ("body",), report)
     body_union = A.parts["body"][0]
-    inset = body_union.copy()
-    inset.vertices = inset.vertices - inset.vertex_normals * (CONTAIN_INSET_MM * MM)
-    inset.merge_vertices()
-    trimesh.repair.fix_normals(inset)
-    if not inset.is_watertight or inset.volume <= 0:
-        raise RuntimeError("drone_rev1_matrice4e: the inward-offset body is not a closed solid; "
-                           "the internal boxes cannot be contained with a margin")
-    report["contain_host"] = dict(inset_mm=CONTAIN_INSET_MM,
-                                  body_volume_mm3=round(float(body_union.volume) / MM ** 3, 3),
-                                  inset_volume_mm3=round(float(inset.volume) / MM ** 3, 3))
+    #  REVIEW FIX F-4: the containment host is the fuselage alone, offset inward fold-free.
+    fus = Assembly()
+    for _p in fuselage_parts:
+        fus.add(_p.mesh, "body")
+    fus.union_group("body")
+    fuselage = fus.parts["body"][0]
+    inset, _hostrec = _contain_host(fuselage, CONTAIN_INSET_MM, report)
+    report["contain_host"]["body_volume_mm3"] = round(float(body_union.volume) / MM ** 3, 3)
+    report["contain_host"]["fuselage_volume_mm3"] = round(float(fuselage.volume) / MM ** 3, 3)
     batt = P.contain(BATTERY_MM, inset, group="battery", clearance_mm=BATTERY_CLEARANCE_MM,
                      name="m4e_battery", center_mm=BATTERY_CENTER_MM)
     report["battery"] = P.check_part(batt)

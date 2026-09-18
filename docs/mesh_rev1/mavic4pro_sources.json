@@ -41,7 +41,8 @@
    "used_for": [
     "p05 front elevation: one tapered landing leg per FRONT motor; gimbal hanging in front of the nose; motor can and gimbal block sizes (via the inventory round)",
     "p07 bottom plan: leg count and position, battery bay forming the rear belly",
-    "p02/p05/p06: the B1 ruler-scaled multi-view fit (can diameter, tracks, can-base and stack-top heights, foot position)"
+    "p02/p05/p06: the B1 ruler-scaled multi-view fit (can diameter, tracks, can-base and stack-top heights, foot position)",
+    "p05 front elevation: the camera head's CORNER RADIUS, as a scale-free ratio R/W = 0.4502 (rms 2.97 px = 2.28 % of the head width over 63 image rows of the head's lower half, against 13.52 px for a square-cornered outline). Producer scratch mesh_rev1/b4/mavic4pro/work/gimbal_corner.py -> work/gimbal_corner_p05.json. Only the LOWER pair of corners is measured; the upper pair is behind the nose shroud in p04/p05/p06, so top/bottom symmetry is assumed and declared."
    ],
    "caveat": "the FCC unit is a pre-production (EVT) sample. Shape and internal layout are usable; surface finish and colour are not. Production-unit photos p08-p13 (Wikimedia Commons) are the reference for finish."
   },
@@ -55,90 +56,153 @@
     "front track 363.9 + can 29.3 = 393.2 mm against the official unfolded width 390.5 mm"
    ],
    "tolerance": "+-3 mm on every width and span",
-   "used_for": ["shell x span and width stations", "arm headings and arm width",
-                "gimbal plan footprint and its front face at x = +175.4 mm",
-                "the two nose-deck vision eyes at x = +88.9 mm, y = +-27.1 mm"]
+   "used_for": [
+    "shell x span and width stations",
+    "arm headings and arm width",
+    "gimbal plan footprint and its front face at x = +175.4 mm",
+    "the two nose-deck vision eyes at x = +88.9 mm, y = +-27.1 mm"
+   ]
   },
   "b1_height_round": {
    "what": "ruler-scaled rigid multi-view fit of the FCC elevation photos, phase B1",
    "held_at": "scratch wf/b1_height.md and mesh_rev1/height/work/m4p_height_ledger.json, m4p_fit.py, m4p_mc.py, m4p_variants.py",
    "method": "3 views, 40 Monte-Carlo draws plus systematic variants; scale from the ruler digits only; focal length pinned",
-   "used_for": ["motor can diameter 29.330 mm (variants 29.32-29.57)",
-                "landing-foot position (-0.41, +-184.88) mm against front can centres (0, +-181.96)",
-                "front/rear track 363.92 / 301.59 mm and fore-aft spacing 275.68 mm (DECLARED, not applied)",
-                "the height shortfall table"]
+   "used_for": [
+    "motor can diameter 29.330 mm (variants 29.32-29.57)",
+    "landing-foot position (-0.41, +-184.88) mm against front can centres (0, +-181.96)",
+    "front/rear track 363.92 / 301.59 mm and fore-aft spacing 275.68 mm (DECLARED, not applied)",
+    "the height shortfall table"
+   ]
   },
   "b1_spin_round": {
    "what": "rotor spin direction, phase B1",
    "held_at": "scratch wf/b1_spin.md and mesh_rev1/spin/spin_evidence_20260917.json",
    "grade": "high",
-   "used_for": ["rotor_dirs (-1, +1, -1, +1) in rotor_deg order FL, RL, RR, FR: FL and RR clockwise seen from above"]
+   "used_for": [
+    "rotor_dirs (-1, +1, -1, +1) in rotor_deg order FL, RL, RR, FR: FL and RR clockwise seen from above"
+   ]
   },
   "inventory_round": {
    "what": "mesh inventory and deviation analysis, 2026-09-17",
    "held_at": "scratch wf/mesh_inv_mini5pro.md and mesh_0917/dji_folding/",
-   "used_for": ["gimbal block height 64 mm from FCC p05 at 0.3964 mm/px (+-1-2 mm)",
-                "motor can Ø30.5 x 19.8 mm from the same view, as an independent cross-check",
-                "revision-0 realized metrics the budgets are set against"]
+   "used_for": [
+    "gimbal block height 64 mm from FCC p05 at 0.3964 mm/px (+-1-2 mm)",
+    "motor can Ø30.5 x 19.8 mm from the same view, as an independent cross-check",
+    "revision-0 realized metrics the budgets are set against"
+   ]
   }
  },
  "components": [
-  {"id": "M4P-1", "what": "shell planform", "grade": "medium-high",
+  {
+   "id": "M4P-1",
+   "what": "shell planform",
+   "grade": "medium-high",
    "rev0": "x span -114.2 ... +89.8 mm, width 118.08 mm (_SHELL_SHAPE fl 0.62 / fw 0.302 / cx0 -0.06, proportions of body_l_mm 329 and body_w_mm 391)",
-   "rev1": "x span -72.5 ... +126.0 mm, 28 measured width stations, 68.9 mm at the waist and 92.1 / 86.9 mm at the rear / front shoulders",
-   "source": "owned_top_photo", "tolerance_mm": 3.0,
-   "not_measured": "width for x in [+65, +104] and [-54.5, -30]: the arm fairings and the shell are one run in the top view there, so P1's straight ruled band between the measured sections either side is used"},
-  {"id": "M4P-2", "what": "motor can", "grade": "medium-high",
+   "rev1": "x span -72.5 ... +126.0 mm, 28 measured width stations, 68.9 mm at the waist and 92.1 / 86.9 mm at the rear / front shoulders Since 2026-09-18 the two bands the arm fairings hide carry filled-in stations every 10 mm (the spacing drone_parts_rev1.section_loft_shell already names as the plan's standard): the WIDTH there is still the same straight line between the measured sections either side, and (z_top, z_bot) come from the same revision-0 section law every measured station uses, so the crown and keel follow their declared source instead of being chorded across 39.0 mm. Chord error 1.594 -> 0.177 mm; 29 -> 34 stations.",
+   "source": "owned_top_photo",
+   "tolerance_mm": 3.0,
+   "not_measured": "width for x in [+65, +104] and [-54.5, -30]: the arm fairings and the shell are one run in the top view there, so P1's straight ruled band between the measured sections either side is used"
+  },
+  {
+   "id": "M4P-2",
+   "what": "motor can",
+   "grade": "medium-high",
    "rev0": "Ø45.86 mm (0.052 x 441 mm used as a radius) x 33.815 mm realized",
    "rev1": "Ø29.33 mm x 33.815 mm realized (height is revision 0's carry-over)",
-   "source": "b1_height_round, cross-checked by inventory_round", "tolerance_mm": 1.5,
-   "not_measured": "the can height. Consistency note only: the inventory's un-stretched reading 19.8 mm x 1.59767 = 31.6 mm is within 7 % of the carried-over 33.8 mm"},
-  {"id": "M4P-3", "what": "gimbal", "grade": "medium-high for the position, medium for the size",
+   "source": "b1_height_round, cross-checked by inventory_round",
+   "tolerance_mm": 1.5,
+   "not_measured": "the can height. Consistency note only: the inventory's un-stretched reading 19.8 mm x 1.59767 = 31.6 mm is within 7 % of the carried-over 33.8 mm"
+  },
+  {
+   "id": "M4P-3",
+   "what": "gimbal",
+   "grade": "medium-high for the position, medium for the size",
    "rev0": "squashed sphere of Ø60.0 mm raw (95.9 mm realized in z) centred at x = +89.8 mm, front face +106.9 mm, 65 % of its faces buried in the shell",
-   "rev1": "58.0 x 64.0 mm block, 45.4 mm deep, with a Ø30 x 10 mm lens barrel; front face at x = +175.4 mm; floor at revision 0's realized -77.73 mm",
-   "source": "owned_top_photo (position and width), inventory_round (height), revision 0 (floor)",
-   "not_measured": "the 64 mm height is one reader's reading of one FCC view, and the block/barrel depth split and the 6 mm burial into the nose are construction"},
-  {"id": "M4P-4", "what": "landing gear", "grade": "high",
+   "rev1": "58.0 x 64.0 mm head, 45.4 mm deep, corner radius 26.11 mm (= 0.4502 x 58.0, measured on FCC p05), with a 30 mm diameter x 10 mm lens barrel; front face at x = +175.4 mm; floor at revision 0's realized -77.73 mm. The 0.4502 ratio makes the front profile an obround rather than a box, which is what every owned view shows.",
+   "source": "owned_top_photo (position and width), inventory_round (height), fcc_external_photos p05 (corner radius, 2026-09-18), revision 0 (floor)",
+   "not_measured": "the 64 mm height is one reader's reading of one FCC view; the block/barrel depth split and the 6 mm burial into the nose are construction; the UPPER corner radius is assumed equal to the measured lower one; and the cylindrical collar where the housing enters the nose (the 'Infinity Gimbal' housing named in assets/photos/mavic4pro/SOURCES.md) is not built, because no owned view gives its diameter or its length."
+  },
+  {
+   "id": "M4P-4",
+   "what": "landing gear",
+   "grade": "high",
    "rev0": "two-prong A-frame per front arm, feet at y = +-191.9 mm",
    "rev1": "one tapered leg per front motor, foot at the rotor axis -0.41 mm aft and +2.92 mm outboard",
    "source": "fcc_external_photos p05 and p07 (count), b1_height_round (foot position)",
-   "not_measured": "the leg's own section, taper and splay - revision 0's width rule is carried over"},
-  {"id": "M4P-5", "what": "internal battery", "grade": "high for the size, none for the placement",
+   "not_measured": "the leg's own section, taper and splay - revision 0's width rule is carried over"
+  },
+  {
+   "id": "M4P-5",
+   "what": "internal battery",
+   "grade": "high for the size, none for the placement",
    "rev0": "118.31 x 80.30 x 54.57 mm proportional box centred near the middle",
    "rev1": "128 x 62 x 44 mm official pack, seated rearmost on the centreline",
    "source": "manual p.88 (size), fcc_external_photos p07 / t01 / t08 / t16 (it forms the rear belly)",
-   "not_measured": "the manual prints no axis labels and no position; the axis assignment and the rearmost-seating rule are ours"},
-  {"id": "M4P-6", "what": "arms", "grade": "medium-high",
+   "not_measured": "the manual prints no axis labels and no position; the axis assignment and the rearmost-seating rule are ours"
+  },
+  {
+   "id": "M4P-6",
+   "what": "arms",
+   "grade": "medium-high",
    "rev0": "radial at the rotor azimuths 51.4 / 128.6 deg, 26.5 mm wide at the root tapering to 18.5 mm",
    "rev1": "straight at 68.3 deg (front) and 129.4 deg (rear), 14.3 -> 13.4 mm (front) and 12.9 mm (rear)",
    "source": "owned_top_photo, mid-line estimator",
-   "not_measured": "the arm HEIGHT - not measurable in a top view; revision 0's height = width x 0.775 rule is carried over"},
-  {"id": "M4P-7", "what": "rotor spin", "grade": "high",
+   "not_measured": "the arm HEIGHT - not measurable in a top view; revision 0's height = width x 0.775 rule is carried over"
+  },
+  {
+   "id": "M4P-7",
+   "what": "rotor spin",
+   "grade": "high",
    "rev0": "(+1, -1, +1, -1), i.e. FL and RR counter-clockwise",
    "rev1": "(-1, +1, -1, +1), i.e. FL and RR clockwise seen from above",
-   "source": "b1_spin_round"},
-  {"id": "M4P-8", "what": "blade orientation (P6)", "grade": "high",
+   "source": "b1_spin_round"
+  },
+  {
+   "id": "M4P-8",
+   "what": "blade orientation (P6)",
+   "grade": "high",
    "rev0": "the thick rounded edge sits on the retreating side, so the blades fly trailing-edge first",
    "rev1": "drone_parts_rev1.propeller_rev1: the raised, thick edge leads for each rotor's own rotation",
-   "source": "b1_spin_round, inventory_round prop_sections_ours.json"}
+   "source": "b1_spin_round, inventory_round prop_sections_ours.json"
+  }
  ],
  "declared_not_applied": [
-  {"what": "rotor trapezoid",
+  {
+   "what": "rotor trapezoid",
    "measured": "front track 363.92 mm and rear 301.59 mm (B1, ruler-scaled); the top photo reads 363.9 / 312.6 mm",
    "built": "344.65 mm at both, revision 0's value",
-   "why": "plan B.0 freezes rotor xy at revision 0's realized positions. This is the largest xy error left in the mesh: +-10 mm on the front rotors and +-16 mm on the rear, i.e. 0.31 lambda at 5.8 GHz on the rear pair."},
-  {"what": "front/rear rotor z stagger",
+   "why": "plan B.0 freezes rotor xy at revision 0's realized positions. This is the largest xy error left in the mesh: +-10 mm on the front rotors and +-16 mm on the rear, i.e. 0.31 lambda at 5.8 GHz on the rear pair."
+  },
+  {
+   "what": "front/rear rotor z stagger",
    "measured": "B1 puts the rear can base 9.5 mm and the rear stack top 15 mm above the front",
    "built": "one plane for all four rotors",
-   "why": "plan B.0 keeps the prop mount planes at revision 0's."},
-  {"what": "official unfolded width 390.5 mm",
+   "why": "plan B.0 keeps the prop mount planes at revision 0's."
+  },
+  {
+   "what": "official unfolded width 390.5 mm",
    "measured": "reproduced by B1's front track 363.92 + can 29.33 = 393.25 mm",
    "built": "344.65 + 29.33 = 373.98 mm, 16.5 mm short",
-   "why": "the same frozen rotor track. Reported, not gated."},
-  {"what": "the x1.59767 height stretch",
+   "why": "the same frozen rotor track. Reported, not gated."
+  },
+  {
+   "what": "the x1.59767 height stretch",
    "measured": "B1's FCC fit puts the tallest resting feature at about 100 mm (front can base 53.0, rear 62.5, front stack top 84.8, rear stack top 100.1, shell outline top 97.1 mm above the feet)",
    "built": "revision 0's realized vertical layout, giving the official 135.2 mm unfolded height",
-   "why": "user decision 2026-09-18 plus the B1 finding: removing the stretch would leave the model about 35 mm (95 %: 32.7-37.3) short of the official height and no measured feature carries that 35 mm. The error is about +30 mm on the front can base, +22 mm on the rear, and +40 / +25 mm on the stack tops - and the stack tops are the rotor planes, where the micro-Doppler lives."}
+   "why": "user decision 2026-09-18 plus the B1 finding: removing the stretch would leave the model about 35 mm (95 %: 32.7-37.3) short of the official height and no measured feature carries that 35 mm. The error is about +30 mm on the front can base, +22 mm on the rear, and +40 / +25 mm on the stack tops - and the stack tops are the rotor planes, where the micro-Doppler lives."
+  },
+  {
+   "what": "shell width inside the two bands the arm fairings hide",
+   "measured": "nothing - x in [+65, +104] and [-54.5, -30] read as one run with the arm fairings in the top photo",
+   "built": "the straight line between the measured sections either side, unchanged since the first build; the 2026-09-18 station fill changed only the crown and keel, which have their own declared source (revision 0's section law)",
+   "why": "nothing is invented where the photo says nothing."
+  },
+  {
+   "what": "the gimbal's cylindrical collar into the nose, and its upper corner radius",
+   "measured": "p05 shows a cylindrical housing where the head meets the nose shroud; the head's LOWER corner radius is measured as R/W = 0.4502",
+   "built": "an obround-section head at the measured lower-corner radius, applied to all four corners; no collar",
+   "why": "the collar's diameter and length are hidden in every owned view, and the upper corners are behind the shroud. Applying the measured radius to all four corners is an assumption of top/bottom symmetry, stated here."
+  }
  ],
  "not_used": [
   "Any third-party licensed mesh. No Sketchfab / 3dmodels.org / CAD-marketplace model of this aircraft was opened or measured.",

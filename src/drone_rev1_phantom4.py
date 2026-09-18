@@ -207,7 +207,10 @@ POD_D_MM = 38.1          # 2 × 19.05, the widest r50 below the can (see POD_PRO
 POD_H_MM = 11.0          # z −11 → 0
 ADAPTER_D_MM = 18.0      # 2 × 9.0, the r50 at the +24.9 top step
 ADAPTER_H_MM = 1.9       # z 23.0 → 24.9
-MOUNT_Z_MM = 24.9        # scan_motor_cans top_z_mm 24.8…25.0, mean 24.9 — the prop seats here
+MOUNT_Z_MM = 24.9        # scan_motor_cans top_z_mm 24.8…25.0, mean 24.9 — the metal top
+#  ⚠ The propeller is NOT put in this plane. mesh_rev_phantom4.PROP_SEAT_CLEARANCE_MM
+#  lifts it 0.30 mm above the adapter so the P6 hub's flat underside and this adapter's
+#  top disc are not coincident faces; see that file for the measurement and the reason.
 
 #  ⭐ Review fix 2026-09-18 (R8, the motor pod). The delivery built the pod as one cone
 #  (base Ø38.6 tapered 0.83), which measures **35.03 mm** on the scan's own r50 rule at z = −5 —

@@ -117,9 +117,9 @@
    },
    {
     "id": "front_arm_heading",
-    "value_deg": 68.97,
+    "value_deg": 69.0,
     "tol_deg": 3.0,
-    "note": "2026-09-18 REVIEW FIX. The frozen value was 65.34 +-3, the builder's own reading; the target here is now the APPROVED PLAN's own row M5P-2 (front arm heading 69 +-3), which is not derived from this build, and the value 68.97 is the mid-line reading of the owned top photo (fix/arm_midline.py: 24 fits, 2 front rotors x 3 mask thresholds x 4 station ranges, 68.971 +- 0.316 sd). Tolerance unchanged at +-3.0. See deviations[] entry 'front_arm_heading rebuilt'."
+    "note": "2026-09-18 b4. The ORIGINAL frozen value was 65.34 +-3, this build's own outer-silhouette reading; the review fix moved it to 68.97 +-3, which was this build's own MID-LINE reading, so the row still checked the build against itself. It is now the APPROVED PLAN's own row M5P-2 figure, 69 +-3 deg, which is external to this build. Tolerance unchanged at +-3.0 throughout. DEV-4 in docs/mesh_rev1/mini5pro_acceptance_deviations.json carries the evidence and the pre-deviation row (the build measured against the original 65.34 +-3) is printed as a report row on every run."
    },
    {
     "id": "rear_arm_heading",
@@ -259,56 +259,7 @@
   "body_closed": true,
   "mesh_fix_canonical_only": true
  },
- "deviations": [
-  {
-   "when": "2026-09-18, before the first acceptance run",
-   "row": "C2_attachment.buried_plastic",
-   "what": "the single 'buried plastic <= 2 % of shell area' row was split into plastic-inside-plastic (gated at 2 %) and plastic-inside-the-camera (gated against revision 0).",
-   "why": "with revision 0's vertical layout kept (the M5P-1 decision), the 33 mm gimbal block cannot fit between revision 0's nose keel (-28.0 mm) and the foot plane (-51.6 mm), so it necessarily sits partly inside the shell exactly as revision 0's does. Gating that against 2 % would score the M5P-1 question, not revision 1.",
-   "approved_by": "not yet - flagged to the user in the report"
-  },
-  {
-   "when": "2026-09-18, after the first acceptance run",
-   "row": "C1_topology.components_per_group.camera",
-   "what": "declared count corrected from 1 to 6, with the enumeration written into components_basis.",
-   "why": "a threshold-file error, not a relaxation: the camera group has always held the gimbal head, six vision sensors and the LiDAR. Revision 0 measures the same 6, so the corrected number is not fitted to revision 1.",
-   "approved_by": "not yet - flagged to the user in the report"
-  },
-  {
-   "when": "2026-09-18, after the first acceptance run",
-   "row": "C11_certificates.mirror_symmetry_max_vertex_distance_mm",
-   "what": "the gate moved from a vertex-level distance to (a) mirrored per-group area error, (b) |centre of mass y|, (c) y bounding box symmetry; the vertex-level numbers are still recorded.",
-   "why": "a vertex-level metric scores the TRIANGULATION, not the geometry. Measured on both revisions: mirrored vertex to nearest vertex 1.394 mm (revision 0) and 4.124 mm (revision 1); mirrored vertex to the faceted surface 0.186 mm (revision 0) and 1.108 mm (revision 1), which is one facet sagitta. The per-group mirrored AREA error is 0.0 % in both revisions and every group's y bounding box is exactly symmetric.",
-   "approved_by": "not yet - flagged to the user in the report"
-  },
-  {
-   "when": "2026-09-18, adversarial review (no threshold value changed)",
-   "row": "C3_dimensions.targets[front_arm_heading]",
-   "what": "NOT changed. Recorded: the frozen target 65.34 +-3 is the builder's own reading, and an independent reading of the same photo gives 68.9 (68.6-69.6), so the built mesh is 3.4-3.6 deg off and the row passes only because it checks the build against itself.",
-   "why": "a threshold written around the number being checked cannot fail. Ten of the 22 C.3 rows are of this kind (spans, widths, headings). They verify that the builder implemented its own reading, not that the reading is right.",
-   "approved_by": "not yet — flagged to the user in the review"
-  },
-  {
-   "when": "2026-09-18, adversarial review (no threshold value changed)",
-   "row": "C6_facets.sagitta_mm_max",
-   "what": "NOT changed. Recorded: the C.6 row reads the parts library's DECLARED mesh_sagitta_mm / curve_sagitta_mm, so it is a self-report and a part that declares nothing cannot fail it. Measured on the built mesh over smooth joins (dihedral <= 40 deg): max 2.680 mm by the edge-chord convention and 3.286 mm by the span-chord convention, against the 2.584 mm limit and the plan's 1.0 mm target. Revision 0 measures 1.048 / 2.246 mm.",
-   "why": "adding a gate after the first acceptance run is the move plan M8 forbids, so the measured numbers are added as REPORT rows (R1) and the gate is left as it was.",
-   "approved_by": "not yet — flagged to the user in the review"
-  },
-  {
-   "when": "2026-09-18, adversarial review (no threshold value changed)",
-   "row": "C2_attachment (new failure mode, no row covers it)",
-   "what": "NOT changed. Recorded: clipping the official-size pack against the shell welds 1437 mm^2 of metal face onto the shell surface and leaves 4 exactly coincident, parallel triangles shared between the metal 'battery' group and the plastic 'body' group (266 mm^2). Revision 0 has 0 such pairs. A ray tracer resolves them by floating-point tie-breaking.",
-   "why": "same reason: report only (row R1), gate unchanged.",
-   "approved_by": "not yet — flagged to the user in the review"
-  },
-  {
-   "when": "2026-09-18, review fix round (THRESHOLD VALUE CHANGED)",
-   "row": "C3_dimensions.targets[front_arm_heading].value_deg",
-   "what": "changed from 65.34 to 68.97 deg. The tolerance is unchanged at +-3.0 deg, so this is not a relaxation: the band moves onto the approved plan's own target (row M5P-2, 'front arm heading 69 +-3') and away from the builder's own reading.",
-   "why": "the frozen 65.34 deg was a measurement error, not a property of the aircraft. work/arm_axis.py reads only the arm's OUTER silhouette and subtracts an assumed half width (w/2)/sin(theta) with w = 11.6..16.5 mm from drone_cad._ARM_WIDTH; the band measured perpendicular to the true axis is 10.6..11.0 mm, so the subtraction over-corrects and biases theta low. A mid-line estimator that uses BOTH edges of the arm band (fix/arm_midline.py, ledger fix/arm_midline.json) gives FL 68.672 +- 0.021, FR 69.270 +- 0.112, both sides 68.971 +- 0.316 over 24 independent fits. The perpendicular mid-offset of the photo's arm band about the axis is rms 2.605 / 3.068 mm at 65.34 deg and rms 0.209 / 0.261 mm at 68.97 deg (FL / FR), i.e. about 12x better. An independent reading by the adversarial reviewer of the same photo gives 68.9 deg (68.6-69.6). Revision 1 is rebuilt at 68.97 deg.",
-   "still_self_referential": "partly: the row now checks the build against the plan's 69 +-3, which is external to this build, but +-3 deg is far looser than the +-0.32 deg the measurement supports. Report row R1 'front arm axis vs the photo mid-line' measures the BUILT axis against the photo directly and is the number to read.",
-   "approved_by": "not yet - flagged to the user in this report"
-  }
- ]
+ "deviations": [],
+ "deviations_file": "docs/mesh_rev1/mini5pro_acceptance_deviations.json",
+ "deviations_note": "2026-09-18 b4: the seven deviations that used to sit here moved into the file named above, which benchmark/mesh_rev1_acceptance_photo.py reads and prints. Four are approved under the b4 phase rulings and each one is scored beside the row it replaced, so the PRE-DEVIATION pass/fail count is recoverable from any run; two changed no threshold and are disclosures; one was removed because the defect it described was fixed by geometry; one (C.7 blade angle) is still an open FAILING gate with no threshold change. Nothing in this file is approved by the user."
 }

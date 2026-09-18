@@ -55,6 +55,76 @@ def tri_of(V, F):
     return trimesh.Trimesh(vertices=V, faces=F, process=True)
 
 
+def pre_deviation_rows(T, L, th, dev):
+    """⭐ 2026-09-18 b6 — the four deviations that were written into the FROZEN threshold file
+    before the first acceptance run (DEV-1 … DEV-4), scored as report rows.
+
+    RULING 1(b)/(c) and RULING 4 (main session, 2026-09-18): a deviation must live in a file, be
+    scored explicitly as a report-only row with the measured value printed, and must not let a
+    failing row turn into a silent pass. DEV-5 … DEV-10 already satisfy that — each one keeps its
+    frozen row in the table. DEV-1 … DEV-4 did not: they sit inside the frozen threshold file,
+    which this script never edits, and nothing printed the row they replaced, so the
+    pre-deviation pass/fail count could not be recovered from a run.
+
+    They are now listed in `threshold_file_deviations` of the deviations file with the plan's own
+    bound, and each one is printed here against that bound. These are REPORT rows: `ok=None`, so
+    the scored count, the pass/fail count and the exit code are untouched.
+    """
+    rows = (dev or {}).get("threshold_file_deviations") or []
+    if not rows:
+        return None
+    gaps = (L.get("C2") or {}).get("prop_seat_gap_mm") or []
+    bb = (L.get("C3") or {}).get("bbox_rev1_mm")
+    measured = {
+        "prop_seat_gap_mm_max": (max(float(g) for g in gaps) if gaps else None),
+        "envelope_L_whole_frame_mm": (float(bb[1][0] - bb[0][0]) if bb else None),
+        "battery_clearance_ge1_frac": (L.get("C2") or {}).get("battery_clearance_ge1_frac"),
+        "self_intersecting_pairs_rev1": ((L.get("C1") or {}).get("rev1") or {})
+                                        .get("_self_intersections_total"),
+    }
+
+    def verdict(got, want):
+        """`want` is the plan's own bound, written as '<= x', '== x' or 'v +- t'."""
+        try:
+            if want.startswith("<="):
+                return float(got) <= float(want[2:])
+            if want.startswith("=="):
+                return float(got) == float(want[2:])
+            if "+-" in want:
+                v, t = (float(x) for x in want.split("+-"))
+                return abs(float(got) - v) <= t + 1e-9
+        except (TypeError, ValueError):
+            return None
+        return None
+
+    out, would_fail, unresolved = [], 0, 0
+    for d in rows:
+        pr = d.get("pre_deviation_row") or {}
+        got = measured.get(pr.get("metric"))
+        ok = verdict(got, pr.get("want", ""))
+        if ok is False:
+            would_fail += 1
+        elif ok is None:
+            unresolved += 1
+        tag = ("WOULD FAIL" if ok is False else "WOULD PASS" if ok is True else "NOT MEASURED")
+        T.add("PRE (frozen-threshold deviations)",
+              f"{d['id']} pre-deviation: {pr.get('metric', '?')}",
+              got, f"{pr.get('want', '?')} (plan {d.get('check', '?')})", None, "",
+              note=f"{tag} — {d.get('from', '')[:170]}"
+                   + ("  ⚠ RELAXATION" if str(d.get("relaxation", "")).startswith("YES") else "")
+                   + ("  [SUPERSEDED]" if d.get("status", "").startswith("SUPERSEDED") else ""))
+        out.append(dict(id=d["id"], metric=pr.get("metric"), got=got,
+                        want=pr.get("want"), would_pass=ok))
+    T.add("PRE (frozen-threshold deviations)", "pre-deviation census",
+          f"{len(rows)} declared / {would_fail} would fail"
+          + (f" / {unresolved} not measured" if unresolved else ""),
+          "report — the scored table above is unchanged", None, "",
+          note="deviations written into the frozen threshold file before the first acceptance "
+               "run; the six post-run ones (DEV-5 … DEV-10) keep their own frozen rows in the "
+               "table. None of the ten is approved by the user.")
+    return dict(rows=out, would_fail=would_fail, not_measured=unresolved)
+
+
 def _deviation(th, dev_id):
     """The post-run deviation entry `dev_id`, or None.
 
@@ -458,6 +528,58 @@ def c1_topology(T, b0, b1, th):
 # --------------------------------------------------------------------------- #
 #  C.2 attachment
 # --------------------------------------------------------------------------- #
+def swept_clearance_dense(b, frame_VF=None, n_prop=300_000, n_frame=500_000, step=2.0):
+    """Clearance from a frame surface to each rotor's swept blade volume, SURFACE sampled.
+
+    RULING 2 (main session, 2026-09-18) — fix the measurement before anything else. The frozen
+    row samples the propeller and the frame at their VERTICES and bins them 2 mm in radius. Both
+    meshes are lofts whose spanwise rings are tens of millimetres apart, so most bins hold only
+    the vertices of a ring or of a chordwise edge and the binned envelope has holes: measured on
+    revision 1, the vertex envelope of rotor 0 gives 17.091 mm at r = 108-110 where the blade's
+    surface reaches 13.894, a 3.2 mm hole, and the front arm carries no vertex at all between
+    d = 121 and d = 171 mm from the rotor axis. The same quantity on evenly sampled SURFACES has
+    no holes.
+
+    `frame_VF` overrides the frame with another (V, F) pair in millimetres - used to put the CAD
+    airframe under our own discs as the control.
+    """
+    Vd = np.asarray(b["drone"].v, float) * 1000.0
+    Fd = np.asarray(b["drone"].f, np.int64)
+    Gd = np.asarray(b["drone"].g).astype(str)
+    pk = Gd == "prop"
+    if frame_VF is None:
+        Vf, Ff = Vd, Fd[~pk]
+    else:
+        Vf, Ff = frame_VF
+    Sf_mesh = trimesh.Trimesh(np.asarray(Vf, float), np.asarray(Ff, np.int64), process=False)
+    Pf = trimesh.sample.sample_surface_even(Sf_mesh, int(n_frame), seed=0)[0]
+    R = 0.5 * float(b["spec"].prop_dia_mm)
+    worst, rows = 1e9, []
+    for ri, r0 in enumerate(b["rl"]):
+        cx, cy, cz = np.asarray(r0["center"], float) * 1000.0
+        cen = Vd[Fd[pk]].mean(1)
+        own = np.hypot(cen[:, 0] - cx, cen[:, 1] - cy) <= R + 2.0
+        Sp = trimesh.Trimesh(Vd, Fd[pk][own], process=False)
+        Pp = trimesh.sample.sample_surface_even(Sp, int(n_prop), seed=0)[0]
+        rp = np.hypot(Pp[:, 0] - cx, Pp[:, 1] - cy)
+        rf = np.hypot(Pf[:, 0] - cx, Pf[:, 1] - cy)
+        best, at = 1e9, None
+        for a in np.arange(0.25 * R, R, float(step)):
+            kp = (rp >= a) & (rp < a + step)
+            kf = (rf >= a) & (rf < a + step)
+            if kp.sum() < 20 or kf.sum() < 20:
+                continue
+            lo, hi = float(Pp[kp, 2].min()), float(Pp[kp, 2].max())
+            zf = Pf[kf, 2]
+            c = float(np.maximum(lo - zf, zf - hi).min())
+            if c < best:
+                best, at = c, float(a)
+        rows.append(dict(rotor=ri, centre=[round(float(cx), 2), round(float(cy), 2)],
+                         min_mm=round(best, 4), at_radius_mm=at))
+        worst = min(worst, best)
+    return float(worst), rows
+
+
 def c2_attachment(T, b0, b1, th, cad):
     thr = th["C2_attachment"]
     out = {}
@@ -574,10 +696,36 @@ def c2_attachment(T, b0, b1, th, cad):
                                  min_mm=round(float(clr.min()), 3)))
     out["swept_disc_hits"] = hits
     out["swept_disc_clearance_mm"] = None if worst >= 1e8 else worst
-    T.add("C.2 attachment", "frame clearance to the swept blade volume",
-          None if worst >= 1e8 else round(worst, 3),
-          f">= {thr['swept_disc_frame_clearance_mm_min']}",
-          worst >= thr["swept_disc_frame_clearance_mm_min"], " mm")
+    #  ⚠ DEVIATION DEV-9 (RULING 2): the vertex-binned reading above has holes, so it is kept as
+    #  a report row with its number and the SCORED row is the surface-sampled one.
+    dev9 = _deviation(th, "DEV-9")
+    lim = thr["swept_disc_frame_clearance_mm_min"]
+    if dev9:
+        T.add("C.2 attachment", "frame clearance to the swept blade volume (mesh vertices)",
+              None if worst >= 1e8 else round(worst, 3),
+              f"report (DEV-9); the frozen bound was >= {lim}", None, " mm",
+              note="vertex sampling leaves holes in both envelopes - see DEV-9")
+        d1, rows1 = swept_clearance_dense(b1)
+        d0, rows0 = swept_clearance_dense(b0)
+        out["swept_disc_dense_rev1"] = dict(worst_mm=d1, per_rotor=rows1)
+        out["swept_disc_dense_rev0"] = dict(worst_mm=d0, per_rotor=rows0)
+        note = f"revision 0, same measurement: {d0:+.3f} mm"
+        if cad is not None:
+            dc, rowsc = swept_clearance_dense(b1, frame_VF=(cad["V"], cad["F"]))
+            out["swept_disc_dense_cad_control"] = dict(worst_mm=dc, per_rotor=rowsc)
+            note += f"; CAD airframe under the same discs: {dc:+.3f} mm"
+            T.add("C.2 attachment",
+                  "CAD airframe clearance to our swept blade volume (control)", round(dc, 3),
+                  "report", None, " mm",
+                  note="the reference aircraft's own geometry, measured the same way, under our "
+                       "own rotor discs")
+        T.add("C.2 attachment", "frame clearance to the swept blade volume (surface sampled)",
+              round(d1, 3), f">= {lim} (DEV-9)", d1 >= lim, " mm", note=note)
+    else:
+        T.add("C.2 attachment", "frame clearance to the swept blade volume",
+              None if worst >= 1e8 else round(worst, 3),
+              f">= {thr['swept_disc_frame_clearance_mm_min']}",
+              worst >= thr["swept_disc_frame_clearance_mm_min"], " mm")
 
     # neighbouring-disc clearance sign, revision 0 vs revision 1
     def disc(b):
@@ -796,11 +944,32 @@ def c3_dimensions(T, b0, b1, th, cad):
 # --------------------------------------------------------------------------- #
 #  C.4 distance to the CAD, C.5 facing area  (render-based)
 # --------------------------------------------------------------------------- #
+def cad_visible_mask(cad, scratch):
+    """Per-CAD-triangle exterior visibility, from `cad_face_visible.npz` in the CAD scratch.
+
+    RULING 1 (main session, 2026-09-18) — a declared interior-surface deviation must state its
+    visible-fraction evidence, and the narrowed row next to the failing one must be measured on
+    the part of the reference an exterior-only model can actually reach. The mask is produced by
+    z-buffer rendering the whole CAD from 217 aspects (13 elevations x 18 azimuths, poles once)
+    and marking every triangle that shows at least one pixel; see
+    scratch/mesh_rev1/b4/matrice4e/work/cad_face_visibility.py. Returns None when the file is
+    absent, and every caller then leaves its rows scored exactly as the frozen file asks.
+    """
+    fp = os.path.join(scratch, "cad_face_visible.npz")
+    if not scratch or not os.path.exists(fp):
+        return None
+    d = np.load(fp)
+    v = np.asarray(d["visible"], bool)
+    if len(v) != len(cad["F"]):
+        return None
+    return dict(face=v, n_views=int(d["n_views"]))
+
+
 def c4_distance(T, b0, b1, th, cad):
     from scipy.spatial import cKDTree
     thr = th["C4_reference_distance"]
     out = {}
-    #  ⚠ DEVIATION DEV-5 (docs/mesh_rev1/matrice4e_deviations_0918.json, needs user approval).
+    #  ⚠ DEVIATION DEV-5 (docs/mesh_rev1/matrice4e_acceptance_deviations.json, needs user approval).
     #  The frozen `nose_cradle` class mixes the exterior gimbal cradle (CAD solid 49) with three
     #  interior solids (56, 57, 58) that an exterior-only surface model has nothing to be near.
     #  Verified independently by rendering the whole CAD from 217 aspects: 56/57/58 never show a
@@ -821,6 +990,19 @@ def c4_distance(T, b0, b1, th, cad):
     E = cad["edges"]                        # (n,3) CAD edge sample points
     Eo = cad["edge_owner"]
 
+    #  ⚠ DEVIATION DEV-7 (RULING 1). Rows that fail only because the CAD's INTERIOR structure
+    #  has no counterpart in an exterior-only surface model. The failing row stays in the table
+    #  with its measured value, marked report-only, and a narrowed row measured on the visible
+    #  part of the same CAD class is added next to it and scored.
+    dev7 = _deviation(th, "DEV-7")
+    vis = cad.get("_face_visible")
+    E_visible = None
+    if dev7 and vis is not None:
+        #  a CAD edge point counts as externally reachable when it lies on the visible surface
+        vS = sample_surface(Vc, Fc[vis["face"]], 300_000, seed=11)
+        dE, _ = cKDTree(vS).query(E, workers=2)
+        E_visible = dE <= float(dev7.get("visible_tol_mm", 0.5))
+
     for tag, b in (("rev0", b0), ("rev1", b1)):
         Vx, Fx = group_mesh(b, _EXTERIOR_GROUPS)
         S = sample_surface(Vx, Fx, 400_000, seed=2)
@@ -837,6 +1019,14 @@ def c4_distance(T, b0, b1, th, cad):
             d = d_all[k]
             res["cad_to_ours"][cls] = dict(n=int(k.sum()), median=float(np.median(d)),
                                            p90=pct(d, 90), p99=pct(d, 99), max=float(d.max()))
+            if E_visible is not None:
+                kv = k & E_visible
+                if kv.sum() >= 50:
+                    dv = d_all[kv]
+                    res["cad_to_ours"][cls + "@visible"] = dict(
+                        n=int(kv.sum()), visible_frac=round(float(kv.sum()) / float(k.sum()), 4),
+                        median=float(np.median(dv)), p90=pct(dv, 90), p99=pct(dv, 99),
+                        max=float(dv.max()))
         Vb, Fb = group_mesh(b, ("body",))
         Sb = sample_surface(Vb, Fb, 120_000, seed=3)
         db, _ = tree_cad.query(Sb, workers=2)
@@ -854,7 +1044,9 @@ def c4_distance(T, b0, b1, th, cad):
         Sr = sample_surface(Vr, Fr, 400_000, seed=4)
         dr, ir = tree_cad.query(Sr, workers=2)
         own_of_sample = Oc[cadF_of_sample]
+        ir_face = cadF_of_sample[ir]
         cls_of = own_of_sample[ir]
+        vis_of = vis["face"][ir_face] if (dev7 and vis is not None) else None
         for cls, tags in classes.items():
             k = np.isin(cls_of, tags)
             if k.sum() < 50:
@@ -862,6 +1054,14 @@ def c4_distance(T, b0, b1, th, cad):
             d = dr[k]
             res["ours_to_cad"][cls] = dict(n=int(k.sum()), median=float(np.median(d)),
                                            p90=pct(d, 90), p99=pct(d, 99), max=float(d.max()))
+            if vis_of is not None:
+                kv = k & vis_of
+                if kv.sum() >= 50:
+                    dv = dr[kv]
+                    res["ours_to_cad"][cls + "@visible"] = dict(
+                        n=int(kv.sum()), visible_frac=round(float(kv.sum()) / float(k.sum()), 4),
+                        median=float(np.median(dv)), p90=pct(dv, 90), p99=pct(dv, 99),
+                        max=float(dv.max()))
         out[tag] = res
 
     for cls, lim in thr["cad_to_ours_mm"].items():
@@ -919,19 +1119,46 @@ def c4_distance(T, b0, b1, th, cad):
     #  by a millimetre between seeds, so scoring it would fail on sampling noise. The max is
     #  printed next to it.
     TOL = 0.5
+    #  DEV-7 (RULING 1): which p99 rows are declared interior-surface rows, and why.
+    dev7_rows = {}
+    if dev7:
+        for e in dev7.get("rows", []):
+            dev7_rows[(e["direction"], e["class"])] = e
+    out["deviation_DEV7_rows"] = {f"{k[0]}:{k[1]}": v for k, v in dev7_rows.items()}
     for dirn in ("cad_to_ours", "ours_to_cad"):
         lbl = "CAD->ours" if dirn == "cad_to_ours" else "ours->CAD"
         for cls in sorted(out["rev1"][dirn]):
-            if cls in ("nose_cradle__frozen_class", "nose_interior"):
+            if cls in ("nose_cradle__frozen_class", "nose_interior") or cls.endswith("@visible"):
                 continue
             r = out["rev1"][dirn][cls]
             r0 = out["rev0"][dirn].get(cls)
             if r0 is None:
                 continue
-            T.add("C.4 distance", f"{lbl} {cls} p99", r["p99"],
-                  f"<= rev0 {r0['p99']:.2f} + {TOL} (plan C.4 'no worse in any region')",
-                  r["p99"] <= r0["p99"] + TOL, " mm",
-                  note=f"max {r['max']:.2f} (rev0 {r0['max']:.2f})")
+            dv = dev7_rows.get((dirn, cls))
+            rv = out["rev1"][dirn].get(cls + "@visible")
+            rv0 = out["rev0"][dirn].get(cls + "@visible")
+            if dv is not None and rv is not None and rv0 is not None:
+                #  (b) the failing row stays visible, with its measured value, report-only
+                T.add("C.4 distance", f"{lbl} {cls} p99", r["p99"],
+                      f"report (DEV-7); the frozen bound was rev0 {r0['p99']:.2f} + {TOL}",
+                      None, " mm",
+                      note=f"DEV-7 {dv['id']}: {dv['why']}; max {r['max']:.2f} "
+                           f"(rev0 {r0['max']:.2f})")
+                #  (c) the visible-fraction evidence, printed as its own row
+                T.add("C.4 distance", f"{lbl} {cls} visible fraction of the CAD class",
+                      round(100.0 * rv["visible_frac"], 2), "report", None, " %",
+                      note=f"{vis['n_views']} z-buffer aspects; {rv['n']} of {r['n']} "
+                           f"reference points lie on a triangle that shows at least one pixel")
+                #  the narrowed row, next to it, scored by the same plan C.4 rule
+                T.add("C.4 distance", f"{lbl} {cls} p99 (visible surface only)", rv["p99"],
+                      f"<= rev0 {rv0['p99']:.2f} + {TOL} (plan C.4 'no worse in any region')",
+                      rv["p99"] <= rv0["p99"] + TOL, " mm",
+                      note=f"max {rv['max']:.2f} (rev0 {rv0['max']:.2f})")
+            else:
+                T.add("C.4 distance", f"{lbl} {cls} p99", r["p99"],
+                      f"<= rev0 {r0['p99']:.2f} + {TOL} (plan C.4 'no worse in any region')",
+                      r["p99"] <= r0["p99"] + TOL, " mm",
+                      note=f"max {r['max']:.2f} (rev0 {r0['max']:.2f})")
 
     #  REVIEW FIX R-3c: the one-sided and two-sided nearest-surface distances both stay small
     #  when our part is the RIGHT SHAPE but the WRONG SIZE, as long as the excess is under the
@@ -1097,6 +1324,12 @@ def c5_facing(T, b0, b1, th, cad):
                      facing10_mm2=float((cs > math.cos(math.radians(10))).sum() * px2))
             r["facing10_by_group"] = {k: float(((g == k) & (cs > math.cos(math.radians(10)))).sum()
                                                * px2) for k in np.unique(g)}
+            #  DEV-10 needs a cone the mesh can resolve and the visible silhouette per group
+            for _c in (5, 20, 45):
+                r[f"facing{_c}_by_group"] = {
+                    k: float(((g == k) & (cs > math.cos(math.radians(_c)))).sum() * px2)
+                    for k in np.unique(g)}
+            r["silhouette_by_group"] = {k: float((g == k).sum() * px2) for k in np.unique(g)}
             r["facing10_metal_mm2"] = sum(v for k, v in r["facing10_by_group"].items()
                                           if k in _METAL_GROUPS)
             res[f"az{az}_el{el}"] = r
@@ -1106,7 +1339,7 @@ def c5_facing(T, b0, b1, th, cad):
     dev6 = _deviation(th, "DEV-6")
     v = out["rev1"]["az180_el0"]["facing10_metal_mm2"]
     if dev6:
-        #  ⚠ DEVIATION DEV-6 (docs/mesh_rev1/matrice4e_deviations_0918.json, needs user
+        #  ⚠ DEVIATION DEV-6 (docs/mesh_rev1/matrice4e_acceptance_deviations.json, needs user
         #  approval). "metal facing az 180 = 0" cannot be met by an aircraft that has metal
         #  motor cans; what M4E-3 actually changed is the battery's rear face, and that is now 0.
         #  The frozen row is kept, unscored, next to the two rows that are testable.
@@ -1127,10 +1360,48 @@ def c5_facing(T, b0, b1, th, cad):
                                cls="motors", az=180, el=0, cone_deg=10)
         band = thr["cad_ratio_rows"]["az180_el0_facing5"]["band"]
         ratio = mot / cadm if cadm > 0 else float("inf")
-        T.add("C.5 facing", "motor metal facing az180 el0 (10 deg) ratio to CAD motor solids",
-              ratio, f"in [{band[0]}, {band[1]}] (DEV-6)", band[0] <= ratio <= band[1],
-              note=f"ours {mot:.0f} mm2, CAD motor solids {cadm:.0f} mm2; rev0 "
-                   f"{by0.get('motor', 0.0):.0f} mm2")
+        #  ⚠ DEVIATION DEV-10 (RULING 2). A 10 deg cone cannot be read on a 24-segment can: the
+        #  facets are 15 deg apart, so no facet normal lands inside 5 deg (that row reads exactly
+        #  0.0 mm2) and the two facets at +-7.5 deg are wholly inside both the 10 deg and the
+        #  20 deg cone, so those two rows return the SAME number. The scored row moves to a cone
+        #  the mesh resolves; the unresolvable one and the cone-free silhouette are printed.
+        dev10 = _deviation(th, "DEV-10")
+        c5 = out["rev1"]["az180_el0"]["facing5_by_group"].get("motor", 0.0)
+        c20 = out["rev1"]["az180_el0"]["facing20_by_group"].get("motor", 0.0)
+        if dev10:
+            cone = int(dev10.get("cone_deg", 45))
+            m_c = out["rev1"]["az180_el0"][f"facing{cone}_by_group"].get("motor", 0.0)
+            m_0 = out["rev0"]["az180_el0"][f"facing{cone}_by_group"].get("motor", 0.0)
+            cad_c = _cad_facing_mm2(cad, thr_classes=th["C4_reference_distance"]["cad_classes"],
+                                    cls="motors", az=180, el=0, cone_deg=cone)
+            sil = out["rev1"]["az180_el0"]["silhouette_by_group"].get("motor", 0.0)
+            cad_sil = _cad_facing_mm2(cad, thr_classes=th["C4_reference_distance"]["cad_classes"],
+                                      cls="motors", az=180, el=0, cone_deg=90)
+            rc = (m_c / cad_c) if cad_c > 0 else float("inf")
+            out["dev10"] = dict(cone_deg=cone, ours_cone=m_c, cad_cone=cad_c, ratio=rc,
+                                ours_silhouette=sil, cad_silhouette=cad_sil, ours_cone5=c5,
+                                ours_cone10=mot, ours_cone20=c20, cad_cone10=cadm)
+            T.add("C.5 facing",
+                  "motor metal facing az180 el0 (10 deg) ratio to CAD motor solids", ratio,
+                  f"report (DEV-10); the frozen bound was in [{band[0]}, {band[1]}]", None, "",
+                  note=f"ours {mot:.0f} mm2, CAD {cadm:.0f} mm2; unresolvable on a 24-segment "
+                       f"can - the 5 deg cone reads {c5:.1f} mm2 and the 20 deg cone reads the "
+                       f"SAME {c20:.0f} mm2")
+            T.add("C.5 facing", "motor visible silhouette az180 el0, ratio to CAD motor solids",
+                  (sil / cad_sil) if cad_sil > 0 else float("inf"), "report", None, "",
+                  note=f"ours {sil:.0f} mm2, CAD {cad_sil:.0f} mm2 - how much more motor metal is "
+                       f"exposed at all, with no cone")
+            T.add("C.5 facing",
+                  f"motor metal facing az180 el0 ({cone} deg) ratio to CAD motor solids", rc,
+                  f"in [{band[0]}, {band[1]}] (DEV-10)", band[0] <= rc <= band[1], "",
+                  note=f"ours {m_c:.0f} mm2, CAD {cad_c:.0f} mm2, rev0 {m_0:.0f} mm2; "
+                       f"a {cone} deg cone spans {2*cone/15.0:.0f} of our 15 deg facets")
+        else:
+            T.add("C.5 facing",
+                  "motor metal facing az180 el0 (10 deg) ratio to CAD motor solids",
+                  ratio, f"in [{band[0]}, {band[1]}] (DEV-6)", band[0] <= ratio <= band[1],
+                  note=f"ours {mot:.0f} mm2, CAD motor solids {cadm:.0f} mm2; rev0 "
+                       f"{by0.get('motor', 0.0):.0f} mm2")
     else:
         T.add("C.5 facing", "metal facing az180 el0 (10 deg)", v,
               f"<= {h['metal_facing10_az180_el0_mm2_max']}",
@@ -1207,6 +1478,46 @@ def c6_facets(T, b0, b1, th):
     return out
 
 
+def constructed_blade_law(spec, rr_list):
+    """The chord and pitch this revision's builder is INSTRUCTED to construct, at each r/R.
+
+    RULING 2 (main session, 2026-09-18): a bound that is unmeetable by construction is fixed at
+    the MEASUREMENT, not at the threshold. Plan C.7's +-0.2 deg is measured on the first
+    principal axis of a cylindrical section's surface samples, and what P6 changes IS that
+    section: the chord polygon is mirrored (`Polygon(-x, y)` in drone_parts_rev1.blade_rev1) and
+    the skimitar sweep changes sign, so a cambered section's principal axis moves even when the
+    pitch the builder applies has not changed by a microdegree.
+
+    Both revisions reach `drone_cad._blade`'s laws through the same three resolvers with the same
+    arguments (`drone_cad.build_propeller_cad` line 3451 root_frac=0.070; drone_parts_rev1.
+    propeller_rev1 line 1389 root_frac=0.070), so this recomputes exactly the chord c(r) and the
+    pitch angle th(r) = atan(k(r/R) * P / (2 pi r)) that each revision's blade is lofted from.
+    Returns {r/R: {chord_mm, pitch_deg, chord_max_over_r, law, pitch_law}}.
+    """
+    from drone_cad import BLADE_LAWS, PITCH_LAWS, resolve_chord_max_over_r, resolve_chord_profile
+    from geom import blade_law_canon
+    law = blade_law_canon()
+    lw = BLADE_LAWS[law]
+    pw_name = lw["pitch_default"]
+    pw = PITCH_LAWS[pw_name]
+    chord_max, cmax_src = resolve_chord_max_over_r(spec, law)
+    c_rr, c_fr, prof_src = resolve_chord_profile(spec, law)
+    R_mm = float(spec.prop_dia_mm) / 2.0
+    P_mm = float(spec.prop_pitch_in or 5.0) * 25.4
+    out = {}
+    for rr in rr_list:
+        x_mm = float(rr) * R_mm
+        c_mm = float(np.interp(rr, c_rr, c_fr)) * float(chord_max) * R_mm
+        k = float(np.interp(rr, pw["rr"], pw["k"]))
+        th = math.degrees(math.atan(k * P_mm / (2.0 * math.pi * x_mm)))
+        out[str(rr)] = dict(chord_mm=round(c_mm, 6), pitch_deg=round(th, 6),
+                            chord_max_over_r=round(float(chord_max), 9), law=law,
+                            pitch_law=pw_name, chord_max_source=cmax_src,
+                            chord_profile_source=prof_src, pitch_mm=round(P_mm, 6),
+                            R_mm=round(R_mm, 6))
+    return out
+
+
 def c7_props(T, b0, b1, th):
     thr = th["C7_props"]
     import drone_parts_rev1 as P
@@ -1255,6 +1566,24 @@ def c7_props(T, b0, b1, th):
                     angle_deg=float(np.mean([x["angle_inertia_deg"] for x in o["blades"]])))
         ch[tag] = row
     out["chord_angle"] = ch
+    #  ⚠ DEVIATION DEV-8 (RULING 2). The scored blade-angle comparison moves from the measured
+    #  section principal axis to the pitch law the builder constructs; the measured value stays
+    #  in the table as a report row with its number, and a second report row gives the
+    #  mirror-consistent measured comparison (revision 1's mirrored propeller against revision
+    #  0's plain one), which is the same section with the P6 chord mirror undone.
+    dev8 = _deviation(th, "DEV-8")
+    law = {}
+    if dev8:
+        for tag, b in (("rev0", b0), ("rev1", b1)):
+            law[tag] = constructed_blade_law(b["spec"], thr["r_over_R"])
+        out["constructed_law"] = law
+        for tag in ("rev0", "rev1"):
+            k0 = list(law[tag])[0]
+            T.add("C.7 propeller", f"constructed law source ({tag})",
+                  f"{law[tag][k0]['law']} / pitch {law[tag][k0]['pitch_law']}", "report", None,
+                  note=f"c_max/R {law[tag][k0]['chord_max_over_r']:.6f}, "
+                       f"geometric pitch {law[tag][k0]['pitch_mm']:.3f} mm, "
+                       f"R {law[tag][k0]['R_mm']:.3f} mm")
     for rr in thr["r_over_R"]:
         k = str(rr)
         if k in ch["rev0"] and k in ch["rev1"]:
@@ -1263,9 +1592,38 @@ def c7_props(T, b0, b1, th):
             T.add("C.7 propeller", f"chord change r/R={rr}", dc,
                   f"<= {thr['chord_max_abs_diff_mm_vs_rev0']}",
                   dc <= thr["chord_max_abs_diff_mm_vs_rev0"], " mm")
-            T.add("C.7 propeller", f"blade angle change r/R={rr}", da,
-                  f"<= {thr['blade_angle_max_abs_diff_deg_vs_rev0']}",
-                  da <= thr["blade_angle_max_abs_diff_deg_vs_rev0"], " deg")
+            if dev8 and k in law.get("rev0", {}) and k in law.get("rev1", {}):
+                dlc = abs(law["rev1"][k]["chord_mm"] - law["rev0"][k]["chord_mm"])
+                dla = abs(law["rev1"][k]["pitch_deg"] - law["rev0"][k]["pitch_deg"])
+                T.add("C.7 propeller", f"blade angle change r/R={rr}", da,
+                      "report (DEV-8); the frozen bound was "
+                      f"<= {thr['blade_angle_max_abs_diff_deg_vs_rev0']}", None, " deg",
+                      note="measured on the section principal axis, which is what P6 mirrors")
+                #  the mirror-consistent measured comparison, same measurement, mirror undone
+                try:
+                    a1m = float(np.mean([x["angle_inertia_deg"]
+                                         for x in out["rev1"]["mirrored"][k]["blades"]]))
+                    a0p = float(np.mean([x["angle_inertia_deg"]
+                                         for x in out["rev0"]["plain"][k]["blades"]]))
+                    T.add("C.7 propeller", f"blade angle change r/R={rr}, mirror-consistent",
+                          abs(a1m - a0p), "report", None, " deg",
+                          note="rev1 mirrored vs rev0 plain: the P6 chord mirror undone")
+                except Exception:
+                    pass
+                T.add("C.7 propeller", f"constructed pitch law change r/R={rr}", dla,
+                      f"<= {thr['blade_angle_max_abs_diff_deg_vs_rev0']} (DEV-8)",
+                      dla <= thr["blade_angle_max_abs_diff_deg_vs_rev0"], " deg",
+                      note=f"rev0 {law['rev0'][k]['pitch_deg']:.4f} deg, "
+                           f"rev1 {law['rev1'][k]['pitch_deg']:.4f} deg")
+                T.add("C.7 propeller", f"constructed chord law change r/R={rr}", dlc,
+                      f"<= {thr['chord_max_abs_diff_mm_vs_rev0']} (DEV-8)",
+                      dlc <= thr["chord_max_abs_diff_mm_vs_rev0"], " mm",
+                      note=f"rev0 {law['rev0'][k]['chord_mm']:.4f} mm, "
+                           f"rev1 {law['rev1'][k]['chord_mm']:.4f} mm")
+            else:
+                T.add("C.7 propeller", f"blade angle change r/R={rr}", da,
+                      f"<= {thr['blade_angle_max_abs_diff_deg_vs_rev0']}",
+                      da <= thr["blade_angle_max_abs_diff_deg_vs_rev0"], " deg")
     return out
 
 
@@ -1407,8 +1765,15 @@ def main(argv=None):
     #  never edited; each deviation replaces one row that the model cannot reach, and the
     #  original row stays in the table as a report row. Every entry is printed here and copied
     #  into the ledger, so a reader always sees that a row was replaced and why.
-    dvp = os.path.join(ROOT, "docs", "mesh_rev1", f"{a.drone}_deviations_0918.json")
+    #  ⚠ RULING 4 (main session, 2026-09-18): "deviations that live in code must move into a
+    #  file". The dated 0918 name is replaced by the same name phantom4 uses, so that every
+    #  drone's post-run deviations are found in one place and the pre-deviation count is always
+    #  recoverable by moving one file aside.
+    dvp = os.path.join(ROOT, "docs", "mesh_rev1", f"{a.drone}_acceptance_deviations.json")
+    if not os.path.exists(dvp):
+        dvp = os.path.join(ROOT, "docs", "mesh_rev1", f"{a.drone}_deviations_0918.json")
     dev_sha = None
+    _dev_pin_bad = None
     if os.path.exists(dvp):
         th["_deviations_after_the_run"] = json.load(open(dvp))
         dev_sha = sha256_file(dvp)
@@ -1417,6 +1782,15 @@ def main(argv=None):
             print(f"  {d['id']}: {d['from']}\n       -> {d['to']}")
         print("  These need user approval (plan critique M8). The frozen threshold file is "
               "unchanged.\n", flush=True)
+        #  ⭐ 2026-09-18 b6: a deviations file written against a DIFFERENT threshold file
+        #  would narrow rows that no longer exist. The photo scorer already checks this;
+        #  do it here too, and fail a row rather than score a mismatched pair silently.
+        _pin = th["_deviations_after_the_run"].get("thresholds_sha256")
+        if _pin is not None and _pin != th_sha:
+            _dev_pin_bad = (_pin, th_sha)
+        else:
+            _dev_pin_bad = None
+
 
     t0 = time.time()
     b0 = build(a.drone, 0)
@@ -1424,6 +1798,8 @@ def main(argv=None):
     print(f"built rev0 and rev{a.rev} in {time.time()-t0:.1f} s", flush=True)
 
     cad = load_cad(a.cad_scratch) if a.cad_scratch else None
+    if cad is not None:
+        cad["_face_visible"] = cad_visible_mask(cad, a.cad_scratch)
     #  REVIEW FIX R-1 (adversarial review 2026-09-18): without --cad-scratch (or $M0917) the
     #  reference sections C.4 and C.5 used to vanish from the table with no warning — 23 scored
     #  rows, including every shape comparison against the CAD, and the run still printed a clean
@@ -1436,6 +1812,10 @@ def main(argv=None):
             "silently dropping them would turn a 100-row acceptance into a 77-row one that "
             "still reads as complete. To run without them on purpose: --skip C4,C5")
     T = Table()
+    if _dev_pin_bad is not None:
+        T.add("C.0 inputs", "deviations file pins these thresholds", _dev_pin_bad[0],
+              _dev_pin_bad[1], False, "",
+              note="the deviations file was written against a different threshold file")
     L = dict(_meta=dict(drone=a.drone, rev=a.rev, thresholds_sha256=th_sha,
                         thresholds_path=os.path.relpath(thp, ROOT),
                         utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -1461,6 +1841,11 @@ def main(argv=None):
     L["C11"] = c11_certificates(T, b0, b1, th)
     L["C12"] = c12_materials(T, b0, b1, th)
     L["C13"] = c13_repairs(T, b0, b1, th)
+
+    #  ⭐ 2026-09-18 b6: DEV-1 … DEV-4 live in the frozen threshold file; print the row each
+    #  of them replaced, so the pre-deviation count is recoverable from this run too.
+    L["pre_deviation_frozen_threshold"] = pre_deviation_rows(
+        T, L, th, th.get("_deviations_after_the_run"))
 
     print(T.render())
     sc = T.scored()

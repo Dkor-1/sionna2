@@ -182,6 +182,11 @@ BATTERY_LWH_MM = (86.10, 54.89, 24.85)
 #:
 #: So the pack's REAR FACE is the shell's own tail station and the centre follows from the
 #: official length. Nothing here is fitted or searched in x.
+#: ⭐ 2026-09-18 b4: this is the station of the PACK's rear face — the aircraft's own rear face.
+#: The modelled METAL's rear face is this station set back by the metal clearance (see
+#: `BATTERY_CLEARANCE_MM` and `_clip_solid`), so the pack keeps its official 86.10 mm length
+#: while no metal face lies on the plastic. `_build` reads the set-back station off the clip
+#: solid; `BATTERY_CX_MM` below is the un-offset centre, kept as the sourced reference.
 BATTERY_REAR_FACE_X_MM = SHELL_X_SPAN_MM[0]                       # −54.0
 BATTERY_CX_MM = BATTERY_REAR_FACE_X_MM + 0.5 * BATTERY_LWH_MM[0]  # −10.95
 #: y = 0: the bay is on the centreline in both plan views, and plan C.11 requires the symmetry
@@ -194,6 +199,36 @@ BATTERY_CY_MM = 0.0
 #:   inside the shell, tie-broken toward the shell's own keel (the lower z) so the result matches
 #:   what the photo shows rather than floating at mid-height. Declared in SOURCES_NOT_FOUND.
 BATTERY_Z_SCAN_STEP_MM = 0.5
+
+#: ⭐ 2026-09-18 b4 — the pack is clipped against the shell **offset inward**, not against the
+#: shell itself.
+#:
+#: What was wrong. The official 86.10 × 54.89 mm pack does not fit inside the photo-measured
+#: shell: over the pack's own fore-aft run the shell's top-view width is 51.2 mm at x = −50,
+#: 52.8 at x = 0 and 56.5 at x = +30, so no placement of an 86.10 × 54.89 mm footprint lies
+#: inside it, with or without clearance (the first station where the shell is wide enough to
+#: hold the pack plus 2 × 1 mm is x ≈ +30.5, and only 61 mm of shell remains ahead of it).
+#: P8 therefore intersected the box with the shell, which put the cut surface exactly ON the
+#: shell surface: 4 846 mm² of metal face welded to the plastic and 71 exactly coincident,
+#: parallel triangle pairs in two different material groups, where which material a ray hits is
+#: decided by floating-point tie-breaking.
+#:
+#: The fix. The pack keeps its official size and its sourced x/y station; what changes is the
+#: solid it is cut against. The clip solid is the shell offset inward by plan C.2's own 1.0 mm
+#: metal clearance, so every surviving face of the metal is at least 1 mm from the plastic and
+#: no face can be coincident with it. `clipped_volume_pct` rises (the pack loses the corners
+#: that never fitted) and is reported; nothing is resized and no threshold is touched.
+#:
+#: The offset distance. A vertex-normal offset of a FACETED surface under-shoots by the facet's
+#: own sagitta, so offsetting by 1.0 mm leaves only 0.85 mm of true clearance. `_clip_solid`
+#: therefore raises the offset in 0.05 mm steps until the MEASURED minimum distance from the
+#: offset solid back to the shell is ≥ `BATTERY_CLEARANCE_MM`; on the default shell it stops at
+#: 1.20 mm. The only number chosen here is the plan's own 1.0 mm — the step and the stopping
+#: rule are deterministic, and the search is redone whenever the shell's tessellation changes
+#: rather than being frozen as a magic constant.
+BATTERY_CLEARANCE_MM = 1.0
+BATTERY_CLEARANCE_STEP_MM = 0.05
+BATTERY_CLEARANCE_MAX_MM = 3.0
 
 #: Landing gear. Manual p.14 item 9 "Landing Gears (Built-in antennas)", one per FRONT motor, and
 #: FCC photos p4_img1 / p2_img2 show one flat strut per front arm and none at the rear.
@@ -268,7 +303,10 @@ SOURCES_NOT_FOUND = {
                                  "face shows at the tail. Neither gives a z against our datum, "
                                  "so z alone is chosen by a deterministic 0.5 mm scan for the "
                                  "most containment, tie-broken toward the keel. 2026-09-18 "
-                                 "review fix: x and y are no longer scanned.",
+                                 "review fix: x and y are no longer scanned. 2026-09-18 b4: the "
+                                 "scan and the cut both use the shell offset inward by plan "
+                                 "C.2's 1.0 mm metal clearance, which moved z from -5.9507 to "
+                                 "-4.7507 mm (the same rule, one offset higher off the keel).",
 }
 
 
@@ -444,6 +482,45 @@ def _march_root(tip_xy, heading_deg, shell_mesh, bury_mm=10.0, step=0.5, max_mm=
                        f"{tip_xy} never reaches the shell")
 
 
+def _clip_solid(shell_mesh, clearance_mm=None, step_mm=None, max_mm=None):
+    """The shell offset **inward**, used as the solid the internal pack is cut against.
+
+    Returns `(solid, offset_mm, measured_min_mm)`.
+
+    Why an offset solid and not the shell: cutting the pack against the shell itself leaves the
+    cut faces exactly on the shell surface — a metal/plastic interface with zero separation, and
+    exactly coincident parallel triangles in two material groups (measured 2026-09-18: 4 846 mm²
+    and 71 pairs). Cutting against the shell offset inward by plan C.2's 1.0 mm clearance gives
+    the same pack, at the same station, with every surviving metal face at least 1 mm from the
+    plastic.
+
+    How far to offset: each vertex is moved along its own vertex normal, which on a faceted
+    surface under-shoots the true distance by about the facet sagitta. The offset is raised in
+    `BATTERY_CLEARANCE_STEP_MM` steps until the measured minimum distance from the offset solid
+    back to the shell — over the offset solid's vertices **and** a dense surface sample — is at
+    least `clearance_mm`. Deterministic, and it re-derives itself if the tessellation changes.
+    """
+    import trimesh
+    want = float(BATTERY_CLEARANCE_MM if clearance_mm is None else clearance_mm)
+    step = float(BATTERY_CLEARANCE_STEP_MM if step_mm is None else step_mm)
+    cap = float(BATTERY_CLEARANCE_MAX_MM if max_mm is None else max_mm)
+    d = want
+    while d <= cap + 1e-9:
+        o = shell_mesh.copy()
+        o.vertices = (np.asarray(o.vertices, float)
+                      - np.asarray(o.vertex_normals, float) * (d * MM))
+        if o.is_watertight and o.volume > 0:
+            V = np.asarray(o.vertices, float)
+            got = float(trimesh.proximity.closest_point(shell_mesh, V)[1].min()) / MM
+            pts, _ = trimesh.sample.sample_surface_even(o, 30000, seed=0)
+            got = min(got, float(trimesh.proximity.closest_point(shell_mesh, pts)[1].min()) / MM)
+            if got >= want:
+                return o, round(float(d), 4), round(got, 4)
+        d = round(d + step, 6)
+    raise RuntimeError(f"drone_rev1_mini5pro: no inward offset up to {cap} mm reaches "
+                       f"{want} mm of clearance from the shell")
+
+
 def _battery_centre(shell_mesh, box_lwh_mm, clearance_mm=1.0, step_mm=None,
                     cx_mm=None, cy_mm=None):
     """Placement of the internal pack: x and y from the owned photos, z by a 1-D scan.
@@ -454,6 +531,12 @@ def _battery_centre(shell_mesh, box_lwh_mm, clearance_mm=1.0, step_mm=None,
     `BATTERY_CX_MM` (the pack's rear face is the aircraft's rear face, p3_img1/p5_img1) and y by
     `BATTERY_CY_MM` (the centreline), and only z is searched, because z is the one axis the
     photos do not give a number for.
+
+    ⭐ 2026-09-18 b4. `shell_mesh` is now the CLIP SOLID (the shell offset inward by plan C.2's
+    1.0 mm metal clearance) and `clearance_mm` is 0, so the scan asks the same question it always
+    asked — "where does the most of the pack sit with its clearance?" — against the solid the
+    pack is actually cut with. Scanning the un-offset shell and then cutting with the offset one
+    would have put the pack where it fits the wrong solid.
 
     The z score is the fraction of the grown box's probe points (corners, edge midpoints, face
     centres and a light grid — the same probe set P8 uses) that lie inside the shell. Ties are
@@ -653,8 +736,17 @@ def _build(spec, stations, parts_log):
     #  ⭐ 2026-09-18 REVIEW FIX: x and y now come from the owned FCC photos (the pack's rear face
     #  is the aircraft's rear face, on the centreline) instead of from a fit-inside-the-shell
     #  scan; only z is still scanned. See BATTERY_CX_MM above.
-    bc = _battery_centre(shell_m, BATTERY_LWH_MM, clearance_mm=1.0)
-    batt = P.contain(BATTERY_LWH_MM, shell, group="battery", clearance_mm=1.0, name="battery",
+    #  ⭐ 2026-09-18 b4: the pack is cut against the shell offset inward by plan C.2's own
+    #  1.0 mm metal clearance, not against the shell, so no metal face can lie on the plastic.
+    clip_m, clip_off_mm, clip_meas_mm = _clip_solid(shell_m)
+    #  The pack's rear face is the aircraft's rear face (FCC p3_img1/p5_img1), i.e. the shell's
+    #  own tail station; the MODELLED METAL's rear face is that station set back by the clearance,
+    #  which is exactly the clip solid's tail station. Taking it from the clip solid rather than
+    #  from `BATTERY_REAR_FACE_X_MM + clip_off_mm` keeps the two in step if the offset changes.
+    _rear_x = float(np.asarray(clip_m.bounds, float)[0][0]) / MM
+    _bcx = round(_rear_x + 0.5 * BATTERY_LWH_MM[0], 4)
+    bc = _battery_centre(clip_m, BATTERY_LWH_MM, clearance_mm=0.0, cx_mm=_bcx)
+    batt = P.contain(BATTERY_LWH_MM, clip_m, group="battery", clearance_mm=0.0, name="battery",
                      center_mm=bc, declare_components=1)
     take(batt)
     #  ⛔ M5P-9 — revision 0's magnesium structural plate is NOT built. It is a proportional box
@@ -669,8 +761,15 @@ def _build(spec, stations, parts_log):
               center=(0.02 * bl0 * MM, 0.0, 0.26 * bh0 * REV0_SZ * MM)), "pcb")
 
     parts_log.extend(rec)
+    _binfo = dict(batt.info)
+    _binfo.update(clip_solid="shell offset inward",
+                  clip_offset_mm=clip_off_mm,
+                  clip_offset_measured_min_mm=clip_meas_mm,
+                  clearance_target_mm=BATTERY_CLEARANCE_MM,
+                  rear_face_x_sourced_mm=BATTERY_REAR_FACE_X_MM,
+                  rear_face_x_metal_mm=round(_rear_x, 4))
     parts_log.append(dict(name="battery_placement", plan_item="P8", group="battery",
-                          info=batt.info))
+                          info=_binfo))
     return A
 
 

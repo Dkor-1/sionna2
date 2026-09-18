@@ -87,7 +87,15 @@ COMPONENTS = (
                "-54.00 ... +32.10 mm) and on the centreline. 2026-09-18 review fix: the first "
                "build searched (x, z) for where the box fits and put it at x = +38.0 mm, in the "
                "nose half, which no source supports and the owned photos contradict. Only z is "
-               "still chosen by a rule (declared).",
+               "still chosen by a rule (declared). 2026-09-18 b4: the pack is cut against the "
+               "shell OFFSET INWARD by plan C.2's own 1.0 mm metal clearance instead of against "
+               "the shell itself, and the METAL's rear face therefore sits on that offset "
+               "station (x span -52.80 ... +33.30 mm, centre -9.75 mm) while the pack keeps its "
+               "official 86.10 mm length. This removes the metal/plastic interface the clip used "
+               "to create: 4846 mm2 of metal welded to the shell surface and 71 exactly "
+               "coincident parallel triangle pairs in two material groups, both now 0, and the "
+               "minimum metal-to-plastic clearance goes 0.0 -> 1.041 mm. The clipped volume "
+               "rises 6.92 -> 10.66 %.",
         sources=(_SRC_MANUAL + " p.86-87 'Battery 86.10x54.89x24.85 mm, 71.2 g'",
                  _SRC_FCC + " -- p3_img1 (rear view): the pack is the rearmost and lowest block "
                             "of the fuselage, its rear face is the aircraft's rear face, and that "
@@ -137,6 +145,15 @@ ENTRIES = [
         frame_builder="drone_rev1_mini5pro:build_frame",
         prop_builder="drone_parts_rev1:propeller_rev1",
         #: ⛔ NOT FROZEN YET. The geometry's fingerprint is
+        #:     395f01bc0795184c903efffda5ba69f0105486b8ecb8f9fbf735c76b1b80f394
+        #:   ⭐ 2026-09-18 b4 round: this replaces 5575058136a296d4d7… . One geometry change —
+        #:     the battery pack is cut against the shell offset inward by plan C.2's 1.0 mm
+        #:     metal clearance instead of against the shell, and the metal's rear face sits on
+        #:     that offset station. C.2's metal-clearance gate now PASSES at 1.041 mm (was 0.0),
+        #:     the coincident metal/plastic faces are 0 (were 71, 3038 mm²) and the metal welded
+        #:     to the shell surface is 0 mm² (was 4846). 1 of 65 gate rows still fails (C.7 blade
+        #:     angle) and it is a shared parts-library property, not a mini5pro defect.
+        #:   The previous round's value was
         #:     5575058136a296d4d79354619ea07db71fae00b7f69333192875ea8a9a56b5c2
         #:   (mesh_rev.fingerprint_for("mini5pro", 1); identical with OMP_NUM_THREADS 1 and 2 and
         #:   across four separate processes — scratch fix/fingerprint_repro_fix.json).
@@ -154,7 +171,9 @@ ENTRIES = [
         #:       the plan's ±0.2°. The chord and pitch laws are byte-identical; what moved is the
         #:       airfoil's leading/trailing-edge assignment, which is exactly what P6 changes, so no
         #:       mesh that applies P6 can meet that bound.
-        #:   Until the user rules on both, `--mesh-rev 1` is refused for this key by
+        #:   ⭐ 2026-09-18 b4: the first bullet is CLOSED by geometry — see the fingerprint note
+        #:   above. The second stands.
+        #:   Until the user rules, `--mesh-rev 1` is refused for this key by
         #:   `mesh_rev.run_spec`, which is the intended behaviour.
         #  -- MERGE STAGE 2026-09-18 ------------------------------------------------
         #  Verified in the merged tree (all four builders + the reconciled shared
@@ -164,14 +183,92 @@ ENTRIES = [
         #  identical in 6 runs -- OMP/MKL/OpenBLAS threads 1, 2 and 4 x two processes.
         #  It equals the value this drone's own unit reported, so reconciling the
         #  shared modules moved no geometry.
-        #  NOT FROZEN. Plan C.14 freezes only after C.1-C.13 pass, and
-        #  2 of 65 gate rows fail (C.2 battery metal clearance 0.0 mm, C.7 blade angle) and 7 threshold deviations are still unapproved (counted in the file: deviations[] has 7 entries, every one "approved_by: not yet").
+        #  NOT FROZEN. Plan C.14 freezes only after C.1-C.13 pass. After the
+        #  2026-09-18 b4 round 1 of 65 gate rows fails (C.7 blade angle) and the
+        #  threshold file's deviations[] is empty: the seven entries moved into
+        #  docs/mesh_rev1/mini5pro_acceptance_deviations.json as 4 declared (each
+        #  scored beside the row it replaced), 1 declared-with-no-row (the vision
+        #  sensors), 2 disclosures, 1 removed and 1 open. None is user-approved.
         #  Plan critique M8 forbids relaxing a threshold after seeing a failure, so the
         #  merge stage cannot clear these by itself -- the user rules first. While this
         #  field is None, mesh_rev.run_spec refuses --mesh-rev 1 for this key, which is
         #  the safe state: no unaccepted geometry can reach a shard name.
+        #  == b5 RECONCILE-AND-FREEZE ROUND, 2026-09-18 ==========================
+        #  ⭐ FROZEN. Every gate row passes on the reconciled tree:
+        #       67 gate rows, 67 PASS, 0 FAIL, 20 report rows
+        #     (benchmark/mesh_rev1_acceptance.py --drone mini5pro --rev 1).
+        #     The 65/64/1 of the b4 round was measured on that unit's own copy of the SHARED
+        #     scorer benchmark/mesh_rev1_acceptance_photo.py, before the b4 mavic4pro unit's
+        #     C.6 and C.7 edits to the same file were reconciled in. The C.7 gate is now the
+        #     constructed blade-angle law at the plan's own UNRELAXED 0.2 deg (measured 0.0),
+        #     and the 0.4808 deg inertia reading it replaced is kept as a report row and is
+        #     scored as DEV-6's pre-deviation row, where it WOULD FAIL.
+        #  Fingerprint below reproduced in 6 processes (OMP/MKL/OPENBLAS_NUM_THREADS 1, 2, 4
+        #     x two processes) and unchanged from the b4 round — the reconciliation moved no
+        #     geometry. Revision 0 re-proved bit-identical against a pristine HEAD archive,
+        #     10 keys x 4 environment states, 680 equal / 0 different.
+        #  ⚠ WITHOUT its deviations file the count is 67 scored / 62 PASS / 5 FAIL. All five
+        #     are DECLARED in docs/mesh_rev1/mini5pro_acceptance_deviations.json with their
+        #     pre-deviation reading measured and printed on every run, and NONE of them is
+        #     user-approved — they carry a phase ruling only. Freezing fixes the GEOMETRY of
+        #     ('mini5pro', 1); it does not approve the deviations.
+        #  == b6 INDEPENDENT VERIFICATION, 2026-09-18 =============================
+        #  Re-run in a tree rebuilt from `git archive HEAD` plus the declared revision-1
+        #     files only: 67 gate rows, 67 PASS, 0 FAIL, 20 report rows. The fingerprint below reproduced in
+        #     6 processes; `run_spec`, `guard_fingerprint`, the MESH_FIX / BLADE_LAW
+        #     refusals, the `--mesh-rev 2` refusal and all four `thresholds_sha256` pins
+        #     behave as recorded. Revision 0 re-proved bit-identical, 680 equal / 0
+        #     different over 10 keys x 4 environment states, with all 11 hashed
+        #     quantities differing between those states (so the hash is sensitive).
+        #  ⚠ CORRECTION to the "WITHOUT the deviations file" sentence above. Measured by
+        #     moving docs/mesh_rev1/mini5pro_acceptance_deviations.json aside and re-running:
+        #     67 gate rows, 67 PASS, 0 FAIL, 13 report rows. Moving the file aside does NOT restore the pre-deviation gate; it
+        #     only deletes the DEV report rows. The "5 FAIL" figure is the number of failing
+        #     PRE-DEVIATION report rows, and those rows exist only WHILE the file is
+        #     present. For this key the file is what makes the pre-deviation count
+        #     recoverable — unlike matrice4e, whose scorer re-scores from its file.
+        #  ⛔ FROZEN IS NOT THE SAME AS READY TO RUN. Two plan preconditions are open, and
+        #     both bite the moment the FIRST revision-1 shard is written:
+        #     (1) `outputs/mesh_rev1_prereg.json` DOES NOT EXIST (checked 2026-09-18 b6).
+        #         Plan D requires it committed, with its sha256 recorded, BEFORE any RF
+        #         run on revision 1.
+        #     (2) The 11 mesh-blind shard readers are still unpatched — none of them
+        #         mentions a revision (checked 2026-09-18 b6). Plan A.2(viii) allows
+        #         either a patch or a listing in docs/MESH_REV1.md, and they ARE listed,
+        #         so the plan's letter is met. Two of them are destructive on a shard
+        #         folder holding revision shards and stay a live operational risk:
+        #         `benchmark/coverage_verify_0820.py` MOVES the first glob match and
+        #         DELETES the rest, and `benchmark/fix_phase_sign_legacy.py` REWRITES
+        #         shards in place.
+        #     Also open: C.9 (specular census) is a deferred report row on this key and is
+        #         itself a pre-registration input.
+        #  ⚠ C.4's top-view silhouette IoU is NOT reproducible from the commit list alone:
+        #     it imports `work/mini5pro/top_iou.py` and that module's own ledger, which are
+        #     scratch files, not part of the installable tree. Without them the gate prints
+        #     NOT MEASURED and FAILS. They live in scratch mesh_rev1/b4/mini5pro/work/mini5pro/ .
+        #: ⛔UNFROZEN 2026-09-18 by the main session after the independent verification: revision 1 creates a
+        #  zero-separation interface between the metal motor and the plastic propeller at the prop seat
+        #  (124.78 mm² per rotor at 0.00000 mm, against 0.999 mm in revision 0), which is the defect ruling 3 names.
+        #  C.2b's window [0.0, 0.5] mm admits a gap of exactly 0.0, so no gate sees it. Freeze again only
+        #  after the seat is fixed by geometry and re-measured. Value measured before unfreezing: 395f01bc0795184c903efffda5ba69f0105486b8ecb8f9fbf735c76b1b80f394
         fingerprint=None,
-        thresholds_sha256="622abe07a4c369ca82b21b8ec1a1a86a7042e95ef5f12b47cd49cc1d41c68e14",
+        thresholds_sha256="112e40ae069e17cc4854e2f491ff82ddec186cf1bef5e2a331880095950e3828",
+        #  ⭐ 2026-09-18 b4 round: re-pinned. Two edits to the threshold file, both recorded in
+        #     docs/mesh_rev1/mini5pro_acceptance_deviations.json (sha256
+        #     5f676d041d2dad292d307b1d152f25969e941c44449de3f076f5030f913aacca as of the b5
+        #     round; it was 446f8135e81acbfc120e1ad934378dc117ffd09a2743a422ac6024c64f1a766b
+        #     when the b4 round wrote this note), which the
+        #     acceptance script now reads and prints:
+        #       (a) deviations[] emptied — its seven entries moved into that file, where four are
+        #           declared with the row they replaced scored beside them, two are disclosures
+        #           that changed no threshold, and one was removed because the defect it recorded
+        #           was fixed by geometry. One (C.7 blade angle) stays an OPEN failing gate.
+        #       (b) C3_dimensions.targets[front_arm_heading].value_deg 68.97 → 69.0, tolerance
+        #           unchanged at ±3.0. 68.97 was this build's own mid-line reading, so the row
+        #           still checked the build against itself; 69 ±3 is the approved plan's own row
+        #           M5P-2. The pre-deviation row (the build against the ORIGINAL frozen 65.34 ±3)
+        #           is printed every run and WOULD FAIL, so the count is recoverable.
+        #     Previous pin: 622abe07a4c369ca82b21b8ec1a1a86a7042e95ef5f12b47cd49cc1d41c68e14
         #  ⭐ 2026-09-18 review-fix round: re-pinned after the C.3 front_arm_heading target moved
         #     from 65.34 to 68.97 deg (tolerance unchanged at ±3.0; the band now sits on the
         #     approved plan's own row M5P-2, 69 ±3). That is a CHANGED THRESHOLD VALUE and is

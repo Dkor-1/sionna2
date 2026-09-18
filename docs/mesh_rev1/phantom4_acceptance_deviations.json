@@ -11,66 +11,176 @@
    "check": "C.2",
    "what": "buried area: the scored row now uses buried PLASTIC area / plastic area, not buried area over all groups.",
    "why": "The threshold key is `buried_plastic_pct_of_shell_area_max` and the plan text is 'buried plastic <= 2 % of shell area'. The first run measured every group, so the internal metal — which is meant to be buried — dominated it (21.7 %). Code bug, not a threshold change.",
-   "effect": "21.66 % -> 0.02 %; the row passes."
+   "effect": "21.66 % -> 0.02 %; the row passes.",
+   "machine": {
+    "mode": "c2_buried_all_groups",
+    "affects": [
+     "C.2|buried plastic area"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "buried area summed over EVERY group (metal included) as a share of every group's area, against the same 2 % bound."
+   }
   },
   {
    "id": "D2",
    "check": "C.2b",
    "what": "prop seating gap: the seat is now the hub's own bottom disc (prop vertices within r < 0.065 R), not the lowest vertex of the whole propeller.",
    "why": "The blade root deliberately dips below the mount plane (aerofoil twist), so including it measured the blade, not the seat. Code bug.",
-   "effect": "-7.25 mm -> 0.00 mm; the row passes. The blade-root depth is still reported in the note and is the subject of the C.2b failure below."
+   "effect": "-7.25 mm -> 0.00 mm; the row passes. The blade-root depth is still reported in the note and is the subject of the C.2b failure below.",
+   "machine": {
+    "mode": "c2b_seat_lowest_prop_vertex",
+    "affects": [
+     "C.2b|prop hub underside - adapter top"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "the seat read as the lowest vertex of the whole propeller (the blade root), against the same [0, 0.5] mm window."
+   }
   },
   {
    "id": "D3",
    "check": "C.2c",
    "what": "swept blade volume: z_lo(r) and z_hi(r) are now read in 2 mm radial bins, and each rotor's own motor stack (r < 30 mm of its axis) is excluded.",
    "why": "One global z band over the whole disc reports intrusions no blade can reach: a two-blade propeller is lowest at the root and highest near mid span. The own-motor exclusion is because a propeller sitting on its own bell is C.2b's business, not a disc clearance. Both revisions were re-measured the same way.",
-   "effect": "-5.35 mm (rev 1) -> 0.00 mm with 0 vertices inside. Revision 0 measured the same way has 296 vertices inside."
+   "effect": "-5.35 mm (rev 1) -> 0.00 mm with 0 vertices inside. Revision 0 measured the same way has 296 vertices inside.",
+   "machine": {
+    "mode": "c2c_global_z_band",
+    "affects": [
+     "C.2c|frame inside a swept disc"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "one global z band over the whole disc and no own-motor-stack exclusion, against the same 1.0 mm bound."
+   }
   },
   {
    "id": "D4",
    "check": "C.4",
    "what": "silhouette areas are sampled with 3e6 points, as the revision-0 baseline was, instead of the 4e5 used for the distance metrics.",
    "why": "A 0.5 mm pixel grid is sampling-limited; 4e5 points under-count the covered pixels, which is not comparable with the baseline's 3e6 or the scan's 2e6. Method bug.",
-   "effect": "top_xy ratio 0.870 -> 1.016; the row passes."
+   "effect": "top_xy ratio 0.870 -> 1.016; the row passes.",
+   "machine": {
+    "mode": "c4_silhouette_400k",
+    "affects": [
+     "C.4|silhouette top_xy ours/scan",
+     "C.4|silhouette front_yz ours/scan",
+     "C.4|silhouette side_xz ours/scan"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "silhouette pixels counted from the 400 000-point distance cloud instead of 3e6, against the same frozen ratio windows."
+   }
   },
   {
    "id": "D5",
    "check": "C.7",
    "what": "chord is read with `drone_parts_rev1.blade_orientation`'s own chord_mm, and blade angle with its angle_inertia_deg, instead of an angular-span estimate written for this script.",
    "why": "The first estimate was wrong (it returned 4 mm and 282 mm at neighbouring stations). The parts library's reader is the one its own docstring names for scoring C.7.",
-   "effect": "chords now agree with revision 0 to <= 0.1 mm at all 8 stations; blade angle differs at 2 of 8 and that failure stands."
+   "effect": "chords now agree with revision 0 to <= 0.1 mm at all 8 stations; blade angle differs at 2 of 8 and that failure stands.",
+   "machine": {
+    "mode": "c7_chord_angular_span",
+    "affects": [
+     "C.7|chord r/R * *"
+    ],
+    "recoverable": "partial",
+    "turns_fail_into_pass": false,
+    "pre_deviation": "chord read as the angular span of the blade's cylindrical section (benchmark/mesh_rev1_acceptance_phantom4.py `_chord_mm`, retained for exactly this purpose), against the same 0.5 mm bound.",
+    "unrecoverable_part": "the blade-ANGLE half of D5. The estimator it replaced was deleted when it was replaced and no copy survives, so the pre-deviation blade-angle value cannot be recomputed. It did not turn a failing row into a pass: the blade-angle rows failed before D5 and still fail (see D9)."
+   }
   },
   {
    "id": "D6",
    "check": "C.11",
    "what": "the mesh_placement row compares the crossing AREA with revision 0's own crossing area instead of requiring 0 pairs.",
    "why": "The written rule is 'no part pair may interpenetrate beyond revision 0's budget'. Requiring 0 was a coding error: the parenthetical '(0 %)' in the threshold file asserted revision 0's budget is 0, and it is not — revision 0 measures 22.85 %.",
-   "effect": "rev 1 measures 2.41 % against revision 0's 22.85 %; the row passes."
+   "effect": "rev 1 measures 2.41 % against revision 0's 22.85 %; the row passes.",
+   "machine": {
+    "mode": "c11_require_zero_pairs",
+    "affects": [
+     "C.11|mesh_placement crossing area"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "the row required 0 crossing part pairs, as the frozen file's parenthetical '(0 %)' asserts, instead of comparing the crossing AREA with revision 0's."
+   }
   },
   {
    "id": "D7",
    "check": "C.1, C.5",
    "what": "diagnostic (unscored) rows were added: absolute sliver count, the repository's own sliver definition (min angle < 0.5 deg), and the gimbal-only visible area.",
    "why": "The scored rows still fail and were left alone. The diagnostics are there so the reader can see what the failures are made of.",
-   "effect": "no scored row changed."
+   "effect": "no scored row changed.",
+   "machine": {
+    "mode": "diagnostics_only",
+    "affects": [],
+    "recoverable": true,
+    "turns_fail_into_pass": false,
+    "no_scored_row": true,
+    "pre_deviation": "nothing: D7 only added report-only rows. The scored rows it sits next to are unchanged, so the without-deviations count is the same."
+   }
   },
   {
    "id": "D8",
    "check": "C.3 camera burial",
    "what": "the row is now scored (its measured key did not match the threshold key `camera_buried_pct_max`, so it was silently skipped), and burial is measured on the camera group's union — its lowest-hanging connected piece — instead of on the pre-union P7 parts.",
    "why": "The mesh that exists in the frame is the union; sampling the pre-union blocks counts the faces the union removes where the three gimbal blocks overlap each other, which is not burial in the shell. Code bug on both counts.",
-   "effect": "11.49 % (unscored) -> 3.04 %; the row is scored and passes."
+   "effect": "11.49 % (unscored) -> 3.04 %; the row is scored and passes.",
+   "machine": {
+    "mode": "c3_camera_burial_preunion",
+    "affects": [
+     "C.3|camera_buried_pct_max"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "the row was NOT SCORED at all (the measured key did not match the threshold key), and the value it would have carried was measured on the pre-union P7 parts."
+   }
+  },
+  {
+   "id": "D9",
+   "check": "C.7",
+   "logged_utc": "2026-09-18T05:40Z",
+   "what": "blade angle: the scored row is now the blade's angle on its own SPAN section (the loft ring, a plane of constant span coordinate), measured on revision 1's and revision 0's blades built with identical arguments. The cylindrical-section reading that used to be scored is kept and printed as the pre-deviation row.",
+   "why": "Main-session ruling 2, 2026-09-18: a threshold is never relaxed to make a row pass; when a bound is unmeetable by construction the MEASUREMENT is fixed instead. P6 changes two cues at once - it mirrors the airfoil's chord coordinate (cue 1) and flips the sweep to -y (cue 2). A CYLINDRICAL section of radius r cuts a swept blade obliquely, and because cue 2 flips the sweep's sign the oblique cut lands on the other side of the blade, so the cylindrical reading moves by 0.21-0.27 deg for reasons that have nothing to do with pitch. The blade's own span section does not have that problem: there cue 1 is a pure reflection of the section, so the reading moves only by the camber term. Measured on the raw blades at the 21 common loft stations: revision 0 sits +0.031 ... +0.039 deg above the constructed pitch law and revision 1 the same amount below it, i.e. rev1 - rev0 = -0.062 ... -0.079 deg everywhere, inside the frozen +-0.2 deg with 60 % margin. The tolerance VALUE is the frozen blade_angle_tol_deg_vs_rev0 = 0.2 deg, unchanged.",
+   "effect": "the four failing rows (r/R 0.3 and 0.7 on both propellers, 0.25-0.87 deg off) become the pre-deviation rows and stay printed; the scored rows are the span-section ones and they pass at all 8 station-propeller pairs.",
+   "machine": {
+    "mode": "c7_cylindrical_section_angle",
+    "affects": [
+     "C.7|blade angle r/R * *"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "the blade angle read as `drone_parts_rev1.blade_orientation(...)['angle_inertia_deg']` on a cylindrical section of the whole propeller, against revision 0's same reading +- 0.2 deg."
+   }
+  },
+  {
+   "id": "D10",
+   "check": "C.5",
+   "logged_utc": "2026-09-18T05:40Z",
+   "what": "camera facing area: the scored quantity is now the VISIBLE FRACTION of the camera group - the area a viewer along the given direction actually sees divided by the same group's own unoccluded silhouette from that direction - instead of the absolute visible area. The rule, the three elevations and the direction of the comparison ('must increase against revision 0') are unchanged.",
+   "why": "Main-session ruling 2 again. The absolute-area bound is unmeetable by construction without breaking sourced geometry: revision 0's camera GROUP is 33 886 mm^2 and revision 1's is 18 722 mm^2, because P4-3 builds the gimbal at the User Manual v1.2 p.8 elevations (45.2 x 33.7 x 38.3 mm against revision 0's 52 x 48 x 56 mm block) and P4-6 removes the six Pro-only members of the group. Passing the absolute row would mean making the camera bigger than its source says. The plan's own words for C.5 are that the camera must no longer be buried, and the visible FRACTION measures exactly that with the size confound removed.",
+   "effect": "visible fraction el -30 0.7302 -> 0.9905, el -60 0.6807 -> 0.9908, el -90 0.5710 -> 0.9661; the three rows pass. The absolute-area rows (3256.7 / 3189.3 / 2889.9 mm^2 against revision 0's 4220.4 / 4558.7 / 3866.2) stay printed as the pre-deviation rows and still fail.",
+   "machine": {
+    "mode": "c5_absolute_visible_area",
+    "affects": [
+     "C.5|camera visible area el *"
+    ],
+    "recoverable": true,
+    "turns_fail_into_pass": true,
+    "pre_deviation": "the absolute visible area of the camera group in mm^2 against revision 0's absolute visible area at the same elevation."
+   }
   }
  ],
  "failures_left_standing": [
   {
    "check": "C.1",
    "row": "sliver fraction (aspect > 50)",
-   "measured": 0.02607,
+   "measured": 0.02589,
    "required": "<= 0.02051",
    "reading": "258 -> 252 sliver faces against revision 0's 246, in a frame with 39 % fewer faces (9,666 vs 15,862), so the fraction rises even though the amount of sliver geometry is almost unchanged. The repository's own measure (min angle < 0.5 deg) is 120 against revision 0's 92. No zero-area face, no duplicate face, no boundary or non-manifold edge, no self-intersection. The excess sits on the boolean seams of the X fairing (54) and the gimbal chain (24); the landing gear improved (50 against 65).",
-   "not_relaxed": "The threshold stays as frozen and the row stays FAIL."
+   "not_relaxed": "The threshold stays as frozen and the row stays FAIL. Re-checked 2026-09-18 b6: the bound is unchanged, the row still FAILS, and it is the only failing row phantom4 has. It is measurable and meetable, so ruling 2 does not license a measurement change and no deviation covers it.",
+   "measured_as_delivered": 0.02607,
+   "remeasured_2026_09_18_b6": "0.02589 (309 sliver faces of 11 936, against revision 0's 246 of 15 862; the repository's own min-angle < 0.5 deg measure reads 141 against revision 0's 92). Independently reproduced from a tree rebuilt out of `git archive HEAD` plus the declared revision-1 files. The earlier 0.02607 / 252 / 120 in this entry are the pre-b4 reading and are kept above as `measured_as_delivered`; the b4 round's own note in this file already quotes 0.02589 and 309, so the two disagreed until now."
   },
   {
    "check": "C.2b",
@@ -105,8 +215,8 @@
   }
  ],
  "scored_rows": 139,
- "passed": 130,
- "failed": 9,
+ "passed": 138,
+ "failed": 1,
  "reviewer_2026_09_17": {
   "who": "adversarial reviewer for phantom4, own isolated copy of HEAD 4254c4b2 + E0 + E1 + this delivery",
   "reproduced": "The acceptance table the builder delivered was reproduced byte for byte in an independent copy (only the elapsed time and the ledger path differ), and the fingerprint f79cfcfe... came out identical at OMP_NUM_THREADS 1, 2 and 4.",
@@ -163,5 +273,76 @@
    "Q7 motor pod": "answered by building the barrel, which is the third option the reviewer listed. The delivery's sourced target 38.6 +- 3.0 is superseded by this round's own re-measurement, 37.8 +- 3.0 on the scored rule.",
    "Q3 sliver budget": "still open. The fraction row still fails and this round did not touch the threshold."
   }
+ },
+ "scorer_contract": {
+  "added_utc": "2026-09-18T05:40Z",
+  "why": "Main-session ruling 4, 2026-09-18: deviations that live in code must move into a file. Before this round the eight changes below were documentation only - the acceptance code carried them, so the pre-deviation count could not be recovered. benchmark/mesh_rev1_acceptance_phantom4.py now READS this file.",
+  "how": [
+   "the scorer loads this file, records its sha256 in the ledger, and builds a table of `machine.mode` keys;",
+   "for every scored row a deviation changed, the scorer also computes the PRE-DEVIATION value with the pre-deviation method described in `machine.pre_deviation` and prints it under the row as a `[pre-dev <id>]` line carrying its own verdict;",
+   "the footer prints two counts: `scored/PASS/FAIL` as scored today, and `without deviations` recomputed from the pre-deviation verdicts;",
+   "a deviation whose `machine.recoverable` is true but which produced no row raises, and a `machine.mode` the scorer does not implement raises - so this file and the code cannot drift apart."
+  ],
+  "modes_the_scorer_must_implement": [
+   "c11_require_zero_pairs",
+   "c2_buried_all_groups",
+   "c2b_seat_lowest_prop_vertex",
+   "c2c_global_z_band",
+   "c3_camera_burial_preunion",
+   "c4_silhouette_400k",
+   "c5_absolute_visible_area",
+   "c7_chord_angular_span",
+   "c7_cylindrical_section_angle"
+  ]
+ },
+ "without_deviations": {
+  "scored": 138,
+  "passed": 121,
+  "failed": 17,
+  "note": "D8's row is not scored at all before the deviation, which is why the without-deviations count has one row fewer. D5's blade-angle half is not recoverable; the table says so in a line of its own and it turned no failing row into a pass."
+ },
+ "b4_round_2026_09_18": {
+  "what": "C.2b was closed by GEOMETRY (main-session ruling 3), not by a deviation: the propeller is lifted 0.30 mm so that the P6 hub's underside and the metal adapter's top face are no longer the same plane. 268.45 -> 1.889 mm^2 inside the motor, 250.3 -> 0.000 mm^2 of coincident interface, seating gap 0.0000 -> 0.3000 mm inside the frozen [0, 0.5] window.",
+  "failures_left_standing_now": [
+   "C.1 sliver fraction 0.02589 <= 0.02051 - 309 sliver faces against revision 0's 246 (by area 0.03-0.36 % of each group against revision 0's 27.3 % on the gear). Not relaxed, not re-measured: it is a real mesh-quality shortfall on the boolean seams."
+  ],
+  "fingerprint": "087aae89eed1724193a102714f37f729d7e8acc7e2cb220c2a50903dde2cdf09 -> 34e68d7839e55ce4b503057c4c8779242e88ac78a54a85aa3efe41952c1bd82a; NOT frozen."
+ },
+ "b6_findings_2026_09_18": {
+  "by": "independent verification of the frozen tree, 2026-09-18 (b6)",
+  "findings": [
+   {
+    "id": "B6-1",
+    "what": "24 exactly coincident, parallel triangle pairs — 38.17 mm2 — between the `camera` group and the `gear` group, at (+71.0 ... +72.1, ±63.3 ... ±67.1, −34.9 ... −36.8) mm: the forward obstacle-sensing pair welded onto the landing-gear struts.",
+    "why_it_matters": "drones.DRONE_GROUP_MAT maps `camera` to camera_assembly (metal housing + glass lens) and `gear` to plastic, so these are two DIFFERENT materials sharing the same triangles. Which material a ray meets there is decided by floating-point tie-breaking. It is the same class of defect as mini5pro's welded battery face, which main-session ruling 3 required to be fixed by geometry; the area here is 127x smaller (38.17 mm2 against 4846 mm2) and there are 24 pairs against 71.",
+    "cause": "the R11 review fix cuts each vision sensor against its host with `attached_leg(shape=\"tube\", host=...)` at ZERO extra length, so the cut face lands exactly on the host surface. That is what removed the 2.21 mm penetration; it replaced it with a coincident interface.",
+    "measured_how": "my own census over every pair of groups: triangle centroids within 0.05 mm and unit normals (anti)parallel to within 1e-3. Same census on the other three: matrice4e 0 pairs, mini5pro 1 pair / 1.3 mm2 (body|gear), mavic4pro 10 pairs / 22.8 mm2 (body|gear) — both of those are plastic|plastic, so no material is ambiguous.",
+    "not_scored_anywhere": "this scorer measures a coincident interface only for prop|motor (the C.2b diagnostic added by the b4 round). The two photo-scored drones have a general cross-group census as report row R1; phantom4 and matrice4e have none.",
+    "status": "OPEN — no gate row covers it, so it changes no count. It is reported, not declared: under ruling 3 it is a geometry fix, not a deviation.",
+    "revision_0_control": "REVISION 0 has ZERO coincident cross-group triangle pairs on all four aircraft, measured the same way. Every coincident interface in revision 1 is therefore a revision-1 regression: phantom4 24 pairs / 38.17 mm2 camera|gear (camera_assembly vs plastic — two materials), mini5pro 1 pair / 1.3 mm2 body|gear and mavic4pro 10 pairs / 22.8 mm2 body|gear (both plastic|plastic, so RF-neutral), matrice4e 0.",
+    "scope_of_this_census": "This counts EXACTLY coincident triangle pairs — the metric the photo scorer's own R1b row uses (20 um centroid, parallel normals) — not surfaces that merely meet. A separate area census of cross-MATERIAL surfaces within 10 um finds much larger contacts, and most of them are the ordinary junctions of attached parts, which revision 0 has too: phantom4 rev1 body|motor 2288.66, body|camera 340.30, camera|gear 141.66 mm2 (all at 0.00000 mm) against rev0's body|motor 3.36 and body|camera 16.79 mm2 at 1-8 um; mini5pro rev1 body|motor 197.54 mm2 at 0.00000 mm against rev0's battery|canopy 46.30 mm2, also at 0.00000 mm. A part unioned onto the shell must share a boundary, so the area alone is not a defect. What changes between the revisions is its SIZE, and whether a shared wall of that size is acceptable is a user question this round does not settle."
+   },
+   {
+    "id": "B6-2",
+    "what": "the swept-blade-volume clearance measured by matrice4e's own DEV-9 method (`swept_clearance_dense`, surfaces sampled, 0.25R ... R) on all four aircraft.",
+    "measured": "matrice4e rev1 −0.7442 mm (rev0 −2.2666), phantom4 rev1 +1.7946 mm (rev0 −2.3448), mini5pro rev1 +5.8649 mm (rev0 +0.7647), mavic4pro rev1 +24.3533 mm (rev0 +15.4857); bound >= 1.0 mm.",
+    "why_it_matters": "DEV-9 is ruling 2's measurement fix and it lives only in the matrice4e scorer. Applied uniformly it changes no verdict: phantom4, mini5pro and mavic4pro pass it comfortably and only matrice4e fails. Recorded so that the asymmetry is not read as an untested risk.",
+    "status": "closed — no action."
+   },
+   {
+    "id": "B6-3",
+    "what": "the prop|motor seat, measured as SURFACE separation on all four aircraft, revision 0 against revision 1 (prop area within 10 um of the motor group, per rotor).",
+    "measured": {
+     "matrice4e": "rev0 105.54 mm2 (min 0.00000 mm) -> rev1 0.63 mm2 (min 0.00048 mm)",
+     "phantom4": "rev0 189.47 mm2 (min 0.00000 mm) -> rev1 0.48 mm2 (min 0.00201 mm) — the b4 0.30 mm lift, confirmed independently",
+     "mini5pro": "rev0 0.00 mm2 (min 0.99860 mm) -> rev1 124.78 mm2 (min 0.00000 mm) — a REVISION-1 REGRESSION: the motor stack top rises from z 13.0504 to 14.3489 mm, exactly the prop mount plane, so the hub now rests flat on the metal",
+     "mavic4pro": "rev0 299.15 mm2 -> rev1 386.22 mm2, both at min 0.00000 mm — inherited from revision 0 and enlarged"
+    },
+    "why_it_matters": "`prop` is prop_plastic and `motor` is metal. A shared plane between them is main-session ruling 3's defect, and it is what phantom4 fixed by geometry. C.2b scores the seat gap against the frozen window [0.0, 0.5] mm; a gap of exactly 0.0 is inside that window, so the row PASSES on both photo-scored drones and the defect is invisible to every gate. The two photo drones' R1b cross-group census walks the FRAME's groups only, and the propeller is not one of them.",
+    "fixed_here": "benchmark/mesh_rev1_acceptance_photo.py gains report row R1g, which measures this on both photo-scored drones on every run and prints the revision-0 control beside it. No gate is added and no count changes.",
+    "not_fixed_here": "the geometry. mini5pro and mavic4pro already carry frozen fingerprints, and a geometry change to a frozen (key, revision) pair is revision 2 by the rule this phase runs on. The fix itself is one line — phantom4's `PROP_SEAT_CLEARANCE_MM = 0.30` added to rotor_z_mm — and it is the user's call whether to spend a revision 2 on it.",
+    "status": "OPEN — a user decision, not a deviation."
+   }
+  ]
  }
 }

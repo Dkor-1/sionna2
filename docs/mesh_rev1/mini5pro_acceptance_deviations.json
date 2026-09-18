@@ -1,0 +1,182 @@
+{
+ "drone": "mini5pro",
+ "mesh_rev": 1,
+ "written": "2026-09-18, b4 phase (deviation round); reconciled in the b5 round",
+ "thresholds_file": "docs/mesh_rev1/mini5pro_acceptance_thresholds.json",
+ "thresholds_sha256": "112e40ae069e17cc4854e2f491ff82ddec186cf1bef5e2a331880095950e3828",
+ "_about": "Every deviation from the frozen acceptance thresholds for ('mini5pro', 1), in one file that benchmark/mesh_rev1_acceptance_photo.py reads. Before this round the seven entries lived inside the threshold file's deviations[] with approved_by 'not yet', and nothing printed the row they replaced, so the PRE-DEVIATION pass/fail count could not be recovered from a run. Each entry below that is APPROVED carries a pre_deviation_row; the scorer measures it and prints it as a REPORT row marked 'pre-deviation', so the failing row stays visible next to the narrowed one. Entries under disclosures[] changed no threshold and their rows are scored as written. Entries under removed[] no longer apply. Entries under open[] are unresolved failures with the evidence gathered so far; their gate rows still FAIL.",
+ "approval_basis": "2026-09-18 b4 phase rulings from the main session: (1) a limit that no exterior-only mesh can meet against an interior reference becomes a DECLARED deviation, scored as a report-only row with the measured value beside the failing row; (2) a threshold is never relaxed to make a row pass - if a bound is unmeetable by construction the MEASUREMENT is fixed instead; (3) a coincident metal/plastic interface is a real defect and is fixed by geometry; (4) deviations that live in code move into a file the scorer reads. This is a phase ruling, NOT a user sign-off: no entry here has been approved by the user.",
+ "deviations": [
+  {
+   "id": "DEV-1",
+   "status": "approved",
+   "check": "C.2",
+   "row": "buried plastic (% of shell area)",
+   "threshold_key": "C2_attachment.buried_plastic_pct_of_shell_area_max",
+   "when": "2026-09-18, before the first acceptance run",
+   "what": "the single row 'buried plastic <= 2 % of shell area' was split into plastic-inside-plastic, still gated at 2 %, and plastic-inside-the-camera, gated against revision 0's own value.",
+   "why": "M5P-1 is a user decision: revision 1 keeps revision 0's vertical layout (the x1.2986 height stretch). With that layout the 33 mm gimbal block cannot fit between revision 0's nose keel (-28.0 mm) and the foot plane (-51.6 mm), so it necessarily sits partly inside the shell exactly as revision 0's does. A 2 % gate on the combined number would score the M5P-1 decision, not this build.",
+   "evidence": "measured 2026-09-18 b4: plastic-in-plastic 0.031 % (revision 0: 27.830 %), plastic-in-camera 8.971 % (revision 0: 10.274 %). Revision 1 is better than revision 0 on both halves, so the split does not hide a regression.",
+   "pre_deviation_row": {
+    "metric": "buried_plastic_total_pct",
+    "want": "<= 2.0",
+    "note": "plastic-in-plastic + plastic-in-camera against the un-split 2 % bound"
+   },
+   "approved_by": "2026-09-18 b4 phase ruling (main session) - not a user sign-off"
+  },
+  {
+   "id": "DEV-2",
+   "status": "approved",
+   "check": "C.1",
+   "row": "connected components per group (camera)",
+   "threshold_key": "C1_topology.components_per_group.camera",
+   "when": "2026-09-18, after the first acceptance run",
+   "what": "the declared camera-group component count was corrected from 1 to 6.",
+   "why": "a threshold-file error, not a relaxation. The camera group has always held the gimbal head, six vision sensors and the LiDAR; after the per-group union that is 6 solids (head fused with the two forward sensors it touches, 2 rear sensors, 2 belly sensors, LiDAR). The declared 1 could never have been met by any build.",
+   "evidence": "revision 0's camera group measures the same 6 in the same run, so the corrected number is not fitted to revision 1.",
+   "pre_deviation_row": {
+    "metric": "camera_components",
+    "want": "== 1",
+    "note": "the component count the threshold file declared before the correction"
+   },
+   "approved_by": "2026-09-18 b4 phase ruling (main session) - not a user sign-off"
+  },
+  {
+   "id": "DEV-3",
+   "status": "approved",
+   "check": "C.11",
+   "row": "mirror symmetry",
+   "threshold_key": "C11_certificates.mirror_symmetry_max_vertex_distance_mm",
+   "when": "2026-09-18, after the first acceptance run",
+   "what": "the gate moved from a mirrored-VERTEX-to-nearest-vertex distance to (a) per-group mirrored area error, (b) |centre of mass y| of the body, (c) per-group y bounding box symmetry. The vertex-level numbers are still measured and printed.",
+   "why": "this is ruling 2 applied: the 0.01 mm bound is unmeetable by construction because a vertex-level nearest-neighbour distance scores the TRIANGULATION, not the geometry. A mesh that is exactly symmetric as a solid fails it as soon as the mesher emits an asymmetric vertex ordering. The fix is a sound measurement of the same property, not a wider bound.",
+   "evidence": "revision 0 fails the same bound: mirrored vertex-to-vertex 1.3935 mm against 0.01 mm. Revision 1 measures 10.9225 mm. Both revisions measure 0.000000 % per-group mirrored AREA error and 0.000000 mm y bounding-box asymmetry, and revision 1's |centre of mass y| is 0.007151 mm against the 0.01 mm bound - i.e. the solid is symmetric in both revisions and only the triangulation is not.",
+   "pre_deviation_row": {
+    "metric": "mirror_vertex_mm",
+    "want": "<= 0.01",
+    "note": "the mirrored-vertex-to-nearest-vertex distance the gate used before the change; revision 0 measures 1.3935 mm on the same metric"
+   },
+   "approved_by": "2026-09-18 b4 phase ruling (main session) - not a user sign-off"
+  },
+  {
+   "id": "DEV-4",
+   "status": "approved",
+   "check": "C.3",
+   "row": "front_arm_heading (deg)",
+   "threshold_key": "C3_dimensions.targets[front_arm_heading].value_deg",
+   "when": "2026-09-18, review-fix round; value re-stated in the b4 round",
+   "what": "the target moved from 65.34 +-3.0 deg to 69.0 +-3.0 deg. The tolerance is unchanged, so this is not a relaxation. 2026-09-18 b4: the stored value is now exactly the approved plan's own row M5P-2 figure (69 +-3) instead of 68.97, which was this build's own reading and left the row checking the build against itself.",
+   "why": "the frozen 65.34 deg was a measurement error, not a property of the aircraft. work/arm_axis.py reads only the arm's OUTER silhouette and subtracts an assumed half width (w/2)/sin(theta) with w = 11.6..16.5 mm from drone_cad._ARM_WIDTH, while the band measured perpendicular to the true axis is 10.6..11.0 mm, so the subtraction over-corrects and biases theta low.",
+   "evidence": "a mid-line estimator that uses BOTH edges of the arm band, so the arm's own width cancels (fix/arm_midline.py, ledger fix/arm_midline.json): FL 68.672 +-0.021 deg, FR 69.270 +-0.112 deg, both sides 68.971 +-0.316 deg over 24 independent fits (2 front rotors x 3 mask thresholds x 4 station ranges). The perpendicular mid-offset of the photo's arm band about the axis is rms 2.605 / 3.068 mm at 65.34 deg and 0.258 / 0.279 mm at the built heading, about 12x better. An independent reading of the same photo by the adversarial reviewer gives 68.9 deg (68.6-69.6). The built mesh is at 68.97 deg.",
+   "pre_deviation_row": {
+    "metric": "front_arm_heading_deg",
+    "want": "65.34 +- 3.0",
+    "note": "the ORIGINAL frozen target, before both changes"
+   },
+   "also_scored_independently": "report row R1 'front arm axis vs the photo mid-line' measures the BUILT axis against the photo and does not read this file, so a wrong target can no longer hide a wrong build.",
+   "approved_by": "2026-09-18 b4 phase ruling (main session) - not a user sign-off"
+  },
+  {
+   "id": "DEV-5",
+   "status": "declared",
+   "check": "C.2 / render",
+   "row": "vision sensors: size, seating and lateral station (no gate covers them)",
+   "threshold_key": null,
+   "when": "2026-09-18, b4 round",
+   "what": "the six vision sensors keep revision 0's 8.0 mm-radius sphere and revision 0's seating rule (the sphere's CENTRE is pushed out to the shell surface), so each one leaves a hemisphere outside the shell. On the revision-1 tail that puts the two rear sensors 5.895 mm aft of the shell's own tail station.",
+   "why": "the approved plan's revision-1 scope for this aircraft is M5P-1 ... M5P-8 and none of them covers the vision sensors, so changing their size, their seating or their lateral station would be an unplanned geometry change. Declared instead of built.",
+   "evidence": "owned FCC ID SS3-MT5MFND25 External Photos, exhibit 8307184, p3_img1 (rear view). Scale from the battery pack's own rear face, which is the aircraft's rear face: 437..700 px across = 263 px for the official 54.89 mm, i.e. 4.79 px/mm. The left rear sensor's black dome measures about 33 px across and 55 px tall (crop probe/sensor_L.png, 5 px grid) = about 6.9 x 11.5 mm at the tail-face scale, against the modelled 16.0 mm sphere diameter; its centre sits about 144 px = 30 mm off the centreline, against the modelled 17.79 mm. The sensor plane is further from the camera than the tail face and is viewed obliquely, and the photograph gives no depth, so these readings bound the error but are not good enough to build from - which is why the revision-0 numbers are kept rather than replaced.",
+   "report_row": {
+    "metric": "rear_vision_sensor_protrusion_mm",
+    "note": "how far the rear vision sensors reach aft of the shell's own tail station"
+   },
+   "approved_by": "2026-09-18 b4 phase ruling (main session), ruling 1 - not a user sign-off"
+  },
+  {
+   "id": "DEV-6",
+   "status": "approved",
+   "check": "C.7",
+   "row": "blade angle vs revision 0 (deg)",
+   "threshold_key": "C7_props.blade_angle_max_error_deg",
+   "when": "2026-09-18, b5 reconciliation round (was OPEN-1 in the b4 file)",
+   "what": "the SCORED C.7 blade-angle row moved from the cylindrical-section inertia reading to the constructed blade-angle law, with the 0.2 deg bound unchanged; the constructed chord law is scored beside it at the unchanged 0.5 mm. The inertia reading keeps its row as a REPORT with its measured value and its noise floor.",
+   "why": "ruling 2 applied. The +-0.2 deg bound is unmeetable by construction on the row as it was written, because the row read `angle_inertia_deg` - the principal-axis angle of a CYLINDRICAL section of the built blade - and that section is exactly what P6 changes: P6 mirrors the airfoil's chord coordinate BEFORE the pitch rotation and flips the sweep sign, so the built solid differs and no section statistic in the rotor frame is invariant to the flip. The bound is NOT relaxed and NOT re-aimed: it stays the plan's own 0.2 deg. The MEASUREMENT is replaced by the quantity plan C.7 actually names - the constructed blade-angle law and chord law that both builders compute from the same tables - and that is scored at the same 0.2 deg / 0.5 mm.",
+   "evidence": [
+    "blade law inputs vs revision 0 are IDENTICAL: chord table, chord_max/R, pitch table, tip refinement, radius, geometric pitch, blade count, root fraction and section count (scored row 'blade law inputs vs revision 0').",
+    "constructed blade-angle law theta(r) = atan(k(r/R) * P / (2 pi r)) at every loft station: max |rev1 - rev0| = 0.000000 deg, against the unchanged 0.2 deg bound. Constructed chord law: 0.000000 mm against the unchanged 0.5 mm bound.",
+    "the inertia reading's own noise floor exceeds the bound it was asked to resolve: the two blades of ONE propeller are the same blade rotated 180 deg, and their spread in this run is 0.1332 deg (mini5pro) and 0.3140 deg (mavic4pro) - the mavic4pro value is above 0.2 deg on revision 0's own propeller.",
+    "report row R1 'blade set vs revision 0 (P6 separated)' rebuilds both blades with identical resolved laws and compares them ring by ring at all 24 loft stations: chord length identical to 0.0 mm at every station; the angle difference is 0.4334 deg mean / 0.5443 deg max at the shipped 36-point section resampling and falls to 0.0475 / 0.0787 deg when the SAME sections are resolved at 144 points, so it is how the loft resamples the mirrored airfoil.",
+    "the airfoil's own camber-induced inertia offset is 0.008-0.015 deg at these stations, so the residual is not a camber-flip artifact of the estimator either.",
+    "the R1 row returns identical numbers to four decimals on mini5pro and mavic4pro, because the error depends only on the shared normalized airfoil and chord-profile laws and not on radius, pitch or c_max: one shared parts-library property measured twice, not two aircraft defects."
+   ],
+   "cross_drone": "this is one shared-library property, so the same measurement fix is applied on all four aircraft: mesh_rev1_acceptance_photo.py (mini5pro, mavic4pro), mesh_rev1_acceptance_matrice4e.py (DEV-8) and mesh_rev1_acceptance_phantom4.py (D9).",
+   "history": "the b4 mini5pro unit left this as OPEN-1 ('gate still fails') because the fix is a cross-drone decision it could not take alone, while the b4 mavic4pro unit implemented it in the SHARED scorer benchmark/mesh_rev1_acceptance_photo.py. The two deliveries therefore contradicted each other. Reconciled in the b5 round by taking the measurement fix (it is what ruling 2 directs) and converting OPEN-1 into this declared deviation, so the pre-deviation row is scored and the 0.4808 deg failing reading stays visible.",
+   "superseded_open_entry": {
+    "id": "OPEN-1",
+    "check": "C.7",
+    "row": "blade angle vs revision 0 (deg, inertia)",
+    "threshold_key": "C7_props.blade_angle_max_error_deg",
+    "status": "GATE STILL FAILS - no threshold changed, no row re-scored",
+    "measured": "0.4808 deg (inertia) / 0.6320 deg (convex hull) against the +-0.2 deg bound",
+    "what_it_is": "this is one property of the shared parts library, not a mini5pro defect: all four revision-1 aircraft fail the same row (0.469 / 0.32-0.88 / 0.481 / 0.496 deg). P6 mirrors the airfoil's chord coordinate BEFORE the pitch rotation and flips the sweep sign; the cylindrical section the row is measured on couples both to the reading.",
+    "evidence_that_the_constructed_law_is_unchanged": [
+     "drone_parts_rev1.blade_rev1 and drone_cad._blade compute the same pitch law from the same table: theta(r) = atan(k(r/R) * P / (2 pi r)) with PITCH_LAWS[...] , the same pitch P = 2.8 in, the same root_frac 0.070, the same chord law and the same NACA-4 airfoil. The only differences in the two functions are P6's two cues.",
+     "built blades compared ring by ring at all 24 loft stations: the chord LENGTH is identical to 0.0 mm at every station (probe/p10_rings.py).",
+     "the blade-angle difference measured on those same rings is 0.433 deg mean / 0.544 deg max at the shipped 36-point section resampling, and falls to 0.048 deg mean / 0.079 deg max when the identical sections are resolved at 144 points (probe/p11_npts.py) - i.e. it is dominated by how the loft resamples the MIRRORED airfoil, not by the blade's set.",
+     "the airfoil's own camber-induced inertia offset is only 0.008-0.015 deg at these stations (probe/p9_delta.py), so the difference is not a camber-flip artifact of the estimator either.",
+     "the same row measured on mavic4pro returns the IDENTICAL numbers to four decimals (0.4334 deg mean / 0.5443 deg max at 36 points, 0.0475 / 0.0787 at 144), because the chord-line angle error of the mirrored resampling depends only on the shared normalized airfoil and chord-profile laws and not on the aircraft's radius, pitch or c_max. That is a shared parts-library property measured twice, not two aircraft defects."
+    ],
+    "why_not_re_scored_here": "ruling 2 allows a report-only deviation only when no sound measurement exists, and the sound measurement found here needs a section resolution the shipped 36-point mesh does not carry. The row is also shared with mavic4pro through benchmark/mesh_rev1_acceptance_photo.py and the same bound fails on matrice4e and phantom4 through their own scorers, so changing it is a cross-drone decision, not a mini5pro one. The gate is left FAILING and the evidence is printed as report row R1 'blade set vs revision 0 (P6 separated)'."
+   },
+   "pre_deviation_row": {
+    "metric": "blade_angle_inertia_deg",
+    "want": "<= 0.2",
+    "note": "the cylindrical-section inertia reading the C.7 gate used before the measurement was fixed; it is also printed every run as the C.7 report row 'blade angle vs revision 0 (deg, inertia)', with its number and its noise floor"
+   },
+   "approved_by": "2026-09-18 b4/b5 phase ruling 2 (main session) - not a user sign-off"
+  }
+ ],
+ "disclosures": [
+  {
+   "id": "DISC-1",
+   "check": "C.3",
+   "when": "2026-09-18, adversarial review",
+   "what": "NO THRESHOLD CHANGED. Recorded: 10 of the 23 C.3 targets (spans, widths, headings) are readings made by this build's own measurement scripts, so those rows verify that the builder implemented its own reading, not that the reading is right.",
+   "status": "row scored as written",
+   "mitigation": "report rows R1 'front arm axis vs the photo mid-line' and 'rear arm axis vs the photo mid-line' measure the BUILT axes against the photo without reading the threshold file. The remaining self-referential rows (shell spans and widths) have no such independent row yet."
+  },
+  {
+   "id": "DISC-2",
+   "check": "C.6",
+   "when": "2026-09-18, adversarial review",
+   "what": "SUPERSEDED 2026-09-18 b5. It used to read: the C.6 sagitta row reads the parts library's DECLARED mesh_sagitta_mm / curve_sagitta_mm, so a part that declares a small number cannot fail it. The b4 mavic4pro unit replaced that self-report in the shared scorer with a reading measured on the BUILT mesh, group by group plus the built propeller, using mesh_topo_check.facet_wavelength - the same estimator matrice4e and phantom4 already gate on. No bound changed and the gate became stricter, so this is a disclosure, not a deviation.",
+   "status": "resolved - the gate now measures the built mesh",
+   "evidence": "calibration against an analytic cylinder (chord error = R(1-cos(pi/N)) exactly): the edge-chord convention reads 0.74x to 95.9x the truth, the span-chord convention reads exactly 2.00x, and facet_wavelength reads 1.00x. Measured now: mini5pro C.6 gate 0.6729 mm against the 2.58 mm lambda/20 bound; the parts library's declared value 0.9596 mm and the two uncalibrated conventions 2.679 mm (body) / 2.796 mm (camera) are kept as report rows.",
+   "mitigation": "the two uncalibrated readings that the adversarial review cited are still printed every run as report row R1 'uncalibrated chord conventions', so the review's numbers remain readable."
+  }
+ ],
+ "removed": [
+  {
+   "id": "REM-1",
+   "was": "C.2 (new failure mode, no row covers it): clipping the official-size pack against the shell welds metal face onto the shell surface and leaves exactly coincident, parallel triangles shared between the metal 'battery' group and the plastic 'body' group.",
+   "when_removed": "2026-09-18, b4 round",
+   "why_removed": "fixed by geometry under ruling 3, so there is nothing left to declare. The pack is now cut against the shell OFFSET INWARD by plan C.2's own 1.0 mm metal clearance instead of against the shell itself.",
+   "before": {
+    "coincident_pairs": 71,
+    "coincident_area_mm2": 3038.357,
+    "metal_area_on_shell_surface_mm2": 4846.08,
+    "metal_clearance_mm": 0.0,
+    "battery_clipped_volume_pct": 6.916
+   },
+   "after": {
+    "coincident_pairs": 0,
+    "coincident_area_mm2": 0.0,
+    "metal_area_on_shell_surface_mm2": 0.0,
+    "metal_clearance_mm": 1.041,
+    "battery_clipped_volume_pct": 10.662
+   },
+   "still_reported": "report row R1 'coincident faces across material groups' prints it every run"
+  }
+ ],
+ "open": []
+}

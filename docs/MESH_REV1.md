@@ -1,9 +1,11 @@
 # Mesh revisions — how to use one
 
 > Design and acceptance plan: `docs/MESH_REV1_PLAN_0917.md`. This file is the operating manual.
-> Status 2026-09-18: the mechanism is live (HEAD `9425dfe8`). Four drones have a revision-1
-> builder registered. **No fingerprint is frozen, so `--mesh-rev 1` is refused for every key** —
-> see “What is frozen” below.
+> Status 2026-09-18 (b5 reconcile-and-freeze round): the mechanism is live. Four drones have a
+> revision-1 builder registered. **Two fingerprints are now frozen — mini5pro and mavic4pro — so
+> `--mesh-rev 1` runs for those two keys and is still refused for matrice4e and phantom4.** A
+> frozen fingerprint fixes the GEOMETRY of that (key, revision); it does not approve any of the
+> acceptance deviations, none of which the user has signed off. See “What is frozen” below.
 
 ## The idea in one paragraph
 
@@ -85,57 +87,115 @@ Two rows need scratch helpers that are not part of the installable tree (`top_io
 ⚠ The per-key directory matters: mini5pro and mavic4pro each ship a **different** `top_iou.py`
 under that one name, with different registrations and different signatures.
 
-## What is frozen, 2026-09-18
+## What is frozen, 2026-09-18 (b5 round)
 
-| drone | acceptance | fingerprint | blocking |
+Every number below was measured on one reconciled tree, in this round, with
+`benchmark/mesh_rev1_acceptance.py`. The **without** column is the same table with each drone's
+deviations undone — see “What a deviation means here” for how each drone's is undone.
+
+| drone | acceptance, with deviations | without deviations | fingerprint |
 |---|---|---|---|
-| matrice4e | 159 scored, 152 pass, 7 fail | `fc0bbae9…` **not frozen** | 18 self-intersections (C.1 asks 0); 4 C.4 p99 rows; DEV-5/DEV-6 declared but unapproved; **DEV-1…DEV-4 are inside the frozen threshold file itself and are also unapproved**; C.7 blade angle |
-| phantom4 | 139 scored, 130 pass, 9 fail | `087aae89…` **not frozen** | C.1 sliver fraction, C.2b prop area in the bell, C.5 camera visibility, C.7 blade angle; **8 post-run code deviations (D1–D8) are live in the committed scoring code; D1, D2, D3, D4, D6 and D8 each turn a failing or unscored row into a passing one** |
-| mini5pro | 65 gates, 63 pass, 2 fail | `5575058136…` **not frozen** | C.2 battery metal clearance 0.0 mm (the official pack does not fit the photo-measured shell) — measured consequence: **4,846 mm² of metal face welded onto the shell and 71 coincident metal/plastic triangle pairs (3,038 mm²)**; C.7 blade angle; **7** unapproved threshold deviations |
-| mavic4pro | 66 gates, 65 pass, 1 fail | `9359e1f0…` **not frozen** | C.7 blade angle is the only failing gate and `deviations[]` is empty — but **C.6 is scored on the parts library's own declared sagitta, and the measured facet sagitta is 3.451 mm against the 2.58 mm λ/20 bound** (report row R1), with 10 coincident cross-group triangles (22.8 mm²). mini5pro logged that same gap as a deviation; mavic4pro did not |
+| **mini5pro** | 67 gate rows, **67 pass, 0 fail**, 20 report | **5 fail** — 5 of the 67 gate rows are deviation-replaced and every one of their pre-deviation readings fails | **FROZEN** `395f01bc0795184c903efffda5ba69f0105486b8ecb8f9fbf735c76b1b80f394` |
+| **mavic4pro** | 68 gate rows, **68 pass, 0 fail**, 15 report | **1 fail** — the C.7 inertia reading, 0.4961° against 0.2° | **FROZEN** `2d1824a68bb3e47c1d6000327dc56ef1456cf4ef912844bb44071c131b363d97` |
+| **phantom4** | 139 scored, 138 pass, **1 fail**, 19 report | 138 scored, 121 pass, **17 fail** | `34e68d78…` **not frozen** — C.1 sliver fraction 0.02589 against rev0 0.01551 + 0.005 is an **undeclared** failure |
+| **matrice4e** | 163 scored, 160 pass, **3 fail**, 43 report | 158 scored, 151 pass, **7 fail** | `7663a959…` **not frozen** — C.2c swept-disc clearance −0.744 mm, C.4 CAD→ours motors p99 9.116 mm and C.4 ours→CAD turret p99 1.717 mm all still fail **after** their deviations are applied |
 
-### ⚠ "C.6 passes" does not mean the same thing on all four drones
+⚠ On mini5pro and mavic4pro the “without” column counts **failing pre-deviation readings**, not a
+second table: undoing a deviation there does not simply restore one row, because DEV-1, DEV-3 and
+DEV-6 each replaced one frozen row with two or three scored rows. The reading that would fail is
+printed under its row on every run, which is what the count is read from.
 
-The dispatcher keeps three scoring implementations, and they do not measure C.6 the same way.
-`mesh_rev1_acceptance_matrice4e.py` and `_phantom4.py` measure the sagitta on the **built mesh**
-(0.738 mm and 0.734 mm). `mesh_rev1_acceptance_photo.py` reads the parts library's **declared**
-`mesh_sagitta_mm` / `curve_sagitta_mm`, so a part that declares a small number cannot fail it; on
-those two aircraft the measured value is printed as report row R1 and is **above** the λ/20 bound
-(mini5pro 2.679 mm edge-chord / 2.796 mm span-chord, mavic4pro 3.451 / 2.72 mm). Read the gate
-column together with R1 for mini5pro and mavic4pro, and do not compare a C.6 pass across drones.
+The freeze rule this round used: freeze only when every remaining gate failure is a **declared**
+deviation carrying its evidence and its pre-deviation reading. A drone with even one failure that
+no deviation covers keeps `fingerprint=None`, and `mesh_rev.run_spec` keeps refusing
+`--mesh-rev 1` for it — the safe state, because no unaccepted geometry can then reach a shard name.
 
-Every one of those four values was recomputed in the merged tree and is identical across
-`OMP_NUM_THREADS` 1, 2 and 4 in two processes each. **C.7 blade angle vs revision 0 fails on all
-four** for one structural reason: what P6 changes *is* the leading/trailing-edge assignment that
-the chord angle measures, so no mesh applying P6 can meet ±0.2°. Plan critique M8 forbids
-relaxing a threshold after seeing it fail, so this needs a user ruling, not a merge-stage edit.
+Verification behind the two frozen values:
 
-To freeze one: set `fingerprint=` to the verified value in that drone's `mesh_rev_<key>.py`
-(the value is already recorded in the comment above the field) and commit. From that moment the
-geometry of `(key, 1)` is fixed and any change is revision 2.
+* each reproduced in **6 processes** — `OMP_NUM_THREADS` / `MKL_NUM_THREADS` /
+  `OPENBLAS_NUM_THREADS` 1, 2 and 4 × two processes — **1 distinct value each**;
+* revision 0 re-proved bit-identical against a pristine `git archive HEAD` tree:
+  `regress_mesh_rev0_bitidentical_0917.py hashes`, 10 keys × 4 environment states,
+  **680 equal, 0 different**;
+* 32 live queue lines from `runners/jobs_0964…0968` dry-run in both trees:
+  **32/32 identical shard names, 0 BAD**;
+* `--mesh-rev 1` accepted for the two frozen keys and refused for the other two; a fingerprint
+  tampered in memory is refused by `guard_fingerprint` right after FastPoser; `--mesh-rev 1` with
+  `MESH_FIX=none` is refused before FastPoser; `--mesh-rev 2` is refused for all four.
 
-### ⚠ A deviations file can move the headline count — matrice4e
+⚠ `run_spec` only checks that a frozen fingerprint **exists** — it runs before FastPoser does.
+The value itself is checked by `guard_fingerprint`, which recomputes it from the built geometry.
+Both must be in the path for the guard to mean anything; `elevation_sweep_md.py` calls them in
+that order.
 
-`mesh_rev1_acceptance_matrice4e.py` auto-loads `docs/mesh_rev1/matrice4e_deviations_0918.json`
-if it is present and re-scores with it. Measured by running the acceptance twice, once with the
-file moved aside:
+**To freeze another one:** set `fingerprint=` to the verified value in that drone's
+`mesh_rev_<key>.py` and commit. From that moment the geometry of `(key, 1)` is fixed and any
+change is revision 2.
 
-| | scored | passed | failed |
+## What a deviation means here
+
+A deviation is a place where the acceptance row as first frozen cannot be scored as written. It
+is **never** a wider bound. Every one of them is recorded in
+`docs/mesh_rev1/<key>_acceptance_deviations.json`, which that drone's scorer reads, and every one
+prints the reading it replaced as a report row on the same run — that is what makes the
+pre-deviation pass/fail count recoverable. **None of them is approved by the user**; they carry a
+2026-09-18 phase ruling only.
+
+The four drones undo their deviations by two different mechanisms, and both are exercised above:
+
+* **matrice4e** — the scorer re-scores when the file is present, so the “without” count is
+  measured by moving `docs/mesh_rev1/matrice4e_acceptance_deviations.json` aside and re-running:
+  **163/160/3 with it, 158/151/7 without it.**
+* **phantom4, mini5pro, mavic4pro** — the scorer recomputes each pre-deviation reading in the same
+  run and prints it under its row. Moving those files aside removes only the report rows and
+  changes **no gate verdict** (checked row by row this round for the two photo-scored drones), so
+  the “without” count is read off the pre-deviation rows, not off a second run.
+
+| id | drone | check | the row as frozen | what is scored instead | pre-deviation reading |
+|---|---|---|---|---|---|
+| DEV-1 | mini5pro | C.2 | one “buried plastic ≤ 2 % of shell area” row | plastic-in-plastic and plastic-in-the-camera scored apart | 9.002 % — **would fail** |
+| DEV-2 | mini5pro | C.1 | camera group has 1 connected component | 6, the parts the group has always held (revision 0 measures 6 too) | 6 vs `== 1` — **would fail** |
+| DEV-3 | mini5pro | C.11 | mirrored vertex → nearest vertex ≤ 0.01 mm | mirrored per-group **area** error, \|COM y\|, y bbox symmetry | 10.9225 mm — **would fail** (revision 0: 1.3935 mm) |
+| DEV-4 | mini5pro | C.3 | front arm heading 65.34 ± 3° (the build's own reading) | the plan's own M5P-2 figure, 69 ± 3°, tolerance unchanged | 68.97 vs 65.34 ± 3 — **would fail** |
+| DEV-5 | mini5pro | — | (no row covers the rear vision spheres) | nothing; a declared, measured report row | 5.895 mm aft of the tail station |
+| DEV-6 | mini5pro | C.7 | blade angle from a cylindrical-section inertia reading | the constructed blade-angle law, same 0.2° bound | 0.4808° — **would fail** |
+| DEV-1 | mavic4pro | C.7 | the same inertia reading | the same constructed law, same 0.2° bound | 0.4961° — **would fail** |
+| D1–D10 | phantom4 | C.2, C.2b, C.2c, C.3, C.4, C.5, C.7, C.11 | ten rows, listed in its file | see the `[pre-dev Dn]` line under each row | 17 rows would fail; D5 is only **partly** recoverable and says so |
+| DEV-5…DEV-10 | matrice4e | C.4, C.5, C.7, C.2c | six rows, listed in its file | see the file; DEV-9 makes a row that used to **pass** now **fail** | the failing rows stay in the table |
+
+## What a C.6 or a C.7 pass means, per drone
+
+Both of these used to mean different things on different drones. They no longer do, and this is
+the record of what changed.
+
+**C.6 — facet sagitta against λ/20 = 2.58 mm at 5.8 GHz.** All four now measure the **built**
+mesh with `mesh_topo_check.facet_wavelength`, group by group plus the built propeller. Until the
+b4 round the two photo-scored drones read the parts library's **declared** `mesh_sagitta_mm`, a
+self-report a part could pass by declaring nothing. The two chord conventions the adversarial
+review quoted were calibrated against an analytic cylinder (chord error `R(1−cos(π/N))` exactly):
+the **edge**-chord convention reads 0.74×–95.9× the truth, the **span**-chord convention reads
+exactly 2.00×, and `facet_wavelength` reads 1.00×. Both uncalibrated readings keep a report row.
+
+| drone | C.6 gate | bound | the library's own number |
 |---|---|---|---|
-| without the deviations file | 158 | 150 | **8** |
-| with it | 159 | 152 | **7** |
+| matrice4e | 0.738 mm | ≤ 2.58 | — (measured from the start) |
+| phantom4 | 0.734 mm | ≤ 2.58 | — (measured from the start) |
+| mini5pro | 0.6729 mm | ≤ 2.58 | 0.9596 mm, now a report row |
+| mavic4pro | 0.6804 mm | ≤ 2.58 | 0.6804 mm, now a report row |
 
-**DEV-5 flips two scored rows from FAIL to PASS** — `CAD->ours nose_cradle median` (10.56 mm
-against a 5.0 mm limit) and `p90` (19.04 against 8.6) — by narrowing the scored `nose_cradle`
-class to CAD solid 49. It is done in the open: the original definition stays in the table as the
-report rows `nose_cradle__frozen_class median/p90` with their failing numbers, and a new scored
-`p99` row fails. DEV-6 rescues nothing; it turns one unmeasurable row into one passing and one
-failing row.
+**C.7 — the blade-angle law unchanged from revision 0, ±0.2°.** All four now score the
+**constructed** law — `θ(r) = atan(k(r/R)·P/(2πr))` at every loft station, plus the chord law and
+the whole set of inputs both builders resolve — at the plan's own unrelaxed 0.2° and 0.5 mm. All
+four measure **0.000000** on it. The row it replaced read a section statistic of the built blade,
+and P6 (the leading-edge flip) changes that section by construction, so no mesh applying P6 could
+meet the bound: the readings were 0.469° (matrice4e), 0.32–0.88° (phantom4), 0.4808° (mini5pro)
+and 0.4961° (mavic4pro), and each keeps its row as a report. On mavic4pro the estimator's own
+noise floor — the spread between the two blades of **one** propeller, which are the same blade
+rotated 180° — is **0.314°**, above the 0.2° bound it was being asked to resolve. This is one
+shared parts-library property measured four times, not four aircraft defects.
 
-This is exactly the case plan critique M8 names: a threshold-equivalent change decided **after**
-seeing the row fail. Nothing here is hidden, but the 7-failure headline is not comparable with
-the 8-failure one. **Both deviations are declared and await user approval**, so the file is held
-out of the first commit — see the commit list in the merge note.
+⚠ A C.7 pass therefore says *the constructed law is unchanged*. It does **not** say the built
+blade sections are within 0.2° of revision 0's; they are not, and the report row says so.
 
 ## Readers that are NOT safe once revision shards exist
 

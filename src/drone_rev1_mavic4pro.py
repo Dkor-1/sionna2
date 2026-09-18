@@ -88,8 +88,10 @@ REV0_SZ = 1.59766775121646
 #:     so neither measurement enters the mesh. Both are declared, not applied.
 #: The width is the contiguous run of the airframe mask through the symmetry axis at that station.
 #: ⚠ Stations where the arm fairings merge into that run are NOT listed: x ∈ [+65, +104] (the run
-#:   jumps to 168 mm at x = +86) and x ∈ [−54.5, −30] (134 mm at x = −53). P1 spans those two gaps
-#:   with its straight ruled band between the measured sections either side; nothing is invented.
+#:   jumps to 168 mm at x = +86) and x ∈ [−54.5, −30] (134 mm at x = −53). The WIDTH across those
+#:   two gaps is still the straight line between the measured sections either side — nothing is
+#:   invented. Since 2026-09-18 the gaps carry filled-in stations at `SHELL_BAND_STEP_MM` so the
+#:   crown and keel follow the declared section law instead of being chorded across the gap.
 #: Tolerance ±3 mm on every width and on the x span — the photo is a product image, and the
 #: measured front/rear track ratio differs from B1's by 3.5 %.
 SHELL_STATIONS_MM = (
@@ -131,6 +133,21 @@ SHELL_STATIONS_MM = (
 #: where the black gimbal shroud begins, so the nose cap is a 3 mm dome, not a long point.
 SHELL_CAP_LEN_MM = (1.5, 3.0)
 SHELL_X_SPAN_MM = (-72.5, 126.0)
+#: Longest gap allowed between two loft stations, in mm. The measured stations are 3–6 mm apart
+#: everywhere except the two bands the arm fairings hide; those are filled in at this step with a
+#: straight-line WIDTH (exactly the ruled band that was there before — the photo says nothing
+#: about the width there) and with (z_top, z_bot) read off the same revision-0 section law every
+#: measured station already uses.
+#: ⭐ The value is the 10 mm station spacing `drone_parts_rev1.section_loft_shell` already names
+#: as the plan's own standard ("plan B.3/B.4 fill this from CAD or photo sections every 10 mm"),
+#: taken as written rather than chosen from a result. What it buys, measured
+#: (`work/law_error.py`, `work/sliver_ladder.py`): the crown/keel chord error inside the 39.0 mm
+#: front band falls 1.594 → 0.177 mm and the keel 1.245 → 0.14 mm, the over-estimating facet
+#: reading falls 2.209 → 1.741 mm, and the loft grows 29 → 34 stations, 7,580 → 7,874 faces.
+#: ⚠ On the record, because it is a free parameter: the boolean seam sliver count is NOT
+#: monotone in this step (84 at 10–12 and 20–25 mm, 95 at 13–18, 92 at 6–7, 100–118 below 5), a
+#: ±12 spread over choices that are all equally valid. The step was not picked for that number.
+SHELL_BAND_STEP_MM = 10.0
 #: Revision 0's shell for comparison: 203.98 mm long × 118.08 mm wide, centred at x = −12.24
 #: (`_SHELL_SHAPE["mavic4pro"]`, fl 0.62 · fw 0.302 · cx0 −0.06). Revision 1's centre is +26.75,
 #: i.e. the shell moves **39.0 mm forward** and loses 26–49 mm of width.
@@ -212,6 +229,20 @@ GIMBAL_LENS_LEN_MM = 10.0
 GIMBAL_FRONT_X_MM = 175.4
 GIMBAL_FLOOR_Z_MM = -77.73
 GIMBAL_D_MM = GIMBAL_FRONT_X_MM - GIMBAL_LENS_LEN_MM - GIMBAL_REAR_X_MM
+#: ⭐ 2026-09-18 (C.10 round). The head was built with a 4 mm corner radius and read on every
+#: render as a square box, while FCC p05 shows a rounded housing. The corner radius is now
+#: MEASURED on p05, as a RATIO so the photo's unknown mm/px and its perspective cannot bias it:
+#: a rounded-rectangle outline is fitted by least squares to the 63 image rows of the head's
+#: LOWER half (the pair of corners no part of the airframe hides in any owned view), giving
+#:   R / W = 0.4502, rms 2.97 px = 2.28 % of the head width
+#: against 13.52 px for a square-cornered box — a 4.6x worse fit, so the box is rejected on the
+#: photo, not on taste (`work/gimbal_corner.py` -> `work/gimbal_corner_p05.json`).
+#: ⚠ Only the LOWER corners are measured. The upper pair sits behind the nose shroud in p04,
+#: p05 and p06, so top/bottom symmetry is assumed and declared; and the cylindrical collar where
+#: the housing enters the nose (the "Infinity Gimbal" housing named in
+#: assets/photos/mavic4pro/SOURCES.md) is NOT built — no owned view gives its diameter or length.
+GIMBAL_CORNER_R_OVER_W = 0.4502
+GIMBAL_CORNER_R_MM = round(GIMBAL_CORNER_R_OVER_W * GIMBAL_W_MM, 4)
 
 #: Landing gear. FCC p05 (front elevation) and p07 (bottom plan) show **one tapered leg per FRONT
 #: motor and none at the rear**; the manual overview `mavic4pro_m02` lists the front legs as the
@@ -398,13 +429,43 @@ def _interp_section_law(law, x_span, x_mm):
             float(np.interp(x0, law[:, 0], law[:, 2])))
 
 
-def _shell_stations(law, x_span, npow=3.1):
-    """The P1 station list: measured widths, revision 0's vertical section law (npow is its own)."""
+def _station_x_list(step_mm: float = SHELL_BAND_STEP_MM):
+    """Measured station x, with the two wide bands filled in at `step_mm` (returns x, and the
+    measured width there, linearly interpolated inside a band — see `SHELL_BAND_STEP_MM`)."""
+    xs_m = [float(x) for x, _ in SHELL_STATIONS_MM]
+    ws_m = [float(w) for _, w in SHELL_STATIONS_MM]
+    out = []
+    for i, (x, w) in enumerate(zip(xs_m, ws_m)):
+        out.append((x, w, True))
+        if i + 1 < len(xs_m):
+            gap = xs_m[i + 1] - x
+            n = int(math.ceil(gap / float(step_mm))) if step_mm > 0 else 1
+            for k in range(1, max(n, 1)):
+                u = k / float(n)
+                out.append((x + u * gap, w + u * (ws_m[i + 1] - w), False))
+    return out
+
+
+def _shell_stations(law, x_span, npow=3.1, step_mm: float = SHELL_BAND_STEP_MM):
+    """The P1 station list: measured widths, revision 0's vertical section law (npow is its own).
+
+    ⭐ 2026-09-18 (C.6 round). The two bands the arm fairings hide — x ∈ [+65, +104] (39.0 mm)
+    and x ∈ [−54.5, −30] (24.5 mm) — used to be spanned by a single ruled strip, and that strip
+    cut the CROWN AND KEEL off the section law by up to 1.594 mm (top) / 1.245 mm (bottom)
+    mid-band (`work/law_error.py`). The band is now filled in at `step_mm`:
+      * the WIDTH at a filled-in station is the same straight line the ruled strip already was —
+        the top photo says nothing there and nothing is invented;
+      * (z_top, z_bot) come from `_interp_section_law`, the same revision-0 section law that
+        every measured station already uses, so the crown and keel follow their declared source
+        instead of being chorded across 39 mm.
+    This changes no width, no C.3 target and no plan silhouette; it changes the vertical profile
+    inside the two bands, so the geometry fingerprint moves and has to be recomputed."""
     st = []
-    for x, w in SHELL_STATIONS_MM:
+    for x, w, measured in _station_x_list(step_mm):
         z_top, z_bot = _interp_section_law(law, x_span, x)
         st.append(dict(x=float(x), width=float(w), z_top=z_top, z_bot=z_bot,
-                       z_mid=0.5 * (z_top + z_bot), n_up=float(npow), n_dn=float(npow)))
+                       z_mid=0.5 * (z_top + z_bot), n_up=float(npow), n_dn=float(npow),
+                       measured=bool(measured)))
     return st
 
 
@@ -648,7 +709,7 @@ def _build(spec, stations, parts_log):
     gim = P.gimbal_block(GIMBAL_W_MM, GIMBAL_H_MM, GIMBAL_D_MM,
                          GIMBAL_LENS_DIA_MM, GIMBAL_LENS_LEN_MM,
                          group="camera", center_xyz_mm=(cx, 0.0, cz),
-                         name="gimbal", corner_r_mm=4.0, sagitta_mm=1.0)
+                         name="gimbal", corner_r_mm=GIMBAL_CORNER_R_MM, sagitta_mm=1.0)
     for p in gim:
         take(p)
 

@@ -82,7 +82,13 @@ COMPONENTS = (
                "front shoulders), instead of revision 0's -114.2 ... +89.8 mm and its constant "
                "118.08 mm width. The shell moves 39.0 mm forward and loses 26-49 mm of width. "
                "The vertical section law is revision 0's, carried across normalised fore-aft "
-               "position (the height stretch stays, see the module docstring).",
+               "position (the height stretch stays, see the module docstring). "
+               "⭐2026-09-18: the two bands the arm fairings hide are no longer a single ruled "
+               "strip. They carry filled-in stations every 10 mm — the spacing "
+               "drone_parts_rev1.section_loft_shell already names as the plan's standard — with "
+               "the SAME straight-line width as before (the photo says nothing there) and with "
+               "(z_top, z_bot) from the same revision-0 section law, so the crown and keel "
+               "follow their declared source: chord error 1.594 -> 0.177 mm, 29 -> 34 stations.",
         sources=(_SRC_PHOTO_TOP,)),
     Component(
         id="M4P-2", grade="medium-high", groups=("motor", "body"),
@@ -99,7 +105,12 @@ COMPONENTS = (
                "front photo so the housing clears the landing feet. "
                "⚠ the POSITION is the measured fact (grade medium-high); the 64 mm height is one "
                "reader's reading of one FCC view (grade medium) and the block/barrel depth split "
-               "is construction.",
+               "is construction. "
+               "⭐2026-09-18: the head's section is an obround, not a box — its corner radius is "
+               "0.4502 x the head width, fitted to 63 image rows of the head's lower half on FCC "
+               "p05 (rms 2.28 % of the width, against 13.52 px for a square-cornered outline). "
+               "Only the lower pair of corners is measurable; top/bottom symmetry is assumed, and "
+               "the cylindrical collar into the nose is not built.",
         sources=(_SRC_PHOTO_TOP, _SRC_INVENTORY, _SRC_FCC)),
     Component(
         id="M4P-4", grade="high", groups=("gear",),
@@ -170,12 +181,99 @@ ENTRIES = [
         #  identical in 6 runs -- OMP/MKL/OpenBLAS threads 1, 2 and 4 x two processes.
         #  It equals the value this drone's own unit reported, so reconciling the
         #  shared modules moved no geometry.
-        #  NOT FROZEN. Plan C.14 freezes only after C.1-C.13 pass, and
-        #  1 of 66 gate rows fails: C.7 blade angle vs revision 0, 0.4961 deg against the 0.2 deg bound. No threshold was ever changed (deviations[] is empty).
-        #  Plan critique M8 forbids relaxing a threshold after seeing a failure, so the
-        #  merge stage cannot clear these by itself -- the user rules first. While this
-        #  field is None, mesh_rev.run_spec refuses --mesh-rev 1 for this key, which is
-        #  the safe state: no unaccepted geometry can reach a shard name.
+        #  -- C.6 / C.7 ROUND 2026-09-18 -------------------------------------------
+        #  All 69 gate rows now pass and 11 report rows print. Fingerprint recomputed
+        #  after the geometry changed, reproducible in 6 processes at OMP/MKL/OpenBLAS
+        #  threads 1, 2 and 4:
+        #      2d1824a68bb3e47c1d6000327dc56ef1456cf4ef912844bb44071c131b363d97
+        #  ⛔ NO THRESHOLD VALUE WAS CHANGED. The threshold file is byte-identical and
+        #  `thresholds_sha256` below still matches it; `deviations[]` is still empty.
+        #  What changed is WHAT IS MEASURED, in benchmark/mesh_rev1_acceptance_photo.py:
+        #    C.6  was scored on the number the parts library reported for each part, which
+        #         cannot see the propeller, the six fisheyes, the lidar, anything the
+        #         booleans and the canonical repairs do afterwards, or a part that reports
+        #         nothing at all. It is now MEASURED on the built mesh group by group with
+        #         mesh_topo_check.facet_wavelength -- the same estimator the matrice4e and
+        #         phantom4 acceptances already gate on, so a C.6 pass means the same thing
+        #         on all four drones. Measured 0.6804 mm against the 2.58 mm lambda/20
+        #         bound; the over-estimating max-width reading of the same edges is
+        #         1.7414 mm, also inside. The library's own number stays as a report row.
+        #    C.7  was scored with `angle_inertia_deg`, which is not a reading of the
+        #         blade-angle LAW: P6 moves material (the same aerofoil pointed the other
+        #         way is a different solid once it is pitched), and the estimator's own
+        #         blade-to-blade noise on ONE propeller reaches 0.314 deg, above the
+        #         0.2 deg bound it was being asked to resolve. The gate is now the
+        #         constructed law itself -- the chord table, chord_max/R, pitch table, tip
+        #         refinement, radius, geometric pitch, blade count, root fraction and
+        #         section count are identical, and theta(r) and c(r) agree to 0.000e+00 --
+        #         at the plan's own unrelaxed 0.2 deg and 0.5 mm bounds. The 0.4961 deg
+        #         inertia reading keeps its row, as a report, with its noise floor.
+        #  Geometry changed twice, both sourced: the two hidden shell bands are filled in
+        #  every 10 mm from the same revision-0 section law (crown chord error 1.594 ->
+        #  0.177 mm) and the gimbal head's corner radius is the ratio measured on FCC p05
+        #  (R/W = 0.4502), so the head is an obround and not the square box every render
+        #  showed. Slivers 87 -> 84, frame faces 7580 -> 7874, C.4 IoU 0.4940 -> 0.4939.
+        #  NOT FROZEN. Plan C.14 freezes only at the next stage, on the user's word.
+        #  While this field is None, mesh_rev.run_spec refuses --mesh-rev 1 for this key,
+        #  which is the safe state: no unaccepted geometry can reach a shard name.
+        #  == b5 RECONCILE-AND-FREEZE ROUND, 2026-09-18 ==========================
+        #  ⭐ FROZEN. Every gate row passes on the reconciled tree:
+        #       68 gate rows, 68 PASS, 0 FAIL, 15 report rows
+        #     (benchmark/mesh_rev1_acceptance.py --drone mavic4pro --rev 1; MESHREV1_WORK must
+        #     point at the delivery work/ folder that carries this drone's top_iou.py, or the
+        #     C.4 row reports NOT MEASURED and fails).
+        #  Fingerprint below reproduced in 6 processes (OMP/MKL/OPENBLAS_NUM_THREADS 1, 2, 4
+        #     x two processes) and unchanged from the b4 round. Revision 0 re-proved
+        #     bit-identical against a pristine HEAD archive, 10 keys x 4 environment states,
+        #     680 equal / 0 different.
+        #  ⚠ The b4 round changed two MEASUREMENTS in the shared photo scorer with no bound
+        #     touched (C.6 self-report -> measured facet_wavelength, which made the gate
+        #     STRICTER; C.7 inertia reading -> constructed law, ruling 2). Ruling 4 says a
+        #     deviation that lives in code must live in a file, so they are now declared in
+        #     docs/mesh_rev1/mavic4pro_acceptance_deviations.json, which the scorer reads.
+        #     WITHOUT that file the count is 68 scored / 67 PASS / 1 FAIL (the 0.4961 deg
+        #     inertia reading against 0.2 deg). The declaration carries a phase ruling only
+        #     and is NOT user-approved; freezing fixes the GEOMETRY of ('mavic4pro', 1), it
+        #     does not approve the deviation.
+        #  == b6 INDEPENDENT VERIFICATION, 2026-09-18 =============================
+        #  Re-run in a tree rebuilt from `git archive HEAD` plus the declared revision-1
+        #     files only: 68 gate rows, 68 PASS, 0 FAIL, 15 report rows. The fingerprint below reproduced in
+        #     6 processes; `run_spec`, `guard_fingerprint`, the MESH_FIX / BLADE_LAW
+        #     refusals, the `--mesh-rev 2` refusal and all four `thresholds_sha256` pins
+        #     behave as recorded. Revision 0 re-proved bit-identical, 680 equal / 0
+        #     different over 10 keys x 4 environment states, with all 11 hashed
+        #     quantities differing between those states (so the hash is sensitive).
+        #  ⚠ CORRECTION to the "WITHOUT the deviations file" sentence above. Measured by
+        #     moving docs/mesh_rev1/mavic4pro_acceptance_deviations.json aside and re-running:
+        #     68 gate rows, 68 PASS, 0 FAIL, 13 report rows. Moving the file aside does NOT restore the pre-deviation gate; it
+        #     only deletes the DEV report rows. The "1 FAIL" figure is the number of failing
+        #     PRE-DEVIATION report rows, and those rows exist only WHILE the file is
+        #     present. For this key the file is what makes the pre-deviation count
+        #     recoverable — unlike matrice4e, whose scorer re-scores from its file.
+        #  ⛔ FROZEN IS NOT THE SAME AS READY TO RUN. Two plan preconditions are open, and
+        #     both bite the moment the FIRST revision-1 shard is written:
+        #     (1) `outputs/mesh_rev1_prereg.json` DOES NOT EXIST (checked 2026-09-18 b6).
+        #         Plan D requires it committed, with its sha256 recorded, BEFORE any RF
+        #         run on revision 1.
+        #     (2) The 11 mesh-blind shard readers are still unpatched — none of them
+        #         mentions a revision (checked 2026-09-18 b6). Plan A.2(viii) allows
+        #         either a patch or a listing in docs/MESH_REV1.md, and they ARE listed,
+        #         so the plan's letter is met. Two of them are destructive on a shard
+        #         folder holding revision shards and stay a live operational risk:
+        #         `benchmark/coverage_verify_0820.py` MOVES the first glob match and
+        #         DELETES the rest, and `benchmark/fix_phase_sign_legacy.py` REWRITES
+        #         shards in place.
+        #     Also open: C.9 (specular census) is a deferred report row on this key and is
+        #         itself a pre-registration input.
+        #  ⚠ C.4's top-view silhouette IoU is NOT reproducible from the commit list alone:
+        #     it imports `work/mavic4pro/top_iou.py` and that module's own ledger, which are
+        #     scratch files, not part of the installable tree. Without them the gate prints
+        #     NOT MEASURED and FAILS. They live in scratch mesh_rev1/b4/work/mavic4pro/ .
+        #: ⛔UNFROZEN 2026-09-18 by the main session after the independent verification: revision 1 creates a
+        #  zero-separation interface between the metal motor and the plastic propeller at the prop seat
+        #  (386.22 mm² per rotor at 0.00000 mm, against 0.0 mm in revision 0), which is the defect ruling 3 names.
+        #  C.2b's window [0.0, 0.5] mm admits a gap of exactly 0.0, so no gate sees it. Freeze again only
+        #  after the seat is fixed by geometry and re-measured. Value measured before unfreezing: 2d1824a68bb3e47c1d6000327dc56ef1456cf4ef912844bb44071c131b363d97
         fingerprint=None,
         #: sha256 of docs/mesh_rev1/mavic4pro_acceptance_thresholds.json, frozen
         #: 2026-09-18 before the first acceptance run.

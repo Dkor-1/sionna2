@@ -33,30 +33,126 @@ SCAN_DIR = ('/tmp/claude-0/-workspace/8ed65148-4553-4ebc-8477-9670ae39b001/scrat
 #  small helpers
 # --------------------------------------------------------------------------- #
 class Table:
+    """The acceptance table.
+
+    A row that an entry in docs/mesh_rev1/phantom4_acceptance_deviations.json changed carries
+    `dev=<id>` together with the value and the verdict that row had **before** that deviation.
+    The pre-deviation reading is printed underneath as a `[pre-dev <id>]` line and the footer
+    prints the counts both ways (main-session ruling 4, 2026-09-18: a deviation that lives in
+    code cannot be undone by a reader, so it has to live in a file the scorer reads and the
+    pre-deviation count has to stay recoverable).
+
+    `pre_ok` is True / False for a row that was scored before the deviation, None for a row that
+    was report-only before it, and the string "unscored" for a row that did not exist or was
+    silently skipped before it.
+    """
+
     def __init__(self):
         self.rows = []
 
-    def add(self, check, item, got, want, ok, note=""):
+    def add(self, check, item, got, want, ok, note="", dev=None, pre_got=None, pre_want=None,
+            pre_ok="none"):
+        if dev is not None and pre_ok == "none":
+            raise ValueError(f"row {check} {item!r} declares deviation {dev} but no pre_ok")
         self.rows.append(dict(check=check, item=item, got=got, want=want,
-                              ok=None if ok is None else bool(ok), note=note))
+                              ok=None if ok is None else bool(ok), note=note,
+                              dev=dev, pre_got=pre_got,
+                              pre_want=pre_want if pre_want is not None else want,
+                              pre_ok=(pre_ok if (dev is not None) else None)))
 
-    def report(self):
+    def deviation_ids(self):
+        return sorted({r["dev"] for r in self.rows if r["dev"]})
+
+    def counts(self):
         scored = [r for r in self.rows if r["ok"] is not None]
         bad = [r for r in scored if not r["ok"]]
-        w = max([len(r["item"]) for r in self.rows] + [20])
-        out = []
-        out.append(f"{'':4s} {'check':6s} {'item':{w}s} {'measured':>26s}   {'required':<34s}")
-        out.append("-" * (4 + 7 + w + 30 + 36))
+        pre_scored = pre_bad = 0
         for r in self.rows:
-            mark = "  · " if r["ok"] is None else ("PASS" if r["ok"] else "FAIL")
+            if r["dev"]:
+                po = r["pre_ok"]
+                if po is None or po == "unscored":
+                    continue
+                pre_scored += 1
+                pre_bad += 0 if po else 1
+            elif r["ok"] is not None:
+                pre_scored += 1
+                pre_bad += 0 if r["ok"] else 1
+        return len(scored), len(bad), pre_scored, pre_bad
+
+    def report(self):
+        n_scored, n_bad, p_scored, p_bad = self.counts()
+        w = max([len(r["item"]) for r in self.rows] + [20]) + 14
+        out = []
+        out.append(f"{'':5s} {'check':6s} {'item':{w}s} {'measured':>26s}   {'required':<34s}")
+        out.append("-" * (5 + 7 + w + 30 + 36))
+        for r in self.rows:
+            mark = "  ·  " if r["ok"] is None else ("PASS " if r["ok"] else "FAIL ")
             got = r["got"] if isinstance(r["got"], str) else _fmt(r["got"])
             want = r["want"] if isinstance(r["want"], str) else _fmt(r["want"])
-            out.append(f"{mark:4s} {r['check']:6s} {r['item']:{w}s} {got:>26s}   {want:<34s}"
+            out.append(f"{mark:5s} {r['check']:6s} {r['item']:{w}s} {got:>26s}   {want:<34s}"
                        + (f"  {r['note']}" if r["note"] else ""))
-        out.append("-" * (4 + 7 + w + 30 + 36))
-        out.append(f"scored {len(scored)}   PASS {len(scored) - len(bad)}   FAIL {len(bad)}   "
-                   f"report-only {len(self.rows) - len(scored)}")
-        return "\n".join(out), len(bad)
+            if r["dev"]:
+                po = r["pre_ok"]
+                pmark = ("----*" if po == "unscored"
+                         else "  · *" if po is None
+                         else ("PASS*" if po else "FAIL*"))
+                pgot = r["pre_got"] if isinstance(r["pre_got"], str) else _fmt(r["pre_got"])
+                pwant = (r["pre_want"] if isinstance(r["pre_want"], str) else _fmt(r["pre_want"]))
+                if po == "unscored":
+                    pwant = "not scored before " + r["dev"]
+                item = f"{r['item']}  [pre-dev {r['dev']}]"
+                out.append(f"{pmark:5s} {r['check']:6s} {item:{w}s} {pgot:>26s}   {pwant:<34s}")
+        out.append("-" * (5 + 7 + w + 30 + 36))
+        out.append(f"scored {n_scored}   PASS {n_scored - n_bad}   FAIL {n_bad}   "
+                   f"report-only {len(self.rows) - n_scored}")
+        out.append(f"without deviations: scored {p_scored}   PASS {p_scored - p_bad}   "
+                   f"FAIL {p_bad}      (* rows above; deviations "
+                   f"{', '.join(self.deviation_ids()) or 'none'})")
+        return "\n".join(out), n_bad, (p_scored, p_bad)
+
+
+# --------------------------------------------------------------------------- #
+#  the deviations file (main-session ruling 4, 2026-09-18)
+# --------------------------------------------------------------------------- #
+DEV_PATH = os.path.join(ROOT, "docs", "mesh_rev1", "phantom4_acceptance_deviations.json")
+
+
+def load_deviations(path=None):
+    """Read the deviations file and return (by-mode dict, by-id dict, sha256, raw).
+
+    The scorer switches on `machine.mode`, so a deviation the file declares and the code does
+    not implement raises here rather than quietly scoring the post-deviation value only.
+    """
+    path = path or DEV_PATH
+    raw = json.load(open(path, encoding="utf-8"))
+    sha = hashlib.sha256(open(path, "rb").read()).hexdigest()
+    by_id, by_mode = {}, {}
+    for dev in raw.get("deviations", []):
+        m = dev.get("machine")
+        if m is None:
+            raise ValueError(f"{path}: deviation {dev.get('id')} has no `machine` block; "
+                             f"ruling 4 requires every deviation to be machine readable")
+        by_id[dev["id"]] = dev
+        by_mode[m["mode"]] = dev
+    missing = [m for m in raw.get("scorer_contract", {})
+               .get("modes_the_scorer_must_implement", []) if m not in IMPLEMENTED_MODES]
+    if missing:
+        raise ValueError(f"{path}: deviation modes not implemented by this scorer: {missing}")
+    return by_mode, by_id, sha, raw
+
+
+#: every `machine.mode` this scorer knows how to undo. Keep in step with the deviations file.
+IMPLEMENTED_MODES = {
+    "c2_buried_all_groups",        # D1
+    "c2b_seat_lowest_prop_vertex",  # D2
+    "c2c_global_z_band",           # D3
+    "c4_silhouette_400k",          # D4
+    "c7_chord_angular_span",       # D5 (chord half; the angle half is declared unrecoverable)
+    "c11_require_zero_pairs",      # D6
+    "c3_camera_burial_preunion",   # D8
+    "c7_cylindrical_section_angle",  # D9
+    "c5_absolute_visible_area",    # D10
+}
 
 
 def _fmt(v):
@@ -217,8 +313,13 @@ def c2_attachment(T, parts, gm, thr, spec, rev0_gm, frame_mesh):
     cen = {k: v for k, v in cen.items() if k in ("name", "n_faces", "total_area_mm2",
                                                  "buried_pct", "buried_area_mm2",
                                                  "defect_area_mm2", "by_group")}
-    T.add("C.2", "buried plastic area", frac, f"<= {tc2['buried_plastic_pct_of_shell_area_max']} %",
-          frac <= tc2["buried_plastic_pct_of_shell_area_max"])
+    lim = float(tc2["buried_plastic_pct_of_shell_area_max"])
+    #  D1's pre-deviation reading: buried area over EVERY group, metal included.
+    a_tot_all = sum(row["area_mm2"] for row in cen["by_group"].values())
+    a_bur_all = sum(row["buried_area_mm2"] for row in cen["by_group"].values())
+    frac_all = 100.0 * a_bur_all / max(a_tot_all, 1e-30)
+    T.add("C.2", "buried plastic area", frac, f"<= {lim} %", frac <= lim,
+          dev="D1", pre_got=frac_all, pre_ok=frac_all <= lim)
     return cen
 
 
@@ -248,9 +349,11 @@ def c2b_prop_seating(T, spec, thr, gm, prop_area_mm2, rev0_bell_mm2):
     mount_z = float(np.asarray(gm["motor"].vertices)[:, 2].max()) / MM
     rotor_z = float(rl[0]["center"][2]) / MM
     gap = rotor_z + hub_bottom_mm - mount_z
+    gap_pre = rotor_z + blade_bottom_mm - mount_z          # D2: seat read as the lowest vertex
     T.add("C.2b", "prop hub underside - adapter top", gap, f"in [{lo}, {hi}] mm",
           lo - 1e-6 <= gap <= hi + 1e-6,
-          note=f"hub bottom {hub_bottom_mm:+.2f}, blade root {blade_bottom_mm:+.2f} mm in the prop frame")
+          note=f"hub bottom {hub_bottom_mm:+.2f}, blade root {blade_bottom_mm:+.2f} mm in the prop frame",
+          dev="D2", pre_got=gap_pre, pre_ok=lo - 1e-6 <= gap_pre <= hi + 1e-6)
     #  prop volume that sits inside the motor can
     can = gm["motor"]
     P = sample_mesh(pm, 60000, seed=3) + np.array([[rl[0]["center"][0], rl[0]["center"][1], 0.0]])
@@ -259,8 +362,37 @@ def c2b_prop_seating(T, spec, thr, gm, prop_area_mm2, rev0_bell_mm2):
     area1 = float(prop_area_mm2) * float(inside.mean())
     T.add("C.2b", "prop area inside the bell", area1, f"<= rev0 {rev0_bell_mm2:.1f} mm^2",
           area1 <= rev0_bell_mm2 + 1e-6)
+    #  diagnostics (not scored) for the b4 seating fix: how much of that area is a **coincident**
+    #  interface rather than a real intrusion. Two solids that share a face plane are the defect
+    #  mini5pro's battery tail showed: which surface a ray meets is then a floating-point tie.
+    def _coincident_mm2(dz_mm):
+        """Prop surface that lies IN the motor's surface: within 0.05 mm of it and facing the
+        opposite way (normals antiparallel within 3 deg). That is the defect - two solids that
+        share a face plane, where a ray's first hit is a floating-point tie - as distinct from a
+        shallow intrusion, which has no matching normal. `dz_mm` moves the propeller in z, so
+        passing -gap repeats the measurement with the propeller seated flush."""
+        Q, fi = trimesh.sample.sample_surface(pm, 200000, seed=31)
+        Q = Q + np.array([[rl[0]["center"][0], rl[0]["center"][1], (rotor_z + dz_mm) * MM]])
+        _, dist, tid = trimesh.proximity.closest_point(can, Q)
+        n_p = np.asarray(pm.face_normals)[fi]
+        n_m = np.asarray(can.face_normals)[tid]
+        dot = np.einsum("ij,ij->i", n_p, n_m)
+        hit = (dist < 0.05 * MM) & (dot < -np.cos(np.radians(3.0)))
+        return float(prop_area_mm2) * float(hit.mean())
+
+    weld = _coincident_mm2(0.0)
+    weld0 = _coincident_mm2(-gap)
+    T.add("C.2b", "prop|motor coincident interface (diagnostic)", weld, "mm^2, 0 wanted", None,
+          note=f"seated flush (gap 0) the same measurement reads {weld0:.1f} mm^2")
+    Vp_abs = Vp + np.array([[rl[0]["center"][0], rl[0]["center"][1], rotor_z * MM]])
+    iv = can.contains(Vp_abs)
+    deep = (float(trimesh.proximity.signed_distance(can, Vp_abs[iv]).max()) / MM
+            if bool(iv.any()) else 0.0)
+    T.add("C.2b", "deepest prop vertex inside the motor (diagnostic)", deep, "mm", None,
+          note=f"{int(iv.sum())} of {len(Vp)} prop vertices")
     return dict(area_mm2=round(area1, 2), frac=round(float(inside.mean()), 5),
-                rev0_area_mm2=round(rev0_bell_mm2, 2))
+                rev0_area_mm2=round(rev0_bell_mm2, 2), gap_mm=round(gap, 4),
+                coincident_area_mm2=round(weld, 3), coincident_area_at_gap0_mm2=round(weld0, 2), deepest_vertex_mm=round(deep, 4))
 
 
 def c2c_swept_disc(T, spec, thr, gm):
@@ -306,9 +438,29 @@ def c2c_swept_disc(T, spec, thr, gm):
                 depth = np.minimum(V[inside, 2] - (cz + lo[k][inside]),
                                    (cz + hi[k][inside]) - V[inside, 2])
                 worst = min(worst, -float(depth.max()) / MM)
+    #  D3's pre-deviation reading: one global z band over the whole disc, own motor stack NOT
+    #  excluded - the method the first run used.
+    z_lo_g, z_hi_g = float(np.nanmin(lo)), float(np.nanmax(hi))
+    worst_pre = 0.0
+    n_in_pre = 0
+    for rot in rl:
+        cx, cy, cz = rot["center"]
+        for g, m in gm.items():
+            if g == "prop":
+                continue
+            V = np.asarray(m.vertices)
+            rr = np.hypot(V[:, 0] - cx, V[:, 1] - cy)
+            good = (rr < R) & (rr > r_in)
+            ins = good & (V[:, 2] > cz + z_lo_g) & (V[:, 2] < cz + z_hi_g)
+            if ins.any():
+                n_in_pre += int(ins.sum())
+                dep = np.minimum(V[ins, 2] - (cz + z_lo_g), (cz + z_hi_g) - V[ins, 2])
+                worst_pre = min(worst_pre, -float(dep.max()) / MM)
     T.add("C.2c", "frame inside a swept disc", worst,
           f">= -{tol} mm (none inside, own motor stack excluded)", worst >= -tol,
-          note=f"{n_in} vertices inside")
+          note=f"{n_in} vertices inside",
+          dev="D3", pre_got=worst_pre, pre_want=f">= -{tol} mm (one global z band)",
+          pre_ok=worst_pre >= -tol)
     C = np.array([r["center"][:2] for r in rl])
     d = float(np.linalg.norm(C[0] - C[1])) / MM
     clr = d - float(spec.prop_dia_mm)
@@ -334,7 +486,11 @@ def c3_dimensions(T, spec, gm, thr, meas):
             T.add("C.3", key, got, f"[{row['min']}, {row['max']}]",
                   row["min"] <= got <= row["max"], note=row.get("source", ""))
         elif isinstance(row, (int, float)):
-            T.add("C.3", key, got, f"<= {row}", got <= float(row))
+            if key == "camera_buried_pct_max":
+                T.add("C.3", key, got, f"<= {row}", got <= float(row),
+                      dev="D8", pre_got=meas.get("_pre_D8_camera_buried_pct"), pre_ok="unscored")
+            else:
+                T.add("C.3", key, got, f"<= {row}", got <= float(row))
     import drones
     fs = drones.frame_fit_scale(spec)
     T.add("C.3", "frame_fit_scale", list(np.round(fs, 12)), str(ex["frame_fit_scale"]),
@@ -424,6 +580,16 @@ def measure_frame(spec, gm, parts, full_drone):
         gim = min(comps, key=lambda c: float(np.asarray(c.vertices)[:, 2].min()))
         Pg = sample_mesh(gim, 200000, seed=17)
         out["camera_buried_pct_max"] = 100.0 * float(gm["body"].contains(Pg).mean())
+        #  D8's pre-deviation reading: the same fraction measured on the **pre-union** P7 parts,
+        #  which double-counts the faces the union removes where the three blocks overlap.
+        Vs, Fs, off = [], [], 0
+        for q in gimbal:
+            Vs.append(np.asarray(q.mesh.vertices))
+            Fs.append(np.asarray(q.mesh.faces) + off)
+            off += len(q.mesh.vertices)
+        pre = _tri(np.vstack(Vs), np.vstack(Fs))
+        out["_pre_D8_camera_buried_pct"] = 100.0 * float(
+            gm["body"].contains(sample_mesh(pre, 200000, seed=17)).mean())
     full = np.asarray(full_drone.v, float) / MM
     out["height_props_included_mm"] = float(full[:, 2].max() - full[:, 2].min())
     return out
@@ -490,9 +656,11 @@ def c4_reference(T, gm, thr, ledger):
         a_o = sil(Po_sil, ax)
         a_s = sil(Ps, ax)
         ratio = a_o / a_s
+        ratio_pre = sil(Po, ax) / a_s          # D4: the 400 000-point cloud the first run used
         lo, hi = t[key]
         T.add("C.4", f"silhouette {name} ours/scan", ratio, f"[{lo}, {hi}]", lo <= ratio <= hi,
-              note=f"rev0 {t['rev0_baseline']['silhouette_ours_over_scan'][name]}")
+              note=f"rev0 {t['rev0_baseline']['silhouette_ours_over_scan'][name]}",
+              dev="D4", pre_got=ratio_pre, pre_ok=lo <= ratio_pre <= hi)
         ledger.setdefault("silhouette_mm2", {})[name] = dict(ours=round(a_o, 1),
                                                              scan=round(a_s, 1),
                                                              ratio=round(ratio, 4))
@@ -576,13 +744,26 @@ def _lowest_component(gm, group):
 
 
 def c5_facing(T, gm, gm0, thr):
+    """Plan C.5. The scored quantity is the camera group's **visible fraction** - the area a
+    viewer along `u` actually sees divided by the same group's own silhouette with nothing in
+    the way. Deviation D10 (main-session ruling 2, 2026-09-18): the absolute area cannot rise
+    without making the camera bigger than the User Manual's elevations, because P4-3 builds the
+    gimbal at 45.2 x 33.7 x 38.3 mm against revision 0's 52 x 48 x 56 mm block and P4-6 removes
+    six Pro-only members of the group. The fraction is what 'no longer buried' means and it has
+    the size confound removed. The absolute row is kept and printed as the pre-deviation row."""
     t = thr["C5_facing_area"]
     for el in t["camera_visible_area_must_increase_at_el_deg"]:
         import mesh_symmetry as ms
         u = ms.view_dir(t["az_deg"], float(el))
         a1 = _visible_area_mm2(gm, "camera", u)
         a0 = _visible_area_mm2(gm0, "camera", u)
-        T.add("C.5", f"camera visible area el {el:+.0f}", a1, f"> rev0 {a0:.1f} mm^2", a1 > a0)
+        s1 = _visible_area_mm2({"camera": gm["camera"]}, "camera", u)
+        s0 = _visible_area_mm2({"camera": gm0["camera"]}, "camera", u)
+        f1 = a1 / max(s1, 1e-9)
+        f0 = a0 / max(s0, 1e-9)
+        T.add("C.5", f"camera visible fraction el {el:+.0f}", f1, f"> rev0 {f0:.4f}", f1 > f0,
+              note=f"{a1:.0f} of {s1:.0f} mm^2 seen; rev0 {a0:.0f} of {s0:.0f}",
+              dev="D10", pre_got=a1, pre_want=f"> rev0 {a0:.1f} mm^2", pre_ok=a1 > a0)
         #  diagnostic (not scored): the gimbal assembly alone, i.e. the connected piece of the
         #  camera group that hangs lowest. P4-6 removes six other members of the same group in
         #  the same revision, so the group-level row above cannot isolate what P4-3 changed.
@@ -607,12 +788,86 @@ def c6_facets(T, gm, thr, n_faces, prop_faces):
           prop_faces <= t["prop_faces_per_rotor_max"])
 
 
+def _principal_deg(A):
+    """Signed angle of the first principal axis of a planar point set, in degrees."""
+    A = np.asarray(A, float)
+    C = A - A.mean(0)
+    v = np.linalg.svd(C, full_matrices=False)[2][0]
+    if v[0] < 0:
+        v = -v
+    return float(np.degrees(np.arctan2(v[1], v[0])))
+
+
+def _raw_blades(spec, rev0):
+    """The two revisions' blades built with **identical** arguments, plus their common loft
+    stations and the constructed pitch law.
+
+    Why this exists (deviation D9, main-session ruling 2 of 2026-09-18). Plan C.7's +-0.2 deg on
+    the blade angle was scored on `blade_orientation`'s reading of a **cylindrical** section of
+    the whole propeller. P6 changes two cues at once: it mirrors the airfoil's chord coordinate
+    and it flips the sweep to -y. A cylinder of radius r cuts a swept blade obliquely, so
+    flipping the sweep moves where the cut lands; that alone shifts the reading by 0.21-0.27 deg
+    with no change of pitch whatever. The blade's own **span** section - the plane of constant
+    span coordinate, which is exactly a loft ring - does not have that problem.
+
+    The two builders take the same arguments from the same resolvers, so anything that really
+    changed the pitch (`prop_pitch_in`, `prop_dia_mm`, the blade law, the pitch law, the chord
+    profile) changes what this returns. The station sets are asserted equal: if a future change
+    desynchronised them the comparison would stop being like for like and this raises.
+    """
+    import drone_cad
+    import drone_parts_rev1 as P
+    from geom import blade_law_canon as _blc
+    law = _blc()
+    cmax1, _ = drone_cad.resolve_chord_max_over_r(spec, law)
+    cmax0, _ = drone_cad.resolve_chord_max_over_r(rev0, law)
+    rr1, fr1, _ = drone_cad.resolve_chord_profile(spec, law)
+    rr0, fr0, _ = drone_cad.resolve_chord_profile(rev0, law)
+    if (abs(cmax1 - cmax0) > 1e-12 or tuple(rr1) != tuple(rr0) or tuple(fr1) != tuple(fr0)):
+        raise RuntimeError("C.7: the two revisions resolve different chord laws; "
+                           "the span-section comparison would not be like for like")
+    if float(spec.prop_pitch_in or 5.0) != float(rev0.prop_pitch_in or 5.0):
+        raise RuntimeError("C.7: prop_pitch_in differs between the revisions")
+    R_mm = float(spec.prop_dia_mm) / 2.0
+    if abs(R_mm - float(rev0.prop_dia_mm) / 2.0) > 1e-12:
+        raise RuntimeError("C.7: prop_dia_mm differs between the revisions")
+    R = R_mm * MM
+    P_m = float(spec.prop_pitch_in or 5.0) * 25.4 * MM
+    kw = dict(root_frac=0.070, n_sec=22, law=law, pitch_law=None,
+              chord_rr=rr1, chord_frac=fr1)
+    b0 = drone_cad._blade(R, chord_max=cmax1, pitch_m=P_m, **kw)
+    b1 = P.blade_rev1(R_mm, spin=+1, chord_max_over_r=cmax1, pitch_mm=P_m / MM, **kw)
+    V0 = np.asarray(b0.vertices, float)
+    V1 = np.asarray(b1.vertices, float)
+    x0 = np.unique(np.round(V0[:, 0], 12))
+    x1 = np.unique(np.round(V1[:, 0], 12))
+    if len(x0) != len(x1) or not np.allclose(x0, x1, atol=1e-12):
+        raise RuntimeError("C.7: the two revisions' blades do not share loft stations")
+    pw = drone_cad.PITCH_LAWS[drone_cad.BLADE_LAWS[law]["pitch_default"]]
+
+    def theta_law(x):
+        k = float(np.interp(x / R, pw["rr"], pw["k"]))
+        return float(np.degrees(np.arctan(k * P_m / (2.0 * np.pi * x))))
+
+    return V0, V1, x0, R, theta_law
+
+
+def _span_angle(V, x, mirror):
+    """Principal angle of the blade's section at loft station `x`, y-mirrored when `mirror`."""
+    A = V[np.abs(V[:, 0] - x) < 1e-12][:, 1:3].copy()
+    if mirror:
+        A[:, 0] *= -1.0
+    return _principal_deg(A)
+
+
 def c7_props(T, spec, thr, ledger):
     import drone_parts_rev1 as P
     import drones
     import mesh_check
     t = thr["C7_props"]
     rev0 = drones.DRONES[spec.key]
+    tol_a = float(t["blade_angle_tol_deg_vs_rev0"])
+    V0, V1, stations, R, theta_law = _raw_blades(spec, rev0)
     rows = []
     for mirror, spin in ((False, +1), (True, -1)):
         tag = "CW" if mirror else "CCW"
@@ -625,16 +880,36 @@ def c7_props(T, spec, thr, ledger):
                   "all blades", bool(o1["all_ok"]))
             c1 = float(np.mean([b["chord_mm"] for b in o1["blades"]]))
             c0 = float(np.mean([b["chord_mm"] for b in o0["blades"]]))
+            #  D5's pre-deviation reading: the angular-span chord estimate of the first run.
+            p1 = _chord_mm(m1, float(rr), float(spec.prop_dia_mm) / 2.0)
+            p0 = _chord_mm(m0, float(rr), float(rev0.prop_dia_mm) / 2.0)
             T.add("C.7", f"chord r/R {rr} {tag}", c1, f"{c0:.3f} +- {t['chord_tol_mm_vs_rev0']} mm",
-                  abs(c1 - c0) <= t["chord_tol_mm_vs_rev0"])
+                  abs(c1 - c0) <= t["chord_tol_mm_vs_rev0"],
+                  dev="D5", pre_got=p1, pre_want=f"{p0:.3f} +- {t['chord_tol_mm_vs_rev0']} mm",
+                  pre_ok=abs(p1 - p0) <= t["chord_tol_mm_vs_rev0"])
+            #  blade angle, D9: on the blade's own span section, not a cylindrical one.
+            x = float(stations[int(np.argmin(np.abs(stations - float(rr) * R)))])
+            s1 = _span_angle(V1, x, mirror)
+            s0 = _span_angle(V0, x, mirror)
+            thl = theta_law(x)
             a1 = float(np.mean([b["angle_inertia_deg"] for b in o1["blades"]]))
             a0 = float(np.mean([b["angle_inertia_deg"] for b in o0["blades"]]))
-            T.add("C.7", f"blade angle r/R {rr} {tag}", a1,
-                  f"{a0:.3f} +- {t['blade_angle_tol_deg_vs_rev0']} deg",
-                  abs(a1 - a0) <= t["blade_angle_tol_deg_vs_rev0"])
+            T.add("C.7", f"blade angle r/R {rr} {tag}", s1, f"{s0:.3f} +- {tol_a} deg",
+                  abs(s1 - s0) <= tol_a,
+                  note=(f"span section at {x / MM:.3f} mm; constructed pitch law "
+                        f"{thl if not mirror else -thl:+.3f} deg"),
+                  dev="D9", pre_got=a1, pre_want=f"{a0:.3f} +- {tol_a} deg",
+                  pre_ok=abs(a1 - a0) <= tol_a)
+            #  report-only: each revision against the constructed pitch law itself.
+            T.add("C.7", f"blade angle vs pitch law r/R {rr} {tag} (diagnostic)",
+                  abs(s1) - abs(thl), f"rev0 {abs(s0) - abs(thl):+.4f} deg", None,
+                  note="deg above the law; the camber term the P6 chord mirror flips")
             rows.append(dict(mirror=mirror, r_over_R=rr, ok=bool(o1["all_ok"]),
                              chord_rev1=round(c1, 4), chord_rev0=round(c0, 4),
-                             angle_rev1=round(a1, 4), angle_rev0=round(a0, 4)))
+                             span_station_mm=round(x / MM, 4),
+                             span_angle_rev1=round(s1, 4), span_angle_rev0=round(s0, 4),
+                             pitch_law_deg=round(thl, 4),
+                             cyl_angle_rev1=round(a1, 4), cyl_angle_rev0=round(a0, 4)))
     h = mesh_check.check_handedness(spec)
     ok = bool(h.get("ok", False))
     T.add("C.7", "check_handedness", ok, "true", ok)
@@ -708,8 +983,10 @@ def c11_certificates(T, gm, thr, ledger, frame_mesh, frame_mesh0):
         cen0 = mp.placement_census(frame_mesh0, name="rev0")
         a1 = float(cen["crossing"]["area_pct"])
         a0 = float(cen0["crossing"]["area_pct"])
+        np1 = int(cen["crossing"]["n_pairs"])
         T.add("C.11", "mesh_placement crossing area", a1, f"<= rev0 budget {a0:.4g} %", a1 <= a0,
-              note=f"pairs rev1 {cen['crossing']['n_pairs']} vs rev0 {cen0['crossing']['n_pairs']}")
+              note=f"pairs rev1 {np1} vs rev0 {cen0['crossing']['n_pairs']}",
+              dev="D6", pre_got=np1, pre_want="0 crossing pairs", pre_ok=np1 == 0)
         n_self = int(cen["self_intersection"]["n_pairs"])
         n_self0 = int(cen0["self_intersection"]["n_pairs"])
         T.add("C.11", "mesh_placement self-intersecting pairs", n_self,
@@ -760,6 +1037,8 @@ def main():
     ap.add_argument("--rev", type=int, default=1)
     ap.add_argument("--out", default=None)
     ap.add_argument("--thresholds", default=None)
+    ap.add_argument("--deviations", default=None,
+                    help="docs/mesh_rev1/phantom4_acceptance_deviations.json (ruling 4)")
     a = ap.parse_args()
 
     import drones
@@ -770,6 +1049,7 @@ def main():
                                             f"{a.drone}_acceptance_thresholds.json")
     thr = json.load(open(thr_path))
     thr_sha = hashlib.sha256(open(thr_path, "rb").read()).hexdigest()
+    dev_by_mode, dev_by_id, dev_sha, dev_raw = load_deviations(a.deviations)
 
     t0 = time.time()
     spec = drones.spec_for(a.drone, a.rev)
@@ -814,13 +1094,37 @@ def main():
     c13_repairs(T, gm, thr)
 
     ledger["fingerprint"] = mesh_rev.fingerprint_poser(fp)
-    txt, n_bad = T.report()
+    #  ruling 4: the file and the code may not drift. Every deviation the file declares
+    #  recoverable must have produced at least one row here.
+    seen = set(T.deviation_ids())
+    missing = [d for d, row in dev_by_id.items()
+               if row["machine"].get("recoverable") and not row["machine"].get("no_scored_row")
+               and d not in seen]
+    if missing:
+        raise RuntimeError(f"deviations {missing} are declared recoverable in "
+                           f"{a.deviations or DEV_PATH} but no acceptance row carries them")
+    unknown = sorted(seen - set(dev_by_id))
+    if unknown:
+        raise RuntimeError(f"rows carry deviations {unknown} that the deviations file "
+                           f"does not declare")
+    txt, n_bad, (p_scored, p_bad) = T.report()
     print(txt)
+    unrec = [d for d, row in dev_by_id.items() if row["machine"].get("recoverable") != True]
+    if unrec:
+        for d in sorted(unrec):
+            m = dev_by_id[d]["machine"]
+            print(f"   {d}: recoverable = {m.get('recoverable')!r} - "
+                  f"{m.get('unrecoverable_part') or m.get('pre_deviation')}")
     print(f"\nfingerprint(FastPoser({a.drone}, rev {a.rev})) = {ledger['fingerprint']}")
     print(f"thresholds sha256 = {thr_sha}")
+    print(f"deviations  sha256 = {dev_sha}  ({len(dev_by_id)} entries: "
+          f"{', '.join(sorted(dev_by_id))})")
     print(f"elapsed {time.time() - t0:.1f} s")
     ledger["rows"] = T.rows
     ledger["n_fail"] = n_bad
+    ledger["deviations_sha256"] = dev_sha
+    ledger["deviations_path"] = os.path.abspath(a.deviations or DEV_PATH)
+    ledger["without_deviations"] = dict(scored=p_scored, passed=p_scored - p_bad, failed=p_bad)
     if a.out:
         json.dump(ledger, open(a.out, "w"), indent=1, default=str)
         print(f"ledger -> {a.out}")
