@@ -10,7 +10,9 @@
 #   chain (runners/watch_then_start.py, log runners/logs/watch_0964.log) starts this file once 0963 has launched every line, by which
 #   time the Q0 result should exist. If Q0 fails, hold the unlaunched lines rather than reading them.
 #   My own dry-run of all 8 lines (2026-09-18 05:24 UTC, runners/filter_jobs.sh): 8/8 NEW. The only near-identical lines anywhere are the
-#   4 commented #HOLD lines of jobs_0958, which lack --shell-mm/--prop-mm and therefore name different stems.
+#   8 commented #HOLD lines of jobs_0958 (lines 85-92), which lack --shell-mm/--prop-mm and therefore name different stems.
+#   ⛔corrected 2026-09-18 ~17:20 KST (adversarial review): this note said «the 4 commented #HOLD lines»; there are 8, as the
+#   body of this file says two paragraphs down. 4 of them are full-scene, 2 az 90 open sky, 2 az 90 ground only.
 #
 # ⛔0958 IS SUPERSEDED, NOT RELEASED. Its 8 #HOLD lines carry no --shell-mm / --prop-mm, so they name stems without
 #   _shell0.75mm_prop1.43mm and would buy the same four cells at the old slab. §4 Q4 of the recommendations: «현행 보류 줄에는
@@ -47,12 +49,17 @@
 #   benchmark/elevation_sweep_md.py env_parts() moves the scene down by --env-alt and leaves the drone at the origin;
 #   benchmark/report15_probe.py place() puts the radar at center + range·(cos el·cos az, cos el·sin az, sin el), with TX and RX
 #   ⛔corrected 2026-09-18 ~15:10 KST: the sweep calls place(..., baseline=0.0) at benchmark/elevation_sweep_md.py:1071 — its only
-#   place() call — so TX and RX are CO-LOCATED, not BASELINE_M = 0.20 m apart as this header first said. Every path length here is
-#   monostatic and none of the numbers below changes. So radar height above ground = alt + range·sin(el), and a negative elevation
-#   means the radar is below the drone and looking up (docs, 2026-09-10).
+#   place() call — so TX and RX are CO-LOCATED, not BASELINE_M = 0.20 m apart as this header first said (BASELINE_M = 0.20 is the
+#   default of report15_probe.place, which the sweep overrides). So radar height above ground = alt + range·sin(el), and a negative
+#   elevation means the radar is below the drone and looking up (docs, 2026-09-10).
+#   ⛔further corrected 2026-09-18 ~17:20 KST (adversarial review): the 15:10 note added «and none of the numbers below changes».
+#   That is wrong. With TX and RX co-located, a path and its reverse are the same path, so every length that was written as a PAIR
+#   collapses to one value: az 0 bldg_b+bldg_d 49.800/50.200 → 50.000 m, az 90 drone+bldg_b 76.785/76.939 → 76.862 m, drone+bldg_a
+#   78.337/78.494 → 78.415 m, az 270 drone+bldg_d 83.172/83.337 → 83.254 m, and the az 90 nadir 2.998 → 2.991 m. All of them are
+#   corrected in place below. The single-valued lengths (R0, the ghost, bldg_a/b/c/d one-bounce) are unchanged, and no threshold moves.
 #   For every line here: range 30 m, el −15°, --env-alt 9.26 m ⇒
 #     · radar 1.495 m above the ground plate (a tripod), drone 9.26 m above it, 28.978 m apart horizontally;
-#     · direct drone two-way path R0 = 60.000 m; bistatic angle 0° (co-located TX/RX, corrected 09-18);
+#     · direct drone two-way path R0 = 60.000 m; bistatic angle exactly 0° (co-located TX/RX, corrected 09-18);
 #     · radar 31.02 m inside the edge of the 120 × 120 m ground plate (benchmark/make_outdoor_scene_0831.py), so the plate edge is not
 #       the nearest scatterer;
 #     · line of sight radar → drone clear at both azimuths, and the radar is not inside any building box at either.
@@ -65,34 +72,52 @@
 #   To this solver every environment material has scattering coefficient S = 0 (src/materials.py concrete_dark, concrete_light, metal),
 #   refraction and diffraction are off (R0D0E0F1) and max_depth is 2, so a structure can enter a path only through exact specular
 #   geometry off a flat box face. That set can be enumerated in closed form. Recomputed independently for this file over all 6 faces of
-#   every box plus the ground plate, with occlusion checked against the same boxes and with TX and RX kept apart
-#   (scratch recs_0918/q4/specular_enum.py and margin.py; a scratch script, not a ledger):
+#   every box plus the ground plate, with occlusion checked against the same boxes and with TX and RX CO-LOCATED, as the sweep
+#   places them (scratch recs_0918/q4/specular_enum.py and margin.py; re-derived independently on 2026-09-18 by Fermat minimisation
+#   of the path length over each face rectangle, scratch recs_0918/reviewer_q4/fermat_enum.py and margin0.py; scratch scripts, not
+#   a ledger). Fermat minimisation and the image method agree on every entry below.
 #
-#   az 0 — radar at (x +28.978, y ∓0.100), in the street between bldg_b and bldg_d.
+#   az 0 — radar at (x +28.978, y 0), in the street between bldg_b and bldg_d.
 #     environment-only, 1 bounce   bldg_b            28.000 m   offset −32.000 m   2.13 / 10.67 / 21.35 cells
 #     environment-only, 1 bounce   bldg_d            22.000 m   offset −38.000 m   2.54 / 12.68 / 25.35 cells
-#     environment-only, 2 bounces  bldg_b + bldg_d   49.800 and 50.200 m   offset −10.200 / −9.800 m   0.65-0.68 / 3.27-3.40 / 6.54-6.80 cells
-#     environment-only, 2 bounces  ground + bldg_b   28.159 m   offset −31.841 m;   bldg_d + ground  22.202 m   offset −37.798 m
+#     environment-only, 2 bounces  bldg_b + bldg_d   50.000 m   offset −10.000 m   0.667 / 3.34 / 6.67 cells  (both orders are the
+#                                  same path for a co-located radar; corrected 09-18 from «49.800 and 50.200 m»)
+#     ⚠corner-degenerate, listed but NOT expected from the solver: ground + bldg_b 28.159 m (offset −31.841 m) and bldg_d + ground
+#       22.202 m (offset −37.798 m). Re-derived 2026-09-18: for a co-located radar the specular point of each of these lands exactly
+#       on the line where the wall meets the ground (z = −9.26 m, the bottom edge of the face), i.e. on the face boundary, not inside
+#       it. They are the limit of a family, not interior specular paths, so their ABSENCE from the path list is not a solver failure
+#       and check S does not test them. If the solver does return them, they are written down with their part and delay like any
+#       other unpredicted class.
 #     drone + ground (the ghost)   60.910 m   offset +0.909 m   0.06 / 0.30 / 0.61 cells; grazing angle 20.36°
 #     ⇒ NO path has both a drone interaction and a building or pole interaction. This position carries clutter near the drone's range
-#       and no structure multipath on the drone's own echo. The wall-to-wall double bounce is the one that can reach the bin: 0.65-0.68
+#       and no structure multipath on the drone's own echo. The wall-to-wall double bounce is the one that can reach the bin: 0.667
 #       cells away at 20 MHz, inside the main lobe of a Hann range response.
 #
-#   az 90 — radar at (x ∓0.100, y +28.978), in the gap between bldg_a and bldg_b.
-#     environment-only              none from any building or pole; only the radar's own nadir, 2.998 m, offset −57.003 m
-#     drone + bldg_b                76.785 and 76.939 m   offset +16.785 / +16.938 m   1.12-1.13 / 5.60-5.65 / 11.20-11.30 cells
-#     drone + bldg_a                78.337 and 78.494 m   offset +18.336 / +18.493 m   1.22-1.23 / 6.12-6.17 / 12.23-12.34 cells
+#   az 90 — radar at (x 0, y +28.978), in the gap between bldg_a and bldg_b.
+#     environment-only              none from any building or pole; only the radar's own nadir, 2.991 m, offset −57.009 m
+#     drone + bldg_b                76.862 m   offset +16.862 m   1.13 / 5.62 / 11.25 cells   (one value: co-located radar)
+#     drone + bldg_a                78.415 m   offset +18.415 m   1.23 / 6.14 / 12.29 cells   (one value: co-located radar)
 #     drone + ground (the ghost)    60.910 m   offset +0.909 m, as at az 0
 #     ⇒ This position carries structure multipath on the drone's own echo and no environment-only structure return. Both structure
-#       paths survive the drone's own size: over a ±0.30 m displacement of the drone point the bldg_b reflection point stays 0.38-0.68 m
-#       inside its face edge and the bldg_a one 4.90-5.20 m, and the bldg_b path only disappears once the drone point moves to
-#       y = −1.25 m, far outside the airframe.
+#       paths survive the drone's own size. ⛔Recomputed 2026-09-18 at the production placement (co-located TX/RX) and over the
+#       airframe's real radius — DJI Matrice 4E, motor diagonal 438.8 mm and propeller diameter 274 mm (src/drones.py), so a
+#       propeller tip is 0.356 m from the drone origin, not the 0.30 m this header first assumed:
+#         · bldg_b: specular point 0.489 m inside its face edge at the drone origin; 0.264-0.711 m over a 0.356 m ball of drone
+#           displacement. The path leaves the face only when the drone point moves to y = −0.978 m, 2.7x the airframe radius.
+#         · bldg_a: 5.011 m inside its face edge at the drone origin; 4.794-5.231 m over the same ball. It leaves at y = −11.98 m.
+#       So both structure paths survive the drone's own size. ⚠The bldg_b margin is the tight one and it is a POINT-drone margin: it
+#       says the specular point of a point at the drone's origin stays on the face, not that every scattering centre on the airframe
+#       has its own path. Superseded numbers, both wrong for this file: «0.38-0.68 / 4.90-5.20 m, y = −1.25 m» (first pass, a 0.25 m
+#       search grid at a 0.20 m baseline) and «0.298-0.679 / 4.823-5.200 m, y = −0.90 / −1.065 m» (second pass, both ends of a 0.20 m
+#       baseline the sweep does not use). The conclusion is the same in all three.
 #
 #   The two positions therefore carry different mechanisms, and the drone's nadir and its aspect are the same at both. Nothing was
 #   dropped for want of a structure path: at 30 m both azimuths carry one. Two azimuths that were considered and are NOT bought:
 #   az 180 has only an environment-only bldg_a return at 17.000 m (offset −43.000 m, 2.87 cells at 20 MHz) and no drone-structure path,
-#   so it repeats the az 0 mechanism more weakly; az 225 puts the radar inside bldg_c at this range and height (x −20.56, y −20.42,
-#   z 1.495 above ground, inside x ∈ [−25, −15], y ∈ [−32, −16], height 9 m), so it is not a placement at all.
+#   so it repeats the az 0 mechanism more weakly; az 225 puts the radar inside bldg_c at this range and height (x −20.490, y −20.490,
+#   z 1.495 above ground, inside x ∈ [−25, −15], y ∈ [−32, −16], height 9 m), so it is not a placement at all. (x/y corrected 09-18
+#   from «−20.56 / −20.42», which were the two ends of a 0.20 m baseline the sweep does not use; still inside the box.)
+#   Line of sight radar → drone is clear at az 0, 90, 180 and 270, checked against every box on 2026-09-18.
 #   ⚠What the enumeration does not say: whether the ray-launching solver finds those paths at 4e9 rays. That is check S below, and it is
 #   a pre-set failure mode of this file, not a result.
 #
@@ -101,8 +126,11 @@
 #   az 90 ground only  sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt9.26_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
 #   az 0  full scene   sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
 #   az 90 full scene   sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_alt9.26_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}
-#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (already git-ignored, done with 0957). Expected about 9.5 MB per full-scene
-#   and ground shard and about 4.6 MB per open-sky shard, from the stored az 0 partners above: about 66 MB for all 8.
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (already git-ignored, done with 0957). Measured on the stored az 0
+#   partners: 4.625 and 4.611 MB per open-sky shard, 9.351 and 9.380 MB per ground-only shard. ⚠The full-scene figure is an
+#   EXTRAPOLATION, not a measurement: outputs/path_provenance/ holds no full-scene (envoutdoor01_alt…) sidecar at any range, so
+#   «about 9.5 MB per full-scene shard» is the ground-only value carried over. Taking it at face value gives about 66 MB for all 8,
+#   and the disk budget should allow several times that. Nothing in the read-out depends on the sidecar size.
 #   Shards are interleaved (idx = shard::2), so a cell needs both of its shards before it is read.
 #
 # Read-out — fixed before any shard of this file is read. Metric names are the repo's fixed ones (docs/READOUT_0917.md §1:
@@ -130,9 +158,14 @@
 #      and delay; it is a defect in the enumeration or a non-specular return, and it is written, not quietly folded in.
 #   C  cap, on all four new cells: n_trunc[0] = 0 (the shard's own truncation count against the 2,000,000 path cap). Any position at the
 #      cap → no level from that shard is quoted and the cell is re-read only after the cap is raised, per the standing rule that a
-#      saturating cap makes the axis unmeasurable. Expectation from stored cells, written before reading: the 15 m el −30 full-scene
-#      shard has nret median 1,894, max 2,027, n_trunc[0] = 0, and the 30 m ground-only shard at this slab has median 620, max 673, so
-#      the cap is about three orders of magnitude away.
+#      saturating cap makes the axis unmeasurable. Expectation from stored cells, written before reading and RE-CHECKED on the shards
+#      2026-09-18: the 15 m el −30 full-scene shard has nret median 1,894, max 2,027, n_trunc[0] = 0
+#      (outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n8192_envoutdoor01_mfixbatteryi5_blperairframe_rt210_d2_el-30_00.npz;
+#      its 01 partner 1,893 / 2,029, and the el −60 pair 2,707 / 2,827 and 2,706 / 2,819, n_trunc[0] = 0 on all four), and the 30 m
+#      ground-only shards at this slab have median 620, max 673 and 671, n_trunc[0] = 0, so the 2,000,000 cap is about three orders of
+#      magnitude away. ⚠A 2026-09-18 re-check first reported this line as unreproducible and offered «median 1,587-2,232, max
+#      1,688-2,343» instead; those are the _alt40 and _alt80 full-scene cells (drone 40 m and 80 m above the plate), a different
+#      geometry. The line above is correct as written and was NOT changed.
 #   G  structures change the bin, per position: |Δ_struct(q)| ≥ 3 dB for q = env_in_bin_db or q = contrast_gated, or
 #      structure_drone_in_bin_db ≥ −10 dB, at 20 or 100 MHz → «buildings change the drone's range bin at this position».
 #   F  position lever: |Δ_struct(q)(az 90) − Δ_struct(q)(az 0)| ≥ 3 dB for either q, at 20 or 100 MHz → «position lever present at this
@@ -141,10 +174,10 @@
 #   Hann and rect disagree on S, G or F → that reading is not written. Only Δ_struct, structure_drone_in_bin_db and F are read as
 #   results; every absolute level carries the 0957 ray-density note (contrast rose 0.6-0.8 dB per doubling of rays in the stored 15 m
 #   open-sky ladder, so a level difference between cells at different ray counts is not read at all, and these cells are all at 4e9).
-#   Expectation written before reading, and not a prediction with a tolerance: at az 0 the closest structure return is 0.65-0.68 range
+#   Expectation written before reading, and not a prediction with a tolerance: at az 0 the closest structure return is 0.667 range
 #   cells from the drone at 20 MHz, so Δ_struct(env_in_bin_db) there is expected to move and Δ_struct(contrast_gated) is not; at az 90
-#   the structure paths sit 1.12-1.23 cells away and carry the drone's own Doppler, so structure_drone_in_bin_db is the quantity that
-#   can cross. Neither expectation is used to choose a threshold.
+#   the structure paths sit 1.13 and 1.23 cells away and carry the drone's own Doppler, so structure_drone_in_bin_db is the quantity
+#   that can cross. Neither expectation is used to choose a threshold. (Cell counts corrected 09-18 with the co-located placement.)
 #   Scope in every sentence: two named radar positions, one hover point, 30 m, el −15°, one synthetic flat-ground scene with mirror
 #   materials and box buildings, canonical drone slab (shell 0.75 mm from DJI Matrice 4T CAD, propeller 1.43 mm from our own mesh,
 #   which docs/MATERIAL_CORRECTION.md §2-2 records as thicker than the real blade), tr38901 as a stand-in and not the real antennas,
@@ -161,8 +194,9 @@
 #   · G crossed but F not crossed → stop buying scene cells, and write that the structures reach the bin while the two positions do not
 #     differ at this geometry. The receiver reading (Q3 of the recommendations) comes first, on these same stored path lists.
 #   · F crossed → at most ONE more position, and only if the candidate rule needs a third point. az 270 is the candidate: it carries
-#     both mechanisms at 30 m (environment-only bldg_c return at 30.000 m, offset −30.000 m; drone + bldg_d at 83.172 and 83.337 m,
-#     offset +23.171 / +23.337 m), line of sight clear, radar not inside any box. It needs its own open-sky and ground-only partners.
+#     both mechanisms at 30 m (environment-only bldg_c return at 30.000 m, offset −30.000 m; drone + bldg_d at 83.254 m, offset
+#     +23.254 m — one value, co-located radar, corrected 09-18 from «83.172 and 83.337 m»), line of sight clear, radar not inside any
+#     box. It needs its own open-sky and ground-only partners.
 #     About 5.3 slot-h (0.86 + 1.76 + 2.70). No fourth position from this file in any outcome.
 #     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
 #     # --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2   (and --shard 1)
@@ -191,9 +225,11 @@
 #   the paths are found, so it does not move the time) → 1.25-1.5 h per 2,048-position shard, taking the time as proportional to
 #   positions above a few minutes of fixed scene build. ⚠The band is wide because the wall clock is set by how many of our workers share
 #   a card: two identical 30 m ground shards took 17.1 and 54.4 min in sup_0957 on different cards the same night.
-# Cards. No card restriction: runners/GPU_HOLD.json has an empty hold list and its all_five_0918 note records the user's 2026-09-18
-#   ~11:00 KST instruction to use all five GPUs with the supervisors behaving normally. The supervisors' own tier table decides how many
-#   workers each card takes from other users' VRAM, re-read every round. Nothing in this file asks for a particular card.
+# Cards. ⛔corrected 2026-09-18 ~17:20 KST: this paragraph said «no card restriction … an empty hold list». That was true when the
+#   file was written (~13:00 KST) and is not true now. runners/GPU_HOLD.json currently reads "gpus": [4] with an "evacuated" note
+#   dated 2026-09-18T06:41:45Z, and /workspace/sionna_queue_recommendations_2026-09-18.md §2.1 records the same: GPU 4 is held, GPUs
+#   0-3 are available. runners/logs/sup_0964.log confirms it at launch — «G4:0/0(상한0·⛔보류)». Nothing in this file asks for a
+#   particular card; the supervisors' own tier table decides how many workers each card takes, re-read every round.
 --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
 --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 1 --nshards 2
 --engine sionna --n-poses 4096 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2048 --shard 0 --nshards 2
