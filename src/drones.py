@@ -1616,7 +1616,7 @@ def _fit_cache_key(spec: DroneSpec):
       막고 있었는데, 그건 순서를 아는 사람만 지킬 수 있는 규약이다.
       → 캐시 키를 spec 전체로 바꿔 **구조적으로 불가능**하게 만든다. 레지스트리 7종은
         key ↔ spec 이 1:1 이므로 결과·성능 모두 그대로다(빌드 지문으로 확인)."""
-    return tuple(getattr(spec, f) for f in _SPEC_FIELDS)
+    return tuple(getattr(spec, f) for f in _SPEC_FIELDS) + tuple(getattr(spec, f, None) for f in ("mesh_rev", "rotor_dirs", "rev_drop"))
 
 
 def frame_fit_scale(spec: DroneSpec, mesh_fix=None) -> tuple[float, float, float]:
@@ -1700,7 +1700,7 @@ def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False,
     n 은 블레이드 스팬 분할 힌트(마이크로도플러는 크게 줘서 단면을 촘촘히).
     pose_articulated 가 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
 
-    mirror : **반대 회전방향(CCW) 프롭**. 실물 멀티로터는 CW/CCW 프롭이 서로 **거울상**이다
+    mirror : **반대 회전방향(CW) 프롭**. 실물 멀티로터는 CW/CCW 프롭이 서로 **거울상**이다
              — 스윕 방향과 피치 부호가 함께 뒤집힌다. 옛 코드는 한 메쉬를 z회전으로만 복제해
              네 로터가 전부 같은 손잡이였다(2026-07-28 수정). 산란 패턴 지표에 유의미하다.
              ⚠ DJI 는 기종별 절대 회전방향을 공개하지 않는다(docs/drone_specs_2026.json
@@ -1736,7 +1736,7 @@ def rotor_layout(spec: DroneSpec) -> list[dict]:
         r = radii[k]
         dz = float(zoff[k]) / 1000.0 if k < len(zoff) else 0.0   # 로터별 z 오프셋(프롭 디스크 겹침 회피)
         out.append(dict(center=(r * ca * sx, r * sa * sy, (prop_z + dz) * sz),
-                        base_ang=ang + 12.0, dir=(1 if k % 2 == 0 else -1)))
+                        base_ang=ang + 12.0, dir=(spec.rotor_dirs[k] if getattr(spec, "rotor_dirs", None) else (1 if k % 2 == 0 else -1))))
     return out
 
 
@@ -1878,3 +1878,45 @@ if __name__ == "__main__":
         print(f"{key:12s} {spec.num_rotors:6d} {spec.diagonal_mm:8.0f} "
               f"{spec.prop_dia_mm:8.0f} {m.n_tris():7d}  {spec.release}"
               f"   span[m]={span[0]:.2f}x{span[1]:.2f}x{span[2]:.2f}")
+
+
+# --------------------------------------------------------------------------- #
+#  Mesh revisions (2026-09-17)
+# --------------------------------------------------------------------------- #
+#  Revision 0 = the DRONES registry above, built by drone_cad as it is today. It is the frozen
+#  default: every caller that does not ask for a revision gets exactly the same objects and bytes.
+#  Revisions 1, 2, … are registered in src/mesh_rev.py (per drone: src/mesh_rev_<key>.py) and built
+#  by src/drone_rev.py, which drone_cad reaches through one hook in `build_frame_cad` and one in
+#  `build_propeller_cad` (both test `getattr(spec, "mesh_rev", 0)`).
+#  ⚠ This block sits after the `__main__` block on purpose: other files cite drones.py by line
+#    number, so no existing line may move. Nothing in the `__main__` block uses these names, and a
+#    module imported by another module runs to the end of the file before any caller sees it.
+@dataclass
+class DroneSpecRev(DroneSpec):
+    """A DroneSpec for mesh revision ≥ 1. Built only by `mesh_rev.make_spec` (via `spec_for`).
+
+    mesh_rev   : revision number (≥ 1). drone_cad dispatches to drone_rev when it is non-zero.
+    rotor_dirs : per-rotor spin, +1 = CCW / −1 = CW, in `motor_angles` order. None keeps the
+                 revision-0 pattern (1 if k % 2 == 0 else −1) — see `rotor_layout`.
+    rev_drop   : component ids left out (named ablation variants in scratch work only; a
+                 registered revision keeps this empty)."""
+    mesh_rev: int = 1
+    rotor_dirs: tuple | None = None
+    rev_drop: tuple = ()
+
+
+def spec_for(key: str, mesh_rev: int = 0) -> DroneSpec:
+    """The spec of drone `key` at mesh revision `mesh_rev`.
+
+    mesh_rev 0 returns `DRONES[key]` — the same object, so revision 0 is unchanged by definition.
+    mesh_rev ≥ 1 returns `mesh_rev.make_spec(key, mesh_rev)` (module loaded only then).
+    An unknown key, an unregistered (key, revision) or a negative revision raises ValueError."""
+    import numbers
+    if isinstance(mesh_rev, bool) or not isinstance(mesh_rev, numbers.Integral) or mesh_rev < 0:
+        raise ValueError(f"spec_for: mesh_rev must be an integer >= 0, got {mesh_rev!r}")
+    if key not in DRONES:
+        raise ValueError(f"spec_for: unknown drone key {key!r}")
+    if int(mesh_rev) == 0:
+        return DRONES[key]
+    import mesh_rev as _mesh_rev
+    return _mesh_rev.make_spec(key, int(mesh_rev))

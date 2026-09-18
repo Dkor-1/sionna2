@@ -357,13 +357,13 @@ def run(a) -> None:
     #   본 코드와 같은 조각으로 만들므로, 그 검사만 남긴다.
     #   ⇒ 되살리려면 **이름 조립을 함수 하나로 빼서 둘이 같은 코드를 부르게** 해야 한다.
     from articulated_fast import FastPoser, rotor_phases
-    from drones import DRONES, DRONE_GROUP_MAT
+    from drones import DRONES, DRONE_GROUP_MAT; _rev = int(getattr(a, "mesh_rev", 0) or 0); _mr = __import__("mesh_rev") if _rev else None  # --mesh-rev (src/mesh_rev.py)
 
     drone_key = str(getattr(a, "drone", "") or TJ.get("drone", "matrice4e"))
-    spec = DRONES[drone_key]
+    spec = DRONES[drone_key] if not _rev else _mr.run_spec(drone_key, _rev)  # rev >= 1: canonical MESH_FIX/BLADE_LAW + registered, else SystemExit
     fp = FastPoser(spec, prop_scale=float(getattr(a, "prop_scale", 1.0) or 1.0),
                    frame_scale=float(getattr(a, "frame_scale", 1.0) or 1.0),
-                   body_scale=float(getattr(a, "body_scale", 1.0) or 1.0))
+                   body_scale=float(getattr(a, "body_scale", 1.0) or 1.0)); _mr.guard_fingerprint(fp, drone_key, _rev) if _rev else None  # frozen geometry behind the name
     # ⭐자세 «표집률» 을 인자로 덮어쓴다 (2026-08-27 신설).
     #   ⛔--n-poses 는 «촘촘함» 이 아니라 «기록 길이» 다 — 자세 간격 dt=1/prf 는 n 과 무관하다.
     #   블레이드 통과당 자세 수를 늘리려면 이쪽을 올려야 한다. 안 주면 원장값이라 동작 불변.
@@ -449,7 +449,7 @@ def run(a) -> None:
     # ⭐날 법칙도 같은 규약 — 옛 판(legacy)이면 꼬리표 없음(비트동일), 정본이면 이름에 박힌다.
     _law = _blc()
     tagmf += "" if _law == "legacy" else "_bl" + _law.replace("_", "")
-
+    tagmf = tagmf.replace("_mfix" + "".join(_fixes), "_mfix" + "".join(_fixes) + f"rev{_rev}", 1) if _rev else tagmf  # --mesh-rev: rev<N> ends the mfix value (_mfixbatteryi5rev1_blperairframe)
     #: ⭐`_sdet` = 솔버 결정 모드(2026-09-14). ⛔우리 `_det`(합산 순서 정렬)와 **다른 것**이다 —
     #  이쪽은 `PathSolver(deterministic=True)` 로 솔버 자체를 바꾼다. 이름이 같으면 옛 샤드를
     #  건너뛰거나 덮으므로 팔을 가른다. ⛔기본(끔)에는 안 붙는다 — 창고 전부가 그 모드다.
@@ -1945,7 +1945,7 @@ def analyse() -> None:
     # ⭐**샤드 폴더를 한 번만 훑는다** (2026-08-20). 전에는 팔×앙각마다 glob 를 다시 돌아
     #   **3,146 회**(그중 2,380 회가 헛방)였다 — 7.87 s → 5.6 ms (1,400 배).
     #   ⛔파일 목록과 정렬 순서는 옛 `sorted(glob(...))` 와 **완전히 같다**(766 칸 0 불일치 확인).
-    _all = sorted(glob.glob(f"{SHD}/*_el*.npz"))
+    _all = sorted(glob.glob(f"{SHD}/*_el*.npz")); _mesh_rev_pass = bool(getattr(analyse, "mesh_rev_pass", False)); _all, _rev_other = __import__("mesh_rev").split_merge_paths(_all, _mesh_rev_pass)  # mesh-revision arms get their own ledger
     _by = {}
     for _f in _all:
         _b = os.path.basename(_f)
@@ -2319,7 +2319,7 @@ def analyse() -> None:
         h = f"{t['h1_over_h2_db']:+.2f}" if t["h1_over_h2_db"] is not None else "  —"
         print(f"{r['engine']:>7} {r['el_deg']:>5.0f} {r['f_tip_hz']:>7.0f} | "
               f"{bt:>13} {h:>7} {r['level_db']:>8.2f} | {bx:>13} {x['n_bins']:>5}")
-    print(f"\n✅ {OUT}\n✅ {OUTN}")
+    print(f"\n✅ {OUT}\n✅ {OUTN}"); __import__("mesh_rev").merge_rev_arms(analyse) if (_rev_other and not _mesh_rev_pass) else None
 
 
 def main() -> None:
@@ -2570,7 +2570,7 @@ def main() -> None:
                          "그룹 부품만 넣는다(0° 붕괴 기전 검증: 기근이냐 익사냐). "
                          "꼬리표 _parts<이름>. 우리 커널 쪽 대응물은 ours_free 엔진.")
     ap.add_argument("--merge", action="store_true")
-    ap.add_argument("--overwrite", action="store_true")
+    ap.add_argument("--overwrite", action="store_true"); ap.add_argument("--mesh-rev", dest="mesh_rev", type=int, default=0, help="mesh revision (0 = today's meshes, the default). >= 1 needs a registered revision in src/mesh_rev.py with a frozen fingerprint and the canonical MESH_FIX/BLADE_LAW; the name gains rev<N> at the end of the mfix value.")
     a = ap.parse_args()
     analyse() if a.merge else run(a)
 

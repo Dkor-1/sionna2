@@ -2394,7 +2394,7 @@ def build_frame_cad(spec, mesh_fix=None) -> "trimesh.Trimesh":
         토큰 목록·뜻은 `MESH_FIX_TOKENS`, 정규화는 `normalize_mesh_fix`.
         예) build_frame_cad(spec, mesh_fix='battery')."""
     from drones import motor_angles, motor_radii, DRONE_GROUP_MAT   # 순환 import 회피용 지연
-
+    if getattr(spec, "mesh_rev", 0): from drone_rev import build_frame_rev; return build_frame_rev(spec, mesh_fix=mesh_fix)  # mesh revision >= 1 (src/drone_rev.py); revision 0 continues below
     fix = normalize_mesh_fix(mesh_fix)
     key = spec.key
     diag = spec.diagonal_mm / 1000.0
@@ -3442,7 +3442,7 @@ def build_propeller_cad(spec, n_sec=22, blade_law: str | None = None, pitch_law=
     _c_rr, _c_fr, _profile_src = resolve_chord_profile(spec, blade_law)
     if max_edge_m is None and lambda_m is not None:
         max_edge_m = float(lambda_m) / float(edge_over_lambda)
-
+    if getattr(spec, "mesh_rev", 0): from drone_rev import build_propeller_rev; return build_propeller_rev(spec, n_sec=n_sec, blade_law=blade_law, pitch_law=pitch_law, max_edge_m=max_edge_m, lambda_m=lambda_m, edge_over_lambda=edge_over_lambda)  # mesh revision >= 1
     def _one_blade(Rb):
         # chord_max·트위스트·두께·캠버는 전부 실측 앵커(모듈 상단 상수, outputs/reference_props.json).
         # 루트는 허브 반경(0.085R)보다 **안쪽**에서 시작해 허브와 겹치게 둔다 — 실물 프롭은
