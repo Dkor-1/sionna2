@@ -1,0 +1,284 @@
+# 0967 — the same 15 m hub cells re-solved at 3.45 and 3.55 GHz, open sky and ground only, with path lists: how far is the
+#        re-solved channel from the 3.5 GHz path set re-phased to the new carrier, Σ_p a_p(f0)·exp(−j2π·f·τ_p)?
+#        (2026-09-18 ~14:40 KST, Package E of /workspace/sionna_queue_recommendations_2026-09-18.md §6; the 4 argument lines of
+#        /workspace/sionna_gpu_queue_drafts_2026-09-18.txt «Package E» are used verbatim, unchanged.)
+#
+# Purpose. Every channel this project hands the CPU receiver is ray-traced once, at 3.5 GHz, and then re-phased to whatever frequency
+#   the waveform needs. That step is an assumption, never tested at the settings we now use. This file tests it: 2 carriers × 2 scenes,
+#   4 shards, at the cell the receiver actually reads (15 m, looking up 15°, radar on a tripod, canonical thin slab, tr38901 aimed).
+#   What the result changes: if the re-solved field matches the re-phased path set inside the pre-set threshold, one 3.5 GHz ray-tracing
+#   run per geometry keeps supplying every carrier inside the band, and no protocol comparison buys its own ray tracing. If it does not
+#   match, the receiver's channel set is labelled «valid at 3.5 GHz only» and the next design decides how wide a band one solve covers.
+#   ⛔It does not decide the carrier. The carrier is still unspecified (AGENTS.md 2026-09-18); 3.5 GHz remains a working assumption and
+#   3.45 / 3.55 GHz are probes either side of it, not candidate bands.
+#
+# ⭐What --fc-ghz actually changes — read out of the code, not assumed. It is NOT a phase-only knob.
+#   benchmark/elevation_sweep_md.py carrier() maps --fc-ghz to (fc, name tag); |fc − FC| ≤ 1 Hz returns the module constant FC
+#   unchanged and adds no tag, so the stored 3.5 GHz shards are bit-identical to the untagged ones. fc then enters in FOUR places:
+#   (1) scene frequency — src/scene_build.py build_scene() sets scene.frequency = fc, so every material is re-evaluated there.
+#       Measured on CPU with the repo's own src/materials.material_params(): ITU concrete keeps εr = 5.240 and moves σ from
+#       0.121709 to 0.124460 S/m across 3.45 → 3.55 GHz (+2.26 %); the non-ITU plastic and prop_plastic keep εr = 2.7, σ = 0.02 exactly.
+#   (2) slab response — sionna/rt/utils/electromagnetics.py itu_coefficients_single_layer_slab() (ITU-R P.2040-4 eqs 43-44) builds
+#       q = 2π·d/λ·sqrt(η − sin²θ), so every thickness enters only as d/λ and ±50 MHz moves d/λ by ∓1.43 %. Computed here at normal
+#       incidence from that same formula (an independent recomputation, normal incidence only, so an order of magnitude and NOT a
+#       prediction with a tolerance), against 3.5 GHz: 0.75 mm shell −0.124 / +0.122 dB, 1.43 mm propeller −0.122 / +0.121 dB,
+#       0.30 m concrete ground +0.009 / +0.018 dB, at 3.45 / 3.55 GHz.
+#   (3) wavelength scaling — sionna/rt/path_solvers/field_calculator.py multiplies every path coefficient by λ/(4π), i.e. +0.125 dB at
+#       3.45 GHz and −0.123 dB at 3.55 GHz on EVERY path whatever it touches.
+#   (4) propagation phase — benchmark/elevation_sweep_md.py:1147 forms E = Σ_hit a·exp(−j2π·fc·τ). This is the ONLY place it enters.
+#   ⇒ (1)+(2)+(3) are exactly what a re-phasing model cannot reproduce; (4) is exactly what it does reproduce. Computed for this
+#     geometry, single-bounce: λ/(4π) and one shell slab very nearly cancel (+0.125 − 0.124 = +0.001 dB at 3.45 GHz), a drone-ground
+#     ghost adds the concrete term (+0.010 dB) and the radar's own nadir carries λ/(4π) plus concrete alone (+0.134 dB at 3.45,
+#     −0.105 dB at 3.55). So the coefficient-only effect is expected to be SMALL and class-dependent — which is why check F1 reads it
+#     per path class and not as one number.
+#   What does NOT move with fc: the ray budget (--spp is given explicitly), the geometry, the pose grid (dt = 1/PRF, independent of n),
+#   the blade-flash rate f_flash = 126.667 Hz. What moves but is not read here: f_tip (the merge side reads it from the _fc tag).
+#   Standing reference for what closes with the λ ratio and what does not: outputs/carrier_transition_table.json — ⚠that table is
+#   3.5 → 5.8 GHz (λ ratio 0.603), not ±1.4 %, and none of its numbers are quoted as a threshold here.
+#
+# ⭐The comparison baseline, written before anything is bought.
+#   rephase_ref(f, t) = Σ_p a_p(f0, t)·exp(−j2π·f·τ_p(t)), summed over the stored 3.5 GHz path list of the SAME cell at the SAME global
+#   pose index t, with f0 = 3.5 GHz exactly (the constant FC). a_p and τ_p are the sidecar's own `a` and `tau` arrays.
+#   ⛔⛔THE PROPAGATION PHASE IS NOT INSIDE a_p. The sweep itself writes E = Σ a·exp(−j2π·fc·τ) at elevation_sweep_md.py:1147, and
+#     jobs_0957 precondition (2) measured on CPU (4 positions, ground only, alt 5.4, tr38901, 4e6 rays) that this sum reproduces the
+#     stored E and E_dedup with relative difference 0.0. So a_p is the coefficient WITHOUT exp(−j2π f τ).
+#     Multiplying E, E_dedup, or any already-summed field by exp(−j2π f τ) applies that phase a second time and produces a channel
+#     whose delay is twice the real one. It is a silent error: the magnitude is untouched, so |E| looks right. Check A below is what
+#     catches it, and it is run on the reader as well as on the shard.
+#   ⛔Never re-phase from a different cell, a different pose index, or a different seed. One cell, one pose, one seed.
+#
+# What already exists and is reused, and what is deliberately NOT bought.
+#   Reused, not re-bought — the 3.5 GHz partners are stored at exactly these settings (runners/jobs_0960 lines 1-4 and 9-10; my dry run
+#   of 2026-09-18 05:36-05:37 UTC reports DONE for all six, and every file below was listed on disk with its size):
+#     3.5 GHz open sky, 15 m, el −15, thin slab, tr38901, n4096, both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#       sidecars outputs/path_provenance/…_{00,01}_prov.npz, 21.06 / 21.04 MB; nret median 1,319, max 1,400, n_trunc[0] = 0 of 2,048;
+#       stored meta seconds 642.9 / 530.8.
+#     3.5 GHz ground only, --env-alt 5.4, same otherwise, both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n4096_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#       sidecars 43.70 / 43.71 MB; nret median 2,463.5 / 2,463.0, max 2,567, n_trunc[0] = 0; stored meta seconds 2,520.4 / 1,006.8.
+#     3.5 GHz open sky --solver-seed 2 (jobs_0960 lines 9-10), both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n4096_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#       sidecars 20.69 / 20.78 MB; nret median 1,282, max 1,394, n_trunc[0] = 0. This pair is the ONLY same-settings sampling floor in
+#       this file (seed_floor below). Measured beside it: the seed moves the median path count from 1,319 to 1,282, i.e. 2.8 %.
+#   ⚠Both partner cells are n4096 with --nshards 2 and idx = shard::2, so poses 0…1,023 of a partner live in BOTH of its shards —
+#     a partner cell is read only when both shards are present. The new lines are n1024 with --nshards 1, so idx = 0…1,023 in one file.
+#   Existing but NOT a partner, and named so nobody mistakes it for one:
+#     · runners/jobs_0963 line 142 (queued, still NEW in my dry run; 19 of 73 lines launched at 14:41 KST 09-18) is the same n1024
+#       open-sky cell at 3.5 GHz, E only, no --dump-paths. It is the record-length replay control R below and nothing more.
+#       ⛔⛔--dump-paths does NOT change the stem: I dry-ran that line with and without --dump-paths 1024 and both name
+#       sionna_p4000000000_swR0D0E0F1_r15_n1024_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz.
+#       So once 0963 writes it, a dump-carrying line for that stem is silently «건너뜀» (skipped), and forcing it would need
+#       --overwrite, which jobs_0957 forbids outright. ⇒ the 3.5 GHz PATH LISTS in this file come from the 0960 n4096 sidecars only.
+#     · The 2.0.1-era in-band carrier family bought by runners/jobs_0929 and jobs_0930: 3.450 / 3.475 / 3.500 / 3.525 / 3.550 GHz at
+#       15 m, el −30 and −60, n8192, iso, Sionna default 0.1 m slab, open sky and full outdoor01; 20 tagged shards on disk (10 each of
+#       _fc3450, _fc3475, _fc3525, _fc3550, plus the untagged 3.500 centre). Its readout is docs/BANDFLAT_0913.md. ⛔Not reused as a
+#       partner: different build (no _rt210), different slab, iso antenna, different elevation, different record length, no ground-only
+#       cell and no path lists. What it does supply is the size of the control that matters, and this file inherits that lesson: there,
+#       the moving part's spread over the 5 carriers was 0.278 / 3.914 / 0.235 / 0.239 dB while a ±5 % ray-budget change moved it by
+#       1.042 / 1.414 / 0.296 dB, and the document defers its verdict on both outdoor rows for want of a ray-budget partner.
+#     · A ray-density ladder at this exact cell, E only, on disk from runners/jobs_0961 lines 1-4 and 11-12: 1e9, 2.5e8 and 9e7 rays at
+#       15 m open sky, el −15, thin slab, tr38901, n4096, beside 0960's 4e9. Read only as the ray-density note on E-only quantities.
+#   Not bought here, on purpose: 3.475 and 3.525 GHz (extension only, below); any other range, elevation, azimuth, depth, cap, seed,
+#   airframe or antenna; 4.75 GHz n79 (the two commented lines of jobs_0960, still unbought because the band decision has not been
+#   made); 5.8 / 10 / 24 GHz (stored from the old build, a different question); any full-scene cell at any carrier (jobs_0964 owns the
+#   scene axis and must not be re-bought under a carrier name); any OFDM waveform — nothing in this file computes one.
+#
+# Geometry, computed from the code, not from a note.
+#   benchmark/elevation_sweep_md.py env_parts() moves the whole environment down by --env-alt and leaves the drone at the origin;
+#   benchmark/report15_probe.py place() puts the radio devices at centre + range·(cos el·cos az, cos el·sin az, sin el). ⚠The sweep
+#   calls place(..., baseline=0.0) at elevation_sweep_md.py:1071, so TX and RX are CO-LOCATED and the bistatic angle is 0 —
+#   report15_probe's module default BASELINE_M = 0.20 m is not used by this sweep. A negative elevation means the radar is below the
+#   drone and looking up (docs, 2026-09-10). Azimuth is the ledger default 0° (outputs/report07_three_engines.json _meta az_deg = 0).
+#   For every line here: range 15 m, el −15°, az 0°, and on the two ground lines --env-alt 5.4 m ⇒
+#     · drone 5.400 m above the ground plate, radar 1.5177 m above it (a tripod), 14.4889 m apart horizontally;
+#     · direct two-way path 30.0000 m;
+#     · ground specular: the radar's image sits at −1.5177 m, the reflection point is 3.179 m from the radar and 11.310 m from the
+#       drone's nadir, one leg is 16.0556 m, grazing angle 25.52°. ⚠That is just above the V-polarisation Brewster grazing angle of ITU
+#       concrete (about 23.5°), which is why jobs_0960 calls these hub cells and not ghost cells: its computed [g,d] − [d] is −32.4 dB
+#       at 15 m. This file is not a ghost-level experiment; the ghost is here only as a second delay to test the re-phasing on.
+#     · path classes reachable at --max-depth 2, with offset from the direct path and offset in range cells at 20 / 100 / 200 MHz
+#       (a range cell is c/B of round-trip path: 14.990 / 2.998 / 1.499 m):
+#         [d]            30.0000 m    offset  +0.0000 m    0.000 / 0.000 /  0.000 cells
+#         [g,d], [d,g]   31.0556 m    offset  +1.0556 m    0.070 / 0.352 /  0.704 cells
+#         [g] (the radar's own nadir)  3.0354 m   offset −26.9646 m   1.799 / 8.994 / 17.989 cells
+#       ⛔[g,d,g] is three interactions and cannot appear at depth 2. The nadir figures reproduce jobs_0957's 1.80 / 8.99 / 17.99
+#       independently, from the code, which is the only reason they are quoted.
+#   Record: n 1,024 at PRF 19,700 Hz = 51.98 ms, one shard, idx = 0…1,023 with no interleave. FFT bin 19.238 Hz; f_flash 126.667 Hz, so
+#   the record holds 6.58 blade-flash periods. ⛔Too coarse for a comb reading — contrast is written here and never gated.
+#   Why 3 carrier points cannot be interpolated, computed before anything is bought: over 50 MHz the propagation phase alone turns
+#   5.0035 full cycles on the direct path, 5.1795 on the ghost and 0.5063 on the nadir. A frequency spacing of 50 MHz has an
+#   unambiguous delay window of 1/50 MHz = 20 ns (6.0 m of path), while the delays here span 10.1 to 103.6 ns. The 3-point set is far
+#   below the rate that phase ramp needs. ⛔⛔LINEAR INTERPOLATION OF THE COMPLEX E ACROSS 3.45 / 3.50 / 3.55 GHz IS NOT ALLOWED, and
+#   ⛔three frequency points do not verify coherence across 100 MHz — they test one model at two offsets and nothing else.
+#   The only interpolation this file supports is the delay-domain one, rephase_ref above, and whether that is sound is the question.
+#
+# Names. The sweep builds the stems; --dump-paths does not change a name. Read back from --dry-run, all 4 distinct and none on disk:
+#   3.45 GHz open sky      sionna_p4000000000_swR0D0E0F1_r15_n1024_fc3450_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00
+#   3.45 GHz ground only   sionna_p4000000000_swR0D0E0F1_r15_n1024_envoutdoor01_ground_alt5.4_fc3450_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00
+#   3.55 GHz open sky      sionna_p4000000000_swR0D0E0F1_r15_n1024_fc3550_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00
+#   3.55 GHz ground only   sionna_p4000000000_swR0D0E0F1_r15_n1024_envoutdoor01_ground_alt5.4_fc3550_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (git-ignored since 0957). Expected size per shard, computed by halving the
+#   stored 3.5 GHz partners' 2,048-position sidecars (the path count per pose does not change with the record length or the carrier):
+#   about 10.5 MB per open-sky shard and about 21.9 MB per ground shard, about 65 MB for all four.
+#   --dump-paths 1024 with idx.size = 1,024 selects every position (elevation_sweep_md.py:895-898, linspace over idx.size).
+#
+# Read-out — fixed before any shard of this file is read. Metric names are the repo's fixed ones (docs/READOUT_0917.md §1:
+#   isolated_20xmedian, hampel_w51_k5, env_field_drop_halfmedian, env_path_missing, copy_k_ratio / copy_k_diff, contrast_raw /
+#   contrast_dedup / contrast_interp). E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db, event positions,
+#   event_in_bin and event_share are defined in the runners/jobs_0957 header; lvl_db, ac_level_db, ac_to_static_db, hits_per_pose,
+#   path_class, class_power_db and seed_diff in the runners/jobs_0960 header. B = 20, 100, 200 MHz; Hann window, rectangular as the
+#   knob. Six new quantities, each defined here in one line where it first appears:
+#   rephase_ref(f, t)      Σ_p a_p(f0, t)·exp(−j2π·f·τ_p(t)) over the stored 3.5 GHz sidecar of the same cell at global pose index t.
+#   resolve_E(f, t)        the stored E of the new cell at f at the same global pose index t.
+#   carrier_delta_db(f)    per pose, 20·log10( |resolve_E(f,t)| / |rephase_ref(f,t)| ); reported as the 10th, 50th and 90th percentile
+#                          over poses, never as a median alone (a median hides mixtures).
+#   carrier_resid(f)       median_t |resolve_E(f,t) − rephase_ref(f,t)| / median_t |rephase_ref(f,t)| — the complex residual, and the
+#                          quantity that actually answers the question; a magnitude that agrees while the phase has rotated is NOT a match.
+#   a_ratio_db(class, f)   20·log10( |Σ a_p(f) over that path_class| / |Σ a_p(f0) over that path_class| ) at the same pose, delay phase
+#                          removed — the coefficient-only change, which is what (1)+(2)+(3) above move.
+#   path_match_frac(f)     share of poses at which, for every 3.5 GHz path of class [d], [g,d], [d,g] or [g], the re-solved list holds a
+#                          path of the same class whose delay·c is within 0.05 m.
+#   seed_floor(q)          |q(--solver-seed 2) − q(seed 1)| for q computed on poses 0…1,023 of the two stored 3.5 GHz open-sky cells
+#                          (jobs_0960 lines 1-2 vs 9-10) — the same-settings ray-sampling spread, and the only floor this file owns.
+#   Per cell, written before any verdict: hits_per_pose; nret median, max and n_trunc[0]; contrast_raw and contrast_gated;
+#   class_power_db for [d], [g,d], [d,g] and [g]; env_in_bin_db and env_field_drop_halfmedian in the ground cells; isolated_20xmedian
+#   and hampel_w51_k5 counts with their normalisers; copy_k_ratio / copy_k_diff and n_dup; env_path_missing from the path lists; and
+#   every listed path class not in the four above, by part and delay.
+#   Pre-set working thresholds, not repeat-based. Below a threshold write «threshold not crossed», never «no effect» or «equivalent».
+#   A  integrity and the double-phase trap, on the first sidecar of EACH of the four lines, before anything else is read: at every pose
+#      |Σ_hit a·exp(−j2π·fc·τ) − E| / |E| < 1e-4 with fc the CELL'S OWN carrier (3.45e9 or 3.55e9), and the same sum with fc = 3.5e9
+#      reported beside it as the deliberately wrong value. Fails at the cell's own carrier → no path list from this file is read and E
+#      stays valid. ⛔If the reader gets a large residual at the cell's own carrier but a small one at some other f, it has applied the
+#      propagation phase twice or read the wrong stem; fix the reader, do not report a carrier effect.
+#   R  record-length replay, run before any carrier number is quoted. When runners/jobs_0963 line 142 has landed, compare its n1024
+#      3.5 GHz open-sky E against poses 0…1,023 of the 0960 n4096 open-sky cell (both shards): ≥ 99 % of poses with
+#      |ΔE| / median|E| < 1e-5, and the path-count difference reported. Crossed the other way → the n4096 → n1024 replay is not clean
+#      at this cell and every carrier number from this file carries «record-length replay failed»; buy the two extension lines marked R
+#      below before reading further. Until that shard exists, R is written as «not available» and the same label is carried.
+#      ⚠No n1024 3.5 GHz GROUND cell exists anywhere, so R is checkable in open sky only; the ground cells inherit the label.
+#   C  cap, on all four shards: n_trunc[0] = 0 against the 2,000,000 path cap. Any pose at the cap → no level is quoted from that shard
+#      and the cell is re-read only after the cap is raised (a saturating cap makes the axis unmeasurable). Expectation written before
+#      reading, from the stored 3.5 GHz partners: nret median 1,319 open sky and 2,463.5 ground, i.e. about three orders of magnitude
+#      below the cap; the carrier does not change where the rays go, so a surprise here is a solver question, not a carrier result.
+#   F1 coefficient-only, per path class and carrier, on all four cells: a_ratio_db([d], f), a_ratio_db([g,d], f), a_ratio_db([d,g], f),
+#      a_ratio_db([g], f), written beside the computed normal-incidence expectation above (+0.001 dB for a single shell bounce,
+#      +0.010 dB for the ghost, +0.134 / −0.105 dB for the nadir at 3.45 / 3.55 GHz). ⚠Those are normal-incidence, single-material
+#      numbers and are NOT thresholds — they are written so that a value far from them is recognised as something other than the slab
+#      and λ/(4π) terms. Threshold: |a_ratio_db(class, f)| ≥ max(1.0 dB, 3·seed_floor(class_power_db(class))) → «the path coefficients
+#      themselves move with the carrier at this geometry (threshold crossed)».
+#   F2 the file's question, on all four cells and both carriers: carrier_resid(f) and the 10/50/90 percentiles of carrier_delta_db(f).
+#      Threshold, both parts, per cell: carrier_resid(f) ≥ max(0.10, 3·seed_resid) where seed_resid is carrier_resid computed between
+#      the two stored 3.5 GHz seeds on the same poses, OR the 90th percentile of |carrier_delta_db(f)| ≥ max(1.0 dB, 3·seed_floor(lvl_db))
+#      → «re-solving the ray tracing 50 MHz away changes the channel by more than re-phasing the 3.5 GHz path set predicts, at this
+#      geometry (threshold crossed)». Otherwise «threshold not crossed at this geometry», with the floor quoted beside it.
+#      Hann and rect disagree on F1 or F2 → that reading is not written.
+#      Expectation written before reading, and not a prediction with a tolerance: F1 is expected to stay small and class-dependent for
+#      the reasons computed above, and path_match_frac is expected near 1 because ray launching is geometric; if F2 crosses while F1
+#      does not and path_match_frac is near 1, the difference is in the solver's ray sampling, not in the physics of the carrier.
+#   W  written, never gated: contrast_raw, contrast_dedup and contrast_interp of each new cell beside its 3.5 GHz partner's values on
+#      poses 0…1,023, and the correlation of the modulation spectrum shape (static component removed BEFORE the transform) between each
+#      new cell and its partner, beside the stored docs/BANDFLAT_0913.md value of ≥ 0.9948 over 5 carriers — labelled with that
+#      document's build (2.0.1), slab (Sionna default 0.1 m), antenna (iso), elevations (−30, −60) and record length (n8192), none of
+#      which match this file. ⛔At n1024 the FFT bin is 19.238 Hz and the record holds 6.58 flash periods, so no comb contrast from this
+#      file is read as a detection quantity.
+#   Scope in every sentence: one range (15 m), one elevation (el −15°), one azimuth, one flat synthetic mirror ground (S = 0) and open
+#   sky, hover only, canonical drone slab (0.75 mm shell from DJI Matrice 4T CAD; 1.43 mm propeller from our own mesh, which
+#   docs/MATERIAL_CORRECTION.md §2-2 records as thicker than the real blade), tr38901 as a stand-in and not the real antennas,
+#   co-located TX and RX, no TX-RX leakage, no receiver noise, one run per cell, matrice4e mesh revision 0. ⛔Two carriers either side of
+#   3.5 GHz say nothing about 100 MHz of coherent bandwidth, nothing about OFDM accuracy, and nothing about any other geometry.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; each was dry-run NEW on 2026-09-18 05:43 UTC in the same pass as the
+#   four lines below.
+#   · A fails on any cell → stop. No carrier number is written from this file; diagnose the dump route on CPU. E stays valid.
+#   · C fails anywhere → stop that cell, raise SIONNA2_MAX_PATHS and re-read; no level from the capped shard is quoted.
+#   · R fails, or 0963 line 142 has not landed when the file is read → buy the two R lines (a 3.5 GHz n1024 partner with a path list) so
+#      the carrier comparison is between two cells of the SAME record length. About 0.4 slot-h. The open-sky R line CANNOT be bought:
+#      its stem is 0963 line 142's stem and a dump does not change it (above). So only the ground R line exists as a line, and the
+#      open-sky record-length question is answered by 0963's E-only shard or not at all.
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#   · F2 crossed on a cell → the two mid-band points at THAT scene only, to see whether the residual grows with |f − f0| (a re-phasing
+#      error should) or jumps (a sampling artefact should not). About 0.3 slot-h per scene; no fourth and fifth carrier in any outcome.
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.475 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.525 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.475 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.525 --dump-paths 1024 --shard 0 --nshards 1
+#   · F2 lands with seed_resid ≤ carrier_resid < 3·seed_resid on either scene → seed 2 of the 3.45 GHz cell of that scene only, read
+#      against its own seed-1 value to size the sampling spread AT the new carrier. About 0.3 slot-h; no third seed, and no scene − sky
+#      is read from a seed-2 cell.
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.45 --solver-seed 2 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.45 --solver-seed 2 --dump-paths 1024 --shard 0 --nshards 1
+#   · F1 and F2 both not crossed → stop buying carrier cells. Write «at 15 m, el −15°, open sky and flat ground, re-phasing the 3.5 GHz
+#      path list reproduces a re-solve 50 MHz away inside the pre-set threshold», with the floor and the scope in the same sentence, and
+#      ⛔without extending it to 100 MHz, to other geometries, or to the full scene.
+#   · F2 crossed on both scenes and at both carriers, and F1 also crossed → the assumption fails at this geometry; the receiver's
+#      channel set is labelled «valid at 3.5 GHz only» and the next design is a bandwidth design with its own header, not more lines here.
+#   · Not from this file in any outcome: another range, elevation, azimuth or depth; a cap or ray ladder; another airframe or antenna;
+#      a full-scene carrier cell; 4.75 / 5.8 / 10 / 24 GHz; an iso version; or an OFDM receiver run. Those are other files' questions.
+#
+# One run per cell. Rules kept: outdoor ground and open sky only; R0D0E0F1 (diffuse on, refraction and diffraction off); no
+#   propeller-only arms; _rt210 added automatically; --inmem is the default; cap 2e6 with no cap ladder; the canonical slab and tr38901
+#   on every line, so the four cells read against the thin-slab families 0960-0964 and against nothing older.
+# Dry run 2026-09-18 05:34-05:37 UTC (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg nice -n 19 taskset -c 8-15,
+#   runners/filter_jobs.sh at -P 2, the 4 lines below verbatim): 4/4 NEW. The 6 reused jobs_0960 partner lines dry-ran DONE in the same
+#   pass; the 7 extension lines above dry-ran NEW at 05:43 UTC. Repeated at 05:47 UTC reading the lines back out of THIS file
+#   (4/4 NEW and 7/7 NEW), so what was checked is what is written here. Stems read back from --dry-run are distinct from each other and absent
+#   from outputs/elev_sweep_shards/. Flag-set comparison against every line of every runners/jobs_*.txt, commented and #HOLD lines
+#   included (shard, nshards and dump-paths ignored): 0 exact matches. The single nearest line anywhere is runners/jobs_0963 line 142,
+#   which differs only by having no --fc-ghz — that is the 3.5 GHz control and the stem trap described above. The 3.45 / 3.55 GHz lines
+#   of runners/jobs_0929 and jobs_0930 differ in record length, elevation, slab, antenna and scene and name different stems. Neither
+#   ground line has any near match anywhere: no n1024 ground cell exists in any queue file.
+# ----------------------------------------------------------------------------------------------------------------------
+# Independent check (adversarial checker, 2026-09-18 ~15:05 KST). Redone from the code and the stored files, not read off this header.
+#   Dry run, the 4 lines below verbatim through runners/filter_jobs.sh (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1
+#   MPLBACKEND=Agg nice -n 19 taskset -c 8-15, -P 3): 4/4 NEW. 4 stems read back from --dry-run, all distinct, none on disk, and
+#   distinct from the 20 stems of the sister files 0965 / 0966 / 0968.
+#   Flag sets compared against all 1,066 --engine lines of all 50 runners/jobs_*.txt, commented and #HOLD included, and against the
+#   other three files: 0 exact duplicates, 0 duplicates among the 24 new lines, and none of runners/jobs_0964's 12 lines is duplicated.
+#   The single-flag neighbour of the two open-sky lines (runners/jobs_0963 line 142, --fc-ghz absent) is confirmed.
+#   ⭐⭐The stem trap is REPRODUCED. runners/jobs_0963 line 142 was dry-run with and without --dump-paths 1024 and both name
+#   sionna_p4000000000_swR0D0E0F1_r15_n1024_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz, and
+#   both still report NEW, so that shard had not landed at 15:00 KST (sup_0963 was at 31/73 then). The conclusion this header draws —
+#   the 3.5 GHz path lists come from the 0960 n4096 sidecars only, and the open-sky R line is unbuyable — holds.
+#   ⭐The baseline finding of this header is confirmed and was carried into the sister files: the sweep calls place(..., baseline=0.0)
+#   at elevation_sweep_md.py:1071 and that is the only place() call there. 0965, 0966 and 0968 all stated 0.20 m and were corrected by
+#   the checker; 0966's computed [g] column had to be recomputed because of it. ⛔runners/jobs_0964 carries the same 0.20 m statement
+#   and a 0.38° bistatic angle and is NOT this checker's file to edit — it is for the main session to decide.
+#   Controls verified on disk: all six 0960 shards DONE, sidecars 21,060,074 / 21,044,891 B (sky), 43,701,418 / 43,713,609 B (ground),
+#   20,690,787 / 20,776,756 B (seed 2); nret median 1,319 / 1,319, 2,463.5 / 2,463.0, 1,282 / 1,282; n_trunc [0, 2000000] throughout;
+#   meta[5] 642.9 / 530.8, 2,520.4 / 1,006.8, 2,146.8 / 1,472.0 s; idx starting 0,2,4 and 1,3,5; sidecar pose arrays 2,048 entries
+#   spanning 0…4094 and 1…4095, so rephase_ref is computable at every one of global poses 0…1023, as this header requires.
+#   The ⛔double-phase warning was re-verified rather than taken on trust: Σ a·exp(−j2π·3.5e9·τ) over a stored sidecar reproduces the
+#   stored E with relative error 0.00e+00 at 5 poses, so a_p indeed carries no propagation phase and check A is the right guard.
+#   Geometry recomputed: radar 1.5177 m, D 14.4889 m, R′ 16.0556 m, reflection point 3.179 m from the radar, ψ 25.52°, [g,d] offset
+#   +1.0556 m = 0.070 / 0.352 / 0.704 cells, nadir −26.9646 m = 1.799 / 8.994 / 17.989 cells, 5.0035 / 5.1795 / 0.5063 cycles over
+#   50 MHz, 20 ns window against 10.1-103.6 ns of delay, 51.98 ms, 19.238 Hz bin, 6.58 flash periods. All as written.
+#   Disk: sidecars ≈65 MB against 986 GB free on /workspace.
+# Changelog (checker), 3 edits, no argument line touched:
+#   1) nret median of the 15 m ground partner printed 2,464 / 2,463; measured 2,463.5 / 2,463.0 (the even shard's median falls between
+#      two samples). Corrected in the control table and in the expectation entered for check C.
+#   2) The slot-hour estimate was raised from 0.8 to 1.0 and given a better basis — see changelog 3. It stays inside the old band.
+#   3) ⭐The open-sky cost no longer rests on halving a 2,048-position shard. 21 shards at EXACTLY this record length, range, elevation,
+#      slab, antenna, ray budget and depth are already stored from runners/jobs_0963 (n1024, 15 m, el −15, open sky): meta[5] 4.4 / 10.9
+#      / 15.8 min (min / median / max). That is a direct measurement of the thing being bought, and it replaces the halved 9.4 min.
+#      No n1024 ground cell exists anywhere, so the two ground shards keep the halved basis (8.4 / 18.2 / 24.6 min at 1,024 positions
+#      from the four stored 2,048-position 15 m ground shards). Four shards ⇒ 2×(10.9+0.5) + 2×(18.2+0.5) = 60 min ≈ 1.0 slot-h at the
+#      medians, 28-83 min across the extremes, i.e. the band 0.5-1.4 below is unchanged.
+# ----------------------------------------------------------------------------------------------------------------------
+# Estimate about 1.0 slot-h, band 0.5-1.4 (raised by the checker; see its changelog 3). Measured per 2,048-position shard at these settings, from runners/logs/sup_0960.log
+#   («끝 … 분», wall clock, one worker slot each) and confirmed against the stored meta seconds of the same shards:
+#   15 m open sky with --dump-paths 11.1 and 9.1 min (jobs_0960 lines 1-2; meta 642.9 / 530.8 s) and 36.3 and 24.7 min (lines 9-10, the
+#   seed pair, identical work; meta 2,146.8 / 1,472.0 s); 15 m ground alt 5.4 with --dump-paths 42.3 and 17.1 min (lines 3-4;
+#   meta 2,520.4 / 1,006.8 s). Halving to 1,024 positions above about 0.5 min of fixed scene build: open sky 4.8-18.4 min (median of the
+#   four 9.4), ground 8.8-21.4 min (the two give 8.8 and 21.4). Four shards ⇒ about 50 min at the medians, 27-80 min across the extremes.
+#   ⚠The band is wide because the wall clock is set by how many workers share a card, not by the work: the same open-sky shard took 9.1
+#   and 36.3 min on different cards the same night. ⚠This is below the «1-2 worker-hours» the recommendations document estimated for
+#   Package E; that figure was a design estimate and this one is computed from measured shard times at exactly these settings.
+#   Sidecars about 65 MB for the four shards.
+# Cards. No card restriction: runners/GPU_HOLD.json has an empty hold list and its all_five_0918 note records the user's 2026-09-18
+#   ~11:00 KST instruction to use all five GPUs with the supervisors behaving normally. The supervisors' own tier table decides how many
+#   workers each card takes from other users' VRAM, re-read every round. Nothing in this file asks for a particular card.
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.45 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.45 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.55 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --fc-ghz 3.55 --dump-paths 1024 --shard 0 --nshards 1

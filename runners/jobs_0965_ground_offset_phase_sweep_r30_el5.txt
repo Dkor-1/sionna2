@@ -1,0 +1,310 @@
+# 0965 — the ground-reflection phase of the drone-ground ghost, swept by moving the ground plate: at 30 m, el −5° (the radar 1.30-1.70 m
+#        above flat ground, looking 5° up at the drone), tr38901 aimed, canonical slab, max_depth 3 — as the whole scene is lowered in
+#        nine 5 cm steps, does the relative phase of the ground-reflected path classes turn at the computed two-ray rate, and how far
+#        does the coherent field in the drone's own range bin move over the 40 cm span? 1,024-position path-list records, one matched
+#        open-sky cell, one seed repeat at the centre.
+#        (2026-09-18 ~14:45 KST, package B of /workspace/sionna_queue_recommendations_2026-09-18.md §3)
+#
+# Launch preconditions (main session).
+#   (1) Path-list integrity (check 0 of the runners/jobs_0957 header) has passed on a GPU sidecar. Every line here carries path lists;
+#       without them H1, H2, H3 and the class table cannot be written and only coh_tot_db survives. If check 0 has never passed,
+#       nothing here launches.
+#   (2) runners/jobs_0962 readings P1, P2, P2d and P3 at its cell A (30 m, el −5, alt 4.11) have been read. This file takes 0962's
+#       computed two-ray column as the reference at every height, so:
+#       · P2 crossed at A → the computed P2 column below is NOT a reference; only H1 (phase CHANGE) and H4 (coherent total) are read,
+#         and H2 is written as a table without a verdict;
+#       · P3 failed → no [g,d,g] verdict is written from this file either (H3 is dropped, not retried);
+#       · P1 failed → [g,d] and [d,g] are written separately everywhere below and never averaged.
+#   (3) The readout script exists on CPU, with the computed columns of the Geometry table entered in it, BEFORE any shard is read.
+#   (4) ⭐Line 1 (the open-sky depth-3 cell) is deliberately first. It is the cheapest line, and it is the first cell anywhere with the
+#       shape n1024 + --nshards 1 + --dump-paths 1024 (no stored sidecar has that shape: the only three n1024 lines with --dump-paths in
+#       any runners/jobs_*.txt are 0962's commented extension lines, never launched). Check 0 on its sidecar before committing the ten
+#       ground shards. ⚠With several free workers the supervisor may launch lines 2-11 before line 1 lands; if the guard is to bite, the
+#       main session holds lines 2-11 until line 1 passes. Lines already running finish either way — their E is a valid record.
+#
+# Purpose. runners/jobs_0962 asks whether the drone-ground ghost follows a computed two-ray LEVEL over grazing angle. It cannot ask about
+#   PHASE: every one of its cells fixes the drone-radar-ground geometry, so the propagation phase of the ground-reflected legs is one
+#   number per cell, and the rotor motion only turns the phase of individual drone paths inside that fixed geometry. The receiver and the
+#   tracker need the other half: the ghost adds to the direct echo coherently, so the in-bin field fades as that relative phase turns, and
+#   0962's fade columns are a computed span (+5.0 / −7.0 dB at cell A, point target), never an observed one.
+#   This file turns that phase on purpose, by the only knob the runner has, and reads the class phases against the computed rate.
+#   What the result changes: if the class phases turn at the computed rate and the levels stay inside 0962's tolerance, the fade of the
+#   in-bin field is COMPUTED for any height and range from the listed class amplitudes plus two-ray geometry, and no further ground-only
+#   height, range or elevation cell is bought — the tracker's fade model is a formula with cell-measured coefficients. If they do not,
+#   the fade model has to come from cells, and the first thing that is written is where the computed model breaks, not a new sweep.
+#
+# ⛔What --env-alt actually moves. benchmark/elevation_sweep_md.py env_parts() lowers EVERY environment part by --env-alt and leaves the
+#   drone at the origin; benchmark/report15_probe.py place() puts the radar at center + range·(cos el·cos az, cos el·sin az, sin el),
+#   ⚠and the sweep calls place(..., baseline=0.0) at elevation_sweep_md.py:1071, so TX and RX are CO-LOCATED and report15_probe's module
+#   default BASELINE_M = 0.20 m is NOT used by this sweep. So --env-alt moves the GROUND, and therefore moves the drone AND
+#   the radar relative to the ground by the same amount, while their 30 m separation, their −5° elevation and the drone's aspect towards
+#   the radar do not change at all. ⛔This is not a mast-height sweep and not a drone-climb sweep, and no sentence from this file may call
+#   it either. The quantity that moves is the sum H + h (drone height + radar height), which is exactly what the image-plane path length
+#   depends on. A real mast ladder would change h alone, hence the grazing angle AND the elevation the radar sees; nothing here does that.
+#
+# What exists, and what this file does NOT buy again.
+#   Reused, not re-bought — the reuse control at the centre height. runners/jobs_0962 lines 9-10 are the SAME cell at n4096
+#   (dry-run 2026-09-18 05:40 UTC reports DONE for both shards; both sidecars on disk):
+#     outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d3_el-5_{00,01}.npz
+#     sidecars outputs/path_provenance/…_{00,01}_prov.npz (8.363 / 8.367 MB), nret median 553.5 / 553.0, max 639, n_trunc[0] = 0, cap 2e6,
+#     meta seconds 3,609.9 / 3,557.9 (60.2 / 59.3 min), solver_build sionna-rt 2.1.0.
+#   ⭐It IS a valid reuse control for the first 1,024 poses, and here is why and how.
+#     Why: every flag of line 6 below matches it except --n-poses (1024 vs 4096) and the shard split (1 vs 2), and the pose grid does not
+#     depend on the record length — elevation_sweep_md.py:368 states «--n-poses 는 «촘촘함» 이 아니라 «기록 길이» 다 — 자세 간격 dt=1/prf
+#     는 n 과 무관하다» [--n-poses is record LENGTH, not sample density; the pose spacing dt = 1/prf does not depend on n], and with no
+#     --rotor-preset the code takes the constant-rpm branch ph = rotor_phases(np.arange(n)/prf, rpms, fp.dirs), so pose i is the same
+#     airframe pose in both records for every i.
+#     How to align: the stored cell is INTERLEAVED, not split front/back — shard _00 carries idx 0, 2, 4, … 4094 and shard _01 carries
+#     idx 1, 3, 5, … 4095 (read back from the files). So both shards and both sidecars are needed; concatenate them, sort by idx, keep
+#     idx 0…1023 (512 positions from each shard), and match them index for index against the new cell's idx 0…1023, which line 6 writes
+#     contiguously in one shard. Compare only at equal idx; never by position within a shard.
+#     What it is NOT: a bit-exact repeat. It is a same-seed re-solve, and runners/jobs_0957 records 2.1-2.3 % path-count differences per
+#     rerun, so its difference from line 6 is the re-solve spread (resolve_diff below), not zero.
+#   Reused for scope only, not re-bought: 0962's computed two-ray column at cell A (ψ 10.62°, |Γ_V| 0.363, R′−R 40.7 cm, P2 −9.61 dB,
+#   P3 −18.99 dB) — recomputed independently for this file and reproduced to the last printed digit (Geometry below).
+#   Not bought here, on purpose:
+#     · a depth-2 companion at any of these heights — runners/jobs_0962's conditional az extension already holds the depth-2 n1024 az-0
+#       centre line (commented, line 115 of that file), and this file must not buy the same cell under a second name;
+#     · an n4096 version of any of these eleven cells (the centre one already exists, above);
+#     · a second azimuth, range or elevation; an iso version; an aim-offset version (that is package C); a cap or hash ladder;
+#       max_depth 4; walls or the full scene (runners/jobs_0964 carries those); another airframe, carrier or drone slab;
+#     · a third seed, and any height repeat beyond the one centre seed pair.
+#
+# Geometry, computed from the code, not from a note. Recomputed for this file from env_parts() and place() as quoted above; the centre row
+#   reproduces every printed figure of the runners/jobs_0962 cell-A row, which is the check on the recomputation.
+#   H = --env-alt = drone height above the plate.  h = H + R·sin(el) = radar height above the plate.  D = R·cos(el) = horizontal
+#   separation.  R = 30 m, el = −5°, az = 0 ⇒ D = 29.8858 m, direct two-way path 2R = 60.000 m, bistatic angle 0 (co-located TX/RX).
+#   Flat mirror plate, image method: R′ = √(D² + (H+h)²); grazing angle ψ = atan((H+h)/D); the image of the drone is (5° + ψ) off the
+#   boresight of the antenna aimed at the drone. Extra path over the direct echo: R′ − R for one ground leg, 2(R′ − R) for two.
+#   λ at 3.5 GHz = c/f = 299 792 458 / 3.5e9 = 0.0856550 m = 8.5655 cm. Computed propagation phase against [d]: φ₁ = 360·(R′−R)/λ for
+#   [g,d] and [d,g]; φ₂ = 2·φ₁ for [g,d,g]. P2 = 20·log10|Γ_V| + (one-way tr38901 loss at the image direction) + 20·log10(R/R′), with
+#   ITU concrete εr = 5.24 − j0.632 at 3.5 GHz, V polarisation, and the 0962 vertical-cut model 12·(θ/65)² dB below an 8 dBi boresight.
+#   | line | --env-alt H | radar h | ψ       | R′      | R′−R   | 2(R′−R) | |Γ_V| | image off-bore | P2      | φ₁     | φ₂     | point target |
+#   |    2 | 3.91 m      | 1.2953  |  9.880° | 30.3358 | 33.58  |  67.15  | 0.3935| 14.88° (−0.63) |  −8.83  | 331.2° | 302.4° |  +4.94 dB    |
+#   |    3 | 3.96 m      | 1.3453  | 10.066° | 30.3531 | 35.31  |  70.62  | 0.3857| 15.07° (−0.64) |  −9.02  |  44.0° |  88.0° |  +4.27 dB    |
+#   |    4 | 4.01 m      | 1.3953  | 10.252° | 30.3707 | 37.07  |  74.15  | 0.3781| 15.25° (−0.66) |  −9.22  | 118.1° | 236.3° |  −2.01 dB    |
+#   |    5 | 4.06 m      | 1.4453  | 10.438° | 30.3887 | 38.87  |  77.74  | 0.3705| 15.44° (−0.68) |  −9.41  | 193.6° |  27.2° |  −6.81 dB    |
+#   |    6 | 4.11 m ⭐   | 1.4953  | 10.623° | 30.4070 | 40.70  |  81.39  | 0.3630| 15.62° (−0.69) |  −9.61  | 270.4° | 180.8° |  +0.94 dB    |
+#   |    7 | 4.16 m      | 1.5453  | 10.808° | 30.4256 | 42.56  |  85.11  | 0.3557| 15.81° (−0.71) |  −9.81  | 348.6° | 337.1° |  +4.80 dB    |
+#   |    8 | 4.21 m      | 1.5953  | 10.993° | 30.4445 | 44.45  |  88.89  | 0.3484| 15.99° (−0.73) | −10.01  |  68.0° | 136.1° |  +2.52 dB    |
+#   |    9 | 4.26 m      | 1.6453  | 11.177° | 30.4637 | 46.37  |  92.74  | 0.3413| 16.18° (−0.74) | −10.22  | 148.8° | 297.7° |  −4.93 dB    |
+#   |   10 | 4.31 m      | 1.6953  | 11.362° | 30.4832 | 48.32  |  96.65  | 0.3342| 16.36° (−0.76) | −10.42  | 231.0° | 102.0° |  −2.96 dB    |
+#   (h, R′ in m; R′−R and 2(R′−R) in cm; the bracket after the image off-boresight angle is the one-way pattern loss in dB.
+#    Line 11 is line 6's geometry at --solver-seed 2; line 1 is open sky, where none of this applies.)
+#   ⭐Predicted propagation-phase step between NEIGHBOURING heights (5 cm of --env-alt), the number this file exists to test:
+#     [g,d] and [d,g]:  72.79 · 74.13 · 75.47 · 76.81 · 78.15 · 79.48 · 80.81 · 82.14 degrees (the eight steps, low to high);
+#     [g,d,g]:          twice those, 145.58 … 164.27 degrees; total over the 40 cm span 619.8° and 1239.5°.
+#     Height for one full 360° turn at the centre: 23.03 cm for [g,d], 11.52 cm for [g,d,g].
+#   ⛔What nine points cannot do. The span holds 1.72 cycles of the [g,d] phase and 3.44 cycles of the [g,d,g] phase, so the sampling is
+#     4.95 → 4.38 points per cycle for [g,d] and 2.47 → 2.19 points per cycle for [g,d,g]. The depth, the width and the height of the
+#     deepest null are NOT determined by these nine points, at either class, in any outcome. Two computed point-target nulls (φ₁ ≡ 180°)
+#     fall at --env-alt 4.0511 m and 4.2791 m, and the 5 cm grid samples NEITHER: the nearest sampled points are 4.06 m (0.9 cm away) and
+#     4.26 m (1.9 cm away). [g,d,g] is worse than two points per cycle only at the last step, so its per-step phase change is formally
+#     resolvable and practically at the edge — see H3.
+#   Where the reflection happens, and whether it is on the plate. assets/meshes/outdoor01/ground.obj is a 120 × 120 m plate centred under
+#   the drone (benchmark/make_outdoor_scene_0831.py plane(0, 0, 0, 120, 120)), i.e. ±60 m. The radar stands 29.886 m from the drone
+#   horizontally, so 30.11 m inside the nearest edge. The one-bounce specular point lies D·h/(H+h) = 7.44 m (H 3.91) to 8.44 m (H 4.31)
+#   from the radar towards the drone, the [g,d,g] bounces are the same two points, and the radar's own nadir point is directly beneath it.
+#   Every one of them is well inside the plate at every height, so no edge effect is being swept.
+#   Where these paths land in a receiver's range bin: a range cell is c/B of round-trip path, 14.99 m at 20 MHz, 3.00 m at 100 MHz,
+#   1.499 m at 200 MHz. [g,d] sits 0.022-0.032 / 0.112-0.161 / 0.224-0.322 cells from the direct echo across the nine heights, [g,d,g]
+#   twice that, and the radar's own nadir return 3.83-3.78 / 19.15-18.88 / 38.30-37.77 cells away. So both ghost classes are inside the
+#   drone's own bin at 20 and 100 MHz, and the nadir is far outside it.
+#   Path classes, one line each (path_class is defined in the runners/jobs_0960 header: the ordered interaction sequence, consecutive
+#   drone-part hits written once; g = env_ground, d = any drone part):
+#     [d]      every interaction on a drone part — the direct echo, two-way path 2R = 60.000 m, the reference for every phase below.
+#     [g,d]    radar → env_ground → drone → radar — one ground leg on the way out, two-way path R′ + R, extra R′ − R.
+#     [d,g]    radar → drone → env_ground → radar — the reciprocal of [g,d], same path length, checked against it by 0962's P1.
+#     [g,d,g]  radar → env_ground → drone → env_ground → radar — both legs ground-reflected, two-way path 2R′, extra 2(R′ − R); it needs
+#              max_depth 3, which is why every ground line here is at depth 3 and not at the depth 2 of most stored cells.
+#   ⛔Class powers are NEVER summed in place of the coherent total. Σ_c |m_c|² is not |Σ_c m_c|²; the whole question of this file is the
+#     cross term between classes, so a sum of class powers would erase exactly what is being measured. coh_tot_db below is the coherent
+#     quantity and class_sum_db is written only to show how far apart the two run.
+#
+# Names. The sweep builds the stems; --dump-paths does not change a name. Read back from --dry-run 2026-09-18 05:38-05:39 UTC, all 11
+#   distinct and none present in outputs/elev_sweep_shards/ (prefix sionna_p4000000000_swR0D0E0F1_r30_n1024_ and suffix
+#   _shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d3_el-5_00.npz are common to all eleven):
+#   line  1  open sky, depth 3        …_r30_n1024_shell0.75mm_…_d3_el-5_00.npz
+#   lines 2-10  ground, nine heights  …_r30_n1024_envoutdoor01_ground_alt{3.91,3.96,4.01,4.06,4.11,4.16,4.21,4.26,4.31}_shell0.75mm_…_d3_el-5_00.npz
+#   line 11  ground, centre, seed 2   …_r30_n1024_envoutdoor01_ground_alt4.11_ss2_shell0.75mm_…_d3_el-5_00.npz
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (git-ignored since 0957). Expected size per shard, from the stored partners:
+#   about 4.2 MB for each of the ten ground shards (measured: 8.363 / 8.367 MB for the 2,048-position depth-3 ground shards of 0962
+#   lines 9-10, halved for 1,024 positions), and about 2.0 MB for the open-sky shard (computed, band 1.6-3 MB: the 2,048-position depth-2
+#   open-sky sidecars at 30 m el −5 are 3.297 / 3.289 MB → 1.65 MB at 1,024 positions, scaled by the depth-2 → depth-3 sidecar ratio 1.23
+#   measured at the ground centre cell). About 44 MB for all eleven, plus about 0.1 MB per shard npz.
+#   One shard per cell here (--nshards 1), so idx runs 0…1023 contiguously and no shard merge is needed inside this file. The merge is
+#   needed only for the 0962 reuse control, which is interleaved (above).
+#
+# Read-out — fixed before any shard of this file is read. Metric names are the repo's fixed ones (docs/READOUT_0917.md §1:
+#   isolated_20xmedian, hampel_w51_k5, env_field_drop_halfmedian, env_path_missing, copy_k_ratio / copy_k_diff, contrast_raw /
+#   contrast_dedup / contrast_interp). E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db, event positions,
+#   event_in_bin, event_share are defined in the runners/jobs_0957 header; lvl_db, ac_level_db, ac_to_static_db, hits_per_pose,
+#   path_class, class_power_db, seed_diff in the runners/jobs_0960 header; D2, excess_cm, m_c in the runners/jobs_0962 header.
+#   B = 20 and 100 MHz, Hann window, rectangular as the knob; a verdict on which the two windows disagree is not written.
+#   Six new quantities, each defined here in one line where it first appears:
+#   phi_c(H)        arg( m_c(H) / m_[d](H) ) in degrees wrapped to (−180, 180] — the measured phase of class c against the direct echo.
+#   dphi_step(c,i)  [phi_c(H_i+1) − phi_c(H_i)] − [φ(c,H_i+1) − φ(c,H_i)] wrapped to (−180, 180] — measured minus computed phase CHANGE
+#                   between neighbouring heights, φ from the Geometry table. Differences, not absolute phases: the passband/baseband
+#                   convention of a stored coefficient and the drone's own scattering phase both cancel in a difference, and this file
+#                   predicts neither of them.
+#   coh_tot_db(H)   10·log10( mean_t |E_B(H)|² ) over ALL listed paths — the coherent total in the drone's bin.
+#   class_sum_db(H) 10·log10( Σ_c mean_t |E_B over class c|² ) — ⛔written ONLY beside coh_tot_db, never in place of it, and no verdict
+#                   is read from it (see the class-sum rule above).
+#   fade_span_db    max over the nine seed-1 ground heights of coh_tot_db, minus the min over the same nine.
+#   resolve_diff(q) |q(line 6) − q(0962 lines 9-10 at idx 0…1023)| — the same-seed re-solve spread at the centre, aligned as described
+#                   under «What exists». spread(q) = max(resolve_diff(q), seed_diff(q)) from line 11, and it is written BEFORE any
+#                   height-to-height reading of q.
+#   0.  integrity: check 0 of runners/jobs_0957 on the line-1 sidecar first, then on the first ground sidecar (line 2): at every position
+#       |Σ_hit a·exp(−j2π·fc·τ) − E| / |E| < 1e-4, one sidecar per shard, n_dup > 0 count reported. Fails → see stop / extend.
+#   C.  cap, every shard: n_trunc[0] = 0 against the 2,000,000 path cap. Any position at the cap → no level from that shard is quoted and
+#       that height is dropped from H1-H4, per the standing rule that a saturating cap makes the axis unmeasurable. Expectation written
+#       before reading, from the stored depth-3 ground partner: nret median about 553, max about 639, n_trunc[0] = 0 — about three orders
+#       of magnitude of headroom. It is an expectation, not a threshold.
+#   S.  spread first, before any other reading: resolve_diff and seed_diff of phi_[g,d], D2, coh_tot_db, lvl_db and contrast_raw at the
+#       centre. Any height-to-height change within 3·spread(q) is written «not told apart from a re-solve» and crosses nothing.
+#   H1. phase rate, [g,d] and [d,g] separately, over the eight neighbour steps: |dphi_step| ≤ 25° at every step AND ≤ 3·spread(phi) →
+#       «the ground-reflected path's relative phase turns at the computed two-ray rate over --env-alt 3.91-4.31 m (threshold not
+#       crossed)». 25° is fixed here in advance, not from repeats: it is under a third of the smallest computed step (72.79°). Crossed at
+#       any step → the step is named with its measured and computed values, and see stop / extend.
+#   H2. level over height: |D2(H)| ≤ 3 dB at each of the nine heights (the runners/jobs_0962 P2 tolerance, which carries the unknown ratio
+#       of bistatic to monostatic drone scattering) AND |D2(4.31) − D2(3.91)| ≤ 1.5 dB against the computed trend of −1.59 dB →
+#       «the ghost level follows the computed two-ray level across the height range (threshold not crossed)».
+#   H2d delay, written beside H2 and gating nothing: |excess_cm(H) − 100·(R′ − R)| ≤ 10 at every height → «the ghost delay follows the
+#       two-ray excess (threshold not crossed)». 10 cm, not 5, for the runners/jobs_0962 P2d reason (two classes may be dominated by
+#       different parts of a 0.78 m airframe; 10 cm is 0.03 of a 100 MHz range cell).
+#   H3. double bounce: |dphi_step([g,d,g])| ≤ 50° at every step (again under a third of the smallest computed step, 145.58°) AND H1 not
+#       crossed → «the double-bounce phase turns at twice the one-bounce rate (threshold not crossed)». ⚠The computed step is 145.58-
+#       164.27°, so a measured deviation beyond ±180° cannot be told from a wrap: if any step exceeds 50°, no phase verdict is written
+#       for [g,d,g] at all, and the class is reported by excess_cm (which does not wrap) and class_power_db instead.
+#   H4. coherent total: coh_tot_db at the nine heights, with class_sum_db beside it. fade_span_db ≥ 3 dB AND ≥ 3·spread(coh_tot_db) →
+#       «lowering the ground plate 40 cm moves the coherent field in the drone's own range bin at this geometry»; below either →
+#       «threshold not crossed». ⛔No null depth, width or height is read from these nine points in any outcome (Geometry).
+#   Written per cell, not gated, and never used as a verdict: hits_per_pose; nret median, max and n_trunc[0]; lvl_db, ac_level_db,
+#   ac_to_static_db; contrast_raw, contrast_dedup, contrast_interp; hampel_w51_k5; isolated_20xmedian with its normaliser and |m|;
+#   copy_k_ratio and copy_k_diff; class_power_db for [d], [g,d], [d,g], [g,d,g], [g] and for every listed class not named above, by part
+#   and delay; env_in_bin_db and contrast_gated; and, for the nine seed-1 ground cells only, env_field_drop_halfmedian, env_path_missing
+#   and scene − sky in the bin («field difference due to the environment») against the line-1 open-sky cell.
+#   ⚠Not against line 11: the open-sky field moves with the solver seed, so the seed-2 centre cell gets class quantities and coh_tot_db
+#     only, and no scene − sky (the runners/jobs_0960 and runners/jobs_0962 rule).
+#   ⚠contrast depends on record length. n1024 gives an FFT bin of PRF/n = 19.238 Hz against 2.405 Hz at n8192, so each ±2-bin comb window
+#     is 38.5 Hz wide instead of 4.81 Hz and admits about eight times more non-comb energy; the record is 51.98 ms, about 6.6 blade-flash
+#     periods. ⛔Never put an n1024 contrast beside an n4096 or n8192 one — inside this file only n1024 cells are compared with each other,
+#     and the 0962 reuse control is compared on phi, D2, excess_cm and coh_tot_db (all length-independent), never on contrast.
+#   Expectation written before reading, and NOT a prediction with a tolerance: the «point target» column of the Geometry table
+#   (40·log10|1 + Γ′·e^{jφ₁}|, the depth-3 two-ray form with Γ′ = 10^(P2/20)) runs +4.94, +4.27, −2.01, −6.81, +0.94, +4.80, +2.52,
+#   −4.93, −2.96 dB across the nine heights — a span of 11.75 dB that is not monotonic and that turns direction three times. It is a
+#   point-target arithmetic, not a solver output, and an extended drone with a rotating airframe need not follow it; it is written here so
+#   that a non-monotonic measured coh_tot_db is not mistaken for a defect, and it chooses no threshold.
+#   Scope in every sentence: one flat simulated ground plate with a mirror material (ITU concrete, scattering coefficient S = 0, no
+#   refraction or diffraction), one range (30 m), one elevation (−5°), one azimuth, hover only, the canonical drone slab (shell 0.75 mm
+#   from DJI Matrice 4T CAD, propeller 1.43 mm from our own mesh, which docs/MATERIAL_CORRECTION.md §2-2 records as thicker than the real
+#   blade), tr38901 as a stand-in and not the real antennas, 3.5 GHz as a working assumption (carrier still unspecified, AGENTS.md
+#   2026-09-18), sionna-rt 2.1.0, no TX-RX leakage, no receiver noise, one run per cell except the stated seed pair. Nine ground heights
+#   in one synthetic scene say nothing about a real site's ground, and nothing about where a mast should stand.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; each was dry-run NEW on 2026-09-18 05:41-05:44 UTC.
+#   · check 0 fails on line 1 → nothing further from this file launches; lines already running finish (their E is valid) and are read on
+#     coh_tot_db only. The dump is then diagnosed on CPU, and no line is re-bought to «try again».
+#   · C fails anywhere → that height is dropped from H1-H4 and is re-read only after the cap is raised. No cap ladder is bought here.
+#   · H1 and H2 both hold → STOP. The ghost's phase and level at this geometry are then computed, and no further ground-only height,
+#     range, elevation or azimuth cell is bought from this line of questions; other geometries are computed and labelled computed.
+#   · H1 crossed at one or two neighbouring steps only → at most THREE midpoint heights, in the intervals where it crossed, and nowhere
+#     else. About 1.5 slot-h. The three templates below are the midpoints nearest the two computed point-target nulls (4.0511 and
+#     4.2791 m) and were dry-run NEW; any other midpoint (H_i + H_i+1)/2 follows the same pattern and MUST be dry-run before use.
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.035 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.085 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.285 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#   · H4 crosses and the lowest coh_tot_db sits at an end of the sampled range → the same three midpoints, same cap of three, and the
+#     result is still written as «the coherent field moved by X dB over these sampled heights», never as a null depth or a null height.
+#   · one height deviates on H1 or H2 by between 1 and 3 times spread → --solver-seed 2 at THAT height only, read against its seed-1
+#     value; about 0.5 slot-h; no third seed, and no scene − sky from it. Two templates (an end height and the open-sky cell, both NEW):
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.31 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 1024 --shard 0 --nshards 1
+#   · H3's [g,d,g] phase cannot be unwrapped → it is reported by delay and class power and nothing is bought. ⛔No finer height ladder is
+#     ever bought merely to unwrap a phase: the class already carries an unambiguous delay, and a 2.5 cm ladder would cost more than the
+#     whole file for a quantity that excess_cm gives directly.
+#   · H1 crossed at every step, or the measured phase turns in the opposite direction → this is a solver or convention question, not a
+#     geometry question: diagnose on CPU against the listed delays of the same stored sidecars before any further line is bought.
+#   · In no outcome from this file: another range, elevation or azimuth; max_depth 4; a cap or hash ladder; an aim-offset ladder (that is
+#     package C of the recommendations); rough ground (--env-scat, package D); walls or the full scene (runners/jobs_0964); another
+#     airframe, carrier or drone slab; an n4096 version of any of these cells; a depth-2 companion at these heights; more than three
+#     midpoint heights in total; a third seed.
+#
+# One run per cell; line 11 (the centre at --solver-seed 2) is the stated seed exception, and its question is the spread that sets S.
+#   Rules kept: open sky and outdoor ground only; R0D0E0F1 on every line (diffuse on, refraction and diffraction off — max_depth 3 is the
+#   question here, not a physics switch); no propeller-only arms; _rt210 added automatically; --inmem is the default; cap 2e6 with no cap
+#   ladder; the canonical slab on every line, so the whole file is readable against the thin-slab families 0960-0964.
+# Dry run 2026-09-18 05:37:28-05:37:50 UTC and stems read back 05:38-05:39 UTC (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1
+#   MPLBACKEND=Agg nice -n 19 taskset -c 8-15, runners/filter_jobs.sh at -P 2, the 11 lines below verbatim): 11/11 NEW, 11 distinct stems,
+#   none on disk. The 5 extension lines dry-run NEW at 05:41-05:44 UTC. The 4 reuse-control lines (0962 lines 9-10 and 1-2) dry-run DONE
+#   in the same pass, which is what «reused, not re-bought» above rests on.
+#   Flag-set comparison against every line of every runners/jobs_*.txt, commented and #HOLD lines included (1,156 lines in 50 files):
+#   ⚠the nearest line anywhere is runners/jobs_0962 line 115, a COMMENTED conditional extension, ONE flag away from line 6 below —
+#   identical except --max-depth 2 against our 3. It names a different stem (…_d2_el-5_00 against …_d3_el-5_00), so there is no collision
+#   and nothing is overwritten, but it is the same cell at a different depth: if 0962's az extension is ever released, that depth-2 az-0
+#   centre cell is bought there and must NOT be re-bought here. Lines 115-117 of 0962 are the only n1024 lines with --dump-paths anywhere,
+#   and none of them has ever been launched. Every other line of this file is at least two flags from anything on record, and line 1 (the
+#   open-sky depth-3 cell) has nothing within two flags anywhere.
+# ----------------------------------------------------------------------------------------------------------------------
+# Independent check (adversarial checker, 2026-09-18 ~15:05 KST). Redone from the code and the stored files, not read off this header.
+#   Dry run, the 11 lines below verbatim through runners/filter_jobs.sh (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1
+#   MPLBACKEND=Agg nice -n 19 taskset -c 8-15, -P 3): 11/11 NEW. 11 stems read back from --dry-run, all distinct, none present in
+#   outputs/elev_sweep_shards/, and distinct from the 13 stems of the sister files 0966 / 0967 / 0968.
+#   Flag sets compared against all 1,066 --engine lines of all 50 runners/jobs_*.txt, commented and #HOLD included, and against the
+#   other three files: 0 exact duplicates anywhere, 0 duplicates among the 24 new lines, and none of runners/jobs_0964's 12 lines is
+#   duplicated by anything here. The one-flag neighbour of line 6 (runners/jobs_0962 line 115, commented, --max-depth 2) is confirmed;
+#   confirmed too that those three lines are the only n1024 + --dump-paths lines in any queue file and that none has launched.
+#   Reuse control verified on disk: both shards DONE, both sidecars present at 8,363,270 / 8,366,844 B, nret median 553.5 / 553.0,
+#   max 639, n_trunc [0, 2000000], meta[5] 3,609.9 / 3,557.9 s, idx starting 0,2,4 and 1,3,5 (the interleave this header describes),
+#   sidecar pose arrays 2,048 entries each spanning 0…4094 and 1…4095 — so every one of global poses 0…1023 carries a path list, and
+#   resolve_diff is computable as written. check 0 re-run on that family's depth-2 sidecar at 5 poses: relative error 0.00e+00 at all 5.
+#   Geometry recomputed independently (image method, ITU concrete εr = 5.24 − j0.632, the 12·(θ/65)² vertical cut, λ = 0.0856550 m):
+#   every column of the nine-row table reproduces to the printed digit except one rounding, all eight phase steps reproduce
+#   (72.79 … 82.14° and 145.58 … 164.27°), the 619.8° / 1239.5° spans, the 1.72 / 3.44 cycles, the 4.95→4.38 / 2.47→2.19 points per
+#   cycle, the 23.03 / 11.52 cm per turn, the range-cell offsets including the nadir's 3.83-3.78 / 19.15-18.88 / 38.30-37.77 cells, the
+#   specular points 7.437 / 8.437 m, the 30.11 m plate margin and the −1.593 dB H2 trend.
+#   Cost re-estimated from the stored meta[5] of every rt210 shard at these settings: depth-3 ground at 30 m, 2,048 positions, n = 4
+#   shards, 58.7 / 59.3 / 60.2 min (min / median / max) ⇒ 29.3 / 29.7 / 30.1 min at 1,024 positions, so the ten ground shards are
+#   4.9-5.1 slot-h on solve seconds — TIGHTER than the 4-8 band below, which is a wall-clock band and therefore mostly card sharing.
+#   The open-sky depth-3 shard stays an extrapolation: the checker confirms 0 depth-3 open-sky shards exist at sionna-rt 2.1.0 at any
+#   range. Sidecars ≈44 MB against 986 GB free on /workspace.
+# Changelog (checker), 3 edits, no argument line touched:
+#   1) ⛔TX/RX baseline. The header said the devices are BASELINE_M = 0.20 m apart and the bistatic angle is 0.38°. The sweep calls
+#      RP.place(..., baseline=0.0) at elevation_sweep_md.py:1071 (the only place() call in the file), so TX and RX are CO-LOCATED and
+#      the bistatic angle is 0; BASELINE_M = 0.20 is report15_probe's module default and is not used here. Corrected in both places.
+#      Nothing else in this file depended on it — every path length here is monostatic.
+#   2) The pattern loss printed beside the image angle in the H = 3.96 row was (−0.65); recomputed 12·(15.066/65)² = 0.6447 → (−0.64).
+#      The P2 of that row (−9.02 dB) was already right, and no threshold used the parenthetical.
+#   3) The two computed point-target nulls were printed truncated as 4.0510 / 4.2790 m; recomputed 4.05105 / 4.27907 → 4.0511 / 4.2791
+#      (two places, including the extension-template note). The 0.9 cm and 1.9 cm distances to the nearest sampled heights are unchanged.
+# ----------------------------------------------------------------------------------------------------------------------
+# Estimate about 5.3 slot-h, band 4-8. Basis, all from measured shard times, not from a rule of thumb:
+#   · depth-3 ground at 30 m with this slab and --dump-paths, per 2,048-position shard: 60.5 and 59.5 min (runners/logs/sup_0962.log,
+#     wall clock of lines 9-10) and 59.5 and 59.0 min (lines 11-12 at el −2.5); the stored meta seconds of the same four shards are
+#     3,609.9 / 3,557.9 / 3,558.5 / 3,522.0 s, i.e. they agree with the wall clock to within a minute.
+#   · halving for 1,024 positions and adding about 0.5 min of scene build: about 0.50 h for each of the TEN ground shards → 5.0 h.
+#     The halving is an assumption, supported: runners/logs/sup_0963.log's n1024 shards took 13.1-16.1 min on a shared card against
+#     27.2-31.2 min for the matching 2,048-position shards of 0962 lines 17-18, and 4.5 min on a card of their own.
+#   · the ONE open-sky depth-3 shard is extrapolated, not measured: no depth-3 open-sky cell exists at sionna-rt 2.1.0 at any range with
+#     this slab. Depth-2 open sky at 30 m el −5 ran 26.2 and 9.1 min per 2,048-position shard (sup_0962 lines 1-2) → 4.6-13.1 min at
+#     1,024, and the depth-2 → depth-3 step measured in ground at the same geometry is ×1.85 (itself uncertain: its depth-2 pair spans
+#     2.8×) → about 9-24 min. Taken as 0.3 h.
+#   ⚠The band is wide because the wall clock is set by how many of our workers share a card, not by the work: two identical open-sky
+#     shards of 0962 took 26.2 and 9.1 min the same morning, and two identical ground shards 17.1 and 47.9 min. This is a sum of worker
+#     slot-hours; it is NOT an elapsed time to completion and it is not divided by five cards here.
+#   The 09-18 recommendations put package B at 6-8 worker-hours; that band comes from the same stored times with a design margin added,
+#   and 5.3 h is the same measurement halved without one. Neither is a measured run of these eleven cells.
+# Cards. No card restriction. runners/GPU_HOLD.json has an empty hold list and its all_five_0918 note records the user's 2026-09-18
+#   ~11:00 KST instruction to use all five GPUs with the supervisors behaving normally; the supervisors' own tier table decides how many
+#   workers each card takes from other users' VRAM, re-read every round. Nothing in this file asks for a particular card.
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 3.91 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 3.96 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.01 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.06 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.16 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.21 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.31 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 1024 --shard 0 --nshards 1

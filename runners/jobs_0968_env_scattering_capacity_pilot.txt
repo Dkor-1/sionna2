@@ -1,0 +1,255 @@
+# 0968 — what a scattering ground costs this solver: at the 0962 low-grazing tripod cell (30 m, looking up 5°, the ground 4.11 m below the
+#        drone), does raising the environment scattering coefficient from S = 0 to S = 0.1 leave the returned path count, the seconds per
+#        position and the memory inside the working path cap — or does the cap decide the answer before the physics does?
+#        Five 64-position shards: S = 0 / 0.1 crossed with caps 2e6 / 8e6, plus one seed-2 repeat. A cost-and-feasibility probe, not a
+#        channel result. Nothing in this file is read as a level, a contrast or a detection number.
+#        (2026-09-18 ~14:40 KST, package D of /workspace/sionna_queue_recommendations_2026-09-18.md §7; the five argument lines are taken
+#         verbatim from /workspace/sionna_gpu_queue_drafts_2026-09-18.txt lines 64-72 and were not edited.)
+#
+# Purpose, and what the result changes. Every outdoor cell this repo has bought since 0931 stands on a mirror ground: src/materials.py gives
+#   concrete_dark and concrete_light scattering coefficient S = 0.0, so the ground plate reflects specularly and nothing else. Real soil,
+#   grass and gravel do not. Whether we may ever leave that assumption is not a physics question first — it is a capacity question, because
+#   diffuse paths are counted against the same per-source path cap as specular ones. This file buys the smallest set of GPU cells that can
+#   answer it: does S = 0.1 fit in the cap, and what does it cost in seconds, sidecar bytes and card memory?
+#   What it changes: if the returned set at S = 0.1 fits well inside the cap and the cost is bounded, ONE longer pair (n1024, S = 0 vs
+#   S = 0.1) is designed at the cap that worked, and only then is a scattering axis considered for the ghost and receiver families. If the
+#   cap decides the count, or the memory or the time runs out, the scattering axis is folded here and no ground-roughness cell is bought at
+#   all — the standing rule is that a saturating cap makes that axis unmeasurable, and the honest outcome is a written cost, not a channel.
+#   ⚠What --env-scat is, in one sentence: it overwrites the RadioMaterial scattering_coefficient of the environment objects of the scene
+#   (benchmark/elevation_sweep_md.py, the branch after build_scene: every object whose name starts with env_ gets
+#   radio_material.scattering_coefficient = S). It is NOT an RMS roughness, NOT a surface-height statistic, and NOT a grass / asphalt /
+#   soil material type. It splits the energy of an environment reflection between the specular direction and the diffuse lobe, nothing more.
+#   ⚠And this is a STATIC scattering comparison. The ground does not move in any cell here. Scattering at S = 0.1 produces more paths from a
+#   motionless plate; it does not produce the Doppler of moving grass, leaves or branches. No clutter-Doppler claim comes out of this file.
+#
+# What already exists and is reused. Nothing here is re-bought, and no partner cell is bought at all.
+#   · The S = 0 baseline at this exact geometry is already on disk at full record length — runners/jobs_0962 lines 3-4 (cell A ground):
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_
+#         mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz     ✓ both present (checked 2026-09-18 14:3x KST)
+#       sidecars outputs/path_provenance/<same stem>_{00,01}_prov.npz          ✓ both present, 6,785,339 and 6,842,630 B
+#     Measured in them: nret median 520 (max 579) and 519 (max 575); nret = npaths at all 2,048 positions of shard 00, i.e. this cell
+#     returns no interaction-free path at all; n_trunc stored [0, 2,000,000], i.e. the cap in force there was 2e6, the same
+#     number line 1 of this file passes explicitly; stored solve seconds meta[5] = 1,008.2 and 2,844.7 s for 2,048 positions each.
+#     Those two shards are the free control for check R below and cost nothing here.
+#   · The scattering anchor is also already on disk, from another build and another scene, and is used only as a prior, never as a result —
+#     outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r15_n512_envoutdoor01_mp12000000_S{0,0.1,0.3,0.5}_… (2026-09-06/07, one
+#     2026-09-14): 15 m, el −30, the FULL outdoor01 scene (7 objects), 256 positions per shard, iso antenna, Sionna default 0.1 m drone
+#     slab, no _rt210 tag (so sionna-rt 2.0.1), cap 12e6. Measured there: S = 0 → nret median 1,914, 348.2 s; S = 0.1 → nret median
+#     11,984,728 with 256/256 positions at or above 0.99 × cap, 4,830.8 s; S = 0.3 → 11,984,805, 5,615.4 s; S = 0.5 → 11,984,962, 4,689.1 s.
+#     Read two ways, both of which this file exists to test at OUR geometry and build: turning S from 0 to 0.1 multiplied the returned path
+#     count by about 6,000 and the time per position by 13.9; and the three S > 0 rungs differ from each other by 234 paths in 12 million,
+#     so at that cell the cap set the count and S did not. ⚠Different build, scene, range, elevation, antenna, slab and cap — it does not
+#     transfer. It is why this pilot is five short shards and not a sweep.
+#   · Deliberately NOT bought here: any open-sky partner (no scene − sky, no contrast and no env_in_bin_db is read at 64 positions, so a
+#     partner would be paid for and never read); S = 0.3 / 0.5 / 0.7 (the anchor above shows those rungs are decided by the cap, not by S,
+#     until the cap question is settled); any cap above 8e6 and the 32e6 rung of 0945/0957; a second range, elevation, azimuth or depth;
+#     max_depth 3 (0962 lines 9-12 hold the depth pair at this cell); a third seed; another airframe, carrier or antenna; the full
+#     outdoor01 scene (0964 holds it, at S = 0); and the drone's own scattering — --env-scat touches env_* objects only, and the drone
+#     materials keep their own values (src/materials.py: plastic, plastic_blue and prop_plastic at S = 0.20, carbon 0.30, metal 0.0),
+#     unchanged in every line here and in every cell this file is compared with.
+#
+# Geometry, recomputed from the code for this file, not copied from a note.
+#   benchmark/elevation_sweep_md.py env_parts() moves the environment down by --env-alt and leaves the drone at the origin;
+#   benchmark/report15_probe.py place() puts the radar at centre + range·(cos el·cos az, cos el·sin az, sin el). ⚠The sweep calls
+#   place(..., baseline=0.0) at elevation_sweep_md.py:1071, so TX and RX are CO-LOCATED and the bistatic angle is 0; report15_probe's
+#   module default BASELINE_M = 0.20 m is NOT used by this sweep. So radar height above the plate = alt + range·sin(el), and a negative elevation
+#   means the radar is below the drone and looking up.
+#   Every line here: range 30 m, el −5°, az 0°, --env-alt 4.11 m ⇒
+#     · drone 4.110 m above the plate, radar 1.4953 m above it (a tripod), 29.8858 m apart horizontally;
+#     · direct drone path 30.000 m one way, 60.000 m two-way;
+#     · ground reflection (the 0962 «ghost»): grazing angle ψ = atan((H + h)/D) = 10.623°, one-bounce leg R′ = 30.4070 m, so the [g,d] and
+#       [d,g] classes are 40.70 cm longer than the direct echo and the depth-3 [g,d,g] class would be 81.40 cm longer — but max_depth is 2
+#       here, so [g,d,g] is not in the returned set and is not looked for;
+#     · the ground mesh (assets/meshes/outdoor01/ground.obj, 120 × 120 m centred under the drone) puts the radar 30.11 m inside the plate
+#       edge along the radial, the ghost's specular point 7.97 m from the radar toward the drone and the radar's nadir path at 2.99 m
+#       two-way, so at S = 0 no path in this cell goes anywhere near the plate edge. ⚠With S = 0.1 the diffuse lobe illuminates the WHOLE
+#       plate, so at S > 0 the plate edge is inside the returned set. That is a
+#       property of the cell, written here in advance, and is one reason a scattering path count cannot be predicted from the S = 0 one.
+#     · the environment has exactly one object: ENV_SPECS["outdoor01_ground"] keeps only the ground part, so --env-scat is applied to one
+#       object and the worker log must print «환경 거칠기 S=0.1 — 물체 1 개에 걸었다». A different count means a different scene was built.
+#   Record: 64 positions at PRF 19,700 Hz = 3.249 ms. At the matrice4e hover rpm of 3,800 (src/drones.py) with 2 blades, that is 0.206 of one
+#   rotor revolution and 0.41 of one blade-pass period (126.667 Hz). The FFT bin of this record is 19,700/64 = 307.8 Hz, above the blade-flash
+#   rate itself. Everything in «what may not be read» below follows from these two numbers.
+#
+# Names. The sweep builds the stems; --dump-paths does not change a name. Read back from --dry-run, all 5 distinct and none on disk
+#   (prefix sionna_p4000000000_swR0D0E0F1_r30_n64_envoutdoor01_ground_, suffix _alt4.11[_ss2]_shell0.75mm_prop1.43mm_mfixbatteryi5_
+#   blperairframe_anttr38901_rt210_d2_el-5_00.npz):
+#     line 1  S = 0    cap 2e6  seed 1   …_mp2000000_S0_alt4.11_…
+#     line 2  S = 0.1  cap 2e6  seed 1   …_mp2000000_S0.1_alt4.11_…
+#     line 3  S = 0.1  cap 8e6  seed 1   …_mp8000000_S0.1_alt4.11_…
+#     line 4  S = 0.1  cap 2e6  seed 2   …_mp2000000_S0.1_alt4.11_ss2_…
+#     line 5  S = 0    cap 8e6  seed 1   …_mp8000000_S0_alt4.11_…
+#   ⭐--max-paths 2000000 is numerically the working cap (benchmark/report15_probe.py:104, SIONNA2_MAX_PATHS or 2,000,000), and --env-scat 0
+#   is numerically the material default. Both flags are still passed on purpose: they put _mp2000000 and _S0 in the stem, so the pilot's
+#   control can never be silently mixed with a default-cap shard, and the four cells of the 2 × 2 are named symmetrically.
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (git-ignored since 0957). Each line dumps 4 positions — np.linspace(0, 63, 4)
+#   rounds to positions 0, 21, 42 and 63, and because --nshards 1 these are also the global position indices.
+#   Expected sidecar size per shard, from the measured rate of the stored partner (6,785,339 B over 1,055,376 stored paths = 6.43 B per path
+#   compressed; 52 B per path in host memory before compression = complex64 a + float64 τ + max_depth rows of int16 part, int64 obj_raw and
+#   int64 prim):
+#     lines 1 and 5 (S = 0):  4 × about 520 paths ⇒ about 15-40 kB on disk. Negligible.
+#     lines 2 and 4 (S = 0.1, cap 2e6): unknown by construction — that is the measurement. Upper bound if the count pins at the cap:
+#       4 × 2,000,000 = 8e6 paths ⇒ about 50 MB on disk and about 0.42 GB of host RAM held at save time.
+#     line 3 (S = 0.1, cap 8e6): upper bound 4 × 8,000,000 = 32e6 paths ⇒ about 210 MB on disk and about 1.7 GB of host RAM at save time.
+#   ⚠The 6.43 B per path is measured on a 520-row mirror-ground list; a list of millions of diffuse rows may compress differently. Treat the
+#   two upper bounds as order-of-magnitude budgets, which is all they are used for.
+#
+# What is measured here — the whole readout, fixed before any shard is read. Every quantity is defined in one line; every threshold is set
+#   now. Below a threshold the wording is «threshold not crossed», never «no effect» and never «equivalent».
+#   nret            paths the solver returned at a position (stored per position by the sweep). npaths counts only those with at least one
+#                   interaction; the two are equal at every position of the stored S = 0 partner (measured), so nret > npaths at S = 0.1
+#                   would itself be a finding and is written.
+#   cap             the path cap actually in force for that shard, stored as n_trunc[1]. Quoted with every count; never assumed.
+#   cap_fill        median over the 64 positions of nret / cap; cap_fill_max is its maximum.
+#   near_cap_share  share of positions with nret ≥ 0.99 · cap, RECOMPUTED here from nret and the stored cap. ⛔Not taken from the stored
+#                   n_trunc[0]: the 2026-09-07 S = 0.1 shard of the anchor family stores 0 while all 256 of its positions are at 0.9987 of
+#                   its cap (the rule then was nret ≥ cap), and the 2026-09-14 S = 0.5 shard of the same family stores 256 under the
+#                   present 0.99 rule. Two generations of the same field; only the recomputed number is read.
+#   sec_per_pose    meta[5] of the shard divided by its 64 positions (stored solve seconds). The supervisor's per-line minutes are written
+#                   beside it, and the difference is the out-of-loop cost (process start, mesh load, save).
+#   prov_bytes      size on disk of the sidecar; prov_bytes_per_path = prov_bytes / Σ n_paths of the sidecar.
+#   peak_vram_mb    highest card memory held by this worker's process during the run. ⛔It is NOT in the shard, NOT in the sidecar and NOT
+#                   obtainable from a dry run — a dry run never touches a GPU. It must be sampled separately while the line runs, e.g.
+#                   nvidia-smi --query-compute-apps=pid,used_gpu_memory --format=csv every 5 s, matched to the worker pid from the
+#                   supervisor log. If nobody samples it, the field stays blank and is reported as not measured — it is not guessed.
+#   n_dup           duplicate path rows the sweep removed at a position (stored). copy_k_ratio and copy_k_diff are as defined in
+#                   docs/READOUT_0917.md §1; here they are read only as «how much of the cap is spent on rows that are copies», not as a
+#                   copy count of the drone echo. Measured in the anchor: n_dup median 126,314 at S = 0.1 against 0 at S = 0.
+#   0  integrity (0957 check 0), on the sidecar of every line: at each dumped position |Σ_hit a·exp(−j2π·fc·τ) − E| / |E| < 1e-4.
+#      Written with the position's path count beside it. ⚠A failure at a cell with millions of complex64 rows is a summation-precision
+#      finding until it has been re-summed in float64; a failure at lines 1 or 5 (about 520 rows) is a sidecar defect.
+#   R  replay control, line 1 against the stored 0962 ground cell at the SAME global positions 0, 21, 42, 63 (measured now, entered before
+#      the run: nret 549 / 558 / 550 / 515 and 20·log10|E| −105.086 / −105.058 / −105.079 / −105.125 dB; the rotor state of position i is
+#      fixed by i and the PRF alone, ph = rotor_phases(arange(n)/prf, …) with no rotor preset, so an n64 record's positions 0-63 are the
+#      same rotor states as positions 0-63 of the n4096 record). Pass = |Δ20·log10|E|| ≤ 0.5 dB and |Δnret|/nret ≤ 5 % at all four →
+#      «the explicit S = 0 and cap flags reproduce the stored cell (threshold not crossed)». The 5 % carries the 2.1-2.3 % path-count spread
+#      of a same-seed re-solve recorded in the runners/jobs_0957 header. Crossed → the flags are not inert, and nothing in this file is read
+#      against any stored cell; the 2 × 2 is then read only within itself.
+#   C1 is the cap binding, on every one of the five cells, before anything else is read: near_cap_share ≥ 1 % OR cap_fill ≥ 0.9 → «the cap
+#      is binding at this cell». For such a cell no path count, no field and no per-class number is quoted in any document, ever. Both are
+#      pre-set working thresholds: 0.99 is the code's own warning rule, and 0.9 is a resource warning only — a low fill does not prove that
+#      no candidate was dropped by the hash.
+#   C2 cap dependence at S = 0.1, line 2 (cap 2e6) against line 3 (cap 8e6), same positions, read ONLY if C1 is not binding at either:
+#      |Δ 10·log10 mean_t|E|²| ≤ 1 dB AND nret(line 3)/nret(line 2) within [0.8, 1.25] → «the returned set at S = 0.1 is not strongly
+#      cap-dependent here (threshold not crossed)».
+#   C3 seed spread, line 2 against line 4 (same S, same cap, seeds 1 and 2), the same two quantities. It sizes C2: a C2 difference within
+#      3 × the C3 difference is written «not told apart from a seed change». A fixed seed is not a guarantee of a bit-identical re-solve.
+#   C4 cap alone at S = 0, line 1 against line 5 (2e6 vs 8e6, mirror ground): the same two quantities and the same thresholds as R →
+#      «raising the cap alone did not move the mirror-ground cell (threshold not crossed)». This is the only line that separates a cap
+#      effect from a scattering effect in the 2 × 2, and it is why line 5 is bought.
+#   ⛔What C2 alone can NEVER separate. In this solver build --max-paths moves TWO things at once — the candidate path buffer AND the size
+#      of the specular-chain hash (runners/jobs_0946 header, 2026-09-16 correction; runners/jobs_0945 header). So a difference between line 2
+#      and line 3 says «the answer depends on max_num_paths_per_src», not «the buffer was too small» and not «the hash lost chains». This
+#      contrast is a capacity reading, not an attribution, and no sentence from it may name buffer or hash as the cause.
+#   M  budget, per cell, written whether or not anything else is read: sec_per_pose, the supervisor minutes, prov_bytes, peak_vram_mb,
+#      cap_fill, near_cap_share, n_dup median. Pre-set (judged, not derived) budget for calling a cell affordable: sec_per_pose ≤ 30 s,
+#      prov_bytes ≤ 1 GB, peak_vram_mb ≤ 20,000. A cell outside it is written «outside the pilot's budget» and no expansion is designed on it.
+#   ⛔What may NOT be read from a 64-position record, listed so that nobody reaches for it later:
+#      · contrast_raw, contrast_dedup and contrast_interp are not computed. Their comb is harmonics 1…12 of f_flash = 126.667 Hz with ±2
+#        bins (docs/READOUT_0917.md §1); this record's FFT bin is 307.8 Hz, so the first harmonic falls below the first non-DC bin. There is
+#        no comb here, and no rotor line, and no micro-Doppler of any kind — the record is 0.41 of one blade-pass period.
+#      · hampel_w51_k5 is not computed: its window is 51 positions, 80 % of this record.
+#      · isolated_20xmedian is not computed as an event rate: its normaliser is a per-cell median over the record, and an isolated-position
+#        rate of about 1 % cannot be measured over 64 positions.
+#      · env_field_drop_halfmedian and env_path_missing are not computed: the first needs an open-sky partner of the same cell, which this
+#        file deliberately does not buy; the second needs a stored path list at a position and at its neighbour, and only 4 positions here
+#        carry lists.
+#      · No detection, no tracking, no SNR, no OFDM and no receiver statement comes out of this file, at any bandwidth.
+#      · |E| is read only as the C2 / C3 / C4 / R difference above. No absolute level from this file is quoted anywhere.
+#   Scope in every sentence that leaves this file: one geometry (30 m, el −5°, az 0°, ground 4.11 m below the drone), one synthetic flat
+#   plate of ITU concrete whose scattering coefficient we overwrote, a 64-position hover record, the canonical drone slab (shell 0.75 mm,
+#   propeller 1.43 mm), tr38901 as a stand-in and not the real antennas, 3.5 GHz as a working assumption, sionna-rt 2.1.0, matrice4e mesh
+#   revision 0, no TX-RX leakage, no receiver noise, one run per cell except the stated seed pair.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; each was dry-run NEW on 2026-09-18 14:41 KST.
+#   · STOP, before any expansion, if ANY of these happens: C1 says the cap is binding at either S = 0.1 cell; or C2 is crossed (the path
+#     count or the field is strongly cap-dependent at S = 0.1); or a cell falls outside the M budget; or the worker runs out of card or
+#     host memory. In that case nothing is bought, the scattering axis is folded, and what is written is the measured cost — «at this
+#     geometry a scattering ground cannot be computed inside the working cap», with the numbers. That is a result of this file, not a
+#     failure of it.
+#   · STOP also if R is crossed: the comparison base is then unproven and a longer run would inherit the same doubt.
+#   · C1 not binding at S = 0.1, C2 not crossed, R and 0 passed, M inside budget → ONE pair at n1024 (16 × this record, 52 ms), S = 0 and
+#     S = 0.1, at the cap that was NOT binding, still --dump-paths 4 so the sidecars stay bounded. Cost is then computed from THIS pilot's
+#     own measured sec_per_pose × 1,024, not from any prior. Both caps are written below; only the pair for the cap that passed is used.
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0 --max-paths 2000000 --dump-paths 4 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0.1 --max-paths 2000000 --dump-paths 4 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0 --max-paths 8000000 --dump-paths 4 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0.1 --max-paths 8000000 --dump-paths 4 --shard 0 --nshards 1
+#   · In no outcome from this file: S = 0.3 / 0.5 / 0.7 (measured 2026-09-06/07 and 09-14 at cap 12e6 in the 15 m full scene, the S = 0.1,
+#     0.3 and 0.5 rungs returned 11,984,728 / 11,984,805 / 11,984,962 paths — 234 paths apart in 12 million, so the cap set the count and S
+#     did not: the rungs are unbuyable until the cap question is settled); a cap above 8e6, including the 32e6 rung of 0945/0957; a second
+#     range, elevation, azimuth or depth; an open-sky partner; a third seed; the full outdoor01 scene at S > 0; another airframe or carrier;
+#     and any comb, micro-Doppler or receiver line built on a record shorter than the families that already carry those questions.
+#
+# Run it with ONE worker at a time. Start this file on its own supervisor with SIONNA2_MAX_TOTAL=1 (runners/worker_supervisor.py reads the
+#   variable at start; the per-card tier table then cannot put a second worker OF THIS FILE on any card). Three reasons, all of them the
+#   point of the file:
+#   (1) Peak VRAM at S = 0.1 is unknown at 2.1.0 — these are the first lines in this repo to ask this build for millions of paths per
+#       position — and a second worker next to them can push a shared card into OOM and take an unrelated 0963/0964 shard down with it.
+#   (2) sec_per_pose and peak_vram_mb ARE the measurement, and both are meaningless when two of our own workers share a card: measured on
+#       2026-09-18, two identical 30 m ground shards of 0962 took 17.1 and 47.9 min of wall clock (stored solve seconds 1,008.2 and 2,844.7)
+#       on different cards the same morning. Other users' load still moves these numbers, so the reading is a band and is labelled one.
+#   (3) The sidecar is concatenated in host RAM before compression: about 0.42 GB at cap 2e6 and about 1.7 GB at cap 8e6 if the count pins
+#       at the cap. Once is fine; five at the same moment is not.
+#   With one worker the file order IS the run order, and that order is deliberate: the cheap S = 0 control first, then the risky S = 0.1 at
+#   the small cap, and C1 on line 2 is read BEFORE line 3 (the 8e6 line, the largest of the five) is allowed to launch. If C1 says binding,
+#   hold the remaining lines instead of running them.
+#
+# One run per cell; line 4 is the stated seed exception (its question is the spread that sizes C2). Rules kept: outdoor scenes only;
+#   R0D0E0F1 on every line (diffuse reflection is already enabled by F1 in every cell this repo has run — what changes here is the material's
+#   scattering coefficient, which is what decides whether that enabled channel carries any energy); no propeller-only arms; _rt210 added
+#   automatically; --inmem is the default; the canonical thin slab on every line, so all five are readable against the 0960-0964 families.
+# Dry run 2026-09-18 05:35:57-05:36:09 UTC (14:35-14:36 KST; CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg nice -n 19
+#   taskset -c 8-15, runners/filter_jobs.sh at -P 2, the 5 lines below verbatim): 5/5 NEW. The 4 extension lines above: 4/4 NEW, same prefix,
+#   05:41:12-05:41:25 UTC. Stems read back from --dry-run are distinct from each other and absent from outputs/elev_sweep_shards/.
+#   No near-duplicate anywhere: all 1,157 --engine lines of every runners/jobs_*.txt were compared flag by flag, commented and #HOLD lines
+#   included. The nearest line in the repo differs in 4 flags — runners/jobs_0962 line 115, a COMMENTED extension template (n1024,
+#   --dump-paths 1024, no --env-scat, no --max-paths) — and the only two lines anywhere that carry --env-scat at all are
+#   runners/jobs_0932 lines 15-16 (15 m, el −30, full outdoor01, n512, cap 12e6, no thin slab, no tr38901). No line in any queue file uses
+#   --n-poses 64 or --dump-paths 4. The five lines are taken from the package D draft unchanged.
+# ----------------------------------------------------------------------------------------------------------------------
+# Independent check (adversarial checker, 2026-09-18 ~15:05 KST). Redone from the code and the stored files, not read off this header.
+#   Dry run, the 5 lines below verbatim through runners/filter_jobs.sh (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1
+#   MPLBACKEND=Agg nice -n 19 taskset -c 8-15, -P 3): 5/5 NEW. 5 stems read back from --dry-run, all distinct, none on disk, and
+#   distinct from the 19 stems of the sister files 0965 / 0966 / 0967.
+#   Flag sets compared against all 1,066 --engine lines of all 50 runners/jobs_*.txt, commented and #HOLD included, and against the
+#   other three files: 0 exact duplicates, 0 duplicates among the 24 new lines, nothing within 3 flags of any line here, and none of
+#   runners/jobs_0964's 12 lines is duplicated.
+#   ⭐The pre-set replay expectation of check R was recomputed from the stored 0962 ground cell at global positions 0 / 21 / 42 / 63 and
+#   reproduces EXACTLY: nret 549 / 558 / 550 / 515 and 20·log10|E| −105.086 / −105.058 / −105.079 / −105.125 dB. Positions 21 and 63 are
+#   odd, so they live in shard _01 — both shards are on disk and both are needed for R; this is noted because the header names only
+#   shard 00 when it states nret = npaths. That equality was re-verified on shard 00 at all 2,048 positions, and n_trunc is [0, 2000000]
+#   on both shards. Sidecars 6,785,339 / 6,842,630 B, i.e. 6.429 B per stored path — the 6.43 the sidecar budget below rests on.
+#   --dump-paths 4 on 64 positions was re-derived from elevation_sweep_md.py:896: np.linspace(0, 63, 4).round() = 0, 21, 42, 63. ✓
+#   Geometry recomputed: drone 4.110 m, radar 1.4953 m, D 29.8858 m, ψ 10.623°, R′ 30.4070 m, ghost +40.70 cm, specular point 7.972 m
+#   from the radar, plate margin 30.11 m, nadir 2.991 m two-way. Record 64/19,700 = 3.2487 ms; matrice4e hover_rpm 3800 with
+#   prop_blades 2 (src/drones.py) ⇒ f_flash 126.667 Hz, 0.206 rev, 0.412 blade-pass, FFT bin 307.8 Hz. All as written.
+#   The scattering anchor was re-read: S = 0 → nret median 1,914, meta[5] 348.2 s; S = 0.1 → 11,984,728 with 256/256 positions ≥ 0.99·cap,
+#   4,830.8 s; S = 0.3 → 11,984,805, 5,615.4 s; S = 0.5 → 11,984,962, 4,689.1 s. As written, including the mixed n_trunc generations.
+#   Cost: lines 1 and 5 re-derived from the same cell's stored meta[5] (1,008.2 / 2,844.7 s over 2,048 positions = 0.49 / 1.39 s per
+#   position) ⇒ 1-2 min each. Lines 2, 3, 4 stay unmeasured, as the file says. Host memory checked for the sidecar concatenation:
+#   140 GB available against the stated 0.42 / 1.7 GB worst case. Disk: worst case ≈310 MB for the five sidecars against 986 GB free.
+# Changelog (checker), 1 edit, no argument line touched:
+#   1) ⛔TX/RX baseline. The header said the devices are BASELINE_M = 0.20 m apart across the line of sight. The sweep calls
+#      RP.place(..., baseline=0.0) at elevation_sweep_md.py:1071 (the only place() call in the file), so TX and RX are CO-LOCATED and
+#      the bistatic angle is 0; BASELINE_M = 0.20 is report15_probe's module default and is not used by this sweep. Corrected.
+#      No number in this file depended on it — every path length here is monostatic and none changed.
+# ----------------------------------------------------------------------------------------------------------------------
+# Estimate about 0.5 slot-h, band 0.2-1.5 h — and this estimate is the thing the file replaces with a measurement.
+#   Measured basis, this exact cell at S = 0 (runners/jobs_0962 lines 3-4, 2,048-position shards with --dump-paths 2048): stored meta[5]
+#   1,008.2 and 2,844.7 s ⇒ 0.492 and 1.389 s per position; supervisor wall clock 17.1 and 47.9 min ⇒ 0.3-0.5 min of out-of-loop cost; the
+#   worker's progress prints give 1.1 min for the first 128 positions against 1.04 min steady, so the first-position warm-up is about 4 s.
+#   ⇒ lines 1 and 5 (S = 0, 64 positions): 0.5-1.5 min of solve + about 0.5 min out of loop = 1-2 min each. Computed, from measured rates.
+#   Measured basis for S = 0.1: only the 2.0.1 / 15 m / full-scene anchor above, where S = 0.1 cost 13.9 × the S = 0 time per position at a
+#   cap 6 × larger than the one used here. ⇒ lines 2 and 4: 2-20 min each; line 3 (cap 8e6): 4-45 min. Extrapolated across a build, a scene,
+#   a geometry and a cap — a design band, not a measurement of these cells, and the reason the band is a factor of ten wide.
+#   Sidecars: tens of kB for lines 1 and 5; up to about 50 MB (lines 2, 4) and about 210 MB (line 3) if the count pins at the cap.
+# Cards. No card restriction: runners/GPU_HOLD.json has an empty hold list and its all_five_0918 note records the user's 2026-09-18 ~11:00
+#   KST instruction to use all five GPUs with the supervisors behaving normally. Nothing here asks for a particular card — what this file
+#   asks for is one worker at a time, which is SIONNA2_MAX_TOTAL=1 on its own supervisor, not a hold. Other users' VRAM still decides how
+#   many workers OTHER supervisors place beside it, so peak_vram_mb and sec_per_pose are reported with the card's other load beside them.
+--engine sionna --n-poses 64 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0 --max-paths 2000000 --dump-paths 4 --shard 0 --nshards 1
+--engine sionna --n-poses 64 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0.1 --max-paths 2000000 --dump-paths 4 --shard 0 --nshards 1
+--engine sionna --n-poses 64 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0.1 --max-paths 8000000 --dump-paths 4 --shard 0 --nshards 1
+--engine sionna --n-poses 64 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --env-scat 0.1 --max-paths 2000000 --dump-paths 4 --shard 0 --nshards 1
+--engine sionna --n-poses 64 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --env-scat 0 --max-paths 8000000 --dump-paths 4 --shard 0 --nshards 1

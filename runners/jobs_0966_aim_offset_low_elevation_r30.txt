@@ -1,0 +1,345 @@
+# 0966 — the tr38901 aimed 10° above and 10° below the drone at a field-like low elevation (30 m, drone 2.6 m above a 1.5 m
+#        tripod radar, flat ground): does tilting the antenna off the drone change how much drone return and how much
+#        ground-related return the receiver sees, and does the change follow the computed re-weighting of the aiming
+#        configuration, so that later aiming choices can be computed instead of bought? 52 ms records with path lists.
+#        (2026-09-18 ~14:40 KST, package C of /workspace/sionna_queue_recommendations_2026-09-18.md §4; argument lines taken
+#        verbatim from /workspace/sionna_gpu_queue_drafts_2026-09-18.txt lines 54-60, unchanged)
+#
+# Purpose, and what the result changes.
+#   The X410 demonstration has to put an antenna on a mast and point it somewhere. Every aimed cell in storage points exactly at
+#   the drone; every off-aim cell in storage (0954, 0956, 0938, 0940) is at 15 m, 60° or 15° below, at the Sionna default 0.1 m
+#   drone slab, with no path lists, and tilts only DOWNWARD. Nothing tells us what happens at the low elevation the demonstration
+#   actually works at, and nothing tells us what happens when the antenna is tilted UP, away from the ground.
+#   This file buys the four cheapest cells that can answer it: aim −10 and aim +10, each with open sky and with flat ground, at
+#   the geometry 0962 already holds at zero offset.
+#   What the result changes. The decision is whether a future aiming choice (a fixed mechanical down-tilt, a mast that points
+#   above the drone to keep the ground out of the main lobe) can be COMPUTED on CPU from the stored path lists and the tr38901
+#   formula, or whether each aiming configuration has to be bought as a GPU cell. Check W1 below decides that. If W1 holds, no
+#   further aim cell is bought at this geometry and the antenna question moves to CPU re-weighting of 0962's lists (the same
+#   route 0962's W check opens for the pattern); measured antenna patterns, when the specifications arrive, then go through the
+#   same route. If W1 fails, aiming has to come from cells, the ±5° extension below runs, and no computed aiming number is
+#   written anywhere.
+#   ⚠This file does NOT decide a mast design. Two offsets at one range, one elevation, one azimuth, one airframe, with a
+#   stand-in pattern, are not an antenna-installation study.
+#
+# Sign convention, verified in the code (not from a note).
+#   benchmark/report15_probe.py aim_target() line 208: `el1 = el0 - math.radians(float(aim_offset_deg))`, with el0 the elevation
+#   of the ray from the device to the drone. Its docstring: 「조준축을 **지면 쪽으로** aim_offset_deg 만큼 숙인 점」 [the point
+#   reached by tilting the aiming axis toward the ground by aim_offset_deg]. benchmark/elevation_sweep_md.py line 476 computes
+#   the resulting boresight elevation for its own guard as `_new = -_e - _aimo` (_e = the --els value, _aimo = --aim-offset).
+#   ⇒ A POSITIVE offset points the boresight DOWN, toward the ground. A NEGATIVE offset points it UP, away from the ground.
+#   At --els=-5 the drone is 5.000° above the horizontal as seen from the radar, so boresight elevation = 5.000° − offset:
+#     offset  −10  → boresight +15.000° above horizontal; the drone sits 10.000° BELOW the boresight; the ground is further out.
+#     offset    0  → boresight  +5.000°, on the drone (the 0962 control cells).
+#     offset  +10  → boresight  −5.000°, i.e. 5° BELOW horizontal; the drone sits 10.000° ABOVE the boresight.
+#   ⛔No negative aim offset exists anywhere in storage (outputs/elev_sweep_shards, 2026-09-18: 30 shards carry an _aim tag,
+#   every one of them positive — 5, 10, 20, 59, 60, 61). Lines 1 and 2 are the first cells that aim above the drone.
+#
+# ⭐Aiming moves the polarisation basis as well as the pattern, so a difference here is a property of the whole aiming
+#   configuration, not of antenna gain. benchmark/report15_probe.py place() docstring: «the aimed arm changes the pattern, the
+#   pointing and the polarisation at once (V polarisation is defined in device coordinates, so pointing alone moves it)»; the
+#   V element's Jones vector is carried into world coordinates through the device orientation
+#   (sionna/rt/path_solvers/field_calculator.py:204 for the transmitter, :332-346 for the receiver), and --aim-offset changes
+#   that orientation through look_at. The computed weights in the table below are SCALAR PATTERN GAIN ONLY; they do not contain
+#   the polarisation rotation. Every verdict in this file is therefore written as «this aiming configuration», never as «the
+#   antenna gain».
+#
+# What already exists and is reused, not re-bought.
+#   Zero-offset controls, 0962 lines 1-4 — the same range, elevation, azimuth, rays, depth, cap, slab, mesh revision, antenna
+#   pattern, carrier, PRF, rotor law and solver seed as the four lines below, differing only in --aim-offset and record length.
+#   All four shards and all four sidecars are on disk, and runners/filter_jobs.sh reports DONE for all four lines (2026-09-18
+#   05:39-05:41 UTC, this session), i.e. the shard exists and carries n_dup:
+#     open sky, offset 0, both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r30_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#       sidecars outputs/path_provenance/…_{00,01}_prov.npz, 3.30 / 3.29 MB, 2,048 positions each, nret median 271, max 297-298,
+#       n_trunc[0] = 0 against the 2,000,000 cap; meta seconds 1562.50 / 522.83.
+#     ground only (--env-alt 4.11), offset 0, both shards
+#       outputs/elev_sweep_shards/sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#       sidecars …_{00,01}_prov.npz, 6.79 / 6.84 MB, 2,048 positions each, nret median 520 / 519, max 579 / 575, n_trunc[0] = 0;
+#       meta seconds 1008.21 / 2844.68.
+#   ⭐Same first 1,024 poses — checked, not assumed. The rotor phase law of a line without --rotor-preset is
+#     benchmark/elevation_sweep_md.py:411 `ph = rotor_phases(np.arange(n)/prf, rpms, fp.dirs)`, and for a 1-D constant rpm
+#     src/articulated_fast.py:248 returns `b + d·(360·rpm/60)·t[:,None]` — elementwise in t, so pose k depends on k and prf only,
+#     never on n. Re-evaluated in this session: rotor_phases over arange(4096)/19700 and over arange(1024)/19700 are
+#     bit-identical on the first 1,024 rows. The stored meta of all four control shards carries n = 4096 and prf = 19,700 Hz,
+#     the same prf the new lines inherit from the ledger, and no line here or there gives --prf or --rotor-preset.
+#     Shard interleave is `idx = np.arange(shard, n, nshards)` (line 430), so the controls' shard _00 holds global poses
+#     0, 2, 4, … and _01 holds 1, 3, 5, …; together they cover global 0-1,023 exactly once (checked: 512 + 512 = 1,024).
+#     --dump-paths 2048 on a 2,048-position shard selects `np.linspace(0, idx.size-1, min(N, idx.size))` (line 897) = every
+#     position, so the controls carry a path list at every one of the 1,024 poses this file needs. Verified on disk: the
+#     sidecars' `pose` arrays hold 2,048 entries each, min 0 / max 4,094 and min 1 / max 4,095.
+#     ⛔EVERY control quantity in the readout below is recomputed from global poses 0-1,023 ONLY. No 1,024-position value is
+#     placed beside a 4,096-position value (the runners/jobs_0963 rule for 52 ms records).
+#   check 0 (runners/jobs_0957) spot-checked on the two control sidecars in this session, 5 positions each (global 0, 2, 4, 100,
+#     1022): |Σ_hit a·exp(−j2π·fc·τ) − E| / |E| = 0.00e+00 at all ten. ⚠Five positions per cell, not all 2,048; the full check 0
+#     over both controls is part of this file's readout, below.
+#   Seed spread, reused: 0962 lines 23-26 (--solver-seed 2 at exactly this geometry, open sky and ground) are on disk with their
+#     sidecars (…_ss2_… _{00,01}.npz and …_ss2_…_{00,01}_prov.npz, 3.85 / 3.79 MB open sky, 6.98 / 6.96 MB ground). seed_diff of
+#     every quantity below is taken from them against 0962 lines 1-4 on global poses 0-1,023. ⛔No seed line is bought here.
+#   Deliberately NOT bought by this file: a seed repeat (above); an iso or --ant-orient version (0962 lines 27-28 already hold
+#     the pattern-vs-pointing contrast at this geometry); any other range, elevation or azimuth; max_depth 3 (0962 lines 9-10);
+#     a cap ladder (cap stays 2e6); offsets beyond ±10 at this geometry — 0954 / 0956 / 0938 / 0940 hold +5 / +10 / +20 / +59 /
+#     +60 / +61, all at 15 m, el −60 or −15, n8192, at the Sionna default 0.1 m slab and with no path lists, so none of them is a
+#     control for anything here and none is re-bought under a new name; 0962's commented aim +20 extension line (4,096-position
+#     records) is not released by this file; a longer record (comb metrics are not read here, see below); another carrier;
+#     another airframe; the full scene (0964); a real antenna pattern (none exists yet).
+#
+# Geometry, recomputed from the code for this file (scratch script aim_geom.py in this session's scratchpad; not a ledger).
+#   benchmark/elevation_sweep_md.py env_parts() line 205 sets `dz = -env_alt` and moves every environment part down by it,
+#   leaving the drone at the origin; benchmark/report15_probe.py place() puts the devices at
+#   centre + range·(cos el·cos az, cos el·sin az, sin el). ⚠The sweep calls place(..., baseline=0.0) at
+#   elevation_sweep_md.py:1071, so TX and RX are CO-LOCATED and the bistatic angle is 0; report15_probe's module default
+#   BASELINE_M = 0.20 m is NOT used by this sweep.
+#   ⇒ radar height above the plate = env-alt + range·sin(el); a negative elevation means the radar is BELOW the drone and looks
+#     up (docs, 2026-09-10).
+#   Every line here: range 30 m, el −5°, az 0°.
+#     · drone height above the plate H = 4.110 m (ground cells; in the open-sky cells there is no plate);
+#     · radar height h = 4.11 + 30·sin(−5°) = 1.4953 m — a tripod;
+#     · horizontal separation D = 30·cos(5°) = 29.8858 m; direct two-way path 60.000 m; bistatic angle 0 (co-located);
+#     · TX = RX = (29.8858, 0.000, −2.6147) in the drone-centred frame, plate at z = −4.110.
+#   Ground cells, reflection geometry (flat mirror plate, ITU concrete, S = 0):
+#     · grazing angle ψ = atan((H + h)/D) = 10.623°;
+#     · one leg of the ground-reflected path R′ = √(D² + (H + h)²) = 30.4070 m, so [g,d] and [d,g] are R′ − R = 40.70 cm longer
+#       than the direct echo (0.03 range cells at 20 MHz, 0.14 at 100 MHz — inside the drone's own bin);
+#     · the [g,d] specular point lies 7.972 m from the radar toward the drone, the radar's own ground bounce directly under the
+#       co-located TX/RX, 29.886 m from the drone centre; the plate spans ±60 m around the drone
+#       (benchmark/make_outdoor_scene_0831.py), so both points are on it;
+#     · the mirror image of the drone centre sits 10.623° BELOW the horizontal as seen from the radar, while the drone itself is
+#       5.000° above it — the 15.623° that separates them is what an aim offset trades between.
+#   These reproduce the A row of the runners/jobs_0962 header (ψ 10.62°, R′ − R 40.7 cm, image 15.62° off a boresight on the
+#   drone) from the code, independently of that file.
+#
+#   Computed two-way tr38901 weights per path class (the element formula of sionna/rt/antenna_pattern.py v_tr38901_pattern
+#   verbatim: 3 dB width 65°, peak 8 dBi, a_max = sla_v = 30 dB; look_at frame = local +x at the aim point, roll 0; θ from the
+#   local +z, φ from the local +x. TX and RX are co-located, so one set of angles serves both devices and a two-way weight is the
+#   outbound direction's gain plus the return direction's — equal for [d] and for [g], different for [g,d]):
+#     | offset | boresight el | [d] two-way | [g,d]=[d,g] two-way | [g] two-way | θ_drone | θ_image | θ_gnd-bounce | φ_gnd |
+#     |     0  |     +5.000°  |   +16.000 dB |       +15.307 dB   |  −44.000 dB |  90.000 | 105.623 |     175.000  | +180.0 |
+#     |   −10  |    +15.000°  |   +15.432 dB |       +13.851 dB   |  −44.000 dB | 100.000 | 115.623 |     165.000  | +180.0 |
+#     |   +10  |     −5.000°  |   +15.432 dB |       +15.626 dB   |  −25.041 dB |  80.000 |  95.623 |     175.000  |    0.0 |
+#   and, as differences from the zero-offset control — this is the prediction the readout is entered with:
+#     | offset | Δ[d]    | Δ[g,d] = Δ[d,g] | Δ[g]     | Δ([g,d] − [d]) |
+#     |   −10  | −0.568 dB |   −1.455 dB   |  0.000 dB |    −0.887 dB   |
+#     |   +10  | −0.568 dB |   +0.319 dB   | +18.959 dB |   +0.887 dB   |
+#   The offset-0 row reproduces the runners/jobs_0962 header's +16.00 / +15.31 / −44.00 dB, so the arithmetic here and there
+#   agree. Reading of the table: tilting up 10° and tilting down 10° cost the drone echo the same 0.57 dB (it is 10° off
+#   boresight either way), and what actually moves is the BALANCE — the ghost sits 0.89 dB lower relative to the drone when the
+#   beam is tilted up and 0.89 dB higher when it is tilted down. The radar's own ground bounce, which lands in a different range
+#   bin, gains 18.96 dB when the beam is tilted down — a step, not a slope; see the note under the table.
+#   ⚠Scope of these numbers: point directions, scalar gain, no polarisation rotation, a 0.78 m airframe treated as one direction,
+#   and the ground's Fresnel coefficient left out (it depends on the incidence angle only, so it cancels in every Δ above). The
+#   Δ[g] entry additionally is a STEP, not a slope, and the step is at the horizon. With co-located TX/RX the radar's own ground
+#   bounce is exactly vertical, so in the look_at frame it sits at θ = 175° (offset 0 and +10) or 165° (offset −10) from the
+#   local +z, and its local azimuth is φ = 180° whenever the boresight is ABOVE horizontal and φ = 0° whenever it is BELOW.
+#   At φ = 180° the element's 30 dB combined cap binds (a_v + a_h = −45.98 … −50.52 → capped at −30) and the gain is −22.000 dBi;
+#   at φ = 0° nothing binds and it is −12.521 dBi. So Δ[g] is 0.000 dB for every offset that keeps the boresight above the
+#   horizon and +18.959 dB for every offset that puts it below, jumping 18.96 dB as the boresight crosses 0° elevation — which is
+#   between offset +5 and +10 here. A computed number with a discontinuity inside the sampled range is not a prediction with a
+#   tolerance. Δ[g] is therefore written, never gated. See W2.
+#
+# Names. The sweep builds the stems and --dump-paths does not change them. Read back from --dry-run in this session, all four
+#   distinct and none present in outputs/elev_sweep_shards/:
+#   aim −10 open sky   sionna_p4000000000_swR0D0E0F1_r30_n1024_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_aim-10_rt210_d2_el-5_00
+#   aim −10 ground     sionna_p4000000000_swR0D0E0F1_r30_n1024_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_aim-10_rt210_d2_el-5_00
+#   aim +10 open sky   sionna_p4000000000_swR0D0E0F1_r30_n1024_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_aim10_rt210_d2_el-5_00
+#   aim +10 ground     sionna_p4000000000_swR0D0E0F1_r30_n1024_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_aim10_rt210_d2_el-5_00
+#   The offset tag is `_aim<value>` with `:g` formatting, and the builder refuses any value that would not be written back
+#   exactly (elevation_sweep_md.py:487-489), so `_aim-10` and `_aim10` cannot collide with each other or with `_aim1`.
+#   One shard per cell (--nshards 1), so a cell is complete when its single shard lands; no shard merge is needed.
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz (git-ignored since 0957). Expected size per shard, scaled from the
+#   measured controls at half the positions and the same path counts: about 1.6 MB for each open-sky shard and about 3.4 MB for
+#   each ground shard, about 10 MB for the four. Record: 1,024 positions at PRF 19,700 Hz = 51.98 ms; FFT bin 19.24 Hz.
+#
+# Read-out — fixed before any shard of this file is read. Metric names are the repo's fixed ones (docs/READOUT_0917.md §1:
+#   isolated_20xmedian, hampel_w51_k5, env_field_drop_halfmedian, env_path_missing, copy_k_ratio / copy_k_diff,
+#   contrast_raw / contrast_dedup / contrast_interp). E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db,
+#   event positions, event_in_bin and event_share are defined in the runners/jobs_0957 header; lvl_db, ac_level_db,
+#   ac_to_static_db, hits_per_pose, path_class, class_power_db and seed_diff in the runners/jobs_0960 header; D2, excess_cm and
+#   fade_env_db in the runners/jobs_0962 header. B = 20 and 100 MHz, Hann window, rectangular as the knob. Every quantity is
+#   computed on global poses 0-1,023 on both sides. Four quantities are new and defined only here:
+#   G2(c, off)      the computed two-way tr38901 weight of path class c at aim offset `off`, from the table above (dB).
+#   aim_delta(q)    q(one of the four cells below) − q(its zero-offset 0962 control, same scene, on global poses 0-1,023) [dB].
+#   W_aim(c)        aim_delta(class_power_db(c)) − (G2(c, off) − G2(c, 0)) — measured minus computed, dB. It contains the
+#                   polarisation rotation, the airframe's angular extent and any solver difference; it does not contain the
+#                   ground's Fresnel coefficient, which cancels.
+#   geom_match      share of the 1,024 positions at which the cell's listed path set equals its zero-offset control's at the
+#                   same global pose index: equal n_paths, and a one-to-one pairing in which each pair has the identical ordered
+#                   part sequence and |Δτ| ≤ 1e-13 s (0.03 mm of path).
+#   ⛔NOT read on these records: contrast_raw, contrast_dedup, contrast_interp and every other comb metric. Their definition
+#   takes ±2 FFT bins around each harmonic of the 126.667 Hz blade-flash rate; at 1,024 positions a bin is 19.24 Hz, so ±2 bins
+#   is ±38.5 Hz instead of the ±4.81 Hz the definition means. This is the standing rule for 52 ms records
+#   (runners/jobs_0963 header). contrast_gated is likewise not read. If a comb number is ever wanted at this geometry it comes
+#   from the 4,096-position 0962 cells, never from here.
+#   Written per cell before any verdict, not gated: hits_per_pose; nret median, max and n_trunc[0]; lvl_db and ac_to_static_db
+#   beside the control's on the same 1,024 poses; class_power_db of [d], [g,d], [d,g] and [g] (ground cells) and of [d] (open
+#   sky); for every environment-only path class its offset x from the drone's bin and |h_B(x)|, so window leakage is told apart
+#   from content inside the bin; env_in_bin_db, env_field_drop_halfmedian (against the open-sky cell of the SAME offset),
+#   isolated_20xmedian (with its normaliser and |m|), hampel_w51_k5, env_path_missing, copy_k_ratio and copy_k_diff, event
+#   positions, event_in_bin, event_share, D2, excess_cm and fade_env_db; and every listed path class not in the table above, by
+#   part and delay.
+#   Pre-set working thresholds, not repeat-based unless T is named. Below a threshold write «threshold not crossed», never «no
+#   effect» and never «equivalent».
+#   T   the floor for every dB quantity below: T(q) = max(0.5 dB, 3·seed_diff(q)), seed_diff from 0962 lines 23-26 against lines
+#       1-4 on global poses 0-1,023. A quantity whose seed pair does not exist (none is expected; all four seed shards are on
+#       disk) uses the 0.5 dB floor alone and is named.
+#   0.  check 0 (runners/jobs_0957 check 0) on each of the four new sidecars AND on the full 1,024 poses of both controls:
+#       |Σ_hit a·exp(−j2π·fc·τ) − E| / |E| < 1e-4 at every position. Fails anywhere → no path-class number from this file is
+#       read; the E records stay valid.
+#   C   cap, all four cells: n_trunc[0] = 0 against the 2,000,000 path cap. Any position at the cap → no level from that shard
+#       is quoted and the cell is not re-read until the cap is raised (the standing rule that a saturating cap makes the axis
+#       unmeasurable). Expectation entered before reading, from the controls: nret median 271 open sky and 520 ground, max 298
+#       and 579 — about three and a half orders below the cap; aiming is not expected to move nret at all (check I).
+#   I   geometry identity, on all four cells, BEFORE W1 or R1 is written. Sionna's candidate generator is not given the antenna
+#       pattern (sionna/rt/path_solvers/path_solver.py:259-274 passes only the scene, positions, samples, depth, the physics
+#       switches and the seed); the pattern and the device orientation enter afterwards, in field_calculator.py:204 and
+#       :332-346. Device POSITIONS do not depend on --aim-offset, only look_at does. So the path set found at a given pose
+#       should be the same as the control's, and the aim offset should be a pure re-weighting.
+#       geom_match ≥ 99 % → «the aim offset did not change the path set (threshold not crossed)» → W1, W2 and R1 are read as
+#       re-weightings. geom_match < 99 % → STOP reading this file as a re-weighting: the positions at which the sets differ are
+#       listed by class and delay, W1 and R1 are written as raw differences with that count beside them, and no computed aiming
+#       number is written anywhere.
+#   W1  the aiming model, the decision check. |W_aim(c)| ≤ max(1 dB, T) for c = [d] in all four cells and for c = [g,d] and
+#       c = [d,g] in the two ground cells, at 20 and 100 MHz → «the class levels of this aiming configuration follow the
+#       computed tr38901 re-weighting at ψ 10.6° and boresight +15° / −5° (threshold not crossed)». Crossed at either offset or
+#       either class → «the difference between aiming configurations is not reproduced by the scalar pattern weights here»; the
+#       size and sign of W_aim are written per class and the ±5° extension below runs. ⭐A crossing does NOT say the pattern
+#       formula is wrong: W_aim also carries the polarisation rotation that the aiming does at the same time, and the two are
+#       not separable from these cells.
+#   W2  the radar's own ground bounce, ground cells only: W_aim([g]) is WRITTEN with its computed G2 difference beside it and is
+#       NOT gated, for the reason given under the geometry table (the computed weight there moves more than 7 dB for a 4° change
+#       of that one ray). It is also written as an absolute in-bin quantity through env_in_bin_db, where it belongs: the ground
+#       bounce sits 57.0 m short of the drone's two-way path, i.e. 3.80 range cells at 20 MHz and 19.0 at 100 MHz
+#       (runners/jobs_0962, recomputed here), so what reaches the drone's bin from it is window leakage, and |h_B(x)| is written
+#       with it.
+#   R1  the balance, the quantity the antenna question is actually about, ground cells only:
+#       aim_delta( class_power_db([g,d]) − class_power_db([d]) ) against the computed −0.887 dB at offset −10 and +0.887 dB at
+#       offset +10, tolerance max(1 dB, T), at 20 and 100 MHz. Inside → «tilting the beam 10° off the drone moved the
+#       ghost-to-direct ratio by about the computed 0.9 dB and no more (threshold not crossed)». Outside → the measured value is
+#       the one that goes to the receiver, the computed one is dropped, and the extension runs.
+#       Written beside it and not read as a result: |aim_delta| of env_in_bin_db, of lvl_db and of ac_to_static_db, in all four
+#       cells. lvl_db is a coherent sum over classes, so it has no computed prediction here and no threshold is set on it.
+#   S   symmetry, written once: the computed Δ[d] is −0.568 dB at BOTH offsets, so the two offsets separate only through the
+#       ground-related classes. |aim_delta(class_power_db([d])) at −10 − aim_delta(class_power_db([d])) at +10| ≤ max(1 dB, T)
+#       in the open-sky pair → «the drone echo does not tell the two tilt directions apart at this geometry (threshold not
+#       crossed)». Crossed → the airframe's own aspect-dependent scattering or the polarisation rotation separates them; both
+#       are named, neither is claimed.
+#   Hann and rect disagree on I, W1, W2, R1 or S → that reading is not written.
+#   Scope in every sentence: one range (30 m), one elevation (el −5°, the radar looking up 5°), one azimuth (0°), two offsets,
+#   flat simulated ground with a mirror material (S = 0) and ITU concrete, hover at constant rpm with no body motion, the
+#   canonical drone slab (shell 0.75 mm from DJI Matrice 4T CAD, propeller 1.43 mm from our own mesh, which
+#   docs/MATERIAL_CORRECTION.md §2-2 records as thicker than the real blade), one airframe mesh (matrice4e, mesh revision 0),
+#   tr38901 as a stand-in and NOT one of the six real antennas, V polarisation in device coordinates, 3.5 GHz as a working
+#   assumption, sionna-rt 2.1.0, 52 ms records, no TX-RX leakage, no receiver noise, one run per cell.
+#
+# Stop / extend. Extension lines are comments here, NOT queued; each was dry-run NEW in this session (see the dry-run record).
+#   · check 0 fails → nothing from this file is read by path class; the four E records stay valid and are reported as such.
+#   · I fails (geom_match < 99 %) at any cell → stop. The question is then a solver question, not an aiming question: diagnose
+#     on CPU from the stored lists before any further aim cell is bought. Do not buy more offsets to «try again».
+#   · C fails at any cell → stop that cell, raise SIONNA2_MAX_PATHS, re-read; no level from a capped shard is quoted.
+#   · I holds and W1 holds and R1 holds → STOP. No further aim cell is bought at this geometry, at any other geometry, or at
+#     any other offset. Aiming configurations are then computed on CPU from 0962's stored path lists and the class directions
+#     that a flat ground fixes in the vertical plane, labelled computed; the same route carries the measured antenna patterns
+#     when their specifications arrive (late Sep-Oct). The ±5° lines below are NOT bought in this outcome.
+#   · W1 crossed at either offset for [d], [g,d] or [d,g], OR R1 crossed → buy the ±5° pair, 4 shards, about 1.3 slot-h. Its
+#     question is whether the departure from the computed weight grows with the offset (which would point at the polarisation
+#     rotation and the airframe's extent, both of which grow with the tilt) or is a fixed bias (which would point at the class
+#     directions used in the computation). The computed differences to enter first: Δ[d] −0.142 dB at both ±5, Δ[g,d] −0.586 dB
+#     at −5 and +0.302 dB at +5, Δ([g,d] − [d]) ∓0.444 dB. ⛔Δ[g] is NOT pre-registered for the +5 cell: its boresight is
+#     exactly horizontal, which puts the exactly-vertical ray on the local −z pole where the element's azimuth is undefined and
+#     its computed gain is double-valued between −15.006 and −22.000 dBi (recomputed by the checker: θ = 180.000° exactly).
+#     At −5 the boresight is still above the horizon, so Δ[g] = 0.000 dB there (θ = 170.000°, φ = 180°, −22.000 dBi each way).
+#     W2 is written for the ±5 cells with that note and no threshold. Same controls, same readout, same thresholds otherwise.
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset -5 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset -5 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset 5 --dump-paths 1024 --shard 0 --nshards 1
+#     # --engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset 5 --dump-paths 1024 --shard 0 --nshards 1
+#   · ±5° read and still crossed → the aiming axis is not modelled at this geometry. Write that, and bring the question back to
+#     the user with the real antenna patterns; do not buy a third offset pair from this file.
+#   · S crossed → written with both candidate causes named. No cell is bought for it: telling the airframe's aspect from the
+#     polarisation rotation needs an --ant-orient contrast, and 0962 lines 27-28 already hold one at this geometry.
+#   · Not from this file in any outcome: offsets beyond ±10 at this geometry, a sideways (azimuth) offset, another range,
+#     another elevation, another azimuth, depth 3, a cap ladder, a seed line, an iso version, a longer record, another airframe,
+#     another carrier, the full scene, or a real-site scene.
+#
+# One run per cell; there is no seed exception in this file (the seed spread is read from 0962's stored seed-2 cells). Rules
+#   kept: open sky and outdoor ground only; R0D0E0F1 (diffuse on, refraction and diffraction off); no propeller-only arms;
+#   _rt210 added automatically; --inmem is the default; cap 2e6 with no cap ladder; the canonical slab on every line, so this
+#   bundle is readable against the thin-slab families 0960-0964.
+# Dry run 2026-09-18 05:38-05:41 UTC (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg nice -n 19
+#   taskset -c 8-15, runners/filter_jobs.sh at -P 2, the 4 lines below verbatim): 4/4 NEW. The 4 ±5° extension lines above were
+#   dry-run NEW in the same pass. The 4 reused 0962 control lines dry-run DONE in the same pass. Stems read back from --dry-run
+#   are distinct from each other and absent from outputs/elev_sweep_shards/. Near-duplicate check over every runners/jobs_*.txt,
+#   commented and #HOLD lines included, comparing full flag sets with --shard, --nshards and --dump-paths ignored: no exact
+#   match. ⚠ONE line differs by a single flag: runners/jobs_0962 line 115, a COMMENTED conditional-extension template (n1024,
+#   depth 2, el −5, ground alt 4.11, --dump-paths 1024, --nshards 1), which is job lines 2 and 4 below with no --aim-offset —
+#   i.e. this file's own zero-offset control at this record length. It names a different stem (no _aim tag), so there is no
+#   collision and nothing is overwritten, and it has never launched. ⛔If 0962's az extension is ever released, that cell is
+#   bought there and must NOT be re-bought here; when it exists it becomes a better-matched (n1024) zero-offset control than the
+#   n4096 lines 1-4, and the readout should then be recomputed against it. The next nearest lines differ in two flags and are the
+#   reused controls themselves: 0962 job lines 1-4 (file lines 144-147; --aim-offset and --n-poses), then 0963 line 117
+#   (--aim-offset and --range-m, a 15 m open-sky cell). Everything else is three flags or more. The 30 stored _aim shards and
+#   the aim lines of 0938 / 0940 / 0954 / 0956 are at 15 m, el −60 or −15, n8192 and carry no --shell-mm / --prop-mm, so they
+#   name different stems entirely.
+# ----------------------------------------------------------------------------------------------------------------------
+# Independent check (adversarial checker, 2026-09-18 ~15:05 KST). Redone from the code and the stored files, not read off this header.
+#   Dry run, the 4 lines below verbatim through runners/filter_jobs.sh (CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1
+#   MPLBACKEND=Agg nice -n 19 taskset -c 8-15, -P 3): 4/4 NEW. 4 stems read back from --dry-run, all distinct, none on disk, and
+#   distinct from the 20 stems of the sister files 0965 / 0967 / 0968.
+#   Flag sets compared against all 1,066 --engine lines of all 50 runners/jobs_*.txt, commented and #HOLD included, and against the
+#   other three files: 0 exact duplicates, 0 duplicates among the 24 new lines, and none of runners/jobs_0964's 12 lines is duplicated.
+#   ⚠One single-flag neighbour was found that this header had missed — see changelog 5.
+#   Controls verified on disk: 0962 lines 1-4 all DONE, sidecars 3,297,482 / 3,288,659 B (open sky) and 6,785,339 / 6,842,630 B
+#   (ground), nret median 271 / 271 and 520 / 519, max 297 / 298 and 579 / 575, n_trunc [0, 2000000], meta[5] 1,562.5 / 522.8 and
+#   1,008.2 / 2,844.7 s, idx starting 0,2,4 and 1,3,5, sidecar pose arrays 2,048 entries spanning 0…4094 and 1…4095 — so global poses
+#   0…1023 all carry path lists and every aim_delta below is computable. The seed-2 pair is on disk too (3,846,508 / 3,791,383 B open
+#   sky, 6,981,260 / 6,955,624 B ground), so T has its seed_diff. check 0 re-run on a control sidecar at 5 poses: 0.00e+00 at all 5.
+#   Sign convention re-verified: aim_target() el1 = el0 − radians(offset) with el0 = +5.000° here, and the sweep's own guard
+#   _new = −_e − _aimo; boresight +15.000 / +5.000 / −5.000° at offset −10 / 0 / +10 confirmed. The element formula was re-read out of
+#   sionna/rt/antenna_pattern.py v_tr38901_pattern (a_v = −min(12((θ−90)/65)², 30), a_h = −min(12(φ/65)², 30), a = −min(−(a_v+a_h), 30)
+#   + 8) and the whole weight table recomputed: [d] and [g,d] and every Δ that uses them reproduce exactly; the [g] column did not —
+#   see changelog 2. path_solver.py:259-274 confirmed: the candidate generator is never given the pattern, so check I is well posed.
+#   Cost re-estimated from stored meta[5]: 30 m depth-2 open sky, 2,048 positions, n = 16 shards, 6.0 / 25.1 / 29.3 min ⇒ 3.0 / 12.6 /
+#   14.7 min at 1,024; 30 m depth-2 ground, n = 14, 16.8 / 47.7 / 53.8 ⇒ 8.4 / 23.9 / 26.9 min. With ~0.5 min of build the four shards
+#   are 1.25 slot-h at the medians, 0.41-1.42 across the extremes — the estimate below stands. Sidecars ≈10 MB against 986 GB free.
+# Changelog (checker), 10 edits, no argument line touched:
+#   1) ⛔TX/RX baseline. The header said the devices are BASELINE_M = 0.20 m apart along ±y with a 0.382° bistatic angle, and gave
+#      TX/RX at y = ∓0.100 m. The sweep calls RP.place(..., baseline=0.0) at elevation_sweep_md.py:1071, so TX and RX are CO-LOCATED
+#      and the bistatic angle is 0. Corrected in the geometry preamble, the coordinate line and the specular-point line.
+#   2) ⛔The [g] column of the weight table followed from that 0.2 m baseline and was wrong. Recomputed with co-located devices: the
+#      radar's own ground bounce is exactly vertical, so θ = 175.000 / 165.000 / 175.000° and φ = +180 / +180 / 0° at offset 0 / −10 /
+#      +10, giving −22.000 / −22.000 / −12.521 dBi each way, i.e. [g] two-way −44.000 / −44.000 / −25.041 dB and Δ[g] 0.000 / +18.959 dB
+#      (the header had −31.750 dB and +12.250 dB at offset +10, and θ 173.717 / 164.543 / 173.697 with φ −142.4 / −165.5 / −37.4).
+#      ⭐Nothing gated moved: [d] and [g,d] are unchanged, so W1, R1, S and the whole ±5 pre-registration except Δ[g] are untouched.
+#   3) The reason Δ[g] must not be gated was rewritten, because the old reason («4° of ray movement changes it 7 dB») was itself an
+#      artefact of the 0.2 m baseline. The real reason is stronger: Δ[g] is a STEP at the horizon — φ is 180° while the boresight is
+#      above horizontal (the 30 dB combined cap binds, −22.000 dBi) and 0° below it (nothing binds, −12.521 dBi) — so it jumps
+#      18.96 dB as the boresight crosses 0° elevation, which happens between offset +5 and +10 here.
+#   4) Rounding: D = 30·cos(5°) printed 29.8860 → 29.8858 (the coordinate line of the same paragraph already said 29.8858); R′ 30.4071
+#      → 30.4070 and R′ − R 40.71 → 40.70 cm (matching 0965 and 0968 at the same cell); specular point 7.973 → 7.972 m.
+#   5) ⚠The near-duplicate statement was wrong and is corrected. It said no line anywhere differs by a single flag. runners/jobs_0962
+#      line 115 — a COMMENTED conditional-extension template — is job lines 2 and 4 below with no --aim-offset, i.e. exactly one flag
+#      away, and it is this file's own zero-offset control at n1024. No collision (different stem, no _aim tag) and it has never
+#      launched, but it is now named, with the consequence for the readout if 0962's az extension is ever released.
+#   6) The ±5° pre-registration gained the recomputed Δ[g] at −5 (0.000 dB; θ = 170.000°, φ = 180°) and the +5 degeneracy note was
+#      confirmed and kept: at offset +5 the boresight is exactly horizontal and the vertical ray sits at θ = 180.000° exactly, on the
+#      local −z pole, where φ is undefined and the computed gain is −15.006 or −22.000 dBi.
+# ----------------------------------------------------------------------------------------------------------------------
+# Estimate about 1.3 slot-h, band 0.5-1.5. Basis, measured per 2,048-position shard at this range, slab, antenna, ray budget
+#   and depth, with --dump-paths, from runners/logs/sup_0962.log wall clock (the stored meta seconds agree to under 0.5 min):
+#   30 m open sky el −5, lines 1-2: 26.2 and 9.1 min (meta 1562.50 and 522.83 s); all fourteen 30 m depth-2 open-sky shards in
+#   that file run 9.1-29.7 min, median 26.2. 30 m ground alt 4.11 el −5, lines 3-4: 17.1 and 47.9 min (meta 1008.21 and
+#   2844.68 s); all eleven 30 m depth-2 ground shards in that file run 17.1-49.4 min, median 46.8. runners/logs/sup_0960.log
+#   agrees at el −15 (open sky 25.7 / 25.7, ground alt 9.26 52.4 / 53.9). Halving the median for a 1,024-position shard and
+#   adding about 0.5 min of scene build gives 13.6 min per open-sky cell and 23.9 min per ground cell → 2 × 0.23 h +
+#   2 × 0.40 h = 1.26 h. The band comes from the measured minimum and maximum, not from a model. Aiming is assumed not to change
+#   the solve time, because the candidate generator does not see the antenna (path_solver.py:259-274) — computed, not measured.
+#   ⚠The wall clock per shard is set mostly by how many workers share a card: the two identical open-sky shards of 0962 lines
+#   1-2 took 26.2 and 9.1 min on different cards the same morning. Sidecars about 10 MB for the four.
+# Cards. No card restriction: runners/GPU_HOLD.json has an empty hold list and its all_five_0918 note records the user's
+#   2026-09-18 ~11:00 KST instruction to use all five GPUs with the supervisors behaving normally. The supervisors' own tier
+#   table decides how many workers each card takes from other users' VRAM, re-read every round. Nothing in this file asks for a
+#   particular card. These are among the shortest lines in the set (about 14 and 24 min), so any hold window covers them.
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset -10 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset -10 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset 10 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --aim-offset 10 --dump-paths 1024 --shard 0 --nshards 1

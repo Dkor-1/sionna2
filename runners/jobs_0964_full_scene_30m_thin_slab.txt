@@ -46,11 +46,13 @@
 # Geometry, computed from the code, not from a note.
 #   benchmark/elevation_sweep_md.py env_parts() moves the scene down by --env-alt and leaves the drone at the origin;
 #   benchmark/report15_probe.py place() puts the radar at center + range·(cos el·cos az, cos el·sin az, sin el), with TX and RX
-#   BASELINE_M = 0.20 m apart across the line of sight. So radar height above ground = alt + range·sin(el), and a negative elevation
+#   ⛔corrected 2026-09-18 ~15:10 KST: the sweep calls place(..., baseline=0.0) at benchmark/elevation_sweep_md.py:1071 — its only
+#   place() call — so TX and RX are CO-LOCATED, not BASELINE_M = 0.20 m apart as this header first said. Every path length here is
+#   monostatic and none of the numbers below changes. So radar height above ground = alt + range·sin(el), and a negative elevation
 #   means the radar is below the drone and looking up (docs, 2026-09-10).
 #   For every line here: range 30 m, el −15°, --env-alt 9.26 m ⇒
 #     · radar 1.495 m above the ground plate (a tripod), drone 9.26 m above it, 28.978 m apart horizontally;
-#     · direct drone two-way path R0 = 60.000 m; bistatic angle 0.38°;
+#     · direct drone two-way path R0 = 60.000 m; bistatic angle 0° (co-located TX/RX, corrected 09-18);
 #     · radar 31.02 m inside the edge of the 120 × 120 m ground plate (benchmark/make_outdoor_scene_0831.py), so the plate edge is not
 #       the nearest scatterer;
 #     · line of sight radar → drone clear at both azimuths, and the radar is not inside any building box at either.
