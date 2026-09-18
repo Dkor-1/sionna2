@@ -65,7 +65,10 @@ KNOWN_ENVS = {
 KNOWN_DRONES = {
     "m350rtk", "matrice4e", "mavic4pro", "mini5pro", "phantom4", "s1000plus", "x500v2",
 }
-KNOWN_ROTORS = {"legacy", "outdoor", "outdoor_v2"}
+#: ⭐2026-09-18: filled in from src/rotor_dynamics.PRESETS (the source of truth). «sitl» was missing,
+#  so every sitl arm of queue 0971 was reported as an unknown rotor by warnings_for().
+KNOWN_ROTORS = {"indoor", "legacy", "legacy_outdoor", "lit_iid", "outdoor", "outdoor_v2",
+                "outdoor_v2_eff", "sitl"}
 #: ⛔⛔**로터 씨앗은 «앞에 무엇이 오든» 밑줄 없이 달라붙는다.** 빌더(:487)가
 #      + ("" if not int(getattr(a, "rotor_seed", 0)) else f"s{int(a.rotor_seed)}")
 #  로 **독립해서** 이어 붙이기 때문이다 — 바로 앞이 `_rot…` 이면 로터에, `_az…` 면

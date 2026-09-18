@@ -1,0 +1,408 @@
+# 0970 - P3, the time sampling rate ladder: is the time axis of an RT hover record set by the rotor, or by the rate we sampled
+#        it at? Eight geometries (R15/R30 m x el -5/-15 deg x open sky / outdoor ground) each recorded over the SAME 0.1 s window
+#        at 19,700 Hz, 28,029 Hz, 39,400 Hz, 78,800 Hz - 4 rates x 8 geometries = 32 records, plus every rate a second time at
+#        --solver-seed 2 on two anchors named in advance (one sky, one ground) = 40 records. Full path lists at every position.
+#        (2026-09-18, package P3 of /workspace/sionna_queue_recommendations_2026-09-18.md sec.6 and the campaign JSON packages[2])
+#        Rebuild: runners/make_jobs_0970_time_sampling_rate_ladder.py. Every number below is computed by that script from the
+#        campaign JSON, benchmark/elevation_sweep_md.py, src/drones.py, outputs/report07_three_engines.json and the stored
+#        shards named in each row. No number here was typed by hand.
+#
+#  30 queue lines, 40 records: 10 of the 40 are already on disk and are REUSED, not re-bought (see REUSE).
+#  About 37 worker-hours (band 30-44), about 1.18 GB of path-list sidecars. Basis in COST.
+#
+# Launch preconditions (main session).
+#   (1) Path-list integrity (check 0 of the runners/jobs_0957 header) has passed on a GPU sidecar. Every line here carries path
+#       lists; without them T3 and the class table cannot be written and only the field-level readings survive.
+#   (2) ⭐Line 1 is deliberately first and is the PROBE: it is the cheapest line of the file (12-15 min by the measured
+#       rate of its geometry) and the first cell anywhere with the shape --prf given + --nshards 1 + --dump-paths equal to
+#       --n-poses. No stored sidecar has it: the only stored --prf cell is runners/jobs_0961's n4096 prf28029 pair, which is
+#       --nshards 2 and dumps 2,048 of its 2,048 positions per shard. Run line 1, check 0 on its sidecar, and check its
+#       sidecar size against the DISK table below BEFORE the 29 others are committed. ⚠With several free workers the supervisor
+#       may launch lines 2-30 first; if the guard is to bite, the main session holds them until line 1 lands.
+#   (3) The n7,880 lines are the largest single records this repo has bought (3.4 h at the slowest geometry, about
+#       2.0 GB of host RAM for the dump). Confirm free host RAM and the per-worker count before those lines run.
+#   (4) The ten stored cells of the REUSE table are on disk with their sidecars and n_dup. If any has been moved or deleted,
+#       its 19,700 Hz record no longer exists and that geometry's ladder is incomplete - it is re-bought as an n1,970 line with
+#       NO --prf flag (see the naming rule in REUSE), not silently dropped.
+#
+# ============================================================================================================================
+# WHAT THE RATE LADDER IS, AND WHAT IT IS NOT
+# ============================================================================================================================
+# The question. runners/jobs_0961 compared a 19,700 Hz record with a 28,029 Hz one at R15 m el -15 sky and read a linear-
+#   interpolation residual of -13.11 dB, with 1.623 % of the high-rate record's AC power sitting above the 19,700 Hz Nyquist
+#   (readout_0918.json gates.0961.T1_T2: interp_resid_db_linear -13.112, above_nyq_share 0.016227). That is one cell, one pair
+#   of rates, and the residual cannot be split into interpolation error, solver spread and real rotor physics from two records.
+#   ⛔And its two records do NOT span the same window: that gate has n_used 4,096 at both rates, so the 19,700 Hz record is
+#   0.2079 s long and the 28,029 Hz one 0.1461 s - a 42 % difference in window, hence in FFT bin, on top of the rate
+#   difference. ⭐This file holds the WINDOW fixed at 0.1 s and moves --n-poses with --prf instead, which is the whole design
+#   point of the ladder. The same gate already gives the solver floor at that cell: seed_floor_db -1.21 dB from its
+#   seed-1/seed-2 pair and rerun_floor_db -59.06 dB from a same-seed rerun - the same residual measure computed
+#   between two seeds and between two runs of one seed. ⚠At that cell the two SEEDS differ by nearly as much as the signal
+#   itself (-1.21 dB), so any rate residual above that value there is inside the seed spread and says nothing about rate.
+#   That is why the two anchors below repeat every rate at --solver-seed 2 before any rate difference is read.
+#   Every later statement about observation gaps, micro-Doppler and coherent integration rests on the time axis, so the time
+#   axis is measured first, on more than one cell.
+#
+# HOW --prf AND --n-poses INTERACT, read from the code, not assumed.
+#   benchmark/elevation_sweep_md.py:370-371 takes prf from --prf when it is > 0 and otherwise from the ledger
+#   (outputs/report07_three_engines.json _meta.prf_hz = 19,700 Hz); :373 takes n from --n-poses; :405/:411 build the pose
+#   times as ph = rotor_phases(np.arange(n) / prf, ...). So the time grid is t_k = k / prf for k = 0 ... n-1: the SPACING is
+#   1/prf and the LENGTH is n/prf. :368 says it in the file itself - "--n-poses is record LENGTH, not sample density; the pose
+#   spacing dt = 1/prf does not depend on n". Raising --n-poses alone makes a LONGER record at the same rate, not a denser one.
+#   ⛔That is why every rate below carries its own --n-poses: the window is held at 0.1 s by n = round(rate x 0.1 s).
+#
+#   The four grids, computed here (dt = 1/prf, span = n/prf, last sample = (n-1)/prf, FFT bin = prf/n):
+#   | rate [Hz] | --n-poses | dt [us]   | n/prf [s]   | last sample [s] | FFT bin [Hz] | Nyquist [Hz] |
+#   |    19,700 |     1,970 |   50.7614 |   0.1000000 |       0.0999492 |     10.00000 |        9,850 |
+#   |    28,029 |     2,803 |   35.6773 |   0.1000036 |       0.0999679 |      9.99964 |       14,014 |
+#   |    39,400 |     3,940 |   25.3807 |   0.1000000 |       0.0999746 |     10.00000 |       19,700 |
+#   |    78,800 |     7,880 |   12.6904 |   0.1000000 |       0.0999873 |     10.00000 |       39,400 |
+#   Three of the four rates divide 0.1 s exactly (19,700, 39,400, 78,800 Hz).
+#   28,029 Hz does not: 0.1 s x 28,029 = 2,802.9 poses, so n = 2,803 spans 0.1000036 s, which is +3.57 us
+#   (+0.10 of its own sample) longer than the other three. The four records are therefore compared on the COMMON
+#   window [0, 0.0999492] s - the last 19,700 Hz sample - and the 3.57e-06 s of tail beyond it is not read.
+#   ⭐The property that makes the ladder readable: n/prf is the same 0.1 s at every rate, so the FFT bin is the SAME
+#   10.00000 Hz at all four (column above). A spectrum or a comb-contrast difference between two rates therefore
+#   cannot be a resolution difference. ⛔This is the opposite of the n-at-fixed-prf case that the runners/jobs_0965 header warns
+#   about (n1024 -> 19.238 Hz bin vs n8192 -> 2.405 Hz), and it holds ONLY because --n-poses moves with --prf here.
+#   ⚠What still differs across rates is the BAND, not the resolution: the comb harmonics that fit under Nyquist go from
+#   9,850 Hz to 39,400 Hz. Any contrast compared across rates is computed on the common band |f| < 9,850 Hz
+#   with the same harmonic set; a contrast that counts more harmonics at the high rate is not a rate comparison.
+#
+# WHAT MOVES IN 0.1 s, computed from src/drones.py DRONES['matrice4e'] and the ledger _meta.
+#   4 rotors, 2 blades, prop diameter 274 mm, hover 3,800 rpm = 63.3333 rev/s.
+#   Blade-flash rate (blades x rev/s) = 126.6667 Hz, which reproduces the ledger _meta.f_flash_hz = 126.6667 Hz.
+#   Per-rotor flash rates from the ledger rpm spread: 126.945, 126.388, 126.513, 126.820 Hz, total spread
+#   0.557 Hz.
+#   ⛔So 0.1 s CANNOT separate the four rotors: the FFT bin is 10.000 Hz and the four flash lines lie inside
+#   0.557 Hz of each other; telling them apart needs about 1.8 s. Every reading from this file is of the
+#   AGGREGATE comb, and no sentence from it may name a single rotor. The per-rotor question belongs to a longer record.
+#   The window holds 12.667 blade-flash periods and 6.333 rotor revolutions - neither is a whole number, so the
+#   comb lines fall between bins and leak. The leakage is identical at all four rates (same bin), so it does not confound the
+#   ladder; it does mean no absolute comb level from this file is quoted without its window.
+#   Blade-tip Doppler, f_tip_at() at elevation_sweep_md.py:1832-1859 with c = 2.998e8: 1,268.1 Hz at el -5 deg and
+#   1,229.5 Hz at el -15 deg (the ledger prints 1228.7 Hz for el -15 because it used c = 3e8).
+#   ⚠f_tip is NOT the bandwidth of the record. It sits at harmonic 9.7 of the flash rate, far under even the
+#   lowest Nyquist (9,850 Hz holds 77 flash harmonics). The blade flash is near-impulsive in time, so the comb runs
+#   well past f_tip, and that - not the tip Doppler - is what can alias. That is exactly what 0961's 1.623 % above Nyquist says.
+#
+# ⛔THE HIGH RATE IS NOT "THE TRUTH".
+#   78,800 Hz is the densest grid bought here and nothing more. It is one solver run with its own re-solve and seed spread,
+#   it is not a converged reference, and no reading from this file may call it ground truth, the true waveform, or the exact
+#   field. What the ladder can say is how a quantity MOVES as the grid is made denser, and whether that movement is larger or
+#   smaller than the solver spread measured beside it. If a quantity is still moving between the two highest rates by more than
+#   that spread, the honest statement is that this ladder did not reach a rate at which it stops moving - not that the top rate
+#   is right. Rate is also not the only axis: runners/jobs_0961 shows the same cell moves 2.25 dB in comb contrast between
+#   1e9 and 4e9 rays (gates.0961.R2), which is why the ray budget is P1's axis and is held fixed at 4e9 on every line here.
+#
+# ⛔A SMALL TOTAL-FIELD ERROR CAN HIDE A LARGE ROTOR-COMPONENT ERROR.
+#   The hover field is dominated by the static part - the airframe body, and at the ground cells the ground-reflected classes.
+#   The rotor lives in the AC part. HOW FAR below, measured by the generator on exactly the window this file reuses (the first
+#   1,970 poses of the ten stored cells, both shards merged and sorted by idx; static = |mean E|^2, ac = mean|E - mean E|^2):
+#   | geometry                 | seed | lvl_db      | ac_to_static_db |
+#   | R15 el-15 sky            |    1 |     -119.26 |          -19.78 |
+#   | R15 el-15 ground alt5.4  |    1 |     -103.59 |          -21.95 |
+#   | R15 el-5  sky            |    1 |     -125.30 |          -12.40 |
+#   | R15 el-5  ground alt2.81 |    1 |     -104.29 |          -23.17 |
+#   | R30 el-5  sky            |    1 |     -140.42 |          -12.64 |
+#   | R30 el-5  ground alt4.11 |    1 |     -105.08 |          -26.75 |
+#   | R30 el-15 sky            |    1 |     -136.04 |          -16.48 |
+#   | R30 el-15 ground alt9.26 |    1 |     -104.96 |          -26.88 |
+#   | R15 el-15 sky            |    2 |     -118.08 |          -22.34 |
+#   | R30 el-5  ground alt4.11 |    2 |     -105.07 |          -26.78 |
+#   So the AC part sits 12.4 to 26.9 dB below the static part across these eight geometries. A residual quoted
+#   against the TOTAL field is therefore quoted against a denominator up to 27 dB larger than the part that carries the rotor:
+#   a rate error that destroys the comb entirely would still read as about -27 dB on resid_tot_db. ⛔No verdict in this file
+#   is written on a total-field residual. Every residual is written twice - once relative to the total field and once relative
+#   to the AC part after the per-record time mean is removed - and the AC one is the one that gates. This is the same trap the
+#   repo records as "the static part leaks into the STFT band": a plausible peak built out of a quantity that never carried the
+#   rotor at all. ⚠ac_to_static_db above is a property of the CELL, not a result of this file; it is written here only to size
+#   the denominator problem, and the ladder's own readings are the resid_* quantities below.
+#
+# ⭐WHAT THIS FIXES FOR LATER: THE MASTER TIME GRID OF THE MOVING-TRAJECTORY PACKAGE (P4).
+#   P4 computes 2 s episodes in which the body moves as well as the rotors, and it has to pick ONE rate for every episode,
+#   every scene and every shard before any of it is computed - the campaign budgets P4 at 28,029 Hz and says so. That
+#   choice is currently an assumption. This file is what turns it into a measurement: the rate at which the hover comb and the
+#   path-wise coefficients stop moving, at the geometry with the fastest time variation of the eight, is the floor for P4's
+#   master grid. ⚠It is a FLOOR and not the answer: P4 adds body motion, so its own Doppler bandwidth has to be added to
+#   whatever this file returns, and a moving scene has to be re-profiled for cost. If this file says 28,029 Hz is not enough for
+#   hover alone, P4's pose count and budget are recomputed before P4 is bought, not after.
+#
+# ============================================================================================================================
+# THE MATRIX
+# ============================================================================================================================
+# Geometry. benchmark/report15_probe.py place() puts the radar at center + range*(cos el*cos az, cos el*sin az, sin el) from the
+#   drone, and elevation_sweep_md.py:1071 calls it with baseline=0.0, so ⛔TX and RX are CO-LOCATED and report15_probe's module
+#   default BASELINE_M = 0.20 m is NOT used by this sweep. --env-alt is the drone's height above the ground plate
+#   (elevation_sweep_md.py:193, env_parts() lowers every environment part by it and leaves the drone at the origin), so the
+#   radar's height above the plate is --env-alt - range*sin|el|. The four stored ground alts imply a mast at:
+#   | geometry                 | --env-alt | range*sin|el| | implied radar height [m] | stored? |
+#   | R15 el-15 sky            |         - |             - |       open sky, no plate |     n/a |
+#   | R15 el-15 ground alt5.4  |      5.40 |        3.8823 |                   1.5177 |     yes |
+#   | R15 el-5  sky            |         - |             - |       open sky, no plate |     n/a |
+#   | R15 el-5  ground alt2.81 |      2.81 |        1.3073 |                   1.5027 |     yes |
+#   | R30 el-5  sky            |         - |             - |       open sky, no plate |     n/a |
+#   | R30 el-5  ground alt4.11 |      4.11 |        2.6147 |                   1.4953 |     yes |
+#   | R30 el-15 sky            |         - |             - |       open sky, no plate |     n/a |
+#   | R30 el-15 ground alt9.26 |      9.26 |        7.7646 |                   1.4954 |     yes |
+#   ⚠Three of the four sit within 1 cm of a 1.5 m mast; alt5.4 implies 1.5177 m, i.e. +1.77 cm off 1.5 m,
+#   because that alt was rounded to one decimal when it was first bought and every later cell inherited it. ⛔These four values
+#   are used AS STORED and are not re-rounded: changing alt5.4 to 5.38 would fork the name, throw away the 19,700 Hz records
+#   this file reuses, and orphan the runners/jobs_0960-0964 family that shares them. The 1.77 cm is carried as a known offset
+#   and no mast-height statement is made from this file - that is P2's question, which moves h alone.
+#   Verified against disk: every one of the eight alts/ranges/elevations above names an existing stored cell (REUSE table).
+#
+# Why depth 2 everywhere, sky AND ground.
+#   (1) It is the depth of the P3 representative CLI check that the campaign JSON records as dry-run passed.
+#   (2) It is the depth of all eight stored comparator cells, which is what makes the whole 19,700 Hz leg reusable (REUSE).
+#   (3) Depth is P1's axis, not P3's. Moving depth and rate at once would make a rate difference unreadable.
+#   ⛔What that costs, stated rather than hidden: at depth 2 the ground cells carry [d], [g,d], [d,g] and [g] but NOT [g,d,g]
+#   (the double ground bounce needs max_depth 3 - runners/jobs_0965 header). So this file measures the time sampling of the
+#   single-bounce ground classes only, and no sentence from it may be applied to [g,d,g]. If P1 or P2 shows the double bounce
+#   carries rotor modulation of its own, its rate sensitivity is a separate, later question.
+#
+# One shard per record (--nshards 1), on purpose. elevation_sweep_md.py:430 splits a cell as idx = np.arange(shard, n, nshards),
+#   i.e. INTERLEAVED: with --nshards 2 shard 0 holds the even poses and shard 1 the odd ones, so each shard on its own is a
+#   record at HALF the rate. ⛔In a package whose whole subject is the time grid, that is the one failure mode that would look
+#   exactly like the effect being measured - a lost or late shard would read as a rate-halved record. With --nshards 1, idx runs
+#   0 ... n-1 contiguously, t_k = k/prf directly, and no merge step sits between the solver and the time axis. The price is the
+#   longest single line: about 3.4 h (R30 el-15 ground alt9.26 at 78,800 Hz), against the 0.4-0.9 h of the stored n4096
+#   shards. ⚠That is longer than anything this project has run in one line; if a worker is lost the line is re-run whole.
+#   --dump-paths is set equal to --n-poses on every line: :894-897 selects min(N, idx.size) evenly spaced positions, so N = n
+#   with one shard dumps EVERY position. Path-wise delay and complex coefficient at common times is the point of the package,
+#   so a subsampled dump would defeat it.
+#
+# ============================================================================================================================
+# REUSE - the 10 records of the 40 that are NOT bought, because they are already on disk
+# ============================================================================================================================
+# The lowest rate of the ladder IS the ledger default. outputs/report07_three_engines.json _meta.prf_hz = 19,700 Hz, so a
+#   19,700 Hz record over 0.1 s is the first 1,970 poses of ANY stored cell of the same geometry at the default rate. The
+#   pose grid does not depend on the record length (elevation_sweep_md.py:368 and :405/:411: with no --rotor-preset the constant-
+#   rpm branch is ph = rotor_phases(np.arange(n)/prf, rpms, fp.dirs)), so pose k is the SAME airframe pose in an n4096 record and
+#   in an n1970 one. ⛔Buying an n1970 cell would therefore re-buy field that is on disk, under a second name.
+#   The ten stored cells below are that leg - eight at seed 1 and both anchors at seed 2. All are n4096, --nshards 2 and
+#   INTERLEAVED, so the reader concatenates shard 00 (idx 0,2,4,...) and shard 01 (idx 1,3,5,...), sorts by idx and keeps
+#   idx 0 ... 1969. Every one has its full path-list sidecar, so the path-wise comparison is available at the low rate too.
+#   | # | record reused                            | stored stem (both shards, _00 and _01)
+#   | 1 | 19,700 Hz R15 el-15 sky            seed 1 | sionna_p4000000000_swR0D0E0F1_r15_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#   | 2 | 19,700 Hz R15 el-15 ground alt5.4  seed 1 | sionna_p4000000000_swR0D0E0F1_r15_n4096_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#   | 3 | 19,700 Hz R15 el-5  sky            seed 1 | sionna_p4000000000_swR0D0E0F1_r15_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#   | 4 | 19,700 Hz R15 el-5  ground alt2.81 seed 1 | sionna_p4000000000_swR0D0E0F1_r15_n4096_envoutdoor01_ground_alt2.81_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#   | 5 | 19,700 Hz R30 el-5  sky            seed 1 | sionna_p4000000000_swR0D0E0F1_r30_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#   | 6 | 19,700 Hz R30 el-5  ground alt4.11 seed 1 | sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#   | 7 | 19,700 Hz R30 el-15 sky            seed 1 | sionna_p4000000000_swR0D0E0F1_r30_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#   | 8 | 19,700 Hz R30 el-15 ground alt9.26 seed 1 | sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#   | 9 | 19,700 Hz R15 el-15 sky            seed 2 | sionna_p4000000000_swR0D0E0F1_r15_n4096_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz
+#   |10 | 19,700 Hz R30 el-5  ground alt4.11 seed 2 | sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz
+#   Read back from those files by the generator (npz meta and the sidecars), and NOT copied from a note:
+#   | # | poses/shard | meta[4] prf | meta[3] n | n_dup | n_trunc | sidecar bytes 00 / 01     | nret median | solver_build
+#   | 1 |       2,048 |      19,700 |     4,096 | True  |       0 |  21,060,074 /  21,044,891 |       1,319 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 2 |       2,048 |      19,700 |     4,096 | True  |       0 |  43,701,418 /  43,713,609 |       2,464 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 3 |       2,048 |      19,700 |     4,096 | True  |       0 |  16,209,899 /  16,394,457 |       1,104 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 4 |       2,048 |      19,700 |     4,096 | True  |       0 |  32,118,130 /  32,028,127 |       2,021 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 5 |       2,048 |      19,700 |     4,096 | True  |       0 |   3,297,482 /   3,288,659 |         271 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 6 |       2,048 |      19,700 |     4,096 | True  |       0 |   6,785,339 /   6,842,630 |         520 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 7 |       2,048 |      19,700 |     4,096 | True  |       0 |   4,625,242 /   4,611,428 |         321 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 8 |       2,048 |      19,700 |     4,096 | True  |       0 |   9,351,305 /   9,379,988 |         620 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   | 9 |       2,048 |      19,700 |     4,096 | True  |       0 |  20,690,787 /  20,776,756 |       1,282 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   |10 |       2,048 |      19,700 |     4,096 | True  |       0 |   6,981,260 /   6,955,624 |         550 | sionna=2.1.0 sionna-rt=2.1.0 mitsuba=3.9.1 drjit=1.5.0
+#   n_trunc[0] = 0 on every one, against the 2,000,000 path cap - so no stored level is cap-limited and the reuse
+#   is sound. n_dup is present on all ten, which is what filter_jobs.sh calls DONE.
+#   ⚠What the reuse does NOT buy: the 19,700 Hz leg comes from a DIFFERENT solver run than the three new rates. That is not a
+#   penalty of reusing - all four rates are four separate solver runs in any case, and a freshly bought n1970 cell would carry
+#   the same re-solve difference. runners/jobs_0957 measures that re-solve spread at 2.1-2.3 % in path count. It is why the
+#   seed-2 anchors exist: they put a number on the spread before any rate-to-rate difference is read.
+#   ⛔And a naming rule for anyone extending this file: a 19,700 Hz line must NEVER be written as --prf 19700. The tag is
+#   added only when --prf is given (elevation_sweep_md.py:515), so `--prf 19700` and no --prf are the SAME data under two
+#   different names (..._n1970_... vs ..._n1970_prf19700_...). The ledger value is inherited, never restated.
+#
+# The two anchors, named before any shard is read (not chosen after looking):
+#   sky    = R15 el-15 sky - the cell runners/jobs_0961 measured the -13.11 dB interpolation residual on, i.e. the
+#            observation this package exists to explain. It is also the cheapest of the eight, so the seed repeat is cheap there.
+#   ground = R30 el-5  ground alt4.11 - the geometry runners/jobs_0962 and runners/jobs_0965 already characterise, and the one
+#            P2 and P7 both build on, so its solver spread is the most widely reused number this file can produce.
+#
+# ============================================================================================================================
+# COST, DISK AND NAMES
+# ============================================================================================================================
+# COST. Rate: meta[5]/len(idx) of the stored n4096 depth-2 shards of the SAME geometry, both shards, read by the generator.
+#   ⚠Those seconds are contended wall-clock on a shared host, not a pure cost: the two shards of one cell differ by up to
+#   2.99x for identical work. So the table gives lo / mid / hi from the two shards and the total is a band, not a figure.
+#   | geometry                 | seed | s/pose lo | s/pose hi | new poses | worker-h lo | worker-h mid | worker-h hi | sidecar
+#   | R15 el-15 sky            |    1 |    0.2592 |    0.3139 |    14,623 |        1.05 |         1.16 |        1.28 |     150 MB
+#   | R15 el-15 ground alt5.4  |    1 |    0.4916 |    1.2306 |    14,623 |        2.00 |         3.50 |        5.00 |     312 MB
+#   | R15 el-5  sky            |    1 |    0.7930 |    0.9098 |    14,623 |        3.22 |         3.46 |        3.70 |     116 MB
+#   | R15 el-5  ground alt2.81 |    1 |    0.9020 |    1.4421 |    14,623 |        3.66 |         4.76 |        5.86 |     229 MB
+#   | R30 el-5  sky            |    1 |    0.2553 |    0.7629 |    14,623 |        1.04 |         2.07 |        3.10 |      24 MB
+#   | R30 el-5  ground alt4.11 |    1 |    0.4923 |    1.3890 |    14,623 |        2.00 |         3.82 |        5.64 |      49 MB
+#   | R30 el-15 sky            |    1 |    0.7368 |    0.7368 |    14,623 |        2.99 |         2.99 |        2.99 |      33 MB
+#   | R30 el-15 ground alt9.26 |    1 |    1.5198 |    1.5766 |    14,623 |        6.17 |         6.29 |        6.40 |      67 MB
+#   | R15 el-15 sky            |    2 |    0.7188 |    1.0482 |    14,623 |        2.92 |         3.59 |        4.26 |     148 MB
+#   | R30 el-5  ground alt4.11 |    2 |    1.1226 |    1.4407 |    14,623 |        4.56 |         5.21 |        5.85 |      50 MB
+#   | TOTAL                    |      |           |           |   146,230 |        29.6 |         36.8 |        44.1 |    1178 MB
+#   ⚠This is well under the campaign's P3 budget of 60-140 worker-hours, for two reasons that are both stated rather than
+#   banked: that budget used a flat 1.3-3.0 s/pose over all 40 records, while all eight geometries have a MEASURED rate here
+#   (0.255-1.577 s/pose); and 10 of the 40 records are reused. The band above is the honest range; a
+#   busier host moves it up, and a new-shape line (n7,880, one shard, full dump) has never been run, so the first line is a probe.
+#
+# DISK. --dump-paths writes outputs/path_provenance/<stem>_prov.npz beside the shard. Its per-path record is
+#   a complex64 (8 B) + tau float64 (8 B) + part int16 x depth (4 B) + obj_raw int64 x depth (16 B) + prim int64 x depth (16 B)
+#   = 16 + 18 x max_depth = 52 B per path UNCOMPRESSED at depth 2 (read off the sidecar dtypes; at depth 3 it would be 70 B).
+#   ⛔That number is the schema width, NOT the disk footprint: the sidecar is np.savez_compressed
+#   (elevation_sweep_md.py:1253), and the measured on-disk cost over the ten stored cells is 5.93-8.67 B per path per
+#   position. The estimate above uses measured BYTES PER POSITION of the same geometry (1,606-21,345 B/pose), which needs no
+#   path-count assumption at all. Total for this package: 1,178 MB of sidecars plus about 5.2 MB of shard npz
+#   (35 B/pose, measured on the same ten). df on /workspace at build time: 1,041 GB = 970 GiB free (what
+#   `df -h` prints), so this package is
+#   0.11 % of it. ⚠Host RAM, computed: the dump is accumulated in memory and concatenated before writing, so the
+#   largest line (R15 el-15 ground alt5.4 at 78,800 Hz, nret median 2,464) peaks near 2.0 GB of host RAM,
+#   about twice the raw array total. That is one worker; with several such lines at once the host figure multiplies.
+#
+# NAMES. The sweep builds the stems; --dump-paths does not change a name. All distinct, none present in
+#   outputs/elev_sweep_shards/. Common to all 30: prefix sionna_p4000000000_swR0D0E0F1_ and suffix
+#   _shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el<el>_00.npz
+#   line  1  sionna_p4000000000_swR0D0E0F1_r15_n2803_prf28029_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line  2  sionna_p4000000000_swR0D0E0F1_r15_n3940_prf39400_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line  3  sionna_p4000000000_swR0D0E0F1_r15_n7880_prf78800_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line  4  sionna_p4000000000_swR0D0E0F1_r15_n2803_prf28029_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line  5  sionna_p4000000000_swR0D0E0F1_r15_n3940_prf39400_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line  6  sionna_p4000000000_swR0D0E0F1_r15_n7880_prf78800_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line  7  sionna_p4000000000_swR0D0E0F1_r15_n2803_prf28029_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line  8  sionna_p4000000000_swR0D0E0F1_r15_n3940_prf39400_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line  9  sionna_p4000000000_swR0D0E0F1_r15_n7880_prf78800_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 10  sionna_p4000000000_swR0D0E0F1_r15_n2803_prf28029_envoutdoor01_ground_alt2.81_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 11  sionna_p4000000000_swR0D0E0F1_r15_n3940_prf39400_envoutdoor01_ground_alt2.81_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 12  sionna_p4000000000_swR0D0E0F1_r15_n7880_prf78800_envoutdoor01_ground_alt2.81_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 13  sionna_p4000000000_swR0D0E0F1_r30_n2803_prf28029_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 14  sionna_p4000000000_swR0D0E0F1_r30_n3940_prf39400_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 15  sionna_p4000000000_swR0D0E0F1_r30_n7880_prf78800_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 16  sionna_p4000000000_swR0D0E0F1_r30_n2803_prf28029_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 17  sionna_p4000000000_swR0D0E0F1_r30_n3940_prf39400_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 18  sionna_p4000000000_swR0D0E0F1_r30_n7880_prf78800_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 19  sionna_p4000000000_swR0D0E0F1_r30_n2803_prf28029_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 20  sionna_p4000000000_swR0D0E0F1_r30_n3940_prf39400_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 21  sionna_p4000000000_swR0D0E0F1_r30_n7880_prf78800_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 22  sionna_p4000000000_swR0D0E0F1_r30_n2803_prf28029_envoutdoor01_ground_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 23  sionna_p4000000000_swR0D0E0F1_r30_n3940_prf39400_envoutdoor01_ground_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 24  sionna_p4000000000_swR0D0E0F1_r30_n7880_prf78800_envoutdoor01_ground_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 25  sionna_p4000000000_swR0D0E0F1_r15_n2803_prf28029_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 26  sionna_p4000000000_swR0D0E0F1_r15_n3940_prf39400_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 27  sionna_p4000000000_swR0D0E0F1_r15_n7880_prf78800_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   line 28  sionna_p4000000000_swR0D0E0F1_r30_n2803_prf28029_envoutdoor01_ground_alt4.11_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 29  sionna_p4000000000_swR0D0E0F1_r30_n3940_prf39400_envoutdoor01_ground_alt4.11_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   line 30  sionna_p4000000000_swR0D0E0F1_r30_n7880_prf78800_envoutdoor01_ground_alt4.11_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#
+# ============================================================================================================================
+# READ-OUT, fixed before any shard of this file is read
+# ============================================================================================================================
+# Metric names are the repo's fixed ones (docs/READOUT_0917.md sec.1: isolated_20xmedian, hampel_w51_k5,
+#   env_field_drop_halfmedian, env_path_missing, copy_k_ratio / copy_k_diff, contrast_raw / contrast_dedup / contrast_interp).
+#   E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db are defined in the runners/jobs_0957 header;
+#   lvl_db, ac_level_db, ac_to_static_db, hits_per_pose, path_class, class_power_db, seed_diff in the runners/jobs_0960 header.
+#   Four new quantities, each defined here where it first appears:
+#   t_common        the grid t_k = k/19700 s, k = 0 ... 1969 - the only times at which two rates are compared directly. Only
+#                   39,400 and 78,800 Hz land exactly on it; 28,029 Hz shares only t_0, so its comparison is interpolated and is
+#                   reported as such, never as a sample-to-sample difference.
+#   resid_tot_db    10*log10( mean_t |E_hi(t) - E_lo_interp(t)|^2 / mean_t |E_hi(t)|^2 ) on t_common, E_lo_interp = the lower rate
+#                   linearly interpolated up. The TOTAL-field residual. ⛔Written, never gated on (see the hiding rule above).
+#   resid_ac_db     the same ratio computed after subtracting each record's own time mean over t_common. The AC residual. This
+#                   is the one that gates.
+#   above_nyq_frac  the fraction of a record's AC power above the NEXT LOWER rate's Nyquist, per rate pair. 0961 reports 1.623 %
+#                   for the 19,700 -> 28,029 Hz pair at the sky anchor; this file re-measures it at eight geometries.
+#   S. Spread FIRST, before any rate-to-rate reading. seed_diff of resid_ac_db, lvl_db, ac_level_db, ac_to_static_db and
+#      contrast_raw at the two anchors, at each rate, from the seed-1/seed-2 pair. ⛔Any rate-to-rate change smaller than
+#      3 x seed_diff is written "not told apart from a solver repeat" and crosses nothing. The spread is a per-rate number: a
+#      spread measured at one rate is not carried to another.
+#   C. Cap, every shard: n_trunc[0] = 0 against the path cap. Any position at the cap and that record is dropped from T1-T3,
+#      per the standing rule that a saturating cap makes the axis unmeasurable. Expectation from the stored partners above
+#      (nret median 271-2,464, n_trunc 0 everywhere) - an expectation, not a threshold.
+#   0. Integrity: check 0 of runners/jobs_0957 on the first sidecar of this file and on the first ground sidecar - at every
+#      position |sum_hit a*exp(-j2pi*fc*tau) - E| / |E| < 1e-4. Fails -> nothing further from this file launches.
+#   T1. Rate convergence of the AC part, per geometry: resid_ac_db between the two highest rates (39,400 -> 78,800 Hz)
+#       <= -30 dB AND that residual smaller than the same-rate seed_diff at the anchors -> "the AC part of the hover field is
+#       carried at 39,400 Hz at this geometry (threshold not crossed)". -30 dB is fixed here in advance as the candidate
+#       tolerance the recommendations name; -20 dB is reported beside it so the choice can be seen, and the final tolerance is
+#       decided later by whether a detection or tracking choice changes, not here.
+#   T2. The rate the receiver actually gets: resid_ac_db of 28,029 Hz against 78,800 Hz, every geometry. Reported with
+#       above_nyq_frac for the pair. ⛔This is the number that decides P4's master grid, so it is read at ALL eight geometries
+#       and the WORST one is quoted, never the median - the median hides a mixture, and eight geometries is already few.
+#   T3. Path-wise, not just field: at t_common, for each path class, the delay and the complex coefficient at the two highest
+#       rates. A class whose delay moves by more than 1 cm or whose coefficient moves by more than the anchor seed_diff is
+#       named, with its class. ⛔A class present at one rate and absent at the other is reported as an appearance/disappearance
+#       count and NOT as a coefficient difference; pose-by-pose object index is not a persistent path ID.
+#   Written per cell, not gated, never a verdict: hits_per_pose; nret median, max, n_trunc[0]; lvl_db, ac_level_db,
+#   ac_to_static_db; contrast_raw / _dedup / _interp on the common band |f| < 9,850 Hz with a fixed harmonic set; hampel_w51_k5;
+#   isolated_20xmedian with its normaliser; copy_k_ratio and copy_k_diff; class_power_db per class; and, at the ground cells
+#   only, env_in_bin_db and env_path_missing against the matched open-sky cell of the same range, elevation and rate.
+#   ⚠Scope in every sentence: constant-RPM rotor trajectory (no --rotor-preset, so rotor variability is P8's axis and not in
+#   this file), hover only, one azimuth, one carrier, co-located TX/RX, tr38901 as a stand-in and not the real antennas,
+#   3.5 GHz as a working assumption, sionna-rt 2.1.0, diffuse on / refraction and diffraction off, no receiver noise, no TX-RX
+#   leakage, one flat synthetic ground plate. A uniform rate ladder also does not stand in for NR symbol timing or CP structure.
+#
+# STOP / EXTEND.
+#   . check 0 fails -> nothing further launches; lines already running finish and are read on lvl_db only.
+#   . C fails anywhere -> that record is dropped from T1-T3 and re-read only after the cap is raised. No cap ladder here.
+#   . T1 and T2 both hold at all eight geometries -> STOP. The master grid for P4 is then the lowest rate that passed, and no
+#     further rate is bought for hover at any geometry inside this range.
+#   . T1 crossed at one or two geometries only -> ONE higher rate (157,600 Hz, n 15,760) at THOSE geometries only, and nowhere
+#     else. It is a comment here, not a queue line, and it must be dry-run before use. Template (sky anchor):
+#     # --engine sionna --n-poses 15760 --prf 157600 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 15760 --shard 0 --nshards 1
+#   . T1 holds but T3 names a class whose delay moves -> that is a path-return question, not a rate question: it goes to P1's
+#     diagnostics on the stored sidecars before any line is bought.
+#   . above_nyq_frac is large at the top rate too -> the ladder did not reach a converged rate, and that is what is written.
+#     ⛔No claim that the top rate is correct, and no rate ladder is extended more than one step without a new file.
+#   . In no outcome from this file: another geometry, azimuth, carrier, depth, ray budget or drone slab; a rotor preset; a third
+#     seed; an n-at-fixed-prf record-length ladder; walls or the full scene; a second anchor pair.
+#
+# Rules kept: open sky and outdoor ground only; R0D0E0F1 on every line (diffuse always on, refraction and diffraction off);
+#   no propeller-only arms; _rt210 added automatically by the builder; --inmem is the default and is not restated; cap 2e6 with
+#   no cap ladder; the canonical thin slab 0.75 / 1.43 mm on every line, so this file reads against the 0960-0965 families.
+# Dry run of the 30 lines below, 2026-09-18 08:42:11-08:43:08 UTC (30 new lines), 08:43:14-08:43:58 UTC (20 reuse lines).
+#   CPU, CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg nice -n 19 taskset -c 8-15, runners/filter_jobs.sh at -P 4, run from /workspace/sionna, the lines below verbatim:
+#   30/30 NEW, 0 DONE, 0 STALE, 0 BAD.
+#   30 stems read back from --dry-run 08:44-08:46 UTC; all 30 distinct; all 30 identical to the names this generator predicts; none present in outputs/elev_sweep_shards/.
+#   The 10 reuse cells of the REUSE table, dry-run as 10 x 2 shard lines in the same pass:
+#   20/20 DONE, 0 NEW, 0 STALE, 0 BAD - which is what "reused, not re-bought" rests on.
+#   Flag-set comparison: 1,206 --engine lines in 55 runners/jobs_*.txt (commented and #HOLD included): 0 exact flag-set duplicates, 0 duplicates among the 30 new lines.
+#   ⚠Nearest neighbours: the closest existing line anywhere is 3 flags away, and the three flags are exactly this file's axis (--n-poses, --prf, --dump-paths): runners/jobs_0961 line 119 (n4096 prf28029 nshards 2 - a 0.14613 s record, not a 0.1 s one), runners/jobs_0963 lines 117 and 142 (live n1024 ledger-rate lines), and the commented n1024 extension lines runners/jobs_0962:115 and runners/jobs_0967:199. None names a stem of this file.
+# ----------------------------------------------------------------------------------------------------------------------
+# R15 el-15 sky - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r15_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz ; 0.259-0.314 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R15 el-15 ground alt5.4 - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r15_n4096_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz ; 0.492-1.231 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R15 el-5  sky - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r15_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz ; 0.793-0.910 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R15 el-5  ground alt2.81 - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r15_n4096_envoutdoor01_ground_alt2.81_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz ; 0.902-1.442 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 2.81 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R30 el-5  sky - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r30_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz ; 0.255-0.763 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R30 el-5  ground alt4.11 - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz ; 0.492-1.389 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R30 el-15 sky - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r30_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz ; 0.737-0.737 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R30 el-15 ground alt9.26 - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt9.26_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz ; 1.520-1.577 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 9.26 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 7880 --shard 0 --nshards 1
+# R15 el-15 sky, --solver-seed 2 (anchor) - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r15_n4096_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_{00,01}.npz ; 0.719-1.048 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 7880 --shard 0 --nshards 1
+# R30 el-5  ground alt4.11, --solver-seed 2 (anchor) - 19,700 Hz reused from sionna_p4000000000_swR0D0E0F1_r30_n4096_envoutdoor01_ground_alt4.11_ss2_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_{00,01}.npz ; 1.123-1.441 s/pose measured
+--engine sionna --n-poses 2803 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 2803 --shard 0 --nshards 1
+--engine sionna --n-poses 3940 --prf 39400 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 3940 --shard 0 --nshards 1
+--engine sionna --n-poses 7880 --prf 78800 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --solver-seed 2 --dump-paths 7880 --shard 0 --nshards 1

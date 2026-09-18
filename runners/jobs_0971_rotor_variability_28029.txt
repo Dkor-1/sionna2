@@ -1,0 +1,430 @@
+# 0971 — rotor variability at 28,029 Hz: does a rotor model and a rotor realisation move the
+#        micro-Doppler quantities we read, at the six geometries stage 1 anchors on? Two rotor
+#        models (sitl, outdoor_v2) x four rotor seeds, plus the canonical constant-RPM rotor as
+#        the control, at one record length (8,192 positions, 292.27 ms) and one rate.
+#        54 records, 108 shard lines. Path lists on every position.
+#        (2026-09-18 KST, package P8A / stage 1 of /workspace/sionna_queue_recommendations_2026-09-18.md §11 8A,
+#         matrix from packages[7] of /workspace/sionna_gpu_campaign_plan_2026-09-18.json)
+#
+# BUILD PRODUCT — do not hand-edit. Rebuild with
+#   CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg python make_jobs_0971_rotor_variability_28029.py
+#   The six geometries, the two preset names, the four seeds, the length and the rate are read from the
+#   campaign JSON; the generator refuses to run if any of them has changed. Every number below is computed
+#   by the generator from the code or from stored shards, and the source is named beside it.
+#
+# ⛔What is NOT here. P8's second half — the Matrice 4E revision 0/1 mesh bridge (8B, 36 n1024 records) — is
+#   not part of stage 1 and no line of it appears in this file. docs/MESH_REV1.md records that no airframe
+#   fingerprint is frozen, and the standing rule is that acceptance is not lowered to fill a GPU queue.
+#
+# Launch preconditions (main session).
+#   (1) Path-list integrity (check 0 of the runners/jobs_0957 header) has passed on a GPU sidecar. Every line
+#       here carries path lists and the whole read-out below rests on them; without them only the total field
+#       survives and the static/varying split (below) cannot be made. If check 0 has never passed, nothing here
+#       launches.
+#   (2) This file does NOT wait on P1. 8A of the recommendations says to use the anchors whose P1 gate has
+#       passed; P1 has not run, so the rule is kept the other way round: this file buys the rotor axis at the
+#       six anchors and writes NO verdict that P1 owns. Nothing here is read as a budget, depth or solver-seed
+#       statement, and every reading below is made against this file's own constant-RPM control and its own
+#       seed spread, never against a stored cell solved at another length or rate.
+#   (3) Queues 0963-0968 are untouched by this file. It is queued behind them.
+#
+# Purpose. Everything the repo has read about rotor lines — comb contrast, the AC share, the blade-flash
+#   picture — was solved with ONE rotor: the ledger's four constant rpm values, phase-aligned at t = 0
+#   (elevation_sweep_md.py:411 takes the constant-rpm branch when --rotor-preset is absent). A real airframe
+#   holds neither the constant speeds nor that alignment. src/rotor_dynamics.py exists to say so, and what
+#   the PathSolver arm has of it is an old,
+#   narrow slice, counted here from outputs/elev_sweep_shards/ at build time:
+#     82 distinct PathSolver stems carry a `_rot` tag (and 62 more on our own kernel), but
+#     the only preset among them is outdoor_v2 — `sitl` has never been solved with PathSolver at all;
+#     0 of the 82 carry the `_rt210` build tag, 0 carry an antenna tag, 0 carry the thin slab and
+#     0 carry a `_prf` tag. So every one of them is the OLD solver build, the isotropic antenna, the
+#     untouched 100 mm stock material and the default 19,700 Hz rate;
+#     their range is r15 m and their elevations are -90, -60, -30, +0 deg — not one of the six anchors
+#     of this campaign, and none with a ground plate under the drone (`envoutdoor01`, not `envoutdoor01_ground`).
+#   ⇒ the rotor axis has never been crossed with the solver build, the antenna, the material and the rate this
+#   campaign now reads on, and the second model (`sitl`) has never been run at all. This file buys that crossing
+#   once, at the six anchors, and nothing else. ⛔None of the old `_rot` shards is a control for this file and
+#   no number from them is put beside a number from here.
+#   What the result changes: if the quantities we read move less across models and seeds than they move across
+#   the six geometries, rotor realisation is not a confound for the placement question and the constant-RPM
+#   library stays readable; if they move more, every rotor-line number in the campaign has to carry a
+#   realisation spread beside it, and the classification and short-CPI work is re-planned around that spread.
+#
+# What --rotor-preset and --rotor-seed actually do, read from the code, not from a note.
+#   elevation_sweep_md.py:398-411 — with a preset the run takes
+#       _rng    = np.random.default_rng(--rotor-seed)
+#       _rpm_t, = rpm_series(mean(ledger rpm), n_rotors, n, prf, preset, _rng)   # (n, 4) rpm column
+#       _b      = initial_phase_deg(n_rotors, preset, _rng, 360/blades)          # blades defaults to 2
+#       ph      = rotor_phases(arange(n)/prf, _rpm_t, dirs, base_deg=_b, dt=1/prf)
+#     ⚠the preset REPLACES the ledger's per-rotor spread (only its mean is passed on), it does not add to it.
+#     ⛔--rotor-seed without --rotor-preset is refused by the sweep (:647-653) — the seed is only read inside
+#       the preset branch, so seed-only lines would name `s1`/`s2` files with identical content.
+#   src/rotor_dynamics.py, values read from the module at build time:
+#     sitl            static sigma 0.0022 · wobble sigma 0.0000 · tau_ctl 0.2274 s · random initial phase True
+#     outdoor_v2      static sigma 0.0530 · wobble sigma 0.0230 · tau_ctl 1.8000 s · random initial phase True
+#     outdoor_v2_eff  static sigma 0.0576 · wobble sigma 0.0000 · tau_ctl 1.8000 s · random initial phase True
+#     sitl is the symmetric lower bound (PX4 SITL: no wind, no CG offset, no propeller unit-to-unit spread),
+#     outdoor_v2 is the outdoor corpus model (52 airframes, NOT DJI, hover only, absolute scale open ±30 %).
+#     ⛔outdoor_v2_eff is NOT used here and appears on no line: rotor_dynamics.py:405-412 fixes it to a single
+#       0.25 s window, and our records are 0.2923 s — longer than that window, so the folded
+#       constant offset would not reproduce the same comb.
+#
+# ⚠Reproducibility of --rotor-seed, verified by running the generator itself (not quoted from a doc).
+#   sitl   : wobble sigma is 0, so _wobble() returns zeros WITHOUT drawing (rotor_dynamics.py:473-474) and the
+#            seed is consumed only by the 4 static offsets and the 4 initial phases. Same seed, lengths
+#            8192/4096/2048: static offsets identical True, initial phases identical True.
+#            ⇒ for sitl a record length change is safe.
+#   outdoor_v2: wobble sigma > 0, so _wobble() draws an OU process on a 200 Hz coarse grid of
+#            n_c = ceil(n/prf x 200) + 2 samples — 61 samples at n=8192 — BEFORE initial_phase_deg()
+#            touches the same generator. The number of draws therefore depends on the record length:
+#              initial phase, seed 1, n=8192     : [77.3035, 123.3366, 28.1424, 69.4184]
+#              initial phase, seed 1, n=4096     : [139.4395, 142.4041, 136.6683, 107.4578]
+#              initial phase, seed 1, n=2048     : [76.089, 106.1104, 4.4083, 121.2228]
+#            and the rpm column is not a prefix either: over the 4096 samples the two records share, the
+#            largest difference is 0.3911 rpm (1.029e-04 of the mean) — the coarse OU samples are a
+#            prefix but the cubic spline that lands them on the pose grid is not local.
+#
+# ⛔⚠`sitl` IS NOT IN src/arm_grammar.py's ROTOR TABLE — found by the 2026-09-18 cross-check of the four
+#   stage-1 packages, not by this generator. The 48 `sitl` records name themselves `_rotsitls1` ... `_rotsitls4`;
+#   src/arm_grammar.py parses them and they round-trip character for character (so the one reader that hard-fails
+#   on a bad round trip, benchmark/dropout_paths_0916.py:312, is safe), but `warnings_for()` returns
+#     ㅎㅎ
+#     "처음 보는 로터 'sitls1' (아는 것 ['legacy', 'outdoor', 'outdoor_v2'] + 삔앗)"
+#   on every one of them, because `_ROTOR_FORMS` / `KNOWN_VALUES["rotor"]` list only legacy, outdoor and
+#   outdoor_v2 with their seeds. Two real consequences: (1) any reader that treats an arm-grammar warning as a
+#   defect flags 48 of the 54 records of this file; (2) the seed does not come back as its own field — for BOTH
+#   presets parse() leaves it glued to the value (rotor = 'sitls1', rotor = 'outdoor_v2s1', rotor_seed = None),
+#   which is the table's design for a KNOWN form but reaches `sitl` through the unknown-value path instead.
+#   ⭐**Launch precondition for the main session:** add `sitl` and its seeds to `_ROTOR_FORMS` in
+#   src/arm_grammar.py BEFORE these records are read, or every reading of this file carries a warning that has
+#   nothing to do with the physics. Nothing in this file changes either way — the names the builder writes are
+#   fixed by benchmark/elevation_sweep_md.py, not by the grammar.
+#
+#   ⇒ HOW A SHORT/LONG COMPARISON MUST BE DONE: generate ONE master realisation at the LONGEST length and CUT
+#     it; never re-run the generator at a shorter --n-poses with the same --rotor-seed and call the two the same
+#     realisation. The CLI has no flag for cutting, so the cut is made in the reader, on the stored record.
+#     That is why EVERY record in this file is the same length (8,192 positions) and the same rate (28,029 Hz):
+#     the file is internally consistent by construction, and any short-CPI question below is answered by
+#     cutting these records, not by a second, shorter queue line. Solver seed and rotor seed are different axes
+#     and no line here moves --solver-seed.
+#
+# Matrix (from the campaign JSON, expanded by the generator).
+#   6 geometries x 2 presets (sitl, outdoor_v2) x 4 rotor seeds (1, 2, 3, 4) = 48 records
+#   + 6 constant-RPM controls (no --rotor-preset, no --rotor-seed) = 54 records
+#   x 2 shards per record = 108 argument lines.
+#   Every line: --n-poses 8192 --prf 28029 --spp 4,000,000,000 --sw R0D0E0F1 --max-depth 2 --ant-pattern tr38901
+#   --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --nshards 2. Nothing else varies.
+#
+# Record length and what it can resolve, computed here. 8192 / 28029 Hz = 292.269 ms;
+#   Doppler bin prf/n = 3.4215 Hz; Nyquist prf/2 = 14,014.5 Hz (against 9,850.0 Hz at the old 19,700 Hz rate).
+#   Ledger rotor speeds (outputs/report07_three_engines.json _meta.rpm_per_rotor) [3808.36, 3791.64, 3795.402, 3804.598] rpm,
+#   2 blades ⇒ blade-flash rates 126.95, 126.39, 126.51, 126.82 Hz, i.e. 37.10, 36.94, 36.98, 37.07 flashes inside one record.
+#   ⚠comb contrast depends on record length: the +-2-bin comb window here is 13.69 Hz wide. ⛔A contrast
+#     from this file is never put beside an n1024, n4096 or 19,700 Hz contrast — only beside another line of
+#     this file. The controls exist so that every comparison stays inside the file.
+#
+# Geometry, computed from the code, not from a note. report15_probe.place() puts the radar at
+#   centre + range*(cos el cos az, cos el sin az, sin el), and elevation_sweep_md.py:1071 calls it with
+#   baseline=0.0, so TX and RX are CO-LOCATED (report15_probe's module default BASELINE_M = 0.20 m is not used
+#   by this sweep) and every path length here is monostatic. env_parts() lowers every environment part by
+#   --env-alt and leaves the drone at the origin, so H = --env-alt is the drone height above the plate and the
+#   radar height is h = H + range*sin(el).
+#   | line group | geometry                         | horizontal D | radar height h | env |
+#   | G1         | R15 el-15 sky                    |   14.489 m   | n/a (free space) | open sky         |
+#   | G2         | R15 el-15 ground alt5.4          |   14.489 m   |  1.518 m        | outdoor01_ground |
+#   | G3         | R30 el-5 sky                     |   29.886 m   | n/a (free space) | open sky         |
+#   | G4         | R30 el-5 ground alt4.11          |   29.886 m   |  1.495 m        | outdoor01_ground |
+#   | G5         | R30 el-5 az90 sky                |   29.886 m   | n/a (free space) | open sky         |
+#   | G6         | R30 el-5 az90 ground alt4.11     |   29.886 m   |  1.495 m        | outdoor01_ground |
+#   The two ground heights are the campaign's standing ones and both put the radar within 2 cm of 1.5 m.
+#
+# Depth. Every line is --max-depth 2, and that is a choice this file makes and states.
+#   Reason: depth 2 is the only depth all six geometries already have a stored static partner at. At
+#   R30 el-5 az0 ground the repo also has depth 3 (0962/0965), but at R15 el-15 ground alt5.4 and at both
+#   az90 cells there is no depth-3 shard at any length, so a mixed-depth file could not be read across its own
+#   six geometries. ⛔What is lost: the double-bounce class [g,d,g] needs depth 3 and does not exist in these
+#   records. No sentence from this file may mention it, and the ground classes read here are [g,d] and [d,g]
+#   only. If the rotor result turns on a class that needs depth 3, that is a new, separately costed line.
+#
+# Cost, computed from the stored shards of these exact geometries (meta[5] is wall seconds for the shard's pose
+#   loop, so it carries GPU sharing and is a SLOT-hour basis, not a compute-hour one; the spread inside a pair of
+#   interleaved shards is card sharing, not physics). Every basis shard listed carries a path-provenance sidecar,
+#   so the dump cost is already inside these numbers.
+#   | geometry   | wall s/pose min / median / max | basis shards | sidecar B/position | nret median |
+#   | G1         | 0.259 / 0.753 / 1.048 (n=7)    |  7 |    10,103 -    10,382 |   1319 |
+#   | G2         | 0.492 / 0.861 / 1.231 (n=2)    |  2 |    21,339 -    21,345 |   2463 |
+#   | G3         | 0.255 / 0.755 / 0.763 (n=4)    |  4 |     1,606 -     1,878 |    285 |
+#   | G4         | 0.492 / 1.256 / 1.441 (n=4)    |  4 |     3,313 -     3,409 |    534 |
+#   | G5         | 0.669 / 0.669 / 0.669 (n=2)    |  2 |     1,909 -     1,937 |    339 |
+#   | G6         | 1.360 / 1.365 / 1.370 (n=2)    |  2 |     3,979 -     4,010 |    673 |
+#   Slot-hours for the 54 records = 9 records per geometry x 8192 positions x s/pose, summed over the six:
+#     72.2 h (every geometry at its fastest stored shard) / 115.9 h (medians) /
+#     133.6 h (every geometry at its slowest). Per line (4096 positions) that is
+#     0.29-1.64 h.
+#   ⚠This is BELOW the 130-280 worker-hour band the campaign JSON carries for P8. That band covers P8's
+#     54 rotor records AND its 36 mesh-bridge records and was built on a generic 1-2 s/pose; the measured medians
+#     at these six geometries are lower. The band is not corrected here — it is the plan's number and this is the
+#     measurement, and the difference is reported rather than hidden.
+#
+# Disk. --dump-paths writes a sidecar to outputs/path_provenance/<stem>_prov.npz (git-ignored since 0957).
+#   ⚠The brief's «about 52 B per path per position» does NOT reproduce and is not used here. Measured on all
+#   85 stored sidecars with a matching shard: 5.52-8.71 B per returned path per position after
+#   np.savez_compressed. The same brief's own example (8.4 MB for a 2,048-position depth-3 ground shard) is
+#   4,084 B/position at nret median 554, i.e. 7.38 B/path — the 52 B figure and the 8.4 MB
+#   example cannot both be right. The per-POSITION numbers in the table above are what this package is sized on.
+#   Sidecar bytes this file adds: 3.14 GB (3,141,712,887 B), computed as 9 records x 8192 positions x the
+#   measured B/position of each geometry. Shard npz on top of that: about 0.02 GB. Total about 3.16 GB
+#   against 1041 GB free on /workspace at build time (970 GiB, which is what `df -h` prints);
+#   this package takes 0.30 % of it. Every byte figure in this file is SI (10^9), like the sidecar sizes.
+#   Held in host RAM while a shard runs: the provenance list is concatenated only at the end, so the peak is
+#   about 2x the raw arrays. Measured raw (uncompressed) footprint of the worst geometry here is
+#   126.0 kB/position ⇒ about 516 MB held per shard at 4096 positions. The largest
+#   provenance ever written in this repo is 2,048 positions, so 4096 is 2x the proven
+#   footprint and 8192 (at --nshards 1) would be 4x. That is why the split is --nshards 2: it keeps the held
+#   arrays at about 516 MB per worker against 156 GB available at build time, and it keeps a line to
+#   0.29-1.64 h so an interruption costs at most that. ⚠It is still above the proven footprint; the
+#   first landed shard's peak RSS is checked before the rest of the file is released.
+#
+# Why --dump-paths is on every line, and what would be lost without it.
+#   Three of the six geometries are ground cells, where the environment return is large and STATIC while the
+#   rotor return is small and modulated. The repo's standing rule is that the static component leaks into the
+#   STFT band and has to be subtracted before any rotor quantity is read. With path lists the record splits into
+#   [d] (drone only), [g,d] and [d,g] (one ground leg) and [g] (ground only), so the modulated share can be
+#   measured separately from the static one, per class and per part. Without them each shard stores only the
+#   summed field E, the ground and the rotor are inseparable in it, and the whole comparison would be a comb
+#   contrast computed on top of an unknown static pedestal — exactly the reading the repo has already recorded
+#   as a fake peak generator. It would also make the sky and ground halves of this file unreadable against each
+#   other, since the sky cells have no pedestal.
+#   ⚠Sub-sampling the dump is not an option here. --dump-paths N spreads N positions evenly over the shard
+#   (elevation_sweep_md.py:894-898), so N < 4096 would decimate the class time series; at a decimation of 8 the
+#   effective rate is 3,503.6 Hz and its Nyquist 1,751.8 Hz, below the blade-flash harmonics this file exists to
+#   measure (126.4 Hz fundamental). outputs/readout_0918.json gates.0961.T1_T2 puts
+#   1.623 % of the rotor-part power above the 9,850 Hz Nyquist of the old 19,700 Hz rate at exactly the
+#   geometry G1 of this file (sionna_p4000000000_swR0D0E0F1_r15_n4096_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15),
+#   verdict «at least 1 % of the rotor-part power lies above the 19.7 kHz Nyquist limit at 15 deg up». So the class time series is kept at full rate and the cost above is paid.
+#   Cost of the decision: 3.14 GB, i.e. 0.30 % of free space. Cost of not paying it: the ground half
+#   of this file could not be read at all.
+#
+# Read-out — fixed before any shard of this file is read. Metric names are the repo's fixed ones
+#   (docs/READOUT_0917.md §1: isolated_20xmedian, hampel_w51_k5, env_field_drop_halfmedian, env_path_missing,
+#   copy_k_ratio / copy_k_diff, contrast_raw / contrast_dedup / contrast_interp); lvl_db, ac_level_db,
+#   ac_to_static_db, hits_per_pose, path_class, class_power_db, seed_diff are defined in the runners/jobs_0960
+#   header; E_B, drone paths, environment-only paths, contrast_gated, env_in_bin_db in the runners/jobs_0957
+#   header. Two quantities are defined here where they first appear:
+#   rotor_spread(q)   max over the 4 rotor seeds of q, minus the min over the same 4, at ONE geometry and ONE
+#                     preset. It is a realisation spread, not a solver spread, and is never averaged with one.
+#   model_gap(q)      q(outdoor_v2, seed s) - q(sitl, seed s), reported per seed and as the median over the 4;
+#                     ⛔never reported without rotor_spread beside it.
+#   0.  integrity: check 0 of runners/jobs_0957 on the first landed sidecar of this file, then on the first
+#       ground sidecar: at every position |sum_hit a*exp(-j2pi*fc*tau) - E| / |E| < 1e-4. Fails -> see stop/extend.
+#   C.  cap, every shard: n_trunc[0] = 0 against the path cap. Any position at the cap -> no level from that shard
+#       is quoted and that cell is dropped, per the standing rule that a saturating cap makes the axis
+#       unmeasurable. Expectation written before reading, from the stored constant-RPM partners of the same six
+#       geometries: nret median 286-2463 across the six, n_trunc[0] = 0 everywhere. It is an
+#       expectation, not a threshold, and a rotor preset can move it.
+#   S.  spread first: rotor_spread of ac_to_static_db, contrast_raw, lvl_db and class_power_db([d]) at every
+#       geometry and preset, BEFORE any model comparison. Any model_gap within 3*rotor_spread is written «not
+#       told apart from a rotor realisation» and crosses nothing.
+#   R1. does the rotor MODEL move what we read: |model_gap(ac_to_static_db)| and |model_gap(contrast_raw)| at each
+#       geometry, against 3*rotor_spread of the same quantity. Below at every geometry -> «the two rotor models
+#       are not told apart at these six geometries by these quantities (threshold not crossed)».
+#   R2. does the rotor REALISATION move it: rotor_spread(contrast_raw) and rotor_spread(ac_to_static_db) beside
+#       the geometry-to-geometry spread of the same quantity across the six constant-RPM controls. Crossing is
+#       defined as rotor_spread >= the geometry spread; below that -> «rotor realisation is smaller than geometry
+#       at these anchors (threshold not crossed)».
+#   R3. static/varying split, ground cells only, and only with path lists: the stationary share and the varying
+#       share of the in-bin field are separated by class ([d] against [g,d]+[d,g]+[g]) before any rotor quantity
+#       is quoted, and the rotor quantities of the ground cells are read on the varying share alone. ⛔No ground
+#       rotor number is written from the summed field.
+#   R4. the constant-RPM control against the models: every quantity is written for the control too, and any
+#       sentence that compares this campaign's earlier constant-RPM results with a real rotor is written from
+#       the control line of THIS file, never from a stored cell at another length or rate.
+#   Written per cell, not gated, never used as a verdict: hits_per_pose; nret median, max and n_trunc[0];
+#   lvl_db, ac_level_db, ac_to_static_db; contrast_raw, contrast_dedup, contrast_interp; hampel_w51_k5;
+#   isolated_20xmedian with its normaliser; copy_k_ratio and copy_k_diff; class_power_db per class, part and
+#   delay; env_in_bin_db and contrast_gated on the ground cells; and, for the ground cells only,
+#   env_field_drop_halfmedian and env_path_missing against the matching sky cell of the same rotor line.
+#   Scope in every sentence: one simulated airframe (Matrice 4E revision 0, canonical slab: shell 0.75 mm from
+#   DJI Matrice 4T CAD, propeller 1.43 mm from our own mesh, recorded in docs/MATERIAL_CORRECTION.md §2-2 as
+#   thicker than the real blade), one flat ITU-concrete ground plate, open sky otherwise, tr38901 as a stand-in
+#   and not the real antennas, 3.5 GHz as a working assumption, sionna-rt 2.1.0, hover only, no receiver noise,
+#   no TX-RX leakage, one run per cell. A rotor model fitted to 52 non-DJI airframes is not a measurement of
+#   this airframe, and none of these records says anything about a real rotor's scattering-amplitude
+#   fluctuation, which rotor_dynamics.py states is unmodelled.
+#
+# Names. The sweep builds the stems and --dump-paths does not change a name.
+#   Read back from the sweep's own --dry-run (2026-09-18 CPU dry-run pass, runners/filter_jobs.sh conditions (CUDA_VISIBLE_DEVICES="" SIONNA2_ALLOW_CPU=1 MPLBACKEND=Agg nice -n 19 taskset -c 8-15, -P 4)), all 108 distinct, none present in
+#   outputs/elev_sweep_shards/. Common prefix and suffix of every stem:
+#     sionna_p4000000000_swR0D0E0F1_ … _shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el<EL>_{00,01}.npz
+#   G1 (R15 el-15 sky): 18 stems. One of each kind, shard 00:
+#     sitl seed 1, shard 00            sionna_p4000000000_swR0D0E0F1_r15_n8192_prf28029_rotsitls1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#     outdoor_v2 seed 1, shard 00      sionna_p4000000000_swR0D0E0F1_r15_n8192_prf28029_rotoutdoor_v2s1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#     constant-RPM control, shard 00   sionna_p4000000000_swR0D0E0F1_r15_n8192_prf28029_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   G2 (R15 el-15 ground alt5.4): 18 stems. One of each kind, shard 00:
+#     sitl seed 1, shard 00            sionna_p4000000000_swR0D0E0F1_r15_n8192_prf28029_envoutdoor01_ground_alt5.4_rotsitls1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#     outdoor_v2 seed 1, shard 00      sionna_p4000000000_swR0D0E0F1_r15_n8192_prf28029_envoutdoor01_ground_alt5.4_rotoutdoor_v2s1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#     constant-RPM control, shard 00   sionna_p4000000000_swR0D0E0F1_r15_n8192_prf28029_envoutdoor01_ground_alt5.4_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-15_00.npz
+#   G3 (R30 el-5 sky): 18 stems. One of each kind, shard 00:
+#     sitl seed 1, shard 00            sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_rotsitls1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     outdoor_v2 seed 1, shard 00      sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_rotoutdoor_v2s1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     constant-RPM control, shard 00   sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   G4 (R30 el-5 ground alt4.11): 18 stems. One of each kind, shard 00:
+#     sitl seed 1, shard 00            sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_envoutdoor01_ground_alt4.11_rotsitls1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     outdoor_v2 seed 1, shard 00      sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_envoutdoor01_ground_alt4.11_rotoutdoor_v2s1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     constant-RPM control, shard 00   sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_envoutdoor01_ground_alt4.11_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   G5 (R30 el-5 az90 sky): 18 stems. One of each kind, shard 00:
+#     sitl seed 1, shard 00            sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_az90_rotsitls1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     outdoor_v2 seed 1, shard 00      sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_az90_rotoutdoor_v2s1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     constant-RPM control, shard 00   sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   G6 (R30 el-5 az90 ground alt4.11): 18 stems. One of each kind, shard 00:
+#     sitl seed 1, shard 00            sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_envoutdoor01_ground_alt4.11_az90_rotsitls1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     outdoor_v2 seed 1, shard 00      sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_envoutdoor01_ground_alt4.11_az90_rotoutdoor_v2s1_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#     constant-RPM control, shard 00   sionna_p4000000000_swR0D0E0F1_r30_n8192_prf28029_envoutdoor01_ground_alt4.11_az90_shell0.75mm_prop1.43mm_mfixbatteryi5_blperairframe_anttr38901_rt210_d2_el-5_00.npz
+#   Sidecars go to outputs/path_provenance/<stem>_prov.npz. Each record is split into 2 INTERLEAVED shards
+#   (idx = arange(shard, 8192, 2), elevation_sweep_md.py:430), so shard 00 holds the even positions and shard 01
+#   the odd ones and BOTH are needed before any time-domain reading. ⛔A single shard of this file is a
+#   14,014.5 Hz record, not a 28,029 Hz one, and no spectrum, comb or STFT is computed from one shard alone.
+#   The rotor realisation is built for the full length before the shard split (the rotor block runs at :398-411,
+#   the split at :430), and the pose loop indexes ph[i] by the GLOBAL index (:993), so both shards of a record
+#   carry the same realisation and merging them by idx reconstructs it exactly.
+#
+# Duplicates and neighbours.
+#   Flag sets compared against every --engine line of all 55 runners/jobs_*.txt files
+#   (1200 lines; commented, doubly-commented and #HOLD / #HOLD-rev1 lines all peeled and
+#   included): 0 exact duplicates, and 108 distinct lines inside this file.
+#   Nearest neighbours anywhere, by flag-set difference (<= 2 flags):
+#     2 flags · jobs_0961_open_sky_range_and_symbol_rate_standins.txt:119
+#       --engine sionna --n-poses 4096 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 -
+#     2 flags · jobs_0961_open_sky_range_and_symbol_rate_standins.txt:120
+#       --engine sionna --n-poses 4096 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 -
+#   Read those neighbours as follows: they differ from a line here only in --n-poses and --dump-paths, so the
+#   sweep writes `_n4096` where this file writes `_n8192` and no stored cell is overwritten. ⛔They are NOT a
+#   control for this file: a comb contrast at n4096 and one at n8192 use different Doppler bins and are never
+#   put side by side (record-length rule above).
+#
+# Rules kept: open sky and outdoor01_ground only; R0D0E0F1 on every line (refraction, diffraction and edge
+#   diffraction off, diffuse reflection on); no propeller-only arms; _rt210 added automatically by the build tag;
+#   --inmem is the default; the canonical slab on every line; one run per cell; --solver-seed untouched, so
+#   every line is solver seed 1 and the only randomness moved here is the rotor's.
+#
+# Stop / extend. Nothing below is queued from this file without a new, separately costed line.
+#   · check 0 fails -> nothing further from this file launches; lines already running finish and are read on the
+#     total field only; the dump is diagnosed on CPU and no line is re-bought to «try again».
+#   · C fails anywhere -> that cell is dropped and re-read only after the cap is raised. No cap ladder here.
+#   · R1 and R2 both below their thresholds -> STOP on the rotor axis: the constant-RPM library stays readable at
+#     these anchors, and no further preset, seed or geometry is bought from this line of questions.
+#   · R2 crosses at one geometry only -> at most FOUR more seeds at THAT geometry and that preset, nowhere else.
+#   · R1 crosses -> the next question is which class carries the gap (R3 already splits it), answered on the
+#     stored path lists on CPU, not by a new solve.
+#   · In no outcome from this file: another rate or record length (see the reproducibility note — a shorter
+#     record is a different realisation); outdoor_v2_eff; another preset; --solver-seed; another range, elevation
+#     or azimuth; max_depth 3; another airframe or mesh revision; the 8B mesh bridge.
+# ----------------------------------------------------------------------------------------------------------------------
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 15 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-15 --env outdoor01_ground --env-alt 5.4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset sitl --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 1 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 2 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 3 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --rotor-preset outdoor_v2 --rotor-seed 4 --dump-paths 4096 --shard 1 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 0 --nshards 2
+--engine sionna --n-poses 8192 --prf 28029 --range-m 30 --sw R0D0E0F1 --spp 4000000000 --max-depth 2 --els=-5 --az-deg 90 --env outdoor01_ground --env-alt 4.11 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 4096 --shard 1 --nshards 2

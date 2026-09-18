@@ -1,0 +1,532 @@
+# 0972 — P2 coarse: the physical mast-height geometry map. Horizontal distance D {15, 30, 45} m x drone height
+#        H {4, 8, 12} m x mast height h {0.8, 1.5, 2.2} m x azimuth {0, 90, 180, 270} deg x {open sky, ground
+#        plate} = 216 n1024 depth-3 records with the path list dumped at every position. Only h moves between
+#        the three mast rows of one (D, H): this is the tripod-height question that runners/jobs_0965 cannot ask.
+#        (2026-09-18 ~16:20 KST, stage 1 of /workspace/sionna_queue_recommendations_2026-09-18.md sections 5 and 13,
+#         matrix /workspace/sionna_gpu_campaign_plan_2026-09-18.json packages[1].coarse_dimensions, coarse_count 216)
+#
+# Rebuilt by: make_jobs_0972_mast_height_coarse_geometry_map.py (the five axes are READ from the campaign JSON,
+#   not typed; the geometry table below is computed by the same script, so table and lines cannot drift apart).
+#
+# WHY THIS FILE, AND WHY IT IS NOT 0965 AGAIN.
+#   benchmark/elevation_sweep_md.py env_parts() lowers EVERY environment part by --env-alt and leaves the drone at
+#   the origin. So 0965, which sweeps --env-alt at a fixed range and elevation, moves the drone AND the radar
+#   relative to the ground by the same amount: the quantity it varies is the SUM H + h. A tripod ladder has to
+#   move h alone, which changes the slant range and the elevation as well. That is what the conversion below does,
+#   and it is why every mast height needs its own open-sky partner rather than sharing one.
+#
+# GEOMETRY, COMPUTED FROM THE CODE, NOT FROM A NOTE.
+#   benchmark/report15_probe.py place() (:215) puts the radar at
+#       centre + range * (cos el cos az, cos el sin az, sin el)
+#   and benchmark/elevation_sweep_md.py:1071 — its only place() call — passes baseline=0.0, so TX and RX are
+#   CO-LOCATED and report15_probe's module default BASELINE_M = 0.20 m is NOT used by this sweep. The drone sits
+#   at the origin (elevation_sweep_md.py:1034 _ctr = (0,0,0)) and env_parts() puts the plate at z = -(--env-alt).
+#   Therefore, with --env-alt = H:
+#       range = sqrt(D^2 + (h-H)^2)      el = degrees(atan2(h-H, D))      radar height above plate = H + range*sin(el)
+#   Every mast here is below the drone, so h - H < 0 and el < 0 on all 216 lines: a NEGATIVE elevation means the
+#   radar is BELOW the drone and looking up. The generator asserts el < 0 and |H + range*sin(el) - h| < 1e-9 for
+#   all 27 geometries before a single line is written; the last column of the table is that computed radar height.
+#
+#   D[m]  H[m]  h[m] |     range[m]        el[deg]   | radar h above plate[m] | specular pt from nadir[m]  plate margin[m]
+#   -----------------+-----------------------------+------------------------+------------------------------------------
+#    15     4  0.80 |  15.3375356560 -12.0425751429 |         0.800000000000 |      12.5000          45.0000
+#    15     4  1.50 |  15.2069063257  -9.4623222080 |         1.500000000000 |      10.9091          45.0000
+#    15     4  2.20 |  15.1076139744  -6.8427734126 |         2.200000000000 |       9.6774          45.0000
+#    15     8  0.80 |  16.6385095486 -25.6410058243 |         0.800000000000 |      13.6364          45.0000
+#    15     8  1.50 |  16.3477827243 -23.4286928087 |         1.500000000000 |      12.6316          45.0000
+#    15     8  2.20 |  16.0822883944 -21.1398248087 |         2.200000000000 |      11.7647          45.0000
+#    15    12  0.80 |  18.7200427350 -36.7474709529 |         0.800000000000 |      14.0625          45.0000
+#    15    12  1.50 |  18.3098334236 -34.9920201986 |         1.500000000000 |      13.3333          45.0000
+#    15    12  2.20 |  17.9175891235 -33.1579238847 |         2.200000000000 |      12.6761          45.0000
+#    30     4  0.80 |  30.1701839570  -6.0885281542 |         0.800000000000 |      25.0000          30.0000
+#    30     4  1.50 |  30.1039864470  -4.7636416907 |         1.500000000000 |      21.8182          30.0000
+#    30     4  2.20 |  30.0539514873  -3.4336303625 |         2.200000000000 |      19.3548          30.0000
+#    30     8  0.80 |  30.8519043172 -13.4957332808 |         0.800000000000 |      27.2727          30.0000
+#    30     8  1.50 |  30.6960909563 -12.2251226757 |         1.500000000000 |      25.2632          30.0000
+#    30     8  2.20 |  30.5555232323 -10.9421854090 |         2.200000000000 |      23.5294          30.0000
+#    30    12  0.80 |  32.0224920954 -20.4722795197 |         0.800000000000 |      28.1250          30.0000
+#    30    12  1.50 |  31.7844301506 -19.2900462192 |         1.500000000000 |      26.6667          30.0000
+#    30    12  2.20 |  31.5601013940 -18.0904893687 |         2.200000000000 |      25.3521          30.0000
+#    45     4  0.80 |  45.1136343027  -4.0675195666 |         0.800000000000 |      37.5000          15.0000
+#    45     4  1.50 |  45.0693909433  -3.1798301199 |         1.500000000000 |      32.7273          15.0000
+#    45     4  2.20 |  45.0359856115  -2.2906100426 |         2.200000000000 |      29.0323          15.0000
+#    45     8  0.80 |  45.5723600442  -9.0902769208 |         0.800000000000 |      40.9091          15.0000
+#    45     8  1.50 |  45.4670210152  -8.2192092489 |         1.500000000000 |      37.8947          15.0000
+#    45     8  2.20 |  45.3722382080  -7.3442992895 |         2.200000000000 |      35.2941          15.0000
+#    45    12  0.80 |  46.3728368768 -13.9763106660 |         0.800000000000 |      42.1875          15.0000
+#    45    12  1.50 |  46.2087654022 -13.1340223064 |         1.500000000000 |      40.0000          15.0000
+#    45    12  2.20 |  46.0547500265 -12.2859160810 |         2.200000000000 |      38.0282          15.0000
+#   Each row is bought at four azimuths and in two scenes: 27 x 4 x 2 = 216 lines.
+#
+# ARM-NAME PRECISION. The builder writes `_r{range:g}` (elevation_sweep_md.py:517) and `_el{el:+g}` (:866), i.e.
+#   six significant digits, so the stem carries a ROUNDED copy of the arguments; the exact arguments are the ten
+#   decimals on the lines below and in the generator. All 27 (r, el) token pairs are distinct — checked in the
+#   generator, which aborts on a collision. The two closest geometries of the whole matrix, measured in units of
+#   the token step itself — six significant digits, so the step is 1e-4 for a value in [10, 100) and 1e-5 in [1, 10):
+#     range      334.1 token steps apart (0.033405 m: D45 H4 h1.5 vs D45 H4 h2.2)
+#     elevation  607.9 token steps apart (0.060793 deg: D30 H8 h1.5 vs D45 H12 h2.2)
+#   The physics uses the full-precision argument on the line; only the NAME is rounded. Largest difference
+#   between an argument and the copy of it that lands in the stem: 5.00e-05 m in range and 4.62e-05 deg in
+#   elevation, i.e. 0.42 deg of two-way phase at 3.5 GHz. ⛔So (D, H, h) is recovered from the header table or
+#   the generator, never by reading the stem back to ten decimals.
+#   The new stems parse and round-trip under src/arm_grammar.py with no warnings (checked on three of them,
+#   one per D, on 2026-09-18: parse() then unparse() gives the name back character for character), and every
+#   stem ends in _rt210 from build_tag(), so nothing here can be silently skipped onto an older solver build.
+#
+# OPEN-SKY PARTNERS. An open-sky record has no ground, so it does not depend on --env-alt at all; it depends on
+#   range, elevation and azimuth. Those 27 (range, el) pairs are all distinct as exact floats (27 of 27), because
+#   the nine (H, h) combinations give nine distinct h - H values (-1.8, -2.5, -3.2, -5.8, -6.5, -7.2, -9.8, -10.5,
+#   -11.2 m). So every (D, H, h) needs its OWN sky partner and none of them can be shared — the file carries
+#   108 open-sky and 108 ground lines. ⛔The open-sky lines carry no --env and therefore no --env-alt:
+#   elevation_sweep_md.py:623-625 rejects --env-alt without --env («--env-alt 는 --env 와 함께 준다»).
+#
+# GROUND PLATE. benchmark/make_outdoor_scene_0831.py builds the ground as plane(0, 0, 0.0, 120.0, 120.0): a
+#   120 x 120 m square centred on the drone's nadir, so |x|, |y| <= 60 m. --env outdoor01_ground loads that plate
+#   and nothing else (ENV_SPECS["outdoor01_ground"], elevation_sweep_md.py:139-141), so no building or pole is in
+#   any of these scenes and the only extent to check is the plate.
+#     · the radar stands at horizontal distance D from the nadir, so the worst case is D = 45 m: 15.0 m inside the edge;
+#     · the single-bounce ground point lies on the nadir-to-radar segment at D*H/(H+h) from the nadir, so the worst
+#       case is D = 45, H = 12, h = 0.8: 42.1875 m from the nadir, 17.8125 m inside the edge. Every ground
+#       interaction point of a radar-ground-drone path lies between the nadir and the radar and is therefore
+#       closer than the radar itself. Nothing in the matrix is dropped or flagged: the smallest margin over all
+#       216 lines is 15.00 m.
+#   ⚠This says the plate is large enough to hold the specular geometry. It does not say the plate EDGE is silent:
+#     the edge is a real discontinuity in this mesh and stays 15 m away at worst, about 2.4 range cells at 100 MHz.
+#
+# HOLDOUT (brief section 5: «학습·선택에 쓰는 geometry와 최종 평가 geometry를 분리합니다…
+#   H8 m 및 az90°를 holdout으로 지정하고 교차된 (H8, az90)를 별도 평가합니다» — keep the geometry used to fit
+#   or choose separate from the geometry used to evaluate; H 8 m and az 90 deg are held out and their crossing
+#   is evaluated on its own).
+#     · selection / fitting set : 108 lines (H in {4, 12} m AND az in {0, 180, 270} deg)
+#     · held out, H = 8 m only  : 54 lines
+#     · held out, az = 90 deg only : 36 lines
+#     · the crossed cell (H 8 m, az 90 deg), evaluated separately : 18 lines
+#     · 108 + 54 + 36 + 18 = 216
+#   ⛔Adjacent rotor poses of ONE geometry are never split into train and test. The unit of the split is the
+#     geometry (one line = one record = one 1,024-position rotor run); overlapping CPIs inside a record are not
+#     independent experiments (brief section 14, «인접 pose와 겹치는 CPI는 독립 실험 수가 아님»).
+#
+# WHAT THIS FILE DOES NOT BUY.
+#   · the 1 cm fine mast sweep (h 1.40-1.60 m, 21 points, 6 (D,H) pairs, 240 further records). It is NOT stage 1.
+#     Its 12 centre cells ARE in this file already — the six (D, H) pairs (15,4), (15,8), (30,4), (30,8), (45,4), (45,12)
+#     at h = 1.50 m, az 0, sky and ground, 12 lines — when the fine sweep is ordered it must skip them,
+#     exactly as the brief's
+#     «252개 조건 중 중심 h1.50 m의 12개는 coarse에서 재사용하므로 240개 추가» arithmetic assumes.
+#   · any second solver seed, any --rep repeat, any rotor preset or rotor seed (all lines take the constant-rpm
+#     branch, elevation_sweep_md.py:411), any depth-2 partner, any iso arm, any second carrier, any thickness
+#     other than the canonical 0.75 / 1.43 mm, any full outdoor01 scene, any --env-scat. P1 owns seed and budget
+#     spread; P7 owns thickness; this file owns geometry only, so that a difference here is a difference in geometry.
+#   · ⚠and therefore this file cannot separate a geometry effect from solver spread on its own. The 0963 seed
+#     difference of 5.85 dB and the 0961 ray-budget comb difference of 2.25 dB (outputs/readout_0918.json gates
+#     .0963.S1 / .0961.R2) are the reason P1 runs first and sets what may be read off these 216 records.
+#
+# DRY-RUN, 2026-09-18 08:35-08:52 UTC (CPU only, GPUs hidden, read-only): runners/filter_jobs.sh on all 216 lines reports
+#   NEW 216 · DONE 0 · STALE 0 · BAD 0. Nothing on disk is reused: every (range, el) of this matrix is a
+#   new geometry. A second pass captured the 216 stems the builder would write — all 216 distinct, 0 of them
+#   present in outputs/elev_sweep_shards/. Separately, none of the 216 lines duplicates a line in any
+#   runners/jobs_*.txt: 1,139 argument-like lines, commented and #HOLD included were compared as
+#   normalised flag sets (flag, value, numbers canonicalised) and gave 0 hits.
+#   ⭐RE-CHECKED 2026-09-18 08:57-09:10 UTC across all four stage-1 packages together (0969 P1, 0970 P3, 0971 P8A, 0972): every one of
+#   the 579 argument lines of the four files went through runners/filter_jobs.sh again — NEW 579 · DONE 0 ·
+#   STALE 0 · BAD 0 — and all 579 stems were captured from the builder's own --dry-run namer. That pass is what
+#   found the two shared cells below; 577 of the 579 stems are distinct and 0 are on disk.
+#
+# ⛔TWO RECORDS OF THIS MATRIX ARE BOUGHT BY runners/jobs_0969, NOT BY THIS FILE — so it carries 214 lines
+#   for 216 records. They are the steep corner (D 15 m, H 12 m, h 0.8 m) at az 0, open sky and ground:
+#     · D15 H12 h0.8 az0 open sky    = 0969's anchor A11 at 4e9 / depth 3 / solver seed 1
+#       --engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#     · D15 H12 h0.8 az0 ground plate = 0969's anchor A12 at 4e9 / depth 3 / solver seed 1
+#       --engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#   ⚠The two lines are NOT the same TEXT — 0969 writes `--range-m 18.720042735` and this file wrote
+#   `--range-m 18.7200427350`, one trailing zero apart — which is exactly why a flag-set scan that compares
+#   strings misses them. The VALUES are identical and so is the stem: `_r{:g}` keeps six significant digits,
+#   so both name _r18.72 ... _el-36.7475. ⛔A duplicate check for this repo has to compare the stem the
+#   builder's own --dry-run prints, never the spelling of the line. Two queue lines naming one
+#   shard means the SECOND to reach a worker is silently SKIPPED (elevation_sweep_md.py:870 「건너뜀」) and
+#   nothing says so afterwards. 0969 keeps them because it launches first and its anchor ladder needs that
+#   rung; this file reads the two shards when they land. ⛔If 0969 is cancelled or its anchor list changes,
+#   re-run this generator — the exclusion is derived from packages[0] of the campaign JSON, so the two lines
+#   come back on their own. The record count, the 27-row table and the holdout arithmetic below are unchanged:
+#   the split unit is the record, not the queue line.
+#
+# COST. About 63 worker-hours, band 29-85. Basis, from stored shards only:
+#   · ground, depth 3, n1024, 4e9, this slab, --dump-paths: the ten runners/jobs_0965 ground shards give
+#     meta[5]/len(idx) = 0.6139 .. 1.8483 s/position, median 1.7148 -> 0.175-0.526 h per shard, median 0.488 h.
+#   · open sky, depth 3, n1024: ONE stored shard (jobs_0965 line 1) at 0.3256 s/position -> 0.093 h. The upper end
+#     is an extrapolation, not a measurement: the open-sky depth-2 median at r30 (0.755 s/position) times the
+#     depth-2 -> depth-3 factor measured in ground at the same geometry ((1.737+1.763)/(1.389+1.441) = 1.237).
+#   ⛔THE OPEN-SKY HALF OF THAT POINT ESTIMATE RESTS ON ONE SHARD AND IS PROBABLY LOW. 0.3256 s/position is
+#     the fastest depth-3 measurement in the whole store; the matched depth-2/depth-3 PAIRS at n4096 (same
+#     geometry, same run, both shards: ground r30 el-5 1.296 and 1.234, ground r30 el-2.5 1.163 and 1.151)
+#     give a depth factor of about 1.20, which on the open-sky depth-2 median of 0.746 s/position (177 stored
+#     rt210 shards) puts open sky at about 0.88 s/position and this file at about 80 worker-hours, not 63.
+#     ⚠Both numbers are contended wall clock: the same class spans 0.255-1.097 s/position across stored
+#     shards, a 4.3x spread for identical work, which is larger than any axis being scaled here. Read the
+#     band, not the point, and re-measure on the first landed shard of this file.
+#   · range is NOT scaled: at a fixed 4e9-ray budget the stored s/position shows no range trend (open-sky depth 2:
+#     r15 0.72-1.05, r30 0.74-0.76, r60 0.47-0.76, r100 0.36-0.76 s/position).
+#   ⚠This is a sum of worker slot-hours, not elapsed time and not divided by the cards. The band is wide because
+#     the wall clock is set by how many workers share a card: two identical 0965 ground shards ran 0.614 and 1.848
+#     s/position the same morning, a factor of 3.0.
+#   The brief allocates P2 130-260 worker-hours for all 456 records, i.e. 62-123 h for the 216 coarse ones; the
+#   estimate above is the same measurement without a design margin and sits at or below that.
+#
+# DISK. About 1.7 GB of path-list sidecars (outputs/path_provenance/), band 1.2-2.5 GB.
+#   ⛔The brief's «about 52 B per path per position» does not match the store. Measured over all 85 stored
+#     sidecars in outputs/path_provenance/ on 2026-09-18: 5.65 - 8.85 B per stored path on disk (median 7.0),
+#     because the sidecar is a compressed npz and its two int64 arrays (obj_raw, prim) compress hard. The brief's
+#     own example is self-consistent with 7.4, not 52: 8,363,270 B / 2,048 positions = 4,084 B per position, and
+#     that shard stores 1,127,832 paths, i.e. 550.7 per position -> 7.42 B per path. The 70 B/path figure is
+#     the UNCOMPRESSED width
+#     (complex64 a + float64 tau + 3 x int16 part + 3 x int64 obj_raw + 3 x int64 prim). The estimate here uses
+#     the measured on-disk bytes per POSITION and scales those, which avoids the per-path question entirely.
+#   Basis: depth-3 n1024 at r30 el-5 measured at 1,743 B/position open sky and 4,024 B/position ground (median of
+#     ten), scaled by (30/range)^2.25 and by 1 + 0.033*(|el| - 5), with a x1.06 azimuth allowance. Both fits come
+#     from the stored depth-2 population at these settings (range: 7,960 vs 1,608 B/position at r15/r30 el-5;
+#     elevation: 1,494 / 1,608 / 1,905 / 2,240 B/position at el 2.5 / 5 / 10 / 15 at r30; azimuth: az90/az0 = 1.20
+#     and az180/az0 = 1.03 in ground at r30). ⚠The steepest cells here (el -36.7 deg at D 15 m) are well outside
+#     the measured elevation range, so the band is wide on purpose.
+#   Cross-check of that model against a shard it was not fitted on: it predicts 27.0 kB/position for ground at
+#   r15, el -15; the stored depth-2 shard there is 21.34 kB/position and the measured depth-2 -> depth-3 factor
+#   is 1.237, i.e. 26.4 kB/position. 2 % apart.
+#   df on /workspace, 2026-09-18 09:15 UTC: 1,041 GB free = 969 GiB, of a 3.5 TB filesystem 72 % used. ⚠The
+#   earlier «974 GB» in this header was `df -h`'s GiB figure printed as GB and read half an hour earlier; the two
+#   units are 7 % apart and the corrected pair is the one above. The upper end of the band is
+#   0.24 % of what is free (0.26 % counting the shard npz files), so the package is not disk-limited.
+#   threshold not crossed. ⭐All four stage-1 packages together add about 7.0 GB of sidecar and 38 MB of shard
+#   npz — 0.67 % of the same free space — re-measured on 2026-09-18 by the cross-check, with the same
+#   bytes-per-position model fitted independently on 68 stored depth-2 sidecars (measured/predicted 0.90-1.22).
+#   threshold not crossed.
+#
+# ORDER OF LINES. D, then H, then h, then scene (open sky before ground), then azimuth — the same nested loop the
+#   generator runs, so line k is reproducible from the matrix alone. Nothing here depends on the launch order.
+#
+# CARDS. No card restriction is written here. runners/GPU_HOLD.json is the single place that takes cards out and
+#   the supervisors re-read it every round; this file does not touch it, the running 0963-0968 queues, the
+#   supervisors, the watchers or the workers.
+#
+# LINES 214 for 216 records (108 open sky + 108 ground; 2 bought by runners/jobs_0969, see above) ·
+#   one shard each · every line dumps 1,024 path lists.
+# --------------------------------------------------------------------------------------------------------------------
+#
+# D15 m · H4 m · h0.8 m · open sky — range 15.3375 m, el -12.0426 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H4 m · h0.8 m · ground plate — range 15.3375 m, el -12.0426 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.3375356560 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.0425751429 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H4 m · h1.5 m · open sky — range 15.2069 m, el -9.46232 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H4 m · h1.5 m · ground plate — range 15.2069 m, el -9.46232 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.2069063257 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.4623222080 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H4 m · h2.2 m · open sky — range 15.1076 m, el -6.84277 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H4 m · h2.2 m · ground plate — range 15.1076 m, el -6.84277 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 15.1076139744 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.8427734126 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H8 m · h0.8 m · open sky — range 16.6385 m, el -25.641 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H8 m · h0.8 m · ground plate — range 16.6385 m, el -25.641 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.6385095486 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-25.6410058243 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H8 m · h1.5 m · open sky — range 16.3478 m, el -23.4287 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H8 m · h1.5 m · ground plate — range 16.3478 m, el -23.4287 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.3477827243 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-23.4286928087 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H8 m · h2.2 m · open sky — range 16.0823 m, el -21.1398 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H8 m · h2.2 m · ground plate — range 16.0823 m, el -21.1398 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 16.0822883944 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-21.1398248087 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H12 m · h0.8 m · open sky — range 18.72 m, el -36.7475 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H12 m · h0.8 m · ground plate — range 18.72 m, el -36.7475 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.7200427350 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-36.7474709529 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H12 m · h1.5 m · open sky — range 18.3098 m, el -34.992 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H12 m · h1.5 m · ground plate — range 18.3098 m, el -34.992 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 18.3098334236 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-34.9920201986 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H12 m · h2.2 m · open sky — range 17.9176 m, el -33.1579 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D15 m · H12 m · h2.2 m · ground plate — range 17.9176 m, el -33.1579 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 17.9175891235 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-33.1579238847 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H4 m · h0.8 m · open sky — range 30.1702 m, el -6.08853 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H4 m · h0.8 m · ground plate — range 30.1702 m, el -6.08853 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1701839570 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-6.0885281542 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H4 m · h1.5 m · open sky — range 30.104 m, el -4.76364 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H4 m · h1.5 m · ground plate — range 30.104 m, el -4.76364 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.1039864470 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.7636416907 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H4 m · h2.2 m · open sky — range 30.054 m, el -3.43363 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H4 m · h2.2 m · ground plate — range 30.054 m, el -3.43363 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.0539514873 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.4336303625 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H8 m · h0.8 m · open sky — range 30.8519 m, el -13.4957 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H8 m · h0.8 m · ground plate — range 30.8519 m, el -13.4957 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.8519043172 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.4957332808 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H8 m · h1.5 m · open sky — range 30.6961 m, el -12.2251 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H8 m · h1.5 m · ground plate — range 30.6961 m, el -12.2251 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.6960909563 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2251226757 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H8 m · h2.2 m · open sky — range 30.5555 m, el -10.9422 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H8 m · h2.2 m · ground plate — range 30.5555 m, el -10.9422 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 30.5555232323 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-10.9421854090 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H12 m · h0.8 m · open sky — range 32.0225 m, el -20.4723 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H12 m · h0.8 m · ground plate — range 32.0225 m, el -20.4723 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 32.0224920954 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-20.4722795197 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H12 m · h1.5 m · open sky — range 31.7844 m, el -19.29 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H12 m · h1.5 m · ground plate — range 31.7844 m, el -19.29 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.7844301506 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-19.2900462192 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H12 m · h2.2 m · open sky — range 31.5601 m, el -18.0905 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D30 m · H12 m · h2.2 m · ground plate — range 31.5601 m, el -18.0905 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 31.5601013940 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-18.0904893687 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H4 m · h0.8 m · open sky — range 45.1136 m, el -4.06752 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H4 m · h0.8 m · ground plate — range 45.1136 m, el -4.06752 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.1136343027 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-4.0675195666 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H4 m · h1.5 m · open sky — range 45.0694 m, el -3.17983 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H4 m · h1.5 m · ground plate — range 45.0694 m, el -3.17983 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0693909433 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-3.1798301199 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H4 m · h2.2 m · open sky — range 45.036 m, el -2.29061 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H4 m · h2.2 m · ground plate — range 45.036 m, el -2.29061 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --env outdoor01_ground --env-alt 4 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --env outdoor01_ground --env-alt 4 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --env outdoor01_ground --env-alt 4 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.0359856115 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-2.2906100426 --env outdoor01_ground --env-alt 4 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H8 m · h0.8 m · open sky — range 45.5724 m, el -9.09028 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H8 m · h0.8 m · ground plate — range 45.5724 m, el -9.09028 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.5723600442 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-9.0902769208 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H8 m · h1.5 m · open sky — range 45.467 m, el -8.21921 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H8 m · h1.5 m · ground plate — range 45.467 m, el -8.21921 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.4670210152 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-8.2192092489 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H8 m · h2.2 m · open sky — range 45.3722 m, el -7.3443 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H8 m · h2.2 m · ground plate — range 45.3722 m, el -7.3443 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --env outdoor01_ground --env-alt 8 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --env outdoor01_ground --env-alt 8 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --env outdoor01_ground --env-alt 8 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 45.3722382080 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-7.3442992895 --env outdoor01_ground --env-alt 8 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H12 m · h0.8 m · open sky — range 46.3728 m, el -13.9763 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H12 m · h0.8 m · ground plate — range 46.3728 m, el -13.9763 deg, radar 0.8 m above the plate
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.3728368768 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.9763106660 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H12 m · h1.5 m · open sky — range 46.2088 m, el -13.134 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H12 m · h1.5 m · ground plate — range 46.2088 m, el -13.134 deg, radar 1.5 m above the plate
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.2087654022 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-13.1340223064 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H12 m · h2.2 m · open sky — range 46.0548 m, el -12.2859 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+#
+# D45 m · H12 m · h2.2 m · ground plate — range 46.0548 m, el -12.2859 deg, radar 2.2 m above the plate
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --env outdoor01_ground --env-alt 12 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --env outdoor01_ground --env-alt 12 --az-deg 90 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --env outdoor01_ground --env-alt 12 --az-deg 180 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
+--engine sionna --n-poses 1024 --range-m 46.0547500265 --sw R0D0E0F1 --spp 4000000000 --max-depth 3 --els=-12.2859160810 --env outdoor01_ground --env-alt 12 --az-deg 270 --ant-pattern tr38901 --shell-mm 0.75 --prop-mm 1.43 --dump-paths 1024 --shard 0 --nshards 1
