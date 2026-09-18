@@ -1,0 +1,153 @@
+{
+ "drone": "phantom4",
+ "mesh_rev": 1,
+ "written_utc": "2026-09-17T21:05Z",
+ "written_before_first_acceptance_run": true,
+ "rule": "Plan C threshold freeze. These values are set from the plan's B.5 targets, the owned scan and revision 0's measured budgets, before the first acceptance run of revision 1. Relaxing any of them afterwards needs user approval and is logged in deviations[] with the reason.",
+ "frame_of_reference": "scan datum frame of p4_datum.json; +x nose, +y left, +z up, feet plane z = -153.37 mm",
+ "deviations": [],
+
+ "C1_topology": {
+  "watertight_per_group": true,
+  "boundary_edges_per_group": 0,
+  "nonmanifold_edges_per_group": 0,
+  "self_intersections_per_group": 0,
+  "winding_consistent_per_group": true,
+  "volume_positive_per_group": true,
+  "duplicate_faces": 0,
+  "degenerate_faces": 0,
+  "declared_components": {"body": 1, "motor": 4, "gear": 2, "camera": 5, "battery": 1, "pcb": 1},
+  "declared_components_note": "By design: one X fairing carrying the four motor pods; one can+adapter stack per rotor; one landing-gear arch per side (two struts + skid); the gimbal chain plus the four vision sensors; one internal box each.",
+  "sliver_budget_rule": "revision-0 budget: the fraction of faces with aspect ratio > 50 must not exceed revision 0's fraction + 0.005, and min triangle area must be > 0.",
+  "sliver_aspect_ratio_limit": 50.0,
+  "sliver_frac_margin": 0.005
+ },
+
+ "C2_attachment": {
+  "leg_gap_mm_max": 0.5,
+  "gimbal_post_gap_mm_max": 0.5,
+  "motor_pod_gap_mm_max": 0.5,
+  "floating_parts_max": 0,
+  "internal_metal_inside_shell_pct_min": 100.0,
+  "internal_metal_clearance_mm_min": 1.0,
+  "buried_plastic_pct_of_shell_area_max": 2.0,
+  "C2b_prop_seating_gap_mm": [0.0, 0.5],
+  "C2b_prop_area_inside_bell_rule": "must not exceed revision 0's prop area inside its bell (mm^2), measured the same way",
+  "C2c_swept_disc_frame_clearance_mm": 1.0,
+  "C2c_neighbour_disc_clearance_sign": "unchanged from revision 0 (positive)"
+ },
+
+ "C3_dimensions": {
+  "scored": {
+   "frame_height_props_off_mm": {"target": 180.2, "tol": 3.0, "source": "scan bbox ext z"},
+   "crown_z_mm": {"target": 26.8, "tol": 2.0, "source": "scan_crown_z_mm_within_r50"},
+   "feet_z_mm": {"target": -153.37, "tol": 1.0, "source": "scan feet plane (datum)"},
+   "belly_z_at_x0_mm": {"target": -58.4, "tol": 3.0, "source": "scan centreline y=0 at x=0"},
+   "waist_width_at_x0_mm": {"target": 101.0, "tol": 4.0, "source": "scan section at x=0"},
+   "arm_section_at_r120_w_mm": {"target": 24.0, "tol": 3.0, "source": "scan arm sections"},
+   "arm_section_at_r120_h_mm": {"target": 37.4, "tol": 3.0, "source": "scan arm sections"},
+   "arm_section_at_r140_w_mm": {"target": 19.3, "tol": 3.0, "source": "scan arm sections"},
+   "arm_section_at_r140_h_mm": {"target": 29.7, "tol": 3.0, "source": "scan arm sections"},
+   "motor_can_diameter_mm": {"target": 28.2, "tol": 1.0, "source": "scan can_radius_fit 14.09-14.10"},
+   "motor_can_straight_wall_mm": {"target": 24.0, "tol": 2.0, "source": "scan radial profile r50 = 14.1"},
+   "motor_pod_diameter_mm": {"target": 38.0, "tol": 3.0, "source": "scan radial profile r50 = 19.0-19.3"},
+   "motor_top_z_mm": {"target": 24.9, "tol": 2.0, "source": "scan_motor_cans top_z_mm"},
+   "leg_centre_x_at_z80_mm": {"target": 72.9, "tol": 3.0, "source": "scan leg sections at z = -80"},
+   "leg_root_section_w_mm": {"target": 13.0, "tol": 1.5, "source": "scan leg section at z = -80"},
+   "leg_root_section_h_mm": {"target": 12.0, "tol": 1.5, "source": "scan leg section at z = -80"},
+   "leg_tip_section_w_mm": {"target": 11.0, "tol": 1.5, "source": "scan leg section at z = -110"},
+   "leg_tip_section_h_mm": {"target": 10.0, "tol": 1.5, "source": "scan leg section at z = -110"},
+   "camera_x_min_mm": {"target": -13.0, "tol": 4.0, "source": "UM v1.2 p.8 side elevation"},
+   "camera_x_max_mm": {"target": 62.0, "tol": 4.0, "source": "UM v1.2 p.8 side elevation"},
+   "camera_bottom_above_feet_mm": {"target": 27.0, "tol": 4.0, "source": "UM v1.2 p.8 front elevation"},
+   "camera_buried_pct_max": 10.0,
+   "top_silhouette_ratio": {"min": 0.95, "max": 1.08, "source": "scan top_xy 30150 mm^2"}
+  },
+  "exact": {
+   "frame_fit_scale": [1.0, 1.0, 1.0],
+   "wheelbase_mm": 350.0,
+   "prop_dia_mm": 240.0,
+   "prop_blades": 2,
+   "num_rotors": 4,
+   "rotor_xy_max_abs_diff_mm_vs_rev0": 1e-06
+  },
+  "report_only": {
+   "height_props_included_mm": {
+    "target": 196.0, "tol": 3.0,
+    "source": "Quick Start Guide v1.2 p.7 dimension figure (foot plane to the top of a propeller hub cap); User Manual v1.2 p.8 front elevation reads 195.6 mm on the scan's crown-to-feet scale",
+    "why_report_only": "The only revision-1 lever on this number is the rotor mount z, which the scan pins at +24.9 mm. The rest is the propeller hub cap, which is revision-0 geometry that plan P6 forbids this revision from changing ('chord law, blade-angle law, radius and hub stay the same'). Scoring it would make the revision pass or fail on a part it may not touch. The measured value is reported either way and the shortfall is an open question for the user."
+   }
+  }
+ },
+
+ "C4_reference_distance": {
+  "rule": "Plan C.4: '>= 25 % reduction from revision 0 and no worse than revision 0 in any region'. Distances are measured by the same code as the revision-0 baseline (scratchpad/mesh_0917/phantom_family/scripts/scan_analysis.py, datum mode).",
+  "rev0_baseline": {
+   "ours_to_scan_median_mm": 7.22, "ours_to_scan_p90_mm": 19.34, "ours_to_scan_mean_mm": 9.21,
+   "scan_to_ours_median_mm": 6.85, "scan_to_ours_p90_mm": 17.35,
+   "chamfer_mean_mm": 8.83,
+   "by_part_ours_to_scan_median_mm": {"arm_r85-150": 6.34, "arm_tip_r>150": 4.71, "canopy": 27.39,
+                                      "gear": 5.52, "motor": 3.22, "shell_core_r<85": 12.42,
+                                      "shell_other": 17.51},
+   "silhouette_ours_over_scan": {"top_xy": 1.365, "front_yz": 0.964, "side_xz": 1.059}
+  },
+  "ours_to_scan_median_mm_max": 5.42,
+  "scan_to_ours_median_mm_max": 5.14,
+  "chamfer_mean_mm_max": 6.62,
+  "region_no_worse_margin_mm": 0.5,
+  "silhouette_ratio_top_xy": [0.95, 1.08],
+  "silhouette_ratio_front_yz": [0.90, 1.10],
+  "silhouette_ratio_side_xz": [0.90, 1.10]
+ },
+
+ "C5_facing_area": {
+  "rule": "Plan C.5 for phantom4: the camera group's visible (one-sided) area must increase against revision 0 at el -30, -60 and -90, az 0, 5 deg cone.",
+  "camera_visible_area_must_increase_at_el_deg": [-30.0, -60.0, -90.0],
+  "cone_deg": 5.0,
+  "az_deg": 0.0
+ },
+
+ "C6_facets": {
+  "sagitta_mm_max": 2.58,
+  "frame_faces_max": 20000,
+  "prop_faces_per_rotor_max": 4200
+ },
+
+ "C7_props": {
+  "r_over_R_stations": [0.3, 0.5, 0.7, 0.9],
+  "thick_edge_is_raised_and_leads": true,
+  "chord_tol_mm_vs_rev0": 0.5,
+  "blade_angle_tol_deg_vs_rev0": 0.2,
+  "check_handedness_must_pass": true
+ },
+
+ "C8_kinematics": {
+  "rotor_dirs": [-1, 1, -1, 1],
+  "fastposer_verify_max": 1e-09,
+  "prop_dia_mm": 240.0,
+  "prop_blades": 2,
+  "num_rotors": 4,
+  "hover_rpm": 5500.0,
+  "base_ang_deg": [57.0, 147.0, 237.0, 327.0]
+ },
+
+ "C9_specular_census": {"scored": false, "note": "produced for the pre-registration (plan D.0); not a pass/fail gate here"},
+ "C10_visual_review": {"scored": false, "note": "render sheet plus written notes per view; an independent agent re-reads the PNGs"},
+
+ "C11_certificates": {
+  "mesh_symmetry_must_pass": true,
+  "mesh_placement_must_pass": true,
+  "symmetry_mirror_plane": "y",
+  "symmetry_area_rel_tol": 0.002,
+  "symmetry_com_abs_tol_mm": 0.5,
+  "placement_rule": "no part pair may interpenetrate beyond revision 0's budget (0 %); parts that touch must touch within 0.5 mm"
+ },
+
+ "C12_material_table": {"scored": false, "note": "area and volume per material, revision 0 vs revision 1, with every new part's group listed"},
+
+ "C13_canonical_repairs": {
+  "battery_pcb_interpenetration_pct_max": 0.0,
+  "body_closed": true,
+  "battery_group_single_piece": true
+ }
+}

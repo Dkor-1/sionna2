@@ -1,0 +1,148 @@
+{
+ "_about": "Owned sources behind every dimension of ('mavic4pro', mesh revision 1). Plan B.0: no dimension without an owned source (spec, manual, our scan, CAD we hold, or an owned photo with a stated scale), and no third-party licensed mesh or number derived from one.",
+ "key": "mavic4pro",
+ "mesh_rev": 1,
+ "written": "2026-09-18",
+ "user_decisions_2026_09_18": [
+  "Mavic 4 Pro IS included in revision 1.",
+  "The x1.59767 height stretch is KEPT and the shortfall recorded, because the B1 height round found the evidence cannot remove it (about 35 mm would be missing). Same treatment as mini5pro."
+ ],
+ "sources": {
+  "manual": {
+   "what": "DJI Mavic 4 Pro User Manual v1.0 (2025-05)",
+   "url": "https://dl.djicdn.com/downloads/mavic-4-pro/20250513/DJI_Mavic_4_Pro_User_Manual_v1.0_en.pdf",
+   "sha256": "ff577662dfb7163899ed8f365ef6b21c0b0fad7e6e3481457bfa2f3768170bf7",
+   "bytes": 6201396,
+   "fetched": "2026-09-17 ~22:30 KST, phase B1",
+   "held_at": "scratch mesh_rev1/spin/mavic4pro_um_v1.0_en.pdf; text at scratch mesh_rev1/impl/mavic4pro/work/m4p_manual.txt",
+   "used_for": [
+    "p.88 C2 table: 'Propellers 1158F 267x147 mm (diameter x thread pitch), 11.8 g each'",
+    "p.88 C2 table: 'Intelligent Flight Battery BWX341-6654-14.3, 62x44x128 mm, Approx. 331 g'",
+    "p.88 C2 table: 'Maximum Propeller Speed 8400 RPM', 'MTOM 1085 g', 'Sound Power Level 83 dB'",
+    "p.54 propeller A/B positions and lock directions (spin, via the B1 spin round)"
+   ]
+  },
+  "spec_page": {
+   "what": "DJI Mavic 4 Pro official specifications",
+   "url": "https://www.dji.com/global/mavic-4-pro/specs",
+   "held_at": "quoted in assets/photos/mavic4pro/SOURCES.md and scratch mesh_0917/dji_folding/specs_json_extract.txt",
+   "used_for": [
+    "unfolded, propellers excluded: 328.7 x 390.5 x 135.2 mm (L x W x H)",
+    "folded, propellers excluded: 257.6 x 124.8 x 103.4 mm",
+    "take-off weight 1063 g; battery 14.32 V / 6654 mAh / 95.3 Wh"
+   ],
+   "note": "DJI does not publish the diagonal (wheelbase). Revision 0's 441 mm is a back-calculation, not a published value; plan B.0 keeps it unchanged."
+  },
+  "fcc_external_photos": {
+   "what": "FCC ID SS3-L3AB2410 External Photos, 23 laboratory frames with steel rules",
+   "url": "https://fccid.io/SS3-L3AB2410",
+   "licence": "US federal public record (FCC public inspection); no copyright claimed",
+   "held_at": "assets/photos/mavic4pro/mavic4pro_p01..p07_*.jpg and t01..t16 (teardown), see assets/photos/mavic4pro/SOURCES.md",
+   "used_for": [
+    "p05 front elevation: one tapered landing leg per FRONT motor; gimbal hanging in front of the nose; motor can and gimbal block sizes (via the inventory round)",
+    "p07 bottom plan: leg count and position, battery bay forming the rear belly",
+    "p02/p05/p06: the B1 ruler-scaled multi-view fit (can diameter, tracks, can-base and stack-top heights, foot position)"
+   ],
+   "caveat": "the FCC unit is a pre-production (EVT) sample. Shape and internal layout are usable; surface finish and colour are not. Production-unit photos p08-p13 (Wikimedia Commons) are the reference for finish."
+  },
+  "owned_top_photo": {
+   "what": "top view of the complete aircraft, arms unfolded, propellers unfolded",
+   "held_at": "assets/photos/mavic4pro/mavic4pro_c02_arm_positions_topview_labelled.jpg",
+   "provenance": "third-party parts-supplier product image (djioemparts.com watermark) held in our own photo set since the 2026-08-03 collection round; not a licensed mesh and no geometry is copied from it - only lengths are read off it",
+   "registration": "work/measure_planform.py -> work/planform_c02.json. The four rotor axes are the midpoints of each propeller's two orange blade tips; the image axes are the aircraft axes to within 0.03 deg, so no rotation is applied; the scale 0.57912 mm/px is B1's ruler-scaled front track 363.92 mm over the measured 628.4 px front hub separation.",
+   "scale_cross_checks": [
+    "propeller tip-to-tip 264.1 / 263.9 / 260.6 / 260.3 mm against the official 267.0 mm (the deficit is the orange tip patch's own centroid bias)",
+    "front track 363.9 + can 29.3 = 393.2 mm against the official unfolded width 390.5 mm"
+   ],
+   "tolerance": "+-3 mm on every width and span",
+   "used_for": ["shell x span and width stations", "arm headings and arm width",
+                "gimbal plan footprint and its front face at x = +175.4 mm",
+                "the two nose-deck vision eyes at x = +88.9 mm, y = +-27.1 mm"]
+  },
+  "b1_height_round": {
+   "what": "ruler-scaled rigid multi-view fit of the FCC elevation photos, phase B1",
+   "held_at": "scratch wf/b1_height.md and mesh_rev1/height/work/m4p_height_ledger.json, m4p_fit.py, m4p_mc.py, m4p_variants.py",
+   "method": "3 views, 40 Monte-Carlo draws plus systematic variants; scale from the ruler digits only; focal length pinned",
+   "used_for": ["motor can diameter 29.330 mm (variants 29.32-29.57)",
+                "landing-foot position (-0.41, +-184.88) mm against front can centres (0, +-181.96)",
+                "front/rear track 363.92 / 301.59 mm and fore-aft spacing 275.68 mm (DECLARED, not applied)",
+                "the height shortfall table"]
+  },
+  "b1_spin_round": {
+   "what": "rotor spin direction, phase B1",
+   "held_at": "scratch wf/b1_spin.md and mesh_rev1/spin/spin_evidence_20260917.json",
+   "grade": "high",
+   "used_for": ["rotor_dirs (-1, +1, -1, +1) in rotor_deg order FL, RL, RR, FR: FL and RR clockwise seen from above"]
+  },
+  "inventory_round": {
+   "what": "mesh inventory and deviation analysis, 2026-09-17",
+   "held_at": "scratch wf/mesh_inv_mini5pro.md and mesh_0917/dji_folding/",
+   "used_for": ["gimbal block height 64 mm from FCC p05 at 0.3964 mm/px (+-1-2 mm)",
+                "motor can Ø30.5 x 19.8 mm from the same view, as an independent cross-check",
+                "revision-0 realized metrics the budgets are set against"]
+  }
+ },
+ "components": [
+  {"id": "M4P-1", "what": "shell planform", "grade": "medium-high",
+   "rev0": "x span -114.2 ... +89.8 mm, width 118.08 mm (_SHELL_SHAPE fl 0.62 / fw 0.302 / cx0 -0.06, proportions of body_l_mm 329 and body_w_mm 391)",
+   "rev1": "x span -72.5 ... +126.0 mm, 28 measured width stations, 68.9 mm at the waist and 92.1 / 86.9 mm at the rear / front shoulders",
+   "source": "owned_top_photo", "tolerance_mm": 3.0,
+   "not_measured": "width for x in [+65, +104] and [-54.5, -30]: the arm fairings and the shell are one run in the top view there, so P1's straight ruled band between the measured sections either side is used"},
+  {"id": "M4P-2", "what": "motor can", "grade": "medium-high",
+   "rev0": "Ø45.86 mm (0.052 x 441 mm used as a radius) x 33.815 mm realized",
+   "rev1": "Ø29.33 mm x 33.815 mm realized (height is revision 0's carry-over)",
+   "source": "b1_height_round, cross-checked by inventory_round", "tolerance_mm": 1.5,
+   "not_measured": "the can height. Consistency note only: the inventory's un-stretched reading 19.8 mm x 1.59767 = 31.6 mm is within 7 % of the carried-over 33.8 mm"},
+  {"id": "M4P-3", "what": "gimbal", "grade": "medium-high for the position, medium for the size",
+   "rev0": "squashed sphere of Ø60.0 mm raw (95.9 mm realized in z) centred at x = +89.8 mm, front face +106.9 mm, 65 % of its faces buried in the shell",
+   "rev1": "58.0 x 64.0 mm block, 45.4 mm deep, with a Ø30 x 10 mm lens barrel; front face at x = +175.4 mm; floor at revision 0's realized -77.73 mm",
+   "source": "owned_top_photo (position and width), inventory_round (height), revision 0 (floor)",
+   "not_measured": "the 64 mm height is one reader's reading of one FCC view, and the block/barrel depth split and the 6 mm burial into the nose are construction"},
+  {"id": "M4P-4", "what": "landing gear", "grade": "high",
+   "rev0": "two-prong A-frame per front arm, feet at y = +-191.9 mm",
+   "rev1": "one tapered leg per front motor, foot at the rotor axis -0.41 mm aft and +2.92 mm outboard",
+   "source": "fcc_external_photos p05 and p07 (count), b1_height_round (foot position)",
+   "not_measured": "the leg's own section, taper and splay - revision 0's width rule is carried over"},
+  {"id": "M4P-5", "what": "internal battery", "grade": "high for the size, none for the placement",
+   "rev0": "118.31 x 80.30 x 54.57 mm proportional box centred near the middle",
+   "rev1": "128 x 62 x 44 mm official pack, seated rearmost on the centreline",
+   "source": "manual p.88 (size), fcc_external_photos p07 / t01 / t08 / t16 (it forms the rear belly)",
+   "not_measured": "the manual prints no axis labels and no position; the axis assignment and the rearmost-seating rule are ours"},
+  {"id": "M4P-6", "what": "arms", "grade": "medium-high",
+   "rev0": "radial at the rotor azimuths 51.4 / 128.6 deg, 26.5 mm wide at the root tapering to 18.5 mm",
+   "rev1": "straight at 68.3 deg (front) and 129.4 deg (rear), 14.3 -> 13.4 mm (front) and 12.9 mm (rear)",
+   "source": "owned_top_photo, mid-line estimator",
+   "not_measured": "the arm HEIGHT - not measurable in a top view; revision 0's height = width x 0.775 rule is carried over"},
+  {"id": "M4P-7", "what": "rotor spin", "grade": "high",
+   "rev0": "(+1, -1, +1, -1), i.e. FL and RR counter-clockwise",
+   "rev1": "(-1, +1, -1, +1), i.e. FL and RR clockwise seen from above",
+   "source": "b1_spin_round"},
+  {"id": "M4P-8", "what": "blade orientation (P6)", "grade": "high",
+   "rev0": "the thick rounded edge sits on the retreating side, so the blades fly trailing-edge first",
+   "rev1": "drone_parts_rev1.propeller_rev1: the raised, thick edge leads for each rotor's own rotation",
+   "source": "b1_spin_round, inventory_round prop_sections_ours.json"}
+ ],
+ "declared_not_applied": [
+  {"what": "rotor trapezoid",
+   "measured": "front track 363.92 mm and rear 301.59 mm (B1, ruler-scaled); the top photo reads 363.9 / 312.6 mm",
+   "built": "344.65 mm at both, revision 0's value",
+   "why": "plan B.0 freezes rotor xy at revision 0's realized positions. This is the largest xy error left in the mesh: +-10 mm on the front rotors and +-16 mm on the rear, i.e. 0.31 lambda at 5.8 GHz on the rear pair."},
+  {"what": "front/rear rotor z stagger",
+   "measured": "B1 puts the rear can base 9.5 mm and the rear stack top 15 mm above the front",
+   "built": "one plane for all four rotors",
+   "why": "plan B.0 keeps the prop mount planes at revision 0's."},
+  {"what": "official unfolded width 390.5 mm",
+   "measured": "reproduced by B1's front track 363.92 + can 29.33 = 393.25 mm",
+   "built": "344.65 + 29.33 = 373.98 mm, 16.5 mm short",
+   "why": "the same frozen rotor track. Reported, not gated."},
+  {"what": "the x1.59767 height stretch",
+   "measured": "B1's FCC fit puts the tallest resting feature at about 100 mm (front can base 53.0, rear 62.5, front stack top 84.8, rear stack top 100.1, shell outline top 97.1 mm above the feet)",
+   "built": "revision 0's realized vertical layout, giving the official 135.2 mm unfolded height",
+   "why": "user decision 2026-09-18 plus the B1 finding: removing the stretch would leave the model about 35 mm (95 %: 32.7-37.3) short of the official height and no measured feature carries that 35 mm. The error is about +30 mm on the front can base, +22 mm on the rear, and +40 / +25 mm on the stack tops - and the stack tops are the rotor planes, where the micro-Doppler lives."}
+ ],
+ "not_used": [
+  "Any third-party licensed mesh. No Sketchfab / 3dmodels.org / CAD-marketplace model of this aircraft was opened or measured.",
+  "The 'Mavic 3 hover RPM 4000-4700 measured reports' claim that the 2026-09-17 research round flagged as a fabricated cross-check. Hover rpm is unchanged at revision 0's 3600 and is not a geometry input.",
+  "The repair-blog claim of a magnesium-alloy core frame and carbon-reinforced polyamide arms (single secondary source, unverified). Material groups are unchanged from revision 0."
+ ]
+}

@@ -1,0 +1,633 @@
+{
+ "drone": "phantom4",
+ "mesh_rev": 1,
+ "written_utc": "2026-09-17T21:10Z",
+ "frame_of_reference": "scan datum frame of scratchpad/mesh_0917/phantom_family/data/p4_datum.json: +x nose, +y left, +z up, feet plane z = -153.37 mm, motor-axis diagonal 350.0 mm.",
+ "grades": "high / medium-high may enter revision 1 (plan B.0). medium / low are ablation-only. Every row below states the file, page or table it comes from.",
+ "sources": {
+  "SCAN": {
+   "file": "scratchpad/mesh_0917/phantom_family/data/p4_scan_analysis_datum.json",
+   "raw": "scratchpad/mesh_0917/phantom_family/data/p4_datum_scan_samples.npy (2e6 surface samples)",
+   "what": "owned CC-BY Phantom 4 3D scan (NeverDun, 0.4 mm), decimated to /workspace/sionna/outputs/phantom4_scan_decim.ply, aligned by scripts/datum.py so its motor-axis diagonal is the published 350 mm and its lowest foot point is our lowest gear point",
+   "residual": "motor-axis fit residual 0.76-0.84 mm on the four rotors; datum scale 0.98686",
+   "state_of_the_aircraft": "propellers off, gimbal and camera removed (no scan point sits below z = -70 mm inside r < 60 mm), battery installed",
+   "measured_by": "scratchpad/mesh_0917/phantom_family/scripts/scan_analysis.py (datum mode) and impl/phantom4/work/scan_measure.py",
+   "grade": "high"
+  },
+  "QSG_P7": {
+   "file": "scratchpad/mesh_0917/phantom_family/ref/Phantom_4_Quick_Start_Guide_v1.2_en_160317.pdf",
+   "page": 7,
+   "what": "dimension figure: 289.5 mm x 289.5 mm footprint and 196 mm height. The 196 mm dimension line ends on the top of a propeller hub cap, so it is a props-INCLUDED height.",
+   "grade": "high"
+  },
+  "UM_P8": {
+   "file": "scratchpad/mesh_0917/phantom_family/ref/Phantom_4_User_Manual_en_v1.2_160328.pdf",
+   "page": 8,
+   "what": "Aircraft Diagram: four orthographic elevations (front, rear, left side, bottom) with callouts [1] GPS ... [12] Vision Positioning Sensors",
+   "scale_rule": "front elevation: crown row 706, feet row 1198 at 600 dpi -> 492 px for the scan's 180.21 mm -> 2.7301 px/mm. Side elevation: crown row 1924, feet row 2428 -> 504 px -> 2.7967 px/mm. Cross-check: the side elevation's two motor cans are 687.5 px apart = 245.8 mm against the geometric 247.49 mm (-0.7 %), and the front elevation's props-included height reads 195.6 mm against the QSG's 196 mm (-0.2 %). Quoted accuracy of anything read off these drawings: +-1 %.",
+   "grade": "medium-high"
+  },
+  "UM_P20_21": {
+   "file": "same User Manual",
+   "page": "20-21",
+   "what": "Obstacle and Vision Positioning System: forward obstacle sensing plus a downward system of two ultrasonic and four monocular sensors; p.21 states the obstacle-sensing cameras are installed on the landing gear. No rear vision and no infrared side sensors are described anywhere in this manual.",
+   "grade": "high"
+  },
+  "SPIN": {
+   "file": "scratchpad/wf/b1_spin.md",
+   "what": "rotor spin: front-left and rear-right clockwise seen from above; from the User Manual v1.2 p.7 propeller figure (black ring on FL with a CCW lock arrow, silver on FR with CW) and p.23's ring-colour rule",
+   "grade": "medium-high"
+  },
+  "REV0": {
+   "file": "/workspace/sionna/src/drone_cad.py and src/drones.py at HEAD 4254c4b2",
+   "what": "revision 0's own realized geometry: rotor xy +-123.7436867076458 mm, prop mount plane 21.70 mm, motor bell radius 18.2 mm, internal ratio boxes",
+   "grade": "n/a (revision-0 fact, not evidence about the aircraft)"
+  }
+ },
+ "targets": [
+  {
+   "id": "P4-1",
+   "name": "props-off frame height",
+   "value_mm": 180.2,
+   "tol_mm": 3.0,
+   "source": "SCAN scan_bbox_mm.ext[2] = 180.21",
+   "grade": "high"
+  },
+  {
+   "id": "P4-1",
+   "name": "crown z",
+   "value_mm": 26.8,
+   "tol_mm": 2.0,
+   "source": "SCAN scan_crown_z_mm_within_r50 = 26.8",
+   "grade": "high"
+  },
+  {
+   "id": "P4-1",
+   "name": "feet plane z",
+   "value_mm": -153.37,
+   "tol_mm": 1.0,
+   "source": "SCAN scan_z.feet_min_mm = -153.4 (datum)",
+   "grade": "high"
+  },
+  {
+   "id": "P4-1",
+   "name": "height with propellers (report-only)",
+   "value_mm": 196.0,
+   "tol_mm": 3.0,
+   "source": "QSG_P7 dimension figure; UM_P8 front elevation reads 195.6 mm",
+   "grade": "high",
+   "scored": false,
+   "note": "Not scored: the only revision-1 lever is rotor mount z, pinned by the scan at +24.9 mm; the remainder is the revision-0 propeller hub cap, which plan P6 forbids this revision from changing."
+  },
+  {
+   "id": "P4-1",
+   "name": "official footprint 289.5 x 289.5 (declared, not fitted)",
+   "value_mm": 289.5,
+   "tol_mm": null,
+   "source": "QSG_P7",
+   "grade": "high",
+   "scored": false,
+   "note": "revision 1 builds 286.1 mm, -1.2 %. Revision 0 asserted nothing here either: its L/W forcing was released in 2026-08-16."
+  },
+  {
+   "id": "P4-2",
+   "name": "waist width at x = 0",
+   "value_mm": 101.0,
+   "tol_mm": 4.0,
+   "source": "SCAN section_at_x 0: y -50.59 ... +50.45",
+   "grade": "high"
+  },
+  {
+   "id": "P4-2",
+   "name": "belly z at x = 0",
+   "value_mm": -58.4,
+   "tol_mm": 3.0,
+   "source": "SCAN centreline_y0 at x = 0: -58.45",
+   "grade": "high"
+  },
+  {
+   "id": "P4-2",
+   "name": "arm section at r = 120 (width x height)",
+   "value_mm": [
+    24.0,
+    37.4
+   ],
+   "tol_mm": 3.0,
+   "source": "SCAN arm_sections: width 24.0, z -26.04 ... +11.43",
+   "grade": "high"
+  },
+  {
+   "id": "P4-2",
+   "name": "arm section at r = 140 (width x height)",
+   "value_mm": [
+    19.3,
+    29.7
+   ],
+   "tol_mm": 3.0,
+   "source": "SCAN arm_sections: width 19.3, z -22.31 ... +7.44",
+   "grade": "high"
+  },
+  {
+   "id": "P4-2",
+   "name": "top silhouette ratio ours/scan",
+   "value": 1.0,
+   "range": [
+    0.95,
+    1.08
+   ],
+   "source": "SCAN silhouette top_xy = 30150 mm^2 (revision 0 was 1.365)",
+   "grade": "high"
+  },
+  {
+   "id": "P4-2",
+   "name": "pod loft stations",
+   "value": "see drone_rev1_phantom4.POD_STATIONS",
+   "source": "SCAN centreline_y0 (z_top, z_bot every 5 mm); the half width is the loft's free parameter, anchored on the measured waist at x = 0 and on the measured section widths at x = +-30, +-60, +-90 that the union has to reproduce",
+   "grade": "high"
+  },
+  {
+   "id": "P4-2",
+   "name": "arm loft stations",
+   "value": "see drone_rev1_phantom4.ARM_STATIONS",
+   "source": "SCAN, sections perpendicular to each 45 deg axis, |t| < 26 mm, motor can excluded, averaged over the four arms; r = 80...100 is left to the ruled surface because the landing gear hides the arm's underside there",
+   "grade": "high"
+  },
+  {
+   "id": "P4-3",
+   "name": "camera assembly x range",
+   "value_mm": [
+    -13.0,
+    62.0
+   ],
+   "tol_mm": 4.0,
+   "source": "UM_P8 left-side elevation",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-3",
+   "name": "camera bottom above the feet",
+   "value_mm": 27.0,
+   "tol_mm": 4.0,
+   "source": "UM_P8 front elevation: camera block bottom row 1123 -> z = -125.9 mm -> 27.5 mm above the feet",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-3",
+   "name": "camera head block (w x h x d)",
+   "value_mm": [
+    45.2,
+    33.7,
+    38.3
+   ],
+   "tol_mm": 3.0,
+   "source": "UM_P8: width and height from the front elevation, depth and height from the side elevation (h is the mean of 35.8 front and 31.6 side)",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-3",
+   "name": "camera lens diameter",
+   "value_mm": 29.9,
+   "tol_mm": 3.0,
+   "source": "UM_P8 front elevation, outer lens ring",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-3",
+   "name": "yaw housing and post diameter",
+   "value_mm": 25.0,
+   "tol_mm": 3.0,
+   "source": "UM_P8 side elevation: the yaw cylinder is 27.4 mm across in x and spans z -60.9 ... -80.2; front elevation gives 24.8 mm across in y",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-3",
+   "name": "camera buried fraction",
+   "value_pct_max": 10.0,
+   "source": "plan P4-3",
+   "grade": "n/a (acceptance rule)"
+  },
+  {
+   "id": "P4-4",
+   "name": "motor can diameter",
+   "value_mm": 28.2,
+   "tol_mm": 1.0,
+   "source": "SCAN scan_motor_cans can_radius_fit_mm 14.10, 14.09, 14.08, 14.00 (mean 14.0675 -> 28.135 mm); reviewer re-read of the scan file 2026-09-17",
+   "grade": "high",
+   "cross_check": "UM_P8 side elevation: the drawn can is 80 px = 28.6 mm wide",
+   "reviewer_note": "The builder's report and the frozen threshold quote the range as 14.09-14.10; rotor 3 is 14.00. Ø28.2 is 0.07 mm above 2x the mean and well inside the +-1.0 mm threshold, so nothing moves."
+  },
+  {
+   "id": "P4-4",
+   "name": "motor can straight wall",
+   "value_mm": 23.0,
+   "tol_mm": 2.0,
+   "source": "SCAN radial profile: r50 = 14.1-14.7 mm from z ~ 0 to z = 22.9",
+   "grade": "high"
+  },
+  {
+   "id": "P4-4",
+   "name": "motor pod diameter",
+   "value_mm": 38.6,
+   "tol_mm": 3.0,
+   "source": "SCAN radial profile: r50 = 18.7-19.3 mm over z = -11 ... -1",
+   "grade": "high",
+   "realized_mm": 35.03,
+   "scored_against": "38.0 +- 3.0 (frozen thresholds, from plan B.5 'pod Ø38 ±3')",
+   "reviewer_note": "RESIDUAL. This row's own target (38.6) and the frozen threshold (38.0) disagree, and the built pod measures 35.03 mm on the same r50 rule at z = -5 mm, so it passes the frozen threshold by 0.03 mm and would fail this row's 38.6 +- 3. Cause: drone_parts_rev1.motor_can tapers the pod linearly (pod_taper 0.83, widest at its bottom z = -11), while the scan's r50 is barrel-shaped: 17.8 at z = -11.1, 19.0 at -9.1, 19.3 at -5.1, 16.0 at -1.1. A single linear taper cannot reproduce that, so the pod is ~3.2 mm narrow where both are measured. Not changed by the reviewer: fixing it is a geometry change and the fingerprint is not frozen yet — it is open question Q7."
+  },
+  {
+   "id": "P4-4",
+   "name": "prop adapter diameter",
+   "value_mm": 18.0,
+   "tol_mm": 3.0,
+   "source": "SCAN radial profile: r50 = 8.4-9.3 mm at the z = 24.8-25.0 step",
+   "grade": "high"
+  },
+  {
+   "id": "P4-4",
+   "name": "prop mount plane z",
+   "value_mm": 24.9,
+   "tol_mm": 2.0,
+   "source": "SCAN scan_motor_cans top_z_mm 24.9, 25.0, 24.9, 24.8",
+   "grade": "high",
+   "how_applied": "rotor_z_mm = 24.9 - 21.70 = +3.20 mm, because drones._arm_motor_dims puts this key's prop mount plane at motor_bell_top_z_m + standoff = 0.014*350 + 16.8 = 21.70 mm"
+  },
+  {
+   "id": "P4-5",
+   "name": "leg centre x at z = -80",
+   "value_mm": 72.9,
+   "tol_mm": 3.0,
+   "source": "SCAN leg sections: front-left x 66.3 ... 79.5",
+   "grade": "high"
+  },
+  {
+   "id": "P4-5",
+   "name": "leg section at z = -80",
+   "value_mm": [
+    13.2,
+    12.0
+   ],
+   "tol_mm": 1.5,
+   "source": "SCAN leg sections",
+   "grade": "high"
+  },
+  {
+   "id": "P4-5",
+   "name": "leg section at z = -110",
+   "value_mm": [
+    11.1,
+    10.3
+   ],
+   "tol_mm": 1.5,
+   "source": "SCAN leg sections",
+   "grade": "high"
+  },
+  {
+   "id": "P4-5",
+   "name": "leg axis",
+   "value": "see drone_rev1_phantom4.LEG_PATH_MM",
+   "source": "SCAN leg sections at z = -50, -60, -80, -110, -135 (centre of the x and y span); the top point extrapolates that straight axis to z = -30 so the host cut has material to remove",
+   "grade": "high"
+  },
+  {
+   "id": "P4-5",
+   "name": "skid",
+   "value_mm": {
+    "y_centre": 80.6,
+    "section": [
+     9.7,
+     13.4
+    ],
+    "x_half": 80.0,
+    "z_mid": -146.7
+   },
+   "tol_mm": 2.0,
+   "source": "SCAN lowest band, left side: y 76.1 ... 85.8 at z = -146, continuous in x from -80 to +80 below z = -141",
+   "grade": "high"
+  },
+  {
+   "id": "P4-5",
+   "name": "leg attachment gap",
+   "value_mm_max": 0.5,
+   "source": "plan C.2; realized by cutting each strut against the fairing",
+   "grade": "n/a (acceptance rule)"
+  },
+  {
+   "id": "P4-6",
+   "name": "GPS puck removed",
+   "value": "removed",
+   "source": "UM_P8 shows no puck; SCAN shows a smooth crown at +26.8 mm within r < 50 mm. Revision 0's puck (r 16 x 9 mm) cited a Phantom 4 Pro+ V2.0 photo, a different aircraft.",
+   "grade": "high"
+  },
+  {
+   "id": "P4-6",
+   "name": "rear stereo pair removed",
+   "value": "removed",
+   "source": "UM_P20_21: the base Phantom 4 has forward obstacle sensing only; rear vision arrived with the P4 Pro",
+   "grade": "high"
+  },
+  {
+   "id": "P4-6",
+   "name": "side infrared pair removed",
+   "value": "removed",
+   "source": "UM_P20_21: no infrared sensing system in this manual; it arrived with the P4 Pro V2.0",
+   "grade": "high"
+  },
+  {
+   "id": "P4-6",
+   "name": "forward obstacle-sensing pair kept, on the landing gear",
+   "value_mm": {
+    "y": 66.0,
+    "z": -36.9
+   },
+   "tol_mm": 4.0,
+   "source": "UM_P8 front elevation callout [6]; UM_P20_21 p.21 'cameras that installed on landing gear'",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-6",
+   "name": "downward vision pair kept (existence)",
+   "value": "kept",
+   "source": "UM_P8 callout [12] Vision Positioning Sensors + UM_P20_21 downward system",
+   "grade": "high",
+   "reviewer_note": "Regraded by the reviewer. The builder's row carried grade 'medium', which plan B.0 does not admit into revision 1. What the manual supports at high grade is that the pair exists on the belly; only its exact xy is unsourced, and that now sits in unsourced_engine_knobs with the cylinder sizes."
+  },
+  {
+   "id": "P4-7",
+   "name": "internal metal inside the shell",
+   "value_pct": 100.0,
+   "clearance_mm": 1.0,
+   "source": "plan C.2",
+   "grade": "n/a (acceptance rule)"
+  },
+  {
+   "id": "P4-8",
+   "name": "rotor_dirs",
+   "value": [
+    -1,
+    1,
+    -1,
+    1
+   ],
+   "source": "SPIN (front-left and rear-right clockwise seen from above)",
+   "grade": "medium-high"
+  },
+  {
+   "id": "P4-8",
+   "name": "propeller label",
+   "value": "9450",
+   "source": "DJI propeller-dimensions table, 24 x 12.7 cm; already revision 0's prop_dia_mm = 240",
+   "grade": "high"
+  },
+  {
+   "id": "P4-8",
+   "name": "P6 blade orientation",
+   "value": "thick raised edge leads",
+   "source": "drone_parts_rev1 P6, measured on the owned DJI Mini 2 GLB (8/8 blades)",
+   "grade": "high"
+  }
+ ],
+ "unsourced_engine_knobs": [
+  {
+   "what": "internal battery box dimensions",
+   "revision_1_value_mm": "revision 0's 101.6 x 107.3 x 42.2 multiplied by the largest scale in drone_rev1_phantom4.INTERNAL_SCALES that fits the revision-1 shell with 1 mm of clearance",
+   "why": "DJI publishes no dimension for the PH4-5350 mAh pack. The Quick Start Guide's only dimensioned figure on that page (182/172/105/71 mm) belongs to the remote controller, not the battery. The owned scan is an outside surface, so it cannot measure a pack inside the shell. Revision 0's numbers were ratio placeholders (body length x 0.50 etc.) and were not measured either.",
+   "declared": "This is an engine knob, not a measurement. It must never be reported as measured. It is carried into revision 1 only because plan C.2 requires the internal metal to be inside the shell, and revision 0's box does not fit the (correctly smaller) revision-1 shell.",
+   "grade": "not evidence"
+  },
+  {
+   "what": "internal board (pcb) box dimensions",
+   "revision_1_value_mm": "same rule as the battery",
+   "why": "same",
+   "declared": "same",
+   "grade": "not evidence"
+  },
+  {
+   "what": "vision-sensor cylinder sizes (r 6 x 8 mm forward, r 5 x 6 mm downward)",
+   "why": "DJI publishes none; these are revision 0's repo literals, carried over unchanged. Only the sensors DJI never fitted were removed.",
+   "grade": "not evidence"
+  },
+  {
+   "what": "superellipse exponents of the fairing sections (pod 2.6 / 2.4, arms 3.0 / 3.0) and the pod half-width profile away from x = 0",
+   "why": "The scan gives section extents, not section shape. The exponents and the half-width profile are the loft's free parameters; they are chosen so the union reproduces the measured section widths at x = 0, +-30, +-60, +-90 and the measured top silhouette area, all of which are scored in C.3 and C.4.",
+   "grade": "not evidence (fitted to measured targets)"
+  },
+  {
+   "what": "downward vision pair xy on the belly (x 12.0, y +-20.0 mm)",
+   "why": "Read off the p.8 bottom elevation by eye; the drawing gives no dimension and the scan cannot see the belly lenses. Their z is not chosen at all - it is set by the fairing's own belly under that xy, so the part always meets the shell.",
+   "declared": "Engine knob, not a measurement. Moved here by the reviewer 2026-09-17.",
+   "grade": "not evidence"
+  }
+ ],
+ "dropped_targets": [
+  {
+   "what": "'manual 179.1 mm' and 'manual 28.1-28.5 mm'",
+   "why": "plan S1: neither label is traceable in any owned file. The same quantities are covered by the scan (frame height 180.2 mm, motor can 28.2 mm), which is what revision 1 uses."
+  }
+ ],
+ "reviewer_remeasured_2026_09_17": {
+  "who": "adversarial reviewer, own isolated copy of HEAD 4254c4b2 + E0 + E1 + this delivery",
+  "method": "The scan file was re-read directly; the two PDFs were re-rendered at 600 dpi with pdftoppm and measured in pixels. Elevation scales were re-derived, not taken from the builder.",
+  "agrees": [
+   "scan bbox ext z 180.2, crown +26.8, feet -153.4",
+   "waist at x=0: scan y -50.6..+50.4 = 101.0 mm",
+   "belly at x=0: centreline_y0 zmin -58.4 mm",
+   "arm section r=120: width 24.0, z -26.0..+11.4 -> 37.4 mm; r=140: 19.3 x 29.7 mm",
+   "motor can top_z 24.9/25.0/24.9/24.8 -> 24.9 mm",
+   "leg centre x at z=-80: 72.9 mm; section 13.0 x 11.8; at z=-110: 11.1 x 10.3",
+   "rev0 top silhouette ours/scan 1.365, front 0.964, side 1.059",
+   "UM p.8 front elevation: crown row 706, feet row 1198 -> 492 px for 180.21 mm",
+   "UM p.8 props-included height: prop cap top row 664 -> 195.6 mm against the QSG's 196",
+   "UM p.8 side elevation: the two cans are 687.5 px apart = 245.8 mm against 247.49 (-0.7 %)",
+   "UM p.8 front elevation: camera block bottom row 1123 -> 27.5 mm above the feet",
+   "UM p.8: camera head 45.05 x 33.7 mm (front) and 37.9 mm deep (side)",
+   "UM p.8 side elevation: gimbal chain spans x -11.9 .. +60.7 mm",
+   "QSG p.7: the 196 mm dimension line's upper arrow lands on a propeller hub cap, its lower arrow on the foot plane - 196 mm is props-included",
+   "QSG p.7: the PH4-5350 battery block publishes no dimension; the 182/172/105/71 mm figure on that page dimensions the remote controller",
+   "UM p.7 propeller figure: the battery is at the bottom of the drawing, so the two arms shown are the front ones; front-left carries the black ring with a CCW lock arrow and front-right the silver ring with a CW arrow -> front-left spins CW seen from above",
+   "UM p.8 front elevation: the two motor cans are 679 px apart for 247.49 mm and each can is 77 px wide -> 28.2 mm, an independent confirmation of the scan's Ø28.2"
+  ],
+  "differs": [
+   {
+    "item": "forward obstacle-sensing pair, UM p.8 front elevation",
+    "builder": "y +-66.0 mm, z -36.9 mm",
+    "reviewer": "y +-64.1 mm, z -35.8 mm (ring centres at cols 865.5/1215.5, row 877, origin from the two cans at cols 700.75/1379.75)",
+    "effect": "1.9 mm in y, 1.1 mm in z - inside the row's own +-4 mm and not scored."
+   },
+   {
+    "item": "forward sensor size",
+    "builder": "revision 0's r 6 x 8 mm cylinder, declared as an engine knob",
+    "reviewer": "the drawn outer ring is 47 px = 17.2 mm across, not 12 mm",
+    "effect": "The declared knob is ~5 mm smaller than the manual's own ring. It stays a knob; noted so it is not later quoted as measured."
+   },
+   {
+    "item": "motor can radius range",
+    "builder": "14.09-14.10 mm",
+    "reviewer": "14.10, 14.09, 14.08, 14.00 mm",
+    "effect": "Quotation only; the threshold and the built Ø28.2 are unaffected."
+   }
+  ]
+ },
+ "review_fix_2026_09_18": {
+  "what": "Geometry fixes for the defects the 2026-09-17 adversarial review left standing: the motor pod (R8), the tail (R9), the arm underside (R10) and the four floating vision sensors (R11). Every number below was re-measured from the scan before the change.",
+  "new_targets": [
+   {
+    "id": "P4-4",
+    "name": "motor pod diameter, scan r50 rule at z = -5 mm",
+    "value_mm": 37.8,
+    "tol_mm": 3.0,
+    "measured": "r50 of the scan samples within 35 mm of each rotor axis, z slab +-1.0 mm, mean over the four rotors = 18.91 mm radius. This is the same rule benchmark/mesh_rev1_acceptance.py scores and the same one the frozen threshold names (38.0 +- 3.0).",
+    "caveat": "r50 is a MEDIAN OVER A MIXTURE: the slab holds pod wall and arm fairing both. It is used because it is the rule the frozen row names, and because on this geometry the pod wall is what the median lands on (the delivery's cone wall was 17.51 mm at z = -5 and the same measurement returned 17.5). It is not the pod's true radius.",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   },
+   {
+    "id": "P4-4",
+    "name": "motor pod radial profile (r, z) used to build the barrel",
+    "value_mm": [
+     [
+      17.62,
+      -11.0
+     ],
+     [
+      19.02,
+      -8.0
+     ],
+     [
+      18.83,
+      -4.5
+     ],
+     [
+      14.73,
+      0.0
+     ]
+    ],
+    "measured": "scan r50 (same rule) at z = -11.0/-10/-9/-8/-7/-6/-5/-4/-3/-2/-1/0 = 17.62 / 18.75 / 18.96 / 19.03 / 19.03 / 19.05 / 18.91 / 18.76 / 18.24 / 16.74 / 15.46 / 14.73. Four rings are built, not twelve: each extra ring is another line the P2 union cuts through the arm fairing, and a twelve-ring pod cost 54 more C.1 sliver faces for 0.1 mm of profile.",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   },
+   {
+    "id": "P4-2",
+    "name": "tail: aft tip of the shell on the centre line",
+    "value_mm": -74.57,
+    "tol_mm": 1.0,
+    "measured": "min x of the scan samples with |y| < 2 mm and z > -70 mm",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   },
+   {
+    "id": "P4-2",
+    "name": "tail centre-line sections (x: z_bot, z_top)",
+    "value_mm": {
+     "-74.0": [
+      -18.43,
+      5.61
+     ],
+     "-73.0": [
+      -22.57,
+      10.11
+     ],
+     "-72.0": [
+      -24.35,
+      13.19
+     ],
+     "-71.0": [
+      -25.37,
+      14.49
+     ],
+     "-70.0": [
+      -26.04,
+      15.32
+     ],
+     "-60.0": [
+      -31.37,
+      19.46
+     ]
+    },
+    "measured": "scan samples with |y| < 2 mm, x window +-0.5 mm, z > -70 mm",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   },
+   {
+    "id": "P4-2",
+    "name": "tail half width where the tail is separable from the arm fairings",
+    "value_mm": {
+     "-75.0": 9.65,
+     "-74.0": 21.82,
+     "-73.0": 29.52,
+     "-72.0": 33.61,
+     "-71.0": 35.95,
+     "-70.0": 37.93
+    },
+    "measured": "half of the contiguous y run containing y = 0 (gap rule 5 mm), x window +-0.75 mm, z > -70 mm, clipped to |y| < 50 mm. At x = -70 the run already touches the clip on the +y side, so 37.93 is a lower bound; inboard of that the scan cannot separate pod from arms at all.",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   },
+   {
+    "id": "P4-2",
+    "name": "arm underside flank (the broad flat part), per station",
+    "value_mm": {
+     "106": -25.94,
+     "110": -25.0,
+     "114": -22.32,
+     "116": -21.59,
+     "120": -21.14,
+     "128": -20.18,
+     "136": -18.85,
+     "140": -18.17,
+     "148": -17.33,
+     "152": -17.08,
+     "156": -16.62
+    },
+    "measured": "mean over the four arms of the lowest scan z at 5 <= |t| <= 8 mm from the arm axis, station window +-1.0 mm, offset window +-0.6 mm",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   },
+   {
+    "id": "P4-2",
+    "name": "arm underside keel (the narrow rib), per station",
+    "value_mm": {
+     "106": -29.72,
+     "110": -27.88,
+     "114": -27.11,
+     "116": -26.65,
+     "120": -25.83,
+     "128": -24.26,
+     "136": -22.8,
+     "140": -22.13,
+     "148": -19.75,
+     "152": -19.1,
+     "156": -17.93
+    },
+    "measured": "same measurement at |t| <= 1 mm. Rib half width 2.0-3.0 mm where the flank band is clear of it (r = 118 ... 132).",
+    "source": "SCAN raw: p4_datum_scan_samples.npy, 2e6 surface samples in the datum frame; re-measured 2026-09-18 by impl/phantom4/fixwork/{measure_targets,tailw,keel,sections}.py, ledgers fixwork/scan_targets.json and fixwork/scan_keel.json",
+    "grade": "high"
+   }
+  ],
+  "declared_shortfalls": [
+   {
+    "what": "the arm keel stops at r = 144 mm; the scan's fades out at r ~ 155 (depth 1.31 mm at r = 156)",
+    "why": "carrying it further put its tip 23 mm from the rotor axis, where rib, arm tip dome and motor pod all meet, and that corner cost 60 C.1 sliver faces for the last 2 mm of rib depth. Stated rather than built."
+   },
+   {
+    "what": "the forward vision sensor's cut against its strut is tangential on one side, so about 1.4 mm of its rim ends beside the strut rather than on it",
+    "why": "the sensor is 12 mm across and the strut it sits on is about 14 mm, with the sensor's sourced y = +-66.0 about 1.7 mm off the strut axis. Both the sensor diameter (already an unsourced engine knob) and y = +-66.0 are the delivery's; moving or shrinking the sensor to remove the tangency would be changing a knob to flatter a metric."
+   },
+   {
+    "what": "arm stations at r <= 110 and at r = 160 keep the delivery's z_bot",
+    "why": "at r <= 110 the scan's section is a smooth U with no shoulder, and between r = 75 and 105 the landing gear sits on the arm axis so the underside is unread. r = 160 is inside the motor pod's footprint (the pod spans r = 155.7 ... 194.3 about the rotor axis), so the scan there is a mixture of pod and arm."
+   }
+  ],
+  "free_parameters_changed": [
+   {
+    "what": "pod half width at x = -60",
+    "value_mm": 39.0,
+    "why": "the scan cannot separate the tail from the arm fairings inboard of x ~ -70, so this stays the loft's free parameter; it is carried linearly from the measured 38.0 at x = -70 to the delivered 40.0 at x = -50. The delivery's 32.0 left a notch between tail and arms that the scan does not have."
+   },
+   {
+    "what": "keel loft top z (about 2 mm above the local flank) and superellipse exponents 2.4/2.4",
+    "why": "the rib has to overlap the arm fairing or the P2 union leaves a tangent seam instead of one solid. The scan gives the rib's depth and width, not its section shape."
+   }
+  ]
+ }
+}

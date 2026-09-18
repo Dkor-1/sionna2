@@ -1,0 +1,770 @@
+{
+ "_about": "Every dimension revision 1 of the DJI Mini 5 Pro mesh asserts, with its value, its tolerance, its owned source and its evidence grade (plan B.0, B.4). Grades: high, medium-high, medium, low. Only high and medium-high may enter a revision; everything marked 'carry-over' asserts nothing new and is revision 0's own value, kept because the change it belongs to is not in this round.",
+ "key": "mini5pro",
+ "mesh_rev": 1,
+ "written": "2026-09-18 (before the first acceptance run)",
+ "base": {
+  "repo_head": "4254c4b2edc189385216720b3561831ac8841863",
+  "live_sha256": {
+   "src/drones.py": "9f35d2a605901adfcd17e432bfa4b7c82afb087718361b82da3c04b7834afb15",
+   "src/drone_cad.py": "4f706fc7921d86ea59c2184840afc84f37f849e4d4660784090f60769ebad11a",
+   "benchmark/elevation_sweep_md.py": "c6403bd7a8c9da9aa34e3898585c2dd2ed857d25ca51c74b9a16a2a172acbc4d",
+   "src/geom.py": "cf6f39e978b46d601111370ea4d9d5eccdc6b7169bd6319c8daffc3e5797d913",
+   "src/articulated_fast.py": "b9a55ff556360fad2d2def2b899fb9adf6b781dc85f6047ad066f689d4ee0ea5"
+  },
+  "note": "Isolated copy only. No file under /workspace/sionna was created, edited or deleted."
+ },
+ "sources": {
+  "photo_top": {
+   "id": "photo_top",
+   "file": "/workspace/sionna/assets/photos/mini5pro/mini 5 pro_3.png",
+   "kind": "owned official DJI product photo, top view, props on",
+   "scale": "3.0271 px/mm from an Umeyama similarity fit on the four prop hubs; hub pixels from the mini5pro note in src/drones.py (2026-07-31 tip-midpoint construction); rotation 0.01 deg; hub residuals -0.59/+2.05, -2.70/-2.03, +2.62/-1.82, +0.67/+1.80 mm",
+   "reader": "scratch mesh_rev1/impl/mini5pro/work/measure_planform.py -> work/planform_photo3.json",
+   "limits": "product render, not hardware. Its front-track and rear-track scales differ by 2.6 %, which is the +-2.7 mm hub residual. Every length read from it carries +-3 mm."
+  },
+  "fcc_external": {
+   "id": "fcc_external",
+   "file": "scratch mesh_rev1/height/src/mini5pro_fcc_SS3-MT5MFND25_external_photos_8307184.pdf (page images scratch mesh_0917/dji_folding/web/m5p_fcc_ext_p*.jpeg)",
+   "url": "https://fccid.io/SS3-MT5MFND25/External-Photos/External-photo-8307184.pdf",
+   "sha256": "fe42c323f5384af59f3fdf545c8105999aa26b1b48a74fdd22731561f329fd3a",
+   "downloaded": "2026-09-17 13:49 UTC",
+   "kind": "FCC exhibit, hardware, props removed; steel rule in the plan views only",
+   "limits": "the unit's production status is unknown; there is no rule in any elevation view"
+  },
+  "b1_height": {
+   "id": "b1_height",
+   "file": "scratch wf/b1_height.md, scratch mesh_rev1/height/work/m5p_height_ledger.json",
+   "kind": "pinhole fit of one rigid symmetric body to 4 FCC views, 120 Monte-Carlo draws",
+   "limits": "sufficient for bell-top / prop-mount z (+-1.5 mm) and arm-tip z (+-3 mm); INSUFFICIENT for the front/rear stagger (+-13 mm) and the hub height"
+  },
+  "b1_spin": {
+   "id": "b1_spin",
+   "file": "scratch wf/b1_spin.md, scratch mesh_rev1/spin/spin_evidence_20260917.json",
+   "kind": "blade width ratios on two owned product photos plus the manual p.54 A/B prop positions"
+  },
+  "manual": {
+   "id": "manual",
+   "file": "scratch mesh_0917/dji_folding/web/mini5pro_um_en.pdf (text mini5pro_um_en.txt)",
+   "kind": "DJI Mini 5 Pro User Manual, 93 pages, created 2025-09-11, md5 f49e7344..."
+  },
+  "spec_page": {
+   "id": "spec_page",
+   "url": "https://www.dji.com/global/mini-5-pro/specs",
+   "kind": "manufacturer specification page, accessed 2026-09-17"
+  },
+  "rev0": {
+   "id": "rev0",
+   "file": "src/drones.py DRONES['mini5pro'], src/drone_cad.py _SHELL_SHAPE/_ARM_WIDTH/_ARM_SECTION/MOTOR_BASE_Z/PROP_STANDOFF_M",
+   "kind": "revision 0 itself, at its realized (x1.2985461340272204 in z) size",
+   "limits": "a carry-over asserts nothing new; it is what revision 1 does NOT change"
+  }
+ },
+ "targets": [
+  {
+   "id": "M5P-2.shell_x_span_pale",
+   "quantity": "shell (pale plastic) fore-aft span",
+   "value_mm": [
+    -54.0,
+    92.0
+   ],
+   "tol_mm": 3.0,
+   "source": "photo_top",
+   "grade": "medium-high",
+   "how": "centreline run of the body mask, work/planform_photo3.json; the run continues to +98.0 but work/crops/top_nose.png shows +93..+98 is the black nose grille module",
+   "rev0_value_mm": [
+    -68.98,
+    68.98
+   ]
+  },
+  {
+   "id": "M5P-2.outline_x_span_with_grille",
+   "quantity": "body outline span including the black nose grille",
+   "value_mm": [
+    -54.0,
+    98.0
+   ],
+   "tol_mm": 3.0,
+   "source": "photo_top",
+   "grade": "medium-high",
+   "plan_target": "+97.8 ... -54.1 mm",
+   "rev0_value_mm": [
+    -68.98,
+    90.16
+   ]
+  },
+  {
+   "id": "M5P-2.outline_centre_ahead_of_rotor_centroid",
+   "quantity": "centre of the outline ahead of the rotor centroid",
+   "value_mm": 22.0,
+   "tol_mm": 3.0,
+   "source": "photo_top",
+   "grade": "medium-high",
+   "plan_target": "+21.9 +-3",
+   "rev0_value_mm": 0.0
+  },
+  {
+   "id": "M5P-2.width_stations",
+   "quantity": "shell full width at x",
+   "tol_mm": 3.0,
+   "source": "photo_top",
+   "grade": "medium-high",
+   "value_mm": [
+    [
+     -50.0,
+     51.2
+    ],
+    [
+     -16.0,
+     52.8
+    ],
+    [
+     0.0,
+     52.8
+    ],
+    [
+     14.0,
+     53.8
+    ],
+    [
+     30.0,
+     56.5
+    ],
+    [
+     54.0,
+     76.2
+    ],
+    [
+     62.0,
+     75.0
+    ],
+    [
+     70.0,
+     75.0
+    ],
+    [
+     78.0,
+     74.8
+    ],
+    [
+     86.0,
+     70.2
+    ],
+    [
+     90.0,
+     64.5
+    ]
+   ],
+   "plan_target": "68 +-3 at x 88; 75 +-3 at x 62-75; 53-54 +-3 at the waist",
+   "measured_at_plan_stations": {
+    "x88": 69.2,
+    "x62_75": [
+     75.0,
+     75.2
+    ],
+    "waist": [
+     52.5,
+     53.8
+    ]
+   },
+   "not_measurable": "x in [-46,-18] and [+32,+52]: the arm fairings and the shell are one run in the top view. P1 spans them with its straight ruled band between the measured sections either side."
+  },
+  {
+   "id": "M5P-2.front_arm_heading",
+   "quantity": "front arm axis heading from +x",
+   "value_deg": 68.97,
+   "tol_deg": 3.0,
+   "source": "photo_top",
+   "grade": "medium-high",
+   "how": "MID-LINE estimator on the owned top photo (fix/arm_midline.py, ledger fix/arm_midline.json): at 1 mm steps along a candidate axis pinned through the revision-0 rotor centre, walk perpendicular to it and take the centre of the contiguous mask run, then refit and iterate. BOTH edges of the arm band are used, so the arm's own width cancels and no width assumption enters. 24 independent fits = 2 front rotors x 3 foreground thresholds (14/18/22 colour distance, propeller pixels rejected) x 4 station ranges (25-62, 20-50, 30-70, 28-55 mm inboard of the hub): FL 68.672 +- 0.021 sd, FR 69.270 +- 0.112 sd, both sides 68.971 +- 0.316 sd.",
+   "rev0_value_deg": 56.33,
+   "REVIEW_2026_09_18": {
+    "verdict": "the built value 65.34 deg is a measurement error; the plan's 69 +-3 is right",
+    "reviewer_value_deg": 68.9,
+    "reviewer_band_deg": [
+     68.6,
+     69.6
+    ],
+    "reviewer_method": "mid-line of the arm band: at 19 stations 25-62 mm inboard of the (fixed) rotor centre, walk perpendicular to a candidate axis, take the centre of the contiguous mask run, and choose the heading that minimises the rms offset. Both arm edges are used, so the arm's own width cancels and no width assumption enters. Script: reviewer scratch rev_mini5pro/work/rv_arm.py, rv_arm2.py; overlay crops/arm_axes.png.",
+    "reviewer_fits": {
+     "FL": [
+      68.7,
+      68.66,
+      68.64,
+      68.68
+     ],
+     "FR": [
+      69.22,
+      69.54,
+      69.16,
+      69.56
+     ],
+     "station_ranges_mm": [
+      [
+       25,
+       62
+      ],
+      [
+       20,
+       50
+      ],
+      [
+       30,
+       70
+      ],
+      [
+       25,
+       45
+      ]
+     ],
+     "rms_offset_mm": [
+      0.079,
+      0.178,
+      0.111,
+      0.061
+     ]
+    },
+    "residual_of_the_built_value": "at 65.34 deg the same estimator gives rms 2.576 mm, max 3.50 mm over the same 19 stations; at 68.70 deg it gives rms 0.079 mm, max 0.20 mm — 33x better",
+    "why_the_builder_read_low": "work/arm_axis.py derives the axis from the OUTER silhouette only, subtracting an assumed arm half width (w/2)/sin(theta) with w taken from drone_cad._ARM_WIDTH = 11.6-16.5 mm. The band measured perpendicular to the true axis is 10.77 mm, so the subtraction over-corrects and biases theta low.",
+    "consequence": "the front arms are built 3.4-3.6 deg off; pinned at the rotor centre that displaces the arm mid-line by up to 3.8 mm at 60 mm inboard and ~5 mm where it meets the shell. Fixing it re-runs the planform and changes the fingerprint, so it is the builder's call, not the reviewer's.",
+    "status": "BLOCKING — needs a rebuild or a user ruling before the trend check"
+   },
+   "plan_target_met": "plan row M5P-2 asks for 'front arm heading 69 +-3'; the built 68.97 deg meets it. The earlier declared deviation (65.34 deg, 'does not reach 66') is WITHDRAWN - it was a measurement error.",
+   "REVIEW_FIX_2026_09_18": {
+    "what_changed": "rebuilt from 65.34 deg to 68.97 deg",
+    "cause_of_the_error": "work/arm_axis.py reads only the arm's OUTER silhouette and subtracts an assumed half width (w/2)/sin(theta) with w = 11.6..16.5 mm taken from drone_cad._ARM_WIDTH. The band measured perpendicular to the true axis is 10.6..11.0 mm (median 10.95 mm at threshold 18), so the subtraction over-corrects and biases theta low.",
+    "independent_agreement": "the adversarial reviewer's own mid-line reading of the same photo gives 68.9 deg (68.6-69.6); this round's third reading, written independently with a different fitting formulation and four masks, gives 68.971 +- 0.316. The plan asks for 69.",
+    "residual_at_each_candidate_mm": {
+     "65.34": {
+      "FL": [
+       2.605,
+       3.625
+      ],
+      "FR": [
+       3.068,
+       4.0
+      ]
+     },
+     "67.36": {
+      "FL": [
+       1.038,
+       1.575
+      ]
+     },
+     "68.97": {
+      "FL": [
+       0.258,
+       0.525
+      ],
+      "FR": [
+       0.279,
+       0.525
+      ]
+     },
+     "70.00": {
+      "FL": [
+       1.056,
+       1.65
+      ]
+     },
+     "columns": "rms, max perpendicular mid-offset of the photo's arm band about an axis through the revision-0 rotor centre, mask threshold 18, 38 stations 25-62 mm inboard"
+    },
+    "scored_in_acceptance": "C.3 front_arm_heading (target moved to 68.97 +-3, logged as a threshold deviation) and report row R1 'front arm axis vs the photo mid-line', which reads the photo and not the threshold file."
+   }
+  },
+  {
+   "id": "M5P-2.rear_arm_heading",
+   "quantity": "rear arm axis heading from +x",
+   "value_deg": 129.98,
+   "tol_deg": 3.0,
+   "source": "photo_top",
+   "grade": "medium-high",
+   "how": "same method, max residual 1.21 mm; free fit 126.89 deg",
+   "rev0_value_deg": 132.47,
+   "REVIEW_2026_09_18": {
+    "verdict": "not determined by this photo to better than about +-2 deg; the built value is inside",
+    "reviewer_fits": {
+     "RL": [
+      130.3,
+      132.28,
+      128.4,
+      132.42
+     ],
+     "RR": [
+      130.34,
+      131.8,
+      128.5,
+      132.0
+     ],
+     "rms_offset_mm": [
+      1.63,
+      1.06,
+      2.69,
+      0.67
+     ]
+    },
+    "note": "the built 129.98 deg and revision 0's 129.98/132.47 are both inside the spread, so this row neither confirms nor refutes the change. The sources file's '+-1.21 mm residual' overstates how well this photo fixes the rear heading."
+   },
+   "REVIEW_FIX_2026_09_18": {
+    "what_changed": "nothing - 129.98 deg kept",
+    "why": "the same mid-line estimator gives RL 130.54 +- 1.47 sd and RR 130.47 +- 1.32 sd over 12 fits each, a 20x larger spread than the front arms because the rear band merges into the shell. The built 129.98 deg is inside one standard deviation, and of the candidates tested it has the lowest mid-offset (rms 1.711 / 1.634 mm, against 2.641 / 2.505 at revision 0's 132.47 and 3.053 / 2.939 at the free fit 126.89). This photo does not fix the rear heading better than about +-1.5 deg."
+   }
+  },
+  {
+   "id": "M5P-3.motor_can_dia",
+   "quantity": "motor can outer diameter",
+   "value_mm": 18.8,
+   "tol_mm": 1.5,
+   "source": "b1_height",
+   "grade": "medium-high",
+   "how": "m5p_height_ledger.json nominal_fit.bell_dia = 18.975 mm (4 rotors x 4 FCC views, 120 draws)",
+   "rev0_value_mm": 28.6,
+   "rev0_basis": "0.052 x diagonal_mm, a proportion, not a measurement",
+   "REVIEW_2026_09_18": {
+    "verdict": "source confirmed, value rounded down without a stated reason",
+    "source_value_mm": 18.97535587654727,
+    "built_value_mm": 18.8,
+    "note": "m5p_height_ledger.json nominal_fit.bell_dia reads 18.975 mm, opened and checked. The mesh uses 18.8 mm, 0.175 mm smaller, inside the +-1.5 mm tolerance but with no reason given in the file."
+   }
+  },
+  {
+   "id": "M5P-4.legs_per_front_arm",
+   "quantity": "landing legs per front motor",
+   "value": 1,
+   "tol": 0,
+   "source": "manual",
+   "grade": "high",
+   "how": "manual p.14 item 9 'Landing Gears (Built-in antennas)'; FCC p4_img1 and p2_img2 show one strut per front arm",
+   "rev0_value": 2
+  },
+  {
+   "id": "M5P-4.legs_per_rear_arm",
+   "quantity": "landing legs per rear motor",
+   "value": 0,
+   "tol": 0,
+   "source": "fcc_external",
+   "grade": "high",
+   "rev0_value": 0
+  },
+  {
+   "id": "M5P-5.battery_box",
+   "quantity": "internal battery pack size",
+   "value_mm": [
+    86.1,
+    54.89,
+    24.85
+   ],
+   "tol_mm": 0.05,
+   "source": "manual",
+   "grade": "high",
+   "how": "manual p.86-87 'Battery 86.10x54.89x24.85 mm, 71.2 g'. The axis assignment (L along x, W along y, H along z) is now MEASURED, not assumed: the pack's rear face in FCC p3_img1 is 258 x 116 px, aspect 2.22 +- 0.05 against the official 54.89/24.85 = 2.209, so the 86.10 mm dimension runs fore-aft.",
+   "rev0_value_mm": [
+    80.02,
+    50.4,
+    32.18
+   ],
+   "REVIEW_2026_09_18": {
+    "size_verdict": "confirmed from the manual: p.86 (C0) and p.87 (C1) both print 86.10x54.89x24.85 mm",
+    "placement_verdict": "BLOCKING — the placement has no source and contradicts the owned photos",
+    "built_centre_mm": [
+     38.0,
+     0.0,
+     -4.451
+    ],
+    "built_x_span_mm": [
+     -5.05,
+     81.05
+    ],
+    "rev0_centre_mm": [
+     -2.759,
+     0.0,
+     1.17
+    ],
+    "shell_x_span_mm": [
+     -54.0,
+     92.0
+    ],
+    "what_the_photos_show": "FCC SS3-MT5MFND25 external photos p3_img1 (rear view) and p5_img1 (bottom view, pack removed and lying beside the aircraft) put the pack at the TAIL: it forms the rear face of the fuselage, carrying the DJI logo, the power button and the 4 level LEDs, with the USB-C and microSD ports just below it. The owned inventory says the same (mesh_0917/dji_folding/specs_json_extract.txt: rear slide-in pack forming the rear half of the upper shell).",
+    "what_was_built": "P8's fit-inside-the-shell scan moved the pack 40.8 mm FORWARD of revision 0's centre, into the nose half: it now ends 11 mm behind the shell nose and 17 mm behind the grille, under the gimbal, with nothing behind x = -5. The scan chose 'where it fits', which is the opposite end of the aircraft from where the photos put it.",
+    "rf_consequence": "the pack is the largest metal object in the model. 40.8 mm is 0.79 lambda at 5.8 GHz and 0.48 lambda at 3.5 GHz, so the dominant internal scatterer's phase centre and the model's front/back asymmetry both move for a reason that is not evidence.",
+    "mesh_consequence": "the clip against the shell welds 1437 mm^2 of metal face onto the shell surface and leaves 4 exactly coincident, parallel triangles shared between the metal 'battery' group and the plastic 'body' group (266 mm^2). Revision 0 has none."
+   },
+   "placement_mm": {
+    "centre": [
+     -10.95,
+     0.0,
+     -5.9507
+    ],
+    "x_span": [
+     -54.0,
+     32.1
+    ],
+    "rule_x": "the pack's rear face is the shell's own tail station (-54.0 mm); the centre follows from the official 86.10 mm length. Nothing is searched.",
+    "rule_y": "0.0 - the bay is on the centreline in both FCC plan views, and plan C.11 requires the symmetry certificate.",
+    "rule_z": "NO owned number. Deterministic 0.5 mm scan over z alone at the sourced (x, y) for the z that puts the most of the grown box inside the shell, tie-broken toward the keel because the rear view shows the pack's underside is the belly at the tail. Declared in SOURCES_NOT_FOUND.",
+    "grade_x_y": "medium-high (three owned FCC views agree, plus the owned inventory)",
+    "grade_z": "low - rule, not evidence"
+   },
+   "REVIEW_FIX_2026_09_18": {
+    "what_changed": "centre x moved from +38.0 mm (nose half) to -10.95 mm (tail); 49.0 mm aft, which is 0.95 lambda at 5.8 GHz and 0.57 lambda at 3.5 GHz. Revision 0's centre was -2.76 mm.",
+    "why": "the old x had no source: P8's scan chose the position where the most of the box fits inside the shell, which is the opposite end of the aircraft from where every owned photo puts the pack.",
+    "sources_read_this_round": [
+     "FCC p3_img1 rear view - the pack is the rearmost and lowest block of the fuselage; its rear face is the aircraft's rear face and carries the pack's own serial 9E8WNIFCGE001Z; the body's rear-bottom shelf with the USB-C and microSD ports sits directly above it (pixel read: fix/p3_pack.png)",
+     "FCC p5_img1 bottom view, pack removed and lying beside the aircraft - the empty bay is the tail cavity between the rear-arm roots; there is no cavity forward of it (fix/p5_tail.png)",
+     "FCC p2_img1 top view - the fuselage ends at the DJI logo / cooling grille / power button block (fix/p2_grid.png)",
+     "owned inventory scratch wf/mesh_inv_mini5pro.md row 6: 'the official 86.1x54.9x24.9 mm pack, which slides in from the rear'"
+    ],
+    "consequence": "the pack no longer fits as well: clipped volume 1.26 % -> 6.92 %, metal face welded onto the shell surface 1437 -> 4846 mm^2, coincident metal/plastic triangles 4 -> 71 (266 -> 3038 mm^2). C.2's 1 mm internal-metal clearance still fails at 0.0 mm, as it did before the move. This is the open question below, not a new defect introduced by the move: the photo-measured shell is 51-56 mm wide over the tail half and the official pack is 54.89 mm wide."
+   }
+  },
+  {
+   "id": "M5P-7.accent_cylinders",
+   "quantity": "plastic accent cylinders on the front arms",
+   "value": 0,
+   "tol": 0,
+   "source": "photo_top",
+   "grade": "high",
+   "how": "no counterpart in any owned photo (top photo, FCC external photos)",
+   "rev0_value": 2
+  },
+  {
+   "id": "M5P-8.rotor_dirs",
+   "quantity": "per-rotor spin, rotor_deg order FL RL RR FR, +1 = counter-clockwise from above",
+   "value": [
+    -1,
+    1,
+    -1,
+    1
+   ],
+   "tol": 0,
+   "source": "b1_spin",
+   "grade": "medium-high",
+   "how": "FL and RR clockwise seen from above on every aircraft checked; product photo 1 gives RR CW 1.9x and RL CCW 1.9x, photo 2 gives FL CW 1.5x; manual p.54 puts B props at FL+RR and A props at FR+RL, and A is CCW / B is CW (confirmed on Mavic 4 Pro hardware).",
+   "limits": "FR has no clear photo read on this aircraft; the lock-direction-to-spin rule was confirmed on a different DJI model.",
+   "rev0_value": [
+    1,
+    -1,
+    1,
+    -1
+   ]
+  },
+  {
+   "id": "envelope.folded_length",
+   "quantity": "folded length, props off (used to place the gimbal)",
+   "value_mm": 157.0,
+   "tol_mm": 3.0,
+   "source": "spec_page",
+   "grade": "high",
+   "how": "official folded envelope 157 x 95 x 68 mm. Revision 0's own shell table reads the folded length as 'shell length + gimbal front protrusion'; revision 1 uses the same reading, so the gimbal lens front sits at shell tail + 157.0 mm."
+  },
+  {
+   "id": "envelope.height_props_included",
+   "quantity": "total height with props",
+   "value_mm": 91.0,
+   "tol_mm": 0.5,
+   "source": "spec_page",
+   "grade": "high",
+   "how": "official unfolded, props on: 304 x 380 x 91 mm. In revision 1 this is a CHECK, not a fit: envelope_mm is None and frame_fit_scale is exactly (1,1,1).",
+   "rev0_value_mm": 91.0
+  },
+  {
+   "id": "envelope.width_props_included",
+   "quantity": "total width with props",
+   "value_mm": 380.0,
+   "tol_mm": 1.0,
+   "source": "spec_page",
+   "grade": "high",
+   "rev0_value_mm": 379.99
+  },
+  {
+   "id": "envelope.length_props_included",
+   "quantity": "total length with props",
+   "value_mm": 304.0,
+   "tol_mm": 1.0,
+   "source": "spec_page",
+   "grade": "high",
+   "rev0_value_mm": 304.0
+  },
+  {
+   "id": "unchanged.rotor_xy",
+   "quantity": "rotor centres (x, y)",
+   "value_mm": [
+    [
+     75.804307,
+     113.792794
+    ],
+    [
+     -75.79841,
+     82.806453
+    ],
+    [
+     -75.79841,
+     -82.806453
+    ],
+    [
+     75.804307,
+     -113.792794
+    ]
+   ],
+   "tol_mm": 1e-06,
+   "source": "rev0",
+   "grade": "carry-over",
+   "how": "plan B.0 and C.3: revision 1 keeps revision 0's realized rotor xy bit-identical"
+  },
+  {
+   "id": "unchanged.rotor_mount_z",
+   "quantity": "prop mount plane z per rotor",
+   "value_mm": [
+    14.348935,
+    32.528581,
+    32.528581,
+    14.348935
+   ],
+   "tol_mm": 0.001,
+   "source": "rev0",
+   "grade": "carry-over",
+   "how": "plan B.0: rotor_z_mm = target mount z - motor_bell_top_z_m(spec) - standoff, with the target being the top of the revision-1 motor stack. Keeping revision 0's planes is the M5P-1 decision."
+  },
+  {
+   "id": "unchanged.prop_and_rotor_counts",
+   "quantity": "prop_dia_mm / prop_blades / num_rotors / hover_rpm / wheelbase",
+   "value": [
+    152.4,
+    2,
+    4,
+    5500,
+    248.3
+   ],
+   "tol": 0,
+   "source": "rev0",
+   "grade": "carry-over"
+  }
+ ],
+ "carry_overs_no_new_source": [
+  {
+   "what": "vertical layout (the x1.2985461340272204 stretch)",
+   "value": "every z plane of revision 0's realized frame, baked into the revision-1 part dimensions",
+   "why": "M5P-1 is unresolved: the B1 height report finds the FCC photos insufficient for the stagger and the hub height, and removing the stretch while moving only the motor stack leaves the model 28.5 mm short of 91 mm. The alternative is the scratch ablation variant 'fcc_height'."
+  },
+  {
+   "what": "shell section height law",
+   "value": "revision 0's realized (z_top, z_bot) carried across normalized fore-aft position",
+   "why": "same as above. Only the planform is replaced."
+  },
+  {
+   "what": "motor can height",
+   "value_mm": 17.140809,
+   "why": "no FCC reading of the can height alone; 13.2 mm raw x the stretch"
+  },
+  {
+   "what": "landing-leg section and depth",
+   "value": "root 7.192 x 7.936 mm, tip 3.236 x 3.571 mm, depth 40.255 mm (31.0 raw x the stretch)",
+   "why": "no FCC reading; only the COUNT changes"
+  },
+  {
+   "what": "gimbal centre z",
+   "value_mm": -17.553,
+   "why": "revision 0's -0.30 x bh x stretch"
+  },
+  {
+   "what": "gimbal block size",
+   "value_mm": [
+    50.0,
+    33.0,
+    30.0
+   ],
+   "why": "the photo-measured design values in drone_cad._gimbal_compact3's docstring; revision 0 stretched the 33 mm to 42.85 mm, revision 1 uses the measured 33"
+  },
+  {
+   "what": "nose grille height and centre z",
+   "value_mm": [
+    31.165,
+    -3.511
+   ],
+   "why": "revision 0's 24.0 x bh-fraction x the stretch"
+  },
+  {
+   "what": "vision sensor radius",
+   "value_mm": 8.0,
+   "why": "revision 0's value; positions are re-projected onto revision 1's shell surface, which is revision 0's own rule"
+  },
+  {
+   "what": "PCB box",
+   "value_mm": [
+    52.42,
+    40.02,
+    3.51
+   ],
+   "why": "revision 0's proportional box, position unchanged"
+  },
+  {
+   "what": "magnesium structural plate (battery group)",
+   "value_mm": [
+    80.02,
+    50.4,
+    4.68
+   ],
+   "why": "revision 0's proportional box, position unchanged; not in the M5P change list"
+  },
+  {
+   "what": "arm section widths",
+   "value_mm": [
+    16.5,
+    11.6
+   ],
+   "why": "drone_cad._ARM_WIDTH['mini5pro'], photo-measured 2026-07-30; only the arm AXIS changes"
+  }
+ ],
+ "dropped_for_lack_of_source": [
+  {
+   "id": "M5P-1",
+   "target": "remove the x1.2986 height stretch; shell 45.05 +-2, total height with props 91 +-3",
+   "why": "B1 (wf/b1_height.md): the FCC photos fix bell-top and prop-mount z (+-1.5 mm) and arm-tip z (+-3 mm) but not the stagger (+-13 mm) or the hub height, and the un-stretched model would stand 28.5 mm short of 91 mm because the resting shell top is 89.5 mm (95 %: 87.3-91.7). The user has not answered.",
+   "instead": "revision 1 keeps revision 0's vertical layout; the alternative is built as the scratch ablation variant 'fcc_height' with its own acceptance numbers."
+  },
+  {
+   "id": "M5P-6",
+   "target": "raise the superellipse exponent from npow 3.2 to 6-8, judged by FCC front/side overlay IoU",
+   "why": "the FCC front photo (m5p_fcc_ext_p4_img1.jpeg; crop work/crops/front_shell_top.png) shows the shell's upper outline is two brow pods with a saddle between them, not one convex section. An exponent fitted to that outline would not measure the shape the exponent sets, and the lower half is occluded by the gimbal.",
+   "instead": "npow stays at revision 0's 3.2 for both halves; the twin-brow shape is recorded as an open item."
+  }
+ ],
+ "ablation_variant": {
+  "name": "fcc_height",
+  "builder": "drone_rev1_mini5pro.build_frame_ablation_fcc_height",
+  "registered": false,
+  "what": "the shell placed and tilted per the FCC outline so the resting shell top reaches 89.5 mm above the feet",
+  "sourced": [
+   {
+    "what": "resting shell top",
+    "value_mm": 89.5,
+    "band_mm": [
+     87.3,
+     91.7
+    ],
+    "source": "b1_height"
+   },
+   {
+    "what": "shell top slope toward the rear",
+    "value_deg": 20.0,
+    "source": "b1_height",
+    "how": "the fitted top profile falls to about 58 mm at 90 mm behind the peak"
+   },
+   {
+    "what": "shell own height",
+    "value_mm": 45.045,
+    "source": "outputs/mesh_inspect_body_arms_0816.json (S1 confirmed)"
+   },
+   {
+    "what": "planform",
+    "value": "the same measured stations as the default variant",
+    "source": "photo_top"
+   }
+  ],
+  "NOT_sourced": [
+   "the shell keel (bottom) profile: only the top outline was fitted, so the variant assumes a constant 45.045 mm section height at every station",
+   "the constant 20 deg top slope over the whole length: B1 fitted a curved profile and 20 deg is its linear summary",
+   "the front/rear stagger and the hub height: B1 states these are NOT measurable from the FCC photos (+-13 mm)",
+   "the arm, motor, leg and prop planes: this variant leaves them at revision 0's realized z, which is inconsistent with an un-stretched shell (B1 puts the front bell top at 43.2 mm above the table, i.e. z = -8.4 in our frame, against revision 0's +13.05)",
+   "the foot plane: kept at revision 0's -51.6145 mm only so the two variants share a ground reference",
+   "the top slope is clamped at B1's last measured station (85.4 mm behind the peak); extrapolating 20 deg over the remaining 44 mm of our shell put the tail keel 3 mm BELOW the landing feet"
+  ],
+  "consequences": "the resting shell top reaches 89.5 mm, i.e. 1.5 mm short of the official 91 mm, and the props no longer make the height.",
+  "realized": {
+   "shell_z_mm": [
+    -38.24,
+    37.89
+   ],
+   "shell_own_height_mm": 76.13,
+   "resting_shell_top_above_feet_mm": 89.5,
+   "total_height_with_props_mm": 91.0,
+   "frame_faces": 6438,
+   "note": "the ablation moves ONLY the shell. The motor, arm, leg and prop planes stay at revision 0's realized z, so the props still reach 39.39 mm (91.0 mm above the feet) although B1 puts the real prop plane about 43 mm above the table. Moving those planes needs the front/rear stagger and the hub height, which B1 declares not measurable from the FCC photos."
+  },
+  "acceptance_failures": [
+   "C.1 camera components 8 (the tilted shell separates the gimbal from the front sensors)",
+   "C.2 internal metal clearance 0.0 mm (battery) / 0.426 mm (PCB)",
+   "C.2c 4 frame vertices inside a swept disc",
+   "C.7 blade angle vs revision 0 0.4808 deg (same as the default; a P6 consequence)",
+   "C.13 battery/pcb interpenetration 24.55 % - the revision-0 PCB box is placed at revision 0's absolute z and the tilted shell no longer contains it"
+  ]
+ },
+ "open_questions": [
+  "The official pack width 54.89 mm is wider than the shell measured on the top photo over most of the tail half (51.2 mm at x -50, 52.8 at x 0, 53.8 at x 14, 56.5 at x 30), so the pack cannot sit where the aircraft carries it without being clipped. Revision 1 now puts it where the photos put it and logs the clip (6.92 % by volume, 4846 mm^2 of metal face on the shell surface, 71 coincident metal/plastic triangles). Which is it: (a) keep the tail placement and the clip, (b) keep the official size and drop M5P-5 to an ablation, or (c) the top photo's tail width is under-read? An attempt this round to settle (c) from the FCC top view (fix/fcc_top.py) did NOT succeed: a four-point similarity fit on the motor shafts leaves residuals up to 9.3 mm, because that photo is a close perspective shot (the shell sits about 45 mm above the rotor plane) and no similarity can register both planes.",
+  "M5P-1: keep the stretch (the default here), or accept the ablation's declared shortfall? The user has not ruled; the stretch is kept and the ablation keeps its own numbers.",
+  "The C.3 front_arm_heading threshold value was changed from 65.34 to 68.97 deg (tolerance unchanged at +-3). Logged as a deviation; needs approval.",
+  "The FCC front photo shows a twin-peaked brow at the nose. Neither revision models it; should revision 2?"
+ ],
+ "REVIEW_2026_09_18": {
+  "reviewer": "adversarial review of the mini5pro revision-1 build",
+  "isolated_copy": "/tmp/claude-0/-workspace/8ed65148-4553-4ebc-8477-9670ae39b001/scratchpad/rev_mini5pro",
+  "base": "live HEAD 4254c4b2edc189385216720b3561831ac8841863; the five recorded live sha256 all match",
+  "confirmed": [
+   "revision 0 bit-identical (one hash over 10 keys x frame + both props + rotor_layout + frame_fit_scale) between a pristine copy and the patched copy, under 4 environment states: unset 989708ed732d199a, MESH_FIX=none 8f64a981afcc08af, MESH_FIX=all 5c163ac5266c2d47, BLADE_LAW=legacy e4b212561d7bf0c1",
+   "no file under /workspace/sionna touched: a fresh archive + E0 + E1 tree diffs against the delivery with only the builder's own new files reported",
+   "frame_fit_scale exactly (1.0, 1.0, 1.0); envelope_mm None",
+   "rotor xy bit-identical to revision 0 (max |diff| 0.0 mm); all six rotor pair distances identical, wheelbase 248.2633 mm",
+   "prop_dia_mm 152.4, prop_blades 2, num_rotors 4, hover_rpm 5500, base_ang, rotor_r_mm, diagonal_mm all unchanged",
+   "fingerprint 3960d71b4c768a94... reproduced in 6 separate processes at OMP_NUM_THREADS 1, 2 and 4; registry fingerprint is None and RevEntry is a frozen dataclass, so it cannot be set in memory; --mesh-rev 1 exits 1 with the refusal message and the revision-0 name is unchanged",
+   "no third-party licensed mesh: the builder module reads no mesh file at all, and the only external path it names is the owned top photo",
+   "props seated: hub-to-stack-top gap 1e-6 to 2e-6 mm on all four rotors; nearest neighbouring disc gap +2.337 mm; 0 frame vertices inside any swept disc",
+   "every group watertight, 0 boundary edges, 0 zero-area faces, 0 duplicate faces, winding consistent; components body 1, motor 4, gear 2, camera 6, battery 1, pcb 1",
+   "planform re-measured from the same photo with an independent segmentation: scale 3.0271 px/mm, rotation 0.0104 deg, max hub residual 2.698 mm, body outline span -54.0 to +98.0 mm, outline centre +22.0 mm, and the eight readable width stations within 1.1 mm of the built values",
+   "landing gear read off the FCC photos directly: one long splayed strut under each FRONT arm reaching the table, and no strut at the rear, where the arm tip itself rests. The owned inventory's 'four pads' wording is loose; the build is right",
+   "battery 86.10x54.89x24.85 mm and prop 6028F 152.4 mm read off the manual text at p.86-87; folded 157x95x68 and unfolded-with-props 304x380x91 read off the owned spec extract; bell_dia 18.975 mm read off the height ledger; shell_h 45.05 mm read off outputs/mesh_inspect_body_arms_0816.json; spin (-1,+1,-1,+1) read off wf/b1_spin.md"
+  ],
+  "blocking": [
+   "front arm heading built 3.4-3.6 deg low (see M5P-2.front_arm_heading)",
+   "battery placed in the nose half with no source, against the photos (see M5P-5.battery_box)"
+  ],
+  "vertical_layout_measured_against_B1": {
+   "note": "revision 1 keeps revision 0's z exactly (agreement to 0.004 mm), which is the M5P-1 decision. Measured against the one z quantity B1 declares usable to +-1.5 mm:",
+   "front_bell_top_above_feet_mm": {
+    "built": 64.961,
+    "B1_median": 43.232,
+    "B1_95": [
+     42.415,
+     44.144
+    ],
+    "error": 21.73
+   },
+   "rear_bell_top_above_feet_mm": {
+    "built": 83.14,
+    "B1_median": 43.837,
+    "B1_95": [
+     41.685,
+     45.632
+    ],
+    "error": 39.3
+   },
+   "shell_top_above_feet_mm": {
+    "built": 81.141,
+    "B1_median": 89.508,
+    "B1_95": [
+     87.332,
+     91.688
+    ],
+    "error": -8.37
+   },
+   "front_rear_stagger_mm": {
+    "built": 18.18,
+    "B1_median": 0.433,
+    "B1_uncertainty": "+-13 mm, so this one is not refuted"
+   },
+   "reading": "the four rotor planes sit 22 mm (front) and 39 mm (rear) above where the FCC fit puts them, i.e. 0.42 and 0.76 lambda at 5.8 GHz. That is the largest geometric error left in revision 1 and it is inherited, not introduced."
+  }
+ },
+ "REVIEW_FIX_2026_09_18": {
+  "what": "the two blocking defects of the adversarial review were fixed and the mesh rebuilt",
+  "fixed": [
+   "front arm heading 65.34 -> 68.97 deg (M5P-2.front_arm_heading)",
+   "battery placement, centre x +38.0 -> -10.95 mm (M5P-5.battery_box)"
+  ],
+  "not_fixed": [
+   "C.2 internal-metal clearance still 0.0 mm - the official pack does not fit inside the photo-measured shell; user question above",
+   "C.7 blade angle vs revision 0 0.4808 deg against a +-0.2 deg bound - no mesh applying P6 can meet it; user question",
+   "M5P-1 vertical layout - the user has not ruled"
+  ],
+  "delivery_bug_found": "the adversarial review's edits to docs/mesh_rev1/*.json landed only in the delivery's own docs/ copy; the acceptance script reads sionna/docs/mesh_rev1/, which still held the pre-review files (thresholds 78c87c6c..., sources e47e8f99...), so the delivered ledger recorded the pre-review threshold sha while the registry pinned the post-review one. Both copies are now the same file."
+ }
+}

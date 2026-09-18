@@ -1,0 +1,164 @@
+{
+ "_about": "Frozen acceptance thresholds for ('mavic4pro', mesh revision 1), plan C.1-C.13. Written BEFORE the first acceptance run and not changed afterwards. Any later change must be logged in 'deviations' with its reason and needs user approval (plan C threshold freeze, critique M8).",
+ "key": "mavic4pro",
+ "mesh_rev": 1,
+ "written": "2026-09-18, before the first acceptance run",
+ "rule": "Every row is pass/fail on its own. 'report_only' rows are recorded and never gate. A threshold is never relaxed after seeing a result.",
+ "_what_was_known_when_this_file_was_written": "Every budget below that is a revision-0 number (slivers 87, repo buried defect 22.17 %, prop faces 3496, top-view IoU 0.3141) was measured on revision 0 alone before this file was written; none of them can be influenced by revision 1. The revision-1 mesh had already been built once when this file was written (its renders were needed for the C.10 visual review), so the following rows are declared rather than blind: C1_topology.components_per_group (an enumeration of the parts this builder adds), and C3_dimensions.targets[frame_width_no_props] (an arithmetic consequence of the frozen rotor xy and the measured can diameter). Neither is a tolerance that could be widened to make a failing number pass. This is stated here because plan M8 forbids choosing a threshold from a result.",
+ "C1_topology": {
+  "watertight_every_group": true,
+  "boundary_edges_max": 0,
+  "non_manifold_edges_max": 0,
+  "self_intersections_max": 0,
+  "winding_consistent": true,
+  "volume_positive": true,
+  "sliver_faces_max": 87,
+  "sliver_budget_basis": "mesh_check.check_mesh on revision 0's realized mavic4pro frame reports 87 slivers; revision 1 must not exceed it",
+  "components_per_group": {
+   "body": 1,
+   "motor": 4,
+   "gear": 2,
+   "camera": 8,
+   "battery": 1,
+   "pcb": 1
+  },
+  "components_basis": "after drone_rev.finish_frame_assembly's per-group union: one body (shell + 4 arms + 4 motor pods, all overlapping), one can+adapter stack per rotor (4), one leg per FRONT motor (2), one battery solid, one PCB. The camera group holds 8 solids that do not touch each other: the gimbal head (block + lens barrel, unioned), six vision-sensor spheres seated on the shell, and the LiDAR. Revision 0's camera group holds 7 by the same count (its six sensors, LiDAR and gimbal, with two of them fused). Revision 1 has no 'canopy' group: its shell is one lofted surface, so revision 0's separate canopy dome does not exist.",
+  "no_new_material_groups": true
+ },
+ "C2_attachment": {
+  "leg_gap_mm_max": 0.5,
+  "motor_pod_gap_mm_max": 0.5,
+  "floating_parts_max": 0,
+  "internal_metal_inside_shell_pct_min": 100.0,
+  "internal_metal_clearance_mm_min": 1.0,
+  "battery_clipped_volume_pct_max": 50.0,
+  "battery_clipped_rule": "the pack keeps its official size; if it cannot fit with 1 mm clearance it is intersected with the shell and the clipped volume is logged (plan P8). A box clipped by more than half is no longer that battery and the component must be dropped.",
+  "buried_plastic_pct_of_shell_area_max": 2.0,
+  "buried_plastic_definition": "faces of a PLASTIC group (body, gear, canopy, accent) whose centroid lies inside ANOTHER PLASTIC solid, as a percentage of the shell group's surface area. This is the defect plan C.2 was written for: revision 0 swallows its own canopy.",
+  "buried_plastic_in_camera_pct_max": "<= revision 0's value",
+  "buried_plastic_in_camera_definition": "plastic faces inside the camera solid, i.e. the nose around the gimbal. Gated against revision 0 rather than against 2 %, because the gimbal head IS partly inside the nose on this aircraft - the owned top photo shows the shell wrapping over the gimbal - and revision 0 buries 2601 of its 4030 camera faces (65 %) in the shell, so any improvement is an improvement on that.",
+  "repo_buried_defect_pct_max": 22.17,
+  "repo_buried_basis": "mesh_check.check_buried_faces on revision 0 reports defect_pct 22.1655 (budget_pct 32.7); revision 1 must not be worse than revision 0",
+  "C2b_prop_seating_gap_mm": [0.0, 0.5],
+  "C2b_prop_area_inside_bell_pct_max": 1.6,
+  "C2b_basis": "revision 0 has 88 prop triangles / 54 mm2 inside the motor bell (wf/mesh_inv_mini5pro.md, mavic4pro row), i.e. 1.55 % of the prop area budget used there; revision 1 must not be worse",
+  "C2c_frame_vertices_in_swept_disc_max": 0,
+  "C2c_disc_margin_mm": 1.0,
+  "C2c_neighbour_disc_clearance_sign_unchanged": true
+ },
+ "C3_dimensions": {
+  "frame_fit_scale": [1.0, 1.0, 1.0],
+  "frame_fit_scale_tol": 0.0,
+  "rotor_xy_max_error_mm": 1e-06,
+  "rotor_mount_z_max_error_mm": 0.001,
+  "unchanged": {
+   "prop_dia_mm": 267.0,
+   "prop_blades": 2,
+   "num_rotors": 4,
+   "hover_rpm": 3600,
+   "wheelbase_mm": 441.0,
+   "wheelbase_tol_mm": 0.01
+  },
+  "targets": [
+   {"id": "shell_x_lo", "value_mm": -72.5, "tol_mm": 3.0,
+    "note": "owned top photo c02, tail of the airframe outline"},
+   {"id": "shell_x_hi", "value_mm": 126.0, "tol_mm": 3.0,
+    "note": "owned top photo c02, where the light-grey shell ends and the black gimbal shroud begins"},
+   {"id": "width_x-64", "value_mm": 56.2, "tol_mm": 3.0},
+   {"id": "width_x-30", "value_mm": 92.1, "tol_mm": 3.0},
+   {"id": "width_x0", "value_mm": 68.9, "tol_mm": 3.0},
+   {"id": "width_x30", "value_mm": 71.2, "tol_mm": 3.0},
+   {"id": "width_x65", "value_mm": 75.3, "tol_mm": 3.0},
+   {"id": "width_x104", "value_mm": 86.9, "tol_mm": 3.0},
+   {"id": "width_x123", "value_mm": 77.6, "tol_mm": 3.0},
+   {"id": "front_arm_heading", "value_deg": 68.3, "tol_deg": 1.0,
+    "note": "mid-line fit of the owned top photo, 8 fits over 2 front arms x 4 station ranges, spread 68.28-68.66 deg, rms 0.35-0.43 mm"},
+   {"id": "rear_arm_heading", "value_deg": 129.4, "tol_deg": 2.0,
+    "note": "same estimator; the two rear arms disagree by 1.2 deg and the rms is 2-3x the front's, hence the wider tolerance"},
+   {"id": "arm_width_front", "value_mm": 14.3, "tol_mm": 1.5,
+    "note": "top-view arm band width at the body end; revision 0 is 26.5 mm"},
+   {"id": "motor_can_dia", "value_mm": 29.33, "tol_mm": 1.5,
+    "note": "B1 ruler-scaled FCC fit 29.330 mm (variants 29.32-29.57); the inventory's independent FCC p05 reading is 30.5 mm, inside this tolerance"},
+   {"id": "battery_L", "value_mm": 128.0, "tol_mm": 0.05},
+   {"id": "battery_W", "value_mm": 62.0, "tol_mm": 0.05},
+   {"id": "battery_H", "value_mm": 44.0, "tol_mm": 0.05},
+   {"id": "legs_per_front_arm", "value": 1, "tol": 0},
+   {"id": "legs_per_rear_arm", "value": 0, "tol": 0},
+   {"id": "gimbal_front_x", "value_mm": 175.4, "tol_mm": 3.0,
+    "note": "forward-most point of the dark nose assembly on the owned top photo; revision 0 reaches +106.9 mm"},
+   {"id": "gimbal_floor_z", "value_mm": -77.73, "tol_mm": 0.5,
+    "note": "revision-0 carry-over, itself solved from FCC p05 so the housing clears the landing feet"},
+   {"id": "frame_min_z", "value_mm": -81.135, "tol_mm": 0.05,
+    "note": "revision 0's realized foot plane; the vertical layout is kept, so it must be identical"},
+   {"id": "frame_height", "value_mm": 135.2, "tol_mm": 3.0,
+    "note": "official unfolded height, props excluded (DJI spec page and manual). This is the number the x1.59767 stretch exists to meet and the reason it is kept; B1's FCC fit puts the tallest resting feature at about 100 mm, so the model is about 35 mm taller than the photographs - see HEIGHT_SHORTFALL, reported as R-rows."},
+   {"id": "frame_length_no_props", "value_mm": 328.7, "tol_mm": 3.0,
+    "note": "official unfolded length, props excluded"},
+   {"id": "frame_width_no_props", "value_mm": 373.98, "tol_mm": 1.0,
+    "note": "NOT the official 390.5 mm. It is the arithmetic consequence of two inputs this revision is not allowed to reconcile: plan B.0 freezes the rotor track at revision 0's 344.65 mm, while the measured can diameter is 29.33 mm, so 344.65 + 29.33 = 373.98 mm. Reaching the official 390.5 mm needs B1's measured front track 363.92 mm (363.92 + 29.33 = 393.25), which plan B.0 forbids changing. The 16.5 mm shortfall against the official number is reported, not gated."}
+  ]
+ },
+ "C4_silhouette": {
+  "metric": "top-view silhouette IoU against the owned top photo (assets/photos/mavic4pro/mavic4pro_c02_arm_positions_topview_labelled.jpg), registered exactly as work/measure_planform.py established it (0.57912 mm/px, no rotation, origin at the rotor centroid). Nothing is re-fitted, so the IoU cannot be improved by moving the model. The photo mask is the light-grey airframe without the propellers; the model mask therefore also leaves out the prop, battery and pcb groups.",
+  "substitution_declared": "plan C.4 names the FCC photos for this drone. The FCC plan views (p01, p07) are perspective-heavy and their rules lie on the table while the airframe stands about 100 mm above it, so the reference used here is the owned top photo the M4P-1 targets were measured on, with its scale anchored to B1's ruler-scaled FCC front track. Declared before the first run.",
+  "rev0_iou_frozen": 0.3141,
+  "rev1_iou_min": 0.3641,
+  "rev1_iou_min_rule": "revision 0 + 0.05, the plan's own C.4 rule for this aircraft. No absolute floor is set: with the rotor xy frozen at revision 0's square 344.65 mm track while both owned readings give a trapezoid (front 363.9, rear 301.6-312.6 mm), the four arms are displaced 10-16 mm from the photo's, which is more than an arm width, so a large part of the union can never overlap. A floor would score that frozen constraint, not this build.",
+  "report_rows": ["top-view IoU restricted to |y| < 60 mm, i.e. the shell without the arms, for revision 0 and revision 1"]
+ },
+ "C5_facing_area": {
+  "mode": "report_only",
+  "what": "one-sided facing area in 5 deg and 10 deg cones, by group and by material, at az 0/90/180 and el 0/-30/-90, revision 0 next to revision 1",
+  "why_report_only": "plan C.5 sets ratio targets only for the Matrice 4E (against its CAD) and for the Phantom 4 camera. The Mavic 4 Pro has no owned CAD, so there is no value to compare a ratio with."
+ },
+ "C6_facets": {
+  "sagitta_mm_max": 2.58,
+  "sagitta_basis": "lambda/20 at 5.8 GHz (plan B.1)",
+  "frame_faces_max": 18000,
+  "frame_faces_basis": "the task's budget for this aircraft; revision 0 builds 17296",
+  "prop_faces_per_rotor_max": 3600,
+  "prop_faces_basis": "revision 0 builds 3496 faces per rotor; plan B.1 says 'unchanged', and 3600 allows the P6 orientation change"
+ },
+ "C7_props": {
+  "stations_r_over_R": [0.3, 0.5, 0.7, 0.9],
+  "both_mirrored_and_unmirrored": true,
+  "thick_edge_raised_and_leading": true,
+  "chord_max_error_mm": 0.5,
+  "blade_angle_max_error_deg": 0.2,
+  "blade_angle_note": "kept at the plan's value. The 2026-09-18 mini5pro round measured 0.43-0.50 deg on a P6 propeller and concluded no mesh that applies P6 can meet 0.2 deg, because what P6 changes IS the leading/trailing-edge assignment the chord angle measures. It is left unrelaxed here so the same finding is scored, not hidden.",
+  "check_handedness_pass": true
+ },
+ "C8_kinematics": {
+  "rotor_dirs": [-1, 1, -1, 1],
+  "fastposer_verify_max": 1e-09,
+  "unchanged": ["prop_dia_mm", "prop_blades", "num_rotors", "hover_rpm"]
+ },
+ "C9_specular_census": {
+  "mode": "report_only",
+  "what": "specular foot census for revision 0 and revision 1 at the queue aspects, as a pre-registration input (plan D.0). It is an input to E3, not a gate on the geometry."
+ },
+ "C10_visual": {
+  "mode": "manual",
+  "what": "render sheet: revision 0 and revision 1 side by side plus the reference (top-photo overlay, FCC p05 front and p06 side). The builder writes notes per view and an independent agent re-reads the PNGs."
+ },
+ "C11_certificates": {
+  "mirror_symmetry_metric": "(a) per-group mirrored area error, (b) |centre of mass y|, (c) per-group y bounding box symmetry. Mirrored-vertex distances are RECORDED for both revisions but do not gate - a vertex-level distance scores the triangulation, not the geometry (2026-09-18 mini5pro finding, adopted here before the first run rather than after it).",
+  "per_group_area_mirror_error_pct_max": 0.01,
+  "com_y_max_mm": 0.01,
+  "ybbox_symmetry_max_mm": 0.001,
+  "placement_rotor_xy_max_error_mm": 1e-06,
+  "placement_rotor_z_max_error_mm": 0.001,
+  "note": "src/mesh_symmetry.py and src/mesh_placement.py take a ledger census, not a mesh, so plan C.11 is implemented directly in benchmark/mesh_rev1_acceptance.py. Declared before the first run."
+ },
+ "C12_material_table": {
+  "mode": "report_only",
+  "what": "area and volume per material group, revision 0 next to revision 1, and the group of every new part",
+  "gate": "every group must be a key of drones.DRONE_GROUP_MAT (no new material groups in a revision)"
+ },
+ "C13_canonical_repairs": {
+  "battery_pcb_plate_interpenetration_pct_max": 0.0,
+  "body_closed": true,
+  "mesh_fix_canonical_only": true
+ },
+ "deviations": []
+}

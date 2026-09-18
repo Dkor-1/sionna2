@@ -1,0 +1,508 @@
+{
+  "_meta": {
+    "key": "matrice4e",
+    "rev": 1,
+    "written_utc": "2026-09-17T21:00Z",
+    "plan": "docs/MESH_REV1_PLAN_0917.md section B.3 (items M4E-1 ... M4E-8), rules B.0/B.1, acceptance C",
+    "purpose": "Every dimension the revision-1 matrice4e builder uses, with its value, tolerance, owned source and evidence grade. A row with grade below medium-high may not enter revision 1 (plan B.0).",
+    "coordinate_frame": "drone local, millimetres: +x nose, +y left, +z up, z=0 = arm hub plane (the same frame src/drone_cad.py uses)",
+    "cad_axis_map": "x_ours = -(z_cad - 24.651), y_ours = x_cad, z_ours = y_cad - 5.272  (as recorded in src/drone_cad.py _SHELL_SHAPE['matrice4e'] and reproduced by scratch cad_extract.py)",
+    "cad_file": {
+      "path": "assets/meshes/reference/matrice4-M4T_v2.step",
+      "note": "DJI official STEP for the Matrice 4T. Gitignored. The 4T shares the airframe with the 4E; its gimbal is the 4T gimbal and is NOT used for gimbal dimensions. Triangulated to scratch only (368,865 triangles, 1 surface of solid 109 failed to mesh).",
+      "measured_bbox_mm": [
+        328.26,
+        387.39,
+        151.52
+      ],
+      "derived_scratch_files": [
+        "scratch/mesh_0917/matrice4e/cad_tris.npz",
+        "scratch/mesh_0917/matrice4e/cad_volumes.json",
+        "scratch/mesh_rev1/impl/matrice4e/work/cad_final_stations.json",
+        "scratch/mesh_rev1/impl/matrice4e/work/cad_measure_1.json",
+        "scratch/mesh_rev1/impl/matrice4e/work/cad_motor.json"
+      ]
+    },
+    "grades": "high | medium-high | medium | low  (plan B.0: only the first two may enter a revision)",
+    "review_2026_09_18": {
+      "by": "adversarial review of the matrice4e revision-1 build",
+      "independent_remeasurement": "Every CAD number below was recomputed from assets/meshes/reference/matrice4-M4T_v2.step in a separate isolated copy of HEAD 4254c4b2 (live sha256 src/drones.py 9f35d2a6…, src/drone_cad.py 4f706fc7…, benchmark/elevation_sweep_md.py c6403bd7…), using cad_tris.npz (12:40 pass) and, as a second independent extraction, cad_edges.npz (12:07 pass). The two passes give the bounding box as 328.265 x 387.385 x 151.520 mm and 328.278 x 387.501 x 151.524 mm — agreeing to 0.013 / 0.116 / 0.004 mm, and the edge pass matches DJI's published width 387.5 mm to 0.001 mm.",
+      "solid_id_caveat": "⚠ The solid ids used throughout this file (49, 56-58, 92, 95/96, 98, 103, 105, 109, 116, 118, 119, 120, 122/26, 123, 124) are gmsh volume tags of ONE triangulation pass (scratch mesh_0917/matrice4e/cad_tris.npz), which is scratch and will disappear. The repository's own August comments on the same CAD use a DIFFERENT numbering — src/drone_cad.py calls the battery bay solid 117, the bells 104/94 and the arms 107/97/86/91. The DIMENSIONS agree exactly (bay front face +70.10 and floor -6.14 in both), only the tags differ. Anyone re-checking must re-derive the tags, not assume them.",
+      "recomputed_and_confirmed": {
+        "ENV-L 328.26": "confirmed: 328.265 mm (tris) / 328.278 (edges)",
+        "ENV-W 387.39": "confirmed: 387.385 (tris) / 387.501 (edges); official 387.5",
+        "ENV-H 151.52": "confirmed: 151.520 (tris) / 151.524 (edges)",
+        "airframe L 312.93 (DEV-2)": "confirmed: solid 49 x_max 159.01 minus global x_min -153.92 = 312.93",
+        "M4E-2b nose apex 157.7": "confirmed: solid 123 x_max = 157.73",
+        "M4E-3a battery 145.47 x 60.6 x 46.3": "confirmed by reading User Manual v1.2 p.103 directly: 'Battery BPX345-6741-14.76  145.47x60.6x46.3 cm  400 g' (the 'cm' is the manual's unit typo)",
+        "M4E-3b bay front face +70.10, floor -6.14": "confirmed: solid 118 x_max +70.10, z_min -6.14",
+        "M4E-5 belly -30.81": "confirmed: solid 119 z_min = -30.81",
+        "M4E-6a bell z -8.51 / -16.33": "confirmed: solids 105/76 z -8.51..8.03 and 95/84 z -16.33..-0.20",
+        "M4E-6b bell h 16.3 / d 27.0": "confirmed: front 16.54 / rear 16.13 mm high; xy spans 27.42 x 25.50 (front) and 27.74 x 26.82 (rear)",
+        "M4E-6c adapter tops 15.30 / 6.72": "confirmed: solids 103/78 z_max 15.30, 96/83 z_max 6.72; totals 15.30-(-8.51)=23.81 and 6.72-(-16.33)=23.05",
+        "M4E-6d rotor_z_mm": "confirmed by arithmetic: motor_bell_top = MOTOR_BASE_Z -12.42 + motor_h_mm 16.3 = 3.88; 15.30+1.5-3.88 = 12.92 and 6.72+1.5-3.88 = 4.34",
+        "M4E-4b |y| = 47.08": "confirmed: solid 109 y range is exactly +/-47.08",
+        "RTK top z 91.70": "confirmed: solids 26/122 z_max = 91.697, which is also the CAD's global z_max",
+        "max prop speed 6130 RPM": "confirmed by reading User Manual v1.2 p.102 section 8.10 directly; p.103 lists 1154F (27.4 x 13.7 cm) as the ONLY propeller in both the qualified-accessory and the spare-parts table — 1157F does not appear in the manual at all",
+        "R-SPIN (-1, 1, -1, 1)": "confirmed against scratch/wf/b1_spin.md: FL CW, RL CCW, RR CW, FR CCW, grade medium-high; and against the code, where rotor_deg order is (FL, RL, RR, FR) and articulated_fast picks the mirrored prop for dir < 0"
+      },
+      "corrections": {
+        "M4E-4a heading 67.04 deg": "⚠ METHOD-DEPENDENT BY MORE THAN THE FILE SUGGESTS. Recomputed on solid 98: the AREA-weighted principal axis gives 67.58 deg and the straight-line fit through the mid-span section centres gives 66.79 deg, against this file's 67.04 / 65.75. The stated tolerance is +/-1.0 deg, i.e. only about twice the spread between two reasonable estimators. All the estimates stay inside the plan's 66-68 deg band, so the target holds, but the number should be quoted as 67 +/- 0.5 (method), not 67.04.",
+        "M4E-4b x at |y| = 47.08": "recomputed as 85.50 mm (this file says the CAD gives 82.7). Both are inside the plan's 85 +/- 5; the difference is the same estimator spread as M4E-4a.",
+        "M4E-4c bow 'collinear to 0.6 mm'": "⚠ OPTIMISTIC. Recomputed: the mid-span (t -63.5..+31.5) section centres of solid 98 deviate from their best-fit straight line by up to 1.13 mm, not 0.6 mm. The built arm's own bow is 0.0 by construction, so the target still holds; only the description of the CAD is wrong.",
+        "M4E-6d 'brings that number to 0.000 %'": "⚠ NOT EXACTLY ZERO. The repository's own mesh_check.check_prop_bell_solid on the built revision-1 drone still finds 8 propeller triangles, 0.15 mm2, inside the motor solid (0.0003 % of the propeller area) at the 1.5 mm standoff. That is far inside the 0.1 % budget and is not a defect, but '0.000 %' should read '<= 0.0004 %'."
+      }
+    },
+    "fix_2026_09_18": {
+      "by": "review-fix unit for matrice4e revision 1 (defects from scratch/wf/b2_matrice4e_verify.md)",
+      "independent_remeasurement": "The CAD arm solids were measured again from scratch, not read from this file: scratch/mesh_rev1/impl/matrice4e/fix_0918/cad_arm_sections.py fits each arm's axis through the section centres of the mid-span band (33 centres, straight to 1.006 mm for the front arm; 34 centres, 0.465 mm for the rear) and then cuts true plane sections normal to that axis every 2.5 mm, reporting width, height and centre. Output: fix_0918/cad_arm_sections.json.",
+      "what_changed": "F-1 arm axis heading and root x; F-2 the arm section law (two segments); F-3 a guarded post-union sliver repair (new target M4E-10); F-4 three C.3 rows that had silently never run.",
+      "user_decision_2026_09_18_propeller": "The user states the campaign Matrice 4E flies the STANDARD propeller, 1157F, not the low-noise 1154F. The manual's accessory and spare-parts tables (UM v1.2 p.103) list only 1154F (27.4 x 13.7 cm); DJI's spec page lists both, and the DJI part-number rule 11-5-7-F reads as 10.8 in diameter and 5.7 in pitch. Recorded here because the manual alone would have led to the wrong part. NOTHING IN THE GEOMETRY CHANGES: PROP_LAW_0816 already carries 1157F, prop_dia_mm stays 274 (1154F and 1157F are both 27.4 cm / 10.8 in in diameter — the two part numbers differ in pitch and in noise treatment, not in diameter), prop_blades stays 2, and plan B.0 forbids changing prop diameter or blade count in a revision anyway.",
+      "still_open": "max_rpm 7500 in drones.py against 6130 RPM in UM v1.2 p.102 (a docs commit, not geometry); the mainboard box CARRY-3 is still unsourced."
+    }
+  },
+  "targets": [
+    {
+      "id": "ENV-L",
+      "component": "M4E-2/M4E-5 (whole frame)",
+      "what": "frame bounding-box length (x), propellers excluded",
+      "value_mm": 328.26,
+      "tol_mm": 3.0,
+      "source": "CAD bbox of matrice4-M4T_v2.step in our axes (cad_tris.npz); the official spec page gives 307.0 mm for the same axis and is reported alongside, not used as the target",
+      "grade": "high",
+      "declared": "The plan chooses the CAD length over the official 307 mm because the official figure and the CAD disagree by 21 mm on this axis; both are printed by the acceptance table."
+    },
+    {
+      "id": "ENV-W",
+      "component": "whole frame",
+      "what": "frame bounding-box width (y), propellers excluded",
+      "value_mm": 387.39,
+      "tol_mm": 3.0,
+      "source": "CAD bbox (cad_tris.npz); official spec page 387.5 mm — the two agree to 0.11 mm",
+      "grade": "high"
+    },
+    {
+      "id": "ENV-H",
+      "component": "whole frame",
+      "what": "frame bounding-box height (z), propellers excluded",
+      "value_mm": 151.52,
+      "tol_mm": 3.0,
+      "source": "CAD bbox (cad_tris.npz)",
+      "grade": "high",
+      "declared": "Plan B.3: height is checked against the CAD 151.52 and the official 149.5 (spec page / User Manual v1.2) is reported alongside. Revision 0 forced 149.5 through envelope_mm; revision 1 sets envelope_mm=None, so the height is built, not asserted."
+    },
+    {
+      "id": "M4E-1",
+      "component": "internal 'structural plate' 142 x 67.6 x 7.1 mm (battery group, metal)",
+      "what": "removed from revision 1",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "src/drone_cad.py:623-627 INTERNALS['matrice4e'] third row, whose own comment states the size was never measured; owned M4T teardown photos t13/t14 show a grey plastic frame and no metal plate of this size",
+      "grade": "medium-high",
+      "note": "Removal is supported by (a) the absence of a source for the box and (b) the teardown photos. Measured effect in revision 0: 51.1 % of the box lies outside the shell, up to 21.6 mm through the belly, and 5,572 of 9,149 mm2 of the nadir facing area."
+    },
+    {
+      "id": "M4E-2a",
+      "component": "fuselage shell (P1 section loft)",
+      "what": "station table: x, width, z_top, z_bot every 8 mm from x = -72 to x = +152",
+      "value_mm": "see drone_rev1_matrice4e.SHELL_STATIONS",
+      "tol_mm": 2.0,
+      "source": "CAD exterior shell solids 109 (side/lower shell), 124 (upper shell), 119 (belly cover), 116 (tail cover), 123 (nose top cover), 120 (deck plate); measured in 4 mm x-bands, widths from 1 mm z-bins (scratch work/cad_final_stations.json)",
+      "grade": "high",
+      "note": "z_top uses only z-bins whose half width is at least 22 mm, so the narrow RTK turret stem does not raise the deck line; the turret is a separate part. z_bot uses bins of at least 6 mm half width."
+    },
+    {
+      "id": "M4E-2b",
+      "component": "fuselage shell nose (the beak)",
+      "what": "shell floor rises over the gimbal: z_bot 1.0 at x=+72 to 39.0 at x=+152; nose apex x",
+      "value_mm": 157.7,
+      "tol_mm": 3.0,
+      "source": "CAD solids 123 (x 128.39..157.73) and 124 (to x 149.28); station table above",
+      "grade": "high",
+      "note": "This is what replaces revision 0's flat 82 x 74 mm nose cap: the shell's own lower boundary rises to clear the gimbal, which is the 'beak over the cradle' of plan row M4E-2."
+    },
+    {
+      "id": "M4E-2c",
+      "component": "gimbal cradle block (second P1 loft, group body)",
+      "what": "station table x = +80 .. +156, width 43.5 -> 82.05, z -19 .. +51",
+      "value_mm": "see drone_rev1_matrice4e.NOSE_STATIONS",
+      "tol_mm": 2.0,
+      "source": "CAD solids 49 (cradle, x 102.81..159.01, y +/-41.02, z -20.62..7.38), 56, 57, 58 (nose inner structure); measured the same way as the shell",
+      "grade": "high"
+    },
+    {
+      "id": "M4E-3a",
+      "component": "battery pack (group battery, metal)",
+      "what": "pack size L x W x H",
+      "value_mm": [
+        145.47,
+        60.6,
+        46.3
+      ],
+      "tol_mm": 0.0,
+      "source": "DJI Matrice 4 Series User Manual v1.2 (2025.04) EN, battery table p.103, BPX345-6741-14.76 (the table prints 'cm', a unit typo); scratch copy m4_user_manual_en.pdf / m4_manual.txt",
+      "grade": "high",
+      "note": "Unchanged from revision 0. An official catalogue size is a source and is never altered (plan P8)."
+    },
+    {
+      "id": "M4E-3b",
+      "component": "battery pack placement",
+      "what": "pack front face x, pack bottom z",
+      "value_mm": {
+        "front_face_x": 70.1,
+        "bottom_z": -6.14
+      },
+      "tol_mm": 1.0,
+      "source": "CAD battery-bay solid 118, front end x_ours = +70.10, bay floor z_ours = -6.14",
+      "grade": "medium-high",
+      "note": "The pack is placed by P8 contain() with this centre pinned and 1 mm clearance. See the DEVIATION row M4E-3c."
+    },
+    {
+      "id": "M4E-3c",
+      "component": "battery pack containment",
+      "what": "DEVIATION: the official 145.47 mm pack does not fit inside the CAD-shaped shell at the CAD bay position with 1 mm clearance",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "measured: the CAD shell tail ends at x = -75.59 and the shell is narrower than 62.6 mm behind x = -68, while the pack pinned at the CAD bay front face spans x -75.37 .. +70.10",
+      "grade": "high",
+      "note": "P8 contain() therefore intersects the pack with the shell and logs clipped_volume_pct. Neither the pack size nor its sourced position is changed. The RF-relevant target (no metal outside the shell, metal facing az 180 = 0) is met by the clip."
+    },
+    {
+      "id": "M4E-4a",
+      "component": "front arms (P4 straight_arm, group body)",
+      "what": "arm axis heading from the nose",
+      "value_deg": 67.58,
+      "tol_deg": 1.0,
+      "source": "CAD front-arm solid 98. Three independent estimators: area-weighted principal axis 67.58 deg (adversarial review 2026-09-18); straight-line fit through 33 mid-span section centres 66.91 deg (fix_0918/cad_arm_sections.py, this unit); the delivered build's own fit 67.04 deg. Revision 1 uses 67.58 deg, the estimator that goes with the 85.50 mm root x of M4E-4b.",
+      "grade": "high",
+      "band": "plan B.3 asks for 66-68 deg",
+      "note": "The built heading is the ONLY free parameter of the arm axis: plan B.0/C.3 pin the rotor centre to revision 0's, so heading and root x cannot both be chosen. Built value 67.5808 deg, inside the plan's 66-68 band."
+    },
+    {
+      "id": "M4E-4b",
+      "component": "front arms",
+      "what": "arm axis x where it crosses |y| = 47.08 mm (the CAD shell's maximum half width) — 'where the arm leaves the body side'",
+      "value_mm": 84.02,
+      "tol_mm": 5.0,
+      "source": "CAD arm solid 98 axis extended back to |y| = 47.08 gives 85.50 mm (adversarial review, area-weighted axis) and 84.34 mm (this unit's mid-span fit). Built value 84.02 mm.",
+      "grade": "high",
+      "note": "⚠ 84.02, not 85.50, and the difference is not a measurement disagreement. The CAD's 85.50 is the CAD axis anchored on the CAD bell centre (139.63, 179.11). Revision 1 may not move the rotor centre, and ours is (139.4247, 181.3738) — 2.26 mm further outboard in y. At the same heading (67.58 deg) through OUR rotor centre the crossing is at 84.02 mm. Reaching 85.50 would need heading 68.12 deg, outside the plan's 66-68 band. Both numbers are inside the plan's 85 +/- 5."
+    },
+    {
+      "id": "M4E-4c",
+      "component": "front arms",
+      "what": "bow (deviation of the arm centreline from the straight root-tip line)",
+      "value_mm": 0.0,
+      "tol_mm": 1.0,
+      "source": "CAD arm 98 mid-span section centres are collinear to 0.6 mm; revision 0 bows 5.5 mm upward",
+      "grade": "high"
+    },
+    {
+      "id": "M4E-4d",
+      "component": "front arms",
+      "what": "arm section (width x height) at root and at the motor",
+      "value_mm": {
+        "root": [
+          12.7,
+          15.4
+        ],
+        "flare_start_d20": [
+          12.12,
+          13.29
+        ],
+        "motor_pad_d0": [
+          27.61,
+          12.16
+        ]
+      },
+      "tol_mm": 1.5,
+      "source": "CAD arm solid 98, true plane sections normal to the fitted axis every 2.5 mm, station d = distance back from the rotor axis (fix_0918/cad_arm_sections.json): d=115 12.69 x 14.64, d=100 12.57 x 14.51, d=60 12.20 x 13.71, d=30 11.91 x 13.46, d=20 12.12 x 13.29, d=10 22.19 x 16.29, d=0 27.61 x 12.16. The root section is the CAD section at d=116 (12.69 x 15.74 at the file's old station t=-63.5).",
+      "grade": "high",
+      "note": "Three sections, not two: the flare occupies only the last 20 mm. See M4E-4g."
+    },
+    {
+      "id": "M4E-4e",
+      "component": "front arms",
+      "what": "arm axis z at root and at the rotor centre",
+      "value_mm": {
+        "root_z": 11.1,
+        "tip_z": -15.1
+      },
+      "tol_mm": 1.5,
+      "source": "CAD arm 98 section centre z falls linearly from +5.83 (t=-63.5) to -11.30 (t=+31.5), slope -0.1803 mm/mm; extended to the root and to the revision-0 rotor radius. Cross-check: the CAD bell base -8.51 minus half the arm height 5.9 gives -14.4.",
+      "grade": "medium-high",
+      "note": "The tip value is a straight extension of the measured band (r <= 200 mm), the same construction and the same slope that produced revision 0's ARM_TIP_Z (-16.35)."
+    },
+    {
+      "id": "M4E-4f",
+      "component": "rear arms (P4 straight_arm, group body)",
+      "what": "rear arm axis: root at |y| = 47.08 and section",
+      "value_mm": {
+        "root_x": -53.1,
+        "root_z": -7.1,
+        "tip_z": -22.0,
+        "root_section": [
+          14.8,
+          16.1
+        ],
+        "flare_start_d20": [
+          13.24,
+          14.13
+        ],
+        "motor_pad_d0": [
+          27.55,
+          12.27
+        ]
+      },
+      "tol_mm": 1.5,
+      "source": "CAD rear-arm solid 92, same method (34 section centres, axis straight to 0.465 mm, heading 129.645 deg, crossing |y| = 47.08 at x = -52.04): d=120 14.81 x 15.78, d=60 13.75 x 14.64, d=20 13.24 x 14.13, d=0 27.55 x 12.27.",
+      "grade": "high",
+      "note": "The rear root x and heading are unchanged from the delivered build (-53.11 mm, built heading 128.035 deg); only the section law changed. Plan B.3 leaves the rear arms alone; revision 1 rebuilds them straight because the whole frame is rebuilt."
+    },
+    {
+      "id": "M4E-5",
+      "component": "fuselage belly",
+      "what": "lowest z of the shell over |x| <= 50",
+      "value_mm": -30.81,
+      "tol_mm": 1.5,
+      "source": "CAD belly cover solid 119, z_min = -30.81 at x = -44",
+      "grade": "high",
+      "note": "Revision 0 sits at -34.74 (3.9 mm low)."
+    },
+    {
+      "id": "M4E-6a",
+      "component": "motor stack (P3 motor_can)",
+      "what": "bell (can) bottom z, front and rear rotors",
+      "value_mm": {
+        "front": -8.51,
+        "rear": -16.33
+      },
+      "tol_mm": 0.5,
+      "source": "CAD bell solids 105/76 (front, z -8.51..8.03) and 95/84 (rear, z -16.33..-0.20); already recorded in src/drone_cad.py MOTOR_BASE_Z as the mean plane -12.42 with +/-3.91 in drones.py rotor_z_mm",
+      "grade": "high"
+    },
+    {
+      "id": "M4E-6b",
+      "component": "motor stack",
+      "what": "bell (can) height and diameter",
+      "value_mm": {
+        "h": 16.3,
+        "d": 27.0
+      },
+      "tol_mm": 1.0,
+      "source": "CAD bell solids: front 16.53, rear 16.13 mm high; bell diameter front 25.6-27.5, rear 26.8-27.8 (mean 26.9). Already in drones.py spec fields motor_h_mm=16.3, motor_dia_mm=27.0 — unchanged in revision 1.",
+      "grade": "high"
+    },
+    {
+      "id": "M4E-6c",
+      "component": "motor stack",
+      "what": "total stack height (bell bottom to prop-seating face) and the adapter above the bell",
+      "value_mm": {
+        "total_front": 23.81,
+        "total_rear": 23.05,
+        "adapter_h_front": 7.51,
+        "adapter_h_rear": 6.75,
+        "adapter_d": 27.0
+      },
+      "tol_mm": 1.5,
+      "source": "CAD prop-mount solids 103/78 (front, top z = 15.30, radius 13.5-13.9) and 96/83 (rear, top z = 6.72, radius 13.7-14.0), measured about each solid's own xy centroid (work/cad_motor.json)",
+      "grade": "high",
+      "note": "Per-rotor adapter heights are used so the stack top lands exactly on the CAD prop-mount top (15.30 front, 6.72 rear). Plan B.3 asks for a total of about 24 +/- 1.5 mm; the built totals are 23.81 and 23.05 mm."
+    },
+    {
+      "id": "M4E-6d",
+      "component": "propeller mounting plane",
+      "what": "rotor_z_mm per plan B.0: target mount z - motor_bell_top_z_m(spec) - standoff",
+      "value_mm": [
+        12.92,
+        4.34,
+        4.34,
+        12.92
+      ],
+      "tol_mm": 0.01,
+      "source": "derived: motor_bell_top_z_m = MOTOR_BASE_Z(-12.42) + motor_h_mm(16.3) = 3.88; target mount z = CAD prop-mount top (15.30 front, 6.72 rear) + the declared 1.5 mm standoff",
+      "grade": "high",
+      "note": "Revision 0 used rotor_z_mm = (3.91, -3.91, -3.91, 3.91), the deviation of the bell BASE from its mean plane, which left the blade plane 7.51 mm (front) and 6.75 mm (rear) below the CAD prop-mount top. DECLARED MESH-VALIDITY GAP: the 1.5 mm standoff is not a physical claim. The P6 blade's root loft hangs up to 1.93 mm below the hub underside inside r <= 13.5 mm, so seating the hub flat on the flat-topped CAD adapter puts 304 blade triangles (0.526 % of the propeller area) inside the motor solid against mesh_check's 0.1 % budget. 1.5 mm is the smallest 0.5 mm step that brings that number to 0.000 %. The repository already carries the same construction as drone_cad.PROP_STANDOFF_M (mini2 2.81, phantom3 1.55, mini5pro 1.00 mm) and calls it exactly that. It is folded into rotor_z_mm because PROP_STANDOFF_M is a revision-0 table."
+    },
+    {
+      "id": "M4E-7",
+      "component": "gimbal camera block (drone_cad._gimbal_sensor_v2, group camera)",
+      "what": "block width (y)",
+      "value_mm": 64.0,
+      "tol_mm": 2.0,
+      "source": "owned 4E photos: front product cut matrice 4E_1.png gives 63-65 mm across the camera block (scale 0.6249 mm/px, recorded in drone_cad._gimbal_sensor_v2). The 4T CAD gimbal (64.6 mm) is NOT used, because the 4T head carries a thermal camera and an NIR spotlight the 4E does not have.",
+      "grade": "medium-high",
+      "note": "Height 61.2 mm and depth 52 mm, the hanging yaw cylinder and the damping plate are all unchanged from revision 0 (plan B.3: 'Height kept')."
+    },
+    {
+      "id": "M4E-8",
+      "component": "propeller blade orientation (P6)",
+      "what": "the thick rounded edge leads and is raised, for each rotor's own direction",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "three owned reference propellers (solo_prop_ccw.stl, solo_prop_cw.stl, 1345_prop_cw.stl) all have blunt edge = raised edge at 0.3/0.5/0.7 R; DJI Mini 2 official GLB, 8/8 blades; figure scratch/mesh_0917/matrice4e/prop_section_0p7R_ours_vs_refs.png",
+      "grade": "high",
+      "note": "Revision 0 raises the +y edge while the blunt leading edge and the tip sweep are at -y, i.e. the two cues disagree. The sweep offset is 13.7 mm, larger than lambda/10 at both bands."
+    },
+    {
+      "id": "R-SPIN",
+      "component": "rotor_dirs",
+      "what": "rotation of each rotor, +1 = counter-clockwise seen from +z, in rotor_deg order (front-left, rear-left, rear-right, front-right)",
+      "value": [
+        -1,
+        1,
+        -1,
+        1
+      ],
+      "tol": 0,
+      "source": "scratch/wf/b1_spin.md: owned DJI photos p12 (4/4 rotors, width ratios 1.9x, 1.9x, 3.4x, 3.4x), p07 (3 rotors), p09 from below (2 rotors); Matrice 4 Series User Manual v1.2 p.20 places prop A at front-right and rear-left and prop B at front-left and rear-right; A is counter-clockwise and B clockwise (established on Mavic 4 Pro hardware).",
+      "grade": "medium-high",
+      "note": "Front-left and rear-right are clockwise, the opposite of revision 0's rotor_layout default. Plan B.2 lets the flip enter revision 1 at medium-high. Limitation carried from b1_spin.md: every Matrice 4E photo used is a DJI product image, so they could share one error; there is no real-hardware photo with resting props."
+    },
+    {
+      "id": "RTK",
+      "component": "GNSS/RTK turret (drone_cad._rtk_cylinder, group canopy)",
+      "what": "centre x, base and top diameter, top z",
+      "value_mm": {
+        "cx": -20.2,
+        "d_base": 40.0,
+        "d_top": 37.4,
+        "top_z": 91.7
+      },
+      "tol_mm": 1.5,
+      "source": "CAD turret cap solids 26/122: x -39.21..-1.68 (centre -20.45), xy 37.53 x 37.42, top z = 91.70",
+      "grade": "high",
+      "note": "Revision 0 used the same x and diameters but stopped the turret at z = 89.70, because envelope_mm forced the total height to the official 149.5. With no fit, revision 1 puts the top at the CAD 91.70 and the built height becomes the CAD 151.52. The base z is read off the built shell (drone_cad._surface_z_at) and sunk 2 mm, so the turret can never float when the station table changes."
+    },
+    {
+      "id": "CARRY-1",
+      "component": "landing legs (drone_cad._gear_arm_spikes, group gear)",
+      "what": "carried over from revision 0 unchanged",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "drone_cad GEAR_SPIKE_H / GEAR_TOP_Z / GEAR_SPIKE_INBOARD, all already measured from the same CAD; the inventory measured the leg surface error against the CAD at median 1.79 mm, p90 4.83 mm",
+      "grade": "high",
+      "note": "Not a revision-1 component. The only change is that revision 0's envelope fit scaled them by 0.999866 and revision 1 does not."
+    },
+    {
+      "id": "CARRY-2",
+      "component": "fisheye vision cameras (4 on the deck) and 2 downward vision lenses, beacon (group camera / accent)",
+      "what": "carried over from revision 0 unchanged",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "drone_cad.py:3010-3032, all positions read from the same CAD lens-housing solids; the downward lens z is read off the built shell surface",
+      "grade": "high",
+      "note": "Not a revision-1 component."
+    },
+    {
+      "id": "CARRY-3",
+      "component": "mainboard box 93 x 53.6 x 5 mm at (-2.9, 0, -12.0) (group pcb)",
+      "what": "carried over from revision 0 unchanged",
+      "value_mm": [
+        93.0,
+        53.6,
+        5.0
+      ],
+      "tol_mm": null,
+      "source": "NONE — src/drone_cad.py:623-627 states in its own comment that this box was never measured",
+      "grade": "unsourced",
+      "note": "OPEN QUESTION for the user. It is NOT a revision-1 component: revision 1 neither adds nor reshapes it, it only keeps revision 0's box so that the change set stays exactly M4E-1..M4E-8. It sits fully inside the shell, so it is not visible from outside at any aspect. If the user wants plan B.0 applied strictly to carried-over parts as well, it should be dropped in revision 2, or measured. MEASURED 2026-09-17: the revision-1 shell is the CAD's, which is narrower below the belt line than revision 0's loft, so the box's rear corners stood 4.8 mm outside it. It now goes through the same P8 containment as the pack (clipped 15.0 % of its volume). Its size still has no source."
+    },
+    {
+      "id": "NOT-CHANGED",
+      "component": "declared but not changed (plan B.3)",
+      "what": "O4 antennas inside the legs (modelled as plastic); 1157F vs 1154F propeller; max_rpm 7500 (code) vs 6130 (User Manual v1.2 p.102); the 4T fisheyes and the RTK dome",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "User Manual v1.2 p.102/p.103; drones.py:357 note",
+      "grade": "n/a"
+    },
+    {
+      "id": "CONTAIN-INSET",
+      "component": "containment margin for the internal boxes (battery, mainboard)",
+      "what": "the boxes are clipped against the body shrunk inward by 1.0 mm along its vertex normals, not against the body itself",
+      "value_mm": 1.0,
+      "tol_mm": null,
+      "source": "plan C.2 ('internal metal 100 % inside the shell with >= 1 mm clearance'); the realized minimum clearance is 0.41 mm because a vertex-normal offset under-shrinks where faces meet at an angle",
+      "grade": "n/a (construction, not a dimension)",
+      "note": "Without it the clip surface is coincident with the shell's outer surface, and the z-buffer, PO and SBR all see internal metal exactly where the shell is: the pack's tail face measured 223 mm2 of metal facing az 180 and the belly showed the pack through the shell. With it, battery metal facing az 180 is 0. No box dimension or position changes."
+    },
+    {
+      "id": "M4E-9",
+      "component": "canopy loft (drone_cad's separate top loft, group canopy)",
+      "what": "ADDED BY THE REVIEW 2026-09-18: revision 1 has no separate canopy loft; the M4E-2a shell station table carries the upper shell itself",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "CAD upper-shell solid 124 (z up to 89.69) — already the source of the M4E-2a z_top stations; measured effect: the canopy group goes from 2 parts / 2,528 faces / 33,614 mm2 to 1 part / 288 faces / 6,313 mm2 (-81.2 %)",
+      "grade": "high",
+      "note": "This was a real geometry change carried in revision 1 with NO component row, NO grade and NO source until this review. Material-neutral: drones.DRONE_GROUP_MAT maps both 'body' and 'canopy' to 'plastic', so only the shape moves between groups."
+    },
+    {
+      "id": "M4E-4g",
+      "component": "front and rear arm shafts (P4 straight_arm section law)",
+      "what": "DEFECT FOUND BY THE REVIEW 2026-09-18, FIXED 2026-09-18: the arm section was interpolated LINEARLY from root to motor pad, so the pad flare was smeared over the whole arm and the mid-span shaft came out roughly twice the CAD width",
+      "value_mm": {
+        "cad_width_by_station_mm": {
+          "t=-60": 12.68,
+          "t=-30": 12.41,
+          "t=0": 12.12,
+          "t=+30": 11.81,
+          "t=+37.5": 14.24,
+          "t=+45": 24.41,
+          "t=+52.5": 27.49
+        },
+        "rev0_width_by_station_mm": {
+          "t=-60": 14.07,
+          "t=-30": 14.07,
+          "t=0": 14.06,
+          "t=+30": 14.05,
+          "t=+45": 14.05,
+          "t=+52.5": 14.05
+        },
+        "rev1_width_by_station_mm": {
+          "t=-60": 17.69,
+          "t=-30": 20.26,
+          "t=0": 22.82,
+          "t=+30": 25.38,
+          "t=+45": 26.67,
+          "t=+52.5": 27.31
+        },
+        "arm_shaft_plan_view_area_mm2": {
+          "cad": 6235,
+          "rev0": 7418,
+          "rev1": 11585
+        }
+      },
+      "tol_mm": 1.5,
+      "source": "true plane sections of CAD front-arm solid 98 and of the built body group, taken normal to the CAD arm axis every 7.5 mm; plan-view areas rasterised at 1 mm in the window |y| > 55 mm, r < 205 mm",
+      "grade": "high",
+      "note": "The CAD shaft is nearly constant at 11.8-12.7 mm from t=-60 to t=+30 and only then flares to 27.5 mm over the last ~22 mm. Revision 1 is +10.7 mm at mid-span and +13.6 mm at t=+30 (2.15x the CAD). The one-sided CAD->ours distance cannot see this (every CAD point still finds a near neighbour on the larger arm) and the reverse distance, 5.87 mm p90, sits just under the lambda/10 limit of 8.6 mm, so the frozen acceptance passes it. The plan-view area is the statistic that shows it: the arm shafts project 11,585 mm2 against the CAD's 6,235 and revision 0's 7,418 — i.e. revision 1 ADDS about 4,200 mm2 of plastic area at exactly the nadir and zenith aspects where removing the 5,572 mm2 metal plate (M4E-1) is the headline change. P4's API is frozen and interpolates linearly, so the fix is to build each arm as two straight_arm segments — a constant 12.2 mm shaft to t=+30, then the flare to the 27.6 mm pad. NOT DONE HERE: it is a geometry change and belongs to the builder.",
+      "status": "FIXED",
+      "fix": "Each arm is now two P4 `straight_arm` segments on one axis (P4's API unchanged): a shaft from the root to d = 20 mm with the CAD's near-constant section, then the flare to the motor pad. Measured effect: the arm-shaft plan-view area (the review's own statistic, window |y| > 55 mm and r < 205 mm) goes 11,585 -> 6,725 mm2 against the CAD's 6,235 and revision 0's 7,418 — revision 1 is now CLOSER to the CAD than revision 0 is (+490 vs +1,183 mm2), which is the rule plan C.4 states. Both one-sided distances improved as well: CAD->ours front_arms p90 3.345 -> 2.541 mm, ours->CAD front_arms p90 5.871 -> 3.192 mm, ours->CAD rear_arms p99 7.960 -> 3.414 mm (that row was one of the 13 failures). Top-view silhouette IoU against the CAD 0.853 -> 0.927.",
+      "acceptance_rows_fixed": [
+        "C.4 distance/arm-shaft plan-view area vs CAD",
+        "C.4 distance/ours->CAD rear_arms p99"
+      ]
+    },
+    {
+      "id": "M4E-10",
+      "component": "post-union sliver repair (all groups)",
+      "what": "ADDED 2026-09-18 (review defects D3 and D4): the boolean's sliver triangles are removed by a guarded half-edge collapse after each group's revision-0 union",
+      "value_mm": null,
+      "tol_mm": null,
+      "source": "plan C.1 (slivers within revision-0 budgets; 0 self-intersections); src/mesh_check.py SLIVER_MIN_ANGLE_DEG = 0.5 and the repository's own per-airframe sliver budget (369 for this key); the per-group `sliver_repair` block of the build report records every number and every refused pass",
+      "grade": "high",
+      "note": "Only edges at most 1.5 mm long are collapsed and only on triangles under 1.0 deg, with the manifold link condition checked on each one. A pass that opens the solid, changes its component count, moves its volume by more than 0.5 % or its surface by more than 0.5 mm is discarded and the unrepaired union is kept. Measured movement: body 0.329 mm, battery 0.191 mm, gear 0.204 mm; no group's volume moved by more than 0.005 %. This changes no station table, no dimension and no placement."
+    },
+    {
+      "id": "PROP-PART",
+      "component": "propeller part number (no geometry attached)",
+      "what": "which propeller the campaign aircraft flies",
+      "value": "1157F (standard)",
+      "tol": 0,
+      "source": "user decision 2026-09-18. DJI's Matrice 4 Series spec page lists both 1157F (standard) and 1154F (low-noise); the User Manual v1.2 accessory and spare-parts tables on p.103 list ONLY 1154F (27.4 x 13.7 cm), which is why the build and the review both reported 1154F as the manual's answer. The DJI part-number rule 11-5-7-F reads as 10.8 in diameter and 5.7 in pitch.",
+      "grade": "high",
+      "note": "No geometry changes. drones.py PROP_LAW_0816 already names 1157F; prop_dia_mm stays 274 mm, prop_blades 2, and plan B.0 forbids changing either in a revision. Recorded so that the earlier 'the manual lists only 1154F' finding is not read as a correction to the code."
+    }
+  ]
+}

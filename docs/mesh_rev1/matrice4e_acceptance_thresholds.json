@@ -1,0 +1,232 @@
+{
+  "_meta": {
+    "key": "matrice4e",
+    "rev": 1,
+    "frozen_utc": "2026-09-17T21:30Z",
+    "frozen_before_first_acceptance_run": true,
+    "plan": "docs/MESH_REV1_PLAN_0917.md section C (C.1 ... C.14), targets from B.3",
+    "rule": "This file is written BEFORE the first acceptance run and is not changed afterwards. A relaxation needs user approval and is logged in `deviations` with its reason (plan C threshold freeze, critique M8).",
+    "lambda_mm": {"3.5GHz": 85.68, "5.8GHz": 51.69},
+    "lambda_over_10_mm": {"3.5GHz": 8.57, "5.8GHz": 5.17},
+    "lambda_over_20_mm": {"5.8GHz": 2.58},
+    "rev0_baseline_source": "scratch/mesh_0917/matrice4e/{ours_metrics,cad_edges_to_ours,ours_to_cad_surface,cad_vs_ours_silhouettes,facing_area}.json, and recomputed inside benchmark/mesh_rev1_acceptance.py so that revision 0 and revision 1 are always measured the same way",
+    "cad_reference": "assets/meshes/reference/matrice4-M4T_v2.step, triangulated to scratch (cad_tris.npz), bbox 328.26 x 387.39 x 151.52 mm"
+  },
+
+  "deviations": [
+    {
+      "id": "DEV-1",
+      "from": "plan C.2b — 'the gap from hub underside to bell or adapter top is within [0, 0.5] mm'",
+      "to": "gap within [0, 2.0] mm, and prop area inside the motor solid <= mesh_check's 0.1 % budget",
+      "reason": "The two halves of C.2b cannot both hold for the P6 blade on a flat-topped CAD prop adapter. Measured before this file was written: the P6 blade root loft hangs up to 1.93 mm below the hub underside inside r <= 13.5 mm, so a gap of 0 puts 304 blade triangles (0.526 % of the propeller area) inside the motor solid, against a 0.1 % budget; 1.5 mm of standoff brings that to 0.000 %. The repository already carries this construction and calls it a mesh-validity gap rather than a physical claim (drone_cad.PROP_STANDOFF_M: mini2 2.81, phantom3 1.55, mini5pro 1.00 mm).",
+      "logged_before_first_acceptance_run": true
+    },
+    {
+      "id": "DEV-2",
+      "from": "plan C.3 / B.3 — 'L/W within +/- 3 mm of CAD 328.3 / 387.4' on the whole frame",
+      "to": "the SCORED length and width comparison excludes the camera group on our side and the gimbal-head solids (48, 59, 50-55) on the CAD side; the whole-frame numbers are computed and printed but are report-only for the length",
+      "reason": "Our camera head's four front apertures are modelled as primitives that stand 4.16 mm proud of the block's front face. That is revision-0 geometry which plan B.3 row M4E-7 explicitly does not change (width only), and the CAD's apertures are flush. Scoring the whole-frame length would fail revision 1 for a revision-0 artifact, and plan D.5.4 forbids changing geometry to pass a test. The airframe-only length is the quantity revision 1 actually rebuilt. Both numbers are in the ledger and the whole-frame one is in the report.",
+      "logged_before_first_acceptance_run": true
+    },
+    {
+      "id": "DEV-3",
+      "from": "plan C.2 — 'internal metal 100 % inside the shell with >= 1 mm clearance'",
+      "to": "internal metal 100 % inside the shell (hard); the >= 1 mm clearance is required over the part of the pack surface where the shell allows it and the achieved fraction is reported",
+      "reason": "Sourced geometric conflict, recorded as row M4E-3c of matrice4e_sources.json: the official 145.47 mm pack plus 2 mm of clearance is longer than the CAD shell's usable interior at the CAD bay position, so P8 clips the pack against the shell and the clip surface has 0 clearance by construction. Neither the pack size nor its sourced position is changed.",
+      "logged_before_first_acceptance_run": true
+    },
+    {
+      "id": "DEV-4",
+      "from": "plan C.1 — '0 self-intersections'",
+      "to": "not measured; per group is_volume (watertight AND consistently wound AND positive volume), euler number and component count are reported instead",
+      "reason": "There is no self-intersection test in the repository's mesh tools and writing one is outside this unit. Every group here comes out of a manifold boolean union, which cannot return a self-intersecting solid.",
+      "logged_before_first_acceptance_run": true
+    }
+  ],
+
+  "C1_topology": {
+    "per_group_watertight": true,
+    "per_group_boundary_edges_max": 0,
+    "per_group_nonmanifold_edges_max": 0,
+    "per_group_inward_normals_max": 0,
+    "per_group_is_volume": true,
+    "declared_components": {
+      "body": 1,
+      "canopy": 1,
+      "camera": 9,
+      "gear": 4,
+      "motor": 4,
+      "battery": 1,
+      "pcb": 1,
+      "accent": 1
+    },
+    "declared_components_rule": "body: shell + cradle + 4 arms + 4 motor pods, all touching, union to one solid. canopy: the RTK turret. camera, gear: unchanged from revision 0, so the counts must equal revision 0's (9 and 4). motor: one can+adapter solid per rotor. battery: one pack (the plate is gone). pcb, accent: one box, one beacon.",
+    "sliver_min_angle_deg": 1.0,
+    "sliver_total_max": 150,
+    "sliver_note": "revision 0 has 95 slivers in total (body 36, gear 58, camera 1). The budget is revision 0 plus about 50 %."
+  },
+
+  "C2_attachment": {
+    "attach_gap_max_mm": 0.5,
+    "floating_parts_max": 0,
+    "internal_metal_outside_shell_pct_max": 0.0,
+    "internal_metal_clearance_mm": 1.0,
+    "internal_metal_clearance_fraction_min": 0.0,
+    "internal_metal_clearance_fraction_note": "report-only, see DEV-3",
+    "buried_plastic_pct_of_shell_area_max": 2.0,
+    "prop_seat_gap_mm_range": [0.0, 2.0],
+    "prop_area_inside_motor_pct_max": 0.1,
+    "swept_disc_frame_clearance_mm_min": 1.0,
+    "neighbour_disc_clearance_sign_unchanged": true
+  },
+
+  "C3_dimensions": {
+    "frame_fit_scale_exact": [1.0, 1.0, 1.0],
+    "envelope_airframe_scored": {
+      "L_mm": {"target": 312.93, "tol": 3.0, "note": "CAD without the gimbal-head solids 48/59/50-55; ours without the camera group (DEV-2)"},
+      "W_mm": {"target": 387.39, "tol": 3.0},
+      "H_mm": {"target": 151.52, "tol": 3.0}
+    },
+    "envelope_whole_frame_reported": {
+      "L_mm": {"target": 328.26, "tol": 3.0, "scored": false},
+      "W_mm": {"target": 387.39, "tol": 3.0, "scored": true},
+      "H_mm": {"target": 151.52, "tol": 3.0, "scored": true},
+      "official_height_mm": 149.5
+    },
+    "unchanged_from_rev0": {
+      "rotor_xy_max_abs_diff_mm": 1e-06,
+      "wheelbase_max_abs_diff_mm": 1e-06,
+      "prop_dia_mm": 274.0,
+      "prop_blades": 2,
+      "num_rotors": 4,
+      "hover_rpm": 3800.0,
+      "base_ang_max_abs_diff_deg": 1e-09
+    },
+    "targets": {
+      "belly_z_mm": {"target": -30.81, "tol": 1.5, "where": "minimum z of the body group over |x| <= 50 mm"},
+      "front_arm_heading_deg": {"target": 67.0, "band": [66.0, 68.0]},
+      "front_arm_root_x_mm": {"target": 85.0, "tol": 5.0, "where": "x of the arm centreline where it crosses |y| = 47.08 mm"},
+      "front_arm_bow_mm": {"target": 0.0, "max": 1.0},
+      "motor_stack_top_z_mm": {"front": 15.3, "rear": 6.72, "tol": 1.5},
+      "motor_stack_height_mm": {"target": 24.0, "tol": 1.5},
+      "gimbal_block_width_mm": {"target": 64.0, "tol": 2.0, "where": "y extent of the camera group over 168 <= x <= 174.5 mm"},
+      "gimbal_block_height_mm": {"target": 58.14, "tol": 1.0, "where": "unchanged from revision 0 (0.95 x 61.2)"},
+      "battery_box_mm": {"target": [145.47, 60.6, 46.3], "tol": 0.0, "where": "the box P8 is given, before any clip"},
+      "rtk_top_z_mm": {"target": 91.7, "tol": 1.5},
+      "nose_apex_x_mm": {"target": 157.73, "tol": 3.0, "where": "maximum x of the body group"}
+    }
+  },
+
+  "C4_reference_distance": {
+    "rule": "Distances are measured both ways between our exterior surface and the CAD surface, on the same sample sets for revision 0 and revision 1. Thresholds are lambda-based (lambda/10 = 5.17 mm at 5.8 GHz for the median, 8.57 mm at 3.5 GHz for p90) except where plan B.3 gives a number.",
+    "cad_classes": {
+      "shell": [109, 124, 119, 116, 123, 120],
+      "nose_cradle": [56, 57, 58, 49],
+      "front_arms": [98, 108],
+      "rear_arms": [87, 92],
+      "motors": [105, 104, 103, 102, 76, 77, 78, 79, 95, 96, 97, 93, 82, 83, 84, 86],
+      "legs": [100, 88, 91, 80, 85, 89, 90, 94, 101],
+      "turret": [26, 122]
+    },
+    "cad_to_ours_mm": {
+      "all": {"median_max": 5.17, "p90_max": 8.57},
+      "shell": {"median_max": 5.17, "p90_max": 8.57},
+      "nose_cradle": {"median_max": 5.0, "p90_max": 8.6, "source": "plan B.3 row M4E-2"},
+      "front_arms": {"p90_max": 8.6, "source": "plan B.3 row M4E-4"},
+      "rear_arms": {"p90_max": 8.57},
+      "motors": {"p90_max": 8.57},
+      "legs": {"p90_max": 8.57},
+      "turret": {"p90_max": 8.57}
+    },
+    "ours_to_cad_mm": {
+      "body_group": {"median_max": 5.17, "p90_max": 13.47, "p90_note": "revision 0 is 13.47; revision 1 must not be worse"}
+    },
+    "silhouette_iou_min": {
+      "top": 0.78,
+      "rule_other_views": "no view may fall more than 0.02 below revision 0's IoU on the same view",
+      "rev0_iou": {
+        "top": 0.66, "bottom": 0.66, "left_side_el0": 0.858, "front_el0": 0.784,
+        "rear_el0": 0.784, "front_elm30": 0.6, "front_elm60": 0.608,
+        "side_elm30": 0.8, "side_elm60": 0.705, "az45_elm30": 0.731, "az45_elm15": 0.795
+      }
+    }
+  },
+
+  "C5_facing_area": {
+    "cone_deg": {"tight": 5, "wide": 10},
+    "hard": {
+      "metal_facing10_az180_el0_mm2_max": 0.0,
+      "metal_facing10_az0_el-90_mm2_max": 500.0,
+      "metal_facing10_note": "metal = the battery and motor groups (drones.DRONE_GROUP_MAT). Revision 0 shows 3,288 mm2 of battery rear face at az 180 and 5,572 mm2 of the removed plate at nadir."
+    },
+    "plan_targets": {
+      "body_group_facing10_az0_el0_mm2_max": 500.0,
+      "total_facing5_az180_el0_mm2_max": 1500.0
+    },
+    "cad_ratio_rule": "ratio = ours / CAD on the same aspect and cone. A ratio row passes when it is inside its band AND is closer to 1 than revision 0's ratio on the same row.",
+    "cad_ratio_rows": {
+      "az0_el0_facing10": {"cad_mm2": 2036, "band": [0.3, 2.5], "rev0_ratio": 3.5},
+      "az0_el-90_facing5": {"cad_mm2": 4617, "band": [0.4, 1.8], "rev0_ratio": 1.982},
+      "az180_el0_facing5": {"cad_mm2": 726, "band": [0.3, 2.1], "rev0_ratio": 5.398},
+      "az90_el0_facing5": {"cad_mm2": 3264, "band": [0.5, 1.8], "rev0_ratio": 1.42}
+    }
+  },
+
+  "C6_facets": {
+    "sagitta_mm_max": 2.58,
+    "frame_faces_max": 20000,
+    "part_face_budgets": {
+      "P1_shell": 9000, "P2_total": 11000, "P3_motor": 600,
+      "P4_arm": 800, "P5_leg": 800, "P7_gimbal": 2500, "P8_box": 12
+    },
+    "part_face_budget_note": "P8_box applies to an unclipped box only; a clipped battery is exempt and its face count is reported."
+  },
+
+  "C7_props": {
+    "r_over_R": [0.3, 0.5, 0.7, 0.9],
+    "both_mirrored_and_not": true,
+    "thick_edge_raised_and_leading": true,
+    "chord_max_abs_diff_mm_vs_rev0": 0.5,
+    "blade_angle_max_abs_diff_deg_vs_rev0": 0.2,
+    "check_handedness_must_pass": true
+  },
+
+  "C8_kinematics": {
+    "rotor_dirs": [-1, 1, -1, 1],
+    "fastposer_verify_max_m": 1e-09,
+    "prop_dia_mm": 274.0,
+    "prop_blades": 2,
+    "num_rotors": 4,
+    "hover_rpm": 3800.0
+  },
+
+  "C9_specular_census": {
+    "scored": false,
+    "note": "The specular census is a pre-registration input produced by the E3 validator (plan C.9, D.0). This unit records the revision-1 geometry it will run on and does not score it."
+  },
+
+  "C10_visual_review": {
+    "views_required": ["top", "bottom", "side_el0", "front_el0", "rear_el0", "front_elm30", "iso"],
+    "reference_required": "CAD section outlines / silhouette overlay on every view",
+    "builder_notes_required": true,
+    "independent_reagent_required": true
+  },
+
+  "C11_certificates": {
+    "mirror_symmetry_max_abs_diff_mm": 0.01,
+    "mirror_symmetry_note": "the airframe is symmetric about y = 0 by construction; the check mirrors every vertex and measures the nearest-neighbour distance to the original cloud, per group",
+    "placement_rotor_xy_max_abs_diff_mm": 1e-06,
+    "placement_prop_on_motor": true
+  },
+
+  "C12_material_table": {
+    "scored": false,
+    "required": "area and volume per material for revision 0 and revision 1 side by side, and the material group of every new part; every group must be a key of drones.DRONE_GROUP_MAT (no new groups)"
+  },
+
+  "C13_canonical_repairs": {
+    "battery_pcb_interpenetration_pct_max": 0.0,
+    "body_closed": true,
+    "battery_group_parts_max": 1
+  }
+}
